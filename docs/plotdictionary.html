@@ -485,6 +485,9 @@
 		<a href="#about-gameover">game over</a><br>
 		
 	
+		<a href="#about-get%20inventory%20size">get inventory size</a><br>
+		
+	
 		<a href="#about-getambientmusic">get ambient music</a><br>
 		
 	
@@ -1163,6 +1166,9 @@
 		<a href="#about-selectmenuitem">select menu item(menu item handle)</a><br>
 		
 	
+		<a href="#about-set%20inventory%20size">set inventory size(new size)</a><br>
+		
+	
 		<a href="#about-setambientmusic">set ambient music (song)</a><br>
 		
 	
@@ -1786,7 +1792,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">global variable (id,name)</font></b><br>
-			Creates a global variable that can be used in any script. The first argument to the global variable declaration is a unique ID number. The second argument is the name of the variable. The ID number for a global variable is a number from 0 to 1024. Each global variable must have a unique number, but this number will not conflict with the ID numbers you use for scripts. It is all right to have a script and a global variable with the same ID number. See also <a href="#about-variable" class="ref">variable</a><br>
+			Creates a global variable that can be used in any script. The first argument to the global variable declaration is a unique ID number. The second argument is the name of the variable. The ID number for a global variable is a number from 0 to 4095. Each global variable must have a unique number, but this number will not conflict with the ID numbers you use for scripts. It is all right to have a script and a global variable with the same ID number. See also <a href="#about-variable" class="ref">variable</a><br>
 			<pre># any script can read and set the value of a global
 global variable(1,mini game score)</pre>
 			
@@ -2331,7 +2337,7 @@ plotscript,ref example,begin
 
   # find the first copy of NPC 10,
   # and store the reference in a variable
-  set variable(Fred,NPC reference(10,0))
+  Fred := NPC reference(10,0)
 
   # now we can manipulate that NPC with the variable
   walk NPC     (Fred,south,3)
@@ -2474,15 +2480,15 @@ plotscript,every NPC example,begin
   variable(loop,guard count,current guard)
 
   # the guard is NPC 10, and there are many copies of him on the map
-  set variable(guard count,NPC copy count(10))
+  guard count := NPC copy count(10)
 
   # this loop repeats once for each copy of NPC 10
   for(loop,0,guard count) do,begin
 
-    set variable(current guard,NPC reference(10,loop))
+    current guard := NPC reference(10,loop)
     walk NPC(current guard,south,4)
     # if we added a "wait for NPC(current guard)" right here
-    # then the guards would walk one t a time
+    # then the guards would walk one at time
 
   end
 
@@ -4343,6 +4349,22 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-get%20inventory%20size"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get inventory size</font></b><br>
+			Returns a count of how many inventory slots are available.<br>
+			
+			
+		</tt></p>
+		<a name="about-set%20inventory%20size"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set inventory size(new size)</font></b><br>
+			Changes the number of inventory slots that are available. Use the constant <span class="param">inv:max</span> to restore the maximum value. The number you use will be rounded down to the nearest multiple of 3. Changes made to the inventory size are not saved in your save-game, so if you want them to persist after loading you should use an on-load script to re-apply the changes.<br>
+			
+			
+		</tt></p>
 		<a name="about-leader"></a>
 		<p>
 		<tt>
@@ -4475,7 +4497,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get map tileset</font></b><br>
-			Returns the ID number of the default tileset for the map. <a href="#about-loadtileset" class="ref">load tileset</a> does not affect the value returned by this function, but <a href="#about-changetileset" class="ref">change tileset</a> does. So you might need to use <a href="#about-layertileset" class="ref">layer tileset</a> to find the actual currently in-use tileset.<br>
+			Returns the ID number of the default tileset for the map. <a href="#about-loadtileset" class="ref">load tileset</a> does not affect the value returned by this function, but <a href="#about-changetileset" class="ref">change tileset</a> does. Use <a href="#about-layertileset" class="ref">layer tileset</a> instead to find the actual currently in-use tileset(s).<br>
 			
 			
 		</tt></p>
@@ -4814,7 +4836,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">pick hero</font></b><br>
-			Pops up a hero-picker box that lets you choose one of the heroes in your active party. The return value is the position in the party of the hero you picked.<br>
+			Pops up a hero-picker box that lets you choose one of the heroes in your active party. The return value is the position in the party of the hero you picked, or -1 if the player cancelled.<br>
 			
 			
 		</tt></p>
@@ -5230,7 +5252,7 @@ end
 		<b><font color="yellow">read pass block (x,y)</font></b><br>
 			Returns the value of a passability (wallmap) tile on the current map at the specified X,Y position. The return value will be from 0 to 255 and consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16  = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>To check the value of a specific bit, use the <a href="#about-and" class="ref">and</a> operator. For example:  <br>
 			<pre>  variable (pass)
-  set variable(pass,read pass block(hero X(me),hero Y(me)))
+  pass := read pass block(hero X(me),hero Y(me))
   if (pass,and,harm tile) then begin
     # this checks if the hero is standing
     # on a harm tile
@@ -5243,7 +5265,7 @@ end
 		<b><font color="yellow">write pass block (x,y,value)</font></b><br>
 			Writes a new passability (wallmap) information to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16  = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>You can <a href="#about-add" class="ref">add</a> the constants together. For example:<br>
 			<pre>variable (pass)
-set variable(pass,northwall+southwall+eastwall+westwall)
+pass := northwall+southwall+eastwall+westwall
 write pass block(15,3,pass)
 # this makes the fifteenth tile in the third column
 # impassable on all directions</pre>
@@ -5268,7 +5290,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">change tileset (tileset, layer)</font></b><br>
-			An alternative to <a href="#about-loadtileset" class="ref">load tileset</a>: Changes and loads in the default or a map layer tileset for the current map. <span class="param">tileset</span> is the ID number of the tileset to load. You can use the constant <span class="param">tileset:default</span> to set a layer to use the default tileset. <span class="param">layer</span> is the layer number (0-2) to change, or the constant <span class="param">tileset:default</span> which changes the default tileset. It defaults to <span class="param">tileset:default</span> if omitted. <span class="param">change tileset</span> with no arguments restores the set tilesets after using load tileset. Unlike load tileset, this command's effects last to the next time you come back to this map if you save the map state (either tilemap or npcs, or general map settings via <a href="#about-savemapstate" class="ref">save map state</a>). To undo the effects, you'll need to use <a href="#about-resetmapstate" class="ref">reset map state</a><br>
+			An alternative to <a href="#about-loadtileset" class="ref">load tileset</a>: Changes and loads in the default or a map layer tileset for the current map. Unlike load tileset, this command's effects last to the next time you come back to this map if you save the map state (in General Map Settings, or mapstate:mapsettings with <a href="#about-savemapstate" class="ref">save map state</a>). To undo the effects, you'll need to use <a href="#about-resetmapstate" class="ref">reset map state</a>. <span class="param">tileset</span> is the ID number of the tileset to load. You can use the constant <span class="param">tileset:default</span> to set a layer to use the default tileset. <span class="param">layer</span> is the layer number (0-2) to change, or the constant <span class="param">tileset:default</span> which changes the default tileset. It defaults to <span class="param">tileset:default</span> if omitted. <span class="param">change tileset</span> with no arguments restores the set tilesets after using load tileset. <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5328,7 +5350,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">set variable (variable,value)</font></b><br>
-			This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<br>If you prefer, you can also set variables by writing variable := value<br>
+			This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<br>The set variable command is just available for backwards compatability. You should actually set variables by writing variable := value<br>
 			
 			
 		</tt></p>
@@ -6908,7 +6930,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 530 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 532 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
