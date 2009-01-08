@@ -6,6 +6,7 @@
 
 #include "udts.bi"
 #include "game_udts.bi"
+#include "slices.bi"
 
 'Misc game globals
 EXTERN sourcerpg as string
@@ -107,5 +108,5 @@ EXTERN mstates() as MenuState
 EXTERN menu_set as MenuSet
 EXTERN topmenu as INTEGER
 
-'Plotsprite globals
-EXTERN plot_sprites() as PlotSprite
+'Slice handles
+EXTERN plotslices() as Slice Ptr

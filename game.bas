@@ -36,7 +36,6 @@ DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
 DECLARE SUB advance_text_box ()
-DECLARE SUB draw_plotsprites
 DECLARE SUB slice_test_suite ()
 
 REMEMBERSTATE
@@ -127,9 +126,6 @@ DIM script(128) as ScriptData
 DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
-
-DIM plot_sprites() AS PlotSprite
-REDIM plot_sprites(15)
 
 'End global variables
 
@@ -686,9 +682,9 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  'DEBUG debug "drawoverhead"
  IF readbit(gmap(), 19, 1) THEN drawmap mapx, mapy, 2, 0, tilesets(2), dpage, 1
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tilesets(0), dpage
- draw_plotsprites
+ DrawSlice(SliceTable.scriptsprite, dpage) 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  
- DrawSlice(SliceTable.Root, dpage)
+ DrawSlice(SliceTable.Root, dpage) 'FIXME: This is temporary, for the slice test suite!
  
  animatetilesets tilesets()
  IF harmtileflash = YES THEN
@@ -3004,28 +3000,6 @@ SUB advance_text_box ()
  txt.id = -1
  setkeys
  flusharray carray(), 7, 0
-END SUB
-
-FUNCTION grow_plotsprites AS INTEGER
- DIM i as integer
- FOR i = 0 to UBOUND(plot_sprites)
-  IF plot_sprites(i).used = NO THEN RETURN i
- NEXT
- 
- REDIM PRESERVE plot_sprites(UBOUND(plot_sprites) * 1.1 + 5)
- RETURN i
-END FUNCTION
-
-SUB draw_plotsprites
- FOR i as integer = 0 to UBOUND(plot_sprites)
-  IF plot_sprites(i).used THEN
-   WITH plot_sprites(i)
-    IF .visible THEN
-     sprite_draw(.sprite + .frame, .pal, .x, .y, 1, YES, dpage)
-    END IF
-   END WITH
-  END IF
- NEXT
 END SUB
 
 SUB slice_test_suite ()

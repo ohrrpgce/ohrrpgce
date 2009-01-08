@@ -698,6 +698,35 @@ Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData)
  return ret
 end function
 
+'All arguments default to no-change
+Sub ChangeSpriteSlice(byval sl as slice ptr,_
+                      byval spritetype as integer=-1,_
+                      byval record as integer=-1,_
+                      byval pal as integer = -2,_
+                      byval frame as integer = -1,_
+                      byval fliph as integer = -2,_
+                      byval flipv as integer = -2)
+ if sl->SliceType <> slSprite then debug "Attempt to use non-sprite slice " & sl & " as a sprite" : exit sub
+ dim dat as SpriteSliceData Ptr = sl->SliceData
+ with *dat
+  if spritetype >= 0 then
+   .spritetype = spritetype
+   .loaded = NO
+  end if
+  if record >= 0 then
+   .record = record
+   .loaded = NO
+  end if
+  if pal >= -1 then
+   .pal = pal
+   .loaded = NO
+  end if
+  if frame >= 0 then .frame = frame
+  if fliph > -2 then .flipHoriz = (fliph <> 0)
+  if flipv > -2 then .flipVert = (flipv <> 0)
+ end with
+end sub
+
 '--Menu-------------------------------------------------------------------
 Sub DisposeMenuSlice(byval sl as slice ptr)
  if sl = 0 then exit sub
@@ -1231,3 +1260,4 @@ Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_re
   debug rawline
  END IF
 End sub
+

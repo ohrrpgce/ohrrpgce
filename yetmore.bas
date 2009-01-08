@@ -26,6 +26,10 @@ DEFINT A-Z
 'Mike: why? it's already wrapped in gfx_*.bas
 #include "gfx.bi"
 
+'FIXME: Why does DIMing plotslices() in game.bas not work?
+DIM plotslices() AS Slice Ptr
+REDIM plotslices(63) 'The size of 64 is just so we won't have to reallocate for a little while
+
 'these variables hold information used by breakpoint to step to the desired position
 DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
 
@@ -1700,532 +1704,74 @@ SELECT CASE AS CONST id
    scriptret = herospeed(retvals(0))
   END IF
  CASE 322'--load hero sprite
-  scriptret = 0
-  IF bound_arg(retvals(0), 0, gen(genMaxHeroPic), "load hero sprite", "sprite number") THEN
-   i = grow_plotsprites
-   
-   with plot_sprites(i)
-
-    .sprite = sprite_load(game & ".pt0", retvals(0), 8, 32, 40)
-    IF .sprite = 0 THEN debug "Couldn't load hero sprite #" & retvals(0) : EXIT SUB
-    
-    .pal = palette16_load(game + ".pal", retvals(1), 0, retvals(0))
-    IF .pal = 0 THEN
-     debug "Couldn't load hero palette for sprite #" & retvals(0)
-     sprite_unload(@.sprite)
-     EXIT SUB
-    END IF
-    
-    .used = YES
-    .frames = 8
-    .spr_type = 0
-    .spr_num = retvals(0)
-   end with
-   
-   scriptret = i
-   
-  END IF
+  scriptret = load_sprite_plotslice(0, retvals(0), retvals(1))
  CASE 323'--free sprite
-  IF valid_plotsprite(retvals(0), "free sprite") THEN
-   WITH plot_sprites(retvals(0))
-    .used = NO
-    .x = 0
-    .y = 0
-    .visible = NO
-    .frame = 0
-    .spr_type = 0
-    .spr_num = 0
-    .frames = 0
-    .frame = 0
-    palette16_unload(@.pal)
-    sprite_unload(@.sprite)
-   END WITH
+  IF valid_plotslice(retvals(0), "free sprite") THEN
+   DeleteSlice(@plotslices(retvals(0)))
   END IF
  CASE 324 '--place sprite
-  IF valid_plotsprite(retvals(0), "place sprite") THEN
-   WITH plot_sprites(retvals(0))
+  IF valid_plotslice(retvals(0), "place sprite") THEN
+   WITH *plotslices(retvals(0))
     .x = retvals(1)
     .y = retvals(2)
    END WITH
   END IF
  CASE 325 '--set sprite visible
-  IF valid_plotsprite(retvals(0), "set sprite visible") THEN
-   WITH plot_sprites(retvals(0))
-    .visible = retvals(1)
+  IF valid_plotslice(retvals(0), "set sprite visible") THEN
+   WITH *plotslices(retvals(0))
+    .Visible = (retvals(1) <> 0)
    END WITH
   END IF
  CASE 326 '--set sprite palette
-  IF valid_plotsprite(retvals(0), "set sprite palette") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmppal as palette16 ptr 
-    tmppal = palette16_load(game + ".pal", retvals(1), .spr_type, .spr_num)
-    IF tmppal = 0 THEN
-     debug "Couldn't load hero palette #" & retvals(1)
-     EXIT SUB
-    END IF
-    palette16_unload(@.pal)
-    .pal = tmppal
-   END WITH
+  IF valid_plotslice(retvals(0), "set sprite palette") THEN
+   ChangeSpriteSlice plotslices(retvals(0)), , ,retvals(1)
   END IF
  CASE 327 '--replace hero sprite
-  IF valid_plotsprite(retvals(0), "replace hero sprite") AND bound_arg(retvals(1), 0, gen(genMaxHeroPic), "replace hero sprite", "sprite number") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmpspr as frame ptr
-    tmpspr = sprite_load(game & ".pt0", retvals(1), 8, 32, 40)
-    IF tmpspr = 0 THEN
-     debug "Couldn't load hero sprite #" & retvals(1)
-     EXIT SUB
-    END IF
-    sprite_unload(@.sprite)
-    .sprite = tmpspr
-    .spr_type = 0
-    .spr_num = retvals(1)
-    .frames = 8
-    if .frame >= .frames then .frame = 0
-    IF retvals(2) > -2 THEN
-     dim tmppal as palette16 ptr
-     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-     IF tmppal = 0 THEN
-      debug "Couldn't load hero palette #" & retvals(2)
-      EXIT SUB
-     END IF
-     palette16_unload(@.pal)
-     .pal = tmppal
-    END IF
-   END WITH
-  END IF
+  change_sprite_plotslice retvals(0), 0, retvals(1), retvals(2)
  CASE 328 '--set sprite frame
-  IF valid_plotsprite(retvals(0), "set sprite frame") THEN
-   IF bound_arg(retvals(1), 0, plot_sprites(retvals(0)).frames, "set sprite frame", "frame number") THEN
-    plot_sprites(retvals(0)).frame = retvals(1)
-   END IF
+  IF valid_plotslice(retvals(0), "set sprite frame") THEN
+   ChangeSpriteSlice plotslices(retvals(0)), , , , retvals(1)
   END IF
  CASE 329'--load walkabout sprite
-  scriptret = 0
-  IF bound_arg(retvals(0), 0, gen(genMaxNPCPic), "load walkabout sprite", "sprite number") THEN
-   i = grow_plotsprites
-   
-   with plot_sprites(i)
-   
-    .sprite = sprite_load(game & ".pt4", retvals(0), 8, 20, 20)
-    IF .sprite = 0 THEN debug "Couldn't load walkabout sprite #" & retvals(0) : EXIT SUB
-    
-    .pal = palette16_load(game + ".pal", retvals(1), 4, retvals(0))
-    IF .pal = 0 THEN
-     debug "Couldn't load palette for walkabout sprite #" & retvals(0)
-     sprite_unload(@.sprite)
-     EXIT SUB
-    END IF
-    
-    .used = YES
-    .frames = 8
-    .spr_type = 4
-    .spr_num = retvals(0)
-   end with
-   
-   scriptret = i
-  END IF
+  scriptret = load_sprite_plotslice(4, retvals(0), retvals(1))
  CASE 330 '--replace walkabout sprite
-  IF valid_plotsprite(retvals(0), "replace walkabout sprite") AND bound_arg(retvals(1), 0, gen(genMaxNPCPic), "replace walkabout sprite", "sprite number") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmpspr as frame ptr
-    tmpspr = sprite_load(game & ".pt4", retvals(1), 8, 20, 20)
-    IF tmpspr = 0 THEN
-     debug "Couldn't load walkabout sprite #" & retvals(1)
-     EXIT SUB
-    END IF
-    sprite_unload(@.sprite)
-    .sprite = tmpspr
-    .spr_type = 4
-    .spr_num = retvals(1)
-    .frames = 8
-    if .frame >= .frames then .frame = 0
-    IF retvals(2) > -2 THEN
-     dim tmppal as palette16 ptr
-     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-     IF tmppal = 0 THEN
-      debug "Couldn't load walkabout palette #" & retvals(2)
-      EXIT SUB
-     END IF
-     palette16_unload(@.pal)
-     .pal = tmppal
-    END IF
-   END WITH
-  END IF
+  change_sprite_plotslice retvals(0), 4, retvals(1), retvals(2)
  CASE 331'--load weapon sprite
-  scriptret = 0
-  IF bound_arg(retvals(0), 0, gen(genMaxWeaponPic), "load weapon sprite", "sprite number") THEN
-   i = grow_plotsprites
-   
-   with plot_sprites(i)
-   
-    .sprite = sprite_load(game & ".pt5", retvals(0), 2, 24, 24)
-    IF .sprite = 0 THEN debug "Couldn't load weapon sprite #" & retvals(0) : EXIT SUB
-    
-    .pal = palette16_load(game + ".pal", retvals(1), 5, retvals(0))
-    IF .pal = 0 THEN
-     debug "Couldn't load palette for weapon sprite #" & retvals(0)
-     sprite_unload(@.sprite)
-     EXIT SUB
-    END IF
-    
-    .used = YES
-    .frames = 2
-    .spr_type = 5
-    .spr_num = retvals(0)
-   end with
-   
-   scriptret = i
-  END IF
+  scriptret = load_sprite_plotslice(5, retvals(0), retvals(1))
  CASE 332 '--replace weapon sprite
-  IF valid_plotsprite(retvals(0), "replace weapon sprite") AND bound_arg(retvals(1), 0, gen(genMaxWeaponPic), "replace weapon sprite", "sprite number") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmpspr as frame ptr
-    tmpspr = sprite_load(game & ".pt5", retvals(1), 2, 24, 24)
-    IF tmpspr = 0 THEN
-     debug "Couldn't load weapon sprite #" & retvals(1)
-     EXIT SUB
-    END IF
-    sprite_unload(@.sprite)
-    .sprite = tmpspr
-    .spr_type = 5
-    .spr_num = retvals(1)
-    .frames = 2
-    if .frame >= .frames then .frame = 0
-    IF retvals(2) > -2 THEN
-     dim tmppal as palette16 ptr
-     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-     IF tmppal = 0 THEN
-      debug "Couldn't load weapon palette #" & retvals(2)
-      EXIT SUB
-     END IF
-     palette16_unload(@.pal)
-     .pal = tmppal
-    END IF
-   END WITH
-  END IF
+  change_sprite_plotslice retvals(0), 5, retvals(1), retvals(2)
  CASE 333'--load small enemy sprite
-  scriptret = 0
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy1Pic), "load small enemy sprite", "sprite number") THEN
-   i = grow_plotsprites
-   
-   with plot_sprites(i)
-   
-    .sprite = sprite_load(game & ".pt1", retvals(0), 1, 34, 34)
-    IF .sprite = 0 THEN debug "Couldn't load small enemy sprite #" & retvals(0) : EXIT SUB
-    
-    .pal = palette16_load(game + ".pal", retvals(1), 1, retvals(0))
-    IF .pal = 0 THEN
-     debug "Couldn't load palette for small enemy sprite #" & retvals(0)
-     sprite_unload(@.sprite)
-     EXIT SUB
-    END IF
-    
-    .used = YES
-    .frames = 1
-    .spr_type = 1
-    .spr_num = retvals(0)
-   end with
-   
-   scriptret = i
-  END IF
+  scriptret = load_sprite_plotslice(1, retvals(0), retvals(1))
  CASE 334 '--replace small enemy sprite
-  IF valid_plotsprite(retvals(0), "replace small enemy sprite") AND bound_arg(retvals(1), 0, gen(genMaxEnemy1Pic), "replace small enemy sprite", "sprite number") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmpspr as frame ptr
-    tmpspr = sprite_load(game & ".pt1", retvals(1), 1, 34, 34)
-    IF tmpspr = 0 THEN
-     debug "Couldn't load small enemy sprite #" & retvals(1)
-     EXIT SUB
-    END IF
-    sprite_unload(@.sprite)
-    .sprite = tmpspr
-    .spr_type = 1
-    .spr_num = retvals(1)
-    .frames = 1
-    if .frame >= .frames then .frame = 0
-    IF retvals(2) > -2 THEN
-     dim tmppal as palette16 ptr
-     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-     IF tmppal = 0 THEN
-      debug "Couldn't load small enemy palette #" & retvals(2)
-      EXIT SUB
-     END IF
-     palette16_unload(@.pal)
-     .pal = tmppal
-    END IF
-   END WITH
-  END IF
+  change_sprite_plotslice retvals(0), 1, retvals(1), retvals(2)
  CASE 335'--load medium enemy sprite
-  scriptret = 0
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy2Pic), "load medium enemy sprite", "sprite number") THEN
-   i = grow_plotsprites
-   
-   with plot_sprites(i)
-   
-    .sprite = sprite_load(game & ".pt2", retvals(0), 1, 50, 50)
-    IF .sprite = 0 THEN debug "Couldn't load medium enemy sprite #" & retvals(0) : EXIT SUB
-    
-    .pal = palette16_load(game + ".pal", retvals(1), 2, retvals(0))
-    IF .pal = 0 THEN
-     debug "Couldn't load palette for medium enemy sprite #" & retvals(0)
-     sprite_unload(@.sprite)
-     EXIT SUB
-    END IF
-    
-    .used = YES
-    .frames = 1
-    .spr_type = 2
-    .spr_num = retvals(0)
-   end with
-   
-   scriptret = i
-  END IF
+  scriptret = load_sprite_plotslice(2, retvals(0), retvals(1))
  CASE 336 '--replace medium enemy sprite
-  IF valid_plotsprite(retvals(0), "replace medium enemy sprite") AND bound_arg(retvals(1), 0, gen(genMaxEnemy2Pic), "replace medium enemy sprite", "sprite number") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmpspr as frame ptr
-    tmpspr = sprite_load(game & ".pt2", retvals(1), 1, 50, 50)
-    IF tmpspr = 0 THEN
-     debug "Couldn't load medium enemy sprite #" & retvals(1)
-     EXIT SUB
-    END IF
-    sprite_unload(@.sprite)
-    .sprite = tmpspr
-    .spr_type = 2
-    .spr_num = retvals(1)
-    .frames = 1
-    if .frame >= .frames then .frame = 0
-    IF retvals(2) > -2 THEN
-     dim tmppal as palette16 ptr
-     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-     IF tmppal = 0 THEN
-      debug "Couldn't load medium enemy palette #" & retvals(2)
-      EXIT SUB
-     END IF
-     palette16_unload(@.pal)
-     .pal = tmppal
-    END IF
-   END WITH
-  END IF
+  change_sprite_plotslice retvals(0), 2, retvals(1), retvals(2)
  CASE 337'--load large enemy sprite
-  scriptret = 0
-  IF bound_arg(retvals(0), 0, gen(genMaxEnemy3Pic), "load large enemy sprite", "sprite number") THEN
-   i = grow_plotsprites
-   
-   with plot_sprites(i)
-   
-    .sprite = sprite_load(game & ".pt3", retvals(0), 1, 80, 80)
-    IF .sprite = 0 THEN debug "Couldn't load large enemy sprite #" & retvals(0) : EXIT SUB
-    
-    .pal = palette16_load(game + ".pal", retvals(1), 3, retvals(0))
-    IF .pal = 0 THEN
-     debug "Couldn't load palette for large enemy sprite #" & retvals(0)
-     sprite_unload(@.sprite)
-     EXIT SUB
-    END IF
-    
-    .used = YES
-    .frames = 1
-    .spr_type = 3
-    .spr_num = retvals(0)
-   end with
-   
-   scriptret = i
-  END IF
+  scriptret = load_sprite_plotslice(3, retvals(0), retvals(1))
  CASE 338 '--replace large enemy sprite
-  IF valid_plotsprite(retvals(0), "replace large enemy sprite") AND bound_arg(retvals(1), 0, gen(genMaxEnemy3Pic), "replace large enemy sprite", "sprite number") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmpspr as frame ptr
-    tmpspr = sprite_load(game & ".pt3", retvals(1), 1, 80, 80)
-    IF tmpspr = 0 THEN
-     debug "Couldn't load large enemy sprite #" & retvals(1)
-     EXIT SUB
-    END IF
-    sprite_unload(@.sprite)
-    .sprite = tmpspr
-    .spr_type = 3
-    .spr_num = retvals(1)
-    .frames = 1
-    if .frame >= .frames then .frame = 0
-    IF retvals(2) > -2 THEN
-     dim tmppal as palette16 ptr
-     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-     IF tmppal = 0 THEN
-      debug "Couldn't load large enemy palette #" & retvals(2)
-      EXIT SUB
-     END IF
-     palette16_unload(@.pal)
-     .pal = tmppal
-    END IF
-   END WITH
-  END IF
+  change_sprite_plotslice retvals(0), 3, retvals(1), retvals(2)
  CASE 339'--load attack sprite
-  scriptret = 0
-  IF bound_arg(retvals(0), 0, gen(genMaxAttackPic), "load attack sprite", "sprite number") THEN
-   i = grow_plotsprites
-   
-   with plot_sprites(i)
-   
-    .sprite = sprite_load(game & ".pt6", retvals(0), 3, 50, 50)
-    IF .sprite = 0 THEN debug "Couldn't load attack sprite #" & retvals(0) : EXIT SUB
-    
-    .pal = palette16_load(game + ".pal", retvals(1), 6, retvals(0))
-    IF .pal = 0 THEN
-     debug "Couldn't load palette for attack sprite #" & retvals(0)
-     sprite_unload(@.sprite)
-     EXIT SUB
-    END IF
-    
-    .used = YES
-    .frames = 3
-    .spr_type = 6
-    .spr_num = retvals(0)
-   end with
-   
-   scriptret = i
-  END IF
+  scriptret = load_sprite_plotslice(6, retvals(0), retvals(1))
  CASE 340 '--replace attack sprite
-  IF valid_plotsprite(retvals(0), "replace attack sprite") AND bound_arg(retvals(1), 0, gen(genMaxAttackPic), "replace attack sprite", "sprite number") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmpspr as frame ptr
-    tmpspr = sprite_load(game & ".pt6", retvals(1), 3, 50, 50)
-    IF tmpspr = 0 THEN
-     debug "Couldn't load attack sprite #" & retvals(1)
-     EXIT SUB
-    END IF
-    sprite_unload(@.sprite)
-    .sprite = tmpspr
-    .spr_type = 6
-    .spr_num = retvals(1)
-    .frames = 3
-    if .frame >= .frames then .frame = 0
-    IF retvals(2) > -2 THEN
-     dim tmppal as palette16 ptr
-     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-     IF tmppal = 0 THEN
-      debug "Couldn't load attack palette #" & retvals(2)
-      EXIT SUB
-     END IF
-     palette16_unload(@.pal)
-     .pal = tmppal
-    END IF
-   END WITH
-  END IF
+  change_sprite_plotslice retvals(0), 6, retvals(1), retvals(2)
  CASE 341'--load border sprite
-  scriptret = 0
-  IF bound_arg(retvals(0), 0, gen(genMaxBoxBorder), "load border sprite", "sprite number") THEN
-   i = grow_plotsprites
-   
-   with plot_sprites(i)
-   
-    .sprite = sprite_load(game & ".pt7", retvals(0), 16, 16, 16)
-    IF .sprite = 0 THEN debug "Couldn't load border sprite #" & retvals(0) : EXIT SUB
-    
-    .pal = palette16_load(game + ".pal", retvals(1), 7, retvals(0))
-    IF .pal = 0 THEN
-     debug "Couldn't load palette for border sprite #" & retvals(0)
-     sprite_unload(@.sprite)
-     EXIT SUB
-    END IF
-    
-    .used = YES
-    .frames = 16
-    .spr_type = 7
-    .spr_num = retvals(0)
-   end with
-   
-   scriptret = i
-  END IF
+  scriptret = load_sprite_plotslice(7, retvals(0), retvals(1))
  CASE 342 '--replace border sprite
-  IF valid_plotsprite(retvals(0), "replace border sprite") AND bound_arg(retvals(1), 0, gen(genMaxBoxBorder), "replace border sprite", "sprite number") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmpspr as frame ptr
-    tmpspr = sprite_load(game & ".pt7", retvals(1), 16, 16, 16)
-    IF tmpspr = 0 THEN
-     debug "Couldn't load border sprite #" & retvals(1)
-     EXIT SUB
-    END IF
-    sprite_unload(@.sprite)
-    .sprite = tmpspr
-    .spr_type = 7
-    .spr_num = retvals(1)
-    .frames = 16
-    if .frame >= .frames then .frame = 0 'this is, theoretically, impossible
-    IF retvals(2) > -2 THEN
-     dim tmppal as palette16 ptr
-     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-     IF tmppal = 0 THEN
-      debug "Couldn't load border palette #" & retvals(2)
-      EXIT SUB
-     END IF
-     palette16_unload(@.pal)
-     .pal = tmppal
-    END IF
-   END WITH
-  END IF
+  change_sprite_plotslice retvals(0), 7, retvals(1), retvals(2)
  CASE 343'--load portrait sprite
-  scriptret = 0
-  IF bound_arg(retvals(0), 0, gen(genMaxPortrait), "load portrait sprite", "sprite number") THEN
-   i = grow_plotsprites
-   
-   with plot_sprites(i)
-   
-    .sprite = sprite_load(game & ".pt8", retvals(0), 1, 50, 50)
-    IF .sprite = 0 THEN debug "Couldn't load portrait sprite #" & retvals(0) : EXIT SUB
-    
-    .pal = palette16_load(game + ".pal", retvals(1), 8, retvals(0))
-    IF .pal = 0 THEN
-     debug "Couldn't load palette for portrait sprite #" & retvals(0)
-     sprite_unload(@.sprite)
-     EXIT SUB
-    END IF
-    
-    .used = YES
-    .frames = 1
-    .spr_type = 8
-    .spr_num = retvals(0)
-   end with
-   
-   scriptret = i
-  END IF
+  scriptret = load_sprite_plotslice(8, retvals(0), retvals(1))
  CASE 344 '--replace portrait sprite
-  IF valid_plotsprite(retvals(0), "replace portrait sprite") AND bound_arg(retvals(1), 0, gen(genMaxPortrait), "replace portrait sprite", "sprite number") THEN
-   WITH plot_sprites(retvals(0))
-    dim tmpspr as frame ptr
-    tmpspr = sprite_load(game & ".pt7", retvals(1), 1, 50, 50)
-    IF tmpspr = 0 THEN
-     debug "Couldn't load portrait sprite #" & retvals(1)
-     EXIT SUB
-    END IF
-    sprite_unload(@.sprite)
-    .sprite = tmpspr
-    .spr_type = 8
-    .spr_num = retvals(1)
-    .frames = 1
-    if .frame >= .frames then .frame = 0
-    IF retvals(2) > -2 THEN
-     dim tmppal as palette16 ptr
-     tmppal = palette16_load(game + ".pal", retvals(2), .spr_type, .spr_num)
-     IF tmppal = 0 THEN
-      debug "Couldn't load portrait palette #" & retvals(2)
-      EXIT SUB
-     END IF
-     palette16_unload(@.pal)
-     .pal = tmppal
-    END IF
-   END WITH
-  END IF
+  change_sprite_plotslice retvals(0), 8, retvals(1), retvals(2)
  CASE 345 '--clone sprite
-  scriptret = 0
-  IF valid_plotsprite(retvals(0), "clone sprite") THEN
-   i = grow_plotsprites
-   plot_sprites(i) = plot_sprites(retvals(0))
-   with plot_sprites(i)
-    .sprite = sprite_duplicate(plot_sprites(retvals(0)).sprite, NO)
-    .pal = palette16_load(game + ".pal", retvals(1), .spr_type, .spr_num)
-   end with
-   scriptret = i
+  IF valid_plotslice(retvals(0), "clone sprite") THEN
+   DIM dat AS SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   WITH *dat
+    scriptret = load_sprite_plotslice(.spritetype, .record, .pal)
+    change_sprite_plotslice scriptret, .spritetype, .record, .pal, .frame, .flipHoriz, .flipVert
+   END WITH
   END IF
 END SELECT
 
@@ -3577,17 +3123,53 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
  END WITH
 END SUB
 
-
-FUNCTION valid_plotsprite(byval s as integer, byval cmd as string) as integer
- IF bound_arg(s, 0, UBOUND(plot_sprites), cmd, "sprite ID") THEN
-  IF plot_sprites(s).used = 0 THEN
-   debug cmd & ": invalid sprite ID " & s
-   RETURN NO
-  ELSE
-   'anything else?
-   RETURN YES
-  END IF
+FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as integer
+ IF handle < 0 OR handle > UBOUND(plotslices) THEN
+  debug cmd & ": invalid slice handle " & handle
+  RETURN NO
  END IF
- 
- RETURN NO
+ IF plotslices(handle) = 0 THEN
+  debug cmd & ": slice handle " & handle & " has already been deleted"
+  RETURN NO
+ END IF
+ RETURN YES
 END FUNCTION
+
+FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
+ DIM i as integer
+ 'First search for an empty slice handle slot (which sucks because it means they get re-used)
+ FOR i = 1 to UBOUND(plotslices)
+  IF plotslices(i) = 0 THEN
+   'Store the slice pointer in the handle slot and return the handle number
+   plotslices(i) = sl
+   RETURN i
+  END IF
+ NEXT
+ 'If no room is available, make the array bigger.
+ REDIM PRESERVE plotslices(UBOUND(plotslices) + 32)
+ 'Store the slice pointer in the handle slot and return the handle number
+ plotslices(i) = sl
+ RETURN i
+END FUNCTION
+
+FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1) AS INTEGER
+ WITH sprite_sizes(spritetype)
+  IF bound_arg(record, 0, gen(.genmax), "load_sprite_plotslice/" & .name, "sprite number") THEN
+   DIM sl AS Slice Ptr
+   sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
+   ChangeSpriteSlice sl, spritetype, record, pal
+   RETURN create_plotslice_handle(sl)
+  END IF
+ END WITH
+ RETURN 0 'Failure, return zero handle
+END FUNCTION
+
+SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1, BYVAL frame AS INTEGER=-1, BYVAL fliph AS INTEGER=-2, BYVAL flipv AS INTEGER=-2)
+ WITH sprite_sizes(spritetype)
+  IF valid_plotslice(handle, "change_sprite_plotslice/" & .name) THEN
+   IF bound_arg(record, 0, gen(.genmax), "change_sprite_plotslice/" & .name, "sprite number") THEN
+    ChangeSpriteSlice plotslices(handle), spritetype, record, pal, frame, fliph, flipv
+   END IF
+  END IF
+ END WITH
+END SUB

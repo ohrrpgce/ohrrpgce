@@ -167,7 +167,15 @@ DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
 DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
+DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
+                      byval spritetype as integer=-1,_
+                      byval record as integer=-1,_
+                      byval pal as integer = -2,_
+                      byval frame as integer = -1,_
+                      byval fliph as integer = -2,_
+                      byval flipv as integer = -2) ' All arguments default to no change
 
+'--Saving and loading slices
 DECLARE Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
 DECLARE Sub CloseSliceFileWrite (BYREF f AS SliceFileWrite)
 DECLARE Sub WriteSliceFileLine (BYREF f AS SliceFileWrite, s AS STRING)
@@ -179,7 +187,6 @@ DECLARE Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
 DECLARE Sub OpenSliceFileRead (BYREF f AS SliceFileRead, filename AS STRING)
 DECLARE Sub CloseSliceFileRead (BYREF f AS SliceFileRead)
 DECLARE Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_read AS INTEGER=NO)
-
 
 EXTERN Slices() as Slice ptr
 EXTERN AS SliceTable_ SliceTable
