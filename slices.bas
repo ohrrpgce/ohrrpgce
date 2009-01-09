@@ -722,7 +722,13 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
    .pal = pal
    .loaded = NO
   end if
-  if frame >= 0 then .frame = frame
+  if frame >= 0 then
+   if frame >= sprite_sizes(.spritetype).frames then
+    debug "Sprite frame " & frame & " is out of range for " & sprite_sizes(.spritetype).name & " sprites, valid range 0 to " & sprite_sizes(.spritetype).frames - 1
+   else
+    .frame = frame
+   end if
+  end if
   if fliph > -2 then .flipHoriz = (fliph <> 0)
   if flipv > -2 then .flipVert = (flipv <> 0)
  end with
