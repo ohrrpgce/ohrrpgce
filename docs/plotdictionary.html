@@ -263,6 +263,9 @@
 		<a href="#about-clearstring">clear string(ID)</a><br>
 		
 	
+		<a href="#about-clonesprite">clone sprite (handle)</a><br>
+		
+	
 		<a href="#about-closemenu">close menu(menu handle)</a><br>
 		
 	
@@ -479,7 +482,7 @@
 		
 		<a href="#about-numericconstants">four</a><br>
 	
-		<a href="#about-freesprite">free sprite (ID)</a><br>
+		<a href="#about-freesprite">free sprite (handle)</a><br>
 		
 	
 		<a href="#about-gameover">game over</a><br>
@@ -654,6 +657,9 @@
 		
 	
 		<a href="#about-getsongname">get song name (ID, song)</a><br>
+		
+	
+		<a href="#about-getspriteframe">get sprite frame (handle)</a><br>
 		
 	
 		<a href="#about-gettileanimationoffset">get tile animation offset (animation pattern, layer)</a><br>
@@ -1022,7 +1028,7 @@
 		<a href="#about-pickhero">pick hero</a><br>
 		
 	
-		<a href="#about-placesprite">place sprite (ID, x, y)</a><br>
+		<a href="#about-placesprite">place sprite (handle, x, y)</a><br>
 		
 	
 		<a href="#about-playsong">play song (song)</a><br>
@@ -1094,34 +1100,34 @@
 		<a href="#about-renameherobyslot">rename hero by slot(who)</a><br>
 		
 	
-		<a href="#about-replaceattacksprite">replace attack sprite (ID, num, palette)</a><br>
+		<a href="#about-replaceattacksprite">replace attack sprite (handle, num, palette)</a><br>
 		
 	
-		<a href="#about-replacebordersprite">replace border sprite (ID, num, palette)</a><br>
+		<a href="#about-replacebordersprite">replace border sprite (handle, num, palette)</a><br>
 		
 	
 		<a href="#about-replacechar">replace char (ID, position, char)</a><br>
 		
 	
-		<a href="#about-replaceherosprite">replace hero sprite (ID, num, palette)</a><br>
+		<a href="#about-replaceherosprite">replace hero sprite (handle, num, palette)</a><br>
 		
 	
-		<a href="#about-replacelargeenemysprite">replace large enemy sprite (ID, num, palette)</a><br>
+		<a href="#about-replacelargeenemysprite">replace large enemy sprite (handle, num, palette)</a><br>
 		
 	
-		<a href="#about-replacemediumenemysprite">replace medium enemy sprite (ID, num, palette)</a><br>
+		<a href="#about-replacemediumenemysprite">replace medium enemy sprite (handle, num, palette)</a><br>
 		
 	
-		<a href="#about-replaceportraitsprite">replace portrait sprite (ID, num, palette)</a><br>
+		<a href="#about-replaceportraitsprite">replace portrait sprite (handle, num, palette)</a><br>
 		
 	
-		<a href="#about-replacesmallenemysprite">replace small enemy sprite (ID, num, palette)</a><br>
+		<a href="#about-replacesmallenemysprite">replace small enemy sprite (handle, num, palette)</a><br>
 		
 	
-		<a href="#about-replacewalkaboutsprite">replace walkabout sprite (ID, num, palette)</a><br>
+		<a href="#about-replacewalkaboutsprite">replace walkabout sprite (handle, num, palette)</a><br>
 		
 	
-		<a href="#about-replaceweaponsprite">replace weapon sprite (ID, num, palette)</a><br>
+		<a href="#about-replaceweaponsprite">replace weapon sprite (handle, num, palette)</a><br>
 		
 	
 		<a href="#about-resetmapstate">reset map state (whichdata)</a><br>
@@ -1424,13 +1430,13 @@
 		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
 		
 	
-		<a href="#about-setspriteframe">set sprite frame (ID, num)</a><br>
+		<a href="#about-setspriteframe">set sprite frame (handle, num)</a><br>
 		
 	
-		<a href="#about-setspritepalette">set sprite palette (ID, num)</a><br>
+		<a href="#about-setspritepalette">set sprite palette (handle, num)</a><br>
 		
 	
-		<a href="#about-setspritevisible">set sprite visible (ID, vis)</a><br>
+		<a href="#about-setspritevisible">set sprite visible (handle, vis)</a><br>
 		
 	
 		<a href="#about-settag">set tag (tag,value)</a><br>
@@ -4321,8 +4327,8 @@ end</pre>
 		<a name="about-replaceherosprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">replace hero sprite (ID, num, palette)</font></b><br>
-			Loads hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite #<span class="param">ID</span>. As with <a href="#about-loadherosprite" class="ref">load hero sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+		<b><font color="yellow">replace hero sprite (handle, num, palette)</font></b><br>
+			Loads hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadherosprite" class="ref">load hero sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadherosprite" class="ref">load hero sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4351,8 +4357,8 @@ end</pre>
 		<a name="about-replacewalkaboutsprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">replace walkabout sprite (ID, num, palette)</font></b><br>
-			Loads walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite #<span class="param">ID</span>. As with <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+		<b><font color="yellow">replace walkabout sprite (handle, num, palette)</font></b><br>
+			Loads walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4381,8 +4387,8 @@ end</pre>
 		<a name="about-replacesmallenemysprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">replace small enemy sprite (ID, num, palette)</font></b><br>
-			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite #<span class="param">ID</span>. As with <a href="#loadsmall%20enemysprite" class="undef">loadsmall enemysprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+		<b><font color="yellow">replace small enemy sprite (handle, num, palette)</font></b><br>
+			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#loadsmall%20enemysprite" class="undef">loadsmall enemysprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4411,8 +4417,8 @@ end</pre>
 		<a name="about-replacemediumenemysprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">replace medium enemy sprite (ID, num, palette)</font></b><br>
-			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite #<span class="param">ID</span>. As with <a href="#loadmedium%20enemysprite" class="undef">loadmedium enemysprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+		<b><font color="yellow">replace medium enemy sprite (handle, num, palette)</font></b><br>
+			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#loadmedium%20enemysprite" class="undef">loadmedium enemysprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4441,8 +4447,8 @@ end</pre>
 		<a name="about-replacelargeenemysprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">replace large enemy sprite (ID, num, palette)</font></b><br>
-			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite #<span class="param">ID</span>. As with <a href="#loadlarge%20enemysprite" class="undef">loadlarge enemysprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+		<b><font color="yellow">replace large enemy sprite (handle, num, palette)</font></b><br>
+			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#loadlarge%20enemysprite" class="undef">loadlarge enemysprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4471,8 +4477,8 @@ end</pre>
 		<a name="about-replaceattacksprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">replace attack sprite (ID, num, palette)</font></b><br>
-			Loads attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite #<span class="param">ID</span>. As with <a href="#about-loadattacksprite" class="ref">load attack sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+		<b><font color="yellow">replace attack sprite (handle, num, palette)</font></b><br>
+			Loads attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadattacksprite" class="ref">load attack sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadattacksprite" class="ref">load attack sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4501,8 +4507,8 @@ end</pre>
 		<a name="about-replaceweaponsprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">replace weapon sprite (ID, num, palette)</font></b><br>
-			Loads weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite #<span class="param">ID</span>. As with <a href="#about-loadweaponsprite" class="ref">load weapon sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+		<b><font color="yellow">replace weapon sprite (handle, num, palette)</font></b><br>
+			Loads weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadweaponsprite" class="ref">load weapon sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadweaponsprite" class="ref">load weapon sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4531,8 +4537,8 @@ end</pre>
 		<a name="about-replacebordersprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">replace border sprite (ID, num, palette)</font></b><br>
-			Loads border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite #<span class="param">ID</span>. As with <a href="#about-loadbordersprite" class="ref">load border sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+		<b><font color="yellow">replace border sprite (handle, num, palette)</font></b><br>
+			Loads border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadbordersprite" class="ref">load border sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadbordersprite" class="ref">load border sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4561,8 +4567,8 @@ end</pre>
 		<a name="about-replaceportraitsprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">replace portrait sprite (ID, num, palette)</font></b><br>
-			Loads portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite #<span class="param">ID</span>. As with <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+		<b><font color="yellow">replace portrait sprite (handle, num, palette)</font></b><br>
+			Loads portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4576,40 +4582,60 @@ end</pre>
 		<a name="about-freesprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">free sprite (ID)</font></b><br>
+		<b><font color="yellow">free sprite (handle)</font></b><br>
 			Unloads a sprite loaded by any of the "load x sprite" functions.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-loadherosprite" class="ref">load hero sprite</a></li></ul>
 		</tt></p>
+		<a name="about-clonesprite"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">clone sprite (handle)</font></b><br>
+			Returns a new handle to a duplicate of a sprite. If you clone a sprite, remember that you will need to call <a href="#about-freesprite" class="ref">free sprite</a> on both the original and the clone.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-loadherosprite" class="ref">load hero sprite</a>, </li>
+<li><a href="#about-freesprite" class="ref">free sprite</a></li>
+</ul>
+		</tt></p>
 		<a name="about-placesprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">place sprite (ID, x, y)</font></b><br>
-			Moves sprite #<span class="param">ID</span> to position (<span class="param">x</span>, <span class="param">y</span>).<br>
+		<b><font color="yellow">place sprite (handle, x, y)</font></b><br>
+			Moves sprite <span class="param">handle</span> to position (<span class="param">x</span>, <span class="param">y</span>).<br>
 			
 			
 		</tt></p>
 		<a name="about-setspritevisible"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set sprite visible (ID, vis)</font></b><br>
-			Makes sprite #<span class="param">ID</span> invisible or visible, according to <span class="param">vis</span>. By default, a sprite is invisible (<a href="#about-booleanconstants" class="ref">off</a>), and must be made visible (<a href="#about-booleanconstants" class="ref">on</a>).<br>
+		<b><font color="yellow">set sprite visible (handle, vis)</font></b><br>
+			Makes sprite <span class="param">handle</span> invisible or visible, according to <span class="param">vis</span>. By default, a sprite is invisible (<a href="#about-booleanconstants" class="ref">on</a>), and must be made visible (<a href="#about-booleanconstants" class="ref">off</a>) only if you want to hide it.<br>
 			
 			
 		</tt></p>
 		<a name="about-setspritepalette"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set sprite palette (ID, num)</font></b><br>
-			Changes the palette of sprite #<span class="param">ID</span> to be <span class="param">num</span>. If <span class="param">num</span> is -1 or omitted, the default palette for that sprite is loaded.<br>
+		<b><font color="yellow">set sprite palette (handle, num)</font></b><br>
+			Changes the palette of sprite <span class="param">handle</span> to be <span class="param">num</span>. If <span class="param">num</span> is -1 or omitted, the default palette for that sprite is loaded.<br>
 			
 			
 		</tt></p>
 		<a name="about-setspriteframe"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set sprite frame (ID, num)</font></b><br>
-			Changes the frame of sprite #<span class="param">ID</span> to be <span class="param">num</span>. If <span class="param">num</span> is less than 0, or greater than or equal to the number of frames, nothing will change.<br>
+		<b><font color="yellow">set sprite frame (handle, num)</font></b><br>
+			Changes the frame of sprite <span class="param">handle</span> to be <span class="param">num</span>. If <span class="param">num</span> is less than 0, or greater than or equal to the number of frames, nothing will change.<br>
+			
+			
+		</tt></p>
+		<a name="about-getspriteframe"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get sprite frame (handle)</font></b><br>
+			Returns the current frame number of sprite <span class="param">handle</span>.<br>
 			
 			
 		</tt></p>
@@ -7218,7 +7244,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 548 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 550 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

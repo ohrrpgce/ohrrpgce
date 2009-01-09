@@ -1848,9 +1848,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="replaceherosprite">
-			<cannon>replace hero sprite (ID, num, palette)</cannon>
+			<cannon>replace hero sprite (handle, num, palette)</cannon>
 			<shortname>load hero sprite</shortname>
-			<description>Loads hero battle sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadherosprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadherosprite</ref>.</note></description>
+			<description>Loads hero battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadherosprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadherosprite</ref>.</note></description>
 			<seealso>
 				<ref>loadherosprite</ref>
 				<ref>freesprite</ref>
@@ -1866,9 +1866,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="replacewalkaboutsprite">
-			<cannon>replace walkabout sprite (ID, num, palette)</cannon>
+			<cannon>replace walkabout sprite (handle, num, palette)</cannon>
 			<shortname>load walkabout sprite</shortname>
-			<description>Loads walkabout sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadwalkaboutsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadwalkaboutsprite</ref>.</note></description>
+			<description>Loads walkabout sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadwalkaboutsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadwalkaboutsprite</ref>.</note></description>
 			<seealso>
 				<ref>loadwalkaboutsprite</ref>
 				<ref>freesprite</ref>
@@ -1884,9 +1884,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="replacesmallenemysprite">
-			<cannon>replace small enemy sprite (ID, num, palette)</cannon>
+			<cannon>replace small enemy sprite (handle, num, palette)</cannon>
 			<shortname>load small enemy sprite</shortname>
-			<description>Loads small enemy sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadsmall enemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadsmallenemysprite</ref>.</note></description>
+			<description>Loads small enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadsmall enemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadsmallenemysprite</ref>.</note></description>
 			<seealso>
 				<ref>loadsmallenemysprite</ref>
 				<ref>freesprite</ref>
@@ -1902,9 +1902,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="replacemediumenemysprite">
-			<cannon>replace medium enemy sprite (ID, num, palette)</cannon>
+			<cannon>replace medium enemy sprite (handle, num, palette)</cannon>
 			<shortname>load medium enemy sprite</shortname>
-			<description>Loads medium enemy sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadmedium enemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadmediumenemysprite</ref>.</note></description>
+			<description>Loads medium enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadmedium enemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadmediumenemysprite</ref>.</note></description>
 			<seealso>
 				<ref>loadmediumenemysprite</ref>
 				<ref>freesprite</ref>
@@ -1920,9 +1920,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="replacelargeenemysprite">
-			<cannon>replace large enemy sprite (ID, num, palette)</cannon>
+			<cannon>replace large enemy sprite (handle, num, palette)</cannon>
 			<shortname>load large enemy sprite</shortname>
-			<description>Loads large enemy sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadlarge enemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadlargeenemysprite</ref>.</note></description>
+			<description>Loads large enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadlarge enemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadlargeenemysprite</ref>.</note></description>
 			<seealso>
 				<ref>loadlargeenemysprite</ref>
 				<ref>freesprite</ref>
@@ -1938,9 +1938,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="replaceattacksprite">
-			<cannon>replace attack sprite (ID, num, palette)</cannon>
+			<cannon>replace attack sprite (handle, num, palette)</cannon>
 			<shortname>load attack sprite</shortname>
-			<description>Loads attack battle sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadattacksprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadattacksprite</ref>.</note></description>
+			<description>Loads attack battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadattacksprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadattacksprite</ref>.</note></description>
 			<seealso>
 				<ref>loadattacksprite</ref>
 				<ref>freesprite</ref>
@@ -1956,9 +1956,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="replaceweaponsprite">
-			<cannon>replace weapon sprite (ID, num, palette)</cannon>
+			<cannon>replace weapon sprite (handle, num, palette)</cannon>
 			<shortname>load weapon sprite</shortname>
-			<description>Loads weapon battle sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadweaponsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadweaponsprite</ref>.</note></description>
+			<description>Loads weapon battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadweaponsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadweaponsprite</ref>.</note></description>
 			<seealso>
 				<ref>loadweaponsprite</ref>
 				<ref>freesprite</ref>
@@ -1974,9 +1974,9 @@ end</example>
 			</seealso>
 		</command>
 		<command id="replacebordersprite">
-			<cannon>replace border sprite (ID, num, palette)</cannon>
+			<cannon>replace border sprite (handle, num, palette)</cannon>
 			<shortname>load border sprite</shortname>
-			<description>Loads border battle sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadbordersprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadbordersprite</ref>.</note></description>
+			<description>Loads border battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadbordersprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadbordersprite</ref>.</note></description>
 			<seealso>
 				<ref>loadbordersprite</ref>
 				<ref>freesprite</ref>
@@ -1992,41 +1992,55 @@ end</example>
 			</seealso>
 		</command>
 		<command id="replaceportraitsprite">
-			<cannon>replace portrait sprite (ID, num, palette)</cannon>
+			<cannon>replace portrait sprite (handle, num, palette)</cannon>
 			<shortname>load portrait sprite</shortname>
-			<description>Loads portrait battle sprite #<p>num</p> with palette <p>palette</p> into sprite #<p>ID</p>. As with <ref>loadportraitsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadportraitsprite</ref>.</note></description>
+			<description>Loads portrait battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadportraitsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadportraitsprite</ref>.</note></description>
 			<seealso>
 				<ref>loadportraitsprite</ref>
 				<ref>freesprite</ref>
 			</seealso>
 		</command>
 		<command id="freesprite">
-			<cannon>free sprite (ID)</cannon>
+			<cannon>free sprite (handle)</cannon>
 			<shortname>free sprite</shortname>
 			<description>Unloads a sprite loaded by any of the "load x sprite" functions.</description>
 			<seealso>
 				<ref>loadherosprite</ref>
 			</seealso>
 		</command>
+		<command id="clonesprite">
+			<cannon>clone sprite (handle)</cannon>
+			<shortname>clone sprite</shortname>
+			<description>Returns a new handle to a duplicate of a sprite. If you clone a sprite, remember that you will need to call <ref>freesprite</ref> on both the original and the clone.</description>
+			<seealso>
+				<ref>loadherosprite</ref>
+				<ref>freesprite</ref>
+			</seealso>
+		</command>
 		<command id="placesprite">
-			<cannon>place sprite (ID, x, y)</cannon>
+			<cannon>place sprite (handle, x, y)</cannon>
 			<shortname>place sprite</shortname>
-			<description>Moves sprite #<p>ID</p> to position (<p>x</p>, <p>y</p>).</description>
+			<description>Moves sprite <p>handle</p> to position (<p>x</p>, <p>y</p>).</description>
 		</command>
 		<command id="setspritevisible">
-			<cannon>set sprite visible (ID, vis)</cannon>
+			<cannon>set sprite visible (handle, vis)</cannon>
 			<shortname>set sprite visible</shortname>
-			<description>Makes sprite #<p>ID</p> invisible or visible, according to <p>vis</p>. By default, a sprite is invisible (<ref>off</ref>), and must be made visible (<ref>on</ref>).</description>
+			<description>Makes sprite <p>handle</p> invisible or visible, according to <p>vis</p>. By default, a sprite is invisible (<ref>on</ref>), and must be made visible (<ref>off</ref>) only if you want to hide it.</description>
 		</command>
 		<command id="setspritepalette">
-			<cannon>set sprite palette (ID, num)</cannon>
+			<cannon>set sprite palette (handle, num)</cannon>
 			<shortname>set sprite palette</shortname>
-			<description>Changes the palette of sprite #<p>ID</p> to be <p>num</p>. If <p>num</p> is -1 or omitted, the default palette for that sprite is loaded.</description>
+			<description>Changes the palette of sprite <p>handle</p> to be <p>num</p>. If <p>num</p> is -1 or omitted, the default palette for that sprite is loaded.</description>
 		</command>
 		<command id="setspriteframe">
-			<cannon>set sprite frame (ID, num)</cannon>
+			<cannon>set sprite frame (handle, num)</cannon>
 			<shortname>set sprite frame</shortname>
-			<description>Changes the frame of sprite #<p>ID</p> to be <p>num</p>. If <p>num</p> is less than 0, or greater than or equal to the number of frames, nothing will change.</description>
+			<description>Changes the frame of sprite <p>handle</p> to be <p>num</p>. If <p>num</p> is less than 0, or greater than or equal to the number of frames, nothing will change.</description>
+		</command>
+		<command id="getspriteframe">
+			<cannon>get sprite frame (handle)</cannon>
+			<shortname>get sprite frame</shortname>
+			<description>Returns the current frame number of sprite <p>handle</p>.</description>
 		</command>
 	</section>
 	<section title="Misc Functions">

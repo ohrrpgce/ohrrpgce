@@ -1773,6 +1773,14 @@ SELECT CASE AS CONST id
     change_sprite_plotslice scriptret, .spritetype, .record, .pal, .frame, .flipHoriz, .flipVert
    END WITH
   END IF
+ CASE 346 '--get sprite frame
+  IF valid_plotslice(retvals(0), "get sprite frame") THEN
+   DIM dat AS SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   WITH *dat
+    scriptret = .frame
+   END WITH
+  END IF
 END SELECT
 
 EXIT SUB
