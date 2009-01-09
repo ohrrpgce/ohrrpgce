@@ -4,7 +4,7 @@ WHAT IS NEW?
 
   * New Features
     * Plotscripting can now load sprites, and place them on screen.
-      [Mike]
+      [Mike, James]
     * Limit on maximum items has been raised from 254 to 32000 [James]
     * Limit on how many item slots you have in your inventory has been
       raised from 198 to 600. You can also manually choose a smaller
@@ -32,6 +32,18 @@ WHAT IS NEW?
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
+    * "load hero sprite", "replace hero sprite",
+      "load walkabout sprite", "replace walkabout sprite",
+      "load small enemy sprite", "replace small enemy sprite",
+      "load medium enemy sprite", "replace small medium sprite",
+      "load large enemy sprite", "replace small large sprite",
+      "load attack sprite", "replace attack sprite",
+      "load weapon sprite", "replace weapon sprite",
+      "load border sprite", "replace border sprite",
+      "load portrait sprite", "replace portrait sprite",
+      "free sprite", "place sprite", "set sprite visible",
+      "set sprite palette", "set sprite frame", "clone sprite"
+      [Mike]
 
   * Vikings of Midgard
 

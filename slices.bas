@@ -630,7 +630,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
  with *dat
  
   if .loaded = NO then
-   load_sprite_and_pal .img, .spritetype, .record
+   load_sprite_and_pal .img, .spritetype, .record, .pal
    sl->Width = sprite_sizes(.spritetype).size.x
    sl->Height = sprite_sizes(.spritetype).size.y
    if .flipHoriz then
@@ -639,6 +639,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    if .flipVert then
     .img.sprite = sprite_flip_vert(.img.sprite, YES)
    end if
+   .loaded = YES
   end if
  
   sprite_draw .img.sprite + .frame, .img.pal, sl->screenX, sl->screenY, , ,dpage

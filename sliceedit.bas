@@ -222,6 +222,7 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
 
   IF state.need_update THEN
    slice_edit_detail_refresh state, menu(), sl, rules()
+   state.need_update = NO
   END IF
 
   usemenu state
@@ -300,6 +301,7 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
    END IF
   CASE slgrUPDATESPRITE
    IF state.need_update THEN
+    'state.need_update is cleared at the top of the loop
     DIM dat AS SpriteSliceData Ptr
     dat = sl->SliceData
     dat->loaded = NO
