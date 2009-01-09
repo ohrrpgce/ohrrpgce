@@ -2042,6 +2042,11 @@ end</example>
 			<shortname>get sprite frame</shortname>
 			<description>Returns the current frame number of sprite <p>handle</p>.</description>
 		</command>
+		<command id="spriteframecount">
+			<cannon>sprite frame count (handle)</cannon>
+			<shortname>sprite frame count</shortname>
+			<description>Returns the total number of available frames for a given sprite <p>handle</p>.</description>
+		</command>
 	</section>
 	<section title="Misc Functions">
 		<command id="random">

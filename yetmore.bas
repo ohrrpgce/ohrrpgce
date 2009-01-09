@@ -1781,6 +1781,14 @@ SELECT CASE AS CONST id
     scriptret = .frame
    END WITH
   END IF
+ CASE 347 '--sprite frame count
+  IF valid_plotslice(retvals(0), "get sprite frame") THEN
+   DIM dat AS SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   WITH *dat
+    scriptret = sprite_sizes(.spritetype).frames
+   END WITH
+  END IF
 END SELECT
 
 EXIT SUB

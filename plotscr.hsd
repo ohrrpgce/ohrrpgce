@@ -353,6 +353,7 @@ define function, begin
 344,replaceportraitsprite,3,0,0,-1 #replaces the sprite with a character portrait (id, num, pal)
 345,clonesprite,2,0, 0        #returns a copy of the given sprite(ID, pal)
 346,getspriteframe,1,0        #returns the current frame number of a sprite
+347,spriteframecount,1,0      #returns the number of frames a sprite has
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)

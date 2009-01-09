@@ -43,7 +43,7 @@ WHAT IS NEW?
       "load portrait sprite", "replace portrait sprite",
       "free sprite", "place sprite", "set sprite visible",
       "set sprite palette", "clone sprite", "set sprite frame",
-      "get sprite frame"
+      "get sprite frame", "sprite frame count"
       [Mike, James]
 
   * Vikings of Midgard
