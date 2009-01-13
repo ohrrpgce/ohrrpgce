@@ -2048,6 +2048,101 @@ end</example>
 			<description>Returns the total number of available frames for a given sprite <p>handle</p>.</description>
 		</command>
 	</section>
+	<section title="Slice Functions">
+		<command id="slicex">
+			<cannon>slice x (handle)</cannon>
+			<shortname>slice x</shortname>
+			<description>Returns the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<seealso>
+				<ref>slice y</ref>
+				<ref>set slice x</ref>
+			</seealso>
+		</command>
+		<command id="slicey">
+			<cannon>slice y (handle)</cannon>
+			<shortname>slice y</shortname>
+			<description>Returns the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<seealso>
+				<ref>slice x</ref>
+				<ref>set slice y</ref>
+			</seealso>
+		</command>
+		<command id="setslicex">
+			<cannon>set slice x (handle, X)</cannon>
+			<shortname>set slice x</shortname>
+			<description>Changes the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<seealso>
+				<ref>slice x</ref>
+				<ref>set slice y</ref>
+			</seealso>
+		</command>
+		<command id="setslicey">
+			<cannon>setslice y (handle, Y)</cannon>
+			<shortname>set slice y</shortname>
+			<description>Changes the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<seealso>
+				<ref>slice y</ref>
+				<ref>set slice x</ref>
+			</seealso>
+		</command>
+		<command id="slicewidth">
+			<cannon>slice width (handle)</cannon>
+			<shortname>slice width</shortname>
+			<description>Returns the width of any slice, for example a sprite.</description>
+			<seealso>
+				<ref>slice height</ref>
+			</seealso>
+		</command>
+		<command id="sliceheight">
+			<cannon>slice height (handle)</cannon>
+			<shortname>slice height</shortname>
+			<description>Returns the height of any slice, for example a sprite.</description>
+			<seealso>
+				<ref>slice width</ref>
+			</seealso>
+		</command>
+		<command id="sethorizalign">
+			<cannon>set horiz align (handle, edge)</cannon>
+			<shortname>set horiz align</shortname>
+			<description>Changes the horizontal alignment of any slice relative to its parent. The available edges are <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. The default value is edge:left.</description>
+			<seealso>
+				<ref>set vert align</ref>
+				<ref>set horiz anchor</ref>
+				<ref>set vert anchor</ref>
+			</seealso>
+		</command>
+		<command id="setvertalign">
+			<cannon>set vert align (handle, edge)</cannon>
+			<shortname>set vert align</shortname>
+			<description>Changes the vertical alignment of any slice relative to its parent. The available edges are <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. The default value is edge:top.</description>
+			<seealso>
+				<ref>set horiz align</ref>
+				<ref>set horiz anchor</ref>
+				<ref>set vert anchor</ref>
+			</seealso>
+		</command>
+		<command id="sethorizanchor">
+			<cannon>set horiz anchor (handle, edge)</cannon>
+			<shortname>set horiz anchor</shortname>
+			<description>Changes the horizontal anchor of any slice. The available anchor values are <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. The default value is edge:left.</description>
+			<seealso>
+				<ref>set vert align</ref>
+				<ref>set horiz align</ref>
+				<ref>set vert anchor</ref>
+			</seealso>
+		</command>
+		<command id="setvertanchor">
+			<cannon>set vert anchor (handle, edge)</cannon>
+			<shortname>set vert anchor</shortname>
+			<description>Changes the vertical anchor of any slice. The available anchor values are <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. The default value is edge:top.</description>
+			<seealso>
+				<ref>set vert align</ref>
+				<ref>set horiz align</ref>
+				<ref>set horiz anchor</ref>
+			</seealso>
+		</command>
+	</section>
+	
 	<section title="Misc Functions">
 		<command id="random">
 			<cannon>random (lownumber, highnumber)</cannon>

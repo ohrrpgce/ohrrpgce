@@ -131,6 +131,8 @@
 	
 		<a href="#Sprite%20Functions">Sprite Functions</a><br>
 	
+		<a href="#Slice%20Functions">Slice Functions</a><br>
+	
 		<a href="#Misc%20Functions">Misc Functions</a><br>
 	
 		<a href="#Enemy%20and%20Formation%20Functions">Enemy and Formation Functions</a><br>
@@ -1316,6 +1318,12 @@
 		<a href="#about-setheroz">set hero z (who, z)</a><br>
 		
 	
+		<a href="#about-sethorizalign">set horiz align (handle, edge)</a><br>
+		
+	
+		<a href="#about-sethorizanchor">set horiz anchor (handle, edge)</a><br>
+		
+	
 		<a href="#about-sethoursofplay">set hours of play (hours)</a><br>
 		
 	
@@ -1430,6 +1438,12 @@
 		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
 		
 	
+		<a href="#about-setslicex">set slice x (handle, X)</a><br>
+		
+	
+		<a href="#about-setslicey">setslice y (handle, Y)</a><br>
+		
+	
 		<a href="#about-setspriteframe">set sprite frame (handle, num)</a><br>
 		
 	
@@ -1449,6 +1463,12 @@
 		
 	
 		<a href="#about-setvariable">set variable (variable,value)</a><br>
+		
+	
+		<a href="#about-setvertalign">set vert align (handle, edge)</a><br>
+		
+	
+		<a href="#about-setvertanchor">set vert anchor (handle, edge)</a><br>
 		
 	
 		<a href="#about-setvictorymusic">set victory music (song)</a><br>
@@ -1483,6 +1503,18 @@
 	
 		
 		<a href="#about-numericconstants">six</a><br>
+	
+		<a href="#about-sliceheight">slice height (handle)</a><br>
+		
+	
+		<a href="#about-slicewidth">slice width (handle)</a><br>
+		
+	
+		<a href="#about-slicex">slice x (handle)</a><br>
+		
+	
+		<a href="#about-slicey">slice y (handle)</a><br>
+		
 	
 		<a href="#about-song:sameaslastmap">song: same as last map</a><br>
 		
@@ -4653,6 +4685,134 @@ end</pre>
 
 		<hr>
 	
+		<a name="Slice%20Functions"></a>
+
+		<font color="#f06060" size="4">Slice Functions</font>
+		<p></p>
+		
+		<a name="about-slicex"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice x (handle)</font></b><br>
+			Returns the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20y" class="undef">slice y</a>, </li>
+<li><a href="#set%20slice%20x" class="undef">set slice x</a></li>
+</ul>
+		</tt></p>
+		<a name="about-slicey"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice y (handle)</font></b><br>
+			Returns the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20x" class="undef">slice x</a>, </li>
+<li><a href="#set%20slice%20y" class="undef">set slice y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setslicex"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice x (handle, X)</font></b><br>
+			Changes the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20x" class="undef">slice x</a>, </li>
+<li><a href="#set%20slice%20y" class="undef">set slice y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setslicey"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">setslice y (handle, Y)</font></b><br>
+			Changes the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20y" class="undef">slice y</a>, </li>
+<li><a href="#set%20slice%20x" class="undef">set slice x</a></li>
+</ul>
+		</tt></p>
+		<a name="about-slicewidth"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice width (handle)</font></b><br>
+			Returns the width of any slice, for example a sprite.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#slice%20height" class="undef">slice height</a></li></ul>
+		</tt></p>
+		<a name="about-sliceheight"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice height (handle)</font></b><br>
+			Returns the height of any slice, for example a sprite.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#slice%20width" class="undef">slice width</a></li></ul>
+		</tt></p>
+		<a name="about-sethorizalign"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set horiz align (handle, edge)</font></b><br>
+			Changes the horizontal alignment of any slice relative to its parent. The available edges are <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. The default value is edge:left.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#set%20vert%20align" class="undef">set vert align</a>, </li>
+<li>
+<a href="#set%20horiz%20anchor" class="undef">set horiz anchor</a>, </li>
+<li><a href="#set%20vert%20anchor" class="undef">set vert anchor</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setvertalign"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set vert align (handle, edge)</font></b><br>
+			Changes the vertical alignment of any slice relative to its parent. The available edges are <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. The default value is edge:top.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#set%20horiz%20align" class="undef">set horiz align</a>, </li>
+<li>
+<a href="#set%20horiz%20anchor" class="undef">set horiz anchor</a>, </li>
+<li><a href="#set%20vert%20anchor" class="undef">set vert anchor</a></li>
+</ul>
+		</tt></p>
+		<a name="about-sethorizanchor"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set horiz anchor (handle, edge)</font></b><br>
+			Changes the horizontal anchor of any slice. The available anchor values are <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span>. The default value is edge:left.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#set%20vert%20align" class="undef">set vert align</a>, </li>
+<li>
+<a href="#set%20horiz%20align" class="undef">set horiz align</a>, </li>
+<li><a href="#set%20vert%20anchor" class="undef">set vert anchor</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setvertanchor"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set vert anchor (handle, edge)</font></b><br>
+			Changes the vertical anchor of any slice. The available anchor values are <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span>. The default value is edge:top.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#set%20vert%20align" class="undef">set vert align</a>, </li>
+<li>
+<a href="#set%20horiz%20align" class="undef">set horiz align</a>, </li>
+<li><a href="#set%20horiz%20anchor" class="undef">set horiz anchor</a></li>
+</ul>
+		</tt></p>
+
+		<hr>
+	
 		<a name="Misc%20Functions"></a>
 
 		<font color="#f06060" size="4">Misc Functions</font>
@@ -7255,7 +7415,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 551 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 561 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

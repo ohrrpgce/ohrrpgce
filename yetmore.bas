@@ -1782,13 +1782,54 @@ SELECT CASE AS CONST id
    END WITH
   END IF
  CASE 347 '--sprite frame count
-  IF valid_plotslice(retvals(0), "get sprite frame") THEN
+  IF valid_plotslice(retvals(0), "sprite frame count") THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    WITH *dat
     scriptret = sprite_sizes(.spritetype).frames
    END WITH
   END IF
+ CASE 348 '--slice x
+  IF valid_plotslice(retvals(0), "slice x") THEN
+   scriptret = plotslices(retvals(0))->X
+  END IF
+ CASE 349 '--slice y
+  IF valid_plotslice(retvals(0), "slice y") THEN
+   scriptret = plotslices(retvals(0))->Y
+  END IF
+ CASE 350 '--set slice x
+  IF valid_plotslice(retvals(0), "set slice x") THEN
+   plotslices(retvals(0))->X = retvals(1)
+  END IF
+ CASE 351 '--set slice y
+  IF valid_plotslice(retvals(0), "set slice y") THEN
+   plotslices(retvals(0))->Y = retvals(1)
+  END IF
+ CASE 352 '--slice width
+  IF valid_plotslice(retvals(0), "slice width") THEN
+   scriptret = plotslices(retvals(0))->Width
+  END IF
+ CASE 353 '--slice height
+  IF valid_plotslice(retvals(0), "slice height") THEN
+   scriptret = plotslices(retvals(0))->Height
+  END IF
+ CASE 354 '--set horiz align
+  IF valid_plotslice(retvals(0), "set horiz align") THEN
+   plotslices(retvals(0))->AlignHoriz = retvals(1)
+  END IF
+ CASE 355 '--set vert align
+  IF valid_plotslice(retvals(0), "set vert align") THEN
+   plotslices(retvals(0))->AlignVert = retvals(1)
+  END IF
+ CASE 356 '--set horiz anchor
+  IF valid_plotslice(retvals(0), "set horiz anchor") THEN
+   plotslices(retvals(0))->AnchorHoriz = retvals(1)
+  END IF
+ CASE 357 '--set vert anchor
+  IF valid_plotslice(retvals(0), "set vert anchor") THEN
+   plotslices(retvals(0))->AnchorVert = retvals(1)
+  END IF
+
 END SELECT
 
 EXIT SUB

@@ -60,12 +60,21 @@ Function LoadNullSlice(Byval sl as SliceFwd ptr, key as string, valstr as string
 
 Sub SetupGameSlices
  SliceTable.Root = NewSlice
- SliceTable.Root->Attach = slScreen
- SliceTable.Root->SliceType = slRoot
+ with *SliceTable.Root
+  .Attach = slScreen
+  .SliceType = slRoot
+  'We manually set these here so that Root will have the correct
+  'size even if DrawSlice has not been called on it yet. This
+  'is needed to make second-level roots .Fill=YES work correctly
+  'in the transitional phase when root is not yet drawn
+  .Width = 320
+  .Height = 200
+ end with
  
  SliceTable.Map = NewSlice(SliceTable.Root)
  
  SliceTable.ScriptSprite = NewSlice(SliceTable.Root)
+ SliceTable.ScriptSprite->Fill = YES
  
  SliceTable.TextBox = NewSlice(SliceTable.Root)
  

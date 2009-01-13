@@ -339,12 +339,12 @@ define function, begin
 330,replacewalkaboutsprite,3,0,0,-1 #replaces the sprite with a walkabout sprite (id, num, pal)
 331,loadweaponsprite,2,0,-1   #load weapon sprite (number, palette)
 332,replaceweaponsprite,3,0,0,-1 #replaces the sprite with a weapon sprite (id, num, pal)
-333,loadsmallenemysprite,3,0,0,-1  #load enemy sprite (number, palette)
-334,replacesmallenemysprite,4,0,0,0,-1 #replaces the sprite with an enemy sprite (id, num, pal)
-335,loadmediumenemysprite,3,0,0,-1  #load enemy sprite (number, palette)
-336,replacemediumenemysprite,4,0,0,0,-1 #replaces the sprite with an enemy sprite (id, num, pal)
-337,loadlargeenemysprite,3,0,0,-1  #load enemy sprite (number, palette)
-338,replacelargeenemysprite,4,0,0,0,-1 #replaces the sprite with an enemy sprite (id, num, pal)
+333,loadsmallenemysprite,2,0,-1  #load enemy sprite (number, palette)
+334,replacesmallenemysprite,3,0,0,-1 #replaces the sprite with an enemy sprite (id, num, pal)
+335,loadmediumenemysprite,2,0,-1  #load enemy sprite (number, palette)
+336,replacemediumenemysprite,3,0,0,-1 #replaces the sprite with an enemy sprite (id, num, pal)
+337,loadlargeenemysprite,2,0,-1  #load enemy sprite (number, palette)
+338,replacelargeenemysprite,3,0,0,-1 #replaces the sprite with an enemy sprite (id, num, pal)
 339,loadattacksprite,2,0,-1   #load attack sprite (number, palette)
 340,replaceattacksprite,3,0,0,-1 #replaces the sprite with an attack sprite (id, num, pal)
 341,loadbordersprite,2,0,-1   #load a textbox border (number, palette)
@@ -354,6 +354,16 @@ define function, begin
 345,clonesprite,2,0, 0        #returns a copy of the given sprite(ID, pal)
 346,getspriteframe,1,0        #returns the current frame number of a sprite
 347,spriteframecount,1,0      #returns the number of frames a sprite has
+348,slicex,1,0                #returns the x position of a slice relative to its parent
+349,slicey,1,0                #returns the y position of a slice relative to its parent
+350,setslicex,2,0,0           #set the x position of a slice relative to its parent
+351,setslicey,2,0,0           #set the y position of a slice relative to its parent
+352,slicewidth,1,0            #returns the width of a slice
+353,sliceheight,1,0           #returns the height of a slice
+354,sethorizalign,2,0,0       #changes the horizontal alignment of a slice to its parent
+355,setvertalign,2,0,0        #changes the vertical alignment of a slice to its parent
+356,sethorizanchor,2,0,0      #changes the horizontal anchor of a slice
+357,setvertanchor,2,0,0       #changes the vertical anchor of a slice
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
@@ -1255,4 +1265,10 @@ define constant, begin
 -2,song:same as last map
 -1,any enemy
 0,inv:max
+0,edge:left
+1,edge:center
+2,edge:right
+0,edge:top
+1,edge:middle
+2,edge:bottom
 end

@@ -45,6 +45,9 @@ WHAT IS NEW?
       "set sprite palette", "clone sprite", "set sprite frame",
       "get sprite frame", "sprite frame count"
       [Mike, James]
+    * "slice x", "slice y", "set slice x", "set slice y", "slice width",
+      "slice height", "set horiz align", "set vert align",
+      "set horiz anchor", "set vert anchor" [James]
 
   * Vikings of Midgard
 
