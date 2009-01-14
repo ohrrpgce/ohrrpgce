@@ -99,7 +99,6 @@ FUNCTION SliceTypeName (t AS SliceTypes) AS STRING
   CASE slRoot:           RETURN "Root"
   CASE slSpecial:        RETURN "Special"
   CASE slRectangle:      RETURN "Rectangle"
-  CASE slStyleRectangle: RETURN "Styled Rect"
   CASE slSprite:         RETURN "Sprite"
   CASE slText:           RETURN "Text"
   CASE slMenu:           RETURN "Menu"
@@ -113,7 +112,6 @@ FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
   CASE "Root":           RETURN slRoot
   CASE "Special":        RETURN slSpecial
   CASE "Rectangle":      RETURN slRectangle
-  CASE "Styled Rect":    RETURN slStyleRectangle
   CASE "Sprite":         RETURN slSprite
   CASE "Text":           RETURN slText
   CASE "Menu":           RETURN slMenu
@@ -136,9 +134,6 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS 
   CASE slRectangle:
    DIM dat AS RectangleSliceData
    RETURN NewRectangleSlice(parent, dat)
-  CASE slStyleRectangle:
-   DIM dat AS StyleRectangleSliceData
-   RETURN NewStyleRectangleSlice(parent, dat)
   CASE slSprite:
    DIM dat AS SpriteSliceData
    dat.pal = -1 'FIXME: Hack to make up for the lack of constructors
@@ -445,70 +440,6 @@ end function
 Function GetRectangleSliceData(byval sl as slice ptr) as RectangleSliceData ptr
  return sl->SliceData
 End Function
-
-'--StyleRectangle---------------------------------------------------------
-Sub DisposeStyleRectangleSlice(byval sl as slice ptr)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- dim dat as StyleRectangleSliceData ptr = cptr(StyleRectangleSliceData ptr, sl->SliceData)
- delete dat
- sl->SliceData = 0
-end sub
-
-Sub DrawStyleRectangleSlice(byval sl as slice ptr, byval p as integer)
- if sl = 0 then exit sub
- if sl->SliceData = 0 then exit sub
- 
- dim dat as StyleRectangleSliceData ptr = cptr(StyleRectangleSliceData ptr, sl->SliceData)
- edgeboxstyle sl->screenx, sl->screeny, sl->width, sl->height, dat->style , p, dat->transparent, dat->hideborder
-end sub
-
-Function GetStyleRectangleSliceData(byval sl as slice ptr) as StyleRectangleSliceData ptr
- return sl->SliceData
-End Function
-
-Sub SaveStyleRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
- DIM dat AS StyleRectangleSliceData Ptr
- dat = sl->SliceData
- WriteSliceFileVal f, "style", dat->style
- WriteSliceFileBool f, "trans", dat->transparent
- WriteSliceFileBool f, "hideb", dat->hideborder
-End Sub
-
-Function LoadStyleRectangleSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
- 'Return value is YES if the key is understood, NO if ignored
- 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
- dim dat AS StyleRectangleSliceData Ptr
- dat = sl->SliceData
- select case key
-  case "style": dat->style = n
-  case "trans": dat->transparent = n
-  case "hideb": dat->hideborder = n
-  case else: return NO
- end select
- return YES
-End Function
-
-Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
- dim ret as Slice ptr
- ret = NewSlice(parent)
- if ret = 0 then 
-  debug "Out of memory?!"
-  return 0
- end if
- 
- dim d as StyleRectangleSliceData ptr = new StyleRectangleSliceData
- *d = dat
- 
- ret->SliceType = slStyleRectangle
- ret->SliceData = d
- ret->Draw = @DrawStyleRectangleSlice
- ret->Dispose = @DisposeStyleRectangleSlice
- ret->Save = @SaveStyleRectangleSlice
- ret->Load = @LoadStyleRectangleSlice
- 
- return ret
-end function
 
 '--Text-------------------------------------------------------------------
 Sub DisposeTextSlice(byval sl as slice ptr)

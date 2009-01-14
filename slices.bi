@@ -12,7 +12,6 @@ Enum SliceTypes
  slRoot
  slSpecial
  slRectangle
- slStyleRectangle
  slSprite
  slText
  slMenu
@@ -103,13 +102,6 @@ TYPE RectangleSliceData
  'Declare constructor (byval bgcol as integer, byval transparent as integer = YES, byval fgcol as integer = -1, byval border as integer = -1)
 END TYPE
 
-TYPE StyleRectangleSliceData
- style as integer
- transparent as integer
- hideborder as integer
- 'Declare constructor (byval bgcol as integer, byval transparent as integer = YES, byval style as integer = 0)
-END TYPE
-
 Type TextSliceData
  col as integer
  outline as integer
@@ -158,7 +150,6 @@ DECLARE FUNCTION SliceTypeName OVERLOAD (t AS SliceTypes) AS STRING
 DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS Slice Ptr
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
-DECLARE Function NewStyleRectangleSlice(byval parent as Slice ptr, byref dat as StyleRectangleSliceData) as slice ptr
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
 DECLARE Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr

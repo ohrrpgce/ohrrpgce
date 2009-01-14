@@ -28,11 +28,10 @@ END TYPE
 
 '==============================================================================
 
-DIM SHARED editable_slice_types(3) AS SliceTypes
+DIM SHARED editable_slice_types(2) AS SliceTypes
 editable_slice_types(0) = SlRectangle
-editable_slice_types(1) = SlStyleRectangle
-editable_slice_types(2) = SlSprite
-editable_slice_types(3) = SlText
+editable_slice_types(1) = SlSprite
+editable_slice_types(2) = SlText
 
 '==============================================================================
 
@@ -381,15 +380,6 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule_tog rules(), @(dat->transparent)
     string_array_grow_append menu(), "Border: " & yesorno(dat->border)
     sliceed_rule_tog rules(), @(dat->border)
-   CASE slStyleRectangle
-    DIM dat AS StyleRectangleSliceData Ptr
-    dat = .SliceData
-    string_array_grow_append menu(), "Style: " & dat->style
-    sliceed_rule rules(), erIntgrabber, @(dat->style), 0, 14
-    string_array_grow_append menu(), "Transparent: " & yesorno(dat->transparent)
-    sliceed_rule_tog rules(), @(dat->transparent)
-    string_array_grow_append menu(), "Hide Border: " & yesorno(dat->hideborder)
-    sliceed_rule_tog rules(), @(dat->hideborder)
    CASE slText
     DIM dat AS TextSliceData Ptr
     dat = .SliceData
