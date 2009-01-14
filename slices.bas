@@ -86,15 +86,8 @@ End Sub
 
 Sub DestroyGameSlices
  if SliceTable.Root then
-  DeleteSlice(@SliceTable.Map)
-  DeleteSlice(@SliceTable.ScriptSprite)
-  DeleteSlice(@SliceTable.TextBox)
-  DeleteSlice(@SliceTable.Menu)
-  DeleteSlice(@SliceTable.ScriptString)
- 
   DeleteSlice(@SliceTable.Root)
  end if
- 
 End Sub
 
 FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
@@ -205,7 +198,7 @@ Sub DeleteSlice(Byval s as Slice ptr ptr)
   nxt->PrevSibling = prv
  end if
  if prv then
-  nxt->NextSibling = nxt
+  prv->NextSibling = nxt
  end if
  if par then
   if par->FirstChild = sl then
@@ -236,7 +229,7 @@ End Sub
 
 Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
  'first, remove the slice from its existing parent
- dim as slice ptr nxt, prv, par, ch
+ dim as slice ptr nxt, prv, par
  nxt = sl->NextSibling
  prv = sl->PrevSibling
  par = sl->Parent
@@ -716,6 +709,7 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval frame as integer = -1,_
                       byval fliph as integer = -2,_
                       byval flipv as integer = -2)
+ if sl = 0 then debug "ChangeSpriteSlice null ptr" : exit sub
  if sl->SliceType <> slSprite then debug "Attempt to use non-sprite slice " & sl & " as a sprite" : exit sub
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
