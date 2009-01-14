@@ -365,6 +365,11 @@ define function, begin
 356,sethorizanchor,2,0,0      #changes the horizontal anchor of a slice
 357,setvertanchor,2,0,0       #changes the vertical anchor of a slice
 358,numberfromstring,2,0,0    #look in a string for a number and return it
+359,sliceissprite,1,0         #return true if the provided slice handle points to a sprite
+360,spritelayer,0             #return a handle to the plotsprite layer
+361,freeslice,1,0             #free a slice and all its children
+362,firstchild,1,0            #return the first child of a slice or 0 if none
+363,nextsibling,1,0           #return the next sibling of a slice or 0 if none
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)

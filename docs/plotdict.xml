@@ -2009,8 +2009,9 @@ end</example>
 		<command id="freesprite">
 			<cannon>free sprite (handle)</cannon>
 			<shortname>free sprite</shortname>
-			<description>Unloads a sprite loaded by any of the "load x sprite" functions.</description>
+			<description>Unloads a sprite loaded by any of the "load x sprite" functions. Unlike <ref>freeslice</ref>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are.</description>
 			<seealso>
+				<ref>free slice</ref>
 				<ref>loadherosprite</ref>
 			</seealso>
 		</command>
@@ -2052,6 +2053,25 @@ end</example>
 			<cannon>sprite frame count (handle)</cannon>
 			<shortname>sprite frame count</shortname>
 			<description>Returns the total number of available frames for a given sprite <p>handle</p>.</description>
+		</command>
+		<command id="sliceissprite">
+			<cannon>slice is sprite (handle)</cannon>
+			<shortname>slice is sprite</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a sprite.</description>
+		</command>
+		<command id="spritelayer">
+			<cannon>sprite later</cannon>
+			<shortname>sprite layer</shortname>
+			<description>Returns a slice handle for the layer which contains sprites created with commands such as <ref>loadherosprite</ref>, <ref>loadwalkaboutsprite</ref> and others. You can use this together with <ref>firstchild</ref> if you want to loop through all your sprites without knowing their handles.</description>
+			<example>variable(sl)
+sl := first child(sprite layer)
+while (sl) do, begin
+ if (slice is sprite(sl)) then, begin
+   # do an operation on each sprite
+ end
+ sl := next sibling(sl)
+end
+</example>
 		</command>
 	</section>
 	<section title="Slice Functions">
@@ -2146,6 +2166,42 @@ end</example>
 				<ref>set horiz align</ref>
 				<ref>set horiz anchor</ref>
 			</seealso>
+		</command>
+		<command id="freeslice">
+			<cannon>free slice (handle)</cannon>
+			<shortname>free slice</shortname>
+			<description>Unloads a slice and any child slices. This works on any type of slice. If you know the type of slice you are deleting, you can use type-specific freeing commands instead.</description>
+			<seealso>
+				<ref>freesprite</ref>
+			</seealso>
+		</command>
+		<command id="firstchild">
+			<cannon>first child(handle)</cannon>
+			<shortname>first child</shortname>
+			<description>Returns a slice handle for the first child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no children. You can use this to loop through all all the children of a slice</description>
+			<example>variable(sl)
+sl := first child(sprite layer)
+while (sl) do, begin
+ if (slice is sprite(sl)) then, begin
+   # do an operation on each sprite
+ end
+ sl := next sibling(sl)
+end
+</example>
+		</command>
+		<command id="nextsibling">
+			<cannon>next sibling(handle)</cannon>
+			<shortname>next silbing</shortname>
+			<description>Returns a slice handle for the next sibling of a given slice <p>handle</p>. Returns <p>false</p> if the give slice is the last sibling of its parent. This is useful when looping through slices.</description>
+			<example>variable(sl)
+sl := first child(sprite layer)
+while (sl) do, begin
+ if (slice is sprite(sl)) then, begin
+   # do an operation on each sprite
+ end
+ sl := next sibling(sl)
+end
+</example>
 		</command>
 	</section>
 	

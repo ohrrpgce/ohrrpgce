@@ -710,7 +710,7 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval fliph as integer = -2,_
                       byval flipv as integer = -2)
  if sl = 0 then debug "ChangeSpriteSlice null ptr" : exit sub
- if sl->SliceType <> slSprite then debug "Attempt to use non-sprite slice " & sl & " as a sprite" : exit sub
+ if sl->SliceType <> slSprite then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a sprite" : exit sub
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
   if spritetype >= 0 then

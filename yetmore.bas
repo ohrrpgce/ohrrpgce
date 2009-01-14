@@ -28,7 +28,9 @@ DEFINT A-Z
 
 'FIXME: Why does DIMing plotslices() in game.bas not work?
 DIM plotslices() AS Slice Ptr
-REDIM plotslices(63) 'The size of 64 is just so we won't have to reallocate for a little while
+'Useing a lower bound of 1 because 0 is considered an invalid handle
+'The size of 64 is just so we won't have to reallocate for a little while
+REDIM plotslices(1 TO 64) 
 
 'these variables hold information used by breakpoint to step to the desired position
 DIM SHARED waitforscript, waitfordepth, stepmode, lastscriptnum
@@ -1712,7 +1714,11 @@ SELECT CASE AS CONST id
   scriptret = load_sprite_plotslice(0, retvals(0), retvals(1))
  CASE 323'--free sprite
   IF valid_plotslice(retvals(0), "free sprite") THEN
-   DeleteSlice(@plotslices(retvals(0)))
+   IF plotslices(retvals(0))->SliceType = slSprite THEN
+    DeleteSlice(@plotslices(retvals(0)))
+   ELSE
+    debug "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0)))
+   END IF
   END IF
  CASE 324 '--place sprite
   IF valid_plotslice(retvals(0), "place sprite") THEN
@@ -1837,6 +1843,29 @@ SELECT CASE AS CONST id
  CASE 358 '--number from string
   IF bound_plotstr(retvals(0), "number from string") THEN
    scriptret = str2int(plotstr(retvals(0)).s, retvals(1))
+  END IF
+ CASE 359 '--slice is sprite
+  IF valid_plotslice(retvals(0), "slice is sprite") THEN
+   scriptret = 0
+   IF plotslices(retvals(0))->SliceType = slSprite THEN scriptret = 1
+  END IF
+ CASE 360 '--sprite layer
+  scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
+ CASE 361 '--free slice
+  IF valid_plotslice(retvals(0), "free slice") THEN
+   DeleteSlice(@plotslices(retvals(0)))
+  END IF
+ CASE 362 '--first child
+  IF valid_plotslice(retvals(0), "first child") THEN
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   scriptret = find_plotslice_handle(sl->FirstChild)
+  END IF
+ CASE 363 '--next sibling
+  IF valid_plotslice(retvals(0), "next sibling") THEN
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   scriptret = find_plotslice_handle(sl->NextSibling)
   END IF
 
 END SELECT
@@ -3190,7 +3219,7 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 END SUB
 
 FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as integer
- IF handle < 0 OR handle > UBOUND(plotslices) THEN
+ IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
   debug cmd & ": invalid slice handle " & handle
   RETURN NO
  END IF
@@ -3204,7 +3233,7 @@ END FUNCTION
 FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
  DIM i as integer
  'First search for an empty slice handle slot (which sucks because it means they get re-used)
- FOR i = 1 to UBOUND(plotslices)
+ FOR i = LBOUND(plotslices) to UBOUND(plotslices)
   IF plotslices(i) = 0 THEN
    'Store the slice pointer in the handle slot and return the handle number
    plotslices(i) = sl
@@ -3212,10 +3241,20 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
   END IF
  NEXT
  'If no room is available, make the array bigger.
- REDIM PRESERVE plotslices(UBOUND(plotslices) + 32)
+ REDIM PRESERVE plotslices(LBOUND(plotslices) TO UBOUND(plotslices) + 32)
  'Store the slice pointer in the handle slot and return the handle number
  plotslices(i) = sl
  RETURN i
+END FUNCTION
+
+FUNCTION find_plotslice_handle(BYVAL sl AS Slice Ptr) AS INTEGER
+ 'Search plotslices() for a specific slice handle. If it is not present, add it
+ IF sl = 0 THEN RETURN 0 ' it would be silly to search for a null pointer
+ FOR i AS INTEGER = LBOUND(plotslices) TO UBOUND(plotslices)
+  IF plotslices(i) = sl THEN RETURN i
+ NEXT i
+ 'slice not found in table, so create a new handle for it
+ RETURN create_plotslice_handle(sl)
 END FUNCTION
 
 FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1) AS INTEGER

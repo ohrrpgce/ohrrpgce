@@ -448,6 +448,9 @@
 		<a href="#about-findmenuitemcaption">find menu item caption(menu handle, string ID, search after handle, visible only)</a><br>
 		
 	
+		<a href="#about-firstchild">first child(handle)</a><br>
+		
+	
 		<a href="#about-firstmenuitem">first menu item(menu handle)</a><br>
 		
 	
@@ -483,6 +486,9 @@
 	
 		
 		<a href="#about-numericconstants">four</a><br>
+	
+		<a href="#about-freeslice">free slice (handle)</a><br>
+		
 	
 		<a href="#about-freesprite">free sprite (handle)</a><br>
 		
@@ -923,6 +929,9 @@
 		
 	
 		<a href="#about-nextmenuitem">next menu item(menu item handle, visible only)</a><br>
+		
+	
+		<a href="#about-nextsibling">next sibling(handle)</a><br>
 		
 	
 		
@@ -1510,6 +1519,9 @@
 		<a href="#about-sliceheight">slice height (handle)</a><br>
 		
 	
+		<a href="#about-sliceissprite">slice is sprite (handle)</a><br>
+		
+	
 		<a href="#about-slicewidth">slice width (handle)</a><br>
 		
 	
@@ -1544,6 +1556,9 @@
 		
 	
 		<a href="#about-spriteframecount">sprite frame count (handle)</a><br>
+		
+	
+		<a href="#about-spritelayer">sprite later</a><br>
 		
 	
 		<a href="#about-statusscreen">status screen (who)</a><br>
@@ -4629,9 +4644,13 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">free sprite (handle)</font></b><br>
-			Unloads a sprite loaded by any of the "load x sprite" functions.<br>
+			Unloads a sprite loaded by any of the "load x sprite" functions. Unlike <a href="#about-freeslice" class="ref">free slice</a>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-loadherosprite" class="ref">load hero sprite</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#free%20slice" class="undef">free slice</a>, </li>
+<li><a href="#about-loadherosprite" class="ref">load hero sprite</a></li>
+</ul>
 		</tt></p>
 		<a name="about-clonesprite"></a>
 		<p>
@@ -4691,6 +4710,30 @@ end</pre>
 		<b><font color="yellow">sprite frame count (handle)</font></b><br>
 			Returns the total number of available frames for a given sprite <span class="param">handle</span>.<br>
 			
+			
+		</tt></p>
+		<a name="about-sliceissprite"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice is sprite (handle)</font></b><br>
+			Returns true if the given slice <span class="param">handle</span> is a sprite.<br>
+			
+			
+		</tt></p>
+		<a name="about-spritelayer"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">sprite later</font></b><br>
+			Returns a slice handle for the layer which contains sprites created with commands such as <a href="#about-loadherosprite" class="ref">load hero sprite</a>, <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a> and others. You can use this together with <a href="#about-firstchild" class="ref">first child</a> if you want to loop through all your sprites without knowing their handles.<br>
+			<pre>variable(sl)
+sl := first child(sprite layer)
+while (sl) do, begin
+ if (slice is sprite(sl)) then, begin
+   # do an operation on each sprite
+ end
+ sl := next sibling(sl)
+end
+</pre>
 			
 		</tt></p>
 
@@ -4820,6 +4863,46 @@ end</pre>
 <a href="#set%20horiz%20align" class="undef">set horiz align</a>, </li>
 <li><a href="#set%20horiz%20anchor" class="undef">set horiz anchor</a></li>
 </ul>
+		</tt></p>
+		<a name="about-freeslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">free slice (handle)</font></b><br>
+			Unloads a slice and any child slices. This works on any type of slice. If you know the type of slice you are deleting, you can use type-specific freeing commands instead.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-freesprite" class="ref">free sprite</a></li></ul>
+		</tt></p>
+		<a name="about-firstchild"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">first child(handle)</font></b><br>
+			Returns a slice handle for the first child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no children. You can use this to loop through all all the children of a slice<br>
+			<pre>variable(sl)
+sl := first child(sprite layer)
+while (sl) do, begin
+ if (slice is sprite(sl)) then, begin
+   # do an operation on each sprite
+ end
+ sl := next sibling(sl)
+end
+</pre>
+			
+		</tt></p>
+		<a name="about-nextsibling"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">next sibling(handle)</font></b><br>
+			Returns a slice handle for the next sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the give slice is the last sibling of its parent. This is useful when looping through slices.<br>
+			<pre>variable(sl)
+sl := first child(sprite layer)
+while (sl) do, begin
+ if (slice is sprite(sl)) then, begin
+   # do an operation on each sprite
+ end
+ sl := next sibling(sl)
+end
+</pre>
+			
 		</tt></p>
 
 		<hr>
@@ -7426,7 +7509,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 562 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 567 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

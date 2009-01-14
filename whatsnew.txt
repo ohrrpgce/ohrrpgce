@@ -43,11 +43,13 @@ WHAT IS NEW?
       "load portrait sprite", "replace portrait sprite",
       "free sprite", "place sprite", "set sprite visible",
       "set sprite palette", "clone sprite", "set sprite frame",
-      "get sprite frame", "sprite frame count"
+      "get sprite frame", "sprite frame count", "slice is sprite",
+      "sprite layer"
       [Mike, James]
     * "slice x", "slice y", "set slice x", "set slice y", "slice width",
       "slice height", "set horiz align", "set vert align",
-      "set horiz anchor", "set vert anchor" [James]
+      "set horiz anchor", "set vert anchor", "free slice",
+      "first child", "next sibling" [James]
     * "number from string" [James]
 
   * Vikings of Midgard

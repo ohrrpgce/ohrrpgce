@@ -55,6 +55,7 @@ DECLARE SUB loadsay (box_id as integer)
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 DECLARE FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as integer
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
+DECLARE FUNCTION find_plotslice_handle(BYVAL sl AS Slice Ptr) AS INTEGER
 DECLARE FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1) AS INTEGER
 DECLARE SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1, BYVAL frame AS INTEGER=-1, BYVAL fliph AS INTEGER=-2, BYVAL flipv AS INTEGER=-2)
 
