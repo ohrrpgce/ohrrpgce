@@ -185,7 +185,7 @@ DO WHILE start < LEN(text$)
      END IF
     CASE "S": '--string variable by ID
      insert$ = ""
-     IF arg >= 0 AND arg <= 31 THEN
+     IF bound_plotstr(arg, "${S#} text box insert") THEN
       insert$ = plotstr(arg).s
      END IF
    END SELECT
@@ -836,8 +836,7 @@ END SUB
 
 SUB scriptmisc (id)
 'contains a whole mess of scripting commands that do not depend on
-'any main-module level local variables or GOSUBs, and therefore
-'can be moved out here to save memory
+'any main-module level local variables or GOSUBs
 
 SELECT CASE AS CONST id
 
@@ -1295,18 +1294,18 @@ SELECT CASE AS CONST id
  CASE 203'--current song
   scriptret = presentsong
  CASE 204'--get hero name(str,her)
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 39 THEN
-   scriptret = 0
-  ELSE
+  IF bound_plotstr(retvals(0), "get hero name") AND bound_hero_party(retvals(1), "get hero name") THEN
    plotstr(retvals(0)).s = names(retvals(1))
    scriptret = 1
+  ELSE
+   scriptret = 0
   END IF
  CASE 205'--set hero name
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 39 THEN
-   scriptret = 0
-  ELSE
+  IF bound_plotstr(retvals(0), "set hero name") AND bound_hero_party(retvals(1), "set hero name") THEN
    names(retvals(1)) = plotstr(retvals(0)).s
    scriptret = 1
+  ELSE
+   scriptret = 0
   END IF
  CASE 206'--get item name(str,itm)
   scriptret = 0
@@ -1317,55 +1316,55 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 207'--get map name(str,map)
-   IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > gen(genMaxMap) THEN
+   IF bound_plotstr(retvals(0), "get map name") = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxMap) THEN
    scriptret = 0
   ELSE
    plotstr(retvals(0)).s = getmapname$(retvals(1))
    scriptret = 1
   END IF
  CASE 208'--get attack name(str,atk)
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
+  IF bound_plotstr(retvals(0), "get attack name") = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
    scriptret = 0
   ELSE
    plotstr(retvals(0)).s = readattackname$(retvals(1) + 1)
    scriptret = 1
   END IF
  CASE 209'--get global string(str,glo)
-  IF retvals(0) > 31 OR retvals(0) < 0 OR retvals(1) < 0 OR retvals(1) > 159 THEN
+  IF bound_plotstr(retvals(0), "get global string") = NO OR retvals(1) < 0 OR retvals(1) > 159 THEN
    scriptret = 0
   ELSE
    plotstr(retvals(0)).s = readglobalstring$(retvals(1), "", 255)
    scriptret = 1
   END IF
  CASE 211'--clear string
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN plotstr(retvals(0)).s = ""
+  IF bound_plotstr(retvals(0), "clear string") THEN plotstr(retvals(0)).s = ""
  CASE 212'--append ascii
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "append ascii") THEN
    IF retvals(1) >= 0 AND retvals(1) <= 255 THEN
     plotstr(retvals(0)).s = plotstr(retvals(0)).s + CHR$(retvals(1))
     scriptret = LEN(plotstr(retvals(0)).s)
    END IF
   END IF
  CASE 213'--append number
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "append number") THEN
    plotstr(retvals(0)).s = plotstr(retvals(0)).s & retvals(1)
    scriptret = LEN(plotstr(retvals(0)).s)
   END IF
  CASE 214'--copy string
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
+  IF bound_plotstr(retvals(0), "copy string") AND bound_plotstr(retvals(1), "copy string") THEN
    plotstr(retvals(0)).s = plotstr(retvals(1)).s
   END IF
  CASE 215'--concatenate strings
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
+  IF bound_plotstr(retvals(0), "concatenate string") AND bound_plotstr(retvals(1), "concatenate string") THEN
    plotstr(retvals(0)).s = plotstr(retvals(0)).s + plotstr(retvals(1)).s
    scriptret = LEN(plotstr(retvals(0)).s)
   END IF
  CASE 216'--string length
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "string length") THEN
    scriptret = LEN(plotstr(retvals(0)).s)
   END IF
  CASE 217'--delete char
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "delete char") THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
     temp2$ = LEFT$(plotstr(retvals(0)).s, retvals(1) - 1)
     temp3$ = MID$(plotstr(retvals(0)).s, retvals(1) + 1)
@@ -1375,22 +1374,22 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 218'--replace char
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
+  IF bound_plotstr(retvals(0), "replace char") AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
     MID$(plotstr(retvals(0)).s, retvals(1), 1) = CHR$(retvals(2))
    END IF
   END IF
  CASE 219'--ascii from string
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
+  IF bound_plotstr(retvals(0), "ascii from string") AND retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
    scriptret = plotstr(retvals(0)).s[retvals(1)-1]'you can index strings a la C
   END IF
  CASE 220'--position string
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "position string") THEN
    plotstr(retvals(0)).X = retvals(1)
    plotstr(retvals(0)).Y = retvals(2)
   END IF
  CASE 221'--set string bit
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
+  IF bound_plotstr(retvals(0), "set string bit") AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
    if retvals(2) then
     plotstr(retvals(0)).bits = plotstr(retvals(0)).bits or 2 ^ retvals(1)
    else
@@ -1398,22 +1397,22 @@ SELECT CASE AS CONST id
    end if
   END IF
  CASE 222'--get string bit
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
+  IF bound_plotstr(retvals(0), "get string bit") AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
    'scriptret = readbit(plotstrBits(), retvals(0), retvals(1))
    scriptret = plotstr(retvals(0)).bits AND 2 ^ retvals(1)
    IF scriptret THEN scriptret = 1
   END IF
  CASE 223'--string color
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "string color") THEN
    plotstr(retvals(0)).Col = bound(retvals(1), 0, 255)
    plotstr(retvals(0)).BGCol = bound(retvals(2), 0, 255)
   END IF
  CASE 224'--string X
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "string X") THEN
    scriptret = plotstr(retvals(0)).X
   END IF
  CASE 225'--string Y
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "string Y") THEN
    scriptret = plotstr(retvals(0)).Y
   END IF
  CASE 226'--system day (date$ is always mm-dd-yyyy)
@@ -1423,7 +1422,7 @@ SELECT CASE AS CONST id
  CASE 228'--system year
   scriptret = str2int(MID$(DATE$, 7, 4))
  CASE 229'--string compare
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
+  IF bound_plotstr(retvals(0), "string compare") AND bound_plotstr(retvals(1), "string compare") THEN
    scriptret = (plotstr(retvals(0)).s = plotstr(retvals(1)).s)
   END IF
  CASE 230'--read enemy data
@@ -1441,7 +1440,9 @@ SELECT CASE AS CONST id
    debug "TRACE: " + plotstr(retvals(0)).s
   END IF
  CASE 233'--get song name
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 THEN plotstr(retvals(0)).s = getsongname$(retvals(1))
+  IF bound_plotstr(retvals(0), "get song name") AND retvals(1) >= 0 THEN
+   plotstr(retvals(0)).s = getsongname$(retvals(1))
+  END IF
  CASE 235'--key is pressed
   SELECT CASE retvals(0)
   CASE 1 TO 127 'keyboard
@@ -1478,7 +1479,7 @@ SELECT CASE AS CONST id
     scriptret = 8
   END IF
  CASE 238'--search string
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND retvals(1) >= 0 AND retvals(1) <= 31 THEN
+  IF bound_plotstr(retvals(0), "search string") AND bound_plotstr(retvals(1), "search string") THEN
     WITH plotstr(retvals(0))
      scriptret = instr(bound(retvals(2), 1, LEN(.s)), .s, plotstr(retvals(1)).s)
     END WITH
@@ -1486,7 +1487,7 @@ SELECT CASE AS CONST id
    scriptret = 0
   END IF
  CASE 239'--trim string
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "trim string") THEN
    IF retvals(1) = -1 THEN
     plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
    ELSE
@@ -1500,7 +1501,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 240'-- string from textbox
-  IF retvals(0) >= 0 AND retvals(0) <= 31 THEN
+  IF bound_plotstr(retvals(0), "string from textbox") THEN
    DIM box AS TextBox
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
    retvals(2) = bound(retvals(2),0,7)
@@ -1510,8 +1511,9 @@ SELECT CASE AS CONST id
    plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
   END IF
  CASE 241'-- expand string(id)
-  retvals(0) = bound(retvals(0),0,31)
-  embedtext plotstr(retvals(0)).s
+  IF bound_plotstr(retvals(0), "expand string") THEN
+   embedtext plotstr(retvals(0)).s
+  END IF
  CASE 242'-- joystick button
   retvals(0) = bound(retvals(0)-1,0,15)
   retvals(1) = bound(retvals(1),0,3)
@@ -1546,17 +1548,17 @@ SELECT CASE AS CONST id
   scriptret = gold
  CASE 250'--set money
   IF retvals(0) >= 0 THEN gold = retvals(0)
- CASE 251'--setstringfromtable
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND script(scrat(nowscript).scrnum).strtable THEN
+ CASE 251'--set string from table
+  IF bound_plotstr(retvals(0), "set string from table") AND script(scrat(nowscript).scrnum).strtable THEN
    plotstr(retvals(0)).s = read32bitstring$(scrat(nowscript).scrdata + script(scrat(nowscript).scrnum).strtable + retvals(1))
   END IF
- CASE 252'--appendstringfromtable
-  IF retvals(0) >= 0 AND retvals(0) <= 31 AND script(scrat(nowscript).scrnum).strtable THEN
+ CASE 252'--append string from table
+  IF bound_plotstr(retvals(0), "append string from table") AND script(scrat(nowscript).scrnum).strtable THEN
    plotstr(retvals(0)).s += read32bitstring$(scrat(nowscript).scrdata + script(scrat(nowscript).scrnum).strtable + retvals(1))
   END IF
- CASE 256'--suspendmapmusic
+ CASE 256'--suspend map music
   setbit gen(), 44, suspendambientmusic, 1
- CASE 257'--resumemapmusic
+ CASE 257'--resume map music
   setbit gen(), 44, suspendambientmusic, 0
  CASE 260'--settimer(id, count, speed, trigger, string, flags)
   IF retvals(0) >= 0 AND retvals(0) < 16 THEN
@@ -1568,7 +1570,10 @@ SELECT CASE AS CONST id
         .speed = 18
       END IF
       IF retvals(3)<> -1 THEN .trigger = retvals(3)
-      IF retvals(4) > -1 AND retvals(4) < 32 THEN .st = retvals(4) + 1: plotstr(retvals(4)).s = seconds2str(.count)
+      IF bound_plotstr(retvals(4), "set timer") THEN
+       .st = retvals(4) + 1
+       plotstr(retvals(4)).s = seconds2str(.count)
+      END IF
       IF retvals(5)<> -1 THEN .flags = retvals(5)
 
       IF .speed < -1 THEN .speed *= -1: .speed -= 1
