@@ -9,7 +9,6 @@ DEFINT A-Z
 #include "const.bi"
 
 'basic subs and functions
-DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
@@ -113,25 +112,6 @@ ELSE
 END IF
 
 numbertail$ = outf$
-
-END FUNCTION
-
-FUNCTION str2lng& (stri$)
-
-n& = 0
-s$ = LTRIM$(stri$)
-sign = 1
-
-FOR i = 1 TO LEN(s$)
- c$ = MID$(s$, i, 1)
- IF c$ = "-" AND i = 1 THEN sign = -1
- c = ASC(c$) - 48
- IF c >= 0 AND c <= 9 THEN
-  n& = n& * 10 + (c * sign)
- END IF
-NEXT i
-
-str2lng& = n&
 
 END FUNCTION
 

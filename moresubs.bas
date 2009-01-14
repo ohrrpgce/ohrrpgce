@@ -727,7 +727,7 @@ FOR i = 0 TO 24
  IF buffer(i + 9) < 0 OR buffer(i + 9) > 255 THEN buffer(i + 9) = 0
  IF buffer(i + 9) > 0 THEN temp$ = temp$ + CHR$(buffer(i + 9))
 NEXT i
-gold = str2lng&(temp$)
+gold = str2int(temp$)
 
 z = 34
 show_load_index z, "gen"
@@ -797,7 +797,7 @@ FOR i = 0 TO 40
    IF buffer(z) > 0 THEN temp$ = temp$ + CHR$(buffer(z))
    z = z + 1
   NEXT j
-  exlev(i, o) = str2lng&(temp$)
+  exlev(i, o) = str2int(temp$)
  NEXT o
 NEXT i
 show_load_index z, "names"

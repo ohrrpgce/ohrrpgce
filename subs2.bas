@@ -22,7 +22,6 @@ END TYPE
 
 'basic subs and functions
 DECLARE SUB stredit (s$, maxl%)
-DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)

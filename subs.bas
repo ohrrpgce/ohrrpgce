@@ -12,7 +12,6 @@ DEFINT A-Z
 #include "custom_udts.bi"
 #include "scancodes.bi"
 
-DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())

@@ -14,7 +14,6 @@ DECLARE SUB setmapxy
 DECLARE SUB limitcamera 
 DECLARE SUB setScriptArg (arg as integer, value as integer)
 DECLARE SUB showplotstrings
-DECLARE FUNCTION str2lng (stri as string) as long
 DECLARE FUNCTION strgrabber (s as string, maxl as integer) AS INTEGER
 DECLARE SUB makebackups
 DECLARE SUB correctbackdrop

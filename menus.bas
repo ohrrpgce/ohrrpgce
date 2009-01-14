@@ -18,7 +18,6 @@ DEFINT A-Z
 #include "loading.bi"
 
 'basic subs and functions
-DECLARE FUNCTION str2lng& (stri$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)
