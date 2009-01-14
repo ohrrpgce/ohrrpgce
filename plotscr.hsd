@@ -364,6 +364,7 @@ define function, begin
 355,setvertalign,2,0,0        #changes the vertical alignment of a slice to its parent
 356,sethorizanchor,2,0,0      #changes the horizontal anchor of a slice
 357,setvertanchor,2,0,0       #changes the vertical anchor of a slice
+358,numberfromstring,2,0,0    #look in a string for a number and return it
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)

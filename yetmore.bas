@@ -1834,6 +1834,10 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0), "set vert anchor") THEN
    plotslices(retvals(0))->AnchorVert = retvals(1)
   END IF
+ CASE 358 '--number from string
+  IF bound_plotstr(retvals(0), "number from string") THEN
+   scriptret = str2int(plotstr(retvals(0)).s, retvals(1))
+  END IF
 
 END SELECT
 

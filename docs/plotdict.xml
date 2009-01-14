@@ -1255,6 +1255,12 @@ end</example>
 			<description>Appends the textual representation of <p>number</p> to the string with ID #<p>ID</p>. For example, append number(1,65) will append "65", not "A".</description>
 			<seealso><ref>appendnumber</ref></seealso>
 		</command>
+		<command id="numberfromstring">
+			<cannon>number from string (ID, default)</cannon>
+			<shortname>number from string</shortname>
+			<description>Try to read the string specified by <p>ID</p> as a number and return it. Blank spaces at the beginning of the string will be ignored, and thre string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional default value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)</description>
+			<seealso><ref>appendnumber</ref></seealso>
+		</command>
 		<command id="copystring">
 			<cannon>copy string (dest, source)</cannon>
 			<shortname>copy string</shortname>

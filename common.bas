@@ -3139,3 +3139,30 @@ SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
  IF img.sprite THEN sprite_unload @img.sprite
  IF img.pal    THEN palette16_unload @img.pal
 END SUB
+
+FUNCTION str2int (stri as string, default as integer=0) as integer
+ 'Use this in contrast to QuickBasic's VALINT
+ DIM n AS INTEGER = 0
+ DIM s AS STRING = LTRIM(stri)
+ IF s = "" THEN RETURN default
+ DIM sign AS INTEGER = 1
+
+ DIM ch AS STRING
+ DIM c AS INTEGER
+ FOR i AS INTEGER = 1 TO LEN(s)
+  ch = MID(s, i, 1)
+  IF ch = "-" AND i = 1 THEN
+   sign = -1
+   CONTINUE FOR
+  END IF
+  c = ASC(ch) - 48
+  IF c >= 0 AND c <= 9 THEN
+   n = n * 10 + (c * sign)
+  ELSE
+   RETURN default
+  END IF
+ NEXT i
+
+ RETURN n
+
+END FUNCTION

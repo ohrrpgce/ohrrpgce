@@ -159,6 +159,7 @@ DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0,
 
 DECLARE FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
 DECLARE FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
+DECLARE FUNCTION str2int (stri AS STRING, default AS INTEGER=0) AS INTEGER
 
 DECLARE SUB load_box_border_cache()
 DECLARE SUB clear_box_border_cache()

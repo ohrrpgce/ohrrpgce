@@ -19,7 +19,6 @@ DEFINT A-Z
 
 'basic subs and functions
 DECLARE FUNCTION str2lng& (stri$)
-DECLARE FUNCTION str2int% (stri$)
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
 DECLARE SUB writeglobalstring (index%, s$, maxlen%)

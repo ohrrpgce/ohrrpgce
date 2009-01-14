@@ -374,27 +374,6 @@ NEXT i
 
 END SUB
 
-FUNCTION str2int (stri as string) as integer
-
- DIM n AS INTEGER = 0
- DIM s AS STRING = LTRIM(stri)
- DIM sign AS INTEGER = 1
-
- DIM ch AS STRING
- DIM c AS INTEGER
- FOR i AS INTEGER = 1 TO LEN(s)
-  ch = MID(s, i, 1)
-  IF ch = "-" AND i = 1 THEN sign = -1
-  c = ASC(ch) - 48
-  IF c >= 0 AND c <= 9 THEN
-   n = n * 10 + (c * sign)
-  END IF
- NEXT i
-
- RETURN n
-
-END FUNCTION
-
 FUNCTION str2lng (stri as string) as long
 
  DIM n AS LONG = 0

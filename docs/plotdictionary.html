@@ -979,6 +979,9 @@
 		<a href="#about-npcy">NPC Y (who)</a><br>
 		
 	
+		<a href="#about-numberfromstring">number from string (ID, default)</a><br>
+		
+	
 		<a href="#about-numericconstants">Numeric Constants</a><br>
 		
 	
@@ -3500,6 +3503,14 @@ end</pre>
 		<tt>
 		<b><font color="yellow">append number (ID, number)</font></b><br>
 			Appends the textual representation of <span class="param">number</span> to the string with ID #<span class="param">ID</span>. For example, append number(1,65) will append "65", not "A".<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-appendnumber" class="ref">append number</a></li></ul>
+		</tt></p>
+		<a name="about-numberfromstring"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">number from string (ID, default)</font></b><br>
+			Try to read the string specified by <span class="param">ID</span> as a number and return it. Blank spaces at the beginning of the string will be ignored, and thre string can start with a - sign for negatives. No other characters except numerical digits can appear in the string. You can also provide an optional default value that will be returned if the string is not a valid number (for example, if it contains a non-numeric letter)<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-appendnumber" class="ref">append number</a></li></ul>
 		</tt></p>
@@ -7415,7 +7426,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 561 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 562 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
