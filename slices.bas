@@ -98,6 +98,7 @@ FUNCTION SliceTypeName (t AS SliceTypes) AS STRING
  SELECT CASE t
   CASE slRoot:           RETURN "Root"
   CASE slSpecial:        RETURN "Special"
+  CASE slContainer:      RETURN "Container"
   CASE slRectangle:      RETURN "Rectangle"
   CASE slSprite:         RETURN "Sprite"
   CASE slText:           RETURN "Text"
@@ -111,6 +112,7 @@ FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
  SELECT CASE s
   CASE "Root":           RETURN slRoot
   CASE "Special":        RETURN slSpecial
+  CASE "Container":      RETURN slContainer
   CASE "Rectangle":      RETURN slRectangle
   CASE "Sprite":         RETURN slSprite
   CASE "Text":           RETURN slText
@@ -130,6 +132,11 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS 
    DIM newsl AS Slice Ptr
    newsl = NewSlice(parent)
    newsl->SliceType = slSpecial
+   RETURN newsl
+  CASE slContainer:
+   DIM newsl AS Slice Ptr
+   newsl = NewSlice(parent)
+   newsl->SliceType = slContainer
    RETURN newsl
   CASE slRectangle:
    DIM dat AS RectangleSliceData

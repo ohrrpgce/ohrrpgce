@@ -11,6 +11,7 @@
 Enum SliceTypes
  slRoot
  slSpecial
+ slContainer
  slRectangle
  slSprite
  slText

@@ -28,10 +28,11 @@ END TYPE
 
 '==============================================================================
 
-DIM SHARED editable_slice_types(2) AS SliceTypes
-editable_slice_types(0) = SlRectangle
-editable_slice_types(1) = SlSprite
-editable_slice_types(2) = SlText
+DIM SHARED editable_slice_types(3) AS SliceTypes
+editable_slice_types(0) = SlContainer
+editable_slice_types(1) = SlRectangle
+editable_slice_types(2) = SlSprite
+editable_slice_types(3) = SlText
 
 '==============================================================================
 
