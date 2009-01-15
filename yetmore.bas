@@ -1853,7 +1853,13 @@ SELECT CASE AS CONST id
   scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
  CASE 361 '--free slice
   IF valid_plotslice(retvals(0), "free slice") THEN
-   DeleteSlice(@plotslices(retvals(0)))
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   IF sl->SliceType = slRoot OR sl->SliceType = slSpecial THEN
+    debug "free slice: cannot free " & SliceTypeName(sl) & " slice " & retvals(0)
+   ELSE
+    DeleteSlice(@plotslices(retvals(0)))
+   END IF
   END IF
  CASE 362 '--first child
   IF valid_plotslice(retvals(0), "first child") THEN
