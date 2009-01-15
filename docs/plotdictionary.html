@@ -304,6 +304,9 @@
 		<a href="#about-createnpc">create NPC (ID,X,Y,direction)</a><br>
 		
 	
+		<a href="#about-createrect">create rect (width, height, style)</a><br>
+		
+	
 		<a href="#about-crop">crop</a><br>
 		
 	
@@ -1459,6 +1462,12 @@
 		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
 		
 	
+		<a href="#about-setsliceheight">set slice height (handle, height)</a><br>
+		
+	
+		<a href="#about-setslicewidth">set slice width (handle, width)</a><br>
+		
+	
 		<a href="#about-setslicex">set slice x (handle, X)</a><br>
 		
 	
@@ -1529,6 +1538,9 @@
 		
 	
 		<a href="#about-sliceiscontainer">slice is container (handle)</a><br>
+		
+	
+		<a href="#about-sliceisrect">slice is rect (handle)</a><br>
 		
 	
 		<a href="#about-sliceissprite">slice is sprite (handle)</a><br>
@@ -4770,6 +4782,14 @@ set horiz align(sl, edge:right)
 </pre>
 			
 		</tt></p>
+		<a name="about-createrect"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">create rect (width, height, style)</font></b><br>
+			Create a new rectangle slice and return a handle to it. You can provide an optional <span class="param">width</span> and <span class="param">height</span>, and an optional <span class="param">style</span>. The style is text box style number from 0 to 14, or -1 for an unstyled box. The default is box style 0. Like all slice types, a rect slice can be used as a container for other slices with <a href="#about-setparent" class="ref">set parent</a><br>
+			
+			
+		</tt></p>
 		<a name="about-sliceissprite"></a>
 		<p>
 		<tt>
@@ -4783,6 +4803,14 @@ set horiz align(sl, edge:right)
 		<tt>
 		<b><font color="yellow">slice is container (handle)</font></b><br>
 			Returns true if the given slice <span class="param">handle</span> is a container.<br>
+			
+			
+		</tt></p>
+		<a name="about-sliceisrect"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice is rect (handle)</font></b><br>
+			Returns true if the given slice <span class="param">handle</span> is a rect.<br>
 			
 			
 		</tt></p>
@@ -4868,7 +4896,11 @@ set horiz align(sl, edge:right)
 		<b><font color="yellow">slice width (handle)</font></b><br>
 			Returns the width of any slice, for example a sprite.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#slice%20height" class="undef">slice height</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20height" class="undef">slice height</a>, </li>
+<li><a href="#set%20slice%20width" class="undef">set slice width</a></li>
+</ul>
 		</tt></p>
 		<a name="about-sliceheight"></a>
 		<p>
@@ -4876,7 +4908,35 @@ set horiz align(sl, edge:right)
 		<b><font color="yellow">slice height (handle)</font></b><br>
 			Returns the height of any slice, for example a sprite.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#slice%20width" class="undef">slice width</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20width" class="undef">slice width</a>, </li>
+<li><a href="#set%20slice%20height" class="undef">set slice height</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setslicewidth"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice width (handle, width)</font></b><br>
+			Changes the width of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed width.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20width" class="undef">slice width</a>, </li>
+<li><a href="#set%20slice%20height" class="undef">set slice height</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setsliceheight"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice height (handle, height)</font></b><br>
+			Changes the height of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed height.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20height" class="undef">slice height</a>, </li>
+<li><a href="#set%20slice%20width" class="undef">set slice width</a></li>
+</ul>
 		</tt></p>
 		<a name="about-sethorizalign"></a>
 		<p>
@@ -7595,7 +7655,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 573 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 577 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

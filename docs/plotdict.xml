@@ -2085,6 +2085,11 @@ set horiz align(sl, edge:right)
 </example>
 The example above creates a container and then puts two hero sprites inside it, one aligned left and one aligned right. If you move or resize the container, the sprites inside it will also be moved.
 		</command>
+		<command id="createrect">
+			<cannon>create rect (width, height, style)</cannon>
+			<shortname>create rect</shortname>
+			<description>Create a new rectangle slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, and an optional <p>style</p>. The style is text box style number from 0 to 14, or -1 for an unstyled box. The default is box style 0. Like all slice types, a rect slice can be used as a container for other slices with <ref>setparent</ref></description>
+		</command>
 		<command id="sliceissprite">
 			<cannon>slice is sprite (handle)</cannon>
 			<shortname>slice is sprite</shortname>
@@ -2094,6 +2099,11 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<cannon>slice is container (handle)</cannon>
 			<shortname>slice is container</shortname>
 			<description>Returns true if the given slice <p>handle</p> is a container.</description>
+		</command>
+		<command id="sliceisrect">
+			<cannon>slice is rect (handle)</cannon>
+			<shortname>slice is rect</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a rect.</description>
 		</command>
 		<command id="slicex">
 			<cannon>slice x (handle)</cannon>
@@ -2157,6 +2167,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<description>Returns the width of any slice, for example a sprite.</description>
 			<seealso>
 				<ref>slice height</ref>
+				<ref>set slice width</ref>
 			</seealso>
 		</command>
 		<command id="sliceheight">
@@ -2165,6 +2176,25 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<description>Returns the height of any slice, for example a sprite.</description>
 			<seealso>
 				<ref>slice width</ref>
+				<ref>set slice height</ref>
+			</seealso>
+		</command>
+		<command id="setslicewidth">
+			<cannon>set slice width (handle, width)</cannon>
+			<shortname>set slice width</shortname>
+			<description>Changes the width of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed width.</description>
+			<seealso>
+				<ref>slice width</ref>
+				<ref>set slice height</ref>
+			</seealso>
+		</command>
+		<command id="setsliceheight">
+			<cannon>set slice height (handle, height)</cannon>
+			<shortname>set slice height</shortname>
+			<description>Changes the height of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed height.</description>
+			<seealso>
+				<ref>slice height</ref>
+				<ref>set slice width</ref>
 			</seealso>
 		</command>
 		<command id="sethorizalign">

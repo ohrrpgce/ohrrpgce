@@ -1908,6 +1908,40 @@ SELECT CASE AS CONST id
    scriptret = 0
    IF plotslices(retvals(0))->SliceType = slContainer THEN scriptret = 1
   END IF
+ CASE 370 '--create rect
+  DIM sl AS Slice Ptr
+  sl = NewSliceOfType(slRectangle, SliceTable.scriptsprite)
+  sl->Width = retvals(0)
+  sl->Height = retvals(1)
+  IF bound_arg(retvals(2), -1, 14, "create rect", "style") THEN
+   ChangeRectangleSlice sl, retvals(2)
+  END IF
+  scriptret = create_plotslice_handle(sl)
+ CASE 371 '--slice is rect
+  IF valid_plotslice(retvals(0), "slice is rect") THEN
+   scriptret = 0
+   IF plotslices(retvals(0))->SliceType = slRectangle THEN scriptret = 1
+  END IF
+ CASE 372 '--set slice width
+  IF valid_plotslice(retvals(0), "set slice width") THEN
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   IF sl->SliceType = slRectangle OR sl->SliceType = slContainer THEN
+    sl->Width = retvals(1)
+   ELSE
+    debug "set slice width: " & SliceTypeName(sl) & " slice " & retvals(0) & " is not sizeable"
+   END IF
+  END IF
+ CASE 373 '--set slice height
+  IF valid_plotslice(retvals(0), "set slice height") THEN
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   IF sl->SliceType = slRectangle OR sl->SliceType = slContainer THEN
+    sl->Height = retvals(1)
+   ELSE
+    debug "set slice height: " & SliceTypeName(sl) & " slice " & retvals(0) & " is not sizeable"
+   END IF
+  END IF
 
 END SELECT
 

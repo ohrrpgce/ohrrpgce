@@ -376,6 +376,10 @@ define function, begin
 367,slicescreenx,1,0          #return a slice's x position relative to the screen
 368,slicescreeny,1,0          #return a slice's y position relative to the screen
 369,sliceiscontainer,1,0      #return true if a slice is a container
+370,createrect,3,0,0,0        #create a rect slice (width, height, style)
+371,sliceisrect,1,0           #return true if a slice is a rect
+372,setslicewidth,2,0,0       #change the width of a resizeable slice
+373,setsliceheight,2,0,0      #change the height of a resizeable slice
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
