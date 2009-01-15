@@ -370,6 +370,12 @@ define function, begin
 361,freeslice,1,0             #free a slice and all its children
 362,firstchild,1,0            #return the first child of a slice or 0 if none
 363,nextsibling,1,0           #return the next sibling of a slice or 0 if none
+364,createcontainer,2,0,0     #create a container slice (width, height)
+365,setparent,2,0,0           #move a slice to a new parent
+366,checkparentage,2,0,0      #check to see if a slice is a child (or grandchild) of another
+367,slicescreenx,1,0          #return a slice's x position relative to the screen
+368,slicescreeny,1,0          #return a slice's y position relative to the screen
+369,sliceiscontainer,1,0      #return true if a slice is a container
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)

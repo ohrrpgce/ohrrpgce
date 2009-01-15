@@ -259,6 +259,9 @@
 		<a href="#about-checknpcwall">check NPC wall (who, direction)</a><br>
 		
 	
+		<a href="#about-checkparentage">check parentage (handle, parent handle)</a><br>
+		
+	
 		<a href="#about-checktag">check tag (tag)</a><br>
 		
 	
@@ -290,6 +293,9 @@
 		
 	
 		<a href="#about-copystring">copy string (dest, source)</a><br>
+		
+	
+		<a href="#about-createcontainer">create container (width, height)</a><br>
 		
 	
 		<a href="#about-createmenu">create menu</a><br>
@@ -1447,6 +1453,9 @@
 		<a href="#about-setonkeypressscript">set on keypress script (id)</a><br>
 		
 	
+		<a href="#about-setparent">set parent (handle, parent handle)</a><br>
+		
+	
 		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
 		
 	
@@ -1519,7 +1528,16 @@
 		<a href="#about-sliceheight">slice height (handle)</a><br>
 		
 	
+		<a href="#about-sliceiscontainer">slice is container (handle)</a><br>
+		
+	
 		<a href="#about-sliceissprite">slice is sprite (handle)</a><br>
+		
+	
+		<a href="#about-slicescreenx">slice screen x (handle)</a><br>
+		
+	
+		<a href="#about-slicescreeny">slice screen y (handle)</a><br>
 		
 	
 		<a href="#about-slicewidth">slice width (handle)</a><br>
@@ -4712,14 +4730,6 @@ end</pre>
 			
 			
 		</tt></p>
-		<a name="about-sliceissprite"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">slice is sprite (handle)</font></b><br>
-			Returns true if the given slice <span class="param">handle</span> is a sprite.<br>
-			
-			
-		</tt></p>
 		<a name="about-spritelayer"></a>
 		<p>
 		<tt>
@@ -4744,6 +4754,38 @@ end
 		<font color="#f06060" size="4">Slice Functions</font>
 		<p></p>
 		
+		<a name="about-createcontainer"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">create container (width, height)</font></b><br>
+			Create a new container slice and return a handle to it. Containers are invisible slices used only for grouping other slices. You can optionaly specify a <span class="param">width</span> and <span class="param">height</span> for the container.<br>
+			<pre>variable(holder, sl)
+holder := create container(200,100)
+sl := load hero sprite(0)
+set parent(sl, holder)
+set horiz align(sl, edge:left)
+sl := load hero sprite(1)
+set parent(sl, holder)
+set horiz align(sl, edge:right)
+</pre>
+			
+		</tt></p>
+		<a name="about-sliceissprite"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice is sprite (handle)</font></b><br>
+			Returns true if the given slice <span class="param">handle</span> is a sprite.<br>
+			
+			
+		</tt></p>
+		<a name="about-sliceiscontainer"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice is container (handle)</font></b><br>
+			Returns true if the given slice <span class="param">handle</span> is a container.<br>
+			
+			
+		</tt></p>
 		<a name="about-slicex"></a>
 		<p>
 		<tt>
@@ -4753,7 +4795,9 @@ end
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#slice%20y" class="undef">slice y</a>, </li>
-<li><a href="#set%20slice%20x" class="undef">set slice x</a></li>
+<li>
+<a href="#set%20slice%20x" class="undef">set slice x</a>, </li>
+<li><a href="#slice%20screen%20x" class="undef">slice screen x</a></li>
 </ul>
 		</tt></p>
 		<a name="about-slicey"></a>
@@ -4765,7 +4809,9 @@ end
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#slice%20x" class="undef">slice x</a>, </li>
-<li><a href="#set%20slice%20y" class="undef">set slice y</a></li>
+<li>
+<a href="#set%20slice%20y" class="undef">set slice y</a>, </li>
+<li><a href="#slice%20screen%20y" class="undef">slice screen y</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setslicex"></a>
@@ -4790,6 +4836,30 @@ end
 <li>
 <a href="#slice%20y" class="undef">slice y</a>, </li>
 <li><a href="#set%20slice%20x" class="undef">set slice x</a></li>
+</ul>
+		</tt></p>
+		<a name="about-slicescreenx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice screen x (handle)</font></b><br>
+			Returns the screen X position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's X position, but also its alignment, and the position and size of its parents.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20screen%20y" class="undef">slice screen y</a>, </li>
+<li><a href="#slice%20x" class="undef">slice x</a></li>
+</ul>
+		</tt></p>
+		<a name="about-slicescreeny"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice screen y (handle)</font></b><br>
+			Returns the screen Y position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's Y position, but also its alignment, and the position and size of its parents.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20screen%20y" class="undef">slice screen y</a>, </li>
+<li><a href="#slice%20x" class="undef">slice x</a></li>
 </ul>
 		</tt></p>
 		<a name="about-slicewidth"></a>
@@ -4902,6 +4972,22 @@ while (sl) do, begin
  sl := next sibling(sl)
 end
 </pre>
+			
+		</tt></p>
+		<a name="about-setparent"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set parent (handle, parent handle)</font></b><br>
+			Moves a slice <span class="param">handle</span> to a different <span class="param">parent handle</span>. A slice is connected to its parent, and is positioned based on its parent's position.<br>
+			
+			
+		</tt></p>
+		<a name="about-checkparentage"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">check parentage (handle, parent handle)</font></b><br>
+			Checks to see if <span class="param">handle</span> is a child (or grandchild, or great-grandchild, etc...) of <span class="param">parent handle</span>. Returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a>.<br>
+			
 			
 		</tt></p>
 
@@ -7509,7 +7595,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 567 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 573 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -2054,11 +2054,6 @@ end</example>
 			<shortname>sprite frame count</shortname>
 			<description>Returns the total number of available frames for a given sprite <p>handle</p>.</description>
 		</command>
-		<command id="sliceissprite">
-			<cannon>slice is sprite (handle)</cannon>
-			<shortname>slice is sprite</shortname>
-			<description>Returns true if the given slice <p>handle</p> is a sprite.</description>
-		</command>
 		<command id="spritelayer">
 			<cannon>sprite later</cannon>
 			<shortname>sprite layer</shortname>
@@ -2075,6 +2070,31 @@ end
 		</command>
 	</section>
 	<section title="Slice Functions">
+		<command id="createcontainer">
+			<cannon>create container (width, height)</cannon>
+			<shortname>create container</shortname>
+			<description>Create a new container slice and return a handle to it. Containers are invisible slices used only for grouping other slices. You can optionaly specify a <p>width</p> and <p>height</p> for the container.</description>
+<example>variable(holder, sl)
+holder := create container(200,100)
+sl := load hero sprite(0)
+set parent(sl, holder)
+set horiz align(sl, edge:left)
+sl := load hero sprite(1)
+set parent(sl, holder)
+set horiz align(sl, edge:right)
+</example>
+The example above creates a container and then puts two hero sprites inside it, one aligned left and one aligned right. If you move or resize the container, the sprites inside it will also be moved.
+		</command>
+		<command id="sliceissprite">
+			<cannon>slice is sprite (handle)</cannon>
+			<shortname>slice is sprite</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a sprite.</description>
+		</command>
+		<command id="sliceiscontainer">
+			<cannon>slice is container (handle)</cannon>
+			<shortname>slice is container</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a container.</description>
+		</command>
 		<command id="slicex">
 			<cannon>slice x (handle)</cannon>
 			<shortname>slice x</shortname>
@@ -2082,6 +2102,7 @@ end
 			<seealso>
 				<ref>slice y</ref>
 				<ref>set slice x</ref>
+				<ref>slice screen x</ref>
 			</seealso>
 		</command>
 		<command id="slicey">
@@ -2091,6 +2112,7 @@ end
 			<seealso>
 				<ref>slice x</ref>
 				<ref>set slice y</ref>
+				<ref>slice screen y</ref>
 			</seealso>
 		</command>
 		<command id="setslicex">
@@ -2109,6 +2131,24 @@ end
 			<seealso>
 				<ref>slice y</ref>
 				<ref>set slice x</ref>
+			</seealso>
+		</command>
+		<command id="slicescreenx">
+			<cannon>slice screen x (handle)</cannon>
+			<shortname>slice screen x</shortname>
+			<description>Returns the screen X position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's X position, but also its alignment, and the position and size of its parents.</description>
+			<seealso>
+				<ref>slice screen y</ref>
+				<ref>slice x</ref>
+			</seealso>
+		</command>
+		<command id="slicescreeny">
+			<cannon>slice screen y (handle)</cannon>
+			<shortname>slice screen y</shortname>
+			<description>Returns the screen Y position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's Y position, but also its alignment, and the position and size of its parents.</description>
+			<seealso>
+				<ref>slice screen y</ref>
+				<ref>slice x</ref>
 			</seealso>
 		</command>
 		<command id="slicewidth">
@@ -2203,8 +2243,17 @@ while (sl) do, begin
 end
 </example>
 		</command>
+		<command id="setparent">
+			<cannon>set parent (handle, parent handle)</cannon>
+			<shortname>set parent</shortname>
+			<description>Moves a slice <p>handle</p> to a different <p>parent handle</p>. A slice is connected to its parent, and is positioned based on its parent's position.</description>
+		</command>
+		<command id="checkparentage">
+			<cannon>check parentage (handle, parent handle)</cannon>
+			<shortname>check parentage</shortname>
+			<description>Checks to see if <p>handle</p> is a child (or grandchild, or great-grandchild, etc...) of <p>parent handle</p>. Returns <ref>true</ref> or <ref>false</ref>.</description>
+		</command>
 	</section>
-	
 	<section title="Misc Functions">
 		<command id="random">
 			<cannon>random (lownumber, highnumber)</cannon>

@@ -701,6 +701,8 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
   if spritetype >= 0 then
    .spritetype = spritetype
    .loaded = NO
+   sl->Width = sprite_sizes(.spritetype).size.x
+   sl->Height = sprite_sizes(.spritetype).size.y
   end if
   if record >= 0 then
    .record = record
@@ -975,6 +977,29 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
    Loop
   end with
  end if
+end sub
+
+Sub RefreshSliceScreenPos(byval s as slice ptr)
+ 'This sub quickly updates a slice's ScreenX and ScreenY
+ 'without needing to do a full DrawSlice of the whole tree
+ 'and without respect to the .Visible property
+ if s = 0 then exit sub
+ DIM attach AS Slice Ptr
+ attach = GetSliceDrawAttachParent(s)
+ if attach = 0 then exit sub
+ if attach = ScreenSlice then exit sub
+ RefreshSliceScreenPos attach
+ with *s
+  if .Fill then
+   .ScreenX = attach->ScreenX + attach->paddingLeft
+   .ScreenY = attach->ScreenY + attach->paddingTop
+   .Width = attach->Width - attach->paddingLeft - attach->paddingRight
+   .height = attach->Height - attach->paddingTop - attach->paddingBottom
+  else ' Not fill
+   .ScreenX = .X + SliceXAlign(s, attach) - SliceXAnchor(s)
+   .ScreenY = .Y + SliceYAlign(s, attach) - SliceYAnchor(s)
+  end if
+ end with
 end sub
 
 '==Slice saving and loading====================================================

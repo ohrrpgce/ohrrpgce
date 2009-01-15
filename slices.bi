@@ -151,6 +151,7 @@ DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 DECLARE FUNCTION SliceTypeName OVERLOAD (sl AS Slice Ptr) AS STRING
 DECLARE FUNCTION SliceTypeName OVERLOAD (t AS SliceTypes) AS STRING
+DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 
 DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS Slice Ptr
 

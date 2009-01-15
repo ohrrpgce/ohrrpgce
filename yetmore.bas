@@ -1873,6 +1873,41 @@ SELECT CASE AS CONST id
    sl = plotslices(retvals(0))
    scriptret = find_plotslice_handle(sl->NextSibling)
   END IF
+ CASE 364 '--create container
+  DIM sl AS Slice Ptr
+  sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
+  sl->Width = retvals(0)
+  sl->Height = retvals(1)
+  scriptret = create_plotslice_handle(sl)
+ CASE 365 '--set parent
+  IF valid_plotslice(retvals(0), "set parent") AND valid_plotslice(retvals(1), "set parent") THEN
+   IF verifySliceLineage(plotslices(retvals(0)), plotslices(retvals(1))) THEN
+    SetSliceParent plotslices(retvals(0)), plotslices(retvals(1))
+   ELSE
+    debug "set parent: cannot make slice " & retvals(0) & " a child of its own child " & retvals(1)
+   END IF
+  END IF
+ CASE 366 '--check parentage
+  IF valid_plotslice(retvals(0), "check parentage") AND valid_plotslice(retvals(1), "check parentage") THEN
+   IF verifySliceLineage(plotslices(retvals(0)), plotslices(retvals(1))) THEN
+    scriptret = 1
+   END IF
+  END IF
+ CASE 367 '--slice screen x
+  IF valid_plotslice(retvals(0), "slice screen x") THEN
+   RefreshSliceScreenPos plotslices(retvals(0))
+   scriptret = plotslices(retvals(0))->ScreenX
+  END IF
+ CASE 368 '--slice screen y
+  IF valid_plotslice(retvals(0), "slice screen y") THEN
+   RefreshSliceScreenPos plotslices(retvals(0))
+   scriptret = plotslices(retvals(0))->ScreenY
+  END IF
+ CASE 369 '--slice is container
+  IF valid_plotslice(retvals(0), "slice is container") THEN
+   scriptret = 0
+   IF plotslices(retvals(0))->SliceType = slContainer THEN scriptret = 1
+  END IF
 
 END SELECT
 
