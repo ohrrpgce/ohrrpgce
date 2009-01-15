@@ -389,16 +389,25 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  if sl->SliceData = 0 then exit sub
  
  dim dat as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
- edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol , dat->fgcol, p, dat->transparent, NOT dat->border
+
+ if dat->style >= 0 and dat->style_loaded = NO then
+  dat->bgcol = uiLook(uiTextbox + dat->style * 2)
+  dat->fgcol = uiLook(uiTextbox + dat->style * 2 + 1)
+  dat->border = dat->style
+  dat->style_loaded = YES
+ end if
+
+ edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol , dat->fgcol, p, dat->translucent, dat->border
 end sub
 
 Sub SaveRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  DIM dat AS RectangleSliceData Ptr
  dat = sl->SliceData
+ WriteSliceFileVal f, "style", dat->style
  WriteSliceFileVal f, "fg", dat->fgcol
  WriteSliceFileVal f, "bg", dat->bgcol
- WriteSliceFileBool f, "trans", dat->transparent
- WriteSliceFileBool f, "border", dat->border
+ WriteSliceFileBool f, "trans", dat->translucent
+ WriteSliceFileVal f, "border", dat->border
 End Sub
 
 Function LoadRectangleSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
@@ -407,9 +416,10 @@ Function LoadRectangleSlice (Byval sl as SliceFwd ptr, key as string, valstr as 
  dim dat AS RectangleSliceData Ptr
  dat = sl->SliceData
  select case key
+  case "style": dat->style = n
   case "fg": dat->fgcol = n
   case "bg": dat->bgcol = n
-  case "trans": dat->transparent = n
+  case "trans": dat->translucent = n
   case "border": dat->border = n
   case else: return NO
  end select
@@ -426,6 +436,9 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  
  dim d as RectangleSliceData ptr = new RectangleSliceData
  *d = dat
+ '--Set defaults here since we have no constructors yet
+ d->border = -1
+ d->style = -1
  
  ret->SliceType = slRectangle
  ret->SliceData = d
@@ -440,6 +453,40 @@ end function
 Function GetRectangleSliceData(byval sl as slice ptr) as RectangleSliceData ptr
  return sl->SliceData
 End Function
+
+'All arguments default to no-change
+Sub ChangeRectangleSlice(byval sl as slice ptr,_
+                      byval style as integer=-2,_
+                      byval bgcol as integer=-1,_
+                      byval fgcol as integer=-1,_
+                      byval border as integer=-2,_
+                      byval translucent as integer=-2)
+ if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
+ if sl->SliceType <> slRectangle then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle" : exit sub
+ dim dat as RectangleSliceData Ptr = sl->SliceData
+ with *dat
+  if bgcol >= 0 then
+   .bgcol = bgcol
+   .style = -1
+   .style_loaded = NO
+  end if
+  if fgcol >= 0 then
+   .fgcol = fgcol
+   .style = -1
+   .style_loaded = NO
+  end if
+  if border > -2 then
+   .border = border
+   .style = -1
+   .style_loaded = NO
+  end if
+  if style > -2 then
+   .style = style
+   .style_loaded = NO
+  end if
+  if translucent > -2 then .translucent = (translucent <> 0)
+ end with
+end sub
 
 '--Text-------------------------------------------------------------------
 Sub DisposeTextSlice(byval sl as slice ptr)
@@ -823,7 +870,7 @@ end function
 AND SO THE PROPHECY WAS SPOKEN:
 
 WHEN SO THE SOURCE IS COMPILED WITH -LANG FB, THEN THE LEGENDARY CONSTRUCTORS SHALL BE BORN
-Constructor RectangleSliceData (byval bg as integer = -1, byval tr as integer = YES, byval fg as integer = -1, byval bor as integer = 0)
+Constructor RectangleSliceData (byval bg as integer = -1, byval tr as integer = YES, byval fg as integer = -1, byval bor as integer = -1)
  with this
   .bgcol = bg
   if fgcol = -1 then
@@ -837,7 +884,7 @@ Constructor RectangleSliceData (byval bg as integer = -1, byval tr as integer = 
    .bgcol = fg
   end if
   .border = bor
-  .transparent = tr
+  .translucent = tr
  end with
 End Constructor
 '/

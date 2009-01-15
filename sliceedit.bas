@@ -37,9 +37,11 @@ editable_slice_types(2) = SlText
 
 CONST slgrPICKTYPE = 1
 CONST slgrPICKXY = 2
-CONST slgrPICKWH = 3
-CONST slgrPICKCOL = 4
-CONST slgrUPDATESPRITE = 5
+CONST slgrPICKWH = 4
+CONST slgrPICKCOL = 8
+CONST slgrUPDATESPRITE = 16
+CONST slgrUPDATERECTCOL = 32
+CONST slgrUPDATERECTSTYLE = 64
 
 '==============================================================================
 
@@ -260,54 +262,72 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
    END IF
  END SELECT
  DIM switchtype AS INTEGER = NO
- SELECT CASE rule.group
-  CASE slgrPICKTYPE:
-   DIM slice_type AS SliceTypes = sl->SliceType
-   DIM slice_type_num AS INTEGER = 0
-   FOR i AS INTEGER = 0 TO UBOUND(editable_slice_types)
-    IF slice_type = editable_slice_types(i) THEN slice_type_num = i
-   NEXT i
-   IF intgrabber(slice_type_num, 0, UBOUND(editable_slice_types)) THEN
-    slice_type = editable_slice_types(slice_type_num)
+ IF rule.group AND slgrPICKTYPE THEN
+  DIM slice_type AS SliceTypes = sl->SliceType
+  DIM slice_type_num AS INTEGER = 0
+  FOR i AS INTEGER = 0 TO UBOUND(editable_slice_types)
+   IF slice_type = editable_slice_types(i) THEN slice_type_num = i
+  NEXT i
+  IF intgrabber(slice_type_num, 0, UBOUND(editable_slice_types)) THEN
+   slice_type = editable_slice_types(slice_type_num)
+   state.need_update = YES
+   switchtype = YES
+  END IF
+  IF enter_or_space() THEN
+   IF slice_edit_detail_browse_slicetype(slice_type) THEN
     state.need_update = YES
     switchtype = YES
    END IF
-   IF enter_or_space() THEN
-    IF slice_edit_detail_browse_slicetype(slice_type) THEN
-     state.need_update = YES
-     switchtype = YES
-    END IF
-   END IF
-   IF switchtype THEN
-    ReplaceSliceType sl, NewSliceOfType(slice_type)
-    switchtype = NO
-   END IF
-  CASE slgrPICKXY:
-   IF enter_or_space() THEN
-    slice_editor_xy sl->X, sl->Y, sl, rootsl
-    state.need_update = YES
-   END IF
-  CASE slgrPICKWH:
-   IF enter_or_space() THEN
-    slice_editor_xy sl->Width, sl->Height, sl, rootsl
-    state.need_update = YES
-   END IF
-  CASE slgrPICKCOL:
-   IF enter_or_space() THEN
-    DIM n AS INTEGER PTR = rule.dataptr
-    *n = color_browser_256(*n)
-    state.need_update = YES
-   END IF
-  CASE slgrUPDATESPRITE
-   IF state.need_update THEN
-    'state.need_update is cleared at the top of the loop
-    DIM dat AS SpriteSliceData Ptr
-    dat = sl->SliceData
-    dat->loaded = NO
-    dat->record = small(dat->record, gen(sprite_sizes(dat->spritetype).genmax))
-    dat->frame = small(dat->frame, sprite_sizes(dat->spritetype).frames - 1)
-   END IF
- END SELECT
+  END IF
+  IF switchtype THEN
+   ReplaceSliceType sl, NewSliceOfType(slice_type)
+   switchtype = NO
+  END IF
+ END IF
+ IF rule.group AND slgrPICKXY THEN
+  IF enter_or_space() THEN
+   slice_editor_xy sl->X, sl->Y, sl, rootsl
+   state.need_update = YES
+  END IF
+ END IF
+ IF rule.group AND slgrPICKWH THEN
+  IF enter_or_space() THEN
+   slice_editor_xy sl->Width, sl->Height, sl, rootsl
+   state.need_update = YES
+  END IF
+ END IF
+ IF rule.group AND slgrPICKCOL THEN
+  IF enter_or_space() THEN
+   DIM n AS INTEGER PTR = rule.dataptr
+   *n = color_browser_256(*n)
+   state.need_update = YES
+  END IF
+ END IF
+ IF rule.group AND slgrUPDATESPRITE THEN
+  IF state.need_update THEN
+   'state.need_update is cleared at the top of the loop
+   DIM dat AS SpriteSliceData Ptr
+   dat = sl->SliceData
+   dat->loaded = NO
+   dat->record = small(dat->record, gen(sprite_sizes(dat->spritetype).genmax))
+   dat->frame = small(dat->frame, sprite_sizes(dat->spritetype).frames - 1)
+  END IF
+ END IF
+ IF rule.group AND slgrUPDATERECTCOL THEN
+  IF state.need_update THEN
+   DIM dat AS RectangleSliceData Ptr
+   dat = sl->SliceData
+   dat->style = -1
+   dat->style_loaded = NO
+  END IF
+ END IF
+ IF rule.group AND slgrUPDATERECTSTYLE THEN
+  IF state.need_update THEN
+   DIM dat AS RectangleSliceData Ptr
+   dat = sl->SliceData
+   dat->style_loaded = NO
+  END IF
+ END IF
 END SUB
 
 SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Slice Ptr, BYVAL rootsl AS Slice Ptr)
@@ -372,14 +392,16 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
    CASE slRectangle
     DIM dat AS RectangleSliceData Ptr
     dat = .SliceData
+    string_array_grow_append menu(), "Style: " & defaultint(dat->style, "None")
+    sliceed_rule rules(), erIntgrabber, @(dat->style), -1, 14, slgrUPDATERECTSTYLE
     string_array_grow_append menu(), "Background color: " & defaultint(dat->bgcol)
-    sliceed_rule rules(), erIntgrabber, @(dat->bgcol), 0, 255, slgrPICKCOL
+    sliceed_rule rules(), erIntgrabber, @(dat->bgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     string_array_grow_append menu(), "Foreground color: " & defaultint(dat->fgcol)
-    sliceed_rule rules(), erIntgrabber, @(dat->fgcol), 0, 255, slgrPICKCOL
-    string_array_grow_append menu(), "Transparent: " & yesorno(dat->transparent)
-    sliceed_rule_tog rules(), @(dat->transparent)
-    string_array_grow_append menu(), "Border: " & yesorno(dat->border)
-    sliceed_rule_tog rules(), @(dat->border)
+    sliceed_rule rules(), erIntgrabber, @(dat->fgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
+    string_array_grow_append menu(), "Border: " & defaultint(dat->border, "Plain")
+    sliceed_rule rules(), erIntgrabber, @(dat->border), -1, 14, slgrUPDATERECTCOL 
+    string_array_grow_append menu(), "Translucent: " & yesorno(dat->translucent)
+    sliceed_rule_tog rules(), @(dat->translucent)
    CASE slText
     DIM dat AS TextSliceData Ptr
     dat = .SliceData

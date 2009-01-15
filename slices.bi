@@ -95,11 +95,15 @@ END TYPE
 '--Data containers for various slice types
 
 TYPE RectangleSliceData
+ 'If any of fgcol, bgcol or border are manually changed, set style=-1 and style_loaded=0
  fgcol as integer
  bgcol as integer
- transparent as integer
- border as integer
- 'Declare constructor (byval bgcol as integer, byval transparent as integer = YES, byval fgcol as integer = -1, byval border as integer = -1)
+ border as integer 'Should default to -1
+ translucent as integer
+ 'if style is changed then set style_loaded = NO
+ style as integer 'Should default to -1
+ style_loaded as integer 'Used internally flag whether a change of style has been applied to fgcol and bgcol
+ 'Declare constructor (byval style as integer = -1, byval bgcol as integer=0, byval translucent as integer = NO, byval fgcol as integer = -1, byval border as integer = -1)
 END TYPE
 
 Type TextSliceData
@@ -150,6 +154,13 @@ DECLARE FUNCTION SliceTypeName OVERLOAD (t AS SliceTypes) AS STRING
 DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS Slice Ptr
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
+DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
+                      byval style as integer=-2,_
+                      byval bgcol as integer=-1,_
+                      byval fgcol as integer=-1,_
+                      byval border as integer=-1,_
+                      byval translucent as integer=-2)
+
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
 DECLARE Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
