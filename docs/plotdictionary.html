@@ -460,7 +460,16 @@
 		<a href="#about-firstchild">first child(handle)</a><br>
 		
 	
+		<a href="#about-firstcontainerchild">first container child(handle)</a><br>
+		
+	
 		<a href="#about-firstmenuitem">first menu item(menu handle)</a><br>
+		
+	
+		<a href="#about-firstrectchild">first rect child(handle)</a><br>
+		
+	
+		<a href="#about-firstspritechild">first sprite child(handle)</a><br>
 		
 	
 		
@@ -934,13 +943,22 @@
 		<a href="#about-multiply">number * number</a><br>
 		
 	
+		<a href="#about-nextcontainersibling">next container sibling(handle)</a><br>
+		
+	
 		<a href="#about-nextmenu">next menu(menu handle)</a><br>
 		
 	
 		<a href="#about-nextmenuitem">next menu item(menu item handle, visible only)</a><br>
 		
 	
+		<a href="#about-nextrectsibling">next rect sibling(handle)</a><br>
+		
+	
 		<a href="#about-nextsibling">next sibling(handle)</a><br>
+		
+	
+		<a href="#about-nextspritesibling">next sprite sibling(handle)</a><br>
 		
 	
 		
@@ -5016,13 +5034,19 @@ while (sl) do, begin
  sl := next sibling(sl)
 end
 </pre>
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-firstspritechild" class="ref">first sprite child</a>, </li>
+<li>
+<a href="#about-firstrectchild" class="ref">first rect child</a>, </li>
+<li><a href="#about-firstcontainerchild" class="ref">first container child</a></li>
+</ul>
 		</tt></p>
 		<a name="about-nextsibling"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">next sibling(handle)</font></b><br>
-			Returns a slice handle for the next sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the give slice is the last sibling of its parent. This is useful when looping through slices.<br>
+			Returns a slice handle for the next sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last sibling of its parent. This is useful when looping through slices.<br>
 			<pre>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin
@@ -5032,7 +5056,85 @@ while (sl) do, begin
  sl := next sibling(sl)
 end
 </pre>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-nextspritesibling" class="ref">next sprite silbing</a>, </li>
+<li>
+<a href="#nextrectsilbing" class="undef">nextrectsilbing</a>, </li>
+<li><a href="#about-nextcontainersibling" class="ref">next container silbing</a></li>
+</ul>
+		</tt></p>
+		<a name="about-firstspritechild"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">first sprite child(handle)</font></b><br>
+			Returns a slice handle for the first sprite child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no sprite children. Children of other types will be ignored. This is useful when looping through sprites.<br>
 			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-firstchild" class="ref">first child</a>, </li>
+<li><a href="#about-nextspritesibling" class="ref">next sprite silbing</a></li>
+</ul>
+		</tt></p>
+		<a name="about-nextspritesibling"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">next sprite sibling(handle)</font></b><br>
+			Returns a slice handle for the next sprite sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last sprite sibling of its parent. Slices of other types will be ignored. This is useful when looping sprites.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-firstspritechild" class="ref">first sprite child</a>, </li>
+<li><a href="#about-nextsibling" class="ref">next silbing</a></li>
+</ul>
+		</tt></p>
+		<a name="about-firstrectchild"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">first rect child(handle)</font></b><br>
+			Returns a slice handle for the first rect child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no rect children. Children of other types will be ignored. This is useful when looping through rects.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-firstchild" class="ref">first child</a>, </li>
+<li><a href="#about-nextrectsibling" class="ref">next rect silbing</a></li>
+</ul>
+		</tt></p>
+		<a name="about-nextrectsibling"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">next rect sibling(handle)</font></b><br>
+			Returns a slice handle for the next rect sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last rect sibling of its parent. Slices of other types will be ignored. This is useful when looping rects.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-firstrectchild" class="ref">first rect child</a>, </li>
+<li><a href="#about-nextsibling" class="ref">next silbing</a></li>
+</ul>
+		</tt></p>
+		<a name="about-firstcontainerchild"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">first container child(handle)</font></b><br>
+			Returns a slice handle for the first container child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no container children. Children of other types will be ignored. This is useful when looping through containers.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-firstchild" class="ref">first child</a>, </li>
+<li><a href="#about-nextcontainersibling" class="ref">next container silbing</a></li>
+</ul>
+		</tt></p>
+		<a name="about-nextcontainersibling"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">next container sibling(handle)</font></b><br>
+			Returns a slice handle for the next container sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last container sibling of its parent. Slices of other types will be ignored. This is useful when looping containers.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-firstcontainerchild" class="ref">first container child</a>, </li>
+<li><a href="#about-nextsibling" class="ref">next silbing</a></li>
+</ul>
 		</tt></p>
 		<a name="about-setparent"></a>
 		<p>
@@ -7655,7 +7757,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 577 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 583 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

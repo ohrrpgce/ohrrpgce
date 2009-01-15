@@ -1071,6 +1071,57 @@ script, set inventory size, newsize, begin
 end
 
 #--------------------------------------------------------------------------
+# slice commands
+
+script, first sprite child, parent, begin
+  variable(sl)
+  sl := first child(parent)
+  if(sl==0) then(exit returning(0))
+  if(slice is sprite(sl)) then(exit returning(sl))
+  exit returning(next sprite sibling(sl))
+end
+
+script, next sprite sibling, sib, begin
+  variable(sl)
+  sl := next sibling(sib)
+  if(sl==0) then(exit returning(0))
+  if(slice is sprite(sl)) then(exit returning(sl))
+  exit returning(next sprite sibling(sl))
+end
+
+script, first container child, parent, begin
+  variable(sl)
+  sl := first child(parent)
+  if(sl==0) then(exit returning(0))
+  if(slice is container(sl)) then(exit returning(sl))
+  exit returning(next container sibling(sl))
+end
+
+script, next container sibling, sib, begin
+  variable(sl)
+  sl := next sibling(sib)
+  if(sl==0) then(exit returning(0))
+  if(slice is container(sl)) then(exit returning(sl))
+  exit returning(next container sibling(sl))
+end
+
+script, first rect child, parent, begin
+  variable(sl)
+  sl := first child(parent)
+  if(sl==0) then(exit returning(0))
+  if(slice is rect(sl)) then(exit returning(sl))
+  exit returning(next rect sibling(sl))
+end
+
+script, next rect sibling, sib, begin
+  variable(sl)
+  sl := next sibling(sib)
+  if(sl==0) then(exit returning(0))
+  if(slice is rect(sl)) then(exit returning(sl))
+  exit returning(next rect sibling(sl))
+end
+
+#--------------------------------------------------------------------------
 # script triggers
 
 define trigger,begin

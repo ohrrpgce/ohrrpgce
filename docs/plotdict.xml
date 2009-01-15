@@ -2258,11 +2258,16 @@ while (sl) do, begin
  sl := next sibling(sl)
 end
 </example>
+			<seealso>
+				<ref>firstspritechild</ref>
+				<ref>firstrectchild</ref>
+				<ref>firstcontainerchild</ref>
+			</seealso>
 		</command>
 		<command id="nextsibling">
 			<cannon>next sibling(handle)</cannon>
 			<shortname>next silbing</shortname>
-			<description>Returns a slice handle for the next sibling of a given slice <p>handle</p>. Returns <p>false</p> if the give slice is the last sibling of its parent. This is useful when looping through slices.</description>
+			<description>Returns a slice handle for the next sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last sibling of its parent. This is useful when looping through slices.</description>
 			<example>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin
@@ -2272,6 +2277,65 @@ while (sl) do, begin
  sl := next sibling(sl)
 end
 </example>
+			<seealso>
+				<ref>nextspritesibling</ref>
+				<ref>nextrectsilbing</ref>
+				<ref>nextcontainersibling</ref>
+			</seealso>
+		</command>
+		<command id="firstspritechild">
+			<cannon>first sprite child(handle)</cannon>
+			<shortname>first sprite child</shortname>
+			<description>Returns a slice handle for the first sprite child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no sprite children. Children of other types will be ignored. This is useful when looping through sprites.</description>
+			<seealso>
+				<ref>firstchild</ref>
+				<ref>nextspritesibling</ref>
+			</seealso>
+		</command>
+		<command id="nextspritesibling">
+			<cannon>next sprite sibling(handle)</cannon>
+			<shortname>next sprite silbing</shortname>
+			<description>Returns a slice handle for the next sprite sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last sprite sibling of its parent. Slices of other types will be ignored. This is useful when looping sprites.</description>
+			<seealso>
+				<ref>firstspritechild</ref>
+				<ref>nextsibling</ref>
+			</seealso>
+		</command>
+		<command id="firstrectchild">
+			<cannon>first rect child(handle)</cannon>
+			<shortname>first rect child</shortname>
+			<description>Returns a slice handle for the first rect child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no rect children. Children of other types will be ignored. This is useful when looping through rects.</description>
+			<seealso>
+				<ref>firstchild</ref>
+				<ref>nextrectsibling</ref>
+			</seealso>
+		</command>
+		<command id="nextrectsibling">
+			<cannon>next rect sibling(handle)</cannon>
+			<shortname>next rect silbing</shortname>
+			<description>Returns a slice handle for the next rect sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last rect sibling of its parent. Slices of other types will be ignored. This is useful when looping rects.</description>
+			<seealso>
+				<ref>firstrectchild</ref>
+				<ref>nextsibling</ref>
+			</seealso>
+		</command>
+		<command id="firstcontainerchild">
+			<cannon>first container child(handle)</cannon>
+			<shortname>first container child</shortname>
+			<description>Returns a slice handle for the first container child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no container children. Children of other types will be ignored. This is useful when looping through containers.</description>
+			<seealso>
+				<ref>firstchild</ref>
+				<ref>nextcontainersibling</ref>
+			</seealso>
+		</command>
+		<command id="nextcontainersibling">
+			<cannon>next container sibling(handle)</cannon>
+			<shortname>next container silbing</shortname>
+			<description>Returns a slice handle for the next container sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last container sibling of its parent. Slices of other types will be ignored. This is useful when looping containers.</description>
+			<seealso>
+				<ref>firstcontainerchild</ref>
+				<ref>nextsibling</ref>
+			</seealso>
 		</command>
 		<command id="setparent">
 			<cannon>set parent (handle, parent handle)</cannon>
