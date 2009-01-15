@@ -1942,6 +1942,54 @@ SELECT CASE AS CONST id
     debug "set slice height: " & SliceTypeName(sl) & " slice " & retvals(0) & " is not sizeable"
    END IF
   END IF
+ CASE 374 '--get rect style
+  IF valid_plotslice(retvals(0), "get rect style") THEN
+   DIM dat AS RectangleSliceData ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->style
+  END IF
+ CASE 375 '--set rect style
+  IF bound_arg(retvals(1), -1, 14, "set rect style", "style") THEN
+   change_rect_plotslice retvals(0), retvals(1)
+  END IF
+ CASE 376 '--get rect fgcol
+  IF valid_plotslice(retvals(0), "get rect fgcol") THEN
+   DIM dat AS RectangleSliceData ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->fgcol
+  END IF
+ CASE 377 '--set rect fgcol
+  IF bound_arg(retvals(1), 0, 255, "set rect fgcol", "fgcol") THEN
+   change_rect_plotslice retvals(0), , ,retvals(1)
+  END IF
+ CASE 378 '--get rect bgcol
+  IF valid_plotslice(retvals(0), "get rect bgcol") THEN
+   DIM dat AS RectangleSliceData ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->bgcol
+  END IF
+ CASE 379 '--set rect bgcol
+  IF bound_arg(retvals(1), 0, 255, "get rect bgcol", "bgcol") THEN
+   change_rect_plotslice retvals(0), ,retvals(1)
+  END IF
+ CASE 380 '--get rect border
+  IF valid_plotslice(retvals(0), "get rect border") THEN
+   DIM dat AS RectangleSliceData ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->border
+  END IF
+ CASE 381 '--set rect border
+  IF bound_arg(retvals(1), -1, 14, "get rect border", "border") THEN
+   change_rect_plotslice retvals(0), , , ,retvals(1)
+  END IF
+ CASE 382 '--get rect trans
+  IF valid_plotslice(retvals(0), "get rect trans") THEN
+   DIM dat AS RectangleSliceData ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->translucent
+  END IF
+ CASE 383 '--set rect trans
+  change_rect_plotslice retvals(0), , , , ,retvals(1)
 
 END SELECT
 
@@ -3352,4 +3400,16 @@ SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER
    END IF
   END IF
  END WITH
+END SUB
+
+SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BYVAL bgcol AS INTEGER=-1, BYVAL fgcol AS INTEGER=-1, BYVAL border AS INTEGER=-2, BYVAL translucent AS INTEGER=-2)
+ IF valid_plotslice(handle, "change_rect_plotslice") THEN
+  DIM sl AS Slice Ptr
+  sl = plotslices(handle)
+  IF sl->SliceType = slRectangle THEN
+   ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent
+  ELSE
+   debug "change_rect_plotslice: " & SliceTypeName(sl) & " is not a rect" 
+  END IF
+ END IF
 END SUB

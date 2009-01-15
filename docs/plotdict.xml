@@ -2237,6 +2237,28 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>set horiz anchor</ref>
 			</seealso>
 		</command>
+		<command id="realignslice">
+			<cannon>realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</cannon>
+			<shortname>realign slice</shortname>
+			<description>A quick way to set the alignment and optionally the anchor of a slice with a single command. If you leave out the arguments for the anchor then only the alingment will be changed.</description>
+			<seealso>
+				<ref>set horiz align</ref>
+				<ref>set vert align</ref>
+				<ref>set horiz anchor</ref>
+				<ref>set vert anchor</ref>
+			</seealso>
+		</command>
+		<command id="centerslice">
+			<cannon>center slice (handle)</cannon>
+			<shortname>center slice</shortname>
+			<description>A quick way to center the alignment and the anchor of a slice with a single command.</description>
+			<seealso>
+				<ref>set horiz align</ref>
+				<ref>set vert align</ref>
+				<ref>set horiz anchor</ref>
+				<ref>set vert anchor</ref>
+			</seealso>
+		</command>
 		<command id="freeslice">
 			<cannon>free slice (handle)</cannon>
 			<shortname>free slice</shortname>
@@ -2346,6 +2368,90 @@ end
 			<cannon>check parentage (handle, parent handle)</cannon>
 			<shortname>check parentage</shortname>
 			<description>Checks to see if <p>handle</p> is a child (or grandchild, or great-grandchild, etc...) of <p>parent handle</p>. Returns <ref>true</ref> or <ref>false</ref>.</description>
+		</command>
+		<command id="getrectstyle">
+			<cannon>get rect style (handle)</cannon>
+			<shortname>get rect style</shortname>
+			<description>Given a rect slice <p>handle</p>, return the style it is using. This will be a number from 0 to 14 representing a text box style, or a -1 if the rect is not using a standard style</description>
+			<seealso>
+				<ref>setrectstyle</ref>
+			</seealso>
+		</command>
+		<command id="setrectstyle">
+			<cannon>set rect style (handle, style)</cannon>
+			<shortname>set rect style</shortname>
+			<description>Given a rect slice <p>handle</p>, change the style it uses. The <p>style</p> should be a number from 0 to 14 representing a text box style.</description>
+			<seealso>
+				<ref>getrectstyle</ref>
+			</seealso>
+		</command>
+		<command id="getrectbgcol">
+			<cannon>get rect bgcol (handle)</cannon>
+			<shortname>get rect bgcol</shortname>
+			<description>Given a rect slice <p>handle</p>, return the background color it is using. This will be a number from 0 to 255 representing a color from the master palette.</description>
+			<seealso>
+				<ref>setrectbgcol</ref>
+				<ref>getrectfgcol</ref>
+			</seealso>
+		</command>
+		<command id="setrectbgcol">
+			<cannon>set rect bgcol (handle, color)</cannon>
+			<shortname>set rect bgcol</shortname>
+			<description>Given a rect slice <p>handle</p>, change the background color it uses. The <p>color</p> should be a number from 0 to 255 representing a color from the master palette.</description>
+			<seealso>
+				<ref>getrectbgcol</ref>
+				<ref>setrectfgcol</ref>
+			</seealso>
+		</command>
+		<command id="getrectfgcol">
+			<cannon>get rect fgcol (handle)</cannon>
+			<shortname>get rect fgcol</shortname>
+			<description>Given a rect slice <p>handle</p>, return the foreground color it uses for its simple border. This only matters when the rect has no graphical border, or when the graphical border allows the simple border to show through. This will be a number from 0 to 255 representing a color from the master palette.</description>
+			<seealso>
+				<ref>setrectfgcol</ref>
+				<ref>getrectbgcol</ref>
+			</seealso>
+		</command>
+		<command id="setrectfgcol">
+			<cannon>set rect fgcol (handle, color)</cannon>
+			<shortname>set rect fgcol</shortname>
+			<description>Given a rect slice <p>handle</p>, change the foreground color it uses for its simple border. This only matters when the rect has no graphical border, or when the graphical border allows the simple border to show through. The <p>color</p> should be a number from 0 to 255 representing a color from the master palette.</description>
+			<seealso>
+				<ref>getrectfgcol</ref>
+				<ref>setrectbgcol</ref>
+			</seealso>
+		</command>
+		<command id="getrectborder">
+			<cannon>get rect border (handle)</cannon>
+			<shortname>get rect border</shortname>
+			<description>Given a rect slice <p>handle</p>, return the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or -1 if there is no graphical border.</description>
+			<seealso>
+				<ref>setrectborder</ref>
+			</seealso>
+		</command>
+		<command id="setrectborder">
+			<cannon>set rect border (handle, border)</cannon>
+			<shortname>set rect border</shortname>
+			<description>Given a rect slice <p>handle</p>, change the graphical border it uses. The <p>border</p> should be a number from 0 to 14 representing a text box border style, or -1 if there should be no graphical border.</description>
+			<seealso>
+				<ref>getrectborder</ref>
+			</seealso>
+		</command>
+		<command id="getrecttrans">
+			<cannon>get rect trans (handle)</cannon>
+			<shortname>get rect trans</shortname>
+			<description>Given a rect slice <p>handle</p>, return true if it is drawn semi-transparent, or false if it is drawn solid.</description>
+			<seealso>
+				<ref>setrecttrans</ref>
+			</seealso>
+		</command>
+		<command id="setrecttrans">
+			<cannon>set rect trans (handle, true or false)</cannon>
+			<shortname>set rect trans</shortname>
+			<description>Given a rect slice <p>handle</p>, Change whether or not is drawn semi-transparent. The second argument should be true to make it translucent, and false to make it solid</description>
+			<seealso>
+				<ref>getrecttrans</ref>
+			</seealso>
 		</command>
 	</section>
 	<section title="Misc Functions">

@@ -241,6 +241,9 @@
 		<a href="#about-case">case(value)</a><br>
 		
 	
+		<a href="#about-centerslice">center slice (handle)</a><br>
+		
+	
 		<a href="#about-centerstringat">center string at (ID, x, y)</a><br>
 		
 	
@@ -680,6 +683,21 @@
 		
 	
 		<a href="#about-getonkeypressscript">get on keypress script</a><br>
+		
+	
+		<a href="#about-getrectbgcol">get rect bgcol (handle)</a><br>
+		
+	
+		<a href="#about-getrectborder">get rect border (handle)</a><br>
+		
+	
+		<a href="#about-getrectfgcol">get rect fgcol (handle)</a><br>
+		
+	
+		<a href="#about-getrectstyle">get rect style (handle)</a><br>
+		
+	
+		<a href="#about-getrecttrans">get rect trans (handle)</a><br>
 		
 	
 		<a href="#about-getsongname">get song name (ID, song)</a><br>
@@ -1135,6 +1153,9 @@
 		<a href="#about-readtimer">read timer (id)</a><br>
 		
 	
+		<a href="#about-realignslice">realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</a><br>
+		
+	
 		<a href="#about-renamehero">rename hero(who)</a><br>
 		
 	
@@ -1475,6 +1496,21 @@
 		
 	
 		<a href="#about-setparent">set parent (handle, parent handle)</a><br>
+		
+	
+		<a href="#about-setrectbgcol">set rect bgcol (handle, color)</a><br>
+		
+	
+		<a href="#about-setrectborder">set rect border (handle, border)</a><br>
+		
+	
+		<a href="#about-setrectfgcol">set rect fgcol (handle, color)</a><br>
+		
+	
+		<a href="#about-setrectstyle">set rect style (handle, style)</a><br>
+		
+	
+		<a href="#about-setrecttrans">set rect trans (handle, true or false)</a><br>
 		
 	
 		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
@@ -5012,6 +5048,38 @@ set horiz align(sl, edge:right)
 <li><a href="#set%20horiz%20anchor" class="undef">set horiz anchor</a></li>
 </ul>
 		</tt></p>
+		<a name="about-realignslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</font></b><br>
+			A quick way to set the alignment and optionally the anchor of a slice with a single command. If you leave out the arguments for the anchor then only the alingment will be changed.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#set%20horiz%20align" class="undef">set horiz align</a>, </li>
+<li>
+<a href="#set%20vert%20align" class="undef">set vert align</a>, </li>
+<li>
+<a href="#set%20horiz%20anchor" class="undef">set horiz anchor</a>, </li>
+<li><a href="#set%20vert%20anchor" class="undef">set vert anchor</a></li>
+</ul>
+		</tt></p>
+		<a name="about-centerslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">center slice (handle)</font></b><br>
+			A quick way to center the alignment and the anchor of a slice with a single command.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#set%20horiz%20align" class="undef">set horiz align</a>, </li>
+<li>
+<a href="#set%20vert%20align" class="undef">set vert align</a>, </li>
+<li>
+<a href="#set%20horiz%20anchor" class="undef">set horiz anchor</a>, </li>
+<li><a href="#set%20vert%20anchor" class="undef">set vert anchor</a></li>
+</ul>
+		</tt></p>
 		<a name="about-freeslice"></a>
 		<p>
 		<tt>
@@ -5151,6 +5219,102 @@ end
 			Checks to see if <span class="param">handle</span> is a child (or grandchild, or great-grandchild, etc...) of <span class="param">parent handle</span>. Returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a>.<br>
 			
 			
+		</tt></p>
+		<a name="about-getrectstyle"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get rect style (handle)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, return the style it is using. This will be a number from 0 to 14 representing a text box style, or a -1 if the rect is not using a standard style<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setrectstyle" class="ref">set rect style</a></li></ul>
+		</tt></p>
+		<a name="about-setrectstyle"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set rect style (handle, style)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, change the style it uses. The <span class="param">style</span> should be a number from 0 to 14 representing a text box style.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getrectstyle" class="ref">get rect style</a></li></ul>
+		</tt></p>
+		<a name="about-getrectbgcol"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get rect bgcol (handle)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, return the background color it is using. This will be a number from 0 to 255 representing a color from the master palette.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setrectbgcol" class="ref">set rect bgcol</a>, </li>
+<li><a href="#about-getrectfgcol" class="ref">get rect fgcol</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setrectbgcol"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set rect bgcol (handle, color)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, change the background color it uses. The <span class="param">color</span> should be a number from 0 to 255 representing a color from the master palette.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getrectbgcol" class="ref">get rect bgcol</a>, </li>
+<li><a href="#about-setrectfgcol" class="ref">set rect fgcol</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getrectfgcol"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get rect fgcol (handle)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, return the foreground color it uses for its simple border. This only matters when the rect has no graphical border, or when the graphical border allows the simple border to show through. This will be a number from 0 to 255 representing a color from the master palette.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setrectfgcol" class="ref">set rect fgcol</a>, </li>
+<li><a href="#about-getrectbgcol" class="ref">get rect bgcol</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setrectfgcol"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set rect fgcol (handle, color)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, change the foreground color it uses for its simple border. This only matters when the rect has no graphical border, or when the graphical border allows the simple border to show through. The <span class="param">color</span> should be a number from 0 to 255 representing a color from the master palette.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getrectfgcol" class="ref">get rect fgcol</a>, </li>
+<li><a href="#about-setrectbgcol" class="ref">set rect bgcol</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getrectborder"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get rect border (handle)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, return the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or -1 if there is no graphical border.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setrectborder" class="ref">set rect border</a></li></ul>
+		</tt></p>
+		<a name="about-setrectborder"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set rect border (handle, border)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, change the graphical border it uses. The <span class="param">border</span> should be a number from 0 to 14 representing a text box border style, or -1 if there should be no graphical border.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getrectborder" class="ref">get rect border</a></li></ul>
+		</tt></p>
+		<a name="about-getrecttrans"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get rect trans (handle)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, return true if it is drawn semi-transparent, or false if it is drawn solid.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setrecttrans" class="ref">set rect trans</a></li></ul>
+		</tt></p>
+		<a name="about-setrecttrans"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set rect trans (handle, true or false)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, Change whether or not is drawn semi-transparent. The second argument should be true to make it translucent, and false to make it solid<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getrecttrans" class="ref">get rect trans</a></li></ul>
 		</tt></p>
 
 		<hr>
@@ -7757,7 +7921,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 583 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 595 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

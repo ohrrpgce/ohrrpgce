@@ -67,26 +67,22 @@ plotscript, test, begin
   wait(2)
 
   $0="container tests", show string(0)
+  
   cont := create container(120, 120)
   sl := load medium enemy sprite(0)
   set parent(sl, cont)
   wait(10)
   sl := load medium enemy sprite(0)
   set parent(sl, cont)
-  set horiz align(sl, edge:right)
-  set horiz anchor(sl, edge:right)
+  realign slice(sl, edge:right, edge:top, edge:right, edge:top)
   wait(3)
   sl := load medium enemy sprite(0)
   set parent(sl, cont)
-  set horiz align(sl, edge:right)
-  set horiz anchor(sl, edge:right)
-  set vert align(sl, edge:bottom)
-  set vert anchor(sl, edge:bottom)
+  realign slice(sl, edge:right, edge:bottom, edge:right, edge:bottom)
   wait(3)
   sl := load medium enemy sprite(0)
   set parent(sl, cont)
-  set vert align(sl, edge:bottom)
-  set vert anchor(sl, edge:bottom)
+  realign slice(sl, edge:left, edge:bottom, edge:left, edge:bottom)
   wait(3)
   sl := create rect(40, 40, 1)
   set parent(sl, cont)
@@ -125,8 +121,36 @@ plotscript, test, begin
   if(slice is container(cont)) then(free slice(cont))
   wait(5)
 
-  $0="screen pos tests", show string(0)
+  $0="rect style tests", show string(0)
   wait(2)
+  
+  sl := create rect(200, 180)
+  center slice(sl)
+  wait(2)
+  for(i, 1, 14) do, begin
+    set rect style(sl, i)
+    wait(2)
+  end
+  set rect border(sl, -1)
+  
+  #NOTE: this is a decent way to do tests!
+  if(get rect style(sl) <> -1) then($1="change of border failed to clear style", trace(1))
+
+  for(i, 0, 7) do, begin
+    set rect bgcol(sl, random(0,255))
+    wait(2)
+  end
+  for(i, 0, 7) do, begin
+    set rect fgcol(sl, random(0,255))
+    wait(2)
+  end
+  set rect style(sl,0)
+  for(i, 0, 7) do, begin
+    set rect trans(sl, not(get rect trans(sl)))
+    wait(2)
+  end
+  wait(5)
+  free slice(sl)
 
   $0="tests finished", show string(0)
   wait(10)

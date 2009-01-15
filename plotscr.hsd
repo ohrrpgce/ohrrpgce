@@ -380,6 +380,16 @@ define function, begin
 371,sliceisrect,1,0           #return true if a slice is a rect
 372,setslicewidth,2,0,0       #change the width of a resizeable slice
 373,setsliceheight,2,0,0      #change the height of a resizeable slice
+374,getrectstyle,1,0          #return the style of a rect slice
+375,setrectstyle,2,0,0        #change the style of a rect slice
+376,getrectfgcol,1,0          #return the fgcol of a rect slice
+377,setrectfgcol,2,0,0        #change the fgcol of a rect slice
+378,getrectbgcol,1,0          #return the bgcol of a rect slice
+379,setrectbgcol,2,0,0        #change the bgcol of a rect slice
+380,getrectborder,1,0         #return the border of a rect slice
+381,setrectborder,2,0,0       #change the border of a rect slice
+382,getrecttrans,1,0          #return the translucency of a rect slice
+383,setrecttrans,2,0,0        #change the translucency of a rect slice
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
@@ -1119,6 +1129,17 @@ script, next rect sibling, sib, begin
   if(sl==0) then(exit returning(0))
   if(slice is rect(sl)) then(exit returning(sl))
   exit returning(next rect sibling(sl))
+end
+
+script, realign slice, sl, halign, valign, hanchor=-1, vanchor=-1, begin
+  set horiz align(sl, halign)
+  set vert align(sl, valign)
+  if(hanchor <> -1) then(set horiz anchor(sl, hanchor))
+  if(vanchor <> -1) then(set vert anchor(sl, vanchor))
+end
+
+script, center slice, sl, begin
+  realign slice(sl, 1, 1, 1, 1)
 end
 
 #--------------------------------------------------------------------------
