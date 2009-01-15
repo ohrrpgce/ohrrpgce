@@ -1,0 +1,154 @@
+include, plotscr.hsd
+
+plotscript, test, begin
+  variable(sl, sl2, i, cont)
+  
+  $0="Load tests", show string(1)
+  wait(2)
+  sl := load large enemy sprite(1)
+  wait(2)
+  sl2 := load large enemy sprite(0)
+  wait(2)
+  free sprite(sl2)
+  wait(2)
+  replace large enemy sprite(sl, 0)
+  wait(2)
+  
+  $0="position tests", show string(0)
+  wait(2)
+  set slice x(sl, 10)
+  wait(2)
+  set slice y(sl, 10)
+  wait(2)
+  place sprite(sl, 0, 0)
+  wait(2)
+  
+  $0="Align and Anchor tests", show string(0)
+  set horiz align(sl, edge:center)
+  wait(2)
+  set vert align(sl, edge:center)
+  wait(2)
+  set horiz anchor(sl, edge:center)
+  wait(2)
+  set vert anchor(sl, edge:center)
+  wait(2)
+  sl2 := load large enemy sprite(1)
+  wait(2)
+  
+  $0="Deletion tests", show string(0)
+  wait(2)
+  replace medium enemy sprite(sl,0)
+  wait(2)
+  replace large enemy sprite(sl,0)
+  wait(2)
+  free sprite(sl)
+  wait(2)
+  free sprite(sl2)
+
+  $0="looping tests", show string(0)
+  
+  for (i, 0, 15), do, begin
+   sl := load large enemy sprite(random(0,1))
+   place sprite(sl, i*10, 0)
+   wait(1)
+  end
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    set slice y(sl, slice y(sl) + 8)
+    wait(1)
+    sl := next sibling(sl)
+  end
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    free sprite(sl)
+    wait(1)
+    sl := first child(sprite layer)
+  end
+  wait(2)
+
+  $0="container tests", show string(0)
+  cont := create container(120, 120)
+  sl := load medium enemy sprite(0)
+  set parent(sl, cont)
+  wait(10)
+  sl := load medium enemy sprite(0)
+  set parent(sl, cont)
+  set horiz align(sl, edge:right)
+  set horiz anchor(sl, edge:right)
+  wait(3)
+  sl := load medium enemy sprite(0)
+  set parent(sl, cont)
+  set horiz align(sl, edge:right)
+  set horiz anchor(sl, edge:right)
+  set vert align(sl, edge:bottom)
+  set vert anchor(sl, edge:bottom)
+  wait(3)
+  sl := load medium enemy sprite(0)
+  set parent(sl, cont)
+  set vert align(sl, edge:bottom)
+  set vert anchor(sl, edge:bottom)
+  wait(3)
+  sl := create rect(40, 40, 1)
+  set parent(sl, cont)
+  set horiz align(sl, edge:center)
+  set horiz anchor(sl, edge:center)
+  set vert align(sl, edge:center)
+  set vert anchor(sl, edge:center)
+  wait(3)
+  glide pos(cont, 3, 3, 15)
+  sl := first child(cont)
+  $0+" "
+  append number(0, slice screen x(sl))
+  $0+"x"
+  append number(0, slice screen y(sl))
+  show string(0)
+  glide size(cont, 4, 2, 10)
+  glide size(cont, -3, -2, 10)
+  glide pos(cont, 0, -3, 15)
+  glide pos(cont, -3, 0, 15)
+  wait(5)
+
+  sl := first sprite child(cont)
+  while(sl) do, begin
+   glide pos(sl, -2, 1, 3)
+   glide pos(sl, 2, -1, 3)
+   sl := next sprite sibling(sl)
+  end
+
+  sl := first rect child(cont)
+  while(sl) do, begin
+   glide pos(sl, 5, -5, 3)
+   glide pos(sl, -5, 5, 3)
+   sl := next rect sibling(sl)
+  end
+
+  if(slice is container(cont)) then(free slice(cont))
+  wait(5)
+
+  $0="screen pos tests", show string(0)
+  wait(2)
+
+  $0="tests finished", show string(0)
+  wait(10)
+  $0="press a key to exit", show string(0)
+  wait for key
+  game over
+end
+
+script, glide pos, sl, xgo, ygo, cycles, ticks=1, begin
+  variable(i)
+  for(i, 1, cycles), do, begin
+    set slice x(sl, slice x(sl) + xgo)
+    set slice y(sl, slice y(sl) + ygo)
+    wait(ticks)
+  end
+end
+
+script, glide size, sl, xgo, ygo, cycles, ticks=1, begin
+  variable(i)
+  for(i, 1, cycles), do, begin
+    set slice width(sl, slice width(sl) + xgo)
+    set slice height(sl, slice height(sl) + ygo)
+    wait(ticks)
+  end
+end
