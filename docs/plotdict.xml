@@ -2487,6 +2487,14 @@ end
 				<ref>slicecollidepoint</ref>
 			</seealso>
 		</command>
+		<command id="slicecontains">
+			<cannon>slice contains (handle1, handle2)</cannon>
+			<shortname>slice contains</shortname>
+			<description>Return true if the screen position of slice <p>handle2</p> is completely inside slice <p>handle1</p>.</description>
+			<seealso>
+				<ref>slicecollidepoint</ref>
+			</seealso>
+		</command>
 	</section>
 	<section title="Misc Functions">
 		<command id="random">

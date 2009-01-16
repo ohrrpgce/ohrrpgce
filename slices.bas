@@ -392,6 +392,13 @@ Sub DisposeRectangleSlice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
+Sub UpdateRectangleSliceStyle(byval dat as RectangleSliceData ptr)
+ dat->bgcol = uiLook(uiTextbox + dat->style * 2)
+ dat->fgcol = uiLook(uiTextbox + dat->style * 2 + 1)
+ dat->border = dat->style
+ dat->style_loaded = YES
+end sub
+
 Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
@@ -399,10 +406,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  dim dat as RectangleSliceData ptr = cptr(RectangleSliceData ptr, sl->SliceData)
 
  if dat->style >= 0 and dat->style_loaded = NO then
-  dat->bgcol = uiLook(uiTextbox + dat->style * 2)
-  dat->fgcol = uiLook(uiTextbox + dat->style * 2 + 1)
-  dat->border = dat->style
-  dat->style_loaded = YES
+  UpdateRectangleSliceStyle dat
  end if
 
  edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol , dat->fgcol, p, dat->translucent, dat->border
@@ -494,6 +498,9 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
   end if
   if translucent > -2 then .translucent = (translucent <> 0)
  end with
+ if dat->style >= 0 and dat->style_loaded = NO then
+  UpdateRectangleSliceStyle dat
+ end if
 end sub
 
 '--Text-------------------------------------------------------------------
@@ -1021,9 +1028,26 @@ end function
 Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
  'Check if a point collides with a slice's screen position
  if sl = 0 then return 0
- if x > sl->ScreenX and x < sl->ScreenX + sl->Width then
-  if y > sl->ScreenY and y < sl->ScreenY + sl->Height then
+ if x >= sl->ScreenX and x < sl->ScreenX + sl->Width then
+  if y >= sl->ScreenY and y < sl->ScreenY + sl->Height then
    return YES
+  end if
+ end if
+ return NO
+end function
+
+Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as integer
+ 'Check if sl2 is completely contained inside sl1
+ if sl1 = 0 or sl2 = 0 then return 0
+ RefreshSliceScreenPos(sl1)
+ RefreshSliceScreenPos(sl2)
+ if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY) then
+  if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width-1, sl2->ScreenY + sl2->Height-1) then
+   if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width-1, sl2->ScreenY) then
+    if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY + sl2->Height-1) then
+     return YES
+    end if
+   end if
   end if
  end if
  return NO

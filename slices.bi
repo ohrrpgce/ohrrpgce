@@ -156,6 +156,7 @@ DECLARE Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
 DECLARE Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
+DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as integer
 
 DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS Slice Ptr
 

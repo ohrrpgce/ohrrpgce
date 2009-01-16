@@ -392,6 +392,7 @@ define function, begin
 383,setrecttrans,2,0,0        #change the translucency of a rect slice
 384,slicecollidepoint,3,0,0,0 #check a point for collision with a slice
 385,slicecollide,2,0,0        #check a pair of slices for collision
+386,slicecontains,2,0,0       #check if slice2 is completely inside slice1
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)

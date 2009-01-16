@@ -2003,9 +2003,15 @@ SELECT CASE AS CONST id
    scriptret = ABS(SliceCollidePoint(sl, retvals(1), retvals(2)))
   END IF
  CASE 385 '--slice collide
-  IF valid_plotslice(retvals(0), "slice collide point") THEN
-   IF valid_plotslice(retvals(1), "slice collide point") THEN
+  IF valid_plotslice(retvals(0), "slice collide") THEN
+   IF valid_plotslice(retvals(1), "slice collide") THEN
     scriptret = ABS(SliceCollide(plotslices(retvals(0)), plotslices(retvals(1))))
+   END IF
+  END IF
+ CASE 386 '--slice contains
+  IF valid_plotslice(retvals(0), "slice contains") THEN
+   IF valid_plotslice(retvals(1), "slice contains") THEN
+    scriptret = ABS(SliceContains(plotslices(retvals(0)), plotslices(retvals(1))))
    END IF
   END IF
 
