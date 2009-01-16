@@ -75,6 +75,7 @@ Sub SetupGameSlices
  
  SliceTable.ScriptSprite = NewSlice(SliceTable.Root)
  SliceTable.ScriptSprite->Fill = YES
+ RefreshSliceScreenPos(SliceTable.ScriptSprite)
  
  SliceTable.TextBox = NewSlice(SliceTable.Root)
  

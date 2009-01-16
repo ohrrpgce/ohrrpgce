@@ -1571,13 +1571,14 @@ SELECT CASE AS CONST id
       ELSEIF retvals(2) = -1 AND .speed = 0 THEN
         .speed = 18
       END IF
-      IF retvals(3)<> -1 THEN .trigger = retvals(3)
-      IF bound_plotstr(retvals(4), "set timer") THEN
-       .st = retvals(4) + 1
-       plotstr(retvals(4)).s = seconds2str(.count)
+      IF retvals(3) <> -1 THEN .trigger = retvals(3)
+      IF retvals(4) <> -1 THEN
+       IF bound_plotstr(retvals(4), "set timer") THEN
+        .st = retvals(4) + 1
+        plotstr(retvals(4)).s = seconds2str(.count)
+       END IF
       END IF
       IF retvals(5)<> -1 THEN .flags = retvals(5)
-
       IF .speed < -1 THEN .speed *= -1: .speed -= 1
     END WITH
   END IF
