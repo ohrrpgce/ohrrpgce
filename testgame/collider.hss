@@ -1,0 +1,96 @@
+include, plotscr.hsd
+
+global variable(1, mouse)
+global variable(2, playing)
+global variable(3, test layer)
+global variable(4, dragging)
+
+plotscript, collision tester, begin
+  suspend player
+  create test slices
+  create mouse cursor
+  playing := true
+  while(playing) do(
+    if(keyval(1) >> 1) then(playing := false)
+    update mouse
+    update dragging
+    update rects
+    wait(1)
+  )
+  game over
+end
+
+script, update mouse, begin
+  set slice screen x(mouse, mouse pixel x)
+  set slice screen y(mouse, mouse pixel y)
+  if(mouse button(left button)) then(
+    start dragging
+  )else(
+    dragging := false
+  )
+end
+
+script, start dragging, begin
+  variable(sl)
+  sl := first child(test layer)
+  while(sl) do(
+    if(slice collide point(sl, slice x(mouse), slice y(mouse))) then(
+      dragging := sl
+      exit script
+    )
+    sl := next sibling(sl)
+  )
+end
+
+script, update rects, begin
+  variable(sl, hit)
+  hit := false
+  sl := first child(test layer)
+  while(sl) do(
+    if(slice collide point(sl, slice screen x(mouse), slice screen y(mouse))) then(hit := true)
+    sl := next sibling(sl)
+  )
+  if(hit) then(
+    $0="yes"
+  )else(
+    $0="no"
+  )
+end
+
+script, create test slices, begin
+  variable(i, sl)
+  test layer := create container(320, 200)
+  for(i,0,7) do(
+    sl := create rect(random(32, 80), random(32, 80), random(0, 14))
+    set parent(sl, test layer)
+    center slice(sl)
+    set slice screen x(sl, random(0,319))
+    set slice screen y(sl, random(0,200))
+  )
+end
+
+script, create mouse cursor, begin
+  init mouse
+  mouse := create container(10, 10)
+  set horiz anchor(mouse, edge:center)
+  set vert anchor(mouse, edge:center)
+  variable(sl)
+  sl := create rect(2, 10)
+  set parent(sl, mouse)
+  set rect border(sl, -1)
+  set rect fgcol(sl, 15)
+  center slice(sl)
+  sl := create rect(10, 2)
+  set parent(sl, mouse)
+  set rect border(sl, -1)
+  set rect fgcol(sl, 15)
+  center slice(sl)
+  show string at(0, 0, 190)
+end
+
+script, update dragging, begin
+  if(dragging) then(
+    set slice screen x(dragging, slice screen x(mouse))
+    set slice screen y(dragging, slice screen y(mouse))
+  )
+end
