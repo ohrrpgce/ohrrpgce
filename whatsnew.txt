@@ -58,7 +58,9 @@ WHAT IS NEW?
       "set rect border", "get rect trans", "set rect trans",
       "first container child", "next container child",
       "first sprite child", "next sprite sibling", "first rect child",
-      "next rect sibling", "realign slice", "center slice" [James]
+      "next rect sibling", "realign slice", "center slice",
+      "slice collide point", "slice collide", "set slice screen x",
+      "set slice screen y" [James]
     * "number from string" [James]
 
   * Vikings of Midgard

@@ -2161,6 +2161,24 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>slice x</ref>
 			</seealso>
 		</command>
+		<command id="setslicescreenx">
+			<cannon>set slice screen x (handle, x)</cannon>
+			<shortname>set slice screen x</shortname>
+			<description>Change the screen X position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.</description>
+			<seealso>
+				<ref>slice screen x</ref>
+				<ref>set slice screen y</ref>
+			</seealso>
+		</command>
+		<command id="setslicescreeny">
+			<cannon>set slice screen y (handle, y)</cannon>
+			<shortname>set slice screen y</shortname>
+			<description>Change the screen Y position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.</description>
+			<seealso>
+				<ref>slice screen y</ref>
+				<ref>set slice screen x</ref>
+			</seealso>
+		</command>
 		<command id="slicewidth">
 			<cannon>slice width (handle)</cannon>
 			<shortname>slice width</shortname>
@@ -2451,6 +2469,22 @@ end
 			<description>Given a rect slice <p>handle</p>, Change whether or not is drawn semi-transparent. The second argument should be true to make it translucent, and false to make it solid</description>
 			<seealso>
 				<ref>getrecttrans</ref>
+			</seealso>
+		</command>
+		<command id="slicecollidepoint">
+			<cannon>slice collide point (handle, x, y)</cannon>
+			<shortname>slice collide point</shortname>
+			<description>Return true if a given <p>x</p> and <p>y</p> coordinate point collides with a slice <p>handle</p>'s screen position.</description>
+			<seealso>
+				<ref>slicecollide</ref>
+			</seealso>
+		</command>
+		<command id="slicecollide">
+			<cannon>slice collide (handle1, handle2)</cannon>
+			<shortname>slice collide</shortname>
+			<description>Given a pair of slice handles, return true if they collide with one another.</description>
+			<seealso>
+				<ref>slicecollidepoint</ref>
 			</seealso>
 		</command>
 	</section>

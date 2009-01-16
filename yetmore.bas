@@ -1995,6 +1995,19 @@ SELECT CASE AS CONST id
   END IF
  CASE 383 '--set rect trans
   change_rect_plotslice retvals(0), , , , ,retvals(1)
+ CASE 384 '--slice collide point
+  IF valid_plotslice(retvals(0), "slice collide point") THEN
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   RefreshSliceScreenPos sl
+   scriptret = ABS(SliceCollidePoint(sl, retvals(1), retvals(2)))
+  END IF
+ CASE 385 '--slice collide
+  IF valid_plotslice(retvals(0), "slice collide point") THEN
+   IF valid_plotslice(retvals(1), "slice collide point") THEN
+    scriptret = ABS(SliceCollide(plotslices(retvals(0)), plotslices(retvals(1))))
+   END IF
+  END IF
 
 END SELECT
 

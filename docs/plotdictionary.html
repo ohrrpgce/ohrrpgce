@@ -1519,6 +1519,12 @@
 		<a href="#about-setsliceheight">set slice height (handle, height)</a><br>
 		
 	
+		<a href="#about-setslicescreenx">set slice screen x (handle, x)</a><br>
+		
+	
+		<a href="#about-setslicescreeny">set slice screen y (handle, y)</a><br>
+		
+	
 		<a href="#about-setslicewidth">set slice width (handle, width)</a><br>
 		
 	
@@ -1587,6 +1593,12 @@
 	
 		
 		<a href="#about-numericconstants">six</a><br>
+	
+		<a href="#about-slicecollide">slice collide (handle1, handle2)</a><br>
+		
+	
+		<a href="#about-slicecollidepoint">slice collide point (handle, x, y)</a><br>
+		
 	
 		<a href="#about-sliceheight">slice height (handle)</a><br>
 		
@@ -4944,6 +4956,30 @@ set horiz align(sl, edge:right)
 <li><a href="#slice%20x" class="undef">slice x</a></li>
 </ul>
 		</tt></p>
+		<a name="about-setslicescreenx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice screen x (handle, x)</font></b><br>
+			Change the screen X position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20screen%20x" class="undef">slice screen x</a>, </li>
+<li><a href="#set%20slice%20screen%20y" class="undef">set slice screen y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setslicescreeny"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice screen y (handle, y)</font></b><br>
+			Change the screen Y position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#slice%20screen%20y" class="undef">slice screen y</a>, </li>
+<li><a href="#set%20slice%20screen%20x" class="undef">set slice screen x</a></li>
+</ul>
+		</tt></p>
 		<a name="about-slicewidth"></a>
 		<p>
 		<tt>
@@ -5315,6 +5351,22 @@ end
 			Given a rect slice <span class="param">handle</span>, Change whether or not is drawn semi-transparent. The second argument should be true to make it translucent, and false to make it solid<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getrecttrans" class="ref">get rect trans</a></li></ul>
+		</tt></p>
+		<a name="about-slicecollidepoint"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice collide point (handle, x, y)</font></b><br>
+			Return true if a given <span class="param">x</span> and <span class="param">y</span> coordinate point collides with a slice <span class="param">handle</span>'s screen position.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-slicecollide" class="ref">slice collide</a></li></ul>
+		</tt></p>
+		<a name="about-slicecollide"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice collide (handle1, handle2)</font></b><br>
+			Given a pair of slice handles, return true if they collide with one another.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-slicecollidepoint" class="ref">slice collide point</a></li></ul>
 		</tt></p>
 
 		<hr>
@@ -7921,7 +7973,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 595 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 599 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

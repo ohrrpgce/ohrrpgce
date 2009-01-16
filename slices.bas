@@ -1003,6 +1003,32 @@ Sub RefreshSliceScreenPos(byval s as slice ptr)
  end with
 end sub
 
+Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
+ 'Check for a screen-position collision between slice 1 and slice 2 (regardless of parentage)
+ if sl1 = 0 or sl2 = 0 then return 0
+ RefreshSliceScreenPos(sl1)
+ RefreshSliceScreenPos(sl2)
+ '--Check all corners of sl2 against sl1
+ if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY) then return YES
+ if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width, sl2->ScreenY + sl2->Height) then return YES
+ if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width, sl2->ScreenY) then return YES
+ if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY + sl2->Height) then return YES
+ '--no corners collide, check if sl1 is completely inside sl2
+ if SliceCollidePoint(sl2, sl1->ScreenX, sl1->ScreenY) then return YES
+ return NO
+end function
+
+Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
+ 'Check if a point collides with a slice's screen position
+ if sl = 0 then return 0
+ if x > sl->ScreenX and x < sl->ScreenX + sl->Width then
+  if y > sl->ScreenY and y < sl->ScreenY + sl->Height then
+   return YES
+  end if
+ end if
+ return NO
+end function
+
 '==Slice saving and loading====================================================
 
 '--String manupilation functions used by saving/loading------------------------

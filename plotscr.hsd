@@ -390,6 +390,8 @@ define function, begin
 381,setrectborder,2,0,0       #change the border of a rect slice
 382,getrecttrans,1,0          #return the translucency of a rect slice
 383,setrecttrans,2,0,0        #change the translucency of a rect slice
+384,slicecollidepoint,3,0,0,0 #check a point for collision with a slice
+385,slicecollide,2,0,0        #check a pair of slices for collision
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
@@ -1140,6 +1142,20 @@ end
 
 script, center slice, sl, begin
   realign slice(sl, 1, 1, 1, 1)
+end
+
+script, set slice screen x, sl, newx, begin
+  variable(oldx, diff)
+  oldx := slice screen x(sl)
+  diff := newx -- oldx
+  set slice x(sl, slice x(sl) + diff)
+end
+
+script, set slice screen y, sl, newy, begin
+  variable(oldy, diff)
+  oldy := slice screen y(sl)
+  diff := newy -- oldy
+  set slice y(sl, slice y(sl) + diff)
 end
 
 #--------------------------------------------------------------------------
