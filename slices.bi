@@ -152,6 +152,8 @@ DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) 
 DECLARE FUNCTION SliceTypeName OVERLOAD (sl AS Slice Ptr) AS STRING
 DECLARE FUNCTION SliceTypeName OVERLOAD (t AS SliceTypes) AS STRING
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
+DECLARE Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
+DECLARE Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
 
 DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS Slice Ptr
 

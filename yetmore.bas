@@ -1896,13 +1896,17 @@ SELECT CASE AS CONST id
   END IF
  CASE 367 '--slice screen x
   IF valid_plotslice(retvals(0), "slice screen x") THEN
-   RefreshSliceScreenPos plotslices(retvals(0))
-   scriptret = plotslices(retvals(0))->ScreenX
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   RefreshSliceScreenPos sl
+   scriptret = sl->ScreenX + SliceXAnchor(sl)
   END IF
  CASE 368 '--slice screen y
   IF valid_plotslice(retvals(0), "slice screen y") THEN
-   RefreshSliceScreenPos plotslices(retvals(0))
-   scriptret = plotslices(retvals(0))->ScreenY
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   RefreshSliceScreenPos sl
+   scriptret = sl->ScreenY + SliceYAnchor(sl)
   END IF
  CASE 369 '--slice is container
   IF valid_plotslice(retvals(0), "slice is container") THEN
