@@ -418,8 +418,8 @@ if (n<<NPCY(who)) then(walk NPC(who,north,NPCY(who)--n))
 if (n>>NPCY(who)) then(walk NPC(who,south,n--NPCY(who)))
 end
 
-script,setNPCspeed,who,speed=4,begin
-alterNPC(who,NPCstat:movespeed,speed)
+script,setNPCspeed,who,newspeed=4,begin
+alterNPC(who,NPCstat:movespeed,newspeed)
 end
 
 script,swapbyname,hero1,hero2,begin
