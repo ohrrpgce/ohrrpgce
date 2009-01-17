@@ -1053,6 +1053,32 @@ Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as intege
  return NO
 end function
 
+Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
+ 'Don't confuse this with a slice's .Fill member. This is a one-shot attempt
+ 'to fit sl2 inside sl1 without doing any resizing.
+ if sl1 = 0 or sl2 = 0 then exit sub
+ if sl2->Fill then debug "SliceClamp cannot move slices with .Fill=ON" : exit sub
+ RefreshSliceScreenPos(sl1)
+ RefreshSliceScreenPos(sl2)
+ dim diff as integer
+ diff = sl2->ScreenX - sl1->ScreenX
+ '--Horizontal clamp
+ if diff < 0 then
+  sl2->X += abs(diff)
+ else
+  diff = (sl2->ScreenX + sl2->Width) - (sl1->ScreenX + sl1->Width)
+  if diff > 0 then sl2->X -= abs(diff)
+ end if
+ '--Verical clamp
+ diff = sl2->ScreenY - sl1->ScreenY
+ if diff < 0 then
+  sl2->Y += abs(diff)
+ else
+  diff = (sl2->ScreenY + sl2->Height) - (sl1->ScreenY + sl1->Height)
+  if diff > 0 then sl2->Y -= abs(diff)
+ end if
+end sub
+
 '==Slice saving and loading====================================================
 
 '--String manupilation functions used by saving/loading------------------------

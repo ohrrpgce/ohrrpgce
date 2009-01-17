@@ -2482,17 +2482,26 @@ end
 		<command id="slicecollide">
 			<cannon>slice collide (handle1, handle2)</cannon>
 			<shortname>slice collide</shortname>
-			<description>Given a pair of slice handles, return true if they collide with one another.</description>
+			<description>Given a pair of slice handles, return true if they collide with one another.Parent/child relationships have nothing to do with this test. It does not matter if the slices are related.</description>
 			<seealso>
 				<ref>slicecollidepoint</ref>
+				<ref>slicecontains</ref>
 			</seealso>
 		</command>
 		<command id="slicecontains">
 			<cannon>slice contains (handle1, handle2)</cannon>
 			<shortname>slice contains</shortname>
-			<description>Return true if the screen position of slice <p>handle2</p> is completely inside slice <p>handle1</p>.</description>
+			<description>Return true if the screen position of slice <p>handle2</p> is completely inside slice <p>handle1</p>. Parent/child relationships have nothing to do with this test. It does not matter if the slices are related.</description>
 			<seealso>
-				<ref>slicecollidepoint</ref>
+				<ref>slicecollide</ref>
+			</seealso>
+		</command>
+		<command id="clampslice">
+			<cannon>clamp slice (handle1, handle2)</cannon>
+			<shortname>clamp slice</shortname>
+			<description>Try to move the slice <p>handle1</p> so that its screen position will be inside the screen position of slice <p>handle2</p>. The size of the slices will not be changed. It does not matter if the slices are related.</description>
+			<seealso>
+				<ref>slicecontains</ref>
 			</seealso>
 		</command>
 	</section>

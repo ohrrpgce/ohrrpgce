@@ -31,6 +31,7 @@ script, update mouse, begin
 end
 
 script, start dragging, begin
+  if (dragging) then(exit script)
   variable(sl)
   sl := first child(test layer)
   while(sl) do(
@@ -67,6 +68,7 @@ script, create test slices, begin
     center slice(sl)
     set slice screen x(sl, random(0,319))
     set slice screen y(sl, random(0,200))
+    clamp slice(sl, test layer)
   )
 end
 
@@ -91,5 +93,6 @@ script, update dragging, begin
   if(dragging) then(
     set slice screen x(dragging, slice screen x(mouse))
     set slice screen y(dragging, slice screen y(mouse))
+    clamp slice(dragging, sprite layer)
   )
 end

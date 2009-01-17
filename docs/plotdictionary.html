@@ -268,6 +268,9 @@
 		<a href="#about-checktag">check tag (tag)</a><br>
 		
 	
+		<a href="#about-clampslice">clamp slice (handle1, handle2)</a><br>
+		
+	
 		<a href="#about-clearstring">clear string(ID)</a><br>
 		
 	
@@ -5367,17 +5370,29 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">slice collide (handle1, handle2)</font></b><br>
-			Given a pair of slice handles, return true if they collide with one another.<br>
+			Given a pair of slice handles, return true if they collide with one another.Parent/child relationships have nothing to do with this test. It does not matter if the slices are related.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-slicecollidepoint" class="ref">slice collide point</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-slicecollidepoint" class="ref">slice collide point</a>, </li>
+<li><a href="#about-slicecontains" class="ref">slice contains</a></li>
+</ul>
 		</tt></p>
 		<a name="about-slicecontains"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">slice contains (handle1, handle2)</font></b><br>
-			Return true if the screen position of slice <span class="param">handle2</span> is completely inside slice <span class="param">handle1</span>.<br>
+			Return true if the screen position of slice <span class="param">handle2</span> is completely inside slice <span class="param">handle1</span>. Parent/child relationships have nothing to do with this test. It does not matter if the slices are related.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-slicecollidepoint" class="ref">slice collide point</a></li></ul>
+			<br>See also: <ul class="seealso"><li><a href="#about-slicecollide" class="ref">slice collide</a></li></ul>
+		</tt></p>
+		<a name="about-clampslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">clamp slice (handle1, handle2)</font></b><br>
+			Try to move the slice <span class="param">handle1</span> so that its screen position will be inside the screen position of slice <span class="param">handle2</span>. The size of the slices will not be changed. It does not matter if the slices are related.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-slicecontains" class="ref">slice contains</a></li></ul>
 		</tt></p>
 
 		<hr>
@@ -7984,7 +7999,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 600 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 601 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

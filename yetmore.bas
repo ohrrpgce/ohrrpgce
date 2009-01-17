@@ -2014,6 +2014,12 @@ SELECT CASE AS CONST id
     scriptret = ABS(SliceContains(plotslices(retvals(0)), plotslices(retvals(1))))
    END IF
   END IF
+ CASE 387 '--clamp slice
+  IF valid_plotslice(retvals(0), "clamp slice") THEN
+   IF valid_plotslice(retvals(1), "clamp slice") THEN
+    SliceClamp plotslices(retvals(1)), plotslices(retvals(0))
+   END IF
+  END IF
 
 END SELECT
 
