@@ -2055,7 +2055,7 @@ end</example>
 			<description>Returns the total number of available frames for a given sprite <p>handle</p>.</description>
 		</command>
 		<command id="spritelayer">
-			<cannon>sprite later</cannon>
+			<cannon>sprite layer</cannon>
 			<shortname>sprite layer</shortname>
 			<description>Returns a slice handle for the layer which contains sprites created with commands such as <ref>loadherosprite</ref>, <ref>loadwalkaboutsprite</ref> and others. You can use this together with <ref>firstchild</ref> if you want to loop through all your sprites without knowing their handles.</description>
 			<example>variable(sl)
