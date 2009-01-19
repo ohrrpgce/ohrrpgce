@@ -629,10 +629,10 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    sl->Width = sprite_sizes(.spritetype).size.x
    sl->Height = sprite_sizes(.spritetype).size.y
    if .flipHoriz then
-    .img.sprite = sprite_flip_horiz(.img.sprite, YES)
+    .img.sprite = sprite_flip_horiz(.img.sprite)
    end if
    if .flipVert then
-    .img.sprite = sprite_flip_vert(.img.sprite, YES)
+    .img.sprite = sprite_flip_vert(.img.sprite)
    end if
    .loaded = YES
   end if
@@ -727,8 +727,8 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
     .frame = frame
    end if
   end if
-  if fliph > -2 then .flipHoriz = (fliph <> 0)
-  if flipv > -2 then .flipVert = (flipv <> 0)
+  if fliph > -2 then .flipHoriz = (fliph <> 0) : .loaded = NO
+  if flipv > -2 then .flipVert = (flipv <> 0) : .loaded = NO
  end with
 end sub
 
