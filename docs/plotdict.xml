@@ -2510,7 +2510,7 @@ end
 		<command id="slicecollidepoint">
 			<cannon>slice collide point (handle, x, y)</cannon>
 			<shortname>slice collide point</shortname>
-			<description>Return true if a given <p>x</p> and <p>y</p> coordinate point collides with a slice <p>handle</p>'s screen position.</description>
+			<description>Return true if a given <p>x</p> and <p>y</p> coordinate point collides with a slice <p>handle</p>'s screen position. <p>x</p> and <p>y</p> are pixel coordinates relative to the screen, such as the ones returned by <ref>mouse pixel x</ref> and <ref>mouse pixel y</ref></description>
 			<seealso>
 				<ref>slicecollide</ref>
 			</seealso>
