@@ -37,6 +37,7 @@ script, start dragging, begin
   while(sl) do(
     if(slice collide point(sl, slice x(mouse), slice y(mouse))) then(
       dragging := sl
+      set parent(sl, test layer)
       exit script
     )
     sl := next sibling(sl)

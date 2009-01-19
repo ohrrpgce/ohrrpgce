@@ -152,6 +152,29 @@ plotscript, test, begin
   wait(5)
   free slice(sl)
 
+  $0="flip tests", show string(0)
+  wait(5)
+  for(i, 0, 10) do, begin
+    sl := load large enemy sprite(0)
+    set slice y(sl, i * 12)
+    horiz flip sprite (sl, (i, mod, 2))
+    vert flip sprite (sl, random(0,1))
+    wait(2)
+  end
+  
+  variable(diff)
+  for (i, 0, 10) do, begin
+    sl := first child(sprite layer)
+    while(sl) do, begin
+      if(sprite is horiz flipped(sl))
+        then(diff := -2)
+        else(diff := 2)
+      set slice x(sl, slice x(sl) + diff)
+      sl := next sibling(sl)
+    end
+    wait(2)
+  end
+
   $0="tests finished", show string(0)
   wait(10)
   $0="press a key to exit", show string(0)

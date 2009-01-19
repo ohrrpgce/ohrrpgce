@@ -394,6 +394,10 @@ define function, begin
 385,slicecollide,2,0,0        #check a pair of slices for collision
 386,slicecontains,2,0,0       #check if slice2 is completely inside slice1
 387,clampslice,2,0,0          #move slice1 so that it is inside slice2
+388,horizflipsprite,2,0,1     #flip a sprite horizontally
+389,vertflipsprite,2,0,1      #flip a sprite vertically
+390,spriteishorizflipped,1,0  #return true if a sprite is flipped horiz.
+391,spriteisvertflipped,1,0   #return true if a sprite is flipped vert.
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)

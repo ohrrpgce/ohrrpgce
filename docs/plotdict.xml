@@ -2068,6 +2068,42 @@ while (sl) do, begin
 end
 </example>
 		</command>
+		<command id="horizflipsprite">
+			<cannon>horiz flip sprite (handle, flip)</cannon>
+			<shortname>horiz flip sprite</shortname>
+			<description>Flips a sprite <p>handle</p> horizontally. You can also unflip a previously flipped sprite using <p>horiz flip sprite(handle, false)</p></description>
+			<seealso>
+				<ref>vertflipsprite</ref>
+				<ref>spriteishorizflipped</ref>
+			</seealso>
+		</command>
+		<command id="vertflipsprite">
+			<cannon>vert flip sprite (handle, flip)</cannon>
+			<shortname>vert flip sprite</shortname>
+			<description>Flips a sprite <p>handle</p> vertically. You can also unflip a previously flipped sprite using <p>vert flip sprite(handle, false)</p></description>
+			<seealso>
+				<ref>horizflipsprite</ref>
+				<ref>spriteisvertflipped</ref>
+			</seealso>
+		</command>
+		<command id="spriteishorizflipped">
+			<cannon>sprite is horiz flipped (handle)</cannon>
+			<shortname>sprite is horiz flipped</shortname>
+			<description>Returns true if a sprite <p>handle</p> is flipped horizontally, or false if it is not.</description>
+			<seealso>
+				<ref>horizflipsprite</ref>
+				<ref>spriteisvertflipped</ref>
+			</seealso>
+		</command>
+		<command id="spriteisvertflipped">
+			<cannon>sprite is vert flipped (handle)</cannon>
+			<shortname>sprite is vert flipped</shortname>
+			<description>Returns true if a sprite <p>handle</p> is flipped vertically, or false if it is not.</description>
+			<seealso>
+				<ref>vertflipsprite</ref>
+				<ref>spriteishorizflipped</ref>
+			</seealso>
+		</command>
 	</section>
 	<section title="Slice Functions">
 		<command id="createcontainer">
@@ -2380,7 +2416,7 @@ end
 		<command id="setparent">
 			<cannon>set parent (handle, parent handle)</cannon>
 			<shortname>set parent</shortname>
-			<description>Moves a slice <p>handle</p> to a different <p>parent handle</p>. A slice is connected to its parent, and is positioned based on its parent's position.</description>
+			<description>Moves a slice <p>handle</p> to a different <p>parent handle</p>. A slice is connected to its parent, and is positioned based on its parent's position. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had.</description>
 		</command>
 		<command id="checkparentage">
 			<cannon>check parentage (handle, parent handle)</cannon>

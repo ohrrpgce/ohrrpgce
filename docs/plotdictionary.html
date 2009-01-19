@@ -775,6 +775,9 @@
 		<a href="#about-hidestring">hide string (ID)</a><br>
 		
 	
+		<a href="#about-horizflipsprite">horiz flip sprite (handle, flip)</a><br>
+		
+	
 		<a href="#about-hoursofplay">hours of play</a><br>
 		
 	
@@ -1660,6 +1663,12 @@
 		<a href="#about-spriteframecount">sprite frame count (handle)</a><br>
 		
 	
+		<a href="#about-spriteishorizflipped">sprite is horiz flipped (handle)</a><br>
+		
+	
+		<a href="#about-spriteisvertflipped">sprite is vert flipped (handle)</a><br>
+		
+	
 		<a href="#about-spritelayer">sprite later</a><br>
 		
 	
@@ -1869,6 +1878,9 @@
 	
 		
 		<a href="#about-tileconstants">vehicle B</a><br>
+	
+		<a href="#about-vertflipsprite">vert flip sprite (handle, flip)</a><br>
+		
 	
 		<a href="#about-wait">wait (ticks)</a><br>
 		
@@ -4830,6 +4842,54 @@ end
 </pre>
 			
 		</tt></p>
+		<a name="about-horizflipsprite"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">horiz flip sprite (handle, flip)</font></b><br>
+			Flips a sprite <span class="param">handle</span> horizontally. You can also unflip a previously flipped sprite using <span class="param">horiz flip sprite(handle, false)</span><br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-vertflipsprite" class="ref">vert flip sprite</a>, </li>
+<li><a href="#about-spriteishorizflipped" class="ref">sprite is horiz flipped</a></li>
+</ul>
+		</tt></p>
+		<a name="about-vertflipsprite"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">vert flip sprite (handle, flip)</font></b><br>
+			Flips a sprite <span class="param">handle</span> vertically. You can also unflip a previously flipped sprite using <span class="param">vert flip sprite(handle, false)</span><br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-horizflipsprite" class="ref">horiz flip sprite</a>, </li>
+<li><a href="#about-spriteisvertflipped" class="ref">sprite is vert flipped</a></li>
+</ul>
+		</tt></p>
+		<a name="about-spriteishorizflipped"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">sprite is horiz flipped (handle)</font></b><br>
+			Returns true if a sprite <span class="param">handle</span> is flipped horizontally, or false if it is not.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-horizflipsprite" class="ref">horiz flip sprite</a>, </li>
+<li><a href="#about-spriteisvertflipped" class="ref">sprite is vert flipped</a></li>
+</ul>
+		</tt></p>
+		<a name="about-spriteisvertflipped"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">sprite is vert flipped (handle)</font></b><br>
+			Returns true if a sprite <span class="param">handle</span> is flipped vertically, or false if it is not.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-vertflipsprite" class="ref">vert flip sprite</a>, </li>
+<li><a href="#about-spriteishorizflipped" class="ref">sprite is horiz flipped</a></li>
+</ul>
+		</tt></p>
 
 		<hr>
 	
@@ -5250,7 +5310,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set parent (handle, parent handle)</font></b><br>
-			Moves a slice <span class="param">handle</span> to a different <span class="param">parent handle</span>. A slice is connected to its parent, and is positioned based on its parent's position.<br>
+			Moves a slice <span class="param">handle</span> to a different <span class="param">parent handle</span>. A slice is connected to its parent, and is positioned based on its parent's position. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had.<br>
 			
 			
 		</tt></p>
@@ -7999,7 +8059,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 601 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 605 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

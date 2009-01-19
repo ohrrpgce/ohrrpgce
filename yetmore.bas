@@ -2020,7 +2020,30 @@ SELECT CASE AS CONST id
     SliceClamp plotslices(retvals(1)), plotslices(retvals(0))
    END IF
   END IF
-
+ CASE 388 '--horiz flip sprite
+  IF valid_plotslice(retvals(0), "horiz flip sprite") THEN
+   DIM dat AS SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   change_sprite_plotslice retvals(0), dat->spritetype, dat->record, , , (retvals(1) <> 0)
+  END IF
+ CASE 389 '--vert flip sprite
+  IF valid_plotslice(retvals(0), "vert flip sprite") THEN
+   DIM dat AS SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   change_sprite_plotslice retvals(0), dat->spritetype, dat->record, , , , (retvals(1) <> 0)
+  END IF
+ CASE 390 '--sprite is horiz flipped
+  IF valid_plotslice(retvals(0), "sprite is horiz flipped") THEN
+   DIM dat AS SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   IF dat->flipHoriz THEN scriptret = 1 ELSE scriptret = 0
+  END IF
+ CASE 391 '--sprite is vert flipped
+  IF valid_plotslice(retvals(0), "sprite is vert flipped") THEN
+   DIM dat AS SpriteSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   IF dat->flipVert THEN scriptret = 1 ELSE scriptret = 0
+  END IF
 END SELECT
 
 EXIT SUB

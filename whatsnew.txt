@@ -46,7 +46,8 @@ WHAT IS NEW?
       "free sprite", "place sprite", "set sprite visible",
       "set sprite palette", "clone sprite", "set sprite frame",
       "get sprite frame", "sprite frame count", "slice is sprite",
-      "sprite layer"
+      "sprite layer", "horiz flip sprite", "vert flip sprite",
+      "sprite is horiz flipped", "sprite is vert flipped"
       [Mike, James]
     * "slice x", "slice y", "set slice x", "set slice y", "slice width",
       "slice height", "set horiz align", "set vert align",
