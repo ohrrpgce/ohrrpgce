@@ -175,6 +175,29 @@ plotscript, test, begin
     wait(2)
   end
 
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    free slice(sl)
+    sl := first child(sprite layer)
+  end
+  wait(2)
+
+  $0="invalid operations tests", show string(0)
+  wait(3)
+  
+  sl := load medium enemy sprite(0)
+  set rect style(sl, 0)
+  wait(2)
+  free slice(sl)
+  wait(2)
+
+  sl := create rect(10, 10)
+  set sprite frame(sl, 0)
+  wait(2)
+  free slice(sl)
+  wait(2)
+  
+
   $0="tests finished", show string(0)
   wait(10)
   $0="press a key to exit", show string(0)

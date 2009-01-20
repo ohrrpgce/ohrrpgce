@@ -1777,7 +1777,7 @@ SELECT CASE AS CONST id
  CASE 344 '--replace portrait sprite
   change_sprite_plotslice retvals(0), 8, retvals(1), retvals(2)
  CASE 345 '--clone sprite
-  IF valid_plotslice(retvals(0), "clone sprite") THEN
+  IF valid_plotsprite(retvals(0), "clone sprite") THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    WITH *dat
@@ -1786,7 +1786,7 @@ SELECT CASE AS CONST id
    END WITH
   END IF
  CASE 346 '--get sprite frame
-  IF valid_plotslice(retvals(0), "get sprite frame") THEN
+  IF valid_plotsprite(retvals(0), "get sprite frame") THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    WITH *dat
@@ -1794,7 +1794,7 @@ SELECT CASE AS CONST id
    END WITH
   END IF
  CASE 347 '--sprite frame count
-  IF valid_plotslice(retvals(0), "sprite frame count") THEN
+  IF valid_plotsprite(retvals(0), "sprite frame count") THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    WITH *dat
@@ -1948,7 +1948,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 374 '--get rect style
-  IF valid_plotslice(retvals(0), "get rect style") THEN
+  IF valid_plotrect(retvals(0), "get rect style") THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->style
@@ -1958,7 +1958,7 @@ SELECT CASE AS CONST id
    change_rect_plotslice retvals(0), retvals(1)
   END IF
  CASE 376 '--get rect fgcol
-  IF valid_plotslice(retvals(0), "get rect fgcol") THEN
+  IF valid_plotrect(retvals(0), "get rect fgcol") THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->fgcol
@@ -1968,7 +1968,7 @@ SELECT CASE AS CONST id
    change_rect_plotslice retvals(0), , ,retvals(1)
   END IF
  CASE 378 '--get rect bgcol
-  IF valid_plotslice(retvals(0), "get rect bgcol") THEN
+  IF valid_plotrect(retvals(0), "get rect bgcol") THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->bgcol
@@ -1978,7 +1978,7 @@ SELECT CASE AS CONST id
    change_rect_plotslice retvals(0), ,retvals(1)
   END IF
  CASE 380 '--get rect border
-  IF valid_plotslice(retvals(0), "get rect border") THEN
+  IF valid_plotrect(retvals(0), "get rect border") THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->border
@@ -1988,7 +1988,7 @@ SELECT CASE AS CONST id
    change_rect_plotslice retvals(0), , , ,retvals(1)
   END IF
  CASE 382 '--get rect trans
-  IF valid_plotslice(retvals(0), "get rect trans") THEN
+  IF valid_plotrect(retvals(0), "get rect trans") THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->translucent
@@ -2021,25 +2021,25 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 388 '--horiz flip sprite
-  IF valid_plotslice(retvals(0), "horiz flip sprite") THEN
+  IF valid_plotsprite(retvals(0), "horiz flip sprite") THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    change_sprite_plotslice retvals(0), dat->spritetype, dat->record, , , (retvals(1) <> 0)
   END IF
  CASE 389 '--vert flip sprite
-  IF valid_plotslice(retvals(0), "vert flip sprite") THEN
+  IF valid_plotsprite(retvals(0), "vert flip sprite") THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    change_sprite_plotslice retvals(0), dat->spritetype, dat->record, , , , (retvals(1) <> 0)
   END IF
  CASE 390 '--sprite is horiz flipped
-  IF valid_plotslice(retvals(0), "sprite is horiz flipped") THEN
+  IF valid_plotsprite(retvals(0), "sprite is horiz flipped") THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    IF dat->flipHoriz THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 391 '--sprite is vert flipped
-  IF valid_plotslice(retvals(0), "sprite is vert flipped") THEN
+  IF valid_plotsprite(retvals(0), "sprite is vert flipped") THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    IF dat->flipVert THEN scriptret = 1 ELSE scriptret = 0
@@ -3404,6 +3404,20 @@ FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as intege
   RETURN NO
  END IF
  RETURN YES
+END FUNCTION
+
+FUNCTION valid_plotsprite(byval handle as integer, byval cmd as string) as integer
+ IF valid_plotslice(handle, cmd) THEN
+  IF plotslices(handle)->SliceType = slSprite THEN RETURN YES
+ END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION valid_plotrect(byval handle as integer, byval cmd as string) as integer
+ IF valid_plotslice(handle, cmd) THEN
+  IF plotslices(handle)->SliceType = slRectangle THEN RETURN YES
+ END IF
+ RETURN NO
 END FUNCTION
 
 FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
