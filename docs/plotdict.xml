@@ -2175,8 +2175,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set slice y</shortname>
 			<description>Changes the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
 			<seealso>
-				<ref>slice y</ref>
-				<ref>set slice x</ref>
+				<ref>slicey</ref>
+				<ref>setslicex</ref>
 			</seealso>
 		</command>
 		<command id="slicescreenx">
@@ -2184,8 +2184,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>slice screen x</shortname>
 			<description>Returns the screen X position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's X position, but also its alignment, and the position and size of its parents.</description>
 			<seealso>
-				<ref>slice screen y</ref>
-				<ref>slice x</ref>
+				<ref>slicescreeny</ref>
+				<ref>slicex</ref>
 			</seealso>
 		</command>
 		<command id="slicescreeny">
@@ -2193,8 +2193,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>slice screen y</shortname>
 			<description>Returns the screen Y position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's Y position, but also its alignment, and the position and size of its parents.</description>
 			<seealso>
-				<ref>slice screen y</ref>
-				<ref>slice x</ref>
+				<ref>slicescreeny</ref>
+				<ref>slicex</ref>
 			</seealso>
 		</command>
 		<command id="setslicescreenx">
@@ -2202,8 +2202,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set slice screen x</shortname>
 			<description>Change the screen X position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.</description>
 			<seealso>
-				<ref>slice screen x</ref>
-				<ref>set slice screen y</ref>
+				<ref>slicescreenx</ref>
+				<ref>setslicescreeny</ref>
 			</seealso>
 		</command>
 		<command id="setslicescreeny">
@@ -2211,8 +2211,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set slice screen y</shortname>
 			<description>Change the screen Y position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.</description>
 			<seealso>
-				<ref>slice screen y</ref>
-				<ref>set slice screen x</ref>
+				<ref>slicescreeny</ref>
+				<ref>setslicescreenx</ref>
 			</seealso>
 		</command>
 		<command id="slicewidth">
@@ -2220,8 +2220,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>slice width</shortname>
 			<description>Returns the width of any slice, for example a sprite.</description>
 			<seealso>
-				<ref>slice height</ref>
-				<ref>set slice width</ref>
+				<ref>sliceheight</ref>
+				<ref>setslicewidth</ref>
 			</seealso>
 		</command>
 		<command id="sliceheight">
@@ -2229,8 +2229,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>slice height</shortname>
 			<description>Returns the height of any slice, for example a sprite.</description>
 			<seealso>
-				<ref>slice width</ref>
-				<ref>set slice height</ref>
+				<ref>slicewidth</ref>
+				<ref>setsliceheight</ref>
 			</seealso>
 		</command>
 		<command id="setslicewidth">
@@ -2238,8 +2238,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set slice width</shortname>
 			<description>Changes the width of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed width.</description>
 			<seealso>
-				<ref>slice width</ref>
-				<ref>set slice height</ref>
+				<ref>slicewidth</ref>
+				<ref>setsliceheight</ref>
 			</seealso>
 		</command>
 		<command id="setsliceheight">
@@ -2247,8 +2247,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set slice height</shortname>
 			<description>Changes the height of a container slice or a rect slice. This command does not work on sprite slices because they have a fixed height.</description>
 			<seealso>
-				<ref>slice height</ref>
-				<ref>set slice width</ref>
+				<ref>sliceheight</ref>
+				<ref>setslicewidth</ref>
 			</seealso>
 		</command>
 		<command id="sethorizalign">
@@ -2256,9 +2256,9 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set horiz align</shortname>
 			<description>Changes the horizontal alignment of any slice relative to its parent. The available edges are <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. The default value is edge:left.</description>
 			<seealso>
-				<ref>set vert align</ref>
-				<ref>set horiz anchor</ref>
-				<ref>set vert anchor</ref>
+				<ref>setvertalign</ref>
+				<ref>sethorizanchor</ref>
+				<ref>setvertanchor</ref>
 			</seealso>
 		</command>
 		<command id="setvertalign">
@@ -2266,9 +2266,9 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set vert align</shortname>
 			<description>Changes the vertical alignment of any slice relative to its parent. The available edges are <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. The default value is edge:top.</description>
 			<seealso>
-				<ref>set horiz align</ref>
-				<ref>set horiz anchor</ref>
-				<ref>set vert anchor</ref>
+				<ref>sethorizalign</ref>
+				<ref>sethorizanchor</ref>
+				<ref>setvertanchor</ref>
 			</seealso>
 		</command>
 		<command id="sethorizanchor">
@@ -2276,9 +2276,9 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set horiz anchor</shortname>
 			<description>Changes the horizontal anchor of any slice. The available anchor values are <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p>. The default value is edge:left.</description>
 			<seealso>
-				<ref>set vert align</ref>
-				<ref>set horiz align</ref>
-				<ref>set vert anchor</ref>
+				<ref>setvertalign</ref>
+				<ref>sethorizalign</ref>
+				<ref>setvertanchor</ref>
 			</seealso>
 		</command>
 		<command id="setvertanchor">
@@ -2286,9 +2286,9 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set vert anchor</shortname>
 			<description>Changes the vertical anchor of any slice. The available anchor values are <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p>. The default value is edge:top.</description>
 			<seealso>
-				<ref>set vert align</ref>
-				<ref>set horiz align</ref>
-				<ref>set horiz anchor</ref>
+				<ref>setvertalign</ref>
+				<ref>sethorizalign</ref>
+				<ref>sethorizanchor</ref>
 			</seealso>
 		</command>
 		<command id="realignslice">
@@ -2296,10 +2296,10 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>realign slice</shortname>
 			<description>A quick way to set the alignment and optionally the anchor of a slice with a single command. If you leave out the arguments for the anchor then only the alingment will be changed.</description>
 			<seealso>
-				<ref>set horiz align</ref>
-				<ref>set vert align</ref>
-				<ref>set horiz anchor</ref>
-				<ref>set vert anchor</ref>
+				<ref>sethorizalign</ref>
+				<ref>setvertalign</ref>
+				<ref>sethorizanchor</ref>
+				<ref>setvertanchor</ref>
 			</seealso>
 		</command>
 		<command id="centerslice">
@@ -2307,10 +2307,10 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>center slice</shortname>
 			<description>A quick way to center the alignment and the anchor of a slice with a single command.</description>
 			<seealso>
-				<ref>set horiz align</ref>
-				<ref>set vert align</ref>
-				<ref>set horiz anchor</ref>
-				<ref>set vert anchor</ref>
+				<ref>sethorizalign</ref>
+				<ref>setvertalign</ref>
+				<ref>sethorizanchor</ref>
+				<ref>setvertanchor</ref>
 			</seealso>
 		</command>
 		<command id="freeslice">
@@ -2510,7 +2510,7 @@ end
 		<command id="slicecollidepoint">
 			<cannon>slice collide point (handle, x, y)</cannon>
 			<shortname>slice collide point</shortname>
-			<description>Return true if a given <p>x</p> and <p>y</p> coordinate point collides with a slice <p>handle</p>'s screen position. <p>x</p> and <p>y</p> are pixel coordinates relative to the screen, such as the ones returned by <ref>mouse pixel x</ref> and <ref>mouse pixel y</ref></description>
+			<description>Return true if a given <p>x</p> and <p>y</p> coordinate point collides with a slice <p>handle</p>'s screen position. <p>x</p> and <p>y</p> are pixel coordinates relative to the screen, such as the ones returned by <ref>mousepixelx</ref> and <ref>mousepixely</ref></description>
 			<seealso>
 				<ref>slicecollide</ref>
 			</seealso>

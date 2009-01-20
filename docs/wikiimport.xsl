@@ -4,6 +4,7 @@
 
 <!-- -->
 <xsl:variable name="cda" select="current-dateTime() - timezone-from-dateTime(current-dateTime())" />
+<xsl:param name="letter" />
 
 <!--
   you do NOT want to know how long it took me to write the following expression.
@@ -15,18 +16,19 @@
 
 	<xsl:template match="/">
 	  <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.3/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.3/ http://www.mediawiki.org/xml/export-0.3.xsd" version="0.3" xml:lang="en">
-	    <xsl:apply-templates select="//section/command"/>
+	    <xsl:apply-templates select="//section/command[starts-with(@id,$letter)]"/>
+<xsl:if test="$letter='!'">
 	    <page>
 	      <title>Plot:Index</title>
 	      <revision>
 	        <timestamp><xsl:value-of select="$da" />Z</timestamp>
           <contributor><username>Plotscripting Dictionary</username></contributor>
           <text xml:space="preserve">This is a full listing of all plotscripting commands to date.
-
 <xsl:apply-templates select="//section" mode="index" />
 [[Category:Plotscripting]]</text>
 	      </revision>
 	    </page>
+</xsl:if>
 	  </mediawiki>
 	</xsl:template>
 
