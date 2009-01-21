@@ -31,6 +31,7 @@ WHAT IS NEW?
     * Bug 698: Global variables 1025-4095 couldn't be set :(
     * "input string" was causing an endless loop if ESC was
       pressed and "suspend player" was active [James]
+    * Bug 703: NPC extra's aren't cleaned on restart [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

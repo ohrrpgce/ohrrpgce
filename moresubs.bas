@@ -1341,7 +1341,6 @@ scriptout$ = ""
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + game
 
-'flusharray npcl(), 2100, 0
 CleanNPCL npc(),300
 flusharray tag(), 126, 0
 flusharray hero(), 40, 0
