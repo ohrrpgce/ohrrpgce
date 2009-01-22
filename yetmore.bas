@@ -2044,6 +2044,39 @@ SELECT CASE AS CONST id
    dat = plotslices(retvals(0))->SliceData
    IF dat->flipVert THEN scriptret = 1 ELSE scriptret = 0
   END IF
+ CASE 392 '--set top padding
+  IF valid_plotslice(retvals(0), "set top padding") THEN
+   plotslices(retvals(0))->PaddingTop = retvals(1)
+  END IF
+ CASE 393 '--get top padding
+  IF valid_plotslice(retvals(0), "get top padding") THEN
+   scriptret = plotslices(retvals(0))->PaddingTop
+  END IF
+ CASE 394 '--set left padding
+  IF valid_plotslice(retvals(0), "set left padding") THEN
+   plotslices(retvals(0))->PaddingLeft = retvals(1)
+  END IF
+ CASE 395 '--get left padding
+  IF valid_plotslice(retvals(0), "get left padding") THEN
+   scriptret = plotslices(retvals(0))->PaddingLeft
+  END IF
+ CASE 396 '--set bottom padding
+  IF valid_plotslice(retvals(0), "set bottom padding") THEN
+   plotslices(retvals(0))->PaddingBottom = retvals(1)
+  END IF
+ CASE 397 '--get bottom padding
+  IF valid_plotslice(retvals(0), "get bottom padding") THEN
+   scriptret = plotslices(retvals(0))->PaddingBottom
+  END IF
+ CASE 398 '--set right padding
+  IF valid_plotslice(retvals(0), "set right padding") THEN
+   plotslices(retvals(0))->PaddingRight = retvals(1)
+  END IF
+ CASE 399 '--get right padding
+  IF valid_plotslice(retvals(0), "get right padding") THEN
+   scriptret = plotslices(retvals(0))->PaddingRight
+  END IF
+ 
 END SELECT
 
 EXIT SUB

@@ -398,6 +398,14 @@ define function, begin
 389,vertflipsprite,2,0,1      #flip a sprite vertically
 390,spriteishorizflipped,1,0  #return true if a sprite is flipped horiz.
 391,spriteisvertflipped,1,0   #return true if a sprite is flipped vert.
+392,settoppadding,2,0,0       #change a slice's top-padding
+393,gettoppadding,1,0         #return a slice's top-padding
+394,setleftpadding,2,0,0      #change a slice's left-padding
+395,getleftpadding,1,0        #return a slice's left-padding
+396,setbottompadding,2,0,0    #change a slice's bottom-padding
+397,getbottompadding,1,0      #return a slice's bottom-padding
+398,setrightpadding,2,0,0     #change a slice's right-padding
+399,getrightpadding,1,0       #return a slice's right-padding
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
@@ -1164,6 +1172,13 @@ script, set slice screen y, sl, newy, begin
   oldy := slice screen y(sl)
   diff := newy -- oldy
   set slice y(sl, slice y(sl) + diff)
+end
+
+script, set padding, sl, newpadding, begin
+  set left padding  (sl, newpadding)
+  set right padding (sl, newpadding)
+  set top padding   (sl, newpadding)
+  set bottom padding(sl, newpadding)
 end
 
 #--------------------------------------------------------------------------

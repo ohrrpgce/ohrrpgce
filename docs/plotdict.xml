@@ -2540,6 +2540,105 @@ end
 				<ref>slicecontains</ref>
 			</seealso>
 		</command>
+		<command id="setpadding">
+			<cannon>set padding (handle, pixels)</cannon>
+			<shortname>set padding</shortname>
+			<description>Sets the padding value in pixels for all the edges of a slice <p>handle</p>. This is a positive number to move children attached to the edges towards the center of the slice, or a negative number to move attached children further from the center.</description>
+			<seealso>
+				<ref>settoppadding</ref>
+				<ref>setleftpadding</ref>
+				<ref>setrightpadding</ref>
+				<ref>setbottompadding</ref>
+			</seealso>
+		</command>
+		<command id="gettoppadding">
+			<cannon>get top padding (handle)</cannon>
+			<shortname>get top padding</shortname>
+			<description>Get the padding value in pixels for the top edge of a slice <p>handle</p>. This is a positive number to move children attached to this edge towards the center of the slice, or a negative number to move attached children further from the center.</description>
+			<seealso>
+				<ref>settoppadding</ref>
+				<ref>getleftpadding</ref>
+				<ref>getrightpadding</ref>
+				<ref>getbottompadding</ref>
+			</seealso>
+		</command>
+		<command id="settoppadding">
+			<cannon>set top padding (handle, pixels)</cannon>
+			<shortname>set top padding</shortname>
+			<description>Set the padding value in pixels for the top edge of a slice <p>handle</p>. This is a positive number to move children attached to this edge towards the center of the slice, or a negative number to move attached children further from the center.</description>
+			<seealso>
+				<ref>gettoppadding</ref>
+				<ref>setleftpadding</ref>
+				<ref>setrightpadding</ref>
+				<ref>setbottompadding</ref>
+			</seealso>
+		</command>
+		<command id="getleftpadding">
+			<cannon>get left padding (handle)</cannon>
+			<shortname>get left padding</shortname>
+			<description>Get the padding value in pixels for the left edge of a slice <p>handle</p>. This is a positive number to move children attached to this edge towards the center of the slice, or a negative number to move attached children further from the center.</description>
+			<seealso>
+				<ref>setleftpadding</ref>
+				<ref>gettoppadding</ref>
+				<ref>getrightpadding</ref>
+				<ref>getbottompadding</ref>
+			</seealso>
+		</command>
+		<command id="setleftpadding">
+			<cannon>set left padding (handle, pixels)</cannon>
+			<shortname>set left padding</shortname>
+			<description>Set the padding value in pixels for the left edge of a slice <p>handle</p>. This is a positive number to move children attached to this edge towards the center of the slice, or a negative number to move attached children further from the center.</description>
+			<seealso>
+				<ref>getleftpadding</ref>
+				<ref>settoppadding</ref>
+				<ref>setrightpadding</ref>
+				<ref>setbottompadding</ref>
+			</seealso>
+		</command>
+		<command id="getrightpadding">
+			<cannon>get right padding (handle)</cannon>
+			<shortname>get right padding</shortname>
+			<description>Get the padding value in pixels for the right edge of a slice <p>handle</p>. This is a positive number to move children attached to this edge towards the center of the slice, or a negative number to move attached children further from the center.</description>
+			<seealso>
+				<ref>setrightpadding</ref>
+				<ref>gettoppadding</ref>
+				<ref>getleftpadding</ref>
+				<ref>getbottompadding</ref>
+			</seealso>
+		</command>
+		<command id="setrightpadding">
+			<cannon>set right padding (handle, pixels)</cannon>
+			<shortname>set right padding</shortname>
+			<description>Set the padding value in pixels for the right edge of a slice <p>handle</p>. This is a positive number to move children attached to this edge towards the center of the slice, or a negative number to move attached children further from the center.</description>
+			<seealso>
+				<ref>getrightpadding</ref>
+				<ref>settoppadding</ref>
+				<ref>setleftpadding</ref>
+				<ref>setbottompadding</ref>
+			</seealso>
+		</command>
+		<command id="getbottompadding">
+			<cannon>get bottom padding (handle)</cannon>
+			<shortname>get bottom padding</shortname>
+			<description>Get the padding value in pixels for the bottom edge of a slice <p>handle</p>. This is a positive number to move children attached to this edge towards the center of the slice, or a negative number to move attached children further from the center.</description>
+			<seealso>
+				<ref>setbottompadding</ref>
+				<ref>gettoppadding</ref>
+				<ref>getleftpadding</ref>
+				<ref>getrightpadding</ref>
+			</seealso>
+		</command>
+		<command id="setbottompadding">
+			<cannon>set bottom padding (handle, pixels)</cannon>
+			<shortname>set bottom padding</shortname>
+			<description>Set the padding value in pixels for the bottom edge of a slice <p>handle</p>. This is a positive number to move children attached to this edge towards the center of the slice, or a negative number to move attached children further from the center.</description>
+			<seealso>
+				<ref>getbottompadding</ref>
+				<ref>settoppadding</ref>
+				<ref>setleftpadding</ref>
+				<ref>setrightpadding</ref>
+			</seealso>
+		</command>
 	</section>
 	<section title="Misc Functions">
 		<command id="random">
