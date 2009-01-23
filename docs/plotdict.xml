@@ -1486,13 +1486,13 @@ end</example>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <p>open menu</p>), Check to see if it is already open, and return <ref>true</ref> if it is, or <ref>false</ref> if it is not</description>
 		</command>
 		<command id="addmenuitem">
-			<cannon>addmenuitem(menu handle)</cannon>
+			<cannon>add menu item(menu handle)</cannon>
 			<shortname>add menu item</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>createmenu</ref>), Add a new menu item to the end of the menu. Returns a menu item handle, which you can store in a variable for use with commands like <ref>setmenuitemcaption</ref> or <ref>setmenuitemtype</ref>.</description>
 		</command>
 		<command id="deletemenuitem">
-			<cannon>deletemenuitem(menu item handle)</cannon>
-			<shortname>add menu item</shortname>
+			<cannon>delete menu item(menu item handle)</cannon>
+			<shortname>delete menu item</shortname>
 			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref> or <ref>selectedmenuitem</ref>), delete the menu item from the menu.</description>
 		</command>
 		<command id="selectmenuitem">
