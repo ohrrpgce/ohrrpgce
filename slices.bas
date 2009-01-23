@@ -636,13 +636,16 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    load_sprite_and_pal .img, .spritetype, .record, .pal
    sl->Width = sprite_sizes(.spritetype).size.x
    sl->Height = sprite_sizes(.spritetype).size.y
+   dim flipspr as Frame Ptr
    if .flipHoriz then
-    'FIXME: this leaks sprites! In-place flipping doesn't work because the cache gets flipped too.
-    .img.sprite = sprite_flip_horiz(.img.sprite)
+    flipspr = sprite_flip_horiz(.img.sprite)
+    sprite_unload @.img.sprite
+    .img.sprite = flipspr
    end if
    if .flipVert then
-    'FIXME: this leaks sprites! In-place flipping doesn't work because the cache gets flipped too.
-    .img.sprite = sprite_flip_vert(.img.sprite)
+    flipspr = sprite_flip_vert(.img.sprite)
+    sprite_unload @.img.sprite
+    .img.sprite = flipspr
    end if
    .loaded = YES
   end if
