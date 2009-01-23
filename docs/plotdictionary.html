@@ -451,6 +451,9 @@
 		<a href="#about-fightformation">fight formation (number)</a><br>
 		
 	
+		<a href="#about-fillparent">fill parent (handle, true_or_false)</a><br>
+		
+	
 		<a href="#about-findenemyinformation">find enemy in formation (formation, enemy id, copy number)</a><br>
 		
 	
@@ -815,6 +818,9 @@
 		
 	
 		<a href="#about-inventory">inventory (item)</a><br>
+		
+	
+		<a href="#about-isfillingparent">is filling parent (handle)</a><br>
 		
 	
 		<a href="#about-itemsmenu">items menu</a><br>
@@ -5625,6 +5631,22 @@ end
 <li><a href="#about-setrightpadding" class="ref">set right padding</a></li>
 </ul>
 		</tt></p>
+		<a name="about-fillparent"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">fill parent (handle, true_or_false)</font></b><br>
+			Make a slice <span class="param">handle</span> automatically fill its parent. This will change the position and size of the slice so that it completely fills the parent (minus the parent's padding). You can also disable filling with this command by passing <span class="param">false</span> as the second argument, such as <span class="param">fill parent(handle, false)</span>. If a slice is filling its parent, then any commands which modify the width or height of the slice will fail. You should resize the parent instead. This command only works on rects and containers. it will not work on sprites because they cannot change size.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-isfillingparent" class="ref">is filling parent</a></li></ul>
+		</tt></p>
+		<a name="about-isfillingparent"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">is filling parent (handle)</font></b><br>
+			Returns true if a slice <span class="param">handle</span> is set to automatically fill its parent, or false if it is not. This command always returns false for sprite slice handles because sprites cannot be set to fill parent.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-fillparent" class="ref">fill parent</a></li></ul>
+		</tt></p>
 
 		<hr>
 	
@@ -8230,7 +8252,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 614 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 616 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

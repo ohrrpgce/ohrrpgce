@@ -2639,6 +2639,22 @@ end
 				<ref>setrightpadding</ref>
 			</seealso>
 		</command>
+		<command id="fillparent">
+			<cannon>fill parent (handle, true_or_false)</cannon>
+			<shortname>fill parent</shortname>
+			<description>Make a slice <p>handle</p> automatically fill its parent. This will change the position and size of the slice so that it completely fills the parent (minus the parent's padding). You can also disable filling with this command by passing <p>false</p> as the second argument, such as <p>fill parent(handle, false)</p>. If a slice is filling its parent, then any commands which modify the width or height of the slice will fail. You should resize the parent instead. This command only works on rects and containers. it will not work on sprites because they cannot change size.</description>
+			<seealso>
+				<ref>isfillingparent</ref>
+			</seealso>
+		</command>
+		<command id="isfillingparent">
+			<cannon>is filling parent (handle)</cannon>
+			<shortname>is filling parent</shortname>
+			<description>Returns true if a slice <p>handle</p> is set to automatically fill its parent, or false if it is not. This command always returns false for sprite slice handles because sprites cannot be set to fill parent.</description>
+			<seealso>
+				<ref>fillparent</ref>
+			</seealso>
+		</command>
 	</section>
 	<section title="Misc Functions">
 		<command id="random">

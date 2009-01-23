@@ -67,8 +67,8 @@ WHAT IS NEW?
       "set slice screen x", "set slice screen y", "clamp slice",
       "set padding", "set top padding", "get top padding",
       "set left padding", "get left padding", "set right padding",
-      "get right padding", "set bottom padding", "get bottom padding"
-      [James]
+      "get right padding", "set bottom padding", "get bottom padding",
+      "fill parent", "is filling parent" [James]
     * "number from string" [James]
 
   * Vikings of Midgard

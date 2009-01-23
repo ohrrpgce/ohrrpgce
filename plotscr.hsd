@@ -406,6 +406,8 @@ define function, begin
 397,getbottompadding,1,0      #return a slice's bottom-padding
 398,setrightpadding,2,0,0     #change a slice's right-padding
 399,getrightpadding,1,0       #return a slice's right-padding
+400,fillparent,2,0,1          #make a slice fill its parent
+401,isfillingparent,1,0       #returns true if a slice is set to fill
 
 #2xx,getnpcraw,2,0,0          #raw npc data(who,which)
 #2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)

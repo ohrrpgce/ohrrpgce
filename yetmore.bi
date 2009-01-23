@@ -56,6 +56,7 @@ DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPa
 DECLARE FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as integer
 DECLARE FUNCTION valid_plotsprite(byval handle as integer, byval cmd as string) as integer
 DECLARE FUNCTION valid_plotrect(byval handle as integer, byval cmd as string) as integer
+DECLARE FUNCTION valid_resizeable_slice(byval handle as integer, byval cmd as string, byval ignore_fill as integer=NO) as integer
 DECLARE FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
 DECLARE FUNCTION find_plotslice_handle(BYVAL sl AS Slice Ptr) AS INTEGER
 DECLARE FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1) AS INTEGER

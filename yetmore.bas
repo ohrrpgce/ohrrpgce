@@ -1928,24 +1928,12 @@ SELECT CASE AS CONST id
    IF plotslices(retvals(0))->SliceType = slRectangle THEN scriptret = 1
   END IF
  CASE 372 '--set slice width
-  IF valid_plotslice(retvals(0), "set slice width") THEN
-   DIM sl AS Slice Ptr
-   sl = plotslices(retvals(0))
-   IF sl->SliceType = slRectangle OR sl->SliceType = slContainer THEN
-    sl->Width = retvals(1)
-   ELSE
-    debug "set slice width: " & SliceTypeName(sl) & " slice " & retvals(0) & " is not sizeable"
-   END IF
+  IF valid_resizeable_slice(retvals(0), "set slice width") THEN
+   plotslices(retvals(0))->Width = retvals(1)
   END IF
  CASE 373 '--set slice height
-  IF valid_plotslice(retvals(0), "set slice height") THEN
-   DIM sl AS Slice Ptr
-   sl = plotslices(retvals(0))
-   IF sl->SliceType = slRectangle OR sl->SliceType = slContainer THEN
-    sl->Height = retvals(1)
-   ELSE
-    debug "set slice height: " & SliceTypeName(sl) & " slice " & retvals(0) & " is not sizeable"
-   END IF
+  IF valid_resizeable_slice(retvals(0), "set slice height") THEN
+   plotslices(retvals(0))->Height = retvals(1)
   END IF
  CASE 374 '--get rect style
   IF valid_plotrect(retvals(0), "get rect style") THEN
@@ -2075,6 +2063,14 @@ SELECT CASE AS CONST id
  CASE 399 '--get right padding
   IF valid_plotslice(retvals(0), "get right padding") THEN
    scriptret = plotslices(retvals(0))->PaddingRight
+  END IF
+ CASE 400 '--fill parent
+  IF valid_resizeable_slice(retvals(0), "fill parent", YES) THEN
+   plotslices(retvals(0))->Fill = (retvals(1) <> 0)
+  END IF
+ CASE 401 '--is filling parent
+  IF valid_plotslice(retvals(0), "is filling parent") THEN
+   IF plotslices(retvals(0))->Fill THEN scriptret = 1 ELSE scriptret = 0
   END IF
  
 END SELECT
@@ -3441,14 +3437,39 @@ END FUNCTION
 
 FUNCTION valid_plotsprite(byval handle as integer, byval cmd as string) as integer
  IF valid_plotslice(handle, cmd) THEN
-  IF plotslices(handle)->SliceType = slSprite THEN RETURN YES
+  IF plotslices(handle)->SliceType = slSprite THEN
+   RETURN YES
+  ELSE
+   debug cmd & ": slice handle " & handle & " is not a sprite"
+  END IF
  END IF
  RETURN NO
 END FUNCTION
 
 FUNCTION valid_plotrect(byval handle as integer, byval cmd as string) as integer
  IF valid_plotslice(handle, cmd) THEN
-  IF plotslices(handle)->SliceType = slRectangle THEN RETURN YES
+  IF plotslices(handle)->SliceType = slRectangle THEN
+   RETURN YES
+  ELSE
+   debug cmd & ": slice handle " & handle & " is not a rect"
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION valid_resizeable_slice(byval handle as integer, byval cmd as string, byval ignore_fill as integer=NO) as integer
+ IF valid_plotslice(handle, cmd) THEN
+  DIM sl AS Slice Ptr
+  sl = plotslices(handle)
+  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer THEN
+   IF sl->Fill = NO OR ignore_fill THEN
+    RETURN YES
+   ELSE
+    debug cmd & ": slice handle " & handle & " cannot be resized while filling parent"
+   END IF
+  ELSE
+   debug cmd & ": slice handle " & handle & " is not resizeable"
+  END IF
  END IF
  RETURN NO
 END FUNCTION
