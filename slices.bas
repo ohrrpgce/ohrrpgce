@@ -230,8 +230,9 @@ Sub DeleteSlice(Byval s as Slice ptr ptr)
  *s = 0
 End Sub
 
-Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
- 'first, remove the slice from its existing parent
+Sub OrphanSlice(byval sl as slice ptr)
+ '-- Remove a slice from its current parent cleanly,
+ '-- adjusting siblings, and leaving itself parentless.
  dim as slice ptr nxt, prv, par
  nxt = sl->NextSibling
  prv = sl->PrevSibling
@@ -253,6 +254,11 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
  sl->NextSibling = 0
  sl->PrevSibling = 0
  sl->Parent = 0
+end sub
+
+Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
+ 'first, remove the slice from its existing parent
+ OrphanSlice sl
  
  'then, add ourselves to the new parent
  if parent then
@@ -311,10 +317,12 @@ Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 end sub
 
 Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
- 'Intended for use when newsl is a newly created orphan such as a New*Slice result
- 'FIXME: maybe this could probably use some more safety checks?
- if newsl->Parent <> 0 then debug "InsertSiblingSlice: Only inserts orphans": EXIT SUB
+ 'newsl will be removed from its current parent (if any) and attached to the same
+ 'parent as sl
+ if sl = 0 then debug "InsertSiblingSlice: null sl": EXIT SUB
+ if newsl = 0 then debug "InsertSiblingSlice: null newsl": EXIT SUB
  if sl->Parent = 0 then debug "InsertSiblingSlice: Root shouldn't have siblings": EXIT SUB
+ if newsl->Parent <> 0 then OrphanSlice newsl
 
  'Tell the new sibling about its parent
  newsl->Parent = sl->Parent
@@ -629,9 +637,11 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    sl->Width = sprite_sizes(.spritetype).size.x
    sl->Height = sprite_sizes(.spritetype).size.y
    if .flipHoriz then
+    'FIXME: this leaks sprites! In-place flipping doesn't work because the cache gets flipped too.
     .img.sprite = sprite_flip_horiz(.img.sprite)
    end if
    if .flipVert then
+    'FIXME: this leaks sprites! In-place flipping doesn't work because the cache gets flipped too.
     .img.sprite = sprite_flip_vert(.img.sprite)
    end if
    .loaded = YES

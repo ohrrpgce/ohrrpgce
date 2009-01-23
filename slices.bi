@@ -144,6 +144,7 @@ DECLARE Sub DestroyGameSlices
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr)
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
+DECLARE Sub OrphanSlice(byval sl as slice ptr)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
