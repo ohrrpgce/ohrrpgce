@@ -2072,6 +2072,26 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0), "is filling parent") THEN
    IF plotslices(retvals(0))->Fill THEN scriptret = 1 ELSE scriptret = 0
   END IF
+ CASE 402 '--slice to front
+  IF valid_plotslice(retvals(0), "slice to front") THEN
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))->Parent
+   SetSliceParent plotslices(retvals(0)), sl
+  END IF
+ CASE 403 '--slice to back
+  IF valid_plotslice(retvals(0), "slice to back") THEN
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   IF sl->Parent = 0 THEN
+    debug "slice to back: null parent"
+   ELSE
+    InsertSiblingSlice sl->Parent->FirstChild, sl
+   END IF
+  END IF
+ CASE 404 '--last child
+  IF valid_plotslice(retvals(0), "last child") THEN
+   scriptret = find_plotslice_handle(LastChild(plotslices(retvals(0))))
+  END IF
  
 END SELECT
 

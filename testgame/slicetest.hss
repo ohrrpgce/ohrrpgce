@@ -1,7 +1,45 @@
 include, plotscr.hsd
 
 plotscript, test, begin
-  variable(sl, sl2, i, cont)
+  variable(sl, sl2, sl3, i, cont)
+
+  $0="sort tests", show string(0)
+  wait(5)
+  
+  cont := create container
+  fill parent(cont)
+  for(i, 0, 22), do, begin
+    sl := create rect(50, 50, random(0,2))
+    set parent(sl, cont)
+    set slice x(sl, i * 14)
+    set slice y(sl, i * 4)
+    wait(1)
+  end
+  $0="sort tests: move blue back", show string(0)
+  sl := first child(cont)
+  while(sl) do, begin
+    set slice y(sl, slice y(sl) + 1)
+    sl2 := 0
+    if (get rect style(sl) == 0) then(sl2 := sl)
+    sl := next sibling(sl)
+    if(sl2) then(slice to back(sl2))
+    wait(2)
+  end
+  $0="sort tests: move green forward", show string(0)
+  sl := first child(cont)
+  sl2 := last child(cont)
+  while(sl) do, begin
+    sl3 := 0
+    set slice y(sl, slice y(sl) + 1)
+    if (get rect style(sl) == 1) then(sl3:=sl)
+    if(sl == sl2) then(break)
+    sl := next sibling(sl)
+    if(sl3) then(slice to front(sl3))
+    wait(2)
+  end
+  wait(5)
+  free slice(cont)
+  wait(5)
 
   $0="edge tests", show string(0)
   wait(5)

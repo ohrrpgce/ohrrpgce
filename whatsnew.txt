@@ -68,7 +68,8 @@ WHAT IS NEW?
       "set padding", "set top padding", "get top padding",
       "set left padding", "get left padding", "set right padding",
       "get right padding", "set bottom padding", "get bottom padding",
-      "fill parent", "is filling parent" [James]
+      "fill parent", "is filling parent", "last child", "slice to back",
+      "slice to front" [James]
     * "number from string" [James]
 
   * Vikings of Midgard

@@ -408,9 +408,10 @@ define function, begin
 399,getrightpadding,1,0       #return a slice's right-padding
 400,fillparent,2,0,1          #make a slice fill its parent
 401,isfillingparent,1,0       #returns true if a slice is set to fill
+402,slicetofront,1,0          #move a slice in front of its siblings
+403,slicetoback,1,0           #move a slice behind its siblings
+404,lastchild,1,0             #find the last child of a parent slice
 
-#2xx,getnpcraw,2,0,0          #raw npc data(who,which)
-#2xx,setnpcraw,3,0,0,0        #raw npc data(who,which,val)
 end
 
 #--------------------------------------------------------------------------

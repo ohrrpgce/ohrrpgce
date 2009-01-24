@@ -321,6 +321,10 @@ Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
  'parent as sl
  if sl = 0 then debug "InsertSiblingSlice: null sl": EXIT SUB
  if newsl = 0 then debug "InsertSiblingSlice: null newsl": EXIT SUB
+ if sl = newsl then EXIT SUB ' Fail quietly when trying to insert a slice as a sibling
+                             ' of itself because this is normal if you are using this function
+                             ' to move a slice to the beginning of its sibling list when it is
+                             ' already the first sibling
  if sl->Parent = 0 then debug "InsertSiblingSlice: Root shouldn't have siblings": EXIT SUB
  if newsl->Parent <> 0 then OrphanSlice newsl
 
@@ -376,6 +380,20 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
   DeleteSlice @newsl
  END WITH
 End Sub
+
+Function LastChild(byval parent as slice ptr) as slice ptr
+ IF parent = 0 THEN RETURN 0
+ DIM sl AS Slice Ptr
+ sl = parent->FirstChild
+ IF sl = 0 THEN RETURN 0
+ DIM nextsib AS Slice ptr
+ WHILE sl
+  nextsib = sl->NextSibling
+  IF nextsib = 0 THEN RETURN sl
+  sl = nextsib
+ WEND
+ RETURN 0
+End function
 
 'this function ensures that we can't set a slice to be a child of itself (or, a child of a child of itself, etc)
 Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
