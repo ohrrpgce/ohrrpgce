@@ -4,6 +4,8 @@ global variable(1, mouse)
 global variable(2, playing)
 global variable(3, test layer)
 global variable(4, dragging)
+global variable(5, drag x off)
+global variable(6, drag y off)
 
 plotscript, collision tester, begin
   suspend player
@@ -27,6 +29,7 @@ script, update mouse, begin
     start dragging
   )else(
     dragging := false
+    y sort children(test layer)
   )
 end
 
@@ -36,8 +39,10 @@ script, start dragging, begin
   sl := first child(test layer)
   while(sl) do(
     if(slice collide point(sl, slice x(mouse), slice y(mouse))) then(
+      drag x off := slice screen x(sl) -- slice x(mouse)
+      drag y off := slice screen y(sl) -- slice y(mouse)
       dragging := sl
-      set parent(sl, test layer)
+      slice to front(sl)
       exit script
     )
     sl := next sibling(sl)
@@ -62,15 +67,16 @@ end
 script, create test slices, begin
   variable(i, sl)
   test layer := create container(320, 200)
-  for(i,0,7) do(
+  for(i,0,9) do(
     sl := create rect(random(32, 80), random(32, 80), random(0, 14))
     set parent(sl, test layer)
     set rect border(sl, -1)
-    center slice(sl)
+    realign slice(sl, edge:left, edge:top, edge:center, edge:bottom)
     set slice screen x(sl, random(0,319))
     set slice screen y(sl, random(0,200))
     clamp slice(sl, test layer)
   )
+  y sort children(test layer)
 end
 
 script, create mouse cursor, begin
@@ -92,8 +98,8 @@ end
 
 script, update dragging, begin
   if(dragging) then(
-    set slice screen x(dragging, slice screen x(mouse))
-    set slice screen y(dragging, slice screen y(mouse))
+    set slice screen x(dragging, slice screen x(mouse) + drag x off)
+    set slice screen y(dragging, slice screen y(mouse) + drag y off)
     clamp slice(dragging, sprite layer)
   )
 end

@@ -316,6 +316,37 @@ Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
  next i 
 end sub
 
+Sub YSortChildSlices(byval parent as slice ptr)
+ if parent = 0 then debug "YSortChildSlices: null ptr" : EXIT SUB
+ dim slice_list(parent->NumChildren - 1) as slice ptr
+ dim temp_sl as slice ptr = parent->FirstChild
+ dim i as integer
+ 'Convert the children into an unlinked list
+ for i = 0 to ubound(slice_list)
+  slice_list(i) = temp_sl
+  temp_sl = temp_sl->NextSibling
+  slice_list(i)->PrevSibling = 0
+  slice_list(i)->NextSibling = 0
+ next i
+ 'Sort the siblings by Y
+ dim as integer lowest
+ for j as integer = 0 to ubound(slice_list)
+  lowest = j
+  for i = j + 1 to ubound(slice_list)
+   if slice_list(i)->Y < slice_list(lowest)->Y then
+     lowest = i
+   end if
+  next i
+  swap slice_list(j), slice_list(lowest)
+ next j
+ 'Convert back to a doubly linked list
+ parent->FirstChild = slice_list(0)
+ for i = 1 to ubound(slice_list)
+  slice_list(i - 1)->NextSibling = slice_list(i)
+  slice_list(i)->PrevSibling = slice_list(i - 1)
+ next i 
+end sub
+
 Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
  'newsl will be removed from its current parent (if any) and attached to the same
  'parent as sl

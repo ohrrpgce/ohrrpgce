@@ -2588,6 +2588,11 @@ end
 				<ref>slicetofront</ref>
 			</seealso>
 		</command>
+		<command id="ysortchildren">
+			<cannon>Y sort children (handle)</cannon>
+			<shortname>Y sort children</shortname>
+			<description>Given a slice <p>handle</p>, sort all of its children according to their Y position. This means that sibling slices lower on the screen will be drawn over siblings higher on the screen.</description>
+		</command>
 		<command id="getrectstyle">
 			<cannon>get rect style (handle)</cannon>
 			<shortname>get rect style</shortname>

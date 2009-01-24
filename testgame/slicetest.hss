@@ -38,6 +38,8 @@ plotscript, test, begin
     wait(2)
   end
   wait(5)
+  y sort children (cont)
+  wait(20)
   free slice(cont)
   wait(5)
 

@@ -2092,6 +2092,10 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0), "last child") THEN
    scriptret = find_plotslice_handle(LastChild(plotslices(retvals(0))))
   END IF
+ CASE 405 '--y sort children
+  IF valid_plotslice(retvals(0), "y sort children") THEN
+   YSortChildSlices plotslices(retvals(0))
+  END IF
  
 END SELECT
 
