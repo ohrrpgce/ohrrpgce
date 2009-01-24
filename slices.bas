@@ -284,6 +284,30 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
  
 end sub
 
+Sub UnlinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
+ if parent = 0 then debug "UnlinkChildren: null ptr"
+ dim temp_sl as slice ptr = parent->FirstChild
+ dim i as integer
+ 'Convert the children into an unlinked list
+ for i = 0 to ubound(slice_list)
+  slice_list(i) = temp_sl
+  temp_sl = temp_sl->NextSibling
+  slice_list(i)->PrevSibling = 0
+  slice_list(i)->NextSibling = 0
+ next i
+end sub
+
+Sub RelinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
+ if parent = 0 then debug "RelinkChildren: null ptr"
+ dim i as integer
+ parent->FirstChild = slice_list(0)
+ 'Convert back to a doubly linked list
+ for i = 1 to ubound(slice_list)
+  slice_list(i - 1)->NextSibling = slice_list(i)
+  slice_list(i)->PrevSibling = slice_list(i - 1)
+ next i 
+end sub
+
 Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
  'Only intended for use by siblings of the same parent
  if sl1 = 0 or sl2 = 0 then EXIT SUB ' Exit quietly when an arg is null. Valid use case for attempted swap at the beginning or end of a list
@@ -291,61 +315,53 @@ Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
  if sl1->Parent <> sl2->Parent then debug "SwapSiblingSlices: slices are not siblings": EXIT SUB
  dim parent as slice ptr = sl1->Parent
  dim slice_list(parent->NumChildren - 1) as slice ptr
- dim temp_sl as slice ptr = parent->FirstChild
- dim i as integer
- 'Convert the children into an unlinked list
- for i = 0 to ubound(slice_list)
-  slice_list(i) = temp_sl
-  temp_sl = temp_sl->NextSibling
-  slice_list(i)->PrevSibling = 0
-  slice_list(i)->NextSibling = 0
- next i
+ UnlinkChildren parent, slice_list()
  'Swap the two siblings
- for i = 0 to ubound(slice_list)
+ for i as integer = 0 to ubound(slice_list)
   if slice_list(i) = sl1 then
    slice_list(i) = sl2
   elseif slice_list(i) = sl2 then
    slice_list(i) = sl1
   end if
  next i
- 'Convert back to a doubly linked list
- parent->FirstChild = slice_list(0)
- for i = 1 to ubound(slice_list)
-  slice_list(i - 1)->NextSibling = slice_list(i)
-  slice_list(i)->PrevSibling = slice_list(i - 1)
- next i 
+ RelinkChildren parent, slice_list()
 end sub
 
 Sub YSortChildSlices(byval parent as slice ptr)
  if parent = 0 then debug "YSortChildSlices: null ptr" : EXIT SUB
  dim slice_list(parent->NumChildren - 1) as slice ptr
- dim temp_sl as slice ptr = parent->FirstChild
- dim i as integer
- 'Convert the children into an unlinked list
- for i = 0 to ubound(slice_list)
-  slice_list(i) = temp_sl
-  temp_sl = temp_sl->NextSibling
-  slice_list(i)->PrevSibling = 0
-  slice_list(i)->NextSibling = 0
- next i
+ UnlinkChildren parent, slice_list()
  'Sort the siblings by Y
  dim as integer lowest
  for j as integer = 0 to ubound(slice_list)
   lowest = j
-  for i = j + 1 to ubound(slice_list)
+  for i as integer = j + 1 to ubound(slice_list)
    if slice_list(i)->Y < slice_list(lowest)->Y then
      lowest = i
    end if
   next i
   swap slice_list(j), slice_list(lowest)
  next j
- 'Convert back to a doubly linked list
- parent->FirstChild = slice_list(0)
- for i = 1 to ubound(slice_list)
-  slice_list(i - 1)->NextSibling = slice_list(i)
-  slice_list(i)->PrevSibling = slice_list(i - 1)
- next i 
+ RelinkChildren parent, slice_list()
 end sub
+
+Sub CustomSortChildSlices(byval parent as slice ptr)
+ if parent = 0 then debug "CustomSortChildSlices: null ptr" : EXIT SUB
+ dim slice_list(parent->NumChildren - 1) as slice ptr
+ UnlinkChildren parent, slice_list()
+ 'Sort the siblings by Sorter
+ dim as integer lowest
+ for j as integer = 0 to ubound(slice_list)
+  lowest = j
+  for i as integer = j + 1 to ubound(slice_list)
+   if slice_list(i)->Sorter < slice_list(lowest)->Sorter then
+     lowest = i
+   end if
+  next i
+  swap slice_list(j), slice_list(lowest)
+ next j
+ RelinkChildren parent, slice_list()
+End sub
 
 Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
  'newsl will be removed from its current parent (if any) and attached to the same

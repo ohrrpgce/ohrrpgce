@@ -54,9 +54,10 @@ TYPE Slice
   Y as integer
   ScreenX as integer 'the actual X,Y, updated every frame
   ScreenY as integer
-  Width as integer 'FIXME: Might it make sense to keep width/height separate from computed slice-system width/height, similar to how we do for X/Y and screenX/ScreenY? Consider the case of a SpriteSlice which is set to 50x50 by the sprite loading code but is set to Fill=YES
+  Width as integer
   Height as integer
   Visible as integer
+  Sorter as integer 'Only used by CustomSortChildSlices
   
   AlignHoriz as integer 'Relative to parent. 0,1,2=Left,Mid,Right. Only used when .Fill = NO
   AlignVert as integer  'Relative to parent. 0,1,2=Top,Mid,Bottom. Only used when .Fill = NO

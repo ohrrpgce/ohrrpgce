@@ -39,13 +39,14 @@ script, start dragging, begin
   sl := first child(test layer)
   while(sl) do(
     if(slice collide point(sl, slice x(mouse), slice y(mouse))) then(
-      drag x off := slice screen x(sl) -- slice x(mouse)
-      drag y off := slice screen y(sl) -- slice y(mouse)
       dragging := sl
-      slice to front(sl)
-      exit script
     )
     sl := next sibling(sl)
+  )
+  if(dragging) then(
+    drag x off := slice screen x(dragging) -- slice x(mouse)
+    drag y off := slice screen y(dragging) -- slice y(mouse)
+    slice to front(dragging)
   )
 end
 
