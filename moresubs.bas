@@ -1409,6 +1409,11 @@ FOR i = 0 TO 31
  end with
 NEXT i
 
+'Zero out plotslices pointer table (which will point to slices that have already been freed)
+FOR i = LBOUND(plotslices) TO UBOUND(plotslices)
+ plotslices(i) = 0
+NEXT i
+
 FOR i = topmenu TO 0 STEP -1
  remove_menu i
 NEXT i
