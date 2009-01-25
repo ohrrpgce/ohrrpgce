@@ -412,6 +412,8 @@ define function, begin
 403,slicetoback,1,0           #move a slice behind its siblings
 404,lastchild,1,0             #find the last child of a parent slice
 405,ysortchildren,1,0         #sort the children of a slice by Y value
+406,setsortorder,2,0,0        #set sort value on a slice for sortchildren
+407,sortchildren,1,0          #sort siblings by their setslicesort value
 
 end
 

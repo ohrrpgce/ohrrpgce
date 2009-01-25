@@ -1573,6 +1573,9 @@
 		<a href="#about-setslicey">setslice y (handle, Y)</a><br>
 		
 	
+		<a href="#about-setsortorder">set sort order (handle, order)</a><br>
+		
+	
 		<a href="#about-setspriteframe">set sprite frame (handle, num)</a><br>
 		
 	
@@ -1685,6 +1688,9 @@
 		<a href="#about-song:sameaslastmap">song: same as map</a><br>
 	
 		<a href="#about-song:silence">song: silence</a><br>
+		
+	
+		<a href="#about-sortchildren">sort children (handle)</a><br>
 		
 	
 		<a href="#about-soundisplaying">sound is playing (num)</a><br>
@@ -2006,6 +2012,9 @@
 		
 	
 		<a href="#about-yaxis">y axis</a><br>
+		
+	
+		<a href="#about-ysortchildren">Y sort children (handle)</a><br>
 		
 	
 		
@@ -5481,6 +5490,21 @@ end
 			    if(moveme) then(slice to front(moveme))
 			  end
 			end
+			
+			script, easier safe sorting, begin
+			  # If you need to sort slices in a loop, you might find it easier
+			  # to avoid the "slice to front" command and use "set sort order"
+			  # and "sort children" instead.
+			  variable(sl)
+			  sl := first child(sprite layer)
+			  while(sl) do, begin
+			    if(slice is rect(sl)) then, begin
+			      set sort order(sl, 1)
+			    end
+			    sl := next sibling(sl)
+			  end
+			  sort children(sprite layer)
+			end
 			</pre>
 			<br>See also: <ul class="seealso"><li><a href="#about-slicetoback" class="ref">slice to back</a></li></ul>
 		</tt></p>
@@ -5527,8 +5551,61 @@ end
 			    if(moveme) then(slice to back(moveme))
 			  end
 			end
+			
+			script, easier safe sorting, begin
+			  # If you need to sort slices in a loop, you might find it easier
+			  # to avoid the "slice to back" command and use "set sort order"
+			  # and "sort children" instead.
+			  variable(sl)
+			  sl := first child(sprite layer)
+			  while(sl) do, begin
+			    if(slice is rect(sl)) then, begin
+			      set sort order(sl, -1)
+			    end
+			    sl := next sibling(sl)
+			  end
+			  sort children(sprite layer)
+			end
 			</pre>
 			<br>See also: <ul class="seealso"><li><a href="#about-slicetofront" class="ref">slice to front</a></li></ul>
+		</tt></p>
+		<a name="about-ysortchildren"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">Y sort children (handle)</font></b><br>
+			Given a slice <span class="param">handle</span>, sort all of its children according to their Y position. This means that sibling slices lower on the screen will be drawn over siblings higher on the screen.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-sortchildren" class="ref">sort children</a></li></ul>
+		</tt></p>
+		<a name="about-setsortorder"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set sort order (handle, order)</font></b><br>
+			Assign a sort order number to a slice <span class="param">handle</span>. This can be any arbitrary number that will be used to sort the slice relative to its sibling slices the next time that <a href="#about-sortchildren" class="ref">sort children</a> is called. Give a slice a low number to sort it to the back or a high number to sort it to the front. If you give two sibling slices the same sort order number they will be sorted to the same depth, and they will remain in their original order in relation to one another.<br>
+			
+			
+		</tt></p>
+		<a name="about-sortchildren"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">sort children (handle)</font></b><br>
+			Given a slice <span class="param">handle</span>, sort all of its children according to the sort order that you previously set with the <a href="#about-setsortorder" class="ref">set sort order</a> command. If no sort order values have been set then no changes will be made to the order of the slices. Running this commands zeroes out the sort order value for each slice that it operates on.<br>
+			<pre>
+				plotscript, reverse Y sort, begin
+				  variable(sl)
+				  sl := first child(sprite layer)
+				  while(sl) then, begin
+				    set sort order(sl, slice y(sl) * -1)
+				    sl := next sibling(sl)
+				  end
+				  sort children(sprite layer)
+				end
+			</pre>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setsortorder" class="ref">set sort order</a>, </li>
+<li><a href="#about-ysortchildren" class="ref">Y sort children</a></li>
+</ul>
 		</tt></p>
 		<a name="about-getrectstyle"></a>
 		<p>
@@ -8427,7 +8504,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 619 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 622 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

@@ -39,7 +39,16 @@ plotscript, test, begin
   end
   wait(5)
   y sort children (cont)
-  wait(20)
+  wait(10)
+  sl := first child(cont)
+  while(sl) do, begin
+    set sort order(sl, slice y(sl) * -1)
+    sl := next sibling(sl)
+  end
+  sort children(cont)
+  wait(10)
+  sort children(cont)
+  wait(10)
   free slice(cont)
   wait(5)
 

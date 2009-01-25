@@ -359,6 +359,7 @@ Sub CustomSortChildSlices(byval parent as slice ptr)
    end if
   next i
   swap slice_list(j), slice_list(lowest)
+  slice_list(j)->Sorter = 0
  next j
  RelinkChildren parent, slice_list()
 End sub

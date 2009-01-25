@@ -2536,6 +2536,21 @@ end
 			    if(moveme) then(slice to front(moveme))
 			  end
 			end
+			
+			script, easier safe sorting, begin
+			  # If you need to sort slices in a loop, you might find it easier
+			  # to avoid the "slice to front" command and use "set sort order"
+			  # and "sort children" instead.
+			  variable(sl)
+			  sl := first child(sprite layer)
+			  while(sl) do, begin
+			    if(slice is rect(sl)) then, begin
+			      set sort order(sl, 1)
+			    end
+			    sl := next sibling(sl)
+			  end
+			  sort children(sprite layer)
+			end
 			</example>
 			<seealso>
 				<ref>slicetoback</ref>
@@ -2583,6 +2598,21 @@ end
 			    if(moveme) then(slice to back(moveme))
 			  end
 			end
+			
+			script, easier safe sorting, begin
+			  # If you need to sort slices in a loop, you might find it easier
+			  # to avoid the "slice to back" command and use "set sort order"
+			  # and "sort children" instead.
+			  variable(sl)
+			  sl := first child(sprite layer)
+			  while(sl) do, begin
+			    if(slice is rect(sl)) then, begin
+			      set sort order(sl, -1)
+			    end
+			    sl := next sibling(sl)
+			  end
+			  sort children(sprite layer)
+			end
 			</example>
 			<seealso>
 				<ref>slicetofront</ref>
@@ -2592,6 +2622,34 @@ end
 			<cannon>Y sort children (handle)</cannon>
 			<shortname>Y sort children</shortname>
 			<description>Given a slice <p>handle</p>, sort all of its children according to their Y position. This means that sibling slices lower on the screen will be drawn over siblings higher on the screen.</description>
+			<seealso>
+				<ref>sortchildren</ref>
+			</seealso>
+		</command>
+		<command id="setsortorder">
+			<cannon>set sort order (handle, order)</cannon>
+			<shortname>set sort order</shortname>
+			<description>Assign a sort order number to a slice <p>handle</p>. This can be any arbitrary number that will be used to sort the slice relative to its sibling slices the next time that <ref>sortchildren</ref> is called. Give a slice a low number to sort it to the back or a high number to sort it to the front. If you give two sibling slices the same sort order number they will be sorted to the same depth, and they will remain in their original order in relation to one another.</description>
+		</command>
+		<command id="sortchildren">
+			<cannon>sort children (handle)</cannon>
+			<shortname>sort children</shortname>
+			<description>Given a slice <p>handle</p>, sort all of its children according to the sort order that you previously set with the <ref>setsortorder</ref> command. If no sort order values have been set then no changes will be made to the order of the slices. Running this commands zeroes out the sort order value for each slice that it operates on.</description>
+			<example>
+				plotscript, reverse Y sort, begin
+				  variable(sl)
+				  sl := first child(sprite layer)
+				  while(sl) then, begin
+				    set sort order(sl, slice y(sl) * -1)
+				    sl := next sibling(sl)
+				  end
+				  sort children(sprite layer)
+				end
+			</example>
+			<seealso>
+				<ref>setsortorder</ref>
+				<ref>ysortchildren</ref>
+			</seealso>
 		</command>
 		<command id="getrectstyle">
 			<cannon>get rect style (handle)</cannon>
