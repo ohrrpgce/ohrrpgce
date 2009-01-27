@@ -72,6 +72,9 @@ WHAT IS NEW?
       "slice to front", "Y sort children", "set sort order",
       "sort children" [James]
     * "number from string" [James]
+    * Hspeak now produces a warning message if you use [square brackets]
+      or {curly braces} in script names or variable names [James]
+      
 
   * Vikings of Midgard
 

@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Gj 2009-01-27 Show future-compatability warning when using square
+--               brackets [] and curly brackets {} in names
 --3Gi 2008-08-03 Disallow orphaned then() and else(), a common mistake
 --3Gh 2008-07-14 Disable warnings for unused variables by default, and
 --               Add -u option to enable warnings for unused variables.
@@ -94,7 +96,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Gi"
+constant COMPILER_SUB_VERSION="Gj"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -711,18 +713,6 @@ end function
 
 ---------------------------------------------------------------------------
 
---function smush_line(sequence s)
---  sequence sep
---  s=hs_lower(exclude(strip_comments(s)," \t\n"))
---  s=substring_replace(s,"(",",begin,")
---  s=substring_replace(s,")",",end,")
---  sep={"+","--","/","*","^","==","<>",">>","<<","<=",">=",":="}
---  for i=1 to length(sep) do
---    s=substring_replace(s,sep[i],","&sep[i]&",")
---  end for
---  return(s)
---end function
-
 function smush_line(sequence s)
   integer at
   integer start
@@ -746,23 +736,6 @@ function smush_line(sequence s)
   end for
   return(s)
 end function
-
----------------------------------------------------------------------------
-
-procedure split_commands()
-  sequence line,broken
-  color_print("splitting commands\n",{})
-  for i=1 to length(source) do
-    line=smush_line(source[i][SRC_TEXT])
-    broken=explode(line,",")
-    for j=1 to length(broken) do
-      --text,origin
-      if length(broken[j]) then
-        cmd=append(cmd,{broken[j],i})
-      end if
-    end for
-  end for
-end procedure
 
 ---------------------------------------------------------------------------
 
@@ -799,6 +772,39 @@ procedure src_error(sequence s,integer line)
   else
     simple_error(sprintf("in line %d of "&COLPNK&"%s"&COLRED&"\n"&COLBWHI&"%s"&COLRED&"\n%s\n",{source[line][SRC_LINE],file_list[source[line][SRC_FILE]],source[line][SRC_TEXT],s}))
   end if
+end procedure
+
+---------------------------------------------------------------------------
+
+procedure future_symbol_warnings(sequence s, integer src_line)
+  integer at
+  sequence future_symbols, symbol
+  future_symbols = {"[","]","{","}"}
+  for i = 1 to length(future_symbols) do
+    symbol=future_symbols[i]
+    at=match(symbol, s)
+    if at > 0 then
+      src_warn(sprintf("FUTURE COMPATABILITY PROBLEM: %s should not be used in names!", {symbol}), src_line)
+    end if
+  end for
+end procedure
+
+---------------------------------------------------------------------------
+
+procedure split_commands()
+  sequence line,broken
+  color_print("splitting commands\n",{})
+  for i=1 to length(source) do
+    line=smush_line(source[i][SRC_TEXT])
+    broken=explode(line,",")
+    for j=1 to length(broken) do
+      --text,origin
+      if length(broken[j]) then
+        future_symbol_warnings(broken[j],i)
+        cmd=append(cmd,{broken[j],i})
+      end if
+    end for
+  end for
 end procedure
 
 ---------------------------------------------------------------------------
