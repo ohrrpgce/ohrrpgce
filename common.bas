@@ -1439,7 +1439,7 @@ SUB reset_console (top AS INTEGER = 0, bottom AS INTEGER = 199, c AS INTEGER = 0
   .x = 0
   .y = top
   .c = c
-  clearpage vpage, .top, .bottom, c
+  clearpage vpage, c, .top, .bottom
  END WITH
 END SUB
 
@@ -1456,7 +1456,7 @@ SUB append_message (s AS STRING)
   IF .y >= .bottom - 8 THEN
    'scroll page up 2 lines
    copypage vpage, vpage, .top + 16, .top, .bottom
-   clearpage vpage, .bottom - 15, .bottom
+   clearpage vpage, 0, .bottom - 15, .bottom
    .y -= 16
   END IF
   printstr s, .x, .y, vpage
