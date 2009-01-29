@@ -25,6 +25,7 @@
 #include "util.bi"
 #include "const.bi"
 #include "scancodes.bi"
+#include "uiconst.bi"
 
 option explicit
 
@@ -217,7 +218,8 @@ SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer
 	memmove(spage(page2) + 320 * top, spage(page1) + 320 * y, 320 * lines)
 end sub
 
-SUB clearpage (BYVAL page as integer, BYVAL colour as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
+SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
+	if colour = -1 then colour = uilook(uiBackground)
 	top = bound(top, 0, 199)
 	bottom = bound(bottom, top, 199)
 	memset(spage(page) + 320 * top, colour, 320 * (bottom - top + 1))

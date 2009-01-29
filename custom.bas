@@ -309,7 +309,7 @@ DO:
 
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
+ clearpage dpage
  dowait
 LOOP
 
