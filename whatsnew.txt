@@ -53,7 +53,8 @@ WHAT IS NEW?
     * "slice x", "slice y", "set slice x", "set slice y", "slice width",
       "slice height", "set horiz align", "set vert align",
       "set horiz anchor", "set vert anchor", "free slice",
-      "first child", "next sibling", "create container", "set parent",
+      "first child", "next sibling", "last child",
+      "previous sibling", "create container", "set parent", 
       "check parentage", "slice screen x", "slice screen y",
       "slice is container", "create rect", "slice is rect",
       "set slice width", "set slice height", "get rect style",
@@ -68,7 +69,7 @@ WHAT IS NEW?
       "set padding", "set top padding", "get top padding",
       "set left padding", "get left padding", "set right padding",
       "get right padding", "set bottom padding", "get bottom padding",
-      "fill parent", "is filling parent", "last child", "slice to back",
+      "fill parent", "is filling parent", "slice to back",
       "slice to front", "Y sort children", "set sort order",
       "sort children" [James]
     * "number from string" [James]

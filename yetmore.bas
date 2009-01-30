@@ -2104,6 +2104,10 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0), "sort children") THEN
    CustomSortChildSlices plotslices(retvals(0))
   END IF
+ CASE 408 '--previous sibling
+  IF valid_plotslice(retvals(0), "previous sibling") THEN
+   scriptret = find_plotslice_handle(plotslices(retvals(0))->PrevSibling)
+  END IF 
  
  
 END SELECT

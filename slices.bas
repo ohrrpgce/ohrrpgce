@@ -1122,11 +1122,12 @@ Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as intege
  RefreshSliceScreenPos(sl2)
  if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY) then
   if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width-1, sl2->ScreenY + sl2->Height-1) then
-   if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width-1, sl2->ScreenY) then
-    if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY + sl2->Height-1) then
-     return YES
-    end if
-   end if
+   'no nonrectangular slices (yet)
+   'if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width-1, sl2->ScreenY) then
+    'if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY + sl2->Height-1) then
+    'end if
+   'end if
+   return YES
   end if
  end if
  return NO
