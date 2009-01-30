@@ -2146,9 +2146,9 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>slice x</shortname>
 			<description>Returns the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
 			<seealso>
-				<ref>slice y</ref>
-				<ref>set slice x</ref>
-				<ref>slice screen x</ref>
+				<ref>slicey</ref>
+				<ref>setslicex</ref>
+				<ref>slicescreenx</ref>
 			</seealso>
 		</command>
 		<command id="slicey">
@@ -2156,9 +2156,9 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>slice y</shortname>
 			<description>Returns the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
 			<seealso>
-				<ref>slice x</ref>
-				<ref>set slice y</ref>
-				<ref>slice screen y</ref>
+				<ref>slicex</ref>
+				<ref>setslicey</ref>
+				<ref>slicescreeny</ref>
 			</seealso>
 		</command>
 		<command id="setslicex">
@@ -2166,8 +2166,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set slice x</shortname>
 			<description>Changes the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
 			<seealso>
-				<ref>slice x</ref>
-				<ref>set slice y</ref>
+				<ref>slicex</ref>
+				<ref>setslicey</ref>
 			</seealso>
 		</command>
 		<command id="setslicey">
@@ -2318,64 +2318,63 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>free slice</shortname>
 			<description>Unloads a slice and any child slices. This works on any type of slice. If you know the type of slice you are deleting, you can use type-specific freeing commands instead.</description>
 			<example>
-			script, simple example, begin
-			  variable(sl)
-			  sl := load hero sprite(0)
-			  wait(20)
-			  free slice(sl)
-			end
-			
-			script, example with children, begin
-			  variable(box, sl)
-			  
-			  # create a box
-			  box := create rect(100, 60)
-			  
-			  # center a hero as a child of the box
-			  sl := load hero sprite(0)
-			  set parent(sl, box)
-			  center slice(sl)
-			  
-			  wait(20)
-			  
-			  # when you free the box, the hero will be freed too
-			  free slice(box)
-			
-			  # The sprite is gone now, so if you use the handle that used to point
-			  # to it, you will get an error message in your g_debug.txt file
-			  position sprite(sl, 25, 25)
-			end
-			
-			script, wrong way to free in a loop, begin
-			  # this loop is the WRONG way to remove all sprites that show frame number 1
-			  # because removing a slice inside a loop will interfere with the "next sibling"
-			  # command causing the loop to end early
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is sprite(sl)) then, begin
-			      if(get sprite frame(sl) == 1) then(free slice(sl))
-			    end
-			    sl := next sibling(sl)
-			  end
-			end
+script, simple example, begin
+  variable(sl)
+  sl := load hero sprite(0)
+  wait(20)
+  free slice(sl)
+end
 
-			script, right way to free in a loop, begin
-			  # this loop is the right way to remove all sprites that show frame number 1
-			  # by waiting until AFTER the "next sibling" command, we can free the slice
-			  # without ending the loop early
-			  variable(sl, deleteme)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    deleteme := 0
-			    if(slice is sprite(sl)) then, begin
-			      if(get sprite frame(sl) == 1) then(deleteme := sl)
-			    end
-			    sl := next sibling(sl)
-			    if(deleteme) then(free slice(deleteme))
-			  end
-			end
-			</example>
+script, example with children, begin
+  variable(box, sl)
+  
+  # create a box
+  box := create rect(100, 60)
+  
+  # center a hero as a child of the box
+  sl := load hero sprite(0)
+  set parent(sl, box)
+  center slice(sl)
+  
+  wait(20)
+  
+  # when you free the box, the hero will be freed too
+  free slice(box)
+
+  # The sprite is gone now, so if you use the handle that used to point
+  # to it, you will get an error message in your g_debug.txt file
+  position sprite(sl, 25, 25)
+end
+
+script, wrong way to free in a loop, begin
+  # this loop is the WRONG way to remove all sprites that show frame number 1
+  # because removing a slice inside a loop will interfere with the "next sibling"
+  # command causing the loop to end early
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is sprite(sl)) then, begin
+      if(get sprite frame(sl) == 1) then(free slice(sl))
+    end
+    sl := next sibling(sl)
+  end
+end
+	script, right way to free in a loop, begin
+  # this loop is the right way to remove all sprites that show frame number 1
+  # by waiting until AFTER the "next sibling" command, we can free the slice
+  # without ending the loop early
+  variable(sl, deleteme)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    deleteme := 0
+    if(slice is sprite(sl)) then, begin
+      if(get sprite frame(sl) == 1) then(deleteme := sl)
+    end
+    sl := next sibling(sl)
+    if(deleteme) then(free slice(deleteme))
+  end
+end
+</example>
 			<seealso>
 				<ref>freesprite</ref>
 			</seealso>
@@ -2410,7 +2409,7 @@ end
 		</command>
 		<command id="nextsibling">
 			<cannon>next sibling(handle)</cannon>
-			<shortname>next silbing</shortname>
+			<shortname>next sibling</shortname>
 			<description>Returns a slice handle for the next sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last sibling of its parent. This is useful when looping through slices.</description>
 			<example>variable(sl)
 sl := first child(sprite layer)
@@ -2422,9 +2421,21 @@ while (sl) do, begin
 end
 </example>
 			<seealso>
+				<ref>previoussibling</ref>
 				<ref>nextspritesibling</ref>
-				<ref>nextrectsilbing</ref>
+				<ref>nextrectsibling</ref>
 				<ref>nextcontainersibling</ref>
+				<ref>freeslice</ref>
+				<ref>slicetofront</ref>
+				<ref>slicetoback</ref>
+			</seealso>
+		</command>
+		<command id="previoussibling">
+			<cannon>previous sibling(handle)</cannon>
+			<shortname>previous sibling</shortname>
+			<description>Returns a slice handle for the previous sibling of a given slice <p>handle</p>, the inverse of <ref>nextsibling</ref> . Returns <p>false</p> if the given slice is the first sibling of its parent. This is useful when looping through slices.</description>
+			<seealso>
+				<ref>nextsibling</ref>
 				<ref>freeslice</ref>
 				<ref>slicetofront</ref>
 				<ref>slicetoback</ref>
@@ -2441,8 +2452,8 @@ end
 		</command>
 		<command id="nextspritesibling">
 			<cannon>next sprite sibling(handle)</cannon>
-			<shortname>next sprite silbing</shortname>
-			<description>Returns a slice handle for the next sprite sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last sprite sibling of its parent. Slices of other types will be ignored. This is useful when looping sprites.</description>
+			<shortname>next sprite sibling</shortname>
+			<description>Returns a slice handle for the next sprite sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last sprite sibling of its parent. Slices of other types will be ignored. This is useful when looping through sprites.</description>
 			<seealso>
 				<ref>firstspritechild</ref>
 				<ref>nextsibling</ref>
@@ -2459,8 +2470,8 @@ end
 		</command>
 		<command id="nextrectsibling">
 			<cannon>next rect sibling(handle)</cannon>
-			<shortname>next rect silbing</shortname>
-			<description>Returns a slice handle for the next rect sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last rect sibling of its parent. Slices of other types will be ignored. This is useful when looping rects.</description>
+			<shortname>next rect sibling</shortname>
+			<description>Returns a slice handle for the next rect sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last rect sibling of its parent. Slices of other types will be ignored. This is useful when looping through rects.</description>
 			<seealso>
 				<ref>firstrectchild</ref>
 				<ref>nextsibling</ref>
@@ -2477,8 +2488,8 @@ end
 		</command>
 		<command id="nextcontainersibling">
 			<cannon>next container sibling(handle)</cannon>
-			<shortname>next container silbing</shortname>
-			<description>Returns a slice handle for the next container sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last container sibling of its parent. Slices of other types will be ignored. This is useful when looping containers.</description>
+			<shortname>next container sibling</shortname>
+			<description>Returns a slice handle for the next container sibling of a given slice <p>handle</p>. Returns <p>false</p> if the given slice is the last container sibling of its parent. Slices of other types will be ignored. This is useful when looping through containers.</description>
 			<seealso>
 				<ref>firstcontainerchild</ref>
 				<ref>nextsibling</ref>
@@ -2497,61 +2508,62 @@ end
 		<command id="slicetofront">
 			<cannon>slice to front (handle)</cannon>
 			<shortname>slice to front</shortname>
-			<description>Sort a slice <p>handle</p> so that it is drawn in front of other slices with the same parent. If you use this command inside a loop that iterates through slices using <ref>nextsibling</ref> because moving a slice to the front also moves it to the bottom of its parent's sibling list. Be careful not to accadentally create an endless loop.</description>
+			<description>Sort a slice <p>handle</p> so that it is drawn in front of other slices with the same parent. This is done by moving it to the end of its parent's child list. If you use this command inside a loop that iterates through slices using <ref>nextsibling</ref> be careful not to accidentally create an endless loop.</description>
 			<example>
-			script, simple example, begin
-			  # As long as you are not looping with the "next sibling" command
-			  # then "slice to front" is safe and easy to use.
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  slice to front(sl)
-			end
-			
-			script, dangerous sorting, begin
-			  # this is an example of the WRONG way to move all rect slices to the
-			  # front in a loop. Because moving a slice to the front adds it to the
-			  # end of the list, the loop will go on forever.
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is rect(sl)) then, begin
-			      slice to front(sl)
-			    end
-			    sl := next sibling(sl)
-			  end
-			end
-			
-			script, safe sorting, begin
-			  # this is an example of the right way to move all rect slices to the
-			  # front in a loop. By remembering which slice was last before the
-			  # loop starts it is safe to move slices to the end of the sibling list
-			  variable(sl, last, moveme)
-			  last := last child(sprite layer)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    moveme := 0
-			    if(slice is rect(sl)) then(moveme := sl)
-			    if(sl == last) then(break)
-			    sl := next sibling(sl)
-			    if(moveme) then(slice to front(moveme))
-			  end
-			end
-			
-			script, easier safe sorting, begin
-			  # If you need to sort slices in a loop, you might find it easier
-			  # to avoid the "slice to front" command and use "set sort order"
-			  # and "sort children" instead.
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is rect(sl)) then, begin
-			      set sort order(sl, 1)
-			    end
-			    sl := next sibling(sl)
-			  end
-			  sort children(sprite layer)
-			end
-			</example>
+script, simple example, begin
+  # As long as you are not looping with the "next sibling" command
+  # then "slice to front" is safe and easy to use.
+  variable(sl)
+  sl := first child(sprite layer)
+  slice to front(sl)
+end
+
+script, dangerous sorting, begin
+  # this is an example of the WRONG way to move all rect slices to the
+  # front in a loop. Because moving a slice to the front adds it to the
+  # end of the list, the loop will go on forever.
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is rect(sl)) then, begin
+      slice to front(sl)
+    end
+    sl := next sibling(sl)
+  end
+end
+
+script, safe sorting, begin
+  # This is an example of the right way to move all rect slices to the
+  # front in a loop. By remembering which slice was last before the
+  # loop starts (or by using "previous sibling") it is safe to move slices
+  # to the end of the sibling list.
+  # We also ensure the rects stay in the same relative order by writing
+  # the loop so that we move the last splice to front if it is a rect.
+  variable(sl, last, prev)
+  last := last child(sprite layer)
+  sl := first child(sprite layer)
+  while(sl &amp;&amp; sl &lt;&gt; last) do, begin
+    prev := sl
+    sl := next sibling(sl)			    
+    if(slice is rect(prev)) then(slice to front(prev))
+  end
+end
+
+script, easier safe sorting, begin
+  # If you need to sort slices in a loop, you might find it easier
+  # to avoid the "slice to front" command and use "set sort order"
+  # and "sort children" instead.
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is rect(sl)) then, begin
+      set sort order(sl, 1)
+    end
+    sl := next sibling(sl)
+  end
+  sort children(sprite layer)
+end
+</example>
 			<seealso>
 				<ref>slicetoback</ref>
 			</seealso>
@@ -2559,61 +2571,78 @@ end
 		<command id="slicetoback">
 			<cannon>slice to back (handle)</cannon>
 			<shortname>slice to back</shortname>
-			<description>Sort a slice <p>handle</p> so it will be drawn behind other slices with the same parent. If you use this command inside a loop, be careful not to accadentally create an endless loop. Moving a slice to the back also moves it to the top of its parent's sibling list.</description>
+			<description>Sort a slice <p>handle</p> so it will be drawn behind other slices with the same parent. If you use this command inside a loop, be careful not to accidentally create an endless loop. Moving a slice to the back also moves it to the first position of its parent's sibling list.</description>
 			<example>
-			script, simple example, begin
-			  # As long as you are not looping with the "next sibling" command
-			  # then "slice to back" is safe and easy to use.
-			  variable(sl)
-			  sl := load hero sprite(0)
-			  slice to back(sl)
-			end
-			
-			script, dangerous sorting, begin
-			  # this is an example of the WRONG way to move all rect slices to the
-			  # back in a loop. Because moving a slice to the back moves it to the
-			  # top of the list, the loop will be restarted each time
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is rect(sl)) then, begin
-			      slice to back(sl)
-			    end
-			    sl := next sibling(sl)
-			  end
-			end
-			
-			script, safe sorting, begin
-			  # this is an example of the right way to move all rect slices to the
-			  # back in a loop. By moving the slice AFTER using the "next sibling"
-			  # command we avoid re-starting the loop
-			  variable(sl, moveme)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    moveme := 0
-			    if(slice is rect(sl)) then, begin
-			      moveme := sl
-			    end
-			    sl := next sibling(sl)
-			    if(moveme) then(slice to back(moveme))
-			  end
-			end
-			
-			script, easier safe sorting, begin
-			  # If you need to sort slices in a loop, you might find it easier
-			  # to avoid the "slice to back" command and use "set sort order"
-			  # and "sort children" instead.
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is rect(sl)) then, begin
-			      set sort order(sl, -1)
-			    end
-			    sl := next sibling(sl)
-			  end
-			  sort children(sprite layer)
-			end
-			</example>
+script, simple example, begin
+  # As long as you are not looping with the "next sibling" command
+  # then "slice to back" is safe and easy to use.
+  variable(sl)
+  sl := load hero sprite(0)
+  slice to back(sl)
+end
+
+script, dangerous sorting, begin
+  # This is an example of the WRONG way to move all rect slices to the
+  # back in a loop. Because moving a slice to the back moves it to the
+  # top of the list, the loop will be restarted each time
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is rect(sl)) then, begin
+      slice to back(sl)
+    end
+    sl := next sibling(sl)
+  end
+end
+
+script, safe but incorrect sorting, begin
+  # This is an example of a safe way to move all the rect slices to the
+  # back. HOWEVER the order in which all the rects will be drawn will
+  # be reversed! That might be alright for your need.
+  # By moving the slice AFTER using the "next sibling" command we avoid 
+  # re-starting the loop.
+  variable(sl, moveme)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    moveme := 0
+    if(slice is rect(sl)) then, begin
+      moveme := sl
+    end
+    sl := next sibling(sl)
+    if(moveme) then(slice to back(moveme))
+  end
+end
+
+script, correct sorting, begin
+  # This is an example of one right way to move all rect slices to the
+  # back with a loop and preservw relative ordering between the rects.
+  # Note that we ensure the rects stay in the same relative order by writing
+  # the loop so that we also move the 'first' splice to back if it is a rect.
+  variable(sl, first, prev)
+  first := first child(sprite layer)
+  sl := last child(sprite layer)
+  while(sl &amp;&amp; sl &lt;&gt; first) do, begin
+    prev := sl
+    sl := previous sibling(sl)			    
+    if(slice is rect(prev)) then(slice to back(prev))
+  end
+end
+
+script, easier safe sorting, begin
+  # If you need to sort slices in a loop, you might find it easier
+  # to avoid the "slice to back" command and use "set sort order"
+  # and "sort children" instead.
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is rect(sl)) then, begin
+      set sort order(sl, -1)
+    end
+    sl := next sibling(sl)
+  end
+  sort children(sprite layer)
+end
+</example>
 			<seealso>
 				<ref>slicetofront</ref>
 			</seealso>
@@ -2636,16 +2665,16 @@ end
 			<shortname>sort children</shortname>
 			<description>Given a slice <p>handle</p>, sort all of its children according to the sort order that you previously set with the <ref>setsortorder</ref> command. If no sort order values have been set then no changes will be made to the order of the slices. Running this commands zeroes out the sort order value for each slice that it operates on.</description>
 			<example>
-				plotscript, reverse Y sort, begin
-				  variable(sl)
-				  sl := first child(sprite layer)
-				  while(sl) then, begin
-				    set sort order(sl, slice y(sl) * -1)
-				    sl := next sibling(sl)
-				  end
-				  sort children(sprite layer)
-				end
-			</example>
+plotscript, reverse Y sort, begin
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) then, begin
+    set sort order(sl, slice y(sl) * -1)
+    sl := next sibling(sl)
+  end
+  sort children(sprite layer)
+end
+</example>
 			<seealso>
 				<ref>setsortorder</ref>
 				<ref>ysortchildren</ref>
@@ -2746,7 +2775,7 @@ end
 		<command id="slicecollide">
 			<cannon>slice collide (handle1, handle2)</cannon>
 			<shortname>slice collide</shortname>
-			<description>Given a pair of slice handles, return true if they collide with one another.Parent/child relationships have nothing to do with this test. It does not matter if the slices are related.</description>
+			<description>Given a pair of slice handles, return true if they collide with one another. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.</description>
 			<seealso>
 				<ref>slicecollidepoint</ref>
 				<ref>slicecontains</ref>
@@ -2755,7 +2784,7 @@ end
 		<command id="slicecontains">
 			<cannon>slice contains (handle1, handle2)</cannon>
 			<shortname>slice contains</shortname>
-			<description>Return true if the screen position of slice <p>handle2</p> is completely inside slice <p>handle1</p>. Parent/child relationships have nothing to do with this test. It does not matter if the slices are related.</description>
+			<description>Return true if the screen position of slice <p>handle2</p> is completely inside slice <p>handle1</p>. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.</description>
 			<seealso>
 				<ref>slicecollide</ref>
 			</seealso>
@@ -2870,7 +2899,7 @@ end
 		<command id="fillparent">
 			<cannon>fill parent (handle, true_or_false)</cannon>
 			<shortname>fill parent</shortname>
-			<description>Make a slice <p>handle</p> automatically fill its parent. This will change the position and size of the slice so that it completely fills the parent (minus the parent's padding). You can also disable filling with this command by passing <p>false</p> as the second argument, such as <p>fill parent(handle, false)</p>. If a slice is filling its parent, then any commands which modify the width or height of the slice will fail. You should resize the parent instead. This command only works on rects and containers. it will not work on sprites because they cannot change size.</description>
+			<description>Make a slice <p>handle</p> automatically fill its parent. This will change the position and size of the slice so that it completely fills the parent (minus the parent's padding). You can also disable filling with this command by passing <p>false</p> as the second argument, such as <p>fill parent(handle, false)</p>. If a slice is filling its parent, then any commands which modify the width or height of the slice will fail. You should resize the parent instead. This command only works on rects and containers. It will not work on sprites because they cannot change size.</description>
 			<seealso>
 				<ref>isfillingparent</ref>
 			</seealso>
