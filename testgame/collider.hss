@@ -55,7 +55,13 @@ script, update rects, begin
   hit := false
   sl := first child(test layer)
   while(sl) do(
-    if(slice collide point(sl, slice screen x(mouse), slice screen y(mouse))) then(hit := true)
+    if(dragging) then(
+      if(sl <> dragging) then(
+        if(slice collide(sl, dragging)) then(hit := true)
+      )
+    )else(
+      if(slice collide point(sl, slice screen x(mouse), slice screen y(mouse))) then(hit := true)
+    )
     sl := next sibling(sl)
   )
   if(hit) then(
