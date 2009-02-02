@@ -514,7 +514,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  DIM tog AS INTEGER = 0
 
  DIM unpc(15) AS INTEGER, lnpc(15) AS INTEGER
- DIM menucaption(15) AS STRING, movetype(10) AS STRING, pushtype(7) AS STRING, stepi(5), usetype(5, 1) AS STRING
+ DIM menucaption(15) AS STRING, movetype(10) AS STRING, pushtype(7) AS STRING, usetype(5, 1) AS STRING
 
  DIM state AS MenuState
  state.size = 24
@@ -581,12 +581,6 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  pushtype(5) = " Right Only"
  pushtype(6) = " Down Only"
  pushtype(7) = " Left Only"
- stepi(0) = 0
- stepi(1) = 1
- stepi(2) = 2
- stepi(3) = 10
- stepi(4) = 4
- stepi(5) = 5
  usetype(0, 0) = "Use"
  usetype(1, 0) = "Touch"
  usetype(2, 0) = "Step On"
@@ -631,7 +625,10 @@ SUB edit_npc (BYREF npcdata AS NPCType)
    CASE 2
     intgrabber(npcdata.movetype, lnpc(state.pt), unpc(state.pt))
    CASE 3
+    'yuck.
+    IF npcdata.speed = 10 THEN npcdata.speed = 3
     intgrabber(npcdata.speed, lnpc(state.pt), unpc(state.pt))
+    IF npcdata.speed = 3 THEN npcdata.speed = 10
    CASE 4
     IF intgrabber(npcdata.textbox, lnpc(state.pt), unpc(state.pt)) THEN
      boxpreview = textbox_preview_line(npcdata.textbox)
@@ -682,7 +679,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
     CASE 2
      caption = " = " & movetype(npcdata.movetype)
     CASE 3
-     caption = " " & stepi(npcdata.speed)
+     caption = " " & npcdata.speed
     CASE 5
      caption = usetype(npcdata.facetype, 1)
     CASE 6
