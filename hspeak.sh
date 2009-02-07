@@ -7,4 +7,10 @@ if [ ! -d "${EUDIR}" ] ; then
 fi
 export PATH=${PATH}:${EUDIR}/bin
 export TERM=ansi
+
+SCRIPT_DIR=`echo ${0} | sed s/"hspeak.sh$"/""/`
+if [ ! -z "${SCRIPT_DIR}" ] ; then
+  cd "${SCRIPT_DIR}"
+fi
+
 exu hspeak.exw "$@"
