@@ -3247,7 +3247,6 @@ sub setclip(l as integer, t as integer, r as integer, b as integer)
 	clipb = b
 end sub
 
-'FIXME: this is only used inside allmodex.bas, and could be replaced with draw_sprite
 sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
 	dim as integer i, j
 	dim as ubyte ptr maskp, srcp
