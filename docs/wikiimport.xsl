@@ -44,7 +44,7 @@
     <revision>
       <timestamp><xsl:value-of select="$da" />Z</timestamp>
       <contributor><username>Plotscripting Dictionary</username></contributor>
-      <text xml:space="preserve"><xsl:if test='boolean(cannon)'> <xsl:value-of select="cannon" />
+      <text xml:space="preserve"><xsl:if test='boolean(canon)'> <xsl:value-of select="canon" />
 
 <xsl:apply-templates select="description" /><xsl:if test="count(example)>0">
 
@@ -112,9 +112,9 @@
 </xsl:template>
 
 <xsl:template match="command" mode="full">
-<xsl:if test='boolean(cannon)'>
+<xsl:if test='boolean(canon)'>
 ==<xsl:value-of select="shortname" />==
-'''<xsl:value-of select="cannon" />'''<br/>
+'''<xsl:value-of select="canon" />'''<br/>
 <xsl:apply-templates select="description" />
 <xsl:apply-templates select="example" />
 </xsl:if>

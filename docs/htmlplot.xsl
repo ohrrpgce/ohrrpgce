@@ -134,8 +134,8 @@
 	</xsl:text></xsl:template>
 
 	<xsl:template match="command" mode="alphalist"><xsl:text>
-		</xsl:text><xsl:if test='boolean(cannon)'>
-			<a href="#about-{@id}"><xsl:value-of select="cannon" /></a><br/>
+		</xsl:text><xsl:if test='boolean(canon)'>
+			<a href="#about-{@id}"><xsl:value-of select="canon" /></a><br/>
 		</xsl:if><xsl:text>
 		</xsl:text><xsl:if test='boolean(alias)'>
 			<a href="#about-{alias}"><xsl:value-of select="shortname" /></a><br/>
@@ -156,8 +156,8 @@
 		</xsl:text><a name="about-{@id}" ></a><xsl:text>
 		</xsl:text><p><xsl:text>
 		</xsl:text><tt><xsl:text>
-		</xsl:text><xsl:if test='boolean(cannon)'>
-			<b><font color="yellow"><xsl:value-of select="cannon" /></font></b><br/><xsl:text>
+		</xsl:text><xsl:if test='boolean(canon)'>
+			<b><font color="yellow"><xsl:value-of select="canon" /></font></b><br/><xsl:text>
 			</xsl:text><xsl:apply-templates select="description" /><xsl:text>
 			</xsl:text><xsl:apply-templates select="example" /><xsl:text>
 			</xsl:text><xsl:apply-templates select="seealso" /><xsl:text>
