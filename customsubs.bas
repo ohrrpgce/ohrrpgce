@@ -13,6 +13,8 @@
 #include "scrconst.bi"
 #include "cglobals.bi"
 #include "scancodes.bi"
+#include "reload.bi"
+#include "slices.bi"
 
 #include "customsubs.bi"
 
@@ -20,8 +22,9 @@
 DECLARE SUB import_textboxes_warn (BYREF warn AS STRING, s AS STRING)
 DECLARE SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggertype AS INTEGER)
 
-
 OPTION EXPLICIT
+
+DIM SHARED help_file AS Reload.Doc Ptr
 
 FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
  IF intgrabber(n, min, max) THEN RETURN YES
@@ -1953,4 +1956,103 @@ SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggerty
  LOOP
 
  CLOSE fh
+END SUB
+
+SUB load_help_file()
+ IF help_file = 0 THEN
+  '--Null node ptr, assume this doc has not been loaded yet
+  IF isfile("ohrrpgce-help.reload") THEN
+   help_file = Reload.LoadDocument("ohrrpgce-help.reload")
+  ELSE
+   debug "no help file found, creating an empty one"
+   help_file = Reload.CreateDocument()
+   help_file->root = Reload.CreateNode(help_file, "/")
+  END IF
+ END IF
+END SUB
+
+SUB show_help(helpkey AS STRING)
+ load_help_file
+ DIM node AS Reload.Node Ptr
+ node = Reload.FindChildByName(help_file->root, helpkey)
+ IF node = 0 THEN
+  debug "No help node found for """ & helpkey & """ creating new node"
+  node = Reload.CreateNode(help_file, helpkey)
+  Reload.SetContent(node, "Empty help for " & helpkey)
+  Reload.AddChild help_file->root, node
+ END IF
+ 
+ '--Construct the help UI (This will be hella easier later when the Slice Editor can save/load)
+ DIM help_root AS Slice Ptr
+ help_root = NewSliceOfType(slRoot)
+ WITH *help_root
+  .Y = 200
+  .Fill = NO
+ END WITH
+ DIM help_outer_box AS Slice Ptr
+ help_outer_box = NewSliceOfType(slContainer, help_root)
+ WITH *help_outer_box
+  .paddingTop = 8
+  .paddingBottom = 8
+  .paddingLeft = 8
+  .paddingRight = 8
+  .Fill = Yes
+ END WITH
+ DIM help_box AS Slice Ptr
+ help_box = NewSliceOfType(slRectangle, help_outer_box)
+ WITH *help_box
+  .paddingTop = 8
+  .paddingBottom = 8
+  .paddingLeft = 8
+  .paddingRight = 8
+  .Fill = YES
+  ChangeRectangleSlice help_box, 1
+ END WITH
+ DIM help_text AS Slice Ptr
+ help_text = NewSliceOfType(slText, help_box)
+ WITH *help_text
+  .Fill = YES
+  ChangeTextSlice help_text, Reload.GetString(node)
+ END WITH
+ DIM animate AS Slice Ptr
+ animate = help_root
+
+ '--Preserve whatever screen was already showing as a background
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ '--Now loop displaying help
+ setkeys
+ DO
+  setwait 17, 70
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+
+  'Animate the arrival of the help screen
+  animate->Y = large(animate->Y - 20, 0)
+
+  DrawSlice help_root, dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+
+ '--Animate the removal of the help screen
+ DO
+  setkeys
+  setwait 17, 70
+  animate->Y = animate->Y + 20
+  IF animate->Y > 200 THEN EXIT DO
+  DrawSlice help_root, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+ 
+ freepage holdscreen
+ DeleteSlice @help_root
 END SUB

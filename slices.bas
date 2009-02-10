@@ -59,17 +59,7 @@ Sub SaveNullSlice(byval s as slice ptr, byref f as SliceFileWrite) : end sub
 Function LoadNullSlice(Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer : return NO: end function
 
 Sub SetupGameSlices
- SliceTable.Root = NewSlice
- with *SliceTable.Root
-  .Attach = slScreen
-  .SliceType = slRoot
-  'We manually set these here so that Root will have the correct
-  'size even if DrawSlice has not been called on it yet. This
-  'is needed to make second-level roots .Fill=YES work correctly
-  'in the transitional phase when root is not yet drawn
-  .Width = 320
-  .Height = 200
- end with
+ SliceTable.Root = NewSliceOfType(slRoot)
  
  SliceTable.Map = NewSlice(SliceTable.Root)
  
@@ -127,7 +117,17 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS 
   CASE slRoot:
    DIM newsl AS Slice Ptr
    newsl = NewSlice(parent)
-   newsl->SliceType = slRoot
+   WITH *newsl
+    .SliceType = slRoot
+    .Attach = slScreen
+    .SliceType = slRoot
+    'We manually set these here so that Root will have the correct
+    'size even if DrawSlice has not been called on it yet. This
+    'is needed to make second-level roots .Fill=YES work correctly
+    'in the transitional phase when root is not yet drawn
+    .Width = 320
+    .Height = 200
+   END WITH
    RETURN newsl
   CASE slSpecial:
    DIM newsl AS Slice Ptr
@@ -678,6 +678,32 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  
  return ret
 end function
+
+'All arguments default to no-change
+Sub ChangeTextSlice(byval sl as slice ptr,_
+                      byval s as string=CHR(0),_
+                      byval col as integer=-1,_
+                      byval outline as integer=-2,_
+                      byval wrap as integer=-2)
+ if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
+ if sl->SliceType <> slText then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text" : exit sub
+ dim dat as TextSliceData Ptr = sl->SliceData
+ with *dat
+  if s <> CHR(0) then
+   .s = s
+  end if
+  if col >= 0 then
+   .col = col
+  end if
+  if outline > -2 then
+   .outline = outline <> 0
+  end if
+  if wrap > -2 then
+   .wrap = wrap <> 0
+  end if
+ end with
+ UpdateTextSlice sl
+end sub
 
 '--Sprite-----------------------------------------------------------------
 

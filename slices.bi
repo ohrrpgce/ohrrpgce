@@ -177,6 +177,11 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
 DECLARE Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
+DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
+                      byval s as string=CHR(0),_
+                      byval col as integer=-1,_
+                      byval outline as integer=-2,_
+                      byval wrap as integer=-2)
 
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)

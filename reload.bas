@@ -5,6 +5,7 @@
 '
 
 #include "reload.bi"
+DECLARE SUB debug (s AS STRING)
 
 Namespace Reload
 
@@ -459,6 +460,17 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 end sub
 
 Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
+	if nod = null then return null
+	if nod->name = nam then return nod
+	if nod->nodeType <> rliChildren then return null
+	dim child as NodePtr
+	dim ret as NodePtr
+	child = nod->children
+	while child <> null
+		ret = FindChildByName(child, nam)
+		if ret <> null then return ret
+		child = child->nextSib
+	wend
 	return null
 End Function
 
@@ -471,29 +483,29 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 	get #f, , ret->nodetype
 	
 	select case ret->nodeType
-		case 0 'null
-		case 1 'byte
+		case rliNull
+		case rliByte
 			dim b as byte
 			get #f, , b
 			ret->num = b
-		case 2 'short
+		case rliShort
 			dim s as short
 			get #f, , s
 			ret->num = s
-		case 3 'integer
+		case rliInt
 			dim i as integer
 			get #f, , i
 			ret->num = i
-		case 4 'long
+		case rliLong
 			get #f, , ret->num
-		case 5 'float
+		case rliFloat
 			get #f, , ret->flo
-		case 6 'string
+		case rliString
 			dim size as integer
 			get #f, , size
 			ret->str = string(size, " ")
 			get #f, , ret->str
-		case 7 'children
+		case rliChildren
 			dim nod as nodeptr
 			dim size as integer
 			get #f, , size

@@ -7,6 +7,7 @@ DEFINT A-Z
 
 #include "udts.bi"
 #include "const.bi"
+#include "scancodes.bi"
 
 'basic subs and functions
 DECLARE FUNCTION filenum$ (n%)
@@ -247,6 +248,7 @@ DO:
     pt = 0: menumode = 0: GOSUB setmainmenu
   END SELECT
  END IF
+ IF keyval(scF1) > 1 THEN show_help "main"
  usemenu pt, 0, 0, mainmax, 24
  IF enter_or_space() THEN
   SELECT CASE menumode

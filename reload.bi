@@ -82,6 +82,8 @@ Declare Function GetString(node as nodeptr) as string
 Declare Function GetInteger(node as nodeptr) as LongInt
 Declare Function GetFloat(node as nodeptr) as Double
 
+Declare Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
+
 
 End Namespace
 
