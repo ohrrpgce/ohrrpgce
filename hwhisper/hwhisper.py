@@ -110,7 +110,12 @@ class HWhisper:
         
         # Set up recent files menu
         self.reload_recent_menu()
-
+        
+        # The plotdict will be loaded when first requested
+        self.plotdict_tree = None
+        self.shortname_cache = None
+        self.help_history = []
+        
         # Searchbar is hidden by default
         self.search_bar.hide_all()
         
@@ -160,13 +165,12 @@ class HWhisper:
     def find_hspeak_token(self, iter):
         # Find start of token
         start = iter.copy()
-        if start.backward_find_char(_find_hspeak_token_start):
-            start.forward_char()
+        if start.backward_find_char(_find_hspeak_token_start, start):
             while start.get_char() in _hspeak_whitespace + _hspeak_separators:
                 start.forward_char()
         # find end of token
         stop = start.copy()
-        stop.forward_find_char(_find_hspeak_token_stop)
+        stop.forward_find_char(_find_hspeak_token_stop, stop)
         if stop.backward_find_char(_find_hspeak_non_whitespace):
             stop.forward_char()
             # special voodoo for := operators, since : is not usually a separator
@@ -408,21 +412,39 @@ class HWhisper:
         self.statusbar_pop()
         self.reset_default_status()
 
-    def show_context_help(self, text):
+    def build_shortname_cache(self, xml_root):
+        if self.shortname_cache is None:
+            self.shortname_cache = {}
+            for section in xml_root.getiterator("section"):
+                for command in section.getiterator("command"):
+                    key = command.get("id")
+                    shortname = command.find("shortname").text
+                    self.shortname_cache[key] = shortname
+
+    def show_context_help(self, text, depth=0):
+        if depth > 100:
+            self.plotdict_xml_fail("alias recursion went too deep, probably an alias loop?")
         # get the help file
         plotdict = self.config.get("help", "plotdict")
         if plotdict is None or not os.path.exists(plotdict):
             plotdict = self.browse_for_plotdict_xml()
+            if plotdict is None or not os.path.exists(plotdict):
+                self.plotdict_xml_fail("unable to find plotdict.xml file")
         # Calculate the short text
         key = text.lower().replace(" ", "").replace("\t", "")
-        print key
         # Parse the help file
-        tree = ElementTree.parse(plotdict)
-        root = tree.getroot()
+        if self.plotdict_tree is None:
+            self.plotdict_tree = ElementTree.parse(plotdict)
+        root = self.plotdict_tree.getroot()
         if root.tag != "plotscript": self.plotdict_xml_fail("no plotscript tag")
+        self.build_shortname_cache(root)
         for section in root.getiterator("section"):
             for command in section.getiterator("command"):
                 if command.get("id") == key:
+                    alias = command.find("alias")
+                    if alias is not None:
+                        self.show_context_help(alias.text, depth + 1)
+                        return
                     self.show_help_page(command)
                     return
         # Help not found
@@ -435,28 +457,43 @@ class HWhisper:
         buff.create_tag("canon", scale=1.4, foreground="yellow")
         buff.create_tag("param", foreground="orange", weight=700)
         buff.create_tag("example", background="pink", foreground="black", indent=16, family="Monospace")
+        buff.create_tag("seealso", foreground="green", weight=600, scale=1.2)
+        buff.create_tag("divider", foreground="lightblue", underline=True)
         # Ref is special because it needs to be clickable
         tag = gtk.TextTag("ref")
-        tag.set_property("foreground","blue")
-        tag.set_property("weight", 700)
+        tag.set_property("foreground","lightblue")
+        tag.set_property("background","darkblue")
+        tag.set_property("weight", 600)
         tag.connect("event", self.on_help_ref_event)
         tagtable = buff.get_tag_table()
         tagtable.add(tag)
  
-    def show_help_page(self, command):
+    def show_help_page(self, elem):
+        key = elem.get("id")
+        # if this key is already in history, remove it
+        for history in self.help_history:
+            if history == key:
+                self.help_history.remove(history)
         # get all the relevant elements
-        canon = command.find("canon")
-        if canon is None: canon = command.find("cannon") # hack to work with old plotdict.xml files
-        shortname = command.find("shortname")
-        description = command.find("description")
-        example = command.find("example")
-        seealso = command.find("seealso")
-        
-        # set up tags for color the help text
+        canon = elem.find("canon")
+        if canon is None: canon = elem.find("cannon") # hack to work with old plotdict.xml files
+        shortname = elem.find("shortname")
+        description = elem.find("description")
+        example = elem.find("example")
+        seealso = elem.find("seealso")
+        # Get the buffer
         buff = self.console.get_buffer()
         # Start building the text
         buff.set_text("")
-        buff.insert_with_tags_by_name(buff.get_end_iter(), canon.text + "\n", "canon")
+        # Show the history
+        for history in self.help_history:
+            if self.shortname_cache.has_key(history):
+                history = self.shortname_cache[history]
+            buff.insert_with_tags_by_name(buff.get_end_iter(), history, "ref", "divider")
+            buff.insert_with_tags_by_name(buff.get_end_iter(), " ", "divider")
+        buff.insert(buff.get_end_iter(), "\n")
+        self.parse_help(canon)
+        buff.insert(buff.get_end_iter(), "\n")
         self.parse_help(description)
         buff.insert(buff.get_end_iter(), "\n")
         self.parse_help(example)
@@ -464,32 +501,42 @@ class HWhisper:
         self.parse_help(seealso)
         # Show the text
         self.toggle_console(True)
-        # Resize the console
+        # update history
+        self.help_history.append(key)
+        if len(self.help_history) > 5:
+            self.help_history = self.help_history[1:]
 
     def parse_help(self, elem):
         if elem is None: return
         buff = self.console.get_buffer()
         text = elem.text
         if text is not None:
+            tagstyle = "plain"
             if elem.tail != "" and text.strip() == "": text = " "
             if elem.tag == "example":
                 tagstyle = "example"
                 text = self.pad_help_example(text)
+            elif elem.tag == "canon" or elem.tag == "cannon":
+                tagstyle = "canon"
             elif elem.tag == "p":
                 tagstyle = "param"
             elif elem.tag == "ref":
                 tagstyle = "ref"
-            else:
-                tagstyle = "plain"
+                if self.shortname_cache.has_key(text):
+                    text = self.shortname_cache[text]
+            elif elem.tag == "seealso":
+                tagstyle = "seealso"
+                text = "See Also\n"
             buff.insert_with_tags_by_name(buff.get_end_iter(), text, tagstyle)
         for sub in elem.getchildren():
             self.parse_help(sub)
         if elem.tail is not None:
             tail = elem.tail
             if elem.tail != "" and tail.strip() == "": tail = " "
-            buff.insert(buff.get_end_iter(), elem.tail)
+            buff.insert(buff.get_end_iter(), tail)
 
     def pad_help_example(self, text):
+        text = text.replace("\t", "  ")
         lines = text.split("\n")
         longest = 0
         for line in lines:
@@ -792,6 +839,8 @@ class HWhisper:
 
     def on_locate_plotdict_menu_item_activate(self, menuitem, data=None):
         self.browse_for_plotdict_xml()
+        self.plotdict_tree = None
+        self.shortname_cache = None
     
     def on_toggle_console_menu_item_toggled(self, menuitem, data=None):
         state = menuitem.get_active()
@@ -799,7 +848,12 @@ class HWhisper:
 
     def on_help_ref_event(self, tag, widget, event, iter, data=None):
         if event.type == gtk.gdk.BUTTON_RELEASE:
-            print "CLICK"
+            (start, stop) = self.find_hspeak_token(iter)
+            if start is not None:
+                buff = self.console.get_buffer()
+                text = buff.get_text(start, stop)
+                self.show_context_help(text)
+                self.text_view.grab_focus()
 
     #-------------------------------------------------------------------
     
@@ -981,13 +1035,22 @@ class HWhisper:
 _hspeak_separators = "\n,()[]{}^/*-+=<>&|$"
 _hspeak_whitespace = "\t "
 
-def _find_hspeak_token_start(char, data):
+def _find_hspeak_token_start(char, iter):
+    back = iter.copy()
+    back.backward_char()
+    char = back.get_char()
     if char in _hspeak_separators:
+        return True
+    tag = iter.get_buffer().get_tag_table().lookup("ref")
+    if iter.begins_tag(tag):
         return True
     return False
 
-def _find_hspeak_token_stop(char, data):
+def _find_hspeak_token_stop(char, iter):
     if char in _hspeak_separators + "#":
+        return True
+    tag = iter.get_buffer().get_tag_table().lookup("ref")
+    if iter.ends_tag(tag):
         return True
     return False
 
