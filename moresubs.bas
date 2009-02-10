@@ -860,7 +860,7 @@ FOR i = 1 TO 3
 NEXT i
 show_load_index z, "globals low", 1
 FOR i = 0 TO 1024
- global(i) = buffer(z): z = z + 1
+ global(i) = (buffer(z) AND &hFFFF): z = z + 1
 NEXT i
 show_load_index z, "veh", 1
 FOR i = 0 TO 21
@@ -895,7 +895,7 @@ FOR i = 0 TO 1024
 NEXT i
 show_load_index z, "global ext", 1
 FOR i = 1025 TO 4095
- global(i) = buffer(z): z = z + 1
+ global(i) = buffer(z) and &hFFFF: z = z + 1
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
 show_load_index z, "inv 16bit ext", 1
@@ -952,7 +952,7 @@ IF isfile$(savefile) THEN
  SEEK #fh, 60000 * slot + 2 * first + 40027  '30000 + 5013 * 2 + 1
  loadrecord buf(), fh, last - first + 1, -1
  FOR i = 0 TO last - first
-  global(first + i) = buf(i)
+  global(first + i) = buf(i) and &hFFFF
  NEXT
  SEEK #fh, 60000 * slot + 2 * first + 43027  '30000 + 6513 * 2 + 1
  loadrecord buf(), fh, last - first + 1, -1
