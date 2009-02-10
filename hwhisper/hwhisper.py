@@ -32,6 +32,7 @@ import os
 import gtk
 import pango
 import subprocess
+from xml.etree import ElementTree
 
 # -----------------------------------------------------------------------------
 
@@ -72,13 +73,18 @@ class HWhisper:
         self.search_bar = builder.get_object("search_bar")
         self.search_entry = builder.get_object("search_entry")
         self.search_status = builder.get_object("search_status")
-        # widgest for search option buttons
+        # widgets for search option buttons
         self.backward_button = builder.get_object("search_backward_button")
         self.wrap_button = builder.get_object("search_wrap_button")
         self.case_button = builder.get_object("search_case_button")
         self.backward_image = builder.get_object("search_backward_button_image")
         self.wrap_image = builder.get_object("search_wrap_button_image")
         self.case_image = builder.get_object("search_case_button_image")
+        # widgets for the console
+        self.console_scroll = builder.get_object("scrolledconsole")
+        self.console = builder.get_object("console")
+        self.toggle_console_menu_item = builder.get_object("toggle_console_menu_item")
+        self.splitpanes = builder.get_object("splitpanes")
         
         # create the undo manager
         self.undo = UndoManager()
@@ -107,6 +113,22 @@ class HWhisper:
 
         # Searchbar is hidden by default
         self.search_bar.hide_all()
+        
+        # Set up the console
+        self.darken_widget(self.console)
+        self.setup_console_tags()
+        # Restore the remembered size for the console
+        console_size = self.config.getint("console", "size")
+        if console_size is not None:
+            self.splitpanes.set_position(console_size)
+        # Console is hidden by default
+        self.toggle_console(False)
+
+    def cleanup(self):
+        console_size = self.splitpanes.get_position()
+        self.config.set("console", "size", console_size)
+        self.config.save()
+        gtk.main_quit()
 
     #-------------------------------------------------------------------
 
@@ -169,7 +191,7 @@ class HWhisper:
         buff.move_mark(insert, start)
         selection_bound = buff.get_selection_bound()
         buff.move_mark(selection_bound, stop)
-        self.text_view.scroll_to_mark(insert, 0.25)
+        self.text_view.scroll_to_mark(insert, 0.1)
 
     def find_named_menu(self, menu, name):
         for item in menu:
@@ -320,6 +342,16 @@ class HWhisper:
             img.set_from_stock(gtk.STOCK_SELECT_FONT, 4)
         self.case_button.set_active(tog)
 
+    def browse_for_plotdict_xml(self):
+        filter = gtk.FileFilter()
+        filter.set_name("Plotscripting Dictionary (plotdict.xml)")
+        filter.add_pattern("plotdict.xml")
+        filename = self.get_filename("Locate plotdict.xml...", None, [filter],
+                                 gtk.FILE_CHOOSER_ACTION_OPEN, gtk.STOCK_OPEN)
+        if filename is not None:
+            self.config.set("help", "plotdict", filename)
+        return filename
+
     def browse_for_hspeak(self):
         filter = gtk.FileFilter()
         if sys.platform in ["win32", "cygwin"]:
@@ -343,30 +375,184 @@ class HWhisper:
         return hspeak
 
     def compile(self):
-        hspeak = self.find_hspeak()
-        if hspeak is None or self.filename is None:
-            print "Cannot compile"
+        self.toggle_console(True)
+        if self.filename is None:
+            self.set_console("no file to compile")
             return
+        # find hspeak
+        hspeak = self.find_hspeak()
+        if hspeak is None:
+            self.set_console("unable to find hspeak compiler")
+            return
+        # Notify the user that compilation is starting
+        self.set_console("compiling...")
+        self.statusbar_push("Compiling " + self.filename)
+        self.window.set_sensitive(False)
+        # call the compiler
         if sys.platform in ["win32", "cygwin"]:
-            command_line = [hspeak, "-yk", self.filename]
+            command_line = [hspeak, "-ykc", self.filename]
             p = subprocess.Popen(command_line)
         else:
-            command_line = "'%s' -yk '%s'" % (hspeak, self.filename)
-            p = subprocess.Popen(command_line, shell= True)
-        sts = os.waitpid(p.pid, 0)
+            # I have no dang idea why the win32 method above doesn't work on Linux :(
+            command_line = "'%s' -ykc '%s'" % (hspeak, self.filename)
+            p = subprocess.Popen(command_line, shell=True)
+        while p.returncode is None:
+          #sts = os.waitpid(p.pid, 0)
+          p.poll()
+          if gtk.events_pending():
+              gtk.main_iteration()
+        self.set_console("done compiling.")
+        self.move_console_to_end()
+        # Done, re-enable window and reset status bar
+        self.window.set_sensitive(True)
+        self.statusbar_pop()
+        self.reset_default_status()
 
     def show_context_help(self, text):
-        short_text = text.lower().replace(" ", "").replace("\t", "")
-        print short_text
+        # get the help file
+        plotdict = self.config.get("help", "plotdict")
+        if plotdict is None or not os.path.exists(plotdict):
+            plotdict = self.browse_for_plotdict_xml()
+        # Calculate the short text
+        key = text.lower().replace(" ", "").replace("\t", "")
+        print key
+        # Parse the help file
+        tree = ElementTree.parse(plotdict)
+        root = tree.getroot()
+        if root.tag != "plotscript": self.plotdict_xml_fail("no plotscript tag")
+        for section in root.getiterator("section"):
+            for command in section.getiterator("command"):
+                if command.get("id") == key:
+                    self.show_help_page(command)
+                    return
+        # Help not found
+        self.plotdict_xml_fail("command \"" + key + "\" not found")
 
+    def setup_console_tags(self):
+        # set up tags for color the help text
+        buff = self.console.get_buffer()
+        buff.create_tag("plain")
+        buff.create_tag("canon", scale=1.4, foreground="yellow")
+        buff.create_tag("param", foreground="orange", weight=700)
+        buff.create_tag("example", background="pink", foreground="black", indent=16, family="Monospace")
+        # Ref is special because it needs to be clickable
+        tag = gtk.TextTag("ref")
+        tag.set_property("foreground","blue")
+        tag.set_property("weight", 700)
+        tag.connect("event", self.on_help_ref_event)
+        tagtable = buff.get_tag_table()
+        tagtable.add(tag)
+ 
+    def show_help_page(self, command):
+        # get all the relevant elements
+        canon = command.find("canon")
+        if canon is None: canon = command.find("cannon") # hack to work with old plotdict.xml files
+        shortname = command.find("shortname")
+        description = command.find("description")
+        example = command.find("example")
+        seealso = command.find("seealso")
+        
+        # set up tags for color the help text
+        buff = self.console.get_buffer()
+        # Start building the text
+        buff.set_text("")
+        buff.insert_with_tags_by_name(buff.get_end_iter(), canon.text + "\n", "canon")
+        self.parse_help(description)
+        buff.insert(buff.get_end_iter(), "\n")
+        self.parse_help(example)
+        buff.insert(buff.get_end_iter(), "\n")
+        self.parse_help(seealso)
+        # Show the text
+        self.toggle_console(True)
+        # Resize the console
+
+    def parse_help(self, elem):
+        if elem is None: return
+        buff = self.console.get_buffer()
+        text = elem.text
+        if text is not None:
+            if elem.tail != "" and text.strip() == "": text = " "
+            if elem.tag == "example":
+                tagstyle = "example"
+                text = self.pad_help_example(text)
+            elif elem.tag == "p":
+                tagstyle = "param"
+            elif elem.tag == "ref":
+                tagstyle = "ref"
+            else:
+                tagstyle = "plain"
+            buff.insert_with_tags_by_name(buff.get_end_iter(), text, tagstyle)
+        for sub in elem.getchildren():
+            self.parse_help(sub)
+        if elem.tail is not None:
+            tail = elem.tail
+            if elem.tail != "" and tail.strip() == "": tail = " "
+            buff.insert(buff.get_end_iter(), elem.tail)
+
+    def pad_help_example(self, text):
+        lines = text.split("\n")
+        longest = 0
+        for line in lines:
+            if len(line) > longest:
+                longest = len(line)
+        format = "%%-%ds" % (longest)
+        for i in xrange(len(lines)):
+            lines[i] = format % (lines[i])
+        return "\n".join(lines)
+
+    def plotdict_xml_fail(self, text):
+        self.toggle_console(True)
+        self.set_console("Parsing of plotdict.xml failed.\n" + text)
+
+    def toggle_console(self, state=None):
+        menuitem = self.toggle_console_menu_item
+        if state is None:
+            state = not menuitem.get_active()
+        menuitem.set_active(state)
+        if state:
+            self.console_scroll.show_all()
+        else:
+            self.console_scroll.hide_all()
+
+    def set_console(self, text):
+        buff = self.console.get_buffer()
+        buff.set_text(text)
+
+    def darken_widget(self, widget):
+        black = gtk.gdk.color_parse("black")
+        white = gtk.gdk.color_parse("white")
+        for state in [gtk.STATE_NORMAL, gtk.STATE_ACTIVE,
+                      gtk.STATE_PRELIGHT, gtk.STATE_SELECTED,
+                      gtk.STATE_INSENSITIVE]:
+            widget.modify_base(state, black)
+            widget.modify_text(state, white)
+
+    def move_console_to_end(self):
+        buff = self.console.get_buffer()
+        iter = buff.get_end_iter()
+        self.move_console(iter, iter)
+
+    def move_console(self, start, stop):
+        buff = self.console.get_buffer()
+        insert = buff.get_insert()
+        buff.move_mark(insert, start)
+        selection_bound = buff.get_selection_bound()
+        buff.move_mark(selection_bound, stop)
+        self.console.scroll_to_mark(insert, 0.0)
+
+    def statusbar_push(self, text):
+        self.statusbar.push(self.statusbar_cid, text)
+
+    def statusbar_pop(self):
+        self.statusbar.pop(self.statusbar_cid)
+        
     #-------------------------------------------------------------------
 
     # When our window is destroyed, we want to break out of the GTK main loop. 
     # We do this by calling gtk_main_quit(). We could have also just specified 
     # gtk_main_quit as the handler in Glade!
     def on_window_destroy(self, widget, data=None):
-        self.config.save()
-        gtk.main_quit()
+        self.cleanup()
     
     # When the window is requested to be closed, we need to check if they have 
     # unsaved work. We use this callback to prompt the user to save their work 
@@ -451,8 +637,7 @@ class HWhisper:
     def on_quit_menu_item_activate(self, menuitem, data=None):
     
         if self.check_for_save(): self.on_save_menu_item_activate(None, None)
-        self.config.save()
-        gtk.main_quit()
+        self.cleanup()
 
     # Called when the user clicks the 'Undo' menu.
     def on_undo_menu_item_activate(self, menuitem, data=None):
@@ -605,6 +790,17 @@ class HWhisper:
     def on_locate_compiler_menu_item_activate(self, menuitem, data=None):
         self.browse_for_hspeak()
 
+    def on_locate_plotdict_menu_item_activate(self, menuitem, data=None):
+        self.browse_for_plotdict_xml()
+    
+    def on_toggle_console_menu_item_toggled(self, menuitem, data=None):
+        state = menuitem.get_active()
+        self.toggle_console(state)
+
+    def on_help_ref_event(self, tag, widget, event, iter, data=None):
+        if event.type == gtk.gdk.BUTTON_RELEASE:
+            print "CLICK"
+
     #-------------------------------------------------------------------
     
     # We call error_message() any time we want to display an error message to 
@@ -694,7 +890,7 @@ class HWhisper:
     def load_file(self, filename):
     
         # add Loading message to status bar and ensure GUI is current
-        self.statusbar.push(self.statusbar_cid, "Loading %s" % filename)
+        self.statusbar_push("Loading %s" % filename)
         while gtk.events_pending(): gtk.main_iteration()
         
         try:
@@ -726,18 +922,20 @@ class HWhisper:
             self.undo.reset(text)
             # Save filename in the recent menu
             self.add_recent(filename)
-            
+        
+        self.text_view.grab_focus()
+        
         # clear loading status and restore default 
-        self.statusbar.pop(self.statusbar_cid)
+        self.statusbar_pop()
         self.reset_default_status()
 
     def write_file(self, filename):
     
         # add Saving message to status bar and ensure GUI is current
         if filename: 
-            self.statusbar.push(self.statusbar_cid, "Saving %s" % filename)
+            self.statusbar_push("Saving %s" % filename)
         else:
-            self.statusbar.push(self.statusbar_cid, "Saving %s" % self.filename)
+            self.statusbar_push("Saving %s" % self.filename)
             
         while gtk.events_pending(): gtk.main_iteration()
         
@@ -762,7 +960,7 @@ class HWhisper:
             self.error_message ("Could not save file: %s" % filename)
         
         # clear saving status and restore default     
-        self.statusbar.pop(self.statusbar_cid)
+        self.statusbar_pop()
         self.reset_default_status()
         
     def reset_default_status(self):
@@ -770,8 +968,8 @@ class HWhisper:
         if self.filename: status = "File: %s" % os.path.basename(self.filename)
         else: status = "File: (UNTITLED)"
         
-        self.statusbar.pop(self.statusbar_cid)
-        self.statusbar.push(self.statusbar_cid, status)
+        self.statusbar_pop()
+        self.statusbar_push(status)
 
     # Run main application window
     def main(self):
@@ -977,6 +1175,12 @@ class ConfigManager(object):
         else:
             str = "no"
         self.parser.set(section, option, str)
+
+    def getint(self, section, option, default=None):
+        self.make_section(section)
+        if not self.parser.has_option(section, option):
+            return default
+        return self.parser.getint(section, option)
 
     def get_list(self, section, option, separator):
         str = self.get(section, option, "")
