@@ -25,7 +25,7 @@ declare sub etwitch (who as integer, atk() as integer, bslot() as battlesprite)
 declare function getweaponpos(w as integer,f as integer,isy as integer) as integer'or x?
 declare function getheropos(h as integer,f as integer,isy as integer) as integer'or x?
 declare sub heroanim (who as integer, atk() as integer, bslot() as battlesprite)
-declare function inflict (w as integer, as integer, bstat() AS BattleStats, bslot() as battlesprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, atk() as integer, tcount as integer, revengeharm() as integer, repeatharm() as integer) as integer
+declare function inflict (w as integer, as integer, bstat() AS BattleStats, bslot() as battlesprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, atk() as integer, tcount as integer) as integer
 declare function liveherocount overload (bstat() AS BattleStats) as integer
 declare function liveherocount (oobstat() AS integer) as integer
 declare sub loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead as integer = NO)

@@ -64,7 +64,7 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40), atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK)), wepatk(40 + dimbinsize(binATTACK)), wepatkid, st(3) as herodef, es(7, 160), zbuf(24), of(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), revengeharm(11), repeatharm(11), prtimer(11,1), spelmask(1)
+DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
@@ -1061,7 +1061,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond atk(60), 1, atk(59), atk(61)
    checkTagCond atk(63), 1, atk(62), atk(64)
-   IF inflict(bat.acting, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount, revengeharm(), repeatharm()) THEN
+   IF inflict(bat.acting, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount) THEN
     '--attack succeeded
     IF readbit(atk(), 65, 12) THEN
      '--try to cancel target's attack

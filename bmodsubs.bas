@@ -430,7 +430,7 @@ END IF
 
 END SUB
 
-FUNCTION inflict (w as integer, t as integer, bstat() AS BattleStats, bslot() AS BattleSprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, atk() as integer, tcount as integer, revengeharm() as integer, repeatharm() as integer) as integer
+FUNCTION inflict (w as integer, t as integer, bstat() AS BattleStats, bslot() AS BattleSprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, atk() as integer, tcount as integer) as integer
 
 DIM h = 0
 
@@ -514,11 +514,11 @@ IF atk(5) <> 4 THEN
   CASE 6 TO 17
    a = bstat(w).cur.sta(atk(7) - 6)
   CASE 18
-   a = repeatharm(w)
+   a = bslot(w).repeatharm
   CASE 19
-   a = revengeharm(w)
+   a = bslot(w).revengeharm
   CASE 20
-   a = revengeharm(t)
+   a = bslot(t).revengeharm
  END SELECT
 
  '--defense base
@@ -658,8 +658,8 @@ IF atk(5) <> 4 THEN
  IF remtargstat > bstat(t).cur.sta(targstat) THEN
   bslot(t).revengemask(w) = YES
   bslot(t).revenge = w
-  revengeharm(t) = remtargstat - bstat(t).cur.sta(targstat)
-  repeatharm(w) = remtargstat - bstat(t).cur.sta(targstat)
+  bslot(t).revengeharm = remtargstat - bstat(t).cur.sta(targstat)
+  bslot(w).repeatharm = remtargstat - bstat(t).cur.sta(targstat)
  END IF
 
 END IF 'skips to here if no damage
