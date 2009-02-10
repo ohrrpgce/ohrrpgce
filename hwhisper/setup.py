@@ -3,25 +3,22 @@ from distutils.core import setup
 import py2exe
 import glob
 
+import version
+
 # This hasn't really been tested much yet.
 # I mostly borrowed the "opts" from another pygtk project.
+
+sys.argv[1:] = ["py2exe", "-O0", "-b", "1"]
 
 opts = {
     "py2exe": {
         "includes": "pango,atk,gobject,cairo,pangocairo",
-        "dll_excludes": [
-        "iconv.dll","intl.dll","libatk-1.0-0.dll",
-        "libgdk_pixbuf-2.0-0.dll","libgdk-win32-2.0-0.dll",
-        "libglib-2.0-0.dll","libgmodule-2.0-0.dll",
-        "libgobject-2.0-0.dll","libgthread-2.0-0.dll",
-        "libgtk-win32-2.0-0.dll","libpango-1.0-0.dll",
-        "libpangowin32-1.0-0.dll"],
         }
     }
 
 setup(
     name = "hwhisper",
-    description = "Hamster Whisper source code editor for OHRRPGCE PlotScripting",
+    description = version.description,
     version = "0.1",
     windows = [
         {"script": "hwhisper.py",

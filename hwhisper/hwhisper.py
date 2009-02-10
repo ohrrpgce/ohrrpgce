@@ -34,6 +34,8 @@ import pango
 import subprocess
 from xml.etree import ElementTree
 
+import version
+
 # -----------------------------------------------------------------------------
 
 class HWhisper:
@@ -45,11 +47,13 @@ class HWhisper:
     ### gtk-builder-convert hwhisper.glade hwhisper.xml
     def __init__(self):
         # Configuration
-        self.version_number = "0.1"
+        self.version_number = version.version
         self.xml_file = "hwhisper.xml"
-        self.app_name = "Hamster Whisper"
-        self.copyright = "Copyright \xc2\xa9 2009 James Paige & Hamster Republic Prodictions, Copyright \xc2\xa9 2007 Micah Carrick"
-        self.website = "http://HamsterRepublic.com/ohrrpgce/"
+        self.app_name = version.app_name
+        self.copyright = version.copyright
+        self.website = version.website
+        self.authors = version.authors
+        self.description = version.description
         
         # Default values
         self.filename = None
@@ -748,10 +752,7 @@ class HWhisper:
             self.about_dialog.present()
             return
         
-        authors = [
-        "James Paige <Bob@HamsterRepublic.com>", 
-        "Micah Carrick <email@micahcarrick.com>"
-        ]
+        authors = self.authors
 
         about_dialog = gtk.AboutDialog()
         about_dialog.set_transient_for(self.window)
@@ -760,7 +761,7 @@ class HWhisper:
         about_dialog.set_version(self.version_number)
         about_dialog.set_copyright(self.copyright)
         about_dialog.set_website(self.website)
-        about_dialog.set_comments("A text editor for HamsterSpeak plotscripting for the OHRRPGCE")
+        about_dialog.set_comments(self.description)
         about_dialog.set_authors(authors)
         about_dialog.set_logo_icon_name(gtk.STOCK_EDIT)
         
