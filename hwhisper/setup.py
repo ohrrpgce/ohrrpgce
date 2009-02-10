@@ -2,13 +2,11 @@
 from distutils.core import setup
 import py2exe
 import glob
+import sys
 
 import version
 
-# This hasn't really been tested much yet.
-# I mostly borrowed the "opts" from another pygtk project.
-
-sys.argv[1:] = ["py2exe", "-O0", "-b", "1"]
+sys.argv[1:] = ["py2exe"]
 
 opts = {
     "py2exe": {
