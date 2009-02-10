@@ -388,24 +388,33 @@ class HWhisper:
         if hspeak is None:
             self.set_console("unable to find hspeak compiler")
             return
+        # remember the old working directory
+        remember_dir = os.getcwdu()
         # Notify the user that compilation is starting
         self.set_console("compiling...")
         self.statusbar_push("Compiling " + self.filename)
         self.window.set_sensitive(False)
+        # switch working directory
+        os.chdir(os.path.dirname(hspeak))
         # call the compiler
         if sys.platform in ["win32", "cygwin"]:
             command_line = [hspeak, "-ykc", self.filename]
-            p = subprocess.Popen(command_line)
+            p = subprocess.Popen(command_line, stdout=subprocess.PIPE)
         else:
             # I have no dang idea why the win32 method above doesn't work on Linux :(
             command_line = "'%s' -ykc '%s'" % (hspeak, self.filename)
-            p = subprocess.Popen(command_line, shell=True)
+            p = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE)
         while p.returncode is None:
           #sts = os.waitpid(p.pid, 0)
           p.poll()
           if gtk.events_pending():
               gtk.main_iteration()
-        self.set_console("done compiling.")
+        # Done
+        os.chdir(remember_dir)
+        compiler_output = p.stdout.read()
+        if p.returncode != 0:
+            compiler_output += "Compiler returned error code (%d)" % (p.returncode)
+        self.set_console(compiler_output)
         self.move_console_to_end()
         # Done, re-enable window and reset status bar
         self.window.set_sensitive(True)
