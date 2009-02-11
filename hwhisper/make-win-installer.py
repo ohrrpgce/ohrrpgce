@@ -47,6 +47,10 @@ Source: "dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\library.zip"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\%(xmlfile)s"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\*.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\*.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\etc\*"; DestDir: "{app}\etc\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\lib\*"; DestDir: "{app}\lib\"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\share\*"; DestDir: "{app}\share\"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "README.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

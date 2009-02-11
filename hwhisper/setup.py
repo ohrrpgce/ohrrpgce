@@ -1,8 +1,10 @@
 # setup.py
 from distutils.core import setup
 import py2exe
-import glob
+import os
 import sys
+import shutil
+import re
 
 import version
 
@@ -10,6 +12,7 @@ sys.argv[1:] = ["py2exe"]
 
 opts = {
     "py2exe": {
+        "packages": "encodings",
         "includes": "pango,atk,gobject,cairo,pangocairo",
         }
     }
@@ -26,3 +29,28 @@ setup(
     options=opts,
     data_files=[("hwhisper.xml")],
 )
+
+if not os.path.isdir("dist"): raise Exception("dist dir is missing")
+
+print "Copying GTK+ support files.."
+for dir in ["etc", "lib", "share"]:
+    shutil.rmtree(os.path.join("dist", dir), True)
+    shutil.copytree(os.path.join("C:\GTK", dir), os.path.join("dist", dir))
+
+if not os.path.isdir("dist"): raise Exception("dist dir is missing")
+
+print "Trimming non-english locales..."
+keep = re.compile("^en", re.I)
+dir = os.path.join("dist", "share", "locale")
+for subdir in os.listdir(dir):
+    match = keep.search(subdir)
+    if match is None:
+        shutil.rmtree(os.path.join(dir, subdir))
+
+print "Trimming non-default themes..."
+keep = re.compile("^(Default|MS-Windows)", re.I)
+dir = os.path.join("dist", "share", "themes")
+for subdir in os.listdir(dir):
+    match = keep.search(subdir)
+    if match is None:
+        shutil.rmtree(os.path.join(dir, subdir))
