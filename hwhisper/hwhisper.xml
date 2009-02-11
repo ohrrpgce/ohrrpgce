@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!--Generated with glade3 3.4.5 on Mon Feb  9 15:20:19 2009 -->
+<!--Generated with glade3 3.4.5 on Wed Feb 11 13:01:05 2009 -->
 <interface>
   <object class="GtkUIManager" id="uimanager1">
     <child>
@@ -165,10 +165,19 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="help_index_menu_item">
+            <property name="stock_id">gtk-help</property>
+            <property name="name">help_index_menu_item</property>
+            <property name="label" translatable="yes">Help _Index</property>
+            <signal handler="on_help_index_menu_item_activate" name="activate"/>
+          </object>
+          <accelerator key="F1" modifiers="GDK_SHIFT_MASK"/>
+        </child>
+        <child>
           <object class="GtkAction" id="help_menu_item">
             <property name="stock_id">gtk-help</property>
             <property name="name">help_menu_item</property>
-            <property name="label" translatable="yes">_Help</property>
+            <property name="label" translatable="yes">Context _Help</property>
             <signal handler="on_help_menu_item_activate" name="activate"/>
           </object>
           <accelerator key="F1" modifiers=""/>
@@ -225,6 +234,7 @@
           <menuitem action="toggle_console_menu_item"/>
         </menu>
         <menu action="help_menu_top">
+          <menuitem action="help_index_menu_item"/>
           <menuitem action="help_menu_item"/>
           <menuitem action="locate_plotdict_menu_item"/>
           <separator/>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Mon Feb  9 15:20:19 2009 -->
+<!--Generated with glade3 3.4.5 on Wed Feb 11 13:01:05 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="window">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -347,9 +347,24 @@
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <child>
+                      <widget class="GtkImageMenuItem" id="help_index_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Help _Index</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_help_index_menu_item_activate"/>
+                        <accelerator key="F1" modifiers="GDK_SHIFT_MASK" signal="activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image18">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-help</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkImageMenuItem" id="help_menu_item">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Help</property>
+                        <property name="label" translatable="yes">Context _Help</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_help_menu_item_activate"/>
                         <accelerator key="F1" modifiers="" signal="activate"/>

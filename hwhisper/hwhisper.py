@@ -33,6 +33,7 @@ import gtk
 import pango
 import subprocess
 from xml.etree import ElementTree
+import re
 
 import version
 
@@ -129,6 +130,9 @@ class HWhisper:
         # Restore the remembered size for the console
         console_size = self.config.getint("console", "size")
         if console_size is not None:
+            if console_size < 32:
+                # prevent crazy-small console sizes
+                console_size = 45
             self.splitpanes.set_position(console_size)
         # Console is hidden by default
         self.toggle_console(False)
@@ -166,15 +170,15 @@ class HWhisper:
         offset = iter.get_offset()
         return offset
 
-    def find_hspeak_token(self, iter):
+    def find_hspeak_token(self, iter, use_ref_tags=False):
         # Find start of token
         start = iter.copy()
-        if start.backward_find_char(_find_hspeak_token_start, start):
-            while start.get_char() in _hspeak_whitespace + _hspeak_separators:
+        if start.backward_find_char(_find_hspeak_token_start, (start, use_ref_tags)):
+            while start.get_char() in _hspeak_whitespace:
                 start.forward_char()
         # find end of token
         stop = start.copy()
-        stop.forward_find_char(_find_hspeak_token_stop, stop)
+        stop.forward_find_char(_find_hspeak_token_stop, (stop, use_ref_tags))
         if stop.backward_find_char(_find_hspeak_non_whitespace):
             stop.forward_char()
             # special voodoo for := operators, since : is not usually a separator
@@ -425,6 +429,50 @@ class HWhisper:
         self.statusbar_pop()
         self.reset_default_status()
 
+    def get_plotdict_filename(self):
+        plotdict = self.config.get("help", "plotdict")
+        if plotdict is None or not os.path.exists(plotdict):
+            plotdict = self.browse_for_plotdict_xml()
+            if plotdict is None or not os.path.exists(plotdict):
+                self.plotdict_xml_fail("unable to find plotdict.xml file")
+        return plotdict
+
+    def get_plotdict_tree_root(self):
+        # get the help file
+        plotdict = self.get_plotdict_filename()
+        # get the tree
+        if self.plotdict_tree is None:
+            self.plotdict_tree = ElementTree.parse(plotdict)
+        # get the root of the tree
+        root = self.plotdict_tree.getroot()
+        # verify that the root is sane
+        if root.tag != "plotscript":
+            self.plotdict_xml_fail("no plotscript tag")
+        # cache the shortnames
+        self.build_shortname_cache(root)
+        return root
+
+    def show_help_index(self, info_string=None):
+        # Get the buffer
+        buff = self.console.get_buffer()
+        # Start building the text
+        buff.set_text("")
+        if info_string is not None:
+            buff.insert(buff.get_end_iter(), info_string + "\n")
+        # Parse the help file
+        root = self.get_plotdict_tree_root()
+        for section in root.getiterator("section"):
+            buff.insert_with_tags_by_name(buff.get_end_iter(), section.get("title") + "\n", "section")
+            for command in section.getiterator("command"):
+                ref = command.get("id")
+                if self.shortname_cache.has_key(ref):
+                    ref = self.shortname_cache[ref]
+                buff.insert_with_tags_by_name(buff.get_end_iter(), ref, "ref", "linespacing")
+                buff.insert(buff.get_end_iter(), " ")
+            buff.insert(buff.get_end_iter(), "\n")
+        # Show the text
+        self.toggle_console(True)
+
     def build_shortname_cache(self, xml_root):
         if self.shortname_cache is None:
             self.shortname_cache = {}
@@ -437,23 +485,17 @@ class HWhisper:
     def show_context_help(self, text, depth=0):
         if depth > 100:
             self.plotdict_xml_fail("alias recursion went too deep, probably an alias loop?")
-        # get the help file
-        plotdict = self.config.get("help", "plotdict")
-        if plotdict is None or not os.path.exists(plotdict):
-            plotdict = self.browse_for_plotdict_xml()
-            if plotdict is None or not os.path.exists(plotdict):
-                self.plotdict_xml_fail("unable to find plotdict.xml file")
         # Calculate the short text
         key = text.lower().replace(" ", "").replace("\t", "")
         # Parse the help file
-        if self.plotdict_tree is None:
-            self.plotdict_tree = ElementTree.parse(plotdict)
-        root = self.plotdict_tree.getroot()
-        if root.tag != "plotscript": self.plotdict_xml_fail("no plotscript tag")
-        self.build_shortname_cache(root)
+        root = self.get_plotdict_tree_root()
         for section in root.getiterator("section"):
             for command in section.getiterator("command"):
-                if command.get("id") == key:
+                id = command.get("id")
+                altkey = None
+                if self.shortname_cache.has_key(id):
+                    altkey = self.shortname_cache[id].lower().replace(" ", "").replace("\t", "")
+                if id == key or altkey == key:
                     alias = command.find("alias")
                     if alias is not None:
                         self.show_context_help(alias.text, depth + 1)
@@ -461,12 +503,26 @@ class HWhisper:
                     self.show_help_page(command)
                     return
         # Help not found
-        self.plotdict_xml_fail("command \"" + key + "\" not found")
+        warning = self.help_warning_text(text)
+        self.show_help_index(warning)
+
+    def help_warning_text(self, notfound):
+        if notfound == "" or notfound == "INDEX":
+            return None
+        if re.match("^\d+$", notfound) is not None:
+            return '%s is a numeric value' % (notfound)
+        if re.match("^#", notfound) is not None:
+            return '"%s" is a comment. It is only for information and is not actually executed as part of your script.' % (notfound)
+        if re.match("^(tag|song|sfx|hero|item|stat|atk|enemy):.+", notfound, re.I) is not None:
+            return '"%s" is a constant of the variety that is normally defined in your .hsi file' % (notfound)
+        return 'No match for "%s" found in help.' % (notfound)
 
     def setup_console_tags(self):
         # set up tags for color the help text
         buff = self.console.get_buffer()
         buff.create_tag("plain")
+        buff.create_tag("linespacing", pixels_inside_wrap=2)
+        buff.create_tag("section", scale=1.4, foreground="pink")
         buff.create_tag("canon", scale=1.4, foreground="yellow")
         buff.create_tag("param", foreground="orange", weight=700)
         buff.create_tag("example", background="pink", foreground="black", indent=16, family="Monospace")
@@ -498,6 +554,9 @@ class HWhisper:
         buff = self.console.get_buffer()
         # Start building the text
         buff.set_text("")
+        # Link to the index
+        buff.insert_with_tags_by_name(buff.get_end_iter(), "INDEX", "ref", "divider")
+        buff.insert_with_tags_by_name(buff.get_end_iter(), " ", "divider")
         # Show the history
         for history in self.help_history:
             if self.shortname_cache.has_key(history):
@@ -858,12 +917,15 @@ class HWhisper:
 
     def on_help_ref_event(self, tag, widget, event, iter, data=None):
         if event.type == gtk.gdk.BUTTON_RELEASE:
-            (start, stop) = self.find_hspeak_token(iter)
+            (start, stop) = self.find_hspeak_token(iter, True)
             if start is not None:
                 buff = self.console.get_buffer()
-                text = buff.get_text(start, stop)
+                text = buff.get_text(start, stop, True)
                 self.show_context_help(text)
                 self.text_view.grab_focus()
+
+    def on_help_index_menu_item_activate(self, menuitem, data=None):
+        self.show_help_index()
 
     #-------------------------------------------------------------------
     
@@ -1051,23 +1113,32 @@ class HWhisper:
 _hspeak_separators = "\n,()[]{}^/*-+=<>&|$"
 _hspeak_whitespace = "\t "
 
-def _find_hspeak_token_start(char, iter):
-    back = iter.copy()
-    back.backward_char()
-    char = back.get_char()
-    if char in _hspeak_separators:
-        return True
-    tag = iter.get_buffer().get_tag_table().lookup("ref")
-    if iter.begins_tag(tag):
-        return True
+def _find_hspeak_token_start(char, data):
+    (iter, use_ref_tags) = data
+    if use_ref_tags:
+        tag = iter.get_buffer().get_tag_table().lookup("ref")
+        # First try the right side of the cursor
+        fwd = iter.copy()
+        fwd.forward_char()
+        if fwd.begins_tag(tag):
+            return True
+    else:
+        back = iter.copy()
+        back.backward_char()
+        char = back.get_char()
+        if char in _hspeak_separators:
+            return True
     return False
 
-def _find_hspeak_token_stop(char, iter):
-    if char in _hspeak_separators + "#":
-        return True
-    tag = iter.get_buffer().get_tag_table().lookup("ref")
-    if iter.ends_tag(tag):
-        return True
+def _find_hspeak_token_stop(char, data):
+    (iter, use_ref_tags) = data
+    if use_ref_tags:
+        tag = iter.get_buffer().get_tag_table().lookup("ref")
+        if iter.ends_tag(tag):
+            return True
+    else:
+        if char in _hspeak_separators + "#":
+            return True
     return False
 
 def _find_hspeak_non_whitespace(char, data):
