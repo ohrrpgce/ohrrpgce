@@ -362,7 +362,7 @@ class HWhisper:
 
     def browse_for_hspeak(self):
         filter = gtk.FileFilter()
-        if sys.platform in ["win32", "cygwin"]:
+        if is_windows():
             filter.set_name("HamsterSpeak Compiler (hspeak.exe)")
             filter.add_pattern("hspeak.exe")
             filter.add_pattern("hspeak.bat")
@@ -401,7 +401,7 @@ class HWhisper:
         # switch working directory
         os.chdir(os.path.dirname(hspeak))
         # call the compiler
-        if sys.platform in ["win32", "cygwin"]:
+        if is_windows():
             command_line = [hspeak, "-ykc", self.filename]
             p = subprocess.Popen(command_line, stdout=subprocess.PIPE)
         else:
@@ -914,10 +914,16 @@ class HWhisper:
                                         gtk_file_chooser_action,
                                         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
                                          gtk_stock_icon, gtk.RESPONSE_OK))
+        # Get a reasonable default folder
+        if is_windows():
+            folder = os.path.join(os.environ["USERPROFILE"], "My Documents")
+        else:
+            folder = os.environ["HOME"]
+        # ... unless of course we want to remember a previously stored default path
         if config_key is not None:
             folder = self.config.get("files", config_key)
-            if folder is not None and os.path.isdir(folder):
-                chooser.set_current_folder(folder)
+        if folder is not None and os.path.isdir(folder):
+            chooser.set_current_folder(folder)
         chooser.resize(640, 400)
         for filter in filters:
             chooser.add_filter(filter)
@@ -1199,7 +1205,7 @@ class ConfigManager(object):
 
     def __init__(self):
         self.parser = RawConfigParser()
-        if sys.platform in ["win32", "cygwin"]:
+        if is_windows():
             config_base = os.path.join(os.environ["USERPROFILE"], "Application Data")
             if not os.path.isdir(config_base):
                 config_base = os.path.dirname(sys.argv[0])
@@ -1262,6 +1268,11 @@ class ConfigManager(object):
     def set_list(self, section, option, separator, list):
         str = separator.join(list)
         self.set(section, option, str)
+
+# -----------------------------------------------------------------------------
+
+def is_windows():
+  return sys.platform in ["win32", "cygwin"]
 
 # -----------------------------------------------------------------------------
     
