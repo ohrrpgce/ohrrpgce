@@ -1083,7 +1083,7 @@ end</example>
 		<command id="extractcolor">
 			<canon>extract color(color, component)</canon>
 			<shortname>extract color</shortname>
-			<description>Takes a 32-bit color value, and extracts the red, green or blue component, based on the <p>component</p> parameter. You may use the <ref>color:red</ref>, <ref>color:green</ref> and <ref>color:blue</ref> parameters to choose which one.</description>
+			<description>Takes a 32-bit color value, and extracts the red, green or blue component, based on the <p>component</p> parameter. You may use the <ref>colorred</ref>, <ref>colorgreen</ref> and <ref>colorblue</ref> parameters to choose which one.</description>
 			<seealso><ref>rgb</ref></seealso>
 		</command>
 		  <command id="playsound">
@@ -1892,7 +1892,7 @@ end</example>
 		<command id="replacesmallenemysprite">
 			<canon>replace small enemy sprite (handle, num, palette)</canon>
 			<shortname>load small enemy sprite</shortname>
-			<description>Loads small enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadsmall enemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadsmallenemysprite</ref>.</note></description>
+			<description>Loads small enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadsmallenemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadsmallenemysprite</ref>.</note></description>
 			<seealso>
 				<ref>loadsmallenemysprite</ref>
 				<ref>freesprite</ref>
@@ -1910,7 +1910,7 @@ end</example>
 		<command id="replacemediumenemysprite">
 			<canon>replace medium enemy sprite (handle, num, palette)</canon>
 			<shortname>load medium enemy sprite</shortname>
-			<description>Loads medium enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadmedium enemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadmediumenemysprite</ref>.</note></description>
+			<description>Loads medium enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadmediumenemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadmediumenemysprite</ref>.</note></description>
 			<seealso>
 				<ref>loadmediumenemysprite</ref>
 				<ref>freesprite</ref>
@@ -1928,7 +1928,7 @@ end</example>
 		<command id="replacelargeenemysprite">
 			<canon>replace large enemy sprite (handle, num, palette)</canon>
 			<shortname>load large enemy sprite</shortname>
-			<description>Loads large enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadlarge enemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadlargeenemysprite</ref>.</note></description>
+			<description>Loads large enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadlargeenemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadlargeenemysprite</ref>.</note></description>
 			<seealso>
 				<ref>loadlargeenemysprite</ref>
 				<ref>freesprite</ref>
@@ -2009,9 +2009,9 @@ end</example>
 		<command id="freesprite">
 			<canon>free sprite (handle)</canon>
 			<shortname>free sprite</shortname>
-			<description>Unloads a sprite loaded by any of the "load x sprite" functions. Unlike <ref>freeslice</ref>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are.</description>
+			<description>Unloads a sprite loaded by any of the "load x sprite" functions. This removes the sprite from the screen and removes it from memory. It is a good idea to free sprites when you are completely done with them. Unlike <ref>freeslice</ref>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are.</description>
 			<seealso>
-				<ref>free slice</ref>
+				<ref>freeslice</ref>
 				<ref>loadherosprite</ref>
 			</seealso>
 		</command>
@@ -2316,7 +2316,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="freeslice">
 			<canon>free slice (handle)</canon>
 			<shortname>free slice</shortname>
-			<description>Unloads a slice and any child slices. This works on any type of slice. If you know the type of slice you are deleting, you can use type-specific freeing commands instead.</description>
+			<description>Unloads a slice and any child slices. This works on any type of slice. This removes the slice from the screen and removes it from memory. You should free your slices after you are completely done with them. If you know the type of slice you are deleting, you can use type-specific freeing commands like <ref>freesprite</ref> instead.</description>
 			<example>
 script, simple example, begin
   variable(sl)
@@ -2996,7 +2996,7 @@ end
 		<command id="npcextra">
 			<canon>NPC extra (who,which)</canon>
 			<shortname>NPC extra</shortname>
-			<description>Returns the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra1</ref> and <ref>extra2</ref> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
+			<description>Returns the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <p>extra1</p> and <p>extra2</p> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
 				<ref>setnpcextra</ref>
 			</seealso>
@@ -3004,7 +3004,7 @@ end
 		<command id="setnpcextra">
 			<canon>set NPC extra (who,which, value)</canon>
 			<shortname>set NPC extra</shortname>
-			<description>Sets the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <ref>extra1</ref> and <ref>extra2</ref> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
+			<description>Sets the npc instance-specific extra data field requested in <p>which</p>. You may use the constants <p>extra1</p> and <p>extra2</p> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
 				<ref>npcextra</ref>
 			</seealso>
