@@ -217,7 +217,7 @@ addcaption caption$(), capindex, "Oscillate"
 addcaption caption$(), capindex, "Random"
 
 CONST AtkLimTargClass = 3
-max(AtkLimTargClass) = 10
+max(AtkLimTargClass) = 12
 AtkCapTargClass = capindex
 addcaption caption$(), capindex, "Enemy"
 addcaption caption$(), capindex, "Ally"
@@ -225,11 +225,13 @@ addcaption caption$(), capindex, "Self"
 addcaption caption$(), capindex, "All"
 addcaption caption$(), capindex, "Ally (Including Dead)"
 addcaption caption$(), capindex, "Ally Not Self"
-addcaption caption$(), capindex, "Revenge (last hit)"
+addcaption caption$(), capindex, "Revenge (last to hit attacker)"
 addcaption caption$(), capindex, "Revenge (whole battle)"
 addcaption caption$(), capindex, "Previous target"
 addcaption caption$(), capindex, "Recorded target"
 addcaption caption$(), capindex, "Dead Allies (hero only)"
+addcaption caption$(), capindex, "Thankvenge (last to cure attacker)"
+addcaption caption$(), capindex, "Thankvenge (whole battle)"
 
 CONST AtkLimTargSetting = 4
 max(AtkLimTargSetting) = 4
@@ -265,7 +267,7 @@ addcaption caption$(), capindex, "Percentage: " + sname$(29) + "% * " + sname$(3
 addcaption caption$(), capindex, "Percentage: " + sname$(29) + "%"
 
 CONST AtkLimBaseAtk = 7
-max(AtkLimBaseAtk) = 20
+max(AtkLimBaseAtk) = 22
 AtkCapBaseAtk = capindex
 addcaption caption$(), capindex, sname$(2)  'str
 addcaption caption$(), capindex, sname$(29)  'mag
@@ -288,6 +290,8 @@ addcaption caption$(), capindex, sname$(4) 'hitX
 addcaption caption$(), capindex, "previous attack"
 addcaption caption$(), capindex, "last damage to attacker"
 addcaption caption$(), capindex, "last damage to target"
+addcaption caption$(), capindex, "last cure to attacker"
+addcaption caption$(), capindex, "last cure to target"
 
 CONST AtkLimExtraDamage = 11
 max(AtkLimExtraDamage) = 1000

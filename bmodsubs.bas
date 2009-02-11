@@ -519,6 +519,10 @@ IF atk(5) <> 4 THEN
    a = bslot(w).revengeharm
   CASE 20
    a = bslot(t).revengeharm
+  CASE 21
+   a = bslot(w).thankvengecure
+  CASE 22
+   a = bslot(t).thankvengecure
  END SELECT
 
  '--defense base
@@ -642,7 +646,7 @@ IF atk(5) <> 4 THEN
  'enforce bounds
  bstat(t).cur.sta(targstat) = large(bstat(t).cur.sta(targstat), 0)
  bstat(w).cur.sta(targstat) = large(bstat(w).cur.sta(targstat), 0)
- IF readbit(atk(), 20, 58) = 0 THEN
+ IF readbit(atk(), 20, 58) = 0 THEN 'Only when "Allow cure to exceed maximum" is OFF
   bstat(t).cur.sta(targstat) = small(bstat(t).cur.sta(targstat), large(bstat(t).max.sta(targstat), remtargstat))
   bstat(w).cur.sta(targstat) = small(bstat(w).cur.sta(targstat), large(bstat(w).max.sta(targstat), rematkrstat))
  END IF
@@ -660,6 +664,13 @@ IF atk(5) <> 4 THEN
   bslot(t).revenge = w
   bslot(t).revengeharm = remtargstat - bstat(t).cur.sta(targstat)
   bslot(w).repeatharm = remtargstat - bstat(t).cur.sta(targstat)
+ END IF
+
+ 'remember thankvenge data
+ IF remtargstat < bstat(t).cur.sta(targstat) THEN
+  bslot(t).thankvengemask(w) = YES
+  bslot(t).thankvenge = w
+  bslot(t).thankvengecure = ABS(remtargstat - bstat(t).cur.sta(targstat))
  END IF
 
 END IF 'skips to here if no damage
@@ -766,10 +777,12 @@ IF formdata(i * 4) > 0 THEN
   END IF
   .death_sfx = es(i, 24)
   .revenge = -1
+  .thankvenge = -1
   FOR o = 0 TO 11
    .revengemask(o) = NO
    .last_targs(o) = NO
    .stored_targs(o) = NO
+   .thankvengemask(o) = NO
   NEXT o
  END WITH
 END IF
@@ -1213,6 +1226,18 @@ SELECT CASE atkbuf(3)
     IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN tmask(i) = 1
    NEXT i
   END IF
+
+ CASE 11 'thankvenge-one
+  IF bslot(who).thankvenge >= 0 THEN
+   tmask(bslot(who).thankvenge) = bslot(bslot(who).thankvenge).vis
+  END IF
+
+ CASE 12 'thankvenge-all
+  FOR i = 0 TO 11
+   IF bslot(who).thankvengemask(i) = YES AND bslot(i).vis <> 0 THEN
+    tmask(i) = 1
+   END IF
+  NEXT i
 
 END SELECT
 

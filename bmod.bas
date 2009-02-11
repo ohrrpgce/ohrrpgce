@@ -122,6 +122,7 @@ aset = 0: wf = 0
 FOR i = 0 TO 11
  icons(i) = -1
  bslot(i).revenge = -1
+ bslot(i).thankvenge = -1
 NEXT i
 
 'hc(0-11) is harm count... hc(12-23) is harm color... I know, tacky :(

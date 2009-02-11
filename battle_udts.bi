@@ -32,6 +32,7 @@ TYPE BattleSprite
   deathtime AS INTEGER '0 = default, otherwise is time + 1
   death_sfx AS INTEGER '0 = default, -1 = none, >0 = sfx ID + 1
   revengeharm AS INTEGER 'The last damage dealt TO this hero or enemy
+  thankvengecure AS INTEGER 'The cure damage undealt TO this hero or enemy (as a positive number!)
   repeatharm AS INTEGER 'The last damage dealy BY this hero or enemy
   '--Turn-taking
   ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
@@ -39,7 +40,9 @@ TYPE BattleSprite
   '--Targetting
   t(12)               AS INTEGER 'Currently selected target slots. -1 means no target. Targets must be sorted to the beginning if the list changes 
   revenge             AS INTEGER 'ID of last hero or enemy who damaged this hero or enemy, or -1 for none
+  thankvenge          AS INTEGER 'ID of last hero or enemy who cured this hero or enemy, or -1 for none
   revengemask(11)     AS INTEGER 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
+  thankvengemask(11)  AS INTEGER 'YES for each hero or enemy who has cured this hero/enemy at least once, otherwise NO
   last_targs(11)      AS INTEGER 'YES for each target previously hit by this hero/enemy, otherwise NO
   stored_targs(11)    AS INTEGER 'YES for each stored target for ths hero/enemy, otherwise NO
   keep_dead_targs(11) AS INTEGER 'YES to mark targets of attacks that can target the dead (used in sorting of .t)
