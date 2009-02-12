@@ -871,8 +871,8 @@ menu$(0) = "Previous Menu"
 menu$(1) = "<- Master Palette " & palnum & " ->"
 menu$(2) = "Replace this Master Palette"
 menu$(3) = "Edit User Interface Colors..."
-menu$(4) = "Nearest-match active palette UI colors"
-menu$(5) = "Copy active palette UI data"
+menu$(4) = "Nearest-match active palette's UI colors"
+menu$(5) = "Copy active palette's UI data"
 IF palnum = gen(genMasterPal) THEN
  menu$(6) = "Current default in-game Master Palette"
 ELSE

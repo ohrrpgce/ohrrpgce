@@ -25,6 +25,8 @@ WHAT IS NEW?
       but works on those who have cured the attacker instead
       of those who have harmed the attacker [James]
     * Last cure is now usable as an attack base stat [James]
+    * Option in Master Palettes menu to clone the active palette's UI
+      colour indices plus other data, without colour remapping [Ralph]
 
   * Bugfixes
     * Bug 684: Lower half of inventory screen gets deleted when you
