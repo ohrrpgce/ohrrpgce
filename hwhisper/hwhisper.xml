@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!--Generated with glade3 3.4.5 on Wed Feb 11 16:22:19 2009 -->
+<!--Generated with glade3 3.4.5 on Thu Feb 12 14:25:07 2009 -->
 <interface>
   <object class="GtkUIManager" id="uimanager1">
     <child>
@@ -152,6 +152,74 @@
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="block_menu_top">
+            <property name="name">block_menu_top</property>
+            <property name="label" translatable="yes">_Block</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="sort_menu_item">
+            <property name="stock_id">gtk-sort-descending</property>
+            <property name="name">sort_menu_item</property>
+            <property name="label" translatable="yes">_Sort</property>
+            <signal handler="on_sort_menu_item_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="uppercase_menu_item">
+            <property name="stock_id">gtk-bold</property>
+            <property name="name">uppercase_menu_item</property>
+            <property name="label" translatable="yes">_Uppercase</property>
+            <signal handler="on_uppercase_menu_item_activate" name="activate"/>
+          </object>
+          <accelerator key="U" modifiers="GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="lowercase_menu_item">
+            <property name="stock_id">gtk-italic</property>
+            <property name="name">lowercase_menu_item</property>
+            <property name="label" translatable="yes">_Lowercase</property>
+            <signal handler="on_lowercase_menu_item_activate" name="activate"/>
+          </object>
+          <accelerator key="L" modifiers="GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="strip_blanks_menu_item">
+            <property name="stock_id">gtk-remove</property>
+            <property name="name">strip_blanks_menu_item</property>
+            <property name="label" translatable="yes">Strip _blanks</property>
+            <signal handler="on_strip_blanks_menu_item_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="indent_space_menu_item">
+            <property name="stock_id">gtk-indent</property>
+            <property name="name">indent_space_menu_item</property>
+            <property name="label" translatable="yes">_Indent (space)</property>
+            <signal handler="on_indent_space_menu_item_activate" name="activate"/>
+          </object>
+          <accelerator key="F12" modifiers="GDK_SHIFT_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="indent_tab_menu_item">
+            <property name="stock_id">gtk-indent</property>
+            <property name="name">indent_tab_menu_item</property>
+            <property name="label" translatable="yes">Indent (_tab)</property>
+            <signal handler="on_indent_tab_menu_item_activate" name="activate"/>
+          </object>
+          <accelerator key="F12" modifiers=""/>
+        </child>
+        <child>
+          <object class="GtkAction" id="unindent_menu_item">
+            <property name="stock_id">gtk-unindent</property>
+            <property name="name">unindent_menu_item</property>
+            <property name="label" translatable="yes">_Unindent</property>
+            <signal handler="on_unindent_menu_item_activate" name="activate"/>
+          </object>
+          <accelerator key="F11" modifiers="GDK_SHIFT_MASK"/>
+          <accelerator key="F11" modifiers=""/>
+        </child>
+        <child>
           <object class="GtkAction" id="script_menu_top">
             <property name="name">script_menu_top</property>
             <property name="label" translatable="yes">_Script</property>
@@ -253,6 +321,15 @@
           <menuitem action="font_prefs_menu_item"/>
           <menuitem action="fg_color_menu_item"/>
           <menuitem action="bg_color_menu_item"/>
+        </menu>
+        <menu action="block_menu_top">
+          <menuitem action="sort_menu_item"/>
+          <menuitem action="uppercase_menu_item"/>
+          <menuitem action="lowercase_menu_item"/>
+          <menuitem action="strip_blanks_menu_item"/>
+          <menuitem action="indent_space_menu_item"/>
+          <menuitem action="indent_tab_menu_item"/>
+          <menuitem action="unindent_menu_item"/>
         </menu>
         <menu action="script_menu_top">
           <menuitem action="run_menu_item"/>

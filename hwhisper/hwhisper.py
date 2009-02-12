@@ -739,6 +739,48 @@ class HWhisper:
         elif key == "background":
             self.color_widget_base(self.text_view, col)
 
+    def get_block(self):
+        buff = self.text_view.get_buffer()
+        start_mark = buff.get_insert()
+        stop_mark = buff.get_selection_bound()
+        if start_mark == stop_mark:
+            # No selection
+            return ""
+        start_iter = buff.get_iter_at_mark(start_mark)
+        stop_iter = buff.get_iter_at_mark(stop_mark)
+        return buff.get_text(start_iter, stop_iter)
+
+    def get_block_lines(self):
+        block = self.get_block()
+        lines = block.split("\n")
+        trailing = False
+        if len(lines) > 0:
+            if lines[-1] == "":
+                trailing = True
+                lines = lines[:-1]
+        return (lines, trailing)
+
+    def lower_iter(self, iter1, iter2):
+        if iter1.get_offset() < iter2.get_offset():
+            return iter1
+        return iter2
+
+    def set_block(self, block):
+        buff = self.text_view.get_buffer()
+        # Get iters
+        start_mark = buff.get_insert()
+        stop_mark = buff.get_selection_bound()
+        start_iter = buff.get_iter_at_mark(start_mark)
+        stop_iter = buff.get_iter_at_mark(stop_mark)
+        offset = self.lower_iter(start_iter, stop_iter).get_offset()
+        # Replace selected text
+        self.undo.pause = True
+        buff.delete(start_iter, stop_iter)
+        self.undo.pause = False
+        buff.insert_at_cursor(block)
+        # Re-select block
+        self.move_selection(buff.get_iter_at_offset(offset), buff.get_iter_at_offset(offset + len(block)))
+
     #-------------------------------------------------------------------
 
     # When our window is destroyed, we want to break out of the GTK main loop. 
@@ -1016,6 +1058,61 @@ class HWhisper:
     def on_bg_color_menu_item_activate(self, menuitem, data=None):
         self.color_dialog("background", "white")
 
+    def on_sort_menu_item_activate(self, menuitem, data=None):
+        (lines, trailing) = self.get_block_lines()
+        lines.sort(cmp=lambda a,b: cmp(a.lower().lstrip(), b.lower().lstrip()))
+        if trailing:
+            lines.append("")
+        self.set_block("\n".join(lines))
+
+    def on_uppercase_menu_item_activate(self, menuitem, data=None):
+        block = self.get_block()
+        self.set_block(block.upper())
+
+    def on_lowercase_menu_item_activate(self, menuitem, data=None):
+        block = self.get_block()
+        self.set_block(block.lower())
+
+    def on_strip_blanks_menu_item_activate(self, menuitem, data=None):
+        (lines, trailing) = self.get_block_lines()
+        newlines = []
+        for line in lines:
+            if line.strip() != "":
+                newlines.append(line)
+        if trailing:
+            newlines.append("")
+        self.set_block("\n".join(newlines))
+
+    def on_indent_space_menu_item_activate(self, menuitem, data=None):
+        (lines, trailing) = self.get_block_lines()
+        newlines = []
+        for line in lines:
+            newlines.append(" " + line)
+        if trailing:
+            newlines.append("")
+        self.set_block("\n".join(newlines))
+
+    def on_indent_tab_menu_item_activate(self, menuitem, data=None):
+        (lines, trailing) = self.get_block_lines()
+        newlines = []
+        for line in lines:
+            newlines.append("\t" + line)
+        if trailing:
+            newlines.append("")
+        self.set_block("\n".join(newlines))
+
+    def on_unindent_menu_item_activate(self, menuitem, data=None):
+        (lines, trailing) = self.get_block_lines()
+        newlines = []
+        for line in lines:
+            if len(line) > 0:
+                if line[0] in " \t":
+                    line = line[1:]
+            newlines.append(line)
+        if trailing:
+            newlines.append("")
+        self.set_block("\n".join(newlines))
+
     #-------------------------------------------------------------------
     
     # We call error_message() any time we want to display an error message to 
@@ -1264,7 +1361,7 @@ class UndoManager(object):
         self.reset("")
 
     def reset(self, starting_text):
-        self._history = [(starting_text, None)]
+        self._history = [(starting_text, 0)]
         self._redo = []
         self._one_char = False
         self.timestamp = None

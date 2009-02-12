@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Wed Feb 11 16:22:19 2009 -->
+<!--Generated with glade3 3.4.5 on Thu Feb 12 14:27:00 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="window">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -24,7 +24,7 @@
                 <property name="label" translatable="yes">_File</property>
                 <property name="use_underline">True</property>
                 <child>
-                  <widget class="GtkMenu" id="menu1">
+                  <widget class="GtkMenu" id="file_menu">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <child>
@@ -147,7 +147,7 @@
                 <property name="label" translatable="yes">_Edit</property>
                 <property name="use_underline">True</property>
                 <child>
-                  <widget class="GtkMenu" id="menu2">
+                  <widget class="GtkMenu" id="edit_menu">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <child>
@@ -321,6 +321,122 @@
               </widget>
             </child>
             <child>
+              <widget class="GtkMenuItem" id="block_menu_top">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">_Block</property>
+                <property name="use_underline">True</property>
+                <child>
+                  <widget class="GtkMenu" id="block_menu">
+                    <property name="visible">True</property>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="sort_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Sort</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_sort_menu_item_activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image22">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-sort-descending</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="uppercase_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Uppercase</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_uppercase_menu_item_activate"/>
+                        <accelerator key="U" modifiers="GDK_CONTROL_MASK" signal="activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image23">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-bold</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="lowercase_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Lowercase</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_lowercase_menu_item_activate"/>
+                        <accelerator key="L" modifiers="GDK_CONTROL_MASK" signal="activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image24">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-italic</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="strip_blanks_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Strip _blanks</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_strip_blanks_menu_item_activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image25">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-remove</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="indent_space_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Indent (space)</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_indent_space_menu_item_activate"/>
+                        <accelerator key="F12" modifiers="GDK_SHIFT_MASK" signal="activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image26">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-indent</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="indent_tab_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Indent (_tab)</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_indent_tab_menu_item_activate"/>
+                        <accelerator key="F12" modifiers="" signal="activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image27">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-indent</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="unindent_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Unindent</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_unindent_menu_item_activate"/>
+                        <accelerator key="F11" modifiers="" signal="activate"/>
+                        <accelerator key="F11" modifiers="GDK_SHIFT_MASK" signal="activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image28">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-unindent</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+            </child>
+            <child>
               <widget class="GtkMenuItem" id="script_menu_top">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_Script</property>
@@ -392,7 +508,7 @@
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child>
-                  <widget class="GtkMenu" id="menu3">
+                  <widget class="GtkMenu" id="help_menu">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <child>
