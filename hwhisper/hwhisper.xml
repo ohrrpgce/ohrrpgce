@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!--Generated with glade3 3.4.5 on Wed Feb 11 13:01:05 2009 -->
+<!--Generated with glade3 3.4.5 on Wed Feb 11 15:12:53 2009 -->
 <interface>
   <object class="GtkUIManager" id="uimanager1">
     <child>
@@ -128,6 +128,14 @@
           <accelerator key="F" modifiers="GDK_CONTROL_MASK"/>
         </child>
         <child>
+          <object class="GtkAction" id="font_prefs_menu_item">
+            <property name="stock_id">gtk-select-font</property>
+            <property name="name">font_prefs_menu_item</property>
+            <property name="label" translatable="yes">F_ont Preferences</property>
+            <signal handler="on_font_prefs_menu_item_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="script_menu_top">
             <property name="name">script_menu_top</property>
             <property name="label" translatable="yes">_Script</property>
@@ -225,6 +233,8 @@
           <menuitem action="delete_menu_item"/>
           <separator/>
           <menuitem action="find_menu_item"/>
+          <separator/>
+          <menuitem action="font_prefs_menu_item"/>
         </menu>
         <menu action="script_menu_top">
           <menuitem action="run_menu_item"/>

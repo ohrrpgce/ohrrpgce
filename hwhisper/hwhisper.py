@@ -99,9 +99,6 @@ class HWhisper:
         buff = self.text_view.get_buffer()
         buff.connect("changed", self.on_text_changed)
         
-        # set the text view font
-        self.text_view.modify_font(pango.FontDescription("monospace 14"))
-        
         # set the default icon to the GTK "edit" icon
         gtk.window_set_default_icon_name(gtk.STOCK_EDIT)
         
@@ -112,6 +109,9 @@ class HWhisper:
         # Load config file
         self.config.load()
         self.update_search_buttons()
+
+        # set the text view font
+        self.init_font()
         
         # Set up recent files menu
         self.reload_recent_menu()
@@ -144,6 +144,18 @@ class HWhisper:
         gtk.main_quit()
 
     #-------------------------------------------------------------------
+
+    def init_font(self):
+        self.set_font(self.get_font())
+
+    def get_font(self):
+        font = self.config.get("font", "name")
+        if font is None: font = "monospace 12"
+        return font
+        
+    def set_font(self, font):
+        self.config.set("font", "name", font)
+        self.text_view.modify_font(pango.FontDescription(font))
 
     def setup_filetypes(self):
         hss = gtk.FileFilter()
@@ -926,6 +938,15 @@ class HWhisper:
 
     def on_help_index_menu_item_activate(self, menuitem, data=None):
         self.show_help_index()
+
+    def on_font_prefs_menu_item_activate(self, menuitem, data=None):
+        dialog = gtk.FontSelectionDialog("Choose a Font")
+        dialog.set_font_name(self.get_font())
+        dialog.set_preview_text("The quick brown hamster jumped over the lazy dog while the fix was chasing him.")
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            self.set_font(dialog.get_font_name())
+        dialog.destroy()
 
     #-------------------------------------------------------------------
     

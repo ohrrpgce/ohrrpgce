@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Wed Feb 11 13:01:05 2009 -->
+<!--Generated with glade3 3.4.5 on Wed Feb 11 15:12:53 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="window">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -263,6 +263,27 @@
                           <widget class="GtkImage" id="menu-item-image14">
                             <property name="visible">True</property>
                             <property name="stock">gtk-find</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkSeparatorMenuItem" id="separatorprefs">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">menuitem3</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="font_prefs_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">F_ont Preferences</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_font_prefs_menu_item_activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image19">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-select-font</property>
                           </widget>
                         </child>
                       </widget>
