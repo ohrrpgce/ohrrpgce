@@ -110,6 +110,9 @@ class HWhisper:
         self.config.load()
         self.update_search_buttons()
 
+        # set up text and background color
+        self.init_colors()
+
         # set the text view font
         self.init_font()
         
@@ -149,12 +152,12 @@ class HWhisper:
         self.set_font(self.get_font())
 
     def get_font(self):
-        font = self.config.get("font", "name")
+        font = self.config.get("view", "font")
         if font is None: font = "monospace 12"
         return font
         
     def set_font(self, font):
-        self.config.set("font", "name", font)
+        self.config.set("view", "font", font)
         self.text_view.modify_font(pango.FontDescription(font))
 
     def setup_filetypes(self):
@@ -652,11 +655,35 @@ class HWhisper:
     def darken_widget(self, widget):
         black = gtk.gdk.color_parse("black")
         white = gtk.gdk.color_parse("white")
-        for state in [gtk.STATE_NORMAL, gtk.STATE_ACTIVE,
-                      gtk.STATE_PRELIGHT, gtk.STATE_SELECTED,
-                      gtk.STATE_INSENSITIVE]:
-            widget.modify_base(state, black)
-            widget.modify_text(state, white)
+        self.color_widget(widget, black, white)
+
+    def greyify_color(self, color):
+        col = {}
+        col["r"] = color.red
+        col["g"] = color.green
+        col["b"] = color.blue
+        average = int((col["r"] + col["g"] + col["b"]) / 3)
+        for i in col:
+          col[i] = (col[i] + average) / 2
+          col[i] = int(col[i] * .8)
+        newcol = gtk.gdk.Color(red=col["r"], green=col["g"], blue=col["b"])
+        return newcol
+
+    def color_widget(self, widget, text_color, base_color):
+        self.color_widget_text(widget, text_color)
+        self.color_widget_base(widget, base_color)
+
+    def color_widget_text(self, widget, color):
+        # other states are [gtk.STATE_ACTIVE, gtk.STATE_PRELIGHT, gtk.STATE_SELECTED]
+        # but I don't think they matter for textview which is al I am coloring with this code anyway.
+        widget.modify_text(gtk.STATE_NORMAL, color)
+        widget.modify_text(gtk.STATE_INSENSITIVE, self.greyify_color(color))
+
+    def color_widget_base(self, widget, color):
+        # other states are [gtk.STATE_ACTIVE, gtk.STATE_PRELIGHT, gtk.STATE_SELECTED]
+        # but I don't think they matter for textview which is al I am coloring with this code anyway.
+        widget.modify_base(gtk.STATE_NORMAL, color)
+        widget.modify_base(gtk.STATE_INSENSITIVE, self.greyify_color(color))
 
     def move_console_to_end(self):
         buff = self.console.get_buffer()
@@ -676,7 +703,42 @@ class HWhisper:
 
     def statusbar_pop(self):
         self.statusbar.pop(self.statusbar_cid)
-        
+
+    def color_dialog(self, color_name, default):
+        dialog = gtk.ColorSelectionDialog("Choose the %s color" % (color_name))
+        col = self.get_color(color_name, default)
+        dialog.colorsel.set_current_color(col)
+        result = dialog.run()
+        if result == gtk.RESPONSE_OK:
+            col = dialog.colorsel.get_current_color()
+            self.set_color(color_name, col)
+        dialog.destroy()
+
+    def init_colors(self):
+        self.set_color("text", self.get_color("text", "black"))
+        self.set_color("background", self.get_color("background", "white"))
+
+    def get_color(self, key, default):
+        color_code = self.config.get("view", key+"color")
+        if color_code is None:
+            color_code = default
+        try:
+            col = gtk.gdk.color_parse(color_code)
+        except ValueError:
+            col = gtk.gdk.color_parse(default)
+        return col
+      
+    def set_color(self, key, col):
+        if not key in ["text", "background"]:
+            raise Exception(key + " is not a legal color key")
+        color_code = col.to_string()
+        self.config.set("view", key+"color", color_code)
+        # Now actually apply the color change
+        if key == "text":
+            self.color_widget_text(self.text_view, col)
+        elif key == "background":
+            self.color_widget_base(self.text_view, col)
+
     #-------------------------------------------------------------------
 
     # When our window is destroyed, we want to break out of the GTK main loop. 
@@ -947,6 +1009,12 @@ class HWhisper:
         if response == gtk.RESPONSE_OK:
             self.set_font(dialog.get_font_name())
         dialog.destroy()
+
+    def on_fg_color_menu_item_activate(self, menuitem, data=None):
+        self.color_dialog("text", "black")
+
+    def on_bg_color_menu_item_activate(self, menuitem, data=None):
+        self.color_dialog("background", "white")
 
     #-------------------------------------------------------------------
     
