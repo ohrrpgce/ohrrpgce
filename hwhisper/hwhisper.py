@@ -942,7 +942,7 @@ class HWhisper:
     def on_font_prefs_menu_item_activate(self, menuitem, data=None):
         dialog = gtk.FontSelectionDialog("Choose a Font")
         dialog.set_font_name(self.get_font())
-        dialog.set_preview_text("The quick brown hamster jumped over the lazy dog while the fix was chasing him.")
+        dialog.set_preview_text("The quick brown hamster jumped over the lazy dog while the fox was chasing him.")
         response = dialog.run()
         if response == gtk.RESPONSE_OK:
             self.set_font(dialog.get_font_name())
