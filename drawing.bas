@@ -2152,8 +2152,8 @@ spedbak:
 clearpage 2
 rectangle 3, 0, ss.wide * ss.zoom + 2, ss.high * ss.zoom + 2, uilook(uiText), 2
 rectangle 4, 1, ss.wide * ss.zoom, ss.high * ss.zoom, 0, 2
-rectangle 245, 109, 67, 8, uilook(uiText), 2
-rectangle 246, 110, 65, 6, 0, 2
+rectangle 246, 109, 67, 8, uilook(uiText), 2
+rectangle 247, 110, 65, 6, uilook(uiBackground), 2
 rectangle 238, 118, ss.wide + 2, ss.high + 2, uilook(uiText), 2
 rectangle 239, 119, ss.wide, ss.high, 0, 2
 area(0).w = ss.wide * ss.zoom

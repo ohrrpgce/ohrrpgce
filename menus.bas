@@ -754,7 +754,7 @@ RETRACE
 END SUB
 
 SUB masterpalettemenu
-DIM menu$(6), oldpal
+DIM menu$(7), oldpal
 
 csr = 1
 palnum = activepalette
@@ -763,10 +763,6 @@ setpal master()
 LoadUIColors uilook(), palnum
 GOSUB buildmenu
 
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 setkeys
 DO
  setwait 55
@@ -821,17 +817,21 @@ DO
     nearestui activepalette, master(), uilook()
     SaveUIColors uilook(), palnum
   CASE 5
+    LoadUIColors uilook(), activepalette
+    SaveUIColors uilook(), palnum
+  CASE 6
     gen(genMasterPal) = palnum
     GOSUB buildmenu
-  CASE 6
+  CASE 7
     activepalette = palnum
     GOSUB buildmenu
   END SELECT
  END IF
 
  'draw the menu
+ clearpage dpage
  FOR i = 0 TO UBOUND(menu$)
-  IF (i = 5 AND palnum = gen(genMasterPal)) OR (i = 6 AND palnum = activepalette) THEN
+  IF (i = 6 AND palnum = gen(genMasterPal)) OR ((i = 4 OR i = 5 OR i = 7) AND palnum = activepalette) THEN
    col = uilook(uiDisabledItem)
    IF csr = i THEN col = uilook(uiSelectedDisabled + tog)
   ELSE
@@ -843,46 +843,45 @@ DO
  NEXT i
 
  FOR i = 0 TO 255
-  rectangle 34 + (i MOD 16) * 16, 70 + (i \ 16) * 7, 12, 5, i, dpage
+  rectangle 34 + (i MOD 16) * 16, 78 + (i \ 16) * 7, 12, 5, i, dpage
  NEXT
- IF csr = 3 THEN
+ IF csr = 3 OR csr = 4 OR csr = 5 THEN
   FOR i = 0 TO uiColors
-   drawbox 33 + (uilook(i) MOD 16) * 16, 69 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight2), dpage
+   drawbox 33 + (uilook(i) MOD 16) * 16, 77 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + tog), dpage
   NEXT
  END IF
 
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 
 IF activepalette <> palnum THEN
  loadpalette master(), activepalette
  setpal master()
  LoadUIColors uilook(), activepalette
 END IF
+clearpage dpage
+clearpage vpage
+
 EXIT SUB
 
 buildmenu:
 menu$(0) = "Previous Menu"
 menu$(1) = "<- Master Palette " & palnum & " ->"
 menu$(2) = "Replace this Master Palette"
-menu$(3) = "Edit User Interface Colours..."
-menu$(4) = "Copy UI Colours from active palette"
+menu$(3) = "Edit User Interface Colors..."
+menu$(4) = "Nearest-match active palette UI colors"
+menu$(5) = "Copy active palette UI data"
 IF palnum = gen(genMasterPal) THEN
- menu$(5) = "Current default in-game Master Palette"
+ menu$(6) = "Current default in-game Master Palette"
 ELSE
- menu$(5) = "Set as Default"
+ menu$(6) = "Set as in-game Master Palette"
 END IF
 IF palnum = activepalette THEN
- menu$(6) = "Current active editing palette"
+ menu$(7) = "Current active editing palette"
 ELSE
- menu$(6) = "Set as Active"
+ menu$(7) = "Set as active editing palette"
 END IF
 RETRACE
 
