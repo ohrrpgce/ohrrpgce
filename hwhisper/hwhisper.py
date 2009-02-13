@@ -95,6 +95,9 @@ class HWhisper:
         self.indent_use_tabs = builder.get_object("indent_use_tabs")
         self.indent_use_spaces = builder.get_object("indent_use_spaces")
         self.indent_space_count = builder.get_object("indent_space_count")
+        # goto line dialog
+        self.line_dialog = builder.get_object("line_dialog")
+        self.line_entry = builder.get_object("line_entry")
         
         # create the undo manager
         self.undo = UndoManager()
@@ -109,7 +112,7 @@ class HWhisper:
         
         # setup and initialize our statusbar
         self.statusbar_cid = self.statusbar.get_context_id(self.app_name)
-        self.reset_default_status()
+        self.update_status()
         
         # Load config file
         self.config.load()
@@ -226,6 +229,7 @@ class HWhisper:
         selection_bound = buff.get_selection_bound()
         buff.move_mark(selection_bound, stop)
         self.text_view.scroll_to_mark(insert, 0.1)
+        self.update_status()
 
     def find_named_menu(self, menu, name):
         for item in menu:
@@ -449,7 +453,7 @@ class HWhisper:
         # Done, re-enable window and reset status bar
         self.window.set_sensitive(True)
         self.statusbar_pop()
-        self.reset_default_status()
+        self.update_status()
 
     def get_plotdict_filename(self):
         plotdict = self.config.get("help", "plotdict")
@@ -818,6 +822,12 @@ class HWhisper:
             set = "%dspace" % (len(str))
         self.config.set("indent", "string", set)
 
+    def cursor_movement(self):
+        # snap off undo timeout on any mouse click or cursor movement
+        self.undo.snap()
+        # Update line number display
+        self.update_status()
+
     #-------------------------------------------------------------------
 
     # When our window is destroyed, we want to break out of the GTK main loop. 
@@ -839,6 +849,7 @@ class HWhisper:
     def on_text_changed(self, buff):
         text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
         self.undo.remember(text, self.cursor_offset())
+        self.update_status()
 
     def on_text_view_key_press_event(self, textview, event):
         if event.keyval == keyconst.F3:
@@ -850,16 +861,10 @@ class HWhisper:
             self.undo.snap()
 
     def on_text_view_move_cursor(self, textview, stepsize, count, extended):
-        self.on_text_view_all_cursor_movement(textview)
+        self.cursor_movement()
     
     def on_text_view_button_press_event(self, textview, event):
-        self.on_text_view_all_cursor_movement(textview)
-
-    def on_text_view_all_cursor_movement(self, textview):
-        # snap off undo timeout on any mouse click
-        self.undo.snap()
-        # Update line number display
-        self.reset_default_status()
+        self.cursor_movement()
 
     # Called when the user clicks the 'New' menu. We need to prompt for save if 
     # the file has been modified, and then delete the buffer and clear the  
@@ -873,7 +878,7 @@ class HWhisper:
         buff.set_text("")
         buff.set_modified(False)
         self.filename = None
-        self.reset_default_status()
+        self.update_status()
         self.undo.reset("")
     
     # Called when the user clicks the 'Open' menu. We need to prompt for save if 
@@ -1197,6 +1202,35 @@ class HWhisper:
             self.set_indent_string(self.indent_string)
         dialog.hide()
 
+    def on_goto_line_menu_item_activate(self, menuitem, data=None):
+        dialog = self.line_dialog
+        self.line_entry.set_text("1")
+        dialog.show_all()
+        self.line_entry.grab_focus()
+        response = 0
+        while response == 0:
+            response = dialog.run()
+        if response == 1:
+            buff = self.text_view.get_buffer()
+            line = int(self.line_entry.get_text()) - 1
+            if line < 0:
+                line = 0
+            iter = buff.get_iter_at_line(line)
+            self.move_selection(iter, iter)
+        dialog.hide()
+
+    def on_line_entry_activate(self, textedit, data=None):
+        self.line_dialog.response(1)
+    
+    __findnumberchar = re.compile("[0-9]")
+    def on_line_entry_changed(self, textedit, data=None):
+        text = textedit.get_text()
+        newtext = ""
+        for char in text:
+            if self.__findnumberchar.match(char):
+                newtext += char
+        textedit.set_text(newtext)
+
     #-------------------------------------------------------------------
     
     # We call error_message() any time we want to display an error message to 
@@ -1329,7 +1363,7 @@ class HWhisper:
         
         # clear loading status and restore default 
         self.statusbar_pop()
-        self.reset_default_status()
+        self.update_status()
 
     def write_file(self, filename):
     
@@ -1363,9 +1397,9 @@ class HWhisper:
         
         # clear saving status and restore default     
         self.statusbar_pop()
-        self.reset_default_status()
+        self.update_status()
         
-    def reset_default_status(self):
+    def update_status(self):
         
         if self.filename:
             status = "File: %s" % os.path.basename(self.filename)
