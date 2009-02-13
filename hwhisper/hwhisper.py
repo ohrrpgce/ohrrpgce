@@ -850,12 +850,16 @@ class HWhisper:
             self.undo.snap()
 
     def on_text_view_move_cursor(self, textview, stepsize, count, extended):
-        # snap off undo timeout on any keyboard cursor navigation
-        self.undo.snap()
+        self.on_text_view_all_cursor_movement(textview)
     
     def on_text_view_button_press_event(self, textview, event):
+        self.on_text_view_all_cursor_movement(textview)
+
+    def on_text_view_all_cursor_movement(self, textview):
         # snap off undo timeout on any mouse click
         self.undo.snap()
+        # Update line number display
+        self.reset_default_status()
 
     # Called when the user clicks the 'New' menu. We need to prompt for save if 
     # the file has been modified, and then delete the buffer and clear the  
@@ -1363,8 +1367,15 @@ class HWhisper:
         
     def reset_default_status(self):
         
-        if self.filename: status = "File: %s" % os.path.basename(self.filename)
-        else: status = "File: (UNTITLED)"
+        if self.filename:
+            status = "File: %s" % os.path.basename(self.filename)
+        else:
+            status = "File: (UNTITLED)"
+        
+        buff = self.text_view.get_buffer()
+        start_mark = buff.get_insert()
+        start_iter = buff.get_iter_at_mark(start_mark)
+        status += "  Line:%d Char:%d" % (start_iter.get_line()+1, start_iter.get_line_offset())
         
         self.statusbar_pop()
         self.statusbar_push(status)
