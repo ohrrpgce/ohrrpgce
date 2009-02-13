@@ -666,7 +666,7 @@ class HWhisper:
     def darken_widget(self, widget):
         black = gtk.gdk.color_parse("black")
         white = gtk.gdk.color_parse("white")
-        self.color_widget(widget, black, white)
+        self.color_widget(widget, white, black)
 
     def greyify_color(self, color):
         col = {}
