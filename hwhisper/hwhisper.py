@@ -90,6 +90,11 @@ class HWhisper:
         self.console = builder.get_object("console")
         self.toggle_console_menu_item = builder.get_object("toggle_console_menu_item")
         self.splitpanes = builder.get_object("splitpanes")
+        # indent style dialog
+        self.indent_dialog = builder.get_object("indent_dialog")
+        self.indent_use_tabs = builder.get_object("indent_use_tabs")
+        self.indent_use_spaces = builder.get_object("indent_use_spaces")
+        self.indent_space_count = builder.get_object("indent_space_count")
         
         # create the undo manager
         self.undo = UndoManager()
@@ -109,6 +114,8 @@ class HWhisper:
         # Load config file
         self.config.load()
         self.update_search_buttons()
+
+        self.indent_string = self.get_indent_string()
 
         # set up text and background color
         self.init_colors()
@@ -781,6 +788,36 @@ class HWhisper:
         # Re-select block
         self.move_selection(buff.get_iter_at_offset(offset), buff.get_iter_at_offset(offset + len(block)))
 
+    __findcomment = re.compile("^([ \t]*)(#)(.*$)")
+    def lines_are_commented(self, lines):
+        for line in lines:
+            if self.__findcomment.match(line) is None:
+                return False
+        return True
+
+    def get_indent_string(self):
+        str = self.config.get("indent", "string")
+        if str is None:
+            return "\t"
+        str = str.lower()
+        if str == 'tab':
+            return "\t"
+        match = re.match("^(\d*)space", str)
+        if match is None:
+            return "\t"
+        count = match.group(1)
+        if count == "" or count == "":
+            return " "
+        return " " * int(count)
+
+    def set_indent_string(self, str):
+        set = "tab"
+        if str == " ":
+            set = "space"
+        if len(str) > 1:
+            set = "%dspace" % (len(str))
+        self.config.set("indent", "string", set)
+
     #-------------------------------------------------------------------
 
     # When our window is destroyed, we want to break out of the GTK main loop. 
@@ -1083,20 +1120,11 @@ class HWhisper:
             newlines.append("")
         self.set_block("\n".join(newlines))
 
-    def on_indent_space_menu_item_activate(self, menuitem, data=None):
+    def on_indent_menu_item_activate(self, menuitem, data=None):
         (lines, trailing) = self.get_block_lines()
         newlines = []
         for line in lines:
-            newlines.append(" " + line)
-        if trailing:
-            newlines.append("")
-        self.set_block("\n".join(newlines))
-
-    def on_indent_tab_menu_item_activate(self, menuitem, data=None):
-        (lines, trailing) = self.get_block_lines()
-        newlines = []
-        for line in lines:
-            newlines.append("\t" + line)
+            newlines.append(self.indent_string + line)
         if trailing:
             newlines.append("")
         self.set_block("\n".join(newlines))
@@ -1105,13 +1133,65 @@ class HWhisper:
         (lines, trailing) = self.get_block_lines()
         newlines = []
         for line in lines:
-            if len(line) > 0:
-                if line[0] in " \t":
-                    line = line[1:]
+            for i in xrange(len(self.indent_string)):
+                if len(line) > 0:
+                    if line[0] in " \t":
+                        line = line[1:]
             newlines.append(line)
         if trailing:
             newlines.append("")
         self.set_block("\n".join(newlines))
+
+    def on_comment_out_menu_item_activate(self, menuitem, data=None):
+        (lines, trailing) = self.get_block_lines()
+        commented = self.lines_are_commented(lines)
+        if commented:
+            return
+        newlines = []
+        for line in lines:
+            newlines.append("#"+line)
+        if trailing:
+            newlines.append("")
+        self.set_block("\n".join(newlines))
+
+    def on_uncomment_menu_item_activate(self, menuitem, data=None):
+        (lines, trailing) = self.get_block_lines()
+        commented = self.lines_are_commented(lines)
+        if not commented:
+            return
+        newlines = []
+        for line in lines:
+            match = self.__findcomment.match(line)
+            if match is None:
+                print "oops! uncomment match failed! this shouldn't happen!"
+                continue
+            indent = match.group(1)
+            comment = match.group(3)
+            newlines.append(indent + comment)
+        if trailing:
+            newlines.append("")
+        self.set_block("\n".join(newlines))
+
+    def on_indent_style_menu_item_activate(self, menuitem, data=None):
+        dialog = self.indent_dialog
+        if self.indent_string == "\t":
+            self.indent_use_tabs.set_active(True)
+        else:
+            self.indent_use_spaces.set_active(True)
+            self.indent_space_count.set_value(len(self.indent_string))
+        dialog.show_all()
+        response = 0
+        while response == 0:
+            response = dialog.run()
+        if response == 1:
+            if self.indent_use_tabs.get_active():
+                self.indent_string = "\t"
+            elif self.indent_use_spaces.get_active():
+                count = self.indent_space_count.get_value_as_int()
+                if count < 1: count = 1
+                self.indent_string = " " * count
+            self.set_indent_string(self.indent_string)
+        dialog.hide()
 
     #-------------------------------------------------------------------
     
