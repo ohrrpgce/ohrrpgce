@@ -40,6 +40,10 @@ WHAT IS NEW?
     * Bug 703: NPC extra's aren't cleaned on restart [James]
     * Bug 700: Erroneous globals over 32767 when loading form save game
       [James]
+    * Bug 710: Text box import loads door tag value into door id [James]
+    * Text box exporter escapes non-printable ascii as \NNN sequences
+      where NNN is the three digit decmal representation of the ascii
+      code [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

@@ -169,6 +169,9 @@ DECLARE SUB notification (show_msg AS STRING)
 DECLARE FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER
 DECLARE FUNCTION last_inv_slot() AS INTEGER
 
+DECLARE FUNCTION decode_backslash_codes(s AS STRING) AS STRING
+DECLARE FUNCTION escape_nonprintable_ascii(s AS STRING) AS STRING
+
 'Sprite loading convenience functions
 DECLARE FUNCTION standard_sprite_load (BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Frame PTR
 DECLARE FUNCTION standard_pal16_load (BYVAL palnum AS INTEGER = -1, BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Palette16 PTR

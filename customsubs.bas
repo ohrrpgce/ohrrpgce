@@ -1163,9 +1163,9 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
   IF metadata(2) THEN '--choices
    IF box.choice_enabled THEN
     PRINT #fh, "Choice Enabled: YES"
-    PRINT #fh, "Choice 1: " & box.choice(0)
+    PRINT #fh, "Choice 1: " & escape_nonprintable_ascii(box.choice(0))
     PRINT #fh, "Choice 1 Tag: " & box.choice_tag(0) & " (" & tag_condition_caption(box.choice_tag(0), , "Do Nothing", "Never", "Always") & ")"
-    PRINT #fh, "Choice 2: " & box.choice(1)
+    PRINT #fh, "Choice 2: " & escape_nonprintable_ascii(box.choice(1))
     PRINT #fh, "Choice 2 Tag: " & box.choice_tag(1) & " (" & tag_condition_caption(box.choice_tag(1), , "Do Nothing", "Never", "Always") & ")"
     
    END IF
@@ -1216,7 +1216,7 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
       PRINT #fh, ""
      NEXT k
      blank = 0
-     PRINT #fh, box.text(j)
+     PRINT #fh, escape_nonprintable_ascii(box.text(j))
     END IF
    NEXT j
   END IF
@@ -1252,6 +1252,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
  DO WHILE NOT EOF(fh)
   line_number += 1
   LINE INPUT #1, s
+  s = decode_backslash_codes(s)
   IF firstline THEN
    IF s <> STRING(38, "=") THEN
     import_textboxes_warn warn, filename & " is not a valid text box file. Expected header row, found """ & s & """."
@@ -1349,7 +1350,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
        CASE "door tag"
         box.door_tag = VALINT(v)
        CASE "door"
-        box.door_tag = VALINT(v)
+        box.door = VALINT(v)
        CASE "hero tag"
         box.hero_tag = VALINT(v)
        CASE "hero add"

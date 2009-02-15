@@ -3141,7 +3141,8 @@ SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
 END SUB
 
 FUNCTION str2int (stri as string, default as integer=0) as integer
- 'Use this in contrast to QuickBasic's VALINT
+ 'Use this in contrast to QuickBasic's VALINT.
+ 'it is stricter, and returns a default on failure
  DIM n AS INTEGER = 0
  DIM s AS STRING = LTRIM(stri)
  IF s = "" THEN RETURN default
@@ -3165,4 +3166,96 @@ FUNCTION str2int (stri as string, default as integer=0) as integer
 
  RETURN n
 
+END FUNCTION
+
+FUNCTION decode_backslash_codes(s AS STRING) AS STRING
+ DIM result AS STRING = ""
+ DIM i AS INTEGER = 1
+ DIM ch AS STRING
+ DIM mode AS INTEGER = 0
+ DIM nstr AS STRING
+ DIM num AS INTEGER
+ DO
+  ch = MID(s, i, 1)
+  SELECT CASE mode
+   CASE 0'--normal
+    IF ch = "\" THEN
+      mode = 1
+      nstr = ""
+    ELSE
+      result &= ch
+    END IF
+   CASE 1'--parsing backslash
+    SELECT CASE ch
+     CASE "\" '--an escaped backslash
+      result &= "\"
+      mode = 0
+     CASE "n" '-- a newline
+      result &= CHR(10)
+      mode = 0
+     CASE "r" '-- a carriage return
+      result &= CHR(13)
+      mode = 0
+     CASE "t" '-- a tab
+      result &= CHR(9)
+      mode = 0
+     CASE "0", "1", "2"
+      nstr &= ch
+      mode = 2
+     CASE ELSE '--not a valid backslash code, resume
+      result &= ch
+      mode = 0
+    END SELECT
+   CASE 2'--parsing ascii code number
+    SELECT CASE ch
+     CASE "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+      nstr &= ch
+     CASE ELSE 'busted backslash code, print warning
+      debug "Bogus backslash ascii code in string """ & s & """"
+      mode = 0
+    END SELECT
+    IF LEN(nstr) >= 3 THEN
+     num = str2int(nstr)
+     IF num > 255 THEN
+      debug "Bogus backslash ascii code in string """ & s & """"
+     ELSE
+      result &= CHR(num)
+     END IF
+     mode = 0
+    END IF
+  END SELECT
+  i += 1
+ LOOP UNTIL i > LEN(s)
+ IF mode <> 0 THEN
+  debug "decode_backslash_codes: exited while parsing a backslash code (mode=" & mode & ")"
+ END IF
+ RETURN result
+END FUNCTION
+
+FUNCTION escape_nonprintable_ascii(s AS STRING) AS STRING
+ DIM result AS STRING = ""
+ DIM nstr AS STRING
+ DIM ch AS STRING
+ FOR i AS INTEGER = 1 TO LEN(s)
+  ch = MID(s, i, 1)
+  SELECT CASE ASC(ch)
+   CASE 32 TO 91, 93 TO 126
+    result &= ch
+   CASE 92 '--Backslash
+    result &= "\\"
+   CASE 10
+    result &= "\n"
+   CASE 13
+    result &= "\r"
+   CASE 9
+    result &= "\t"
+   CASE ELSE
+    nstr = STR(ASC(ch))
+    WHILE LEN(nstr) < 3
+     nstr = "0" & nstr
+    WEND
+    result &= "\" & nstr
+  END SELECT
+ NEXT i
+ RETURN result
 END FUNCTION
