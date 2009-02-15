@@ -1068,7 +1068,7 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
     
   IF metadata(1) THEN '--box conditionals
    IF box.instead_tag <> 0 THEN
-    PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & tag_condition_caption(box.instead_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Instead Tag: " & box.instead_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.instead_tag, , "Impossible", "Never", "Always")) & ")"
     PRINT #fh, "Instead Box: " & box.instead;
     IF box.instead < 0 THEN
      PRINT #fh, " (Plotscript " & scriptname$(box.instead * -1, plottrigger) & ")"
@@ -1077,7 +1077,7 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
     END IF
    END IF
    IF box.after_tag <> 0 THEN
-    PRINT #fh, "Next Tag: " & box.after_tag & " (" & tag_condition_caption(box.after_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Next Tag: " & box.after_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.after_tag, , "Impossible", "Never", "Always")) & ")"
     PRINT #fh, "Next Box: " & box.after;
     IF box.after < 0 THEN
      PRINT #fh, " (Plotscript " & scriptname$(box.after * -1, plottrigger) & ")"
@@ -1087,76 +1087,76 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
    END IF
    
    IF box.settag_tag <> 0 THEN
-    PRINT #fh, "Set Tag: " & box.settag_tag & " (" & tag_condition_caption(box.settag_tag, , "Impossible", "Never", "Always") & ")"
-    IF box.settag1 <> 0 THEN PRINT #fh, "Set Tag 1: " & box.settag1 & " (" & tag_condition_caption(box.settag1, , "Impossible", "Never", "Always") & ")"
-    IF box.settag2 <> 0 THEN PRINT #fh, "Set Tag 2: " & box.settag2 & " (" & tag_condition_caption(box.settag2, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Set Tag: " & box.settag_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.settag_tag, , "Impossible", "Never", "Always")) & ")"
+    IF box.settag1 <> 0 THEN PRINT #fh, "Set Tag 1: " & box.settag1 & " (" & escape_nonprintable_ascii(tag_condition_caption(box.settag1, , "Impossible", "Never", "Always")) & ")"
+    IF box.settag2 <> 0 THEN PRINT #fh, "Set Tag 2: " & box.settag2 & " (" & escape_nonprintable_ascii(tag_condition_caption(box.settag2, , "Impossible", "Never", "Always")) & ")"
    END IF
    IF box.battle_tag <> 0 THEN
-    PRINT #fh, "Battle Tag: " & box.battle_tag & " (" & tag_condition_caption(box.battle_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Battle Tag: " & box.battle_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.battle_tag, , "Impossible", "Never", "Always")) & ")"
     PRINT #fh, "Battle: " & box.battle
    END IF
    IF box.shop_tag <> 0 THEN
-    PRINT #fh, "Shop Tag: " & box.shop_tag & " (" & tag_condition_caption(box.shop_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Shop Tag: " & box.shop_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.shop_tag, , "Impossible", "Never", "Always")) & ")"
     PRINT #fh, "Shop: " & box.shop;
     if(box.shop = 0) THEN PRINT #fh, " (Restore HP/MP)"
     if(box.shop < 0) THEN PRINT #fh, " (Inn for $" & (box.shop * -1) & ")"
-    if(box.shop > 0) THEN PRINT #fh, " (" & readshopname$(box.shop - 1) & ")"
+    if(box.shop > 0) THEN PRINT #fh, " (" & escape_nonprintable_ascii(readshopname$(box.shop - 1)) & ")"
    END IF
    IF box.hero_tag <> 0 THEN
-    PRINT #fh, "Hero Tag: " & box.hero_tag & " (" & tag_condition_caption(box.hero_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Hero Tag: " & box.hero_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.hero_tag, , "Impossible", "Never", "Always")) & ")"
     
     IF box.hero_addrem <> 0 THEN
      PRINT #fh, "Hero Add: " & box.hero_addrem;
      IF box.hero_addrem < 0 THEN
-      PRINT #fh, " (Remove " & getheroname((box.hero_addrem * -1) - 1) & ")"
+      PRINT #fh, " (Remove " & escape_nonprintable_ascii(getheroname((box.hero_addrem * -1) - 1)) & ")"
      ELSE
-      PRINT #fh, " (Add " & getheroname(box.hero_addrem - 1) & ")"
+      PRINT #fh, " (Add " & escape_nonprintable_ascii(getheroname(box.hero_addrem - 1)) & ")"
      END IF
     END IF
     
     IF box.hero_swap <> 0 THEN
      PRINT #fh, "Hero Swap: " & box.hero_swap;
      IF box.hero_swap < 0 THEN
-      PRINT #fh, " (Swap Out " & getheroname((box.hero_swap * -1) - 1) & ")"
+      PRINT #fh, " (Swap Out " & escape_nonprintable_ascii(getheroname((box.hero_swap * -1) - 1)) & ")"
      ELSE
-      PRINT #fh, " (Swap In " & getheroname(box.hero_swap - 1) & ")"
+      PRINT #fh, " (Swap In " & escape_nonprintable_ascii(getheroname(box.hero_swap - 1)) & ")"
      END IF
     END IF
     
     IF box.hero_lock <> 0 THEN
      PRINT #fh, "Hero Lock: " & box.hero_lock;
      IF box.hero_lock < 0 THEN
-      PRINT #fh, " (Lock " & getheroname((box.hero_lock * -1) - 1) & ")"
+      PRINT #fh, " (Lock " & escape_nonprintable_ascii(getheroname((box.hero_lock * -1) - 1)) & ")"
      ELSE
-      PRINT #fh, " (Unlock " & getheroname(box.hero_lock - 1) & ")"
+      PRINT #fh, " (Unlock " & escape_nonprintable_ascii(getheroname(box.hero_lock - 1)) & ")"
      END IF
     END IF
     
    END IF
    
    IF box.money_tag <> 0 THEN
-    PRINT #fh, "Money Tag: " & box.money_tag & " (" & tag_condition_caption(box.money_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Money Tag: " & box.money_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.money_tag, , "Impossible", "Never", "Always")) & ")"
     PRINT #fh, "Money: " & box.money
    END IF
    
    IF box.door_tag <> 0 THEN
-    PRINT #fh, "Door Tag: " & box.door_tag & " (" & tag_condition_caption(box.door_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Door Tag: " & box.door_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.door_tag, , "Impossible", "Never", "Always")) & ")"
     PRINT #fh, "Door: " & box.door
    END IF
    
    IF box.item_tag <> 0 THEN
-    PRINT #fh, "Item Tag: " & box.item_tag & " (" & tag_condition_caption(box.item_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Item Tag: " & box.item_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.item_tag, , "Impossible", "Never", "Always")) & ")"
     PRINT #fh, "Item: " & box.item;
     IF box.item < 0 THEN
-     PRINT #fh, " (Remove " & readitemname$((box.item * -1) - 1) & ")"
+     PRINT #fh, " (Remove " & escape_nonprintable_ascii(readitemname$((box.item * -1) - 1)) & ")"
     ELSE
-     PRINT #fh, " (Add " & readitemname$(box.item - 1) & ")"
+     PRINT #fh, " (Add " & escape_nonprintable_ascii(readitemname$(box.item - 1)) & ")"
     END IF
    END IF
   END IF
   
   IF box.menu_tag <> 0 THEN
-    PRINT #fh, "Menu Tag: " & box.menu_tag & " (" & tag_condition_caption(box.menu_tag, , "Impossible", "Never", "Always") & ")"
+    PRINT #fh, "Menu Tag: " & box.menu_tag & " (" & escape_nonprintable_ascii(tag_condition_caption(box.menu_tag, , "Impossible", "Never", "Always")) & ")"
     PRINT #fh, "Menu: " & box.menu
    END IF
    
@@ -1164,9 +1164,9 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
    IF box.choice_enabled THEN
     PRINT #fh, "Choice Enabled: YES"
     PRINT #fh, "Choice 1: " & escape_nonprintable_ascii(box.choice(0))
-    PRINT #fh, "Choice 1 Tag: " & box.choice_tag(0) & " (" & tag_condition_caption(box.choice_tag(0), , "Do Nothing", "Never", "Always") & ")"
+    PRINT #fh, "Choice 1 Tag: " & box.choice_tag(0) & " (" & escape_nonprintable_ascii(tag_condition_caption(box.choice_tag(0), , "Do Nothing", "Never", "Always")) & ")"
     PRINT #fh, "Choice 2: " & escape_nonprintable_ascii(box.choice(1))
-    PRINT #fh, "Choice 2 Tag: " & box.choice_tag(1) & " (" & tag_condition_caption(box.choice_tag(1), , "Do Nothing", "Never", "Always") & ")"
+    PRINT #fh, "Choice 2 Tag: " & box.choice_tag(1) & " (" & escape_nonprintable_ascii(tag_condition_caption(box.choice_tag(1), , "Do Nothing", "Never", "Always")) & ")"
     
    END IF
   END IF
@@ -1182,7 +1182,7 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
    PRINT #fh, "Border Color: " & box.boxstyle '--AARGH AGAIN.
    PRINT #fh, "Backdrop: " & box.backdrop
    IF box.music > 0 THEN
-    PRINT #fh, "Music: " & box.music & " (" & getsongname$(box.music - 1) & ")"
+    PRINT #fh, "Music: " & box.music & " (" & escape_nonprintable_ascii(getsongname$(box.music - 1)) & ")"
    ELSE
     PRINT #fh, "Music: " & box.music & " (None)"
    END IF
