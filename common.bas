@@ -3202,8 +3202,8 @@ FUNCTION decode_backslash_codes(s AS STRING) AS STRING
      CASE "0", "1", "2"
       nstr &= ch
       mode = 2
-     CASE ELSE '--not a valid backslash code, resume
-      result &= ch
+     CASE ELSE '--not a valid backslash code, resume without discarding the backslash
+      result &= "\" & ch
       mode = 0
     END SELECT
    CASE 2'--parsing ascii code number
