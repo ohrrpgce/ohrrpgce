@@ -1335,17 +1335,21 @@ class HWhisper:
             text = fin.read()
             fin.close()
             
+            # Make sure this is unicode (because TextBuffer reuires it)
+            # this will raise UnicodeDecodeError if it fails
+            unicode(text, "utf-8")
+            
             # disable the text view while loading the buffer with the text
             self.text_view.set_sensitive(False)
             buff = self.text_view.get_buffer()
             buff.set_text(text)
             buff.set_modified(False)
-            self.text_view.set_sensitive(True)
             
             # now we can set the current filename since loading was a success
             self.filename = filename
             
-            
+        except UnicodeDecodeError:
+            self.error_message("File %s failed to load. Maybe it is a binary file or contains invalid UTF-8 codes?" % filename)
         except:
             # error loading file, show message to user
             self.error_message ("Could not open file: %s" % filename)
@@ -1358,6 +1362,9 @@ class HWhisper:
             self.undo.reset(text)
             # Save filename in the recent menu
             self.add_recent(filename)
+        finally:
+            # re-enable the textview no matter what happens above
+            self.text_view.set_sensitive(True)
         
         self.text_view.grab_focus()
         
