@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!--Generated with glade3 3.4.5 on Thu Feb 12 18:38:10 2009 -->
+<!--Generated with glade3 3.4.5 on Mon Feb 16 11:15:44 2009 -->
 <interface>
   <object class="GtkAdjustment" id="adjustment1">
     <property name="upper">8</property>
@@ -145,38 +145,6 @@
           <accelerator key="L" modifiers="GDK_CONTROL_MASK"/>
         </child>
         <child>
-          <object class="GtkAction" id="font_prefs_menu_item">
-            <property name="stock_id">gtk-select-font</property>
-            <property name="name">font_prefs_menu_item</property>
-            <property name="label" translatable="yes">F_ont Preferences</property>
-            <signal handler="on_font_prefs_menu_item_activate" name="activate"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="fg_color_menu_item">
-            <property name="stock_id">gtk-select-color</property>
-            <property name="name">fg_color_menu_item</property>
-            <property name="label" translatable="yes">_Text color</property>
-            <signal handler="on_fg_color_menu_item_activate" name="activate"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="bg_color_menu_item">
-            <property name="stock_id">gtk-select-color</property>
-            <property name="name">bg_color_menu_item</property>
-            <property name="label" translatable="yes">_Background color</property>
-            <signal handler="on_bg_color_menu_item_activate" name="activate"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="indent_style_menu_item">
-            <property name="stock_id">gtk-indent</property>
-            <property name="name">indent_style_menu_item</property>
-            <property name="label" translatable="yes">_Indent style</property>
-            <signal handler="on_indent_style_menu_item_activate" name="activate"/>
-          </object>
-        </child>
-        <child>
           <object class="GtkAction" id="block_menu_top">
             <property name="name">block_menu_top</property>
             <property name="label" translatable="yes">_Block</property>
@@ -284,6 +252,44 @@
           <accelerator key="F4" modifiers=""/>
         </child>
         <child>
+          <object class="GtkAction" id="options_menu_top">
+            <property name="name">options_menu_top</property>
+            <property name="label" translatable="yes">_Options</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="font_prefs_menu_item">
+            <property name="stock_id">gtk-select-font</property>
+            <property name="name">font_prefs_menu_item</property>
+            <property name="label" translatable="yes">F_ont Preferences</property>
+            <signal handler="on_font_prefs_menu_item_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="fg_color_menu_item">
+            <property name="stock_id">gtk-select-color</property>
+            <property name="name">fg_color_menu_item</property>
+            <property name="label" translatable="yes">_Text color</property>
+            <signal handler="on_fg_color_menu_item_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="bg_color_menu_item">
+            <property name="stock_id">gtk-select-color</property>
+            <property name="name">bg_color_menu_item</property>
+            <property name="label" translatable="yes">_Background color</property>
+            <signal handler="on_bg_color_menu_item_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="indent_style_menu_item">
+            <property name="stock_id">gtk-indent</property>
+            <property name="name">indent_style_menu_item</property>
+            <property name="label" translatable="yes">_Indent style</property>
+            <signal handler="on_indent_style_menu_item_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="help_menu_top">
             <property name="name">help_menu_top</property>
             <property name="label" translatable="yes">_Help</property>
@@ -351,11 +357,6 @@
           <separator/>
           <menuitem action="find_menu_item"/>
           <menuitem action="goto_line_menu_item"/>
-          <separator/>
-          <menuitem action="font_prefs_menu_item"/>
-          <menuitem action="fg_color_menu_item"/>
-          <menuitem action="bg_color_menu_item"/>
-          <menuitem action="indent_style_menu_item"/>
         </menu>
         <menu action="block_menu_top">
           <menuitem action="sort_menu_item"/>
@@ -373,6 +374,13 @@
           <menuitem action="locate_compiler_menu_item"/>
           <separator/>
           <menuitem action="toggle_console_menu_item"/>
+        </menu>
+        <menu action="options_menu_top">
+          <separator/>
+          <menuitem action="font_prefs_menu_item"/>
+          <menuitem action="fg_color_menu_item"/>
+          <menuitem action="bg_color_menu_item"/>
+          <menuitem action="indent_style_menu_item"/>
         </menu>
         <menu action="help_menu_top">
           <menuitem action="help_index_menu_item"/>

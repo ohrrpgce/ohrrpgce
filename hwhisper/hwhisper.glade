@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Thu Feb 12 18:38:10 2009 -->
+<!--Generated with glade3 3.4.5 on Mon Feb 16 11:15:44 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="window">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -282,69 +282,6 @@
                         </child>
                       </widget>
                     </child>
-                    <child>
-                      <widget class="GtkSeparatorMenuItem" id="separatorprefs">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">menuitem3</property>
-                        <property name="use_underline">True</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkImageMenuItem" id="font_prefs_menu_item">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">F_ont Preferences</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_font_prefs_menu_item_activate"/>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="menu-item-image19">
-                            <property name="visible">True</property>
-                            <property name="stock">gtk-select-font</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkImageMenuItem" id="fg_color_menu_item">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Text color</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_fg_color_menu_item_activate"/>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="menu-item-image20">
-                            <property name="visible">True</property>
-                            <property name="stock">gtk-select-color</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkImageMenuItem" id="bg_color_menu_item">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Background color</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_bg_color_menu_item_activate"/>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="menu-item-image21">
-                            <property name="visible">True</property>
-                            <property name="stock">gtk-select-color</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkImageMenuItem" id="indent_style_menu_item">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">_Indent style</property>
-                        <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_indent_style_menu_item_activate"/>
-                        <child internal-child="image">
-                          <widget class="GtkImage" id="menu-item-image27">
-                            <property name="visible">True</property>
-                            <property name="stock">gtk-indent</property>
-                          </widget>
-                        </child>
-                      </widget>
-                    </child>
                   </widget>
                 </child>
               </widget>
@@ -538,6 +475,81 @@
                         <property name="use_underline">True</property>
                         <signal name="toggled" handler="on_toggle_console_menu_item_toggled"/>
                         <accelerator key="F4" modifiers="" signal="activate"/>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+            </child>
+            <child>
+              <widget class="GtkMenuItem" id="options_menu_top">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">_Options</property>
+                <property name="use_underline">True</property>
+                <child>
+                  <widget class="GtkMenu" id="options_menu">
+                    <property name="visible">True</property>
+                    <child>
+                      <widget class="GtkSeparatorMenuItem" id="optionseparator1">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">menuitem3</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="font_prefs_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">F_ont Preferences</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_font_prefs_menu_item_activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image19">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-select-font</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="fg_color_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Text color</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_fg_color_menu_item_activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image20">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-select-color</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="bg_color_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Background color</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_bg_color_menu_item_activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image21">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-select-color</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="indent_style_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Indent style</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_indent_style_menu_item_activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image27">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-indent</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                   </widget>
