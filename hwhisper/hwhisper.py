@@ -57,7 +57,6 @@ class HWhisper:
         self.description = version.description
         
         # Default values
-        self.filename = None
         self.about_dialog = None
         self.setup_filetypes()
         self.config = ConfigManager()
@@ -73,7 +72,6 @@ class HWhisper:
         # get the widgets which will be referenced in callbacks
         self.window = builder.get_object("window")
         self.statusbar = builder.get_object("statusbar")
-        self.text_view = builder.get_object("text_view")
         self.menu = builder.get_object("menu_bar")
         self.search_bar = builder.get_object("search_bar")
         self.search_entry = builder.get_object("search_entry")
@@ -99,12 +97,12 @@ class HWhisper:
         self.line_dialog = builder.get_object("line_dialog")
         self.line_entry = builder.get_object("line_entry")
         
-        # create the undo manager
-        self.undo = UndoManager()
+        self.docs = []
+        self.add_doc(builder.get_object("text_view"))
         
         # connect signals
         builder.connect_signals(self)
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         buff.connect("changed", self.on_text_changed)
         
         # set the default icon to the GTK "edit" icon
@@ -158,6 +156,11 @@ class HWhisper:
 
     #-------------------------------------------------------------------
 
+    def add_doc(self, text_view):
+        doc = DocumentHolder(text_view)
+        self.docs.append(doc)
+        self.doc = doc
+
     def init_font(self):
         self.set_font(self.get_font())
 
@@ -168,7 +171,7 @@ class HWhisper:
         
     def set_font(self, font):
         self.config.set("view", "font", font)
-        self.text_view.modify_font(pango.FontDescription(font))
+        self.doc.text_view.modify_font(pango.FontDescription(font))
 
     def setup_filetypes(self):
         hss = gtk.FileFilter()
@@ -184,12 +187,12 @@ class HWhisper:
 
     def move_cursor_to_offset(self, offset):
         if offset is None: return
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         iter = buff.get_iter_at_offset(offset)
         self.move_selection(iter, iter)
 
     def cursor_offset(self):
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         mark = buff.get_insert()
         iter = buff.get_iter_at_mark(mark)
         offset = iter.get_offset()
@@ -223,12 +226,12 @@ class HWhisper:
         return False
 
     def move_selection(self, start, stop):
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         insert = buff.get_insert()
         buff.move_mark(insert, start)
         selection_bound = buff.get_selection_bound()
         buff.move_mark(selection_bound, stop)
-        self.text_view.scroll_to_mark(insert, 0.1)
+        self.doc.text_view.scroll_to_mark(insert, 0.1)
         self.update_status()
 
     def find_named_menu(self, menu, name):
@@ -271,7 +274,7 @@ class HWhisper:
         status.set_text("")
         if text == "": return
 
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         mark = buff.get_insert()
         iter = buff.get_iter_at_mark(mark)
 
@@ -302,7 +305,7 @@ class HWhisper:
 
     def search_wrap_or_give_up(self, text, backward):
         status = self.search_status
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         wrap = self.config.getboolean("search", "wrap")
         if wrap:
             if backward:
@@ -323,7 +326,7 @@ class HWhisper:
             return "forward"
 
     def iter_search_in_direction(self, iter, s, backward=False):
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
         case_sensitive = self.config.getboolean("search", "case_sensitive")
         if not case_sensitive:
@@ -414,7 +417,7 @@ class HWhisper:
 
     def compile(self):
         self.toggle_console(True)
-        if self.filename is None:
+        if self.doc.filename is None:
             self.set_console("no file to compile")
             return
         # find hspeak
@@ -426,17 +429,17 @@ class HWhisper:
         remember_dir = os.getcwdu()
         # Notify the user that compilation is starting
         self.set_console("compiling...")
-        self.statusbar_push("Compiling " + self.filename)
+        self.statusbar_push("Compiling " + self.doc.filename)
         self.window.set_sensitive(False)
         # switch working directory
         os.chdir(os.path.dirname(hspeak))
         # call the compiler
         if is_windows():
-            command_line = [hspeak, "-ykc", self.filename]
+            command_line = [hspeak, "-ykc", self.doc.filename]
             p = subprocess.Popen(command_line, stdout=subprocess.PIPE)
         else:
             # I have no dang idea why the win32 method above doesn't work on Linux :(
-            command_line = "'%s' -ykc '%s'" % (hspeak, self.filename)
+            command_line = "'%s' -ykc '%s'" % (hspeak, self.doc.filename)
             p = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE)
         while p.returncode is None:
           #sts = os.waitpid(p.pid, 0)
@@ -746,12 +749,12 @@ class HWhisper:
         self.config.set("view", key+"color", color_code)
         # Now actually apply the color change
         if key == "text":
-            self.color_widget_text(self.text_view, col)
+            self.color_widget_text(self.doc.text_view, col)
         elif key == "background":
-            self.color_widget_base(self.text_view, col)
+            self.color_widget_base(self.doc.text_view, col)
 
     def get_block(self):
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         start_mark = buff.get_insert()
         stop_mark = buff.get_selection_bound()
         if start_mark == stop_mark:
@@ -777,7 +780,7 @@ class HWhisper:
         return iter2
 
     def set_block(self, block):
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         # Get iters
         start_mark = buff.get_insert()
         stop_mark = buff.get_selection_bound()
@@ -785,9 +788,9 @@ class HWhisper:
         stop_iter = buff.get_iter_at_mark(stop_mark)
         offset = self.lower_iter(start_iter, stop_iter).get_offset()
         # Replace selected text
-        self.undo.pause = True
+        self.doc.undo.pause = True
         buff.delete(start_iter, stop_iter)
-        self.undo.pause = False
+        self.doc.undo.pause = False
         buff.insert_at_cursor(block)
         # Re-select block
         self.move_selection(buff.get_iter_at_offset(offset), buff.get_iter_at_offset(offset + len(block)))
@@ -824,7 +827,7 @@ class HWhisper:
 
     def cursor_movement(self):
         # snap off undo timeout on any mouse click or cursor movement
-        self.undo.snap()
+        self.doc.undo.snap()
         # Update line number display
         self.update_status()
 
@@ -848,7 +851,7 @@ class HWhisper:
     # This is called whenever the user starts to change text
     def on_text_changed(self, buff):
         text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
-        self.undo.remember(text, self.cursor_offset())
+        self.doc.undo.remember(text, self.cursor_offset())
         self.update_status()
 
     def on_text_view_key_press_event(self, textview, event):
@@ -858,7 +861,7 @@ class HWhisper:
 
     def on_text_view_key_release_event(self, textview, event):
         if event.keyval in (keyconst.ENTER, keyconst.SPACE):
-            self.undo.snap()
+            self.doc.undo.snap()
 
     def on_text_view_move_cursor(self, textview, stepsize, count, extended):
         self.cursor_movement()
@@ -874,12 +877,12 @@ class HWhisper:
         if self.check_for_save(): self.on_save_menu_item_activate(None, None)
         
         # clear editor for a new file
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         buff.set_text("")
         buff.set_modified(False)
-        self.filename = None
+        self.doc.filename = None
         self.update_status()
-        self.undo.reset("")
+        self.doc.undo.reset("")
     
     # Called when the user clicks the 'Open' menu. We need to prompt for save if 
     # thefile has been modified, allow the user to choose a file to open, and 
@@ -901,7 +904,7 @@ class HWhisper:
     # file.
     def on_save_menu_item_activate(self, menuitem, data=None):
         
-        if self.filename == None: 
+        if self.doc.filename == None: 
             filename = self.get_save_filename()
             if filename: self.write_file(filename)
         else: self.write_file(None)
@@ -922,46 +925,46 @@ class HWhisper:
 
     # Called when the user clicks the 'Undo' menu.
     def on_undo_menu_item_activate(self, menuitem, data=None):
-        buff = self.text_view.get_buffer()
-        (text, offset) = self.undo.pop()
+        buff = self.doc.buffer()
+        (text, offset) = self.doc.undo.pop()
         if text is not None:
-            self.undo.pause = True
+            self.doc.undo.pause = True
             buff.set_text(text)
             self.move_cursor_to_offset(offset)
-            self.undo.pause = False
+            self.doc.undo.pause = False
 
     # Called when the user clicks the 'Redo' menu.
     def on_redo_menu_item_activate(self, menuitem, data=None):
-        buff = self.text_view.get_buffer()
-        (text, offset) = self.undo.redo()
+        buff = self.doc.buffer()
+        (text, offset) = self.doc.undo.redo()
         if text is not None:
-            self.undo.pause = True
+            self.doc.undo.pause = True
             buff.set_text(text)
             self.move_cursor_to_offset(offset)
-            self.undo.pause = False
+            self.doc.undo.pause = False
 
     # Called when the user clicks the 'Cut' menu.
     def on_cut_menu_item_activate(self, menuitem, data=None):
 
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         buff.cut_clipboard (gtk.clipboard_get(), True)
         
     # Called when the user clicks the 'Copy' menu.    
     def on_copy_menu_item_activate(self, menuitem, data=None):
     
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         buff.copy_clipboard (gtk.clipboard_get())
     
     # Called when the user clicks the 'Paste' menu.    
     def on_paste_menu_item_activate(self, menuitem, data=None):
     
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         buff.paste_clipboard (gtk.clipboard_get(), None, True)
     
     # Called when the user clicks the 'Delete' menu.    
     def on_delete_menu_item_activate(self, menuitem, data=None):
         
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         buff.delete_selection (False, True)
     
     # Called when the user clicks the 'About' menu. We use gtk_show_about_dialog() 
@@ -1002,7 +1005,7 @@ class HWhisper:
         about_dialog.show()
 
     def on_help_menu_item_activate(self, menuitem, data=None):
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         #Move beginning of selection
         cursor = buff.get_insert()
         iter = buff.get_iter_at_mark(cursor)
@@ -1058,7 +1061,7 @@ class HWhisper:
     def on_search_entry_key_release_event(self, textedit, event):
         if event.keyval == keyconst.ESC:
             self.search_bar.hide_all()
-            self.text_view.grab_focus()
+            self.doc.text_view.grab_focus()
 
     def on_run_menu_item_activate(self, menuitem, data=None):
         if self.check_for_save():
@@ -1084,7 +1087,7 @@ class HWhisper:
                 buff = self.console.get_buffer()
                 text = buff.get_text(start, stop, True)
                 self.show_context_help(text)
-                self.text_view.grab_focus()
+                self.doc.text_view.grab_focus()
 
     def on_help_index_menu_item_activate(self, menuitem, data=None):
         self.show_help_index()
@@ -1211,7 +1214,7 @@ class HWhisper:
         while response == 0:
             response = dialog.run()
         if response == 1:
-            buff = self.text_view.get_buffer()
+            buff = self.doc.buffer()
             line = int(self.line_entry.get_text()) - 1
             if line < 0:
                 line = 0
@@ -1254,7 +1257,7 @@ class HWhisper:
     def check_for_save (self):
     
         ret = False
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         
         if buff.get_modified():
 
@@ -1340,13 +1343,13 @@ class HWhisper:
             unicode(text, "utf-8")
             
             # disable the text view while loading the buffer with the text
-            self.text_view.set_sensitive(False)
-            buff = self.text_view.get_buffer()
+            self.doc.text_view.set_sensitive(False)
+            buff = self.doc.buffer()
             buff.set_text(text)
             buff.set_modified(False)
             
             # now we can set the current filename since loading was a success
-            self.filename = filename
+            self.doc.filename = filename
             
         except UnicodeDecodeError:
             self.error_message("File %s failed to load. Maybe it is a binary file or contains invalid UTF-8 codes?" % filename)
@@ -1359,14 +1362,14 @@ class HWhisper:
             top_iter = buff.get_start_iter()
             self.move_cursor_to_offset(top_iter.get_offset())
             # reset the undo buffer
-            self.undo.reset(text)
+            self.doc.undo.reset(text)
             # Save filename in the recent menu
             self.add_recent(filename)
         finally:
             # re-enable the textview no matter what happens above
-            self.text_view.set_sensitive(True)
+            self.doc.text_view.set_sensitive(True)
         
-        self.text_view.grab_focus()
+        self.doc.text_view.grab_focus()
         
         # clear loading status and restore default 
         self.statusbar_pop()
@@ -1378,25 +1381,25 @@ class HWhisper:
         if filename: 
             self.statusbar_push("Saving %s" % filename)
         else:
-            self.statusbar_push("Saving %s" % self.filename)
+            self.statusbar_push("Saving %s" % self.doc.filename)
             
         while gtk.events_pending(): gtk.main_iteration()
         
         try:
             # disable text view while getting contents of buffer
-            buff = self.text_view.get_buffer()
-            self.text_view.set_sensitive(False)
+            buff = self.doc.buffer()
+            self.doc.text_view.set_sensitive(False)
             text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
-            self.text_view.set_sensitive(True)
+            self.doc.text_view.set_sensitive(True)
             buff.set_modified(False)
             
             # set the contents of the file to the text from the buffer
             if filename: fout = open(filename, "w")
-            else: fout = open(self.filename, "w")
+            else: fout = open(self.doc.filename, "w")
             fout.write(text)
             fout.close()
             
-            if filename: self.filename = filename
+            if filename: self.doc.filename = filename
 
         except:
             # error writing file, show message to user
@@ -1408,12 +1411,12 @@ class HWhisper:
         
     def update_status(self):
         
-        if self.filename:
-            status = "File: %s" % os.path.basename(self.filename)
+        if self.doc.filename:
+            status = "File: %s" % os.path.basename(self.doc.filename)
         else:
             status = "File: (UNTITLED)"
         
-        buff = self.text_view.get_buffer()
+        buff = self.doc.buffer()
         start_mark = buff.get_insert()
         start_iter = buff.get_iter_at_mark(start_mark)
         status += "  Line:%d Char:%d" % (start_iter.get_line()+1, start_iter.get_line_offset())
@@ -1657,6 +1660,18 @@ class ConfigManager(object):
     def set_list(self, section, option, separator, list):
         str = separator.join(list)
         self.set(section, option, str)
+
+# -----------------------------------------------------------------------------
+
+class DocumentHolder(object):
+
+    def __init__(self, text_view, filename=None):
+        self.text_view = text_view
+        self.filename = filename
+        self.undo = UndoManager()
+
+    def buffer(self):
+        return self.text_view.get_buffer()
 
 # -----------------------------------------------------------------------------
 
