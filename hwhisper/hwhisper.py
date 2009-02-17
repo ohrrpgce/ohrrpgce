@@ -1350,7 +1350,7 @@ class HWhisper(object):
         
         try:
             # get the file contents
-            fin = open(filename, "r")
+            fin = open(filename, "rb")
             text = fin.read()
             fin.close()
         except:
@@ -1418,8 +1418,8 @@ class HWhisper(object):
             
         try:
             # set the contents of the file to the text from the buffer
-            if filename: fout = open(filename, "w")
-            else: fout = open(self.doc.filename, "w")
+            if filename: fout = open(filename, "wb")
+            else: fout = open(self.doc.filename, "wb")
             fout.write(text)
             fout.close()
         except:
