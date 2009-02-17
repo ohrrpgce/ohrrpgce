@@ -113,8 +113,6 @@ class HWhisper(object):
         
         # connect signals
         builder.connect_signals(self)
-        buff = self.doc.buffer()
-        buff.connect("changed", self.on_text_changed)
         
         # set the default icon to the GTK "edit" icon
         gtk.window_set_default_icon_name(gtk.STOCK_EDIT)
@@ -165,6 +163,8 @@ class HWhisper(object):
 
     def add_doc(self, text_view):
         doc = DocumentHolder(text_view, self.lineend)
+        buff = doc.buffer()
+        buff.connect("changed", self.on_text_changed, doc)
         self.docs.append(doc)
         self.doc = doc
 
@@ -197,13 +197,6 @@ class HWhisper(object):
         buff = self.doc.buffer()
         iter = buff.get_iter_at_offset(offset)
         self.move_selection(iter, iter)
-
-    def cursor_offset(self):
-        buff = self.doc.buffer()
-        mark = buff.get_insert()
-        iter = buff.get_iter_at_mark(mark)
-        offset = iter.get_offset()
-        return offset
 
     def find_hspeak_token(self, iter, use_ref_tags=False):
         # Find start of token
@@ -856,9 +849,9 @@ class HWhisper(object):
         return False # Propogate event
 
     # This is called whenever the user starts to change text
-    def on_text_changed(self, buff):
+    def on_text_changed(self, buff, doc):
         text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
-        self.doc.undo.remember(text, self.cursor_offset())
+        doc.undo.remember(text, self.doc.cursor_offset())
         self.update_status()
 
     def on_text_view_key_press_event(self, textview, event):
@@ -1426,12 +1419,13 @@ class HWhisper(object):
             # error writing file, show message to user
             self.error_message ("Could not save file: %s" % filename)
             
-            if filename: self.doc.filename = filename
         else:
             # Only do this if the load succeeded
+            if filename: self.doc.filename = filename
             buff.set_modified(False)
-
-        
+            # Save filename in the recent menu
+            self.add_recent(filename)
+       
         # clear saving status and restore default     
         self.statusbar_pop()
         self.update_status()
@@ -1767,6 +1761,13 @@ class DocumentHolder(object):
             return self._line_end
         else:
             return mode
+
+    def cursor_offset(self):
+        buff = self.buffer()
+        mark = buff.get_insert()
+        iter = buff.get_iter_at_mark(mark)
+        offset = iter.get_offset()
+        return offset
 
 # -----------------------------------------------------------------------------
 
