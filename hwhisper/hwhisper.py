@@ -1260,7 +1260,21 @@ class HWhisper(object):
         
         dialog.run()
         dialog.destroy()
+    
+    # Prompt the user with a YES/NO question and return True/False depending on their answer
+    def ask(self, message, title):
+        dialog = gtk.MessageDialog(self.window,
+                 gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                 gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, message)
+        dialog.set_title(title)
+        if dialog.run() == gtk.RESPONSE_NO:
+            ret = False
+        else:
+            ret = True
         
+        dialog.destroy()
+        return ret
+
     # This function will check to see if the text buffer has been
     # modified and prompt the user to save if it has been modified.
     def check_for_save (self):
@@ -1272,18 +1286,9 @@ class HWhisper(object):
 
             # we need to prompt for save
             message = "Do you want to save the changes you have made?"
-            dialog = gtk.MessageDialog(self.window,
-                                       gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                                       gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, 
-                                       message)
-            dialog.set_title("Save?")
-            
-            if dialog.run() == gtk.RESPONSE_NO: ret = False
-            else: ret = True
-            
-            dialog.destroy()
+            ret = self.ask(message, "Save?")
         
-        return ret    
+        return ret
     
     def get_filename(self, window_caption, config_key, filters, gtk_file_chooser_action, gtk_stock_icon):
         
@@ -1330,8 +1335,18 @@ class HWhisper(object):
     # user. It will present the user with a file chooser dialog and return the 
     # filename or None.    
     def get_save_filename(self):
-        return self.get_filename("Save File...", "last_save_dir", self.file_filters,
+        overwrite = False
+        while overwrite == False:
+            filename = self.get_filename("Save File...", "last_save_dir", self.file_filters,
                                  gtk.FILE_CHOOSER_ACTION_SAVE, gtk.STOCK_SAVE)
+            if filename is None:
+                break
+            if os.path.isfile(filename):
+                message = "%s already exists. Do you want to overwrite it?" % (filename)
+                overwrite = self.ask(message, "Overwrite?")
+            else:
+                overwrite = True # Well, in this case we are overwriting nothing, but lets not argue semantics...
+        return filename
         
     # We call load_file() when we have a filename and want to load it into the 
     # buffer for the GtkTextView. The previous contents are overwritten.    
@@ -1421,10 +1436,11 @@ class HWhisper(object):
             
         else:
             # Only do this if the load succeeded
-            if filename: self.doc.filename = filename
+            if filename:
+                self.doc.filename = filename
             buff.set_modified(False)
             # Save filename in the recent menu
-            self.add_recent(filename)
+            self.add_recent(self.doc.filename)
        
         # clear saving status and restore default     
         self.statusbar_pop()
