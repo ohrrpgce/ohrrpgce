@@ -93,9 +93,20 @@ class HWhisper(object):
         self.indent_d.use_tabs = builder.get_object("indent_use_tabs")
         self.indent_d.use_spaces = builder.get_object("indent_use_spaces")
         self.indent_d.space_count = builder.get_object("indent_space_count")
+        # line ending style dialog
+        self.line_ending_d = DialogHolder(builder.get_object("line_ending_dialog"))
+        self.line_ending_d.windows = builder.get_object("line_ending_windows")
+        self.line_ending_d.unix = builder.get_object("line_ending_unix")
+        self.line_ending_d.auto = builder.get_object("line_ending_auto")
         # goto line dialog
         self.goto_line_d = DialogHolder(builder.get_object("line_dialog"))
         self.goto_line_d.entry = builder.get_object("line_entry")
+        
+        # Load config file
+        self.config.load()
+        self.update_search_buttons()
+        
+        self.lineend = LineEndingManager(self.config)
         
         self.docs = []
         self.add_doc(builder.get_object("text_view"))
@@ -111,10 +122,6 @@ class HWhisper(object):
         # setup and initialize our statusbar
         self.statusbar_cid = self.statusbar.get_context_id(self.app_name)
         self.update_status()
-        
-        # Load config file
-        self.config.load()
-        self.update_search_buttons()
 
         self.indent_string = self.get_indent_string()
 
@@ -157,7 +164,7 @@ class HWhisper(object):
     #-------------------------------------------------------------------
 
     def add_doc(self, text_view):
-        doc = DocumentHolder(text_view)
+        doc = DocumentHolder(text_view, self.lineend)
         self.docs.append(doc)
         self.doc = doc
 
@@ -803,7 +810,7 @@ class HWhisper(object):
         return True
 
     def get_indent_string(self):
-        str = self.config.get("indent", "string")
+        str = self.config.get("text", "indent")
         if str is None:
             return "\t"
         str = str.lower()
@@ -823,7 +830,7 @@ class HWhisper(object):
             set = "space"
         if len(str) > 1:
             set = "%dspace" % (len(str))
-        self.config.set("indent", "string", set)
+        self.config.set("text", "indent", set)
 
     def cursor_movement(self):
         # snap off undo timeout on any mouse click or cursor movement
@@ -1200,6 +1207,25 @@ class HWhisper(object):
                 self.indent_string = " " * count
             self.set_indent_string(self.indent_string)
 
+    def on_line_ending_menu_item_activate(self, menuitem, data=None):
+        dialog = self.line_ending_d
+        mode = self.lineend.get_mode()
+        if mode == "windows":
+            dialog.windows.set_active(True)
+        elif mode == "unix":
+            dialog.unix.set_active(True)
+        elif mode == "auto":
+            dialog.auto.set_active(True)
+        if dialog.run():
+            if dialog.windows.get_active():
+                mode = "windows"
+            elif dialog.unix.get_active():
+                mode = "unix"
+            elif dialog.auto.get_active():
+                mode = "auto"
+            self.lineend.set_mode(mode)
+            self.update_status()
+
     def on_goto_line_menu_item_activate(self, menuitem, data=None):
         dialog = self.goto_line_d
         dialog.entry.set_text("1")
@@ -1332,6 +1358,9 @@ class HWhisper(object):
             self.error_message ("Could not open file: %s" % filename)
             
         else:
+            mode = self.lineend.detect(text, self.error_message)
+            text = self.lineend.convert(text, "unix")
+            
             try:
                 # Make sure this is unicode (because TextBuffer requires it)
                 # this will raise UnicodeDecodeError if it fails
@@ -1340,22 +1369,25 @@ class HWhisper(object):
                 self.error_message("File %s failed to load. Maybe it is a binary file or contains invalid UTF-8 codes?" % filename)
             else:
                 # disable the text view while loading the buffer with the text
-                self.doc.text_view.set_sensitive(False)
-                buff = self.doc.buffer()
-                buff.set_text(text)
-                buff.set_modified(False)
-            
-                # now we can set the current filename since loading was a success
-                self.doc.filename = filename
-                
-                # this stuff is done when the load succeeds.
-                # Move the cursor to the top
-                top_iter = buff.get_start_iter()
-                self.move_cursor_to_offset(top_iter.get_offset())
-                # reset the undo buffer
-                self.doc.undo.reset(text)
-                # Save filename in the recent menu
-                self.add_recent(filename)
+                try:
+                    self.doc.text_view.set_sensitive(False)
+                    buff = self.doc.buffer()
+                    buff.set_text(text)
+                except:
+                    self.error_message ("Could not load file into buffer: %s" % filename)
+                else:
+                    # loading was a success
+                    buff.set_modified(False)
+                    self.doc.filename = filename
+                    self.doc.set_line_end(mode)
+                    # this stuff is done when the load succeeds.
+                    # Move the cursor to the top
+                    top_iter = buff.get_start_iter()
+                    self.move_cursor_to_offset(top_iter.get_offset())
+                    # reset the undo buffer
+                    self.doc.undo.reset(text)
+                    # Save filename in the recent menu
+                    self.add_recent(filename)
                 
         # re-enable the textview no matter what happens above
         self.doc.text_view.set_sensitive(True)
@@ -1380,6 +1412,9 @@ class HWhisper(object):
         self.doc.text_view.set_sensitive(False)
         text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
         self.doc.text_view.set_sensitive(True)
+
+        # Convert into the desired line ending style
+        text = self.lineend.convert(text, self.doc.get_line_end())
             
         try:
             # set the contents of the file to the text from the buffer
@@ -1412,6 +1447,9 @@ class HWhisper(object):
         start_mark = buff.get_insert()
         start_iter = buff.get_iter_at_mark(start_mark)
         status += "  Line:%d Char:%d" % (start_iter.get_line()+1, start_iter.get_line_offset())
+
+        if self.doc.filename or self.doc.buffer().get_modified():
+            status += "  %s style line endings" % (self.doc.get_line_end())
         
         self.statusbar_pop()
         self.statusbar_push(status)
@@ -1655,15 +1693,80 @@ class ConfigManager(object):
 
 # -----------------------------------------------------------------------------
 
+class LineEndingManager(object):
+
+    def __init__(self, config):
+        self.config = config
+
+    def get_os_default(self):
+        if is_windows():
+            return "windows"
+        return "unix"
+
+    def get_mode(self):
+        mode = self.config.get("text", "line_ending", "auto")
+        if mode in ["windows", "unix", "auto"]:
+            return mode
+        raise "Invalid line ending mode: %s" % (mode)
+
+    def set_mode(self, mode):
+        self.config.set("text", "line_ending", mode)
+
+    def detect(self, text, error_function):
+        default = self.get_os_default()
+        crlf = text.count("\r\n")
+        lf = crlf - text.count("\n")
+        if crlf == 0 and lf == 0:
+            return default
+        if crlf == 0:
+            return "unix"
+        if lf == 0:
+            return "windows"
+        error_function("This file has mixed line endings (Windows=%d, Unix=%d) It will be converted to %s-style." % (crlf, lf, default))
+        return default
+
+    def get_string(self, mode):
+        if mode == "windows":
+            return "\r\n"
+        elif mode == "unix":
+            return "\n"
+        raise Exception("unable to get line ending string: %s" % (mode))
+    
+    def convert(self, text, mode):
+        lines = text.split("\n")
+        for i in xrange(len(lines)):
+            lines[i] = lines[i].rstrip("\r")
+        str = self.get_string(mode)
+        return str.join(lines)
+
+# -----------------------------------------------------------------------------
+
 class DocumentHolder(object):
 
-    def __init__(self, text_view, filename=None):
+    def __init__(self, text_view, lineend, filename=None):
         self.text_view = text_view
         self.filename = filename
         self.undo = UndoManager()
+        self.lineend = lineend
+        self._line_end = None
 
     def buffer(self):
         return self.text_view.get_buffer()
+
+    def set_line_end(self, mode):
+        if mode in ["windows", "unix"]:
+            self._line_end = mode
+        else:
+            raise Exception("%s is not a valid value for the detected line ending type for a file")
+    
+    def get_line_end(self):
+        mode = self.lineend.get_mode()
+        if mode == "auto":
+            if self._line_end is None:
+                return self.lineend.get_os_default()
+            return self._line_end
+        else:
+            return mode
 
 # -----------------------------------------------------------------------------
 
