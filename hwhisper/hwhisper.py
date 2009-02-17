@@ -89,13 +89,13 @@ class HWhisper(object):
         self.toggle_console_menu_item = builder.get_object("toggle_console_menu_item")
         self.splitpanes = builder.get_object("splitpanes")
         # indent style dialog
-        self.indent_dialog = builder.get_object("indent_dialog")
-        self.indent_use_tabs = builder.get_object("indent_use_tabs")
-        self.indent_use_spaces = builder.get_object("indent_use_spaces")
-        self.indent_space_count = builder.get_object("indent_space_count")
+        self.indent_d = DialogHolder(builder.get_object("indent_dialog"))
+        self.indent_d.use_tabs = builder.get_object("indent_use_tabs")
+        self.indent_d.use_spaces = builder.get_object("indent_use_spaces")
+        self.indent_d.space_count = builder.get_object("indent_space_count")
         # goto line dialog
-        self.line_dialog = builder.get_object("line_dialog")
-        self.line_entry = builder.get_object("line_entry")
+        self.goto_line_d = DialogHolder(builder.get_object("line_dialog"))
+        self.goto_line_d.entry = builder.get_object("line_entry")
         
         self.docs = []
         self.add_doc(builder.get_object("text_view"))
@@ -1185,45 +1185,35 @@ class HWhisper(object):
         self.set_block("\n".join(newlines))
 
     def on_indent_style_menu_item_activate(self, menuitem, data=None):
-        dialog = self.indent_dialog
+        dialog = self.indent_d
         if self.indent_string == "\t":
-            self.indent_use_tabs.set_active(True)
+            dialog.use_tabs.set_active(True)
         else:
-            self.indent_use_spaces.set_active(True)
-            self.indent_space_count.set_value(len(self.indent_string))
-        dialog.show_all()
-        response = 0
-        while response == 0:
-            response = dialog.run()
-        if response == 1:
-            if self.indent_use_tabs.get_active():
+            dialog.use_spaces.set_active(True)
+            dialog.space_count.set_value(len(self.indent_string))
+        if dialog.run():
+            if dialog.use_tabs.get_active():
                 self.indent_string = "\t"
-            elif self.indent_use_spaces.get_active():
-                count = self.indent_space_count.get_value_as_int()
+            elif dialog.use_spaces.get_active():
+                count = dialog.space_count.get_value_as_int()
                 if count < 1: count = 1
                 self.indent_string = " " * count
             self.set_indent_string(self.indent_string)
-        dialog.hide()
 
     def on_goto_line_menu_item_activate(self, menuitem, data=None):
-        dialog = self.line_dialog
-        self.line_entry.set_text("1")
-        dialog.show_all()
-        self.line_entry.grab_focus()
-        response = 0
-        while response == 0:
-            response = dialog.run()
-        if response == 1:
+        dialog = self.goto_line_d
+        dialog.entry.set_text("1")
+        dialog.entry.grab_focus()
+        if dialog.run():
             buff = self.doc.buffer()
-            line = int(self.line_entry.get_text()) - 1
+            line = int(dialog.entry.get_text()) - 1
             if line < 0:
                 line = 0
             iter = buff.get_iter_at_line(line)
             self.move_selection(iter, iter)
-        dialog.hide()
 
     def on_line_entry_activate(self, textedit, data=None):
-        self.line_dialog.response(1)
+        self.goto_line_d.dialog.response(1)
     
     __findnumberchar = re.compile("[0-9]")
     def on_line_entry_changed(self, textedit, data=None):
@@ -1674,6 +1664,27 @@ class DocumentHolder(object):
 
     def buffer(self):
         return self.text_view.get_buffer()
+
+# -----------------------------------------------------------------------------
+
+class DialogHolder(object):
+  
+    def __init__(self, dialog):
+        self.dialog = dialog
+
+    # This assumes that your OK button is configured to return a response of 1
+    # Close has a response other than 0 or 1 and buttons that aren't supposed to
+    # close the dialog box have a response of 0 (the default)
+    # and all other buttons have some other response value
+    def run(self):
+        self.dialog.show_all()
+        response = 0
+        while response == 0:
+            response = self.dialog.run()
+        self.dialog.hide()
+        if response == 1:
+            return True
+        return False
 
 # -----------------------------------------------------------------------------
 
