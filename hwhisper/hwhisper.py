@@ -39,7 +39,7 @@ import version
 
 # -----------------------------------------------------------------------------
 
-class HWhisper:
+class HWhisper(object):
 
     # We use the initialization of the HWhisper class to establish
     # references to the widgets we'll need to work with in the callbacks for
@@ -1337,38 +1337,38 @@ class HWhisper:
             fin = open(filename, "r")
             text = fin.read()
             fin.close()
-            
-            # Make sure this is unicode (because TextBuffer reuires it)
-            # this will raise UnicodeDecodeError if it fails
-            unicode(text, "utf-8")
-            
-            # disable the text view while loading the buffer with the text
-            self.doc.text_view.set_sensitive(False)
-            buff = self.doc.buffer()
-            buff.set_text(text)
-            buff.set_modified(False)
-            
-            # now we can set the current filename since loading was a success
-            self.doc.filename = filename
-            
-        except UnicodeDecodeError:
-            self.error_message("File %s failed to load. Maybe it is a binary file or contains invalid UTF-8 codes?" % filename)
         except:
             # error loading file, show message to user
             self.error_message ("Could not open file: %s" % filename)
+            
         else:
-            # this stuff is done when the load succeeds.
-            # Move the cursor to the top
-            top_iter = buff.get_start_iter()
-            self.move_cursor_to_offset(top_iter.get_offset())
-            # reset the undo buffer
-            self.doc.undo.reset(text)
-            # Save filename in the recent menu
-            self.add_recent(filename)
-        finally:
-            # re-enable the textview no matter what happens above
-            self.doc.text_view.set_sensitive(True)
-        
+            try:
+                # Make sure this is unicode (because TextBuffer requires it)
+                # this will raise UnicodeDecodeError if it fails
+                unicode(text, "utf-8")
+            except UnicodeDecodeError:
+                self.error_message("File %s failed to load. Maybe it is a binary file or contains invalid UTF-8 codes?" % filename)
+            else:
+                # disable the text view while loading the buffer with the text
+                self.doc.text_view.set_sensitive(False)
+                buff = self.doc.buffer()
+                buff.set_text(text)
+                buff.set_modified(False)
+            
+                # now we can set the current filename since loading was a success
+                self.doc.filename = filename
+                
+                # this stuff is done when the load succeeds.
+                # Move the cursor to the top
+                top_iter = buff.get_start_iter()
+                self.move_cursor_to_offset(top_iter.get_offset())
+                # reset the undo buffer
+                self.doc.undo.reset(text)
+                # Save filename in the recent menu
+                self.add_recent(filename)
+                
+        # re-enable the textview no matter what happens above
+        self.doc.text_view.set_sensitive(True)
         self.doc.text_view.grab_focus()
         
         # clear loading status and restore default 
@@ -1385,25 +1385,27 @@ class HWhisper:
             
         while gtk.events_pending(): gtk.main_iteration()
         
-        try:
-            # disable text view while getting contents of buffer
-            buff = self.doc.buffer()
-            self.doc.text_view.set_sensitive(False)
-            text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
-            self.doc.text_view.set_sensitive(True)
-            buff.set_modified(False)
+        # disable text view while getting contents of buffer
+        buff = self.doc.buffer()
+        self.doc.text_view.set_sensitive(False)
+        text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
+        self.doc.text_view.set_sensitive(True)
             
+        try:
             # set the contents of the file to the text from the buffer
             if filename: fout = open(filename, "w")
             else: fout = open(self.doc.filename, "w")
             fout.write(text)
             fout.close()
-            
-            if filename: self.doc.filename = filename
-
         except:
             # error writing file, show message to user
             self.error_message ("Could not save file: %s" % filename)
+            
+            if filename: self.doc.filename = filename
+        else:
+            # Only do this if the load succeeded
+            buff.set_modified(False)
+
         
         # clear saving status and restore default     
         self.statusbar_pop()
