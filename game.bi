@@ -44,5 +44,6 @@ declare function menu_item_handle_by_slot(menuslot as integer, mislot as integer
 declare function find_menu_item_slot_by_string(menuslot as integer, s as string, mislot as integer=0, visible_only as integer=yes) as integer
 declare function allowed_to_open_main_menu () as integer
 declare function random_formation (byval set as integer) as integer
+declare sub init_default_text_colors()
 
 #ENDIF

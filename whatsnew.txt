@@ -44,6 +44,8 @@ WHAT IS NEW?
     * Text box exporter escapes non-printable ascii as \NNN sequences
       where NNN is the three digit decmal representation of the ascii
       code [James]
+    * Bug 712: default plotstring colors are wrong after a
+      non-title-screen load [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

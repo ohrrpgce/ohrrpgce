@@ -294,11 +294,7 @@ DO' This loop encloses the playable game for a specific RPG file
 
 loadpalette master(), gen(genMasterPal)
 LoadUIColors uilook(), gen(genMasterPal)
-
-textcolor uilook(uiText), 0
-FOR i = 0 TO 31
- plotstr(i).Col = uilook(uiText)
-NEXT i
+init_default_text_colors
 
 initgamedefaults
 reset_game_state
@@ -648,8 +644,9 @@ LOOP ' This is the end of the DO that encloses the entire program.
 
 doloadgame:
 loadgame temp, stat()
-IF gen(57) > 0 THEN
- rsr = runscript(gen(57), nowscript + 1, -1, "loadgame", plottrigger)
+init_default_text_colors
+IF gen(genLoadGameScript) > 0 THEN
+ rsr = runscript(gen(genLoadGameScript), nowscript + 1, -1, "loadgame", plottrigger)
  IF rsr = 1 THEN
   '--pass save slot as argument
   IF temp = 32 THEN temp = -1 'quickload slot
@@ -3068,4 +3065,11 @@ SUB slice_test_suite ()
  if keyval(scRight) > 1 then testslice1->X += 2
  if keyval(scUp) > 1 then testslice1->Y -= 2
  if keyval(scDown) > 1 then testslice1->Y += 2
+END SUB
+
+SUB init_default_text_colors()
+ textcolor uilook(uiText), 0
+ FOR i AS INTEGER = 0 TO 31
+  plotstr(i).Col = uilook(uiText)
+ NEXT i
 END SUB
