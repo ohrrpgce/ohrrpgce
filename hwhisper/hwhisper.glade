@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Wed Feb 18 11:04:08 2009 -->
+<!--Generated with glade3 3.4.5 on Wed Feb 18 12:59:32 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="window">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -700,11 +700,6 @@
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="left_margin">2</property>
                         <property name="right_margin">2</property>
-                        <signal name="button_press_event" handler="on_text_view_button_press_event"/>
-                        <signal name="move_cursor" handler="on_text_view_move_cursor"/>
-                        <signal name="key_press_event" handler="on_text_view_key_press_event"/>
-                        <signal name="button_release_event" handler="on_text_view_button_release_event"/>
-                        <signal name="key_release_event" handler="on_text_view_key_release_event"/>
                       </widget>
                     </child>
                   </widget>

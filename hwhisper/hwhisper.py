@@ -166,6 +166,11 @@ class HWhisper(object):
         doc = DocumentHolder(self.tabbar, text_view, self.lineend)
         buff = doc.buffer()
         buff.connect("changed", self.on_text_changed, doc)
+        text_view.connect("key-press-event", self.on_text_view_key_press_event, doc)
+        text_view.connect("key-release-event", self.on_text_view_key_release_event, doc)
+        text_view.connect("move-cursor", self.on_text_view_move_cursor, doc)
+        text_view.connect("button-press-event", self.on_text_view_button_press_event, doc)
+        text_view.connect("button-release-event", self.on_text_view_button_release_event, doc)
         self.docs.append(doc)
         self.doc = doc
 
@@ -830,16 +835,7 @@ class HWhisper(object):
             set = "%dspace" % (len(str))
         self.config.set("text", "indent", set)
 
-    def find_doc_by_textview(self, textview):
-        if textview  is self.doc.text_view:
-            return self.doc
-        for doc in self.docs:
-            if textview is doc.text_view:
-                return doc
-        raise Exception("Unable to find doc for textview %s" % (textview))
-
-    def cursor_movement(self, textview):
-        doc = self.find_doc_by_textview(textview)
+    def cursor_movement(self, textview, doc):
         # remember cursor position
         doc.remember_cursor()
         # snap off undo timeout on any mouse click or cursor movement
@@ -871,25 +867,24 @@ class HWhisper(object):
         doc.undo.remember(text)
         self.update_status()
 
-    def on_text_view_key_press_event(self, textview, event):
+    def on_text_view_key_press_event(self, textview, event, doc):
         if event.keyval == keyconst.F3:
             entry = self.search_entry
             self.search(entry.get_text())
 
-    def on_text_view_key_release_event(self, textview, event):
-        doc = self.find_doc_by_textview(textview)
+    def on_text_view_key_release_event(self, textview, event, doc):
         if event.keyval in (keyconst.ENTER, keyconst.SPACE):
             doc.undo.snap()
         doc.remember_cursor()
 
-    def on_text_view_move_cursor(self, textview, stepsize, count, extended):
-        self.cursor_movement(textview)
+    def on_text_view_move_cursor(self, textview, stepsize, count, extended, doc):
+        self.cursor_movement(textview, doc)
     
-    def on_text_view_button_press_event(self, textview, event):
-        self.cursor_movement(textview)
+    def on_text_view_button_press_event(self, textview, event, doc):
+        self.cursor_movement(textview, doc)
 
-    def on_text_view_button_release_event(self, textview, event):
-        self.cursor_movement(textview)
+    def on_text_view_button_release_event(self, textview, event, doc):
+        self.cursor_movement(textview, doc)
       
     # Called when the user clicks the 'New' menu. We need to prompt for save if 
     # the file has been modified, and then delete the buffer and clear the  
