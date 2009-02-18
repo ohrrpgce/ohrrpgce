@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!--Generated with glade3 3.4.5 on Mon Feb 16 13:49:34 2009 -->
+<!--Generated with glade3 3.4.5 on Tue Feb 17 15:52:18 2009 -->
 <interface>
   <object class="GtkAdjustment" id="adjustment1">
     <property name="upper">8</property>
@@ -466,6 +466,7 @@
                     <signal handler="on_text_view_button_press_event" name="button_press_event"/>
                     <signal handler="on_text_view_move_cursor" name="move_cursor"/>
                     <signal handler="on_text_view_key_press_event" name="key_press_event"/>
+                    <signal handler="on_text_view_button_release_event" name="button_release_event"/>
                     <signal handler="on_text_view_key_release_event" name="key_release_event"/>
                   </object>
                 </child>

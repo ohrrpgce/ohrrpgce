@@ -192,11 +192,12 @@ class HWhisper(object):
         all.add_pattern("*")
         self.file_filters = (hss, all)
 
-    def move_cursor_to_offset(self, offset):
+    def move_cursor_to_offset(self, offset, selsize=0):
         if offset is None: return
         buff = self.doc.buffer()
-        iter = buff.get_iter_at_offset(offset)
-        self.move_selection(iter, iter)
+        start_iter = buff.get_iter_at_offset(offset)
+        stop_iter = buff.get_iter_at_offset(offset + selsize)
+        self.move_selection(start_iter, stop_iter)
 
     def find_hspeak_token(self, iter, use_ref_tags=False):
         # Find start of token
@@ -232,6 +233,7 @@ class HWhisper(object):
         selection_bound = buff.get_selection_bound()
         buff.move_mark(selection_bound, stop)
         self.doc.text_view.scroll_to_mark(insert, 0.1)
+        self.doc.remember_cursor()
         self.update_status()
 
     def find_named_menu(self, menu, name):
@@ -825,9 +827,20 @@ class HWhisper(object):
             set = "%dspace" % (len(str))
         self.config.set("text", "indent", set)
 
-    def cursor_movement(self):
+    def find_doc_by_textview(self, textview):
+        if textview  is self.doc.text_view:
+            return self.doc
+        for doc in self.docs:
+            if textview is doc.text_view:
+                return doc
+        raise Exception("Unable to find doc for textview %s" % (textview))
+
+    def cursor_movement(self, textview):
+        doc = self.find_doc_by_textview(textview)
+        # remember cursor position
+        doc.remember_cursor()
         # snap off undo timeout on any mouse click or cursor movement
-        self.doc.undo.snap()
+        doc.undo.snap()
         # Update line number display
         self.update_status()
 
@@ -851,7 +864,8 @@ class HWhisper(object):
     # This is called whenever the user starts to change text
     def on_text_changed(self, buff, doc):
         text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
-        doc.undo.remember(text, self.doc.cursor_offset())
+        doc.remember_cursor()
+        doc.undo.remember(text)
         self.update_status()
 
     def on_text_view_key_press_event(self, textview, event):
@@ -862,13 +876,17 @@ class HWhisper(object):
     def on_text_view_key_release_event(self, textview, event):
         if event.keyval in (keyconst.ENTER, keyconst.SPACE):
             self.doc.undo.snap()
+        self.doc.remember_cursor()
 
     def on_text_view_move_cursor(self, textview, stepsize, count, extended):
-        self.cursor_movement()
+        self.cursor_movement(textview)
     
     def on_text_view_button_press_event(self, textview, event):
-        self.cursor_movement()
+        self.cursor_movement(textview)
 
+    def on_text_view_button_release_event(self, textview, event):
+        self.cursor_movement(textview)
+      
     # Called when the user clicks the 'New' menu. We need to prompt for save if 
     # the file has been modified, and then delete the buffer and clear the  
     # modified flag.    
@@ -926,21 +944,21 @@ class HWhisper(object):
     # Called when the user clicks the 'Undo' menu.
     def on_undo_menu_item_activate(self, menuitem, data=None):
         buff = self.doc.buffer()
-        (text, offset) = self.doc.undo.pop()
+        (text, offset, selsize) = self.doc.undo.pop()
         if text is not None:
             self.doc.undo.pause = True
             buff.set_text(text)
-            self.move_cursor_to_offset(offset)
+            self.move_cursor_to_offset(offset, selsize)
             self.doc.undo.pause = False
 
     # Called when the user clicks the 'Redo' menu.
     def on_redo_menu_item_activate(self, menuitem, data=None):
         buff = self.doc.buffer()
-        (text, offset) = self.doc.undo.redo()
+        (text, offset, selsize) = self.doc.undo.redo()
         if text is not None:
             self.doc.undo.pause = True
             buff.set_text(text)
-            self.move_cursor_to_offset(offset)
+            self.move_cursor_to_offset(offset, selsize)
             self.doc.undo.pause = False
 
     # Called when the user clicks the 'Cut' menu.
@@ -1175,8 +1193,7 @@ class HWhisper(object):
         for line in lines:
             match = self.__findcomment.match(line)
             if match is None:
-                print "oops! uncomment match failed! this shouldn't happen!"
-                continue
+                raise Exception("oops! uncomment match failed! this shouldn't happen!")
             indent = match.group(1)
             comment = match.group(3)
             newlines.append(indent + comment)
@@ -1390,8 +1407,7 @@ class HWhisper(object):
                     self.doc.set_line_end(mode)
                     # this stuff is done when the load succeeds.
                     # Move the cursor to the top
-                    top_iter = buff.get_start_iter()
-                    self.move_cursor_to_offset(top_iter.get_offset())
+                    self.doc.move_cursor_to_top()
                     # reset the undo buffer
                     self.doc.undo.reset(text)
                     # Save filename in the recent menu
@@ -1534,9 +1550,11 @@ class UndoManager(object):
         self.maximum_size = 1024 * 1000 
         self.merge_seconds = 1.5
         self.reset("")
+        self.last_cursor_offset = 0
+        self.last_selection_size = 0
 
     def reset(self, starting_text):
-        self._history = [(starting_text, 0)]
+        self._history = [(starting_text, 0, 0)]
         self._redo = []
         self._one_char = False
         self.timestamp = None
@@ -1547,7 +1565,7 @@ class UndoManager(object):
         self.timestamp = None
         self._one_char = False
 
-    def remember(self, text, offset):
+    def remember(self, text):
         if self.pause:
             return
         self._redo = []
@@ -1562,27 +1580,27 @@ class UndoManager(object):
             # Only one char changed
             if self._one_char:
               # Last time was only one char too, so just update the last history push
-              self.repush(text, offset)
+              self.repush(text, self.last_cursor_offset, self.last_selection_size)
             else:
               # Last time was a full push, so start push a new history entry
-              self.push(text, offset)
+              self.push(text, self.last_cursor_offset, self.last_selection_size)
             self._one_char = True
         else:
           self._one_char = False
-          self.push(text, offset)
+          self.push(text, self.last_cursor_offset, self.last_selection_size)
         self.__expire()
         self.timestamp = datetime.now()
 
     # Replace the last text on the stack
-    def repush(self, text, offset):
+    def repush(self, text, offset, selsize):
         if len(self._history):
-            self._history[-1] = (text, offset)
+            self._history[-1] = (text, offset, selsize)
         else:
-            self.push(text, offset)
+            self.push(text, offset, selsize)
 
     # Add new text to the stack
-    def push(self, text, offset):
-        entry = (text, offset)
+    def push(self, text, offset, selsize):
+        entry = (text, offset, selsize)
         self._history.append(entry)
 
     # Throws the top of the stack to the redo buffer
@@ -1599,17 +1617,17 @@ class UndoManager(object):
     # Pops and returns the top of the redo buffer (if possible)
     def redo(self):
         if len(self._redo) == 0:
-            return (None, None)
+            return (None, None, 0)
         entry = self._redo[-1]
-        (text, offset) = entry
-        self.push(text, offset)
+        (text, offset, selsize) = entry
+        self.push(text, offset, selsize)
         self._redo = self._redo[:-1]
         return entry
 
     def size(self):
         n = 0
         for entry in self._history:
-            (s, cursor) = entry
+            (s, offset, selsize) = entry
             n += len(s)
         return n
 
@@ -1642,7 +1660,7 @@ class ConfigManager(object):
             if not os.path.isdir(config_base):
                 config_base = os.path.dirname(sys.argv[0])
                 if config_base == "":
-                    print "Unable to find config_base folder, sorry."
+                    raise Exception("Unable to find config_base folder, sorry.")
             self.config_dir = os.path.join(config_base, "HWhisper")
         else:
             config_base = os.environ["HOME"]
@@ -1784,6 +1802,30 @@ class DocumentHolder(object):
         iter = buff.get_iter_at_mark(mark)
         offset = iter.get_offset()
         return offset
+
+    def selection(self):
+        buff = self.buffer()
+        start_mark = buff.get_insert()
+        stop_mark = buff.get_selection_bound()
+        start_iter = buff.get_iter_at_mark(start_mark)
+        stop_iter =buff.get_iter_at_mark(stop_mark)
+        text = buff.get_text(start_iter, stop_iter)
+        return text
+
+    def selection_size(self):
+        return len(self.selection())
+
+    def remember_cursor(self):
+        self.undo.last_cursor_offset = self.cursor_offset()
+        self.undo.last_selection_size = self.selection_size()
+
+    def move_cursor_to_top(self):
+        buff = self.buffer()
+        top_iter = buff.get_start_iter()
+        mark = buff.get_insert()
+        buff.move_mark(mark, top_iter)
+        mark = buff.get_selection_bound()
+        buff.move_mark(mark, top_iter)
 
 # -----------------------------------------------------------------------------
 
