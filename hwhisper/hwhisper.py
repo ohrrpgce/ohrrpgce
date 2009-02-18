@@ -71,6 +71,7 @@ class HWhisper(object):
         
         # get the widgets which will be referenced in callbacks
         self.window = builder.get_object("window")
+        self.tabbar = builder.get_object("tab_bar")
         self.statusbar = builder.get_object("statusbar")
         self.menu = builder.get_object("menu_bar")
         self.search_bar = builder.get_object("search_bar")
@@ -162,7 +163,7 @@ class HWhisper(object):
     #-------------------------------------------------------------------
 
     def add_doc(self, text_view):
-        doc = DocumentHolder(text_view, self.lineend)
+        doc = DocumentHolder(self.tabbar, text_view, self.lineend)
         buff = doc.buffer()
         buff.connect("changed", self.on_text_changed, doc)
         self.docs.append(doc)
@@ -178,7 +179,8 @@ class HWhisper(object):
         
     def set_font(self, font):
         self.config.set("view", "font", font)
-        self.doc.text_view.modify_font(pango.FontDescription(font))
+        for doc in self.docs:
+            doc.text_view.modify_font(pango.FontDescription(font))
 
     def setup_filetypes(self):
         hss = gtk.FileFilter()
@@ -750,10 +752,11 @@ class HWhisper(object):
         color_code = col.to_string()
         self.config.set("view", key+"color", color_code)
         # Now actually apply the color change
-        if key == "text":
-            self.color_widget_text(self.doc.text_view, col)
-        elif key == "background":
-            self.color_widget_base(self.doc.text_view, col)
+        for doc in self.docs:
+            if key == "text":
+                self.color_widget_text(doc.text_view, col)
+            elif key == "background":
+                self.color_widget_base(doc.text_view, col)
 
     def get_block(self):
         buff = self.doc.buffer()
@@ -874,9 +877,10 @@ class HWhisper(object):
             self.search(entry.get_text())
 
     def on_text_view_key_release_event(self, textview, event):
+        doc = self.find_doc_by_textview(textview)
         if event.keyval in (keyconst.ENTER, keyconst.SPACE):
-            self.doc.undo.snap()
-        self.doc.remember_cursor()
+            doc.undo.snap()
+        doc.remember_cursor()
 
     def on_text_view_move_cursor(self, textview, stepsize, count, extended):
         self.cursor_movement(textview)
@@ -1306,7 +1310,7 @@ class HWhisper(object):
             ret = self.ask(message, "Save?")
         
         return ret
-    
+
     def get_filename(self, window_caption, config_key, filters, gtk_file_chooser_action, gtk_stock_icon):
         
         filename = None
@@ -1463,16 +1467,12 @@ class HWhisper(object):
         self.update_status()
         
     def update_status(self):
-        
-        if self.doc.filename:
-            status = "File: %s" % os.path.basename(self.doc.filename)
-        else:
-            status = "File: (UNTITLED)"
+        status = ""
         
         buff = self.doc.buffer()
         start_mark = buff.get_insert()
         start_iter = buff.get_iter_at_mark(start_mark)
-        status += "  Line:%d Char:%d" % (start_iter.get_line()+1, start_iter.get_line_offset())
+        status += "Line:%d Char:%d" % (start_iter.get_line()+1, start_iter.get_line_offset())
 
         if self.doc.filename or self.doc.buffer().get_modified():
             status += "  %s style line endings" % (self.doc.get_line_end())
@@ -1771,7 +1771,8 @@ class LineEndingManager(object):
 
 class DocumentHolder(object):
 
-    def __init__(self, text_view, lineend, filename=None):
+    def __init__(self, tabbar, text_view, lineend, filename=None):
+        self.tabbar = tabbar
         self.text_view = text_view
         self.filename = filename
         self.undo = UndoManager()
@@ -1795,6 +1796,21 @@ class DocumentHolder(object):
             return self._line_end
         else:
             return mode
+
+    def set_tab_label(self, text):
+        if text is None:
+            text = "Untitled"
+        text = os.path.basename(text)
+        self.tabbar.set_tab_label_text(self.text_view.get_parent(), text)
+
+    def set_filename(self, filename):
+        self.set_tab_label(filename)
+        self._filename = filename
+        
+    def get_filename(self):
+        return self._filename
+        
+    filename = property(get_filename, set_filename)
 
     def cursor_offset(self):
         buff = self.buffer()
