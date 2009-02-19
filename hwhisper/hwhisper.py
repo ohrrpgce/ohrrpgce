@@ -938,6 +938,14 @@ class HWhisper(object):
         # Update line number display
         self.update_status()
 
+    def update_tab_modification_indicators(self):
+        for doc in self.docs:
+            buff = doc.buffer()
+            color = "black"
+            if buff.get_modified():
+                color = "red"
+            doc.set_tab_label(color)
+
     #-------------------------------------------------------------------
 
     # When our window is destroyed, we want to break out of the GTK main loop. 
@@ -973,6 +981,7 @@ class HWhisper(object):
         if event.keyval in (keyconst.ENTER, keyconst.SPACE):
             doc.undo.snap()
         doc.remember_cursor()
+        self.update_status()
 
     def on_text_view_move_cursor(self, textview, stepsize, count, extended, doc):
         self.cursor_movement(textview, doc)
@@ -1359,6 +1368,7 @@ class HWhisper(object):
         for doc in self.docs:
             if text_view is doc.text_view:
                 self.doc = doc
+                self.update_status()
                 return
         raise Exception("%s not found in tab bar" % (text_view))
 
@@ -1574,6 +1584,7 @@ class HWhisper(object):
         status = ""
         
         buff = self.doc.buffer()
+        
         start_mark = buff.get_insert()
         start_iter = buff.get_iter_at_mark(start_mark)
         status += "Line:%d Char:%d" % (start_iter.get_line()+1, start_iter.get_line_offset())
@@ -1581,8 +1592,12 @@ class HWhisper(object):
         if self.doc.filename or self.doc.buffer().get_modified():
             status += "  %s style line endings" % (self.doc.get_line_end())
         
+        if buff.get_modified():
+            status += "  (modified)"
+        
         self.statusbar_pop()
         self.statusbar_push(status)
+        self.update_tab_modification_indicators()
 
     # Run main application window
     def main(self):
@@ -1902,20 +1917,28 @@ class DocumentHolder(object):
         else:
             return mode
 
-    def set_tab_label(self, text):
-        if text is None:
-            text = "Untitled"
+    def set_tab_label(self, color="black", bold=False):
+        text = self.get_filename_string()
         text = os.path.basename(text)
-        self.tabbar.set_tab_label_text(self.text_view.get_parent(), text)
+        text = '<span foreground="%s">%s</span>' % (color, text)
+        label = self.tabbar.get_tab_label(self.text_view.get_parent())
+        label.set_use_markup(True)
+        label.set_label(text)
 
     def set_filename(self, filename):
-        self.set_tab_label(filename)
         self._filename = filename
+        self.set_tab_label()
         
     def get_filename(self):
         return self._filename
         
     filename = property(get_filename, set_filename)
+
+    def get_filename_string(self):
+        s = self.filename
+        if s is None:
+            return "Untitled"
+        return s
 
     def cursor_offset(self):
         buff = self.buffer()
