@@ -331,7 +331,7 @@ class HWhisper(object):
         backward = self.config.getboolean("search", "backward")
 
         match = self.iter_search_in_direction(iter, text, backward)
-        if match is None:
+        if not match:
             self.search_wrap_or_give_up(text, backward)
             return
         (start, stop) = match
@@ -339,7 +339,7 @@ class HWhisper(object):
             # already at the current cursor position
             self.iter_advance_in_direction(iter, backward)
             match = self.iter_search_in_direction(iter, text, backward)
-            if match is None:
+            if not match:
                 self.search_wrap_or_give_up(text, backward)
                 return
             (start, stop) = match
@@ -356,7 +356,7 @@ class HWhisper(object):
                 match = self.iter_search_in_direction(buff.get_end_iter(), text, backward)
             else:
                 match = self.iter_search_in_direction(buff.get_start_iter(), text, backward)
-            if match is not None:
+            if match:
                 (start, stop) = match
                 self.move_selection(start, stop)
                 status.set_text('Wrapped and found "%s"' % (text))
@@ -479,11 +479,11 @@ class HWhisper(object):
         os.chdir(os.path.dirname(hspeak))
         # call the compiler
         if is_windows():
-            command_line = [hspeak, "-ykc", self.doc.filename]
+            command_line = [hspeak, "-yk", self.doc.filename]
             p = subprocess.Popen(command_line, stdout=subprocess.PIPE)
         else:
             # I have no dang idea why the win32 method above doesn't work on Linux :(
-            command_line = "'%s' -ykc '%s'" % (hspeak, self.doc.filename)
+            command_line = "'%s' -yk '%s'" % (hspeak, self.doc.filename)
             p = subprocess.Popen(command_line, shell=True, stdout=subprocess.PIPE)
         while p.returncode is None:
           #sts = os.waitpid(p.pid, 0)
@@ -495,12 +495,55 @@ class HWhisper(object):
         compiler_output = p.stdout.read()
         if p.returncode != 0:
             compiler_output += "Compiler returned error code (%d)" % (p.returncode)
-        self.set_console(compiler_output)
+        self.parse_compiler_output_colors(compiler_output)
         self.move_console_to_end()
         # Done, re-enable window and reset status bar
         self.window.set_sensitive(True)
         self.statusbar_pop()
         self.update_status()
+
+    def parse_compiler_output_colors(self, text):
+        ESC = chr(27)
+        seqmap = {}
+        seqmap["white"] = ESC+"[1m"+ESC+"[37m"
+        seqmap["grey"] = ESC+"[22m"+ESC+"[37m"
+        seqmap["red"] = ESC+"[22m"+ESC+"[31m"
+        seqmap["pink"] = ESC+"[1m"+ESC+"[31m"
+        seqmap["yellow"] = ESC+"[1m"+ESC+"[33m"
+        buff = self.console.get_buffer()
+        buff.set_text("")
+        str = ""
+        escseq = ""
+        mode = 0
+        colortag = "grey"
+        for i in xrange(len(text)):
+            output = False
+            char = text[i]
+            if mode == 0: #gathering a string segment
+                if char == ESC:
+                    escseq = char
+                    mode = 1
+                    output = True
+                else:
+                    str += char
+            elif mode == 1: #gathering the escape sequence
+                if char in ESC+"[1237m":
+                    escseq += char
+                    for (color, code) in seqmap.iteritems():
+                        if escseq == code:
+                            colortag = color
+                            mode = 0
+                else:
+                    print "Unexpected char %s in escape sequence" % (char)
+                    colortag = "grey"
+                    mode = 0
+            if output:
+                # Append the string segment with the chosen color
+                mark = buff.get_insert()
+                iter = buff.get_iter_at_mark(mark)
+                buff.insert_with_tags_by_name(iter, str, colortag)
+                str = ""
+                output = False
 
     def get_plotdict_filename(self):
         plotdict = self.config.get("help", "plotdict")
@@ -593,6 +636,11 @@ class HWhisper(object):
     def setup_console_tags(self):
         # set up tags for color the help text
         buff = self.console.get_buffer()
+        # styles used by the compiler output
+        buff.create_tag("grey", foreground="grey")
+        for colorname in ("white", "red", "pink", "yellow"):
+            buff.create_tag(colorname, foreground=colorname, weight=700)
+        # styles used by the help
         buff.create_tag("plain")
         buff.create_tag("linespacing", pixels_inside_wrap=2)
         buff.create_tag("section", scale=1.4, foreground="pink")
@@ -855,7 +903,7 @@ class HWhisper(object):
         if str == 'tab':
             return "\t"
         match = re.match("^(\d*)space", str)
-        if match is None:
+        if not match:
             return "\t"
         count = match.group(1)
         if count == "" or count == "":
@@ -1222,7 +1270,7 @@ class HWhisper(object):
         newlines = []
         for line in lines:
             match = self.__findcomment.match(line)
-            if match is None:
+            if not match:
                 raise Exception("oops! uncomment match failed! this shouldn't happen!")
             indent = match.group(1)
             comment = match.group(3)
@@ -1893,7 +1941,7 @@ class DocumentHolder(object):
         line_text = buff.get_text(line_start, cursor_iter)
         # Figure out how deeply the previous line was indented
         match = self._find_indent.match(line_text)
-        if match is None:
+        if not match:
             indent = ""
         else:
             indent = match.group(1)
@@ -1901,7 +1949,7 @@ class DocumentHolder(object):
         buff.insert_at_cursor("\n" + indent)
         # Indent deeper if the previous line ended in the beginning of a block
         match = self._find_block_begin.search(line_text)
-        if match is not None:
+        if match:
             buff.insert_at_cursor(self.indent_string)
 
 # -----------------------------------------------------------------------------
