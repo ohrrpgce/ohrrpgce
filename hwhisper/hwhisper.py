@@ -123,12 +123,6 @@ class HWhisper(object):
         self.update_status()
 
         self.indent_string = self.get_indent_string()
-
-        # set up text and background color
-        self.init_colors()
-
-        # set the text view font
-        self.init_font()
         
         # Set up recent files menu
         self.reload_recent_menu()
@@ -162,7 +156,20 @@ class HWhisper(object):
 
     #-------------------------------------------------------------------
 
-    def add_doc(self, text_view):
+    def add_doc(self, text_view=None):
+        if len(self.docs) == 1: # Only one document open
+            if self.doc.filename is None: # No file loaded
+                if self.doc.buffer().get_modified() == False: #No unsaved file modified
+                   # Just use the existing untitled doc
+                   return
+        if text_view is None:
+            text_view = gtk.TextView()
+            scroller = gtk.ScrolledWindow()
+            scroller.add(text_view)
+            lbl = gtk.Label("")
+            page_num = self.tabbar.append_page(scroller, lbl)
+        else:
+            page_num = self.tabbar.get_current_page()
         doc = DocumentHolder(self.tabbar, text_view, self.lineend)
         buff = doc.buffer()
         buff.connect("changed", self.on_text_changed, doc)
@@ -173,6 +180,36 @@ class HWhisper(object):
         text_view.connect("button-release-event", self.on_text_view_button_release_event, doc)
         self.docs.append(doc)
         self.doc = doc
+        # Update font and colors
+        self.init_colors()
+        self.init_font()
+        # Grab focus
+        self.tabbar.show_all()
+        self.tabbar.set_current_page(page_num)
+
+    def close_doc(self):
+        # Check for save
+        if self.check_for_save(): self.on_save_menu_item_activate(None, None)
+        
+        if len(self.docs) == 1:
+            # Clear the document since it is the only one left
+            buff = self.doc.buffer()
+            buff.set_text("")
+            buff.set_modified(False)
+            self.doc.filename = None
+            self.update_status()
+            self.doc.undo.reset("")
+        else:
+            # Remove the document since it is the last one left
+            # Remove it from the document list
+            self.docs.remove(self.doc)
+            # Now remove it from the tab bar (which will refocus a new tab)
+            self.tabbar.remove_page(self.tabbar.get_current_page())
+
+    def close_all(self):
+        while len(self.docs) > 1:
+            self.close_doc()
+        self.close_doc()
 
     def init_font(self):
         self.set_font(self.get_font())
@@ -253,7 +290,6 @@ class HWhisper(object):
                 if recurse is not None:
                     return recurse
         return None
-                
 
     def reload_recent_menu(self):
         recent_list = self.config.get_list("files", "recent", "|")
@@ -856,8 +892,7 @@ class HWhisper(object):
     # before they exit the application. From the "delete-event" signal, we can 
     # choose to effectively cancel the close based on the value we return.
     def on_window_delete_event(self, widget, event, data=None):
-    
-        if self.check_for_save(): self.on_save_menu_item_activate(None, None)
+        self.close_all()
         return False # Propogate event
 
     # This is called whenever the user starts to change text
@@ -891,29 +926,21 @@ class HWhisper(object):
     # modified flag.    
     def on_new_menu_item_activate(self, menuitem, data=None):
     
-        if self.check_for_save(): self.on_save_menu_item_activate(None, None)
-        
         # clear editor for a new file
-        buff = self.doc.buffer()
-        buff.set_text("")
-        buff.set_modified(False)
-        self.doc.filename = None
-        self.update_status()
-        self.doc.undo.reset("")
+        self.add_doc()
     
     # Called when the user clicks the 'Open' menu. We need to prompt for save if 
     # thefile has been modified, allow the user to choose a file to open, and 
     # then call load_file() on that file.    
     def on_open_menu_item_activate(self, menuitem, data=None):
-        if self.check_for_save(): self.on_save_menu_item_activate(None, None)
-        
         filename = self.get_open_filename()
-        if filename: self.load_file(filename)
+        if filename:
+            self.add_doc()
+            self.load_file(filename)
 
     # Called when the user clicks on a name in the Recent submenu. 
     def on_recent_menu_item_activate(self, menuitem, filename):
-        if self.check_for_save(): self.on_save_menu_item_activate(None, None)
-        
+        self.add_doc()
         self.load_file(filename)
        
     # Called when the user clicks the 'Save' menu. We need to allow the user to choose 
@@ -932,12 +959,14 @@ class HWhisper(object):
         
         filename = self.get_save_filename()
         if filename: self.write_file(filename)
+
+    def on_close_menu_item_activate(self, menuitem, data=None):
+        self.close_doc()
     
     # Called when the user clicks the 'Quit' menu. We need to prompt for save if 
     # the file has been modified and then break out of the GTK+ main loop          
     def on_quit_menu_item_activate(self, menuitem, data=None):
-    
-        if self.check_for_save(): self.on_save_menu_item_activate(None, None)
+        self.close_all()
         self.cleanup()
 
     # Called when the user clicks the 'Undo' menu.
@@ -1259,6 +1288,18 @@ class HWhisper(object):
                 newtext += char
         textedit.set_text(newtext)
 
+    def on_tab_bar_switch_page(self, notebook, page, page_num, data=None):
+        scroller = notebook.get_nth_page(page_num)
+        children = scroller.get_children()
+        if len(children) != 1:
+            raise Exception("tab %d scrolledwindow contains %d children" % (page_num, len(children)))
+        text_view = children[0]
+        for doc in self.docs:
+            if text_view is doc.text_view:
+                self.doc = doc
+                return
+        raise Exception("%s not found in tab bar" % (text_view))
+
     #-------------------------------------------------------------------
     
     # We call error_message() any time we want to display an error message to 
@@ -1301,7 +1342,7 @@ class HWhisper(object):
         if buff.get_modified():
 
             # we need to prompt for save
-            message = "Do you want to save the changes you have made?"
+            message = "%s has been modified. Do you want to save the changes you have made?" % (self.doc.filename)
             ret = self.ask(message, "Save?")
         
         return ret
