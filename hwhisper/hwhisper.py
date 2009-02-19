@@ -512,6 +512,8 @@ class HWhisper(object):
         seqmap["yellow"] = ESC+"[1m"+ESC+"[33m"
         buff = self.console.get_buffer()
         buff.set_text("")
+        mark = buff.get_insert()
+        iter = buff.get_iter_at_mark(mark)
         str = ""
         escseq = ""
         mode = 0
@@ -539,11 +541,11 @@ class HWhisper(object):
                     mode = 0
             if output:
                 # Append the string segment with the chosen color
-                mark = buff.get_insert()
-                iter = buff.get_iter_at_mark(mark)
                 buff.insert_with_tags_by_name(iter, str, colortag)
                 str = ""
                 output = False
+        # Append the final segment of the string
+        buff.insert_with_tags_by_name(iter, str, colortag)
 
     def get_plotdict_filename(self):
         plotdict = self.config.get("help", "plotdict")
