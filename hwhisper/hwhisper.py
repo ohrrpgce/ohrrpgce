@@ -147,13 +147,23 @@ class HWhisper(object):
         # Console is hidden by default
         self.toggle_console(False)
 
+        # Load any files specified on the command-line
+        self.parse_command_line()
+
+    #-------------------------------------------------------------------
+
     def cleanup(self):
         console_size = self.splitpanes.get_position()
         self.config.set("console", "size", console_size)
         self.config.save()
         gtk.main_quit()
 
-    #-------------------------------------------------------------------
+    def parse_command_line(self):
+        for arg in sys.argv[1:]:
+            self.add_doc()
+            self.load_file(arg)
+            if self.doc.filename is None:
+                self.close_doc()
 
     def add_doc(self, text_view=None):
         if len(self.docs) == 1: # Only one document open
