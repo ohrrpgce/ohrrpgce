@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Thu Feb 19 09:13:59 2009 -->
+<!--Generated with glade3 3.4.5 on Thu Feb 19 11:36:05 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="window">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -82,7 +82,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkSeparatorMenuItem" id="menuitem2">
+                      <widget class="GtkSeparatorMenuItem" id="fileseparator1">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">menuitem2</property>
                         <property name="use_underline">True</property>
@@ -117,9 +117,46 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkSeparatorMenuItem" id="separatormenuitem1">
+                      <widget class="GtkSeparatorMenuItem" id="fileseparator2">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="prev_tab_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Previous tab</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_prev_tab_menu_item_activate"/>
+                        <accelerator key="Page_Up" modifiers="GDK_CONTROL_MASK" signal="activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image34">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-media-previous</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkImageMenuItem" id="next_tab_menu_item">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Next tab</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_next_tab_menu_item_activate"/>
+                        <accelerator key="Page_Down" modifiers="GDK_CONTROL_MASK" signal="activate"/>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image35">
+                            <property name="visible">True</property>
+                            <property name="stock">gtk-media-next</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkSeparatorMenuItem" id="fileseparator3">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">menuitem2</property>
+                        <property name="use_underline">True</property>
                       </widget>
                     </child>
                     <child>

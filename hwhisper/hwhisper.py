@@ -1352,6 +1352,12 @@ class HWhisper(object):
                 return
         raise Exception("%s not found in tab bar" % (text_view))
 
+    def on_prev_tab_menu_item_activate(self, menuitem, data=None):
+        self.tabbar.prev_page()
+
+    def on_next_tab_menu_item_activate(self, menuitem, data=None):
+        self.tabbar.next_page()
+
     #-------------------------------------------------------------------
     
     # We call error_message() any time we want to display an error message to 

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!--Generated with glade3 3.4.5 on Thu Feb 19 09:13:59 2009 -->
+<!--Generated with glade3 3.4.5 on Thu Feb 19 11:36:05 2009 -->
 <interface>
   <object class="GtkAdjustment" id="adjustment1">
     <property name="upper">8</property>
@@ -61,6 +61,24 @@
             <property name="label" translatable="yes">Save _As</property>
             <signal handler="on_save_as_menu_item_activate" name="activate"/>
           </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="prev_tab_menu_item">
+            <property name="stock_id">gtk-media-previous</property>
+            <property name="name">prev_tab_menu_item</property>
+            <property name="label" translatable="yes">_Previous tab</property>
+            <signal handler="on_prev_tab_menu_item_activate" name="activate"/>
+          </object>
+          <accelerator key="Page_Up" modifiers="GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="next_tab_menu_item">
+            <property name="stock_id">gtk-media-next</property>
+            <property name="name">next_tab_menu_item</property>
+            <property name="label" translatable="yes">_Next tab</property>
+            <signal handler="on_next_tab_menu_item_activate" name="activate"/>
+          </object>
+          <accelerator key="Page_Down" modifiers="GDK_CONTROL_MASK"/>
         </child>
         <child>
           <object class="GtkAction" id="close_menu_item">
@@ -359,6 +377,9 @@
           <separator/>
           <menuitem action="save_menu_item"/>
           <menuitem action="save_as_menu_item"/>
+          <separator/>
+          <menuitem action="prev_tab_menu_item"/>
+          <menuitem action="next_tab_menu_item"/>
           <separator/>
           <menuitem action="close_menu_item"/>
           <menuitem action="quit_menu_item"/>
