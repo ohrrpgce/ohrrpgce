@@ -108,6 +108,7 @@ class HWhisper(object):
         self.update_search_buttons()
         
         self.lineend = LineEndingManager(self.config)
+        self.indent_string = self.get_indent_string()
         
         self.docs = []
         self.add_doc(builder.get_object("text_view"))
@@ -121,8 +122,6 @@ class HWhisper(object):
         # setup and initialize our statusbar
         self.statusbar_cid = self.statusbar.get_context_id(self.app_name)
         self.update_status()
-
-        self.indent_string = self.get_indent_string()
         
         # Set up recent files menu
         self.reload_recent_menu()
@@ -170,7 +169,7 @@ class HWhisper(object):
             page_num = self.tabbar.append_page(scroller, lbl)
         else:
             page_num = self.tabbar.get_current_page()
-        doc = DocumentHolder(self.tabbar, text_view, self.lineend)
+        doc = DocumentHolder(self.tabbar, text_view, self.lineend, self.indent_string)
         buff = doc.buffer()
         buff.connect("changed", self.on_text_changed, doc)
         text_view.connect("key-press-event", self.on_text_view_key_press_event, doc)
@@ -906,6 +905,9 @@ class HWhisper(object):
         if event.keyval == keyconst.F3:
             entry = self.search_entry
             self.search(entry.get_text())
+        if event.keyval == keyconst.ENTER:
+            self.doc.autoindent()
+            return True
 
     def on_text_view_key_release_event(self, textview, event, doc):
         if event.keyval in (keyconst.ENTER, keyconst.SPACE):
@@ -1807,13 +1809,14 @@ class LineEndingManager(object):
 
 class DocumentHolder(object):
 
-    def __init__(self, tabbar, text_view, lineend, filename=None):
+    def __init__(self, tabbar, text_view, lineend, indent_string, filename=None):
         self.tabbar = tabbar
         self.text_view = text_view
         self.filename = filename
         self.undo = UndoManager()
         self.lineend = lineend
         self._line_end = None
+        self.indent_string = indent_string
 
     def buffer(self):
         return self.text_view.get_buffer()
@@ -1878,6 +1881,28 @@ class DocumentHolder(object):
         buff.move_mark(mark, top_iter)
         mark = buff.get_selection_bound()
         buff.move_mark(mark, top_iter)
+
+    _find_indent = re.compile(r"^([ \t]*)")
+    _find_block_begin = re.compile(r"\b(begin|\()[ \t]*$")
+    def autoindent(self):
+        buff = self.buffer()
+        mark = buff.get_insert()
+        cursor_iter = buff.get_iter_at_mark(mark)
+        line_num = cursor_iter.get_line()
+        line_start = buff.get_iter_at_line(line_num)
+        line_text = buff.get_text(line_start, cursor_iter)
+        # Figure out how deeply the previous line was indented
+        match = self._find_indent.match(line_text)
+        if match is None:
+            indent = ""
+        else:
+            indent = match.group(1)
+        # Indent exactly the same as the previous line
+        buff.insert_at_cursor("\n" + indent)
+        # Indent deeper if the previous line ended in the beginning of a block
+        match = self._find_block_begin.search(line_text)
+        if match is not None:
+            buff.insert_at_cursor(self.indent_string)
 
 # -----------------------------------------------------------------------------
 
