@@ -66,10 +66,10 @@ class HWhisper(object):
         try:
             builder.add_from_file(self.xml_file) 
         except:
-            # didn't find the xml file in the current directory, try esplicitly checking the program's directory
+            # didn't find the xml file in the current directory, try explicitly checking the program's directory
             xml_file = os.path.join(os.path.dirname(sys.argv[0]), self.xml_file)
             try:
-                builder.add_from_file(self.xml_file)
+                builder.add_from_file(xml_file)
             except:
                 self.error_message("Failed to load UI XML file: " + xml_file)
                 sys.exit(1)
