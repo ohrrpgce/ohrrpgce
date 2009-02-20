@@ -62,12 +62,17 @@ class HWhisper(object):
         self.config = ConfigManager()
         
         # use GtkBuilder to build our interface from the XML file 
+        builder = gtk.Builder()
         try:
-            builder = gtk.Builder()
             builder.add_from_file(self.xml_file) 
         except:
-            self.error_message("Failed to load UI XML file: " + self.xml_file)
-            sys.exit(1)
+            # didn't find the xml file in the current directory, try esplicitly checking the program's directory
+            xml_file = os.path.join(os.path.dirname(sys.argv[0]), self.xml_file)
+            try:
+                builder.add_from_file(self.xml_file)
+            except:
+                self.error_message("Failed to load UI XML file: " + xml_file)
+                sys.exit(1)
         
         # get the widgets which will be referenced in callbacks
         self.window = builder.get_object("window")
