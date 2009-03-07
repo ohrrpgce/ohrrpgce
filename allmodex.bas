@@ -234,17 +234,6 @@ SUB setvispage (BYVAL page as integer)
 		edgeprint fpsstring, 255, 190, uilook(uiText), page
 	end if
 
-
-				dim charframe as Frame, pal as Palette16
-				pal.col(2) = 7
-				charframe.image = fonts(1).sprite(0)->spr.image + 100 * 32
-				charframe.w = 10
-				charframe.h = 10 * 224
-				'drawohr(charframe, @pal, 0, 0, 1, -2, page)
-
-
-
-
 	'the fb backend may freeze up if they collide with the polling thread (why???)
 	mutexlock keybdmutex
 	if updatepal then
