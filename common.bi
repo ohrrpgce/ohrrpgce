@@ -12,7 +12,6 @@
 #include "browse.bi"
 #include "const.bi"
 
-DECLARE SUB edgeprint (s as string, x as integer, y as integer, c as integer, p as integer)
 DECLARE SUB fadein ()
 DECLARE SUB fadeout (red as integer, green as integer, blue as integer)
 DECLARE FUNCTION usemenu OVERLOAD (pt as integer, top as integer, first as integer, last as integer, size as integer) as integer

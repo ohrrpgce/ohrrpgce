@@ -218,6 +218,29 @@ Type TilesetData
   tastuf(40) as integer
 End Type
 
+Type FontChar
+	offset as integer  'offset into spr.image
+	offx as byte   'pixel offsets
+	offy as byte
+	w as byte      'size of sprite
+	h as byte
+End Type
+
+'spr has a refcount, which we use
+'Pretend I inherited from Frame here
+Type FontLayer
+	spr as Frame
+	chdata(255) as FontChar
+End Type
+
+Type Font
+	sprite(1) as FontLayer ptr	'single layer fonts should use sprite(1) only
+	w(255) as integer	'width of each character
+	h as integer		'height of a line
+	offset as XYPair	'added to coordinates when printing
+	cols as integer		'number of used colours, not including colour 0 (transparency)
+End Type
+
 Type Door
 	as integer x, y
 	as integer bits(0)

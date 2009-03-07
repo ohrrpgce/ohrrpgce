@@ -49,16 +49,6 @@ DIM SHARED upgrademessages AS INTEGER
 DIM SHARED box_border_cache_loaded AS INTEGER = NO
 DIM SHARED box_border_cache(14) AS GraphicPair
 
-SUB edgeprint (s$, x, y, c, p)
-textcolor uilook(uiOutline), 0
-printstr s$, x, y + 1, p
-printstr s$, x + 1, y, p
-printstr s$, x + 2, y + 1, p
-printstr s$, x + 1, y + 2, p
-textcolor c, 0
-printstr s$, x + 1, y + 1, p
-END SUB
-
 'fade in and out not actually used in custom
 SUB fadein ()
 fadestate = 1

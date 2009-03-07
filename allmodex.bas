@@ -26,7 +26,6 @@
 #include "const.bi"
 #include "scancodes.bi"
 #include "uiconst.bi"
-
 option explicit
 
 #define NULL 0
@@ -61,6 +60,7 @@ declare function calcblock(byval x as integer, byval y as integer, byval l as in
 
 'internal allmodex use only sprite functions
 declare sub sprite_delete(byval f as frame ptr ptr)
+declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
@@ -122,8 +122,7 @@ dim shared mouselastflags as integer
 
 dim shared textfg as integer
 dim shared textbg as integer
-
-dim shared fontdata as ubyte ptr
+dim shared fonts(2) as Font
 
 dim shared as integer clipl, clipt, clipr, clipb
 
@@ -170,8 +169,6 @@ sub setmodex()
 end sub
 
 sub restoremode()
-	dim i as integer
-
 	gfx_close
 	'clean up io stuff
 	endpollthread = 1
@@ -236,6 +233,17 @@ SUB setvispage (BYVAL page as integer)
 	if showfps then
 		edgeprint fpsstring, 255, 190, uilook(uiText), page
 	end if
+
+
+				dim charframe as Frame, pal as Palette16
+				pal.col(2) = 7
+				charframe.image = fonts(1).sprite(0)->spr.image + 100 * 32
+				charframe.w = 10
+				charframe.h = 10 * 224
+				'drawohr(charframe, @pal, 0, 0, 1, -2, page)
+
+
+
 
 	'the fb backend may freeze up if they collide with the polling thread (why???)
 	mutexlock keybdmutex
@@ -546,8 +554,8 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	'create sprite
 	hspr.w = sw
 	hspr.h = sh
-	hspr.image = callocate(sw * sh)
-	hspr.mask = callocate(sw * sh)
+	hspr.image = allocate(sw * sh)
+	hspr.mask = allocate(sw * sh)
 	dspr = hspr.image
 	dmsk = hspr.mask
 
@@ -570,7 +578,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 		end select
 		if spix = 0 and trans then
 			pix = 0					' transparent (hope 0 is never valid)
-			mask = &hff
+			mask = 0
 		else
 			'palettes are interleaved like everything else
 			pix = pal(int((po + spix) / 2))	' get color from palette
@@ -579,7 +587,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 			else
 				pix = pix and &hff
 			end if
-			mask = 0
+			mask = &hff
 		end if
 		*dspr = pix				' set image pixel
 		dspr = dspr + sw
@@ -631,8 +639,8 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	'create sprite
 	hspr.w = sw
 	hspr.h = sh
-	hspr.image = callocate(sw * sh)
-	hspr.mask = callocate(sw * sh)
+	hspr.image = allocate(sw * sh)
+	hspr.mask = allocate(sw * sh)
 	dspr = hspr.image
 	dmsk = hspr.mask
 	dspr = dspr + sw - 1 'jump to last column
@@ -657,7 +665,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 		end select
 		if spix = 0 and trans then
 			pix = 0					' transparent (hope 0 is never valid)
-			mask = &hff
+			mask = 0
 		else
 			'palettes are interleaved like everything else
 			pix = pal((po + spix) \ 2)	' get color from palette
@@ -666,7 +674,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 			else
 				pix = pix and &hff
 			end if
-			mask = 0
+			mask = &hff
 		end if
 		*dspr = pix				' set image pixel
 		dspr = dspr + sw
@@ -1491,93 +1499,340 @@ FUNCTION dowait () as integer
 	return timer >= flagtime
 end FUNCTION
 
-SUB printstr (s$, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
-	dim col as integer
-	dim si as integer 'screen index
-	dim pscr as ubyte ptr
-	dim ch as integer 'character
-	dim fi as integer 'font index
-	dim cc as integer 'char column
-	dim pix as integer
-	dim bval as integer
-	dim tbyte as ubyte
-	dim fstep as integer
-	dim maxrow as integer
-	dim minrow as integer
-
+SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f as Font, BYREF pal as Palette16, BYVAL p as integer)
 	if wrkpage <> p then
 		wrkpage = p
 	end if
 
-	'check bounds
-	if y < -7 or y > 199 then exit sub
-	if x > 319 then exit sub
+	startx += f.offset.x
+	y += f.offset.y
 
-	'only draw rows that are on the screen
-	maxrow = 199 - y
-	if maxrow > 7 then
-		maxrow = 7
-	end if
-	minrow = 0
-	if y < 0 then
-		minrow = -y
-		y = 0
+	'check bounds (skipped because this is now quite hard to tell)
+	'if y + f.h <= 0 or y > 199 then exit sub
+	'if startx > 319 then exit sub
+
+	dim as Frame charframe
+	charframe.mask = NULL
+
+	'decide whether to draw a solid background or not
+	dim as integer trans_type = -2
+	if pal.col(0) > 0  then
+		trans_type = 0
 	end if
 
-	'is it actually faster to use a direct buffer write, or would pset be
-	'sufficiently quick?
-	col = x
-	pscr = spage(p)
-	for ch = 0 to len(s$) - 1
-		'find fontdata index, bearing in mind that the data is stored
-		'2-bytes at a time in 4-byte integers, due to QB->FB quirks,
-		'and fontdata itself is a byte pointer. Because there are
-		'always 8 bytes per character, we will always use exactly 4
-		'ints, or 16 bytes, making the initial calc pretty simple.
-		fi = (s$[ch] * 16)
-		'fi = s$[ch] * 8	'index to fontdata
-		fstep = 1 'used because our indexing is messed up, see above
-		for cc = 0 to 7
-			if col >= 0 then
-				si = (y * 320) + col
-				if (fontdata[fi] > 0) then
-					tbyte = 1 shl minrow
-					for pix = minrow to maxrow
-						bval = fontdata[fi] and tbyte
-						if bval > 0 then
-							pscr[si] = textfg
-						else
-							if textbg > 0 then
-								pscr[si] = textbg
-							end if
-						end if
-						si = si + 320
-						tbyte = tbyte shl 1
-					next
-				else
-					if textbg > 0 then
-						for pix = minrow to maxrow
-							pscr[si] = textbg
-							si = si + 320
-						next
-					end if
+	dim x as integer
+
+	for layer as integer = 0 to 1
+		if f.sprite(layer) = NULL then continue for
+
+		x = startx
+
+		'charframe.w = f.sprite(layer)->w
+		'charframe.h = f.sprite(layer)->h \ 256
+		for ch as integer = 0 to len(s) - 1
+			with f.sprite(layer)->chdata(s[ch])
+				charframe.image = f.sprite(layer)->spr.image + .offset
+				charframe.w = .w
+				charframe.h = .h
+				drawohr(charframe, @pal, x + .offx, y + .offy, 1, trans_type, p)
+
+				'print one character past the end of the line
+				'(I think this is a reasonable approximation)
+				if x > 319 then
+					continue for, for
 				end if
-			end if
-			col = col + 1
-			if col >= 320 THEN exit SUB
-			fi = fi + fstep
-			fstep = iif(fstep = 1, 3, 1) 'uneven steps due to 2->4 byte thunk
+				'note: do not use .w, that's just the width of the sprite
+				x += f.w(s[ch])
+			end with
 		next
 	next
 end SUB
+
+'the old printstr
+SUB printstr (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
+	dim fontpal as Palette16
+
+	fontpal.col(0) = textbg
+	fontpal.col(1) = textfg
+
+	printstr (s, x, y, fonts(0), fontpal, p)
+end SUB
+
+SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
+static ta as double = 0.0, l as integer = 0 , cch as integer = 0
+dim as double ts = TIMER
+
+	static fontpal as Palette16
+
+	fontpal.col(0) = 0
+	fontpal.col(1) = c
+	fontpal.col(2) = uilook(uiOutline)
+
+	'preserve the old behaviour
+	textfg = c
+	textbg = 0
+
+	printstr (s, x, y, fonts(1), fontpal, p)
+
+
+
+ta += timer - ts
+cch += len(s)
+l += 1
+if cch > 4000 then
+ debug l & " lines, " & cch & "char, time " & ta & "  " & (ta/cch) & " per ch"
+ta=0.0
+for f as integer = 0 to l
+ts=timer
+ta += timer - ts
+next
+debug "overhead " & ta
+l=0
+cch=0
+ta=0.0
+end if
+END SUB
 
 SUB textcolor (BYVAL f as integer, BYVAL b as integer)
 	textfg = f
 	textbg = b
 end SUB
 
+SUB font_unload (byval font as Font ptr)
+	if font = null then exit sub
+
+	'look! polymorphism! definitely not hackery! yeah... look it up sometime.
+	sprite_unload cast(Frame ptr ptr, @font->sprite(0))
+	sprite_unload cast(Frame ptr ptr, @font->sprite(1))
+end SUB
+
+SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
+	if basefont = null then
+		debug "createedgefont wasn't passed a font!"
+		exit sub
+	end if
+	if basefont->sprite(1) = null then
+		debug "createedgefont was passed a blank font!"
+		exit sub
+	end if
+
+	if font = null then exit sub
+		'font = callocate(sizeof(Font))
+	font_unload font
+
+	font->sprite(0) = callocate(sizeof(FontLayer))
+	font->sprite(1) = basefont->sprite(1)
+	font->sprite(1)->spr.refcount += 1
+
+	dim size as integer
+	'since you can only WITH one thing at a time
+	dim bchr as FontChar ptr
+	bchr = @basefont->sprite(1)->chdata(0)
+
+	dim as integer ch
+
+	for ch = 0 to 255
+		font->w(ch) = basefont->w(ch)
+
+		with font->sprite(0)->chdata(ch)
+			.offset = size
+			.offx = bchr->offx - 1
+			.offy = bchr->offy - 1
+			.w = bchr->w + 2
+			.h = bchr->h + 2
+			size += .w * .h
+		end with
+		bchr += 1
+	next
+			
+
+	with font->sprite(0)->spr
+		.w = size  'garbage
+		.h = 1
+		.refcount = 1   '-1234
+		.mask = null
+		.image = callocate(size)
+	end with
+	font->h = basefont->h  '+ 2
+	font->offset = basefont->offset
+	font->cols = basefont->cols + 1
+
+
+	'dim as ubyte ptr maskp = basefont->sprite(0)->mask
+	dim as ubyte ptr sptr
+	dim as ubyte ptr srcptr = font->sprite(1)->spr.image
+	dim as integer x, y
+
+	for ch = 0 to 255
+		with font->sprite(0)->chdata(ch)
+			sptr = font->sprite(0)->spr.image + .offset + .w + 1
+			for y = 1 to .h - 2
+				for x = 1 to .w - 2
+					if *srcptr then
+						sptr[-.w + 0] = font->cols
+						sptr[  0 - 1] = font->cols
+						sptr[  0 + 1] = font->cols
+						sptr[ .w + 0] = font->cols
+					end if
+					'if *sptr = 0 then *maskp = 0 else *maskp = &hff
+					sptr += 1
+					srcptr += 1
+					'maskp += 8
+				next
+				sptr += 2
+			next
+		end with
+	next
+end SUB
+
+sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
+	if font = null then exit sub
+	font_unload font
+
+	font->sprite(1) = callocate(sizeof(FontLayer))
+	with font->sprite(1)->spr
+		.w = 8
+		.h = 256 * 8
+		.refcount = 1   '-1234
+		'font->mask = allocate(256 * 8 * 8)
+		.mask = null
+		.image = allocate(256 * 8 * 8)
+	end with
+	font->h = 8
+	font->offset.x = 0
+	font->offset.y = 0
+	font->cols = 1
+
+	'dim as ubyte ptr maskp = font->mask
+	dim as ubyte ptr sptr = font->sprite(1)->spr.image
+
+	dim as integer ch, x, y
+	dim as integer fi 'font index
+	dim as integer fstep
+
+	for ch = 0 to 255
+		font->w(ch) = 8
+		with font->sprite(1)->chdata(ch)
+			.w = 8
+			.h = 8
+			.offset = 64 * ch
+		end with
+
+		'find fontdata index, bearing in mind that the data is stored
+		'2-bytes at a time in 4-byte integers, due to QB->FB quirks,
+		'and fontdata itself is a byte pointer. Because there are
+		'always 8 bytes per character, we will always use exactly 4
+		'ints, or 16 bytes, making the initial calc pretty simple.
+		fi = ch * 16
+		'fi = ch * 8	'index to fontdata
+		fstep = 1 'used because our indexing is messed up, see above
+		for x = 0 to 7
+			for y = 0 to 7
+				*sptr = (fontdata[fi] shr y) and 1
+				'if *sptr = 0 then *maskp = 0 else *maskp = &hff
+				sptr += 8
+				'maskp += 8
+			next
+			fi = fi + fstep
+			fstep = iif(fstep = 1, 3, 1) 'uneven steps due to 2->4 byte thunk
+			sptr += 1 - 8 * 8
+			'maskp += 1 - 8 * 8
+		next
+		sptr += 8 * 8 - 8
+		'maskp += 8 * 8 - 8
+	next
+end SUB
+
+'This sub is for testing purposes only, and will be removed unless this happens to become
+'the adopted font format. Includes hardcoded values
+SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
+	font_unload font
+	if font = null then exit sub
+
+	font->sprite(0) = null
+	font->sprite(1) = callocate(sizeof(FontLayer))
+	'these are hardcoded
+	font->h = 6
+	font->offset.x = 0
+	font->offset.y = 0
+	font->cols = 1
+
+	dim as integer bmpstuff(4)
+	dim as ubyte ptr image = allocate(4096)
+	dim as ubyte ptr sptr
+	dim as integer size = 0
+	dim as integer i, x, y
+	dim f as string
+	dim bchr as FontChar ptr
+	bchr = @fallback->sprite(1)->chdata(0)
+
+
+	for i = 0 to 255
+		with font->sprite(1)->chdata(i)
+			f = "testfont" & SLASH & i & ".bmp"
+			if isfile(f) then
+				bmpinfo(f, bmpstuff())
+
+				bitmap2page(master(), f, 2)
+
+				.offset = size
+				.offx = 0
+				.offy = 0
+				.w = bmpstuff(1)
+				.h = bmpstuff(2)
+				font->w(i) = .w
+				size += .w * .h
+				image = reallocate(image, size)
+				sptr = image + .offset
+				for y = 0 to .h - 1
+					for x = 0 to .w - 1
+						*sptr = spage(2)[y * 320 + x]
+						sptr += 1
+					next
+				next
+			else
+				if iif(fallback = null, YES, fallback->sprite(1) = null) then
+					debug "font_loadbmps: fallback font not provided"
+					deallocate(image)
+					exit sub
+				end if
+
+				.offset = size
+				.offx = bchr->offx
+				.offy = bchr->offy
+				.w = bchr->w
+				.h = bchr->h
+				font->w(i) = .w
+				size += .w * .h
+				image = reallocate(image, size)
+				memcpy(image + .offset, fallback->sprite(1)->spr.image + bchr->offset, .w * .h)
+			end if
+		end with
+
+		bchr += 1
+	next
+
+	with font->sprite(1)->spr
+		.w = size  'garbage
+		.h = 1
+		.refcount = 1   '-1234
+		.mask = null
+		.image = image
+	end with
+end SUB
+
 SUB setfont (f() as integer)
-	fontdata = cast(ubyte ptr, @f(0))
+	'uncomment to try out a variable width font
+	'font_loadold1bit(@fonts(2), cast(ubyte ptr, @f(0)))
+	'font_loadbmps(@fonts(0), @fonts(2))
+	
+	'comment to try out a variable width font
+	font_loadold1bit(@fonts(0), cast(ubyte ptr, @f(0)))
+
+	font_create_edged(@fonts(1), @fonts(0))
+	fonts(1).offset.x = 1
+	fonts(1).offset.y = 1
+	fonts(1).h += 2
 end SUB
 
 SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
@@ -3247,6 +3502,8 @@ sub setclip(l as integer, t as integer, r as integer, b as integer)
 	clipb = b
 end sub
 
+'trans = -1 (or other): transparent where ->mask zero
+'trans = -2: ->image is used as the mask instead of ->mask, ie use colour 0 as transparent (not supported for scale != 1)
 sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
 	dim as integer i, j
 	dim as ubyte ptr maskp, srcp
@@ -3263,9 +3520,6 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 		sprite_draw @spr, NULL, x, y, scale, trans, page
 		exit sub
 	end if
-
-	maskp = spr.mask
-	srcp = spr.image
 
 	startx = x
 	endx = x + spr.w - 1
@@ -3298,30 +3552,41 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 
 	if starty > endy or startx > endx then exit sub
 
+	if trans <> 0 and spr.mask = 0 then
+		'3 possible behaviours
+
+		'spr.mask = allocate(spr.w * spr.h)
+		'memset(spr.mask, &hff, spr.w * spr.h)
+
+		'trans = 0
+
+		trans = -2
+	end if
+
+	maskp = spr.mask
+	srcp = spr.image
+
+	if trans = -2 then
+		maskp = srcp
+	end if
+
 	sptr = spage(page) + startx + starty * 320
 
 	if scale = 1 then
-		if pal <> 0 then
-			'I think that a sprite will always have a mask allocated, but this isn't assumed anywhere, so be safe
-			if spr.mask = 0 then
-				spr.mask = callocate(spr.w * spr.h)
-				maskp = spr.mask
-				trans = 0
-			end if
-
+		if pal <> 0 and trans <> 0 then
 			for i = starty to endy
 				'loop unrolling copied from below, but not nearly as effective
 				for j = endx - startx to 3 step -4
-					if maskp[0] = 0 then sptr[0] = pal->col(srcp[0])
-					if maskp[1] = 0 then sptr[1] = pal->col(srcp[1])
-					if maskp[2] = 0 then sptr[2] = pal->col(srcp[2])
-					if maskp[3] = 0 then sptr[3] = pal->col(srcp[3])
+					if maskp[0] then sptr[0] = pal->col(srcp[0])
+					if maskp[1] then sptr[1] = pal->col(srcp[1])
+					if maskp[2] then sptr[2] = pal->col(srcp[2])
+					if maskp[3] then sptr[3] = pal->col(srcp[3])
 					maskp += 4
 					srcp += 4
 					sptr += 4
 				next
 				while j >= 0
-					if maskp[0] = 0 then sptr[0] = pal->col(srcp[0])
+					if maskp[0] then sptr[0] = pal->col(srcp[0])
 					maskp += 1
 					srcp += 1
 					sptr += 1
@@ -3332,28 +3597,49 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 				maskp += srclineinc
 				srcp += srclineinc
 			next
-		elseif spr.mask = 0 or trans = 0 then
+		elseif pal <> 0 and trans = 0 then
+			for i = starty to endy
+				'loop unrolling blindly copied from below
+				for j = endx - startx to 3 step -4
+					sptr[0] = pal->col(srcp[0])
+					sptr[1] = pal->col(srcp[1])
+					sptr[2] = pal->col(srcp[2])
+					sptr[3] = pal->col(srcp[3])
+					srcp += 4
+					sptr += 4
+				next
+				while j >= 0
+					sptr[0] = pal->col(srcp[0])
+					srcp += 1
+					sptr += 1
+					j -= 1
+				wend
+
+				sptr += 319 - endx + startx
+				srcp += srclineinc
+			next
+		elseif trans = 0 then
 			for i = starty to endy
 				memcpy(sptr, srcp, endx - startx + 1)
 				srcp += spr.w
 				sptr += 320
 			next
-		else
+		else 'pal = 0 and trans <> 0
 			for i = starty to endy
 				'a little loop unrolling
 				for j = endx - startx to 3 step -4
 					'this is surprisingly slow
-					'*cast(integer ptr, sptr) = (*cast(integer ptr, srcp) and not *cast(integer ptr, maskp)) or (*cast(integer ptr, sptr) and *cast(integer ptr, maskp))
-					if maskp[0] = 0 then sptr[0] = srcp[0]
-					if maskp[1] = 0 then sptr[1] = srcp[1]
-					if maskp[2] = 0 then sptr[2] = srcp[2]
-					if maskp[3] = 0 then sptr[3] = srcp[3]
+					'*cast(integer ptr, sptr) = (*cast(integer ptr, srcp) and *cast(integer ptr, maskp)) or (*cast(integer ptr, sptr) and not *cast(integer ptr, maskp))
+					if maskp[0] then sptr[0] = srcp[0]
+					if maskp[1] then sptr[1] = srcp[1]
+					if maskp[2] then sptr[2] = srcp[2]
+					if maskp[3] then sptr[3] = srcp[3]
 					maskp += 4
 					srcp += 4
 					sptr += 4
 				next
 				while j >= 0
-					if *maskp = 0 then *sptr = *srcp
+					if *maskp then *sptr = *srcp
 					maskp += 1
 					srcp += 1
 					sptr += 1
@@ -3380,8 +3666,8 @@ sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 		tileset = callocate(sizeof(frame))
 		tileset->w = 20
 		tileset->h = 160 * 20
-		tileset->mask = callocate(160 * 20 * 20)
-		tileset->image = callocate(160 * 20 * 20)
+		tileset->mask = allocate(160 * 20 * 20)
+		tileset->image = allocate(160 * 20 * 20)
 	end if
 
 	dim as ubyte ptr maskp = tileset->mask
@@ -3395,7 +3681,7 @@ sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 			for py = 0 to 19
 				for px = 0 to 19
 					*sptr = *srcp
-					if *srcp = 0 then *maskp = &hff else *maskp = 0
+					if *srcp = 0 then *maskp = 0 else *maskp = &hff
 					sptr += 1
 					srcp += 1
 					maskp += 1
@@ -3739,8 +4025,8 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 			.h = hei
 			
 			'although it's a four-bit sprite, it IS an 8-bit bitmap.
-			.image = callocate(wid * hei)
-			.mask = callocate(wid * hei)
+			.image = allocate(wid * hei)
+			.mask = allocate(wid * hei)
 			
 			for x = 0 to wid - 1
 				for y = 0 to hei - 1
@@ -3749,13 +4035,13 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 					
 					'the high nybble is the first pixel
 					.image[SPOS] = (z SHR 4)
-					if .image[SPOS] = 0 then .mask[SPOS] = &hFF else .mask[SPOS] = 0
+					if .image[SPOS] = 0 then .mask[SPOS] = 0 else .mask[SPOS] = &hff
 					
 					y+=1
 					
 					'and the low nybble is the second one
 					.image[SPOS] = z AND 15
-					if .image[SPOS] = 0 then .mask[SPOS] = &hFF else .mask[SPOS] = 0
+					if .image[SPOS] = 0 then .mask[SPOS] = 0 else .mask[SPOS] = &hff
 					
 					'it is worth mentioning that sprites are stored in columns, not rows
 				next
@@ -3796,8 +4082,7 @@ function sprite_is_valid(byval p as frame ptr) as integer
 	
 	if p->w < 0 or p->h < 0 then return 0
 	
-	'I don't know why we require a mask
-	if p->mask = 0 or p->image = 0 then return 0
+	if p->image = 0 then return 0
 	
 	if p->mask = &hBAADF00D or p->image = &hBAADF00D then return 0
 	if p->mask = &hFEEEFEEE or p->image = &hFEEEFEEE then return 0
@@ -3829,6 +4114,8 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	ret->w = p->w
 	ret->h = p->h
 	ret->refcount = -1234 'that is, it's not refcounted
+	ret->image = 0
+	ret->mask = 0
 	if p->image then
 		if clr = 0 then
 			ret->image = allocate(ret->w * ret->h)
@@ -3904,7 +4191,6 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 					pix = (ty * 320) + tx
 					'and where to get the pixel from
 					spix = (int((ty-syfrom) / scale) * .w) + int((tx-sxfrom) / scale)
-					'check mask
 					
 					if pal <> 0 then
 						sptr[pix] = pal->col(.image[spix])
@@ -3923,7 +4209,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 					spix = (((ty-y) \ scale) * .w) + ((tx-x) \ scale)
 					
 					'check mask
-					if .mask[spix] = 0 then
+					if .mask[spix] then
 						if pal <> 0 then
 							sptr[pix] = pal->col(.image[spix])
 						else
@@ -3960,7 +4246,7 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 			for i = 0 to t - 1
 				for sy = 0 to spr->h - 1
 					sx = int(rnd * spr->w)
-					cpy->mask[sy * spr->w + sx] = &hff
+					cpy->mask[sy * spr->w + sx] = 0
 				next sy
 			next i
 			randomize timer 're-seed random
@@ -3979,7 +4265,7 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 						sx = 0
 						tog = tog xor 1
 					end if
-					cpy->mask[i] = large(cint(cpy->mask[i]), &hff * tog)
+					if tog then cpy->mask[i] = 0
 				next
 				sx = 0
 				sy = 0
@@ -3992,7 +4278,7 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 						sx = 0
 						tog = tog xor 1
 					end if
-					cpy->mask[i] = large(cint(cpy->mask[i]), &hff * tog)
+					if tog then cpy->mask[i] = 0
 				next
 			else
 				dim m as integer = spr->w * spr->h / tim * p * 2
@@ -4006,7 +4292,7 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 						sx = 0
 						tog = tog xor 1
 					end if
-					cpy->mask[i] = large(cint(cpy->mask[i]), &hff * tog)
+					if tog then cpy->mask[i] = 0
 				next
 			end if
 		case 2 'diagonal vanish
@@ -4017,7 +4303,7 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 				if sy >= spr->h then exit for
 				for sx = 0 to j
 					if sx >= spr->w then exit for
-					cpy->mask[sy * spr->w + sx] = &hff
+					cpy->mask[sy * spr->w + sx] = 0
 				next
 			next
 		case 3 'sink into ground
@@ -4035,7 +4321,7 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 			next
 			for i = 0 to t - 1
 				for sx = 0 to spr->w - 1
-					cpy->mask[i * spr->w + sx] = &hff
+					cpy->mask[i * spr->w + sx] = 0
 				next
 			next
 	end select
@@ -4127,11 +4413,13 @@ end function
 
 sub sprite_clear(byval spr as frame ptr)
 	dim as integer i
-	
-	for i = 0 to spr->w * spr->h - 1
-		spr->image[i] = 0
-		spr->mask[i] = 0
-	next
+
+	if spr->image then
+		memset(spr->image, 0, spr->w * spr->h)
+	end if
+	if spr->mask then
+		memset(spr->mask, 0, spr->w * spr->h)
+	end if
 end sub
 
 ' function sprite_scroll(byval spr as frame ptr, byval h as integer = 0, byval v as integer = 0, byval wrap as integer = 0, byval direct as integer = 0) as frame ptr
