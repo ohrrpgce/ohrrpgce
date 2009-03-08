@@ -203,7 +203,7 @@ SUB freepage (BYVAL page as integer)
 	deallocate(spage(page))
 	spage(page) = NULL
 	if wrkpage = page then
-		wrkpage = 0
+		wrkpage = 0		
 	end if
 END SUB
 
@@ -1674,6 +1674,52 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	next
 end SUB
 
+
+SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
+	if basefont = null then
+		debug "createshadowfont wasn't passed a font!"
+		exit sub
+	end if
+	if basefont->sprite(1) = null then
+		debug "createshadowfont was passed a blank font!"
+		exit sub
+	end if
+
+	if font = null then exit sub
+	font_unload font
+
+	memcpy(font, basefont, sizeof(Font))
+
+	font->sprite(0) = callocate(sizeof(FontLayer))
+	font->sprite(1)->spr.refcount += 1
+	font->cols += 1
+
+	memcpy(font->sprite(0), font->sprite(1), sizeof(FontLayer))
+
+	for ch as integer = 0 to 255
+		with font->sprite(0)->chdata(ch)
+			.offx += xdrop
+			.offy += ydrop
+		end with
+	next
+			
+	with font->sprite(0)->spr	
+		.image = allocate(.w * .h)
+		memcpy(.image, font->sprite(1)->spr.image, .w * .h)
+		if font->sprite(1)->spr.mask then
+			.mask = allocate(.w * .h)
+			memcpy(.mask, font->sprite(1)->spr.mask, .w * .h)
+		end if
+		.refcount = 1
+
+		for i as integer = 0 to .w * .h - 1
+			if .image[i] then
+				.image[i] = font->cols
+			end if
+		next
+	end with
+end SUB
+
 sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 	if font = null then exit sub
 	font_unload font
@@ -1819,6 +1865,8 @@ SUB setfont (f() as integer)
 	font_loadold1bit(@fonts(0), cast(ubyte ptr, @f(0)))
 
 	font_create_edged(@fonts(1), @fonts(0))
+	'font_create_shadowed(@fonts(1), @fonts(0))
+	'more hardcoded stuff
 	fonts(1).offset.x = 1
 	fonts(1).offset.y = 1
 	fonts(1).h += 2
