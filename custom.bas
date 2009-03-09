@@ -73,6 +73,10 @@ IF NOT isdir(tmpdir) THEN makedir tmpdir
 #ELSE
 'Custom on Windows works in the current dir
 homedir = ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
+IF NOT isdir(homedir) THEN
+ 'Windows Vista uses "Documents" instead of "My Documents"
+ homedir = ENVIRON$("USERPROFILE") & SLASH & "Documents"
+END IF
 tmpdir = exepath$ + SLASH
 #ENDIF
 
