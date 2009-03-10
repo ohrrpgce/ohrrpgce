@@ -1548,9 +1548,6 @@ SUB printstr (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as in
 end SUB
 
 SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
-static ta as double = 0.0, l as integer = 0 , cch as integer = 0
-dim as double ts = TIMER
-
 	static fontpal as Palette16
 
 	fontpal.col(0) = 0
@@ -1562,24 +1559,6 @@ dim as double ts = TIMER
 	textbg = 0
 
 	printstr (s, x, y, fonts(1), fontpal, p)
-
-
-
-ta += timer - ts
-cch += len(s)
-l += 1
-if cch > 4000 then
- debug l & " lines, " & cch & "char, time " & ta & "  " & (ta/cch) & " per ch"
-ta=0.0
-for f as integer = 0 to l
-ts=timer
-ta += timer - ts
-next
-debug "overhead " & ta
-l=0
-cch=0
-ta=0.0
-end if
 END SUB
 
 SUB textcolor (BYVAL f as integer, BYVAL b as integer)
