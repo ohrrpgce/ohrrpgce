@@ -3243,18 +3243,21 @@ if (herolevelled (find hero (hero: Bob))) then (
 		<command id="settimer">
 		  <canon>set timer (id, count, speed, trigger, string, flags)</canon>
 		  <shortname>set timer</shortname>
-		  <description>Sets the settings for a given timer (<p>id</p>), and starts it. <p>Count</p> is the length of the timer. While it's running, the count will go down by one every <p>speed</p> ticks. I.e., if you set speed to 18, it will count down once every 18 ticks.<lb/>
-<p>trigger</p> is what happens when the timer runs out. You can use the constant <ref>timer:gameover</ref> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one.<lb/>
-By default, a timer will not show up on screen. However, you can bind a timer to a string using the <p>string</p> parameter. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<lb/>
-A timer also has a few other options in the form of <p>flags</p>. You can pass any combination of these flags: <ref>timerflag:critical</ref> to have the timer end a battle, if it runs out during it, <ref>timerflag:battle</ref> to have it count down during a battle in the first place or <ref>timerflag:menu</ref> to have it count down while the player is in a menu (i.e. the main menu).
-<note>You can pass <ref>timer:default</ref> to any parameter except <p>id</p>. This will either leave the parameter unchanged (if it's set), or set it to its default value.</note></description>
+		  <description>Changes the settings for a given timer, and starts it. <p>id</p> should be one of the 16 timers for you to use, numbered 0 to 15. All other parameters are optional, or you can pass <ref>timer:default</ref> as any of them. This will leave the parameter unchanged (from the last time you set it or from the default initial value), it will NOT cause that timer setting to be reset to the default initial value. <p>Count</p> is the length of the timer. While it's running, the count will go down by one every <p>speed</p> game ticks (frames). I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second. Use a speed of 1 to count down in ticks. Changing the timer's <p>count</p> (as opposed to passing <p>timer:default</p> as the second argument) will cause the timer to restart from the new value.<lb/>
+<p>trigger</p> is what happens when the timer runs out. You can use the constant <ref>timer:gameover</ref> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one. If the timer runs out during a battle then the effect happens after the battle ends.<lb/>
+You can bind a timer to a string using the <p>string</p> parameter to create a countdown that shows up on screen. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<lb/>
+A timer also has a few other options in the form of <p>flags</p>. You can pass any combination of these flags (by <ref>or</ref>ing or <ref>add</ref>ing them together): <ul><li><ref>timerflag:battle</ref> to have it count down during battles (not including menus which pause the battle)</li><li><ref>timerflag:menu</ref> to have it count down even while the player is in a menu which pauses the game (e.g. the status menu), the in-battle pause button doesn't count</li><li><ref>timerflag:critical</ref> to have the timer end a battle or exit a menu if it runs out during it</li></ul><lb/><note>Timers start counting down not from the current game 'tick', but from next one. So if you want to trigger something next tick (eg. run a script every frame) you need to pass <p>count</p> as 0 and <p>speed</p> as 1. A timer count set to 1 would counter-intuitively trigger in 2 ticks time.</note><note>Timer settings are not saved in game saves.</note></description>
 		  <seealso>
 		    <ref>stoptimer</ref>
 		    <ref>readtimer</ref>
+		    <ref>systemsecond</ref>
+		    <ref>secondsofplay</ref>
+		    <ref>milliseconds</ref>
+		    <ref>runscriptbyid</ref>
 		  </seealso>
-		  <example>#this starts a 300 second (5 minute) timer that counts down once every 15 ticks. If
-#it runs out during a battle, the battle won't end, but it will go game over after.
-set timer (0, 300, 15, timer: game over, 0, timerflag: battle)</example>
+		  <example>#this starts a 300 second (5 minute) timer that counts down once every 18 ticks (a second). If
+#it runs out during battle, the battle won't end but a game-over will happen afterwards.
+set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</example>
 		</command>
 	  <command id="stoptimer">
 	    <canon>stop timer (id)</canon>
