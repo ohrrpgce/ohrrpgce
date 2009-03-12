@@ -26,6 +26,7 @@
 #include "const.bi"
 #include "scancodes.bi"
 #include "uiconst.bi"
+
 option explicit
 
 #define NULL 0
@@ -3537,6 +3538,18 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 		exit sub
 	end if
 
+	if trans <> 0 and spr.mask = 0 then
+		trans = -2
+	end if
+
+	srcp = spr.image
+
+	if trans = -2 then
+		maskp = srcp
+	else
+		maskp = spr.mask
+	end if
+
 	startx = x
 	endx = x + spr.w - 1
 	starty = y
@@ -3567,24 +3580,6 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 	end if
 
 	if starty > endy or startx > endx then exit sub
-
-	if trans <> 0 and spr.mask = 0 then
-		'3 possible behaviours
-
-		'spr.mask = allocate(spr.w * spr.h)
-		'memset(spr.mask, &hff, spr.w * spr.h)
-
-		'trans = 0
-
-		trans = -2
-	end if
-
-	maskp = spr.mask
-	srcp = spr.image
-
-	if trans = -2 then
-		maskp = srcp
-	end if
 
 	sptr = spage(page) + startx + starty * 320
 
