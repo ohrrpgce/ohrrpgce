@@ -2096,18 +2096,22 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0), "y sort children") THEN
    YSortChildSlices plotslices(retvals(0))
   END IF
- CASE 406 '--set slice sort
+ CASE 406 '--set sort order
   IF valid_plotslice(retvals(0), "set sort order") THEN
    plotslices(retvals(0))->Sorter = retvals(1)
   END IF
  CASE 407 '--sort children
   IF valid_plotslice(retvals(0), "sort children") THEN
-   CustomSortChildSlices plotslices(retvals(0))
+   CustomSortChildSlices plotslices(retvals(0)), retvals(1)
   END IF
  CASE 408 '--previous sibling
   IF valid_plotslice(retvals(0), "previous sibling") THEN
    scriptret = find_plotslice_handle(plotslices(retvals(0))->PrevSibling)
   END IF 
+ CASE 409 '--get sort order
+  IF valid_plotslice(retvals(0), "get sort order") THEN
+   scriptret = plotslices(retvals(0))->Sorter
+  END IF
  
  
 END SELECT

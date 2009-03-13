@@ -38,8 +38,10 @@ plotscript, test, begin
     wait(2)
   end
   wait(5)
+  $0="sort tests: y sort", show string(0)
   y sort children (cont)
   wait(10)
+  $0="sort tests: reverse y sort (sort children)", show string(0)
   sl := first child(cont)
   while(sl) do, begin
     set sort order(sl, slice y(sl) * -1)
@@ -47,8 +49,23 @@ plotscript, test, begin
   end
   sort children(cont)
   wait(10)
+  $0="sort tests: move green forward (sort children)", show string(0)
+  sl := first child(cont)
+  sl2 := last child(cont)
+  while(sl) do, begin
+    if (get rect style(sl) == 1) then(set sort order(sl, 1))
+    sl := next sibling(sl)
+  end
+  sort children(cont, false)
+  wait(30)
+  $0="sort tests: move green back (sort children)", show string(0)
+  sl := first child(cont)
+  while(sl) do, begin
+    set sort order(sl, get sort order(sl) * -1)
+    sl := next sibling(sl)
+  end
   sort children(cont)
-  wait(10)
+  wait(30)
   free slice(cont)
   wait(5)
 

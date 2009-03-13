@@ -345,7 +345,7 @@ Sub YSortChildSlices(byval parent as slice ptr)
  RelinkChildren parent, slice_list()
 end sub
 
-Sub CustomSortChildSlices(byval parent as slice ptr)
+Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
  if parent = 0 then debug "CustomSortChildSlices: null ptr" : EXIT SUB
  dim slice_list(parent->NumChildren - 1) as slice ptr
  UnlinkChildren parent, slice_list()
@@ -359,7 +359,7 @@ Sub CustomSortChildSlices(byval parent as slice ptr)
    end if
   next i
   swap slice_list(j), slice_list(lowest)
-  slice_list(j)->Sorter = 0
+  if wipevals then slice_list(j)->Sorter = 0
  next j
  RelinkChildren parent, slice_list()
 End sub

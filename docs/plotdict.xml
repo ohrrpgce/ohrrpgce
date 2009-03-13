@@ -2658,12 +2658,20 @@ end
 		<command id="setsortorder">
 			<canon>set sort order (handle, order)</canon>
 			<shortname>set sort order</shortname>
-			<description>Assign a sort order number to a slice <p>handle</p>. This can be any arbitrary number that will be used to sort the slice relative to its sibling slices the next time that <ref>sortchildren</ref> is called. Give a slice a low number to sort it to the back or a high number to sort it to the front. If you give two sibling slices the same sort order number they will be sorted to the same depth, and they will remain in their original order in relation to one another.</description>
+			<description>Assign a sort order value to a slice <p>handle</p>. This can be any arbitrary number that will be used to sort the slice relative to its sibling slices the next time that <ref>sortchildren</ref> is called. Give a slice a low number to sort it to the back or a high number to sort it to the front. This means it functions like (or can be used as) a z-depth. If you give two sibling slices the same sort order number they will be sorted to the same depth, and they will remain in their original order in relation to one another.</description>
+			<seealso>
+				<ref>getsortorder</ref>
+			</seealso>
+		</command>
+		<command id="getsortorder">
+			<canon>get sort order (handle)</canon>
+			<shortname>get sort order</shortname>
+			<description>Retrieve the sort order value previously set on a slice <p>handle</p> with <ref>getsortorder</ref>. Note that calling <ref>sortchildren</ref> by default resets all the sort order values to zero, unless <ref>false</ref> is passed as <p>wipe</p>.</description>
 		</command>
 		<command id="sortchildren">
-			<canon>sort children (handle)</canon>
+			<canon>sort children (handle, wipe)</canon>
 			<shortname>sort children</shortname>
-			<description>Given a slice <p>handle</p>, sort all of its children according to the sort order that you previously set with the <ref>setsortorder</ref> command. If no sort order values have been set then no changes will be made to the order of the slices. Running this commands zeroes out the sort order value for each slice that it operates on.</description>
+			<description>Given a slice <p>handle</p>, sort all of its children according to the sort order that you previously set with the <ref>setsortorder</ref> command. If no sort order values have been set then no changes will be made to the order of the slices. <p>wipe</p> is an optional argument, defaulting to <ref>true</ref>, which specifies whether to zero out the sort order value for each slice after they have been sorted. This zeroing out behaviour is intended to let you use temporary sort values to perform some sorting operation on sibling slices (see especially the examples to <ref>slicetofront</ref> and <ref>slicetoback</ref>).</description>
 			<example>
 plotscript, reverse Y sort, begin
   variable(sl)
@@ -2677,6 +2685,7 @@ end
 </example>
 			<seealso>
 				<ref>setsortorder</ref>
+				<ref>getsortorder</ref>
 				<ref>ysortchildren</ref>
 			</seealso>
 		</command>
