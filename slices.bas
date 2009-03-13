@@ -332,15 +332,15 @@ Sub YSortChildSlices(byval parent as slice ptr)
  dim slice_list(parent->NumChildren - 1) as slice ptr
  UnlinkChildren parent, slice_list()
  'Sort the siblings by Y
- dim as integer lowest
- for j as integer = 0 to ubound(slice_list)
-  lowest = j
-  for i as integer = j + 1 to ubound(slice_list)
-   if slice_list(i)->Y < slice_list(lowest)->Y then
-     lowest = i
-   end if
+ dim temp as slice ptr
+ dim i as integer
+ for j as integer = 1 to ubound(slice_list)
+  temp = slice_list(j)
+  for i = j - 1 to 0 step -1
+   if slice_list(i)->Y <= temp->Y then exit for
+   slice_list(i + 1) = slice_list(i)
   next i
-  swap slice_list(j), slice_list(lowest)
+  slice_list(i + 1) = temp
  next j
  RelinkChildren parent, slice_list()
 end sub
@@ -350,17 +350,21 @@ Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
  dim slice_list(parent->NumChildren - 1) as slice ptr
  UnlinkChildren parent, slice_list()
  'Sort the siblings by Sorter
- dim as integer lowest
- for j as integer = 0 to ubound(slice_list)
-  lowest = j
-  for i as integer = j + 1 to ubound(slice_list)
-   if slice_list(i)->Sorter < slice_list(lowest)->Sorter then
-     lowest = i
-   end if
+ dim temp as slice ptr
+ dim i as integer
+ for j as integer = 1 to ubound(slice_list)
+  temp = slice_list(j)
+  for i = j - 1 to 0 step -1
+   if slice_list(i)->Sorter <= temp->Sorter then exit for
+   slice_list(i + 1) = slice_list(i)
   next i
-  swap slice_list(j), slice_list(lowest)
-  if wipevals then slice_list(j)->Sorter = 0
+  slice_list(i + 1) = temp
  next j
+ if wipevals then
+  for j as integer = 0 to ubound(slice_list)
+   slice_list(j)->Sorter = 0
+  next
+ end if
  RelinkChildren parent, slice_list()
 End sub
 
