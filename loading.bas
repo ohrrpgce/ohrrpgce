@@ -195,8 +195,9 @@ SUB CleanNPCL(dat() as NPCInst, byval num as integer=-1)
     .frame = 0
     .xgo = 0
     .ygo = 0
-    .extra1 = 0
-    .extra2 = 0
+    .extra(0) = 0
+    .extra(1) = 0
+    .extra(2) = 0
    END WITH
   NEXT
 END SUB

@@ -57,7 +57,9 @@ TYPE Slice
   Width as integer
   Height as integer
   Visible as integer
+
   Sorter as integer 'Only used by CustomSortChildSlices
+  Extra(2) as integer
   
   AlignHoriz as integer 'Relative to parent. 0,1,2=Left,Mid,Right. Only used when .Fill = NO
   AlignVert as integer  'Relative to parent. 0,1,2=Top,Mid,Bottom. Only used when .Fill = NO

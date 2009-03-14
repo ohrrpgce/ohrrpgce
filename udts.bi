@@ -127,8 +127,7 @@ TYPE NPCInst
   id as integer     'npcl+600
   dir as integer    'npcl+900
   frame as integer  'npcl+1200
-  extra1 as integer
-  extra2 as integer
+  extra(2) as integer
 END TYPE
 
 TYPE InventSlot

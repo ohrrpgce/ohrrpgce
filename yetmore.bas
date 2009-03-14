@@ -2112,6 +2112,18 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0), "get sort order") THEN
    scriptret = plotslices(retvals(0))->Sorter
   END IF
+ CASE 410 '--get slice extra (handle, extra)
+  IF valid_plotslice(retvals(0), "get slice extra") THEN
+   IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
+    scriptret = plotslices(retvals(0))->Extra(retvals(1))
+   END IF
+  END IF
+ CASE 411 '--set slice extra (handle, extra, val)
+  IF valid_plotslice(retvals(0), "set slice extra") THEN
+   IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
+    plotslices(retvals(0))->Extra(retvals(1)) = retvals(2)
+   END IF
+  END IF
  
  
 END SELECT
@@ -2305,19 +2317,15 @@ SELECT CASE AS CONST id
  CASE 193'--NPC extra
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   IF retvals(1) MOD 2 = 1 THEN '1
-    scriptret = npc(npcref).extra1
-   ELSEIF retvals(1) MOD 2 = 0 THEN '2
-    scriptret = npc(npcref).extra2
+   IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
+    scriptret = npc(npcref).extra(retvals(1))
    END IF
   END IF
  CASE 194'--set NPC extra
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
-   IF retvals(1) MOD 2 = 1 THEN '1
-    npc(npcref).extra1 = retvals(2)
-   ELSEIF retvals(1) MOD 2 = 0 THEN '2
-    npc(npcref).extra2 = retvals(2)
+   IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
+    npc(npcref).extra(retvals(1)) = retvals(2)
    END IF
   END IF
 '  CASE ???'--get NPC raw
