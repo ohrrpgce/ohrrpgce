@@ -207,7 +207,6 @@ END SUB
 SUB scriptstat (id, stat())
 'contains an assortment of scripting commands that
 'depend on access to the hero stat array stat()
-DIM dummystats(40) as BattleStats 'just need HP and MP
 
 SELECT CASE AS CONST id
  CASE 64'--get hero stat
@@ -302,6 +301,7 @@ SELECT CASE AS CONST id
   heroswap 1, stat()
  CASE 183'--setherolevel (who, what, allow forgetting spells)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
+   DIM dummystats(40) as BattleStats 'just need HP and MP
    stat(retvals(0), 1, 12) = retvals(1) - stat(retvals(0), 0, 12)
    stat(retvals(0), 0, 12) = retvals(1)
    exlev(retvals(0), 1) = exptolevel(retvals(1))
@@ -309,6 +309,7 @@ SELECT CASE AS CONST id
    updatestatslevelup retvals(0), stat(), dummystats(), retvals(2) 'updates stats and spells
   END IF
  CASE 184'--give experience (who, how much)
+  DIM dummystats(40) as BattleStats 'just need HP and MP
   IF retvals(0) = -1 AND liveherocount(stat()) > 0 THEN retvals(1) = retvals(1) / liveherocount(stat())
   FOR i = 0 TO 40
    IF i = retvals(0) OR (retvals(0) = -1 AND i <= 3) THEN
