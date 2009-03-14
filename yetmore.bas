@@ -1789,9 +1789,7 @@ SELECT CASE AS CONST id
   IF valid_plotsprite(retvals(0), "get sprite frame") THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
-   WITH *dat
-    scriptret = .frame
-   END WITH
+   scriptret = dat->frame
   END IF
  CASE 347 '--sprite frame count
   IF valid_plotsprite(retvals(0), "sprite frame count") THEN
@@ -2124,8 +2122,26 @@ SELECT CASE AS CONST id
     plotslices(retvals(0))->Extra(retvals(1)) = retvals(2)
    END IF
   END IF
- 
- 
+ CASE 412 '--get sprite type
+  IF valid_plotslice(retvals(0), "get sprite type") THEN
+   IF plotslices(retvals(0))->SliceType = slSprite THEN
+    DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
+    scriptret = dat->spritetype
+   ELSE
+    scriptret = -1
+   END IF
+  END IF
+ CASE 413 '--get sprite set number
+  IF valid_plotsprite(retvals(0), "get sprite set number") THEN
+   DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
+   scriptret = dat->record
+  END IF 
+ CASE 414 '--get sprite palette
+  IF valid_plotsprite(retvals(0), "get sprite palette") THEN
+   DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
+   scriptret = dat->pal
+  END IF 
+
 END SELECT
 
 EXIT SUB

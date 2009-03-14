@@ -2034,20 +2034,61 @@ end</example>
 			<shortname>set sprite visible</shortname>
 			<description>Makes sprite <p>handle</p> invisible or visible, according to <p>vis</p>. Sprites are automatically visible when you load them, but you can make them invisible with <p>set sprite visible(handle, off)</p>. If the sprite has children, they will become invisible too.</description>
 		</command>
+		<command id="getspritetype">
+			<canon>get sprite type (handle)</canon>
+			<shortname>get sprite type</shortname>
+			<description>Gets the type of sprite slice <p>handle</p>, or returns -1 if the slice is not a sprite. You can compare the result with the following constants:<ul><li>spritetype:hero</li><li>spritetype:small enemy</li><li>spritetype:medium enemy</li><li>spritetype:large enemy</li><li>spritetype:walkabout</li><li>spritetype:weapon</li><li>spritetype:attack</li><li>spritetype:border</li><li>spritetype:portrait</li></ul></description>
+			<seealso>
+				<ref>getspritesetnumber</ref>
+				<ref>getspritepalette</ref>
+				<ref>getspriteframe</ref>
+			</seealso>
+		</command>
+		<command id="getspritesetnumber">
+			<canon>get sprite set number (handle)</canon>
+			<shortname>get sprite set number</shortname>
+			<description>Gets the number of the spriteset of a slice sprite <p>handle</p>.</description>
+			<seealso>
+				<ref>getspritetype</ref>
+				<ref>getspritepalette</ref>
+				<ref>getspriteframe</ref>
+			</seealso>
+		</command>
 		<command id="setspritepalette">
 			<canon>set sprite palette (handle, num)</canon>
 			<shortname>set sprite palette</shortname>
 			<description>Changes the palette of sprite <p>handle</p> to be <p>num</p>. If <p>num</p> is -1 or omitted, the default palette for that sprite is loaded.</description>
+			<seealso>
+				<ref>getspritepalette</ref>
+			</seealso>
+		</command>
+		<command id="getspritepalette">
+			<canon>get sprite palette (handle)</canon>
+			<shortname>get sprite palette</shortname>
+			<description>Returns the palette of sprite <p>handle</p>.</description>
+			<seealso>
+				<ref>getspritetype</ref>
+				<ref>getspritesetnumber</ref>
+				<ref>getspriteframe</ref>
+			</seealso>
 		</command>
 		<command id="setspriteframe">
 			<canon>set sprite frame (handle, num)</canon>
 			<shortname>set sprite frame</shortname>
 			<description>Changes the frame of sprite <p>handle</p> to be <p>num</p>. If <p>num</p> is less than 0, or greater than or equal to the number of frames, nothing will change.</description>
+			<seealso>
+				<ref>getspriteframe</ref>
+			</seealso>
 		</command>
 		<command id="getspriteframe">
 			<canon>get sprite frame (handle)</canon>
 			<shortname>get sprite frame</shortname>
 			<description>Returns the current frame number of sprite <p>handle</p>.</description>
+			<seealso>
+				<ref>getspritetype</ref>
+				<ref>getspritepalette</ref>
+				<ref>getspritesetnumber</ref>
+			</seealso>
 		</command>
 		<command id="spriteframecount">
 			<canon>sprite frame count (handle)</canon>
@@ -2538,7 +2579,7 @@ script, safe sorting, begin
   # loop starts (or by using "previous sibling") it is safe to move slices
   # to the end of the sibling list.
   # We also ensure the rects stay in the same relative order by writing
-  # the loop so that we move the last splice to front if it is a rect.
+  # the loop so that we move the last slice to front if it is a rect.
   variable(sl, last, prev)
   last := last child(sprite layer)
   sl := first child(sprite layer)
@@ -2617,7 +2658,7 @@ script, correct sorting, begin
   # This is an example of one right way to move all rect slices to the
   # back with a loop and preservw relative ordering between the rects.
   # Note that we ensure the rects stay in the same relative order by writing
-  # the loop so that we also move the 'first' splice to back if it is a rect.
+  # the loop so that we also move the 'first' slice to back if it is a rect.
   variable(sl, first, prev)
   first := first child(sprite layer)
   sl := last child(sprite layer)

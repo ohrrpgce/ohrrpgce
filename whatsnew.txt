@@ -59,6 +59,7 @@ WHAT IS NEW?
       "load border sprite", "replace border sprite",
       "load portrait sprite", "replace portrait sprite",
       "free sprite", "place sprite", "set sprite visible",
+      "get sprite type", "get sprite set number", "get sprite palette"
       "set sprite palette", "clone sprite", "set sprite frame",
       "get sprite frame", "sprite frame count", "slice is sprite",
       "sprite layer", "horiz flip sprite", "vert flip sprite",

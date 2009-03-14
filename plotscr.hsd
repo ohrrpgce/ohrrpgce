@@ -418,6 +418,9 @@ define function, begin
 409,getsortorder,1,0          #get sort value for sortchildren for a slice
 410,getsliceextra,2,0,0       #get slice extra (0-2) data (slice, extra)
 411,setsliceextra,3,0,0,0     #set slice extra (0-2) data (slice, extra, value)
+412,getspritetype,1,0         #get type of a sprite slice or -1 if not
+413,getspritesetnumber,1,0    #get record number of a sprite slice
+414,getspritepalette,1,0      #get palette number of a sprite slice
 end
 
 #--------------------------------------------------------------------------
@@ -1408,4 +1411,13 @@ define constant, begin
 0,edge:top
 1,edge:middle
 2,edge:bottom
+0,spritetype:hero
+1,spritetype:smallenemy
+2,spritetype:mediumenemy
+3,spritetype:largeenemy
+4,spritetype:walkabout
+5,spritetype:weapon
+6,spritetype:attack
+7,spritetype:border
+8,spritetype:portrait
 end
