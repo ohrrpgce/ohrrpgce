@@ -1864,13 +1864,16 @@ WITH scrat(nowscript)
     END IF
    CASE 259'--checkNPCwall
     npcref = getnpcref(retvals(0), 0)
-    tempxgo = 0
-    tempygo = 0
-    IF retvals(1) = 0 THEN tempygo = 20
-    IF retvals(1) = 1 THEN tempxgo = -20
-    IF retvals(1) = 2 THEN tempygo = -20
-    IF retvals(1) = 3 THEN tempxgo = 20
-    scriptret = wrappass(npc(npcref).x \ 20, npc(npcref).y \ 20, tempxgo, tempygo, 0)
+    IF npcref >= 0 THEN
+     'Only check walls for NPC who actually exists
+     tempxgo = 0
+     tempygo = 0
+     IF retvals(1) = 0 THEN tempygo = 20
+     IF retvals(1) = 1 THEN tempxgo = -20
+     IF retvals(1) = 2 THEN tempygo = -20
+     IF retvals(1) = 3 THEN tempxgo = 20
+     scriptret = wrappass(npc(npcref).x \ 20, npc(npcref).y \ 20, tempxgo, tempygo, 0)
+    END IF
    CASE 267'--main menu
     add_menu 0
    CASE 274'--open menu
