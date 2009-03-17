@@ -4174,7 +4174,7 @@ end</example>
 		<command id="loadfromslot">
 			<canon>load from slot (slot)</canon>
 			<shortname>load from slot</shortname>
-			<description>Loads a saved game from a save slot as if it had been loaded from the load game menu. This command will end the current game.</description>
+			<description>Loads a saved game from a save slot as if it had been loaded from the load game menu. This command will end the current game if it successfully loads. If the load fails because the slot has never been saved in, the script will continue.</description>
 		</command>
 		<command id="deletesave">
 			<canon>delete save (slot)</canon>
