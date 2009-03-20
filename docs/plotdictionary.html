@@ -715,10 +715,25 @@
 		<a href="#about-getrightpadding">get right padding (handle)</a><br>
 		
 	
+		<a href="#about-getsliceextra">get slice extra (handle, extra)</a><br>
+		
+	
 		<a href="#about-getsongname">get song name (ID, song)</a><br>
 		
 	
+		<a href="#about-getsortorder">get sort order (handle)</a><br>
+		
+	
 		<a href="#about-getspriteframe">get sprite frame (handle)</a><br>
+		
+	
+		<a href="#about-getspritepalette">get sprite palette (handle)</a><br>
+		
+	
+		<a href="#about-getspritesetnumber">get sprite set number (handle)</a><br>
+		
+	
+		<a href="#about-getspritetype">get sprite type (handle)</a><br>
 		
 	
 		<a href="#about-gettileanimationoffset">get tile animation offset (animation pattern, layer)</a><br>
@@ -1036,7 +1051,7 @@
 		<a href="#about-npcdirection">NPC direction (who)</a><br>
 		
 	
-		<a href="#about-npcextra">NPC extra (who,which)</a><br>
+		<a href="#about-npcextra">NPC extra (who, which)</a><br>
 		
 	
 		<a href="#about-npcframe">NPC frame (who)</a><br>
@@ -1133,6 +1148,9 @@
 		
 	
 		<a href="#about-previousmenuitem">previous menu item(menu item handle, visible only)</a><br>
+		
+	
+		<a href="#about-previoussibling">previous sibling(handle)</a><br>
 		
 	
 		<a href="#about-putcamera">put camera (x,y)</a><br>
@@ -1513,7 +1531,7 @@
 		<a href="#about-setnpcdirection">set NPC direction (who, direction)</a><br>
 		
 	
-		<a href="#about-setnpcextra">set NPC extra (who,which, value)</a><br>
+		<a href="#about-setnpcextra">set NPC extra (who, which, value)</a><br>
 		
 	
 		<a href="#about-setnpcframe">set NPC frame (who, frame)</a><br>
@@ -1553,6 +1571,9 @@
 		
 	
 		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
+		
+	
+		<a href="#about-setsliceextra">set slice extra (handle, extra, value)</a><br>
 		
 	
 		<a href="#about-setsliceheight">set slice height (handle, height)</a><br>
@@ -1690,7 +1711,7 @@
 		<a href="#about-song:silence">song: silence</a><br>
 		
 	
-		<a href="#about-sortchildren">sort children (handle)</a><br>
+		<a href="#about-sortchildren">sort children (handle, wipe)</a><br>
 		
 	
 		<a href="#about-soundisplaying">sound is playing (num)</a><br>
@@ -3439,7 +3460,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">extract color(color, component)</font></b><br>
-			Takes a 32-bit color value, and extracts the red, green or blue component, based on the <span class="param">component</span> parameter. You may use the <a href="#color:red" class="undef">color:red</a>, <a href="#color:green" class="undef">color:green</a> and <a href="#color:blue" class="undef">color:blue</a> parameters to choose which one.<br>
+			Takes a 32-bit color value, and extracts the red, green or blue component, based on the <span class="param">component</span> parameter. You may use the <a href="#about-colorconstants" class="ref">color:red</a>, <a href="#about-colorconstants" class="ref">color:green</a> and <a href="#about-colorconstants" class="ref">color:blue</a> parameters to choose which one.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-rgb" class="ref">RGB</a></li></ul>
 		</tt></p>
@@ -4251,7 +4272,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu item extra(menu item handle, extra)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and an <span class="param">extra</span> data number which can be 0, 1, or 2, Return the the number stored in the extra data space. This extra data has no meaning of its own, and is just useful for advanced menu scripting.<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and an <span class="param">extra</span> data number which can be 0, 1, or 2, return the the number stored in the extra data space. This extra data has no meaning of its own, and is just useful for advanced menu scripting.<br>
 			
 			
 		</tt></p>
@@ -4259,7 +4280,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu item extra(menu item handle, extra, num)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and an <span class="param">extra</span> data number which can be 0, 1, or 2, Change the number stored in the extra data space to <span class="param">num</span>. This extra data has no meaning of its own, and is just useful for advanced menu scripting.<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), and an <span class="param">extra</span> data number which can be 0, 1, or 2, change the number stored in the extra data space to <span class="param">num</span>. This extra data has no meaning of its own, and is just useful for advanced menu scripting.<br>
 			
 			
 		</tt></p>
@@ -4614,7 +4635,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">replace small enemy sprite (handle, num, palette)</font></b><br>
-			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#loadsmall%20enemysprite" class="undef">loadsmall enemysprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4644,7 +4665,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">replace medium enemy sprite (handle, num, palette)</font></b><br>
-			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#loadmedium%20enemysprite" class="undef">loadmedium enemysprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4674,7 +4695,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">replace large enemy sprite (handle, num, palette)</font></b><br>
-			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#loadlarge%20enemysprite" class="undef">loadlarge enemysprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>.<br clear="all">
 </div>
 <br>
@@ -4809,11 +4830,11 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">free sprite (handle)</font></b><br>
-			Unloads a sprite loaded by any of the "load x sprite" functions. Unlike <a href="#about-freeslice" class="ref">free slice</a>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are.<br>
+			Unloads a sprite loaded by any of the "load x sprite" functions. This removes the sprite from the screen and removes it from memory. It is a good idea to free sprites when you are completely done with them. Unlike <a href="#about-freeslice" class="ref">free slice</a>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#free%20slice" class="undef">free slice</a>, </li>
+<a href="#about-freeslice" class="ref">free slice</a>, </li>
 <li><a href="#about-loadherosprite" class="ref">load hero sprite</a></li>
 </ul>
 		</tt></p>
@@ -4841,9 +4862,48 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set sprite visible (handle, vis)</font></b><br>
-			Makes sprite <span class="param">handle</span> invisible or visible, according to <span class="param">vis</span>. By default, a sprite is invisible (<a href="#about-booleanconstants" class="ref">on</a>), and must be made visible (<a href="#about-booleanconstants" class="ref">off</a>) only if you want to hide it.<br>
+			Makes sprite <span class="param">handle</span> invisible or visible, according to <span class="param">vis</span>. Sprites are automatically visible when you load them, but you can make them invisible with <span class="param">set sprite visible(handle, off)</span>. If the sprite has children, they will become invisible too.<br>
 			
 			
+		</tt></p>
+		<a name="about-getspritetype"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get sprite type (handle)</font></b><br>
+			Gets the type of sprite slice <span class="param">handle</span>, or returns -1 if the slice is not a sprite. You can compare the result with the following constants:<ul>
+<li>spritetype:hero</li>
+<li>spritetype:small enemy</li>
+<li>spritetype:medium enemy</li>
+<li>spritetype:large enemy</li>
+<li>spritetype:walkabout</li>
+<li>spritetype:weapon</li>
+<li>spritetype:attack</li>
+<li>spritetype:border</li>
+<li>spritetype:portrait</li>
+</ul>
+<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getspritesetnumber" class="ref">get sprite set number</a>, </li>
+<li>
+<a href="#about-getspritepalette" class="ref">get sprite palette</a>, </li>
+<li><a href="#about-getspriteframe" class="ref">get sprite frame</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getspritesetnumber"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get sprite set number (handle)</font></b><br>
+			Gets the number of the spriteset of a slice sprite <span class="param">handle</span>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getspritetype" class="ref">get sprite type</a>, </li>
+<li>
+<a href="#about-getspritepalette" class="ref">get sprite palette</a>, </li>
+<li><a href="#about-getspriteframe" class="ref">get sprite frame</a></li>
+</ul>
 		</tt></p>
 		<a name="about-setspritepalette"></a>
 		<p>
@@ -4851,7 +4911,21 @@ end</pre>
 		<b><font color="yellow">set sprite palette (handle, num)</font></b><br>
 			Changes the palette of sprite <span class="param">handle</span> to be <span class="param">num</span>. If <span class="param">num</span> is -1 or omitted, the default palette for that sprite is loaded.<br>
 			
+			<br>See also: <ul class="seealso"><li><a href="#about-getspritepalette" class="ref">get sprite palette</a></li></ul>
+		</tt></p>
+		<a name="about-getspritepalette"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get sprite palette (handle)</font></b><br>
+			Returns the palette of sprite <span class="param">handle</span>.<br>
 			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getspritetype" class="ref">get sprite type</a>, </li>
+<li>
+<a href="#about-getspritesetnumber" class="ref">get sprite set number</a>, </li>
+<li><a href="#about-getspriteframe" class="ref">get sprite frame</a></li>
+</ul>
 		</tt></p>
 		<a name="about-setspriteframe"></a>
 		<p>
@@ -4859,7 +4933,7 @@ end</pre>
 		<b><font color="yellow">set sprite frame (handle, num)</font></b><br>
 			Changes the frame of sprite <span class="param">handle</span> to be <span class="param">num</span>. If <span class="param">num</span> is less than 0, or greater than or equal to the number of frames, nothing will change.<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-getspriteframe" class="ref">get sprite frame</a></li></ul>
 		</tt></p>
 		<a name="about-getspriteframe"></a>
 		<p>
@@ -4867,7 +4941,13 @@ end</pre>
 		<b><font color="yellow">get sprite frame (handle)</font></b><br>
 			Returns the current frame number of sprite <span class="param">handle</span>.<br>
 			
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getspritetype" class="ref">get sprite type</a>, </li>
+<li>
+<a href="#about-getspritepalette" class="ref">get sprite palette</a>, </li>
+<li><a href="#about-getspritesetnumber" class="ref">get sprite set number</a></li>
+</ul>
 		</tt></p>
 		<a name="about-spriteframecount"></a>
 		<p>
@@ -5005,10 +5085,10 @@ set horiz align(sl, edge:right)
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#slice%20y" class="undef">slice y</a>, </li>
+<a href="#about-slicey" class="ref">slice y</a>, </li>
 <li>
-<a href="#set%20slice%20x" class="undef">set slice x</a>, </li>
-<li><a href="#slice%20screen%20x" class="undef">slice screen x</a></li>
+<a href="#about-setslicex" class="ref">set slice x</a>, </li>
+<li><a href="#about-slicescreenx" class="ref">slice screen x</a></li>
 </ul>
 		</tt></p>
 		<a name="about-slicey"></a>
@@ -5019,10 +5099,10 @@ set horiz align(sl, edge:right)
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#slice%20x" class="undef">slice x</a>, </li>
+<a href="#about-slicex" class="ref">slice x</a>, </li>
 <li>
-<a href="#set%20slice%20y" class="undef">set slice y</a>, </li>
-<li><a href="#slice%20screen%20y" class="undef">slice screen y</a></li>
+<a href="#about-setslicey" class="ref">set slice y</a>, </li>
+<li><a href="#about-slicescreeny" class="ref">slice screen y</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setslicex"></a>
@@ -5033,8 +5113,8 @@ set horiz align(sl, edge:right)
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#slice%20x" class="undef">slice x</a>, </li>
-<li><a href="#set%20slice%20y" class="undef">set slice y</a></li>
+<a href="#about-slicex" class="ref">slice x</a>, </li>
+<li><a href="#about-setslicey" class="ref">set slice y</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setslicey"></a>
@@ -5237,66 +5317,65 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">free slice (handle)</font></b><br>
-			Unloads a slice and any child slices. This works on any type of slice. If you know the type of slice you are deleting, you can use type-specific freeing commands instead.<br>
+			Unloads a slice and any child slices. This works on any type of slice. This removes the slice from the screen and removes it from memory. You should free your slices after you are completely done with them. If you know the type of slice you are deleting, you can use type-specific freeing commands like <a href="#about-freesprite" class="ref">free sprite</a> instead.<br>
 			<pre>
-			script, simple example, begin
-			  variable(sl)
-			  sl := load hero sprite(0)
-			  wait(20)
-			  free slice(sl)
-			end
-			
-			script, example with children, begin
-			  variable(box, sl)
-			  
-			  # create a box
-			  box := create rect(100, 60)
-			  
-			  # center a hero as a child of the box
-			  sl := load hero sprite(0)
-			  set parent(sl, box)
-			  center slice(sl)
-			  
-			  wait(20)
-			  
-			  # when you free the box, the hero will be freed too
-			  free slice(box)
-			
-			  # The sprite is gone now, so if you use the handle that used to point
-			  # to it, you will get an error message in your g_debug.txt file
-			  position sprite(sl, 25, 25)
-			end
-			
-			script, wrong way to free in a loop, begin
-			  # this loop is the WRONG way to remove all sprites that show frame number 1
-			  # because removing a slice inside a loop will interfere with the "next sibling"
-			  # command causing the loop to end early
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is sprite(sl)) then, begin
-			      if(get sprite frame(sl) == 1) then(free slice(sl))
-			    end
-			    sl := next sibling(sl)
-			  end
-			end
+script, simple example, begin
+  variable(sl)
+  sl := load hero sprite(0)
+  wait(20)
+  free slice(sl)
+end
 
-			script, right way to free in a loop, begin
-			  # this loop is the right way to remove all sprites that show frame number 1
-			  # by waiting until AFTER the "next sibling" command, we can free the slice
-			  # without ending the loop early
-			  variable(sl, deleteme)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    deleteme := 0
-			    if(slice is sprite(sl)) then, begin
-			      if(get sprite frame(sl) == 1) then(deleteme := sl)
-			    end
-			    sl := next sibling(sl)
-			    if(deleteme) then(free slice(deleteme))
-			  end
-			end
-			</pre>
+script, example with children, begin
+  variable(box, sl)
+  
+  # create a box
+  box := create rect(100, 60)
+  
+  # center a hero as a child of the box
+  sl := load hero sprite(0)
+  set parent(sl, box)
+  center slice(sl)
+  
+  wait(20)
+  
+  # when you free the box, the hero will be freed too
+  free slice(box)
+
+  # The sprite is gone now, so if you use the handle that used to point
+  # to it, you will get an error message in your g_debug.txt file
+  position sprite(sl, 25, 25)
+end
+
+script, wrong way to free in a loop, begin
+  # this loop is the WRONG way to remove all sprites that show frame number 1
+  # because removing a slice inside a loop will interfere with the "next sibling"
+  # command causing the loop to end early
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is sprite(sl)) then, begin
+      if(get sprite frame(sl) == 1) then(free slice(sl))
+    end
+    sl := next sibling(sl)
+  end
+end
+	script, right way to free in a loop, begin
+  # this loop is the right way to remove all sprites that show frame number 1
+  # by waiting until AFTER the "next sibling" command, we can free the slice
+  # without ending the loop early
+  variable(sl, deleteme)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    deleteme := 0
+    if(slice is sprite(sl)) then, begin
+      if(get sprite frame(sl) == 1) then(deleteme := sl)
+    end
+    sl := next sibling(sl)
+    if(deleteme) then(free slice(deleteme))
+  end
+end
+</pre>
 			<br>See also: <ul class="seealso"><li><a href="#about-freesprite" class="ref">free sprite</a></li></ul>
 		</tt></p>
 		<a name="about-firstchild"></a>
@@ -5347,11 +5426,29 @@ end
 </pre>
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-nextspritesibling" class="ref">next sprite silbing</a>, </li>
+<a href="#about-previoussibling" class="ref">previous sibling</a>, </li>
 <li>
-<a href="#nextrectsilbing" class="undef">nextrectsilbing</a>, </li>
+<a href="#about-nextspritesibling" class="ref">next sprite sibling</a>, </li>
 <li>
-<a href="#about-nextcontainersibling" class="ref">next container silbing</a>, </li>
+<a href="#about-nextrectsibling" class="ref">next rect sibling</a>, </li>
+<li>
+<a href="#about-nextcontainersibling" class="ref">next container sibling</a>, </li>
+<li>
+<a href="#about-freeslice" class="ref">free slice</a>, </li>
+<li>
+<a href="#about-slicetofront" class="ref">slice to front</a>, </li>
+<li><a href="#about-slicetoback" class="ref">slice to back</a></li>
+</ul>
+		</tt></p>
+		<a name="about-previoussibling"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">previous sibling(handle)</font></b><br>
+			Returns a slice handle for the previous sibling of a given slice <span class="param">handle</span>, the inverse of <a href="#about-nextsibling" class="ref">next sibling</a> . Returns <span class="param">false</span> if the given slice is the first sibling of its parent. This is useful when looping through slices.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-nextsibling" class="ref">next sibling</a>, </li>
 <li>
 <a href="#about-freeslice" class="ref">free slice</a>, </li>
 <li>
@@ -5368,19 +5465,19 @@ end
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-firstchild" class="ref">first child</a>, </li>
-<li><a href="#about-nextspritesibling" class="ref">next sprite silbing</a></li>
+<li><a href="#about-nextspritesibling" class="ref">next sprite sibling</a></li>
 </ul>
 		</tt></p>
 		<a name="about-nextspritesibling"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">next sprite sibling(handle)</font></b><br>
-			Returns a slice handle for the next sprite sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last sprite sibling of its parent. Slices of other types will be ignored. This is useful when looping sprites.<br>
+			Returns a slice handle for the next sprite sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last sprite sibling of its parent. Slices of other types will be ignored. This is useful when looping through sprites.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-firstspritechild" class="ref">first sprite child</a>, </li>
-<li><a href="#about-nextsibling" class="ref">next silbing</a></li>
+<li><a href="#about-nextsibling" class="ref">next sibling</a></li>
 </ul>
 		</tt></p>
 		<a name="about-firstrectchild"></a>
@@ -5392,19 +5489,19 @@ end
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-firstchild" class="ref">first child</a>, </li>
-<li><a href="#about-nextrectsibling" class="ref">next rect silbing</a></li>
+<li><a href="#about-nextrectsibling" class="ref">next rect sibling</a></li>
 </ul>
 		</tt></p>
 		<a name="about-nextrectsibling"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">next rect sibling(handle)</font></b><br>
-			Returns a slice handle for the next rect sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last rect sibling of its parent. Slices of other types will be ignored. This is useful when looping rects.<br>
+			Returns a slice handle for the next rect sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last rect sibling of its parent. Slices of other types will be ignored. This is useful when looping through rects.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-firstrectchild" class="ref">first rect child</a>, </li>
-<li><a href="#about-nextsibling" class="ref">next silbing</a></li>
+<li><a href="#about-nextsibling" class="ref">next sibling</a></li>
 </ul>
 		</tt></p>
 		<a name="about-firstcontainerchild"></a>
@@ -5416,19 +5513,19 @@ end
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-firstchild" class="ref">first child</a>, </li>
-<li><a href="#about-nextcontainersibling" class="ref">next container silbing</a></li>
+<li><a href="#about-nextcontainersibling" class="ref">next container sibling</a></li>
 </ul>
 		</tt></p>
 		<a name="about-nextcontainersibling"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">next container sibling(handle)</font></b><br>
-			Returns a slice handle for the next container sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last container sibling of its parent. Slices of other types will be ignored. This is useful when looping containers.<br>
+			Returns a slice handle for the next container sibling of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the given slice is the last container sibling of its parent. Slices of other types will be ignored. This is useful when looping through containers.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-firstcontainerchild" class="ref">first container child</a>, </li>
-<li><a href="#about-nextsibling" class="ref">next silbing</a></li>
+<li><a href="#about-nextsibling" class="ref">next sibling</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setparent"></a>
@@ -5451,122 +5548,140 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">slice to front (handle)</font></b><br>
-			Sort a slice <span class="param">handle</span> so that it is drawn in front of other slices with the same parent. If you use this command inside a loop that iterates through slices using <a href="#about-nextsibling" class="ref">next silbing</a> because moving a slice to the front also moves it to the bottom of its parent's sibling list. Be careful not to accadentally create an endless loop.<br>
+			Sort a slice <span class="param">handle</span> so that it is drawn in front of other slices with the same parent. This is done by moving it to the end of its parent's child list. If you use this command inside a loop that iterates through slices using <a href="#about-nextsibling" class="ref">next sibling</a> be careful not to accidentally create an endless loop.<br>
 			<pre>
-			script, simple example, begin
-			  # As long as you are not looping with the "next sibling" command
-			  # then "slice to front" is safe and easy to use.
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  slice to front(sl)
-			end
-			
-			script, dangerous sorting, begin
-			  # this is an example of the WRONG way to move all rect slices to the
-			  # front in a loop. Because moving a slice to the front adds it to the
-			  # end of the list, the loop will go on forever.
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is rect(sl)) then, begin
-			      slice to front(sl)
-			    end
-			    sl := next sibling(sl)
-			  end
-			end
-			
-			script, safe sorting, begin
-			  # this is an example of the right way to move all rect slices to the
-			  # front in a loop. By remembering which slice was last before the
-			  # loop starts it is safe to move slices to the end of the sibling list
-			  variable(sl, last, moveme)
-			  last := last child(sprite layer)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    moveme := 0
-			    if(slice is rect(sl)) then(moveme := sl)
-			    if(sl == last) then(break)
-			    sl := next sibling(sl)
-			    if(moveme) then(slice to front(moveme))
-			  end
-			end
-			
-			script, easier safe sorting, begin
-			  # If you need to sort slices in a loop, you might find it easier
-			  # to avoid the "slice to front" command and use "set sort order"
-			  # and "sort children" instead.
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is rect(sl)) then, begin
-			      set sort order(sl, 1)
-			    end
-			    sl := next sibling(sl)
-			  end
-			  sort children(sprite layer)
-			end
-			</pre>
+script, simple example, begin
+  # As long as you are not looping with the "next sibling" command
+  # then "slice to front" is safe and easy to use.
+  variable(sl)
+  sl := first child(sprite layer)
+  slice to front(sl)
+end
+
+script, dangerous sorting, begin
+  # this is an example of the WRONG way to move all rect slices to the
+  # front in a loop. Because moving a slice to the front adds it to the
+  # end of the list, the loop will go on forever.
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is rect(sl)) then, begin
+      slice to front(sl)
+    end
+    sl := next sibling(sl)
+  end
+end
+
+script, safe sorting, begin
+  # This is an example of the right way to move all rect slices to the
+  # front in a loop. By remembering which slice was last before the
+  # loop starts (or by using "previous sibling") it is safe to move slices
+  # to the end of the sibling list.
+  # We also ensure the rects stay in the same relative order by writing
+  # the loop so that we move the last slice to front if it is a rect.
+  variable(sl, last, prev)
+  last := last child(sprite layer)
+  sl := first child(sprite layer)
+  while(sl &amp;&amp; sl &lt;&gt; last) do, begin
+    prev := sl
+    sl := next sibling(sl)			    
+    if(slice is rect(prev)) then(slice to front(prev))
+  end
+end
+
+script, easier safe sorting, begin
+  # If you need to sort slices in a loop, you might find it easier
+  # to avoid the "slice to front" command and use "set sort order"
+  # and "sort children" instead.
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is rect(sl)) then, begin
+      set sort order(sl, 1)
+    end
+    sl := next sibling(sl)
+  end
+  sort children(sprite layer)
+end
+</pre>
 			<br>See also: <ul class="seealso"><li><a href="#about-slicetoback" class="ref">slice to back</a></li></ul>
 		</tt></p>
 		<a name="about-slicetoback"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">slice to back (handle)</font></b><br>
-			Sort a slice <span class="param">handle</span> so it will be drawn behind other slices with the same parent. If you use this command inside a loop, be careful not to accadentally create an endless loop. Moving a slice to the back also moves it to the top of its parent's sibling list.<br>
+			Sort a slice <span class="param">handle</span> so it will be drawn behind other slices with the same parent. If you use this command inside a loop, be careful not to accidentally create an endless loop. Moving a slice to the back also moves it to the first position of its parent's sibling list.<br>
 			<pre>
-			script, simple example, begin
-			  # As long as you are not looping with the "next sibling" command
-			  # then "slice to back" is safe and easy to use.
-			  variable(sl)
-			  sl := load hero sprite(0)
-			  slice to back(sl)
-			end
-			
-			script, dangerous sorting, begin
-			  # this is an example of the WRONG way to move all rect slices to the
-			  # back in a loop. Because moving a slice to the back moves it to the
-			  # top of the list, the loop will be restarted each time
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is rect(sl)) then, begin
-			      slice to back(sl)
-			    end
-			    sl := next sibling(sl)
-			  end
-			end
-			
-			script, safe sorting, begin
-			  # this is an example of the right way to move all rect slices to the
-			  # back in a loop. By moving the slice AFTER using the "next sibling"
-			  # command we avoid re-starting the loop
-			  variable(sl, moveme)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    moveme := 0
-			    if(slice is rect(sl)) then, begin
-			      moveme := sl
-			    end
-			    sl := next sibling(sl)
-			    if(moveme) then(slice to back(moveme))
-			  end
-			end
-			
-			script, easier safe sorting, begin
-			  # If you need to sort slices in a loop, you might find it easier
-			  # to avoid the "slice to back" command and use "set sort order"
-			  # and "sort children" instead.
-			  variable(sl)
-			  sl := first child(sprite layer)
-			  while(sl) do, begin
-			    if(slice is rect(sl)) then, begin
-			      set sort order(sl, -1)
-			    end
-			    sl := next sibling(sl)
-			  end
-			  sort children(sprite layer)
-			end
-			</pre>
+script, simple example, begin
+  # As long as you are not looping with the "next sibling" command
+  # then "slice to back" is safe and easy to use.
+  variable(sl)
+  sl := load hero sprite(0)
+  slice to back(sl)
+end
+
+script, dangerous sorting, begin
+  # This is an example of the WRONG way to move all rect slices to the
+  # back in a loop. Because moving a slice to the back moves it to the
+  # top of the list, the loop will be restarted each time
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is rect(sl)) then, begin
+      slice to back(sl)
+    end
+    sl := next sibling(sl)
+  end
+end
+
+script, safe but incorrect sorting, begin
+  # This is an example of a safe way to move all the rect slices to the
+  # back. HOWEVER the order in which all the rects will be drawn will
+  # be reversed! That might be alright for your need.
+  # By moving the slice AFTER using the "next sibling" command we avoid 
+  # re-starting the loop.
+  variable(sl, moveme)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    moveme := 0
+    if(slice is rect(sl)) then, begin
+      moveme := sl
+    end
+    sl := next sibling(sl)
+    if(moveme) then(slice to back(moveme))
+  end
+end
+
+script, correct sorting, begin
+  # This is an example of one right way to move all rect slices to the
+  # back with a loop and preservw relative ordering between the rects.
+  # Note that we ensure the rects stay in the same relative order by writing
+  # the loop so that we also move the 'first' slice to back if it is a rect.
+  variable(sl, first, prev)
+  first := first child(sprite layer)
+  sl := last child(sprite layer)
+  while(sl &amp;&amp; sl &lt;&gt; first) do, begin
+    prev := sl
+    sl := previous sibling(sl)			    
+    if(slice is rect(prev)) then(slice to back(prev))
+  end
+end
+
+script, easier safe sorting, begin
+  # If you need to sort slices in a loop, you might find it easier
+  # to avoid the "slice to back" command and use "set sort order"
+  # and "sort children" instead.
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) do, begin
+    if(slice is rect(sl)) then, begin
+      set sort order(sl, -1)
+    end
+    sl := next sibling(sl)
+  end
+  sort children(sprite layer)
+end
+</pre>
 			<br>See also: <ul class="seealso"><li><a href="#about-slicetofront" class="ref">slice to front</a></li></ul>
 		</tt></p>
 		<a name="about-ysortchildren"></a>
@@ -5581,31 +5696,57 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set sort order (handle, order)</font></b><br>
-			Assign a sort order number to a slice <span class="param">handle</span>. This can be any arbitrary number that will be used to sort the slice relative to its sibling slices the next time that <a href="#about-sortchildren" class="ref">sort children</a> is called. Give a slice a low number to sort it to the back or a high number to sort it to the front. If you give two sibling slices the same sort order number they will be sorted to the same depth, and they will remain in their original order in relation to one another.<br>
+			Assign a sort order value to a slice <span class="param">handle</span>. This can be any arbitrary number that will be used to sort the slice relative to its sibling slices the next time that <a href="#about-sortchildren" class="ref">sort children</a> is called. Give a slice a low number to sort it to the back or a high number to sort it to the front. This means it functions like (or can be used as) a z-depth. If you give two sibling slices the same sort order number they will be sorted to the same depth, and they will remain in their original order in relation to one another.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getsortorder" class="ref">get sort order</a></li></ul>
+		</tt></p>
+		<a name="about-getsortorder"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get sort order (handle)</font></b><br>
+			Retrieve the sort order value previously set on a slice <span class="param">handle</span> with <a href="#about-getsortorder" class="ref">get sort order</a>. Note that calling <a href="#about-sortchildren" class="ref">sort children</a> by default resets all the sort order values to zero, unless <a href="#about-booleanconstants" class="ref">false</a> is passed as <span class="param">wipe</span>.<br>
 			
 			
 		</tt></p>
 		<a name="about-sortchildren"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">sort children (handle)</font></b><br>
-			Given a slice <span class="param">handle</span>, sort all of its children according to the sort order that you previously set with the <a href="#about-setsortorder" class="ref">set sort order</a> command. If no sort order values have been set then no changes will be made to the order of the slices. Running this commands zeroes out the sort order value for each slice that it operates on.<br>
+		<b><font color="yellow">sort children (handle, wipe)</font></b><br>
+			Given a slice <span class="param">handle</span>, sort all of its children according to the sort order that you previously set with the <a href="#about-setsortorder" class="ref">set sort order</a> command. If no sort order values have been set then no changes will be made to the order of the slices. <span class="param">wipe</span> is an optional argument, defaulting to <a href="#about-booleanconstants" class="ref">true</a>, which specifies whether to zero out the sort order value for each slice after they have been sorted. This zeroing out behaviour is intended to let you use temporary sort values to perform some sorting operation on sibling slices (see especially the examples to <a href="#about-slicetofront" class="ref">slice to front</a> and <a href="#about-slicetoback" class="ref">slice to back</a>).<br>
 			<pre>
-				plotscript, reverse Y sort, begin
-				  variable(sl)
-				  sl := first child(sprite layer)
-				  while(sl) then, begin
-				    set sort order(sl, slice y(sl) * -1)
-				    sl := next sibling(sl)
-				  end
-				  sort children(sprite layer)
-				end
-			</pre>
+plotscript, reverse Y sort, begin
+  variable(sl)
+  sl := first child(sprite layer)
+  while(sl) then, begin
+    set sort order(sl, slice y(sl) * -1)
+    sl := next sibling(sl)
+  end
+  sort children(sprite layer)
+end
+</pre>
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-setsortorder" class="ref">set sort order</a>, </li>
+<li>
+<a href="#about-getsortorder" class="ref">get sort order</a>, </li>
 <li><a href="#about-ysortchildren" class="ref">Y sort children</a></li>
 </ul>
+		</tt></p>
+		<a name="about-setsliceextra"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice extra (handle, extra, value)</font></b><br>
+			Sets one of three extra data variables that every slice has, on the slice <span class="param">handle</span>. <span class="param">extra</span> is a number from 0 to 2 which indicates which extra data field to write  (you may also use the constants <span class="param">extra1</span>, <span class="param">extra2</span>, <span class="param">extra3</span>). The extra data has no meaning to the slice, it is only for use by scripts.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getsliceextra" class="ref">get slice extra</a></li></ul>
+		</tt></p>
+		<a name="about-getsliceextra"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get slice extra (handle, extra)</font></b><br>
+			Retrieve an extra data value previously set on a slice <span class="param">handle</span> with <a href="#about-setsliceextra" class="ref">set slice extra</a>. <span class="param">extra</span> is a number from 0 to 2 which indicates which extra data field to read.<br>
+			
+			
 		</tt></p>
 		<a name="about-getrectstyle"></a>
 		<p>
@@ -5715,7 +5856,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">slice collide (handle1, handle2)</font></b><br>
-			Given a pair of slice handles, return true if they collide with one another.Parent/child relationships have nothing to do with this test. It does not matter if the slices are related.<br>
+			Given a pair of slice handles, return true if they collide with one another. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5727,7 +5868,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">slice contains (handle1, handle2)</font></b><br>
-			Return true if the screen position of slice <span class="param">handle2</span> is completely inside slice <span class="param">handle1</span>. Parent/child relationships have nothing to do with this test. It does not matter if the slices are related.<br>
+			Return true if the screen position of slice <span class="param">handle2</span> is completely inside slice <span class="param">handle1</span>. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-slicecollide" class="ref">slice collide</a></li></ul>
 		</tt></p>
@@ -5887,7 +6028,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">fill parent (handle, true_or_false)</font></b><br>
-			Make a slice <span class="param">handle</span> automatically fill its parent. This will change the position and size of the slice so that it completely fills the parent (minus the parent's padding). You can also disable filling with this command by passing <span class="param">false</span> as the second argument, such as <span class="param">fill parent(handle, false)</span>. If a slice is filling its parent, then any commands which modify the width or height of the slice will fail. You should resize the parent instead. This command only works on rects and containers. it will not work on sprites because they cannot change size.<br>
+			Make a slice <span class="param">handle</span> automatically fill its parent. This will change the position and size of the slice so that it completely fills the parent (minus the parent's padding). You can also disable filling with this command by passing <span class="param">false</span> as the second argument, such as <span class="param">fill parent(handle, false)</span>. If a slice is filling its parent, then any commands which modify the width or height of the slice will fail. You should resize the parent instead. This command only works on rects and containers. It will not work on sprites because they cannot change size.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-isfillingparent" class="ref">is filling parent</a></li></ul>
 		</tt></p>
@@ -6022,16 +6163,19 @@ end
 		<a name="about-npcextra"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">NPC extra (who,which)</font></b><br>
-			Returns the npc instance-specific extra data field requested in <span class="param">which</span>. You may use the constants <a href="#extra1" class="undef">extra1</a> and <a href="#extra2" class="undef">extra2</a> to refer to them. If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.<br>
+		<b><font color="yellow">NPC extra (who, which)</font></b><br>
+			Returns the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra1</span>, <span class="param">extra2</span> and <span class="param">extra3</span> to refer to them. If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setnpcextra" class="ref">set NPC extra</a></li></ul>
 		</tt></p>
 		<a name="about-setnpcextra"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set NPC extra (who,which, value)</font></b><br>
-			Sets the npc instance-specific extra data field requested in <span class="param">which</span>. You may use the constants <a href="#extra1" class="undef">extra1</a> and <a href="#extra2" class="undef">extra2</a> to refer to them.  If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.<br>
+		<b><font color="yellow">set NPC extra (who, which, value)</font></b><br>
+			Sets the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra1</span>, <span class="param">extra2</span> and <span class="param">extra3</span> to refer to them.  If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Unlike other NPC instance data, the extra data for NPCs on the current map is not saved in save games! However, it is saved in mapstate NPC saves (see <a href="#about-savemapstate" class="ref">save map state</a>)<br clear="all">
+</div>
+<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-npcextra" class="ref">NPC extra</a></li></ul>
 		</tt></p>
@@ -6492,21 +6636,39 @@ if (herolevelled (find hero (hero: Bob))) then (
 		<p>
 		<tt>
 		<b><font color="yellow">set timer (id, count, speed, trigger, string, flags)</font></b><br>
-			Sets the settings for a given timer (<span class="param">id</span>), and starts it. <span class="param">Count</span> is the length of the timer. While it's running, the count will go down by one every <span class="param">speed</span> ticks. I.e., if you set speed to 18, it will count down once every 18 ticks.<br>
-<span class="param">trigger</span> is what happens when the timer runs out. You can use the constant <a href="#about-timer:gameover" class="ref">timer: game over</a> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one.<br>
-By default, a timer will not show up on screen. However, you can bind a timer to a string using the <span class="param">string</span> parameter. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<br>
-A timer also has a few other options in the form of <span class="param">flags</span>. You can pass any combination of these flags: <a href="#about-timerflag:critical" class="ref">timer flag: critical</a> to have the timer end a battle, if it runs out during it, <a href="#about-timerflag:battle" class="ref">timer flag: battle</a> to have it count down during a battle in the first place or <a href="#about-timerflag:menu" class="ref">timer flag: menu</a> to have it count down while the player is in a menu (i.e. the main menu).
+			Changes the settings for a given timer, and starts it. <span class="param">id</span> should be one of the 16 timers for you to use, numbered 0 to 15. All other parameters are optional, or you can pass <a href="#about-timer:default" class="ref">timer: default</a> as any of them. This will leave the parameter unchanged (from the last time you set it or from the default initial value), it will NOT cause that timer setting to be reset to the default initial value. <span class="param">Count</span> is the length of the timer. While it's running, the count will go down by one every <span class="param">speed</span> game ticks (frames). I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second. Use a speed of 1 to count down in ticks. Changing the timer's <span class="param">count</span> (as opposed to passing <span class="param">timer:default</span> as the second argument) will cause the timer to restart from the new value.<br>
+<span class="param">trigger</span> is what happens when the timer runs out. You can use the constant <a href="#about-timer:gameover" class="ref">timer: game over</a> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one. If the timer runs out during a battle then the effect happens after the battle ends.<br>
+You can bind a timer to a string using the <span class="param">string</span> parameter to create a countdown that shows up on screen. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<br>
+A timer also has a few other options in the form of <span class="param">flags</span>. You can pass any combination of these flags (by <a href="#about-or" class="ref">or</a>ing or <a href="#about-add" class="ref">add</a>ing them together): <ul>
+<li>
+<a href="#about-timerflag:battle" class="ref">timer flag: battle</a> to have it count down during battles (not including menus which pause the battle)</li>
+<li>
+<a href="#about-timerflag:menu" class="ref">timer flag: menu</a> to have it count down even while the player is in a menu which pauses the game (e.g. the status menu), the in-battle pause button doesn't count</li>
+<li>
+<a href="#about-timerflag:critical" class="ref">timer flag: critical</a> to have the timer end a battle or exit a menu if it runs out during it</li>
+</ul>
+<br><div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Timers start counting down not from the current game 'tick', but from next one. So if you want to trigger something next tick (eg. run a script every frame) you need to pass <span class="param">count</span> as 0 and <span class="param">speed</span> as 1. A timer count set to 1 would counter-intuitively trigger in 2 ticks time.<br clear="all">
+</div>
 <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can pass <a href="#about-timer:default" class="ref">timer: default</a> to any parameter except <span class="param">id</span>. This will either leave the parameter unchanged (if it's set), or set it to its default value.<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Timer settings are not saved in game saves.<br clear="all">
 </div>
 <br>
-			<pre>#this starts a 300 second (5 minute) timer that counts down once every 15 ticks. If
-#it runs out during a battle, the battle won't end, but it will go game over after.
-set timer (0, 300, 15, timer: game over, 0, timerflag: battle)</pre>
+			<pre>#this starts a 300 second (5 minute) timer that counts down once every 18 ticks (a second). If
+#it runs out during battle, the battle won't end but a game-over will happen afterwards.
+set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-stoptimer" class="ref">stop timer</a>, </li>
-<li><a href="#about-readtimer" class="ref">read timer</a></li>
+<li>
+<a href="#about-readtimer" class="ref">read timer</a>, </li>
+<li>
+<a href="#about-systemsecond" class="ref">system second</a>, </li>
+<li>
+<a href="#about-secondsofplay" class="ref">seconds of play</a>, </li>
+<li>
+<a href="#about-milliseconds" class="ref">milliseconds</a>, </li>
+<li><a href="#about-runscriptbyid" class="ref">run script by ID</a></li>
 </ul>
 		</tt></p>
 		<a name="about-stoptimer"></a>
@@ -7761,7 +7923,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">load from slot (slot)</font></b><br>
-			Loads a saved game from a save slot as if it had been loaded from the load game menu. This command will end the current game.<br>
+			Loads a saved game from a save slot as if it had been loaded from the load game menu. This command will end the current game if it successfully loads. If the load fails because the slot has never been saved in, the script will continue.<br>
 			
 			
 		</tt></p>
@@ -8504,7 +8666,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 622 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 629 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
