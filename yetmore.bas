@@ -2124,7 +2124,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 412 '--get sprite type
-  IF valid_plotslice(retvals(0), "get sprite type") THEN
+  IF valid_plotsprite(retvals(0), "get sprite type") THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
     scriptret = dat->spritetype
@@ -3489,6 +3489,16 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
  END WITH
 END SUB
 
+FUNCTION valid_spriteslice_dat(BYVAL sl AS Slice Ptr) AS INTEGER
+ IF sl = 0 THEN debug "null slice ptr in valid_spriteslice_dat" : RETURN NO
+ DIM dat AS SpriteSliceData Ptr = sl->SliceData
+ IF dat = 0 THEN
+  debug SliceTypeName(sl) & " handle " & retvals(0) & " has null dat pointer"
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
 FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as integer
  IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
   debug cmd & ": invalid slice handle " & handle
@@ -3504,7 +3514,9 @@ END FUNCTION
 FUNCTION valid_plotsprite(byval handle as integer, byval cmd as string) as integer
  IF valid_plotslice(handle, cmd) THEN
   IF plotslices(handle)->SliceType = slSprite THEN
-   RETURN YES
+   IF valid_spriteslice_dat(plotslices(handle)) THEN
+    RETURN YES
+   END IF
   ELSE
    debug cmd & ": slice handle " & handle & " is not a sprite"
   END IF
