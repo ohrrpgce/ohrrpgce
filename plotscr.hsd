@@ -541,7 +541,9 @@ script, input string, str=0, max len=40, useexist=0, center=-654321, positionx=1
         while(key is pressed(1)) do, begin
           done:=true
           return(false)
-          if(read general(44),and,2) else(suspendplayer, wait, resumeplayer)
+          if(read general(44),and,2)
+            then(wait)
+            else(suspendplayer, wait, resumeplayer)
         end
       )
     )
