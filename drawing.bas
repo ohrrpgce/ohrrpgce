@@ -1841,6 +1841,9 @@ EXIT SUB
 'GOSUB GOSUB
 
 spriteage:
+ss.delay = 10
+ss.lastpos.x = -1
+ss.lastpos.y = -1
 ss.undodepth = 0
 ss.undoslot = 0
 ss.undomax = (32000 \ ss.size) - 1
@@ -1865,7 +1868,10 @@ DO
    EXIT DO
   END IF
  END IF
- GOSUB sprctrl
+ IF ss.delay = 0 THEN
+  GOSUB sprctrl
+ END IF
+ ss.delay = large(ss.delay - 1, 0)
  copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
  spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info$(), toolinfo(), area(), mouse()
  SWAP vpage, dpage

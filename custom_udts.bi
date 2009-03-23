@@ -41,6 +41,7 @@ TYPE SpriteEditState
   undodepth AS INTEGER
   undoslot AS INTEGER
   undomax AS INTEGER
+  delay AS INTEGER
   fixmouse AS INTEGER
   movespeed AS INTEGER
   readjust AS INTEGER
