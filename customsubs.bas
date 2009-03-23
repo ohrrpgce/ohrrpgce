@@ -1338,7 +1338,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
        CASE "door tag"
         box.door_tag = VALINT(v)
        CASE "door"
-        box.door_tag = VALINT(v)
+        box.door = VALINT(v)
        CASE "hero tag"
         box.hero_tag = VALINT(v)
        CASE "hero add"
