@@ -2351,10 +2351,10 @@ SUB writescriptvar (BYVAL id, BYVAL newval)
 SELECT CASE id
  CASE IS < 0 'local variable
   heap(scrat(nowscript).heap + ABS(id) - 1) = newval
- CASE 0 TO 1024 'global variable
+ CASE 0 TO 4095 'global variable
   global(id) = newval
  CASE ELSE
-  scripterr "Cannot write global" + XSTR$(id) + ". out of range"
+  scripterr "Cannot write global " & id &  ". Out of range"
 END SELECT
 
 END SUB

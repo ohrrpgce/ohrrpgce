@@ -8,6 +8,7 @@ March ?? 2009 [xocolatl+2]
     * Bug 348: Weapon is drawn behind other heroes [James]
     * Bug 689: When a hero who is currently picking a target dies,
       next hero's targetting was broken [James]
+    * Bug 698: Global variables 1025-4095 couldn't be set [Ralph]
 
 October 03 2008 [xocolatl+]
 
