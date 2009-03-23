@@ -230,9 +230,10 @@ SUB CleanInventory(invent() as InventSlot)
   NEXT
 END SUB
 
-SUB SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
+SUB SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)
+  IF last = -1 THEN last = UBOUND(invent)
   DIM i AS INTEGER
-  FOR i = 0 TO inventoryMax
+  FOR i = first TO small(inventoryMax, last)
     WITH invent(i)
       IF .used THEN
         buf(z) = .id
@@ -246,9 +247,10 @@ SUB SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
   NEXT i
 END SUB
 
-SUB LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
+SUB LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)
+  IF last = -1 THEN last = UBOUND(invent)
   DIM i AS INTEGER
-  FOR i = 0 TO inventoryMax
+  FOR i = first TO small(inventoryMax, last)
     WITH invent(i)
       .num = buf(z+1)
       IF .num > 0 THEN

@@ -17,8 +17,8 @@ declare sub sernpcl(npc() as npcinst, z, buffer(), num as integer, xoffset as in
 declare sub desernpcl(npc() as npcinst, z, buffer(), num as integer, xoffset as integer, yoffset as integer)
 declare sub cleannpcl(dat() as npcinst, num as integer)
 
-declare Sub SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
-declare Sub LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf())
+declare Sub SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)
+declare Sub LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)
 declare sub serinventory8bit(invent() as inventslot, z, buf())
 declare sub deserinventory8bit(invent() as inventslot, z, buf())
 declare sub cleaninventory(invent() as inventslot)

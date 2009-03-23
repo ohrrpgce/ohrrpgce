@@ -862,9 +862,8 @@ FOR i = 0 TO 40
 NEXT i
 
 IF inv_mode = 1 THEN ' Read 16-bit inventory data from newer SAV files
- LoadInventory16Bit inventory(), z, buffer()
+ LoadInventory16Bit inventory(), z, buffer(), 0, 99
 END IF
-rebuild_inventory_captions inventory()
 
 'RECORD 2
 
@@ -918,6 +917,10 @@ FOR i = 1025 TO 4095
  global(i) = buffer(z): z = z + 1
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
+IF inv_mode = 1 THEN ' Read 16-bit inventory data from newer SAV files
+ LoadInventory16Bit inventory(), z, buffer(), 100, 197
+END IF
+rebuild_inventory_captions inventory()
 
 '---BLOODY BACKWARD COMPATABILITY---
 'fix doors...
@@ -1872,9 +1875,8 @@ FOR i = 0 TO 40
   buffer(z) = eqstuf(i, o): z = z + 1
  NEXT o
 NEXT i
-'Store new 16-bit inventory
-SaveInventory16Bit inventory(), z, buffer()
-
+'Store new 16-bit inventory (Only the first 100 elements fit into this buffer!)
+SaveInventory16Bit inventory(), z, buffer(), 0, 99
 setpicstuf buffer(), 30000, -1
 sg$ = savefile
 storeset sg$, slot * 2, 0
@@ -1932,6 +1934,8 @@ FOR i = 1025 TO 4095
  buffer(z) = global(i): z = z + 1
  buffer(z) = global(i) shr 16: z = z + 1
 NEXT i
+'Store the rest of 16-bit inventory
+SaveInventory16Bit inventory(), z, buffer(), 100, 197
 
 setpicstuf buffer(), 30000, -1
 sg$ = savefile
