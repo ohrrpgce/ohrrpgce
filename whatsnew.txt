@@ -27,27 +27,11 @@ WHAT IS NEW?
     * Last cure is now usable as an attack base stat [James]
     * Option in Master Palettes menu to clone the active palette's UI
       colour indices plus other data, without colour remapping [Ralph]
-
-  * Bugfixes
-    * Bug 684: Lower half of inventory screen gets deleted when you
-      load [James]
-    * Bug 348: Weapon is drawn behind other heroes [James]
-    * Bug 689: When a hero who is currently picking a target dies,
-      next hero's targetting was broken [James]
-    * Bug 698: Global variables 1025-4095 couldn't be set :(
-    * "input string" was causing an endless loop if ESC was
-      pressed and "suspend player" was active [James]
-    * Bug 703: NPC extra's aren't cleaned on restart [James]
-    * Bug 700: Erroneous globals over 32767 when loading form save game
-      [James]
-    * Bug 710: Text box import loads door tag value into door id [James]
     * Text box exporter escapes non-printable ascii as \NNN sequences
       where NNN is the three digit decmal representation of the ascii
       code [James]
-    * Bug 712: default plotstring colors are wrong after a
-      non-title-screen load [James]
-    * Bug 674:A line of pixels is sometimes "vomited" into the corner
-      of the sprite editor [James]
+
+  * Bugfixes
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
@@ -107,6 +91,26 @@ WHAT IS NEW?
     * RPG format number has been incremented to 7 to provide
       forward-compat warnings when loading new RPG files into
       old versions of game [James]
+
+March ?? 2009 [xocolatl+2]
+
+  * Bugfixes
+    * Bug 684: Lower half of inventory screen gets deleted when you
+      load [James]
+    * Bug 348: Weapon is drawn behind other heroes [James]
+    * Bug 689: When a hero who is currently picking a target dies,
+      next hero's targetting was broken [James]
+    * Bug 698: Global variables 1025-4095 couldn't be set [Ralph]
+    * "input string" was causing an endless loop if ESC was
+      pressed and "suspend player" was active [James]
+    * Bug 703: NPC extra's aren't cleaned on restart [James]
+    * Bug 700: Erroneous globals over 32767 when loading form save game
+      [James]
+    * Bug 710: Text box import loads door tag value into door id [James]
+    * Bug 712: default plotstring colors are wrong after a
+      non-title-screen load [James]
+    * Bug 674:A line of pixels is sometimes "vomited" into the corner
+      of the sprite editor [James]
 
 October 03 2008 [xocolatl+]
 
