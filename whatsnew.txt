@@ -12,6 +12,8 @@ March ?? 2009 [xocolatl+2]
     * "input string" was causing an endless loop if ESC was
       pressed and "suspend player" was active [James]
     * Bug 703: NPC extra's aren't cleaned on restart [James]
+    * Bug 700: Erroneous globals over 32767 when loading form save game
+      [James]
 
 October 03 2008 [xocolatl+]
 

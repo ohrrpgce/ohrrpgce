@@ -886,7 +886,7 @@ FOR i = 1 TO 3
  catd(i * 5) = buffer(z): z = z + 1
 NEXT i
 FOR i = 0 TO 1024
- global(i) = buffer(z): z = z + 1
+ global(i) = (buffer(z) AND &hFFFF): z = z + 1
 NEXT i
 FOR i = 0 TO 21
  veh(i) = buffer(z): z = z + 1
@@ -914,7 +914,7 @@ FOR i = 0 TO 1024
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
 FOR i = 1025 TO 4095
- global(i) = buffer(z): z = z + 1
+ global(i) = buffer(z) and &hFFFF: z = z + 1
  global(i) or= buffer(z) shl 16: z = z + 1
 NEXT i
 IF inv_mode = 1 THEN ' Read 16-bit inventory data from newer SAV files
@@ -969,7 +969,7 @@ IF isfile$(savefile) THEN
  SEEK #fh, 60000 * slot + 2 * first + 40027  '30000 + 5013 * 2 + 1
  loadrecord buf(), fh, last - first + 1, -1
  FOR i = 0 TO last - first
-  global(first + i) = buf(i)
+  global(first + i) = buf(i) and &hFFFF
  NEXT
  SEEK #fh, 60000 * slot + 2 * first + 43027  '30000 + 6513 * 2 + 1
  loadrecord buf(), fh, last - first + 1, -1
