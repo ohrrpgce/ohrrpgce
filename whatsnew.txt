@@ -22,6 +22,11 @@ March ?? 2009 [xocolatl+2]
     * Removed obsolete warning about long filenames from relump
     * Removed obsolete unneeded linux-specific hacks from unlump
 
+  * Plotscripting
+    * Show a future compatibility warning when using certain punctuation
+      such as brackets in scripts. This is to ease the transition for
+      scripters when arrays become available.
+
 October 03 2008 [xocolatl+]
 
   * Vikings of Midgard
