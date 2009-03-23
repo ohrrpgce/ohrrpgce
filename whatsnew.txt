@@ -5,6 +5,8 @@ March ?? 2009 [xocolatl+2]
   * Bugfixes
     * Bug 684: Lower half of inventory screen gets deleted when you
       load [James]
+    * Bug 348: Weapon is drawn behind other heroes [James]
+
 
 October 03 2008 [xocolatl+]
 
