@@ -161,13 +161,17 @@ END SUB
 SUB CleanNPCL(dat() as NPCInst, num as integer)
   DIM i as integer
   FOR i = 0 to num - 1
-    dat(i).x = 0
-    dat(i).y = 0
-    dat(i).id = 0
-    dat(i).dir = 0
-    dat(i).frame = 0
-    dat(i).xgo = 0
-    dat(i).ygo = 0
+   WITH dat(i)
+    .x = 0
+    .y = 0
+    .id = 0
+    .dir = 0
+    .frame = 0
+    .xgo = 0
+    .ygo = 0
+    .extra1 = 0
+    .extra2 = 0
+   END WITH
   NEXT
 END SUB
 
