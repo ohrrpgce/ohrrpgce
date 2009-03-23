@@ -17,6 +17,8 @@ March ?? 2009 [xocolatl+2]
     * Bug 710: Text box import loads door tag value into door id [James]
     * Bug 712: default plotstring colors are wrong after a
       non-title-screen load [James]
+    * Bug 674:A line of pixels is sometimes "vomited" into the corner
+      of the sprite editor [James]
 
 October 03 2008 [xocolatl+]
 
