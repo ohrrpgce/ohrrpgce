@@ -2605,7 +2605,11 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   .cur.mute   = .max.mute
  END WITH
  '-- if it is a dead hero's turn, cancel menu
- IF bat.hero_turn = deadguy THEN bat.hero_turn = -1: bat.menu_mode = batMENUHERO
+ IF bat.hero_turn = deadguy THEN
+  bat.hero_turn = -1
+  bat.menu_mode = batMENUHERO
+  bat.targ.mode = targNONE
+ END IF
  '-- if it is a dead enemy's turn, cancel ai
  IF bat.enemy_turn = deadguy THEN bat.enemy_turn = -1
  IF is_enemy(deadguy) THEN '------PLUNDER AND EXPERIENCE AND ITEMS------
