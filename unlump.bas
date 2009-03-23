@@ -33,6 +33,7 @@ DECLARE SUB getstring (path$)
 DECLARE FUNCTION rpathlength ()
 DECLARE FUNCTION envlength (e$)
 DECLARE FUNCTION drivelist (drbuf())
+DECLARE Function fileisreadable(f$)
 DECLARE FUNCTION isfile (n$)
 DECLARE FUNCTION isdir (dir$)
 DECLARE FUNCTION isremovable (BYVAL d)
@@ -67,7 +68,7 @@ IF COMMAND$ = "" THEN
  PRINT "syntax:"
  PRINT "unlump filename.rpg directory"
  PRINT ""
- PRINT "A utility to extract the contents of an RPG file or other lumped
+ PRINT "A utility to extract the contents of an RPG file or other lumped"
  PRINT "to a directory so that advanced users can hack the delicious"
  PRINT "morsels inside."
  PRINT "If a password is required, you will be prompted to enter it."
@@ -112,11 +113,7 @@ IF isdir(dest$) THEN
  w$ = readkey
  IF w$ <> "Y" AND w$ <> "y" THEN SYSTEM
 ELSE
- IF LINUX THEN
-   SHELL "mkdir " + dest$
- ELSE
-   MKDIR dest$
- END IF
+ MKDIR dest$
  createddir = -1
 END IF
 
@@ -364,15 +361,17 @@ SUB array2str (arr() AS integer, BYVAL o AS integer, s$)
 END SUB
 
 FUNCTION isfile (n$) as integer
-    ' I'm assuming we don't count directories as files
-	'return dir$(n$) <> ""
-    return dir$(n$, 255 xor 16) <> ""
+	' directories don't count as files
+	' this is a simple wrapper for fileisreadable
+	if n$ = "" then return 0
+	return fileisreadable(n$)
 END FUNCTION
 
 FUNCTION isdir (sDir$) as integer
 #IFDEF __FB_LINUX__
 	'Special hack for broken Linux dir$() behavior
 	isdir = 0
+	sDir$ = escape_string(sDir$, """`\$")
 	SHELL "if [ -d """ + sDir$ + """ ] ; then echo dir ; fi > isdirhack.tmp"
 	DIM AS INTEGER fh
 	fh = FREEFILE
@@ -661,6 +660,21 @@ FUNCTION islumpfile (lump$, fmask$)
 
 	close #lf
 end FUNCTION
+
+Function fileisreadable(f$)
+	dim fh as integer, err_code as integer
+	fh = freefile
+	err_code = open(f$ for binary access read as #fh)
+	if err_code = 2 then
+		'debug f$ & " unreadable (ignored)"
+		return 0
+	elseif err_code <> 0 then
+		PRINT "Error " & err_code & " reading " & f$
+		return 0
+	end if
+	close #fh
+	return -1
+end Function
 
 'FUNCTION readpassword$
 '

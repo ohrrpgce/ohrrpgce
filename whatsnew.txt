@@ -19,6 +19,8 @@ March ?? 2009 [xocolatl+2]
       non-title-screen load [James]
     * Bug 674:A line of pixels is sometimes "vomited" into the corner
       of the sprite editor [James]
+    * Removed obsolete warning about long filenames from relump
+    * Removed obsolete unneeded linux-specific hacks from unlump
 
 October 03 2008 [xocolatl+]
 

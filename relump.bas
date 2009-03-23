@@ -653,12 +653,6 @@ SUB lumpfiles (listf$, lump$, path$, buffer())
 			if lname[i] = asc(".") then t = 1
 			textsize(t) += 1
 		next
-		'note extension includes the "." so can be 4 chars
-		if textsize(0) > 8 or textsize(1) > 4 then
-			PRINT "name too long: " + lname
-			PRINT " name = " + str(textsize(0)) + ", ext = " + str(textsize(1))
-			continue do
-		end if
 
 		tl = freefile
 		open path$ + lname for binary access read as #tl
