@@ -46,6 +46,8 @@ WHAT IS NEW?
       code [James]
     * Bug 712: default plotstring colors are wrong after a
       non-title-screen load [James]
+    * Bug 674:A line of pixels is sometimes "vomited" into the corner
+      of the sprite editor [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
