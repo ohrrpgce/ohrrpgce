@@ -21,11 +21,13 @@ March ?? 2009 [xocolatl+2]
       of the sprite editor [James]
     * Removed obsolete warning about long filenames from relump
     * Removed obsolete unneeded linux-specific hacks from unlump
+    * Bug 646: Delay before caption doesn't seem to work [James]
 
   * Plotscripting
     * Show a future compatibility warning when using certain punctuation
-      such as brackets in scripts. This is to ease the transition for
-      scripters when arrays become available.
+      such as [square brackets] or {curly braces} in script names or
+      variable names. This is to ease the transition for scripters when
+      arrays become available.
 
 October 03 2008 [xocolatl+]
 

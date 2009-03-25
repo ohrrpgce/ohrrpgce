@@ -1009,7 +1009,7 @@ NEXT i
 '--if caption has length and is set to display
 IF atk(37) AND atk(36) >= 0 THEN
  '--load caption
- setbatcap readbinstring$(atk(), 37, 38), 0, battlecapdelay = atk(57)
+ setbatcap readbinstring$(atk(), 37, 38), 0, atk(57)
  SELECT CASE atk(36)
   CASE 0
    '--full duration
