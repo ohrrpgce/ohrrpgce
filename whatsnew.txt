@@ -75,11 +75,8 @@ WHAT IS NEW?
       "get sort order", "sort children", "set slice extra",
       "get slice extra" [James]
     * "number from string" [James]
-    * Hspeak now produces a warning message if you use [square brackets]
-      or {curly braces} in script names or variable names [James]
     * There are now 3 NPC extra data fields (0-2) accessible with
       "set NPC extra" instead of 2
-      
 
   * Vikings of Midgard
 
@@ -111,6 +108,13 @@ March ?? 2009 [xocolatl+2]
       non-title-screen load [James]
     * Bug 674:A line of pixels is sometimes "vomited" into the corner
       of the sprite editor [James]
+    * Bug 646: Delay before caption doesn't seem to work [James]
+
+  * Plotscripting
+    * Show a future compatibility warning when using certain punctuation
+      such as [square brackets] or {curly braces} in script names or
+      variable names. This is to ease the transition for scripters when
+      arrays become available.
 
 October 03 2008 [xocolatl+]
 
