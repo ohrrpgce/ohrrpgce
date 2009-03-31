@@ -3932,6 +3932,26 @@ sub sprite_empty_cache()
 	next
 end sub
 
+sub sprite_debug_cache()
+	debug "==sprcache=="
+	dim info as string
+	for i as integer = 0 to ubound(sprcache)
+		info = ""
+		with sprcache(i)
+			if .p = 0 then
+				info = "null"
+			else
+				info = .p->w & "x" & .p->h
+				if .p->image = 0 then info = info & "(null image)"
+				if .p->mask = 0 then info = info & "(null mask)"
+				info = info & " refs=" & .p->refcount
+				info = info & " '" & .p->cache & "'"
+			end if
+			debug i & " " & .s & " " & info
+		end with
+	next i
+end sub
+
 'Private:
 ' adds a frame to the cache with a given key. Sets the ->refcount member to 1.
 ' will overwrite older sprites with refcounts of 0 or less.

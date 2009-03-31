@@ -142,6 +142,7 @@ declare sub sprite_clear(byval spr as frame ptr)
 declare sub sprite_empty_cache()
 declare function sprite_is_valid(byval p as frame ptr) as integer
 declare sub sprite_crash_invalid(byval p as frame ptr)
+declare sub sprite_debug_cache()
 
 declare function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 declare sub palette16_unload(byval p as palette16 ptr ptr)
