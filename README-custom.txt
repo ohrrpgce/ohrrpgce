@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Editor           (October 03 2008 xocolatl+)
+ O.H.R.RPG.C.E Editor            (April 02 2009 xocolatl+2)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 

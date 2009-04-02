@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player      (October 03 2008 xocolatl+)
+ O.H.R.RPG.C.E Game Player       (April 03 2009 xocolatl+2)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 

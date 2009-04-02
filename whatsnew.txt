@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-March ?? 2009 [xocolatl+2]
+April 03 2009 [xocolatl+2]
 
   * Bugfixes
     * Bug 684: Lower half of inventory screen gets deleted when you
