@@ -2733,7 +2733,7 @@ end
 		<command id="setsliceextra">
 			<canon>set slice extra (handle, extra, value)</canon>
 			<shortname>set slice extra</shortname>
-			<description>Sets one of three extra data variables that every slice has, on the slice <p>handle</p>. <p>extra</p> is a number from 0 to 2 which indicates which extra data field to write  (you may also use the constants <p>extra1</p>, <p>extra2</p>, <p>extra3</p>). The extra data has no meaning to the slice, it is only for use by scripts.</description>
+			<description>Sets one of three extra data variables that every slice has, on the slice <p>handle</p>. <p>extra</p> is a number from 0 to 2 which indicates which extra data field to write  (you may also use the constants <p>extra 0</p>, <p>extra 1</p>, <p>extra 2</p>). The extra data has no meaning to the slice, it is only for use by scripts.</description>
 			<seealso>
 				<ref>getsliceextra</ref>
 			</seealso>
@@ -3059,7 +3059,7 @@ end
 		<command id="npcextra">
 			<canon>NPC extra (who, which)</canon>
 			<shortname>NPC extra</shortname>
-			<description>Returns the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra1</p>, <p>extra2</p> and <p>extra3</p> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
+			<description>Returns the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them. If you use an NPC ID for <p>who</p>, the first instance's data will be used.</description>
 			<seealso>
 				<ref>setnpcextra</ref>
 			</seealso>
@@ -3067,7 +3067,7 @@ end
 		<command id="setnpcextra">
 			<canon>set NPC extra (who, which, value)</canon>
 			<shortname>set NPC extra</shortname>
-			<description>Sets the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra1</p>, <p>extra2</p> and <p>extra3</p> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.<note>Unlike other NPC instance data, the extra data for NPCs on the current map is not saved in save games! However, it is saved in mapstate NPC saves (see <ref>savemapstate</ref>)</note></description>
+			<description>Sets the npc instance-specific extra data field requested in <p>which</p>, a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.  If you use an NPC ID for <p>who</p>, the first instance's data will be used.<note>Unlike other NPC instance data, the extra data for NPCs on the current map is not saved in save games! However, it is saved in mapstate NPC saves (see <ref>savemapstate</ref>)</note></description>
 			<seealso>
 				<ref>npcextra</ref>
 			</seealso>

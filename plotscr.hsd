@@ -1347,9 +1347,9 @@ define constant, begin
 1, Wrap
 2, Defaulttile
 -1,party
-0, extra 1
-1, extra 2
-2, extra 3
+0, extra 0
+1, extra 1
+2, extra 2
 0, x axis
 1, y axis
 1,mapstate:mapsettings
