@@ -1071,7 +1071,7 @@ SUB gendata ()
  CONST maxMenu = 33
  DIM m$(maxMenu)
  DIM max(maxMenu)
- DIM bitname(18) AS STRING
+ DIM bitname(19) AS STRING
  DIM names(32) AS STRING
  DIM stat$(11)
  DIM d$
@@ -1191,6 +1191,7 @@ SUB gendata ()
     bitname(15) = "Default passability disabled by default"
     bitname(16) = "Simulate Pushable NPC obstruction bug"
     bitname(17) = "Disable ESC key running from battle"
+    bitname(18) = "Don't save game over script in SAV game"
     DIM bittemp(1) AS INTEGER
     bittemp(0) = gen(genBits)
     bittemp(1) = gen(genBits2)

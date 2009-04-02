@@ -30,6 +30,8 @@ WHAT IS NEW?
     * Text box exporter escapes non-printable ascii as \NNN sequences
       where NNN is the three digit decmal representation of the ascii
       code [James]
+    * New general bitset "Don't save game over script in SAV game"
+      [James]
 
   * Bugfixes
 
@@ -89,7 +91,7 @@ WHAT IS NEW?
       forward-compat warnings when loading new RPG files into
       old versions of game [James]
 
-March ?? 2009 [xocolatl+2]
+April 03 2009 [xocolatl+2]
 
   * Bugfixes
     * Bug 684: Lower half of inventory screen gets deleted when you

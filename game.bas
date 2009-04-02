@@ -581,8 +581,8 @@ DO
   '--this is what happens when you die in battle
   txt.showing = NO
   txt.fully_shown = NO
-  IF gen(42) > 0 THEN
-   rsr = runscript(gen(42), nowscript + 1, -1, "death", plottrigger)
+  IF gen(genGameoverScript) > 0 THEN
+   rsr = runscript(gen(genGameoverScript), nowscript + 1, -1, "death", plottrigger)
    IF rsr = 1 THEN
     fatal = 0
     needf = 2

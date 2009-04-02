@@ -735,7 +735,11 @@ FOR i = 0 TO 500
  SELECT CASE i
   'Only certain gen() values should be read from the saved game.
   'See http://HamsterRepublic.com/ohrrpgce/index.php/GEN.html
-  CASE 42, 44 TO 54, 57 TO 58, 60 TO 76
+  CASE 42 'genGameoverScript
+   IF readbit(gen(), genBits2, 2) = 0 THEN
+    gen(i) = buffer(z)
+   END IF
+  CASE 44 TO 54, 57 TO 58, 60 TO 76
    gen(i) = buffer(z)
  END SELECT
  z = z + 1

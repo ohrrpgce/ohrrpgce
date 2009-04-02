@@ -1014,7 +1014,7 @@ SELECT CASE AS CONST id
   temp = findhero(retvals(0) + 1, 0, 40, 1)
   IF temp > -1 THEN setbit hmask(), 0, temp, 0
  CASE 74'--set death script
-  gen(42) = large(retvals(0), 0)
+  gen(genGameoverScript) = large(retvals(0), 0)
  CASE 75'--fade screen out
   FOR i = 0 TO 2
    retvals(i) = bound(iif(retvals(i), retvals(i) * 4 + 3, 0), 0, 255)
