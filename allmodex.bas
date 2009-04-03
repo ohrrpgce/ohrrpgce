@@ -2034,22 +2034,23 @@ FUNCTION loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 'recordsize = record size in shorts (not bytes)
 'record = record number, defaults to read from current file position
 'returns 1 if successful, 0 if failure (eg. file too short)
- dim idx as integer
- if recordsize <= 0 then return 0
- if ubound(buf) < recordsize - 1 then
-  debug "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array"
- end if
- dim readbuf(recordsize - 1) as short
+	dim idx as integer
+	if recordsize <= 0 then return 0
+	if ubound(buf) < recordsize - 1 then
+		debug "loadrecord: " & recordsize & " ints will not fit in " & ubound(buf) + 1 & " element array"
+		'continue, fit in as much as possible
+	end if
+	dim readbuf(recordsize - 1) as short
 
- if record <> -1 then
-  seek #fh, recordsize * 2 * record + 1
- end if
- if seek(fh) + 2 * recordsize > lof(fh) + 1 then return 0
- get #fh, , readbuf()
- for idx = 0 to recordsize - 1
-  buf(idx) = readbuf(idx)
- next
- loadrecord = 1
+	if record <> -1 then
+		seek #fh, recordsize * 2 * record + 1
+	end if
+	if seek(fh) + 2 * recordsize > lof(fh) + 1 then return 0
+	get #fh, , readbuf()
+	for idx = 0 to small(recordsize - 1, ubound(buf))
+		buf(idx) = readbuf(idx)
+	next
+	loadrecord = 1
 END FUNCTION
 
 FUNCTION loadrecord (buf() as integer, filen$, recordsize as integer, record as integer = 0) as integer
@@ -2057,7 +2058,7 @@ FUNCTION loadrecord (buf() as integer, filen$, recordsize as integer, record as 
 	dim f as integer
 	dim i as integer
 
-  if recordsize <= 0 then return 0
+	if recordsize <= 0 then return 0
 
 	if NOT fileisreadable(filen$) then
 		debug "File not found loading record " & record & " from " & filen$
@@ -2075,13 +2076,18 @@ END FUNCTION
 
 SUB storerecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 'same as loadrecord
+	if ubound(buf) < recordsize - 1 then
+		debug "storerecord: array has only " & ubound(buf) + 1 & " elements, record is " & recordsize & " ints"
+		'continue, write as much as possible
+	end if
+
 	dim idx as integer
 	dim writebuf(recordsize - 1) as short
 
 	if record <> -1 then
 		seek #fh, recordsize * 2 * record + 1
 	end if
-	for idx = 0 to recordsize - 1
+	for idx = 0 to small(recordsize - 1, ubound(buf))
 		writebuf(idx) = buf(idx)
 	next
 	put #fh, , writebuf()
@@ -2100,7 +2106,7 @@ SUB storerecord (buf() as integer, filen$, recordsize as integer, record as inte
 END SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
-  findfiles fmask$, attrib, outfile$
+	findfiles fmask$, attrib, outfile$
 end sub
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$)
@@ -2108,7 +2114,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
 #ifdef __FB_LINUX__
         'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
 	DIM grep$, shellout$
-  shellout$ = "/tmp/ohrrpgce-findfiles-" + STR$(RND * 10000) + ".tmp"
+	shellout$ = "/tmp/ohrrpgce-findfiles-" + STR$(RND * 10000) + ".tmp"
 	grep$ = "-v '/$'"
 	IF attrib AND 16 THEN grep$ = "'/$'"
 	DIM i%

@@ -111,6 +111,8 @@ April 03 2009 [xocolatl+2]
     * Bug 674:A line of pixels is sometimes "vomited" into the corner
       of the sprite editor [James]
     * Bug 646: Delay before caption doesn't seem to work [James]
+    * importglobals and exportglobals did not work on globals
+      1025 - 4095 [Ralph]
 
   * Plotscripting
     * Show a future compatibility warning when using certain punctuation

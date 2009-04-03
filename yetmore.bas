@@ -1196,23 +1196,23 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    IF retvals(1) = -1 THEN 'importglobals(slot)
     retvals(1) = 0
-    retvals(2) = 1024
+    retvals(2) = 4095
    END IF
-   IF retvals(1) >= 0 AND retvals(1) <= 1024 THEN
+   IF retvals(1) >= 0 AND retvals(1) <= 4095 THEN
     IF retvals(2) = -1 THEN 'importglobals(slot,id)
      remval = global(retvals(1))
      loadglobalvars retvals(0) - 1, retvals(1), retvals(1)
      scriptret = global(retvals(1))
      global(retvals(1)) = remval
     ELSE                    'importglobals(slot,first,last)
-     IF retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+     IF retvals(2) <= 4095 AND retvals(1) <= retvals(2) THEN
       loadglobalvars retvals(0) - 1, retvals(1), retvals(2)
      END IF
     END IF
    END IF
   END IF
  CASE 173'--exportglobals
-  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 1024 AND retvals(1) <= retvals(2) THEN
+  IF retvals(0) >= 1 AND retvals(0) <= 32 AND retvals(1) >= 0 AND retvals(2) <= 4095 AND retvals(1) <= retvals(2) THEN
    saveglobalvars retvals(0) - 1, retvals(1), retvals(2)
   END IF
  CASE 175'--deletesave

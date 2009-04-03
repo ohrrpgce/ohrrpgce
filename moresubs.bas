@@ -949,24 +949,40 @@ END IF
 END SUB
 
 SUB loadglobalvars (slot, first, last)
-DIM buf(last - first)
+DIM buf((last - first + 1) * 2) = ANY
 IF isfile$(savefile) THEN
  fh = FREEFILE
  OPEN savefile FOR BINARY AS #fh
- SEEK #fh, 60000 * slot + 2 * first + 40027  '30000 + 5013 * 2 + 1
- loadrecord buf(), fh, last - first + 1, -1
- FOR i = 0 TO last - first
-  global(first + i) = buf(i) and &hFFFF
- NEXT
- SEEK #fh, 60000 * slot + 2 * first + 43027  '30000 + 6513 * 2 + 1
- loadrecord buf(), fh, last - first + 1, -1
- FOR i = 0 TO last - first
-  global(first + i) or= buf(i) shl 16
- NEXT
+
+ IF first <= 1024 THEN
+  'grab first-final
+  final = small(1024, last)
+  SEEK #fh, 60000 * slot + 2 * first + 40027  '20013 * 2 + 1
+  loadrecord buf(), fh, final - first + 1, -1
+  FOR i = 0 TO final - first
+   global(first + i) = buf(i) and &hFFFF
+  NEXT
+  SEEK #fh, 60000 * slot + 2 * first + 43027  '21513 * 2 + 1
+  loadrecord buf(), fh, final - first + 1, -1
+  FOR i = 0 TO final - first
+   global(first + i) or= buf(i) shl 16
+  NEXT
+ END IF
+ IF last >= 1025 THEN
+  'grab start-last
+  start = large(1025, first)
+  SEEK #fh, 60000 * slot + 4 * (start - 1025) + 45077  '22538 * 2 + 1
+  loadrecord buf(), fh, (last - start + 1) * 2, -1
+  FOR i = 0 TO last - start
+   global(start + i) = buf(i * 2) and &hFFFF
+   global(start + i) or= buf(i * 2 + 1) shl 16
+  NEXT
+ END IF
+
  CLOSE #fh
 ELSE
- FOR i = 0 TO last - first
-  global(first + i) = 0
+ FOR i = first TO last
+  global(i) = 0
  NEXT
 END IF
 END SUB
@@ -1915,10 +1931,11 @@ FOR i = 0 TO 40
   buffer(z) = nativehbits(i, o): z = z + 1
  NEXT o
 NEXT i
-'--top 16 bits of each global variable in 6513 - 7539
+'--top 16 bits of each global variable in 6513 - 7537
 FOR i = 0 TO 1024
  buffer(z) = global(i) shr 16: z = z + 1
 NEXT
+'--3071 more globals in 7538 - 13679
 FOR i = 1025 TO 4095
  buffer(z) = global(i): z = z + 1
  buffer(z) = global(i) shr 16: z = z + 1
@@ -1935,19 +1952,33 @@ storeset sg$, slot * 2 + 1, 0
 END SUB
 
 SUB saveglobalvars (slot, first, last)
-DIM buf(last - first)
+DIM buf((last - first + 1) * 2) = ANY
 fh = FREEFILE
 OPEN savefile FOR BINARY AS #fh
-SEEK #fh, 60000 * slot + 2 * first + 40027  '30000 + 5013 * 2 + 1
-FOR i = 0 TO last - first
- buf(i) = global(first + i)
-NEXT
-storerecord buf(), fh, last - first + 1, -1
-SEEK #fh, 60000 * slot + 2 * first + 43027  '30000 + 6513 * 2 + 1
-FOR i = 0 TO last - first
- buf(i) = global(first + i) shr 16
-NEXT
-storerecord buf(), fh, last - first + 1, -1
+IF first <= 1024 THEN
+ 'output first-final
+ final = small(1024, last)
+ FOR i = 0 TO final - first
+  buf(i) = global(first + i)
+ NEXT
+ SEEK #fh, 60000 * slot + 2 * first + 40027  '20013 * 2 + 1
+ storerecord buf(), fh, final - first + 1, -1
+ FOR i = 0 TO final - first
+  buf(i) = global(first + i) shr 16
+ NEXT
+ SEEK #fh, 60000 * slot + 2 * first + 43027  '21513 * 2 + 1
+ storerecord buf(), fh, final - first + 1, -1
+END IF
+IF last >= 1025 THEN
+ 'output start-last
+ start = large(1025, first)
+ FOR i = 0 TO last - start
+  buf(i * 2) = global(start + i)
+  buf(i * 2 + 1) = global(start + i) shr 16
+ NEXT
+ SEEK #fh, 60000 * slot + 4 * (start - 1025) + 45077  '22538 * 2 + 1
+ storerecord buf(), fh, (last - start + 1) * 2, -1
+END IF
 CLOSE #fh
 END SUB
 
