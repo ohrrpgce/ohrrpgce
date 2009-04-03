@@ -393,64 +393,64 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
    CASE slRectangle
     DIM dat AS RectangleSliceData Ptr
     dat = .SliceData
-    string_array_grow_append menu(), "Style: " & defaultint(dat->style, "None")
+    str_array_append menu(), "Style: " & defaultint(dat->style, "None")
     sliceed_rule rules(), erIntgrabber, @(dat->style), -1, 14, slgrUPDATERECTSTYLE
-    string_array_grow_append menu(), "Background color: " & defaultint(dat->bgcol)
+    str_array_append menu(), "Background color: " & defaultint(dat->bgcol)
     sliceed_rule rules(), erIntgrabber, @(dat->bgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
-    string_array_grow_append menu(), "Foreground color: " & defaultint(dat->fgcol)
+    str_array_append menu(), "Foreground color: " & defaultint(dat->fgcol)
     sliceed_rule rules(), erIntgrabber, @(dat->fgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
-    string_array_grow_append menu(), "Border: " & defaultint(dat->border, "Plain")
+    str_array_append menu(), "Border: " & defaultint(dat->border, "Plain")
     sliceed_rule rules(), erIntgrabber, @(dat->border), -1, 14, slgrUPDATERECTCOL 
-    string_array_grow_append menu(), "Translucent: " & yesorno(dat->translucent)
+    str_array_append menu(), "Translucent: " & yesorno(dat->translucent)
     sliceed_rule_tog rules(), @(dat->translucent)
    CASE slText
     DIM dat AS TextSliceData Ptr
     dat = .SliceData
-    string_array_grow_append menu(), "Text: " & dat->s
+    str_array_append menu(), "Text: " & dat->s
     sliceed_rule rules(), erStrgrabber, @(dat->s), 0, 0
-    string_array_grow_append menu(), "Color: " & zero_default(dat->col)
+    str_array_append menu(), "Color: " & zero_default(dat->col)
     sliceed_rule rules(), erIntgrabber, @(dat->col), 0, 255, slgrPICKCOL
-    string_array_grow_append menu(), "Outline: " & yesorno(dat->outline)
+    str_array_append menu(), "Outline: " & yesorno(dat->outline)
     sliceed_rule_tog rules(), @(dat->outline)
-    string_array_grow_append menu(), "Wrap: " & yesorno(dat->wrap)
+    str_array_append menu(), "Wrap: " & yesorno(dat->wrap)
     sliceed_rule_tog rules(), @(dat->wrap)
    CASE slSprite
     DIM dat AS SpriteSliceData Ptr
     dat = .SliceData
-    string_array_grow_append menu(), "Sprite Type: " & sprite_sizes(dat->spritetype).name
+    str_array_append menu(), "Sprite Type: " & sprite_sizes(dat->spritetype).name
     sliceed_rule rules(), erIntgrabber, @(dat->spritetype), 0, 8, slgrUPDATESPRITE
-    string_array_grow_append menu(), "Sprite Number: " & dat->record
+    str_array_append menu(), "Sprite Number: " & dat->record
     sliceed_rule rules(), erIntgrabber, @(dat->record), 0, gen(sprite_sizes(dat->spritetype).genmax), slgrUPDATESPRITE
-    string_array_grow_append menu(), "Sprite Palette: " & defaultint(dat->pal)
+    str_array_append menu(), "Sprite Palette: " & defaultint(dat->pal)
     sliceed_rule rules(), erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
-    string_array_grow_append menu(), "Sprite Frame: " & dat->frame
+    str_array_append menu(), "Sprite Frame: " & dat->frame
     sliceed_rule rules(), erIntgrabber, @(dat->frame), 0, sprite_sizes(dat->spritetype).frames - 1
-    string_array_grow_append menu(), "Flip horiz.: " & yesorno(dat->flipHoriz)
+    str_array_append menu(), "Flip horiz.: " & yesorno(dat->flipHoriz)
     sliceed_rule_tog rules(), @(dat->flipHoriz), slgrUPDATESPRITE
-    string_array_grow_append menu(), "Flip vert.: " & yesorno(dat->flipVert)
+    str_array_append menu(), "Flip vert.: " & yesorno(dat->flipVert)
     sliceed_rule_tog rules(), @(dat->flipVert), slgrUPDATESPRITE
   END SELECT
-  string_array_grow_append menu(), "Visible: " & yesorno(.Visible)
+  str_array_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), @.Visible
-  string_array_grow_append menu(), "Fill Parent: " & yesorno(.Fill)
+  str_array_append menu(), "Fill Parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), @.Fill
   IF .Fill = NO THEN
-   string_array_grow_append menu(), "Align horiz. with: " & HorizCaptions(.AlignHoriz)
+   str_array_append menu(), "Align horiz. with: " & HorizCaptions(.AlignHoriz)
    sliceed_rule rules(), erIntgrabber, @.AlignHoriz, 0, 2
-   string_array_grow_append menu(), "Align vert. with: " & VertCaptions(.AlignVert)
+   str_array_append menu(), "Align vert. with: " & VertCaptions(.AlignVert)
    sliceed_rule rules(), erIntgrabber, @.AlignVert, 0, 2
-   string_array_grow_append menu(), "Anchor horiz. on: " & HorizCaptions(.AnchorHoriz)
+   str_array_append menu(), "Anchor horiz. on: " & HorizCaptions(.AnchorHoriz)
    sliceed_rule rules(), erIntgrabber, @.AnchorHoriz, 0, 2
-   string_array_grow_append menu(), "Anchor vert. on: " & VertCaptions(.AnchorVert)
+   str_array_append menu(), "Anchor vert. on: " & VertCaptions(.AnchorVert)
    sliceed_rule rules(), erIntgrabber, @.AnchorVert, 0, 2
   END IF
-  string_array_grow_append menu(), "Padding Top: " & .PaddingTop
+  str_array_append menu(), "Padding Top: " & .PaddingTop
   sliceed_rule rules(), erIntgrabber, @.PaddingTop, -9999, 9999
-  string_array_grow_append menu(), "Padding Right: " & .PaddingRight
+  str_array_append menu(), "Padding Right: " & .PaddingRight
   sliceed_rule rules(), erIntgrabber, @.PaddingRight, -9999, 9999
-  string_array_grow_append menu(), "Padding Bottom: " & .PaddingBottom
+  str_array_append menu(), "Padding Bottom: " & .PaddingBottom
   sliceed_rule rules(), erIntgrabber, @.PaddingBottom, -9999, 9999
-  string_array_grow_append menu(), "Padding Left: " & .PaddingLeft
+  str_array_append menu(), "Padding Left: " & .PaddingLeft
   sliceed_rule rules(), erIntgrabber, @.PaddingLeft, -9999, 9999
  END WITH
   

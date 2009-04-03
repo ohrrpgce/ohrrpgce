@@ -500,10 +500,11 @@ SUB scriptman ()
 STATIC defaultdir$
 DIM menu$(5)
 
-menumax = 2
+menumax = 3
 menu$(0) = "Previous Menu"
 menu$(1) = "export names for scripts (.hsi)"
 menu$(2) = "import compiled plotscripts (.hs)"
+menu$(3) = "check where scripts are used..."
 
 pt = 0
 setkeys
@@ -524,6 +525,8 @@ DO
     IF f$ <> "" THEN
      importscripts f$
     END IF
+   CASE 3
+    script_usage_list()
   END SELECT
  END IF
  
