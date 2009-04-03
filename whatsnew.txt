@@ -30,7 +30,7 @@ WHAT IS NEW?
     * Text box exporter escapes non-printable ascii as \NNN sequences
       where NNN is the three digit decmal representation of the ascii
       code [James]
-    * New general bitset "Don't save game over script in SAV game"
+    * New general bitset "Don't save gameover/loadgame script IDs"
       [James]
 
   * Bugfixes

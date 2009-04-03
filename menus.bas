@@ -1191,7 +1191,7 @@ SUB gendata ()
     bitname(15) = "Default passability disabled by default"
     bitname(16) = "Simulate Pushable NPC obstruction bug"
     bitname(17) = "Disable ESC key running from battle"
-    bitname(18) = "Don't save game over script in SAV game"
+    bitname(18) = "Don't save gameover/loadgame script IDs"
     DIM bittemp(1) AS INTEGER
     bittemp(0) = gen(genBits)
     bittemp(1) = gen(genBits2)
