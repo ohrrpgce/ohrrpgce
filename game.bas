@@ -1221,12 +1221,12 @@ WITH scrat(nowscript)
    '--WARNING: WITH pointer probably corrupted
  END SELECT
  IF wantimmediate = -2 THEN
-  IF nowscript < 0 THEN
-   debug "wantimmediate ended on nowscript = -1"
-  ELSE
-   debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname$(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
-   debug "needf = " & needf
-  END IF
+'  IF nowscript < 0 THEN
+'   debug "wantimmediate ended on nowscript = -1"
+'  ELSE
+'   debug "wantimmediate would have skipped wait on command " & scrat(nowscript).curvalue & " in " & scriptname$(scrat(nowscript).id) & ", state = " & scrat(nowscript).state
+'   debug "needf = " & needf
+'  END IF
   wantimmediate = 0 'change to -1 to reenable bug
  END IF
  IF wantimmediate = -1 THEN
@@ -1576,8 +1576,8 @@ DO
      EXIT DO
     CASE 2
      IF scrat(nowscript).state <> stwait THEN
-      debug "WANTIMMEDIATE BUG"
-      debug scriptname$(scrat(nowscript + 1).id) & " terminated, setting wantimmediate on " & scriptname$(scrat(nowscript).id)
+'      debug "WANTIMMEDIATE BUG"
+'      debug scriptname$(scrat(nowscript + 1).id) & " terminated, setting wantimmediate on " & scriptname$(scrat(nowscript).id)
       wantimmediate = -2
      ELSE
       wantimmediate = -1
