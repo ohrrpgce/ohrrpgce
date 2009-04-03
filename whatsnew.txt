@@ -32,6 +32,8 @@ WHAT IS NEW?
       code [James]
     * New general bitset "Don't save gameover/loadgame script IDs"
       [James]
+    * New "check where scripts are used" tool, which can list all
+      script usage (except for scripts calling other scripts) [James]
 
   * Bugfixes
 

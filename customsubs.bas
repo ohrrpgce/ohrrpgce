@@ -2060,7 +2060,7 @@ END SUB
 
 SUB draw_gather_script_usage_meter (BYVAL meter AS INTEGER, BYVAL meter_times AS INTEGER=1) 
  DIM AS INTEGER max, size
- max = (7 + gen(genMaxTextBox) + gen(genMaxMap) + gen(genMaxVehicle) + gen(genMaxShop)) * meter_times
+ max = (8 + gen(genMaxTextBox) + gen(genMaxMap) + gen(genMaxVehicle) + gen(genMaxShop) + gen(genMaxMenu)) * meter_times
  size = 320 / max * meter
  edgebox 0, 188, size, 12, uilook(uiTimeBarFull), uilook(uiTimeBar), vpage
  edgeprint "searching for plotscript usage", 1, 189, uilook(uiText), vpage
@@ -2074,7 +2074,7 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
  IF gen(genLoadGameScript) = id THEN str_array_append list(), "  load game script"
  meter += 3
  draw_gather_script_usage_meter meter, meter_times 
- DIM i AS INTEGER
+ DIM AS INTEGER i, j
 
  '--Text box scripts
  DIM box AS TextBox
@@ -2098,7 +2098,7 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
   IF gmaptmp(15) = id THEN str_array_append list(), "  map " & i & " on-keypress" 
   'loop through NPC's
   LoadNPCD maplumpname(i, "n"), npctmp()
-  FOR j AS INTEGER = 0 TO max_npc_defs
+  FOR j = 0 TO max_npc_defs
    IF npctmp(j).script = id THEN str_array_append list(), "  map " & i & " NPC " & j
   NEXT j
   meter += 1
@@ -2128,6 +2128,27 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
   meter += 1
   IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
  NEXT i
+ 
+ '--menu scripts
+ DIM menu_set AS MenuSet
+ menu_set.menufile = workingdir + SLASH + "menus.bin"
+ menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
+ DIM menutmp AS MenuDef
+ FOR i = 0 TO gen(genMaxMenu)
+  LoadMenuData menu_set, menutmp, i
+  FOR j = 0 TO UBOUND(menutmp.items)
+   WITH menutmp.items(j)
+    IF .exists THEN
+     IF .t = 4 THEN
+      IF .sub_t = id THEN str_array_append list(), "  menu " & i & " item " & j & " """ & .caption & """"
+     END IF
+    END IF
+   END WITH
+  NEXT j
+  meter += 1
+  IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
+ NEXT i
+
 END SUB
 
 SUB script_usage_list ()
