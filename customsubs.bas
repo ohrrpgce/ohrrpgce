@@ -2067,7 +2067,7 @@ SUB draw_gather_script_usage_meter (BYVAL meter AS INTEGER, BYVAL meter_times AS
  setvispage vpage
 END SUB
 
-SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS INTEGER=0, BYREF meter AS INTEGER, BYVAL meter_times AS INTEGER=1)
+SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS INTEGER=0, BYREF meter AS INTEGER, BYVAL meter_times AS INTEGER=1, box_instead_cache() AS INTEGER, box_after_cache() AS INTEGER, box_preview_cache() AS STRING)
  '--Global scripts
  IF gen(genNewGameScript) = id THEN str_array_append list(), "  new game script"
  IF gen(genGameoverScript) = id THEN str_array_append list(), "  game over script"
@@ -2077,11 +2077,9 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
  DIM AS INTEGER i, j
 
  '--Text box scripts
- DIM box AS TextBox
  FOR i = 0 TO gen(genMaxTextbox)
-  LoadTextBox box, i
-  IF -box.instead = id THEN str_array_append list(), "  box " & i & " (instead) " & textbox_preview_line(box)
-  IF -box.after = id THEN str_array_append list(), "  box " & i & " (after) " & textbox_preview_line(box)
+  IF box_instead_cache(i) = id THEN str_array_append list(), "  box " & i & " (instead) " & box_preview_cache(i)
+  IF box_after_cache(i) = id THEN str_array_append list(), "  box " & i & " (after) " & box_preview_cache(i)
   meter += 1
   IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
  NEXT i
@@ -2187,6 +2185,23 @@ SUB script_usage_list ()
  NEXT i
  CLOSE #fh
 
+ draw_gather_script_usage_meter meter, meter_times
+
+ '--Pre-cache text box script triggers for performance purposes
+ DIM box_instead_cache(gen(genMaxTextbox)) AS INTEGER
+ DIM box_after_cache(gen(genMaxTextbox)) AS INTEGER
+ DIM box_preview_cache(gen(genMaxTextbox)) AS STRING
+ DIM box AS TextBox
+ FOR i AS INTEGER = 0 TO gen(genMaxTextbox)
+  LoadTextBox box, i
+  box_instead_cache(i) = -box.instead
+  box_after_cache(i) = -box.after
+  IF box_instead_cache(i) > 0 OR box_after_cache(i) > 0 THEN
+   '--Don't bother loading the preview line unless there is a script trigger
+   box_preview_cache(i) = textbox_preview_line(box)
+  END IF
+ NEXT i
+
  'Loop through old-style non-autonumbered scripts
  fh = FREEFILE
  OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY ACCESS READ AS #fh
@@ -2196,7 +2211,7 @@ SUB script_usage_list ()
   IF id <= 16383 THEN
    s = id & ":" & readbinstring(buf(), 1, 38)
    str_array_append list(), s
-   gather_script_usage list(), id, 0, meter, meter_times
+   gather_script_usage list(), id, 0, meter, meter_times, box_instead_cache(), box_after_cache(), box_preview_cache()
   END IF
  NEXT i
  CLOSE #fh
@@ -2210,7 +2225,7 @@ SUB script_usage_list ()
   s = readbinstring(buf(), 1, 38)
   IF id <> 0 THEN
    str_array_append list(), s
-   gather_script_usage list(), i + 16384, 1, meter, meter_times
+   gather_script_usage list(), i + 16384, 1, meter, meter_times, box_instead_cache(), box_after_cache(), box_preview_cache()
   END IF
  NEXT i
  CLOSE #fh
