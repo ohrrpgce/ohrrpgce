@@ -584,7 +584,9 @@ FUNCTION getdefaultpal(fileset, index)
    CLOSE #fh
    RETURN v
  ELSE
-  debug "Default palette file " & f$ & " does not exist"
+   'currently extended NPCs palettes are initialised to -1, which means lots of debug spam in old games
+   'debug "Default palette file " & f$ & " does not exist"
+   RETURN -1
  END IF
 END FUNCTION
 
@@ -868,19 +870,22 @@ IF buf(0) = 4444 THEN '--check magic number
   FOR i = 0 TO 7
    array(aoffset * 8 + i) = buf(i)
   NEXT i
+  EXIT SUB
  ELSEIF foffset = -1 THEN
   'load a default palette
   IF autotype >= 0 THEN
    defaultpal = getdefaultpal(autotype, sprite)
-   'Recursive
-   getpal16 array(), aoffset, defaultpal
+   IF defaultpal > -1 THEN
+    'Recursive
+    getpal16 array(), aoffset, defaultpal
+    EXIT SUB
+   END IF
   END IF
- ELSE
-  'palette is out of range, return blank
-  FOR i = 0 TO 7
-   array(aoffset * 8 + i) = 0
-  NEXT i
  END IF
+ 'palette is out of range, return blank
+ FOR i = 0 TO 7
+  array(aoffset * 8 + i) = 0
+ NEXT i
 ELSE '--magic number not found, palette is still in BSAVE format
  DIM xbuf(100 * 8)
  xbload game + ".pal", xbuf(), "16-color palletes missing from " + game
