@@ -878,6 +878,7 @@ SUB deletetemps
  KILL tmpdir + "filelist.tmp"
 END SUB
 
+'--A similar function exists in customsubs.bas for custom. it differs only in error-reporting
 FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
  DIM buf(19)
  'debug "decoding " + STR$(trigger) + " type " + STR$(trigtype)

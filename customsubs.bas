@@ -2108,8 +2108,8 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
  DIM vehname AS STRING
  FOR i = 0 TO gen(genMaxVehicle)
   LoadVehicle  game & ".veh", vehtmp(), vehname, i
-  IF -vehtmp(12) = id THEN str_array_append list(), "  use button vehicle " & i & " """ & vehname & """"
-  IF -vehtmp(13) = id THEN str_array_append list(), "  menu button vehicle " & i & " """ & vehname & """"
+  IF vehtmp(12) = id THEN str_array_append list(), "  use button vehicle " & i & " """ & vehname & """"
+  IF vehtmp(13) = id THEN str_array_append list(), "  menu button vehicle " & i & " """ & vehname & """"
   IF -vehtmp(15) = id THEN str_array_append list(), "  on mount vehicle " & i & " """ & vehname & """"
   IF -vehtmp(16) = id THEN str_array_append list(), "  on dismount vehicle " & i & " """ & vehname & """"
   meter += 1
@@ -2225,7 +2225,7 @@ SUB script_usage_list ()
   s = readbinstring(buf(), 1, 38)
   IF id <> 0 THEN
    str_array_append list(), s
-   gather_script_usage list(), i + 16384, 1, meter, meter_times, box_instead_cache(), box_after_cache(), box_preview_cache()
+   gather_script_usage list(), i + 16384, plottrigger, meter, meter_times, box_instead_cache(), box_after_cache(), box_preview_cache()
   END IF
  NEXT i
  CLOSE #fh
@@ -2239,8 +2239,165 @@ SUB script_usage_list ()
   setwait 55
   setkeys
   IF keyval(scESC) > 1 THEN EXIT DO
-  IF usemenu(state) THEN
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
   END IF
+  usemenu state
+
+  draw_fullscreen_scrollbar state, , dpage 
+  standardmenu list(), state, 0, 0, dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ 
+END SUB
+
+'--A similar function exists in yetmore2.bas for game. it differs only in error-reporting
+FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
+ DIM buf(19) AS INTEGER
+ DIM fname AS STRING
+ IF trigger >= 16384 THEN
+  fname = workingdir & SLASH & "lookup" & trigtype & ".bin"
+  IF isfile(fname) THEN
+   IF loadrecord (buf(), fname$, 20, trigger - 16384) THEN
+    RETURN buf(0)
+   ELSE
+    debug "decodetrigger: record " & (trigger - 16384) & " could not be loaded"
+   END IF
+  ELSE
+   debug "decodetrigger: file " & fname & " could not be found"
+  END IF
+ ELSE
+  '--this is an old-style script
+  RETURN trigger
+ END IF
+END FUNCTION
+
+SUB check_broken_script_trigger(list() AS STRING, BYVAL trig AS INTEGER, description AS STRING, caption AS STRING = "")
+ IF trig <= 0 THEN EXIT SUB ' No script trigger
+ '--decode script trigger
+ DIM id AS INTEGER
+ id = decodetrigger(trig, plottrigger)
+ '--Check for missing new-style script
+ IF id = 0 THEN
+  str_array_append list(), description & " " & scriptname(trig, plottrigger) & " missing" & caption 
+  EXIT SUB
+ END IF
+ '--now check for missing old-style scripts
+ IF id < 16384 THEN
+  DIM buf(19)
+  DIM fh AS INTEGER = FREEFILE
+  OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY ACCESS READ AS #fh
+  DIM found AS INTEGER = NO
+  FOR i AS INTEGER = 0 TO gen(genMaxPlotScript)
+   loadrecord buf(), fh, 20, i
+   IF buf(0) = id THEN
+    found = YES
+    EXIT FOR '-- Found it okay!
+   END IF
+  NEXT i
+  CLOSE #fh
+  IF found = NO THEN
+   str_array_append list(), description & " ID " & id & " missing" & caption
+  END IF
+ END IF
+END SUB
+
+SUB script_broken_trigger_list()
+ REDIM list(0) AS STRING
+
+ list(0) = "back to previous menu..."
+
+ '--global scripts
+ check_broken_script_trigger list(), gen(genNewGameScript), "new game"
+ check_broken_script_trigger list(), gen(genLoadGameScript), "load game"
+ check_broken_script_trigger list(), gen(genGameoverScript), "game over"
+
+ DIM AS INTEGER i, j
+
+ '--Text box scripts
+ DIM box AS TextBox
+ FOR i AS INTEGER = 0 TO gen(genMaxTextbox)
+  LoadTextBox box, i
+  check_broken_script_trigger list(), -box.instead, "box " & i & " (instead)", ":" & textbox_preview_line(box)
+  check_broken_script_trigger list(), -box.after, "box " & i & " (after)", ":" & textbox_preview_line(box)
+ NEXT i
+ 
+ '--Map scripts and NPC scripts
+ DIM gmaptmp(dimbinsize(binMAP))
+ DIM npctmp(max_npc_defs) AS NPCType
+ FOR i = 0 TO gen(genMaxMap)
+  loadrecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
+  check_broken_script_trigger list(), gmaptmp(7), "map " & i & " autorun"
+  check_broken_script_trigger list(), gmaptmp(12), "map " & i & " after-battle"
+  check_broken_script_trigger list(), gmaptmp(13), "map " & i & " instead-of-battle"
+  check_broken_script_trigger list(), gmaptmp(14), "map " & i & " each-step"
+  check_broken_script_trigger list(), gmaptmp(15), "map " & i & " on-keypress"
+  'loop through NPC's
+  LoadNPCD maplumpname(i, "n"), npctmp()
+  FOR j = 0 TO max_npc_defs
+   check_broken_script_trigger list(), npctmp(j).script, "map " & i & " NPC " & j
+  NEXT j
+ NEXT i
+ 
+ '--vehicle scripts
+ DIM vehtmp(39) AS INTEGER
+ DIM vehname AS STRING
+ FOR i = 0 TO gen(genMaxVehicle)
+  LoadVehicle game & ".veh", vehtmp(), vehname, i
+  check_broken_script_trigger list(), vehtmp(12), "use button veh " & i, " """ & vehname & """"
+  check_broken_script_trigger list(), vehtmp(13), "menu button veh " & i, " """ & vehname & """"
+  check_broken_script_trigger list(), -vehtmp(15), "mount vehicle " & i, " """ & vehname & """"
+  check_broken_script_trigger list(), -vehtmp(16), "dismount vehicle " & i,  " """ & vehname & """"
+ NEXT i
+ 
+ '--shop scripts
+ DIM shoptmp(19)
+ DIM shopname AS STRING
+ FOR i = 0 TO gen(genMaxShop)
+  loadrecord shoptmp(), game & ".sho", 20, i
+  shopname = readbadbinstring(shoptmp(), 0, 15)
+  check_broken_script_trigger list(), shoptmp(19), "show inn " & i, " """ & shopname & """"
+ NEXT i
+ 
+ '--menu scripts
+ DIM menu_set AS MenuSet
+ menu_set.menufile = workingdir + SLASH + "menus.bin"
+ menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
+ DIM menutmp AS MenuDef
+ FOR i = 0 TO gen(genMaxMenu)
+  LoadMenuData menu_set, menutmp, i
+  FOR j = 0 TO UBOUND(menutmp.items)
+   WITH menutmp.items(j)
+    IF .exists THEN
+     IF .t = 4 THEN
+      check_broken_script_trigger list(), .sub_t, "menu " & i & " item " & j & " """ & .caption & """"
+     END IF
+    END IF
+   END WITH
+  NEXT j
+ NEXT i
+
+ IF UBOUND(list) = 0 THEN
+  str_array_append list(), "No broken triggers found!"
+ END IF
+
+ DIM state AS MenuState
+ state.size = 24
+ state.last = UBOUND(list)
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
+  END IF
+  usemenu state
 
   draw_fullscreen_scrollbar state, , dpage 
   standardmenu list(), state, 0, 0, dpage

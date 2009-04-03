@@ -50,5 +50,7 @@ DECLARE FUNCTION scrintgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL 
 DECLARE SUB show_help(helpkey AS STRING)
 DECLARE SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS INTEGER=0, BYREF meter AS INTEGER, BYVAL meter_times AS INTEGER=1, box_instead_cache() AS INTEGER, box_after_cache() AS INTEGER, box_preview_cache() AS STRING)
 DECLARE SUB script_usage_list ()
+DECLARE SUB script_broken_trigger_list()
+DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
 
 #endif
