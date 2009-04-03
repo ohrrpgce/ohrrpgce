@@ -3022,7 +3022,7 @@ end</example>
 		<command id="loadfromslot">
 			<cannon>load from slot (slot)</cannon>
 			<shortname>load from slot</shortname>
-			<description>Loads a saved game from a save slot as if it had been loaded from the load game menu. This command will end the current game.</description>
+			<description>Loads a saved game from a save slot (where <p>slot</p> is a slot number from 1 to 32, slots 5-32 are hidden) as if it had been loaded from the load game menu. This command will end the current game if it successfully loads. If the load fails because the slot has never been saved in, the script will continue.</description>
 		</command>
 		<command id="deletesave">
 			<cannon>delete save (slot)</cannon>
@@ -3035,7 +3035,7 @@ end</example>
 		<command id="importglobals">
 			<cannon>import globals (slot, first, last)</cannon>
 			<shortname>import globals</shortname>
-			<description>Loads a range of globals from a saved game, overwriting the current globals in that range. First and Last are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024 if both are not given. <lb/>To read a single global from a save slot without overwriting any, use the form 'var := import globals (slot, id)'<lb/>import globals and <ref>exportglobals</ref> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:</description>
+			<description>and<lb/><p>import globals (slot, id)</p><lb/>Loads a range of globals from a saved game, overwriting the current globals in that range. <p>slot</p> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <p>first</p> and <p>last</p> are the id numbers of the globals at the beginning and end of the range. If you leave out both of <p>first</p> and <p>last</p> all global variables will be imported. <lb/>To read a single global from a save slot without modifying any of your globals, use the form 'var := import globals (slot, id)'<lb/>This is NOT the same thing as 'import globals (slot, id, id)', which does modify the global variable.<lb/>import globals and <ref>exportglobals</ref> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:</description>
 			<example>global variable (100, game completed)
 global variable (101, hours to complete)
 global variable (102, minutes to complete)
@@ -3057,14 +3057,16 @@ plotscript, check game finished, begin
   wait for textbox
 end</example>
 			<seealso>
+				<ref>exportglobals</ref>
 				<ref>readglobal</ref>
 			</seealso>
 		</command>
 		<command id="exportglobals">
 			<cannon>export globals (slot, first, last)</cannon>
 			<shortname>export globals</shortname>
-			<description>Writes a range of globals to a saved game, overwriting the saved games globals. "First" and "Last" are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024. Therefore, if you pass no range, all the globals will be written.</description>
+			<description>Writes a range of globals to a save game slot, overwriting the saved game's globals. <p>slot</p> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <p>first</p> and <p>last</p> are the id numbers of the globals at the beginning and end of the range. <p>first</p> defaults to 0, and <p>last</p> defaults to 4095. Therefore, if you pass no range, all the globals will be written.<note>You can export globals to an empty slot! This doesn't create a visible save game that the player can load, however you will still be able to read them with <ref>importglobals</ref>.</note><note>Unlike importglobals, 'export globals (slot, first)' does NOT export a single global variable!</note></description>
 			<seealso>
+				<ref>importglobals</ref>
 				<ref>writeglobal</ref>
 			</seealso>
 		</command>

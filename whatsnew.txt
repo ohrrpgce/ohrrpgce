@@ -22,6 +22,8 @@ April 03 2009 [xocolatl+2]
     * Removed obsolete warning about long filenames from relump
     * Removed obsolete unneeded linux-specific hacks from unlump
     * Bug 646: Delay before caption doesn't seem to work [James]
+    * importglobals and exportglobals did not work on globals
+      1025 - 4095 [Ralph]
 
   * Plotscripting
     * Show a future compatibility warning when using certain punctuation
