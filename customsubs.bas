@@ -2060,20 +2060,23 @@ END SUB
 
 SUB draw_gather_script_usage_meter (BYVAL meter AS INTEGER, BYVAL meter_times AS INTEGER=1) 
  DIM AS INTEGER max, size
- max = (5 + gen(genMaxTextBox) + gen(genMaxMap)) * meter_times
+ max = (7 + gen(genMaxTextBox) + gen(genMaxMap) + gen(genMaxVehicle) + gen(genMaxShop)) * meter_times
  size = 320 / max * meter
- drawbox 0, 190, size, 10, uilook(uiTimeBar), vpage
- edgeprint "searching for plotscript usage", 1, 191, uilook(uiText), vpage
+ edgebox 0, 188, size, 12, uilook(uiTimeBarFull), uilook(uiTimeBar), vpage
+ edgeprint "searching for plotscript usage", 1, 189, uilook(uiText), vpage
  setvispage vpage
 END SUB
 
 SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS INTEGER=0, BYREF meter AS INTEGER, BYVAL meter_times AS INTEGER=1)
+ '--Global scripts
  IF gen(genNewGameScript) = id THEN str_array_append list(), "  new game script"
  IF gen(genGameoverScript) = id THEN str_array_append list(), "  game over script"
  IF gen(genLoadGameScript) = id THEN str_array_append list(), "  load game script"
  meter += 3
  draw_gather_script_usage_meter meter, meter_times 
  DIM i AS INTEGER
+
+ '--Text box scripts
  DIM box AS TextBox
  FOR i = 0 TO gen(genMaxTextbox)
   LoadTextBox box, i
@@ -2082,6 +2085,8 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
   meter += 1
   IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
  NEXT i
+ 
+ '--Map scripts and NPC scripts
  DIM gmaptmp(dimbinsize(binMAP))
  DIM npctmp(max_npc_defs) AS NPCType
  FOR i = 0 TO gen(genMaxMap)
@@ -2099,6 +2104,30 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
   meter += 1
   IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
  NEXT i
+ 
+ '--vehicle scripts
+ DIM vehtmp(39) AS INTEGER
+ DIM vehname AS STRING
+ FOR i = 0 TO gen(genMaxVehicle)
+  LoadVehicle  game & ".veh", vehtmp(), vehname, i
+  IF -vehtmp(12) = id THEN str_array_append list(), "  use button vehicle " & i & " """ & vehname & """"
+  IF -vehtmp(13) = id THEN str_array_append list(), "  menu button vehicle " & i & " """ & vehname & """"
+  IF -vehtmp(15) = id THEN str_array_append list(), "  on mount vehicle " & i & " """ & vehname & """"
+  IF -vehtmp(16) = id THEN str_array_append list(), "  on dismount vehicle " & i & " """ & vehname & """"
+  meter += 1
+  IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
+ NEXT i
+ 
+ '--shop scripts
+ DIM shoptmp(19)
+ DIM shopname AS STRING
+ FOR i = 0 TO gen(genMaxShop)
+  loadrecord shoptmp(), game & ".sho", 20, i
+  shopname = readbadbinstring(shoptmp(), 0, 15)
+  IF shoptmp(19) = id THEN str_array_append list(), "  shop inn " & i & " """ & shopname & """"
+  meter += 1
+  IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
+ NEXT i
 END SUB
 
 SUB script_usage_list ()
@@ -2113,7 +2142,7 @@ SUB script_usage_list ()
  list(0) = "back to previous menu..."
 
  'Get script count for progress meter
- ' (yeah, I know we loop through the old scripts twice.
+ ' (yeah, I know we loop through the all the scripts twice.
  ' that is okay because gather_script_usage is the really slow part)
  fh = FREEFILE
  OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY ACCESS READ AS #fh
@@ -2128,7 +2157,13 @@ SUB script_usage_list ()
  fh = FREEFILE
  OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY ACCESS READ AS #fh
  DIM plotscript_count AS INTEGER = (LOF(fh) \ 40) - 1
- meter_times += plotscript_count + 1
+ FOR i AS INTEGER = 0 TO plotscript_count
+  loadrecord buf(), fh, 20, i
+  id = buf(0)
+  IF id <> 0 THEN
+   meter_times += 1
+  END IF
+ NEXT i
  CLOSE #fh
 
  'Loop through old-style non-autonumbered scripts
@@ -2138,7 +2173,7 @@ SUB script_usage_list ()
   loadrecord buf(), fh, 20, i
   id = buf(0)
   IF id <= 16383 THEN
-   s = id & ": " & readbinstring(buf(), 1, 38)
+   s = id & ":" & readbinstring(buf(), 1, 38)
    str_array_append list(), s
    gather_script_usage list(), id, 0, meter, meter_times
   END IF
@@ -2152,8 +2187,10 @@ SUB script_usage_list ()
   loadrecord buf(), fh, 20, i
   id = buf(0)
   s = readbinstring(buf(), 1, 38)
-  str_array_append list(), s
-  gather_script_usage list(), i + 16384, 1, meter, meter_times
+  IF id <> 0 THEN
+   str_array_append list(), s
+   gather_script_usage list(), i + 16384, 1, meter, meter_times
+  END IF
  NEXT i
  CLOSE #fh
 
