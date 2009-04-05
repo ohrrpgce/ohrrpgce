@@ -392,6 +392,9 @@ SUB importscripts (f$)
    END WITH
   NEXT
 
+  '--save a temporary backup copy of plotscr.lst
+  copyfile workingdir & SLASH & "plotscr.lst", tmpdir & "plotscr.lst.tmp"
+
   gen(40) = 0
   gen(43) = 0
   viscount = 0
@@ -455,6 +458,13 @@ SUB importscripts (f$)
 
   CLOSE #fptr
   IF dotbin THEN safekill tmpdir & "scripts.bin" ELSE safekill tmpdir & "scripts.txt"
+
+  '--fix the references to any old-style plotscripts that have been converted to new-style scripts.
+  append_message " ...autofix broken triggers..."
+  autofix_broken_old_scripts
+
+  '--erase the temporary backup copy of plotscr.lst
+  safekill tmpdir & "plotscr.lst.tmp"
   
   textcolor uilook(uiText), 0
   show_message "imported " & viscount & " scripts"

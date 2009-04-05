@@ -38,6 +38,9 @@ WHAT IS NEW?
       places where a non-existant script will be triggered. [James]
 
   * Bugfixes
+    * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"
+      Now you can convert your scripts to new-style and the triggers
+      will be automatically updated for you. [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

@@ -52,5 +52,6 @@ DECLARE SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL tri
 DECLARE SUB script_usage_list ()
 DECLARE SUB script_broken_trigger_list()
 DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
+DECLARE SUB autofix_broken_old_scripts()
 
 #endif

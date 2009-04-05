@@ -2409,3 +2409,171 @@ SUB script_broken_trigger_list()
  LOOP
  
 END SUB
+
+FUNCTION autofix_old_script(BYREF id AS INTEGER) AS INTEGER
+ '--returns true if a fix has occured
+ IF id = 0 THEN RETURN NO ' not a trigger
+ IF id >= 16384 THEN RETURN NO 'New-style script
+ DIM buf(19) AS INTEGER
+ DIM fh AS INTEGER
+ 
+ fh = FREEFILE
+ OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY ACCESS READ AS #fh
+ FOR i AS INTEGER = 0 TO gen(genMaxPlotScript)
+  loadrecord buf(), fh, 20, i
+  IF buf(0) = id THEN
+   CLOSE #fh
+   RETURN NO 'Found okay
+  END IF
+ NEXT i
+ CLOSE #fh
+ 
+ DIM found_name AS STRING = ""
+ 
+ fh = FREEFILE
+ OPEN tmpdir & "plotscr.lst.tmp" FOR BINARY ACCESS READ AS #fh
+ FOR i AS INTEGER = 0 TO (LOF(fh) \ 40) - 1
+  loadrecord buf(), fh, 20, i
+  IF buf(0) = id THEN '--Yay! found it in the old file!
+   found_name = readbinstring(buf(), 1, 38)
+   EXIT FOR
+  END IF
+ NEXT i
+ CLOSE #fh
+ 
+ IF found_name = "" THEN RETURN NO '--broken but unfixable (no old name)
+
+ fh = FREEFILE
+ OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY ACCESS READ AS #fh
+ FOR i AS INTEGER = 0 TO (LOF(fh) \ 40) - 1
+  loadrecord buf(), fh, 20, i
+  IF found_name = readbinstring(buf(), 1, 38) THEN '--Yay! found it in the new file!
+   id = 16384 + i
+   CLOSE #fh
+   RETURN YES '--fixed it, report a change!
+  END IF
+ NEXT i
+ CLOSE #fh 
+
+ RETURN NO '--broken but unfixable (no matching new name)
+ 
+END FUNCTION
+
+SUB autofix_broken_old_scripts()
+
+ '--sanity test
+ IF NOT isfile(tmpdir & "plotscr.lst.tmp") THEN
+  debug "can't autofix broken old scripts, can't find: " & tmpdir & "plotscr.lst.tmp"
+ END IF
+
+ '--global scripts
+ autofix_old_script gen(genNewGameScript)
+ autofix_old_script gen(genLoadGameScript)
+ autofix_old_script gen(genGameoverScript)
+
+ DIM AS INTEGER i, j, idtmp, resave
+
+ '--Text box scripts
+ DIM box AS TextBox
+ FOR i AS INTEGER = 0 TO gen(genMaxTextbox)
+  LoadTextBox box, i
+  resave = NO
+  IF box.instead < 0 THEN
+   idtmp = -box.instead
+   IF autofix_old_script(idtmp) THEN resave = YES
+   box.instead = -idtmp
+  END IF
+  IF box.after < 0 THEN
+   idtmp = -box.after
+   IF autofix_old_script(idtmp) THEN resave = YES
+   box.after = -idtmp
+  END IF
+  IF resave THEN
+   SaveTextBox box, i
+  END IF
+ NEXT i
+ 
+ '--Map scripts and NPC scripts
+ DIM gmaptmp(dimbinsize(binMAP))
+ DIM npctmp(max_npc_defs) AS NPCType
+ FOR i = 0 TO gen(genMaxMap)
+  resave = NO
+  loadrecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
+  IF autofix_old_script(gmaptmp(7)) THEN resave = YES 'autorun
+  IF autofix_old_script(gmaptmp(12)) THEN resave = YES 'after-battle
+  IF autofix_old_script(gmaptmp(13)) THEN resave = YES 'instead-of-battle
+  IF autofix_old_script(gmaptmp(14)) THEN resave = YES 'each-step
+  IF autofix_old_script(gmaptmp(15)) THEN resave = YES 'on-keypress
+  IF resave THEN
+   storerecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
+  END IF
+  'loop through NPC's
+  LoadNPCD maplumpname(i, "n"), npctmp()
+  resave = NO
+  FOR j = 0 TO max_npc_defs
+   IF autofix_old_script(npctmp(j).script) THEN resave = YES
+  NEXT j
+  IF resave THEN
+   SaveNPCD maplumpname(i, "n"), npctmp()
+  END IF
+ NEXT i
+ 
+ '--vehicle scripts
+ DIM vehtmp(39) AS INTEGER
+ DIM vehname AS STRING
+ FOR i = 0 TO gen(genMaxVehicle)
+  resave = NO
+  LoadVehicle game & ".veh", vehtmp(), vehname, i
+  IF vehtmp(12) > 0 THEN
+   IF autofix_old_script(vehtmp(12)) THEN resave = YES 'use button vehicle
+  END IF
+  IF vehtmp(13) > 0 THEN
+   IF autofix_old_script(vehtmp(13)) THEN resave = YES 'menu button vehicle
+  END IF
+  IF vehtmp(15) < 0 THEN
+   idtmp = -vehtmp(15)
+   IF autofix_old_script(idtmp) THEN resave = YES 'mount vehicle
+   vehtmp(15) = idtmp
+  END IF
+  IF vehtmp(16) < 0 THEN
+   idtmp = -vehtmp(16)
+   IF autofix_old_script(idtmp) THEN resave = YES 'dismount vehicle
+   vehtmp(16) = idtmp
+  END IF
+  IF resave THEN
+   SaveVehicle game & ".veh", vehtmp(), vehname, i
+  END IF
+ NEXT i
+ 
+ '--shop scripts
+ DIM shoptmp(19)
+ FOR i = 0 TO gen(genMaxShop)
+  loadrecord shoptmp(), game & ".sho", 20, i
+  IF autofix_old_script(shoptmp(19)) THEN
+   storerecord shoptmp(), game & ".sho", 20, i
+  END IF
+ NEXT i
+ 
+ '--menu scripts
+ DIM menu_set AS MenuSet
+ menu_set.menufile = workingdir + SLASH + "menus.bin"
+ menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
+ DIM menutmp AS MenuDef
+ FOR i = 0 TO gen(genMaxMenu)
+  resave = NO
+  LoadMenuData menu_set, menutmp, i
+  FOR j = 0 TO UBOUND(menutmp.items)
+   WITH menutmp.items(j)
+    IF .exists THEN
+     IF .t = 4 THEN
+      IF autofix_old_script(.sub_t) THEN resave = YES
+     END IF
+    END IF
+   END WITH
+  NEXT j
+  IF resave THEN
+   SaveMenuData menu_set, menutmp, i
+  END IF
+ NEXT i
+
+END SUB
