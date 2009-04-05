@@ -2533,12 +2533,12 @@ SUB autofix_broken_old_scripts()
   IF vehtmp(15) < 0 THEN
    idtmp = -vehtmp(15)
    IF autofix_old_script(idtmp) THEN resave = YES 'mount vehicle
-   vehtmp(15) = idtmp
+   vehtmp(15) = -idtmp
   END IF
   IF vehtmp(16) < 0 THEN
    idtmp = -vehtmp(16)
    IF autofix_old_script(idtmp) THEN resave = YES 'dismount vehicle
-   vehtmp(16) = idtmp
+   vehtmp(16) = -idtmp
   END IF
   IF resave THEN
    SaveVehicle game & ".veh", vehtmp(), vehname, i
