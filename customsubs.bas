@@ -2013,7 +2013,7 @@ SUB show_help(helpkey AS STRING)
  help_text = NewSliceOfType(slText, help_box)
  WITH *help_text
   .Fill = YES
-  ChangeTextSlice help_text, Reload.GetString(node)
+  ChangeTextSlice help_text, Reload.GetString(node), , , YES
  END WITH
  DIM animate AS Slice Ptr
  animate = help_root
@@ -2023,12 +2023,22 @@ SUB show_help(helpkey AS STRING)
  holdscreen = allocatepage
  copypage vpage, holdscreen
 
+ DIM dat AS TextSliceData Ptr
+ dat = help_text->SliceData
+ WITH *dat
+  .show_insert = YES
+  .insert = insert '--copy the global stredit() insert point
+ END WITH
+
  '--Now loop displaying help
  setkeys
  DO
   setwait 17, 70
   setkeys
   IF keyval(scESC) > 1 THEN EXIT DO
+  
+  stredit(dat->s, 600, YES)
+  dat->insert = insert '--copy the global stredit() insert point
 
   'Animate the arrival of the help screen
   animate->Y = large(animate->Y - 20, 0)
@@ -2578,7 +2588,7 @@ SUB autofix_broken_old_scripts()
 
 END SUB
 
-SUB stredit (s AS STRING, maxl AS INTEGER)
+SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO)
  'insert is declared EXTERN in cglobals.bi and dimmed in custom.bas
  
  STATIC clip AS STRING
@@ -2631,6 +2641,8 @@ SUB stredit (s AS STRING, maxl AS INTEGER)
     '--charlist support
     pre = pre & charpicker()
    END IF
+  ELSEIF multiline AND keyval(scEnter) > 1 THEN
+   pre = pre & CHR(10)
   ELSE
    IF keyval(scCtrl) = 0 THEN
     '--all other keys

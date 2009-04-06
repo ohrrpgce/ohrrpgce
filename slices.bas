@@ -608,16 +608,22 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  split(d, lines())
  dim col as integer = dat->col
  if col = 0 then col = uilook(uiText)
- if dat->outline then 
-  for i as integer = 0 to ubound(lines)
+ dim chars as integer = 0
+ dat->insert_tog = dat->insert_tog xor 1
+ for i as integer = 0 to ubound(lines)
+  if dat->show_insert then
+   if dat->insert >= chars and dat->insert <= chars + len(lines(i)) then
+    rectangle sl->screenx + (dat->insert - chars) * 8, sl->screeny + i * 10, 10, 10, uilook(uiHighlight + dat->insert_tog), p
+   end if
+   chars += len(lines(i)) + 1
+  end if
+  if dat->outline then
    edgeprint lines(i), sl->screenx, sl->screeny + i * 10, col, p
-  next
- else
-  textcolor col, 0
-  for i as integer = 0 to ubound(lines)
+  else
+   textcolor col, 0
    printstr lines(i), sl->screenx, sl->screeny + i * 10, p
-  next
- end if
+  end if
+ next
 end sub
 
 Sub UpdateTextSlice(byval sl as slice ptr)

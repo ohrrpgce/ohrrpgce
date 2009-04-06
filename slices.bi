@@ -117,6 +117,9 @@ Type TextSliceData
  'lines() as string
  wrap as integer
  'Declare constructor(byval st as string, byval col as integer = -1, byval ol as integer = YES)
+ insert as integer 'char offset of insertion pointer
+ show_insert as integer ' set to YES to display insertion point
+ insert_tog as integer 'flashing
 End Type
 
 Type SpriteSliceData
