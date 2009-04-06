@@ -393,7 +393,9 @@ SUB importscripts (f$)
   NEXT
 
   '--save a temporary backup copy of plotscr.lst
-  copyfile workingdir & SLASH & "plotscr.lst", tmpdir & "plotscr.lst.tmp"
+  IF isfile(workingdir & SLASH & "plotscr.lst") THEN
+   copyfile workingdir & SLASH & "plotscr.lst", tmpdir & "plotscr.lst.tmp"
+  END IF
 
   gen(40) = 0
   gen(43) = 0
