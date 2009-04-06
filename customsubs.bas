@@ -2577,3 +2577,74 @@ SUB autofix_broken_old_scripts()
  NEXT i
 
 END SUB
+
+SUB stredit (s AS STRING, maxl AS INTEGER)
+ 'insert is declared EXTERN in cglobals.bi and dimmed in custom.bas
+ 
+ STATIC clip AS STRING
+
+ '--copy support
+ IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN clip = s
+
+ '--paste support
+ IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN s = LEFT(clip, maxl)
+
+ '--insert cursor movement
+ IF keyval(scCtrl) = 0 THEN 'not CTRL
+  IF keyval(scLeft) > 1 THEN insert = large(0, insert - 1)
+  IF keyval(scRight) > 1 THEN insert = small(LEN(s), insert + 1)
+ ELSE 'CTRL
+  IF keyval(scleft) > 1 THEN insert = 0
+  IF keyval(scRight) > 1 THEN insert = LEN(s)
+ END IF
+
+ IF insert < 0 THEN insert = LEN(s)
+ insert = bound(insert, 0, LEN(s))
+
+ DIM pre AS STRING = LEFT(s, insert)
+ DIM post AS STRING = RIGHT(s, LEN(s) - insert)
+
+ '--BACKSPACE support
+ IF keyval(scBackspace) > 1 AND LEN(pre) > 0 THEN
+  pre = LEFT(pre, LEN(pre) - 1)
+  insert = large(0, insert - 1)
+ END IF
+
+ '--DEL support
+ IF keyval(scDelete) > 1 AND LEN(post) > 0 THEN post = RIGHT(post, LEN(post) - 1)
+
+ '--SHIFT support
+ DIM shift AS INTEGER = 0
+ IF keyval(scRightShift) > 0 OR keyval(scLeftShift) > 0 THEN shift = 1
+
+ '--ALT support
+ IF keyval(scAlt) THEN shift += 2
+
+ '--adding chars
+ IF LEN(pre) + LEN(post) < maxl THEN
+  DIM L AS INTEGER = LEN(pre)
+  IF keyval(scSpace) > 1 THEN
+   IF keyval(scCTRL) = 0 THEN
+    '--SPACE support
+    pre = pre & " "
+   ELSE
+    '--charlist support
+    pre = pre & charpicker()
+   END IF
+  ELSE
+   IF keyval(scCtrl) = 0 THEN
+    '--all other keys
+    FOR i AS INTEGER = 2 TO 53
+     IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
+      pre = pre & CHR(keyv(i, shift))
+      EXIT FOR
+     END IF
+    NEXT i
+   END IF
+  END IF
+  IF LEN(pre) > L THEN insert += 1
+ END IF
+
+ s = pre & post
+
+END SUB

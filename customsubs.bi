@@ -53,5 +53,6 @@ DECLARE SUB script_usage_list ()
 DECLARE SUB script_broken_trigger_list()
 DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
 DECLARE SUB autofix_broken_old_scripts()
+DECLARE SUB stredit (s AS STRING, maxl AS INTEGER)
 
 #endif
