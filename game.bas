@@ -354,6 +354,11 @@ needf = 1
 force_npc_check = YES
 menu_text_box = 0
 
+'--Reset some stuff related to debug keys
+showtags = 0
+shownpcinfo = 0
+walk_through_walls = 0
+
 'DEBUG debug "pre-call movement"
 setmapdata pass(), pass(), 0, 0
 GOSUB movement
@@ -534,7 +539,7 @@ DO
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets()
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
    IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
-   IF keyval(scF11) > 1 THEN ghost = ghost XOR 1
+   IF keyval(scF11) > 1 THEN walk_through_walls = walk_through_walls XOR 1
   END IF
  END IF
  IF wantloadgame > 0 THEN
@@ -824,7 +829,7 @@ FOR whoi = 0 TO 3
  thisherotilex = INT(catx(whoi * 5) / 20)
  thisherotiley = INT(caty(whoi * 5) / 20)
  '--if if aligned in at least one direction and passibility is enabled ... and some vehicle stuff ...
- IF (movdivis(xgo(whoi)) OR movdivis(ygo(whoi))) AND ghost = 0 AND readbit(veh(), 9, 0) = 0 AND vehpass(veh(17), readmapblock(thisherotilex, thisherotiley, 0), 0) = 0 THEN
+ IF (movdivis(xgo(whoi)) OR movdivis(ygo(whoi))) AND walk_through_walls = 0 AND readbit(veh(), 9, 0) = 0 AND vehpass(veh(17), readmapblock(thisherotilex, thisherotiley, 0), 0) = 0 THEN
   IF readbit(gen(), 44, suspendherowalls) = 0 AND veh(6) = 0 THEN
    '--this only happens if herowalls is on
    '--wrapping passability
