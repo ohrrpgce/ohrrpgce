@@ -1,0 +1,6 @@
+Help on Help
+
+Aha! Clever! You discovered the Help on Help screen! Obviously you already know that pressing F1 will show you the help screen. You probably also know the pressing ESC will exit the help screen.
+
+But did you know that you can press E to edit the help screens? Think of it as a tiny wiki built into the program. If you make improvements to any of the help screens, you can zip up a copy of your ohrhelp folder and mail it to the developers, and they can integrate your improvements into the official help files. Cool huh?
+

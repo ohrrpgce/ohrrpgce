@@ -24,8 +24,6 @@ DECLARE SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL t
 
 OPTION EXPLICIT
 
-DIM SHARED help_file AS Reload.Doc Ptr
-
 FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
  IF intgrabber(n, min, max) THEN RETURN YES
  IF enter_or_space() THEN
@@ -76,7 +74,8 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
   setwait 55
   setkeys
   tog = tog XOR 1
-  IF keyval(1) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "tagnames"
   IF usemenu(state) THEN
    IF state.pt >= 1 AND state.pt <= gen(genMaxTagName) THEN
     thisname = load_tag_name(state.pt + 1)
@@ -196,7 +195,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETURN ""
+ IF keyval(scESC) > 1 THEN RETURN ""
+ IF keyval(scF1) > 1 THEN show_help "charpicker"
 
  IF keyval(72) > 1 THEN pt = large(pt - linesize, 0)
  IF keyval(80) > 1 THEN pt = small(pt + linesize, last)
@@ -266,7 +266,8 @@ SUB ui_color_editor(palnum AS INTEGER)
   setwait 55
   setkeys
   tog = tog XOR 1
-  IF keyval(1) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "ui_color_editor"
   usemenu state
 
   index = state.pt - 1
@@ -356,7 +357,8 @@ FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
   setwait 55
   setkeys
   tog = (tog + 1) MOD 256
-  IF keyval(1) > 1 THEN RETURN start_color
+  IF keyval(scESC) > 1 THEN RETURN start_color
+  IF keyval(scF1) > 1 THEN show_help "color_browser"
 
   IF enter_or_space() THEN RETURN int_from_xy(cursor, 16, 16)
 
@@ -401,7 +403,8 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
  DO
   setwait 55
   setkeys
-  IF keyval(1) > 1 THEN RETURN -1   'cancel
+  IF keyval(scESC) > 1 THEN RETURN -1   'cancel
+  IF keyval(scF1) > 1 THEN show_help "pick_ogg_quality"
   IF enter_or_space() THEN EXIT DO
   intgrabber (q, -1, 10)
   centerbox 160, 100, 300, 40, 4, dpage
@@ -605,7 +608,8 @@ SUB edit_npc (BYREF npcdata AS NPCType)
   setkeys
   tog = tog XOR 1
   IF npcdata.movetype > 0 THEN walk = walk + 1: IF walk > 3 THEN walk = 0
-  IF keyval(1) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "edit_npc"
   usemenu state
   SELECT CASE state.pt
    CASE 0'--picture
@@ -834,7 +838,8 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
   setwait 55
   setkeys
   state.tog = state.tog XOR 1
-  IF keyval(1) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "pal16browse"
   IF usemenu(state) THEN state.need_update = YES
   IF intgrabber(state.pt, state.first, state.last, 51, 52) THEN
    state.need_update = YES
@@ -1025,7 +1030,8 @@ FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS 
   setkeys
   usemenu state
   tog = tog XOR 1
-  IF keyval(1) > 1 THEN RETURN NO
+  IF keyval(scESC) > 1 THEN RETURN NO
+  IF keyval(scF1) > 1 THEN show_help "textbox_export_askwhatmetadata"
   
   IF enter_or_space() THEN
    IF state.pt = -1 THEN RETURN YES
@@ -1471,6 +1477,7 @@ SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS IN
   tog = tog XOR 1
 
   IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "xy_position_on_sprite"
   IF enter_or_space() THEN EXIT DO
   IF keyval(scLeft) > 0  THEN x -= 1
   IF keyval(scRight) > 0 THEN x += 1
@@ -1535,7 +1542,8 @@ SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
   setwait 55
   setkeys
  
-  IF keyval(1) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "reposition_menu"
   
   shift = ABS(keyval(42) > 0 OR keyval(54) > 0)
   WITH menu.offset
@@ -1566,7 +1574,8 @@ SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
   setkeys
   tog = tog XOR 1
  
-  IF keyval(1) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "reposition_anchor"
   
   WITH menu.anchor
    IF keyval(72) > 1 THEN .y = bound(.y - 1, -1, 1)
@@ -1639,6 +1648,7 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
   setkeys
   state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "editbitset"
   usemenu state
   IF state.pt >= 0 THEN
    IF keyval(scLeft) > 1 OR keyval(scComma) > 1 THEN setbit array(), wof, bits(state.pt), 0
@@ -1791,9 +1801,10 @@ FUNCTION scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, s
  DO
   setwait 55
   setkeys
-  IF keyval(1) > 1 THEN
+  IF keyval(scESC) > 1 THEN
    RETURN tempstr
   END IF
+  IF keyval(scF1) > 1 THEN show_help "scriptbrowse"
   IF enter_or_space() THEN EXIT DO
   IF scriptids(state.pt) < 16384 THEN
    IF intgrabber(id, 0, 16383) THEN
@@ -1959,29 +1970,49 @@ SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggerty
  CLOSE fh
 END SUB
 
-SUB load_help_file()
- IF help_file = 0 THEN
-  '--Null node ptr, assume this doc has not been loaded yet
-  IF isfile("ohrrpgce-help.reload") THEN
-   help_file = Reload.LoadDocument("ohrrpgce-help.reload")
-  ELSE
-   debug "no help file found, creating an empty one"
-   help_file = Reload.CreateDocument()
-   help_file->root = Reload.CreateNode(help_file, "/")
+FUNCTION load_help_file(helpkey AS STRING) AS STRING
+ IF isdir(exepath & SLASH & "ohrhelp") THEN
+  DIM helpfile AS STRING
+  helpfile = exepath & SLASH & "ohrhelp" & SLASH & helpkey & ".txt"
+  IF isfile(helpfile) THEN
+   DIM fh AS INTEGER = FREEFILE
+   OPEN helpfile FOR INPUT ACCESS READ AS #fh
+   DIM helptext AS STRING = ""
+   DIM s AS STRING
+   DO WHILE NOT EOF(fh)
+    LINE INPUT #fh, s
+    helptext = helptext & s & CHR(10)
+   LOOP
+   CLOSE #fh
+   RETURN helptext
   END IF
+ END IF
+ RETURN "No help found for """ & helpkey & """"
+END FUNCTION
+
+SUB save_help_file(helpkey AS STRING, text AS STRING)
+ IF NOT isdir(exepath & SLASH & "ohrhelp") THEN
+  MKDIR exepath & SLASH & "ohrhelp"
+ END IF
+ IF isdir(exepath & SLASH & "ohrhelp") THEN
+  DIM helpfile AS STRING
+  helpfile = exepath & SLASH & "ohrhelp" & SLASH & helpkey & ".txt"
+  IF fileiswriteable(helpfile) THEN
+   DIM fh AS INTEGER = FREEFILE
+   OPEN helpfile FOR OUTPUT ACCESS READ WRITE AS #fh
+   PRINT #fh, text
+   CLOSE #fh
+  ELSE
+   debug "help file """ & helpfile & """ is not writeable."
+  END IF
+ ELSE
+  debug "Can't create help dir """ & exepath & SLASH & "ohrhelp"""
  END IF
 END SUB
 
 SUB show_help(helpkey AS STRING)
- load_help_file
- DIM node AS Reload.Node Ptr
- node = Reload.FindChildByName(help_file->root, helpkey)
- IF node = 0 THEN
-  debug "No help node found for """ & helpkey & """ creating new node"
-  node = Reload.CreateNode(help_file, helpkey)
-  Reload.SetContent(node, "Empty help for " & helpkey)
-  Reload.AddChild help_file->root, node
- END IF
+ DIM help_str AS STRING
+ help_str = load_help_file(helpkey)
  
  '--Construct the help UI (This will be hella easier later when the Slice Editor can save/load)
  DIM help_root AS Slice Ptr
@@ -1993,10 +2024,10 @@ SUB show_help(helpkey AS STRING)
  DIM help_outer_box AS Slice Ptr
  help_outer_box = NewSliceOfType(slContainer, help_root)
  WITH *help_outer_box
-  .paddingTop = 8
-  .paddingBottom = 8
-  .paddingLeft = 8
-  .paddingRight = 8
+  .paddingTop = 4
+  .paddingBottom = 4
+  .paddingLeft = 4
+  .paddingRight = 4
   .Fill = Yes
  END WITH
  DIM help_box AS Slice Ptr
@@ -2013,7 +2044,7 @@ SUB show_help(helpkey AS STRING)
  help_text = NewSliceOfType(slText, help_box)
  WITH *help_text
   .Fill = YES
-  ChangeTextSlice help_text, Reload.GetString(node), , , YES
+  ChangeTextSlice help_text, help_str, , , YES
  END WITH
  DIM animate AS Slice Ptr
  animate = help_root
@@ -2025,20 +2056,34 @@ SUB show_help(helpkey AS STRING)
 
  DIM dat AS TextSliceData Ptr
  dat = help_text->SliceData
- WITH *dat
-  .show_insert = YES
-  .insert = insert '--copy the global stredit() insert point
- END WITH
+
+ DIM editing AS INTEGER = NO
+ DIM deadkeys AS INTEGER = 25
 
  '--Now loop displaying help
  setkeys
  DO
   setwait 17, 70
   setkeys
-  IF keyval(scESC) > 1 THEN EXIT DO
   
-  stredit(dat->s, 600, YES)
-  dat->insert = insert '--copy the global stredit() insert point
+  IF editing THEN  
+   stredit(dat->s, 600, YES)
+   dat->insert = insert '--copy the global stredit() insert point
+  END IF
+
+  IF deadkeys = 0 THEN 
+   IF keyval(scESC) > 1 THEN EXIT DO
+   IF keyval(scE) > 1 THEN
+    editing = YES
+    dat->show_insert = YES
+    dat->insert = insert '--copy the global stredit() insert point
+    ChangeRectangleSlice help_box, , uilook(uiBackground), , YES
+   END IF
+   IF keyval(scF1) and helpkey <> "helphelp" THEN
+    show_help "helphelp"
+   END IF
+  END IF
+  deadkeys = large(deadkeys -1, 0)
 
   'Animate the arrival of the help screen
   animate->Y = large(animate->Y - 20, 0)
@@ -2050,6 +2095,13 @@ SUB show_help(helpkey AS STRING)
   copypage holdscreen, dpage
   dowait
  LOOP
+
+ '--If there are any changes to the help screen, offer to save them
+ IF help_str <> dat->s THEN
+  IF yesno("Save changes to help for """ & helpkey & """?", YES) THEN
+   save_help_file helpkey, dat->s
+  END IF
+ END IF
 
  '--Animate the removal of the help screen
  DO
@@ -2063,7 +2115,7 @@ SUB show_help(helpkey AS STRING)
   copypage holdscreen, dpage
   dowait
  LOOP
- 
+  
  freepage holdscreen
  DeleteSlice @help_root
 END SUB
@@ -2249,6 +2301,7 @@ SUB script_usage_list ()
   setwait 55
   setkeys
   IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "script_usage_list"
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
   END IF
@@ -2404,6 +2457,7 @@ SUB script_broken_trigger_list()
   setwait 55
   setkeys
   IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "script_broken_trigger_list"
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
   END IF
@@ -2608,6 +2662,20 @@ SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO)
   IF keyval(scRight) > 1 THEN insert = LEN(s)
  END IF
 
+ IF keyval(scHome) > 1 THEN
+  DO WHILE insert > 0
+   insert -= 1
+   IF MID(s, 1 + insert, 1) = CHR(10) THEN insert += 1 : EXIT DO
+  LOOP
+ END IF
+
+ IF keyval(scEnd) > 1 THEN
+  DO WHILE insert < LEN(s)
+   IF MID(s, 1 + insert, 1) = CHR(10) THEN EXIT DO
+   insert += 1
+  LOOP
+ END IF
+
  IF insert < 0 THEN insert = LEN(s)
  insert = bound(insert, 0, LEN(s))
 
@@ -2660,3 +2728,35 @@ SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO)
  s = pre & post
 
 END SUB
+
+FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
+ clearpage 0
+ clearpage 1
+ DIM state AS MenuState
+ state.pt = 0
+ state.last = UBOUND(s)
+ state.size = 22
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  usemenu state
+  IF keyval(scESC) > 1 THEN
+   sublist = -1
+   EXIT DO
+  END IF
+  IF keyval(scF1) > 1 AND helpkey <> "" THEN show_help helpkey
+  IF enter_or_space() THEN
+   sublist = state.pt
+   EXIT DO
+  END IF
+  standardmenu s(), state, 0, 0, dpage
+  SWAP dpage, vpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ clearpage 0
+ clearpage 1
+END FUNCTION

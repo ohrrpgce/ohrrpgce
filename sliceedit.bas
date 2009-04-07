@@ -121,11 +121,12 @@ SUB slice_editor ()
  DIM slice_type AS SliceTypes
  DIM shift AS INTEGER
 
-  setkeys
+ setkeys
  DO
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "sliceedit"
 
   IF state.need_update THEN
    slice_editor_refresh(state, menu(), edslice, cursor_seek)
@@ -221,6 +222,7 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "sliceedit_detail"
 
   IF state.need_update THEN
    slice_edit_detail_refresh state, menu(), sl, rules()
@@ -478,6 +480,7 @@ FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS S
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN RETURN NO
+  IF keyval(scF1) > 1 THEN show_help "slicedit_browse_slicetype"
 
   usemenu state
   

@@ -41,7 +41,6 @@ DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE SUB menu_editor ()
-DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION newRPGfile (template$, newrpg$)
 DECLARE SUB dolumpfiles (filetolump$)
@@ -103,7 +102,11 @@ REDIM buffer(16384)
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
 DIM font(1024), joy(4)
-DIM menu$(22), rpg$(3)
+DIM menu$(22)
+DIM chooserpg_menu(2) AS STRING
+DIM cleanup_menu(2) AS STRING
+DIM quit_menu(3) AS STRING
+DIM quit_confirm(1) AS STRING
 'more global variables
 DIM game as string, gamefile as string, insert, activepalette
 DIM vpage, dpage, fadestate
@@ -252,7 +255,14 @@ DO:
     pt = 0: menumode = 0: GOSUB setmainmenu
   END SELECT
  END IF
- IF keyval(scF1) > 1 THEN show_help "main"
+ IF keyval(scF1) > 1 THEN
+  SELECT CASE menumode
+   CASE 0'--normal mode
+    show_help "main"
+   CASE 1'--normal mode
+    show_help "gfxmain"
+  END SELECT
+ END IF
  usemenu pt, 0, 0, mainmax, 24
  IF enter_or_space() THEN
   SELECT CASE menumode
@@ -363,9 +373,9 @@ RETRACE
 
 chooserpg:
 last = 2: csr = 1: top = 0
-rpg$(0) = "CREATE NEW GAME"
-rpg$(1) = "LOAD EXISTING GAME"
-rpg$(2) = "EXIT PROGRAM"
+chooserpg_menu(0) = "CREATE NEW GAME"
+chooserpg_menu(1) = "LOAD EXISTING GAME"
+chooserpg_menu(2) = "EXIT PROGRAM"
 
 setkeys
 DO
@@ -391,7 +401,7 @@ DO
   END IF
  END IF
 
- standardmenu rpg$(), last, 22, csr, top, 0, 0, dpage, 0
+ standardmenu chooserpg_menu(), last, 22, csr, top, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
@@ -401,9 +411,9 @@ LOOP
 RETRACE
 
 cleanup:
-rpg$(0) = "DO NOTHING"
-rpg$(1) = "RECOVER IT"
-rpg$(2) = "ERASE IT"
+cleanup_menu(0) = "DO NOTHING"
+cleanup_menu(1) = "RECOVER IT"
+cleanup_menu(2) = "ERASE IT"
 clean_choice = 0
 a$ = "recovered"
 i = 0
@@ -454,7 +464,7 @@ DO
  printstr "that another copy of " + CUSTOMEXE + " is", 0, 56, dpage
  printstr "already running in the background.", 0, 64, dpage
 
- standardmenu rpg$(), 2, 2, clean_choice, 0, 0, 8, dpage, 0
+ standardmenu cleanup_menu(), 2, 2, clean_choice, 0, 0, 8, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
@@ -480,18 +490,18 @@ RETRACE
 
 relump:
 xbsave game + ".gen", gen(), 1000
-rpg$(0) = "Continue editing"
-rpg$(1) = "Save changes and continue editing"
-rpg$(2) = "Save changes and quit"
-rpg$(3) = "Discard changes and quit"
-quitnow = sublist(3, rpg$())
+quit_menu(0) = "Continue editing"
+quit_menu(1) = "Save changes and continue editing"
+quit_menu(2) = "Save changes and quit"
+quit_menu(3) = "Discard changes and quit"
+quitnow = sublist(quit_menu())
 IF quitnow = 1 OR quitnow = 2 THEN
  GOSUB dorelump
 END IF
 IF quitnow = 3 THEN
- rpg$(0) = "I changed my mind! Don't quit!"
- rpg$(1) = "I am sure I don't want to save."
- IF sublist(1, rpg$()) <= 0 THEN quitnow = 0
+ quit_confirm(0) = "I changed my mind! Don't quit!"
+ quit_confirm(1) = "I am sure I don't want to save."
+ IF sublist(quit_confirm()) <= 0 THEN quitnow = 0
 END IF
 setkeys
 RETRACE
@@ -611,7 +621,8 @@ RETRACE
 'setwait timing(), 100
 'setkeys
 'tog = tog XOR 1
-'IF keyval(1) > 1 THEN EXIT DO
+'IF keyval(scESC) > 1 THEN EXIT DO
+'IF keyval(scF1) > 1 THEN show_help "helpkey"
 
 '---GENERIC LOOP TAIL---
 'SWAP vpage, dpage
@@ -711,6 +722,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
+ IF keyval(scF1) > 1 THEN show_help "fontedit"
  SELECT CASE mode
   CASE -1
    IF keyval(1) > 1 THEN EXIT DO
@@ -864,7 +876,7 @@ DO
 
  old$ = newfont$
  IF strgrabber(newfont$, 8) THEN
-  '--make sure only legal DOS filename chars are used
+  '--make sure only legal filename chars are used
   lastchar = ASC(UCASE$(RIGHT$("_" + newfont$, 1)))
   SELECT CASE lastchar
    CASE 48 TO 57, 65 TO 90, 95, 126
@@ -961,6 +973,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "shop_main"
  IF keyval(29) > 0 AND keyval(14) > 0 THEN cropafter pt, gen(97), 0, game + ".sho", 40, 1: GOSUB menugen
  usemenu csr, 0, 0, li, 24
  IF csr = 1 THEN
@@ -1074,6 +1087,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(1) > 1 THEN RETRACE
+ IF keyval(scF1) > 1 THEN show_help "shop_stuff"
  IF tcsr = 0 THEN IF enter_or_space() THEN RETRACE
  usemenu tcsr, 0, 0, last, 24
  IF tcsr = 1 THEN

@@ -28,7 +28,6 @@ DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
 DECLARE FUNCTION isStringField(mnu%)
 DECLARE sub formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer)
@@ -525,6 +524,8 @@ FOR i = 0 TO 4
  atkMenu(11 + i) = EnMenuAtkAlone + i
 NEXT i
 
+DIM helpkey AS STRING = "enemy"
+
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
@@ -544,9 +545,10 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN     'ESC
+ IF keyval(scESC) > 1 THEN
   IF menudepth = 1 THEN
    GOSUB EnBackSub
+   helpkey = "enemy"
   ELSE
    EXIT DO
   END IF
@@ -581,33 +583,41 @@ DO
   END IF
  END IF
 
+ IF keyval(scF1) > 1 THEN show_help helpkey
+
  IF enter_or_space() THEN
   SELECT CASE workmenu(state.pt)
    CASE EnMenuBackAct
     IF menudepth = 1 THEN
      GOSUB EnBackSub
+     helpkey = "enemy"
     ELSE
      EXIT DO
     END IF
    CASE EnMenuAppearAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), appearMenu(), state
+    helpkey = "enemy_appearance"
     GOSUB EnUpdateMenu
    CASE EnMenuRewardAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), rewardMenu(), state
+    helpkey = "enemy_rewards"
     GOSUB EnUpdateMenu
    CASE EnMenuStatAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), statMenu(), state
+    helpkey = "enemy_stats"
     GOSUB EnUpdateMenu
    CASE EnMenuSpawnAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), spawnMenu(), state
+    helpkey = "enemy_spawning"
     GOSUB EnUpdateMenu
    CASE EnMenuAtkAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), atkMenu(), state
+    helpkey = "enemy_attacks"
     GOSUB EnUpdateMenu
    CASE EnMenuPal
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic), 1, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)))
@@ -719,7 +729,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "formation_main"
  usemenu csr, 0, 0, 2, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
@@ -750,10 +761,11 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN
+ IF keyval(scESC) > 1 THEN
   GOSUB savefset
   RETRACE
  END IF
+ IF keyval(scF1) > 1 THEN show_help "formation_sets"
  IF usemenu(bcsr, 0, 0, 22, 24) THEN GOSUB lpreviewform
  IF enter_or_space() THEN
   IF bcsr = 0 THEN
@@ -845,7 +857,8 @@ DO
  tog = tog XOR 1
  IF csr3 = 1 THEN
   '--enemy positioning mode
-  IF keyval(1) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
+  IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
+  IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
   movpix = 1 + (7 * SGN(keyval(56)))
   IF keyval(72) > 0 AND a(csr2 * 4 + 2) > 0 THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) - movpix
   IF keyval(80) > 0 AND a(csr2 * 4 + 2) < 199 - w(csr2) THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) + movpix
@@ -854,10 +867,11 @@ DO
  END IF
  IF csr3 = 0 THEN
   '--menu mode
-  IF keyval(1) > 1 THEN
+  IF keyval(scESC) > 1 THEN
    saveform(a(),pt)
    RETRACE
   END IF
+  IF keyval(scF1) > 1 THEN show_help "formation_editor"
   IF keyval(29) > 0 AND keyval(14) > 0 THEN cropafter pt, gen(37), 0, game + ".for", 80, 1
   usemenu csr2, -6, -6, 7, 25
   IF enter_or_space() THEN
@@ -1102,7 +1116,8 @@ DO
  setkeys
  tog = tog XOR 1
  animate_hero_preview st
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "hero_editor"
  IF keyval(29) > 0 AND keyval(14) > 0 THEN
   cropafter pt, gen(genMaxHero), -1, game + ".dt0", 636, 1
  END IF
@@ -1165,7 +1180,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
+ IF keyval(scESC) > 1 THEN RETRACE
+ IF keyval(scF1) > 1 THEN show_help "hero_spell_menu_names"
  IF enter_or_space() AND bctr = 0 THEN RETRACE
  usemenu bctr, 0, 0, 4, 24
  IF bctr > 0 THEN
@@ -1198,7 +1214,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
+ IF keyval(scESC) > 1 THEN RETRACE
+ IF keyval(scF1) > 1 THEN show_help "hero_spell_menu_types"
  usemenu bctr, -1, -1, 3, 24
  IF bctr >= 0 THEN intgrabber her.list_type(bctr), 0, 2
  IF enter_or_space() THEN
@@ -1234,7 +1251,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
+ IF keyval(scESC) > 1 THEN RETRACE
+ IF keyval(scF1) > 1 THEN show_help "hero_stats"
  IF keyval(72) > 1 THEN bctr = large(bctr - 2, 0)
  IF keyval(80) > 1 AND bctr > 0 THEN bctr = small(bctr + 2, 24)
  IF keyval(80) > 1 AND bctr = 0 THEN bctr = bctr + 1
@@ -1289,6 +1307,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
+ IF keyval(scF1) > 1 THEN show_help "hero_spells"
  IF sticky THEN
   IF keyval(1) > 1 THEN sticky = 0: GOSUB setsticky
  ELSE
@@ -1440,7 +1459,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "hero_tags"
  usemenu pt, 0, 0, 4, 24
  SELECT CASE pt
   CASE 0
@@ -1529,7 +1549,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "item_editor_pickitem"
  IF keyval(29) > 0 AND keyval(14) > 0 AND csr >= 0 THEN
   cropafter csr, gen(genMaxItem), 0, game + ".itm", 200, 1
   load_item_names item$()
@@ -1621,7 +1642,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "item_editor"
  usemenu pt, 0, 0, 20, 24
  frame = 0
  IF pt = 16 THEN frame = 1
@@ -1724,7 +1746,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
+ IF keyval(scESC) > 1 THEN RETRACE
+ IF keyval(scF1) > 1 THEN show_help "equipment_stat_bonuses"
  usemenu ptr2, 0, -1, 11, 24
  IF enter_or_space() THEN
   IF ptr2 = -1 THEN RETRACE
@@ -1830,7 +1853,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
  usemenu cur, top, 0, max_npc_defs, 7
  IF enter_or_space() THEN
   edit_npc npc(cur)
@@ -1994,6 +2018,7 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
   state.tog = state.tog XOR 1
   animate_hero_preview st
   IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_appearance"
   usemenu state
   st.previewframe = -1
   IF state.pt = 8 THEN st.previewframe = 0
@@ -2085,6 +2110,7 @@ SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS HeroDef)
   setkeys
   state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_equipment"
   usemenu state
   IF enter_or_space() THEN
    IF state.pt = 0 THEN

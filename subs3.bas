@@ -25,7 +25,6 @@ DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage ()
-DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
 
 #include "compat.bi"

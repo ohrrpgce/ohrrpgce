@@ -32,7 +32,6 @@ DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE FUNCTION isStringField(mnu%)
 
@@ -45,6 +44,7 @@ DECLARE FUNCTION isStringField(mnu%)
 #include "const.bi"
 #include "scrconst.bi"
 #include "loading.bi"
+#include "scancodes.bi"
 
 DECLARE SUB menu_editor ()
 DECLARE SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
@@ -826,6 +826,8 @@ needupdatemenu = 0
 loadattackdata recbuf(), recindex
 needupdatemenu = 1
 
+DIM helpkey AS STRING = "attacks"
+
 '------------------------------------------------------------------------
 '--main loop
 
@@ -834,13 +836,16 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN
+ IF keyval(scESC) > 1 THEN
   IF menudepth = 1 THEN
    GOSUB AtkBackSub
+   helpkey = "attacks"
   ELSE
    EXIT DO
   END IF
  END IF
+
+ IF keyval(scF1) > 1 THEN show_help helpkey
 
  '--CTRL+BACKSPACE
  IF keyval(29) > 0 AND keyval(14) > 0 THEN
@@ -882,32 +887,39 @@ DO
    CASE AtkBackAct
     IF menudepth = 1 THEN
      GOSUB AtkBackSub
+     helpkey = "attacks"
     ELSE
      EXIT DO
     END IF
    CASE AtkAppearAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), appearMenu(), state
+    helpkey = "attack_appearance"
     needupdatemenu = 1
    CASE AtkDmgAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), dmgMenu(), state
+    helpkey = "attack_dammage"
     needupdatemenu = 1
    CASE AtkTargAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), targMenu(), state
+    helpkey = "attack_targetting"
     needupdatemenu = 1
    CASE AtkCostAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), costMenu(), state
+    helpkey = "attack_cost"
     needupdatemenu = 1
    CASE AtkChainAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), chainMenu(), state
+    helpkey = "attack_chaining"
     needupdatemenu = 1
    CASE AtkTagAct
     GOSUB AtkPushPtrSub
     setactivemenu workmenu(), tagMenu(), state
+    helpkey = "attack_tags"
     needupdatemenu = 1
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 6, recbuf(AtkDatPic), 3, 50, 50)
@@ -1327,7 +1339,8 @@ END SUB
 SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
  DIM saverecord AS INTEGER
 
- IF keyval(1) > 1 THEN state.active = NO
+ IF keyval(scESC) > 1 THEN state.active = NO
+ IF keyval(scF1) > 1 THEN show_help "menu_editor_main"
  
  usemenu state
  
@@ -1403,11 +1416,12 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
  DIM i AS INTEGER
  DIM elem AS INTEGER
 
- IF keyval(1) > 1 THEN
+ IF keyval(scESC) > 1 THEN
   mstate.active = NO
   menudata.edit_mode = NO
   EXIT SUB
  END IF
+ IF keyval(scF1) > 1 THEN show_help "menu_editor_items"
 
  usemenu mstate
 
@@ -1469,11 +1483,12 @@ END SUB
 SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
  DIM max AS INTEGER
 
- IF keyval(1) > 1 THEN
+ IF keyval(scESC) > 1 THEN
   dstate.active = NO
   mstate.active = YES
   EXIT SUB
  END IF
+ IF keyval(scF1) > 1 THEN show_help "menu_editor_item_details"
 
  usemenu dstate
 

@@ -16,6 +16,7 @@ DEFINT A-Z
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
+#include "scancodes.bi"
 
 'basic subs and functions
 DECLARE FUNCTION filenum$ (n%)
@@ -33,7 +34,6 @@ DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage ()
-DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
 DECLARE FUNCTION filesize$ (file$)
 DECLARE SUB generalscriptsmenu ()
@@ -98,7 +98,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "vehicle_editor"
  usemenu csr, top, 0, 15, 22
  SELECT CASE csr
   CASE 0
@@ -264,7 +265,8 @@ DO
  tog = tog XOR 1
  setwait 55
  setkeys
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "global_scripts"
  usemenu pt, 0, 0, menusize, 24
  IF pt = 0 THEN
   IF enter_or_space() THEN EXIT DO
@@ -321,9 +323,10 @@ SUB generalsfxmenu ()
     setwait 55
     setkeys
     accept = enter_or_space()
-    cancel = keyval(1) > 1
+    cancel = keyval(scESC) > 1
 
     IF cancel THEN EXIT DO
+    IF keyval(scF1) > 1 THEN show_help "general_sfx"
     usemenu pt, 0, 0, menusize, 24
 
     SELECT CASE AS CONST pt
@@ -373,7 +376,8 @@ setkeys
 DO
  setwait 55
  setkeys
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "import_songs"
 
  usemenu csr, 0, 0, optionsbottom, 22
 
@@ -551,7 +555,7 @@ IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
  submenu$(0) = "Export " + ext$ + " file"
  submenu$(1) = "Export .bam fallback file"
  submenu$(2) = "Cancel"
- choice = sublist(2, submenu$())
+ choice = sublist(submenu$(), "export_song")
  IF choice = 1 THEN ext$ = ".bam" : songfile$ = bamfile$
  IF choice = 2 THEN RETRACE
 END IF
@@ -597,7 +601,8 @@ setkeys
 DO
  setwait 55
  setkeys
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "import_sfx"
 
  usemenu csr, 0, 0, optionsbottom, 22
 
@@ -769,7 +774,8 @@ DO
  setkeys
  tog = tog XOR 1
 
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "master_palette_menu"
  usemenu csr, 0, 0, UBOUND(menu$), 10
 
  oldpal = palnum
@@ -942,7 +948,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "title_screen_browse"
  IF keyval(72) > 1 AND gcsr = 1 THEN gcsr = 0
  IF keyval(80) > 1 AND gcsr = 0 THEN gcsr = 1
  IF gcsr = 1 THEN
@@ -1032,7 +1039,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 OR keyval(28) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 OR keyval(scENTER) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "input_password"
  strgrabber pas$, 17
  textcolor uilook(uiMenuItem), 0
  printstr "You can require a password for this", 0, 0, dpage
@@ -1166,9 +1174,10 @@ SUB gendata ()
    state.need_update = NO
   END IF
 
-  IF keyval(1) > 1 THEN
+  IF keyval(scESC) > 1 THEN
    EXIT DO
   END IF
+  IF keyval(scF1) > 1 THEN show_help "general_game_data"
   usemenu state
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO

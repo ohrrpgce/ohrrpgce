@@ -1,0 +1,6 @@
+Use the arrow keys to choose a tile to edit. Press ENTER or SPACE to open the tile editor.
+
+Press ESC to go back to the previous menu.
+
+You can also use the mouse here. Click on a tile to edit it. Isn't it a shame there isn't more mouse support in the OHRRPGCE? Yep. A cryin' shame!
+

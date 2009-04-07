@@ -1,0 +1,11 @@
+You can use arrow keys or the mouse.
+
+Left-Click on pixels to draw, (or press SPACE)
+Right-Click to select a color from the tile (or press ENTER)
+
+Left click on a color in the palette at the bottom to select it. (ALT + arrow keys will pick palette colors too!)
+
+See the "Undo" bar along the right? Click there to cancel a change, or press CTRL+Z
+
+Dang! no more room for details! I guess I better get cracking on help menu scrolling!
+

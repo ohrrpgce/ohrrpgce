@@ -1,0 +1,2 @@
+This menu is where you can edit the various graphical elements of your game. Navigate the menu using the arrow keys. Press ENTER or SPACE to select a sub-menu, or press ESC to go back to the previous menu.
+

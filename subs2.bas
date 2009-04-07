@@ -39,7 +39,6 @@ DECLARE SUB attackdata ()
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage ()
-DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font%())
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
@@ -100,7 +99,7 @@ DIM menu$(1)
 IF prompt THEN
  menu$(0) = "No do not delete anything"
  menu$(1) = "Yes, delete all records after this one"
- IF sublist(1, menu$()) < 1 THEN
+ IF sublist(menu$(), "cropafter") < 1 THEN
   setkeys
   EXIT SUB
  ELSE
@@ -524,7 +523,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "script_management"
  usemenu pt, 0, 0, menumax, 24
  IF enter_or_space() THEN
   SELECT CASE pt
@@ -704,7 +704,8 @@ setkeys
 DO
  setwait 55
  setkeys
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "edit_global_strings"
  usemenu state
  IF state.pt = -1 THEN
   IF enter_or_space() THEN EXIT DO
@@ -734,37 +735,6 @@ clearpage 1
 EXIT SUB
 
 END SUB
-
-FUNCTION sublist (num, s$())
-clearpage 0
-clearpage 1
-pt = 0
-
-setkeys
-DO
- setwait 55
- setkeys
- usemenu pt, 0, 0, num, 22
- IF keyval(1) > 1 THEN
-  sublist = -1
-  EXIT DO
- END IF
- IF enter_or_space() THEN
-  sublist = pt
-  EXIT DO
- END IF
- tog = tog XOR 1
- standardmenu s$(), num, 22, pt, 0, 0, 0, dpage, 0
- SWAP dpage, vpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
-clearpage 0
-clearpage 1
-
-END FUNCTION
 
 SUB textage
 DIM m$(10), menu$(-1 TO 22), grey(-1 TO 22), h$(2), tagmn$, gcsr, tcur
@@ -831,7 +801,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "textbox_main"
  IF keyval(29) > 0 AND keyval(14) > 0 THEN
   SaveTextBox box, st.id
   cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
@@ -1007,7 +978,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
+ IF keyval(scESC) > 1 THEN RETRACE
+ IF keyval(scF1) > 1 THEN show_help "textbox_conditions"
  IF enter_or_space() THEN
   SELECT CASE state.pt
    CASE -1 '--Previous menu
@@ -1331,6 +1303,7 @@ SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditStat
   setkeys
   tog = tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "textbox_position_portrait"
   IF enter_or_space() THEN EXIT DO
   speed = 1
   IF keyval(scLeftShift) OR keyval(scRightShift) THEN speed = 10
@@ -1369,7 +1342,8 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
   setwait 55
   setkeys
   state.tog = state.tog XOR 1
-  IF keyval(1) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "textbox_appearance"
   usemenu state
   IF enter_or_space() THEN
    SELECT CASE state.pt
@@ -1572,6 +1546,7 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   setkeys
   state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "texbox_line_editor"
   IF keyval(scEnter) > 1 AND state.pt < state.last THEN state.pt += 1
   IF usemenu(state) THEN insert = -1
   IF state.pt <= state.last AND state.pt >= state.first THEN
@@ -1623,6 +1598,7 @@ SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   setkeys
   state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT SUB
+  IF keyval(scF1) > 1 THEN show_help "textbox_choice_editor"
   usemenu state
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT SUB
@@ -1738,6 +1714,7 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu
    do_search = NO
   END IF
   IF keyval(scEsc) > 1 THEN EXIT SUB
+  IF keyval(scF1) > 1 THEN show_help "textbox_connections"
   '--Horizontal column navigation
   IF keyval(scLeft) > 1 THEN column = loopvar(column, col_limit_left, col_limit_right, -1)
   IF keyval(scRight) > 1 THEN column = loopvar(column, col_limit_left, col_limit_right, 1)

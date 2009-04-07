@@ -40,7 +40,6 @@ DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
 DECLARE SUB textage ()
-DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE SUB paint_map_area(oldTile%, x%, y%, layer%, usetile%(), map%(), pass%(), defaults() AS DefArray, tilesets%(), defpass%)
 
@@ -104,10 +103,11 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN
+ IF keyval(scESC) > 1 THEN
   '--return cancel
   RETURN -2
  END IF
+ IF keyval(scF1) > 1 THEN show_help "add_map_how"
  IF usemenu(pt, 0, 0, 2, 22) THEN need_update = YES
  IF pt = 2 THEN
   IF intgrabber(maptocopy, 0, gen(genMaxMap)) THEN need_update = YES
@@ -173,6 +173,8 @@ DIM tilepick AS XYPair
 
 DIM foe AS INTEGER = 0 ' Formation number for foemapping mode
 
+DIM defpass_reload_confirm(1) AS STRING
+
 textcolor uilook(uiText), 0
 
 wide = 0: high = 0: nptr = 0
@@ -222,7 +224,8 @@ setkeys
 DO
  setwait 55
  setkeys
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
  oldtop = maptop
  usemenu pt, maptop, 0, 2 + gen(0), 24
  IF oldtop <> maptop THEN make_top_map_menu maptop, topmenu$()
@@ -290,10 +293,11 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN
+ IF keyval(scESC) > 1 THEN
   mapedit_savemap st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
   EXIT DO
  END IF
+ IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
  usemenu csr, 0, 0, 13, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN
@@ -317,9 +321,9 @@ DO
   IF csr = 11 THEN mapedit_delete st, pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), doors(), link()
   IF csr = 12 THEN
    '--reload default passability
-   temp$(0) = "No, Nevermind. No passability changes"
-   temp$(1) = "Set default passability for whole map"
-   IF sublist(1, temp$()) = 1 THEN
+   defpass_reload_confirm(0) = "No, Nevermind. No passability changes"
+   defpass_reload_confirm(1) = "Set default passability for whole map"
+   IF sublist(defpass_reload_confirm(), "defpass_reload_confirm") = 1 THEN
     FOR tx = 0 TO pass(0) - 1
      FOR ty = 0 TO pass(1) - 1
       calculatepassblock tx, ty, map(), pass(), defaults(), tilesets()
@@ -407,7 +411,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "general_map_data"
  usemenu gd, 0, 0, gmapmax, 24
  SELECT CASE gd
   CASE 0
@@ -539,21 +544,21 @@ setkeys
 DO
  setwait 55
  setkeys
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
  if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
-  IF keyval(59) > 1 THEN
+  IF keyval(scF2) > 1 THEN
    editmode = 0
   END IF
-  IF keyval(60) > 1 THEN
+  IF keyval(scF3) > 1 THEN
    editmode = 1
   END IF
-  IF keyval(61) > 1 THEN
+  IF keyval(scF4) > 1 THEN
    editmode = 2
   END IF
-  IF keyval(62) > 1 THEN
+  IF keyval(scF5) > 1 THEN
    editmode = 3
   END IF
-  IF keyval(63) > 1 THEN
+  IF keyval(scF6) > 1 THEN
    editmode = 4
   END IF
  else
@@ -617,6 +622,7 @@ DO
  SELECT CASE editmode
   '---TILEMODE------
   CASE 0
+   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
    setmapdata map(), pass(), 20, 0
    IF keyval(33) > 1 AND keyval(29) > 0 THEN' Ctrl+F Fill screen
     FOR tx = 0 TO 14
@@ -687,6 +693,7 @@ DO
    END IF
    '---PASSMODE-------
   CASE 1
+   IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
    setmapdata pass(), pass(), 20, 0
    over = readmapblock(x, y, 0)
    IF keyval(57) > 1 AND (over AND 15) = 0 THEN setmapblock x, y, 0, 15
@@ -707,6 +714,7 @@ DO
    IF keyval(24) > 1 THEN setmapblock x, y, 0, (over XOR 128)'overhead
    '---DOORMODE-----
   CASE 2
+   IF keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
    IF keyval(28) > 1 THEN ' enter to link a door
     doorid = find_door_at_spot(x, y, doors())
     IF doorid >= 0 THEN
@@ -747,6 +755,7 @@ DO
    END IF
    '---NPCMODE------
   CASE 3
+   IF keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
    IF keyval(83) > 1 THEN 'delete
     FOR i = 0 TO 299
      IF st.npc_inst(i).id > 0 THEN
@@ -787,6 +796,7 @@ DO
    intgrabber(nptr, 0, max_npc_defs, 51, 52)
    '---FOEMODE--------
   CASE 4
+   IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
    intgrabber(foe, 0, 255, 51, 52)
    IF keyval(57) > 0 THEN
     setmapdata emap(), pass(), 20, 0
@@ -1027,7 +1037,8 @@ setmapdata menubar(), pass(), 0, 0
 DO
  setwait 80
  setkeys
- IF keyval(28) > 1 OR keyval(1) > 1 THEN menu = usetile(layer): EXIT DO
+ IF keyval(scEnter) > 1 OR keyval(scESC) > 1 THEN menu = usetile(layer): EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
  IF (keyval(72) AND 5) AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
  IF (keyval(80) AND 5) AND tilepick.y < 9 THEN tilepick.y += 1: usetile(layer) = usetile(layer) + 16
  IF (keyval(75) AND 5) AND tilepick.x > 0 THEN tilepick.x -= 1: usetile(layer) = usetile(layer) - 1
@@ -1106,7 +1117,8 @@ SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS Tiles
   setkeys
   tog = tog XOR 1
 
-  IF keyval(1) > 1 THEN clearkey(1): EXIT DO
+  IF keyval(scESC) > 1 THEN clearkey(1): EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
 
   IF usemenu(state, enabled()) THEN
    state.need_update = YES
@@ -1491,10 +1503,11 @@ SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INT
   setwait 55
   setkeys
   state.tog = state.tog XOR 1
-  IF keyval(1) > 1 THEN
+  IF keyval(scESC) > 1 THEN
    serdoorlinks(maplumpname$(mapnum, "d"), link())
    EXIT DO
   END IF
+  IF keyval(scF1) > 1 THEN show_help "mapedit_linkdoors"
   IF usemenu(state) THEN state.need_update = YES
   IF enter_or_space() THEN
    IF state.pt = state.last AND link(state.pt).source = -1 THEN link(state.pt).source = 0
@@ -1587,7 +1600,8 @@ SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doo
    preview_delay -= 1
    IF preview_delay = 0 THEN DrawDoorPair mapnum, linknum, map(), pass(), tilesets(), doors(), link(), gmap()
   END IF
-  IF keyval(1) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "door_link_editor"
   usemenu state
   IF state.pt >= 0 THEN
    SELECT CASE state.pt
@@ -1804,11 +1818,12 @@ DO
  setwait 55
  setkeys
  tog = tog xor 1
- IF keyval(1) > 1 THEN
+ IF keyval(scESC) > 1 THEN
   tempw = -1
   temph = -1
   EXIT DO
  END IF
+ IF keyval(scF1) > 1 THEN show_help "resize_map"
  usemenu csr, 0, 0, 4, 10
  IF keyval(56) > 0 THEN incval = 8 ELSE incval = 1
  SELECT CASE csr

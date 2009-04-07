@@ -39,7 +39,6 @@ DECLARE SUB herodata ()
 DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB getnames (stat$(), max%)
 DECLARE SUB statname ()
-DECLARE FUNCTION sublist% (num%, s$())
 DECLARE SUB maptile (font())
 DECLARE SUB importmasterpal (f$, palnum%)
 
@@ -181,7 +180,8 @@ DO
   cropafter pt, this, 3, game + f$, -1, 1
   count = this + 1
  END IF
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "importbmp"
  usemenu mstate
  IF intgrabber(pt, 0, count - 1) THEN
   menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
@@ -235,7 +235,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN setpal master(): RETRACE
+ IF keyval(scESC) > 1 THEN setpal master(): RETRACE
+ IF keyval(scF1) > 1 THEN show_help "importbmp_disable"
  IF csr2 = 0 THEN
   IF enter_or_space() THEN setpal master(): RETRACE
   IF keyval(80) > 1 THEN csr2 = 1: cy = -1
@@ -272,7 +273,7 @@ paloption = 2
 IF bmpd(0) = 8 THEN
  loadbmppal srcbmp$, temppal()
  IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
-  paloption = sublist(2, submenu$())
+  paloption = sublist(submenu$(), "sprite_import16_palette")
   IF paloption = -1 THEN RETRACE
   IF paloption = 1 THEN
    importmasterpal srcbmp$, gen(genMaxMasterPal) + 1
@@ -333,7 +334,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "maptile_pickset"
  IF keyval(29) > 0 AND keyval(14) > 1 AND pagenum > -1 THEN
   cropafter pagenum, gen(33), 3, game + ".til", -1, 1
  END IF
@@ -377,7 +379,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN tmode = 0: RETRACE
+ IF keyval(scESC) > 1 THEN tmode = 0: RETRACE
+ IF keyval(scF1) > 1 THEN show_help "maptile_tilemode"
  usemenu tmode, 0, 0, 5, 24
  IF enter_or_space() THEN
   SELECT CASE tmode
@@ -424,7 +427,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN savetanim pagenum, tastuf(): RETRACE
+ IF keyval(scESC) > 1 THEN savetanim pagenum, tastuf(): RETRACE
+ IF keyval(scF1) > 1 THEN show_help "maptile_tileanim"
  IF usemenu(taptr, 0, 0, 5, 5) THEN GOSUB utamenu
  IF taptr = 1 THEN
   IF intgrabber(taset, 0, 1) THEN GOSUB utamenu
@@ -461,7 +465,8 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 OR enter_or_space() THEN RETRACE
+ IF keyval(scESC) > 1 OR enter_or_space() THEN RETRACE
+ IF keyval(scF1) > 1 THEN show_help "maptile_setanimrange"
  IF keyval(72) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
  IF keyval(80) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
  IF keyval(75) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
@@ -537,9 +542,10 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
+ IF keyval(scF1) > 1 THEN show_help "maptile_setanimpattern"
  SELECT CASE context
   CASE 0 '---PICK A STATEMENT---
-   IF keyval(1) > 1 THEN EXIT DO
+   IF keyval(scESC) > 1 THEN EXIT DO
    IF usemenu(pt, 0, 0, 9, 9) THEN GOSUB refreshmenu
    IF enter_or_space() THEN
     IF pt = 0 THEN
@@ -549,7 +555,7 @@ DO
     END IF
    END IF
   CASE 1 '---EDIT THAT STATEMENT---
-   IF keyval(1) > 1 THEN context = 0
+   IF keyval(scESC) > 1 THEN context = 0
    usemenu ptr2, 0, 0, 1, 1
    index = bound(pt - 1, 0, 8) + 20 * taset
    IF ptr2 = 0 THEN
@@ -661,7 +667,8 @@ DO
  setkeys
  tog = tog XOR 1
  
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "maptile_testanimpattern"
  IF keyval(72) > 1 THEN csr = loopvar(csr, 0, 47, -16): GOSUB setupsample
  IF keyval(80) > 1 THEN csr = loopvar(csr, 0, 47, 16): GOSUB setupsample
  IF keyval(75) > 1 THEN csr = loopvar(csr, 0, 47, -1): GOSUB setupsample
@@ -800,7 +807,8 @@ DO
  IF ts.gotmouse THEN
   readmouse mouse()
  END IF
- IF keyval(1) > 1 THEN storepage mapfile$, pagenum, 3: EXIT DO
+ IF keyval(scESC) > 1 THEN storepage mapfile$, pagenum, 3: EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "picktiletoedit"
  IF tmode <> 3 OR keyval(29) = 0 THEN
   IF slowkey(75, 2) THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
   IF slowkey(77, 2) THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
@@ -1015,6 +1023,7 @@ DO
    EXIT DO
   END IF
  END IF
+ IF keyval(scF1) > 1 THEN show_help "editmaptile"
  IF keyval(56) = 0 THEN
   ts.fixmouse = NO
   IF slowkey(75, 6) THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
@@ -1445,9 +1454,10 @@ DO
    ts.y = small(mouse(1), 180)
   END IF
  END IF
- IF keyval(1) > 1 THEN
+ IF keyval(scESC) > 1 THEN
   EXIT DO
  END IF
+ IF keyval(scF1) > 1 THEN show_help "tilecut"
  inc = 1: IF keyval(56) > 0 THEN inc = 20
  IF keyval(72) AND 5 THEN ts.y = large(ts.y - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF keyval(80) AND 5 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
@@ -1695,7 +1705,8 @@ DO
  setwait 55
  setkeys
  state.tog = state.tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "sprite_pickset"
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   GOSUB savealluc
   cropafter state.pt, sets, 0, spritefile, ss.setsize, 1
@@ -1859,7 +1870,7 @@ DO
   ss.zonecursor = 0
   ss.zonenum = mouseover(mouse(), ss.zone.x, ss.zone.y, ss.zonecursor, area())
  END IF
- IF keyval(1) > 1 THEN
+ IF keyval(scESC) > 1 THEN
   IF ss.hold = YES THEN
    GOSUB resettool
   ELSE
@@ -1868,6 +1879,7 @@ DO
    EXIT DO
   END IF
  END IF
+ IF keyval(scF1) > 1 THEN show_help "sprite_editor"
  IF ss.delay = 0 THEN
   GOSUB sprctrl
  END IF
@@ -2183,7 +2195,8 @@ DO
  setwait 110
  setkeys
  palstate.tog = palstate.tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
+ IF keyval(scESC) > 1 THEN RETRACE
+ IF keyval(scF1) > 1 THEN show_help "sprite_import16"
  IF keyval(75) > 1 OR keyval(26) > 1 THEN
   changepal poffset(state.pt), -1, workpal(), state.pt - state.top
  END IF
@@ -2224,11 +2237,12 @@ DO
  setwait 110
  setkeys
  palstate.tog = palstate.tog XOR 1
- IF keyval(1) > 1 THEN 
+ IF keyval(scESC) > 1 THEN 
  '--Cancel
   GOSUB spedbak
   RETRACE
  END IF
+ IF keyval(scF1) > 1 THEN show_help "sprite_import16_pickbackground"
  IF keyval(56) THEN movespeed = 9 ELSE movespeed = 1
  IF keyval(72) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 1)
  IF keyval(80) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y)

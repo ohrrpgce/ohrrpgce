@@ -47,6 +47,8 @@ DECLARE FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag")
 DECLARE SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING)
 DECLARE FUNCTION scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING) AS STRING
 DECLARE FUNCTION scrintgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77, BYVAL scriptside AS INTEGER, BYVAL triggertype AS INTEGER) AS INTEGER
+DECLARE FUNCTION load_help_file(helpkey AS STRING) AS STRING
+DECLARE SUB save_help_file(helpkey AS STRING, text AS STRING)
 DECLARE SUB show_help(helpkey AS STRING)
 DECLARE SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS INTEGER=0, BYREF meter AS INTEGER, BYVAL meter_times AS INTEGER=1, box_instead_cache() AS INTEGER, box_after_cache() AS INTEGER, box_preview_cache() AS STRING)
 DECLARE SUB script_usage_list ()
@@ -54,5 +56,6 @@ DECLARE SUB script_broken_trigger_list()
 DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
 DECLARE SUB autofix_broken_old_scripts()
 DECLARE SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO)
+DECLARE FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
 
 #endif
