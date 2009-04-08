@@ -2072,7 +2072,7 @@ SUB show_help(helpkey AS STRING)
   setkeys
   
   IF editing THEN  
-   stredit(dat->s, 2048, YES) '2048 chars is totally arbitrary and maybe not a good limit
+   stredit(dat->s, 2048, YES, INT(help_text->Width / 8)) '2048 chars is totally arbitrary and maybe not a good limit
    dat->insert = insert '--copy the global stredit() insert point
   END IF
 
@@ -2655,7 +2655,7 @@ SUB autofix_broken_old_scripts()
 
 END SUB
 
-SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO)
+SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO, BYVAL wrapchars AS INTEGER=1)
  'insert is declared EXTERN in cglobals.bi and DIMed in custom.bas
  
  STATIC clip AS STRING
@@ -2675,19 +2675,58 @@ SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO)
   IF keyval(scRight) > 1 THEN insert = LEN(s)
  END IF
 
- IF keyval(scHome) > 1 THEN
-  DO WHILE insert > 0
-   insert -= 1
-   IF MID(s, 1 + insert, 1) = CHR(10) THEN insert += 1 : EXIT DO
-  LOOP
+ '--up and down arrow keys
+ IF multiline THEN
+  IF keyval(scUp) > 1 OR keyval(scDown) > 1 THEN
+   DIM wrapped AS STRING
+   wrapped = wordwrap(s, large(1, wrapchars))
+   DIM lines() AS STRING
+   split(wrapped, lines())
+   DIM count AS INTEGER = 0
+   DIM found_insert AS INTEGER = -1
+   DIM line_chars AS INTEGER
+   FOR i AS INTEGER = 0 TO UBOUND(lines)
+    IF count + LEN(lines(i)) >= insert THEN
+     found_insert = i
+     line_chars = insert - count
+     EXIT FOR
+    END IF
+    count += LEN(lines(i)) + 1
+   NEXT i
+   IF found_insert >= 0 THEN
+    IF keyval(scUp) > 1 AND found_insert > 0 THEN
+     insert = 0
+     FOR i AS INTEGER = 0 TO found_insert - 2
+      insert += LEN(lines(i)) + 1
+     NEXT i
+     insert += small(line_chars, LEN(lines(found_insert - 1)))
+    END IF
+    IF keyval(scDown) > 1 AND found_insert < UBOUND(lines) THEN
+     insert = 0
+     FOR i AS INTEGER = 0 TO found_insert
+      insert += LEN(lines(i)) + 1
+     NEXT i
+     insert += small(line_chars, LEN(lines(found_insert + 1)))
+    END IF
+   END IF
+   '--end of special handling for up and down arrows
+  END IF
+  '--Home and end keys
+  IF keyval(scHome) > 1 THEN
+   DO WHILE insert > 0
+    insert -= 1
+    IF MID(s, 1 + insert, 1) = CHR(10) THEN insert += 1 : EXIT DO
+   LOOP
+  END IF
+  IF keyval(scEnd) > 1 THEN
+   DO WHILE insert < LEN(s)
+    IF MID(s, 1 + insert, 1) = CHR(10) THEN EXIT DO
+    insert += 1
+   LOOP
+  END IF
+  '--end of special keys that only work in multiline mode
  END IF
 
- IF keyval(scEnd) > 1 THEN
-  DO WHILE insert < LEN(s)
-   IF MID(s, 1 + insert, 1) = CHR(10) THEN EXIT DO
-   insert += 1
-  LOOP
- END IF
 
  IF insert < 0 THEN insert = LEN(s)
  insert = bound(insert, 0, LEN(s))
