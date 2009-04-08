@@ -2000,7 +2000,9 @@ SUB save_help_file(helpkey AS STRING, text AS STRING)
   IF fileiswriteable(helpfile) THEN
    DIM fh AS INTEGER = FREEFILE
    OPEN helpfile FOR OUTPUT ACCESS READ WRITE AS #fh
-   PRINT #fh, text
+   DIM trimmed_text AS STRING
+   trimmed_text = RTRIM(text, ANY " " & CHR(13) & CHR(10))
+   PRINT #fh, trimmed_text
    CLOSE #fh
   ELSE
    debug "help file """ & helpfile & """ is not writeable."
@@ -2056,9 +2058,12 @@ SUB show_help(helpkey AS STRING)
 
  DIM dat AS TextSliceData Ptr
  dat = help_text->SliceData
+ dat->line_limit = 18
 
  DIM editing AS INTEGER = NO
  DIM deadkeys AS INTEGER = 25
+ DIM scrollbar_state AS MenuState
+ scrollbar_state.size = 17
 
  '--Now loop displaying help
  setkeys
@@ -2067,7 +2072,7 @@ SUB show_help(helpkey AS STRING)
   setkeys
   
   IF editing THEN  
-   stredit(dat->s, 600, YES)
+   stredit(dat->s, 2048, YES) '2048 chars is totally arbitrary and maybe not a good limit
    dat->insert = insert '--copy the global stredit() insert point
   END IF
 
@@ -2077,11 +2082,13 @@ SUB show_help(helpkey AS STRING)
     editing = YES
     dat->show_insert = YES
     dat->insert = insert '--copy the global stredit() insert point
-    ChangeRectangleSlice help_box, , uilook(uiBackground), , YES
+    ChangeRectangleSlice help_box, , uilook(uiBackground), , 0
    END IF
    IF keyval(scF1) and helpkey <> "helphelp" THEN
     show_help "helphelp"
    END IF
+   IF keyval(scUp) > 1 THEN dat->first_line = large(0, dat->first_line - 1)
+   IF keyval(scDown) > 1 THEN dat->first_line = small(large(0, dat->line_count - dat->line_limit), dat->first_line + 1)
   END IF
   deadkeys = large(deadkeys -1, 0)
 
@@ -2089,6 +2096,12 @@ SUB show_help(helpkey AS STRING)
   animate->Y = large(animate->Y - 20, 0)
 
   DrawSlice help_root, dpage
+  
+  WITH scrollbar_state
+   .top = dat->first_line
+   .last = dat->line_count - 1
+  END WITH
+  draw_fullscreen_scrollbar scrollbar_state, , dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -2643,7 +2656,7 @@ SUB autofix_broken_old_scripts()
 END SUB
 
 SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO)
- 'insert is declared EXTERN in cglobals.bi and dimmed in custom.bas
+ 'insert is declared EXTERN in cglobals.bi and DIMed in custom.bas
  
  STATIC clip AS STRING
 

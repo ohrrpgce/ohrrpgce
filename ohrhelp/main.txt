@@ -1,5 +1,7 @@
 Welcome to the OHRRPGCE!
 
-This is the help for the main menu. Use the up and down arrow keys to navigate through the menu. Press ENTER or SPACE to choose a menu option. Remember that you can press ESC to exit any submeny and get back to the previous menu.
+This is the help for the main menu. Use the up and down arrow keys to navigate through the menu. Press ENTER or SPACE to choose a menu option. Remember that you can press ESC to exit any submenu and get back to the previous menu.
 
 You can press F1 on (almost) any menu to see a help screen like this one.
+
+Use the up and down arrow keys to scroll through long help screens.
