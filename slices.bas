@@ -636,6 +636,8 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
    printstr lines(i), sl->screenx, sl->screeny + ypos, p
   end if
  next
+ '--set line count based on the current wrapped size
+ dat->line_count = UBOUND(lines) + 1
 end sub
 
 Sub UpdateTextSlice(byval sl as slice ptr)
