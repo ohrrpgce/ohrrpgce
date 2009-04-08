@@ -10,6 +10,7 @@ del distrib\ohrrpgce-wip-%1-%2%3.zip
 support\zip -q distrib\ohrrpgce-wip-%1-%2%3.zip game.exe custom.exe
 support\zip -q distrib\ohrrpgce-wip-%1-%2%3.zip ohrrpgce.new
 support\zip -q distrib\ohrrpgce-wip-%1-%2%3.zip whatsnew.txt *-binary.txt *-nightly.txt plotscr.hsd svninfo.txt
+support\zip -q -r distrib\ohrrpgce-wip-%1-%2%3.zip ohrhelp
 
 IF NOT EXIST distrib\ohrrpgce-wip-%1-%2%3.zip GOTO failed
 
