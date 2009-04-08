@@ -1141,7 +1141,7 @@ DO
    END IF
   END IF
  END IF
- IF keyval(14) > 1 OR keyval(26) > 1 OR keyval(27) > 1 THEN fliptile mover(), ts
+ IF keyval(scBackspace) > 1 OR keyval(scLeftBracket) > 1 OR keyval(scRightBracket) > 1 THEN fliptile mover(), ts
  cy = (ts.curcolor \ 16) MOD 8
  cx = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
  rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
@@ -1410,8 +1410,8 @@ SUB fliptile (mover(), ts AS TileEditState)
 writeundoblock mover(), ts
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 flipx = 0: flipy = 0
-IF (ts.zone = 13 OR ts.zone = 16) OR keyval(26) > 1 OR (keyval(14) > 1 AND keyval(29) = 0) THEN flipx = 19
-IF ts.zone = 14 OR ts.zone = 15 OR keyval(27) > 1 OR (keyval(14) > 1 AND keyval(29) > 0) THEN flipy = 19
+IF (ts.zone = 13 OR ts.zone = 16) OR keyval(scLeftBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) = 0) THEN flipx = 19 : debug "noctrl"
+IF ts.zone = 14 OR ts.zone = 15 OR keyval(scRightBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) > 0) THEN flipy = 19 : debug "ctrl"
 FOR i = 0 TO 19
  FOR j = 0 TO 19
   tempx = ABS(i - flipx)
