@@ -120,6 +120,8 @@ Type TextSliceData
  insert as integer 'char offset of insertion pointer
  show_insert as integer ' set to YES to display insertion point
  insert_tog as integer 'flashing
+ first_line as integer 'used in scrolling
+ line_limit as integer 'use to stop wrapping text from flowing too far down. 0 is no limit
 End Type
 
 Type SpriteSliceData

@@ -612,18 +612,28 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  dat->insert_tog = dat->insert_tog xor 1
  dim insert_size as integer = 8
  if dat->outline then insert_size = 9
- for i as integer = 0 to ubound(lines)
+ dim last_line as integer = ubound(lines)
+ if dat->line_limit > 0 then last_line = small(last_line, dat->first_line + dat->line_limit - 1)
+ dim ypos as integer
+ if dat->show_insert then
+  '--advance the insert cursor for off-screen lines
+  for i as integer = 0 to small(dat->first_line - 1, ubound(lines))
+   chars += len(lines(i)) + 1
+  next i
+ end if
+ for i as integer = dat->first_line to last_line
+  ypos = (i - dat->first_line) * 10
   if dat->show_insert then
    if dat->insert >= chars and dat->insert <= chars + len(lines(i)) then
-    rectangle sl->screenx + (dat->insert - chars) * 8, sl->screeny + i * 10, insert_size, insert_size, uilook(uiHighlight + dat->insert_tog), p
+    rectangle sl->screenx + (dat->insert - chars) * 8, sl->screeny + ypos, insert_size, insert_size, uilook(uiHighlight + dat->insert_tog), p
    end if
    chars += len(lines(i)) + 1
   end if
   if dat->outline then
-   edgeprint lines(i), sl->screenx, sl->screeny + i * 10, col, p
+   edgeprint lines(i), sl->screenx, sl->screeny + ypos, col, p
   else
    textcolor col, 0
-   printstr lines(i), sl->screenx, sl->screeny + i * 10, p
+   printstr lines(i), sl->screenx, sl->screeny + ypos, p
   end if
  next
 end sub
