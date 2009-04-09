@@ -478,6 +478,105 @@ FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", de
  RETURN result
 END FUNCTION
 
+SUB pop_warning(s AS STRING)
+ 
+ '--Construct the warning UI (This will be hella easier later when the Slice Editor can save/load)
+ DIM root AS Slice Ptr
+ root = NewSliceOfType(slRoot)
+ WITH *root
+  .Y = 200
+  .Fill = NO
+ END WITH
+ DIM outer_box AS Slice Ptr
+ outer_box = NewSliceOfType(slContainer, root)
+ WITH *outer_box
+  .paddingTop = 20
+  .paddingBottom = 20
+  .paddingLeft = 20
+  .paddingRight = 20
+  .Fill = Yes
+ END WITH
+ DIM inner_box AS Slice Ptr
+ inner_box = NewSliceOfType(slRectangle, outer_box)
+ WITH *inner_box
+  .paddingTop = 8
+  .paddingBottom = 8
+  .paddingLeft = 8
+  .paddingRight = 8
+  .Fill = YES
+  ChangeRectangleSlice inner_box, 2
+ END WITH
+ DIM text_area AS Slice Ptr
+ text_area = NewSliceOfType(slText, inner_box)
+ WITH *text_area
+  .Fill = YES
+  ChangeTextSlice text_area, s, , , YES
+ END WITH
+ DIM animate AS Slice Ptr
+ animate = root
+
+ '--Preserve whatever screen was already showing as a background
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ DIM dat AS TextSliceData Ptr
+ dat = text_area->SliceData
+ dat->line_limit = 15
+
+ DIM deadkeys AS INTEGER = 25
+ DIM cursor_line AS INTEGER = 0
+ DIM scrollbar_state AS MenuState
+ scrollbar_state.size = 16
+
+ '--Now loop displaying text
+ setkeys
+ DO
+  setwait 17, 70
+  setkeys
+  
+  IF deadkeys = 0 THEN 
+   IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
+   IF keyval(scUp) > 1 THEN dat->first_line -= 1
+   IF keyval(scDown) > 1 THEN dat->first_line += 1
+   dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
+  END IF
+  deadkeys = large(deadkeys -1, 0)
+
+  'Animate the arrival of the pop-up
+  animate->Y = large(animate->Y - 20, 0)
+
+  DrawSlice root, dpage
+  
+  WITH scrollbar_state
+   .top = dat->first_line
+   .last = dat->line_count - 1
+  END WITH
+  draw_fullscreen_scrollbar scrollbar_state, , dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+
+ '--Animate the removal of the help screen
+ DO
+  setkeys
+  setwait 17, 70
+  animate->Y = animate->Y + 20
+  IF animate->Y > 200 THEN EXIT DO
+  DrawSlice root, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+  
+ freepage holdscreen
+ DeleteSlice @root
+END SUB
+
 FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING) AS INTEGER
  IF pt <= check THEN RETURN NO
  IF yesno("Add new " & what & "?") THEN
@@ -1970,10 +2069,22 @@ SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggerty
  CLOSE fh
 END SUB
 
+FUNCTION get_help_dir() AS STRING
+IF isfile(homedir & SLASH & "ohrhelp") THEN RETURN homedir & SLASH & "ohrhelp"
+#IFDEF __FB_LINUX__
+#IFDEF DATAFILES
+ IF isfile(DATAFILES & SLASH & "ohrhelp") THEN RETURN DATAFILES & SLASH & "ohrhelp"
+#ENDIF
+#ENDIF
+ RETURN exepath & SLASH & "ohrhelp"
+END FUNCTION
+
 FUNCTION load_help_file(helpkey AS STRING) AS STRING
- IF isdir(exepath & SLASH & "ohrhelp") THEN
+ DIM help_dir AS STRING
+ help_dir = get_help_dir()
+ IF isdir(help_dir) THEN
   DIM helpfile AS STRING
-  helpfile = exepath & SLASH & "ohrhelp" & SLASH & helpkey & ".txt"
+  helpfile = help_dir & SLASH & helpkey & ".txt"
   IF isfile(helpfile) THEN
    DIM fh AS INTEGER = FREEFILE
    OPEN helpfile FOR INPUT ACCESS READ AS #fh
@@ -1991,24 +2102,25 @@ FUNCTION load_help_file(helpkey AS STRING) AS STRING
 END FUNCTION
 
 SUB save_help_file(helpkey AS STRING, text AS STRING)
- IF NOT isdir(exepath & SLASH & "ohrhelp") THEN
-  MKDIR exepath & SLASH & "ohrhelp"
- END IF
- IF isdir(exepath & SLASH & "ohrhelp") THEN
-  DIM helpfile AS STRING
-  helpfile = exepath & SLASH & "ohrhelp" & SLASH & helpkey & ".txt"
-  IF fileiswriteable(helpfile) THEN
-   DIM fh AS INTEGER = FREEFILE
-   OPEN helpfile FOR OUTPUT ACCESS READ WRITE AS #fh
-   DIM trimmed_text AS STRING
-   trimmed_text = RTRIM(text, ANY " " & CHR(13) & CHR(10))
-   PRINT #fh, trimmed_text
-   CLOSE #fh
-  ELSE
-   debug "help file """ & helpfile & """ is not writeable."
+ DIM help_dir AS STRING
+ help_dir = get_help_dir()
+ IF NOT isdir(help_dir) THEN
+  IF MKDIR(help_dir) THEN
+   debug """" & help_dir & """ does not exist and could not be created."
+   EXIT SUB
   END IF
+ END IF
+ DIM helpfile AS STRING
+ helpfile = help_dir & SLASH & helpkey & ".txt"
+ IF fileiswriteable(helpfile) THEN
+  DIM fh AS INTEGER = FREEFILE
+  OPEN helpfile FOR OUTPUT ACCESS READ WRITE AS #fh
+  DIM trimmed_text AS STRING
+  trimmed_text = RTRIM(text, ANY " " & CHR(13) & CHR(10))
+  PRINT #fh, trimmed_text
+  CLOSE #fh
  ELSE
-  debug "Can't create help dir """ & exepath & SLASH & "ohrhelp"""
+  debug "help file """ & helpfile & """ is not writeable."
  END IF
 END SUB
 
@@ -2081,10 +2193,14 @@ SUB show_help(helpkey AS STRING)
   IF deadkeys = 0 THEN 
    IF keyval(scESC) > 1 THEN EXIT DO
    IF keyval(scE) > 1 THEN
-    editing = YES
-    dat->show_insert = YES
-    dat->insert = insert '--copy the global stredit() insert point
-    ChangeRectangleSlice help_box, , uilook(uiBackground), , 0
+    IF fileiswriteable(get_help_dir() & SLASH & helpkey) THEN
+     editing = YES
+     dat->show_insert = YES
+     dat->insert = insert '--copy the global stredit() insert point
+     ChangeRectangleSlice help_box, , uilook(uiBackground), , 0
+    ELSE
+     pop_warning "Your """ & get_help_dir() & """ folder is not writeable. Try making a copy of it at """ & homedir & SLASH & "ohrhelp"""
+    END IF
    END IF
    IF keyval(scF1) and helpkey <> "helphelp" THEN
     show_help "helphelp"
