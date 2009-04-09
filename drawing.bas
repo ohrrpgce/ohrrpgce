@@ -808,7 +808,13 @@ DO
   readmouse mouse()
  END IF
  IF keyval(scESC) > 1 THEN storepage mapfile$, pagenum, 3: EXIT DO
- IF keyval(scF1) > 1 THEN show_help "picktiletoedit"
+ IF keyval(scF1) > 1 THEN
+  IF tmode = 3 THEN
+   show_help "default_passability"
+  ELSE
+   show_help "picktiletoedit"
+  END IF
+ END IF
  IF tmode <> 3 OR keyval(29) = 0 THEN
   IF slowkey(75, 2) THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
   IF slowkey(77, 2) THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
