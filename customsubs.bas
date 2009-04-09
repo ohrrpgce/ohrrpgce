@@ -2073,7 +2073,8 @@ SUB show_help(helpkey AS STRING)
   setkeys
   
   IF editing THEN  
-   cursor_line = stredit(dat->s, 2048, YES, INT(help_text->Width / 8)) '2048 chars is totally arbitrary and maybe not a good limit
+   cursor_line = stredit(dat->s, 32767, YES, INT(help_text->Width / 8))
+   'The limit of 32767 chars is totally arbitrary and maybe not a good limit
    dat->insert = insert '--copy the global stredit() insert point
   END IF
 
