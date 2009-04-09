@@ -1,0 +1,7 @@
+This is the hero stat editor. The column on the left is the stats at level 0, and the column on the right is the stats at level 99.
+
+Use the arrow keys to navigate around the menu.
+
+Press < and > to change the numbers, or just type in new numbers.
+
+Press ESC to return to the previous menu.

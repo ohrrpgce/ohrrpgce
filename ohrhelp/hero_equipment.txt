@@ -1,0 +1,5 @@
+This menus allows you to select which type of equipment you want to set up for the hero.
+
+Use the up and down arrow keys to navigate the menu.
+
+Press ENTER or SPACE to go to a list of all available equippable items for each equipment type. You will be able to mark which ones this hero is allowed to use.

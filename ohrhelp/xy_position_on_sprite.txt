@@ -1,0 +1,3 @@
+Choose a position on the sprite.
+
+use the arrow keys to move the flashing cursor. Press ENTER or SPACE to confirm the position.

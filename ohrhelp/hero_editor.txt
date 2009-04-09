@@ -1,0 +1,7 @@
+This is the hero editor.
+
+Use the up and down arrow keys to navigate the menu.
+
+To change which hero you are working on, select "Pick Hero" and press the left or right arrow keys, or type in a hero ID number.
+
+You can also type a name for your hero on this menu.
