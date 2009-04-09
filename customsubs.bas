@@ -2193,7 +2193,7 @@ SUB show_help(helpkey AS STRING)
   IF deadkeys = 0 THEN 
    IF keyval(scESC) > 1 THEN EXIT DO
    IF keyval(scE) > 1 THEN
-    IF fileiswriteable(get_help_dir() & SLASH & helpkey) THEN
+    IF fileiswriteable(get_help_dir() & SLASH & helpkey & ".txt") THEN
      editing = YES
      dat->show_insert = YES
      dat->insert = insert '--copy the global stredit() insert point
