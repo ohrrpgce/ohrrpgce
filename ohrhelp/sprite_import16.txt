@@ -1,0 +1,5 @@
+You are being assked what you want to do with the palette of the BMP image that you are importing.
+
+Your first choice is to "Overwrite Current Palette". You can change the current palette with the left and right arrow keys. If in doubt, press right until you find the first totally blank palette, and then you can safely overwrite it without fear of messing up any other sprites.
+
+You may also want to import without a palette. This makes sense if you are importing multiple frames of the same sprite set, and you already have the palette from the first frame you imported.

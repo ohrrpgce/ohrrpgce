@@ -1,0 +1,3 @@
+This is where you test your animation patterns. Just use the arrow keys to highlight the tiles you want to test, and you will see the animation previewed below.
+
+If the animation isn't right, you can go back to "Set Animation Pattern" and modify it.

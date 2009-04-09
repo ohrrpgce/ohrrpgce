@@ -1,0 +1,53 @@
+Welcome to the 16-color sprite editor!
+
+The box on the left is the drawing area. You can click here with the mouse, or use the arrow keys to move the cursor.
+
+The big block of small colored boxes at the top right is the "master palette". Right below it is a row of 16 small boxes, which is your current 16-color palette. Press < and > to choose which color in your 16-color palette you are working with. ALT+arrow keys changes which color from your master palette is assigned to the selected slot in your 16-color palette. You can also click on the palettes with your mouse.
+
+Press [ and ] to change which 16 color palette you are working with. You can also press P to open the palette browser.
+
+The row of icons along the bottom are your drawing tools.
+
+D Draw tool: This tool is for drawing
+  pixels or free-hand lines
+
+B Box tool: This tool draws solid
+  rectangles.
+
+L Line tool: This tool draws strait
+  lines between two points.
+
+F Fill tool: This tool does a flood
+  fill. It is like the paint bucket
+  in other drawing programs.
+
+O Circle tool. This tool draws
+  circles. Click once to choose the
+  center, and again to choose the
+  size
+
+A Airbrush tool: This tool scatters
+  pixels. While it is active you can
+  press + and - to change the area
+  and CTRL+ or CTRL- to change the
+  "flow", which is the number of
+  pixels scattered with each click.
+
+M Mark tool. This tool selects a
+  rectangular area to use with the
+  clone tool.
+
+C Clone tool. This tool paints using
+  a portion of a sprite that you have
+  previously selected with the mark
+  tool. Color 0 is transparent.
+
+Press backspace to horizontally flip the sprite. There is currently no way to vertically flip a sprite :(
+
+Press I to import a 16-color BMP image.
+
+Press ENTERor right-click on the drawing area to select a color.
+
+Hold CAPSLOCK and press the arrow keys to recenter your drawing. Use this feature with caution, since moving your drawing outside of the drawing area will cause pixels to be deleted.
+
+Press CTRL+Z or click the Undo button to revert an unwanted change.

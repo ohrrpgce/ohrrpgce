@@ -1,0 +1,5 @@
+You just imported 1 16 color BMP file, and now you see  it in the top left of the screen, and all the colors look wrong. What does this mean!?
+
+Don't worry. You are just being asked to choose the transparent color.
+
+Move the cursor with... oops! where is the cursor!? That is a bug! James must fix it!

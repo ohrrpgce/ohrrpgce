@@ -1,0 +1,7 @@
+This is the tag browse screen. Here you can pick a tag from the list by name. Just use the arrow keys to navigate the list.
+
+You can type names for your tags here too! It is a very good idea to name all the tags that you use, that way you can easily keep track of what each tag means.
+
+Tags are switches that can be OFF or ON, and different things can happen depending on the state of a tag. You can use them to keep track of people you have already talked to, or boss monsters that you have already defeated, or quests that are available to you.
+
+To make the list of tags longer, just type a name for the last tag at the bottom of the list. That will automatically make the list grow longer.

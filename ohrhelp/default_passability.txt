@@ -1,0 +1,11 @@
+This screen lets you define the default passability (also known as "wallmapping") for the tiles in this tileset.
+
+Hold CTRL and press the arrow keys to toggle walls on the currently selected tile. Flashing grey boxes will appear to show you which sides of the tile will be impassable.
+
+Press A to make a tile be an Airship special tile. Press B to make a tile be a Boat special tile. Vehicles and plotscripts can use A and B tiles for other customized purposes too.
+
+Press H to make a tile be a Harm tile. Harm tiles can be configured to damage the hero when you step on them.
+
+You can also press O to make a tile overhead, but this is obsolete. You should use map layers instead of overhead tiles.
+
+If you press ENTER or SPACE you will be taken to a sub-menu that lets you edit all of the above settings from a bitset menu.
