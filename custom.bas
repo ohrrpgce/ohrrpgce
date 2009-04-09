@@ -583,17 +583,7 @@ clear_box_border_cache
 sprite_empty_cache
 palette16_empty_cache
 GOSUB cleanupfiles
-setvispage 0
-clearpage 0
-textcolor uilook(uiText), 0
-printstr "Don't forget to keep backup copies of", 0, 0, 0
-printstr "your work! You never know when an", 0, 8, 0
-printstr "unknown bug or a hard-drive crash or", 0, 16, 0
-printstr "a little brother might delete your", 0, 24, 0
-printstr "files!", 0, 32, 0
-setvispage 0 'force a refresh
-w = getkey
-'closefile
+pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a hard-drive crash or a little brother might delete your files!"
 CHDIR curdir$
 restoremode
 END

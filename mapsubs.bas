@@ -1525,7 +1525,7 @@ SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INT
    col = uilook(uiMenuItem)
    IF state.pt = i THEN
     col = uilook(uiSelectedItem + state.tog)
-    edgeboxstyle 0, 1 + (i - state.top) * 16, 280, 19, 0, dpage, YES
+    edgeboxstyle 0, 1 + (i - state.top) * 16, 280, 19, 0, dpage, YES, YES
    END IF
 
    IF link(i).source >= 0 THEN
