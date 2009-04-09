@@ -2062,6 +2062,7 @@ SUB show_help(helpkey AS STRING)
 
  DIM editing AS INTEGER = NO
  DIM deadkeys AS INTEGER = 25
+ DIM cursor_line AS INTEGER = 0
  DIM scrollbar_state AS MenuState
  scrollbar_state.size = 17
 
@@ -2072,7 +2073,7 @@ SUB show_help(helpkey AS STRING)
   setkeys
   
   IF editing THEN  
-   stredit(dat->s, 2048, YES, INT(help_text->Width / 8)) '2048 chars is totally arbitrary and maybe not a good limit
+   cursor_line = stredit(dat->s, 2048, YES, INT(help_text->Width / 8)) '2048 chars is totally arbitrary and maybe not a good limit
    dat->insert = insert '--copy the global stredit() insert point
   END IF
 
@@ -2087,8 +2088,15 @@ SUB show_help(helpkey AS STRING)
    IF keyval(scF1) and helpkey <> "helphelp" THEN
     show_help "helphelp"
    END IF
-   IF keyval(scUp) > 1 THEN dat->first_line = large(0, dat->first_line - 1)
-   IF keyval(scDown) > 1 THEN dat->first_line = small(large(0, dat->line_count - dat->line_limit), dat->first_line + 1)
+   IF editing THEN
+    dat->first_line = small(dat->first_line, cursor_line - 1)
+    dat->first_line = large(dat->first_line, cursor_line - (dat->line_limit - 2))
+   ELSE
+    '--not editing, just browsing
+    IF keyval(scUp) > 1 THEN dat->first_line -= 1
+    IF keyval(scDown) > 1 THEN dat->first_line += 1
+   END IF
+   dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
   END IF
   deadkeys = large(deadkeys -1, 0)
 
@@ -2655,7 +2663,10 @@ SUB autofix_broken_old_scripts()
 
 END SUB
 
-SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO, BYVAL wrapchars AS INTEGER=1)
+FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO, BYVAL wrapchars AS INTEGER=1) AS INTEGER
+ 'Return value is the line that the cursor is on, or 0 if multiline=NO
+ stredit = 0
+ 
  'insert is declared EXTERN in cglobals.bi and DIMed in custom.bas
  
  STATIC clip AS STRING
@@ -2677,37 +2688,41 @@ SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO, 
 
  '--up and down arrow keys
  IF multiline THEN
-  IF keyval(scUp) > 1 OR keyval(scDown) > 1 THEN
-   DIM wrapped AS STRING
-   wrapped = wordwrap(s, large(1, wrapchars))
-   DIM lines() AS STRING
-   split(wrapped, lines())
-   DIM count AS INTEGER = 0
-   DIM found_insert AS INTEGER = -1
-   DIM line_chars AS INTEGER
-   FOR i AS INTEGER = 0 TO UBOUND(lines)
-    IF count + LEN(lines(i)) >= insert THEN
-     found_insert = i
-     line_chars = insert - count
-     EXIT FOR
-    END IF
-    count += LEN(lines(i)) + 1
-   NEXT i
-   IF found_insert >= 0 THEN
-    IF keyval(scUp) > 1 AND found_insert > 0 THEN
-     insert = 0
-     FOR i AS INTEGER = 0 TO found_insert - 2
-      insert += LEN(lines(i)) + 1
-     NEXT i
-     insert += small(line_chars, LEN(lines(found_insert - 1)))
-    END IF
-    IF keyval(scDown) > 1 AND found_insert < UBOUND(lines) THEN
-     insert = 0
-     FOR i AS INTEGER = 0 TO found_insert
-      insert += LEN(lines(i)) + 1
-     NEXT i
-     insert += small(line_chars, LEN(lines(found_insert + 1)))
-    END IF
+  DIM wrapped AS STRING
+  wrapped = wordwrap(s, large(1, wrapchars))
+  DIM lines() AS STRING
+  split(wrapped, lines())
+  DIM count AS INTEGER = 0
+  DIM found_insert AS INTEGER = -1
+  DIM line_chars AS INTEGER
+  FOR i AS INTEGER = 0 TO UBOUND(lines)
+   IF count + LEN(lines(i)) >= insert THEN
+    found_insert = i
+    line_chars = insert - count
+    EXIT FOR
+   END IF
+   count += LEN(lines(i)) + 1
+  NEXT i
+  IF found_insert >= 0 THEN
+   '--set return value
+   stredit = found_insert
+   IF keyval(scUp) > 1 AND found_insert > 0 THEN
+    insert = 0
+    FOR i AS INTEGER = 0 TO found_insert - 2
+     insert += LEN(lines(i)) + 1
+    NEXT i
+    insert += small(line_chars, LEN(lines(found_insert - 1)))
+    '--set return value
+    stredit = found_insert - 1
+   END IF
+   IF keyval(scDown) > 1 AND found_insert < UBOUND(lines) THEN
+    insert = 0
+    FOR i AS INTEGER = 0 TO found_insert
+     insert += LEN(lines(i)) + 1
+    NEXT i
+    insert += small(line_chars, LEN(lines(found_insert + 1)))
+    '--set return value
+    stredit = found_insert + 1
    END IF
    '--end of special handling for up and down arrows
   END IF
@@ -2726,7 +2741,6 @@ SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO, 
   END IF
   '--end of special keys that only work in multiline mode
  END IF
-
 
  IF insert < 0 THEN insert = LEN(s)
  insert = bound(insert, 0, LEN(s))
@@ -2778,8 +2792,8 @@ SUB stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO, 
  END IF
 
  s = pre & post
-
-END SUB
+ 
+END FUNCTION
 
 FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
  clearpage 0
