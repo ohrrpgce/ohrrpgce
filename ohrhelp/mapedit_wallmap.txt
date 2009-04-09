@@ -1,0 +1,32 @@
+The map editor is in Passability mode, (also known as "Wallmap mode").
+
+F2 switch to picture mode
+F3 switch to passability mode
+F4 switch to door placement mode
+F5 switch to NPC placement mode
+F6 switch to foemap mode
+
+Use the arrow keys to move around the map.
+
+Use SHIFT+arrow keys to move around the map faster.
+
+While you are in passability mode, you will see thick flashing lines that indicate where walls are located.
+
+Press SPACE to make the tile under the cursor fully impassable in all four directions. Press SPACE again to remove the walls and make the tile passable.
+
+CTRL+Up makes the selected tile impassable on the top.
+
+CTRL+Down makes the selected tile impassable on the bottom.
+
+CTRL+Left makes the selected tile impassable on the left side.
+
+CTRL+Right makes the selected tile
+impassable on the right side.
+
+H marks the tile as a harm tile that can damage the hero when the player steps on it.
+
+A marks the tile as special for Airships (or other vehicle or scripting purposes)
+
+B marks the tile as special for Boats (or other vehicle or scripting purposes)
+
+O marks the tile as overhead. This is obsolete. You should use Layer 2 in Tilemapping mode instead if you want make tiles overhead.

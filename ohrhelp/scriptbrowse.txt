@@ -1,0 +1,8 @@
+This is the script browser. it shows a list of all the plotscripts that you have imported into your game.
+
+Use the up and down arrow keys to navigate the list, and press ENTER or SPACE to choose a script.
+
+If some of your scripts have a number at the beginning of their names, that is because they are "old style" scripts.
+
+See the OHRRPGCE wiki for more information about scripts.
+http://HamsterRepublic.com/ohrrpgce/

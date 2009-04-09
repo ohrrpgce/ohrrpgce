@@ -2,4 +2,6 @@ You just imported 1 16 color BMP file, and now you see  it in the top left of th
 
 Don't worry. You are just being asked to choose the transparent color.
 
-Move the cursor with... oops! where is the cursor!? That is a bug! James must fix it!
+See that tiny blinking pixel in the top left corner? Move with the arrow keys until it is over the color tha you want to make transparent, and press ENTER or SPACE to confirm. (or ESC to cancel)
+
+Actually, for most sprites, color that needs to be transparent around the edges, and since the cursor starts in the top left corner, you can usually just press ENTER or SPACE, and it will do the right thing.

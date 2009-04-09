@@ -1,0 +1,11 @@
+This is the door linking tool. The door on the top is the entrance door. the door on the bottom is the exit door.
+
+Use the up and down arrow keys to navigate the menu.
+
+Use the left and right arrow keys to change numers. You can also type door ID numbers or map ID numbers.
+
+When you are finished, press ESC to exit the door linking tool.
+
+You may optionally specify tags that must be checked before the door can be used. This allows you to make doors that are only usable after certain conditions have been met, or doors that lead to different places depending on which tags are set.
+
+Remember that for a door to be usable both ways it needs to be linked both ways. if you only link the door in one direction, it will be a one-way door.

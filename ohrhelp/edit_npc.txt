@@ -1,0 +1,53 @@
+This is the NPC editor. Here you can design townspeople. NPCs can also be used as treasure chests, vehicles, script triggers, pushable barriers, and many other purposes.
+
+Use the up and down arrow keys to navigate the menu. Press the left and right arrow keys to change values. You can also type in numbers.
+
+Picture: This is the ID number of the walkabout sprite that the NPC will use. You can see a preview below the menu.
+
+Palette: This is the 16-color palette used for the picture. "default" is usually what you want, so you will normally not need to change it. Besides being able to type in a palette number you can also press ENTER or SPACE to use the palette browser.
+
+Move Type: This determines how the NPC will move around the map. If this NPC is not sipposed to move, choose "Stand Still"
+
+Move speed: This is the speed that the NPC will move. 1 is very slow. 4 is average speed. 10 is fast. Notice that you can't just put in any number you want? That is because move speed needs to be evenly divisible into the tile size, which is 20x20 pixels.
+
+Display Text: Here you can choose a text box that will be displayed if you talk to the NPC. A preview of the first line of the text box will be displayed at the bottom of the screen.
+
+When activated: This controls whether or not the NPC changes directons to face the player when the NPC is activated.
+
+Give Item: Here you can choose an item which will be added to they players inventory when they activate the NPC. This is most often useful for treasure chests. Note that there will be no visual display of the item being added. It will just silently appear in the inventory. You might want to use a text box for that.
+
+Pushability: Here you can choose whether or not it is possible for the player to push the NPC. This is useful for barrier boxes, or for annoying townspeople who get in the players way. Be aware that pushable NPCs won't work unless you give them a "Move Speed" higher than zero.
+
+Activation: This controls how an NPC is activated. it also controls whether or not the player is allowed to walk over an NPC.
+
+  "Use" means that the player must
+  face the NPC from one space away
+  and press the use button. This is
+  most often used for townspeople
+  and treasure chests.
+
+  "Touch" means that the player only
+  needs to be one tile away. no
+  buttons. This is most often used
+  for NPCs that represent monsters,
+  or for NPCs that trigger scripts.
+
+  "Step on" means that the player can
+  walk over the NPC without being
+  blocked. This is most often used
+  for script triggers and tag
+  triggers. Another nice side-effect
+  is that Step-on NPCs can be used to
+  make walls that heroes can walk
+  over, even though other NPCs are
+  blocked.
+
+Appear if Tag: These two tags can be used to control when the NPC appears. You can type in a tag number, or press ENTER or SPACE to bring up the tag browser. Press - to switch between requiring the tag to be OFF or ON.
+
+Usable Repeated/Usable Only Once: This allows you to make an NPC who disappears permanently after being activated once. This is most often used for treasure chests or for one-time plotscript triggers.
+
+Run script: A plotscript that will be run when the NPC is activated. You can press ENTER or SPACE here to open the script browser.
+
+Script argument: If you have specified a plotscript, you can also provide a number which will be passed as an argument to the script.
+
+Vehicle: This allows you to turn this NPC into a vehicle. Activating the NPC will cause you to mount the vehicle.

@@ -1,0 +1,11 @@
+This screen is a browseable list of all the door links on the current map.
+
+Use the up and down arrow keys to navigate the list.
+
+The entrace door will be previewed in the top half of the screen. The exit door will be preview in the bottom half of the screen.
+
+Press ENTER or SPACE to start editing a doorlink.
+
+Press ESC to go back to the previous menu.
+
+To add a new doorlink, go to the very bottom of the list, and choose "Create a new Doorlink"

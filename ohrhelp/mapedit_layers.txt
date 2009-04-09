@@ -1,0 +1,15 @@
+This screen lets you choose a default tileset, and lets you customize each map layer.
+
+Use the up and down arrows to navigate the menu, and press left and right to change values, or you can type in tileset numbers.
+
+Each map can have 3 layers, numbered 0 to 2.
+
+Layer 0 is the bottom layer. it goes underneath everything else.
+
+Layer 1 goes underneath heroes and NPCs, but it is transparent. Layer 0 will be visible underneath layer 1.
+
+Layer 2 is also transparent. It goes above heroes and NPCs. You might use it for tree-tops, or stone arches, or the upper parts of walls.
+
+Each layer can optionally have its own tileset, or you can just choose one tileset for the whole map.
+
+It is also possible to disable certain layers in the editor, in case you want to work on just one layer at a time without the visual distraction of seeing the other layers.

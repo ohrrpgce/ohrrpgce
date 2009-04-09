@@ -1,0 +1,11 @@
+This menu allows you to customize all the menu and interface colors. it also allows you to choose which borders are associated with each text box style.
+
+Use the up and down arrow keys to navigate the menu.
+
+Press the left and right arrows to change the colors. You can also type in color ID numbers, which go from 0 to 255.
+
+If you press ENTER or SPACE on a color, you will see a palette browser that lets you choose a color.
+
+You can press CTRL+D to revert a color back to its default value.
+
+If you accidentally make it impossible to read the screen, either by changing the background color or the text colors, you can fix it by pressing the down arrow, then CTRL+D then the down arrow again, and CTRl+D and repeat until the menu is visible again.

@@ -1,0 +1,1 @@
+This screen allows you to select a maptile to use in the map editor. Use the arrow keys to highlight a maptile, and press ENTER to choose it.

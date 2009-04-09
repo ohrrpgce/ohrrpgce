@@ -1,0 +1,3 @@
+This screen allows you to erase all the passability data for the map and re-load it from the default passability for your chosen tilesets.
+
+Use this with caution, because it cannot be undone. Save a backup copy of your RPG file if you are not certain.

@@ -1,0 +1,23 @@
+The map editor is is Foe mapping mode, (also known as "Foemap mode").
+
+F2 switch to picture mode
+F3 switch to passability mode
+F4 switch to door placement mode
+F5 switch to NPC placement mode
+F6 switch to foemap mode
+
+Use the arrow keys to move around the map.
+
+Use SHIFT+arrow keys to move around the map faster.
+
+Foe mapping allows you to specify where random battles can happen. Whenever the hero walks on a tile with a foe map number, the player has a chance of encountering a random battle.
+
+The number is the same as the Formation Set ID number from the Formation Set Editor.
+
+Press < and > to change the current formation number, or type in a number.
+
+Press SPACE to mark the tile under the cursor so that random battles from the selected formation set can happen there.
+
+To remove random battles from a tile, change the formation set number to 0 and press the SPACE bar on the tile.
+
+Press CTRL+F to fill the screen with the currently selected formation number.

@@ -1,0 +1,28 @@
+The map editor is in NPC Placement mode.
+
+F2 switch to picture mode
+F3 switch to passability mode
+F4 switch to door placement mode
+F5 switch to NPC placement mode
+F6 switch to foemap mode
+
+Use the arrow keys to move around the map.
+
+Use SHIFT+arrow keys to move around the map faster.
+
+Press < and > to choose which NPC you want to place. You can also type in an NPC ID number.
+
+Press the SPACE bar to place an NPC on the map.
+
+To remove an NPC, position the cursor over the NPC and press SPACE again.
+
+If you want to control which direction an NPC will be facing, you can use CTRL+arrow keys.
+
+CTRL+Up: Place an NPC facing up
+CTRL+Down: Place an NPC facing down
+CTRL+Left: Place an NPC facing left
+CTRL+Right: Place and NPC facing right
+
+It is also possible to put more than one NPC on the same tile using CTRL+arrows.
+
+Two numbers are displayed on each NPC you place. The top number is the NPC's ID, and the bottom number is the NPC's copy-number. You may need the ID and copy number if you want to manipulate the NPC using plotscripting.

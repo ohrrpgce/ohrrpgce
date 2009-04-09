@@ -1,0 +1,5 @@
+This menu allows you to choose which map you want to work on. Just use the up and down arrow keys to select a map, and press ENTER or SPACE to start editing it.
+
+You can press ESC to go back to the previous menu.
+
+If you want to add a new map, highlight "Add a New Map" at the bottom of the menu, and press ENTER or SPACE

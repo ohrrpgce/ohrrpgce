@@ -1,0 +1,5 @@
+Choose "New Blank Map" if you want to create a new totally empty map.
+
+If you want to create a copy of an existing map, you can highlight "Copy of Map" and then use the left and right arrow keys to choose the map to copy. You may also type in the map's ID number.
+
+Press ENTER or SPACE to confirm your selection, or ESC to cancel.

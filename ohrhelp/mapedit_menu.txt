@@ -1,0 +1,5 @@
+This is the main map menu. Use the arrow keys to navigate the menu, and press ENTER or SPACE to choose a menu item.
+
+At the bottom of the menu you can type in a name for the map.
+
+Use "Erase Map Data" only with caution. It cannot be undone, so make a backup copy of your RPG file first if you are not certain.
