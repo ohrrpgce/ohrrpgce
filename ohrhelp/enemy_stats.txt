@@ -1,0 +1,31 @@
+This is the enemy stat editor.
+
+Use the up and down arrow keys to navigate the menu.
+
+Use the left and right arrow keys to change the values, or you can type in numbers.
+
+Hold ALT to see the name of the enemy you are editing. While holding ALT you can press the right and left arrows to change which enemy you are editing, or you can type in an enemy ID number.
+
+HP: Health points. This is how much damage you must deal to the enemy before you kill it.
+
+MP: Magic points. The enemy consumes these points when using certain attacks.
+
+Strength: This affects how much damage the enemy can deal to you.
+
+Accuracy: This affects how often the enemy's attacks will miss. If it is much lower that the hero's "Dodge" then the enemy's attacks are more likely to miss.
+
+Defense: This reduces the damage that you inflict to the enemy.
+
+Dodge: This affects how often your attacks will miss the enemy. If it is mich higher than your "Accuracy", then your attacks are more likelly to miss.
+
+Magic: Like strength, this affects how much damage certain attacks deal.
+
+Will: Like "Defense", this reduces the damage done by attacks that are based on "Magic" instead of "Strength"
+
+Speed: This determines how fast the enemy can attack in battle. Smaller numbers are slower, and larger numbers are faster.
+
+Counter: This does not currently have any specifically defined purpose, but you can use it as a base stat for your attacks in various ways.
+
+Focus: This is a percentage by which the enemy's MP consuption. Normally this should be 0.
+
+Extra Hit: This stat causes the enemy to get extra attacks every turn. You almost always want to keep this at 0.

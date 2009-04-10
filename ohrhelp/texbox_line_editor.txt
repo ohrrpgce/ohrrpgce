@@ -1,0 +1,13 @@
+This is the text box line editor.
+
+Use the arrow keys to move the cursor.
+
+Type to edit the lines.
+
+The special codes listed at the bottom of the screen can be used to embed names iinto the text box.
+
+Press CTRL+SPACE to choose special characters to insert at the current cursor location.
+
+CTRL+C Copies the current line.
+
+CTRL+V Pastes the previously copied line, replacing the line that the cursor is on.

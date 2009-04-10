@@ -46,8 +46,18 @@ Press backspace to horizontally flip the sprite. There is currently no way to ve
 
 Press I to import a 16-color BMP image.
 
-Press ENTERor right-click on the drawing area to select a color.
+Press ENTER or right-click on the drawing area to select a color.
 
 Hold CAPSLOCK and press the arrow keys to recenter your drawing. Use this feature with caution, since moving your drawing outside of the drawing area will cause pixels to be deleted.
 
 Press CTRL+Z or click the Undo button to revert an unwanted change.
+
+CTRL+C Copies the sprite
+
+CTRL+V Pastes a copy of the sprite.
+
+CTRL+ALT+C Copies the 16-color
+   palette.
+
+CTRL+ALT+V Pastes a copy of the
+   16-color palette.

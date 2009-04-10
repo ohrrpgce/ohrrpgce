@@ -1,0 +1,15 @@
+This is the text box editor.
+
+Use the up and down arrow keys to navigate the menu.
+
+Use the left and right arrow keys to change which text box you are working on, or type in a text box ID number.
+
+Press ENTER or SPACE to open the various sub-menus.
+
+To find a text box, you can type in the "Search" field and press ENTER
+
+Press + to add a new text box based on a copy of the currently selected text box.
+
+Press ALT+C to copy the style of a text box (color and other appearance data, but not text)
+
+Press ALT+V to paste a previously copied text box style onto the currently selected text box. This will not replace the text.

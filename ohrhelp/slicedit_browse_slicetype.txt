@@ -1,0 +1,5 @@
+This is a list of available slice types.
+
+Use the up and down arrow keys to navigate the menu.
+
+Press ENTER or SPACE to choose a slice type.

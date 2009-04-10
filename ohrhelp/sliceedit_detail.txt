@@ -1,0 +1,11 @@
+This is the slice detail editor.
+
+Use the up and down arrow keys to navigate the menu.
+
+Use the left and right arrow keys to change values, or you can type in numbers.
+
+If you press ENTER or SPACE in the "Slice Type" you can choose a new type from a list. Different slice types have different options.
+
+X and Y are the position of the slice relative to its parent. You can press ENTER or SPACE on these to reposition the slice using the arrow keys.
+
+Width and Height are the size of the slice. You can press ENTER or SPACE to resize the slice using the arrow keys.

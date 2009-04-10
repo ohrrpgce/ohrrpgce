@@ -1,0 +1,13 @@
+This is the enemy attack editor.
+
+Use the up and down arrow keys to navigate the menu.
+
+Use the left and right arrow keys to change the attacks, or type in attack ID numbers.
+
+Hold ALT to show the name of the enemy you are currently editing. While holding ALT, you can press the left and right arrow keys to change which enemy you are editing, or you can type in an enemy ID number.
+
+There are 5 slots for "Normal" attacks. Normally the enemy will choose a random attack from this list.
+
+There are 5 slots for "Desperation" attacks. The enemy will randomly choose from these attacks if its HP is less that 20%. If there are no desperation attacks, it will use normal attacks instead.
+
+There are 5 slots for "Alone" attacks. The enemy will randomly choose from these attacks if it is the last enemy alive in the battle formation. If there are no alone attacks, the enemy will use normal or desperation attacks instead.

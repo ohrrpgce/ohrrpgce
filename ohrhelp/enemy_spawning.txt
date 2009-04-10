@@ -1,0 +1,19 @@
+This is the enemy swaping menu.
+
+Use the up and down arrow keys to navigate the menu.
+
+Use the left and right arrow keys to change values, or you can type in numbers.
+
+Hold ALT to display the name of the enemy that you are editing. While you are holding ALT you can press the left and right arrow keys to change which enemy you are editing, or you can type in an enemy ID number.
+
+How many to spawn: This number determines how many enemies will be aded each time a sspawning event occurs. (You can't spaawn more enemies than there are empty slots in the battle formation)
+
+Spawn on death: An enemy who will be spawned when this enemy dies.
+
+on Non-elemental death: An enemy who will be spawened if the enemy is killed by an attack that does not have any elemental bitsets turned on.
+
+Spawn when alone: An enemy who will be spawned whenever the enemy is the last enemy alive in a battle formation.
+
+Spawn on Non-elemental hit: An enemy who will be spawned each time the enemy is hit by an attack with no elemental bitsets turned on.
+
+Spawn on (Elemental) Attack: For each of the 8 elemental types, an enemy who will be spawned each time this enemy is hit with an attack that has the corresponding elemental bitset turned on.
