@@ -320,8 +320,10 @@ DO:
  standardmenu menu$(), mainmax, 22, pt, 0, 0, 0, dpage, 0
 
  textcolor uilook(uiSelectedDisabled), 0
- printstr version_code$, 0, 184, dpage
- printstr version_build$, 0, 192, dpage
+ printstr version_code$, 0, 176, dpage
+ printstr version_build$, 0, 184, dpage
+ textcolor uilook(uiText), 0
+ printstr "Press F1 for help on (almost) any menu!", 0, 192, dpage
 
  SWAP vpage, dpage
  setvispage vpage
