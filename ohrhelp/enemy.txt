@@ -1,0 +1,9 @@
+This is the enemy editor.
+
+Use the up and down arrow keys to navigate through the menu.
+
+Use the left and right arrow keys to change which enemy you are editing.
+
+You can also hold the ALT key and type an enemy ID number.
+
+In this menu you can type a name for your enemy, or press ENTER or SPACE to access the various sub-menus.
