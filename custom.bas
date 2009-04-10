@@ -748,6 +748,7 @@ DO
    IF keyval(77) > 1 THEN x = loopvar(x, 0, 7, 1)
    IF keyval(57) > 1 THEN
     setbit font(), 0, (f(pt) * 8 + x) * 8 + y, (readbit(font(), 0, (f(pt) * 8 + x) * 8 + y) XOR 1)
+    setfont font()
    END IF
  END SELECT
  IF mode >= 0 THEN
