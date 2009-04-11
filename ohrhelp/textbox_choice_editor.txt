@@ -1,0 +1,9 @@
+This is the text box choice editor. Here you can create a tiny menu with two choices that will pop up when the text box is displayed.
+
+For example, to make a simple yes/no question, set Choice = Enabled.
+
+Then set Option 0 text to "Yes" and option 1 text to "No".
+
+Press ENTER or SPACE to change the set tag  foro each choice. You could use the same tag number, but make option 0 turn the tag ON while option 1 turns the tag OFF.
+
+Press - to switch between setting thhe tag ON or OFF.

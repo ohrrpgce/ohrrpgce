@@ -1,0 +1,21 @@
+The text box connection tool provides a quick way to navigate long and complicated chains of connected text boxes.
+
+You can also easily insert new text boxes into the chain.
+
+At the bottom of the screen is a preview of the current text box.
+
+The top of the screen is divided into three columns.
+
+The left column lists any text boxes that link to the current box.
+
+The center column lists the current text box.
+
+The right column lists any text boxes that are linked to by the current box. Notice that there is a distinction between boxes that come AFTER the current box, and boxes that are shown INSTEAD of the current box.
+
+Use the arrow keys to move around the columns.
+
+Press ENTER or SPACE on the middle column to go back to the main text box editor menu.
+
+Press ENTER or SPACE on the boxes in the left or right columns to make them current and move them to the middle.
+
+At the bottom of the right column is an option to insert a new box. Press ENTER or SPACE on it and you will be asked whether you want to insert an INSTEAD box or an AFTER box.

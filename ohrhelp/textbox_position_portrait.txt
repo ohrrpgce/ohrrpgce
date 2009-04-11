@@ -1,0 +1,7 @@
+This screen allows you to reposition the portrait sprite for this text box.
+
+Use the arrow keys to move the portrait.
+
+Use SHIFT+arrow keys to move the portrait faster.
+
+Press ENTER or SPACE when you are finished to confirm the location and return to the previous menu.

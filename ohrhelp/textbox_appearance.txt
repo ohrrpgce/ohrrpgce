@@ -1,0 +1,5 @@
+In this menu you can customize the visual display of the text box.
+
+Use the up and down arrow keys to navigate the menu.
+
+Use the left and right arrow keys to change values, or you can type in numbers.

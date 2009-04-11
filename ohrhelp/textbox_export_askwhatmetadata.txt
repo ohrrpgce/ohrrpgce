@@ -1,0 +1,29 @@
+This menu allows you to choose which text box data to export.
+
+Use the up and down arrow keys to navigate the menu.
+
+Press ENTER or SPACE to change which data to include. Data types shown in white will be included. Data types shown in grey will be ignored.
+
+Press ENTER or SPACE on "done" when  you are ready to export.
+
+Text: This is all the actuall text of
+   each text box.
+
+Conditionals: This includes all tag
+   data and actions and information
+   about how boxes are connected to
+   each other.
+
+Choices: This includes the simple
+   optional two-choice pop-up
+   questions.
+
+Appearance: This includes color,
+   border portrait and other visual
+   presentation data.
+
+If you are exporting your text boxes for a backup copy, definitely include everything.
+
+If you are exporting just so you can run your text boxes through a spellchecker, then just the text should be enough.
+
+If in doubt, go ahead and include everything.
