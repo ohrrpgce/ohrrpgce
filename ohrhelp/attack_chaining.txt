@@ -1,0 +1,11 @@
+This is the attack chaining editor. Chaining means that you can attach two or more attacks together in a chain, one after the other.
+
+Use the up and down arrow keys to navigate through the menu.
+
+Use the left and right arrow keys to change values, or you can type in numbers.
+
+You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
+
+Chain to: Use the left and right arrow keys to choose another attack that will be chained to right after this attack finishes.
+
+Chain Rate%: This is a percentage that controls how often the chain succeeds. A chain rate of 50 would only chain half the time. If you want the chain to happen every time, use 100.

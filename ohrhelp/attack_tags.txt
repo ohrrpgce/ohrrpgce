@@ -1,0 +1,35 @@
+This is the attack tag editor.
+
+Use the up and down arrow keys to navigate through the menu.
+
+Use the left and right arrow keys to change values, or you can type in numbers.
+
+You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
+
+There are 2 tag settings, each divided into 3 sections.
+
+On: This is the condition that triggers the tag setting.
+
+* On Never - This means that the tag
+  setting is entirely disabled.
+
+* On Use - This means the tag setting
+  will be activated any time the
+  attack is used.
+
+* On Hit - This means the tag setting
+  will only be activated if the
+  attack succeeds.
+
+* On Miss - This means the tag
+  setting will only be activated if
+  the attack fails.
+
+* On Kill - This means the tag
+  setting will only be activated if
+  the attack kills at least one of
+  its targets.
+
+If Tag: This is a tag number that is checked before a tag is ste. Press ENTER or SPACE to browse available tags, or press BACKSPACE to clear. Press - to toggle between requiring the tag to be ON or OFF. If this is left as "NONE" then the tag in the next line will be set without requiring any tag check first.
+
+Set Tag: This is the tag that will be turned ON oor OFF when the attack is used. Press ENTER or SPACE to browse available tags, or press BACKSPACE to clear. Press - to toggle between turning the tag ON or OFF.

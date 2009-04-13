@@ -1,7 +1,11 @@
-*************************************
-
 This screen allows you to change how
 much damage an attack will do and how it will come up with the numbers.
+
+Use the up and down arrow keys to navigate the menu.
+
+Use the left or right arrow keys to change the values.
+
+Hold ALT and press the left or right arrow keys to change which attack you are editing, or type in an ID number.
 
 *************************************
 

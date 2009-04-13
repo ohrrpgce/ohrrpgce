@@ -1083,7 +1083,7 @@ SELECT CASE menutype(nowindex)
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
  CASE 2' set tag
-  changed = intgrabber(datablock(menuoff(nowindex)), -999, 999)
+  changed = tag_grabber(datablock(menuoff(nowindex)), -999, 999)
  CASE 3' string
   a$ = readbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
   IF strgrabber(a$, maxtable(menulimits(nowindex))) THEN changed = 1

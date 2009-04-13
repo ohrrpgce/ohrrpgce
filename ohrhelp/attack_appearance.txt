@@ -1,0 +1,156 @@
+This is the attack appearance editor.
+
+Use the up and down arrow keys to navigate through the menu.
+
+Use the left and right arrow keys to change values, or you can type in numbers.
+
+You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
+
+Picture: This is the sprite set used by this attack in battle.
+
+Palette: This should normally be "default", but you can press ENTER or SPACE if you want to browse other palettes to use for the sprite.
+
+Attack Animation: Here you can choose between several different animations with the left and right arrow keys.
+
+* Normal - The attack appears over
+   the target.
+
+* Projectile - The attack moves from
+   the attacker to the target.
+
+* Reverse Projectile - The attack
+   moves from the target to the
+   attacker
+
+* Drop - The attack falls straight
+   down from the sky and lands on the
+   target
+
+* Ring - When used against a single
+   target, 8 attack sprites appear in
+   a ring around the target, and move
+   inward. When used on multiple
+   targets, one attack sprite appears
+   near each target and moves in a
+   circle around it.
+
+* Wave - When used against a single
+   target, a horizontal row of attack
+   sprites moves across the screen
+   past the target. When used on
+   multiple targets, a diagonal row
+   of attack sprites moves across the
+   whole screen.
+
+* Scatter - An attack sprite appears
+   over the target and then moves
+   away in a random direction.
+
+* Sequential Projectile - The attack
+   sprite starts at the attacker, and
+   moves to strike each target one
+   after another before flying off
+   the oppostite side of the screen.
+
+* Meteor - The attack falls
+   diagonally from the top of the
+   screen and strikes the target
+
+* Driveby - The moves across the
+   whole screen from the attacker's
+   side to he targets side, striking
+   the target as it passes.
+
+* Null - No animation at all. This is
+   often used in chains with other
+   attacks to apply extra effects.
+
+Animation Pattern: This affects how the three frames of the attack's sprite set animate. It does not affect the movement of the sprite, only the changing of the frames.
+
+* Cycle Forward - The frames cycle
+  0 1 2 0 1 2 0 1 2 0 1 2 ...
+
+* Cycle Back - The frames cycle
+  2 1 0 2 1 0 2 1 0 2 1 0 ...
+
+* Oscilate - The frames cycle
+  0 1 2 2 1 0 0 1 2 2 1 0 ...
+
+* Random - The frames cycle randomly
+  with no pattern.
+
+Attacker animation: This controls how the attacker moves when doing the attack.
+
+* Strike - When used by a hero, the
+  hero steps forward, swings its
+  weapon, and step back. When used by
+  an enemy, the enemy twitches.
+
+* Cast - When used by a hero, the
+  hero steps forward, shows its
+  casting animation frame, and steps
+  back. When used by an enemy, the
+  enemy twitchs.
+
+* Dash in - Causes the attacker to
+  move close to the target, do the 
+  attack, and then return to its
+  starting point.
+
+* Spinstrike - Causes the attacker to
+  flip horizontally several times.
+  If used by a hero, the hero's
+  weapon will appear in its hand.
+
+* Jump - Causes the attacker to leap
+  off the top of the screen. The
+  attacker  will remain invisible
+  until doing an attack with the
+  "Land" attacker animation. You can
+  use both "Jump" and "Land"  as part
+  of a single chain of attacks.
+
+* Land - Causes the attacker to fall
+  from the top of the screen and land
+  on the target, then to return to
+  its starting point.
+
+* Null - The attacker does not move
+  at all.
+
+* Standing Cast - If used by a hero, 
+  the hero will show its casting
+  animation frame. It will not move.
+  Does nothing if used by an enemy.
+
+* Teleport - The attacker vanishes
+  and reappears close to the target,
+  then attacks, the disappears and
+  reappears in its starting point. If
+  this attack is used by a hero, the
+  hero's weapon will display.
+
+Caption: A line of text that can be displayed at the bottom of the string whenever the attack is used.
+
+Display Caption: Controls how long the attack caption is displayed. Press left and right arrow keys to change this value. This can be one of:
+
+* Not At All - The caption is not
+  used.
+
+* Full Duration of Attack - The
+  caption will last until the attack
+  animation finishes, so the length
+  of time depends on which "Attack
+  Animation" and "Attacker Animation"
+  you have chosen.
+
+* ## ticks - Allows you to specify a
+  specific number of game ticks. 1
+  second is roughly 18 game ticks, so
+  if you wanted the caption to stay
+  for 3 seconds, you would put "54
+  Ticks"
+
+Delay Before Caption: Allows you to specify a delay in game ticks before the caption appears. This can be useful for attacck animations that have a long lead-in, or for captions that are supposed to represent something that the attacker says after the attack has completed.
+
+Sound Effect: Use the left and right arrow keys to select a sound effect. You can press ENTER or SPACE to preview the currently selected effect.

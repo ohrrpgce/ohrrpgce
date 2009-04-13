@@ -1,0 +1,157 @@
+This is the attack target editor.
+
+Use the up and down arrow keys to navigate through the menu.
+
+Use the left and right arrow keys to change values, or you can type in numbers.
+
+You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
+
+Target Class: This controls who the attack can be used on.
+
+* Enemy - For heros this means the
+  attack is targetted to enemies. For
+  enemies this means that the attack
+  is targetted to heroes.
+
+* Ally - For heroes this means that
+  the attack is targeted to heroes.
+  For enemies this means that the
+  attack is targetted to enemies.
+
+* Self - This means the attack can
+  only be targetted to the attacker.
+
+* All - This means the attack can be
+  targeted to anyone, hero or enemy.
+
+* Ally (including dead) - For heroes
+  this means that the attack can
+  target any hero including the ones
+  who are already dead. This is
+  intended for "Life" potions or
+  spells. For enemies, this is no
+  different than "Ally"
+
+* Ally not self - Just like "Ally"
+  but the attacker is not permitted
+  to target itself. Only team-mates
+  can be targetted.
+
+* Revenge (last to hit attacker) -
+  This means the attack can only
+  target the last hero or enemy that
+  has dealt damage to the attacker.
+
+* Revenge (whole battle) - This means
+  the attack can target any hero or
+  enemy who has dealt damage to the
+  attacker over the course of the
+  entire battle.
+
+* Previous target - This means the
+  attack can only target the same
+  target as whatever attack was most
+  recently used by the attacker.
+
+* Recorded target - This means that
+  the attack will only be able to
+  target any targets that the
+  attacker has previously hit with an
+  attack that has the "Store Target"
+  bitset turned on. If no "Store
+  Target" attack has been used by the
+  attacker, then the attacker will
+  not be able to use this attack at
+  all.
+
+* Deal Allies (hero only) - This
+  attack can only target dead heros.
+  If no heroes are dead, the attack
+  will be unusable. The attack cannot
+  be used by enemies.
+
+* Thankvenge (last to  cure attacker)   This means the attack will only be
+  able to target the last hero or
+  enemy to deal negative damage
+  (cure) the attacker. If the
+  attacker has not been cured in the
+  current battle, the attack will be
+  unusable.
+
+* Thankvenge (whole battle) - This
+  means the attack will be able to
+  target any hero or enemy who has
+  dealt negative damage (cure) to the
+  attacker over the course of the
+  entire battle. If the attacker has
+  never been cuured, the attack will
+  be unusable.
+
+Target setting: This controls how the attack can be targetted if more than one valid target are available in the chosen target class.
+
+* Focused - This means that only one
+  target can be chosen.
+
+* Spread - This means the attack will
+  target all available valid targets
+  within the target class.
+
+* Optional Spread - This means the
+  attacker will have the choice of
+  whether they want to choose a
+  single target or all available
+  targets.
+
+* Random Target - Like "Focus" this
+  chooses only a single target, but
+  the hero will not be allowed to
+  choose which target. If used by an
+  enemy, this is not any different
+  than "Focus"
+
+* First Target - This always targets
+  the first valid target in the
+  target class. it is not random.
+
+Prefer Target: For heroes, this affects which target the target selection cursor starts on. For enemies this affects which target the enemy will choose from its available targets.
+
+* Default - For heros, starts the
+  cursor on the first valid target.
+  For enemies, the enemy will choose
+  a random target.
+
+* First - For heroes this is the same
+  as "default". For enemies they will
+  always choose the first valid
+  target.
+
+* Closest - Chooses the target
+  closest to the attacker.
+
+* Farthest - Chooses the target
+  furthest away from the attacker.
+
+* Random - For heroes, starts the
+  cursor on a random valid target.
+  For enemies this is the same as
+  "default".
+
+* Weakest - Chooses the target with
+  the weakest stat. The stat is
+  chosen below.
+
+* Strongest - Chooses the target with
+  the strongest stat. The stat is
+  chosen below.
+
+* Weakest% - Chooses the target with
+  the weakest stat as a percentage of
+  the target's maximum for that
+  attack.
+
+* Strongest% - Chooses the target
+  with the strongest stat as a
+  percentage of the target's maximum
+  for that stat.
+
+Weak/Strong Stat: This only applies if you have chosen "weakest" "strongest" "weakest%" or "strongest%" as the "Prefer Target" setting. Valid values are "same as target stat", or any specific stat, or any affliction register such as "poision" or "mute".

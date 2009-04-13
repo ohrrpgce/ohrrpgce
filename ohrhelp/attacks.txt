@@ -1,0 +1,11 @@
+This is the attack editor.
+
+Use the up and down arrow keys to navigate through the menu.
+
+Use the left and right arrow keys to change which attack you are editing.
+
+You can also hold the ALT key and type an attack ID number.
+
+In this menu you can type a name for your attack, and you can type a description which will be displayed if the attack is used a s a spell in a spell list.
+
+Press ENTER or SPACE to access the various sub-menus.
