@@ -1,0 +1,7 @@
+This is the item selection menu.
+
+Use the up and down arrow keys to select an item from the list.
+
+Press ENTER or SPACE to start editing an item.
+
+At the bottom of the list, you can press ENTER or SPACE on "Add a new item" and a new item will be added to the list.

@@ -1,0 +1,59 @@
+This is the item editor.
+
+Use the up and down arrow keys to navigate the menu.
+
+Name: Here you can type a short display name for the item.
+
+Info: Here you can type a longer descriptive line about the item which will be displayed in the inventory screen.
+
+Value: This is the suggested price when the item is added to a shop.
+
+When used in battle: This is an attack that will be done by a hero who uses this item from their Items menu in battle.
+
+When used as a weapon: This is an attack that will be done if the item is equipped as a hero's weapon.
+
+Equippable as: This determines which of a hero's equipment slots an item can be equipped to. If it is set to "NEVER EQUIPPED" then the item is not equippable. Many of the other settings in the item editor do not matter unless the item is marked as equippable.
+
+Teach Spell: This is an attck which the item can teach to a hero if it is used from the Items menu outside of battle. The hero must be able to learn the attack. Add the same attack to a hero's spell list, and mark it to be learned "From and Item"
+
+When used out of battle: This is an attack that will be used if the item is used from the Items menu outside of battle. This is most often used for cure potions.
+
+Weapon Picture: This is the sprite set used by the item when it is equipped by a hero as a weapon.
+
+Weapon Palette: Normally this should be "default", but if you press ENTER or SPACE you can browse other available 16-color palettes.
+
+Usage rules:
+
+* Unlimited Use - The item can be
+  used as many times as you want.
+
+* Consumed By Use - The item will be
+  removed after you use it. This has
+  no effect on equippability, it only
+  applies to using items from the
+  "Item" menu, both inside and
+  outside of battle.
+
+* Cannot be sold/dropped - just like
+  "Unlimited Use" except that it will
+  not be possible to trash the item
+  in the item screen, nor will it be
+  possible to sell it in shops.
+
+Own item TAG: This is a tag that will be turned on if you own at least one of this item. This includes both items in your inventory and items that are equipped to any hero. Press ENTER or SPACE to browse, press BACKSPACE to clear.
+
+Is in inventory TAG: This is a tag that will be turned on if you have at least one of this item in your inventory. it is not affected by items that are equipped to heroes.
+
+Is equipped TAG: This is a tag that will be turned on if any hero has this item equipped. It is not affected by the items you have in your inventory.
+
+Is equipped by active hero TAG: This tag will be turned on only if the item is equipped by one of the four heroes in your active party. it is not affected by items in your inventory, nor is it affected by items equipped by heroes in your reserve.
+
+Handle Position A: This is the position of the handle of the weapon for the hero's first frame of attack animation. Press ENTER or SPACE to position the point.
+
+Handle Position B: This is the position of the handle of the weapon for the hero's second frame of attack animation. Press ENTER or SPACE to position the point.
+
+Stat Bonuses: Press ENTER or SPACE to go to a menu where you can customize the number of points that this item adds to the hero's stats when it is equipped.
+
+Equipment bits: Press ENTER or SPACE to go to a menu where you can set a wide variety of options for this item. All bitsets are OFF/ON settings.
+
+Who Can Equip: Press ENTER or SPACE to go to a list of heroes where you can select which ones are allowed to equip this item.
