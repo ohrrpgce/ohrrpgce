@@ -1416,8 +1416,8 @@ SUB fliptile (mover(), ts AS TileEditState)
 writeundoblock mover(), ts
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 flipx = 0: flipy = 0
-IF (ts.zone = 13 OR ts.zone = 16) OR keyval(scLeftBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) = 0) THEN flipx = 19 : debug "noctrl"
-IF ts.zone = 14 OR ts.zone = 15 OR keyval(scRightBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) > 0) THEN flipy = 19 : debug "ctrl"
+IF (ts.zone = 13 OR ts.zone = 16) OR keyval(scLeftBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) = 0) THEN flipx = 19
+IF ts.zone = 14 OR ts.zone = 15 OR keyval(scRightBracket) > 1 OR (keyval(scBackspace) > 1 AND keyval(scCtrl) > 0) THEN flipy = 19
 FOR i = 0 TO 19
  FOR j = 0 TO 19
   tempx = ABS(i - flipx)
