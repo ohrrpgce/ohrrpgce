@@ -24,8 +24,8 @@ DEFINT A-Z
 REM $STATIC
 
 SUB cathero
-
-DIM zsort(3), catermask(0)
+'NOTE: zsort contains positions in CATERPILLAR party
+DIM zsort(3)
 
 '--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
 IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 AND readbit(veh(), 9, 4) = 0 AND readbit(veh(), 9, 5) = 0 THEN EXIT SUB
@@ -33,33 +33,33 @@ IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(
 IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
  '--caterpillar party (normal)
  '--this should Y-sort
- catermask(0) = 0
+ catlen = 0
  FOR i = 0 TO 3
-  FOR o = 0 TO 3
-   IF readbit(catermask(), 0, o) = 0 THEN j = o
-  NEXT o
-  FOR o = 0 TO 3
-   IF caty(o * 5) - mapy < caty(j * 5) - mapy AND readbit(catermask(), 0, o) = 0 THEN
-    j = o
+  IF hero(i) > 0 THEN
+   zsort(catlen) = catlen
+   catlen += 1
+  END IF
+ NEXT
+ FOR i = 0 TO catlen - 2
+  FOR o = i + 1 TO catlen - 1
+   IF caty(zsort(o) * 5) < caty(zsort(i) * 5) THEN
+    SWAP zsort(i), zsort(o)
    END IF
-  NEXT o
-  zsort(i) = j
-  setbit catermask(), 0, j, 1
- NEXT i
- FOR i = 0 TO 3
+  NEXT
+ NEXT
+ FOR i = 0 TO catlen - 1
   IF framewalkabout(catx(zsort(i) * 5), caty(zsort(i) * 5) + gmap(11), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
-   loadsprite buffer(), 0, 200 * ((catd(zsort(i) * 5) * 2) + INT(wtog(zsort(i)) / 2)), zsort(i) * 5, 20, 20, 2
-   drawsprite buffer(), 0, pal16(), zsort(i) * 16, framex, framey - catz(zsort(i) * 5), dpage
+   IF herow(zsort(i)).sprite = NULL THEN fatalerror "cathero: hero sprite " & zsort(i) & " missing!"
+   sprite_draw herow(zsort(i)).sprite + catd(zsort(i) * 5) * 2 + (wtog(zsort(i)) \ 2), herow(zsort(i)).pal, framex, framey - catz(zsort(i) * 5), 1, -1, dpage
   END IF
  NEXT i
 ELSE
  '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
  IF framewalkabout(catx(0), caty(0) + gmap(11), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
-  loadsprite buffer(), 0, 200 * ((catd(0) * 2) + INT(wtog(0) / 2)), 0, 20, 20, 2
-  drawsprite buffer(), 0, pal16(), 0, framex, framey - catz(0), dpage
+  IF herow(0).sprite = NULL THEN fatalerror "cathero: hero sprite missing!"
+  sprite_draw herow(0).sprite + catd(0) * 2 + (wtog(0) \ 2), herow(0).pal, framex, framey - catz(0), 1, -1, dpage
  END IF
 END IF
-
 END SUB
 
 FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as integer) as integer
@@ -108,7 +108,6 @@ SUB drawnpcs
      rectangle npc(i).x - mapx + 5, npc(i).y - mapy + gmap(11) + 14, 10, 3, uilook(uiShadow), dpage
     END IF
     sprite_draw npcs(o).sprite + (2 * npc(i).dir) + npc(i).frame \ 2, npcs(o).pal, drawnpcX, drawnpcY - z, 1, -1, dpage
-    'edgeprint STR$(i), drawnpcX, drawnpcY + gmap(11) - z, uilook(uiText), dpage
    END IF
   END IF
  NEXT i
@@ -553,7 +552,7 @@ SUB verquit
  quitprompt$ = readglobalstring$(55, "Quit Playing?", 20)
  quityes$ = readglobalstring$(57, "Yes", 10)
  quitno$ = readglobalstring$(58, "No", 10)
- dd = 2
+ direction = 2
  ptr2 = 0
  setkeys
  DO
@@ -570,11 +569,10 @@ SUB verquit
    flusharray carray(), 7, 0
    EXIT SUB
   END IF
-  IF carray(2) > 0 THEN ptr2 = ptr2 - 5: dd = 3
-  IF carray(3) > 0 THEN ptr2 = ptr2 + 5: dd = 1
+  IF carray(2) > 0 THEN ptr2 = ptr2 - 5: direction = 3
+  IF carray(3) > 0 THEN ptr2 = ptr2 + 5: direction = 1
   centerbox 160, 95, 200, 42, 15, dpage
-  loadsprite buffer(), 0, 200 * ((dd * 2) + INT(wtog(0) / 2)), 0 * 5, 20, 20, 2
-  drawsprite buffer(), 0, pal16(), 0, 150 + (ptr2), 90, dpage
+  sprite_draw herow(0).sprite + direction * 2 + (wtog(0) \ 2), herow(0).pal, 150 + ptr2, 90, 1, -1, dpage
   edgeprint quitprompt$, xstring(quitprompt$, 160), 80, uilook(uiText), dpage
   col = uilook(uiMenuItem): IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
   edgeprint quityes$, 70, 96, col, dpage
@@ -634,7 +632,6 @@ END FUNCTION
 SUB reloadnpc (stat())
 vishero stat()
 FOR i = 0 TO max_npc_defs
- setpicstuf buffer(), 1600, 2
  with npcs(i)
   if .sprite then sprite_unload(@.sprite)
   if .pal then palette16_unload(@.pal)

@@ -62,6 +62,7 @@ EXTERN framey as integer
 EXTERN tilesets() as TilesetData ptr
 
 'Hero walkabout globals
+EXTERN as GraphicPair herow()
 EXTERN as integer catx(), caty(), catz(), catd()
 EXTERN herospeed() as integer
 EXTERN as integer xgo(), ygo()

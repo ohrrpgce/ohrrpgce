@@ -522,18 +522,16 @@ NEXT i
 END SUB
 
 FUNCTION herobyrank (slot as integer) as integer
-result = -1
 IF slot >= 0 AND slot <= 3 THEN
  j = -1
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN j = j + 1
   IF j = slot THEN
-   result = hero(i) - 1
-   EXIT FOR
+   RETURN hero(i) - 1
   END IF
  NEXT i
 END IF
-herobyrank = result
+RETURN -1
 END FUNCTION
 
 SUB initgame
@@ -2991,19 +2989,17 @@ vehpass = v
 END FUNCTION
 
 SUB vishero (stat())
-'FIXME: this needs to be rewritten to use Frame objects rather than a screen page
+FOR i = 0 TO UBOUND(herow)
+ sprite_unload @herow(i).sprite
+ palette16_unload @herow(i).pal
+NEXT
 o = 0
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
-  getpal16 pal16(), o, stat(i, 1, 15), 4, stat(i, 1, 14)
-  setpicstuf buffer(), 1600, 2
-  loadset game + ".pt4", stat(i, 1, 14), 5 * o
+  herow(o).sprite = sprite_load(game + ".pt4", stat(i, 1, 14), 8, 20, 20)
+  herow(o).pal = palette16_load(game + ".pal", stat(i, 1, 15), 4, stat(i, 1, 14))
   o = o + 1
  END IF
-NEXT i
-FOR i = o TO 3
- '--black out unused heros
- rectangle 0, i * 5, 320, 5, 0, 2
 NEXT i
 END SUB
 

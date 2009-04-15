@@ -648,8 +648,7 @@ DO
   FOR i = 0 TO 3
    IF hero(i) > 0 THEN
     wt = 0: IF wptr = i THEN wt = INT(wtogl / 2)
-    loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
-    drawsprite buffer(), 0, pal16(), o * 16, 89, 8 + i * 20, dpage
+    sprite_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 89, 8 + i * 20, 1, -1, dpage
     col = uilook(uiMenuItem): IF i = wptr THEN col = uilook(uiSelectedItem + tog)
     tstat = atktemp(18)
     IF tstat = 0 or tstat = 1 THEN
@@ -1659,8 +1658,7 @@ DO
   FOR i = 0 TO 3
    IF hero(i) > 0 THEN
     wt = 0: IF wptr = i THEN wt = INT(wtogl / 2)
-    loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
-    drawsprite buffer(), 0, pal16(), o * 16, 125, 8 + i * 20, dpage
+    sprite_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 125, 8 + i * 20, 1, -1, dpage
     IF tstat(sptr) = 0 or tstat(sptr) = 1 THEN
      temp$ = STR$(ABS(stat(i, 0, tstat(sptr)))) & "/" & STR$(ABS(stat(i, 1, tstat(sptr))))
     ELSE

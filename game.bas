@@ -80,6 +80,7 @@ DIM stat(40, 1, 16)
 DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40), herobits(59, 3), itembits(maxMaxItems, 3), nativehbits(40, 4)
 DIM eqstuf(40, 4)
 DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3)
+DIM herow(3) as GraphicPair
 
 DIM scroll(), pass()
 DIM tilesets(2) as TilesetData ptr
@@ -2759,9 +2760,6 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
    loadmap_npcd gam.map.id
    loadmap_npcl gam.map.id
   END IF
- ELSE
-  'reload hero graphics after a battle
-  vishero stat()
  END IF
 
  IF isfile(maplumpname$(gam.map.id, "e")) THEN

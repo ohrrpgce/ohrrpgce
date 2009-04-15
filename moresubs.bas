@@ -615,8 +615,8 @@ o = 0
 FOR i = 0 TO 3
  IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), dpage
  IF hero(i) THEN
-  loadsprite buffer(), 0, 200 * 4, o * 5, 20, 20, 2
-  drawsprite buffer(), 0, pal16(), o * 16, 105 + (30 * i), 60 + (i = swapme) * 6, dpage
+  '5th frame: down
+  sprite_draw herow(o).sprite + 4, herow(o).pal, 105 + i * 30, 60 + (i = swapme) * 6, 1, -1, dpage
   o = o + 1
  END IF
 NEXT i
@@ -1227,8 +1227,7 @@ DO
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    wt = 0: IF w = i THEN wt = INT(wtg / 2)
-   loadsprite buffer(), 0, 200 * ((2 * 2) + wt), o * 5, 20, 20, 2
-   drawsprite buffer(), 0, pal16(), o * 16, 100 + i * 30, 100, dpage
+   sprite_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 100 + i * 30, 100, 1, -1, dpage
    o = o + 1
   END IF
  NEXT i
@@ -1450,6 +1449,12 @@ FOR i = 0 TO max_npc_defs
   palette16_unload(@.pal)
  END WITH
 NEXT i
+FOR i = 0 TO UBOUND(herow)
+ WITH herow(i)
+  sprite_unload(@.sprite)
+  palette16_unload(@.pal)
+ END WITH
+NEXT
 
 clear_box_border_cache
 
