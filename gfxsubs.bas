@@ -22,7 +22,7 @@ sub smoothzoomblit_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval 
 	sptr = dptr
 
 	if zoom = 1 then
-		memcpy sptr, rptr, wide
+		memcpy sptr, rptr, wide * high
 	else
 		for i = 2 to zoom
 			mult = mult shl 8 + 1
