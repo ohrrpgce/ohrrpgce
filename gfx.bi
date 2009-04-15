@@ -2,6 +2,8 @@
 
 #include "udts.bi"
 
+' gfx_*
+
 declare sub gfx_init()		'initilization, including gfx_screenres
 declare sub gfx_close()		'put it back how we found it
 declare sub gfx_showpage(byval raw as ubyte ptr) 'the main event
@@ -22,3 +24,9 @@ declare sub io_setmouse(byval x as integer, byval y as integer)
 declare sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 declare function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
 declare function io_readjoysane(byval as integer, byref as integer, byref as integer, byref as integer) as integer
+
+' gfxsubs
+
+declare sub smoothzoomblit_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval zoom as integer, byval smooth as integer)
+declare sub smoothzoomblit_32bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval zoom as integer, byval smooth as integer, byval pal as integer ptr)
+declare sub smoothzoomblit_anybit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval zoom as integer, byval smooth as integer, byval bpp as integer, byval pitch as integer)

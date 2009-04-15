@@ -220,25 +220,11 @@ SUB gfx_sdl_update_screen()
     SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256)
     SDL_BlitSurface(screenbuffer, @source_rect, screensurface, @dest_rect)
     IF zoom > 1 THEN
-      DIM AS INTEGER x, y, b, z, pitch, bpp, pixels
-      DIM pixelptr AS ubyte PTR
-      pitch = screensurface->pitch
-      bpp = screensurface->format->BytesPerPixel
-      DIM zoombuffer(pitch) AS ubyte
       SDL_LockSurface(screensurface)
-      pixelptr = screensurface->pixels
-      FOR y = 199 TO 0 STEP -1
-       FOR x = 0 TO 319
-         FOR z = 0 TO zoom - 1
-           FOR b = 0 TO bpp - 1
-             zoombuffer((x * zoom + z) * bpp + b) = pixelptr[y * pitch + (x * bpp + b)]
-           NEXT b
-         NEXT z
-       NEXT x
-       FOR z = 0 TO zoom - 1
-         memcpy pixelptr + (y * zoom + z) * pitch, @zoombuffer(0), pitch
-       NEXT z
-      NEXT y
+
+      DIM bpp AS INTEGER = screensurface->format->BytesPerPixel
+      smoothzoomblit_anybit(screensurface->pixels, screensurface->pixels, zoom, 0, bpp, screensurface->pitch)
+
       SDL_UnlockSurface(screensurface)
     END IF
     SDL_Flip(screensurface)

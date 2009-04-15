@@ -6,8 +6,9 @@
 
 option explicit
 
-#include "allegro.bi"
 #include "gfx.bi"
+#undef Font
+#include "allegro.bi"
 #include "scancodes.bi"
 
 declare sub debug(s$)

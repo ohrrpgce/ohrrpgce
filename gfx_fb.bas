@@ -61,133 +61,20 @@ end sub
 
 sub gfx_showpage(byval raw as ubyte ptr)
 'takes a pointer to raw 8-bit data at 320x200
-	dim rptr as ubyte ptr
-	dim as integer mult = 1
-	dim as integer w, h, i, j
-	dim as integer fx, fy, p0, p1, p2, p3, p4, pstep'for 2x/3x filtering
-
 	screenlock
 
-	for i = 2 to zoom
-		mult = mult shl 8 + 1
-	next
-
-	rptr = raw
+	dim as ubyte ptr sptr = screenptr + (screen_buffer_offset * 320 * zoom)
 
 	if depth = 8 then
-		dim sptr as ubyte ptr
-		sptr = screenptr + (screen_buffer_offset * 320 * zoom)
-
-		if zoom = 1 then
-			memcpy sptr, rptr, 320 * 200
-		else
-			for h = 0 to 200 - 1
-				for w = 320 / 4 - 1 to 0 step -1
-					'could just multiple by &h1010101, but FB produces truly daft code for multiplication by constants
-					*cast(integer ptr, sptr) = rptr[0] * mult
-					sptr += zoom
-					*cast(integer ptr, sptr) = rptr[1] * mult
-					sptr += zoom
-					*cast(integer ptr, sptr) = rptr[2] * mult
-					sptr += zoom
-					*cast(integer ptr, sptr) = rptr[3] * mult
-					sptr += zoom
-					rptr += 4
-				next
-				'repeat row zoom times
-				for i = 2 to zoom
-					memcpy sptr, sptr - 320 * zoom, 320 * zoom
-					sptr += 320 * zoom
-				next
-			next
-		end if
-		if smooth = 1 and (zoom = 2 or zoom = 3) then
-			'added for 2x/3x filtering
-			if screenmodex > 640 then pstep = 1 else pstep = 2
-			sptr = screenptr + (screen_buffer_offset * 320 * zoom)
-			dim as ubyte ptr sptr1, sptr2, sptr3
-			for fy = 1 to (screenmodey - 2) step pstep
-				sptr1 = sptr + ((fy - 1) * screenmodex) + 1  '(1,0)
-				sptr2 = sptr1 + screenmodex '(1,1)
-				sptr3 = sptr2 + screenmodex '(1,2)
-				for fx = (screenmodex - 2) to 1 step -1
-					'p0=point(fx,fy)
-					'p1=point(fx-1,fy-1)'nw
-					'p2=point(fx+1,fy-1)'ne
-					'p3=point(fx+1,fy+1)'se
-					'p4=point(fx-1,fy+1)'sw
-					'if p1 = p3 then p0 = p1
-					'if p2 = p4 then p0 = p2
-					if sptr1[1] = sptr3[-1] then
-						sptr2[0] = sptr1[1]
-					else
-						if sptr1[-1] = sptr3[1] then sptr2[0] = sptr1[-1]
-					end if
-					'pset(fx,fy),p0
-					sptr1 += 1
-					sptr2 += 1
-					sptr3 += 1
-				next fx
-			next fy
-		end if
+		smoothzoomblit_8bit(raw, sptr, zoom, smooth)
+	elseif depth = 32 then
+		smoothzoomblit_32bit(raw, sptr, zoom, smooth, @truepal(0))
 	else
-		'true colour
-		dim xptr as integer ptr
-		dim pixel as integer
-		xptr = screenptr
-		xptr += (screen_buffer_offset * 320 * zoom)
-		for h = 0 to 200 - 1
-			'repeat row zoom times
-			for w = 0 to 320 - 1
-				'get colour
-				pixel = truepal(*rptr)
-				'zoom sptrs for each rptr
-				for j = zoom to 1 step -1
-					*xptr = pixel
-					xptr += 1
-				next
-				rptr += 1
-			next
-			for i = 2 to zoom
-				memcpy xptr, xptr - 320 * zoom, 4 * 320 * zoom
-				xptr += 320 * zoom
-			next
-		next
-		if smooth = 1 and (zoom = 2 or zoom = 3) then
-			'this is duplicated from the 8-bit smoothing code because there is no
-			'way to write this code as a function that would accept both ubyte ptr and integer ptr
-			'added for 2x/3x filtering
-			if screenmodex > 640 then pstep = 1 else pstep = 2
-			xptr = screenptr + (screen_buffer_offset * 320 * zoom)
-			dim as integer ptr xptr1, xptr2, xptr3
-			for fy = 1 to (screenmodey - 2) step pstep
-				xptr1 = xptr + ((fy - 1) * screenmodex) + 1  '(1,0)
-				xptr2 = xptr1 + screenmodex '(1,1)
-				xptr3 = xptr2 + screenmodex '(1,2)
-				for fx = (screenmodex - 2) to 1 step -1
-					'p0=point(fx,fy)
-					'p1=point(fx-1,fy-1)'nw
-					'p2=point(fx+1,fy-1)'ne
-					'p3=point(fx+1,fy+1)'se
-					'p4=point(fx-1,fy+1)'sw
-					'if p1 = p3 then p0 = p1
-					'if p2 = p4 then p0 = p2
-					if xptr1[1] = xptr3[-1] then
-						xptr2[0] = xptr1[1]
-					else
-						if xptr1[-1] = xptr3[1] then xptr2[0] = xptr1[-1]
-					end if
-					'pset(fx,fy),p0
-					xptr1 += 1
-					xptr2 += 1
-					xptr3 += 1
-				next fx
-			next fy
-		end if
+		debug "gfx_showpage: depth " & depth
 	end if
+
 	screenunlock
 	flip
-
 end sub
 
 sub gfx_setpal(pal() as RGBcolor)
