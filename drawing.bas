@@ -2557,19 +2557,35 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
   dowait
  LOOP
 
- clearpage dpage
- clearpage 2
-
- loadbmp srcbmp, 1, 1, 2
-
  '---------------------
  'PICK BACKGROUND COLOR
- pickpos.x = 1
- pickpos.y = 1
+ 
+ clearpage dpage
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+
+ 'This loads the BMP onto a temporary screen page
+ loadbmp srcbmp, 0, 0, holdscreen
+
+ 'Temporaraly update the palette. This will be done again after the transparent color is chosen
+ DIM temppal(7)
+ '--first copy the old palette in the current slot
+ FOR i AS INTEGER = 0 To 7
+  temppal(i) = workpal((state.pt - state.top) * 8 + i)
+ NEXT i
+ IF palstate.pt = 0 THEN
+  convertbmppal srcbmp, master(), temppal(), 0
+ END IF
+
+ DIM temp_placer(1602) AS INTEGER
+ pickpos.x = 0
+ pickpos.y = 0
  DIM bmpd(40) AS INTEGER 'Temp buffer for holding BMP header
  bmpinfo srcbmp, bmpd()
- picksize.x = small(320, bmpd(1))
- picksize.y = small(200, bmpd(2))
+ '--set up cursor
+ picksize.x = small(320, small(bmpd(1), ss.wide))
+ picksize.y = small(200, small(bmpd(2), ss.high))
+ 
  setkeys
  DO
   setwait 110
@@ -2577,33 +2593,38 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
   palstate.tog = palstate.tog XOR 1
   IF keyval(scESC) > 1 THEN 
   '--Cancel
+   freepage holdscreen
    EXIT SUB
   END IF
   IF keyval(scF1) > 1 THEN show_help "sprite_import16_pickbackground"
-  IF keyval(56) THEN movespeed = 9 ELSE movespeed = 1
-  IF keyval(72) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 1)
-  IF keyval(80) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y)
-  IF keyval(75) > 0 THEN pickpos.x = large(pickpos.x - movespeed, 1)
-  IF keyval(77) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x)
+  IF keyval(scALT) THEN movespeed = 9 ELSE movespeed = 1
+  IF keyval(scUp) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 0)
+  IF keyval(scDown) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y - 1)
+  IF keyval(scleft) > 0 THEN pickpos.x = large(pickpos.x - movespeed, 0)
+  IF keyval(scRight) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x - 1)
   IF enter_or_space() THEN EXIT DO
-  putpixel pickpos.x, pickpos.y, uilook(uiSelectedItem + 1), dpage
-  edgeprint "Pick Background Color", 0, 190, 7, dpage
+  '--Draw a preview of the sprite
+  getsprite temp_placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
+  drawspritex temp_placer(), 0, temppal(), 0, 0, 0, dpage, ss.zoom
+  '--Draw the pixel cursor
+  rectangle pickpos.x * ss.zoom, pickpos.y * ss.zoom, ss.zoom, ss.zoom, uilook(uiSelectedDisabled + palstate.tog), dpage
+  edgeprint "Pick Background Color", 0, 190, uilook(uiMenuItem), dpage
   SWAP vpage, dpage
   setvispage vpage
-  copypage 2, dpage
+  clearpage dpage
   dowait
  LOOP
 
  '--picked a transparent pixel
- pixelval = readpixel(pickpos.x, pickpos.y, 2)
+ pixelval = readpixel(pickpos.x, pickpos.y, holdscreen)
  '--swap the transparent pixels to 0
- FOR i AS INTEGER = 1 TO picksize.x
-  FOR o AS INTEGER = 1 TO picksize.y
-   IF readpixel(i, o, 2) = pixelval THEN
-    putpixel i, o, 0, 2
+ FOR i AS INTEGER = 0 TO picksize.x - 1
+  FOR o AS INTEGER = 0 TO picksize.y - 1
+   IF readpixel(i, o, holdscreen) = pixelval THEN
+    putpixel i, o, 0, holdscreen
    ELSE
-    IF readpixel(i, o, 2) = 0 THEN
-     putpixel i, o, pixelval, 2
+    IF readpixel(i, o, holdscreen) = 0 THEN
+     putpixel i, o, pixelval, holdscreen
     END IF
    END IF
   NEXT o
@@ -2616,5 +2637,7 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
   poke8bit workpal(), 0 + (state.pt - state.top) * 16, 0
  END IF
  '--read the sprite
- getsprite placer(), 0, 1, 1, ss.wide, ss.high, 2
+ getsprite placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
+ '--free the temp screen page
+ freepage holdscreen
 END SUB

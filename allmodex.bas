@@ -45,7 +45,6 @@ type node 	'only used for floodfill
 end type
 
 'add page? or assume workpage? (all pages for clip?)
-declare SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 declare sub setclip(l as integer=0, t as integer=0, r as integer=319, b as integer=199)
 declare sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
