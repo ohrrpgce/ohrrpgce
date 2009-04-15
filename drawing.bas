@@ -47,6 +47,7 @@ DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss 
 DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea)
 DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 
 #include "scancodes.bi"
 #include "compat.bi"
@@ -273,7 +274,7 @@ paloption = 2
 IF bmpd(0) = 8 THEN
  loadbmppal srcbmp$, temppal()
  IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
-  paloption = sublist(submenu$(), "sprite_import16_palette")
+  paloption = sublist(submenu$(), "importbmp_palette")
   IF paloption = -1 THEN RETRACE
   IF paloption = 1 THEN
    importmasterpal srcbmp$, gen(genMaxMasterPal) + 1
@@ -1580,7 +1581,7 @@ END SUB
 OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================
 
 SUB sprite (xw, yw, sets, BYREF perset, soff, atatime, info$(), zoom, fileset, font())
-STATIC default$, spriteclip(1602), clippedpal, clippedw, clippedh, paste
+STATIC spriteclip(1602), clippedpal, clippedw, clippedh, paste
 STATIC ss_save AS SpriteEditStatic
 
 DIM mouse(4)
@@ -1612,7 +1613,7 @@ WITH ss
 END WITH
 
 DIM sprites(atatime) AS Frame
-DIM nulpal(8), placer(1602), pclip(8), pmenu$(3), bmpd(40)
+DIM nulpal(8), placer(1602), pclip(8)
 DIM toolinfo(7) AS ToolInfoType
 DIM workpal(8 * (atatime + 1))
 DIM poffset(large(sets, atatime))
@@ -1632,18 +1633,6 @@ WITH state
  .top = 0
 END WITH
 
-'FIXME: these are used in import16 GOSUB block, move these there when that gets SUBified
-DIM palstate AS MenuState 
-DIM coltemp AS INTEGER
-DIM srcbmp AS STRING
-DIM pickpos AS XYPair
-DIM picksize AS XYPair
-DIM pixelval AS INTEGER
-DIM movespeed AS INTEGER
-
-pmenu$(0) = "Overwrite Current Palette"
-pmenu$(1) = "Import Without Palette"
-pmenu$(2) = "Cancel Import"
 WITH toolinfo(0)
  .name = "Draw"
  .icon = CHR(3)
@@ -2160,7 +2149,8 @@ IF keyval(scCapslock) > 0 THEN
  IF slowkey(77, 6) THEN rectangle 239, 119, ss.wide, ss.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
 END IF
 IF keyval(23) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN
- GOSUB import16
+ spriteedit_import16 ss, ss_save, state, placer(), workpal(), poffset(), info$(), toolinfo(), area(), mouse()
+ GOSUB spedbak
  setkeyrepeat 25, 5
 END IF
 RETRACE
@@ -2184,109 +2174,6 @@ area(0).w = ss.wide * ss.zoom
 area(0).h = ss.high * ss.zoom
 area(13).w = ss.wide
 area(13).h = ss.high
-RETRACE
-
-import16:
-'FIXME: several things such as srcbmp and palstate are DIMed near the top of sprite()
-'       move them here when import16 gets SUBified
-setkeyrepeat
-srcbmp = browse$(2, default$, "*.bmp", "")
-IF srcbmp = "" THEN RETRACE
-'--------------------
-'DECIDE ABOUT PALETTE
-palstate.pt = 0
-palstate.last = 2
-setkeys
-DO
- setwait 110
- setkeys
- palstate.tog = palstate.tog XOR 1
- IF keyval(scESC) > 1 THEN RETRACE
- IF keyval(scF1) > 1 THEN show_help "sprite_import16"
- IF keyval(75) > 1 OR keyval(26) > 1 THEN
-  changepal poffset(state.pt), -1, workpal(), state.pt - state.top
- END IF
- IF keyval(77) > 1 OR keyval(27) > 1 THEN
-  changepal poffset(state.pt), 1, workpal(), state.pt - state.top
- END IF
- usemenu palstate
- IF enter_or_space() THEN
-  IF palstate.pt = 2 THEN RETRACE
-  EXIT DO
- END IF
- spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info$(), toolinfo(), area(), mouse()
- rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
- FOR i = 0 TO 2
-  coltemp = uilook(uiMenuItem): IF i = palstate.pt THEN coltemp = uilook(uiSelectedItem + palstate.tog)
-  edgeprint pmenu$(i), 8, 160 + (i * 8), coltemp, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- copypage 2, dpage
- dowait
-LOOP
-
-clearpage dpage
-clearpage 2
-
-loadbmp srcbmp, 1, 1, 2
-
-'---------------------
-'PICK BACKGROUND COLOR
-pickpos.x = 1
-pickpos.y = 1
-bmpinfo srcbmp, bmpd()
-picksize.x = small(320, bmpd(1))
-picksize.y = small(200, bmpd(2))
-setkeys
-DO
- setwait 110
- setkeys
- palstate.tog = palstate.tog XOR 1
- IF keyval(scESC) > 1 THEN 
- '--Cancel
-  GOSUB spedbak
-  RETRACE
- END IF
- IF keyval(scF1) > 1 THEN show_help "sprite_import16_pickbackground"
- IF keyval(56) THEN movespeed = 9 ELSE movespeed = 1
- IF keyval(72) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 1)
- IF keyval(80) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y)
- IF keyval(75) > 0 THEN pickpos.x = large(pickpos.x - movespeed, 1)
- IF keyval(77) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x)
- IF enter_or_space() THEN EXIT DO
- putpixel pickpos.x, pickpos.y, uilook(uiSelectedItem + 1), dpage
- edgeprint "Pick Background Color", 0, 190, 7, dpage
- SWAP vpage, dpage
- setvispage vpage
- copypage 2, dpage
- dowait
-LOOP
-
-'--picked a transparent pixel
-pixelval = readpixel(pickpos.x, pickpos.y, 2)
-'--swap the transparent pixels to 0
-FOR i = 1 TO picksize.x
- FOR o = 1 TO picksize.y
-  IF readpixel(i, o, 2) = pixelval THEN
-   putpixel i, o, 0, 2
-  ELSE
-   IF readpixel(i, o, 2) = 0 THEN
-    putpixel i, o, pixelval, 2
-   END IF
-  END IF
- NEXT o
-NEXT i
-'--swap the transparent palette entry to 0
-IF palstate.pt = 0 THEN
- convertbmppal srcbmp, master(), workpal(), 8 * (state.pt - state.top)
- 'swap black with the transparent color
- poke8bit workpal(), pixelval + (state.pt - state.top) * 16, peek8bit(workpal(), 0 + (state.pt - state.top) * 16)
- poke8bit workpal(), 0 + (state.pt - state.top) * 16, 0
-END IF
-'--read the sprite
-getsprite placer(), 0, 1, 1, ss.wide, ss.high, 2
-GOSUB spedbak
 RETRACE
 
 floodfill:
@@ -2615,4 +2502,119 @@ SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS Sprit
   NEXT i
   storeset spritefile, large(j, 0), 0
  END IF
+END SUB
+
+SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+ DIM palstate AS MenuState 
+ DIM coltemp AS INTEGER
+ DIM srcbmp AS STRING
+ DIM pickpos AS XYPair
+ DIM picksize AS XYPair
+ DIM pixelval AS INTEGER
+ DIM movespeed AS INTEGER
+ 
+ STATIC default AS STRING
+ 
+ setkeyrepeat
+ srcbmp = browse(2, default, "*.bmp", "")
+ IF srcbmp = "" THEN EXIT SUB
+ '--------------------
+ 'DECIDE ABOUT PALETTE
+ DIM pmenu(2) AS STRING
+ pmenu(0) = "Overwrite Current Palette"
+ pmenu(1) = "Import Without Palette"
+ pmenu(2) = "Cancel Import"
+ 
+ palstate.pt = 0
+ palstate.last = 2
+ setkeys
+ DO
+  setwait 110
+  setkeys
+  palstate.tog = palstate.tog XOR 1
+  IF keyval(scESC) > 1 THEN EXIT SUB
+  IF keyval(scF1) > 1 THEN show_help "sprite_import16"
+  IF keyval(scLeft) > 1 OR keyval(scLeftBracket) > 1 THEN
+   changepal poffset(state.pt), -1, workpal(), state.pt - state.top
+  END IF
+  IF keyval(scRight) > 1 OR keyval(scRightBracket) > 1 THEN
+   changepal poffset(state.pt), 1, workpal(), state.pt - state.top
+  END IF
+  usemenu palstate
+  IF enter_or_space() THEN
+   IF palstate.pt = 2 THEN EXIT SUB
+   EXIT DO
+  END IF
+  spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse()
+  rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
+  FOR i AS INTEGER = 0 TO 2
+   coltemp = uilook(uiMenuItem): IF i = palstate.pt THEN coltemp = uilook(uiSelectedItem + palstate.tog)
+   edgeprint pmenu(i), 8, 160 + (i * 8), coltemp, dpage
+  NEXT i
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage 2, dpage
+  dowait
+ LOOP
+
+ clearpage dpage
+ clearpage 2
+
+ loadbmp srcbmp, 1, 1, 2
+
+ '---------------------
+ 'PICK BACKGROUND COLOR
+ pickpos.x = 1
+ pickpos.y = 1
+ DIM bmpd(40) AS INTEGER 'Temp buffer for holding BMP header
+ bmpinfo srcbmp, bmpd()
+ picksize.x = small(320, bmpd(1))
+ picksize.y = small(200, bmpd(2))
+ setkeys
+ DO
+  setwait 110
+  setkeys
+  palstate.tog = palstate.tog XOR 1
+  IF keyval(scESC) > 1 THEN 
+  '--Cancel
+   EXIT SUB
+  END IF
+  IF keyval(scF1) > 1 THEN show_help "sprite_import16_pickbackground"
+  IF keyval(56) THEN movespeed = 9 ELSE movespeed = 1
+  IF keyval(72) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 1)
+  IF keyval(80) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y)
+  IF keyval(75) > 0 THEN pickpos.x = large(pickpos.x - movespeed, 1)
+  IF keyval(77) > 0 THEN pickpos.x = small(pickpos.x + movespeed, picksize.x)
+  IF enter_or_space() THEN EXIT DO
+  putpixel pickpos.x, pickpos.y, uilook(uiSelectedItem + 1), dpage
+  edgeprint "Pick Background Color", 0, 190, 7, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage 2, dpage
+  dowait
+ LOOP
+
+ '--picked a transparent pixel
+ pixelval = readpixel(pickpos.x, pickpos.y, 2)
+ '--swap the transparent pixels to 0
+ FOR i AS INTEGER = 1 TO picksize.x
+  FOR o AS INTEGER = 1 TO picksize.y
+   IF readpixel(i, o, 2) = pixelval THEN
+    putpixel i, o, 0, 2
+   ELSE
+    IF readpixel(i, o, 2) = 0 THEN
+     putpixel i, o, pixelval, 2
+    END IF
+   END IF
+  NEXT o
+ NEXT i
+ '--swap the transparent palette entry to 0
+ IF palstate.pt = 0 THEN
+  convertbmppal srcbmp, master(), workpal(), 8 * (state.pt - state.top)
+  'swap black with the transparent color
+  poke8bit workpal(), pixelval + (state.pt - state.top) * 16, peek8bit(workpal(), 0 + (state.pt - state.top) * 16)
+  poke8bit workpal(), 0 + (state.pt - state.top) * 16, 0
+ END IF
+ '--read the sprite
+ getsprite placer(), 0, 1, 1, ss.wide, ss.high, 2
 END SUB
