@@ -59,21 +59,6 @@ end sub
 sub gfx_close
 end sub
 
-sub gfx_allocatepages(spage() as ubyte ptr)
-	for i as integer = 0 to 3
-		spage(i) = callocate(320 * 200)
-	next
-end sub
-
-sub gfx_deallocatepages(spage() as ubyte ptr)
-	for i as integer = 0 to ubound(spage)
-		if spage(i) then
-			deallocate(spage(i))
-			spage(i) = NULL
-		end if
-	next
-end sub
-
 sub gfx_showpage(byval raw as ubyte ptr)
 'takes a pointer to raw 8-bit data at 320x200
 	dim rptr as ubyte ptr

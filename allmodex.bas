@@ -139,7 +139,9 @@ sub setmodex()
 	dim i as integer
 
 	'initialise software gfx
-	gfx_allocatepages(spage())
+	for i = 0 to 3
+		spage(i) = callocate(320 * 200)
+	next
 	'other spage slots are for temporary pages
 	setclip
 
@@ -177,7 +179,12 @@ sub restoremode()
 	mutexdestroy keybdmutex
 
 	'clear up software gfx
-	gfx_deallocatepages spage()
+	for i = 0 to ubound(spage)
+		if spage(i) then
+			deallocate(spage(i))
+			spage(i) = NULL
+		end if
+	next
 
 	releasestack
 end sub
@@ -555,7 +562,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	nib = 0
 	row = 0
 	for i = 0 to (sw * sh) - 1
-		select case as const nib 			' 2 bytes = 4 nibbles in each int
+		select case nib 			' 2 bytes = 4 nibbles in each int
 			case 0
 				spix = (pic(picoff) and &hf000) shr 12
 			case 1
@@ -571,7 +578,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 			mask = 0
 		else
 			'palettes are interleaved like everything else
-			pix = pal(int((po + spix) / 2))	' get color from palette
+			pix = pal((po + spix) \ 2)	' get color from palette
 			if (po + spix) mod 2 = 1 then
 				pix = (pix and &hff00) shr 8
 			else
