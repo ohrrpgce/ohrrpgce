@@ -6,7 +6,7 @@
 
 TYPE SpriteEditStatic
   clonemarked AS INTEGER
-  clonebuf(1600) AS INTEGER
+  clonebuf(2560) AS INTEGER 'Needs to be big enough for w*h*sets/4 for the largest possible sprite set
 END TYPE
 
 TYPE SpriteEditState
