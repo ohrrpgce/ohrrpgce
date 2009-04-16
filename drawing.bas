@@ -1727,6 +1727,7 @@ DO
   IF fullset = NO AND perset > 1 THEN
    GOSUB savealluc
    sprite xw * perset, yw, sets, 1, soff, atatime, info$(), 1, fileset, font(), YES, state.pt, state.top
+   loaddefaultpals fileset, poffset(), sets
    GOSUB loadalluc
   END IF
  END IF
