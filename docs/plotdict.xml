@@ -624,7 +624,7 @@ end</example>
 		<command id="getnpcid">
 			<canon>get NPC ID (reference)</canon>
 			<shortname>get NPC ID</shortname>
-			<description>This command is the opposite of <ref>npcreference</ref>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID.<lb/><note>In some older versions, This command was useful if you needed to do an <ref>alternpc</ref> or a <ref>setnpcspeed</ref> on an NPC that you are working with by reference. This is no longer neccisary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)</note></description>
+			<description>This command is the opposite of <ref>npcreference</ref>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID. If the NPC ID is not valid then <p>get NPC ID</p> will return -1<lb/><note>In some older versions, This command was useful if you needed to do an <ref>alternpc</ref> or a <ref>setnpcspeed</ref> on an NPC that you are working with by reference. This is no longer neccisary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)</note></description>
 		</command>
 		<command id="npccopycount">
 			<canon>NPC copy count (ID)</canon>
