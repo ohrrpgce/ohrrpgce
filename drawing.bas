@@ -1624,6 +1624,7 @@ DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
 DIM AS INTEGER debug_palettes = 0
 DIM AS INTEGER tick = 0
+DIM caption AS STRING
 'FOR Loop counters
 DIM AS INTEGER i, j, o
 
@@ -1845,8 +1846,20 @@ DO
      NEXT i
    NEXT j
  END IF
- printstr "Set " & state.pt, 320 - (LEN("Set " & state.pt) * 8), 16, dpage
- printstr info$(ss.framenum), 320 - (LEN(info$(ss.framenum)) * 8), 24, dpage
+ '--text captions
+ caption = "Set " & state.pt
+ printstr caption, 320 - (LEN(caption) * 8), 16, dpage
+ caption = info$(ss.framenum)
+ printstr caption, 320 - (LEN(caption) * 8), 24, dpage
+ caption = ""
+ IF fullset = NO AND perset > 1 THEN
+  caption = "CTRL+F Full-Set Mode, "
+ ELSEIF fullset = YES THEN
+  caption = "ESC back to Single-Frame Mode, "
+ END IF
+ caption = caption & "F1 Help"
+ printstr caption, 320 - (LEN(caption) * 8), 192, dpage
+ '--screen update
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
