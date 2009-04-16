@@ -36,6 +36,9 @@ WHAT IS NEW?
       script usage (except for scripts calling other scripts) [James]
     * New "find broken script triggers" tool, which can list all
       places where a non-existant script will be triggered. [James]
+    * The sprite editor now has a full-spriteset mode which allows you
+      to import (or manipulate) full sprite sets instead of working
+      one frame at a time [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

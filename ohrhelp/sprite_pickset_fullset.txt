@@ -1,0 +1,18 @@
+You are in full-spriteset mode. Press ESC to return to normal single-frame mode.
+
+Here you can choose which sprite set you want to edit. Each row is a full sprite set.
+
+Use the up and down arrow keys to navigate.
+
+Press ENTER or SPACE to start editing a sprite.
+
+While editing you can press I to import a full spriteset from a single file.
+
+Press ESC to go back to the main graphics menu.
+
+If you want to add a new spriteset, go to the last sprite set at the bottom and press the down arrow.
+
+You can change the default palette for a sprite set using the [ and ] keys.
+
+CTRL+C copies a sprite set.
+CTRL+V pastes a sprite set.

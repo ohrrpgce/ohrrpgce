@@ -46,6 +46,7 @@ TYPE SpriteEditState
   movespeed AS INTEGER
   readjust AS INTEGER
   adjustpos AS XYPair
+  previewpos AS XYPair
 END TYPE
 
 TYPE TileCloneBuffer

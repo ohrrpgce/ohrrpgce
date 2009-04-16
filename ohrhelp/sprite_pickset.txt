@@ -12,3 +12,5 @@ You can change the default palette for a sprite set using the [ and ] keys.
 
 CTRL+C copies a sprite.
 CTRL+V pastes a sprite.
+
+You can switch to full-spriteset mode by pressing CTRL+F. Full-spriteset mode is important because it allows you to import an entire spriteset from a single file.

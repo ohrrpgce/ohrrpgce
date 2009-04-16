@@ -45,7 +45,7 @@ DECLARE SUB importmasterpal (f$, palnum%)
 'Local SUBs and FUNCTIONS
 DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
-DECLARE SUB init_sprite_zones(area() AS MouseArea)
+DECLARE SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
 DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 
@@ -1580,14 +1580,12 @@ END SUB
 
 OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================
 
-SUB sprite (xw, yw, sets, BYREF perset, soff, atatime, info$(), zoom, fileset, font())
-STATIC spriteclip(1602), clippedpal, clippedw, clippedh, paste
+SUB sprite (xw, yw, sets, perset, soff, atatime, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
+STATIC spriteclip(2 + (32 * 40 * 8) \ 4) 'Because this is static we have to make it the max possible sprite-set size, which is the hero sprite set
+STATIC clippedpal, clippedw, clippedh, paste
 STATIC ss_save AS SpriteEditStatic
 
 DIM mouse(4)
-
-DIM area(22) AS MouseArea
-init_sprite_zones area()
 
 DIM ss AS SpriteEditState
 WITH ss
@@ -1610,13 +1608,18 @@ WITH ss
  .airsize = 5
  .mist = 4
  .palindex = 1
+ .previewpos.x = 319 - .wide
+ .previewpos.y = 119
 END WITH
 
+DIM area(22) AS MouseArea
+init_sprite_zones area(), ss
+
 DIM sprites(atatime) AS Frame
-DIM nulpal(8), placer(1602), pclip(8)
+DIM nulpal(8), placer(2 + (xw * yw * perset) \ 4), pclip(8)
 DIM toolinfo(7) AS ToolInfoType
 DIM workpal(8 * (atatime + 1))
-DIM poffset(large(sets, atatime))
+REDIM poffset(large(sets, atatime))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
 DIM AS INTEGER debug_palettes = 0
@@ -1629,8 +1632,8 @@ spritefile = game & ".pt" & fileset
 
 DIM state AS MenuState
 WITH state
- .pt = 0
- .top = 0
+ .pt = cursor_start
+ .top = cursor_top
 END WITH
 
 WITH toolinfo(0)
@@ -1701,7 +1704,13 @@ DO
  setkeys
  state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "sprite_pickset"
+ IF keyval(scF1) > 1 THEN
+  IF fullset THEN
+   show_help "sprite_pickset_fullset"
+  ELSE
+   show_help "sprite_pickset"
+  END IF
+ END IF
  IF keyval(29) > 0 AND keyval(14) > 1 THEN
   GOSUB savealluc
   cropafter state.pt, sets, 0, spritefile, ss.setsize, 1
@@ -1712,6 +1721,13 @@ DO
   GOSUB savealluc
   GOSUB spriteage
   GOSUB loadalluc
+ END IF
+ IF keyval(scCtrl) > 0 AND keyval(scF) > 1 THEN
+  IF fullset = NO AND perset > 1 THEN
+   GOSUB savealluc
+   sprite xw * perset, yw, sets, 1, soff, atatime, info$(), 1, fileset, font(), YES, state.pt, state.top
+   GOSUB loadalluc
+  END IF
  END IF
  IF keyval(73) > 1 THEN
   GOSUB savealluc
@@ -1844,7 +1860,6 @@ clearpage 1
 clearpage 2
 clearpage 3
 EXIT SUB
-'GOSUB GOSUB
 
 spriteage:
 ss.delay = 10
@@ -1884,7 +1899,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  'blank the sprite area
- rectangle 239, 119, ss.wide, ss.high, 0, dpage
+ rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
  tick = 0
  IF dowait THEN tick = 1: state.tog = state.tog XOR 1
 LOOP
@@ -2075,8 +2090,8 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     IF ss.hold THEN
      ss.hold = NO
-     drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-     getsprite ss_save.clonebuf(), 0, 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
+     drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+     getsprite ss_save.clonebuf(), 0, ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
      ss.holdpos.x = ss_save.clonebuf(0) \ 2
      ss.holdpos.y = ss_save.clonebuf(1) \ 2
      ss_save.clonemarked = YES
@@ -2093,9 +2108,9 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
       GOSUB writeundospr
      END IF
-     drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-     drawsprite ss_save.clonebuf(), 0, nulpal(), 0, 239 + ss.x - ss.holdpos.x, 119 + ss.y - ss.holdpos.y, dpage
-     getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+     drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+     drawsprite ss_save.clonebuf(), 0, nulpal(), 0, ss.previewpos.x + ss.x - ss.holdpos.x, ss.previewpos.y + ss.y - ss.holdpos.y, dpage
+     getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
      ss.lastpos.x = ss.x
      ss.lastpos.y = ss.y
     ELSE
@@ -2137,16 +2152,32 @@ IF ss.tool = clone_tool THEN
 ELSE
  ' For all other tools, pick a color
  IF keyval(28) > 1 OR (ss.zonenum = 1 AND mouse(2) = 2) THEN
-  drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-  ss.palindex = readpixel(239 + ss.x, 119 + ss.y, dpage)
+  drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+  ss.palindex = readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage)
  END IF
 END IF
-IF keyval(14) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, 239, 119, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+IF keyval(14) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage: getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 IF keyval(scCapslock) > 0 THEN
- IF slowkey(72, 6) THEN rectangle 239, 119, ss.wide, ss.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 118, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
- IF slowkey(80, 6) THEN rectangle 239, 119, ss.wide, ss.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 239, 120, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
- IF slowkey(75, 6) THEN rectangle 239, 119, ss.wide, ss.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 238, 119, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
- IF slowkey(77, 6) THEN rectangle 239, 119, ss.wide, ss.high, 0, dpage: drawsprite placer(), 0, nulpal(), 0, 240, 119, dpage: getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+ IF slowkey(72, 6) THEN
+  rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
+  drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y - 1, dpage
+  getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+ END IF
+ IF slowkey(80, 6) THEN
+  rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
+  drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y + 1, dpage
+  getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+ END IF
+ IF slowkey(75, 6) THEN
+  rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
+  drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x - 1, ss.previewpos.y, dpage
+  getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+ END IF
+ IF slowkey(77, 6) THEN
+  rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
+  drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x + 1, ss.previewpos.y, dpage
+  getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+ END IF
 END IF
 IF keyval(23) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN
  spriteedit_import16 ss, ss_save, state, placer(), workpal(), poffset(), info$(), toolinfo(), area(), mouse()
@@ -2168,8 +2199,8 @@ rectangle 3, 0, ss.wide * ss.zoom + 2, ss.high * ss.zoom + 2, uilook(uiText), 2
 rectangle 4, 1, ss.wide * ss.zoom, ss.high * ss.zoom, 0, 2
 rectangle 246, 109, 67, 8, uilook(uiText), 2
 rectangle 247, 110, 65, 6, uilook(uiBackground), 2
-rectangle 238, 118, ss.wide + 2, ss.high + 2, uilook(uiText), 2
-rectangle 239, 119, ss.wide, ss.high, 0, 2
+rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiText), 2
+rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, 2
 area(0).w = ss.wide * ss.zoom
 area(0).h = ss.high * ss.zoom
 area(13).w = ss.wide
@@ -2178,18 +2209,18 @@ RETRACE
 
 floodfill:
 GOSUB writeundospr
-rectangle 238, 118, ss.wide + 2, ss.high + 2, uilook(uiHighlight), dpage
-rectangle 239, 119, ss.wide, ss.high, 0, dpage
-drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-paintat 239 + ss.x, 119 + ss.y, ss.palindex, dpage, buffer(), 16384
-getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiHighlight), dpage
+rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
+drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+paintat ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex, dpage, buffer(), 16384
+getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 sprayspot:
 IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN GOSUB writeundospr
-drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-airbrush 239 + ss.x, 119 + ss.y, ss.airsize, ss.mist, ss.palindex, dpage
-getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+airbrush ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize, ss.mist, ss.palindex, dpage
+getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 ss.lastpos.x = ss.x
 ss.lastpos.y = ss.y
 RETRACE
@@ -2209,37 +2240,37 @@ END IF
 RETRACE
 
 putdot:
-drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
+drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
  GOSUB writeundospr
- putpixel 239 + ss.x, 119 + ss.y, ss.palindex, dpage
+ putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex, dpage
 ELSE
- drawline 239 + ss.x, 119 + ss.y, 239 + ss.lastpos.x, 119 + ss.lastpos.y, ss.palindex, dpage
+ drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.lastpos.x, ss.previewpos.y + ss.lastpos.y, ss.palindex, dpage
 END IF
-getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 ss.lastpos.x = ss.x
 ss.lastpos.y = ss.y
 RETRACE
 
 drawoval:
 GOSUB writeundospr
-drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.palindex, dpage, ss.squish.x, ss.squish.y
-getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+ellipse ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.palindex, dpage, ss.squish.x, ss.squish.y
+getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 drawsquare:
 GOSUB writeundospr
-drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex, dpage
-getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+rectangle ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex, dpage
+getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 straitline:
 GOSUB writeundospr
-drawsprite placer(), 0, nulpal(), 0, 239, 119, dpage
-drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.palindex, dpage
-getsprite placer(), 0, 239, 119, ss.wide, ss.high, dpage
+drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.palindex, dpage
+getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 savealluc:
@@ -2275,35 +2306,34 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
  FOR i = 0 TO 15
   rectangle 248 + (i * 4), 111, 3, 5, peek8bit(workpal(), i + (state.pt - state.top) * 16), dpage
  NEXT
- IF ss.zoom = 4 THEN hugesprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
- IF ss.zoom = 2 THEN bigsprite placer(), workpal(), (state.pt - state.top) * 16, 4, 1, dpage, 0
+ drawspritex placer(), 0, workpal(), (state.pt - state.top) * 16, 4, 1, dpage, ss.zoom, NO
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
  IF ss.hold = YES AND ss.tool = box_tool THEN
   rectangle 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, dpage
   rectangle 4 + ss.holdpos.x * ss.zoom, 1 + ss.holdpos.y * ss.zoom, ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  END IF
  rectangle 4 + (ss.x * ss.zoom), 1 + (ss.y * ss.zoom), ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
- drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, 239, 119, dpage, 0
+ drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, ss.previewpos.x, ss.previewpos.y, dpage, 0
  IF ss.hold = YES AND ss.tool = box_tool THEN
-  rectangle 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
-  putpixel 239 + ss.holdpos.x, 119 + ss.holdpos.y, state.tog * 15, dpage
+  rectangle ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
+  putpixel ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, state.tog * 15, dpage
  END IF
  IF ss.hold = YES AND ss.tool = line_tool THEN
-  drawline 239 + ss.x, 119 + ss.y, 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.curcolor, dpage
+  drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.curcolor, dpage
   drawline 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), 5 + (ss.holdpos.x * ss.zoom), 2 + (ss.holdpos.y * ss.zoom), ss.curcolor, dpage
  END IF
  IF ss.hold = YES AND ss.tool = oval_tool THEN
-  ellipse 239 + ss.holdpos.x, 119 + ss.holdpos.y, ss.radius, ss.curcolor, dpage, ss.squish.x, ss.squish.y
+  ellipse ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.curcolor, dpage, ss.squish.x, ss.squish.y
   ellipse 5 + (ss.holdpos.x * ss.zoom), 2 + (ss.holdpos.y * ss.zoom), ss.radius * ss.zoom, ss.curcolor, dpage, ss.squish.x, ss.squish.y
  END IF
  IF ss.tool = airbrush_tool THEN
-  ellipse 239 + ss.x, 119 + ss.y, ss.airsize / 2, ss.curcolor, dpage, 0, 0
+  ellipse ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize / 2, ss.curcolor, dpage, 0, 0
   ellipse 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), (ss.airsize / 2) * ss.zoom, ss.curcolor, dpage, 0, 0
  END IF
  IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
   ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
   emptybox 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, ss.zoom, dpage
-  emptybox 239 + small(ss.x, ss.holdpos.x), 119 + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
+  emptybox ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
  END IF
  DIM temppos AS XYPair
  IF ss.tool = clone_tool AND ss_save.clonemarked = YES AND state.tog = 0 THEN
@@ -2315,9 +2345,9 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
   END IF
  IF ss.zoom = 4 THEN hugesprite ss_save.clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
  IF ss.zoom = 2 THEN bigsprite ss_save.clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
-  drawsprite ss_save.clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 239 + temppos.x, 119 + temppos.y, dpage
+  drawsprite ss_save.clonebuf(), 0, workpal(), (state.pt - state.top) * 16, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, dpage
  END IF
- putpixel 239 + ss.x, 119 + ss.y, state.tog * 15, dpage
+ putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, state.tog * 15, dpage
  textcolor uilook(uiMenuItem), 0
  printstr info$(ss.framenum), 0, 182, dpage
  printstr "Tool:" & toolinfo(ss.tool).name, 0, 190, dpage
@@ -2377,7 +2407,7 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
  END IF
 END SUB
 
-SUB init_sprite_zones(area() AS MouseArea)
+SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
  DIM i AS INTEGER
  'DRAWING ZONE
  area(0).x = 4
@@ -2428,8 +2458,8 @@ SUB init_sprite_zones(area() AS MouseArea)
  area(12).h = 10
  area(12).hidecursor = NO
  'SMALL DRAWING AREA
- area(13).x = 239
- area(13).y = 119
+ area(13).x = ss.previewpos.x
+ area(13).y = ss.previewpos.y
  area(13).hidecursor = YES
  'LESS AIRBRUSH AREA
  area(14).x = 210
@@ -2577,7 +2607,7 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
   convertbmppal srcbmp, master(), temppal(), 0
  END IF
 
- DIM temp_placer(1602) AS INTEGER
+ DIM temp_placer(2 + (ss.wide * ss.high * ss.perset) \ 4) AS INTEGER
  pickpos.x = 0
  pickpos.y = 0
  DIM bmpd(40) AS INTEGER 'Temp buffer for holding BMP header
