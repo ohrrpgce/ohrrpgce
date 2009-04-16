@@ -70,6 +70,8 @@ support\cp LICENSE-binary.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
 support\cp support\madplay+oggenc.URL tmpdist
+mkdir tmpdist\ohrhelp
+support\cp ohrhelp\*.txt tmpdist\ohrhelp
 mkdir tmpdist\docs
 support\cp docs\*.URL tmpdist\docs
 
@@ -78,6 +80,7 @@ cd tmpdist
 cd ..
 
 del tmpdist\*.???
+RMDIR /s /q tmpdist\ohrhelp
 RMDIR /s /q tmpdist\docs
 cd tmpdist
 ..\support\unzip -q ..\distrib\ohrrpgce-floppy.zip game.exe
@@ -99,6 +102,8 @@ support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
+mkdir tmpdist\ohrhelp
+support\cp ohrhelp\*.txt tmpdist\ohrhelp
 mkdir tmpdist\docs
 support\cp docs\FAQ.URL tmpdist\docs
 support\cp docs\HOWTO.URL tmpdist\docs
@@ -155,6 +160,7 @@ CALL distver.bat
 DEL tmpdist\*.???
 RMDIR /s /q tmpdist\support
 RMDIR /s /q tmpdist\import
+RMDIR /s /q tmpdist\ohrhelp
 RMDIR /s /q tmpdist\docs
 RMDIR /s /q "tmpdist\Vikings script files"
 CD tmpdist

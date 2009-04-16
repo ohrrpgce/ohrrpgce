@@ -46,6 +46,7 @@ Source: "LICENSE-binary.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "whatsnew.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plotscr.hsd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "scancode.hsi"; DestDir: "{app}"; Flags: ignoreversion
+Source: "ohrhelp\*"; DestDir: "{app}\ohrhelp\"; Flags: ignoreversion
 Source: "docs\*"; DestDir: "{app}\docs\"; Flags: ignoreversion
 Source: "support\madplay.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "support\oggenc.exe"; DestDir: "{app}\support\"; Flags: ignoreversion
