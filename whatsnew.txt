@@ -39,6 +39,8 @@ WHAT IS NEW?
     * The sprite editor now has a full-spriteset mode which allows you
       to import (or manipulate) full sprite sets instead of working
       one frame at a time [James]
+    * The clone tool in the sprite editor now allows you to rotate the
+      cloned area. [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

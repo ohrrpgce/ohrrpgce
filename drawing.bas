@@ -48,6 +48,7 @@ DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss 
 DECLARE SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
 DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INTEGER, counterclockwise AS INTEGER=NO)
 
 #include "scancodes.bi"
 #include "compat.bi"
@@ -2050,6 +2051,20 @@ IF ss.tool = airbrush_tool THEN '--adjust airbrush
   END IF
  END IF
 END IF
+IF ss.tool = clone_tool THEN
+ IF mouse(3) = 1 OR mouse(2) = 1 THEN
+  IF ss_save.clonemarked THEN
+   IF ss.zonenum = 16 THEN
+    spriteedit_rotate_sprite_buffer ss_save.clonebuf(), nulpal(), YES
+    ss.delay = 4
+   END IF
+   IF ss.zonenum = 18 THEN
+    spriteedit_rotate_sprite_buffer ss_save.clonebuf(), nulpal()
+    ss.delay = 4
+   END IF
+  END IF
+ END IF
+END IF
 IF ss.zonenum = 14 THEN
  ss.x = ss.zone.x
  ss.y = ss.zone.y
@@ -2161,6 +2176,15 @@ IF ss.tool = clone_tool THEN
    ss.readjust = YES
    ss.adjustpos.x = ss.x
    ss.adjustpos.y = ss.y
+  END IF
+ END IF
+ ' clone buffer rotation
+ IF ss_save.clonemarked THEN
+  IF keyval(scPlus) > 1 THEN
+   spriteedit_rotate_sprite_buffer ss_save.clonebuf(), nulpal()
+  END IF
+  IF keyval(scMinus) > 1 THEN
+   spriteedit_rotate_sprite_buffer ss_save.clonebuf(), nulpal(), YES
   END IF
  END IF
 ELSE
@@ -2404,6 +2428,16 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
   IF ss.zonenum = 17 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR(26), 266, 182, dpage
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+  IF ss.zonenum = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+  printstr CHR(26), 266, 190, dpage
+ END IF
+ IF ss.tool = clone_tool THEN
+  textcolor uilook(uiMenuItem), 0
+  printstr "ROTATE", 218, 190, dpage
+  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+  IF ss.zonenum = 16 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+  printstr CHR(27), 210, 190, dpage
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
   IF ss.zonenum = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR(26), 266, 190, dpage
@@ -2685,3 +2719,29 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
  '--free the temp screen page
  freepage holdscreen
 END SUB
+
+SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INTEGER, counterclockwise AS INTEGER=NO)
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ 
+ DIM size AS XYPair
+ size.x = sprbuf(0)
+ size.y = sprbuf(1)
+ 
+ drawsprite sprbuf(), 0, nulpal(), 0, 0, 0, holdscreen
+ DIM pixel AS INTEGER
+ FOR y AS INTEGER = 0 TO size.y - 1
+  FOR x AS INTEGER = 0 TO size.x - 1
+   pixel = readpixel(x, y, holdscreen)
+   IF counterclockwise THEN
+    putpixel size.x + y, size.x - 1 - x, pixel, holdscreen
+   ELSE
+    putpixel size.x + (size.y - 1 - y), x, pixel, holdscreen
+   END IF
+  NEXT x
+ NEXT y
+ getsprite sprbuf(), 0, size.x, 0, size.y, size.x, holdscreen
+ 
+ freepage holdscreen
+END SUB
+
