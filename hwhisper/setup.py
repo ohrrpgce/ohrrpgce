@@ -20,7 +20,7 @@ opts = {
 setup(
     name = "hwhisper",
     description = version.description,
-    version = "0.1",
+    version = version.version,
     windows = [
         {"script": "hwhisper.py",
         "icon_resources": [(1, "hwhisper.ico")]

@@ -619,7 +619,7 @@ class HWhisper(object):
         if depth > 100:
             self.plotdict_xml_fail("alias recursion went too deep, probably an alias loop?")
         # Calculate the short text
-        key = text.lower().replace(" ", "").replace("\t", "")
+        key = text.lower().replace(" ", "").replace("\t", "").replace("\n", "")
         # Parse the help file
         root = self.get_plotdict_tree_root()
         for section in root.getiterator("section"):
