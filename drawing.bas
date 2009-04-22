@@ -2056,11 +2056,11 @@ IF ss.tool = clone_tool THEN
   IF ss_save.clonemarked THEN
    IF ss.zonenum = 16 THEN
     spriteedit_rotate_sprite_buffer ss_save.clonebuf(), nulpal(), YES
-    ss.delay = 4
+    ss.delay = 20
    END IF
    IF ss.zonenum = 18 THEN
     spriteedit_rotate_sprite_buffer ss_save.clonebuf(), nulpal()
-    ss.delay = 4
+    ss.delay = 20
    END IF
   END IF
  END IF
