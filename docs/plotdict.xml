@@ -4225,7 +4225,7 @@ end</example>
 		<command id="runscriptbyid">
 			<canon>run script by ID (id, argument1, argument2, argument3...)</canon>
 			<shortname>run script by ID</shortname>
-			<description>To making switching between scripts easier, you can call a script by its ID number. Pass arguments after the ID as normal. The script can also return a value as normal. -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<note>No check on the correct number of arguments can be performed, so default arguments are not used.</note></description>
+			<description>The <p>run script by id</p> allows you to run a script using its ID. The advantage of this as opposed to just calling the script directly is that the ID may be stored in a variable, or it could be the function return value of another script. Arguments after the ID will be passed to the script. The script can also return a value as normal. A runtime error is displayed and -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<note>No check on the correct number of arguments can be performed, so default arguments are not used.</note></description>
 			<example>plotscript,scriptcallingtest,begin
   show value (run script by id (@sum, 1, 2, 3))
 end

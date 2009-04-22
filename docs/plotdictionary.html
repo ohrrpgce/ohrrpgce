@@ -2752,7 +2752,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get NPC ID (reference)</font></b><br>
-			This command is the opposite of <a href="#about-npcreference" class="ref">NPC reference</a>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID.<br><div style="background-color:#EFF;" class="note">
+			This command is the opposite of <a href="#about-npcreference" class="ref">NPC reference</a>. If you give get NPC ID a reference to an NPC it will return the NPC&amp;s ID. If the NPC ID is not valid then <span class="param">get NPC ID</span> will return -1<br><div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">In some older versions, This command was useful if you needed to do an <a href="#about-alternpc" class="ref">alter NPC</a> or a <a href="#about-setnpcspeed" class="ref">set NPC speed</a> on an NPC that you are working with by reference. This is no longer neccisary, because both those commands now support NPC references (although they still affect every copy of that NPC on the map)<br clear="all">
 </div>
 <br>
@@ -5736,7 +5736,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set slice extra (handle, extra, value)</font></b><br>
-			Sets one of three extra data variables that every slice has, on the slice <span class="param">handle</span>. <span class="param">extra</span> is a number from 0 to 2 which indicates which extra data field to write  (you may also use the constants <span class="param">extra1</span>, <span class="param">extra2</span>, <span class="param">extra3</span>). The extra data has no meaning to the slice, it is only for use by scripts.<br>
+			Sets one of three extra data variables that every slice has, on the slice <span class="param">handle</span>. <span class="param">extra</span> is a number from 0 to 2 which indicates which extra data field to write  (you may also use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span>, <span class="param">extra 2</span>). The extra data has no meaning to the slice, it is only for use by scripts.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getsliceextra" class="ref">get slice extra</a></li></ul>
 		</tt></p>
@@ -6164,7 +6164,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">NPC extra (who, which)</font></b><br>
-			Returns the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra1</span>, <span class="param">extra2</span> and <span class="param">extra3</span> to refer to them. If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.<br>
+			Returns the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them. If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setnpcextra" class="ref">set NPC extra</a></li></ul>
 		</tt></p>
@@ -6172,7 +6172,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set NPC extra (who, which, value)</font></b><br>
-			Sets the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra1</span>, <span class="param">extra2</span> and <span class="param">extra3</span> to refer to them.  If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.<div style="background-color:#EFF;" class="note">
+			Sets the npc instance-specific extra data field requested in <span class="param">which</span>, a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.  If you use an NPC ID for <span class="param">who</span>, the first instance's data will be used.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Unlike other NPC instance data, the extra data for NPCs on the current map is not saved in save games! However, it is saved in mapstate NPC saves (see <a href="#about-savemapstate" class="ref">save map state</a>)<br clear="all">
 </div>
 <br>
@@ -7923,7 +7923,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">load from slot (slot)</font></b><br>
-			Loads a saved game from a save slot as if it had been loaded from the load game menu. This command will end the current game if it successfully loads. If the load fails because the slot has never been saved in, the script will continue.<br>
+			Loads a saved game from a save slot (where <span class="param">slot</span> is a slot number from 1 to 32, slots 5-32 are hidden) as if it had been loaded from the load game menu. This command will end the current game if it successfully loads. If the load fails because the slot has never been saved in, the script will continue.<br>
 			
 			
 		</tt></p>
@@ -7939,7 +7939,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">import globals (slot, first, last)</font></b><br>
-			Loads a range of globals from a saved game, overwriting the current globals in that range. First and Last are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024 if both are not given. <br>To read a single global from a save slot without overwriting any, use the form 'var := import globals (slot, id)'<br>import globals and <a href="#about-exportglobals" class="ref">export globals</a> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:<br>
+			and<br><span class="param">import globals (slot, id)</span><br>Loads a range of globals from a saved game, overwriting the current globals in that range. <span class="param">slot</span> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <span class="param">first</span> and <span class="param">last</span> are the id numbers of the globals at the beginning and end of the range. If you leave out both of <span class="param">first</span> and <span class="param">last</span> all global variables will be imported. <br>To read a single global from a save slot without modifying any of your globals, use the form 'var := import globals (slot, id)'<br>This is NOT the same thing as 'import globals (slot, id, id)', which does modify the global variable.<br>import globals and <a href="#about-exportglobals" class="ref">export globals</a> can be used to save and retrieve info about a saved game without loading it, and also to store variables that any game the player starts can use, like in the following example:<br>
 			<pre>global variable (100, game completed)
 global variable (101, hours to complete)
 global variable (102, minutes to complete)
@@ -7960,21 +7960,35 @@ plotscript, check game finished, begin
   )
   wait for textbox
 end</pre>
-			<br>See also: <ul class="seealso"><li><a href="#about-readglobal" class="ref">read global</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-exportglobals" class="ref">export globals</a>, </li>
+<li><a href="#about-readglobal" class="ref">read global</a></li>
+</ul>
 		</tt></p>
 		<a name="about-exportglobals"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">export globals (slot, first, last)</font></b><br>
-			Writes a range of globals to a saved game, overwriting the saved games globals. "First" and "Last" are the id numbers of the globals at the beginning and end of the range. First defaults to 0, and Last defaults to 1024. Therefore, if you pass no range, all the globals will be written.<br>
+			Writes a range of globals to a save game slot, overwriting the saved game's globals. <span class="param">slot</span> is the save slot number, from 1 to 32. Note that only slots 1-4 appear on the save/load menus. <span class="param">first</span> and <span class="param">last</span> are the id numbers of the globals at the beginning and end of the range. <span class="param">first</span> defaults to 0, and <span class="param">last</span> defaults to 4095. Therefore, if you pass no range, all the globals will be written.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can export globals to an empty slot! This doesn't create a visible save game that the player can load, however you will still be able to read them with <a href="#about-importglobals" class="ref">import globals</a>.<br clear="all">
+</div>
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Unlike importglobals, 'export globals (slot, first)' does NOT export a single global variable!<br clear="all">
+</div>
+<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-writeglobal" class="ref">write global</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-importglobals" class="ref">import globals</a>, </li>
+<li><a href="#about-writeglobal" class="ref">write global</a></li>
+</ul>
 		</tt></p>
 		<a name="about-runscriptbyid"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">run script by ID (id, argument1, argument2, argument3...)</font></b><br>
-			To making switching between scripts easier, you can call a script by its ID number. Pass arguments after the ID as normal. The script can also return a value as normal. -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<div style="background-color:#EFF;" class="note">
+			The <span class="param">run script by id</span> allows you to run a script using its ID. The advantage of this as opposed to just calling the script directly is that the ID may be stored in a variable, or it could be the function return value of another script. Arguments after the ID will be passed to the script. The script can also return a value as normal. A runtime error is displayed and -1 is returned if the script does not exist. You can pass up to 31 arguments to the script.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">No check on the correct number of arguments can be performed, so default arguments are not used.<br clear="all">
 </div>
 <br>

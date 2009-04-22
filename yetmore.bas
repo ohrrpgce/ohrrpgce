@@ -1217,14 +1217,16 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
    erasesaveslot retvals(0) - 1
   END IF
- CASE 176'--runscriptbyid
+ CASE 176'--run script by id
   rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", plottrigger) 'possible to get ahold of triggers
   IF rsr = 1 THEN
    '--fill heap with return values
    FOR i = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
     setScriptArg i - 1, retvals(i)
    NEXT i
+   'NOTE: scriptret is not set here when this command is successful. The return value of the called script will be returned.
   ELSE
+   scripterr "run script by id failed loading " & retvals(0)
    scriptret = -1
   END IF
  CASE 180'--mapwidth
