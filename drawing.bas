@@ -37,8 +37,6 @@ DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata (atkdat$(), atklim%())
-DECLARE SUB getnames (stat$(), max%)
-DECLARE SUB statname ()
 DECLARE SUB maptile (font())
 DECLARE SUB importmasterpal (f$, palnum%)
 

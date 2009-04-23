@@ -2943,3 +2943,223 @@ FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
  clearpage 0
  clearpage 1
 END FUNCTION
+
+SUB edit_global_text_strings()
+ DIM max AS INTEGER = 122
+ DIM text(-1 TO max) AS STRING
+ DIM names(-1 TO max) AS STRING
+ DIM maxlen(max) AS INTEGER
+ DIM state AS MenuState
+ DIM rect AS RectType
+ rect.wide = 320
+ rect.high = 192
+
+ clearpage 0
+ clearpage 1
+
+ '--load current names
+ getnames text(), 32 '--undefaulted
+
+ FOR i AS INTEGER = 0 TO max
+  SELECT CASE i
+   CASE 55, 74 TO 76, 78, 80 TO 86, 88 TO 92, 97 TO 98, 106 TO 115
+    maxlen(i) = 20
+   CASE 39, 40
+    maxlen(i) = 8
+   CASE 94 TO 96, 105
+    maxlen(i) = 30
+   CASE ELSE
+    maxlen(i) = 10
+  END SELECT
+ NEXT i
+
+ names(-1) = "Back to Previous Menu" : text(-1) = ""
+ names(0) = "Health Points"
+ names(1) = "Spell Points"
+ names(2) = "Attack Power"
+ names(3) = "Accuracy"
+ names(4) = "Extra Hits"
+ names(5) = "Blocking Power"
+ names(6) = "Dodge Rate"
+ names(7) = "Counter Rate"
+ names(8) = "Speed"
+ FOR i AS INTEGER = 1 TO 8
+  names(8 + i) = "Enemy Type " & i
+  names(16 + i) = "Elemental " & i
+ NEXT i
+ FOR i AS INTEGER = 1 TO 4
+  names(24 + i) = "Armor " & i
+ NEXT i
+ names(29) = "Spell Skill"
+ names(30) = "Spell Block"
+ names(31) = "Spell cost %"
+ names(32) = "Money"
+ names(33) = "Experience":              text(33) = readglobalstring(33, "Experience", 10)
+ names(34) = "Battle Item Menu":        text(34) = readglobalstring(34, "Item", 10)
+ names(35) = "Exit Item Menu":          text(35) = readglobalstring(35, "DONE", 10)
+ names(36) = "Sort Item Menu":          text(36) = readglobalstring(36, "AUTOSORT", 10)
+ names(37) = "Drop Item":               text(37) = readglobalstring(37, "TRASH", 10)
+ names(38) = "Weapon":                  text(38) = readglobalstring(38, "Weapon", 10)
+ names(39) = "Unequip All":             text(39) = readglobalstring(39, "-REMOVE-", 10)
+ names(40) = "Exit Equip":              text(40) = readglobalstring(40, "-EXIT-", 10)
+ names(41) = "Drop Prompt":             text(41) = readglobalstring(41, "Discard", 10)
+ names(42) = "Negative Drop Prefix":    text(42) = readglobalstring(42, "Cannot", 10)
+ names(43) = "Level":                   text(43) = readglobalstring(43, "Level", 10)
+ names(44) = "Overwrite Save Yes":      text(44) = readglobalstring(44, "Yes", 10)
+ names(45) = "Overwrite Save No":       text(45) = readglobalstring(45, "No", 10)
+ names(46) = "Exit Spell List Menu":    text(46) = readglobalstring(46, "EXIT", 10)
+ names(47) = "(exp) for next (level)":  text(47) = readglobalstring(47, "for next", 10)
+ names(48) = "Remove Hero from Team":   text(48) = readglobalstring(48, "REMOVE", 10)
+ names(49) = "Pay at Inn":              text(49) = readglobalstring(49, "Pay", 10)
+ names(50) = "Cancel Inn":              text(50) = readglobalstring(50, "Cancel", 10)
+ names(51) = "Cancel Spell Menu":       text(51) = readglobalstring(51, "(CANCEL)", 10)
+ names(52) = "New Game":                text(52) = readglobalstring(52, "NEW GAME", 10)
+ names(53) = "Exit Game":               text(53) = readglobalstring(53, "EXIT", 10)
+ names(54) = "Pause":                   text(54) = readglobalstring(54, "PAUSE", 10)
+ names(55) = "Quit Playing Prompt":     text(55) = readglobalstring(55, "Quit Playing?", 20)
+ names(56) = "Quit Playing Yes":        text(56) = readglobalstring(57, "Yes", 10)
+ names(57) = "Quit Playing No":         text(57) = readglobalstring(58, "No", 10)
+ names(58) = "Cancel Save":             text(58) = readglobalstring(59, "CANCEL", 10)
+ names(59) = "Menu: Items":             text(59) = readglobalstring(60, "Items", 10)
+ names(60) = "Menu: Spells":            text(60) = readglobalstring(61, "Spells", 10)
+ names(61) = "Menu: Status":            text(61) = readglobalstring(62, "Status", 10)
+ names(62) = "Menu: Equip":             text(62) = readglobalstring(63, "Equip", 10)
+ names(63) = "Menu: Order":             text(63) = readglobalstring(64, "Order", 10)
+ names(64) = "Menu: Team":              text(64) = readglobalstring(65, "Team", 10)
+ names(65) = "Menu: Save":              text(65) = readglobalstring(66, "Save", 10)
+ names(66) = "Menu: Quit":              text(66) = readglobalstring(67, "Quit", 10)
+ names(67) = "Menu: Minimap":           text(67) = readglobalstring(68, "Map", 10)
+ names(68) = "Volume Control":          text(68) = readglobalstring(69, "Volume", 10)
+ names(69) = "Shop Menu: Buy":          text(69) = readglobalstring(70, "Buy", 10)
+ names(70) = "Shop Menu: Sell":         text(70) = readglobalstring(71, "Sell", 10)
+ names(71) = "Shop Menu: Inn":          text(71) = readglobalstring(72, "Inn", 10)
+ names(72) = "Shop Menu: Hire":         text(72) = readglobalstring(73, "Hire", 10)
+ names(73) = "Shop Menu: Exit":         text(73) = readglobalstring(74, "Exit", 10)
+ names(74) = "Unsellable item warning": text(74) = readglobalstring(75, "CANNOT SELL", 20)
+ names(75) = "Sell value prefix":       text(75) = readglobalstring(77, "Worth", 20)
+ names(76) = "Sell trade prefix":       text(76) = readglobalstring(79, "Trade for", 20)
+ names(77) = "($) and a (item)":        text(77) = readglobalstring(81, "and a", 10)
+ names(78) = "Worthless item warning":  text(78) = readglobalstring(82, "Worth Nothing", 20)
+ names(79) = "Sell alert":              text(79) = readglobalstring(84, "Sold", 10)
+ names(80) = "Buy trade prefix":        text(80) = readglobalstring(85, "Trade for", 20)
+ names(81) = "Hire price prefix":       text(81) = readglobalstring(87, "Joins for", 20)
+ names(82) = "Cannot buy prefix":       text(82) = readglobalstring(89, "Cannot Afford", 20)
+ names(83) = "Cannot hire prefix":      text(83) = readglobalstring(91, "Cannot Hire", 20)
+ names(84) = "Buy alert":               text(84) = readglobalstring(93, "Purchased", 20)
+ names(85) = "Hire alert (suffix)":     text(85) = readglobalstring(95, "Joined!", 20)
+ names(86) = "(#) in stock":            text(86) = readglobalstring(97, "in stock", 20)
+ names(87) = "Equipability prefix":     text(87) = readglobalstring(99, "Equip:", 10)
+ names(88) = "Party full warning":      text(88) = readglobalstring(100, "No Room In Party", 20)
+ names(89) = "Replace Save Prompt":     text(89) = readglobalstring(102, "Replace Old Data?", 20)
+ names(90) = "Status Prompt":           text(90) = readglobalstring(104, "Who's Status?", 20)
+ names(91) = "Spells Prompt":           text(91) = readglobalstring(106, "Who's Spells?", 20)
+ names(92) = "Equip Prompt":            text(92) = readglobalstring(108, "Equip Who?", 20)
+ names(93) = "Equip Nothing (unequip)": text(93) = readglobalstring(110, "Nothing", 10)
+ names(94) = "Nothing to Steal":        text(94) = readglobalstring(111, "Has Nothing", 30)
+ names(95) = "Steal Failure":           text(95) = readglobalstring(114, "Cannot Steal", 30)
+ names(96) = "Stole (itemname)":        text(96) = readglobalstring(117, "Stole", 30)
+ names(97) = "When an Attack Misses":   text(97) = readglobalstring(120, "miss", 20)
+ names(98) = "When a Spell Fails":      text(98) = readglobalstring(122, "fail", 20)
+ names(99) = "(hero) learned (spell)":  text(99) = readglobalstring(124, "learned", 10)
+ names(100) = "Found (gold)":           text(100) = readglobalstring(125, "Found", 10)
+ names(101) = "Gained (experience)":    text(101) = readglobalstring(126, "Gained", 10)
+ names(102) = "Weak to (elemental)":    text(102) = readglobalstring(127, "Weak to", 10)
+ names(103) = "Strong to (elemental)":  text(103) = readglobalstring(128, "Strong to", 10)
+ names(104) = "Absorbs (elemental)":    text(104) = readglobalstring(129, "Absorbs", 10)
+ names(105) = "No Elemental Effects":   text(105) = readglobalstring(130, "No Elemental Effects", 30)
+ names(106) = "(hero) has no spells":   text(106) = readglobalstring(133, "has no spells", 20)
+ names(107) = "Plotscript: pick hero":  text(107) = readglobalstring(135, "Which Hero?", 20)
+ names(108) = "Hero name prompt":       text(108) = readglobalstring(137, "Name the Hero", 20)
+ names(109) = "Found a (item)":         text(109) = readglobalstring(139, "Found a", 20)
+ names(110) = "Found (number) (items)": text(110) = readglobalstring(141, "Found", 20)
+ names(111) = "THE INN COSTS (# gold)": text(111) = readglobalstring(143, "THE INN COSTS", 20)
+ names(112) = "You have (# gold)":      text(112) = readglobalstring(145, "You have", 20)
+ names(113) = "CANNOT RUN!":            text(113) = readglobalstring(147, "CANNOT RUN!", 20)
+ names(114) = "Level up for (hero)":    text(114) = readglobalstring(149, "Level up for", 20)
+ names(115) = "(#) levels for (hero)":  text(115) = readglobalstring(151, "levels for", 20)
+ names(116) = "($) and (number) (item)":text(116) = readglobalstring(153, "and", 10)
+ names(117) = "day":                    text(117) = readglobalstring(154, "day", 10)
+ names(118) = "days":                   text(118) = readglobalstring(155, "days", 10)
+ names(119) = "hour":                   text(119) = readglobalstring(156, "hour", 10)
+ names(120) = "hours":                  text(120) = readglobalstring(157, "hours", 10)
+ names(121) = "minute":                 text(121) = readglobalstring(158, "minute", 10)
+ names(122) = "minutes":                text(122) = readglobalstring(159, "minutes", 10)
+
+ 'names() = "":      text() = readglobalstring(, "", 10)
+ 'NOTE: if you add global strings here, be sure to update the limit-checking on
+ 'the implementation of the "get global string" plotscripting command
+
+ state.top = -1
+ state.pt = -1
+ state.first = -1
+ state.last = max
+ state.size = 22
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "edit_global_strings"
+  usemenu state
+  IF state.pt = -1 THEN
+   IF enter_or_space() THEN EXIT DO
+  ELSE
+   strgrabber text(state.pt), maxlen(state.pt)
+  END IF
+ 
+  standardmenu names(), state, 0, 0, dpage
+  standardmenu text(), state, 232, 0, dpage
+  draw_scrollbar state, rect, , dpage
+  IF state.pt >= 0 THEN
+   edgeboxstyle 160 - (maxlen(state.pt) * 4), 191, 8 * maxlen(state.pt) + 4, 8, 0, dpage, NO, YES
+   edgeprint text(state.pt), 162 - (maxlen(state.pt) * 4), 191, uilook(uiText), dpage
+  END IF
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ DIM j AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO max
+  writeglobalstring j, text(i), maxlen(i)
+  j = j + 1 + (maxlen(i) \ 11)
+ NEXT i
+ clearpage 0
+ clearpage 1
+END SUB
+
+SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
+ DIM fh AS INTEGER = FREEFILE
+ OPEN game & ".stt" FOR BINARY AS #fh
+ DIM ch AS STRING
+ ch = CHR(small(LEN(s), small(maxlen, 255)))
+ PUT #fh, 1 + index * 11, ch
+ ch = LEFT(s, small(maxlen, 255))
+ PUT #fh, 2 + index * 11, ch
+ CLOSE #fh
+END SUB
+
+'--This sub is the OLD way of reading lobal text strings. it is here for backcompat, and will get factored away completely later.
+SUB getnames (stat$(), max)
+
+DIM fh AS INTEGER = FREEFILE
+
+OPEN game + ".stt" FOR BINARY AS #fh
+
+DIM ch AS STRING
+DIM count AS INTEGER
+FOR i AS INTEGER = 0 TO max
+ ch = CHR(0)
+ GET #fh, 1 + (11 * i), ch
+ count = 0: IF ch <> "" THEN count = ASC(ch)
+ stat$(i) = ""
+ FOR o AS INTEGER = 1 TO small(count, 20)
+  ch = " "
+  GET #fh, 1 + (11 * i) + o, ch
+  stat$(i) = stat$(i) + ch
+ NEXT o
+NEXT i
+
+CLOSE #fh
+
+END SUB

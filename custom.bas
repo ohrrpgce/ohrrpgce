@@ -11,7 +11,6 @@ DEFINT A-Z
 
 'basic subs and functions
 DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE SUB importbmp (f$, cap$, count%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
 DECLARE SUB fixorder (f$)
@@ -37,8 +36,6 @@ DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
-DECLARE SUB getnames (stat$(), max%)
-DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE SUB menu_editor ()
 DECLARE SUB maptile (font())
@@ -269,7 +266,7 @@ DO:
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
     IF pt = 1 THEN mapmaker font()
-    IF pt = 2 THEN statname
+    IF pt = 2 THEN edit_global_text_strings
     IF pt = 3 THEN herodata
     IF pt = 4 THEN enemydata
     IF pt = 5 THEN attackdata

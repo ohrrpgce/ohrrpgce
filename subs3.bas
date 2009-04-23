@@ -11,7 +11,6 @@ DEFINT A-Z
 'basic subs and functions
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
-DECLARE SUB writeglobalstring (index%, s$, maxlen%)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
@@ -22,8 +21,6 @@ DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
-DECLARE SUB getnames (stat$(), max%)
-DECLARE SUB statname ()
 DECLARE SUB textage ()
 DECLARE SUB maptile (font%())
 
@@ -113,18 +110,3 @@ END IF
 numbertail$ = outf$
 
 END FUNCTION
-
-SUB writeglobalstring (index, s$, maxlen)
-
-fh = FREEFILE
-
-OPEN game + ".stt" FOR BINARY AS #fh
-
-a$ = CHR$(small(LEN(s$), small(maxlen, 255)))
-PUT #fh, 1 + index * 11, a$
-a$ = LEFT$(s$, small(maxlen, 255))
-PUT #fh, 2 + index * 11, a$
-
-CLOSE #fh
-
-END SUB
