@@ -318,7 +318,13 @@ DO
   END IF
   IF csr >= 5 AND csr <= 9 THEN editmode = csr - 5: GOSUB mapping
   IF csr = 10 THEN mapedit_linkdoors st, pt, map(), pass(), emap(), gmap(), tilesets(), doors(), link(), mapname$
-  IF csr = 11 THEN mapedit_delete st, pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), doors(), link()
+  IF csr = 11 THEN
+   mapedit_delete st, pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), doors(), link()
+   IF pt > gen(genMaxMap) THEN
+    pt -= 1
+    EXIT DO
+   END IF
+  END IF
   IF csr = 12 THEN
    '--reload default passability
    defpass_reload_confirm(0) = "No, Nevermind. No passability changes"
@@ -1476,6 +1482,15 @@ SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
   mapx = 0
   mapy = 0
   layer = 0
+  '--if this is the last map, then actually remove it entirely, rather than just blanking it
+  IF mapnum = gen(genMaxMap) THEN
+   gen(genMaxMap) -= 1
+   safekill maplumpname$(mapnum, "t")
+   safekill maplumpname$(mapnum, "p")
+   safekill maplumpname$(mapnum, "e")
+   safekill maplumpname$(mapnum, "l")
+   safekill maplumpname$(mapnum, "d")
+  END IF
  END IF
 END SUB
 

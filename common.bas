@@ -907,6 +907,11 @@ edgeprint "Press ESC to cleanly close the program", 8, ypos, uilook(uiMenuItem),
 edgeprint "or any other key to ignore the", 8, ypos + 10, uilook(uiMenuItem), 0
 edgeprint "error and try to continue playing.", 8, ypos + 20, uilook(uiMenuItem), 0
 
+'--Reset palette (in case the error happened in a fade-to-black)
+loadpalette master(), gen(genMasterPal)
+LoadUIColors uilook(), gen(genMasterPal)
+setpal master()
+
 setvispage 0 'refresh
 w = getkey
 
