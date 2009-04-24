@@ -2957,9 +2957,6 @@ SUB edit_global_text_strings()
  clearpage 0
  clearpage 1
 
- '--load current names
- getnames text(), 32 '--undefaulted
-
  FOR i AS INTEGER = 0 TO max
   SELECT CASE i
    CASE 55, 74 TO 76, 78, 80 TO 86, 88 TO 92, 97 TO 98, 106 TO 115
@@ -2973,27 +2970,29 @@ SUB edit_global_text_strings()
   END SELECT
  NEXT i
 
+ '--load current names
+
  names(-1) = "Back to Previous Menu" : text(-1) = ""
- names(0) = "Health Points"
- names(1) = "Spell Points"
- names(2) = "Attack Power"
- names(3) = "Accuracy"
- names(4) = "Extra Hits"
- names(5) = "Blocking Power"
- names(6) = "Dodge Rate"
- names(7) = "Counter Rate"
- names(8) = "Speed"
+ names(0) = "Health Points":            text(0) = readglobalstring(0, "HP", 10)
+ names(1) = "Spell Points":             text(1) = readglobalstring(1, "MP", 10)
+ names(2) = "Attack Power":             text(2) = readglobalstring(2, "Attack", 10)
+ names(3) = "Accuracy":                 text(3) = readglobalstring(3, "Accuracy", 10)
+ names(4) = "Extra Hits":               text(4) = readglobalstring(4, "Hits", 10)
+ names(5) = "Blocking Power":           text(5) = readglobalstring(5, "Blocking", 10)
+ names(6) = "Dodge Rate":               text(6) = readglobalstring(6, "Dodge", 10)
+ names(7) = "Counter Rate":             text(7) = readglobalstring(7, "Counter", 10)
+ names(8) = "Speed":                    text(8) = readglobalstring(8, "Speed", 10)
  FOR i AS INTEGER = 1 TO 8
-  names(8 + i) = "Enemy Type " & i
-  names(16 + i) = "Elemental " & i
+  names(8 + i) = "Enemy Type " & i:     text(8 + i) = readglobalstring(8 + i, "EnemyType" & i, 10)
+  names(16 + i) = "Elemental " & i:     text(16 + i) = readglobalstring(16 + i, "Elemental" & i, 10)
  NEXT i
  FOR i AS INTEGER = 1 TO 4
-  names(24 + i) = "Armor " & i
+  names(24 + i) = "Armor " & i:         text(24 + i) = readglobalstring(24 + i, "Armor " & i, 10)
  NEXT i
- names(29) = "Spell Skill"
- names(30) = "Spell Block"
- names(31) = "Spell cost %"
- names(32) = "Money"
+ names(29) = "Spell Skill":             text(29) = readglobalstring(29, "SpellSkill", 10)
+ names(30) = "Spell Block":             text(30) = readglobalstring(30, "SpellBlock", 10)
+ names(31) = "Spell cost %":            text(31) = readglobalstring(31, "SpellCost%", 10)
+ names(32) = "Money":                   text(32) = readglobalstring(32, "Money", 10)
  names(33) = "Experience":              text(33) = readglobalstring(33, "Experience", 10)
  names(34) = "Battle Item Menu":        text(34) = readglobalstring(34, "Item", 10)
  names(35) = "Exit Item Menu":          text(35) = readglobalstring(35, "DONE", 10)
@@ -3139,27 +3138,3 @@ SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
  CLOSE #fh
 END SUB
 
-'--This sub is the OLD way of reading lobal text strings. it is here for backcompat, and will get factored away completely later.
-SUB getnames (stat$(), max)
-
-DIM fh AS INTEGER = FREEFILE
-
-OPEN game + ".stt" FOR BINARY AS #fh
-
-DIM ch AS STRING
-DIM count AS INTEGER
-FOR i AS INTEGER = 0 TO max
- ch = CHR(0)
- GET #fh, 1 + (11 * i), ch
- count = 0: IF ch <> "" THEN count = ASC(ch)
- stat$(i) = ""
- FOR o AS INTEGER = 1 TO small(count, 20)
-  ch = " "
-  GET #fh, 1 + (11 * i) + o, ch
-  stat$(i) = stat$(i) + ch
- NEXT o
-NEXT i
-
-CLOSE #fh
-
-END SUB

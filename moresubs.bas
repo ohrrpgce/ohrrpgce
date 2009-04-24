@@ -467,25 +467,6 @@ NEXT i
 findhero = result
 END FUNCTION
 
-SUB getnames (stat$())
-DIM bytecount AS UBYTE
-IF isfile(game + ".stt") THEN
- fh = FREEFILE
- OPEN game + ".stt" FOR BINARY AS #fh
- max = 32
- FOR i = 0 TO max
-  GET #fh, 1 + (11 * i), bytecount
-  IF bytecount = 0 THEN
-   stat$(i) = ""
-  ELSE
-   stat$(i) = STRING$(bytecount, CHR$(0))
-   GET #fh, 2 + (11 * i), stat$(i)
-  END IF
- NEXT i
- CLOSE #fh
-END IF
-END SUB
-
 SUB heroswap (iAll%, stat())
 '--Preserve background for display beneath the hero swapper
 holdscreen = allocatepage
@@ -2217,12 +2198,10 @@ RETRACE
 END SUB
 
 FUNCTION useinn (inn as integer, price as integer, needf as integer, stat() as integer, holdscreen as integer) as integer
-DIM menu$(1), sname$(40)
+DIM menu$(1)
 DIM AS INTEGER i, y
 
 useinn = 0
-
-getnames sname$()
 
 menu$(0) = readglobalstring$(49, "Pay", 10)
 menu$(1) = readglobalstring$(50, "Cancel", 10)
@@ -2268,8 +2247,8 @@ DO
  NEXT i
  centerfuz 160, 90, 200, 60, 1, dpage
  rectangle 130, 92, 60, 22, uilook(uiHighlight), dpage 'orig colour 20
- edgeprint inncost$ + XSTR$(price) + " " + sname$(32), 160 - LEN(inncost$ + XSTR$(price) + " " + sname$(32)) * 4, 70, uilook(uiText), dpage
- edgeprint youhave$ + XSTR$(gold) + " " + sname$(32), 160 - LEN(youhave$ + XSTR$(gold) + " " + sname$(32)) * 4, 80, uilook(uiText), dpage
+ edgeprint inncost$ & " " & price & " " & readglobalstring(32, "Money"), 160 - LEN(inncost$ & price & " " & readglobalstring(32, "Money")) * 4, 70, uilook(uiText), dpage
+ edgeprint youhave$ & " " & gold & " " & readglobalstring(32, "Money"), 160 - LEN(youhave$ & gold & " " & readglobalstring(32, "Money")) * 4, 80, uilook(uiText), dpage
  FOR i = 0 TO 1
   col = uilook(uiMenuItem): IF inn = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint menu$(i), 160 - LEN(menu$(i)) * 4, 94 + i * 8, col, dpage

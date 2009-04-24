@@ -75,11 +75,10 @@ END SUB
 SUB enemydata
 
 '--stat names
-DIM names(32) AS STRING, nof(11), elemtype$(2)
+DIM nof(11), elemtype$(2)
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
-getnames names(), 32
 '--name offsets
 nof(0) = 0
 nof(1) = 1
@@ -109,10 +108,10 @@ edgebox 219, 99, 82, 82, uilook(uiDisabledItem), uilook(uiMenuItem), 3
 DIM ebit(63) AS STRING
 
 FOR i = 0 TO 7
- ebit(0 + i) = elemtype$(0) & " " & names(17 + i)
- ebit(8 + i) = elemtype$(1) & " " & names(17 + i)
- ebit(16 + i) = elemtype$(2) & " " & names(17 + i)
- ebit(24 + i) = "Is " & names(9 + i)
+ ebit(0 + i) = elemtype$(0) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ebit(8 + i) = elemtype$(1) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ebit(16 + i) = elemtype$(2) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ebit(24 + i) = "Is " & readglobalstring(9 + i, "EnemyType" & i+1)
 NEXT i
 FOR i = 32 TO 53
  ebit(i) = "" 'preferable to be blank, so we can hide it
@@ -340,7 +339,7 @@ menulimits(EnMenuRareItemP) = EnLimPercent
 
 CONST EnMenuStat = 18' to 29
 FOR i = 0 TO 11
- menu$(EnMenuStat + i) = names(nof(i)) & ":"
+ menu$(EnMenuStat + i) = readglobalstring(nof(i), "Stat" & i) & ":"
  menutype(EnMenuStat + i) = 0
  menuoff(EnMenuStat + i) = EnDatStat + i
  menulimits(EnMenuStat + i) = EnLimStat + i
@@ -373,7 +372,7 @@ menulimits(EnMenuSpawnNEHit) = EnLimSpawn
 
 CONST EnMenuSpawnElement = 34' to 41
 FOR i = 0 TO 7
- menu$(EnMenuSpawnElement + i) = "on " + names(17 + i) + " Hit:"
+ menu$(EnMenuSpawnElement + i) = "on " & readglobalstring(17 + i, "Element" & i+1) & " Hit:"
  menutype(EnMenuSpawnElement + i) = 9
  menuoff(EnMenuSpawnElement + i) = EnDatSpawnElement + i
  menulimits(EnMenuSpawnElement + i) = EnLimSpawn
@@ -1062,7 +1061,7 @@ SUB formsprite(z() as integer, w() as integer, a() as integer, h() as integer, p
 END SUB
 
 SUB herodata
-DIM names(100) AS STRING, menu$(9), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), elemtype$(2)
+DIM menu$(9), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), elemtype$(2)
 DIM AS HeroDef her, blankhero
 DIM st AS HeroEditState
 WITH st
@@ -1078,7 +1077,6 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames names(), hmax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
@@ -1087,9 +1085,9 @@ st.previewframe = -1
 pt = 0
 csr = 1
 FOR i = 0 TO 7
- hbit$(i) = elemtype$(0) + " " + names(17 + i)
- hbit$(i + 8) = elemtype$(1) + " " + names(17 + i)
- hbit$(i + 16) = elemtype$(2) + " " + names(17 + i)
+ hbit$(i) = elemtype$(0) & " " & readglobalstring(17 + i, "Element" & i+1)
+ hbit$(i + 8) = elemtype$(1) & " " & readglobalstring(17 + i, "Element" & i+1)
+ hbit$(i + 16) = elemtype$(2) & " " & readglobalstring(17 + i, "Element" & i+1)
 NEXT i
 hbit$(24) = "Rename when added to party"
 hbit$(25) = "Permit renaming on status screen"
@@ -1393,7 +1391,7 @@ RETRACE
 graph:
 o = INT((bctr - 1) / 2)
 textcolor uilook(uiMenuItem), 0
-printstr names(nof(o)), 310 - LEN(names(nof(o))) * 8, 180, dpage
+printstr readglobalstring(nof(o), "Stat" & o), 310 - LEN(readglobalstring(nof(o), "Stat" & o)) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
  ii = (.8 * i / 50) * i
  n0 = her.Lev0.sta(o)
@@ -1407,8 +1405,8 @@ RETRACE
 
 smi:
 FOR i = 0 TO 11
- bmenu$(i * 2 + 1) = names(nof(i)) & " " & her.Lev0.sta(i)
- bmenu$(i * 2 + 2) = names(nof(i)) & " " & her.Lev99.sta(i)
+ bmenu$(i * 2 + 1) = readglobalstring(nof(i), "Stat" & i) & " " & her.Lev0.sta(i)
+ bmenu$(i * 2 + 2) = readglobalstring(nof(i), "Stat" & i) & " " & her.Lev99.sta(i)
 NEXT i
 RETRACE
 
@@ -1509,7 +1507,7 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM names(100) AS STRING, a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), elemtype$(2), frame
+DIM a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), elemtype$(2), frame
 DIM item$(maxMaxItems)
 DIM wep_img AS GraphicPair 'This is only used in edititem
 imax = 32
@@ -1518,7 +1516,6 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames names(), imax
 elemtype$(0) = readglobalstring$(127, "Weak to", 10)
 elemtype$(1) = readglobalstring$(128, "Strong to", 10)
 elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
@@ -1526,7 +1523,7 @@ elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
 eqst$(0) = "NEVER EQUIPPED"
 eqst$(1) = "Weapon"
 FOR i = 0 TO 3
- eqst$(i + 2) = names(25 + i)
+ eqst$(i + 2) = readglobalstring(25 + i, "Armor" & i+1)
 NEXT i
 FOR i = 0 TO 1
  sbmax(i) = 9999
@@ -1759,7 +1756,7 @@ DO
  FOR i = 0 TO 11
   textcolor uilook(uiMenuItem), 0
   IF ptr2 = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr names(nof(i)) + " Bonus: " & a(54 + i), 0, 8 + i * 8, dpage
+  printstr readglobalstring(nof(i), "Stat" & i) + " Bonus: " & a(54 + i), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1782,9 +1779,9 @@ RETRACE
 
 ibitset:
 FOR i = 0 TO 7
- ibit$(i) = elemtype$(0) + " " + names(17 + i)
- ibit$(i + 8) = elemtype$(1) + " " + names(17 + i)
- ibit$(i + 16) = elemtype$(2) + " " + names(17 + i)
+ ibit$(i) = elemtype$(0) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ibit$(i + 8) = elemtype$(1) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ibit$(i + 16) = elemtype$(2) & " " & readglobalstring(17 + i, "Element" & i+1)
 NEXT i
 editbitset a(), 70, 23, ibit$()
 RETRACE

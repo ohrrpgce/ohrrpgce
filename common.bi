@@ -88,7 +88,7 @@ DECLARE SUB updaterecordlength (lumpf as string, bindex AS INTEGER)
 DECLARE SUB writepassword (p as string)
 DECLARE FUNCTION readpassword () as string
 DECLARE SUB upgrade (font() as integer)
-DECLARE FUNCTION readglobalstring (index as integer, default as string, maxlen as integer) as string
+DECLARE FUNCTION readglobalstring (index as integer, default as string, maxlen as integer=10) as string
 DECLARE SUB load_default_master_palette (master_palette() AS RGBColor)
 DECLARE SUB dump_master_palette_as_hex (master_palette() AS RGBColor)
 

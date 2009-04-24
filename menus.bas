@@ -1089,19 +1089,18 @@ SUB gendata ()
   .need_update = YES
  END WITH
 
- getnames names(), 32
- stat$(0) = names(0)
- stat$(1) = names(1)
- stat$(2) = names(2)
- stat$(3) = names(3)
- stat$(4) = names(5)
- stat$(5) = names(6)
- stat$(6) = names(29)
- stat$(7) = names(30)
- stat$(8) = names(8)
- stat$(9) = names(7)
- stat$(10) = names(31)
- stat$(11) = names(4)
+ stat$(0) = readglobalstring(0, "HP")
+ stat$(1) = readglobalstring(1, "MP")
+ stat$(2) = readglobalstring(2, "Atk")
+ stat$(3) = readglobalstring(3, "Aim")
+ stat$(4) = readglobalstring(5, "Def")
+ stat$(5) = readglobalstring(6, "Dog")
+ stat$(6) = readglobalstring(29, "Mag")
+ stat$(7) = readglobalstring(30, "Wil")
+ stat$(8) = readglobalstring(8, "Speed")
+ stat$(9) = readglobalstring(7, "Counter")
+ stat$(10) = readglobalstring(31, "Focus")
+ stat$(11) = readglobalstring(4, "HitX")
 
  IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
  IF gen(genStun) <= 0 THEN gen(genStun) = 159

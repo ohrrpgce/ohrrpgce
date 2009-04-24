@@ -2417,7 +2417,7 @@ FUNCTION count_menu_items (menu AS MenuDef) as integer
  RETURN count
 END FUNCTION
 
-FUNCTION readglobalstring (index, default$, maxlen) as string
+FUNCTION readglobalstring (index, default$, maxlen=10) as string
 DIM fh AS INTEGER = FREEFILE
 OPEN game + ".stt" FOR BINARY AS #fh
 

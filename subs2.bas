@@ -138,7 +138,7 @@ END SUB
 
 SUB exportnames ()
 
-DIM u$(1024), names(32) AS STRING, stat$(11)
+DIM u$(1024), stat$(11)
 DIM her AS HeroDef
 DIM menu_set AS MenuSet
 menu_set.menufile = workingdir & SLASH & "menus.bin"
@@ -146,19 +146,18 @@ menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 
 max = 32
 
-getnames names(), max
-stat$(0) = names(0)
-stat$(1) = names(1)
-stat$(2) = names(2)
-stat$(3) = names(3)
-stat$(4) = names(5)
-stat$(5) = names(6)
-stat$(6) = names(29)
-stat$(7) = names(30)
-stat$(8) = names(8)
-stat$(9) = names(7)
-stat$(10) = names(31)
-stat$(11) = names(4)
+stat$(0) = readglobalstring(0, "HP")
+stat$(1) = readglobalstring(1, "MP")
+stat$(2) = readglobalstring(2, "Attack")
+stat$(3) = readglobalstring(3, "Aim")
+stat$(4) = readglobalstring(5, "Def")
+stat$(5) = readglobalstring(6, "Dodge")
+stat$(6) = readglobalstring(29, "Magic")
+stat$(7) = readglobalstring(30, "Will")
+stat$(8) = readglobalstring(8, "Speed")
+stat$(9) = readglobalstring(7, "Counter")
+stat$(10) = readglobalstring(31, "Focus")
+stat$(11) = readglobalstring(4, "HitX")
 
 outf$ = trimextension$(gamefile) + ".hsi"
 
@@ -224,7 +223,7 @@ printstr "slot names", 0, pl * 8, 0: pl = pl + 1
 isunique "", u$(), 1
 writeconstant fh, 1, "Weapon", u$(), "slot"
 FOR i = 0 TO 3
- writeconstant fh, i + 2, names(25 + i), u$(), "slot"
+ writeconstant fh, i + 2, readglobalstring(25 + i, "Armor" & i+1), u$(), "slot"
 NEXT i
 setvispage 0
 

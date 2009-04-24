@@ -12,7 +12,6 @@ DECLARE SUB drawsay ()
 DECLARE SUB evalherotag (stat() as integer)
 DECLARE SUB evalitemtag
 DECLARE FUNCTION findhero (who as integer, f as integer, l as integer, d as integer) as integer
-DECLARE SUB getnames (stat() as string)
 DECLARE SUB heroswap (iAll as integer, stat() as integer)
 DECLARE FUNCTION istag (num as integer, zero as integer) as integer
 DECLARE SUB loaddoor (map as integer)

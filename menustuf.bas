@@ -35,7 +35,7 @@ REM $STATIC
 
 
 SUB buystuff (id, shoptype, storebuf(), stat())
-DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), sname$(40), buytype$(5, 1), wbuf(100), walks(15), tradestf(3, 1)
+DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), buytype$(5, 1), wbuf(100), walks(15), tradestf(3, 1)
 DIM is_equipable AS INTEGER
 DIM itembuf(99) AS INTEGER
 DIM hiresprite AS Frame PTR
@@ -50,7 +50,6 @@ recordsize = curbinsize(1) / 2 ' get size in INTs
 holdscreen = allocatepage
 copypage vpage, holdscreen
 
-getnames sname$()
 buytype$(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
 buytype$(0, 1) = readglobalstring$(87, "Joins for", 20) + " "
 buytype$(1, 0) = readglobalstring$(89, "Cannot Afford", 20) + " "
@@ -197,7 +196,7 @@ DO
  centerbox 80, 94, 150, 168, 1, dpage
  centerbox 240, 94, 150, 168, 1, dpage
  '-----RIGHT PANEL------------------------------------------
- temp$ = gold & " " & sname$(32)
+ temp$ = gold & " " & readglobalstring(32, "Money")
  centerbox 240, 20, LEN(temp$) * 8 + 8, 12, 4, dpage
  edgeprint temp$, xstring(temp$ & " ", 240), 15, uilook(uiText), dpage
  o = 0
@@ -319,7 +318,7 @@ price2$ = ""
 eqinfo$ = ""
 info1$ = ""
 info2$ = ""
-IF b(pt * recordsize + 24) > 0 THEN price$ = STR$(b(pt * recordsize + 24)) + " " + sname$(32)
+IF b(pt * recordsize + 24) > 0 THEN price$ = b(pt * recordsize + 24) & " " & readglobalstring(32, "Money")
 '--load must trade in item types+amounts
 loadtrades pt, tradestf(), b(), recordsize
 FOR i = 0 TO 3
@@ -353,8 +352,8 @@ IF b(pt * recordsize + 17) = 0 THEN
  'This is an item
  loaditemdata itembuf(), b(pt * recordsize + 18)
  'The itembuf remains and is used later to show equipability.
- IF itembuf(49) = 1 THEN eqinfo$ = eqprefix$ + " " + wepslot$
- IF itembuf(49) > 1 THEN eqinfo$ = eqprefix$ + " " + sname$(23 + itembuf(49))
+ IF itembuf(49) = 1 THEN eqinfo$ = eqprefix$ & " " & wepslot$
+ IF itembuf(49) > 1 THEN eqinfo$ = eqprefix$ & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
  info1$ = readbadbinstring$(itembuf(), 9, 35, 0)
  IF LEN(info1$) > 17 THEN
   FOR o = 18 TO 1 STEP -1
@@ -379,7 +378,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  loaditemdata wbuf(), her.def_weapon
  IF her.def_level < 0 THEN her.def_level = averagelev(stat())
  temp$ = XSTR$(atlevel(her.def_level, her.lev0.hp, her.lev99.hp) + wbuf(54 + 0))
- eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + sname$(0)
+ eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + readglobalstring(0, "HP")
  showhero = her.sprite
  
  'Load the sprite for the hireable hero
@@ -1188,7 +1187,7 @@ FOR i = 0 TO 3
      k = buffer(11259 + (o * 17) + j)
      IF k > 0 AND k < 255 THEN herosname$(i) = herosname$(i) + CHR$(k)
     NEXT j
-    lev$(i) = readglobalstring$(43, "Level", 10) + XSTR$(tstat(o, 0, 12))
+    lev$(i) = readglobalstring$(43, "Level", 10) & " " & tstat(o, 0, 12)
    END IF
   NEXT o
   '--load second record
@@ -1387,14 +1386,12 @@ RETRACE
 END FUNCTION
 
 SUB sellstuff (id, storebuf(), stat())
-DIM b(dimbinsize(1) * 50), sname$(40), permask(15), price(200)
+DIM b(dimbinsize(1) * 50), permask(15), price(200)
 recordsize = curbinsize(1) / 2 ' get size in INTs
 
 '--preserve background for display under sell menu
 holdscreen = allocatepage
 copypage vpage, holdscreen
-
-getnames sname$()
 
 cannotsell$ = readglobalstring$(75, "CANNOT SELL", 20)
 worth$ = readglobalstring$(77, "Worth", 20)
@@ -1438,7 +1435,7 @@ DO
  NEXT i
  centerfuz 160, 180, 312, 20, 4, dpage
  edgeprint info$, xstring(info$, 160), 175, uilook(uiText), dpage
- edgeprint gold & " " & sname$(32), 310 - LEN(gold & " " & sname$(32)) * 8, 1, uilook(uiGold), dpage
+ edgeprint gold & " " & readglobalstring(32, "Money"), 310 - LEN(gold & " " & readglobalstring(32, "Money")) * 8, 1, uilook(uiGold), dpage
  IF alert THEN
   alert = alert - 1
   centerbox 160, 178, LEN(alert$) * 8 + 8, 12, 4, dpage
@@ -1457,7 +1454,7 @@ sellinfostr:
 info$ = ""
 IF inventory(ic).used = 0 THEN RETRACE
 IF readbit(permask(), 0, ic) = 1 THEN info$ = cannotsell$: RETRACE
-IF price(ic) > 0 THEN info$ = worth$ + XSTR$(price(ic)) + " " + sname$(32)
+IF price(ic) > 0 THEN info$ = worth$ & " " & price(ic) & " " & readglobalstring(32, "Money")
 FOR i = 0 TO storebuf(16)
  IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
   IF b(i * recordsize + 28) > 0 THEN
@@ -1579,10 +1576,8 @@ END SUB
 SUB spells (pt, stat())
 REMEMBERSTATE
 
-DIM sname$(40), menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), tstat(24)
+DIM menu$(4), mi(4), mtype(5), spel$(24), speld$(24), cost$(24), spel(24), canuse(24), targt(24), spid(5), tstat(24)
 dim her as herodef
-
-getnames sname$()
 
 cancelmenu$ = readglobalstring$(51, "(CANCEL)", 10)
 hasnone$ = readglobalstring$(133, "has no spells", 20)
@@ -1695,9 +1690,8 @@ FOR i = 0 TO 23
   IF stat(pt, 0, 0) = 0 THEN canuse(i) = 0
   spel$(i) = readbadbinstring$(buffer(), 24, 10, 1)
   speld$(i) = readbinstring$(buffer(),73,38)
-  'debug "i = " + XSTR$(i) + ", spel(sptr) = " + XSTR$(spel(sptr))
-  IF mtype(csr) = 0 THEN cost$(i) = XSTR$(cost) + " " + sname$(1) + " " + STR$(ABS(stat(pt, 0, 1))) + "/" + STR$(ABS(stat(pt, 1, 1)))
-  IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) + XSTR$(INT(i / 3) + 1) + ":  " + XSTR$(lmp(pt, INT(i / 3)))
+  IF mtype(csr) = 0 THEN cost$(i) = cost & " " & readglobalstring(1, "MP") & " " & ABS(stat(pt, 0, 1)) & "/" & ABS(stat(pt, 1, 1))
+  IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) & " " & (INT(i / 3) + 1) & ":  " & lmp(pt, INT(i / 3))
  END IF
  WHILE LEN(spel$(i)) < 10: spel$(i) = spel$(i) + " ": WEND
 NEXT i
@@ -1892,13 +1886,12 @@ EXIT SUB
 END SUB
 
 SUB status (pt, stat())
-DIM sname$(40), sno(9), mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
+DIM sno(9), mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
 DIM her AS HeroDef
 DIM portrait AS GraphicPair
 
-getnames sname$()
-sname$(33) = readglobalstring$(33, "Experience", 10)
-sname$(34) = readglobalstring$(43, "Level", 10)
+DIM exper_caption AS STRING = readglobalstring$(33, "Experience", 10)
+DIM level_caption AS STRING = readglobalstring$(43, "Level", 10)
 elemtype$(0) = readglobalstring(127, "Weak to", 10)
 elemtype$(1) = readglobalstring(128, "Strong to", 10)
 elemtype$(2) = readglobalstring(129, "Absorbs", 10)
@@ -1958,33 +1951,33 @@ DO
  END IF
 
  edgeprint names(pt), 142 - LEN(names(pt)) * 4, 20, uilook(uiText), dpage
- edgeprint sname$(34) + XSTR$(stat(pt, 0, 12)), 142 - LEN(sname$(34) + STR$(stat(pt, 0, 12))) * 4, 30, uilook(uiText), dpage
- temp$ = STR$(exlev(pt, 1) - exlev(pt, 0)) + " " + sname$(33) + " " + readglobalstring$(47, "for next", 10) + " " + sname$(34)
+ edgeprint level_caption & " " & stat(pt, 0, 12), 142 - LEN(level_caption & " " & stat(pt, 0, 12)) * 4, 30, uilook(uiText), dpage
+ temp$ = (exlev(pt, 1) - exlev(pt, 0)) & " " & exper_caption & " " & readglobalstring$(47, "for next", 10) & " " & level_caption
  edgeprint temp$, 142 - LEN(temp$) * 4, 40, uilook(uiText), dpage
 
  SELECT CASE mode
   CASE 0
    '--show stats
    FOR i = 0 TO 9
-    edgeprint sname$(sno(i)), 20, 62 + i * 10, uilook(uiText), dpage
+    edgeprint readglobalstring(sno(i), "Stat"), 20, 62 + i * 10, uilook(uiText), dpage
     temp$ = XSTR$(stat(pt, 0, i + 2))
     edgeprint temp$, 148 - LEN(temp$) * 8, 62 + i * 10, uilook(uiText), dpage
    NEXT i
 
    'current/max HP
-   edgeprint sname$(0), 236 - LEN(sname$(0)) * 4, 65, uilook(uiText), dpage
+   edgeprint readglobalstring(0, "HP"), 236 - LEN(readglobalstring(0, "HP")) * 4, 65, uilook(uiText), dpage
    temp$ = STR$(ABS(stat(pt, 0, 0))) + "/" + STR$(ABS(stat(pt, 1, 0)))
    edgeprint temp$, 236 - LEN(temp$) * 4, 75, uilook(uiText), dpage
 
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
-     edgeprint sname$(1), 236 - LEN(sname$(1)) * 4, 95, uilook(uiText), dpage
+     edgeprint readglobalstring(1, "MP"), 236 - LEN(readglobalstring(1, "MP")) * 4, 95, uilook(uiText), dpage
      temp$ = STR$(ABS(stat(pt, 0, 1))) + "/" + STR$(ABS(stat(pt, 1, 1)))
      edgeprint temp$, 236 - LEN(temp$) * 4, 105, uilook(uiText), dpage
     END IF
     IF mtype(i) = 1 THEN
-     edgeprint sname$(34) + " " + sname$(1), 236 - LEN(sname$(34) + " " + sname$(1)) * 4, 125, uilook(uiText), dpage
+     edgeprint level_caption & " " & readglobalstring(1, "MP"), 236 - LEN(level_caption & " " & readglobalstring(1, "MP")) * 4, 125, uilook(uiText), dpage
      temp$ = ""
      FOR o = 0 TO 3
       temp$ = temp$ + STR$(ABS(lmp(pt, o))) + "/"
@@ -2001,7 +1994,7 @@ DO
    NEXT i
 
    '--gold
-   edgeprint STR$(gold) + " " + sname$(32), 236 - LEN(STR$(gold) + " " + sname$(32)) * 4, 167, uilook(uiGold), dpage
+   edgeprint gold & " " & readglobalstring(32, "Money"), 236 - LEN(gold & " " & readglobalstring(32, "Money")) * 4, 167, uilook(uiGold), dpage
   CASE 1
 
    '--show elementals
@@ -2056,7 +2049,7 @@ lastinfo = 0
 FOR o = 0 TO 2
  FOR i = 0 TO 7
   IF readbit(thishbits(), 0, i + o * 8) THEN
-   info$(lastinfo) = elemtype$(o) + " " + sname$(17 + i)
+   info$(lastinfo) = elemtype$(o) & " " & readglobalstring(17 + i, "Type" & i+1)
    lastinfo = lastinfo + 1
   END IF
  NEXT i
@@ -2188,7 +2181,7 @@ END FUNCTION
 SUB equip (who, stat())
 
 '--dim stuff
-DIM sname$(40), sno(11), m$(4), menu$(6)
+DIM sno(11), m$(4), menu$(6)
 DIM holdscreen = allocatepage
 DIM st AS EquipMenuState
 
@@ -2199,10 +2192,9 @@ DIM col AS INTEGER
 DIM item_id AS INTEGER
 
 '--get names
-getnames sname$()
 m$(0) = readglobalstring$(38, "Weapon", 10)
 FOR i = 0 TO 3
- m$(i + 1) = sname$(25 + i)
+ m$(i + 1) = readglobalstring(25 + i, "Armor" & i+1)
 NEXT i
 menu$(5) = rpad(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
 menu$(6) = rpad(readglobalstring$(40, "-EXIT-", 8), " ", 8)
@@ -2340,7 +2332,7 @@ DO
   stat_caption = ""
   IF st.stat_bonus(i) > 0 THEN stat_caption = stat_caption & "+" & st.stat_bonus(i)
   IF st.stat_bonus(i) < 0 THEN stat_caption = stat_caption & st.stat_bonus(i)
-  edgeprint sname$(sno(i)) & stat_caption, 20, 42 + i * 10, uilook(uiMenuItem), dpage
+  edgeprint readglobalstring(sno(i), "Stat") & stat_caption, 20, 42 + i * 10, uilook(uiMenuItem), dpage
   col = uilook(uiMenuItem)
   IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
   IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)

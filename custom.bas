@@ -902,7 +902,7 @@ RETRACE
 END SUB
 
 SUB shopdata
-DIM names(32) AS STRING, a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
+DIM a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
 DIM her AS HeroDef' Used to get hero name for default stuff name
 DIM item_tmp(99) ' This is only used for loading the default buy/sell price for items
 
@@ -951,7 +951,6 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-getnames names(), maxcount
 
 GOSUB lshopset
 GOSUB menugen
@@ -1193,7 +1192,7 @@ smenu$(6) = tag_condition_caption(b(20), "Buy Require Tag", "No Tag Check")
 smenu$(7) = tag_condition_caption(b(21), "Sell Require Tag", "No Tag Check")
 smenu$(8) = tag_condition_caption(b(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
 smenu$(9) = tag_condition_caption(b(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu$(10) = names(32) & " Price: " & b(24)
+smenu$(10) = readglobalstring(32, "Money") & " Price: " & b(24)
 smenu$(11) = "Must Trade in " & (b(30) + 1) & " of: " & tradestf$(0)
 smenu$(12) = " (Change Amount)"
 smenu$(13) = "Must Trade in " & (b(32) + 1) & " of: " & tradestf$(1)

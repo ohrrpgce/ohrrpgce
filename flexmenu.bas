@@ -64,9 +64,6 @@ END SUB
 
 SUB attackdata
 
-DIM sname$(32)
-getnames sname$(), 32
-
 DIM workpal(7)
 
 clearallpages
@@ -84,10 +81,10 @@ atkbit$(3) = "Unreversable Picture"
 atkbit$(4) = "Steal Item"
 
 FOR i = 0 TO 7
- atkbit$(i + 5) = sname$(i + 17) + " Damage"                   '05-12
- atkbit$(i + 13) = "Bonus vs " + sname$(i + 9)                 '13-20
- atkbit$(i + 21) = "Fail vs " + sname$(i + 17) + " resistance" '21-28
- atkbit$(i + 29) = "Fail vs " + sname$(i + 9)                  '29-36
+ atkbit$(i + 5) = readglobalstring(17 + i, "Elemental" & i+1) & " Damage" '05-12
+ atkbit$(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
+ atkbit$(i + 21) = "Fail vs " & readglobalstring(17 + i, "Elemental" & i+1) & " resistance" '21-28
+ atkbit$(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
 NEXT i
 
 FOR i = 0 TO 7
@@ -108,7 +105,7 @@ atkbit$(56) = "Do not display Damage"
 atkbit$(57) = "Reset target stat to max before hit"
 atkbit$(58) = "Allow Cure to exceed maximum"
 atkbit$(59) = "Useable Outside of Battle"
-atkbit$(60) = "Damage " + sname$(1) + " (obsolete)"
+atkbit$(60) = "Damage " & readglobalstring(1, "MP") & " (obsolete)"
 atkbit$(61) = "Do not randomize"
 atkbit$(62) = "Damage can be Zero"
 atkbit$(63) = "Cause heroes to run away"
@@ -253,37 +250,37 @@ addcaption caption$(), capindex, "Set = N% of Current"
 CONST AtkLimAimEq = 6
 max(AtkLimAimEq) = 8
 AtkCapAimEq = capindex
-addcaption caption$(), capindex, "Normal: " + sname$(3) + "*4 ~ " + sname$(6)
-addcaption caption$(), capindex, "Poor: " + sname$(3) + "*2 ~ " + sname$(6)
-addcaption caption$(), capindex, "Bad: " + sname$(3) + " ~ " + sname$(6)
+addcaption caption$(), capindex, "Normal: " & readglobalstring(3, "Acc") & "*4 ~ " & readglobalstring(6, "Dog")
+addcaption caption$(), capindex, "Poor: " & readglobalstring(3, "Acc") & "*2 ~ " & readglobalstring(6, "Dog")
+addcaption caption$(), capindex, "Bad: " & readglobalstring(3, "Acc") & " ~ " & readglobalstring(6, "Dog")
 addcaption caption$(), capindex, "Never Misses"
-addcaption caption$(), capindex, "Magic: " + sname$(29) + " ~ " + sname$(30) + "*1.25"
-addcaption caption$(), capindex, "Percentage: " + sname$(3) + "% * " + sname$(6) + "%"
-addcaption caption$(), capindex, "Percentage: " + sname$(3) + "%"
-addcaption caption$(), capindex, "Percentage: " + sname$(29) + "% * " + sname$(30) + "%"
-addcaption caption$(), capindex, "Percentage: " + sname$(29) + "%"
+addcaption caption$(), capindex, "Magic: " & readglobalstring(29, "Mag") & " ~ " & readglobalstring(30, "Wil") & "*1.25"
+addcaption caption$(), capindex, "Percentage: " & readglobalstring(3, "Acc") & "% * " & readglobalstring(6, "Dog") & "%"
+addcaption caption$(), capindex, "Percentage: " & readglobalstring(3, "Acc") & "%"
+addcaption caption$(), capindex, "Percentage: " & readglobalstring(29, "Mag") & "% * " & readglobalstring(30, "Wil") & "%"
+addcaption caption$(), capindex, "Percentage: " & readglobalstring(29, "Mag") & "%"
 
 CONST AtkLimBaseAtk = 7
 max(AtkLimBaseAtk) = 22
 AtkCapBaseAtk = capindex
-addcaption caption$(), capindex, sname$(2)  'str
-addcaption caption$(), capindex, sname$(29)  'mag
-addcaption caption$(), capindex, sname$(0)   'hp
-addcaption caption$(), capindex, "Lost " + sname$(0)  'hp
+addcaption caption$(), capindex, readglobalstring(2, "Str")  'str
+addcaption caption$(), capindex, readglobalstring(29, "Mag")
+addcaption caption$(), capindex, readglobalstring(0, "HP")
+addcaption caption$(), capindex, "Lost " & readglobalstring(0, "HP")
 addcaption caption$(), capindex, "Random 0 to 999"
 addcaption caption$(), capindex, "100"
-addcaption caption$(), capindex, sname$(0) 'hp
-addcaption caption$(), capindex, sname$(1) 'mp
-addcaption caption$(), capindex, sname$(2) 'atk
-addcaption caption$(), capindex, sname$(3) 'aim
-addcaption caption$(), capindex, sname$(5) 'def
-addcaption caption$(), capindex, sname$(6) 'dog
-addcaption caption$(), capindex, sname$(29) 'mag
-addcaption caption$(), capindex, sname$(30) 'wil
-addcaption caption$(), capindex, sname$(8) 'spd
-addcaption caption$(), capindex, sname$(7)'ctr
-addcaption caption$(), capindex, sname$(31)'focus
-addcaption caption$(), capindex, sname$(4) 'hitX
+addcaption caption$(), capindex, readglobalstring(0, "HP")
+addcaption caption$(), capindex, readglobalstring(1, "MP")
+addcaption caption$(), capindex, readglobalstring(2, "Atk")
+addcaption caption$(), capindex, readglobalstring(3, "Aim")
+addcaption caption$(), capindex, readglobalstring(5, "Def")
+addcaption caption$(), capindex, readglobalstring(6, "Dog")
+addcaption caption$(), capindex, readglobalstring(29, "Mag")
+addcaption caption$(), capindex, readglobalstring(30, "Wil")
+addcaption caption$(), capindex, readglobalstring(8, "Spd")
+addcaption caption$(), capindex, readglobalstring(7, "Ctr")
+addcaption caption$(), capindex, readglobalstring(31, "Focus")
+addcaption caption$(), capindex, readglobalstring(4, "HitX")
 addcaption caption$(), capindex, "previous attack"
 addcaption caption$(), capindex, "last damage to attacker"
 addcaption caption$(), capindex, "last damage to target"
@@ -338,18 +335,18 @@ min(AtkLimHitX) = 1
 CONST AtkLimTargStat = 18
 max(AtkLimTargStat) = 15
 AtkCapTargStat = capindex
-addcaption caption$(), capindex, sname$(0) 'hp
-addcaption caption$(), capindex, sname$(1) 'mp
-addcaption caption$(), capindex, sname$(2) 'atk
-addcaption caption$(), capindex, sname$(3) 'aim
-addcaption caption$(), capindex, sname$(5) 'def
-addcaption caption$(), capindex, sname$(6) 'dog
-addcaption caption$(), capindex, sname$(29) 'mag
-addcaption caption$(), capindex, sname$(30) 'wil
-addcaption caption$(), capindex, sname$(8) 'spd
-addcaption caption$(), capindex, sname$(7) 'ctr
-addcaption caption$(), capindex, sname$(31) 'focus
-addcaption caption$(), capindex, sname$(4) 'hitX
+addcaption caption$(), capindex, readglobalstring(0, "HP")
+addcaption caption$(), capindex, readglobalstring(1, "MP")
+addcaption caption$(), capindex, readglobalstring(2, "Atk")
+addcaption caption$(), capindex, readglobalstring(3, "Aim")
+addcaption caption$(), capindex, readglobalstring(5, "Def")
+addcaption caption$(), capindex, readglobalstring(6, "Dog")
+addcaption caption$(), capindex, readglobalstring(29, "Mag")
+addcaption caption$(), capindex, readglobalstring(30, "Wil")
+addcaption caption$(), capindex, readglobalstring(8, "Speed")
+addcaption caption$(), capindex, readglobalstring(7, "Ctr")
+addcaption caption$(), capindex, readglobalstring(31, "Focus")
+addcaption caption$(), capindex, readglobalstring(4, "HitX")
 addcaption caption$(), capindex, "poison register"
 addcaption caption$(), capindex, "regen register"
 addcaption caption$(), capindex, "stun register"
@@ -371,18 +368,18 @@ CONST AtkLimBaseDef = 22
 max(AtkLimBaseDef) = 12
 AtkCapBaseDef = capindex
 addcaption caption$(), capindex, "Default"
-addcaption caption$(), capindex, sname$(0) 'hp
-addcaption caption$(), capindex, sname$(1) 'mp
-addcaption caption$(), capindex, sname$(2) 'atk
-addcaption caption$(), capindex, sname$(3) 'aim
-addcaption caption$(), capindex, sname$(5) 'def
-addcaption caption$(), capindex, sname$(6) 'dog
-addcaption caption$(), capindex, sname$(29) 'mag
-addcaption caption$(), capindex, sname$(30) 'wil
-addcaption caption$(), capindex, sname$(8) 'spd
-addcaption caption$(), capindex, sname$(7) 'ctr
-addcaption caption$(), capindex, sname$(31) 'focus
-addcaption caption$(), capindex, sname$(4) 'hitX
+addcaption caption$(), capindex, readglobalstring(0, "HP")
+addcaption caption$(), capindex, readglobalstring(1, "MP")
+addcaption caption$(), capindex, readglobalstring(2, "Atk")
+addcaption caption$(), capindex, readglobalstring(3, "Aim")
+addcaption caption$(), capindex, readglobalstring(5, "Def")
+addcaption caption$(), capindex, readglobalstring(6, "Dog")
+addcaption caption$(), capindex, readglobalstring(29, "Mag")
+addcaption caption$(), capindex, readglobalstring(30, "Wil")
+addcaption caption$(), capindex, readglobalstring(8, "Speed")
+addcaption caption$(), capindex, readglobalstring(7, "Ctr")
+addcaption caption$(), capindex, readglobalstring(31, "Focus")
+addcaption caption$(), capindex, readglobalstring(4, "HitX")
 
 CONST AtkLimTag = 23
 max(AtkLimTag) = 1000
@@ -432,18 +429,18 @@ max(AtkLimPrefTargStat) = 16
 min(AtkLimPrefTargStat) = 0
 AtkCapPrefTargStat = capindex
 addcaption caption$(), capindex, "same as target stat" '0
-addcaption caption$(), capindex, sname$(0) 'hp  1
-addcaption caption$(), capindex, sname$(1) 'mp  2
-addcaption caption$(), capindex, sname$(2) 'atk 3
-addcaption caption$(), capindex, sname$(3) 'aim 4
-addcaption caption$(), capindex, sname$(5) 'def 5
-addcaption caption$(), capindex, sname$(6) 'dog 6
-addcaption caption$(), capindex, sname$(29) 'mag  7
-addcaption caption$(), capindex, sname$(30) 'wil  8
-addcaption caption$(), capindex, sname$(8) 'spd   9
-addcaption caption$(), capindex, sname$(7) 'ctr   10
-addcaption caption$(), capindex, sname$(31) 'focus 11
-addcaption caption$(), capindex, sname$(4) 'hitX   12
+addcaption caption$(), capindex, readglobalstring(0, "HP") 'hp  1
+addcaption caption$(), capindex, readglobalstring(1, "MP") 'mp  2
+addcaption caption$(), capindex, readglobalstring(2, "Atk") 'atk 3
+addcaption caption$(), capindex, readglobalstring(3, "Aim") 'aim 4
+addcaption caption$(), capindex, readglobalstring(5, "Def") 'def 5
+addcaption caption$(), capindex, readglobalstring(6, "Dog") 'dog 6
+addcaption caption$(), capindex, readglobalstring(29, "Mag") 'mag  7
+addcaption caption$(), capindex, readglobalstring(30, "Wil") 'wil  8
+addcaption caption$(), capindex, readglobalstring(8, "Spd") 'spd   9
+addcaption caption$(), capindex, readglobalstring(7, "Ctr") 'ctr   10
+addcaption caption$(), capindex, readglobalstring(31, "Focus") 'focus 11
+addcaption caption$(), capindex, readglobalstring(4, "HitX") 'hitX   12
 addcaption caption$(), capindex, "poison register"'13
 addcaption caption$(), capindex, "regen register" '14 
 addcaption caption$(), capindex, "stun register"  '15
@@ -543,19 +540,19 @@ menuoff(AtkBaseAtk) = AtkDatBaseAtk
 menulimits(AtkBaseAtk) = AtkLimBaseAtk
 
 CONST AtkMPCost = 17
-menu$(AtkMPCost) = sname$(1) + " Cost:"
+menu$(AtkMPCost) = readglobalstring(1, "MP") & " Cost:"
 menutype(AtkMPCost) = 0
 menuoff(AtkMPCost) = AtkDatMPCost
 menulimits(AtkMPCost) = AtkLimInt
 
 CONST AtkHPCost = 18
-menu$(AtkHPCost) = sname$(0) + " Cost:"
+menu$(AtkHPCost) = readglobalstring(0, "HP") & " Cost:"
 menutype(AtkHPCost) = 0
 menuoff(AtkHPCost) = AtkDatHPCost
 menulimits(AtkHPCost) = AtkLimInt
 
 CONST AtkMoneyCost = 19
-menu$(AtkMoneyCost) = sname$(32) + " Cost:"
+menu$(AtkMoneyCost) = readglobalstring(32, "Money") & " Cost:"
 menutype(AtkMoneyCost) = 0
 menuoff(AtkMoneyCost) = AtkDatMoneyCost
 menulimits(AtkMoneyCost) = AtkLimInt
@@ -985,12 +982,6 @@ max(AtkLimChainTo) = gen(34) + 1
 
 '--re-enforce bounds, as they might have just changed
 enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
-
-'--damage eqation shows current base stats
-''caption$(AtkCapDamageEq) = "Normal: " + caption$(AtkCapBaseAtk + recbuf(AtkDatBaseAtk)) + " - " + sname$(5) + "*.5"
-''caption$(AtkCapDamageEq + 1) = "Blunt: " + caption$(AtkCapBaseAtk + recbuf(AtkDatBaseAtk)) + "*.8 - " + sname$(5) + "*.1"
-''caption$(AtkCapDamageEq + 2) = "Sharp: " + caption$(AtkCapBaseAtk + recbuf(AtkDatBaseAtk)) + "*1.3 - " + sname$(5)
-''caption$(AtkCapDamageEq + 3) = "Pure Damage: " + caption$(AtkCapBaseAtk + recbuf(AtkDatBaseAtk))
 
 '--percentage damage shows target stat
 caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
