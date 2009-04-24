@@ -222,6 +222,7 @@ NEXT i
 printstr "slot names", 0, pl * 8, 0: pl = pl + 1
 isunique "", u$(), 1
 writeconstant fh, 1, "Weapon", u$(), "slot"
+writeconstant fh, 1, readglobalstring(38, "Weapon"), u$(), "slot"
 FOR i = 0 TO 3
  writeconstant fh, i + 2, readglobalstring(25 + i, "Armor" & i+1), u$(), "slot"
 NEXT i
