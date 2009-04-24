@@ -144,7 +144,6 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS 
    RETURN NewRectangleSlice(parent, dat)
   CASE slSprite:
    DIM dat AS SpriteSliceData
-   dat.pal = -1 'FIXME: Hack to make up for the lack of constructors
    RETURN NewSpriteSlice(parent, dat)
   CASE slText
    DIM dat AS TextSliceData
@@ -493,11 +492,11 @@ end sub
 Sub SaveRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  DIM dat AS RectangleSliceData Ptr
  dat = sl->SliceData
- WriteSliceFileVal f, "style", dat->style
+ WriteSliceFileVal f, "style", dat->style, -1
  WriteSliceFileVal f, "fg", dat->fgcol
  WriteSliceFileVal f, "bg", dat->bgcol
  WriteSliceFileBool f, "trans", dat->translucent
- WriteSliceFileVal f, "border", dat->border
+ WriteSliceFileVal f, "border", dat->border, -1
 End Sub
 
 Function LoadRectangleSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
@@ -818,6 +817,8 @@ Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData)
  
  dim d as SpriteSliceData ptr = new SpriteSliceData
  *d = dat
+
+ d->pal = -1 'FIXME: Hack to make up for the lack of constructors
  
  ret->SliceType = slSprite
  ret->SliceData = d
