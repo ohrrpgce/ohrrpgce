@@ -632,7 +632,7 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
   if dat->outline then
    edgeprint lines(i), sl->screenx, sl->screeny + ypos, col, p
   else
-   textcolor col, 0
+   textcolor col, dat->bgcol
    printstr lines(i), sl->screenx, sl->screeny + ypos, p
   end if
  next
@@ -661,6 +661,7 @@ Sub SaveTextSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  WriteSliceFileVal f, "col", dat->col
  WriteSliceFileBool f, "outline", dat->outline
  WriteSliceFileBool f, "wrap", dat->wrap
+ WriteSliceFileVal f, "bgcol", dat->bgcol
 End Sub
 
 Function LoadTextSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
@@ -673,6 +674,7 @@ Function LoadTextSlice (Byval sl as SliceFwd ptr, key as string, valstr as strin
   case "col": dat->col = n
   case "outline": dat->outline = n
   case "wrap": dat->wrap = n
+  case "bgcol": dat->bgcol = n
   case else: return NO
  end select
  return YES
@@ -708,7 +710,8 @@ Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval s as string=CHR(0),_
                       byval col as integer=-1,_
                       byval outline as integer=-2,_
-                      byval wrap as integer=-2)
+                      byval wrap as integer=-2,_
+                      byval bgcol as integer=-1)
  if sl = 0 then debug "ChangeTextSlice null ptr" : exit sub
  if sl->SliceType <> slText then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text" : exit sub
  dim dat as TextSliceData Ptr = sl->SliceData
@@ -718,6 +721,9 @@ Sub ChangeTextSlice(byval sl as slice ptr,_
   end if
   if col >= 0 then
    .col = col
+  end if
+  if bgcol >= 0 then
+   .bgcol = bgcol
   end if
   if outline > -2 then
    .outline = outline <> 0

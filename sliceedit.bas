@@ -416,6 +416,8 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule_tog rules(), @(dat->outline)
     str_array_append menu(), "Wrap: " & yesorno(dat->wrap)
     sliceed_rule_tog rules(), @(dat->wrap)
+    str_array_append menu(), "Background Color: " & zero_default(dat->bgcol)
+    sliceed_rule rules(), erIntgrabber, @(dat->bgcol), 0, 255, slgrPICKCOL
    CASE slSprite
     DIM dat AS SpriteSliceData Ptr
     dat = .SliceData

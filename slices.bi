@@ -101,9 +101,9 @@ END TYPE
 TYPE RectangleSliceData
  'If any of fgcol, bgcol or border are manually changed, set style=-1 and style_loaded=0
  fgcol as integer
- bgcol as integer
  border as integer 'Should default to -1
  translucent as integer
+ bgcol as integer
  'if style is changed then set style_loaded = NO
  style as integer 'Should default to -1
  style_loaded as integer 'Used internally flag whether a change of style has been applied to fgcol and bgcol
@@ -112,6 +112,7 @@ END TYPE
 
 Type TextSliceData
  col as integer
+ bgcol as integer
  outline as integer
  s as String
  'lines() as string
@@ -189,7 +190,8 @@ DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval s as string=CHR(0),_
                       byval col as integer=-1,_
                       byval outline as integer=-2,_
-                      byval wrap as integer=-2)
+                      byval wrap as integer=-2,_
+                      byval bgcol as integer=-1)
 
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
