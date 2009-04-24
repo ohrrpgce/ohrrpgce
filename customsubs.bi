@@ -61,5 +61,6 @@ DECLARE FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS
 DECLARE FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
 DECLARE SUB edit_global_text_strings()
 DECLARE SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
+DECLARE FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS INTEGER=NO) AS INTEGER
 
 #endif

@@ -19,6 +19,7 @@ DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, enabled() AS INTEGER) as integer
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state AS MenuState, x as integer, y as integer, page as integer, edge as integer=NO, hidecursor as integer=NO)
 DECLARE SUB standardmenu OVERLOAD (menu() as string, size as integer, vis as integer, pt as integer, top as integer, x as integer, y as integer, page as integer, edge as integer=NO)
+DECLARE SUB clamp_menu_state (BYREF state AS MenuState)
 DECLARE SUB debug (s as string)
 DECLARE SUB visible_debug (s as string)
 DECLARE FUNCTION soundfile (sfxnum as integer) as string

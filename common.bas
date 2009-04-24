@@ -3259,3 +3259,11 @@ FUNCTION escape_nonprintable_ascii(s AS STRING) AS STRING
  NEXT i
  RETURN result
 END FUNCTION
+
+SUB clamp_menu_state (BYREF state AS MenuState)
+ WITH state
+  IF .pt < .top THEN .top = .pt
+  IF .pt > .top + .size THEN .top = large(.top, .top + .size)
+ END WITH
+END SUB
+

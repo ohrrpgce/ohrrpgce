@@ -2949,6 +2949,8 @@ SUB edit_global_text_strings()
  DIM text(-1 TO max) AS STRING
  DIM names(-1 TO max) AS STRING
  DIM maxlen(max) AS INTEGER
+ DIM search AS STRING = ""
+ DIM found AS INTEGER = NO
  DIM state AS MenuState
  DIM rect AS RectType
  rect.wide = 320
@@ -3099,6 +3101,29 @@ SUB edit_global_text_strings()
   setkeys
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "edit_global_strings"
+  IF keyval(scCTRL) > 0 AND keyval(scS) > 1 THEN
+   IF prompt_for_string(search, "Search (descriptions & values)") THEN
+    found = NO
+    FOR i AS INTEGER = state.pt + 1 TO state.last
+     IF INSTR(LCASE(names(i)), LCASE(search)) OR INSTR(LCASE(text(i)), LCASE(search)) THEN
+      state.pt = i
+      clamp_menu_state state
+      found = YES
+      EXIT FOR
+     END IF
+    NEXT i
+    IF NOT found THEN '--Not found below, wrap to above
+     FOR i AS INTEGER = 0 TO state.pt - 1
+      IF INSTR(LCASE(names(i)), LCASE(search)) OR INSTR(LCASE(text(i)), LCASE(search)) THEN
+       state.pt = i
+       clamp_menu_state state
+       found = YES
+       EXIT FOR
+      END IF
+     NEXT i
+    END IF
+   END IF
+  END IF
   usemenu state
   IF state.pt = -1 THEN
    IF enter_or_space() THEN EXIT DO
@@ -3109,6 +3134,7 @@ SUB edit_global_text_strings()
   standardmenu names(), state, 0, 0, dpage
   standardmenu text(), state, 232, 0, dpage
   draw_scrollbar state, rect, , dpage
+  edgeprint "CTRL+S Search", 0, 191, uilook(uiDisabledItem), dpage
   IF state.pt >= 0 THEN
    edgeboxstyle 160 - (maxlen(state.pt) * 4), 191, 8 * maxlen(state.pt) + 4, 8, 0, dpage, NO, YES
    edgeprint text(state.pt), 162 - (maxlen(state.pt) * 4), 191, uilook(uiText), dpage
@@ -3138,3 +3164,88 @@ SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
  CLOSE #fh
 END SUB
 
+FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS INTEGER=NO) AS INTEGER
+ '--Construct the prompt UI. FIXME: redo this when the Slice Editor can save/load)
+ DIM root AS Slice Ptr
+ root = NewSliceOfType(slRoot)
+ root->Fill = YES
+ DIM outer_box AS Slice Ptr
+ outer_box = NewSliceOfType(slRectangle, root)
+ WITH *outer_box
+  .AnchorHoriz = 1
+  .AnchorVert = 1
+  .AlignHoriz = 1
+  .AlignVert = 1
+  .paddingTop = 16
+  .paddingBottom = 16
+  .paddingLeft = 16
+  .paddingRight = 16
+  .Width = 300
+  .Height = 64
+ END WITH
+ ChangeRectangleSlice outer_box, 1
+ DIM caption_area AS Slice Ptr
+ caption_area = NewSliceOfType(slText, outer_box)
+ ChangeTextSlice caption_area, caption, uilook(uiText)
+ DIM inner_box AS Slice Ptr
+ inner_box = NewSliceOfType(slContainer, outer_box)
+ WITH *inner_box
+  .paddingTop = 16
+  .Fill = YES
+ END WITH
+ DIM text_border_box As Slice Ptr
+ text_border_box = NewSliceOfType(slRectangle, inner_box)
+ WITH *text_border_box
+  .paddingTop = 2
+  .paddingBottom = 2
+  .paddingLeft = 2
+  .paddingRight = 2
+  .Fill = YES
+ END WITH
+ ChangeRectangleSlice text_border_box, , uilook(uiOutline), uilook(uiText)
+ DIM text_area AS Slice Ptr
+ text_area = NewSliceOfType(slText, text_border_box)
+ WITH *text_area
+  .Fill = YES
+ END WITH
+ ChangeTextSlice text_area, s, uilook(uiMenuItem), , , uilook(uiOutline) 
+
+ '--Preserve whatever screen was already showing as a background
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ DIM dat AS TextSliceData Ptr
+ dat = text_area->SliceData
+
+ IF limit = NO THEN limit = 40
+
+ '--Now loop while editing string
+ setkeys
+ DO
+  setwait 17, 70
+  setkeys
+  
+  IF keyval(scESC) > 1 THEN
+   prompt_for_string = NO
+   EXIT DO
+  END IF
+  IF keyval(scEnter) > 1 THEN
+   prompt_for_string = YES
+   s = dat->s
+   EXIT DO
+  END IF
+  strgrabber dat->s, limit
+
+  DrawSlice root, dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+ 
+ setkeys
+ freepage holdscreen
+ DeleteSlice @root
+END FUNCTION

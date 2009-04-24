@@ -3,3 +3,5 @@ Global Text Strings are all the little pieces of text that are used in the stand
 Use the up and down arrow keys to navigate the menu. The currently selected text string will be displayed in the blue box at the bottom of the screen. You can type a new value.
 
 The size of the blue box shows you how long the text string is allowed to be.
+
+To search through the list, press CTRL+S and type the word to search for and then press ENTER. The search tool searches both the values and the descriptions.
