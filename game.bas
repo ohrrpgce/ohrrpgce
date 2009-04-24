@@ -107,7 +107,7 @@ DIM mstates(0) AS MenuState
 DIM topmenu AS INTEGER = -1
 
 DIM prefsdir as string
-DIM timers(15) as timer
+DIM timers(15) as PlotTimer
 DIM fatal
 DIM lastformation
 
@@ -2223,6 +2223,7 @@ SUB dotimer(byval l as integer)
   dim rsr as integer
   for i = 0 to 15
     with timers(i)
+      if .pause then continue for
       if .speed > 0 then
         if ((l = 1) AND (.flags AND 2 = 0)) OR ((l = 2) AND (.flags AND 4 = 0)) then continue for 'not supposed to run here
         'debug "updating timer #" & i

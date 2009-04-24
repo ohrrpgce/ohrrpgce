@@ -423,6 +423,16 @@ play song (get ambient music)</example>
 			<added>serendipity</added>
 			<description>Causes ambient music to automatically start playing when you enter a map again after a <ref>suspendmapmusic</ref> command.</description>
 		</command>
+		<command id="suspendtimers">
+			<canon>suspend timers</canon>
+			<shortname>suspend timers</shortname>
+			<description>Causes all plot timers started with <ref>settimer</ref> to be paused. It does not cancel them. Undo with <ref>resumetimers</ref></description>
+		</command>
+		<command id="resumetimers">
+			<canon>resume timers</canon>
+			<shortname>resume timers</shortname>
+			<description>Undoes <ref>suspendtimers</ref>. All previously paused plot timers will become active again.</description>
+		</command>
 	</section>
 	<section title="Moving Heroes">
 		<command id="walkhero">

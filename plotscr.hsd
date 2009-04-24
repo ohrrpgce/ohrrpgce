@@ -421,6 +421,8 @@ define function, begin
 412,getspritetype,1,0         #get type of a sprite slice or -1 if not
 413,getspritesetnumber,1,0    #get record number of a sprite slice
 414,getspritepalette,1,0      #get palette number of a sprite slice
+415,suspendtimers,0           #stop all timers without resetting them
+416,resumetimers,0            #makes timers paused with "suspend timers" continue
 end
 
 #--------------------------------------------------------------------------

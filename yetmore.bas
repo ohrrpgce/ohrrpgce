@@ -2142,7 +2142,14 @@ SELECT CASE AS CONST id
    DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
    scriptret = dat->pal
   END IF 
-
+ CASE 415 '--suspend timers
+  FOR i = 0 TO 15
+   timers(i).pause = YES
+  NEXT i
+ CASE 416 '--resume timers
+  FOR i = 0 TO 15
+   timers(i).pause = NO
+  NEXT i
 END SELECT
 
 EXIT SUB

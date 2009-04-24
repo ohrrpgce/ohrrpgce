@@ -101,7 +101,7 @@ EXTERN battlecapdelay as integer
 EXTERN bstackstart as integer
 EXTERN learnmask() as integer
 
-EXTERN timers() as Timer
+EXTERN timers() as PlotTimer
 
 'Menu globals
 EXTERN menus() as MenuDef

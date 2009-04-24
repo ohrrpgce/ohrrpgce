@@ -139,13 +139,14 @@ TYPE InventSlot
   text as string	'text field which shows up in inventory, blank if empty
 END TYPE
 
-TYPE Timer
+TYPE PlotTimer
   count as integer
   speed as integer
   ticks as integer
   trigger as integer
   flags as integer
   st as integer 'string, but both str and string are reserved
+  pause as integer '0 unpaused, -1 paused
 END TYPE
 
 TYPE Plotstring

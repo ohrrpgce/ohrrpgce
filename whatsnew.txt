@@ -93,7 +93,8 @@ WHAT IS NEW?
       "get slice extra" [James]
     * "number from string" [James]
     * There are now 3 NPC extra data fields (0-2) accessible with
-      "set NPC extra" instead of 2
+      "set NPC extra" instead of 2 [Ralph]
+    * "suspend timers", and "resume timers" [James]
 
   * Vikings of Midgard
 
