@@ -1439,6 +1439,18 @@ NEXT
 
 clear_box_border_cache
 
+FOR i = 0 TO 15
+ WITH timers(i)
+  .count = 0
+  .speed = 0
+  .ticks = 0
+  .trigger = 0
+  .flags = 0
+  .st = 0
+  .pause = 0
+ END WITH
+NEXT i
+
 DestroyGameSlices
 SetupGameSlices
 
