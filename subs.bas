@@ -48,7 +48,7 @@ DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
-DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING)
+DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, BYREF box_preview AS STRING)
 
 DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
 DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
@@ -1510,6 +1510,7 @@ SUB itemdata
 DIM a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), elemtype$(2), frame
 DIM item$(maxMaxItems)
 DIM wep_img AS GraphicPair 'This is only used in edititem
+DIM box_preview AS STRING = "" 'This is only used in edititem
 imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 clearpage 0
@@ -1623,7 +1624,7 @@ max(14) = 999
 max(15) = 999
 
 loaditemdata a(), csr
-generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$()
+generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), box_preview
 
 IF wep_img.sprite THEN sprite_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
@@ -1702,7 +1703,7 @@ DO
  END SELECT
  IF need_update THEN
   need_update = NO
-  generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$()
+  generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), box_preview
   IF wep_img.sprite THEN sprite_unload @wep_img.sprite
   IF wep_img.pal    THEN palette16_unload @wep_img.pal
   wep_img.sprite = sprite_load(game & ".pt5", a(52), 2, 24, 24)
@@ -1725,6 +1726,7 @@ DO
   drawline 281 + a(78 + frame * 2),160 + a(79 + frame * 2),282 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
   drawline 280 + a(78 + frame * 2),161 + a(79 + frame * 2),280 + a(78 + frame * 2), 162 + a(79 + frame * 2),14 + tog,dpage
  END IF
+ edgeprint box_preview, 0, 191, uilook(uiText), dpage
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -1788,7 +1790,7 @@ RETRACE
 
 END SUB
 
-SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING)
+SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, BYREF box_preview AS STRING)
  menu(1) = "Name:" & item_name
  menu(2) = "Info:" & info_string
  menu(3) = "Value: " & itembuf(46)
@@ -1798,8 +1800,10 @@ SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTE
  menu(7) = "Teach Spell: " & item_attack_name(itembuf(50))
  IF itembuf(51) >= 0 THEN
   menu(8) = "When used out of battle: " & item_attack_name(itembuf(51))
+  box_preview = ""
  ELSE
   menu(8) = "When used out of battle: Text " & ABS(itembuf(51))
+  box_preview = textbox_preview_line(ABS(itembuf(51)))
  END IF
  menu(9) = "Weapon Picture: " & itembuf(52)
  menu(10) = "Weapon Palette: " & defaultint$(itembuf(53))
