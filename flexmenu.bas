@@ -736,7 +736,6 @@ menulimits(AtkPrefTargStat) = AtkLimPrefTargStat
 DIM workmenu(20), dispmenu$(20)
 DIM state as MenuState
 state.size = 22
-'zzz
 
 DIM mainMenu(10)
 mainMenu(0) = AtkBackAct
@@ -1031,7 +1030,6 @@ menudepth = 1
 RETRACE
 
 END SUB
-'zzz
 
 FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(), mintable(), maxtable())
 '--returns true if data has changed, false it not
@@ -1274,6 +1272,8 @@ detail.offset.x = -152
 detail.offset.y = 92
 detail.min_chars = 36
 
+DIM box_preview AS STRING = ""
+
 setkeys
 DO
  setwait 55
@@ -1302,6 +1302,11 @@ DO
   dstate.need_update = NO
   update_detail_menu detail, menudata.items(mstate.pt)
   init_menu_state dstate, detail
+  WITH menudata.items(mstate.pt)
+   IF .t = 3 THEN '--text box
+    box_preview = textbox_preview_line(.sub_t)
+   END IF
+  END WITH
  END IF
  
  IF NOT mstate.active THEN draw_menu menudata, mstate, dpage
@@ -1313,7 +1318,12 @@ DO
    edgeprint "CTRL+R to reload default", 0, 181, uilook(uiDisabledItem), dpage
   END IF
  END IF
- IF dstate.active THEN draw_menu detail, dstate, dpage
+ IF dstate.active THEN
+  draw_menu detail, dstate, dpage
+  IF menudata.items(mstate.pt).t = 3 THEN '--textbox
+   edgeprint box_preview, 0, 191, uilook(uiText), dpage
+  END IF
+ END IF
  
  SWAP vpage, dpage
  setvispage vpage
