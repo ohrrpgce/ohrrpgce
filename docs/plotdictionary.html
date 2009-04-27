@@ -1279,6 +1279,9 @@
 		
 		<a href="#about-resumerandomenemies">resume random enemys</a><br>
 	
+		<a href="#about-resumetimers">resume timers</a><br>
+		
+	
 		<a href="#about-return">return(value)</a><br>
 		
 	
@@ -1818,6 +1821,9 @@
 	
 		
 		<a href="#about-suspendrandomenemies">suspend random enemys</a><br>
+	
+		<a href="#about-suspendtimers">suspend timers</a><br>
+		
 	
 		<a href="#about-swapbyname">swap by name (name,name)</a><br>
 		
@@ -2471,6 +2477,22 @@ play song (get ambient music)</pre>
 		<tt>
 		<b><font color="yellow">resume map music</font></b><br>
 			Causes ambient music to automatically start playing when you enter a map again after a <a href="#about-suspendmapmusic" class="ref">suspend map music</a> command.<br>
+			
+			
+		</tt></p>
+		<a name="about-suspendtimers"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">suspend timers</font></b><br>
+			Causes all plot timers started with <a href="#about-settimer" class="ref">set timer</a> to be paused. It does not cancel them. Undo with <a href="#about-resumetimers" class="ref">resume timers</a><br>
+			
+			
+		</tt></p>
+		<a name="about-resumetimers"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">resume timers</font></b><br>
+			Undoes <a href="#about-suspendtimers" class="ref">suspend timers</a>. All previously paused plot timers will become active again.<br>
 			
 			
 		</tt></p>
@@ -4561,13 +4583,13 @@ end</pre>
 		<tt>
 		<b><font color="yellow">load hero sprite (num, palette)</font></b><br>
 			Loads hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceherosprite" class="ref">load hero sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceherosprite" class="ref">replace hero sprite</a>!<br clear="all">
 </div>
 <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-replaceherosprite" class="ref">load hero sprite</a>, </li>
+<a href="#about-replaceherosprite" class="ref">replace hero sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -4591,13 +4613,13 @@ end</pre>
 		<tt>
 		<b><font color="yellow">load walkabout sprite (num, palette)</font></b><br>
 			Loads walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacewalkaboutsprite" class="ref">load walkabout sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacewalkaboutsprite" class="ref">replace walkabout sprite</a>!<br clear="all">
 </div>
 <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-replacewalkaboutsprite" class="ref">load walkabout sprite</a>, </li>
+<a href="#about-replacewalkaboutsprite" class="ref">replace walkabout sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -4621,13 +4643,13 @@ end</pre>
 		<tt>
 		<b><font color="yellow">load small enemy sprite (num, palette)</font></b><br>
 			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacesmallenemysprite" class="ref">load small enemy sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacesmallenemysprite" class="ref">replace small enemy sprite</a>!<br clear="all">
 </div>
 <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-replacesmallenemysprite" class="ref">load small enemy sprite</a>, </li>
+<a href="#about-replacesmallenemysprite" class="ref">replace small enemy sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -4651,13 +4673,13 @@ end</pre>
 		<tt>
 		<b><font color="yellow">load medium enemy sprite (num, palette)</font></b><br>
 			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacemediumenemysprite" class="ref">load medium enemy sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacemediumenemysprite" class="ref">replace medium enemy sprite</a>!<br clear="all">
 </div>
 <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-replacemediumenemysprite" class="ref">load medium enemy sprite</a>, </li>
+<a href="#about-replacemediumenemysprite" class="ref">replace medium enemy sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -4681,13 +4703,13 @@ end</pre>
 		<tt>
 		<b><font color="yellow">load large enemy sprite (num, palette)</font></b><br>
 			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacelargeenemysprite" class="ref">load large enemy sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacelargeenemysprite" class="ref">replace large enemy sprite</a>!<br clear="all">
 </div>
 <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-replacelargeenemysprite" class="ref">load large enemy sprite</a>, </li>
+<a href="#about-replacelargeenemysprite" class="ref">replace large enemy sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -4711,13 +4733,13 @@ end</pre>
 		<tt>
 		<b><font color="yellow">load attack sprite (num, palette)</font></b><br>
 			Loads attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceattacksprite" class="ref">load attack sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceattacksprite" class="ref">replace attack sprite</a>!<br clear="all">
 </div>
 <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-replaceattacksprite" class="ref">load attack sprite</a>, </li>
+<a href="#about-replaceattacksprite" class="ref">replace attack sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -4741,13 +4763,13 @@ end</pre>
 		<tt>
 		<b><font color="yellow">load weapon sprite (num, palette)</font></b><br>
 			Loads weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceweaponsprite" class="ref">load weapon sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceweaponsprite" class="ref">replace weapon sprite</a>!<br clear="all">
 </div>
 <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-replaceweaponsprite" class="ref">load weapon sprite</a>, </li>
+<a href="#about-replaceweaponsprite" class="ref">replace weapon sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -4771,13 +4793,13 @@ end</pre>
 		<tt>
 		<b><font color="yellow">load border sprite (num, palette)</font></b><br>
 			Loads border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebordersprite" class="ref">load border sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebordersprite" class="ref">replace border sprite</a>!<br clear="all">
 </div>
 <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-replacebordersprite" class="ref">load border sprite</a>, </li>
+<a href="#about-replacebordersprite" class="ref">replace border sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -4801,13 +4823,13 @@ end</pre>
 		<tt>
 		<b><font color="yellow">load portrait sprite (num, palette)</font></b><br>
 			Loads portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceportraitsprite" class="ref">load portrait sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceportraitsprite" class="ref">replace portrait sprite</a>!<br clear="all">
 </div>
 <br>
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-replaceportraitsprite" class="ref">load portrait sprite</a>, </li>
+<a href="#about-replaceportraitsprite" class="ref">replace portrait sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -8680,7 +8702,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 629 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 631 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
