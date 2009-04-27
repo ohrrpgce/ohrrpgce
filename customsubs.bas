@@ -294,9 +294,11 @@ SUB ui_color_editor(palnum AS INTEGER)
     END IF
   END SELECT
 
-  IF keyval(29) > 0 AND keyval(32) > 1 THEN ' Ctrl+D
-   uilook(index) = default_colors(index)
-   make_ui_color_editor_menu color_menu(), uilook()
+  IF index >= 0 THEN
+   IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN ' Ctrl+D
+    uilook(index) = default_colors(index)
+    make_ui_color_editor_menu color_menu(), uilook()
+   END IF
   END IF
 
   '--update sample according to what you have highlighted
