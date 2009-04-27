@@ -1,0 +1,5 @@
+The anchor point of a menu is the point that is used when positioning the menu. If the menu shrinks or grows it will shrink or grow relative to this point.
+
+Use the arrow keys to move the flashing anchor point, and press ESC when you are finished.
+
+The anchor point can be on any corner, any edge, or in the center.

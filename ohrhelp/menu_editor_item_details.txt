@@ -1,0 +1,88 @@
+This is the menu item detail editor. This is where you define what a menu item actually does.
+
+*Caption - The caption is the text that will appear for this item in the menu. If you leave it blank it will be set to a default value.
+
+*Type & Subtype - There are 5 different types of menu item.
+
+  *Caption - Caption menu items just
+   display the caption. There are
+   two subtypes, selectable and
+   unselectable. Selectable captions
+   are only used to change tags or
+   to close the menu. Unselectable
+   captions are used for decoration
+   or information.
+
+  *Special Screen - This provides
+   access to all the standard
+   built-in special menus.
+
+    *Items
+    *Spells
+    *Status
+    *Equip
+    *Order
+    *Team
+    *Order/Team (by general bitset)
+    *Map (if allowed)
+    *Save (if alowed)
+    *Load
+    *Quit
+    *Volume
+    *Map (even if not allowed)
+    *Save (even if not allowed)
+
+  *Go To Menu - This lets you jump to
+   another menu. Use the subtype to
+   select which menu
+
+  *Show Text Box - Cause a text box
+   to be displayed. Use subtype to
+   select which box. Note that if the
+   menu has the "allow gameplay &
+   scripts" bitset turned OFF then
+   the text box will not appear until
+   after the menu has closed. You may
+   want to use the "Close menu if
+   selected" menu item bitset to
+   avoid that problem. Also note that
+   if the "allow gameplay & scripts"
+   bitset is turned ON, the text box
+   will appear layered underneath
+   the open menu.
+
+  *Run script - Press ENTER on the
+   subtype to browse a list of
+   scripts. Note that as with text
+   boxes, if the "allow gameplay &
+   scripts" bitset is OFF then the
+   script will not start until the
+   menu has closed.
+
+*Enable if Tag - Press ENTER or SPACE to browse a list of tags. If you specify one or more tags here, they will be checked before the menu item is enabled.  Press - to toggle between requiring a tag to be ON or OFF.
+
+*Set Tag - This tag will be turned ON or OFF when the menu item is used. Press ENTER or SPACE to browse tags. Press - to toggle between turning a tag ON and turning it OFF.
+
+*Toggle Tag - This tag will be switch OFF if it is ON and ON if it is OFF whenever this menu item is used. Press ENTER or SPACE to browse tags.
+
+*Bitsets - There are two bitsets.
+
+  *"Hide if disabled" - This causes
+    the menu item to completely
+    vanish from the menu if it has
+    been disabled by tags or if it is
+    a "Special" type menu item that
+    is not allowed on the current
+    map.
+
+  *"Close menu if selected" - This
+   causes the menu to be closed after
+   the menu item is selected. It is
+   often useful with menu items in
+   menus that have the "allow
+   gameplay & scripts" bitset turned
+   OFF, since text boxes and scripts
+   triggered by menu items will wait
+   for the menu to close.
+
+*Extra Data - There are 3 pieces of extra data that you can attach to each menu item. These  are just numbers. They don't mean anything unless you use them for your own special purposes from a plotscript.

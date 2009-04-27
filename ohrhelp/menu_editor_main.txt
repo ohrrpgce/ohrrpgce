@@ -1,0 +1,72 @@
+This is the menu editor. The translucent menu that fills the screen is used for editing your menu. Behind it is a preview of the in-game menu that you are customizing.
+
+Use the up and down arrow keys to navigate.
+
+To change which menu you are working on, select "Menu #" and press the left and right arrow keys or type a menu ID number. If you press the right arrow while the last menu is selected, you will be prompted to add a new menu.
+
+Name: This is a name for the menu. It is only for your reference, and is not displayed in-game.
+
+Edit Items: Press ENTER or SPACE to edit the menu items that appear in the menu.
+
+Background: Background box style.
+
+Text Color: Press ENTER or SPACE for a color browser.
+
+Max rows to display: Reduce this number to make a long box scroll.
+
+Edit Bitsets: Press ENTER or SPACE to go to a list of OFF/ON bitsets that configure various aspects of box display and behaviour.
+
+ *"Translucent Box"
+
+ *"Never show scrollbar"
+
+ *"Allow gameplay & scripts"
+  If this iis turned on then the menu
+  will NOT pause the rest of the
+  game. The player will still be able
+  to walk around. NPCs will still
+  move. Random battles can still
+  happen. Scripts will still run.
+
+ *"Suspend player even if gameplay
+  allowed" - This only matters if the
+  "Allow gameplay & scripts" bitset
+  is on. Turning this bitset on
+  causes the hero to be paused while
+  the menu is active, but other
+  activity like NPCs and scripts may
+  continue.
+
+ *"No Box"
+
+ *"Cancel button doesn't close menu"
+  Use this if the menu is an
+  always-up display, or if you prefer
+  to close it using the "close menu
+  when selected" bitset on one of the
+  items in the menu.
+
+ *"No player control of menu"
+  This is useful for menus that are
+  controlled by scripts.
+
+ *"Prevent main menu activation"
+  Stops the player from opening the
+  main menu as long as this menu is
+  active. This is useful for
+  sub-menus called from the main
+  menu.
+
+ *"Advance text box when menu closes"
+
+Reposition Menu: Press ENTER or SPACE to reposition the menu using the arrow keys.
+
+Change Anchor Point: Press ENTER or SPACE to change which side or corner the box will be positioned relative to.
+
+Text Align: Can be "Center", "Left" or "Right".
+
+Minimum width: raise this number to widen the horizontal margins on either side of the menu.
+
+Maximum width: Reduce this to restirct the width of the menu.
+
+Border Size: Use this to enlarge or shrink the empty space around the margin on all sides of the menu. Press - to switch between a negative or positive value.

@@ -1261,7 +1261,6 @@ edmenu.offset.y = -100
 edmenu.boxstyle = 3
 edmenu.translucent = YES
 edmenu.min_chars = 38
-edmenu.maxrows = 6
 DIM menudata AS MenuDef
 LoadMenuData menu_set, menudata, record
 DIM detail AS MenuDef
@@ -1310,7 +1309,7 @@ DO
  END IF
  
  IF NOT mstate.active THEN draw_menu menudata, mstate, dpage
- draw_menu edmenu, state, dpage
+ IF NOT mstate.active AND NOT dstate.active THEN draw_menu edmenu, state, dpage
  IF mstate.active THEN
   draw_menu menudata, mstate, dpage
   edgeprint "ENTER to edit, Shift+Arrows to re-order", 0, 191, uilook(uiDisabledItem), dpage
