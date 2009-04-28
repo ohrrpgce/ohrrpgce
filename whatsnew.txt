@@ -49,6 +49,9 @@ WHAT IS NEW?
       will be automatically updated for you. [James]
     * Fix bug 449 "Some debug keys not reset when exiting back to the
       game select menu" [James]
+    * Using "advance text box" when no text box is open no longer
+      re-evaluates the conditionals of the most recently closed text
+      box [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

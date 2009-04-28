@@ -386,6 +386,7 @@ DO
  IF menu_text_box > 0 THEN
   '--player has triggered a text box from the menu--
   loadsay menu_text_box
+  menu_text_box = 0
  END IF
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -3002,6 +3003,7 @@ SUB advance_text_box ()
  txt.fully_shown = NO
  txt.sayer = -1
  txt.id = -1
+ ClearTextBox txt.box
  setkeys
  flusharray carray(), 7, 0
 END SUB
