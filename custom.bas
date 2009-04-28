@@ -970,9 +970,15 @@ DO
    GOSUB sshopset
    pt = pt + 1
    IF needaddset(pt, gen(genMaxShop), "Shop") THEN
+    '--Create a new shop record
     flusharray a(), 19, 0
     setpicstuf a(), 40, -1
     storeset game + ".sho", pt, 0
+    '--create a new shop stuff record
+    flusharray b(), getbinsize(1) / 2 - 1, 0
+    setpicstuf b(), getbinsize(1), -1
+    b(19) = -1 ' When adding new stuff, default in-stock to infinite
+    storeset game + ".stf", pt * 50 + 0, 0
    END IF
    GOSUB lshopset
   END IF
@@ -1092,6 +1098,7 @@ DO
    IF needaddset(thing, a(16), "Shop Thing") THEN
     flusharray b(), getbinsize(1) / 2 - 1, 0
     setpicstuf b(), getbinsize(1), -1
+    b(19) = -1 ' When adding new stuff, default in-stock to infinite
     storeset game + ".stf", pt * 50 + thing, 0
    END IF
    GOSUB lstuf
