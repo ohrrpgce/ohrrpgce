@@ -1263,7 +1263,7 @@ end</example>
 			<canon>append number (ID, number)</canon>
 			<shortname>append number</shortname>
 			<description>Appends the textual representation of <p>number</p> to the string with ID #<p>ID</p>. For example, append number(1,65) will append "65", not "A".</description>
-			<seealso><ref>appendnumber</ref></seealso>
+			<seealso><ref>appendascii</ref></seealso>
 		</command>
 		<command id="numberfromstring">
 			<canon>number from string (ID, default)</canon>
