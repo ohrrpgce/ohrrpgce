@@ -1237,6 +1237,9 @@
 		<a href="#about-replaceweaponsprite">replace weapon sprite (handle, num, palette)</a><br>
 		
 	
+		<a href="#about-reseed%20random">reseed random (new seed)</a><br>
+		
+	
 		<a href="#about-resetmapstate">reset map state (whichdata)</a><br>
 		
 	
@@ -3727,7 +3730,7 @@ end</pre>
 		<b><font color="yellow">append number (ID, number)</font></b><br>
 			Appends the textual representation of <span class="param">number</span> to the string with ID #<span class="param">ID</span>. For example, append number(1,65) will append "65", not "A".<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-appendnumber" class="ref">append number</a></li></ul>
+			<br>See also: <ul class="seealso"><li><a href="#about-appendascii" class="ref">append ascii</a></li></ul>
 		</tt></p>
 		<a name="about-numberfromstring"></a>
 		<p>
@@ -6075,6 +6078,14 @@ end
 		<tt>
 		<b><font color="yellow">random (lownumber, highnumber)</font></b><br>
 			Returns a random number in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number<br>
+			
+			
+		</tt></p>
+		<a name="about-reseed%20random"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">reseed random (new seed)</font></b><br>
+			Reseeds the random number generator. If called with no argument, this will reseed the random number generator using the current number of milliseconds. If you pass in a number, the random number generator will be seeded with that number, allowing for repeatable random sequences.<br>
 			
 			
 		</tt></p>
@@ -8702,7 +8713,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 631 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 632 commands in this file, of which 52 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

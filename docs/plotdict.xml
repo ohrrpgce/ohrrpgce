@@ -2992,6 +2992,11 @@ end
 			<shortname>random</shortname>
 			<description>Returns a random number in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number</description>
 		</command>
+		<command id="reseed random">
+			<canon>reseed random (new seed)</canon>
+			<shortname>reseedrandom</shortname>
+			<description>Reseeds the random number generator. If called with no argument, this will reseed the random number generator using the current number of milliseconds. If you pass in a number, the random number generator will be seeded with that number, allowing for repeatable random sequences.</description>
+		</command>
 		<command id="inventory">
 			<canon>inventory (item)</canon>
 			<shortname>inventory</shortname>
