@@ -757,21 +757,36 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    load_sprite_and_pal .img, .spritetype, .record, .pal
    sl->Width = sprite_sizes(.spritetype).size.x
    sl->Height = sprite_sizes(.spritetype).size.y
-   dim flipspr as Frame Ptr
-   if .flipHoriz then
-    flipspr = sprite_flip_horiz(.img.sprite)
-    sprite_unload @.img.sprite
-    .img.sprite = flipspr
-   end if
-   if .flipVert then
-    flipspr = sprite_flip_vert(.img.sprite)
-    sprite_unload @.img.sprite
-    .img.sprite = flipspr
-   end if
    .loaded = YES
   end if
+
+  dim spr as Frame ptr
+  dim is_flipped as integer = NO
+  spr = .img.sprite
+  if spr = 0 then
+   debug "null sprite ptr for slice " & sl
+   exit sub
+  end if
+  if .frame >= sprite_sizes(.spritetype).frames or .frame < 0 then
+   debug "out of range frame " & .frame & " for slice " & sl
+  end if
+  
+  spr += .frame
+
+  if .flipHoriz then
+   spr = sprite_flip_horiz(spr)
+   is_flipped = YES
+  end if
+  if .flipVert then
+   spr = sprite_flip_vert(spr)
+   is_flipped = YES
+  end if
  
-  sprite_draw .img.sprite + .frame, .img.pal, sl->screenX, sl->screenY, , ,dpage
+  sprite_draw spr, .img.pal, sl->screenX, sl->screenY, , ,dpage
+  
+  if is_flipped then
+   sprite_unload(@spr)
+  end if
  end with
 end sub
 

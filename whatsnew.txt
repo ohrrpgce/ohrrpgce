@@ -54,6 +54,8 @@ WHAT IS NEW?
       box [James]
     * Fix a crash bug in the script interpreter when running very
       large/many scripts [Ralph]
+    * Fix bug 720 "Crash when displaying non-zero frame of a flipped
+      sprite slice" [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
