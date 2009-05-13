@@ -2507,7 +2507,7 @@ IF mode > 1 AND viewmode = 0 THEN
 END IF
 
 IF mode > 1 AND viewmode = 1 THEN
- reloadscript scrat(selectedscript)
+ reloadscript scrat(selectedscript), 0
  WITH scrat(selectedscript)
   IF script(.scrnum).vars = 0 THEN
    edgeprint "Has no variables", 0, ol, uilook(uiText), page
@@ -2677,7 +2677,7 @@ END IF
 
 'just incase was swapped out above
 IF nowscript >= 0 THEN
- reloadscript scrat(nowscript)
+ reloadscript scrat(nowscript), 0
 END IF
 END SUB
 

@@ -1655,10 +1655,10 @@ FUNCTION loadscript (n as integer) as integer
 
   IF skip >= 12 THEN
    GET #f, 9, .strtable
-   .strtable = (.strtable - skip) \ wordsize
+   IF .strtable THEN .strtable = (.strtable - skip) \ wordsize
   ELSEIF skip = 10 THEN
    GET #f, 9, temp
-   .strtable = (temp - skip) \ wordsize
+   IF .strtable THEN .strtable = (temp - skip) \ wordsize
   ELSE
    .strtable = 0
   END IF
@@ -1666,13 +1666,13 @@ FUNCTION loadscript (n as integer) as integer
   'set an arbitrary max script buffer size (scriptmemMax in const.bi), individual scripts must also obey
   .size = (LOF(f) - skip) \ wordsize
   IF .size > scriptmemMax THEN
-   scripterr "Script " & n & " exceeds maximum size"
+   scripterr "Script " & n & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%"
    CLOSE #f
    RETURN -1
   END IF
 
   IF .size + totalscrmem > scriptmemMax OR numloadedscr = 128 THEN
-   'debug "opps! size = " & .size & " totalscrmem = " & totalscrmem & ", calling freescripts"
+   'debug "loadscript(" & n & " '" & scriptname(n) & "'): scriptbuf full; size = " & .size & " totalscrmem = " & totalscrmem & ", calling freescripts"
    freescripts(scriptmemMax - .size)
   END IF
 
@@ -1713,8 +1713,8 @@ FUNCTION loadscript (n as integer) as integer
 END FUNCTION
 
 SUB freescripts (mem)
-'frees loaded scripts until totalscrmem <= mem (measured in 4-byte ints) (probably alot lower)
-'always frees at least one script to provide an opening in script()
+'frees loaded scripts until at least totalscrmem <= mem (measured in 4-byte ints) (probably alot lower)
+'also makes sure there are at least 8 unused slots in script()
 'call freescripts(0) to cleanup all scripts
 
 'give each script a score (the lower, the more likely to throw) and sort them
@@ -1725,7 +1725,9 @@ listtail = -1
 FOR i = 0 TO 127
  WITH script(i)
   IF .id THEN
-   score = .lastuse + iif(.totaluse < 200, .totaluse, 200) - .size \ 256
+   'this formula is having only been given the most minimal of testing for suitability
+   score = .lastuse - scriptctr
+   score = iif(score > -150, score, -150) + iif(.totaluse < 150, .totaluse, 150) - .size \ (scriptmemMax \ 256)
    FOR j = listtail TO 0 STEP -1
     IF score >= LRUlist(j, 1) THEN EXIT FOR
     LRUlist(j + 1, 0) = LRUlist(j, 0)
@@ -1751,7 +1753,7 @@ NEXT
 ' END WITH
 'NEXT
 
-
+'aim for at most 75% of memory limit
 targetmem = mem
 IF mem > scriptmemMax \ 2 THEN targetmem = mem * (1 - 0.5 * (mem - scriptmemMax \ 2) / scriptmemMax)
 
@@ -1759,16 +1761,21 @@ IF mem > scriptmemMax \ 2 THEN targetmem = mem * (1 - 0.5 * (mem - scriptmemMax 
 
 FOR i = 0 TO listtail
  WITH script(LRUlist(i, 0))
+  IF totalscrmem <= targetmem AND numloadedscr + 8 < UBOUND(script) THEN EXIT SUB
+
+  'debug "deallocating " & .id & " " & scriptname(.id) & " size " & .size
   totalscrmem -= .size
   numloadedscr -= 1
   deallocate(.ptr)
   .id = 0
   IF .refcount THEN
    FOR j = 0 TO nowscript
-    IF scrat(j).scrnum = LRUlist(i, 0) THEN scrat(j).scrnum = -1
+    IF scrat(j).scrnum = LRUlist(i, 0) THEN
+     'debug "marking scrat(" & j & ") (id = " & scrat(j).id & ") unloaded"
+     scrat(j).scrnum = -1
+    END IF
    NEXT
   END IF
-  IF totalscrmem <= targetmem THEN EXIT SUB
  END WITH
 NEXT
 

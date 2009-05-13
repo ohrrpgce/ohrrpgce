@@ -52,6 +52,8 @@ WHAT IS NEW?
     * Using "advance text box" when no text box is open no longer
       re-evaluates the conditionals of the most recently closed text
       box [James]
+    * Fix a crash bug in the script interpreter when running very
+      large/many scripts [Ralph]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

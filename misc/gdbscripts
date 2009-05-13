@@ -18,7 +18,7 @@ define pel
 	while 1
 
 		if $dims < 1 || $dims > 5 || $data[1] == 0
-			echo Array descriptor invalid
+			echo Array descriptor invalid\n
 			loop_break
 		end
 
@@ -30,7 +30,7 @@ define pel
 			set $dimno += 1
 		end
 		if &((char*)$arg0)[$elem * $data[3]] != &((char*)$data[1])[$check * $data[3]]
-			echo Array descriptor invalid
+			echo Array descriptor invalid\n
 			loop_break
 		end
 
@@ -50,8 +50,8 @@ document pel
 	INDICES is an array of indices. Make sure you get the length
 	right, as there's no way for the script to check
 	Eg.
-	DIM array(300, 3) as MyType
-	(gdb) pel ARRAY {20, 1} MYTYPE
+	 DIM array(300, 3) as MyType
+	 gdb> pel ARRAY {20, 1} MYTYPE
 end
 
 define parray
@@ -81,7 +81,7 @@ define parray
 
 	while 1
 		if $dims < 1 || $dims > 5 || $data[1] == 0
-			echo Array descriptor invalid
+			echo Array descriptor invalid\n
 			loop_break
 		end
 
@@ -110,7 +110,7 @@ define parray
 		echo ):\n
 
 		if (char*)$data[1] != ((char*)$data[0]) + ($check * $data[3])
-			echo Array descriptor invalid
+			echo Array descriptor invalid\n
 			loop_break
 		end
 
@@ -172,7 +172,7 @@ document parray
 	necessary for large integer arrays.
 	Eg.
 	DIM array(300, 3) as integer
-	(gdb) parry ARRAY int 1
+	gdb> parray ARRAY int 1
 end
 
 define runcatch

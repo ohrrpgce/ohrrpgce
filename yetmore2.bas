@@ -919,6 +919,7 @@ SUB reloadscript (si as ScriptInst, updatestats)
  IF si.scrnum = -1 THEN
   si.scrnum = loadscript(si.id)
   IF si.scrnum = -1 THEN killallscripts: EXIT SUB
+  si.scrdata = script(si.scrnum).ptr
   script(si.scrnum).refcount += 1
   IF updatestats THEN script(si.scrnum).totaluse += 1
  END IF
