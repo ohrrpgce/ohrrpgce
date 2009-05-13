@@ -331,7 +331,7 @@ define function, begin
 322,loadherosprite,2,0,-1     #load hero sprite (number, palette)
 323,freesprite,1,0            #frees a sprite (id)
 324,placesprite,3,0,0,0       #move a sprite(id, x, y)
-325,setspritevisible,2,0,0    #change sprite visibilty(id, vis)
+325,setspritevisible,2,0,0    #alias for set slice visible
 326,setspritepalette,2,0,0    #set sprite palette(id, pal)
 327,replaceherosprite,3,0,0,-1 #replaces the sprite with a hero sprite (id, num, pal)
 328,setspriteframe,2,0,0      #what it says on the tin(id, num)
@@ -423,6 +423,8 @@ define function, begin
 414,getspritepalette,1,0      #get palette number of a sprite slice
 415,suspendtimers,0           #stop all timers without resetting them
 416,resumetimers,0            #makes timers paused with "suspend timers" continue
+417,setslicevisible,2,0,0     #change sprite visibilty(id, vis)
+418,getslicevisible,1,0       #return a slice's visibility bit
 end
 
 #--------------------------------------------------------------------------

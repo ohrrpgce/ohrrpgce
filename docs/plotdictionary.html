@@ -718,6 +718,9 @@
 		<a href="#about-getsliceextra">get slice extra (handle, extra)</a><br>
 		
 	
+		<a href="#about-getslicevisible">get slice visible (handle)</a><br>
+		
+	
 		<a href="#about-getsongname">get song name (ID, song)</a><br>
 		
 	
@@ -1591,6 +1594,9 @@
 		<a href="#about-setslicescreeny">set slice screen y (handle, y)</a><br>
 		
 	
+		<a href="#about-setslicevisible">set slice visible (handle, vis)</a><br>
+		
+	
 		<a href="#about-setslicewidth">set slice width (handle, width)</a><br>
 		
 	
@@ -1609,8 +1615,8 @@
 		<a href="#about-setspritepalette">set sprite palette (handle, num)</a><br>
 		
 	
-		<a href="#about-setspritevisible">set sprite visible (handle, vis)</a><br>
 		
+		<a href="#about-setslicevisible">set sprite visible</a><br>
 	
 		<a href="#about-settag">set tag (tag,value)</a><br>
 		
@@ -4883,14 +4889,6 @@ end</pre>
 			
 			
 		</tt></p>
-		<a name="about-setspritevisible"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">set sprite visible (handle, vis)</font></b><br>
-			Makes sprite <span class="param">handle</span> invisible or visible, according to <span class="param">vis</span>. Sprites are automatically visible when you load them, but you can make them invisible with <span class="param">set sprite visible(handle, off)</span>. If the sprite has children, they will become invisible too.<br>
-			
-			
-		</tt></p>
 		<a name="about-getspritetype"></a>
 		<p>
 		<tt>
@@ -5337,6 +5335,29 @@ set horiz align(sl, edge:right)
 <a href="#about-sethorizanchor" class="ref">set horiz anchor</a>, </li>
 <li><a href="#about-setvertanchor" class="ref">set vert anchor</a></li>
 </ul>
+		</tt></p>
+		<a name="about-setslicevisible"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice visible (handle, vis)</font></b><br>
+			Makes slice <span class="param">handle</span> invisible or visible, according to <span class="param">vis</span>. Slices are automatically visible when you load them, but you can make them invisible with <span class="param">set slice visible(handle, off)</span>. If the slice has children, they will become invisible too.<br>
+			
+			
+		</tt></p>
+		<a name="about-setspritevisible"></a>
+		<p>
+		<tt>
+		
+				<b><font color="yellow">set sprite visible</font></b><br>
+				See <a href="#about-setslicevisible">set slice visible</a>
+			</tt></p>
+		<a name="about-getslicevisible"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get slice visible (handle)</font></b><br>
+			Returns the visibilty setting for slice <span class="param">handle</span>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the child of an invisible parent or grandparent.<br>
+			
+			
 		</tt></p>
 		<a name="about-freeslice"></a>
 		<p>
@@ -8713,7 +8734,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 632 commands in this file, of which 52 are only references to other commands.</p>
+	<p>Stats: There are 634 commands in this file, of which 53 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

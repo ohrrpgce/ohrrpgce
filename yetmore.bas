@@ -1729,12 +1729,6 @@ SELECT CASE AS CONST id
     .y = retvals(2)
    END WITH
   END IF
- CASE 325 '--set sprite visible
-  IF valid_plotslice(retvals(0), "set sprite visible") THEN
-   WITH *plotslices(retvals(0))
-    .Visible = (retvals(1) <> 0)
-   END WITH
-  END IF
  CASE 326 '--set sprite palette
   IF valid_plotslice(retvals(0), "set sprite palette") THEN
    ChangeSpriteSlice plotslices(retvals(0)), , ,retvals(1)
@@ -2150,6 +2144,18 @@ SELECT CASE AS CONST id
   FOR i = 0 TO 15
    timers(i).pause = NO
   NEXT i
+ CASE 325, 417 '--set sprite visible
+  IF valid_plotslice(retvals(0), "set slice visible") THEN
+   WITH *plotslices(retvals(0))
+    .Visible = (retvals(1) <> 0)
+   END WITH
+  END IF
+ CASE 418 '--get sprite visible
+  IF valid_plotslice(retvals(0), "get slice visible") THEN
+   WITH *plotslices(retvals(0))
+    scriptret = ABS(.Visible)
+   END WITH
+  END IF
 END SELECT
 
 EXIT SUB

@@ -2039,11 +2039,6 @@ end</example>
 			<shortname>place sprite</shortname>
 			<description>Moves sprite <p>handle</p> to position (<p>x</p>, <p>y</p>).</description>
 		</command>
-		<command id="setspritevisible">
-			<canon>set sprite visible (handle, vis)</canon>
-			<shortname>set sprite visible</shortname>
-			<description>Makes sprite <p>handle</p> invisible or visible, according to <p>vis</p>. Sprites are automatically visible when you load them, but you can make them invisible with <p>set sprite visible(handle, off)</p>. If the sprite has children, they will become invisible too.</description>
-		</command>
 		<command id="getspritetype">
 			<canon>get sprite type (handle)</canon>
 			<shortname>get sprite type</shortname>
@@ -2363,6 +2358,20 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>sethorizanchor</ref>
 				<ref>setvertanchor</ref>
 			</seealso>
+		</command>
+		<command id="setslicevisible">
+			<canon>set slice visible (handle, vis)</canon>
+			<shortname>set slice visible</shortname>
+			<description>Makes slice <p>handle</p> invisible or visible, according to <p>vis</p>. Slices are automatically visible when you load them, but you can make them invisible with <p>set slice visible(handle, off)</p>. If the slice has children, they will become invisible too.</description>
+		</command>
+		<command id="setspritevisible">
+			<alias>setslicevisible</alias>
+			<shortname>set sprite visible</shortname>
+		</command>
+		<command id="getslicevisible">
+			<canon>get slice visible (handle)</canon>
+			<shortname>get slice visible</shortname>
+			<description>Returns the visibilty setting for slice <p>handle</p>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the child of an invisible parent or grandparent.</description>
 		</command>
 		<command id="freeslice">
 			<canon>free slice (handle)</canon>
