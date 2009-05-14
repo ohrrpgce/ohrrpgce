@@ -2156,6 +2156,22 @@ SELECT CASE AS CONST id
     scriptret = ABS(.Visible)
    END WITH
   END IF
+ CASE 419 '--slice edge x
+  IF valid_plotslice(retvals(0), "slice edge x") THEN
+   IF bound_arg(retvals(1), 0, 2, "slice edge x", "edge") THEN
+    DIM sl AS Slice Ptr
+    sl = plotslices(retvals(0))
+    scriptret = sl->X - SliceXAnchor(sl) + SliceEdgeX(sl, retvals(1))
+   END IF
+  END IF
+ CASE 420 '--slice edge y
+  IF valid_plotslice(retvals(0), "slice edge y") THEN
+   IF bound_arg(retvals(1), 0, 2, "slice edge y", "edge") THEN
+    DIM sl AS Slice Ptr
+    sl = plotslices(retvals(0))
+    scriptret = sl->Y - SliceYAnchor(sl) + SliceEdgeY(sl, retvals(1))
+   END IF
+  END IF
 END SELECT
 
 EXIT SUB

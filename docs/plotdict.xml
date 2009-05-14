@@ -2297,6 +2297,22 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>setslicewidth</ref>
 			</seealso>
 		</command>
+		<command id="sliceedgex">
+			<canon>slice edge x (handle, edge)</canon>
+			<shortname>slice edge x</shortname>
+			<description>Returns the x position of a particular edge of a slice. use the constants <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p></description>
+			<seealso>
+				<ref>sliceedgey</ref>
+			</seealso>
+		</command>
+		<command id="sliceedgey">
+			<canon>slice edge y (handle, edge)</canon>
+			<shortname>slice edge y</shortname>
+			<description>Returns the y position of a particular edge of a slice. use the constants <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p></description>
+			<seealso>
+				<ref>sliceedgex</ref>
+			</seealso>
+		</command>
 		<command id="sethorizalign">
 			<canon>set horiz align (handle, edge)</canon>
 			<shortname>set horiz align</shortname>

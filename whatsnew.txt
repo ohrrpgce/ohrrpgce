@@ -97,7 +97,7 @@ WHAT IS NEW?
       "fill parent", "is filling parent", "slice to back",
       "slice to front", "Y sort children", "set sort order",
       "get sort order", "sort children", "set slice extra",
-      "get slice extra" [James]
+      "get slice extra", "slice edge x", "slice edge y" [James]
     * "set slice visible", "get slice visible". Old command
       "set sprite visible" still exists but is now just an alias
       for "set slice visible" [James]

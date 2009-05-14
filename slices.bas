@@ -1110,6 +1110,22 @@ Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
  END SELECT
 End Function
 
+Function SliceEdgeX(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
+ SELECT CASE edge
+  CASE 0: RETURN 0
+  CASE 1: RETURN sl->Width \ 2
+  CASE 2: RETURN sl->Width
+ END SELECT
+End Function
+
+Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
+ SELECT CASE edge
+  CASE 0: RETURN 0
+  CASE 1: RETURN sl->Height \ 2
+  CASE 2: RETURN sl->Height
+ END SELECT
+End Function
+
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  'first, draw this slice
  if s->Visible then

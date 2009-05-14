@@ -425,6 +425,8 @@ define function, begin
 416,resumetimers,0            #makes timers paused with "suspend timers" continue
 417,setslicevisible,2,0,0     #change sprite visibilty(id, vis)
 418,getslicevisible,1,0       #return a slice's visibility bit
+419,sliceedgex,2,0,0          #return the x pos of a given edge of a slice
+420,sliceedgey,2,0,0          #return the y pos of a given edge of a slice
 end
 
 #--------------------------------------------------------------------------

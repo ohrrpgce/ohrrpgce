@@ -166,6 +166,8 @@ DECLARE FUNCTION SliceTypeName OVERLOAD (t AS SliceTypes) AS STRING
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
 DECLARE Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
+DECLARE Function SliceEdgeX(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
+DECLARE Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
 DECLARE Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
 DECLARE Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
 DECLARE Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as integer
