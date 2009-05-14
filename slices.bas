@@ -1173,6 +1173,7 @@ Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
  if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY + sl2->Height) then return YES
  '--no corners collide, check if sl1 is completely inside sl2
  if SliceCollidePoint(sl2, sl1->ScreenX, sl1->ScreenY) then return YES
+ if SliceCollidePoint(sl2, sl1->ScreenX + sl1->Width, sl1->ScreenY + sl1->Height) then return YES
  return NO
 end function
 
