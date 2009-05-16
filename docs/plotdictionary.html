@@ -313,6 +313,9 @@
 		<a href="#about-createrect">create rect (width, height, style)</a><br>
 		
 	
+		<a href="#about-createtextslice">create text slice</a><br>
+		
+	
 		<a href="#about-crop">crop</a><br>
 		
 	
@@ -739,6 +742,9 @@
 		<a href="#about-getspritetype">get sprite type (handle)</a><br>
 		
 	
+		<a href="#about-gettextslicecolor">get text slice color(handle)</a><br>
+		
+	
 		<a href="#about-gettileanimationoffset">get tile animation offset (animation pattern, layer)</a><br>
 		
 	
@@ -746,6 +752,9 @@
 		
 	
 		<a href="#about-getvictorymusic">get victory music</a><br>
+		
+	
+		<a href="#about-getwrap">get wrap(handle)</a><br>
 		
 	
 		<a href="#about-giveexperience">give experience (hero,amount)</a><br>
@@ -1594,6 +1603,9 @@
 		<a href="#about-setslicescreeny">set slice screen y (handle, y)</a><br>
 		
 	
+		<a href="#about-setslicetext">set slice text(handle, string id)</a><br>
+		
+	
 		<a href="#about-setslicevisible">set slice visible (handle, vis)</a><br>
 		
 	
@@ -1621,6 +1633,9 @@
 		<a href="#about-settag">set tag (tag,value)</a><br>
 		
 	
+		<a href="#about-settextslicecolor">set text slice color(handle, color)</a><br>
+		
+	
 		<a href="#about-settileanimationoffset">set tile animation offset (animation pattern, offset, layer)</a><br>
 		
 	
@@ -1640,6 +1655,9 @@
 		
 	
 		<a href="#about-setvictorymusic">set victory music (song)</a><br>
+		
+	
+		<a href="#about-setwrap">set wrap(handle, wrap)</a><br>
 		
 	
 		
@@ -1679,6 +1697,12 @@
 		
 	
 		<a href="#about-slicecontains">slice contains (handle1, handle2)</a><br>
+		
+	
+		<a href="#about-sliceedgex">slice edge x (handle, edge)</a><br>
+		
+	
+		<a href="#about-sliceedgey">slice edge y (handle, edge)</a><br>
 		
 	
 		<a href="#about-sliceheight">slice height (handle)</a><br>
@@ -5248,6 +5272,22 @@ set horiz align(sl, edge:right)
 <li><a href="#about-setslicewidth" class="ref">set slice width</a></li>
 </ul>
 		</tt></p>
+		<a name="about-sliceedgex"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice edge x (handle, edge)</font></b><br>
+			Returns the x position of a particular edge of a slice. use the constants <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span><br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-sliceedgey" class="ref">slice edge y</a></li></ul>
+		</tt></p>
+		<a name="about-sliceedgey"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice edge y (handle, edge)</font></b><br>
+			Returns the y position of a particular edge of a slice. use the constants <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span><br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-sliceedgex" class="ref">slice edge x</a></li></ul>
+		</tt></p>
 		<a name="about-sethorizalign"></a>
 		<p>
 		<tt>
@@ -5889,6 +5929,54 @@ end
 			Given a rect slice <span class="param">handle</span>, Change whether or not is drawn semi-transparent. The second argument should be true to make it translucent, and false to make it solid<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getrecttrans" class="ref">get rect trans</a></li></ul>
+		</tt></p>
+		<a name="about-createtextslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">create text slice</font></b><br>
+			Creates a new blank text slice and returns a handle to it. A text slice holds a string of text, but it can be positioned and handled just like any other slice. Use the <a href="#about-setslicetext" class="ref">set slice handle</a> command to copy a string into the text slice.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setslicetext" class="ref">set slice handle</a></li></ul>
+		</tt></p>
+		<a name="about-setslicetext"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice text(handle, string id)</font></b><br>
+			Copy a string specified by <span class="param">string id</span> into the text slice specified by <span class="param">handle</span>.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-createtextslice" class="ref">create text slice</a></li></ul>
+		</tt></p>
+		<a name="about-gettextslicecolor"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get text slice color(handle)</font></b><br>
+			Given a text slice <span class="param">handle</span>, returns the current color of the text.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-settextslicecolor" class="ref">set text slice color</a></li></ul>
+		</tt></p>
+		<a name="about-settextslicecolor"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set text slice color(handle, color)</font></b><br>
+			Given a text slice <span class="param">handle</span>, change <span class="param">color</span> used to display the text.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-gettextslicecolor" class="ref">get text slice color</a></li></ul>
+		</tt></p>
+		<a name="about-getwrap"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get wrap(handle)</font></b><br>
+			Given a text slice <span class="param">handle</span>, <span class="param">true</span> if the text slice is configured to wrap, or <span class="param">false</span> if it is configured not to wrap.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setwrap" class="ref">set wrap</a></li></ul>
+		</tt></p>
+		<a name="about-setwrap"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set wrap(handle, wrap)</font></b><br>
+			Given a text slice <span class="param">handle</span>, change whether or not it will wrap. If the second argument is omitted or <span class="param">true</span>, change the slice to wrap-mode, if the second argument is <span class="param">false</span> change the slice into non-wrapping mode.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getwrap" class="ref">get wrap</a></li></ul>
 		</tt></p>
 		<a name="about-slicecollidepoint"></a>
 		<p>
@@ -8734,7 +8822,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 634 commands in this file, of which 53 are only references to other commands.</p>
+	<p>Stats: There are 642 commands in this file, of which 53 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

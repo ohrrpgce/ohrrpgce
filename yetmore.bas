@@ -2172,6 +2172,39 @@ SELECT CASE AS CONST id
     scriptret = sl->Y - SliceYAnchor(sl) + SliceEdgeY(sl, retvals(1))
    END IF
   END IF
+ CASE 421 '--create text slice
+  DIM sl AS Slice Ptr
+  sl = NewSliceOfType(slText, SliceTable.scriptsprite)
+  scriptret = create_plotslice_handle(sl)
+ CASE 422 '--set slice text
+  IF valid_plottextslice(retvals(0), "set slice text") THEN
+   IF bound_plotstr(retvals(1), "set slice text") THEN
+    ChangeTextSlice plotslices(retvals(0)), plotstr(retvals(1)).s
+   END IF
+  END IF
+ CASE 423 '--get text slice color
+  IF valid_plottextslice(retvals(0), "get text slice color") THEN
+   DIM dat AS TextSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->col
+  END IF
+ CASE 424 '--set text slice color
+  IF valid_plottextslice(retvals(0), "set text slice color") THEN
+   IF bound_arg(retvals(1), 0, 255, "set text slice color", "color") THEN
+    ChangeTextSlice plotslices(retvals(0)), , retvals(1)
+   END IF
+  END IF
+ CASE 425 '--get wrap
+  IF valid_plottextslice(retvals(0), "get wrap") THEN
+   DIM dat AS TextSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = ABS(dat->wrap)
+  END IF
+ CASE 426 '--set wrap
+  IF valid_plottextslice(retvals(0), "set wrap") THEN
+   ChangeTextSlice plotslices(retvals(0)), , , ,(retvals(1)<>0)
+  END IF
+  
 END SELECT
 
 EXIT SUB
@@ -3562,6 +3595,21 @@ FUNCTION valid_plotrect(byval handle as integer, byval cmd as string) as integer
  RETURN NO
 END FUNCTION
 
+FUNCTION valid_plottextslice(byval handle as integer, byval cmd as string) as integer
+ IF valid_plotslice(handle, cmd) THEN
+  IF plotslices(handle)->SliceType = slText THEN
+   IF plotslices(handle)->SliceData = 0 THEN
+    debug cmd & ": text slice handle " & handle & " has null data"
+    RETURN NO
+   END IF
+   RETURN YES
+  ELSE
+   debug cmd & ": slice handle " & handle & " is not text"
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
 FUNCTION valid_resizeable_slice(byval handle as integer, byval cmd as string, byval ignore_fill as integer=NO) as integer
  IF valid_plotslice(handle, cmd) THEN
   DIM sl AS Slice Ptr
@@ -3573,7 +3621,18 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval cmd as string, by
     debug cmd & ": slice handle " & handle & " cannot be resized while filling parent"
    END IF
   ELSE
-   debug cmd & ": slice handle " & handle & " is not resizeable"
+   IF sl->SliceType = slText THEN
+    DIM dat AS TextSliceData ptr
+    dat = sl->SliceData
+    IF dat = 0 THEN debug "sanity check fail, text slice " & handle & " has null data" : RETURN NO
+    IF dat->wrap = YES THEN
+     RETURN YES
+    ELSE
+     debug cmd & ": text slice handle " & handle & " cannot be resized unless wrap is enabled"
+    END IF
+   ELSE
+    debug cmd & ": slice handle " & handle & " is not resizeable"
+   END IF
   END IF
  END IF
  RETURN NO

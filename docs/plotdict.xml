@@ -2862,6 +2862,54 @@ end
 				<ref>getrecttrans</ref>
 			</seealso>
 		</command>
+		<command id="createtextslice">
+			<canon>create text slice</canon>
+			<shortname>create text slice</shortname>
+			<description>Creates a new blank text slice and returns a handle to it. A text slice holds a string of text, but it can be positioned and handled just like any other slice. Use the <ref>setslicetext</ref> command to copy a string into the text slice.</description>
+			<seealso>
+				<ref>setslicetext</ref>
+			</seealso>
+		</command>
+		<command id="setslicetext">
+			<canon>set slice text(handle, string id)</canon>
+			<shortname>set slice handle</shortname>
+			<description>Copy a string specified by <p>string id</p> into the text slice specified by <p>handle</p>.</description>
+			<seealso>
+				<ref>createtextslice</ref>
+			</seealso>
+		</command>
+		<command id="gettextslicecolor">
+			<canon>get text slice color(handle)</canon>
+			<shortname>get text slice color</shortname>
+			<description>Given a text slice <p>handle</p>, returns the current color of the text.</description>
+			<seealso>
+				<ref>settextslicecolor</ref>
+			</seealso>
+		</command>
+		<command id="settextslicecolor">
+			<canon>set text slice color(handle, color)</canon>
+			<shortname>set text slice color</shortname>
+			<description>Given a text slice <p>handle</p>, change <p>color</p> used to display the text.</description>
+			<seealso>
+				<ref>gettextslicecolor</ref>
+			</seealso>
+		</command>
+		<command id="getwrap">
+			<canon>get wrap(handle)</canon>
+			<shortname>get wrap</shortname>
+			<description>Given a text slice <p>handle</p>, <p>true</p> if the text slice is configured to wrap, or <p>false</p> if it is configured not to wrap.</description>
+			<seealso>
+				<ref>setwrap</ref>
+			</seealso>
+		</command>
+		<command id="setwrap">
+			<canon>set wrap(handle, wrap)</canon>
+			<shortname>set wrap</shortname>
+			<description>Given a text slice <p>handle</p>, change whether or not it will wrap. If the second argument is omitted or <p>true</p>, change the slice to wrap-mode, if the second argument is <p>false</p> change the slice into non-wrapping mode.</description>
+			<seealso>
+				<ref>getwrap</ref>
+			</seealso>
+		</command>
 		<command id="slicecollidepoint">
 			<canon>slice collide point (handle, x, y)</canon>
 			<shortname>slice collide point</shortname>
