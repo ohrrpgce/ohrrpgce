@@ -433,6 +433,7 @@ define function, begin
 424,settextslicecolor,2,0,0   #change a text strings color
 425,getwrap,1,0               #return true if a text slice wraps
 426,setwrap,2,0,1             #change the wrapping state of a text slice
+427,sliceistext,1,0           #return true if the given slice handle is a text slice
 end
 
 #--------------------------------------------------------------------------

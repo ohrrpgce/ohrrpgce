@@ -81,7 +81,7 @@ WHAT IS NEW?
       "first child", "next sibling", "last child",
       "previous sibling", "create container", "set parent", 
       "check parentage", "slice screen x", "slice screen y",
-      "slice is container", "create rect", "slice is rect",
+      "slice is container", "create rect", "slice is rect"
       "set slice width", "set slice height", "get rect style",
       "set rect style", "get rect fgcol", "set rect fgcol",
       "get rect bgcol", "set rect bgcol", "get rect border",
@@ -99,7 +99,7 @@ WHAT IS NEW?
       "get sort order", "sort children", "set slice extra",
       "get slice extra", "slice edge x", "slice edge y", "create text
        slice", "set slice text", "get text slice color", "set text
-       slice color", "set wrap", "get wrap" [James]
+       slice color", "set wrap", "get wrap", "slice is text" [James]
     * "set slice visible", "get slice visible". Old command
       "set sprite visible" still exists but is now just an alias
       for "set slice visible". [James]

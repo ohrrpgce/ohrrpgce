@@ -2187,6 +2187,11 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>slice is rect</shortname>
 			<description>Returns true if the given slice <p>handle</p> is a rect.</description>
 		</command>
+		<command id="sliceistext">
+			<canon>slice is text (handle)</canon>
+			<shortname>slice is text</shortname>
+			<description>Returns true if the given slice <p>handle</p> is a text slice.</description>
+		</command>
 		<command id="slicex">
 			<canon>slice x (handle)</canon>
 			<shortname>slice x</shortname>

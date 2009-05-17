@@ -2204,6 +2204,11 @@ SELECT CASE AS CONST id
   IF valid_plottextslice(retvals(0), "set wrap") THEN
    ChangeTextSlice plotslices(retvals(0)), , , ,(retvals(1)<>0)
   END IF
+ CASE 427 '--slice is text
+  IF valid_plotslice(retvals(0), "slice is text") THEN
+   scriptret = 0
+   IF plotslices(retvals(0))->SliceType = slText THEN scriptret = 1
+  END IF
   
 END SELECT
 
