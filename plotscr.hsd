@@ -427,10 +427,10 @@ define function, begin
 418,getslicevisible,1,0       #return a slice's visibility bit
 419,sliceedgex,2,0,0          #return the x pos of a given edge of a slice
 420,sliceedgey,2,0,0          #return the y pos of a given edge of a slice
-421,createtextslice,0         #create a new text slice
+421,createtext,0              #create a new text slice
 422,setslicetext,2,0,0        #copy a string into a text slice
-423,gettextslicecolor,1,0     #return a text strings color
-424,settextslicecolor,2,0,0   #change a text strings color
+423,gettextcolor,1,0          #return a text strings color
+424,settextcolor,2,0,0        #change a text strings color
 425,getwrap,1,0               #return true if a text slice wraps
 426,setwrap,2,0,1             #change the wrapping state of a text slice
 427,sliceistext,1,0           #return true if the given slice handle is a text slice

@@ -2172,7 +2172,7 @@ SELECT CASE AS CONST id
     scriptret = sl->Y - SliceYAnchor(sl) + SliceEdgeY(sl, retvals(1))
    END IF
   END IF
- CASE 421 '--create text slice
+ CASE 421 '--create text
   DIM sl AS Slice Ptr
   sl = NewSliceOfType(slText, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
@@ -2182,15 +2182,15 @@ SELECT CASE AS CONST id
     ChangeTextSlice plotslices(retvals(0)), plotstr(retvals(1)).s
    END IF
   END IF
- CASE 423 '--get text slice color
-  IF valid_plottextslice(retvals(0), "get text slice color") THEN
+ CASE 423 '--get text color
+  IF valid_plottextslice(retvals(0), "get text color") THEN
    DIM dat AS TextSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->col
   END IF
- CASE 424 '--set text slice color
-  IF valid_plottextslice(retvals(0), "set text slice color") THEN
-   IF bound_arg(retvals(1), 0, 255, "set text slice color", "color") THEN
+ CASE 424 '--set text color
+  IF valid_plottextslice(retvals(0), "set text color") THEN
+   IF bound_arg(retvals(1), 0, 255, "set text color", "color") THEN
     ChangeTextSlice plotslices(retvals(0)), , retvals(1)
    END IF
   END IF

@@ -2867,9 +2867,9 @@ end
 				<ref>getrecttrans</ref>
 			</seealso>
 		</command>
-		<command id="createtextslice">
-			<canon>create text slice</canon>
-			<shortname>create text slice</shortname>
+		<command id="createtext">
+			<canon>create text</canon>
+			<shortname>create text</shortname>
 			<description>Creates a new blank text slice and returns a handle to it. A text slice holds a string of text, but it can be positioned and handled just like any other slice. Use the <ref>setslicetext</ref> command to copy a string into the text slice.</description>
 			<seealso>
 				<ref>setslicetext</ref>
@@ -2880,23 +2880,23 @@ end
 			<shortname>set slice handle</shortname>
 			<description>Copy a string specified by <p>string id</p> into the text slice specified by <p>handle</p>.</description>
 			<seealso>
-				<ref>createtextslice</ref>
+				<ref>createtext</ref>
 			</seealso>
 		</command>
-		<command id="gettextslicecolor">
-			<canon>get text slice color(handle)</canon>
-			<shortname>get text slice color</shortname>
+		<command id="gettextcolor">
+			<canon>get text color(handle)</canon>
+			<shortname>get text color</shortname>
 			<description>Given a text slice <p>handle</p>, returns the current color of the text.</description>
 			<seealso>
-				<ref>settextslicecolor</ref>
+				<ref>settextcolor</ref>
 			</seealso>
 		</command>
-		<command id="settextslicecolor">
-			<canon>set text slice color(handle, color)</canon>
-			<shortname>set text slice color</shortname>
+		<command id="settextcolor">
+			<canon>set text color(handle, color)</canon>
+			<shortname>set text color</shortname>
 			<description>Given a text slice <p>handle</p>, change <p>color</p> used to display the text.</description>
 			<seealso>
-				<ref>gettextslicecolor</ref>
+				<ref>gettextcolor</ref>
 			</seealso>
 		</command>
 		<command id="getwrap">
