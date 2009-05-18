@@ -2899,6 +2899,40 @@ end
 				<ref>gettextcolor</ref>
 			</seealso>
 		</command>
+		<command id="gettextbg">
+			<canon>get text bg(handle)</canon>
+			<shortname>get text bg</shortname>
+			<description>Given a text slice <p>handle</p>, returns the current background color of the text. Note that this only matters if the text slice is not displaying an outline.</description>
+			<seealso>
+				<ref>gettextcolor</ref>
+				<ref>settextbg</ref>
+			</seealso>
+		</command>
+		<command id="settextbg">
+			<canon>set text bg(handle, color)</canon>
+			<shortname>set text bg</shortname>
+			<description>Given a text slice <p>handle</p>, change the background <p>color</p> used to display the text. This only matters if the text slice is set to not use an outline.</description>
+			<seealso>
+				<ref>gettextbg</ref>
+				<ref>settextcolor</ref>
+			</seealso>
+		</command>
+		<command id="getoutline">
+			<canon>get outline(handle)</canon>
+			<shortname>get outline</shortname>
+			<description>Given a text slice <p>handle</p>, <p>true</p> if the text slice is configured to display an outline, or <p>false</p> if it is configured not to display and outline.</description>
+			<seealso>
+				<ref>setoutline</ref>
+			</seealso>
+		</command>
+		<command id="setoutline">
+			<canon>set outline(handle, outline)</canon>
+			<shortname>set outline</shortname>
+			<description>Given a text slice <p>handle</p>, change whether or not it will be displayed with an outline. If the second argument is omitted or <p>true</p>, change the slice to show an outline, if the second argument is <p>false</p> change the slice to show no outline.</description>
+			<seealso>
+				<ref>getoutline</ref>
+			</seealso>
+		</command>
 		<command id="getwrap">
 			<canon>get wrap(handle)</canon>
 			<shortname>get wrap</shortname>

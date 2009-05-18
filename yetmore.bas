@@ -2209,6 +2209,28 @@ SELECT CASE AS CONST id
    scriptret = 0
    IF plotslices(retvals(0))->SliceType = slText THEN scriptret = 1
   END IF
+ CASE 428 '--get text bg
+  IF valid_plottextslice(retvals(0), "get text bg") THEN
+   DIM dat AS TextSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->bgcol
+  END IF
+ CASE 429 '--set text bg
+  IF valid_plottextslice(retvals(0), "set text bg") THEN
+   IF bound_arg(retvals(1), 0, 255, "set text bg", "color") THEN
+    ChangeTextSlice plotslices(retvals(0)), , , , , retvals(1)
+   END IF
+  END IF
+ CASE 430 '--get outline
+  IF valid_plottextslice(retvals(0), "get outline") THEN
+   DIM dat AS TextSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = ABS(dat->outline)
+  END IF
+ CASE 431 '--set outline
+  IF valid_plottextslice(retvals(0), "set outline") THEN
+   ChangeTextSlice plotslices(retvals(0)), , ,(retvals(1)<>0)
+  END IF
   
 END SELECT
 

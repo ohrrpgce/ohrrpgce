@@ -98,8 +98,9 @@ WHAT IS NEW?
       "slice to front", "Y sort children", "set sort order",
       "get sort order", "sort children", "set slice extra",
       "get slice extra", "slice edge x", "slice edge y", "create text",
-      "set slice text", "get text color", "set text color", "set wrap",
-      "get wrap", "slice is text" [James]
+      "set slice text", "get text color", "set text color",
+      "get text bg", "set text bg", "get outline", "set outline",
+      "set wrap", "get wrap", "slice is text" [James]
     * "set slice visible", "get slice visible". Old command
       "set sprite visible" still exists but is now just an alias
       for "set slice visible". [James]

@@ -700,6 +700,9 @@
 		<a href="#about-getonkeypressscript">get on keypress script</a><br>
 		
 	
+		<a href="#about-getoutline">get outline(handle)</a><br>
+		
+	
 		<a href="#about-getrectbgcol">get rect bgcol (handle)</a><br>
 		
 	
@@ -740,6 +743,9 @@
 		
 	
 		<a href="#about-getspritetype">get sprite type (handle)</a><br>
+		
+	
+		<a href="#about-gettextbg">get text bg(handle)</a><br>
 		
 	
 		<a href="#about-gettextcolor">get text color(handle)</a><br>
@@ -1564,6 +1570,9 @@
 		<a href="#about-setonkeypressscript">set on keypress script (id)</a><br>
 		
 	
+		<a href="#about-setoutline">set outline(handle, outline)</a><br>
+		
+	
 		<a href="#about-setpadding">set padding (handle, pixels)</a><br>
 		
 	
@@ -1631,6 +1640,9 @@
 		<a href="#about-setslicevisible">set sprite visible</a><br>
 	
 		<a href="#about-settag">set tag (tag,value)</a><br>
+		
+	
+		<a href="#about-settextbg">set text bg(handle, color)</a><br>
 		
 	
 		<a href="#about-settextcolor">set text color(handle, color)</a><br>
@@ -5973,6 +5985,46 @@ end
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-gettextcolor" class="ref">get text color</a></li></ul>
 		</tt></p>
+		<a name="about-gettextbg"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get text bg(handle)</font></b><br>
+			Given a text slice <span class="param">handle</span>, returns the current background color of the text. Note that this only matters if the text slice is not displaying an outline.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-gettextcolor" class="ref">get text color</a>, </li>
+<li><a href="#about-settextbg" class="ref">set text bg</a></li>
+</ul>
+		</tt></p>
+		<a name="about-settextbg"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set text bg(handle, color)</font></b><br>
+			Given a text slice <span class="param">handle</span>, change the background <span class="param">color</span> used to display the text. This only matters if the text slice is set to not use an outline.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-gettextbg" class="ref">get text bg</a>, </li>
+<li><a href="#about-settextcolor" class="ref">set text color</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getoutline"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get outline(handle)</font></b><br>
+			Given a text slice <span class="param">handle</span>, <span class="param">true</span> if the text slice is configured to display an outline, or <span class="param">false</span> if it is configured not to display and outline.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setoutline" class="ref">set outline</a></li></ul>
+		</tt></p>
+		<a name="about-setoutline"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set outline(handle, outline)</font></b><br>
+			Given a text slice <span class="param">handle</span>, change whether or not it will be displayed with an outline. If the second argument is omitted or <span class="param">true</span>, change the slice to show an outline, if the second argument is <span class="param">false</span> change the slice to show no outline.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getoutline" class="ref">get outline</a></li></ul>
+		</tt></p>
 		<a name="about-getwrap"></a>
 		<p>
 		<tt>
@@ -8833,7 +8885,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 643 commands in this file, of which 53 are only references to other commands.</p>
+	<p>Stats: There are 647 commands in this file, of which 53 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
