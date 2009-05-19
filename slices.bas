@@ -769,6 +769,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
   end if
   if .frame >= sprite_sizes(.spritetype).frames or .frame < 0 then
    debug "out of range frame " & .frame & " for slice " & sl
+   .frame = 0
   end if
   
   spr += .frame
