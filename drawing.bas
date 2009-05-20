@@ -2385,6 +2385,7 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
  END IF
  putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, state.tog * 15, dpage
  textcolor uilook(uiMenuItem), 0
+ printstr "x=" & ss.x & " y=" & ss.y, 0, 174, dpage
  printstr info$(ss.framenum), 0, 182, dpage
  printstr "Tool:" & toolinfo(ss.tool).name, 0, 190, dpage
  DIM bgcol AS INTEGER

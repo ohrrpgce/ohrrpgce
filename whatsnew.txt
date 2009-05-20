@@ -42,6 +42,7 @@ WHAT IS NEW?
     * The clone tool in the sprite editor now allows you to rotate the
       cloned area. [James]
     * The global text string editor now has a search tool [James]
+    * Show cursor coordinates in the sprite editor [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"
