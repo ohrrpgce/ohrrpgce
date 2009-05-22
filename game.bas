@@ -361,7 +361,6 @@ doihavebits
 evalherotag stat()
 needf = 1
 force_npc_check = YES
-menu_text_box = 0
 
 '--Reset some stuff related to debug keys
 showtags = 0
@@ -390,12 +389,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- player_menu_keys menu_text_box, stat(), catx(), caty(), tilesets()
- IF menu_text_box > 0 THEN
-  '--player has triggered a text box from the menu--
-  loadsay menu_text_box
-  menu_text_box = 0
- END IF
+ player_menu_keys stat(), catx(), caty(), tilesets()
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
  IF gmap(15) THEN onkeyscript gmap(15)
@@ -2402,11 +2396,10 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
-SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr)
+SUB player_menu_keys (stat(), catx(), caty(), tilesets() AS TilesetData ptr)
  DIM i AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
- menu_text_box = 0
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
   menu_handle = menus(topmenu).handle 'store handle for later use
@@ -2429,7 +2422,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
   WITH menus(topmenu).items(mstates(topmenu).pt)
    IF .disabled THEN EXIT SUB
    IF carray(4) > 1 THEN
-    activated = activate_menu_item(menu_text_box, menus(topmenu).items(mstates(topmenu).pt))
+    activated = activate_menu_item(menus(topmenu).items(mstates(topmenu).pt))
    END IF
    IF .t = 1 AND .sub_t = 11 THEN '--volume
     IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
@@ -2449,8 +2442,9 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
  END IF
 END SUB
 
-FUNCTION activate_menu_item(BYREF menu_text_box AS INTEGER, mi AS MenuDefItem) AS INTEGER
+FUNCTION activate_menu_item(mi AS MenuDefItem) AS INTEGER
  DIM open_other_menu AS INTEGER = -1
+ DIM menu_text_box AS INTEGER = 0
  DIM updatetags AS INTEGER = NO
  DIM slot AS INTEGER
  DIM activated AS INTEGER = YES
@@ -2538,6 +2532,11 @@ FUNCTION activate_menu_item(BYREF menu_text_box AS INTEGER, mi AS MenuDefItem) A
  END IF
  IF open_other_menu >= 0 THEN
   add_menu open_other_menu
+ END IF
+ IF menu_text_box > 0 THEN
+  '--player has triggered a text box from the menu--
+  loadsay menu_text_box
+  menu_text_box = 0
  END IF
  RETURN activated
 END FUNCTION

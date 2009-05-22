@@ -31,7 +31,7 @@ declare sub remove_menu (slot as integer)
 declare sub bring_menu_forward (slot as integer)
 declare function menus_allow_gameplay () as integer
 declare function menus_allow_player () as integer
-declare sub player_menu_keys (byref menu_text_box as integer, stat(), catx(), caty(), tilesets() as tilesetdata ptr)
+declare sub player_menu_keys (stat(), catx(), caty(), tilesets() as tilesetdata ptr)
 declare sub check_menu_tags ()
 declare function game_usemenu (state as menustate) as integer
 declare function find_menu_id (id as integer) as integer
@@ -45,6 +45,6 @@ declare function find_menu_item_slot_by_string(menuslot as integer, s as string,
 declare function allowed_to_open_main_menu () as integer
 declare function random_formation (byval set as integer) as integer
 declare sub init_default_text_colors()
-DECLARE FUNCTION activate_menu_item(BYREF menu_text_box AS INTEGER, mi AS MenuDefItem) AS INTEGER
+DECLARE FUNCTION activate_menu_item(mi AS MenuDefItem) AS INTEGER
 
 #ENDIF
