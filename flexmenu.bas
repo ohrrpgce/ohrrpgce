@@ -949,7 +949,18 @@ DO
  END IF
 
  IF needupdatemenu THEN
-  GOSUB AtkUpdateMenu
+  '--in case new attacks have been added
+  max(AtkLimChainTo) = gen(34) + 1
+  '--re-enforce bounds, as they might have just changed
+  enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
+  '--percentage damage shows target stat
+  caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
+  caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
+  updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
+  '--load the picture and palette
+  setpicstuf buffer(), 3750, 2
+  loadset game + ".pt6", recbuf(AtkDatPic), 0
+  getpal16 workpal(), 0, recbuf(AtkDatPal), 6, recbuf(AtkDatPic)
   needupdatemenu = 0
  END IF
  atk_edit_preview recbuf(AtkDatAnimPattern), workpal()
@@ -973,29 +984,6 @@ saveattackdata recbuf(), recindex
 clearallpages
 
 EXIT SUB
-
-'-----------------------------------------------------------------------
-
-AtkUpdateMenu:
-
-'--in case new attacks have been added
-max(AtkLimChainTo) = gen(34) + 1
-
-'--re-enforce bounds, as they might have just changed
-enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
-
-'--percentage damage shows target stat
-caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
-caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
-
-updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
-
-'--load the picture and palette
-setpicstuf buffer(), 3750, 2
-loadset game + ".pt6", recbuf(AtkDatPic), 0
-getpal16 workpal(), 0, recbuf(AtkDatPal), 6, recbuf(AtkDatPic)
-
-RETRACE
 
 '-----------------------------------------------------------------------
 
