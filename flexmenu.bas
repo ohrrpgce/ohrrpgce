@@ -53,6 +53,8 @@ DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, de
 DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
 DECLARE SUB atk_edit_preview(BYVAL pattern AS INTEGER, workpal() AS INTEGER)
+DECLARE SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth AS INTEGER)
+DECLARE SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER, BYREF needupdatemenu AS INTEGER)
 
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)
@@ -812,8 +814,9 @@ tagMenu(6) = AtkTag2
 setactivemenu workmenu(), mainMenu(), state
 
 menudepth = 0
-lastptr = 0
-lasttop = 0
+DIM laststate AS MenuState
+laststate.pt = 0
+laststate.top = 0
 recindex = 0
 needupdatemenu = 0
 
@@ -833,7 +836,7 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
   IF menudepth = 1 THEN
-   GOSUB AtkBackSub
+   atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth, needupdatemenu
    helpkey = "attacks"
   ELSE
    EXIT DO
@@ -881,38 +884,38 @@ DO
   SELECT CASE workmenu(state.pt)
    CASE AtkBackAct
     IF menudepth = 1 THEN
-     GOSUB AtkBackSub
+     atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth, needupdatemenu
      helpkey = "attacks"
     ELSE
      EXIT DO
     END IF
    CASE AtkAppearAct
-    GOSUB AtkPushPtrSub
+    atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), appearMenu(), state
     helpkey = "attack_appearance"
     needupdatemenu = 1
    CASE AtkDmgAct
-    GOSUB AtkPushPtrSub
+    atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), dmgMenu(), state
     helpkey = "attack_dammage"
     needupdatemenu = 1
    CASE AtkTargAct
-    GOSUB AtkPushPtrSub
+    atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), targMenu(), state
     helpkey = "attack_targetting"
     needupdatemenu = 1
    CASE AtkCostAct
-    GOSUB AtkPushPtrSub
+    atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), costMenu(), state
     helpkey = "attack_cost"
     needupdatemenu = 1
    CASE AtkChainAct
-    GOSUB AtkPushPtrSub
+    atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), chainMenu(), state
     helpkey = "attack_chaining"
     needupdatemenu = 1
    CASE AtkTagAct
-    GOSUB AtkPushPtrSub
+    atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), tagMenu(), state
     helpkey = "attack_tags"
     needupdatemenu = 1
@@ -987,22 +990,21 @@ EXIT SUB
 
 '-----------------------------------------------------------------------
 
-AtkBackSub:
-setactivemenu workmenu(), mainMenu(), state
-menudepth = 0
-state.pt = lastptr
-state.top = lasttop
-needupdatemenu = 1
-RETRACE
+END SUB
 
-'-----------------------------------------------------------------------
+SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER, BYREF needupdatemenu AS INTEGER)
+ setactivemenu workmenu(), mainMenu(), state
+ menudepth = 0
+ state.pt = laststate.pt
+ state.top = laststate.top
+ needupdatemenu = 1
+END SUB
 
-AtkPushPtrSub:
-lastptr = state.pt
-lasttop = state.top
-menudepth = 1
-RETRACE
 
+SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth AS INTEGER)
+ laststate.pt = state.pt
+ laststate.top = state.top
+ menudepth = 1
 END SUB
 
 SUB atk_edit_preview(BYVAL pattern AS INTEGER, workpal() AS INTEGER)
