@@ -45,5 +45,6 @@ declare function find_menu_item_slot_by_string(menuslot as integer, s as string,
 declare function allowed_to_open_main_menu () as integer
 declare function random_formation (byval set as integer) as integer
 declare sub init_default_text_colors()
+DECLARE FUNCTION activate_menu_item(BYREF menu_text_box AS INTEGER, mi AS MenuDefItem) AS INTEGER
 
 #ENDIF

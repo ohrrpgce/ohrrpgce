@@ -2400,11 +2400,8 @@ END FUNCTION
 
 SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), tilesets() AS TilesetData ptr)
  DIM i AS INTEGER
- DIM slot AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
- DIM open_other_menu AS INTEGER = -1
- DIM updatetags AS INTEGER = NO
  menu_text_box = 0
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
@@ -2428,78 +2425,7 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
   WITH menus(topmenu).items(mstates(topmenu).pt)
    IF .disabled THEN EXIT SUB
    IF carray(4) > 1 THEN
-    activated = YES
-    SELECT CASE .t
-     CASE 0 ' Label
-      SELECT CASE .sub_t
-       CASE 0 'Selectable
-       CASE 1 'Unselectable
-        activated = NO
-      END SELECT
-     CASE 1 ' Special
-      SELECT CASE .sub_t
-       CASE 0 ' item
-        menu_text_box = items(stat())
-        IF menu_text_box > 0 THEN
-         remove_menu topmenu
-         EXIT SUB
-        END IF
-       CASE 1 ' spell
-        slot = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
-        IF slot >= 0 THEN spells slot, stat() : updatetags = YES
-       CASE 2 ' status
-        slot = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
-        IF slot >= 0 THEN status slot, stat() : updatetags = YES
-       CASE 3 ' equip
-        slot = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
-        IF slot >= 0 THEN equip slot, stat() : updatetags = YES
-       CASE 4 ' order
-        heroswap 0, stat() : updatetags = YES
-       CASE 5 ' team
-        heroswap 1, stat() : updatetags = YES
-       CASE 6 ' order/team
-        heroswap readbit(gen(), 101, 5), stat() : updatetags = YES
-       CASE 7,12 ' map
-        minimap catx(0), caty(0), tilesets()
-       CASE 8,13 ' save
-        slot = picksave(0)
-        IF slot >= 0 THEN savegame slot, stat()
-       CASE 9 ' load
-        slot = picksave(1)
-        IF slot >= 0 THEN
-         wantloadgame = slot + 1
-         FOR i = topmenu TO 0 STEP -1
-          remove_menu i
-         NEXT i
-         EXIT SUB
-        END IF
-       CASE 10 ' quit
-        menusound gen(genAcceptSFX)
-        verquit
-       CASE 11 ' volume
-        activated = NO
-      END SELECT
-     CASE 2 ' Menu
-      mstates(topmenu).active = NO
-      open_other_menu = .sub_t
-     CASE 3 ' Text box
-      menu_text_box = .sub_t
-     CASE 4 ' Run Script
-      DIM rsr AS INTEGER
-      rsr = runscript(.sub_t, nowscript + 1, YES, "menuitem", plottrigger)
-      IF rsr = 1 THEN
-       IF menus(topmenu).allow_gameplay THEN
-        'Normally, pass a menu item handle
-        setScriptArg 0, .handle
-       ELSE
-        'but if this menu suspends gameplay, then a handle will always be invalid
-        'by the time the script runs, so pass the extra values instead.
-        setScriptArg 0, .extra(0)
-        setScriptArg 1, .extra(1)
-        setScriptArg 2, .extra(2)
-       END IF
-      END IF
-    END SELECT
+    activated = activate_menu_item(menu_text_box, menus(topmenu).items(mstates(topmenu).pt))
    END IF
    IF .t = 1 AND .sub_t = 11 THEN '--volume
     IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
@@ -2515,17 +2441,102 @@ SUB player_menu_keys (BYREF menu_text_box AS INTEGER, stat(), catx(), caty(), ti
      setkeys '--Discard the  keypress that triggered the menu item that closed the menu
     END IF
    END IF
-   IF updatetags THEN
-    evalherotag stat()
-    evalitemtag
-    npcplot
-   END IF
   END WITH
-  IF open_other_menu >= 0 THEN
-   add_menu open_other_menu
-  END IF
  END IF
 END SUB
+
+FUNCTION activate_menu_item(BYREF menu_text_box AS INTEGER, mi AS MenuDefItem) AS INTEGER
+ DIM open_other_menu AS INTEGER = -1
+ DIM updatetags AS INTEGER = NO
+ DIM slot AS INTEGER
+ DIM activated AS INTEGER = YES
+ menu_text_box = 0
+ DO 'This DO exists to allow EXIT DO
+  WITH mi
+   SELECT CASE .t
+    CASE 0 ' Label
+     SELECT CASE .sub_t
+      CASE 0 'Selectable
+      CASE 1 'Unselectable
+       activated = NO
+     END SELECT
+    CASE 1 ' Special
+     SELECT CASE .sub_t
+      CASE 0 ' item
+       menu_text_box = items(stat())
+       IF menu_text_box > 0 THEN
+        remove_menu topmenu
+        EXIT DO
+       END IF
+      CASE 1 ' spell
+       slot = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
+       IF slot >= 0 THEN spells slot, stat() : updatetags = YES
+      CASE 2 ' status
+       slot = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
+       IF slot >= 0 THEN status slot, stat() : updatetags = YES
+      CASE 3 ' equip
+       slot = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
+       IF slot >= 0 THEN equip slot, stat() : updatetags = YES
+      CASE 4 ' order
+       heroswap 0, stat() : updatetags = YES
+      CASE 5 ' team
+       heroswap 1, stat() : updatetags = YES
+      CASE 6 ' order/team
+       heroswap readbit(gen(), 101, 5), stat() : updatetags = YES
+      CASE 7,12 ' map
+       minimap catx(0), caty(0), tilesets()
+      CASE 8,13 ' save
+       slot = picksave(0)
+       IF slot >= 0 THEN savegame slot, stat()
+      CASE 9 ' load
+       slot = picksave(1)
+       IF slot >= 0 THEN
+        wantloadgame = slot + 1
+        FOR i AS INTEGER = topmenu TO 0 STEP -1
+         remove_menu i
+        NEXT i
+        EXIT DO
+       END IF
+      CASE 10 ' quit
+       menusound gen(genAcceptSFX)
+       verquit
+      CASE 11 ' volume
+       activated = NO
+     END SELECT
+    CASE 2 ' Menu
+     mstates(topmenu).active = NO
+     open_other_menu = .sub_t
+    CASE 3 ' Text box
+     menu_text_box = .sub_t
+    CASE 4 ' Run Script
+     DIM rsr AS INTEGER
+     rsr = runscript(.sub_t, nowscript + 1, YES, "menuitem", plottrigger)
+     IF rsr = 1 THEN
+      IF menus(topmenu).allow_gameplay THEN
+       'Normally, pass a menu item handle
+       setScriptArg 0, .handle
+      ELSE
+       'but if this menu suspends gameplay, then a handle will always be invalid
+       'by the time the script runs, so pass the extra values instead.
+       setScriptArg 0, .extra(0)
+       setScriptArg 1, .extra(1)
+       setScriptArg 2, .extra(2)
+      END IF
+     END IF
+    END SELECT
+   END WITH
+  EXIT DO
+ LOOP
+ IF updatetags THEN
+  evalherotag stat()
+  evalitemtag
+  npcplot
+ END IF
+ IF open_other_menu >= 0 THEN
+  add_menu open_other_menu
+ END IF
+ RETURN activated
+END FUNCTION
 
 SUB check_menu_tags ()
  DIM i AS INTEGER
