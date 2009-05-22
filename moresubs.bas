@@ -2370,23 +2370,6 @@ END SELECT
 
 END SUB
 
-FUNCTION getdisplayname (default AS STRING) AS STRING
- '--Get game's display name
- DIM f AS STRING
- f = workingdir & SLASH & "browse.txt"
- IF isfile(f) THEN
-  setpicstuf buffer(), 40, -1
-  loadset f, 0, 0
-  DIM s AS STRING
-  s = STRING(bound(buffer(0), 0, 38), " ")
-  array2str buffer(), 2, s
-  IF LEN(s) > 0 THEN
-   RETURN s
-  END IF
- END IF
- RETURN default
-END FUNCTION
-
 FUNCTION herocount (last AS INTEGER = 3) AS INTEGER
 '--differs from liveherocount() in that it does not care if they are alive
  DIM i AS INTEGER

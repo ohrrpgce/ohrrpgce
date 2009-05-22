@@ -43,6 +43,8 @@ WHAT IS NEW?
       cloned area. [James]
     * The global text string editor now has a search tool [James]
     * Show cursor coordinates in the sprite editor [James]
+    * g/c_debug.txt are deleted when quitting if nothing interesting
+      happened. Older output is moved to g/c_debug_archive.txt [Ralph]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

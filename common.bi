@@ -20,7 +20,10 @@ DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, enabled() AS INTEGER) as 
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state AS MenuState, x as integer, y as integer, page as integer, edge as integer=NO, hidecursor as integer=NO)
 DECLARE SUB standardmenu OVERLOAD (menu() as string, size as integer, vis as integer, pt as integer, top as integer, x as integer, y as integer, page as integer, edge as integer=NO)
 DECLARE SUB clamp_menu_state (BYREF state AS MenuState)
+DECLARE SUB start_new_debug ()
+DECLARE SUB end_debug ()
 DECLARE SUB debug (s as string)
+DECLARE SUB debuginfo (s as string)
 DECLARE SUB visible_debug (s as string)
 DECLARE FUNCTION soundfile (sfxnum as integer) as string
 DECLARE SUB safekill (f as string)
@@ -97,8 +100,10 @@ DECLARE FUNCTION readattackname (index as integer) as string
 DECLARE FUNCTION readenemyname (index as integer) as string
 DECLARE FUNCTION readitemname (index as integer) as string
 DECLARE FUNCTION readshopname (shopnum as integer) as string
-DECLARE FUNCTION getsongname  (num AS INTEGER, prefixnum AS INTEGER = 0)as string
+DECLARE FUNCTION getsongname (num AS INTEGER, prefixnum AS INTEGER = 0) as string
 DECLARE FUNCTION getsfxname (num AS INTEGER) as string
+
+DECLARE FUNCTION getdisplayname (default as string) as string
 
 DECLARE SUB playsongnum (songnum as integer)
 

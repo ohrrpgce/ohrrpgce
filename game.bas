@@ -40,7 +40,8 @@ DECLARE SUB slice_test_suite ()
 
 REMEMBERSTATE
 
-debug long_version & build_info
+start_new_debug
+debuginfo long_version & build_info
 
 'DEBUG debug "randomize timer"
 RANDOMIZE TIMER
@@ -258,7 +259,10 @@ IF usepreunlump = 0 THEN
  unlump sourcerpg, workingdir + SLASH
 END IF
 
-debug "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
+end_debug 'messages generated before this point, or previous game
+start_new_debug
+debuginfo long_version & build_info
+debuginfo "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 dim gmap(dimbinsize(4)) 'this must be declared here, after the binsize file exists!
 

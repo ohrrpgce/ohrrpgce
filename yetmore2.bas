@@ -528,6 +528,7 @@ IF usepreunlump = 0 THEN RMDIR workingdir
 'DEBUG debug "Restore Old Graphics Mode"
 restoremode
 'DEBUG debug "Terminate NOW (boom!)"
+end_debug
 SYSTEM
 
 END SUB

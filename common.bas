@@ -44,6 +44,8 @@ DIM SHARED console AS ConsoleData
 
 'don't black out the screen to show upgrade messages if there aren't any
 DIM SHARED upgrademessages AS INTEGER
+'don't delete the debug file at end of play
+DIM SHARED importantdebug AS INTEGER = 0
 
 'Allocate the Box Border Cache
 DIM SHARED box_border_cache_loaded AS INTEGER = NO
@@ -132,21 +134,93 @@ END FUNCTION
 
 
 FUNCTION soundfile (sfxnum%) as string
-	DIM as string sfxbase
+ DIM as string sfxbase
 
-	sfxbase = workingdir & SLASH & "sfx" & sfxnum%
-	IF isfile(sfxbase & ".ogg") THEN
-   RETURN sfxbase & ".ogg"
-  ELSEIF isfile(sfxbase & ".mp3") THEN
-   RETURN sfxbase & ".mp3"
-  ELSEIF isfile(sfxbase & ".wav") THEN
-   RETURN sfxbase & ".wav"
-	ELSE
-   RETURN ""
-	END IF
+ sfxbase = workingdir & SLASH & "sfx" & sfxnum%
+ IF isfile(sfxbase & ".ogg") THEN
+  RETURN sfxbase & ".ogg"
+ ELSEIF isfile(sfxbase & ".mp3") THEN
+  RETURN sfxbase & ".mp3"
+ ELSEIF isfile(sfxbase & ".wav") THEN
+  RETURN sfxbase & ".wav"
+ ELSE
+  RETURN ""
+ END IF
 END FUNCTION
 
+SUB start_new_debug
+ CONST buflen = 128 * 1024
+
+ DIM as string logfile, oldfile
+ #IFDEF IS_GAME
+   logfile = "g_debug.txt"
+   oldfile = "g_debug_archive.txt"
+ #ELSE
+   logfile = "c_debug.txt"
+   oldfile = "c_debug_archive.txt"
+ #ENDIF
+ IF NOT isfile(logfile) THEN EXIT SUB
+
+ dlog = FREEFILE
+ OPEN logfile FOR BINARY AS dlog
+ archive = FREEFILE
+ OPEN oldfile FOR BINARY AS archive
+
+ DIM AS UBYTE PTR buf = ALLOCATE(buflen)
+
+ copyamount = bound(buflen - LOF(dlog), 0, LOF(archive))
+
+ IF copyamount THEN
+  SEEK #archive, LOF(archive) - copyamount + 1
+  'don't cut the file in the middle of a line
+  DO
+   GET #archive, , buf[0]
+  LOOP UNTIL buf[0] = 10
+
+  GET #archive, , buf[0], buflen, copyamount
+ END IF
+
+ CLOSE #archive
+ safekill oldfile
+ archive = FREEFILE
+ OPEN oldfile FOR BINARY AS archive
+ PUT #archive, , *buf, copyamount
+
+ IF LOF(dlog) > buflen THEN
+  SEEK #dlog, LOF(dlog) - buflen + 1
+  DO
+   GET #dlog, , buf[0]
+  LOOP UNTIL buf[0] = 10
+ END IF
+ 
+ GET #dlog, , buf[0], buflen, copyamount
+ PUT #archive, , LINE_END " \....----~~~~````\" LINE_END
+ PUT #archive, , *buf, copyamount
+ CLOSE #dlog
+ CLOSE #archive
+
+ DEALLOCATE(buf)
+ safekill logfile
+END SUB
+
+SUB end_debug
+ #IFDEF IS_GAME
+   filename$ = "g_debug.txt"
+ #ELSE
+   filename$ = "c_debug.txt"
+ #ENDIF
+ IF NOT importantdebug THEN safekill filename$
+ importantdebug = 0
+END SUB
+
 SUB debug (s$)
+ importantdebug = -1
+ debuginfo s$
+END SUB
+
+SUB debuginfo (s$)
+ 'use for throwaway messages like upgrading
+ STATIC sizeerror = 0
  DIM filename$
  #IFDEF IS_GAME
    filename$ = "g_debug.txt"
@@ -155,12 +229,19 @@ SUB debug (s$)
  #ENDIF
  fh = FREEFILE
  OPEN filename$ FOR APPEND AS #fh
+ IF LOF(fh) > 2 * 1024 * 1024 THEN
+  IF sizeerror = 0 THEN PRINT #fh, "too much debug() output, not printing any more messages"
+  sizeerror = -1
+  CLOSE #fh
+  EXIT SUB
+ END IF
+ sizeerror = 0
  PRINT #fh, s$
  CLOSE #fh
 END SUB
 
 SUB visible_debug (s$)
- debug s$
+ debuginfo s$
  centerbox 160, 100, 300, 36, 3, vpage
  edgeprint s$, 15, 90, uilook(uiText), vpage
  edgeprint "Press any key...", 15, 100, uilook(uiMenuItem), vpage
@@ -919,6 +1000,7 @@ IF w = 1 THEN
  closemusic
  restoremode
  PRINT e$
+ 'no need for end_debug
  SYSTEM
 END IF
 #ENDIF
@@ -964,7 +1046,7 @@ IF w = 1 THEN
  CLOSE #fh
  KILL "filelist.tmp"
  RMDIR workingdir
-
+ 'no need for end_debug
  SYSTEM
 END IF
 #ENDIF
@@ -1428,7 +1510,7 @@ SUB upgrade_message (s AS STRING)
   reset_console 20, 199
   upgrade_message "Auto-Updating obsolete RPG file"
  END IF
- debug "rpgfix:" & s
+ debuginfo "rpgfix:" & s
  show_message(s)
 END SUB
 
@@ -3266,4 +3348,21 @@ SUB clamp_menu_state (BYREF state AS MenuState)
   IF .pt > .top + .size THEN .top = large(.top, .top + .size)
  END WITH
 END SUB
+
+FUNCTION getdisplayname (default AS STRING) AS STRING
+ '--Get game's display name
+ DIM f AS STRING
+ f = workingdir & SLASH & "browse.txt"
+ IF isfile(f) THEN
+  setpicstuf buffer(), 40, -1
+  loadset f, 0, 0
+  DIM s AS STRING
+  s = STRING(bound(buffer(0), 0, 38), " ")
+  array2str buffer(), 2, s
+  IF LEN(s) > 0 THEN
+   RETURN s
+  END IF
+ END IF
+ RETURN default
+END FUNCTION
 

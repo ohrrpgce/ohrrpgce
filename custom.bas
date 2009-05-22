@@ -89,6 +89,9 @@ ELSE
  #ENDIF
 END IF
 
+start_new_debug
+debuginfo long_version & build_info
+
 dim workingdir as string
 workingdir = tmpdir & "working.tmp"
 
@@ -169,6 +172,8 @@ END IF
 setwindowtitle "OHRRPGCE - " + gamefile
 
 GOSUB checkpass
+
+debuginfo "Editing game " & trimpath(gamefile) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 clearpage vpage
 textcolor uilook(uiText), 0
@@ -565,12 +570,14 @@ DO
 LOOP
 
 hsimport:
+debuginfo "Importing scripts from " & hsfile$
 xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 upgrade font() 'needed because it has not already happened because we are doing command-line import
 importscripts hsfile$
 xbsave game + ".gen", gen(), 1000
 GOSUB dorelump
 GOSUB cleanupfiles
+end_debug
 CHDIR curdir$
 restoremode
 SYSTEM
@@ -583,6 +590,7 @@ sprite_empty_cache
 palette16_empty_cache
 GOSUB cleanupfiles
 pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a hard-drive crash or a little brother might delete your files!"
+end_debug
 CHDIR curdir$
 restoremode
 END

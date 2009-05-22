@@ -41,6 +41,5 @@ DECLARE SUB snapshot
 DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings
 DECLARE SUB writescriptvar (BYVAL id as integer, BYVAL newval as integer)
-DECLARE FUNCTION getdisplayname (default as string) as string
 DECLARE FUNCTION herocount (last as integer = 3) as integer
 #endif
