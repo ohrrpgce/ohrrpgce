@@ -52,6 +52,8 @@ DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, de
 
 DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
+DECLARE SUB atk_edit_preview(BYVAL pattern AS INTEGER, workpal() AS INTEGER)
+
 REM $STATIC
 SUB addcaption (caption$(), indexer, cap$)
 IF indexer > UBOUND(caption$) THEN
@@ -950,7 +952,7 @@ DO
   GOSUB AtkUpdateMenu
   needupdatemenu = 0
  END IF
- GOSUB AtkPreviewSub
+ atk_edit_preview recbuf(AtkDatAnimPattern), workpal()
 
  standardmenu dispmenu$(), state, 0, 0, dpage
  IF keyval(56) > 0 THEN 'holding ALT
@@ -997,22 +999,6 @@ RETRACE
 
 '-----------------------------------------------------------------------
 
-AtkPreviewSub:
-anim0 = anim0 + 1
-IF anim0 > 3 THEN
- anim0 = 0
- IF recbuf(AtkDatAnimPattern) = 0 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = 0
- IF recbuf(AtkDatAnimPattern) = 1 THEN anim1 = anim1 - 1: IF anim1 < 0 THEN anim1 = 2
- IF recbuf(AtkDatAnimPattern) = 2 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = -1
- IF recbuf(AtkDatAnimPattern) = 3 THEN anim1 = INT(RND * 3)
-END IF
-
-loadsprite buffer(), 0, 1250 * ABS(anim1), 0, 50, 50, 2
-drawsprite buffer(), 0, workpal(), 0, 260, 140, dpage
-RETRACE
-
-'-----------------------------------------------------------------------
-
 AtkBackSub:
 setactivemenu workmenu(), mainMenu(), state
 menudepth = 0
@@ -1029,6 +1015,22 @@ lasttop = state.top
 menudepth = 1
 RETRACE
 
+END SUB
+
+SUB atk_edit_preview(BYVAL pattern AS INTEGER, workpal() AS INTEGER)
+ STATIC anim0 AS INTEGER
+ STATIC anim1 AS INTEGER
+ anim0 = anim0 + 1
+ IF anim0 > 3 THEN
+  anim0 = 0
+  IF pattern = 0 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = 0
+  IF pattern = 1 THEN anim1 = anim1 - 1: IF anim1 < 0 THEN anim1 = 2
+  IF pattern = 2 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = -1
+  IF pattern = 3 THEN anim1 = INT(RND * 3)
+ END IF
+
+ loadsprite buffer(), 0, 1250 * ABS(anim1), 0, 50, 50, 2
+ drawsprite buffer(), 0, workpal(), 0, 260, 140, dpage
 END SUB
 
 FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(), mintable(), maxtable())
