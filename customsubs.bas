@@ -521,6 +521,7 @@ SUB pop_warning(s AS STRING)
  DIM holdscreen AS INTEGER
  holdscreen = allocatepage
  copypage vpage, holdscreen
+ copypage vpage, dpage
 
  DIM dat AS TextSliceData Ptr
  dat = text_area->SliceData
@@ -2169,6 +2170,7 @@ SUB show_help(helpkey AS STRING)
  DIM holdscreen AS INTEGER
  holdscreen = allocatepage
  copypage vpage, holdscreen
+ copypage vpage, dpage
 
  DIM dat AS TextSliceData Ptr
  dat = help_text->SliceData
