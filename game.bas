@@ -124,7 +124,7 @@ DIM backcompat_sound_slots(7)
 DIM nowscript, scriptret, scriptctr, numloadedscr, totalscrmem
 DIM heap(2048), global(4095), retvals(32)
 DIM scrat(128) as ScriptInst
-DIM script(128) as ScriptData
+DIM script(255) as ScriptData
 DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr

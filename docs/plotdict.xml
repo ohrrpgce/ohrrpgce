@@ -1083,7 +1083,7 @@ end</example>
 			</seealso>
 		</command>
 		<command id="rgb">
-			<canon>RGB(red, green blue)</canon>
+			<canon>RGB(red, green, blue)</canon>
 			<shortname>RGB</shortname>
 			<description>Combines the individual red, green and blue components of a color into a single 32-bit number. The formula used is "red * 256 * 256 + green * 256 + blue". The highest byte is unused, but reserved for future potential use for alpha transparency.</description>
 			<seealso>
@@ -2222,7 +2222,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 			</seealso>
 		</command>
 		<command id="setslicey">
-			<canon>setslice y (handle, Y)</canon>
+			<canon>set slice y (handle, Y)</canon>
 			<shortname>set slice y</shortname>
 			<description>Changes the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
 			<seealso>
@@ -2244,8 +2244,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>slice screen y</shortname>
 			<description>Returns the screen Y position of any slice. This position is relative to the screen, so it is calculated based on not only the slice's Y position, but also its alignment, and the position and size of its parents.</description>
 			<seealso>
-				<ref>slicescreeny</ref>
-				<ref>slicex</ref>
+				<ref>slicescreenx</ref>
+				<ref>slicey</ref>
 			</seealso>
 		</command>
 		<command id="setslicescreenx">

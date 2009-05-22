@@ -924,9 +924,13 @@ SUB reloadscript (si as ScriptInst, updatestats)
   script(si.scrnum).refcount += 1
   IF updatestats THEN script(si.scrnum).totaluse += 1
  END IF
- IF updatestats THEN 
-  scriptctr += 1
-  script(si.scrnum).lastuse = scriptctr
+ IF updatestats THEN
+  'a rather hackish and not very good attempt to give .lastuse a qualitative use
+  'instead of just for sorting; a priority queue is probably a much better solution
+  IF script(si.scrnum).lastuse <= scriptctr - 10 THEN
+   scriptctr += 1
+   script(si.scrnum).lastuse = scriptctr
+  END IF
  END IF
 END SUB
 

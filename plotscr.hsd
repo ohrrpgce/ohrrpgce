@@ -414,7 +414,7 @@ define function, begin
 405,ysortchildren,1,0         #sort the children of a slice by Y value
 406,setsortorder,2,0,0        #set sort value on a slice for sortchildren
 407,sortchildren,2,0,1        #sort siblings by their setsortorder value
-408,previoussibling,1,0       #return the previous sibling of a splice or 0 if none
+408,previoussibling,1,0       #return the previous sibling of a slice or 0 if none
 409,getsortorder,1,0          #get sort value for sortchildren for a slice
 410,getsliceextra,2,0,0       #get slice extra (0-2) data (slice, extra)
 411,setsliceextra,3,0,0,0     #set slice extra (0-2) data (slice, extra, value)

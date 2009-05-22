@@ -1601,7 +1601,7 @@ FUNCTION loadscript (n as integer) as integer
  DIM temp as short
 
  '-- Check if this script has already been loaded into memory
- FOR i = 0 TO 127
+ FOR i = 0 TO UBOUND(script)
   IF script(i).id = n THEN RETURN i
  NEXT
 
@@ -1671,7 +1671,7 @@ FUNCTION loadscript (n as integer) as integer
    RETURN -1
   END IF
 
-  IF .size + totalscrmem > scriptmemMax OR numloadedscr = 128 THEN
+  IF .size + totalscrmem > scriptmemMax OR numloadedscr = UBOUND(script) + 1 THEN
    'debug "loadscript(" & n & " '" & scriptname(n) & "'): scriptbuf full; size = " & .size & " totalscrmem = " & totalscrmem & ", calling freescripts"
    freescripts(scriptmemMax - .size)
   END IF
@@ -1702,9 +1702,10 @@ FUNCTION loadscript (n as integer) as integer
  END WITH
 
  '--copy to an empty script() slot
- FOR i = 0 TO 127
+ FOR i = 0 TO UBOUND(script)
   IF script(i).id = 0 THEN EXIT FOR
  NEXT
+ IF i > UBOUND(script) THEN fatalerror "Script interpreter state corrupted: missing empty script() slot"
 
  'macro disabled for fb 0.15 compat
  'copyobj(script(i), thisscr)
@@ -1713,21 +1714,23 @@ FUNCTION loadscript (n as integer) as integer
 END FUNCTION
 
 SUB freescripts (mem)
-'frees loaded scripts until at least totalscrmem <= mem (measured in 4-byte ints) (probably alot lower)
-'also makes sure there are at least 8 unused slots in script()
+'frees loaded scripts until at least totalscrmem <= mem (measured in 4-byte ints) (probably a lot lower)
+'also makes sure there are at least 16 unused slots in script()
 'call freescripts(0) to cleanup all scripts
 
 'give each script a score (the lower, the more likely to throw) and sort them
 'this is roughly a least recently used list
-DIM LRUlist(127, 1)
+DIM LRUlist(UBOUND(script), 1)
 listtail = -1
 
-FOR i = 0 TO 127
+FOR i = 0 TO UBOUND(script)
  WITH script(i)
   IF .id THEN
-   'this formula is having only been given the most minimal of testing for suitability
+   'this formula has only been given some testing, and doesn't do all that well
    score = .lastuse - scriptctr
-   score = iif(score > -150, score, -150) + iif(.totaluse < 150, .totaluse, 150) - .size \ (scriptmemMax \ 256)
+   score = iif(score > -400, score, -400) _
+         + iif(.totaluse < 100, .totaluse, iif(.totaluse < 1700, 94 + .totaluse\16, 200)) _
+         - .size \ (scriptmemMax \ 1024)
    FOR j = listtail TO 0 STEP -1
     IF score >= LRUlist(j, 1) THEN EXIT FOR
     LRUlist(j + 1, 0) = LRUlist(j, 0)
@@ -1757,11 +1760,11 @@ NEXT
 targetmem = mem
 IF mem > scriptmemMax \ 2 THEN targetmem = mem * (1 - 0.5 * (mem - scriptmemMax \ 2) / scriptmemMax)
 
-'debug "mem = " & mem & " target = " & targetmem
+'debug "requested max mem = " & mem & ", target = " & targetmem
 
 FOR i = 0 TO listtail
  WITH script(LRUlist(i, 0))
-  IF totalscrmem <= targetmem AND numloadedscr + 8 < UBOUND(script) THEN EXIT SUB
+  IF totalscrmem <= targetmem AND numloadedscr <= UBOUND(script) - 16 THEN EXIT SUB
 
   'debug "deallocating " & .id & " " & scriptname(.id) & " size " & .size
   totalscrmem -= .size
