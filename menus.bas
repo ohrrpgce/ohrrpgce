@@ -1197,12 +1197,15 @@ SUB gendata ()
     bitname(16) = "Simulate Pushable NPC obstruction bug"
     bitname(17) = "Disable ESC key running from battle"
     bitname(18) = "Don't save gameover/loadgame script IDs"
-    DIM bittemp(1) AS INTEGER
+    bitname(19) = "Dead heroes gain share of experience"
+    DIM bittemp(2) AS INTEGER
     bittemp(0) = gen(genBits)
     bittemp(1) = gen(genBits2)
-    editbitset bittemp(), 0, 18, bitname()
+    bittemp(2) = gen(genBits2+1)
+    editbitset bittemp(), 0, 19, bitname()
     gen(genBits) = bittemp(0)
     gen(genBits2) = bittemp(1)
+    gen(genBits2+1) = bittemp(2)
    END IF
    IF state.pt = 8 THEN generalsfxmenu
    IF state.pt = 10 THEN titlescreenbrowse

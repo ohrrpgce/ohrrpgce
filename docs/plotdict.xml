@@ -957,7 +957,7 @@ end</example>
 		<command id="giveexperience">
 			<canon>give experience (hero,amount)</canon>
 			<shortname>give experience</shortname>
-			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole party, then it will be split amongst live heroes as it is in battle. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling.</description>
+			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling.</description>
 		</command>
 	</section>
 	<section title="Effects">

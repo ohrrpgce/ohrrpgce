@@ -310,16 +310,24 @@ SELECT CASE AS CONST id
   END IF
  CASE 184'--give experience (who, how much)
   DIM dummystats(40) as BattleStats 'just need HP and MP
-  IF retvals(0) = -1 AND liveherocount(stat()) > 0 THEN retvals(1) = retvals(1) / liveherocount(stat())
-  FOR i = 0 TO 40
-   IF i = retvals(0) OR (retvals(0) = -1 AND i <= 3) THEN
-    'dead heroes should be recorded as not gaining levels.
-    stat(i, 1, 12) = 0
-    'give the XP to the hero only if it is alive if party is target
-    IF retvals(0) <> -1 OR stat(i, 0, 0) > 0 THEN giveheroexperience i, stat(), retvals(1)
-    updatestatslevelup i, stat(), dummystats(), 0
+  'who = -1 targets battle party
+  IF retvals(0) <> -1 THEN
+   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+    giveheroexperience retvals(0), stat(), retvals(1)
+    updatestatslevelup retvals(0), stat(), dummystats(), 0
    END IF
-  NEXT i
+  ELSE
+   DIM numheroes as integer
+   numheroes = iif(readbit(gen(), genBits2, 3), herocount(), liveherocount(stat())) 'dead heroes get experience
+   IF numheroes > 0 THEN retvals(1) /= numheroes
+   FOR i = 0 TO 3
+    'battle party: reset level-gained counter even if giveheroexperience is not called
+    stat(i, 1, 12) = 0
+    'give the XP to the hero only if it is alive when 'dead heroes get XP' not set
+    IF readbit(gen(), genBits2, 3) <> 0 OR stat(i, 0, 0) > 0 THEN giveheroexperience i, stat(), retvals(1)
+    updatestatslevelup i, stat(), dummystats(), 0
+   NEXT i
+  END IF
  CASE 185'--hero levelled (who)
   scriptret = stat(bound(retvals(0), 0, 40), 1, 12)
  CASE 186'--spells learnt

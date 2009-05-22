@@ -10,13 +10,12 @@ DEFINT A-Z
 #include "bmod.bi"
 #include "bmodsubs.bi"
 #include "game.bi"
+#include "moresubs.bi"
 #INCLUDE "allmodex.bi"
 DECLARE SUB wrappedsong (songnumber)
 DECLARE SUB playtimer
 DECLARE SUB getitem (getit, num)
 DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
-DECLARE SUB delitem (it, amount)
-DECLARE FUNCTION consumeitem (index)
 
 'misc
 #include "common.bi"
@@ -2060,17 +2059,22 @@ SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS Ba
 END SUB
 
 SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
- DIM i AS INTEGER
+ DIM AS INTEGER i, numheroes
  '--Play the victory music
  IF gen(genVictMus) > 0 THEN wrappedsong gen(genVictMus) - 1
  '--Collect gold (and cap out at 1 billion max)
  gold = gold + rew.plunder
  IF gold > 1000000000 THEN gold = 1000000000
  '--Divide experience by heroes
- IF liveherocount(bstat()) > 0 THEN rew.exper = rew.exper / liveherocount(bstat())
+ IF readbit(gen(), genBits2, 3) THEN 'dead heroes get experience
+  numheroes = herocount()
+ ELSE
+  numheroes = liveherocount(bstat())
+ END IF
+ IF numheroes > 0 THEN rew.exper = rew.exper / numheroes
  '--Collect experience and apply levelups
  FOR i = 0 TO 3
-  IF bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), rew.exper
+  IF readbit(gen(), genBits2, 3) <> 0 OR bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), rew.exper
   updatestatslevelup i, exstat(), bstat(), 0
  NEXT i
  '--Trigger the display of end-of-battle rewards
