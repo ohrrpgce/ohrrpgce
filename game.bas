@@ -2091,6 +2091,13 @@ WITH scrat(nowscript)
    CASE 320'--current text box
     scriptret = -1
     IF txt.showing = YES THEN scriptret = txt.id
+   CASE 432 '--use menu item
+    mislot = find_menu_item_handle(retvals(0), menuslot)
+    IF bound_menuslot_and_mislot(menuslot, mislot, "use menu item") THEN
+     WITH menus(menuslot)
+      IF .items(mislot).exists THEN activate_menu_item(.items(mislot))
+     END WITH
+    END IF
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc curcmd->value
     scriptmisc curcmd->value

@@ -438,6 +438,7 @@ define function, begin
 429,settextbg,2,0,0           #change text background color
 430,getoutline,1,0            #return true if text uses outline
 431,setoutline,2,0,1          #change text's outline mode
+432,usemenuitem,1,0           #given a menu item handle, activate it
 end
 
 #--------------------------------------------------------------------------

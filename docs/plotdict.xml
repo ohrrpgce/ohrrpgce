@@ -1515,6 +1515,11 @@ end</example>
 			<shortname>selected menu item</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a menu item handle for the menu item that is currently selected</description>
 		</command>
+		<command id="activatemenuitem">
+			<canon>activate menu item(menu item handle)</canon>
+			<shortname>activate menu item</shortname>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), activate the menu item. This will cause whatever action (text box, menu, script, tag changes) that have been configured for this menu item to be triggered.</description>
+		</command>
 		<command id="firstmenuitem">
 			<canon>first menu item(menu handle)</canon>
 			<shortname>first menu item</shortname>
