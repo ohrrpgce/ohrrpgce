@@ -706,7 +706,7 @@ end function
 
 'All arguments default to no-change
 Sub ChangeTextSlice(byval sl as slice ptr,_
-                      byval s as string=CHR(0),_
+                      byval s as string=CHR(1) & CHR(255),_
                       byval col as integer=-1,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_
@@ -715,7 +715,7 @@ Sub ChangeTextSlice(byval sl as slice ptr,_
  if sl->SliceType <> slText then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as text" : exit sub
  dim dat as TextSliceData Ptr = sl->SliceData
  with *dat
-  if s <> CHR(0) then
+  if s <> CHR(1) & CHR(255) then
    .s = s
   end if
   if col >= 0 then
