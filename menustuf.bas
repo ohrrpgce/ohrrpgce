@@ -197,8 +197,8 @@ DO
  centerbox 240, 94, 150, 168, 1, dpage
  '-----RIGHT PANEL------------------------------------------
  temp$ = gold & " " & readglobalstring(32, "Money")
- centerbox 240, 20, LEN(temp$) * 8 + 8, 12, 4, dpage
- edgeprint temp$, xstring(temp$ & " ", 240), 15, uilook(uiText), dpage
+ centerbox 240, 19, LEN(temp$) * 8 + 8, 14, 4, dpage
+ edgeprint temp$, xstring(temp$, 240), 14, uilook(uiText), dpage
  o = 0
  edgeprint stuf$(pt), xstring(stuf$(pt), 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
  IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
@@ -252,13 +252,13 @@ DO
   END IF
  NEXT i
  IF price$ <> "" THEN
-  centerbox 160, 186, LEN(price$) * 8 + 8, 12 + xtralines * 10, 1, dpage
+  centerbox 160, 187, LEN(price$) * 8 + 8, 14 + xtralines * 10, 1, dpage
   edgeprint price$, xstring(price$, 160), 182 - xtralines * 5, uilook(uiText), dpage
   IF xtralines >= 1 THEN edgeprint price2$, xstring(price2$, 160), 187, uilook(uiText), dpage
  END IF
  IF alert THEN
   alert = alert - 1
-  centerbox 160, 178, LEN(alert$) * 8 + 8, 12, acol, dpage
+  centerbox 160, 178, LEN(alert$) * 8 + 8, 14, acol, dpage
   edgeprint alert$, xstring(alert$, 160), 173, uilook(uiSelectedItem + tog), dpage
  END IF
  SWAP vpage, dpage
@@ -1332,7 +1332,7 @@ DO
  END IF
  IF carray(4) > 1 THEN RETRACE
  GOSUB drawmenugosub
- centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 22, 3, dpage
+ centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 24, 3, dpage
  edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * cursor), uilook(uiText), dpage
  FOR i = 0 TO 1
  col = uilook(uiSelectedItem + tog): IF allow = i THEN col = uilook(uiMenuItem)
@@ -1345,41 +1345,41 @@ DO
 LOOP
 
 drawmenugosub:
-centerbox 50, 10, 80, 12, 15, dpage
-IF loading THEN centerbox 270, 10, 80, 12, 15, dpage
+centerbox 50, 11, 80, 14, 15, dpage
+IF loading THEN centerbox 270, 11, 80, 14, 15, dpage
 FOR i = 0 TO 3
- centerbox 160, 40 + i * 44, 310, 42, 15, dpage
+ centerbox 160, 44 + i * 44, 310, 42, 15, dpage
 NEXT i
 'load and save menus enjoy different colour schemes
 IF loading THEN activec = 2 ELSE activec = 1
 SELECT CASE cursor
  CASE -2
-  centerbox 270, 10, 82, 14, activec, dpage
+  centerbox 270, 11, 82, 16, activec, dpage
  CASE -1
-  centerbox 50, 10, 82, 14, activec, dpage
+  centerbox 50, 11, 82, 16, activec, dpage
  CASE ELSE
-  centerbox 160, 40 + cursor * 44, 312, 44, activec, dpage
+  centerbox 160, 44 + cursor * 44, 312, 44, activec, dpage
 END SELECT
 FOR i = 0 TO 3
  IF full(i) = 1 THEN
   FOR o = 0 TO 3
    IF id(i, o) > 0 THEN
-    sprite_draw sprites(i, o).sprite + iif(cursor = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 20 + i * 44, 1, -1, dpage
+    sprite_draw sprites(i, o).sprite + iif(cursor = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, dpage
    END IF
   NEXT o
   col = uilook(uiMenuItem)
   IF cursor = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint herosname$(i), 14, 21 + i * 44, col, dpage
-  edgeprint lev$(i), 14, 30 + i * 44, col, dpage
-  edgeprint svtime$(i), 14, 39 + i * 44, col, dpage
-  edgeprint mapname$(i), 14, 48 + i * 44, col, dpage
+  edgeprint herosname$(i), 14, 25 + i * 44, col, dpage
+  edgeprint lev$(i), 14, 34 + i * 44, col, dpage
+  edgeprint svtime$(i), 14, 43 + i * 44, col, dpage
+  edgeprint mapname$(i), 14, 52 + i * 44, col, dpage
  END IF
 NEXT i
 col = uilook(uiMenuItem): IF cursor = -1 THEN col = uilook(uiSelectedItem + tog)
-edgeprint menu$(0), xstring(menu$(0), 50), 5, col, dpage
+edgeprint menu$(0), xstring(menu$(0), 50), 6, col, dpage
 IF loading THEN
  col = uilook(uiMenuItem): IF cursor = -2 THEN col = uilook(uiSelectedItem + tog)
- edgeprint menu$(1), xstring(menu$(1), 270), 5, col, dpage
+ edgeprint menu$(1), xstring(menu$(1), 270), 6, col, dpage
 END IF
 RETRACE
 
@@ -1438,7 +1438,7 @@ DO
  edgeprint gold & " " & readglobalstring(32, "Money"), 310 - LEN(gold & " " & readglobalstring(32, "Money")) * 8, 1, uilook(uiGold), dpage
  IF alert THEN
   alert = alert - 1
-  centerbox 160, 178, LEN(alert$) * 8 + 8, 12, 4, dpage
+  centerbox 160, 178, LEN(alert$) * 8 + 8, 14, 4, dpage
   edgeprint alert$, xstring(alert$, 160), 173, uilook(uiSelectedItem + tog), dpage
  END IF
  SWAP vpage, dpage
@@ -1481,8 +1481,7 @@ IF carray(4) > 1  AND inventory(ic).used THEN
  IF readbit(permask(), 0, ic) = 0 THEN
   menusound gen(genSellSFX)
   alert = 10
-  alert$ = sold$ + " " + LEFT$(inventory(ic).text, 8)
-  'inventory(ic).text = RTRIM$(inventory(ic).text)   '??? There's an itstr(ic) right down there
+  alert$ = sold$ + " " + readitemname$(inventory(ic).id)
   'INCREMENT GOLD-----------
   gold = gold + price(ic)
   IF gold > 2000000000 THEN gold = 2000000000
@@ -1606,9 +1605,9 @@ DO
  control
  GOSUB scontrol
  centerfuz 160, 100, 312, 184, 1, dpage 'outer box
- centerbox 206, 36, 200, 16, 2, dpage   'name box
- centerbox 60, 50, 82, 60, 2, dpage     'menu box
- centerbox 160, 133, 308, 94, 2, dpage  'spell list
+ centerbox 206, 36, 200, 17, 2, dpage   'name box
+ centerbox 56, 50, 84, 60, 2, dpage     'menu box
+ centerbox 160, 134, 308, 96, 2, dpage  'spell list
  rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), dpage 'divider 2
  FOR i = 0 TO last
   IF mi(i) >= 0 AND csr = i THEN
@@ -1638,7 +1637,7 @@ DO
   END IF
   textcolor uilook(uiMenuItem), 0
   IF csr = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2): IF mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-  printstr menu$(i), 21, 25 + i * 10, dpage 'spell menu
+  printstr menu$(i), 16, 25 + i * 10, dpage 'spell menu
  NEXT i
  IF last = 0 THEN edgeprint names(pt) + " " + hasnone$, xstring(names(pt) + " " + hasnone$, 160), 120, uilook(uiText), dpage
  edgeprint names(pt), xstring(names(pt), 206), 31, uilook(uiText), dpage
@@ -2323,11 +2322,11 @@ DO
  END IF
 
  '--display
- centerfuz 160, 100, 304, 184, 1, dpage
- centerbox 84, 18, 140, 16, 4, dpage
- centerbox 84, 100, 140, 130, 4, dpage
- centerbox 236, 75, 80, 78, 4, dpage
- edgeprint names(st.who), 84 - LEN(names(st.who)) * 4, 12, uilook(uiText), dpage
+ centerfuz 160, 100, 304, 184, 1, dpage 'backdrop box
+ centerbox 84, 18, 140, 16, 4, dpage    'hero name
+ centerbox 84, 102, 140, 130, 4, dpage  'stats
+ centerbox 236, 75, 80, 78, 4, dpage    'equipment
+ edgeprint names(st.who), 84 - LEN(names(st.who)) * 4, 13, uilook(uiText), dpage
  FOR i = 0 TO 11
   stat_caption = ""
   IF st.stat_bonus(i) > 0 THEN stat_caption = stat_caption & "+" & st.stat_bonus(i)
@@ -2360,7 +2359,7 @@ DO
   NEXT i
   IF st.slot < 5 THEN
    centerbox 236, 22, (LEN(m$(st.slot)) + 2) * 8, 16, 4, dpage
-   edgeprint m$(st.slot), 236 - (LEN(m$(st.slot)) * 4), 16, uilook(uiText), dpage
+   edgeprint m$(st.slot), 236 - (LEN(m$(st.slot)) * 4), 17, uilook(uiText), dpage
   END IF
  END IF
  IF st.mode = 1 THEN
