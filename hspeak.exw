@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Gk 2009-05-25 Fix short references crash
 --3Gj 2009-01-27 Show future-compatability warning when using square
 --               brackets [] and curly brackets {} in names
 --3Gi 2008-08-03 Disallow orphaned then() and else(), a common mistake
@@ -96,7 +97,7 @@ constant true=1
 constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
-constant COMPILER_SUB_VERSION="Gj"
+constant COMPILER_SUB_VERSION="Gk"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -2196,12 +2197,12 @@ function binary_compile_recurse(sequence tree,sequence vars,sequence done_code)
         result&=script_list[at][PAIR_NUM]
       else
         --is it a string literal?
-        if equal("$string",str_temp[1..7]) then
+        if length(str_temp)>7 and equal("$string",str_temp[1..7]) then
           value_temp=value(str_temp[8..length(str_temp)])
           result&=KIND_NUMBER
           result&=table_string(value_temp[2])
         else
-          src_error(sprintf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved",{str_temp}),tree[TREE_TRUNK][CMD_LINE])
+          src_error(sprintf("reference "&COLYEL&"@%s"&COLRED&" could not be resolved: must be the name of a global variable or a script",{str_temp}),tree[TREE_TRUNK][CMD_LINE])
         end if
       end if
     end if
