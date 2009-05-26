@@ -154,6 +154,9 @@
 <hr>
 <h2>Alphabetical Index</h2>
 <p>
+		<a href="#about-activatemenuitem">use menu item(menu item handle)</a><br>
+		
+	
 		<a href="#about-add">number + number</a><br>
 		
 	
@@ -1306,7 +1309,7 @@
 		<a href="#about-return">return(value)</a><br>
 		
 	
-		<a href="#about-rgb">RGB(red, green blue)</a><br>
+		<a href="#about-rgb">RGB(red, green, blue)</a><br>
 		
 	
 		
@@ -1624,7 +1627,7 @@
 		<a href="#about-setslicex">set slice x (handle, X)</a><br>
 		
 	
-		<a href="#about-setslicey">setslice y (handle, Y)</a><br>
+		<a href="#about-setslicey">set slice y (handle, Y)</a><br>
 		
 	
 		<a href="#about-setsortorder">set sort order (handle, order)</a><br>
@@ -3331,7 +3334,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">give experience (hero,amount)</font></b><br>
-			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole party, then it will be split amongst live heroes as it is in battle. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearnt" class="ref">spells learnt</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling.<br>
+			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearnt" class="ref">spells learnt</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling.<br>
 			
 			
 		</tt></p>
@@ -3521,7 +3524,7 @@ end</pre>
 		<a name="about-rgb"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">RGB(red, green blue)</font></b><br>
+		<b><font color="yellow">RGB(red, green, blue)</font></b><br>
 			Combines the individual red, green and blue components of a color into a single 32-bit number. The formula used is "red * 256 * 256 + green * 256 + blue". The highest byte is unused, but reserved for future potential use for alpha transparency.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-extractcolor" class="ref">extract color</a></li></ul>
@@ -4161,6 +4164,14 @@ end</pre>
 		<tt>
 		<b><font color="yellow">selected menu item(menu handle)</font></b><br>
 			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a menu item handle for the menu item that is currently selected<br>
+			
+			
+		</tt></p>
+		<a name="about-activatemenuitem"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">use menu item(menu item handle)</font></b><br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), activate the menu item. This will cause whatever action (text box, menu, script, tag changes) that have been configured for this menu item to be triggered.<br>
 			
 			
 		</tt></p>
@@ -5190,7 +5201,7 @@ set horiz align(sl, edge:right)
 		<a name="about-setslicey"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">setslice y (handle, Y)</font></b><br>
+		<b><font color="yellow">set slice y (handle, Y)</font></b><br>
 			Changes the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.<br>
 			
 			<br>See also: <ul class="seealso">
@@ -5219,8 +5230,8 @@ set horiz align(sl, edge:right)
 			
 			<br>See also: <ul class="seealso">
 <li>
-<a href="#about-slicescreeny" class="ref">slice screen y</a>, </li>
-<li><a href="#about-slicex" class="ref">slice x</a></li>
+<a href="#about-slicescreenx" class="ref">slice screen x</a>, </li>
+<li><a href="#about-slicey" class="ref">slice y</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setslicescreenx"></a>
@@ -8885,7 +8896,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 647 commands in this file, of which 53 are only references to other commands.</p>
+	<p>Stats: There are 648 commands in this file, of which 53 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
