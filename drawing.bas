@@ -2050,6 +2050,7 @@ IF ss.tool = airbrush_tool THEN '--adjust airbrush
  END IF
 END IF
 IF ss.tool = clone_tool THEN
+ '--When clone tool is active, rotate the clone buffer
  IF mouse(3) = 1 OR mouse(2) = 1 THEN
   IF ss_save.clonemarked THEN
    IF ss.zonenum = 16 THEN
@@ -2060,6 +2061,19 @@ IF ss.tool = clone_tool THEN
     spriteedit_rotate_sprite_buffer ss_save.clonebuf(), nulpal()
     ss.delay = 20
    END IF
+  END IF
+ END IF
+ELSEIF ss.tool <> airbrush_tool THEN
+ '--when other tools are active, rotate the whole buffer
+ '--except for the airbrush tool because it's buttons collide.
+ IF mouse(3) = 1 OR mouse(2) = 1 THEN
+  IF ss.zonenum = 16 THEN
+   spriteedit_rotate_sprite_buffer placer(), nulpal(), YES
+   ss.delay = 20
+  END IF
+  IF ss.zonenum = 18 THEN
+   spriteedit_rotate_sprite_buffer placer(), nulpal()
+   ss.delay = 20
   END IF
  END IF
 END IF
@@ -2159,6 +2173,14 @@ FOR i = 0 TO 7
   ss.drawcursor = toolinfo(i).cursor + 1
  END IF
 NEXT i
+IF ss.tool <> clone_tool AND ss.tool <> airbrush_tool THEN
+ IF keyval(scPlus) > 1 THEN
+  spriteedit_rotate_sprite_buffer placer(), nulpal()
+ END IF
+ IF keyval(scMinus) > 1 THEN
+  spriteedit_rotate_sprite_buffer placer(), nulpal(), YES
+ END IF
+END IF
 IF ss.tool = clone_tool THEN
  ' For clone brush tool, enter/right-click moves the handle point
  IF ss.readjust THEN
@@ -2431,7 +2453,7 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
   IF ss.zonenum = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR(26), 266, 190, dpage
  END IF
- IF ss.tool = clone_tool THEN
+ IF ss.tool <> airbrush_tool THEN
   textcolor uilook(uiMenuItem), 0
   printstr "ROTATE", 218, 190, dpage
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem)

@@ -45,7 +45,15 @@ C Clone tool. This tool paints using
   can press + and - to rotate the
   cloned area.
 
-Press backspace to horizontally flip the sprite. You can vertically flip a sprite if you rotate it with the clone tool, flip it, and then rotate it back, but that is kindof a pain, isn't it?
++ and - Rotate the sprite. Use
+  caution when rotating hero sprites,
+  since their height and width is
+  different, you may cut off the
+  edges. (Note also that rotation
+  does not work when using the air-
+  brush tool)
+
+Press backspace to horizontally flip the sprite. You can vertically flip a sprite if you rotate it, then flip it, then rotate it back, but that is kindof a pain, isn't it?
 
 Press I to import a 16-color BMP image. If you are in single-frame mode, this will import a single frame. If you are in full spriteset mode, this will import a full spriteset.
 
