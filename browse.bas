@@ -181,9 +181,9 @@ DO
   GOSUB context
   changed = 1
  END IF
- edgeboxstyle 4, 3, 312, 14, 0, dpage
+ edgeboxstyle 4, 3, 312, 14, 0, dpage, NO, YES
  edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
- edgeboxstyle 4, 31 + br.viewsize * 9, 312, 14, 0, dpage
+ edgeboxstyle 4, 31 + br.viewsize * 9, 312, 14, 0, dpage, NO, YES
  edgeprint alert$, 8, 34 + br.viewsize * 9, uilook(uiText), dpage
  IF br.special = 7 THEN
   rectangle 0, 190, 320, 10, uilook(uiDisabledItem), dpage
