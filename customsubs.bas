@@ -423,18 +423,15 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
 END FUNCTION
 
 FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
- IF defaultval = YES THEN
-  defaultval = 0
- ELSEIF defaultval = NO THEN
-  defaultval = 1
- END IF
+ IF defaultval THEN defaultval = 0 ELSE defaultval = 1
+ IF escval THEN escval = 0 ELSE escval = 1
  DIM result AS INTEGER
  result = twochoice(capt, "Yes", "No", defaultval, escval)
  IF result = 0 THEN RETURN YES
  IF result = 1 THEN RETURN NO
 END FUNCTION
 
-FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1) AS INTEGER
  DIM state AS MenuState
  DIM menu AS MenuDef
  DIM result AS INTEGER
@@ -595,8 +592,8 @@ SUB keyboardsetup ()
  'There is a different implementation of this in yetmore2 for GAME
  DIM keyconst(207) AS STRING = {"1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/", _
   "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?", _
-  "‚","ƒ","„","…","†","‡","ˆ","‰","Š","‹","Œ","","","","","","","‘","’","“","”","•","–","—","˜","™","","","š","›","œ","","","Ÿ"," ","¡","¢","£","¤","¥","","¦","§","¨","©","ª","«","¬","­","®","¯","°", _
-  "±","²","³","´","µ","¶","·","¸","¹","º","»","¼","","","½","¾","¿","À","Á","Â","Ã","Ä","Å","Æ","Ç","È","","","É","Ê","Ë","Ì","Í","Î","Ï","Ğ","Ñ","Ò","Ó","Ô","","Õ","Ö","×","Ø","Ù","Ú","Û","Ü","İ","Ş","ß"}
+  "Â‚","Âƒ","Â„","Â…","Â†","Â‡","Âˆ","Â‰","ÂŠ","Â‹","ÂŒ","Â","","","Â","Â","Â","Â‘","Â’","Â“","Â”","Â•","Â–","Â—","Â˜","Â™","","","Âš","Â›","Âœ","Â","Â","ÂŸ","Â ","Â¡","Â¢","Â£","Â¤","Â¥","","Â¦","Â§","Â¨","Â©","Âª","Â«","Â¬","Â­","Â®","Â¯","Â°", _
+  "Â±","Â²","Â³","Â´","Âµ","Â¶","Â·","Â¸","Â¹","Âº","Â»","Â¼","","","Â½","Â¾","Â¿","Ã€","Ã","Ã‚","Ãƒ","Ã„","Ã…","Ã†","Ã‡","Ãˆ","","","Ã‰","ÃŠ","Ã‹","ÃŒ","Ã","Ã","Ã","Ã","Ã‘","Ã’","Ã“","Ã”","","Ã•","Ã–","Ã—","Ã˜","Ã™","Ãš","Ã›","Ãœ","Ã","Ã","ÃŸ"}
  DIM temp AS STRING
  DIM AS INTEGER j, i
  FOR j = 0 TO 3
@@ -2240,7 +2237,7 @@ SUB show_help(helpkey AS STRING)
 
  '--If there are any changes to the help screen, offer to save them
  IF help_str <> dat->s THEN
-  IF yesno("Save changes to help for """ & helpkey & """?", YES) THEN
+  IF yesno("Save changes to help for """ & helpkey & """?", YES, YES) THEN
    save_help_file helpkey, dat->s
   END IF
  END IF
