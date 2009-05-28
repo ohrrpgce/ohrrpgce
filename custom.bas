@@ -114,7 +114,7 @@ DIM fmvol
 
 dim shared trit as string 'to fix an undefined variable error
 
-RANDOMIZE TIMER
+RANDOMIZE TIMER, 3 ' mersenne twister
 
 load_default_master_palette master()
 LoadUIColors uilook()

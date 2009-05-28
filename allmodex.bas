@@ -4285,14 +4285,14 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 	select case style
 		case 0 'scattered pixel dissolve
 			dim t as integer = spr->w / tim * p
-			randomize 1 ' use the same random seed for each frame
+			randomize 1, 2 ' use the same random seed for each frame (fast PRNG)
 			for i = 0 to t - 1
 				for sy = 0 to spr->h - 1
 					sx = int(rnd * spr->w)
 					cpy->mask[sy * spr->w + sx] = 0
 				next sy
 			next i
-			randomize timer 're-seed random
+			randomize timer, 3 're-seed random (MT PRNG)
 
 		case 1 'crossfade
 			if p > tim / 2 then

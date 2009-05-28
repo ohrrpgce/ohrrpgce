@@ -1090,9 +1090,9 @@ SELECT CASE AS CONST id
   setpal master()
  CASE 108'--reseed random
   IF retvals(0) THEN
-   RANDOMIZE retvals(0)
+   RANDOMIZE retvals(0), 3
   ELSE
-   RANDOMIZE TIMER
+   RANDOMIZE TIMER, 3
   END IF
  CASE 109'--grey scale palette
   greyscalepal

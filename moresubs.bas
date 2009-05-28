@@ -2016,9 +2016,7 @@ END SUB
 SUB scriptmath
 SELECT CASE AS CONST curcmd->value
  CASE 0' random
-  lowest& = retvals(0)
-  highest& = retvals(1)
-  scriptret = retvals(0) + INT(RND * (highest& - lowest& + 1))
+  scriptret = retvals(0) + INT(RND * (1.0 + retvals(1) - retvals(0))) 'handles the case max-min = 2^32
  CASE 1' exponent
   scriptret = retvals(0) ^ retvals(1)
  CASE 2' modulus

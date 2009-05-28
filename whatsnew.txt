@@ -61,6 +61,8 @@ WHAT IS NEW?
       large/many scripts [Ralph]
     * Fix bug 720 "Crash when displaying non-zero frame of a flipped
       sprite slice" [James]
+    * "random" didn't work when max - min > 2^31, and could be totally
+      non-uniform. "seed random" now causes different sequences! [Ralph]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

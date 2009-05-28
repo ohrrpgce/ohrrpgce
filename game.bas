@@ -44,7 +44,7 @@ start_new_debug
 debuginfo long_version & build_info
 
 'DEBUG debug "randomize timer"
-RANDOMIZE TIMER
+RANDOMIZE TIMER, 3 ' Mersenne Twister
 
 processcommandline
 
