@@ -644,6 +644,7 @@ Sub UpdateTextSlice(byval sl as slice ptr)
  
  if dat->Wrap = NO then
   sl->Width = textWidth(dat->s)
+  sl->Height = 8 + dat->outline * 2
  else
   'split(wordwrap(dat->s, sl->Width / 8), dat->lines())
  end if
