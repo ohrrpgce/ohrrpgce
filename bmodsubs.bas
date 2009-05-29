@@ -167,7 +167,7 @@ SUB control
 STATIC joyuse, joymenu
 
 'Quick abort
-IF keyval(-1) OR (keyval(73) > 0 AND keyval(81) > 0 AND keyval(1) > 1) THEN
+IF keyval(-1) THEN
  exitprogram 0
 END IF
 

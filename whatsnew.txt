@@ -47,6 +47,9 @@ WHAT IS NEW?
     * g/c_debug.txt are deleted when quitting if nothing interesting
       happened. Older output is moved to g/c_debug_archive.txt [Ralph]
     * New general bitset "Dead heroes gain share of experience" [Ralph]
+    * Pressing Esc+PgDown+PgUp or clicking the window's X (or Alt+F4
+      and so on) in Custom quits all the way to the save/quit menu.
+      Pressing it again quits, saving the game as a .BAK file [Ralph]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

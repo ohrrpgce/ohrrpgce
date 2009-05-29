@@ -940,12 +940,17 @@ SUB setkeys ()
 	next
 	'Check to see if the operating system has received a request
 	'to close the window (clicking the X) and set the magic keyboard
-	'index -1 if so.
+	'index -1 if so. It can only be unset with clearkey.
 	IF INKEY$ = CHR$(255) + "k" THEN
 		keybd(-1) = 1
-	ELSE
-		keybd(-1) = 0
+	'ELSE
+		'keybd(-1) = 0
 	END IF
+	if keybd(scPageup) > 0 and keybd(scPagedown) > 0 and keybd(scEsc) > 1 then keybd(-1) = 1
+
+#ifdef IS_CUSTOM
+	if keybd(-1) then keybd(scEsc) = 7
+#endif
 
 	mutexunlock keybdmutex
 
@@ -967,7 +972,9 @@ end SUB
 
 SUB clearkey(byval k as integer)
 	keybd(k) = 0
-	keysteps(k) = 1
+	if k >= 0 then
+		keysteps(k) = 1
+	end if
 end sub
 
 sub pollingthread(byval unused as threadbs)

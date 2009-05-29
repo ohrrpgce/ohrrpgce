@@ -1518,7 +1518,7 @@ end</example>
 		<command id="activatemenuitem">
 			<canon>use menu item(menu item handle)</canon>
 			<shortname>use menu item</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), activate the menu item. This will cause whatever action (text box, menu, script, tag changes) that have been configured for this menu item to be triggered.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), activate the menu item. This will cause whatever actions (text box, menu, script, tag changes) that have been configured for this menu item to be triggered.</description>
 		</command>
 		<command id="firstmenuitem">
 			<canon>first menu item(menu handle)</canon>
@@ -1536,7 +1536,7 @@ end</example>
 		<command id="menuitemslot">
 			<canon>menu item slot(menu item handle)</canon>
 			<shortname>menu item slot</shortname>
-			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), Return a the slot number of the menu item. The first slot in the menu is 0.</description>
+			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>addmenuitem</ref>), return a the slot number of the menu item. The first slot in the menu is 0.</description>
 			<seealso>
 				<ref>menuitembyslot</ref>
 			</seealso>

@@ -498,7 +498,23 @@ quit_menu(0) = "Continue editing"
 quit_menu(1) = "Save changes and continue editing"
 quit_menu(2) = "Save changes and quit"
 quit_menu(3) = "Discard changes and quit"
+clearkey(-1) 'stop firing esc's, if the user hit esc+pgup+pgdown
 quitnow = sublist(quit_menu())
+IF keyval(-1) THEN '2nd quit request? Right away!
+ a$ = trimextension(gamefile)
+ i = 0
+ DO
+  lumpfile$ = a$ & ".rpg_" & i & ".bak"
+  i += 1
+ LOOP WHILE isfile(lumpfile$)
+ clearpage 0
+ printstr "Saving as " + lumpfile$, 0, 0, 0
+ printstr "LUMPING DATA: please wait...", 0, 10, 0
+ setvispage 0
+ dolumpfiles lumpfile$
+ quitnow = 4 'no special meaning
+ RETRACE
+END IF
 IF quitnow = 1 OR quitnow = 2 THEN
  GOSUB dorelump
 END IF
@@ -589,8 +605,10 @@ clear_box_border_cache
 sprite_empty_cache
 palette16_empty_cache
 GOSUB cleanupfiles
-clearpage vpage
-pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a hard-drive crash or a little brother might delete your files!"
+IF keyval(-1) = 0 THEN
+ clearpage vpage
+ pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a hard-drive crash or a little brother might delete your files!"
+END IF
 end_debug
 CHDIR curdir$
 restoremode
@@ -1314,6 +1332,7 @@ IF isdir(filetolump$) THEN
   LINE INPUT #fh, filename$
   safekill filetolump$ + SLASH + filename$
   copyfile workingdir + SLASH + filename$, filetolump$ + SLASH + filename$
+  'FIXME: move file?
  LOOP
  CLOSE #fh
  safekill "temp.lst"
