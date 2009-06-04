@@ -331,6 +331,9 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
    dat->style_loaded = NO
   END IF
  END IF
+ IF state.need_update AND sl->SliceType = slText THEN
+  UpdateTextSlice sl
+ END IF
 END SUB
 
 SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Slice Ptr, BYVAL rootsl AS Slice Ptr)

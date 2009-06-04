@@ -589,10 +589,10 @@ Sub DisposeTextSlice(byval sl as slice ptr)
  sl->SliceData = 0
 end sub
 
-Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
+Sub WrapTextSlice(byval sl as slice ptr, lines() as string)
  if sl = 0 then exit sub
  if sl->SliceData = 0 then exit sub
- 
+
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
  dim d as string
  if dat->wrap AND sl->width > 7 then
@@ -602,9 +602,22 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  else
   d = dat->s
  end if
- 'this ugly hack is because printstr doesn't do new lines :@
- dim lines() as string
+
  split(d, lines())
+
+ '--set line count based on the current wrapped size
+ dat->line_count = UBOUND(lines) + 1
+End sub
+
+Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+
+ dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
+ 
+ dim lines() as string
+ WrapTextSlice sl, lines()
+
  dim col as integer = dat->col
  if col = 0 then col = uilook(uiText)
  dim chars as integer = 0
@@ -635,18 +648,28 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
    printstr lines(i), sl->screenx, sl->screeny + ypos, p
   end if
  next
- '--set line count based on the current wrapped size
- dat->line_count = UBOUND(lines) + 1
 end sub
 
 Sub UpdateTextSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
  
  if dat->Wrap = NO then
   sl->Width = textWidth(dat->s)
   sl->Height = 8 + dat->outline * 2
  else
-  'split(wordwrap(dat->s, sl->Width / 8), dat->lines())
+  '--Note that automatic setting of wrapped text height doesn't matter if this slice is set ->Fill = YES the parent fill height will override
+  dim lines() as string
+  WrapTextSlice sl, lines()
+  dim high as integer
+  high = dat->line_count
+  if dat->line_limit > 0 then
+   high = small(high, dat->line_limit)
+  end if
+  sl->Height = high * 10
+  '--Wrapped text does not change the slice width. Do that manually (or by setting ->Fill = YES)
  end if
 end sub
 

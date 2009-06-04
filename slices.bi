@@ -123,7 +123,7 @@ Type TextSliceData
  insert_tog as integer 'flashing
  first_line as integer 'used in scrolling
  line_limit as integer 'use to stop wrapping text from flowing too far down. 0 is no limit
- line_count as integer 'automatically populated at draw time
+ line_count as integer 'automatically populated when the slice changes
 End Type
 
 Type SpriteSliceData
@@ -188,6 +188,7 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
 DECLARE Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
+DECLARE Sub UpdateTextSlice(byval sl as slice ptr)
 DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
                       byval s as string=CHR(1) & CHR(255),_
                       byval col as integer=-1,_
