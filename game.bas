@@ -2095,7 +2095,7 @@ WITH scrat(nowscript)
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF bound_menuslot_and_mislot(menuslot, mislot, "use menu item") THEN
      WITH menus(menuslot)
-      IF .items(mislot).exists THEN activate_menu_item(.items(mislot))
+      IF .items(mislot).exists THEN activate_menu_item(.items(mislot), NO)
      END WITH
     END IF
    CASE ELSE '--try all the scripts implemented in subs
@@ -2449,7 +2449,7 @@ SUB player_menu_keys (stat(), catx(), caty(), tilesets() AS TilesetData ptr)
  END IF
 END SUB
 
-FUNCTION activate_menu_item(mi AS MenuDefItem) AS INTEGER
+FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGER
  DIM open_other_menu AS INTEGER = -1
  DIM menu_text_box AS INTEGER = 0
  DIM updatetags AS INTEGER = NO
@@ -2515,7 +2515,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem) AS INTEGER
      menu_text_box = .sub_t
     CASE 4 ' Run Script
      DIM rsr AS INTEGER
-     rsr = runscript(.sub_t, nowscript + 1, YES, "menuitem", plottrigger)
+     rsr = runscript(.sub_t, nowscript + 1, newcall, "menuitem", plottrigger)
      IF rsr = 1 THEN
       IF menus(topmenu).allow_gameplay THEN
        'Normally, pass a menu item handle
