@@ -656,19 +656,19 @@ Sub UpdateTextSlice(byval sl as slice ptr)
  
  dim dat as TextSliceData ptr = cptr(TextSliceData ptr, sl->SliceData)
  
+ '--Note that automatic setting of wrapped text height doesn't matter if this slice is set ->Fill = YES the parent fill height will override
+ dim lines() as string
+ WrapTextSlice sl, lines()
+ dim high as integer
+ high = dat->line_count
+ if dat->line_limit > 0 then
+  high = small(high, dat->line_limit)
+ end if
+ sl->Height = high * 10
+ 
  if dat->Wrap = NO then
   sl->Width = textWidth(dat->s)
-  sl->Height = 8 + dat->outline * 2
  else
-  '--Note that automatic setting of wrapped text height doesn't matter if this slice is set ->Fill = YES the parent fill height will override
-  dim lines() as string
-  WrapTextSlice sl, lines()
-  dim high as integer
-  high = dat->line_count
-  if dat->line_limit > 0 then
-   high = small(high, dat->line_limit)
-  end if
-  sl->Height = high * 10
   '--Wrapped text does not change the slice width. Do that manually (or by setting ->Fill = YES)
  end if
 end sub
