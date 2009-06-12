@@ -1805,7 +1805,7 @@ WITH scrat(nowscript)
     END IF
    CASE 167'--last save slot
     scriptret = lastsaveslot
-   CASE 174'--loadfromslot
+   CASE 174'--load from slot
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
      IF checksaveslot(retvals(0) - 1) = 3 THEN
       wantloadgame = retvals(0)

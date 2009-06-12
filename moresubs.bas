@@ -1522,7 +1522,7 @@ END IF
 IF index > 127 THEN
  scripterr "interpreter overloaded"
  runscript = 0 '--error
- scripterr "failed to load " + er$ + " script " & n
+ scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n)
  EXIT FUNCTION
 END IF
 
@@ -1550,7 +1550,7 @@ WITH scrat(index)
  IF .scrnum = -1 THEN
   '--failed to load
   runscript = 0'--error
-  scripterr "Failed to load " + er$ + " script " & n
+  scripterr "Failed to load " + er$ + " script " & n & " " & scriptname(n)
   EXIT FUNCTION
  END IF
  script(.scrnum).totaluse += 1
@@ -1572,7 +1572,7 @@ WITH scrat(index)
  IF scrat(index + 1).heap > 2048 THEN
   scripterr "Script heap overflow"
   runscript = 0'--error
-  scripterr "failed to load " + er$ + " script " & n
+  scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n)
   EXIT FUNCTION
  END IF
 
