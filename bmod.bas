@@ -1604,8 +1604,8 @@ IF vic.state = 0 THEN 'only display interface till you win
   IF battlecapdelay > 0 THEN
    battlecapdelay = battlecapdelay - 1
   ELSE
-   centerbox 160, 186, 310, 14, 1, dpage
-   edgeprint battlecaption, xstring(battlecaption, 160), 182, uilook(uiText), dpage
+   centerbox 160, 186, 310, 16, 1, dpage
+   edgeprint battlecaption, xstring(battlecaption, 160), 181, uilook(uiText), dpage
   END IF
  END IF
  IF bat.hero_turn >= 0 THEN
