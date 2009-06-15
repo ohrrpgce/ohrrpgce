@@ -171,6 +171,7 @@ TYPE ScriptData
 
   next as ScriptData ptr 'next in linked list, for hashtable
   backptr as ScriptData ptr ptr 'pointer to pointer pointing to this, in script(), or a .next pointer
+                        'not your usual double linked list, because head of list is a script() element
 END TYPE
 
 TYPE ScriptInst

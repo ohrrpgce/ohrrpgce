@@ -28,7 +28,7 @@ DECLARE SUB resetgame (stat() as integer, scriptout as string)
 DECLARE SUB resetlmp (slot as integer, lev as integer)
 DECLARE SUB rpgversion (v as integer)
 DECLARE FUNCTION runscript (id as integer, index as integer, newcall as integer, er as string, trigger as integer) as integer
-DECLARE FUNCTION loadscript (n as integer) as ScriptData ptr
+DECLARE FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
 DECLARE SUB freescripts (mem as integer)
 DECLARE SUB savegame (slot as integer, stat() as integer)
 DECLARE SUB saveglobalvars (slot as integer, first as integer, last as integer)

@@ -1596,8 +1596,8 @@ RETURN 1 '--success
 
 END FUNCTION
 
-FUNCTION loadscript (n as integer) as ScriptData ptr
- '-- Check the hashtable whether this script has already been loaded into memory
+FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
+ '-- script() is a hashtable with doubly linked lists as buckets, storing the loaded scripts
 
  DIM as ScriptData Ptr scrnode = script(n MOD scriptTableSize)
  WHILE scrnode
@@ -1703,16 +1703,18 @@ FUNCTION loadscript (n as integer) as ScriptData ptr
   .refcount = 0
   .totaluse = 0
   .lastuse = 0
-  .next = NULL
   numloadedscr += 1
   totalscrmem += .size
  END WITH
 
+ 'append to front of doubly linked list
  DIM as ScriptData Ptr Ptr scrnodeptr = @script(n MOD scriptTableSize)
- WHILE *scrnodeptr
-  scrnodeptr = @(*scrnodeptr)->next
- WEND
+ IF *scrnodeptr THEN
+  'already a script there
+  (*scrnodeptr)->backptr = @thisscr->next
+ END IF
  thisscr->backptr = scrnodeptr 'this is for convenience of easier deleting (in freescripts)
+ thisscr->next = *scrnodeptr
  *scrnodeptr = thisscr
 
  RETURN thisscr
@@ -1790,9 +1792,12 @@ FOR i = 0 TO listtail
    NEXT
   END IF
 
+  IF .next THEN
+   .next->backptr = .backptr
+  END IF
   *.backptr = .next
-  deallocate(LRUlist(i).p)
  END WITH
+ deallocate(LRUlist(i).p)
 NEXT
 
 END SUB

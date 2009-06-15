@@ -130,8 +130,10 @@ DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
-DIM as ScriptInst ptr scratp = @scrat(0)
-DIM as ScriptData ptr ptr scriptp = @script(0)
+DIM scratp as ScriptInst ptr
+DIM scriptp as ScriptData ptr ptr 
+scratp = @scrat(0)
+scriptp = @script(0)
 
 'End global variables
 
