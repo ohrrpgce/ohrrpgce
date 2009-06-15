@@ -396,7 +396,7 @@ FUNCTION functiondone ()  as integer
 '--then nextscroff needs to be changed
 'IF scrat(nowscript).size <> 0 THEN nextscroff = scrat(nowscript).off
 
-script(scrat(nowscript).scrnum).refcount -= 1
+scrat(nowscript).scr->refcount -= 1
 nowscript = nowscript - 1
 
 IF nowscript < 0 THEN
@@ -1560,12 +1560,12 @@ SELECT CASE AS CONST id
  CASE 250'--set money
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--set string from table
-  IF bound_plotstr(retvals(0), "set string from table") AND script(scrat(nowscript).scrnum).strtable THEN
-   plotstr(retvals(0)).s = read32bitstring$(scrat(nowscript).scrdata + script(scrat(nowscript).scrnum).strtable + retvals(1))
+  IF bound_plotstr(retvals(0), "set string from table") AND scrat(nowscript).scr->strtable THEN
+   plotstr(retvals(0)).s = read32bitstring$(scrat(nowscript).scrdata + scrat(nowscript).scr->strtable + retvals(1))
   END IF
  CASE 252'--append string from table
-  IF bound_plotstr(retvals(0), "append string from table") AND script(scrat(nowscript).scrnum).strtable THEN
-   plotstr(retvals(0)).s += read32bitstring$(scrat(nowscript).scrdata + script(scrat(nowscript).scrnum).strtable + retvals(1))
+  IF bound_plotstr(retvals(0), "append string from table") AND scrat(nowscript).scr->strtable THEN
+   plotstr(retvals(0)).s += read32bitstring$(scrat(nowscript).scrdata + scrat(nowscript).scr->strtable + retvals(1))
   END IF
  CASE 256'--suspend map music
   setbit gen(), 44, suspendambientmusic, 1
@@ -2599,15 +2599,15 @@ END IF
 IF mode > 1 AND viewmode = 1 THEN
  reloadscript scrat(selectedscript), 0
  WITH scrat(selectedscript)
-  IF script(.scrnum).vars = 0 THEN
+  IF .scr->vars = 0 THEN
    edgeprint "Has no variables", 0, ol, uilook(uiText), page
    ol -= 9
   ELSE
-   scriptargs = script(.scrnum).args
-   FOR i = small((script(.scrnum).vars - localsscroll - 1) \ 3, 3) TO 0 STEP -1
+   scriptargs = .scr->args
+   FOR i = small((.scr->vars - localsscroll - 1) \ 3, 3) TO 0 STEP -1
     FOR j = 0 TO 2
      localno = localsscroll + i * 3 + j
-     IF localno < script(.scrnum).vars THEN
+     IF localno < .scr->vars THEN
       temp$ = localvariablename$(localno, scriptargs) & "="
       edgeprint temp$, j * 96, ol, uilook(uiText), page
       edgeprint STR$(heap(.heap + localno)), j * 96 + 8 * LEN(temp$), ol, uilook(uiDescription), page
@@ -2616,9 +2616,9 @@ IF mode > 1 AND viewmode = 1 THEN
     ol -= 9
    NEXT
    IF scriptargs = 999 THEN
-    edgeprint script(.scrnum).vars & " local variables and arguments:", 0, ol, uilook(uiText), page
+    edgeprint .scr->vars & " local variables and arguments:", 0, ol, uilook(uiText), page
    ELSE
-    edgeprint (script(.scrnum).vars - scriptargs) & " local variables and " & scriptargs & " arguments:", 0, ol, uilook(uiText), page
+    edgeprint (.scr->vars - scriptargs) & " local variables and " & scriptargs & " arguments:", 0, ol, uilook(uiText), page
    END IF
    ol -= 9
   END IF
@@ -2723,7 +2723,7 @@ IF mode > 1 AND drawloop = 0 THEN
   IF viewmode = 2 THEN globalsscroll = large(0, globalsscroll - 12): GOTO redraw
  END IF
  IF w = 13 OR w = 78 THEN '+
-  IF viewmode = 1 THEN localsscroll = small(large(script(scrat(selectedscript).scrnum).vars - 11, 0), localsscroll + 4): GOTO redraw
+  IF viewmode = 1 THEN localsscroll = small(large(scrat(selectedscript).scr->vars - 11, 0), localsscroll + 4): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = small(4076, globalsscroll + 12): GOTO redraw
  END IF
 
@@ -3304,7 +3304,7 @@ FUNCTION scriptstate (targetscript as integer) as string
 
    IF state.curkind = tyflow AND state.curvalue = flowfor AND state.curargn = 4 THEN
     'print variable, start, end, and step of a for loop
-    outstr$ = "(" & mathvariablename$(reads(scrst, stkpos - 3), script(state.scrnum).args)
+    outstr$ = "(" & mathvariablename$(reads(scrst, stkpos - 3), state.scr->args)
     outstr$ += "," & reads(scrst, stkpos - 2)
     outstr$ += "," & reads(scrst, stkpos - 1)
     outstr$ += "," & reads(scrst, stkpos) & ")"
@@ -3312,7 +3312,7 @@ FUNCTION scriptstate (targetscript as integer) as string
     'print the evaluated list of arguments from the stack if they are all done
     outstr$ = "("
     IF state.curkind = tymath AND state.curvalue >= 16 AND state.curvalue <= 18 THEN
-     outstr$ += mathvariablename$(reads(scrst, stkpos - 1), script(state.scrnum).args)
+     outstr$ += mathvariablename$(reads(scrst, stkpos - 1), state.scr->args)
      outstr$ += "," & reads(scrst, stkpos)
     ELSE
      FOR i = state.curargn - 1 TO 0 STEP -1
@@ -3377,7 +3377,7 @@ FUNCTION scriptstate (targetscript as integer) as string
      outstr$ = "global" + STR$(state.curvalue)
     CASE tylocal
      'locals can only appear in the topmost script, which we made sure is loaded
-     outstr$ = localvariablename$(state.curvalue, script(state.scrnum).args)
+     outstr$ = localvariablename$(state.curvalue, state.scr->args)
     CASE tymath
      cmd$ = mathname$(state.curvalue)
     CASE tyfunct

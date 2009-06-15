@@ -77,7 +77,7 @@ EXTERN inventory() as InventSlot
 EXTERN gold as integer
 
 'Script globals
-EXTERN script() as ScriptData
+EXTERN script() as ScriptData Ptr
 EXTERN global() as integer
 EXTERN heap() as integer
 EXTERN scrat() as ScriptInst

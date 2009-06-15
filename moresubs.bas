@@ -1546,16 +1546,16 @@ END IF
 
 WITH scrat(index)
  '-- Load the script (or return the reference if already loaded)
- .scrnum = loadscript(n)
- IF .scrnum = -1 THEN
+ .scr = loadscript(n)
+ IF .scr = NULL THEN
   '--failed to load
   runscript = 0'--error
   scripterr "Failed to load " + er$ + " script " & n & " " & scriptname(n)
   EXIT FUNCTION
  END IF
- script(.scrnum).totaluse += 1
+ .scr->totaluse += 1
  scriptctr += 1
- script(.scrnum).lastuse = scriptctr
+ .scr->lastuse = scriptctr
  'increment refcount once loading is successful
 
  'erase state, pointer, return value and depth, set id
@@ -1564,10 +1564,10 @@ WITH scrat(index)
  .ret = 0
  .depth = 0
  .id = n
- .scrdata = script(.scrnum).ptr
+ .scrdata = .scr->ptr
  curcmd = cast(ScriptCommand ptr, .scrdata + .ptr) 'just in case it's needed before subread is run
  
- scrat(index + 1).heap = .heap + script(.scrnum).vars
+ scrat(index + 1).heap = .heap + .scr->vars
 
  IF scrat(index + 1).heap > 2048 THEN
   scripterr "Script heap overflow"
@@ -1576,7 +1576,7 @@ WITH scrat(index)
   EXIT FUNCTION
  END IF
 
- FOR i = 0 TO script(.scrnum).vars - 1
+ FOR i = 0 TO .scr->vars - 1
   heap(.heap + i) = 0
  NEXT i
 
@@ -1586,24 +1586,27 @@ WITH scrat(index)
  END IF
 
  '--we are successful, so now its safe to increment this
- script(.scrnum).refcount += 1
+ .scr->refcount += 1
  nowscript += 1
 
- 'debug scriptname$(.id) & " in script(" & .scrnum & "): totaluse = " & script(.scrnum).totaluse & " refc = " & script(.scrnum).refcount & " lastuse = " & script(.scrnum).lastuse
+ 'debug scriptname$(.id) & " in script(" & (.id MOD scriptTableSize) & "): totaluse = " & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
 END WITH
 
 RETURN 1 '--success
 
 END FUNCTION
 
-FUNCTION loadscript (n as integer) as integer
- DIM thisscr as ScriptData
- DIM temp as short
+FUNCTION loadscript (n as integer) as ScriptData ptr
+ '-- Check the hashtable whether this script has already been loaded into memory
 
- '-- Check if this script has already been loaded into memory
- FOR i = 0 TO UBOUND(script)
-  IF script(i).id = n THEN RETURN i
- NEXT
+ DIM as ScriptData Ptr scrnode = script(n MOD scriptTableSize)
+ WHILE scrnode
+  IF scrnode->id = n THEN RETURN scrnode
+  scrnode = scrnode->next
+ WEND
+
+ DIM thisscr as ScriptData ptr
+ DIM temp as short
 
  '--load the script from file
  scriptfile$ = tmpdir & n & ".hsz"
@@ -1614,13 +1617,13 @@ FUNCTION loadscript (n as integer) as integer
    scriptfile$ = workingdir & SLASH & n & ".hsx"
    IF NOT isfile(scriptfile$) THEN
     scripterr "script id " & n & " does not exist"
-    RETURN -1
+    RETURN NULL
    END IF
   END IF
  END IF
 
- '--may have to free some loaded scripts before we have a free script() slot
- WITH thisscr
+ thisscr = allocate(sizeof(ScriptData))
+ WITH *thisscr
 
   f = FREEFILE
   OPEN scriptfile$ FOR BINARY AS #f
@@ -1649,7 +1652,8 @@ FUNCTION loadscript (n as integer) as integer
   IF scrformat > 2 THEN
    scripterr "script" + XSTR$(n) + " is in an unsupported format"
    CLOSE #f
-   RETURN -1
+   deallocate(thisscr)
+   RETURN NULL
   END IF
   IF scrformat >= 1 THEN wordsize = 4 ELSE wordsize = 2
 
@@ -1668,10 +1672,11 @@ FUNCTION loadscript (n as integer) as integer
   IF .size > scriptmemMax THEN
    scripterr "Script " & n & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%"
    CLOSE #f
-   RETURN -1
+   deallocate(thisscr)
+   RETURN NULL
   END IF
 
-  IF .size + totalscrmem > scriptmemMax OR numloadedscr = UBOUND(script) + 1 THEN
+  IF .size + totalscrmem > scriptmemMax OR numloadedscr = maxLoadedScripts THEN
    'debug "loadscript(" & n & " '" & scriptname(n) & "'): scriptbuf full; size = " & .size & " totalscrmem = " & totalscrmem & ", calling freescripts"
    freescripts(scriptmemMax - .size)
   END IF
@@ -1680,7 +1685,8 @@ FUNCTION loadscript (n as integer) as integer
   IF .ptr = 0 THEN
    scripterr "Could not allocate memory to load script"
    CLOSE #f
-   RETURN -1
+   deallocate(thisscr)
+   RETURN NULL
   END IF
 
   IF wordsize = 2 THEN
@@ -1697,57 +1703,61 @@ FUNCTION loadscript (n as integer) as integer
   .refcount = 0
   .totaluse = 0
   .lastuse = 0
+  .next = NULL
   numloadedscr += 1
   totalscrmem += .size
  END WITH
 
- '--copy to an empty script() slot
- FOR i = 0 TO UBOUND(script)
-  IF script(i).id = 0 THEN EXIT FOR
- NEXT
- IF i > UBOUND(script) THEN fatalerror "Script interpreter state corrupted: missing empty script() slot"
+ DIM as ScriptData Ptr Ptr scrnodeptr = @script(n MOD scriptTableSize)
+ WHILE *scrnodeptr
+  scrnodeptr = @(*scrnodeptr)->next
+ WEND
+ thisscr->backptr = scrnodeptr 'this is for convenience of easier deleting (in freescripts)
+ *scrnodeptr = thisscr
 
- 'macro disabled for fb 0.15 compat
- 'copyobj(script(i), thisscr)
- memcpy(@script(i),@thisscr,LEN(thisscr))
- RETURN i
+ RETURN thisscr
 END FUNCTION
 
 SUB freescripts (mem)
 'frees loaded scripts until at least totalscrmem <= mem (measured in 4-byte ints) (probably a lot lower)
-'also makes sure there are at least 16 unused slots in script()
+'also makes sure numloadedscr <= maxLoadedScripts - 24
 'call freescripts(0) to cleanup all scripts
 
 'give each script a score (the lower, the more likely to throw) and sort them
 'this is roughly a least recently used list
-DIM LRUlist(UBOUND(script), 1)
+TYPE ScriptListElmt
+ p as ScriptData ptr
+ score as integer
+END TYPE
+DIM LRUlist(maxLoadedScripts) as ScriptListElmt
 listtail = -1
 
 FOR i = 0 TO UBOUND(script)
- WITH script(i)
-  IF .id THEN
+ DIM as ScriptData Ptr scrp = script(i)
+ WHILE scrp
+  WITH *scrp
    'this formula has only been given some testing, and doesn't do all that well
    score = .lastuse - scriptctr
    score = iif(score > -400, score, -400) _
          + iif(.totaluse < 100, .totaluse, iif(.totaluse < 1700, 94 + .totaluse\16, 200)) _
          - .size \ (scriptmemMax \ 1024)
-   FOR j = listtail TO 0 STEP -1
-    IF score >= LRUlist(j, 1) THEN EXIT FOR
-    LRUlist(j + 1, 0) = LRUlist(j, 0)
-    LRUlist(j + 1, 1) = LRUlist(j, 1)
-   NEXT
-   LRUlist(j + 1, 0) = i
-   LRUlist(j + 1, 1) = score
-   listtail += 1
-  END IF
- END WITH
- IF listtail + 1 = numloadedscr THEN EXIT FOR
+  END WITH
+  FOR j = listtail TO 0 STEP -1
+   IF score >= LRUlist(j).score THEN EXIT FOR
+   LRUlist(j + 1).p = LRUlist(j).p
+   LRUlist(j + 1).score = LRUlist(j).score
+  NEXT
+  LRUlist(j + 1).p = scrp
+  LRUlist(j + 1).score = score
+  listtail += 1
+  scrp = scrp->next
+ WEND
 NEXT
 
 'debug "listing scripts:"
 'FOR i = 0 TO listtail
-' debug i & ": script(" & LRUlist(i, 0) & ") score = " & LRUlist(i, 1)
-' WITH script(LRUlist(i, 0))
+' debug i & ": " & LRUlist(i).p & " score = " & LRUlist(i).score
+' WITH *LRUlist(i).p
 '  debug "id = " & .id & " " & scriptname$(.id)
 '  debug "refcount = " & .refcount
 '  debug "totaluse = " & .totaluse
@@ -1763,22 +1773,25 @@ IF mem > scriptmemMax \ 2 THEN targetmem = mem * (1 - 0.5 * (mem - scriptmemMax 
 'debug "requested max mem = " & mem & ", target = " & targetmem
 
 FOR i = 0 TO listtail
- WITH script(LRUlist(i, 0))
-  IF totalscrmem <= targetmem AND numloadedscr <= UBOUND(script) - 16 THEN EXIT SUB
+ WITH *LRUlist(i).p
+  IF totalscrmem <= targetmem AND numloadedscr <= maxLoadedScripts - 24 THEN EXIT SUB
 
   'debug "deallocating " & .id & " " & scriptname(.id) & " size " & .size
   totalscrmem -= .size
   numloadedscr -= 1
   deallocate(.ptr)
-  .id = 0
   IF .refcount THEN
    FOR j = 0 TO nowscript
-    IF scrat(j).scrnum = LRUlist(i, 0) THEN
+    IF scrat(j).scr = LRUlist(i).p THEN
      'debug "marking scrat(" & j & ") (id = " & scrat(j).id & ") unloaded"
-     scrat(j).scrnum = -1
+     scrat(j).scr = NULL
+     scrat(j).scrdata = NULL
     END IF
    NEXT
   END IF
+
+  *.backptr = .next
+  deallocate(LRUlist(i).p)
  END WITH
 NEXT
 

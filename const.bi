@@ -127,6 +127,9 @@ CONST maxMaxHero = 59 'This is the max value possible for gen(genMaxHero) 'FIXME
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
 CONST scriptmemMax = 65536 'in 4-byte ints (256kb)
 
+CONST scriptTableSize = 256  'hash table size, power of 2 please
+CONST maxLoadedScripts = 360
+
 '--- Binary files in BINSIZE.BIN for getbinsize()
 CONST binATTACK = 0
 CONST binSTF = 1

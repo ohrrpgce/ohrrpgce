@@ -124,14 +124,14 @@ DIM backcompat_sound_slots(7)
 DIM nowscript, scriptret, scriptctr, numloadedscr, totalscrmem
 DIM heap(2048), global(4095), retvals(32)
 DIM scrat(128) as ScriptInst
-DIM script(255) as ScriptData
+DIM script(scriptTableSize - 1) as ScriptData Ptr
 DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM as ScriptInst ptr scratp = @scrat(0)
-DIM as ScriptData ptr scriptp = @script(0)
+DIM as ScriptData ptr ptr scriptp = @script(0)
 
 'End global variables
 

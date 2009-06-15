@@ -158,9 +158,24 @@ TYPE Plotstring
   bits as integer
 END TYPE
 
+TYPE ScriptData
+  id as integer         'id number of script  (set to 0 to mark as unused slot)
+  refcount as integer   'number of ScriptInst pointing to this data
+  totaluse as integer   'total number of times this script has been requested since loading
+  lastuse as integer
+  ptr as integer ptr    'pointer to script commands
+  size as integer       'size of script data, in 4 byte words
+  vars as integer       'variable (including arguments) count
+  args as integer       'number of arguments
+  strtable as integer   'pointer to string table (offset from start of script data in long ints)
+
+  next as ScriptData ptr 'next in linked list, for hashtable
+  backptr as ScriptData ptr ptr 'pointer to pointer pointing to this, in script(), or a .next pointer
+END TYPE
+
 TYPE ScriptInst
-  scrnum as integer     'slot number in script() array
-  scrdata as integer ptr 'convenience pointer to script(.scrnum).ptr
+  scr as ScriptData ptr 'script in script() hashtable
+  scrdata as integer ptr 'convenience pointer to scr->ptr
   heap as integer       'position of the script's local vars in the buffer
   state as integer      'what the script is doing right now
   ptr as integer        'the execution pointer (in int32's from the start of the script data)
@@ -176,18 +191,6 @@ TYPE ScriptInst
   curkind as integer    'kind of current statement
   curvalue as integer   'value of current statement
   curargc as integer    'number of args for current statement
-END TYPE
-
-TYPE ScriptData
-  id as integer         'id number of script  (set to 0 to mark as unused slot)
-  refcount as integer   'number of ScriptInst pointing to this data
-  totaluse as integer   'total number of times this script has been requested since loading
-  lastuse as integer
-  ptr as integer ptr    'pointer to allocated memory
-  size as integer       'amount the script takes up in the buffer
-  vars as integer       'variable (including arguments) count
-  args as integer       'number of arguments
-  strtable as integer   'pointer to string table (offset from start of script data in long ints)
 END TYPE
 
 TYPE ScriptCommand

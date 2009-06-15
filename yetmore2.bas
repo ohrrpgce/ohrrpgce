@@ -349,7 +349,7 @@ END IF
 END SUB
 
 SUB setScriptArg (arg, value)
- IF script(scrat(nowscript).scrnum).args > arg THEN
+ IF scrat(nowscript).scr->args > arg THEN
   heap(scrat(nowscript).heap + arg) = value
  END IF
 END SUB
@@ -899,7 +899,7 @@ SUB killallscripts
 'for use in cases of massive errors, quiting to titlescreen or loading a game.
 
  FOR i = nowscript TO 0 STEP -1 
-  IF scrat(i).scrnum > -1 THEN script(scrat(i).scrnum).refcount -= 1
+  IF scrat(i).scr <> NULL THEN scrat(i).scr->refcount -= 1
  NEXT
  nowscript = -1
 
@@ -917,19 +917,19 @@ SUB resetinterpreter
 END SUB
 
 SUB reloadscript (si as ScriptInst, updatestats)
- IF si.scrnum = -1 THEN
-  si.scrnum = loadscript(si.id)
-  IF si.scrnum = -1 THEN killallscripts: EXIT SUB
-  si.scrdata = script(si.scrnum).ptr
-  script(si.scrnum).refcount += 1
-  IF updatestats THEN script(si.scrnum).totaluse += 1
+ IF si.scr = NULL THEN
+  si.scr = loadscript(si.id)
+  IF si.scr = NULL THEN killallscripts: EXIT SUB
+  si.scrdata = si.scr->ptr
+  si.scr->refcount += 1
+  IF updatestats THEN si.scr->totaluse += 1
  END IF
  IF updatestats THEN
   'a rather hackish and not very good attempt to give .lastuse a qualitative use
   'instead of just for sorting; a priority queue is probably a much better solution
-  IF script(si.scrnum).lastuse <= scriptctr - 10 THEN
+  IF si.scr->lastuse <= scriptctr - 10 THEN
    scriptctr += 1
-   script(si.scrnum).lastuse = scriptctr
+   si.scr->lastuse = scriptctr
   END IF
  END IF
 END SUB
