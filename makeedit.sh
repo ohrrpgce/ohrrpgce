@@ -21,5 +21,10 @@ fi
 fbc -lang deprecated verprint.bas
 ./verprint ${GFX} ${MUSIC}
 fbc -lang deprecated -g -v -exx -m custom -d IS_CUSTOM -d DATAFILES='"/usr/share/games/ohrrpgce"' \
-  custom.bas customsubs.bas drawing.bas subs.bas subs2.bas subs3.bas mapsubs.bas flexmenu.bas menus.bas allmodex.bas compat.bas common.bas browse.bas util.bas bam2mid.bas loading.bas slices.bas sliceedit.bas reload.bas gfxsubs.bas gfx_"${GFX}".bas music_"${MUSIC}".bas ${EXTRA} \
+  "${3}" "${4}" "${5}" "${6}" "${7}" "${8}" \
+  custom.bas customsubs.bas drawing.bas subs.bas subs2.bas subs3.bas mapsubs.bas flexmenu.bas \
+  menus.bas allmodex.bas compat.bas common.bas browse.bas util.bas bam2mid.bas loading.bas \
+  slices.bas sliceedit.bas reload.bas gfxsubs.bas \
+  gfx_"${GFX}".bas music_"${MUSIC}".bas ${EXTRA} \
 && mv custom ohrrpgce-custom
+

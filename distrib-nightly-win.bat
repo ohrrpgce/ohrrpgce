@@ -62,6 +62,11 @@ del custom*.exe
 call make.bat fb sdl -g -exx -s console
 call nightly-gfx-music fb sdl -debug-exx
 
+del game*.exe
+del custom*.exe
+call make.bat fb sdl -g -d SCRIPTPROFILE
+call nightly-gfx-music fb sdl -scriptprofile
+
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
