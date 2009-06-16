@@ -163,6 +163,8 @@ TYPE ScriptData
   refcount as integer   'number of ScriptInst pointing to this data
   totaluse as integer   'total number of times this script has been requested since loading
   lastuse as integer
+  totaltime as double   'time spent in here, in seconds. Used only if SCRIPTPROFILE is defined
+  entered as integer    'number of times entered. Used only if SCRIPTPROFILE is defined
   ptr as integer ptr    'pointer to script commands
   size as integer       'size of script data, in 4 byte words
   vars as integer       'variable (including arguments) count

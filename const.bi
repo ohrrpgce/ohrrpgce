@@ -125,10 +125,15 @@ CONST max_npc_defs = 99
 CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 59 'This is the max value possible for gen(genMaxHero) 'FIXME: not used everywhere
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
+#IFDEF SCRIPTPROFILE
+CONST scriptmemMax = 10000000 'in 4-byte ints
+CONST scriptTableSize = 512  'hash table size, power of 2 please
+CONST maxLoadedScripts = 32768
+#ELSE
 CONST scriptmemMax = 65536 'in 4-byte ints (256kb)
-
 CONST scriptTableSize = 256  'hash table size, power of 2 please
 CONST maxLoadedScripts = 360
+#ENDIF
 
 '--- Binary files in BINSIZE.BIN for getbinsize()
 CONST binATTACK = 0

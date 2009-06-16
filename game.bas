@@ -128,6 +128,7 @@ DIM script(scriptTableSize - 1) as ScriptData Ptr
 DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
+DIM insideinterpreter
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM scratp as ScriptInst ptr
@@ -1228,7 +1229,16 @@ WITH scrat(nowscript)
   CASE ELSE
    '--interpret script
    reloadscript scrat(nowscript)
+   insideinterpreter = YES
+#IFDEF SCRIPTPROFILE
+   scrat(nowscript).scr->entered += 1
+   scrat(nowscript).scr->totaltime -= TIMER
+#ENDIF
    GOSUB interpretloop
+#IFDEF SCRIPTPROFILE
+   IF nowscript >= 0 THEN scrat(nowscript).scr->totaltime += TIMER
+#ENDIF
+   insideinterpreter = NO
    '--WARNING: WITH pointer probably corrupted
  END SELECT
  IF wantimmediate = -2 THEN

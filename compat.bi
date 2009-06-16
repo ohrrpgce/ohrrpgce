@@ -33,7 +33,12 @@
 #ELSE
  #DEFINE _PSTR & " Other"
 #ENDIF
-CONST build_info as string = "" _GSTR _ESTR _PSTR
+#IFDEF SCRIPTPROFILE
+ #DEFINE _SSTR & " script_profiling"
+#ELSE
+ #DEFINE _SSTR
+#ENDIF
+CONST build_info as string = "" _GSTR _ESTR _SSTR _PSTR
 
 
 #undef getkey

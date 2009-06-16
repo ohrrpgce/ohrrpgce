@@ -25,6 +25,10 @@ DEFINT A-Z
 #include "menustuf.bi"
 #include "bmodsubs.bi"
 
+#IFDEF SCRIPTPROFILE
+#include "string.bi" 'for format
+#ENDIF
+
 '--Local subs and functions
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
 DECLARE SUB teleporttooltend (BYREF mini AS Frame Ptr, tilemap(), tilesets() AS TilesetData ptr, BYREF zoom, BYVAL map, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
@@ -1592,6 +1596,15 @@ WITH scrat(index)
  'debug scriptname$(.id) & " in script(" & (.id MOD scriptTableSize) & "): totaluse = " & .scr->totaluse & " refc = " & .scr->refcount & " lastuse = " & .scr->lastuse
 END WITH
 
+#IFDEF SCRIPTPROFILE
+IF insideinterpreter THEN 'we have nowscript > 0
+ scrat(nowscript).scr->entered += 1
+ scrat(nowscript).scr->totaltime -= TIMER
+ scrat(nowscript - 1).scr->totaltime += TIMER
+END IF
+#ENDIF
+
+
 RETURN 1 '--success
 
 END FUNCTION
@@ -1703,6 +1716,8 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
   .refcount = 0
   .totaluse = 0
   .lastuse = 0
+  .totaltime = 0.0
+  .entered = 0
   numloadedscr += 1
   totalscrmem += .size
  END WITH
@@ -1724,6 +1739,17 @@ SUB freescripts (mem)
 'frees loaded scripts until at least totalscrmem <= mem (measured in 4-byte ints) (probably a lot lower)
 'also makes sure numloadedscr <= maxLoadedScripts - 24
 'call freescripts(0) to cleanup all scripts
+'and, as a total hack, print profiling information on scripts if SCRIPTPROFILE is defined, in which
+'case the buffers are so large that freescripts is only called when quitting
+
+#IFDEF SCRIPTPROFILE
+DIM timeroverhead as double
+FOR i = 0 TO 999
+ timeroverhead -= TIMER
+ timeroverhead += TIMER
+NEXT
+timeroverhead /= 1000
+#ENDIF
 
 'give each script a score (the lower, the more likely to throw) and sort them
 'this is roughly a least recently used list
@@ -1738,11 +1764,17 @@ FOR i = 0 TO UBOUND(script)
  DIM as ScriptData Ptr scrp = script(i)
  WHILE scrp
   WITH *scrp
+#IFDEF SCRIPTPROFILE
+   'sort by total time
+   .totaltime -= .entered * timeroverhead
+   score = .totaltime * -10000
+#ELSE
    'this formula has only been given some testing, and doesn't do all that well
    score = .lastuse - scriptctr
    score = iif(score > -400, score, -400) _
          + iif(.totaluse < 100, .totaluse, iif(.totaluse < 1700, 94 + .totaluse\16, 200)) _
          - .size \ (scriptmemMax \ 1024)
+#ENDIF
   END WITH
   FOR j = listtail TO 0 STEP -1
    IF score >= LRUlist(j).score THEN EXIT FOR
@@ -1756,17 +1788,37 @@ FOR i = 0 TO UBOUND(script)
  WEND
 NEXT
 
-'debug "listing scripts:"
-'FOR i = 0 TO listtail
+
+#IFDEF SCRIPTPROFILE
+DIM entiretime as double
+FOR i = 0 TO listtail
+ entiretime += LRUlist(i).p->totaltime
+NEXT
+
+debug "script profiling information:"
+debug "#switches is the number of times that the interpreter switched to that script"
+debug "(switching time is relatively neglible and included to help determine"
+debug "calls to other scripts, which are more expensive)"
+debug "Total time recorded in interpreter: " & format(entiretime, "0.000") & "sec   (timer overhead = " & format(timeroverhead*1000000, "0.00") & "us)"
+debug " %time        time    time/call      #calls   #switches  script name"
+FOR i = 0 TO listtail
 ' debug i & ": " & LRUlist(i).p & " score = " & LRUlist(i).score
-' WITH *LRUlist(i).p
+ WITH *LRUlist(i).p
+  debug " " & format(100 * .totaltime / entiretime, "00.00") _
+      & RIGHT(SPACE(9) & format(.totaltime*1000, "0"), 10) & "ms" _
+      & RIGHT(SPACE(10) & format(.totaltime*1000000/.totaluse, "0"), 11) & "us" _
+      & RIGHT(SPACE(11) & .totaluse, 12) _
+      & RIGHT(SPACE(11) & .entered, 12) _
+      & "  " & scriptname(.id) '& "  " & format(1000*(.totaltime + .entered * timeroverhead), "0.00")
+
 '  debug "id = " & .id & " " & scriptname$(.id)
 '  debug "refcount = " & .refcount
 '  debug "totaluse = " & .totaluse
 '  debug "lastuse = " & .lastuse
 '  debug "size = " & .size
-' END WITH
-'NEXT
+ END WITH
+NEXT
+#ENDIF 'SCRIPTPROFILE
 
 'aim for at most 75% of memory limit
 targetmem = mem

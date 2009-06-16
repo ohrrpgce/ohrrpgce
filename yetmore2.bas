@@ -911,9 +911,9 @@ END SUB
 SUB resetinterpreter
 'unload all scripts and wipe interpreter state. use when quitting the game.
 
- killallscripts
+ IF nowscript > -1 THEN killallscripts
 
- freescripts(0)
+ IF numloadedscr > 0 THEN freescripts(0)
 END SUB
 
 SUB reloadscript (si as ScriptInst, updatestats)
