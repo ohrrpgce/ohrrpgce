@@ -619,7 +619,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  DIM tog AS INTEGER = 0
 
  DIM unpc(15) AS INTEGER, lnpc(15) AS INTEGER
- DIM menucaption(15) AS STRING, movetype(10) AS STRING, pushtype(7) AS STRING, usetype(5, 1) AS STRING
+ DIM menucaption(15) AS STRING
 
  DIM state AS MenuState
  state.size = 24
@@ -669,6 +669,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  menucaption(12) = "Run Script: "
  menucaption(13) = "Script Argument"
  menucaption(14) = "Vehicle: "
+ DIM movetype(8) AS STRING
  movetype(0) = "Stand Still"
  movetype(1) = "Wander"
  movetype(2) = "Pace"
@@ -678,20 +679,23 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  movetype(6) = "Chase You"
  movetype(7) = "Avoid You"
  movetype(8) = "Walk In Place"
- pushtype(0) = " Off"
- pushtype(1) = " Full"
- pushtype(2) = " Vertical"
- pushtype(3) = " Horizontal"
- pushtype(4) = " Up only"
- pushtype(5) = " Right Only"
- pushtype(6) = " Down Only"
- pushtype(7) = " Left Only"
- usetype(0, 0) = "Use"
- usetype(1, 0) = "Touch"
- usetype(2, 0) = "Step On"
- usetype(0, 1) = " Change Direction"
- usetype(1, 1) = " Face Player"
- usetype(2, 1) = " Do Not Face Player"
+ DIM pushtype(7) AS STRING
+ pushtype(0) = "Off"
+ pushtype(1) = "Full"
+ pushtype(2) = "Vertical"
+ pushtype(3) = "Horizontal"
+ pushtype(4) = "Up only"
+ pushtype(5) = "Right Only"
+ pushtype(6) = "Down Only"
+ pushtype(7) = "Left Only"
+ DIM usetype(2) AS STRING
+ usetype(0) = "Use"
+ usetype(1) = "Touch"
+ usetype(2) = "Step On"
+ DIM facetype(2) AS STRING
+ facetype(0) = "Change Direction"
+ facetype(1) = "Face Player"
+ facetype(2) = "Do Not Face Player"
 
  npcdata.sprite = sprite_load(game & ".pt4", npcdata.picture, 8, 20, 20)
  npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
@@ -783,17 +787,17 @@ SUB edit_npc (BYREF npcdata AS NPCType)
     CASE 1
      caption = " " & defaultint$(npcdata.palette)
     CASE 2
-     caption = " = " & movetype(npcdata.movetype)
+     caption = " = " & safe_caption(movetype(), npcdata.movetype, "movetype")
     CASE 3
      caption = " " & npcdata.speed
     CASE 5
-     caption = usetype(npcdata.facetype, 1)
+     caption = " " & safe_caption(facetype(), npcdata.facetype, "facetype")
     CASE 6
      caption = " " & itemname
     CASE 7
-     caption = pushtype(npcdata.pushtype)
+		 caption = " " & safe_caption(pushtype(), npcdata.pushtype, "pushtype")
     CASE 8
-     caption = usetype(npcdata.activation, 0)
+     caption = safe_caption(usetype(), npcdata.activation, "usetype")
     CASE 9
      IF npcdata.tag1 THEN
       caption = " " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1) & " (" & load_tag_name(ABS(npcdata.tag1)) & ")"
@@ -3249,4 +3253,12 @@ FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS
  setkeys
  freepage holdscreen
  DeleteSlice @root
+END FUNCTION
+
+FUNCTION safe_caption(caption_array() AS STRING, BYVAL index AS INTEGER, description AS STRING) AS STRING
+ IF index >= LBOUND(caption_array) AND index <= UBOUND(caption_array) THEN
+  RETURN caption_array(index)
+ ELSE
+  RETURN "Invalid " & description & " " & index
+ END IF
 END FUNCTION

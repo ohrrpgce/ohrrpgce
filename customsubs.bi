@@ -62,5 +62,6 @@ DECLARE FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
 DECLARE SUB edit_global_text_strings()
 DECLARE SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
 DECLARE FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS INTEGER=NO) AS INTEGER
+DECLARE FUNCTION safe_caption(caption_array() AS STRING, BYVAL index AS INTEGER, description AS STRING) AS STRING
 
 #endif
