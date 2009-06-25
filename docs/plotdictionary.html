@@ -1258,9 +1258,6 @@
 		<a href="#about-replaceweaponsprite">replace weapon sprite (handle, num, palette)</a><br>
 		
 	
-		<a href="#about-reseed%20random">reseed random (new seed)</a><br>
-		
-	
 		<a href="#about-resetmapstate">reset map state (whichdata)</a><br>
 		
 	
@@ -1346,6 +1343,9 @@
 		
 	
 		<a href="#about-secondsofplay">seconds of play</a><br>
+		
+	
+		<a href="#about-seed%20random">seed random (new seed)</a><br>
 		
 	
 		<a href="#about-selectedmenuitem">selected menu item(menu handle)</a><br>
@@ -4171,7 +4171,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">use menu item(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), activate the menu item. This will cause whatever action (text box, menu, script, tag changes) that have been configured for this menu item to be triggered.<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-selectedmenuitem" class="ref">selected menu item</a>), activate the menu item. This will cause whatever actions (text box, menu, script, tag changes) that have been configured for this menu item to be triggered.<br>
 			
 			
 		</tt></p>
@@ -4195,7 +4195,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">menu item slot(menu item handle)</font></b><br>
-			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), Return a the slot number of the menu item. The first slot in the menu is 0.<br>
+			Given a <span class="param">menu item handle</span> (for example, the one returned by <a href="#about-addmenuitem" class="ref">add menu item</a>), return a the slot number of the menu item. The first slot in the menu is 0.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-menuitembyslot" class="ref">menu item by slot</a></li></ul>
 		</tt></p>
@@ -6264,10 +6264,10 @@ end
 			
 			
 		</tt></p>
-		<a name="about-reseed%20random"></a>
+		<a name="about-seed%20random"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">reseed random (new seed)</font></b><br>
+		<b><font color="yellow">seed random (new seed)</font></b><br>
 			Reseeds the random number generator. If called with no argument, this will reseed the random number generator using the current number of milliseconds. If you pass in a number, the random number generator will be seeded with that number, allowing for repeatable random sequences.<br>
 			
 			

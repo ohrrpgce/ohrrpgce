@@ -1096,7 +1096,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 107'--update palette
   setpal master()
- CASE 108'--reseed random
+ CASE 108'--seed random
   IF retvals(0) THEN
    RANDOMIZE retvals(0), 3
   ELSE
