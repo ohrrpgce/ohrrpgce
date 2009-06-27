@@ -1628,7 +1628,7 @@ IF vic.state = 0 THEN 'only display interface till you win
    edgeprint CHR$(24), bslot(bat.hero_turn).x + (bslot(bat.hero_turn).w / 2) - 4, bslot(bat.hero_turn).y - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
   END IF
   IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
-   centerbox 160, 52, 310, 94, 1, dpage
+   centerbox 160, 53, 310, 95, 1, dpage
    IF sptr < 24 THEN
     IF speld$(sptr) <> "" THEN rectangle 5, 74, 311, 1, uilook(uiTextBox + 1), dpage
    END IF
@@ -1667,7 +1667,7 @@ IF vic.state = 0 THEN 'only display interface till you win
     IF iptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(iuse(), 0, i)) + tog), uilook(uiHighlight)
     printstr inventory(i).text, 20 + 96 * (i MOD 3), 8 + 8 * ((i - itop) \ 3), dpage
    NEXT i
-   edgeboxstyle 8, 4 + inv_height, 304, 16, 0, dpage, YES
+   edgeboxstyle 8, 4 + inv_height, 304, 16, 0, dpage
    textcolor uilook(uiDescription), 0
    printstr itemd$, 12, 8 + inv_height, dpage
   END IF
