@@ -66,6 +66,7 @@ WHAT IS NEW?
       sprite slice" [James]
     * "random" didn't work when max - min > 2^31, and could be totally
       non-uniform. "seed random" now causes different sequences! [Ralph]
+    * Using Ctrl+R in the tilemap editor could corrupt memory [Ralph]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

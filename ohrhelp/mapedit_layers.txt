@@ -1,6 +1,6 @@
 This screen lets you choose a default tileset, and lets you customize each map layer.
 
-Use the up and down arrows to navigate the menu, and press left and right to change values, or you can type in tileset numbers.
+Press left and right to change values, or you can type in tileset numbers. Press enter to enable or disable a layer.
 
 Each map can have 3 layers, numbered 0 to 2.
 
@@ -12,4 +12,4 @@ Layer 2 is also transparent. It goes above heroes and NPCs. You might use it for
 
 Each layer can optionally have its own tileset, or you can just choose one tileset for the whole map.
 
-It is also possible to disable certain layers in the editor, in case you want to work on just one layer at a time without the visual distraction of seeing the other layers.
+It is also possible to make certain layers invisble in the editor, in case you want to work on just one layer at a time without the visual distraction of seeing the other layers. This doesn't affect playing the game; to hide a layer in-game, disable it. Disabling a layer doesn't delete it.

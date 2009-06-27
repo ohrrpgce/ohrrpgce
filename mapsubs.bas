@@ -63,7 +63,7 @@ DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wi
 DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr)
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
-DECLARE SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray, startlayer AS INTEGER = -1)
+DECLARE SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray, BYREF layer AS INTEGER)
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
@@ -260,7 +260,7 @@ unloadmaptilesets tilesets()
 EXIT SUB
 
 whattodo:
-x = 0: y = 0: mapx = 0: mapy = 0
+x = 0: y = 0: mapx = 0: mapy = 0: layer = 0
 list$(0) = "Return to Map Menu"
 list$(1) = "Edit General Map Data..."
 list$(2) = "Resize Map..."
@@ -308,7 +308,7 @@ DO
    mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), tilesets(), doors(), link(), mapname$
   END IF
   IF csr = 3 THEN
-   mapedit_layers gmap(), visible(), tilesets(), defaults()
+   mapedit_layers gmap(), visible(), tilesets(), defaults(), layer
   END IF
   IF csr = 4 THEN
    npcdef st.npc_def(), npc_img(), pt
@@ -569,7 +569,7 @@ DO
    if keyval(scAlt) > 0 AND keyval(sc1 + i) > 1 then
     clearkey(sc1 + i)
     togglelayerenabled(gmap(), i)
-    if not layerisenabled(gmap(), i) then
+    if layerisenabled(gmap(), i) then
      if layer = i then
       do until layerisenabled(gmap(), layer): layer -= 1: loop
      end if
@@ -637,8 +637,8 @@ DO
    END IF
    IF keyval(19) > 1 AND keyval(29) > 0 THEN' Ctrl+R to replace-all
     old = readmapblock(x, y, layer)
-    FOR ty = 0 to map(1)
-     FOR tx = 0 to map(0)
+    FOR ty = 0 to map(1) - 1
+     FOR tx = 0 to map(0) - 1
       IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, usetile(layer)
      NEXT tx
     NEXT ty
@@ -919,7 +919,7 @@ DO
  IF editmode = 1 THEN
   setmapdata pass(), pass(), 20, 0
   FOR o = 0 TO 8
-   FOR i = 0 TO 15
+   FOR i = 0 TO 14
     over = readmapblock((mapx \ 20) + i, (mapy \ 20) + o, 0)
     IF (over AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, uilook(uiMenuItem + tog), dpage
     IF (over AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
@@ -1099,7 +1099,7 @@ RETRACE
 '128 overhead
 END SUB
 
-SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray, startlayer AS INTEGER)
+SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray, BYREF layer AS INTEGER)
  DIM state AS MenuState
  DIM menu$(10)
  DIM enabled(10) AS INTEGER
@@ -1109,7 +1109,7 @@ SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS Tiles
  currentset = -1
  clearpage 2
 
- state.pt = (startlayer + 1) * 3
+ state.pt = (layer + 1) * 3
  state.top = 0
  state.last = UBOUND(menu$)
  state.size = 19
@@ -1186,7 +1186,7 @@ SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS Tiles
  FOR i = 0 TO 2
   loadpasdefaults defaults(i).a(), tilesets(i)->num
  NEXT
-
+ IF layerisenabled(gmap(), layer) = 0 THEN layer = 0
  EXIT SUB
 
 updateback:
