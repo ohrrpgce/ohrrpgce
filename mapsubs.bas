@@ -1965,15 +1965,46 @@ FOR i = 0 TO 24
 NEXT i
 END SUB
 
-'recursively iterate through all contiguous maptiles, changing if the area continues, and stopping if it is blocked by a different kind of maptile
+SUB paint_map_add_node(BYVAL oldTile, BYVAL x, BYVAL y, BYVAL mapw, BYVAL maph, BYVAL layer, BYREF head, queue() AS XYPair)
+ IF (y < maph) AND (y >= 0) AND (x < mapw) AND (x >= 0) THEN
+  IF readmapblock(x, y, layer) = oldTile THEN
+   queue(head).x = x
+   queue(head).y = y
+   head = (head + 1) MOD UBOUND(queue)
+  END IF
+ END IF
+END SUB
+
+'tile fill tool: iterate through all contiguous maptiles, changing if the area continues, and stopping if it is blocked by a different kind of maptile
+'do a breadth first search instead of using the stack; that's prone to overflow
 SUB paint_map_area(oldTile, x, y, layer, usetile(), map(), pass(), defaults() AS DefArray, tilesets(), defpass)
-IF (y < map(1)) AND (y >= 0) AND (x < map(0)) AND (x >= 0) AND (oldTile = readmapblock(x, y, layer)) AND (oldTile <> usetile(layer)) THEN
- setmapblock x, y, layer, usetile(layer)
- IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tilesets()
- 
- paint_map_area oldTile, x + 1, y, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
- paint_map_area oldTile, x - 1, y, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
- paint_map_area oldTile, x, y + 1, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
- paint_map_area oldTile, x, y - 1, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
-END IF
+ IF oldTile = usetile(layer) THEN EXIT SUB
+ REDIM queue(250) AS XYPair 'a circular buffer. We don't use the last element
+ DIM AS INTEGER head, tail, i, oldend
+ paint_map_add_node oldTile, x, y, map(0), map(1), layer, head, queue()
+ WHILE tail <> head
+  'resizing inside paint_map_add_node would invalidate the WITH pointers, so make sure there's at least 4 empty slots
+  IF (tail - head + UBOUND(queue)) MOD UBOUND(queue) <= 4 THEN
+   oldend = UBOUND(queue)
+   REDIM PRESERVE queue(UBOUND(queue) * 2)
+   IF head < tail THEN
+    FOR i = 0 TO head - 1
+     queue(oldend + i) = queue(i)
+    NEXT
+    head += oldend
+   END IF
+  END IF
+
+  WITH queue(tail)
+   IF readmapblock(.x, .y, layer) = oldTile THEN
+    setmapblock .x, .y, layer, usetile(layer)
+    IF defpass THEN calculatepassblock .x, .y, map(), pass(), defaults(), tilesets()
+    paint_map_add_node oldTile, .x + 1, .y, map(0), map(1), layer, head, queue()
+    paint_map_add_node oldTile, .x - 1, .y, map(0), map(1), layer, head, queue()
+    paint_map_add_node oldTile, .x, .y + 1, map(0), map(1), layer, head, queue()
+    paint_map_add_node oldTile, .x, .y - 1, map(0), map(1), layer, head, queue()
+   END IF
+  END WITH
+  tail = (tail + 1) MOD UBOUND(queue)
+ WEND
 END SUB
