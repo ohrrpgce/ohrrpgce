@@ -3130,8 +3130,11 @@ FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER
 END FUNCTION
 
 FUNCTION last_inv_slot() AS INTEGER
+ '--If genMaxInventory is 0, return the default inventory size
  IF gen(genMaxInventory) = 0 THEN RETURN inventoryMax
- RETURN large(INT((gen(genMaxInventory) + 1) / 3), 1) * 3 -1
+ '--Otherwise round genMaxInventory up to the nearest
+ '-- multiple of three (counting the zero-slot) and return it.
+ RETURN INT((gen(genMaxInventory) + 3) / 3) * 3 - 1
 END FUNCTION
 
 SUB setup_sprite_sizes ()
