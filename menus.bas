@@ -38,7 +38,6 @@ DECLARE SUB generalsfxmenu ()
 DECLARE SUB masterpalettemenu ()
 DECLARE FUNCTION importmasterpal (f$, palnum%)
 DECLARE SUB titlescreenbrowse ()
-DECLARE SUB generate_gen_menu(m$(), longname$, aboutline$, stat$())
 DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB inputpasw(pas$)
@@ -937,6 +936,7 @@ SUB remappalette (oldmaster() as RGBcolor, oldpal(), newmaster() as RGBcolor, ne
  NEXT
 END SUB
 
+'FIXME:recursively enter backdrop editor instead?
 SUB titlescreenbrowse
 loadpage game + ".mxs", gen(1), 2
 setkeys
@@ -966,33 +966,6 @@ DO
  copypage 2, dpage
  dowait
 LOOP
-END SUB
-
-SUB generate_gen_menu(m$(), longname$, aboutline$, stat$())
-m$(2) = "Starting X: " & gen(genStartX)
-m$(3) = "Starting Y: " & gen(genStartY)
-m$(4) = "Starting Map: " & gen(genStartMap)
-m$(5) = "Title Music: " & getsongname$(gen(genTitleMus) - 1, -1)
-m$(6) = "Battle Victory Music: " & getsongname$(gen(genVictMus) - 1, -1)
-m$(7) = "Default Battle Music: " & getsongname$(gen(genBatMus) - 1, -1)
-m$(11) = "Starting Money: " & gen(genStartMoney)
-m$(13) = "Long Name:" + longname$
-m$(14) = "About Line:" + aboutline$
-m$(16) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
-m$(17) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
-m$(18) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
-m$(19) = "Damage Cap: "
-IF gen(genDamageCap) = 0 THEN m$(19) = m$(19) + "None" ELSE m$(19) = m$(19) & gen(genDamageCap)
-FOR i = 0 to 11
- m$(20 + i) = stat$(i) + " Cap: "
- IF gen(genStatCap + i) = 0 THEN m$(20 + i) = m$(20 + i) + "None" ELSE m$(20 + i) = m$(20 + i) & gen(genStatCap + i)
-NEXT
-m$(32) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
-IF gen(genMaxInventory) = 0 THEN
- m$(33) = "Inventory Slots: default (" & INT(last_inv_slot() / 3) + 1 & " rows)"
-ELSE
- m$(33) = "Inventory Slots: 0-" & gen(genMaxInventory) & " (" & INT(last_inv_slot() / 3) + 1 & " rows)"
-END IF
 END SUB
 
 SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
@@ -1043,7 +1016,7 @@ DO
  printstr "You can require a password for this", 0, 0, dpage
  printstr "game to be opened in " + CUSTOMEXE, 0, 8, dpage
  printstr "This does not encrypt your file, and", 0, 16, dpage
- printstr "should only be considered weak security", 0, 24, dpage
+ printstr "should not be considered as any security", 0, 24, dpage
  printstr "PASSWORD", 30, 64, dpage
  IF LEN(pas$) THEN
   textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
@@ -1060,10 +1033,10 @@ END SUB
 
 FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
  SELECT CASE n
-  CASE 0: RETURN n & " Default"
-  CASE 1: RETURN n & " Crossfade"
-  CASE 2: RETURN n & " Diagonal Vanish"
-  CASE 3: RETURN n & " Sink into Ground"
+  CASE 0: RETURN "Default"
+  CASE 1: RETURN "Crossfade"
+  CASE 2: RETURN "Diagonal Vanish"
+  CASE 3: RETURN "Sink into Ground"
   CASE ELSE: RETURN n & " Invalid!"
  END SELECT
 END FUNCTION
@@ -1071,16 +1044,144 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB gendata ()
- STATIC default$
- CONST maxMenu = 33
+SUB statcapsmenu
+ CONST maxMenu = 13
  DIM m$(maxMenu)
  DIM max(maxMenu)
- DIM bitname(19) AS STRING
- DIM names(32) AS STRING
+ DIM index(maxMenu)
  DIM stat$(11)
- DIM d$
+ getstatnames stat$()
+ DIM state AS MenuState
+ state.last = maxMenu
+ state.size = 24
+ state.need_update = YES
  DIM i AS INTEGER
+
+ index(1) = genDamageCap
+ FOR i = 2 TO 13
+  index(i) = genStatCap + (i - 2)
+ NEXT
+ max(1) = 32767
+ FOR i = 2 to 3 'shut up (~snicker~)
+  max(i) = 9999 'HP + MP
+ NEXT
+ FOR i = 4 to 11
+  max(i) = 999 'Regular stats
+ NEXT
+ max(12) = 100 'MP~
+ max(13) = 20  'Extra Hits
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_or_space()) THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "stat_caps_menu"
+  usemenu state
+  IF state.pt > 0 THEN
+   IF intgrabber(gen(index(state.pt)), 0, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.need_update THEN
+   state.need_update = NO
+   m$(0) = "Previous Menu"
+   m$(1) = "Damage Cap: "
+   IF gen(genDamageCap) = 0 THEN m$(1) += "None" ELSE m$(1) &= gen(genDamageCap)
+   FOR i = 0 to 11
+    m$(2 + i) = stat$(i) + " Cap: "
+    IF gen(genStatCap + i) = 0 THEN m$(2 + i) = m$(2 + i) + "None" ELSE m$(2 + i) = m$(2 + i) & gen(genStatCap + i)
+   NEXT
+  END IF
+
+  clearpage dpage
+  standardmenu m$(), state, 0, 0, dpage, 0
+  setvispage dpage
+  dowait
+ LOOP
+ clearpage dpage
+END SUB
+
+SUB startingdatamenu
+ CONST maxMenu = 4
+ DIM m$(maxMenu)
+ DIM max(maxMenu)
+ DIM index(maxMenu)
+ DIM state AS MenuState
+ state.last = maxMenu
+ state.size = 24
+ state.need_update = YES
+ DIM AS INTEGER lastmap = -1
+
+ index(1) = genStartX
+ index(2) = genStartY
+ index(3) = genStartMap
+ max(3) = gen(genMaxMap)
+ index(4) = genStartMoney
+ max(4) = 32767
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scESC) > 1 OR (state.pt = 0 AND enter_or_space()) THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "new_game_data"
+  usemenu state
+  IF state.pt > 0 THEN
+   IF intgrabber(gen(index(state.pt)), 0, max(state.pt)) THEN state.need_update = YES
+  END IF
+  IF state.need_update THEN
+   state.need_update = NO
+   IF lastmap <> gen(genStartMap) THEN
+    DIM fh AS INTEGER
+    fh = FREEFILE
+    OPEN maplumpname$(gen(genStartMap), "t") FOR BINARY AS #fh
+    SEEK #fh, 8
+    max(1) = Readshort(fh, -1) - 1 'map width
+    max(2) = ReadShort(fh, -1) - 1 'map height
+    CLOSE #fh
+    gen(genStartX) = small(gen(genStartX), max(1))
+    gen(genStartY) = small(gen(genStartY), max(2))
+    lastmap = gen(genStartMap)
+   END IF
+
+   m$(0) = "Previous Menu"
+   m$(1) = "Starting X: " & gen(genStartX)
+   m$(2) = "Starting Y: " & gen(genStartY)
+   m$(3) = "Starting Map: " & gen(genStartMap) & " " & getmapname(gen(genStartMap))
+   m$(4) = "Starting Money: " & gen(genStartMoney)
+  END IF
+
+  clearpage dpage
+  standardmenu m$(), state, 0, 0, dpage, 0
+  setvispage dpage
+  dowait
+ LOOP
+ clearpage dpage
+END SUB
+
+SUB generate_gen_menu(m$(), longname$, aboutline$)
+m$(1) = "Long Name:" + longname$
+IF LEN(longname$) > 30 THEN m$(1) = longname$
+m$(2) = "About Line:" + aboutline$
+IF LEN(aboutline$) > 29 THEN m$(2) = aboutline$
+m$(12) = "Title Music: " & getsongname$(gen(genTitleMus) - 1, -1)
+m$(13) = "Default Battle Music: " & getsongname$(gen(genBatMus) - 1, -1)
+m$(14) = "Battle Victory Music: " & getsongname$(gen(genVictMus) - 1, -1)
+m$(15) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
+m$(16) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
+m$(17) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
+m$(18) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
+IF gen(genMaxInventory) = 0 THEN
+ m$(19) = "Inventory Slots: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+ELSE
+ m$(19) = "Inventory Slots: 0-" & gen(genMaxInventory) & " (" & (last_inv_slot() \ 3) + 1 & " rows)"
+END IF
+END SUB
+
+SUB gendata ()
+ CONST maxMenu = 19
+ DIM m$(maxMenu)
+ DIM min(maxMenu), max(maxMenu)
+ DIM index(maxMenu)
+ DIM enabled(maxMenu)
+ DIM d$
 
  DIM state AS MenuState
  WITH state
@@ -1089,53 +1190,39 @@ SUB gendata ()
   .need_update = YES
  END WITH
 
- stat$(0) = readglobalstring(0, "HP")
- stat$(1) = readglobalstring(1, "MP")
- stat$(2) = readglobalstring(2, "Atk")
- stat$(3) = readglobalstring(3, "Aim")
- stat$(4) = readglobalstring(5, "Def")
- stat$(5) = readglobalstring(6, "Dog")
- stat$(6) = readglobalstring(29, "Mag")
- stat$(7) = readglobalstring(30, "Wil")
- stat$(8) = readglobalstring(8, "Speed")
- stat$(9) = readglobalstring(7, "Counter")
- stat$(10) = readglobalstring(31, "Focus")
- stat$(11) = readglobalstring(4, "HitX")
-
  IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
  IF gen(genStun) <= 0 THEN gen(genStun) = 159
  IF gen(genMute) <= 0 THEN gen(genMute) = 163
  
  m$(0) = "Return to Main Menu"
- m$(1) = "Preference Bitsets..."
+ m$(3) = "Preference Bitsets..."
+ m$(4) = "Pick Title Screen..."
+ m$(5) = "New Game Settings..."
+ m$(6) = "Special Plotscripts..."
+ m$(7) = "Master Palettes..."
  m$(8) = "Special Sound Effects..."
- m$(9) = "Password For Editing..."
- m$(10) = "Pick Title Screen..."
- m$(12) = "Special PlotScripts..."
- m$(15) = "View Master Palettes..."
- max(1) = 1
- max(2) = 320
- max(3) = 200
- max(4) = gen(genMaxMap)
- max(5) = gen(genMaxSong)
- max(6) = gen(genMaxSong)
- max(7) = gen(genMaxSong)
- max(9) = 0
- max(11) = 32000
- max(16) = 255 'poison
- max(17) = 255 'stun
- max(18) = 255 'mute
- max(19) = 32767
- FOR i = 20 to 21 'shut up (~snicker~)
-  max(i) = 9999 'HP + MP
+ m$(9) = "Stat Caps..."
+ m$(10) = "Password For Editing..."
+
+ flusharray enabled(), UBOUND(enabled), YES
+ enabled(11) = NO
+ index(12) = genTitleMus
+ max(12) = gen(genMaxSong)
+ index(13) = genBatMus
+ max(13) = gen(genMaxSong)
+ index(14) = genVictMus
+ max(14) = gen(genMaxSong)
+ index(15) = genPoison
+ index(16) = genStun
+ index(17) = genMute
+ FOR i AS INTEGER = 15 TO 17
+  min(i) = 32
+  max(i) = 255
  NEXT
- FOR i = 22 to 29
-  max(i) = 999 'Regular stats
- NEXT
- max(30) = 100 'MP~
- max(31) = 20  'Extra Hits
- max(32) = 3   'Default Enemy Dissolve type
- max(33) = inventoryMax
+ index(18) = genEnemyDissolve
+ max(18) = 3
+ index(19) = genMaxInventory
+ max(19) = inventoryMax
 
  DIM pas$ = ""
  DIM aboutline$ = ""
@@ -1163,21 +1250,19 @@ SUB gendata ()
  DO
   setwait 55
   setkeys
-  state.tog = state.tog XOR 1
 
   IF state.need_update THEN
-   generate_gen_menu m$(), longname$, aboutline$, stat$()
+   generate_gen_menu m$(), longname$, aboutline$
    state.need_update = NO
   END IF
 
-  IF keyval(scESC) > 1 THEN
-   EXIT DO
-  END IF
+  IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "general_game_data"
-  usemenu state
+  usemenu state, enabled()
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
-   IF state.pt = 1 THEN
+   IF state.pt = 3 THEN
+    DIM bittemp(2) AS INTEGER, bitname(19) AS STRING
     bitname(0) = "Pause on Battle Sub-menus"
     bitname(1) = "Enable Caterpillar Party"
     bitname(2) = "Don't Restore HP on Levelup"
@@ -1198,7 +1283,6 @@ SUB gendata ()
     bitname(17) = "Disable ESC key running from battle"
     bitname(18) = "Don't save gameover/loadgame script IDs"
     bitname(19) = "Dead heroes gain share of experience"
-    DIM bittemp(2) AS INTEGER
     bittemp(0) = gen(genBits)
     bittemp(1) = gen(genBits2)
     bittemp(2) = gen(genBits2+1)
@@ -1207,68 +1291,30 @@ SUB gendata ()
     gen(genBits2) = bittemp(1)
     gen(genBits2+1) = bittemp(2)
    END IF
+   IF state.pt = 4 THEN titlescreenbrowse
+   IF state.pt = 5 THEN startingdatamenu
+   IF state.pt = 6 THEN generalscriptsmenu
+   IF state.pt = 7 THEN masterpalettemenu
    IF state.pt = 8 THEN generalsfxmenu
-   IF state.pt = 10 THEN titlescreenbrowse
-   IF state.pt = 12 THEN generalscriptsmenu
-   IF state.pt = 15 THEN masterpalettemenu
-   IF state.pt = 9 THEN inputpasw pas$
-   IF state.pt = 16 THEN
+   IF state.pt = 9 THEN statcapsmenu
+   IF state.pt = 10 THEN inputpasw pas$
+
+   IF state.pt >= 15 AND state.pt <= 17 THEN
     d$ = charpicker$
     IF d$ <> "" THEN
-     gen(genPoison) = ASC(d$)
-     state.need_update = YES
-    END IF
-   END IF
-   IF state.pt = 17 THEN
-    d$ = charpicker$
-    IF d$ <> "" THEN
-    gen(genStun) = ASC(d$)
-     state.need_update = YES
-    END IF
-   END IF
-   IF state.pt = 18 THEN
-    d$ = charpicker$
-    IF d$ <> "" THEN
-    gen(genMute) = ASC(d$)
+     gen(index(state.pt)) = ASC(d$)
      state.need_update = YES
     END IF
    END IF
   END IF
-  IF state.pt > 1 AND state.pt <= 4 THEN
-   IF intgrabber(gen(100 + state.pt), 0, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt > 4 AND state.pt < 8 THEN
-   IF zintgrabber(gen(state.pt - 3), -1, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt = 11 THEN
-   IF intgrabber(gen(96), 0, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt = 13 THEN
+  IF state.pt >= 12 AND state.pt <= 14 THEN
+   IF zintgrabber(gen(index(state.pt)), -1, max(state.pt)) THEN state.need_update = YES
+  ELSEIF state.pt = 1 THEN
    IF strgrabber(longname$, 38) THEN state.need_update = YES
-  END IF
-  IF state.pt = 14 THEN
+  ELSEIF state.pt = 2 THEN
    IF strgrabber(aboutline$, 38) THEN state.need_update = YES
-  END IF
-  IF state.pt = 16 THEN
-    IF intgrabber(gen(genPoison), 32, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt = 17 THEN
-   IF intgrabber(gen(genStun), 32, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt = 18 THEN
-   IF intgrabber(gen(genMute), 32, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt = 19 THEN
-   IF intgrabber(gen(genDamageCap), 0, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt >= 20 AND state.pt <= 31 THEN
-   IF intgrabber(gen(genStatCap + (state.pt - 20)), 0, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt = 32 THEN
-   IF intgrabber(gen(genEnemyDissolve), 0, max(state.pt)) THEN state.need_update = YES
-  END IF
-  IF state.pt = 33 THEN
-   IF intgrabber(gen(genMaxInventory), 0, max(state.pt)) THEN state.need_update = YES
+  ELSEIF index(state.pt) THEN
+   IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
   END IF
 
   draw_fullscreen_scrollbar state, , dpage

@@ -50,6 +50,7 @@ WHAT IS NEW?
     * Pressing Esc+PgDown+PgUp or clicking the window's X (or Alt+F4
       and so on) in Custom quits all the way to the save/quit menu.
       Pressing it again quits, saving the game as a .BAK file [Ralph]
+    * The General Game Data menu has finally been cleaned up [Ralph]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

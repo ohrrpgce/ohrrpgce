@@ -47,10 +47,12 @@ DECLARE SUB emptybox (x as integer, y as integer, w as integer, h as integer, co
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname (num as integer, trigger as integer = 0) as string
 DECLARE Function seconds2str(byval sec as integer, byval f as string = " %m: %S") as string
+
 DECLARE SUB loaddefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB savedefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB guessdefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE FUNCTION getdefaultpal(fileset as integer, index as integer) as integer
+
 DECLARE SUB flusharray (array(), BYVAL size AS INTEGER=-1, BYVAL value AS INTEGER=0)
 DECLARE SUB setbinsize (id as integer, size as integer)
 DECLARE FUNCTION curbinsize (id as integer) as integer
@@ -71,10 +73,11 @@ DECLARE FUNCTION xstring (s as string, x as integer) as integer
 DECLARE FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRING
 DECLARE SUB poke8bit (array16() as integer, index as integer, val8 as integer)
 DECLARE FUNCTION peek8bit (array16() as integer, index as integer) as integer
+
 DECLARE SUB loadpalette(pal() as RGBcolor, palnum as integer)
 DECLARE SUB savepalette(pal() as RGBcolor, palnum as integer)
 DECLARE SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
-DECLARE FUNCTION getmapname (m as integer) as string
+
 DECLARE FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
 DECLARE SUB loadtanim (n as integer, tastuf() as integer)
 DECLARE SUB savetanim (n as integer, tastuf() as integer)
@@ -102,6 +105,10 @@ DECLARE FUNCTION readitemname (index as integer) as string
 DECLARE FUNCTION readshopname (shopnum as integer) as string
 DECLARE FUNCTION getsongname (num AS INTEGER, prefixnum AS INTEGER = 0) as string
 DECLARE FUNCTION getsfxname (num AS INTEGER) as string
+DECLARE FUNCTION getheroname (hero_id AS INTEGER) AS STRING
+DECLARE FUNCTION getmenuname(record AS INTEGER) AS STRING
+DECLARE FUNCTION getmapname (m as integer) as string
+DECLARE SUB getstatnames(stat() AS STRING)
 
 DECLARE FUNCTION getdisplayname (default as string) as string
 
@@ -154,8 +161,6 @@ DECLARE SUB write_npc_int (npcdata AS NPCType, intoffset AS INTEGER, n AS INTEGE
 DECLARE FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER
 
 DECLARE FUNCTION xreadbit (bitarray() AS INTEGER, bitoffset AS INTEGER, intoffset AS INTEGER=0) AS INTEGER
-DECLARE FUNCTION getheroname (hero_id AS INTEGER) AS STRING
-DECLARE FUNCTION getmenuname(record AS INTEGER) AS STRING
 
 DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, count AS INTEGER, boxstyle AS INTEGER=0, page AS INTEGER)
 DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, boxstyle AS INTEGER=0, page AS INTEGER)

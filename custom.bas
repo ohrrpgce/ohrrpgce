@@ -302,18 +302,18 @@ DO:
     IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, 1, enemy_frame_captions(), 2, 3, font()
     IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, 2, attack_frame_captions(), 2, 6, font()
     IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, 5, weapon_frame_captions(), 4, 5, font()
-    IF pt = 9 THEN importbmp ".mxs", "screen", gen(100)
-    IF pt = 10 THEN
+    IF pt = 19 THEN
+     sprite 16, 16, gen(genMaxBoxBorder), 16, 7, 8, box_border_captions(), 4, 7, font()
+     clear_box_border_cache
+    END IF
+    IF pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, 2, portrait_captions(), 2, 8, font()
+    IF pt = 11 THEN importbmp ".mxs", "screen", gen(100)
+    IF pt = 12 THEN
      gen(33) = gen(33) + 1
      importbmp ".til", "tileset", gen(33)
      gen(33) = gen(33) - 1
     END IF
-    IF pt = 11 THEN ui_color_editor(activepalette)
-    IF pt = 12 THEN
-     sprite 16, 16, gen(genMaxBoxBorder), 16, 7, 8, box_border_captions(), 4, 7, font()
-     clear_box_border_cache
-    END IF
-    IF pt = 13 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, 2, portrait_captions(), 2, 8, font()
+    IF pt = 13 THEN ui_color_editor(activepalette)
   END SELECT
   '--always resave the .GEN lump after any menu
   xbsave game + ".gen", gen(), 1000
@@ -368,11 +368,11 @@ menu$(5) = "Draw Medium Enemy Graphics 50x50"
 menu$(6) = "Draw Big Enemy Graphics    80x80"
 menu$(7) = "Draw Attacks"
 menu$(8) = "Draw Weapons"
-menu$(9) = "Import/Export Screens"
-menu$(10) = "Import/Export Full Maptile Sets"
-menu$(11) = "Change User-Interface Colors"
-menu$(12) = "Draw Box Edges"
-menu$(13) = "Draw Portrait Graphics     50x50"
+menu$(9) = "Draw Box Edges"
+menu$(10) = "Draw Portrait Graphics"
+menu$(11) = "Import/Export Screens"
+menu$(12) = "Import/Export Full Maptile Sets"
+menu$(13) = "Change User-Interface Colors"
 RETRACE
 
 chooserpg:
