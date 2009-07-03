@@ -3369,19 +3369,18 @@ FUNCTION getdisplayname (default AS STRING) AS STRING
  RETURN default
 END FUNCTION
 
-SUB getstatnames(stat$())
- 'If a static array is passed in, it'll explode when redimmed
- IF UBOUND(stat$) < 11 THEN REDIM stat$(11)
- stat$(0) = readglobalstring(0, "HP")
- stat$(1) = readglobalstring(1, "MP")
- stat$(2) = readglobalstring(2, "Atk")
- stat$(3) = readglobalstring(3, "Aim")
- stat$(4) = readglobalstring(5, "Def")
- stat$(5) = readglobalstring(6, "Dog")
- stat$(6) = readglobalstring(29, "Mag")
- stat$(7) = readglobalstring(30, "Wil")
- stat$(8) = readglobalstring(8, "Speed")
- stat$(9) = readglobalstring(7, "Counter")
- stat$(10) = readglobalstring(31, "Focus")
- stat$(11) = readglobalstring(4, "HitX")
+SUB getstatnames(statnames() AS STRING)
+ REDIM statnames(11)
+ statnames(0) = readglobalstring(0, "HP")
+ statnames(1) = readglobalstring(1, "MP")
+ statnames(2) = readglobalstring(2, "Atk")
+ statnames(3) = readglobalstring(3, "Aim")
+ statnames(4) = readglobalstring(5, "Def")
+ statnames(5) = readglobalstring(6, "Dog")
+ statnames(6) = readglobalstring(29, "Mag")
+ statnames(7) = readglobalstring(30, "Wil")
+ statnames(8) = readglobalstring(8, "Speed")
+ statnames(9) = readglobalstring(7, "Counter")
+ statnames(10) = readglobalstring(31, "Focus")
+ statnames(11) = readglobalstring(4, "HitX")
 END SUB

@@ -378,7 +378,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  loaditemdata wbuf(), her.def_weapon
  IF her.def_level < 0 THEN her.def_level = averagelev(stat())
  temp$ = XSTR$(atlevel(her.def_level, her.lev0.hp, her.lev99.hp) + wbuf(54 + 0))
- eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + readglobalstring(0, "HP")
+ eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + statnames(statHP)
  showhero = her.sprite
  
  'Load the sprite for the hireable hero
@@ -1689,7 +1689,7 @@ FOR i = 0 TO 23
   IF stat(pt, 0, 0) = 0 THEN canuse(i) = 0
   spel$(i) = readbadbinstring$(buffer(), 24, 10, 1)
   speld$(i) = readbinstring$(buffer(),73,38)
-  IF mtype(csr) = 0 THEN cost$(i) = cost & " " & readglobalstring(1, "MP") & " " & ABS(stat(pt, 0, 1)) & "/" & ABS(stat(pt, 1, 1))
+  IF mtype(csr) = 0 THEN cost$(i) = cost & " " & statnames(statMP) & " " & ABS(stat(pt, 0, 1)) & "/" & ABS(stat(pt, 1, 1))
   IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) & " " & (INT(i / 3) + 1) & ":  " & lmp(pt, INT(i / 3))
  END IF
  WHILE LEN(spel$(i)) < 10: spel$(i) = spel$(i) + " ": WEND
@@ -1885,7 +1885,7 @@ EXIT SUB
 END SUB
 
 SUB status (pt, stat())
-DIM sno(9), mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
+DIM mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
 DIM her AS HeroDef
 DIM portrait AS GraphicPair
 
@@ -1894,17 +1894,6 @@ DIM level_caption AS STRING = readglobalstring$(43, "Level", 10)
 elemtype$(0) = readglobalstring(127, "Weak to", 10)
 elemtype$(1) = readglobalstring(128, "Strong to", 10)
 elemtype$(2) = readglobalstring(129, "Absorbs", 10)
-
-sno(0) = 2
-sno(1) = 3
-sno(2) = 5
-sno(3) = 6
-sno(4) = 29
-sno(5) = 30
-sno(6) = 8
-sno(7) = 7
-sno(8) = 31
-sno(9) = 4
 
 '--calculate bitsets with equipment
 FOR i = 0 TO 3
@@ -1958,25 +1947,25 @@ DO
   CASE 0
    '--show stats
    FOR i = 0 TO 9
-    edgeprint readglobalstring(sno(i), "Stat"), 20, 62 + i * 10, uilook(uiText), dpage
+    edgeprint statnames(i + 2), 20, 62 + i * 10, uilook(uiText), dpage
     temp$ = XSTR$(stat(pt, 0, i + 2))
     edgeprint temp$, 148 - LEN(temp$) * 8, 62 + i * 10, uilook(uiText), dpage
    NEXT i
 
    'current/max HP
-   edgeprint readglobalstring(0, "HP"), 236 - LEN(readglobalstring(0, "HP")) * 4, 65, uilook(uiText), dpage
+   edgeprint statnames(statHP), 236 - LEN(statnames(statHP)) * 4, 65, uilook(uiText), dpage
    temp$ = STR$(ABS(stat(pt, 0, 0))) + "/" + STR$(ABS(stat(pt, 1, 0)))
    edgeprint temp$, 236 - LEN(temp$) * 4, 75, uilook(uiText), dpage
 
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
-     edgeprint readglobalstring(1, "MP"), 236 - LEN(readglobalstring(1, "MP")) * 4, 95, uilook(uiText), dpage
+     edgeprint statnames(statMP), 236 - LEN(statnames(statMP)) * 4, 95, uilook(uiText), dpage
      temp$ = STR$(ABS(stat(pt, 0, 1))) + "/" + STR$(ABS(stat(pt, 1, 1)))
      edgeprint temp$, 236 - LEN(temp$) * 4, 105, uilook(uiText), dpage
     END IF
     IF mtype(i) = 1 THEN
-     edgeprint level_caption & " " & readglobalstring(1, "MP"), 236 - LEN(level_caption & " " & readglobalstring(1, "MP")) * 4, 125, uilook(uiText), dpage
+     edgeprint level_caption & " " & statnames(statMP), 236 - LEN(level_caption & " " & statnames(statMP)) * 4, 125, uilook(uiText), dpage
      temp$ = ""
      FOR o = 0 TO 3
       temp$ = temp$ + STR$(ABS(lmp(pt, o))) + "/"
@@ -2180,7 +2169,7 @@ END FUNCTION
 SUB equip (who, stat())
 
 '--dim stuff
-DIM sno(11), m$(4), menu$(6)
+DIM m$(4), menu$(6)
 DIM holdscreen = allocatepage
 DIM st AS EquipMenuState
 
@@ -2197,20 +2186,6 @@ FOR i = 0 TO 3
 NEXT i
 menu$(5) = rpad(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
 menu$(6) = rpad(readglobalstring$(40, "-EXIT-", 8), " ", 8)
-
-'--stat name offsets
-sno(0) = 0
-sno(1) = 1
-sno(2) = 2
-sno(3) = 3
-sno(4) = 5
-sno(5) = 6
-sno(6) = 29
-sno(7) = 30
-sno(8) = 8
-sno(9) = 7
-sno(10) = 31
-sno(11) = 4
 
 '--initialize
 WITH st
@@ -2331,7 +2306,7 @@ DO
   stat_caption = ""
   IF st.stat_bonus(i) > 0 THEN stat_caption = stat_caption & "+" & st.stat_bonus(i)
   IF st.stat_bonus(i) < 0 THEN stat_caption = stat_caption & st.stat_bonus(i)
-  edgeprint readglobalstring(sno(i), "Stat") & stat_caption, 20, 42 + i * 10, uilook(uiMenuItem), dpage
+  edgeprint statnames(i) & stat_caption, 20, 42 + i * 10, uilook(uiMenuItem), dpage
   col = uilook(uiMenuItem)
   IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
   IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)

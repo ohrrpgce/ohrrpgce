@@ -3154,6 +3154,7 @@ SUB edit_global_text_strings()
   writeglobalstring j, text(i), maxlen(i)
   j = j + 1 + (maxlen(i) \ 11)
  NEXT i
+ getstatnames statnames()
  clearpage 0
  clearpage 1
 END SUB

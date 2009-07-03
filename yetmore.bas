@@ -1349,6 +1349,8 @@ SELECT CASE AS CONST id
    scriptret = 1
   END IF
  CASE 209'--get global string(str,glo)
+  'This command is basically unusable without a table of constants, it has almost certainly never been used.
+  'Maybe someday it will be replaced - we can't add 'setglobalstring' unless the length is encoded in the offset constant.
   IF bound_plotstr(retvals(0), "get global string") = NO OR retvals(1) < 0 OR retvals(1) > 159 THEN
    scriptret = 0
   ELSE

@@ -108,7 +108,7 @@ DECLARE FUNCTION getsfxname (num AS INTEGER) as string
 DECLARE FUNCTION getheroname (hero_id AS INTEGER) AS STRING
 DECLARE FUNCTION getmenuname(record AS INTEGER) AS STRING
 DECLARE FUNCTION getmapname (m as integer) as string
-DECLARE SUB getstatnames(stat() AS STRING)
+DECLARE SUB getstatnames(statnames() AS STRING)
 
 DECLARE FUNCTION getdisplayname (default as string) as string
 
@@ -199,5 +199,6 @@ EXTERN keyv() as integer
 EXTERN gen() as integer
 EXTERN fmvol as integer
 EXTERN sprite_sizes() AS SpriteSize
+EXTERN statnames() as string
 
 #ENDIF

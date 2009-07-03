@@ -82,6 +82,7 @@ DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40
 DIM eqstuf(40, 4)
 DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3)
 DIM herow(3) as GraphicPair
+DIM statnames() as string
 
 DIM scroll(), pass()
 DIM tilesets(2) as TilesetData ptr
@@ -289,6 +290,7 @@ FOR i = 0 TO 254
  loadset game + ".efs", i, 0
  gam.foe_freq(i) = buffer(0)
 NEXT i
+getstatnames statnames()
 j = 0
 
 nowscript = -1

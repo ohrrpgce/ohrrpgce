@@ -102,6 +102,7 @@ REDIM buffer(16384)
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
 DIM font(1024), joy(4)
+DIM statnames() AS STRING
 DIM menu$(22)
 DIM chooserpg_menu(2) AS STRING
 DIM cleanup_menu(2) AS STRING
@@ -236,6 +237,7 @@ setpal master()
 LoadUIColors uilook(), activepalette
 
 setfont font()
+getstatnames statnames()
 
 menumode = 0
 pt = 0

@@ -109,7 +109,7 @@ atkbit$(56) = "Do not display Damage"
 atkbit$(57) = "Reset target stat to max before hit"
 atkbit$(58) = "Allow Cure to exceed maximum"
 atkbit$(59) = "Useable Outside of Battle"
-atkbit$(60) = "Damage " & readglobalstring(1, "MP") & " (obsolete)"
+atkbit$(60) = "Damage " & statnames(statMP) & " (obsolete)"
 atkbit$(61) = "Do not randomize"
 atkbit$(62) = "Damage can be Zero"
 atkbit$(63) = "Cause heroes to run away"
@@ -254,42 +254,37 @@ addcaption caption$(), capindex, "Set = N% of Current"
 CONST AtkLimAimEq = 6
 max(AtkLimAimEq) = 8
 AtkCapAimEq = capindex
-addcaption caption$(), capindex, "Normal: " & readglobalstring(3, "Acc") & "*4 ~ " & readglobalstring(6, "Dog")
-addcaption caption$(), capindex, "Poor: " & readglobalstring(3, "Acc") & "*2 ~ " & readglobalstring(6, "Dog")
-addcaption caption$(), capindex, "Bad: " & readglobalstring(3, "Acc") & " ~ " & readglobalstring(6, "Dog")
+addcaption caption$(), capindex, "Normal: " & statnames(statAim) & "*4 ~ " & statnames(statDodge)
+addcaption caption$(), capindex, "Poor: " & statnames(statAim) & "*2 ~ " & statnames(statDodge)
+addcaption caption$(), capindex, "Bad: " & statnames(statAim) & " ~ " & statnames(statDodge)
 addcaption caption$(), capindex, "Never Misses"
-addcaption caption$(), capindex, "Magic: " & readglobalstring(29, "Mag") & " ~ " & readglobalstring(30, "Wil") & "*1.25"
-addcaption caption$(), capindex, "Percentage: " & readglobalstring(3, "Acc") & "% * " & readglobalstring(6, "Dog") & "%"
-addcaption caption$(), capindex, "Percentage: " & readglobalstring(3, "Acc") & "%"
-addcaption caption$(), capindex, "Percentage: " & readglobalstring(29, "Mag") & "% * " & readglobalstring(30, "Wil") & "%"
-addcaption caption$(), capindex, "Percentage: " & readglobalstring(29, "Mag") & "%"
+addcaption caption$(), capindex, "Magic: " & statnames(statMagic) & " ~ " & statnames(statWill) & "*1.25"
+addcaption caption$(), capindex, "Percentage: " & statnames(statAim) & "% * " & statnames(statDodge) & "%"
+addcaption caption$(), capindex, "Percentage: " & statnames(statAim) & "%"
+addcaption caption$(), capindex, "Percentage: " & statnames(statMagic) & "% * " & statnames(statWill) & "%"
+addcaption caption$(), capindex, "Percentage: " & statnames(statMagic) & "%"
 
 CONST AtkLimBaseAtk = 7
-max(AtkLimBaseAtk) = 22
+max(AtkLimBaseAtk) = 22 + (UBOUND(statnames) - 11)
 AtkCapBaseAtk = capindex
-addcaption caption$(), capindex, readglobalstring(2, "Str")  'str
-addcaption caption$(), capindex, readglobalstring(29, "Mag")
-addcaption caption$(), capindex, readglobalstring(0, "HP")
-addcaption caption$(), capindex, "Lost " & readglobalstring(0, "HP")
+addcaption caption$(), capindex, statnames(statAtk)
+addcaption caption$(), capindex, statnames(statMagic)
+addcaption caption$(), capindex, statnames(statHP)
+addcaption caption$(), capindex, "Lost " & statnames(statHP)
 addcaption caption$(), capindex, "Random 0 to 999"
 addcaption caption$(), capindex, "100"
-addcaption caption$(), capindex, readglobalstring(0, "HP")
-addcaption caption$(), capindex, readglobalstring(1, "MP")
-addcaption caption$(), capindex, readglobalstring(2, "Atk")
-addcaption caption$(), capindex, readglobalstring(3, "Aim")
-addcaption caption$(), capindex, readglobalstring(5, "Def")
-addcaption caption$(), capindex, readglobalstring(6, "Dog")
-addcaption caption$(), capindex, readglobalstring(29, "Mag")
-addcaption caption$(), capindex, readglobalstring(30, "Wil")
-addcaption caption$(), capindex, readglobalstring(8, "Spd")
-addcaption caption$(), capindex, readglobalstring(7, "Ctr")
-addcaption caption$(), capindex, readglobalstring(31, "Focus")
-addcaption caption$(), capindex, readglobalstring(4, "HitX")
+FOR i = 0 TO 11
+ addcaption caption$(), capindex, statnames(i)
+NEXT
 addcaption caption$(), capindex, "previous attack"
 addcaption caption$(), capindex, "last damage to attacker"
 addcaption caption$(), capindex, "last damage to target"
 addcaption caption$(), capindex, "last cure to attacker"
 addcaption caption$(), capindex, "last cure to target"
+FOR i = 12 TO UBOUND(statnames)
+ addcaption caption$(), capindex, statnames(i)
+NEXT
+
 
 CONST AtkLimExtraDamage = 11
 max(AtkLimExtraDamage) = 1000
@@ -337,24 +332,18 @@ max(AtkLimHitX) = 20
 min(AtkLimHitX) = 1
 
 CONST AtkLimTargStat = 18
-max(AtkLimTargStat) = 15
+max(AtkLimTargStat) = 15 + (UBOUND(statnames) - 11)
 AtkCapTargStat = capindex
-addcaption caption$(), capindex, readglobalstring(0, "HP")
-addcaption caption$(), capindex, readglobalstring(1, "MP")
-addcaption caption$(), capindex, readglobalstring(2, "Atk")
-addcaption caption$(), capindex, readglobalstring(3, "Aim")
-addcaption caption$(), capindex, readglobalstring(5, "Def")
-addcaption caption$(), capindex, readglobalstring(6, "Dog")
-addcaption caption$(), capindex, readglobalstring(29, "Mag")
-addcaption caption$(), capindex, readglobalstring(30, "Wil")
-addcaption caption$(), capindex, readglobalstring(8, "Speed")
-addcaption caption$(), capindex, readglobalstring(7, "Ctr")
-addcaption caption$(), capindex, readglobalstring(31, "Focus")
-addcaption caption$(), capindex, readglobalstring(4, "HitX")
+FOR i = 0 TO 11
+ addcaption caption$(), capindex, statnames(i)
+NEXT
 addcaption caption$(), capindex, "poison register"
 addcaption caption$(), capindex, "regen register"
 addcaption caption$(), capindex, "stun register"
 addcaption caption$(), capindex, "mute register"
+FOR i = 12 TO UBOUND(statnames)
+ addcaption caption$(), capindex, statnames(i)
+NEXT
 
 CONST AtkLimCapTime = 20
 max(AtkLimCapTime) = 16383
@@ -369,21 +358,12 @@ max(AtkLimCaptDelay) = 16383
 min(AtkLimCaptDelay) = 0
 
 CONST AtkLimBaseDef = 22
-max(AtkLimBaseDef) = 12
+max(AtkLimBaseDef) = 1 + UBOUND(statnames)
 AtkCapBaseDef = capindex
 addcaption caption$(), capindex, "Default"
-addcaption caption$(), capindex, readglobalstring(0, "HP")
-addcaption caption$(), capindex, readglobalstring(1, "MP")
-addcaption caption$(), capindex, readglobalstring(2, "Atk")
-addcaption caption$(), capindex, readglobalstring(3, "Aim")
-addcaption caption$(), capindex, readglobalstring(5, "Def")
-addcaption caption$(), capindex, readglobalstring(6, "Dog")
-addcaption caption$(), capindex, readglobalstring(29, "Mag")
-addcaption caption$(), capindex, readglobalstring(30, "Wil")
-addcaption caption$(), capindex, readglobalstring(8, "Speed")
-addcaption caption$(), capindex, readglobalstring(7, "Ctr")
-addcaption caption$(), capindex, readglobalstring(31, "Focus")
-addcaption caption$(), capindex, readglobalstring(4, "HitX")
+FOR i = 0 TO UBOUND(statnames)
+ addcaption caption$(), capindex, statnames(i)
+NEXT
 
 CONST AtkLimTag = 23
 max(AtkLimTag) = 1000
@@ -433,22 +413,17 @@ max(AtkLimPrefTargStat) = 16
 min(AtkLimPrefTargStat) = 0
 AtkCapPrefTargStat = capindex
 addcaption caption$(), capindex, "same as target stat" '0
-addcaption caption$(), capindex, readglobalstring(0, "HP") 'hp  1
-addcaption caption$(), capindex, readglobalstring(1, "MP") 'mp  2
-addcaption caption$(), capindex, readglobalstring(2, "Atk") 'atk 3
-addcaption caption$(), capindex, readglobalstring(3, "Aim") 'aim 4
-addcaption caption$(), capindex, readglobalstring(5, "Def") 'def 5
-addcaption caption$(), capindex, readglobalstring(6, "Dog") 'dog 6
-addcaption caption$(), capindex, readglobalstring(29, "Mag") 'mag  7
-addcaption caption$(), capindex, readglobalstring(30, "Wil") 'wil  8
-addcaption caption$(), capindex, readglobalstring(8, "Spd") 'spd   9
-addcaption caption$(), capindex, readglobalstring(7, "Ctr") 'ctr   10
-addcaption caption$(), capindex, readglobalstring(31, "Focus") 'focus 11
-addcaption caption$(), capindex, readglobalstring(4, "HitX") 'hitX   12
+FOR i = 0 TO 11  '1 - 12
+ addcaption caption$(), capindex, statnames(i)
+NEXT
 addcaption caption$(), capindex, "poison register"'13
 addcaption caption$(), capindex, "regen register" '14 
 addcaption caption$(), capindex, "stun register"  '15
 addcaption caption$(), capindex, "mute register"  '16
+FOR i = 12 TO UBOUND(statnames) '17+
+ addcaption caption$(), capindex, statnames(i)
+NEXT
+
 
 'next limit is 31 (remember to update the dim)
 
@@ -544,13 +519,13 @@ menuoff(AtkBaseAtk) = AtkDatBaseAtk
 menulimits(AtkBaseAtk) = AtkLimBaseAtk
 
 CONST AtkMPCost = 17
-menu$(AtkMPCost) = readglobalstring(1, "MP") & " Cost:"
+menu$(AtkMPCost) = statnames(statMP) & " Cost:"
 menutype(AtkMPCost) = 0
 menuoff(AtkMPCost) = AtkDatMPCost
 menulimits(AtkMPCost) = AtkLimInt
 
 CONST AtkHPCost = 18
-menu$(AtkHPCost) = readglobalstring(0, "HP") & " Cost:"
+menu$(AtkHPCost) = statnames(statHP) & " Cost:"
 menutype(AtkHPCost) = 0
 menuoff(AtkHPCost) = AtkDatHPCost
 menulimits(AtkHPCost) = AtkLimInt

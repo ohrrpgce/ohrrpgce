@@ -138,26 +138,13 @@ END SUB
 
 SUB exportnames ()
 
-DIM u$(1024), stat$(11)
+DIM u$(1024)
 DIM her AS HeroDef
 DIM menu_set AS MenuSet
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 
 max = 32
-
-stat$(0) = readglobalstring(0, "HP")
-stat$(1) = readglobalstring(1, "MP")
-stat$(2) = readglobalstring(2, "Attack")
-stat$(3) = readglobalstring(3, "Aim")
-stat$(4) = readglobalstring(5, "Def")
-stat$(5) = readglobalstring(6, "Dodge")
-stat$(6) = readglobalstring(29, "Magic")
-stat$(7) = readglobalstring(30, "Will")
-stat$(8) = readglobalstring(8, "Speed")
-stat$(9) = readglobalstring(7, "Counter")
-stat$(10) = readglobalstring(31, "Focus")
-stat$(11) = readglobalstring(4, "HitX")
 
 outf$ = trimextension$(gamefile) + ".hsi"
 
@@ -215,8 +202,8 @@ setvispage 0
 
 printstr "stat names", 0, pl * 8, 0: pl = pl + 1
 isunique "", u$(), 1
-FOR i = 0 TO 11
- writeconstant fh, i, stat$(i), u$(), "stat"
+FOR i = 0 TO UBOUND(statnames)
+ writeconstant fh, i, statnames(i), u$(), "stat"
 NEXT i
 
 printstr "slot names", 0, pl * 8, 0: pl = pl + 1

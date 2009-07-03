@@ -1049,8 +1049,6 @@ SUB statcapsmenu
  DIM m$(maxMenu)
  DIM max(maxMenu)
  DIM index(maxMenu)
- DIM stat$(11)
- getstatnames stat$()
  DIM state AS MenuState
  state.last = maxMenu
  state.size = 24
@@ -1086,7 +1084,7 @@ SUB statcapsmenu
    m$(1) = "Damage Cap: "
    IF gen(genDamageCap) = 0 THEN m$(1) += "None" ELSE m$(1) &= gen(genDamageCap)
    FOR i = 0 to 11
-    m$(2 + i) = stat$(i) + " Cap: "
+    m$(2 + i) = statnames(i) + " Cap: "
     IF gen(genStatCap + i) = 0 THEN m$(2 + i) = m$(2 + i) + "None" ELSE m$(2 + i) = m$(2 + i) & gen(genStatCap + i)
    NEXT
   END IF

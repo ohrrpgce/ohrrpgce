@@ -106,6 +106,21 @@ CONST genCantBuySFX = 184       'can't afford item/hire
 CONST genCantSellSFX = 185      'unsellable item
 CONST genScatterTableHead = 199 'old password scattertable head
 
+'---Built in stats
+CONST statHP = 0
+CONST statMP = 1
+CONST statAtk = 2
+CONST statAim = 3
+CONST statDef = 4
+CONST statDodge = 5
+CONST statMagic = 6
+CONST statWill = 7
+CONST statSpeed = 8
+CONST statCtr = 9
+CONST statFocus = 10
+CONST statHitX = 11
+CONST statUser = 12              'Additional user defined stats, if any, start here
+
 '---Format fix bits
 CONST fixAttackitems = 0         'zero out attack data for item cost (ammunition)
 CONST fixWeapPoints  = 1         'add defaults for weapon points
