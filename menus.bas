@@ -34,7 +34,7 @@ DECLARE SUB textage ()
 DECLARE SUB maptile (font%())
 DECLARE FUNCTION filesize$ (file$)
 DECLARE SUB generalscriptsmenu ()
-DECLARE SUB generalsfxmenu ()
+DECLARE SUB generalmusicsfxmenu ()
 DECLARE SUB masterpalettemenu ()
 DECLARE FUNCTION importmasterpal (f$, palnum%)
 DECLARE SUB titlescreenbrowse ()
@@ -284,29 +284,37 @@ DO
 LOOP
 END SUB
 
-SUB generalsfxmenu ()
-  CONST num as integer = 12
-  DIM as string menu(num), snd(num), disp(num)
-  DIM as integer sfxgenoff(1 to num) = {genAcceptSFX, genCancelSFX, genCursorSFX, genTextboxLetter, genDefaultDeathSFX, genItemLearnSFX, genCantLearnSFX, genBuySFX, genHireSFX, genSellSFX, genCantBuySFX, genCantSellSFX}
+SUB generalmusicsfxmenu ()
+  CONST num as integer = 15
+  CONST lastmusicitem as integer = 3
+  DIM as string menu(num), disp(num)
+  DIM as integer index(1 to num) = {genTitleMus, genBatMus, genVictMus, genAcceptSFX, genCancelSFX, genCursorSFX, genTextboxLetter, genDefaultDeathSFX, genItemLearnSFX, genCantLearnSFX, genBuySFX, genHireSFX, genSellSFX, genCantBuySFX, genCantSellSFX}
   DIM as integer menutop
 
   disp(0) = "Previous Menu" 'don't need menu(0)
-  menu(1) = "Accept Sound: "
-  menu(2) = "Cancel Sound: "
-  menu(3) = "Cursor Sound: "
-  menu(4) = "Textbox Line Sound: "
-  menu(5) = "Default Enemy Death: "
-  menu(6) = "Learnt From Item Sound: "
-  menu(7) = "Can't Learn From Item Sound: "
-  menu(8) = "Buy Item Sound: "
-  menu(9) = "Hire Hero Sound: "
-  menu(10) = "Sell Item Sound: "
-  menu(11) = "Can't Buy Sound: "
-  menu(12) = "Can't Sell Sound: "
+  menu(1) = "Title Music: "
+  menu(2) = "Default Battle Music: "
+  menu(3) = "Battle Victory Music: "
+  menu(4) = "Accept Sound: "
+  menu(5) = "Cancel Sound: "
+  menu(6) = "Cursor Sound: "
+  menu(7) = "Textbox Line Sound: "
+  menu(8) = "Default Enemy Death: "
+  menu(9) = "Learnt From Item Sound: "
+  menu(10) = "Can't Learn From Item Sound: "
+  menu(11) = "Buy Item Sound: "
+  menu(12) = "Hire Hero Sound: "
+  menu(13) = "Sell Item Sound: "
+  menu(14) = "Can't Buy Sound: "
+  menu(15) = "Can't Sell Sound: "
 
   FOR i = 1 to num
-    IF gen(sfxgenoff(i)) > 0 THEN
-      disp(i) = menu(i) & (gen(sfxgenoff(i)) - 1) & " " & getsfxname(gen(sfxgenoff(i)) - 1)
+    IF gen(index(i)) > 0 THEN
+      IF i <= lastmusicitem THEN
+        disp(i) = menu(i) & (gen(index(i)) - 1) & " " & getsongname(gen(index(i)) - 1, -1)
+      ELSE
+        disp(i) = menu(i) & (gen(index(i)) - 1) & " " & getsfxname(gen(index(i)) - 1)
+      END IF
     ELSE
       disp(i) = menu(i) & "None"
     END IF
@@ -315,23 +323,28 @@ SUB generalsfxmenu ()
   menusize = num
   setkeys
   DO
-    tog = tog XOR 1
     setwait 55
     setkeys
-    accept = enter_or_space()
-    cancel = keyval(scESC) > 1
 
-    IF cancel THEN EXIT DO
-    IF keyval(scF1) > 1 THEN show_help "general_sfx"
+    IF keyval(scESC) > 1 THEN EXIT DO
+    IF keyval(scF1) > 1 THEN show_help "general_music_sfx"
     usemenu pt, 0, 0, menusize, 24
 
     SELECT CASE AS CONST pt
     CASE 0
-      IF accept THEN EXIT DO
-    CASE 1 TO num
-      IF zintgrabber(gen(sfxgenoff(pt)), -1, gen(genMaxSFX)) THEN
-        IF gen(sfxgenoff(pt)) > 0 THEN
-          disp(pt) = menu(pt) & (gen(sfxgenoff(pt))-1) & " " & getsfxname(gen(sfxgenoff(pt))-1)
+      IF enter_or_space() THEN EXIT DO
+    CASE 1 TO lastmusicitem
+      IF zintgrabber(gen(index(pt)), -1, gen(genMaxSong)) THEN
+        IF gen(index(pt)) > 0 THEN
+          disp(pt) = menu(pt) & (gen(index(pt))-1) & " " & getsongname(gen(index(pt)) - 1, -1)
+        ELSE
+          disp(pt) = menu(pt) & "None"
+        END IF
+      END IF
+    CASE lastmusicitem + 1 TO num
+      IF zintgrabber(gen(index(pt)), -1, gen(genMaxSFX)) THEN
+        IF gen(index(pt)) > 0 THEN
+          disp(pt) = menu(pt) & (gen(index(pt))-1) & " " & getsfxname(gen(index(pt)) - 1)
         ELSE
           disp(pt) = menu(pt) & "None"
         END IF
@@ -1159,22 +1172,19 @@ m$(1) = "Long Name:" + longname$
 IF LEN(longname$) > 30 THEN m$(1) = longname$
 m$(2) = "About Line:" + aboutline$
 IF LEN(aboutline$) > 29 THEN m$(2) = aboutline$
-m$(12) = "Title Music: " & getsongname$(gen(genTitleMus) - 1, -1)
-m$(13) = "Default Battle Music: " & getsongname$(gen(genBatMus) - 1, -1)
-m$(14) = "Battle Victory Music: " & getsongname$(gen(genVictMus) - 1, -1)
-m$(15) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
-m$(16) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
-m$(17) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
-m$(18) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
+m$(12) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
+m$(13) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
+m$(14) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
+m$(15) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
 IF gen(genMaxInventory) = 0 THEN
- m$(19) = "Inventory Slots: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+ m$(16) = "Inventory Slots: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
 ELSE
- m$(19) = "Inventory Slots: 0-" & gen(genMaxInventory) & " (" & (last_inv_slot() \ 3) + 1 & " rows)"
+ m$(16) = "Inventory Slots: " & (last_inv_slot() \ 3) + 1 & " rows, 0-" & gen(genMaxInventory) & " slots"
 END IF
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 19
+ CONST maxMenu = 16
  DIM m$(maxMenu)
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
@@ -1188,9 +1198,11 @@ SUB gendata ()
   .need_update = YES
  END WITH
 
+ 'I think these things are here (and not upgrade) because we don't want to force them on games
  IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
  IF gen(genStun) <= 0 THEN gen(genStun) = 159
  IF gen(genMute) <= 0 THEN gen(genMute) = 163
+ IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
  
  m$(0) = "Return to Main Menu"
  m$(3) = "Preference Bitsets..."
@@ -1198,29 +1210,23 @@ SUB gendata ()
  m$(5) = "New Game Settings..."
  m$(6) = "Special Plotscripts..."
  m$(7) = "Master Palettes..."
- m$(8) = "Special Sound Effects..."
+ m$(8) = "Global Music and Sound Effects..."
  m$(9) = "Stat Caps..."
  m$(10) = "Password For Editing..."
 
  flusharray enabled(), UBOUND(enabled), YES
  enabled(11) = NO
- index(12) = genTitleMus
- max(12) = gen(genMaxSong)
- index(13) = genBatMus
- max(13) = gen(genMaxSong)
- index(14) = genVictMus
- max(14) = gen(genMaxSong)
- index(15) = genPoison
- index(16) = genStun
- index(17) = genMute
- FOR i AS INTEGER = 15 TO 17
+ index(12) = genPoison
+ index(13) = genStun
+ index(14) = genMute
+ FOR i AS INTEGER = 12 TO 14
   min(i) = 32
   max(i) = 255
  NEXT
- index(18) = genEnemyDissolve
- max(18) = 3
- index(19) = genMaxInventory
- max(19) = inventoryMax
+ index(15) = genEnemyDissolve
+ max(15) = 3
+ index(16) = genMaxInventory
+ max(16) = (inventoryMax + 1) \ 3
 
  DIM pas$ = ""
  DIM aboutline$ = ""
@@ -1293,11 +1299,11 @@ SUB gendata ()
    IF state.pt = 5 THEN startingdatamenu
    IF state.pt = 6 THEN generalscriptsmenu
    IF state.pt = 7 THEN masterpalettemenu
-   IF state.pt = 8 THEN generalsfxmenu
+   IF state.pt = 8 THEN generalmusicsfxmenu
    IF state.pt = 9 THEN statcapsmenu
    IF state.pt = 10 THEN inputpasw pas$
 
-   IF state.pt >= 15 AND state.pt <= 17 THEN
+   IF state.pt >= 12 AND state.pt <= 14 THEN
     d$ = charpicker$
     IF d$ <> "" THEN
      gen(index(state.pt)) = ASC(d$)
@@ -1305,12 +1311,17 @@ SUB gendata ()
     END IF
    END IF
   END IF
-  IF state.pt >= 12 AND state.pt <= 14 THEN
-   IF zintgrabber(gen(index(state.pt)), -1, max(state.pt)) THEN state.need_update = YES
-  ELSEIF state.pt = 1 THEN
+  IF state.pt = 1 THEN
    IF strgrabber(longname$, 38) THEN state.need_update = YES
   ELSEIF state.pt = 2 THEN
    IF strgrabber(aboutline$, 38) THEN state.need_update = YES
+  ELSEIF index(state.pt) = genMaxInventory THEN
+   DIM AS INTEGER temp = (gen(genMaxInventory) + 1) \ 3
+   IF intgrabber(temp, min(state.pt), max(state.pt)) THEN
+    gen(genMaxInventory) = temp * 3 - 1
+    IF temp = 0 THEN gen(genMaxInventory) = 0
+    state.need_update = YES
+   END IF
   ELSEIF index(state.pt) THEN
    IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
   END IF
