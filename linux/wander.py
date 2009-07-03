@@ -12,7 +12,7 @@ prefix = "../../games/wander/"
 relump(prefix + "wander.rpgdir", "wander.rpg")
 files = [
   "wander.rpg",
-  prefix + "wanderp.hss",
+  prefix + "wander.hss",
   prefix + "readme-wander.txt"]
 
 executables = []
