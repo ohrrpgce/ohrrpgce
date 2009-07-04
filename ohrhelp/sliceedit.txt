@@ -12,7 +12,7 @@ Once you have added a slice it will be added to the list. You should add several
 
 Press ENTER or SPACE to edit a slice's details.
 
-Hold the SHIFT key and use the arrow keys to reorder the slice in the slice list. Moving it to the top of the list makes it draw first. Moving it to the bottom of the list makes it draw last, over the top oof the other slices.
+Hold the SHIFT key and use the arrow keys to reorder the slice in the slice list. Moving it to the top of the list makes it draw first. Moving it to the bottom of the list makes it draw last, over the top of the other slices.
 
 Hold shift and press the left and right arrow keys to change the parentage of a slice. If a slice is indented that means it is a child of the slice right above it in the menu.
 

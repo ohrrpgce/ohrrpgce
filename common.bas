@@ -403,36 +403,64 @@ IF border >= 0 and border <= 14 THEN
    'Draw edges
    '--Top and bottom edges
    FOR i = x + 8 TO x + w - 24 STEP 16
+    setclip , , , y + h - 1
     sprite_draw .sprite + 2, .pal, i, y - 8, 1, YES, p
+    setclip , y, , 
     sprite_draw .sprite + 13, .pal, i, y + h - 8, 1, YES, p
    NEXT i
    '--Left and right edges
    FOR i = y + 8 TO y + h - 24 STEP 16
+    setclip , , x + w - 1, 
     sprite_draw .sprite + 7, .pal, x - 8, i, 1, YES, p
+    setclip x, , , 
     sprite_draw .sprite + 8, .pal, x + w - 8, i, 1, YES, p
    NEXT i
    'Draw end-pieces
-   IF w > 16 THEN
+   IF w > 26 THEN
     '--Top end pieces
+    setclip , , , y + h - 1
     sprite_draw .sprite + 3, .pal, x + w - 24, y - 8, 1, YES, p
     sprite_draw .sprite + 1, .pal, x + 8, y - 8, 1, YES, p
     '--Bottom end pieces
+    setclip , y, , 
     sprite_draw .sprite + 14, .pal, x + w - 24, y + h - 8, 1, YES, p
     sprite_draw .sprite + 12, .pal, x + 8, y + h - 8, 1, YES, p
+   ELSEIF w > 16 THEN
+    '--Not enough space for the end pieces, have to draw part of the edge after all
+    '--Top and bottom edges
+    setclip x + 8, , x + w - 9, y + h - 1
+    sprite_draw .sprite + 2, .pal, x + 8, y - 8, 1, YES, p
+    setclip x + 8, y, x + w - 9, 
+    sprite_draw .sprite + 13, .pal, x + 8, y + h - 8, 1, YES, p
    END IF
-   IF h > 16 THEN
+   IF h > 26 THEN
     '--Left side end pieces
+    setclip , , x + w - 1, 
     sprite_draw .sprite + 9, .pal, x - 8, y + h - 24, 1, YES, p
     sprite_draw .sprite + 5, .pal, x - 8, y + 8, 1, YES, p
     '--Right side end pieces
+    setclip x, , , 
     sprite_draw .sprite + 10, .pal, x + w - 8, y + h - 24, 1, YES, p
     sprite_draw .sprite + 6, .pal, x + w - 8, y + 8, 1, YES, p
+   ELSEIF h > 16 THEN
+    '--Not enough space for the end pieces, have to draw part of the edge after all
+    '--Left and right edges
+    setclip , y + 8, x + w - 1, y + h - 9
+    sprite_draw .sprite + 7, .pal, x - 8, y + 8, 1, YES, p
+    setclip x, y + 8, , y + h - 9
+    sprite_draw .sprite + 8, .pal, x + w - 8, y + 8, 1, YES, p
    END IF
    'Draw corners
+   'If the box is really tiny, we need to only draw part of each corner
+   setclip , , x + w - 1, y + h - 1
    sprite_draw .sprite, .pal, x - 8, y - 8, 1, YES, p
+   setclip x, , , y + h - 1
    sprite_draw .sprite + 4, .pal, x + w - 8, y - 8, 1, YES, p
+   setclip , y, x + w - 1,
    sprite_draw .sprite + 11, .pal, x - 8, y + h - 8, 1, YES, p
+   setclip x, y, , 
    sprite_draw .sprite + 15, .pal, x + w - 8, y + h - 8, 1, YES, p
+   setclip
   END IF
  END WITH
 END IF

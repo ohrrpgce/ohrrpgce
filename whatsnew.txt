@@ -70,6 +70,8 @@ WHAT IS NEW?
     * Using Ctrl+R in the tilemap editor could corrupt memory [Ralph]
     * The tilemap editor fill tool, Ctrl+P, would overflow and crash
       when filling huge areas [Ralph]
+    * Fixed box borders being drawn wrong for small boxes, and resized
+      boxes throughout the builtin menus to accommodate borders [Ralph] 
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
