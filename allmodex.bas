@@ -1128,11 +1128,8 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 	end if
 
 	'clip
-	if x + w > clipr then w = (clipr - x) + 1
-	if y + h > clipb then h = (clipb - y) + 1
-	if x < clipl then w = w - ABS(x - clipl) : x = clipl + 1
-	if y < clipt then h = h - ABS(y - clipt) : y = clipt + 1
-	'repeat w/h clipping because x,y might have just changed 
+	if x < clipl then w = w - (clipl - x) : x = clipl
+	if y < clipt then h = h - (clipt - y) : y = clipt
 	if x + w > clipr then w = (clipr - x) + 1
 	if y + h > clipb then h = (clipb - y) + 1
 
