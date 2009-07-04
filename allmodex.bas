@@ -1016,13 +1016,7 @@ SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL 
 		wrkpage = p
 	end if
 
-	'wrap if x is too high
-	if x >= 320 then
-		y = y + (x \ 320)
-		x = x mod 320
-	end if
-
-	if y >= 200 or y < 0 or x < 0 then
+	if x >= 320 or y >= 200 or y < 0 or x < 0 then
 		'debug "attempt to putpixel off-screen " & x & "," & y & "=" & c & " on page " & p
 		exit sub
 	end if
