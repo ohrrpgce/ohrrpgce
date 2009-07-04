@@ -381,6 +381,7 @@ IF fuzzy THEN
 ELSE
  rectangle x, y, w, h, col, p
 END IF
+IF border = -2 THEN EXIT SUB
 '--Simple line border
 'Top edge
 rectangle x, y, w, 1, bordercol, p

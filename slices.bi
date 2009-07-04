@@ -184,7 +184,7 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval style as integer=-2,_
                       byval bgcol as integer=-1,_
                       byval fgcol as integer=-1,_
-                      byval border as integer=-1,_
+                      byval border as integer=-3,_
                       byval translucent as integer=-2)
 
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr

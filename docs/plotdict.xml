@@ -2801,7 +2801,7 @@ end
 		<command id="getrectstyle">
 			<canon>get rect style (handle)</canon>
 			<shortname>get rect style</shortname>
-			<description>Given a rect slice <p>handle</p>, return the style it is using. This will be a number from 0 to 14 representing a text box style, or a -1 if the rect is not using a standard style</description>
+			<description>Given a rect slice <p>handle</p>, return the style it is using. This will be a number from 0 to 14 representing a text box style, or a -1 if the rect is not using a standard style.</description>
 			<seealso>
 				<ref>setrectstyle</ref>
 			</seealso>
@@ -2853,7 +2853,7 @@ end
 		<command id="getrectborder">
 			<canon>get rect border (handle)</canon>
 			<shortname>get rect border</shortname>
-			<description>Given a rect slice <p>handle</p>, return the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or -1 if there is no graphical border.</description>
+			<description>Given a rect slice <p>handle</p>, return the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or <p>border:line</p> for the old simple line border only, or <p>border:none</p> for no border at all.</description>
 			<seealso>
 				<ref>setrectborder</ref>
 			</seealso>
@@ -2861,7 +2861,7 @@ end
 		<command id="setrectborder">
 			<canon>set rect border (handle, border)</canon>
 			<shortname>set rect border</shortname>
-			<description>Given a rect slice <p>handle</p>, change the graphical border it uses. The <p>border</p> should be a number from 0 to 14 representing a text box border style, or -1 if there should be no graphical border.</description>
+			<description>Given a rect slice <p>handle</p>, change the graphical border it uses. The <p>border</p> should be a number from 0 to 14 representing a text box border style, or <p>border:line</p> for the old simple line border only, or <p>border:none</p> for no border at all.</description>
 			<seealso>
 				<ref>getrectborder</ref>
 			</seealso>

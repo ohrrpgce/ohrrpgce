@@ -486,7 +486,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
   UpdateRectangleSliceStyle dat
  end if
 
- edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol , dat->fgcol, p, dat->translucent, dat->border
+ edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol ,dat->fgcol, p, dat->translucent, dat->border
 end sub
 
 Sub SaveRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
@@ -548,7 +548,7 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval style as integer=-2,_
                       byval bgcol as integer=-1,_
                       byval fgcol as integer=-1,_
-                      byval border as integer=-2,_
+                      byval border as integer=-3,_
                       byval translucent as integer=-2)
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
  if sl->SliceType <> slRectangle then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle" : exit sub
@@ -564,7 +564,7 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
    .style = -1
    .style_loaded = NO
   end if
-  if border > -2 then
+  if border > -3 then
    .border = border
    .style = -1
    .style_loaded = NO

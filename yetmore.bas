@@ -1973,7 +1973,7 @@ SELECT CASE AS CONST id
    scriptret = dat->bgcol
   END IF
  CASE 379 '--set rect bgcol
-  IF bound_arg(retvals(1), 0, 255, "get rect bgcol", "bgcol") THEN
+  IF bound_arg(retvals(1), 0, 255, "set rect bgcol", "bgcol") THEN
    change_rect_plotslice retvals(0), ,retvals(1)
   END IF
  CASE 380 '--get rect border
@@ -1983,7 +1983,7 @@ SELECT CASE AS CONST id
    scriptret = dat->border
   END IF
  CASE 381 '--set rect border
-  IF bound_arg(retvals(1), -1, 14, "get rect border", "border") THEN
+  IF bound_arg(retvals(1), -2, 14, "set rect border", "border") THEN
    change_rect_plotslice retvals(0), , , ,retvals(1)
   END IF
  CASE 382 '--get rect trans
@@ -3756,7 +3756,7 @@ SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER
  END WITH
 END SUB
 
-SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BYVAL bgcol AS INTEGER=-1, BYVAL fgcol AS INTEGER=-1, BYVAL border AS INTEGER=-2, BYVAL translucent AS INTEGER=-2)
+SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BYVAL bgcol AS INTEGER=-1, BYVAL fgcol AS INTEGER=-1, BYVAL border AS INTEGER=-3, BYVAL translucent AS INTEGER=-2)
  IF valid_plotslice(handle, "change_rect_plotslice") THEN
   DIM sl AS Slice Ptr
   sl = plotslices(handle)
