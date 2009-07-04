@@ -51,10 +51,9 @@ sub smoothzoomblit_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval 
 
 	if smooth = 1 and (zoom = 2 or zoom = 3) then
 		if zoom = 3 then pstep = 1 else pstep = 2
-		sptr = dptr
 		dim as ubyte ptr sptr1, sptr2, sptr3
 		for fy = 1 to (high - 2) step pstep
-			sptr1 = sptr + 1  '(1,0)
+			sptr1 = dptr + wide * (fy - 1) + 1  '(1,0)
 			sptr2 = sptr1 + wide '(1,1)
 			sptr3 = sptr2 + wide '(1,2)
 			for fx = (wide - 2) to 1 step -1
@@ -75,7 +74,6 @@ sub smoothzoomblit_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval 
 				sptr2 += 1
 				sptr3 += 1
 			next
-			sptr += wide
 		next
 	end if
 
@@ -116,10 +114,9 @@ sub smoothzoomblit_32bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval
 		'efficient way to write this code as a function that would accept both ubyte ptr and integer ptr
 		'added for 2x/3x filtering
 		if zoom = 3 then pstep = 1 else pstep = 2
-		sptr = cast(integer ptr, dptr)
 		dim as integer ptr sptr1, sptr2, sptr3
 		for fy = 1 to (high - 2) step pstep
-			sptr1 = sptr + 1  '(1,0)
+			sptr1 = cast(integer ptr, dptr) + wide * (fy - 1) + 1  '(1,0)
 			sptr2 = sptr1 + wide '(1,1)
 			sptr3 = sptr2 + wide '(1,2)
 			for fx = (wide - 2) to 1 step -1
@@ -140,7 +137,6 @@ sub smoothzoomblit_32bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval
 				sptr2 += 1
 				sptr3 += 1
 			next
-			sptr += wide
 		next
 	end if
 end sub
