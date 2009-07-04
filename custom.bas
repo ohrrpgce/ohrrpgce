@@ -281,7 +281,7 @@ DO:
     IF pt = 7 THEN shopdata
     IF pt = 8 THEN formation
     IF pt = 9 THEN textage
-    if pt = 10 then menu_editor
+    if pt = 10 THEN menu_editor
     IF pt = 11 THEN vehicles
     IF pt = 12 THEN tagnames
     IF pt = 13 THEN importsong
@@ -304,7 +304,7 @@ DO:
     IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, 1, enemy_frame_captions(), 2, 3, font()
     IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, 2, attack_frame_captions(), 2, 6, font()
     IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, 5, weapon_frame_captions(), 4, 5, font()
-    IF pt = 19 THEN
+    IF pt = 9 THEN
      sprite 16, 16, gen(genMaxBoxBorder), 16, 7, 8, box_border_captions(), 4, 7, font()
      clear_box_border_cache
     END IF
