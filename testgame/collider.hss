@@ -6,6 +6,7 @@ global variable(3, test layer)
 global variable(4, dragging)
 global variable(5, drag x off)
 global variable(6, drag y off)
+global variable(7, info layer)
 
 plotscript, collision tester, begin
   suspend player
@@ -54,6 +55,7 @@ script, update rects, begin
   variable(sl, hit)
   hit := false
   sl := first child(test layer)
+  #these do not look at descendants
   while(sl) do(
     if(dragging) then(
       if(sl <> dragging) then(
@@ -69,21 +71,66 @@ script, update rects, begin
   )else(
     $0="no"
   )
+
+  free slice children(info layer)
+  variable(i, numeral)
+  i := 0
+
+  #these tests do look at descendants (but not of dragging)
+  if(dragging) then(
+    $1=""
+    while(sl := find colliding slice(test layer, dragging, i)) do(
+      numeral := create text
+      $31=""
+      append number(31, i)
+      set slice text(numeral, 31)
+      set parent(numeral, info layer)
+      set slice x(numeral, slice screen x(sl) -- 4)
+      set slice y(numeral, slice screen y(sl) -- 4)
+      i += 1
+    )
+  )else(
+    $1=""
+    append number(1, slice at pixel(test layer, slice screen x(mouse), slice screen y(mouse), get count))
+    $1+" slices under the mouse"
+    while(sl := slice at pixel(test layer, slice screen x(mouse), slice screen y(mouse), i)) do(
+      numeral := create text
+      $31=""
+      append number(31, i)
+      set slice text(numeral, 31)
+      set parent(numeral, info layer)
+      set slice x(numeral, slice screen x(sl) -- 4)
+      set slice y(numeral, slice screen y(sl) -- 4)
+      i += 1
+    )
+
+  )
 end
 
 script, create test slices, begin
-  variable(i, sl)
+  variable(i, j, sl, ch)
   test layer := create container(320, 200)
   for(i,0,9) do(
     sl := create rect(random(32, 80), random(32, 80), random(0, 14))
     set parent(sl, test layer)
     set rect border(sl, -1)
-    realign slice(sl, edge:left, edge:top, edge:center, edge:bottom)
+    realign slice(sl, edge:center, edge:center, edge:center, edge:center)
     set slice screen x(sl, random(0,319))
     set slice screen y(sl, random(0,200))
     clamp slice(sl, test layer)
+    for(j, 1, random(0,1) * random(0,2)) do(
+      ch := create rect(random(10, 40), random(10, 40), random(0, 14))
+      set parent(ch, sl)
+      set rect border(ch, -1)
+      set slice x(ch, random(-30,30))
+      set slice y(ch, random(-30,30))
+      set horiz anchor(ch, edge:center)
+      set vert anchor(ch, edge:center)
+    )
   )
   y sort children(test layer)
+
+  info layer := create container(320, 200)
 end
 
 script, create mouse cursor, begin
@@ -100,7 +147,8 @@ script, create mouse cursor, begin
   set parent(sl, mouse)
   set rect border(sl, -1)
   center slice(sl)
-  show string at(0, 0, 190)
+  show string at(0, 0, 180)
+  show string at(1, 0, 190)
 end
 
 script, update dragging, begin

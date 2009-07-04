@@ -1151,6 +1151,20 @@ Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
  END SELECT
 End Function
 
+Sub LocalRefreshSliceScreenPos(byval s as slice ptr, byval attach as slice ptr)
+ with *s
+  if .Fill then
+   .ScreenX = attach->ScreenX + attach->paddingLeft
+   .ScreenY = attach->ScreenY + attach->paddingTop
+   .Width = attach->Width - attach->paddingLeft - attach->paddingRight
+   .height = attach->Height - attach->paddingTop - attach->paddingBottom
+  else ' Not fill
+   .ScreenX = .X + SliceXAlign(s, attach) - SliceXAnchor(s)
+   .ScreenY = .Y + SliceYAlign(s, attach) - SliceYAnchor(s)
+  end if
+ end with
+end sub
+
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  'first, draw this slice
  if s->Visible then
@@ -1158,15 +1172,7 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
   DIM attach AS Slice Ptr
   attach = GetSliceDrawAttachParent(s)
   with *s
-   IF .Fill then
-    .ScreenX = attach->ScreenX + attach->paddingLeft
-    .ScreenY = attach->ScreenY + attach->paddingTop
-    .Width = attach->Width - attach->paddingLeft - attach->paddingRight
-    .height = attach->Height - attach->paddingTop - attach->paddingBottom
-   ELSE ' Not fill
-    .ScreenX = .X + SliceXAlign(s, attach) - SliceXAnchor(s)
-    .ScreenY = .Y + SliceYAlign(s, attach) - SliceYAnchor(s)
-   END IF
+   LocalRefreshSliceScreenPos s, attach
    
    if .Draw <> 0 THEN .Draw(s, page)
    'draw its children
@@ -1189,37 +1195,22 @@ Sub RefreshSliceScreenPos(byval s as slice ptr)
  if attach = 0 then exit sub
  if attach = ScreenSlice then exit sub
  RefreshSliceScreenPos attach
- with *s
-  if .Fill then
-   .ScreenX = attach->ScreenX + attach->paddingLeft
-   .ScreenY = attach->ScreenY + attach->paddingTop
-   .Width = attach->Width - attach->paddingLeft - attach->paddingRight
-   .height = attach->Height - attach->paddingTop - attach->paddingBottom
-  else ' Not fill
-   .ScreenX = .X + SliceXAlign(s, attach) - SliceXAnchor(s)
-   .ScreenY = .Y + SliceYAlign(s, attach) - SliceYAnchor(s)
-  end if
- end with
+ LocalRefreshSliceScreenPos s, attach
 end sub
 
 Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
  'Check for a screen-position collision between slice 1 and slice 2 (regardless of parentage)
+ 'Note RefreshSliceScreenPos not called here
  if sl1 = 0 or sl2 = 0 then return 0
- RefreshSliceScreenPos(sl1)
- RefreshSliceScreenPos(sl2)
- '--Check all corners of sl2 against sl1
- if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY) then return YES
- if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width, sl2->ScreenY + sl2->Height) then return YES
- if SliceCollidePoint(sl1, sl2->ScreenX + sl2->Width, sl2->ScreenY) then return YES
- if SliceCollidePoint(sl1, sl2->ScreenX, sl2->ScreenY + sl2->Height) then return YES
- '--no corners collide, check if sl1 is completely inside sl2
- if SliceCollidePoint(sl2, sl1->ScreenX, sl1->ScreenY) then return YES
- if SliceCollidePoint(sl2, sl1->ScreenX + sl1->Width, sl1->ScreenY + sl1->Height) then return YES
- return NO
+ 'AABB collision test
+ if sl1->Width + sl2->Width <= abs(2 * sl1->ScreenX + sl1->Width - 2 * sl2->ScreenX - sl2->Width) then return NO
+ if sl1->Height + sl2->Height <= abs(2 * sl1->ScreenY + sl1->Height - 2 * sl2->ScreenY - sl2->Height) then return NO
+ return YES
 end function
 
 Function SliceCollidePoint(byval sl as Slice Ptr, byval x as integer, byval y as integer) as integer
  'Check if a point collides with a slice's screen position
+ 'Note RefreshSliceScreenPos not called here
  if sl = 0 then return 0
  if x >= sl->ScreenX and x < sl->ScreenX + sl->Width then
   if y >= sl->ScreenY and y < sl->ScreenY + sl->Height then
@@ -1245,6 +1236,54 @@ Function SliceContains(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr) as intege
   end if
  end if
  return NO
+end function
+
+Function FindSliceCollision(byval parent as Slice Ptr, byval sl as Slice Ptr, byref num as integer, byval descend as integer) as Slice Ptr
+ 'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
+ DIM as Slice Ptr s, temp
+ s = parent->FirstChild
+ while s
+  if s <> sl then
+   with *s
+    LocalRefreshSliceScreenPos s, parent
+ 
+    if .SliceType <> slSpecial and SliceCollide(s, sl) then  '--impossible to encounter the root
+     if num = 0 then return s
+     num -= 1
+    end if
+ 
+    if descend then
+     temp = FindSliceCollision(s, sl, num, YES)
+     if temp then return temp
+    end if
+   end with
+  end if
+  s = s->NextSibling
+ wend
+ return NULL
+end function
+
+Function FindSliceAtPoint(byval parent as Slice Ptr, byval x as integer, byval y as integer, byref num as integer, byval descend as integer) as Slice Ptr
+ 'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
+ DIM as Slice Ptr s, temp
+ s = parent->FirstChild
+ while s
+  with *s
+   LocalRefreshSliceScreenPos s, parent
+
+   if .SliceType <> slSpecial and SliceCollidePoint(s, x, y) then  '--impossible to encounter the root
+    if num = 0 then return s
+    num -= 1
+   end if
+
+   if descend then
+    temp = FindSliceAtPoint(s, x, y, num, YES)
+    if temp then return temp
+   end if
+  end with
+  s = s->NextSibling
+ wend
+ return NULL
 end function
 
 Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)

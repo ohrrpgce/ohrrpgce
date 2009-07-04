@@ -2024,7 +2024,7 @@ end</example>
 		<command id="freesprite">
 			<canon>free sprite (handle)</canon>
 			<shortname>free sprite</shortname>
-			<description>Unloads a sprite loaded by any of the "load x sprite" functions. This removes the sprite from the screen and removes it from memory. It is a good idea to free sprites when you are completely done with them. Unlike <ref>freeslice</ref>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are.</description>
+			<description>Unloads a sprite loaded by any of the "load x sprite" functions. This removes the sprite from the screen and removes it from memory. It is a good idea to free sprites when you are completely done with them. Unlike <ref>freeslice</ref>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are. The only purpose of this command is additional error checking.</description>
 			<seealso>
 				<ref>freeslice</ref>
 				<ref>loadherosprite</ref>
@@ -2108,7 +2108,7 @@ end</example>
 		<command id="spritelayer">
 			<canon>sprite layer</canon>
 			<shortname>sprite layer</shortname>
-			<description>Returns a slice handle for the layer which contains sprites created with commands such as <ref>loadherosprite</ref>, <ref>loadwalkaboutsprite</ref> and others. You can use this together with <ref>firstchild</ref> if you want to loop through all your sprites without knowing their handles.</description>
+			<description>Returns a slice handle for the layer which contains slices created with commands such as <ref>loadherosprite</ref>, <ref>createrect</ref> and others. You can use this together with <ref>firstchild</ref> if you want to loop through all your slices without knowing their handles. This is the default parent of all new slices.</description>
 			<example>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin
@@ -2402,7 +2402,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="freeslice">
 			<canon>free slice (handle)</canon>
 			<shortname>free slice</shortname>
-			<description>Unloads a slice and any child slices. This works on any type of slice. This removes the slice from the screen and removes it from memory. You should free your slices after you are completely done with them. If you know the type of slice you are deleting, you can use type-specific freeing commands like <ref>freesprite</ref> instead.</description>
+			<description>Unloads a slice and any child slices. This works on any type of slice. This removes the slice from the screen and removes it from memory. You should free your slices after you are completely done with them.</description>
 			<example>
 script, simple example, begin
   variable(sl)
@@ -2445,7 +2445,8 @@ script, wrong way to free in a loop, begin
     sl := next sibling(sl)
   end
 end
-	script, right way to free in a loop, begin
+
+script, right way to free in a loop, begin
   # this loop is the right way to remove all sprites that show frame number 1
   # by waiting until AFTER the "next sibling" command, we can free the slice
   # without ending the loop early
@@ -2463,6 +2464,15 @@ end
 </example>
 			<seealso>
 				<ref>freesprite</ref>
+				<ref>freeslicechildren</ref>
+			</seealso>
+		</command>
+		<command id="freeslicechildren">
+			<canon>free slice children (handle)</canon>
+			<shortname>free slice children</shortname>
+			<description>Frees all the children of a slice, but not the slice itself. See <ref>freeslice</ref> for more details.</description>
+			<seealso>
+				<ref>freeslice</ref>
 			</seealso>
 		</command>
 		<command id="firstchild">
@@ -2976,6 +2986,24 @@ end
 			<shortname>slice contains</shortname>
 			<description>Return true if the screen position of slice <p>handle2</p> is completely inside slice <p>handle1</p>. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.</description>
 			<seealso>
+				<ref>slicecollide</ref>
+			</seealso>
+		</command>
+		<command id="sliceatpixel">
+			<canon>slice at pixel (parent, x, y, number, check descendants)</canon>
+			<shortname>slice at pixel</shortname>
+			<description>Searches through all the descendants of <p>parent</p> for slices containing the given <p>x</p>, <p>y</p> pixel screen position. To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>. <p>number</p> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if you pass too high a <p>number</p>. If you pass <ref>getcount</ref> as <p>number</p> the number of slices at that pixel is returned instead. <p>check descendants</p> is an optional argument defaulting to true. If false, then only <p>parent</p>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice.</description>
+			<seealso>
+				<ref>slicecollidepoint</ref>
+				<ref>findcollidingslice</ref>
+			</seealso>
+		</command>
+		<command id="findcollidingslice">
+			<canon>find colliding slice (parent, slice, number, check descendants)</canon>
+			<shortname>find colliding slice</shortname>
+			<description>Searches through all the descendants of <p>parent</p> for slices colliding with the given <p>slice</p> (by screen position). To search all your slices, you can normally use <ref>spritelayer</ref> as <p>parent</p>. <p>number</p> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if you pass too high a <p>number</p>. If you pass <ref>getcount</ref> as <p>number</p> the number of slices at that pixel is returned instead. <p>check descendants</p> is an optional argument defaulting to true. If false, then only <p>parent</p>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice, and ignores collisions with the children of <p>slice</p>.</description>
+			<seealso>
+				<ref>sliceatpixel</ref>
 				<ref>slicecollide</ref>
 			</seealso>
 		</command>
@@ -4668,7 +4696,7 @@ end</example>
 		<command id="getcount">
 			<canon>get count</canon>
 			<shortname>get count</shortname>
-			<description>When passed to <ref>npcatpixel</ref> or <ref>npcatspot</ref>, they return the number of NPCs at that spot. With <ref>spellslearnt</ref> returns the number of spells a hero learnt. With <ref>findenemyinformation</ref>, returns the number of enemies, or the number of some kind of enemy in the formation.</description>
+			<description>When passed to <ref>npcatpixel</ref>, <ref>npcatspot</ref>, <ref>sliceatpixel</ref> or <ref>childsliceatpixel</ref> they return the number of NPCs or slices at that spot. With <ref>spellslearnt</ref> returns the number of spells a hero learnt. With <ref>findenemyinformation</ref>, returns the number of enemies, or the number of some kind of enemy in the formation.</description>
 		</command>
 		<command id="tileconstants">
 			<canon>Tile Constants</canon>

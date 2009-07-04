@@ -2004,6 +2004,8 @@ SELECT CASE AS CONST id
  CASE 385 '--slice collide
   IF valid_plotslice(retvals(0), "slice collide") THEN
    IF valid_plotslice(retvals(1), "slice collide") THEN
+    RefreshSliceScreenPos plotslices(retvals(0))
+    RefreshSliceScreenPos plotslices(retvals(1))
     scriptret = ABS(SliceCollide(plotslices(retvals(0)), plotslices(retvals(1))))
    END IF
   END IF
@@ -2249,7 +2251,29 @@ SELECT CASE AS CONST id
   IF valid_plottextslice(retvals(0), "set outline") THEN
    ChangeTextSlice plotslices(retvals(0)), , ,(retvals(1)<>0)
   END IF
-  
+ CASE 433'--slice at pixel(parent, x, y, num, descend)
+  IF valid_plotslice(retvals(0), "slice at pixel") THEN
+   RefreshSliceScreenPos plotslices(retvals(0))
+   IF retvals(3) <= -1 THEN
+    temp = -1
+    FindSliceAtPoint(plotslices(retvals(0)), retvals(1), retvals(2), temp, retvals(4))
+    scriptret = -temp - 1
+   ELSE
+    scriptret = find_plotslice_handle(FindSliceAtPoint(plotslices(retvals(0)), retvals(1), retvals(2), retvals(3), retvals(4)))
+   END IF
+  END IF
+ CASE 434'--find colliding slice(parent, handle, num, descend)
+  IF valid_plotslice(retvals(0), "find colliding slice") AND valid_plotslice(retvals(1), "find colliding slice") THEN
+   RefreshSliceScreenPos plotslices(retvals(0))
+   RefreshSliceScreenPos plotslices(retvals(1))
+   IF retvals(2) <= -1 THEN
+    temp = -1
+    FindSliceCollision(plotslices(retvals(0)), plotslices(retvals(1)), temp, retvals(3))
+    scriptret = -temp - 1
+   ELSE
+    scriptret = find_plotslice_handle(FindSliceCollision(plotslices(retvals(0)), plotslices(retvals(1)), retvals(2), retvals(3)))
+   END IF
+  END IF
 END SELECT
 
 EXIT SUB

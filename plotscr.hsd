@@ -439,6 +439,8 @@ define function, begin
 430,getoutline,1,0            #return true if text uses outline
 431,setoutline,2,0,1          #change text's outline mode
 432,usemenuitem,1,0           #given a menu item handle, activate it
+433,sliceatpixel,5,0,0,0,0,1  #find descendant or child slices containing a screen position
+434,findcollidingslice,4,0,0,0,1 #find descendant or child slices colliding with a slice
 end
 
 #--------------------------------------------------------------------------
@@ -1177,6 +1179,16 @@ script, next rect sibling, sib, begin
   if(sl==0) then(exit returning(0))
   if(slice is rect(sl)) then(exit returning(sl))
   exit returning(next rect sibling(sl))
+end
+
+script, free slice children, parent, begin
+  variable(sl, next)
+  sl := first child(parent)
+  while(sl) do(
+    next := next sibling(sl)
+    free slice(sl)
+    sl := next
+  )
 end
 
 script, realign slice, sl, halign, valign, hanchor=-1, vanchor=-1, begin
