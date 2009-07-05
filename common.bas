@@ -1090,6 +1090,11 @@ FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRIN
  RETURN STR(n)
 END FUNCTION
 
+FUNCTION caption_or_int (n AS INTEGER, captions() AS STRING) AS STRING
+ IF n >= LBOUND(captions) AND n <= UBOUND(captions) THEN RETURN captions(n)
+ RETURN STR(n)
+END FUNCTION
+
 SUB poke8bit (array16(), index, val8)
  IF val8 <> (val8 AND &hFF) THEN
    debug "Warning: " & val8 & " is not an 8-bit number. Discarding bits: " & (val8 XOR &hFF)

@@ -79,12 +79,15 @@ DECLARE SUB sliceed_rule_none(rules() AS EditRule, BYVAL group AS INTEGER = 0)
 
 DIM SHARED HorizCaptions(2) AS STRING
 DIM SHARED VertCaptions(2) AS STRING
+DIM SHARED BorderCaptions(-2 TO -1) AS STRING
 HorizCaptions(0) = "Left"
 HorizCaptions(1) = "Center"
 HorizCaptions(2) = "Right"
 VertCaptions(0) = "Top"
 VertCaptions(1) = "Center"
 VertCaptions(2) = "Bottom"
+BorderCaptions(-2) = "None"
+BorderCaptions(-1) = "Line"
 
 '==============================================================================
 
@@ -404,8 +407,8 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule rules(), erIntgrabber, @(dat->bgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     str_array_append menu(), "Foreground color: " & defaultint(dat->fgcol)
     sliceed_rule rules(), erIntgrabber, @(dat->fgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
-    str_array_append menu(), "Border: " & defaultint(dat->border, "Plain")
-    sliceed_rule rules(), erIntgrabber, @(dat->border), -1, 14, slgrUPDATERECTCOL 
+    str_array_append menu(), "Border: " & caption_or_int(dat->border, BorderCaptions())
+    sliceed_rule rules(), erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
     str_array_append menu(), "Translucent: " & yesorno(dat->translucent)
     sliceed_rule_tog rules(), @(dat->translucent)
    CASE slText

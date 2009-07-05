@@ -71,6 +71,7 @@ DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integ
 DECLARE SUB fatalerror (e as string)
 DECLARE FUNCTION xstring (s as string, x as integer) as integer
 DECLARE FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRING
+DECLARE FUNCTION caption_or_int (n AS INTEGER, captions() AS STRING) AS STRING
 DECLARE SUB poke8bit (array16() as integer, index as integer, val8 as integer)
 DECLARE FUNCTION peek8bit (array16() as integer, index as integer) as integer
 
