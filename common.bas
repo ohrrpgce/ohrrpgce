@@ -386,13 +386,13 @@ IF border = -2 THEN EXIT SUB
 'Top edge
 rectangle x, y, w, 1, bordercol, p
 'Bottom edge
-IF h > 0 THEN
+IF h > 1 THEN
  rectangle x, y + h - 1, w, 1, bordercol, p
 END IF
 'Left Edge
 rectangle x, y, 1, h, bordercol, p
 'Right Edge
-IF w > 0 THEN
+IF w > 1 THEN
  rectangle x + w - 1, y, 1, h, bordercol, p
 END IF
 IF border >= 0 and border <= 14 THEN
