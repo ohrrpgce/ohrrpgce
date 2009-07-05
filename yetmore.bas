@@ -2274,6 +2274,14 @@ SELECT CASE AS CONST id
     scriptret = find_plotslice_handle(FindSliceCollision(plotslices(retvals(0)), plotslices(retvals(1)), retvals(2), retvals(3)))
    END IF
   END IF
+ CASE 435'--parent slice
+  IF valid_plotslice(retvals(0), "parent slice") THEN
+   scriptret = find_plotslice_handle(plotslices(retvals(0))->Parent)
+  END IF
+ CASE 436'--child count
+  IF valid_plotslice(retvals(0), "child count") THEN
+   scriptret = plotslices(retvals(0))->NumChildren
+  END IF
 END SELECT
 
 EXIT SUB

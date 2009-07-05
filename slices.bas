@@ -486,7 +486,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
   UpdateRectangleSliceStyle dat
  end if
 
- edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol ,dat->fgcol, p, dat->translucent, dat->border
+ edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol, dat->fgcol, p, dat->translucent, dat->border
 end sub
 
 Sub SaveRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)

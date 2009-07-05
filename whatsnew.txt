@@ -93,11 +93,11 @@ WHAT IS NEW?
       [Mike, James]
     * "slice x", "slice y", "set slice x", "set slice y", "slice width",
       "slice height", "set horiz align", "set vert align",
-      "set horiz anchor", "set vert anchor", "free slice",
+      "set horiz anchor", "set vert anchor", "free slice", "child count",
       "first child", "next sibling", "last child", "previous sibling",
-      "free slice children", "create container", "set parent", 
-      "check parentage", "slice screen x", "slice screen y",
-      "slice is container", "create rect", "slice is rect"
+      "free slice children", "create container", "check parentage",
+      "set parent", "parent slice", "slice screen x", "slice screen y",
+      "slice is container", "create rect", "slice is rect",
       "set slice width", "set slice height", "get rect style",
       "set rect style", "get rect fgcol", "set rect fgcol",
       "get rect bgcol", "set rect bgcol", "get rect border",

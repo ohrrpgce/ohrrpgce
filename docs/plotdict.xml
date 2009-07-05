@@ -2366,7 +2366,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="realignslice">
 			<canon>realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</canon>
 			<shortname>realign slice</shortname>
-			<description>A quick way to set the alignment and optionally the anchor of a slice with a single command. If you leave out the arguments for the anchor then only the alingment will be changed.</description>
+			<description>A quick way to set the alignment and optionally the anchor of a slice with a single command. If you leave out the arguments for the anchor then only the alignment will be changed.</description>
 			<seealso>
 				<ref>sethorizalign</ref>
 				<ref>setvertalign</ref>
@@ -2493,6 +2493,7 @@ end
 				<ref>firstrectchild</ref>
 				<ref>firstcontainerchild</ref>
 				<ref>lastchild</ref>
+				<ref>childcount</ref>
 			</seealso>
 		</command>
 		<command id="lastchild">
@@ -2501,6 +2502,7 @@ end
 			<description>Returns a slice handle for the last child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no children.</description>
 			<seealso>
 				<ref>firstchild</ref>
+				<ref>childcount</ref>
 			</seealso>
 		</command>
 		<command id="nextsibling">
@@ -2591,15 +2593,39 @@ end
 				<ref>nextsibling</ref>
 			</seealso>
 		</command>
+		<command id="parentslice">
+			<canon>parent slice (handle)</canon>
+			<shortname>parent slice</shortname>
+			<description>Returns a slice handle for the parent of slice <p>handle</p>, or 0 if <p>handle</p> is the root slice.</description>
+			<seealso>
+				<ref>setparent</ref>
+				<ref>checkparentage</ref>
+			</seealso>
+		</command>
 		<command id="setparent">
 			<canon>set parent (handle, parent handle)</canon>
 			<shortname>set parent</shortname>
 			<description>Moves a slice <p>handle</p> to a different <p>parent handle</p>. A slice is connected to its parent, and is positioned based on its parent's position. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had.</description>
+			<seealso>
+				<ref>parentslice</ref>
+				<ref>checkparentage</ref>
+			</seealso>
 		</command>
 		<command id="checkparentage">
 			<canon>check parentage (handle, parent handle)</canon>
 			<shortname>check parentage</shortname>
 			<description>Checks to see if <p>handle</p> is a child (or grandchild, or great-grandchild, etc...) of <p>parent handle</p>. Returns <ref>true</ref> or <ref>false</ref>.</description>
+			<seealso>
+				<ref>parentslice</ref>
+			</seealso>
+		</command>
+		<command id="childcount">
+			<canon>child count (handle)</canon>
+			<shortname>child count</shortname>
+			<description>Returns the number of children that slice <p>handle</p> has.</description>
+			<seealso>
+				<ref>firstchild</ref>
+			</seealso>
 		</command>
 		<command id="slicetofront">
 			<canon>slice to front (handle)</canon>
@@ -2892,7 +2918,7 @@ end
 		</command>
 		<command id="setslicetext">
 			<canon>set slice text(handle, string id)</canon>
-			<shortname>set slice handle</shortname>
+			<shortname>set slice text</shortname>
 			<description>Copy a string specified by <p>string id</p> into the text slice specified by <p>handle</p>.</description>
 			<seealso>
 				<ref>createtext</ref>
