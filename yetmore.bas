@@ -3591,6 +3591,9 @@ txt.showing = YES
 txt.fully_shown = NO
 txt.show_lines = 0
 
+'--Create a set of slices to display the text box
+init_text_box_slices txt
+
 END SUB
 
 SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)

@@ -7,6 +7,8 @@
 #IFNDEF GAME_BI
 #DEFINE GAME_BI
 
+#INCLUDE "game_udts.bi"
+
 declare function bound_item(itemid as integer, cmd as string) as integer
 declare function bound_hero_party(who as integer, cmd as string, minimum as integer=0) as integer
 declare function bound_menuslot(menuslot as integer, cmd as string) as integer
@@ -46,5 +48,6 @@ declare function allowed_to_open_main_menu () as integer
 declare function random_formation (byval set as integer) as integer
 declare sub init_default_text_colors()
 DECLARE FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGER
+DECLARE SUB init_text_box_slices(txt AS TextBoxState)
 
 #ENDIF

@@ -363,13 +363,15 @@ tog = tog XOR 1
 DIM voffset AS INTEGER
 voffset = txt.box.vertical_offset * 4
 
-IF txt.box.no_box = NO THEN
- edgeboxstyle 4, 4 + voffset, 312, get_text_box_height(txt.box), txt.box.boxstyle, dpage, (txt.box.opaque = NO)
+IF new_textbox_mode = NO THEN
+ IF txt.box.no_box = NO THEN
+  edgeboxstyle 4, 4 + voffset, 312, get_text_box_height(txt.box), txt.box.boxstyle, dpage, (txt.box.opaque = NO)
+ END IF
+ col = uilook(uiText): IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
+ FOR i = 0 TO txt.show_lines
+  edgeprint txt.box.text(i), 8, (7 + i * 10) + (txt.box.vertical_offset * 4), col, dpage
+ NEXT i
 END IF
-col = uilook(uiText): IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
-FOR i = 0 TO txt.show_lines
- edgeprint txt.box.text(i), 8, (7 + i * 10) + (txt.box.vertical_offset * 4), col, dpage
-NEXT i
 
 IF txt.show_lines < 7 THEN
  txt.show_lines = txt.show_lines + 1

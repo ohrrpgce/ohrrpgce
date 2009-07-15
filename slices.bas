@@ -68,6 +68,8 @@ Sub SetupGameSlices
  RefreshSliceScreenPos(SliceTable.ScriptSprite)
  
  SliceTable.TextBox = NewSlice(SliceTable.Root)
+ SliceTable.TextBox->Fill = YES
+ RefreshSliceScreenPos(SliceTable.TextBox)
  
  SliceTable.Menu = NewSlice(SliceTable.Root)
  

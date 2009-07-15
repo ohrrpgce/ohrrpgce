@@ -1,6 +1,8 @@
 #IFNDEF GAME_UDTS_BI
 #DEFINE GAME_UDTS_BI
 
+#INCLUDE "slices.bi"
+
 'This file contains UDTs that only get used in game mode, and not in custom,
 'so as to prevent them from cluttering up the global udts.bi file
 
@@ -34,6 +36,7 @@ TYPE TextBoxState
   sayer          AS INTEGER 'The NPC reference who triggered this textbox as a positive number, or -1 for none
   old_dir        AS INTEGER 'For NPCs that return to their previos direction after speaking
   portrait       AS GraphicPair
+  sl             AS Slice Ptr
 END TYPE
 
 TYPE EquippableList

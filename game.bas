@@ -36,7 +36,6 @@ DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
 DECLARE SUB advance_text_box ()
-DECLARE SUB slice_test_suite ()
 
 REMEMBERSTATE
 
@@ -130,6 +129,8 @@ DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 DIM insideinterpreter
+
+DIM new_textbox_mode AS INTEGER 'FIXME: delete this when old (non-slice )textbox display mode is removed
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM scratp as ScriptInst ptr
@@ -542,9 +543,11 @@ DO
     IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol) 'CTRL + +
     IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)'CTRL + -
    END IF
-   IF keyval(scF8) > 1 THEN slice_test_suite
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
-  ELSE ' not holding CTRL
+  ELSEIF keyval(scTilde) > 0 THEN
+   '--holding tilde (yes, I know it is not a proper modifier, but it doesn't conflict with "use" or "cancel")
+   IF keyval(scF8) > 1 THEN new_textbox_mode = NOT new_textbox_mode: debug "new_textbox_mode " & new_textbox_mode
+  ELSE ' not holding CTRL or ~
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets()
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
    IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
@@ -638,6 +641,7 @@ WITH txt.portrait
  IF .sprite THEN sprite_unload @.sprite
  IF .pal    THEN palette16_unload @.pal
 END WITH
+IF txt.sl THEN DeleteSlice @(txt.sl)
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()
@@ -695,8 +699,6 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tilesets(0), dpage
  DrawSlice(SliceTable.scriptsprite, dpage) 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  
- DrawSlice(SliceTable.Root, dpage) 'FIXME: This is temporary, for the slice test suite!
- 
  animatetilesets tilesets()
  IF harmtileflash = YES THEN
   rectangle 0, 0, 320, 200, gmap(10), dpage
@@ -707,6 +709,9 @@ ELSE '---END NORMAL DISPLAY---
  copypage 3, dpage
 END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
+IF new_textbox_mode THEN
+ DrawSlice(SliceTable.TextBox, dpage) 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
+END IF
 IF txt.showing = YES THEN drawsay
 'DEBUG debug "map name"
 IF gam.map.showname > 0 AND gmap(4) >= gam.map.showname THEN
@@ -3042,77 +3047,10 @@ SUB advance_text_box ()
  txt.fully_shown = NO
  txt.sayer = -1
  txt.id = -1
+ IF txt.sl THEN DeleteSlice @(txt.sl)
  ClearTextBox txt.box
  setkeys
  flusharray carray(), 7, 0
-END SUB
-
-SUB slice_test_suite ()
- STATIC first as integer
- STATIC testslice1 as Slice Ptr
- STATIC testslice2 as Slice Ptr
- STATIC testslice3 as Slice Ptr
- IF first = 0 THEN
-  dim test_rect_data AS RectangleSliceData
-  
-  test_rect_data.fgcol = uilook(uiDisabledItem)
-  test_rect_data.bgcol = uilook(uiMenuItem)
-  
-  testslice1 = NewRectangleSlice(SliceTable.Map, test_rect_data)
-  with *testslice1
-   
-   .Width = 100
-   .Height = 150
-   .X = 160 - .Width / 2
-   .Y = 100 - .Height / 2
-   .Visible = YES
-   .PaddingTop = 4
-   .Paddingleft = 4
-   .Paddingright = 4
-   .Paddingbottom = 4
-  end with
-  
-  
-  dim test_menu_data AS MenuSliceData
-  
-  testslice2 = NewMenuSlice(testslice1, test_menu_data)
-  with *testslice2
-   .Visible = YES
-   .Fill = YES
-  end with
-
-  dim test_menuitem_data AS MenuItemSliceData
-  with test_menuitem_data
-   .caption = "Test"
-  end with
-  
-  testslice3 = NewMenuItemSlice(testslice2, test_menuitem_data)
-  with *testslice3
-   .Visible = Yes
-   .Y = 0
-   .X = 0
-  end with
-  test_menuitem_data.caption = "Test 2"
-  testslice3 = NewMenuItemSlice(testslice2, test_menuitem_data)
-  with *testslice3
-   .Visible = Yes
-   .Y = 10
-   .X = 0
-  end with
-  test_menuitem_data.caption = "Test 3"
-  testslice3 = NewMenuItemSlice(testslice2, test_menuitem_data)
-  with *testslice3
-   .Visible = Yes
-   .Y = 20
-   .X = 0
-  end with
-  
-  first = YES
- END IF
- if keyval(scLeft) > 1 then testslice1->X -= 2
- if keyval(scRight) > 1 then testslice1->X += 2
- if keyval(scUp) > 1 then testslice1->Y -= 2
- if keyval(scDown) > 1 then testslice1->Y += 2
 END SUB
 
 SUB init_default_text_colors()
@@ -3120,4 +3058,48 @@ SUB init_default_text_colors()
  FOR i AS INTEGER = 0 TO 31
   plotstr(i).Col = uilook(uiText)
  NEXT i
+END SUB
+
+SUB init_text_box_slices(txt AS TextBoxState)
+ IF txt.sl THEN
+  '--free any already-loaded textbox
+  DeleteSlice @(txt.sl)
+ END IF
+ '--Create a new slice for the text box
+ txt.sl = NewSliceOfType(slRectangle, SliceTable.TextBox)
+ 
+  '--position and size the text box
+ txt.sl->X = 4
+ txt.sl->Y = 4 + txt.box.vertical_offset * 4
+ txt.sl->Width = 312
+ txt.sl->Height = get_text_box_height(txt.box)
+  
+  '--set up padding
+ txt.sl->PaddingLeft = 4
+ txt.sl->PaddingRight = 4
+ txt.sl->PaddingTop = 3
+ txt.sl->PaddingBottom = 3
+  
+  '--set up box style
+
+ IF txt.box.no_box THEN
+  ChangeRectangleSlice txt.sl, -1
+ ELSE
+  ChangeRectangleSlice txt.sl, txt.box.boxstyle, , , , (txt.box.opaque = NO)
+ END IF
+
+ DIM col AS INTEGER
+ col = uilook(uiText)
+ IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
+
+ DIM s AS STRING = ""
+ FOR i AS INTEGER = 0 TO 7
+  s &= txt.box.text(i) & CHR(10)
+ NEXT i
+  
+ DIM text_sl AS Slice Ptr
+ text_sl = NewSliceOfType(slText, txt.sl)
+ 
+ text_sl->Fill = YES
+ ChangeTextSlice text_sl, s, col, YES, NO
 END SUB
