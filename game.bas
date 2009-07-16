@@ -3074,20 +3074,26 @@ SUB init_text_box_slices(txt AS TextBoxState)
  txt.sl->Width = 312
  txt.sl->Height = get_text_box_height(txt.box)
   
-  '--set up padding
- txt.sl->PaddingLeft = 4
- txt.sl->PaddingRight = 4
- txt.sl->PaddingTop = 3
- txt.sl->PaddingBottom = 3
-  
-  '--set up box style
-
+ '--set up box style
  IF txt.box.no_box THEN
   ChangeRectangleSlice txt.sl, -1
  ELSE
   ChangeRectangleSlice txt.sl, txt.box.boxstyle, , , , (txt.box.opaque = NO)
  END IF
 
+ '--A frame that handles the padding around the text
+ DIM text_frame AS Slice Ptr
+ text_frame = NewSliceOfType(slContainer, txt.sl)
+  '--set up padding
+ WITH *text_frame
+  .Fill = YES
+  .PaddingLeft = 4
+  .PaddingRight = 4
+  .PaddingTop = 3
+  .PaddingBottom = 3
+ END WITH
+
+ '--Set up the actual text
  DIM col AS INTEGER
  col = uilook(uiText)
  IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
@@ -3098,8 +3104,50 @@ SUB init_text_box_slices(txt AS TextBoxState)
  NEXT i
   
  DIM text_sl AS Slice Ptr
- text_sl = NewSliceOfType(slText, txt.sl)
+ text_sl = NewSliceOfType(slText, text_frame)
  
  text_sl->Fill = YES
  ChangeTextSlice text_sl, s, col, YES, NO
+ 
+ '--figure out which portrait to load
+ DIM img_id AS INTEGER = -1
+ DIM pal_id AS INTEGER = -1
+ DIM hero_id AS INTEGER = -1
+ DIM her AS HeroDef
+ SELECT CASE txt.box.portrait_type
+  CASE 1' Fixed ID number
+   img_id = txt.box.portrait_id
+   pal_id = txt.box.portrait_pal
+  CASE 2' Hero by caterpillar
+   hero_id = herobyrank(txt.box.portrait_id)
+  CASE 3' Hero by party slot
+   IF txt.box.portrait_id >= 0 AND txt.box.portrait_id <= UBOUND(hero) THEN
+    hero_id = hero(txt.box.portrait_id) - 1
+   END IF
+ END SELECT
+ IF hero_id >= 0 THEN
+  loadherodata @her, hero_id
+  img_id = her.portrait
+  pal_id = her.portrait_pal
+ END IF
+
+ IF img_id >= 0 THEN
+  '--First set up the box that holds the portrait
+  DIM img_box AS Slice Ptr
+  IF txt.box.portrait_box THEN
+   img_box = NewSliceOfType(slRectangle, txt.sl)
+   ChangeRectangleSlice img_box, txt.box.boxstyle, , , , YES
+  ELSE
+   img_box = NewSliceOfType(slContainer, txt.sl)
+  END IF
+  img_box->Width = 50
+  img_box->Height = 50
+  img_box->X = txt.box.portrait_pos.x
+  img_box->Y = txt.box.portrait_pos.y
+  
+  DIM img_sl AS Slice Ptr
+  img_sl = NewSliceOfType(slSprite, img_box)
+  ChangeSpriteSlice img_sl, 8, img_id, pal_id
+ END IF
+ 
 END SUB

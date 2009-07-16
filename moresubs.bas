@@ -383,12 +383,14 @@ IF txt.show_lines < 7 THEN
  END IF
 END IF
 
-WITH txt.portrait
- IF .sprite THEN
-  IF txt.box.portrait_box THEN edgeboxstyle 4 + txt.box.portrait_pos.x, 4 + txt.box.portrait_pos.y + voffset, 50, 50, txt.box.boxstyle, dpage, YES
-  sprite_draw .sprite, .pal, 4 + txt.box.portrait_pos.x, 4 + txt.box.portrait_pos.y + voffset,,,dpage
- END IF
-END WITH
+IF new_textbox_mode = NO THEN
+ WITH txt.portrait
+  IF .sprite THEN
+   IF txt.box.portrait_box THEN edgeboxstyle 4 + txt.box.portrait_pos.x, 4 + txt.box.portrait_pos.y + voffset, 50, 50, txt.box.boxstyle, dpage, YES
+   sprite_draw .sprite, .pal, 4 + txt.box.portrait_pos.x, 4 + txt.box.portrait_pos.y + voffset,,,dpage
+  END IF
+ END WITH
+END IF
 
 IF txt.box.choice_enabled THEN
  tempy = 100 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
