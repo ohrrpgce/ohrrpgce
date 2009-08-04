@@ -42,6 +42,7 @@ DECLARE FUNCTION isStringField(mnu%)
 #include "scrconst.bi"
 #include "loading.bi"
 #include "scancodes.bi"
+#include "slices.bi"
 
 DECLARE SUB menu_editor ()
 DECLARE SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
@@ -52,7 +53,7 @@ DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, de
 
 DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
 
-DECLARE SUB atk_edit_preview(BYVAL pattern AS INTEGER, workpal() AS INTEGER)
+DECLARE SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl AS Slice Ptr)
 DECLARE SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth AS INTEGER)
 DECLARE SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER, BYREF needupdatemenu AS INTEGER)
 
@@ -68,10 +69,7 @@ END SUB
 
 SUB attackdata
 
-DIM workpal(7)
-
 clearallpages
-edgebox 259, 139, 52, 52, uilook(uiDisabledItem), uilook(uiMenuItem), 3
 
 '----------------------------------------------------------
 '--bitsets
@@ -788,6 +786,33 @@ tagMenu(6) = AtkTag2
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
+'--Create the box that holds the preview
+DIM preview_box AS Slice Ptr
+preview_box = NewSliceOfType(slRectangle)
+ChangeRectangleSlice preview_box, ,uilook(uiDisabledItem), uilook(uiMenuItem), ,NO
+'--Align the box in the bottom right
+WITH *preview_box
+ .X = -8
+ .Y = -8
+ .Width = 52
+ .Height = 52
+ .AnchorHoriz = 2
+ .AlignHoriz = 2
+ .AnchorVert = 2
+ .AlignVert = 2
+END WITH
+
+'--Create the preview sprite. It will be updated before it is drawn.
+DIM preview AS Slice Ptr
+preview = NewSliceOfType(slSprite, preview_box)
+'--Align the sprite to the center of the containing box
+WITH *preview
+ .AnchorHoriz = 1
+ .AlignHoriz = 1
+ .AnchorVert = 1
+ .AlignVert = 1
+END WITH
+
 menudepth = 0
 DIM laststate AS MenuState
 laststate.pt = 0
@@ -935,13 +960,13 @@ DO
   caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
   caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
   updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
-  '--load the picture and palette
-  setpicstuf buffer(), 3750, 2
-  loadset game + ".pt6", recbuf(AtkDatPic), 0
-  getpal16 workpal(), 0, recbuf(AtkDatPal), 6, recbuf(AtkDatPic)
+  '--update the picture and palette preview
+  ChangeSpriteSlice preview, 6, recbuf(AtkDatPic), recbuf(AtkDatPal)
+  '--done updating
   needupdatemenu = 0
  END IF
- atk_edit_preview recbuf(AtkDatAnimPattern), workpal()
+ atk_edit_preview recbuf(AtkDatAnimPattern), preview
+ DrawSlice preview_box, dpage
 
  standardmenu dispmenu$(), state, 0, 0, dpage
  IF keyval(56) > 0 THEN 'holding ALT
@@ -982,7 +1007,7 @@ SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth
  menudepth = 1
 END SUB
 
-SUB atk_edit_preview(BYVAL pattern AS INTEGER, workpal() AS INTEGER)
+SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl as Slice Ptr)
  STATIC anim0 AS INTEGER
  STATIC anim1 AS INTEGER
  anim0 = anim0 + 1
@@ -993,9 +1018,7 @@ SUB atk_edit_preview(BYVAL pattern AS INTEGER, workpal() AS INTEGER)
   IF pattern = 2 THEN anim1 = anim1 + 1: IF anim1 > 2 THEN anim1 = -1
   IF pattern = 3 THEN anim1 = INT(RND * 3)
  END IF
-
- loadsprite buffer(), 0, 1250 * ABS(anim1), 0, 50, 50, 2
- drawsprite buffer(), 0, workpal(), 0, 260, 140, dpage
+ ChangeSpriteSlice sl, , , ,ABS(anim1)
 END SUB
 
 FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(), mintable(), maxtable())
