@@ -39,6 +39,7 @@ DECLARE sub formpics(ename() as string, a() as integer, b() as integer, s() as i
 #include "common.bi"
 #include "loading.bi"
 #include "customsubs.bi"
+#include "slices.bi"
 #include "cglobals.bi"
 
 #include "uiconst.bi"
@@ -94,13 +95,12 @@ nof(10) = 31
 nof(11) = 4
 
 '--preview stuff
-DIM workpal(7), previewsize(2)
+DIM previewsize(2) 'FIXME: this is only used for the palette browser, which should probably not need this passed in
 previewsize(0) = 34
 previewsize(1) = 50
 previewsize(2) = 80
 
 clearallpages
-edgebox 219, 99, 82, 82, uilook(uiDisabledItem), uilook(uiMenuItem), 3
 
 '-------------------------------------------------------------------------
 
@@ -523,6 +523,34 @@ NEXT i
 
 DIM helpkey AS STRING = "enemy"
 
+'--Create the box that holds the preview
+DIM preview_box AS Slice Ptr
+preview_box = NewSliceOfType(slRectangle)
+ChangeRectangleSlice preview_box, ,uilook(uiDisabledItem), uilook(uiMenuItem), ,NO
+'--Align the box in the bottom right
+WITH *preview_box
+ .X = -8
+ .Y = -8
+ .Width = 82
+ .Height = 82
+ .AnchorHoriz = 2
+ .AlignHoriz = 2
+ .AnchorVert = 2
+ .AlignVert = 2
+END WITH
+
+'--Create the preview sprite. It will be updated before it is drawn.
+DIM preview AS Slice Ptr
+preview = NewSliceOfType(slSprite, preview_box)
+'--Align the sprite to the bottom center of the containing box
+WITH *preview
+ .Y = -1
+ .AnchorHoriz = 1
+ .AlignHoriz = 1
+ .AnchorVert = 2
+ .AlignVert = 2
+END WITH
+
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
@@ -630,7 +658,7 @@ DO
   END IF
  END IF
 
- GOSUB EnPreviewSub
+ DrawSlice preview_box, dpage
 
  standardmenu dispmenu$(), state, 0, 0, dpage
  IF keyval(56) > 0 THEN 'holding ALT
@@ -667,18 +695,9 @@ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 
 updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
-'--load the picture and palette
-setpicstuf buffer(), (previewsize(recbuf(EnDatPicSize)) ^ 2) / 2, 2
-loadset game + ".pt" + STR$(1 + recbuf(EnDatPicSize)), recbuf(EnDatPic), 0
-getpal16 workpal(), 0, recbuf(EnDatPal), 1 + recbuf(EnDatPicSize), recbuf(EnDatPic)
+'--update the picture and palette preview
+ChangeSpriteSlice preview, 1 + recbuf(EnDatPicSize), recbuf(EnDatPic), recbuf(EnDatPal), ,YES
 
-RETRACE
-
-'-----------------------------------------------------------------------
-
-EnPreviewSub:
-loadsprite buffer(), 0, 0, 0, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)), 2
-wardsprite buffer(), 0, workpal(), 0, 260 - previewsize(recbuf(EnDatPicSize)) / 2, 180 - previewsize(recbuf(EnDatPicSize)), dpage
 RETRACE
 
 '-----------------------------------------------------------------------

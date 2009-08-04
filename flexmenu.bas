@@ -783,9 +783,6 @@ tagMenu(4) = AtkTagIf2
 tagMenu(5) = AtkTagAnd2
 tagMenu(6) = AtkTag2
 
-'--default starting menu
-setactivemenu workmenu(), mainMenu(), state
-
 '--Create the box that holds the preview
 DIM preview_box AS Slice Ptr
 preview_box = NewSliceOfType(slRectangle)
@@ -812,6 +809,9 @@ WITH *preview
  .AnchorVert = 1
  .AlignVert = 1
 END WITH
+
+'--default starting menu
+setactivemenu workmenu(), mainMenu(), state
 
 menudepth = 0
 DIM laststate AS MenuState
