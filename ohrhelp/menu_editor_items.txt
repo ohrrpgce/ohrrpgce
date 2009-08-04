@@ -10,4 +10,6 @@ Press ENTER on a menu item to edit the details about that menu item.
 
 You can type to edit the captions for menu items. If you want to reset the caption to its default value, just delete the customized caption with the BACKSPACE key.
 
-If you are editing Menu Zero, you can reset the whole menu to defaults by pressing CTRL+R. Menu zero is the special main menu that is displayed when you press the menu button whenplaying your game.
+You can delete menu items with the DELETE key.
+
+If you are editing Menu Zero, you can reset the whole menu to defaults by pressing CTRL+R. Menu zero is the special main menu that is displayed when you press the menu button when playing your game.

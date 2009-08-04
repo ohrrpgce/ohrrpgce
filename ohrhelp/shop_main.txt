@@ -1,0 +1,7 @@
+This is the main menu of the shop editor.
+
+Up and down arrow keys navigate the menu.
+
+Press left and right arrow keys on the shop number to change which shop you are editing.
+
+Press ENTER or SPACE to open ssubmenus.
