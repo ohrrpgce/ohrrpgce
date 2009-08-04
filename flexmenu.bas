@@ -985,6 +985,7 @@ LOOP
 saveattackdata recbuf(), recindex
 
 clearallpages
+DeleteSlice @preview_box
 
 EXIT SUB
 

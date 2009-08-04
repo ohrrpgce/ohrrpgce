@@ -677,6 +677,7 @@ LOOP
 saveenemydata recbuf(), recindex
 
 clearallpages
+DeleteSlice @preview_box
 
 EXIT SUB
 
