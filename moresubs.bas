@@ -375,11 +375,26 @@ END IF
 
 IF txt.show_lines < 7 THEN
  txt.show_lines = txt.show_lines + 1
+ '--play sounds for non-blank lines
  IF txt.show_lines > 1 THEN
   IF trim(txt.box.text(txt.show_lines)) <> "" THEN menusound gen(genTextboxLetter)
  END IF
+ '--note when the display of lines is done
  IF txt.show_lines >= 7 THEN
   txt.fully_shown = YES
+ END IF
+ '--update the slice to show the right number of lines
+ DIM text_sl As Slice Ptr
+ text_sl = LookupSlice(SL_TEXTBOX_TEXT, txt.sl)
+ IF text_sl THEN
+  DIM dat AS TextSliceData Ptr
+  dat = text_sl->SliceData
+  IF dat THEN
+   dat->line_limit = txt.show_lines
+   IF txt.fully_shown THEN
+    dat->line_limit = 0
+   END IF
+  END IF
  END IF
 END IF
 

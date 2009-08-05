@@ -8,6 +8,9 @@
 
 #include "udts.bi"
 
+CONST SL_TEXTBOX_TEXT     = -100001
+CONST SL_TEXTBOX_PORTRAIT = -100002
+
 Enum SliceTypes
  slRoot
  slSpecial
@@ -57,6 +60,8 @@ TYPE Slice
   Width as integer
   Height as integer
   Visible as integer
+
+  Lookup As integer
 
   Sorter as integer 'Only used by CustomSortChildSlices
   Extra(2) as integer
@@ -159,6 +164,7 @@ DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
 DECLARE Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
+DECLARE Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr) as slice ptr
 DECLARE Function LastChild(byval parent as slice ptr) as slice ptr
 DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 DECLARE FUNCTION SliceTypeName OVERLOAD (sl AS Slice Ptr) AS STRING
