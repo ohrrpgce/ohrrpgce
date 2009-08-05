@@ -646,7 +646,7 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
  dim insert_size as integer = 8
  if dat->outline then insert_size = 9
  dim last_line as integer = ubound(lines)
- if dat->line_limit > 0 then last_line = small(last_line, dat->first_line + dat->line_limit - 1)
+ if dat->line_limit <> 0 then last_line = small(last_line, dat->first_line + dat->line_limit - 1)
  dim ypos as integer
  if dat->show_insert then
   '--advance the insert cursor for off-screen lines

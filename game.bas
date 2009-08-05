@@ -3108,6 +3108,13 @@ SUB init_text_box_slices(txt AS TextBoxState)
  text_sl->Lookup = SL_TEXTBOX_TEXT
  text_sl->Fill = YES
  ChangeTextSlice text_sl, s, col, YES, NO
+
+ '--start the displayed lines as all hidden. They will be revealed in drawsay
+ DIM dat AS TextSliceData Ptr
+ dat = text_sl->SliceData
+ IF dat THEN
+  dat->line_limit = -1
+ END IF
  
  '--figure out which portrait to load
  DIM img_id AS INTEGER = -1
@@ -3144,7 +3151,6 @@ SUB init_text_box_slices(txt AS TextBoxState)
   img_box->Height = 50
   img_box->X = txt.box.portrait_pos.x
   img_box->Y = txt.box.portrait_pos.y
-  
   '--Then load the portrait
   DIM img_sl AS Slice Ptr
   img_sl = NewSliceOfType(slSprite, img_box)
