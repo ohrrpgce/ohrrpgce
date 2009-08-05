@@ -434,13 +434,12 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
  END WITH
 End Sub
 
-Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr=-1) as slice ptr
+Function LookupSlice(byval lookup_code as integer) as slice ptr
+ RETURN LookupSlice(lookup_code, SliceTable.root)
+End Function
+
+Function LookupSlice(byval lookup_code as integer, byval start_sl as slice ptr) as slice ptr
   IF start_sl = 0 THEN RETURN 0 '--fail searching under an invalid slice
-  IF start_sl = -1 THEN
-   '--Default to searching from the slice tree root
-   start_sl = SliceTable.root
-   IF start_sl = 0 THEN RETURN 0 '--but if the root is null, fail out too
-  END IF
   IF lookup_code = 0 THEN RETURN 0 '--fail searching for a zero lookup code
   IF start_sl->Lookup = lookup_code THEN RETURN start_sl '--found it!
   DIM child AS Slice Ptr
