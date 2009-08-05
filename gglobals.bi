@@ -24,7 +24,6 @@ EXTERN usepreunlump as integer
 EXTERN fatal as integer
 EXTERN backcompat_sound_slot_mode as integer
 EXTERN backcompat_sound_slots() as integer
-EXTERN new_textbox_mode as integer 'FIXME: delete this when old (non-slice )textbox display mode is removed
 
 'Input handling globals
 EXTERN as integer carray(), csetup()

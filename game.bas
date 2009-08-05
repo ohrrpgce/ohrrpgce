@@ -130,8 +130,6 @@ DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 DIM insideinterpreter
 
-DIM new_textbox_mode AS INTEGER 'FIXME: delete this when old (non-slice )textbox display mode is removed
-
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM scratp as ScriptInst ptr
 DIM scriptp as ScriptData ptr ptr 
@@ -544,10 +542,7 @@ DO
     IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)'CTRL + -
    END IF
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
-  ELSEIF keyval(scTilde) > 0 THEN
-   '--holding tilde (yes, I know it is not a proper modifier, but it doesn't conflict with "use" or "cancel")
-   IF keyval(scF8) > 1 THEN new_textbox_mode = NOT new_textbox_mode: debug "new_textbox_mode " & new_textbox_mode
-  ELSE ' not holding CTRL or ~
+  ELSE ' not holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets()
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
    IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
@@ -709,9 +704,7 @@ ELSE '---END NORMAL DISPLAY---
  copypage 3, dpage
 END IF '---END BACKDROP DISPLAY---
 'DEBUG debug "text box"
-IF new_textbox_mode THEN
- DrawSlice(SliceTable.TextBox, dpage) 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
-END IF
+DrawSlice(SliceTable.TextBox, dpage) 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
 IF txt.showing = YES THEN drawsay
 'DEBUG debug "map name"
 IF gam.map.showname > 0 AND gmap(4) >= gam.map.showname THEN

@@ -360,18 +360,6 @@ END SUB
 SUB drawsay ()
 STATIC tog AS INTEGER
 tog = tog XOR 1
-DIM voffset AS INTEGER
-voffset = txt.box.vertical_offset * 4
-
-IF new_textbox_mode = NO THEN
- IF txt.box.no_box = NO THEN
-  edgeboxstyle 4, 4 + voffset, 312, get_text_box_height(txt.box), txt.box.boxstyle, dpage, (txt.box.opaque = NO)
- END IF
- col = uilook(uiText): IF txt.box.textcolor > 0 THEN col = txt.box.textcolor
- FOR i = 0 TO txt.show_lines
-  edgeprint txt.box.text(i), 8, (7 + i * 10) + (txt.box.vertical_offset * 4), col, dpage
- NEXT i
-END IF
 
 IF txt.show_lines < 7 THEN
  txt.show_lines = txt.show_lines + 1
@@ -398,36 +386,17 @@ IF txt.show_lines < 7 THEN
  END IF
 END IF
 
-IF new_textbox_mode = NO THEN
- WITH txt.portrait
-  IF .sprite THEN
-   IF txt.box.portrait_box THEN edgeboxstyle 4 + txt.box.portrait_pos.x, 4 + txt.box.portrait_pos.y + voffset, 50, 50, txt.box.boxstyle, dpage, YES
-   sprite_draw .sprite, .pal, 4 + txt.box.portrait_pos.x, 4 + txt.box.portrait_pos.y + voffset,,,dpage
-  END IF
- END WITH
-END IF
-
 IF txt.box.choice_enabled THEN
- IF new_textbox_mode = NO THEN
-  tempy = 100 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
-  IF tempy > 160 THEN tempy = 20
-  centerbox 160, tempy + 12, 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8), 24, txt.box.boxstyle + 1, dpage
+ '--Make the selected choice flash
+ DIM choice_sl(1) AS Slice Ptr
+ choice_sl(0) = LookupSlice(SL_TEXTBOX_CHOICE0)
+ choice_sl(1) = LookupSlice(SL_TEXTBOX_CHOICE1)
+ IF choice_sl(0) <> 0 AND choice_sl(1) <> 0 THEN
   FOR i = 0 TO 1
-   col = uilook(uiMenuItem): IF txt.choice_cursor = i THEN col = uilook(uiSelectedItem + tog)
-   edgeprint txt.box.choice(i), xstring(txt.box.choice(i), 160), tempy + 2 + (i * 10), col, dpage
+   col = uilook(uiMenuItem)
+   IF txt.choice_cursor = i THEN col = uilook(uiSelectedItem + tog)
+   ChangeTextSlice choice_sl(i), ,col
   NEXT i
- ELSE
-  '--Make the selected choice flash
-  DIM choice_sl(1) AS Slice Ptr
-  choice_sl(0) = LookupSlice(SL_TEXTBOX_CHOICE0)
-  choice_sl(1) = LookupSlice(SL_TEXTBOX_CHOICE1)
-  IF choice_sl(0) <> 0 AND choice_sl(1) <> 0 THEN
-   FOR i = 0 TO 1
-    col = uilook(uiMenuItem)
-    IF txt.choice_cursor = i THEN col = uilook(uiSelectedItem + tog)
-    ChangeTextSlice choice_sl(i), ,col
-   NEXT i
-  END IF
  END IF
 END IF
 END SUB
