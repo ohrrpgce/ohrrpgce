@@ -3103,8 +3103,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
  NEXT i
   
  DIM text_sl AS Slice Ptr
- text_sl = NewSliceOfType(slText, text_frame)
- text_sl->Lookup = SL_TEXTBOX_TEXT
+ text_sl = NewSliceOfType(slText, text_frame, SL_TEXTBOX_TEXT)
  text_sl->Fill = YES
  ChangeTextSlice text_sl, s, col, YES, NO
 
@@ -3152,9 +3151,8 @@ SUB init_text_box_slices(txt AS TextBoxState)
   img_box->Y = txt.box.portrait_pos.y
   '--Then load the portrait
   DIM img_sl AS Slice Ptr
-  img_sl = NewSliceOfType(slSprite, img_box)
+  img_sl = NewSliceOfType(slSprite, img_box, SL_TEXTBOX_PORTRAIT)
   ChangeSpriteSlice img_sl, 8, img_id, pal_id
-  img_sl->Lookup = SL_TEXTBOX_PORTRAIT
  END IF
  
  '--set up the choice-box (if any)

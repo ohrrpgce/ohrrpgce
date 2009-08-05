@@ -114,10 +114,10 @@ FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
  END SELECT
 END FUNCTION
 
-FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS Slice Ptr
+FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYVAL lookup_code AS INTEGER=0) AS Slice Ptr
+ DIM newsl AS Slice Ptr
  SELECT CASE t
   CASE slRoot:
-   DIM newsl AS Slice Ptr
    newsl = NewSlice(parent)
    WITH *newsl
     .SliceType = slRoot
@@ -130,35 +130,33 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS 
     .Width = 320
     .Height = 200
    END WITH
-   RETURN newsl
   CASE slSpecial:
-   DIM newsl AS Slice Ptr
    newsl = NewSlice(parent)
    newsl->SliceType = slSpecial
-   RETURN newsl
   CASE slContainer:
-   DIM newsl AS Slice Ptr
    newsl = NewSlice(parent)
    newsl->SliceType = slContainer
-   RETURN newsl
   CASE slRectangle:
    DIM dat AS RectangleSliceData
-   RETURN NewRectangleSlice(parent, dat)
+   newsl = NewRectangleSlice(parent, dat)
   CASE slSprite:
    DIM dat AS SpriteSliceData
-   RETURN NewSpriteSlice(parent, dat)
+   newsl = NewSpriteSlice(parent, dat)
   CASE slText
    DIM dat AS TextSliceData
-   RETURN NewTextSlice(parent, dat)
+   newsl = NewTextSlice(parent, dat)
   CASE slMenu:
    DIM dat AS MenuSliceData
-   RETURN NewMenuSlice(parent, dat)
+   newsl = NewMenuSlice(parent, dat)
   CASE slMenuItem:
    DIM dat AS MenuItemSliceData
-   RETURN NewMenuItemSlice(parent, dat)
+   newsl = NewMenuItemSlice(parent, dat)
+  CASE ELSE
+   debug "NewSliceByType: Warning! type " & t & " is invalid"
+   newsl = NewSlice(parent)
  END SELECT
- debug "NewSliceByType: Warning! type " & t & " is invalid"
- RETURN NewSlice(parent)
+ newsl->Lookup = lookup_code
+ RETURN newsl
 END FUNCTION
 
 'Creates a new Slice object, and optionally, adds it to the heirarchy somewhere

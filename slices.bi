@@ -187,7 +187,7 @@ DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
 DECLARE Sub YSortChildSlices(byval parent as slice ptr)
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
 
-DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0) AS Slice Ptr
+DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYVAL lookup_code AS INTEGER=0) AS Slice Ptr
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
