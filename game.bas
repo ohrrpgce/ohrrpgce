@@ -3065,25 +3065,31 @@ SUB init_text_box_slices(txt AS TextBoxState)
   '--free any already-loaded textbox
   DeleteSlice @(txt.sl)
  END IF
+ txt.sl = NewSliceOfType(slContainer, SliceTable.TextBox)
+ txt.sl->Fill = Yes
+
  '--Create a new slice for the text box
- txt.sl = NewSliceOfType(slRectangle, SliceTable.TextBox)
+ DIM text_box AS Slice Ptr
+ text_box = NewSliceOfType(slRectangle, txt.sl)
  
-  '--position and size the text box
- txt.sl->X = 4
- txt.sl->Y = 4 + txt.box.vertical_offset * 4
- txt.sl->Width = 312
- txt.sl->Height = get_text_box_height(txt.box)
+ '--position and size the text box
+ WITH *text_box 
+  .X = 4
+  .Y = 4 + txt.box.vertical_offset * 4
+  .Width = 312
+  .Height = get_text_box_height(txt.box)
+ END WITH
   
  '--set up box style
  IF txt.box.no_box THEN
-  ChangeRectangleSlice txt.sl, -1
+  ChangeRectangleSlice text_box, -1
  ELSE
-  ChangeRectangleSlice txt.sl, txt.box.boxstyle, , , , (txt.box.opaque = NO)
+  ChangeRectangleSlice text_box, txt.box.boxstyle, , , , (txt.box.opaque = NO)
  END IF
 
  '--A frame that handles the padding around the text
  DIM text_frame AS Slice Ptr
- text_frame = NewSliceOfType(slContainer, txt.sl)
+ text_frame = NewSliceOfType(slContainer, text_box)
   '--set up padding
  WITH *text_frame
   .Fill = YES
@@ -3142,10 +3148,10 @@ SUB init_text_box_slices(txt AS TextBoxState)
   '--First set up the box that holds the portrait
   DIM img_box AS Slice Ptr
   IF txt.box.portrait_box THEN
-   img_box = NewSliceOfType(slRectangle, txt.sl)
+   img_box = NewSliceOfType(slRectangle, text_box)
    ChangeRectangleSlice img_box, txt.box.boxstyle, , , , YES
   ELSE
-   img_box = NewSliceOfType(slContainer, txt.sl)
+   img_box = NewSliceOfType(slContainer, text_box)
   END IF
   img_box->Width = 50
   img_box->Height = 50
@@ -3156,6 +3162,43 @@ SUB init_text_box_slices(txt AS TextBoxState)
   img_sl = NewSliceOfType(slSprite, img_box)
   ChangeSpriteSlice img_sl, 8, img_id, pal_id
   img_sl->Lookup = SL_TEXTBOX_PORTRAIT
+ END IF
+ 
+ '--set up the choice-box (if any)
+ IF txt.box.choice_enabled THEN
+  'tempy = 100 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
+  'IF tempy > 160 THEN tempy = 20
+  'centerbox 160, tempy + 12, 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8), 24, txt.box.boxstyle + 1, dpage
+  DIM choice_box AS Slice Ptr
+  choice_box = NewSliceOfType(slRectangle, txt.sl)
+  WITH *choice_box
+   '--center the box
+   .AnchorHoriz = 1
+   .AlignHoriz = 1
+   .AnchorVert = 1
+   .AlignVert = 1
+   '--set box size
+   .Width = 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8)
+   .Height = 24
+   '--FIXME: This hackyness just reproduces the old method of positioning the choicebox.
+   '--FIXME: eventually the game author should have control over this.
+   .Y = (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
+   IF .Y > 60 THEN .Y = -80
+   .Y += 12
+  END WITH
+  ChangeRectangleSlice choice_box, txt.box.boxstyle
+  DIM choice_sl(1) AS Slice Ptr
+  FOR i AS INTEGER = 0 TO 1
+   choice_sl(i) = NewSliceOfType(slText, choice_box)
+   ChangeTextSlice choice_sl(i), txt.box.choice(i), uilook(uiMenuItem), YES
+   WITH *(choice_sl(i))
+    .AnchorHoriz = 1
+    .AlignHoriz = 1
+    .Y = 2 + i * 10
+   END WITH
+  NEXT i
+  choice_sl(0)->Lookup = SL_TEXTBOX_CHOICE0
+  choice_sl(1)->Lookup = SL_TEXTBOX_CHOICE1
  END IF
  
 END SUB

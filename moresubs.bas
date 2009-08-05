@@ -408,13 +408,27 @@ IF new_textbox_mode = NO THEN
 END IF
 
 IF txt.box.choice_enabled THEN
- tempy = 100 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
- IF tempy > 160 THEN tempy = 20
- centerbox 160, tempy + 12, 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8), 24, txt.box.boxstyle + 1, dpage
- FOR i = 0 TO 1
-  col = uilook(uiMenuItem): IF txt.choice_cursor = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint txt.box.choice(i), xstring(txt.box.choice(i), 160), tempy + 2 + (i * 10), col, dpage
- NEXT i
+ IF new_textbox_mode = NO THEN
+  tempy = 100 + (txt.box.vertical_offset * 4) - (txt.box.shrink * 4)
+  IF tempy > 160 THEN tempy = 20
+  centerbox 160, tempy + 12, 10 + large(LEN(txt.box.choice(0)) * 8, LEN(txt.box.choice(1)) * 8), 24, txt.box.boxstyle + 1, dpage
+  FOR i = 0 TO 1
+   col = uilook(uiMenuItem): IF txt.choice_cursor = i THEN col = uilook(uiSelectedItem + tog)
+   edgeprint txt.box.choice(i), xstring(txt.box.choice(i), 160), tempy + 2 + (i * 10), col, dpage
+  NEXT i
+ ELSE
+  '--Make the selected choice flash
+  DIM choice_sl(1) AS Slice Ptr
+  choice_sl(0) = LookupSlice(SL_TEXTBOX_CHOICE0)
+  choice_sl(1) = LookupSlice(SL_TEXTBOX_CHOICE1)
+  IF choice_sl(0) <> 0 AND choice_sl(1) <> 0 THEN
+   FOR i = 0 TO 1
+    col = uilook(uiMenuItem)
+    IF txt.choice_cursor = i THEN col = uilook(uiSelectedItem + tog)
+    ChangeTextSlice choice_sl(i), ,col
+   NEXT i
+  END IF
+ END IF
 END IF
 END SUB
 
