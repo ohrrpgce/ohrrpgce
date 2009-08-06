@@ -1,6 +1,15 @@
 #!/usr/bin/env python
-#This is not linked with any other code. It is just run by itself to
-#update slices.bi and plotscr.hsd
+
+"""To use this script, start in the source dir where plotscr.hsd and slices.bi
+   are loacted, and run:
+
+      python misc/sl_lookup.py
+
+   The constants from slices.bi will be converted over to plotscr.hsd
+   Note that you don't *need* this script. You can just update plotscr.hsd
+   by hand if you wish.
+"""
+
 
 import re
 
@@ -53,18 +62,42 @@ class Lookup_Updater(object):
 
 #-----------------------------------------------------------------------
 
-class Replacer(object):
+class Reader(object):
   
-    def __init__(self, filename, commentmark, replacement):
+    def __init__(self, filename, look):
         print filename
         f = open(filename, "r")
         txt = f.read()
         f.close()
-        pattern = r"^%(commentmark)s[ \t]*\<SLICE LOOKUP CODES\>.*^%(commentmark)s[ \t]*\<\/SLICE LOOKUP CODES\>" % {"commentmark": re.escape(commentmark)}
+        pattern = r"^\'[ \t]*\<SLICE LOOKUP CODES\>.*^\'[ \t]*\<\/SLICE LOOKUP CODES\>"
+        regex = re.compile(pattern, re.M|re.S)
+        match = regex.search(txt)
+        if not match:
+            raise Exception("failed to find comment markers")
+        constants = match.group(0).split("\n")
+        regex = re.compile("^[ \t]*CONST SL_(.*?)[ \t]*=[ \t]*(-?\d+)[ \t]*$", re.I)
+        for line in constants:
+            match = regex.match(line)
+            if match:
+                name = match.group(1)
+                code = int(match.group(2))
+                print name, code
+                look.add(name, code)
+
+#-----------------------------------------------------------------------
+
+class Replacer(object):
+  
+    def __init__(self, filename, replacement):
+        print filename
+        f = open(filename, "r")
+        txt = f.read()
+        f.close()
+        pattern = r"^\#[ \t]*\<SLICE LOOKUP CODES\>.*^\#[ \t]*\<\/SLICE LOOKUP CODES\>"
         regex = re.compile(pattern, re.M|re.S)
         if not regex.search(txt):
             raise Exception("failed to find comment markers")
-        replacement = commentmark + "<SLICE LOOKUP CODES>\n" + replacement + commentmark + "</SLICE LOOKUP CODES>"
+        replacement = "#<SLICE LOOKUP CODES>\n" + replacement + "#</SLICE LOOKUP CODES>"
         txt = regex.sub(replacement, txt)
         f = open(filename, "w")
         f.write(txt)
@@ -73,11 +106,5 @@ class Replacer(object):
 ########################################################################
 
 look = Lookup_Updater()
-
-look.add("TEXTBOX_TEXT"     , -100001)
-look.add("TEXTBOX_PORTRAIT" , -100002)
-look.add("TEXTBOX_CHOICE0"  , -100003)
-look.add("TEXTBOX_CHOICE1"  , -100004)
-
-repl = Replacer("slices.bi", "'", look.basic())
-repl = Replacer("plotscr.hsd", "#", look.hspeak())
+reader = Reader("slices.bi", look)
+repl = Replacer("plotscr.hsd", look.hspeak())
