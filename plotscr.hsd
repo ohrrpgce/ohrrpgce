@@ -1455,3 +1455,12 @@ define constant, begin
 -1,border:line
 -2,border:none
 end
+
+#<SLICE LOOKUP CODES>
+define constant, begin
+-100001, sl:textbox text
+-100002, sl:textbox portrait
+-100003, sl:textbox choice0
+-100004, sl:textbox choice1
+end
+#</SLICE LOOKUP CODES>
