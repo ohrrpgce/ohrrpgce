@@ -271,6 +271,9 @@
 		<a href="#about-checktag">check tag (tag)</a><br>
 		
 	
+		<a href="#about-childcount">child count (handle)</a><br>
+		
+	
 		<a href="#about-clampslice">clamp slice (handle1, handle2)</a><br>
 		
 	
@@ -460,6 +463,9 @@
 		<a href="#about-fillparent">fill parent (handle, true_or_false)</a><br>
 		
 	
+		<a href="#about-findcollidingslice">find colliding slice (parent, slice, number, check descendants)</a><br>
+		
+	
 		<a href="#about-findenemyinformation">find enemy in formation (formation, enemy id, copy number)</a><br>
 		
 	
@@ -521,6 +527,9 @@
 		<a href="#about-numericconstants">four</a><br>
 	
 		<a href="#about-freeslice">free slice (handle)</a><br>
+		
+	
+		<a href="#about-freeslicechildren">free slice children (handle)</a><br>
 		
 	
 		<a href="#about-freesprite">free sprite (handle)</a><br>
@@ -967,6 +976,9 @@
 		<a href="#about-logicalxor">value ^^ value</a><br>
 		
 	
+		<a href="#about-lookupslice">lookup slice (lookup code, start slice)</a><br>
+		
+	
 		<a href="#about-losemoney">lose money (amount)</a><br>
 		
 	
@@ -1133,6 +1145,9 @@
 		
 	
 		<a href="#about-parentmenu">parent menu(menu item handle)</a><br>
+		
+	
+		<a href="#about-parentslice">parent slice (handle)</a><br>
 		
 	
 		<a href="#about-party">party</a><br>
@@ -1705,6 +1720,9 @@
 		
 		<a href="#about-numericconstants">six</a><br>
 	
+		<a href="#about-sliceatpixel">slice at pixel (parent, x, y, number, check descendants)</a><br>
+		
+	
 		<a href="#about-slicecollide">slice collide (handle1, handle2)</a><br>
 		
 	
@@ -1733,6 +1751,9 @@
 		
 	
 		<a href="#about-sliceistext">slice is text (handle)</a><br>
+		
+	
+		<a href="#about-slicelookupcodeconstants">slice lookup code constants</a><br>
 		
 	
 		<a href="#about-slicescreenx">slice screen x (handle)</a><br>
@@ -4911,7 +4932,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">free sprite (handle)</font></b><br>
-			Unloads a sprite loaded by any of the "load x sprite" functions. This removes the sprite from the screen and removes it from memory. It is a good idea to free sprites when you are completely done with them. Unlike <a href="#about-freeslice" class="ref">free slice</a>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are.<br>
+			Unloads a sprite loaded by any of the "load x sprite" functions. This removes the sprite from the screen and removes it from memory. It is a good idea to free sprites when you are completely done with them. Unlike <a href="#about-freeslice" class="ref">free slice</a>, this command only works on sprites, but it will still also free any children of the sprite it is freeing regardless of what kind of children they are. The only purpose of this command is additional error checking.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5034,7 +5055,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">sprite layer</font></b><br>
-			Returns a slice handle for the layer which contains sprites created with commands such as <a href="#about-loadherosprite" class="ref">load hero sprite</a>, <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a> and others. You can use this together with <a href="#about-firstchild" class="ref">first child</a> if you want to loop through all your sprites without knowing their handles.<br>
+			Returns a slice handle for the layer which contains slices created with commands such as <a href="#about-loadherosprite" class="ref">load hero sprite</a>, <a href="#about-createrect" class="ref">create rect</a> and others. You can use this together with <a href="#about-firstchild" class="ref">first child</a> if you want to loop through all your slices without knowing their handles. This is the default parent of all new slices.<br>
 			<pre>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin
@@ -5102,6 +5123,22 @@ end
 		<font color="#f06060" size="4">Slice Functions</font>
 		<p></p>
 		
+		<a name="about-lookupslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">lookup slice (lookup code, start slice)</font></b><br>
+			Search for a special slice and return a handle to it, or 0 if it is not found. Special slices are named using <a href="#about-slicelookupcodeconstants" class="ref">slice lookup code constants</a>. You can optionally specify a slice to start searching from, but if you do not, the whole slice tree will be searched.<br>
+			<pre>
+# this example gets a handle to the portrait of the currently displaying
+# text box (if any) and allows you to manipulate it.
+variable(portrait)
+protrait = lookup slice(sl:textbox portrait)
+if(portrait) then(
+  replace portrait sprite(portrait, 5)
+)
+</pre>
+			
+		</tt></p>
 		<a name="about-createcontainer"></a>
 		<p>
 		<tt>
@@ -5382,7 +5419,7 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</font></b><br>
-			A quick way to set the alignment and optionally the anchor of a slice with a single command. If you leave out the arguments for the anchor then only the alingment will be changed.<br>
+			A quick way to set the alignment and optionally the anchor of a slice with a single command. If you leave out the arguments for the anchor then only the alignment will be changed.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -5437,7 +5474,7 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">free slice (handle)</font></b><br>
-			Unloads a slice and any child slices. This works on any type of slice. This removes the slice from the screen and removes it from memory. You should free your slices after you are completely done with them. If you know the type of slice you are deleting, you can use type-specific freeing commands like <a href="#about-freesprite" class="ref">free sprite</a> instead.<br>
+			Unloads a slice and any child slices. This works on any type of slice. This removes the slice from the screen and removes it from memory. You should free your slices after you are completely done with them.<br>
 			<pre>
 script, simple example, begin
   variable(sl)
@@ -5480,7 +5517,8 @@ script, wrong way to free in a loop, begin
     sl := next sibling(sl)
   end
 end
-	script, right way to free in a loop, begin
+
+script, right way to free in a loop, begin
   # this loop is the right way to remove all sprites that show frame number 1
   # by waiting until AFTER the "next sibling" command, we can free the slice
   # without ending the loop early
@@ -5496,7 +5534,19 @@ end
   end
 end
 </pre>
-			<br>See also: <ul class="seealso"><li><a href="#about-freesprite" class="ref">free sprite</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-freesprite" class="ref">free sprite</a>, </li>
+<li><a href="#about-freeslicechildren" class="ref">free slice children</a></li>
+</ul>
+		</tt></p>
+		<a name="about-freeslicechildren"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">free slice children (handle)</font></b><br>
+			Frees all the children of a slice, but not the slice itself. See <a href="#about-freeslice" class="ref">free slice</a> for more details.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-freeslice" class="ref">free slice</a></li></ul>
 		</tt></p>
 		<a name="about-firstchild"></a>
 		<p>
@@ -5519,7 +5569,9 @@ end
 <a href="#about-firstrectchild" class="ref">first rect child</a>, </li>
 <li>
 <a href="#about-firstcontainerchild" class="ref">first container child</a>, </li>
-<li><a href="#about-lastchild" class="ref">last child</a></li>
+<li>
+<a href="#about-lastchild" class="ref">last child</a>, </li>
+<li><a href="#about-childcount" class="ref">child count</a></li>
 </ul>
 		</tt></p>
 		<a name="about-lastchild"></a>
@@ -5528,7 +5580,11 @@ end
 		<b><font color="yellow">last child(handle)</font></b><br>
 			Returns a slice handle for the last child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no children.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-firstchild" class="ref">first child</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-firstchild" class="ref">first child</a>, </li>
+<li><a href="#about-childcount" class="ref">child count</a></li>
+</ul>
 		</tt></p>
 		<a name="about-nextsibling"></a>
 		<p>
@@ -5648,13 +5704,29 @@ end
 <li><a href="#about-nextsibling" class="ref">next sibling</a></li>
 </ul>
 		</tt></p>
+		<a name="about-parentslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">parent slice (handle)</font></b><br>
+			Returns a slice handle for the parent of slice <span class="param">handle</span>, or 0 if <span class="param">handle</span> is the root slice.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setparent" class="ref">set parent</a>, </li>
+<li><a href="#about-checkparentage" class="ref">check parentage</a></li>
+</ul>
+		</tt></p>
 		<a name="about-setparent"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">set parent (handle, parent handle)</font></b><br>
 			Moves a slice <span class="param">handle</span> to a different <span class="param">parent handle</span>. A slice is connected to its parent, and is positioned based on its parent's position. When you move a slice to a new parent, it will become that parent's last child, meaning it will be drawn on top of any other children that the parent already had.<br>
 			
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-parentslice" class="ref">parent slice</a>, </li>
+<li><a href="#about-checkparentage" class="ref">check parentage</a></li>
+</ul>
 		</tt></p>
 		<a name="about-checkparentage"></a>
 		<p>
@@ -5662,7 +5734,15 @@ end
 		<b><font color="yellow">check parentage (handle, parent handle)</font></b><br>
 			Checks to see if <span class="param">handle</span> is a child (or grandchild, or great-grandchild, etc...) of <span class="param">parent handle</span>. Returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a>.<br>
 			
+			<br>See also: <ul class="seealso"><li><a href="#about-parentslice" class="ref">parent slice</a></li></ul>
+		</tt></p>
+		<a name="about-childcount"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">child count (handle)</font></b><br>
+			Returns the number of children that slice <span class="param">handle</span> has.<br>
 			
+			<br>See also: <ul class="seealso"><li><a href="#about-firstchild" class="ref">first child</a></li></ul>
 		</tt></p>
 		<a name="about-slicetofront"></a>
 		<p>
@@ -5872,7 +5952,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">get rect style (handle)</font></b><br>
-			Given a rect slice <span class="param">handle</span>, return the style it is using. This will be a number from 0 to 14 representing a text box style, or a -1 if the rect is not using a standard style<br>
+			Given a rect slice <span class="param">handle</span>, return the style it is using. This will be a number from 0 to 14 representing a text box style, or a -1 if the rect is not using a standard style.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setrectstyle" class="ref">set rect style</a></li></ul>
 		</tt></p>
@@ -5936,7 +6016,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">get rect border (handle)</font></b><br>
-			Given a rect slice <span class="param">handle</span>, return the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or -1 if there is no graphical border.<br>
+			Given a rect slice <span class="param">handle</span>, return the graphical border it uses. This will be a number from 0 to 14 representing a text box border style, or <span class="param">border:line</span> for the old simple line border only, or <span class="param">border:none</span> for no border at all.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setrectborder" class="ref">set rect border</a></li></ul>
 		</tt></p>
@@ -5944,7 +6024,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set rect border (handle, border)</font></b><br>
-			Given a rect slice <span class="param">handle</span>, change the graphical border it uses. The <span class="param">border</span> should be a number from 0 to 14 representing a text box border style, or -1 if there should be no graphical border.<br>
+			Given a rect slice <span class="param">handle</span>, change the graphical border it uses. The <span class="param">border</span> should be a number from 0 to 14 representing a text box border style, or <span class="param">border:line</span> for the old simple line border only, or <span class="param">border:none</span> for no border at all.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getrectborder" class="ref">get rect border</a></li></ul>
 		</tt></p>
@@ -5968,9 +6048,9 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">create text</font></b><br>
-			Creates a new blank text slice and returns a handle to it. A text slice holds a string of text, but it can be positioned and handled just like any other slice. Use the <a href="#about-setslicetext" class="ref">set slice handle</a> command to copy a string into the text slice.<br>
+			Creates a new blank text slice and returns a handle to it. A text slice holds a string of text, but it can be positioned and handled just like any other slice. Use the <a href="#about-setslicetext" class="ref">set slice text</a> command to copy a string into the text slice.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-setslicetext" class="ref">set slice handle</a></li></ul>
+			<br>See also: <ul class="seealso"><li><a href="#about-setslicetext" class="ref">set slice text</a></li></ul>
 		</tt></p>
 		<a name="about-setslicetext"></a>
 		<p>
@@ -6079,6 +6159,30 @@ end
 			Return true if the screen position of slice <span class="param">handle2</span> is completely inside slice <span class="param">handle1</span>. Parent/child relationships have nothing to do with this test; it does not matter if the slices are related.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-slicecollide" class="ref">slice collide</a></li></ul>
+		</tt></p>
+		<a name="about-sliceatpixel"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice at pixel (parent, x, y, number, check descendants)</font></b><br>
+			Searches through all the descendants of <span class="param">parent</span> for slices containing the given <span class="param">x</span>, <span class="param">y</span> pixel screen position. To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>. <span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if you pass too high a <span class="param">number</span>. If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead. <span class="param">check descendants</span> is an optional argument defaulting to true. If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-slicecollidepoint" class="ref">slice collide point</a>, </li>
+<li><a href="#about-findcollidingslice" class="ref">find colliding slice</a></li>
+</ul>
+		</tt></p>
+		<a name="about-findcollidingslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">find colliding slice (parent, slice, number, check descendants)</font></b><br>
+			Searches through all the descendants of <span class="param">parent</span> for slices colliding with the given <span class="param">slice</span> (by screen position). To search all your slices, you can normally use <a href="#about-spritelayer" class="ref">sprite layer</a> as <span class="param">parent</span>. <span class="param">number</span> is an optional argument indicating which slice to return if there is more than one at that point; the bottom most one (returned by default) is number 0. slice at pixel returns 0 if you pass too high a <span class="param">number</span>. If you pass <a href="#about-getcount" class="ref">get count</a> as <span class="param">number</span> the number of slices at that pixel is returned instead. <span class="param">check descendants</span> is an optional argument defaulting to true. If false, then only <span class="param">parent</span>'s children will be checked, not all its descendants. This command never returns Special slices, such as the sprite layer slice, and ignores collisions with the children of <span class="param">slice</span>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-sliceatpixel" class="ref">slice at pixel</a>, </li>
+<li><a href="#about-slicecollide" class="ref">slice collide</a></li>
+</ul>
 		</tt></p>
 		<a name="about-clampslice"></a>
 		<p>
@@ -8715,7 +8819,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get count</font></b><br>
-			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a> or <a href="#about-npcatspot" class="ref">NPC at spot</a>, they return the number of NPCs at that spot. With <a href="#about-spellslearnt" class="ref">spells learnt</a> returns the number of spells a hero learnt. With <a href="#about-findenemyinformation" class="ref">find enemy in formation</a>, returns the number of enemies, or the number of some kind of enemy in the formation.<br>
+			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, <a href="#about-npcatspot" class="ref">NPC at spot</a>, <a href="#about-sliceatpixel" class="ref">slice at pixel</a> or <a href="#childsliceatpixel" class="undef">childsliceatpixel</a> they return the number of NPCs or slices at that spot. With <a href="#about-spellslearnt" class="ref">spells learnt</a> returns the number of spells a hero learnt. With <a href="#about-findenemyinformation" class="ref">find enemy in formation</a>, returns the number of enemies, or the number of some kind of enemy in the formation.<br>
 			
 			
 		</tt></p>
@@ -8894,9 +8998,18 @@ end</pre>
 				<b><font color="yellow">song: same as map</font></b><br>
 				See <a href="#about-song:sameaslastmap">song: same as last map</a>
 			</tt></p>
+		<a name="about-slicelookupcodeconstants"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice lookup code constants</font></b><br>
+			Constants starting with <span class="param">sl:</span> are used by the <a href="#about-lookupslice" class="ref">lookup slice</a> command. To see a full list of them, look at the bottom of plotscr.hsd
+			<br>
+			
+			
+		</tt></p>
 
 		<hr>
-	<p>Stats: There are 648 commands in this file, of which 53 are only references to other commands.</p>
+	<p>Stats: There are 655 commands in this file, of which 53 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

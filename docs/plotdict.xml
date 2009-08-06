@@ -2157,6 +2157,20 @@ end
 		</command>
 	</section>
 	<section title="Slice Functions">
+		<command id="lookupslice">
+			<canon>lookup slice (lookup code, start slice)</canon>
+			<shortname>lookup slice</shortname>
+			<description>Search for a special slice and return a handle to it, or 0 if it is not found. Special slices are named using <ref>slicelookupcodeconstants</ref>. You can optionally specify a slice to start searching from, but if you do not, the whole slice tree will be searched.</description>
+<example>
+# this example gets a handle to the portrait of the currently displaying
+# text box (if any) and allows you to manipulate it.
+variable(portrait)
+protrait = lookup slice(sl:textbox portrait)
+if(portrait) then(
+  replace portrait sprite(portrait, 5)
+)
+</example>
+		</command>
 		<command id="createcontainer">
 			<canon>create container (width, height)</canon>
 			<shortname>create container</shortname>
@@ -4829,6 +4843,12 @@ end</example>
 		<command id="song:sameasmap">
 			<alias>song:sameaslastmap</alias>
 			<shortname>song: same as map</shortname>
+		</command>
+		<command id="slicelookupcodeconstants">
+			<canon>slice lookup code constants</canon>
+			<shortname>slice lookup code constants</shortname>
+			<description>Constants starting with <p>sl:</p> are used by the <ref>lookupslice</ref> command. To see a full list of them, look at the bottom of plotscr.hsd
+			</description>
 		</command>
 	</section>
 </plotscript>

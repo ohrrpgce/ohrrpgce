@@ -2282,6 +2282,16 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0), "child count") THEN
    scriptret = plotslices(retvals(0))->NumChildren
   END IF
+ CASE 437'--lookup slice
+  IF retvals(1) = 0 THEN
+   '--search the whole slice tree
+   scriptret = find_plotslice_handle(LookupSlice(retvals(0)))
+  ELSE
+   '--search starting from a certain slice
+   IF valid_plotslice(retvals(1), "lookup slice") THEN
+    scriptret = find_plotslice_handle(LookupSlice(retvals(0), plotslices(retvals(0))))
+   END IF
+  END IF
 END SELECT
 
 EXIT SUB

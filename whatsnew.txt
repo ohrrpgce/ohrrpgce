@@ -106,7 +106,7 @@ WHAT IS NEW?
       "first sprite child", "next sprite sibling", "first rect child",
       "next rect sibling", "realign slice", "center slice",
       "slice collide point", "slice collide", "slice contains",
-      "slice at pixel", "find colliding slice",
+      "slice at pixel", "find colliding slice", "lookup slice",
       "set slice screen x", "set slice screen y", "clamp slice",
       "set padding", "set top padding", "get top padding",
       "set left padding", "get left padding", "set right padding",
