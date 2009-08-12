@@ -63,7 +63,7 @@ class Lookup_Updater(object):
     def docs(self):
         result = ""
         for l in self.lookups:
-            result += "sl:%s\n" % (l.hspeak_name())
+            result += "lookup slice(sl:%s)\n" % (l.hspeak_name())
         return result
 
 #-----------------------------------------------------------------------
@@ -112,8 +112,8 @@ class Replacer(object):
         f.close()
 
 class DocReplacer(Replacer):
-    pattern = r"^\<example\>\n# This is a list of slice lookup codes.*?^\<\/example\>"
-    replace = "<example>\n# This is a list of slice lookup codes\n%s</example>"
+    pattern = r"^# This is a list of slice lookup codes.*?^\<\/example\>"
+    replace = "# This is a list of slice lookup codes\n%s</example>"
 
 ########################################################################
 
