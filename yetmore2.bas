@@ -726,6 +726,7 @@ SUB loadmapstate_gmap (mapnum, prefix$, dontfallback = 0)
  CLOSE #fh
 
  loadmaptilesets tilesets(), gmap()
+ refresh_map_slice_tilesets
  correctbackdrop
  SELECT CASE gmap(5) '--outer edge wrapping
   CASE 0, 1'--crop edges or wrap
@@ -800,6 +801,7 @@ SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
   CLOSE #fh
   IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
    loadtiledata filebase$ + "_t.tmp", scroll(), 3
+   refresh_map_slice
 
    '--as soon as we know the dimensions of the map, enforce hero position boundaries
    cropposition catx(0), caty(0), 20

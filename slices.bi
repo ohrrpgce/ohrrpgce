@@ -24,6 +24,7 @@ Enum SliceTypes
  slText
  slMenu
  slMenuItem
+ slMap
 End Enum
 
 Enum AttachTypes
@@ -98,7 +99,8 @@ END TYPE
 
 TYPE SliceTable_
   root AS Slice Ptr
-  map  AS Slice Ptr
+  maproot AS Slice Ptr
+  maplayer(2) AS Slice Ptr
   scriptsprite AS Slice Ptr
   textbox AS Slice Ptr
   menu AS Slice Ptr
@@ -145,6 +147,19 @@ Type SpriteSliceData
  flipVert AS INTEGER   'NO normal, YES horizontally flipped
  loaded AS INTEGER  'UNSAVED: Set to NO to force a re-load on the next draw
  img AS GraphicPair 'UNSAVED: No need to manually populate this, done in draw
+End Type
+
+'Shows the currently loaded map at the given slice pos
+'Doesn't yet have the ability to load other non-current maps
+Type MapSliceData
+ 'FIXME: Should I even use this at all in this early
+ 'incarnation? maybe not yet.
+ size AS XYPair 'Currently read-only informational (this is in tiles, whereas the .width and .height are for the size in pixels)
+ map AS INTEGER 'Currently read-only informational
+ layer AS INTEGER 'Currently read-only informational
+ transparent AS INTEGER 'Whether or not color 0 is transparent
+ overlay AS INTEGER 'For backcompat with layers that observe the old overlay feature.
+ tileset as TilesetData ptr 'NOTE: ptr to the same memory pointed to by the ptrs in the tilesets() array in game.bas
 End Type
 
 Type MenuSliceData
@@ -199,6 +214,7 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval border as integer=-3,_
                       byval translucent as integer=-2)
 
+
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
 DECLARE Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
@@ -221,6 +237,20 @@ DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval frame as integer = -1,_
                       byval fliph as integer = -2,_
                       byval flipv as integer = -2) ' All arguments default to no change
+
+DECLARE Sub DisposeMapSlice(byval sl as slice ptr)
+DECLARE Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
+DECLARE Function GetMapSliceData(byval sl as slice ptr) as MapSliceData ptr
+DECLARE Sub SaveMapSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+DECLARE Function LoadMapSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+DECLARE Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as slice ptr
+DECLARE Sub ChangeMapSliceTileset (byval sl as slice ptr, byval tileset as TilesetData ptr)
+DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
+                   byval tiles_wide as integer=-1,_
+                   byval tiles_high as integer=-1,_
+                   byval layer as integer=-1,_
+                   byval transparent as integer=-2,_
+                   byval overlay as integer=-1) ' All arguments default to no change
 
 '--Saving and loading slices
 DECLARE Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)

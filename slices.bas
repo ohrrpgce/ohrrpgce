@@ -61,7 +61,10 @@ Function LoadNullSlice(Byval sl as SliceFwd ptr, key as string, valstr as string
 Sub SetupGameSlices
  SliceTable.Root = NewSliceOfType(slRoot)
  
- SliceTable.Map = NewSlice(SliceTable.Root)
+ SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root)
+ SliceTable.MapLayer(0) = NewSliceOfType(slMap, SliceTable.MapRoot)
+ SliceTable.MapLayer(1) = NewSliceOfType(slMap, SliceTable.MapRoot)
+ SliceTable.MapLayer(2) = NewSliceOfType(slMap, SliceTable.MapRoot)
  
  SliceTable.ScriptSprite = NewSlice(SliceTable.Root)
  SliceTable.ScriptSprite->Fill = YES
@@ -97,6 +100,7 @@ FUNCTION SliceTypeName (t AS SliceTypes) AS STRING
   CASE slText:           RETURN "Text"
   CASE slMenu:           RETURN "Menu"
   CASE slMenuItem:       RETURN "MenuItem"
+  CASE slMap:            RETURN "Map"
  END SELECT
  RETURN "Unknown"
 END FUNCTION
@@ -111,6 +115,7 @@ FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
   CASE "Text":           RETURN slText
   CASE "Menu":           RETURN slMenu
   CASE "MenuItem":       RETURN slMenuItem
+  CASE "Map":            RETURN slMap
  END SELECT
 END FUNCTION
 
@@ -151,6 +156,9 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYV
   CASE slMenuItem:
    DIM dat AS MenuItemSliceData
    newsl = NewMenuItemSlice(parent, dat)
+  CASE slMap:
+   DIM dat AS MapSliceData
+   newsl = NewMapSlice(parent, dat)
   CASE ELSE
    debug "NewSliceByType: Warning! type " & t & " is invalid"
    newsl = NewSlice(parent)
@@ -923,6 +931,112 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
   end if
   if fliph > -2 then .flipHoriz = (fliph <> 0) : .loaded = NO
   if flipv > -2 then .flipVert = (flipv <> 0) : .loaded = NO
+ end with
+end sub
+
+'--Map-----------------------------------------------------------------
+
+Sub DisposeMapSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as MapSliceData ptr = cptr(MapSliceData ptr, sl->SliceData)
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ dim dat as MapSliceData ptr = cptr(MapSliceData ptr, sl->SliceData)
+
+ with *dat
+  if .tileset = 0 then exit sub 'quit silently on a null tileset ptr
+  'First two arguments to drawmap are "camera position" of upper left of the screen.
+  drawmap sl->ScreenX * -1, sl->ScreenY * -1, .layer, .overlay, .tileset, p, .transparent
+ end with
+end sub
+
+Function GetMapSliceData(byval sl as slice ptr) as MapSliceData ptr
+ return sl->SliceData
+End Function
+
+Sub SaveMapSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ DIM dat AS SpriteSliceData Ptr
+ dat = sl->SliceData
+ 'FIXME: current MapSlice impl. has no savable properties
+end sub
+
+Function LoadMapSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+ 'Return value is YES if the key is understood, NO if ignored
+ 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ dim dat AS SpriteSliceData Ptr
+ dat = sl->SliceData
+ 'FIXME: current MapSlice impl. has no savable properties
+ select case key
+  'case "name": dat->name = n
+  case else: return NO
+ end select
+ return YES
+End Function
+
+Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as MapSliceData ptr = new MapSliceData
+ *d = dat
+
+ ret->SliceType = slMap
+ ret->SliceData = d
+ ret->Draw = @DrawMapSlice
+ ret->Dispose = @DisposeMapSlice
+ ret->Save = @SaveMapSlice
+ ret->Load = @LoadMapSlice
+ 
+ return ret
+end function
+
+Sub ChangeMapSliceTileset(byval sl as slice ptr, byval tileset as TilesetData ptr)
+ if sl = 0 then debug "ChangeMapSliceTileset null ptr" : exit sub
+ if sl->SliceType <> slMap then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
+ dim dat as MapSliceData Ptr = sl->SliceData
+ dat->tileset = tileset 'NOTE: *shiver* pointers make me cringe.
+end sub
+
+Sub ChangeMapSlice(byval sl as slice ptr,_
+                   byval tiles_wide as integer=-1,_
+                   byval tiles_high as integer=-1,_
+                   byval layer as integer=-1,_
+                   byval transparent as integer=-2,_
+                   byval overlay as integer=-1)
+ if sl = 0 then debug "ChangeMapSlice null ptr" : exit sub
+ if sl->SliceType <> slMap then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
+ dim dat as MapSliceData Ptr = sl->SliceData
+ with *dat
+  if tiles_wide >= 0 then
+   .size.x = tiles_wide
+   sl->Width = .size.x * 20
+  end if
+  if tiles_high >= 0 then
+   .size.y = tiles_high
+   sl->Height = .size.y * 20
+  end if
+  if layer >= 0 and layer <= 2 then
+   '--which map layer this draws
+   .layer = layer 'valid values 0, 1, 2
+  end if
+  if transparent >= -1 then
+   .transparent = (transparent <> 0) 'boolean
+  end if
+  if overlay >= 0 and overlay <= 2 then
+   '--used for backcompat with overhead tiles on layer 0
+   .overlay = overlay 'valid values 0, 1, 2
+  end if
  end with
 end sub
 

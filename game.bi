@@ -49,5 +49,7 @@ declare function random_formation (byval set as integer) as integer
 declare sub init_default_text_colors()
 DECLARE FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGER
 DECLARE SUB init_text_box_slices(txt AS TextBoxState)
+DECLARE SUB refresh_map_slice()
+DECLARE SUB refresh_map_slice_tilesets()
 
 #ENDIF

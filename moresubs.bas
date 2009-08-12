@@ -1078,7 +1078,11 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
   control
   IF pickpoint = NO THEN
    usemenu state
-   IF carray(5) > 1 THEN loadmaptilesets tilesets(), gmap(): EXIT DO 'cancel
+   IF carray(5) > 1 THEN
+    loadmaptilesets tilesets(), gmap()
+    refresh_map_slice_tilesets
+    EXIT DO 'cancel
+   END IF
    IF state.pt = 0 THEN
     IF intgrabber(destmap, 0, gen(genMaxMap)) THEN
      preview_delay = 12
@@ -1148,6 +1152,8 @@ SUB teleporttooltend (BYREF mini AS Frame Ptr, tilemap(), tilesets() AS TilesetD
   loadtiledata maplumpname$(map, "t"), tilemap(), 3
   loadrecord gmap2(), game + ".map", dimbinsize(binMAP), map
   loadmaptilesets tilesets(), gmap2()
+  refresh_map_slice_tilesets
+  refresh_map_slice
  END IF
  'minimum zoom level to make tiles easy to pick
  zoom = bound(small(320 \ tilemap(0), 200 \ tilemap(1)), 5, 20)
