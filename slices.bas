@@ -62,9 +62,9 @@ Sub SetupGameSlices
  SliceTable.Root = NewSliceOfType(slRoot)
  
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root)
- SliceTable.MapLayer(0) = NewSliceOfType(slMap, SliceTable.MapRoot)
- SliceTable.MapLayer(1) = NewSliceOfType(slMap, SliceTable.MapRoot)
- SliceTable.MapLayer(2) = NewSliceOfType(slMap, SliceTable.MapRoot)
+ SliceTable.MapLayer(0) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0)
+ SliceTable.MapLayer(1) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER1)
+ SliceTable.MapLayer(2) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER2)
  
  SliceTable.ScriptSprite = NewSlice(SliceTable.Root)
  SliceTable.ScriptSprite->Fill = YES

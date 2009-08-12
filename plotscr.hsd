@@ -1463,5 +1463,8 @@ define constant, begin
 -100002, sl:textbox portrait
 -100003, sl:textbox choice0
 -100004, sl:textbox choice1
+-101000, sl:map layer0
+-101001, sl:map layer1
+-101002, sl:map layer2
 end
 #</SLICE LOOKUP CODES>
