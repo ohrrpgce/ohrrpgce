@@ -60,6 +60,12 @@ class Lookup_Updater(object):
         result += "end\n"
         return result
 
+    def docs(self):
+        result = ""
+        for l in self.lookups:
+            result += "sl:%s\n" % (l.hspeak_name())
+        return result
+
 #-----------------------------------------------------------------------
 
 class Reader(object):
@@ -87,24 +93,31 @@ class Reader(object):
 #-----------------------------------------------------------------------
 
 class Replacer(object):
+
+    pattern = r"^\#[ \t]*\<SLICE LOOKUP CODES\>.*?^\#[ \t]*\<\/SLICE LOOKUP CODES\>"
+    replace = "#<SLICE LOOKUP CODES>\n%s#</SLICE LOOKUP CODES>"
   
     def __init__(self, filename, replacement):
         print filename
         f = open(filename, "r")
         txt = f.read()
         f.close()
-        pattern = r"^\#[ \t]*\<SLICE LOOKUP CODES\>.*^\#[ \t]*\<\/SLICE LOOKUP CODES\>"
-        regex = re.compile(pattern, re.M|re.S)
+        regex = re.compile(self.pattern, re.M|re.S)
         if not regex.search(txt):
             raise Exception("failed to find comment markers")
-        replacement = "#<SLICE LOOKUP CODES>\n" + replacement + "#</SLICE LOOKUP CODES>"
+        replacement = self.replace % (replacement)
         txt = regex.sub(replacement, txt)
         f = open(filename, "w")
         f.write(txt)
         f.close()
+
+class DocReplacer(Replacer):
+    pattern = r"^\<example\>\n# This is a list of slice lookup codes.*?^\<\/example\>"
+    replace = "<example>\n# This is a list of slice lookup codes\n%s</example>"
 
 ########################################################################
 
 look = Lookup_Updater()
 reader = Reader("slices.bi", look)
 repl = Replacer("plotscr.hsd", look.hspeak())
+repl = DocReplacer("docs/plotdict.xml", look.docs())

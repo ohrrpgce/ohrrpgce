@@ -1753,9 +1753,6 @@
 		<a href="#about-sliceistext">slice is text (handle)</a><br>
 		
 	
-		<a href="#about-slicelookupcodeconstants">slice lookup code constants</a><br>
-		
-	
 		<a href="#about-slicescreenx">slice screen x (handle)</a><br>
 		
 	
@@ -5127,7 +5124,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">lookup slice (lookup code, start slice)</font></b><br>
-			Search for a special slice and return a handle to it, or 0 if it is not found. Special slices are named using <a href="#about-slicelookupcodeconstants" class="ref">slice lookup code constants</a>. You can optionally specify a slice to start searching from, but if you do not, the whole slice tree will be searched.<br>
+			Search for a special slice and return a handle to it, or 0 if it is not found. Special slices are named using slice lookup code constants. You can optionally specify a slice to start searching from, but if you do not, the whole slice tree will be searched.<br>
 			<pre>
 # this example gets a handle to the portrait of the currently displaying
 # text box (if any) and allows you to manipulate it.
@@ -5136,6 +5133,16 @@ protrait = lookup slice(sl:textbox portrait)
 if(portrait) then(
   replace portrait sprite(portrait, 5)
 )
+</pre>
+<pre>
+# This is a list of slice lookup codes
+sl:textbox text
+sl:textbox portrait
+sl:textbox choice0
+sl:textbox choice1
+sl:map layer0
+sl:map layer1
+sl:map layer2
 </pre>
 			
 		</tt></p>
@@ -8998,18 +9005,9 @@ end</pre>
 				<b><font color="yellow">song: same as map</font></b><br>
 				See <a href="#about-song:sameaslastmap">song: same as last map</a>
 			</tt></p>
-		<a name="about-slicelookupcodeconstants"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">slice lookup code constants</font></b><br>
-			Constants starting with <span class="param">sl:</span> are used by the <a href="#about-lookupslice" class="ref">lookup slice</a> command. To see a full list of them, look at the bottom of plotscr.hsd
-			<br>
-			
-			
-		</tt></p>
 
 		<hr>
-	<p>Stats: There are 655 commands in this file, of which 53 are only references to other commands.</p>
+	<p>Stats: There are 654 commands in this file, of which 53 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
