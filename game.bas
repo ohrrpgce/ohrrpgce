@@ -678,7 +678,7 @@ gam.map.same = YES
 RETRACE
 
 displayall:
-IF gen(58) = 0 AND gen(50) = 0 THEN
+IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  '---NORMAL DISPLAY---
  'DEBUG debug "normal display"
  setmapdata scroll(), pass(), 0, 0
@@ -688,11 +688,11 @@ IF gen(58) = 0 AND gen(50) = 0 THEN
  overlay = 1
  IF readbit(gen(), 44, suspendoverlay) THEN overlay = 0
  IF new_map_mode THEN
-  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
   WITH *(SliceTable.MapRoot)
    .X = mapx * -1
    .Y = mapy * -1
   END WITH
+  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
   ChangeMapSlice SliceTable.MapLayer(0), , , , , overlay
   DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
   IF readbit(gmap(), 19, 0) THEN DrawSlice SliceTable.MapLayer(1), dpage
