@@ -130,8 +130,6 @@ DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 DIM insideinterpreter
 
-DIM new_map_mode AS INTEGER = 0 '--FIXME: remove this when new map mode is finished
-
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM scratp as ScriptInst ptr
 DIM scriptp as ScriptData ptr ptr 
@@ -544,11 +542,6 @@ DO
     IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)'CTRL + -
    END IF
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
-  ELSEIF keyval(scTilde) > 0 THEN
-   IF keyval(scF8) > 1 THEN
-    new_map_mode = NOT new_map_mode
-    debug "new_map_mode = " & new_map_mode
-   END IF
   ELSE ' not holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets()
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
@@ -687,19 +680,14 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  'DEBUG debug "drawmap"
  overlay = 1
  IF readbit(gen(), 44, suspendoverlay) THEN overlay = 0
- IF new_map_mode THEN
-  WITH *(SliceTable.MapRoot)
-   .X = mapx * -1
-   .Y = mapy * -1
-  END WITH
-  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
-  ChangeMapSlice SliceTable.MapLayer(0), , , , , overlay
-  DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
-  IF readbit(gmap(), 19, 0) THEN DrawSlice SliceTable.MapLayer(1), dpage
- ELSE
-  drawmap mapx, mapy, 0, overlay, tilesets(0), dpage, 0
-  IF readbit(gmap(), 19, 0) THEN drawmap mapx, mapy, 1, 0, tilesets(1), dpage, 1
- END IF
+ WITH *(SliceTable.MapRoot)
+  .X = mapx * -1
+  .Y = mapy * -1
+ END WITH
+ RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
+ ChangeMapSlice SliceTable.MapLayer(0), , , , , overlay
+ DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
+ IF readbit(gmap(), 19, 0) THEN DrawSlice SliceTable.MapLayer(1), dpage
  'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
   cathero
@@ -709,15 +697,10 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   cathero
  END IF
  'DEBUG debug "drawoverhead"
- IF new_map_mode THEN
-  IF readbit(gmap(), 19, 1) THEN DrawSlice SliceTable.MapLayer(2), dpage
-  IF readbit(gen(), 44, suspendoverlay) = 0 THEN
-   ChangeMapSlice SliceTable.MapLayer(0), , , , , 2
-   DrawSlice SliceTable.MapLayer(0), dpage
-  END IF
- ELSE
-  IF readbit(gmap(), 19, 1) THEN drawmap mapx, mapy, 2, 0, tilesets(2), dpage, 1
-  IF readbit(gen(), 44, suspendoverlay) = 0 THEN drawmap mapx, mapy, 0, 2, tilesets(0), dpage
+ IF readbit(gmap(), 19, 1) THEN DrawSlice SliceTable.MapLayer(2), dpage
+ IF readbit(gen(), 44, suspendoverlay) = 0 THEN
+  ChangeMapSlice SliceTable.MapLayer(0), , , , , 2
+  DrawSlice SliceTable.MapLayer(0), dpage
  END IF
  DrawSlice SliceTable.scriptsprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  

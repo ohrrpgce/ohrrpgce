@@ -114,5 +114,3 @@ EXTERN topmenu as INTEGER
 
 'Slice handles
 EXTERN plotslices() as Slice Ptr
-
-EXTERN new_map_mode AS INTEGER '--FIXME: remove this when the new map drawing mode is finished
