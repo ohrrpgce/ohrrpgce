@@ -60,6 +60,7 @@ Source: "import\background\*"; DestDir: "{app}\import\background"; Flags: ignore
 Source: "import\fonts\*"; DestDir: "{app}\import\fonts"; Flags: ignoreversion
 Source: "import\Music\*"; DestDir: "{app}\import\Music"; Flags: ignoreversion
 Source: "import\Sound Effects\*"; DestDir: "{app}\import\Sound Effects"; Flags: ignoreversion
+Source: "import\Master Palettes\*"; DestDir: "{app}\import\Master Palettes"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
