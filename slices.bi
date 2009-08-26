@@ -8,6 +8,10 @@
 
 #include "udts.bi"
 
+'These constants also need to be updated in plotscr.hsd and plotdict.xml
+'You may choose to just update them here and then run misc/sl_lookup.py
+'to update the other files.
+
 '<SLICE LOOKUP CODES>
 CONST SL_TEXTBOX_TEXT     = -100001
 CONST SL_TEXTBOX_PORTRAIT = -100002
