@@ -43,6 +43,8 @@ fi
 
 echo "manually download Browser-specific files"
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/common/IEFixes.js http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/common/IEFixes.js
+wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE50Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE60Fixes.css
+wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE55Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE60Fixes.css
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE60Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE60Fixes.css
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE70Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/IE70Fixes.css
 wget -q -O gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/Opera7Fixes.css http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/skins/monobook/Opera7Fixes.css
