@@ -3485,7 +3485,7 @@ end
 		<command id="herolevelled">
 			<canon>hero levelled (who)</canon>
 			<shortname>hero levelled</shortname>
-			<description>Returns the number of levels the specified hero (use result from <ref>findhero</ref>) gained from only the very last battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted this hero (or the active battle party if the hero is in it) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:</description>
+			<description>Returns the number of levels the specified hero gained. <p>who</p> is the hero's position in the battle party. If you want to use <p>hero:Name</p> you should use <ref>findhero</ref>. This command only applies to the most recent battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted this hero (or the active battle party if the hero is in it) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:</description>
 			<example>give experience (party, 50)
 if (herolevelled (find hero (hero: Bob))) then (
   $31="Bob gained "

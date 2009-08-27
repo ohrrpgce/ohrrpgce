@@ -6924,7 +6924,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">hero levelled (who)</font></b><br>
-			Returns the number of levels the specified hero (use result from <a href="#about-findhero" class="ref">find hero</a>) gained from only the very last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted this hero (or the active battle party if the hero is in it) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:<br>
+			Returns the number of levels the specified hero gained. <span class="param">who</span> is the hero's position in the battle party. If you want to use <span class="param">hero:Name</span> you should use <a href="#about-findhero" class="ref">find hero</a>. This command only applies to the most recent battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted this hero (or the active battle party if the hero is in it) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:<br>
 			<pre>give experience (party, 50)
 if (herolevelled (find hero (hero: Bob))) then (
   $31="Bob gained "
