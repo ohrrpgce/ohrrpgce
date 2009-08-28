@@ -1675,7 +1675,7 @@
 		<a href="#about-settoppadding">set top padding (handle, pixels)</a><br>
 		
 	
-		<a href="#about-setvariable">set variable (variable,value)</a><br>
+		<a href="#about-setvariable">variable := value</a><br>
 		
 	
 		<a href="#about-setvertalign">set vert align (handle, edge)</a><br>
@@ -7411,8 +7411,8 @@ write pass block(15,3,pass)
 		<a name="about-setvariable"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set variable (variable,value)</font></b><br>
-			This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<br>The set variable command is just available for backwards compatability. You should actually set variables by writing variable := value<br>
+		<b><font color="yellow">variable := value</font></b><br>
+			This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<br>You should normally set variables by writing <span class="param">variable := value</span> but for backwards compatability, you can also use the old form <span class="param">set variable(variable, value)</span><br>
 			
 			
 		</tt></p>

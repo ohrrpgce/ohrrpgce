@@ -3836,9 +3836,9 @@ write pass block(15,3,pass)
 	</section>
 	<section title="Working with Variables">
 		<command id="setvariable">
-			<canon>set variable (variable,value)</canon>
-			<shortname>set variable</shortname>
-			<description>This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<lb/>The set variable command is just available for backwards compatability. You should actually set variables by writing variable := value</description>
+			<canon>variable := value</canon>
+			<shortname>:=</shortname>
+			<description>This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<lb/>You should normally set variables by writing <p>variable := value</p> but for backwards compatability, you can also use the old form <p>set variable(variable, value)</p></description>
 		</command>
 		<command id="increment">
 			<canon>increment (variable,amount)</canon>
