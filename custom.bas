@@ -862,6 +862,7 @@ pastechar:
 FOR i = 0 TO 63
  setbit font(), 0, f(pt) * 64 + i, readbit(copybuf(), 0, i)
 NEXT i
+ setfont font()
 RETRACE
 
 importfont:
