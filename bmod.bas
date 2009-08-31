@@ -341,7 +341,7 @@ ai = 0
 IF bstat(bat.enemy_turn).cur.hp < bstat(bat.enemy_turn).max.hp / 5 THEN ai = 1
 
 'if targetable enemy count is 1, go into alone mode
-IF targenemycount(bslot(), bstat()) = 1 THEN ai = 2
+IF targenemycount(bslot(), bstat(), YES) = 1 THEN ai = 2
 
 'spawn allys when alone
 IF ai = 2 AND es(bat.enemy_turn - 4, 81) THEN

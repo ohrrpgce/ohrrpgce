@@ -292,14 +292,6 @@ NEXT i
 RETURN o
 END FUNCTION
 
-FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats) as integer
-o = 0
-FOR i = 4 TO 11
- IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).hero_untargetable = NO THEN o = o + 1
-NEXT i
-RETURN o
-END FUNCTION
-
 SUB etwitch (who as integer, atk() as integer, bslot() AS BattleSprite)
 
 IF atk(14) < 2 THEN' twitch
@@ -1496,4 +1488,24 @@ FUNCTION battle_distance(who1, who2, bslot() AS BattleSprite)
  'Returns exact distance between two battlesprites
  ' Square root is a bit slow, so don't over-use this function
  RETURN SQR(quick_battle_distance(who1, who2, bslot()))
+END FUNCTION
+
+OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
+
+FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats, enemy_perspective as integer=0) as integer
+ 'This function can count both from a hero perspective or an enemy
+ 'perspective. Hero perspective is the default
+ DIM count AS INTEGER = 0
+ DIM untargetable AS INTEGER = NO
+ FOR i AS INTEGER = 4 TO 11
+  IF enemy_perspective THEN
+   untargetable = bslot(i).enemy_untargetable
+  ELSE'--hero perspective
+   untargetable = bslot(i).hero_untargetable
+  END IF
+  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND untargetable = NO THEN
+   count = count + 1
+  END IF
+ NEXT i
+ RETURN count
 END FUNCTION
