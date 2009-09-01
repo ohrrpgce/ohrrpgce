@@ -10,6 +10,8 @@ import version
 
 sys.argv[1:] = ["py2exe"]
 
+gtk_dir = "C:\Program Files\GTK2-Runtime"
+
 opts = {
     "py2exe": {
         "packages": "encodings",
@@ -35,17 +37,9 @@ if not os.path.isdir("dist"): raise Exception("dist dir is missing")
 print "Copying GTK+ support files.."
 for dir in ["etc", "lib", "share"]:
     shutil.rmtree(os.path.join("dist", dir), True)
-    shutil.copytree(os.path.join("C:\GTK", dir), os.path.join("dist", dir))
+    shutil.copytree(os.path.join(gtk_dir, dir), os.path.join("dist", dir))
 
 if not os.path.isdir("dist"): raise Exception("dist dir is missing")
-
-print "Trimming non-english locales..."
-keep = re.compile("^en", re.I)
-dir = os.path.join("dist", "share", "locale")
-for subdir in os.listdir(dir):
-    match = keep.search(subdir)
-    if match is None:
-        shutil.rmtree(os.path.join(dir, subdir))
 
 print "Trimming non-default themes..."
 keep = re.compile("^(Default|MS-Windows)", re.I)
