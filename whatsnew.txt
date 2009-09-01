@@ -20,6 +20,7 @@ WHAT IS NEW?
     * Added "Connected boxes" navigation tool to the text box editor
       [James]
     * New enemy bitset "Never flinch when hit" [James]
+    * New enemy bitset "Ignore for "Alone" AI" [James]
     * New attack bitselt "Do not cause target to flinch" [James]
     * Attack target modes for "Thankvenge", just like Revenge,
       but works on those who have cured the attacker instead

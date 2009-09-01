@@ -20,7 +20,7 @@ declare function checktheftchance (item as integer, itemp as integer, rareitem a
 declare sub control
 declare function countai (ai as integer, them as integer, es() as integer) as integer
 declare function enemycount (bslot() as battlesprite, bstat() AS BattleStats) as integer
-declare function targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats, enemy_perspective as integer=0) as integer
+declare function targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats, for_alone_ai as integer=0) as integer
 declare sub etwitch (who as integer, atk() as integer, bslot() as battlesprite)
 declare function getweaponpos(w as integer,f as integer,isy as integer) as integer'or x?
 declare function getheropos(h as integer,f as integer,isy as integer) as integer'or x?

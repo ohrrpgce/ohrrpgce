@@ -724,6 +724,7 @@ IF formdata(i * 4) > 0 THEN
   .hero_untargetable = xreadbit(tempbits(), 61)
   .death_unneeded = xreadbit(tempbits(), 62)
   .never_flinch = xreadbit(tempbits(), 63)
+  .ignore_for_alone = xreadbit(tempbits(), 64)
   FOR o = 0 TO 7
    .weak(o) = xreadbit(tempbits(), o)
    .strong(o) = xreadbit(tempbits(), 8 + o)
@@ -1492,18 +1493,14 @@ END FUNCTION
 
 OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
-FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats, enemy_perspective as integer=0) as integer
- 'This function can count both from a hero perspective or an enemy
- 'perspective. Hero perspective is the default
+FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats, for_alone_ai as integer=0) as integer
  DIM count AS INTEGER = 0
- DIM untargetable AS INTEGER = NO
+ DIM ignore AS INTEGER = NO
  FOR i AS INTEGER = 4 TO 11
-  IF enemy_perspective THEN
-   untargetable = bslot(i).enemy_untargetable
-  ELSE'--hero perspective
-   untargetable = bslot(i).hero_untargetable
+  IF for_alone_ai THEN
+   ignore = bslot(i).ignore_for_alone
   END IF
-  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND untargetable = NO THEN
+  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND ignore = NO THEN
    count = count + 1
   END IF
  NEXT i

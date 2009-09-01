@@ -105,7 +105,7 @@ clearallpages
 '-------------------------------------------------------------------------
 
 '--bitsets
-DIM ebit(63) AS STRING
+DIM ebit(64) AS STRING
 
 FOR i = 0 TO 7
  ebit(0 + i) = elemtype$(0) & " " & readglobalstring(17 + i, "Element" & i+1)
@@ -126,6 +126,7 @@ ebit(60) = "Untargetable by Enemies"
 ebit(61) = "Untargetable by Heros"
 ebit(62) = "Win battle even if alive"
 ebit(63) = "Never flinch when attacked"
+ebit(64) = "Ignored for ""Alone"" AI"
 
 '-------------------------------------------------------------------------
 
