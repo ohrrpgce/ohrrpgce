@@ -790,12 +790,14 @@ SUB edit_npc (BYREF npcdata AS NPCType)
      caption = " = " & safe_caption(movetype(), npcdata.movetype, "movetype")
     CASE 3
      caption = " " & npcdata.speed
+    CASE 4
+     caption = " " & zero_default(npcdata.textbox, "[None]")
     CASE 5
      caption = " " & safe_caption(facetype(), npcdata.facetype, "facetype")
     CASE 6
      caption = " " & itemname
     CASE 7
-		 caption = " " & safe_caption(pushtype(), npcdata.pushtype, "pushtype")
+     caption = " " & safe_caption(pushtype(), npcdata.pushtype, "pushtype")
     CASE 8
      caption = safe_caption(usetype(), npcdata.activation, "usetype")
     CASE 9
