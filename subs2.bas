@@ -3,6 +3,9 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+'FIXME: A large majority of the code in subs2.bas is textbox editor related.
+'       Maybe this file should be renamed textboxedit.bas ?
+'
 '$DYNAMIC
 DEFINT A-Z
 
@@ -716,7 +719,12 @@ DO
  END IF
  textcolor uilook(uiMenuItem), 0
  IF csr = 1 THEN textcolor uilook(uiSelectedItem + tog), 0
- printstr STR(st.id), 72, 8, dpage
+
+ IF st.id = 0 THEN
+   m$(1) = "Text Box 0 [template]"
+ ELSE
+   m$(1) = "Text Box " & st.id
+ END IF
  m$(7) = "Text Search:" + st.search
  
  '--Draw box
