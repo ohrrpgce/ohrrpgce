@@ -3152,6 +3152,7 @@ FOR i = 0 TO 3
   o = o + 1
  END IF
 NEXT i
+evalherotag stat()
 END SUB
 
 SUB wrapaheadxy (x, y, direction, distance, unitsize)

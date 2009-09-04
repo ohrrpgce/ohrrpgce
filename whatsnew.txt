@@ -73,6 +73,8 @@ WHAT IS NEW?
       when filling huge areas [Ralph]
     * Fixed box borders being drawn wrong for small boxes, and resized
       boxes throughout the builtin menus to accommodate borders [Ralph] 
+    * Fixed bug 747 which was causing hero tags to not be updated
+      immediately when a hero was added or removed [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

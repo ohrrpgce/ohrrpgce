@@ -3031,7 +3031,6 @@ SUB advance_text_box ()
    EXIT SUB
   END IF
  END IF
- evalherotag stat()
  evalitemtag
  '---DONE EVALUATING CONDITIONALS--------
  vishero stat()
