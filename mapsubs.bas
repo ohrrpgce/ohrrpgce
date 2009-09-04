@@ -36,7 +36,6 @@ DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata (atkdat$(), atklim%())
-DECLARE SUB textage ()
 DECLARE SUB maptile (font())
 DECLARE SUB paint_map_area(oldTile%, x%, y%, layer%, usetile%(), map%(), pass%(), defaults() AS DefArray, tilesets%(), defpass%)
 

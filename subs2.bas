@@ -35,7 +35,6 @@ DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
-DECLARE SUB textage ()
 DECLARE SUB maptile (font%())
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
 DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
@@ -515,7 +514,7 @@ DO
 LOOP
 END SUB
 
-SUB textage
+SUB text_box_editor () 'textage
 DIM m$(10), menu$(-1 TO 22), grey(-1 TO 22), h$(2), tagmn$, gcsr, tcur
 DIM box AS TextBox
 DIM st AS TextboxEditState
@@ -726,7 +725,7 @@ DO
  textcolor uilook(uiText), uilook(uiHighlight)
  printstr "+ to create", 232, 0, dpage
  printstr "ALT+C copy style", 192, 8, dpage
- IF style_clip >0 THEN printstr "ALT+V paste style", 184, 16, dpage
+ IF style_clip > 0 THEN printstr "ALT+V paste style", 184, 16, dpage
  standardmenu m$(), 10, 10, csr, 0, 0, 0, dpage, YES
 
  SWAP vpage, dpage
@@ -1102,7 +1101,7 @@ END SUB
 SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
  DIM menu(14) AS STRING
  DIM state AS MenuState
- state.size= 20
+ state.size = 20
  state.last = UBOUND(menu)
  state.need_update = YES
  

@@ -36,7 +36,7 @@ DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
-DECLARE SUB textage ()
+DECLARE SUB text_box_editor ()
 DECLARE SUB menu_editor ()
 DECLARE SUB maptile (font())
 DECLARE FUNCTION newRPGfile (template$, newrpg$)
@@ -280,7 +280,7 @@ DO:
     IF pt = 6 THEN itemdata
     IF pt = 7 THEN shopdata
     IF pt = 8 THEN formation
-    IF pt = 9 THEN textage
+    IF pt = 9 THEN text_box_editor
     if pt = 10 THEN menu_editor
     IF pt = 11 THEN vehicles
     IF pt = 12 THEN tagnames

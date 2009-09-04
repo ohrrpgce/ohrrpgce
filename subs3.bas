@@ -21,7 +21,6 @@ DECLARE SUB formation ()
 DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
-DECLARE SUB textage ()
 DECLARE SUB maptile (font%())
 
 #include "compat.bi"
