@@ -1986,7 +1986,6 @@ IF keyval(56) > 0 AND keyval(47) > 1 THEN
    workpal(i + (state.pt - state.top) * 8) = pclip(i)
   NEXT
  END IF
- storepal16 workpal(), state.pt - state.top, poffset(state.pt)
 END IF
 ss.curcolor = peek8bit(workpal(), (state.pt - state.top) * 16 + ss.palindex)
 IF keyval(56) > 0 THEN

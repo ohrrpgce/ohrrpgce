@@ -995,6 +995,7 @@ IF foffset >= 0 THEN '--never write a negative file offset
  storerecord buf(), f$, 8, 1 + foffset
 END IF
 
+Palette16_empty_cache
 END SUB
 
 SUB fatalerror (e$)
