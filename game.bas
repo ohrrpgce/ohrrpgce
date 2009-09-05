@@ -133,8 +133,12 @@ DIM insideinterpreter
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM scratp as ScriptInst ptr
 DIM scriptp as ScriptData ptr ptr 
+DIM retvalsp as integer ptr
+DIM plotslicesp as slice ptr ptr
 scratp = @scrat(0)
 scriptp = @script(0)
+retvalsp = @retvals(0)
+plotslicesp = @plotslices(1)
 
 'End global variables
 
@@ -1242,11 +1246,11 @@ WITH scrat(nowscript)
    insideinterpreter = YES
 #IFDEF SCRIPTPROFILE
    scrat(nowscript).scr->entered += 1
-   scrat(nowscript).scr->totaltime -= TIMER
+   TIMER_START(scrat(nowscript).scr->totaltime)
 #ENDIF
    GOSUB interpretloop
 #IFDEF SCRIPTPROFILE
-   IF nowscript >= 0 THEN scrat(nowscript).scr->totaltime += TIMER
+   IF nowscript >= 0 THEN TIMER_STOP(scrat(nowscript).scr->totaltime)
 #ENDIF
    insideinterpreter = NO
    '--WARNING: WITH pointer probably corrupted

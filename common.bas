@@ -887,7 +887,7 @@ END FUNCTION
 FUNCTION getbinsize (id) as integer
 'returns the current size in BYTES of the records in the specific binary file you are working with
 IF isfile(workingdir + SLASH + "binsize.bin") THEN
- fbdim recordsize
+ DIM as short recordsize
  fh = FREEFILE
  OPEN workingdir + SLASH + "binsize.bin" FOR BINARY AS #fh
  IF LOF(fh) < 2 * id + 2 THEN
@@ -911,11 +911,9 @@ FUNCTION dimbinsize (id) as integer
 END FUNCTION
 
 SUB setbinsize (id, size)
-fbdim size16
-size16 = size
 fh = FREEFILE
 OPEN workingdir + SLASH + "binsize.bin" FOR BINARY AS #fh
-PUT #fh, 1 + id * 2, size16
+PUT #fh, 1 + id * 2, CAST(short, size)
 CLOSE #fh
 END SUB
 

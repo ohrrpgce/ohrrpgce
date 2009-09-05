@@ -6,27 +6,28 @@
 '$DYNAMIC
 DEFINT A-Z
 
-'modules
-#include "bmod.bi"
-#include "bmodsubs.bi"
-#include "game.bi"
-#include "moresubs.bi"
-#INCLUDE "allmodex.bi"
-DECLARE SUB wrappedsong (songnumber)
-DECLARE SUB playtimer
-DECLARE SUB getitem (getit, num)
-DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
-
 'misc
+#include "compat.bi"
 #include "common.bi"
 #include "loading.bi"
-#INCLUDE "compat.bi"
 #INCLUDE "gglobals.bi"
 #INCLUDE "const.bi"
 #INCLUDE "uiconst.bi"
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
 #INCLUDE "scancodes.bi"
+
+'modules
+#include "bmod.bi"
+#include "bmodsubs.bi"
+#include "game.bi"
+#include "moresubs.bi"
+#INCLUDE "allmodex.bi"
+
+DECLARE SUB wrappedsong (songnumber)
+DECLARE SUB playtimer
+DECLARE SUB getitem (getit, num)
+DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
 
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER

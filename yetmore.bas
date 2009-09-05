@@ -402,7 +402,7 @@ nowscript = nowscript - 1
 IF nowscript < 0 THEN
  functiondone = 1'--no scripts are running anymore
 #IFDEF SCRIPTPROFILE
- scrat(nowscript + 1).scr->totaltime += TIMER
+ TIMER_STOP(scrat(nowscript + 1).scr->totaltime)
 #ENDIF
 ELSE
  'check if script needs reloading
@@ -418,9 +418,9 @@ ELSE
   functiondone = 0'--returning a value to a caller
  END IF
 #IFDEF SCRIPTPROFILE
+ TIMER_STOP(scrat(nowscript + 1).scr->totaltime)
  scrat(nowscript).scr->entered += 1
- scrat(nowscript).scr->totaltime -= TIMER
- scrat(nowscript + 1).scr->totaltime += TIMER
+ TIMER_START(scrat(nowscript).scr->totaltime)
 #ENDIF
 END IF
 

@@ -51,11 +51,22 @@ CONST build_info as string = "" _GSTR _ESTR _SSTR _PSTR
 #undef bound
 #undef strlen
 
-#ifndef DEMACRO
-#ifndef DONESTR
-#define fbdim dim as short
-#define DONESTR
-#endif
+'it was too awful (collision-wise) to include all of windows.bi
+#macro include_windows_bi()
+'# include "windows.bi"
+# ifndef windows_bi_included
+#  define windows_bi_included
+#  undef point
+#  define _X86_
+#  include "win/windef.bi"
+#  include "win/winbase.bi"
+#  undef max
+#  undef min
+#  undef getcommandline
+#  undef copyfile
+#  undef istag
+# endif
+#endmacro
 
 #if  __FB_VERSION__ = "0.15"
 'use native gosubs
@@ -99,12 +110,10 @@ option nokeyword gosub
 #define retrace longjmp(@gosubbuf(gosubptr-1),1)
 #define retrievestate gosubptr=localgosubptr
 #define rememberstate localgosubptr=gosubptr
-#endif
+#endif  'choose GOSUB workaround
 
 '#DEFINE CLEAROBJ(OBJ) memset(@(OBJ),0,LEN(OBJ))
 '#DEFINE COPYOBJ(TO,FROM) memcpy(@(TO),@(FROM),LEN(FROM))
-
-#endif  'choose GOSUB workaround
 
 #ifdef __FB_LINUX__
 #define LINUX -1
@@ -119,7 +128,36 @@ option nokeyword gosub
 #define CUSTOMEXE "CUSTOM.EXE"
 #define ALLFILES "*.*"
 #endif
-#define ISDOS 0
+
+'Warning: you may not nest TIMER_STOP/START calls!
+
+'under windows, TIMER uses QueryPerformanceCounter, under unix it uses gettimeofday
+#ifdef ACCURATETIMER
+ 'use a timer which counts CPU time spent by this process (preferably thread) only
+ #ifdef __FB_WIN32__
+  'only available on win 2000 or later
+  include_windows_bi()
+  #if defined(GetThreadTimes)
+   #define timer_variables  as FILETIME ptr atimer_s, atimer_e
+   extern timer_variables
+   #define TIMER_START(a)  GetThreadTimes(GetCurrentThread, NULL, NULL, NULL, @atimer_s)
+   #define TIMER_STOP(a)  GetThreadTimes(GetCurrentThread, NULL, NULL, NULL, @atimer_e): a += (atimer_e.dwLowDateTime - atimer_s.dwLowDateTime) * 0.0000001
+  #else
+   #print GetThreadTimes not available
+  #endif
+ #else
+  'assume anything else is a unix
+  'options: clock, times, clock_gettime (with CLOCK_THREAD_CPUTIME_ID) which apparently counts in clock ticks (1ms)
+  #define timer_variables as timespec atimer_s, atimer_e
+  extern timer_variables
+  #define TIMER_START(a)  clock_gettime(CLOCK_THREAD_CPUTIME_ID, @atimer_s)
+  #define TIMER_STOP(a)  clock_gettime(CLOCK_THREAD_CPUTIME_ID, @atimer_e): a += (atimer_e.tv_nsec - atimer_s.tv_nsec) * 0.000000001
+ #endif
+#endif
+#ifndef TIMER_START
+ #define TIMER_START(a) a -= TIMER
+ #define TIMER_STOP(a)  a += TIMER
+#endif
 
 declare function xstr overload (x as integer) as string
 declare function xstr (x as short) as string

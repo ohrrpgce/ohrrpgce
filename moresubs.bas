@@ -1606,9 +1606,9 @@ END WITH
 
 #IFDEF SCRIPTPROFILE
 IF insideinterpreter THEN 'we have nowscript > 0
+ TIMER_STOP(scrat(nowscript - 1).scr->totaltime)
  scrat(nowscript).scr->entered += 1
- scrat(nowscript).scr->totaltime -= TIMER
- scrat(nowscript - 1).scr->totaltime += TIMER
+ TIMER_START(scrat(nowscript).scr->totaltime)
 END IF
 #ENDIF
 

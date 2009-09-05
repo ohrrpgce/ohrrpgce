@@ -20,6 +20,9 @@ declare SUB debug (s$)
 option dynamic
 dim shared gosubbuf(31) as crt_jmp_buf
 dim shared gosubptr as integer = 0
+#ifdef timer_variables
+dim timer_variables
+#endif
 
 'stores the rpg name from the command line without any command-line arguments
 dim shared storecmd(7) as string
@@ -64,7 +67,7 @@ SUB xbload (f$, array(), e$)
 			array(i) = buf(i)
 		next i
 
-		ELSE
+	ELSE
 		fatalerror e$
 	END IF
 

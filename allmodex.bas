@@ -1,22 +1,10 @@
 '' FBOHR COMPATIBILITY FUNCTIONS
 '' GPL and stuff. See LICENSE.txt.
 '
-#define DEMACRO
-
-#ifdef __FB_WIN32__
-'# include "windows.bi"
-'it was too awful (collision-wise) to include all of windows.bi
-# undef point
-# define _X86_
-# include "win/windef.bi"
-# include "win/winbase.bi"
-# undef max
-# undef min
-# undef getcommandline
-# undef copyfile
-#endif
-
 #include "compat.bi"
+#ifdef __FB_WIN32__
+include_windows_bi()
+#endif
 #include "common.bi"
 #include "allmodex.bi"
 #include "gfx.bi"
