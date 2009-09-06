@@ -774,6 +774,11 @@ script,set debug keys disable,bit=1,begin
   write general(101,(read general(101),and,32511)+bit)
 end
 
+script,set dead heroes gain experience,bit=1,begin
+  if(bit) then(bit:=8)
+  write general(101,(read general(177),and,32759)+bit)
+end
+
 script, get hero stat cap, stat, begin
  read general(65+stat)
 end

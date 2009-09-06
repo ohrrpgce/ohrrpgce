@@ -125,6 +125,7 @@ WHAT IS NEW?
       "set sprite visible" still exists but is now just an alias
       for "set slice visible". [James]
     * "number from string" [James]
+    * "set dead heroes gain experience" [James]
     * There are now 3 NPC extra data fields (0-2) accessible with
       "set NPC extra" instead of 2 [Ralph]
     * "suspend timers", and "resume timers" [James]
