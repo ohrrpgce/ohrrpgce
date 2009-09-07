@@ -67,8 +67,7 @@ CTRL+C Copies the sprite
 
 CTRL+V Pastes a copy of the sprite.
 
-CTRL+ALT+C Copies the 16-color
-   palette.
+ALT+C Copies the 16-color palette.
 
-CTRL+ALT+V Pastes a copy of the
-   16-color palette.
+ALT+V Pastes a copy of the 16-color
+      palette.

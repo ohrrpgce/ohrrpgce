@@ -3471,7 +3471,7 @@ end
 		<command id="lastsaveslot">
 			<canon>last save slot</canon>
 			<shortname>last save slot</shortname>
-			<description>Returns the last save slot saved in, or <ref>false</ref> if the game has not been saved yet.</description>
+			<description>Returns the last save slot saved in, or <ref>false</ref> if the game has not been saved yet. Save slots are numbered starting at 1.</description>
 			<seealso>
 				<ref>saveinslot</ref>
 				<ref>savemenu</ref>
@@ -4393,7 +4393,7 @@ end</example>
 		<command id="deletesave">
 			<canon>delete save (slot)</canon>
 			<shortname>delete save</shortname>
-			<description>Deletes a saved game. The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>. However, <ref>importglobals</ref> can still be used to read globals out of the slot.</description>
+			<description>Deletes a saved game in the specified save slot (1 to 32, only 1 to 4 appear on the builtin menus). The save will no longer be visible on the load game menu or loadable with <ref>loadfromslot</ref>. However, <ref>importglobals</ref> can still be used to read globals out of the slot.</description>
 			<seealso>
 				<ref>saveinslot</ref>
 			</seealso>

@@ -897,7 +897,7 @@ DO
    CASE AtkDmgAct
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), dmgMenu(), state
-    helpkey = "attack_dammage"
+    helpkey = "attack_damage"
     needupdatemenu = 1
    CASE AtkTargAct
     atk_edit_pushptr state, laststate, menudepth

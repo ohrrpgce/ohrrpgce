@@ -93,7 +93,7 @@ Target Stat: What stat you want to     actually change. Normally HP, but     can
 
 *************************************
 
-Extra Damage: Increse in percentage    (200% = 2x, 1000% = 10x, etc..) in    how much more (or less) damage is     done. Values above 100% increase the  damage, and values below decrease     it.
+Extra Damage: Increse in percentage    (100% = 2x, 1000% = 11x, etc..) in    how much more (or less) damage is     done. Values above 0% increase the    damage, and values below decrease     it.
 
 *************************************
 
