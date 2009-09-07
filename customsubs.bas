@@ -907,6 +907,7 @@ END SUB
 
 FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL picnum AS INTEGER, BYVAL picframes AS INTEGER, BYVAL picw AS INTEGER, BYVAL pich AS INTEGER) AS INTEGER
 
+ DIM buf(7) AS INTEGER
  DIM sprite(9) AS Frame PTR
  DIM pal16(9) AS Palette16 PTR
 
@@ -915,29 +916,25 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
 
  DIM state AS MenuState
  state.need_update = YES
- state.pt = large(curpal, 0)
  state.top = curpal - 1
  state.first = -1
  state.size = 9
 
- clearpage dpage
-
  '--get last pal
- setpicstuf buffer(), 16, -1
- loadset game + ".pal", 0, 0
- state.last = buffer(1) + 1
- o = 0
+ loadrecord buf(), game + ".pal", 8, 0
+ state.last = buf(1)
  FOR i = state.last TO 0 STEP -1
-  loadset game + ".pal", 1 + i, 0
+  state.last = i
+  loadrecord buf(), game + ".pal", 8, 1 + i
   FOR j = 0 TO 7
-   IF buffer(j) <> 0 THEN o = 1: EXIT FOR
+   IF buf(j) <> 0 THEN EXIT FOR, FOR
   NEXT j
-  IF o = 1 THEN EXIT FOR
-  state.last = i + 1
  NEXT i
 
+ state.pt = bound(curpal, 0, state.last)
  state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
 
+ clearpage dpage
  setkeys
  DO
   setwait 55
@@ -946,9 +943,6 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "pal16browse"
   IF usemenu(state) THEN state.need_update = YES
-  IF intgrabber(state.pt, state.first, state.last, 51, 52) THEN
-   state.need_update = YES
-  END IF
   IF enter_or_space() THEN
    IF state.pt >= 0 THEN curpal = state.pt
    EXIT DO
@@ -956,8 +950,6 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
 
   IF state.need_update THEN
    state.need_update = NO
-   state.top = bound(state.top, state.pt - state.size, state.pt)
-   state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
    FOR i = 0 TO 9
     sprite_unload @sprite(i)
     palette16_unload @pal16(i)
