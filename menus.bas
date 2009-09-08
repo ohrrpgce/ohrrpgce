@@ -1176,9 +1176,9 @@ m$(13) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
 m$(14) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
 m$(15) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
 IF gen(genMaxInventory) = 0 THEN
- m$(16) = "Inventory Slots: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+ m$(16) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
 ELSE
- m$(16) = "Inventory Slots: " & (last_inv_slot() \ 3) + 1 & " rows, 0-" & gen(genMaxInventory) & " slots"
+ m$(16) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, 0-" & gen(genMaxInventory) & " slots"
 END IF
 END SUB
 
@@ -1201,6 +1201,7 @@ SUB gendata ()
  IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
  IF gen(genStun) <= 0 THEN gen(genStun) = 159
  IF gen(genMute) <= 0 THEN gen(genMute) = 163
+ 'make sure genMaxInventory is a valid value (possible in older versions)
  IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
  
  m$(0) = "Return to Main Menu"

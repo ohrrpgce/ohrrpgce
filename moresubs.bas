@@ -726,7 +726,7 @@ FOR i = 0 TO 500
    IF readbit(gen(), genBits2, 2) = 0 THEN
     gen(i) = buffer(z)
    END IF
-  CASE 44 TO 54, 58, 60 TO 76
+  CASE 44 TO 54, 58, 60 TO 76, 85
    gen(i) = buffer(z)
  END SELECT
  z = z + 1

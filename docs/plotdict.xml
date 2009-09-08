@@ -1490,7 +1490,7 @@ end</example>
 			<shortname>find menu ID</shortname>
 			<description>Given a <p>menu ID</p> number or a constant in the form of <p>menu:name</p>, Check to see if it is already open, and return a menu handle to it.</description>
 		</command>
-		<command id="menu is open">
+		<command id="menuisopen">
 			<canon>menu is open(menu handle)</canon>
 			<shortname>menu is open</shortname>
 			<description>Given a <p>menu handle</p> (for example, the one returned by <p>open menu</p>), Check to see if it is already open, and return <ref>true</ref> if it is, or <ref>false</ref> if it is not</description>
@@ -3186,25 +3186,28 @@ end
 			<shortname>random</shortname>
 			<description>Returns a random number in the range of the two numbers. The returned value will be greater than or equal to the first number, and less than or equal to the second number</description>
 		</command>
-		<command id="seed random">
+		<command id="seedrandom">
 			<canon>seed random (new seed)</canon>
 			<shortname>seedrandom</shortname>
-			<description>Reseeds the random number generator. If called with no argument, this will reseed the random number generator using the current number of milliseconds. If you pass in a number, the random number generator will be seeded with that number, allowing for repeatable random sequences.</description>
+			<description>Reseeds the random number generator. If called with no argument, this will reseed the random number generator to a new random sequence. If you pass in a number, the random number generator will be seeded with that number, allowing for repeatable random sequences.</description>
+			<seealso>
+				<ref>random</ref>
+			</seealso>
 		</command>
 		<command id="inventory">
 			<canon>inventory (item)</canon>
 			<shortname>inventory</shortname>
 			<description>Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <ref>zero</ref> or <ref>false</ref>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
 		</command>
-		<command id="get inventory size">
+		<command id="getinventorysize">
 			<canon>get inventory size</canon>
 			<shortname>get inventory size</shortname>
-			<description>Returns a count of how many inventory slots are available.</description>
+			<description>Returns the number of inventory slots.</description>
 		</command>
-		<command id="set inventory size">
-			<canon>set inventory size(new size)</canon>
+		<command id="setinventorysize">
+			<canon>set inventory size (new size)</canon>
 			<shortname>set inventory size</shortname>
-			<description>Changes the number of inventory slots that are available. Use the constant <p>inv:max</p> to restore the maximum value. The number you use will be rounded down to the nearest multiple of 3. Changes made to the inventory size are not saved in your save-game, so if you want them to persist after loading you should use an on-load script to re-apply the changes.</description>
+			<description>Changes the number of inventory slots that are available. Use the constant <p>inv:max</p> to restore the maximum value. The number you give will be rounded up to the nearest multiple of 3.</description>
 		</command>
 		<command id="leader">
 			<canon>leader</canon>
