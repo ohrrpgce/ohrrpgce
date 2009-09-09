@@ -767,6 +767,8 @@ IF formdata(i * 4) > 0 THEN
    .w = 80
    .h = 80
   END IF
+  .cursorpos.x = .w / 2 - es(i, 25) '--X offset is subtracted instead of added because enemies are always h-flipped
+  .cursorpos.y = es(i, 26)
   .death_sfx = es(i, 24)
   .revenge = -1
   .thankvenge = -1

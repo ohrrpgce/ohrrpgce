@@ -1675,8 +1675,8 @@ IF vic.state = 0 THEN 'only display interface till you win
   IF bat.targ.mode > targNONE THEN
    FOR i = 0 TO 11
     IF bat.targ.selected(i) = 1 OR bat.targ.pointer = i THEN
-     edgeprint CHR$(24), bslot(i).x + (bslot(i).w / 2) - 4, bslot(i).y - 6, uilook(uiSelectedItem + tog), dpage
-     edgeprint bslot(i).name, xstring(bslot(i).name, bslot(i).x + (bslot(i).w / 2)), bslot(i).y - 16, uilook(uiSelectedItem + tog), dpage
+     edgeprint CHR$(24), bslot(i).x + bslot(i).cursorpos.x - 4, bslot(i).y + bslot(i).cursorpos.y - 6, uilook(uiSelectedItem + tog), dpage
+     edgeprint bslot(i).name, xstring(bslot(i).name, bslot(i).x + bslot(i).cursorpos.x), bslot(i).y + bslot(i).cursorpos.y - 16, uilook(uiSelectedItem + tog), dpage
     END IF
    NEXT i
   END IF
@@ -1930,7 +1930,7 @@ FOR i = 0 TO 3
   loadherodata @st(i), hero(i) - 1
   oldm = 0
   newm = 0
-  'Loop through hero battle menu, populating nmenu() with he ones that should be displayed
+  'Loop through hero battle menu, populating nmenu() with the ones that should be displayed
   FOR oldm = 0 TO 5
    IF bmenu(i, oldm) < 0 AND bmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 THEN
     'this is a spell list, and the hide empty spell lists bitset is on...
@@ -1958,6 +1958,8 @@ FOR i = 0 TO 3
    if .pal = 0 then debug "Failed to load palette (#" & i & ")"
    .frame = 0
    .death_sfx = -1 'No death sounds for heroes (for now)
+   .cursorpos.x = .w / 2
+   .cursorpos.y = 0
   END WITH
   FOR o = 0 TO 11
    bstat(i).cur.sta(o) = exstat(i, 0, o)
@@ -1985,7 +1987,7 @@ FOR i = 0 TO 3
   NEXT
   exstat(i, 1, 12) = 0
  ELSE
-  BSLOT(I).sprites = 0
+  bslot(i).sprites = 0
  END IF
 NEXT i
 FOR i = 0 TO 7

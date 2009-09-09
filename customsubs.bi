@@ -7,6 +7,7 @@
 #define CUSTOMSUBS_BI
 
 #include "const.bi"
+#include "slices.bi"
 
 DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
 DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
@@ -39,6 +40,7 @@ DECLARE FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS
 DECLARE FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
 DECLARE FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS INTEGER
 DECLARE FUNCTION str2bool(q AS STRING, default AS INTEGER = NO, invert AS INTEGER = NO) AS INTEGER
+DECLARE SUB xy_position_on_slice (sl AS Slice Ptr, BYREF x AS INTEGER, BYREF y AS INTEGER, caption AS STRING)
 DECLARE SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL frame AS INTEGER, BYVAL wide AS INTEGER, byval high AS INTEGER, caption AS STRING)
 DECLARE SUB edit_menu_bits (menu AS MenuDef)
 DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)

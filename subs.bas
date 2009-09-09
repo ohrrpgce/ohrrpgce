@@ -244,7 +244,7 @@ max(EnLimDeathSFX) = gen(genMaxSFX) + 1
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu$(66), menutype(66), menuoff(66), menulimits(66)
+DIM menu$(67), menutype(67), menuoff(67), menulimits(67)
 
 CONST EnMenuBackAct = 0
 menu$(EnMenuBackAct) = "Previous Menu"
@@ -457,6 +457,9 @@ menutype(EnMenuDeathSFX) = 14
 menuoff(EnMenuDeathSFX) = EnDatDeathSFX
 menulimits(EnMenuDeathSFX) = EnLimDeathSFX
 
+CONST EnMenuCursorOffset = 66
+menu$(EnMenuCursorOffset) = "Cursor Offset..."
+menutype(EnMenuCursorOffset) = 1
 '-------------------------------------------------------------------------
 '--menu structure
 DIM workmenu(15), dispmenu$(15)
@@ -474,7 +477,7 @@ mainMenu(6) = EnMenuBitsetAct
 mainMenu(7) = EnMenuSpawnAct
 mainMenu(8) = EnMenuAtkAct
 
-DIM appearMenu(6)
+DIM appearMenu(7)
 appearMenu(0) = EnMenuBackAct
 appearMenu(1) = EnMenuPicSize
 appearMenu(2) = EnMenuPic
@@ -482,6 +485,7 @@ appearMenu(3) = EnMenuPal
 appearMenu(4) = EnMenuDissolve
 appearMenu(5) = EnMenuDissolveTime
 appearMenu(6) = EnMenuDeathSFX
+appearMenu(7) = EnMenuCursorOffset
 
 DIM rewardMenu(11)
 rewardMenu(0) = EnMenuBackAct
@@ -650,6 +654,20 @@ DO
     GOSUB EnUpdateMenu
    CASE EnMenuBitsetAct
     editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit()
+   CASE EnMenuCursorOffset
+    '--temporarily move the preview image
+    SetSliceParent(preview, SliceTable.Root)
+    preview->AnchorVert = 1
+    preview->AlignVert = 1
+    WITH sprite_sizes(recbuf(EnDatPicSize) + 1)
+     recbuf(25) += .size.x / 2 '--offset relative to the top middle
+     xy_position_on_slice preview, recbuf(25), recbuf(26), "Targetting Cursor Offset"
+     recbuf(25) -= .size.x / 2
+    END WITH
+    '--move the preview image back how it was before
+    SetSliceParent(preview, preview_box)
+    preview->AnchorVert = 2
+    preview->AlignVert = 2
   END SELECT
  END IF
 

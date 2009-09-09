@@ -62,6 +62,7 @@ TYPE BattleSprite
   death_unneeded AS INTEGER 'YES/NO
   never_flinch   AS INTEGER 'YES/NO
   ignore_for_alone    AS INTEGER 'YES/NO
+  cursorpos AS XYPair
 END TYPE
 
 UNION BattleStatsSingle
