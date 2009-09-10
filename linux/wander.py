@@ -13,7 +13,7 @@ relump(prefix + "wander.rpgdir", "wander.rpg")
 files = [
   "wander.rpg",
   prefix + "wander.hss",
-  prefix + "readme-wander.txt"]
+  prefix + "README.txt"]
 
 executables = []
 
