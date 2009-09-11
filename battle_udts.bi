@@ -129,6 +129,11 @@ TYPE BattleState
  death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
  targ AS TargettingState
  atk AS AttackState
+ pt AS INTEGER         'menu cursor for hero menu
+ listslot AS INTEGER   'currently active hero spell list slot
+ sptr AS INTEGER       'menu cursor for hero spell list menu
+ item AS MenuState     'menu cursor for items menu
+ item_desc AS STRING   'description of currently selected item in item menu
 END TYPE
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1
