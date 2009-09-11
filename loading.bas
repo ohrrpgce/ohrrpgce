@@ -1297,6 +1297,10 @@ END SUB
 SUB loadattackdata (BYREF atkdat AS AttackData, BYVAL index AS INTEGER)
  DIM buf(40 + dimbinsize(binATTACK)) AS INTEGER
  loadattackdata buf(), index
+ convertattackdata buf(), atkdat
+END SUB
+
+SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
  WITH atkdat
   .name = readbadbinstring(buf(), 24, 10, 1)
   .description = readbinstring(buf(), 73, 38)

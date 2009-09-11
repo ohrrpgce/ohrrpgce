@@ -24,6 +24,7 @@ DECLARE FUNCTION countitem% (it%)
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "loading.bi"
 #include "gglobals.bi"
 #include "const.bi"
 #include "uiconst.bi"
@@ -31,7 +32,7 @@ DECLARE FUNCTION countitem% (it%)
 #INCLUDE "battle_udts.bi"
 
 DECLARE SUB confirm_auto_spread (who as integer, tmask() as integer, bslot() AS BattleSprite)
-DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
+DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atk as AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
 DECLARE SUB confirm_auto_first (who as integer, tmask() as integer, bslot() AS BattleSprite)
 
 DECLARE FUNCTION quick_battle_distance(who1 as integer, who2 as integer, bslot() AS BattleSprite)
@@ -82,47 +83,10 @@ END IF
 END SUB
 
 FUNCTION atkallowed (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
-'FIXME: this will be deleted in favour of its overload as soon as it is no longer needed
-'--atkbuf   = attack data
-'--attacker = hero or enemy who is attacking
-'--spclass  = 0 for normal attacks, 1 for level-MP spells
-'--lmplev   = which level-MP level to use
-
-'--check for mutedness
-IF readbit(atkbuf(),65,0) = 1 AND bstat(attacker).cur.mute < bstat(attacker).max.mute THEN
- RETURN NO
-END IF
-
-'--check for sufficient mp
-IF bstat(attacker).cur.mp - focuscost(atkbuf(8), bstat(attacker).cur.foc) < 0 THEN
- RETURN NO
-END IF
-
-'--check for level-MP (heroes only)
-IF attacker <= 3 AND spclass = 1 THEN
- IF lmp(attacker, lmplev) - 1 < 0 THEN
-  RETURN NO
- END IF
-END IF
-
-'--check for sufficient items
-DIM itemid, itemcount AS INTEGER
-FOR i = 0 to 2
-  itemid = atkbuf(93 + i * 2)
-  itemcount = atkbuf(94 + i * 2)
-  IF itemid > 0 THEN 'this slot is used
-    IF attacker <= 3 THEN ' Only hero items are checked right now
-      IF countitem(itemid) < itemcount THEN
-        'yes, this still works for adding items.
-        RETURN NO
-      END IF
-    END IF
-  END IF
-NEXT i
-
-'--succeed
-RETURN YES
-
+ 'FIXME: this will be deleted in favour of its overload as soon as it is no longer needed
+ DIM atk AS AttackData
+ convertattackdata atkbuf(), atk
+ RETURN atkallowed(atk, attacker, spclass, lmplev, bstat())
 END FUNCTION
 
 FUNCTION atkallowed (atk as AttackData, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
@@ -1185,14 +1149,21 @@ NEXT i
 END SUB
 
 SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+ 'FIXME: remove this in favour of its overload later
+ DIM atk AS AttackData
+ convertattackdata atkbuf(), atk
+ get_valid_targs tmask(), who, atk, bslot(), bstat()
+END SUB
 
-DIM i AS INTEGER
+SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
 
-FOR i = 0 TO 11
- tmask(i) = 0 ' clear list of available targets
-NEXT i
+ DIM i AS INTEGER
 
-SELECT CASE atkbuf(3)
+ FOR i = 0 TO 11
+  tmask(i) = 0 ' clear list of available targets
+ NEXT i
+
+ SELECT CASE atk.targ_class
 
  CASE 0 'foe
   IF is_hero(who) THEN
@@ -1277,31 +1248,33 @@ SELECT CASE atkbuf(3)
    END IF
   NEXT i
 
-END SELECT
+ END SELECT
 
-'enforce attack's disabled enemy target slots
-FOR i = 0 TO 7
- IF readbit(atkbuf(), 20, 37 + i) THEN tmask(4 + i) = 0
-NEXT i
-
-'enforce attack's disabled hero target slots
-FOR i = 0 TO 3
- IF readbit(atkbuf(), 20, 45 + i) THEN tmask(i) = 0
-NEXT i
-
-'target:self overrides enemy untargetable bit
-IF atkbuf(3) <> 2 THEN
- 'enforce untargetability
- FOR i = 0 TO 11
-  IF is_hero(who) THEN
-   IF bslot(i).hero_untargetable = YES THEN tmask(i) = 0
-  ELSEIF is_enemy(who) THEN
-   IF bslot(i).enemy_untargetable = YES THEN tmask(i) = 0
-  END IF
+ 'enforce attack's disabled enemy target slots
+ FOR i = 0 TO 7
+  IF atk.cannot_target_enemy_slot(i) THEN tmask(4 + i) = 0
  NEXT i
-END IF
+
+ 'enforce attack's disabled hero target slots
+ FOR i = 0 TO 3
+  IF atk.cannot_target_hero_slot(i) THEN tmask(i) = 0
+ NEXT i
+
+ 'target:self overrides enemy untargetable bit
+ IF atk.targ_class <> 2 THEN
+  'enforce untargetability
+  FOR i = 0 TO 11
+   IF is_hero(who) THEN
+    IF bslot(i).hero_untargetable = YES THEN tmask(i) = 0
+   ELSEIF is_enemy(who) THEN
+    IF bslot(i).enemy_untargetable = YES THEN tmask(i) = 0
+   END IF
+  NEXT i
+ END IF
 
 END SUB
+
+OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 FUNCTION attack_can_hit_dead(who as integer, atkbuf() as integer) as integer
 
@@ -1316,40 +1289,47 @@ RETURN NO
 END FUNCTION
 
 SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+ 'FIXME: Remove this later in favor of its overload
+ DIM atk AS AttackData
+ convertattackdata atkbuf(), atk
+ autotarget who, atk, bslot(), bstat()
+END SUB
 
-DIM tmask(11) ' A list of true/false values indicating
-              ' which targets are valid for the currently targetting attack
+SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
 
-DIM i AS INTEGER
+ DIM tmask(11) ' A list of true/false values indicating
+               ' which targets are valid for the currently targetting attack
 
-get_valid_targs tmask(), who, atkbuf(), bslot(), bstat()
+ DIM i AS INTEGER
 
-'flush the targeting space for this attacker
-FOR i = 0 TO 11
- bslot(who).t(i) = -1
-NEXT i
+ get_valid_targs tmask(), who, atk, bslot(), bstat()
 
-targetptr = 0
+ 'flush the targeting space for this attacker
+ FOR i = 0 TO 11
+  bslot(who).t(i) = -1
+ NEXT i
 
-SELECT CASE atkbuf(4)
+ DIM targetptr AS INTEGER = 0
 
- CASE 0, 3: '--focus and random focus
-  confirm_auto_focus who, tmask(), atkbuf(), bslot(), bstat()
+ SELECT CASE atk.targ_set
 
- CASE 1: '--spread attack
-  confirm_auto_spread who, tmask(), bslot()
+  CASE 0, 3: '--focus and random focus
+   confirm_auto_focus who, tmask(), atk, bslot(), bstat()
 
- CASE 2: '-- optional spread
-  IF INT(RND * 100) < 33 THEN
+  CASE 1: '--spread attack
    confirm_auto_spread who, tmask(), bslot()
-  ELSE
-   confirm_auto_focus who, tmask(), atkbuf(), bslot(), bstat()
-  END IF
 
- CASE 4: '--first target
-  confirm_auto_first who, tmask(), bslot()
+  CASE 2: '-- optional spread
+   IF INT(RND * 100) < 33 THEN
+    confirm_auto_spread who, tmask(), bslot()
+   ELSE
+    confirm_auto_focus who, tmask(), atk, bslot(), bstat()
+   END IF
 
-END SELECT
+  CASE 4: '--first target
+   confirm_auto_first who, tmask(), bslot()
+
+ END SELECT
 
 END SUB
 
@@ -1364,8 +1344,8 @@ SUB confirm_auto_spread (who, tmask(), bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB confirm_auto_focus (who, tmask(), atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
- bslot(who).t(0) = find_preferred_target(tmask(), who, atkbuf(), bslot(), bstat())
+SUB confirm_auto_focus (who, tmask(), atk AS AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
+ bslot(who).t(0) = find_preferred_target(tmask(), who, atk, bslot(), bstat())
 END SUB
 
 SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
@@ -1379,35 +1359,42 @@ SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
 END SUB
 
 FUNCTION find_preferred_target(tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
+ 'FIXME: remove this later in favour of the overload
+ DIM atk AS AttackData
+ convertattackdata atkbuf(), atk
+ RETURN find_preferred_target(tmask(), who, atk, bslot(), bstat())
+END FUNCTION
 
-DIM i AS INTEGER
-DIM best AS INTEGER
-DIM search AS INTEGER
-DIM found AS INTEGER
-DIM prefstat AS INTEGER
+FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
+
+ DIM i AS INTEGER
+ DIM best AS INTEGER
+ DIM search AS INTEGER
+ DIM found AS INTEGER
+ DIM prefstat AS INTEGER
  
-IF atkbuf(100) = 0 THEN
- 'Weak/Strong pref stat defaults to target stat
- prefstat = atkbuf(18)
-ELSE
- prefstat = atkbuf(100) - 1
-END IF
+ IF atk.prefer_targ_stat = 0 THEN
+  'Weak/Strong pref stat defaults to target stat
+  prefstat = atk.targ_stat
+ ELSE
+  prefstat = atk.prefer_targ_stat - 1
+ END IF
 
-SELECT CASE atkbuf(19) ' Preferred target type
+ SELECT CASE atk.prefer_targ ' Preferred target type
 
  CASE 0 '--Default
   IF is_hero(who) THEN
-   atkbuf(19) = 1 ' heroes default to first target
+   atk.prefer_targ = 1 ' heroes default to first target
   ELSEIF is_enemy(who) THEN
-   atkbuf(19) = 4 ' enemies default to a random target
+   atk.prefer_targ = 4 ' enemies default to a random target
   END IF
-  found = find_preferred_target(tmask(), who, atkbuf(), bslot(), bstat())
-  atkbuf(19) = 0
+  found = find_preferred_target(tmask(), who, atk, bslot(), bstat())
+  atk.prefer_targ = 0
   RETURN found
 
  CASE 1 '--First
   'special handling for heroes using attacks that target all
-  IF is_hero(who) AND atkbuf(3) = 3 THEN
+  IF is_hero(who) AND atk.targ_class = 3 THEN
    FOR i = 4 to 11
     IF tmask(i) <> 0 THEN RETURN i
    NEXT i
@@ -1509,15 +1496,15 @@ SELECT CASE atkbuf(19) ' Preferred target type
   NEXT i
   IF best >= 0 THEN RETURN best
 
-END SELECT
+ END SELECT
 
-'-- If all else fails, make sure the default target is valid
-FOR i = 0 TO 11
- IF tmask(i) <> 0 THEN RETURN i
-NEXT i
+ '-- If all else fails, make sure the default target is valid
+ FOR i = 0 TO 11
+  IF tmask(i) <> 0 THEN RETURN i
+ NEXT i
 
-' If no valid targets were found, fail with -1
-RETURN -1
+ ' If no valid targets were found, fail with -1
+ RETURN -1
 
 END FUNCTION
 
@@ -1536,8 +1523,6 @@ FUNCTION battle_distance(who1, who2, bslot() AS BattleSprite)
  ' Square root is a bit slow, so don't over-use this function
  RETURN SQR(quick_battle_distance(who1, who2, bslot()))
 END FUNCTION
-
-OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats, for_alone_ai as integer=0) as integer
  DIM count AS INTEGER = 0

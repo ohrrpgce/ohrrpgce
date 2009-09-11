@@ -49,9 +49,12 @@ declare sub setheroexperience (byval who as integer, byval amount as integer, by
 declare function visibleandalive (o as integer, bstat() AS BattleStats, bslot() as battlesprite) as integer
 declare sub writestats (exstat() as integer, bstat() AS BattleStats)
 
-declare sub get_valid_targs(tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
+declare sub get_valid_targs OVERLOAD (tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
+declare sub get_valid_targs OVERLOAD (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
 declare function attack_can_hit_dead(who as integer, atkbuf() as integer) as integer
-declare sub autotarget (who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
-declare function find_preferred_target(tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
+declare sub autotarget OVERLOAD (who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
+declare sub autotarget OVERLOAD (who as integer, atk as AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
+declare function find_preferred_target OVERLOAD (tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
+declare function find_preferred_target OVERLOAD (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
 
 #ENDIF

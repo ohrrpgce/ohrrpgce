@@ -65,7 +65,6 @@ battle = 1
 DIM formdata(40)
 DIM atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK))
 DIM attack AS AttackData
-DIM attack_temp AS AttackData
 DIM weapon_attack AS AttackData
 DIM wepatkid, st(3) as herodef, es(7, 160), zbuf(24), of(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), itemd$, spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
@@ -245,7 +244,7 @@ DO
   IF bslot(bat.next_enemy).ready = YES AND bstat(bat.next_enemy).cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
  END IF
  IF vic.state = 0 THEN
-  IF bat.enemy_turn >= 0 THEN GOSUB enemyai
+  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bstat(), bslot(), es(), formdata(), rew, ctr(), delay()
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
    IF bat.menu_mode = batMENUITEM THEN GOSUB itemmenu
    IF bat.menu_mode = batMENUSPELL THEN GOSUB spellmenu
@@ -339,88 +338,6 @@ setvispage vpage
 '--wait for a key
 wk = getkey
 RETRACE
-
-enemyai: '-------------------------------------------------------------------
-ai = 0
-
-'if HP is less than 20% go into desperation mode
-IF bstat(bat.enemy_turn).cur.hp < bstat(bat.enemy_turn).max.hp / 5 THEN ai = 1
-
-'if targetable enemy count is 1, go into alone mode
-IF targenemycount(bslot(), bstat(), YES) = 1 THEN ai = 2
-
-'spawn allys when alone
-IF ai = 2 AND es(bat.enemy_turn - 4, 81) THEN
- FOR j = 1 TO es(bat.enemy_turn - 4, 91)
-  slot = find_empty_enemy_slot(formdata())
-  IF slot > -1 THEN
-   formdata(slot * 4) = es(bat.enemy_turn - 4, 81)
-   loadfoe slot, formdata(), es(), bat, bslot(), bstat(), rew
-  END IF
- NEXT j
-END IF
-
-'make sure that the current ai set is valid
-'otherwise fall back on another
-IF countai(ai, bat.enemy_turn, es()) = 0 THEN
- ai = 0
- IF bstat(bat.enemy_turn).cur.hp < bstat(bat.enemy_turn).max.hp / 5 THEN
-  ai = 1
-  IF countai(ai, bat.enemy_turn, es()) = 0 THEN ai = 0
- END IF
-END IF
-
-'if no valid ai set is available, the enemy loses its turn
-IF countai(ai, bat.enemy_turn, es()) = 0 THEN bat.enemy_turn = -1: RETRACE
-
-'pick a random attack
-lim = 0
-DO
- bslot(bat.enemy_turn).attack = es(bat.enemy_turn - 4, 92 + (ai * 5) + INT(RND * 5))
- IF bslot(bat.enemy_turn).attack > 0 THEN
-  'load the data for this attack
-  loadattackdata atktemp(), bslot(bat.enemy_turn).attack - 1
-  
-  IF atkallowed(atktemp(), bat.enemy_turn, 0, 0, bstat()) THEN
-   'this attack is good, continue on to target selection
-   EXIT DO
-  ELSE
-   'this attack is unusable
-   bslot(bat.enemy_turn).attack = 0
-   IF bstat(bat.enemy_turn).cur.mp - atktemp(8) < 0 THEN
-    'inadequate MP was the reason for the failure
-    'MP-idiot loses its turn
-    IF bslot(bat.enemy_turn).mp_idiot = YES THEN
-      bslot(bat.enemy_turn).ready = NO
-      ctr(bat.enemy_turn) = 0
-      bat.enemy_turn = -1
-      RETRACE
-    END IF
-   END IF
-   'currently, item requirements are disregarded. should they be? Maybe they should
-   'come out of theft items?
-  END IF
- END IF
- lim = lim + 1
- IF lim > 99 THEN
-  'give up eventually
-  bat.enemy_turn = -1
-  RETRACE
- END IF
-LOOP
-
-'get the delay to wait for this attack
-delay(bat.enemy_turn) = atktemp(16)
-
-autotarget bat.enemy_turn, atktemp(), bslot(), bstat()
-
-'ready for next attack
-bslot(bat.enemy_turn).ready = NO
-ctr(bat.enemy_turn) = 0
-bat.enemy_turn = -1
-
-RETRACE
-
 
 heromenu: '-----------------------------------------------------------------
 FOR i = 0 TO 5
@@ -2683,4 +2600,87 @@ SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS Battl
  END IF
  ' remove dead enemy from formation
  formdata(enemynum * 4) = 0
+END SUB
+
+SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER, delay() AS INTEGER)
+ DIM ai AS INTEGER = 0
+
+ 'if HP is less than 20% go into desperation mode
+ IF bstat(bat.enemy_turn).cur.hp < bstat(bat.enemy_turn).max.hp / 5 THEN ai = 1
+
+ 'if targetable enemy count is 1, go into alone mode
+ IF targenemycount(bslot(), bstat(), YES) = 1 THEN ai = 2
+
+ DIM slot AS INTEGER = 0
+ 'spawn allies when alone
+ IF ai = 2 AND es(bat.enemy_turn - 4, 81) THEN
+  FOR j AS INTEGER = 1 TO es(bat.enemy_turn - 4, 91)
+   slot = find_empty_enemy_slot(formdata())
+   IF slot > -1 THEN
+    formdata(slot * 4) = es(bat.enemy_turn - 4, 81)
+    loadfoe slot, formdata(), es(), bat, bslot(), bstat(), rew
+   END IF
+  NEXT j
+ END IF
+
+ 'make sure that the current ai set is valid
+ 'otherwise fall back on another
+ IF countai(ai, bat.enemy_turn, es()) = 0 THEN
+  ai = 0
+  IF bstat(bat.enemy_turn).cur.hp < bstat(bat.enemy_turn).max.hp / 5 THEN
+   ai = 1
+   IF countai(ai, bat.enemy_turn, es()) = 0 THEN ai = 0
+  END IF
+ END IF
+
+ 'if no valid ai set is available, the enemy loses its turn
+ IF countai(ai, bat.enemy_turn, es()) = 0 THEN bat.enemy_turn = -1 : EXIT SUB
+
+ 'pick a random attack
+ DIM atk AS AttackData
+ DIM safety AS INTEGER = 0
+ DO
+  bslot(bat.enemy_turn).attack = es(bat.enemy_turn - 4, 92 + (ai * 5) + INT(RND * 5))
+  IF bslot(bat.enemy_turn).attack > 0 THEN
+   'load the data for this attack
+   loadattackdata atk, bslot(bat.enemy_turn).attack - 1
+  
+   IF atkallowed(atk, bat.enemy_turn, 0, 0, bstat()) THEN
+    'this attack is good, continue on to target selection
+    EXIT DO
+   ELSE
+    'this attack is unusable
+    bslot(bat.enemy_turn).attack = 0
+    IF bstat(bat.enemy_turn).cur.mp - atk.mp_cost < 0 THEN
+     'inadequate MP was the reason for the failure
+     'MP-idiot loses its turn
+     IF bslot(bat.enemy_turn).mp_idiot = YES THEN
+       bslot(bat.enemy_turn).ready = NO
+       ctr(bat.enemy_turn) = 0
+       bat.enemy_turn = -1
+       EXIT SUB
+     END IF
+    END IF
+    'currently, item requirements are disregarded. should they be? Maybe they should
+    'come out of theft items?
+   END IF
+  END IF
+  safety += 1
+  IF safety > 99 THEN
+   'give up eventually
+   bat.enemy_turn = -1
+   EXIT SUB
+  END IF
+ LOOP
+
+ 'get the delay to wait for this attack
+ delay(bat.enemy_turn) = atk.attack_delay
+
+ autotarget bat.enemy_turn, atk, bslot(), bstat()
+
+ 'ready for next attack
+ bslot(bat.enemy_turn).ready = NO
+ ctr(bat.enemy_turn) = 0
+ bat.enemy_turn = -1
+
 END SUB
