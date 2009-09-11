@@ -15,7 +15,8 @@ declare function is_enemy(who as integer) as integer
 declare function is_attack(who as integer) as integer
 declare function is_weapon(who as integer) as integer
 declare sub advance (who as integer, atk() as integer, bslot() as battlesprite)
-declare function atkallowed (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
+declare function atkallowed OVERLOAD (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
+declare function atkallowed OVERLOAD (atk as AttackData, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
 declare function checktheftchance (item as integer, itemp as integer, rareitem as integer, rareitemp as integer) as integer
 declare sub control
 declare function countai (ai as integer, them as integer, es() as integer) as integer

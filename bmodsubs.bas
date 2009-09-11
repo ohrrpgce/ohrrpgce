@@ -82,6 +82,7 @@ END IF
 END SUB
 
 FUNCTION atkallowed (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
+'FIXME: this will be deleted in favour of its overload as soon as it is no longer needed
 '--atkbuf   = attack data
 '--attacker = hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
@@ -109,6 +110,49 @@ DIM itemid, itemcount AS INTEGER
 FOR i = 0 to 2
   itemid = atkbuf(93 + i * 2)
   itemcount = atkbuf(94 + i * 2)
+  IF itemid > 0 THEN 'this slot is used
+    IF attacker <= 3 THEN ' Only hero items are checked right now
+      IF countitem(itemid) < itemcount THEN
+        'yes, this still works for adding items.
+        RETURN NO
+      END IF
+    END IF
+  END IF
+NEXT i
+
+'--succeed
+RETURN YES
+
+END FUNCTION
+
+FUNCTION atkallowed (atk as AttackData, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
+'--atk   = attack data
+'--attacker = hero or enemy who is attacking
+'--spclass  = 0 for normal attacks, 1 for level-MP spells
+'--lmplev   = which level-MP level to use
+
+'--check for mutedness
+IF atk.mutable AND bstat(attacker).cur.mute < bstat(attacker).max.mute THEN
+ RETURN NO
+END IF
+
+'--check for sufficient mp
+IF bstat(attacker).cur.mp - focuscost(atk.mp_cost, bstat(attacker).cur.foc) < 0 THEN
+ RETURN NO
+END IF
+
+'--check for level-MP (heroes only)
+IF attacker <= 3 AND spclass = 1 THEN
+ IF lmp(attacker, lmplev) - 1 < 0 THEN
+  RETURN NO
+ END IF
+END IF
+
+'--check for sufficient items
+DIM itemid, itemcount AS INTEGER
+FOR i = 0 to 2
+  itemid = atk.item(i).id
+  itemcount = atk.item(i).number
   IF itemid > 0 THEN 'this slot is used
     IF attacker <= 3 THEN ' Only hero items are checked right now
       IF countitem(itemid) < itemcount THEN
