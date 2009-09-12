@@ -243,7 +243,7 @@ DO
   IF bat.enemy_turn >= 0 THEN enemy_ai bat, bstat(), bslot(), es(), formdata(), rew, ctr(), delay()
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
    IF bat.menu_mode = batMENUITEM THEN GOSUB itemmenu
-   IF bat.menu_mode = batMENUSPELL THEN GOSUB spellmenu
+   IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bstat(), bslot(), delay(), conlmp()
    IF bat.menu_mode = batMENUHERO THEN heromenu bat, bslot(), bstat(), menubits(), nmenu(), mend(), delay(), spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st()
   END IF
   IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN GOSUB picktarg
@@ -1230,51 +1230,6 @@ IF carray(4) > 1 THEN
   bat.targ.mode = targSETUP
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
- END IF
-END IF
-RETRACE
-
-spellmenu:
-IF carray(5) > 1 THEN '--cancel
- bat.menu_mode = batMENUHERO
- flusharray carray(), 7, 0
-END IF
-IF carray(0) > 1 THEN
- IF bat.sptr > 2 THEN bat.sptr = bat.sptr - 3 ELSE bat.sptr = 24
-END IF
-IF carray(1) > 1 THEN
- IF bat.sptr < 24 THEN bat.sptr = small(bat.sptr + 3, 24) ELSE bat.sptr = 0
-END IF
-IF carray(2) > 1 AND bat.sptr < 24 AND bat.sptr > 0 THEN
- bat.sptr = bat.sptr - 1
-END IF
-IF carray(3) > 1 AND bat.sptr < 24 THEN
- bat.sptr = bat.sptr + 1
-END IF
-IF carray(4) > 1 THEN
- '--use selected spell
- IF bat.sptr = 24 THEN
-  '--used cancel
-  bat.menu_mode = batMENUHERO
-  flusharray carray(), 7, 0
-  RETRACE
- END IF
-
- '--can-I-use-it? checking
- IF spel(bat.sptr) > -1 THEN
-  '--list-entry is non-empty
-  loadattackdata atktemp(), spel(bat.sptr)
-  IF atkallowed(atktemp(), bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(bat.sptr / 3), bstat()) THEN
-   '--attack is allowed
-   '--if lmp then set lmp consume flag
-   IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN conlmp(bat.hero_turn) = INT(bat.sptr / 3) + 1
-   '--queue attack
-   bslot(bat.hero_turn).attack = spel(bat.sptr) + 1
-   delay(bat.hero_turn) = large(atktemp(16), 1)
-   '--exit spell menu
-   bat.targ.mode = targSETUP: bat.menu_mode = batMENUHERO
-   flusharray carray(), 7, 0
-  END IF
  END IF
 END IF
 RETRACE
@@ -2702,6 +2657,58 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS Batt
    IF inventory(bat.item.pt).used THEN
     loaditemdata buffer(), inventory(bat.item.pt).id
     bat.item_desc = readbadbinstring$(buffer(), 9, 35, 0)
+   END IF
+  END IF
+ END IF
+END SUB
+
+SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bstat() AS BattleStats, bslot() AS BattleSprite, delay(), conlmp())
+ IF carray(5) > 1 THEN '--cancel
+  bat.menu_mode = batMENUHERO
+  flusharray carray(), 7, 0
+  EXIT SUB
+ END IF
+ 
+ WITH bat
+  IF carray(0) > 1 THEN
+   IF .sptr > 2 THEN .sptr -= 3 ELSE .sptr = 24
+  END IF
+  IF carray(1) > 1 THEN
+   IF .sptr < 24 THEN .sptr = small(.sptr + 3, 24) ELSE .sptr = 0
+  END IF
+  IF carray(2) > 1 AND .sptr < 24 AND .sptr > 0 THEN
+   .sptr -= 1
+  END IF
+  IF carray(3) > 1 AND .sptr < 24 THEN
+   .sptr += 1
+  END IF
+ END WITH
+ 
+ IF carray(4) > 1 THEN
+  '--use selected spell
+  IF bat.sptr = 24 THEN
+   '--used cancel
+   bat.menu_mode = batMENUHERO
+   flusharray carray(), 7, 0
+   EXIT SUB
+  END IF
+
+  DIM atk AS AttackData
+  '--can-I-use-it? checking
+  IF spel(bat.sptr) > -1 THEN
+   '--list-entry is non-empty
+   loadattackdata atk, spel(bat.sptr)
+   IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(bat.sptr / 3), bstat()) THEN
+    '--attack is allowed
+    '--if lmp then set lmp consume flag
+    IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN conlmp(bat.hero_turn) = INT(bat.sptr / 3) + 1
+    '--queue attack
+    bslot(bat.hero_turn).attack = spel(bat.sptr) + 1
+    delay(bat.hero_turn) = large(atk.attack_delay, 1)
+    '--exit spell menu
+    bat.targ.mode = targSETUP
+    bat.menu_mode = batMENUHERO
+    flusharray carray(), 7, 0
    END IF
   END IF
  END IF
