@@ -3509,11 +3509,11 @@ end function
 
 
 '-------------- Software GFX mode routines -----------------
-sub setclip(l as integer, t as integer, r as integer, b as integer)
-	clipl = l
-	clipt = t
-	clipr = r
-	clipb = b
+sub setclip(l as integer = 0, t as integer = 0, r as integer = 319, b as integer = 199)
+	clipl = bound(l, 0, 320) '320 valid, prevents any drawing
+	clipt = bound(t, 0, 200)
+	clipr = bound(r, 0, 319)
+	clipb = bound(b, 0, 199)
 end sub
 
 'trans = -1 (or other): transparent where ->mask zero
