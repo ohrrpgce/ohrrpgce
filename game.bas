@@ -3235,7 +3235,7 @@ FUNCTION vehicle_is_animating() AS INTEGER
  END WITH
 END FUNCTION
 
-SUB reset_vehicle(v AS vehicleState)
+SUB reset_vehicle(v AS VehicleState)
  v.npc = 0
  v.old_speed = 0
  v.active   = NO
@@ -3246,4 +3246,10 @@ SUB reset_vehicle(v AS vehicleState)
  v.ahead           = NO
  v.trigger_cleanup = NO
  ClearVehicle v.dat
+END SUB
+
+SUB dump_vehicle_state()
+ WITH vstate
+  debug "active=" & .active & " npc=" & .npc & " mounting=" & .mounting & " rising=" & .rising & " falling=" & .falling & " dismount=" & .init_dismount & " cleanup=" & .trigger_cleanup & " ahead=" & .ahead
+ END WITH
 END SUB

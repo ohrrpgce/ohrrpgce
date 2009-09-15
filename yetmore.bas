@@ -3003,7 +3003,7 @@ END IF
 IF vstate.ahead THEN '--ahead
  vehscramble vstate.ahead, YES, aheadx, aheady, vehedge, result
 END IF
-IF vehicle_is_animating() = NO THEN
+IF vstate.active = YES AND vehicle_is_animating() = NO THEN
  IF txt.showing = NO AND readbit(gen(), 44, suspendplayer) = 0 THEN
   DIM button(1) AS INTEGER
   button(0) = vstate.dat.use_button

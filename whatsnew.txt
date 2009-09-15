@@ -77,6 +77,8 @@ WHAT IS NEW?
       boxes throughout the builtin menus to accommodate borders [Ralph] 
     * Fixed bug 747 which was causing hero tags to not be updated
       immediately when a hero was added or removed [James]
+    * Fixed bug 756 "Holding ENTER or SPACE while dismounting a vehicle
+      can result the hero getting stuck" [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
