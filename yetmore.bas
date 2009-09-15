@@ -2908,34 +2908,31 @@ FUNCTION vehiclestuff (disx as integer, disy as integer, vehedge as integer) as 
 STATIC aheadx, aheady
 
 result = 0
-IF readbit(veh(), 6, 0) THEN '--scramble-----------------------
+IF vstate.mounting THEN '--scramble-----------------------
  '--part of the vehicle automount where heros scramble--
- IF npc(veh(5)).xgo = 0 AND npc(veh(5)).ygo = 0 THEN
+ IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
   '--npc must stop before we mount
-  targx = npc(veh(5)).x
-  targy = npc(veh(5)).y
-  untrigbit = 0
-  GOSUB vehscramble
+  vehscramble vstate.mounting, NO, npc(vstate.npc).x, npc(vstate.npc).y, vehedge, result
  END IF
 END IF'--scramble mount
-IF readbit(veh(), 6, 1) THEN '--rise----------------------
+IF vstate.rising THEN '--rise----------------------
  tmp = 0
  FOR i = 0 TO 3
-  IF catz(i * 5) < veh(21) THEN
-   catz(i * 5) = catz(i * 5) + large(1, small(4, (veh(21) - catz(i * 5)) / 2))
+  IF catz(i * 5) < vstate.dat.elevation THEN
+   catz(i * 5) = catz(i * 5) + large(1, small(4, (vstate.dat.elevation - catz(i * 5)) / 2))
   ELSE
    tmp = tmp + 1
   END IF
  NEXT i
  IF tmp = 4 THEN
-  setbit veh(), 6, 1, 0
+  vstate.rising = NO
  END IF
 END IF
-IF readbit(veh(), 6, 2) THEN '--fall-------------------
+IF vstate.falling THEN '--fall-------------------
  tmp = 0
  FOR i = 0 TO 3
   IF catz(i * 5) > 0 THEN
-   catz(i * 5) = catz(i * 5) - large(1, small(4, (veh(21) - catz(i * 5)) / 2))
+   catz(i * 5) = catz(i * 5) - large(1, small(4, (vstate.dat.elevation - catz(i * 5)) / 2))
   ELSE
    tmp = tmp + 1
   END IF
@@ -2944,13 +2941,13 @@ IF readbit(veh(), 6, 2) THEN '--fall-------------------
   FOR i = 0 TO 3
    catz(i * 5) = 0
   NEXT i
-  setbit veh(), 6, 2, 0
-  setbit veh(), 6, 3, 1 '--dismount
+  vstate.falling = NO
+  vstate.init_dismount = YES
  END IF
 END IF
-IF readbit(veh(), 6, 3) THEN '--dismount---------------
- setbit veh(), 6, 3, 0
- IF vehpass(veh(20), readmapblock(disx, disy, 0), -1) THEN
+IF vstate.init_dismount THEN '--dismount---------------
+ vstate.init_dismount = NO
+ IF vehpass(vstate.dat.dismount_to, readmapblock(disx, disy, 0), -1) THEN
   '--dismount point is landable
   FOR i = 0 TO 15
    catx(i) = catx(0)
@@ -2958,25 +2955,25 @@ IF readbit(veh(), 6, 3) THEN '--dismount---------------
    catd(i) = catd(0)
    catz(i) = 0
   NEXT i
-  IF readbit(veh(), 9, 6) = 1 THEN ' Dismount-ahead is true
-   setbit veh(), 6, 5, 1'--ahead
+  IF vstate.dat.dismount_ahead = YES THEN
+   vstate.ahead = YES
    aheadx = disx * 20
    aheady = disy * 20
   ELSE
-   setbit veh(), 6, 4, 1'--clear vehicle
+   vstate.trigger_cleanup = YES
   END IF
  ELSE
   '--dismount point is unlandable
-  IF veh(21) THEN
-   setbit veh(), 6, 1, 1'--riseagain
+  IF vstate.dat.elevation > 0 THEN
+   vstate.rising = YES '--riseagain
   END IF
  END IF
 END IF
-IF readbit(veh(), 6, 4) THEN '--clear
- IF veh(16) < 0 THEN result = veh(16)
- IF veh(16) > 0 THEN result = 1 + veh(16)
- IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 0
- IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
+IF vstate.trigger_cleanup THEN '--clear
+ IF vstate.dat.on_dismount < 0 THEN result = vstate.dat.on_dismount
+ IF vstate.dat.on_dismount > 0 THEN result = 1 + vstate.dat.on_dismount
+ IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 0
+ IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
   '--dismount-ahead is true, dismount-passwalls is false
   SELECT CASE catd(0)
    CASE 0
@@ -2989,14 +2986,12 @@ IF readbit(veh(), 6, 4) THEN '--clear
     xgo(0) = 20
   END SELECT
  END IF
- herospeed(0) = veh(7)
+ herospeed(0) = vstate.old_speed
  IF herospeed(0) = 3 THEN herospeed(0) = 10
- npc(veh(5)).xgo = 0
- npc(veh(5)).ygo = 0
+ npc(vstate.npc).xgo = 0
+ npc(vstate.npc).ygo = 0
  '--clear vehicle
- FOR i = 0 TO 21
-  veh(i) = 0
- NEXT i
+ reset_vehicle vstate
  FOR i = 0 TO 15
   catx(i) = catx(0)
   caty(i) = caty(0)
@@ -3005,31 +3000,32 @@ IF readbit(veh(), 6, 4) THEN '--clear
  NEXT i
  gam.random_battle_countdown = range(100, 60)
 END IF
-IF readbit(veh(), 6, 5) THEN '--ahead
- targx = aheadx
- targy = aheady
- untrigbit = 5
- GOSUB vehscramble
+IF vstate.ahead THEN '--ahead
+ vehscramble vstate.ahead, YES, aheadx, aheady, vehedge, result
 END IF
-IF veh(6) = 0 THEN
+IF vehicle_is_animating() = NO THEN
  IF txt.showing = NO AND readbit(gen(), 44, suspendplayer) = 0 THEN
+  DIM button(1) AS INTEGER
+  button(0) = vstate.dat.use_button
+  button(1) = vstate.dat.menu_button
   FOR i = 0 TO 1
    IF carray(4 + i) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
-    SELECT CASE veh(12 + i)
+    SELECT CASE button(i)
      CASE -2
       '-disabled
      CASE -1
       result = 1
      CASE 0
       '--dismount
-      xgo(0) = 0: ygo(0) = 0
-      IF veh(21) THEN
-       setbit veh(), 6, 2, 1
+      xgo(0) = 0
+      ygo(0) = 0
+      IF vstate.dat.elevation > 0 THEN
+       vstate.falling = YES
       ELSE
-       setbit veh(), 6, 3, 1
+       vstate.init_dismount = YES
       END IF
      CASE IS > 0
-      result = veh(12 + i) * -1
+      result = button(i) * -1
     END SELECT
    END IF
   NEXT i
@@ -3037,63 +3033,6 @@ IF veh(6) = 0 THEN
 END IF'--normal
 
 RETURN result
-
-EXIT FUNCTION
-
-vehscramble:
-catsize = 0
-FOR i = 0 TO 3
- IF hero(i) > 0 THEN catsize += 1
-NEXT
-tmp = 0
-FOR i = 0 TO 3
- IF i >= catsize THEN
-  tmp += 1
- ELSE
-  scramx = catx(i * 5)
-  scramy = caty(i * 5)
-  IF ABS(scramx - targx) < large(herospeed(i), 4) THEN
-   scramx = targx
-   xgo(i) = 0
-   ygo(i) = 0
-  END IF
-  IF ABS(scramy - targy) < large(herospeed(i), 4) THEN
-   scramy = targy
-   xgo(i) = 0
-   ygo(i) = 0
-  END IF
-  IF ABS(targx - scramx) > 0 AND xgo(i) = 0 THEN
-   xgo(i) = 20 * SGN(scramx - targx)
-  END IF
-  IF ABS(targy - scramy) > 0 AND ygo(i) = 0 THEN
-   ygo(i) = 20 * SGN(scramy - targy)
-  END IF
-  IF vehedge THEN xgo(i) = xgo(i) * -1 : ygo(i) = ygo(i) * -1
-  IF scramx - targx = 0 AND scramy - targy = 0 THEN tmp = tmp + 1
-  catx(i * 5) = scramx
-  caty(i * 5) = scramy
- END IF
-NEXT i
-IF tmp = 4 THEN
- setbit veh(), 6, untrigbit, 0
- IF veh(15) < 0 THEN result = veh(15)
- IF veh(15) > 0 THEN result = 1 + veh(15)
- herospeed(0) = veh(8)
- IF herospeed(0) = 3 THEN herospeed(0) = 10
- '--null out hero's movement
- FOR i = 0 TO 3
-  xgo(i) = 0: ygo(i) = 0
- NEXT i
- '--transfer any residual NPC movement
- 'xgo(0) = npcl(veh(5) + 1500)
- 'ygo(0) = npcl(veh(5) + 1800)
- 'npcl(veh(5) + 1500) = 0
- 'npcl(veh(5) + 1800) = 0
- '--!!!
- IF untrigbit = 5 THEN setbit veh(), 6, 4, 1'--clear
- IF veh(21) THEN setbit veh(), 6, 1, 1'--rise
-END IF
-RETRACE
 
 END FUNCTION
 
@@ -3197,10 +3136,10 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 
-IF ygo > 0 AND movdivis(ygo) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (isveh AND vehpass(veh(18), pd(0), 0))) THEN ygo = 0: wrappass = 1
-IF ygo < 0 AND movdivis(ygo) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (isveh AND vehpass(veh(18), pd(2), 0))) THEN ygo = 0: wrappass = 1
-IF xgo > 0 AND movdivis(xgo) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (isveh AND vehpass(veh(18), pd(3), 0))) THEN xgo = 0: wrappass = 1
-IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh AND vehpass(veh(18), pd(1), 0))) THEN xgo = 0: wrappass = 1
+IF ygo > 0 AND movdivis(ygo) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (isveh AND vehpass(vstate.dat.blocked_by, pd(0), 0))) THEN ygo = 0: wrappass = 1
+IF ygo < 0 AND movdivis(ygo) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (isveh AND vehpass(vstate.dat.blocked_by, pd(2), 0))) THEN ygo = 0: wrappass = 1
+IF xgo > 0 AND movdivis(xgo) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (isveh AND vehpass(vstate.dat.blocked_by, pd(3), 0))) THEN xgo = 0: wrappass = 1
+IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh AND vehpass(vstate.dat.blocked_by, pd(1), 0))) THEN xgo = 0: wrappass = 1
 
 END FUNCTION
 
@@ -3533,6 +3472,58 @@ END FUNCTION
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYVAL targx AS INTEGER, BYVAL targy AS INTEGER, BYVAL vehedge AS INTEGER, BYREF result AS INTEGER)
+ DIM tmp AS INTEGER = 0
+ DIM count AS INTEGER = herocount()
+ DIM scramx AS INTEGER
+ DIM scramy AS INTEGER
+ FOR i AS INTEGER = 0 TO 3
+  IF i >= count THEN
+   tmp += 1
+  ELSE
+   scramx = catx(i * 5)
+   scramy = caty(i * 5)
+   IF ABS(scramx - targx) < large(herospeed(i), 4) THEN
+    scramx = targx
+    xgo(i) = 0
+    ygo(i) = 0
+   END IF
+   IF ABS(scramy - targy) < large(herospeed(i), 4) THEN
+    scramy = targy
+    xgo(i) = 0
+    ygo(i) = 0
+   END IF
+   IF ABS(targx - scramx) > 0 AND xgo(i) = 0 THEN
+    xgo(i) = 20 * SGN(scramx - targx)
+   END IF
+   IF ABS(targy - scramy) > 0 AND ygo(i) = 0 THEN
+    ygo(i) = 20 * SGN(scramy - targy)
+   END IF
+   IF vehedge THEN
+    xgo(i) = xgo(i) * -1
+    ygo(i) = ygo(i) * -1
+   END IF
+   IF scramx - targx = 0 AND scramy - targy = 0 THEN tmp = tmp + 1
+   catx(i * 5) = scramx
+   caty(i * 5) = scramy
+  END IF
+ NEXT i
+ IF tmp = 4 THEN
+  mode_val = NO
+  IF vstate.dat.on_mount < 0 THEN result = vstate.dat.on_mount
+  IF vstate.dat.on_mount > 0 THEN result = 1 + vstate.dat.on_mount
+  herospeed(0) = vstate.dat.speed
+  IF herospeed(0) = 3 THEN herospeed(0) = 10
+  '--null out hero's movement
+  FOR i AS INTEGER = 0 TO 3
+   xgo(i) = 0
+   ygo(i) = 0
+  NEXT i
+  IF trigger_cleanup THEN vstate.trigger_cleanup = YES '--clear
+  IF vstate.dat.elevation > 0 THEN vstate.rising = YES
+ END IF
+END SUB
 
 SUB loadsay (box_id)
 DIM j AS INTEGER

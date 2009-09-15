@@ -849,13 +849,9 @@ END SUB
 
 FUNCTION load_vehicle_name(vehID AS INTEGER) AS STRING
  IF vehID < 0 OR vehID > gen(genMaxVehicle) THEN RETURN ""
- DIM vehname AS STRING
- DIM vehbuffer(40) AS INTEGER
- setpicstuf vehbuffer(), 80, -1
- loadset game & ".veh", vehID, 0
- vehname = STRING(bound(vehbuffer(0) AND 255, 0, 15), 0)
- array2str vehbuffer(), 1, vehname
- RETURN vehname
+ DIM vehicle AS VehicleData
+ LoadVehicle game & "veh", vehicle, vehID
+ RETURN vehicle.name
 END FUNCTION
 
 FUNCTION load_item_name (it AS INTEGER, hidden AS INTEGER, offbyone AS INTEGER) AS STRING
@@ -2340,14 +2336,13 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
  NEXT i
  
  '--vehicle scripts
- DIM vehtmp(39) AS INTEGER
- DIM vehname AS STRING
+ DIM vehicle AS VehicleData
  FOR i = 0 TO gen(genMaxVehicle)
-  LoadVehicle  game & ".veh", vehtmp(), vehname, i
-  IF vehtmp(12) = id THEN str_array_append list(), "  use button vehicle " & i & " """ & vehname & """"
-  IF vehtmp(13) = id THEN str_array_append list(), "  menu button vehicle " & i & " """ & vehname & """"
-  IF -vehtmp(15) = id THEN str_array_append list(), "  on mount vehicle " & i & " """ & vehname & """"
-  IF -vehtmp(16) = id THEN str_array_append list(), "  on dismount vehicle " & i & " """ & vehname & """"
+  LoadVehicle  game & ".veh", vehicle, i
+  IF vehicle.use_button = id THEN str_array_append list(), "  use button vehicle " & i & " """ & vehicle.name & """"
+  IF vehicle.menu_button = id THEN str_array_append list(), "  menu button vehicle " & i & " """ & vehicle.name & """"
+  IF -(vehicle.on_mount) = id THEN str_array_append list(), "  on mount vehicle " & i & " """ & vehicle.name & """"
+  IF -(vehicle.on_dismount) = id THEN str_array_append list(), "  on dismount vehicle " & i & " """ & vehicle.name & """"
   meter += 1
   IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
  NEXT i
@@ -2581,14 +2576,13 @@ SUB script_broken_trigger_list()
  NEXT i
  
  '--vehicle scripts
- DIM vehtmp(39) AS INTEGER
- DIM vehname AS STRING
+ DIM vehicle AS VehicleData
  FOR i = 0 TO gen(genMaxVehicle)
-  LoadVehicle game & ".veh", vehtmp(), vehname, i
-  check_broken_script_trigger list(), vehtmp(12), "use button veh " & i, " """ & vehname & """"
-  check_broken_script_trigger list(), vehtmp(13), "menu button veh " & i, " """ & vehname & """"
-  check_broken_script_trigger list(), -vehtmp(15), "mount vehicle " & i, " """ & vehname & """"
-  check_broken_script_trigger list(), -vehtmp(16), "dismount vehicle " & i,  " """ & vehname & """"
+  LoadVehicle game & ".veh", vehicle, i
+  check_broken_script_trigger list(), vehicle.use_button, "use button veh " & i, " """ & vehicle.name & """"
+  check_broken_script_trigger list(), vehicle.menu_button, "menu button veh " & i, " """ & vehicle.name & """"
+  check_broken_script_trigger list(), -(vehicle.on_mount), "mount vehicle " & i, " """ & vehicle.name & """"
+  check_broken_script_trigger list(), -(vehicle.on_dismount), "dismount vehicle " & i,  " """ & vehicle.name & """"
  NEXT i
  
  '--shop scripts
@@ -2757,29 +2751,28 @@ SUB autofix_broken_old_scripts()
  NEXT i
  
  '--vehicle scripts
- DIM vehtmp(39) AS INTEGER
- DIM vehname AS STRING
+ DIM vehicle AS VehicleData
  FOR i = 0 TO gen(genMaxVehicle)
   resave = NO
-  LoadVehicle game & ".veh", vehtmp(), vehname, i
-  IF vehtmp(12) > 0 THEN
-   IF autofix_old_script(vehtmp(12)) THEN resave = YES 'use button vehicle
+  LoadVehicle game & ".veh", vehicle, i
+  IF vehicle.use_button > 0 THEN
+   IF autofix_old_script(vehicle.use_button) THEN resave = YES 'use button vehicle
   END IF
-  IF vehtmp(13) > 0 THEN
-   IF autofix_old_script(vehtmp(13)) THEN resave = YES 'menu button vehicle
+  IF vehicle.menu_button > 0 THEN
+   IF autofix_old_script(vehicle.menu_button) THEN resave = YES 'menu button vehicle
   END IF
-  IF vehtmp(15) < 0 THEN
-   idtmp = -vehtmp(15)
+  IF vehicle.on_mount < 0 THEN
+   idtmp = -(vehicle.on_mount)
    IF autofix_old_script(idtmp) THEN resave = YES 'mount vehicle
-   vehtmp(15) = -idtmp
+   vehicle.on_mount = -idtmp
   END IF
-  IF vehtmp(16) < 0 THEN
-   idtmp = -vehtmp(16)
+  IF vehicle.on_dismount < 0 THEN
+   idtmp = -(vehicle.on_dismount)
    IF autofix_old_script(idtmp) THEN resave = YES 'dismount vehicle
-   vehtmp(16) = -idtmp
+   vehicle.on_dismount = -idtmp
   END IF
   IF resave THEN
-   SaveVehicle game & ".veh", vehtmp(), vehname, i
+   SaveVehicle game & ".veh", vehicle, i
   END IF
  NEXT i
  

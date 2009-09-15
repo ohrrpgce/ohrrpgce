@@ -28,9 +28,9 @@ SUB cathero
 DIM zsort(3)
 
 '--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
-IF veh(0) AND readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 AND readbit(veh(), 9, 4) = 0 AND readbit(veh(), 9, 5) = 0 THEN EXIT SUB
+IF vstate.active = YES AND vstate.mounting = NO AND vstate.trigger_cleanup = NO AND vstate.ahead = NO AND vstate.dat.do_not_hide_leader = NO AND vstate.dat.do_not_hide_party = NO THEN EXIT SUB
 
-IF readbit(gen(), 101, 1) = 1 AND (veh(0) = 0 OR readbit(veh(), 9, 4) = 0) THEN
+IF readbit(gen(), 101, 1) = 1 AND (vstate.active = NO OR vstate.dat.do_not_hide_leader = NO) THEN
  '--caterpillar party (normal)
  '--this should Y-sort
  catlen = 0
@@ -102,8 +102,8 @@ SUB drawnpcs
    drawnpcX = 0
    drawnpcY = 0
    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
-    IF veh(0) AND veh(5) = i THEN z = catz(0) '--special vehicle magic
-    IF z AND readbit(veh(), 9, 8) = 0 THEN '--shadow
+    IF vstate.active AND vstate.npc = i THEN z = catz(0) '--special vehicle magic
+    IF z AND vstate.dat.disable_flying_shadow = NO THEN '--shadow
      rectangle npc(i).x - mapx + 6, npc(i).y - mapy + gmap(11) + 13, 8, 5, uilook(uiShadow), dpage
      rectangle npc(i).x - mapx + 5, npc(i).y - mapy + gmap(11) + 14, 10, 3, uilook(uiShadow), dpage
     END IF
@@ -114,9 +114,9 @@ SUB drawnpcs
 END SUB
 
 SUB forcedismount (catd())
-IF veh(0) THEN
+IF vstate.active THEN
  '--clear vehicle on loading new map--
- IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) = 0 THEN
+ IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
   '--dismount-ahead is true, dismount-passwalls is false
   SELECT CASE catd(0)
    CASE 0
@@ -129,18 +129,16 @@ IF veh(0) THEN
     xgo(0) = 20
   END SELECT
  END IF
- IF veh(16) > 0 THEN
-  loadsay veh(16)
+ IF vstate.dat.on_dismount > 0 THEN
+  loadsay vstate.dat.on_dismount
  END IF
- IF veh(16) < 0 THEN
-  rsr = runscript(ABS(veh(16)), nowscript + 1, -1, "dismount", plottrigger)
+ IF vstate.dat.on_dismount < 0 THEN
+  rsr = runscript(ABS(vstate.dat.on_dismount), nowscript + 1, -1, "dismount", plottrigger)
  END IF
- IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 0
- herospeed(0) = veh(7)
+ IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 0
+ herospeed(0) = vstate.old_speed
  IF herospeed(0) = 3 THEN herospeed(0) = 10
- FOR i = 0 TO 21
-  veh(i) = 0
- NEXT i
+ reset_vehicle vstate
  FOR i = 1 TO 15
   catx(i) = catx(0)
   caty(i) = caty(0)

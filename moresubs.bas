@@ -853,10 +853,42 @@ show_load_index z, "globals low", 1
 FOR i = 0 TO 1024
  global(i) = (buffer(z) AND &hFFFF): z = z + 1
 NEXT i
-show_load_index z, "veh", 1
-FOR i = 0 TO 21
- veh(i) = buffer(z): z = z + 1
-NEXT i
+show_load_index z, "vstate", 1
+WITH vstate
+ .active = buffer(z+0) <> 0
+ .npc    = buffer(z+5)
+ .mounting        = xreadbit(buffer(), 0, z+6)
+ .rising          = xreadbit(buffer(), 1, z+6)
+ .falling         = xreadbit(buffer(), 2, z+6)
+ .init_dismount   = xreadbit(buffer(), 3, z+6)
+ .trigger_cleanup = xreadbit(buffer(), 4, z+6)
+ .ahead           = xreadbit(buffer(), 5, z+6)
+ .old_speed = buffer(z+7)
+ WITH .dat
+  .speed = buffer(z+8)
+  .pass_walls = xreadbit(buffer(), 0, z+9)
+  .pass_npcs  = xreadbit(buffer(), 1, z+9)
+  .enable_npc_activation = xreadbit(buffer(), 2, z+9)
+  .enable_door_use       = xreadbit(buffer(), 3, z+9)
+  .do_not_hide_leader    = xreadbit(buffer(), 4, z+9)
+  .do_not_hide_party     = xreadbit(buffer(), 5, z+9)
+  .dismount_ahead        = xreadbit(buffer(), 6, z+9)
+  .pass_walls_while_dismounting = xreadbit(buffer(), 7, z+9)
+  .disable_flying_shadow        = xreadbit(buffer(), 8, z+9)
+  .random_battles = buffer(z+11)
+  .use_button     = buffer(z+12)
+  .menu_button    = buffer(z+13)
+  .riding_tag     = buffer(z+14)
+  .on_mount       = buffer(z+15)
+  .on_dismount    = buffer(z+16)
+  .override_walls = buffer(z+17)
+  .blocked_by     = buffer(z+18)
+  .mount_from     = buffer(z+19)
+  .dismount_to    = buffer(z+20)
+  .elevation      = buffer(z+21)
+ END WITH
+END WITH
+z += 22
 '--picture and palette
 show_load_index z, "picpal magic", 1
 picpalmagicnum = buffer(z): z = z + 1
@@ -1404,7 +1436,7 @@ FOR i = 0 TO 99
 NEXT i
 flusharray hmask(), 3, 0
 flusharray global(), 4095, 0
-flusharray veh(), 21, 0
+reset_vehicle vstate
 ClearTextBox txt.box
 txt.showing = NO
 txt.fully_shown = NO
@@ -1998,9 +2030,42 @@ NEXT i
 FOR i = 0 TO 1024
  buffer(z) = global(i): z = z + 1
 NEXT i
-FOR i = 0 TO 21
- buffer(z) = veh(i): z = z + 1
-NEXT i
+'--vehicle data
+WITH vstate
+ buffer(z+0) = .active
+ buffer(z+5) = .npc
+ setbit buffer(), z+6, 0, .mounting
+ setbit buffer(), z+6, 1, .rising
+ setbit buffer(), z+6, 2, .falling
+ setbit buffer(), z+6, 3, .init_dismount
+ setbit buffer(), z+6, 4, .trigger_cleanup
+ setbit buffer(), z+6, 5, .ahead
+ buffer(z+7) = .old_speed
+ WITH .dat
+  buffer(z+8) = .speed 
+  setbit buffer(), z+9, 0, .pass_walls
+  setbit buffer(), z+9, 1, .pass_npcs
+  setbit buffer(), z+9, 2, .enable_npc_activation
+  setbit buffer(), z+9, 3, .enable_door_use
+  setbit buffer(), z+9, 4, .do_not_hide_leader
+  setbit buffer(), z+9, 5, .do_not_hide_party
+  setbit buffer(), z+9, 6, .dismount_ahead
+  setbit buffer(), z+9, 7, .pass_walls_while_dismounting
+  setbit buffer(), z+9, 8, .disable_flying_shadow
+  buffer(z+11) = .random_battles
+  buffer(z+12) = .use_button
+  buffer(z+13) = .menu_button
+  buffer(z+14) = .riding_tag
+  buffer(z+15) = .on_mount
+  buffer(z+16) = .on_dismount
+  buffer(z+17) = .override_walls
+  buffer(z+18) = .blocked_by
+  buffer(z+19) = .mount_from
+  buffer(z+20) = .dismount_to
+  buffer(z+21) = .elevation
+ END WITH
+END WITH
+z += 22
 '--picture and palette
 buffer(z) = 4444: z = z + 1 'magic number
 FOR i = 0 TO 40

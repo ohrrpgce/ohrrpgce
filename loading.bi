@@ -55,8 +55,11 @@ declare Sub MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
 declare Sub MenuItemBitsToArray (mi AS MenuDefItem, bits() AS INTEGER)
 declare Sub MenuItemBitsFromArray (mi AS MenuDefItem, bits() AS INTEGER)
 
-declare Sub LoadVehicle (file AS STRING, veh() as integer, vehname as string, record AS INTEGER)
-declare Sub SaveVehicle (file AS STRING, veh() as integer, vehname as string, record AS INTEGER)
+declare Sub LoadVehicle OVERLOAD (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
+declare Sub LoadVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, record AS INTEGER)
+declare Sub SaveVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, record AS INTEGER)
+declare Sub SaveVehicle OVERLOAD (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
+declare Sub ClearVehicle (vehicle AS VehicleData)
 
 declare Sub SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
 declare Sub LoadUIColors (colarray() AS INTEGER, palnum AS INTEGER=-1)

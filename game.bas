@@ -112,7 +112,7 @@ DIM timers(15) as PlotTimer
 DIM fatal
 DIM lastformation
 
-DIM veh(21)
+DIM vstate AS VehicleState
 
 DIM csetup(12), carray(13)
 DIM mouse(3)
@@ -408,20 +408,20 @@ DO
  'DEBUG debug "increment script timers"
  dotimer(0)
  'DEBUG debug "keyboard handling"
- IF carray(5) > 1 AND txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(0) = 0 AND xgo(0) = 0 AND ygo(0) = 0 THEN
+ IF carray(5) > 1 AND txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND vstate.active = NO AND xgo(0) = 0 AND ygo(0) = 0 THEN
   IF allowed_to_open_main_menu() THEN
    add_menu 0
    menusound gen(genAcceptSFX)
   END IF
  END IF
- IF txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND veh(6) = 0 AND menus_allow_player() THEN
+ IF txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND vehicle_is_animating() = NO AND menus_allow_player() THEN
   IF xgo(0) = 0 AND ygo(0) = 0 THEN
    DO
     IF carray(0) > 0 THEN ygo(0) = 20: catd(0) = 0: EXIT DO
     IF carray(1) > 0 THEN ygo(0) = -20: catd(0) = 2: EXIT DO
     IF carray(2) > 0 THEN xgo(0) = 20: catd(0) = 3: EXIT DO
     IF carray(3) > 0 THEN xgo(0) = -20: catd(0) = 1: EXIT DO
-    IF carray(4) > 1 AND veh(0) = 0 THEN
+    IF carray(4) > 1 AND vstate.active = NO THEN
      txt.sayer = -1
      auto = 0
      GOSUB usething
@@ -435,13 +435,13 @@ DO
   advance_text_box
  END IF
  'debug "after advance_text_box:"
- IF veh(0) THEN
+ IF vstate.active THEN
   'DEBUG debug "evaluate vehicles"
   setmapdata pass(), pass(), 0, 0
   pasx = INT(catx(0) / 20)
   pasy = INT(caty(0) / 20)
   vehedge = 0
-  IF readbit(veh(), 9, 6) AND readbit(veh(), 9, 7) THEN
+  IF vstate.dat.dismount_ahead AND vstate.dat.pass_walls_while_dismounting THEN
    '--dismount-ahead is true, dismount-passwalls is true
    SELECT CASE catd(0)
     CASE 0
@@ -568,9 +568,9 @@ DO
   prepare_map NO, YES
  END IF
  'DEBUG debug "random enemies"
- IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (veh(0) = 0 OR veh(11) > -1) THEN
+ IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
-  IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
+  IF vstate.active AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN
    batform = random_formation(temp - 1)
    IF batform >= 0 THEN
@@ -753,9 +753,7 @@ IF txt.sayer < 0 THEN
    DO
     j = j + 1
     IF j > 299 THEN RETRACE
-    'would <= 19 do?
-    'LOOP UNTIL ABS(npcl(j) - ux) < 16 AND ABS(npcl(j + 300) - uy) < 16 AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
-    IF npc(j).id > 0 AND (j <> veh(5) OR veh(0) = 0) THEN 'A
+    IF npc(j).id > 0 AND (j <> vstate.npc OR vstate.active = NO) THEN 'A
      '--Step-on NPCs cannot be used
      IF auto = 0 AND npcs(npc(j).id - 1).activation = 2 THEN CONTINUE DO
      nx = npc(j).x
@@ -787,7 +785,6 @@ IF txt.sayer < 0 THEN
      END IF
     END IF
    LOOP
-   'UNTIL wraptouch(npcl(j), npcl(j + 300), ux, uy, 15) AND npcl(j + 600) > 0 AND (j <> veh(5) OR veh(0) = 0)
    txt.sayer = j
   END IF
 END IF
@@ -815,19 +812,17 @@ IF txt.sayer >= 0 THEN
  END IF
  vehuse = npcs(npc(txt.sayer).id - 1).vehicle
  IF vehuse THEN '---activate a vehicle---
-  setpicstuf buffer(), 80, -1
-  loadset game + ".veh", vehuse - 1, 0
+  reset_vehicle vstate
+  LoadVehicle game & ".veh", vstate.dat, vehuse - 1
   setmapdata pass(), pass(), 0, 0
-  IF vehpass(buffer(19), readmapblock(catx(0) \ 20, caty(0) \ 20, 0), -1) THEN
-   '--check mounting permissions first
-   FOR i = 0 TO 7: veh(i) = 0: NEXT i
-   FOR i = 8 TO 21: veh(i) = buffer(i): NEXT i
-   veh(0) = -1
-   veh(5) = txt.sayer
-   veh(7) = herospeed(0)
+  '--check mounting permissions first
+  IF vehpass(vstate.dat.mount_from, readmapblock(catx(0) \ 20, caty(0) \ 20, 0), -1) THEN
+   vstate.active = YES
+   vstate.npc = txt.sayer
+   vstate.old_speed = herospeed(0)
    herospeed(0) = 10
-   setbit veh(), 6, 0, 1 '--trigger mounting sequence
-   IF veh(14) > 1 THEN setbit tag(), 0, veh(14), 1
+   vstate.mounting = YES '--trigger mounting sequence
+   IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 1
   END IF
  END IF
  SELECT CASE npcs(npc(txt.sayer).id - 1).textbox
@@ -850,13 +845,13 @@ FOR whoi = 0 TO 3
  thisherotilex = INT(catx(whoi * 5) / 20)
  thisherotiley = INT(caty(whoi * 5) / 20)
  '--if if aligned in at least one direction and passibility is enabled ... and some vehicle stuff ...
- IF (movdivis(xgo(whoi)) OR movdivis(ygo(whoi))) AND walk_through_walls = 0 AND readbit(veh(), 9, 0) = 0 AND vehpass(veh(17), readmapblock(thisherotilex, thisherotiley, 0), 0) = 0 THEN
-  IF readbit(gen(), 44, suspendherowalls) = 0 AND veh(6) = 0 THEN
+ IF (movdivis(xgo(whoi)) OR movdivis(ygo(whoi))) AND walk_through_walls = 0 AND vstate.dat.pass_walls = NO AND vehpass(vstate.dat.override_walls, readmapblock(thisherotilex, thisherotiley, 0), 0) = 0 THEN
+  IF readbit(gen(), 44, suspendherowalls) = 0 AND vehicle_is_animating() = NO THEN
    '--this only happens if herowalls is on
    '--wrapping passability
-   wrappass thisherotilex, thisherotiley, xgo(whoi), ygo(whoi), veh(0)
+   wrappass thisherotilex, thisherotiley, xgo(whoi), ygo(whoi), vstate.active
   END IF
-  IF readbit(gen(), 44, suspendobstruction) = 0 AND veh(6) = 0 THEN
+  IF readbit(gen(), 44, suspendobstruction) = 0 AND vehicle_is_animating() = NO THEN
    '--this only happens if obstruction is on
    FOR i = 0 TO 299
     IF npc(i).id > 0 THEN '---NPC EXISTS---
@@ -963,7 +958,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
   '--this only happens if obstruction is on
   FOR i = 0 TO 299
    IF npc(i).id > 0 THEN '---NPC EXISTS---
-    IF veh(0) = 0 OR (readbit(veh(), 9, 2) AND veh(5) <> i) THEN
+    IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
      IF npcs(npc(i).id - 1).activation = 2 THEN '---NPC IS PASSABLE---
       IF npc(i).x = catx(0) AND npc(i).y = caty(0) THEN '---YOU ARE ON NPC---
        ux = npc(i).x
@@ -973,7 +968,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
        GOSUB usething
       END IF'---YOU ARE ON NPC---
      END IF ' ---NPC IS PASSABLE---
-    END IF '--veh okay
+    END IF '--vehicle okay
    END IF '---NPC EXISTS
   NEXT i
  END IF
@@ -982,7 +977,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
  END IF
  IF needf = 0 THEN
   temp = readfoemap(catx(0) \ 20, caty(0) \ 20, scroll(0), scroll(1), foemaph)
-  IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
+  IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
   setmapdata scroll(), pass(), 0, 0
  END IF
@@ -1003,9 +998,9 @@ FOR o = 0 TO 299
  IF npc(o).id > 0 THEN
   id = (npc(o).id - 1)
   '--if this is the active vehicle
-  IF veh(0) AND veh(5) = o THEN
+  IF vstate.active = YES AND vstate.npc = o THEN
    '-- if we are not scrambling clearing or aheading
-   IF readbit(veh(), 6, 0) = 0 AND readbit(veh(), 6, 4) = 0 AND readbit(veh(), 6, 5) = 0 THEN
+   IF vstate.mounting = NO AND vstate.trigger_cleanup = NO AND vstate.ahead = NO THEN
     '--match vehicle to main hero
     npc(o).x = catx(0)
     npc(o).y = caty(0)
@@ -1281,7 +1276,7 @@ IF wantdoor > 0 THEN
  wantdoor = 0
  IF needf = 0 THEN
   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
-  IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
+  IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
   setmapdata scroll(), pass(), 0, 0
  END IF
@@ -2846,11 +2841,11 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
   ygo(0) = 0
   herospeed(0) = 4
  END IF
- IF veh(0) AND gam.map.same = YES THEN
+ IF vstate.active = YES AND gam.map.same = YES THEN
   FOR i = 0 TO 3
-   catz(i) = veh(21)
+   catz(i) = vstate.dat.elevation
   NEXT i
-  herospeed(0) = veh(8)
+  herospeed(0) = vstate.dat.speed
   IF herospeed(0) = 3 THEN herospeed(0) = 10
  END IF
  txt.sayer = -1
@@ -2897,7 +2892,7 @@ END SUB
 SUB opendoor (dforce AS INTEGER=0)
  'dforce is the ID number +1 of the door to force, or 0 if we are going to search for a mathcing door
  DIM door_id AS INTEGER
- IF veh(0) AND readbit(veh(), 9, 3) = 0 AND dforce = 0 THEN EXIT SUB 'Doors are disabled by a vehicle
+ IF vstate.active = YES AND vstate.dat.enable_door_use = NO AND dforce = 0 THEN EXIT SUB 'Doors are disabled by a vehicle
  IF dforce THEN
   door_id = dforce - 1
   IF readbit(gam.map.door(door_id).bits(),0,0) = 0 THEN EXIT SUB 'Door is disabled
@@ -3020,7 +3015,7 @@ SUB advance_text_box ()
   IF needf = 0 THEN
    DIM temp AS INTEGER
    temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
-   IF veh(0) AND veh(11) > 0 THEN temp = veh(11)
+   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
    IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
    setmapdata scroll(), pass(), 0, 0
   END IF
@@ -3232,4 +3227,23 @@ SUB refresh_map_slice_tilesets()
   '--reset map layer tileset ptrs
   ChangeMapSliceTileset SliceTable.MapLayer(i), tilesets(i)
  NEXT i
+END SUB
+
+FUNCTION vehicle_is_animating() AS INTEGER
+ WITH vstate
+  RETURN .mounting ORELSE .rising ORELSE .falling ORELSE .init_dismount ORELSE .ahead ORELSE .trigger_cleanup
+ END WITH
+END FUNCTION
+
+SUB reset_vehicle(v AS vehicleState)
+ v.npc = 0
+ v.old_speed = 0
+ v.active   = NO
+ v.mounting = NO
+ v.rising   = NO
+ v.falling  = NO
+ v.init_dismount   = NO
+ v.ahead           = NO
+ v.trigger_cleanup = NO
+ ClearVehicle v.dat
 END SUB

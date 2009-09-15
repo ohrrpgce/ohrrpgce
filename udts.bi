@@ -440,6 +440,45 @@ TYPE TextBox
   portrait_pos  AS XYPair
 END TYPE
 
+TYPE VehicleData
+  name           AS STRING
+  speed          AS INTEGER
+  random_battles AS INTEGER
+  use_button     AS INTEGER
+  menu_button    AS INTEGER
+  riding_tag     AS INTEGER
+  on_mount       AS INTEGER
+  on_dismount    AS INTEGER
+  override_walls AS INTEGER
+  blocked_by       AS INTEGER
+  mount_from     AS INTEGER
+  dismount_to    AS INTEGER
+  elevation      AS INTEGER
+  '--bitsets
+  pass_walls     AS INTEGER
+  pass_npcs      AS INTEGER
+  enable_npc_activation AS INTEGER
+  enable_door_use       AS INTEGER
+  do_not_hide_leader    AS INTEGER
+  do_not_hide_party     AS INTEGER
+  dismount_ahead        AS INTEGER
+  pass_walls_while_dismounting AS INTEGER
+  disable_flying_shadow AS INTEGER
+END TYPE
+
+TYPE VehicleState
+  dat       AS VehicleData
+  npc       AS INTEGER 'npc reference number
+  old_speed AS INTEGER 'hero speed before mount
+  active    AS INTEGER 'mounting/in/dismoutning
+  mounting  AS INTEGER '0
+  rising    AS INTEGER '1
+  falling   AS INTEGER '2
+  init_dismount AS INTEGER '3
+  trigger_cleanup AS INTEGER '4
+  ahead     AS INTEGER '5
+END TYPE
+
 TYPE MouseArea
   x AS INTEGER
   y AS INTEGER

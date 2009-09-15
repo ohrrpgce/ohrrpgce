@@ -36,7 +36,7 @@ EXTERN txt AS TextBoxState
 EXTERN tag() as integer
 
 'Vehicle globals
-EXTERN veh() as integer
+EXTERN vstate AS VehicleState
 
 'Hero globals
 EXTERN hero() as integer

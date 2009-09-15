@@ -923,6 +923,34 @@ SUB SortMenuItems(mi() AS MenuDefItem)
  NEXT i
 END SUB
 
+SUB LoadVehicle (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
+  DIM buf(39)
+  LoadVehicle file, buf(), vehicle.name, record
+  WITH vehicle
+    .speed          = buf(8)
+    .random_battles = buf(11)
+    .use_button     = buf(12)
+    .menu_button    = buf(13)
+    .riding_tag     = buf(14)
+    .on_mount       = buf(15)
+    .on_dismount    = buf(16)
+    .override_walls = buf(17)
+    .blocked_by     = buf(18)
+    .mount_from     = buf(19)
+    .dismount_to    = buf(20)
+    .elevation      = buf(21)
+    .pass_walls            = xreadbit(buf(), 0, 9)
+    .pass_npcs             = xreadbit(buf(), 1, 9)
+    .enable_npc_activation = xreadbit(buf(), 2, 9)
+    .enable_door_use       = xreadbit(buf(), 3, 9)
+    .do_not_hide_leader    = xreadbit(buf(), 4, 9)
+    .do_not_hide_party     = xreadbit(buf(), 5, 9)
+    .dismount_ahead        = xreadbit(buf(), 6, 9)
+    .pass_walls_while_dismounting = xreadbit(buf(), 7, 9)
+    .disable_flying_shadow        = xreadbit(buf(), 8, 9)
+  END WITH
+END SUB
+
 SUB LoadVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
  setpicstuf veh(), 80, -1
  loadset file, record, 0
@@ -930,11 +958,65 @@ SUB LoadVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
  array2str veh(), 1, vehname$
 END SUB
 
+SUB SaveVehicle (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
+  DIM buf(39)
+  WITH vehicle
+    buf(39) = .speed
+    buf(11) = .random_battles
+    buf(12) = .use_button
+    buf(13) = .menu_button
+    buf(14) = .riding_tag
+    buf(15) = .on_mount
+    buf(16) = .on_dismount
+    buf(17) = .override_walls
+    buf(18) = .blocked_by
+    buf(19) = .mount_from
+    buf(20) = .dismount_to
+    buf(21) = .elevation
+    setbit buf(), 9, 0, .pass_walls
+    setbit buf(), 9, 1, .pass_npcs
+    setbit buf(), 9, 2, .enable_npc_activation
+    setbit buf(), 9, 3, .enable_door_use
+    setbit buf(), 9, 4, .do_not_hide_leader
+    setbit buf(), 9, 5, .do_not_hide_party
+    setbit buf(), 9, 6, .dismount_ahead
+    setbit buf(), 9, 7, .pass_walls_while_dismounting
+    setbit buf(), 9, 8, .disable_flying_shadow
+  END WITH
+  SaveVehicle file, buf(), vehicle.name, record
+END SUB
+
 SUB SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
  veh(0) = bound(LEN(vehname$), 0, 15)
  str2array vehname$, veh(), 1
  setpicstuf veh(), 80, -1
  storeset file, record, 0
+END SUB
+
+SUB ClearVehicle (vehicle AS VehicleData)
+  WITH vehicle
+    .speed          = 0
+    .random_battles = 0
+    .use_button     = 0
+    .menu_button    = 0
+    .riding_tag     = 0
+    .on_mount       = 0
+    .on_dismount    = 0
+    .override_walls = 0
+    .blocked_by     = 0
+    .mount_from     = 0
+    .dismount_to    = 0
+    .elevation      = 0
+    .pass_walls            = NO
+    .pass_npcs             = NO
+    .enable_npc_activation = NO
+    .enable_door_use       = NO
+    .do_not_hide_leader    = NO
+    .do_not_hide_party     = NO
+    .dismount_ahead        = NO
+    .pass_walls_while_dismounting = NO
+    .disable_flying_shadow        = NO
+  END WITH
 END SUB
 
 SUB OldDefaultUIColors (colarray() AS INTEGER)
