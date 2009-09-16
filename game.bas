@@ -3077,7 +3077,14 @@ SUB init_text_box_slices(txt AS TextBoxState)
 
  '--Create a new slice for the text box
  DIM text_box AS Slice Ptr
- text_box = NewSliceOfType(slRectangle, txt.sl)
+
+ '--set up box style
+ IF txt.box.no_box THEN
+  text_box = NewSliceOfType(slContainer, txt.sl)
+ ELSE
+  text_box = NewSliceOfType(slRectangle, txt.sl)
+  ChangeRectangleSlice text_box, txt.box.boxstyle, , , , (txt.box.opaque = NO)
+ END IF
  
  '--position and size the text box
  WITH *text_box 
@@ -3086,13 +3093,6 @@ SUB init_text_box_slices(txt AS TextBoxState)
   .Width = 312
   .Height = get_text_box_height(txt.box)
  END WITH
-  
- '--set up box style
- IF txt.box.no_box THEN
-  ChangeRectangleSlice text_box, -1
- ELSE
-  ChangeRectangleSlice text_box, txt.box.boxstyle, , , , (txt.box.opaque = NO)
- END IF
 
  '--A frame that handles the padding around the text
  DIM text_frame AS Slice Ptr
