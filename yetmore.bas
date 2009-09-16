@@ -2947,7 +2947,7 @@ IF vstate.falling THEN '--fall-------------------
 END IF
 IF vstate.init_dismount THEN '--dismount---------------
  vstate.init_dismount = NO
- IF vehpass(vstate.dat.dismount_to, readmapblock(disx, disy, 0), -1) THEN
+ IF vehpass(vstate.dat.dismount_to, readpassblock(disx, disy), -1) THEN
   '--dismount point is landable
   FOR i = 0 TO 15
    catx(i) = catx(0)

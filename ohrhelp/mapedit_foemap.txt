@@ -1,4 +1,4 @@
-The map editor is is Foe mapping mode, (also known as "Foemap mode").
+The map editor is in Foe mapping mode (also known as "Foemap mode").
 
 F2 switch to picture mode
 F3 switch to passability mode
@@ -18,6 +18,8 @@ Press < and > to change the current formation number, or type in a number.
 
 Press SPACE to mark the tile under the cursor so that random battles from the selected formation set can happen there.
 
-To remove random battles from a tile, change the formation set number to 0 and press the SPACE bar on the tile.
+To remove random battles from a tile, press DELETE (or change the formation set number to 0).
 
 Press CTRL+F to fill the screen with the currently selected formation number.
+
+Press CAPSLOCK to change the selected formation set to the one under the cursor (eyedropper tool).

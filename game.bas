@@ -376,7 +376,6 @@ shownpcinfo = 0
 walk_through_walls = 0
 
 'DEBUG debug "pre-call movement"
-setmapdata pass(), pass(), 0, 0
 GOSUB movement
 setkeys
 DO
@@ -437,7 +436,6 @@ DO
  'debug "after advance_text_box:"
  IF vstate.active THEN
   'DEBUG debug "evaluate vehicles"
-  setmapdata pass(), pass(), 0, 0
   pasx = INT(catx(0) / 20)
   pasy = INT(caty(0) / 20)
   vehedge = 0
@@ -473,8 +471,6 @@ DO
   IF carray(0) > 1 AND txt.choice_cursor = 1 THEN txt.choice_cursor = 0: MenuSound gen(genCursorSFX)
   IF carray(1) > 1 AND txt.choice_cursor = 0 THEN txt.choice_cursor = 1: MenuSound gen(genCursorSFX)
  END IF
- 'DEBUG debug "setmapdata pass"
- setmapdata pass(), pass(), 0, 0
  'DEBUG debug "hero movement"
  GOSUB movement
  'DEBUG debug "NPC movement"
@@ -677,8 +673,6 @@ RETRACE
 displayall:
 IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  '---NORMAL DISPLAY---
- 'DEBUG debug "normal display"
- setmapdata scroll(), pass(), 0, 0
  'setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
  'cycletile tilesets(0)->anim(), tilesets(0)->tastuf()
  'DEBUG debug "drawmap"
@@ -814,7 +808,6 @@ IF txt.sayer >= 0 THEN
  IF vehuse THEN '---activate a vehicle---
   reset_vehicle vstate
   LoadVehicle game & ".veh", vstate.dat, vehuse - 1
-  setmapdata pass(), pass(), 0, 0
   '--check mounting permissions first
   IF vehpass(vstate.dat.mount_from, readmapblock(catx(0) \ 20, caty(0) \ 20, 0), -1) THEN
    vstate.active = YES
@@ -930,7 +923,7 @@ FOR whoi = 0 TO 3
   '--Stuff that should only happen when you finish moving
   IF didgo(o) = 1 AND xgo(o) = 0 AND ygo(o) = 0 THEN
    '---check for harm tile
-   p = readmapblock(catx(whoi * 5) \ 20, caty(whoi * 5) \ 20, 0)
+   p = readpassblock(catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
    IF (p AND 64) THEN
     o = -1
     FOR i = 0 TO whoi
@@ -979,7 +972,6 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
   temp = readfoemap(catx(0) \ 20, caty(0) \ 20, scroll(0), scroll(1), foemaph)
   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
-  setmapdata scroll(), pass(), 0, 0
  END IF
  IF gmap(14) > 0 THEN
   rsr = runscript(gmap(14), nowscript + 1, -1, "eachstep", plottrigger)
@@ -1070,7 +1062,6 @@ NEXT o
 RETRACE
 
 movenpcgo:
-setmapdata pass(), pass(), 0, 0
 npc(o).frame = loopvar(npc(o).frame, 0, 3, 1)
 IF movdivis(npc(o).xgo) OR movdivis(npc(o).ygo) THEN
  IF readbit(gen(), 44, suspendnpcwalls) = 0 THEN
@@ -1278,7 +1269,6 @@ IF wantdoor > 0 THEN
   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
-  setmapdata scroll(), pass(), 0, 0
  END IF
  setmapxy
 END IF
@@ -1762,18 +1752,14 @@ WITH scrat(nowscript)
    CASE 86'--advance text box
     advance_text_box
    CASE 97'--read map block
-    setmapdata scroll(), pass(), 0, 0
     IF curcmd->argc = 2 THEN retvals(2) = 0
     scriptret = readmapblock(bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(2), 0, 2))
    CASE 98'--write map block
     IF curcmd->argc = 3 THEN retvals(3) = 0
-    setmapdata scroll(), pass(), 0, 0
     setmapblock bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(3),0,2), bound(retvals(2), 0, 255)
    CASE 99'--read pass block
-    setmapdata scroll(), pass(), 0, 0
     scriptret = readpassblock(bound(retvals(0), 0, pass(0)-1), bound(retvals(1), 0, pass(1)-1))
    CASE 100'--write pass block
-    setmapdata scroll(), pass(), 0, 0
     setpassblock bound(retvals(0), 0, pass(0)-1), bound(retvals(1), 0, pass(1)-1), bound(retvals(2), 0, 255)
    CASE 144'--load tileset
     'version that doesn't modify gmap
@@ -2815,6 +2801,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
    loadmap_npcl gam.map.id
   END IF
  END IF
+ setmapdata scroll(), pass(), 0, 0
 
  IF isfile(maplumpname$(gam.map.id, "e")) THEN
   CLOSE #foemaph
@@ -3018,7 +3005,6 @@ SUB advance_text_box ()
    temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
    IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
-   setmapdata scroll(), pass(), 0, 0
   END IF
   setmapxy
  END IF

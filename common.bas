@@ -1195,6 +1195,7 @@ END FUNCTION
 
 FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
  'if zoom is -1, calculate and store it
+ 'Cobbles setmapdata! (this is only a temporary warning)
 
  IF zoom = -1 THEN
   'auto-detect best zoom

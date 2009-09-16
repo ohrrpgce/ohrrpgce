@@ -597,7 +597,6 @@ DO
     setmapblock x, y, i, 0
    NEXT i
    'delete passability
-   setmapdata map(), pass(), 20, 0
    setpassblock x, y, 0
    'delete foemap
    setmapdata emap(), pass(), 20, 0
@@ -696,28 +695,28 @@ DO
    '---PASSMODE-------
   CASE 1
    IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
-   setmapdata pass(), pass(), 20, 0
-   over = readmapblock(x, y, 0)
-   IF keyval(57) > 1 AND (over AND 15) = 0 THEN setmapblock x, y, 0, 15
-   IF keyval(57) > 1 AND (over AND 15) = 15 THEN setmapblock x, y, 0, 0
-   IF keyval(57) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN setmapblock x, y, 0, 0
+   setmapdata map(), pass(), 20, 0
+   over = readpassblock(x, y)
+   IF keyval(57) > 1 AND (over AND 15) = 0 THEN setpassblock x, y, 15
+   IF keyval(57) > 1 AND (over AND 15) = 15 THEN setpassblock x, y, 0
+   IF keyval(57) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN setpassblock x, y, 0
    IF keyval(83) > 1 THEN 'delete
-    setmapblock x, y, 0, 0
+    setpassblock x, y, 0
    END IF
    IF keyval(29) > 0 THEN
-    IF keyval(72) > 1 THEN setmapblock x, y, 0, (over XOR 1)
-    IF keyval(77) > 1 THEN setmapblock x, y, 0, (over XOR 2)
-    IF keyval(80) > 1 THEN setmapblock x, y, 0, (over XOR 4)
-    IF keyval(75) > 1 THEN setmapblock x, y, 0, (over XOR 8)
+    IF keyval(72) > 1 THEN setpassblock x, y, (over XOR 1)
+    IF keyval(77) > 1 THEN setpassblock x, y, (over XOR 2)
+    IF keyval(80) > 1 THEN setpassblock x, y, (over XOR 4)
+    IF keyval(75) > 1 THEN setpassblock x, y, (over XOR 8)
    END IF
-   IF keyval(30) > 1 THEN setmapblock x, y, 0, (over XOR 16) 'vehicle A
-   IF keyval(48) > 1 THEN setmapblock x, y, 0, (over XOR 32) 'vehicle B
-   IF keyval(35) > 1 THEN setmapblock x, y, 0, (over XOR 64) 'harm tile
-   IF keyval(24) > 1 THEN setmapblock x, y, 0, (over XOR 128)'overhead
+   IF keyval(30) > 1 THEN setpassblock x, y, (over XOR 16) 'vehicle A
+   IF keyval(48) > 1 THEN setpassblock x, y, (over XOR 32) 'vehicle B
+   IF keyval(35) > 1 THEN setpassblock x, y, (over XOR 64) 'harm tile
+   IF keyval(24) > 1 THEN setpassblock x, y, (over XOR 128)'overhead
    '---DOORMODE-----
   CASE 2
    IF keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
-   IF keyval(28) > 1 THEN ' enter to link a door
+   IF keyval(scEnter) > 1 THEN ' enter to link a door
     doorid = find_door_at_spot(x, y, doors())
     IF doorid >= 0 THEN
      'Save currently-worked-on map data
@@ -734,7 +733,7 @@ DO
      END IF
     END IF
    END IF
-   IF keyval(57) > 1 THEN ' space to place a door
+   IF keyval(scSpace) > 1 THEN ' space to place a door
     doorid = find_door_at_spot(x, y, doors())
     IF doorid >= 0 THEN
      'clear an existing door
@@ -749,7 +748,7 @@ DO
      END IF
     END IF
    END IF
-   IF keyval(83) > 1 THEN 'delete
+   IF keyval(scDelete) > 1 THEN
     doorid = find_door_at_spot(x, y, doors())
     IF doorid >= 0 THEN
      setbit doors(doorid).bits(), 0, 0, 0
@@ -758,7 +757,7 @@ DO
    '---NPCMODE------
   CASE 3
    IF keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
-   IF keyval(83) > 1 THEN 'delete
+   IF keyval(scDelete) > 1 THEN
     FOR i = 0 TO 299
      IF st.npc_inst(i).id > 0 THEN
       IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0
@@ -800,26 +799,24 @@ DO
   CASE 4
    IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
    intgrabber(foe, 0, 255, 51, 52)
-   IF keyval(57) > 0 THEN
+   IF keyval(scSpace) > 0 THEN
     setmapdata emap(), pass(), 20, 0
     setmapblock x, y, 0, foe
-    setmapdata map(), pass(), 20, 0
    END IF
-   IF keyval(83) > 1 THEN 'delete
+   IF keyval(scDelete) > 1 THEN
     setmapdata emap(), pass(), 20, 0
     setmapblock x, y, 0, 0
-    setmapdata map(), pass(), 20, 0
    END IF
-   IF keyval(33) > 1 AND keyval(29) > 0 THEN
+   IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN
     setmapdata emap(), pass(), 20, 0
     FOR i = 0 TO 14
      FOR o = 0 TO 8
       setmapblock INT(mapx / 20) + i, INT(mapy / 20) + o, 0, foe
      NEXT o
     NEXT i
-    setmapdata map(), pass(), 20, 0
    END IF
-   IF keyval(58) > 1 THEN foe = readmapblock(x, y, 0)
+   setmapdata emap(), pass(), 20, 0
+   IF keyval(scCapslock) > 1 THEN foe = readmapblock(x, y, 0)
    '--done input-modes-------
  END SELECT
  
@@ -919,7 +916,7 @@ DO
   setmapdata pass(), pass(), 20, 0
   FOR o = 0 TO 8
    FOR i = 0 TO 14
-    over = readmapblock((mapx \ 20) + i, (mapy \ 20) + o, 0)
+    over = readpassblock((mapx \ 20) + i, (mapy \ 20) + o)
     IF (over AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, uilook(uiMenuItem + tog), dpage
     IF (over AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
     IF (over AND 4) THEN rectangle i * 20, o * 20 + 37, 20, 3, uilook(uiMenuItem + tog), dpage

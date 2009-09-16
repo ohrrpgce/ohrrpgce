@@ -1010,6 +1010,7 @@ SUB minimap (x, y, tilesets() as TilesetData ptr)
  DIM mini AS Frame Ptr
  DIM zoom AS INTEGER = -1
  mini = createminimap(scroll(), tilesets(), zoom)
+ setmapdata scroll(), pass(), 0, 0
 
  DIM minisize AS XYPair
  minisize.x = mini->w
@@ -1167,6 +1168,7 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
+ setmapdata scroll(), pass(), 0, 0
  EXIT FUNCTION
 
 redraw:
