@@ -1783,7 +1783,6 @@ WITH scrat(nowscript)
       IF retvals(0) < 0 THEN
        'reload all defaults
        loadmaptilesets tilesets(), gmap(), NO
-       refresh_map_slice_tilesets
       ELSE
        'change default
        IF gmap(22) = 0 THEN loadtilesetdata tilesets(), 0, retvals(0)
@@ -1794,6 +1793,8 @@ WITH scrat(nowscript)
       'load tileset for an individual layer. 
       loadtilesetdata tilesets(), retvals(1), retvals(0)
      END IF
+     '--important to refresh map slices regardless of how the tileset was changed
+     refresh_map_slice_tilesets
     END IF
    CASE 305'--change tileset
     'this version of load tileset modifies gmap() for persistent (given map state saving) effects
