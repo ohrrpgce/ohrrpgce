@@ -67,7 +67,7 @@ DIM atk(40 + dimbinsize(binATTACK))
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
-DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
+DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
@@ -355,10 +355,9 @@ IF readbit(atk(), 65, 17) <> 0 THEN
  END IF
 END IF
 
-'--load palette
+'--setup attack sprite slots
 FOR i = 12 TO 23
  bslot(i).frame = 0
- cycle(i) = -1
  bslot(i).z = 0
  'load battle sprites
  with bslot(i)
@@ -394,7 +393,6 @@ NEXT o
 'COUNT TARGETS
 FOR i = 0 TO 11
  IF bslot(bat.acting).t(i) > -1 THEN tcount = tcount + 1
- cycle(i) = -1
 NEXT i
 bat.atk.non_elemental = YES
 FOR i = 0 TO 7
