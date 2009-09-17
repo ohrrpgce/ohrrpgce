@@ -6,3 +6,4 @@ You can also use the mouse here. Click on a tile to edit it. Isn't it a shame th
 
 Press CTRL+C to copy a tile.
 Press CTRL+V to paste a tile.
+Press CTRL+T to transparently paste a tile onto another: colour 0 is treated as transparency.

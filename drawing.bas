@@ -1441,7 +1441,11 @@ IF ts.gotmouse THEN
 END IF
 ts.delay = 3
 previewticks = 0
-IF ts.cuttileset THEN loadpage game + ".til", ts.cutfrom, 2 ELSE loadpage game + ".mxs", ts.cutfrom, 2
+IF ts.cuttileset THEN
+ loadpage game + ".til", ts.cutfrom, 2
+ELSE
+ loadpage game + ".mxs", ts.cutfrom, 2
+END IF
 setkeys
 DO
  setwait 110
@@ -1452,7 +1456,7 @@ DO
   readmouse mouse()
   zcsr = 0
   ts.zone = mouseover(mouse(), 0, 0, zcsr, area())
-  IF keyval(42) OR keyval(54) THEN 'shift
+  IF keyval(scAlt) > 0 THEN
    ts.x = mouse(0) - mouse(0) MOD 20
    ts.y = mouse(1) - mouse(1) MOD 20
   ELSE
@@ -1464,11 +1468,11 @@ DO
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "tilecut"
- inc = 1: IF keyval(56) > 0 THEN inc = 20
- IF keyval(72) AND 5 THEN ts.y = large(ts.y - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(80) AND 5 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(75) AND 5 THEN ts.x = large(ts.x - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF keyval(77) AND 5 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ inc = 1: IF keyval(scLeftShift) OR keyval(scRightShift) THEN inc = 20
+ IF keyval(scUp) AND 5 THEN ts.y = large(ts.y - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(scDown) AND 5 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(scLeft) AND 5 THEN ts.x = large(ts.x - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
+ IF keyval(scRight) AND 5 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF enter_or_space() OR (mouse(3) > 0 AND ts.zone < 11) THEN
   IF ts.delay = 0 THEN
    FOR i = 0 TO 19
@@ -1476,7 +1480,7 @@ DO
      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(ts.x + i, ts.y + j, 2), 3
     NEXT j
    NEXT i
-   IF keyval(28) > 1 OR (mouse(3) AND 4) THEN 'enter or middle click
+   IF keyval(scEnter) > 1 OR (mouse(3) AND 6) THEN 'enter or right or middle click
     ts.tiley = (ts.tiley + (ts.tilex + 1) \ 16) MOD 10
     ts.tilex = (ts.tilex + 1) AND 15
     ts.x += 20
