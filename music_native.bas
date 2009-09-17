@@ -60,6 +60,7 @@ option explicit
 #undef isfile
 #undef min
 #undef opaque
+#undef transparent
 #include once "allmodex.bi"
 
 #include once "common.bi"
