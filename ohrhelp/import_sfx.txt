@@ -1,13 +1,13 @@
 This is the sound effect import screen. The terms "SFX" and "Sound Effect" are used interchangeably.
 
-use the up and down arrow keys to navigate the menu. Press Left and Right arrows on the SFX number to change which sound effect you are editing.
+Use the up and down arrow keys to navigate the menu. Press Left and Right arrows on the SFX number to change which sound effect you are editing.
 
 When you create a new sound effect, it starts empty. You must import a sound file. Press ENTER or SPACE on "Import Sound..."
 
-You will be prompted to select a file. Some sound effect files are included inside the "Import" folder. You can also make your own sound effects, either recording them with a program like Windows' "Sound Recorder" or "Audacity", or you may generate them using a tool like "sfxr"
+You will be prompted to select a file. Some sound effect files are included inside the "Import" folder. You can also make your own sound effects, either recording them with a program like Windows' "Sound Recorder" or "Audacity", or you may generate them using a tool like "sfxr".
 
-OGG is the preferred sound file format, but you can also import WAV and MP3 sound effects. They will be converted to OGG files automatically (using the madplay and oggenc tools)
+OGG is the preferred sound file format, but you can also import WAV and MP3 sound effects. They will be converted to OGG files automatically (using the madplay and oggenc tools).
 
-Only short sound files are suitable for use as sound effects. The importer will not allow you to import files larger than 500kb, but even 500kb is really very large.
+Only short sound files are suitable for use as sound effects. The importer will not allow you to import files larger than 500kB, but even 500kB is really very large.
 
-You can also give names to your sound effects, but this is not strictly necessary because when you import a sound file, its filename will automatically be used to set the sound effect name.
+You can also give names to your sound effects, but this is not strictly necessary because when you import a sound file, its filename will automatically be used as the sound effect name.

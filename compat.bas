@@ -139,6 +139,9 @@ sub processcommandline()
 #endif
 			'option
 			temp = mid$(command(i), 2)
+			if left$(temp, 1) = "-" then
+				temp = mid$(temp, 2)
+			end if
 			if temp = "w" or temp = "windowed" then
 				gfx_setwindowed(1)
 			elseif temp = "f" or temp = "fullscreen" then
@@ -147,7 +150,7 @@ sub processcommandline()
 				show_help = -1
 				help = help & long_version$ & LINE_END
 				help = help & "(C) Copyright 1997-2007 James Paige and Hamster Republic Productions" & LINE_END
-				help = help & "This game engine is free software under the terms of the GPL" & LINE_END
+				help = help & "This game engine is free software under the terms of the GNU GPL v2+" & LINE_END
 				help = help & "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php" & LINE_END
 				help = help & "Game data copyright and license will vary." & LINE_END
 			elseif temp = "?" or temp = "help" then

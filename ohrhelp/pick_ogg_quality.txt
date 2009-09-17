@@ -1,7 +1,7 @@
-Here you can choose the OGG quality level of the sound effect you are importing.
+Here you can choose the OGG quality level of the sound effect or MP3 file you are importing.
 
 Press the left arrow key to reduce quality, or the right arrow key to increase quality. Press ENTER or SPACE to confirm.
 
-The default setting of quality 4 is really very hight quality, and unless you have some very special needs you are unlikely to ever need to increase the quality higher.
+The default setting of quality 4 is really very high quality, and unless you have some very special needs you are unlikely to ever need to increase the quality higher.
 
 Lower quality can be an advantage in reducing filesize. Most sound effects can be reduced to quality 2 without any noticeable loss. Depending on the sound effect, some can even be reduced to 0 or -1 and still be acceptable. If you are concerned about keeping your filesize very small, try to find the lowest acceptable quality level for each sound effect you import.

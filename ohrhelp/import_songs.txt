@@ -2,7 +2,7 @@ This is the song importer.
 
 Use the up and down arrow keys to navigate the menu. To change which song you are editing, select the Song number and press the left and right arrow keys.
 
-When you add a new song slot, it starts out empty. You need to import a file into it. Pick "Import Song..." and press ENTER or SPACE
+When you add a new song slot, it starts out empty. You need to import a file into it. Pick "Import Song..." and press ENTER or SPACE.
 
 Here is a list of the supported song formats:
 
@@ -47,7 +47,7 @@ Here is a list of the supported song formats:
   are sheet-music format similar to
   MIDI, but they can also include
   digital samples of the instruments
-  they use, so they always sound
+  they use, and they always sound
   the same no matter which computer
   they are played on. Their filesize
   is usually bigger than MIDI or BAM
