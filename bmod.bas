@@ -66,7 +66,7 @@ DIM formdata(40)
 DIM atk(40 + dimbinsize(binATTACK))
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
-DIM st(3) as herodef, es(7, 160), zbuf(24), of(24), ctr(11)
+DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
@@ -357,7 +357,7 @@ END IF
 
 '--load palette
 FOR i = 12 TO 23
- of(i) = 0
+ bslot(i).frame = 0
  cycle(i) = -1
  bslot(i).z = 0
  'load battle sprites
@@ -819,7 +819,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 0 '--end()
    FOR i = 0 TO 3
     '--enforce weak picture
-    IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN of(i) = 6: bslot(i).frame = 6
+    IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN bslot(i).frame = 6
     '--re-enforce party's X/Y positions...
     bslot(i).x = bslot(i).basex
     bslot(i).y = bslot(i).basey
@@ -860,8 +860,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    ww = popw
    fr = popw
    bslot(ww).frame = fr
-   IF is_hero(ww) THEN walk(ww) = 0: of(ww) = fr
-   IF ww > 23 THEN of(ww) = fr '--is this right?
+   IF is_hero(ww) THEN walk(ww) = 0
   CASE 8 'absmove(who,n,n,n,n)
    ww = popw
    tmp1 = popw
@@ -1004,7 +1003,6 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    wf = popw
   CASE 14 'walktoggle(who)
    ww = popw
-   of(ww) = 0
    bslot(ww).frame = 0
    IF is_hero(ww) THEN walk(ww) = walk(ww) XOR 1
   CASE 15 'zmove(who,zm,zstep)
@@ -1531,10 +1529,9 @@ RETRACE
 
 animate:
 FOR i = 0 TO 3
- IF walk(i) = 1 THEN of(i) = of(i) XOR tog : bslot(i).frame = bslot(i).frame xor tog
- IF bat.acting <> i AND bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN of(i) = 6 : bslot(i).frame = 6
+ IF walk(i) = 1 THEN bslot(i).frame = bslot(i).frame xor tog
+ IF bat.acting <> i AND bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN bslot(i).frame = 6
  IF vic.state > 0 AND bstat(i).cur.hp > 0 AND tog = 0 THEN
-  IF of(i) = 0 THEN of(i) = 2 ELSE of(i) = 0
   if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
  END IF
 NEXT i
@@ -1548,9 +1545,10 @@ NEXT i
 FOR i = 0 TO 11
  IF bslot(i + 12).vis = 1 THEN
   fctr(i) = fctr(i) + 1: IF aframe(i, fctr(i)) = -1 THEN fctr(i) = 0
-  of(i + 12) = aframe(i, fctr(i))
   bslot(i + 12).frame = aframe(i, fctr(i))
-  IF atk(2) = 3 THEN of(i + 12) = INT(RND * 3) : bslot(i + 12).frame = INT(RND * 3) 'so what if they won't both be the same?
+  IF atk(2) = 3 THEN
+   bslot(i + 12).frame = INT(RND * 3)
+  END IF
  END IF
  IF bslot(i).dissolve > 0 THEN
   'ENEMIES DEATH THROES
@@ -1571,7 +1569,7 @@ FOR i = 0 TO 11
     bslot(i).vis = 0
    END IF
   END IF
-  IF is_hero(i) THEN of(i) = 7 : bslot(i).frame = 7
+  IF is_hero(i) THEN bslot(i).frame = 7
  END IF
 NEXT i
 RETRACE
@@ -1777,11 +1775,10 @@ NEXT i
 curbg = formdata(32)
 loadpage game + ".mxs", curbg, 2
 FOR i = 0 TO 3
- IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN of(i) = 6 : bslot(i).frame = 6
+ IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN bslot(i).frame = 6
  IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN
   '--hero starts the battle dead
   bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
-  of(i) = 7
   bslot(i).frame = 7
  END IF
  lifemeter(i) = (88 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp
