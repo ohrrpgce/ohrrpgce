@@ -1,0 +1,17 @@
+The script management menu allows you to ro access some tasks and tools related to your Plotscripts. (Check the documentation wiki at http://HamsterRepublic.com/ohrrpgce/ if you want to learn more about plotscripting)
+
+* "Export names for scripts (.hsi)"
+  creates or updates a list of names
+  that your script can use.
+
+* "Import compiled plotscripts (.hs)"
+  allows you to import a script that
+  you have prepared for your game.
+
+* "Check where scripts are used"
+  produces a list of all the places
+  where your game triggers a script.
+
+* "Find broken script triggers"
+  searches for references to scripts
+  that have been renamed or removed.

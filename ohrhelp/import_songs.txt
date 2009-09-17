@@ -1,0 +1,55 @@
+This is the song importer.
+
+Use the up and down arrow keys to navigate the menu. To change which song you are editing, select the Song number and press the left and right arrow keys.
+
+When you add a new song slot, it starts out empty. You need to import a file into it. Pick "Import Song..." and press ENTER or SPACE
+
+Here is a list of the supported song formats:
+
+.MID - MIDI Music is like digital
+  sheet-music. It is a description
+  of which notes to play and which
+  instruments to play them with.
+  MIDI has very small filesize,
+  so it is the most popular choice
+  for people who want to keep
+  their game size small. Sound
+  quality is somewhat limited, and
+  MIDI music does not sound the same
+  on every different computer.
+
+.OGG - Ogg Vorbis is digital music.
+  If you need higher quality sound,
+  or voices, or if you want to make
+  sure that your music sounds the
+  same on all computers, use OGG.
+  The disadvantage is that the
+  filesize can be much larger.
+
+.MP3 - This popular music format has
+  the same advantages as OGG, and
+  the same disadvantage of large
+  filesize. When you import an MP3
+  file it will automatically be
+  converted to OGG (using the madplay
+  and oggenc tools)
+
+.BAM - Bob's Adlib Music format was
+  once the only format supported.
+  Like MIDI, BAM is a sheet-music
+  format that describes musical
+  notes. It has very small filesize,
+  but suffers from the same
+  quality and consistency issues
+  as MIDI music.
+
+.MOD .XM .IT .S3M - Tracker formats
+  are sheet-music format similar to
+  MIDI, but they can also include
+  digital samples of the instruments
+  they use, so they always sound
+  the same no matter which computer
+  they are played on. Their filesize
+  is usually bigger than MIDI or BAM
+  but is usually smaller than OGG
+  or MP3
