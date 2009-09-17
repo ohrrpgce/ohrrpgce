@@ -66,8 +66,6 @@ WHAT IS NEW?
       box [James]
     * Fix a crash bug in the script interpreter when running very
       large/many scripts [Ralph]
-    * Fix bug 720 "Crash when displaying non-zero frame of a flipped
-      sprite slice" [James]
     * "random" didn't work when max - min > 2^31, and could be totally
       non-uniform. "seed random" now causes different sequences! [Ralph]
     * Using Ctrl+R in the tilemap editor could corrupt memory [Ralph]
@@ -79,6 +77,8 @@ WHAT IS NEW?
       immediately when a hero was added or removed [James]
     * Fixed bug 756 "Holding ENTER or SPACE while dismounting a vehicle
       can result the hero getting stuck" [James]
+    * The default master palette is also saved in the old format,
+      so old graphics utilities have a greater chance of working [Ralph]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

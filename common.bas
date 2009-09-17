@@ -1139,7 +1139,7 @@ ELSE
  GET #fh, , recsize
  GET #fh, recsize * palnum + headsize + 1, palbuf()
  CLOSE #fh
- FOR i = 0 TO 255
+ FOR i AS INTEGER = 0 TO 255
   pal(i).r = palbuf(i * 3)
   pal(i).g = palbuf(i * 3 + 1)
   pal(i).b = palbuf(i * 3 + 2)
@@ -1183,6 +1183,19 @@ FOR i = 0 TO 255
  newpal(i).g = iif(g, g shl 2 + 3, 0)
  newpal(i).b = iif(b, b shl 2 + 3, 0)
 NEXT
+END SUB
+
+SUB unconvertpalette()
+'Takes the default new format palette and saves it in the old QB style palette
+'format. This is only here to help out old graphics tools
+DIM newpal(255) as RGBcolor, oldpal(767) as INTEGER
+loadpalette newpal(), gen(genMasterPal)
+FOR i = 0 TO 255
+ oldpal(i * 3) = newpal(i).r \ 4
+ oldpal(i * 3 + 1) = newpal(i).g \ 4
+ oldpal(i * 3 + 2) = newpal(i).b \ 4
+NEXT
+xbsave game + ".mas", oldpal(), 1536
 END SUB
 
 FUNCTION getmapname (m) as string
@@ -2093,6 +2106,9 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  ERASE song$
 END IF
 
+'Safety-check for negative gen(genMasterPal) because of one known game that somehow had -2
+gen(genMasterPal) = large(0, gen(genMasterPal))
+
 IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  DIM AS SHORT headsize = 4, recsize = 768
  upgrade_message "Upgrading Master Palette format..."
@@ -2104,6 +2120,9 @@ IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  CLOSE #fh
  savepalette master(), 0
 END IF
+'This is not necessary in the slightest, but we copy the default master palette
+'back to the .MAS lump, to give old graphics utilities some chance of working
+unconvertpalette()
 
 '--check variable record size lumps and reoutput them if records have been extended
 '--all of the files below should exist, be non zero length and have non zero record size by this point
@@ -2125,9 +2144,6 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
 END IF
 updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 updaterecordlength game & ".say", binSAY
-
-'sanity-check gen(genMaxMasterPal)
-gen(genMaxMasterPal) = large(gen(genMaxMasterPal), 0)
 
 '--give each palette a default ui color set
 DIM ff AS INTEGER = FREEFILE
