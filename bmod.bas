@@ -63,8 +63,9 @@ bstackstart = stackpos
 
 battle = 1
 DIM formdata(40)
-DIM atktemp(40 + dimbinsize(binATTACK)), atk(40 + dimbinsize(binATTACK))
+DIM atk(40 + dimbinsize(binATTACK))
 DIM attack AS AttackData
+DIM targets_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), zbuf(24), of(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), cycle(24), walk(3), aframe(11, 11)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
@@ -885,8 +886,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
      '--try to cancel target's attack
      IF bslot(targ).attack > 0 THEN
       'Check if the attack is cancelable
-      loadattackdata atktemp(), bslot(targ).attack - 1
-      IF readbit(atktemp(), 65, 13) = 0 THEN
+      loadattackdata targets_attack, bslot(targ).attack - 1
+      IF targets_attack.not_cancellable_by_attacks = NO THEN
        'Okay to cancel target's attack
        bslot(targ).attack = 0
       END IF
