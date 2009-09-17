@@ -1332,7 +1332,7 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   setkeys
   state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "texbox_line_editor"
+  IF keyval(scF1) > 1 THEN show_help "textbox_line_editor"
   IF keyval(scEnter) > 1 AND state.pt < state.last THEN state.pt += 1
   IF usemenu(state) THEN insert = -1
   IF state.pt <= state.last AND state.pt >= state.first THEN
