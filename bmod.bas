@@ -66,7 +66,7 @@ DIM atk(40 + dimbinsize(binATTACK))
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
-DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), walk(3), aframe(11, 11)
+DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), walk(3)
 DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
@@ -214,7 +214,7 @@ DO
   END IF
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND vic.state = 0 THEN
-  generate_atkscript bat, bslot(), bstat(), icons(), exstat(), fctr(), aframe()
+  generate_atkscript bat, bslot(), bstat(), icons(), exstat(), fctr()
   '--load attack
   loadattackdata atk(), bat.atk.id
  END IF
@@ -1086,8 +1086,8 @@ FOR i = 0 TO 23
 NEXT i
 FOR i = 0 TO 11
  IF bslot(i + 12).vis = 1 THEN
-  fctr(i) = fctr(i) + 1: IF aframe(i, fctr(i)) = -1 THEN fctr(i) = 0
-  bslot(i + 12).frame = aframe(i, fctr(i))
+  fctr(i) = fctr(i) + 1: IF bat.animpat(bslot(i + 12).anim_pattern).frame(fctr(i)) = -1 THEN fctr(i) = 0
+  bslot(i + 12).frame = bat.animpat(bslot(i + 12).anim_pattern).frame(fctr(i))
   IF atk(2) = 3 THEN
    bslot(i + 12).frame = INT(RND * 3)
   END IF
@@ -2254,7 +2254,7 @@ SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bstat() AS Bat
  END IF
 END SUB
 
-SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat(), fctr(), aframe())
+SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat(), fctr())
  DIM i AS INTEGER
 
  '--check for item consumption
@@ -2728,10 +2728,7 @@ SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat(
  '--setup animation pattern
  FOR i = 0 TO 11
   fctr(i) = 0
-  IF attack.anim_pattern = 0 THEN aframe(i, 0) = 0: aframe(i, 1) = 0: aframe(i, 2) = 1: aframe(i, 3) = 1: aframe(i, 4) = 2: aframe(i, 5) = 2: aframe(i, 6) = -1
-  IF attack.anim_pattern = 1 THEN aframe(i, 0) = 2: aframe(i, 1) = 2: aframe(i, 2) = 1: aframe(i, 3) = 1: aframe(i, 4) = 0: aframe(i, 5) = 0: aframe(i, 6) = -1
-  IF attack.anim_pattern = 2 THEN aframe(i, 0) = 0: aframe(i, 1) = 0: aframe(i, 2) = 1: aframe(i, 3) = 1: aframe(i, 4) = 2: aframe(i, 5) = 2: aframe(i, 6) = 1: aframe(i, 7) = 1: aframe(i, 8) = -1
-  IF attack.anim_pattern = 3 THEN aframe(i, 0) = -1: aframe(i, 1) = -1
+  bslot(i + 12).anim_pattern = attack.anim_pattern
  NEXT i
  
  '--if caption has length and is set to display

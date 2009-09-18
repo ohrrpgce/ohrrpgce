@@ -42,5 +42,5 @@ DECLARE SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat 
 DECLARE SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER, delay() AS INTEGER)
 DECLARE SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, menubits() AS INTEGER, nmenu() AS INTEGER, mend() AS INTEGER, delay() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
 DECLARE SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bstat() AS BattleStats, bslot() AS BattleSprite, delay(), conlmp())
-DECLARE SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat(), fctr(), aframe())
+DECLARE SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat(), fctr())
 #ENDIF

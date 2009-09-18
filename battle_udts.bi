@@ -27,6 +27,7 @@ TYPE BattleSprite
   sprites as Frame ptr 'the graphic set
   sprite_num AS INTEGER 'how many frames
   frame AS INTEGER 'the current frame
+  anim_pattern AS INTEGER 'used by attack sprites
   pal as palette16 ptr 'yeah
   deathtype AS INTEGER 'for enemies (0 = default, otherwise is type + 1)
   deathtime AS INTEGER '0 = default, otherwise is time + 1
@@ -118,6 +119,11 @@ CONST targSETUP  = 1 'means targetting needs set-up
 CONST targMANUAL = 2 'means normal manual targetting
 CONST targAUTO   = 3 'means autotargeting
 
+'--These patterns are used for attack animation frame oscillation
+TYPE AttackAnimationPattern
+ frame(10) AS INTEGER
+END TYPE
+
 'This type stores the state of the battle engine, for example,
 'who's turn it is, what each character is doing, and targetting information
 TYPE BattleState
@@ -139,6 +145,11 @@ TYPE BattleState
  caption_time AS INTEGER 'time for the currently displaying caption
  caption_delay AS INTEGER 'delay before current caption displays
  anim_ready AS INTEGER 'YES or NO indicating whether the current animation has bene generated
+ animpat(3) AS AttackAnimationPattern = _
+        { ({0,0,1,1,2,2,-1}), _
+          ({2,2,1,1,0,0,-1}), _
+          ({0,0,1,1,2,2,1,1,0,0,-1}), _
+          ({-1,-1}) }
 END TYPE
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1
