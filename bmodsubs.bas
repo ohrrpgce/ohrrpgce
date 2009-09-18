@@ -59,29 +59,6 @@ FUNCTION is_weapon(who as integer) as integer
  RETURN 0
 END FUNCTION
 
-SUB advance (who as integer, atk() as integer, bslot() AS BattleSprite)
-d = 1 ' Hero
-IF is_enemy(who) THEN d = -1 ' Enemy
-
-IF is_hero(who) THEN
- IF atk(14) < 2 OR (atk(14) > 2 AND atk(14) < 5) THEN ' strike, cast, spin, jump
-  anim_walktoggle who
-  anim_setmove who, -5, 0, 4, 0
-  anim_waitforall
- END IF
-END IF
-IF atk(14) = 2 THEN ' Dash in
- yt = (bslot(bslot(who).t(0)).h - bslot(who).h) + 2
- anim_walktoggle who
- anim_absmove who, bslot(bslot(who).t(0)).x + bslot(bslot(who).t(0)).w * d, bslot(bslot(who).t(0)).y + yt, 6, 6
- anim_waitforall
-END IF
-IF atk(14) = 8 THEN ' Teleport
- anim_setpos who, bslot(bslot(who).t(0)).x + bslot(bslot(who).t(0)).w * d, bslot(bslot(who).t(0)).y + (bslot(bslot(who).t(0)).h - (bslot(who).h)), 0
-END IF
-
-END SUB
-
 FUNCTION atkallowed (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
  'FIXME: this will be deleted in favour of its overload as soon as it is no longer needed
  DIM atk AS AttackData
@@ -300,37 +277,6 @@ NEXT i
 RETURN o
 END FUNCTION
 
-SUB etwitch (who as integer, atk() as integer, bslot() AS BattleSprite)
-
-IF atk(14) < 2 THEN' twitch
- anim_setz who, 2
- anim_wait 1
- anim_setz who, 0
-END IF
-IF atk(14) = 3 THEN' spin
- FOR ii = 0 TO 2
-  anim_setdir who, 1
-  anim_wait 1
-  anim_setdir who, 0
-  anim_wait 1
- NEXT ii
-END IF
-IF atk(14) = 4 THEN' jump
- anim_absmove who, bslot(who).x + 50, bslot(who).y, 7, 7
- anim_zmove who, 10, 20
- anim_waitforall
- anim_disappear who
-END IF
-IF atk(14) = 5 THEN' drop
- anim_setz who, 200
- anim_appear who
- anim_setpos who, bslot(bslot(who).t(0)).x, bslot(bslot(who).t(0)).y, 0
- anim_zmove who, -10, 20
- anim_waitforall
-END IF
-
-END SUB
-
 Function GetWeaponPos(w as integer,f as integer,isY as integer) as integer'or x?
  'FIXME: Ack! Lets just make handle position a member of bslot()
  dim fh
@@ -352,82 +298,6 @@ Function GetHeroPos(h as integer,f as integer,isY as integer) as integer'or x?
  GetHeroPos = ReadShort(fh,h * 636 + 595 + f * 4 + iif(isY,1,0) * 2)
  CLOSE #FH
 End Function
-
-SUB heroanim (who as integer, atk() as integer, bslot() AS BattleSprite)
-hx = 0:hy = 0:wx = 0: wy = 0: xt = 0: yt = 0
-IF atk(14) < 3 OR (atk(14) > 6 AND atk(14) < 9) THEN ' strike, cast, dash, standing cast, teleport
- anim_setframe who, 0
- anim_wait 3 'wait 3 ticks
- IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
- 
-  anim_setframe who, 2
-  
-  hx = GetHeroPos(hero(who)-1,0,0)
-  hy = GetHeroPos(hero(who)-1,0,1)
-  wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
-  wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
-  dx = hx - wx
-  dy = hy - wy
-  
-  anim_align2 24, who, 0, 0, dx, 16
-  anim_setz 24, 16 - dy
-  
-  anim_setframe 24, 0
-  anim_appear 24
-  
- END IF
- 
- IF atk(14) = 1 OR atk(14) = 7 THEN 'if it's cast or standing cast
-  anim_setframe who, 4
- END IF
- 
- anim_wait 3
- 
- IF atk(14) <> 1 AND atk(14) <> 7 THEN 'if it's not cast or standing cast
-  anim_setframe who, 3
-  
-  hx = GetHeroPos(hero(who)-1,1,0)
-  hy = GetHeroPos(hero(who)-1,1,1)
-  wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
-  wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
-  dx = hx - wx
-  dy = hy - wy
-  
-  anim_align2 24, who, 0, 0, dx, 16
-  anim_setz 24, 16 - dy
-  
-  anim_setframe 24, 1
- END IF
- 
-END IF
-IF atk(14) = 3 THEN ' spin
- FOR ii = 0 TO 2
-  anim_setdir who, 1
-  anim_wait 1
-  anim_setdir who, 0
-  anim_wait 1
- NEXT ii
-END IF
-IF atk(14) = 4 THEN ' Jump
- anim_setframe who, 4
- anim_relmove who, -40, 0, 7, 0
- anim_zmove who, 20, 10
- anim_waitforall
- anim_disappear who
- anim_setframe who, 0
-END IF
-IF atk(14) = 5 THEN ' Land
- anim_setz who, 200
- anim_setframe who, 2
- anim_appear who
- anim_setcenter who, bslot(who).t(0), 0, 0
- anim_align who, bslot(who).t(0), dirDown, 0
- anim_zmove who, -10, 20
- anim_waitforall
- anim_setframe who, 5
-END IF
-
-END SUB
 
 FUNCTION inflict (w as integer, t as integer, bstat() AS BattleStats, bslot() AS BattleSprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, atk() as integer, tcount as integer) as integer
 
@@ -829,38 +699,6 @@ ELSE
 END IF
 END FUNCTION
 
-SUB retreat (who as integer, atk() as integer, bslot() AS BattleSprite)
-
-IF is_enemy(who) THEN
- IF atk(14) = 2 OR atk(14) = 5 THEN
-  anim_setz who, 0
-  anim_absmove who, bslot(who).x, bslot(who).y, 6, 6
-  anim_waitforall
- END IF
-END IF
-
-IF is_hero(who) THEN
- IF atk(14) < 2 THEN ' strike, cast
-  anim_walktoggle who
-  anim_setmove who, 5, 0, 4, 0
-  anim_waitforall
-  anim_setframe who, 0
- END IF
- IF atk(14) = 2 OR atk(14) = 5 THEN ' dash, land
-  anim_setframe who, 0
-  anim_walktoggle who
-  anim_setz who, 0
-  anim_absmove who, bslot(who).x, bslot(who).y, 6, 6
-  anim_waitforall
-  anim_setframe who, 0
- END IF
- IF atk(14) = 7 THEN
-  anim_setframe who, 0
- END IF
-END IF
-
-END SUB
-
 FUNCTION safesubtract (number as integer, minus as integer) as integer
 longnumber& = number
 longminus& = minus
@@ -881,10 +719,10 @@ FUNCTION safemultiply (number as integer, by as single) as integer
  return result
 END FUNCTION
 
-SUB setbatcap (cap as string, captime as integer, capdelay as integer)
-battlecaption = cap
-battlecaptime = captime
-battlecapdelay = capdelay
+SUB setbatcap (BYREF bat AS BattleState, cap as string, captime as integer, capdelay as integer)
+ bat.caption = cap
+ bat.caption_time = captime
+ bat.caption_delay = capdelay
 END SUB
 
 SUB smartarrowmask (inrange() as integer, d as integer, axis as integer, bslot() AS BattleSprite, targ AS TargettingState)
@@ -965,7 +803,7 @@ printstr s$, 0, 191, 0
 printstr s$, 0, 191, 1
 END SUB
 
-FUNCTION trytheft (who as integer, targ as integer, atk() as integer, es() as integer) as integer
+FUNCTION trytheft (BYREF bat AS BattleState, who as integer, targ as integer, atk() as integer, es() as integer) as integer
 trytheft = 0'--return false by default
 IF is_hero(who) AND is_enemy(targ) THEN
  '--a hero is attacking an enemy
@@ -980,15 +818,15 @@ IF is_hero(who) AND is_enemy(targ) THEN
      '--only one theft permitted
      es(targ - 4, 17) = -1
     END IF
-    setbatcap readglobalstring$(117, "Stole", 40) + " " + readitemname$(stole - 1), 40, 0
+    setbatcap bat, readglobalstring$(117, "Stole", 40) + " " + readitemname$(stole - 1), 40, 0
     trytheft = -1'--return success
    ELSE
     '--steal failed
-    setbatcap readglobalstring$(114, "Cannot Steal", 40) + " ", 40, 0
+    setbatcap bat, readglobalstring$(114, "Cannot Steal", 40) + " ", 40, 0
    END IF
   ELSE
    '--has nothing to steal / steal disabled
-   setbatcap readglobalstring$(111, "Has Nothing", 30), 40, 0
+   setbatcap bat, readglobalstring$(111, "Has Nothing", 30), 40, 0
   END IF
  END IF
 END IF
@@ -1275,6 +1113,181 @@ SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSpri
 END SUB
 
 OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
+
+SUB anim_advance (who as integer, attack as AttackData, bslot() AS BattleSprite)
+
+ DIM d AS INTEGER
+ d = 1 ' Hero faces left
+ IF is_enemy(who) THEN d = -1 ' Enemy faces right
+
+ IF is_hero(who) THEN
+  IF attack.attacker_anim < 2 OR (attack.attacker_anim > 2 AND attack.attacker_anim < 5) THEN ' strike, cast, spin, jump
+   anim_walktoggle who
+   anim_setmove who, -5, 0, 4, 0
+   anim_waitforall
+  END IF
+ END IF
+ 
+ IF attack.attacker_anim = 2 THEN ' Dash in
+  DIM yt AS INTEGER
+  yt = (bslot(bslot(who).t(0)).h - bslot(who).h) + 2
+  anim_walktoggle who
+  anim_absmove who, bslot(bslot(who).t(0)).x + bslot(bslot(who).t(0)).w * d, bslot(bslot(who).t(0)).y + yt, 6, 6
+  anim_waitforall
+ END IF
+ 
+ IF attack.attacker_anim = 8 THEN ' Teleport
+  anim_setpos who, bslot(bslot(who).t(0)).x + bslot(bslot(who).t(0)).w * d, bslot(bslot(who).t(0)).y + (bslot(bslot(who).t(0)).h - (bslot(who).h)), 0
+ END IF
+
+END SUB
+
+SUB anim_hero (who as integer, attack as AttackData, bslot() AS BattleSprite)
+ DIM hx AS INTEGER = 0
+ DIM hy AS INTEGER = 0
+ DIM wx AS INTEGER = 0
+ DIM wy AS INTEGER = 0
+ DIM xt AS INTEGER = 0
+ DIM yt AS INTEGER = 0
+ DIM dx AS INTEGER = 0
+ DIM dy AS INTEGER = 0
+ 
+ IF attack.attacker_anim < 3 OR (attack.attacker_anim > 6 AND attack.attacker_anim < 9) THEN ' strike, cast, dash, standing cast, teleport
+  anim_setframe who, 0
+  anim_wait 3 'wait 3 ticks
+  
+  IF attack.attacker_anim <> 1 AND attack.attacker_anim <> 7 THEN 'if it's not cast or standing cast
+   anim_setframe who, 2
+  
+   hx = GetHeroPos(hero(who)-1,0,0)
+   hy = GetHeroPos(hero(who)-1,0,1)
+   wx = GetWeaponPos(eqstuf(who,0)-1,1,0)
+   wy = GetWeaponPos(eqstuf(who,0)-1,1,1)
+   dx = hx - wx
+   dy = hy - wy
+  
+   anim_align2 24, who, 0, 0, dx, 16
+   anim_setz 24, 16 - dy
+  
+   anim_setframe 24, 0
+   anim_appear 24
+  END IF
+ 
+  IF attack.attacker_anim = 1 OR attack.attacker_anim = 7 THEN 'if it's cast or standing cast
+   anim_setframe who, 4
+  END IF
+ 
+  anim_wait 3
+ 
+  IF attack.attacker_anim <> 1 AND attack.attacker_anim <> 7 THEN 'if it's not cast or standing cast
+   anim_setframe who, 3
+  
+   hx = GetHeroPos(hero(who)-1,1,0)
+   hy = GetHeroPos(hero(who)-1,1,1)
+   wx = GetWeaponPos(eqstuf(who,0)-1,0,0)
+   wy = GetWeaponPos(eqstuf(who,0)-1,0,1)
+   dx = hx - wx
+   dy = hy - wy
+  
+   anim_align2 24, who, 0, 0, dx, 16
+   anim_setz 24, 16 - dy
+  
+   anim_setframe 24, 1
+  END IF
+ 
+ END IF
+ 
+ IF attack.attacker_anim = 3 THEN ' spin
+  FOR ii AS INTEGER = 0 TO 2
+   anim_setdir who, 1
+   anim_wait 1
+   anim_setdir who, 0
+   anim_wait 1
+  NEXT ii
+ END IF
+ 
+ IF attack.attacker_anim = 4 THEN ' Jump
+  anim_setframe who, 4
+  anim_relmove who, -40, 0, 7, 0
+  anim_zmove who, 20, 10
+  anim_waitforall
+  anim_disappear who
+  anim_setframe who, 0
+ END IF
+ 
+ IF attack.attacker_anim = 5 THEN ' Land
+  anim_setz who, 200
+  anim_setframe who, 2
+  anim_appear who
+  anim_setcenter who, bslot(who).t(0), 0, 0
+  anim_align who, bslot(who).t(0), dirDown, 0
+  anim_zmove who, -10, 20
+  anim_waitforall
+  anim_setframe who, 5
+ END IF
+
+END SUB
+
+SUB anim_enemy (who as integer, attack as AttackData, bslot() AS BattleSprite)
+
+ IF attack.attacker_anim < 2 THEN' twitch
+  anim_setz who, 2
+  anim_wait 1
+  anim_setz who, 0
+ END IF
+ IF attack.attacker_anim = 3 THEN' spin
+  FOR ii AS INTEGER = 0 TO 2
+   anim_setdir who, 1
+   anim_wait 1
+   anim_setdir who, 0
+   anim_wait 1
+  NEXT ii
+ END IF
+ IF attack.attacker_anim = 4 THEN' jump
+  anim_absmove who, bslot(who).x + 50, bslot(who).y, 7, 7
+  anim_zmove who, 10, 20
+  anim_waitforall
+  anim_disappear who
+ END IF
+ IF attack.attacker_anim = 5 THEN' drop
+  anim_setz who, 200
+  anim_appear who
+  anim_setpos who, bslot(bslot(who).t(0)).x, bslot(bslot(who).t(0)).y, 0
+  anim_zmove who, -10, 20
+  anim_waitforall
+ END IF
+END SUB
+
+SUB anim_retreat (who as integer, attack as AttackData, bslot() AS BattleSprite)
+
+ IF is_enemy(who) THEN
+  IF attack.attacker_anim = 2 OR attack.attacker_anim = 5 THEN
+   anim_setz who, 0
+   anim_absmove who, bslot(who).x, bslot(who).y, 6, 6
+   anim_waitforall
+  END IF
+ END IF
+
+ IF is_hero(who) THEN
+  IF attack.attacker_anim < 2 THEN ' strike, cast
+   anim_walktoggle who
+   anim_setmove who, 5, 0, 4, 0
+   anim_waitforall
+   anim_setframe who, 0
+  END IF
+  IF attack.attacker_anim = 2 OR attack.attacker_anim = 5 THEN ' dash, land
+   anim_setframe who, 0
+   anim_walktoggle who
+   anim_setz who, 0
+   anim_absmove who, bslot(who).x, bslot(who).y, 6, 6
+   anim_waitforall
+   anim_setframe who, 0
+  END IF
+  IF attack.attacker_anim = 7 THEN
+   anim_setframe who, 0
+  END IF
+ END IF
+END SUB
 
 FUNCTION attack_can_hit_dead(who as integer, atkbuf() as integer) as integer
 

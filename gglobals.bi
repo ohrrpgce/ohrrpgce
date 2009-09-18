@@ -98,9 +98,6 @@ EXTERN plotstr() as Plotstring
 
 'Battle globals
 EXTERN lastformation as integer
-EXTERN battlecaption as string
-EXTERN battlecaptime as integer
-EXTERN battlecapdelay as integer
 EXTERN bstackstart as integer
 EXTERN learnmask() as integer
 

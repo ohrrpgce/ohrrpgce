@@ -99,6 +99,7 @@ TYPE AttackState
  '--Elementals are stored in AttackState just for the benefit of elemental spawning
  non_elemental AS INTEGER 'YES or NO
  elemental(7) AS INTEGER  'YES or NO for each element
+ has_consumed_costs AS INTEGER 'YES or NO, prevents multi-hit attacks from consuming MP more than once
 END TYPE
 
 'This type stores the state of target selection.
@@ -134,6 +135,10 @@ TYPE BattleState
  sptr AS INTEGER       'menu cursor for hero spell list menu
  item AS MenuState     'menu cursor for items menu
  item_desc AS STRING   'description of currently selected item in item menu
+ caption AS STRING     'currently displaying caption
+ caption_time AS INTEGER 'time for the currently displaying caption
+ caption_delay AS INTEGER 'delay before current caption displays
+ anim_ready AS INTEGER 'YES or NO indicating whether the current animation has bene generated
 END TYPE
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1
