@@ -28,6 +28,7 @@ TYPE BattleSprite
   sprite_num AS INTEGER 'how many frames
   frame AS INTEGER 'the current frame
   anim_pattern AS INTEGER 'used by attack sprites
+  anim_index AS INTEGER 'used by attack sprites
   pal as palette16 ptr 'yeah
   deathtype AS INTEGER 'for enemies (0 = default, otherwise is type + 1)
   deathtime AS INTEGER '0 = default, otherwise is time + 1

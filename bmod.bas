@@ -67,7 +67,7 @@ DIM attack AS AttackData
 DIM targets_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), walk(3)
-DIM fctr(24), harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
+DIM harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
@@ -214,7 +214,7 @@ DO
   END IF
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND vic.state = 0 THEN
-  generate_atkscript bat, bslot(), bstat(), icons(), exstat(), fctr()
+  generate_atkscript bat, bslot(), bstat(), icons(), exstat()
   '--load attack
   loadattackdata atk(), bat.atk.id
  END IF
@@ -1084,14 +1084,21 @@ FOR i = 0 TO 23
   IF .zmov <> 0 THEN .z = .z + (.zspeed * SGN(.zmov)): .zmov = .zmov - SGN(.zmov)
  END WITH
 NEXT i
-FOR i = 0 TO 11
- IF bslot(i + 12).vis = 1 THEN
-  fctr(i) = fctr(i) + 1: IF bat.animpat(bslot(i + 12).anim_pattern).frame(fctr(i)) = -1 THEN fctr(i) = 0
-  bslot(i + 12).frame = bat.animpat(bslot(i + 12).anim_pattern).frame(fctr(i))
-  IF atk(2) = 3 THEN
-   bslot(i + 12).frame = INT(RND * 3)
-  END IF
+FOR i = 12 TO 23 '--for each attack sprite
+ IF bslot(i).vis = 1 THEN
+  WITH bslot(i)
+   .anim_index += 1
+   '--each pattern ends with a -1. If we have found it, loop around
+   IF bat.animpat(.anim_pattern).frame(.anim_index) = -1 THEN .anim_index = 0
+   .frame = bat.animpat(.anim_pattern).frame(.anim_index)
+   IF .frame = -1 THEN
+    '--if the frame get set to -1 that indicates an empty pattern, so randomize instead
+    .frame = INT(RND * 3)
+   END IF
+  END WITH
  END IF
+NEXT i
+FOR i = 0 TO 11
  IF bslot(i).dissolve > 0 THEN
   'ENEMIES DEATH THROES
   IF is_enemy(i) THEN
@@ -2254,7 +2261,7 @@ SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bstat() AS Bat
  END IF
 END SUB
 
-SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat(), fctr())
+SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat())
  DIM i AS INTEGER
 
  '--check for item consumption
@@ -2726,9 +2733,9 @@ SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat(
  END IF
  
  '--setup animation pattern
- FOR i = 0 TO 11
-  fctr(i) = 0
-  bslot(i + 12).anim_pattern = attack.anim_pattern
+ FOR i = 12 TO 23 '--for each attack sprite
+  bslot(i).anim_index = 0
+  bslot(i).anim_pattern = attack.anim_pattern
  NEXT i
  
  '--if caption has length and is set to display
