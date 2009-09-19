@@ -46,4 +46,5 @@ DECLARE SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite
 DECLARE SUB enforce_weak_picture(who AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, vic AS VictoryState)
 DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter())
 DECLARE SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats)
+DECLARE SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, delay(), icons(), iuse())
 #ENDIF

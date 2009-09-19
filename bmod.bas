@@ -249,9 +249,9 @@ DO
  IF vic.state = 0 THEN
   IF bat.enemy_turn >= 0 THEN enemy_ai bat, bstat(), bslot(), es(), formdata(), rew, ctr(), delay()
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
-   IF bat.menu_mode = batMENUITEM THEN GOSUB itemmenu
+   IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, inv_scroll, bslot(), delay(), icons(), iuse()
    IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bstat(), bslot(), delay(), conlmp()
-   IF bat.menu_mode = batMENUHERO THEN heromenu bat, bslot(), bstat(), menubits(), nmenu(), mend(), delay(), spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st()
+   IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), bstat(), menubits(), nmenu(), mend(), delay(), spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st()
   END IF
   IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN GOSUB picktarg
  END IF
@@ -667,57 +667,6 @@ FOR i = 0 TO 8
   EXIT FOR
  END IF
 NEXT i
-RETRACE
-
-itemmenu:
-IF carray(5) > 1 THEN
- bat.menu_mode = batMENUHERO
- flusharray carray(), 7, 0
- icons(bat.hero_turn) = -1 '--is this right?
-END IF
-oldiptr = bat.item.pt
-IF carray(0) > 1 AND bat.item.pt > 2 THEN bat.item.pt = bat.item.pt - 3
-IF carray(1) > 1 AND bat.item.pt <= last_inv_slot() - 3 THEN bat.item.pt = bat.item.pt + 3
-IF keyval(scPageUp) > 1 THEN
- bat.item.pt -= (inv_scroll.size+1) * 3
- WHILE bat.item.pt < 0: bat.item.pt += 3: WEND
-END IF
-IF keyval(scPageDown) > 1 THEN
- bat.item.pt += (inv_scroll.size+1) * 3
- WHILE bat.item.pt > last_inv_slot(): bat.item.pt -= 3: WEND
-END IF
-IF carray(2) > 1 AND bat.item.pt > 0 THEN
- bat.item.pt = bat.item.pt - 1
-END IF
-IF carray(3) > 1 AND bat.item.pt < last_inv_slot() THEN
- bat.item.pt = bat.item.pt + 1
-END IF
-'--scroll when past top or bottom
-WHILE bat.item.pt < bat.item.top : bat.item.top = bat.item.top - 3 : WEND
-WHILE bat.item.pt >= bat.item.top + (inv_scroll.size+1) * 3 : bat.item.top = bat.item.top + 3 : WEND
-
-IF oldiptr <> bat.item.pt THEN
- IF inventory(bat.item.pt).used THEN
-  loaditemdata buffer(), inventory(bat.item.pt).id
-  bat.item_desc = readbadbinstring$(buffer(), 9, 35, 0)
- ELSE
-  bat.item_desc = ""
- END IF
-END IF
-
-IF carray(4) > 1 THEN
- IF readbit(iuse(), 0, bat.item.pt) = 1 THEN
-  loaditemdata buffer(), inventory(bat.item.pt).id
-  icons(bat.hero_turn) = -1: IF buffer(73) = 1 THEN icons(bat.hero_turn) = bat.item.pt
-  temp = buffer(47)
-  loadattackdata buffer(), temp - 1
-  bslot(bat.hero_turn).attack = temp
-  delay(bat.hero_turn) = large(buffer(16), 1)
-  bat.targ.mode = targSETUP
-  bat.menu_mode = batMENUHERO
-  flusharray carray(), 7, 0
- END IF
-END IF
 RETRACE
 
 picktarg: '-----------------------------------------------------------
@@ -1596,24 +1545,26 @@ END IF
 END FUNCTION
 
 SUB herobattlebits_raw (bitbuf(), who)
-'This loads into a bit buffer. It is used both here and in the status menu
-DIM i AS INTEGER
-DIM j AS INTEGER
+ 'This loads into a bit buffer. It is used both here and in the status menu
+ DIM i AS INTEGER
+ DIM j AS INTEGER
 
-'--native bits
-FOR i = 0 TO 4
- bitbuf(who, i) = nativehbits(who, i)
-NEXT i
+ '--native bits
+ FOR i = 0 TO 4
+  bitbuf(who, i) = nativehbits(who, i)
+ NEXT i
 
-'--merge equipment bits
-FOR j = 0 TO 4
- IF eqstuf(who, j) > 0 THEN
-  loaditemdata buffer(), eqstuf(who, j) - 1
-  FOR i = 0 TO 4
-   bitbuf(who, i) = (bitbuf(who, i) OR buffer(70 + i))
-  NEXT i
- END IF
-NEXT j
+ DIM itembuf(99) AS INTEGER
+
+ '--merge equipment bits
+ FOR j = 0 TO 4
+  IF eqstuf(who, j) > 0 THEN
+   loaditemdata itembuf(), eqstuf(who, j) - 1
+   FOR i = 0 TO 4
+    bitbuf(who, i) = (bitbuf(who, i) OR itembuf(70 + i))
+   NEXT i
+  END IF
+ NEXT j
 
 END SUB
 
@@ -2227,6 +2178,62 @@ SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bstat() AS Bat
     bat.menu_mode = batMENUHERO
     flusharray carray(), 7, 0
    END IF
+  END IF
+ END IF
+END SUB
+
+SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, delay(), icons(), iuse())
+ IF carray(5) > 1 THEN
+  bat.menu_mode = batMENUHERO
+  flusharray carray(), 7, 0
+  icons(bat.hero_turn) = -1 '-- -1 in the icons() array indicates that this hero will not consume any item
+ END IF
+
+ DIM remember_pt AS INTEGER = bat.item.pt
+ IF carray(0) > 1 AND bat.item.pt > 2 THEN bat.item.pt = bat.item.pt - 3
+ IF carray(1) > 1 AND bat.item.pt <= last_inv_slot() - 3 THEN bat.item.pt = bat.item.pt + 3
+ IF keyval(scPageUp) > 1 THEN
+  bat.item.pt -= (inv_scroll.size+1) * 3
+  WHILE bat.item.pt < 0: bat.item.pt += 3: WEND
+ END IF
+ IF keyval(scPageDown) > 1 THEN
+  bat.item.pt += (inv_scroll.size+1) * 3
+  WHILE bat.item.pt > last_inv_slot(): bat.item.pt -= 3: WEND
+ END IF
+ IF carray(2) > 1 AND bat.item.pt > 0 THEN
+  bat.item.pt = bat.item.pt - 1
+ END IF
+ IF carray(3) > 1 AND bat.item.pt < last_inv_slot() THEN
+  bat.item.pt = bat.item.pt + 1
+ END IF
+ '--scroll when past top or bottom
+ WHILE bat.item.pt < bat.item.top : bat.item.top = bat.item.top - 3 : WEND
+ WHILE bat.item.pt >= bat.item.top + (inv_scroll.size+1) * 3 : bat.item.top = bat.item.top + 3 : WEND
+
+ DIM itembuf(99) AS INTEGER
+ 
+ IF remember_pt <> bat.item.pt THEN
+  IF inventory(bat.item.pt).used THEN
+   loaditemdata itembuf(), inventory(bat.item.pt).id
+   bat.item_desc = readbadbinstring$(itembuf(), 9, 35, 0)
+  ELSE
+   bat.item_desc = ""
+  END IF
+ END IF
+
+ IF carray(4) > 1 THEN
+  IF readbit(iuse(), 0, bat.item.pt) = 1 THEN
+   loaditemdata itembuf(), inventory(bat.item.pt).id
+   icons(bat.hero_turn) = -1
+   IF itembuf(73) = 1 THEN icons(bat.hero_turn) = bat.item.pt
+   
+   DIM attack AS AttackData
+   loadattackdata attack, itembuf(47) - 1
+   bslot(bat.hero_turn).attack = itembuf(47)
+   delay(bat.hero_turn) = large(attack.attack_delay, 1)
+   bat.targ.mode = targSETUP
+   bat.menu_mode = batMENUHERO
+   flusharray carray(), 7, 0
   END IF
  END IF
 END SUB
