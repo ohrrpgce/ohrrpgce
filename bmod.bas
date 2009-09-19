@@ -649,64 +649,6 @@ fulldeathcheck bat.atk.was_id, bat, bslot(), bstat(), rew, es(), formdata()
 bat.atk.was_id = -1
 RETRACE
 
-setuptarg: '--identify valid targets (heroes only)
-
-'init
-spred = 0
-aim = 0
-randomtarg = 0
-firsttarg = 0
-bat.targ.pointer = 0
-FOR i = 0 TO 11
- bat.targ.selected(i) = 0 ' clear list of selected targets
- bslot(bat.hero_turn).t(i) = -1 'clear list of confirmed targets
-NEXT i
-
-'load attack
-loadattackdata buffer(), bslot(bat.hero_turn).attack - 1
-
-bat.targ.hit_dead = NO
-FOR i = 0 to 11
- bslot(bat.hero_turn).keep_dead_targs(i) = NO
-NEXT i
-
-get_valid_targs bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat()
-bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, buffer())
-
-'--attacks that can target all should default to the first enemy
-IF buffer(3) = 3 THEN
- bat.targ.pointer = 4
-END IF
-
-'fail if there are no targets
-IF targetmaskcount(bat.targ.mask()) = 0 THEN
- bat.targ.mode = targNONE
- RETRACE
-END IF
-
-'autoattack
-IF readbit(buffer(), 20, 54) THEN
- bat.targ.mode = targAUTO
- RETRACE
-END IF
-
-IF buffer(4) = 0 THEN aim = 1
-IF buffer(4) = 1 THEN FOR i = 0 TO 11: bat.targ.selected(i) = bat.targ.mask(i): NEXT i
-IF buffer(4) = 2 THEN aim = 1: spred = 1
-IF buffer(4) = 3 THEN randomtarg = -1
-IF buffer(4) = 4 THEN firsttarg = -1
-
-bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.hero_turn, buffer(), bslot(), bstat())
-'fail if no targets are found
-IF bat.targ.pointer = -1 THEN
- bat.targ.mode = targNONE
- RETRACE
-END IF
-
-'ready to choose bat.targ.selected() from bat.targ.mask()
-bat.targ.mode = targMANUAL
-RETRACE
-
 sponhit:
 'atktype should be DIMed locally here when this is SUBified
 atktype(0) = bat.atk.non_elemental
@@ -789,7 +731,7 @@ IF carray(5) > 1 THEN
  RETRACE
 END IF
 
-IF bat.targ.mode = targSETUP THEN GOSUB setuptarg
+IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot(), bstat()
 
 'autotarget
 IF bat.targ.mode = targAUTO THEN
@@ -806,7 +748,7 @@ IF targetmaskcount(bat.targ.mask()) = 0 THEN
 END IF
 
 'random target
-IF randomtarg THEN
+IF bat.targ.roulette THEN
  FOR i = 0 TO INT(RND * 2)
   bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
   WHILE bat.targ.mask(bat.targ.pointer) = 0
@@ -816,32 +758,32 @@ IF randomtarg THEN
 END IF
 
 'first target
-IF firsttarg THEN
+IF bat.targ.force_first THEN
  bat.targ.pointer = 0
  WHILE bat.targ.mask(bat.targ.pointer) = 0
   bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
  WEND
 END IF
 
-IF spred = 2 AND (carray(2) > 1 OR carray(3) > 1) AND randomtarg = 0 AND firsttarg = 0 THEN
+IF bat.targ.opt_spread = 2 AND (carray(2) > 1 OR carray(3) > 1) AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
  FOR i = 0 TO 11
   bat.targ.selected(i) = 0
  NEXT i
- spred = 1
+ bat.targ.opt_spread = 1
  flusharray carray(), 7, 0
 END IF
-IF aim = 1 AND spred < 2 AND randomtarg = 0 AND firsttarg = 0 THEN
+IF bat.targ.interactive = YES AND bat.targ.opt_spread < 2 AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
  IF carray(0) > 1 THEN
-  smartarrows -1, 1, bslot(), bat.targ, 0
+  smartarrows -1, 1, bslot(), bat.targ, NO
  END IF
  IF carray(1) > 1 THEN
-  smartarrows 1, 1, bslot(), bat.targ, 0
+  smartarrows 1, 1, bslot(), bat.targ, NO
  END IF
  IF carray(2) > 1 THEN
-  smartarrows -1, 0, bslot(), bat.targ, spred
+  smartarrows -1, 0, bslot(), bat.targ, YES
  END IF
  IF carray(3) > 1 THEN
-  smartarrows 1, 0, bslot(), bat.targ, spred
+  smartarrows 1, 0, bslot(), bat.targ, YES
  END IF
 END IF
 IF carray(4) > 1 THEN GOSUB gottarg
@@ -2798,3 +2740,63 @@ SUB enforce_weak_picture(who AS INTEGER, bstat() AS BattleStats, bslot() AS Batt
  END IF
 END SUB
 
+SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats)
+ 'setuptarg (heroes only)
+ DIM i AS INTEGER
+
+ 'init
+ bat.targ.opt_spread = 0
+ bat.targ.interactive = NO
+ bat.targ.roulette = NO
+ bat.targ.force_first = NO
+ bat.targ.pointer = 0
+ FOR i = 0 TO 11
+  bat.targ.selected(i) = 0 ' clear list of selected targets
+  bslot(bat.hero_turn).t(i) = -1 'clear list of confirmed targets
+ NEXT i
+
+ bat.targ.hit_dead = NO
+ FOR i = 0 to 11
+  bslot(bat.hero_turn).keep_dead_targs(i) = NO
+ NEXT i
+
+ DIM attack AS AttackData
+ 'load attack
+ loadattackdata attack, bslot(bat.hero_turn).attack - 1
+
+ get_valid_targs bat.targ.mask(), bat.hero_turn, attack, bslot(), bstat()
+ bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, attack)
+
+ '--attacks that can target all should default to the first enemy
+ IF attack.targ_class = 3 THEN
+  bat.targ.pointer = 4
+ END IF
+
+ 'fail if there are no targets
+ IF targetmaskcount(bat.targ.mask()) = 0 THEN
+  bat.targ.mode = targNONE
+  EXIT SUB
+ END IF
+
+ 'autoattack
+ IF attack.automatic_targ THEN
+  bat.targ.mode = targAUTO
+  EXIT SUB
+ END IF
+
+ IF attack.targ_set = 0 THEN bat.targ.interactive = YES
+ IF attack.targ_set = 1 THEN FOR i = 0 TO 11: bat.targ.selected(i) = bat.targ.mask(i): NEXT i
+ IF attack.targ_set = 2 THEN bat.targ.interactive = YES: bat.targ.opt_spread = 1
+ IF attack.targ_set = 3 THEN bat.targ.roulette = YES
+ IF attack.targ_set = 4 THEN bat.targ.force_first = YES
+
+ bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.hero_turn, attack, bslot(), bstat())
+ 'fail if no targets are found
+ IF bat.targ.pointer = -1 THEN
+  bat.targ.mode = targNONE
+  EXIT SUB
+ END IF
+
+ 'ready to choose bat.targ.selected() from bat.targ.mask()
+ bat.targ.mode = targMANUAL
+END SUB

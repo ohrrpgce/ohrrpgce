@@ -740,7 +740,7 @@ FOR i = 0 TO 11
 NEXT i
 END SUB
 
-SUB smartarrows (d as integer, axis as integer, bslot() AS BattleSprite, BYREF targ AS TargettingState, spred as integer)
+SUB smartarrows (d as integer, axis as integer, bslot() AS BattleSprite, BYREF targ AS TargettingState, allow_spread as integer=0)
 DIM inrange(0)
 inrange(0) = 0
 smartarrowmask inrange(), d, axis, bslot(), targ
@@ -762,11 +762,11 @@ IF inrange(0) THEN
  NEXT i
  targ.pointer = newptr
 ELSE
- IF spred = 1 THEN
+ IF allow_spread = YES AND targ.opt_spread = 1 THEN
   FOR i = 0 TO 11
    targ.selected(i) = targ.mask(i)
   NEXT i
-  spred = 2
+  targ.opt_spread = 2
  END IF
 END IF
 END SUB
@@ -1289,16 +1289,16 @@ SUB anim_retreat (who as integer, attack as AttackData, bslot() AS BattleSprite)
  END IF
 END SUB
 
-FUNCTION attack_can_hit_dead(who as integer, atkbuf() as integer) as integer
+FUNCTION attack_can_hit_dead(who as integer, attack as AttackData) as integer
 
-SELECT CASE atkbuf(3)
- CASE 4 'ally-including-dead (hero only)
-  IF is_hero(who) THEN RETURN YES
- CASE 10 'dead-ally (hero only)
-  IF is_hero(who) THEN RETURN YES
-END SELECT
+ SELECT CASE attack.targ_class
+  CASE 4 'ally-including-dead (hero only)
+   IF is_hero(who) THEN RETURN YES
+  CASE 10 'dead-ally (hero only)
+   IF is_hero(who) THEN RETURN YES
+ END SELECT
 
-RETURN NO
+ RETURN NO
 END FUNCTION
 
 SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)

@@ -113,6 +113,10 @@ TYPE TargettingState
                           'which targets are valid for the currently targetting attack
   selected(11) AS INTEGER 'For the currently targetting hero, a list of 1/0 values indicating
                           ' which targets from .mask() are currently selected.
+  opt_spread AS INTEGER   '0 no, 1 allowed, 2 spread
+  interactive AS INTEGER  'YES or NO for current attack
+  roulette AS INTEGER     'YES or NO for current attack
+  force_first AS INTEGER  'YES or NO for current attack
 END TYPE
 '.mode > 0 means hero picking a target
 CONST targNONE   = 0 'means hero not currently picking a target
@@ -151,7 +155,7 @@ TYPE BattleState
           ({2,2,1,1,0,0,-1}), _
           ({0,0,1,1,2,2,1,1,0,0,-1}), _
           ({-1,-1}) }
-  curbg AS INTEGER     'Current background
+curbg AS INTEGER      'Current background
 END TYPE
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1

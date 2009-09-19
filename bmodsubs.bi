@@ -37,7 +37,7 @@ declare function safesubtract (number as integer, minus as integer) as integer
 declare function safemultiply (number as integer, by as single) as integer
 declare sub setbatcap (BYREF bat AS BattleState, cap as string, captime as integer, capdelay as integer)
 declare sub smartarrowmask (inrange() as integer, d as integer, axis as integer, bslot() as battlesprite, targ AS TargettingState)
-declare sub smartarrows (d as integer, axis as integer, bslot() as battlesprite, BYREF targ AS TargettingState, spred as integer)
+declare sub smartarrows (d as integer, axis as integer, bslot() as battlesprite, BYREF targ AS TargettingState, allow_spread as integer=0)
 declare function targetable (attacker as integer, target as integer, bslot() as battlesprite) as integer
 declare function targetmaskcount (tmask() as integer) as integer
 declare sub traceshow (s as string)
@@ -51,7 +51,7 @@ declare sub writestats (exstat() as integer, bstat() AS BattleStats)
 
 declare sub get_valid_targs OVERLOAD (tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
 declare sub get_valid_targs OVERLOAD (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
-declare function attack_can_hit_dead(who as integer, atkbuf() as integer) as integer
+declare function attack_can_hit_dead(who as integer, attack as AttackData) as integer
 declare sub autotarget OVERLOAD (who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats)
 declare sub autotarget OVERLOAD (who as integer, atk as AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
 declare function find_preferred_target OVERLOAD (tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
