@@ -38,6 +38,8 @@ declare sub grabrect(page as integer, x as integer, y as integer, w as integer, 
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 
+declare function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1) as Frame ptr
+
 'used for map and pass
 DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, byval l as integer, BYVAL mp as integer ptr)
 DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, byval l as integer, BYVAL mp as integer ptr) as integer
@@ -64,7 +66,7 @@ declare sub pollingthread(byval as threadbs)
 
 dim shared vispage as integer
 dim shared wrkpage as integer
-dim shared spage(0 to 6) as ubyte ptr  'up to 6 used at once, so far
+dim shared vpages(0 to 7) as Frame ptr  'up to 6 used at once, last I counted
 
 dim shared bptr as integer ptr	' buffer
 dim shared bsize as integer
@@ -126,9 +128,9 @@ sub setmodex()
 
 	'initialise software gfx
 	for i as integer = 0 to 3
-		spage(i) = callocate(320 * 200)
+		vpages(i) = sprite_new(320, 200)
 	next
-	'other spage slots are for temporary pages
+	'other vpages slots are for temporary pages
 	setclip
 
 	gfx_init
@@ -147,7 +149,7 @@ sub setmodex()
 	mouseflags = 0
 
 	keybdmutex = mutexcreate
-	keybdthread = threadcreate (@pollingthread)
+	keybdthread = threadcreate(@pollingthread)
 
 	io_init
 	mouserect(0,319,0,199)
@@ -165,11 +167,8 @@ sub restoremode()
 	mutexdestroy keybdmutex
 
 	'clear up software gfx
-	for i as integer = 0 to ubound(spage)
-		if spage(i) then
-			deallocate(spage(i))
-			spage(i) = NULL
-		end if
+	for i as integer = 0 to ubound(vpages)
+		sprite_delete(@vpages(i))
 	next
 
 	releasestack
@@ -178,10 +177,9 @@ end sub
 FUNCTION allocatepage() as integer
 	dim i as integer
 
-	for i = 0 to ubound(spage)
-		if spage(i) = NULL then
-			spage(i) = callocate(320 * 200)
-			if spage(i) = NULL then fatalerror "Unable to allocate temp video page"
+	for i = 0 to ubound(vpages)
+		if vpages(i) = NULL then
+			vpages(i) = sprite_new(320, 200)
 			return i
 		end if
 	next
@@ -190,30 +188,35 @@ FUNCTION allocatepage() as integer
 END FUNCTION
 
 SUB freepage (BYVAL page as integer)
-	if spage(page) = NULL then
-		debug "Tried to free unallocated page " & page
+	if page < 0 orelse page > ubound(vpages) orelse vpages(page) = NULL then
+		debug "Tried to free unallocated/invalid page " & page
+		exit sub
 	end if
 
-	deallocate(spage(page))
-	spage(page) = NULL
+	sprite_delete(@vpages(page))
 	if wrkpage = page then
 		wrkpage = 0		
 	end if
 END SUB
 
 SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
-	dim lines as integer
-	top = bound(top, 0, 199)
-	y = bound(y, 0, 199)
-	lines = bound(bottom - top + 1, 0, small(200 - y, 200 - top))
-	memmove(spage(page2) + 320 * top, spage(page1) + 320 * y, 320 * lines)
+	if vpages(page1)->w <> vpages(page2)->w then
+		debug "bad page copy"
+		exit sub
+	end if
+	top = bound(top, 0, vpages(page2)->h - 1)
+	y = bound(y, 0, vpages(page1)->h - 1)
+	dim size as integer
+	size = vpages(page1)->w * bound(bottom - top + 1, 0, vpages(page1)->h - large(y, top))
+	memmove(vpages(page2)->image + vpages(page2)->w * top, vpages(page1)->image + vpages(page1)->w * y, size)
+	'video pages do not use masks
 end sub
 
 SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
 	if colour = -1 then colour = uilook(uiBackground)
-	top = bound(top, 0, 199)
-	bottom = bound(bottom, top, 199)
-	memset(spage(page) + 320 * top, colour, 320 * (bottom - top + 1))
+	top = bound(top, 0, vpages(page)->h - 1)
+	bottom = bound(bottom, top, vpages(page)->h - 1)
+	memset(vpages(page)->image + vpages(page)->w * top, colour, vpages(page)->w * (bottom - top + 1))
 	wrkpage = page
 end SUB
 
@@ -234,7 +237,7 @@ SUB setvispage (BYVAL page as integer)
 		gfx_setpal(intpal())
 		updatepal = 0
 	end if	
-	gfx_showpage(spage(page))
+	gfx_showpage(vpages(page)->image)
 	mutexunlock keybdmutex
 
 	vispage = page
@@ -682,8 +685,8 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 end SUB
 
 SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
-'I'm guessing this is the opposite of loadsprite, ie store raw sprite data in screen p
-'starting at x, y. The offsets here do actually seem to be in words, not bytes.
+'This is the opposite of loadsprite, ie store raw sprite data in screen p
+'starting at x, y.
 	dim i as integer
 	dim p as integer
 	dim toggle as integer
@@ -702,8 +705,7 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 	p = p + 2
 	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 
-	sptr = spage(page)
-	sptr = sptr + (320 * y) + x
+	sptr = vpages(page)->image + (vpages(page)->w * y) + x
 
 	'copy to passed int buffer, with 2 bytes per int as usual
 	toggle = 0
@@ -723,7 +725,6 @@ end SUB
 
 SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL page as integer)
 'reads sprite from given page into pic(), starting at picoff
-'I'm not really sure I have understood this right
 	dim i as integer
 	dim p as integer
 	dim toggle as integer
@@ -737,8 +738,7 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 
 	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 
-	sptr = spage(page)
-	sptr = sptr + (320 * y) + x
+	sptr = vpages(page)->image + (vpages(page)->w * y) + x
 
 	'copy to passed int buffer, with 2 bytes per int as usual
 	toggle = 0
@@ -776,8 +776,8 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 	p += 1
 
 	'find start of image
-	sbase = spage(page)
-	sbase = sbase + (y * 320) + x
+	sbase = vpages(page)->image + (vpages(page)->w * y) + x
+
 	'pixels are stored in columns for the sprites (argh)
 	for sh = 0 to w - 1
 		sptr = sbase
@@ -1003,12 +1003,12 @@ SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL 
 		wrkpage = p
 	end if
 
-	if x >= 320 or y >= 200 or y < 0 or x < 0 then
+	if x < clipl orelse x > clipr orelse y < clipt orelse y > clipb then
 		'debug "attempt to putpixel off-screen " & x & "," & y & "=" & c & " on page " & p
 		exit sub
 	end if
 
-	spage(p)[y*320 + x] = c
+	vpages(p)->image[vpages(p)->w * y + x] = c
 end SUB
 
 FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
@@ -1016,31 +1016,21 @@ FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) 
 		wrkpage = p
 	end if
 
-	'wrap if x is too high
-	if x >= 320 then
-		y = y + (x \ 320)
-		x = x mod 320
-	end if
-
-	if y >= 200 or y < 0 or x < 0 then
+	if x < clipl orelse x > clipr orelse y < clipt orelse y > clipb then
 		debug "attempt to readpixel off-screen " & x & "," & y & " on page " & p
 		return 0
 	end if
 
-	readpixel = spage(p)[y*320 + x]
+	return vpages(p)->image[vpages(p)->w * y + x]
 end FUNCTION
 
 SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	dim sptr as ubyte ptr
-	dim i as unsigned integer
-    dim j as integer, temp, tw
-
 	if wrkpage <> p then
 		wrkpage = p
 	end if
 
-    if w < 0 then x = x + w + 1: w = -w
-    if h < 0 then y = y + h + 1: h = -h
+	if w < 0 then x = x + w + 1: w = -w
+	if h < 0 then y = y + h + 1: h = -h
 
 	'clip
 	if x + w > clipr then w = (clipr - x) + 1
@@ -1048,120 +1038,76 @@ SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h
 	if x < clipl then w -= (clipl - x) : x = clipl
 	if y < clipt then h -= (clipt - y) : y = clipt
 
-	'draw
-    j = 321 - w
-    i = c shl 24 or c shl 16 or c shl 8 or c
+	if w <= 0 or h <= 0 then exit sub
 
-	sptr = spage(p) + (y*320) + x
-
-    if h >= 1 then
-        'draw the top
-        temp = w
-        while temp and 3
-            *sptr = c
-            sptr += 1
-            temp -= 1
-        wend
-        while temp
-            *(cast(unsigned integer ptr, sptr)) = i
-            sptr += 4
-            temp -= 4
-        wend
-    end if
-    sptr -= 1
-    if h >= 3 then
-        'draw the sides
-        temp = h - 2
-        w -= 1
-        while temp
-            sptr += j
-            *sptr = c
-            sptr += w
-            *sptr = c
-            temp -= 1
-        wend
-        w += 1
-    end if
-    if h >= 2 then
-        'draw the bottom
-        sptr += j
-
-        while w and 3
-            *sptr = c
-            sptr += 1
-            w -= 1
-        wend
-        while w
-            *cast(unsigned integer ptr, sptr) = i
-            sptr += 4
-            w -= 4
-        wend
-    end if
-
+	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->w) + x
+	if h >= 1 then
+		'draw the top
+		memset(sptr, c, w)
+		sptr += vpages(p)->w
+	end if
+	if h >= 3 then
+		'draw the sides
+		for i as integer = h - 3 to 0 step -1
+			sptr[0] = c
+			sptr[w - 1] = c
+			sptr += vpages(p)->w
+		next
+	end if
+	if h >= 2 then
+		'draw the bottom
+		memset(sptr, c, w)
+	end if
 end SUB
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	dim sptr as ubyte ptr
-	dim i as integer
-
 	if wrkpage <> p then
 		wrkpage = p
 	end if
 
+	if w < 0 then x = x + w + 1: w = -w
+	if h < 0 then y = y + h + 1: h = -h
+
 	'clip
-	if x < clipl then w = w - (clipl - x) : x = clipl
-	if y < clipt then h = h - (clipt - y) : y = clipt
 	if x + w > clipr then w = (clipr - x) + 1
 	if y + h > clipb then h = (clipb - y) + 1
+	if x < clipl then w -= (clipl - x) : x = clipl
+	if y < clipt then h -= (clipt - y) : y = clipt
 
 	if w <= 0 or h <= 0 then exit sub
-	'draw
-	sptr = spage(p) + (y*320) + x
-	while h > 0
-		for i = 0 to w-1
-			sptr[i] = c
-		next
-		h -= 1
-		sptr += 320
-	wend
-'	line (x, y) - (x+w-1, y+h-1), c, BF
 
+	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->w) + x
+	while h > 0
+		memset(sptr, c, w)
+		sptr += vpages(p)->w
+		h -= 1
+	wend
 end SUB
 
 SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	dim sptr as ubyte ptr
-	dim i as integer
-	dim tog as integer 'pattern toggle
-
 	if wrkpage <> p then
 		wrkpage = p
 	end if
 
+	if w < 0 then x = x + w + 1: w = -w
+	if h < 0 then y = y + h + 1: h = -h
+
 	'clip
 	if x + w > clipr then w = (clipr - x) + 1
 	if y + h > clipb then h = (clipb - y) + 1
-	if x < clipl then w = w - ABS(x - clipl) : x = clipl
-	if y < clipt then h = h - ABS(y - clipt) : y = clipt
-	'repeat w/h clipping because x,y might have just changed 
-	if x + w > clipr then w = (clipr - x) + 1
-	if y + h > clipb then h = (clipb - y) + 1
+	if x < clipl then w -= (clipl - x) : x = clipl
+	if y < clipt then h -= (clipt - y) : y = clipt
 
-	'draw
-	sptr = spage(p) + (y*320) + x
+	if w <= 0 or h <= 0 then exit sub
+
+	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->w) + x
 	while h > 0
-		tog = h mod 2
-		for i = 0 to w-1
-			if tog = 0 then
-				sptr[i] = c
-				tog = 1
-			else
-				tog = 0
-			end if
+		for i as integer = h mod 2 to w-1 step 2
+			sptr[i] = c
 		next
 		h -= 1
-		sptr += 320
+		sptr += vpages(p)->w
 	wend
-
 end SUB
 
 SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
@@ -1179,8 +1125,8 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 	dim as integer longaxis
 
   	dim as integer errorterm   	'when to draw an extra pixel
-  	dim as integer erroradd 		'add to errorTerm for each strip drawn
-  	dim as integer errorsub 		'subtract from errorterm when triggered
+  	dim as integer erroradd 	'add to errorTerm for each strip drawn
+  	dim as integer errorsub 	'subtract from errorterm when triggered
 
   	dim as integer i,j
   	dim sptr as ubyte ptr
@@ -1192,65 +1138,65 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 		wrkpage = p
 	end if
 
-  	if (y1>y2) then
+  	if y1 > y2 then
   		'swap ends, we only draw downwards
-    	i=y1: y1=y2: y2=i
-    	i=x1: x1=x2: x2=i
-    end if
+		i=y1: y1=y2: y2=i
+		i=x1: x1=x2: x2=i
+	end if
 
-    'point to start
-    sptr = spage(p) + y1*320 + x1
+	'point to start
+	sptr = vpages(p)->image + (y1 * vpages(p)->w) + x1
 
-  	xdiff=x2-x1
-  	ydiff=y2-y1
+  	xdiff = x2 - x1
+  	ydiff = y2 - y1
 
-  	if (xDiff<0) then
+  	if xDiff < 0 then
   		'right to left
-    	xdiff=-xdiff
-    	xdirection=-1
+		xdiff = -xdiff
+		xdirection = -1
   	else
-    	xdirection=1
-    end if
+		xdirection = 1
+	end if
 
 	'special case for vertical
-  	if (xdiff = 0) then
-  		instep = 320
+  	if xdiff = 0 then
+  		instep = vpages(p)->w
   		DRAW_SLICE(ydiff+1)
-    	exit sub
+		exit sub
   	end if
 
 	'and for horizontal
-  	if (ydiff = 0) then
+  	if ydiff = 0 then
   		instep = xdirection
   		DRAW_SLICE(xdiff+1)
-    	exit sub
+		exit sub
   	end if
 
   	'and also for pure diagonals
   	if xdiff = ydiff then
-  		instep = 320 + xdirection
+  		instep = vpages(p)->w + xdirection
   		DRAW_SLICE(ydiff+1)
-    	exit sub
+		exit sub
   	end if
 
 	'now the actual bresenham
   	if xdiff > ydiff then
   		longaxis = xdiff
-    	shortaxis = ydiff
+		shortaxis = ydiff
 
-    	instep = xdirection
-    	outstep = 320
+		instep = xdirection
+		outstep = vpages(p)->w
   	else
 		'other way round, draw vertical slices
 		longaxis = ydiff
 		shortaxis = xdiff
 
-		instep = 320
+		instep = vpages(p)->w
 		outstep = xdirection
 	end if
 
 	'calculate stuff
-    minlength = longaxis \ shortaxis
+	minlength = longaxis \ shortaxis
 	erroradd = (longaxis mod shortaxis) * 2
 	errorsub = shortaxis * 2
 
@@ -1277,7 +1223,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 
 	'draw the middle strips
 	for j = 1 to shortaxis-1
-      	runLength = minLength
+	  	runLength = minLength
   		errorTerm += erroradd
 
   		if errorTerm > 0 then
@@ -1293,7 +1239,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 end SUB
 
 SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer, buf() as integer, BYVAL max as integer)
-'I'm not really sure what this does, I assume it's a floodfill, but then what are buf and max for?
+'a floodfill. what is max for?
 'Uses putpixel and readpixel, so could probably be sped up with direct access. Also ignores clipping
 'at the moment, which is possibly foolish
 	dim tcol as integer
@@ -1369,7 +1315,7 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 end SUB
 
 SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
-'saves a screen page to a file
+'saves a screen page to a file. Doesn't support non-320x200 pages
 	dim f as integer
 	dim idx as integer
 	dim bi as integer
@@ -1390,7 +1336,7 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 	seek #f, (i*64000) + 1 'will this work with write access?
 
 	'modex format, 4 planes
-	scrnbase = spage(p)
+	scrnbase = vpages(p)->image
 	for plane = 0 to 3
 		sptr = scrnbase + plane
 
@@ -1405,7 +1351,7 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 end SUB
 
 SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
-'loads a whole page from a file
+'loads a whole page from a file. Doesn't support non-320x200 pages
 	dim f as integer
 	dim idx as integer
 	dim bi as integer
@@ -1433,7 +1379,7 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 	seek #f, (i*64000) + 1
 
 	'modex format, 4 planes
-	scrnbase = spage(p)
+	scrnbase = vpages(p)->image
 	for plane = 0 to 3
 		sptr = scrnbase + plane
 
@@ -1488,9 +1434,7 @@ SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f 
 	startx += f.offset.x
 	y += f.offset.y
 
-	'check bounds (skipped because this is now quite hard to tell)
-	'if y + f.h <= 0 or y > 199 then exit sub
-	'if startx > 319 then exit sub
+	'check bounds skipped because this is now quite hard to tell (checked in drawohr)
 
 	dim as Frame charframe
 	charframe.mask = NULL
@@ -1519,7 +1463,7 @@ SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f 
 
 				'print one character past the end of the line
 				'(I think this is a reasonable approximation)
-				if x > 319 then
+				if x > clipr then
 					continue for, for
 				end if
 				'note: do not use .w, that's just the width of the sprite
@@ -1792,7 +1736,8 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 				sptr = image + .offset
 				for y = 0 to .h - 1
 					for x = 0 to .w - 1
-						*sptr = spage(2)[y * 320 + x]
+						'bitmap2page to blame
+						*sptr = vpages(2)->image[y * 320 + x]
 						sptr += 1
 					next
 				next
@@ -1906,9 +1851,9 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 	toggle = 0
 	if bpage >= 0 then
 		'read from screen
-		sptr = spage(wrkpage)
-		sptr = sptr + (320 * l)
-		fput(f, ,sptr, bsize)
+		sptr = vpages(wrkpage)->image
+		sptr = sptr + (vpages(wrkpage)->w * l)
+		fput(f, , sptr, bsize)
 		'do I need to bother with buffer?
 	else
 		'debug "buffer size to read = " + str$(bsize)
@@ -1926,7 +1871,6 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 	end if
 
 	close #f
-
 end SUB
 
 SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
@@ -1949,8 +1893,8 @@ SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
 	toggle = 0
 	if bpage >= 0 then
 		'read to screen
-		sptr = spage(wrkpage)
-		sptr = sptr + (320 * l)
+		sptr = vpages(wrkpage)->image
+		sptr = sptr + (vpages(wrkpage)->w * l)
 		fget(f, ,sptr, bsize)
 		'do I need to bother with buffer?
 	else
@@ -2633,14 +2577,7 @@ SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor)
 	'try external first
 	if gfx_screenshot(f$, p) = 0 then
 		'otherwise save it ourselves
-		dim fr as Frame
-		fr.w = 320
-		fr.h = 200
-		fr.image = spage(p)
-		fr.mask = NULL
-		fr.refcount = -1234  'not refcounted
-
-		sprite_export_bmp8(f$, @fr, maspal())
+		sprite_export_bmp8(f$, vpages(p), maspal())
 	end if
 END SUB
 
@@ -3040,8 +2977,9 @@ end function
 '----------------------------------------------------------------------
 SUB bitmap2page (pal() as RGBcolor, bmp$, BYVAL p)
 'loads the 24- or 8-bit bitmap bmp$ into page p with palette pal()
-'I'm pretty sure this is only ever called with 320x200 pics, but I
-'have tried to generalise it to cope with any size.
+'This is normally, but not always, called with 320x200 pics
+'TODO/FIXME: Haven't fully translated to new Frame vpages yet, because this
+'should just wrap around a bmp->frame loader
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim pix as RGBTRIPLE
@@ -3070,7 +3008,7 @@ SUB bitmap2page (pal() as RGBcolor, bmp$, BYVAL p)
 		exit sub
 	end if
 
-	sbase = spage(p)
+	sbase = vpages(p)->image
 
 
 	'navigate to the beginning of the bitmap data
@@ -3198,6 +3136,8 @@ END SUB
 SUB loadbmp (f$, BYVAL x, BYVAL y, BYVAL p)
 'loads the 4-bit bitmap f$ into page p at x, y
 'sets palette to match file???
+'TODO/FIXME: Haven't fully translated to new Frame vpages yet, because this
+'should just wrap around a bmp->frame loader
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
@@ -3227,7 +3167,7 @@ SUB loadbmp (f$, BYVAL x, BYVAL y, BYVAL p)
 	'use header offset to get to data
 	seek #bf, header.bfOffBits + 1
 
-	sbase = spage(p) + (y * 320) + x
+	sbase = vpages(p)->image + (y * 320) + x
 
 	'crop images larger than screen
 	maxw = info.biWidth - 1
@@ -3247,6 +3187,7 @@ END SUB
 
 SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 'takes an open file handle and a screen pointer, should only be called within loadbmp
+'TODO/FIXME: see loadbmp
 	dim pix as ubyte
 	dim ub as ubyte
 	dim linelen as integer
@@ -3301,6 +3242,7 @@ END SUB
 
 SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 'takes an open file handle and a screen pointer, should only be called within loadbmp
+'TODO/FIXME: see loadbmp
 	dim pix as ubyte
 	dim ub as ubyte
 	dim toggle as integer
@@ -3510,6 +3452,7 @@ end function
 
 '-------------- Software GFX mode routines -----------------
 sub setclip(l as integer = 0, t as integer = 0, r as integer = 319, b as integer = 199)
+'TODO/FIXME: update for vpages
 	clipl = bound(l, 0, 320) '320 valid, prevents any drawing
 	clipt = bound(t, 0, 200)
 	clipr = bound(r, 0, 319)
@@ -3522,7 +3465,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 	dim as integer i, j
 	dim as ubyte ptr maskp, srcp
 	dim as ubyte ptr sptr
-	dim as integer srclineinc
+	dim as integer srclineinc, destlineinc
 	dim as integer startx, starty, endx, endy
 
 	if page = -1 then page = wrkpage
@@ -3578,7 +3521,8 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 
 	if starty > endy or startx > endx then exit sub
 
-	sptr = spage(page) + startx + starty * 320
+	sptr = vpages(page)->image + startx + starty * vpages(page)->w
+	destlineinc = (vpages(page)->w - 1) - endx + startx
 
 	if scale = 1 then
 		if pal <> 0 and trans <> 0 then
@@ -3601,7 +3545,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 					j -= 1
 				wend
 
-				sptr += 319 - endx + startx
+				sptr += destlineinc
 				maskp += srclineinc
 				srcp += srclineinc
 			next
@@ -3623,20 +3567,20 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 					j -= 1
 				wend
 
-				sptr += 319 - endx + startx
+				sptr += destlineinc
 				srcp += srclineinc
 			next
 		elseif trans = 0 then
 			for i = starty to endy
 				memcpy(sptr, srcp, endx - startx + 1)
 				srcp += spr.w
-				sptr += 320
+				sptr += vpages(page)->w
 			next
 		else 'pal = 0 and trans <> 0
 			for i = starty to endy
 				'a little loop unrolling
 				for j = endx - startx to 3 step -4
-					'this is surprisingly slow
+					'the following line is surprisingly slow
 					'*cast(integer ptr, sptr) = (*cast(integer ptr, srcp) and *cast(integer ptr, maskp)) or (*cast(integer ptr, sptr) and not *cast(integer ptr, maskp))
 					if maskp[0] then sptr[0] = srcp[0]
 					if maskp[1] then sptr[1] = srcp[1]
@@ -3654,7 +3598,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 					j -= 1
 				wend
 
-				sptr += 319 - endx + startx
+				sptr += destlineinc
 				maskp += srclineinc
 				srcp += srclineinc
 			next
@@ -3670,12 +3614,10 @@ sub unloadtileset(byref tileset as Frame ptr)
 end sub
 
 sub loadtileset(byref tileset as Frame ptr, byval page as integer)
+'TODO/FIXME: Haven't fully translated to new Frame vpages yet, because this
+'should just load from a 320x200 Frame, not a video page
 	if tileset = null then
-		tileset = callocate(sizeof(frame))
-		tileset->w = 20
-		tileset->h = 160 * 20
-		tileset->mask = allocate(160 * 20 * 20)
-		tileset->image = allocate(160 * 20 * 20)
+		tileset = sprite_new(20, 20 * 160)
 	end if
 
 	dim as ubyte ptr maskp = tileset->mask
@@ -3685,7 +3627,7 @@ sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 
 	for tiley = 0 to 9
 		for tilex = 0 to 15
-			srcp = spage(page) + tilex * 20 + tiley * 320 * 20
+			srcp = vpages(page)->image + tilex * 20 + tiley * 320 * 20
 			for py = 0 to 19
 				for px = 0 to 19
 					*sptr = *srcp
@@ -3700,6 +3642,7 @@ sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 	next
 end sub
 
+/'
 sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 'this isn't used anywhere anymore, was used to grab tiles from the tileset videopage before loadtileset
 'maybe some possible future use?
@@ -3709,7 +3652,7 @@ sub grabrect(page as integer, x as integer, y as integer, w as integer, h as int
 
 	if ibuf = null then exit sub
 
-	sptr = spage(page)
+	sptr = vpages(page)->image
 
 	py = y
 	for i = 0 to h-1
@@ -3717,8 +3660,8 @@ sub grabrect(page as integer, x as integer, y as integer, w as integer, h as int
 		for j = 0 to w-1
 			l = i * w + j
 			'ignore clip rect, but check screen bounds
-			if not (px < 0 or px > 319 or py < 0 or py > 199) then
-				ibuf[l] = sptr[(py * 320) + px]
+			if not (px < 0 or px >= vpages(page)->w or py < 0 or py >= vpages(page)->h) then
+				ibuf[l] = sptr[(py * vpages(page)->w) + px]
 				if tbuf then
 					if ibuf[l] = 0 then tbuf[l] = &hff else tbuf[l] = 0
 				end if
@@ -3732,7 +3675,7 @@ sub grabrect(page as integer, x as integer, y as integer, w as integer, h as int
 	next
 
 end sub
-
+'/
 
 
 #DEFINE ID(a,b,c,d) asc(a) SHL 0 + asc(b) SHL 8 + asc(c) SHL 16 + asc(d) SHL 24
@@ -3990,6 +3933,42 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 	sprite_add_cache(s, p, i)
 end sub
 
+private function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1) as Frame ptr
+	dim ret as frame ptr
+	'this hack was Mike's idea, not mine!
+	ret = callocate(sizeof(Frame) * frames)
+
+	'no memory? shucks.
+	if ret = 0 then
+		debug "Could not create sprite frames, no memory"
+		return 0
+	end if
+
+	dim as integer i, j
+	for i = 0 to frames - 1
+		with ret[i]
+			.refcount = -1234 'not refcounted by default
+			.w = w
+			.h = h
+			.image = allocate(w * h)
+			.mask = allocate(w * h)
+
+			if .image = 0 or .mask = 0 then
+				debug "Could not create sprite frames, no memory"
+				'well, I don't really see the point freeing memory, but who knows...
+				'Has anyone else noticed that sprite_delete is more trouble that it's worth?
+				for j = 0 to i
+					deallocate(ret[j].image)
+					deallocate(ret[j].mask)
+				next
+				deallocate(ret)
+				return 0
+			end if
+		end with
+	next
+	return ret
+end function
+
 'Public:
 ' loads a sprite from a file. It expects 4-bit pixels, stored in columns (2/byte).
 ' it will return a pointer to the first frame (of num frames), and subsequent frames
@@ -4028,12 +4007,10 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	if open(fi for binary as #f) then return 0
 	
 	'if we get here, we can assume that all's well, and allocate the memory
-	ret = callocate(sizeof(frame) * num)
+	ret = sprite_new(wid, hei, num)
 	
-	'no memory? shucks.
 	if ret = 0 then
 		close #f
-		debug "Could not create sprite frames, no memory"
 		return 0
 	end if
 	
@@ -4049,12 +4026,7 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	for i = 0 to num - 1
 		with ret[i]
 			'each frame has two bitmaps: the image and the mask
-			.w = wid
-			.h = hei
-			
 			'although it's a four-bit sprite, it IS an 8-bit bitmap.
-			.image = allocate(wid * hei)
-			.mask = allocate(wid * hei)
 			
 			for x = 0 to wid - 1
 				for y = 0 to hei - 1
@@ -4195,7 +4167,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 	end if
 
 	'assume wrkpage
-	sptr = spage(page)
+	sptr = vpages(page)->image
 
 	if spr->mask = 0 then trans = 0 'no mask? no transparency.
 	
@@ -4216,7 +4188,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 				'tx = sxfrom
 				for tx = sxfrom to sxto
 					'figure out where to put the pixel
-					pix = (ty * 320) + tx
+					pix = (ty * vpages(page)->w) + tx
 					'and where to get the pixel from
 					spix = (int((ty-syfrom) / scale) * .w) + int((tx-sxfrom) / scale)
 					
@@ -4232,7 +4204,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 				'tx = sxfrom
 				for tx = sxfrom to sxto
 					'figure out where to put the pixel
-					pix = (ty * 320) + tx
+					pix = (ty * vpages(page)->w) + tx
 					'and where to get the pixel from
 					spix = (((ty-y) \ scale) * .w) + ((tx-x) \ scale)
 					
