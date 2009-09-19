@@ -75,7 +75,6 @@ DIM bslot(24) AS BattleSprite
 DIM bstat(11) AS BattleStats
 DIM vic AS VictoryState
 DIM as double timinga, timingb
-DIM mapsong
 DIM nmenu(3,5) as integer 'new battle menu
 DIM rew AS RewardsState
 DIM tcount AS INTEGER 'FIXME: This is used locally in action GOSUB block. Move DIMs there when that are SUBified
@@ -159,7 +158,9 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-GOSUB loadall
+
+battle_loadall form, bat, bslot(), bstat(), rew, vic, st(), exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter()
+
 copypage 2, dpage
 
 '--main battle loop----------------------------------------------------------
@@ -176,8 +177,8 @@ DO
  IF formdata(34) > 0 and gen(genVersion) >= 6 THEN
   bgspeed = loopvar(bgspeed, 0, formdata(35), 1)
   IF bgspeed = 0 THEN
-   curbg = loopvar(curbg, formdata(32), formdata(32) + formdata(34), 1)
-   loadpage game + ".mxs", curbg MOD gen(genMaxBackdrop), 2
+   bat.curbg = loopvar(bat.curbg, formdata(32), formdata(32) + formdata(34), 1)
+   loadpage game + ".mxs", bat.curbg MOD gen(genMaxBackdrop), 2
   END IF
  END IF
 
@@ -357,8 +358,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
  SELECT CASE act
   CASE 0 '--end()
    FOR i = 0 TO 3
-    '--enforce weak picture
-    IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN bslot(i).frame = 6
+    enforce_weak_picture i, bstat(), bslot(), vic
     '--re-enforce party's X/Y positions...
     bslot(i).x = bslot(i).basex
     bslot(i).y = bslot(i).basey
@@ -1072,7 +1072,7 @@ RETRACE
 animate:
 FOR i = 0 TO 3
  IF walk(i) = 1 THEN bslot(i).frame = bslot(i).frame xor tog
- IF bat.acting <> i AND bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN bslot(i).frame = 6
+ IF bat.acting <> i THEN enforce_weak_picture i, bstat(), bslot(), vic
  IF vic.state > 0 AND bstat(i).cur.hp > 0 AND tog = 0 THEN
   if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
  END IF
@@ -1232,124 +1232,149 @@ IF flee > 4 THEN
 END IF
 RETRACE
 
-loadall:
-setpicstuf formdata(), 80, -1
-loadset tmpdir & "for.tmp", form, 0
-
-for i = 0 to 24
-	bslot(i).frame = 0
-	bslot(i).sprites = 0
-	bslot(i).pal = 0
-	bslot(i).attack = 0
-next
-
-mapsong = presentsong
-IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
-FOR i = 0 TO 3
- IF hero(i) > 0 THEN
-  loadherodata @st(i), hero(i) - 1
-  oldm = 0
-  newm = 0
-  'Loop through hero battle menu, populating nmenu() with the ones that should be displayed
-  FOR oldm = 0 TO 5
-   IF bmenu(i, oldm) < 0 AND bmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 THEN
-    'this is a spell list, and the hide empty spell lists bitset is on...
-    temp = ABS(bmenu(i, oldm)) - 1
-    'count the spells, and skip if empty
-    IF count_available_spells(i, temp) = 0 THEN CONTINUE FOR
-   END IF
-   nmenu(i,newm) = bmenu(i,oldm)
-   newm += 1
-  NEXT oldm
-  
-  WITH bslot(i)
-   .basex = (240 + i * 8)
-   .basey = (82 + i * 20)
-   .x =  .basex
-   .y =  .basey
-   .w = 32
-   .h = 40
-   .vis = 1
-   'load hero sprites
-   .sprite_num = 8
-   .sprites = sprite_load(game & ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40)
-   if not sprite_is_valid(.sprites) then debug "Couldn't load hero sprite: " & game & ".pt0#" & exstat(i,0,14)
-   .pal = palette16_load(game + ".pal", exstat(i, 0, 15), 0, exstat(i, 0, 14))
-   if .pal = 0 then debug "Failed to load palette (#" & i & ")"
-   .frame = 0
-   .death_sfx = -1 'No death sounds for heroes (for now)
-   .cursorpos.x = .w / 2
-   .cursorpos.y = 0
-  END WITH
-  FOR o = 0 TO 11
-   bstat(i).cur.sta(o) = exstat(i, 0, o)
-   bstat(i).max.sta(o) = exstat(i, 1, o)
-  NEXT o
-  herobattlebits bslot(), i
-  bslot(i).name = names(i)
-  FOR o = 0 TO 5
-   menu$(i, o) = ""
-   IF nmenu(i, o) > 0 THEN
-    loadattackdata atk(), nmenu(i, o) - 1
-    menu$(i, o) = readbadbinstring$(atk(), 24, 10, 1)
-   END IF
-   IF nmenu(i, o) < 0 AND nmenu(i, o) > -5 THEN
-    temp = (nmenu(i, o) + 1) * -1
-    menu$(i,o) = st(i).list_name(temp)
-   END IF
-   IF nmenu(i, o) = -10 THEN menu$(i, o) = readglobalstring$(34, "Item", 10): mend(i) = o
-   WHILE LEN(menu$(i, o)) < 10: menu$(i, o) = menu$(i, o) + " ": WEND
-  NEXT o
-
-  'wipe spells learnt and levels gained
-  FOR o = i * 6 TO i * 6 + 5
-   learnmask(o) = 0
-  NEXT
-  exstat(i, 1, 12) = 0
- ELSE
-  bslot(i).sprites = 0
- END IF
-NEXT i
-FOR i = 0 TO 7
- loadfoe i, formdata(), es(), bat, bslot(), bstat(), rew, YES
-NEXT i
-FOR i = 0 TO 11
- ctr(i) = INT(RND * 500)
- bslot(i).t(12) = -1
-NEXT i
-FOR i = 12 TO 23
- bslot(i).w = 50
- bslot(i).h = 50
-NEXT i
-curbg = formdata(32)
-loadpage game + ".mxs", curbg, 2
-FOR i = 0 TO 3
- IF bstat(i).cur.hp < bstat(i).max.hp / 5 AND vic.state = 0 THEN bslot(i).frame = 6
- IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN
-  '--hero starts the battle dead
-  bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
-  bslot(i).frame = 7
- END IF
- lifemeter(i) = (88 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp
-NEXT i
-bslot(24).w = 24
-bslot(24).h = 24
-'trigger fades for dead enemies
-'fulldeathcheck fades out only enemies set to die without a boss
-'so additionally call triggerfade on 0 hp enemies here
-'or might that be expected behaviour in some games?
-FOR i = 0 TO 7
- IF bstat(i).cur.hp <= 0 THEN
-  triggerfade i, bstat(), bslot()
- END IF
-NEXT i
-fulldeathcheck -1, bat, bslot(), bstat(), rew, es(), formdata()
-RETRACE
-
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter())
+ DIM i AS INTEGER
+
+ setpicstuf formdata(), 80, -1
+ loadset tmpdir & "for.tmp", form, 0
+
+ for i = 0 to 24
+  bslot(i).frame = 0
+  bslot(i).sprites = 0
+  bslot(i).pal = 0
+  bslot(i).attack = 0
+ next i
+
+ IF formdata(33) > 0 THEN wrappedsong formdata(33) - 1
+ 
+ DIM attack AS AttackData
+ DIM newm AS INTEGER
+ FOR i = 0 TO 3
+  IF hero(i) > 0 THEN
+   loadherodata @st(i), hero(i) - 1
+   newm = 0
+   
+   'Loop through hero battle menu, populating nmenu() with the ones that should be displayed
+   'Note that bmenu() is a global.
+   FOR oldm AS INTEGER = 0 TO 5
+    IF bmenu(i, oldm) < 0 AND bmenu(i, oldm) > -5 AND readbit(st(i).bits(),0,26) <> 0 THEN
+     'this is a spell list, and the hide empty spell lists bitset is on...
+     'count the spells, and skip if empty
+     IF count_available_spells(i, ABS(bmenu(i, oldm)) - 1) = 0 THEN CONTINUE FOR
+    END IF
+    nmenu(i,newm) = bmenu(i,oldm)
+    newm += 1
+   NEXT oldm
+  
+   '--init bslot() for each hero
+   WITH bslot(i)
+    .basex = (240 + i * 8)
+    .basey = (82 + i * 20)
+    .x =  .basex
+    .y =  .basey
+    .w = 32
+    .h = 40
+    .vis = 1
+    'load hero sprites
+    .sprite_num = 8
+    .sprites = sprite_load(game & ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40)
+    if not sprite_is_valid(.sprites) then debug "Couldn't load hero sprite: " & game & ".pt0#" & exstat(i,0,14)
+    .pal = palette16_load(game + ".pal", exstat(i, 0, 15), 0, exstat(i, 0, 14))
+    if .pal = 0 then debug "Failed to load palette (#" & i & ")"
+    .frame = 0
+    .death_sfx = -1 'No death sounds for heroes (for now)
+    .cursorpos.x = .w / 2
+    .cursorpos.y = 0
+   END WITH
+   
+   '--copy hero's outside-battle stats to their inside-battle stats
+   FOR o AS INTEGER = 0 TO 11
+    bstat(i).cur.sta(o) = exstat(i, 0, o)
+    bstat(i).max.sta(o) = exstat(i, 1, o)
+   NEXT o
+   
+   herobattlebits bslot(), i
+   bslot(i).name = names(i)
+   
+   '--load hero menu captions
+   FOR o AS INTEGER = 0 TO 5
+    menu$(i, o) = ""
+    IF nmenu(i, o) > 0 THEN
+     '--positive number is a fixed attack number (currently only for equipped weapon)
+     loadattackdata attack, nmenu(i, o) - 1
+     menu$(i, o) = attack.name
+    END IF
+    IF nmenu(i, o) < 0 AND nmenu(i, o) > -5 THEN
+     menu$(i,o) = st(i).list_name((nmenu(i, o) + 1) * -1)
+    END IF
+    IF nmenu(i, o) = -10 THEN
+     menu$(i, o) = readglobalstring$(34, "Item", 10)
+     mend(i) = o
+    END IF
+    menu$(i, o) = rpad(menu$(i, o), " ", 10)
+   NEXT o
+
+   'wipe spells learnt and levels gained
+   FOR o AS INTEGER = i * 6 TO i * 6 + 5
+    learnmask(o) = 0
+   NEXT
+   exstat(i, 1, 12) = 0
+   
+  ELSE
+   '--blank empty hero slots
+   bslot(i).sprites = 0
+  END IF
+ NEXT i
+ 
+ '--load monsters
+ FOR i = 0 TO 7
+  loadfoe i, formdata(), es(), bat, bslot(), bstat(), rew, YES
+ NEXT i
+ 
+ FOR i = 0 TO 11
+  ctr(i) = INT(RND * 500) '--randomize ready-meter
+  bslot(i).t(12) = -1 '-- .t(12) is used when sorting dead enemies... for some silly reason...?
+ NEXT i
+ 
+ '--size attack sprites
+ FOR i = 12 TO 23
+  bslot(i).w = 50
+  bslot(i).h = 50
+ NEXT i
+ 
+ bat.curbg = formdata(32)
+ loadpage game + ".mxs", bat.curbg, 2
+ 
+ FOR i = 0 TO 3
+  enforce_weak_picture i, bstat(), bslot(), vic
+  IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN
+   '--hero starts the battle dead
+   bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
+   bslot(i).frame = 7
+  END IF
+  lifemeter(i) = (88 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp
+ NEXT i
+
+ '--size the weapon sprite 
+ bslot(24).w = 24
+ bslot(24).h = 24
+ 
+ 'trigger fades for dead enemies
+ 'fulldeathcheck fades out only enemies set to die without a boss
+ 'so additionally call triggerfade on 0 hp enemies here
+ 'or might that be expected behaviour in some games?
+ FOR i = 0 TO 7
+  IF bstat(i).cur.hp <= 0 THEN
+   triggerfade i, bstat(), bslot()
+  END IF
+ NEXT i
+ fulldeathcheck -1, bat, bslot(), bstat(), rew, es(), formdata()
+END SUB
 
 SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
  '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
@@ -2761,3 +2786,12 @@ SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat(
  '--indicates that animation is set and that we should proceed to "action"
  bat.anim_ready = YES
 END SUB
+
+SUB enforce_weak_picture(who AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, vic AS VictoryState)
+ '--Heroes only, since enemies don't currently have a weak frame
+ IF is_hero(who) THEN
+  '--enforce weak picture
+  IF bstat(who).cur.hp < bstat(who).max.hp / 5 AND vic.state = 0 THEN bslot(who).frame = 6
+ END IF
+END SUB
+
