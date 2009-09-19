@@ -553,23 +553,15 @@ NEXT i
 END SUB
 
 FUNCTION read32bitstring (array(), offset) as string
-result$ = ""
-word = array(offset + 1)
-FOR i = 1 TO array(offset)
- result$ += CHR$(word AND 255)
- IF i MOD 4 = 0 THEN word = array(offset + i \ 4 + 1) ELSE word = word SHR 8
-NEXT
-return result$
+DIM as string result = SPACE(array(offset))
+memcpy(STRPTR(result), @array(offset + 1), array(offset))
+return result
 END FUNCTION
 
 FUNCTION read32bitstring (stringptr as integer ptr) as string
-result$ = ""
-word = stringptr[1]
-FOR i = 1 TO stringptr[0]
- result$ += CHR$(word AND 255)
- IF i MOD 4 = 0 THEN word = stringptr[i \ 4 + 1] ELSE word = word SHR 8
-NEXT
-return result$
+DIM as string result = SPACE(stringptr[0])
+memcpy(STRPTR(result), @stringptr[1], stringptr[0])
+return result
 END FUNCTION
 
 FUNCTION readbadgenericname (index, filename$, recsize, offset, size, skip) as string
