@@ -65,6 +65,7 @@ DIM formdata(40)
 DIM atk(40 + dimbinsize(binATTACK))
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
+DIM chained_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), walk(3)
 DIM harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
@@ -612,11 +613,13 @@ IF bat.atk.id = -1 THEN
  IF atk(12) > 0 AND INT(RND * 100) < atk(13) AND bstat(bat.acting).cur.hp > 0 AND (bslot(bat.acting).attack_succeeded <> 0 AND readbit(atk(),65,7) OR readbit(atk(),65,7) = 0)THEN
   wf = 0
   bat.anim_ready = NO
-  loadattackdata buffer(), atk(12) - 1
-  IF buffer(16) > 0 THEN
+  loadattackdata chained_attack, atk(12) - 1
+  IF chained_attack.attack_delay > 0 THEN
+   '--chain is delayed, queue the attack
    bslot(bat.acting).attack = atk(12)
-   delay(bat.acting) = buffer(16)
+   delay(bat.acting) = chained_attack.attack_delay
   ELSE
+   '--chain is immediate, prep it now!
    bat.atk.id = atk(12) - 1
    bat.anim_ready = NO
    bslot(bat.acting).attack = 0
@@ -626,9 +629,9 @@ IF bat.atk.id = -1 THEN
    IF bstat(i).cur.hp = 0 THEN o = o + 1
   NEXT i
   IF o < 8 THEN
-   IF buffer(4) <> atk(4) OR buffer(3) <> atk(3) THEN
+   IF chained_attack.targ_set <> atk(4) OR chained_attack.targ_class <> atk(3) THEN
     'if the chained attack has a different target class/type then re-target
-    autotarget bat.acting, buffer(), bslot(), bstat()
+    autotarget bat.acting, chained_attack, bslot(), bstat()
    END IF
   END IF
  END IF
