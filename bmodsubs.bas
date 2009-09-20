@@ -299,7 +299,7 @@ Function GetHeroPos(h as integer,f as integer,isY as integer) as integer'or x?
  CLOSE #FH
 End Function
 
-FUNCTION inflict (w as integer, t as integer, bstat() AS BattleStats, bslot() AS BattleSprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, atk() as integer, tcount as integer) as integer
+FUNCTION inflict (w as integer, t as integer, bstat() AS BattleStats, bslot() AS BattleSprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, attack as AttackData, tcount as integer) as integer
 
 DIM h = 0
 
@@ -311,15 +311,15 @@ bslot(w).attack_succeeded = 0
 bslot(w).last_targs(t) = YES
 
 'stored targs
-IF readbit(atk(), 20, 52) THEN bslot(w).stored_targs(t) = YES
-IF readbit(atk(), 20, 53) THEN
+IF attack.store_targ THEN bslot(w).stored_targs(t) = YES
+IF attack.delete_stored_targ THEN
  FOR i = 0 TO 11
   bslot(w).stored_targs(i) = NO
  NEXT i
 END IF
 
 'no damage
-IF atk(5) <> 4 THEN
+IF attack.damage_math <> 4 THEN
 
  'init
  cure = 0
@@ -328,39 +328,42 @@ IF atk(5) <> 4 THEN
  hc(t) = 7
  hx(t) = bslot(t).x + (bslot(t).w * .5)
  hy(t) = bslot(t).y + (bslot(t).h * .5)
- targstat = bound(atk(18), 0, UBOUND(bstat(t).cur.sta))
+ targstat = bound(attack.targ_stat, 0, UBOUND(bstat(t).cur.sta))
 
  'accuracy
  a = bstat(w).cur.acc
  d = bstat(t).cur.dog
  dm! = .25
- IF atk(6) = 1 THEN dm! = .5
- IF atk(6) = 2 THEN dm! = 1
- IF atk(6) = 4 THEN dm! = 1.25
- IF atk(6) = 4 OR atk(6) = 7 OR atk(6) = 8 THEN a = bstat(w).cur.mag : d = bstat(t).cur.wil
+ IF attack.aim_math = 1 THEN dm! = .5
+ IF attack.aim_math = 2 THEN dm! = 1
+ IF attack.aim_math = 4 THEN dm! = 1.25
+ IF attack.aim_math = 4 OR attack.aim_math = 7 OR attack.aim_math = 8 THEN
+  a = bstat(w).cur.mag
+  d = bstat(t).cur.wil
+ END IF
 
  attackhit = range(a, 75) >= range(d * dm!, 75)
- IF atk(6) = 3 THEN attackhit = 1
- IF atk(6) = 5 OR atk(6) = 7 THEN attackhit = RND * 100 < (a * (100 - d)) / 100 
- IF atk(6) = 6 OR atk(6) = 8 THEN attackhit = RND * 100 < a
+ IF attack.aim_math = 3 THEN attackhit = 1
+ IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = RND * 100 < (a * (100 - d)) / 100 
+ IF attack.aim_math = 6 OR attack.aim_math = 8 THEN attackhit = RND * 100 < a
  IF attackhit = 0 THEN
   harm$(t) = readglobalstring$(120, "miss", 20)
   EXIT FUNCTION
  END IF
 
- IF readbit(atk(),65,1) = 1 AND bstat(t).cur.poison < bstat(t).max.poison THEN
+ IF attack.fail_if_targ_poison = YES AND bstat(t).cur.poison < bstat(t).max.poison THEN
   harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
- IF readbit(atk(),65,2) = 1 AND bstat(t).cur.regen < bstat(t).max.regen THEN
+ IF attack.fail_if_targ_regen = YES AND bstat(t).cur.regen < bstat(t).max.regen THEN
   harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
- IF readbit(atk(),65,3) = 1 AND bstat(t).cur.stun <> bstat(t).max.stun THEN
+ IF attack.fail_if_targ_stun = YES AND bstat(t).cur.stun <> bstat(t).max.stun THEN
   harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
- IF readbit(atk(),65,4) = 1 AND bstat(t).cur.mute <> bstat(t).max.mute THEN
+ IF attack.fail_if_targ_mute = YES AND bstat(t).cur.mute <> bstat(t).max.mute THEN
   harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
@@ -368,7 +371,7 @@ IF atk(5) <> 4 THEN
  'attack and defense base
  a = bstat(w).cur.str
  d = bstat(t).cur.def
- SELECT CASE atk(7)
+ SELECT CASE attack.base_atk_stat
   CASE 1
    a = bstat(w).cur.mag
    d = bstat(t).cur.wil
@@ -381,7 +384,7 @@ IF atk(5) <> 4 THEN
   CASE 5
    a = 100
   CASE 6 TO 17
-   a = bstat(w).cur.sta(atk(7) - 6)
+   a = bstat(w).cur.sta(attack.base_atk_stat - 6)
   CASE 18
    a = bslot(w).repeatharm
   CASE 19
@@ -395,16 +398,16 @@ IF atk(5) <> 4 THEN
  END SELECT
 
  '--defense base
- IF atk(58) > 0 AND atk(58) <= UBOUND(bstat(t).cur.sta) + 1 THEN d = bstat(t).cur.sta(atk(58) - 1)
+ IF attack.base_def_stat > 0 AND attack.base_def_stat <= UBOUND(bstat(t).cur.sta) + 1 THEN d = bstat(t).cur.sta(attack.base_def_stat - 1)
 
  'calc defense
  am! = 1: dm! = .5                    'atk-def*.5
- IF atk(5) = 1 THEN am! = .8: dm! = .1 'atk*.8-def*.5
- IF atk(5) = 2 THEN am! = 1.3: dm! = 1 'atk-1.3-def
- IF atk(5) = 3 THEN am! = 1: dm! = 0   'atk
+ IF attack.damage_math = 1 THEN am! = .8: dm! = .1 'atk*.8-def*.5
+ IF attack.damage_math = 2 THEN am! = 1.3: dm! = 1 'atk-1.3-def
+ IF attack.damage_math = 3 THEN am! = 1: dm! = 0   'atk
 
  'resetting
- IF readbit(atk(), 20, 57) = 1 THEN
+ IF attack.reset_targ_stat_before_hit = YES THEN
   bstat(t).cur.sta(targstat) = bstat(t).max.sta(targstat)
  END IF
 
@@ -413,21 +416,21 @@ IF atk(5) <> 4 THEN
 
  'elementals
  FOR i = 0 TO 7
-  IF readbit(atk(), 20, 5 + i) = 1 THEN
+  IF attack.elemental_damage(i) = YES THEN
    IF bslot(t).weak(i) = YES THEN h = h * 2   'weakness
    IF bslot(t).strong(i) = YES THEN h = h * .12 'resistance
    IF bslot(t).absorb(i) = YES THEN cure = 1    'absorb
   END IF
-  IF readbit(atk(), 20, 13 + i) = 1 THEN
+  IF attack.monster_type_bonus(i) = YES THEN
    IF is_enemy(t) AND bslot(t).enemytype(i) = YES THEN h = h * 1.8
   END IF
-  IF readbit(atk(), 20, 21 + i) = 1 THEN
+  IF attack.fail_vs_elemental(i) = YES THEN
    IF bslot(t).strong(i) = YES THEN
     harm$(t) = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
   END IF
-  IF readbit(atk(), 20, 29 + i) = 1 THEN
+  IF attack.fail_vs_monster_type(i) = YES THEN
    IF is_enemy(t) AND bslot(t).enemytype(i) = YES THEN
     harm$(t) = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
@@ -436,21 +439,21 @@ IF atk(5) <> 4 THEN
  NEXT i
 
  'extra damage
- h = h + (h / 100) * atk(11)
+ h = h + (h / 100) * attack.extra_damage
 
  'randomize
- IF readbit(atk(), 20, 61) = 0 THEN h = range(h,20)
+ IF attack.do_not_randomize = NO THEN h = range(h,20)
 
  'spread damage
- IF readbit(atk(), 20, 1) = 1 THEN h = h / (tcount + 1)
+ IF attack.divide_spread_damage = YES THEN h = h / (tcount + 1)
 
  'cap out
  IF h <= 0 THEN
-  IF readbit(atk(), 20, 62) = 0 THEN h = 1 ELSE h = 0
+  IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
  END IF
 
  'backcompat MP-targstat
- IF readbit(atk(), 20, 60) THEN
+ IF attack.obsolete_damage_mp THEN
   IF targstat = 0 THEN targstat = 1
  END IF
 
@@ -461,46 +464,47 @@ IF atk(5) <> 4 THEN
  'pre-calculate percentage damage for display
  chp = bstat(t).cur.sta(targstat)
  mhp = bstat(t).max.sta(targstat)
- IF readbit(atk(), 65, 5) = 1 THEN
+ IF attack.percent_damage_not_set = YES THEN
   'percentage attacks do damage
   'FIXME: see bug 134 about moving this block up the function. This should be base damage?
-  SELECT CASE atk(5)
+  SELECT CASE attack.damage_math
    CASE 5'% of max
-    h = mhp + (atk(11) * mhp / 100)
+    h = mhp + (attack.extra_damage * mhp / 100)
     cure = 0
    CASE 6'% of cur
-    h = chp + (atk(11) * chp / 100)
+    h = chp + (attack.extra_damage * chp / 100)
     cure = 0
   END SELECT
  END IF
 
- IF readbit(atk(), 20, 0) = 1 THEN h = ABS(h) * -1 'cure bit
+ IF attack.cure_instead_of_harm = YES THEN h = ABS(h) * -1 'cure bit
  IF bslot(t).harmed_by_cure = YES THEN h = ABS(h)  'zombie
  IF cure = 1 THEN h = ABS(h) * -1                  'elemental absorb
 
- IF readbit(atk(), 65, 5) = 0 THEN
+ IF attack.percent_damage_not_set = YES THEN
   'percentage attacks set stat
   'and by set, we really mean set, ignore nearly all attack settings,
   'that's my interpretation of intent anyway - TMC
-  SELECT CASE atk(5)
+  '...And mine to. - James
+  SELECT CASE attack.damage_math
    CASE 5'% of max
-    h = chp - (mhp + (atk(11) * mhp / 100))
+    h = chp - (mhp + (attack.extra_damage * mhp / 100))
    CASE 6'% of cur
-    h = chp - (chp + (atk(11) * chp / 100))
+    h = chp - (chp + (attack.extra_damage * chp / 100))
   END SELECT
  END IF
 
  'inflict
- IF readbit(atk(), 20, 51) = 0 THEN
+ IF attack.show_damage_without_inflicting = NO THEN
   IF gen(genDamageCap) > 0 THEN
    IF h > gen(genDamageCap) THEN h = gen(genDamageCap)
    IF h < -gen(genDamageCap) THEN h = -gen(genDamageCap)
   END IF
 
   bstat(t).cur.sta(targstat) = safesubtract(bstat(t).cur.sta(targstat), h)
-  IF readbit(atk(), 20, 2) THEN
+  IF attack.absorb_damage THEN
    '--drain
-   IF readbit(atk(), 20, 56) = 0 THEN
+   IF attack.do_not_display_damage = NO THEN
     harm$(w) = STR$(ABS(h))
     IF h > 0 THEN harm$(w) = "+" + harm$(w)
    END IF
@@ -515,13 +519,13 @@ IF atk(5) <> 4 THEN
  'enforce bounds
  bstat(t).cur.sta(targstat) = large(bstat(t).cur.sta(targstat), 0)
  bstat(w).cur.sta(targstat) = large(bstat(w).cur.sta(targstat), 0)
- IF readbit(atk(), 20, 58) = 0 THEN 'Only when "Allow cure to exceed maximum" is OFF
+ IF attack.allow_cure_to_exceed_maximum = NO THEN
   bstat(t).cur.sta(targstat) = small(bstat(t).cur.sta(targstat), large(bstat(t).max.sta(targstat), remtargstat))
   bstat(w).cur.sta(targstat) = small(bstat(w).cur.sta(targstat), large(bstat(w).max.sta(targstat), rematkrstat))
  END IF
 
  'set damage display
- IF readbit(atk(), 20, 56) = 0 THEN
+ IF attack.do_not_display_damage = NO THEN
   harm$(t) = STR$(ABS(h))
   '--if cure, show + sign
   IF h < 0 THEN harm$(t) = "+" + harm$(t)
@@ -543,19 +547,17 @@ IF atk(5) <> 4 THEN
  END IF
 
 END IF 'skips to here if no damage
-'debug(readbadbinstring$(atk(), 24, 10, 1) + " - " + XSTR$(targstat))
-'name
-IF readbit(atk(), 20, 55) = 1 THEN
+
+IF attack.show_name = YES THEN
  IF LEN(harm$(t)) > 0 THEN harm$(t) = harm$(t) + " "
- harm$(t) = harm$(t) + readbadbinstring$(atk(), 24, 10, 1)
+ harm$(t) = harm$(t) + attack.name
 END IF
 
 'reset registers as per convenience bits
-FOR i = 0 to 3
- IF readbit(atk(), 65, 8 + i) = 1 THEN
-  bstat(t).cur.sta(12 + i) = bstat(t).max.sta(12 + i) 'this should work better, methinks
- END IF
-NEXT
+IF attack.reset_poison = YES THEN bstat(t).cur.poison = bstat(t).max.poison
+IF attack.reset_regen = YES  THEN bstat(t).cur.regen  = bstat(t).max.regen
+IF attack.reset_stun = YES   THEN bstat(t).cur.stun   = bstat(t).max.stun
+IF attack.reset_mute = YES   THEN bstat(t).cur.mute   = bstat(t).max.mute
 
 '--success!
 inflict = 1
@@ -803,11 +805,11 @@ printstr s$, 0, 191, 0
 printstr s$, 0, 191, 1
 END SUB
 
-FUNCTION trytheft (BYREF bat AS BattleState, who as integer, targ as integer, atk() as integer, es() as integer) as integer
+FUNCTION trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, es() as integer) as integer
 trytheft = 0'--return false by default
 IF is_hero(who) AND is_enemy(targ) THEN
  '--a hero is attacking an enemy
- IF readbit(atk(), 20, 4) THEN
+ IF attack.can_steal_item THEN
   '--steal bitset is on for this attack
   IF es(targ - 4, 17) >= 0 THEN
    '--enemy is theftable

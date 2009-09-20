@@ -62,7 +62,6 @@ bstackstart = stackpos
 
 battle = 1
 DIM formdata(40)
-DIM atk(40 + dimbinsize(binATTACK))
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
 DIM chained_attack AS AttackData
@@ -216,9 +215,7 @@ DO
   END IF
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND vic.state = 0 THEN
-  generate_atkscript bat, bslot(), bstat(), icons(), exstat()
-  '--load attack
-  loadattackdata atk(), bat.atk.id
+  generate_atkscript attack, bat, bslot(), bstat(), icons(), exstat()
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND vic.state = 0 AND away = 0 THEN GOSUB action
  GOSUB animate
@@ -417,11 +414,11 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    targ = popw
    tcount = popw
    'set tag, if there is one
-   checkTagCond atk(60), 1, atk(59), atk(61)
-   checkTagCond atk(63), 1, atk(62), atk(64)
-   IF inflict(bat.acting, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), atk(), tcount) THEN
+   checkTagCond attack.tagset(0), 1
+   checkTagCond attack.tagset(1), 1
+   IF inflict(bat.acting, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), attack, tcount) THEN
     '--attack succeeded
-    IF readbit(atk(), 65, 12) THEN
+    IF attack.cancel_targets_attack THEN
      '--try to cancel target's attack
      IF bslot(targ).attack > 0 THEN
       'Check if the attack is cancelable
@@ -435,13 +432,13 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
       bslot(targ).attack = 0
      END IF
     END IF
-    IF readbit(atk(), 20, 50) = 1 THEN
+    IF attack.erase_rewards = YES THEN
      es(targ - 4, 56) = 0
      es(targ - 4, 57) = 0
      es(targ - 4, 59) = 0
      es(targ - 4, 61) = 0
     END IF
-    IF readbit(atk(), 20, 63) = 1 THEN
+    IF attack.force_run = YES THEN
     'force heroes to run away
      IF checkNoRunBit(bstat(), bslot()) THEN
       alert$ = cannotrun$
@@ -450,21 +447,21 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
       away = 1
      END IF
     END IF
-    checkTagCond atk(60), 2, atk(59), atk(61)
-    checkTagCond atk(63), 2, atk(62), atk(64)
+    checkTagCond attack.tagset(0), 2
+    checkTagCond attack.tagset(1), 2
     IF bstat(targ).cur.hp = 0 THEN
-     checkTagCond atk(60), 4, atk(59), atk(61)
-     checkTagCond atk(63), 4, atk(62), atk(64)
+     checkTagCond attack.tagset(0), 4
+     checkTagCond attack.tagset(1), 4
     END IF
 
-    IF trytheft(bat, bat.acting, targ, atk(), es()) THEN
+    IF trytheft(bat, bat.acting, targ, attack, es()) THEN
      IF bat.hero_turn >= 0 THEN
       checkitemusability iuse(), bstat(), bat.hero_turn
      END IF
     END IF
    ELSE
-    checkTagCond atk(60), 3, atk(59), atk(61)
-    checkTagCond atk(63), 3, atk(62), atk(64)
+    checkTagCond attack.tagset(0), 3
+    checkTagCond attack.tagset(0), 3
    END IF
    triggerfade targ, bstat(), bslot()
    IF bstat(targ).cur.hp > 0 THEN
@@ -472,28 +469,28 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     bslot(targ).vis = 1
     bslot(targ).dissolve = 0
    END IF
-   IF is_enemy(targ) AND readbit(atk(), 65, 14) = 0 THEN GOSUB sponhit
+   IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN GOSUB sponhit
    IF bat.atk.has_consumed_costs = NO THEN
     '--if the attack costs MP, we want to actually consume MP
-    IF atk(8) > 0 THEN bstat(bat.acting).cur.mp = large(bstat(bat.acting).cur.mp - focuscost(atk(8), bstat(bat.acting).cur.foc), 0)
+    IF attack.mp_cost > 0 THEN bstat(bat.acting).cur.mp = large(bstat(bat.acting).cur.mp - focuscost(attack.mp_cost, bstat(bat.acting).cur.foc), 0)
 
     '--ditto for HP
-    IF atk(9) > 0 THEN
-      bstat(bat.acting).cur.hp = large(bstat(bat.acting).cur.hp - atk(9), 0)
+    IF attack.hp_cost > 0 THEN
+      bstat(bat.acting).cur.hp = large(bstat(bat.acting).cur.hp - attack.hp_cost, 0)
       hc(bat.acting) = 7
       hx(bat.acting) = bslot(bat.acting).x + (bslot(bat.acting).w * .5)
       hy(bat.acting) = bslot(bat.acting).y + (bslot(bat.acting).h * .5)
-      harm$(bat.acting) = STR$(atk(9))
+      harm$(bat.acting) = STR(attack.hp_cost)
     END IF
 
     '--ditto for money
-    IF atk(10) <> 0 THEN
-      gold = large(gold - atk(10), 0)
+    IF attack.money_cost <> 0 THEN
+      gold = large(gold - attack.money_cost, 0)
       hc(bat.acting) = 7
       hx(bat.acting) = bslot(bat.acting).x + (bslot(bat.acting).w * .5)
       hy(bat.acting) = bslot(bat.acting).y + (bslot(bat.acting).h * .5)
-      harm$(bat.acting) = STR$(atk(10)) + "$"
-      IF atk(10) < 0 THEN harm$(bat.acting) += "+"
+      harm$(bat.acting) = attack.money_cost & "$"
+      IF attack.money_cost < 0 THEN harm$(bat.acting) += "+"
       IF gold > 2000000000 THEN gold = 2000000000
       IF gold < 0 THEN gold = 0
 
@@ -501,14 +498,15 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 
     '--if the attack consumes items, we want to consume those too
     FOR i = 0 to 2
-      IF atk(93 + i * 2) > 0 THEN 'this slot is used
-        IF atk(94 + i * 2) > 0 THEN 'remove items
-          delitem(atk(93 + i * 2), atk(94 + i * 2))
-        ELSEIF atk(94 + i * 2) < 0 THEN 'add items
-          getitem(atk(93 + i * 2), abs(atk(94 + i * 2)))
-        'ELSE 'uh...
-        END IF
+     WITH attack.item(i)
+      IF .id > 0 THEN 'this slot is used
+       IF .number > 0 THEN 'remove items
+        delitem(.id, .number)
+       ELSEIF .number < 0 THEN 'add items
+        getitem(.id, abs(.number))
+       END IF
       END IF
+     END WITH
     NEXT i
 
     '--set the flag to prevent re-consuming MP
@@ -532,7 +530,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     '--if the target is already dead, auto-pick a new target
     '--FIXME: why are we doing this after the attack? Does this even do anything?
     '--       it was passing garbage attack data at least some of the time until r2104
-    autotarget bat.acting, atk(), bslot(), bstat()
+    autotarget bat.acting, attack, bslot(), bstat()
    END IF
   CASE 11 'setz(who,z)
    ww = popw
@@ -610,28 +608,32 @@ IF bat.atk.id = -1 THEN
  'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
  '-------Spawn a Chained Attack--------
- IF atk(12) > 0 AND INT(RND * 100) < atk(13) AND bstat(bat.acting).cur.hp > 0 AND (bslot(bat.acting).attack_succeeded <> 0 AND readbit(atk(),65,7) OR readbit(atk(),65,7) = 0)THEN
-  wf = 0
-  bat.anim_ready = NO
-  loadattackdata chained_attack, atk(12) - 1
-  IF chained_attack.attack_delay > 0 THEN
-   '--chain is delayed, queue the attack
-   bslot(bat.acting).attack = atk(12)
-   delay(bat.acting) = chained_attack.attack_delay
+ IF attack.chain_to > 0 AND INT(RND * 100) < attack.chain_rate AND bstat(bat.acting).cur.hp > 0 THEN
+  IF attack.no_chain_on_failure = YES AND bslot(bat.acting).attack_succeeded = 0 THEN
+   'attack failed, so chain fails too
   ELSE
-   '--chain is immediate, prep it now!
-   bat.atk.id = atk(12) - 1
+   wf = 0
    bat.anim_ready = NO
-   bslot(bat.acting).attack = 0
-  END IF
-  o = 0
-  FOR i = 4 TO 11
-   IF bstat(i).cur.hp = 0 THEN o = o + 1
-  NEXT i
-  IF o < 8 THEN
-   IF chained_attack.targ_set <> atk(4) OR chained_attack.targ_class <> atk(3) THEN
-    'if the chained attack has a different target class/type then re-target
-    autotarget bat.acting, chained_attack, bslot(), bstat()
+   loadattackdata chained_attack, attack.chain_to - 1
+   IF chained_attack.attack_delay > 0 THEN
+    '--chain is delayed, queue the attack
+    bslot(bat.acting).attack = attack.chain_to
+    delay(bat.acting) = chained_attack.attack_delay
+   ELSE
+    '--chain is immediate, prep it now!
+    bat.atk.id = attack.chain_to - 1
+    bat.anim_ready = NO
+    bslot(bat.acting).attack = 0
+   END IF
+   o = 0
+   FOR i = 4 TO 11
+    IF bstat(i).cur.hp = 0 THEN o = o + 1
+   NEXT i
+   IF o < 8 THEN
+    IF chained_attack.targ_set <> attack.targ_set OR chained_attack.targ_class <> attack.targ_class THEN
+     'if the chained attack has a different target class/type then re-target
+     autotarget bat.acting, chained_attack, bslot(), bstat()
+    END IF
    END IF
   END IF
  END IF
@@ -640,7 +642,7 @@ RETRACE
 
 afterdone:
 '--hide the caption when the animation is done
-IF atk(36) = 0 THEN
+IF attack.caption_time = 0 THEN
  '--clear duration-timed caption
  bat.caption_time = 0
  bat.caption_delay = 0
@@ -1528,11 +1530,14 @@ FUNCTION checkNoRunBit (bstat() AS BattleStats, bslot() AS BattleSprite) as inte
  RETURN 0
 END FUNCTION
 
-SUB checkTagCond (t, check, tg, tagand)
- 't - type, check = curtype, tg - the tag to be set, tagand - the tag to check
- IF t = check THEN
-  IF tagand <> 0 AND readbit(tag(), 0, ABS(tagand)) <> SGN(SGN(tagand) + 1) THEN EXIT SUB
-  setbit tag(), 0, ABS(tg), SGN(SGN(tg) + 1) 'Set the original damned tag!
+SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
+ 't.condition - type
+ 'check = curtype
+ 't.tag - the tag to be set
+ 't.tagcheck - the tag to check
+ IF t.condition = check THEN
+  IF t.tagcheck <> 0 AND readbit(tag(), 0, ABS(t.tagcheck)) <> SGN(SGN(t.tagcheck) + 1) THEN EXIT SUB
+  setbit tag(), 0, ABS(t.tag), SGN(SGN(t.tag) + 1) 'Set the original damned tag!
  END IF
 END SUB
 
@@ -2238,7 +2243,7 @@ SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() A
  END IF
 END SUB
 
-SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat())
+SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat())
  DIM i AS INTEGER
 
  '--check for item consumption
@@ -2251,7 +2256,6 @@ SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat(
  END IF
  
  '--load attack
- DIM attack AS AttackData
  loadattackdata attack, bat.atk.id
 
  IF attack.recheck_costs_after_delay THEN

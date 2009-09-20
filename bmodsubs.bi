@@ -26,7 +26,7 @@ declare sub anim_enemy (who as integer, attack as AttackData, bslot() AS BattleS
 declare function getweaponpos(w as integer,f as integer,isy as integer) as integer'or x?
 declare function getheropos(h as integer,f as integer,isy as integer) as integer'or x?
 declare sub anim_hero (who as integer, attack as AttackData, bslot() AS BattleSprite)
-declare function inflict (w as integer, as integer, bstat() AS BattleStats, bslot() as battlesprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, atk() as integer, tcount as integer) as integer
+declare function inflict (w as integer, as integer, bstat() AS BattleStats, bslot() as battlesprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, attack as AttackData, tcount as integer) as integer
 declare function liveherocount overload (bstat() AS BattleStats) as integer
 declare function liveherocount (oobstat() AS integer) as integer
 declare sub loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead as integer = NO)
@@ -41,7 +41,7 @@ declare sub smartarrows (d as integer, axis as integer, bslot() as battlesprite,
 declare function targetable (attacker as integer, target as integer, bslot() as battlesprite) as integer
 declare function targetmaskcount (tmask() as integer) as integer
 declare sub traceshow (s as string)
-declare function trytheft (BYREF bat AS BattleState, who as integer, targ as integer, atk() as integer, es() as integer) as integer
+declare function trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, es() as integer) as integer
 declare function exptolevel (level as integer) as integer
 declare sub updatestatslevelup (i as integer, exstat() as integer, bstat() AS BattleStats, allowforget as integer)
 declare sub giveheroexperience (i as integer, exstat() as integer, exper as integer)

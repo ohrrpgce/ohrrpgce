@@ -12,7 +12,7 @@
 
 declare function battle (form as integer, fatal as integer, exstat() as integer) as integer
 declare function checknorunbit (bstat() AS BattleStats, bslot() as battlesprite) as integer
-declare sub checktagcond (t as integer, check as integer, tg as integer, tagand as integer)
+DECLARE SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
 declare function focuscost (cost as integer, focus as integer) as integer
 DECLARE SUB herobattlebits_raw (bitbuf() as integer, who as integer)
 DECLARE SUB herobattlebits (bslot() AS BattleSprite, who as integer)
@@ -42,7 +42,7 @@ DECLARE SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat 
 DECLARE SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER, delay() AS INTEGER)
 DECLARE SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, menubits() AS INTEGER, nmenu() AS INTEGER, mend() AS INTEGER, delay() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
 DECLARE SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bstat() AS BattleStats, bslot() AS BattleSprite, delay(), conlmp())
-DECLARE SUB generate_atkscript(BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat())
+DECLARE SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat())
 DECLARE SUB enforce_weak_picture(who AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, vic AS VictoryState)
 DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter())
 DECLARE SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats)
