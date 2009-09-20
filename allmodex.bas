@@ -46,7 +46,7 @@ declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 
 'internal allmodex use only sprite functions
-declare function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO) as Frame ptr
+declare function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
 declare sub sprite_delete(byval f as frame ptr ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 
@@ -474,7 +474,11 @@ SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t
 			'get the tile
 			if (todraw >= 0) then
 				tileframe.image = tilesetsprite->image + todraw * 20 * 20
-				tileframe.mask = tilesetsprite->mask + todraw * 20 * 20
+				if tilesetsprite->mask then 'just in case it happens some day
+					tileframe.mask = tilesetsprite->mask + todraw * 20 * 20
+				else
+					tileframe.mask = NULL
+				end if
 
 				'draw it on the map
 				drawohr(tileframe, , tx, ty, , trans)
@@ -517,15 +521,12 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	dim sw as integer
 	dim sh as integer
-	dim hspr as frame
+	dim hspr as frame ptr
 	dim dspr as ubyte ptr
-	dim hmsk as ubyte ptr
-	dim dmsk as ubyte ptr
 	dim nib as integer
 	dim i as integer
 	dim spix as integer
 	dim pix as integer
-	dim mask as integer
 	dim row as integer
 
 	if wrkpage <> page then
@@ -536,13 +537,8 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	sh = pic(picoff+1)
 	picoff = picoff + 2
 
-	'create sprite
-	hspr.w = sw
-	hspr.h = sh
-	hspr.image = allocate(sw * sh)
-	hspr.mask = allocate(sw * sh)
-	dspr = hspr.image
-	dmsk = hspr.mask
+	hspr = sprite_new(sw, sh)
+	dspr = hspr->image
 
 	'now do the pixels
 	'pixels are in columns, so this might not be the best way to do it
@@ -562,8 +558,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 				picoff = picoff + 1
 		end select
 		if spix = 0 and trans then
-			pix = 0					' transparent (hope 0 is never valid)
-			mask = 0
+			pix = 0					' transparent
 		else
 			'palettes are interleaved like everything else
 			pix = pal((po + spix) \ 2)	' get color from palette
@@ -572,28 +567,22 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 			else
 				pix = pix and &hff
 			end if
-			mask = &hff
 		end if
 		*dspr = pix				' set image pixel
 		dspr = dspr + sw
-		*dmsk = mask
-		dmsk = dmsk + sw
 		row = row + 1
 		if (row >= sh) then 	'ugh
 			dspr = dspr - (sw * sh)
 			dspr = dspr + 1
-			dmsk = dmsk - (sw * sh)
-			dmsk = dmsk + 1
 			row = 0
 		end if
 		nib = nib + 1
-		nib = nib and 3	'= mod 4, but possibly more efficient
+		nib = nib and 3
 	next
 	'now draw the image
-	drawohr(hspr, , x, y, scale)
+	drawohr(*hspr, , x, y, scale, trans)
 
-	deallocate(hspr.image)
-	deallocate(hspr.mask)
+	sprite_delete(@hspr)
 end SUB
 
 SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans = -1)
@@ -601,15 +590,12 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 'are the coords top left or top right, though?
 	dim sw as integer
 	dim sh as integer
-	dim hspr as frame
+	dim hspr as frame ptr
 	dim dspr as ubyte ptr
-	dim hmsk as ubyte ptr
-	dim dmsk as ubyte ptr
 	dim nib as integer
 	dim i as integer
 	dim spix as integer
 	dim pix as integer
-	dim mask as integer
 	dim row as integer
 
 	if wrkpage <> page then
@@ -621,15 +607,9 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	sh = pic(picoff+1)
 	picoff = picoff + 2
 
-	'create sprite
-	hspr.w = sw
-	hspr.h = sh
-	hspr.image = allocate(sw * sh)
-	hspr.mask = allocate(sw * sh)
-	dspr = hspr.image
-	dmsk = hspr.mask
+	hspr = sprite_new(sw, sh)
+	dspr = hspr->image
 	dspr = dspr + sw - 1 'jump to last column
-	dmsk = dmsk + sw - 1 'jump to last column
 
 	'now do the pixels
 	'pixels are in columns, so this might not be the best way to do it
@@ -649,8 +629,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 				picoff = picoff + 1
 		end select
 		if spix = 0 and trans then
-			pix = 0					' transparent (hope 0 is never valid)
-			mask = 0
+			pix = 0					' transparent
 		else
 			'palettes are interleaved like everything else
 			pix = pal((po + spix) \ 2)	' get color from palette
@@ -659,28 +638,23 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 			else
 				pix = pix and &hff
 			end if
-			mask = &hff
 		end if
 		*dspr = pix				' set image pixel
 		dspr = dspr + sw
-		*dmsk = mask
-		dmsk = dmsk + sw
 		row = row + 1
 		if (row >= sh) then 	'ugh
 			dspr = dspr - (sw * sh)
 			dspr = dspr - 1		' right to left for wardsprite
-			dmsk = dmsk - (sw * sh)
-			dmsk = dmsk - 1		' right to left
 			row = 0
 		end if
 		nib = nib + 1
-		nib = nib and 3	'= mod 4, but possibly more efficient
+		nib = nib and 3
 	next
 
 	'now draw the image
-	drawohr(hspr, , x, y)
-	deallocate(hspr.image)
-	deallocate(hspr.mask)
+	drawohr(*hspr, , x, y, trans)
+
+	sprite_delete(@hspr)
 end SUB
 
 SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
@@ -1439,7 +1413,7 @@ SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f 
 	charframe.mask = NULL
 
 	'decide whether to draw a solid background or not
-	dim as integer trans_type = -2
+	dim as integer trans_type = -1
 	if pal.col(0) > 0  then
 		trans_type = 0
 	end if
@@ -1608,6 +1582,7 @@ SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, by
 	font->sprite(1)->spr.refcount += 1
 	font->cols += 1
 
+	'wish I could call sprite_duplicate. A little OO would fix that.
 	memcpy(font->sprite(0), font->sprite(1), sizeof(FontLayer))
 
 	for ch as integer = 0 to 255
@@ -3473,16 +3448,12 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 		exit sub
 	end if
 
-	if trans <> 0 and spr.mask = 0 then
-		trans = -2
-	end if
-
 	srcp = spr.image
 
-	if trans = -2 then
+	maskp = spr.mask
+	if maskp = 0 then
 		maskp = srcp
-	else
-		maskp = spr.mask
+		'we could add an optimised version for this case, which is the 99% case
 	end if
 
 	startx = x
@@ -3565,7 +3536,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 				sptr += destlineinc
 				srcp += srclineinc
 			next
-		elseif trans = 0 then
+		elseif trans = 0 then 'and pal = 0
 			for i = starty to endy
 				memcpy(sptr, srcp, endx - startx + 1)
 				srcp += spr.w
@@ -3615,7 +3586,6 @@ sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 		tileset = sprite_new(20, 20 * 160)
 	end if
 
-	dim as ubyte ptr maskp = tileset->mask
 	dim as ubyte ptr sptr = tileset->image
 	dim as ubyte ptr srcp
 	dim tilex, tiley, px, py
@@ -3626,10 +3596,8 @@ sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 			for py = 0 to 19
 				for px = 0 to 19
 					*sptr = *srcp
-					if *srcp = 0 then *maskp = 0 else *maskp = &hff
 					sptr += 1
 					srcp += 1
-					maskp += 1
 				next
 				srcp += 320 - 20
 			next
@@ -3827,6 +3795,7 @@ end sub
 ' unconditionally frees a sprite from memory.
 ' takes a pointer to a pointer so that the pointer can also be nulled, so it
 ' will not be used again accidentally.
+' Warning: not all code calls sprite_delete to delete sprites! Grrr!
 sub sprite_delete(byval f as frame ptr ptr)
 	if f = 0 then exit sub
 	if *f = 0 then exit sub
@@ -3928,7 +3897,7 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 	sprite_add_cache(s, p, i)
 end sub
 
-private function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO) as Frame ptr
+private function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
 	dim ret as frame ptr
 	'this hack was Mike's idea, not mine!
 	ret = callocate(sizeof(Frame) * frames)
@@ -3945,15 +3914,16 @@ private function sprite_new(byval w as integer, byval h as integer, byval frames
 			.refcount = -1234 'not refcounted by default
 			.w = w
 			.h = h
+			.mask = NULL
 			if clr then
 				.image = callocate(w * h)
-				.mask = callocate(w * h)
+				IF wantmask THEN .mask = callocate(w * h)
 			else
 				.image = allocate(w * h)
-				.mask = allocate(w * h)
+				IF wantmask THEN .mask = allocate(w * h)
 			end if
 
-			if .image = 0 or .mask = 0 then
+			if .image = 0 or (.mask = 0 and wantmask <> 0) then
 				debug "Could not create sprite frames, no memory"
 				'well, I don't really see the point freeing memory, but who knows...
 				'Has anyone else noticed that sprite_delete is more trouble that it's worth?
@@ -4025,7 +3995,6 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	
 	for i = 0 to num - 1
 		with ret[i]
-			'each frame has two bitmaps: the image and the mask
 			'although it's a four-bit sprite, it IS an 8-bit bitmap.
 			
 			for x = 0 to wid - 1
@@ -4035,13 +4004,11 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 					
 					'the high nybble is the first pixel
 					.image[SPOS] = (z SHR 4)
-					if .image[SPOS] = 0 then .mask[SPOS] = 0 else .mask[SPOS] = &hff
 					
 					y+=1
 					
 					'and the low nybble is the second one
 					.image[SPOS] = z AND 15
-					if .image[SPOS] = 0 then .mask[SPOS] = 0 else .mask[SPOS] = &hff
 					
 					'it is worth mentioning that sprites are stored in columns, not rows
 				next
@@ -4148,10 +4115,10 @@ end function
 
 'Public:
 ' draws a sprite to a page. scale must be greater than 1. if trans is false, the
-' mask will be wholly ignored (and, trans will be forced to false if the mask
-' doesn't even exist)
+' mask will be wholly ignored. Just like drawohr, masks are optional, otherwise use colourkey 0
 sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
 	dim sptr as ubyte ptr
+	dim mptr as ubyte ptr
 	dim as integer tx, ty
 	dim as integer sx, sy, pix, spix
 
@@ -4169,9 +4136,10 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 	'assume wrkpage
 	sptr = vpages(page)->image
 
-	if spr->mask = 0 then trans = 0 'no mask? no transparency. (note: drawohr allows transparency without masks; sprite_draw is a different beast)
-	
-	if trans then trans = -1
+	mptr = spr->mask
+	if spr->mask = 0 then
+		mptr = spr->image
+	end if
 	
 	dim as integer sxfrom, sxto, syfrom, syto
 	
@@ -4183,7 +4151,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 	
 	With *spr
 		'ty = syfrom
-		if not trans then
+		if trans <> 0 then
 			for ty = syfrom to syto
 				'tx = sxfrom
 				for tx = sxfrom to sxto
@@ -4209,7 +4177,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 					spix = (((ty-y) \ scale) * .w) + ((tx-x) \ scale)
 					
 					'check mask
-					if .mask[spix] then
+					if mptr[spix] then
 						if pal <> 0 then
 							sptr[pix] = pal->col(.image[spix])
 						else
@@ -4234,8 +4202,13 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 	if spr = 0 then return 0
 	
 	cpy = sprite_duplicate(spr)
-	
 	if cpy = 0 then return 0
+	'by default, sprites use colourkey transparency instead of masks
+	if cpy->mask = 0 then
+		cpy->mask = allocate(cpy->w * cpy->h)
+		if cpy->mask = 0 then debug "could not copy mask": return 0
+		memcpy(cpy->mask, cpy->image, cpy->w * cpy->h)
+	end if
 	
 	dim as integer i, j, sx, sy, tog
 
@@ -4358,8 +4331,12 @@ function sprite_flip_horiz(byval spr as frame ptr, byval direct as integer = 0) 
 	for y = 0 to spr->h - 1
 		for x = 0 to spr->w - 1 
 			ret->image[y * spr->w + x] = spr->image[y * spr->w + (spr->w - x - 1)]
-			ret->mask[y * spr->w + x] = spr->mask[y * spr->w + (spr->w - x - 1)]
 		next
+		if ret->mask then
+			for x = 0 to spr->w - 1 
+				ret->mask[y * spr->w + x] = spr->mask[y * spr->w + (spr->w - x - 1)]
+			next
+		end if
 	next
 	
 	if direct then
@@ -4393,8 +4370,12 @@ function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) a
 	for y = 0 to spr->h - 1
 		for x = 0 to spr->w - 1
 			ret->image[y * spr->w + x] = spr->image[(spr->h - y - 1) * spr->w + x]
-			ret->mask[y * spr->w + x] = spr->mask[(spr->h - y - 1) * spr->w + x]
 		next
+		if ret->mask then
+			for x = 0 to spr->w - 1
+				ret->mask[y * spr->w + x] = spr->mask[(spr->h - y - 1) * spr->w + x]
+			next
+		end if
 	next
 	
 	if direct then
@@ -4422,6 +4403,7 @@ sub sprite_clear(byval spr as frame ptr)
 	end if
 end sub
 
+'Warning: this code is rotting; don't assume ->mask is used. Anyway the whole thing should be replaced with a memmove call or two.
 ' function sprite_scroll(byval spr as frame ptr, byval h as integer = 0, byval v as integer = 0, byval wrap as integer = 0, byval direct as integer = 0) as frame ptr
 
 ' 	dim ret as frame ptr, x as integer, y as integer
