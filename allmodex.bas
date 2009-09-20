@@ -38,8 +38,6 @@ declare sub grabrect(page as integer, x as integer, y as integer, w as integer, 
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 
-declare function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1) as Frame ptr
-
 'used for map and pass
 DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, byval l as integer, BYVAL mp as integer ptr)
 DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, byval l as integer, BYVAL mp as integer ptr) as integer
@@ -48,6 +46,7 @@ declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 
 'internal allmodex use only sprite functions
+declare function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO) as Frame ptr
 declare sub sprite_delete(byval f as frame ptr ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 
@@ -128,7 +127,7 @@ sub setmodex()
 
 	'initialise software gfx
 	for i as integer = 0 to 3
-		vpages(i) = sprite_new(320, 200)
+		vpages(i) = sprite_new(320, 200, YES)
 	next
 	'other vpages slots are for temporary pages
 	setclip
@@ -179,7 +178,7 @@ FUNCTION allocatepage() as integer
 
 	for i = 0 to ubound(vpages)
 		if vpages(i) = NULL then
-			vpages(i) = sprite_new(320, 200)
+			vpages(i) = sprite_new(320, 200, YES)
 			return i
 		end if
 	next
@@ -3933,7 +3932,7 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 	sprite_add_cache(s, p, i)
 end sub
 
-private function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1) as Frame ptr
+private function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO) as Frame ptr
 	dim ret as frame ptr
 	'this hack was Mike's idea, not mine!
 	ret = callocate(sizeof(Frame) * frames)
@@ -3950,8 +3949,13 @@ private function sprite_new(byval w as integer, byval h as integer, byval frames
 			.refcount = -1234 'not refcounted by default
 			.w = w
 			.h = h
-			.image = allocate(w * h)
-			.mask = allocate(w * h)
+			if clr then
+				.image = callocate(w * h)
+				.mask = callocate(w * h)
+			else
+				.image = allocate(w * h)
+				.mask = allocate(w * h)
+			end if
 
 			if .image = 0 or .mask = 0 then
 				debug "Could not create sprite frames, no memory"
