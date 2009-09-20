@@ -127,7 +127,7 @@ sub setmodex()
 
 	'initialise software gfx
 	for i as integer = 0 to 3
-		vpages(i) = sprite_new(320, 200, YES)
+		vpages(i) = sprite_new(320, 200, , YES)
 	next
 	'other vpages slots are for temporary pages
 	setclip
@@ -178,7 +178,7 @@ FUNCTION allocatepage() as integer
 
 	for i = 0 to ubound(vpages)
 		if vpages(i) = NULL then
-			vpages(i) = sprite_new(320, 200, YES)
+			vpages(i) = sprite_new(320, 200, , YES)
 			return i
 		end if
 	next
