@@ -22,10 +22,10 @@ DECLARE SUB setwait (BYVAL t)
 DECLARE SUB dowait ()
 DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
 DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
-DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
-DECLARE SUB lumpfiles (listf$, lump$, path$, buffer())
-DECLARE SUB unlump (lump$, ulpath$, buffer())
-DECLARE SUB unlumpfile (lump$, fmask$, path$, buf())
+DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$)
+DECLARE SUB lumpfiles (listf$, lump$, path$)
+DECLARE SUB unlump (lump$, ulpath$)
+DECLARE SUB unlumpfile (lump$, fmask$, path$)
 DECLARE FUNCTION islumpfile (lump$, fmask$)
 DECLARE SUB array2str (arr(), BYVAL o, s$)
 DECLARE SUB str2array (s$, arr(), BYVAL o)
@@ -53,7 +53,6 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 #endif
 
 CONST null  = 0
-DIM buffer(16383)
 
 DIM SHARED createddir = 0, dest$, olddir$
 
@@ -120,12 +119,12 @@ END IF
 IF NOT isdir(dest$) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
 
 IF NOT isrpg THEN
- unlump lump$, dest$ + SLASH, buffer()
+ unlump lump$, dest$ + SLASH
  CHDIR olddir$
  SYSTEM
 END IF
  
-unlumpfile lump$, "archinym.lmp", dest$ + SLASH, buffer()
+unlumpfile lump$, "archinym.lmp", dest$ + SLASH
 
 '--set game according to the archinym
 IF isfile(dest$ + SLASH + "archinym.lmp") THEN
@@ -139,22 +138,23 @@ IF isfile(dest$ + SLASH + "archinym.lmp") THEN
  KILL dest$ + SLASH + "archinym.lmp"
 END IF
 
-unlumpfile lump$, game + ".gen", dest$ + SLASH, buffer()
-xbload dest$ + SLASH + LCASE(game) + ".gen", buffer(), "unable to open general data"
+unlumpfile lump$, game + ".gen", dest$ + SLASH
+DIM gen(360)
+xbload dest$ + SLASH + LCASE(game) + ".gen", gen(), "unable to open general data"
 
 KILL dest$ + SLASH + game + ".gen"
 
 passokay = -1
 
-IF buffer(94) > -1 THEN
+IF gen(94) > -1 THEN
  passokay = 0
  '----load password-----
  'Note that this is still using the old 2nd-style password format, not the
  'newer simpler 3rd-style password format. This is okay for now, since
  'CUSTOM writes both 2nd and 3rd style passwords, but supporting 3rd-style
  'here also would be desireable
- readscatter rpas$, buffer(94), buffer(), 200
- rpas$ = rotascii(rpas$, buffer(93) * -1)
+ readscatter rpas$, gen(94), gen(), 200
+ rpas$ = rotascii(rpas$, gen(93) * -1)
  'PRINT rpas$
  '-----get inputed password-----
  print "Password Required"
@@ -175,8 +175,7 @@ IF buffer(94) > -1 THEN
 END IF
 
 IF passokay THEN
- REDIM buffer(32767)
- unlump lump$, dest$ + SLASH, buffer()
+ unlump lump$, dest$ + SLASH
 END IF
 
 CHDIR olddir$
@@ -460,7 +459,7 @@ function matchmask(match as string, mask as string) as integer
 
 end function
 
-SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
+SUB unlumpfile (lump$, fmask$, path$)
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
@@ -583,8 +582,8 @@ SUB unlumpfile (lump$, fmask$, path$, buf() as integer)
 
 end SUB
 
-SUB unlump (lump$, ulpath$, buffer() as integer)
-	unlumpfile(lump$, "", ulpath$, buffer())
+SUB unlump (lump$, ulpath$)
+	unlumpfile(lump$, "", ulpath$)
 end SUB
 
 FUNCTION islumpfile (lump$, fmask$)

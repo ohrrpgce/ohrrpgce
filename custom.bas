@@ -185,7 +185,7 @@ touchfile workingdir + SLASH + "__danger.tmp"
 
 IF isdir(gamefile) THEN
  'work on an unlumped RPG file
- findfiles gamefile + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
+ findfiles gamefile + SLASH + ALLFILES, 0, "filelist.tmp"
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
@@ -617,7 +617,7 @@ END
 cleanupfiles:
 IF nocleanup = 0 THEN
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
+ findfiles workingdir + SLASH + ALLFILES, 0, "filelist.tmp"
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
@@ -1319,7 +1319,7 @@ END FUNCTION
 
 SUB dolumpfiles (filetolump$)
 '--build the list of files to lump
-findfiles workingdir + SLASH + ALLFILES, 0, "temp.lst", buffer()
+findfiles workingdir + SLASH + ALLFILES, 0, "temp.lst"
 fixorder "temp.lst"
 IF isdir(filetolump$) THEN
  '---copy changed files back to source rpgdir---

@@ -25,8 +25,8 @@ DECLARE SUB dowait ()
 DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
 DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
 DECLARE SUB copyfile (s$, d$)
-DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
-DECLARE SUB lumpfiles (listf$, lump$, path$, buffer())
+DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$)
+DECLARE SUB lumpfiles (listf$, lump$, path$)
 DECLARE SUB array2str (arr(), BYVAL o, s$)
 DECLARE SUB str2array (s$, arr(), BYVAL o)
 DECLARE SUB getstring (path$)
@@ -52,9 +52,6 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
  CONST SLASH = "\"
  CONST ALLFILES = "*.*"
 #ENDIF
-
-COMMON SHARED buffer() AS INTEGER
-DIM buffer(32767) AS INTEGER
 
 olddir$ = getcurdir
 
@@ -114,11 +111,12 @@ ELSE
  game ="ohrrpgce"
 END IF
 
-xbload src$ + SLASH + LCASE(game) + ".gen", buffer(), "unable to open general data"
+DIM gen(360)
+xbload src$ + SLASH + LCASE(game) + ".gen", gen(), "unable to open general data"
 
 passokay = -1
 
-IF buffer(94) > -1 THEN
+IF gen(94) > -1 THEN
  passokay = 0
  '----load password-----
  'Note that this is still using the old 2nd-style password format, not the
@@ -126,8 +124,8 @@ IF buffer(94) > -1 THEN
  'CUSTOM writes both 2nd and 3rd style passwords, but supporting 3rd-style
  'here also would be desireable
  rpas$ = ""
- readscatter rpas$, buffer(94), buffer(), 200
- rpas$ = rotascii(rpas$, buffer(93) * -1)
+ readscatter rpas$, gen(94), gen(), 200
+ rpas$ = rotascii(rpas$, gen(93) * -1)
  'PRINT rpas$
  '-----get inputed password-----
  print "Password Required"
@@ -150,10 +148,10 @@ END IF
 
 IF passokay THEN
  '--build the list of files to lump
- findfiles src$ + SLASH + ALLFILES, 0, "temp.lst", buffer()
+ findfiles src$ + SLASH + ALLFILES, 0, "temp.lst"
  fixorder "temp.lst"
  '---relump data into lumpfile package---
- lumpfiles "temp.lst", dest$, src$ + SLASH, buffer()
+ lumpfiles "temp.lst", dest$, src$ + SLASH
  KILL "temp.lst"
 END IF
 
@@ -539,7 +537,7 @@ SUB copyfile (s$, d$)
 
 end SUB
 
-SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
+SUB findfiles (fmask$, BYVAL attrib, outfile$)
     ' attrib 0: all files 'cept folders, attrib 16: folders only
 #ifdef __FB_LINUX__
         'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
@@ -614,7 +612,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
 #endif
 END SUB
 
-SUB lumpfiles (listf$, lump$, path$, buffer())
+SUB lumpfiles (listf$, lump$, path$)
 	dim as integer lf, fl, tl	'lumpfile, filelist, tolump
 
 	dim dat as ubyte

@@ -1048,7 +1048,7 @@ IF w = 1 THEN
  PRINT e$
 
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir + SLASH + ALLFILES, 0, "filelist.tmp", buffer()
+ findfiles workingdir + SLASH + ALLFILES, 0, "filelist.tmp"
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)

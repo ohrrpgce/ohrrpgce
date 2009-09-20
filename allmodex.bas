@@ -1237,8 +1237,8 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 	DRAW_SLICE(endlength)
 end SUB
 
-SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer, buf() as integer, BYVAL max as integer)
-'a floodfill. what is max for?
+SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer)
+'a floodfill.
 'Uses putpixel and readpixel, so could probably be sped up with direct access. Also ignores clipping
 'at the moment, which is possibly foolish
 	dim tcol as integer
@@ -2038,10 +2038,6 @@ SUB storerecord (buf() as integer, filen$, recordsize as integer, record as inte
 	storerecord buf(), f, recordsize, record
 	close #f
 END SUB
-
-SUB findfiles (fmask$, BYVAL attrib, outfile$, buf())
-	findfiles fmask$, attrib, outfile$
-end sub
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$)
     ' attrib 0: all files 'cept folders, attrib 16: folders only
@@ -4173,7 +4169,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 	'assume wrkpage
 	sptr = vpages(page)->image
 
-	if spr->mask = 0 then trans = 0 'no mask? no transparency.
+	if spr->mask = 0 then trans = 0 'no mask? no transparency. (note: drawohr allows transparency without masks; sprite_draw is a different beast)
 	
 	if trans then trans = -1
 	

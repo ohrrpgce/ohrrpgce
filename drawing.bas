@@ -1287,7 +1287,7 @@ SELECT CASE ts.tool
      putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
     NEXT j
    NEXT i
-   paintat 1 + ts.x, 1 + ts.y, ts.curcolor, dpage, buffer(), 16384
+   paintat 1 + ts.x, 1 + ts.y, ts.curcolor, dpage
    FOR i = 0 TO 19
     FOR j = 0 TO 19
      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
@@ -2274,7 +2274,7 @@ GOSUB writeundospr
 rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiHighlight), dpage
 rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
 drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-paintat ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex, dpage, buffer(), 16384
+paintat ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex, dpage
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
