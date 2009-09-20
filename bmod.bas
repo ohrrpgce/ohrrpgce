@@ -1500,17 +1500,17 @@ SUB checkitemusability(iuse() AS INTEGER, bstat() AS BattleStats, who AS INTEGER
  'Iterate through the iuse() bitfield and mark any items that are usable
  DIM i AS INTEGER
  DIM itembuf(99) AS INTEGER
- DIM atkbuf(40 + dimbinsize(binATTACK)) AS INTEGER
+ DIM attack AS AttackData
 
  FOR i = 0 TO inventoryMax
   setbit iuse(), 0, i, 0 ' Default each slot to unusable
   IF inventory(i).used THEN
    loaditemdata itembuf(), inventory(i).id
    IF itembuf(47) > 0 THEN ' This item is usable in battle
-    loadattackdata atkbuf(), itembuf(47) - 1
-    IF readbit(atkbuf(), 65, 16) THEN
+    loadattackdata attack, itembuf(47) - 1
+    IF attack.check_costs_as_item THEN
      '--This attack has the bitset that requires cost checking when used from an item
-     IF atkallowed(atkbuf(), who, 0, 0, bstat()) THEN
+     IF atkallowed(attack, who, 0, 0, bstat()) THEN
       setbit iuse(), 0, i, 1
      END IF
     ELSE
@@ -1746,14 +1746,14 @@ END FUNCTION
 
 SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState)
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
- DIM atkbuf(40 + dimbinsize(binATTACK))
+ DIM attack AS AttackData
  DIM slot AS INTEGER
  DIM i AS INTEGER
  IF NOT is_enemy(deadguy) THEN EXIT SUB ' Only works for enemies
  IF killing_attack >= 0 THEN
   'This death is the result of an attack
-  loadattackdata atkbuf(), killing_attack
-  IF readbit(atkbuf(), 65, 15) <> 0 THEN
+  loadattackdata attack, killing_attack
+  IF attack.no_spawn_on_kill <> 0 THEN
    'This attack had the "Do not trigger spawning on death" bitset
    EXIT SUB
   END IF
@@ -1832,8 +1832,9 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
 END SUB
 
 SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
-'killing_attack is not used yet, but will contain attack id or -1 when no attack is relevant.
+'FIXME: killing_attack is not used yet, but will contain attack id or -1 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
+ DIM attack AS AttackData
 
  IF is_enemy(deadguy) THEN
   IF formdata((deadguy - 4) * 4) = 0 THEN EXIT SUB
@@ -1882,8 +1883,8 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
    NEXT k
    IF bslot(j).t(0) = -1 AND bat.acting <> j AND bslot(j).attack > 0 THEN
     'if no targets left, auto-re-target
-    loadattackdata buffer(), bslot(j).attack - 1
-    autotarget j, buffer(), bslot(), bstat()
+    loadattackdata attack, bslot(j).attack - 1
+    autotarget j, attack, bslot(), bstat()
    END IF
    IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
    IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
