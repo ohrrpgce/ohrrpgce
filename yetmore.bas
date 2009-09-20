@@ -1993,7 +1993,9 @@ SELECT CASE AS CONST id
    scriptret = dat->translucent
   END IF
  CASE 383 '--set rect trans
-  change_rect_plotslice retvals(0), , , , ,retvals(1)
+  IF bound_arg(retvals(1), 0, 2, "set rect trans", "transparency") THEN
+   change_rect_plotslice retvals(0), , , , ,retvals(1)
+  END IF
  CASE 384 '--slice collide point
   IF valid_plotslice(retvals(0), "slice collide point") THEN
    DIM sl AS Slice Ptr
@@ -3769,7 +3771,7 @@ SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER
  END WITH
 END SUB
 
-SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BYVAL bgcol AS INTEGER=-1, BYVAL fgcol AS INTEGER=-1, BYVAL border AS INTEGER=-3, BYVAL translucent AS INTEGER=-2)
+SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BYVAL bgcol AS INTEGER=-1, BYVAL fgcol AS INTEGER=-1, BYVAL border AS INTEGER=-3, BYVAL translucent AS RectTransTypes=transUndef)
  IF valid_plotslice(handle, "change_rect_plotslice") THEN
   DIM sl AS Slice Ptr
   sl = plotslices(handle)

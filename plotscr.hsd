@@ -1459,6 +1459,9 @@ define constant, begin
 8,spritetype:portrait
 -1,border:line
 -2,border:none
+0,trans:solid
+1,trans:fuzzy
+2,trans:hollow
 end
 
 #<SLICE LOOKUP CODES>

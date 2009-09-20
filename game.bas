@@ -3069,7 +3069,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
   text_box = NewSliceOfType(slContainer, txt.sl)
  ELSE
   text_box = NewSliceOfType(slRectangle, txt.sl)
-  ChangeRectangleSlice text_box, txt.box.boxstyle, , , , (txt.box.opaque = NO)
+  ChangeRectangleSlice text_box, txt.box.boxstyle, , , , iif(txt.box.opaque, transOpaque, transFuzzy)
  END IF
  
  '--position and size the text box
@@ -3141,7 +3141,7 @@ SUB init_text_box_slices(txt AS TextBoxState)
   DIM img_box AS Slice Ptr
   IF txt.box.portrait_box THEN
    img_box = NewSliceOfType(slRectangle, text_box)
-   ChangeRectangleSlice img_box, txt.box.boxstyle, , , , YES
+   ChangeRectangleSlice img_box, txt.box.boxstyle, , , , transFuzzy
   ELSE
    img_box = NewSliceOfType(slContainer, text_box)
   END IF

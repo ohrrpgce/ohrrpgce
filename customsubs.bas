@@ -1718,7 +1718,7 @@ SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
   WITH menu
    x = .rect.x - 2 + anchor_point(.anchor.x, .rect.wide)
    y = .rect.y - 2 + anchor_point(.anchor.y, .rect.high)
-   edgebox x, y, 5, 5, 2 + tog, dpage, NO 
+   rectangle x, y, 5, 5, 2 + tog, dpage 
   END WITH
   edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
   
@@ -3165,7 +3165,7 @@ SUB edit_global_text_strings()
   draw_scrollbar state, rect, , dpage
   edgeprint "CTRL+S Search", 0, 191, uilook(uiDisabledItem), dpage
   IF state.pt >= 0 THEN
-   edgeboxstyle 160 - (maxlen(state.pt) * 4), 191, 8 * maxlen(state.pt) + 4, 8, 0, dpage, NO, YES
+   edgeboxstyle 160 - (maxlen(state.pt) * 4), 191, 8 * maxlen(state.pt) + 4, 8, 0, dpage, transOpaque, YES
    edgeprint text(state.pt), 162 - (maxlen(state.pt) * 4), 191, uilook(uiText), dpage
   END IF
   SWAP vpage, dpage

@@ -531,7 +531,7 @@ DIM helpkey AS STRING = "enemy"
 '--Create the box that holds the preview
 DIM preview_box AS Slice Ptr
 preview_box = NewSliceOfType(slRectangle)
-ChangeRectangleSlice preview_box, ,uilook(uiDisabledItem), uilook(uiMenuItem), ,NO
+ChangeRectangleSlice preview_box, ,uilook(uiDisabledItem), uilook(uiMenuItem), , transOpaque
 '--Align the box in the bottom right
 WITH *preview_box
  .X = -8

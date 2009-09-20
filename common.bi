@@ -38,11 +38,19 @@ DECLARE FUNCTION read32bitstring overload (array() as integer, offset as integer
 DECLARE FUNCTION read32bitstring overload (strptr as integer ptr) as string
 DECLARE FUNCTION readbadgenericname (index as integer, filename as string, recsize as integer, offset as integer, size as integer, skip as integer) as string
 DECLARE SUB copylump(package as string, lump as string, dest as string, ignoremissing AS INTEGER = 0)
+
+ENUM RectTransTypes
+ transUndef = -1
+ transOpaque = 0
+ transFuzzy
+ transHollow
+END ENUM
+
 DECLARE SUB centerfuz (x as integer, y as integer, w as integer, h as integer, c as integer, p as integer)
 DECLARE SUB centerbox (x as integer, y as integer, w as integer, h as integer, c as integer, p as integer)
 DECLARE SUB edgeboxstyle (x as integer, y as integer, w as integer, h as integer, boxstyle as integer, p as integer, fuzzy as integer=NO, supress_borders as integer=NO)
 DECLARE SUB center_edgeboxstyle (x as integer, y as integer, w as integer, h as integer, boxstyle as integer, p as integer, fuzzy as integer=NO, supress_borders as integer=NO)
-DECLARE SUB edgebox (x as integer, y as integer, w as integer, h as integer, col as integer, bordercol as integer, p as integer, fuzzy as integer=NO, border as integer=-1)
+DECLARE SUB edgebox (x as integer, y as integer, w as integer, h as integer, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1)
 DECLARE SUB emptybox (x as integer, y as integer, w as integer, h as integer, col as integer, thick as integer, p as integer)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname (num as integer, trigger as integer = 0) as string

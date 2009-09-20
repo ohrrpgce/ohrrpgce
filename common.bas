@@ -371,32 +371,25 @@ SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
  DIM textcol   AS INTEGER = uilook(uiTextBox + 2 * boxstyle)
  DIM bordercol AS INTEGER = uilook(uiTextBox + 2 * boxstyle + 1)
  DIM borders AS INTEGER = boxstyle
+ DIM trans AS RectTransTypes = transOpaque
  IF supress_borders THEN borders = -1
- edgebox x, y, w, h, textcol, bordercol, p, fuzzy, borders
+ IF fuzzy THEN trans = transFuzzy
+ edgebox x, y, w, h, textcol, bordercol, p, trans, borders
 END SUB
 
-SUB edgebox (x, y, w, h, col, bordercol, p, fuzzy=NO, border=-1)
-IF fuzzy THEN
+SUB edgebox (x, y, w, h, col, bordercol, p, trans AS RectTransTypes=transOpaque, border=-1)
+'--border: -2 is none, -1 is simple line, 0+ is styled box edge
+IF trans = transFuzzy THEN
  fuzzyrect x, y, w, h, col, p
-ELSE
+ELSEIF trans = transOpaque THEN
  rectangle x, y, w, h, col, p
 END IF
-IF border = -2 THEN EXIT SUB
-'--Simple line border
-'Top edge
-rectangle x, y, w, 1, bordercol, p
-'Bottom edge
-IF h > 1 THEN
- rectangle x, y + h - 1, w, 1, bordercol, p
-END IF
-'Left Edge
-rectangle x, y, 1, h, bordercol, p
-'Right Edge
-IF w > 1 THEN
- rectangle x + w - 1, y, 1, h, bordercol, p
-END IF
-IF border >= 0 and border <= 14 THEN
- '--Graphical Border
+IF border = -1 THEN
+ '--Simple line border
+ drawbox x, y, w, h, bordercol, p
+ELSEIF border >= 0 AND border <= 14 THEN
+ '--Normal Border
+ IF trans <> transHollow THEN drawbox x, y, w, h, bordercol, p
  IF box_border_cache_loaded = NO THEN load_box_border_cache
  DIM i AS INTEGER
  WITH box_border_cache(border)

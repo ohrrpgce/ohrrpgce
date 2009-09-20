@@ -7,6 +7,7 @@
 'Except, this module isn't very crappy
 
 #include "udts.bi"
+#include "common.bi"
 
 'These constants also need to be updated in plotscr.hsd and plotdict.xml
 'You may choose to just update them here and then run misc/sl_lookup.py
@@ -120,7 +121,7 @@ TYPE RectangleSliceData
  'If any of fgcol, bgcol or border are manually changed, set style=-1 and style_loaded=0
  fgcol as integer
  border as integer 'Should default to -1
- translucent as integer
+ translucent as RectTransTypes
  bgcol as integer
  'if style is changed then set style_loaded = NO
  style as integer 'Should default to -1
@@ -219,7 +220,7 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval bgcol as integer=-1,_
                       byval fgcol as integer=-1,_
                       byval border as integer=-3,_
-                      byval translucent as integer=-2)
+                      byval translucent as RectTransTypes=transUndef)
 
 
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr

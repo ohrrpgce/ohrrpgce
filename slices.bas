@@ -575,7 +575,7 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval bgcol as integer=-1,_
                       byval fgcol as integer=-1,_
                       byval border as integer=-3,_
-                      byval translucent as integer=-2)
+                      byval translucent as RectTransTypes=transUndef)
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
  if sl->SliceType <> slRectangle then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle" : exit sub
  dim dat as RectangleSliceData Ptr = sl->SliceData
@@ -599,7 +599,7 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
    .style = style
    .style_loaded = NO
   end if
-  if translucent > -2 then .translucent = (translucent <> 0)
+  if translucent <> transUndef then .translucent = translucent
  end with
  if dat->style >= 0 and dat->style_loaded = NO then
   UpdateRectangleSliceStyle dat
@@ -1195,7 +1195,7 @@ end function
 AND SO THE PROPHECY WAS SPOKEN:
 
 WHEN SO THE SOURCE IS COMPILED WITH -LANG FB, THEN THE LEGENDARY CONSTRUCTORS SHALL BE BORN
-Constructor RectangleSliceData (byval bg as integer = -1, byval tr as integer = YES, byval fg as integer = -1, byval bor as integer = -1)
+Constructor RectangleSliceData (byval bg as integer = -1, byval tr as RectTransType = rectFuzzy, byval fg as integer = -1, byval bor as integer = -1)
  with this
   .bgcol = bg
   if fgcol = -1 then
