@@ -285,6 +285,17 @@ Type AttackDataItem
 	number as integer 'positive to consume, negative to aquire
 End Type
 
+Type AttackDataChain
+	atk_id as integer 'ID+1, 0=None
+	mode as integer
+	val1 as integer
+	val2 as integer
+	'--bitsets
+	must_know as integer
+	check_costs as integer
+	consume_costs as integer
+End Type
+
 Type AttackData
 	name as string
 	description as string
@@ -301,8 +312,6 @@ Type AttackData
 	hp_cost as integer
 	money_cost as integer
 	extra_damage as integer
-	chain_to as integer 'ID +1
-	chain_rate as integer
 	attacker_anim as integer
 	attack_anim as integer
 	attack_delay as integer 'in ticks
@@ -316,6 +325,9 @@ Type AttackData
 	tagset(1) as AttackDataTag
 	item(2) as AttackDataItem
 	sound_effect as integer ' ID + 1
+	chain as AttackDataChain
+	failchain as AttackDataChain
+	instead as AttackDataChain
 	'----Bitsets----
 	cure_instead_of_harm as integer
 	divide_spread_damage as integer

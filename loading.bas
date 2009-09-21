@@ -1376,6 +1376,16 @@ SUB loadattackdata (array() AS INTEGER, BYVAL index AS INTEGER)
  END IF
 END SUB
 
+SUB loadattackchain (BYREF ch AS AttackDataChain, buf() AS INTEGER, BYVAL id_offset AS INTEGER, BYVAL mode_offset AS INTEGER, BYVAL val1_offset AS INTEGER, BYVAL val2_offset AS INTEGER, BYVAL bits_offset AS INTEGER)
+ ch.atk_id = buf(id_offset)
+ ch.mode = buf(mode_offset)
+ ch.val1 = buf(val1_offset)
+ ch.val2 = buf(val2_offset)
+ ch.must_know     = xreadbit(buf(), 0, bits_offset)
+ ch.check_costs   = xreadbit(buf(), 1, bits_offset)
+ ch.consume_costs = xreadbit(buf(), 2, bits_offset)
+END SUB
+
 SUB loadattackdata (BYREF atkdat AS AttackData, BYVAL index AS INTEGER)
  DIM buf(40 + dimbinsize(binATTACK)) AS INTEGER
  loadattackdata buf(), index
@@ -1399,8 +1409,6 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   .hp_cost = buf(9)
   .money_cost = buf(10)
   .extra_damage = buf(11)
-  .chain_to = buf(12)
-  .chain_rate = buf(13)
   .attacker_anim = buf(14)
   .attack_anim = buf(15)
   .attack_delay = buf(16)
@@ -1425,6 +1433,10 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
    END WITH
   NEXT i
   .sound_effect = buf(99)
+  '----Chaining----
+  loadattackchain .chain, buf(), 12, 101, 13, 102, 103
+  loadattackchain .failchain, buf(), 104, 105, 106, 107, 108
+  loadattackchain .instead, buf(), 109, 110, 111, 112, 113
   '----Bitsets----
   .cure_instead_of_harm           = xreadbit(buf(), 0, 20)
   .divide_spread_damage           = xreadbit(buf(), 1, 20)

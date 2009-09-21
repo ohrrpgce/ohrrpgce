@@ -64,7 +64,6 @@ battle = 1
 DIM formdata(40)
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
-DIM chained_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
 DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), walk(3)
 DIM harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
@@ -117,7 +116,7 @@ reset_battle_state bat
 reset_victory_state vic
 reset_rewards_state rew
 bat.anim_ready = NO
-wf = 0
+bat.wait_frames = 0
 
 FOR i = 0 TO 11
  icons(i) = -1
@@ -341,15 +340,15 @@ RETRACE
 
 action:
 tcount = 0 'This should be dimmed locally when this is SUBified
-IF wf > 0 THEN wf = wf - 1: IF wf > 0 THEN RETRACE
-IF wf = -1 THEN
- wf = 0
+IF bat.wait_frames > 0 THEN bat.wait_frames -= 1: IF bat.wait_frames > 0 THEN RETRACE
+IF bat.wait_frames = -1 THEN
+ bat.wait_frames = 0
  FOR i = 0 TO 23
-  IF bslot(i).xmov <> 0 OR bslot(i).ymov <> 0 OR bslot(i).zmov <> 0 THEN wf = -1
+  IF bslot(i).xmov <> 0 OR bslot(i).ymov <> 0 OR bslot(i).zmov <> 0 THEN bat.wait_frames = -1
  NEXT i
- IF wf = -1 THEN RETRACE
+ IF bat.wait_frames = -1 THEN RETRACE
 END IF
-wf = 0
+bat.wait_frames = 0
 
 DO: 'INTERPRET THE ANIMATION SCRIPT
  act = popw
@@ -409,7 +408,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    bslot(ww).xmov = tmp3
    bslot(ww).ymov = tmp4
   CASE 9 'waitforall()
-   wf = -1
+   bat.wait_frames = -1
   CASE 10 'inflict(targ, target_count)
    targ = popw
    tcount = popw
@@ -538,7 +537,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 12 '???(n,n,n,n,n)
    'unimplemented
   CASE 13 'wait(ticks)
-   wf = popw
+   bat.wait_frames = popw
   CASE 14 'walktoggle(who)
    ww = popw
    bslot(ww).frame = 0
@@ -600,43 +599,14 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 	 'debug "blsot(" & ww & ").d = " & tmp1
 	 bslot(ww).d = tmp1
  END SELECT
-LOOP UNTIL wf <> 0 OR bat.atk.id = -1
+LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
 
 IF bat.atk.id = -1 THEN
  GOSUB afterdone
  '--clean up stack
  'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
- '-------Spawn a Chained Attack--------
- IF attack.chain_to > 0 AND INT(RND * 100) < attack.chain_rate AND bstat(bat.acting).cur.hp > 0 THEN
-  IF attack.no_chain_on_failure = YES AND bslot(bat.acting).attack_succeeded = 0 THEN
-   'attack failed, so chain fails too
-  ELSE
-   wf = 0
-   bat.anim_ready = NO
-   loadattackdata chained_attack, attack.chain_to - 1
-   IF chained_attack.attack_delay > 0 THEN
-    '--chain is delayed, queue the attack
-    bslot(bat.acting).attack = attack.chain_to
-    delay(bat.acting) = chained_attack.attack_delay
-   ELSE
-    '--chain is immediate, prep it now!
-    bat.atk.id = attack.chain_to - 1
-    bat.anim_ready = NO
-    bslot(bat.acting).attack = 0
-   END IF
-   o = 0
-   FOR i = 4 TO 11
-    IF bstat(i).cur.hp = 0 THEN o = o + 1
-   NEXT i
-   IF o < 8 THEN
-    IF chained_attack.targ_set <> attack.targ_set OR chained_attack.targ_class <> attack.targ_class THEN
-     'if the chained attack has a different target class/type then re-target
-     autotarget bat.acting, chained_attack, bslot(), bstat()
-    END IF
-   END IF
-  END IF
- END IF
+ spawn_chained_attack attack.chain, attack, bat, bstat(), bslot(), delay()
 END IF
 RETRACE
 
@@ -943,7 +913,7 @@ FOR i = 0 TO 11
  IF bslot(i).attack = 0 AND bslot(i).dissolve = 0 AND bslot(i).ready = NO AND bstat(i).cur.stun = bstat(i).max.stun THEN
   '--increment ctr by speed
   ctr(i) = small(1000, ctr(i) + bstat(i).cur.spd)
-  IF ctr(i) = 1000 AND wf = 0 THEN bslot(i).ready = YES
+  IF ctr(i) = 1000 AND bat.wait_frames = 0 THEN bslot(i).ready = YES
  END IF
 
 NEXT i
@@ -2811,4 +2781,53 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat()
 
  'ready to choose bat.targ.selected() from bat.targ.mask()
  bat.targ.mode = targMANUAL
+END SUB
+
+FUNCTION check_attack_chain(ch AS AttackDataChain) AS INTEGER
+ 'Returns YES if the chain may proceed, or NO if it fails
+ SELECT CASE ch.mode
+  CASE 0
+   RETURN INT(RND * 100) < ch.val1
+  CASE ELSE
+   debug "attack chain mode " & ch.mode & " unsupported"
+ END SELECT
+ RETURN NO
+END FUNCTION
+
+SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS BattleSprite, delay())
+ IF ch.atk_id > 0 AND bstat(bat.acting).cur.hp > 0 THEN
+  '--a chain is defined and the attacker is not dead.
+  
+  IF attack.no_chain_on_failure = YES AND bslot(bat.acting).attack_succeeded = 0 THEN
+   'attack failed, and this chain configured to fail too
+   EXIT SUB
+  END IF
+  
+  IF check_attack_chain(ch) THEN
+   '--The conditions for this chain are passed
+   
+   bat.wait_frames = 0
+   bat.anim_ready = NO
+   
+   DIM chained_attack AS AttackData
+   loadattackdata chained_attack, ch.atk_id - 1
+   
+   IF chained_attack.attack_delay > 0 THEN
+    '--chain is delayed, queue the attack
+    bslot(bat.acting).attack = ch.atk_id
+    delay(bat.acting) = chained_attack.attack_delay
+   ELSE
+    '--chain is immediate, prep it now!
+    bat.atk.id = ch.atk_id - 1
+    bat.anim_ready = NO
+    bslot(bat.acting).attack = 0
+   END IF
+   
+   IF chained_attack.targ_set <> attack.targ_set OR chained_attack.targ_class <> attack.targ_class THEN
+    'if the chained attack has a different target class/type then re-target
+    autotarget bat.acting, chained_attack, bslot(), bstat()
+   END IF
+   
+  END IF
+ END IF
 END SUB

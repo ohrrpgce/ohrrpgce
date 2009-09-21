@@ -857,7 +857,7 @@ END FUNCTION
 
 FUNCTION curbinsize (id) as integer
  'returns the correct size in BYTES for of the records for the version you are running
- IF id = 0 THEN RETURN 122 'attack.bin
+ IF id = 0 THEN RETURN 148 'attack.bin
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin

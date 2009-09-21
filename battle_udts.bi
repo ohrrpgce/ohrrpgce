@@ -155,7 +155,8 @@ TYPE BattleState
           ({2,2,1,1,0,0,-1}), _
           ({0,0,1,1,2,2,1,1,0,0,-1}), _
           ({-1,-1}) }
-curbg AS INTEGER      'Current background
+ curbg AS INTEGER      'Current background
+ wait_frames AS INTEGER 'used by the attack animation
 END TYPE
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1
