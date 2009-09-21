@@ -148,5 +148,6 @@ declare sub sprite_debug_cache()
 declare function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 declare sub palette16_unload(byval p as palette16 ptr ptr)
 declare sub palette16_empty_cache()
+declare sub palette16_update_cache(fil as string, byval num as integer)
 
 #ENDIF

@@ -4500,11 +4500,12 @@ sub Palette16_empty_cache()
 	next
 end sub
 
-function Palette16_find_cache(byval s as string) as Palette16 ptr
+function Palette16_find_cache(byval s as string) as Palette16Cache ptr
 	dim i as integer
 	for i = 0 to ubound(palcache)
-		if palcache(i).s = s then return palcache(i).p
+		if palcache(i).s = s then return @palcache(i)
 	next
+	return NULL
 end function
 
 sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as integer = 0)
@@ -4537,13 +4538,10 @@ sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as
 	Palette16_add_cache(s, p, i)
 end sub
 
-
-
-
-
 function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 	dim f as integer, ret as palette16 ptr
 	dim hashstring as string
+	dim cache as Palette16Cache ptr
 	if num > -1 then
 		hashstring = trimpath(fil) & "#" & num & ":0"
 	else
@@ -4556,11 +4554,11 @@ function palette16_load(byval fil as string, byval num as integer, byval autotyp
 	end if
 	
 	'debug "Loading: " & hashstring
-	ret = palette16_find_cache(hashstring)
+	cache = palette16_find_cache(hashstring)
 	
-	if ret <> 0 then
-		ret->refcount += 1
-		return ret
+	if cache <> 0 then
+		cache->p->refcount += 1
+		return cache->p
 	end if
 	
 	if not isfile(fil) then return 0
@@ -4621,4 +4619,32 @@ sub palette16_unload(byval p as palette16 ptr ptr)
 	(*p)->refcount -= 1
 	'debug "unloading palette (" & ((*p)->refcount) & " more copies!)"
 	*p = 0
+end sub
+
+'update a .pal-loaded palette even while in use elsewhere. Notice that sprites don't have anything like this.
+sub Palette16_update_cache(fil as string, byval num as integer)
+	dim oldpal as Palette16 ptr
+	dim hashstring as string
+	dim cache as Palette16Cache ptr
+
+	hashstring = trimpath(fil) & "#" & num & ":0"
+	cache = Palette16_find_cache(hashstring)
+
+	if cache then
+		oldpal = cache->p
+
+		'force a reload, creating a temporary new palette
+		cache->s = ""
+		cache->p = NULL
+		Palette16_load(fil, num)
+		cache = Palette16_find_cache(hashstring)
+
+		'copy to old palette structure
+		dim as integer oldrefcount = oldpal->refcount
+		memcpy(oldpal, cache->p, sizeof(Palette16))
+		oldpal->refcount = oldrefcount
+		'this sub is silly
+		Palette16_delete(@cache->p)
+		cache->p = oldpal
+	end if
 end sub
