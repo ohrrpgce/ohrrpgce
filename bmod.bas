@@ -2783,11 +2783,41 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat()
  bat.targ.mode = targMANUAL
 END SUB
 
-FUNCTION check_attack_chain(ch AS AttackDataChain) AS INTEGER
+FUNCTION valid_statnum(statnum AS INTEGER, cmd AS STRING) AS INTEGER
+ RETURN bound_arg(statnum, 0, 15, cmd, "stat number")
+END FUNCTION
+
+FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bstat() AS BattleStats) AS INTEGER
  'Returns YES if the chain may proceed, or NO if it fails
  SELECT CASE ch.mode
-  CASE 0
+  CASE 0 '--random percentage
    RETURN INT(RND * 100) < ch.val1
+  CASE 1 '--tag checks
+   IF ABS(ch.val1) <= UBOUND(tag) AND ABS(ch.val2) <= UBOUND(tag) THEN
+    RETURN istag(ch.val1, YES) AND istag(ch.val2, YES)
+   ELSE
+    debug "chain: invalid tag check " & ch.val1 & " " & ch.val2
+   END IF
+  CASE 2 '--attacker stat greater than value
+   IF valid_statnum(ch.val1, "check_attack_chain() [>n]") THEN
+    RETURN bstat(bat.acting).cur.sta(ch.val1) > ch.val2
+   END IF
+  CASE 3 '--attacker stat less than value
+   IF valid_statnum(ch.val1, "check_attack_chain() [<n]") THEN
+    RETURN bstat(bat.acting).cur.sta(ch.val1) < ch.val2
+   END IF
+  CASE 4 '--attacker stat greater than value % of max
+   IF valid_statnum(ch.val1, "check_attack_chain() [>n%]") THEN
+    WITH bstat(bat.acting)
+     RETURN .cur.sta(ch.val1) > .max.sta(ch.val1) * (ch.val2 / 100)
+    END WITH
+   END IF
+  CASE 5 '--attacker stat less than value % of max
+   IF valid_statnum(ch.val1, "check_attack_chain() [<n%]") THEN
+    WITH bstat(bat.acting)
+     RETURN .cur.sta(ch.val1) < .max.sta(ch.val1) * (ch.val2 / 100)
+    END WITH
+   END IF
   CASE ELSE
    debug "attack chain mode " & ch.mode & " unsupported"
  END SELECT
@@ -2803,7 +2833,7 @@ SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat 
    EXIT SUB
   END IF
   
-  IF check_attack_chain(ch) THEN
+  IF check_attack_chain(ch, bat, bstat()) THEN
    '--The conditions for this chain are passed
    
    bat.wait_frames = 0

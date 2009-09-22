@@ -54,6 +54,8 @@ WHAT IS NEW?
     * The General Game Data menu has finally been cleaned up [Ralph]
     * Enemies can now have a cursor offset position so the cursor does
       not always have to go directly over their head. [James]
+    * Extended attack chaining options. Now you can make an attack
+      chain based on a tag check or a stat check. [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

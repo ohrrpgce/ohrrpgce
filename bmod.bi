@@ -48,5 +48,6 @@ DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslo
 DECLARE SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats)
 DECLARE SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, delay(), icons(), iuse())
 DECLARE SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS BattleSprite, delay())
-DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain) AS INTEGER
+DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bstat() AS BattleStats) AS INTEGER
+DECLARE FUNCTION valid_statnum(statnum AS INTEGER, cmd AS STRING) AS INTEGER
 #ENDIF

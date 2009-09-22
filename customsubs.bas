@@ -3287,3 +3287,53 @@ FUNCTION safe_caption(caption_array() AS STRING, BYVAL index AS INTEGER, descrip
   RETURN "Invalid " & description & " " & index
  END IF
 END FUNCTION
+
+SUB update_attack_editor_for_chain (group AS STRING, BYVAL mode AS INTEGER, BYREF caption1 AS STRING, BYREF max1 AS INTEGER, BYREF min1 AS INTEGER, BYREF menutype1 AS INTEGER, BYREF caption2 AS STRING, BYREF max2 AS INTEGER, BYREF min2 AS INTEGER, BYREF menutype2 AS INTEGER)
+ SELECT CASE mode
+  CASE 0 '--percentage
+   caption1 = group & " Rate%:"
+   max1 = 100
+   min1 = 0
+   menutype1 = 0
+   caption2 = "..."
+   max2 = 0
+   min2 = 0
+   menutype2 = 1 'make an action to supress display of the zero
+  CASE 1 '--tagcheck
+   caption1 = "  if Tag:"
+   max1 = 1000
+   min1 = -1000
+   menutype1 = 2
+   caption2 = "  and Tag:"
+   max2 = 1000
+   min2 = -1000
+   menutype2 = 2
+  CASE 2 TO 5
+   caption1 = "  if attacker "
+   max1 = 15
+   min1 = 0
+   menutype1 = 16 'stat
+   SELECT CASE mode
+    CASE 2
+     caption2 = "  is >"
+     max2 = 32000
+     min2 = -32000
+     menutype2 = 0
+    CASE 3
+     caption2 = "  is <"
+     max2 = 32000
+     min2 = -32000
+     menutype2 = 0
+    CASE 4
+     caption2 = "  is >"
+     max2 = 100
+     min2 = 0
+     menutype2 = 17 'int%
+    CASE 5
+     caption2 = "  is <"
+     max2 = 100
+     min2 = 0
+     menutype2 = 17 'int%
+   END SELECT
+ END SELECT
+END SUB

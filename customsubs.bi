@@ -65,5 +65,6 @@ DECLARE SUB edit_global_text_strings()
 DECLARE SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
 DECLARE FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS INTEGER=NO) AS INTEGER
 DECLARE FUNCTION safe_caption(caption_array() AS STRING, BYVAL index AS INTEGER, description AS STRING) AS STRING
+DECLARE SUB update_attack_editor_for_chain (group AS STRING, BYVAL mode AS INTEGER, BYREF caption1 AS STRING, BYREF max1 AS INTEGER, BYREF min1 AS INTEGER, BYREF menutype1 AS INTEGER, BYREF caption2 AS STRING, BYREF max2 AS INTEGER, BYREF min2 AS INTEGER, BYREF menutype2 AS INTEGER)
 
 #endif

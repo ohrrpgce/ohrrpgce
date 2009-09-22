@@ -152,7 +152,7 @@ CONST AtkDatHPCost = 9
 CONST AtkDatMoneyCost = 10
 CONST AtkDatExtraDamage = 11
 CONST AtkDatChainTo = 12
-CONST AtkDatChainRate = 13
+CONST AtkDatChainVal1 = 13
 CONST AtkDatAnimAttacker = 14
 CONST AtkDatAnimAttack = 15
 CONST AtkDatDelay = 16
@@ -177,14 +177,16 @@ CONST AtkDatItem = 93', 95, 97
 CONST AtkDatItemCost = 94', 96, 98
 CONST AtkDatSoundEffect = 99
 CONST AtkDatPrefTargStat = 100
+CONST AtkDatChainMode = 101
+CONST AtkDatChainVal2 = 102
 
 'anything past this requires expanding the data
 
 
 '----------------------------------------------------------
 capindex = 0
-DIM caption$(146)
-DIM max(30), min(30)
+DIM caption$(151)
+DIM max(32), min(32)
 
 'Limit(0) is not used
 
@@ -283,16 +285,16 @@ FOR i = 12 TO UBOUND(statnames)
  addcaption caption$(), capindex, statnames(i)
 NEXT
 
-
 CONST AtkLimExtraDamage = 11
 max(AtkLimExtraDamage) = 1000
 min(AtkLimExtraDamage) = -100
 
 CONST AtkLimChainTo = 12
-max(AtkLimChainTo) = gen(34) + 1'--must be updated!
+max(AtkLimChainTo) = gen(genMaxAttack) + 1'--must be updated!
 
-CONST AtkLimChainRate = 13
-max(AtkLimChainRate) = 100
+CONST AtkLimChainVal1 = 13
+max(AtkLimChainVal1) = 100 '--updated by update_attack_editor_for_chain()
+min(AtkLimChainVal1) = 0 '--updated by update_attack_editor_for_chain()
 
 CONST AtkLimAnimAttacker = 14
 max(AtkLimAnimAttacker) = 8
@@ -422,12 +424,25 @@ FOR i = 12 TO UBOUND(statnames) '17+
  addcaption caption$(), capindex, statnames(i)
 NEXT
 
+CONST AtkLimChainMode = 31
+max(AtkLimChainMode) = 5
+AtkCapChainMode = capindex
+addcaption caption$(), capindex, "Random Chance" '0
+addcaption caption$(), capindex, "Tag Check"     '1
+addcaption caption$(), capindex, "Attacker stat > value" '2
+addcaption caption$(), capindex, "Attacker stat < value" '3
+addcaption caption$(), capindex, "Attacker stat > %"     '4
+addcaption caption$(), capindex, "Attacker stat < %"     '5
 
-'next limit is 31 (remember to update the dim)
+CONST AtkLimChainVal2 = 32
+max(AtkLimChainVal2) = 0 '--updated by update_attack_editor_for_chain()
+min(AtkLimChainVal2) = 0 '--updated by update_attack_editor_for_chain()
+
+'next limit is 33 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 48
+CONST MnuItems = 50
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -546,11 +561,11 @@ menutype(AtkChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkChainTo) = AtkDatChainTo
 menulimits(AtkChainTo) = AtkLimChainTo
 
-CONST AtkChainRate = 22
-menu$(AtkChainRate) = "Chain Rate%:"
-menutype(AtkChainRate) = 0
-menuoff(AtkChainRate) = AtkDatChainRate
-menulimits(AtkChainRate) = AtkLimChainRate
+CONST AtkChainVal1 = 22
+menu$(AtkChainVal1) = "Chain Rate%:" '--updated by update_attack_editor_for_chain()
+menutype(AtkChainVal1) = 0
+menuoff(AtkChainVal1) = AtkDatChainVal1
+menulimits(AtkChainVal1) = AtkLimChainVal1
 
 CONST AtkAnimAttacker = 23
 menu$(AtkAnimAttacker) = "Attacker Animation:"
@@ -706,7 +721,19 @@ menutype(AtkPrefTargStat) = 2000 + AtkCapPrefTargStat
 menuoff(AtkPrefTargStat) = AtkDatPrefTargStat
 menulimits(AtkPrefTargStat) = AtkLimPrefTargStat
 
-'Next menu item is 48 (remember to update the dims)
+CONST AtkChainMode = 49
+menu$(AtkChainMode) = "Chain Mode:"
+menutype(AtkChainMode) = 2000 + AtkCapChainMode
+menuoff(AtkChainMode) = AtkDatChainMode
+menulimits(AtkChainMode) = AtkLimChainMode
+
+CONST AtkChainVal2 = 50
+menu$(AtkChainVal2) = "[not used for this chain mode]:" '--updated by update_attack_editor_for_chain()
+menutype(AtkChainVal2) = 0
+menuoff(AtkChainVal2) = AtkDatChainVal2
+menulimits(AtkChainVal2) = AtkLimChainVal2
+
+'Next menu item is 51 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -769,10 +796,12 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(2)
+DIM chainMenu(4)
 chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainTo
-chainMenu(2) = AtkChainRate
+chainMenu(2) = AtkChainMode
+chainMenu(3) = AtkChainVal1
+chainMenu(4) = AtkChainVal2
 
 DIM tagMenu(6)
 tagMenu(0) = AtkBackAct
@@ -954,6 +983,8 @@ DO
  IF needupdatemenu THEN
   '--in case new attacks have been added
   max(AtkLimChainTo) = gen(34) + 1
+  '--in case chain mode has changed
+  update_attack_editor_for_chain "Chain", recbuf(AtkDatChainMode), menu$(AtkChainVal1), max(AtkLimChainVal1), min(AtkLimChainVal1), menutype(AtkChainVal1), menu$(AtkChainVal2), max(AtkLimChainVal2), min(AtkLimChainVal2), menutype(AtkChainVal2)
   '--re-enforce bounds, as they might have just changed
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
   '--percentage damage shows target stat
@@ -1055,7 +1086,7 @@ FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(
 changed = 0
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 15, 1000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
@@ -1083,11 +1114,14 @@ SUB enforceflexbounds (menuoff(), menutype(), menulimits(), recbuf(), min(), max
 
 FOR i = 0 TO UBOUND(menuoff)
  SELECT CASE menutype(i)
-  CASE 0, 12, 1000 TO 3999
+  CASE 0, 8, 12 TO 17, 1000 TO 3999
    '--bound ints
    IF menulimits(i) > 0 THEN
     '--only bound items that have real limits
-    recbuf(menuoff(i)) = bound(recbuf(menuoff(i)), min(menulimits(i)), max(menulimits(i)))
+    IF recbuf(menuoff(i)) < min(menulimits(i)) OR recbuf(menuoff(i)) > max(menulimits(i)) THEN
+     '--detected out-of-range
+     recbuf(menuoff(i)) = large(0, min(menulimits(i)))
+    END IF
    END IF
  END SELECT
 NEXT i
@@ -1118,7 +1152,7 @@ SUB updateflexmenu (mpointer, nowmenu$(), nowdat(), size, menu$(), menutype(), m
 '           2=set tag
 '           3=string(bybyte)
 '           4=badly stored string(by word)
-'           5=chooser (not connected with data)
+'           5=record chooser (not connected with data)
 '           6=extra badly stored string(by word with gap)
 '           7=attack number (offset)
 '           8=item number (not offset)
@@ -1129,6 +1163,8 @@ SUB updateflexmenu (mpointer, nowmenu$(), nowdat(), size, menu$(), menutype(), m
 '           13=Default zero int >0 is int, 0 is "default"
 '           14=sound effect + 1 (0=default, -1=none)
 '           15=speed (shows battle turn time estimate)
+'           16=stat (numbered the same way as BattleStatsSingle.sta())
+'           17=int with a % sign after it
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1201,6 +1237,17 @@ FOR i = 0 TO size
     END IF
   CASE 15 '--speed (shows battle turn time estimate)
     nowmenu$(i) = nowmenu$(i) & " " & dat & " (1 turn each " & speed_estimate(dat) & ")"
+  CASE 16 '--stat
+    SELECT CASE dat
+     CASE 0 TO 11
+      nowmenu$(i) = nowmenu$(i) & " " & statnames(dat)
+     CASE 12: nowmenu$(i) = nowmenu$(i) & " posion register"
+     CASE 13: nowmenu$(i) = nowmenu$(i) & " regen register"
+     CASE 14: nowmenu$(i) = nowmenu$(i) & " stun register"
+     CASE 15: nowmenu$(i) = nowmenu$(i) & " mute register"
+    END SELECT
+  CASE 17 '--int%
+   nowmenu$(i) = nowmenu$(i) & " " & dat & "%"
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    nowmenu$(i) = nowmenu$(i) & " " & dat & " " & caption$(capnum + dat)
