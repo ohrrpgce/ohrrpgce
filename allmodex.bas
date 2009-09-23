@@ -586,8 +586,8 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 end SUB
 
 SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans = -1)
-'I think this just draws the sprite mirrored
-'are the coords top left or top right, though?
+'I this just draws the sprite mirrored
+'the coords are still top-left
 	dim sw as integer
 	dim sh as integer
 	dim hspr as frame ptr
@@ -599,7 +599,6 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	dim row as integer
 
 	if wrkpage <> page then
-		screenset page
 		wrkpage = page
 	end if
 
@@ -652,7 +651,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	next
 
 	'now draw the image
-	drawohr(*hspr, , x, y, trans)
+	drawohr(*hspr, , x, y, , trans)
 
 	sprite_delete(@hspr)
 end SUB
