@@ -152,7 +152,7 @@ CONST AtkDatHPCost = 9
 CONST AtkDatMoneyCost = 10
 CONST AtkDatExtraDamage = 11
 CONST AtkDatChainTo = 12
-CONST AtkDatChainVal1 = 13
+CONST AtkDatChainRate = 13
 CONST AtkDatAnimAttacker = 14
 CONST AtkDatAnimAttack = 15
 CONST AtkDatDelay = 16
@@ -178,7 +178,8 @@ CONST AtkDatItemCost = 94', 96, 98
 CONST AtkDatSoundEffect = 99
 CONST AtkDatPrefTargStat = 100
 CONST AtkDatChainMode = 101
-CONST AtkDatChainVal2 = 102
+CONST AtkDatChainVal1 = 102
+CONST AtkDatChainVal2 = 103
 
 'anything past this requires expanding the data
 
@@ -186,7 +187,7 @@ CONST AtkDatChainVal2 = 102
 '----------------------------------------------------------
 capindex = 0
 DIM caption$(151)
-DIM max(32), min(32)
+DIM max(33), min(33)
 
 'Limit(0) is not used
 
@@ -292,9 +293,9 @@ min(AtkLimExtraDamage) = -100
 CONST AtkLimChainTo = 12
 max(AtkLimChainTo) = gen(genMaxAttack) + 1'--must be updated!
 
-CONST AtkLimChainVal1 = 13
-max(AtkLimChainVal1) = 100 '--updated by update_attack_editor_for_chain()
-min(AtkLimChainVal1) = 0 '--updated by update_attack_editor_for_chain()
+CONST AtkLimChainRate = 13
+max(AtkLimChainRate) = 100
+min(AtkLimChainRate) = 0
 
 CONST AtkLimAnimAttacker = 14
 max(AtkLimAnimAttacker) = 8
@@ -427,22 +428,26 @@ NEXT
 CONST AtkLimChainMode = 31
 max(AtkLimChainMode) = 5
 AtkCapChainMode = capindex
-addcaption caption$(), capindex, "Random Chance" '0
+addcaption caption$(), capindex, "No special conditions" '0
 addcaption caption$(), capindex, "Tag Check"     '1
 addcaption caption$(), capindex, "Attacker stat > value" '2
 addcaption caption$(), capindex, "Attacker stat < value" '3
 addcaption caption$(), capindex, "Attacker stat > %"     '4
 addcaption caption$(), capindex, "Attacker stat < %"     '5
 
-CONST AtkLimChainVal2 = 32
+CONST AtkLimChainVal1 = 32
+max(AtkLimChainVal1) = 0 '--updated by update_attack_editor_for_chain()
+min(AtkLimChainVal1) = 0 '--updated by update_attack_editor_for_chain()
+
+CONST AtkLimChainVal2 = 33
 max(AtkLimChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 min(AtkLimChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 
-'next limit is 33 (remember to update the dim)
+'next limit is 34 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 50
+CONST MnuItems = 51
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -561,11 +566,11 @@ menutype(AtkChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkChainTo) = AtkDatChainTo
 menulimits(AtkChainTo) = AtkLimChainTo
 
-CONST AtkChainVal1 = 22
-menu$(AtkChainVal1) = "Chain Rate%:" '--updated by update_attack_editor_for_chain()
-menutype(AtkChainVal1) = 0
-menuoff(AtkChainVal1) = AtkDatChainVal1
-menulimits(AtkChainVal1) = AtkLimChainVal1
+CONST AtkChainRate = 22
+menu$(AtkChainRate) = "Chain Rate:"
+menutype(AtkChainRate) = 17
+menuoff(AtkChainRate) = AtkDatChainRate
+menulimits(AtkChainRate) = AtkLimChainRate
 
 CONST AtkAnimAttacker = 23
 menu$(AtkAnimAttacker) = "Attacker Animation:"
@@ -722,18 +727,24 @@ menuoff(AtkPrefTargStat) = AtkDatPrefTargStat
 menulimits(AtkPrefTargStat) = AtkLimPrefTargStat
 
 CONST AtkChainMode = 49
-menu$(AtkChainMode) = "Chain Mode:"
+menu$(AtkChainMode) = "Chain condition:"
 menutype(AtkChainMode) = 2000 + AtkCapChainMode
 menuoff(AtkChainMode) = AtkDatChainMode
 menulimits(AtkChainMode) = AtkLimChainMode
 
-CONST AtkChainVal2 = 50
-menu$(AtkChainVal2) = "[not used for this chain mode]:" '--updated by update_attack_editor_for_chain()
+CONST AtkChainVal1 = 50
+menu$(AtkChainVal1) = "..." '--updated by update_attack_editor_for_chain()
+menutype(AtkChainVal1) = 0
+menuoff(AtkChainVal1) = AtkDatChainVal1
+menulimits(AtkChainVal1) = AtkLimChainVal1
+
+CONST AtkChainVal2 = 51
+menu$(AtkChainVal2) = "..." '--updated by update_attack_editor_for_chain()
 menutype(AtkChainVal2) = 0
 menuoff(AtkChainVal2) = AtkDatChainVal2
 menulimits(AtkChainVal2) = AtkLimChainVal2
 
-'Next menu item is 51 (remember to update the dims)
+'Next menu item is 52 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -796,12 +807,13 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(4)
+DIM chainMenu(5)
 chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainTo
-chainMenu(2) = AtkChainMode
-chainMenu(3) = AtkChainVal1
-chainMenu(4) = AtkChainVal2
+chainMenu(2) = AtkChainRate
+chainMenu(3) = AtkChainMode
+chainMenu(4) = AtkChainVal1
+chainMenu(5) = AtkChainVal2
 
 DIM tagMenu(6)
 tagMenu(0) = AtkBackAct
@@ -982,9 +994,9 @@ DO
 
  IF needupdatemenu THEN
   '--in case new attacks have been added
-  max(AtkLimChainTo) = gen(34) + 1
+  max(AtkLimChainTo) = gen(genMaxAttack) + 1
   '--in case chain mode has changed
-  update_attack_editor_for_chain "Chain", recbuf(AtkDatChainMode), menu$(AtkChainVal1), max(AtkLimChainVal1), min(AtkLimChainVal1), menutype(AtkChainVal1), menu$(AtkChainVal2), max(AtkLimChainVal2), min(AtkLimChainVal2), menutype(AtkChainVal2)
+  update_attack_editor_for_chain recbuf(AtkDatChainMode), menu$(AtkChainVal1), max(AtkLimChainVal1), min(AtkLimChainVal1), menutype(AtkChainVal1), menu$(AtkChainVal2), max(AtkLimChainVal2), min(AtkLimChainVal2), menutype(AtkChainVal2)
   '--re-enforce bounds, as they might have just changed
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
   '--percentage damage shows target stat

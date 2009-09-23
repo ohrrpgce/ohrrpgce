@@ -2789,9 +2789,10 @@ END FUNCTION
 
 FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bstat() AS BattleStats) AS INTEGER
  'Returns YES if the chain may proceed, or NO if it fails
+ IF INT(RND * 100) >= ch.rate THEN RETURN NO '--random percentage failed
  SELECT CASE ch.mode
-  CASE 0 '--random percentage
-   RETURN INT(RND * 100) < ch.val1
+  CASE 0 '--no special conditions
+   RETURN YES
   CASE 1 '--tag checks
    IF ABS(ch.val1) <= UBOUND(tag) AND ABS(ch.val2) <= UBOUND(tag) THEN
     RETURN istag(ch.val1, YES) AND istag(ch.val2, YES)

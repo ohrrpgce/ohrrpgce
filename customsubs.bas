@@ -3288,16 +3288,16 @@ FUNCTION safe_caption(caption_array() AS STRING, BYVAL index AS INTEGER, descrip
  END IF
 END FUNCTION
 
-SUB update_attack_editor_for_chain (group AS STRING, BYVAL mode AS INTEGER, BYREF caption1 AS STRING, BYREF max1 AS INTEGER, BYREF min1 AS INTEGER, BYREF menutype1 AS INTEGER, BYREF caption2 AS STRING, BYREF max2 AS INTEGER, BYREF min2 AS INTEGER, BYREF menutype2 AS INTEGER)
+SUB update_attack_editor_for_chain (BYVAL mode AS INTEGER, BYREF caption1 AS STRING, BYREF max1 AS INTEGER, BYREF min1 AS INTEGER, BYREF menutype1 AS INTEGER, BYREF caption2 AS STRING, BYREF max2 AS INTEGER, BYREF min2 AS INTEGER, BYREF menutype2 AS INTEGER)
  SELECT CASE mode
-  CASE 0 '--percentage
-   caption1 = group & " Rate%:"
-   max1 = 100
-   min1 = 0
-   menutype1 = 0
+  CASE 0 '--no special condition
+   caption1 = "..."
+   max1 = 32000
+   min1 = -32000
+   menutype1 = 1 'make an action to supress display of the zero
    caption2 = "..."
-   max2 = 0
-   min2 = 0
+   max2 = 32000
+   min2 = -32000
    menutype2 = 1 'make an action to supress display of the zero
   CASE 1 '--tagcheck
    caption1 = "  if Tag:"
@@ -3309,7 +3309,7 @@ SUB update_attack_editor_for_chain (group AS STRING, BYVAL mode AS INTEGER, BYRE
    min2 = -1000
    menutype2 = 2
   CASE 2 TO 5
-   caption1 = "  if attacker "
+   caption1 = "  if attacker"
    max1 = 15
    min1 = 0
    menutype1 = 16 'stat

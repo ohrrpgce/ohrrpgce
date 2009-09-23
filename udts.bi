@@ -287,13 +287,13 @@ End Type
 
 Type AttackDataChain
 	atk_id as integer 'ID+1, 0=None
+	rate as integer
 	mode as integer
 	val1 as integer
 	val2 as integer
 	'--bitsets
 	must_know as integer
-	check_costs as integer
-	consume_costs as integer
+	no_delay as integer
 End Type
 
 Type AttackData
