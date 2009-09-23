@@ -2001,15 +2001,15 @@ IF gen(genVersion) = 5 THEN
  NEXT i
  gen(genVersion) = 6
 END IF
-'--VERSION 7--
-IF gen(genVersion) = 6 THEN
- 'This version number change provides backcompat warnings when loading
- 'ypsiliform or newer RPG files on xocolatl+ or older versions of game.exe
- 'All the work of actually changing the format is done below with fixbits
- 'The main purpose for this change is because games that use > 36 NPC defs
- 'will crash versions of game.exe that did not support more than that.
- gen(genVersion) = 7
-END IF
+'--VERSION 7 and up!
+' It is a good idea to increment this number each time a major feature
+' has been added, if opening a new game in an old editor would cause data-loss
+' Don't be afraid to increment this. Backcompat warnings are a good thing!
+'--version history
+' 7 - ypsiliform wip added > 36 NPC defs (and many other features)
+' 8 - ypsiliform wip added extended chaining data (and many other features)
+gen(genVersion) = 8
+
 
 IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  upgrade_message "generate default archinym.lmp"
