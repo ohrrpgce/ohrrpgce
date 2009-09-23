@@ -235,6 +235,8 @@ setpal master()
 LoadUIColors uilook(), activepalette
 
 setfont font()
+rpgversion gen(genVersion)
+
 getstatnames statnames()
 
 menumode = 0

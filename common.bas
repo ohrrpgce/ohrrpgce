@@ -2005,11 +2005,10 @@ END IF
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
-'--version history
-' 7 - ypsiliform wip added > 36 NPC defs (and many other features)
-' 8 - ypsiliform wip added extended chaining data (and many other features)
-gen(genVersion) = 8
-
+IF gen(genVersion) < CURRENT_RPG_VERSION THEN
+ debug "Bumping RPG format version number from " & gen(genVersion) & " to " & CURRENT_RPG_VERSION
+ gen(genVersion) = CURRENT_RPG_VERSION '--update me in const.bi
+END IF
 
 IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  upgrade_message "generate default archinym.lmp"
@@ -2385,6 +2384,57 @@ FOR i = top TO top + vis
  END IF
 NEXT i
 
+END SUB
+
+SUB rpgversion (v)
+ 'This sub provides backcompat warnings for read-only pre-unlumped rpgdirs,
+ 'All other games will be updated to the latest version in the update() sub
+ '
+ 'It also provides forward-compat warnings when a new RPG file is loaded in
+ 'and old copy of game, or an old version of custom (ypsiliform or newer)
+ '
+ 'See also update() sub
+ 'CURRENT_RPG_VERSION is updated in const.bi
+
+ IF v = CURRENT_RPG_VERSION THEN EXIT SUB
+ clearpage 0
+ clearpage 1
+ setvispage 0
+ centerbox 160, 100, 240, 100, 3, 0
+ IF v < 5 THEN
+  'This can only happen for a read-only rpgdir
+  edgeprint "Obsolete RPG File", 52, 70, uilook(uiSelectedItem), 0
+  textcolor uilook(uiMenuItem), 0
+  printstr "this game was created with", 52, 82, 0
+  printstr "an obsolete version of the", 52, 90, 0
+  printstr "OHRRPGCE. It may not run", 52, 98, 0
+  printstr "as intended.", 52, 106, 0
+ END IF
+ IF v > CURRENT_RPG_VERSION THEN
+  'Versions newer than current cannot support graceful forward compatability
+  edgeprint "Unsupported RPG File", 52, 70, uilook(uiText), 0
+  textcolor uilook(uiMenuItem), 0
+  printstr "this game has features", 52, 82, 0
+  printstr "that are not supported in", 52, 90, 0
+  printstr "this version of the", 52, 98, 0
+  printstr "OHRRPGCE. Download the", 52, 106, 0
+  printstr "latest version at", 52, 114, 0
+  printstr "http://HamsterRepublic.com", 52, 122, 0
+  
+  printstr "Press any key to continue,", 10, 160, 0
+  printstr "but be aware that some", 10, 170, 0
+  #IFDEF IS_GAME
+   printstr "things might not work right...", 10, 180, 0
+  #ELSE
+   printstr "data could be lost if you save.", 10, 180, 0
+  #ENDIF
+ END IF
+ fadein
+ setvispage 0
+ waitforanykey
+ #IFDEF IS_GAME
+ fadeout 0, 0, 0
+ #ENDIF
 END SUB
 
 SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)

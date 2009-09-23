@@ -1515,47 +1515,6 @@ FOR i = 0 TO lev
 NEXT i
 END SUB
 
-SUB rpgversion (v)
-'This sub provides backcompat warnings for read-only pre-unlumped rpgdirs,
-'All other games will be updated to the latest version in the update() sub
-'
-'It also provides forward-compat warnings when a new RPG file is loaded in
-'and old copy of game
-current = 7
-'last added midi music, change shop stuff and song name formats
-
-IF v >= 5 AND v <= current THEN EXIT SUB
-needf = 1
-clearpage 0
-clearpage 1
-setvispage 0
-centerbox 160, 100, 240, 100, 3, 0
-IF v < 5 THEN
- ' Versions older than 5 do not support graceful backwards compatability
- edgeprint "Obsolete RPG File", 52, 70, uilook(uiSelectedItem), 0
- textcolor uilook(uiMenuItem), 0
- printstr "this game was created with", 52, 82, 0
- printstr "an obsolete version of the", 52, 90, 0
- printstr "OHRRPGCE. It may not run", 52, 98, 0
- printstr "as intended.", 52, 106, 0
-END IF
-IF v > current THEN
- 'Versions newer than current cannot support graceful forward compatability
- edgeprint "Unsupported RPG File", 52, 70, uilook(uiText), 0
- textcolor uilook(uiMenuItem), 0
- printstr "this game has features", 52, 82, 0
- printstr "that are not supported in", 52, 90, 0
- printstr "this version of the", 52, 98, 0
- printstr "OHRRPGCE. Download the", 52, 106, 0
- printstr "latest version at", 52, 114, 0
- printstr "http://HamsterRepublic.com", 52, 122, 0
-END IF
-fadein
-setvispage 0
-w = getkey
-fadeout 0, 0, 0
-END SUB
-
 FUNCTION runscript (id as integer, index as integer, newcall as integer, er as string, trigger as integer) as integer
 
 IF trigger <> 0 THEN n = decodetrigger(id, trigger) ELSE n = id
