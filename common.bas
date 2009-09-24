@@ -1699,6 +1699,10 @@ RETURN ""
 END FUNCTION
 
 SUB updaterecordlength (lumpf$, bindex AS INTEGER)
+IF curbinsize(bindex) MOD 2 <> 0 THEN
+ 'curbinsize is INSANE, scream bloody murder to prevent data corruption!
+ fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " please complain to the devs, who may have just done something stupid!"
+END IF
 IF getbinsize(bindex) < curbinsize(bindex) THEN
 
  oldsize = getbinsize(bindex)
