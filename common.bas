@@ -1703,6 +1703,11 @@ IF curbinsize(bindex) MOD 2 <> 0 THEN
  'curbinsize is INSANE, scream bloody murder to prevent data corruption!
  fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " please complain to the devs, who may have just done something stupid!"
 END IF
+
+IF getbinsize(bindex) > curbinsize(bindex) THEN
+  fatalerror "Oh noes! getbinsize(" & bindex & ") = " & getbinsize(bindex) & ", but new value " & curbinsize(bindex) & " is less than that! This means your RPG file's BINSIZE.BIN may be corrupted!"
+END IF
+
 IF getbinsize(bindex) < curbinsize(bindex) THEN
 
  oldsize = getbinsize(bindex)
