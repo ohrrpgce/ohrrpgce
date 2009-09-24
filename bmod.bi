@@ -11,13 +11,13 @@
 #INCLUDE "battle_udts.bi"
 
 declare function battle (form as integer, fatal as integer, exstat() as integer) as integer
-declare function checknorunbit (bstat() AS BattleStats, bslot() as battlesprite) as integer
+declare function checknorunbit (bslot() as battlesprite) as integer
 DECLARE SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
 declare function focuscost (cost as integer, focus as integer) as integer
 DECLARE SUB herobattlebits_raw (bitbuf() as integer, who as integer)
 DECLARE SUB herobattlebits (bslot() AS BattleSprite, who as integer)
 declare sub invertstack
-declare sub quickinflict (harm as integer, targ as integer, hc() as integer, hx() as integer, hy() as integer, bslot() as battlesprite, harm() as string, bstat() AS BattleStats)
+declare sub quickinflict (harm as integer, targ as integer, hc() as integer, hx() as integer, hy() as integer, bslot() as battlesprite, harm() as string)
 DECLARE SUB anim_end()
 DECLARE SUB anim_wait(ticks as integer)
 DECLARE SUB anim_waitforall()
@@ -37,17 +37,17 @@ DECLARE SUB anim_setcenter(who as integer, target as integer, offx as integer, o
 DECLARE SUB anim_align2(who as integer, target as integer, edgex as integer, edgey as integer, offx as integer, offy as integer)
 DECLARE SUB anim_relmove(who as integer, tox as integer, toy as integer, xspeed as integer, yspeed as integer)
 DECLARE SUB anim_setdir(who as integer, d as integer)
-DECLARE FUNCTION dieWOboss(BYVAL who as integer, bstat() AS BattleStats, bslot() AS BattleSprite) as integer
-DECLARE SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es() as integer, formdata() as integer)
-DECLARE SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER, delay() AS INTEGER)
-DECLARE SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, menubits() AS INTEGER, nmenu() AS INTEGER, mend() AS INTEGER, delay() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
-DECLARE SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bstat() AS BattleStats, bslot() AS BattleSprite, delay(), conlmp())
-DECLARE SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat())
-DECLARE SUB enforce_weak_picture(who AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, vic AS VictoryState)
-DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter())
-DECLARE SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats)
+DECLARE FUNCTION dieWOboss(BYVAL who as integer, bslot() AS BattleSprite) as integer
+DECLARE SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, es() as integer, formdata() as integer)
+DECLARE SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER, delay() AS INTEGER)
+DECLARE SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, nmenu() AS INTEGER, mend() AS INTEGER, delay() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
+DECLARE SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS BattleSprite, delay(), conlmp())
+DECLARE SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, exstat())
+DECLARE SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, vic AS VictoryState)
+DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter())
+DECLARE SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, delay(), icons(), iuse())
-DECLARE SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS BattleSprite, delay())
-DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bstat() AS BattleStats) AS INTEGER
+DECLARE SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, delay())
+DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION valid_statnum(statnum AS INTEGER, cmd AS STRING) AS INTEGER
 #ENDIF

@@ -301,20 +301,20 @@ SELECT CASE AS CONST id
   heroswap 1, stat()
  CASE 183'--setherolevel (who, what, allow forgetting spells)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
-   DIM dummystats(40) as BattleStats 'just need HP and MP
+   DIM dummystats as BattleStats 'just need HP and MP
    stat(retvals(0), 1, 12) = retvals(1) - stat(retvals(0), 0, 12)
    stat(retvals(0), 0, 12) = retvals(1)
    exlev(retvals(0), 1) = exptolevel(retvals(1))
    exlev(retvals(0), 0) = 0  'XP attained towards the next level
-   updatestatslevelup retvals(0), stat(), dummystats(), retvals(2) 'updates stats and spells
+   updatestatslevelup retvals(0), stat(), dummystats, retvals(2) 'updates stats and spells
   END IF
  CASE 184'--give experience (who, how much)
-  DIM dummystats(40) as BattleStats 'just need HP and MP
+  DIM dummystats as BattleStats 'just need HP and MP
   'who = -1 targets battle party
   IF retvals(0) <> -1 THEN
    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
     giveheroexperience retvals(0), stat(), retvals(1)
-    updatestatslevelup retvals(0), stat(), dummystats(), 0
+    updatestatslevelup retvals(0), stat(), dummystats, 0
    END IF
   ELSE
    DIM numheroes as integer
@@ -325,7 +325,7 @@ SELECT CASE AS CONST id
     stat(i, 1, 12) = 0
     'give the XP to the hero only if it is alive when 'dead heroes get XP' not set
     IF readbit(gen(), genBits2, 3) <> 0 OR stat(i, 0, 0) > 0 THEN giveheroexperience i, stat(), retvals(1)
-    updatestatslevelup i, stat(), dummystats(), 0
+    updatestatslevelup i, stat(), dummystats, 0
    NEXT i
   END IF
  CASE 185'--hero levelled (who)

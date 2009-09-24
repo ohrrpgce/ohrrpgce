@@ -32,7 +32,7 @@ DECLARE FUNCTION countitem% (it%)
 #INCLUDE "battle_udts.bi"
 
 DECLARE SUB confirm_auto_spread (who as integer, tmask() as integer, bslot() AS BattleSprite)
-DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atk as AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
+DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atk as AttackData, bslot() AS BattleSprite)
 DECLARE SUB confirm_auto_first (who as integer, tmask() as integer, bslot() AS BattleSprite)
 
 DECLARE FUNCTION quick_battle_distance(who1 as integer, who2 as integer, bslot() AS BattleSprite)
@@ -59,26 +59,26 @@ FUNCTION is_weapon(who as integer) as integer
  RETURN 0
 END FUNCTION
 
-FUNCTION atkallowed (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
+FUNCTION atkallowed (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bslot() AS BattleSprite) as integer
  'FIXME: this will be deleted in favour of its overload as soon as it is no longer needed
  DIM atk AS AttackData
  convertattackdata atkbuf(), atk
- RETURN atkallowed(atk, attacker, spclass, lmplev, bstat())
+ RETURN atkallowed(atk, attacker, spclass, lmplev, bslot())
 END FUNCTION
 
-FUNCTION atkallowed (atk as AttackData, attacker as integer, spclass as integer, lmplev as integer, bstat() AS BattleStats) as integer
+FUNCTION atkallowed (atk as AttackData, attacker as integer, spclass as integer, lmplev as integer, bslot() AS BattleSprite) as integer
 '--atk   = attack data
 '--attacker = hero or enemy who is attacking
 '--spclass  = 0 for normal attacks, 1 for level-MP spells
 '--lmplev   = which level-MP level to use
 
 '--check for mutedness
-IF atk.mutable AND bstat(attacker).cur.mute < bstat(attacker).max.mute THEN
+IF atk.mutable AND bslot(attacker).stat.cur.mute < bslot(attacker).stat.max.mute THEN
  RETURN NO
 END IF
 
 '--check for sufficient mp
-IF bstat(attacker).cur.mp - focuscost(atk.mp_cost, bstat(attacker).cur.foc) < 0 THEN
+IF bslot(attacker).stat.cur.mp - focuscost(atk.mp_cost, bslot(attacker).stat.cur.foc) < 0 THEN
  RETURN NO
 END IF
 
@@ -107,7 +107,7 @@ NEXT i
 '--succeed
 RETURN YES
 
-END FUNCTION
+END FUNCTION 'stat
 
 FUNCTION checktheftchance (item as integer, itemP as integer, rareitem as integer, rareitemP as integer) as integer
 IF RND * 100 < itemP THEN
@@ -269,10 +269,10 @@ NEXT i
 countai = o
 END FUNCTION
 
-FUNCTION enemycount (bslot() AS BattleSprite, bstat() AS BattleStats) as integer
+FUNCTION enemycount (bslot() AS BattleSprite) as integer
 o = 0
 FOR i = 4 TO 11
- IF bstat(i).cur.hp > 0 THEN o = o + 1
+ IF bslot(i).stat.cur.hp > 0 THEN o = o + 1
 NEXT i
 RETURN o
 END FUNCTION
@@ -299,7 +299,7 @@ Function GetHeroPos(h as integer,f as integer,isY as integer) as integer'or x?
  CLOSE #FH
 End Function
 
-FUNCTION inflict (w as integer, t as integer, bstat() AS BattleStats, bslot() AS BattleSprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, attack as AttackData, tcount as integer) as integer
+FUNCTION inflict (w as integer, t as integer, bslot() AS BattleSprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, attack as AttackData, tcount as integer) as integer
 
 DIM h = 0
 
@@ -328,18 +328,18 @@ IF attack.damage_math <> 4 THEN
  hc(t) = 7
  hx(t) = bslot(t).x + (bslot(t).w * .5)
  hy(t) = bslot(t).y + (bslot(t).h * .5)
- targstat = bound(attack.targ_stat, 0, UBOUND(bstat(t).cur.sta))
+ targstat = bound(attack.targ_stat, 0, UBOUND(bslot(t).stat.cur.sta))
 
  'accuracy
- a = bstat(w).cur.acc
- d = bstat(t).cur.dog
+ a = bslot(w).stat.cur.acc
+ d = bslot(t).stat.cur.dog
  dm! = .25
  IF attack.aim_math = 1 THEN dm! = .5
  IF attack.aim_math = 2 THEN dm! = 1
  IF attack.aim_math = 4 THEN dm! = 1.25
  IF attack.aim_math = 4 OR attack.aim_math = 7 OR attack.aim_math = 8 THEN
-  a = bstat(w).cur.mag
-  d = bstat(t).cur.wil
+  a = bslot(w).stat.cur.mag
+  d = bslot(t).stat.cur.wil
  END IF
 
  attackhit = range(a, 75) >= range(d * dm!, 75)
@@ -351,40 +351,40 @@ IF attack.damage_math <> 4 THEN
   EXIT FUNCTION
  END IF
 
- IF attack.fail_if_targ_poison = YES AND bstat(t).cur.poison < bstat(t).max.poison THEN
+ IF attack.fail_if_targ_poison = YES AND bslot(t).stat.cur.poison < bslot(t).stat.max.poison THEN
   harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
- IF attack.fail_if_targ_regen = YES AND bstat(t).cur.regen < bstat(t).max.regen THEN
+ IF attack.fail_if_targ_regen = YES AND bslot(t).stat.cur.regen < bslot(t).stat.max.regen THEN
   harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
- IF attack.fail_if_targ_stun = YES AND bstat(t).cur.stun <> bstat(t).max.stun THEN
+ IF attack.fail_if_targ_stun = YES AND bslot(t).stat.cur.stun <> bslot(t).stat.max.stun THEN
   harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
- IF attack.fail_if_targ_mute = YES AND bstat(t).cur.mute <> bstat(t).max.mute THEN
+ IF attack.fail_if_targ_mute = YES AND bslot(t).stat.cur.mute <> bslot(t).stat.max.mute THEN
   harm$(t) = readglobalstring$(122, "fail", 20)
   EXIT FUNCTION
  END IF
 
  'attack and defense base
- a = bstat(w).cur.str
- d = bstat(t).cur.def
+ a = bslot(w).stat.cur.str
+ d = bslot(t).stat.cur.def
  SELECT CASE attack.base_atk_stat
   CASE 1
-   a = bstat(w).cur.mag
-   d = bstat(t).cur.wil
+   a = bslot(w).stat.cur.mag
+   d = bslot(t).stat.cur.wil
   CASE 2
-   a = bstat(w).cur.hp
+   a = bslot(w).stat.cur.hp
   CASE 3
-   a = bstat(w).max.hp - bstat(w).cur.hp
+   a = bslot(w).stat.max.hp - bslot(w).stat.cur.hp
   CASE 4
    a = INT(RND * 999)
   CASE 5
    a = 100
   CASE 6 TO 17
-   a = bstat(w).cur.sta(attack.base_atk_stat - 6)
+   a = bslot(w).stat.cur.sta(attack.base_atk_stat - 6)
   CASE 18
    a = bslot(w).repeatharm
   CASE 19
@@ -398,7 +398,7 @@ IF attack.damage_math <> 4 THEN
  END SELECT
 
  '--defense base
- IF attack.base_def_stat > 0 AND attack.base_def_stat <= UBOUND(bstat(t).cur.sta) + 1 THEN d = bstat(t).cur.sta(attack.base_def_stat - 1)
+ IF attack.base_def_stat > 0 AND attack.base_def_stat <= UBOUND(bslot(t).stat.cur.sta) + 1 THEN d = bslot(t).stat.cur.sta(attack.base_def_stat - 1)
 
  'calc defense
  am! = 1: dm! = .5                    'atk-def*.5
@@ -408,7 +408,7 @@ IF attack.damage_math <> 4 THEN
 
  'resetting
  IF attack.reset_targ_stat_before_hit = YES THEN
-  bstat(t).cur.sta(targstat) = bstat(t).max.sta(targstat)
+  bslot(t).stat.cur.sta(targstat) = bslot(t).stat.max.sta(targstat)
  END IF
 
  'calc harm
@@ -458,12 +458,12 @@ IF attack.damage_math <> 4 THEN
  END IF
 
  'remember target stat
- remtargstat = bstat(t).cur.sta(targstat)
- rematkrstat = bstat(w).cur.sta(targstat)
+ remtargstat = bslot(t).stat.cur.sta(targstat)
+ rematkrstat = bslot(w).stat.cur.sta(targstat)
 
  'pre-calculate percentage damage for display
- chp = bstat(t).cur.sta(targstat)
- mhp = bstat(t).max.sta(targstat)
+ chp = bslot(t).stat.cur.sta(targstat)
+ mhp = bslot(t).stat.max.sta(targstat)
  IF attack.percent_damage_not_set = YES THEN
   'percentage attacks do damage
   'FIXME: see bug 134 about moving this block up the function. This should be base damage?
@@ -501,7 +501,7 @@ IF attack.damage_math <> 4 THEN
    IF h < -gen(genDamageCap) THEN h = -gen(genDamageCap)
   END IF
 
-  bstat(t).cur.sta(targstat) = safesubtract(bstat(t).cur.sta(targstat), h)
+  bslot(t).stat.cur.sta(targstat) = safesubtract(bslot(t).stat.cur.sta(targstat), h)
   IF attack.absorb_damage THEN
    '--drain
    IF attack.do_not_display_damage = NO THEN
@@ -512,16 +512,16 @@ IF attack.damage_math <> 4 THEN
    hc(w + 12) = 12 'pink
    hx(w) = bslot(w).x + (bslot(w).w * .5)
    hy(w) = bslot(w).y + (bslot(w).h * .5)
-   bstat(w).cur.sta(targstat) = bstat(w).cur.sta(targstat) + h
+   bslot(w).stat.cur.sta(targstat) = bslot(w).stat.cur.sta(targstat) + h
   END IF
  END IF
 
  'enforce bounds
- bstat(t).cur.sta(targstat) = large(bstat(t).cur.sta(targstat), 0)
- bstat(w).cur.sta(targstat) = large(bstat(w).cur.sta(targstat), 0)
+ bslot(t).stat.cur.sta(targstat) = large(bslot(t).stat.cur.sta(targstat), 0)
+ bslot(w).stat.cur.sta(targstat) = large(bslot(w).stat.cur.sta(targstat), 0)
  IF attack.allow_cure_to_exceed_maximum = NO THEN
-  bstat(t).cur.sta(targstat) = small(bstat(t).cur.sta(targstat), large(bstat(t).max.sta(targstat), remtargstat))
-  bstat(w).cur.sta(targstat) = small(bstat(w).cur.sta(targstat), large(bstat(w).max.sta(targstat), rematkrstat))
+  bslot(t).stat.cur.sta(targstat) = small(bslot(t).stat.cur.sta(targstat), large(bslot(t).stat.max.sta(targstat), remtargstat))
+  bslot(w).stat.cur.sta(targstat) = small(bslot(w).stat.cur.sta(targstat), large(bslot(w).stat.max.sta(targstat), rematkrstat))
  END IF
 
  'set damage display
@@ -532,18 +532,18 @@ IF attack.damage_math <> 4 THEN
  END IF
 
  'remember revenge data
- IF remtargstat > bstat(t).cur.sta(targstat) THEN
+ IF remtargstat > bslot(t).stat.cur.sta(targstat) THEN
   bslot(t).revengemask(w) = YES
   bslot(t).revenge = w
-  bslot(t).revengeharm = remtargstat - bstat(t).cur.sta(targstat)
-  bslot(w).repeatharm = remtargstat - bstat(t).cur.sta(targstat)
+  bslot(t).revengeharm = remtargstat - bslot(t).stat.cur.sta(targstat)
+  bslot(w).repeatharm = remtargstat - bslot(t).stat.cur.sta(targstat)
  END IF
 
  'remember thankvenge data
- IF remtargstat < bstat(t).cur.sta(targstat) THEN
+ IF remtargstat < bslot(t).stat.cur.sta(targstat) THEN
   bslot(t).thankvengemask(w) = YES
   bslot(t).thankvenge = w
-  bslot(t).thankvengecure = ABS(remtargstat - bstat(t).cur.sta(targstat))
+  bslot(t).thankvengecure = ABS(remtargstat - bslot(t).stat.cur.sta(targstat))
  END IF
 
 END IF 'skips to here if no damage
@@ -554,10 +554,10 @@ IF attack.show_name = YES THEN
 END IF
 
 'reset registers as per convenience bits
-IF attack.reset_poison = YES THEN bstat(t).cur.poison = bstat(t).max.poison
-IF attack.reset_regen = YES  THEN bstat(t).cur.regen  = bstat(t).max.regen
-IF attack.reset_stun = YES   THEN bstat(t).cur.stun   = bstat(t).max.stun
-IF attack.reset_mute = YES   THEN bstat(t).cur.mute   = bstat(t).max.mute
+IF attack.reset_poison = YES THEN bslot(t).stat.cur.poison = bslot(t).stat.max.poison
+IF attack.reset_regen = YES  THEN bslot(t).stat.cur.regen  = bslot(t).stat.max.regen
+IF attack.reset_stun = YES   THEN bslot(t).stat.cur.stun   = bslot(t).stat.max.stun
+IF attack.reset_mute = YES   THEN bslot(t).stat.cur.mute   = bslot(t).stat.max.mute
 
 '--success!
 inflict = 1
@@ -565,10 +565,10 @@ bslot(w).attack_succeeded = 1
 
 END FUNCTION
 
-FUNCTION liveherocount (bstat() AS BattleStats) as integer
+FUNCTION liveherocount (bslot() AS BattleSprite) as integer
 i = 0
 FOR o = 0 TO 3
- IF hero(o) > 0 AND bstat(o).cur.hp > 0 THEN i = i + 1
+ IF hero(o) > 0 AND bslot(o).stat.cur.hp > 0 THEN i = i + 1
 NEXT o
 liveherocount = i
 END FUNCTION
@@ -581,7 +581,7 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, allow_dead as integer = NO)
+SUB loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)
 DIM tempbits(4) AS INTEGER ' This is a hack because readbit doesn't work on double-index arrays
 IF formdata(i * 4) > 0 THEN
  loadenemydata buffer(), formdata(i * 4) - 1, -1
@@ -616,11 +616,11 @@ IF formdata(i * 4) > 0 THEN
  IF allow_dead = NO THEN
   'enemies which spawn already-dead should be killed off immediately
   'die without boss or 0 hp?
-  IF dieWOboss(4 + i, bstat(), bslot()) OR es(i, 62) <= 0 THEN
+  IF dieWOboss(4 + i, bslot()) OR es(i, 62) <= 0 THEN
    'rewards and spawn enemies on death
    'enemy is only partially constructed, but already have everything needed.
    DIM atktype(8) 'regular "spawn on death"
-   dead_enemy 4 + i, -1, bat, rew, bstat(), bslot(), es(), formdata()
+   dead_enemy 4 + i, -1, bat, rew, bslot(), es(), formdata()
    EXIT SUB
   END IF
  END IF
@@ -673,8 +673,8 @@ IF bslot(4 + i).vis = 1 THEN
   
  end with
  FOR o = 0 TO 11
-  bstat(4 + i).cur.sta(o) = es(i, 62 + o)
-  bstat(4 + i).max.sta(o) = es(i, 62 + o)
+  bslot(4 + i).stat.cur.sta(o) = es(i, 62 + o)
+  bslot(4 + i).stat.max.sta(o) = es(i, 62 + o)
  NEXT o
  bslot(4 + i).name = ""
  FOR o = 1 TO es(i, 0)
@@ -846,10 +846,10 @@ FUNCTION exptolevel (level as integer) as integer
  return exper
 END FUNCTION
 
-SUB updatestatslevelup (i as integer, exstat() as integer, bstat() AS BattleStats, allowforget as integer)
+SUB updatestatslevelup (i as integer, exstat() as integer, stats AS BattleStats, allowforget as integer)
 ' i = who
 ' exstat = external stats
-' stat = in-battle stats
+' stats = in-battle stats
 ' allowforget = forget spells if level dropped below requirement
 
 'wipe learnmask for this hero
@@ -887,14 +887,14 @@ IF exstat(i, 1, 12) THEN
  IF readbit(gen(), 101, 2) = 0 THEN
   '--HP restoration ON
   exstat(i, 0, 0) = exstat(i, 1, 0) 'set external cur to external max
-  bstat(i).cur.hp = exstat(i, 1, 0) 'set in-battle cur to external max
-  bstat(i).max.hp = exstat(i, 1, 0) 'set in-battle max to external max
+  stats.cur.hp = exstat(i, 1, 0) 'set in-battle cur to external max
+  stats.max.hp = exstat(i, 1, 0) 'set in-battle max to external max
  END IF
  IF readbit(gen(), 101, 3) = 0 THEN
   '--MP restoration ON
   exstat(i, 0, 1) = exstat(i, 1, 1) 'set external cur to external max
-  bstat(i).cur.mp = exstat(i, 1, 1) 'set in-battle cur to external max
-  bstat(i).max.mp = exstat(i, 1, 1) 'set in-battle max to external max
+  stats.cur.mp = exstat(i, 1, 1) 'set in-battle cur to external max
+  stats.max.mp = exstat(i, 1, 1) 'set in-battle max to external max
   resetlmp i, exstat(i, 0, 12)
  END IF
 
@@ -943,7 +943,7 @@ END SUB
 
 SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allowforget as integer, exstat() as integer, exlev() as integer)
  'unlike giveheroexperience, this can cause delevelling
- DIM dummystats(40) AS BattleStats
+ DIM dummystats AS BattleStats
 
  temp = exstat(who, 0, 12)
  total = 0
@@ -963,7 +963,7 @@ SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allo
  END IF
  exlev(who, 0) = 0
  giveheroexperience who, exstat(), amount
- updatestatslevelup who, exstat(), dummystats(), allowforget
+ updatestatslevelup who, exstat(), dummystats, allowforget
  exstat(who, 1, 12) -= temp
  IF lostlevels THEN
   'didn't learn spells, wipe mask
@@ -973,29 +973,29 @@ SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allo
  END IF
 END SUB
 
-FUNCTION visibleandalive (o as integer, bstat() AS BattleStats, bslot() AS BattleSprite) as integer
-visibleandalive = (bslot(o).vis = 1 AND bstat(o).cur.hp > 0)
+FUNCTION visibleandalive (o as integer, bslot() AS BattleSprite) as integer
+visibleandalive = (bslot(o).vis = 1 AND bslot(o).stat.cur.hp > 0)
 END FUNCTION
 
-SUB writestats (exstat() as integer, bstat() AS BattleStats)
+SUB writestats (exstat() as integer, bslot() AS BattleSprite)
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
   '--set out-of-battle HP and MP equal to in-battle HP and MP
-  exstat(i, 0, 0) = bstat(i).cur.hp
-  exstat(i, 0, 1) = bstat(i).cur.mp
+  exstat(i, 0, 0) = bslot(i).stat.cur.hp
+  exstat(i, 0, 1) = bslot(i).stat.cur.mp
  END IF
 NEXT i
 END SUB
 
-SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite)
  'FIXME: remove this in favour of its overload later
  DIM atk AS AttackData
  convertattackdata atkbuf(), atk
- get_valid_targs tmask(), who, atk, bslot(), bstat()
+ get_valid_targs tmask(), who, atk, bslot()
 END SUB
 
-SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
+SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSprite)
 
  DIM i AS INTEGER
 
@@ -1072,7 +1072,7 @@ SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSpri
  CASE 10 'dead-ally (hero only)
   IF is_hero(who) THEN
    FOR i = 0 TO 3
-    IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN tmask(i) = 1
+    IF hero(i) > 0 AND bslot(i).stat.cur.hp = 0 THEN tmask(i) = 1
    NEXT i
   END IF
 
@@ -1303,21 +1303,21 @@ FUNCTION attack_can_hit_dead(who as integer, attack as AttackData) as integer
  RETURN NO
 END FUNCTION
 
-SUB autotarget (who, atkbuf(), bslot() AS BattleSprite, bstat() AS BattleStats)
+SUB autotarget (who, atkbuf(), bslot() AS BattleSprite)
  'FIXME: Remove this later in favor of its overload
  DIM atk AS AttackData
  convertattackdata atkbuf(), atk
- autotarget who, atk, bslot(), bstat()
+ autotarget who, atk, bslot()
 END SUB
 
-SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
+SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite)
 
  DIM tmask(11) ' A list of true/false values indicating
                ' which targets are valid for the currently targetting attack
 
  DIM i AS INTEGER
 
- get_valid_targs tmask(), who, atk, bslot(), bstat()
+ get_valid_targs tmask(), who, atk, bslot()
 
  'flush the targeting space for this attacker
  FOR i = 0 TO 11
@@ -1329,7 +1329,7 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, bstat() AS Batt
  SELECT CASE atk.targ_set
 
   CASE 0, 3: '--focus and random focus
-   confirm_auto_focus who, tmask(), atk, bslot(), bstat()
+   confirm_auto_focus who, tmask(), atk, bslot()
 
   CASE 1: '--spread attack
    confirm_auto_spread who, tmask(), bslot()
@@ -1338,7 +1338,7 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, bstat() AS Batt
    IF INT(RND * 100) < 33 THEN
     confirm_auto_spread who, tmask(), bslot()
    ELSE
-    confirm_auto_focus who, tmask(), atk, bslot(), bstat()
+    confirm_auto_focus who, tmask(), atk, bslot()
    END IF
 
   CASE 4: '--first target
@@ -1359,8 +1359,8 @@ SUB confirm_auto_spread (who, tmask(), bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB confirm_auto_focus (who, tmask(), atk AS AttackData, bslot() AS BattleSprite, bstat() AS BattleStats)
- bslot(who).t(0) = find_preferred_target(tmask(), who, atk, bslot(), bstat())
+SUB confirm_auto_focus (who, tmask(), atk AS AttackData, bslot() AS BattleSprite)
+ bslot(who).t(0) = find_preferred_target(tmask(), who, atk, bslot())
 END SUB
 
 SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
@@ -1373,14 +1373,14 @@ SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-FUNCTION find_preferred_target(tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
+FUNCTION find_preferred_target(tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite) as integer
  'FIXME: remove this later in favour of the overload
  DIM atk AS AttackData
  convertattackdata atkbuf(), atk
- RETURN find_preferred_target(tmask(), who, atk, bslot(), bstat())
+ RETURN find_preferred_target(tmask(), who, atk, bslot())
 END FUNCTION
 
-FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite, bstat() AS BattleStats) as integer
+FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite) as integer
 
  DIM i AS INTEGER
  DIM best AS INTEGER
@@ -1403,7 +1403,7 @@ FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as Attack
   ELSEIF is_enemy(who) THEN
    atk.prefer_targ = 4 ' enemies default to a random target
   END IF
-  found = find_preferred_target(tmask(), who, atk, bslot(), bstat())
+  found = find_preferred_target(tmask(), who, atk, bslot())
   atk.prefer_targ = 0
   RETURN found
 
@@ -1460,7 +1460,7 @@ FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as Attack
   found = 32767
   FOR i = 0 TO 11
    IF tmask(i) <> 0 THEN
-    search = bstat(i).cur.sta(prefstat)
+    search = bslot(i).stat.cur.sta(prefstat)
     IF search < found THEN
      best = i
      found = search
@@ -1474,7 +1474,7 @@ FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as Attack
   found = -1
   FOR i = 0 TO 11
    IF tmask(i) <> 0 THEN
-    search = bstat(i).cur.sta(prefstat)
+    search = bslot(i).stat.cur.sta(prefstat)
     IF search > found THEN
      best = i
      found = search
@@ -1488,7 +1488,7 @@ FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as Attack
   found = 10001 'use ten-thousands rather than hundreds to simulate two fixed-precision decmal places
   FOR i = 0 TO 11
    IF tmask(i) <> 0 THEN
-    search = INT(10000 / bstat(i).max.sta(prefstat) * bstat(i).cur.sta(prefstat))
+    search = INT(10000 / bslot(i).stat.max.sta(prefstat) * bslot(i).stat.cur.sta(prefstat))
     IF search < found THEN
      best = i
      found = search
@@ -1502,7 +1502,7 @@ FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as Attack
   found = -1
   FOR i = 0 TO 11
    IF tmask(i) <> 0 THEN
-    search = INT(10000 / bstat(i).max.sta(prefstat) * bstat(i).cur.sta(prefstat))
+    search = INT(10000 / bslot(i).stat.max.sta(prefstat) * bslot(i).stat.cur.sta(prefstat))
     IF search > found THEN
      best = i
      found = search
@@ -1539,14 +1539,14 @@ FUNCTION battle_distance(who1, who2, bslot() AS BattleSprite)
  RETURN SQR(quick_battle_distance(who1, who2, bslot()))
 END FUNCTION
 
-FUNCTION targenemycount (bslot() AS BattleSprite, bstat() AS BattleStats, for_alone_ai as integer=0) as integer
+FUNCTION targenemycount (bslot() AS BattleSprite, for_alone_ai as integer=0) as integer
  DIM count AS INTEGER = 0
  DIM ignore AS INTEGER = NO
  FOR i AS INTEGER = 4 TO 11
   IF for_alone_ai THEN
    ignore = bslot(i).ignore_for_alone
   END IF
-  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND ignore = NO THEN
+  IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis = 1 AND ignore = NO THEN
    count = count + 1
   END IF
  NEXT i

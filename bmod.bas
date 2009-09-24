@@ -32,18 +32,18 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
-DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState)
-DECLARE SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
-DECLARE SUB checkitemusability(iuse() AS INTEGER, bstat() AS BattleStats, who AS INTEGER)
+DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, BYREF rew AS RewardsState)
+DECLARE SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, es(), formdata())
+DECLARE SUB checkitemusability(iuse() AS INTEGER, bslot() AS BattleSprite, who AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
 DECLARE SUB reset_attack (BYREF bat AS BattleState)
 DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
 DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
 DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, bslot() AS BattleSprite)
-DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
-DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
+DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite, exstat() AS INTEGER)
+DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
 DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 
@@ -71,7 +71,6 @@ DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
 DIM bslot(24) AS BattleSprite
-DIM bstat(11) AS BattleStats
 DIM vic AS VictoryState
 DIM as double timinga, timingb
 DIM nmenu(3,5) as integer 'new battle menu
@@ -131,15 +130,15 @@ NEXT i
 
 '--init affliction registers
 '--it should be clear by the fact that BattleStats is a separate type that
-'--that bstat() inside battle is not the same array as stat() outside battle
+'--that bslot().stat inside battle is not the same as stat() outside battle
 FOR i = 0 TO 11
- WITH bstat(i).cur
+ WITH bslot(i).stat.cur
   .poison = 1000
   .regen  = 1000
   .stun   = 1000
   .mute   = 1000
  END WITH
- WITH bstat(i).max
+ WITH bslot(i).stat.max
   .poison = 1000
   .regen  = 1000
   .stun   = 1000
@@ -158,7 +157,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 
-battle_loadall form, bat, bslot(), bstat(), rew, vic, st(), exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter()
+battle_loadall form, bat, bslot(), rew, vic, st(), exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter()
 
 copypage 2, dpage
 
@@ -196,7 +195,7 @@ DO
  IF away > 0 THEN
   FOR i = 0 TO 3
    '--if alive, animate running away
-   IF bstat(i).cur.hp > 0 THEN
+   IF bslot(i).stat.cur.hp > 0 THEN
     WITH bslot(i)
      IF .vis THEN
       .xmov = 10
@@ -214,7 +213,7 @@ DO
   END IF
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND vic.state = 0 THEN
-  generate_atkscript attack, bat, bslot(), bstat(), icons(), exstat()
+  generate_atkscript attack, bat, bslot(), icons(), exstat()
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND vic.state = 0 AND away = 0 THEN GOSUB action
  GOSUB animate
@@ -232,7 +231,7 @@ DO
  bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
  IF bat.hero_turn = -1 THEN
   '--if it is no heros turn, check to see if anyone is alive and ready
-  IF bslot(bat.next_hero).ready = YES AND bstat(bat.next_hero).cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
+  IF bslot(bat.next_hero).ready = YES AND bslot(bat.next_hero).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
    bat.hero_turn = bat.next_hero
    bat.pt = 0
    bat.menu_mode = batMENUHERO
@@ -240,14 +239,14 @@ DO
  END IF
  bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
  IF bat.enemy_turn = -1 THEN
-  IF bslot(bat.next_enemy).ready = YES AND bstat(bat.next_enemy).cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
+  IF bslot(bat.next_enemy).ready = YES AND bslot(bat.next_enemy).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
  END IF
  IF vic.state = 0 THEN
-  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bstat(), bslot(), es(), formdata(), rew, ctr(), delay()
+  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), es(), formdata(), rew, ctr(), delay()
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
    IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, inv_scroll, bslot(), delay(), icons(), iuse()
-   IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bstat(), bslot(), delay(), conlmp()
-   IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), bstat(), menubits(), nmenu(), mend(), delay(), spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st()
+   IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bslot(), delay(), conlmp()
+   IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), nmenu(), mend(), delay(), spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st()
   END IF
   IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN GOSUB picktarg
  END IF
@@ -260,7 +259,7 @@ DO
  IF vic.state > 0 THEN show_victory vic, rew, exstat(), bslot()
  IF vis = 1 THEN GOSUB seestuff
  IF bat.death_mode = deathENEMIES AND vic.state = 0 THEN
-  IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory vic, rew, bstat(), exstat()
+  IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory vic, rew, bslot(), exstat()
  END IF
  IF vic.state = vicEXIT THEN EXIT DO 'normal victory exit
  IF bat.death_mode = deathHEROES THEN
@@ -296,7 +295,7 @@ DO
  dowait
 LOOP
 donebattle:
-writestats exstat(), bstat()
+writestats exstat(), bslot()
 IF fatal THEN battle = 0
 
 '--overflow checking for the battle stack
@@ -355,7 +354,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
  SELECT CASE act
   CASE 0 '--end()
    FOR i = 0 TO 3
-    enforce_weak_picture i, bstat(), bslot(), vic
+    enforce_weak_picture i, bslot(), vic
     '--re-enforce party's X/Y positions...
     bslot(i).x = bslot(i).basex
     bslot(i).y = bslot(i).basey
@@ -415,7 +414,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond attack.tagset(0), 1
    checkTagCond attack.tagset(1), 1
-   IF inflict(bat.acting, targ, bstat(), bslot(), harm$(), hc(), hx(), hy(), attack, tcount) THEN
+   IF inflict(bat.acting, targ, bslot(), harm$(), hc(), hx(), hy(), attack, tcount) THEN
     '--attack succeeded
     IF attack.cancel_targets_attack THEN
      '--try to cancel target's attack
@@ -439,7 +438,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     END IF
     IF attack.force_run = YES THEN
     'force heroes to run away
-     IF checkNoRunBit(bstat(), bslot()) THEN
+     IF checkNoRunBit(bslot()) THEN
       alert$ = cannotrun$
       alert = 10
      ELSE
@@ -448,22 +447,22 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     END IF
     checkTagCond attack.tagset(0), 2
     checkTagCond attack.tagset(1), 2
-    IF bstat(targ).cur.hp = 0 THEN
+    IF bslot(targ).stat.cur.hp = 0 THEN
      checkTagCond attack.tagset(0), 4
      checkTagCond attack.tagset(1), 4
     END IF
 
     IF trytheft(bat, bat.acting, targ, attack, es()) THEN
      IF bat.hero_turn >= 0 THEN
-      checkitemusability iuse(), bstat(), bat.hero_turn
+      checkitemusability iuse(), bslot(), bat.hero_turn
      END IF
     END IF
    ELSE
     checkTagCond attack.tagset(0), 3
     checkTagCond attack.tagset(0), 3
    END IF
-   triggerfade targ, bstat(), bslot()
-   IF bstat(targ).cur.hp > 0 THEN
+   triggerfade targ, bslot()
+   IF bslot(targ).stat.cur.hp > 0 THEN
     '---REVIVE---
     bslot(targ).vis = 1
     bslot(targ).dissolve = 0
@@ -471,11 +470,11 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN GOSUB sponhit
    IF bat.atk.has_consumed_costs = NO THEN
     '--if the attack costs MP, we want to actually consume MP
-    IF attack.mp_cost > 0 THEN bstat(bat.acting).cur.mp = large(bstat(bat.acting).cur.mp - focuscost(attack.mp_cost, bstat(bat.acting).cur.foc), 0)
+    IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.foc), 0)
 
     '--ditto for HP
     IF attack.hp_cost > 0 THEN
-      bstat(bat.acting).cur.hp = large(bstat(bat.acting).cur.hp - attack.hp_cost, 0)
+      bslot(bat.acting).stat.cur.hp = large(bslot(bat.acting).stat.cur.hp - attack.hp_cost, 0)
       hc(bat.acting) = 7
       hx(bat.acting) = bslot(bat.acting).x + (bslot(bat.acting).w * .5)
       hy(bat.acting) = bslot(bat.acting).y + (bslot(bat.acting).h * .5)
@@ -518,18 +517,18 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    END IF
    o = 0
    FOR i = 0 TO 3
-    IF bstat(i).cur.hp = 0 THEN o = o + 1
+    IF bslot(i).stat.cur.hp = 0 THEN o = o + 1
    NEXT i
    IF o = 4 THEN bat.atk.id = -1
    o = 0
    FOR i = 4 TO 11
-    IF bstat(i).cur.hp = 0 THEN o = o + 1
+    IF bslot(i).stat.cur.hp = 0 THEN o = o + 1
    NEXT i
-   IF bstat(targ).cur.hp = 0 AND o < 8 AND bat.atk.id > -1 THEN'
+   IF bslot(targ).stat.cur.hp = 0 AND o < 8 AND bat.atk.id > -1 THEN'
     '--if the target is already dead, auto-pick a new target
     '--FIXME: why are we doing this after the attack? Does this even do anything?
     '--       it was passing garbage attack data at least some of the time until r2104
-    autotarget bat.acting, attack, bslot(), bstat()
+    autotarget bat.acting, attack, bslot()
    END IF
   CASE 11 'setz(who,z)
    ww = popw
@@ -606,7 +605,7 @@ IF bat.atk.id = -1 THEN
  '--clean up stack
  'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
- spawn_chained_attack attack.chain, attack, bat, bstat(), bslot(), delay()
+ spawn_chained_attack attack.chain, attack, bat, bslot(), delay()
 END IF
 RETRACE
 
@@ -617,7 +616,7 @@ IF attack.caption_time = 0 THEN
  bat.caption_time = 0
  bat.caption_delay = 0
 END IF
-fulldeathcheck bat.atk.was_id, bat, bslot(), bstat(), rew, es(), formdata()
+fulldeathcheck bat.atk.was_id, bat, bslot(), rew, es(), formdata()
 bat.atk.was_id = -1
 RETRACE
 
@@ -633,7 +632,7 @@ FOR i = 0 TO 8
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(targ - 4, 82 + i)
-    loadfoe slot, formdata(), es(), bat, bslot(), bstat(), rew
+    loadfoe slot, formdata(), es(), bat, bslot(), rew
    END IF
   NEXT j
   EXIT FOR
@@ -652,11 +651,11 @@ IF carray(5) > 1 THEN
  RETRACE
 END IF
 
-IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot(), bstat()
+IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
 
 'autotarget
 IF bat.targ.mode = targAUTO THEN
- autotarget bat.hero_turn, buffer(), bslot(), bstat()
+ autotarget bat.hero_turn, buffer(), bslot()
  ctr(bat.hero_turn) = 0
  bslot(bat.hero_turn).ready = NO
  bat.hero_turn = -1
@@ -734,7 +733,7 @@ IF vic.state = 0 THEN 'only display interface till you win
     '--speed meter--
     col = uilook(uiTimeBar): IF bslot(i).ready = YES THEN col = uilook(uiTimeBarFull)
     edgeboxstyle 1, 4 + i * 10, 132, 11, 0, dpage, YES, YES
-    IF bstat(i).cur.hp > 0 THEN
+    IF bslot(i).stat.cur.hp > 0 THEN
      j = ctr(i) / 7.7
      IF delay(i) > 0 OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
       col = uilook(uiTimeBar)
@@ -746,8 +745,8 @@ IF vic.state = 0 THEN 'only display interface till you win
    IF readbit(gen(), 101, 7) = 0 THEN
     '--hp-meter--
     col = uiLook(uiHealthBar)
-    IF lifemeter(i) < INT((87 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp) THEN lifemeter(i) = lifemeter(i) + 1
-    IF lifemeter(i) > INT((87 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp) THEN lifemeter(i) = lifemeter(i) - 1
+    IF lifemeter(i) < INT((87 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp) THEN lifemeter(i) = lifemeter(i) + 1
+    IF lifemeter(i) > INT((87 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp) THEN lifemeter(i) = lifemeter(i) - 1
     IF lifemeter(i) > 87 THEN
      lifemeter(i) = 87
      col = uiLook(uiHealthBar + tog)
@@ -759,8 +758,8 @@ IF vic.state = 0 THEN 'only display interface till you win
    col = uilook(uiMenuItem): IF i = bat.hero_turn THEN col = uilook(uiSelectedItem + tog)
    edgeprint bslot(i).name, 128 - LEN(bslot(i).name) * 8, 5 + i * 10, col, dpage
    '--hp--
-   edgeprint STR$(bstat(i).cur.hp) + "/" + STR$(bstat(i).max.hp), 136, 5 + i * 10, col, dpage
-   WITH bstat(i)
+   edgeprint STR$(bslot(i).stat.cur.hp) + "/" + STR$(bslot(i).stat.max.hp), 136, 5 + i * 10, col, dpage
+   WITH bslot(i).stat
     indicatorpos = 217
     'poison indicator
     IF .cur.poison < .max.poison THEN
@@ -868,7 +867,7 @@ IF away = 1 THEN RETRACE
 '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
 isdeepmenu = (bat.menu_mode > 0 AND readbit(gen(), genBits, 0))
 isbattlemenu = (bat.menu_mode >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13))
-isenemytargs = (targenemycount(bslot(), bstat()) > 0)
+isenemytargs = (targenemycount(bslot()) > 0)
 IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN RETRACE
 
 FOR i = 0 TO 11
@@ -877,42 +876,42 @@ FOR i = 0 TO 11
  IF bat.hero_turn <> i THEN delay(i) = large(delay(i) - 1, 0)
 
  '--poison
- WITH bstat(i)
+ WITH bslot(i).stat
   IF .cur.poison < .max.poison THEN
-   prtimer(i, 0) = prtimer(i, 0) + large(bstat(i).cur.spd, 7)
+   prtimer(i, 0) = prtimer(i, 0) + large(.cur.spd, 7)
    IF prtimer(i, 0) >= 1500 THEN
     prtimer(i, 0) = 0
     harm = .max.poison - .cur.poison
     harm = range(harm, 20)
-    quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
-    triggerfade i, bstat(), bslot()
-    fulldeathcheck -1, bat, bslot(), bstat(), rew, es(), formdata()
+    quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$()
+    triggerfade i, bslot()
+    fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
     '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
  END WITH
  
  '--regen
- WITH bstat(i)
+ WITH bslot(i).stat
   IF .cur.regen < .max.regen THEN
-   prtimer(i, 1) = prtimer(i, 1) + large(bstat(i).cur.spd, 7)
+   prtimer(i, 1) = prtimer(i, 1) + large(.cur.spd, 7)
    IF prtimer(i, 1) >= 1500 THEN
     prtimer(i, 1) = 0
     heal = .max.regen - .cur.regen
     heal = heal * -1
     heal = range(heal, 20)
-    quickinflict heal, i, hc(), hx(), hy(), bslot(), harm$(), bstat()
-    triggerfade i, bstat(), bslot()
-    fulldeathcheck -1, bat, bslot(), bstat(), rew, es(), formdata()
+    quickinflict heal, i, hc(), hx(), hy(), bslot(), harm$()
+    triggerfade i, bslot()
+    fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
     '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
  END WITH
 
  '--if not doing anything, not dying, not ready, and not stunned
- IF bslot(i).attack = 0 AND bslot(i).dissolve = 0 AND bslot(i).ready = NO AND bstat(i).cur.stun = bstat(i).max.stun THEN
+ IF bslot(i).attack = 0 AND bslot(i).dissolve = 0 AND bslot(i).ready = NO AND bslot(i).stat.cur.stun = bslot(i).stat.max.stun THEN
   '--increment ctr by speed
-  ctr(i) = small(1000, ctr(i) + bstat(i).cur.spd)
+  ctr(i) = small(1000, ctr(i) + bslot(i).stat.cur.spd)
   IF ctr(i) = 1000 AND bat.wait_frames = 0 THEN bslot(i).ready = YES
  END IF
 
@@ -922,9 +921,9 @@ NEXT i
 
 IF TIMER > laststun + 1 THEN
  FOR i = 0 TO 11
-  bstat(i).cur.mute = small(bstat(i).cur.mute + 1, bstat(i).max.mute)
-  bstat(i).cur.stun = small(bstat(i).cur.stun + 1, bstat(i).max.stun)
-  IF bstat(i).cur.stun < bstat(i).max.stun THEN
+  bslot(i).stat.cur.mute = small(bslot(i).stat.cur.mute + 1, bslot(i).stat.max.mute)
+  bslot(i).stat.cur.stun = small(bslot(i).stat.cur.stun + 1, bslot(i).stat.max.stun)
+  IF bslot(i).stat.cur.stun < bslot(i).stat.max.stun THEN
    bslot(i).ready = NO
    IF bat.hero_turn = i THEN bat.hero_turn = -1
    IF bat.enemy_turn = i THEN bat.enemy_turn = -1
@@ -938,8 +937,8 @@ RETRACE
 animate:
 FOR i = 0 TO 3
  IF walk(i) = 1 THEN bslot(i).frame = bslot(i).frame xor tog
- IF bat.acting <> i THEN enforce_weak_picture i, bstat(), bslot(), vic
- IF vic.state > 0 AND bstat(i).cur.hp > 0 AND tog = 0 THEN
+ IF bat.acting <> i THEN enforce_weak_picture i, bslot(), vic
+ IF vic.state > 0 AND bslot(i).stat.cur.hp > 0 AND tog = 0 THEN
   if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
  END IF
 NEXT i
@@ -1057,7 +1056,7 @@ FOR i = 0 TO 11
  IF is_hero(i) THEN c = uilook(uiSelectedItem)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
  IF is_enemy(i) THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
- info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & bat.targ.mask(i) & " hp=" & bstat(i).cur.hp & " dis=" & bslot(i).dissolve
+ info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & bat.targ.mask(i) & " hp=" & bslot(i).stat.cur.hp & " dis=" & bslot(i).dissolve
  IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
  edgeprint info$, 20, 80 + i * 10, c, dpage
 NEXT i
@@ -1074,7 +1073,7 @@ IF flee > 0 AND flee < 4 THEN
  END IF
 END IF
 IF flee = 4 THEN
- IF checkNoRunBit(bstat(), bslot()) THEN
+ IF checkNoRunBit(bslot()) THEN
   flee = 0
   alert$ = cannotrun$
   alert = 10
@@ -1083,16 +1082,16 @@ END IF
 IF flee > 4 THEN
  FOR i = 0 TO 3
   '--if alive turn around
-  IF bstat(i).cur.hp THEN bslot(i).d = 1
+  IF bslot(i).stat.cur.hp THEN bslot(i).d = 1
   walk(i) = 1
   bslot(i).attack = 0
   bslot(i).ready = NO
-  ctr(i) = large(0, ctr(i) - bstat(i).cur.spd * 2)
+  ctr(i) = large(0, ctr(i) - bslot(i).stat.cur.spd * 2)
  NEXT i
  IF carray(6) = 0 THEN flee = 0: FOR i = 0 TO 3: bslot(i).d = 0: walk(i) = 0: NEXT i
  temp = 400
  FOR i = 4 TO 11
-  temp = temp + bstat(i).cur.spd
+  temp = temp + bslot(i).stat.cur.spd
  NEXT i
  IF RND * temp < flee THEN away = 1: flee = 2: FOR i = 0 TO 3: ctr(i) = 0: bslot(i).ready = NO: NEXT i
 END IF
@@ -1103,7 +1102,7 @@ END FUNCTION
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
 
-SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter())
+SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), nmenu(), menu$(), mend(), ctr(), lifemeter())
  DIM i AS INTEGER
 
  setpicstuf formdata(), 80, -1
@@ -1160,8 +1159,8 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
    
    '--copy hero's outside-battle stats to their inside-battle stats
    FOR o AS INTEGER = 0 TO 11
-    bstat(i).cur.sta(o) = exstat(i, 0, o)
-    bstat(i).max.sta(o) = exstat(i, 1, o)
+    bslot(i).stat.cur.sta(o) = exstat(i, 0, o)
+    bslot(i).stat.max.sta(o) = exstat(i, 1, o)
    NEXT o
    
    herobattlebits bslot(), i
@@ -1199,7 +1198,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  
  '--load monsters
  FOR i = 0 TO 7
-  loadfoe i, formdata(), es(), bat, bslot(), bstat(), rew, YES
+  loadfoe i, formdata(), es(), bat, bslot(), rew, YES
  NEXT i
  
  FOR i = 0 TO 11
@@ -1217,13 +1216,13 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  loadpage game + ".mxs", bat.curbg, 2
  
  FOR i = 0 TO 3
-  enforce_weak_picture i, bstat(), bslot(), vic
-  IF hero(i) > 0 AND bstat(i).cur.hp = 0 THEN
+  enforce_weak_picture i, bslot(), vic
+  IF hero(i) > 0 AND bslot(i).stat.cur.hp = 0 THEN
    '--hero starts the battle dead
    bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
    bslot(i).frame = 7
   END IF
-  lifemeter(i) = (88 / large(bstat(i).max.hp, 1)) * bstat(i).cur.hp
+  lifemeter(i) = (88 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp
  NEXT i
 
  '--size the weapon sprite 
@@ -1235,43 +1234,43 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  'so additionally call triggerfade on 0 hp enemies here
  'or might that be expected behaviour in some games?
  FOR i = 0 TO 7
-  IF bstat(i).cur.hp <= 0 THEN
-   triggerfade i, bstat(), bslot()
+  IF bslot(i).stat.cur.hp <= 0 THEN
+   triggerfade i, bslot()
   END IF
  NEXT i
- fulldeathcheck -1, bat, bslot(), bstat(), rew, es(), formdata()
+ fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
 END SUB
 
-SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, bstat() As BattleStats, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
+SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
  '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
  'killing_attack is the attack ID that was just used, or -1 for none
  DIM deadguy AS INTEGER
  DIM dead_enemies AS INTEGER
  DIM dead_heroes AS INTEGER
  FOR deadguy = 4 TO 11
-  IF bstat(deadguy).cur.hp > 0 THEN
+  IF bslot(deadguy).stat.cur.hp > 0 THEN
    'this enemy hasn't just spawned; it should fade out
-   IF dieWOboss(deadguy, bstat(), bslot()) THEN
-    triggerfade deadguy, bstat(), bslot()
+   IF dieWOboss(deadguy, bslot()) THEN
+    triggerfade deadguy, bslot()
    END IF
   END IF
  NEXT
  FOR deadguy = 0 TO 11
-  check_death deadguy, killing_attack, bat, rew, bstat(), bslot(), es(), formdata()
+  check_death deadguy, killing_attack, bat, rew, bslot(), es(), formdata()
  NEXT
  dead_enemies = 0
  FOR deadguy = 4 TO 11
-  IF bstat(deadguy).cur.hp = 0 OR bslot(deadguy).hero_untargetable = YES OR bslot(deadguy).death_unneeded = YES THEN dead_enemies += 1
+  IF bslot(deadguy).stat.cur.hp = 0 OR bslot(deadguy).hero_untargetable = YES OR bslot(deadguy).death_unneeded = YES THEN dead_enemies += 1
  NEXT
  IF dead_enemies >= 8 THEN bat.death_mode = deathENEMIES
  dead_heroes = 0
  FOR deadguy = 0 TO 3
-  IF bstat(deadguy).cur.hp = 0 THEN dead_heroes += 1
+  IF bslot(deadguy).stat.cur.hp = 0 THEN dead_heroes += 1
  NEXT deadguy
  IF dead_heroes = 4 THEN bat.death_mode = deathHEROES
 END SUB
 
-SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat() As BattleStats, exstat() AS INTEGER)
+SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite, exstat() AS INTEGER)
  DIM AS INTEGER i, numheroes
  '--Play the victory music
  IF gen(genVictMus) > 0 THEN wrappedsong gen(genVictMus) - 1
@@ -1282,13 +1281,13 @@ SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bstat(
  IF readbit(gen(), genBits2, 3) THEN 'dead heroes get experience
   numheroes = herocount()
  ELSE
-  numheroes = liveherocount(bstat())
+  numheroes = liveherocount(bslot())
  END IF
  IF numheroes > 0 THEN rew.exper = rew.exper / numheroes
  '--Collect experience and apply levelups
  FOR i = 0 TO 3
-  IF readbit(gen(), genBits2, 3) <> 0 OR bstat(i).cur.hp > 0 THEN giveheroexperience i, exstat(), rew.exper
-  updatestatslevelup i, exstat(), bstat(), 0
+  IF readbit(gen(), genBits2, 3) <> 0 OR bslot(i).stat.cur.hp > 0 THEN giveheroexperience i, exstat(), rew.exper
+  updatestatslevelup i, exstat(), bslot(i).stat, 0
  NEXT i
  '--Trigger the display of end-of-battle rewards
  vic.state = vicGOLDEXP
@@ -1466,7 +1465,7 @@ SUB reset_victory_state (BYREF vic AS VictoryState)
  END WITH
 END SUB
 
-SUB checkitemusability(iuse() AS INTEGER, bstat() AS BattleStats, who AS INTEGER)
+SUB checkitemusability(iuse() AS INTEGER, bslot() AS BattleSprite, who AS INTEGER)
  'Iterate through the iuse() bitfield and mark any items that are usable
  DIM i AS INTEGER
  DIM itembuf(99) AS INTEGER
@@ -1480,7 +1479,7 @@ SUB checkitemusability(iuse() AS INTEGER, bstat() AS BattleStats, who AS INTEGER
     loadattackdata attack, itembuf(47) - 1
     IF attack.check_costs_as_item THEN
      '--This attack has the bitset that requires cost checking when used from an item
-     IF atkallowed(attack, who, 0, 0, bstat()) THEN
+     IF atkallowed(attack, who, 0, 0, bslot()) THEN
       setbit iuse(), 0, i, 1
      END IF
     ELSE
@@ -1492,10 +1491,10 @@ SUB checkitemusability(iuse() AS INTEGER, bstat() AS BattleStats, who AS INTEGER
  NEXT i
 END SUB
 
-FUNCTION checkNoRunBit (bstat() AS BattleStats, bslot() AS BattleSprite) as integer
+FUNCTION checkNoRunBit (bslot() AS BattleSprite) as integer
  DIM i AS INTEGER
  FOR i = 4 TO 11
-  IF bstat(i).cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).unescapable = YES THEN RETURN 1
+  IF bslot(i).stat.cur.hp > 0 AND bslot(i).vis = 1 AND bslot(i).unescapable = YES THEN RETURN 1
  NEXT i
  RETURN 0
 END FUNCTION
@@ -1581,7 +1580,7 @@ NEXT i
 
 END SUB
 
-SUB quickinflict (harm, targ, hc(), hx(), hy(), bslot() AS BattleSprite, harm$(), bstat() AS BattleStats)
+SUB quickinflict (harm, targ, hc(), hx(), hy(), bslot() AS BattleSprite, harm$())
 '--quick damage infliction to hp. no bells and whistles
 DIM max_bound AS INTEGER
 hc(targ) = 7
@@ -1595,8 +1594,8 @@ END IF
 
 if gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
 
-max_bound = large(bstat(targ).cur.hp, bstat(targ).max.hp)
-bstat(targ).cur.hp = bound(bstat(targ).cur.hp - harm, 0, max_bound)
+max_bound = large(bslot(targ).stat.cur.hp, bslot(targ).stat.max.hp)
+bslot(targ).stat.cur.hp = bound(bslot(targ).stat.cur.hp - harm, 0, max_bound)
 END SUB
 
 SUB anim_end()
@@ -1714,7 +1713,7 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, bstat() AS BattleStats, BYREF rew AS RewardsState)
+SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, BYREF rew AS RewardsState)
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
  DIM attack AS AttackData
  DIM slot AS INTEGER
@@ -1733,7 +1732,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 80)
-    loadfoe(slot, formdata(), es(), bat, bslot(), bstat(), rew)
+    loadfoe(slot, formdata(), es(), bat, bslot(), rew)
    END IF
   NEXT i
   es(deadguy - 4, 80) = 0
@@ -1743,7 +1742,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(deadguy - 4, 79)
-    loadfoe(slot, formdata(), es(), bat, bslot(), bstat(), rew)
+    loadfoe(slot, formdata(), es(), bat, bslot(), rew)
    END IF
   NEXT i
   es(deadguy - 4, 79) = 0
@@ -1759,14 +1758,14 @@ FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
  RETURN -1
 END FUNCTION
 
-FUNCTION dieWOboss(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite) as integer
+FUNCTION dieWOboss(BYVAL who, bslot() AS BattleSprite) as integer
  DIM AS INTEGER j
  '--count bosses
  FOR j = 4 TO 11
   '--is it a boss?
   IF bslot(j).is_boss = YES THEN
    '-- is it alive?
-   IF bstat(j).cur.hp > 0 THEN
+   IF bslot(j).stat.cur.hp > 0 THEN
     RETURN NO
    END IF
   END IF
@@ -1774,14 +1773,14 @@ FUNCTION dieWOboss(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite) a
  '--if there are no bossess...
  '--should it die without a boss?
  IF bslot(who).die_without_boss = YES THEN
-  bstat(who).cur.hp = 0
+  bslot(who).stat.cur.hp = 0
   RETURN YES
  END IF
 END FUNCTION
 
-SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
+SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
  'If the target is really dead...
- IF bstat(who).cur.hp = 0 THEN
+ IF bslot(who).stat.cur.hp = 0 THEN
   'the number of ticks it takes the enemy to fade away is equal to half its width
   'bslot(who).dissolve = bslot(who).w * .5
   if bslot(who).deathtime = 0 then
@@ -1801,7 +1800,7 @@ SUB triggerfade(BYVAL who, bstat() AS BattleStats, bslot() AS BattleSprite)
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, es(), formdata())
 'FIXME: killing_attack is not used yet, but will contain attack id or -1 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
  DIM attack AS AttackData
@@ -1809,16 +1808,16 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  IF is_enemy(deadguy) THEN
   IF formdata((deadguy - 4) * 4) = 0 THEN EXIT SUB
  END IF
- IF bstat(deadguy).cur.hp <> 0 THEN EXIT SUB
+ IF bslot(deadguy).stat.cur.hp <> 0 THEN EXIT SUB
  '--deadguy is really dead (includes already dead and empty hero slots??)
- 'Death animation is not done yet here, so be cautios about what gets cleand up here.
+ 'Death animation is not done yet here, so be cautious about what gets cleand up here.
  'Full cleanup of bslot() records belongs in loadfoe
  bslot(deadguy).vis = 0
  bslot(deadguy).ready = NO
  bslot(deadguy).attack = 0
  bslot(deadguy).d = 0
  '--reset poison/regen/stun/mute
- WITH bstat(deadguy)
+ WITH bslot(deadguy).stat
   .cur.poison = .max.poison
   .cur.regen  = .max.regen
   .cur.stun   = .max.stun
@@ -1840,7 +1839,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  dead_enemy deadguy, killing_attack, bat, rew, bstat(), bslot(), es(), formdata()
+  dead_enemy deadguy, killing_attack, bat, rew, bslot(), es(), formdata()
  END IF'------------END PLUNDER-------------------
  IF bat.targ.hit_dead = NO THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   FOR j = 0 TO 11
@@ -1854,7 +1853,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
    IF bslot(j).t(0) = -1 AND bat.acting <> j AND bslot(j).attack > 0 THEN
     'if no targets left, auto-re-target
     loadattackdata attack, bslot(j).attack - 1
-    autotarget j, attack, bslot(), bstat()
+    autotarget j, attack, bslot()
    END IF
    IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
    IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
@@ -1867,13 +1866,13 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
 END SUB
 
-SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bstat() AS BattleStats, bslot() AS BattleSprite, es(), formdata())
+SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, es(), formdata())
  '--give rewards, spawn enemies, clear formdata slot, but NO other cleanup!
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
  DIM AS INTEGER j
  DIM enemynum AS INTEGER = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
- spawn_on_death deadguy, killing_attack, bat, es(), formdata(), bslot(), bstat(), rew
+ spawn_on_death deadguy, killing_attack, bat, es(), formdata(), bslot(), rew
  IF formdata(enemynum * 4) > 0 THEN
   rew.plunder = rew.plunder + es(enemynum, 56)
   IF rew.plunder > 1000000000 THEN rew.plunder = 1000000000
@@ -1897,14 +1896,14 @@ SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS Battl
  formdata(enemynum * 4) = 0
 END SUB
 
-SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER, delay() AS INTEGER)
+SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER, delay() AS INTEGER)
  DIM ai AS INTEGER = 0
 
  'if HP is less than 20% go into desperation mode
- IF bstat(bat.enemy_turn).cur.hp < bstat(bat.enemy_turn).max.hp / 5 THEN ai = 1
+ IF bslot(bat.enemy_turn).stat.cur.hp < bslot(bat.enemy_turn).stat.max.hp / 5 THEN ai = 1
 
  'if targetable enemy count is 1, go into alone mode
- IF targenemycount(bslot(), bstat(), YES) = 1 THEN ai = 2
+ IF targenemycount(bslot(), YES) = 1 THEN ai = 2
 
  DIM slot AS INTEGER = 0
  'spawn allies when alone
@@ -1913,7 +1912,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS Battl
    slot = find_empty_enemy_slot(formdata())
    IF slot > -1 THEN
     formdata(slot * 4) = es(bat.enemy_turn - 4, 81)
-    loadfoe slot, formdata(), es(), bat, bslot(), bstat(), rew
+    loadfoe slot, formdata(), es(), bat, bslot(), rew
    END IF
   NEXT j
  END IF
@@ -1922,7 +1921,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS Battl
  'otherwise fall back on another
  IF countai(ai, bat.enemy_turn, es()) = 0 THEN
   ai = 0
-  IF bstat(bat.enemy_turn).cur.hp < bstat(bat.enemy_turn).max.hp / 5 THEN
+  IF bslot(bat.enemy_turn).stat.cur.hp < bslot(bat.enemy_turn).stat.max.hp / 5 THEN
    ai = 1
    IF countai(ai, bat.enemy_turn, es()) = 0 THEN ai = 0
   END IF
@@ -1940,13 +1939,13 @@ SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS Battl
    'load the data for this attack
    loadattackdata atk, bslot(bat.enemy_turn).attack - 1
   
-   IF atkallowed(atk, bat.enemy_turn, 0, 0, bstat()) THEN
+   IF atkallowed(atk, bat.enemy_turn, 0, 0, bslot()) THEN
     'this attack is good, continue on to target selection
     EXIT DO
    ELSE
     'this attack is unusable
     bslot(bat.enemy_turn).attack = 0
-    IF bstat(bat.enemy_turn).cur.mp - atk.mp_cost < 0 THEN
+    IF bslot(bat.enemy_turn).stat.cur.mp - atk.mp_cost < 0 THEN
      'inadequate MP was the reason for the failure
      'MP-idiot loses its turn
      IF bslot(bat.enemy_turn).mp_idiot = YES THEN
@@ -1971,7 +1970,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS Battl
  'get the delay to wait for this attack
  delay(bat.enemy_turn) = atk.attack_delay
 
- autotarget bat.enemy_turn, atk, bslot(), bstat()
+ autotarget bat.enemy_turn, atk, bslot()
 
  'ready for next attack
  bslot(bat.enemy_turn).ready = NO
@@ -1980,7 +1979,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS Battl
 
 END SUB
 
-SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, menubits() AS INTEGER, nmenu() AS INTEGER, mend() AS INTEGER, delay() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
+SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, nmenu() AS INTEGER, mend() AS INTEGER, delay() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
 
  DIM mp_name AS STRING = readglobalstring(1, "MP", 10)
      
@@ -1997,7 +1996,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS Batt
     loadattackdata atk, wepatkid - 1
    END IF
    IF atk.check_costs_as_weapon THEN
-    IF atkallowed(atk, bat.hero_turn, 0, 0, bstat()) = 0 THEN
+    IF atkallowed(atk, bat.hero_turn, 0, 0, bslot()) = 0 THEN
      setbit menubits(), 0, bat.hero_turn * 4 + i, 1
     END IF
    END IF
@@ -2052,13 +2051,13 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS Batt
       speld$(i) = atk.description
       IF st(bat.hero_turn).list_type(bat.listslot) = 0 THEN
        '--regular MP
-       cost$(i) = " " & focuscost(atk.mp_cost, bstat(bat.hero_turn).cur.foc) & " " & mp_name & " " & bstat(bat.hero_turn).cur.mp & "/" & bstat(bat.hero_turn).max.mp
+       cost$(i) = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.foc) & " " & mp_name & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
       END IF
       IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN
        '--level MP
        cost$(i) = "Level " & (INT(i / 3) + 1) & ":   " & lmp(bat.hero_turn, INT(i / 3))
       END IF
-      IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3), bstat()) THEN
+      IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3), bslot()) THEN
        '-- check whether or not the spell is allowed
        setbit spelmask(), 0, i, 1
       END IF
@@ -2096,7 +2095,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS Batt
    bat.menu_mode = batMENUITEM
    bat.item.pt = 0
    bat.item.top = 0
-   checkitemusability iuse(), bstat(), bat.hero_turn
+   checkitemusability iuse(), bslot(), bat.hero_turn
    bat.item_desc = ""
    IF inventory(bat.item.pt).used THEN
     loaditemdata buffer(), inventory(bat.item.pt).id
@@ -2106,7 +2105,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS Batt
  END IF
 END SUB
 
-SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bstat() AS BattleStats, bslot() AS BattleSprite, delay(), conlmp())
+SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS BattleSprite, delay(), conlmp())
  IF carray(5) > 1 THEN '--cancel
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
@@ -2142,7 +2141,7 @@ SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bstat() AS Bat
   IF spel(bat.sptr) > -1 THEN
    '--list-entry is non-empty
    loadattackdata atk, spel(bat.sptr)
-   IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(bat.sptr / 3), bstat()) THEN
+   IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(bat.sptr / 3), bslot()) THEN
     '--attack is allowed
     '--if lmp then set lmp consume flag
     IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN conlmp(bat.hero_turn) = INT(bat.sptr / 3) + 1
@@ -2214,7 +2213,7 @@ SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() A
  END IF
 END SUB
 
-SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats, icons() AS INTEGER, exstat())
+SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, exstat())
  DIM i AS INTEGER
 
  '--check for item consumption
@@ -2231,7 +2230,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
 
  IF attack.recheck_costs_after_delay THEN
   'The "Re-check costs after attack delay" is on, so cancel the attack if we can't afford it now
-  IF atkallowed(attack, bat.acting, 0, 0, bstat()) = NO THEN
+  IF atkallowed(attack, bat.acting, 0, 0, bslot()) = NO THEN
    bat.atk.id = -1
    EXIT SUB
   END IF
@@ -2319,7 +2318,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  END IF
  
  DIM numhits AS INTEGER
- numhits = attack.hits + INT(RND * (bstat(bat.acting).cur.hits + 1))
+ numhits = attack.hits + INT(RND * (bslot(bat.acting).stat.cur.hits + 1))
  IF attack.ignore_extra_hits THEN numhits = attack.hits
 
  DIM atkimgdirection AS INTEGER
@@ -2714,15 +2713,15 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  bat.anim_ready = YES
 END SUB
 
-SUB enforce_weak_picture(who AS INTEGER, bstat() AS BattleStats, bslot() AS BattleSprite, vic AS VictoryState)
+SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, vic AS VictoryState)
  '--Heroes only, since enemies don't currently have a weak frame
  IF is_hero(who) THEN
   '--enforce weak picture
-  IF bstat(who).cur.hp < bstat(who).max.hp / 5 AND vic.state = 0 THEN bslot(who).frame = 6
+  IF bslot(who).stat.cur.hp < bslot(who).stat.max.hp / 5 AND vic.state = 0 THEN bslot(who).frame = 6
  END IF
 END SUB
 
-SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat() AS BattleStats)
+SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
  'setuptarg (heroes only)
  DIM i AS INTEGER
 
@@ -2746,7 +2745,7 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat()
  'load attack
  loadattackdata attack, bslot(bat.hero_turn).attack - 1
 
- get_valid_targs bat.targ.mask(), bat.hero_turn, attack, bslot(), bstat()
+ get_valid_targs bat.targ.mask(), bat.hero_turn, attack, bslot()
  bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, attack)
 
  '--attacks that can target all should default to the first enemy
@@ -2772,7 +2771,7 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite, bstat()
  IF attack.targ_set = 3 THEN bat.targ.roulette = YES
  IF attack.targ_set = 4 THEN bat.targ.force_first = YES
 
- bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.hero_turn, attack, bslot(), bstat())
+ bat.targ.pointer = find_preferred_target(bat.targ.mask(), bat.hero_turn, attack, bslot())
  'fail if no targets are found
  IF bat.targ.pointer = -1 THEN
   bat.targ.mode = targNONE
@@ -2787,7 +2786,7 @@ FUNCTION valid_statnum(statnum AS INTEGER, cmd AS STRING) AS INTEGER
  RETURN bound_arg(statnum, 0, 15, cmd, "stat number")
 END FUNCTION
 
-FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bstat() AS BattleStats) AS INTEGER
+FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
  'Returns YES if the chain may proceed, or NO if it fails
  IF INT(RND * 100) >= ch.rate THEN RETURN NO '--random percentage failed
  SELECT CASE ch.mode
@@ -2801,21 +2800,21 @@ FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bstat() A
    END IF
   CASE 2 '--attacker stat greater than value
    IF valid_statnum(ch.val1, "check_attack_chain() [>n]") THEN
-    RETURN bstat(bat.acting).cur.sta(ch.val1) > ch.val2
+    RETURN bslot(bat.acting).stat.cur.sta(ch.val1) > ch.val2
    END IF
   CASE 3 '--attacker stat less than value
    IF valid_statnum(ch.val1, "check_attack_chain() [<n]") THEN
-    RETURN bstat(bat.acting).cur.sta(ch.val1) < ch.val2
+    RETURN bslot(bat.acting).stat.cur.sta(ch.val1) < ch.val2
    END IF
   CASE 4 '--attacker stat greater than value % of max
    IF valid_statnum(ch.val1, "check_attack_chain() [>n%]") THEN
-    WITH bstat(bat.acting)
+    WITH bslot(bat.acting).stat
      RETURN .cur.sta(ch.val1) > .max.sta(ch.val1) * (ch.val2 / 100)
     END WITH
    END IF
   CASE 5 '--attacker stat less than value % of max
    IF valid_statnum(ch.val1, "check_attack_chain() [<n%]") THEN
-    WITH bstat(bat.acting)
+    WITH bslot(bat.acting).stat
      RETURN .cur.sta(ch.val1) < .max.sta(ch.val1) * (ch.val2 / 100)
     END WITH
    END IF
@@ -2825,8 +2824,8 @@ FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bstat() A
  RETURN NO
 END FUNCTION
 
-SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bstat() AS BattleStats, bslot() AS BattleSprite, delay())
- IF ch.atk_id > 0 AND bstat(bat.acting).cur.hp > 0 THEN
+SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, delay())
+ IF ch.atk_id > 0 AND bslot(bat.acting).stat.cur.hp > 0 THEN
   '--a chain is defined and the attacker is not dead.
   
   IF attack.no_chain_on_failure = YES AND bslot(bat.acting).attack_succeeded = 0 THEN
@@ -2834,7 +2833,7 @@ SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat 
    EXIT SUB
   END IF
   
-  IF check_attack_chain(ch, bat, bstat()) THEN
+  IF check_attack_chain(ch, bat, bslot()) THEN
    '--The conditions for this chain are passed
    
    bat.wait_frames = 0
@@ -2856,7 +2855,7 @@ SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat 
    
    IF chained_attack.targ_set <> attack.targ_set OR chained_attack.targ_class <> attack.targ_class THEN
     'if the chained attack has a different target class/type then re-target
-    autotarget bat.acting, chained_attack, bslot(), bstat()
+    autotarget bat.acting, chained_attack, bslot()
    END IF
    
   END IF

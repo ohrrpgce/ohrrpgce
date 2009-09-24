@@ -4,6 +4,33 @@
 'This file contains UDTs that only get used in battle mode,
 'so as to prevent them from cluttering up the global udts.bi file
 
+UNION BattleStatsSingle
+  TYPE
+    hp AS INTEGER   '0
+    mp AS INTEGER   '1
+    str AS INTEGER  '2
+    acc AS INTEGER  '3
+    def AS INTEGER  '4
+    dog AS INTEGER  '5
+    mag AS INTEGER  '6
+    wil AS INTEGER  '7
+    spd AS INTEGER  '8
+    ctr AS INTEGER  '9
+    foc AS INTEGER  '10
+    hits AS INTEGER '11
+    poison AS INTEGER
+    regen AS INTEGER
+    stun AS INTEGER
+    mute AS INTEGER
+  END TYPE
+  sta(15) AS INTEGER
+End UNION
+
+TYPE BattleStats
+  cur AS BattleStatsSingle
+  max AS BattleStatsSingle
+END TYPE
+
 TYPE BattleSprite
   name AS STRING
   basex AS INTEGER
@@ -21,6 +48,9 @@ TYPE BattleSprite
   yspeed AS INTEGER
   zspeed AS INTEGER
   vis AS INTEGER
+  '--stats
+  stat AS BattleStats
+  '--misc
   dissolve AS INTEGER
   flee AS INTEGER
   attack_succeeded AS INTEGER
@@ -65,33 +95,6 @@ TYPE BattleSprite
   never_flinch   AS INTEGER 'YES/NO
   ignore_for_alone    AS INTEGER 'YES/NO
   cursorpos AS XYPair
-END TYPE
-
-UNION BattleStatsSingle
-  TYPE
-    hp AS INTEGER   '0
-    mp AS INTEGER   '1
-    str AS INTEGER  '2
-    acc AS INTEGER  '3
-    def AS INTEGER  '4
-    dog AS INTEGER  '5
-    mag AS INTEGER  '6
-    wil AS INTEGER  '7
-    spd AS INTEGER  '8
-    ctr AS INTEGER  '9
-    foc AS INTEGER  '10
-    hits AS INTEGER '11
-    poison AS INTEGER
-    regen AS INTEGER
-    stun AS INTEGER
-    mute AS INTEGER
-  END TYPE
-  sta(15) AS INTEGER
-End UNION
-
-TYPE BattleStats
-  cur AS BattleStatsSingle
-  max AS BattleStatsSingle
 END TYPE
 
 'This type stores the state of the currently animating attack
