@@ -66,9 +66,11 @@ TYPE BattleSprite
   revengeharm AS INTEGER 'The last damage dealt TO this hero or enemy
   thankvengecure AS INTEGER 'The cure damage undealt TO this hero or enemy (as a positive number!)
   repeatharm AS INTEGER 'The last damage dealy BY this hero or enemy
+  cursorpos AS XYPair
   '--Turn-taking
   ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
   attack AS INTEGER  ' ID number +1 of the attack that this hero or enemy is going to do next
+  delay AS INTEGER   ' Number of ticks before prepared attack animates (counts down)
   '--Targetting
   t(12)               AS INTEGER 'Currently selected target slots. -1 means no target. Targets must be sorted to the beginning if the list changes 
   revenge             AS INTEGER 'ID of last hero or enemy who damaged this hero or enemy, or -1 for none
@@ -94,7 +96,6 @@ TYPE BattleSprite
   death_unneeded AS INTEGER 'YES/NO
   never_flinch   AS INTEGER 'YES/NO
   ignore_for_alone    AS INTEGER 'YES/NO
-  cursorpos AS XYPair
 END TYPE
 
 'This type stores the state of the currently animating attack

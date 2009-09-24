@@ -65,7 +65,7 @@ DIM formdata(40)
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
-DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), delay(11), walk(3)
+DIM menu$(3, 5), menubits(2), mend(3), spel$(23), speld$(23), spel(23), cost$(23), walk(3)
 DIM harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
@@ -220,7 +220,7 @@ DO
  na = loopvar(na, 0, 11, 1)
  IF bat.atk.id = -1 AND vic.state = 0 THEN
   GOSUB meters
-  IF bslot(na).attack > 0 AND delay(na) = 0 THEN
+  IF bslot(na).attack > 0 AND bslot(na).delay = 0 THEN
    '--next attacker has an attack selected and the delay is over
    bat.atk.id = bslot(na).attack - 1
    bat.acting = na
@@ -242,11 +242,11 @@ DO
   IF bslot(bat.next_enemy).ready = YES AND bslot(bat.next_enemy).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
  END IF
  IF vic.state = 0 THEN
-  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), es(), formdata(), rew, ctr(), delay()
+  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), es(), formdata(), rew, ctr()
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
-   IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, inv_scroll, bslot(), delay(), icons(), iuse()
-   IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bslot(), delay(), conlmp()
-   IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), nmenu(), mend(), delay(), spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st()
+   IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, inv_scroll, bslot(), icons(), iuse()
+   IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bslot(), conlmp()
+   IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), nmenu(), mend(), spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st()
   END IF
   IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN GOSUB picktarg
  END IF
@@ -605,7 +605,7 @@ IF bat.atk.id = -1 THEN
  '--clean up stack
  'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
- spawn_chained_attack attack.chain, attack, bat, bslot(), delay()
+ spawn_chained_attack attack.chain, attack, bat, bslot()
 END IF
 RETRACE
 
@@ -735,7 +735,7 @@ IF vic.state = 0 THEN 'only display interface till you win
     edgeboxstyle 1, 4 + i * 10, 132, 11, 0, dpage, YES, YES
     IF bslot(i).stat.cur.hp > 0 THEN
      j = ctr(i) / 7.7
-     IF delay(i) > 0 OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
+     IF bslot(i).delay > 0 OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
       col = uilook(uiTimeBar)
       j = 130
      END IF
@@ -873,7 +873,7 @@ IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN RETRACE
 FOR i = 0 TO 11
 
  'delays for attacks already selected
- IF bat.hero_turn <> i THEN delay(i) = large(delay(i) - 1, 0)
+ IF bat.hero_turn <> i THEN bslot(i).delay = large(bslot(i).delay - 1, 0)
 
  '--poison
  WITH bslot(i).stat
@@ -1056,7 +1056,7 @@ FOR i = 0 TO 11
  IF is_hero(i) THEN c = uilook(uiSelectedItem)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
  IF is_enemy(i) THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
- info$ = "v=" & bslot(i).vis & " dly=" & delay(i) & " tm=" & bat.targ.mask(i) & " hp=" & bslot(i).stat.cur.hp & " dis=" & bslot(i).dissolve
+ info$ = "v=" & bslot(i).vis & " dly=" & bslot(i).delay & " tm=" & bat.targ.mask(i) & " hp=" & bslot(i).stat.cur.hp & " dis=" & bslot(i).dissolve
  IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
  edgeprint info$, 20, 80 + i * 10, c, dpage
 NEXT i
@@ -1896,7 +1896,7 @@ SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS Battl
  formdata(enemynum * 4) = 0
 END SUB
 
-SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER, delay() AS INTEGER)
+SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER)
  DIM ai AS INTEGER = 0
 
  'if HP is less than 20% go into desperation mode
@@ -1968,7 +1968,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER
  LOOP
 
  'get the delay to wait for this attack
- delay(bat.enemy_turn) = atk.attack_delay
+ bslot(bat.enemy_turn).delay = atk.attack_delay
 
  autotarget bat.enemy_turn, atk, bslot()
 
@@ -1979,7 +1979,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER
 
 END SUB
 
-SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, nmenu() AS INTEGER, mend() AS INTEGER, delay() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
+SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, nmenu() AS INTEGER, mend() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
 
  DIM mp_name AS STRING = readglobalstring(1, "MP", 10)
      
@@ -2025,7 +2025,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
    IF readbit(menubits(), 0, bat.hero_turn * 4 + bat.pt) = 0 THEN
     bslot(bat.hero_turn).attack = nmenu(bat.hero_turn, bat.pt)
     loadattackdata atk, bslot(bat.hero_turn).attack - 1
-    delay(bat.hero_turn) = large(atk.attack_delay, 1)
+    bslot(bat.hero_turn).delay = large(atk.attack_delay, 1)
     bat.targ.mode = targSETUP
     flusharray carray(), 7, 0
     EXIT SUB
@@ -2086,7 +2086,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
      NEXT i
      bslot(bat.hero_turn).attack = spel(rptr) + 1
      loadattackdata atk, bslot(bat.hero_turn).attack - 1
-     delay(bat.hero_turn) = large(atk.attack_delay, 1)
+     bslot(bat.hero_turn).delay = large(atk.attack_delay, 1)
      bat.targ.mode = targSETUP
      flusharray carray(), 7, 0
     END IF
@@ -2105,7 +2105,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
  END IF
 END SUB
 
-SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS BattleSprite, delay(), conlmp())
+SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS BattleSprite, conlmp())
  IF carray(5) > 1 THEN '--cancel
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
@@ -2147,7 +2147,7 @@ SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS Bat
     IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN conlmp(bat.hero_turn) = INT(bat.sptr / 3) + 1
     '--queue attack
     bslot(bat.hero_turn).attack = spel(bat.sptr) + 1
-    delay(bat.hero_turn) = large(atk.attack_delay, 1)
+    bslot(bat.hero_turn).delay = large(atk.attack_delay, 1)
     '--exit spell menu
     bat.targ.mode = targSETUP
     bat.menu_mode = batMENUHERO
@@ -2157,7 +2157,7 @@ SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS Bat
  END IF
 END SUB
 
-SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, delay(), icons(), iuse())
+SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, icons(), iuse())
  IF carray(5) > 1 THEN
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
@@ -2205,7 +2205,7 @@ SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() A
    DIM attack AS AttackData
    loadattackdata attack, itembuf(47) - 1
    bslot(bat.hero_turn).attack = itembuf(47)
-   delay(bat.hero_turn) = large(attack.attack_delay, 1)
+   bslot(bat.hero_turn).delay = large(attack.attack_delay, 1)
    bat.targ.mode = targSETUP
    bat.menu_mode = batMENUHERO
    flusharray carray(), 7, 0
@@ -2824,7 +2824,7 @@ FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() A
  RETURN NO
 END FUNCTION
 
-SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, delay())
+SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite)
  IF ch.atk_id > 0 AND bslot(bat.acting).stat.cur.hp > 0 THEN
   '--a chain is defined and the attacker is not dead.
   
@@ -2845,7 +2845,7 @@ SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat 
    IF chained_attack.attack_delay > 0 THEN
     '--chain is delayed, queue the attack
     bslot(bat.acting).attack = ch.atk_id
-    delay(bat.acting) = chained_attack.attack_delay
+    bslot(bat.acting).delay = chained_attack.attack_delay
    ELSE
     '--chain is immediate, prep it now!
     bat.atk.id = ch.atk_id - 1
