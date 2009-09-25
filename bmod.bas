@@ -605,7 +605,9 @@ IF bat.atk.id = -1 THEN
  '--clean up stack
  'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
- spawn_chained_attack attack.chain, attack, bat, bslot(), es()
+ IF spawn_chained_attack(attack.chain, attack, bat, bslot(), es()) = NO THEN
+  spawn_chained_attack(attack.elsechain, attack, bat, bslot(), es())
+ END IF
 END IF
 RETRACE
 
@@ -2832,43 +2834,44 @@ FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() A
  RETURN NO
 END FUNCTION
 
-SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER)
- IF ch.atk_id > 0 AND bslot(bat.acting).stat.cur.hp > 0 THEN
-  '--a chain is defined and the attacker is not dead.
-  
-  IF attack.no_chain_on_failure = YES AND bslot(bat.acting).attack_succeeded = 0 THEN
-   'attack failed, and this chain configured to fail too
-   EXIT SUB
-  END IF
-  
-  IF check_attack_chain(ch, bat, bslot(), es()) THEN
-   '--The conditions for this chain are passed
-   
-   bat.wait_frames = 0
-   bat.anim_ready = NO
-   
-   DIM chained_attack AS AttackData
-   loadattackdata chained_attack, ch.atk_id - 1
-   
-   IF chained_attack.attack_delay > 0 AND ch.no_delay = NO THEN
-    '--chain is delayed, queue the attack
-    bslot(bat.acting).attack = ch.atk_id
-    bslot(bat.acting).delay = chained_attack.attack_delay
-   ELSE
-    '--chain is immediate, prep it now!
-    bat.atk.id = ch.atk_id - 1
-    bat.anim_ready = NO
-    bslot(bat.acting).attack = 0
-   END IF
-   
-   IF chained_attack.targ_set <> attack.targ_set OR chained_attack.targ_class <> attack.targ_class THEN
-    'if the chained attack has a different target class/type then re-target
-    autotarget bat.acting, chained_attack, bslot()
-   END IF
-   
-  END IF
+FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
+ IF ch.atk_id <= 0 THEN RETURN NO '--no chain defined
+ IF bslot(bat.acting).stat.cur.hp <= 0 THEN RETURN NO '--attacker is dead
+ IF attack.no_chain_on_failure = YES AND bslot(bat.acting).attack_succeeded = 0 THEN
+  'attack failed, and this chain configured to fail too
+  RETURN NO
  END IF
-END SUB
+  
+ IF check_attack_chain(ch, bat, bslot(), es()) THEN
+  '--The conditions for this chain are passed
+  
+  bat.wait_frames = 0
+  bat.anim_ready = NO
+  
+  DIM chained_attack AS AttackData
+  loadattackdata chained_attack, ch.atk_id - 1
+  
+  IF chained_attack.attack_delay > 0 AND ch.no_delay = NO THEN
+   '--chain is delayed, queue the attack
+   bslot(bat.acting).attack = ch.atk_id
+   bslot(bat.acting).delay = chained_attack.attack_delay
+  ELSE
+   '--chain is immediate, prep it now!
+   bat.atk.id = ch.atk_id - 1
+   bat.anim_ready = NO
+   bslot(bat.acting).attack = 0
+  END IF
+  
+  IF chained_attack.targ_set <> attack.targ_set OR chained_attack.targ_class <> attack.targ_class THEN
+   'if the chained attack has a different target class/type then re-target
+   autotarget bat.acting, chained_attack, bslot()
+  END IF
+
+  RETURN YES '--chained attack okay
+ END IF
+
+ RETURN NO '--chained attack failed
+END FUNCTION
 
 FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
  'who is bslot index

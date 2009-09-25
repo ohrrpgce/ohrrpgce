@@ -56,6 +56,8 @@ WHAT IS NEW?
       not always have to go directly over their head. [James]
     * Extended attack chaining options. Now you can make an attack
       chain based on a tag check or a stat check. [James]
+    * Else-Chain which is evaluated whenever the default chain is not
+      used [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

@@ -1435,8 +1435,8 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   .sound_effect = buf(99)
   '----Chaining----
   loadattackchain .chain, buf(), 12, 13, 101, 102, 103, 104
-  loadattackchain .failchain, buf(), 105, 106, 107, 108, 109, 110
-  loadattackchain .instead, buf(), 111, 112, 113, 114, 115, 116
+  loadattackchain .elsechain, buf(), 105, 107, 106, 108, 109, 110
+  loadattackchain .instead, buf(), 111, 113, 112, 114, 115, 116
   '----Bitsets----
   .cure_instead_of_harm           = xreadbit(buf(), 0, 20)
   .divide_spread_damage           = xreadbit(buf(), 1, 20)
