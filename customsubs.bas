@@ -3291,14 +3291,14 @@ END FUNCTION
 SUB update_attack_editor_for_chain (BYVAL mode AS INTEGER, BYREF caption1 AS STRING, BYREF max1 AS INTEGER, BYREF min1 AS INTEGER, BYREF menutype1 AS INTEGER, BYREF caption2 AS STRING, BYREF max2 AS INTEGER, BYREF min2 AS INTEGER, BYREF menutype2 AS INTEGER)
  SELECT CASE mode
   CASE 0 '--no special condition
-   caption1 = "..."
+   caption1 = ""
    max1 = 32000
    min1 = -32000
-   menutype1 = 1 'make an action to supress display of the zero
-   caption2 = "..."
+   menutype1 = 18'skipper
+   caption2 = ""
    max2 = 32000
    min2 = -32000
-   menutype2 = 1 'make an action to supress display of the zero
+   menutype2 = 18'skipper
   CASE 1 '--tagcheck
    caption1 = "  if Tag:"
    max1 = 1000

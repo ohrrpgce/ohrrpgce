@@ -52,6 +52,7 @@ DECLARE SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, men
 DECLARE SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS MenuDef, mi AS MenuDefItem)
 
 DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
+DECLARE SUB flexmenu_skipper (BYREF state AS MenuState, workmenu(), menutype())
 
 DECLARE SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl AS Slice Ptr)
 DECLARE SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth AS INTEGER)
@@ -466,7 +467,7 @@ min(AtkLimElseChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 59
+CONST MnuItems = 60
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -580,13 +581,13 @@ menuoff(AtkExtraDamage) = AtkDatExtraDamage
 menulimits(AtkExtraDamage) = AtkLimExtraDamage
 
 CONST AtkChainTo = 21
-menu$(AtkChainTo) = "Chain to:"
+menu$(AtkChainTo) = "  Attack:"
 menutype(AtkChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkChainTo) = AtkDatChainTo
 menulimits(AtkChainTo) = AtkLimChainTo
 
 CONST AtkChainRate = 22
-menu$(AtkChainRate) = "Chain Rate:"
+menu$(AtkChainRate) = "  Rate:"
 menutype(AtkChainRate) = 17
 menuoff(AtkChainRate) = AtkDatChainRate
 menulimits(AtkChainRate) = AtkLimChainRate
@@ -746,66 +747,70 @@ menuoff(AtkPrefTargStat) = AtkDatPrefTargStat
 menulimits(AtkPrefTargStat) = AtkLimPrefTargStat
 
 CONST AtkChainMode = 49
-menu$(AtkChainMode) = "Chain condition:"
+menu$(AtkChainMode) = "  Condition:"
 menutype(AtkChainMode) = 2000 + AtkCapChainMode
 menuoff(AtkChainMode) = AtkDatChainMode
 menulimits(AtkChainMode) = AtkLimChainMode
 
 CONST AtkChainVal1 = 50
-menu$(AtkChainVal1) = "..." '--updated by update_attack_editor_for_chain()
-menutype(AtkChainVal1) = 0
+menu$(AtkChainVal1) = "" '--updated by update_attack_editor_for_chain()
+menutype(AtkChainVal1) = 18 'skipper
 menuoff(AtkChainVal1) = AtkDatChainVal1
 menulimits(AtkChainVal1) = AtkLimChainVal1
 
 CONST AtkChainVal2 = 51
-menu$(AtkChainVal2) = "..." '--updated by update_attack_editor_for_chain()
-menutype(AtkChainVal2) = 0
+menu$(AtkChainVal2) = "" '--updated by update_attack_editor_for_chain()
+menutype(AtkChainVal2) = 18 'skipper
 menuoff(AtkChainVal2) = AtkDatChainVal2
 menulimits(AtkChainVal2) = AtkLimChainVal2
 
 CONST AtkChainBits = 52
-menu$(AtkChainBits) = "Chain option bitsets..."
+menu$(AtkChainBits) = "  option bitsets..."
 menutype(AtkChainBits) = 1
 
 CONST AtkElseChainTo = 53
-menu$(AtkElseChainTo) = "Else-Chain to:"
+menu$(AtkElseChainTo) = "  Attack:"
 menutype(AtkElseChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkElseChainTo) = AtkDatElseChainTo
 menulimits(AtkElseChainTo) = AtkLimChainTo
 
 CONST AtkElseChainRate = 54
-menu$(AtkElseChainRate) = "Else-Chain Rate:"
+menu$(AtkElseChainRate) = "  Rate:"
 menutype(AtkElseChainRate) = 17
 menuoff(AtkElseChainRate) = AtkDatElseChainRate
 menulimits(AtkElseChainRate) = AtkLimChainRate
 
 CONST AtkElseChainMode = 55
-menu$(AtkElseChainMode) = "Else-Chain condition:"
+menu$(AtkElseChainMode) = "  Condition:"
 menutype(AtkElseChainMode) = 2000 + AtkCapChainMode
 menuoff(AtkElseChainMode) = AtkDatElseChainMode
 menulimits(AtkElseChainMode) = AtkLimChainMode
 
 CONST AtkElseChainVal1 = 56
-menu$(AtkElseChainVal1) = "..." '--updated by update_attack_editor_for_chain()
-menutype(AtkElseChainVal1) = 0
+menu$(AtkElseChainVal1) = "" '--updated by update_attack_editor_for_chain()
+menutype(AtkElseChainVal1) = 18'skipper
 menuoff(AtkElseChainVal1) = AtkDatElseChainVal1
 menulimits(AtkElseChainVal1) = AtkLimElseChainVal1
 
 CONST AtkElseChainVal2 = 57
-menu$(AtkElseChainVal2) = "..." '--updated by update_attack_editor_for_chain()
-menutype(AtkElseChainVal2) = 0
+menu$(AtkElseChainVal2) = "" '--updated by update_attack_editor_for_chain()
+menutype(AtkElseChainVal2) = 18'skipper
 menuoff(AtkElseChainVal2) = AtkDatElseChainVal2
 menulimits(AtkElseChainVal2) = AtkLimElseChainVal2
 
 CONST AtkElseChainBits = 58
-menu$(AtkElseChainBits) = "Else-Chain option bitsets..."
+menu$(AtkElseChainBits) = "  Option bitsets..."
 menutype(AtkElseChainBits) = 1
 
-CONST AtkSkipSpace = 59
-menu$(AtkSkipSpace) = "-"
-menutype(AtkSkipSpace) = 1
+CONST AtkChainHeader = 59
+menu$(AtkChainHeader) = "[Regular Chain]"
+menutype(AtkChainHeader) = 18'skipper
 
-'Next menu item is 60 (remember to update the dims)
+CONST AtkElseChainHeader = 60
+menu$(AtkElseChainHeader) = "[Else-Chain]"
+menutype(AtkElseChainHeader) = 18'skipper
+
+'Next menu item is 61 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -868,21 +873,22 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(13)
+DIM chainMenu(14)
 chainMenu(0) = AtkBackAct
-chainMenu(1) = AtkChainTo
-chainMenu(2) = AtkChainRate
-chainMenu(3) = AtkChainMode
-chainMenu(4) = AtkChainVal1
-chainMenu(5) = AtkChainVal2
-chainmenu(6) = AtkChainBits
-chainmenu(7) = AtkSkipSpace '-----
-chainMenu(8) = AtkElseChainTo
-chainMenu(9) = AtkElseChainRate
-chainMenu(10) = AtkElseChainMode
-chainMenu(11) = AtkElseChainVal1
-chainMenu(12) = AtkElseChainVal2
-chainmenu(13) = AtkElseChainBits
+chainMenu(1) = AtkChainHeader
+chainMenu(2) = AtkChainTo
+chainMenu(3) = AtkChainRate
+chainmenu(4) = AtkChainBits
+chainMenu(5) = AtkChainMode
+chainMenu(6) = AtkChainVal1
+chainMenu(7) = AtkChainVal2
+chainmenu(8) = AtkElseChainHeader
+chainMenu(9) = AtkElseChainTo
+chainMenu(10) = AtkElseChainRate
+chainmenu(11) = AtkElseChainBits
+chainMenu(12) = AtkElseChainMode
+chainMenu(13) = AtkElseChainVal1
+chainMenu(14) = AtkElseChainVal2
 
 DIM tagMenu(6)
 tagMenu(0) = AtkBackAct
@@ -966,11 +972,14 @@ DO
   END IF
  END IF
 
- IF usemenu(state) THEN needupdatemenu = 1
+ IF usemenu(state) THEN
+  needupdatemenu = 1
+  flexmenu_skipper state, workmenu(), menutype()
+ END IF
 
  IF workmenu(state.pt) = AtkChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
   lastindex = recindex
-  IF keyval(77) > 1 AND recindex = gen(34) AND recindex < 32767 THEN
+  IF keyval(77) > 1 AND recindex = gen(genMaxAttack) AND recindex < 32767 THEN
    '--attempt to add a new set
    '--save current
    saveattackdata recbuf(), lastindex
@@ -1160,6 +1169,10 @@ FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(
 '           12=defaultable positive int >=0 is int, -1 is "default"
 '           13=Default zero int >0 is int, 0 is "default"
 '           14=sound effect + 1 (0=default, -1=none)
+'           15=speed (shows battle turn time estimate)
+'           16=stat (numbered the same way as BattleStatsSingle.sta())
+'           17=int with a % sign after it
+'           18=skipper (caption which is skipped by the cursor)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1253,6 +1266,7 @@ SUB updateflexmenu (mpointer, nowmenu$(), nowdat(), size, menu$(), menutype(), m
 '           15=speed (shows battle turn time estimate)
 '           16=stat (numbered the same way as BattleStatsSingle.sta())
 '           17=int with a % sign after it
+'           18=skipper (caption which is skipped by the cursor)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1336,6 +1350,8 @@ FOR i = 0 TO size
     END SELECT
   CASE 17 '--int%
    nowmenu$(i) = nowmenu$(i) & " " & dat & "%"
+  CASE 18 '--skipper
+   '--no change to caption
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    nowmenu$(i) = nowmenu$(i) & " " & dat & " " & caption$(capnum + dat)
@@ -1360,6 +1376,23 @@ FUNCTION isStringField(mnu)
   IF mnu = 3 OR mnu = 4 OR mnu = 6 THEN RETURN -1
   RETURN 0
 END FUNCTION
+
+SUB flexmenu_skipper (BYREF state AS MenuState, workmenu(), menutype())
+ DIM loop_safety AS INTEGER = 0
+ DO WHILE menutype(workmenu(state.pt)) = 18 '--skipper
+  '--re-call usemenu in order to cause the keypress to be evaluated again
+  usemenu state
+  IF state.pt = state.first THEN EXIT DO
+  IF state.pt = state.last THEN EXIT DO
+  loop_safety += 1
+  IF loop_safety > 50 THEN
+   debug "loop safety problem in flexmenu_skipper"
+   EXIT DO
+  END IF
+ LOOP
+END SUB
+
+'-----------------------------------------------------------------------
 
 SUB menu_editor ()
 
