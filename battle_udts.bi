@@ -31,6 +31,13 @@ TYPE BattleStats
   max AS BattleStatsSingle
 END TYPE
 
+TYPE BattleHeroMenu
+  menu AS INTEGER 'Same as bmenu(hero,slot)
+  caption AS STRING
+  atk AS INTEGER 'Attack ID (or -1 for none)
+  spell_list AS INTEGER ' index of spell list (or -10 for items or -1 for none)
+END TYPE
+
 TYPE BattleSprite
   name AS STRING
   basex AS INTEGER
@@ -67,6 +74,8 @@ TYPE BattleSprite
   thankvengecure AS INTEGER 'The cure damage undealt TO this hero or enemy (as a positive number!)
   repeatharm AS INTEGER 'The last damage dealy BY this hero or enemy
   cursorpos AS XYPair
+  menu(5)   AS BattleHeroMenu 'Only applies to heroes. blank for enemies
+  menu_size AS INTEGER 'actually the index of the last used element in .menu()
   '--Turn-taking
   ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
   attack AS INTEGER  ' ID number +1 of the attack that this hero or enemy is going to do next
