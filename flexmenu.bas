@@ -136,6 +136,10 @@ atkbit$(82) = "Do not cause target to flinch"
 '--191 attack bits allowed in menu.
 '--Data is split, See AtkDatBits and AtkDatBits2 for offsets
 
+DIM atk_chain_bitset_names(1) AS STRING
+atk_chain_bitset_names(0) = "Attacker must know chained attack"
+atk_chain_bitset_names(1) = "Ignore chained attack's delay"
+
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(0) / 2) '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
@@ -180,6 +184,7 @@ CONST AtkDatPrefTargStat = 100
 CONST AtkDatChainMode = 101
 CONST AtkDatChainVal1 = 102
 CONST AtkDatChainVal2 = 103
+CONST AtkDatChainBits = 104
 
 'anything past this requires expanding the data
 
@@ -447,7 +452,7 @@ min(AtkLimChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 51
+CONST MnuItems = 52
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -744,7 +749,11 @@ menutype(AtkChainVal2) = 0
 menuoff(AtkChainVal2) = AtkDatChainVal2
 menulimits(AtkChainVal2) = AtkLimChainVal2
 
-'Next menu item is 52 (remember to update the dims)
+CONST AtkChainBits = 52
+menu$(AtkChainBits) = "Chain option bitsets..."
+menutype(AtkChainBits) = 1
+
+'Next menu item is 53 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -807,13 +816,14 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(5)
+DIM chainMenu(6)
 chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainTo
 chainMenu(2) = AtkChainRate
 chainMenu(3) = AtkChainMode
 chainMenu(4) = AtkChainVal1
 chainMenu(5) = AtkChainVal2
+chainmenu(6) = AtkChainBits
 
 DIM tagMenu(6)
 tagMenu(0) = AtkBackAct
@@ -983,6 +993,9 @@ DO
     IF recbuf(AtkDatSoundEffect) > 0 THEN
      playsfx recbuf(AtkDatSoundEffect) - 1
     END IF
+   CASE AtkChainBits
+    editbitset recbuf(), AtkDatChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
+    needupdatemenu = 1
   END SELECT
  END IF
 

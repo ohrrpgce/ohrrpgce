@@ -604,7 +604,7 @@ IF bat.atk.id = -1 THEN
  '--clean up stack
  'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
- spawn_chained_attack attack.chain, attack, bat, bslot()
+ spawn_chained_attack attack.chain, attack, bat, bslot(), es()
 END IF
 RETRACE
 
@@ -2786,9 +2786,15 @@ FUNCTION valid_statnum(statnum AS INTEGER, cmd AS STRING) AS INTEGER
  RETURN bound_arg(statnum, 0, 15, cmd, "stat number")
 END FUNCTION
 
-FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
+FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
  'Returns YES if the chain may proceed, or NO if it fails
+ 
  IF INT(RND * 100) >= ch.rate THEN RETURN NO '--random percentage failed
+ 
+ IF ch.must_know = YES THEN
+  IF knows_attack(bat.acting, ch.atk_id - 1, bslot(), es()) = NO THEN RETURN NO
+ END IF
+ 
  SELECT CASE ch.mode
   CASE 0 '--no special conditions
    RETURN YES
@@ -2824,7 +2830,7 @@ FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() A
  RETURN NO
 END FUNCTION
 
-SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER)
  IF ch.atk_id > 0 AND bslot(bat.acting).stat.cur.hp > 0 THEN
   '--a chain is defined and the attacker is not dead.
   
@@ -2833,7 +2839,7 @@ SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat 
    EXIT SUB
   END IF
   
-  IF check_attack_chain(ch, bat, bslot()) THEN
+  IF check_attack_chain(ch, bat, bslot(), es()) THEN
    '--The conditions for this chain are passed
    
    bat.wait_frames = 0
@@ -2861,3 +2867,34 @@ SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat 
   END IF
  END IF
 END SUB
+
+FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
+ 'who is bslot index
+ 'atk is attack id
+ 'bslot() hero and enemy data
+ 'es() is the dang 'ol enemy stat array which I really need to factor out
+ 'spell() is a global array
+
+ '--different handling for heroes and monsters
+ 
+ IF is_hero(who) THEN
+  FOR i AS INTEGER = 0 TO 5
+   WITH bslot(who).menu(i)
+    IF .atk = atk THEN RETURN YES 'Knows the attack by an equipped weapon
+    IF .spell_list >= 0 THEN
+     FOR j AS INTEGER = 0 TO 23
+      IF spell(who, .spell_list, j) = atk THEN RETURN YES 'Knows the attack in a spell list
+     NEXT j
+    END IF
+   END WITH
+  NEXT i
+ END IF
+ 
+ IF is_enemy(who) THEN
+  FOR i AS INTEGER = 0 TO 15
+   IF es(who - 4, 92 + i) - 1 = atk THEN RETURN YES 'knows this attack for one of the three ai sets
+  NEXT i
+ END IF
+ 
+ RETURN NO
+END FUNCTION
