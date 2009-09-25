@@ -15,8 +15,7 @@ declare function is_enemy(who as integer) as integer
 declare function is_attack(who as integer) as integer
 declare function is_weapon(who as integer) as integer
 declare sub anim_advance (who as integer, attack as AttackData, bslot() as battlesprite)
-declare function atkallowed OVERLOAD (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bslot() AS BattleSprite) as integer
-declare function atkallowed OVERLOAD (atk as AttackData, attacker as integer, spclass as integer, lmplev as integer, bslot() AS BattleSprite) as integer
+declare function atkallowed (atk as AttackData, attacker as integer, spclass as integer, lmplev as integer, bslot() AS BattleSprite) as integer
 declare function checktheftchance (item as integer, itemp as integer, rareitem as integer, rareitemp as integer) as integer
 declare sub control
 declare function countai (ai as integer, them as integer, es() as integer) as integer
@@ -49,12 +48,9 @@ declare sub setheroexperience (byval who as integer, byval amount as integer, by
 declare function visibleandalive (o as integer, bslot() as battlesprite) as integer
 declare sub writestats (exstat() as integer, bslot() AS BattleSprite)
 
-declare sub get_valid_targs OVERLOAD (tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite)
-declare sub get_valid_targs OVERLOAD (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite)
+declare sub get_valid_targs (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite)
 declare function attack_can_hit_dead(who as integer, attack as AttackData) as integer
-declare sub autotarget OVERLOAD (who as integer, atkbuf() as integer, bslot() AS BattleSprite)
-declare sub autotarget OVERLOAD (who as integer, atk as AttackData, bslot() AS BattleSprite)
-declare function find_preferred_target OVERLOAD (tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite) as integer
-declare function find_preferred_target OVERLOAD (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite) as integer
+declare sub autotarget (who as integer, atk as AttackData, bslot() AS BattleSprite)
+declare function find_preferred_target (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite) as integer
 
 #ENDIF

@@ -59,13 +59,6 @@ FUNCTION is_weapon(who as integer) as integer
  RETURN 0
 END FUNCTION
 
-FUNCTION atkallowed (atkbuf() as integer, attacker as integer, spclass as integer, lmplev as integer, bslot() AS BattleSprite) as integer
- 'FIXME: this will be deleted in favour of its overload as soon as it is no longer needed
- DIM atk AS AttackData
- convertattackdata atkbuf(), atk
- RETURN atkallowed(atk, attacker, spclass, lmplev, bslot())
-END FUNCTION
-
 FUNCTION atkallowed (atk as AttackData, attacker as integer, spclass as integer, lmplev as integer, bslot() AS BattleSprite) as integer
 '--atk   = attack data
 '--attacker = hero or enemy who is attacking
@@ -988,13 +981,6 @@ FOR i = 0 TO 3
 NEXT i
 END SUB
 
-SUB get_valid_targs(tmask(), who, atkbuf(), bslot() AS BattleSprite)
- 'FIXME: remove this in favour of its overload later
- DIM atk AS AttackData
- convertattackdata atkbuf(), atk
- get_valid_targs tmask(), who, atk, bslot()
-END SUB
-
 SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSprite)
 
  DIM i AS INTEGER
@@ -1303,13 +1289,6 @@ FUNCTION attack_can_hit_dead(who as integer, attack as AttackData) as integer
  RETURN NO
 END FUNCTION
 
-SUB autotarget (who, atkbuf(), bslot() AS BattleSprite)
- 'FIXME: Remove this later in favor of its overload
- DIM atk AS AttackData
- convertattackdata atkbuf(), atk
- autotarget who, atk, bslot()
-END SUB
-
 SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite)
 
  DIM tmask(11) ' A list of true/false values indicating
@@ -1372,13 +1351,6 @@ SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
   END IF
  NEXT i
 END SUB
-
-FUNCTION find_preferred_target(tmask() as integer, who as integer, atkbuf() as integer, bslot() AS BattleSprite) as integer
- 'FIXME: remove this later in favour of the overload
- DIM atk AS AttackData
- convertattackdata atkbuf(), atk
- RETURN find_preferred_target(tmask(), who, atk, bslot())
-END FUNCTION
 
 FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite) as integer
 

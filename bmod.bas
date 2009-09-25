@@ -64,6 +64,7 @@ battle = 1
 DIM formdata(40)
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
+DIM autotarg_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
 DIM menubits(2), spel$(23), speld$(23), spel(23), cost$(23), walk(3)
 DIM harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
@@ -654,7 +655,8 @@ IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
 
 'autotarget
 IF bat.targ.mode = targAUTO THEN
- autotarget bat.hero_turn, buffer(), bslot()
+ loadattackdata autotarg_attack, bslot(bat.hero_turn).attack - 1
+ autotarget bat.hero_turn, autotarg_attack, bslot()
  ctr(bat.hero_turn) = 0
  bslot(bat.hero_turn).ready = NO
  bat.hero_turn = -1
