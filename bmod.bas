@@ -2848,7 +2848,7 @@ SUB spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat 
    DIM chained_attack AS AttackData
    loadattackdata chained_attack, ch.atk_id - 1
    
-   IF chained_attack.attack_delay > 0 THEN
+   IF chained_attack.attack_delay > 0 AND ch.no_delay = NO THEN
     '--chain is delayed, queue the attack
     bslot(bat.acting).attack = ch.atk_id
     bslot(bat.acting).delay = chained_attack.attack_delay
