@@ -10,14 +10,46 @@ There are three types of chaining.
 
 * Default Chain - This attack will be used after the current attack finishes
 
-* Else-Chain - If the default chain is not used, then the else-chain will be checked.
+* Else-Chain - If the default chain is not used, then the else-chain will be used
 
-* Instead-Chain - [Not implemented yet] - This attack will be used instead of the current attack. In other words, it will replace the current attack.
+* Instead-Chain - [Not implemented yet] - This attack will be used instead of the current attack. In other words, it will replace the current attack. If an attack gets replaced by its instead-chain, then the only thing about the original attack that will matter is its targetting data.
 
 For each chain, there are several different options.
 
-Chain to: Use the left and right arrow keys to choose another attack. If this is not set, the chain will not happen.
+* Attack - Use the left and right arrow keys to choose another attack. If no attack is set, the chain will not happen.
 
-Chain Rate%: This is a percentage that controls how often the chain succeeds. A chain rate of 50 would only chain half the time. If you want the chain to happen every time, use 100.
+* Rate - This is a percentage that controls how often the chain succeeds. A chain rate of 50 would only chain half the time. If you want the chain to happen every time, use 100.
 
-Chain
+* Option settings - this is a list of bitsets that affects chain behaviour. 
+  * "Attacker must know chained
+    attack" causes the chain to fail
+    if the attacker does not have
+    the chained attack in their
+    spell lists or weapon attack.
+  * "Ignore chained attack's delay"
+    causes the chained attack to
+    happen immediately, even if it
+    has a delay when used normally.
+
+* Condition - There are several different options for chain condition
+
+  * Tag check - check whether a pair
+    of tags is ON or OFF before
+    allowing the chain to continue.
+    (you can just use one tag if you
+    want)
+
+  * Stat check - Don't allow the
+    chain to continue unless the
+    attacker's stat is above or
+    below a given threshold. The
+    threshold can be specified
+    either as an absolute number
+    or as a percentage.
+
+[NOTE: Same-Target Chains]
+Note that for all three chain types, if the target class and target setting of the chain-starter and the chaned attack are the same, then the chained attack will use the exact same target as the chain-starter. Same-target chains will be interrupted if the target dies.
+
+[NOTE: Different-Target Chains]
+When the target class or target setting are different, the chained attack will pick a new target automatically according to its "preferred target" rules. This will not be interrupted if the first attack's target dies.
+
