@@ -931,6 +931,8 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
  state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
 
  clearpage dpage
+ 'reset repeat rate, needed because called from sprite editor (argh), the caller resets its own repeatrate
+ setkeyrepeat
  setkeys
  DO
   setwait 55
