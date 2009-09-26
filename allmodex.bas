@@ -2383,17 +2383,8 @@ END FUNCTION
 FUNCTION isdir (sDir$) as integer
 #IFDEF __FB_LINUX__
 	'Special hack for broken Linux dir$() behavior
-	isdir = 0
 	sDir$ = escape_string(sDir$, """`\$")
-	SHELL "if [ -d """ + sDir$ + """ ] ; then echo dir ; fi > isdirhack.tmp"
-	DIM AS INTEGER fh
-	fh = FREEFILE
-	OPEN "isdirhack.tmp" FOR INPUT AS #fh
-	DIM s$
-	LINE INPUT #fh, s$
-	IF TRIM$(s$) = "dir" THEN isdir = -1
-	CLOSE #fh
-	KILL "isdirhack.tmp"
+	isdir = SHELL("[ -d """ + sDir$ + """ ]") = 0
 #ELSE
 	'Windows just uses dir
 	dim ret as integer = dir$(sDir$, 55) <> "" AND dir$(sDir$, 39) = ""

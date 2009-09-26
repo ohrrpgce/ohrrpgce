@@ -48,11 +48,14 @@ IF n2 < n1 THEN small = n2
 END FUNCTION
 
 FUNCTION trimpath(filename as string) as string
-'return the filename without path
+'return the file/directory name without path
 dim i as integer
 for i = 0 to len(filename) -1 
 	if filename[i] = asc("\") or filename[i] = asc("/") then filename[i] = asc(SLASH)
 next
+IF filename <> "" ANDALSO filename[LEN(filename) - 1] = asc(SLASH) THEN
+ filename = MID(filename, 1, LEN(filename) - 1)
+END IF
 IF INSTR(filename,SLASH) = 0 THEN RETURN filename
 FOR i = LEN(filename) TO 1 STEP -1
  IF MID(filename, i, 1) = SLASH THEN i += 1 : EXIT FOR
