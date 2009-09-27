@@ -58,6 +58,9 @@ WHAT IS NEW?
       chain based on a tag check or a stat check. [James]
     * Else-Chain which is evaluated whenever the default chain is not
       used [James]
+    * Instead-Chain which is evaluated right after the attack is
+      targeted, and if it succeeds it entirely replaces the orignal
+      attack [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

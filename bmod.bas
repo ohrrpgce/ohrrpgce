@@ -213,7 +213,7 @@ DO
   END IF
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND vic.state = 0 THEN
-  generate_atkscript attack, bat, bslot(), icons(), exstat()
+  generate_atkscript attack, bat, bslot(), icons(), exstat(), es()
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND vic.state = 0 AND away = 0 THEN GOSUB action
  GOSUB animate
@@ -2217,7 +2217,7 @@ SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() A
  END IF
 END SUB
 
-SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, exstat())
+SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, exstat(), es())
  DIM i AS INTEGER
 
  '--check for item consumption
@@ -2228,9 +2228,21 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
    EXIT SUB
   END IF
  END IF
- 
+
  '--load attack
  loadattackdata attack, bat.atk.id
+
+ DIM safety AS INTEGER = 0
+ DO WHILE spawn_chained_attack(attack.instead, attack, bat, bslot(), es())
+  IF bslot(bat.acting).delay > 0 THEN EXIT SUB
+  loadattackdata attack, bat.atk.id
+  safety += 1
+  IF safety > 100 THEN
+   debug "Endless instead-chain loop detected for " & attack.name
+   bat.atk.id = -1 '--cancel attack
+   EXIT SUB
+  END IF
+ LOOP
 
  IF attack.recheck_costs_after_delay THEN
   'The "Re-check costs after attack delay" is on, so cancel the attack if we can't afford it now

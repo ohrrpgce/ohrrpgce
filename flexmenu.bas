@@ -192,6 +192,12 @@ CONST AtkDatElseChainRate = 107
 CONST AtkDatElseChainVal1 = 108
 CONST AtkDatElseChainVal2 = 109
 CONST AtkDatElseChainBits = 110
+CONST AtkDatInsteadChainTo = 111
+CONST AtkDatInsteadChainMode = 112
+CONST AtkDatInsteadChainRate = 113
+CONST AtkDatInsteadChainVal1 = 114
+CONST AtkDatInsteadChainVal2 = 115
+CONST AtkDatInsteadChainBits = 116
 
 'anything past this requires expanding the data
 
@@ -199,7 +205,7 @@ CONST AtkDatElseChainBits = 110
 '----------------------------------------------------------
 capindex = 0
 DIM caption$(151)
-DIM max(35), min(35)
+DIM max(37), min(37)
 
 'Limit(0) is not used
 
@@ -463,11 +469,19 @@ CONST AtkLimElseChainVal2 = 35
 max(AtkLimElseChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 min(AtkLimElseChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 
-'next limit is 36 (remember to update the dim)
+CONST AtkLimInsteadChainVal1 = 36
+max(AtkLimInsteadChainVal1) = 0 '--updated by update_attack_editor_for_chain()
+min(AtkLimInsteadChainVal1) = 0 '--updated by update_attack_editor_for_chain()
+
+CONST AtkLimInsteadChainVal2 = 37
+max(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
+min(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
+
+'next limit is 38 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 60
+CONST MnuItems = 67
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -810,11 +824,49 @@ CONST AtkElseChainHeader = 60
 menu$(AtkElseChainHeader) = "[Else-Chain]"
 menutype(AtkElseChainHeader) = 18'skipper
 
-'Next menu item is 61 (remember to update the dims)
+CONST AtkInsteadChainHeader = 61
+menu$(AtkInsteadChainHeader) = "[Instead-Chain]"
+menutype(AtkInsteadChainHeader) = 18'skipper
+
+CONST AtkInsteadChainTo = 62
+menu$(AtkInsteadChainTo) = "  Attack:"
+menutype(AtkInsteadChainTo) = 7 '--special class for showing an attack name
+menuoff(AtkInsteadChainTo) = AtkDatInsteadChainTo
+menulimits(AtkInsteadChainTo) = AtkLimChainTo
+
+CONST AtkInsteadChainRate = 63
+menu$(AtkInsteadChainRate) = "  Rate:"
+menutype(AtkInsteadChainRate) = 17
+menuoff(AtkInsteadChainRate) = AtkDatInsteadChainRate
+menulimits(AtkInsteadChainRate) = AtkLimChainRate
+
+CONST AtkInsteadChainMode = 64
+menu$(AtkInsteadChainMode) = "  Condition:"
+menutype(AtkInsteadChainMode) = 2000 + AtkCapChainMode
+menuoff(AtkInsteadChainMode) = AtkDatInsteadChainMode
+menulimits(AtkInsteadChainMode) = AtkLimChainMode
+
+CONST AtkInsteadChainVal1 = 65
+menu$(AtkInsteadChainVal1) = "" '--updated by update_attack_editor_for_chain()
+menutype(AtkInsteadChainVal1) = 18'skipper
+menuoff(AtkInsteadChainVal1) = AtkDatInsteadChainVal1
+menulimits(AtkInsteadChainVal1) = AtkLimInsteadChainVal1
+
+CONST AtkInsteadChainVal2 = 66
+menu$(AtkInsteadChainVal2) = "" '--updated by update_attack_editor_for_chain()
+menutype(AtkInsteadChainVal2) = 18'skipper
+menuoff(AtkInsteadChainVal2) = AtkDatInsteadChainVal2
+menulimits(AtkInsteadChainVal2) = AtkLimInsteadChainVal2
+
+CONST AtkInsteadChainBits = 67
+menu$(AtkInsteadChainBits) = "  Option bitsets..."
+menutype(AtkInsteadChainBits) = 1
+
+'Next menu item is 68 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
-DIM workmenu(20), dispmenu$(20)
+DIM workmenu(21), dispmenu$(21)
 DIM state as MenuState
 state.size = 22
 
@@ -873,7 +925,7 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(14)
+DIM chainMenu(21)
 chainMenu(0) = AtkBackAct
 chainMenu(1) = AtkChainHeader
 chainMenu(2) = AtkChainTo
@@ -889,6 +941,13 @@ chainmenu(11) = AtkElseChainBits
 chainMenu(12) = AtkElseChainMode
 chainMenu(13) = AtkElseChainVal1
 chainMenu(14) = AtkElseChainVal2
+chainmenu(15) = AtkInsteadChainHeader
+chainMenu(16) = AtkInsteadChainTo
+chainMenu(17) = AtkInsteadChainRate
+chainmenu(18) = AtkInsteadChainBits
+chainMenu(19) = AtkInsteadChainMode
+chainMenu(20) = AtkInsteadChainVal1
+chainMenu(21) = AtkInsteadChainVal2
 
 DIM tagMenu(6)
 tagMenu(0) = AtkBackAct
@@ -1067,6 +1126,9 @@ DO
    CASE AtkElseChainBits
     editbitset recbuf(), AtkDatElseChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
     needupdatemenu = 1
+   CASE AtkInsteadChainBits
+    editbitset recbuf(), AtkDatInsteadChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
+    needupdatemenu = 1
   END SELECT
  END IF
 
@@ -1082,6 +1144,7 @@ DO
   '--in case chain mode has changed
   update_attack_editor_for_chain recbuf(AtkDatChainMode), menu$(AtkChainVal1), max(AtkLimChainVal1), min(AtkLimChainVal1), menutype(AtkChainVal1), menu$(AtkChainVal2), max(AtkLimChainVal2), min(AtkLimChainVal2), menutype(AtkChainVal2)
   update_attack_editor_for_chain recbuf(AtkDatElseChainMode), menu$(AtkElseChainVal1), max(AtkLimElseChainVal1), min(AtkLimElseChainVal1), menutype(AtkElseChainVal1), menu$(AtkElseChainVal2), max(AtkLimElseChainVal2), min(AtkLimElseChainVal2), menutype(AtkElseChainVal2)
+  update_attack_editor_for_chain recbuf(AtkDatInsteadChainMode), menu$(AtkInsteadChainVal1), max(AtkLimInsteadChainVal1), min(AtkLimInsteadChainVal1), menutype(AtkInsteadChainVal1), menu$(AtkInsteadChainVal2), max(AtkLimInsteadChainVal2), min(AtkLimInsteadChainVal2), menutype(AtkInsteadChainVal2)
   '--re-enforce bounds, as they might have just changed
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
   '--percentage damage shows target stat
