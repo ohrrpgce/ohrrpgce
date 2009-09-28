@@ -38,6 +38,13 @@ TYPE BattleHeroMenu
   spell_list AS INTEGER ' index of spell list (or -10 for items or -1 for none)
 END TYPE
 
+TYPE HarmText 'FIXME: when battle display is converted to slices, this can go away entirely
+ text AS STRING
+ col AS INTEGER
+ pos AS XYPair
+ ticks AS INTEGER
+END TYPE
+
 TYPE BattleSprite
   name AS STRING
   basex AS INTEGER
@@ -76,6 +83,7 @@ TYPE BattleSprite
   cursorpos AS XYPair
   menu(5)   AS BattleHeroMenu 'Only applies to heroes. blank for enemies
   menu_size AS INTEGER 'actually the index of the last used element in .menu()
+  harm AS HarmText
   '--Turn-taking
   ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
   attack AS INTEGER  ' ID number +1 of the attack that this hero or enemy is going to do next

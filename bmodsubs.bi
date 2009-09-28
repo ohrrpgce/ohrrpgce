@@ -25,7 +25,7 @@ declare sub anim_enemy (who as integer, attack as AttackData, bslot() AS BattleS
 declare function getweaponpos(w as integer,f as integer,isy as integer) as integer'or x?
 declare function getheropos(h as integer,f as integer,isy as integer) as integer'or x?
 declare sub anim_hero (who as integer, attack as AttackData, bslot() AS BattleSprite)
-declare function inflict (w as integer, as integer, bslot() as battlesprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, attack as AttackData, tcount as integer) as integer
+declare function inflict (w as integer, as integer, bslot() as battlesprite, attack as AttackData, tcount as integer) as integer
 declare function liveherocount overload (bslot() AS BattleSprite) as integer
 declare function liveherocount (oobstat() AS integer) as integer
 declare sub loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)

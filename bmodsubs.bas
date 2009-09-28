@@ -292,7 +292,7 @@ Function GetHeroPos(h as integer,f as integer,isY as integer) as integer'or x?
  CLOSE #FH
 End Function
 
-FUNCTION inflict (w as integer, t as integer, bslot() AS BattleSprite, harm() as string, hc() as integer, hx() as integer, hy() as integer, attack as AttackData, tcount as integer) as integer
+FUNCTION inflict (w as integer, t as integer, bslot() AS BattleSprite, attack as AttackData, tcount as integer) as integer
 
 DIM h = 0
 
@@ -316,12 +316,14 @@ IF attack.damage_math <> 4 THEN
 
  'init
  cure = 0
- harm$(t) = ""
- 'harm$(w) = "" ' this is probably bad! What if they already have a harm$ and we wipe it out?
- hc(t) = 7
- hx(t) = bslot(t).x + (bslot(t).w * .5)
- hy(t) = bslot(t).y + (bslot(t).h * .5)
- targstat = bound(attack.targ_stat, 0, UBOUND(bslot(t).stat.cur.sta))
+ WITH bslot(t)
+  .harm.text = ""
+  .harm.ticks = 7
+  .harm.pos.x = .x + (.w * .5)
+  .harm.pos.y = .y + (.h * .5)
+  
+  targstat = bound(attack.targ_stat, 0, UBOUND(.stat.cur.sta))
+ END WITH
 
  'accuracy
  a = bslot(w).stat.cur.acc
@@ -340,26 +342,28 @@ IF attack.damage_math <> 4 THEN
  IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = RND * 100 < (a * (100 - d)) / 100 
  IF attack.aim_math = 6 OR attack.aim_math = 8 THEN attackhit = RND * 100 < a
  IF attackhit = 0 THEN
-  harm$(t) = readglobalstring$(120, "miss", 20)
+  bslot(t).harm.text = readglobalstring$(120, "miss", 20)
   EXIT FUNCTION
  END IF
 
- IF attack.fail_if_targ_poison = YES AND bslot(t).stat.cur.poison < bslot(t).stat.max.poison THEN
-  harm$(t) = readglobalstring$(122, "fail", 20)
-  EXIT FUNCTION
- END IF
- IF attack.fail_if_targ_regen = YES AND bslot(t).stat.cur.regen < bslot(t).stat.max.regen THEN
-  harm$(t) = readglobalstring$(122, "fail", 20)
-  EXIT FUNCTION
- END IF
- IF attack.fail_if_targ_stun = YES AND bslot(t).stat.cur.stun <> bslot(t).stat.max.stun THEN
-  harm$(t) = readglobalstring$(122, "fail", 20)
-  EXIT FUNCTION
- END IF
- IF attack.fail_if_targ_mute = YES AND bslot(t).stat.cur.mute <> bslot(t).stat.max.mute THEN
-  harm$(t) = readglobalstring$(122, "fail", 20)
-  EXIT FUNCTION
- END IF
+ WITH bslot(t)
+  IF attack.fail_if_targ_poison = YES AND .stat.cur.poison < .stat.max.poison THEN
+   .harm.text = readglobalstring$(122, "fail", 20)
+   EXIT FUNCTION
+  END IF
+  IF attack.fail_if_targ_regen = YES AND .stat.cur.regen < .stat.max.regen THEN
+   .harm.text = readglobalstring$(122, "fail", 20)
+   EXIT FUNCTION
+  END IF
+  IF attack.fail_if_targ_stun = YES AND .stat.cur.stun <> .stat.max.stun THEN
+   .harm.text = readglobalstring$(122, "fail", 20)
+   EXIT FUNCTION
+  END IF
+  IF attack.fail_if_targ_mute = YES AND .stat.cur.mute <> .stat.max.mute THEN
+   .harm.text = readglobalstring$(122, "fail", 20)
+   EXIT FUNCTION
+  END IF
+ END WITH
 
  'attack and defense base
  a = bslot(w).stat.cur.str
@@ -419,13 +423,13 @@ IF attack.damage_math <> 4 THEN
   END IF
   IF attack.fail_vs_elemental(i) = YES THEN
    IF bslot(t).strong(i) = YES THEN
-    harm$(t) = readglobalstring$(122, "fail", 20)
+    bslot(t).harm.text = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
   END IF
   IF attack.fail_vs_monster_type(i) = YES THEN
    IF is_enemy(t) AND bslot(t).enemytype(i) = YES THEN
-    harm$(t) = readglobalstring$(122, "fail", 20)
+    bslot(t).harm.text = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
   END IF
@@ -496,16 +500,18 @@ IF attack.damage_math <> 4 THEN
 
   bslot(t).stat.cur.sta(targstat) = safesubtract(bslot(t).stat.cur.sta(targstat), h)
   IF attack.absorb_damage THEN
-   '--drain
-   IF attack.do_not_display_damage = NO THEN
-    harm$(w) = STR$(ABS(h))
-    IF h > 0 THEN harm$(w) = "+" + harm$(w)
-   END IF
-   hc(w) = 7
-   hc(w + 12) = 12 'pink
-   hx(w) = bslot(w).x + (bslot(w).w * .5)
-   hy(w) = bslot(w).y + (bslot(w).h * .5)
-   bslot(w).stat.cur.sta(targstat) = bslot(w).stat.cur.sta(targstat) + h
+   WITH bslot(w)
+    '--drain
+    IF attack.do_not_display_damage = NO THEN
+     .harm.text = STR(ABS(h))
+     IF h > 0 THEN .harm.text = "+" + .harm.text
+    END IF
+    .harm.ticks = 7
+    .harm.col = 12 'FIXME: pink
+    .harm.pos.x = .x + (.w * .5)
+    .harm.pos.y = .y + (.h * .5)
+    .stat.cur.sta(targstat) += h
+   END WITH
   END IF
  END IF
 
@@ -519,9 +525,9 @@ IF attack.damage_math <> 4 THEN
 
  'set damage display
  IF attack.do_not_display_damage = NO THEN
-  harm$(t) = STR$(ABS(h))
+  bslot(t).harm.text = STR(ABS(h))
   '--if cure, show + sign
-  IF h < 0 THEN harm$(t) = "+" + harm$(t)
+  IF h < 0 THEN bslot(t).harm.text = "+" + bslot(t).harm.text
  END IF
 
  'remember revenge data
@@ -542,8 +548,8 @@ IF attack.damage_math <> 4 THEN
 END IF 'skips to here if no damage
 
 IF attack.show_name = YES THEN
- IF LEN(harm$(t)) > 0 THEN harm$(t) = harm$(t) + " "
- harm$(t) = harm$(t) + attack.name
+ IF LEN(bslot(t).harm.text) > 0 THEN bslot(t).harm.text += " "
+ bslot(t).harm.text += attack.name
 END IF
 
 'reset registers as per convenience bits

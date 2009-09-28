@@ -67,7 +67,7 @@ DIM targets_attack AS AttackData
 DIM autotarg_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
 DIM menubits(2), spel$(23), speld$(23), spel(23), cost$(23), walk(3)
-DIM harm$(11), hc(23), hx(11), hy(11), conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
+DIM conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
@@ -123,9 +123,8 @@ FOR i = 0 TO 11
  bslot(i).thankvenge = -1
 NEXT i
 
-'hc(0-11) is harm count... hc(12-23) is harm color... I know, tacky :(
 FOR i = 0 TO 11
- hc(i + 12) = 15
+ bslot(i).harm.col = uilook(uiText)
 NEXT i
 
 '--init affliction registers
@@ -414,7 +413,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond attack.tagset(0), 1
    checkTagCond attack.tagset(1), 1
-   IF inflict(bat.acting, targ, bslot(), harm$(), hc(), hx(), hy(), attack, tcount) THEN
+   IF inflict(bat.acting, targ, bslot(), attack, tcount) THEN
     '--attack succeeded
     IF attack.cancel_targets_attack THEN
      '--try to cancel target's attack
@@ -474,21 +473,25 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 
     '--ditto for HP
     IF attack.hp_cost > 0 THEN
-      bslot(bat.acting).stat.cur.hp = large(bslot(bat.acting).stat.cur.hp - attack.hp_cost, 0)
-      hc(bat.acting) = 7
-      hx(bat.acting) = bslot(bat.acting).x + (bslot(bat.acting).w * .5)
-      hy(bat.acting) = bslot(bat.acting).y + (bslot(bat.acting).h * .5)
-      harm$(bat.acting) = STR(attack.hp_cost)
+      WITH bslot(bat.acting)
+        .stat.cur.hp = large(.stat.cur.hp - attack.hp_cost, 0)
+        .harm.ticks = 7
+        .harm.pos.x = .x + (.w * .5)
+        .harm.pos.y = .y + (.h * .5)
+        .harm.text = STR(attack.hp_cost)
+      END WITH
     END IF
 
     '--ditto for money
     IF attack.money_cost <> 0 THEN
       gold = large(gold - attack.money_cost, 0)
-      hc(bat.acting) = 7
-      hx(bat.acting) = bslot(bat.acting).x + (bslot(bat.acting).w * .5)
-      hy(bat.acting) = bslot(bat.acting).y + (bslot(bat.acting).h * .5)
-      harm$(bat.acting) = attack.money_cost & "$"
-      IF attack.money_cost < 0 THEN harm$(bat.acting) += "+"
+      WITH bslot(bat.acting)
+        .harm.ticks = 7
+        .harm.pos.x = .x + (.w * .5)
+        .harm.pos.y = .y + (.h * .5)
+        .harm.text = ABS(attack.money_cost) & "$"
+        IF attack.money_cost < 0 THEN .harm.text  += "+"
+      END WITH
       IF gold > 2000000000 THEN gold = 2000000000
       IF gold < 0 THEN gold = 0
 
@@ -886,7 +889,7 @@ FOR i = 0 TO 11
     prtimer(i, 0) = 0
     harm = .max.poison - .cur.poison
     harm = range(harm, 20)
-    quickinflict harm, i, hc(), hx(), hy(), bslot(), harm$()
+    quickinflict harm, i, bslot()
     triggerfade i, bslot()
     fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
     '--WARNING: WITH pointer probably corrupted
@@ -903,7 +906,7 @@ FOR i = 0 TO 11
     heal = .max.regen - .cur.regen
     heal = heal * -1
     heal = range(heal, 20)
-    quickinflict heal, i, hc(), hx(), hy(), bslot(), harm$()
+    quickinflict heal, i, bslot()
     triggerfade i, bslot()
     fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
     '--WARNING: WITH pointer probably corrupted
@@ -1044,12 +1047,14 @@ FOR i = 0 TO 24
 	END IF
 NEXT i
 FOR i = 0 TO 11
- IF hc(i) > 0 THEN
-  edgeprint harm$(i), hx(i) - LEN(harm$(i)) * 4, hy(i), hc(i + 12), dpage
-  hc(i) = hc(i) - 1
-  hy(i) = hy(i) - 2
-  IF hc(i) = 0 THEN hc(i + 12) = 15
- END IF
+ WITH bslot(i)
+  IF .harm.ticks > 0 THEN
+   edgeprint .harm.text, .harm.pos.x - LEN(.harm.text) * 4, .harm.pos.y, .harm.col, dpage
+   .harm.ticks -= 1
+   .harm.pos.y -= 2
+   IF .harm.ticks = 0 THEN .harm.col = uilook(uiText)
+  END IF
+ END WITH
 NEXT i
 RETRACE
 
@@ -1588,22 +1593,25 @@ NEXT i
 
 END SUB
 
-SUB quickinflict (harm, targ, hc(), hx(), hy(), bslot() AS BattleSprite, harm$())
-'--quick damage infliction to hp. no bells and whistles
-DIM max_bound AS INTEGER
-hc(targ) = 7
-hx(targ) = bslot(targ).x + (bslot(targ).w * .5)
-hy(targ) = bslot(targ).y + (bslot(targ).h * .5)
-IF harm < 0 THEN
- harm$(targ) = "+" + STR$(ABS(harm))
-ELSE
- harm$(targ) = STR$(harm)
-END IF
+SUB quickinflict (harm, targ, bslot() AS BattleSprite)
+ '--quick damage infliction to hp. no bells and whistles
+ DIM max_bound AS INTEGER
+ WITH bslot(targ)
 
-if gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
+  IF gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
 
-max_bound = large(bslot(targ).stat.cur.hp, bslot(targ).stat.max.hp)
-bslot(targ).stat.cur.hp = bound(bslot(targ).stat.cur.hp - harm, 0, max_bound)
+  .harm.ticks = 7
+  .harm.pos.x = .x + (.w * .5)
+  .harm.pos.y = .y + (.h * .5)
+  IF harm < 0 THEN
+   .harm.text = "+" & ABS(harm)
+  ELSE
+   .harm.text = STR(harm)
+  END IF
+
+  max_bound = large(.stat.cur.hp, .stat.max.hp)
+  .stat.cur.hp = bound(.stat.cur.hp - harm, 0, max_bound)
+ END WITH
 END SUB
 
 SUB anim_end()

@@ -17,7 +17,7 @@ declare function focuscost (cost as integer, focus as integer) as integer
 DECLARE SUB herobattlebits_raw (bitbuf() as integer, who as integer)
 DECLARE SUB herobattlebits (bslot() AS BattleSprite, who as integer)
 declare sub invertstack
-declare sub quickinflict (harm as integer, targ as integer, hc() as integer, hx() as integer, hy() as integer, bslot() as battlesprite, harm() as string)
+declare sub quickinflict (harm as integer, targ as integer, bslot() as battlesprite)
 DECLARE SUB anim_end()
 DECLARE SUB anim_wait(ticks as integer)
 DECLARE SUB anim_waitforall()
