@@ -61,6 +61,8 @@ WHAT IS NEW?
     * Instead-Chain which is evaluated right after the attack is
       targeted, and if it succeeds it entirely replaces the orignal
       attack [James]
+    * Damage display in battles can be customized to display longer
+      [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

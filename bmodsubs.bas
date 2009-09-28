@@ -318,7 +318,7 @@ IF attack.damage_math <> 4 THEN
  cure = 0
  WITH bslot(t)
   .harm.text = ""
-  .harm.ticks = 7
+  .harm.ticks = gen(genDamageDisplayTicks)
   .harm.pos.x = .x + (.w * .5)
   .harm.pos.y = .y + (.h * .5)
   
@@ -506,7 +506,7 @@ IF attack.damage_math <> 4 THEN
      .harm.text = STR(ABS(h))
      IF h > 0 THEN .harm.text = "+" + .harm.text
     END IF
-    .harm.ticks = 7
+    .harm.ticks = gen(genDamageDisplayTicks)
     .harm.col = 12 'FIXME: pink
     .harm.pos.x = .x + (.w * .5)
     .harm.pos.y = .y + (.h * .5)

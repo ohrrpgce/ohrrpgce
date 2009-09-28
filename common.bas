@@ -2357,6 +2357,13 @@ IF getfixbit(fixTextBoxPortrait) = 0 THEN
  NEXT i
 END IF
 
+IF getfixbit(fixInitDamageDisplay) = 0 THEN
+ upgrade_message "Initialize damage display time/distance data..."
+ setfixbit(fixInitDamageDisplay, 1)
+ gen(genDamageDisplayTicks) = 7
+ gen(genDamageDisplayRise) = 14
+END IF
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game + ".gen", gen(), 1000
 

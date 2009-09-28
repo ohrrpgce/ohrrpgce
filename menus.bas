@@ -1180,10 +1180,12 @@ IF gen(genMaxInventory) = 0 THEN
 ELSE
  m$(16) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, 0-" & gen(genMaxInventory) & " slots"
 END IF
+m$(17) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " (" & seconds_estimate(gen(genDamageDisplayTicks)) & " seconds)"
+m$(18) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 16
+ CONST maxMenu = 18
  DIM m$(maxMenu)
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
@@ -1227,6 +1229,11 @@ SUB gendata ()
  max(15) = 3
  index(16) = genMaxInventory
  max(16) = (inventoryMax + 1) \ 3
+ index(17) = genDamageDisplayTicks
+ max(17) = 1000
+ index(18) = genDamageDisplayRise
+ max(18) = 1000
+ min(18) = -1000
 
  DIM pas$ = ""
  DIM aboutline$ = ""

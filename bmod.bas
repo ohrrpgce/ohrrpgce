@@ -92,6 +92,9 @@ WITH inv_scroll_rect
  '.high set later
 END WITH
 
+DIM harm_text_offset AS INTEGER = 0 'FIXME: DIM this in sprite: when it gets SUBified
+
+
 'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
 gam.remembermusic = presentsong
 
@@ -475,7 +478,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     IF attack.hp_cost > 0 THEN
       WITH bslot(bat.acting)
         .stat.cur.hp = large(.stat.cur.hp - attack.hp_cost, 0)
-        .harm.ticks = 7
+        .harm.ticks = gen(genDamageDisplayTicks)
         .harm.pos.x = .x + (.w * .5)
         .harm.pos.y = .y + (.h * .5)
         .harm.text = STR(attack.hp_cost)
@@ -486,7 +489,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     IF attack.money_cost <> 0 THEN
       gold = large(gold - attack.money_cost, 0)
       WITH bslot(bat.acting)
-        .harm.ticks = 7
+        .harm.ticks = gen(genDamageDisplayTicks)
         .harm.pos.x = .x + (.w * .5)
         .harm.pos.y = .y + (.h * .5)
         .harm.text = ABS(attack.money_cost) & "$"
@@ -995,6 +998,7 @@ NEXT i
 RETRACE
 
 sprite:
+'DIM harm_text_offset AS INTEGER = 0 'FIXME DIM this here when this is SUBified
 FOR i = 0 TO 24 'set zbuf to 0 through 24
  zbuf(i) = i
 NEXT i
@@ -1049,9 +1053,13 @@ NEXT i
 FOR i = 0 TO 11
  WITH bslot(i)
   IF .harm.ticks > 0 THEN
-   edgeprint .harm.text, .harm.pos.x - LEN(.harm.text) * 4, .harm.pos.y, .harm.col, dpage
+   IF gen(genDamageDisplayTicks) <> 0 THEN
+    harm_text_offset = gen(genDamageDisplayRise) / gen(genDamageDisplayTicks) * (gen(genDamageDisplayTicks) - .harm.ticks)
+   ELSE
+    harm_text_offset = 0 'Avoid div by zero (which shouldn't be possible anyway)
+   END IF
+   edgeprint .harm.text, .harm.pos.x - LEN(.harm.text) * 4, .harm.pos.y - harm_text_offset, .harm.col, dpage
    .harm.ticks -= 1
-   .harm.pos.y -= 2
    IF .harm.ticks = 0 THEN .harm.col = uilook(uiText)
   END IF
  END WITH
@@ -1600,7 +1608,7 @@ SUB quickinflict (harm, targ, bslot() AS BattleSprite)
 
   IF gen(genDamageCap) > 0 THEN harm = small(harm, gen(genDamageCap))
 
-  .harm.ticks = 7
+  .harm.ticks = gen(genDamageDisplayTicks)
   .harm.pos.x = .x + (.w * .5)
   .harm.pos.y = .y + (.h * .5)
   IF harm < 0 THEN

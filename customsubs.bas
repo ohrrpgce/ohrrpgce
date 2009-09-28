@@ -1025,6 +1025,12 @@ FUNCTION speed_estimate(speed AS INTEGER, suffix AS STRING=" seconds", zero AS S
  RETURN result & suffix
 END FUNCTION
 
+FUNCTION seconds_estimate(ticks AS INTEGER) AS STRING
+ DIM sec AS SINGLE
+ sec = ticks * (1 / 18.2)
+ RETURN STR(INT(sec * 100) / 100)
+END FUNCTION
+
 SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
  'WARNING: There is another version of this in yetmore.bas
  'If you update this here, make sure to update that one too!

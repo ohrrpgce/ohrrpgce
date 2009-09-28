@@ -112,6 +112,8 @@ CONST genHireSFX = 182          'hire from shop
 CONST genSellSFX = 183          'sell item to shop
 CONST genCantBuySFX = 184       'can't afford item/hire
 CONST genCantSellSFX = 185      'unsellable item
+CONST genDamageDisplayTicks = 186 'number of ticks that battle damage displays
+CONST genDamageDisplayRise = 187 'number of pixels that damage display rises
 CONST genScatterTableHead = 199 'old password scattertable head
 
 '---Built in stats
@@ -142,6 +144,8 @@ CONST fixShopSounds = 8          'Set genItemLearnSFX..genCantSellSFX to default
 CONST fixExtendedNPCs = 9        'Initialized blank NPC data at the end of .N## lumps 
 CONST fixHeroPortrait = 10       'Initialize hero portrait data
 CONST fixTextBoxPortrait = 11    'Initialize text box portrait data
+CONST fixNPCLocationFormat = 12  'FIXME: not implemented ... can't remember....
+CONST fixInitDamageDisplay = 13  'Initialize damage display time and distance
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 99
