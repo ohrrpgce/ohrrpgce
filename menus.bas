@@ -1180,7 +1180,7 @@ IF gen(genMaxInventory) = 0 THEN
 ELSE
  m$(16) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, 0-" & gen(genMaxInventory) & " slots"
 END IF
-m$(17) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " (" & seconds_estimate(gen(genDamageDisplayTicks)) & " seconds)"
+m$(17) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
 m$(18) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
 END SUB
 

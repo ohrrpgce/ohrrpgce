@@ -1028,7 +1028,7 @@ END FUNCTION
 FUNCTION seconds_estimate(ticks AS INTEGER) AS STRING
  DIM sec AS SINGLE
  sec = ticks * (1 / 18.2)
- RETURN STR(INT(sec * 100) / 100)
+ RETURN STR(INT(sec * 10) / 10)
 END FUNCTION
 
 SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)

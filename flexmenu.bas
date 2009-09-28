@@ -620,7 +620,7 @@ menulimits(AtkAnimAttack) = AtkLimAnimAttack
 
 CONST AtkDelay = 25
 menu$(AtkDelay) = "Delay Before Attack:"
-menutype(AtkDelay) = 0
+menutype(AtkDelay) = 19'ticks
 menuoff(AtkDelay) = AtkDatDelay
 menulimits(AtkDelay) = AtkLimDelay
 
@@ -650,7 +650,7 @@ menulimits(AtkCapTime) = AtkLimCapTime
 
 CONST AtkCaptDelay = 30
 menu$(AtkCaptDelay) = "Delay Before Caption:"
-menutype(AtkCaptDelay) = 0
+menutype(AtkCaptDelay) = 19'ticks
 menuoff(AtkCaptDelay) = AtkDatCaptDelay
 menulimits(AtkCaptDelay) = AtkLimCaptDelay
 
@@ -1147,6 +1147,8 @@ DO
   update_attack_editor_for_chain recbuf(AtkDatInsteadChainMode), menu$(AtkInsteadChainVal1), max(AtkLimInsteadChainVal1), min(AtkLimInsteadChainVal1), menutype(AtkInsteadChainVal1), menu$(AtkInsteadChainVal2), max(AtkLimInsteadChainVal2), min(AtkLimInsteadChainVal2), menutype(AtkInsteadChainVal2)
   '--re-enforce bounds, as they might have just changed
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
+  '--fix caption attack caption duration
+  caption$(AtkCapCapTime - 1) = "ticks (" & seconds_estimate(recbuf(AtkDatCapTime)) & " sec)"
   '--percentage damage shows target stat
   caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
   caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
@@ -1236,6 +1238,7 @@ FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(
 '           16=stat (numbered the same way as BattleStatsSingle.sta())
 '           17=int with a % sign after it
 '           18=skipper (caption which is skipped by the cursor)
+'           19=ticks (with seconds estimate)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1250,7 +1253,7 @@ FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(
 changed = 0
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 1000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
@@ -1330,6 +1333,7 @@ SUB updateflexmenu (mpointer, nowmenu$(), nowdat(), size, menu$(), menutype(), m
 '           16=stat (numbered the same way as BattleStatsSingle.sta())
 '           17=int with a % sign after it
 '           18=skipper (caption which is skipped by the cursor)
+'           19=ticks (with seconds estimate)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
@@ -1415,6 +1419,8 @@ FOR i = 0 TO size
    nowmenu$(i) = nowmenu$(i) & " " & dat & "%"
   CASE 18 '--skipper
    '--no change to caption
+  CASE 19 '--ticks
+   nowmenu$(i) = nowmenu$(i) & " " & dat & " ticks (" & seconds_estimate(dat) & " sec)"
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    nowmenu$(i) = nowmenu$(i) & " " & dat & " " & caption$(capnum + dat)
