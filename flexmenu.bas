@@ -1473,6 +1473,8 @@ END SUB
 
 '-----------------------------------------------------------------------
 
+OPTION EXPLICIT '--FIXME: move this up as code is cleaned up
+
 SUB menu_editor ()
 
 DIM menu_set AS MenuSet
@@ -1757,7 +1759,7 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
    IF mi.t = 4 THEN '--script
     IF scrintgrabber(mi.sub_t, 0, 0, 75, 77, 1, plottrigger) THEN dstate.need_update = YES
     IF enter_or_space() THEN
-     dummy$ = scriptbrowse$(mi.sub_t, plottrigger, "Menu Item Script")
+     scriptbrowse mi.sub_t, plottrigger, "Menu Item Script"
      dstate.need_update = YES
     END IF
    ELSE

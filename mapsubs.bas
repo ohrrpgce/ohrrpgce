@@ -424,7 +424,7 @@ DO
   CASE 7, 12 TO 15
    IF gd = 7 THEN idx = 0 ELSE idx = gd - 11
    IF enter_or_space() THEN
-    gmapscr$(idx) = scriptbrowse$(gmap(gd), plottrigger, "plotscript")
+    gmapscr$(idx) = scriptbrowse_string(gmap(gd), plottrigger, "plotscript")
    ELSEIF scrintgrabber(gmap(gd), 0, 0, 75, 77, 1, plottrigger) THEN
     gmapscr$(idx) = scriptname$(gmap(gd), plottrigger)
    END IF

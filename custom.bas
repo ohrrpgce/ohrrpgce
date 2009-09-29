@@ -1031,7 +1031,7 @@ DO
   END IF
   IF csr = 4 THEN editbitset a(), 17, 7, sbit$(): GOSUB menuup
   IF csr = 6 THEN
-   menu$(6) = "Inn Script: " + scriptbrowse$(a(19), plottrigger, "Inn Plotscript")
+   menu$(6) = "Inn Script: " & scriptbrowse_string(a(19), plottrigger, "Inn Plotscript")
   END IF
  END IF
  IF csr = 5 THEN

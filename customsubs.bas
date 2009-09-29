@@ -763,7 +763,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
     END IF
    CASE 12'--script
     IF enter_or_space() THEN
-     scrname = scriptbrowse$(npcdata.script, plottrigger, "NPC use plotscript")
+     scrname = scriptbrowse_string(npcdata.script, plottrigger, "NPC use plotscript")
     ELSEIF scrintgrabber(npcdata.script, 0, 0, 75, 77, 1, plottrigger) THEN
      scrname = scriptname$(npcdata.script, plottrigger)
     END IF
@@ -1814,7 +1814,13 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
  LOOP
 END SUB
 
-FUNCTION scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING) AS STRING
+SUB scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING)
+ 'For when you don't care about the return value of scriptbrowse_string()
+ DIM s AS STRING
+ s = scriptbrowse_string(trigger, triggertype, scrtype)
+END SUB
+
+FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING) AS STRING
  DIM localbuf(20)
  REDIM scriptnames(0) AS STRING, scriptids(0)
  DIM numberedlast AS INTEGER = 0

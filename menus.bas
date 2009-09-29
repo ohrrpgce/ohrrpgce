@@ -139,7 +139,7 @@ DO
   CASE 10, 11
    IF enter_or_space() THEN
     veh(offset(csr)) = large(0, veh(offset(csr)))
-    dummy$ = scriptbrowse$(veh(offset(csr)), plottrigger, "vehicle plotscript")
+    scriptbrowse veh(offset(csr)), plottrigger, "vehicle plotscript"
     GOSUB vehmenu
    ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77, 1, plottrigger) THEN
     GOSUB vehmenu
@@ -147,7 +147,7 @@ DO
   CASE 13, 14
    IF enter_or_space() THEN
     temptrig = large(0, -veh(offset(csr)))
-    dummy$ = scriptbrowse$(temptrig, plottrigger, "vehicle plotscript")
+    scriptbrowse temptrig, plottrigger, "vehicle plotscript"
     veh(offset(csr)) = -temptrig
     GOSUB vehmenu
    ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77, -1, plottrigger) THEN
@@ -267,7 +267,7 @@ DO
   IF enter_or_space() THEN EXIT DO
  ELSE
   IF enter_or_space() THEN
-   scrname$(pt) = ": " + scriptbrowse$(gen(scriptgenoff(pt)), plottrigger, menu$(pt))
+   scrname$(pt) = ": " & scriptbrowse_string(gen(scriptgenoff(pt)), plottrigger, menu$(pt))
   ELSEIF scrintgrabber(gen(scriptgenoff(pt)), 0, 0, 75, 77, 1, plottrigger) THEN
    scrname$(pt) = ": " + scriptname$(gen(scriptgenoff(pt)), plottrigger)
   END IF

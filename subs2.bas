@@ -651,7 +651,7 @@ DO
     textbox_edit_load box, st, m$()
    ELSE
     temptrig = ABS(box.after)
-    dummy$ = scriptbrowse$(temptrig, plottrigger, "textbox plotscript")
+    scriptbrowse temptrig, plottrigger, "textbox plotscript"
     box.after = -temptrig
     update_textbox_editor_main_menu box, m$()
    END IF
@@ -772,11 +772,11 @@ DO
     RETRACE
    CASE 1 '--instead script
     temptrig = large(-box.instead, 0)
-    dummy$ = scriptbrowse$(temptrig, plottrigger, "instead of textbox plotscript")
+    scriptbrowse temptrig, plottrigger, "instead of textbox plotscript"
     box.instead = -temptrig
    CASE 22 '--after script
     temptrig = large(-box.after, 0)
-    dummy$ = scriptbrowse$(temptrig, plottrigger, "after textbox plotscript")
+    scriptbrowse temptrig, plottrigger, "after textbox plotscript"
     box.after = -temptrig
   END SELECT
   GOSUB textcmenu
