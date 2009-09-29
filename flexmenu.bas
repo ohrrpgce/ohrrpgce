@@ -1225,7 +1225,9 @@ SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl as Slice Ptr)
  ChangeSpriteSlice sl, , , ,ABS(anim1)
 END SUB
 
-FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(), mintable(), maxtable())
+OPTION EXPLICIT '--FIXME: move this up as code is cleaned up
+
+FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, mintable() AS INTEGER, maxtable() AS INTEGER)
 '--returns true if data has changed, false it not
 
 'nowindex is the index into the menu data of the currently selected menuitem
@@ -1260,7 +1262,8 @@ FUNCTION editflexmenu (nowindex, menutype(), menuoff(), menulimits(), datablock(
 'mintable() is minimum integer values
 'maxtable() is maximum int values and string limits
 
-changed = 0
+DIM changed AS INTEGER = 0
+DIM s AS STRING
 
 SELECT CASE menutype(nowindex)
  CASE 0, 8, 12 TO 17, 19, 1000 TO 3999' integers
@@ -1270,26 +1273,26 @@ SELECT CASE menutype(nowindex)
  CASE 2' set tag
   changed = tag_grabber(datablock(menuoff(nowindex)), -999, 999)
  CASE 3' string
-  a$ = readbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
-  IF strgrabber(a$, maxtable(menulimits(nowindex))) THEN changed = 1
-  writebinstring a$, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex))
+  s = readbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)))
+  IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
+  writebinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex))
  CASE 4' badly stored string
-  a$ = readbadbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0)
-  IF strgrabber(a$, maxtable(menulimits(nowindex))) THEN changed = 1
-  writebadbinstring a$, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0
+  s = readbadbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0)
+  IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
+  writebadbinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 0
  CASE 6' extra badly stored string
-  a$ = readbadbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1)
-  IF strgrabber(a$, maxtable(menulimits(nowindex))) THEN changed = 1
-  writebadbinstring a$, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1
+  s = readbadbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1)
+  IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
+  writebadbinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1
 END SELECT
 
-editflexmenu = changed
+RETURN changed
 
 END FUNCTION
 
-SUB enforceflexbounds (menuoff(), menutype(), menulimits(), recbuf(), min(), max())
+SUB enforceflexbounds (menuoff() AS INTEGER, menutype() AS INTEGER, menulimits() AS INTEGER, recbuf() AS INTEGER, min() AS INTEGER, max() AS INTEGER)
 
-FOR i = 0 TO UBOUND(menuoff)
+FOR i AS INTEGER = 0 TO UBOUND(menuoff)
  SELECT CASE menutype(i)
   CASE 0, 8, 12 TO 17, 1000 TO 3999
    '--bound ints
@@ -1314,8 +1317,6 @@ SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
  state.top = 0
  state.last = UBOUND(newmenu)
 END SUB
-
-OPTION EXPLICIT '--FIXME: move this up as code is cleaned up
 
 SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGER, size AS INTEGER, menu() AS STRING, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, maxtable() AS INTEGER, recindex AS INTEGER)
 
