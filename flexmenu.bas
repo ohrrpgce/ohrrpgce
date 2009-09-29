@@ -481,7 +481,7 @@ min(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 67
+CONST MnuItems = 68
 DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -862,11 +862,15 @@ CONST AtkInsteadChainBits = 67
 menu$(AtkInsteadChainBits) = "  Option bitsets..."
 menutype(AtkInsteadChainBits) = 1
 
-'Next menu item is 68 (remember to update the dims)
+CONST AtkChainBrowserAct = 68
+menu$(AtkChainBrowserAct) = "Browse chain..."
+menutype(AtkChainBrowserAct) = 1
+
+'Next menu item is 69 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
-DIM workmenu(21), dispmenu$(21)
+DIM workmenu(22), dispmenu$(22)
 DIM state as MenuState
 state.size = 22
 
@@ -925,29 +929,30 @@ costMenu(7) = AtkItemCost2
 costMenu(8) = AtkItem3
 costMenu(9) = AtkItemCost3
 
-DIM chainMenu(21)
+DIM chainMenu(22)
 chainMenu(0) = AtkBackAct
-chainMenu(1) = AtkChainHeader
-chainMenu(2) = AtkChainTo
-chainMenu(3) = AtkChainRate
-chainmenu(4) = AtkChainBits
-chainMenu(5) = AtkChainMode
-chainMenu(6) = AtkChainVal1
-chainMenu(7) = AtkChainVal2
-chainmenu(8) = AtkElseChainHeader
-chainMenu(9) = AtkElseChainTo
-chainMenu(10) = AtkElseChainRate
-chainmenu(11) = AtkElseChainBits
-chainMenu(12) = AtkElseChainMode
-chainMenu(13) = AtkElseChainVal1
-chainMenu(14) = AtkElseChainVal2
-chainmenu(15) = AtkInsteadChainHeader
-chainMenu(16) = AtkInsteadChainTo
-chainMenu(17) = AtkInsteadChainRate
-chainmenu(18) = AtkInsteadChainBits
-chainMenu(19) = AtkInsteadChainMode
-chainMenu(20) = AtkInsteadChainVal1
-chainMenu(21) = AtkInsteadChainVal2
+chainMenu(1) = AtkChainBrowserAct
+chainMenu(2) = AtkChainHeader
+chainMenu(3) = AtkChainTo
+chainMenu(4) = AtkChainRate
+chainmenu(5) = AtkChainBits
+chainMenu(6) = AtkChainMode
+chainMenu(7) = AtkChainVal1
+chainMenu(8) = AtkChainVal2
+chainmenu(9) = AtkElseChainHeader
+chainMenu(10) = AtkElseChainTo
+chainMenu(11) = AtkElseChainRate
+chainmenu(12) = AtkElseChainBits
+chainMenu(13) = AtkElseChainMode
+chainMenu(14) = AtkElseChainVal1
+chainMenu(15) = AtkElseChainVal2
+chainmenu(16) = AtkInsteadChainHeader
+chainMenu(17) = AtkInsteadChainTo
+chainMenu(18) = AtkInsteadChainRate
+chainmenu(19) = AtkInsteadChainBits
+chainMenu(20) = AtkInsteadChainMode
+chainMenu(21) = AtkInsteadChainVal1
+chainMenu(22) = AtkInsteadChainVal2
 
 DIM tagMenu(6)
 tagMenu(0) = AtkBackAct
@@ -1128,6 +1133,11 @@ DO
     needupdatemenu = 1
    CASE AtkInsteadChainBits
     editbitset recbuf(), AtkDatInsteadChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
+    needupdatemenu = 1
+   CASE AtkChainBrowserAct
+    saveattackdata recbuf(), recindex
+    recindex = attack_chain_browser(recindex)
+    loadattackdata recbuf(), recindex
     needupdatemenu = 1
   END SELECT
  END IF

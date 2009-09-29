@@ -8,6 +8,7 @@
 
 #include "const.bi"
 #include "slices.bi"
+#include "custom_udts.bi"
 
 DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
 DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
@@ -67,5 +68,12 @@ DECLARE SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
 DECLARE FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS INTEGER=NO) AS INTEGER
 DECLARE FUNCTION safe_caption(caption_array() AS STRING, BYVAL index AS INTEGER, description AS STRING) AS STRING
 DECLARE SUB update_attack_editor_for_chain (BYVAL mode AS INTEGER, BYREF caption1 AS STRING, BYREF max1 AS INTEGER, BYREF min1 AS INTEGER, BYREF menutype1 AS INTEGER, BYREF caption2 AS STRING, BYREF max2 AS INTEGER, BYREF min2 AS INTEGER, BYREF menutype2 AS INTEGER)
+DECLARE FUNCTION attack_chain_browser (BYVAL start_attack AS INTEGER) AS INTEGER
+DECLARE FUNCTION create_attack_preview_slice(caption AS STRING, BYVAL attack_id AS INTEGER, BYVAL parent AS Slice Ptr) AS Slice Ptr
+DECLARE SUB init_attack_chain_screen(BYVAL attack_id AS INTEGER, state AS AttackChainBrowserState)
+DECLARE SUB attack_preview_slice_focus(BYVAL sl AS Slice Ptr)
+DECLARE SUB attack_preview_slice_defocus(BYVAL sl AS Slice Ptr)
+DECLARE FUNCTION find_free_attack_preview_slot(slots() AS Slice Ptr) AS INTEGER
+DECLARE SUB position_chain_preview_boxes(sl_list() AS Slice ptr, st AS MenuState)
 
 #endif

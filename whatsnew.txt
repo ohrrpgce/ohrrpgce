@@ -63,6 +63,8 @@ WHAT IS NEW?
       attack [James]
     * Damage display in battles can be customized to display longer
       [James]
+    * Attack chain browser for navigating and visualizing chains of
+      attacks [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

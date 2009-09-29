@@ -4,6 +4,8 @@
 'This file contains UDTs that only get used in custom mode, and not in game,
 'so as to prevent them from cluttering up the global udts.bi file
 
+#include "slices.bi"
+
 TYPE SpriteEditStatic
   clonemarked AS INTEGER
   clonebuf(2560) AS INTEGER 'Needs to be big enough for w*h*sets/4 for the largest possible sprite set
@@ -127,5 +129,19 @@ TYPE EditRule
   group AS INTEGER    'Marks this rule as a member of a numbered group, the meaning of which is defined in the implementation
 END TYPE
 
+TYPE AttackChainBrowserState
+ root AS Slice Ptr
+ lbox AS Slice Ptr
+ rbox AS Slice Ptr
+ current AS Slice Ptr
+ after AS MenuState
+ before AS MenuState
+ chainfrom(50) AS Slice Ptr 'FIXME: when FreeBasic types support resizeable arrays, this would be a great place to use one
+ chainto(2) AS Slice Ptr
+ column AS INTEGER
+ refresh AS INTEGER
+ focused AS Slice Ptr
+ done AS INTEGER
+END TYPE
 
 #ENDIF

@@ -3345,3 +3345,224 @@ SUB update_attack_editor_for_chain (BYVAL mode AS INTEGER, BYREF caption1 AS STR
    END SELECT
  END SELECT
 END SUB
+
+FUNCTION attack_chain_browser (BYVAL start_attack AS INTEGER) AS INTEGER
+ DIM state AS AttackChainBrowserState
+ DIM selected AS INTEGER = start_attack
+ 
+ state.before.size = 2
+ state.after.size = 2
+ 
+ DO
+  '--Init
+
+  FOR i AS INTEGER = 0 TO UBOUND(state.chainto)
+   state.chainto(i) = 0
+  NEXT i
+
+  FOR i AS INTEGER = 0 TO UBOUND(state.chainfrom)
+   state.chainfrom(i) = 0
+  NEXT i
+  
+  state.root = NewSliceOfType(slRoot)
+
+  state.lbox = NewSliceOfType(slContainer, state.root)
+  state.lbox->Width = 80
+
+  state.rbox = NewSliceOfType(slContainer, state.root)
+  state.rbox->Width = 80
+  state.rbox->AlignHoriz = 2
+  state.rbox->AnchorHoriz = 2
+
+  init_attack_chain_screen selected, state
+ 
+  state.column = 1
+  state.refresh = YES
+  state.focused = state.current
+
+  state.before.pt = 0
+  state.before.top = 0
+  state.after.pt = 0
+  state.after.top = 0
+ 
+  setkeys
+  DO
+   setwait 55
+   setkeys
+
+   IF keyval(scESC) > 1 THEN
+    state.done = YES
+    EXIT DO
+   END IF
+   IF keyval(scF1) > 1 THEN show_help "attack_chain_browse"
+
+   IF enter_or_space() THEN
+    IF state.focused <> 0 THEN
+     IF state.column = 1 THEN state.done = YES
+     selected = state.focused->extra(0)
+     EXIT DO
+    END IF
+   END IF
+
+   IF keyval(scLeft) > 1 THEN state.column = loopvar(state.column, 0, 2, -1) : state.refresh = YES
+   IF keyval(scRight) > 1 THEN state.column = loopvar(state.column, 0, 2, 1) : state.refresh = YES
+   SELECT CASE state.column
+    CASE 0: IF usemenu(state.before) THEN state.refresh = YES
+    CASE 1: 
+    CASE 2: IF usemenu(state.after) THEN state.refresh = YES
+   END SELECT
+   
+   IF state.refresh THEN
+    state.refresh = NO
+    attack_preview_slice_defocus state.focused
+    SELECT CASE state.column
+     CASE 0: state.focused = state.chainfrom(state.before.pt)
+     CASE 1: state.focused = state.current
+     CASE 2: state.focused = state.chainto(state.after.pt)
+    END SELECT
+    attack_preview_slice_focus state.focused
+    state.lbox->Y = state.before.top * -56
+   END IF
+ 
+   DrawSlice state.root, dpage
+ 
+   SWAP vpage, dpage
+   setvispage vpage
+   clearpage dpage
+   dowait
+  LOOP
+  
+  DeleteSlice @(state.root)
+  IF state.done THEN EXIT DO
+ LOOP
+ 
+ RETURN selected
+END FUNCTION
+
+FUNCTION find_free_attack_preview_slot(slots() AS Slice Ptr) AS INTEGER
+ FOR i AS INTEGER = 0 TO UBOUND(slots)
+  IF slots(i) = 0 THEN RETURN i
+ NEXT i
+ 'Oops! Can't hold any more 'FIXME: if/when FreeBasic supports resizeable arrays in types, use them here
+ RETURN -1
+END FUNCTION
+
+SUB init_attack_chain_screen(BYVAL attack_id AS INTEGER, state AS AttackChainBrowserState)
+ DIM atk AS AttackData
+ loadattackdata atk, attack_id
+ 
+ state.current = create_attack_preview_slice("", attack_id, state.root)
+ state.current->AnchorHoriz = 1
+ state.current->AlignHoriz = 1
+ state.current->Y = 6
+ 
+ DIM slot AS INTEGER
+ IF atk.instead.atk_id > 0 THEN
+  slot = find_free_attack_preview_slot(state.chainto())
+  IF slot >= 0 THEN
+   state.chainto(slot) = create_attack_preview_slice("Instead", atk.instead.atk_id - 1, state.rbox)
+  END IF
+ END IF
+ IF atk.chain.atk_id > 0 THEN
+  slot = find_free_attack_preview_slot(state.chainto())
+  IF slot >= 0 THEN
+   state.chainto(slot) = create_attack_preview_slice("Regular", atk.chain.atk_id - 1, state.rbox)
+  END IF
+ END IF
+ IF atk.elsechain.atk_id > 0 THEN
+  slot = find_free_attack_preview_slot(state.chainto())
+  IF slot >= 0 THEN
+   state.chainto(slot) = create_attack_preview_slice("Else", atk.elsechain.atk_id - 1, state.rbox)
+  END IF
+ END IF
+ 
+ position_chain_preview_boxes(state.chainto(), state.after)
+
+ '--now search for attacks that chain to this one
+ FOR i AS INTEGER = 0 TO gen(genMaxAttack)
+  loadattackdata atk, i
+  IF atk.chain.atk_id - 1 = attack_id THEN
+   slot = find_free_attack_preview_slot(state.chainfrom())
+   IF slot = -1 THEN EXIT FOR 'give up when out of space
+   state.chainfrom(slot) = create_attack_preview_slice("Regular", i, state.lbox)
+  END IF
+  IF atk.elsechain.atk_id - 1 = attack_id THEN
+   slot = find_free_attack_preview_slot(state.chainfrom())
+   IF slot = -1 THEN EXIT FOR 'give up when out of space
+   state.chainfrom(slot) = create_attack_preview_slice("Else", i, state.lbox)
+  END IF
+  IF atk.instead.atk_id - 1 = attack_id THEN
+   slot = find_free_attack_preview_slot(state.chainfrom())
+   IF slot = -1 THEN EXIT FOR 'give up when out of space
+   state.chainfrom(slot) = create_attack_preview_slice("Instead", i, state.lbox)
+  END IF
+ NEXT i
+
+ position_chain_preview_boxes(state.chainfrom(), state.before)
+
+END SUB
+
+SUB position_chain_preview_boxes(sl_list() AS Slice ptr, st AS MenuState)
+ st.last = -1
+ DIM y AS INTEGER = 6
+ FOR i AS INTEGER = 0 TO UBOUND(sl_list)
+  IF sl_list(i) <> 0 THEN
+   WITH *(sl_list(i))
+    .Y = y
+    y += .Height + 6
+   END WITH
+   st.last += 1
+  END IF
+ NEXT i
+ IF st.last = -1 THEN st.last = 0
+END SUB
+
+FUNCTION create_attack_preview_slice(caption AS STRING, BYVAL attack_id AS INTEGER, BYVAL parent AS Slice Ptr) AS Slice Ptr
+ DIM atk AS AttackData
+ loadattackdata atk, attack_id
+ 
+ DIM box AS Slice Ptr = NewSliceOfType(slRectangle, parent)
+ box->Width = 80
+ box->Height = 50
+ ChangeRectangleSlice box, 0
+ ChangeRectangleSlice box, , , , -1
+
+ DIM spr AS Slice Ptr = NewSliceOfType(slSprite, box)
+ ChangeSpriteSlice spr, 6, atk.picture, atk.pal, 2
+ spr->AnchorHoriz = 1
+ spr->AlignHoriz = 1
+ spr->AnchorVert = 2
+ spr->AlignVert = 2
+
+ DIM numsl AS Slice Ptr = NewSliceOfType(slText, box)
+ ChangeTextSlice numsl, STR(attack_id), , YES
+ numsl->AnchorHoriz = 1
+ numsl->AlignHoriz = 1
+ 
+ DIM namesl AS Slice Ptr = NewSliceOfType(slText, box)
+ ChangeTextSlice namesl, atk.name, , YES
+ namesl->AnchorHoriz = 1
+ namesl->AlignHoriz = 1
+ namesl->Y = 10
+
+ DIM capsl AS Slice Ptr = NewSliceOfType(slText, box)
+ ChangeTextSlice capsl, caption, , -1
+ capsl->AnchorHoriz = 1
+ capsl->AlignHoriz = 1
+ capsl->AnchorVert = 2
+ capsl->AlignVert = 2
+
+ '--Save attack_id in the extra data
+ box->extra(0) = attack_id
+ RETURN box
+END FUNCTION
+
+SUB attack_preview_slice_focus(BYVAL sl AS Slice Ptr)
+ IF sl = 0 THEN EXIT SUB
+ ChangeRectangleSlice sl, , , , 0
+END SUB
+
+SUB attack_preview_slice_defocus(BYVAL sl AS Slice Ptr)
+ IF sl = 0 THEN EXIT SUB
+ ChangeRectangleSlice sl, , , , -1
+END SUB
