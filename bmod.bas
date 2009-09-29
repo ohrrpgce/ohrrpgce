@@ -1295,9 +1295,9 @@ SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot(
  DIM AS INTEGER i, numheroes
  '--Play the victory music
  IF gen(genVictMus) > 0 THEN wrappedsong gen(genVictMus) - 1
- '--Collect gold (and cap out at 1 billion max)
+ '--Collect gold (which is capped at 2 billion max)
  gold = gold + rew.plunder
- IF gold > 1000000000 THEN gold = 1000000000
+ IF gold < 0 OR gold > 2000000000 THEN gold = 2000000000
  '--Divide experience by heroes
  IF readbit(gen(), genBits2, 3) THEN 'dead heroes get experience
   numheroes = herocount()
@@ -1899,7 +1899,6 @@ SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS Battl
  spawn_on_death deadguy, killing_attack, bat, es(), formdata(), bslot(), rew
  IF formdata(enemynum * 4) > 0 THEN
   rew.plunder = rew.plunder + es(enemynum, 56)
-  IF rew.plunder > 1000000000 THEN rew.plunder = 1000000000
   rew.exper = rew.exper + es(enemynum, 57)
   IF rew.exper > 1000000 THEN rew.exper = 1000000
   IF INT(RND * 100) < es(enemynum, 59) THEN '---GET ITEMS FROM FOES-----
