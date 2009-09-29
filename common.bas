@@ -465,86 +465,6 @@ SUB centerfuz (x, y, w, h, c, p)
  center_edgeboxstyle x, y, w, h, c - 1, p, YES
 END SUB
 
-FUNCTION readbinstring (array(), offset, maxlen) as string
-
-result$ = ""
-strlen = bound(array(offset), 0, maxlen)
-
-i = 1
-DO WHILE LEN(result$) < strlen
- '--get an int
- n = array(offset + i)
- i = i + 1
-
- '--append the lowbyte as a char
- result$ = result$ + CHR$(n AND &HFF)
-
- '--if we still care about the highbyte, append it as a char too
- IF LEN(result$) < strlen THEN
-  result$ = result$ + CHR$((n SHR 8) AND &HFF)
- END IF
-
-LOOP
-
-return result$
-END FUNCTION
-
-SUB writebinstring (savestr$, array(), offset, maxlen)
-s$ = savestr$
-
-'--pad s$ to the right length
-DO WHILE LEN(s$) < maxlen
- s$ = s$ + CHR$(0)
-LOOP
-
-'--if it is an odd number
-IF (LEN(s$) AND 1) THEN
- s$ = s$ + CHR$(0)
-END IF
-
-'--write length (current not max)
-array(offset) = LEN(savestr$)
-
-FOR i = 1 TO LEN(s$) \ 2
- array(offset + i) = s$[2 * i - 2] OR (s$[2 * i - 1] SHL 8)
-NEXT
-
-END SUB
-
-FUNCTION readbadbinstring (array(), offset, maxlen, skipword=0) as string
-result$ = ""
-strlen = bound(array(offset), 0, maxlen)
-
-FOR i = 1 TO strlen
- '--read and int
- n = array(offset + skipword + i)
- '--if the int is a char use it.
- IF n >= 0 AND n <= 255 THEN
-  '--take the low byte
-  n = (n AND &HFF)
-  '--use it
-  result$ = result$ + CHR$(n)
- END IF
-NEXT i
-
-return result$
-END FUNCTION
-
-SUB writebadbinstring (savestr$, array(), offset, maxlen, skipword=0)
-
-'--write current length
-array(offset) = LEN(savestr$)
-
-FOR i = 1 TO LEN(savestr$)
- array(offset + skipword + i) = savestr$[i - 1]
-NEXT i
-
-FOR i = LEN(savestr$) + 1 TO maxlen
- array(offset + skipword + i) = 0
-NEXT i
-
-END SUB
-
 FUNCTION read32bitstring (array(), offset) as string
 DIM as string result = SPACE(array(offset))
 memcpy(STRPTR(result), @array(offset + 1), array(offset))
@@ -3485,3 +3405,87 @@ SUB getstatnames(statnames() AS STRING)
  statnames(10) = readglobalstring(31, "Focus")
  statnames(11) = readglobalstring(4, "HitX")
 END SUB
+
+SUB writebinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER)
+ DIM s AS STRING = savestr
+
+ '--pad s$ to the right length
+ DO WHILE LEN(s) < maxlen
+  s = s & CHR(0)
+ LOOP
+
+ '--if it is an odd number
+ IF (LEN(s) AND 1) THEN
+  s = s & CHR(0)
+ END IF
+
+ '--write length (current not max)
+ array(offset) = LEN(savestr)
+
+ FOR i AS INTEGER = 1 TO LEN(s) \ 2
+  array(offset + i) = s[2 * i - 2] OR (s[2 * i - 1] SHL 8)
+ NEXT
+END SUB
+
+SUB writebadbinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER, skipword AS INTEGER=0)
+
+ '--write current length
+ array(offset) = LEN(savestr)
+
+ DIM i AS INTEGER
+
+ FOR i = 1 TO LEN(savestr)
+  array(offset + skipword + i) = savestr[i - 1]
+ NEXT i
+
+ FOR i = LEN(savestr) + 1 TO maxlen
+  array(offset + skipword + i) = 0
+ NEXT i
+
+END SUB
+
+FUNCTION readbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER) AS STRING
+
+ DIM result AS STRING = ""
+ DIM strlen AS INTEGER = bound(array(offset), 0, maxlen)
+ DIM i AS INTEGER
+ DIM n AS INTEGER
+
+ i = 1
+ DO WHILE LEN(result) < strlen
+  '--get an int
+  n = array(offset + i)
+  i = i + 1
+
+  '--append the lowbyte as a char
+  result = result & CHR(n AND &HFF)
+
+  '--if we still care about the highbyte, append it as a char too
+  IF LEN(result) < strlen THEN
+   result = result & CHR((n SHR 8) AND &HFF)
+  END IF
+
+ LOOP
+
+ RETURN result
+END FUNCTION
+
+FUNCTION readbadbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER, skipword AS INTEGER=0) AS STRING
+ DIM result AS STRING = ""
+ DIM strlen AS INTEGER = bound(array(offset), 0, maxlen)
+ DIM n AS INTEGER
+
+ FOR i AS INTEGER = 1 TO strlen
+  '--read and int
+  n = array(offset + skipword + i)
+  '--if the int is a char use it.
+  IF n >= 0 AND n <= 255 THEN
+   '--take the low byte
+   n = (n AND &HFF)
+   '--use it
+   result = result & CHR(n)
+  END IF
+ NEXT i
+
+ RETURN result
+END FUNCTION
