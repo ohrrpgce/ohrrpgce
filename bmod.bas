@@ -2730,7 +2730,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
     bat.caption_time = 16383 + attack.caption_delay
    CASE IS > 0
     '--timed
-    bat.caption_time = attack.caption_delay + attack.caption_delay
+    bat.caption_time = attack.caption_time + attack.caption_delay
   END SELECT
  END IF
  
