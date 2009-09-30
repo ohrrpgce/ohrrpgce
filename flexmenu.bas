@@ -1199,7 +1199,7 @@ SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl as Slice Ptr)
  ChangeSpriteSlice sl, , , ,ABS(anim1)
 END SUB
 
-FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, mintable() AS INTEGER, maxtable() AS INTEGER)
+FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, mintable() AS INTEGER, maxtable() AS INTEGER) AS INTEGER
 '--returns true if data has changed, false it not
 
 'nowindex is the index into the menu data of the currently selected menuitem
