@@ -3,34 +3,17 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+OPTION EXPLICIT
 DEFINT A-Z
 '$DYNAMIC
-DECLARE SUB clearallpages ()
-DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
-DECLARE SUB addcaption (caption$(), indexer%, cap$)
-DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
-DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
-DECLARE SUB importbmp (f$, cap$, count%)
-DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
-DECLARE SUB fixorder (f$)
-DECLARE SUB verifyrpg ()
-DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE FUNCTION exclude$ (s$, x$)
-DECLARE FUNCTION exclusive$ (s$, x$)
-DECLARE SUB fontedit (font%(), gamedir$)
-DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
-DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
-DECLARE SUB shopdata ()
-DECLARE SUB importsong ()
-DECLARE SUB gendata ()
-DECLARE SUB itemdata ()
-DECLARE SUB enemydata ()
-DECLARE SUB herodata ()
+DECLARE SUB clearallpages ()
+DECLARE SUB enforceflexbounds (menuoff() AS INTEGER, menutype() AS INTEGER, menulimits() AS INTEGER, recbuf() AS INTEGER, min() AS INTEGER, max() AS INTEGER)
+DECLARE SUB addcaption (caption() AS STRING, indexer AS INTEGER, cap AS STRING)
+DECLARE FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, mintable() AS INTEGER, maxtable() AS INTEGER) AS INTEGER
+DECLARE SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGER, size AS INTEGER, menu() AS STRING, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, maxtable() AS INTEGER, recindex AS INTEGER)
 DECLARE SUB attackdata ()
-DECLARE SUB maptile (font())
-DECLARE FUNCTION isStringField(mnu%)
+DECLARE FUNCTION isStringField(mnu AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -56,14 +39,14 @@ DECLARE SUB flexmenu_skipper (BYREF state AS MenuState, workmenu(), menutype())
 
 DECLARE SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl AS Slice Ptr)
 DECLARE SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth AS INTEGER)
-DECLARE SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER, BYREF needupdatemenu AS INTEGER)
+DECLARE SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER)
 
 REM $STATIC
-SUB addcaption (caption$(), indexer, cap$)
-IF indexer > UBOUND(caption$) THEN
- fatalerror "caption$(" + STR$(indexer) + ") overflow on " + cap$
+SUB addcaption (caption() AS STRING, indexer, cap AS STRING)
+IF indexer > UBOUND(caption) THEN
+ fatalerror "caption(" + STR(indexer) + ") overflow on " + cap
 ELSE
- caption$(indexer) = cap$
+ caption(indexer) = cap
  indexer = indexer + 1
 END IF
 END SUB
@@ -71,66 +54,66 @@ END SUB
 SUB attackdata
 
 clearallpages
+DIM i AS INTEGER
 
-'----------------------------------------------------------
 '--bitsets
 
-DIM atkbit$(-1 TO 128)
+DIM atkbit(-1 TO 128) AS STRING
 
-atkbit$(0) = "Cure Instead of Harm"
-atkbit$(1) = "Divide Spread Damage"
-atkbit$(2) = "Absorb Damage"          'was bounceable!
-atkbit$(3) = "Unreversable Picture"
-atkbit$(4) = "Steal Item"
+atkbit(0) = "Cure Instead of Harm"
+atkbit(1) = "Divide Spread Damage"
+atkbit(2) = "Absorb Damage"          'was bounceable!
+atkbit(3) = "Unreversable Picture"
+atkbit(4) = "Steal Item"
 
 FOR i = 0 TO 7
- atkbit$(i + 5) = readglobalstring(17 + i, "Elemental" & i+1) & " Damage" '05-12
- atkbit$(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
- atkbit$(i + 21) = "Fail vs " & readglobalstring(17 + i, "Elemental" & i+1) & " resistance" '21-28
- atkbit$(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
+ atkbit(i + 5) = readglobalstring(17 + i, "Elemental" & i+1) & " Damage" '05-12
+ atkbit(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
+ atkbit(i + 21) = "Fail vs " & readglobalstring(17 + i, "Elemental" & i+1) & " resistance" '21-28
+ atkbit(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
 NEXT i
 
 FOR i = 0 TO 7
- atkbit$(i + 37) = "Cannot target enemy slot" + XSTR$(i)
+ atkbit(i + 37) = "Cannot target enemy slot " & i
 NEXT i
 FOR i = 0 TO 3
- atkbit$(i + 45) = "Cannot target hero slot" + XSTR$(i)
+ atkbit$(i + 45) = "Cannot target hero slot " & i
 NEXT i
 
-atkbit$(49) = "Ignore attacker's extra hits"
-atkbit$(50) = "Erase rewards (Enemy target only)"
-atkbit$(51) = "Show damage without inflicting"
-atkbit$(52) = "Store Target"
-atkbit$(53) = "Delete Stored Target"
-atkbit$(54) = "Automatically choose target"
-atkbit$(55) = "Show attack name"
-atkbit$(56) = "Do not display Damage"
-atkbit$(57) = "Reset target stat to max before hit"
-atkbit$(58) = "Allow Cure to exceed maximum"
-atkbit$(59) = "Useable Outside of Battle"
-atkbit$(60) = "Damage " & statnames(statMP) & " (obsolete)"
-atkbit$(61) = "Do not randomize"
-atkbit$(62) = "Damage can be Zero"
-atkbit$(63) = "Cause heroes to run away"
-atkbit$(64) = "Mutable"
-atkbit$(65) = "Fail if target is poisoned"
-atkbit$(66) = "Fail if target is regened"
-atkbit$(67) = "Fail if target is stunned"
-atkbit$(68) = "Fail if target is muted"
-atkbit$(69) = "% based attacks damage instead of set"
-atkbit$(70) = "Check costs when used as a weapon"
-atkbit$(71) = "Do not chain if attack fails"
-atkbit$(72) = "Reset Poison register"
-atkbit$(73) = "Reset Regen register"
-atkbit$(74) = "Reset Stun register"
-atkbit$(75) = "Reset Mute register"
-atkbit$(76) = "Cancel target's attack"
-atkbit$(77) = "Can't be canceled by other attacks"
-atkbit$(78) = "Do not trigger spawning on hit"
-atkbit$(79) = "Do not trigger spawning on kill"
-atkbit$(80) = "Check costs when used as an item"
-atkbit$(81) = "Re-check costs after attack delay"
-atkbit$(82) = "Do not cause target to flinch"
+atkbit(49) = "Ignore attacker's extra hits"
+atkbit(50) = "Erase rewards (Enemy target only)"
+atkbit(51) = "Show damage without inflicting"
+atkbit(52) = "Store Target"
+atkbit(53) = "Delete Stored Target"
+atkbit(54) = "Automatically choose target"
+atkbit(55) = "Show attack name"
+atkbit(56) = "Do not display Damage"
+atkbit(57) = "Reset target stat to max before hit"
+atkbit(58) = "Allow Cure to exceed maximum"
+atkbit(59) = "Useable Outside of Battle"
+atkbit(60) = "Damage " & statnames(statMP) & " (obsolete)"
+atkbit(61) = "Do not randomize"
+atkbit(62) = "Damage can be Zero"
+atkbit(63) = "Cause heroes to run away"
+atkbit(64) = "Mutable"
+atkbit(65) = "Fail if target is poisoned"
+atkbit(66) = "Fail if target is regened"
+atkbit(67) = "Fail if target is stunned"
+atkbit(68) = "Fail if target is muted"
+atkbit(69) = "% based attacks damage instead of set"
+atkbit(70) = "Check costs when used as a weapon"
+atkbit(71) = "Do not chain if attack fails"
+atkbit(72) = "Reset Poison register"
+atkbit(73) = "Reset Regen register"
+atkbit(74) = "Reset Stun register"
+atkbit(75) = "Reset Mute register"
+atkbit(76) = "Cancel target's attack"
+atkbit(77) = "Can't be canceled by other attacks"
+atkbit(78) = "Do not trigger spawning on hit"
+atkbit(79) = "Do not trigger spawning on kill"
+atkbit(80) = "Check costs when used as an item"
+atkbit(81) = "Re-check costs after attack delay"
+atkbit(82) = "Do not cause target to flinch"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 
@@ -203,8 +186,8 @@ CONST AtkDatInsteadChainBits = 116
 
 
 '----------------------------------------------------------
-capindex = 0
-DIM caption$(151)
+DIM capindex AS INTEGER = 0
+DIM caption(151) AS STRING
 DIM max(37), min(37)
 
 'Limit(0) is not used
@@ -227,81 +210,81 @@ max(AtkLimPic) = gen(32)
 
 CONST AtkLimAnimPattern = 2
 max(AtkLimAnimPattern) = 3
-AtkCapAnimPattern = capindex
-addcaption caption$(), capindex, "Cycle Forward"
-addcaption caption$(), capindex, "Cycle Back"
-addcaption caption$(), capindex, "Oscillate"
-addcaption caption$(), capindex, "Random"
+DIM AtkCapAnimPattern AS INTEGER = capindex
+addcaption caption(), capindex, "Cycle Forward"
+addcaption caption(), capindex, "Cycle Back"
+addcaption caption(), capindex, "Oscillate"
+addcaption caption(), capindex, "Random"
 
 CONST AtkLimTargClass = 3
 max(AtkLimTargClass) = 12
-AtkCapTargClass = capindex
-addcaption caption$(), capindex, "Enemy"
-addcaption caption$(), capindex, "Ally"
-addcaption caption$(), capindex, "Self"
-addcaption caption$(), capindex, "All"
-addcaption caption$(), capindex, "Ally (Including Dead)"
-addcaption caption$(), capindex, "Ally Not Self"
-addcaption caption$(), capindex, "Revenge (last to hit attacker)"
-addcaption caption$(), capindex, "Revenge (whole battle)"
-addcaption caption$(), capindex, "Previous target"
-addcaption caption$(), capindex, "Recorded target"
-addcaption caption$(), capindex, "Dead Allies (hero only)"
-addcaption caption$(), capindex, "Thankvenge (last to cure attacker)"
-addcaption caption$(), capindex, "Thankvenge (whole battle)"
+DIM AtkCapTargClass AS INTEGER = capindex
+addcaption caption(), capindex, "Enemy"
+addcaption caption(), capindex, "Ally"
+addcaption caption(), capindex, "Self"
+addcaption caption(), capindex, "All"
+addcaption caption(), capindex, "Ally (Including Dead)"
+addcaption caption(), capindex, "Ally Not Self"
+addcaption caption(), capindex, "Revenge (last to hit attacker)"
+addcaption caption(), capindex, "Revenge (whole battle)"
+addcaption caption(), capindex, "Previous target"
+addcaption caption(), capindex, "Recorded target"
+addcaption caption(), capindex, "Dead Allies (hero only)"
+addcaption caption(), capindex, "Thankvenge (last to cure attacker)"
+addcaption caption(), capindex, "Thankvenge (whole battle)"
 
 CONST AtkLimTargSetting = 4
 max(AtkLimTargSetting) = 4
-AtkCapTargSetting = capindex
-addcaption caption$(), capindex, "Focused"
-addcaption caption$(), capindex, "Spread"
-addcaption caption$(), capindex, "Optional Spread"
-addcaption caption$(), capindex, "Random Focus"
-addcaption caption$(), capindex, "First Target"
+DIM AtkCapTargSetting AS INTEGER = capindex
+addcaption caption(), capindex, "Focused"
+addcaption caption(), capindex, "Spread"
+addcaption caption(), capindex, "Optional Spread"
+addcaption caption(), capindex, "Random Focus"
+addcaption caption(), capindex, "First Target"
 
 CONST AtkLimDamageEq = 5
 max(AtkLimDamageEq) = 6
-AtkCapDamageEq = capindex
-addcaption caption$(), capindex, "Normal: ATK - DEF*.5"
-addcaption caption$(), capindex, "Blunt: ATK*.8 - DEF*.1"
-addcaption caption$(), capindex, "Sharp: ATK*1.3 - DEF"
-addcaption caption$(), capindex, "Pure Damage"
-addcaption caption$(), capindex, "No Damage"
-addcaption caption$(), capindex, "Set = N% of Max"
-addcaption caption$(), capindex, "Set = N% of Current"
+DIM AtkCapDamageEq AS INTEGER = capindex
+addcaption caption(), capindex, "Normal: ATK - DEF*.5"
+addcaption caption(), capindex, "Blunt: ATK*.8 - DEF*.1"
+addcaption caption(), capindex, "Sharp: ATK*1.3 - DEF"
+addcaption caption(), capindex, "Pure Damage"
+addcaption caption(), capindex, "No Damage"
+addcaption caption(), capindex, "Set = N% of Max"
+addcaption caption(), capindex, "Set = N% of Current"
 
 CONST AtkLimAimEq = 6
 max(AtkLimAimEq) = 8
-AtkCapAimEq = capindex
-addcaption caption$(), capindex, "Normal: " & statnames(statAim) & "*4 ~ " & statnames(statDodge)
-addcaption caption$(), capindex, "Poor: " & statnames(statAim) & "*2 ~ " & statnames(statDodge)
-addcaption caption$(), capindex, "Bad: " & statnames(statAim) & " ~ " & statnames(statDodge)
-addcaption caption$(), capindex, "Never Misses"
-addcaption caption$(), capindex, "Magic: " & statnames(statMagic) & " ~ " & statnames(statWill) & "*1.25"
-addcaption caption$(), capindex, "Percentage: " & statnames(statAim) & "% * " & statnames(statDodge) & "%"
-addcaption caption$(), capindex, "Percentage: " & statnames(statAim) & "%"
-addcaption caption$(), capindex, "Percentage: " & statnames(statMagic) & "% * " & statnames(statWill) & "%"
-addcaption caption$(), capindex, "Percentage: " & statnames(statMagic) & "%"
+DIM AtkCapAimEq AS INTEGER = capindex
+addcaption caption(), capindex, "Normal: " & statnames(statAim) & "*4 ~ " & statnames(statDodge)
+addcaption caption(), capindex, "Poor: " & statnames(statAim) & "*2 ~ " & statnames(statDodge)
+addcaption caption(), capindex, "Bad: " & statnames(statAim) & " ~ " & statnames(statDodge)
+addcaption caption(), capindex, "Never Misses"
+addcaption caption(), capindex, "Magic: " & statnames(statMagic) & " ~ " & statnames(statWill) & "*1.25"
+addcaption caption(), capindex, "Percentage: " & statnames(statAim) & "% * " & statnames(statDodge) & "%"
+addcaption caption(), capindex, "Percentage: " & statnames(statAim) & "%"
+addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "% * " & statnames(statWill) & "%"
+addcaption caption(), capindex, "Percentage: " & statnames(statMagic) & "%"
 
 CONST AtkLimBaseAtk = 7
 max(AtkLimBaseAtk) = 22 + (UBOUND(statnames) - 11)
-AtkCapBaseAtk = capindex
-addcaption caption$(), capindex, statnames(statAtk)
-addcaption caption$(), capindex, statnames(statMagic)
-addcaption caption$(), capindex, statnames(statHP)
-addcaption caption$(), capindex, "Lost " & statnames(statHP)
-addcaption caption$(), capindex, "Random 0 to 999"
-addcaption caption$(), capindex, "100"
+DIM AtkCapBaseAtk AS INTEGER = capindex
+addcaption caption(), capindex, statnames(statAtk)
+addcaption caption(), capindex, statnames(statMagic)
+addcaption caption(), capindex, statnames(statHP)
+addcaption caption(), capindex, "Lost " & statnames(statHP)
+addcaption caption(), capindex, "Random 0 to 999"
+addcaption caption(), capindex, "100"
 FOR i = 0 TO 11
- addcaption caption$(), capindex, statnames(i)
+ addcaption caption(), capindex, statnames(i)
 NEXT
-addcaption caption$(), capindex, "previous attack"
-addcaption caption$(), capindex, "last damage to attacker"
-addcaption caption$(), capindex, "last damage to target"
-addcaption caption$(), capindex, "last cure to attacker"
-addcaption caption$(), capindex, "last cure to target"
+addcaption caption(), capindex, "previous attack"
+addcaption caption(), capindex, "last damage to attacker"
+addcaption caption(), capindex, "last damage to target"
+addcaption caption(), capindex, "last cure to attacker"
+addcaption caption(), capindex, "last cure to target"
 FOR i = 12 TO UBOUND(statnames)
- addcaption caption$(), capindex, statnames(i)
+ addcaption caption(), capindex, statnames(i)
 NEXT
 
 CONST AtkLimExtraDamage = 11
@@ -317,31 +300,31 @@ min(AtkLimChainRate) = 0
 
 CONST AtkLimAnimAttacker = 14
 max(AtkLimAnimAttacker) = 8
-AtkCapAnimAttacker = capindex
-addcaption caption$(), capindex, "Strike"
-addcaption caption$(), capindex, "Cast"
-addcaption caption$(), capindex, "Dash In"
-addcaption caption$(), capindex, "SpinStrike"
-addcaption caption$(), capindex, "Jump (chain to Land)"
-addcaption caption$(), capindex, "Land"
-addcaption caption$(), capindex, "Null"
-addcaption caption$(), capindex, "Standing Cast"
-addcaption caption$(), capindex, "Teleport"
+DIM AtkCapAnimAttacker AS INTEGER = capindex
+addcaption caption(), capindex, "Strike"
+addcaption caption(), capindex, "Cast"
+addcaption caption(), capindex, "Dash In"
+addcaption caption(), capindex, "SpinStrike"
+addcaption caption(), capindex, "Jump (chain to Land)"
+addcaption caption(), capindex, "Land"
+addcaption caption(), capindex, "Null"
+addcaption caption(), capindex, "Standing Cast"
+addcaption caption(), capindex, "Teleport"
 
 CONST AtkLimAnimAttack = 15
 max(AtkLimAnimAttack) = 10
-AtkCapAnimAttack = capindex
-addcaption caption$(), capindex, "Normal"
-addcaption caption$(), capindex, "Projectile"
-addcaption caption$(), capindex, "Reverse Projectile"
-addcaption caption$(), capindex, "Drop"
-addcaption caption$(), capindex, "Ring"
-addcaption caption$(), capindex, "Wave"
-addcaption caption$(), capindex, "Scatter"
-addcaption caption$(), capindex, "Sequential Projectile"
-addcaption caption$(), capindex, "Meteor"
-addcaption caption$(), capindex, "Driveby"
-addcaption caption$(), capindex, "Null"
+DIM AtkCapAnimAttack AS INTEGER = capindex
+addcaption caption(), capindex, "Normal"
+addcaption caption(), capindex, "Projectile"
+addcaption caption(), capindex, "Reverse Projectile"
+addcaption caption(), capindex, "Drop"
+addcaption caption(), capindex, "Ring"
+addcaption caption(), capindex, "Wave"
+addcaption caption(), capindex, "Scatter"
+addcaption caption(), capindex, "Sequential Projectile"
+addcaption caption(), capindex, "Meteor"
+addcaption caption(), capindex, "Driveby"
+addcaption caption(), capindex, "Null"
 
 CONST AtkLimDelay = 16
 max(AtkLimDelay) = 1000
@@ -352,25 +335,25 @@ min(AtkLimHitX) = 1
 
 CONST AtkLimTargStat = 18
 max(AtkLimTargStat) = 15 + (UBOUND(statnames) - 11)
-AtkCapTargStat = capindex
+DIM AtkCapTargStat AS INTEGER = capindex
 FOR i = 0 TO 11
- addcaption caption$(), capindex, statnames(i)
+ addcaption caption(), capindex, statnames(i)
 NEXT
-addcaption caption$(), capindex, "poison register"
-addcaption caption$(), capindex, "regen register"
-addcaption caption$(), capindex, "stun register"
-addcaption caption$(), capindex, "mute register"
+addcaption caption(), capindex, "poison register"
+addcaption caption(), capindex, "regen register"
+addcaption caption(), capindex, "stun register"
+addcaption caption(), capindex, "mute register"
 FOR i = 12 TO UBOUND(statnames)
- addcaption caption$(), capindex, statnames(i)
+ addcaption caption(), capindex, statnames(i)
 NEXT
 
 CONST AtkLimCapTime = 20
 max(AtkLimCapTime) = 16383
 min(AtkLimCapTime) = -1
-addcaption caption$(), capindex, "Ticks"
-AtkCapCapTime = capindex
-addcaption caption$(), capindex, "Full Duration of Attack"
-addcaption caption$(), capindex, "Not at All"
+addcaption caption(), capindex, "Ticks"
+DIM AtkCapCapTime AS INTEGER = capindex
+addcaption caption(), capindex, "Full Duration of Attack"
+addcaption caption(), capindex, "Not at All"
 
 CONST AtkLimCaptDelay = 21
 max(AtkLimCaptDelay) = 16383
@@ -378,10 +361,10 @@ min(AtkLimCaptDelay) = 0
 
 CONST AtkLimBaseDef = 22
 max(AtkLimBaseDef) = 1 + UBOUND(statnames)
-AtkCapBaseDef = capindex
-addcaption caption$(), capindex, "Default"
+DIM AtkCapBaseDef AS INTEGER = capindex
+addcaption caption(), capindex, "Default"
 FOR i = 0 TO UBOUND(statnames)
- addcaption caption$(), capindex, statnames(i)
+ addcaption caption(), capindex, statnames(i)
 NEXT
 
 CONST AtkLimTag = 23
@@ -390,12 +373,12 @@ min(AtkLimTag) = -1000
 
 CONST AtkLimTagIf = 24
 max(AtkLimTagIf) = 4
-AtkCapTagIf = capindex
-addcaption caption$(), capindex, "Never" '0
-addcaption caption$(), capindex, "Use"   '1
-addcaption caption$(), capindex, "Hit"   '2
-addcaption caption$(), capindex, "Miss"  '3
-addcaption caption$(), capindex, "Kill"  '4
+DIM AtkCapTagIf AS INTEGER = capindex
+addcaption caption(), capindex, "Never" '0
+addcaption caption(), capindex, "Use"   '1
+addcaption caption(), capindex, "Hit"   '2
+addcaption caption(), capindex, "Miss"  '3
+addcaption caption(), capindex, "Kill"  '4
 
 CONST AtkLimTagAnd = 25
 max(AtkLimTag) = 1000
@@ -416,42 +399,42 @@ min(AtkLimPal16) = -1
 CONST AtkLimPreferTarg = 29
 max(AtkLimPreferTarg) = 8
 min(AtkLimPreferTarg) = 0
-AtkCapPreferTarg = capindex
-addcaption caption$(), capindex, "default"    '0
-addcaption caption$(), capindex, "first"      '1
-addcaption caption$(), capindex, "closest"    '2
-addcaption caption$(), capindex, "farthest"   '3
-addcaption caption$(), capindex, "random"     '4
-addcaption caption$(), capindex, "weakest"    '5
-addcaption caption$(), capindex, "strongest"  '6
-addcaption caption$(), capindex, "weakest%"   '7
-addcaption caption$(), capindex, "strongest%" '8
+DIM AtkCapPreferTarg AS INTEGER = capindex
+addcaption caption(), capindex, "default"    '0
+addcaption caption(), capindex, "first"      '1
+addcaption caption(), capindex, "closest"    '2
+addcaption caption(), capindex, "farthest"   '3
+addcaption caption(), capindex, "random"     '4
+addcaption caption(), capindex, "weakest"    '5
+addcaption caption(), capindex, "strongest"  '6
+addcaption caption(), capindex, "weakest%"   '7
+addcaption caption(), capindex, "strongest%" '8
 
 CONST AtkLimPrefTargStat = 30
 max(AtkLimPrefTargStat) = 16
 min(AtkLimPrefTargStat) = 0
-AtkCapPrefTargStat = capindex
-addcaption caption$(), capindex, "same as target stat" '0
+DIM AtkCapPrefTargStat AS INTEGER = capindex
+addcaption caption(), capindex, "same as target stat" '0
 FOR i = 0 TO 11  '1 - 12
- addcaption caption$(), capindex, statnames(i)
+ addcaption caption(), capindex, statnames(i)
 NEXT
-addcaption caption$(), capindex, "poison register"'13
-addcaption caption$(), capindex, "regen register" '14 
-addcaption caption$(), capindex, "stun register"  '15
-addcaption caption$(), capindex, "mute register"  '16
+addcaption caption(), capindex, "poison register"'13
+addcaption caption(), capindex, "regen register" '14 
+addcaption caption(), capindex, "stun register"  '15
+addcaption caption(), capindex, "mute register"  '16
 FOR i = 12 TO UBOUND(statnames) '17+
- addcaption caption$(), capindex, statnames(i)
+ addcaption caption(), capindex, statnames(i)
 NEXT
 
 CONST AtkLimChainMode = 31
 max(AtkLimChainMode) = 5
-AtkCapChainMode = capindex
-addcaption caption$(), capindex, "No special conditions" '0
-addcaption caption$(), capindex, "Tag Check"     '1
-addcaption caption$(), capindex, "Attacker stat > value" '2
-addcaption caption$(), capindex, "Attacker stat < value" '3
-addcaption caption$(), capindex, "Attacker stat > %"     '4
-addcaption caption$(), capindex, "Attacker stat < %"     '5
+DIM AtkCapChainMode AS INTEGER = capindex
+addcaption caption(), capindex, "No special conditions" '0
+addcaption caption(), capindex, "Tag Check"     '1
+addcaption caption(), capindex, "Attacker stat > value" '2
+addcaption caption(), capindex, "Attacker stat < value" '3
+addcaption caption(), capindex, "Attacker stat > %"     '4
+addcaption caption(), capindex, "Attacker stat < %"     '5
 
 CONST AtkLimChainVal1 = 32
 max(AtkLimChainVal1) = 0 '--updated by update_attack_editor_for_chain()
@@ -482,395 +465,395 @@ min(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 '----------------------------------------------------------------------
 '--menu content
 CONST MnuItems = 68
-DIM menu$(MnuItems), menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
+DIM menu(MnuItems) AS STRING, menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
-menu$(AtkBackAct) = "Previous Menu"
+menu(AtkBackAct) = "Previous Menu"
 menutype(AtkBackAct) = 1
 
 CONST AtkName = 1
-menu$(AtkName) = "Name:"
+menu(AtkName) = "Name:"
 menutype(AtkName) = 6
 menuoff(AtkName) = AtkDatName
 menulimits(AtkName) = AtkLimStr10
 
 CONST AtkAppearAct = 2
-menu$(AtkAppearAct) = "Appearance..."
+menu(AtkAppearAct) = "Appearance..."
 menutype(AtkAppearAct) = 1
 
 CONST AtkDmgAct = 3
-menu$(AtkDmgAct) = "Damage Settings..."
+menu(AtkDmgAct) = "Damage Settings..."
 menutype(AtkDmgAct) = 1
 
 CONST AtkTargAct = 4
-menu$(AtkTargAct) = "Target Settings..."
+menu(AtkTargAct) = "Target Settings..."
 menutype(AtkTargAct) = 1
 
 CONST AtkCostAct = 5
-menu$(AtkCostAct) = "Cost..."
+menu(AtkCostAct) = "Cost..."
 menutype(AtkCostAct) = 1
 
 CONST AtkChainAct = 6
-menu$(AtkChainAct) = "Chaining..."
+menu(AtkChainAct) = "Chaining..."
 menutype(AtkChainAct) = 1
 
 CONST AtkBitAct = 7
-menu$(AtkBitAct) = "Bitsets..."
+menu(AtkBitAct) = "Bitsets..."
 menutype(AtkBitAct) = 1
 
 CONST AtkPic = 8
-menu$(AtkPic) = "Picture:"
+menu(AtkPic) = "Picture:"
 menutype(AtkPic) = 0
 menuoff(AtkPic) = AtkDatPic
 menulimits(AtkPic) = AtkLimPic
 
 CONST AtkPal = 9
-menu$(AtkPal) = "Palette:"
+menu(AtkPal) = "Palette:"
 menutype(AtkPal) = 12
 menuoff(AtkPal) = AtkDatPal
 menulimits(AtkPal) = AtkLimPal16
 
 CONST AtkAnimPattern = 10
-menu$(AtkAnimPattern) = "Animation Pattern:"
+menu(AtkAnimPattern) = "Animation Pattern:"
 menutype(AtkAnimPattern) = 2000 + AtkCapAnimPattern
 menuoff(AtkAnimPattern) = AtkDatAnimPattern
 menulimits(AtkAnimPattern) = AtkLimAnimPattern
 
 CONST AtkTargClass = 11
-menu$(AtkTargClass) = "Target Class:"
+menu(AtkTargClass) = "Target Class:"
 menutype(AtkTargClass) = 2000 + AtkCapTargClass
 menuoff(AtkTargClass) = AtkDatTargClass
 menulimits(AtkTargClass) = AtkLimTargClass
 
 CONST AtkTargSetting = 12
-menu$(AtkTargSetting) = "Target Setting:"
+menu(AtkTargSetting) = "Target Setting:"
 menutype(AtkTargSetting) = 2000 + AtkCapTargSetting
 menuoff(AtkTargSetting) = AtkDatTargSetting
 menulimits(AtkTargSetting) = AtkLimTargSetting
 
 CONST AtkChooseAct = 13
-menu$(AtkChooseAct) = "Attack"
+menu(AtkChooseAct) = "Attack"
 menutype(AtkChooseAct) = 5
 
 CONST AtkDamageEq = 14
-menu$(AtkDamageEq) = "Damage Math:"
+menu(AtkDamageEq) = "Damage Math:"
 menutype(AtkDamageEq) = 2000 + AtkCapDamageEq
 menuoff(AtkDamageEq) = AtkDatDamageEq
 menulimits(AtkDamageEq) = AtkLimDamageEq
 
 CONST AtkAimEq = 15
-menu$(AtkAimEq) = "Aim Math:"
+menu(AtkAimEq) = "Aim Math:"
 menutype(AtkAimEq) = 2000 + AtkCapAimEq
 menuoff(AtkAimEq) = AtkDatAimEq
 menulimits(AtkAimEq) = AtkLimAimEq
 
 CONST AtkBaseAtk = 16
-menu$(AtkBaseAtk) = "Base ATK Stat:"
+menu(AtkBaseAtk) = "Base ATK Stat:"
 menutype(AtkBaseAtk) = 2000 + AtkCapBaseAtk
 menuoff(AtkBaseAtk) = AtkDatBaseAtk
 menulimits(AtkBaseAtk) = AtkLimBaseAtk
 
 CONST AtkMPCost = 17
-menu$(AtkMPCost) = statnames(statMP) & " Cost:"
+menu(AtkMPCost) = statnames(statMP) & " Cost:"
 menutype(AtkMPCost) = 0
 menuoff(AtkMPCost) = AtkDatMPCost
 menulimits(AtkMPCost) = AtkLimInt
 
 CONST AtkHPCost = 18
-menu$(AtkHPCost) = statnames(statHP) & " Cost:"
+menu(AtkHPCost) = statnames(statHP) & " Cost:"
 menutype(AtkHPCost) = 0
 menuoff(AtkHPCost) = AtkDatHPCost
 menulimits(AtkHPCost) = AtkLimInt
 
 CONST AtkMoneyCost = 19
-menu$(AtkMoneyCost) = readglobalstring(32, "Money") & " Cost:"
+menu(AtkMoneyCost) = readglobalstring(32, "Money") & " Cost:"
 menutype(AtkMoneyCost) = 0
 menuoff(AtkMoneyCost) = AtkDatMoneyCost
 menulimits(AtkMoneyCost) = AtkLimInt
 
 CONST AtkExtraDamage = 20
-menu$(AtkExtraDamage) = "Extra Damage%:"
-menutype(AtkExtraDamage) = 0
+menu(AtkExtraDamage) = "Extra Damage:"
+menutype(AtkExtraDamage) = 17 'int%
 menuoff(AtkExtraDamage) = AtkDatExtraDamage
 menulimits(AtkExtraDamage) = AtkLimExtraDamage
 
 CONST AtkChainTo = 21
-menu$(AtkChainTo) = "  Attack:"
+menu(AtkChainTo) = "  Attack:"
 menutype(AtkChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkChainTo) = AtkDatChainTo
 menulimits(AtkChainTo) = AtkLimChainTo
 
 CONST AtkChainRate = 22
-menu$(AtkChainRate) = "  Rate:"
+menu(AtkChainRate) = "  Rate:"
 menutype(AtkChainRate) = 17
 menuoff(AtkChainRate) = AtkDatChainRate
 menulimits(AtkChainRate) = AtkLimChainRate
 
 CONST AtkAnimAttacker = 23
-menu$(AtkAnimAttacker) = "Attacker Animation:"
+menu(AtkAnimAttacker) = "Attacker Animation:"
 menutype(AtkAnimAttacker) = 2000 + AtkCapAnimAttacker
 menuoff(AtkAnimAttacker) = AtkDatAnimAttacker
 menulimits(AtkAnimAttacker) = AtkLimAnimAttacker
 
 CONST AtkAnimAttack = 24
-menu$(AtkAnimAttack) = "Attack Animation:"
+menu(AtkAnimAttack) = "Attack Animation:"
 menutype(AtkAnimAttack) = 2000 + AtkCapAnimAttack
 menuoff(AtkAnimAttack) = AtkDatAnimAttack
 menulimits(AtkAnimAttack) = AtkLimAnimAttack
 
 CONST AtkDelay = 25
-menu$(AtkDelay) = "Delay Before Attack:"
+menu(AtkDelay) = "Delay Before Attack:"
 menutype(AtkDelay) = 19'ticks
 menuoff(AtkDelay) = AtkDatDelay
 menulimits(AtkDelay) = AtkLimDelay
 
 CONST AtkHitX = 26
-menu$(AtkHitX) = "Number of Hits:"
+menu(AtkHitX) = "Number of Hits:"
 menutype(AtkHitX) = 0
 menuoff(AtkHitX) = AtkDatHitX
 menulimits(AtkHitX) = AtkLimHitX
 
 CONST AtkTargStat = 27
-menu$(AtkTargStat) = "Target Stat:"
+menu(AtkTargStat) = "Target Stat:"
 menutype(AtkTargStat) = 2000 + AtkCapTargStat
 menuoff(AtkTargStat) = AtkDatTargStat
 menulimits(AtkTargStat) = AtkLimTargStat
 
 CONST AtkCaption = 28
-menu$(AtkCaption) = "Caption:"
+menu(AtkCaption) = "Caption:"
 menutype(AtkCaption) = 3'goodstring
 menuoff(AtkCaption) = AtkDatCaption
 menulimits(AtkCaption) = AtkLimStr38
 
 CONST AtkCapTime = 29
-menu$(AtkCapTime) = "Display Caption:"
+menu(AtkCapTime) = "Display Caption:"
 menutype(AtkCapTime) = 3000 + AtkCapCapTime
 menuoff(AtkCapTime) = AtkDatCapTime
 menulimits(AtkCapTime) = AtkLimCapTime
 
 CONST AtkCaptDelay = 30
-menu$(AtkCaptDelay) = "Delay Before Caption:"
+menu(AtkCaptDelay) = "Delay Before Caption:"
 menutype(AtkCaptDelay) = 19'ticks
 menuoff(AtkCaptDelay) = AtkDatCaptDelay
 menulimits(AtkCaptDelay) = AtkLimCaptDelay
 
 CONST AtkBaseDef = 31
-menu$(AtkBaseDef) = "Base DEF Stat:"
+menu(AtkBaseDef) = "Base DEF Stat:"
 menutype(AtkBaseDef) = 2000 + AtkCapBaseDef
 menuoff(AtkBaseDef) = AtkDatBaseDef
 menulimits(AtkBaseDef) = AtkLimBaseDef
 
 CONST AtkTag = 32
-menu$(AtkTag) = "Set Tag"
+menu(AtkTag) = "Set Tag"
 menutype(AtkTag) = 2
 menuoff(AtkTag) = AtkDatTag
 menulimits(AtkTag) = AtkLimTag
 
 CONST AtkTagIf = 33
-menu$(AtkTagIf) = "On"
+menu(AtkTagIf) = "On"
 menutype(AtkTagIf) = 2000 + AtkCapTagIf
 menuoff(AtkTagIf) = AtkDatTagIf
 menulimits(AtkTagIf) = AtkLimTagIf
 
 CONST AtkTagAnd = 34
-menu$(AtkTagAnd) = "If Tag"
+menu(AtkTagAnd) = "If Tag"
 menutype(AtkTagAnd) = 2
 menuoff(AtkTagAnd) = AtkDatTagAnd
 menulimits(AtkTagAnd) = AtkLimTagAnd
 
 CONST AtkTag2 = 35
-menu$(AtkTag2) = "Set Tag"
+menu(AtkTag2) = "Set Tag"
 menutype(AtkTag2) = 2
 menuoff(AtkTag2) = AtkDatTag2
 menulimits(AtkTag2) = AtkLimTag
 
 CONST AtkTagIf2 = 36
-menu$(AtkTagIf2) = "On"
+menu(AtkTagIf2) = "On"
 menutype(AtkTagIf2) = 2000 + AtkCapTagIf
 menuoff(AtkTagIf2) = AtkDatTagIf2
 menulimits(AtkTagIf2) = AtkLimTagIf
 
 CONST AtkTagAnd2 = 37
-menu$(AtkTagAnd2) = "If Tag"
+menu(AtkTagAnd2) = "If Tag"
 menutype(AtkTagAnd2) = 2
 menuoff(AtkTagAnd2) = AtkDatTagAnd2
 menulimits(AtkTagAnd2) = AtkLimTagAnd
 
 CONST AtkTagAct = 38
-menu$(AtkTagAct) = "Tags..."
+menu(AtkTagAct) = "Tags..."
 menutype(AtkTagAct) = 1
 
 CONST AtkDescription = 39
-menu$(AtkDescription) = "Description:"
+menu(AtkDescription) = "Description:"
 menutype(AtkDescription) = 3
 menuoff(AtkDescription) = AtkDatDescription
 menulimits(AtkDescription) = AtkLimStr38
 
 CONST AtkItem1 = 40
-menu$(AtkItem1) = "Item 1:"
+menu(AtkItem1) = "Item 1:"
 menutype(AtkItem1) = 10
 menuoff(AtkItem1) = AtkDatItem
 menulimits(AtkItem1) = AtkLimItem
 
 CONST AtkItemCost1 = 41
-menu$(AtkItemCost1) = "  Cost:"
+menu(AtkItemCost1) = "  Cost:"
 menutype(AtkItemCost1) = 0
 menuoff(AtkItemCost1) = AtkDatItemCost
 menulimits(AtkItemCost1) = AtkLimInt
 
 CONST AtkItem2 = 42
-menu$(AtkItem2) = "Item 2:"
+menu(AtkItem2) = "Item 2:"
 menutype(AtkItem2) = 10
 menuoff(AtkItem2) = AtkDatItem + 2
 menulimits(AtkItem2) = AtkLimItem
 
 CONST AtkItemCost2 = 43
-menu$(AtkItemCost2) = "  Cost:"
+menu(AtkItemCost2) = "  Cost:"
 menutype(AtkItemCost2) = 0
 menuoff(AtkItemCost2) = AtkDatItemCost + 2
 menulimits(AtkItemCost2) = AtkLimInt
 
 CONST AtkItem3 = 44
-menu$(AtkItem3) = "Item 3:"
+menu(AtkItem3) = "Item 3:"
 menutype(AtkItem3) = 10
 menuoff(AtkItem3) = AtkDatItem + 4
 menulimits(AtkItem3) = AtkLimItem
 
 CONST AtkItemCost3 = 45
-menu$(AtkItemCost3) = "  Cost:"
+menu(AtkItemCost3) = "  Cost:"
 menutype(AtkItemCost3) = 0
 menuoff(AtkItemCost3) = AtkDatItemCost + 4
 menulimits(AtkItemCost3) = AtkLimInt
 
 CONST AtkSoundEffect = 46
-menu$(AtkSoundEffect) = "Sound Effect:"
+menu(AtkSoundEffect) = "Sound Effect:"
 menutype(AtkSoundEffect) = 11
 menuoff(AtkSoundEffect) = AtkDatSoundEffect
 menulimits(AtkSoundEffect) = AtkLimSFX
 
 CONST AtkPreferTarg = 47
-menu$(AtkPreferTarg) = "Prefer Target:"
+menu(AtkPreferTarg) = "Prefer Target:"
 menutype(AtkPreferTarg) = 2000 + AtkCapPreferTarg
 menuoff(AtkPreferTarg) = AtkDatPreferTarg
 menulimits(AtkPreferTarg) = AtkLimPreferTarg
 
 CONST AtkPrefTargStat = 48
-menu$(AtkPrefTargStat) = "Weak/Strong Stat:"
+menu(AtkPrefTargStat) = "Weak/Strong Stat:"
 menutype(AtkPrefTargStat) = 2000 + AtkCapPrefTargStat
 menuoff(AtkPrefTargStat) = AtkDatPrefTargStat
 menulimits(AtkPrefTargStat) = AtkLimPrefTargStat
 
 CONST AtkChainMode = 49
-menu$(AtkChainMode) = "  Condition:"
+menu(AtkChainMode) = "  Condition:"
 menutype(AtkChainMode) = 2000 + AtkCapChainMode
 menuoff(AtkChainMode) = AtkDatChainMode
 menulimits(AtkChainMode) = AtkLimChainMode
 
 CONST AtkChainVal1 = 50
-menu$(AtkChainVal1) = "" '--updated by update_attack_editor_for_chain()
+menu(AtkChainVal1) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkChainVal1) = 18 'skipper
 menuoff(AtkChainVal1) = AtkDatChainVal1
 menulimits(AtkChainVal1) = AtkLimChainVal1
 
 CONST AtkChainVal2 = 51
-menu$(AtkChainVal2) = "" '--updated by update_attack_editor_for_chain()
+menu(AtkChainVal2) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkChainVal2) = 18 'skipper
 menuoff(AtkChainVal2) = AtkDatChainVal2
 menulimits(AtkChainVal2) = AtkLimChainVal2
 
 CONST AtkChainBits = 52
-menu$(AtkChainBits) = "  option bitsets..."
+menu(AtkChainBits) = "  option bitsets..."
 menutype(AtkChainBits) = 1
 
 CONST AtkElseChainTo = 53
-menu$(AtkElseChainTo) = "  Attack:"
+menu(AtkElseChainTo) = "  Attack:"
 menutype(AtkElseChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkElseChainTo) = AtkDatElseChainTo
 menulimits(AtkElseChainTo) = AtkLimChainTo
 
 CONST AtkElseChainRate = 54
-menu$(AtkElseChainRate) = "  Rate:"
+menu(AtkElseChainRate) = "  Rate:"
 menutype(AtkElseChainRate) = 17
 menuoff(AtkElseChainRate) = AtkDatElseChainRate
 menulimits(AtkElseChainRate) = AtkLimChainRate
 
 CONST AtkElseChainMode = 55
-menu$(AtkElseChainMode) = "  Condition:"
+menu(AtkElseChainMode) = "  Condition:"
 menutype(AtkElseChainMode) = 2000 + AtkCapChainMode
 menuoff(AtkElseChainMode) = AtkDatElseChainMode
 menulimits(AtkElseChainMode) = AtkLimChainMode
 
 CONST AtkElseChainVal1 = 56
-menu$(AtkElseChainVal1) = "" '--updated by update_attack_editor_for_chain()
+menu(AtkElseChainVal1) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkElseChainVal1) = 18'skipper
 menuoff(AtkElseChainVal1) = AtkDatElseChainVal1
 menulimits(AtkElseChainVal1) = AtkLimElseChainVal1
 
 CONST AtkElseChainVal2 = 57
-menu$(AtkElseChainVal2) = "" '--updated by update_attack_editor_for_chain()
+menu(AtkElseChainVal2) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkElseChainVal2) = 18'skipper
 menuoff(AtkElseChainVal2) = AtkDatElseChainVal2
 menulimits(AtkElseChainVal2) = AtkLimElseChainVal2
 
 CONST AtkElseChainBits = 58
-menu$(AtkElseChainBits) = "  Option bitsets..."
+menu(AtkElseChainBits) = "  Option bitsets..."
 menutype(AtkElseChainBits) = 1
 
 CONST AtkChainHeader = 59
-menu$(AtkChainHeader) = "[Regular Chain]"
+menu(AtkChainHeader) = "[Regular Chain]"
 menutype(AtkChainHeader) = 18'skipper
 
 CONST AtkElseChainHeader = 60
-menu$(AtkElseChainHeader) = "[Else-Chain]"
+menu(AtkElseChainHeader) = "[Else-Chain]"
 menutype(AtkElseChainHeader) = 18'skipper
 
 CONST AtkInsteadChainHeader = 61
-menu$(AtkInsteadChainHeader) = "[Instead-Chain]"
+menu(AtkInsteadChainHeader) = "[Instead-Chain]"
 menutype(AtkInsteadChainHeader) = 18'skipper
 
 CONST AtkInsteadChainTo = 62
-menu$(AtkInsteadChainTo) = "  Attack:"
+menu(AtkInsteadChainTo) = "  Attack:"
 menutype(AtkInsteadChainTo) = 7 '--special class for showing an attack name
 menuoff(AtkInsteadChainTo) = AtkDatInsteadChainTo
 menulimits(AtkInsteadChainTo) = AtkLimChainTo
 
 CONST AtkInsteadChainRate = 63
-menu$(AtkInsteadChainRate) = "  Rate:"
+menu(AtkInsteadChainRate) = "  Rate:"
 menutype(AtkInsteadChainRate) = 17
 menuoff(AtkInsteadChainRate) = AtkDatInsteadChainRate
 menulimits(AtkInsteadChainRate) = AtkLimChainRate
 
 CONST AtkInsteadChainMode = 64
-menu$(AtkInsteadChainMode) = "  Condition:"
+menu(AtkInsteadChainMode) = "  Condition:"
 menutype(AtkInsteadChainMode) = 2000 + AtkCapChainMode
 menuoff(AtkInsteadChainMode) = AtkDatInsteadChainMode
 menulimits(AtkInsteadChainMode) = AtkLimChainMode
 
 CONST AtkInsteadChainVal1 = 65
-menu$(AtkInsteadChainVal1) = "" '--updated by update_attack_editor_for_chain()
+menu(AtkInsteadChainVal1) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkInsteadChainVal1) = 18'skipper
 menuoff(AtkInsteadChainVal1) = AtkDatInsteadChainVal1
 menulimits(AtkInsteadChainVal1) = AtkLimInsteadChainVal1
 
 CONST AtkInsteadChainVal2 = 66
-menu$(AtkInsteadChainVal2) = "" '--updated by update_attack_editor_for_chain()
+menu(AtkInsteadChainVal2) = "" '--updated by update_attack_editor_for_chain()
 menutype(AtkInsteadChainVal2) = 18'skipper
 menuoff(AtkInsteadChainVal2) = AtkDatInsteadChainVal2
 menulimits(AtkInsteadChainVal2) = AtkLimInsteadChainVal2
 
 CONST AtkInsteadChainBits = 67
-menu$(AtkInsteadChainBits) = "  Option bitsets..."
+menu(AtkInsteadChainBits) = "  Option bitsets..."
 menutype(AtkInsteadChainBits) = 1
 
 CONST AtkChainBrowserAct = 68
-menu$(AtkChainBrowserAct) = "Browse chain..."
+menu(AtkChainBrowserAct) = "Browse chain..."
 menutype(AtkChainBrowserAct) = 1
 
 'Next menu item is 69 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
-DIM workmenu(22), dispmenu$(22)
+DIM workmenu(22), dispmenu(22) AS STRING
 DIM state as MenuState
 state.size = 22
 
@@ -993,18 +976,20 @@ END WITH
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
-menudepth = 0
+DIM menudepth AS INTEGER = 0
 DIM laststate AS MenuState
 laststate.pt = 0
 laststate.top = 0
-recindex = 0
-needupdatemenu = 0
+DIM recindex AS INTEGER = 0
+DIM lastindex AS INTEGER = 0
+laststate.need_update = NO
 
 'load data here
 loadattackdata recbuf(), recindex
-needupdatemenu = 1
+state.need_update = YES
 
 DIM helpkey AS STRING = "attacks"
+DIM tmpstr AS STRING
 
 '------------------------------------------------------------------------
 '--main loop
@@ -1013,10 +998,10 @@ setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
+ state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN
   IF menudepth = 1 THEN
-   atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth, needupdatemenu
+   atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth
    helpkey = "attacks"
   ELSE
    EXIT DO
@@ -1037,7 +1022,7 @@ DO
  END IF
 
  IF usemenu(state) THEN
-  needupdatemenu = 1
+  state.need_update = YES
   flexmenu_skipper state, workmenu(), menutype()
  END IF
 
@@ -1052,13 +1037,13 @@ DO
    '--make sure we really have permission to increment
    IF needaddset(recindex, gen(genMaxAttack), "attack") THEN
     flusharray recbuf(), 39 + curbinsize(0) / 2, 0
-    needupdatemenu = 1
+    state.need_update = YES
    END IF
   ELSE
    IF intgrabber(recindex, 0, gen(genMaxAttack)) THEN
     saveattackdata recbuf(), lastindex
     loadattackdata recbuf(), recindex
-    needupdatemenu = 1
+    state.need_update = YES
    END IF
   END IF
  END IF
@@ -1067,7 +1052,7 @@ DO
   SELECT CASE workmenu(state.pt)
    CASE AtkBackAct
     IF menudepth = 1 THEN
-     atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth, needupdatemenu
+     atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth
      helpkey = "attacks"
     ELSE
      EXIT DO
@@ -1076,35 +1061,29 @@ DO
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), appearMenu(), state
     helpkey = "attack_appearance"
-    needupdatemenu = 1
    CASE AtkDmgAct
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), dmgMenu(), state
     helpkey = "attack_damage"
-    needupdatemenu = 1
    CASE AtkTargAct
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), targMenu(), state
     helpkey = "attack_targetting"
-    needupdatemenu = 1
    CASE AtkCostAct
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), costMenu(), state
     helpkey = "attack_cost"
-    needupdatemenu = 1
    CASE AtkChainAct
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), chainMenu(), state
     helpkey = "attack_chaining"
-    needupdatemenu = 1
    CASE AtkTagAct
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), tagMenu(), state
     helpkey = "attack_tags"
-    needupdatemenu = 1
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 6, recbuf(AtkDatPic))
-    needupdatemenu = 1
+    state.need_update = YES
    CASE AtkBitAct
     'merge the two blocks of bitsets into the buffer
     FOR i = 0 TO 3
@@ -1113,7 +1092,7 @@ DO
     FOR i = 0 TO 7
      buffer(4 + i) = recbuf(AtkDatBitsets2 + i)
     NEXT i
-    editbitset buffer(), 0, UBOUND(atkbit$), atkbit$()
+    editbitset buffer(), 0, UBOUND(atkbit), atkbit()
     'split the buffer to the two bitset blocks
     FOR i = 0 TO 3
      recbuf(AtkDatBitsets + i) = buffer(i)
@@ -1127,55 +1106,55 @@ DO
     END IF
    CASE AtkChainBits
     editbitset recbuf(), AtkDatChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
-    needupdatemenu = 1
+    state.need_update = YES
    CASE AtkElseChainBits
     editbitset recbuf(), AtkDatElseChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
-    needupdatemenu = 1
+    state.need_update = YES
    CASE AtkInsteadChainBits
     editbitset recbuf(), AtkDatInsteadChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
-    needupdatemenu = 1
+    state.need_update = YES
    CASE AtkChainBrowserAct
     saveattackdata recbuf(), recindex
     recindex = attack_chain_browser(recindex)
     loadattackdata recbuf(), recindex
-    needupdatemenu = 1
+    state.need_update = YES
   END SELECT
  END IF
 
  IF keyval(56) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
   IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
-   needupdatemenu = 1
+   state.need_update = YES
   END IF
  END IF
 
- IF needupdatemenu THEN
+ IF state.need_update THEN
   '--in case new attacks have been added
   max(AtkLimChainTo) = gen(genMaxAttack) + 1
   '--in case chain mode has changed
-  update_attack_editor_for_chain recbuf(AtkDatChainMode), menu$(AtkChainVal1), max(AtkLimChainVal1), min(AtkLimChainVal1), menutype(AtkChainVal1), menu$(AtkChainVal2), max(AtkLimChainVal2), min(AtkLimChainVal2), menutype(AtkChainVal2)
-  update_attack_editor_for_chain recbuf(AtkDatElseChainMode), menu$(AtkElseChainVal1), max(AtkLimElseChainVal1), min(AtkLimElseChainVal1), menutype(AtkElseChainVal1), menu$(AtkElseChainVal2), max(AtkLimElseChainVal2), min(AtkLimElseChainVal2), menutype(AtkElseChainVal2)
-  update_attack_editor_for_chain recbuf(AtkDatInsteadChainMode), menu$(AtkInsteadChainVal1), max(AtkLimInsteadChainVal1), min(AtkLimInsteadChainVal1), menutype(AtkInsteadChainVal1), menu$(AtkInsteadChainVal2), max(AtkLimInsteadChainVal2), min(AtkLimInsteadChainVal2), menutype(AtkInsteadChainVal2)
+  update_attack_editor_for_chain recbuf(AtkDatChainMode), menu(AtkChainVal1), max(AtkLimChainVal1), min(AtkLimChainVal1), menutype(AtkChainVal1), menu(AtkChainVal2), max(AtkLimChainVal2), min(AtkLimChainVal2), menutype(AtkChainVal2)
+  update_attack_editor_for_chain recbuf(AtkDatElseChainMode), menu(AtkElseChainVal1), max(AtkLimElseChainVal1), min(AtkLimElseChainVal1), menutype(AtkElseChainVal1), menu(AtkElseChainVal2), max(AtkLimElseChainVal2), min(AtkLimElseChainVal2), menutype(AtkElseChainVal2)
+  update_attack_editor_for_chain recbuf(AtkDatInsteadChainMode), menu(AtkInsteadChainVal1), max(AtkLimInsteadChainVal1), min(AtkLimInsteadChainVal1), menutype(AtkInsteadChainVal1), menu(AtkInsteadChainVal2), max(AtkLimInsteadChainVal2), min(AtkLimInsteadChainVal2), menutype(AtkInsteadChainVal2)
   '--re-enforce bounds, as they might have just changed
   enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
   '--fix caption attack caption duration
-  caption$(AtkCapCapTime - 1) = "ticks (" & seconds_estimate(recbuf(AtkDatCapTime)) & " sec)"
+  caption(AtkCapCapTime - 1) = "ticks (" & seconds_estimate(recbuf(AtkDatCapTime)) & " sec)"
   '--percentage damage shows target stat
-  caption$(AtkCapDamageEq + 5) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
-  caption$(AtkCapDamageEq + 6) = caption$(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR$(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
-  updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
+  caption(AtkCapDamageEq + 5) = caption(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR(100 + recbuf(AtkDatExtraDamage)) + "% of Maximum"
+  caption(AtkCapDamageEq + 6) = caption(AtkCapTargStat + recbuf(AtkDatTargStat)) + " = " + STR(100 + recbuf(AtkDatExtraDamage)) + "% of Current"
+  updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
   '--update the picture and palette preview
   ChangeSpriteSlice preview, 6, recbuf(AtkDatPic), recbuf(AtkDatPal)
   '--done updating
-  needupdatemenu = 0
+  state.need_update = NO
  END IF
  atk_edit_preview recbuf(AtkDatAnimPattern), preview
  DrawSlice preview_box, dpage
 
- standardmenu dispmenu$(), state, 0, 0, dpage
+ standardmenu dispmenu(), state, 0, 0, dpage
  IF keyval(56) > 0 THEN 'holding ALT
-   tmp$ = readbadbinstring$(recbuf(), AtkDatName, 10, 1) + XSTR$(recindex)
+   tmpstr = readbadbinstring(recbuf(), AtkDatName, 10, 1) & " " & recindex
    textcolor uilook(uiText), uilook(uiHighlight)
-   printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
+   printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, dpage
  END IF
 
  SWAP vpage, dpage
@@ -1190,20 +1169,15 @@ saveattackdata recbuf(), recindex
 clearallpages
 DeleteSlice @preview_box
 
-EXIT SUB
-
-'-----------------------------------------------------------------------
-
 END SUB
 
-SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER, BYREF needupdatemenu AS INTEGER)
+SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER)
  setactivemenu workmenu(), mainMenu(), state
  menudepth = 0
  state.pt = laststate.pt
  state.top = laststate.top
- needupdatemenu = 1
+ state.need_update = YES
 END SUB
-
 
 SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth AS INTEGER)
  laststate.pt = state.pt
@@ -1224,8 +1198,6 @@ SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl as Slice Ptr)
  END IF
  ChangeSpriteSlice sl, , , ,ABS(anim1)
 END SUB
-
-OPTION EXPLICIT '--FIXME: move this up as code is cleaned up
 
 FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, mintable() AS INTEGER, maxtable() AS INTEGER)
 '--returns true if data has changed, false it not
@@ -1316,6 +1288,7 @@ SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
  state.pt = 0
  state.top = 0
  state.last = UBOUND(newmenu)
+ state.need_update = YES
 END SUB
 
 SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGER, size AS INTEGER, menu() AS STRING, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, maxtable() AS INTEGER, recindex AS INTEGER)
