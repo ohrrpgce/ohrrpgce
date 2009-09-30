@@ -125,7 +125,7 @@ atk_chain_bitset_names(0) = "Attacker must know chained attack"
 atk_chain_bitset_names(1) = "Ignore chained attack's delay"
 
 '----------------------------------------------------------
-DIM recbuf(40 + curbinsize(0) / 2) '--stores the combined attack data from both .DT6 and ATTACK.BIN
+DIM recbuf(40 + curbinsize(0) / 2) AS INTEGER '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
 CONST AtkDatPic = 0
 CONST AtkDatPal = 1

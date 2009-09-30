@@ -1368,7 +1368,7 @@ SUB loadattackdata (array() AS INTEGER, BYVAL index AS INTEGER)
  loadoldattackdata array(), index
  DIM size AS INTEGER = getbinsize(binATTACK) \ 2 'size of record in RPG file
  IF size > 0 THEN
-  DIM buf(size)
+  DIM buf(size) AS INTEGER
   loadnewattackdata buf(), index
   FOR i AS INTEGER = 0 TO size
    array(40 + i) = buf(i)
@@ -1496,7 +1496,7 @@ SUB saveattackdata (array(), index)
  saveoldattackdata array(), index
  DIM size AS INTEGER = curbinsize(binATTACK) / 2 'size of record supported by engine
  IF size > 0 THEN
-  DIM buf(size)
+  DIM buf(size) AS INTEGER
   FOR i AS INTEGER = 0 TO size
    buf(i) = array(40 + i)
   NEXT i
