@@ -634,18 +634,8 @@ IF formdata(i * 4) > 0 THEN
   .flee = 0
   .deathtype = es(i, 22)
   .deathtime = es(i, 23)
-  IF es(i, 55) = 0 THEN
-   .w = 34
-   .h = 34
-  END IF
-  IF es(i, 55) = 1 THEN
-   .w = 50
-   .h = 50
-  END IF
-  IF es(i, 55) = 2 THEN
-   .w = 80
-   .h = 80
-  END IF
+  .w = sprite_sizes(1 + es(i, 55)).size.x
+  .h = sprite_sizes(1 + es(i, 55)).size.y
   .cursorpos.x = .w / 2 - es(i, 25) '--X offset is subtracted instead of added because enemies are always h-flipped
   .cursorpos.y = es(i, 26)
   .death_sfx = es(i, 24)
@@ -660,14 +650,11 @@ IF formdata(i * 4) > 0 THEN
  END WITH
 END IF
 IF bslot(4 + i).vis = 1 THEN
- IF es(i, 55) = 0 THEN ext$ = ".pt1"
- IF es(i, 55) = 1 THEN ext$ = ".pt2"
- IF es(i, 55) = 2 THEN ext$ = ".pt3"
  with bslot(4 + i)
   .sprite_num = 1
-  .sprites = sprite_load(game + ext$, es(i, 53), 1, .w, .h)
+  .sprites = sprite_load(1 + es(i, 55), es(i, 53))
   if not sprite_is_valid(.sprites) then debug "Failed to load enemy sprite (#" & i & ")"
-  .pal = palette16_load(game + ".pal", es(i, 54), 1 + es(i, 55), es(i, 53))
+  .pal = palette16_load(es(i, 54), 1 + es(i, 55), es(i, 53))
   if .pal = 0 then debug "Failed to load palette (#" & (4+i) & ")"
   
  end with

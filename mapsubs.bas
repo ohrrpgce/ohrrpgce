@@ -279,8 +279,8 @@ list$(13) = "Map name:"
 FOR i = 0 TO max_npc_defs
  'Load the picture and palette
  WITH npc_img(i)
-  .sprite = sprite_load(game + ".pt4", st.npc_def(i).picture, 8, 20, 20)
-  .pal    = palette16_load(game + ".pal", st.npc_def(i).palette, 4, st.npc_def(i).picture)
+  .sprite = sprite_load(4, st.npc_def(i).picture)
+  .pal    = palette16_load(st.npc_def(i).palette, 4, st.npc_def(i).picture)
  END WITH
 NEXT i
 

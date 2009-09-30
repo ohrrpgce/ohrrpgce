@@ -64,9 +64,9 @@ eqprefix$ = readglobalstring$(99, "Equip:", 10)
 noroom$ = readglobalstring$(100, "No Room in Party", 20)
 
 FOR i = 0 TO 3
- herosprite(i) = sprite_load(game & ".pt0", stat(i, 0, 14), 8, 32, 40)
+ herosprite(i) = sprite_load(0, stat(i, 0, 14))
  IF herosprite(i) = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & stat(i,0,14)
- heropal(i) = palette16_load(game & ".pal", stat(i, 0, 15), 0, stat(i, 0, 14))
+ heropal(i) = palette16_load(stat(i, 0, 15), 0, stat(i, 0, 14))
  IF heropal(i) = 0 THEN debug "Failed to load palette for hero (#" & i & ")"
 NEXT i
 
@@ -383,10 +383,10 @@ IF b(pt * recordsize + 17) = 1 THEN
  
  'Load the sprite for the hireable hero
  sprite_unload @hiresprite
- hiresprite = sprite_load(game & ".pt0", showhero, 8, 32, 40)
+ hiresprite = sprite_load(0, showhero)
  IF hiresprite = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & showhero
  palette16_unload @hirepal
- hirepal = palette16_load(game & ".pal", her.sprite_pal, 0, showhero)
+ hirepal = palette16_load(her.sprite_pal, 0, showhero)
  IF hirepal = 0 THEN debug "Failed to load palette for hireable hero (#" & her.sprite_pal & ")"
 
  IF eslot = 0 THEN info1$ = noroom$
@@ -1208,14 +1208,14 @@ FOR i = 0 TO 3
    IF id(i, o) >= 0 THEN
     '--hero pic and palette
     IF picpalmagic = 4444 THEN
-     sprites(i, o).sprite = sprite_load(game & ".pt0", tstat(o, 0, 14), 8, 32, 40)
-     sprites(i, o).pal = palette16_load(game & ".pal", tstat(o, 0, 15), 0, tstat(o, 0, 14))
+     sprites(i, o).sprite = sprite_load(0, tstat(o, 0, 14))
+     sprites(i, o).pal = palette16_load(tstat(o, 0, 15), 0, tstat(o, 0, 14))
     ELSE
      '--backcompat
      dim her as herodef
      loadherodata @her, id(i,o) - 1
-     sprites(i, o).sprite = sprite_load(game & ".pt0", her.sprite, 8, 32, 40)
-     sprites(i, o).pal = palette16_load(game & ".pal", her.sprite_pal, 0, her.sprite)
+     sprites(i, o).sprite = sprite_load(0, her.sprite)
+     sprites(i, o).pal = palette16_load(her.sprite_pal, 0, her.sprite)
     END IF
    END IF
   NEXT o
@@ -2051,8 +2051,8 @@ NEXT i
 IF portrait.sprite THEN sprite_unload @portrait.sprite
 IF portrait.pal    THEN palette16_unload @portrait.pal
 IF her.portrait >= 0 THEN
- portrait.sprite = sprite_load(game & ".pt8", her.portrait, 1, 50, 50)
- portrait.pal    = palette16_load(game & ".pal", her.portrait_pal, 8, her.portrait)
+ portrait.sprite = sprite_load(8, her.portrait)
+ portrait.pal    = palette16_load(her.portrait_pal, 8, her.portrait)
 END IF
 RETRACE
 

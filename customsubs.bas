@@ -592,8 +592,8 @@ SUB keyboardsetup ()
  'There is a different implementation of this in yetmore2 for GAME
  DIM keyconst(207) AS STRING = {"1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/", _
   "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?", _
-  "‚","ƒ","„","…","†","‡","ˆ","‰","Š","‹","Œ","","","","","","","‘","’","“","”","•","–","—","˜","™","","","š","›","œ","","","Ÿ"," ","¡","¢","£","¤","¥","","¦","§","¨","©","ª","«","¬","­","®","¯","°", _
-  "±","²","³","´","µ","¶","·","¸","¹","º","»","¼","","","½","¾","¿","À","Á","Â","Ã","Ä","Å","Æ","Ç","È","","","É","Ê","Ë","Ì","Í","Î","Ï","Ğ","Ñ","Ò","Ó","Ô","","Õ","Ö","×","Ø","Ù","Ú","Û","Ü","İ","Ş","ß"}
+  "â€š","Æ’","â€","â€¦","â€ ","â€¡","Ë†","â€°","Å ","â€¹","Å’","Â","","","Å½","Â","Â","â€˜","â€™","â€œ","â€","â€¢","â€“","â€”","Ëœ","â„¢","","","Å¡","â€º","Å“","Â","Å¾","Å¸","Â ","Â¡","Â¢","Â£","Â¤","Â¥","","Â¦","Â§","Â¨","Â©","Âª","Â«","Â¬","Â­","Â®","Â¯","Â°", _
+  "Â±","Â²","Â³","Â´","Âµ","Â¶","Â·","Â¸","Â¹","Âº","Â»","Â¼","","","Â½","Â¾","Â¿","Ã€","Ã","Ã‚","Ãƒ","Ã„","Ã…","Ã†","Ã‡","Ãˆ","","","Ã‰","ÃŠ","Ã‹","ÃŒ","Ã","Ã","Ã","Ã","Ã‘","Ã’","Ã“","Ã”","","Ã•","Ã–","Ã—","Ã˜","Ã™","Ãš","Ã›","Ãœ","Ã","Ã","ÃŸ"}
  DIM temp AS STRING
  DIM AS INTEGER j, i
  FOR j = 0 TO 3
@@ -697,8 +697,8 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  facetype(1) = "Face Player"
  facetype(2) = "Do Not Face Player"
 
- npcdata.sprite = sprite_load(game & ".pt4", npcdata.picture, 8, 20, 20)
- npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
+ npcdata.sprite = sprite_load(4, npcdata.picture)
+ npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
 
  itemname = load_item_name(npcdata.item, 0, 0)
  boxpreview = textbox_preview_line(npcdata.textbox)
@@ -719,18 +719,18 @@ SUB edit_npc (BYREF npcdata AS NPCType)
     IF intgrabber(npcdata.picture, lnpc(state.pt), unpc(state.pt)) THEN
      sprite_unload @npcdata.sprite
      palette16_unload @npcdata.pal
-     npcdata.sprite = sprite_load(game & ".pt4", npcdata.picture, 8, 20, 20)
-     npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
+     npcdata.sprite = sprite_load(4, npcdata.picture)
+     npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
     END IF
    CASE 1'--palette
     IF intgrabber(npcdata.palette, lnpc(state.pt), unpc(state.pt)) THEN
      palette16_unload @npcdata.pal
-     npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
+     npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
     END IF
     IF enter_or_space() THEN
-     npcdata.palette = pal16browse(npcdata.palette, 4, npcdata.picture, 8, 20, 20)
+     npcdata.palette = pal16browse(npcdata.palette, 4, npcdata.picture)
      palette16_unload @npcdata.pal
-     npcdata.pal = palette16_load(game & ".pal", npcdata.palette, 4, npcdata.picture)
+     npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
     END IF
    CASE 2
     intgrabber(npcdata.movetype, lnpc(state.pt), unpc(state.pt))
@@ -901,7 +901,7 @@ SUB onetimetog(BYREF tagnum AS INTEGER)
  setbit gen(), 106, gen(105), 1
 END SUB
 
-FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL picnum AS INTEGER, BYVAL picframes AS INTEGER, BYVAL picw AS INTEGER, BYVAL pich AS INTEGER) AS INTEGER
+FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL picnum AS INTEGER) AS INTEGER
 
  DIM buf(7) AS INTEGER
  DIM sprite(9) AS Frame PTR
@@ -951,8 +951,8 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
    FOR i = 0 TO 9
     sprite_unload @sprite(i)
     palette16_unload @pal16(i)
-    sprite(i) = sprite_load(game & ".pt" & picset, picnum, picframes, picw, pich)
-    pal16(i) = palette16_load(game + ".pal", state.top + i, picset, picnum)
+    sprite(i) = sprite_load(picset, picnum)
+    pal16(i) = palette16_load(state.top + i, picset, picnum)
    NEXT i
   END IF
 
@@ -973,9 +973,11 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
      NEXT j
      IF state.top + i <> state.pt THEN
       IF pal16(i) THEN
-       FOR k = 0 TO picframes - 1
-        sprite_draw sprite(i) + k, pal16(i), o + 140 + (k * picw), i * 20 - (pich \ 2 - 10), 1, YES, dpage
-       NEXT k
+       WITH sprite_sizes(picset)
+        FOR k = 0 TO .frames - 1
+         sprite_draw sprite(i) + k, pal16(i), o + 140 + (k * .size.x), i * 20 - (.size.y \ 2 - 10), 1, YES, dpage
+        NEXT k
+       END WITH
       END IF
      END IF
      printstr "" & (state.top + i), 4, 5 + i * 20, dpage
@@ -987,9 +989,11 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
    i = state.pt - state.top
    o = LEN(" " & state.pt) * 8
    IF pal16(i) THEN
-    FOR k = 0 TO picframes - 1
-     sprite_draw sprite(i) + k, pal16(i), o + 130 + (k * picw), i * 20 - (pich \ 2 - 10), 1, YES, dpage
-    NEXT k
+    WITH sprite_sizes(picset)
+     FOR k = 0 TO .frames - 1
+      sprite_draw sprite(i) + k, pal16(i), o + 130 + (k * .size.x), i * 20 - (.size.y \ 2 - 10), 1, YES, dpage
+     NEXT k
+    END WITH
    END IF
   END IF
  
@@ -1056,8 +1060,8 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
     pal_id = her.portrait_pal
   END SELECT
   IF img_id >= 0 THEN
-   .sprite = sprite_load(game & ".pt8", img_id, 1, 50, 50)
-   .pal    = palette16_load(game & ".pal", pal_id, 8, img_id)
+   .sprite = sprite_load(8, img_id)
+   .pal    = palette16_load(pal_id, 8, img_id)
   END IF
  END WITH
 END SUB

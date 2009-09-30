@@ -634,8 +634,8 @@ FOR i = 0 TO max_npc_defs
  with npcs(i)
   if .sprite then sprite_unload(@.sprite)
   if .pal then palette16_unload(@.pal)
-  .sprite = sprite_load(game + ".pt4", .picture, 8, 20, 20)
-  .pal = palette16_load(game + ".pal", .palette, 4, .picture)
+  .sprite = sprite_load(4, .picture)
+  .pal = palette16_load(.palette, 4, .picture)
  end with
 NEXT i
 END SUB

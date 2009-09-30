@@ -94,12 +94,6 @@ nof(9) = 7
 nof(10) = 31
 nof(11) = 4
 
-'--preview stuff
-DIM previewsize(2) 'FIXME: this is only used for the palette browser, which should probably not need this passed in
-previewsize(0) = 34
-previewsize(1) = 50
-previewsize(2) = 80
-
 clearallpages
 
 '-------------------------------------------------------------------------
@@ -650,7 +644,7 @@ DO
     helpkey = "enemy_attacks"
     GOSUB EnUpdateMenu
    CASE EnMenuPal
-    recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic), 1, previewsize(recbuf(EnDatPicSize)), previewsize(recbuf(EnDatPicSize)))
+    recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic))
     GOSUB EnUpdateMenu
    CASE EnMenuBitsetAct
     editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit()
@@ -1667,8 +1661,8 @@ generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), box_p
 
 IF wep_img.sprite THEN sprite_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
-wep_img.sprite = sprite_load(game & ".pt5", a(52), 2, 24, 24)
-wep_img.pal    = palette16_load(game & ".pal", a(53), 5, a(52))
+wep_img.sprite = sprite_load(5, a(52))
+wep_img.pal    = palette16_load(a(53), 5, a(52))
 
 need_update = NO
 
@@ -1708,7 +1702,7 @@ DO
    END IF
   END IF
   IF pt = 10 THEN '--palette picker
-   a(46 + (pt - 3)) = pal16browse(a(53), 5, a(52), 2, 24, 24)
+   a(46 + (pt - 3)) = pal16browse(a(53), 5, a(52))
    need_update = YES
   END IF
  END IF
@@ -1745,8 +1739,8 @@ DO
   generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), box_preview
   IF wep_img.sprite THEN sprite_unload @wep_img.sprite
   IF wep_img.pal    THEN palette16_unload @wep_img.pal
-  wep_img.sprite = sprite_load(game & ".pt5", a(52), 2, 24, 24)
-  wep_img.pal    = palette16_load(game & ".pal", a(53), 5, a(52))
+  wep_img.sprite = sprite_load(5, a(52))
+  wep_img.pal    = palette16_load(a(53), 5, a(52))
  END IF
  FOR i = 0 TO 20
   textcolor uilook(uiMenuItem), 0
@@ -1899,9 +1893,9 @@ DO
   '--Having edited the NPC, we must re-load the picture and palette
   WITH npc_img(cur)
    IF .sprite THEN sprite_unload(@.sprite)
-   .sprite = sprite_load(game + ".pt4", npc(cur).picture, 8, 20, 20)
+   .sprite = sprite_load(4, npc(cur).picture)
    IF .pal THEN palette16_unload(@.pal)
-   .pal = palette16_load(game + ".pal", npc(cur).palette, 4, npc(cur).picture)
+   .pal = palette16_load(npc(cur).palette, 4, npc(cur).picture)
   END WITH
   '--Update box preview line
   boxpreview(cur) = textbox_preview_line(npc(cur).textbox)
@@ -1956,13 +1950,13 @@ END SUB
 SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
  clear_hero_preview_pics st
  WITH st
-  .battle.sprite    = sprite_load(game & ".pt0", her.sprite, 8, 32, 40)
-  .battle.pal       = palette16_load(game & ".pal", her.sprite_pal, 0, her.sprite)
-  .walkabout.sprite = sprite_load(game & ".pt4", her.walk_sprite, 8, 20, 20)
-  .walkabout.pal    = palette16_load(game & ".pal", her.walk_sprite_pal, 4, her.walk_sprite)
+  .battle.sprite    = sprite_load(0, her.sprite)
+  .battle.pal       = palette16_load(her.sprite_pal, 0, her.sprite)
+  .walkabout.sprite = sprite_load(4, her.walk_sprite)
+  .walkabout.pal    = palette16_load(her.walk_sprite_pal, 4, her.walk_sprite)
   IF her.portrait >= 0 THEN
-   .portrait.sprite = sprite_load(game & ".pt8", her.portrait, 1, 50, 50)
-   .portrait.pal    = palette16_load(game & ".pal", her.portrait_pal, 8, her.portrait)
+   .portrait.sprite = sprite_load(8, her.portrait)
+   .portrait.pal    = palette16_load(her.portrait_pal, 8, her.portrait)
   END IF
  END WITH
 END SUB
@@ -2104,15 +2098,15 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
    IF enter_or_space() THEN
     SELECT CASE state.pt
      CASE 2
-      her.sprite_pal = pal16browse(her.sprite_pal, 0, her.sprite, 8, 32, 40)
+      her.sprite_pal = pal16browse(her.sprite_pal, 0, her.sprite)
      CASE 4
-      her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 4, her.walk_sprite, 8, 20, 20)
+      her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 4, her.walk_sprite)
      CASE 8
       xy_position_on_sprite st.battle, her.hand_a_x, her.hand_a_y, 2, 32, 40, "hand position (for weapon)"
      CASE 9
       xy_position_on_sprite st.battle, her.hand_b_x, her.hand_b_y, 3, 32, 40, "hand position (for weapon)"
      CASE 11
-      her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait, 1, 50, 50)
+      her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait)
     END SELECT
     st.changed = YES
    END IF

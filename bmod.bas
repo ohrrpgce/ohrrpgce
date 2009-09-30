@@ -1163,9 +1163,9 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
     .vis = 1
     'load hero sprites
     .sprite_num = 8
-    .sprites = sprite_load(game & ".pt0", exstat(i, 0, 14), .sprite_num, 32, 40)
+    .sprites = sprite_load(0, exstat(i, 0, 14))
     if not sprite_is_valid(.sprites) then debug "Couldn't load hero sprite: " & game & ".pt0#" & exstat(i,0,14)
-    .pal = palette16_load(game + ".pal", exstat(i, 0, 15), 0, exstat(i, 0, 14))
+    .pal = palette16_load(exstat(i, 0, 15), 0, exstat(i, 0, 14))
     if .pal = 0 then debug "Failed to load palette (#" & i & ")"
     .frame = 0
     .death_sfx = -1 'No death sounds for heroes (for now)
@@ -2277,9 +2277,9 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
    .frame = 0
    sprite_unload(@.sprites)
    palette16_unload(@.pal)
-   .sprites = sprite_load(game & ".pt6", attack.picture, 3, 50, 50)
+   .sprites = sprite_load(6, attack.picture)
    if not sprite_is_valid(.sprites) then debug "Failed to load attack sprites (#" & i & ")"
-   .pal = palette16_load(game & ".pal", attack.pal, 6, attack.picture)
+   .pal = palette16_load(attack.pal, 6, attack.picture)
    if .pal = 0 then debug "Failed to load palette (#" & i & ")"
   end with
  NEXT i
@@ -2339,10 +2339,10 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   with bslot(24)
    .sprite_num = 2
    sprite_unload @.sprites
-   .sprites = sprite_load(game & ".pt5", exstat(bat.acting, 0, 13), 2, 24, 24)
+   .sprites = sprite_load(5, exstat(bat.acting, 0, 13))
    if not sprite_is_valid(.sprites) then debug "Could not load weapon sprite: " & game & ".pt5#" & exstat(bat.acting, 0, 13)
    palette16_unload @.pal
-   .pal = palette16_load(game + ".pal", exstat(bat.acting, 1, 13), 5, exstat(bat.acting, 0, 13))
+   .pal = palette16_load(exstat(bat.acting, 1, 13), 5, exstat(bat.acting, 0, 13))
    if .pal = 0 then debug "Failed to load palette (#" & 24 & ")"
    .frame = 0
   end with

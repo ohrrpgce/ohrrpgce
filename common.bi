@@ -193,8 +193,6 @@ DECLARE FUNCTION decode_backslash_codes(s AS STRING) AS STRING
 DECLARE FUNCTION escape_nonprintable_ascii(s AS STRING) AS STRING
 
 'Sprite loading convenience functions
-DECLARE FUNCTION standard_sprite_load (BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Frame PTR
-DECLARE FUNCTION standard_pal16_load (BYVAL palnum AS INTEGER = -1, BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Palette16 PTR
 DECLARE SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
 DECLARE SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
 

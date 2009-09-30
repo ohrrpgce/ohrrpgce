@@ -1735,12 +1735,12 @@ WITH scrat(nowscript)
         writesafe = 0
        ELSE
         if npcs(retvals(0)).sprite then sprite_unload(@npcs(retvals(0)).sprite)
-        npcs(retvals(0)).sprite = sprite_load(game + ".pt4", retvals(2), 8, 20, 20)
+        npcs(retvals(0)).sprite = sprite_load(4, retvals(2))
        END IF
       END IF
       IF retvals(1) = 1 THEN
        if npcs(retvals(0)).pal then palette16_unload(@npcs(retvals(0)).pal)
-       npcs(retvals(0)).pal = palette16_load(game + ".pal", retvals(2), 4, npcs(retvals(0)).picture)
+       npcs(retvals(0)).pal = palette16_load(retvals(2), 4, npcs(retvals(0)).picture)
       END IF
       IF writesafe THEN SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))
      END IF

@@ -340,8 +340,8 @@ SUB load_box_border_cache()
    IF .pal THEN palette16_unload(@.pal)
    index = uilook(uiTextBoxFrame + i) - 1
    IF index >= 0 THEN
-    .sprite = sprite_load(game & ".pt7", index, 16, 16, 16)
-    .pal = palette16_load(game + ".pal", -1, 7, index)
+    .sprite = sprite_load(7, index)
+    .pal = palette16_load(-1, 7, index)
    END IF
   END WITH
  NEXT i
@@ -2324,12 +2324,12 @@ END SUB
 
 SUB rpgversion (v)
  'This sub provides backcompat warnings for read-only pre-unlumped rpgdirs,
- 'All other games will be updated to the latest version in the update() sub
+ 'All other games will be updated to the latest version in the upgrade() sub
  '
  'It also provides forward-compat warnings when a new RPG file is loaded in
- 'and old copy of game, or an old version of custom (ypsiliform or newer)
+ 'an old copy of game, or an old version of custom (ypsiliform or newer)
  '
- 'See also update() sub
+ 'See also upgrade() sub
  'CURRENT_RPG_VERSION is updated in const.bi
 
  IF v = CURRENT_RPG_VERSION THEN EXIT SUB
@@ -3225,25 +3225,15 @@ SUB setup_sprite_sizes ()
  END WITH
 END SUB
 
-FUNCTION standard_sprite_load (BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Frame PTR
- WITH sprite_sizes(spritetype)
-  RETURN sprite_load(game & ".pt" & spritetype, index, .frames, .size.x, .size.y)
- END WITH
-END FUNCTION
-
-FUNCTION standard_pal16_load (BYVAL palnum AS INTEGER = -1, BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER) AS Palette16 PTR
- RETURN palette16_load(game & ".pal", palnum, spritetype, index)
-END FUNCTION
-
 SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
  unload_sprite_and_pal img
- img.sprite = standard_sprite_load(spritetype, index)
- img.pal    = standard_pal16_load(palnum, spritetype, index)
+ img.sprite = sprite_load(spritetype, index)
+ img.pal    = palette16_load(palnum, spritetype, index)
 END SUB
 
 SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
- IF img.sprite THEN sprite_unload @img.sprite
- IF img.pal    THEN palette16_unload @img.pal
+ sprite_unload @img.sprite
+ palette16_unload @img.pal
 END SUB
 
 FUNCTION str2int (stri as string, default as integer=0) as integer

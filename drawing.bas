@@ -1949,7 +1949,7 @@ IF keyval(25) > 1 OR (ss.zonenum = 19 AND mouse(3) > 0) THEN '--call palette bro
  stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
  '--save current palette
  storepal16 workpal(), state.pt - state.top, poffset(state.pt)
- poffset(state.pt) = pal16browse(poffset(state.pt), fileset, state.pt, ss.perset, ss.wide, ss.high)
+ poffset(state.pt) = pal16browse(poffset(state.pt), fileset, state.pt)
  setkeyrepeat 25, 5
  getpal16 workpal(), state.pt - state.top, poffset(state.pt)
 END IF

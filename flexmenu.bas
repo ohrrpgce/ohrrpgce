@@ -1103,7 +1103,7 @@ DO
     helpkey = "attack_tags"
     needupdatemenu = 1
    CASE AtkPal
-    recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 6, recbuf(AtkDatPic), 3, 50, 50)
+    recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 6, recbuf(AtkDatPic))
     needupdatemenu = 1
    CASE AtkBitAct
     'merge the two blocks of bitsets into the buffer

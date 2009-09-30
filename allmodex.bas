@@ -3933,6 +3933,16 @@ end function
 ' loads a sprite from a file. It expects 4-bit pixels, stored in columns (2/byte).
 ' it will return a pointer to the first frame (of num frames), and subsequent frames
 ' will be immediately after it in memory.
+function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
+	if ptno < 0 or ptno > 8 then
+		debug "illegal ptno " & ptno
+	else
+		with sprite_sizes(ptno)
+			return sprite_load(game + ".pt" & ptno, rec, .frames, .size.x, .size.y)
+		end with
+	end if
+end function
+
 function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
 	
 	dim ret as frame ptr
@@ -4528,6 +4538,10 @@ sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as
 	Palette16_add_cache(s, p, i)
 end sub
 
+function palette16_load(byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
+	return palette16_load(game + ".pal", num, autotype, spr)
+end function
+
 function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 	dim f as integer, ret as palette16 ptr
 	dim hashstring as string
@@ -4626,7 +4640,7 @@ sub Palette16_update_cache(fil as string, byval num as integer)
 		'force a reload, creating a temporary new palette
 		cache->s = ""
 		cache->p = NULL
-		Palette16_load(fil, num)
+		palette16_load(num)
 		cache = Palette16_find_cache(hashstring)
 
 		'copy to old palette structure

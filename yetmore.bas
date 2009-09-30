@@ -3088,8 +3088,8 @@ NEXT
 o = 0
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
-  herow(o).sprite = sprite_load(game + ".pt4", stat(i, 1, 14), 8, 20, 20)
-  herow(o).pal = palette16_load(game + ".pal", stat(i, 1, 15), 4, stat(i, 1, 14))
+  herow(o).sprite = sprite_load(4, stat(i, 1, 14))
+  herow(o).pal = palette16_load(stat(i, 1, 15), 4, stat(i, 1, 14))
   o = o + 1
  END IF
 NEXT i
@@ -3627,8 +3627,8 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
    pal_id = her.portrait_pal
   END IF
   IF img_id >= 0 THEN
-   .sprite = sprite_load(game & ".pt8", img_id, 1, 50, 50)
-   .pal    = palette16_load(game & ".pal", pal_id, 8, img_id)
+   .sprite = sprite_load(8, img_id)
+   .pal    = palette16_load(pal_id, 8, img_id)
   END IF
  END WITH
 END SUB

@@ -1140,7 +1140,7 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
     CASE 9: box.restore_music = (NOT box.restore_music)
     CASE 12:
      IF box.portrait_type = 1 THEN
-      box.portrait_pal = pal16browse(box.portrait_pal, 8, box.portrait_id, 1, 50, 50)
+      box.portrait_pal = pal16browse(box.portrait_pal, 8, box.portrait_id)
      END IF
     CASE 13: box.portrait_box = (NOT box.portrait_box)
     CASE 14: textbox_position_portrait box, st, holdscreen
