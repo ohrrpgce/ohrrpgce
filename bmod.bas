@@ -1051,16 +1051,16 @@ FOR i = 0 TO 24
 	END IF
 NEXT i
 FOR i = 0 TO 11
- WITH bslot(i)
-  IF .harm.ticks > 0 THEN
+ WITH bslot(i).harm
+  IF .ticks > 0 THEN
    IF gen(genDamageDisplayTicks) <> 0 THEN
-    harm_text_offset = gen(genDamageDisplayRise) / gen(genDamageDisplayTicks) * (gen(genDamageDisplayTicks) - .harm.ticks)
+    harm_text_offset = gen(genDamageDisplayRise) / gen(genDamageDisplayTicks) * (gen(genDamageDisplayTicks) - .ticks)
    ELSE
     harm_text_offset = 0 'Avoid div by zero (which shouldn't be possible anyway)
    END IF
-   edgeprint .harm.text, .harm.pos.x - LEN(.harm.text) * 4, .harm.pos.y - harm_text_offset, .harm.col, dpage
-   .harm.ticks -= 1
-   IF .harm.ticks = 0 THEN .harm.col = uilook(uiText)
+   edgeprint .text, .pos.x - LEN(.text) * 4, .pos.y - harm_text_offset, .col, dpage
+   .ticks -= 1
+   IF .ticks = 0 THEN .col = uilook(uiText)
   END IF
  END WITH
 NEXT i
