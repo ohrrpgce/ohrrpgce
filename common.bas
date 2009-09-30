@@ -1122,13 +1122,8 @@ FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF z
  END IF
 
  DIM mini as Frame Ptr
- mini = Callocate(sizeof(Frame))
- mini->w = zoom * map(0)
- mini->h = zoom * map(1)
- mini->image = Allocate(zoom * map(0) * zoom * map(1))
- mini->mask = NULL
- mini->refcount = -1234
- 'REDIM array(zoom * map(0) - 1, zoom * map(1) - 1) AS UBYTE
+ mini = sprite_new(zoom * map(0), zoom * map(1))
+
  DIM AS SINGLE fraction
  fraction = 20 / zoom
 

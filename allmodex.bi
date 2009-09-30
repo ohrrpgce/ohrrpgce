@@ -132,8 +132,10 @@ DECLARE FUNCTION getmusictype (file as string) as integer
 'DECLARE SUB setsoundvol (BYVAL vol)
 
 'new sprite functions
+declare function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
 declare function sprite_load overload (byval ptno as integer, byval rec as integer) as frame ptr
 declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
+declare function sprite_reference(byval p as frame ptr) as frame ptr
 declare sub sprite_unload(byval p as frame ptr ptr)
 declare sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
 declare function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0, byval direct as integer = 0) as frame ptr

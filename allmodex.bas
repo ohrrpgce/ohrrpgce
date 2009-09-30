@@ -25,6 +25,7 @@ option explicit
 #define SC_RSHIFT		&h36
 #define SC_ALT			&h38
 
+Const NOREFC = -1234
 
 type node 	'only used for floodfill
 	x as integer
@@ -46,7 +47,6 @@ declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 
 'internal allmodex use only sprite functions
-declare function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
 declare sub sprite_delete(byval f as frame ptr ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 
@@ -586,7 +586,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 end SUB
 
 SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans = -1)
-'I this just draws the sprite mirrored
+'this just draws the sprite mirrored
 'the coords are still top-left
 	dim sw as integer
 	dim sh as integer
@@ -1525,7 +1525,7 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	with font->sprite(0)->spr
 		.w = size  'garbage
 		.h = 1
-		.refcount = 1   '-1234
+		.refcount = 1   'NOREFC
 		.mask = null
 		.image = callocate(size)
 	end with
@@ -1616,7 +1616,7 @@ sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 	with font->sprite(1)->spr
 		.w = 8
 		.h = 256 * 8
-		.refcount = 1   '-1234
+		.refcount = 1   'NOREFC
 		'font->mask = allocate(256 * 8 * 8)
 		.mask = null
 		.image = allocate(256 * 8 * 8)
@@ -1739,7 +1739,7 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 	with font->sprite(1)->spr
 		.w = size  'garbage
 		.h = 1
-		.refcount = 1   '-1234
+		.refcount = 1   'NOREFC
 		.mask = null
 		.image = image
 	end with
@@ -3763,8 +3763,6 @@ type SpriteCache
 	s as string
 	p as frame ptr
 end type
-
-
 redim shared sprcache(50) as SpriteCache
 
 'Private
@@ -3782,7 +3780,7 @@ sub sprite_remove_cache(byval s as string)
 end sub
 
 'Private
-' unconditionally frees a sprite from memory.
+' unconditionally frees a sprite from memory. (Normally you want sprite_unload)
 ' takes a pointer to a pointer so that the pointer can also be nulled, so it
 ' will not be used again accidentally.
 ' Warning: not all code calls sprite_delete to delete sprites! Grrr!
@@ -3794,7 +3792,7 @@ sub sprite_delete(byval f as frame ptr ptr)
 		.image = 0
 		if .mask <> 0 then deallocate(.mask)
 		.mask = 0
-		if .refcount <> -1234 then sprite_remove_cache(.cache)
+		if .cache <> "" then sprite_remove_cache(.cache)
 	end with
 	deallocate(*f)
 	*f = 0
@@ -3887,7 +3885,7 @@ sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as intege
 	sprite_add_cache(s, p, i)
 end sub
 
-private function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
+function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
 	dim ret as frame ptr
 	'this hack was Mike's idea, not mine!
 	ret = callocate(sizeof(Frame) * frames)
@@ -3901,7 +3899,7 @@ private function sprite_new(byval w as integer, byval h as integer, byval frames
 	dim as integer i, j
 	for i = 0 to frames - 1
 		with ret[i]
-			.refcount = -1234 'not refcounted by default
+			.refcount = 1
 			.w = w
 			.h = h
 			.mask = NULL
@@ -3953,7 +3951,6 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	if sprite_is_valid(ret) then
 		ret->refcount += 1
 		'debug("Pulled cached copy: " & hashstring & "(" & ret->refcount & ") (0x" & hex(ret) & ")")
-		'sprite_crash_invalid(ret)
 		return ret
 	end if
 	
@@ -4031,7 +4028,7 @@ sub sprite_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
 	'debug("Unloading " & (*p)->cache & "(" & (*p)->refcount & ")")
-	if (*p)->refcount <> -1234 then (*p)->refcount -= 1
+	if (*p)->refcount <> NOREFC then (*p)->refcount -= 1
 	if (*p)->refcount <= 0 then
 		'debug("Zap!")
 		sprite_delete(p)
@@ -4041,34 +4038,25 @@ end sub
 
 function sprite_is_valid(byval p as frame ptr) as integer
 	if p = 0 then return 0
+	dim ret = -1
 	
-	if p->refcount <> -1234 and p->refcount <= 0 then return 0
+	if p->refcount <> NOREFC and p->refcount <= 0 then ret = 0
 	
 	'this is an arbitrary test, and in theory, could cause a false-negative, but I can't concieve of 100 thousand references to the same sprite.
-	if p->refcount > 100000 then return 0
+	if p->refcount > 100000 then ret = 0
 	
-	if p->w < 0 or p->h < 0 then return 0
+	if p->w < 0 or p->h < 0 then ret = 0
 	
-	if p->image = 0 then return 0
+	if p->image = 0 then ret = 0
 	
-	if p->mask = &hBAADF00D or p->image = &hBAADF00D then return 0
-	if p->mask = &hFEEEFEEE or p->image = &hFEEEFEEE then return 0
+	if p->mask = &hBAADF00D or p->image = &hBAADF00D then ret = 0
+	if p->mask = &hFEEEFEEE or p->image = &hFEEEFEEE then ret = 0
 	
-	return -1
+	if ret = 0 then debug("Invalid sprite: " & p->cache & " (0x" & hex(p) & ")")
+	return ret
 end function
 
-sub sprite_crash_invalid(byval p as frame ptr)
-	
-	if not sprite_is_valid(p) then
-		#if false
-		print *cptr(integer ptr, 0)
-		#else
-		debug("Invalid sprite: " & p->cache & " (0x" & hex(p) & ")")
-		#endif
-	end if
-	
-end sub
-
+'for a copy you intend to modify. Otherwise use sprite_reference
 function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr
 	dim ret as frame ptr, i as integer
 	
@@ -4080,9 +4068,11 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	
 	ret->w = p->w
 	ret->h = p->h
-	ret->refcount = -1234 'that is, it's not refcounted
+	ret->refcount = 1
 	ret->image = 0
 	ret->mask = 0
+	'p->cache blank
+
 	if p->image then
 		if clr = 0 then
 			ret->image = allocate(ret->w * ret->h)
@@ -4100,16 +4090,17 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 		end if
 	end if
 	
-	ret->cache = p->cache
-	
 	return ret
-	
 end function
 
-'not used anywhere
+'not yet used at last count!
 function sprite_reference(byval p as frame ptr) as frame ptr
 	if p = 0 then return 0
-	if p->refcount <> -1234 then p->refcount += 1
+	if p->refcount = NOREFC then
+		debug "tried to reference a non-refcounted sprite!"
+	else
+		p->refcount += 1
+	end if
 	return p
 end function
 
@@ -4200,6 +4191,11 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 	dim cpy as frame ptr
 	
 	if spr = 0 then return 0
+
+	if direct and (spr->cache <> "") then
+		debug "illegal in-place sprite flip!"
+		return 0
+	end if
 	
 	cpy = sprite_duplicate(spr)
 	if cpy = 0 then return 0
@@ -4314,82 +4310,72 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 	end if
 end function
 
+'Used by sprite_flip_horiz and sprite_flip_vert
+private sub flip_image(byval pixels as ubyte ptr, byval d1len as integer, byval d1stride as integer, byval d2len as integer, byval d2stride as integer)
+	for x1 as integer = 0 to d1len - 1
+		dim as ubyte ptr pixelp = pixels + x1 * d1stride
+		for offset as integer = d2len - 1 to 0 step -2 * d2stride
+			dim as ubyte temp = pixelp[0]
+			pixelp[0] = pixelp[offset]
+			pixelp[offset] = temp
+			pixelp += d2stride
+		next
+	next
+end sub
+
 'Public:
-' returns a copy of the sprite flipped horizontally. The new sprite is not
-' cached, and is not ref-counted.
+' returns a copy of the sprite flipped horizontally. The new sprite is refc'd of course.
+' direct means modify it in-place, forbidden if the sprite is cached!
+' (Note: might be modified in place if no other references exist, you are
+' encouraged to use the ref counting system)
 function sprite_flip_horiz(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
-	dim ret as frame ptr
-	
 	if spr = 0 then return 0
 	
-	ret = sprite_duplicate(spr)
-	
-	if ret = 0 then return 0
-	
-	dim as integer x, y
-	
-	for y = 0 to spr->h - 1
-		for x = 0 to spr->w - 1 
-			ret->image[y * spr->w + x] = spr->image[y * spr->w + (spr->w - x - 1)]
-		next
-		if ret->mask then
-			for x = 0 to spr->w - 1 
-				ret->mask[y * spr->w + x] = spr->mask[y * spr->w + (spr->w - x - 1)]
-			next
-		end if
-	next
-	
-	if direct then
-		deallocate(spr->image)
-		deallocate(spr->mask)
-		spr->image = ret->image
-		spr->mask = ret->mask
-		ret->image = 0
-		ret->mask = 0
-		sprite_delete(@ret)
-		return spr
-	else
-		return ret
+	if direct and (spr->cache <> "") then
+		debug "illegal in-place sprite flip!"
+		return 0
 	end if
+
+	if spr->cache = "" and spr->refcount <= 1 then 'including NOREFC
+		direct = -1
+	end if
+	if direct = 0 then
+		spr = sprite_duplicate(spr)
+		if spr = 0 then return 0
+	end if
+
+	flip_image(spr->image, spr->h, spr->w, spr->w, 1)
+	if spr->mask then
+		flip_image(spr->mask, spr->h, spr->w, spr->w, 1)
+	end if
+	
+	return spr
 end function
 
 'Public:
-' returns a copy of the sprite flipped vertically. The new sprite is not cached,
-' and is not ref-counted.
+' returns a copy of the sprite flipped vertically. See sprite_flip_horiz for documentation
 function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
-	dim ret as frame ptr
-	
 	if spr = 0 then return 0
 	
-	ret = sprite_duplicate(spr)
-	
-	if ret = 0 then return 0
-	
-	dim as integer x, y
-	
-	for y = 0 to spr->h - 1
-		for x = 0 to spr->w - 1
-			ret->image[y * spr->w + x] = spr->image[(spr->h - y - 1) * spr->w + x]
-		next
-		if ret->mask then
-			for x = 0 to spr->w - 1
-				ret->mask[y * spr->w + x] = spr->mask[(spr->h - y - 1) * spr->w + x]
-			next
-		end if
-	next
-	
-	if direct then
-		deallocate(spr->image)
-		deallocate(spr->mask)
-		spr->image = ret->image
-		spr->mask = ret->mask
-		ret->image = 0
-		ret->mask = 0
-		sprite_delete(@ret)
-		return spr
-	else
-		return ret
+	if direct and (spr->cache <> "") then
+		debug "illegal in-place sprite flip!"
+		return 0
 	end if
+
+	if spr->cache = "" and spr->refcount <= 1 then 'including NOREFC
+		direct = -1
+	end if
+	if direct = 0 then
+		spr = sprite_duplicate(spr)
+		if spr = 0 then return 0
+	end if
+
+	flip_image(spr->image, spr->w, 1, spr->h, spr->w)
+	if spr->mask then
+		flip_image(spr->mask, spr->w, 1, spr->h, spr->w)
+	end if
+	
+	return spr
 end function
 
 sub sprite_clear(byval spr as frame ptr)
