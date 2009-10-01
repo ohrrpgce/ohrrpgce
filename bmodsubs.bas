@@ -478,7 +478,7 @@ IF attack.damage_math <> 4 THEN
  IF bslot(t).harmed_by_cure = YES THEN h = ABS(h)  'zombie
  IF cure = 1 THEN h = ABS(h) * -1                  'elemental absorb
 
- IF attack.percent_damage_not_set = YES THEN
+ IF attack.percent_damage_not_set = NO THEN
   'percentage attacks set stat
   'and by set, we really mean set, ignore nearly all attack settings,
   'that's my interpretation of intent anyway - TMC
