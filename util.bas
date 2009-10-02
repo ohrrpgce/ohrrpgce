@@ -285,13 +285,13 @@ END SUB
 'visiting the data (an array of some kind of struct containing an integer) in ascending order.
 'start points to the integer in the first element, stride is the size of an array element, in integers
 'Insertion sort. Running time is O(n^2). Much faster on nearly-sorted lists. STABLE
-SUB sort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer = 0, BYVAL stride as integer = 1)
+SUB sort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer, BYVAL stride as integer)
  IF number = 0 THEN number = UBOUND(indices) + 1
  DIM keys(number - 1) as integer
  DIM as integer i, temp
  FOR i = 0 TO number - 1
   keys(i) = *start
-  start += stride
+  start = CAST(integer ptr, CAST(byte ptr, start) + stride) 'yuck
  NEXT
 
  indices(0) = 0
@@ -314,13 +314,14 @@ END FUNCTION
 
 'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
 /' Uncomment if you want to use (working fine)
-SUB qsort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer = 0, BYVAL stride as integer = 1)
+SUB qsort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer, BYVAL stride as integer)
  IF number = 0 THEN number = UBOUND(indices) + 1
  DIM keys(number - 1, 1) as integer
  DIM as integer i
  FOR i = 0 TO number - 1
-  keys(i,0) = start[i * stride]
+  keys(i,0) = *start
   keys(i,1) = i
+  start = CAST(integer ptr, CAST(byte ptr, start) + stride)
  NEXT
 
  qsort(@keys(0,0), number, 2*sizeof(integer), CAST(FUNCTION CDECL(BYVAL as any ptr, BYVAL as any ptr) as integer, @integer_compare))
