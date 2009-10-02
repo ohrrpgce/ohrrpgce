@@ -276,3 +276,57 @@ SUB str_array_append (array() AS STRING, s AS STRING)
  REDIM PRESERVE array(UBOUND(array) + 1) AS STRING
  array(UBOUND(array)) = s
 END SUB
+
+'I've compared the speed of the following two. For random data, the quicksort is faster
+'for arrays over length about 80. For arrays which are 90% sorted appended with 10% random data,
+'the cut off is about 600 (insertion sort did ~5x better on nearly-sort data at the 600 mark)
+
+'Returns, in indices() (assumed to already have been dimmed large enough), indices for
+'visiting the data (an array of some kind of struct containing an integer) in ascending order.
+'start points to the integer in the first element, stride is the size of an array element, in integers
+'Insertion sort. Running time is O(n^2). Much faster on nearly-sorted lists. STABLE
+SUB sort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer = 0, BYVAL stride as integer = 1)
+ IF number = 0 THEN number = UBOUND(indices) + 1
+ DIM keys(number - 1) as integer
+ DIM as integer i, temp
+ FOR i = 0 TO number - 1
+  keys(i) = *start
+  start += stride
+ NEXT
+
+ indices(0) = 0
+ FOR j as integer = 1 TO number - 1
+  temp = keys(j)
+  FOR i = j - 1 TO 0 STEP -1
+   IF keys(i) <= temp THEN EXIT FOR
+   keys(i + 1) = keys(i)
+   indices(i + 1) = indices(i)
+  NEXT
+  keys(i + 1) = temp
+  indices(i + 1) = j
+ NEXT
+END SUB
+
+FUNCTION integer_compare CDECL (BYVAL a as integer ptr, BYVAL b as integer ptr) as integer
+ IF *a < *b THEN RETURN -1
+ IF *a > *b THEN RETURN 1
+END FUNCTION
+
+'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
+/' Uncomment if you want to use (working fine)
+SUB qsort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer = 0, BYVAL stride as integer = 1)
+ IF number = 0 THEN number = UBOUND(indices) + 1
+ DIM keys(number - 1, 1) as integer
+ DIM as integer i
+ FOR i = 0 TO number - 1
+  keys(i,0) = start[i * stride]
+  keys(i,1) = i
+ NEXT
+
+ qsort(@keys(0,0), number, 2*sizeof(integer), CAST(FUNCTION CDECL(BYVAL as any ptr, BYVAL as any ptr) as integer, @integer_compare))
+
+ FOR i = 0 TO number - 1
+  indices(i) = keys(i,1)
+ NEXT
+END SUB
+'/

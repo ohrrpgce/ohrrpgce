@@ -26,6 +26,7 @@ declare Function wordwrap(Byval inp as string, byval width as integer, byval sep
 declare sub split(byval in as string, ret() as string, sep as string = chr(10))
 declare function textwidth(byval z as string) as integer
 declare sub str_array_append (array() AS STRING, s AS STRING)
+declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = 1)
 
 'also appears in udts.bi
 #ifndef Stack
