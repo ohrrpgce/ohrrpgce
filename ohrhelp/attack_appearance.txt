@@ -153,4 +153,6 @@ Display Caption: Controls how long the attack caption is displayed. Press left a
 
 Delay Before Caption: Allows you to specify a delay in game ticks before the caption appears. This can be useful for attacck animations that have a long lead-in, or for captions that are supposed to represent something that the attacker says after the attack has completed.
 
-Sound Effect: Use the left and right arrow keys to select a sound effect. You can press ENTER or SPACE to preview the currently selected effect.
+Sound Effect: Use the left and right arrow keys to select a sound effect. You can press ENTER or SPACE to preview the currently selected effect. The sound effect will be played whenever the attack is used (both inside battle, or outside battle)
+
+You can also specify a sound effect that wll be played when the attack is learned as a spell from a level-up or by using an item.
