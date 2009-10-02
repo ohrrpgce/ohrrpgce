@@ -65,6 +65,8 @@ WHAT IS NEW?
       [James]
     * Attack chain browser for navigating and visualizing chains of
       attacks [James]
+    * Attacks now have a "Learned" sound effect that can be played when
+      the attack is learned as a spell from an item or levelup. [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

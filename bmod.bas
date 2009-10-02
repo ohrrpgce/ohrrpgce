@@ -1375,10 +1375,13 @@ SELECT CASE vic.state
     END IF
     IF readbit(learnmask(), 0, vic.learnwho * 96 + vic.learnlist * 24 + vic.learnslot) THEN
      'found a learned spell
+     DIM learn_attack AS AttackData
+     loadattackdata learn_attack, spell(vic.learnwho, vic.learnlist, vic.learnslot) - 1
      vic.item_name = bslot(vic.learnwho).name + vic.learned_caption
-     vic.item_name = vic.item_name & readattackname$(spell(vic.learnwho, vic.learnlist, vic.learnslot) -1)
+     vic.item_name = vic.item_name & learn_attack.name
      vic.showlearn = YES
      vic.box = YES
+     IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
      EXIT DO
     END IF
    LOOP

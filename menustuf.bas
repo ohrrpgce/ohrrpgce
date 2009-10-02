@@ -540,6 +540,7 @@ FUNCTION items (stat() as integer) as integer
 DIM itemdata(100) AS INTEGER
 DIM itemtemp(100) AS INTEGER
 DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
+DIM learn_attack AS AttackData 'FIXME: used only when learning an attack, move to a sub when that code is subified
 DIM iuse((inventoryMax + 3) / 16) 'bit 0 of iuse, permask, correspond to item -3
 DIM permask((inventoryMax + 3) / 16)
 DIM atkIDs(inventoryMax)
@@ -860,9 +861,11 @@ ELSE '--an item is already selected
    '--announce learn
    IF didlearn = 1 THEN
     menusound gen(genItemLearnSFX)
-    tmp$ = names(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + readattackname$(atk - 1)
+    loadattackdata learn_attack, atk - 1
+    tmp$ = names(wptr) + " " + readglobalstring$(124, "learned", 10) + " " + learn_attack.name
     centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
     edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, uilook(uiText), vpage
+    IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
     setvispage vpage
     dummy = getkey
    ELSE
