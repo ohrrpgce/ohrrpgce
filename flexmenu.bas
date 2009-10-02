@@ -181,6 +181,7 @@ CONST AtkDatInsteadChainRate = 113
 CONST AtkDatInsteadChainVal1 = 114
 CONST AtkDatInsteadChainVal2 = 115
 CONST AtkDatInsteadChainBits = 116
+CONST AtkDatLearnSoundEffect = 117
 
 'anything past this requires expanding the data
 
@@ -464,7 +465,7 @@ min(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 68
+CONST MnuItems = 69
 DIM menu(MnuItems) AS STRING, menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -478,7 +479,7 @@ menuoff(AtkName) = AtkDatName
 menulimits(AtkName) = AtkLimStr10
 
 CONST AtkAppearAct = 2
-menu(AtkAppearAct) = "Appearance..."
+menu(AtkAppearAct) = "Appearance & Sounds..."
 menutype(AtkAppearAct) = 1
 
 CONST AtkDmgAct = 3
@@ -849,7 +850,13 @@ CONST AtkChainBrowserAct = 68
 menu(AtkChainBrowserAct) = "Browse chain..."
 menutype(AtkChainBrowserAct) = 1
 
-'Next menu item is 69 (remember to update the dims)
+CONST AtkLearnSoundEffect = 69
+menu(AtkLearnSoundEffect) = "Sound When Learned:"
+menutype(AtkLearnSoundEffect) = 11
+menuoff(AtkLearnSoundEffect) = AtkDatLearnSoundEffect
+menulimits(AtkLearnSoundEffect) = AtkLimSFX
+
+'Next menu item is 70 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -870,7 +877,7 @@ mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
 mainMenu(10) = AtkTagAct
 
-DIM appearMenu(9)
+DIM appearMenu(10)
 appearMenu(0) = AtkBackAct
 appearMenu(1) = AtkPic
 appearMenu(2) = AtkPal
@@ -881,6 +888,7 @@ appearMenu(6) = AtkCaption
 appearMenu(7) = AtkCapTime
 appearMenu(8) = AtkCaptDelay
 appearMenu(9) = AtkSoundEffect
+appearMenu(10) = AtkLearnSoundEffect
 
 DIM dmgMenu(8)
 dmgMenu(0) = AtkBackAct
@@ -1100,10 +1108,6 @@ DO
     FOR i = 0 TO 7
      recbuf(AtkDatBitsets2 + i) = buffer(4 + i)
     NEXT i
-   CASE AtkSoundEffect
-    IF recbuf(AtkDatSoundEffect) > 0 THEN
-     playsfx recbuf(AtkDatSoundEffect) - 1
-    END IF
    CASE AtkChainBits
     editbitset recbuf(), AtkDatChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
     state.need_update = YES
@@ -1257,6 +1261,14 @@ SELECT CASE menutype(nowindex)
   IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
   writebadbinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1
 END SELECT
+
+'--preview sound effects
+IF (changed OR enter_or_space()) AND menutype(nowindex) = 11 THEN
+ DIM sfx AS INTEGER = datablock(menuoff(nowindex))
+ IF sfx > 0 AND sfx <= gen(genMaxSFX) + 1 THEN
+  playsfx sfx - 1
+ END IF
+END IF
 
 RETURN changed
 

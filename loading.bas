@@ -1433,6 +1433,7 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
    END WITH
   NEXT i
   .sound_effect = buf(99)
+  .learn_sound_effect = buf(117)
   '----Chaining----
   loadattackchain .chain, buf(), 12, 13, 101, 102, 103, 104
   loadattackchain .elsechain, buf(), 105, 107, 106, 108, 109, 110

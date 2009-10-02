@@ -328,6 +328,7 @@ Type AttackData
 	chain as AttackDataChain
 	elsechain as AttackDataChain
 	instead as AttackDataChain
+	learn_sound_effect as integer ' ID + 1
 	'----Bitsets----
 	cure_instead_of_harm as integer
 	divide_spread_damage as integer
