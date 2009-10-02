@@ -1021,6 +1021,7 @@ FOR i = 0 TO 24
 			with bslot(zbuf(i))
 				dim spr as frame ptr, custspr as integer
 				custspr = 0
+				hasflipped = 0
 				spr = .sprites
 				
 				if .sprites = 0 then continue for
@@ -1031,7 +1032,7 @@ FOR i = 0 TO 24
 				
 				if .d then
 					spr = sprite_flip_horiz(spr)
-					custspr = -1
+					hasflipped = -1
 				end if
 				
 				if is_enemy(zbuf(i)) and .dissolve > 0 and .flee = 0 then
@@ -1043,6 +1044,10 @@ FOR i = 0 TO 24
 				end if
 				
 				sprite_draw(spr, .pal, .x, .y - .z, 1, -1, dpage)
+				
+				if hasflipped then
+					spr = sprite_flip_horiz(spr) '--flip it back... FIXME: yeah, this is not efficient
+				end if
 				
 				if custspr then
 					sprite_unload(@spr)
