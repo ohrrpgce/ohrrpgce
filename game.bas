@@ -1235,11 +1235,11 @@ WITH scrat(nowscript)
    TIMER_START(scrat(nowscript).scr->totaltime)
 #ENDIF
    GOSUB interpretloop
+   '--WARNING: WITH pointer probably corrupted
 #IFDEF SCRIPTPROFILE
    IF nowscript >= 0 THEN TIMER_STOP(scrat(nowscript).scr->totaltime)
 #ENDIF
    insideinterpreter = NO
-   '--WARNING: WITH pointer probably corrupted
  END SELECT
  IF wantimmediate = -2 THEN
 '  IF nowscript < 0 THEN

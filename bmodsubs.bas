@@ -662,6 +662,7 @@ IF bslot(4 + i).vis = 1 THEN
   bslot(4 + i).stat.cur.sta(o) = es(i, 62 + o)
   bslot(4 + i).stat.max.sta(o) = es(i, 62 + o)
  NEXT o
+ 'can't use readbadbinstring because es is 2D
  bslot(4 + i).name = ""
  FOR o = 1 TO es(i, 0)
   bslot(4 + i).name = bslot(4 + i).name + CHR$(es(i, o))

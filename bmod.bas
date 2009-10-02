@@ -895,7 +895,6 @@ FOR i = 0 TO 11
     quickinflict harm, i, bslot()
     triggerfade i, bslot()
     fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
-    '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
  END WITH
@@ -912,7 +911,6 @@ FOR i = 0 TO 11
     quickinflict heal, i, bslot()
     triggerfade i, bslot()
     fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
-    '--WARNING: WITH pointer probably corrupted
    END IF
   END IF
  END WITH

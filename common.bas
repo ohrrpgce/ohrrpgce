@@ -3465,8 +3465,6 @@ FUNCTION readbadbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTE
   n = array(offset + skipword + i)
   '--if the int is a char use it.
   IF n >= 0 AND n <= 255 THEN
-   '--take the low byte
-   n = (n AND &HFF)
    '--use it
    result = result & CHR(n)
   END IF

@@ -732,7 +732,6 @@ IF pick = 0 THEN
     IF readbit(iuse(), 0, 3 + ic) = 0 OR inventory(ic).used = 0 THEN RETRACE
     loaditemdata itemdata(), inventory(ic).id
     IF itemdata(50) > 0 THEN '--learn a spell
-     tclass = 1
      ttype = 0
      pick = 1: wptr = 0
      '--target the first non-dead hero
@@ -745,7 +744,6 @@ IF pick = 0 THEN
     END IF
     IF itemdata(51) > 0 THEN '--attack/oobcure
      loadattackdata atktemp(), itemdata(51) - 1
-     tclass = atktemp(3)
      ttype = atktemp(4)
      wptr = -1
      IF getOOBtarg(1, wptr, itemdata(51) - 1, stat()) = NO THEN
