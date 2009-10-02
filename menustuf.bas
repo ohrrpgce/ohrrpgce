@@ -565,11 +565,12 @@ FOR i = 0 TO last_inv_slot()
  IF inventory(i).used THEN
   loaditemdata itemtemp(), inventory(i).id
   IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
-  IF itemtemp(51) > 0 OR itemtemp(50) > 0 THEN
+  IF itemtemp(50) > 0 THEN '--teach spell
+   setbit iuse(), 0, 3 + i, 1
+  ELSEIF itemtemp(51) > 0 THEN
    setbit iuse(), 0, 3 + i, 1
    atkIDs(i) = itemtemp(51) - 1
-  END IF
-  IF itemtemp(51) < 0 THEN
+  ELSEIF itemtemp(51) < 0 THEN
    setbit iuse(), 0, 3 + i, 1
   END IF
  END IF
@@ -691,7 +692,7 @@ RETRACE
 
 itcontrol:
 '--keyboard checking and associated actions for the item menu
-IF pick = 0 THEN
+IF pick = 0 THEN '--have not picked an item yet
  IF carray(5) > 1 THEN
   '--deselect currently selected item
   IF sel > -1 THEN
@@ -817,7 +818,7 @@ IF pick = 0 THEN
   WHILE ic > last_inv_slot(): ic -= 3: WEND
   WHILE ic >= top + (state.size+1) * 3 : top = top + 3 : WEND
  END IF
-ELSE
+ELSE '--an item is already selected
  IF carray(5) > 1 THEN
   menusound gen(genCancelSFX)
   pick = 0
@@ -852,7 +853,7 @@ ELSE
   loaditemdata itemtemp(), inventory(ic).id
   'if can teach a spell
   didlearn = 0
-  IF itemtemp(50) > 0 THEN
+  IF itemtemp(50) > 0 THEN '--teach spell
    atk = itemtemp(50)
    '--trylearn
    didlearn = trylearn(wptr, atk, 0)

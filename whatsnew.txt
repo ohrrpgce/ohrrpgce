@@ -90,6 +90,8 @@ WHAT IS NEW?
       can result the hero getting stuck" [James]
     * The default master palette is also saved in the old format,
       so old graphics utilities have a greater chance of working [Ralph]
+    * Fix crash on using items that teach spells which also have
+      textboxes selected (see Bug 750) [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
