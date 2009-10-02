@@ -28,10 +28,10 @@ DECLARE SUB herodata ()
 DECLARE SUB attackdata ()
 DECLARE SUB maptile (font%())
 DECLARE FUNCTION isStringField(mnu%)
-DECLARE sub formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer)
+DECLARE sub drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as integer)
 DECLARE sub loadform(a() as integer, pt as integer)
 DECLARE sub saveform(a() as integer, pt as integer)
-DECLARE sub formpics(ename() as string, a() as integer, b() as integer, s() as integer, w() as integer, h() as integer, pal16() as integer)
+DECLARE sub formpics(ename() as string, a() as integer, egraphics() as GraphicPair)
 
 
 #include "compat.bi"
@@ -746,9 +746,9 @@ SUB formation
 
 clearallpages
 
-DIM a(40), b(160), c(24), s(7), w(7), h(7), menu$(10), max(10), min(10), z(7), bmenu$(22), pal16(64)
-dim as integer col, csr, bcsr, csr2, csr3, tog, pt, gptr, i, o, movpix
-
+DIM a(40), c(24), menu$(10), max(10), min(10), bmenu$(22)
+dim as integer col, csr, bcsr, csr2, csr3, tog, pt, gptr, i, o, movpix, thiswidth
+DIM as GraphicPair egraphics(7)
 DIM as string ename(7)
 
 menu$(0) = "Return to Main Menu"
@@ -766,6 +766,7 @@ DO
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN GOSUB editform
   IF csr = 2 THEN GOSUB formsets
+  clearpage dpage
  END IF
 
  standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
@@ -775,10 +776,12 @@ DO
  clearpage dpage
  dowait
 LOOP
+FOR i = 0 TO 7
+ unload_sprite_and_pal egraphics(i)
+NEXT
 clearpage 0
 clearpage 1
 clearpage 2
-clearpage 3
 EXIT SUB
 
 formsets:
@@ -820,10 +823,12 @@ DO
   IF zintgrabber(c(bcsr - 2), -1, gen(genMaxFormation)) THEN
    GOSUB lpreviewform
   END IF
-  IF pt >= 0 THEN
-   '--preview form
-   formsprite z(),w(),a(),h(),pal16(),-1
-  END IF
+ END IF
+ IF bcsr > 2 AND pt >= 0 THEN
+  copypage 2, dpage
+  drawformsprites a(), egraphics(), -1
+ ELSE
+  clearpage dpage
  END IF
  bmenu$(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
  bmenu$(2) = "Battle Frequency: " & c(0) & " (" & step_estimate(c(0), 60, 100, "-", " steps") & ")"
@@ -836,11 +841,6 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- IF bcsr > 2 AND pt >= 0 THEN
-  copypage 2, dpage
- ELSE
-  clearpage dpage
- END IF
  dowait
 LOOP
 
@@ -851,7 +851,7 @@ IF bcsr > 2 THEN
  IF pt >= 0 THEN
   '--form not empty
   loadform(a(),pt)
-  formpics(ename(), a(), b(), s(), w(), h(), pal16())
+  formpics(ename(), a(), egraphics())
  END IF
 END IF
 RETRACE
@@ -876,7 +876,7 @@ pt = 0: csr2 = -6: csr3 = 0
 bgwait = 0
 bgctr = 0
 loadform(a(),pt)
-formpics(ename(), a(), b(), s(), w(), h(), pal16())
+formpics(ename(), a(), egraphics())
 setkeys
 
 menu$(3) = "Previous Menu"
@@ -889,11 +889,13 @@ DO
   '--enemy positioning mode
   IF keyval(scESC) > 1 OR enter_or_space() THEN setkeys: csr3 = 0
   IF keyval(scF1) > 1 THEN show_help "formation_editor_placement"
-  movpix = 1 + (7 * SGN(keyval(56)))
-  IF keyval(72) > 0 AND a(csr2 * 4 + 2) > 0 THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) - movpix
-  IF keyval(80) > 0 AND a(csr2 * 4 + 2) < 199 - w(csr2) THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) + movpix
-  IF keyval(75) > 0 AND a(csr2 * 4 + 1) > 0 THEN a(csr2 * 4 + 1) = a(csr2 * 4 + 1) - movpix
-  IF keyval(77) > 0 AND a(csr2 * 4 + 1) < 250 - w(csr2) THEN a(csr2 * 4 + 1) = a(csr2 * 4 + 1) + movpix
+  movpix = 1 + (7 * SGN(keyval(scLeftShift) OR keyval(scRightShift)))
+  thiswidth = 0
+  IF egraphics(csr2).sprite THEN thiswidth = egraphics(csr2).sprite->w
+  IF keyval(scUp) > 0 AND a(csr2 * 4 + 2) > 0 THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) - movpix
+  IF keyval(scDown) > 0 AND a(csr2 * 4 + 2) < 199 - thiswidth THEN a(csr2 * 4 + 2) = a(csr2 * 4 + 2) + movpix
+  IF keyval(scLeft) > 0 AND a(csr2 * 4 + 1) > 0 THEN a(csr2 * 4 + 1) = a(csr2 * 4 + 1) - movpix
+  IF keyval(scRight) > 0 AND a(csr2 * 4 + 1) < 250 - thiswidth THEN a(csr2 * 4 + 1) = a(csr2 * 4 + 1) + movpix
  END IF
  IF csr3 = 0 THEN
   '--menu mode
@@ -902,7 +904,7 @@ DO
    RETRACE
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_editor"
-  IF keyval(29) > 0 AND keyval(14) > 0 THEN cropafter pt, gen(37), 0, game + ".for", 80, 1
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(37), 0, game + ".for", 80, 1
   usemenu csr2, -6, -6, 7, 25
   IF enter_or_space() THEN
    IF csr2 = -6 THEN
@@ -939,35 +941,37 @@ DO
    IF intgrabber(pt, 0, gen(genMaxFormation), 51, 52) THEN
     saveform(a(),remptr)
     loadform(a(),pt)
-    formpics(ename(), a(), b(), s(), w(), h(), pal16())
+    formpics(ename(), a(), egraphics())
     bgwait = 0
     bgctr = 0
    END IF
-   IF keyval(75) > 1 AND pt > 0 THEN
+   IF keyval(scLeft) > 1 AND pt > 0 THEN
     saveform(a(),pt)
     pt = large(pt - 1, 0)
     loadform(a(),pt)
-    formpics(ename(), a(), b(), s(), w(), h(), pal16())
+    formpics(ename(), a(), egraphics())
     bgwait = 0
     bgctr = 0
    END IF
-   IF keyval(77) > 1 AND pt < 32767 THEN
+   IF keyval(scRight) > 1 AND pt < 32767 THEN
     saveform(a(),pt)
     pt = pt + 1
-    IF needaddset(pt, gen(37), "formation") THEN GOSUB clearformation
+    IF needaddset(pt, gen(genMaxFormation), "formation") THEN GOSUB clearformation
     loadform(a(),pt)
-    formpics(ename(), a(), b(), s(), w(), h(), pal16())
+    formpics(ename(), a(), egraphics())
     bgwait = 0
     bgctr = 0
    END IF
   END IF'--DONE SELECTING DIFFERENT FORMATION
   IF csr2 >= 0 THEN
    oldenemy = a(csr2 * 4)
-   IF zintgrabber(a(csr2 * 4 + 0), -1, gen(36)) THEN
-    'this would treat the x/y position as being the bottom middle of enemies, but that changing spawning in slots
+   IF zintgrabber(a(csr2 * 4 + 0), -1, gen(genMaxEnemy)) THEN
+    'This would treat the x/y position as being the bottom middle of enemies, which makes much more
+    'sense, but that would change where enemies of different sizes are spawned in slots in existing games
+    'See the Plan for battle formation improvements
     'a(csr2 * 4 + 1) += w(csr2) \ 2
     'a(csr2 * 4 + 2) += h(csr2)
-    formpics(ename(), a(), b(), s(), w(), h(), pal16())
+    formpics(ename(), a(), egraphics())
     'default to middle of field
     IF oldenemy = 0 AND a(csr2 * 4 + 1) = 0 AND a(csr2 * 4 + 2) = 0 THEN
      a(csr2 * 4 + 1) = 70
@@ -988,7 +992,7 @@ DO
  END IF
  copypage 2, dpage
 
- formsprite z(),w(),a(),h(),pal16(),csr2
+ drawformsprites a(), egraphics(), csr2
  FOR i = 0 TO 3
   edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage, NO, YES
  NEXT i
@@ -1043,58 +1047,45 @@ sub saveform(a() as integer, pt as integer)
  storeset game + ".for", pt, 0
 end sub
 
-sub formpics(ename() as string, a() as integer, b() as integer, s() as integer, w() as integer, h() as integer, pal16() as integer)
+sub formpics(ename() as string, a() as integer, egraphics() as GraphicPair)
+ DIM b(159) as integer
  FOR i as integer = 0 TO 7
   ename(i) = "-EMPTY-"
+  unload_sprite_and_pal egraphics(i)
   IF a(i * 4 + 0) > 0 THEN
    loadenemydata b(), a(i * 4 + 0) - 1
-   ename(i) = STR$(a(i * 4 + 0) - 1) + ":"
-   FOR o as integer = 1 TO b(0)
-    ename(i) = ename(i) + CHR$(b(o))
-   NEXT o
-   getpal16 pal16(), i, b(54), 1 + b(55), b(53)
-   dim as string f
-   IF b(55) = 0 THEN s(i) = 578: w(i) = 34: h(i) = 34: f = ".pt1"
-   IF b(55) = 1 THEN s(i) = 1250: w(i) = 50: h(i) = 50: f = ".pt2"
-   IF b(55) = 2 THEN s(i) = 3200: w(i) = 80: h(i) = 80: f = ".pt3"
-   setpicstuf buffer(), s(i), 3
-   loadset game + f, b(53), i * 10
-  ELSE
-   w(i) = 0: h(i) = 0
+   ename(i) = STR$(a(i * 4 + 0) - 1) + ":" + readbadbinstring(b(), 0, 16)
+   b(55) = bound(b(55), 0, 2)
+   load_sprite_and_pal egraphics(i), 1 + b(55), b(53), b(54)
   END IF
  NEXT i
 end sub
 
-SUB formsprite(z() as integer, w() as integer, a() as integer, h() as integer, pal16() as integer, byval csr2 as integer)
- dim as integer insertval, searchval, i
+SUB drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as integer)
+ dim z(7) as integer, basey(7) as integer
  static flash as integer = 0
  flash = (flash + 1) MOD 256
- FOR i = 0 TO 7
-  z(i) = i
+
+ FOR i as integer = 0 TO 7
+  IF egraphics(i).sprite THEN basey(i) = a(i * 4 + 2) + egraphics(i).sprite->h
  NEXT
- FOR o as integer = 1 TO 7
-  insertval = z(o)
-  searchval = a(insertval * 4 + 2) + h(insertval)
-  FOR i = o - 1 TO 0 STEP -1
-   IF searchval < a(z(i) * 4 + 2) + h(z(i)) THEN
-    z(i + 1) = z(i)
-   ELSE
-    EXIT FOR
-   END IF
-  NEXT
-  z(i + 1) = insertval
- NEXT
- FOR i = 0 TO 7
+ sort_integers_indices(z(), @basey(0))
+
+ FOR i as integer = 0 TO 7
   IF a(z(i) * 4 + 0) > 0 THEN
-   loadsprite buffer(), 0, 0, z(i) * 10, w(z(i)), w(z(i)), 3
-   drawsprite buffer(), 0, pal16(), 16 * z(i), a(z(i) * 4 + 1), a(z(i) * 4 + 2), dpage
-   IF csr2 = z(i) THEN textcolor flash, 0: printstr CHR$(25), a(z(i) * 4 + 1) + (w(z(i)) * .5) - 4, a(z(i) * 4 + 2), dpage
+   WITH egraphics(z(i))
+    sprite_draw .sprite, .pal, a(z(i) * 4 + 1), a(z(i) * 4 + 2), , , dpage
+    IF csr2 = z(i) THEN
+     textcolor flash, 0
+     printstr CHR$(25), a(z(i) * 4 + 1) + .sprite->w \ 2 - 4, a(z(i) * 4 + 2), dpage
+    END IF
+   END WITH
   END IF
  NEXT
 END SUB
 
 SUB herodata
-DIM menu$(9), bmenu$(40), max(40), min(40), nof(12), attack$(24), b(40), opt$(10), hbit$(-1 TO 26), hmenu$(4), elemtype$(2)
+DIM menu$(9), bmenu$(40), max(40), min(40), nof(12), attack$(24), opt$(10), hbit$(-1 TO 26), hmenu$(4), elemtype$(2)
 DIM AS HeroDef her, blankhero
 DIM st AS HeroEditState
 WITH st
@@ -1540,7 +1531,7 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM a(99), menu$(20), bmenu$(40), nof(12), b(40), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), elemtype$(2), frame
+DIM a(99), menu$(20), bmenu$(40), nof(12), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), elemtype$(2), frame
 DIM item$(maxMaxItems)
 DIM wep_img AS GraphicPair 'This is only used in edititem
 DIM box_preview AS STRING = "" 'This is only used in edititem
