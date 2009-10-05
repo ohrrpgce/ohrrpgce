@@ -47,6 +47,7 @@ DECLARE SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
 DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INTEGER, counterclockwise AS INTEGER=NO)
+DECLARE SUB writeundospr (placer(), ss AS SpriteEditState)
 
 #include "scancodes.bi"
 #include "compat.bi"
@@ -2073,10 +2074,12 @@ ELSEIF ss.tool <> airbrush_tool THEN
  '--except for the airbrush tool because it's buttons collide.
  IF mouse(3) = 1 OR mouse(2) = 1 THEN
   IF ss.zonenum = 16 THEN
+   writeundospr placer(), ss
    spriteedit_rotate_sprite_buffer placer(), nulpal(), YES
    ss.delay = 20
   END IF
   IF ss.zonenum = 18 THEN
+   writeundospr placer(), ss
    spriteedit_rotate_sprite_buffer placer(), nulpal()
    ss.delay = 20
   END IF
@@ -2152,7 +2155,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
    IF mouse(3) > 0 OR keyval(57) > 1 THEN
     IF ss_save.clonemarked THEN
      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
-      GOSUB writeundospr
+      writeundospr placer(), ss
      END IF
      drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
      drawsprite ss_save.clonebuf(), 0, nulpal(), 0, ss.previewpos.x + ss.x - ss.holdpos.x, ss.previewpos.y + ss.y - ss.holdpos.y, dpage
@@ -2180,9 +2183,11 @@ FOR i = 0 TO 7
 NEXT i
 IF ss.tool <> clone_tool AND ss.tool <> airbrush_tool THEN
  IF keyval(scPlus) > 1 THEN
+  writeundospr placer(), ss
   spriteedit_rotate_sprite_buffer placer(), nulpal()
  END IF
  IF keyval(scMinus) > 1 THEN
+  writeundospr placer(), ss
   spriteedit_rotate_sprite_buffer placer(), nulpal(), YES
  END IF
 END IF
@@ -2271,7 +2276,7 @@ area(13).h = ss.high
 RETRACE
 
 floodfill:
-GOSUB writeundospr
+writeundospr placer(), ss
 rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiHighlight), dpage
 rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
 drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
@@ -2280,18 +2285,12 @@ getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 sprayspot:
-IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN GOSUB writeundospr
+IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN writeundospr placer(), ss
 drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 airbrush ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize, ss.mist, ss.palindex, dpage
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 ss.lastpos.x = ss.x
 ss.lastpos.y = ss.y
-RETRACE
-
-writeundospr:
-stosprite placer(), 0, ss.undoslot * ss.size, 100, 3
-ss.undoslot = loopvar(ss.undoslot, 0, ss.undomax, 1)
-ss.undodepth = small(ss.undodepth + 1, ss.undomax + 1)
 RETRACE
 
 readundospr:
@@ -2305,7 +2304,7 @@ RETRACE
 putdot:
 drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
- GOSUB writeundospr
+ writeundospr placer(), ss
  putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex, dpage
 ELSE
  drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.lastpos.x, ss.previewpos.y + ss.lastpos.y, ss.palindex, dpage
@@ -2316,21 +2315,21 @@ ss.lastpos.y = ss.y
 RETRACE
 
 drawoval:
-GOSUB writeundospr
+writeundospr placer(), ss
 drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 ellipse ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.palindex, dpage, ss.squish.x, ss.squish.y
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 drawsquare:
-GOSUB writeundospr
+writeundospr placer(), ss
 drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 rectangle ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.palindex, dpage
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 straitline:
-GOSUB writeundospr
+writeundospr placer(), ss
 drawsprite placer(), 0, nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.palindex, dpage
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
@@ -2349,6 +2348,12 @@ NEXT
 RETRACE
 
 END SUB '----END of sprite()
+
+SUB writeundospr (placer(), ss AS SpriteEditState)
+ stosprite placer(), 0, ss.undoslot * ss.size, 100, 3
+ ss.undoslot = loopvar(ss.undoslot, 0, ss.undomax, 1)
+ ss.undodepth = small(ss.undodepth + 1, ss.undomax + 1)
+END SUB
 
 SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
