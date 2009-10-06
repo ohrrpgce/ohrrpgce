@@ -37,8 +37,11 @@ declare Sub LoadStats(fh as integer, sta as stats ptr)
 declare Sub SaveStats(fh as integer, sta as stats ptr)
 declare Sub LoadStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
 declare Sub SaveStats2(fh as integer, lev0 as stats ptr, lev99 as stats ptr)
+
 declare Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 declare Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
+DECLARE SUB loadherodata (hero as herodef ptr, index as integer)
+DECLARE SUB saveherodata (hero as herodef ptr, index as integer)
 
 declare Sub ClearMenuData(dat AS MenuDef)
 declare Sub ClearMenuItem(mi AS MenuDefItem)
@@ -79,5 +82,16 @@ DECLARE SUB loadattackdata OVERLOAD (array() as integer, BYVAL index as integer)
 DECLARE SUB loadattackdata OVERLOAD (BYREF atkdat as AttackData, BYVAL index as integer)
 DECLARE SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
 DECLARE SUB saveattackdata (array() as integer, index as integer)
+
+DECLARE SUB loadtanim (n as integer, tastuf() as integer)
+DECLARE SUB savetanim (n as integer, tastuf() as integer)
+
+DECLARE SUB getpal16 (array() as integer, aoffset as integer, foffset as integer, autotype as integer=-1, sprite as integer=0)
+DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integer)
+
+DECLARE SUB loaditemdata (array() as integer, index as integer)
+DECLARE SUB saveitemdata (array() as integer, index as integer)
+DECLARE SUB loadenemydata (array() as integer, index as integer, altfile as integer = 0)
+DECLARE SUB saveenemydata (array() as integer, index as integer, altfile as integer = 0)
 
 #ENDIF

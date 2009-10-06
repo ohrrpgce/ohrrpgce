@@ -67,15 +67,7 @@ DECLARE FUNCTION curbinsize (id as integer) as integer
 DECLARE FUNCTION defbinsize (id as integer) as integer
 DECLARE FUNCTION getbinsize (id as integer) as integer
 DECLARE FUNCTION dimbinsize (id as integer) as integer
-DECLARE SUB loadherodata (hero as herodef ptr, index as integer)
-DECLARE SUB saveherodata (hero as herodef ptr, index as integer)
-DECLARE SUB loadenemydata (array() as integer, index as integer, altfile as integer = 0)
-DECLARE SUB saveenemydata (array() as integer, index as integer, altfile as integer = 0)
-DECLARE SUB loaditemdata (array() as integer, index as integer)
-DECLARE SUB saveitemdata (array() as integer, index as integer)
 DECLARE FUNCTION maplumpname (map as integer, oldext as string) as string
-DECLARE SUB getpal16 (array() as integer, aoffset as integer, foffset as integer, autotype as integer=-1, sprite as integer=0)
-DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integer)
 DECLARE SUB fatalerror (e as string)
 DECLARE FUNCTION xstring (s as string, x as integer) as integer
 DECLARE FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRING
@@ -88,8 +80,6 @@ DECLARE SUB savepalette(pal() as RGBcolor, palnum as integer)
 DECLARE SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
 
 DECLARE FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
-DECLARE SUB loadtanim (n as integer, tastuf() as integer)
-DECLARE SUB savetanim (n as integer, tastuf() as integer)
 DECLARE SUB animatetilesets (tilesets() AS TilesetData ptr)
 DECLARE SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
 DECLARE SUB loadtilesetdata OVERLOAD (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEGER)

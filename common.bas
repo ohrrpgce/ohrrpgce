@@ -477,19 +477,24 @@ memcpy(STRPTR(result), @stringptr[1], stringptr[0])
 return result
 END FUNCTION
 
-FUNCTION readbadgenericname (index, filename$, recsize, offset, size, skip) as string
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
+FUNCTION readbadgenericname (index AS INTEGER, filename AS STRING, recsize AS INTEGER, offset AS INTEGER, size AS INTEGER, skip AS INTEGER) as string
 
 '--clobbers buffer!
-
-result$ = ""
+'FIXME: need to re-write this to not use the shared buffer at all.
+'       It should not use setpicstuf either.
+'       there isn't even any good reason to load the whole record
+'       just to get the string field
 
 IF index >= 0 THEN
  setpicstuf buffer(), recsize, -1
- loadset filename$, index, 0
- result$ = readbadbinstring$(buffer(), offset, size, skip)
+ loadset filename, index, 0
+ RETURN readbadbinstring(buffer(), offset, size, skip)
 END IF
 
-return result$
+RETURN "" '--return an empty string on failure
 
 END FUNCTION
 
@@ -501,56 +506,58 @@ FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTE
  END IF
 END FUNCTION
 
-FUNCTION scriptname (num, trigger = 0) as string
+FUNCTION scriptname (num AS INTEGER, trigger AS INTEGER = 0) as string
 #ifdef IS_GAME
  'remember script names!
- STATIC cachenum, cacheids(24), cachenames(24) as string, gamename$
- IF game <> gamename$ THEN
-  gamename$ = game
+ STATIC cachenum, cacheids(24), cachenames(24) as string, gamename as string
+ IF game <> gamename THEN
+  gamename = game
   cachenum = 0
  END IF
- FOR i = 0 TO cachenum - 1
+ FOR i AS INTEGER = 0 TO cachenum - 1
   IF cacheids(i) = num THEN RETURN cachenames(i)
  NEXT
 #endif
 
-DIM buf(19)
+DIM a AS STRING
+
+DIM buf(19) AS INTEGER
 IF num >= 16384 AND trigger > 0 THEN
- IF loadrecord (buf(), workingdir + SLASH + "lookup" + STR$(trigger) + ".bin", 20, num - 16384) THEN
-  sname$ = readbinstring(buf(), 1, 36)
+ IF loadrecord (buf(), workingdir + SLASH + "lookup" + STR(trigger) + ".bin", 20, num - 16384) THEN
+  DIM sname AS STRING = readbinstring(buf(), 1, 36)
   IF buf(0) THEN
-   a$ = sname$
+   a = sname
   ELSE
-   a$ = "[" + sname$ + "]"
+   a = "[" & sname & "]"
   END IF
   GOTO theend
  END IF
 END IF
 
 IF num THEN
- a$ = "[id " + STR$(num) + "]"
- fh = FREEFILE
- OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY AS #fh
+ a = "[id " & STR(num) & "]"
+ DIM fh AS INTEGER = FREEFILE
+ OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY AS #fh
  WHILE loadrecord (buf(), fh, 20)
   IF buf(0) = num THEN
-   a$ = STRING$(small(large(buf(1), 0), 38), " ")
-   array2str buf(), 4, a$
+   a = STRING(small(large(buf(1), 0), 38), " ")
+   array2str buf(), 4, a
    EXIT WHILE
   END IF
  WEND
  CLOSE fh
 ELSE
- a$ = "[none]"
+ a = "[none]"
 END IF
 
 theend:
 #ifdef IS_GAME
  IF cachenum = 25 THEN cachenum = 0
  cacheids(cachenum) = num
- cachenames(cachenum) = a$
+ cachenames(cachenum) = a
  cachenum += 1
 #endif
-return a$
+return a
 END FUNCTION
 
 Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as string
@@ -591,52 +598,55 @@ Function seconds2str(byval sec as integer, byval f as string = "%m:%S") as strin
   return ret
 end function
 
-FUNCTION getdefaultpal(fileset, index) as integer
+FUNCTION getdefaultpal(fileset AS INTEGER, index AS INTEGER) as integer
  DIM v AS SHORT
- f$ = workingdir & SLASH & "defpal" & fileset & ".bin"
- IF isfile(f$) THEN
-   fh = FREEFILE
-   OPEN f$ FOR BINARY AS #fh
-   GET #fh, 1 + index * 2, v
-   CLOSE #fh
-   RETURN v
+ DIM f AS STRING = workingdir & SLASH & "defpal" & fileset & ".bin"
+ IF isfile(f) THEN
+  DIM fh AS INTEGER = FREEFILE
+  OPEN f FOR BINARY AS #fh
+  GET #fh, 1 + index * 2, v
+  CLOSE #fh
+  RETURN v
  ELSE
-   'currently extended NPCs palettes are initialised to -1, which means lots of debug spam in old games
-   'debug "Default palette file " & f$ & " does not exist"
-   RETURN -1
+  'currently extended NPCs palettes are initialised to -1, which means lots of debug spam in old games
+  'debug "Default palette file " & f & " does not exist"
+  RETURN -1
  END IF
 END FUNCTION
 
-SUB loaddefaultpals(fileset, poffset(), sets)
+SUB loaddefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
  DIM v AS SHORT
- f$ = workingdir & SLASH & "defpal" & fileset & ".bin"
- IF isfile(f$) THEN
-   fh = FREEFILE
-   OPEN f$ FOR BINARY AS #fh
-   FOR i = 0 to sets
-    GET #fh, 1 + i * 2, v
-    poffset(i) = v
-   NEXT i
-   CLOSE #fh
+ DIM f AS STRING = workingdir & SLASH & "defpal" & fileset & ".bin"
+ IF isfile(f) THEN
+  DIM fh AS INTEGER = FREEFILE
+  OPEN f FOR BINARY AS #fh
+  FOR i AS INTEGER = 0 to sets
+   GET #fh, 1 + i * 2, v
+   poffset(i) = v
+  NEXT i
+  CLOSE #fh
  ELSE
-   guessdefaultpals fileset, poffset(), sets
+  guessdefaultpals fileset, poffset(), sets
  END IF
 END SUB
 
-SUB savedefaultpals(fileset, poffset(), sets)
+SUB savedefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
  DIM v AS SHORT
- f$ = workingdir & SLASH & "defpal" & fileset & ".bin"
- fh = FREEFILE
- OPEN f$ FOR BINARY AS #fh
- FOR i = 0 to sets
+ DIM f AS STRING = workingdir & SLASH & "defpal" & fileset & ".bin"
+ DIM fh AS INTEGER = FREEFILE
+ OPEN f FOR BINARY AS #fh
+ FOR i AS INTEGER = 0 to sets
   v = poffset(i)
   PUT #fh, 1 + i * 2, v
  NEXT i
  CLOSE #fh
 END SUB
 
-SUB guessdefaultpals(fileset, poffset(), sets)
- dim her as herodef
+SUB guessdefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
+ DIM her as herodef
+ DIM i AS INTEGER
+ DIM j AS INTEGER
+ DIM found AS INTEGER
  
  flusharray poffset(), sets, 0
  SELECT CASE fileset
@@ -677,8 +687,8 @@ SUB guessdefaultpals(fileset, poffset(), sets)
     END IF
    NEXT j
    IF found = 0 THEN
-    FOR mapi = 0 TO gen(genMaxMap)
-     xbload maplumpname$(mapi, "n"), npcbuf(), "npcstat lump " & mapi & " is missing"
+    FOR mapi AS INTEGER = 0 TO gen(genMaxMap)
+     xbload maplumpname(mapi, "n"), npcbuf(), "npcstat lump " & mapi & " is missing"
      FOR j = 0 to max_npc_defs
       IF npcbuf(15 * j + 0) = i THEN
        poffset(i) = npcbuf(15 * j + 1)
@@ -717,51 +727,15 @@ SUB guessdefaultpals(fileset, poffset(), sets)
  END SELECT
 END SUB
 
-SUB flusharray (array(), BYVAL size AS INTEGER=-1, BYVAL value AS INTEGER=0)
-'If size is -1, then flush the entire array
-IF size = -1 THEN size = UBOUND(array)
-FOR i = 0 TO size
- array(i) = value
-NEXT i
+SUB flusharray (array() AS INTEGER, BYVAL size AS INTEGER=-1, BYVAL value AS INTEGER=0)
+ 'If size is -1, then flush the entire array
+ IF size = -1 THEN size = UBOUND(array)
+ FOR i AS INTEGER = 0 TO size
+  array(i) = value
+ NEXT i
 END SUB
 
-SUB loadherodata (hero as herodef ptr, index)
-deserherodef game & ".dt0", hero, index
-END SUB
-
-SUB saveherodata (hero as herodef ptr, index)
-serherodef game & ".dt0", hero, index
-END SUB
-
-SUB loadenemydata (array(), index, altfile = 0)
-IF altfile THEN
- filename$ = tmpdir & "dt1.tmp"
-ELSE
- filename$ = game & ".dt1"
-END IF
-loadrecord array(), filename$, 160, index
-END SUB
-
-SUB saveenemydata (array(), index, altfile = 0)
-IF altfile THEN
- filename$ = tmpdir & "dt1.tmp"
-ELSE
- filename$ = game & ".dt1"
-END IF
-storerecord array(), filename$, 160, index
-END SUB
-
-SUB loaditemdata (array(), index)
- flusharray array(), 99, 0
- IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
- IF loadrecord(array(), game & ".itm", 100, index) = 0 THEN debug "loaditemdata:" & index & " loadrecord failed" : EXIT SUB
-END SUB
-
-SUB saveitemdata (array(), index)
-storerecord array(), game & ".itm", 100, index
-END SUB
-
-FUNCTION defbinsize (id) as integer
+FUNCTION defbinsize (id AS INTEGER) as integer
  'returns the default size in BYTES to use for getbinsize() when no BINSIZE data is available at all
  IF id = 0 THEN RETURN 0  'attack.bin
  IF id = 1 THEN RETURN 64 '.stf
@@ -775,7 +749,7 @@ FUNCTION defbinsize (id) as integer
  RETURN 0
 END FUNCTION
 
-FUNCTION curbinsize (id) as integer
+FUNCTION curbinsize (id AS INTEGER) as integer
  'returns the correct size in BYTES for of the records for the version you are running
  IF id = 0 THEN RETURN 156 'attack.bin
  IF id = 1 THEN RETURN 84  '.stf
@@ -789,11 +763,11 @@ FUNCTION curbinsize (id) as integer
  RETURN 0
 END FUNCTION
 
-FUNCTION getbinsize (id) as integer
+FUNCTION getbinsize (id AS INTEGER) as integer
 'returns the current size in BYTES of the records in the specific binary file you are working with
 IF isfile(workingdir + SLASH + "binsize.bin") THEN
  DIM as short recordsize
- fh = FREEFILE
+ DIM fh AS INTEGER = FREEFILE
  OPEN workingdir + SLASH + "binsize.bin" FOR BINARY AS #fh
  IF LOF(fh) < 2 * id + 2 THEN
   getbinsize = defbinsize(id)
@@ -809,113 +783,41 @@ END IF
 END FUNCTION
 
 'INTS, not bytes!
-FUNCTION dimbinsize (id) as integer
+FUNCTION dimbinsize (id AS INTEGER) as integer
  'curbinsize is size supported by current version of engine
  'getbinsize is size of data in RPG file
  dimbinsize = large(curbinsize(id), getbinsize(id)) / 2
 END FUNCTION
 
-SUB setbinsize (id, size)
-fh = FREEFILE
-OPEN workingdir + SLASH + "binsize.bin" FOR BINARY AS #fh
-PUT #fh, 1 + id * 2, CAST(short, size)
-CLOSE #fh
+SUB setbinsize (id AS INTEGER, size AS INTEGER)
+ DIM fh AS INTEGER = FREEFILE
+ OPEN workingdir & SLASH & "binsize.bin" FOR BINARY AS #fh
+ PUT #fh, 1 + id * 2, CAST(short, size)
+ CLOSE #fh
 END SUB
 
-FUNCTION maplumpname (map, oldext$) as string
+FUNCTION maplumpname (map AS INTEGER, oldext AS STRING) as string
  IF map < 100 THEN
-  return game & "." & oldext$ & RIGHT$("0" & map, 2)
+  return game & "." & oldext & RIGHT("0" & map, 2)
  ELSE
-  return workingdir & SLASH & map & "." & oldext$
+  return workingdir & SLASH & map & "." & oldext
  END IF
 END FUNCTION
 
-SUB getpal16 (array(), aoffset, foffset, autotype=-1, sprite=0)
-DIM buf(8)
-
-loadrecord buf(), game + ".pal", 8, 0
-IF buf(0) = 4444 THEN '--check magic number
- IF buf(1) >= foffset AND foffset >= 0 THEN
-  'palette is available
-  loadrecord buf(), game + ".pal", 8, 1 + foffset
-  FOR i = 0 TO 7
-   array(aoffset * 8 + i) = buf(i)
-  NEXT i
-  EXIT SUB
- ELSEIF foffset = -1 THEN
-  'load a default palette
-  IF autotype >= 0 THEN
-   defaultpal = getdefaultpal(autotype, sprite)
-   IF defaultpal > -1 THEN
-    'Recursive
-    getpal16 array(), aoffset, defaultpal
-    EXIT SUB
-   END IF
-  END IF
- END IF
- 'palette is out of range, return blank
- FOR i = 0 TO 7
-  array(aoffset * 8 + i) = 0
- NEXT i
-ELSE '--magic number not found, palette is still in BSAVE format
- DIM xbuf(100 * 8)
- xbload game + ".pal", xbuf(), "16-color palletes missing from " + game
- FOR i = 0 TO 7
-  array(aoffset * 8 + i) = xbuf(foffset * 8 + i)
- NEXT i
-END IF
-
-END SUB
-
-SUB storepal16 (array(), aoffset, foffset)
-DIM buf(8)
-
-f$ = game + ".pal"
-loadrecord buf(), f$, 8, 0
-
-IF buf(0) <> 4444 THEN
- fatalerror "16-color palette file may be corrupt"
-END IF
-
-last = buf(1)
-
-IF foffset > last THEN
- '--blank out palettes before extending file
- FOR i = last + 1 TO foffset
-  flusharray buf(), 8, 0
-  storerecord buf(), f$, 8, 1 + i
- NEXT i
- '--update header
- buf(0) = 4444
- buf(1) = foffset
- storerecord buf(), f$, 8, 0
-END IF
-
-IF foffset >= 0 THEN '--never write a negative file offset
- 'copy palette to buffer
- FOR i = 0 TO 7
-  buf(i) = array(aoffset * 8 + i)
- NEXT i
- 'write palette
- storerecord buf(), f$, 8, 1 + foffset
-END IF
-
-Palette16_update_cache f$, foffset
-END SUB
-
-SUB fatalerror (e$)
+SUB fatalerror (e AS STRING)
 DIM ypos AS INTEGER
+debug "fatal error:" & e
+
 #IFDEF IS_GAME
-debug "fatal error:" + e$
 setvispage 0
 centerbox 160, 100, 310, 180, 3, 0
 ypos = 20
-DO WHILE LEN(e$) > 38
- edgeprint LEFT(e$, 38), 8, ypos, uilook(uiText), 0
- e$ = MID(e$, 38)
+DO WHILE LEN(e) > 38
+ edgeprint LEFT(e, 38), 8, ypos, uilook(uiText), 0
+ e = MID(e, 38)
  ypos += 10
 LOOP
-edgeprint e$, 8, ypos, uilook(uiText), 0
+edgeprint e, 8, ypos, uilook(uiText), 0
 ypos += 15
 edgeprint "Press ESC to cleanly close the program", 8, ypos, uilook(uiMenuItem), 0
 edgeprint "or any other key to ignore the", 8, ypos + 10, uilook(uiMenuItem), 0
@@ -927,28 +829,27 @@ LoadUIColors uilook(), gen(genMasterPal)
 setpal master()
 
 setvispage 0 'refresh
-w = getkey
+DIM w AS INTEGER = getkey
 
 IF w = 1 THEN
  closemusic
  restoremode
- PRINT e$
+ PRINT e
  'no need for end_debug
  SYSTEM
 END IF
 #ENDIF
 #IFDEF IS_CUSTOM
-debug "fatal error:" + e$
 textcolor uilook(uiText), 0
 clearpage 0
 
 ypos = 0
-DO WHILE LEN(e$) > 38
- edgeprint LEFT(e$, 38), 0, ypos, uilook(uiText), 0
- e$ = MID(e$, 38)
+DO WHILE LEN(e) > 38
+ edgeprint LEFT(e, 38), 0, ypos, uilook(uiText), 0
+ e = MID(e, 38)
  ypos += 8
 LOOP
-printstr e$, 0, ypos, 0
+printstr e, 0, ypos, 0
 ypos += 16
 printstr "an error has occured. Press ESC to", 0, ypos, 0
 printstr "close " + CUSTOMEXE + " or press any other", 0, ypos + 8, 0
@@ -957,24 +858,25 @@ printstr "error keeps happening, send e-mail to",      0, ypos + 24, 0
 printstr "ohrrpgce-crash@HamsterRepublic.com",         0, ypos + 32, 0
 setvispage 0 'refresh
 
-w = getkey
+DIM w AS INTEGER = getkey
 
 IF w = 1 THEN
  closemusic
  restoremode
 
- touchfile workingdir + SLASH + "__danger.tmp"
+ touchfile workingdir & SLASH & "__danger.tmp"
 
  PRINT "fatal error:"
- PRINT e$
+ PRINT e
 
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir + SLASH + ALLFILES, 0, "filelist.tmp"
- fh = FREEFILE
+ findfiles workingdir & SLASH & ALLFILES, 0, "filelist.tmp"
+ DIM fh AS INTEGER = FREEFILE
+ DIM filename AS STRING
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
-  LINE INPUT #fh, filename$
-  KILL workingdir + SLASH + filename$
+  LINE INPUT #fh, filename
+  KILL workingdir & SLASH & filename
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
@@ -985,8 +887,8 @@ END IF
 #ENDIF
 END SUB
 
-FUNCTION xstring (s$, x) as integer
- return small(large(x - LEN(s$) * 4, 0), 319 - LEN(s$) * 8)
+FUNCTION xstring (s AS STRING, x AS INTEGER) as integer
+ return small(large(x - LEN(s) * 4, 0), 319 - LEN(s) * 8)
 END FUNCTION
 
 FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRING
@@ -999,14 +901,14 @@ FUNCTION caption_or_int (n AS INTEGER, captions() AS STRING) AS STRING
  RETURN STR(n)
 END FUNCTION
 
-SUB poke8bit (array16(), index, val8)
+SUB poke8bit (array16() AS INTEGER, index AS INTEGER, val8 AS INTEGER)
  IF val8 <> (val8 AND &hFF) THEN
    debug "Warning: " & val8 & " is not an 8-bit number. Discarding bits: " & (val8 XOR &hFF)
    val8 = val8 AND &hFF
  END IF
- element = array16(index \ 2)
- lb = element AND &hFF
- hb = (element AND &hFF00) SHR 8
+ DIM element AS INTEGER = array16(index \ 2)
+ DIM lb AS INTEGER = element AND &hFF
+ DIM hb AS INTEGER = (element AND &hFF00) SHR 8
  IF index AND 1 THEN
   hb = val8
  ELSE
@@ -1016,8 +918,8 @@ SUB poke8bit (array16(), index, val8)
  array16(index \ 2) = element
 END SUB
 
-FUNCTION peek8bit (array16(), index) as integer
- element = array16(index \ 2)
+FUNCTION peek8bit (array16() AS INTEGER, index AS INTEGER) as integer
+ DIM element AS INTEGER = array16(index \ 2)
  IF index AND 1 THEN
   RETURN (element AND &hFF00) SHR 8
  ELSE
@@ -1039,7 +941,7 @@ ELSE
  DIM AS SHORT headsize, recsize
  DIM palbuf(767) as UBYTE
 
- fh = FREEFILE
+ DIM fh AS INTEGER = FREEFILE
  OPEN workingdir + SLASH + "palettes.bin" FOR BINARY AS #fh
  GET #fh, , headsize
  GET #fh, , recsize
@@ -1059,13 +961,13 @@ SUB savepalette(pal() as RGBcolor, palnum)
 IF isfile(workingdir + SLASH + "palettes.bin") THEN
  DIM AS SHORT headsize, recsize
 
- fh = FREEFILE
+ DIM fh AS INTEGER = FREEFILE
  OPEN workingdir + SLASH + "palettes.bin" FOR BINARY AS #fh
  GET #fh, , headsize
  GET #fh, , recsize
 
  DIM palbuf(recsize - 1) as UBYTE
- FOR i = 0 TO 255
+ FOR i AS INTEGER = 0 TO 255
   palbuf(i * 3) = pal(i).r
   palbuf(i * 3 + 1) = pal(i).g
   palbuf(i * 3 + 2) = pal(i).b
@@ -1078,7 +980,11 @@ END SUB
 SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
 'takes a old QB style palette (as 768 ints), translates it to
 '8 bits per component and writes it to the provided RGBcolor array
-FOR i = 0 TO 255
+DIM r AS INTEGER
+DIM g AS INTEGER
+DIM b AS INTEGER
+
+FOR i AS INTEGER = 0 TO 255
  r = oldpal(i * 3)
  g = oldpal(i * 3 + 1)
  b = oldpal(i * 3 + 2)
@@ -1096,7 +1002,7 @@ SUB unconvertpalette()
 'format. This is only here to help out old graphics tools
 DIM newpal(255) as RGBcolor, oldpal(767) as INTEGER
 loadpalette newpal(), gen(genMasterPal)
-FOR i = 0 TO 255
+FOR i AS INTEGER = 0 TO 255
  oldpal(i * 3) = newpal(i).r \ 4
  oldpal(i * 3 + 1) = newpal(i).g \ 4
  oldpal(i * 3 + 2) = newpal(i).b \ 4
@@ -1105,11 +1011,11 @@ xbsave game + ".mas", oldpal(), 1536
 END SUB
 
 FUNCTION getmapname (m) as string
-DIM nameread(39)
-loadrecord nameread(), game + ".mn", 40, m
-a$ = STRING$(small((nameread(0) AND 255), 39), " ")
-array2str nameread(), 1, a$
-RETURN a$
+ DIM nameread(39) AS INTEGER
+ loadrecord nameread(), game + ".mn", 40, m
+ DIM a AS STRING = STRING(small((nameread(0) AND 255), 39), " ")
+ array2str nameread(), 1, a
+ RETURN a
 END FUNCTION
 
 FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
@@ -1127,15 +1033,21 @@ FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF z
  DIM AS SINGLE fraction
  fraction = 20 / zoom
 
+ DIM tx AS INTEGER
+ DIM ty AS INTEGER
+ DIM x AS INTEGER
+ DIM y AS INTEGER
+ DIM block AS INTEGER
+ 
  setmapdata map(), map(), 20, 0
- FOR j = 0 TO zoom * map(1) - 1
-  FOR i = 0 TO zoom * map(0) - 1
+ FOR j AS INTEGER = 0 TO zoom * map(1) - 1
+  FOR i AS INTEGER = 0 TO zoom * map(0) - 1
    tx = i \ zoom
    ty = j \ zoom
    x = INT(((i MOD zoom) + RND) * fraction)
    y = INT(((j MOD zoom) + RND) * fraction)
    'layers but not overhead tiles
-   FOR k = 2 TO 0 STEP -1
+   FOR k AS INTEGER = 2 TO 0 STEP -1
     block = readmapblock(tx, ty, k)
     IF block = 0 AND k > 0 THEN CONTINUE FOR
 
@@ -1155,56 +1067,56 @@ END FUNCTION
 
 FUNCTION readattackname (index) as string
 '--clobbers buffer!!!
- return readbadgenericname(index, game + ".dt6", 80, 24, 10, 1)
+ RETURN readbadgenericname(index, game + ".dt6", 80, 24, 10, 1)
 END FUNCTION
 
 FUNCTION readenemyname (index) as string
  '--clobbers buffer!!!
- readenemyname = readbadgenericname(index, game + ".dt1", 320, 0, 16, 0)
+ RETURN readbadgenericname(index, game + ".dt1", 320, 0, 16, 0)
 END FUNCTION
 
 FUNCTION readitemname (index) as string
  '--clobbers buffer!!!
- readitemname = readbadgenericname(index, game + ".itm", 200, 0, 8, 0)
+ RETURN readbadgenericname(index, game + ".itm", 200, 0, 8, 0)
 END FUNCTION
 
 FUNCTION readshopname (shopnum) as string
  'clobbers buffer!
- readshopname = readbadgenericname(shopnum, game + ".sho", 40, 0, 15, 0)
+ RETURN readbadgenericname(shopnum, game + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
 FUNCTION getsongname (num AS INTEGER, prefixnum AS INTEGER = 0) as string
-DIM songd(dimbinsize(binSONGDATA)) AS INTEGER
-DIM s AS STRING
-IF num = -1 THEN RETURN "-none-"
-s = ""
-IF prefixnum THEN s = num & " "
-setpicstuf songd(), curbinsize(2), -1
-loadset workingdir + SLASH + "songdata.bin", num, 0
-s = s & readbinstring$ (songd(), 0, 30)
-RETURN s
+ DIM songd(dimbinsize(binSONGDATA)) AS INTEGER
+ DIM s AS STRING
+ IF num = -1 THEN RETURN "-none-"
+ s = ""
+ IF prefixnum THEN s = num & " "
+ setpicstuf songd(), curbinsize(2), -1
+ loadset workingdir + SLASH + "songdata.bin", num, 0
+ s = s & readbinstring(songd(), 0, 30)
+ RETURN s
 END FUNCTION
 
 FUNCTION getsfxname (num AS INTEGER) as string
-DIM sfxd(dimbinsize(binSFXDATA))
-setpicstuf sfxd(), curbinsize(3), -1
-loadset workingdir + SLASH + "sfxdata.bin", num, 0
-return readbinstring (sfxd(), 0, 30)
+ DIM sfxd(dimbinsize(binSFXDATA)) AS INTEGER
+ setpicstuf sfxd(), curbinsize(3), -1
+ loadset workingdir & SLASH & "sfxdata.bin", num, 0
+ RETURN readbinstring (sfxd(), 0, 30)
 END FUNCTION
 
 FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
 STATIC clip
-old = n
+DIM old AS INTEGER = n
 
 IF more <> 0 AND keyval(more) > 1 THEN
  n = loopvar(n, min, max, 1)
 ELSEIF less <> 0 AND keyval(less) > 1 THEN
  n = loopvar(n, min, max, -1)
 ELSE
- s = SGN(n)
+ DIM s AS INTEGER = SGN(n)
  n = ABS(n)
  IF keyval(14) > 1 THEN n \= 10
- FOR i = 1 TO 9
+ FOR i AS INTEGER = 1 TO 9
   IF keyval(i + 1) > 1 THEN n = n * 10 + i
  NEXT i
  IF keyval(11) > 1 THEN n *= 10
@@ -1233,11 +1145,11 @@ FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTE
 '--all entries <= 0 are special options not meant to be enumerated
 '--supply the min & max as visible, not actual range for n
 '--eg a menu with 'A' = -2, 'B' = -1, 'C' = 0, 'item 0 - item 99' = 1 - 100 would have min = -3, max = 99
-old = n
-temp = n - 1
+DIM old AS INTEGER = n
+DIM temp AS INTEGER = n - 1
 '--must adjust to always be able to type in a number
 IF temp < 0 THEN
- FOR i = 2 TO 11
+ FOR i AS INTEGER = 2 TO 11
   IF keyval(i) > 1 THEN temp = 0
  NEXT i
 END IF
@@ -1264,8 +1176,8 @@ FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS IN
 'eg. nmin = -1 nmax = -100: negatives indicate a number between 1 and 100
 'pmin - pmax is position range, eg. 2 - 50
 
-old = n
-temp = n
+DIM old AS INTEGER = n
+DIM temp AS INTEGER = n
 
 'depending on n, align sequence to match displayed
 
@@ -1283,8 +1195,8 @@ END IF
 
 intgrabber temp, nmax, pmax, less, more
 
+DIM negated AS INTEGER = 0
 IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN negated = 1
-
 
 IF old > 0 THEN
  IF temp >= pmin AND temp <= pmax THEN
@@ -1335,33 +1247,33 @@ END IF
 END FUNCTION
 
 SUB playsongnum (songnum%)
-	DIM songbase$, songfile$
+  DIM songbase AS STRING, songfile AS STRING
 
-	songbase$ = workingdir & SLASH & "song" & songnum%
-  songfile$ = ""
+  songbase = workingdir & SLASH & "song" & songnum%
+  songfile = ""
   
-  IF isfile(songbase$ & ".mp3") THEN
-    songfile$ = songbase$ & ".mp3"
-  ELSEIF isfile(songbase$ & ".ogg") THEN
-    songfile$ = songbase$ & ".ogg"
-  ELSEIF isfile(songbase$ & ".mod") THEN
-    songfile$ = songbase$ & ".mod"
-  ELSEIF isfile(songbase$ & ".xm") THEN
-    songfile$ = songbase$ & ".xm"
-  ELSEIF isfile(songbase$ & ".s3m") THEN
-    songfile$ = songbase$ & ".s3m"
-  ELSEIF isfile(songbase$ & ".it") THEN
-    songfile$ = songbase$ & ".it"
-  ELSEIF isfile(songbase$ & ".mid") THEN
-    songfile$ = songbase$ & ".mid"
-  ELSEIF isfile(songbase$ & ".bam") THEN
-    songfile$ = songbase$ & ".bam"
-  ELSEIF isfile(game & "." & songnum%) THEN
-    songfile$ = game & "." & songnum% ' old-style BAM naming scheme
+  IF isfile(songbase & ".mp3") THEN
+    songfile = songbase & ".mp3"
+  ELSEIF isfile(songbase & ".ogg") THEN
+    songfile = songbase & ".ogg"
+  ELSEIF isfile(songbase & ".mod") THEN
+    songfile = songbase & ".mod"
+  ELSEIF isfile(songbase & ".xm") THEN
+    songfile = songbase & ".xm"
+  ELSEIF isfile(songbase & ".s3m") THEN
+    songfile = songbase & ".s3m"
+  ELSEIF isfile(songbase & ".it") THEN
+    songfile = songbase & ".it"
+  ELSEIF isfile(songbase & ".mid") THEN
+    songfile = songbase & ".mid"
+  ELSEIF isfile(songbase & ".bam") THEN
+    songfile = songbase & ".bam"
+  ELSEIF isfile(game & "." & songnum) THEN
+    songfile = game & "." & songnum ' old-style BAM naming scheme
   END IF
 
-  if songfile$ = "" then exit sub
-	loadsong songfile$
+  if songfile = "" then exit sub
+  loadsong songfile
 END SUB
 
 FUNCTION find_madplay () AS STRING
@@ -1399,16 +1311,16 @@ OPEN tempfile FOR INPUT AS #fh
 LINE INPUT #fh, s
 CLOSE #fh
 KILL tempfile
-s$ = TRIM(s)
+s = TRIM(s)
 RETURN s
 #ELSE
 '--Find helper app on Windows
 DIM AS STRING exedir
-exedir = trimfilename$(exename)
+exedir = trimfilename(exename)
 'First look in the support subdirectory
-IF isfile(exedir & "support\" & appname$ & ".exe") THEN RETURN exedir & "support\" & appname$ & ".exe"
+IF isfile(exedir & "support\" & appname & ".exe") THEN RETURN exedir & "support\" & appname & ".exe"
 'Then look in the same folder as CUSTOM/GAME
-IF isfile(exedir & appname$ & ".exe") THEN RETURN exedir & appname$ & ".exe"
+IF isfile(exedir & appname & ".exe") THEN RETURN exedir & appname & ".exe"
 RETURN ""
 #ENDIF
 END FUNCTION
@@ -1494,19 +1406,12 @@ SUB append_message (s AS STRING)
  END WITH
 END SUB
 
-SUB loadtanim (n, tastuf())
-setpicstuf tastuf(), 80, -1
-loadset game + ".tap", n, 0
-END SUB
-
-SUB savetanim (n, tastuf())
-setpicstuf tastuf(), 80, -1
-storeset game + ".tap", n, 0
-END SUB
-
 SUB animatetilesets (tilesets() AS TilesetData ptr)
- FOR i = 0 TO UBOUND(tilesets)
-  FOR j = 0 TO i - 1
+ FOR i AS INTEGER = 0 TO UBOUND(tilesets)
+  'Animate each tileset...
+  FOR j AS INTEGER = 0 TO i - 1
+   '--unless of course we already animated it for this frame
+   '  because the same tileset can be used on more than one layer...
    IF tilesets(i) = tilesets(j) THEN CONTINUE FOR, FOR
   NEXT
   cycletile tilesets(i)->anim(), tilesets(i)->tastuf()
@@ -1562,9 +1467,6 @@ SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
   END WITH
  NEXT i
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 'Write old password format (backcompat only)
 SUB writescatter (s AS STRING, lhold AS INTEGER, start AS INTEGER)
@@ -1713,9 +1615,9 @@ END FUNCTION
 SUB upgrade (font())
 DIM pal16(8)
 DIM AS INTEGER i, j, o, p, y
-DIM temp$, temp
+DIM temp AS INTEGER
 DIM fh AS INTEGER
-DIM pas$, rpas$
+DIM pas AS STRING, rpas AS STRING
 
 upgrademessages = 0
 
@@ -1804,14 +1706,14 @@ IF gen(genVersion) = 1 THEN
  DIM tx AS INTEGER, ty AS INTEGER
  FOR i = 0 TO gen(genMaxMap)
   upgrade_message " map " & i
-  XBLOAD maplumpname$(i, "t"), buffer(), "Map not loaded"
+  XBLOAD maplumpname(i, "t"), buffer(), "Map not loaded"
   setmapdata buffer(), buffer(), 0, 0
   FOR tx = 0 TO buffer(0)
    FOR ty = 0 TO buffer(1)
     IF readmapblock(tx, ty, 0) = 158 THEN setmapblock tx, ty, 0, 206
    NEXT ty
   NEXT tx
-  xbsave maplumpname$(i, "t"), buffer(), buffer(0) * buffer(1) + 4
+  xbsave maplumpname(i, "t"), buffer(), buffer(0) * buffer(1) + 4
  NEXT i
 END IF
 '---VERSION 3---
@@ -1819,24 +1721,24 @@ IF gen(genVersion) = 2 THEN
  upgrade_message "July 8 1999 format (3)"
  gen(genVersion) = 3
  '-get old-old password
- rpas$ = ""
+ rpas = ""
  FOR i = 1 TO gen(genPW1Length)
-  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas$ = rpas$ + CHR$(loopvar(gen(4 + i), 0, 255, gen(genPW1Offset) * -1))
+  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas = rpas + CHR(loopvar(gen(4 + i), 0, 255, gen(genPW1Offset) * -1))
  NEXT i
 
  '-SET (obsolete) SCATTERTABLE BASE
  gen(genScatterTableHead) = INT(RND * 15) + 1
  '-WRITE PASSWORD INTO (obsolete) SCATTERTABLE
  gen(genPW2Offset) = INT(RND * 250) + 1
- rpas$ = rotascii(rpas$, gen(genPW2Offset))
+ rpas = rotascii(rpas, gen(genPW2Offset))
  '--write old password (will be upgraded again later in this same routine)
- writescatter rpas$, gen(genPW2Length), 200
+ writescatter rpas, gen(genPW2Length), 200
  '-REPLACE OLD-OLD PASSWORD
- pas$ = rotascii("ufxx|twi%|fx%rt{ji", -5)
- gen(genPW1Length) = LEN(pas$)
+ pas = rotascii("ufxx|twi%|fx%rt{ji", -5)
+ gen(genPW1Length) = LEN(pas)
  gen(genPW1Offset) = INT(RND * 250) + 1
  FOR i = 1 TO gen(genPW1Length)
-  temp = ASC(MID$(pas$, i, 1))
+  temp = ASC(MID(pas, i, 1))
   gen(4 + i) = loopvar(temp, 0, 255, gen(genPW1Offset))
  NEXT i
  upgrade_message "Put record count defaults in GEN..."
@@ -1943,17 +1845,17 @@ IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  '--create archinym information lump
  fh = FREEFILE
  OPEN workingdir + SLASH + "archinym.lmp" FOR OUTPUT AS #fh
- PRINT #fh, RIGHT$(game, LEN(game) - LEN(workingdir + SLASH))
- PRINT #fh, version$ + "(previous)"
+ PRINT #fh, RIGHT(game, LEN(game) - LEN(workingdir + SLASH))
+ PRINT #fh, version + "(previous)"
  CLOSE #fh
 END IF
 
 IF NOT isfile(game + ".veh") THEN
  upgrade_message "add vehicle data"
  '--make sure vehicle lump is present
- DIM template$ = finddatafile("ohrrpgce.new")
- IF template$ <> "" THEN
-  unlumpfile(template$, "ohrrpgce.veh", tmpdir)
+ DIM template AS STRING = finddatafile("ohrrpgce.new")
+ IF template <> "" THEN
+  unlumpfile(template, "ohrrpgce.veh", tmpdir)
   copyfile tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
   safekill tmpdir & SLASH & "ohrrpgce.veh"
   gen(genMaxVehicle) = 2
@@ -1987,7 +1889,7 @@ END IF
 
 IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  upgrade_message "Upgrading Song Name format..."
- DIM song$(99)
+ DIM song(99) AS STRING
  fh = FREEFILE
  OPEN game + ".sng" FOR BINARY AS #fh
  temp = LOF(fh)
@@ -1996,14 +1898,14 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
   fh = FREEFILE
   OPEN game + ".sng" FOR INPUT AS #fh
   FOR i = 0 TO 99
-   INPUT #fh, song$(i)
+   INPUT #fh, song(i)
   NEXT i
   CLOSE #fh
  END IF
 
  FOR i = 99 TO 1 STEP -1
   '-- check for midis as well 'cause some people might use a WIP custom or whatnot
-  IF song$(i) <> "" OR isfile(game + "." + STR$(i)) OR isfile(workingdir + SLASH + "song" + STR$(i) + ".mid") THEN
+  IF song(i) <> "" OR isfile(game + "." + STR(i)) OR isfile(workingdir + SLASH + "song" + STR(i) + ".mid") THEN
    gen(genMaxSong) = i
    EXIT FOR
   END IF
@@ -2013,10 +1915,10 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  setbinsize 2, curbinsize(2)
  setpicstuf buffer(), curbinsize(2), -1
  FOR i = 0 TO gen(genMaxSong)
-  writebinstring song$(i), buffer(), 0, 30
+  writebinstring song(i), buffer(), 0, 30
   storeset workingdir + SLASH + "songdata.bin", i, 0
  NEXT
- ERASE song$
+ ERASE song
 END IF
 
 'Safety-check for negative gen(genMasterPal) because of one known game that somehow had -2
@@ -2077,13 +1979,13 @@ IF gen(genPassVersion) < 256 THEN
  gen(genPassVersion) = 256
  IF gen(genPW2Length) = -1 THEN
   '--no password, write a blank one
-  pas$ = ""
+  pas = ""
  ELSE
   '--read the old scattertable
-  readscatter pas$, gen(genPW2Length), 200
-  pas$ = rotascii(pas$, gen(genPW2Offset) * -1)
+  readscatter pas, gen(genPW2Length), 200
+  pas = rotascii(pas, gen(genPW2Offset) * -1)
  END IF
- writepassword pas$
+ writepassword pas
 END IF
 
 'Zero out new attack item cost (ammunition) data
@@ -2226,7 +2128,7 @@ IF getfixbit(fixExtendedNPCs) = 0 THEN
  setfixbit(fixExtendedNPCs, 1)
  DIM npctemp(99) AS NPCType
  FOR i = 0 TO gen(genMaxMap)
-  LoadNPCD maplumpname$(i, "n"), npctemp()
+  LoadNPCD maplumpname(i, "n"), npctemp()
   FOR j = 36 TO 99
    ' These are the garbage data left over from somewhere in the late 90's when
    ' James decided to make the .N lumps big enough to hold 100 NPC definitions
@@ -2249,7 +2151,7 @@ IF getfixbit(fixExtendedNPCs) = 0 THEN
     .vehicle    = 0
    END WITH
   NEXT j
-  SaveNPCD maplumpname$(i, "n"), npctemp()
+  SaveNPCD maplumpname(i, "n"), npctemp()
  NEXT i
 END IF
 
@@ -2289,16 +2191,16 @@ xbsave game + ".gen", gen(), 1000
 'wow! this is quite a big and ugly routine!
 END SUB
 
-SUB standardmenu (menu$(), state AS MenuState, x, y, page, edge=NO, hidecursor=NO)
+SUB standardmenu (menu() AS STRING, state AS MenuState, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO)
  DIM p AS INTEGER
  WITH state
   p = .pt
   IF hidecursor THEN p = .first - 1
-  standardmenu menu$(), .last, .size, p, .top, x, y, page, edge
+  standardmenu menu(), .last, .size, p, .top, x, y, page, edge
  END WITH
 END SUB
 
-SUB standardmenu (menu$(), size, vis, pt, top, x, y, page, edge=NO)
+SUB standardmenu (menu() AS STRING, size, vis, pt, top, x, y, page, edge=NO)
 STATIC tog
 DIM i AS INTEGER
 DIM col AS INTEGER
@@ -2310,11 +2212,11 @@ FOR i = top TO top + vis
   IF edge THEN
    col = uilook(uiMenuItem)
    IF pt = i THEN col = uilook(uiSelectedItem + tog)
-   edgeprint menu$(i), x + 0, y + (i - top) * 8, col, page
+   edgeprint menu(i), x + 0, y + (i - top) * 8, col, page
   ELSE
    textcolor uilook(uiMenuItem), 0
    IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-   printstr menu$(i), x + 0, y + (i - top) * 8, page
+   printstr menu(i), x + 0, y + (i - top) * 8, page
   END IF
  END IF
 NEXT i
@@ -2519,7 +2421,7 @@ FUNCTION count_menu_items (menu AS MenuDef) as integer
  RETURN count
 END FUNCTION
 
-FUNCTION readglobalstring (index, default$, maxlen=10) as string
+FUNCTION readglobalstring (index AS INTEGER, default AS STRING, maxlen AS INTEGER=10) as string
 DIM fh AS INTEGER = FREEFILE
 OPEN game + ".stt" FOR BINARY AS #fh
 
@@ -2529,9 +2431,9 @@ IF maxlen < namelen THEN namelen = maxlen
 
 DIM result AS STRING
 IF index * 11 + namelen + 1 > LOF(fh) THEN
- result = default$
+ result = default
 ELSEIF namelen > 0 THEN
- result = STRING$(namelen, 0)
+ result = STRING(namelen, 0)
  GET #fh, index * 11 + 2, result
 ELSE
  result = ""
@@ -2560,7 +2462,7 @@ FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
    CASE 3 ' Text Box
     cap = "Text Box " & mi.sub_t
    CASE 4 ' Run Script
-    cap = scriptname$(mi.sub_t, plottrigger)
+    cap = scriptname(mi.sub_t, plottrigger)
   END SELECT
  END IF
  IF menu.edit_mode = YES AND LEN(TRIM(cap)) = 0 THEN cap = "[BLANK]" 
@@ -2580,28 +2482,28 @@ END FUNCTION
 FUNCTION get_special_menu_caption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
  DIM cap AS STRING
  SELECT CASE subtype
-  CASE 0: cap = readglobalstring$(60, "Items", 10)
-  CASE 1: cap = readglobalstring$(61, "Spells", 10)
-  CASE 2: cap = readglobalstring$(62, "Status", 10)
-  CASE 3: cap = readglobalstring$(63, "Equip", 10)
-  CASE 4: cap = readglobalstring$(64, "Order", 10)
-  CASE 5: cap = readglobalstring$(65, "Team", 10)
+  CASE 0: cap = readglobalstring(60, "Items", 10)
+  CASE 1: cap = readglobalstring(61, "Spells", 10)
+  CASE 2: cap = readglobalstring(62, "Status", 10)
+  CASE 3: cap = readglobalstring(63, "Equip", 10)
+  CASE 4: cap = readglobalstring(64, "Order", 10)
+  CASE 5: cap = readglobalstring(65, "Team", 10)
   CASE 6
    IF readbit(gen(), genBits, 5) THEN
-    cap = readglobalstring$(65, "Team", 10)
+    cap = readglobalstring(65, "Team", 10)
    ELSE
-    cap = readglobalstring$(64, "Order", 10)
+    cap = readglobalstring(64, "Order", 10)
    END IF
    IF edit_mode = YES THEN cap = cap & " [general bitset]"
   CASE 7,12:
-   cap = readglobalstring$(68, "Map", 10)
+   cap = readglobalstring(68, "Map", 10)
    IF subtype = 7 AND edit_mode = YES THEN cap = cap & " [if allowed by map]"
   CASE 8,13:
-   cap = readglobalstring$(66, "Save", 10)
+   cap = readglobalstring(66, "Save", 10)
    IF subtype = 8 AND edit_mode = YES THEN cap = cap & " [if allowed by map]"
   CASE 9: cap = "Load" ' FIXME: Needs a global text string
-  CASE 10: cap = readglobalstring$(67, "Quit", 10)
-  CASE 11: cap = readglobalstring$(69, "Volume", 10)
+  CASE 10: cap = readglobalstring(67, "Quit", 10)
+  CASE 11: cap = readglobalstring(69, "Volume", 10)
  END SELECT
  RETURN cap
 END FUNCTION
@@ -2785,13 +2687,13 @@ FUNCTION load_tag_name (index AS INTEGER) AS STRING
  DIM buf(20)
  setpicstuf buf(), 42, -1
  loadset game + ".tmn", ABS(index), 0
- RETURN readbadbinstring$(buf(), 0, 20)
+ RETURN readbadbinstring(buf(), 0, 20)
 END FUNCTION
 
 SUB save_tag_name (tagname AS STRING, index AS INTEGER)
  DIM buf(20)
  setpicstuf buf(), 42, -1
- writebadbinstring tagname$, buf(), 0, 20
+ writebadbinstring tagname, buf(), 0, 20
  storeset game + ".tmn", index, 0
 END SUB
 
@@ -3398,7 +3300,7 @@ END SUB
 SUB writebinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER)
  DIM s AS STRING = savestr
 
- '--pad s$ to the right length
+ '--pad s to the right length
  DO WHILE LEN(s) < maxlen
   s = s & CHR(0)
  LOOP

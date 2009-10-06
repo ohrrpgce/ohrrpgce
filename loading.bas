@@ -1504,3 +1504,128 @@ SUB saveattackdata (array(), index)
   savenewattackdata buf(), index
  END IF
 END SUB
+
+SUB loadtanim (n AS INTEGER, tastuf() AS INTEGER)
+ setpicstuf tastuf(), 80, -1
+ loadset game & ".tap", n, 0
+END SUB
+
+SUB savetanim (n AS INTEGER, tastuf() AS INTEGER)
+ setpicstuf tastuf(), 80, -1
+ storeset game & ".tap", n, 0
+END SUB
+
+SUB getpal16 (array() AS INTEGER, aoffset AS INTEGER, foffset AS INTEGER, autotype AS INTEGER=-1, sprite AS INTEGER=0)
+DIM buf(8) AS INTEGER
+DIM defaultpal AS INTEGER
+DIM i AS INTEGER
+
+loadrecord buf(), game & ".pal", 8, 0
+IF buf(0) = 4444 THEN '--check magic number
+ IF buf(1) >= foffset AND foffset >= 0 THEN
+  'palette is available
+  loadrecord buf(), game & ".pal", 8, 1 + foffset
+  FOR i = 0 TO 7
+   array(aoffset * 8 + i) = buf(i)
+  NEXT i
+  EXIT SUB
+ ELSEIF foffset = -1 THEN
+  'load a default palette
+  IF autotype >= 0 THEN
+   defaultpal = getdefaultpal(autotype, sprite)
+   IF defaultpal > -1 THEN
+    'Recursive
+    getpal16 array(), aoffset, defaultpal
+    EXIT SUB
+   END IF
+  END IF
+ END IF
+ 'palette is out of range, return blank
+ FOR i = 0 TO 7
+  array(aoffset * 8 + i) = 0
+ NEXT i
+ELSE '--magic number not found, palette is still in BSAVE format
+ DIM xbuf(100 * 8)
+ xbload game + ".pal", xbuf(), "16-color palletes missing from " + game
+ FOR i = 0 TO 7
+  array(aoffset * 8 + i) = xbuf(foffset * 8 + i)
+ NEXT i
+END IF
+
+END SUB
+
+SUB storepal16 (array() AS INTEGER, aoffset AS INTEGER, foffset AS INTEGER)
+DIM buf(8) AS INTEGER
+
+DIM f AS STRING = game & ".pal"
+loadrecord buf(), f, 8, 0
+
+IF buf(0) <> 4444 THEN
+ fatalerror "16-color palette file may be corrupt"
+END IF
+
+DIM last AS INTEGER = buf(1)
+DIM i AS INTEGER
+
+IF foffset > last THEN
+ '--blank out palettes before extending file
+ FOR i = last + 1 TO foffset
+  flusharray buf(), 8, 0
+  storerecord buf(), f, 8, 1 + i
+ NEXT i
+ '--update header
+ buf(0) = 4444
+ buf(1) = foffset
+ storerecord buf(), f, 8, 0
+END IF
+
+IF foffset >= 0 THEN '--never write a negative file offset
+ 'copy palette to buffer
+ FOR i = 0 TO 7
+  buf(i) = array(aoffset * 8 + i)
+ NEXT i
+ 'write palette
+ storerecord buf(), f, 8, 1 + foffset
+END IF
+
+Palette16_update_cache f, foffset
+END SUB
+
+SUB loaditemdata (array() AS INTEGER, index AS INTEGER)
+ flusharray array(), 99, 0
+ IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
+ IF loadrecord(array(), game & ".itm", 100, index) = 0 THEN debug "loaditemdata:" & index & " loadrecord failed" : EXIT SUB
+END SUB
+
+SUB saveitemdata (array() AS INTEGER, index AS INTEGER)
+ storerecord array(), game & ".itm", 100, index
+END SUB
+
+SUB loadenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
+ DIM filename AS STRING
+ IF altfile THEN
+  filename = tmpdir & "dt1.tmp"
+ ELSE
+  filename = game & ".dt1"
+ END IF
+ loadrecord array(), filename, 160, index
+END SUB
+
+SUB saveenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
+ DIM filename AS STRING
+ IF altfile THEN
+  filename = tmpdir & "dt1.tmp"
+ ELSE
+  filename = game & ".dt1"
+ END IF
+ storerecord array(), filename, 160, index
+END SUB
+
+SUB loadherodata (hero as herodef ptr, index as integer)
+ deserherodef game & ".dt0", hero, index
+END SUB
+
+SUB saveherodata (hero as herodef ptr, index as integer)
+ serherodef game & ".dt0", hero, index
+END SUB
+
