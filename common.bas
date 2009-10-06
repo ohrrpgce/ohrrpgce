@@ -218,17 +218,17 @@ SUB debug (s$)
  debuginfo s$
 END SUB
 
-SUB debuginfo (s$)
+SUB debuginfo (s AS STRING)
  'use for throwaway messages like upgrading
  STATIC sizeerror = 0
- DIM filename$
+ DIM filename AS STRING
  #IFDEF IS_GAME
-   filename$ = "g_debug.txt"
+   filename = "g_debug.txt"
  #ELSE
-   filename$ = "c_debug.txt"
+   filename = "c_debug.txt"
  #ENDIF
  fh = FREEFILE
- OPEN filename$ FOR APPEND AS #fh
+ OPEN filename FOR APPEND AS #fh
  IF LOF(fh) > 2 * 1024 * 1024 THEN
   IF sizeerror = 0 THEN PRINT #fh, "too much debug() output, not printing any more messages"
   sizeerror = -1
@@ -236,7 +236,7 @@ SUB debuginfo (s$)
   EXIT SUB
  END IF
  sizeerror = 0
- PRINT #fh, s$
+ PRINT #fh, s
  CLOSE #fh
 END SUB
 
@@ -1563,15 +1563,20 @@ SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
  NEXT i
 END SUB
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 'Write old password format (backcompat only)
-SUB writescatter (s$, lhold, start)
-DIM stray(10)
+SUB writescatter (s AS STRING, lhold AS INTEGER, start AS INTEGER)
+DIM stray(10) AS INTEGER
 
-s$ = LEFT$(s$, 20)
-lhold = LEN(s$) * 8 - 1
-str2array s$, stray(), 0
+s = LEFT(s, 20)
+lhold = LEN(s) * 8 - 1
+str2array s, stray(), 0
 
-FOR i = 0 TO lhold
+DIM trueb AS INTEGER
+DIM scatb AS INTEGER
+FOR i AS INTEGER = 0 TO lhold
  trueb = readbit(stray(), 0, i)
  DO
   scatb = INT(RND * (16 + (i * 16)))
@@ -1579,41 +1584,41 @@ FOR i = 0 TO lhold
  gen(start + i) = scatb
 NEXT i
 
-FOR i = lhold + 1 TO 159
+FOR i AS INTEGER = lhold + 1 TO 159
  gen(start + i) = INT(RND * 4444)
 NEXT i
 END SUB
 
 'Read old password format (needed for backcompat upgrade)
-SUB readscatter (s$, lhold, start)
-DIM stray(10)
-s$ = STRING$(20, "!")
+SUB readscatter (s AS STRING, lhold AS INTEGER, start AS INTEGER)
+DIM stray(10) AS INTEGER
+s = STRING(20, "!")
 
-FOR i = 0 TO lhold
+FOR i AS INTEGER = 0 TO lhold
  setbit stray(), 0, i, readbit(gen(), start - 1, gen(start + i))
 NEXT i
 
-array2str stray(), 0, s$
-s$ = LEFT$(s$, INT((lhold + 1) / 8))
+array2str stray(), 0, s
+s = LEFT(s, INT((lhold + 1) / 8))
 
 END SUB
 
-FUNCTION finddatafile(filename$) as string
+FUNCTION finddatafile(filename AS STRING) AS STRING
 'Current dir
-IF isfile(filename$) THEN RETURN filename$
+IF isfile(filename) THEN RETURN filename
 'same folder as executable
-IF isfile(exepath$ + SLASH + filename$) THEN RETURN exepath$ + SLASH + filename$
+IF isfile(exepath & SLASH & filename) THEN RETURN exepath & SLASH & filename
 #IFDEF __FB_LINUX__
 '~/.ohrrpgce/
-IF isfile(tmpdir + SLASH + filename$) THEN RETURN tmpdir + SLASH + filename$
+IF isfile(tmpdir & SLASH & filename) THEN RETURN tmpdir & SLASH & filename
 #IFDEF DATAFILES
-IF isfile(DATAFILES + SLASH + filename$) THEN RETURN DATAFILES + SLASH + filename$
+IF isfile(DATAFILES & SLASH & filename) THEN RETURN DATAFILES & SLASH & filename
 #ENDIF
 #ENDIF
 RETURN ""
 END FUNCTION
 
-SUB updaterecordlength (lumpf$, bindex AS INTEGER)
+SUB updaterecordlength (lumpf AS STRING, bindex AS INTEGER)
 IF curbinsize(bindex) MOD 2 <> 0 THEN
  'curbinsize is INSANE, scream bloody murder to prevent data corruption!
  fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " please complain to the devs, who may have just done something stupid!"
@@ -1625,33 +1630,33 @@ END IF
 
 IF getbinsize(bindex) < curbinsize(bindex) THEN
 
- oldsize = getbinsize(bindex)
- newsize = curbinsize(bindex)
+ DIM oldsize AS INTEGER = getbinsize(bindex)
+ DIM newsize AS INTEGER = curbinsize(bindex)
 
- upgrade_message trimpath$(lumpf$) & " record size = " & newsize
+ upgrade_message trimpath(lumpf) & " record size = " & newsize
 
  IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
 
-  tempf$ = tmpdir & "resize.tmp"
+  DIM tempf AS STRING = tmpdir & "resize.tmp"
 
   flusharray buffer(), newsize / 2, 0
 
-  ff = FREEFILE
-  OPEN lumpf$ FOR BINARY AS #ff
-  records = LOF(ff) / oldsize
+  DIM ff AS INTEGER = FREEFILE
+  OPEN lumpf FOR BINARY AS #ff
+  DIM records AS INTEGER = LOF(ff) / oldsize
   CLOSE #ff
 
-  copyfile lumpf$, tempf$
-  KILL lumpf$
+  copyfile lumpf, tempf
+  KILL lumpf
 
-  FOR i = 0 TO records - 1
+  FOR i AS INTEGER = 0 TO records - 1
    setpicstuf buffer(), oldsize, -1
-   loadset tempf$, i, 0
+   loadset tempf, i, 0
    setpicstuf buffer(), newsize, -1
-   storeset lumpf$, i, 0
+   storeset lumpf, i, 0
   NEXT
 
-  KILL tempf$
+  KILL tempf
  END IF
 
  setbinsize bindex, newsize
@@ -1659,52 +1664,51 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
 END IF
 END SUB
 
-SUB writepassword (p$)
+SUB writepassword (p AS STRING)
 
 '-- set password version number (only if needed)
 IF gen(genPassVersion) < 256 THEN gen(genPassVersion) = 256
 
 '--pad the password with some silly obfuscating low-ascii chars
-FOR i = 1 TO 17 - LEN(p$)
+FOR i AS INTEGER = 1 TO 17 - LEN(p)
  IF INT(RND * 10) < 5 THEN
-  p$ = p$ + CHR$(INT(RND * 30))
+  p = p + CHR(INT(RND * 30))
  ELSE
-  p$ = CHR$(INT(RND * 30)) + p$
+  p = CHR(INT(RND * 30)) + p
  END IF
 NEXT i
 
 '--apply a new ascii rotation / weak obfuscation number
 gen(genPassRot) = INT(RND * 253) + 1
-p$ = rotascii(p$, gen(genPassRot))
+p = rotascii(p, gen(genPassRot))
 
 '--write the password into GEN
-str2array p$, gen(), 14
+str2array p, gen(), 14
 
 END SUB
 
-FUNCTION readpassword as string
+FUNCTION readpassword () as string
 
 '--read a 17-byte string from GEN at word offset 7
 '--(Note that array2str uses the byte offset not the word offset)
-s$ = STRING$(17, 0)
-array2str gen(), 14, s$
+DIM s AS STRING
+s = STRING(17, 0)
+array2str gen(), 14, s
 
 '--reverse ascii rotation / weak obfuscation
-s$ = rotascii(s$, gen(genPassRot) * -1)
+s = rotascii(s, gen(genPassRot) * -1)
 
 '-- discard ascii chars lower than 32
-p$ = ""
-FOR i = 1 TO 17
- c$ = MID$(s$, i, 1)
- IF ASC(c$) >= 32 THEN p$ = p$ + c$
+DIM p AS STRING = ""
+DIM c AS STRING
+FOR i AS INTEGER = 1 TO 17
+ c = MID(s, i, 1)
+ IF ASC(c) >= 32 THEN p = p + c
 NEXT i
 
-return p$
+return p
 
 END FUNCTION
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB upgrade (font())
 DIM pal16(8)
