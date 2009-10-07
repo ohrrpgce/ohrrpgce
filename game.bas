@@ -2439,26 +2439,26 @@ SUB player_menu_keys (stat(), catx(), caty(), tilesets() AS TilesetData ptr)
    EXIT SUB
   END IF
   activated = NO
-  WITH menus(topmenu).items(mstates(topmenu).pt)
-   IF .disabled THEN EXIT SUB
-   IF carray(4) > 1 THEN
-    activated = activate_menu_item(menus(topmenu).items(mstates(topmenu).pt))
+  DIM mi AS MenuDefItem '--use a copy of the menu item here because activate_menu_item() can deallocate it
+  mi = menus(topmenu).items(mstates(topmenu).pt)
+  IF mi.disabled THEN EXIT SUB
+  IF carray(4) > 1 THEN
+   activated = activate_menu_item(menus(topmenu).items(mstates(topmenu).pt))
+  END IF
+  IF mi.t = 1 AND mi.sub_t = 11 THEN '--volume
+   IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
+   IF carray(3) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
+  END IF
+  IF activated THEN
+   IF mi.settag > 1 THEN setbit tag(), 0, mi.settag, YES
+   IF mi.settag < -1 THEN setbit tag(), 0, ABS(mi.settag), NO
+   IF mi.togtag > 1 THEN setbit tag(), 0, mi.togtag, (readbit(tag(), 0, mi.togtag) XOR 1)
+   IF mi.close_if_selected THEN
+    remove_menu find_menu_handle(menu_handle)
+    carray(4) = 0
+    setkeys '--Discard the  keypress that triggered the menu item that closed the menu
    END IF
-   IF .t = 1 AND .sub_t = 11 THEN '--volume
-    IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
-    IF carray(3) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
-   END IF
-   IF activated THEN
-    IF .settag > 1 THEN setbit tag(), 0, .settag, YES
-    IF .settag < -1 THEN setbit tag(), 0, ABS(.settag), NO
-    IF .togtag > 1 THEN setbit tag(), 0, .togtag, (readbit(tag(), 0, .togtag) XOR 1)
-    IF .close_if_selected THEN
-     remove_menu find_menu_handle(menu_handle)
-     carray(4) = 0
-     setkeys '--Discard the  keypress that triggered the menu item that closed the menu
-    END IF
-   END IF
-  END WITH
+  END IF
  END IF
 END SUB
 
