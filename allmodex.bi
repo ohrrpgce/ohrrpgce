@@ -138,14 +138,13 @@ declare function sprite_load(byval as string, byval as integer, byval as integer
 declare function sprite_reference(byval p as frame ptr) as frame ptr
 declare sub sprite_unload(byval p as frame ptr ptr)
 declare sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
-declare function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0, byval direct as integer = 0) as frame ptr
-declare function sprite_flip_horiz(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
-declare function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
+declare function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0) as frame ptr
+declare sub sprite_flip_horiz(byval spr as frame ptr)
+declare sub sprite_flip_vert(byval spr as frame ptr)
 declare function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr
 declare sub sprite_clear(byval spr as frame ptr)
 declare sub sprite_empty_cache()
 declare function sprite_is_valid(byval p as frame ptr) as integer
-declare sub sprite_crash_invalid(byval p as frame ptr)
 declare sub sprite_debug_cache()
 
 declare function palette16_load overload (byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr

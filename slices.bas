@@ -811,7 +811,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
   end if
 
   dim spr as Frame ptr
-  dim is_flipped as integer = NO
+  dim have_copy as integer = NO
   spr = .img.sprite
   if spr = 0 then
    debug "null sprite ptr for slice " & sl
@@ -825,17 +825,19 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
   spr += .frame
 
   if .flipHoriz then
-   spr = sprite_flip_horiz(spr)
-   is_flipped = YES
+   if have_copy = NO THEN spr = sprite_duplicate(spr)
+   have_copy = YES
+   sprite_flip_horiz(spr)
   end if
   if .flipVert then
-   spr = sprite_flip_vert(spr)
-   is_flipped = YES
+   if have_copy = NO THEN spr = sprite_duplicate(spr)
+   have_copy = YES
+   sprite_flip_vert(spr)
   end if
  
   sprite_draw spr, .img.pal, sl->screenX, sl->screenY, , ,dpage
   
-  if is_flipped then
+  if have_copy then
    sprite_unload(@spr)
   end if
  end with

@@ -653,10 +653,7 @@ IF bslot(4 + i).vis = 1 THEN
  with bslot(4 + i)
   .sprite_num = 1
   .sprites = sprite_load(1 + es(i, 55), es(i, 53))
-  if not sprite_is_valid(.sprites) then debug "Failed to load enemy sprite (#" & i & ")"
   .pal = palette16_load(es(i, 54), 1 + es(i, 55), es(i, 53))
-  if .pal = 0 then debug "Failed to load palette (#" & (4+i) & ")"
-  
  end with
  FOR o = 0 TO 11
   bslot(4 + i).stat.cur.sta(o) = es(i, 62 + o)

@@ -65,7 +65,7 @@ DIM formdata(40)
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
 DIM autotarg_attack AS AttackData
-DIM st(3) as herodef, es(7, 160), zbuf(24), ctr(11)
+DIM st(3) as herodef, es(7, 160), ctr(11)
 DIM menubits(2), spel$(23), speld$(23), spel(23), cost$(23), walk(3)
 DIM conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
@@ -91,9 +91,6 @@ WITH inv_scroll_rect
  .wide = 292
  '.high set later
 END WITH
-
-DIM harm_text_offset AS INTEGER = 0 'FIXME: DIM this in sprite: when it gets SUBified
-
 
 'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
 gam.remembermusic = presentsong
@@ -996,77 +993,62 @@ NEXT i
 RETRACE
 
 sprite:
-'DIM harm_text_offset AS INTEGER = 0 'FIXME DIM this here when this is SUBified
-FOR i = 0 TO 24 'set zbuf to 0 through 24
- zbuf(i) = i
-NEXT i
-FOR o = 1 TO 24
- insertval = zbuf(o)
- searchval = bslot(insertval).y + bslot(insertval).h
- FOR i = o - 1 TO 0 STEP -1
-  IF searchval < bslot(zbuf(i)).y + bslot(zbuf(i)).h THEN
-   zbuf(i + 1) = zbuf(i)
-  ELSE
-   EXIT FOR
+SCOPE 'until moved into a sub
+ DIM zbuf(24) AS INTEGER, basey(24) AS INTEGER, harm_text_offset AS INTEGER = 0
+ FOR i = 0 TO 24
+  basey(i) = bslot(i).y + bslot(i).h
+ NEXT i
+ sort_integers_indices(zbuf(), @basey(0))
+ FOR i = 0 TO 24
+ IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
+   dim w as BattleSprite ptr
+   w = @bslot(zbuf(i))
+   with bslot(zbuf(i))
+    dim spr as frame ptr = .sprites
+    
+    if .sprites = 0 then continue for
+    
+    'debug(str(zbuf(i)))
+    
+    if .frame < .sprite_num then spr += .frame
+    
+    if .d then
+     spr = sprite_duplicate(spr)
+     sprite_flip_horiz(spr)
+    else
+     spr = sprite_reference(spr)
+    end if
+    
+    if is_enemy(zbuf(i)) and .dissolve > 0 and .flee = 0 then
+     dim as integer dtype, dtime
+     dim spr2 as frame ptr = spr
+     if .deathtype = 0 then dtype = gen(genEnemyDissolve) else dtype = .deathtype - 1
+     if .deathtime = 0 then dtime = spr->w/2 else dtime = .deathtime
+     spr = sprite_dissolved(spr2, dtime, dtime - .dissolve, dtype)
+     sprite_unload(@spr2)
+    end if
+    
+    sprite_draw(spr, .pal, .x, .y - .z, 1, -1, dpage)
+    
+    sprite_unload(@spr)
+   end with
   END IF
- NEXT
- zbuf(i + 1) = insertval
-NEXT
-FOR i = 0 TO 24
-	IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
-			dim w as BattleSprite ptr
-			w = @bslot(zbuf(i))
-			with bslot(zbuf(i))
-				dim spr as frame ptr, custspr as integer
-				custspr = 0
-				hasflipped = 0
-				spr = .sprites
-				
-				if .sprites = 0 then continue for
-				
-				'debug(str(zbuf(i)))
-				
-				if .frame < .sprite_num then spr += .frame
-				
-				if .d then
-					spr = sprite_flip_horiz(spr)
-					hasflipped = -1
-				end if
-				
-				if is_enemy(zbuf(i)) and .dissolve > 0 and .flee = 0 then
-					dim as integer dtype, dtime
-					if .deathtype = 0 then dtype = gen(genEnemyDissolve) else dtype = .deathtype - 1
-					if .deathtime = 0 then dtime = spr->w/2 else dtime = .deathtime
-					spr = sprite_dissolve(spr,dtime,dtime - .dissolve, dtype, custspr)
-					custspr = -1
-				end if
-				
-				sprite_draw(spr, .pal, .x, .y - .z, 1, -1, dpage)
-				
-				if hasflipped then
-					spr = sprite_flip_horiz(spr) '--flip it back... FIXME: yeah, this is not efficient
-				end if
-				
-				if custspr then
-					sprite_unload(@spr)
-				end if
-			end with
-	END IF
-NEXT i
-FOR i = 0 TO 11
- WITH bslot(i).harm
-  IF .ticks > 0 THEN
-   IF gen(genDamageDisplayTicks) <> 0 THEN
-    harm_text_offset = gen(genDamageDisplayRise) / gen(genDamageDisplayTicks) * (gen(genDamageDisplayTicks) - .ticks)
-   ELSE
-    harm_text_offset = 0 'Avoid div by zero (which shouldn't be possible anyway)
+ NEXT i
+ FOR i = 0 TO 11
+  WITH bslot(i).harm
+   IF .ticks > 0 THEN
+    IF gen(genDamageDisplayTicks) <> 0 THEN
+     harm_text_offset = gen(genDamageDisplayRise) / gen(genDamageDisplayTicks) * (gen(genDamageDisplayTicks) - .ticks)
+    ELSE
+     harm_text_offset = 0 'Avoid div by zero (which shouldn't be possible anyway)
+    END IF
+    edgeprint .text, .pos.x - LEN(.text) * 4, .pos.y - harm_text_offset, .col, dpage
+    .ticks -= 1
+    IF .ticks = 0 THEN .col = uilook(uiText)
    END IF
-   edgeprint .text, .pos.x - LEN(.text) * 4, .pos.y - harm_text_offset, .col, dpage
-   .ticks -= 1
-   IF .ticks = 0 THEN .col = uilook(uiText)
-  END IF
- END WITH
-NEXT i
+  END WITH
+ NEXT i
+END SCOPE
 RETRACE
 
 seestuff:
@@ -1167,9 +1149,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
     'load hero sprites
     .sprite_num = 8
     .sprites = sprite_load(0, exstat(i, 0, 14))
-    if not sprite_is_valid(.sprites) then debug "Couldn't load hero sprite: " & game & ".pt0#" & exstat(i,0,14)
     .pal = palette16_load(exstat(i, 0, 15), 0, exstat(i, 0, 14))
-    if .pal = 0 then debug "Failed to load palette (#" & i & ")"
     .frame = 0
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = .w / 2
@@ -2284,9 +2264,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
    sprite_unload(@.sprites)
    palette16_unload(@.pal)
    .sprites = sprite_load(6, attack.picture)
-   if not sprite_is_valid(.sprites) then debug "Failed to load attack sprites (#" & i & ")"
    .pal = palette16_load(attack.pal, 6, attack.picture)
-   if .pal = 0 then debug "Failed to load palette (#" & i & ")"
   end with
  NEXT i
  
@@ -2346,10 +2324,8 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
    .sprite_num = 2
    sprite_unload @.sprites
    .sprites = sprite_load(5, exstat(bat.acting, 0, 13))
-   if not sprite_is_valid(.sprites) then debug "Could not load weapon sprite: " & game & ".pt5#" & exstat(bat.acting, 0, 13)
    palette16_unload @.pal
    .pal = palette16_load(exstat(bat.acting, 1, 13), 5, exstat(bat.acting, 0, 13))
-   if .pal = 0 then debug "Failed to load palette (#" & 24 & ")"
    .frame = 0
   end with
  END IF

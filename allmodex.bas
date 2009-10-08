@@ -25,6 +25,7 @@ option explicit
 #define SC_RSHIFT		&h36
 #define SC_ALT			&h38
 
+'Note: While this works (at last check), it's not used anywhere, and you most probably do not need it
 Const NOREFC = -1234
 
 type node 	'only used for floodfill
@@ -47,7 +48,8 @@ declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 
 'internal allmodex use only sprite functions
-declare sub sprite_delete(byval f as frame ptr ptr)
+declare function sprite_describe(byval p as frame ptr) as string
+declare sub sprite_freemem(byval f as frame ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 
 'slight hackery to get more versatile read function
@@ -167,7 +169,7 @@ sub restoremode()
 
 	'clear up software gfx
 	for i as integer = 0 to ubound(vpages)
-		sprite_delete(@vpages(i))
+		sprite_unload(@vpages(i))
 	next
 
 	releasestack
@@ -192,12 +194,14 @@ SUB freepage (BYVAL page as integer)
 		exit sub
 	end if
 
-	sprite_delete(@vpages(page))
+	sprite_unload(@vpages(page))
 	if wrkpage = page then
 		wrkpage = 0		
 	end if
 END SUB
 
+'this sub has not been modified for frame pitch yet, because of a catch-22 situation
+'anyway, I'd rather get rid of all those ugly arguments
 SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
 	if vpages(page1)->w <> vpages(page2)->w then
 		debug "bad page copy"
@@ -211,6 +215,7 @@ SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer
 	'video pages do not use masks
 end sub
 
+'want to get rid of those ugly arguments
 SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
 	if colour = -1 then colour = uilook(uiBackground)
 	top = bound(top, 0, vpages(page)->h - 1)
@@ -581,8 +586,8 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	next
 	'now draw the image
 	drawohr(*hspr, , x, y, scale, trans)
-
-	sprite_delete(@hspr)
+	'what a waste
+	sprite_unload(@hspr)
 end SUB
 
 SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans = -1)
@@ -653,7 +658,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	'now draw the image
 	drawohr(*hspr, , x, y, , trans)
 
-	sprite_delete(@hspr)
+	sprite_unload(@hspr)
 end SUB
 
 SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
@@ -1474,6 +1479,7 @@ SUB textcolor (BYVAL f as integer, BYVAL b as integer)
 	textbg = b
 end SUB
 
+'TODO/FIXME: need to use sprite_* functions PROPERLY to handle Frame stuff
 SUB font_unload (byval font as Font ptr)
 	if font = null then exit sub
 
@@ -1482,6 +1488,7 @@ SUB font_unload (byval font as Font ptr)
 	sprite_unload cast(Frame ptr ptr, @font->sprite(1))
 end SUB
 
+'TODO/FIXME: need to use sprite_* functions to handle Frame stuff
 SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	if basefont = null then
 		debug "createedgefont wasn't passed a font!"
@@ -1561,7 +1568,7 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	next
 end SUB
 
-
+'TODO/FIXME: need to use sprite_* functions to handle Frame stuff
 SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
 	if basefont = null then
 		debug "createshadowfont wasn't passed a font!"
@@ -1608,6 +1615,7 @@ SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, by
 	end with
 end SUB
 
+'TODO/FIXME: need to use sprite_* functions to handle Frame stuff
 sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 	if font = null then exit sub
 	font_unload font
@@ -1668,6 +1676,7 @@ end SUB
 
 'This sub is for testing purposes only, and will be removed unless this happens to become
 'the adopted font format. Includes hardcoded values
+'TODO/FIXME: need to use sprite_* functions to handle Frame stuff
 SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 	font_unload font
 	if font = null then exit sub
@@ -3566,12 +3575,14 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 end sub
 
 sub unloadtileset(byref tileset as Frame ptr)
-	sprite_delete @tileset
+	'tilesets are never cached at the moment
+	sprite_unload @tileset
 end sub
 
 sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 'TODO/FIXME: Haven't fully translated to new Frame vpages yet, because this
-'should just load from a 320x200 Frame, not a video page
+'should just load from a file or 320x200 Frame, not a video page
+'TODO: cache tilesets like everything else
 	if tileset = null then
 		tileset = sprite_new(20, 20 * 160)
 	end if
@@ -3639,6 +3650,7 @@ function isawav(fi$) as integer
   dim _WAVE as integer = ID("W","A","V","E") 'wave file. RIFF is the format,
   dim _fmt_ as integer = ID("f","m","t"," ") 'WAVE is the type, and fmt_ and
   dim _data as integer = ID("d","a","t","a") 'data are the chunks
+#UNDEF ID
 
   dim chnk_ID as integer
   dim chnk_size as integer
@@ -3758,52 +3770,31 @@ FUNCTION getmusictype (file$) as integer
 END FUNCTION
 
 'This should be replaced with a real hash
-
+'Really? How likely is loading graphics to be time-critical to the microsecond?
 type SpriteCache
-	s as string
+	key as integer
 	p as frame ptr
 end type
-redim shared sprcache(50) as SpriteCache
+redim shared sprcache(60) as SpriteCache
 
-'Private
-' seeks a cache string, and removes it from the cache. It does not free it or
+' seeks a frame, and removes it from the cache. It does not free it or
 ' do any sort of memory management, it just removes it from the cache.
-sub sprite_remove_cache(byval s as string)
+private sub sprite_remove_cache(byval spr as frame ptr)
 	dim i as integer
 	for i = 0 to ubound(sprcache)
-		if sprcache(i).s = s then
-			sprcache(i).s = ""
+		if sprcache(i).p = spr then
+			sprcache(i).key = 0
 			sprcache(i).p = 0
 			exit sub
 		end if
 	next
 end sub
 
-'Private
-' unconditionally frees a sprite from memory. (Normally you want sprite_unload)
-' takes a pointer to a pointer so that the pointer can also be nulled, so it
-' will not be used again accidentally.
-' Warning: not all code calls sprite_delete to delete sprites! Grrr!
-sub sprite_delete(byval f as frame ptr ptr)
-	if f = 0 then exit sub
-	if *f = 0 then exit sub
-	with **f
-		if .image <> 0 then deallocate(.image)
-		.image = 0
-		if .mask <> 0 then deallocate(.mask)
-		.mask = 0
-		if .cache <> "" then sprite_remove_cache(.cache)
-	end with
-	deallocate(*f)
-	*f = 0
-end sub
-
-'Private:
 ' looks for a key in the cache. Will return the pointer associated with it.
-function sprite_find_cache(byval s as string) as frame ptr
+private function sprite_find_cache(byval key as integer) as frame ptr
 	dim i as integer
 	for i = 0 to ubound(sprcache)
-		if sprcache(i).s = s then return sprcache(i).p
+		if sprcache(i).key = key then return sprcache(i).p
 	next
 	return 0
 end function
@@ -3814,75 +3805,59 @@ sub sprite_empty_cache()
 	for i = 0 to ubound(sprcache)
 		with sprcache(i)
 			if .p <> 0 then
-				debug "warning: leaked sprite: " & .s & " with " & .p->refcount & " references"
-				sprite_delete(@.p)
-			elseif .s <> "" then
-				debug "warning: phantom cached sprite " & .s
+				debug "warning: leaked sprite: " & .key & " with " & .p->refcount & " references"
+				sprite_freemem(.p)
+				.p = 0
+			elseif .key <> 0 then
+				debug "warning: phantom cached sprite " & .key
 			end if
-			.s = ""
+			.key = 0
 		end with
 	next
 end sub
 
 sub sprite_debug_cache()
 	debug "==sprcache=="
-	dim info as string
 	for i as integer = 0 to ubound(sprcache)
-		info = ""
 		with sprcache(i)
-			if .p = 0 then
-				info = "null"
-			else
-				info = .p->w & "x" & .p->h
-				if .p->image = 0 then info = info & "(null image)"
-				if .p->mask = 0 then info = info & "(null mask)"
-				info = info & " refs=" & .p->refcount
-				info = info & " '" & .p->cache & "'"
-			end if
-			debug i & " " & .s & " " & info
+			debug i & " " & .key & " " & sprite_describe(.p)
 		end with
 	next i
 end sub
 
-'Private:
-' adds a frame to the cache with a given key. Sets the ->refcount member to 1.
+' adds a frame to the cache with a given key.
 ' will overwrite older sprites with refcounts of 0 or less.
 ' if the key already exists, will update it to this pointer.
 ' will also expand the cache if it is full of referenced sprites.
-sub sprite_add_cache(byval s as string, byval p as frame ptr, byval fr as integer = 0)
+private sub sprite_add_cache(byval key as integer, byval p as frame ptr)
 	if p = 0 then exit sub
 	dim as integer i, sec = -1
-	for i = fr to ubound(sprcache)
+	for i = 0 to ubound(sprcache)
 		with sprcache(i)
-			if .s = "" then
-				.s = s
+			'we don't check whether the key is equal; we can't reliably
+			'find that case without checking everything, and it should never happen
+			if .key = 0 then
+				.key = key
 				.p = p
-				p->refcount = 1
-				exit sub
-			elseif .s = s then
-				.p->refcount = 0
-				'debug("Overwiting old sprite: " + s)
-				.p = p
-				.p->refcount = 1
 				exit sub
 			elseif .p->refcount <= 0 then
 				sec = i
 			end if
 		end with
 	next
-	
+
 	if sec > -1 then
-		sprite_delete(@sprcache(sec).p)
-		sprcache(sec).s = s
+		'NOTE: currently, sprites are always freed as soon as all references are unloaded, so this never happens
+		sprite_freemem(sprcache(sec).p)
+		sprcache(sec).key = key
 		sprcache(sec).p = p
-		p->refcount = 1
 		exit sub
 	end if
 
 	'no room? pah.
 	redim preserve sprcache(ubound(sprcache) * 1.3 + 5)
-	
-	sprite_add_cache(s, p, i)
+	sprcache(i).key = key
+	sprcache(i).p = p	
 end sub
 
 function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
@@ -3899,7 +3874,11 @@ function sprite_new(byval w as integer, byval h as integer, byval frames as inte
 	dim as integer i, j
 	for i = 0 to frames - 1
 		with ret[i]
+			'the caller to sprite_new is considered to have a ref to the head; and the head to have a ref to each other elem
+			'so set each refcount to 1
 			.refcount = 1
+			.arraylen = frames
+			if i > 0 then .arrayelem = 1
 			.w = w
 			.h = h
 			.mask = NULL
@@ -3912,14 +3891,9 @@ function sprite_new(byval w as integer, byval h as integer, byval frames as inte
 			end if
 
 			if .image = 0 or (.mask = 0 and wantmask <> 0) then
-				debug "Could not create sprite frames, no memory"
+				debug "Could not allocate sprite frames, no memory"
 				'well, I don't really see the point freeing memory, but who knows...
-				'Has anyone else noticed that sprite_delete is more trouble that it's worth?
-				for j = 0 to i
-					deallocate(ret[j].image)
-					deallocate(ret[j].mask)
-				next
-				deallocate(ret)
+				sprite_freemem(ret)
 				return 0
 			end if
 		end with
@@ -3927,38 +3901,56 @@ function sprite_new(byval w as integer, byval h as integer, byval frames as inte
 	return ret
 end function
 
-'Public:
-' loads a sprite from a file. It expects 4-bit pixels, stored in columns (2/byte).
-' it will return a pointer to the first frame (of num frames), and subsequent frames
-' will be immediately after it in memory.
-function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
-	if ptno < 0 or ptno > 8 then
-		debug "illegal ptno " & ptno
-	else
-		with sprite_sizes(ptno)
-			return sprite_load(game + ".pt" & ptno, rec, .frames, .size.x, .size.y)
-		end with
-	end if
-end function
+' unconditionally frees a sprite from memory. 
+' You should never need to call this: use sprite_unload
+' Should only be called on the head of an array!
+' Warning: not all code calls sprite_freemem to free sprites! Grrr!
+private sub sprite_freemem(byval f as frame ptr)
+	if f = 0 then exit sub
+	if f->arrayelem then debug "can't free arrayelem!": exit sub
+	for i as integer = 0 to f->arraylen - 1
+		deallocate(f[i].image)
+		deallocate(f[i].mask)
+	next
+	deallocate(f)
+end sub
 
-function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
-	
+'Public:
+' Loads a 4-bit sprite (stored in columns (2/byte)) from one of the .pt? files, with caching.
+' It will return a pointer to the first frame, and subsequent frames
+' will be immediately after it in memory. (This is a hack, and will probably be removed)
+function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
 	dim ret as frame ptr
-	dim hashstring as string = trimpath(fi) & "#" & rec 'we assume that all sprites in the same file are the same size
+	dim key as integer = ptno * 1000000 + rec
 	
-	ret = sprite_find_cache(hashstring)
+	ret = sprite_find_cache(key)
 	
+	'AKA  if ret then
 	if sprite_is_valid(ret) then
 		ret->refcount += 1
-		'debug("Pulled cached copy: " & hashstring & "(" & ret->refcount & ") (0x" & hex(ret) & ")")
 		return ret
 	end if
-	
-	'debug "Must load " & hashstring & " from disk"
-	
-	'if hashstring = "test.pt0#0" then
-	'	dim tmp as integer = 1
-	'end if
+
+	with sprite_sizes(ptno)
+		ret = sprite_load(game + ".pt" & ptno, rec, .frames, .size.x, .size.y)
+		if ret = 0 then return 0
+		for i as integer = 0 to .frames - 1
+			ret[i].cached = 1
+		next
+		'the cache counts as an (additional) reference, but only to head!!
+		ret[0].refcount += 1
+	end with
+
+	sprite_add_cache(key, ret)
+	return ret
+end function
+
+' You can use this to load a .pt?-format 4-bit sprite from some non-standard location.
+' No code does this. Does not use a cache.
+' It will return a pointer to the first frame (of num frames), and subsequent frames
+' will be immediately after it in memory. (This is a hack, and will probably be removed)
+function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
+	dim ret as frame ptr
 	
 	'first, we do a bit of math:
 	dim frsize as integer = wid * hei / 2
@@ -3971,7 +3963,10 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	dim f as integer = freefile
 	
 	'open() returns 0 for success
-	if open(fi for binary as #f) then return 0
+	if open(fi for binary as #f) then
+		debug "sprites: could not open " & fi
+		return 0
+	end if
 	
 	'if we get here, we can assume that all's well, and allocate the memory
 	ret = sprite_new(wid, hei, num)
@@ -3981,14 +3976,10 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 		return 0
 	end if
 	
-	ret->cache = hashstring
-	
 	'find the right sprite (remember, it's base-1)
 	seek #f, recsize * rec + 1
 	
 	dim i as integer, x as integer, y as integer, z as ubyte
-	
-	#define SPOS (y * wid + x)
 	
 	for i = 0 to num - 1
 		with ret[i]
@@ -4000,12 +3991,12 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 					get #f,,z
 					
 					'the high nybble is the first pixel
-					.image[SPOS] = (z SHR 4)
+					.image[y * wid + x] = (z SHR 4)
 					
 					y+=1
 					
 					'and the low nybble is the second one
-					.image[SPOS] = z AND 15
+					.image[y * wid + x] = z AND 15
 					
 					'it is worth mentioning that sprites are stored in columns, not rows
 				next
@@ -4013,29 +4004,49 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 		end with
 	next
 	
-	#undef SPOS
-	
 	close #f
-	
-	sprite_add_cache(hashstring, ret)
+
 	return ret
 end function
 
 'Public:
 ' Releases a reference to a sprite and nulls the pointer.
 ' If it is refcounted, decrements the refcount, otherwise it is freed immediately.
+' A note on frame arrays: you may pass around pointers to frames in it (call sprite_reference
+' on them) and then unload them, but no memory will be freed until the head pointer refcount reaches 0.
+' The head element will have 1 extra refcount if the frame array is in the cache. Each of the non-head
+' elements also have 1 refcount, indicating that they are 'in use' by the head element,
+' but this is just for feel-good book keeping
 sub sprite_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
-	'debug("Unloading " & (*p)->cache & "(" & (*p)->refcount & ")")
-	if (*p)->refcount <> NOREFC then (*p)->refcount -= 1
-	if (*p)->refcount <= 0 then
-		'debug("Zap!")
-		sprite_delete(p)
-	end if
+	with **p
+		if .refcount <> NOREFC then
+			.refcount -= 1
+			if .refcount < 0 then debug sprite_describe(*p) & " has refcount " & .refcount
+		end if
+		' the cache counts as a reference!!
+		if (.refcount - .cached) <= 0 and .arrayelem = 0 then
+			'current policy is to unload all sprite as soon as they are unused.
+			if .cached then sprite_remove_cache(*p)
+			for i as integer = 1 to .arraylen - 1
+				if (*p)[i].refcount <> 1 then
+					debug sprite_describe(*p) & " freed with refcount " & .refcount
+				end if
+			next
+			sprite_freemem(*p)
+		end if
+	end with
 	*p = 0
 end sub
 
+function sprite_describe(byval p as frame ptr) as string
+	if p = 0 then return "'(null)'"
+	return "'(0x" & hex(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h & " img=0x" & hex(p->image) & " msk=0x" _
+	       & hex(p->mask) & " cached=" & p->cached & " aelem=" & p->arrayelem & " refc=" & p->refcount & "'"
+end function
+
+'this is mostly just a gimmick
 function sprite_is_valid(byval p as frame ptr) as integer
 	if p = 0 then return 0
 	dim ret = -1
@@ -4052,11 +4063,16 @@ function sprite_is_valid(byval p as frame ptr) as integer
 	if p->mask = &hBAADF00D or p->image = &hBAADF00D then ret = 0
 	if p->mask = &hFEEEFEEE or p->image = &hFEEEFEEE then ret = 0
 	
-	if ret = 0 then debug("Invalid sprite: " & p->cache & " (0x" & hex(p) & ")")
+	if ret = 0 then
+		debug "Invalid sprite " & sprite_describe(p)
+		'if we get here, we are probably doomed, but this might be a recovery
+		sprite_remove_cache(p)
+	end if
 	return ret
 end function
 
 'for a copy you intend to modify. Otherwise use sprite_reference
+'note: does not copy frame arrays, only single frames
 function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr
 	dim ret as frame ptr, i as integer
 	
@@ -4071,7 +4087,7 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	ret->refcount = 1
 	ret->image = 0
 	ret->mask = 0
-	'p->cache blank
+	ret->arraylen = 1
 
 	if p->image then
 		if clr = 0 then
@@ -4093,7 +4109,6 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	return ret
 end function
 
-'not yet used at last count!
 function sprite_reference(byval p as frame ptr) as frame ptr
 	if p = 0 then return 0
 	if p->refcount = NOREFC then
@@ -4184,25 +4199,21 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 end sub
 
 'Public:
-' returns a sprite in the midst of a given fade out. amnt is expected to be the number
+' returns a (copy of the) sprite in the midst of a given fade out. amnt is expected to be the number
 ' of ticks left in the fade out. style is the specific transition.
-function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0, byval direct as integer = 0) as frame ptr
-
+function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0) as frame ptr
 	dim cpy as frame ptr
-	
-	if spr = 0 then return 0
-
-	if direct and (spr->cache <> "") then
-		debug "illegal in-place sprite flip!"
-		return 0
-	end if
-	
 	cpy = sprite_duplicate(spr)
 	if cpy = 0 then return 0
+
 	'by default, sprites use colourkey transparency instead of masks
 	if cpy->mask = 0 then
 		cpy->mask = allocate(cpy->w * cpy->h)
-		if cpy->mask = 0 then debug "could not copy mask": return 0
+		if cpy->mask = 0 then
+			debug "could not copy mask"
+			sprite_unload(@spr)
+			return 0
+		end if
 		memcpy(cpy->mask, cpy->image, cpy->w * cpy->h)
 	end if
 	
@@ -4294,20 +4305,8 @@ function sprite_dissolve(byval spr as frame ptr, byval tim as integer, byval p a
 				next
 			next
 	end select
-	
-	if direct then
-		deallocate(spr->image)
-		deallocate(spr->mask)
-		spr->image = cpy->image
-		spr->mask = cpy->mask
-		cpy->image = 0
-		cpy->mask = 0
-		sprite_delete(@cpy)
-		
-		return spr
-	else
-		return cpy
-	end if
+
+	return cpy
 end function
 
 'Used by sprite_flip_horiz and sprite_flip_vert
@@ -4328,59 +4327,37 @@ end sub
 ' direct means modify it in-place, forbidden if the sprite is cached!
 ' (Note: might be modified in place if no other references exist, you are
 ' encouraged to use the ref counting system)
-function sprite_flip_horiz(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
-	if spr = 0 then return 0
+sub sprite_flip_horiz(byval spr as frame ptr)
+	if spr = 0 then exit sub
 	
-	if direct and (spr->cache <> "") then
-		debug "illegal in-place sprite flip!"
-		return 0
-	end if
-
-	if spr->cache = "" and spr->refcount <= 1 then 'including NOREFC
-		direct = -1
-	end if
-	if direct = 0 then
-		spr = sprite_duplicate(spr)
-		if spr = 0 then return 0
+	if spr->refcount > 1 then
+		debug "illegal hflip on " & sprite_describe(spr)
+		exit sub
 	end if
 
 	flip_image(spr->image, spr->h, spr->w, spr->w, 1)
 	if spr->mask then
 		flip_image(spr->mask, spr->h, spr->w, spr->w, 1)
 	end if
-	
-	return spr
-end function
+end sub
 
 'Public:
 ' returns a copy of the sprite flipped vertically. See sprite_flip_horiz for documentation
-function sprite_flip_vert(byval spr as frame ptr, byval direct as integer = 0) as frame ptr
-	if spr = 0 then return 0
+sub sprite_flip_vert(byval spr as frame ptr)
+	if spr = 0 then exit sub
 	
-	if direct and (spr->cache <> "") then
-		debug "illegal in-place sprite flip!"
-		return 0
-	end if
-
-	if spr->cache = "" and spr->refcount <= 1 then 'including NOREFC
-		direct = -1
-	end if
-	if direct = 0 then
-		spr = sprite_duplicate(spr)
-		if spr = 0 then return 0
+	if spr->refcount > 1 then
+		debug "illegal vflip on " & sprite_describe(spr)
+		exit sub
 	end if
 
 	flip_image(spr->image, spr->w, 1, spr->h, spr->w)
 	if spr->mask then
 		flip_image(spr->mask, spr->w, 1, spr->h, spr->w)
 	end if
-	
-	return spr
-end function
+end sub
 
 sub sprite_clear(byval spr as frame ptr)
-	dim as integer i
-
 	if spr->image then
 		memset(spr->image, 0, spr->w * spr->h)
 	end if
@@ -4389,7 +4366,7 @@ sub sprite_clear(byval spr as frame ptr)
 	end if
 end sub
 
-'Warning: this code is rotting; don't assume ->mask is used. Anyway the whole thing should be replaced with a memmove call or two.
+'Warning: this code is rotting; don't assume ->mask is used, etc. Anyway the whole thing should be replaced with a memmove call or two.
 ' function sprite_scroll(byval spr as frame ptr, byval h as integer = 0, byval v as integer = 0, byval wrap as integer = 0, byval direct as integer = 0) as frame ptr
 
 ' 	dim ret as frame ptr, x as integer, y as integer
@@ -4525,7 +4502,9 @@ sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as
 end sub
 
 function palette16_load(byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
-	return palette16_load(game + ".pal", num, autotype, spr)
+	dim as Palette16 ptr ret = palette16_load(game + ".pal", num, autotype, spr)
+	if ret = 0 then debug "failed to load palette " & num
+	return ret
 end function
 
 function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr

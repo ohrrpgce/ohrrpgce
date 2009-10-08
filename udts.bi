@@ -29,8 +29,10 @@ type Frame
 	h as integer
 	image as ubyte ptr
 	mask as ubyte ptr
-	refcount as integer
-	cache as string
+	refcount as integer  'see sprite_unload in particular for documentation
+	arraylen as integer  'how many frames were contiguously allocated in this frame array
+	cached:1 as integer
+	arrayelem:1 as integer  'not the first frame in a frame array
 end type
 
 TYPE GraphicPair
