@@ -15,6 +15,7 @@ DisableProgramGroupPage=yes
 AllowNoIcons=yes
 AllowUNCPath=no
 LicenseFile=LICENSE-binary.txt
+#include "iextratxt.txt"
 InfoAfterFile=whatsnew.txt
 OutputBaseFilename=ohrrpgce
 Compression=bzip
@@ -41,6 +42,7 @@ Source: "ohrrpgce.new"; DestDir: "{app}"; Flags: ignoreversion
 Source: "game.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README-game.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README-custom.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "IMPORTANT-nightly.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE-binary.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "whatsnew.txt"; DestDir: "{app}"; Flags: ignoreversion

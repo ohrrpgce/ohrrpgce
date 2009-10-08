@@ -58,6 +58,7 @@ cp -p scancode.hsi tmp
 echo "  Including readmes"
 cp -p README-game.txt tmp
 cp -p README-custom.txt tmp
+cp -p IMPORTANT-nightly.txt tmp
 cp -p LICENSE.txt tmp
 cp -p LICENSE-binary.txt tmp
 cp -p whatsnew.txt tmp

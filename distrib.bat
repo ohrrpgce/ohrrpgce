@@ -1,4 +1,5 @@
 @ECHO OFF
+REM pass 'nightly' as first argument to build nightlies instead of releases
 
 SET ISCC="C:\Program Files\Inno Setup 5\iscc.exe"
 SET SVN="C:\Program Files\Subversion\bin\svn.exe"
@@ -66,6 +67,7 @@ support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
 support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
+support\cp IMPORTANT-nightly.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
@@ -95,7 +97,9 @@ support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
 support\cp hspeak.exe tmpdist
 support\cp ohrrpgce.new tmpdist
+support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
+support\cp IMPORTANT-nightly.txt tmpdist
 support\cp LICENSE.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp plotscr.hsd tmpdist
@@ -148,7 +152,13 @@ del tmpdist\custom.exe
 
 REM ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer.exe ...
+echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
+IF %1=="nightly" GOTO LEAVEWARNTXT
+echo   > iextratxt.txt
+:LEAVEWARNTXT
+
 %ISCC% /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
+del iextratxt.txt
 IF NOT EXIST distrib\ohrrpgce-win-installer.exe GOTO SANITYFAIL
 
 REM ------------------------------------------

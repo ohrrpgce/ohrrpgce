@@ -8,7 +8,7 @@ svn cleanup
 svn update
 svn info > svninfo.txt
 
-CALL distrib.bat
+CALL distrib.bat nightly
 CALL distver.bat
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-wip-win-installer.exe
 
