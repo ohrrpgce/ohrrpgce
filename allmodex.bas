@@ -200,7 +200,7 @@ SUB freepage (BYVAL page as integer)
 	end if
 END SUB
 
-'this sub has not been modified for frame pitch yet, because of a catch-22 situation
+'TODO: this sub has not been modified for frame pitch yet, because of a catch-22 situation
 'anyway, I'd rather get rid of all those ugly arguments
 SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
 	if vpages(page1)->w <> vpages(page2)->w then
@@ -216,6 +216,7 @@ SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer
 end sub
 
 'want to get rid of those ugly arguments
+'TODO: delete this sub; not updated for pitch either
 SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
 	if colour = -1 then colour = uilook(uiBackground)
 	top = bound(top, 0, vpages(page)->h - 1)
@@ -459,6 +460,7 @@ SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t
 
 	tileframe.w = 20
 	tileframe.h = 20
+	tileframe.pitch = 20
 
 	'screen is 16 * 10 tiles, which means we need to draw 17x11
 	'to allow for partial tiles
@@ -682,7 +684,7 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 	p = p + 2
 	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 
-	sptr = vpages(page)->image + (vpages(page)->w * y) + x
+	sptr = vpages(page)->image + (vpages(page)->pitch * y) + x
 
 	'copy to passed int buffer, with 2 bytes per int as usual
 	toggle = 0
@@ -715,7 +717,7 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 
 	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 
-	sptr = vpages(page)->image + (vpages(page)->w * y) + x
+	sptr = vpages(page)->image + (vpages(page)->pitch * y) + x
 
 	'copy to passed int buffer, with 2 bytes per int as usual
 	toggle = 0
@@ -753,7 +755,7 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 	p += 1
 
 	'find start of image
-	sbase = vpages(page)->image + (vpages(page)->w * y) + x
+	sbase = vpages(page)->image + (vpages(page)->pitch * y) + x
 
 	'pixels are stored in columns for the sprites (argh)
 	for sh = 0 to w - 1
@@ -985,7 +987,7 @@ SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL 
 		exit sub
 	end if
 
-	vpages(p)->image[vpages(p)->w * y + x] = c
+	vpages(p)->image[vpages(p)->pitch * y + x] = c
 end SUB
 
 FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
@@ -998,7 +1000,7 @@ FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) 
 		return 0
 	end if
 
-	return vpages(p)->image[vpages(p)->w * y + x]
+	return vpages(p)->image[vpages(p)->pitch * y + x]
 end FUNCTION
 
 SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
@@ -1017,18 +1019,18 @@ SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h
 
 	if w <= 0 or h <= 0 then exit sub
 
-	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->w) + x
+	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->pitch) + x
 	if h >= 1 then
 		'draw the top
 		memset(sptr, c, w)
-		sptr += vpages(p)->w
+		sptr += vpages(p)->pitch
 	end if
 	if h >= 3 then
 		'draw the sides
 		for i as integer = h - 3 to 0 step -1
 			sptr[0] = c
 			sptr[w - 1] = c
-			sptr += vpages(p)->w
+			sptr += vpages(p)->pitch
 		next
 	end if
 	if h >= 2 then
@@ -1053,10 +1055,10 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 
 	if w <= 0 or h <= 0 then exit sub
 
-	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->w) + x
+	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->pitch) + x
 	while h > 0
 		memset(sptr, c, w)
-		sptr += vpages(p)->w
+		sptr += vpages(p)->pitch
 		h -= 1
 	wend
 end SUB
@@ -1077,13 +1079,13 @@ SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 
 	if w <= 0 or h <= 0 then exit sub
 
-	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->w) + x
+	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->pitch) + x
 	while h > 0
 		for i as integer = h mod 2 to w-1 step 2
 			sptr[i] = c
 		next
 		h -= 1
-		sptr += vpages(p)->w
+		sptr += vpages(p)->pitch
 	wend
 end SUB
 
@@ -1122,7 +1124,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 	end if
 
 	'point to start
-	sptr = vpages(p)->image + (y1 * vpages(p)->w) + x1
+	sptr = vpages(p)->image + (y1 * vpages(p)->pitch) + x1
 
   	xdiff = x2 - x1
   	ydiff = y2 - y1
@@ -1137,7 +1139,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 
 	'special case for vertical
   	if xdiff = 0 then
-  		instep = vpages(p)->w
+  		instep = vpages(p)->pitch
   		DRAW_SLICE(ydiff+1)
 		exit sub
   	end if
@@ -1151,7 +1153,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 
   	'and also for pure diagonals
   	if xdiff = ydiff then
-  		instep = vpages(p)->w + xdirection
+  		instep = vpages(p)->pitch + xdirection
   		DRAW_SLICE(ydiff+1)
 		exit sub
   	end if
@@ -1162,13 +1164,13 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 		shortaxis = ydiff
 
 		instep = xdirection
-		outstep = vpages(p)->w
+		outstep = vpages(p)->pitch
   	else
 		'other way round, draw vertical slices
 		longaxis = ydiff
 		shortaxis = xdiff
 
-		instep = vpages(p)->w
+		instep = vpages(p)->pitch
 		outstep = xdirection
 	end if
 
@@ -1403,6 +1405,7 @@ FUNCTION dowait () as integer
 	return timer >= flagtime
 end FUNCTION
 
+'FIXME: sprite pitch and so on!
 SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f as Font, BYREF pal as Palette16, BYVAL p as integer)
 	if wrkpage <> p then
 		wrkpage = p
@@ -1436,6 +1439,7 @@ SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f 
 				charframe.image = f.sprite(layer)->spr.image + .offset
 				charframe.w = .w
 				charframe.h = .h
+				charframe.pitch = .w
 				drawohr(charframe, @pal, x + .offx, y + .offy, 1, trans_type, p)
 
 				'print one character past the end of the line
@@ -1532,7 +1536,9 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	with font->sprite(0)->spr
 		.w = size  'garbage
 		.h = 1
+		.pitch = size 'more garbage, not sure whether there's a sensible value
 		.refcount = 1   'NOREFC
+		.arrayelem = 1 ' ??????
 		.mask = null
 		.image = callocate(size)
 	end with
@@ -1568,7 +1574,7 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	next
 end SUB
 
-'TODO/FIXME: need to use sprite_* functions to handle Frame stuff
+'TODO/FIXME: need to use sprite_* functions to handle Frame stuff (and some dodgy non-pitch-aware stuff here)
 SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
 	if basefont = null then
 		debug "createshadowfont wasn't passed a font!"
@@ -1623,6 +1629,7 @@ sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 	font->sprite(1) = callocate(sizeof(FontLayer))
 	with font->sprite(1)->spr
 		.w = 8
+		.pitch = 8
 		.h = 256 * 8
 		.refcount = 1   'NOREFC
 		'font->mask = allocate(256 * 8 * 8)
@@ -1676,7 +1683,7 @@ end SUB
 
 'This sub is for testing purposes only, and will be removed unless this happens to become
 'the adopted font format. Includes hardcoded values
-'TODO/FIXME: need to use sprite_* functions to handle Frame stuff
+'TODO/FIXME: need to use sprite_* functions to handle Frame stuff (plus pitch-awareness)
 SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 	font_unload font
 	if font = null then exit sub
@@ -1719,7 +1726,7 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 				for y = 0 to .h - 1
 					for x = 0 to .w - 1
 						'bitmap2page to blame
-						*sptr = vpages(2)->image[y * 320 + x]
+						*sptr = vpages(2)->image[y * vpages(2)->pitch + x]
 						sptr += 1
 					next
 				next
@@ -1748,6 +1755,7 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 	with font->sprite(1)->spr
 		.w = size  'garbage
 		.h = 1
+		.pitch = size 'more garbage
 		.refcount = 1   'NOREFC
 		.mask = null
 		.image = image
@@ -1834,9 +1842,14 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 	if bpage >= 0 then
 		'read from screen
 		sptr = vpages(wrkpage)->image
-		sptr = sptr + (vpages(wrkpage)->w * l)
-		fput(f, , sptr, bsize)
-		'do I need to bother with buffer?
+		sptr = sptr + (vpages(wrkpage)->pitch * l)
+		idx = bsize
+		while idx > vpages(wrkpage)->w
+		      fput(f, , sptr, vpages(wrkpage)->w)
+		      idx -= vpages(wrkpage)->w
+		      sptr += vpages(wrkpage)->pitch
+		wend
+		fput(f, , sptr, idx)
 	else
 		'debug "buffer size to read = " + str$(bsize)
 		for idx = 0 to bsize - 1 ' this will be slow
@@ -1876,9 +1889,14 @@ SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
 	if bpage >= 0 then
 		'read to screen
 		sptr = vpages(wrkpage)->image
-		sptr = sptr + (vpages(wrkpage)->w * l)
-		fget(f, ,sptr, bsize)
-		'do I need to bother with buffer?
+		sptr = sptr + (vpages(wrkpage)->pitch * l)
+		idx = bsize
+		while idx > vpages(wrkpage)->w
+		      fget(f, , sptr, vpages(wrkpage)->w)
+		      idx -= vpages(wrkpage)->w
+		      sptr += vpages(wrkpage)->pitch
+		wend
+		fget(f, , sptr, idx)
 	else
 		'debug "buffer size to read = " + str$(bsize)
 		for idx = 0 to bsize - 1 ' this will be slow
@@ -2558,7 +2576,7 @@ SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
 		dim info as BITMAPINFOHEADER
 		dim argb as RGBQUAD
 
-		dim as integer of, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed, pitch
+		dim as integer of, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed
 		dim as ubyte ptr s
 
 		biSizeImage = fr->w * fr->h
@@ -2599,11 +2617,10 @@ SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
 		next
 
 		h = fr->h
-		pitch = fr->w
-		s = fr->image + (h - 1) * pitch
+		s = fr->image + (h - 1) * fr->pitch
 		while h > 0
-			fput(of, , s, pitch)
-			s -= pitch
+			fput(of, , s, fr->w)
+			s -= fr->pitch
 			h -= 1
 		wend
 
@@ -3428,8 +3445,7 @@ sub setclip(l as integer = 0, t as integer = 0, r as integer = 319, b as integer
 	clipb = bound(b, 0, 199)
 end sub
 
-'trans = -1 (or other): transparent where ->mask zero
-'trans = -2: ->image is used as the mask instead of ->mask, ie use colour 0 as transparent (not supported for scale != 1)
+'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
 sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
 	dim as integer i, j
 	dim as ubyte ptr maskp, srcp
@@ -3470,8 +3486,8 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 	end if
 
 	if starty < clipt then
-		srcp += (clipt - starty) * spr.w
-		maskp += (clipt - starty) * spr.w
+		srcp += (clipt - starty) * spr.pitch
+		maskp += (clipt - starty) * spr.pitch
 		starty = clipt
 	end if
 
@@ -3486,8 +3502,12 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 
 	if starty > endy or startx > endx then exit sub
 
-	sptr = vpages(page)->image + startx + starty * vpages(page)->w
-	destlineinc = (vpages(page)->w - 1) - endx + startx
+	'above we calculate how many bytes of pixels should be skipped at the beginning+end
+	'of each source line, now add on number of bytes skipped due to pitch
+	srclineinc += spr.pitch - spr.w
+
+	sptr = vpages(page)->image + startx + starty * vpages(page)->pitch
+	destlineinc = vpages(page)->pitch - (endx - startx + 1)
 
 	if scale = 1 then
 		if pal <> 0 and trans <> 0 then
@@ -3538,8 +3558,8 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 		elseif trans = 0 then 'and pal = 0
 			for i = starty to endy
 				memcpy(sptr, srcp, endx - startx + 1)
-				srcp += spr.w
-				sptr += vpages(page)->w
+				srcp += spr.pitch
+				sptr += vpages(page)->pitch
 			next
 		else 'pal = 0 and trans <> 0
 			for i = starty to endy
@@ -3625,7 +3645,7 @@ sub grabrect(page as integer, x as integer, y as integer, w as integer, h as int
 			l = i * w + j
 			'ignore clip rect, but check screen bounds
 			if not (px < 0 or px >= vpages(page)->w or py < 0 or py >= vpages(page)->h) then
-				ibuf[l] = sptr[(py * vpages(page)->w) + px]
+				ibuf[l] = sptr[(py * vpages(page)->pitch) + px]
 				if tbuf then
 					if ibuf[l] = 0 then tbuf[l] = &hff else tbuf[l] = 0
 				end if
@@ -3881,6 +3901,7 @@ function sprite_new(byval w as integer, byval h as integer, byval frames as inte
 			if i > 0 then .arrayelem = 1
 			.w = w
 			.h = h
+			.pitch = w
 			.mask = NULL
 			if clr then
 				.image = callocate(w * h)
@@ -4042,8 +4063,9 @@ end sub
 
 function sprite_describe(byval p as frame ptr) as string
 	if p = 0 then return "'(null)'"
-	return "'(0x" & hex(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h & " img=0x" & hex(p->image) & " msk=0x" _
-	       & hex(p->mask) & " cached=" & p->cached & " aelem=" & p->arrayelem & " refc=" & p->refcount & "'"
+	return "'(0x" & hex(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h & " img=0x" & hex(p->image) _
+	       & " msk=0x" & hex(p->mask) & " pitch=" & p->pitch & " cached=" & p->cached & " aelem=" _
+	       & p->arrayelem & " refc=" & p->refcount & "'"
 end function
 
 'this is mostly just a gimmick
@@ -4057,6 +4079,7 @@ function sprite_is_valid(byval p as frame ptr) as integer
 	if p->refcount > 100000 then ret = 0
 	
 	if p->w < 0 or p->h < 0 then ret = 0
+	if p->pitch < p->w then ret = 0
 	
 	if p->image = 0 then ret = 0
 	
@@ -4084,6 +4107,7 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	
 	ret->w = p->w
 	ret->h = p->h
+	ret->pitch = p->w
 	ret->refcount = 1
 	ret->image = 0
 	ret->mask = 0
@@ -4092,7 +4116,14 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	if p->image then
 		if clr = 0 then
 			ret->image = allocate(ret->w * ret->h)
-			memcpy(ret->image, p->image, ret->w * ret->h)
+			if p->w = p->pitch then
+				'a little optimisation (we know ret->w == ret->pitch)
+				memcpy(ret->image, p->image, ret->w * ret->h)
+			else
+				for i = 0 to ret->h - 1
+					memcpy(ret->image + i * ret->pitch, p->image + i * p->pitch, ret->w)
+				next
+			end if
 		else
 			ret->image = callocate(ret->w * ret->h)
 		end if
@@ -4100,7 +4131,14 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 	if p->mask then
 		if clr = 0 then
 			ret->mask = allocate(ret->w * ret->h)
-			memcpy(ret->mask, p->mask, ret->w * ret->h)
+			if p->w = p->pitch then
+				'a little optimisation (we know ret->w == ret->pitch)
+				memcpy(ret->mask, p->mask, ret->w * ret->h)
+			else
+				for i = 0 to ret->h - 1
+					memcpy(ret->mask + i * ret->pitch, p->mask + i * p->pitch, ret->w)
+				next
+			end if
 		else
 			ret->mask = callocate(ret->w * ret->h)
 		end if
@@ -4162,9 +4200,9 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 				'tx = sxfrom
 				for tx = sxfrom to sxto
 					'figure out where to put the pixel
-					pix = (ty * vpages(page)->w) + tx
+					pix = (ty * vpages(page)->pitch) + tx
 					'and where to get the pixel from
-					spix = (int((ty-syfrom) / scale) * .w) + int((tx-sxfrom) / scale)
+					spix = (((ty-syfrom) \ scale) * .pitch) + ((tx-sxfrom) \ scale)
 					
 					if pal <> 0 then
 						sptr[pix] = pal->col(.image[spix])
@@ -4178,9 +4216,9 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 				'tx = sxfrom
 				for tx = sxfrom to sxto
 					'figure out where to put the pixel
-					pix = (ty * vpages(page)->w) + tx
+					pix = (ty * vpages(page)->pitch) + tx
 					'and where to get the pixel from
-					spix = (((ty-y) \ scale) * .w) + ((tx-x) \ scale)
+					spix = (((ty-y) \ scale) * .pitch) + ((tx-x) \ scale)
 					
 					'check mask
 					if mptr[spix] then
@@ -4208,13 +4246,15 @@ function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p 
 
 	'by default, sprites use colourkey transparency instead of masks
 	if cpy->mask = 0 then
-		cpy->mask = allocate(cpy->w * cpy->h)
+		'note that the pitch of the mask has to match the image pitch
+		'(we happen to  know that sprite_duplicate returns an image with pitch=w, but don't assume it)
+		cpy->mask = allocate(cpy->pitch * cpy->h)
 		if cpy->mask = 0 then
 			debug "could not copy mask"
 			sprite_unload(@spr)
 			return 0
 		end if
-		memcpy(cpy->mask, cpy->image, cpy->w * cpy->h)
+		memcpy(cpy->mask, cpy->image, cpy->pitch * cpy->h)
 	end if
 	
 	dim as integer i, j, sx, sy, tog
@@ -4226,55 +4266,40 @@ function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p 
 			for i = 0 to t - 1
 				for sy = 0 to spr->h - 1
 					sx = int(rnd * spr->w)
-					cpy->mask[sy * spr->w + sx] = 0
+					cpy->mask[sy * spr->pitch + sx] = 0
 				next sy
 			next i
 			randomize timer, 3 're-seed random (MT PRNG)
 
 		case 1 'crossfade
+			'interesting idea: could maybe replace all this with calls to generalised fuzzyrect
+			dim m as integer = spr->w * spr->h / tim * p * 2
+			dim mptr as ubyte ptr
+			dim xoroff as integer = 0
 			if p > tim / 2 then
-				dim m as integer = spr->w * spr->h / tim * (p - tim / 2) * 2
-				sx = 0
-				sy = 0
-				tog = 0
-				for i = 0 to spr->w * spr->h - 1
-					sx += 1
-					tog = tog xor 1
-					if sx >= spr->w then
-						sy += 1
-						sx = 0
+				'after halfway mark: checker whole sprite, then checker the remaining (with tog xor'd 1)
+				for sy = 0 to spr->h - 1
+					mptr = cpy->mask + sy * cpy->pitch
+					tog = sy and 1
+					for sx = 0 to spr->w - 1
 						tog = tog xor 1
-					end if
-					if tog then cpy->mask[i] = 0
+						if tog then mptr[sx] = 0
+					next
 				next
-				sx = 0
-				sy = 0
-				tog = 1
-				for i = 0 to m - 1
-					sx += 1
-					tog = tog xor 1
-					if sx >= spr->w then
-						sy += 1
-						sx = 0
-						tog = tog xor 1
-					end if
-					if tog then cpy->mask[i] = 0
-				next
-			else
-				dim m as integer = spr->w * spr->h / tim * p * 2
-				sx = 0
-				sy = 0
-				for i = 0 to m - 1
-					sx += 1
-					tog = tog xor 1
-					if sx >= spr->w then
-						sy += 1
-						sx = 0
-						tog = tog xor 1
-					end if
-					if tog then cpy->mask[i] = 0
-				next
+				xoroff = 1
+				m = spr->w * spr->h / tim * (p - tim / 2) * 2
 			end if
+			'checker the first m pixels of the sprite
+			for sy = 0 to spr->h - 1
+				mptr = cpy->mask + sy * cpy->pitch
+				tog = (sy and 1) xor xoroff
+				for sx = 0 to spr->w - 1
+					tog = tog xor 1
+					if tog then mptr[sx] = 0
+					m -= 1
+					if m <= 0 then exit for, for
+				next
+			next
 		case 2 'diagonal vanish
 			i = spr->w / tim * p * 2
 			j = i
@@ -4283,26 +4308,18 @@ function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p 
 				if sy >= spr->h then exit for
 				for sx = 0 to j
 					if sx >= spr->w then exit for
-					cpy->mask[sy * spr->w + sx] = 0
+					cpy->mask[sy * spr->pitch + sx] = 0
 				next
 			next
 		case 3 'sink into ground
 			dim t as integer = spr->h / tim * p
-			'debug str(t)
-			for sy = spr->h - 1 to t step -1
-				for sx = 0 to spr->w - 1
-					dim s as integer = (sy-t) * spr->w + sx
-					if s < 0 or s > spr->w * spr->h - 1 then
-						debug "!!! " & s
-					end if
-					cpy->image[sy * spr->w + sx] = spr->image[s]
-					cpy->mask[sy * spr->w + sx] = spr->mask[s]
-				next
-			next
-			for i = 0 to t - 1
-				for sx = 0 to spr->w - 1
-					cpy->mask[i * spr->w + sx] = 0
-				next
+			for sy = 0 to spr->h - 1
+				if sy < t then 
+					memset(cpy->mask + sy * cpy->pitch, 0, cpy->w)
+				else
+					memcpy(cpy->image + sy * cpy->pitch, spr->image + (sy - t) * spr->pitch, cpy->w)
+					memcpy(cpy->mask + sy * cpy->pitch, spr->mask + (sy - t) * spr->pitch, cpy->w)
+				end if
 			next
 	end select
 
@@ -4335,9 +4352,9 @@ sub sprite_flip_horiz(byval spr as frame ptr)
 		exit sub
 	end if
 
-	flip_image(spr->image, spr->h, spr->w, spr->w, 1)
+	flip_image(spr->image, spr->h, spr->pitch, spr->w, 1)
 	if spr->mask then
-		flip_image(spr->mask, spr->h, spr->w, spr->w, 1)
+		flip_image(spr->mask, spr->h, spr->pitch, spr->w, 1)
 	end if
 end sub
 
@@ -4351,18 +4368,32 @@ sub sprite_flip_vert(byval spr as frame ptr)
 		exit sub
 	end if
 
-	flip_image(spr->image, spr->w, 1, spr->h, spr->w)
+	flip_image(spr->image, spr->w, 1, spr->h, spr->pitch)
 	if spr->mask then
-		flip_image(spr->mask, spr->w, 1, spr->h, spr->w)
+		flip_image(spr->mask, spr->w, 1, spr->h, spr->pitch)
 	end if
 end sub
 
+'Note that we clear masks to transparent! I'm not sure if this is best (not currently used anywhere), but notice that
+'sprite_duplicate with clr=1 does the same
 sub sprite_clear(byval spr as frame ptr)
 	if spr->image then
-		memset(spr->image, 0, spr->w * spr->h)
+		if spr->w = spr->pitch then
+			memset(spr->image, 0, spr->w * spr->h)
+		else
+			for i as integer = 0 to spr->h - 1
+				memset(spr->image + i * spr->pitch, 0, spr->w)
+			next
+		end if
 	end if
 	if spr->mask then
-		memset(spr->mask, 0, spr->w * spr->h)
+		if spr->w = spr->pitch then
+			memset(spr->mask, 0, spr->w * spr->h)
+		else
+			for i as integer = 0 to spr->h - 1
+				memset(spr->mask + i * spr->pitch, 0, spr->w)
+			next
+		end if
 	end if
 end sub
 

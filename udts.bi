@@ -27,6 +27,7 @@ END TYPE
 type Frame
 	w as integer
 	h as integer
+	pitch as integer     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
 	image as ubyte ptr
 	mask as ubyte ptr
 	refcount as integer  'see sprite_unload in particular for documentation
