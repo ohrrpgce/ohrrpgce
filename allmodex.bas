@@ -27,7 +27,7 @@ type node 	'only used for floodfill
 	nextnode as node ptr
 end type
 
-declare sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
+declare sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
 declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
@@ -57,8 +57,7 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 
 declare sub pollingthread(byval as threadbs)
 
-dim shared vispage as integer
-dim shared wrkpage as integer
+dim shared wrkpage as integer  'used to track which page the clips are for; also used by some legacy modex functions
 dim shared vpages(0 to 7) as Frame ptr  'up to 6 used at once, last I counted
 
 dim shared bptr as integer ptr	' buffer
@@ -106,7 +105,7 @@ dim shared textfg as integer
 dim shared textbg as integer
 dim shared fonts(2) as Font
 
-dim shared as integer clipl, clipt, clipr, clipb
+dim shared as integer clipl, clipt, clipr, clipb 'these clip to the current wrkpage and must be reset whenever that changes
 
 dim shared intpal(0 to 255) as RGBcolor	'current palette
 dim shared updatepal as integer  'setpal called, load new palette at next setvispage
@@ -124,11 +123,9 @@ sub setmodex()
 		vpages(i) = sprite_new(320, 200, , YES)
 	next
 	'other vpages slots are for temporary pages
-	setclip
 
 	gfx_init
-	vispage = 0
-	wrkpage = 0
+	setclip , , , , 0
 
 	'init vars
 	stacksize = -1
@@ -188,7 +185,7 @@ SUB freepage (BYVAL page as integer)
 
 	sprite_unload(@vpages(page))
 	if wrkpage = page then
-		wrkpage = 0		
+		setclip , , , , 0
 	end if
 END SUB
 
@@ -214,7 +211,6 @@ SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1, BYVAL top as
 	top = bound(top, 0, vpages(page)->h - 1)
 	bottom = bound(bottom, top, vpages(page)->h - 1)
 	memset(vpages(page)->image + vpages(page)->w * top, colour, vpages(page)->w * (bottom - top + 1))
-	wrkpage = page
 end SUB
 
 SUB setvispage (BYVAL page as integer)
@@ -236,8 +232,6 @@ SUB setvispage (BYVAL page as integer)
 	end if	
 	gfx_showpage(vpages(page)->image)
 	mutexunlock keybdmutex
-
-	vispage = page
 end SUB
 
 sub setpal(pal() as RGBcolor)
@@ -334,6 +328,10 @@ SUB fadetopal (pal() as RGBcolor)
 	next
 end SUB
 
+#define POINT_CLIPPED(x, y) ((x) < clipl orelse (x) > clipr orelse (y) < clipt orelse (y) > clipb)
+
+#define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
+
 SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL b as integer)
 'I think this is a setup routine like setpicstuf
 't and b are top and bottom margins
@@ -424,10 +422,10 @@ SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t
 	dim tileframe as frame
 	
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
 	end if
 
-	'set viewport to allow for top and bottom bars
+	'set viewport to allow for top and bottom bars (TODO: remove this)
 	setclip(0, maptop, 319, maptop + maplines - 1)
 
 	'copied from the asm
@@ -480,7 +478,7 @@ SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t
 				end if
 
 				'draw it on the map
-				drawohr(tileframe, , tx, ty, , trans)
+				drawohr(tileframe, , tx, ty, , trans, p)
 			end if
 
 			tx = tx + 20
@@ -529,7 +527,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	dim row as integer
 
 	if wrkpage <> page then
-		wrkpage = page
+		setclip , , , , page
 	end if
 
 	sw = pic(picoff)
@@ -579,7 +577,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 		nib = nib and 3
 	next
 	'now draw the image
-	drawohr(*hspr, , x, y, scale, trans)
+	drawohr(*hspr, , x, y, scale, trans, page)
 	'what a waste
 	sprite_unload(@hspr)
 end SUB
@@ -598,7 +596,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	dim row as integer
 
 	if wrkpage <> page then
-		wrkpage = page
+		setclip , , , , page
 	end if
 
 	sw = pic(picoff)
@@ -650,7 +648,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	next
 
 	'now draw the image
-	drawohr(*hspr, , x, y, , trans)
+	drawohr(*hspr, , x, y, , trans, page)
 
 	sprite_unload(@hspr)
 end SUB
@@ -659,37 +657,38 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 'This is the opposite of loadsprite, ie store raw sprite data in screen p
 'starting at x, y.
 	dim i as integer
-	dim p as integer
+	dim poff as integer
 	dim toggle as integer
 	dim sbytes as integer
-	dim sptr as ubyte ptr
 	dim h as integer
 	dim w as integer
 
 	if wrkpage <> page then
-		wrkpage = page
+		setclip , , , , page
 	end if
 
-	p = picoff
-	h = pic(p)
-	w = pic(p + 1)
-	p = p + 2
+	poff = picoff
+	h = pic(poff)
+	w = pic(poff + 1)
+	poff += 2
 	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 
-	sptr = vpages(page)->image + (vpages(page)->pitch * y) + x
+	y += x \ 320
+	x = x mod 320
 
-	'copy to passed int buffer, with 2 bytes per int as usual
+	'copy from passed int buffer, with 2 bytes per int as usual
 	toggle = 0
 	for i = 0 to sbytes - 1
 		if toggle = 0 then
-			*sptr = (pic(p) and &hff00) shr 8
+			PAGEPIXEL(x, y, page) = (pic(poff) and &hff00) shr 8
 			toggle = 1
 		else
-			*sptr = pic(p) and &hff
+			PAGEPIXEL(x, y, page) = pic(poff) and &hff
 			toggle = 0
-			p = p + 1
+			poff += 1
 		end if
-		sptr = sptr + 1
+		x += 1
+		if x = 320 then y += 1: x = 0
 	next
 
 end SUB
@@ -697,37 +696,37 @@ end SUB
 SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL page as integer)
 'reads sprite from given page into pic(), starting at picoff
 	dim i as integer
-	dim p as integer
+	dim poff as integer
 	dim toggle as integer
 	dim sbytes as integer
-	dim sptr as ubyte ptr
 	dim temp as integer
 
 	if wrkpage <> page then
-		wrkpage = page
+		setclip , , , , page
 	end if
 
 	sbytes = ((w * h) + 1) \ 2 	'only 4 bits per pixel
 
-	sptr = vpages(page)->image + (vpages(page)->pitch * y) + x
+	y += x \ 320
+	x = x mod 320
 
 	'copy to passed int buffer, with 2 bytes per int as usual
 	toggle = 0
-	p = picoff
-	pic(p) = w			'these are 4byte ints, not compat w. orig.
-	pic(p+1) = h
-	p = p + 2
+	poff = picoff
+	pic(poff) = w			'these are 4byte ints, not compat w. orig.
+	pic(poff+1) = h
+	poff += 2
 	for i = 0 to sbytes - 1
-		temp = *sptr
+		temp = PAGEPIXEL(x, y, page)
 		if toggle = 0 then
-			pic(p) = temp shl 8
-			toggle = 1
+			pic(poff) = temp shl 8
 		else
-			pic(p) = pic(p) or temp
-			toggle = 0
-			p = p + 1
+			pic(poff) = pic(poff) or temp
+			poff += 1
 		end if
-		sptr = sptr + 1
+		toggle xor= 1
+		x += 1
+		if x = 320 then y += 1: x = 0
 	next
 
 end SUB
@@ -774,7 +773,7 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 END SUB
 
 'FIXME DELETEME
-'--This code is for screen page debugging, and will be removed in the future!
+'--This code is for screen page debugging, and will be removed in the future!  (FIXME: this is getting old)
 DECLARE SUB debug_screen_page(p AS INTEGER)
 SUB debug_screen_page(p AS INTEGER)
 	dim caption as string
@@ -971,33 +970,33 @@ end sub
 
 SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
 	end if
 
-	if x < clipl orelse x > clipr orelse y < clipt orelse y > clipb then
+	if POINT_CLIPPED(x, y) then
 		'debug "attempt to putpixel off-screen " & x & "," & y & "=" & c & " on page " & p
 		exit sub
 	end if
 
-	vpages(p)->image[vpages(p)->pitch * y + x] = c
+	PAGEPIXEL(x, y, p) = c
 end SUB
 
 FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
 	end if
 
-	if x < clipl orelse x > clipr orelse y < clipt orelse y > clipb then
+	if POINT_CLIPPED(x, y) then
 		debug "attempt to readpixel off-screen " & x & "," & y & " on page " & p
 		return 0
 	end if
 
-	return vpages(p)->image[vpages(p)->pitch * y + x]
+	return PAGEPIXEL(x, y, p)
 end FUNCTION
 
 SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
 	end if
 
 	if w < 0 then x = x + w + 1: w = -w
@@ -1033,7 +1032,7 @@ end SUB
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
 	end if
 
 	if w < 0 then x = x + w + 1: w = -w
@@ -1057,7 +1056,7 @@ end SUB
 
 SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
 	end if
 
 	if w < 0 then x = x + w + 1: w = -w
@@ -1106,7 +1105,12 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 #define DRAW_SLICE(a) for i=0 to a-1: *sptr = c: sptr += instep: next
 
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
+	end if
+
+	if POINT_CLIPPED(x1, y1) orelse POINT_CLIPPED(x2, y2) then
+		debug "drawline: outside clipping"
+		exit sub
 	end if
 
   	if y1 > y2 then
@@ -1211,8 +1215,6 @@ end SUB
 
 SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer)
 'a floodfill.
-'Uses putpixel and readpixel, so could probably be sped up with direct access. Also ignores clipping
-'at the moment, which is possibly foolish
 	dim tcol as integer
 	dim queue as node ptr = null
 	dim tail as node ptr = null
@@ -1221,8 +1223,10 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 	dim tnode as node ptr = null
 
 	if wrkpage <> page then
-		wrkpage = page
+		setclip , , , , page
 	end if
+
+	if POINT_CLIPPED(x, y) then exit sub
 
 	tcol = readpixel(x, y, page)	'get target colour
 
@@ -1235,26 +1239,28 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 	queue->nextnode = null
 	tail = queue
 
+	'we only let coordinates within the clip bounds get onto the queue, so there's no need to check them
+
 	do
-		if readpixel(queue->x, queue->y, page) = tcol then
-			putpixel(queue->x, queue->y, c, page) 'change color
+		if PAGEPIXEL(queue->x, queue->y, page) = tcol then
+			PAGEPIXEL(queue->x, queue->y, page) = c
 			w = queue->x
 			e = queue->x
 			'find western limit
-			while w > 0 and readpixel(w-1, queue->y, page) = tcol
-				w = w-1
-				putpixel(w, queue->y, c, page) 'change
+			while w > clipl and PAGEPIXEL(w-1, queue->y, page) = tcol
+				w -= 1
+				PAGEPIXEL(w, queue->y, page) = c
 			wend
 			'find eastern limit
-			while e < 319 and readpixel(e+1, queue->y, page) = tcol
-				e = e+1
-				putpixel(e, queue->y, c, page)
+			while e < clipr and PAGEPIXEL(e+1, queue->y, page) = tcol
+				e += 1
+				PAGEPIXEL(e, queue->y, page) = c
 			wend
 			'add bordering nodes
 			for i = w to e
-				if queue->y > 0 then
+				if queue->y > clipt then
 					'north
-					if readpixel(i, queue->y-1, page) = tcol then
+					if PAGEPIXEL(i, queue->y-1, page) = tcol then
 						tail->nextnode = callocate(sizeof(node))
 						tail = tail->nextnode
 						tail->x = i
@@ -1262,9 +1268,9 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 						tail->nextnode = null
 					end if
 				end if
-				if queue->y < 199 then
+				if queue->y < clipb then
 					'south
-					if readpixel(i, queue->y+1, page) = tcol then
+					if PAGEPIXEL(i, queue->y+1, page) = tcol then
 						tail->nextnode = callocate(sizeof(node))
 						tail = tail->nextnode
 						tail->x = i
@@ -1296,7 +1302,7 @@ SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
 	dim plane as integer
 
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
 	end if
 
 	if NOT fileiswriteable(fil$) then exit sub
@@ -1332,7 +1338,7 @@ SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
 	dim plane as integer
 
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
 	end if
 
 	if NOT fileisreadable(fil$) then exit sub
@@ -1400,7 +1406,7 @@ end FUNCTION
 'FIXME: sprite pitch and so on!
 SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f as Font, BYREF pal as Palette16, BYVAL p as integer)
 	if wrkpage <> p then
-		wrkpage = p
+		setclip , , , , p
 	end if
 
 	startx += f.offset.x
@@ -1676,6 +1682,7 @@ end SUB
 'This sub is for testing purposes only, and will be removed unless this happens to become
 'the adopted font format. Includes hardcoded values
 'TODO/FIXME: need to use sprite_* functions to handle Frame stuff (plus pitch-awareness)
+'FIXME: setclip?
 SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 	font_unload font
 	if font = null then exit sub
@@ -1914,7 +1921,7 @@ end SUB
 SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 	if p >= 0 then
 		if wrkpage <> p then
-			wrkpage = p
+			setclip , , , , p
 		end if
 	end if
 
@@ -3429,25 +3436,32 @@ end function
 
 
 '-------------- Software GFX mode routines -----------------
-sub setclip(l as integer = 0, t as integer = 0, r as integer = 319, b as integer = 199)
-'TODO/FIXME: update for vpages
-	clipl = bound(l, 0, 320) '320 valid, prevents any drawing
-	clipt = bound(t, 0, 200)
-	clipr = bound(r, 0, 319)
-	clipb = bound(b, 0, 199)
+'Set the bounds used by various (not quite all?) video page drawing functions.
+'setclip must be called to reset the clip bounds whenever the wrkpage changes, to ensure
+'that they are valid (the video page dimensions might differ).
+'Aside from tracking which page the clips are for, some legacy code actually uses wrkpage,
+'these should be removed.
+sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval page as integer = -1)
+	if page <> -1 then wrkpage = page
+	with *vpages(wrkpage)
+		clipl = bound(l, 0, .w) '.w valid, prevents any drawing
+		clipt = bound(t, 0, .h)
+		clipr = bound(r, 0, .w - 1)
+		clipb = bound(b, 0, .h - 1)
+	end with
 end sub
 
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
-sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
+sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
 	dim as integer i, j
 	dim as ubyte ptr maskp, srcp
 	dim as ubyte ptr sptr
 	dim as integer srclineinc, destlineinc
 	dim as integer startx, starty, endx, endy
 
-	if page = -1 then page = wrkpage
-
-	if scale = 0 then scale = 1
+	if page <> wrkpage then
+		setclip , , , , page
+	end if
 
 	if scale <> 1 then
 		' isn't code duplication convenient?
@@ -4150,7 +4164,7 @@ function sprite_reference(byval p as frame ptr) as frame ptr
 end function
 
 'Public:
-' draws a sprite to a page. scale must be greater than 1. if trans is false, the
+' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the
 ' mask will be wholly ignored. Just like drawohr, masks are optional, otherwise use colourkey 0
 sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
 	dim sptr as ubyte ptr
@@ -4163,13 +4177,15 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 		exit sub
 	end if
 
-	if scale = 0 then scale = 1
 	if scale = 1 then
 		drawohr *spr, pal, x, y, scale, trans, page
 		exit sub
 	end if
 
-	'assume wrkpage
+	if page <> wrkpage then
+		setclip , , , , page
+	end if
+
 	sptr = vpages(page)->image
 
 	mptr = spr->mask

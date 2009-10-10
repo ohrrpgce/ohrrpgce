@@ -24,7 +24,7 @@ DECLARE SUB setmapblock (BYVAL x as integer, BYVAL y as integer, byval l as inte
 DECLARE FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer, byval l as integer) as integer
 DECLARE SUB setpassblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
 DECLARE FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer) as integer
-DECLARE SUB setclip(l as integer = 0, t as integer = 0, r as integer = 319, b as integer = 199)
+DECLARE SUB setclip (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL page as integer = -1)
 DECLARE SUB drawmap overload (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, byval trans as integer = 0)
 DECLARE SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
 DECLARE SUB setanim (BYVAL cycle1 as integer, BYVAL cycle2 as integer)

@@ -395,6 +395,8 @@ ELSEIF border >= 0 AND border <= 14 THEN
  WITH box_border_cache(border)
   IF .sprite THEN ' Only proceed if a sprite is actually selected
    'Draw edges
+   'ensure we are clipping the correct page (there are many ways of doing this)
+   setclip , , , , p
    '--Top and bottom edges
    FOR i = x + 8 TO x + w - 24 STEP 16
     setclip , , , y + h - 1
