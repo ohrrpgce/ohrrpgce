@@ -15,7 +15,6 @@ DEFINT A-Z
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
-#include "scancodes.bi"
 #include "slices.bi"
 
 #include "game.bi"
@@ -172,7 +171,7 @@ DO
  setwait speedcontrol
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scEsc) > 1 THEN EXIT DO
  FOR i = 0 TO 1
   IF readjoy(joy(), i) THEN EXIT FOR
  NEXT i
@@ -233,7 +232,7 @@ DO
   CASE 6
    IF disabled = 0 THEN
     writejoysettings
-    gen(60) = 1
+    gen(genJoy) = 1
     EXIT DO
    END IF
  END SELECT
@@ -415,7 +414,7 @@ FOR i = 0 TO small(gen(genMaxHero), 59) '--for each available hero
  FOR j = 0 TO 40
   IF hero(j) - 1 = i THEN
    IF herobits(i, 0) > 1 THEN setbit tag(), 0, herobits(i, 0), 1 '---HAVE HERO
-   IF herobits(i, 1) > 1 AND stat(j, 0, 0) THEN setbit tag(), 0, herobits(i, 1), 1 '---IS ALIVE
+   IF herobits(i, 1) > 1 AND stat(j, 0, statHP) THEN setbit tag(), 0, herobits(i, 1), 1 '---IS ALIVE
    IF herobits(i, 2) > 1 AND i = leader THEN setbit tag(), 0, herobits(i, 2), 1 '---IS LEADER
    IF herobits(i, 3) > 1 AND j < 4 THEN setbit tag(), 0, herobits(i, 3), 1 '---IN PARTY
   END IF
@@ -501,7 +500,7 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   IF swapme >= 0 THEN
    MenuSound gen(genCancelSFX)
    swapme = -1
@@ -510,7 +509,7 @@ DO
   END IF
  END IF
  IF iAll THEN
-  IF carray(0) > 1 THEN
+  IF carray(ccUp) > 1 THEN
    MenuSound gen(genCursorSFX)
    IF ecsr < 0 THEN
     ecsr = la
@@ -520,7 +519,7 @@ DO
     GOSUB refreshemenu
    END IF
   END IF
-  IF carray(1) > 1 THEN
+  IF carray(ccDown) > 1 THEN
    MenuSound gen(genCursorSFX)
    IF ecsr < 0 THEN
     ecsr = 0
@@ -531,17 +530,17 @@ DO
    END IF
   END IF
  END IF
- IF carray(2) > 1 AND ecsr < 0 THEN
+ IF carray(ccLeft) > 1 AND ecsr < 0 THEN
   MenuSound gen(genCursorSFX)
   acsr = loopvar(acsr, 0, 3, -1)
   IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
  END IF
- IF carray(3) > 1 AND ecsr < 0 THEN
+ IF carray(ccRight) > 1 AND ecsr < 0 THEN
   MenuSound gen(genCursorSFX)
   acsr = loopvar(acsr, 0, 3, 1)
   IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
  END IF
- IF carray(4) > 1 THEN
+ IF carray(ccUse) > 1 THEN
   IF swapme = -1 THEN
    MenuSound gen(genAcceptSFX)
    IF ecsr < 0 THEN
@@ -675,7 +674,7 @@ RETURN 0
 END FUNCTION
 
 SUB loaddoor (map)
-IF gen(95) < 2 THEN
+IF gen(genVersion) < 2 THEN
  '--obsolete doors
 ELSE
  '--THE RIGHT WAY--
@@ -688,7 +687,7 @@ SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
 END SUB
 
 SUB loadgame (slot, stat())
-DIM gmaptmp(dimbinsize(4))
+DIM gmaptmp(dimbinsize(binMAP))
 
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + game
@@ -700,7 +699,7 @@ loadset sg$, slot * 2, 0
 savver = buffer(0)
 IF savver < 2 OR savver > 3 THEN EXIT SUB
 gam.map.id = buffer(1)
-loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, gam.map.id
+loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) / 2, gam.map.id
 catx(0) = buffer(2) + gmaptmp(20) * 20
 caty(0) = buffer(3) + gmaptmp(21) * 20
 catd(0) = buffer(4)
@@ -934,7 +933,7 @@ rebuild_inventory_captions inventory()
 
 '---BLOODY BACKWARD COMPATABILITY---
 'fix doors...
-IF savver = 2 THEN gen(95) = 3
+IF savver = 2 THEN gen(genVersion) = 3
 
 dim her as herodef
 
@@ -1034,7 +1033,7 @@ SUB minimap (x, y, tilesets() as TilesetData ptr)
   tog = tog XOR 1
   playtimer
   control
-  IF carray(4) > 1 OR carray(5) > 1 THEN EXIT DO
+  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN EXIT DO
   FOR i = 1 TO 99
    IF keyval(i) > 1 THEN EXIT DO
   NEXT i
@@ -1111,7 +1110,7 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
   control
   IF pickpoint = NO THEN
    usemenu state
-   IF carray(5) > 1 THEN
+   IF carray(ccMenu) > 1 THEN
     loadmaptilesets tilesets(), gmap()
     refresh_map_slice_tilesets
     EXIT DO 'cancel
@@ -1124,7 +1123,7 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
    END IF
    IF enter_or_space() THEN pickpoint = YES
   ELSE
-   IF carray(4) > 1 THEN 'confirm and teleport
+   IF carray(ccUse) > 1 THEN 'confirm and teleport
     IF gam.map.id <> destmap THEN teleporttool = -1
     gam.map.id = destmap
     FOR i = 0 TO 15
@@ -1133,7 +1132,7 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
     NEXT
     EXIT DO
    END IF
-   IF carray(5) > 1 THEN pickpoint = NO
+   IF carray(ccMenu) > 1 THEN pickpoint = NO
    
    IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
     xrate = 8
@@ -1143,10 +1142,10 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
     yrate = 1
    END IF
 
-   IF slowkey(72, 1) THEN dest.y = large(dest.y - yrate, 0)
-   IF slowkey(80, 1) THEN dest.y = small(dest.y + yrate, mapsize.y - 1)
-   IF slowkey(75, 1) THEN dest.x = large(dest.x - xrate, 0)
-   IF slowkey(77, 1) THEN dest.x = small(dest.x + xrate, mapsize.x - 1)
+   IF slowkey(scUp, 1) THEN dest.y = large(dest.y - yrate, 0)
+   IF slowkey(scDown, 1) THEN dest.y = small(dest.y + yrate, mapsize.y - 1)
+   IF slowkey(scLeft, 1) THEN dest.x = large(dest.x - xrate, 0)
+   IF slowkey(scRight, 1) THEN dest.x = small(dest.x + xrate, mapsize.x - 1)
 
    DIM temp AS XYPair = camera
    camera.x = bound(camera.x, (dest.x + 1) * zoom + 40 - minisize.x, dest.x * zoom - 40)  'follow dest
@@ -1235,20 +1234,20 @@ DO
  playtimer
  control
  wtg = loopvar(wtg, 0, 3, 1)
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   onwho = -1
   menusound gen(genCancelSFX)
   EXIT DO
  END IF
- IF carray(2) > 1 THEN
+ IF carray(ccLeft) > 1 THEN
   DO: w = loopvar(w, 0, 3, -1): LOOP UNTIL hero(w) > 0
   menusound gen(genCursorSFX)
  END IF
- IF carray(3) > 1 THEN
+ IF carray(ccRight) > 1 THEN
   DO: w = loopvar(w, 0, 3, 1): LOOP UNTIL hero(w) > 0
   menusound gen(genCursorSFX)
  END IF
- IF carray(4) > 1 THEN onwho = w: EXIT DO
+ IF carray(ccUse) > 1 THEN onwho = w: EXIT DO
  centerbox 160, 100, 140, 52, 1, dpage
  o = 0
  FOR i = 0 TO 3
@@ -1304,7 +1303,7 @@ IF isfile(exepath$ + SLASH + "joyset.ini") THEN
  '--wait a little to make sure the buttons clear
  setwait speedcontrol
  dowait
- gen(60) = 1
+ gen(genJoy) = 1
 ELSE
  '--no joyset.ini file, must recalibrate
  'calibrate
@@ -1336,8 +1335,8 @@ IF limit = 0 THEN limit = 16
 prompt$ = readglobalstring$(137, "Name the Hero", 20)
 spacer$ = STRING$(large(limit, LEN(names(who))), " ")
 remember$ = names(who)
-rememberjoycal = gen(60)
-gen(60) = 1'--disable joystick calibration
+rememberjoycal = gen(genJoy)
+gen(genJoy) = 1'--disable joystick calibration
 
 copypage dpage, vpage
 setvispage vpage
@@ -1353,8 +1352,8 @@ DO
  playtimer
  control
  centerbox 160, 100, 168, 32, 1, dpage
- IF carray(4) > 1 AND keyval(57) = 0 THEN EXIT DO
- IF carray(5) > 1 THEN names(who) = remember$
+ IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN EXIT DO
+ IF carray(ccMenu) > 1 THEN names(who) = remember$
  strgrabber names(who), limit
  edgeprint prompt$, xstring(prompt$, 160), 90, uilook(uiText), dpage
  textcolor uilook(uiHighlight), uiLook(uiHighlight)
@@ -1365,7 +1364,7 @@ DO
  dowait
 LOOP
 menusound gen(genAcceptSFX)
-gen(60) = rememberjoycal '-- restore joystick calibration setting
+gen(genJoy) = rememberjoycal '-- restore joystick calibration setting
 
 IF needfadeout = 1 THEN
  fadeout 0, 0, 0
@@ -1857,7 +1856,7 @@ END SUB
 
 SUB savegame (slot, stat())
 
-DIM gmaptmp(dimbinsize(4))
+DIM gmaptmp(dimbinsize(binMAP))
 
 '--FLUSH BUFFER---
 FOR i = 0 TO 16000
@@ -1866,7 +1865,7 @@ NEXT i
 
 buffer(0) = 3        'SAVEGAME VERSION NUMBER
 buffer(1) = gam.map.id
-loadrecord gmaptmp(), game + ".map", getbinsize(4) / 2, gam.map.id
+loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) / 2, gam.map.id
 buffer(2) = catx(0) - gmaptmp(20) * 20
 buffer(3) = caty(0) - gmaptmp(21) * 20
 buffer(4) = catd(0)
@@ -2235,10 +2234,10 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(0) > 1 THEN pt = large(pt - 1, 0) : menusound gen(genCursorSFX)
- IF carray(1) > 1 THEN pt = small(pt + 1, last) : menusound gen(genCursorSFX)
- IF carray(5) > 1 THEN menusound gen(genCancelSFX) : EXIT DO
- IF carray(4) > 1 OR autopick THEN
+ IF carray(ccUp) > 1 THEN pt = large(pt - 1, 0) : menusound gen(genCursorSFX)
+ IF carray(ccDown) > 1 THEN pt = small(pt + 1, last) : menusound gen(genCursorSFX)
+ IF carray(ccMenu) > 1 THEN menusound gen(genCancelSFX) : EXIT DO
+ IF carray(ccUse) > 1 OR autopick THEN
   IF pt = last THEN menusound gen(genCancelSFX) : EXIT DO
   IF menuid(pt) = 0 THEN '--BUY
    buystuff id, 0, storebuf(), stat()
@@ -2339,16 +2338,16 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   inn = 1 '?? Remember cursor position maybe?
   menusound gen(genCancelSFX)
   EXIT DO
  END IF
- IF carray(0) > 1 OR carray(1) > 1 OR carray(2) > 1 OR carray(3) > 1 THEN
+ IF carray(ccUp) > 1 OR carray(ccDown) > 1 OR carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
   menusound gen(genCursorSFX)
   inn = inn XOR 1
  END IF
- IF carray(4) > 1 THEN
+ IF carray(ccUse) > 1 THEN
   IF inn = 0 AND gold >= price THEN
    gold = gold - price
    useinn = -1
@@ -2365,7 +2364,7 @@ DO
   IF hero(i) > 0 THEN
    col = uilook(uiText)
    edgeprint names(i), 128 - LEN(names(i)) * 8, 5 + y * 10, col, dpage
-   edgeprint STR$(ABS(stat(i, 0, 0))) + "/" + STR$(ABS(stat(i, 1, 0))), 136, 5 + y * 10, col, dpage
+   edgeprint STR$(ABS(stat(i, 0, statHP))) + "/" + STR$(ABS(stat(i, 1, statHP))), 136, 5 + y * 10, col, dpage
    y = y + 1
   END IF
  NEXT i
@@ -2413,17 +2412,17 @@ STATIC pt, top
 
 pt = large(pt, 0)
 
-IF keyval(74) > 1 OR keyval(12) > 1 THEN
+IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
  '--minus
- IF keyval(29) > 0 THEN
+ IF keyval(scCtrl) > 0 THEN
   setbit tag(), 0, pt, 0
  ELSE
   pt = large(pt - 1, 0)
  END IF
 END IF
-IF keyval(78) > 1 OR keyval(13) > 1 THEN
+IF keyval(scNumpadPlus) > 1 OR keyval(scEquals) > 1 THEN
  '--plus
- IF keyval(29) > 0 THEN
+ IF keyval(scCtrl) > 0 THEN
   setbit tag(), 0, pt, 1
  ELSE
   pt = small(pt + 1, 1999)

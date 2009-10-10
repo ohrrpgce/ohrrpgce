@@ -1,8 +1,11 @@
 'OHRRPGCE scancode constants, generated from scancode.hsi, because I didn't 
-'like fbgfx.bi one's
+'like fbgfx.bi's ones
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 '
+
+#IFNDEF SCANCODES_BI
+#DEFINE SCANCODES_BI
 
 CONST scEsc = 01
 CONST sc1 = 02
@@ -124,3 +127,5 @@ CONST scF12 = 88
 CONST scLeftWinLogo = 91
 CONST scRightWinLogo = 92
 CONST scContext = 93
+
+#ENDIF

@@ -15,7 +15,6 @@ DEFINT A-Z
 #INCLUDE "uiconst.bi"
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
-#INCLUDE "scancodes.bi"
 
 'modules
 #include "bmod.bi"
@@ -181,13 +180,13 @@ DO
 
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debug keys
-  IF keyval(62) > 1 THEN away = 11 ' Instant-cheater-running
-  IF keyval(63) > 1 THEN rew.exper = 1000000  'Million experience!
-  IF keyval(87) > 1 THEN vis = vis XOR 1  'Draw debug info
+  IF keyval(scF4) > 1 THEN away = 11 ' Instant-cheater-running
+  IF keyval(scF5) > 1 THEN rew.exper = 1000000  'Million experience!
+  IF keyval(scF11) > 1 THEN vis = vis XOR 1  'Draw debug info
  END IF
- IF keyval(69) > 1 THEN GOSUB pgame '--PAUSE
+ IF keyval(scNumlock) > 1 THEN GOSUB pgame '--PAUSE
  '--running away
- IF carray(5) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
+ IF carray(ccMenu) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
   flee = flee + 1
  END IF
  GOSUB tryrun
@@ -648,7 +647,7 @@ RETRACE
 picktarg: '-----------------------------------------------------------
 
 'cancel
-IF carray(5) > 1 THEN
+IF carray(ccMenu) > 1 THEN
  bslot(bat.hero_turn).attack = 0
  conlmp(bat.hero_turn) = 0
  bat.targ.mode = targNONE
@@ -691,7 +690,7 @@ IF bat.targ.force_first THEN
  WEND
 END IF
 
-IF bat.targ.opt_spread = 2 AND (carray(2) > 1 OR carray(3) > 1) AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
+IF bat.targ.opt_spread = 2 AND (carray(ccLeft) > 1 OR carray(ccRight) > 1) AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
  FOR i = 0 TO 11
   bat.targ.selected(i) = 0
  NEXT i
@@ -699,20 +698,20 @@ IF bat.targ.opt_spread = 2 AND (carray(2) > 1 OR carray(3) > 1) AND bat.targ.rou
  flusharray carray(), 7, 0
 END IF
 IF bat.targ.interactive = YES AND bat.targ.opt_spread < 2 AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
- IF carray(0) > 1 THEN
+ IF carray(ccUp) > 1 THEN
   smartarrows -1, 1, bslot(), bat.targ, NO
  END IF
- IF carray(1) > 1 THEN
+ IF carray(ccDown) > 1 THEN
   smartarrows 1, 1, bslot(), bat.targ, NO
  END IF
- IF carray(2) > 1 THEN
+ IF carray(ccLeft) > 1 THEN
   smartarrows -1, 0, bslot(), bat.targ, YES
  END IF
- IF carray(3) > 1 THEN
+ IF carray(ccRight) > 1 THEN
   smartarrows 1, 0, bslot(), bat.targ, YES
  END IF
 END IF
-IF carray(4) > 1 THEN GOSUB gottarg
+IF carray(ccUse) > 1 THEN GOSUB gottarg
 RETRACE
 
 gottarg: '-----------------------------------------------------------------
@@ -1065,7 +1064,7 @@ RETRACE
 
 tryrun:
 IF flee > 0 AND flee < 4 THEN
- IF carray(6) = 0 THEN
+ IF carray(ccRun) = 0 THEN
   flee = 0
   FOR i = 0 TO 3
    bslot(i).d = 0
@@ -1089,7 +1088,7 @@ IF flee > 4 THEN
   bslot(i).ready = NO
   ctr(i) = large(0, ctr(i) - bslot(i).stat.cur.spd * 2)
  NEXT i
- IF carray(6) = 0 THEN flee = 0: FOR i = 0 TO 3: bslot(i).d = 0: walk(i) = 0: NEXT i
+ IF carray(ccRun) = 0 THEN flee = 0: FOR i = 0 TO 3: bslot(i).d = 0: walk(i) = 0: NEXT i
  temp = 400
  FOR i = 4 TO 11
   temp = temp + bslot(i).stat.cur.spd
@@ -1313,7 +1312,7 @@ SELECT CASE vic.state
    tempstr = vic.exp_caption & " " & rew.exper & " " & vic.exp_name & "!"
    edgeprint tempstr, xstring(tempstr, 160), 28, uilook(uiText), dpage
   END IF
-  IF carray(4) > 1 OR carray(5) > 1 OR (rew.plunder = 0 AND rew.exper = 0) THEN
+  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 OR (rew.plunder = 0 AND rew.exper = 0) THEN
    vic.state = vicLEVELUP
   END IF
  CASE vicLEVELUP
@@ -1332,7 +1331,7 @@ SELECT CASE vic.state
     o = 1
    END IF
   NEXT i
-  IF o = 0 OR (carray(4) > 1 OR carray(5) > 1) THEN
+  IF o = 0 OR (carray(ccUse) > 1 OR carray(ccMenu) > 1) THEN
    vic.state = vicSPELLS
    vic.showlearn = NO
    vic.learnwho = 0
@@ -1366,7 +1365,7 @@ SELECT CASE vic.state
     END IF
    LOOP
   ELSE' Found a learned spell to display, show it until a keypress
-   IF carray(4) > 1 OR carray(5) > 1 THEN
+   IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN
     vic.showlearn = NO ' hide the display (which causes us to search for the next learned spell)
    END IF
    edgeprint vic.item_name, xstring(vic.item_name, 160), 22, uilook(uiText), dpage
@@ -1391,7 +1390,7 @@ SELECT CASE vic.state
   IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, dpage
   edgeprint tempstr, xstring(tempstr, 160), 22, uilook(uiText), dpage
   '--check for a keypress
-  IF carray(4) > 1 OR carray(5) > 1 THEN
+  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN
    IF rew.found(vic.found_index).num = 0 THEN
     '--if there are no further items, exit
     vic.state = -1
@@ -2008,23 +2007,23 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
   END IF
  NEXT i
  
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   '--skip turn
   bat.next_hero = bat.hero_turn
   bat.hero_turn = -1
   EXIT SUB
  END IF
- IF carray(0) > 1 THEN
+ IF carray(ccUp) > 1 THEN
   '--up
   bat.pt -= 1
   IF bat.pt < 0 THEN bat.pt = bslot(bat.hero_turn).menu_size
  END IF
- IF carray(1) > 1 THEN
+ IF carray(ccDown) > 1 THEN
   bat.pt += 1
   IF bat.pt > bslot(bat.hero_turn).menu_size THEN bat.pt = 0
  END IF
  
- IF carray(4) > 1 THEN
+ IF carray(ccUse) > 1 THEN
   '--use menu item
   IF bslot(bat.hero_turn).menu(bat.pt).atk >= 0 THEN 'simple attack
    IF readbit(menubits(), 0, bat.hero_turn * 4 + bat.pt) = 0 THEN
@@ -2111,28 +2110,28 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
 END SUB
 
 SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS BattleSprite, conlmp())
- IF carray(5) > 1 THEN '--cancel
+ IF carray(ccMenu) > 1 THEN '--cancel
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
   EXIT SUB
  END IF
  
  WITH bat
-  IF carray(0) > 1 THEN
+  IF carray(ccUp) > 1 THEN
    IF .sptr > 2 THEN .sptr -= 3 ELSE .sptr = 24
   END IF
-  IF carray(1) > 1 THEN
+  IF carray(ccDown) > 1 THEN
    IF .sptr < 24 THEN .sptr = small(.sptr + 3, 24) ELSE .sptr = 0
   END IF
-  IF carray(2) > 1 AND .sptr < 24 AND .sptr > 0 THEN
+  IF carray(ccLeft) > 1 AND .sptr < 24 AND .sptr > 0 THEN
    .sptr -= 1
   END IF
-  IF carray(3) > 1 AND .sptr < 24 THEN
+  IF carray(ccRight) > 1 AND .sptr < 24 THEN
    .sptr += 1
   END IF
  END WITH
  
- IF carray(4) > 1 THEN
+ IF carray(ccUse) > 1 THEN
   '--use selected spell
   IF bat.sptr = 24 THEN
    '--used cancel
@@ -2163,15 +2162,15 @@ SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS Bat
 END SUB
 
 SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, icons(), iuse())
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
   icons(bat.hero_turn) = -1 '-- -1 in the icons() array indicates that this hero will not consume any item
  END IF
 
  DIM remember_pt AS INTEGER = bat.item.pt
- IF carray(0) > 1 AND bat.item.pt > 2 THEN bat.item.pt = bat.item.pt - 3
- IF carray(1) > 1 AND bat.item.pt <= last_inv_slot() - 3 THEN bat.item.pt = bat.item.pt + 3
+ IF carray(ccUp) > 1 AND bat.item.pt > 2 THEN bat.item.pt = bat.item.pt - 3
+ IF carray(ccDown) > 1 AND bat.item.pt <= last_inv_slot() - 3 THEN bat.item.pt = bat.item.pt + 3
  IF keyval(scPageUp) > 1 THEN
   bat.item.pt -= (inv_scroll.size+1) * 3
   WHILE bat.item.pt < 0: bat.item.pt += 3: WEND
@@ -2180,10 +2179,10 @@ SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() A
   bat.item.pt += (inv_scroll.size+1) * 3
   WHILE bat.item.pt > last_inv_slot(): bat.item.pt -= 3: WEND
  END IF
- IF carray(2) > 1 AND bat.item.pt > 0 THEN
+ IF carray(ccLeft) > 1 AND bat.item.pt > 0 THEN
   bat.item.pt = bat.item.pt - 1
  END IF
- IF carray(3) > 1 AND bat.item.pt < last_inv_slot() THEN
+ IF carray(ccRight) > 1 AND bat.item.pt < last_inv_slot() THEN
   bat.item.pt = bat.item.pt + 1
  END IF
  '--scroll when past top or bottom
@@ -2201,7 +2200,7 @@ SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() A
   END IF
  END IF
 
- IF carray(4) > 1 THEN
+ IF carray(ccUse) > 1 THEN
   IF readbit(iuse(), 0, bat.item.pt) = 1 THEN
    loaditemdata itembuf(), inventory(bat.item.pt).id
    icons(bat.hero_turn) = -1

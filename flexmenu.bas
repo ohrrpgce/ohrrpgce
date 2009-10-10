@@ -24,7 +24,6 @@ DECLARE FUNCTION isStringField(mnu AS INTEGER)
 #include "const.bi"
 #include "scrconst.bi"
 #include "loading.bi"
-#include "scancodes.bi"
 #include "slices.bi"
 
 DECLARE SUB menu_editor ()
@@ -125,7 +124,7 @@ atk_chain_bitset_names(0) = "Attacker must know chained attack"
 atk_chain_bitset_names(1) = "Ignore chained attack's delay"
 
 '----------------------------------------------------------
-DIM recbuf(40 + curbinsize(0) / 2) AS INTEGER '--stores the combined attack data from both .DT6 and ATTACK.BIN
+DIM recbuf(40 + curbinsize(binATTACK) / 2) AS INTEGER '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
 CONST AtkDatPic = 0
 CONST AtkDatPal = 1
@@ -207,7 +206,7 @@ CONST AtkLimStr38 = 19
 max(AtkLimStr38) = 38
 
 CONST AtkLimPic = 1
-max(AtkLimPic) = gen(32)
+max(AtkLimPic) = gen(genMaxAttackPic)
 
 CONST AtkLimAnimPattern = 2
 max(AtkLimAnimPattern) = 3
@@ -1019,13 +1018,13 @@ DO
  IF keyval(scF1) > 1 THEN show_help helpkey
 
  '--CTRL+BACKSPACE
- IF keyval(29) > 0 AND keyval(14) > 0 THEN
-  cropafter recindex, gen(34), 0, game + ".dt6", 80, 1
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
+  cropafter recindex, gen(genMaxAttack), 0, game + ".dt6", 80, 1
   '--this is a hack to detect if it is safe to erase the extended data
   '--in the second file
-  IF recindex = gen(34) THEN
+  IF recindex = gen(genMaxAttack) THEN
    '--delete the end of attack.bin without the need to prompt
-   cropafter recindex, gen(34), 0, workingdir + SLASH + "attack.bin", getbinsize(0), 0
+   cropafter recindex, gen(genMaxAttack), 0, workingdir + SLASH + "attack.bin", getbinsize(binATTACK), 0
   END IF
  END IF
 
@@ -1034,9 +1033,9 @@ DO
   flexmenu_skipper state, workmenu(), menutype()
  END IF
 
- IF workmenu(state.pt) = AtkChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
+ IF workmenu(state.pt) = AtkChooseAct OR (keyval(scAlt) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
   lastindex = recindex
-  IF keyval(77) > 1 AND recindex = gen(genMaxAttack) AND recindex < 32767 THEN
+  IF keyval(scRight) > 1 AND recindex = gen(genMaxAttack) AND recindex < 32767 THEN
    '--attempt to add a new set
    '--save current
    saveattackdata recbuf(), lastindex
@@ -1044,7 +1043,7 @@ DO
    recindex = recindex + 1
    '--make sure we really have permission to increment
    IF needaddset(recindex, gen(genMaxAttack), "attack") THEN
-    flusharray recbuf(), 39 + curbinsize(0) / 2, 0
+    flusharray recbuf(), 39 + curbinsize(binATTACK) / 2, 0
     state.need_update = YES
    END IF
   ELSE
@@ -1125,7 +1124,7 @@ DO
   END SELECT
  END IF
 
- IF keyval(56) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
+ IF keyval(scAlt) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
   IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
    state.need_update = YES
   END IF
@@ -1155,7 +1154,7 @@ DO
  DrawSlice preview_box, dpage
 
  standardmenu dispmenu(), state, 0, 0, dpage
- IF keyval(56) > 0 THEN 'holding ALT
+ IF keyval(scAlt) > 0 THEN 'holding ALT
    tmpstr = readbadbinstring(recbuf(), AtkDatName, 10, 1) & " " & recindex
    textcolor uilook(uiText), uilook(uiHighlight)
    printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, dpage
@@ -1576,7 +1575,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
    END IF
   CASE 1
    saverecord = record
-   IF keyval(77) > 1 AND record = gen(genMaxMenu) AND record < 32767 THEN
+   IF keyval(scRight) > 1 AND record = gen(genMaxMenu) AND record < 32767 THEN
     '--attempt to add a new set
     '--save current
     SaveMenuData menu_set, menudata, record
@@ -1654,25 +1653,25 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
  WITH menudata.items(mstate.pt)
   IF .exists THEN
    strgrabber .caption, 38
-   IF keyval(28) > 1 THEN '--Enter
+   IF keyval(scEnter) > 1 THEN '--Enter
     mstate.active = NO
     dstate.active = YES
     dstate.need_update = YES
    END IF
-   IF keyval(83) > 1 THEN '-- Delete
+   IF keyval(scDelete) > 1 THEN '-- Delete
     IF yesno("Delete this menu item?", NO) THEN
      ClearMenuItem menudata.items(mstate.pt)
      SortMenuItems menudata.items()
      mstate.need_update = YES
     END IF
    END IF
-   IF keyval(42) > 0 OR keyval(54) > 0 THEN '--holding Shift
-    IF keyval(72) > 1 AND mstate.pt < mstate.last - 1 THEN ' just went up
+   IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN '--holding Shift
+    IF keyval(scUp) > 1 AND mstate.pt < mstate.last - 1 THEN ' just went up
      'NOTE: Cursor will have already moved because of usemenu call above
      SWAP menudata.items(mstate.pt), menudata.items(mstate.pt + 1)
      mstate.need_update = YES
     END IF
-    IF keyval(80) > 1 AND mstate.pt > mstate.first THEN ' just went down
+    IF keyval(scDown) > 1 AND mstate.pt > mstate.first THEN ' just went down
      'NOTE: Cursor will have already moved because of usemenu call above
      SWAP menudata.items(mstate.pt), menudata.items(mstate.pt - 1)
      mstate.need_update = YES
@@ -1694,7 +1693,7 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
  END IF' above block only runs with a valid mstate.pt
 
  IF record = 0 THEN
-  IF keyval(29) > 0 AND keyval(19) > 1 THEN
+  IF keyval(scCtrl) > 0 AND keyval(scR) > 1 THEN
    IF yesno("Reload the default main menu?") THEN
     ClearMenuData menudata
     create_default_menu menudata

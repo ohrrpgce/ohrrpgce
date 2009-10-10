@@ -15,7 +15,6 @@
 #include "allmodex.bi"
 #include "common.bi"
 #include "slices.bi"
-#include "scancodes.bi"
 #include "custom_udts.bi"
 #include "customsubs.bi"
 

@@ -20,7 +20,6 @@ DECLARE FUNCTION countitem% (it%)
 
 #include "bmod.bi"
 #include "bmodsubs.bi"
-
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -120,7 +119,7 @@ END FUNCTION
 
 SUB control
 
-'  CARRAY()
+'  CARRAY() - seealso cc* constants in const.bi
 '  0=up 1=down 2=left 3=right
 '  4=use
 '  5=menu
@@ -150,15 +149,15 @@ IF keyval(-1) THEN
 END IF
 
 'alt-enter toggle windowed
-if keyval(56) > 0 and keyval(28) > 0 then
+if keyval(scAlt) > 0 and keyval(scEnter) > 0 then
 	togglewindowed
 end if
 
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 
-IF keyval(88) > 0 THEN snapshot
+IF keyval(scF12) > 0 THEN snapshot
 
-IF keyval(69) = 0 THEN ' no controls while PAUSE is pressed, because of its scancode wierdness
+IF keyval(scNumlock) = 0 THEN ' no controls while PAUSE is pressed, because of its scancode wierdness
  GOSUB keyboard
  GOSUB joystick
 END IF
@@ -168,11 +167,11 @@ keyboard:
 FOR i = 0 TO 3
  carray(i) = keyval(csetup(i))
 NEXT i
-carray(4) = keyval(csetup(4)) OR keyval(csetup(5)) OR keyval(csetup(6))
-carray(5) = keyval(csetup(7)) OR keyval(csetup(8))
-carray(6) = keyval(csetup(9)) OR keyval(csetup(10))
-'--gen(60) is the calibration disabler flag
-IF gen(60) = 0 AND keyval(29) > 0 AND keyval(csetup(11)) > 1 THEN
+carray(ccUse) = keyval(csetup(4)) OR keyval(csetup(5)) OR keyval(csetup(6))
+carray(ccMenu) = keyval(csetup(7)) OR keyval(csetup(8))
+carray(ccRun) = keyval(csetup(9)) OR keyval(csetup(10))
+'--gen(genJoy) is the calibration disabler flag
+IF gen(genJoy) = 0 AND keyval(scCtrl) > 0 AND keyval(csetup(11)) > 1 THEN
  calibrate
  FOR i = 0 TO 1
   gotj(i) = readjoy(joy(), i)
@@ -188,7 +187,7 @@ FOR i = 0 TO 1
 NEXT i
 if i = 2 THEN RETRACE
 
-if gen(60) = 0 then retrace
+if gen(genJoy) = 0 then retrace
 
 'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, uilook(uiSelectedItem), 0
 'edgeprint XSTR$(i) + XSTR$(gotj(i)) + XSTR$(joy(0)) + XSTR$(joy(1)) + XSTR$(joy(2)) + XSTR$(joy(3)) + XSTR$(carray(4)) + XSTR$(carray(5)), 0, 170, uilook(uiSelectedItem), 1
@@ -227,28 +226,28 @@ SELECT CASE joyuse
  CASE 1
   IF joy(joy(13)) <> 0 THEN joyuse = 2
  CASE 2
-  carray(4) = 2
+  carray(ccUse) = 2
   joyuse = 3
  CASE 3
-  carray(4) = 1
+  carray(ccUse) = 1
   joyuse = 0
 END SELECT
 SELECT CASE joymenu
  CASE 0
   IF joy(joy(14)) = 0 THEN joymenu = 1
  CASE 1
-  carray(6) = 2
+  carray(ccRun) = 2
   IF joy(joy(14)) <> 0 THEN joymenu = 2
  CASE 2
-  carray(5) = 2
+  carray(ccMenu) = 2
   joymenu = 3
  CASE 3
-  carray(5) = 1
+  carray(ccMenu) = 1
   joymenu = 0
 END SELECT
 
 FOR i = 0 TO 3
- carray(10 + i) = carray(i)
+ carray( + i) = carray(i)
 NEXT i
 RETRACE
 
@@ -575,7 +574,7 @@ END FUNCTION
 FUNCTION liveherocount (oobstat() AS integer) as integer
 i = 0
 FOR o = 0 TO 3
- IF hero(o) > 0 AND oobstat(o, 0, 0) > 0 THEN i = i + 1
+ IF hero(o) > 0 AND oobstat(o, 0, statHP) > 0 THEN i = i + 1
 NEXT o
 liveherocount = i
 END FUNCTION
@@ -870,15 +869,15 @@ IF exstat(i, 1, 12) THEN
  'stat restoration
  IF readbit(gen(), 101, 2) = 0 THEN
   '--HP restoration ON
-  exstat(i, 0, 0) = exstat(i, 1, 0) 'set external cur to external max
-  stats.cur.hp = exstat(i, 1, 0) 'set in-battle cur to external max
-  stats.max.hp = exstat(i, 1, 0) 'set in-battle max to external max
+  exstat(i, 0, statHP) = exstat(i, 1, statHP) 'set external cur to external max
+  stats.cur.hp = exstat(i, 1, statHP) 'set in-battle cur to external max
+  stats.max.hp = exstat(i, 1, statHP) 'set in-battle max to external max
  END IF
  IF readbit(gen(), 101, 3) = 0 THEN
   '--MP restoration ON
-  exstat(i, 0, 1) = exstat(i, 1, 1) 'set external cur to external max
-  stats.cur.mp = exstat(i, 1, 1) 'set in-battle cur to external max
-  stats.max.mp = exstat(i, 1, 1) 'set in-battle max to external max
+  exstat(i, 0, statMP) = exstat(i, 1, statMP) 'set external cur to external max
+  stats.cur.mp = exstat(i, 1, statMP) 'set in-battle cur to external max
+  stats.max.mp = exstat(i, 1, statMP) 'set in-battle max to external max
   resetlmp i, exstat(i, 0, 12)
  END IF
 
@@ -966,8 +965,8 @@ setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
   '--set out-of-battle HP and MP equal to in-battle HP and MP
-  exstat(i, 0, 0) = bslot(i).stat.cur.hp
-  exstat(i, 0, 1) = bslot(i).stat.cur.mp
+  exstat(i, 0, statHP) = bslot(i).stat.cur.hp
+  exstat(i, 0, statMP) = bslot(i).stat.cur.mp
  END IF
 NEXT i
 END SUB

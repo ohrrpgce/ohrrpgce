@@ -77,12 +77,12 @@ FUNCTION usemenu (pt, top, first, last, size) as integer
 oldptr = pt
 oldtop = top
 
-IF keyval(72) > 1 THEN pt = loopvar(pt, first, last, -1) 'UP
-IF keyval(80) > 1 THEN pt = loopvar(pt, first, last, 1)  'DOWN
-IF keyval(73) > 1 THEN pt = large(pt - size, first)      'PGUP
-IF keyval(81) > 1 THEN pt = small(pt + size, last)       'PGDN
-IF keyval(71) > 1 THEN pt = first                         'HOME
-IF keyval(79) > 1 THEN pt = last                          'END
+IF keyval(scUp) > 1 THEN pt = loopvar(pt, first, last, -1) 'UP
+IF keyval(scDown) > 1 THEN pt = loopvar(pt, first, last, 1)  'DOWN
+IF keyval(scPageup) > 1 THEN pt = large(pt - size, first)      'PGUP
+IF keyval(scPagedown) > 1 THEN pt = small(pt + size, last)       'PGDN
+IF keyval(scHome) > 1 THEN pt = first                         'HOME
+IF keyval(scEnd) > 1 THEN pt = last                          'END
 top = bound(top, pt - size, pt)
 
 IF oldptr = pt AND oldtop = top THEN
@@ -101,20 +101,20 @@ WITH state
  oldtop = .top
  d = 0
 
- IF keyval(72) > 1 THEN d = -1   'UP
- IF keyval(80) > 1 THEN d = 1    'DOWN
- IF keyval(73) > 1 THEN            'PGUP
+ IF keyval(scUp) > 1 THEN d = -1   'UP
+ IF keyval(scDown) > 1 THEN d = 1    'DOWN
+ IF keyval(scPageup) > 1 THEN            'PGUP
   .pt = large(.pt - .size, .first)
   WHILE enabled(.pt) = 0 AND .pt > 0 : .pt = loopvar(.pt, .first, .last, -1) : WEND
   IF enabled(.pt) = 0 THEN d = 1
  END IF
- IF keyval(81) > 1 THEN            'PGDN
+ IF keyval(scPagedown) > 1 THEN            'PGDN
   .pt = small(.pt + .size, .last)
   WHILE enabled(.pt) = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
   IF enabled(.pt) = 0 THEN d = -1
  END IF
- IF keyval(71) > 1 THEN .pt = .last : d = 1    'HOME
- IF keyval(79) > 1 THEN .pt = .first : d = -1    'END
+ IF keyval(scHome) > 1 THEN .pt = .last : d = 1    'HOME
+ IF keyval(scEnd) > 1 THEN .pt = .first : d = -1    'END
 
  IF d THEN 
   DO
@@ -1091,7 +1091,7 @@ FUNCTION getsongname (num AS INTEGER, prefixnum AS INTEGER = 0) as string
  IF num = -1 THEN RETURN "-none-"
  s = ""
  IF prefixnum THEN s = num & " "
- setpicstuf songd(), curbinsize(2), -1
+ setpicstuf songd(), curbinsize(binSONGDATA), -1
  loadset workingdir + SLASH + "songdata.bin", num, 0
  s = s & readbinstring(songd(), 0, 30)
  RETURN s
@@ -1099,7 +1099,7 @@ END FUNCTION
 
 FUNCTION getsfxname (num AS INTEGER) as string
  DIM sfxd(dimbinsize(binSFXDATA)) AS INTEGER
- setpicstuf sfxd(), curbinsize(3), -1
+ setpicstuf sfxd(), curbinsize(binSFXDATA), -1
  loadset workingdir & SLASH & "sfxdata.bin", num, 0
  RETURN readbinstring (sfxd(), 0, 30)
 END FUNCTION
@@ -1115,18 +1115,18 @@ ELSEIF less <> 0 AND keyval(less) > 1 THEN
 ELSE
  DIM s AS INTEGER = SGN(n)
  n = ABS(n)
- IF keyval(14) > 1 THEN n \= 10
+ IF keyval(scBackspace) > 1 THEN n \= 10
  FOR i AS INTEGER = 1 TO 9
   IF keyval(i + 1) > 1 THEN n = n * 10 + i
  NEXT i
- IF keyval(11) > 1 THEN n *= 10
+ IF keyval(sc0) > 1 THEN n *= 10
  IF min < 0 AND max > 0 THEN
-  IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN s = s * -1
+  IF keyval(scMinus) > 1 OR keyval(scEquals) > 1 OR keyval(scNumpadMinus) > 1 OR keyval(scNumpadPlus) > 1 THEN s = s * -1
  END IF
  IF min < 0 AND (s < 0 OR max = 0) THEN n = -n
  'CLIPBOARD
- IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip = n
- IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN n = clip
+ IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN clip = n
+ IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN n = clip
  n = large(min, n)
  n = small(max, n)
 END IF
@@ -1155,7 +1155,7 @@ IF temp < 0 THEN
 END IF
 intgrabber temp, min, max, less, more
 n = temp + 1
-IF old = 1 AND keyval(14) > 1 THEN n = 0
+IF old = 1 AND keyval(scBackspace) > 1 THEN n = 0
 
 IF old = n THEN
  zintgrabber = 0
@@ -1196,7 +1196,7 @@ END IF
 intgrabber temp, nmax, pmax, less, more
 
 DIM negated AS INTEGER = 0
-IF keyval(12) > 1 OR keyval(13) > 1 OR keyval(74) > 1 OR keyval(78) > 1 THEN negated = 1
+IF keyval(scMinus) > 1 OR keyval(scEquals) > 1 OR keyval(scNumpadMinus) > 1 OR keyval(scNumpadPlus) > 1 THEN negated = 1
 
 IF old > 0 THEN
  IF temp >= pmin AND temp <= pmax THEN
@@ -1235,7 +1235,7 @@ IF old = 0 THEN
 END IF
 
 'backspace? goto none
-IF temp = SGN(temp) AND keyval(14) > 1 THEN temp = 0
+IF temp = SGN(temp) AND keyval(scBackspace) > 1 THEN temp = 0
 
 n = temp
 IF old = n THEN
@@ -1836,7 +1836,7 @@ END IF
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
 IF gen(genVersion) < CURRENT_RPG_VERSION THEN
- debug "Bumping RPG format version number from " & gen(genVersion) & " to " & CURRENT_RPG_VERSION
+ upgrade_message "Bumping RPG format version number from " & gen(genVersion) & " to " & CURRENT_RPG_VERSION
  gen(genVersion) = CURRENT_RPG_VERSION '--update me in const.bi
 END IF
 
@@ -1871,7 +1871,7 @@ NEXT
 
 IF NOT isfile(workingdir + SLASH + "attack.bin") THEN
  upgrade_message "Init extended attack data..."
- setbinsize 0, curbinsize(0)
+ setbinsize 0, curbinsize(binATTACK)
  FOR i = 0 TO gen(genMaxAttack)
   savenewattackdata buffer(), i
  NEXT i
@@ -1911,9 +1911,9 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
   END IF
  NEXT
 
- flusharray buffer(), curbinsize(2) / 2, 0
- setbinsize 2, curbinsize(2)
- setpicstuf buffer(), curbinsize(2), -1
+ flusharray buffer(), curbinsize(binSONGDATA) / 2, 0
+ setbinsize 2, curbinsize(binSONGDATA)
+ setpicstuf buffer(), curbinsize(binSONGDATA), -1
  FOR i = 0 TO gen(genMaxSong)
   writebinstring song(i), buffer(), 0, 30
   storeset workingdir + SLASH + "songdata.bin", i, 0
@@ -1994,7 +1994,7 @@ IF getfixbit(fixAttackitems) = 0 THEN
   setfixbit(fixAttackitems, 1)
   fh = freefile
   OPEN workingdir + SLASH + "attack.bin" FOR BINARY AS #FH
-  REDIM dat(curbinsize(0)/2 - 1) AS SHORT
+  REDIM dat(curbinsize(binATTACK)/2 - 1) AS SHORT
   p = 1
   FOR i = 0 to gen(genMaxAttack)
 
@@ -2004,7 +2004,7 @@ IF getfixbit(fixAttackitems) = 0 THEN
     NEXT
 
     PUT #fh,p,dat()
-    p+=curbinsize(0)
+    p+=curbinsize(binATTACK)
   NEXT
   CLOSE #fh
 END IF
@@ -2751,7 +2751,7 @@ SUB load_default_master_palette (master_palette() AS RGBColor)
 END SUB
 
 FUNCTION enter_or_space () AS INTEGER
- RETURN keyval(28) > 1 OR keyval(57) > 1
+ RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1
 END FUNCTION
 
 FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0) as integer

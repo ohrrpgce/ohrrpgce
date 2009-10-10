@@ -77,7 +77,6 @@ DECLARE SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
 #include "cglobals.bi"
 
 #include "scrconst.bi"
-#include "scancodes.bi"
 #include "loading.bi"
 
 REM $STATIC
@@ -143,7 +142,7 @@ END FUNCTION
 
 SUB mapmaker (font())
 DIM st AS MapEditState
-DIM menubar(82), cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(4)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
+DIM menubar(82), cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(binMAP)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
 DIM her AS HeroDef
 DIM tilesets(2) as TilesetData ptr
 DIM defaults(2) as DefArray
@@ -223,11 +222,11 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
  oldtop = maptop
- usemenu pt, maptop, 0, 2 + gen(0), 24
+ usemenu pt, maptop, 0, 2 + gen(genMaxMap), 24
  IF oldtop <> maptop THEN make_top_map_menu maptop, topmenu$()
  IF enter_or_space() THEN
   IF pt = 0 THEN EXIT DO
-  IF pt > 0 AND pt <= gen(0) + 1 THEN
+  IF pt > 0 AND pt <= gen(genMaxMap) + 1 THEN
    '--silly backcompat pt adjustment
    pt = pt - 1
    mapedit_loadmap st, pt, wide, high, map(), pass(), emap(), gmap(), visible(), tilesets(), doors(), link(), defaults(), mapname$
@@ -235,7 +234,7 @@ DO
    pt = pt + 1
    make_top_map_menu maptop, topmenu$()
   END IF
-  IF pt = gen(0) + 2 THEN
+  IF pt = gen(genMaxMap) + 2 THEN
    mapedit_addmap st, map(), pass(), emap(), gmap(), doors(), link(), tilesets()
    make_top_map_menu maptop, topmenu$()
   END IF
@@ -588,9 +587,9 @@ DO
   end if
  end if
  
- IF keyval(29) > 0 AND keyval(38) > 1 THEN mapedit_layers gmap(), visible(), tilesets(), defaults(), layer  'ctrl-L
- IF keyval(15) > 1 THEN tiny = tiny XOR 1
- IF keyval(29) > 0 AND keyval(14) > 1 THEN
+ IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers gmap(), visible(), tilesets(), defaults(), layer  'ctrl-L
+ IF keyval(scTab) > 1 THEN tiny = tiny XOR 1
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    'delete tile
    setmapdata map(), pass(), 20, 0
    FOR i = 0 TO 2
@@ -615,7 +614,7 @@ DO
     setbit doors(doorid).bits(), 0, 0, 1
    END IF
  END IF
- IF keyval(29) > 0 AND keyval(35) > 1 THEN 'Ctrl+H for hero start position
+ IF keyval(scCtrl) > 0 AND keyval(scH) > 1 THEN 'Ctrl+H for hero start position
   gen(genStartMap) = pt
   gen(genStartX) = x
   gen(genStartY) = y
@@ -625,7 +624,7 @@ DO
   CASE 0
    IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
    setmapdata map(), pass(), 20, 0
-   IF keyval(33) > 1 AND keyval(29) > 0 THEN' Ctrl+F Fill screen
+   IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+F Fill screen
     FOR tx = 0 TO 14
      FOR ty = 0 TO 8
       setmapblock mapx \ 20 + tx, mapy \ 20 + ty, layer, usetile(layer)
@@ -633,7 +632,7 @@ DO
      NEXT ty
     NEXT tx
    END IF
-   IF keyval(19) > 1 AND keyval(29) > 0 THEN' Ctrl+R to replace-all
+   IF keyval(scR) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+R to replace-all
     old = readmapblock(x, y, layer)
     FOR ty = 0 to map(1) - 1
      FOR tx = 0 to map(0) - 1
@@ -641,29 +640,29 @@ DO
      NEXT tx
     NEXT ty
    END IF
-   IF keyval(25) > 1 AND keyval(29) > 0 THEN' Ctrl+P to paint a continuous section of maptiles
+   IF keyval(scP) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+P to paint a continuous section of maptiles
     old = readmapblock(x, y, layer)
     paint_map_area old, x, y, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
    END IF
-   IF keyval(29) > 0 AND keyval(36) > 1 THEN
+   IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
      setbit jiggle(), 0, layer, (readbit(jiggle(), 0, layer) XOR 1)
    END IF
-   IF keyval(41) > 1 THEN show_minimap map(), tilesets()
-   IF keyval(28) > 1 THEN GOSUB pickblock
-   IF keyval(57) > 0 THEN
+   IF keyval(scTilde) > 1 THEN show_minimap map(), tilesets()
+   IF keyval(scEnter) > 1 THEN GOSUB pickblock
+   IF keyval(scSpace) > 0 THEN
     setmapblock x, y, layer, usetile(layer)
     IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tilesets()
    END IF
-   IF keyval(83) > 1 THEN 'delete
+   IF keyval(scDelete) > 1 THEN 'delete
     setmapblock x, y, layer, 0
    END IF
-   IF keyval(58) > 1 THEN 'grab tile
+   IF keyval(scCapslock) > 1 THEN 'grab tile
     usetile(layer) = animadjust(readmapblock(x, y, layer), tilesets(layer)->tastuf())
     update_tilepicker tilepick, layer, usetile(), menubarstart()
    END IF
-   IF keyval(29) > 0 AND keyval(32) > 1 THEN defpass = defpass XOR 1   
+   IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1 
-    IF keyval(2 + i) > 1 THEN 'animate tile
+    IF keyval(sc1 + i) > 1 THEN 'animate tile
      newtile = -1
      old = readmapblock(x, y, layer)
      IF old >= 160 + i * 48 AND old < 160 + i * 48 + 48 THEN
@@ -672,7 +671,7 @@ DO
       newtile = 160 + (i * 48) + (old - tilesets(layer)->tastuf(i * 20))
      END IF
      IF newtile >= 0 THEN
-      IF keyval(29) = 0 THEN
+      IF keyval(scCtrl) = 0 THEN
        setmapblock x, y, layer, newtile
       ELSE
        FOR tx = 0 TO map(0) - 1
@@ -684,11 +683,11 @@ DO
      END IF
     END IF
    NEXT i
-   IF keyval(51) > 1 AND usetile(layer) > 0 THEN
+   IF keyval(scComma) > 1 AND usetile(layer) > 0 THEN
     usetile(layer) = usetile(layer) - 1
     update_tilepicker tilepick, layer, usetile(), menubarstart()
    END IF
-   IF keyval(52) > 1 AND usetile(layer) < 159 THEN
+   IF keyval(scPeriod) > 1 AND usetile(layer) < 159 THEN
     usetile(layer) = usetile(layer) + 1
     update_tilepicker tilepick, layer, usetile(), menubarstart()
    END IF
@@ -697,22 +696,22 @@ DO
    IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
    setmapdata map(), pass(), 20, 0
    over = readpassblock(x, y)
-   IF keyval(57) > 1 AND (over AND 15) = 0 THEN setpassblock x, y, 15
-   IF keyval(57) > 1 AND (over AND 15) = 15 THEN setpassblock x, y, 0
-   IF keyval(57) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN setpassblock x, y, 0
-   IF keyval(83) > 1 THEN 'delete
+   IF keyval(scSpace) > 1 AND (over AND 15) = 0 THEN setpassblock x, y, 15
+   IF keyval(scSpace) > 1 AND (over AND 15) = 15 THEN setpassblock x, y, 0
+   IF keyval(scSpace) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN setpassblock x, y, 0
+   IF keyval(scDelete) > 1 THEN 'delete
     setpassblock x, y, 0
    END IF
-   IF keyval(29) > 0 THEN
-    IF keyval(72) > 1 THEN setpassblock x, y, (over XOR 1)
-    IF keyval(77) > 1 THEN setpassblock x, y, (over XOR 2)
-    IF keyval(80) > 1 THEN setpassblock x, y, (over XOR 4)
-    IF keyval(75) > 1 THEN setpassblock x, y, (over XOR 8)
+   IF keyval(scCtrl) > 0 THEN
+    IF keyval(scUp) > 1 THEN setpassblock x, y, (over XOR 1)
+    IF keyval(scRight) > 1 THEN setpassblock x, y, (over XOR 2)
+    IF keyval(scDown) > 1 THEN setpassblock x, y, (over XOR 4)
+    IF keyval(scLeft) > 1 THEN setpassblock x, y, (over XOR 8)
    END IF
-   IF keyval(30) > 1 THEN setpassblock x, y, (over XOR 16) 'vehicle A
-   IF keyval(48) > 1 THEN setpassblock x, y, (over XOR 32) 'vehicle B
-   IF keyval(35) > 1 THEN setpassblock x, y, (over XOR 64) 'harm tile
-   IF keyval(24) > 1 THEN setpassblock x, y, (over XOR 128)'overhead
+   IF keyval(scA) > 1 THEN setpassblock x, y, (over XOR 16) 'vehicle A
+   IF keyval(scB) > 1 THEN setpassblock x, y, (over XOR 32) 'vehicle B
+   IF keyval(scH) > 1 THEN setpassblock x, y, (over XOR 64) 'harm tile
+   IF keyval(scO) > 1 THEN setpassblock x, y, (over XOR 128)'overhead
    '---DOORMODE-----
   CASE 2
    IF keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
@@ -830,19 +829,19 @@ DO
   xrate = 1
   yrate = 1
  END IF
- IF keyval(56) = 0 AND keyval(29) = 0 THEN
-  IF slowkey(72, 2) THEN y = large(y - yrate, 0): IF y < INT(mapy / 20) THEN mapy = y * 20
-  IF slowkey(80, 2) THEN y = small(y + yrate, high - 1): IF y > INT(mapy / 20) + 8 THEN mapy = y * 20 - 160
-  IF slowkey(75, 2) THEN x = large(x - xrate, 0): IF x < INT(mapx / 20) THEN mapx = x * 20
-  IF slowkey(77, 2) THEN x = small(x + xrate, wide - 1): IF x > INT(mapx / 20) + 14 THEN mapx = x * 20 - 280
+ IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
+  IF slowkey(scUp, 2) THEN y = large(y - yrate, 0): IF y < INT(mapy / 20) THEN mapy = y * 20
+  IF slowkey(scDown, 2) THEN y = small(y + yrate, high - 1): IF y > INT(mapy / 20) + 8 THEN mapy = y * 20 - 160
+  IF slowkey(scLeft, 2) THEN x = large(x - xrate, 0): IF x < INT(mapx / 20) THEN mapx = x * 20
+  IF slowkey(scRight, 2) THEN x = small(x + xrate, wide - 1): IF x > INT(mapx / 20) + 14 THEN mapx = x * 20 - 280
  END IF
- IF keyval(56) > 0 AND keyval(29) = 0 THEN
+ IF keyval(scAlt) > 0 AND keyval(scCtrl) = 0 THEN
   oldrelx = x - mapx / 20
   oldrely = y - mapy / 20
-  IF slowkey(72, 2) THEN mapy = large(mapy - 20 * yrate, 0)
-  IF slowkey(80, 2) THEN mapy = small(mapy + 20 * yrate, high * 20 - 180)
-  IF slowkey(75, 2) THEN mapx = large(mapx - 20 * xrate, 0)
-  IF slowkey(77, 2) THEN mapx = small(mapx + 20 * xrate, wide * 20 - 300)
+  IF slowkey(scUp, 2) THEN mapy = large(mapy - 20 * yrate, 0)
+  IF slowkey(scDown, 2) THEN mapy = small(mapy + 20 * yrate, high * 20 - 180)
+  IF slowkey(scLeft, 2) THEN mapx = large(mapx - 20 * xrate, 0)
+  IF slowkey(scRight, 2) THEN mapx = small(mapx + 20 * xrate, wide * 20 - 300)
   x = mapx / 20 + oldrelx
   y = mapy / 20 + oldrely
  END IF
@@ -1038,16 +1037,16 @@ DO
  setkeys
  IF keyval(scEnter) > 1 OR keyval(scESC) > 1 THEN menu = usetile(layer): EXIT DO
  IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
- IF (keyval(72) AND 5) AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
- IF (keyval(80) AND 5) AND tilepick.y < 9 THEN tilepick.y += 1: usetile(layer) = usetile(layer) + 16
- IF (keyval(75) AND 5) AND tilepick.x > 0 THEN tilepick.x -= 1: usetile(layer) = usetile(layer) - 1
- IF (keyval(77) AND 5) AND tilepick.x < 15 THEN tilepick.x += 1: usetile(layer) = usetile(layer) + 1
- IF (keyval(51) AND 5) AND usetile(layer) > 0 THEN
+ IF (keyval(scUp) AND 5) AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
+ IF (keyval(scDown) AND 5) AND tilepick.y < 9 THEN tilepick.y += 1: usetile(layer) = usetile(layer) + 16
+ IF (keyval(scLeft) AND 5) AND tilepick.x > 0 THEN tilepick.x -= 1: usetile(layer) = usetile(layer) - 1
+ IF (keyval(scRight) AND 5) AND tilepick.x < 15 THEN tilepick.x += 1: usetile(layer) = usetile(layer) + 1
+ IF (keyval(scComma) AND 5) AND usetile(layer) > 0 THEN
   usetile(layer) -= 1
   tilepick.x -= 1
   IF tilepick.x < 0 THEN tilepick.x = 15: tilepick.y -= 1
  END IF
- IF (keyval(52) AND 5) AND usetile(layer) < 159 THEN
+ IF (keyval(scPeriod) AND 5) AND usetile(layer) < 159 THEN
   usetile(layer) += 1
   tilepick.x += 1
   IF tilepick.x > 15 THEN tilepick.x = 0: tilepicky += 1
@@ -1116,7 +1115,7 @@ SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS Tiles
   setkeys
   tog = tog XOR 1
 
-  IF keyval(scESC) > 1 THEN clearkey(1): EXIT DO
+  IF keyval(scESC) > 1 THEN clearkey(scESC): EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
 
   IF usemenu(state, enabled()) THEN
@@ -1139,7 +1138,7 @@ SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS Tiles
      ToggleLayerEnabled(gmap(), layerno)
      state.need_update = YES
     END IF
-    IF layerisenabled(gmap(), layerno) AND (keyval(75) > 1 OR keyval(77) > 1) THEN
+    IF layerisenabled(gmap(), layerno) AND (keyval(scLeft) > 1 OR keyval(scRight) > 1) THEN
      ToggleLayerVisible(visible(), layerno)
      state.need_update = YES
     END IF
@@ -1706,7 +1705,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as
  DIM as integer dmx, dmy, i
  DIM caption$
  DIM destdoor(99) as door
- DIM gmap2(dimbinsize(4))
+ DIM gmap2(dimbinsize(binMAP))
 ' DIM othertilesets(2) as TilesetData ptr
  
  clearpage 2
@@ -1833,32 +1832,32 @@ DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "resize_map"
  usemenu csr, 0, 0, 4, 10
- IF keyval(56) > 0 THEN incval = 8 ELSE incval = 1
+ IF keyval(scAlt) > 0 THEN incval = 8 ELSE incval = 1
  SELECT CASE csr
   CASE 0
-   IF keyval(28) > 1 THEN
+   IF keyval(scEnter) > 1 THEN
     tempw = -1
     temph = -1
     EXIT DO
    END IF
   CASE 1
-   IF keyval(75) > 0 THEN tempw -= incval 
-   IF keyval(77) > 0 THEN tempw += incval
+   IF keyval(scLeft) > 0 THEN tempw -= incval 
+   IF keyval(scRight) > 0 THEN tempw += incval
    GOSUB correctw
   CASE 2
-   IF keyval(75) > 0 THEN temph -= incval 
-   IF keyval(77) > 0 THEN temph += incval
+   IF keyval(scLeft) > 0 THEN temph -= incval 
+   IF keyval(scRight) > 0 THEN temph += incval
    GOSUB correcth
   CASE 3
-   IF keyval(75) > 0 THEN tempx -= incval: tempw += incval
-   IF keyval(77) > 0 THEN tempx += incval: tempw -= incval
+   IF keyval(scLeft) > 0 THEN tempx -= incval: tempw += incval
+   IF keyval(scRight) > 0 THEN tempx += incval: tempw -= incval
    GOSUB correctw
   CASE 4
-   IF keyval(75) > 0 THEN tempy -= incval: temph += incval
-   IF keyval(77) > 0 THEN tempy += incval: temph -= incval
+   IF keyval(scLeft) > 0 THEN tempy -= incval: temph += incval
+   IF keyval(scRight) > 0 THEN tempy += incval: temph -= incval
    GOSUB correcth
  END SELECT
- IF keyval(28) > 1 THEN EXIT DO
+ IF keyval(scEnter) > 1 THEN EXIT DO
 
  clearpage dpage
  drawoffx = large(0, -tempx * zoom)

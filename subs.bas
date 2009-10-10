@@ -10,7 +10,6 @@ DEFINT A-Z
 #include "const.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
-#include "scancodes.bi"
 
 DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB clearallpages ()
@@ -168,7 +167,7 @@ DIM max(26), min(26)
 'Limit 0 is not used
 
 CONST EnLimPic = 1
-max(EnLimPic) = gen(27) 'or 28 or 29. Must be updated!
+max(EnLimPic) = gen(genMaxEnemy1Pic) 'or 28 or 29. Must be updated!
 
 CONST EnLimUInt = 2
 max(EnLimUInt) = 32767
@@ -193,13 +192,13 @@ FOR i = 9 TO 10: max(EnLimStat + i) = 100:   NEXT i ' focus, counter
 max(EnLimStat + 11) = 10        ' max hits
 
 CONST EnLimSpawn = 18
-max(EnLimSpawn) = gen(36) + 1 'must be updated!
+max(EnLimSpawn) = gen(genMaxEnemy) + 1 'must be updated!
 
 CONST EnLimSpawnNum = 19
 max(EnLimSpawnNum) = 8
 
 CONST EnLimAtk = 20
-max(EnLimAtk) = gen(34) + 1
+max(EnLimAtk) = gen(genMaxAttack) + 1
 
 CONST EnLimStr16 = 21
 max(EnLimStr16) = 16
@@ -579,15 +578,15 @@ DO
  END IF
 
  '--CTRL+BACKSPACE
- IF keyval(29) > 0 AND keyval(14) > 0 THEN
-  cropafter recindex, gen(36), 0, game + ".dt1", 320, 1
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
+  cropafter recindex, gen(genMaxEnemy), 0, game + ".dt1", 320, 1
  END IF
 
  usemenu state
 
- IF workmenu(state.pt) = EnMenuChooseAct OR (keyval(56) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
+ IF workmenu(state.pt) = EnMenuChooseAct OR (keyval(scAlt) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
   lastindex = recindex
-  IF keyval(77) > 1 AND recindex = gen(36) AND recindex < 32767 THEN
+  IF keyval(scRight) > 1 AND recindex = gen(genMaxEnemy) AND recindex < 32767 THEN
    '--attempt to add a new set
    '--save current
    saveenemydata recbuf(), lastindex
@@ -665,7 +664,7 @@ DO
   END SELECT
  END IF
 
- IF keyval(56) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
+ IF keyval(scAlt) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
   IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
    GOSUB EnUpdateMenu
   END IF
@@ -674,7 +673,7 @@ DO
  DrawSlice preview_box, dpage
 
  standardmenu dispmenu$(), state, 0, 0, dpage
- IF keyval(56) > 0 THEN 'holding ALT
+ IF keyval(scAlt) > 0 THEN 'holding ALT
   tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) & " " & recindex
   textcolor uilook(uiText), uilook(uiHighlight)
   printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
@@ -699,10 +698,10 @@ EXIT SUB
 EnUpdateMenu:
 
 '--in case new enemies have been added
-max(EnLimSpawn) = gen(36) + 1
+max(EnLimSpawn) = gen(genMaxEnemy) + 1
 
 '--in case the PicSize has changed
-max(EnLimPic) = gen(27 + bound(recbuf(EnDatPicSize), 0, 2))
+max(EnLimPic) = gen(genMaxEnemy1Pic + bound(recbuf(EnDatPicSize), 0, 2))
 
 '--re-enforce bounds, as they might have just changed
 enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
@@ -807,12 +806,12 @@ DO
   END IF
  END IF
  IF bcsr = 1 THEN
-  IF keyval(75) > 1 THEN
+  IF keyval(scLeft) > 1 THEN
    GOSUB savefset
    gptr = large(gptr - 1, 0)
    GOSUB loadfset
   END IF
-  IF keyval(77) > 1 THEN
+  IF keyval(scRight) > 1 THEN
    GOSUB savefset
    gptr = small(gptr + 1, 255)
    GOSUB loadfset
@@ -904,7 +903,7 @@ DO
    RETRACE
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_editor"
-  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(37), 0, game + ".for", 80, 1
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxFormation), 0, game + ".for", 80, 1
   usemenu csr2, -6, -6, 7, 25
   IF enter_or_space() THEN
    IF csr2 = -6 THEN
@@ -1029,7 +1028,7 @@ clearformation:
 FOR i = 0 TO 40
  a(i) = 0
 NEXT i
-a(33) = gen(4)
+a(33) = gen(genBatMus)
 setpicstuf a(), 80, -1
 storeset game + ".for", pt, 0
 RETRACE
@@ -1138,7 +1137,7 @@ DO
  animate_hero_preview st
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "hero_editor"
- IF keyval(29) > 0 AND keyval(14) > 0 THEN
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
   cropafter pt, gen(genMaxHero), -1, game + ".dt0", 636, 1
  END IF
  usemenu csr, 0, 0, 9, 24
@@ -1160,12 +1159,12 @@ DO
    SWAP pt, remptr
    GOSUB thishero
   END IF
-  IF keyval(75) > 1 AND pt > 0 THEN
+  IF keyval(scLeft) > 1 AND pt > 0 THEN
    GOSUB lasthero
    pt = pt - 1
    GOSUB thishero
   END IF
-  IF keyval(77) > 1 AND pt < 59 THEN
+  IF keyval(scRight) > 1 AND pt < 59 THEN
    GOSUB lasthero
    pt = pt + 1
    IF needaddset(pt, gen(genMaxHero), "hero") THEN GOSUB clearhero
@@ -1273,11 +1272,11 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN RETRACE
  IF keyval(scF1) > 1 THEN show_help "hero_stats"
- IF keyval(72) > 1 THEN bctr = large(bctr - 2, 0)
- IF keyval(80) > 1 AND bctr > 0 THEN bctr = small(bctr + 2, 24)
- IF keyval(80) > 1 AND bctr = 0 THEN bctr = bctr + 1
- IF keyval(75) > 1 AND bctr > 0 THEN bctr = bctr - 1
- IF keyval(77) > 1 AND bctr < 24 THEN bctr = bctr + 1
+ IF keyval(scUp) > 1 THEN bctr = large(bctr - 2, 0)
+ IF keyval(scDown) > 1 AND bctr > 0 THEN bctr = small(bctr + 2, 24)
+ IF keyval(scDown) > 1 AND bctr = 0 THEN bctr = bctr + 1
+ IF keyval(scLeft) > 1 AND bctr > 0 THEN bctr = bctr - 1
+ IF keyval(scRight) > 1 AND bctr < 24 THEN bctr = bctr + 1
  IF enter_or_space() AND bctr = 0 THEN RETRACE
  IF bctr > 0 THEN
   changed = 0
@@ -1329,9 +1328,9 @@ DO
  tog = tog XOR 1
  IF keyval(scF1) > 1 THEN show_help "hero_spells"
  IF sticky THEN
-  IF keyval(1) > 1 THEN sticky = 0: GOSUB setsticky
+  IF keyval(scEsc) > 1 THEN sticky = 0: GOSUB setsticky
  ELSE
-  IF keyval(1) > 1 THEN RETRACE
+  IF keyval(scEsc) > 1 THEN RETRACE
   IF usemenu(bctr, 0, 0, 24, 24) THEN
    IF bctr > 0 THEN
     IF her.spell_lists(listnum, bctr-1).attack = 0 THEN colcsr = 0
@@ -1339,7 +1338,7 @@ DO
     colcsr = 0
    END IF
   END IF
-  IF keyval(75) > 1 OR keyval(77) > 1 THEN
+  IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN
    colcsr = colcsr XOR 1
    IF bctr > 0 THEN
     IF her.spell_lists(listnum, bctr-1).attack = 0 THEN colcsr = 0
@@ -1571,7 +1570,7 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "item_editor_pickitem"
- IF keyval(29) > 0 AND keyval(14) > 0 AND csr >= 0 THEN
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 AND csr >= 0 THEN
   cropafter csr, gen(genMaxItem), 0, game + ".itm", 200, 1
   load_item_names item$()
  END IF
@@ -1633,12 +1632,12 @@ menu$(18) = "Stat Bonuses..."
 menu$(19) = "Equipment Bits..."
 menu$(20) = "Who Can Equip?..."
 max(3) = 32767
-max(4) = gen(34) + 1
-max(5) = gen(34) + 1
+max(4) = gen(genMaxAttack) + 1
+max(5) = gen(genMaxAttack) + 1
 max(6) = 5
-max(7) = gen(34) + 1
-max(8) = gen(34) + 1
-max(9) = gen(31)
+max(7) = gen(genMaxAttack) + 1
+max(8) = gen(genMaxAttack) + 1
+max(9) = gen(genMaxWeaponPic)
 max(10) = 32767
 min(10) = -1
 max(11) = 2
@@ -1713,7 +1712,7 @@ DO
     need_update = YES
    END IF
   CASE 8
-   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, gen(39) * -1) THEN
+   IF xintgrabber(a(46 + (pt - 3)), 0, max(pt), -1, gen(genMaxTextbox) * -1) THEN
     need_update = YES
    END IF
   CASE 11

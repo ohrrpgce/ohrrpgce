@@ -258,8 +258,9 @@ SELECT CASE AS CONST id
  CASE 110'--set hero picture
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = bound(retvals(0), 0, 40)
-   j = bound(retvals(2), 0, 1)
-   stat(i, j, 14) = bound(retvals(1), 0, gen(26 + (j * 4)))
+   retvals(2) = bound(retvals(2), 0, 1)
+   IF retvals(2) = 0 THEN stat(i, 0, 14) = bound(retvals(1), 0, gen(genMaxHeroPic))
+   IF retvals(2) = 1 THEN stat(i, 1, 14) = bound(retvals(1), 0, gen(genMaxNPCPic))
    IF i < 4 THEN
     vishero stat()
    END IF
@@ -324,7 +325,7 @@ SELECT CASE AS CONST id
     'battle party: reset level-gained counter even if giveheroexperience is not called
     stat(i, 1, 12) = 0
     'give the XP to the hero only if it is alive when 'dead heroes get XP' not set
-    IF readbit(gen(), genBits2, 3) <> 0 OR stat(i, 0, 0) > 0 THEN giveheroexperience i, stat(), retvals(1)
+    IF readbit(gen(), genBits2, 3) <> 0 OR stat(i, 0, statHP) > 0 THEN giveheroexperience i, stat(), retvals(1)
     updatestatslevelup i, stat(), dummystats, 0
    NEXT i
   END IF
@@ -684,18 +685,18 @@ STATIC n AS DOUBLE
 
 IF TIMER >= n + 1 OR n - TIMER > 3600 THEN
  n = INT(TIMER)
- gen(54) = gen(54) + 1
- WHILE gen(54) >= 60
-  gen(54) = gen(54) - 60
-  gen(53) = gen(53) + 1
+ gen(genSeconds) = gen(genSeconds) + 1
+ WHILE gen(genSeconds) >= 60
+  gen(genSeconds) = gen(genSeconds) - 60
+  gen(genMinutes) = gen(genMinutes) + 1
  WEND
- WHILE gen(53) >= 60
-  gen(53) = gen(53) - 60
-  gen(52) = gen(52) + 1
+ WHILE gen(genMinutes) >= 60
+  gen(genMinutes) = gen(genMinutes) - 60
+  gen(genHours) = gen(genHours) + 1
  WEND
- WHILE gen(52) >= 24
-  gen(52) = gen(52) - 24
-  IF gen(51) < 32767 THEN gen(51) = gen(51) + 1
+ WHILE gen(genHours) >= 24
+  gen(genHours) = gen(genHours) - 24
+  IF gen(genDays) < 32767 THEN gen(genDays) = gen(genDays) + 1
  WEND
 END IF
 
@@ -1063,11 +1064,11 @@ SELECT CASE AS CONST id
    scriptret = 0
   END IF
  CASE 92'--days of play
-  scriptret = gen(51)
+  scriptret = gen(genDays)
  CASE 93'--hours of play
-  scriptret = gen(52)
+  scriptret = gen(genHours)
  CASE 94'--minutes of play
-  scriptret = gen(53)
+  scriptret = gen(genMinutes)
  CASE 95'--resume NPC walls
   setbit gen(), 44, suspendnpcwalls, 0
  CASE 96'--set hero Z
@@ -2760,7 +2761,7 @@ IF mode > 1 AND drawloop = 0 THEN
  setpal master()
  setvispage page
  w = getkey
- IF w = 68 THEN mode = 0: clearkey(68) 'f10
+ IF w = 68 THEN mode = 0: clearkey(scF10)
  IF w = 47 THEN viewmode = loopvar(viewmode, 0, 2, 1): GOTO redraw 'v
  IF w = 73 THEN 'pgup
   selectedscript += 1
@@ -3011,7 +3012,7 @@ IF vstate.active = YES AND vehicle_is_animating() = NO THEN
   button(0) = vstate.dat.use_button
   button(1) = vstate.dat.menu_button
   FOR i = 0 TO 1
-   IF carray(4 + i) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
+   IF carray(ccUse + i) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
     SELECT CASE button(i)
      CASE -2
       '-disabled

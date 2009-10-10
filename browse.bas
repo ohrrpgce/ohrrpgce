@@ -110,7 +110,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scEsc) > 1 THEN EXIT DO
  IF usemenu(treeptr, treetop, 0, br.treesize, br.viewsize) OR changed THEN
   alert$ = ""
   changed = 0
@@ -147,9 +147,9 @@ DO
     EXIT DO
   END SELECT
  END IF
- IF keyval(29) THEN
+ IF keyval(scCtrl) THEN
   'Ctrl + H for hidden
-  IF keyval(35) > 1 THEN
+  IF keyval(scH) > 1 THEN
    showHidden = showHidden XOR attribHidden
    GOSUB context
   END IF
@@ -166,14 +166,14 @@ DO
    END IF
   NEXT i
  END IF
- IF keyval(63) > 1 THEN  'F5
+ IF keyval(scF5) > 1 THEN  'F5
   'refresh
   br.drivesshown = 0
   getdrivenames = 1
   GOSUB context
   changed = 1
  END IF
- IF keyval(14) > 1 THEN 'backspace
+ IF keyval(scBackspace) > 1 THEN 'backspace
   'go up a directory
   FOR i = LEN(br.nowdir) - 1 TO 1 STEP -1
    IF br.nowdir[i - 1] = ASC(SLASH) THEN br.nowdir = LEFT$(br.nowdir, i) : EXIT FOR

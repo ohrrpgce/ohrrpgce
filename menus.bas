@@ -16,7 +16,6 @@ DEFINT A-Z
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
-#include "scancodes.bi"
 
 'basic subs and functions
 DECLARE FUNCTION filenum$ (n%)
@@ -78,11 +77,11 @@ FOR i = 0 TO 3
  min(5 + i) = 0: max(5 + i) = 8: offset(5 + i) = 17 + i
 NEXT i
 min(9) = -1: max(9) = 255: offset(9) = 11 'battles
-min(10) = -2: max(10) = gen(43): offset(10) = 12 'use button
-min(11) = -2: max(11) = gen(43): offset(11) = 13 'menu button
+min(10) = -2: max(10) = gen(genMaxRegularScript): offset(10) = 12 'use button
+min(11) = -2: max(11) = gen(genMaxRegularScript): offset(11) = 13 'menu button
 min(12) = -999: max(12) = 999: offset(12) = 14 'tag
-min(13) = gen(43) * -1: max(13) = gen(39): offset(13) = 15'mount
-min(14) = gen(43) * -1: max(14) = gen(39): offset(14) = 16'dismount
+min(13) = gen(genMaxRegularScript) * -1: max(13) = gen(genMaxTextbox): offset(13) = 15'mount
+min(14) = gen(genMaxRegularScript) * -1: max(14) = gen(genMaxTextbox): offset(14) = 16'dismount
 min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 
 LoadVehicle game + ".veh", veh(), vehname$, pt
@@ -102,7 +101,7 @@ DO
     EXIT DO
    END IF
   CASE 1
-   IF pt = gen(55) AND keyval(77) > 1 THEN
+   IF pt = gen(genMaxVehicle) AND keyval(scRight) > 1 THEN
     SaveVehicle game + ".veh", veh(), vehname$, pt
     pt = bound(pt + 1, 0, 32767)
     IF needaddset(pt, gen(genMaxVehicle), "vehicle") THEN
@@ -400,12 +399,12 @@ DO
    snum = newsong
    GOSUB getsonginfo
   END IF
-  IF keyval(75) > 1 AND snum > 0 THEN
+  IF keyval(scLeft) > 1 AND snum > 0 THEN
    GOSUB ssongdata
    snum = snum - 1
    GOSUB getsonginfo
   END IF
-  IF keyval(77) > 1 AND snum < 32767 THEN
+  IF keyval(scRight) > 1 AND snum < 32767 THEN
    GOSUB ssongdata
    snum = snum + 1
    IF needaddset(snum, gen(genMaxSong), "song") THEN sname$ = ""
@@ -573,8 +572,8 @@ copyfile songfile$, outfile$ + ext$
 RETRACE
 
 ssongdata:
-flusharray buffer(), curbinsize(2) / 2, 0
-setpicstuf buffer(), curbinsize(2), -1
+flusharray buffer(), curbinsize(binSONGDATA) / 2, 0
+setpicstuf buffer(), curbinsize(binSONGDATA), -1
 writebinstring sname$, buffer(), 0, 30
 storeset workingdir + SLASH + "songdata.bin", snum, 0
 RETRACE
@@ -625,12 +624,12 @@ DO
    snum = newsfx
    GOSUB getsfxinfo
   END IF
-  IF keyval(75) > 1 AND snum > 0 THEN
+  IF keyval(scLeft) > 1 AND snum > 0 THEN
    GOSUB ssfxdata
    snum = snum - 1
    GOSUB getsfxinfo
   END IF
-  IF keyval(77) > 1 AND snum < 32767 THEN
+  IF keyval(scRight) > 1 AND snum < 32767 THEN
    GOSUB ssfxdata
    snum = snum + 1
    IF needaddset(snum, gen(genMaxSFX), "sfx") THEN sname$ = ""
@@ -758,8 +757,8 @@ RETRACE
 
 ssfxdata:
 freesfx snum
-flusharray buffer(), curbinsize(3) / 2, 0
-setpicstuf buffer(), curbinsize(3), -1
+flusharray buffer(), curbinsize(binSFXDATA) / 2, 0
+setpicstuf buffer(), curbinsize(binSFXDATA), -1
 writebinstring sname$, buffer(), 0, 30
 storeset workingdir + SLASH + "sfxdata.bin", snum, 0
 RETRACE
@@ -787,7 +786,7 @@ DO
  usemenu csr, 0, 0, UBOUND(menu$), 10
 
  oldpal = palnum
- IF keyval(77) > 1 AND palnum = gen(genMaxMasterPal) THEN
+ IF keyval(scRight) > 1 AND palnum = gen(genMaxMasterPal) THEN
   palnum += 1
   IF needaddset(palnum, gen(genMaxMasterPal), "Master Palette") THEN
    IF importmasterpal("", palnum) THEN
@@ -804,8 +803,8 @@ DO
  IF csr = 1 THEN
   intgrabber(palnum, 0, gen(genMaxMasterPal))
  ELSE
-  IF keyval(75) > 1 THEN palnum += gen(genMaxMasterPal)
-  IF keyval(77) > 1 THEN palnum += 1
+  IF keyval(scLeft) > 1 THEN palnum += gen(genMaxMasterPal)
+  IF keyval(scRight) > 1 THEN palnum += 1
   palnum = palnum MOD (gen(genMaxMasterPal) + 1)
  END IF
  IF palnum <> oldpal THEN
@@ -950,7 +949,7 @@ END SUB
 
 'FIXME:recursively enter backdrop editor instead?
 SUB titlescreenbrowse
-loadpage game + ".mxs", gen(1), 2
+loadpage game + ".mxs", gen(genTitle), 2
 setkeys
 gcsr = 0
 DO
@@ -959,11 +958,11 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "title_screen_browse"
- IF keyval(72) > 1 AND gcsr = 1 THEN gcsr = 0
- IF keyval(80) > 1 AND gcsr = 0 THEN gcsr = 1
+ IF keyval(scUp) > 1 AND gcsr = 1 THEN gcsr = 0
+ IF keyval(scDown) > 1 AND gcsr = 0 THEN gcsr = 1
  IF gcsr = 1 THEN
-  IF intgrabber(gen(1), 0, gen(genMaxBackdrop) - 1) THEN 
-   loadpage game + ".mxs", gen(1), 2
+  IF intgrabber(gen(genTitle), 0, gen(genMaxBackdrop) - 1) THEN 
+   loadpage game + ".mxs", gen(genTitle), 2
   END IF
  END IF
  IF enter_or_space() THEN

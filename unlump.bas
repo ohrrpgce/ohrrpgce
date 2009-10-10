@@ -41,6 +41,7 @@ DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
 
 #include "util.bi"
+#include "const.bi"
 
 #ifdef __FB_LINUX__
 #define LINUX -1
@@ -146,16 +147,16 @@ KILL dest$ + SLASH + game + ".gen"
 
 passokay = -1
 
-IF gen(94) > -1 THEN
+IF gen(genPW2Length) > -1 THEN
  passokay = 0
  '----load password-----
  'Note that this is still using the old 2nd-style password format, not the
  'newer simpler 3rd-style password format. This is okay for now, since
  'CUSTOM writes both 2nd and 3rd style passwords, but supporting 3rd-style
  'here also would be desireable
- readscatter rpas$, gen(94), gen(), 200
- rpas$ = rotascii(rpas$, gen(93) * -1)
- 'PRINT rpas$
+ readscatter rpas$, gen(genPW2Length), gen(), 200
+ rpas$ = rotascii(rpas$, gen(genPW2Offset) * -1)
+ PRINT rpas$
  '-----get inputed password-----
  print "Password Required"
  pas$ = ""

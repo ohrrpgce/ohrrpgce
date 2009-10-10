@@ -21,7 +21,6 @@ END TYPE
 #include "udts.bi"
 #include "custom_udts.bi"
 #include "const.bi"
-#include "scancodes.bi"
 
 'basic subs and functions
 DECLARE FUNCTION filenum$ (n%)
@@ -359,8 +358,8 @@ SUB importscripts (f$)
    copyfile workingdir & SLASH & "plotscr.lst", tmpdir & "plotscr.lst.tmp"
   END IF
 
-  gen(40) = 0
-  gen(43) = 0
+  gen(genMaxPlotscript) = 0
+  gen(genMaxRegularScript) = 0
   viscount = 0
   DIM names AS STRING = ""
   DO
@@ -387,9 +386,9 @@ SUB importscripts (f$)
    'save to plotscr.lst
    buffer(0) = id
    writebinstring names, buffer(), 1, 36
-   storerecord buffer(), workingdir + SLASH + "plotscr.lst", 20, gen(40)
-   gen(40) = gen(40) + 1
-   IF buffer(0) > gen(43) AND buffer(0) < 16384 THEN gen(43) = buffer(0)
+   storerecord buffer(), workingdir + SLASH + "plotscr.lst", 20, gen(genMaxPlotscript)
+   gen(genMaxPlotscript) = gen(genMaxPlotscript) + 1
+   IF buffer(0) > gen(genMaxRegularScript) AND buffer(0) < 16384 THEN gen(genMaxRegularScript) = buffer(0)
 
    'process trigger
    IF trigger > 0 AND trigger < 16 THEN
@@ -584,7 +583,7 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "textbox_main"
- IF keyval(29) > 0 AND keyval(14) > 0 THEN
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
   SaveTextBox box, st.id
   cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
   textbox_edit_load box, st, m$()
@@ -612,12 +611,12 @@ DO
     SWAP st.id, remptr
     textbox_edit_load box, st, m$()
    END IF
-   IF keyval(75) > 1 AND st.id > 0 THEN
+   IF keyval(scLeft) > 1 AND st.id > 0 THEN
     SaveTextBox box, st.id
     st.id = st.id - 1
     textbox_edit_load box, st, m$()
    END IF
-   IF keyval(77) > 1 AND st.id < 32767 THEN
+   IF keyval(scRight) > 1 AND st.id < 32767 THEN
     SaveTextBox box, st.id
     st.id = st.id + 1
     IF needaddset(st.id, gen(genMaxTextBox), "text box") THEN
@@ -656,7 +655,7 @@ DO
     update_textbox_editor_main_menu box, m$()
    END IF
   END IF
-  IF csr = 7 AND keyval(28) > 1 THEN
+  IF csr = 7 AND keyval(scEnter) > 1 THEN
    textbox_seek box, st
    textbox_edit_load box, st, m$()
   END IF
@@ -782,7 +781,7 @@ DO
   GOSUB textcmenu
  END IF
  usemenu state
- IF keyval(83) > 1 THEN ' Pressed the delete key
+ IF keyval(scDelete) > 1 THEN ' Pressed the delete key
   write_box_conditional_by_menu_index box, state.pt, 0
  END IF
  IF state.pt >= 0 THEN
@@ -1147,7 +1146,7 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
    END SELECT
    state.need_update = YES
   END IF
-  IF keyval(75) > 1 OR keyval(77) > 1 THEN
+  IF keyval(scLeft) > 1 OR keyval(scRight) > 1 THEN
    SELECT CASE state.pt
     CASE 7: box.no_box = (NOT box.no_box)
     CASE 8: box.opaque = (NOT box.opaque)

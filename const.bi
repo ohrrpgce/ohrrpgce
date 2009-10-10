@@ -194,6 +194,16 @@ ENUM PixelTool
 	clone_tool
 END ENUM
 
+'--- Constants for carray() 
+CONST ccUp = 0
+CONST ccDown = 1
+CONST ccLeft = 2
+CONST ccRight = 3
+CONST ccUse = 4
+CONST ccMenu = 5
+CONST ccRun = 6
+
+
 #IF __FB_VERSION__ < "0.17"
 type intptr as integer
 #else
@@ -201,5 +211,6 @@ type intptr as any ptr
 #endif
 
 #include "uiconst.bi"
+#include "scancodes.bi"
 
 #ENDIF

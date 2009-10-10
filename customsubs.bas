@@ -12,7 +12,6 @@
 #include "const.bi"
 #include "scrconst.bi"
 #include "cglobals.bi"
-#include "scancodes.bi"
 #include "reload.bi"
 #include "slices.bi"
 
@@ -86,7 +85,7 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
   IF state.pt = 0 AND enter_or_space() THEN EXIT DO
   IF state.pt > 0 AND state.pt <= gen(genMaxTagName) THEN
    IF picktag THEN
-    IF keyval(28) > 1 THEN
+    IF keyval(scEnter) > 1 THEN
      RETURN (state.pt + 1) * tagsign
     END IF
    END IF
@@ -125,26 +124,26 @@ DIM old AS STRING
 old = s
 
 '--BACKSPACE support
-IF keyval(14) > 1 AND LEN(s) > 0 THEN s = LEFT(s, LEN(s) - 1)
+IF keyval(scBackspace) > 1 AND LEN(s) > 0 THEN s = LEFT(s, LEN(s) - 1)
 
 '--copy support
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN clip = s
+IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN clip = s
 
 '--paste support
-IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN s = LEFT(clip, maxl)
+IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN s = LEFT(clip, maxl)
 
 '--SHIFT support
 shift = 0
-IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
+IF keyval(scRightShift) > 0 OR keyval(scLeftShift) > 0 THEN shift = 1
 
 '--ALT support
-IF keyval(56) THEN shift = shift + 2
+IF keyval(scAlt) THEN shift = shift + 2
 
 '--adding chars
 IF LEN(s) < maxl THEN
 
- IF keyval(57) > 1 THEN
-  IF keyval(29) = 0 THEN
+ IF keyval(scSpace) > 1 THEN
+  IF keyval(scCtrl) = 0 THEN
    '--SPACE support
    s = s + " "
   ELSE
@@ -152,7 +151,7 @@ IF LEN(s) < maxl THEN
    s = s + charpicker
   END IF
  ELSE
-  IF keyval(29) = 0 THEN
+  IF keyval(scCtrl) = 0 THEN
    '--all other keys
    FOR i = 2 TO 53
     IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
@@ -198,10 +197,10 @@ DO
  IF keyval(scESC) > 1 THEN RETURN ""
  IF keyval(scF1) > 1 THEN show_help "charpicker"
 
- IF keyval(72) > 1 THEN pt = large(pt - linesize, 0)
- IF keyval(80) > 1 THEN pt = small(pt + linesize, last)
- IF keyval(75) > 1 THEN pt = large(pt - 1, 0)
- IF keyval(77) > 1 THEN pt = small(pt + 1, last)
+ IF keyval(scUp) > 1 THEN pt = large(pt - linesize, 0)
+ IF keyval(scDown) > 1 THEN pt = small(pt + linesize, last)
+ IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
+ IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
 
  IF enter_or_space() THEN RETURN CHR(f(pt))
 
@@ -364,10 +363,10 @@ FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
 
   IF enter_or_space() THEN RETURN int_from_xy(cursor, 16, 16)
 
-  IF keyval(72) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, -1)
-  IF keyval(80) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, 1)
-  IF keyval(75) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, -1)
-  IF keyval(77) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, 1)
+  IF keyval(scUp) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, -1)
+  IF keyval(scDown) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, 1)
+  IF keyval(scLeft) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, -1)
+  IF keyval(scRight) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, 1)
 
   FOR i = 0 TO 255
    spot = xy_from_int(i, 16, 16)
@@ -451,7 +450,7 @@ FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", de
   setwait 55
   setkeys
 
-  IF keyval(1) > 1 THEN
+  IF keyval(scEsc) > 1 THEN
    result = escval
    state.active = NO
   END IF
@@ -758,7 +757,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
    CASE 10'--tag conditionals
     tag_grabber npcdata.tag2
    CASE 11'--one-time-use tag
-    IF keyval(75) > 1 OR keyval(77) > 1 OR enter_or_space() THEN
+    IF keyval(scLeft) > 1 OR keyval(scRight) > 1 OR enter_or_space() THEN
      onetimetog npcdata.usetag
     END IF
    CASE 12'--script
@@ -894,11 +893,11 @@ SUB onetimetog(BYREF tagnum AS INTEGER)
  END IF
  DIM i AS INTEGER = 0
  DO
-  gen(105) = loopvar(gen(105), 0, 999, 1)
+  gen(genOneTimeNPC) = loopvar(gen(genOneTimeNPC), 0, 999, 1)
   i = i + 1: IF i > 1000 THEN EXIT SUB 'Revisit this later
- LOOP UNTIL readbit(gen(), 106, gen(105)) = 0
- tagnum = gen(105) + 1
- setbit gen(), 106, gen(105), 1
+ LOOP UNTIL readbit(gen(), 106, gen(genOneTimeNPC)) = 0
+ tagnum = gen(genOneTimeNPC) + 1
+ setbit gen(), 106, gen(genOneTimeNPC), 1
 END SUB
 
 FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL picnum AS INTEGER) AS INTEGER
@@ -1093,10 +1092,10 @@ FUNCTION inputfilename (query AS STRING, ext AS STRING, default AS STRING="", ch
   setwait 55
   setkeys
   tog = tog XOR 1
-  IF keyval(1) > 1 THEN RETURN ""
+  IF keyval(scEsc) > 1 THEN RETURN ""
   strgrabber filename, 40
   filename = fixfilename(filename)
-  IF keyval(28) > 1 THEN
+  IF keyval(scEnter) > 1 THEN
    filename = TRIM(filename)
    IF check_for_existing AND isfile(filename & ext) AND filename <> "" THEN
     alert = filename & ext & " already exists"
@@ -1687,12 +1686,12 @@ SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "reposition_menu"
   
-  shift = ABS(keyval(42) > 0 OR keyval(54) > 0)
+  shift = ABS(keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
   WITH menu.offset
-   IF keyval(72) > 1 THEN .y -= 1 + 9 * shift
-   IF keyval(80) > 1 THEN .y += 1 + 9 * shift
-   IF keyval(75) > 1 THEN .x -= 1 + 9 * shift
-   IF keyval(77) > 1 THEN .x += 1 + 9 * shift
+   IF keyval(scUp) > 1 THEN .y -= 1 + 9 * shift
+   IF keyval(scDown) > 1 THEN .y += 1 + 9 * shift
+   IF keyval(scLeft) > 1 THEN .x -= 1 + 9 * shift
+   IF keyval(scRight) > 1 THEN .x += 1 + 9 * shift
   END WITH
  
   draw_menu menu, mstate, dpage
@@ -1720,10 +1719,10 @@ SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
   IF keyval(scF1) > 1 THEN show_help "reposition_anchor"
   
   WITH menu.anchor
-   IF keyval(72) > 1 THEN .y = bound(.y - 1, -1, 1)
-   IF keyval(80) > 1 THEN .y = bound(.y + 1, -1, 1)
-   IF keyval(75) > 1 THEN .x = bound(.x - 1, -1, 1)
-   IF keyval(77) > 1 THEN .x = bound(.x + 1, -1, 1)
+   IF keyval(scUp) > 1 THEN .y = bound(.y - 1, -1, 1)
+   IF keyval(scDown) > 1 THEN .y = bound(.y + 1, -1, 1)
+   IF keyval(scLeft) > 1 THEN .x = bound(.x - 1, -1, 1)
+   IF keyval(scRight) > 1 THEN .x = bound(.x + 1, -1, 1)
   END WITH
  
   draw_menu menu, mstate, dpage
@@ -1847,7 +1846,7 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
   fh = FREEFILE
   OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY AS #fh
   'numberedlast = firstscript + LOF(fh) \ 40 - 1
-  numberedlast = firstscript + gen(40) - 1
+  numberedlast = firstscript + gen(genMaxPlotscript) - 1
 
   REDIM scriptnames(numberedlast) AS STRING, scriptids(numberedlast)
 
@@ -2070,7 +2069,7 @@ SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggerty
  'temp = -1 means scroll to last script
  'returns 0 when scrolled past first script, -1 when went past last
 
- DIM buf(19), plotids(gen(43))
+ DIM buf(19), plotids(gen(genMaxRegularScript))
  DIM recordsloaded AS INTEGER = 0
  DIM screxists AS INTEGER = 0
 
@@ -2081,11 +2080,11 @@ SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggerty
 
  DO
   temp += seekdir
-  IF temp > gen(43) AND temp < 16384 THEN
+  IF temp > gen(genMaxRegularScript) AND temp < 16384 THEN
    IF seekdir > 0 THEN
     temp = 16384
    ELSEIF triggertype = plottrigger THEN
-    temp = gen(43)
+    temp = gen(genMaxRegularScript)
    ELSE
     temp = 0
    END IF
@@ -2100,11 +2099,11 @@ SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggerty
    IF plotids(temp) THEN
     screxists = -1
    ELSE
-    WHILE recordsloaded < gen(40)
+    WHILE recordsloaded < gen(genMaxPlotscript)
      loadrecord buf(), workingdir + SLASH + "plotscr.lst", 20, recordsloaded
      recordsloaded += 1
      IF buf(0) = temp THEN screxists = -1: EXIT WHILE
-     IF buf(0) <= gen(43) THEN plotids(buf(0)) = -1
+     IF buf(0) <= gen(genMaxRegularScript) THEN plotids(buf(0)) = -1
     WEND
    END IF
   END IF

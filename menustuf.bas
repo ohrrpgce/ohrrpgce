@@ -14,7 +14,6 @@ DEFINT A-Z
 #include "const.bi"
 #include "uiconst.bi"
 #include "game_udts.bi"
-#include "scancodes.bi"
 
 #include "game.bi"
 #include "yetmore.bi"
@@ -35,7 +34,7 @@ REM $STATIC
 
 
 SUB buystuff (id, shoptype, storebuf(), stat())
-DIM b(dimbinsize(1) * 50), stuf$(50), vmask(5), emask(5), buytype$(5, 1), wbuf(100), walks(15), tradestf(3, 1)
+DIM b(dimbinsize(binSTF) * 50), stuf$(50), vmask(5), emask(5), buytype$(5, 1), wbuf(100), walks(15), tradestf(3, 1)
 DIM is_equipable AS INTEGER
 DIM itembuf(99) AS INTEGER
 DIM hiresprite AS Frame PTR
@@ -44,7 +43,7 @@ DIM herosprite(3) AS Frame PTR
 DIM heropal(3) AS Palette16 PTR
 DIM heroframe AS INTEGER
 DIM heropos AS XYPair
-recordsize = curbinsize(1) / 2 ' get size in INTs
+recordsize = curbinsize(binSTF) / 2 ' get size in INTs
 
 '--Preserve background for display beneath the buy menu
 holdscreen = allocatepage
@@ -111,7 +110,7 @@ DO
  IF tog THEN walk = loopvar(walk, 0, 15, 1)
  playtimer
  control
- IF carray(0) > 1 THEN
+ IF carray(ccUp) > 1 THEN
   menusound gen(genCursorSFX)
   DO
    pt = pt - 1
@@ -125,7 +124,7 @@ DO
   top = small(pt, top)
   GOSUB curinfo
  END IF
- IF carray(1) > 1 THEN
+ IF carray(ccDown) > 1 THEN
   menusound gen(genCursorSFX)
   DO
    pt = pt + 1
@@ -138,8 +137,8 @@ DO
   LOOP UNTIL readbit(vmask(), 0, pt) = 0
   GOSUB curinfo
  END IF
- IF carray(5) > 1 THEN EXIT DO
- IF carray(4) > 1 THEN '---PRESS ENTER---------------------
+ IF carray(ccMenu) > 1 THEN EXIT DO
+ IF carray(ccUse) > 1 THEN '---PRESS ENTER---------------------
   IF readbit(emask(), 0, pt) = 0 THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
    IF gam.stock(id, pt) > 1 THEN gam.stock(id, pt) = gam.stock(id, pt) - 1
    IF b(pt * recordsize + 22) THEN setbit tag(), 0, ABS(b(pt * recordsize + 22)), SGN(SGN(b(pt * recordsize + 22)) + 1)
@@ -423,7 +422,7 @@ FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS IN
  IF atk < -1 OR atk > gen(genMaxAttack) THEN RETURN NO
 
  DIM hp AS INTEGER
- hp = stat(target, 0, 0)
+ hp = stat(target, 0, statHP)
 
  IF atk >= 0 THEN
   DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
@@ -694,7 +693,7 @@ RETRACE
 itcontrol:
 '--keyboard checking and associated actions for the item menu
 IF pick = 0 THEN '--have not picked an item yet
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   '--deselect currently selected item
   IF sel > -1 THEN
    sel = -4
@@ -703,7 +702,7 @@ IF pick = 0 THEN '--have not picked an item yet
    quit = 1
   END IF
  END IF
- IF carray(4) > 1 THEN
+ IF carray(ccUse) > 1 THEN
   '--exit
   IF ic = -3 THEN quit = 1
   '--sort
@@ -737,7 +736,7 @@ IF pick = 0 THEN '--have not picked an item yet
      ttype = 0
      pick = 1: wptr = 0
      '--target the first non-dead hero
-     WHILE hero(wptr) = 0 OR stat(wptr, 0, 0) = 0
+     WHILE hero(wptr) = 0 OR stat(wptr, 0, statHP) = 0
       wptr = loopvar(wptr, 0, 3, 1)
      WEND
      spred = 0
@@ -779,19 +778,19 @@ IF pick = 0 THEN '--have not picked an item yet
    RETRACE
   END IF
  END IF
- IF carray(0) > 1 AND ic >= 0 THEN
+ IF carray(ccUp) > 1 AND ic >= 0 THEN
   menusound gen(genCursorSFX)
   ic = ic - 3
   GOSUB infostr
   IF ic < top THEN top = top - 3
  END IF
- IF carray(1) > 1 AND ic <= last_inv_slot() - 3 THEN
+ IF carray(ccDown) > 1 AND ic <= last_inv_slot() - 3 THEN
   menusound gen(genCursorSFX)
   ic = ic + 3
   GOSUB infostr
   IF ic > top + 62 THEN top = top + 3
  END IF
- IF carray(2) > 1 THEN
+ IF carray(ccLeft) > 1 THEN
   menusound gen(genCursorSFX)
   IF (ic MOD 3) = 0 THEN
    ic = ic + 2
@@ -800,7 +799,7 @@ IF pick = 0 THEN '--have not picked an item yet
   END IF
   GOSUB infostr
  END IF
- IF carray(3) > 1 THEN
+ IF carray(ccRight) > 1 THEN
   menusound gen(genCursorSFX)
   IF ((ic + 3) MOD 3) = 2 THEN ' the +3 adjust for the first negative row
    ic = ic - 2
@@ -820,7 +819,7 @@ IF pick = 0 THEN '--have not picked an item yet
   WHILE ic >= top + (state.size+1) * 3 : top = top + 3 : WEND
  END IF
 ELSE '--an item is already selected
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   menusound gen(genCancelSFX)
   pick = 0
   GOSUB infostr
@@ -828,17 +827,17 @@ ELSE '--an item is already selected
  END IF
  info$ = inventory(ic).text
  IF spred = 0 THEN
-  IF carray(0) > 1 THEN
+  IF carray(ccUp) > 1 THEN
    getOOBtarg -1, wptr, atkIDs(ic), stat()
    MenuSound gen(genCursorSFX)
   END IF
-  IF carray(1) > 1 THEN
+  IF carray(ccDown) > 1 THEN
    getOOBtarg 1, wptr, atkIDs(ic), stat()
    MenuSound gen(genCursorSFX)
   END IF
  END IF
  IF ttype = 2 THEN
-  IF carray(2) > 1 OR carray(3) > 1 THEN
+  IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
    MenuSound gen(genCursorSFX)
    IF spred = 0 THEN
     FOR i = 0 TO 3
@@ -849,7 +848,7 @@ ELSE '--an item is already selected
    END IF
   END IF
  END IF
- IF carray(4) > 1 THEN
+ IF carray(ccUse) > 1 THEN
   'DO ACTUAL EFFECT
   loaditemdata itemtemp(), inventory(ic).id
   'if can teach a spell
@@ -1083,9 +1082,9 @@ DO
  setwait speedcontrol
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT SUB
- IF keyval(72) > 1 THEN csr = large(0, csr - 1)
- IF keyval(80) > 1 THEN csr = small(2, csr + 1)
+ IF keyval(scEsc) > 1 THEN EXIT SUB
+ IF keyval(scUp) > 1 THEN csr = large(0, csr - 1)
+ IF keyval(scDown) > 1 THEN csr = small(2, csr + 1)
  IF csr = 0 THEN intgrabber pt, 0, UBOUND(array)
  IF csr = 1 THEN intgrabber array(pt), -32768, 32767
  IF csr = 2 THEN
@@ -1246,23 +1245,23 @@ DO
  walk = walk XOR tog
  IF loading = 0 THEN playtimer
  control
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   MenuSound gen(genCancelSFX)
   IF loading THEN picksave = -2 ELSE picksave = -1
   EXIT DO
  END IF
  IF cursor = -2 THEN
-  IF carray(0) > 1 THEN cursor = 3: MenuSound gen(genCursorSFX)
-  IF carray(1) > 1 THEN cursor = 0: MenuSound gen(genCursorSFX)
+  IF carray(ccUp) > 1 THEN cursor = 3: MenuSound gen(genCursorSFX)
+  IF carray(ccDown) > 1 THEN cursor = 0: MenuSound gen(genCursorSFX)
  ELSE
-  IF carray(0) > 1 THEN cursor = loopvar(cursor, -1, 3, -1): MenuSound gen(genCursorSFX)
-  IF carray(1) > 1 THEN cursor = loopvar(cursor, -1, 3, 1): MenuSound gen(genCursorSFX)
+  IF carray(ccUp) > 1 THEN cursor = loopvar(cursor, -1, 3, -1): MenuSound gen(genCursorSFX)
+  IF carray(ccDown) > 1 THEN cursor = loopvar(cursor, -1, 3, 1): MenuSound gen(genCursorSFX)
  END IF
  IF cursor < 0 AND loading THEN
-  IF carray(2) > 1 THEN cursor = -1: MenuSound gen(genCursorSFX)
-  IF carray(3) > 1 THEN cursor = -2: MenuSound gen(genCursorSFX)
+  IF carray(ccLeft) > 1 THEN cursor = -1: MenuSound gen(genCursorSFX)
+  IF carray(ccRight) > 1 THEN cursor = -2: MenuSound gen(genCursorSFX)
  END IF
- IF carray(4) > 1 THEN
+ IF carray(ccUse) > 1 THEN
   IF cursor = -2 THEN
    MenuSound gen(genCancelSFX)
    picksave = cursor
@@ -1323,16 +1322,16 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   allow = 0
   MenuSound gen(genCancelSFX)
   RETRACE
  END IF
- IF carray(0) > 1 OR carray(1) > 1 THEN
+ IF carray(ccUp) > 1 OR carray(ccDown) > 1 THEN
   allow = allow XOR 1
   MenuSound gen(genCursorSFX)
  END IF
- IF carray(4) > 1 THEN RETRACE
+ IF carray(ccUse) > 1 THEN RETRACE
  GOSUB drawmenugosub
  centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 24, 3, dpage
  edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * cursor), uilook(uiText), dpage
@@ -1388,8 +1387,8 @@ RETRACE
 END FUNCTION
 
 SUB sellstuff (id, storebuf(), stat())
-DIM b(dimbinsize(1) * 50), permask(15), price(200)
-recordsize = curbinsize(1) / 2 ' get size in INTs
+DIM b(dimbinsize(binSTF) * 50), permask(15), price(200)
+recordsize = curbinsize(binSTF) / 2 ' get size in INTs
 
 '--preserve background for display under sell menu
 holdscreen = allocatepage
@@ -1478,8 +1477,8 @@ IF info$ = "" THEN info$ = worthnothing$
 RETRACE
 
 keysell:
-IF carray(5) > 1 THEN quit = 1
-IF carray(4) > 1  AND inventory(ic).used THEN
+IF carray(ccMenu) > 1 THEN quit = 1
+IF carray(ccUse) > 1  AND inventory(ic).used THEN
  IF readbit(permask(), 0, ic) = 0 THEN
   menusound gen(genSellSFX)
   alert = 10
@@ -1513,19 +1512,19 @@ IF carray(4) > 1  AND inventory(ic).used THEN
   menusound gen(genCantSellSFX)
  END IF
 END IF
-IF carray(0) > 1 AND ic >= 3 THEN
+IF carray(ccUp) > 1 AND ic >= 3 THEN
  menusound gen(genCursorSFX)
  ic = ic - 3
  GOSUB sellinfostr
  IF ic < top THEN top = top - 3
 END IF
-IF carray(1) > 1 AND ic <= last_inv_slot() - 3 THEN
+IF carray(ccDown) > 1 AND ic <= last_inv_slot() - 3 THEN
  menusound gen(genCursorSFX)
  ic = ic + 3
  GOSUB sellinfostr
  IF ic > top + 62 THEN top = top + 3
 END IF
-IF carray(2) > 1 THEN
+IF carray(ccLeft) > 1 THEN
  menusound gen(genCursorSFX)
  IF ic MOD 3 > 0 THEN
   ic = ic - 1
@@ -1535,7 +1534,7 @@ IF carray(2) > 1 THEN
   GOSUB sellinfostr
  END IF
 END IF
-IF carray(3) > 1 THEN
+IF carray(ccRight) > 1 THEN
  menusound gen(genCursorSFX)
  IF ic MOD 3 < 2 THEN
   ic = ic + 1
@@ -1685,13 +1684,13 @@ FOR i = 0 TO 23
    targt(i) = buffer(4)
    tstat(i) = buffer(18)
   END IF
-  cost = focuscost(buffer(8), stat(pt, 0, 10))
-  IF mtype(csr) = 0 AND stat(pt, 0, 1) < cost THEN canuse(i) = 0
+  cost = focuscost(buffer(8), stat(pt, 0, statFocus))
+  IF mtype(csr) = 0 AND stat(pt, 0, statMP) < cost THEN canuse(i) = 0
   IF mtype(csr) = 1 AND lmp(pt, INT(i / 3)) = 0 THEN canuse(i) = 0
-  IF stat(pt, 0, 0) = 0 THEN canuse(i) = 0
+  IF stat(pt, 0, statHP) = 0 THEN canuse(i) = 0
   spel$(i) = readbadbinstring$(buffer(), 24, 10, 1)
   speld$(i) = readbinstring$(buffer(),73,38)
-  IF mtype(csr) = 0 THEN cost$(i) = cost & " " & statnames(statMP) & " " & ABS(stat(pt, 0, 1)) & "/" & ABS(stat(pt, 1, 1))
+  IF mtype(csr) = 0 THEN cost$(i) = cost & " " & statnames(statMP) & " " & ABS(stat(pt, 0, statMP)) & "/" & ABS(stat(pt, 1, statMP))
   IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) & " " & (INT(i / 3) + 1) & ":  " & lmp(pt, INT(i / 3))
  END IF
  WHILE LEN(spel$(i)) < 10: spel$(i) = spel$(i) + " ": WEND
@@ -1747,47 +1746,47 @@ RETRACE
 scontrol:
 IF pick = 0 THEN '--picking which spell list
  IF mset = 0 THEN
-  IF carray(5) > 1 THEN GOTO exitpoint
-  IF carray(2) > 1 THEN
+  IF carray(ccMenu) > 1 THEN GOTO exitpoint
+  IF carray(ccLeft) > 1 THEN
    DO
     pt = loopvar(pt, 0, 3, -1)
    LOOP UNTIL hero(pt) > 0
    menusound gen(genCursorSFX)
    GOSUB splname
   END IF
-  IF carray(3) > 1 THEN
+  IF carray(ccRight) > 1 THEN
    DO
     pt = loopvar(pt, 0, 3, 1)
    LOOP UNTIL hero(pt) > 0
    menusound gen(genCursorSFX)
    GOSUB splname
   END IF
-  IF carray(0) > 1 THEN
+  IF carray(ccUp) > 1 THEN
    csr = large(csr - 1, 0)
    menusound gen(genCursorSFX)
    GOSUB curspellist
   END IF
-  IF carray(1) > 1 THEN
+  IF carray(ccDown) > 1 THEN
    csr = small(csr + 1, last)
    menusound gen(genCursorSFX)
    GOSUB curspellist
   END IF
-  IF carray(4) > 1 THEN
+  IF carray(ccUse) > 1 THEN
    IF mi(csr) = -1 THEN GOTO exitpoint
    menusound gen(genAcceptSFX)
    mset = 1: sptr = 0
   END IF
  ELSE
-  IF carray(5) > 1 THEN
+  IF carray(ccMenu) > 1 THEN
    mset = 0
    menusound gen(genCancelSFX)
   END IF
-  IF carray(0) > 1 THEN
+  IF carray(ccUp) > 1 THEN
    sptr = sptr - 3
    menusound gen(genCursorSFX)
    IF sptr < 0 THEN sptr = 24
   END IF
-  IF carray(1) > 1 THEN
+  IF carray(ccDown) > 1 THEN
    IF sptr < 24 THEN
     sptr = small(sptr + 3, 24)
    ELSE
@@ -1796,7 +1795,7 @@ IF pick = 0 THEN '--picking which spell list
    menusound gen(genCursorSFX)
   END IF
   IF sptr < 24 THEN
-   IF carray(2) > 1 THEN
+   IF carray(ccLeft) > 1 THEN
     IF sptr MOD 3 THEN
      sptr = sptr - 1
     ELSE
@@ -1804,12 +1803,12 @@ IF pick = 0 THEN '--picking which spell list
     END IF
     menusound gen(genCursorSFX)
    END IF
-   IF carray(3) > 1 THEN
+   IF carray(ccRight) > 1 THEN
     menusound gen(genCursorSFX)
     IF sptr MOD 3 = 2 THEN sptr = sptr - 2 ELSE sptr = sptr + 1
    END IF
   END IF
-  IF carray(4) > 1 THEN
+  IF carray(ccUse) > 1 THEN
    IF sptr = 24 THEN mset = 0
    IF canuse(sptr) > 0 THEN
     '--spell that can be used oob
@@ -1833,22 +1832,22 @@ IF pick = 0 THEN '--picking which spell list
   END IF
  END IF
 ELSE
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   menusound gen(genCancelSFX)
   pick = 0
  END IF
  IF canuse(sptr) - 1 <> 2 AND spred = 0 THEN
-  IF carray(0) > 1 THEN
+  IF carray(ccUp) > 1 THEN
    getOOBtarg -1, wptr, spel(sptr), stat()
    MenuSound gen(genCursorSFX)
   END IF
-  IF carray(1) > 1 THEN
+  IF carray(ccDown) > 1 THEN
    getOOBtarg 1, wptr, spel(sptr), stat()
    MenuSound gen(genCursorSFX)
   END IF
  END IF
  IF targt(sptr) = 2 AND canuse(sptr) - 1 <> 2 THEN
-  IF carray(2) > 1 OR carray(3) > 1 THEN
+  IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
    IF spred = 0 THEN
     FOR i = 0 TO 3
      IF chkOOBtarg(i, spel(sptr), stat()) THEN spred = spred + 1
@@ -1858,12 +1857,12 @@ ELSE
    END IF
   END IF
  END IF
- IF carray(4) > 1 THEN
+ IF carray(ccUse) > 1 THEN
   IF mtype(csr) = 0 THEN
    loadattackdata buffer(), spel(sptr)
-   cost = focuscost(buffer(8), stat(pt, 0, 10))
-   IF cost > stat(pt, 0, 1) THEN pick = 0: RETRACE
-   stat(pt, 0, 1) = small(large(stat(pt, 0, 1) - cost, 0), stat(pt, 1, 1))
+   cost = focuscost(buffer(8), stat(pt, 0, statFocus))
+   IF cost > stat(pt, 0, statMP) THEN pick = 0: RETRACE
+   stat(pt, 0, statMP) = small(large(stat(pt, 0, statMP) - cost, 0), stat(pt, 1, statMP))
   END IF
   IF mtype(csr) = 1 THEN
    IF lmp(pt, INT(sptr / 3)) = 0 THEN pick = 0: RETRACE
@@ -1919,12 +1918,12 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(5) > 1 THEN EXIT DO
- IF carray(4) > 1 THEN mode = loopvar(mode, 0, 2, 1): menusound gen(genCursorSFX)
- IF carray(2) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB nextstat
- IF carray(3) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB nextstat
- IF carray(0) > 1 THEN top = large(top - 1, 0): menusound gen(genCursorSFX)
- IF carray(1) > 1 THEN top = small(top + 1, large(0, lastinfo - 11)): menusound gen(genCursorSFX)
+ IF carray(ccMenu) > 1 THEN EXIT DO
+ IF carray(ccUse) > 1 THEN mode = loopvar(mode, 0, 2, 1): menusound gen(genCursorSFX)
+ IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB nextstat
+ IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB nextstat
+ IF carray(ccUp) > 1 THEN top = large(top - 1, 0): menusound gen(genCursorSFX)
+ IF carray(ccDown) > 1 THEN top = small(top + 1, large(0, lastinfo - 11)): menusound gen(genCursorSFX)
 
  centerfuz 160, 100, 304, 184, 1, dpage
  centerbox 160, 36, 292, 40, 4, dpage
@@ -1956,14 +1955,14 @@ DO
 
    'current/max HP
    edgeprint statnames(statHP), 236 - LEN(statnames(statHP)) * 4, 65, uilook(uiText), dpage
-   temp$ = STR$(ABS(stat(pt, 0, 0))) + "/" + STR$(ABS(stat(pt, 1, 0)))
+   temp$ = STR$(ABS(stat(pt, 0, statHP))) + "/" + STR$(ABS(stat(pt, 1, statHP)))
    edgeprint temp$, 236 - LEN(temp$) * 4, 75, uilook(uiText), dpage
 
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
      edgeprint statnames(statMP), 236 - LEN(statnames(statMP)) * 4, 95, uilook(uiText), dpage
-     temp$ = STR$(ABS(stat(pt, 0, 1))) + "/" + STR$(ABS(stat(pt, 1, 1)))
+     temp$ = STR$(ABS(stat(pt, 0, statMP))) + "/" + STR$(ABS(stat(pt, 1, statMP)))
      edgeprint temp$, 236 - LEN(temp$) * 4, 105, uilook(uiText), dpage
     END IF
     IF mtype(i) = 1 THEN
@@ -2125,8 +2124,8 @@ END IF
 END SUB
 
 SUB loadshopstuf (array(), id)
-ol = getbinsize(1) / 2 'old size on disk
-nw = curbinsize(1) / 2 'new size in memory
+ol = getbinsize(binSTF) / 2 'old size on disk
+nw = curbinsize(binSTF) / 2 'new size in memory
 flusharray array(), nw * 50, 0
 'load shop data from STF lump
 setpicstuf buffer(), ol * 2 * 50, -1
@@ -2215,30 +2214,30 @@ DO
  control
  IF st.mode = 0 THEN
   '--primary menu
-  IF carray(5) > 1 THEN
-   carray(4) = 0
-   carray(5) = 0
+  IF carray(ccMenu) > 1 THEN
+   carray(ccUse) = 0
+   carray(ccMenu) = 0
    EXIT DO
   END IF
-  IF carray(2) > 1 THEN 'Left: previous hero
+  IF carray(ccLeft) > 1 THEN 'Left: previous hero
    DO: st.who = loopvar(st.who, 0, 3, -1): LOOP UNTIL hero(st.who) > 0
    equip_menu_setup st, menu$()
    MenuSound gen(genCursorSFX)
   END IF
-  IF carray(3) > 1 THEN 'Right: next hero
+  IF carray(ccRight) > 1 THEN 'Right: next hero
    DO: st.who = loopvar(st.who, 0, 3, 1): LOOP UNTIL hero(st.who) > 0
    equip_menu_setup st, menu$()
    MenuSound gen(genCursorSFX)
   END IF
-  IF carray(0) > 1 THEN 'Up: slot cursor up
+  IF carray(ccUp) > 1 THEN 'Up: slot cursor up
    st.slot = loopvar(st.slot, 0, 6, - 1)
    MenuSound gen(genCursorSFX)
   END IF
-  IF carray(1) > 1 THEN 'Down slot cursor down
+  IF carray(ccDown) > 1 THEN 'Down slot cursor down
    st.slot = loopvar(st.slot, 0, 6, 1)
    MenuSound gen(genCursorSFX)
   END IF
-  IF carray(4) > 1 THEN
+  IF carray(ccUse) > 1 THEN
    IF st.slot < 5 THEN
     '--change equipment
     IF st.eq(st.slot).count > 0 OR eqstuf(st.who, st.slot) > 0 THEN
@@ -2262,28 +2261,28 @@ DO
     'UPDATE ITEM POSESSION BITSETS
     evalitemtag
    END IF
-   IF st.slot = 6 THEN carray(4) = 0: EXIT DO
+   IF st.slot = 6 THEN carray(ccUse) = 0: EXIT DO
   END IF
  ELSE
   '--change equip menu
-  IF carray(5) > 1 THEN
+  IF carray(ccMenu) > 1 THEN
    st.mode = 0
    flusharray st.stat_bonus()
    MenuSound gen(genCancelSFX)
   END IF
-  IF carray(0) > 1 THEN
+  IF carray(ccUp) > 1 THEN
    st.eq_cursor.pt = large(st.eq_cursor.pt - 1, 0)
    IF st.eq_cursor.pt < st.eq_cursor.top THEN st.eq_cursor.top -= 1
    equip_menu_stat_bonus st
    MenuSound gen(genCursorSFX)
   END IF
-  IF carray(1) > 1 THEN
+  IF carray(ccDown) > 1 THEN
    st.eq_cursor.pt = small(st.eq_cursor.pt + 1, st.eq(st.slot).count)
    IF st.eq_cursor.pt > st.eq_cursor.top + st.eq_cursor.size THEN st.eq_cursor.top += 1
    equip_menu_stat_bonus st
    MenuSound gen(genCursorSFX)
   END IF
-  IF carray(4) > 1 THEN
+  IF carray(ccUse) > 1 THEN
    IF st.eq_cursor.pt = st.eq(st.slot).count THEN
     '--unequip
     unequip st.who, st.slot, st.default_weapon, stat(), 1

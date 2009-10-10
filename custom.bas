@@ -7,7 +7,6 @@ DEFINT A-Z
 
 #include "udts.bi"
 #include "const.bi"
-#include "scancodes.bi"
 
 'basic subs and functions
 DECLARE FUNCTION filenum$ (n%)
@@ -250,7 +249,7 @@ DO:
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN
+ IF keyval(scEsc) > 1 THEN
   SELECT CASE menumode
    CASE 0'--normal
     GOSUB relump
@@ -309,11 +308,11 @@ DO:
      clear_box_border_cache
     END IF
     IF pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, 2, portrait_captions(), 2, 8, font()
-    IF pt = 11 THEN importbmp ".mxs", "screen", gen(100)
+    IF pt = 11 THEN importbmp ".mxs", "screen", gen(genMaxBackdrop)
     IF pt = 12 THEN
-     gen(33) = gen(33) + 1
-     importbmp ".til", "tileset", gen(33)
-     gen(33) = gen(33) - 1
+     gen(genMaxTile) = gen(genMaxTile) + 1
+     importbmp ".til", "tileset", gen(genMaxTile)
+     gen(genMaxTile) = gen(genMaxTile) - 1
     END IF
     IF pt = 13 THEN ui_color_editor(activepalette)
   END SELECT
@@ -388,7 +387,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN GOTO finis
+ IF keyval(scEsc) > 1 THEN GOTO finis
  usemenu csr, top, 0, last, 20
  IF enter_or_space() THEN
   IF csr = 0 THEN
@@ -547,14 +546,14 @@ game = readarchinym()
 copylump gamefile, game + ".gen", workingdir
 xbload workingdir + SLASH + game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 '----load password-----
-IF gen(5) >= 256 THEN
+IF gen(genPassVersion) >= 256 THEN
  '--new format password
  rpas$ = readpassword$
 ELSE
  '--old scattertable format
- IF gen(94) = -1 THEN RETRACE 'this is stupid
- readscatter rpas$, gen(94), 200
- rpas$ = rotascii(rpas$, gen(93) * -1)
+ IF gen(genPW2Length) = -1 THEN RETRACE 'this is stupid
+ readscatter rpas$, gen(genPW2Length), 200
+ rpas$ = rotascii(rpas$, gen(genPW2Offset) * -1)
 END IF
 '--if password is unset, do not prompt
 IF rpas$ = "" THEN RETRACE
@@ -567,7 +566,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(28) > 1 THEN
+ IF keyval(scEnter) > 1 THEN
   '--check password
   IF pas$ = rpas$ THEN
    RETRACE
@@ -743,7 +742,7 @@ DO
  IF keyval(scF1) > 1 THEN show_help "fontedit"
  SELECT CASE mode
   CASE -1
-   IF keyval(1) > 1 THEN EXIT DO
+   IF keyval(scEsc) > 1 THEN EXIT DO
    usemenu menuptr, 0, 0, 3, 22
    IF enter_or_space() THEN
     IF menuptr = 0 THEN EXIT DO
@@ -752,11 +751,11 @@ DO
     IF menuptr = 3 THEN GOSUB exportfont
    END IF
   CASE 0
-   IF keyval(1) > 1 THEN mode = -1
-   IF keyval(72) > 1 THEN pt = large(pt - linesize, -1 * linesize)
-   IF keyval(80) > 1 THEN pt = small(pt + linesize, last)
-   IF keyval(75) > 1 THEN pt = large(pt - 1, 0)
-   IF keyval(77) > 1 THEN pt = small(pt + 1, last)
+   IF keyval(scEsc) > 1 THEN mode = -1
+   IF keyval(scUp) > 1 THEN pt = large(pt - linesize, -1 * linesize)
+   IF keyval(scDown) > 1 THEN pt = small(pt + linesize, last)
+   IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
+   IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
    IF enter_or_space() THEN
     IF pt < 0 THEN
      mode = -1
@@ -765,22 +764,22 @@ DO
      x = 0: y = 0
     END IF
    END IF
-   IF keyval(29) > 0 AND keyval(19) > 1 THEN romfontchar font(), pt
+   IF keyval(scCtrl) > 0 AND keyval(scR) > 1 THEN romfontchar font(), pt
   CASE 1
-   IF keyval(1) > 1 OR keyval(28) > 1 THEN mode = 0
-   IF keyval(72) > 1 THEN y = loopvar(y, 0, 7, -1)
-   IF keyval(80) > 1 THEN y = loopvar(y, 0, 7, 1)
-   IF keyval(75) > 1 THEN x = loopvar(x, 0, 7, -1)
-   IF keyval(77) > 1 THEN x = loopvar(x, 0, 7, 1)
-   IF keyval(57) > 1 THEN
+   IF keyval(scEsc) > 1 OR keyval(scEnter) > 1 THEN mode = 0
+   IF keyval(scUp) > 1 THEN y = loopvar(y, 0, 7, -1)
+   IF keyval(scDown) > 1 THEN y = loopvar(y, 0, 7, 1)
+   IF keyval(scLeft) > 1 THEN x = loopvar(x, 0, 7, -1)
+   IF keyval(scRight) > 1 THEN x = loopvar(x, 0, 7, 1)
+   IF keyval(scSpace) > 1 THEN
     setbit font(), 0, (f(pt) * 8 + x) * 8 + y, (readbit(font(), 0, (f(pt) * 8 + x) * 8 + y) XOR 1)
     setfont font()
    END IF
  END SELECT
  IF mode >= 0 THEN
   '--copy and paste support
-  IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN GOSUB copychar
-  IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN GOSUB pastechar
+  IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN GOSUB copychar
+  IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN GOSUB pastechar
  END IF
 
  IF mode = -1 THEN
@@ -892,7 +891,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scEsc) > 1 THEN EXIT DO
 
  old$ = newfont$
  IF strgrabber(newfont$, 8) THEN
@@ -910,7 +909,7 @@ DO
   END SELECT
  END IF
 
- IF keyval(28) > 1 THEN
+ IF keyval(scEnter) > 1 THEN
   GOSUB savefont
   copyfile game + ".fnt", newfont$ + ".ohf"
   EXIT DO
@@ -932,7 +931,7 @@ RETRACE
 END SUB
 
 SUB shopdata
-DIM a(20), b(curbinsize(1) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
+DIM a(20), b(curbinsize(binSTF) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
 DIM her AS HeroDef' Used to get hero name for default stuff name
 DIM item_tmp(99) ' This is only used for loading the default buy/sell price for items
 
@@ -991,12 +990,12 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN EXIT DO
+ IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "shop_main"
- IF keyval(29) > 0 AND keyval(14) > 0 THEN cropafter pt, gen(97), 0, game + ".sho", 40, 1: GOSUB menugen
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxShop), 0, game + ".sho", 40, 1: GOSUB menugen
  usemenu csr, 0, 0, li, 24
  IF csr = 1 THEN
-  IF pt = gen(97) AND keyval(77) > 1 THEN
+  IF pt = gen(genMaxShop) AND keyval(scRight) > 1 THEN
    GOSUB sshopset
    pt = pt + 1
    IF needaddset(pt, gen(genMaxShop), "Shop") THEN
@@ -1005,8 +1004,8 @@ DO
     setpicstuf a(), 40, -1
     storeset game + ".sho", pt, 0
     '--create a new shop stuff record
-    flusharray b(), getbinsize(1) / 2 - 1, 0
-    setpicstuf b(), getbinsize(1), -1
+    flusharray b(), getbinsize(binSTF) / 2 - 1, 0
+    setpicstuf b(), getbinsize(binSTF), -1
     b(19) = -1 ' When adding new stuff, default in-stock to infinite
     storeset game + ".stf", pt * 50 + 0, 0
    END IF
@@ -1111,23 +1110,23 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(1) > 1 THEN RETRACE
+ IF keyval(scEsc) > 1 THEN RETRACE
  IF keyval(scF1) > 1 THEN show_help "shop_stuff"
  IF tcsr = 0 THEN IF enter_or_space() THEN RETRACE
  usemenu tcsr, 0, 0, last, 24
  IF tcsr = 1 THEN
-  IF keyval(75) > 1 AND thing > 0 THEN
+  IF keyval(scLeft) > 1 AND thing > 0 THEN
    GOSUB sstuf
    thing = thing - 1
    GOSUB lstuf
    GOSUB itstrsh
   END IF
-  IF keyval(77) > 1 AND thing < 49 THEN
+  IF keyval(scRight) > 1 AND thing < 49 THEN
    GOSUB sstuf
    thing = thing + 1
    IF needaddset(thing, a(16), "Shop Thing") THEN
-    flusharray b(), getbinsize(1) / 2 - 1, 0
-    setpicstuf b(), getbinsize(1), -1
+    flusharray b(), getbinsize(binSTF) / 2 - 1, 0
+    setpicstuf b(), getbinsize(binSTF), -1
     b(19) = -1 ' When adding new stuff, default in-stock to infinite
     storeset game + ".stf", pt * 50 + thing, 0
    END IF
@@ -1255,8 +1254,8 @@ END IF
 RETRACE
 
 lstuf:
-flusharray b(), curbinsize(1) / 2, 0
-setpicstuf b(), getbinsize(1), -1
+flusharray b(), curbinsize(binSTF) / 2, 0
+setpicstuf b(), getbinsize(binSTF), -1
 loadset game + ".stf", pt * 50 + thing, 0
 thing$ = readbadbinstring$(b(), 0, 16, 0)
 '---check for invalid data
@@ -1274,7 +1273,7 @@ b(0) = LEN(thing$)
 FOR i = 1 TO small(b(0), 16)
  b(i) = ASC(MID$(thing$, i, 1))
 NEXT i
-setpicstuf b(), getbinsize(1), -1
+setpicstuf b(), getbinsize(binSTF), -1
 storeset game + ".stf", pt * 50 + thing, 0
 RETRACE
 

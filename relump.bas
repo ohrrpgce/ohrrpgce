@@ -44,6 +44,7 @@ declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as i
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
 
 #include "util.bi"
+#include "const.bi"
 
 #IFDEF __FB_LINUX__
  CONST SLASH = "/"
@@ -116,7 +117,7 @@ xbload src$ + SLASH + LCASE(game) + ".gen", gen(), "unable to open general data"
 
 passokay = -1
 
-IF gen(94) > -1 THEN
+IF gen(genPW2Length) > -1 THEN
  passokay = 0
  '----load password-----
  'Note that this is still using the old 2nd-style password format, not the
@@ -124,8 +125,8 @@ IF gen(94) > -1 THEN
  'CUSTOM writes both 2nd and 3rd style passwords, but supporting 3rd-style
  'here also would be desireable
  rpas$ = ""
- readscatter rpas$, gen(94), gen(), 200
- rpas$ = rotascii(rpas$, gen(93) * -1)
+ readscatter rpas$, gen(genPW2Length), gen(), 200
+ rpas$ = rotascii(rpas$, gen(genPW2Offset) * -1)
  'PRINT rpas$
  '-----get inputed password-----
  print "Password Required"

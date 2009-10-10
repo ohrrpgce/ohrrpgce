@@ -249,8 +249,8 @@ NEXT i
 
 '--hero's position
 FOR i = 0 TO 15
- catx(i) = gen(102) * 20
- caty(i) = gen(103) * 20
+ catx(i) = gen(genStartX) * 20
+ caty(i) = gen(genStartY) * 20
  catd(i) = 2
 NEXT i
 
@@ -260,12 +260,12 @@ SUB innRestore (stat())
 
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN '--hero exists
-  IF stat(i, 0, 0) <= 0 AND readbit(gen(), 101, 4) THEN
+  IF stat(i, 0, statHP) <= 0 AND readbit(gen(), 101, 4) THEN
    '--hero is dead and inn-revive is disabled
   ELSE
    '--normal revive
-   stat(i, 0, 0) = stat(i, 1, 0)
-   stat(i, 0, 1) = stat(i, 1, 1)
+   stat(i, 0, statHP) = stat(i, 1, statHP)
+   stat(i, 0, statMP) = stat(i, 1, statMP)
    resetlmp i, stat(i, 0, 12)
   END IF
  END IF
@@ -378,17 +378,17 @@ DIM old$
 old$ = s$
 
 '--BACKSPACE support
-IF keyval(14) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
+IF keyval(scBackspace) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
 
 '--SHIFT support
 shift = 0
-IF keyval(54) > 0 OR keyval(42) > 0 THEN shift = 1
+IF keyval(scRightShift) > 0 OR keyval(scLeftShift) > 0 THEN shift = 1
 
 '--adding chars
 IF LEN(s$) < maxl THEN
 
  '--SPACE support
- IF keyval(57) > 1 THEN
+ IF keyval(scSpace) > 1 THEN
    s$ = s$ + " "
  ELSE
   '--all other keys
@@ -419,15 +419,15 @@ END SUB
 
 SUB correctbackdrop
 
-IF gen(58) THEN
+IF gen(genTextboxBackdrop) THEN
  '--restore text box backdrop
- loadpage game + ".mxs", gen(58) - 1, 3
+ loadpage game + ".mxs", gen(genTextboxBackdrop) - 1, 3
  EXIT SUB
 END IF
 
-IF gen(50) THEN
+IF gen(genScrBackdrop) THEN
  '--restore script backdrop
- loadpage game + ".mxs", gen(50) - 1, 3
+ loadpage game + ".mxs", gen(genScrBackdrop) - 1, 3
  EXIT SUB
 END IF
 
@@ -478,7 +478,7 @@ o = 0
 FOR i = 0 TO 3 '--for each slot
  IF hero(i) > 0 THEN '--if hero exists
   o = o + 1
-  IF stat(i, 0, 0) <= 0 AND stat(i, 1, 0) > 0 THEN o = o - 1
+  IF stat(i, 0, statHP) <= 0 AND stat(i, 1, statHP) > 0 THEN o = o - 1
  END IF
 NEXT i
 IF o = 0 THEN checkfordeath = 1
@@ -561,15 +561,15 @@ SUB verquit
   playtimer
   control
   wtog(0) = loopvar(wtog(0), 0, 3, 1)
-  IF carray(5) > 1 THEN abortg = 0: setkeys: flusharray carray(),7,0: EXIT DO
-  IF (carray(4) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
+  IF carray(ccMenu) > 1 THEN abortg = 0: setkeys: flusharray carray(),7,0: EXIT DO
+  IF (carray(ccUse) > 1 AND ABS(ptr2) > 20) OR ABS(ptr2) > 50 THEN
    IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0
    setkeys
    flusharray carray(), 7, 0
    EXIT SUB
   END IF
-  IF carray(2) > 0 THEN ptr2 = ptr2 - 5: direction = 3
-  IF carray(3) > 0 THEN ptr2 = ptr2 + 5: direction = 1
+  IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = 3
+  IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = 1
   centerbox 160, 95, 200, 42, 15, dpage
   sprite_draw herow(0).sprite + direction * 2 + (wtog(0) \ 2), herow(0).pal, 150 + ptr2, 90, 1, -1, dpage
   edgeprint quitprompt$, xstring(quitprompt$, 160), 80, uilook(uiText), dpage
@@ -593,11 +593,11 @@ DO
  setwait speedcontrol
  setkeys
  control
- IF carray(5) > 1 THEN
+ IF carray(ccMenu) > 1 THEN
   titlescr = 0 ' return false for cancel
   EXIT DO
  END IF
- IF carray(4) > 1 OR carray(5) > 1 THEN EXIT DO
+ IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN EXIT DO
  FOR i = 2 TO 88
   IF keyval(i) > 1 THEN
    EXIT DO

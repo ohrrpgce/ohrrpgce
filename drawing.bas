@@ -50,7 +50,6 @@ DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INT
 DECLARE SUB spriteedit_rotate_sprite(sprbuf() AS INTEGER, ss AS SpriteEditState, counterclockwise AS INTEGER=NO)
 DECLARE SUB writeundospr (placer(), ss AS SpriteEditState, is_rotate AS INTEGER=NO)
 
-#include "scancodes.bi"
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -177,7 +176,7 @@ setkeys
 DO
  setwait 55
  setkeys
- IF keyval(29) > 0 AND keyval(14) > 1 THEN
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
   this = count - 1
   cropafter pt, this, 3, game + f$, -1, 1
   count = this + 1
@@ -241,13 +240,13 @@ DO
  IF keyval(scF1) > 1 THEN show_help "importbmp_disable"
  IF csr2 = 0 THEN
   IF enter_or_space() THEN setpal master(): RETRACE
-  IF keyval(80) > 1 THEN csr2 = 1: cy = -1
+  IF keyval(scDown) > 1 THEN csr2 = 1: cy = -1
  END IF
  IF csr2 = 1 THEN
-  IF keyval(75) > 1 THEN cx = large(cx - 1, 0)
-  IF keyval(77) > 1 THEN cx = small(cx + 1, 15)
-  IF keyval(80) > 1 THEN cy = small(cy + 1, 15)
-  IF keyval(72) > 1 THEN cy = cy - 1: IF cy < 0 THEN cy = 0: csr2 = 0
+  IF keyval(scLeft) > 1 THEN cx = large(cx - 1, 0)
+  IF keyval(scRight) > 1 THEN cx = small(cx + 1, 15)
+  IF keyval(scDown) > 1 THEN cy = small(cy + 1, 15)
+  IF keyval(scUp) > 1 THEN cy = cy - 1: IF cy < 0 THEN cy = 0: csr2 = 0
   IF enter_or_space() THEN
    pmask(cy * 16 + cx).r xor= master(cy * 16 + cx).r
    pmask(cy * 16 + cx).g xor= master(cy * 16 + cx).g
@@ -338,23 +337,23 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_pickset"
- IF keyval(29) > 0 AND keyval(14) > 1 AND pagenum > -1 THEN
-  cropafter pagenum, gen(33), 3, game + ".til", -1, 1
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 AND pagenum > -1 THEN
+  cropafter pagenum, gen(genMaxTile), 3, game + ".til", -1, 1
  END IF
- IF keyval(80) > 1 AND pagenum = gen(33) AND gen(33) < 32767 THEN
+ IF keyval(scDown) > 1 AND pagenum = gen(genMaxTile) AND gen(genMaxTile) < 32767 THEN
   pagenum = pagenum + 1
-  IF needaddset(pagenum, gen(33), "tile set") THEN
+  IF needaddset(pagenum, gen(genMaxTile), "tile set") THEN
    WHILE pagenum > top + 20: top = top + 1: WEND
    clearpage 3
    storepage mapfile$, pagenum, 3
   END IF
  END IF
- IF usemenu(pagenum, top, -1, gen(33), 20) THEN
+ IF usemenu(pagenum, top, -1, gen(genMaxTile), 20) THEN
   IF pagenum = -1 THEN clearpage 3 ELSE loadpage mapfile$, pagenum, 3
  END IF
  IF enter_or_space() AND pagenum = -1 THEN EXIT DO
  IF enter_or_space() AND pagenum > -1 THEN GOSUB tilemode
- FOR i = top TO small(top + 20, gen(33))
+ FOR i = top TO small(top + 20, gen(genMaxTile))
   c = uilook(uiMenuItem)
   IF pagenum = i THEN c = uilook(uiSelectedItem + tog)
   IF i < 0 THEN
@@ -469,10 +468,10 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 OR enter_or_space() THEN RETRACE
  IF keyval(scF1) > 1 THEN show_help "maptile_setanimrange"
- IF keyval(72) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
- IF keyval(80) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
- IF keyval(75) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
- IF keyval(77) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
+ IF keyval(scUp) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 16, 0)
+ IF keyval(scDown) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
+ IF keyval(scLeft) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
+ IF keyval(scRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
  GOSUB drawanimrange
  SWAP vpage, dpage
  setvispage vpage
@@ -671,10 +670,10 @@ DO
  
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_testanimpattern"
- IF keyval(72) > 1 THEN csr = loopvar(csr, 0, 47, -16): GOSUB setupsample
- IF keyval(80) > 1 THEN csr = loopvar(csr, 0, 47, 16): GOSUB setupsample
- IF keyval(75) > 1 THEN csr = loopvar(csr, 0, 47, -1): GOSUB setupsample
- IF keyval(77) > 1 THEN csr = loopvar(csr, 0, 47, 1): GOSUB setupsample
+ IF keyval(scUp) > 1 THEN csr = loopvar(csr, 0, 47, -16): GOSUB setupsample
+ IF keyval(scDown) > 1 THEN csr = loopvar(csr, 0, 47, 16): GOSUB setupsample
+ IF keyval(scLeft) > 1 THEN csr = loopvar(csr, 0, 47, -1): GOSUB setupsample
+ IF keyval(scRight) > 1 THEN csr = loopvar(csr, 0, 47, 1): GOSUB setupsample
  SWAP vpage, dpage
  setvispage vpage
  '--draw available animating tiles--
@@ -817,11 +816,11 @@ DO
    show_help "picktiletoedit"
   END IF
  END IF
- IF tmode <> 3 OR keyval(29) = 0 THEN
-  IF slowkey(75, 2) THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
-  IF slowkey(77, 2) THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
-  IF slowkey(72, 2) THEN IF bnum > 15 THEN bnum = bnum - 16: IF ts.gotmouse THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
-  IF slowkey(80, 2) THEN IF bnum < 144 THEN bnum = bnum + 16: IF ts.gotmouse THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
+ IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
+  IF slowkey(scLeft, 2) THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
+  IF slowkey(scRight, 2) THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
+  IF slowkey(scUp, 2) THEN IF bnum > 15 THEN bnum = bnum - 16: IF ts.gotmouse THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
+  IF slowkey(scDown, 2) THEN IF bnum < 144 THEN bnum = bnum + 16: IF ts.gotmouse THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
  END IF
  IF ts.gotmouse THEN
   bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
@@ -829,16 +828,16 @@ DO
  IF tmode = 3 THEN
   '--pass mode shortcuts
   FOR i = 0 TO 7
-   IF keyval(29) > 0 OR i > 3 THEN
+   IF keyval(scCtrl) > 0 OR i > 3 THEN
     IF keyval(pastogkey(i)) > 1 THEN
      setbit defaults(), bnum, i, readbit(defaults(), bnum, i) XOR 1
     END IF
    END IF
   NEXT i
  END IF
- IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN tilecopy cutnpaste(), ts
- IF ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1) THEN tilepaste cutnpaste(), ts
- IF (keyval(29) > 0 AND keyval(20) > 1) THEN tiletranspaste cutnpaste(), ts
+ IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN tilecopy cutnpaste(), ts
+ IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN tilepaste cutnpaste(), ts
+ IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) THEN tiletranspaste cutnpaste(), ts
  ts.tilex = bnum AND 15
  ts.tiley = INT(bnum / 16)
  IF enter_or_space() OR mouse(3) > 0 THEN
@@ -1024,7 +1023,7 @@ DO
 
  ts.delay = large(ts.delay - 1, 0)
  ts.justpainted = large(ts.justpainted - 1, 0)
- IF keyval(1) > 1 THEN
+ IF keyval(scEsc) > 1 THEN
   IF ts.hold = YES THEN
    ts.hold = NO
   ELSE
@@ -1032,12 +1031,12 @@ DO
   END IF
  END IF
  IF keyval(scF1) > 1 THEN show_help "editmaptile"
- IF keyval(56) = 0 THEN
+ IF keyval(scAlt) = 0 THEN
   ts.fixmouse = NO
-  IF slowkey(75, 6) THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
-  IF slowkey(77, 6) THEN ts.x = small(ts.x + 1, 19): ts.fixmouse = YES
-  IF slowkey(72, 6) THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
-  IF slowkey(80, 6) THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
+  IF slowkey(scLeft, 6) THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
+  IF slowkey(scRight, 6) THEN ts.x = small(ts.x + 1, 19): ts.fixmouse = YES
+  IF slowkey(scUp, 6) THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
+  IF slowkey(scDown, 6) THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
   IF ts.fixmouse AND ts.zone = 1 THEN
    zox = ts.x * 10 + 5
    zoy = ts.y * 8 + 4
@@ -1055,23 +1054,23 @@ DO
   END IF
  NEXT i
  '----------
- IF keyval(51) > 1 OR (keyval(56) > 0 AND keyval(75) > 1) THEN
+ IF keyval(scComma) > 1 OR (keyval(scAlt) > 0 AND keyval(scLeft) > 1) THEN
   ts.curcolor = (ts.curcolor + 255) MOD 256
   IF ts.curcolor MOD 16 = 15 THEN ts.curcolor = (ts.curcolor + 144) MOD 256
  END IF
- IF keyval(52) > 1 OR (keyval(56) > 0 AND keyval(77) > 1) THEN
+ IF keyval(scPeriod) > 1 OR (keyval(scAlt) > 0 AND keyval(scRight) > 1) THEN
   ts.curcolor += 1
   IF ts.curcolor MOD 16 = 0 THEN ts.curcolor = (ts.curcolor + 112) MOD 256
  END IF
- IF keyval(56) > 0 AND keyval(72) > 1 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
- IF keyval(56) > 0 AND keyval(80) > 1 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
- IF keyval(41) > 1 THEN ts.hidemouse = ts.hidemouse XOR 1
- IF keyval(29) > 0 AND keyval(44) > 1 AND ts.allowundo THEN
+ IF keyval(scAlt) > 0 AND keyval(scUp) > 1 THEN ts.curcolor = (ts.curcolor + 240) MOD 256
+ IF keyval(scAlt) > 0 AND keyval(scDown) > 1 THEN ts.curcolor = (ts.curcolor + 16) MOD 256
+ IF keyval(scTilde) > 1 THEN ts.hidemouse = ts.hidemouse XOR 1
+ IF keyval(scCtrl) > 0 AND keyval(scZ) > 1 AND ts.allowundo THEN
   ts.undo = loopvar(ts.undo, 0, 5, -1)
   readundoblock mover(), ts
  END IF
- IF keyval(57) > 0 THEN clicktile mover(), ts, mouse(3), clone
- IF keyval(28) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
+ IF keyval(scSpace) > 0 THEN clicktile mover(), ts, mouse(3), clone
+ IF keyval(scEnter) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
  IF keyval(scCapslock) > 0 THEN scrolltile mover(), ts
  SELECT CASE ts.zone   
  CASE 1
@@ -1080,7 +1079,7 @@ DO
   IF ts.tool = clone_tool THEN
    ' For clone brush tool, enter/right-click moves the handle point
    IF ts.readjust THEN
-    IF keyval(28) = 0 AND mouse(2) = 0 THEN ' click or key release
+    IF keyval(scEnter) = 0 AND mouse(2) = 0 THEN ' click or key release
      ts.readjust = NO
      ts.hox += (ts.x - ts.adjustpos.x)
      ts.hoy += (ts.y - ts.adjustpos.y)
@@ -1088,7 +1087,7 @@ DO
      ts.adjustpos.y = 0
     END IF
    ELSE
-    IF (keyval(28) AND 5) OR mouse(2) = 2 THEN
+    IF (keyval(scEnter) AND 5) OR mouse(2) = 2 THEN
      ts.readjust = YES
      ts.adjustpos.x = ts.x
      ts.adjustpos.y = ts.y
@@ -1134,15 +1133,15 @@ DO
    IF ts.zone = 18 THEN ts.mist = large(ts.mist - tick, 1)
    IF ts.zone = 20 THEN ts.mist = small(ts.mist + tick, 99)
   END IF
-  IF keyval(12) > 1 OR keyval(74) > 1 THEN
-   IF keyval(29) > 0 THEN
+  IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
+   IF keyval(scCtrl) > 0 THEN
     ts.mist = large(ts.mist - 1, 1)
    ELSE
     ts.airsize = large(ts.airsize - 1, 1)
    END IF
   END IF
-  IF keyval(13) > 1 OR keyval(78) > 1 THEN
-   IF keyval(29) > 0 THEN
+  IF keyval(scEquals) > 1 OR keyval(scNumpadPlus) > 1 THEN
+   IF keyval(scCtrl) > 0 THEN
     ts.mist = small(ts.mist + 1, 99)
    ELSE
     ts.airsize = small(ts.airsize + 1, 80)
@@ -1255,7 +1254,7 @@ SELECT CASE ts.tool
   rectangle ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 1, 1, ts.curcolor, 3
   rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, ts.curcolor, 2
  CASE box_tool
-  IF mouseclick > 0 OR keyval(57) > 1 THEN
+  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
     rectangle small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.hox), small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.hoy), ABS(ts.x - ts.hox) + 1, ABS(ts.y - ts.hoy) + 1, ts.curcolor, 3
@@ -1268,7 +1267,7 @@ SELECT CASE ts.tool
    END IF
   END IF
  CASE line_tool
-  IF mouseclick > 0 OR keyval(57) > 1 THEN
+  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
     drawline ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, ts.tilex * 20 + ts.hox, ts.tiley * 20 + ts.hoy, ts.curcolor, 3
@@ -1281,7 +1280,7 @@ SELECT CASE ts.tool
    END IF
   END IF
  CASE fill_tool
-  IF mouseclick > 0 OR keyval(57) > 1 THEN
+  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
    writeundoblock mover(), ts
    rectangle 0, 0, 22, 22, ts.curcolor, dpage
    FOR i = 0 TO 19
@@ -1299,7 +1298,7 @@ SELECT CASE ts.tool
    rectangle 0, 0, 22, 22, uilook(uiBackground), dpage
   END IF
  CASE oval_tool
-  IF mouseclick > 0 OR keyval(57) > 1 THEN
+  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
     radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y))
@@ -1341,7 +1340,7 @@ SELECT CASE ts.tool
   NEXT i
   refreshtileedit mover(), ts
  CASE mark_tool
-  IF mouseclick > 0 OR keyval(57) > 1 THEN
+  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
    IF ts.hold = YES THEN
     clone.size.x = ABS(ts.x - ts.hox) + 1
     clone.size.y = ABS(ts.y - ts.hoy) + 1
@@ -1366,7 +1365,7 @@ SELECT CASE ts.tool
    END IF
   END IF
  CASE clone_tool
- IF mouseclick > 0 OR keyval(57) > 1 THEN
+ IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
   ts.justpainted = 3
   IF clone.exists = YES THEN
@@ -1394,10 +1393,10 @@ END SUB
 SUB scrolltile (mover(), ts AS TileEditState)
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 shiftx = 0: shifty = 0
-IF slowkey(72, 6) THEN shifty = -1
-IF slowkey(80, 6) THEN shifty = 1
-IF slowkey(75, 6) THEN shiftx = -1
-IF slowkey(77, 6) THEN shiftx = 1
+IF slowkey(scUp, 6) THEN shifty = -1
+IF slowkey(scDown, 6) THEN shifty = 1
+IF slowkey(scLeft, 6) THEN shiftx = -1
+IF slowkey(scRight, 6) THEN shiftx = 1
 FOR i = 0 TO 19
  FOR j = 0 TO 19
   tempx = (i + shiftx + 20) MOD 20
@@ -1424,7 +1423,7 @@ FOR i = 0 TO 19
  FOR j = 0 TO 19
   tempx = ABS(i - flipx)
   tempy = ABS(j - flipy)
-  IF (ts.zone = 15 OR ts.zone = 16) OR (keyval(26) > 1 OR keyval(27) > 1) THEN SWAP tempx, tempy
+  IF (ts.zone = 15 OR ts.zone = 16) OR (keyval(scLeftBrace) > 1 OR keyval(scRightBrace) > 1) THEN SWAP tempx, tempy
   putpixel tempx, tempy, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
  NEXT j
 NEXT i
@@ -1718,7 +1717,7 @@ DO
    show_help "sprite_pickset"
   END IF
  END IF
- IF keyval(29) > 0 AND keyval(14) > 1 THEN
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
   GOSUB savealluc
   cropafter state.pt, sets, 0, spritefile, ss.setsize, 1
   clearpage 3
@@ -1737,31 +1736,31 @@ DO
    GOSUB loadalluc
   END IF
  END IF
- IF keyval(73) > 1 THEN
+ IF keyval(scPageup) > 1 THEN
   GOSUB savealluc
   state.pt = large(state.pt - atatime, 0)
   state.top = state.pt
   GOSUB loadalluc
  END IF
- IF keyval(81) > 1 THEN
+ IF keyval(scPagedown) > 1 THEN
   GOSUB savealluc
   state.top = large(small(state.pt, sets - atatime), 0)
   state.pt = small(state.pt + atatime, sets)
   GOSUB loadalluc
  END IF
- IF keyval(71) > 1 THEN
+ IF keyval(scHome) > 1 THEN
   GOSUB savealluc
   state.pt = 0
   state.top = 0
   GOSUB loadalluc
  END IF
- IF keyval(79) > 1 THEN
+ IF keyval(scEnd) > 1 THEN
   GOSUB savealluc
   state.pt = sets
   state.top = large(small(state.pt, sets - atatime), 0)
   GOSUB loadalluc
  END IF
- IF keyval(72) > 1 THEN
+ IF keyval(scUp) > 1 THEN
   state.pt = large(state.pt - 1, 0)
   IF state.pt < state.top THEN
    GOSUB savealluc
@@ -1769,7 +1768,7 @@ DO
    GOSUB loadalluc
   END IF
  END IF
- IF keyval(80) > 1 AND state.pt < 32767 THEN
+ IF keyval(scDown) > 1 AND state.pt < 32767 THEN
   state.pt = state.pt + 1
   IF needaddset(state.pt, sets, "graphics") THEN
    '--Add a new blank sprite set
@@ -1790,16 +1789,16 @@ DO
    GOSUB loadalluc
   END IF
  END IF
- IF keyval(75) > 1 THEN ss.framenum = large(ss.framenum - 1, 0)
- IF keyval(77) > 1 THEN ss.framenum = small(ss.framenum + 1, ss.perset - 1)
- IF keyval(26) > 1 THEN
+ IF keyval(scLeft) > 1 THEN ss.framenum = large(ss.framenum - 1, 0)
+ IF keyval(scRight) > 1 THEN ss.framenum = small(ss.framenum + 1, ss.perset - 1)
+ IF keyval(scLeftBrace) > 1 THEN
   changepal poffset(state.pt), -1, workpal(), state.pt - state.top
  END IF
- IF keyval(27) > 1 THEN
+ IF keyval(scRightBrace) > 1 THEN
   changepal poffset(state.pt), 1, workpal(), state.pt - state.top
  END IF
  '--copying
- IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN 
+ IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN 
   loadsprite spriteclip(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
   paste = 1
   clippedw = ss.wide
@@ -1807,11 +1806,11 @@ DO
  END IF
  '--pasting
  do_paste = 0
- IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
+ IF (((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1)) AND paste = 1 THEN
   do_paste = -1
   paste_transparent = 0
  END IF
- IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
+ IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND paste = 1 THEN
   do_paste = -1
   paste_transparent = -1
  END IF
@@ -1828,7 +1827,7 @@ DO
   stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
   spriteedit_save_what_you_see(spritefile, state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
  END IF
- IF keyval(59) > 1 THEN
+ IF keyval(scF1) > 1 THEN
   debug_palettes = debug_palettes XOR 1
  END IF
  'draw sprite sets
@@ -1930,24 +1929,24 @@ changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 RETRACE
 
 sprctrl:
-IF mouse(2) = 0 AND keyval(57) = 0 THEN
+IF mouse(2) = 0 AND keyval(scSpace) = 0 THEN
  ss.lastpos.x = -1
  ss.lastpos.y = -1
 END IF
-IF keyval(4) > 1 THEN setvispage 3: waitforanykey
-IF keyval(41) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
-IF keyval(51) > 1 AND ss.palindex > 0 THEN ss.palindex -= 1
-IF keyval(52) > 1 AND ss.palindex < 15 THEN ss.palindex += 1
+IF keyval(sc3) > 1 THEN setvispage 3: waitforanykey
+IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
+IF keyval(scComma) > 1 AND ss.palindex > 0 THEN ss.palindex -= 1
+IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN ss.palindex += 1
 IF ss.zonenum = 2 THEN
  IF mouse(3) > 0 THEN ss.palindex = small(INT(ss.zone.x / 4), 15)
 END IF
-IF keyval(26) > 1 OR (ss.zonenum = 5 AND mouse(3) > 0) THEN
+IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND mouse(3) > 0) THEN
  changepal poffset(state.pt), -1, workpal(), state.pt - state.top
 END IF
-IF keyval(27) > 1 OR (ss.zonenum = 6 AND mouse(3) > 0) THEN
+IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND mouse(3) > 0) THEN
  changepal poffset(state.pt), 1, workpal(), state.pt - state.top
 END IF
-IF keyval(25) > 1 OR (ss.zonenum = 19 AND mouse(3) > 0) THEN '--call palette browser
+IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse(3) > 0) THEN '--call palette browser
  '--write changes so far
  stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
  '--save current palette
@@ -1957,9 +1956,9 @@ IF keyval(25) > 1 OR (ss.zonenum = 19 AND mouse(3) > 0) THEN '--call palette bro
  getpal16 workpal(), state.pt - state.top, poffset(state.pt)
 END IF
 '--UNDO
-IF (keyval(29) > 0 AND keyval(44) > 1) OR (ss.zonenum = 20 AND mouse(3) > 0) THEN GOSUB readundospr
+IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse(3) > 0) THEN GOSUB readundospr
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
-IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AND keyval(83) > 0) OR (keyval(29) > 0 AND keyval(46) > 1) THEN
+IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN
  clippedw = ss.wide
  clippedh = ss.high
  stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
@@ -1967,28 +1966,28 @@ IF (keyval(29) > 0 AND keyval(82) > 1) OR ((keyval(42) > 0 OR keyval(54) > 0) AN
  paste = 1
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
-IF (((keyval(42) > 0 OR keyval(54) > 0) AND keyval(82) > 1) OR (keyval(29) > 0 AND keyval(47) > 1)) AND paste = 1 THEN
+IF (((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1)) AND paste = 1 THEN
  rectangle 0, 0, ss.wide, ss.high, 0, dpage
  drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, dpage
  drawsprite spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage, 0
  getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
 END IF
 '--TRANSPARENT PASTE (CTRL+T)
-IF (keyval(29) > 0 AND keyval(20) > 1) AND paste = 1 THEN
+IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) AND paste = 1 THEN
  rectangle 0, 0, ss.wide, ss.high, 0, dpage
  drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, dpage
  drawsprite spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage
  getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
 END IF
 '--COPY PALETTE (ALT+C)
-IF keyval(56) > 0 AND keyval(46) > 1 THEN
+IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN
  FOR i = 0 TO 7
   pclip(i) = workpal(i + (state.pt - state.top) * 8)
  NEXT
  clippedpal = 1
 END IF
 '--PASTE PALETTE (ALT+V)
-IF keyval(56) > 0 AND keyval(47) > 1 THEN
+IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
  IF clippedpal THEN
   FOR i = 0 TO 8
    workpal(i + (state.pt - state.top) * 8) = pclip(i)
@@ -1996,23 +1995,23 @@ IF keyval(56) > 0 AND keyval(47) > 1 THEN
  END IF
 END IF
 ss.curcolor = peek8bit(workpal(), (state.pt - state.top) * 16 + ss.palindex)
-IF keyval(56) > 0 THEN
- IF keyval(72) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16
- IF keyval(80) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16
- IF keyval(75) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1
- IF keyval(77) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1
+IF keyval(scAlt) > 0 THEN
+ IF keyval(scUp) > 1 AND ss.curcolor > 15 THEN ss.curcolor -= 16
+ IF keyval(scDown) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16
+ IF keyval(scLeft) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1
+ IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1
 END IF
 IF mouse(3) = 1 AND ss.zonenum = 3 THEN
  ss.curcolor = INT(INT(ss.zone.y / 6) * 16) + INT(ss.zone.x / 4)
 END IF
 poke8bit workpal(), (state.pt - state.top) * 16 + ss.palindex, ss.curcolor
-IF keyval(56) = 0 THEN
+IF keyval(scAlt) = 0 THEN
  WITH ss
   .fixmouse = NO
-  IF slowkey(72, 6) THEN .y = large(0, .y - 1):      .fixmouse = YES
-  IF slowkey(80, 6) THEN .y = small(ss.high - 1, .y + 1): .fixmouse = YES
-  IF slowkey(75, 6) THEN .x = large(0, .x - 1):      .fixmouse = YES
-  IF slowkey(77, 6) THEN .x = small(ss.wide - 1, .x + 1): .fixmouse = YES
+  IF slowkey(scUp, 6) THEN .y = large(0, .y - 1):      .fixmouse = YES
+  IF slowkey(scDown, 6) THEN .y = small(ss.high - 1, .y + 1): .fixmouse = YES
+  IF slowkey(scLeft, 6) THEN .x = large(0, .x - 1):      .fixmouse = YES
+  IF slowkey(scRight, 6) THEN .x = small(ss.wide - 1, .x + 1): .fixmouse = YES
  END WITH
  IF ss.fixmouse THEN
   IF ss.zonenum = 1 THEN
@@ -2042,15 +2041,15 @@ IF ss.tool = airbrush_tool THEN '--adjust airbrush
   IF ss.zonenum = 16 THEN ss.mist = large(ss.mist - tick, 1)
   IF ss.zonenum = 18 THEN ss.mist = small(ss.mist + tick, 99)
  END IF
- IF keyval(12) > 1 OR keyval(74) > 1 THEN
-  IF keyval(29) > 0 THEN
+ IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN
+  IF keyval(scCtrl) > 0 THEN
    ss.mist = large(ss.mist - 1, 1)
   ELSE
    ss.airsize = large(ss.airsize - 1, 1)
   END IF
  END IF
- IF keyval(13) > 1 OR keyval(78) > 1 THEN
-  IF keyval(29) > 0 THEN
+ IF keyval(scEquals) > 1 OR keyval(scNumpadPlus) > 1 THEN
+  IF keyval(scCtrl) > 0 THEN
    ss.mist = small(ss.mist + 1, 99)
   ELSE
    ss.airsize = small(ss.airsize + 1, 80)
@@ -2089,12 +2088,12 @@ IF ss.zonenum = 14 THEN
  ss.x = ss.zone.x
  ss.y = ss.zone.y
 END IF
-IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(57) > 0 THEN
+IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(scSpace) > 0 THEN
  SELECT CASE ss.tool
   CASE draw_tool
    GOSUB putdot
   CASE box_tool
-   IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold THEN
      ss.hold = NO: GOSUB drawsquare
     ELSE
@@ -2104,7 +2103,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
     END IF
    END IF
   CASE line_tool
-   IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold = YES THEN
      ss.hold = NO
      GOSUB straitline
@@ -2115,11 +2114,11 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
     END IF
    END IF
   CASE fill_tool
-   IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
     GOSUB floodfill
    END IF
   CASE oval_tool
-   IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold = NO THEN
      '--start oval
      ss.holdpos.x = ss.x
@@ -2136,7 +2135,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
   CASE airbrush_tool
    GOSUB sprayspot
   CASE mark_tool
-   IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold THEN
      ss.hold = NO
      drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
@@ -2152,7 +2151,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
     END IF
    END IF
   CASE clone_tool
-   IF mouse(3) > 0 OR keyval(57) > 1 THEN
+   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
     IF ss_save.clonemarked THEN
      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
       writeundospr placer(), ss
@@ -2192,7 +2191,7 @@ END IF
 IF ss.tool = clone_tool THEN
  ' For clone brush tool, enter/right-click moves the handle point
  IF ss.readjust THEN
-  IF keyval(28) = 0 AND mouse(2) = 0 THEN ' click or key release
+  IF keyval(scEnter) = 0 AND mouse(2) = 0 THEN ' click or key release
    ss.readjust = NO
    ss.holdpos.x += (ss.x - ss.adjustpos.x)
    ss.holdpos.y += (ss.y - ss.adjustpos.y)
@@ -2200,7 +2199,7 @@ IF ss.tool = clone_tool THEN
    ss.adjustpos.y = 0
   END IF
  ELSE
-  IF (keyval(28) AND 5) OR mouse(2) = 2 THEN
+  IF (keyval(scEnter) AND 5) OR mouse(2) = 2 THEN
    ss.readjust = YES
    ss.adjustpos.x = ss.x
    ss.adjustpos.y = ss.y
@@ -2217,35 +2216,35 @@ IF ss.tool = clone_tool THEN
  END IF
 ELSE
  ' For all other tools, pick a color
- IF keyval(28) > 1 OR (ss.zonenum = 1 AND mouse(2) = 2) THEN
+ IF keyval(scEnter) > 1 OR (ss.zonenum = 1 AND mouse(2) = 2) THEN
   drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
   ss.palindex = readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage)
  END IF
 END IF
 IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage: getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 IF keyval(scCapslock) > 0 THEN
- IF slowkey(72, 6) THEN
+ IF slowkey(scUp, 6) THEN
   rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
   drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y - 1, dpage
   getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
  END IF
- IF slowkey(80, 6) THEN
+ IF slowkey(scDown, 6) THEN
   rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
   drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y + 1, dpage
   getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
  END IF
- IF slowkey(75, 6) THEN
+ IF slowkey(scLeft, 6) THEN
   rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
   drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x - 1, ss.previewpos.y, dpage
   getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
  END IF
- IF slowkey(77, 6) THEN
+ IF slowkey(scRight, 6) THEN
   rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
   drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x + 1, ss.previewpos.y, dpage
   getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
  END IF
 END IF
-IF keyval(23) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN
+IF keyval(scI) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN
  spriteedit_import16 ss, ss_save, state, placer(), workpal(), poffset(), info$(), toolinfo(), area(), mouse()
  GOSUB spedbak
  setkeyrepeat 25, 5

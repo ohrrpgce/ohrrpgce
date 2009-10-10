@@ -12,18 +12,11 @@ include_windows_bi()
 #include "bitmap.bi"
 #include "util.bi"
 #include "const.bi"
-#include "scancodes.bi"
 #include "uiconst.bi"
 
 option explicit
 
 #define NULL 0
-'a few key constants borrowed from fbgfx.bi, they should all be defined
-'in a separate .bi file really, but this will do for now
-#define SC_CONTROL		&h1D
-#define SC_LSHIFT		&h2A
-#define SC_RSHIFT		&h36
-#define SC_ALT			&h38
 
 'Note: While this works (at last check), it's not used anywhere, and you most probably do not need it
 Const NOREFC = -1234
@@ -34,7 +27,6 @@ type node 	'only used for floodfill
 	nextnode as node ptr
 end type
 
-'add page? or assume workpage? (all pages for clip?)
 declare sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer = -1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
@@ -929,10 +921,10 @@ SUB setkeys ()
 
 	'FIXME DELETEME
 	'--This code is for screen page debugging, and will be removed in the future!
-	if keyval(70) > 0 then 'Scroll-lock
-		clearkey(70)
-		if keyval(3) > 1 then clearkey(3) : debug_screen_page 2
-		if keyval(4) > 1 then clearkey(4) : debug_screen_page 3
+	if keyval(scScrollLock) > 0 then 'Scroll-lock
+		clearkey(scScrollLock)
+		if keyval(sc2) > 1 then clearkey(sc2) : debug_screen_page 2
+		if keyval(sc3) > 1 then clearkey(sc3) : debug_screen_page 3
 	end if
 end SUB
 

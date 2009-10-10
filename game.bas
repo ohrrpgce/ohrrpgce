@@ -8,7 +8,6 @@
 
 #include "udts.bi"
 #include "game_udts.bi"
-#include "scancodes.bi"
 #include "slices.bi"
 #include "compat.bi"
 #include "allmodex.bi"
@@ -170,7 +169,7 @@ NEXT i
 dpage = 1: vpage = 0
 speedcontrol = 55
 presentsong = -1
-gen(60) = 0'--leave joystick calibration enabled
+gen(genJoy) = 0'--leave joystick calibration enabled
 
 load_default_master_palette master()
 'get default ui colours
@@ -271,7 +270,7 @@ start_new_debug
 debuginfo long_version & build_info
 debuginfo "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
-dim gmap(dimbinsize(4)) 'this must be declared here, after the binsize file exists!
+dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
 
 initgame '--set game
 
@@ -359,8 +358,8 @@ ELSE
  clearpage 0
  clearpage 1
  addhero 1, 0, stat()
- IF gen(41) > 0 THEN
-  runscript(gen(41), nowscript + 1, -1, "newgame", plottrigger)
+ IF gen(genNewGameScript) > 0 THEN
+  runscript(gen(genNewGameScript), nowscript + 1, -1, "newgame", plottrigger)
  END IF
  prepare_map
 END IF
@@ -407,7 +406,7 @@ DO
  'DEBUG debug "increment script timers"
  dotimer(0)
  'DEBUG debug "keyboard handling"
- IF carray(5) > 1 AND txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND vstate.active = NO AND xgo(0) = 0 AND ygo(0) = 0 THEN
+ IF carray(ccMenu) > 1 AND txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND vstate.active = NO AND xgo(0) = 0 AND ygo(0) = 0 THEN
   IF allowed_to_open_main_menu() THEN
    add_menu 0
    menusound gen(genAcceptSFX)
@@ -416,11 +415,11 @@ DO
  IF txt.showing = NO AND needf = 0 AND readbit(gen(), 44, suspendplayer) = 0 AND vehicle_is_animating() = NO AND menus_allow_player() THEN
   IF xgo(0) = 0 AND ygo(0) = 0 THEN
    DO
-    IF carray(0) > 0 THEN ygo(0) = 20: catd(0) = 0: EXIT DO
-    IF carray(1) > 0 THEN ygo(0) = -20: catd(0) = 2: EXIT DO
-    IF carray(2) > 0 THEN xgo(0) = 20: catd(0) = 3: EXIT DO
-    IF carray(3) > 0 THEN xgo(0) = -20: catd(0) = 1: EXIT DO
-    IF carray(4) > 1 AND vstate.active = NO THEN
+    IF carray(ccUp) > 0 THEN ygo(0) = 20: catd(0) = 0: EXIT DO
+    IF carray(ccDown) > 0 THEN ygo(0) = -20: catd(0) = 2: EXIT DO
+    IF carray(ccLeft) > 0 THEN xgo(0) = 20: catd(0) = 3: EXIT DO
+    IF carray(ccRight) > 0 THEN xgo(0) = -20: catd(0) = 1: EXIT DO
+    IF carray(ccUse) > 1 AND vstate.active = NO THEN
      txt.sayer = -1
      auto = 0
      GOSUB usething
@@ -430,7 +429,7 @@ DO
   END IF
  END IF
  'debug "before advance_text_box:"
- IF carray(4) > 1 AND txt.fully_shown = YES AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
+ IF carray(ccUse) > 1 AND txt.fully_shown = YES AND readbit(gen(), 44, suspendboxadvance) = 0 THEN
   advance_text_box
  END IF
  'debug "after advance_text_box:"
@@ -468,8 +467,8 @@ DO
   END SELECT
  END IF
  IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
-  IF carray(0) > 1 AND txt.choice_cursor = 1 THEN txt.choice_cursor = 0: MenuSound gen(genCursorSFX)
-  IF carray(1) > 1 AND txt.choice_cursor = 0 THEN txt.choice_cursor = 1: MenuSound gen(genCursorSFX)
+  IF carray(ccUp) > 1 AND txt.choice_cursor = 1 THEN txt.choice_cursor = 0: MenuSound gen(genCursorSFX)
+  IF carray(ccDown) > 1 AND txt.choice_cursor = 0 THEN txt.choice_cursor = 1: MenuSound gen(genCursorSFX)
  END IF
  'DEBUG debug "hero movement"
  GOSUB movement
@@ -478,14 +477,14 @@ DO
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debugging keys
   'DEBUG debug "evaluate debugging keys"
-  IF keyval(60) > 1 AND txt.showing = NO THEN
+  IF keyval(scF2) > 1 AND txt.showing = NO THEN
    savegame 32, stat()
   END IF
-  IF keyval(61) > 1 AND txt.showing = NO THEN
+  IF keyval(scF3) > 1 AND txt.showing = NO THEN
    wantloadgame = 33
   END IF
-  IF keyval(62) > 1 THEN showtags = showtags XOR 1: scrwatch = 0 
-  IF keyval(29) = 0 AND keyval(63) > 1 THEN 'F5
+  IF keyval(scF4) > 1 THEN showtags = showtags XOR 1: scrwatch = 0 
+  IF keyval(scCtrl) = 0 AND keyval(scF5) > 1 THEN 'F5
    SELECT CASE gen(cameramode)
     CASE herocam
      IF gen(cameraArg) < 15 THEN
@@ -498,32 +497,32 @@ DO
      gen(cameraArg) = 0
    END SELECT
   END IF
-  IF keyval(29) > 0 AND keyval(63) > 1 THEN  'CTRL + F5
+  IF keyval(scCtrl) > 0 AND keyval(scF5) > 1 THEN  'CTRL + F5
    catx(0) = (catx(0) \ 20) * 20
    caty(0) = (caty(0) \ 20) * 20
    xgo(0) = 0
    ygo(0) = 0
   END IF
-  IF keyval(64) > 0 AND gen(cameramode) <> pancam THEN
+  IF keyval(scF6) > 0 AND gen(cameramode) <> pancam THEN
    '--only permit movement when not already panning
-   IF keyval(72) > 0 THEN
+   IF keyval(scUp) > 0 THEN
     gen(cameraArg) = 0 'north
     setdebugpan
    END IF
-   IF keyval(77) > 0 THEN
+   IF keyval(scRight) > 0 THEN
     gen(cameraArg) = 1 'east
     setdebugpan
    END IF
-   IF keyval(80) > 0 THEN
+   IF keyval(scDown) > 0 THEN
     gen(cameraArg) = 2 'south
     setdebugpan
    END IF
-   IF keyval(75) > 0 THEN
+   IF keyval(scLeft) > 0 THEN
     gen(cameraArg) = 3 'west
     setdebugpan
    END IF
   END IF
-  IF keyval(65) > 1 THEN 'Toggle level-up bug
+  IF keyval(scF7) > 1 THEN 'Toggle level-up bug
    IF readbit(gen(), 101, 9) = 0 THEN
     setbit gen(), 101, 9, 1
    ELSE
@@ -931,7 +930,7 @@ FOR whoi = 0 TO 3
      WHILE hero(o) = 0 AND o < 4: o = o + 1: WEND
     NEXT i
     IF o < 4 THEN
-     stat(o, 0, 0) = large(stat(o, 0, 0) - gmap(9), 0)
+     stat(o, 0, statHP) = large(stat(o, 0, statHP) - gmap(9), 0)
      IF gmap(10) THEN
       harmtileflash = YES
      END IF
@@ -1636,7 +1635,7 @@ WITH scrat(nowscript)
     .waitarg = 0
     .state = stwait
    CASE 16'--fight formation
-    IF retvals(0) >= 0 AND retvals(0) <= gen(37) THEN
+    IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN
      wantbattle = retvals(0) + 1
      .waitarg = 0
      .state = stwait
@@ -1659,10 +1658,10 @@ WITH scrat(nowscript)
     END IF
     evalitemtag
    CASE 32'--show backdrop
-    gen(50) = bound(retvals(0) + 1, 0, gen(100))
+    gen(genScrBackdrop) = bound(retvals(0) + 1, 0, gen(genMaxBackdrop))
     correctbackdrop
    CASE 33'--show map
-    gen(50) = 0
+    gen(genScrBackdrop) = 0
     correctbackdrop
    CASE 34'--dismount vehicle
     forcedismount catd()
@@ -1707,7 +1706,7 @@ WITH scrat(nowscript)
      END IF
     END IF
    CASE 61'--teleport to map
-    IF retvals(0) >= 0 AND retvals(0) <= gen(0) THEN
+    IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMap) THEN
      gam.map.id = retvals(0)
      FOR i = 0 TO 3
       catx(i) = retvals(1) * 20
@@ -2156,7 +2155,7 @@ FUNCTION bound_formation_slot(form AS INTEGER, slot AS INTEGER, cmd AS STRING) A
 END FUNCTION
 
 SUB loadmap_gmap(mapnum)
- loadrecord gmap(), game + ".map", getbinsize(4) / 2, mapnum
+ loadrecord gmap(), game + ".map", getbinsize(binMAP) / 2, mapnum
 
  loadmaptilesets tilesets(), gmap()
  refresh_map_slice_tilesets
@@ -2426,8 +2425,8 @@ SUB player_menu_keys (stat(), catx(), caty(), tilesets() AS TilesetData ptr)
   IF game_usemenu(mstates(topmenu)) THEN
    menusound gen(genCursorSFX)
   END IF
-  IF carray(5) > 1 AND menus(topmenu).no_close = NO THEN
-   carray(5) = 0
+  IF carray(ccMenu) > 1 AND menus(topmenu).no_close = NO THEN
+   carray(ccMenu) = 0
    setkeys ' Forget keypress that closed the menu
    remove_menu topmenu
    menusound gen(genCancelSFX)
@@ -2442,12 +2441,12 @@ SUB player_menu_keys (stat(), catx(), caty(), tilesets() AS TilesetData ptr)
   DIM mi AS MenuDefItem '--use a copy of the menu item here because activate_menu_item() can deallocate it
   mi = menus(topmenu).items(mstates(topmenu).pt)
   IF mi.disabled THEN EXIT SUB
-  IF carray(4) > 1 THEN
+  IF carray(ccUse) > 1 THEN
    activated = activate_menu_item(menus(topmenu).items(mstates(topmenu).pt))
   END IF
   IF mi.t = 1 AND mi.sub_t = 11 THEN '--volume
-   IF carray(2) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
-   IF carray(3) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
+   IF carray(ccLeft) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
+   IF carray(ccRight) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
   END IF
   IF activated THEN
    IF mi.settag > 1 THEN setbit tag(), 0, mi.settag, YES
@@ -2455,7 +2454,7 @@ SUB player_menu_keys (stat(), catx(), caty(), tilesets() AS TilesetData ptr)
    IF mi.togtag > 1 THEN setbit tag(), 0, mi.togtag, (readbit(tag(), 0, mi.togtag) XOR 1)
    IF mi.close_if_selected THEN
     remove_menu find_menu_handle(menu_handle)
-    carray(4) = 0
+    carray(ccUse) = 0
     setkeys '--Discard the  keypress that triggered the menu item that closed the menu
    END IF
   END IF
@@ -2608,12 +2607,12 @@ FUNCTION game_usemenu (state AS MenuState) as integer
   oldptr = .pt
   oldtop = .top
 
-  IF carray(0) > 1 THEN .pt = loopvar(.pt, .first, .last, -1) 'UP
-  IF carray(1) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)  'DOWN
-  IF keyval(73) > 1 THEN .pt = large(.pt - .size, .first)     'PGUP
-  IF keyval(81) > 1 THEN .pt = small(.pt + .size, .last)      'PGDN
-  IF keyval(71) > 1 THEN .pt = .first                         'HOME
-  IF keyval(79) > 1 THEN .pt = .last                          'END
+  IF carray(ccUp) > 1 THEN .pt = loopvar(.pt, .first, .last, -1) 'UP
+  IF carray(ccDown) > 1 THEN .pt = loopvar(.pt, .first, .last, 1)  'DOWN
+  IF keyval(scPageup) > 1 THEN .pt = large(.pt - .size, .first)     'PGUP
+  IF keyval(scPagedown) > 1 THEN .pt = small(.pt + .size, .last)      'PGDN
+  IF keyval(scHome) > 1 THEN .pt = .first                         'HOME
+  IF keyval(scEnd) > 1 THEN .pt = .last                          'END
   .top = bound(.top, .pt - .size, .pt)
 
   IF oldptr <> .pt OR oldtop <> .top THEN RETURN YES
