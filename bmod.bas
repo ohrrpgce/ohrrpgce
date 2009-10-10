@@ -1791,7 +1791,6 @@ SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
  'If the target is really dead...
  IF bslot(who).stat.cur.hp = 0 THEN
   'the number of ticks it takes the enemy to fade away is equal to half its width
-  'bslot(who).dissolve = bslot(who).w * .5
   if bslot(who).deathtime = 0 then
    bslot(who).dissolve = bslot(who).w / 2
   else

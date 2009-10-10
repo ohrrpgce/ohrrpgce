@@ -146,6 +146,7 @@ Type TextSliceData
  line_count as integer 'automatically populated when the slice changes
 End Type
 
+'FIXME: This is limited to unmodified 4-bit sprites with flipping tacked on; generalise!
 Type SpriteSliceData
  spritetype AS INTEGER 'PT0 thru PT8
  record AS INTEGER
@@ -237,6 +238,7 @@ DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
+DECLARE Sub SetSpriteFrame(byval sl as slice ptr, byval fr as Frame ptr)
 DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
 DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval spritetype as integer=-1,_

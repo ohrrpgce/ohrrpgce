@@ -135,7 +135,9 @@ CONST EnDatStealRItemP = 21
 CONST EnDatDissolve = 22
 CONST EnDatDissolveTime = 23
 CONST EnDatDeathSFX = 24
-'25 to 52 unused
+CONST EnDatCursorX = 25
+CONST EnDatCursorY = 26
+'27 to 52 unused
 CONST EnDatPic = 53
 CONST EnDatPal = 54
 CONST EnDatPicSize = 55
@@ -220,7 +222,7 @@ min(EnLimDissolve) = 0
 max(EnLimDissolve) = 4
 EnCapDissolve = capindex
 addcaption caption$(), capindex, "Global Default"
-addcaption caption$(), capindex, "Default"
+addcaption caption$(), capindex, "Random scatter"
 addcaption caption$(), capindex, "Crossfade"
 addcaption caption$(), capindex, "Diagonal vanish"
 addcaption caption$(), capindex, "Sink into ground"
@@ -549,6 +551,13 @@ WITH *preview
  .AlignVert = 2
 END WITH
 
+'--Need a copy of the sprite to call sprite_dissolved on
+DIM preview_sprite as Frame ptr
+
+'--dissolve_ticks is >= 0 while playing a dissolve
+DIM as integer dissolve_time, dissolve_type, dissolve_ticks
+dissolve_ticks = -1
+
 '--default starting menu
 setactivemenu workmenu(), mainMenu(), state
 
@@ -647,15 +656,19 @@ DO
     GOSUB EnUpdateMenu
    CASE EnMenuBitsetAct
     editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit()
+   CASE EnMenuDissolve, EnMenuDissolveTime
+    IF recbuf(EnDatDissolve) THEN dissolve_type = recbuf(EnDatDissolve) - 1 ELSE dissolve_type = gen(genEnemyDissolve)
+    IF recbuf(EnDatDissolveTime) THEN dissolve_time = recbuf(EnDatDissolveTime) ELSE dissolve_time = (preview_sprite->w / 2)
+    dissolve_ticks = 0
    CASE EnMenuCursorOffset
     '--temporarily move the preview image
     SetSliceParent(preview, SliceTable.Root)
     preview->AnchorVert = 1
     preview->AlignVert = 1
     WITH sprite_sizes(recbuf(EnDatPicSize) + 1)
-     recbuf(25) += .size.x / 2 '--offset relative to the top middle
-     xy_position_on_slice preview, recbuf(25), recbuf(26), "Targetting Cursor Offset"
-     recbuf(25) -= .size.x / 2
+     recbuf(EnDatCursorX) += .size.x / 2 '--offset relative to the top middle
+     xy_position_on_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset"
+     recbuf(EnDatCursorX) -= .size.x / 2
     END WITH
     '--move the preview image back how it was before
     SetSliceParent(preview, preview_box)
@@ -670,6 +683,16 @@ DO
   END IF
  END IF
 
+ IF dissolve_ticks >= 0 THEN
+  dissolve_ticks += 1
+  IF dissolve_ticks > dissolve_time THEN
+   dissolve_ticks = -1
+   GOSUB EnUpdateMenu
+  ELSE
+   SetSpriteFrame preview, sprite_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type)
+  END IF
+ END IF
+ 
  DrawSlice preview_box, dpage
 
  standardmenu dispmenu$(), state, 0, 0, dpage
@@ -690,6 +713,7 @@ saveenemydata recbuf(), recindex
 
 clearallpages
 DeleteSlice @preview_box
+sprite_unload @preview_sprite
 
 EXIT SUB
 
@@ -709,6 +733,10 @@ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
 
 '--update the picture and palette preview
+sprite_unload @preview_sprite
+preview_sprite = sprite_load(1 + recbuf(EnDatPicSize), recbuf(EnDatPic))
+dissolve_ticks = -1
+'--resets if dissolved
 ChangeSpriteSlice preview, 1 + recbuf(EnDatPicSize), recbuf(EnDatPic), recbuf(EnDatPal), ,YES
 
 RETRACE

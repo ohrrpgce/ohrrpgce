@@ -824,6 +824,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
   
   spr += .frame
 
+  'some redesign needed to prevent this continous flipping
   if .flipHoriz then
    if have_copy = NO THEN spr = sprite_duplicate(spr)
    have_copy = YES
@@ -846,6 +847,27 @@ end sub
 Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
  return sl->SliceData
 End Function
+
+'Make no mistake, this is just an unproven hack
+'(and it only accepts 4 bit graphics, without palettes!!)
+Sub SetSpriteFrame(byval sl as slice ptr, byval fr as Frame ptr)
+ dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
+
+ with *dat
+  'Should not matter whether the sprite is loaded; however if we set .loaded=YES, have to have a palette
+  '(since this is 4-bit). Where do we get the palette from? O:
+  sprite_unload(@.img.sprite)
+  if .img.pal = 0 then palette16_load(.pal, .spritetype, .record)
+  .img.sprite = fr  'sprite_reference(fr)
+
+  sl->Width = fr->w
+  sl->Height = fr->h
+  .loaded = YES
+
+  .spritetype = 0
+  .record = -1
+ end with
+End Sub
 
 Sub SaveSpriteSlice(byval sl as slice ptr, byref f as SliceFileWrite)
  DIM dat AS SpriteSliceData Ptr
