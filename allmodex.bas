@@ -58,7 +58,7 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 declare sub pollingthread(byval as threadbs)
 
 dim shared wrkpage as integer  'used to track which page the clips are for; also used by some legacy modex functions
-dim shared vpages(0 to 7) as Frame ptr  'up to 6 used at once, last I counted
+dim shared vpages(0 to 15) as Frame ptr  'up to 6 used at once, last I counted
 
 dim shared bptr as integer ptr	' buffer
 dim shared bsize as integer
@@ -164,20 +164,7 @@ sub restoremode()
 	releasestack
 end sub
 
-FUNCTION allocatepage() as integer
-	dim i as integer
-
-	for i = 0 to ubound(vpages)
-		if vpages(i) = NULL then
-			vpages(i) = sprite_new(320, 200, , YES)
-			return i
-		end if
-	next
-
-	fatalerror "Max number of temp video pages exceeded"
-END FUNCTION
-
-SUB freepage (BYVAL page as integer)
+SUB freepage (byval page as integer)
 	if page < 0 orelse page > ubound(vpages) orelse vpages(page) = NULL then
 		debug "Tried to free unallocated/invalid page " & page
 		exit sub
@@ -188,6 +175,31 @@ SUB freepage (BYVAL page as integer)
 		setclip , , , , 0
 	end if
 END SUB
+
+FUNCTION videopage(byval page as integer) as Frame ptr
+	return vpages(page)
+END FUNCTION
+
+FUNCTION registerpage (byval spr as Frame ptr) as integer
+	for i as integer = 0 to ubound(vpages)
+		if vpages(i) = NULL then
+			vpages(i) = spr
+			spr->refcount += 1
+			return i
+		end if
+	next
+
+	fatalerror "Max number of video pages exceeded"
+END FUNCTION
+
+FUNCTION allocatepage() as integer
+	dim fr as Frame ptr = sprite_new(320, 200, , YES)
+
+	dim ret as integer = registerpage(fr)
+	sprite_unload(@fr) 'we're not hanging onto it, vpages() is
+	
+	return ret
+END FUNCTION
 
 'TODO: this sub has not been modified for frame pitch yet, because of a catch-22 situation
 'anyway, I'd rather get rid of all those ugly arguments
@@ -331,6 +343,7 @@ end SUB
 #define POINT_CLIPPED(x, y) ((x) < clipl orelse (x) > clipr orelse (y) < clipt orelse (y) > clipb)
 
 #define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
+#define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
 
 SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL b as integer)
 'I think this is a setup routine like setpicstuf
@@ -968,6 +981,14 @@ sub pollingthread(byval unused as threadbs)
 	wend
 end sub
 
+SUB putpixel (byval spr as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
+	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
+		exit sub
+	end if
+
+	FRAMEPIXEL(x, y, spr) = c
+end SUB
+
 SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
 	if wrkpage <> p then
 		setclip , , , , p
@@ -980,6 +1001,14 @@ SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL 
 
 	PAGEPIXEL(x, y, p) = c
 end SUB
+
+FUNCTION readpixel (byval spr as Frame ptr, byval x as integer, byval y as integer) as integer
+	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
+		exit function
+	end if
+
+	return FRAMEPIXEL(x, y, spr)
+end FUNCTION
 
 FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
 	if wrkpage <> p then
