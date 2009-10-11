@@ -4274,9 +4274,10 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 end sub
 
 'Public:
-' returns a (copy of the) sprite (any bitdepth) in the midst of a given fade out. amnt is expected to be the number
-' of ticks left in the fade out. style is the specific transition.
-function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0) as frame ptr
+' Returns a (copy of the) sprite (any bitdepth) in the midst of a given fade out.
+' tlength is the desired length of the transition (in any time units you please),
+' t is the number of elasped time units. style is the specific transition.
+function sprite_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
 	dim cpy as frame ptr
 	cpy = sprite_duplicate(spr)
 	if cpy = 0 then return 0
@@ -4300,22 +4301,37 @@ function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p 
 
 	select case style
 		case 0 'scattered pixel dissolve
-			dim t as integer = spr->w / tim * p
 			randomize 1, 2 ' use the same random seed for each frame (fast PRNG)
-			for i = 0 to t - 1
-				for sy = 0 to spr->h - 1
-					sx = int(rnd * spr->w)
-					cpy->mask[sy * spr->pitch + sx] = 0
-				next sy
-			next i
+
+			dim cutoff as unsigned integer = 2 ^ 30 * t / (tlength - 0.5)
+			'some random randomness
+			dim randomness(spr->w + 15) as unsigned integer
+			for i = 0 to spr->w + 15
+				randomness(i) = int(rnd * (2 ^ 30))
+			next
+
+			for sy = 0 to spr->h - 1
+				dim mptr as ubyte ptr = @cpy->mask[sy * cpy->pitch]
+				dim key as unsigned integer = int(rnd * (2 ^ 30))
+				dim shift as integer = int(rnd * 16)
+				for sx = 0 to spr->w - 1
+					'What we would ideally want is a new randomness buffer for each line.
+					'You can simulate this by xoring with key; however this results in artifacts.
+					'So we try a little more mixing.
+					'if (randomness(sx) xor key) < cutoff then
+					if (randomness(sx + shift) xor key) < cutoff then
+						mptr[sx] = 0
+					end if
+				next
+			next
 			randomize timer, 3 're-seed random (MT PRNG)
 
 		case 1 'crossfade
 			'interesting idea: could maybe replace all this with calls to generalised fuzzyrect
-			dim m as integer = spr->w * spr->h / tim * p * 2
+			dim m as integer = spr->w * spr->h * t * 2 / tlength
 			dim mptr as ubyte ptr
 			dim xoroff as integer = 0
-			if p > tim / 2 then
+			if t > tlength / 2 then
 				'after halfway mark: checker whole sprite, then checker the remaining (with tog xor'd 1)
 				for sy = 0 to spr->h - 1
 					mptr = cpy->mask + sy * cpy->pitch
@@ -4326,7 +4342,7 @@ function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p 
 					next
 				next
 				xoroff = 1
-				m = spr->w * spr->h / tim * (p - tim / 2) * 2
+				m = spr->w * spr->h * (t - tlength / 2) * 2 / tlength
 			end if
 			'checker the first m pixels of the sprite
 			for sy = 0 to spr->h - 1
@@ -4340,7 +4356,7 @@ function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p 
 				next
 			next
 		case 2 'diagonal vanish
-			i = spr->w / tim * p * 2
+			i = spr->w * t * 2 / tlength
 			j = i
 			for sy = 0 to i
 				j = i - sy
@@ -4351,13 +4367,13 @@ function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p 
 				next
 			next
 		case 3 'sink into ground
-			dim t as integer = spr->h / tim * p
+			dim fall as integer = spr->h * t / tlength
 			for sy = spr->h - 1 to 0 step -1
-				if sy < t then 
+				if sy < fall then 
 					memset(cpy->mask + sy * cpy->pitch, 0, cpy->w)
 				else
-					memcpy(cpy->image + sy * cpy->pitch, cpy->image + (sy - t) * cpy->pitch, cpy->w)
-					memcpy(cpy->mask + sy * cpy->pitch, cpy->mask + (sy - t) * cpy->pitch, cpy->w)
+					memcpy(cpy->image + sy * cpy->pitch, cpy->image + (sy - fall) * cpy->pitch, cpy->w)
+					memcpy(cpy->mask + sy * cpy->pitch, cpy->mask + (sy - fall) * cpy->pitch, cpy->w)
 				end if
 			next
 	end select

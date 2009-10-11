@@ -68,6 +68,8 @@ WHAT IS NEW?
     * Attacks now have a "Learned" sound effect that can be played when
       the attack is learned as a spell from an item or levelup. [James]
     * You can test enemy dissolve animations in the enemy editor [Ralph]
+    * The random scatter (default) enemy dissolve animation now fades
+      out smoothly and completely [Ralph]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"
