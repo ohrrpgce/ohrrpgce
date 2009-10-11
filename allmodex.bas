@@ -4274,14 +4274,16 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 end sub
 
 'Public:
-' returns a (copy of the) sprite in the midst of a given fade out. amnt is expected to be the number
+' returns a (copy of the) sprite (any bitdepth) in the midst of a given fade out. amnt is expected to be the number
 ' of ticks left in the fade out. style is the specific transition.
 function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p as integer, byval style as integer = 0) as frame ptr
 	dim cpy as frame ptr
 	cpy = sprite_duplicate(spr)
 	if cpy = 0 then return 0
 
-	'by default, sprites use colourkey transparency instead of masks
+	'by default, sprites use colourkey transparency instead of masks.
+	'We could easily not use a mask here, but by using one, this function can be called on 8-bit graphics
+	'too; just in case you ever want to fade out a backdrop or something?
 	if cpy->mask = 0 then
 		'note that the pitch of the mask has to match the image pitch
 		'(we happen to  know that sprite_duplicate returns an image with pitch=w, but don't assume it)
@@ -4350,12 +4352,12 @@ function sprite_dissolved(byval spr as frame ptr, byval tim as integer, byval p 
 			next
 		case 3 'sink into ground
 			dim t as integer = spr->h / tim * p
-			for sy = 0 to spr->h - 1
+			for sy = spr->h - 1 to 0 step -1
 				if sy < t then 
 					memset(cpy->mask + sy * cpy->pitch, 0, cpy->w)
 				else
-					memcpy(cpy->image + sy * cpy->pitch, spr->image + (sy - t) * spr->pitch, cpy->w)
-					memcpy(cpy->mask + sy * cpy->pitch, spr->mask + (sy - t) * spr->pitch, cpy->w)
+					memcpy(cpy->image + sy * cpy->pitch, cpy->image + (sy - t) * cpy->pitch, cpy->w)
+					memcpy(cpy->mask + sy * cpy->pitch, cpy->mask + (sy - t) * cpy->pitch, cpy->w)
 				end if
 			next
 	end select
