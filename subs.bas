@@ -554,7 +554,7 @@ END WITH
 '--Need a copy of the sprite to call sprite_dissolved on
 DIM preview_sprite as Frame ptr
 
-'--dissolve_ticks is >= 0 while playing a dissolve
+'--dissolve_ticks is >= 0 while playing a dissolve; > dissolve_time while during lag period afterwards
 DIM as integer dissolve_time, dissolve_type, dissolve_ticks
 dissolve_ticks = -1
 
@@ -685,13 +685,18 @@ DO
 
  IF dissolve_ticks >= 0 THEN
   dissolve_ticks += 1
-  IF dissolve_ticks > dissolve_time THEN
+  IF dissolve_ticks > dissolve_time + 15 THEN
    dissolve_ticks = -1
    GOSUB EnUpdateMenu
   ELSE
-   SetSpriteFrame preview, sprite_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type)
+   IF dissolve_ticks <= dissolve_time THEN
+    SetSpriteFrame preview, sprite_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type)
+   END IF
   END IF
  END IF
+ 'lag time after fading out, to give a more realistic preview
+ preview->Visible = (dissolve_ticks <= dissolve_time)
+
  
  DrawSlice preview_box, dpage
 
