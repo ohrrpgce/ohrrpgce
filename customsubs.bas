@@ -917,7 +917,7 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
 
  '--get last pal
  loadrecord buf(), game + ".pal", 8, 0
- state.last = buf(1)
+ state.last = buf(1) + 1
  FOR i = state.last TO 0 STEP -1
   state.last = i
   loadrecord buf(), game + ".pal", 8, 1 + i
