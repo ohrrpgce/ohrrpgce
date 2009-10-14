@@ -631,11 +631,7 @@ LOOP
 LOOP ' This is the end of the DO that encloses a specific RPG file
 
 'resetg
-WITH txt.portrait
- IF .sprite THEN sprite_unload @.sprite
- IF .pal    THEN palette16_unload @.pal
-END WITH
-IF txt.sl THEN DeleteSlice @(txt.sl)
+cleanup_text_box
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()
@@ -3191,6 +3187,25 @@ SUB init_text_box_slices(txt AS TextBoxState)
   choice_sl(1)->Lookup = SL_TEXTBOX_CHOICE1
  END IF
  
+END SUB
+
+SUB cleanup_text_box ()
+ ClearTextBox txt.box
+ WITH txt
+  .id = -1
+  .showing = NO
+  .fully_shown = NO
+  .choice_cursor = 0
+  .remember_music = NO
+  .show_lines = 0
+  .sayer = -1
+  .old_dir = 0
+ END WITH
+ WITH txt.portrait
+  IF .sprite THEN sprite_unload @.sprite
+  IF .pal    THEN palette16_unload @.pal
+ END WITH
+ 'IF txt.sl THEN DeleteSlice @(txt.sl)
 END SUB
 
 SUB refresh_map_slice()

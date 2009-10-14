@@ -1438,7 +1438,7 @@ NEXT i
 flusharray hmask(), 3, 0
 flusharray global(), 4095, 0
 reset_vehicle vstate
-ClearTextBox txt.box
+cleanup_text_box
 txt.showing = NO
 txt.fully_shown = NO
 txt.show_lines = 0
