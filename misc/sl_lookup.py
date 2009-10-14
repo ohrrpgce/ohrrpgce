@@ -66,6 +66,13 @@ class Lookup_Updater(object):
             result += "lookup slice(sl:%s)\n" % (l.hspeak_name())
         return result
 
+    def names(self):
+        result = ""
+        for l in self.lookups:
+            n = l.basic_name()
+            result += '  CASE SL_%s: RETURN "%s"\n' % (n, n.lower())
+        return result
+
 #-----------------------------------------------------------------------
 
 class Reader(object):
@@ -115,9 +122,14 @@ class DocReplacer(Replacer):
     pattern = r"^# This is a list of slice lookup codes.*?^\<\/example\>"
     replace = "# This is a list of slice lookup codes\n%s</example>"
 
+class NameReplacer(Replacer):
+    pattern = r"^\'[ \t]*\<SLICE LOOKUP NAMES\>.*?^\'[ \t]*\<\/SLICE LOOKUP NAMES\>"
+    replace = "'<SLICE LOOKUP NAMES>\n%s'</SLICE LOOKUP NAMES>"
+
 ########################################################################
 
 look = Lookup_Updater()
 reader = Reader("slices.bi", look)
 repl = Replacer("plotscr.hsd", look.hspeak())
 repl = DocReplacer("docs/plotdict.xml", look.docs())
+repl = NameReplacer("slices.bas", look.names())

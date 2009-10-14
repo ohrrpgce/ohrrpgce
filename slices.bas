@@ -80,9 +80,9 @@ Sub SetupGameSlices
 
 End Sub
 
-Sub DestroyGameSlices
+Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
  if SliceTable.Root then
-  DeleteSlice(@SliceTable.Root)
+  DeleteSlice(@SliceTable.Root, ABS(SGN(dumpdebug)))
  end if
 End Sub
 
@@ -117,6 +117,24 @@ FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
   CASE "MenuItem":       RETURN slMenuItem
   CASE "Map":            RETURN slMap
  END SELECT
+END FUNCTION
+
+FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
+ '--Used for debugging
+ IF sl = 0 THEN RETURN "[null]"
+ SELECT CASE sl->Lookup
+'--the following is updated from slices.bi using the misc/sl_lookup.py script
+'<SLICE LOOKUP NAMES>
+  CASE SL_TEXTBOX_TEXT: RETURN "textbox_text"
+  CASE SL_TEXTBOX_PORTRAIT: RETURN "textbox_portrait"
+  CASE SL_TEXTBOX_CHOICE0: RETURN "textbox_choice0"
+  CASE SL_TEXTBOX_CHOICE1: RETURN "textbox_choice1"
+  CASE SL_MAP_LAYER0: RETURN "map_layer0"
+  CASE SL_MAP_LAYER1: RETURN "map_layer1"
+  CASE SL_MAP_LAYER2: RETURN "map_layer2"
+'</SLICE LOOKUP NAMES>
+ END SELECT
+ RETURN ""
 END FUNCTION
 
 FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYVAL lookup_code AS INTEGER=0) AS Slice Ptr
@@ -189,11 +207,19 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 End Function
 
 'Deletes a slice, and any children (and their children (and their...))
-Sub DeleteSlice(Byval s as Slice ptr ptr)
+Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
+ '-- if debugme is true, dump some debug info about the slice being freed and all its children
+
  if s = 0 then exit sub  'can't do anything
  if *s = 0 then exit sub 'already freed
  
  dim sl as slice ptr = *s
+
+ if debugme = -1 then debugme = 1
+ if debugme > 0 then
+  debug string(debugme - 1, " ") & SliceTypeName(sl) & " [" & SliceLookupCodename(sl) & "]"
+  debugme += 1
+ end if
  
  'first thing's first.
  if sl->Dispose <> 0 then sl->Dispose(sl)
@@ -220,7 +246,7 @@ Sub DeleteSlice(Byval s as Slice ptr ptr)
  'next, delete our children
  do while ch <> 0
   nxt = ch->NextSibling
-  DeleteSlice(@ch)
+  DeleteSlice(@ch, debugme)
   ch = nxt
  loop
  

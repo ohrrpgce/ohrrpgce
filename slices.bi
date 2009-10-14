@@ -184,9 +184,9 @@ End Type
 
 
 DECLARE Sub SetupGameSlices
-DECLARE Sub DestroyGameSlices
+DECLARE Sub DestroyGameSlices(Byval dumpdebug AS INTEGER=0)
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
-DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr)
+DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr, byval debugme as integer = 0)
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub OrphanSlice(byval sl as slice ptr)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
@@ -199,6 +199,7 @@ DECLARE Function LastChild(byval parent as slice ptr) as slice ptr
 DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 DECLARE FUNCTION SliceTypeName OVERLOAD (sl AS Slice Ptr) AS STRING
 DECLARE FUNCTION SliceTypeName OVERLOAD (t AS SliceTypes) AS STRING
+DECLARE FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
 DECLARE Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
