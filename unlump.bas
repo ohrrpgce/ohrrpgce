@@ -156,7 +156,7 @@ IF gen(genPW2Length) > -1 THEN
  'here also would be desireable
  readscatter rpas$, gen(genPW2Length), gen(), 200
  rpas$ = rotascii(rpas$, gen(genPW2Offset) * -1)
- PRINT rpas$
+ 'PRINT rpas$
  '-----get inputed password-----
  print "Password Required"
  pas$ = ""
