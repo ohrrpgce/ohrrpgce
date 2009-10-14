@@ -630,7 +630,7 @@ LOOP
 
 LOOP ' This is the end of the DO that encloses a specific RPG file
 
-'resetg
+'resetg final cleanup
 cleanup_text_box
 'checks for leaks and deallocates them
 sprite_empty_cache()
@@ -648,6 +648,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 DestroyGameSlices
+SliceDebugDump YES
 RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 

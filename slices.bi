@@ -9,6 +9,8 @@
 #include "udts.bi"
 #include "common.bi"
 
+CONST ENABLE_SLICE_DEBUG = NO
+
 'These constants also need to be updated in slices.bas and plotscr.hsd
 'and plotdict.xml. You may choose to just update them here and then run
 ' misc/sl_lookup.py
@@ -224,6 +226,12 @@ DECLARE Sub YSortChildSlices(byval parent as slice ptr)
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
 
 DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYVAL lookup_code AS INTEGER=0) AS Slice Ptr
+
+DECLARE SUB SliceDebugRemember(sl AS Slice Ptr)
+DECLARE SUB SliceDebugForget(sl AS Slice Ptr)
+DECLARE SUB SliceDebugDump(noisy AS INTEGER = NO)
+DECLARE SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
+
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_

@@ -1497,6 +1497,7 @@ FOR i = 0 TO 15
 NEXT i
 
 DestroyGameSlices
+SliceDebugDump YES
 SetupGameSlices
 
 END SUB

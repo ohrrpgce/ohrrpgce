@@ -32,11 +32,14 @@ DECLARE Function FindUnquotedChar (s AS STRING, char AS STRING) AS INTEGER
 
 Dim SliceTable as SliceTable_
 
+ReDim Shared SliceDebug(50) AS Slice Ptr
+
 'add other slice tables here
 
 'ScreenSlice is used by other slices with ->Attach = slScreen
 DIM SHARED ScreenSlice AS Slice Ptr
 ScreenSlice = NewSlice()
+SliceDebugForget ScreenSlice '--screen slice is magical, ignore it for debugging purposes
 WITH *ScreenSlice
  'Note that .Attach is NOT set to slScreen here. slScreen uses this, not the othetr way around
  .X = 0
@@ -216,6 +219,8 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->Update = @UpdateNullSlice
  ret->Save = @SaveNullSlice
  ret->Load = @LoadNullSlice
+
+ SliceDebugRemember ret
  
  return ret
 End Function
@@ -226,7 +231,7 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
 
  if s = 0 then exit sub  'can't do anything
  if *s = 0 then exit sub 'already freed
- 
+
  dim sl as slice ptr = *s
 
  if debugme = -1 then debugme = 1
@@ -263,6 +268,8 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
   DeleteSlice(@ch, debugme)
   ch = nxt
  loop
+
+ SliceDebugForget sl
  
  delete sl
  *s = 0
@@ -1777,3 +1784,57 @@ Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_re
   debug rawline
  END IF
 End sub
+
+SUB SliceDebugRemember(sl AS Slice Ptr)
+ if ENABLE_SLICE_DEBUG = NO then exit sub
+ for i as integer = 0 to ubound(SliceDebug)
+  if SliceDebug(i) = 0 then
+   '--found an empty slot in the slice debug table...
+   SliceDebug(i) = sl
+   exit sub
+  end if
+ next i
+ '--no more room in the slice debug table
+ dim newsize as integer = ubound(SliceDebug) + 50
+ debug "enlarge slice debug table to " & newsize
+ redim preserve SliceDebug(newsize) as Slice Ptr
+ SliceDebugRemember sl
+END SUB
+
+SUB SliceDebugForget(sl AS Slice Ptr)
+ if ENABLE_SLICE_DEBUG = NO then exit sub
+ for i as integer = 0 to ubound(SliceDebug)
+  if SliceDebug(i) = sl then
+   '--found the slice to forget
+   SliceDebug(i) = 0
+   exit sub
+  end if
+ next i
+ debug "WARNING: tried to delete slice " & sl & " without any record of creating it!"
+END SUB
+
+SUB SliceDebugDump(noisy AS INTEGER = NO)
+ if ENABLE_SLICE_DEBUG = NO then exit sub
+ debug "===SLICE DEBUG DUMP==="
+ dim count as integer = 0
+ dim sl as Slice Ptr
+ for i as integer = 0 to ubound(SliceDebug)
+  if SliceDebug(i) <> 0 then
+   sl = SliceDebug(i)
+   debug "=Slice " & sl & "="
+   if noisy then
+    debug "parent " & sl->parent
+    SliceDebugDumpTree sl
+   end if
+   count += 1
+  end if
+ next i
+ debug count & " slices found in the slice debug table"
+END SUB
+
+SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
+ if sl = 0 then exit sub
+ debug string(indent, " ") & SliceTypeName(sl) & " " & SliceLookupCodename(sl)
+ SliceDebugDumpTree sl->FirstChild, indent + 1
+ SliceDebugDumpTree sl->NextSibling, indent
+END SUB
