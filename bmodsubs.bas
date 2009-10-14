@@ -145,6 +145,7 @@ STATIC joyuse, joymenu
 
 'Quick abort
 IF keyval(-1) THEN
+ DestroyGameSlices YES
  exitprogram 0
 END IF
 

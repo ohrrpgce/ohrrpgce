@@ -123,6 +123,7 @@ FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
  '--Used for debugging
  IF sl = 0 THEN RETURN "[null]"
  SELECT CASE sl->Lookup
+  CASE 0: RETURN ""
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
 '<SLICE LOOKUP NAMES>
   CASE SL_TEXTBOX_TEXT: RETURN "textbox_text"
@@ -133,6 +134,8 @@ FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
   CASE SL_MAP_LAYER1: RETURN "map_layer1"
   CASE SL_MAP_LAYER2: RETURN "map_layer2"
 '</SLICE LOOKUP NAMES>
+  CASE ELSE
+   RETURN STR(sl->Lookup)
  END SELECT
  RETURN ""
 END FUNCTION
@@ -217,7 +220,7 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
 
  if debugme = -1 then debugme = 1
  if debugme > 0 then
-  debug string(debugme - 1, " ") & SliceTypeName(sl) & " [" & SliceLookupCodename(sl) & "]"
+  debug string(debugme - 1, " ") & SliceTypeName(sl) & " " & SliceLookupCodename(sl)
   debugme += 1
  end if
  
