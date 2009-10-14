@@ -59,22 +59,23 @@ Function LoadNullSlice(Byval sl as SliceFwd ptr, key as string, valstr as string
 Sub SetupGameSlices
  SliceTable.Root = NewSliceOfType(slRoot)
  
- SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root)
+ SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
  SliceTable.MapLayer(0) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0)
  SliceTable.MapLayer(1) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER1)
  SliceTable.MapLayer(2) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER2)
  
- SliceTable.ScriptSprite = NewSlice(SliceTable.Root)
+ SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
  SliceTable.ScriptSprite->Fill = YES
  RefreshSliceScreenPos(SliceTable.ScriptSprite)
  
- SliceTable.TextBox = NewSlice(SliceTable.Root)
+ SliceTable.TextBox = NewSliceOfType(slSpecial, SliceTable.Root, SL_TEXTBOX_LAYER)
  SliceTable.TextBox->Fill = YES
  RefreshSliceScreenPos(SliceTable.TextBox)
  
- SliceTable.Menu = NewSlice(SliceTable.Root)
+ 'Not used yet, so don't create it!
+ 'SliceTable.Menu = NewSliceOfType(slSpecial, SliceTable.Root)
  
- SliceTable.ScriptString = NewSlice(SliceTable.Root)
+ SliceTable.ScriptString = NewSliceOfType(slSpecial, SliceTable.Root, SL_STRING_LAYER)
 
 End Sub
 
@@ -136,6 +137,10 @@ FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
   CASE SL_TEXTBOX_PORTRAIT: RETURN "textbox_portrait"
   CASE SL_TEXTBOX_CHOICE0: RETURN "textbox_choice0"
   CASE SL_TEXTBOX_CHOICE1: RETURN "textbox_choice1"
+  CASE SL_SCRIPT_LAYER: RETURN "script_layer"
+  CASE SL_TEXTBOX_LAYER: RETURN "textbox_layer"
+  CASE SL_STRING_LAYER: RETURN "string_layer"
+  CASE SL_MAPROOT: RETURN "maproot"
   CASE SL_MAP_LAYER0: RETURN "map_layer0"
   CASE SL_MAP_LAYER1: RETURN "map_layer1"
   CASE SL_MAP_LAYER2: RETURN "map_layer2"

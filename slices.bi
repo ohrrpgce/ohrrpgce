@@ -9,15 +9,24 @@
 #include "udts.bi"
 #include "common.bi"
 
-'These constants also need to be updated in plotscr.hsd and plotdict.xml
-'You may choose to just update them here and then run misc/sl_lookup.py
-'to update the other files.
+'These constants also need to be updated in slices.bas and plotscr.hsd
+'and plotdict.xml. You may choose to just update them here and then run
+' misc/sl_lookup.py
+'to update the other files. Be aware that once you have picked a number
+'for one of these, you should not change it, because it could get used
+'as a constant in someone's script, and changing it would break any
+'non-recompiled script that used it.
 
+'Note that once you 
 '<SLICE LOOKUP CODES>
 CONST SL_TEXTBOX_TEXT     = -100001
 CONST SL_TEXTBOX_PORTRAIT = -100002
 CONST SL_TEXTBOX_CHOICE0  = -100003
 CONST SL_TEXTBOX_CHOICE1  = -100004
+CONST SL_SCRIPT_LAYER     = -100005
+CONST SL_TEXTBOX_LAYER    = -100006
+CONST SL_STRING_LAYER     = -100007
+CONST SL_MAPROOT          = -100008
 CONST SL_MAP_LAYER0       = -101000
 CONST SL_MAP_LAYER1       = -101001
 CONST SL_MAP_LAYER2       = -101002
