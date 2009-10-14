@@ -81,9 +81,17 @@ Sub SetupGameSlices
 End Sub
 
 Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
- if SliceTable.Root then
-  DeleteSlice(@SliceTable.Root, ABS(SGN(dumpdebug)))
- end if
+ DeleteSlice(@SliceTable.Root, ABS(SGN(dumpdebug)))
+ '--after deleting root, all other slices should be gone, but the pointers
+ '--in SliceTable still need zeroing
+ SliceTable.MapRoot = 0
+ SliceTable.MapLayer(0) = 0
+ SliceTable.MapLayer(1) = 0
+ SliceTable.MapLayer(2) = 0
+ SliceTable.ScriptSprite = 0
+ SliceTable.TextBox = 0
+ SliceTable.Menu = 0
+ SliceTable.ScriptString = 0
 End Sub
 
 FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
