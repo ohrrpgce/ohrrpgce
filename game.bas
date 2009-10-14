@@ -3205,7 +3205,7 @@ SUB cleanup_text_box ()
   IF .sprite THEN sprite_unload @.sprite
   IF .pal    THEN palette16_unload @.pal
  END WITH
- 'IF txt.sl THEN DeleteSlice @(txt.sl)
+ IF txt.sl THEN DeleteSlice @(txt.sl)
 END SUB
 
 SUB refresh_map_slice()
