@@ -276,7 +276,6 @@ DECLARE Sub OpenSliceFileRead (BYREF f AS SliceFileRead, filename AS STRING)
 DECLARE Sub CloseSliceFileRead (BYREF f AS SliceFileRead)
 DECLARE Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_read AS INTEGER=NO)
 
-EXTERN Slices() as Slice ptr
 EXTERN AS SliceTable_ SliceTable
 
 'NEW SLICE TYPE TEMPLATE

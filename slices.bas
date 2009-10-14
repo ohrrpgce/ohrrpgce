@@ -30,8 +30,6 @@ DECLARE Function FindUnquotedChar (s AS STRING, char AS STRING) AS INTEGER
 
 '==============================================================================
 
-REDIM Slices(100) as Slice Ptr
-
 Dim SliceTable as SliceTable_
 
 'add other slice tables here
@@ -260,15 +258,6 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
   DeleteSlice(@ch, debugme)
   ch = nxt
  loop
- 
- 'finally, we need to remove ourself from the global slice table
- for i as integer = lbound(Slices) to ubound(Slices)
-  if Slices(i) = sl then
-   Slices(i) = 0
-   exit for 'if it's possible for us to be in the table more than once,
-            'we need to get rid of this exit for.
-  end if
- next
  
  delete sl
  *s = 0
@@ -1783,4 +1772,3 @@ Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_re
   debug rawline
  END IF
 End sub
-
