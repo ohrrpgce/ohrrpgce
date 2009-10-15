@@ -145,7 +145,8 @@ STATIC joyuse, joymenu
 
 'Quick abort
 IF keyval(-1) THEN
- DestroyGameSlices YES
+ 'uncomment for slice debugging
+ 'DestroyGameSlices YES
  exitprogram 0
 END IF
 
