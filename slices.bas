@@ -97,6 +97,7 @@ Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
 End Sub
 
 FUNCTION SliceTypeName (sl AS Slice Ptr) AS STRING
+ IF sl = 0 THEN debug "SliceTypeName null ptr": RETURN "<null ptr>"
  RETURN SliceTypeName(sl->SliceType)
 END FUNCTION
 
@@ -278,6 +279,8 @@ End Sub
 Sub OrphanSlice(byval sl as slice ptr)
  '-- Remove a slice from its current parent cleanly,
  '-- adjusting siblings, and leaving itself parentless.
+ if sl = 0 then debug "OrphanSlice null ptr": exit sub
+ 
  dim as slice ptr nxt, prv, par
  nxt = sl->NextSibling
  prv = sl->PrevSibling
@@ -302,6 +305,8 @@ Sub OrphanSlice(byval sl as slice ptr)
 end sub
 
 Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
+ if sl = 0 then debug "SetSliceParent null ptr": exit sub
+
  'first, remove the slice from its existing parent
  OrphanSlice sl
  
@@ -457,6 +462,8 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
  'and copies its type and type-specific data over an existing tree member.
  'Newsl gets Deleted to prevent it from being used afterwards!
  'Also, this fails if newsl is part of a tree. It must be parentless
+ if sl = 0 then debug "ReplaceSliceType null ptr": exit sub
+ if newsl = 0 then debug "DrawSlice newsl null ptr": exit sub
  WITH *newsl
   'Make sure that newsl is an orphan already
   IF .Parent <> 0 THEN debug "ReplaceSliceType: Only works with orphaned slices" : EXIT SUB
@@ -554,6 +561,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
 end sub
 
 Sub SaveRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ if sl = 0 then debug "SaveRectangleSlice null ptr": exit sub
  DIM dat AS RectangleSliceData Ptr
  dat = sl->SliceData
  WriteSliceFileVal f, "style", dat->style, -1
@@ -566,6 +574,7 @@ End Sub
 Function LoadRectangleSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
  'Return value is YES if the key is understood, NO if ignored
  'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ if sl = 0 then debug "LoadRectangleSlice null ptr": return 0
  dim dat AS RectangleSliceData Ptr
  dat = sl->SliceData
  select case key
@@ -604,6 +613,7 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
 end function
 
 Function GetRectangleSliceData(byval sl as slice ptr) as RectangleSliceData ptr
+ if sl = 0 then debug "GetRectangleSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
@@ -738,10 +748,12 @@ Sub UpdateTextSlice(byval sl as slice ptr)
 end sub
 
 Function GetTextSliceData(byval sl as slice ptr) as TextSliceData ptr
+ if sl = 0 then debug "GetTextSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 Sub SaveTextSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ if sl = 0 then debug "SaveTextSlice null ptr": exit sub
  DIM dat AS TextSliceData Ptr
  dat = sl->SliceData
  WriteSliceFileVal f, "s", dat->s
@@ -754,6 +766,7 @@ End Sub
 Function LoadTextSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
  'Return value is YES if the key is understood, NO if ignored
  'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ if sl = 0 then debug "LoadTextSlice null ptr": return 0
  dim dat AS TextSliceData Ptr
  dat = sl->SliceData
  select case key
@@ -883,12 +896,14 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 end sub
 
 Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
+ if sl = 0 then debug "GetSpriteSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 'Make no mistake, this is just an unproven hack
 '(and it only accepts 4 bit graphics, without palettes!!)
 Sub SetSpriteFrame(byval sl as slice ptr, byval fr as Frame ptr)
+ if sl = 0 then debug "SetSpriteFrame null ptr": exit sub
  dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
 
  with *dat
@@ -908,6 +923,7 @@ Sub SetSpriteFrame(byval sl as slice ptr, byval fr as Frame ptr)
 End Sub
 
 Sub SaveSpriteSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ if sl = 0 then debug "SaveSpriteSlice null ptr": exit sub
  DIM dat AS SpriteSliceData Ptr
  dat = sl->SliceData
  WriteSliceFileVal f, "sprtype", dat->spritetype
@@ -921,6 +937,7 @@ end sub
 Function LoadSpriteSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
  'Return value is YES if the key is understood, NO if ignored
  'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ if sl = 0 then debug "LoadSpriteSlice null ptr": return 0
  dim dat AS SpriteSliceData Ptr
  dat = sl->SliceData
  select case key
@@ -1020,10 +1037,12 @@ Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
 end sub
 
 Function GetMapSliceData(byval sl as slice ptr) as MapSliceData ptr
+ if sl = 0 then debug "GetMapSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 Sub SaveMapSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ if sl = 0 then debug "SaveMapSlice null ptr": exit sub
  DIM dat AS SpriteSliceData Ptr
  dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
@@ -1032,6 +1051,7 @@ end sub
 Function LoadMapSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
  'Return value is YES if the key is understood, NO if ignored
  'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ if sl = 0 then debug "LoadMapSlice null ptr": return 0
  dim dat AS SpriteSliceData Ptr
  dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
@@ -1121,10 +1141,12 @@ Sub DrawMenuSlice(byval sl as slice ptr, byval p as integer)
 end sub
 
 Function GetMenuSliceData(byval sl as slice ptr) as MenuSliceData ptr
+ if sl = 0 then debug "GetMenuSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 Sub SaveMenuSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ if sl = 0 then debug "SaveMenuSlice null ptr": exit sub
  DIM dat AS MenuSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
@@ -1134,6 +1156,7 @@ end sub
 Function LoadMenuSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
  'Return value is YES if the key is understood, NO if ignored
  'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ if sl = 0 then debug "LoadMenuSlice null ptr": return 0
  dim dat AS MenuSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
@@ -1198,16 +1221,19 @@ Sub DrawMenuItemSlice(byval sl as slice ptr, byval p as integer)
 end sub
 
 Sub UpdateMenuItemSlice(byval sl as slice ptr)
+ if sl = 0 then debug "UpdateMenuItemSlice null ptr": exit sub
  dim dat as MenuItemSliceData ptr = cptr(MenuItemSliceData ptr, sl->SliceData)
  
  sl->Width = textWidth(dat->caption)
 end sub
 
 Function GetMenuItemSliceData(byval sl as slice ptr) as MenuItemSliceData ptr
+ if sl = 0 then debug "GetMenuItemSliceData null ptr": return 0
  return sl->SliceData
 End Function
 
 Sub SaveMenuItemSlice(byval sl as slice ptr, byref f as SliceFileWrite)
+ if sl = 0 then debug "GetMenuItemSliceData null ptr": exit sub
  DIM dat AS MenuItemSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
@@ -1217,6 +1243,7 @@ end sub
 Function LoadMenuItemSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
  'Return value is YES if the key is understood, NO if ignored
  'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
+ if sl = 0 then debug "LoadMenuItemSlice null ptr": return 0
  dim dat AS MenuItemSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
@@ -1279,6 +1306,7 @@ End Constructor
 '==General slice display=======================================================
 
 Function GetSliceDrawAttachParent(BYVAL sl AS Slice Ptr) AS Slice Ptr
+ if sl = 0 then debug "GetSliceDrawAttachParent null ptr": return 0
  WITH *sl
   SELECT CASE .Attach
    case slSlice
@@ -1298,6 +1326,7 @@ Function GetSliceDrawAttachParent(BYVAL sl AS Slice Ptr) AS Slice Ptr
 End Function
 
 Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+ if sl = 0 then debug "SliceXAlign null ptr": Return 0
  SELECT CASE sl->AlignHoriz
   CASE 0: RETURN alignTo->ScreenX + alignTo->paddingLeft
   CASE 1: RETURN alignTo->ScreenX + alignTo->paddingLeft + (alignTo->Width - alignTo->paddingLeft - alignTo->paddingRight) \ 2
@@ -1306,6 +1335,7 @@ Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEG
 End Function
 
 Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+ if sl = 0 then debug "SliceYAlign null ptr": Return 0
  SELECT CASE sl->AlignVert
   CASE 0: RETURN alignTo->ScreenY + alignTo->paddingTop
   CASE 1: RETURN alignTo->ScreenY + alignTo->paddingTop + (alignTo->Height - alignTo->paddingTop - alignTo->paddingBottom) \ 2
@@ -1314,6 +1344,7 @@ Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEG
 End Function
 
 Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
+ if sl = 0 then debug "SliceXAnchor null ptr": Return 0
  SELECT CASE sl->AnchorHoriz
   CASE 0: RETURN 0
   CASE 1: RETURN sl->Width \ 2
@@ -1322,6 +1353,7 @@ Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
 End Function
 
 Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
+ if sl = 0 then debug "SliceYAnchor null ptr": Return 0
  SELECT CASE sl->AnchorVert
   CASE 0: RETURN 0
   CASE 1: RETURN sl->Height \ 2
@@ -1330,6 +1362,7 @@ Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
 End Function
 
 Function SliceEdgeX(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
+ if sl = 0 then debug "SliceEdgeX null ptr": Return 0
  SELECT CASE edge
   CASE 0: RETURN 0
   CASE 1: RETURN sl->Width \ 2
@@ -1338,6 +1371,7 @@ Function SliceEdgeX(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
 End Function
 
 Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
+ if sl = 0 then debug "SliceEdgeY null ptr": Return 0
  SELECT CASE edge
   CASE 0: RETURN 0
   CASE 1: RETURN sl->Height \ 2
@@ -1346,6 +1380,7 @@ Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
 End Function
 
 Sub LocalRefreshSliceScreenPos(byval s as slice ptr, byval attach as slice ptr)
+ if s = 0 then debug "LocalRefreshSliceScreenPos null ptr": exit sub
  with *s
   if .Fill then
    .ScreenX = attach->ScreenX + attach->paddingLeft
@@ -1360,6 +1395,7 @@ Sub LocalRefreshSliceScreenPos(byval s as slice ptr, byval attach as slice ptr)
 end sub
 
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
+ if s = 0 then debug "DrawSlice null ptr": exit sub
  'first, draw this slice
  if s->Visible then
   'calc it's X,Y
@@ -1434,6 +1470,7 @@ end function
 
 Function FindSliceCollision(byval parent as Slice Ptr, byval sl as Slice Ptr, byref num as integer, byval descend as integer) as Slice Ptr
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
+ if parent = 0 or sl = 0 then debug "FindSliceCollision null ptr": return 0
  DIM as Slice Ptr s, temp
  s = parent->FirstChild
  while s
@@ -1459,6 +1496,7 @@ end function
 
 Function FindSliceAtPoint(byval parent as Slice Ptr, byval x as integer, byval y as integer, byref num as integer, byval descend as integer) as Slice Ptr
  'We don't call RefreshSliceScreenPos for efficiency; we expect the calling code to do that
+ if parent = 0 then debug "FindSliceAtPoint null ptr": return 0
  DIM as Slice Ptr s, temp
  s = parent->FirstChild
  while s
@@ -1592,6 +1630,7 @@ Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER, 
 End Sub
 
 Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
+ if sl = 0 then debug "SaveSlice null ptr": Exit Sub
  WriteSliceFileLine f, "{"
  f.indent += 1
  WriteSliceFileVal f, "x", sl->X
@@ -1684,6 +1723,7 @@ END ENUM
 
 Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_read AS INTEGER=NO)
  'sl should be a new empty slice. Its data will get overwritten.
+ if sl = 0 then debug "LoadSlice null ptr": Exit Sub
  DIM mode AS LoadSliceMode
  mode = lsmBegin
  IF skip_to_read THEN mode = lsmReading
@@ -1787,6 +1827,7 @@ End sub
 
 SUB SliceDebugRemember(sl AS Slice Ptr)
  if ENABLE_SLICE_DEBUG = NO then exit sub
+ if sl = 0 then debug "SliceDebugRemember null ptr": exit sub
  for i as integer = 0 to ubound(SliceDebug)
   if SliceDebug(i) = 0 then
    '--found an empty slot in the slice debug table...
@@ -1803,6 +1844,7 @@ END SUB
 
 SUB SliceDebugForget(sl AS Slice Ptr)
  if ENABLE_SLICE_DEBUG = NO then exit sub
+ if sl = 0 then debug "SliceDebugForget null ptr": exit sub
  for i as integer = 0 to ubound(SliceDebug)
   if SliceDebug(i) = sl then
    '--found the slice to forget
@@ -1833,7 +1875,7 @@ SUB SliceDebugDump(noisy AS INTEGER = NO)
 END SUB
 
 SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
- if sl = 0 then exit sub
+ if sl = 0 then debug "SliceDebugDumpTree null ptr": exit sub
  debug string(indent, " ") & SliceTypeName(sl) & " " & SliceLookupCodename(sl)
  SliceDebugDumpTree sl->FirstChild, indent + 1
  SliceDebugDumpTree sl->NextSibling, indent
