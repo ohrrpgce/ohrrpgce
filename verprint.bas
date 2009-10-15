@@ -19,7 +19,7 @@ codename$ = LEFT$(codename$, 15)
 PRINT "Version ID " + datetag$
 PRINT "Codename " + codename$
 
-long_version$ = "CONST long_version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + "." + svnrev$ + " gfx_" + command(1) + "/music_" + command(2) + " FB" + __FB_VERSION__ + CHR$(34)
+long_version$ = "CONST long_version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + "." + svnrev$ + " gfx_" + command(1) + "/music_" + command(2) + " " + __FB_SIGNATURE__ + " (" + __FB_BUILD_DATE__ + ")" + CHR$(34)
 
 OPEN "cver.txt" FOR OUTPUT AS #1
 a$ = "#DEFINE GFX_" + UCASE$(command(1)) + "_BACKEND"
