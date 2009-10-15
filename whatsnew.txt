@@ -70,6 +70,8 @@ WHAT IS NEW?
     * You can test enemy dissolve animations in the enemy editor [Ralph]
     * The random scatter (default) enemy dissolve animation now fades
       out smoothly and completely [Ralph]
+    * Added new enemy dissolve animations: Squash, Melt, Vapourise
+      and Phase out [Ralph]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

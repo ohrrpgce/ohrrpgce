@@ -1019,11 +1019,8 @@ SCOPE 'until moved into a sub
     end if
     
     if is_enemy(zbuf(i)) and .dissolve > 0 and .flee = 0 then
-     dim as integer dtype, dtime
      dim spr2 as frame ptr = spr
-     if .deathtype = 0 then dtype = gen(genEnemyDissolve) else dtype = .deathtype - 1
-     if .deathtime = 0 then dtime = spr->w/2 else dtime = .deathtime
-     spr = sprite_dissolved(spr2, dtime, dtime - .dissolve, dtype)
+     spr = sprite_dissolved(spr2, .deathtime, .deathtime - .dissolve, .deathtype)
      sprite_unload(@spr2)
     end if
     
@@ -1790,12 +1787,7 @@ END FUNCTION
 SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
  'If the target is really dead...
  IF bslot(who).stat.cur.hp = 0 THEN
-  'the number of ticks it takes the enemy to fade away is equal to half its width
-  if bslot(who).deathtime = 0 then
-   bslot(who).dissolve = bslot(who).w / 2
-  else
-   bslot(who).dissolve = bslot(who).deathtime
-  end if
+  bslot(who).dissolve = bslot(who).deathtime
   IF is_enemy(who) THEN
    '--flee as alternative to death
    IF bslot(who).flee_instead_of_die = YES THEN

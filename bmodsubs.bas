@@ -633,10 +633,16 @@ IF formdata(i * 4) > 0 THEN
   .d = 0
   .dissolve = 0
   .flee = 0
-  .deathtype = es(i, 22)
-  .deathtime = es(i, 23)
   .w = sprite_sizes(1 + es(i, 55)).size.x
   .h = sprite_sizes(1 + es(i, 55)).size.y
+  .deathtype = es(i, 22) - 1
+  IF .deathtype = -1 THEN .deathtype = gen(genEnemyDissolve)
+  .deathtime = es(i, 23)
+  IF .deathtime = 0 THEN
+   .deathtime = .w / 2
+   'squash, vapourise, phase out
+   IF .deathtype = 4 or .deathtype = 6 or .deathtype = 7 THEN .deathtime = .w / 5
+  END IF
   .cursorpos.x = .w / 2 - es(i, 25) '--X offset is subtracted instead of added because enemies are always h-flipped
   .cursorpos.y = es(i, 26)
   .death_sfx = es(i, 24)

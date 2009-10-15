@@ -164,7 +164,7 @@ CONST EnDatAtkAlone = 102' to 106
 '-------------------------------------------------------------------------
 
 capindex = 0
-DIM caption$(10)
+DIM caption$(14)
 DIM max(26), min(26)
 'Limit 0 is not used
 
@@ -219,13 +219,17 @@ min(EnLimPal16) = -1
 
 CONST EnLimDissolve = 24
 min(EnLimDissolve) = 0
-max(EnLimDissolve) = 4
+max(EnLimDissolve) = 8
 EnCapDissolve = capindex
 addcaption caption$(), capindex, "Global Default"
 addcaption caption$(), capindex, "Random scatter"
 addcaption caption$(), capindex, "Crossfade"
 addcaption caption$(), capindex, "Diagonal vanish"
 addcaption caption$(), capindex, "Sink into ground"
+addcaption caption$(), capindex, "Squash"
+addcaption caption$(), capindex, "Melt"
+addcaption caption$(), capindex, "Vapourise"
+addcaption caption$(), capindex, "Phase out"
 
 CONST EnLimDissolveTime = 25
 min(EnLimDissolveTime) = 0
@@ -658,7 +662,12 @@ DO
     editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit()
    CASE EnMenuDissolve, EnMenuDissolveTime
     IF recbuf(EnDatDissolve) THEN dissolve_type = recbuf(EnDatDissolve) - 1 ELSE dissolve_type = gen(genEnemyDissolve)
-    IF recbuf(EnDatDissolveTime) THEN dissolve_time = recbuf(EnDatDissolveTime) ELSE dissolve_time = (preview_sprite->w / 2)
+    dissolve_time = recbuf(EnDatDissolveTime) 
+    IF dissolve_time = 0 THEN
+     dissolve_time = (preview_sprite->w / 2)
+     'squash, vapourise, phase
+     IF dissolve_type = 4 or dissolve_type = 6 or dissolve_type = 7 THEN dissolve_time = (preview_sprite->w / 5)
+    END IF
     dissolve_ticks = 0
    CASE EnMenuCursorOffset
     '--temporarily move the preview image

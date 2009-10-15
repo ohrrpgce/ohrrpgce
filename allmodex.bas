@@ -4131,7 +4131,7 @@ end function
 
 'for a copy you intend to modify. Otherwise use sprite_reference
 'note: does not copy frame arrays, only single frames
-function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as frame ptr
+function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
 	dim ret as frame ptr, i as integer
 	
 	if p = 0 then return 0
@@ -4174,6 +4174,14 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0) as fra
 					memcpy(ret->mask + i * ret->pitch, p->mask + i * p->pitch, ret->w)
 				next
 			end if
+		else
+			ret->mask = callocate(ret->w * ret->h)
+		end if
+	elseif addmask then
+		if clr = 0 then
+			ret->mask = allocate(ret->w * ret->h)
+			'we can just copy .image in one go, since we just ensured it's contiguous
+			memcpy(ret->mask, ret->image, ret->w * ret->h)
 		else
 			ret->mask = callocate(ret->w * ret->h)
 		end if
@@ -4278,24 +4286,14 @@ end sub
 ' tlength is the desired length of the transition (in any time units you please),
 ' t is the number of elasped time units. style is the specific transition.
 function sprite_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
-	dim cpy as frame ptr
-	cpy = sprite_duplicate(spr)
-	if cpy = 0 then return 0
+	if t > tlength then return sprite_duplicate(spr, YES)
 
 	'by default, sprites use colourkey transparency instead of masks.
 	'We could easily not use a mask here, but by using one, this function can be called on 8-bit graphics
 	'too; just in case you ever want to fade out a backdrop or something?
-	if cpy->mask = 0 then
-		'note that the pitch of the mask has to match the image pitch
-		'(we happen to  know that sprite_duplicate returns an image with pitch=w, but don't assume it)
-		cpy->mask = allocate(cpy->pitch * cpy->h)
-		if cpy->mask = 0 then
-			debug "could not copy mask"
-			sprite_unload(@spr)
-			return 0
-		end if
-		memcpy(cpy->mask, cpy->image, cpy->pitch * cpy->h)
-	end if
+	dim cpy as frame ptr
+	cpy = sprite_duplicate(spr, 0, 1)
+	if cpy = 0 then return 0
 	
 	dim as integer i, j, sx, sy, tog
 
@@ -4305,16 +4303,16 @@ function sprite_dissolved(byval spr as frame ptr, byval tlength as integer, byva
 
 			dim cutoff as unsigned integer = 2 ^ 30 * t / (tlength - 0.5)
 			'some random randomness
-			dim randomness(spr->w + 15) as unsigned integer
-			for i = 0 to spr->w + 15
+			dim randomness(cpy->w + 15) as unsigned integer
+			for i = 0 to cpy->w + 15
 				randomness(i) = int(rnd * (2 ^ 30))
 			next
 
-			for sy = 0 to spr->h - 1
+			for sy = 0 to cpy->h - 1
 				dim mptr as ubyte ptr = @cpy->mask[sy * cpy->pitch]
 				dim key as unsigned integer = int(rnd * (2 ^ 30))
 				dim shift as integer = int(rnd * 16)
-				for sx = 0 to spr->w - 1
+				for sx = 0 to cpy->w - 1
 					'What we would ideally want is a new randomness buffer for each line.
 					'You can simulate this by xoring with key; however this results in artifacts.
 					'So we try a little more mixing.
@@ -4328,27 +4326,27 @@ function sprite_dissolved(byval spr as frame ptr, byval tlength as integer, byva
 
 		case 1 'crossfade
 			'interesting idea: could maybe replace all this with calls to generalised fuzzyrect
-			dim m as integer = spr->w * spr->h * t * 2 / tlength
+			dim m as integer = cpy->w * cpy->h * t * 2 / tlength
 			dim mptr as ubyte ptr
 			dim xoroff as integer = 0
 			if t > tlength / 2 then
 				'after halfway mark: checker whole sprite, then checker the remaining (with tog xor'd 1)
-				for sy = 0 to spr->h - 1
+				for sy = 0 to cpy->h - 1
 					mptr = cpy->mask + sy * cpy->pitch
 					tog = sy and 1
-					for sx = 0 to spr->w - 1
+					for sx = 0 to cpy->w - 1
 						tog = tog xor 1
 						if tog then mptr[sx] = 0
 					next
 				next
 				xoroff = 1
-				m = spr->w * spr->h * (t - tlength / 2) * 2 / tlength
+				m = cpy->w * cpy->h * (t - tlength / 2) * 2 / tlength
 			end if
 			'checker the first m pixels of the sprite
-			for sy = 0 to spr->h - 1
+			for sy = 0 to cpy->h - 1
 				mptr = cpy->mask + sy * cpy->pitch
 				tog = (sy and 1) xor xoroff
-				for sx = 0 to spr->w - 1
+				for sx = 0 to cpy->w - 1
 					tog = tog xor 1
 					if tog then mptr[sx] = 0
 					m -= 1
@@ -4356,25 +4354,142 @@ function sprite_dissolved(byval spr as frame ptr, byval tlength as integer, byva
 				next
 			next
 		case 2 'diagonal vanish
-			i = spr->w * t * 2 / tlength
+			i = cpy->w * t * 2 / tlength
 			j = i
 			for sy = 0 to i
 				j = i - sy
-				if sy >= spr->h then exit for
+				if sy >= cpy->h then exit for
 				for sx = 0 to j
-					if sx >= spr->w then exit for
-					cpy->mask[sy * spr->pitch + sx] = 0
+					if sx >= cpy->w then exit for
+					cpy->mask[sy * cpy->pitch + sx] = 0
 				next
 			next
 		case 3 'sink into ground
-			dim fall as integer = spr->h * t / tlength
-			for sy = spr->h - 1 to 0 step -1
+			dim fall as integer = cpy->h * t / tlength
+			for sy = cpy->h - 1 to 0 step -1
 				if sy < fall then 
 					memset(cpy->mask + sy * cpy->pitch, 0, cpy->w)
 				else
 					memcpy(cpy->image + sy * cpy->pitch, cpy->image + (sy - fall) * cpy->pitch, cpy->w)
 					memcpy(cpy->mask + sy * cpy->pitch, cpy->mask + (sy - fall) * cpy->pitch, cpy->w)
 				end if
+			next
+		case 4 'squash
+			for i = cpy->h - 1 to 0 step -1
+				dim desty as integer = cpy->h * (t / tlength) + i * (1 - t / tlength)
+				desty = bound(desty, 0, cpy->h - 1)
+				if desty > i then
+					memcpy(cpy->image + desty * cpy->pitch, cpy->image + i * cpy->pitch, cpy->w)
+					memcpy(cpy->mask + desty * cpy->pitch, cpy->mask + i * cpy->pitch, cpy->w)
+					memset(cpy->mask + i * cpy->pitch, 0, cpy->w)
+				end if
+			next
+		case 5 'melt
+			'height and meltmap are fixed point, with 8 bit fractional parts
+			'(an attempt to speed up this dissolve, which is 10x slower than most of the others!)
+			'the current height of each column above the base of the frame
+			dim height(-1 to cpy->w) as integer
+			dim meltmap(cpy->h - 1) as integer
+			
+			for i = 0 to cpy->h - 1
+				'Gompertz sigmoid function, exp(-exp(-x))
+				'this is very close to 1 when k <= -1.5
+				'and very close to 0 when k >= 1.5
+				'so decreases down to 0 with increasing i (height) and t
+				'meltmap(i) = exp(-exp(-7 + 8.5*(t/tlength) + (-cpy->h + i))) * 256
+				meltmap(i) = exp(-exp(-8 + 10*(t/tlength) + 6*(i/cpy->h))) * 256
+			next
+
+			dim poffset as integer = (cpy->h - 1) * cpy->pitch
+			dim destoff as integer
+
+			for sy = cpy->h - 1 to 0 step -1
+				for sx = 0 to cpy->w - 1
+					destoff = (cpy->h - 1 - (height(sx) shr 8)) * cpy->pitch + sx
+
+					'if sx = 24 then
+						'debug sy & " mask=" & cpy->mask[poffset + sx] & " h=" & height(sx)/256 & " dest=" & (destoff\cpy->pitch) & "   " & t/tlength
+					'end if
+
+					'potentially destoff = poffset + sx
+					dim temp as integer = cpy->mask[poffset + sx]
+					cpy->mask[poffset + sx] = 0
+					cpy->image[destoff] = cpy->image[poffset + sx]
+					cpy->mask[destoff] = temp
+
+					if temp then
+						height(sx) += meltmap(height(sx) shr 8)
+					else
+						'empty spaces melt quicker, for flop down of hanging swords,etc
+						'height(sx) += meltmap(height(sx)) * (1 - t/tlength)
+						'height(sx) += meltmap((height(sx) shr 8) + 16)
+						height(sx) += meltmap(sy)
+					end if
+				next
+				poffset -= cpy->pitch
+
+				'mix together adjacent heights so that hanging pieces don't easily disconnect
+				height(-1) = height(0)
+				height(cpy->w) = height(cpy->w - 1)
+				for sx = (sy mod 3) to cpy->w - 1 step 3
+					height(sx) =  height(sx - 1) \ 4 + height(sx) \ 2 + height(sx + 1) \ 4
+				next
+			next
+		case 6 'vapourise
+			'vapoury is the bottommost vapourised row
+			dim vapoury as integer = (cpy->h - 1) * (t / tlength)
+			dim vspeed as integer = large(cpy->h / tlength, 1)
+			for sx = 0 to cpy->w - 1
+				dim chunklength as integer = rnd * (vspeed + 5)
+				for i = -2 to 9999
+					if rnd < 0.3 then exit for
+				next
+
+				dim fragy as integer = large(vapoury - large(i, 0) - (chunklength - 1), 0)
+				'position to copy fragment from
+				dim chunkoffset as integer = large(vapoury - (chunklength - 1), 0) * cpy->pitch + sx
+
+				dim poffset as integer = sx
+				for sy = 0 to vapoury
+					if sy >= fragy and chunklength <> 0 then
+						cpy->image[poffset] = cpy->image[chunkoffset]
+						cpy->mask[poffset] = cpy->mask[chunkoffset]
+						chunkoffset += cpy->pitch
+						chunklength -= 1
+					else
+						cpy->mask[poffset] = 0
+					end if
+					poffset += cpy->pitch
+				next
+			next
+		case 7 'phase out
+			dim fall as integer = 1 + (cpy->h - 2) * (t / tlength)  'range 1 to cpy->h-1
+			'blank out top of sprite
+			for sy = 0 to fall - 2
+				memset(cpy->mask + sy * cpy->pitch, 0, cpy->w)
+			next
+
+			for sx = 0 to cpy->w - 1
+				dim poffset as integer = sx + fall * cpy->pitch
+
+				'we stretch the two pixels at the vapour-front up some factor
+				dim beamc1 as integer = -1
+				dim beamc2 as integer = -1
+				if cpy->mask[poffset] then beamc1 = cpy->image[poffset]
+				if cpy->mask[poffset - cpy->pitch] then beamc2 = cpy->image[poffset - cpy->pitch]
+
+				if beamc1 = -1 then continue for
+				for sy = fall to large(fall - 10, 0) step -1
+					cpy->image[poffset] = beamc1
+					cpy->mask[poffset] = 1
+					poffset -= cpy->pitch
+				next
+				if beamc2 = -1 then continue for
+				for sy = sy to large(sy - 10, 0) step -1
+					cpy->image[poffset] = beamc2
+					cpy->mask[poffset] = 1
+					poffset -= cpy->pitch
+				next
 			next
 	end select
 
