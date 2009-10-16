@@ -1873,7 +1873,8 @@ NEXT
 
 IF NOT isfile(workingdir + SLASH + "attack.bin") THEN
  upgrade_message "Init extended attack data..."
- setbinsize 0, curbinsize(binATTACK)
+ setbinsize binATTACK, curbinsize(binATTACK)
+ flusharray buffer(), dimbinsize(binAttack), 0
  FOR i = 0 TO gen(genMaxAttack)
   savenewattackdata buffer(), i
  NEXT i
