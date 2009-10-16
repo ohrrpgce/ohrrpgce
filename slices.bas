@@ -1850,7 +1850,7 @@ SUB SliceDebugDump(noisy AS INTEGER = NO)
 END SUB
 
 SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
- if sl = 0 then debug "SliceDebugDumpTree null ptr": exit sub
+ if sl = 0 then exit sub
  debug string(indent, " ") & SliceTypeName(sl) & " " & SliceLookupCodename(sl)
  SliceDebugDumpTree sl->FirstChild, indent + 1
  SliceDebugDumpTree sl->NextSibling, indent
