@@ -1278,31 +1278,6 @@ Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceD
  return ret
 end function
 
-'==Epic prophecy of the construcinator=========================================
-/'
-
-AND SO THE PROPHECY WAS SPOKEN:
-
-WHEN SO THE SOURCE IS COMPILED WITH -LANG FB, THEN THE LEGENDARY CONSTRUCTORS SHALL BE BORN
-Constructor RectangleSliceData (byval bg as integer = -1, byval tr as RectTransType = rectFuzzy, byval fg as integer = -1, byval bor as integer = -1)
- with this
-  .bgcol = bg
-  if fgcol = -1 then
-   .fgcol = uilook(uiTextBoxFrame)
-  else
-   .fgcol = fg
-  end if
-  if bgcol = -1 then
-   .bgcol = uilook(uiTextBox)
-  else
-   .bgcol = fg
-  end if
-  .border = bor
-  .translucent = tr
- end with
-End Constructor
-'/
-
 '==General slice display=======================================================
 
 Function GetSliceDrawAttachParent(BYVAL sl AS Slice Ptr) AS Slice Ptr
@@ -1880,3 +1855,28 @@ SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
  SliceDebugDumpTree sl->FirstChild, indent + 1
  SliceDebugDumpTree sl->NextSibling, indent
 END SUB
+
+'==Epic prophecy of the construcinator=========================================
+/'
+
+AND SO THE PROPHECY WAS SPOKEN:
+
+WHEN SO THE SOURCE IS COMPILED WITH -LANG FB, THEN THE LEGENDARY CONSTRUCTORS SHALL BE BORN
+Constructor RectangleSliceData (byval bg as integer = -1, byval tr as RectTransType = rectFuzzy, byval fg as integer = -1, byval bor as integer = -1)
+ with this
+  .bgcol = bg
+  if fgcol = -1 then
+   .fgcol = uilook(uiTextBoxFrame)
+  else
+   .fgcol = fg
+  end if
+  if bgcol = -1 then
+   .bgcol = uilook(uiTextBox)
+  else
+   .bgcol = fg
+  end if
+  .border = bor
+  .translucent = tr
+ end with
+End Constructor
+'/
