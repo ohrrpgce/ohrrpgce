@@ -1838,7 +1838,7 @@ SUB SliceDebugDump(noisy AS INTEGER = NO)
  for i as integer = 0 to ubound(SliceDebug)
   if SliceDebug(i) <> 0 then
    sl = SliceDebug(i)
-   debug "=Slice " & sl & "="
+   debug "[" & i & " Slice " & sl & " " & SliceTypeName(sl) & " " & SliceLookupCodename(sl) & "]"
    if noisy then
     debug "parent " & sl->parent
     SliceDebugDumpTree sl
@@ -1855,6 +1855,15 @@ SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
  SliceDebugDumpTree sl->FirstChild, indent + 1
  SliceDebugDumpTree sl->NextSibling, indent
 END SUB
+
+FUNCTION SliceDebugCheck(sl as Slice Ptr) AS INTEGER
+ if ENABLE_SLICE_DEBUG = NO then debug "SliceDebugCheck not enabled" : RETURN NO
+ if sl = 0 then RETURN NO
+ for i as integer = 0 to ubound(SliceDebug)
+  if SliceDebug(i) = sl then RETURN YES
+ next i
+ RETURN NO
+END FUNCTION
 
 '==Epic prophecy of the construcinator=========================================
 /'

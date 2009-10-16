@@ -3653,6 +3653,12 @@ FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as intege
   debug cmd & ": slice handle " & handle & " has already been deleted"
   RETURN NO
  END IF
+ IF ENABLE_SLICE_DEBUG THEN
+  IF SliceDebugCheck(plotslices(handle)) = NO THEN
+   debug "ERROR: " & cmd & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!"
+   RETURN NO
+  END IF
+ END IF
  RETURN YES
 END FUNCTION
 

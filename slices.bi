@@ -231,7 +231,7 @@ DECLARE SUB SliceDebugRemember(sl AS Slice Ptr)
 DECLARE SUB SliceDebugForget(sl AS Slice Ptr)
 DECLARE SUB SliceDebugDump(noisy AS INTEGER = NO)
 DECLARE SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
-
+DECLARE FUNCTION SliceDebugCheck(sl as Slice Ptr) AS INTEGER
 
 DECLARE Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
 DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
