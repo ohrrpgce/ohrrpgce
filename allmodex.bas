@@ -57,8 +57,11 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 
 declare sub pollingthread(byval as threadbs)
 
+'global
+dim vpages(0 to 15) as Frame ptr  'up to 6 used at once, last I counted
+
+'module shared
 dim shared wrkpage as integer  'used to track which page the clips are for; also used by some legacy modex functions
-dim shared vpages(0 to 15) as Frame ptr  'up to 6 used at once, last I counted
 
 dim shared bptr as integer ptr	' buffer
 dim shared bsize as integer
@@ -175,10 +178,6 @@ SUB freepage (byval page as integer)
 		setclip , , , , 0
 	end if
 END SUB
-
-FUNCTION videopage(byval page as integer) as Frame ptr
-	return vpages(page)
-END FUNCTION
 
 FUNCTION registerpage (byval spr as Frame ptr) as integer
 	for i as integer = 0 to ubound(vpages)

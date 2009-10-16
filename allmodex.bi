@@ -9,7 +9,6 @@
 'Library routines
 DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
-DECLARE FUNCTION videopage(BYVAL page as integer) as Frame ptr
 DECLARE FUNCTION allocatepage() as integer
 DECLARE SUB freepage (BYVAL page as integer)
 DECLARE FUNCTION registerpage (BYVAL spr as Frame ptr) as integer
@@ -156,5 +155,8 @@ declare function palette16_load(byval fil as string, byval num as integer, byval
 declare sub palette16_unload(byval p as palette16 ptr ptr)
 declare sub palette16_empty_cache()
 declare sub palette16_update_cache(fil as string, byval num as integer)
+
+'globals
+extern vpages(0 to 15) as Frame ptr
 
 #ENDIF
