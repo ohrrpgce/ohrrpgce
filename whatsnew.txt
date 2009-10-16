@@ -187,6 +187,8 @@ April 03 2009 [xocolatl+2]
       non-title-screen load [James]
     * Bug 674:A line of pixels is sometimes "vomited" into the corner
       of the sprite editor [James]
+    * Removed obsolete warning about long filenames from relump
+    * Removed obsolete unneeded linux-specific hacks from unlump
     * Bug 646: Delay before caption doesn't seem to work [James]
     * importglobals and exportglobals did not work on globals
       1025 - 4095 [Ralph]
@@ -236,8 +238,6 @@ October 02 2008 [xocolatl]
 
   * New Plotscripting Stuff
     * get hero speed [MCW]
-    * load hero sprite, replace hero sprite, place sprite, set sprite
-      palette, set sprite visible, free sprite [Mike]
 
   * Stuff only Developers Will Notice
     * Many old variables re-organized into types
