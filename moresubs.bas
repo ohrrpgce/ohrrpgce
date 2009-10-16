@@ -1664,7 +1664,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
    scrformat = 0
   END IF
   IF scrformat > 2 THEN
-   scripterr "script" + XSTR$(n) + " is in an unsupported format"
+   scripterr "script " & n & " is in an unsupported format"
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -1875,7 +1875,7 @@ buffer(6) = 0    'was leader
 buffer(7) = mapx
 buffer(8) = mapy
 
-temp$ = XSTR$(gold)
+temp$ = STR$(gold)
 FOR i = 0 TO 24
  IF i < LEN(temp$) THEN
   IF MID$(temp$, i + 1, 1) <> "" THEN buffer(i + 9) = ASC(MID$(temp$, i + 1, 1))
@@ -1932,7 +1932,7 @@ FOR i = 0 TO 40
 NEXT i
 FOR i = 0 TO 40
  FOR o = 0 TO 1
-  temp$ = XSTR$(exlev(i, o))
+  temp$ = STR$(exlev(i, o))
   FOR j = 0 TO 25
    IF j < LEN(temp$) THEN
     IF MID$(temp$, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(temp$, j + 1, 1))
@@ -2434,17 +2434,16 @@ top = bound(top, pt - 4, pt)
 
 fuzzyrect 0, 0, 208, 50, uilook(uiOutline), dpage
 FOR i = top TO top + 4
- temp$ = XSTR$(i) + " "
+ temp$ = i & "  "
  SELECT CASE i
   CASE 0, 1
-   temp$ = temp$ & " Reserved Tag"
+   temp$ = temp$ & "Reserved Tag"
   CASE IS > 1
-   temp$ = temp$ & " " & load_tag_name(i)
+   temp$ = temp$ & load_tag_name(i)
  END SELECT
  c = uilook(uiDisabledItem)
  IF istag(i, 0) THEN c = uilook(uiHighlight) 'hmm
- 'c = 8 + (-7 * istag(i, 0))
- edgeprint temp$, 8, (i - top) * 10, c, dpage
+ edgeprint temp$, 16, (i - top) * 10, c, dpage
  IF i = pt THEN edgeprint "->", 0, (i - top) * 10, uilook(uiText), dpage
 NEXT i
 END SUB

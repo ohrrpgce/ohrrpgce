@@ -347,7 +347,7 @@ ELSE
   temp = picksave(2)
  END IF
 END IF
-'DEBUG debug "picked save slot"+XSTR$(temp)
+'DEBUG debug "picked save slot " & temp
 stopsong
 fadeout 0, 0, 0
 IF temp = -2 THEN EXIT DO 'resetg
@@ -537,8 +537,8 @@ DO
     END IF
    END IF
    IF showtags = 0 THEN
-    IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = XSTR$(speedcontrol) 'CTRL + +
-    IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = XSTR$(speedcontrol)'CTRL + -
+    IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = STR(speedcontrol) 'CTRL + +
+    IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = STR(speedcontrol)'CTRL + -
    END IF
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
@@ -549,7 +549,7 @@ DO
   END IF
  END IF
  IF wantloadgame > 0 THEN
-  'DEBUG debug "loading game slot" + XSTR$(wantloadgame - 1)
+  'DEBUG debug "loading game slot " & (wantloadgame - 1)
   temp = wantloadgame - 1
   wantloadgame = 0
   resetgame stat(), scriptout$
@@ -617,7 +617,7 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  'DEBUG debug "fade in"
- 'DEBUG debug "needf"+XSTR$(needf)
+ 'DEBUG debug "needf " & needf
  IF needf = 1 AND fatal = 0 THEN
   needf = 0
   fadein

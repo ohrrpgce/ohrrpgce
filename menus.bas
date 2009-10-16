@@ -164,11 +164,11 @@ EXIT SUB
 
 vehmenu:
 menu$(0) = "Previous Menu"
-menu$(1) = "Vehicle" + XSTR$(pt)
+menu$(1) = "Vehicle " & pt
 menu$(2) = "Name: " + vehname$
 
-IF veh(offset(3)) = 3 THEN tmp$ = " 10" ELSE tmp$ = XSTR$(veh(8))
-menu$(3) = "Speed:" + tmp$
+IF veh(offset(3)) = 3 THEN tmp$ = "10" ELSE tmp$ = STR(veh(8))
+menu$(3) = "Speed: " + tmp$
 
 menu$(4) = "Vehicle Bitsets..." '9,10
 
@@ -186,7 +186,7 @@ SELECT CASE veh(offset(9))
  CASE 0
   tmp$ = "enabled"
  CASE ELSE
-  tmp$ = "formation set" + XSTR$(veh(offset(9)))
+  tmp$ = "formation set " & veh(offset(9))
 END SELECT
 menu$(9) = "Random Battles: " + tmp$ '11
 
@@ -213,7 +213,7 @@ SELECT CASE ABS(veh(offset(12)))
  CASE ELSE
   tmp$ = " (" + load_tag_name(ABS(veh(offset(12)))) + ")"  '14
 END SELECT
-menu$(12) = "If riding Tag" + XSTR$(ABS(veh(offset(12)))) + "=" + onoroff$(veh(offset(12))) + tmp$
+menu$(12) = "If riding Tag " & ABS(veh(offset(12))) & "=" & onoroff$(veh(offset(12))) & tmp$
 
 SELECT CASE veh(offset(13))
  CASE 0
@@ -221,7 +221,7 @@ SELECT CASE veh(offset(13))
  CASE IS < 0
   tmp$ = "run script " + scriptname$(ABS(veh(offset(13))), plottrigger)
  CASE IS > 0
-  tmp$ = "text box" + XSTR$(veh(offset(13)))
+  tmp$ = "text box " & veh(offset(13))
 END SELECT
 menu$(13) = "On Mount: " + tmp$
 
@@ -231,11 +231,11 @@ SELECT CASE veh(offset(14))
  CASE IS < 0
   tmp$ = "run script " + scriptname$(ABS(veh(offset(14))), plottrigger)
  CASE IS > 0
-  tmp$ = "text box" + XSTR$(veh(offset(14)))
+  tmp$ = "text box " & veh(offset(14))
 END SELECT
 menu$(14) = "On Dismount: " + tmp$
 
-menu$(15) = "Elevation:" + XSTR$(veh(offset(15))) + " pixels"
+menu$(15) = "Elevation: " & veh(offset(15)) & " pixels"
 RETRACE
 
 END SUB

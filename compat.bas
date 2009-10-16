@@ -339,39 +339,3 @@ function xstr (x as integer) as string
 		xstr = str(x)
 	end if
 end function
-
-function xstr(x as short) as string
-	if x >= 0 then
-		xstr = " " + str(x)
-	else
-		xstr = str(x)
-	end if
-end function
-
-function xstr(x as single) as string
-	if x >= 0 then
-		xstr = " " + str(x)
-	else
-		xstr = str(x)
-	end if
-end function
-
-function xstr(x as double) as string
-	if x >= 0 then
-		xstr = " " + str(x)
-	else
-		xstr = str(x)
-	end if
-end function
-
-function xstr(x as long) as string
-	if x >= 0 then
-		xstr = " " + str(x)
-	else
-		xstr = str(x)
-	end if
-end function
-
-function intstr(x as integer) as string
- intstr = str(x)
-end function

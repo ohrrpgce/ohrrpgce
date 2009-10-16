@@ -185,7 +185,7 @@ DO
  IF keyval(scF1) > 1 THEN show_help "importbmp"
  usemenu mstate
  IF intgrabber(pt, 0, count - 1) THEN
-  menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
+  menu$(1) = CHR$(27) + "Browse " & pt & CHR$(26)
   loadpage game + f$, pt, 2
  END IF
  IF enter_or_space() THEN
@@ -205,7 +205,7 @@ DO
     GOSUB bimport
     IF pt = count THEN pt = oldpt 'cancelled
    END IF
-   menu$(1) = CHR$(27) + "Browse" + XSTR$(pt) + CHR$(26)
+   menu$(1) = CHR$(27) + "Browse " & pt & CHR$(26)
    loadpage game + f$, pt, 2
   END IF
   IF mstate.pt = 4 THEN GOSUB disable
@@ -359,7 +359,7 @@ DO
   IF i < 0 THEN
    edgeprint "Return to Main Menu", 10, 8 + (i - top) * 8, c, dpage
   ELSE
-   edgeprint "Tile Set" + XSTR$(i), 10, 8 + (i - top) * 8, c, dpage
+   edgeprint "Tile Set " & i, 10, 8 + (i - top) * 8, c, dpage
   END IF
  NEXT i
  SWAP vpage, dpage
@@ -456,7 +456,7 @@ DO
 LOOP
 
 utamenu:
-menu$(1) = CHR$(27) + "Animation set" + XSTR$(taset) + CHR$(26)
+menu$(1) = CHR$(27) + "Animation set " & taset & CHR$(26)
 menu$(4) = tag_condition_caption(tastuf(1 + 20 * taset), "Disable if Tag", "No tag check")
 RETRACE
 
@@ -609,7 +609,7 @@ FOR i = 0 TO 8
  b = tastuf((11 + i) + 20 * taset)
  menu$(i + 1) = stuff$(a)
  IF a = 0 THEN EXIT FOR
- IF a > 0 AND a < 6 THEN menu$(i + 1) = menu$(i + 1) + XSTR$(b)
+ IF a > 0 AND a < 6 THEN menu$(i + 1) = menu$(i + 1) & " " & b
  IF a = 6 THEN menu$(i + 1) = menu$(i + 1) & " (" & load_tag_name(b) & ")"
 NEXT i
 IF i = 8 THEN menu$(10) = "end of animation"
@@ -1205,9 +1205,9 @@ DO
  IF ts.tool = airbrush_tool THEN
   textcolor uilook(uiMenuItem), 0
   printstr "SIZE", 12, 52, dpage
-  printstr XSTR$(ts.airsize), 12, 60, dpage
+  printstr STR(ts.airsize), 12, 60, dpage
   printstr "MIST", 12, 68, dpage
-  printstr XSTR$(ts.mist), 12, 76, dpage
+  printstr STR(ts.mist), 12, 76, dpage
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 17 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR$(27), 12, 60, dpage
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
@@ -1534,7 +1534,7 @@ DO
  IF ts.zone = 12 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
  printstr "Next", 280, 190, dpage
  textcolor uilook(uiText), uilook(uiHighlight)
- temp$ = XSTR$(ts.cutfrom) + " "
+ temp$ = ts.cutfrom & " "
  printstr temp$, 160 - LEN(temp$) * 4, 190, dpage
  IF ts.gotmouse THEN
   IF tog THEN

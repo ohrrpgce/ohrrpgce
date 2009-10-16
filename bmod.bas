@@ -307,7 +307,7 @@ END IF
 IF (stackpos - bstackstart) \ 2 < 0 THEN
  '--and underflow is bad. it means that whatever script was on
  '--the top of the stack has been corrupted.
- fatalerror "bstack underflow" + XSTR$(stackpos) + XSTR$(bstackstart)
+ fatalerror "bstack underflow " & stackpos & " " & bstackstart
 END IF
 
 fadeout 0, 0, 0
@@ -605,7 +605,7 @@ LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
 IF bat.atk.id = -1 THEN
  GOSUB afterdone
  '--clean up stack
- 'DEBUG debug "discarding" + XSTR$((stackpos - bstackstart) \ 2) + " from stack"
+ 'DEBUG debug "discarding " & (stackpos - bstackstart) \ 2 & " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
  IF spawn_chained_attack(attack.chain, attack, bat, bslot(), es()) = NO THEN
   spawn_chained_attack(attack.elsechain, attack, bat, bslot(), es())
@@ -1052,7 +1052,7 @@ FOR i = 0 TO 11
  c = uilook(uiSelectedDisabled)
  IF is_hero(i) THEN c = uilook(uiSelectedItem)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
- IF is_enemy(i) THEN edgeprint XSTR$(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
+ IF is_enemy(i) THEN edgeprint STR(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
  info$ = "v=" & bslot(i).vis & " dly=" & bslot(i).delay & " tm=" & bat.targ.mask(i) & " hp=" & bslot(i).stat.cur.hp & " dis=" & bslot(i).dissolve
  IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
  edgeprint info$, 20, 80 + i * 10, c, dpage
@@ -2706,7 +2706,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   END SELECT
  END IF
  
- 'DEBUG debug "stackpos =" + XSTR$((stackpos - bstackstart) \ 2)
+ 'DEBUG debug "stackpos = " & (stackpos - bstackstart) \ 2
  invertstack
  
  '--Remember the attack ID for later call to fulldeathcheck

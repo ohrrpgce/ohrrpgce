@@ -376,8 +376,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  loadherodata @her, b(pt * recordsize + 18)
  loaditemdata wbuf(), her.def_weapon
  IF her.def_level < 0 THEN her.def_level = averagelev(stat())
- temp$ = XSTR$(atlevel(her.def_level, her.lev0.hp, her.lev99.hp) + wbuf(54 + 0))
- eqinfo$ = RIGHT$(temp$, LEN(temp$) - 1) + " " + statnames(statHP)
+ eqinfo$ = (atlevel(her.def_level, her.lev0.hp, her.lev99.hp) + wbuf(54 + 0)) & " " & statnames(statHP)
  showhero = her.sprite
  
  'Load the sprite for the hireable hero
@@ -1949,7 +1948,7 @@ DO
    '--show stats
    FOR i = 0 TO 9
     edgeprint statnames(i + 2), 20, 62 + i * 10, uilook(uiText), dpage
-    temp$ = XSTR$(stat(pt, 0, i + 2))
+    temp$ = STR$(stat(pt, 0, i + 2))
     edgeprint temp$, 148 - LEN(temp$) * 8, 62 + i * 10, uilook(uiText), dpage
    NEXT i
 
@@ -2312,9 +2311,9 @@ DO
   IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
   IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)
   IF gen(genStatCap + i) > 0 THEN
-   stat_caption = XSTR$(small(stat(st.who, 1, i) + st.stat_bonus(i), gen(genStatCap + i)))
+   stat_caption = STR$(small(stat(st.who, 1, i) + st.stat_bonus(i), gen(genStatCap + i)))
   ELSE
-   stat_caption = XSTR$(stat(st.who, 1, i) + st.stat_bonus(i))
+   stat_caption = STR$(stat(st.who, 1, i) + st.stat_bonus(i))
   END IF
   edgeprint stat_caption, 148 - LEN(stat_caption) * 8, 42 + i * 10, col, dpage
  NEXT i

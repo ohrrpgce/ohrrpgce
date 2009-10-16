@@ -174,10 +174,10 @@ textcolor uilook(uiText), 0
 
 wide = 0: high = 0: nptr = 0
 mapname$ = ""
+DIM as string xtemp
 
-xtemp$ = ""
-FOR i = 0 TO 15: xtemp$ = xtemp$ + CHR$(i): NEXT i ' Populate this 16-palette with the first 16 colors of the master palette, just... because...
-str2array xtemp$, cursorpal(), 0
+FOR i = 0 TO 15: xtemp = xtemp + CHR$(i): NEXT i ' Populate this 16-palette with the first 16 colors of the master palette, just... because...
+str2array xtemp, cursorpal(), 0
 'Correct the colors that actually get used
 poke8bit cursorpal(), 15, uilook(uiText)
 poke8bit cursorpal(), 7, uilook(uiMenuItem)
@@ -437,82 +437,82 @@ DO
  END SELECT
  scri = 0
  FOR i = 0 TO gmapmax
-  xtemp$ = ""
+  xtemp = ""
   SELECT CASE i
    CASE 1
     IF gmap(1) = 0 THEN
-     xtemp$ = " -silence-"
+     xtemp = "-silence-"
     ELSEIF gmap(1) = -1 THEN
-     xtemp$ = " -same as previous map-"
+     xtemp = "-same as previous map-"
     ELSE
-     xtemp$ = XSTR$(gmap(1) - 1) + " " + getsongname$(gmap(1) - 1)
+     xtemp = (gmap(1) - 1) & " " & getsongname$(gmap(1) - 1)
     END IF
    CASE 2, 3
-    IF gmap(i) = 0 THEN xtemp$ = " NO" ELSE xtemp$ = " YES"
+    IF gmap(i) = 0 THEN xtemp = "NO" ELSE xtemp = "YES"
    CASE 4
-    IF gmap(i) = 0 THEN xtemp$ = " NO" ELSE xtemp$ = XSTR$(gmap(i)) + " ticks"
+    IF gmap(i) = 0 THEN xtemp = "NO" ELSE xtemp = gmap(i) & " ticks"
    CASE 5
     SELECT CASE gmap(i)
      CASE 0
-      xtemp$ = " Crop"
+      xtemp = "Crop"
      CASE 1
-      xtemp$ = " Wrap"
+      xtemp = "Wrap"
      CASE 2
-      xtemp$ = " use default edge tile"
+      xtemp = "use default edge tile"
     END SELECT
    CASE 6
     IF gmap(5) = 2 THEN
-     xtemp$ = XSTR$(gmap(i))
+     xtemp = STR(gmap(i))
     ELSE
-     xtemp$ = " N/A"
+     xtemp = "N/A"
     END IF
    CASE 7, 12 TO 15
-    xtemp$ = gmapscr$(scri)
+    xtemp = gmapscr$(scri)
     scri = scri + 1
    CASE 8
     IF gmap(7) = 0 THEN
-     xtemp$ = " N/A"
+     xtemp = "N/A"
     ELSE
-     xtemp$ = XSTR$(gmap(i))
+     xtemp = STR(gmap(i))
     END IF
    CASE 9
-    xtemp$ = XSTR$(gmap(i))
+    xtemp = STR(gmap(i))
    CASE 10
     IF gmap(i) = 0 THEN
-     xtemp$ = " none"
+     xtemp = "none"
     ELSE
-     xtemp$ = XSTR$(gmap(i))
+     xtemp = STR(gmap(i))
     END IF
    CASE 11
     SELECT CASE gmap(i)
      CASE 0
-      xtemp$ = " none"
+      xtemp = "none"
      CASE IS < 0
-      xtemp$ = " up" + XSTR$(ABS(gmap(i))) + " pixels"
+      xtemp = "up " & ABS(gmap(i)) & " pixels"
      CASE IS > 0
-      xtemp$ = " down" + XSTR$(gmap(i)) + " pixels"
+      xtemp = "down " & gmap(i) & " pixels"
     END SELECT
    CASE 16
     IF gmap(i) = 1 THEN
-     xtemp$ = " NPCs over Heroes"
+     xtemp = "NPCs over Heroes"
     ELSE
-     xtemp$ = " Heroes over NPCs"
+     xtemp = "Heroes over NPCs"
     END IF
    CASE 17, 18
     SELECT CASE gmap(i)
      CASE 0
-      xtemp$ = " Don't save state when leaving"
+      xtemp = "Don't save state when leaving"
      CASE 1
-      xtemp$ = " Remember state when leaving"
+      xtemp = "Remember state when leaving"
      CASE 2
-      xtemp$ = " Ignore saved state, load anew"
+      xtemp = "Ignore saved state, load anew"
     END SELECT
   END SELECT
   textcolor uilook(uiMenuItem), 0
   IF i = gd THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr gd$(i) + xtemp$, 0, 8 * i, dpage
-  IF i = 10 THEN rectangle 4 + (8 * LEN(gd$(i) + xtemp$)), 8 * i, 8, 8, gmap(i), dpage
- NEXT i
+  printstr gd$(i) + " " + xtemp, 0, 8 * i, dpage
+  IF i = 10 THEN rectangle 4 + (8 * (LEN(gd$(i)) + 1 + LEN(xtemp))), 8 * i, 8, 8, gmap(i), dpage
+ NEXT
  IF gmap(5) = 2 THEN
   '--show default edge tile
   setmapdata sampmap(), sampmap(), 180, 0
@@ -961,10 +961,10 @@ DO
       sprite_draw .sprite + (2 * st.npc_inst(i).dir) + walk \ 2, .pal, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy, 1, -1, dpage
      END WITH
      textcolor uilook(uiSelectedItem + tog), 0
-     xtemp$ = STR$(st.npc_inst(i).id - 1)
-     printstr xtemp$, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 3, dpage
-     xtemp$ = STR$(npcnum(st.npc_inst(i).id - 1))
-     printstr xtemp$, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 12, dpage
+     xtemp = STR$(st.npc_inst(i).id - 1)
+     printstr xtemp, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 3, dpage
+     xtemp = STR$(npcnum(st.npc_inst(i).id - 1))
+     printstr xtemp, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 12, dpage
     END IF
     npcnum(st.npc_inst(i).id - 1) = npcnum(st.npc_inst(i).id - 1) + 1
    END IF
@@ -989,8 +989,8 @@ DO
    sprite_draw .sprite + (2 * walk), .pal, x * 20 - mapx, y * 20 - mapy + 20, 1, -1, dpage
   END WITH
   textcolor uilook(uiSelectedItem + tog), 0
-  xtemp$ = STR$(nptr)
-  printstr xtemp$, (x * 20) - mapx, (y * 20) - mapy + 28, dpage
+  xtemp = STR(nptr)
+  printstr xtemp, (x * 20) - mapx, (y * 20) - mapy + 28, dpage
  END IF
  
  '--show foemap--
@@ -1703,7 +1703,7 @@ end sub
 
 SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as TilesetData ptr, doors() as door, link() as doorlink, gmap())
  DIM as integer dmx, dmy, i
- DIM caption$
+ DIM as string caption
  DIM destdoor(99) as door
  DIM gmap2(dimbinsize(binMAP))
 ' DIM othertilesets(2) as TilesetData ptr
@@ -1727,8 +1727,8 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as
   END IF
   edgebox doors(link(cur).source).x * 20 - dmx, doors(link(cur).source).y * 20 - dmy - 20, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
   textcolor uilook(uiBackground), 0
-  caption$ = XSTR$(link(cur).source)
-  printstr caption$, doors(link(cur).source).x * 20 - dmx + 10 - (4 * LEN(caption$)), doors(link(cur).source).y * 20 - dmy - 14, 2
+  caption = STR(link(cur).source)
+  printstr caption, doors(link(cur).source).x * 20 - dmx + 10 - (4 * LEN(caption)), doors(link(cur).source).y * 20 - dmy - 14, 2
  END IF
  '-----------------EXIT DOOR
  destmap = link(cur).dest_map
@@ -1755,8 +1755,8 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as
   END IF
   edgebox destdoor(link(cur).dest).x * 20 - dmx, destdoor(link(cur).dest).y * 20 - dmy + 80, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
   textcolor uilook(uiBackground), 0
-  caption$ = XSTR$(link(cur).dest)
-  printstr caption$, destdoor(link(cur).dest).x * 20 - dmx + 10 - (4 * LEN(caption$)), destdoor(link(cur).dest).y * 20 - dmy + 86, 2
+  caption = STR(link(cur).dest)
+  printstr caption, destdoor(link(cur).dest).x * 20 - dmx + 10 - (4 * LEN(caption)), destdoor(link(cur).dest).y * 20 - dmy + 86, 2
  END IF
  '-----------------RESET DATA
  LoadTiledata maplumpname$(curmap, "t"), map(), 3

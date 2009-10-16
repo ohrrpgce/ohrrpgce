@@ -159,12 +159,7 @@ option nokeyword gosub
  #define TIMER_STOP(a)  a += TIMER
 #endif
 
-declare function xstr overload (x as integer) as string
-declare function xstr (x as short) as string
-declare function xstr (x as single) as string
-declare function xstr (x as double) as string
-declare function xstr (x as long) as string
-declare function intstr (x as integer) as string
+declare function xstr (x as integer) as string
 
 DECLARE SUB getdefaultfont (font() as integer)
 DECLARE SUB xbload (f as string, array() as integer, e as string)

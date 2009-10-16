@@ -1475,7 +1475,7 @@ SELECT CASE AS CONST id
     IF retvals(0) >= 128 AND retvals(0) <= 143 THEN
      scriptret = (b SHR (retvals(0) - 128)) AND 1
     ELSEIF retvals(0) = 144 THEN 'x left
-     'debug XSTR$(xaxis)
+     'debug STR$(xaxis)
      scriptret = abs(xaxis <= -50) 'true = -1...
     ELSEIF retvals(0) = 145 THEN 'x right
      scriptret = abs(xaxis >= 50)
@@ -1554,10 +1554,10 @@ SELECT CASE AS CONST id
   yaxis = 0
   IF io_readjoysane(retvals(2),0,xaxis,yaxis) THEN
    IF retvals(0) = 0 THEN'x axis
-    'debug "x" + XSTR$(xaxis)
+    'debug "x " & xaxis
     scriptret = int((xaxis / 100) * retvals(1)) 'normally, xaxis * 100
    ELSEIF retvals(0) = 1 THEN 'y axis
-    'debug "y" + XSTR$(yaxis)
+    'debug "y " & yaxis
     scriptret = int((yaxis / 100) * retvals(1)) 'normally, yaxis * 100
    END IF
   ELSE
@@ -3288,7 +3288,7 @@ FUNCTION scriptstate (targetscript as integer) as string
  'debug "argn = " & state.curargn
  'debug "argc = " & state.curargc
  'FOR i = stkbottom TO -1
- ' dstr$ = dstr$ + xstr$(readstackdw(i))
+ ' dstr$ = dstr$ & " " & readstackdw(i)
  'NEXT
  'debug "stack contents = " + dstr$
 
