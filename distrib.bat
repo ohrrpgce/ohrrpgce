@@ -154,7 +154,7 @@ REM ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer.exe ...
 echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
 IF %1=="nightly" GOTO LEAVEWARNTXT
-echo   > iextratxt.txt
+echo. > iextratxt.txt
 :LEAVEWARNTXT
 
 %ISCC% /Q /Odistrib /Fohrrpgce-win-installer ohrrpgce.iss
