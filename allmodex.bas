@@ -4703,7 +4703,13 @@ end sub
 
 function palette16_load(byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 	dim as Palette16 ptr ret = palette16_load(game + ".pal", num, autotype, spr)
-	if ret = 0 then debug "failed to load palette " & num
+	if ret = 0 then
+		if num >= 0 then
+			' Only bother to warn if a specific palette failed to load.
+			' Avoids debug noise when default palette load fails because of a non-existant defpal file
+			debug "failed to load palette " & num
+		end if
+	end if
 	return ret
 end function
 
