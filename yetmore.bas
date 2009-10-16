@@ -1736,7 +1736,7 @@ SELECT CASE AS CONST id
  CASE 323'--free sprite
   IF valid_plotslice(retvals(0), "free sprite") THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
-    DeleteSlice(@plotslices(retvals(0)))
+    DeleteSlice(@plotslices(retvals(0)), plotslices())
    ELSE
     debug "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0)))
    END IF
@@ -1871,7 +1871,7 @@ SELECT CASE AS CONST id
    IF sl->SliceType = slRoot OR sl->SliceType = slSpecial THEN
     debug "free slice: cannot free " & SliceTypeName(sl) & " slice " & retvals(0)
    ELSE
-    DeleteSlice(@plotslices(retvals(0)))
+    DeleteSlice(@plotslices(retvals(0)), plotslices())
    END IF
   END IF
  CASE 362 '--first child
@@ -3730,12 +3730,22 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval cmd as string, by
 END FUNCTION
 
 FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
+ IF sl = 0 THEN debug "create_plotslice_handle null ptr" : RETURN 0
+ IF sl->TableSlot <> 0 THEN
+  IF sl = plotslices(sl->Tableslot) THEN
+   debug "Warning: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot)
+   RETURN 0
+  END IF
+ END IF
  DIM i as integer
  'First search for an empty slice handle slot (which sucks because it means they get re-used)
  FOR i = LBOUND(plotslices) to UBOUND(plotslices)
   IF plotslices(i) = 0 THEN
-   'Store the slice pointer in the handle slot and return the handle number
+   'Store the slice pointer in the handle slot
    plotslices(i) = sl
+   'Store the handle slot in the slice
+   sl->TableSlot = i
+   ' and return the handle number
    RETURN i
   END IF
  NEXT

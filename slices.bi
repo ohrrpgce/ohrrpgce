@@ -85,6 +85,7 @@ TYPE Slice
   Height as integer
   Visible as integer
 
+  TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
   Lookup As integer
 
   Sorter as integer 'Only used by CustomSortChildSlices
@@ -197,7 +198,8 @@ End Type
 DECLARE Sub SetupGameSlices
 DECLARE Sub DestroyGameSlices(Byval dumpdebug AS INTEGER=0)
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
-DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr, byval debugme as integer = 0)
+DECLARE Sub DeleteSlice OVERLOAD (Byval s as Slice ptr ptr, byval debugme as integer = 0)
+Declare Sub DeleteSlice OVERLOAD (Byval s as Slice ptr ptr, table() As Slice Ptr, Byval debugme as integer=0)
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub OrphanSlice(byval sl as slice ptr)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
