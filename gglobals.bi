@@ -90,8 +90,11 @@ EXTERN totalscrmem as integer
 EXTERN scriptctr as integer
 EXTERN scrst as Stack
 EXTERN curcmd as ScriptCommand ptr
+'debugger aids
 EXTERN scratp as ScriptInst ptr
 EXTERN scriptp as ScriptData ptr ptr
+EXTERN retvalsp as integer ptr
+EXTERN plotslicesp as slice ptr ptr
 
 'Script string globals
 EXTERN plotstr() as Plotstring
