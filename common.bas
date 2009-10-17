@@ -2188,10 +2188,76 @@ IF getfixbit(fixInitDamageDisplay) = 0 THEN
  gen(genDamageDisplayRise) = 14
 END IF
 
+'Update record-count for all fixed-length lumps.
+FOR i = 0 TO 8
+ fix_sprite_record_count i
+NEXT i
+fix_record_count gen(genMaxTile),     320 * 200, game & ".til", "Tilesets"
+fix_record_count gen(genMaxBackdrop), 320 * 200, game & ".mxs", "Backdrops", , -1
+'FIXME: .dt0 lump is always padded up to 60 records
+'fix_record_count gen(genMaxHero),     636, game & ".dt0", "Heroes"
+'FIXME: Attack data is split over two lumps. Must handle mismatch
+fix_record_count gen(genMaxEnemy),     320, game & ".dt1", "Enemies"
+fix_record_count gen(genMaxFormation), 80, game & ".for", "Battle Formations"
+fix_record_count gen(genMaxPal),       16, game & ".pal", "16-color Palettes", 16
+fix_record_count gen(genMaxTextbox),   getbinsize(binSAY), game & ".say", "Text Boxes"
+fix_record_count gen(genMaxVehicle),   80, game & ".veh", "Vehicles"
+fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names", -84 'Note: no records for tags 0 and 1, so we handle that with a negative header size.
+'FIXME: What is wrong with my menu record sizes?
+'fix_record_count gen(genMaxMenu),      getbinsize(binMENUS), workingdir & SLASH & "menus.bin", "Menus"
+'fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menus.bin", "Menu Items"
+fix_record_count gen(genMaxItem), 200, game & ".itm", "Items"
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game + ".gen", gen(), 1000
 
 'wow! this is quite a big and ugly routine!
+END SUB
+
+SUB fix_record_count(BYREF last_rec_index AS INTEGER, BYREF record_byte_size AS INTEGER, lumpname AS STRING, info AS STRING, skip_header_bytes AS INTEGER=0, count_offset AS INTEGER=0)
+ DIM rec_count AS INTEGER = last_rec_index + 1 + count_offset
+ IF NOT isfile(lumpname) THEN
+  'debug "fix_record_count: " & info & " lump " & trimpath(lumpname) & " does not exist." 
+  EXIT SUB
+ END IF
+ DIM fh AS INTEGER
+ fh = FREEFILE
+ OPEN lumpname FOR BINARY ACCESS READ AS #fh
+ DIM total_bytes AS INTEGER = LOF(fh) - skip_header_bytes
+ CLOSE #fh
+ IF total_bytes MOD record_byte_size <> 0 THEN
+  DIM diffsize AS INTEGER
+  diffsize = total_bytes - record_byte_size * rec_count
+  DIM mismatch AS STRING
+  IF diffsize < 0 THEN
+   mismatch = "file short by " & diffsize & " bytes"
+  ELSE
+   mismatch = "file long by " & diffsize & " bytes"
+  END IF
+  debug "fix_record_count mismatch for " & info & " lump, " & total_bytes & " is not evenly divisible by " & record_byte_size & " (" & mismatch & ")"
+  '--expand the lump to have a valid total size
+  fh = FREEFILE
+  OPEN lumpname FOR BINARY AS #fh
+  DO WHILE total_bytes MOD record_byte_size <> 0
+   total_bytes += 1
+   PUT #fh, skip_header_bytes + total_bytes, CHR(0)
+  LOOP
+  CLOSE #fh
+  debug "Expanded " & info & " lump to " & total_bytes & " bytes"
+ END IF
+ DIM records AS INTEGER = total_bytes / record_byte_size
+ IF records <> rec_count THEN
+  debug "Adjusting record count for " & info & " lump, " & rec_count & " -> " & records & " (" & records - rec_count & ")"
+  last_rec_index = records - 1 - count_offset
+ END IF
+END SUB
+
+SUB fix_sprite_record_count(BYVAL pt_num AS INTEGER)
+ WITH sprite_sizes(pt_num)
+  DIM bytes AS INTEGER = .size.x * .size.y * .frames / 2 '--we divide by 2 because there are 2 pixels per byte
+  DIM lump AS STRING = game & ".pt" & pt_num
+  fix_record_count gen(.genmax), bytes, lump, .name & " sprites"
+ END WITH
 END SUB
 
 SUB standardmenu (menu() AS STRING, state AS MenuState, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO)
