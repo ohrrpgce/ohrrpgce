@@ -1736,7 +1736,7 @@ SELECT CASE AS CONST id
  CASE 323'--free sprite
   IF valid_plotslice(retvals(0), "free sprite") THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
-    DeleteSlice(@plotslices(retvals(0)), plotslices())
+    DeleteSlice @plotslices(retvals(0))
    ELSE
     debug "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0)))
    END IF
@@ -1871,7 +1871,7 @@ SELECT CASE AS CONST id
    IF sl->SliceType = slRoot OR sl->SliceType = slSpecial THEN
     debug "free slice: cannot free " & SliceTypeName(sl) & " slice " & retvals(0)
    ELSE
-    DeleteSlice(@plotslices(retvals(0)), plotslices())
+    DeleteSlice @plotslices(retvals(0))
    END IF
   END IF
  CASE 362 '--first child
@@ -3732,10 +3732,9 @@ END FUNCTION
 FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
  IF sl = 0 THEN debug "create_plotslice_handle null ptr" : RETURN 0
  IF sl->TableSlot <> 0 THEN
-  IF sl = plotslices(sl->Tableslot) THEN
-   debug "Warning: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot)
-   RETURN 0
-  END IF
+  'this should not happen! Call find_plotslice_handle instead.
+  debug "Error: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot)
+  RETURN 0
  END IF
  DIM i as integer
  'First search for an empty slice handle slot (which sucks because it means they get re-used)
@@ -3757,12 +3756,9 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
 END FUNCTION
 
 FUNCTION find_plotslice_handle(BYVAL sl AS Slice Ptr) AS INTEGER
- 'Search plotslices() for a specific slice handle. If it is not present, add it
  IF sl = 0 THEN RETURN 0 ' it would be silly to search for a null pointer
- FOR i AS INTEGER = LBOUND(plotslices) TO UBOUND(plotslices)
-  IF plotslices(i) = sl THEN RETURN i
- NEXT i
- 'slice not found in table, so create a new handle for it
+ IF sl->TableSlot THEN RETURN sl->TableSlot
+ 'slice not in table, so create a new handle for it
  RETURN create_plotslice_handle(sl)
 END FUNCTION
 

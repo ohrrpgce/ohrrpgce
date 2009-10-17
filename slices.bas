@@ -12,9 +12,12 @@
   #endif
 #endif
 
+#ifdef IS_GAME
+extern plotslices() as integer
+#endif
+
 #include "allmodex.bi"
 #include "common.bi"
-#include "gglobals.bi"
 #include "const.bi"
 #include "scrconst.bi"
 #include "uiconst.bi"
@@ -228,13 +231,6 @@ End Function
 
 'Deletes a slice, and any children (and their children (and their...))
 Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
-  DIM no_table(0) AS Slice Ptr
-  DeleteSlice s, no_table(), debugme 
-End Sub
-
-'Deletes a slice, and any children (and their children (and their...)) with handle table support
-Sub DeleteSlice(Byval s as Slice ptr ptr, table() As Slice Ptr, Byval debugme as integer=0)
- '--table() is the array of handles used by plotscripting
  '-- if debugme is true, dump some debug info about the slice being freed and all its children
 
  if s = 0 then exit sub  'can't do anything
@@ -248,19 +244,21 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, table() As Slice Ptr, Byval debugme as
   debugme += 1
  end if
  
+#ifdef IS_GAME
  'unlink this slice from the table of handles
  if sl->TableSlot > 0 then
-  if sl->TableSlot <= ubound(table) then
-   if table(sl->TableSlot) = sl then
+  if sl->TableSlot <= ubound(plotslices) then
+   if plotslices(sl->TableSlot) = sl then
     '--zero out the reference to this slice from the table
-    table(sl->TableSlot) = 0
+    plotslices(sl->TableSlot) = 0
    else
-    debug "DeleteSlice: TableSlot mismatch! Slice " & sl & " slot is " & sl->TableSlot & " which has " & table(sl->TableSlot)
+    debug "DeleteSlice: TableSlot mismatch! Slice " & sl & " slot is " & sl->TableSlot & " which has " & plotslices(sl->TableSlot)
    end if
   else
    debug "DeleteSlice: TableSlot for " & sl & " is invalid: " & sl->TableSlot
   end if
  end if
+#endif
  
  'Call the slice's type-specific Dispose function
  if sl->Dispose <> 0 then sl->Dispose(sl)
@@ -287,7 +285,7 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, table() As Slice Ptr, Byval debugme as
  'next, delete our children
  do while ch <> 0
   nxt = ch->NextSibling
-  DeleteSlice(@ch, table(), debugme)
+  DeleteSlice(@ch, debugme)
   ch = nxt
  loop
 
