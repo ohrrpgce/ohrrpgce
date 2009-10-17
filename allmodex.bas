@@ -40,7 +40,6 @@ declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 
 'internal allmodex use only sprite functions
-declare function sprite_describe(byval p as frame ptr) as string
 declare sub sprite_freemem(byval f as frame ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 
@@ -183,7 +182,7 @@ FUNCTION registerpage (byval spr as Frame ptr) as integer
 	for i as integer = 0 to ubound(vpages)
 		if vpages(i) = NULL then
 			vpages(i) = spr
-			spr->refcount += 1
+			if spr->refcount <> NOREFC then	spr->refcount += 1
 			return i
 		end if
 	next
@@ -3935,14 +3934,14 @@ function sprite_new(byval w as integer, byval h as integer, byval frames as inte
 			if i > 0 then .arrayelem = 1
 			.w = w
 			.h = h
-			.pitch = w
+			.pitch = w '+ 10  'test pitch conversion work
 			.mask = NULL
 			if clr then
-				.image = callocate(w * h)
-				IF wantmask THEN .mask = callocate(w * h)
+				.image = callocate(.pitch * h)
+				if wantmask then .mask = callocate(.pitch * h)
 			else
-				.image = allocate(w * h)
-				IF wantmask THEN .mask = allocate(w * h)
+				.image = allocate(.pitch * h)
+				if wantmask then .mask = allocate(.pitch * h)
 			end if
 
 			if .image = 0 or (.mask = 0 and wantmask <> 0) then
@@ -3956,9 +3955,40 @@ function sprite_new(byval w as integer, byval h as integer, byval frames as inte
 	return ret
 end function
 
+'create a frame which is a view onto part of a larger frame
+function sprite_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
+	dim ret as frame ptr = callocate(sizeof(Frame))
+
+	if ret = 0 then
+		debug "Could not create sprite view, no memory"
+		return 0
+	end if
+
+	with *ret
+		.w = bound(w, 1, spr->w - x)
+		.h = bound(h, 1, spr->h - y)
+		.pitch = spr->pitch
+		.image = spr->image + .pitch * y + x
+		if spr->mask then
+			.mask = spr->mask + .pitch * y + x
+		end if
+		.refcount = 1
+		.arraylen = 1 'at the moment not actually used anywhere on sprites with isview = 1
+		.isview = 1
+		'we point .base at the 'root' frame which really owns these pixel buffer(s)
+		if spr->isview then
+			.base = spr->base
+		else
+			.base = spr
+		end if
+		if .base->refcount <> NOREFC then .base->refcount += 1
+	end with
+	return ret
+end function
+
 ' unconditionally frees a sprite from memory. 
 ' You should never need to call this: use sprite_unload
-' Should only be called on the head of an array!
+' Should only be called on the head of an array (and not a view, obv)!
 ' Warning: not all code calls sprite_freemem to free sprites! Grrr!
 private sub sprite_freemem(byval f as frame ptr)
 	if f = 0 then exit sub
@@ -4080,16 +4110,20 @@ sub sprite_unload(byval p as frame ptr ptr)
 			.refcount -= 1
 			if .refcount < 0 then debug sprite_describe(*p) & " has refcount " & .refcount
 		end if
-		' the cache counts as a reference!!
-		if (.refcount - .cached) <= 0 and .arrayelem = 0 then
-			'current policy is to unload all sprite as soon as they are unused.
-			if .cached then sprite_remove_cache(*p)
-			for i as integer = 1 to .arraylen - 1
-				if (*p)[i].refcount <> 1 then
-					debug sprite_describe(*p) & " freed with refcount " & .refcount
-				end if
-			next
-			sprite_freemem(*p)
+		if .refcount <= 0 and .arrayelem = 0 then
+			if .isview then
+				sprite_unload @.base
+				deallocate(*p)
+			else
+				'current policy is to unload all sprite as soon as they are unused, but this could be changed easily.
+				if .cached then sprite_remove_cache(*p)
+				for i as integer = 1 to .arraylen - 1
+					if (*p)[i].refcount <> 1 then
+						debug sprite_describe(*p) & " freed with refcount " & .refcount
+					end if
+				next
+				sprite_freemem(*p)
+			end if
 		end if
 	end with
 	*p = 0
@@ -4099,7 +4133,7 @@ function sprite_describe(byval p as frame ptr) as string
 	if p = 0 then return "'(null)'"
 	return "'(0x" & hex(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h & " img=0x" & hex(p->image) _
 	       & " msk=0x" & hex(p->mask) & " pitch=" & p->pitch & " cached=" & p->cached & " aelem=" _
-	       & p->arrayelem & " refc=" & p->refcount & "'"
+	       & p->arrayelem & " view=" & p->isview & " base=0x" & hex(p->base) & " refc=" & p->refcount & "'"
 end function
 
 'this is mostly just a gimmick
@@ -4509,10 +4543,7 @@ private sub flip_image(byval pixels as ubyte ptr, byval d1len as integer, byval 
 end sub
 
 'Public:
-' returns a copy of the sprite flipped horizontally. The new sprite is refc'd of course.
-' direct means modify it in-place, forbidden if the sprite is cached!
-' (Note: might be modified in place if no other references exist, you are
-' encouraged to use the ref counting system)
+' flips a sprite horizontally. In place: you are only allowed to do this on sprites with no other references
 sub sprite_flip_horiz(byval spr as frame ptr)
 	if spr = 0 then exit sub
 	
