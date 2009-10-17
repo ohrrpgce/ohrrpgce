@@ -542,7 +542,7 @@ TYPE PlotSprite
  y as integer
 END TYPE
 
-TYPE SpriteSize 'FIXME: there are a lot of places this could be used where it isn't yet. See standard_sprite_load()
+TYPE SpriteSize
  name AS STRING
  size AS XYPair
  frames AS INTEGER

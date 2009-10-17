@@ -164,7 +164,7 @@ WHAT IS NEW?
     * New slice routines for rectangular objects of various styles that
       can be organized into a tree and positioned and sized relative to
       one another. [Mike]
-    * RPG format number has been incremented to 7 to provide
+    * RPG format number has been incremented to provide
       forward-compat warnings when loading new RPG files into
       old versions of game [James]
 

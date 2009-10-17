@@ -1,4 +1,4 @@
-This is the Resize Map tool. here you can change the size of an existing map. Doors, NPCs and hero locations will all be automatically updated for the new size.
+This is the Resize Map tool. Here you can change the size of an existing map. Doors, NPCs and hero locations will all be automatically updated for the new size.
 
 Use the up and down arrow keys to navigate the menu. Use the left and right arrow keys to change the numbers.
 
