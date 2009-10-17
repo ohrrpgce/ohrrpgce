@@ -2247,7 +2247,7 @@ SUB fix_record_count(BYREF last_rec_index AS INTEGER, BYREF record_byte_size AS 
  END IF
  DIM records AS INTEGER = total_bytes / record_byte_size
  IF records <> rec_count THEN
-  debug "Adjusting record count for " & info & " lump, " & rec_count & " -> " & records & " (" & records - rec_count & ")"
+  upgrade_message "Adjusting record count for " & info & " lump, " & rec_count & " -> " & records & " (" & records - rec_count & ")"
   last_rec_index = records - 1 - count_offset
  END IF
 END SUB
