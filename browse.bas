@@ -474,10 +474,12 @@ NEXT
 treeptr = 0
 treetop = 0
 FOR i = br.drivesshown TO br.treesize
+ 'look for first selectable item
+ IF tree(i).kind = 3 THEN treeptr = i: EXIT FOR
+ 'second preference is first subdirectory
+ IF tree(i).kind = 2 AND tree(treeptr).kind <> 2 THEN treeptr = i
+ 'final preference is current (bottommost) directory
  IF tree(i).kind = 1 OR tree(i).kind = 4 THEN treeptr = i
-NEXT i
-FOR i = br.treesize TO br.drivesshown STEP -1
- IF tree(i).kind = 3 THEN treeptr = i
 NEXT i
 treetop = bound(treetop, treeptr - (br.viewsize + 2), treeptr)
 
