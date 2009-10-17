@@ -1562,7 +1562,7 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 		.w = size  'garbage
 		.h = 1
 		.pitch = size 'more garbage, not sure whether there's a sensible value
-		.refcount = 1   'NOREFC
+		.refcount = 2  '1  'NOREFC  '?????
 		.arrayelem = 1 ' ??????
 		.mask = null
 		.image = callocate(size)
@@ -3859,8 +3859,7 @@ sub sprite_empty_cache()
 		with sprcache(i)
 			if .p <> 0 then
 				debug "warning: leaked sprite: " & .key & " with " & .p->refcount & " references"
-				sprite_freemem(.p)
-				.p = 0
+				sprite_unload @.p
 			elseif .key <> 0 then
 				debug "warning: phantom cached sprite " & .key
 			end if
@@ -3885,6 +3884,11 @@ end sub
 private sub sprite_add_cache(byval key as integer, byval p as frame ptr)
 	if p = 0 then exit sub
 	dim as integer i, sec = -1
+
+	'the cache counts as a reference, but only to the head element of an array!!
+	p->cached = 1
+	p->refcount += 1
+
 	for i = 0 to ubound(sprcache)
 		with sprcache(i)
 			'we don't check whether the key is equal; we can't reliably
@@ -3901,6 +3905,8 @@ private sub sprite_add_cache(byval key as integer, byval p as frame ptr)
 
 	if sec > -1 then
 		'NOTE: currently, sprites are always freed as soon as all references are unloaded, so this never happens
+		'NOTE: we can not call sprite_unload from in here
+		'NOTE: the following is no longer correct! sprite_unload has lots of extra logic which can't be skipped
 		sprite_freemem(sprcache(sec).p)
 		sprcache(sec).key = key
 		sprcache(sec).p = p
@@ -4019,11 +4025,6 @@ function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
 	with sprite_sizes(ptno)
 		ret = sprite_load(game + ".pt" & ptno, rec, .frames, .size.x, .size.y)
 		if ret = 0 then return 0
-		for i as integer = 0 to .frames - 1
-			ret[i].cached = 1
-		next
-		'the cache counts as an (additional) reference, but only to head!!
-		ret[0].refcount += 1
 	end with
 
 	sprite_add_cache(key, ret)
@@ -4110,7 +4111,13 @@ sub sprite_unload(byval p as frame ptr ptr)
 			.refcount -= 1
 			if .refcount < 0 then debug sprite_describe(*p) & " has refcount " & .refcount
 		end if
-		if .refcount <= 0 and .arrayelem = 0 then
+		'if cached, can free two references at once
+		if (.refcount - .cached) <= 0 then
+			if .arrayelem then
+				'this should not happen, because each arrayelem gets an extra refcount
+				debug "arrayelem with refcount = " & .refcount
+				exit sub
+			end if
 			if .isview then
 				sprite_unload @.base
 				deallocate(*p)
