@@ -91,6 +91,8 @@ EXTERN scriptctr as integer
 EXTERN scrst as Stack
 EXTERN curcmd as ScriptCommand ptr
 'debugger aids
+EXTERN globalp as integer ptr
+EXTERN heapp as integer ptr
 EXTERN scratp as ScriptInst ptr
 EXTERN scriptp as ScriptData ptr ptr
 EXTERN retvalsp as integer ptr

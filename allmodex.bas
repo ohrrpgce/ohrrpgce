@@ -878,6 +878,8 @@ FUNCTION getkey () as integer
 		end if
 		sleep 50
 	loop while key = 0
+	'prevent crazy fast pseudo-keyrepeat
+	sleep 25
 
 	getkey = key
 end FUNCTION

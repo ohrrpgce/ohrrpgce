@@ -833,7 +833,7 @@ setpal master()
 setvispage 0 'refresh
 DIM w AS INTEGER = getkey
 
-IF w = 1 THEN
+IF w = scEsc THEN
  closemusic
  restoremode
  PRINT e
@@ -862,7 +862,7 @@ setvispage 0 'refresh
 
 DIM w AS INTEGER = getkey
 
-IF w = 1 THEN
+IF w = scEsc THEN
  closemusic
  restoremode
 

@@ -130,10 +130,14 @@ DIM curcmd as ScriptCommand ptr
 DIM insideinterpreter
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
+DIM globalp as integer ptr
+DIM heapp as integer ptr
 DIM scratp as ScriptInst ptr
 DIM scriptp as ScriptData ptr ptr 
 DIM retvalsp as integer ptr
 DIM plotslicesp as slice ptr ptr
+globalp = @global(0)
+heapp = @heap(0)
 scratp = @scrat(0)
 scriptp = @script(0)
 retvalsp = @retvals(0)
