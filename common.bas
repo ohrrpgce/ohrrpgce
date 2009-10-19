@@ -30,6 +30,7 @@ REDIM keyv(55, 3)
 #IFDEF IS_GAME
 DECLARE SUB embedtext (text$, limit=0)
 DECLARE FUNCTION istag (num, zero) as integer
+DECLARE SUB scripterr (e as string, errorlevel as integer = 4)
 #ENDIF
 
 'Allocate sprite size table
@@ -2712,8 +2713,14 @@ SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
  END WITH
 END SUB
 
-FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING) AS INTEGER
+FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING, fromscript AS INTEGER=YES) AS INTEGER
  IF n < min OR n > max THEN
+#IFDEF IS_GAME
+  IF fromscript THEN
+   scripterr cmd & ": invalid " & argname & " " & n, 3
+   RETURN NO
+  END IF
+#ENDIF
   debug cmd & ": invalid " & argname & " " & n
   RETURN NO
  END IF

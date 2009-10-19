@@ -438,7 +438,7 @@ si.state = stnext
 checkoverflow(scrst, curcmd->argc + 5)
 
 IF curcmd->kind <> tyflow THEN
- scripterr "Root script command not flow, but " & curcmd->kind
+ scripterr "Root script command not flow, but " & curcmd->kind, 5
  si.state = sterror
 END IF
 END SUB
@@ -459,7 +459,7 @@ SELECT CASE cmdptr->kind
   pushs(scrst, cmdptr->value)
  CASE tyglobal
   IF cmdptr->value < 0 OR cmdptr->value > 4095 THEN
-   scripterr "Illegal global variable id " & cmdptr->value
+   scripterr "Illegal global variable id " & cmdptr->value, 4
    si.state = sterror
    EXIT SUB
   END IF
@@ -489,7 +489,7 @@ SELECT CASE cmdptr->kind
   IF curcmd->argc = 0 THEN EXIT SUB
   GOTO quickrepeat
  CASE ELSE
-  scripterr "Illegal statement type " & cmdptr->kind
+  scripterr "Illegal statement type " & cmdptr->kind, 5
   si.state = sterror
   EXIT SUB
 END SELECT
@@ -859,7 +859,7 @@ SUB scriptmisc (id)
 SELECT CASE AS CONST id
 
  CASE 0'--noop
-  scripterr "encountered clean noop"
+  scripterr "encountered clean noop", 1
  CASE 1'--Wait (cycles)
   IF retvals(0) > 0 THEN
    GOSUB setwaitstate
@@ -951,7 +951,7 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) < 127 THEN
    scriptret = keyval(retvals(0)) AND 3
   ELSE
-   debug "invalid scancode keyval(" & retvals(0) & ")"
+   scripterr "invalid scancode keyval(" & retvals(0) & ")", 3
   END IF
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
@@ -1109,13 +1109,13 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
    scriptret = global(retvals(0))
   ELSE
-   scripterr "readglobal: Cannot read global " & retvals(0) & ". Out of range"
+   scripterr "readglobal: Cannot read global " & retvals(0) & ". Out of range", 4
   END IF
  CASE 115'--write global
   IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
    global(retvals(0)) = retvals(1)
   ELSE
-   scripterr "writeglobal: Cannot write global " & retvals(0) & ". Out of range"
+   scripterr "writeglobal: Cannot write global " & retvals(0) & ". Out of range", 4
   END IF
  CASE 116'--hero is walking
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -1168,7 +1168,7 @@ SELECT CASE AS CONST id
   partyslot = bound(retvals(0), 0, 40)
   heroID = hero(partyslot) - 1
   IF heroID = -1 THEN
-   debug "can learn spell: fail on empty party slot " & partyslot
+   scripterr "can learn spell: fail on empty party slot " & partyslot, 3
   ELSE
    IF retvals(1) > 0 THEN
     DIM her as herodef ptr
@@ -1243,7 +1243,7 @@ SELECT CASE AS CONST id
    NEXT i
    'NOTE: scriptret is not set here when this command is successful. The return value of the called script will be returned.
   ELSE
-   scripterr "run script by id failed loading " & retvals(0)
+   scripterr "run script by id failed loading " & retvals(0), 5
    scriptret = -1
   END IF
  CASE 180'--mapwidth
@@ -1738,7 +1738,7 @@ SELECT CASE AS CONST id
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DeleteSlice @plotslices(retvals(0))
    ELSE
-    debug "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0)))
+    scripterr "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0))), 4
    END IF
   END IF
  CASE 324 '--place sprite
@@ -1869,7 +1869,7 @@ SELECT CASE AS CONST id
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->SliceType = slRoot OR sl->SliceType = slSpecial THEN
-    debug "free slice: cannot free " & SliceTypeName(sl) & " slice " & retvals(0)
+    scripterr "free slice: cannot free " & SliceTypeName(sl) & " slice " & retvals(0), 4
    ELSE
     DeleteSlice @plotslices(retvals(0))
    END IF
@@ -1897,7 +1897,7 @@ SELECT CASE AS CONST id
    IF verifySliceLineage(plotslices(retvals(0)), plotslices(retvals(1))) THEN
     SetSliceParent plotslices(retvals(0)), plotslices(retvals(1))
    ELSE
-    debug "set parent: cannot make slice " & retvals(0) & " a child of its own child " & retvals(1)
+    scripterr "set parent: cannot make slice " & retvals(0) & " a child of its own child " & retvals(1), 4
    END IF
   END IF
  CASE 366 '--check parentage
@@ -2099,7 +2099,7 @@ SELECT CASE AS CONST id
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Parent = 0 THEN
-    debug "slice to back: null parent"
+    scripterr "slice to back: null parent", 6 'right?
    ELSE
     InsertSiblingSlice sl->Parent->FirstChild, sl
    END IF
@@ -2431,11 +2431,11 @@ SELECT CASE AS CONST id
      IF npc(i).id <= 0 THEN EXIT FOR
     NEXT
     'I don't want to raise a scripterr here, again because it probably happens in routine in games like SoJ
-    debug "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20
+    scripterr "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20, 3
     IF i = -1 THEN 
-     debug "create NPC error: couldn't create NPC: too many NPCs exist"
+     scripterr "create NPC error: couldn't create NPC: too many NPCs exist", 3
     ELSE
-     debug "create NPC warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist"
+     scripterr "create NPC warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", 3
     END IF
    END IF
    IF i > -1 THEN
@@ -2586,6 +2586,10 @@ SUB scriptwatcher (mode, drawloop)
 STATIC localsscroll, globalsscroll
 STATIC selectedscript, bottom, viewmode, lastscript
 'viewmode: 0 = script state, 1 = local variables, 2 = global variables
+'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 = clean and sane
+'2 = interactive (display game and step on input), 3 = clean and sane
+
+DIM as string helpstr, help()
 
 IF nowscript >= 0 THEN
  WITH scrat(nowscript)
@@ -2601,15 +2605,18 @@ END IF
 'initialise state
 IF mode = 1 THEN waitforscript = 999: waitfordepth = 999: stepmode = 0
 
-
 redraw:
 'if in stepping mode, make a copy so debug info can be redrawn, need to keep dpage clean 
 'if called from displayall, need to keep a clean copy of nearly-drawn page to be used next tick 
 IF drawloop AND mode = 1 THEN
  page = dpage
 ELSE
- copypage dpage, vpage
  page = vpage
+ IF mode = 2 THEN
+  clearpage page
+ ELSE
+  copypage dpage, page
+ END IF
 END IF
 
 'edgeprint callmode & " " & viewmode & " " & callspot, 140, 4, uilook(uiText), page
@@ -2782,6 +2789,24 @@ IF mode > 1 AND drawloop = 0 THEN
   IF viewmode = 2 THEN globalsscroll = small(4076, globalsscroll + 12): GOTO redraw
  END IF
 
+ IF w = scF1 THEN
+  helpstr = load_help_file("script_debugger")
+  split(wordwrap(helpstr, 38), help())
+  rectangle 3, 3, 314, 192, uilook(uiTextBox), page 
+  textcolor uilook(uiText), 0
+  FOR i as integer = 0 TO UBOUND(help)
+   printstr help(i), 8, 8 + 8 * i, page
+  NEXT
+  setvispage page
+  getkey
+  GOTO redraw
+ END IF
+
+ IF w = scP THEN 'frame stepping mode
+  mode = 3
+  GOTO redraw
+ END IF
+
  'stepping
  IF w = 49 THEN 'n
   'step till next script
@@ -2819,6 +2844,10 @@ IF drawloop AND mode > 1 THEN
  'displayall: dpage was copied to vpage
  SWAP dpage, vpage
 END IF
+
+'in sane mode, stray keypresses are not passed through
+'(the mode = 2 thrown in to prevent an infinite loop, no idea how or why)
+IF drawloop = 0 AND mode = 2 THEN GOTO redraw
 
 'just incase was swapped out above
 IF nowscript >= 0 THEN
@@ -3231,13 +3260,16 @@ FUNCTION mathvariablename (value as integer, scriptargs as integer) as string
  END IF
 END FUNCTION
 
-FUNCTION scriptstate (targetscript as integer) as string
+'Warning: a nightmare function approaches!
+FUNCTION scriptstate (targetscript as integer, recurse as integer = -1) as string
  IF nowscript <= -1 THEN EXIT FUNCTION
 
- IF targetscript = -1 OR targetscript = nowscript THEN
-  recurse = 2
- ELSE
-  recurse = 3
+ IF recurse = -1 THEN
+  IF targetscript = -1 THEN
+   recurse = 2
+  ELSE
+   recurse = 3
+  END IF
  END IF
  'recurse 0 = only top script
  'recurse 1 = top script plus calling scripts
@@ -3452,9 +3484,9 @@ FUNCTION scriptstate (targetscript as integer) as string
     stkpos -= state.curargn
    END IF
 
-   IF stkpos < stkbottom THEN scripterr "state corrupt; stack underflow " & (stkpos - stkbottom): EXIT DO
+   IF stkpos < stkbottom THEN scripterr("state corrupt; stack underflow " & (stkpos - stkbottom), 5): EXIT DO
  LOOP
- IF stkpos > stkbottom AND wasscript < 0 THEN scripterr "state corrupt; stack garbage " & (stkpos - stkbottom)
+ IF stkpos > stkbottom AND wasscript < 0 THEN scripterr("state corrupt; stack garbage " & (stkpos - stkbottom), 5)
 
  scriptstate$ = TRIM$(outstr$)
 
@@ -3635,10 +3667,10 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 END SUB
 
 FUNCTION valid_spriteslice_dat(BYVAL sl AS Slice Ptr) AS INTEGER
- IF sl = 0 THEN debug "null slice ptr in valid_spriteslice_dat" : RETURN NO
+ IF sl = 0 THEN scripterr "null slice ptr in valid_spriteslice_dat", 6 : RETURN NO
  DIM dat AS SpriteSliceData Ptr = sl->SliceData
  IF dat = 0 THEN
-  debug SliceTypeName(sl) & " handle " & retvals(0) & " has null dat pointer"
+  scripterr SliceTypeName(sl) & " handle " & retvals(0) & " has null dat pointer", 6
   RETURN NO
  END IF
  RETURN YES
@@ -3646,16 +3678,16 @@ END FUNCTION
 
 FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as integer
  IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
-  debug cmd & ": invalid slice handle " & handle
+  scripterr cmd & ": invalid slice handle " & handle, 4
   RETURN NO
  END IF
  IF plotslices(handle) = 0 THEN
-  debug cmd & ": slice handle " & handle & " has already been deleted"
+  scripterr cmd & ": slice handle " & handle & " has already been deleted", 4
   RETURN NO
  END IF
  IF ENABLE_SLICE_DEBUG THEN
   IF SliceDebugCheck(plotslices(handle)) = NO THEN
-   debug "ERROR: " & cmd & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!"
+   scripterr "ERROR: " & cmd & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", 6
    RETURN NO
   END IF
  END IF
@@ -3669,7 +3701,7 @@ FUNCTION valid_plotsprite(byval handle as integer, byval cmd as string) as integ
     RETURN YES
    END IF
   ELSE
-   debug cmd & ": slice handle " & handle & " is not a sprite"
+   scripterr cmd & ": slice handle " & handle & " is not a sprite", 4
   END IF
  END IF
  RETURN NO
@@ -3680,7 +3712,7 @@ FUNCTION valid_plotrect(byval handle as integer, byval cmd as string) as integer
   IF plotslices(handle)->SliceType = slRectangle THEN
    RETURN YES
   ELSE
-   debug cmd & ": slice handle " & handle & " is not a rect"
+   scripterr cmd & ": slice handle " & handle & " is not a rect", 4
   END IF
  END IF
  RETURN NO
@@ -3690,12 +3722,12 @@ FUNCTION valid_plottextslice(byval handle as integer, byval cmd as string) as in
  IF valid_plotslice(handle, cmd) THEN
   IF plotslices(handle)->SliceType = slText THEN
    IF plotslices(handle)->SliceData = 0 THEN
-    debug cmd & ": text slice handle " & handle & " has null data"
+    scripterr cmd & ": text slice handle " & handle & " has null data", 6
     RETURN NO
    END IF
    RETURN YES
   ELSE
-   debug cmd & ": slice handle " & handle & " is not text"
+   scripterr cmd & ": slice handle " & handle & " is not text", 4
   END IF
  END IF
  RETURN NO
@@ -3709,20 +3741,20 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval cmd as string, by
    IF sl->Fill = NO OR ignore_fill THEN
     RETURN YES
    ELSE
-    debug cmd & ": slice handle " & handle & " cannot be resized while filling parent"
+    scripterr cmd & ": slice handle " & handle & " cannot be resized while filling parent", 4
    END IF
   ELSE
    IF sl->SliceType = slText THEN
     DIM dat AS TextSliceData ptr
     dat = sl->SliceData
-    IF dat = 0 THEN debug "sanity check fail, text slice " & handle & " has null data" : RETURN NO
+    IF dat = 0 THEN scripterr "sanity check fail, text slice " & handle & " has null data", 6 : RETURN NO
     IF dat->wrap = YES THEN
      RETURN YES
     ELSE
-     debug cmd & ": text slice handle " & handle & " cannot be resized unless wrap is enabled"
+     scripterr cmd & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", 4
     END IF
    ELSE
-    debug cmd & ": slice handle " & handle & " is not resizeable"
+    scripterr cmd & ": slice handle " & handle & " is not resizeable", 4
    END IF
   END IF
  END IF
@@ -3730,10 +3762,10 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval cmd as string, by
 END FUNCTION
 
 FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
- IF sl = 0 THEN debug "create_plotslice_handle null ptr" : RETURN 0
+ IF sl = 0 THEN scripterr "create_plotslice_handle null ptr", 6 : RETURN 0
  IF sl->TableSlot <> 0 THEN
   'this should not happen! Call find_plotslice_handle instead.
-  debug "Error: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot)
+  scripterr "Error: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot), 6
   RETURN 0
  END IF
  DIM i as integer
@@ -3791,7 +3823,7 @@ SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BY
   IF sl->SliceType = slRectangle THEN
    ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent
   ELSE
-   debug "change_rect_plotslice: " & SliceTypeName(sl) & " is not a rect" 
+   scripterr "change_rect_plotslice: " & SliceTypeName(sl) & " is not a rect", 4 
   END IF
  END IF
 END SUB

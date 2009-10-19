@@ -99,6 +99,7 @@ DIM npcs(max_npc_defs) as NPCType
 DIM npc(300) as NPCInst
 
 DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, foemaph, presentsong, framex, framey
+DIM err_suppress_lvl
 DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir, homedir
 
 'Menu Data
@@ -322,6 +323,7 @@ reset_game_state
 fatal = 0: abortg = 0
 lastformation = -1
 scrwatch = 0
+err_suppress_lvl = 3
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 
@@ -1138,10 +1140,10 @@ IF nowscript >= 0 THEN
 WITH scrat(nowscript)
  SELECT CASE .state
   CASE IS < stnone
-   scripterr "illegally suspended script"
+   scripterr "illegally suspended script", 6
    .state = ABS(.state)
   CASE stnone
-   scripterr "script " & nowscript & " became stateless"
+   scripterr "script " & nowscript & " became stateless", 6
   CASE stwait
    '--evaluate wait conditions
    SELECT CASE .curvalue
@@ -1172,7 +1174,7 @@ WITH scrat(nowscript)
      END IF
     CASE 3'--wait for hero
      IF .waitarg < 0 OR .waitarg > 3 THEN
-      scripterr "waiting for nonexistant hero " & .waitarg
+      scripterr "waiting for nonexistant hero " & .waitarg, 6  'should be bound by waitforhero
       .state = streturn
      ELSE
       IF xgo(.waitarg) = 0 AND ygo(.waitarg) = 0 THEN
@@ -1220,7 +1222,7 @@ WITH scrat(nowscript)
      END IF
     CASE 73, 234'--game over, quit from loadmenu
     CASE ELSE
-     scripterr "illegal wait substate " & .curvalue
+     scripterr "illegal wait substate " & .curvalue, 6
      .state = streturn
    END SELECT
    IF .state = streturn THEN
@@ -1308,7 +1310,7 @@ DO
     '--scriptret would be set here, pushed at return
     SELECT CASE curcmd->kind
      CASE tystop
-      scripterr "stnext encountered noop " & curcmd->value & " at " & .ptr & " in " & nowscript
+      scripterr "stnext encountered noop " & curcmd->value & " at " & .ptr & " in " & nowscript, 5
       killallscripts
       EXIT DO
      CASE tymath, tyfunct
@@ -1316,15 +1318,16 @@ DO
       FOR i = curcmd->argc - 1 TO 0 STEP -1
        pops(scrst, retvals(i))
       NEXT i
+      .state = streturn
       IF curcmd->kind = tymath THEN
        scriptmath
-       .state = streturn
+       '.state = streturn
       ELSE
        GOSUB sfunctions
        '--WARNING: WITH pointer probably corrupted
        '--nowscript might be changed
        '--unless you have switched to wait mode, return
-       IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return
+       'IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return
        GOTO interpretloop 'new WITH pointer
       END IF
      CASE tyflow
@@ -1337,7 +1340,7 @@ DO
           scrst.pos -= 2
           .curargn = 0
          CASE ELSE
-          scripterr "while fell out of bounds, landed on " & .curargn
+          scripterr "while fell out of bounds, landed on " & .curargn, 6
           killallscripts
           EXIT DO
         END SELECT
@@ -1350,7 +1353,7 @@ DO
           writescriptvar tmpvar, readscriptvar(tmpvar) + reads(scrst, 0)
           .curargn = 4
          CASE ELSE
-          scripterr "for fell out of bounds, landed on " & .curargn
+          scripterr "for fell out of bounds, landed on " & .curargn, 6
           killallscripts
           EXIT DO
         END SELECT
@@ -1407,7 +1410,7 @@ DO
       END IF
       GOTO interpretloop 'new WITH pointer
      CASE ELSE
-      scripterr "illegal kind " & curcmd->kind & " " & curcmd->value & " in stnext"
+      scripterr "illegal kind " & curcmd->kind & " " & curcmd->value & " in stnext", 5
       killallscripts
       EXIT DO
     END SELECT
@@ -1439,7 +1442,7 @@ DO
            GOSUB dumpandreturn
            '--WARNING: WITH pointer probably corrupted
           CASE ELSE
-           scripterr "if statement overstepped bounds"
+           scripterr "if statement overstepped bounds", 6
          END SELECT
         CASE flowwhile'--we got a while!
          SELECT CASE .curargn
@@ -1456,7 +1459,7 @@ DO
             .state = streturn'---return
            END IF
           CASE ELSE
-          scripterr "while statement has jumped the curb"
+          scripterr "while statement has jumped the curb", 6
          END SELECT
         CASE flowfor'--we got a for!
          SELECT CASE .curargn
@@ -1490,7 +1493,7 @@ DO
             .state = stdoarg'---execute the do block
            END IF
           CASE ELSE
-           scripterr "for statement is being difficult"
+           scripterr "for statement is being difficult", 6
          END SELECT
         CASE flowswitch
          IF .curargn = 0 THEN
@@ -1949,7 +1952,7 @@ WITH scrat(nowscript)
       scriptret = assign_menu_item_handle(menus(menuslot).items(i))
       mstates(menuslot).need_update = YES
      ELSE
-      debug "add menu item: failed. menu " & menuslot & " is full"
+      scripterr "add menu item: failed. menu " & menuslot & " is full", 3
      END IF
     END IF
    CASE 284'--delete menu item
@@ -2379,7 +2382,7 @@ FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
 END FUNCTION
 
 SUB remove_menu (slot AS INTEGER)
- IF slot < 0 OR slot > UBOUND(menus) THEN debug "remove_menu: invalid slot " & slot : EXIT SUB
+ IF slot < 0 OR slot > UBOUND(menus) THEN scripterr "remove_menu: invalid slot " & slot, 3 : EXIT SUB
  bring_menu_forward slot
  IF txt.fully_shown = YES AND menus(topmenu).advance_textbox = YES THEN
   'Advance an open text box.
@@ -2400,7 +2403,7 @@ END SUB
 
 SUB bring_menu_forward (slot AS INTEGER)
  DIM i AS INTEGER
- IF slot < 0 OR slot > UBOUND(menus) THEN debug "bring_menu_forward: invalid slot " & slot : EXIT SUB
+ IF slot < 0 OR slot > UBOUND(menus) THEN scripterr "bring_menu_forward: invalid slot " & slot, 3 : EXIT SUB
  FOR i = slot TO topmenu - 1
   SWAP menus(i), menus(i + 1)
   SWAP mstates(i), mstates(i + 1)

@@ -1319,7 +1319,7 @@ SELECT CASE id
  CASE 0 TO 4095 'global variable
   readscriptvar = global(id)
  CASE ELSE
-  scripterr "Cannot read global " & id & ". Out of range"
+  scripterr "Cannot read global " & id & ". Out of range", 4
 END SELECT
 
 END FUNCTION
@@ -1521,9 +1521,9 @@ IF n = 0 THEN
 END IF
 
 IF index > 127 THEN
- scripterr "interpreter overloaded"
+ scripterr "interpreter overloaded", 5
  runscript = 0 '--error
- scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n)
+ scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n), 5
  EXIT FUNCTION
 END IF
 
@@ -1551,7 +1551,7 @@ WITH scrat(index)
  IF .scr = NULL THEN
   '--failed to load
   runscript = 0'--error
-  scripterr "Failed to load " + er$ + " script " & n & " " & scriptname(n)
+  scripterr "Failed to load " + er$ + " script " & n & " " & scriptname(n), 5
   EXIT FUNCTION
  END IF
  .scr->totaluse += 1
@@ -1571,9 +1571,9 @@ WITH scrat(index)
  scrat(index + 1).heap = .heap + .scr->vars
 
  IF scrat(index + 1).heap > 2048 THEN
-  scripterr "Script heap overflow"
+  scripterr "Script heap overflow", 5
   runscript = 0'--error
-  scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n)
+  scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n), 5
   EXIT FUNCTION
  END IF
 
@@ -1626,7 +1626,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
    '--because TMC once suggested that preunlumping the .hsp lump would be a good way to reduce (SoJ) loading time
    scriptfile$ = workingdir & SLASH & n & ".hsx"
    IF NOT isfile(scriptfile$) THEN
-    scripterr "script id " & n & " does not exist"
+    scripterr "script id " & n & " does not exist", 5
     RETURN NULL
    END IF
   END IF
@@ -1660,7 +1660,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
    scrformat = 0
   END IF
   IF scrformat > 2 THEN
-   scripterr "script " & n & " is in an unsupported format"
+   scripterr "script " & n & " is in an unsupported format", 5
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -1680,7 +1680,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
   'set an arbitrary max script buffer size (scriptmemMax in const.bi), individual scripts must also obey
   .size = (LOF(f) - skip) \ wordsize
   IF .size > scriptmemMax THEN
-   scripterr "Script " & n & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%"
+   scripterr "Script " & n & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", 5
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -1693,7 +1693,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
 
   .ptr = allocate(.size * sizeof(integer))
   IF .ptr = 0 THEN
-   scripterr "Could not allocate memory to load script"
+   scripterr "Could not allocate memory to load script", 5
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -2090,27 +2090,108 @@ END IF
 CLOSE #fh
 END SUB
 
-SUB scripterr (e AS STRING)
-  DIM AS INTEGER y = 30
+'errorlevel scheme:
+'1: informative messages
+'2: suspicious operation on weak type or suspicious argument type (unimplemented)
+'3: warning on auto-bound() argument  (suppressed in old games)
+'4: bad argument/operation       (not suppressed by default)
+'5: corrupt script data/unimplemented feature/interpreter can't continue
+'6: impossible condition; engine bug
+SUB scripterr (e AS STRING, errorlevel as integer = 4)
+ STATIC as integer recursivecall
+ DIM as string errtext()
+ DIM as string scriptlocation
 
-  debug "Scripterr: " & e
+ debug "Scripterr(" & errorlevel & "): " + e
 
-  textcolor uilook(uiText), 0
-  clearpage vpage
-  setpal master()
+ IF errorlevel <= err_suppress_lvl THEN EXIT SUB
+ recursivecall += 1
+
+ IF errorlevel = 5 THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
+ IF errorlevel >= 6 THEN e = "An impossible error occurred. Please report this engine bug!:" + CHR(10) + e
+
+ IF nowscript < 0 THEN
+  e = e + CHR(10) + "Funny... no scripts running!"
+ ELSE
+  scriptlocation = scriptname(scrat(nowscript).id)
+  FOR i as integer = nowscript - 1 TO 0 STEP -1
+   IF scrat(i).state < 0 THEN EXIT FOR 'suspended: not part of the call chain
+   scriptlocation = scriptname(scrat(i).id) + " -> " + scriptlocation
+  NEXT
+  IF LEN(scriptlocation) > 150 THEN scriptlocation = " ..." + RIGHT(scriptlocation, 150)
+  e = e + CHR(10) + CHR(10) + " Call chain (current script last):" + CHR(10) + scriptlocation
+ END IF
+ split(wordwrap(e, 38), errtext())
+
+ DIM state AS MenuState
+ DIM menu AS MenuDef
+ menu.anchor.y = -1
+ menu.offset.y = -100 + 45 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
+ menu.bordersize = -4
+
+ append_menu_item menu, "Ignore"
+ append_menu_item menu, "Don't display any more script errors"
+ append_menu_item menu, "Set error suppression level to " & errorlevel
+ append_menu_item menu, "Exit game (without saving)"
+ IF recursivecall = 1 THEN  'don't reenter the debugger if possibly already inside!
+  append_menu_item menu, "Enter debugger"
+ END IF
+
+ state.active = YES
+ init_menu_state state, menu
+ 
+ setpal master()
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scEsc) > 1 THEN 'ignore
+   EXIT DO 
+  END IF
+
+  IF enter_or_space() THEN
+   SELECT CASE state.pt
+    CASE 0 'ignore
+     EXIT DO
+    CASE 1 'hide errors (but not engine bugs)
+     err_suppress_lvl = 5
+     EXIT DO
+    CASE 2 'hide some errors
+     err_suppress_lvl = errorlevel
+     EXIT DO
+    CASE 3
+     exitprogram 0
+    CASE 4
+     scriptwatcher 2, 0 'clean mode, script state view mode
+     EXIT DO
+   END SELECT
+  END IF
+  
+  usemenu state
+
+  clearpage vpage, iif(errorlevel >= 6, uilook(uiHighlight2), -1)
+
   centerbox 160, 15, 310, 20, 3, vpage
+  textcolor uilook(uiText), 0
   printstr "Script Error!", 108, 10, vpage
-  e = wordwrap(e, 38)
-  DO
-    DIM AS INTEGER where = INSTR(e, CHR(10))
-    printstr MID(e, 1, small(LEN(e), where - 1)), 8, y, vpage
-    y += 10
-    IF where = 0 THEN EXIT DO
-    e$ = MID(e, where + 1)
-  LOOP
 
+  FOR i as integer = 0 TO UBOUND(errtext)
+   printstr errtext(i), 8, 30 + 10 * i, vpage
+  NEXT
+
+  draw_menu menu, state, vpage
+
+  IF state.pt = 4 THEN
+   textcolor uilook(uiSelectedItem), 0 
+   printstr "The debugger is a usability train-wreck!", 0, 184, vpage
+   printstr "Press F1 inside the debugger to see help", 0, 192, vpage
+  END IF
   setvispage vpage
-  getkey
+  dowait
+ LOOP
+ setkeys
+ recursivecall -= 1
 END SUB
 
 SUB scriptmath
@@ -2121,13 +2202,13 @@ SELECT CASE AS CONST curcmd->value
   scriptret = retvals(0) ^ retvals(1)
  CASE 2' modulus
   IF retvals(1) = 0 THEN
-   scripterr "division by zero"
+   scripterr "division by zero", 4
   ELSE
    scriptret = retvals(0) MOD retvals(1)
   END IF
  CASE 3' divide
   IF retvals(1) = 0 THEN
-   scripterr "division by zero"
+   scripterr "division by zero", 4
   ELSE
    scriptret = retvals(0) \ retvals(1)
   END IF
@@ -2175,7 +2256,7 @@ SELECT CASE AS CONST curcmd->value
  CASE 22'^^
   IF retvals(0) <> 0 XOR retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
  CASE ELSE
-  scripterr "unsupported math"
+  scripterr "unsupported math", 5
 END SELECT
 END SUB
 
@@ -2465,7 +2546,7 @@ SELECT CASE id
  CASE 0 TO 4095 'global variable
   global(id) = newval
  CASE ELSE
-  scripterr "Cannot write global " & id &  ". Out of range"
+  scripterr "Cannot write global " & id &  ". Out of range", 4
 END SELECT
 
 END SUB

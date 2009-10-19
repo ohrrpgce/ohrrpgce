@@ -49,7 +49,7 @@ DECLARE SUB wrapxy (x as integer, y as integer, wide as integer, high as integer
 DECLARE SUB readstackcommand (state as ScriptInst, stk as Stack, i as integer)
 DECLARE FUNCTION localvariablename (value as integer, scriptargs as integer) as string
 DECLARE FUNCTION mathvariablename (value as integer, scriptargs as integer) as string
-DECLARE FUNCTION scriptstate (targetscript as integer) as string
+DECLARE FUNCTION scriptstate (targetscript as integer, recurse as integer = -1) as string
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER) as integer
 DECLARE SUB loadsay (box_id as integer)
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)

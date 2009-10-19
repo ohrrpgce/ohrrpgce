@@ -29,3 +29,8 @@ in a new format that it does not fully support! If you downgrade your Custom
 version, you'll get no warning if you're about to scramble some data! In
 particular, games edited with recent nightlies and then with Xocolatl+2 will
 suffer attack data corruption.
+
+20/10/09:
+(Bugs 754 and 755 were fixed)
+The new script error screen will now pop up for all slice scripting errors,
+possibly interrupting your previously apparently-working game.
