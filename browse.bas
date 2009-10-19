@@ -492,6 +492,7 @@ END FUNCTION
 
 SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DIM bmpd(4) AS INTEGER
+DIM tempbuf(79)
 DIM f AS STRING
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
@@ -563,14 +564,9 @@ DO UNTIL EOF(fh)
  '--RPG files
  IF br.special = 7 THEN
   copylump f, "browse.txt", br.tmp, -1
-  IF isfile(br.tmp + "browse.txt") THEN
-   setpicstuf buffer(), 40, -1
-   loadset br.tmp + "browse.txt", 0, 0
-   tree(br.treesize).caption = STRING$(bound(buffer(0), 0, 38), " ")
-   array2str buffer(), 2, tree(br.treesize).caption
-   loadset br.tmp + "browse.txt", 1, 0
-   tree(br.treesize).about = STRING$(bound(buffer(0), 0, 38), " ")
-   array2str buffer(), 2, tree(br.treesize).about
+  IF loadrecord(tempbuf(), br.tmp + "browse.txt", 40) THEN
+   tree(br.treesize).caption = readbinstring(tempbuf(), 0, 38)
+   tree(br.treesize).about = readbinstring(tempbuf(), 20, 38)
    safekill br.tmp + "browse.txt"
    IF LEN(tree(br.treesize).caption) = 0 THEN tree(br.treesize).caption = tree(br.treesize).filename
   ELSE

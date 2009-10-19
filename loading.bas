@@ -952,8 +952,7 @@ SUB LoadVehicle (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
 END SUB
 
 SUB LoadVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
- setpicstuf veh(), 80, -1
- loadset file, record, 0
+ loadrecord veh(), file, 40, record
  vehname$ = STRING$(bound(veh(0) AND 255, 0, 15), 0)
  array2str veh(), 1, vehname$
 END SUB
@@ -989,8 +988,7 @@ END SUB
 SUB SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
  veh(0) = bound(LEN(vehname$), 0, 15)
  str2array vehname$, veh(), 1
- setpicstuf veh(), 80, -1
- storeset file, record, 0
+ storerecord veh(), vehname$, 40, record
 END SUB
 
 SUB ClearVehicle (vehicle AS VehicleData)
@@ -1118,16 +1116,9 @@ SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
 
  DIM filename AS STRING
  filename = game & ".say"
+ loadrecord boxbuf(), filename, getbinsize(binSAY), record
 
  DIM i AS INTEGER
- DIM f AS INTEGER
- f = FREEFILE
- OPEN filename FOR BINARY ACCESS READ AS #f
- SEEK #f, record * getbinsize(binSAY) + 1
- FOR i = 0 TO dimbinsize(binSAY) - 1
-  boxbuf(i) = ReadShort(f)
- NEXT i
- CLOSE #f
 
  '--Populate TextBox object
  WITH box
@@ -1273,14 +1264,7 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
   boxbuf(204) = .portrait_pos.y
  END WITH
 
- DIM f AS INTEGER
- f = FREEFILE
- OPEN filename FOR BINARY AS #f
- SEEK #f, record * getbinsize(binSAY) + 1
- FOR i = 0 TO dimbinsize(binSAY) - 1
-  WriteShort f, -1, boxbuf(i)
- NEXT i
- CLOSE #f
+ storerecord boxbuf(), filename, getbinsize(binSAY), record
 END SUB
 
 SUB ClearTextBox (BYREF box AS TextBox)

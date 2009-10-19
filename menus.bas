@@ -1237,6 +1237,7 @@ SUB gendata ()
  DIM pas$ = ""
  DIM aboutline$ = ""
  DIM longname$ = ""
+ DIM tempbuf(79)
 
  IF gen(genPassVersion) >= 256 THEN
   '--new simple format
@@ -1246,14 +1247,9 @@ SUB gendata ()
   readscatter pas$, gen(genPW2Length), 200
   pas$ = rotascii(pas$, gen(genPW2Offset) * -1)
  END IF
- IF isfile(workingdir + SLASH + "browse.txt") THEN
-  setpicstuf buffer(), 40, -1
-  loadset workingdir + SLASH + "browse.txt", 0, 0
-  longname$ = STRING$(bound(buffer(0), 0, 38), " ")
-  array2str buffer(), 2, longname$
-  loadset workingdir + SLASH + "browse.txt", 1, 0
-  aboutline$ = STRING$(bound(buffer(0), 0, 38), " ")
-  array2str buffer(), 2, aboutline$
+ IF loadrecord(tempbuf(), workingdir + SLASH + "browse.txt", 40) THEN
+  longname$ = readbinstring(tempbuf(), 0, 38)
+  aboutline$ = readbinstring(tempbuf(), 20, 38)
  END IF
 
  setkeys
@@ -1351,13 +1347,9 @@ SUB gendata ()
  writescatter oldpas$, gen(genPW2Length), 200
 
  '--write long name and about line
- setpicstuf buffer(), 40, -1
- buffer(0) = bound(LEN(longname$), 0, 38)
- str2array longname$, buffer(), 2
- storeset workingdir + SLASH + "browse.txt", 0, 0
- buffer(0) = bound(LEN(aboutline$), 0, 38)
- str2array aboutline$, buffer(), 2
- storeset workingdir + SLASH + "browse.txt", 1, 0
+ writebinstring longname$, tempbuf(), 0, 38
+ writebinstring aboutline$, tempbuf(), 20, 38
+ storerecord tempbuf(), workingdir + SLASH + "browse.txt", 40
  
  clearpage 0
  clearpage 1
