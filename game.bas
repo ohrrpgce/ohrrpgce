@@ -47,6 +47,7 @@ RANDOMIZE TIMER, 3 ' Mersenne Twister
 processcommandline
 
 '---get temp dir---
+set_homedir
 tmpdir = aquiretempdir$
 
 'DEBUG debug "set mode-X"
@@ -98,7 +99,7 @@ DIM npcs(max_npc_defs) as NPCType
 DIM npc(300) as NPCInst
 
 DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, foemaph, presentsong, framex, framey
-DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir
+DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir, homedir
 
 'Menu Data
 DIM menu_set AS MenuSet

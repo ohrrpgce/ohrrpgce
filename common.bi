@@ -184,12 +184,17 @@ DECLARE FUNCTION last_inv_slot() AS INTEGER
 DECLARE FUNCTION decode_backslash_codes(s AS STRING) AS STRING
 DECLARE FUNCTION escape_nonprintable_ascii(s AS STRING) AS STRING
 
+DECLARE SUB set_homedir()
+DECLARE FUNCTION get_help_dir() AS STRING
+DECLARE FUNCTION load_help_file(helpkey AS STRING) AS STRING
+DECLARE SUB save_help_file(helpkey AS STRING, text AS STRING)
+
 'Sprite loading convenience functions
 DECLARE SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
 DECLARE SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
 
 'Global variables
-EXTERN as string game, tmpdir, exename, workingdir
+EXTERN as string game, tmpdir, exename, workingdir, homedir
 EXTERN uilook() as integer
 EXTERN as integer vpage, dpage
 EXTERN buffer() as integer

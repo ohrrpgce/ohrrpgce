@@ -3447,3 +3447,70 @@ FUNCTION readbadbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTE
 
  RETURN result
 END FUNCTION
+
+SUB set_homedir()
+#IFDEF __FB_LINUX__
+ homedir = ENVIRON$("HOME")
+#ELSE
+ homedir = ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
+ IF NOT isdir(homedir) THEN
+  'Windows Vista uses "Documents" instead of "My Documents"
+  homedir = ENVIRON$("USERPROFILE") & SLASH & "Documents"
+ END IF
+#ENDIF
+END SUB
+
+FUNCTION get_help_dir() AS STRING
+IF isfile(homedir & SLASH & "ohrhelp") THEN RETURN homedir & SLASH & "ohrhelp"
+#IFDEF __FB_LINUX__
+#IFDEF DATAFILES
+ IF isfile(DATAFILES & SLASH & "ohrhelp") THEN RETURN DATAFILES & SLASH & "ohrhelp"
+#ENDIF
+#ENDIF
+ RETURN exepath & SLASH & "ohrhelp"
+END FUNCTION
+
+FUNCTION load_help_file(helpkey AS STRING) AS STRING
+ DIM help_dir AS STRING
+ help_dir = get_help_dir()
+ IF isdir(help_dir) THEN
+  DIM helpfile AS STRING
+  helpfile = help_dir & SLASH & helpkey & ".txt"
+  IF isfile(helpfile) THEN
+   DIM fh AS INTEGER = FREEFILE
+   OPEN helpfile FOR INPUT ACCESS READ AS #fh
+   DIM helptext AS STRING = ""
+   DIM s AS STRING
+   DO WHILE NOT EOF(fh)
+    LINE INPUT #fh, s
+    helptext = helptext & s & CHR(10)
+   LOOP
+   CLOSE #fh
+   RETURN helptext
+  END IF
+ END IF
+ RETURN "No help found for """ & helpkey & """"
+END FUNCTION
+
+SUB save_help_file(helpkey AS STRING, text AS STRING)
+ DIM help_dir AS STRING
+ help_dir = get_help_dir()
+ IF NOT isdir(help_dir) THEN
+  IF MKDIR(help_dir) THEN
+   debug """" & help_dir & """ does not exist and could not be created."
+   EXIT SUB
+  END IF
+ END IF
+ DIM helpfile AS STRING
+ helpfile = help_dir & SLASH & helpkey & ".txt"
+ IF fileiswriteable(helpfile) THEN
+  DIM fh AS INTEGER = FREEFILE
+  OPEN helpfile FOR OUTPUT ACCESS READ WRITE AS #fh
+  DIM trimmed_text AS STRING
+  trimmed_text = RTRIM(text, ANY " " & CHR(13) & CHR(10))
+  PRINT #fh, trimmed_text
+  CLOSE #fh
+ ELSE
+  debug "help file """ & helpfile & """ is not writeable."
+ END IF
+END SUB
