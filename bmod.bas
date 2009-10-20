@@ -1209,6 +1209,8 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  bat.curbg = formdata(32)
  loadpage game + ".mxs", bat.curbg, 2
  
+ '--This checks weak/dead status for heroes
+ '-- who are already weak/dead at the beginning of battle
  FOR i = 0 TO 3
   enforce_weak_picture i, bslot(), vic
   IF hero(i) > 0 AND bslot(i).stat.cur.hp = 0 THEN
@@ -1781,8 +1783,13 @@ END FUNCTION
 SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
  'If the target is really dead...
  IF bslot(who).stat.cur.hp = 0 THEN
-  bslot(who).dissolve = bslot(who).deathtime
+  IF is_hero(who) THEN
+   '--for heroes, a .dissolve > 1 is used to trigger the animate code
+   '  to force the hero to use their death frame
+   bslot(who).dissolve = 1
+  END IF
   IF is_enemy(who) THEN
+   bslot(who).dissolve = bslot(who).deathtime
    '--flee as alternative to death
    IF bslot(who).flee_instead_of_die = YES THEN
     bslot(who).flee = 1
