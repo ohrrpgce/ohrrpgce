@@ -970,18 +970,12 @@ FOR i = 0 TO 11
  IF bslot(i).dissolve > 0 THEN
   'ENEMIES DEATH THROES
   IF is_enemy(i) THEN
-   IF bslot(i).flee = 0 THEN
-    'not running away, normal fade
-    FOR ii = 0 TO bslot(i).w * .5
-     putpixel INT(RND * (bslot(i).h * bslot(i).w * .5)), 64 + 10 * (i - 4), 0, 3
-    NEXT ii
-   ELSE
+   IF bslot(i).flee THEN
     'running away
     bslot(i).x = bslot(i).x - 10: bslot(i).d = 1
    END IF
    bslot(i).dissolve -= 1
    IF bslot(i).dissolve = 0 THEN
-    'formdata((i-4) * 4) = 0 'disabled to fix bug 184
     'make dead enemy invisible (the check_death code will actually do the final removal, which might happen before the enemy has finished dissolving)
     bslot(i).vis = 0
    END IF
