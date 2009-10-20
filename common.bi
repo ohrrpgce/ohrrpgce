@@ -30,9 +30,11 @@ DECLARE SUB safekill (f as string)
 DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
 DECLARE FUNCTION aquiretempdir () as string
-DECLARE SUB writebinstring (savestr as string, array() as integer, offset as integer, maxlen as integer)
+DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as integer, offset as integer, maxlen as integer)
+DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as short, offset as integer, maxlen as integer)
 DECLARE SUB writebadbinstring (savestr as string, array() as integer, offset as integer, maxlen as integer, skipword as integer=0)
-DECLARE FUNCTION readbinstring (array() as integer, offset as integer, maxlen as integer) as string
+DECLARE FUNCTION readbinstring OVERLOAD (array() as integer, offset as integer, maxlen as integer) as string
+DECLARE FUNCTION readbinstring OVERLOAD (array() as short, offset as integer, maxlen as integer) as string
 DECLARE FUNCTION readbadbinstring (array() as integer, offset as integer, maxlen as integer, skipword as integer=0) as string
 DECLARE FUNCTION read32bitstring overload (array() as integer, offset as integer) as string
 DECLARE FUNCTION read32bitstring overload (strptr as integer ptr) as string

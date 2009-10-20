@@ -314,11 +314,23 @@ SUB importscripts (f$)
    GET #fptr, , temp
    recordsize = temp
    SEEK #fptr, headersize + 1
+   
+   'the scripts.bin lump does not have a format version field in its header, instead use header size
+   IF headersize <> 4 THEN
+    pop_warning f$ + " is in an unrecognised format. Please upgrade to the latest version of CUSTOM."
+    EXIT SUB
+   END IF
   ELSE
    dotbin = 0
    unlumpfile(game + ".hsp", "scripts.txt", tmpdir)
+
+   IF isfile(tmpdir + "scripts.txt") = 0 THEN
+    pop_warning f$ + " appears to be corrupt. Please try to recompile your scripts."
+    EXIT SUB
+   END IF
+
    fptr = FREEFILE
-   OPEN tmpdir & "scripts.txt" FOR INPUT AS #fptr
+   OPEN tmpdir + "scripts.txt" FOR INPUT AS #fptr
   END IF
 
   'load in existing trigger tables
@@ -431,19 +443,12 @@ SUB importscripts (f$)
   
   textcolor uilook(uiText), 0
   show_message "imported " & viscount & " scripts"
-
+  w = getkey
  ELSE
-  texty = 0
-  printstr f$, 0, texty * 8, vpage: texty = texty + 1
-  printstr "is not really a compiled .hs file.", 0, texty * 8, vpage: texty = texty + 1
-  printstr "Did you create it by compiling a", 0, texty * 8, vpage: texty = texty + 1
-  printstr "script file with hspeak.exe, or did", 0, texty * 8, vpage: texty = texty + 1
-  printstr "you just give your script a name that", 0, texty * 8, vpage: texty = texty + 1
-  printstr "ends in .hs and hoped it would work?", 0, texty * 8, vpage: texty = texty + 1
-  printstr "Use hspeak.exe to create real .hs files", 0, texty * 8, vpage: texty = texty + 1
-  setvispage vpage 'force refresh for FB
+  pop_warning f$ + " is not really a compiled .hs file. Did you create it by compiling a" _
+              " script file with hspeak.exe, or did you just give your script a name that" _
+              " ends in .hs and hoped it would work? Use hspeak.exe to create real .hs files"
  END IF
- w = getkey
 END SUB
 
 FUNCTION isunique (s$, u$(), r)

@@ -1851,6 +1851,18 @@ NEXT
 
 END SUB
 
+FUNCTION commandname (byval id as integer) as string
+ DIM as string filename
+ lumpfile = tmpdir + "commands.bin"
+ '--could check workingdir as well like we do in runscript; but doesn't seem necessary
+ IF isfile(lumpfile) THEN
+  
+ ELSE
+  RETURN "cmd" & id
+ END IF
+
+END FUNCTION
+
 SUB savegame (slot, stat())
 
 DIM gmaptmp(dimbinsize(binMAP))

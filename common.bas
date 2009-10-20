@@ -3374,34 +3374,44 @@ SUB getstatnames(statnames() AS STRING)
 END SUB
 
 SUB writebinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER)
- DIM s AS STRING = savestr
+ DIM s AS STRING
 
- '--pad s to the right length
- DO WHILE LEN(s) < maxlen
-  s = s & CHR(0)
- LOOP
+ '--pad savestr to (at least) the right length
+ s = savestr + STRING(maxlen - LEN(s), CHR(0))
 
- '--if it is an odd number
- IF (LEN(s) AND 1) THEN
-  s = s & CHR(0)
- END IF
+ '--odd lengths would result in (harmless) garbage
+ IF maxlen AND 1 THEN s += CHR(0): maxlen += 1
 
  '--write length (current not max)
- array(offset) = LEN(savestr)
+ array(offset) = small(LEN(savestr), maxlen)
 
- FOR i AS INTEGER = 1 TO LEN(s) \ 2
+ FOR i AS INTEGER = 1 TO maxlen \ 2
   array(offset + i) = s[2 * i - 2] OR (s[2 * i - 1] SHL 8)
  NEXT
 END SUB
 
-SUB writebadbinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER, skipword AS INTEGER=0)
+SUB writebinstring (savestr AS STRING, array() AS SHORT, offset AS INTEGER, maxlen AS INTEGER)
+ DIM s AS STRING
 
+ '--pad savestr to (at least) the right length
+ s = savestr + STRING(maxlen - LEN(s), CHR(0))
+
+ '--odd lengths would result in (harmless) garbage
+ IF maxlen AND 1 THEN s += CHR(0): maxlen += 1
+
+ '--write length (current not max)
+ array(offset) = small(LEN(savestr), maxlen)
+
+ memcpy(@array(offset + 1), @s[0], maxlen)
+END SUB
+
+SUB writebadbinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER, skipword AS INTEGER=0)
  '--write current length
- array(offset) = LEN(savestr)
+ array(offset) = small(LEN(savestr), maxlen)
 
  DIM i AS INTEGER
 
- FOR i = 1 TO LEN(savestr)
+ FOR i = 1 TO small(LEN(savestr), maxlen)
   array(offset + skipword + i) = savestr[i - 1]
  NEXT i
 
@@ -3434,6 +3444,13 @@ FUNCTION readbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER
 
  LOOP
 
+ RETURN result
+END FUNCTION
+
+FUNCTION readbinstring (array() AS SHORT, offset AS INTEGER, maxlen AS INTEGER) AS STRING
+ DIM strlen AS INTEGER = bound(array(offset), 0, maxlen)
+ DIM result AS STRING = STRING(strlen, 0)
+ memcpy(@result[0], @array(offset + 1), strlen)
  RETURN result
 END FUNCTION
 
