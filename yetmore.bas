@@ -2729,25 +2729,10 @@ FOR i = large(bottom, 0) TO nowscript
  IF scrat(i).state < 0 THEN
   edgeprint "Suspended", 184, ol, col, page
  ELSEIF scrat(i).state = stwait THEN
+  waitcause$ = commandname(scrat(i).curvalue)
   SELECT CASE scrat(i).curvalue
-   CASE 1'--wait number of ticks
-    waitcause$ = "wait(" & scrat(i).waitarg & ")"
-   CASE 2'--wait for all
-    waitcause$ = "waitforall"
-   CASE 3'--wait for hero
-    waitcause$ = "waitforhero(" & scrat(i).waitarg & ")"
-   CASE 4'--wait for NPC
-    waitcause$ = "waitfornpc(" & scrat(i).waitarg & ")"
-   CASE 9'--wait for key
-    waitcause$ = "waitforkey(" & scrat(i).waitarg & ")"
-   CASE 244'--wait for scancode
-    waitcause$ = "waitscancode(" & scrat(i).waitarg & ")"
-   CASE 42'--wait for camera
-    waitcause$ = "waitforcamera"
-   CASE 59'--wait for text box
-    waitcause$ = "waitfortextbox"
-   CASE ELSE
-    waitcause$ = "Cmd " & scrat(i).curvalue & " caused wait"
+   CASE 1, 3, 4, 9, 244'--wait, wait for hero, wait for NPC, wait for key, wait for scancode
+    waitcause$ += "(" & scrat(i).waitarg & ")"
   END SELECT
   edgeprint waitcause$, 184, ol, col, page
  ELSEIF scrat(i).state = stnext AND scrat(i).curkind = tyscript AND lastarg THEN
@@ -3408,7 +3393,7 @@ FUNCTION scriptstate (targetscript as integer, recurse as integer = -1) as strin
     CASE tymath
      cmd$ = mathname$(state.curvalue)
     CASE tyfunct
-     cmd$ = "cmd" + STR$(state.curvalue)
+     cmd$ = commandname$(state.curvalue)
     CASE tyscript
      'IF recurse < 3 AND state.curargn >= state.curargc THEN
       'currently executing this script (must have already printed it out)

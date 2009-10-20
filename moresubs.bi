@@ -29,6 +29,7 @@ DECLARE SUB resetlmp (slot as integer, lev as integer)
 DECLARE FUNCTION runscript (id as integer, index as integer, newcall as integer, er as string, trigger as integer) as integer
 DECLARE FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
 DECLARE SUB freescripts (mem as integer)
+DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB savegame (slot as integer, stat() as integer)
 DECLARE SUB saveglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB scripterr (e as string, errorlevel as integer = 4)

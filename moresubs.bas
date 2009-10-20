@@ -1852,15 +1852,45 @@ NEXT
 END SUB
 
 FUNCTION commandname (byval id as integer) as string
- DIM as string filename
- lumpfile = tmpdir + "commands.bin"
+ STATIC cache(32) as IntStrPair
+ DIM as string ret
+ ret = search_string_cache(cache(), id, game)
+ IF ret <> "" THEN RETURN ret
+ ret = "cmd" & id
+
+ DIM as short headersz, formatv, records, offset
+
  '--could check workingdir as well like we do in runscript; but doesn't seem necessary
- IF isfile(lumpfile) THEN
-  
- ELSE
-  RETURN "cmd" & id
+ fh = FREEFILE
+ IF OPEN(tmpdir + "commands.bin" FOR BINARY ACCESS READ AS fh) THEN
+  add_string_cache cache(), id, ret
+  RETURN ret
  END IF
 
+ GET #fh, , headersz
+ GET #fh, , formatv
+ GET #fh, , records
+
+ IF formatv > 0 OR id < 0 OR id >= records THEN
+  CLOSE fh
+  add_string_cache cache(), id, ret
+  RETURN ret
+ END IF
+
+ GET #fh, 1 + headersz + 2 * id, offset
+
+ IF offset = 0 THEN
+  CLOSE fh
+  add_string_cache cache(), id, ret
+  RETURN ret
+ END IF
+
+ DIM rec(25) as short
+ GET #fh, 1 + offset + 2, rec()
+ ret = readbinstring(rec(), 0, 50)
+ CLOSE fh
+ add_string_cache cache(), id, ret
+ RETURN ret
 END FUNCTION
 
 SUB savegame (slot, stat())
