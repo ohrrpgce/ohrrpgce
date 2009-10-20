@@ -510,19 +510,14 @@ FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTE
 END FUNCTION
 
 FUNCTION scriptname (num AS INTEGER, trigger AS INTEGER = 0) as string
-#ifdef IS_GAME
- 'remember script names!
- STATIC cachenum, cacheids(24), cachenames(24) as string, gamename as string
- IF game <> gamename THEN
-  gamename = game
-  cachenum = 0
- END IF
- FOR i AS INTEGER = 0 TO cachenum - 1
-  IF cacheids(i) = num THEN RETURN cachenames(i)
- NEXT
-#endif
-
 DIM a AS STRING
+
+#ifdef IS_GAME
+ 'remember script names; can be a large speed up in script debugger 
+ STATIC cache(24) as IntStrPair
+ a = search_string_cache(cache(), num, game)
+ IF LEN(a) THEN RETURN a
+#endif
 
 DIM buf(19) AS INTEGER
 IF num >= 16384 AND trigger > 0 THEN
@@ -555,10 +550,7 @@ END IF
 
 theend:
 #ifdef IS_GAME
- IF cachenum = 25 THEN cachenum = 0
- cacheids(cachenum) = num
- cachenames(cachenum) = a
- cachenum += 1
+ add_string_cache cache(), num, a
 #endif
 return a
 END FUNCTION

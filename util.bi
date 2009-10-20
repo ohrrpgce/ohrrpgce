@@ -7,6 +7,20 @@
 #IFNDEF UTIL_BI
 #DEFINE UTIL_BI
 
+'also appears in udts.bi
+#IFNDEF UDTS_BI
+TYPE Stack
+  pos as integer ptr
+  bottom as integer ptr
+  size as integer
+END TYPE
+
+TYPE IntStrPair
+  i as integer
+  s as string
+END TYPE
+#ENDIF
+
 declare function bound overload (byval n AS INTEGER, byval lowest AS INTEGER, byval highest AS INTEGER) AS INTEGER
 declare function bound overload (byval n as double, byval lowest as double, byval highest as double) as double
 declare function large (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER
@@ -27,15 +41,10 @@ declare sub split(byval in as string, ret() as string, sep as string = chr(10))
 declare function textwidth(byval z as string) as integer
 declare sub str_array_append (array() AS STRING, s AS STRING)
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
+declare function search_string_cache (cache() as IntStrPair, byval key as integer, resetter as string = CHR(234)) as string
+declare sub add_string_cache (cache() as IntStrPair, byval key as integer, value as string)
+declare sub remove_string_cache (cache() as IntStrPair, byval key as integer)
 
-'also appears in udts.bi
-#ifndef Stack
-TYPE Stack
-  pos as integer ptr
-  bottom as integer ptr
-  size as integer
-END TYPE
-#endif
 
 declare sub createstack (st as Stack)
 declare sub destroystack (st as Stack)

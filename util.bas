@@ -333,3 +333,48 @@ SUB qsort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYV
  NEXT
 END SUB
 '/
+
+'These cache functions store a 'resetter' string, which causes search_string_cache
+'to automatically empty the cache when its value changes (eg, different game).
+'Note that you can resize the cache arrays as you want at any time.
+FUNCTION search_string_cache (cache() as IntStrPair, byval key as integer, resetter as string) as string
+ IF cache(0).s <> resetter THEN
+  cache(0).s = resetter
+  cache(0).i = 0  'used to loop through the indices when writing
+  
+  FOR i as integer = 1 TO UBOUND(cache)
+   cache(i).i = -1099999876
+   cache(i).s = ""
+  NEXT
+ END IF
+
+ FOR i as integer = 1 TO UBOUND(cache)
+  IF cache(i).i = key THEN RETURN cache(i).s
+ NEXT
+END FUNCTION
+
+SUB add_string_cache (cache() as IntStrPair, byval key as integer, value as string)
+ DIM i as integer
+ FOR i = 1 TO UBOUND(cache)
+  IF cache(i).i = -1099999876 THEN
+   cache(i).i = key
+   cache(i).s = value
+   EXIT SUB
+  END IF
+ NEXT
+ 'overwrite an existing entry, in a loop
+ i = 1 + (cache(0).i MOD UBOUND(cache))
+ cache(i).i = key
+ cache(i).s = value
+ cache(0).i = i
+END SUB
+
+SUB remove_string_cache (cache() as IntStrPair, byval key as integer)
+ FOR i as integer = 1 TO UBOUND(cache)
+  IF cache(i).i = key THEN
+   cache(i).i = -1099999876
+   cache(i).s = ""
+   EXIT SUB
+  END IF
+ NEXT
+END SUB

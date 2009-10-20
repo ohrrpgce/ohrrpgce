@@ -527,6 +527,11 @@ TYPE Stack
   bottom as integer ptr
   size as integer
 END TYPE
+
+TYPE IntStrPair
+  i as integer
+  s as string
+END TYPE
 #endif
 
 TYPE PlotSprite
