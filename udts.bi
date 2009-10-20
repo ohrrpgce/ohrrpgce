@@ -456,6 +456,8 @@ TYPE TextBox
   portrait_id   AS INTEGER
   portrait_pal  AS INTEGER
   portrait_pos  AS XYPair
+  sound_effect AS INTEGER    ' +1, 0 means none
+  stop_sound_after AS INTEGER 'bitset
 END TYPE
 
 TYPE VehicleData

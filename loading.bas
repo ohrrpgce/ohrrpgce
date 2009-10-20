@@ -1165,6 +1165,7 @@ SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
   .opaque         = xreadbit(boxbuf(), 2, 174)
   .restore_music  = xreadbit(boxbuf(), 3, 174)
   .portrait_box   = xreadbit(boxbuf(), 4, 174)
+  .stop_sound_after = xreadbit(boxbuf(), 5, 174)
   '--Get choicebox data
   FOR i = 0 TO 1
    .choice(i) = STRING(15, 0)
@@ -1179,6 +1180,7 @@ SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
   .boxstyle        = boxbuf(196)
   .backdrop        = boxbuf(197) ' +1
   .music           = boxbuf(198) ' +1
+  .sound_effect    = boxbuf(205) ' +1
   '--Get portrait data
   .portrait_type   = boxbuf(200)
   .portrait_id     = boxbuf(201)
@@ -1239,7 +1241,7 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
   setbit boxbuf(), 174, 2, .opaque
   setbit boxbuf(), 174, 3, .restore_music
   setbit boxbuf(), 174, 4, .portrait_box
-  setbit boxbuf(), 174, 5, NO 'Unused
+  setbit boxbuf(), 174, 5, .stop_sound_after
   setbit boxbuf(), 174, 6, NO 'Unused
   setbit boxbuf(), 174, 7, NO 'Unused
   '--Transcribe choice text
@@ -1256,6 +1258,7 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
   boxbuf(196) = .boxstyle
   boxbuf(197) = .backdrop  ' +1
   boxbuf(198) = .music     ' +1
+  boxbuf(205) = .sound_effect ' +1
   '--Save portrait data
   boxbuf(200) = .portrait_type
   boxbuf(201) = .portrait_id

@@ -1292,11 +1292,17 @@ FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
    PRINT #fh, "Border Color: " & box.boxstyle '--AARGH AGAIN.
    PRINT #fh, "Backdrop: " & box.backdrop
    IF box.music > 0 THEN
-    PRINT #fh, "Music: " & box.music & " (" & escape_nonprintable_ascii(getsongname$(box.music - 1)) & ")"
+    PRINT #fh, "Music: " & box.music & " (" & escape_nonprintable_ascii(getsongname(box.music - 1)) & ")"
    ELSE
     PRINT #fh, "Music: " & box.music & " (None)"
    END IF
    PRINT #fh, "Restore Music: " & yesorno(box.restore_music)
+   IF box.sound_effect > 0 THEN
+    PRINT #fh, "Sound Effect: " & box.sound_effect & " (" & escape_nonprintable_ascii(getsfxname(box.sound_effect - 1)) & ")"
+   ELSE
+    PRINT #fh, "Sound Effect: " & box.sound_effect & " (None)"
+   END IF
+   PRINT #fh, "Stop Sound After Box: " & yesorno(box.stop_sound_after)
    PRINT #fh, "Show Box: " & yesorno(NOT box.no_box) '--argh, double negatives
    PRINT #fh, "Translucent: " & yesorno(NOT box.opaque) '--  "       "      "
    
@@ -1499,6 +1505,10 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
         box.music = VALINT(v)
        CASE "restore music"
         box.restore_music = str2bool(v)
+       CASE "sound effect"
+        box.sound_effect = VALINT(v)
+       CASE "stop sound after box"
+        box.stop_sound_after = str2bool(v)
        CASE "show box"
         box.no_box = str2bool(v,,YES)
        CASE "translucent"

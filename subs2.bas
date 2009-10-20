@@ -1111,7 +1111,7 @@ SUB textbox_position_portrait (BYREF box AS TextBox, BYREF st AS TextboxEditStat
 END SUB
 
 SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
- DIM menu(14) AS STRING
+ DIM menu(16) AS STRING
  DIM state AS MenuState
  state.size = 20
  state.last = UBOUND(menu)
@@ -1142,12 +1142,14 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
     CASE 7: box.no_box = (NOT box.no_box)
     CASE 8: box.opaque = (NOT box.opaque)
     CASE 9: box.restore_music = (NOT box.restore_music)
+    CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
     CASE 12:
      IF box.portrait_type = 1 THEN
       box.portrait_pal = pal16browse(box.portrait_pal, 8, box.portrait_id)
      END IF
     CASE 13: box.portrait_box = (NOT box.portrait_box)
     CASE 14: textbox_position_portrait box, st, holdscreen
+    CASE 15: IF box.sound_effect > 0 THEN playsfx box.sound_effect - 1
    END SELECT
    state.need_update = YES
   END IF
@@ -1157,6 +1159,7 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
     CASE 8: box.opaque = (NOT box.opaque)
     CASE 9: box.restore_music = (NOT box.restore_music)
     CASE 13: box.portrait_box = (NOT box.portrait_box)
+    CASE 16: box.stop_sound_after = (NOT box.stop_sound_after)
    END SELECT
    state.need_update = YES
   END IF
@@ -1186,13 +1189,14 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
     IF box.portrait_type = 1 THEN
      state.need_update = intgrabber(box.portrait_pal, -1, gen(genMaxPal))
     END IF
+   CASE 15: state.need_update = zintgrabber(box.sound_effect, -1, gen(genMaxSFX))
   END SELECT
   IF state.need_update THEN
    state.need_update = NO
    update_textbox_appearance_editor_menu menu(), box, st
   END IF
   textbox_edit_preview box, st
-  FOR i = 0 TO 14
+  FOR i = 0 TO UBOUND(menu)
    col = uilook(uimenuItem)
    IF i = state.pt THEN col = uilook(uiSelectedItem + state.tog)
    edgeprint menu(i), 0, i * 10, col, dpage
@@ -1221,9 +1225,11 @@ SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBo
  menu(12) = "Portrait Palette:"
  menu(13) = "Portrait Box:"
  menu(14) = "Position Portrait..."
+ menu(15) = "Sound Effect:"
+ menu(16) = "Stop sound after box:"
  DIM menutemp AS STRING
  DIM i AS INTEGER
- FOR i = 0 TO 14
+ FOR i = 0 TO UBOUND(menu)
   menutemp = ""
   SELECT CASE i
    CASE 1: menutemp = "" & box.vertical_offset
@@ -1264,6 +1270,13 @@ SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBo
     END SELECT
    CASE 13: menutemp = yesorno(box.portrait_box)
    CASE 14:
+   CASE 15:
+    IF box.sound_effect = 0 THEN
+     menutemp = menutemp & "NONE"
+    ELSE
+     menutemp = menutemp & box.sound_effect - 1 & " " & getsfxname(box.sound_effect - 1)
+    END IF
+   CASE 16: menutemp = yesorno(box.stop_sound_after)
   END SELECT
   IF LEN(menutemp) THEN menutemp = " " & menutemp
   menu(i) = menu(i) & menutemp

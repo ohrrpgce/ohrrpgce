@@ -3595,10 +3595,16 @@ IF txt.box.backdrop > 0 THEN
  gen(genTextboxBackdrop) = txt.box.backdrop
  correctbackdrop
 END IF
+
 '-- change music if necessary
 IF txt.box.music > 0 THEN
  txt.remember_music = presentsong
  wrappedsong txt.box.music - 1
+END IF
+
+'--play a sound effect
+IF txt.box.sound_effect > 0 THEN
+ playsfx txt.box.sound_effect - 1
 END IF
 
 '-- evaluate menu conditionals

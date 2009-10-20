@@ -2959,6 +2959,10 @@ SUB advance_text_box ()
    END IF
   END IF
  END IF
+ '---STOP SOUND EFFECT----
+ IF txt.box.sound_effect > 0 AND txt.box.stop_sound_after THEN
+  stopsfx txt.box.sound_effect - 1
+ END IF
  '---GAIN/LOSE CASH-----
  IF istag(txt.box.money_tag, 0) THEN
   gold = gold + txt.box.money

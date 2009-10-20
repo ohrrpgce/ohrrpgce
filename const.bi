@@ -11,13 +11,14 @@
 CONST YES = -1
 CONST NO = 0
 
-CONST CURRENT_RPG_VERSION = 8
+CONST CURRENT_RPG_VERSION = 9
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
 '--version history
 ' 7 - ypsiliform wip added > 36 NPC defs (and many other features)
 ' 8 - ypsiliform wip added extended chaining data (and many other features)
+' 9 - ypsiliform wip added text box sound effects
 
 '---DOS directory attributes
 CONST attribReadOnly = 1

@@ -75,6 +75,7 @@ WHAT IS NEW?
     * When a script error occurs, you are now shown the script callstack
       and given options such as entering the slightly improved script
       debugger. But many script errors still occur silently. [Ralph]
+    * Each text box can now have a sound effect attached. [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"
