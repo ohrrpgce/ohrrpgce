@@ -122,7 +122,7 @@ DIM joy(14), gotj(2)
 DIM backcompat_sound_slot_mode
 DIM backcompat_sound_slots(7)
 
-DIM nowscript, scriptret, scriptctr, numloadedscr, totalscrmem
+DIM nowscript, scriptret, scriptctr, numloadedscr, totalscrmem, scrwatch
 DIM heap(2048), global(4095), retvals(32)
 DIM scrat(128) as ScriptInst
 DIM script(scriptTableSize - 1) as ScriptData Ptr

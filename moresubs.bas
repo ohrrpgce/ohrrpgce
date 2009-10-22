@@ -1566,6 +1566,7 @@ WITH scrat(index)
  .depth = 0
  .id = n
  .scrdata = .scr->ptr
+ .curargn = 0
  curcmd = cast(ScriptCommand ptr, .scrdata + .ptr) 'just in case it's needed before subread is run
  
  scrat(index + 1).heap = .heap + .scr->vars
@@ -1600,7 +1601,6 @@ IF insideinterpreter THEN 'we have nowscript > 0
  TIMER_START(scrat(nowscript).scr->totaltime)
 END IF
 #ENDIF
-
 
 RETURN 1 '--success
 
@@ -2140,20 +2140,30 @@ END SUB
 '5: corrupt script data/unimplemented feature/interpreter can't continue
 '6: impossible condition; engine bug
 SUB scripterr (e AS STRING, errorlevel as integer = 4)
+ 'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
+
+ STATIC as integer ignorelist(0)
+
  DIM as string errtext()
  DIM as string scriptlocation
+ DIM as integer scriptcmdhash
 
  debug "Scripterr(" & errorlevel & "): " + e
 
  IF errorlevel <= err_suppress_lvl THEN EXIT SUB
+ IF nowscript >= 0 THEN
+  scriptcmdhash = scrat(nowscript).id * 100000 + scrat(nowscript).ptr * 10 + scrat(nowscript).depth
+  IF int_array_find(ignorelist(), scriptcmdhash) <> -1 THEN EXIT SUB
+ END IF
+ 
  recursivecall += 1
 
  IF errorlevel = 5 THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
- IF errorlevel >= 6 THEN e = "An impossible error occurred. Please report this engine bug!:" + CHR(10) + e
+ IF errorlevel >= 6 THEN e = "PLEASE REPORT THIS POSSIBLE ENGINE BUG" + CHR(10) + e
 
  IF nowscript < 0 THEN
-  e = e + CHR(10) + "Funny... no scripts running!"
+  e = e + CHR(10) + CHR(10) + "Funny... no scripts running!"
  ELSE
   scriptlocation = scriptname(scrat(nowscript).id)
   FOR i as integer = nowscript - 1 TO 0 STEP -1
@@ -2161,22 +2171,29 @@ SUB scripterr (e AS STRING, errorlevel as integer = 4)
    scriptlocation = scriptname(scrat(i).id) + " -> " + scriptlocation
   NEXT
   IF LEN(scriptlocation) > 150 THEN scriptlocation = " ..." + RIGHT(scriptlocation, 150)
-  e = e + CHR(10) + CHR(10) + " Call chain (current script last):" + CHR(10) + scriptlocation
+  e = e + CHR(10) + CHR(10) + "  Call chain (current script last):" + CHR(10) + scriptlocation
  END IF
  split(wordwrap(e, 38), errtext())
 
  DIM state AS MenuState
+ state.pt = 0
  DIM menu AS MenuDef
  menu.anchor.y = -1
- menu.offset.y = -100 + 45 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
+ menu.offset.y = -100 + 35 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4
 
  append_menu_item menu, "Ignore"
  append_menu_item menu, "Don't display any more script errors"
  append_menu_item menu, "Set error suppression level to " & errorlevel
+ append_menu_item menu, "Suppress errors from this source"
  append_menu_item menu, "Exit game (without saving)"
  IF recursivecall = 1 THEN  'don't reenter the debugger if possibly already inside!
-  append_menu_item menu, "Enter debugger"
+  IF scrwatch <> 0 THEN
+   append_menu_item menu, "Return to debugger"
+   state.pt = 5
+  ELSE
+   append_menu_item menu, "Enter debugger"
+  END IF
  END IF
 
  state.active = YES
@@ -2202,29 +2219,37 @@ SUB scripterr (e AS STRING, errorlevel as integer = 4)
     CASE 2 'hide some errors
      err_suppress_lvl = errorlevel
      EXIT DO
-    CASE 3
-     exitprogram 0
+    CASE 3 'hide errors from this command
+     int_array_append(ignorelist(), scriptcmdhash)
+     EXIT DO
     CASE 4
-     scriptwatcher 2, 0 'clean mode, script state view mode
+     exitprogram 0
+    CASE 5
+     scrwatch = 2
+     scriptwatcher scrwatch, 0 'clean mode, script state view mode
      EXIT DO
    END SELECT
   END IF
   
   usemenu state
 
-  clearpage vpage, iif(errorlevel >= 6, uilook(uiHighlight2), -1)
+  clearpage vpage
 
-  centerbox 160, 15, 310, 20, 3, vpage
+  centerbox 160, 12, 310, 15, 3, vpage
   textcolor uilook(uiText), 0
-  printstr "Script Error!", 108, 10, vpage
+  IF errorlevel >= 6 THEN
+   printstr "Impossible error/engine bug!", 160 - 28*4, 7, vpage
+  ELSE
+   printstr "Script Error!", 160 - 13*4, 7, vpage
+  END IF
 
   FOR i as integer = 0 TO UBOUND(errtext)
-   printstr errtext(i), 8, 30 + 10 * i, vpage
+   printstr errtext(i), 8, 25 + 10 * i, vpage
   NEXT
 
   draw_menu menu, state, vpage
 
-  IF state.pt = 4 THEN
+  IF state.pt = 5 THEN
    textcolor uilook(uiSelectedItem), 0 
    printstr "The debugger is a usability train-wreck!", 0, 184, vpage
    printstr "Press F1 inside the debugger to see help", 0, 192, vpage
@@ -2298,7 +2323,7 @@ SELECT CASE AS CONST curcmd->value
  CASE 22'^^
   IF retvals(0) <> 0 XOR retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
  CASE ELSE
-  scripterr "unsupported math", 5
+  scripterr "unsupported math function id " & curcmd->value, 5
 END SELECT
 END SUB
 

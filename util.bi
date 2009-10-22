@@ -39,7 +39,9 @@ declare function zero_default(n as integer, zerocaption AS STRING="default", dis
 declare Function wordwrap(Byval inp as string, byval width as integer, byval sep as string = chr(10)) as string
 declare sub split(byval in as string, ret() as string, sep as string = chr(10))
 declare function textwidth(byval z as string) as integer
-declare sub str_array_append (array() AS STRING, s AS STRING)
+declare sub str_array_append (array() as string, s as string)
+declare sub int_array_append (array() as integer, k as integer)
+declare function int_array_find (array() as integer, value as integer) as integer
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
 declare function search_string_cache (cache() as IntStrPair, byval key as integer, resetter as string = CHR(234)) as string
 declare sub add_string_cache (cache() as IntStrPair, byval key as integer, value as string)

@@ -279,6 +279,18 @@ SUB str_array_append (array() AS STRING, s AS STRING)
  array(UBOUND(array)) = s
 END SUB
 
+SUB int_array_append (array() AS INTEGER, k AS INTEGER)
+ REDIM PRESERVE array(UBOUND(array) + 1) AS INTEGER
+ array(UBOUND(array)) = k
+END SUB
+
+FUNCTION int_array_find (array() AS INTEGER, value AS INTEGER) AS INTEGER
+ FOR i AS INTEGER = LBOUND(array) TO UBOUND(array)
+  IF array(i) = value THEN RETURN i
+ NEXT
+ RETURN -1
+END FUNCTION
+
 'I've compared the speed of the following two. For random data, the quicksort is faster
 'for arrays over length about 80. For arrays which are 90% sorted appended with 10% random data,
 'the cut off is about 600 (insertion sort did ~5x better on nearly-sort data at the 600 mark)
@@ -309,13 +321,13 @@ SUB sort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVA
  NEXT
 END SUB
 
+'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
+/' Uncomment if you want to use (working fine)
 FUNCTION integer_compare CDECL (BYVAL a as integer ptr, BYVAL b as integer ptr) as integer
  IF *a < *b THEN RETURN -1
  IF *a > *b THEN RETURN 1
 END FUNCTION
 
-'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
-/' Uncomment if you want to use (working fine)
 SUB qsort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer, BYVAL stride as integer)
  IF number = 0 THEN number = UBOUND(indices) + 1
  DIM keys(number - 1, 1) as integer
