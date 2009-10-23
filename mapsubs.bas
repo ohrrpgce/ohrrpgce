@@ -12,10 +12,8 @@ DEFINT A-Z
 
 'basic subs and functions
 DECLARE FUNCTION addmaphow () AS INTEGER
-DECLARE FUNCTION filenum$ (n%)
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
-DECLARE SUB importbmp (f$, cap$, count%)
-DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
+DECLARE SUB loadpasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
 DECLARE SUB fixorder (f$)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
@@ -1364,7 +1362,7 @@ SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  DIM j AS INTEGER
  j = 0
  textcolor uilook(uiText), 0
- printstr "Map" & filenum$(mapnum) & ":" & mapname, 0, j * 8, vpage
+ printstr "Map" & filenum(mapnum) & ":" & mapname, 0, j * 8, vpage
  j += 2
  printstr "this map seems to be corrupted", 0, j * 8, vpage
  j += 2
@@ -1951,7 +1949,7 @@ FOR i = 0 TO 24
   CASE 0
    topmenu$(i) = "Return to Main Menu"
   CASE 1 TO gen(genMaxMap) + 1
-   topmenu$(i) = "Map " + filenum$((maptop + i) - 1) + ": " + getmapname$((maptop + i) - 1)
+   topmenu$(i) = "Map " + filenum((maptop + i) - 1) + ": " + getmapname$((maptop + i) - 1)
   CASE gen(genMaxMap) + 2
    topmenu$(i) = "Add a New Map"
   CASE ELSE
@@ -2002,4 +2000,23 @@ SUB paint_map_area(oldTile, x, y, layer, usetile(), map(), pass(), defaults() AS
   END WITH
   tail = (tail + 1) MOD UBOUND(queue)
  WEND
+END SUB
+
+SUB loadpasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
+ flusharray array(), 160, 0
+ '--load defaults from tile set defaults file
+ setpicstuf array(), 322, -1
+ loadset workingdir + SLASH + "defpass.bin", tilesetnum, 0
+ '--enforce magic number and filesize
+ IF array(160) <> 4444 THEN
+  flusharray array(), 160, 0
+ END IF
+END SUB
+
+SUB savepasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
+'--set magic number
+array(160) = 4444
+'--write defaults into tile set defaults file
+setpicstuf array(), 322, -1
+storeset workingdir + SLASH + "defpass.bin", tilesetnum, 0
 END SUB

@@ -11,7 +11,6 @@ DEFINT A-Z
 #include "udts.bi"
 #include "custom_udts.bi"
 
-DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB clearallpages ()
 DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
 DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())

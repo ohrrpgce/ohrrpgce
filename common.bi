@@ -191,6 +191,9 @@ DECLARE FUNCTION get_help_dir() AS STRING
 DECLARE FUNCTION load_help_file(helpkey AS STRING) AS STRING
 DECLARE SUB save_help_file(helpkey AS STRING, text AS STRING)
 
+'These were added from other, less-appropriate places
+DECLARE FUNCTION filenum(n AS INTEGER) AS STRING
+
 'Sprite loading convenience functions
 DECLARE SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
 DECLARE SUB unload_sprite_and_pal (BYREF img AS GraphicPair)

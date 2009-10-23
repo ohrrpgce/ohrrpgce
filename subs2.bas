@@ -21,9 +21,10 @@ END TYPE
 #include "udts.bi"
 #include "custom_udts.bi"
 #include "const.bi"
+#include "common.bi"
 
 'basic subs and functions
-DECLARE FUNCTION filenum$ (n%)
+'DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -989,12 +990,12 @@ SUB verifyrpg
 
  DIM i AS INTEGER
  FOR i = 0 TO gentmp(genMaxMap)
-  IF NOT isfile(maplumpname$(i, "t")) THEN fatalerror "map" + filenum$(i) + " tilemap is missing!"
-  IF NOT isfile(maplumpname$(i, "p")) THEN fatalerror "map" + filenum$(i) + " passmap is missing!"
-  IF NOT isfile(maplumpname$(i, "e")) THEN fatalerror "map" + filenum$(i) + " foemap is missing!"
-  IF NOT isfile(maplumpname$(i, "l")) THEN fatalerror "map" + filenum$(i) + " NPClocations are missing!"
-  IF NOT isfile(maplumpname$(i, "n")) THEN fatalerror "map" + filenum$(i) + " NPCdefinitions are missing!"
-  IF NOT isfile(maplumpname$(i, "d")) THEN fatalerror "map" + filenum$(i) + " doorlinks are missing!"
+  IF NOT isfile(maplumpname$(i, "t")) THEN fatalerror "map" + filenum(i) + " tilemap is missing!"
+  IF NOT isfile(maplumpname$(i, "p")) THEN fatalerror "map" + filenum(i) + " passmap is missing!"
+  IF NOT isfile(maplumpname$(i, "e")) THEN fatalerror "map" + filenum(i) + " foemap is missing!"
+  IF NOT isfile(maplumpname$(i, "l")) THEN fatalerror "map" + filenum(i) + " NPClocations are missing!"
+  IF NOT isfile(maplumpname$(i, "n")) THEN fatalerror "map" + filenum(i) + " NPCdefinitions are missing!"
+  IF NOT isfile(maplumpname$(i, "d")) THEN fatalerror "map" + filenum(i) + " doorlinks are missing!"
  NEXT
 END SUB
 

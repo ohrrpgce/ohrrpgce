@@ -9,21 +9,14 @@ DEFINT A-Z
 #include "const.bi"
 
 'basic subs and functions
-DECLARE FUNCTION filenum$ (n%)
-DECLARE SUB importbmp (f$, cap$, count%)
-DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
-DECLARE SUB fixorder (f$)
+DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
+
+'the below functions require cleaning
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
-DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB scriptman ()
-DECLARE FUNCTION exclude$ (s$, x$)
-DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB fontedit (font%())
-DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB sizemar (array%(), wide%, high%, tempx%, tempy%, tempw%, temph%, yout%, page%)
-DECLARE SUB drawmini (high%, wide%, cursor%(), page%, tastuf%())
 DECLARE SUB mapmaker (font%())
 DECLARE SUB sprite (xw, yw, sets, perset, soff, atatime, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
 DECLARE SUB shopdata ()
@@ -646,13 +639,6 @@ RETRACE
 '---For documentation of general data see http://hamsterrepublic.com/ohrrpgce/index.php/GEN.html
 
 REM $STATIC
-FUNCTION filenum$ (n)
- IF n < 100 THEN
-  filenum$ = RIGHT$("00" + STR$(n), 2)
- ELSE
-  filenum$ = STR$(n)
- END IF
-END FUNCTION
 
 SUB fixorder (f$)
 

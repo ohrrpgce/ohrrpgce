@@ -3530,3 +3530,11 @@ SUB save_help_file(helpkey AS STRING, text AS STRING)
   debug "help file """ & helpfile & """ is not writeable."
  END IF
 END SUB
+
+FUNCTION filenum (n AS INTEGER) AS STRING
+ IF n < 100 THEN
+  RETURN RIGHT("00" + STR(n), 2)
+ ELSE
+  RETURN STR(n)
+ END IF
+END FUNCTION

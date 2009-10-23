@@ -22,7 +22,6 @@ DECLARE SUB clicktile (mover(), ts AS TileEditState, mouseclick, BYREF clone AS 
 DECLARE SUB tilecopy (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tilepaste (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste%(), ts AS TileEditState)
-DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB copymapblock (buf%(), sx%, sy%, sp%, dx%, dy%, dp%)
 DECLARE SUB changepal (palval%, palchange%, workpal%(), aindex%)
 DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
@@ -143,24 +142,24 @@ LOOP
 
 END SUB
 
-SUB importbmp (f$, cap$, count)
-STATIC default$
-DIM palmapping(255), bmpd(4)
+SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
+STATIC default AS STRING
+DIM palmapping(255) AS INTEGER, bmpd(4) AS INTEGER
 DIM pmask(255) as RGBcolor, temppal(255) as RGBcolor
-DIM menu$(6), submenu$(2)
+DIM menu(6) AS STRING, submenu(2) AS STRING
 DIM mstate as MenuState
 mstate.size = 24
-mstate.last = UBOUND(menu$)
-menu$(0) = "Return to Main Menu"
-menu$(1) = CHR$(27) + "Browse 0" + CHR$(26)
-menu$(2) = "Replace current " + cap$
-menu$(3) = "Append a new " + cap$
-menu$(4) = "Disable palette colors for import"
-menu$(5) = "Export " + cap$ + " as BMP"
-menu$(6) = "Full screen view"
-submenu$(0) = "Import with current Master Palette"
-submenu$(1) = "Import with new Master Palette"
-submenu$(2) = "Do not remap colours"
+mstate.last = UBOUND(menu)
+menu(0) = "Return to Main Menu"
+menu(1) = CHR(27) + "Browse 0" + CHR(26)
+menu(2) = "Replace current " + cap
+menu(3) = "Append a new " + cap
+menu(4) = "Disable palette colors for import"
+menu(5) = "Export " + cap + " as BMP"
+menu(6) = "Full screen view"
+submenu(0) = "Import with current Master Palette"
+submenu(1) = "Import with new Master Palette"
+submenu(2) = "Do not remap colours"
 
 pt = 0 'backdrop number
 
@@ -170,7 +169,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 loadpalette pmask(), activepalette
-loadpage game + f$, pt, 2
+loadpage game + f, pt, 2
 
 setkeys
 DO
@@ -178,44 +177,44 @@ DO
  setkeys
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
   this = count - 1
-  cropafter pt, this, 3, game + f$, -1, 1
+  cropafter pt, this, 3, game + f, -1, 1
   count = this + 1
  END IF
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "importbmp"
  usemenu mstate
  IF intgrabber(pt, 0, count - 1) THEN
-  menu$(1) = CHR$(27) + "Browse " & pt & CHR$(26)
-  loadpage game + f$, pt, 2
+  menu(1) = CHR(27) + "Browse " & pt & CHR(26)
+  loadpage game + f, pt, 2
  END IF
  IF enter_or_space() THEN
   IF mstate.pt = 0 THEN EXIT DO
   IF mstate.pt = 2 THEN
-   srcbmp$ = browse$(3, default$, "*.bmp", "")
+   srcbmp$ = browse$(3, default, "*.bmp", "")
    IF srcbmp$ <> "" THEN
     GOSUB bimport
    END IF
-   loadpage game + f$, pt, 2
+   loadpage game + f, pt, 2
   END IF
   IF mstate.pt = 3 AND count < 32767 THEN
-   srcbmp$ = browse$(3, default$, "*.bmp", "")
+   srcbmp$ = browse$(3, default, "*.bmp", "")
    IF srcbmp$ <> "" THEN
     oldpt = pt
     pt = count
     GOSUB bimport
     IF pt = count THEN pt = oldpt 'cancelled
    END IF
-   menu$(1) = CHR$(27) + "Browse " & pt & CHR$(26)
-   loadpage game + f$, pt, 2
+   menu(1) = CHR(27) + "Browse " & pt & CHR(26)
+   loadpage game + f, pt, 2
   END IF
   IF mstate.pt = 4 THEN GOSUB disable
   IF mstate.pt = 5 THEN
-   outfile$ = inputfilename("Name of file to export to?", ".bmp", trimpath$(game) & " " & cap$ & pt)
+   outfile$ = inputfilename("Name of file to export to?", ".bmp", trimpath$(game) & " " & cap & pt)
    IF outfile$ <> "" THEN screenshot outfile$ & ".bmp", 2, master()
   END IF
  END IF
  IF mstate.pt <> 6 THEN
-  standardmenu menu$(), mstate, 0, 0, dpage, -1
+  standardmenu menu(), mstate, 0, 0, dpage, -1
  END IF
  SWAP vpage, dpage
  setvispage vpage
@@ -298,25 +297,6 @@ IF pt >= count THEN count = pt + 1
 loadpalette pmask(), activepalette
 RETRACE
 
-END SUB
-
-SUB loadpasdefaults (array(), tilesetnum)
-flusharray array(), 160, 0
-'--load defaults from tile set defaults file
-setpicstuf array(), 322, -1
-loadset workingdir + SLASH + "defpass.bin", tilesetnum, 0
-'--enforce magic number and filesize
-IF array(160) <> 4444 THEN
- flusharray array(), 160, 0
-END IF
-END SUB
-
-SUB savepasdefaults (array(), tilesetnum)
-'--set magic number
-array(160) = 4444
-'--write defaults into tile set defaults file
-setpicstuf array(), 322, -1
-storeset workingdir + SLASH + "defpass.bin", tilesetnum, 0
 END SUB
 
 SUB maptile (font())
