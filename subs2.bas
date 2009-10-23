@@ -70,6 +70,7 @@ DECLARE SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditSta
 DECLARE SUB textbox_connection_captions(BYREF node AS TextboxConnectNode, id AS INTEGER, tag AS INTEGER, box AS TextBox, topcation AS STRING, use_tag AS INTEGER = YES)
 DECLARE SUB textbox_connection_draw_node(BYREF node AS TextboxConnectNode, x AS INTEGER, y AS INTEGER, selected AS INTEGER)
 DECLARE SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
 
 'These are used in the TextBox conditional editor
 CONST condEXIT   = -1
@@ -531,7 +532,7 @@ WITH st
  .search = ""
 END WITH
 
-DIM state AS MenuState 'FIXME: only used in conditionals GOSUB block, move this here when that is SUBified
+DIM state AS MenuState 'FIXME: only used in conditions GOSUB block, move this here when that is SUBified
 state.top = -1
 state.pt = 0
 
@@ -763,7 +764,7 @@ state.first = -1
 state.last = 22
 state.size = 21
 
-GOSUB textcmenu
+textbox_update_conditional_menu box, menu$()
 setkeys
 DO
  setwait 55
@@ -784,7 +785,7 @@ DO
     scriptbrowse temptrig, plottrigger, "after textbox plotscript"
     box.after = -temptrig
   END SELECT
-  GOSUB textcmenu
+  textbox_update_conditional_menu box, menu$()
  END IF
  usemenu state
  IF keyval(scDelete) > 1 THEN ' Pressed the delete key
@@ -815,7 +816,7 @@ DO
   IF num <> read_box_conditional_by_menu_index(box, state.pt) THEN
    'The value has changed
    write_box_conditional_by_menu_index(box, state.pt, num)
-   GOSUB textcmenu
+   textbox_update_conditional_menu box, menu$()
   END IF
  END IF
  FOR i = state.top TO state.top + state.size
@@ -842,73 +843,73 @@ DO
  dowait
 LOOP
 
-textcmenu:
-menu$(-1) = "Go Back"
-menu$(0) = textbox_condition_caption(box.instead_tag, "INSTEAD")
-SELECT CASE box.instead
- CASE 0
-  menu$(1) = " use [text box or script] instead"
- CASE IS < 0
-  menu$(1) = " run " & scriptname$(-box.instead, plottrigger) & " instead"
- CASE IS > 0
-  menu$(1) = " jump to text box " & box.instead & " instead"
-END SELECT
-menu$(2) = textbox_condition_caption(box.settag_tag, "SETTAG")
-menu$(3) = tag_condition_caption(box.settag1, " set tag", "unchangeable", "unchangeable", "unchangeable")
-menu$(4) = tag_condition_caption(box.settag2, " set tag", "unchangeable", "unchangeable", "unchangeable")
-menu$(5) = textbox_condition_caption(box.money_tag, "MONEY")
-IF box.money < 0 THEN
- menu$(6) = " lose " & ABS(box.money) & "$"
-ELSE
- menu$(6) = " gain " & ABS(box.money) & "$"
-END IF
-menu$(7) = textbox_condition_caption(box.battle_tag, "BATTLE")
-menu$(8) = " fight enemy formation " & box.battle
-menu$(9) = textbox_condition_caption(box.item_tag, "ITEM")
-SELECT CASE box.item
- CASE 0 :      menu$(10) = " do not add/remove items"
- CASE IS > 0 : menu$(10) = " add one " & load_item_name(ABS(box.item), 0, 0)
- CASE IS < 0 : menu$(10) = " remove one " & load_item_name(ABS(box.item), 0, 0)
-END SELECT
-menu$(11) = textbox_condition_caption(box.shop_tag, "SHOP")
-SELECT CASE box.shop
- CASE IS > 0 : menu$(12) = " go to shop " & box.shop & " " & readshopname$(box.shop - 1)
- CASE IS < 0 : menu$(12) = " go to an Inn that costs " & -box.shop & "$"
- CASE 0 :      menu$(12) = " restore Hp and Mp [select shop here]"
-END SELECT
-menu$(13) = textbox_condition_caption(box.hero_tag, "HEROES")
-SELECT CASE box.hero_addrem
- CASE 0 :      menu$(14) = " do not add/remove heros"
- CASE IS > 0 : menu$(14) = " add " & getheroname(ABS(box.hero_addrem) - 1) & " to party"
- CASE IS < 0 : menu$(14) = " remove " & getheroname(ABS(box.hero_addrem) - 1) & " from party"
-END SELECT
-SELECT CASE box.hero_swap
- CASE 0 :      menu$(15) = " do not swap in/out heros"
- CASE IS > 0 : menu$(15) = " swap in " & getheroname(ABS(box.hero_swap) - 1)
- CASE IS < 0 : menu$(15) = " swap out " & getheroname(ABS(box.hero_swap) - 1)
-END SELECT
-SELECT CASE box.hero_lock
- CASE 0 :      menu$(16) = " do not unlock/lock heros"
- CASE IS > 0 : menu$(16) = " unlock " & getheroname(ABS(box.hero_lock) - 1)
- CASE IS < 0 : menu$(16) = " lock " & getheroname(ABS(box.hero_lock) - 1)
-END SELECT
-menu$(17) = textbox_condition_caption(box.door_tag, "DOOR")
-menu$(18) = " instantly use door " & box.door
-menu$(19) = textbox_condition_caption(box.menu_tag, "MENU")
-menu$(20) = " open menu " & box.menu & " " & getmenuname(box.menu)
-menu$(21) = textbox_condition_caption(box.after_tag, "AFTER")
-SELECT CASE box.after
- CASE 0 :      menu$(22) = " use [text box or script] next"
- CASE IS < 0 : menu$(22) = " run " & scriptname$(-box.after, plottrigger) & " next"
- CASE IS > 0 : menu$(22) = " jump to text box " & box.after & " next"
-END SELECT
-RETRACE
-
 'See wiki for .SAY file format docs
 END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
+ menu(-1) = "Go Back"
+ menu(0) = textbox_condition_caption(box.instead_tag, "INSTEAD")
+ SELECT CASE box.instead
+  CASE 0
+   menu(1) = " use [text box or script] instead"
+  CASE IS < 0
+   menu(1) = " run " & scriptname(-box.instead, plottrigger) & " instead"
+  CASE IS > 0
+   menu(1) = " jump to text box " & box.instead & " instead"
+ END SELECT
+ menu(2) = textbox_condition_caption(box.settag_tag, "SETTAG")
+ menu(3) = tag_condition_caption(box.settag1, " set tag", "unchangeable", "unchangeable", "unchangeable")
+ menu(4) = tag_condition_caption(box.settag2, " set tag", "unchangeable", "unchangeable", "unchangeable")
+ menu(5) = textbox_condition_caption(box.money_tag, "MONEY")
+ IF box.money < 0 THEN
+  menu(6) = " lose " & ABS(box.money) & "$"
+ ELSE
+  menu(6) = " gain " & ABS(box.money) & "$"
+ END IF
+ menu(7) = textbox_condition_caption(box.battle_tag, "BATTLE")
+ menu(8) = " fight enemy formation " & box.battle
+ menu(9) = textbox_condition_caption(box.item_tag, "ITEM")
+ SELECT CASE box.item
+  CASE 0 :      menu(10) = " do not add/remove items"
+  CASE IS > 0 : menu(10) = " add one " & load_item_name(ABS(box.item), 0, 0)
+  CASE IS < 0 : menu(10) = " remove one " & load_item_name(ABS(box.item), 0, 0)
+ END SELECT
+ menu(11) = textbox_condition_caption(box.shop_tag, "SHOP")
+ SELECT CASE box.shop
+  CASE IS > 0 : menu(12) = " go to shop " & box.shop & " " & readshopname(box.shop - 1)
+  CASE IS < 0 : menu(12) = " go to an Inn that costs " & -box.shop & "$"
+  CASE 0 :      menu(12) = " restore Hp and Mp [select shop here]"
+ END SELECT
+ menu(13) = textbox_condition_caption(box.hero_tag, "HEROES")
+ SELECT CASE box.hero_addrem
+  CASE 0 :      menu(14) = " do not add/remove heros"
+  CASE IS > 0 : menu(14) = " add " & getheroname(ABS(box.hero_addrem) - 1) & " to party"
+  CASE IS < 0 : menu(14) = " remove " & getheroname(ABS(box.hero_addrem) - 1) & " from party"
+ END SELECT
+ SELECT CASE box.hero_swap
+  CASE 0 :      menu(15) = " do not swap in/out heros"
+  CASE IS > 0 : menu(15) = " swap in " & getheroname(ABS(box.hero_swap) - 1)
+  CASE IS < 0 : menu(15) = " swap out " & getheroname(ABS(box.hero_swap) - 1)
+ END SELECT
+ SELECT CASE box.hero_lock
+  CASE 0 :      menu(16) = " do not unlock/lock heros"
+  CASE IS > 0 : menu(16) = " unlock " & getheroname(ABS(box.hero_lock) - 1)
+  CASE IS < 0 : menu(16) = " lock " & getheroname(ABS(box.hero_lock) - 1)
+ END SELECT
+ menu(17) = textbox_condition_caption(box.door_tag, "DOOR")
+ menu(18) = " instantly use door " & box.door
+ menu(19) = textbox_condition_caption(box.menu_tag, "MENU")
+ menu(20) = " open menu " & box.menu & " " & getmenuname(box.menu)
+ menu(21) = textbox_condition_caption(box.after_tag, "AFTER")
+ SELECT CASE box.after
+  CASE 0 :      menu(22) = " use [text box or script] next"
+  CASE IS < 0 : menu(22) = " run " & scriptname(-box.after, plottrigger) & " next"
+  CASE IS > 0 : menu(22) = " jump to text box " & box.after & " next"
+ END SELECT
+END SUB
 
 SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, override_y AS INTEGER=-1, suppress_text AS INTEGER=NO)
  DIM ypos AS INTEGER
