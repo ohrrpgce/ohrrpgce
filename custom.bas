@@ -979,18 +979,23 @@ DO
   IF pt = gen(genMaxShop) AND keyval(scRight) > 1 THEN
    GOSUB sshopset
    pt = pt + 1
-   IF needaddset(pt, gen(genMaxShop), "Shop") THEN
-    '--Create a new shop record
-    flusharray a(), 19, 0
-    setpicstuf a(), 40, -1
-    storeset game + ".sho", pt, 0
-    '--create a new shop stuff record
-    flusharray b(), getbinsize(binSTF) / 2 - 1, 0
-    setpicstuf b(), getbinsize(binSTF), -1
-    b(19) = -1 ' When adding new stuff, default in-stock to infinite
-    storeset game + ".stf", pt * 50 + 0, 0
+   IF gen(genMaxShop) < 99 THEN
+    '--only allow adding shops up to 99
+    'FIXME: This is because of the limitation on remembering shop stock in the SAV format
+    '       when the SAV format has changed, this limit can easily be lifted.
+    IF needaddset(pt, gen(genMaxShop), "Shop") THEN
+     '--Create a new shop record
+     flusharray a(), 19, 0
+     setpicstuf a(), 40, -1
+     storeset game + ".sho", pt, 0
+     '--create a new shop stuff record
+     flusharray b(), getbinsize(binSTF) / 2 - 1, 0
+     setpicstuf b(), getbinsize(binSTF), -1
+     b(19) = -1 ' When adding new stuff, default in-stock to infinite
+     storeset game + ".stf", pt * 50 + 0, 0
+    END IF
+    GOSUB lshopset
    END IF
-   GOSUB lshopset
   END IF
   newpt = pt
   IF intgrabber(newpt, 0, gen(genMaxShop)) THEN
