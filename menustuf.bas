@@ -2367,7 +2367,7 @@ DO
 LOOP
 freepage holdscreen
 MenuSound gen(genCancelSFX)
-
+evalitemtag
 END SUB
 
 SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
