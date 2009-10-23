@@ -10,28 +10,6 @@ DEFINT A-Z
 #include "const.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
-
-DECLARE SUB clearallpages ()
-DECLARE SUB enforceflexbounds (menuoff%(), menutype%(), menulimits%(), recbuf%(), min%(), max%())
-DECLARE FUNCTION editflexmenu% (nowindex%, menutype%(), menuoff%(), menulimits%(), datablock%(), mintable%(), maxtable%())
-DECLARE SUB updateflexmenu (mpointer%, nowmenu$(), nowdat%(), size%, menu$(), menutype%(), menuoff%(), menulimits%(), datablock%(), caption$(), maxtable%(), recindex%)
-DECLARE SUB addcaption (caption$(), indexer%, cap$)
-DECLARE SUB testflexmenu ()
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB herotags (BYREF hero AS HeroDef)
-DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB formation ()
-DECLARE SUB enemydata ()
-DECLARE SUB herodata ()
-DECLARE SUB attackdata ()
-DECLARE SUB maptile (font%())
-DECLARE FUNCTION isStringField(mnu%)
-DECLARE sub drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as integer)
-DECLARE sub loadform(a() as integer, pt as integer)
-DECLARE sub saveform(a() as integer, pt as integer)
-DECLARE sub formpics(ename() as string, a() as integer, egraphics() as GraphicPair)
-
-
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -43,12 +21,20 @@ DECLARE sub formpics(ename() as string, a() as integer, egraphics() as GraphicPa
 #include "uiconst.bi"
 #include "scrconst.bi"
 
-DECLARE SUB setactivemenu (workmenu(), newmenu(), BYREF state AS MenuState)
+#include "flexmenu.bi"
 
+'Subs2.bas:
+DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
+
+'Defined in this file:
+DECLARE SUB herotags (BYREF hero AS HeroDef)
+DECLARE sub drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as integer)
+DECLARE sub loadform(a() as integer, pt as integer)
+DECLARE sub saveform(a() as integer, pt as integer)
+DECLARE sub formpics(ename() as string, a() as integer, egraphics() as GraphicPair)
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, BYREF box_preview AS STRING)
-
 DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
 DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
 DECLARE SUB animate_hero_preview(BYREF st AS HeroEditState)
@@ -57,16 +43,15 @@ DECLARE SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
 DECLARE SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
 DECLARE SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS HeroDef)
 DECLARE SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER)
-
 DECLARE SUB item_editor_equipbits(itembuf())
 
 REM $STATIC
 
 SUB clearallpages
 
-clearpage 0 'this is actually smaller. See, I happened to look at the ASM for
-clearpage 1 'the loop that used to be here. It wasn't very optimized. So, I
-clearpage 2 'guess the compiler isn't *always* right.
+clearpage 0 'UPDATE as of fbc v0.20
+clearpage 1 'I re-checked a loop version of this. It's still bigger.
+clearpage 2 'Sure, it really doesn't matter, but just saying...
 clearpage 3 '~Mike
 
 END SUB
