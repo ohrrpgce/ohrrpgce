@@ -2143,7 +2143,9 @@ SUB scripterr (e AS STRING, errorlevel as integer = 4)
  'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
 
- STATIC as integer ignorelist(0)
+ 'this is the correct way to declare a dynamic static array. Also, you have to REDIM it before use!
+ STATIC as integer ignorelist()
+ REDIM PRESERVE ignorelist(UBOUND(ignorelist))
 
  DIM as string errtext()
  DIM as string scriptlocation
