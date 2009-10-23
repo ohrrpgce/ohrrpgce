@@ -98,7 +98,7 @@ DIM gold
 DIM npcs(max_npc_defs) as NPCType
 DIM npc(300) as NPCInst
 
-DIM mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, foemaph, presentsong, framex, framey
+DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
 DIM err_suppress_lvl
 DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir, homedir
 
@@ -320,7 +320,9 @@ init_default_text_colors
 
 initgamedefaults
 reset_game_state
-fatal = 0: abortg = 0
+fatal = 0
+abortg = 0
+resetg = NO
 lastformation = -1
 scrwatch = 0
 err_suppress_lvl = 3
@@ -611,8 +613,9 @@ DO
  END IF
  END IF' end menus_allow_gameplay
  GOSUB displayall
- IF fatal = 1 OR abortg > 0 THEN
+ IF fatal = 1 OR abortg > 0 OR resetg THEN
   resetgame stat(), scriptout$
+  IF resetg THEN EXIT DO
   'if skip loadmenu and title bits set, quit
   IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
@@ -1220,7 +1223,7 @@ WITH scrat(nowscript)
      IF txt.showing = NO OR readbit(gen(), 44, suspendboxadvance) = 1 THEN
       .state = streturn
      END IF
-    CASE 73, 234'--game over, quit from loadmenu
+    CASE 73, 234, 438'--game over, quit from loadmenu, reset game
     CASE ELSE
      scripterr "illegal wait substate " & .curvalue, 6
      .state = streturn
@@ -2112,6 +2115,9 @@ WITH scrat(nowscript)
       IF .items(mislot).exists THEN activate_menu_item(.items(mislot), NO)
      END WITH
     END IF
+   CASE 438 '--reset game
+    resetg = YES
+    .state = stwait
    CASE ELSE '--try all the scripts implemented in subs
     scriptnpc curcmd->value
     scriptmisc curcmd->value

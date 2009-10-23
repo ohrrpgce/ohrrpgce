@@ -752,7 +752,12 @@ wait for text box # wait until the player continues</example>
 		<command id="gameover">
 			<canon>game over</canon>
 			<shortname>game over</shortname>
-			<description>Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle.</description>
+			<description>Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is subtly different from <ref>resetgame</ref> in that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.</description>
+		</command>
+		<command id="resetgame">
+			<canon>reset game</canon>
+			<shortname>reset game</shortname>
+			<description>Resets the game and returns you to the title screen. This is subtly different from <ref>gameover</ref> in that it will not exit the program if the title screen and load screen have been disabled. it always resets the game back to the beginning.</description>
 		</command>
 		<command id="showvalue">
 			<canon>show value (number)</canon>

@@ -20,6 +20,7 @@ EXTERN presentsong as integer
 EXTERN foemaph as integer
 EXTERN lastsaveslot as integer
 EXTERN abortg as integer
+EXTERN resetg as integer
 EXTERN usepreunlump as integer
 EXTERN fatal as integer
 EXTERN err_suppress_lvl as integer

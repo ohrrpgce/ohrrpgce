@@ -158,6 +158,7 @@ WHAT IS NEW?
       "set NPC extra" instead of 2 [Ralph]
     * "suspend timers", and "resume timers" [James]
     * "use menu item" [James]
+    * "reset game" [James]
     * hspeak now automatically stores a backup copy of your script
       inside the .hs file. Use the -n command line option if you
       want to disable this feature [James]
