@@ -812,7 +812,7 @@ wait for text box # wait until the player continues</example>
 		<command id="equipmenu">
 			<canon>equip menu (who)</canon>
 			<shortname>equip menu</shortname>
-			<description>Takes you directly to a hero&apos;s equip menu. Specify the hero using its position in the party 0-3. Use <ref>findhero</ref> if you want to specify the hero by name. The <ref>pickhero</ref> command can also be useful.</description>
+			<description>Takes you directly to a hero&apos;s equip menu. Specify the hero using its position in the party 0-3. Use <ref>findhero</ref> if you want to specify the hero by name. The <ref>pickhero</ref> command can also be useful. If you do not specify any hero, the first hero in the party will be used.</description>
 		</command>
 		<command id="savemenu">
 			<canon>save menu (reallysave)</canon>

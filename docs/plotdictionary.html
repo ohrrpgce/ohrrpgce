@@ -538,9 +538,6 @@
 		<a href="#about-gameover">game over</a><br>
 		
 	
-		<a href="#about-get%20inventory%20size">get inventory size</a><br>
-		
-	
 		<a href="#about-getambientmusic">get ambient music</a><br>
 		
 	
@@ -611,6 +608,9 @@
 		
 	
 		<a href="#about-getinsteadofbattlescript">get instead of battle script</a><br>
+		
+	
+		<a href="#about-getinventorysize">get inventory size</a><br>
 		
 	
 		<a href="#about-getitem">get item (item,number)</a><br>
@@ -997,7 +997,7 @@
 		<a href="#about-me">me</a><br>
 		
 	
-		<a href="#about-menu%20is%20open">menu is open(menu handle)</a><br>
+		<a href="#about-menuisopen">menu is open(menu handle)</a><br>
 		
 	
 		<a href="#about-menuitembyslot">menu item by slot(menu handle, slot, visible only)</a><br>
@@ -1360,16 +1360,13 @@
 		<a href="#about-secondsofplay">seconds of play</a><br>
 		
 	
-		<a href="#about-seed%20random">seed random (new seed)</a><br>
+		<a href="#about-seedrandom">seed random (new seed)</a><br>
 		
 	
 		<a href="#about-selectedmenuitem">selected menu item(menu handle)</a><br>
 		
 	
 		<a href="#about-selectmenuitem">select menu item(menu item handle)</a><br>
-		
-	
-		<a href="#about-set%20inventory%20size">set inventory size(new size)</a><br>
 		
 	
 		<a href="#about-setambientmusic">set ambient music (song)</a><br>
@@ -1484,6 +1481,9 @@
 		
 	
 		<a href="#about-setinsteadofbattlescript">set instead of battle script (id)</a><br>
+		
+	
+		<a href="#about-setinventorysize">set inventory size (new size)</a><br>
 		
 	
 		<a href="#about-setleftpadding">set left padding (handle, pixels)</a><br>
@@ -1612,7 +1612,7 @@
 		<a href="#about-setrectstyle">set rect style (handle, style)</a><br>
 		
 	
-		<a href="#about-setrecttrans">set rect trans (handle, true or false)</a><br>
+		<a href="#about-setrecttrans">set rect trans (handle, transparency setting)</a><br>
 		
 	
 		<a href="#about-setrightpadding">set right padding (handle, pixels)</a><br>
@@ -3130,7 +3130,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">equip menu (who)</font></b><br>
-			Takes you directly to a hero's equip menu. Specify the hero using its position in the party 0-3. Use <a href="#about-findhero" class="ref">find hero</a> if you want to specify the hero by name. The <a href="#about-pickhero" class="ref">pick hero</a> command can also be useful.<br>
+			Takes you directly to a hero's equip menu. Specify the hero using its position in the party 0-3. Use <a href="#about-findhero" class="ref">find hero</a> if you want to specify the hero by name. The <a href="#about-pickhero" class="ref">pick hero</a> command can also be useful. If you do not specify any hero, the first hero in the party will be used.<br>
 			
 			
 		</tt></p>
@@ -4148,7 +4148,7 @@ end</pre>
 			
 			
 		</tt></p>
-		<a name="about-menu%20is%20open"></a>
+		<a name="about-menuisopen"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">menu is open(menu handle)</font></b><br>
@@ -5142,6 +5142,10 @@ lookup slice(sl:textbox text)
 lookup slice(sl:textbox portrait)
 lookup slice(sl:textbox choice0)
 lookup slice(sl:textbox choice1)
+lookup slice(sl:script layer)
+lookup slice(sl:textbox layer)
+lookup slice(sl:string layer)
+lookup slice(sl:maproot)
 lookup slice(sl:map layer0)
 lookup slice(sl:map layer1)
 lookup slice(sl:map layer2)
@@ -6041,15 +6045,15 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">get rect trans (handle)</font></b><br>
-			Given a rect slice <span class="param">handle</span>, return true if it is drawn semi-transparent, or false if it is drawn solid.<br>
+			Given a rect slice <span class="param">handle</span>, returns one of: the constant <span class="param">rect:fuzzy</span> if it is drawn semi-transparent, <span class="param">rect:hollow</span> if it is fully transparent, or <span class="param">rect:opaque</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) if it is drawn solid.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setrecttrans" class="ref">set rect trans</a></li></ul>
 		</tt></p>
 		<a name="about-setrecttrans"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set rect trans (handle, true or false)</font></b><br>
-			Given a rect slice <span class="param">handle</span>, Change whether or not is drawn semi-transparent. The second argument should be true to make it translucent, and false to make it solid<br>
+		<b><font color="yellow">set rect trans (handle, transparency setting)</font></b><br>
+			Given a rect slice <span class="param">handle</span>, change how transparently it is drawn. For <span class="param">transparency setting</span>, pass in one of the constants <span class="param">rect:fuzzy</span> for semi-transparency (checkered), <span class="param">rect:hollow</span> for fully transparent (the border drawn only), or <span class="param">rect:opaque</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) for solid.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getrecttrans" class="ref">get rect trans</a></li></ul>
 		</tt></p>
@@ -6377,13 +6381,13 @@ end
 			
 			
 		</tt></p>
-		<a name="about-seed%20random"></a>
+		<a name="about-seedrandom"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">seed random (new seed)</font></b><br>
-			Reseeds the random number generator. If called with no argument, this will reseed the random number generator using the current number of milliseconds. If you pass in a number, the random number generator will be seeded with that number, allowing for repeatable random sequences.<br>
+			Reseeds the random number generator. If called with no argument, this will reseed the random number generator to a new random sequence. If you pass in a number, the random number generator will be seeded with that number, allowing for repeatable random sequences.<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-random" class="ref">random</a></li></ul>
 		</tt></p>
 		<a name="about-inventory"></a>
 		<p>
@@ -6393,19 +6397,19 @@ end
 			
 			
 		</tt></p>
-		<a name="about-get%20inventory%20size"></a>
+		<a name="about-getinventorysize"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">get inventory size</font></b><br>
-			Returns a count of how many inventory slots are available.<br>
+			Returns the number of inventory slots.<br>
 			
 			
 		</tt></p>
-		<a name="about-set%20inventory%20size"></a>
+		<a name="about-setinventorysize"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">set inventory size(new size)</font></b><br>
-			Changes the number of inventory slots that are available. Use the constant <span class="param">inv:max</span> to restore the maximum value. The number you use will be rounded down to the nearest multiple of 3. Changes made to the inventory size are not saved in your save-game, so if you want them to persist after loading you should use an on-load script to re-apply the changes.<br>
+		<b><font color="yellow">set inventory size (new size)</font></b><br>
+			Changes the number of inventory slots that are available. Use the constant <span class="param">inv:max</span> to restore the maximum value. The number you give will be rounded up to the nearest multiple of 3.<br>
 			
 			
 		</tt></p>
@@ -6907,7 +6911,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">last save slot</font></b><br>
-			Returns the last save slot saved in, or <a href="#about-booleanconstants" class="ref">false</a> if the game has not been saved yet.<br>
+			Returns the last save slot saved in, or <a href="#about-booleanconstants" class="ref">false</a> if the game has not been saved yet. Save slots are numbered starting at 1.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -8268,7 +8272,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">delete save (slot)</font></b><br>
-			Deletes a saved game. The save will no longer be visible on the load game menu or loadable with <a href="#about-loadfromslot" class="ref">load from slot</a>. However, <a href="#about-importglobals" class="ref">import globals</a> can still be used to read globals out of the slot.<br>
+			Deletes a saved game in the specified save slot (1 to 32, only 1 to 4 appear on the builtin menus). The save will no longer be visible on the load game menu or loadable with <a href="#about-loadfromslot" class="ref">load from slot</a>. However, <a href="#about-importglobals" class="ref">import globals</a> can still be used to read globals out of the slot.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-saveinslot" class="ref">save in slot</a></li></ul>
 		</tt></p>

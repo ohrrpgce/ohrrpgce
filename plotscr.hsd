@@ -161,7 +161,7 @@ define function, begin
 151,showminimap,0           # display the mini-map
 152,spellsmenu,1,0          # display the spell menu for a hero
 153,itemsmenu,0             # display the items menu
-154,equipmenu,1,0           # display the equip menu for a hero
+154,equipmenu,1,-1          # display the equip menu for a hero
 #155,savemenu,0             # obsolete in favor of ID 170
 157,ordermenu,0             # display the order menu
 158,teammenu,0              # display the team menu

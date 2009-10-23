@@ -291,10 +291,20 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 154'--equip menu
+  'Can explicitly choose a hero to equip
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF hero(retvals(0)) > 0 THEN
     equip retvals(0), stat()
    END IF
+  END IF
+  IF retvals(0) = -1 THEN
+   'Or pass -1 to equip the first hero in the party
+   FOR i = 0 TO 3
+    IF hero(i) > 0 THEN
+     equip i, stat()
+     EXIT FOR
+    END IF
+   NEXT i
   END IF
  CASE 157'--order menu
   heroswap 0, stat()
