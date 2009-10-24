@@ -1852,11 +1852,15 @@ NEXT
 END SUB
 
 FUNCTION commandname (byval id as integer) as string
+ 'cmd_default_names array
+#include "scrcommands.bi"
+
  STATIC cache(32) as IntStrPair
  DIM as string ret
  ret = search_string_cache(cache(), id, game)
  IF ret <> "" THEN RETURN ret
- ret = "cmd" & id
+ IF id >= 0 AND id <= UBOUND(cmd_default_names) THEN ret = cmd_default_names(id)
+ IF ret = "" THEN ret = "cmd" & id
 
  DIM as short headersz, formatv, records, offset
 
@@ -2158,7 +2162,7 @@ SUB scripterr (e AS STRING, errorlevel as integer = 4)
   scriptcmdhash = scrat(nowscript).id * 100000 + scrat(nowscript).ptr * 10 + scrat(nowscript).depth
   IF int_array_find(ignorelist(), scriptcmdhash) <> -1 THEN EXIT SUB
  END IF
- 
+
  recursivecall += 1
 
  IF errorlevel = 5 THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
