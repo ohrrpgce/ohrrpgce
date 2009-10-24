@@ -821,7 +821,7 @@ SUB textbox_conditionals(BYREF box AS TextBox)
     CASE condBATTLE
      intgrabber num, 0, gen(genMaxFormation)
     CASE condSHOP
-     intgrabber num, -32000, gen(genMaxShop) + 1
+     xintgrabber num, 0, gen(genMaxShop), -1, -32000
     CASE condHERO
      intgrabber num, -99, 99
     CASE condMONEY
@@ -896,7 +896,7 @@ SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
  END SELECT
  menu(11) = textbox_condition_caption(box.shop_tag, "SHOP")
  SELECT CASE box.shop
-  CASE IS > 0 : menu(12) = " go to shop " & box.shop & " " & readshopname(box.shop - 1)
+  CASE IS > 0 : menu(12) = " go to shop " & box.shop - 1 & " " & readshopname(box.shop - 1)
   CASE IS < 0 : menu(12) = " go to an Inn that costs " & -box.shop & "$"
   CASE 0 :      menu(12) = " restore Hp and Mp [select shop here]"
  END SELECT
