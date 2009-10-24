@@ -70,6 +70,7 @@ DECLARE SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditSta
 DECLARE SUB textbox_connection_captions(BYREF node AS TextboxConnectNode, id AS INTEGER, tag AS INTEGER, box AS TextBox, topcation AS STRING, use_tag AS INTEGER = YES)
 DECLARE SUB textbox_connection_draw_node(BYREF node AS TextboxConnectNode, x AS INTEGER, y AS INTEGER, selected AS INTEGER)
 DECLARE SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
+DECLARE SUB textbox_conditionals(BYREF box AS TextBox)
 DECLARE SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
 
 'These are used in the TextBox conditional editor
@@ -524,17 +525,13 @@ LOOP
 END SUB
 
 SUB text_box_editor () 'textage
-DIM m$(10), menu$(-1 TO 22), grey(-1 TO 22), h$(2), tagmn$, gcsr, tcur
+DIM m$(10), h$(2), tagmn$, gcsr, tcur
 DIM box AS TextBox
 DIM st AS TextboxEditState
 WITH st
  .id = 1
  .search = ""
 END WITH
-
-DIM state AS MenuState 'FIXME: only used in conditions GOSUB block, move this here when that is SUBified
-state.top = -1
-state.pt = 0
 
 '--For the import/export support
 DIM box_text_file AS STRING
@@ -543,31 +540,6 @@ DIM remember_boxcount AS INTEGER
 DIM backup_say AS STRING
 DIM import_warn AS STRING = ""
 
-'This array tells which rows in the conditional editor are grey
-grey(-1) = NO
-grey(0) = YES
-grey(1) = NO
-grey(2) = YES
-grey(3) = NO
-grey(4) = NO
-grey(5) = YES
-grey(6) = NO
-grey(7) = YES
-grey(8) = NO
-grey(9) = YES
-grey(10) = NO
-grey(11) = YES
-grey(12) = NO
-grey(13) = YES
-grey(14) = NO
-grey(15) = NO
-grey(16) = NO
-grey(17) = YES
-grey(18) = NO
-grey(19) = YES
-grey(20) = NO
-grey(21) = YES 'Menu Tag
-grey(22) = NO
 
 m$(0) = "Return to Main Menu"
 m$(1) = "Text Box"
@@ -645,7 +617,7 @@ DO
   IF csr = 0 THEN EXIT DO
   IF csr = 2 THEN textbox_line_editor box, st
   IF csr = 3 THEN
-   GOSUB conditions
+   textbox_conditionals box
    update_textbox_editor_main_menu box, m$()
   END IF
   IF csr = 4 THEN textbox_choice_editor box, st
@@ -758,96 +730,132 @@ WITH st.portrait
 END WITH
 EXIT SUB
 
-conditions:
-
-state.first = -1
-state.last = 22
-state.size = 21
-
-textbox_update_conditional_menu box, menu$()
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN RETRACE
- IF keyval(scF1) > 1 THEN show_help "textbox_conditions"
- IF enter_or_space() THEN
-  SELECT CASE state.pt
-   CASE -1 '--Previous menu
-    RETRACE
-   CASE 1 '--instead script
-    temptrig = large(-box.instead, 0)
-    scriptbrowse temptrig, plottrigger, "instead of textbox plotscript"
-    box.instead = -temptrig
-   CASE 22 '--after script
-    temptrig = large(-box.after, 0)
-    scriptbrowse temptrig, plottrigger, "after textbox plotscript"
-    box.after = -temptrig
-  END SELECT
-  textbox_update_conditional_menu box, menu$()
- END IF
- usemenu state
- IF keyval(scDelete) > 1 THEN ' Pressed the delete key
-  write_box_conditional_by_menu_index box, state.pt, 0
- END IF
- IF state.pt >= 0 THEN
-  num = read_box_conditional_by_menu_index(box, state.pt)
-  SELECT CASE box_conditional_type_by_menu_index(state.pt)
-   CASE condTAG
-    tag_grabber num
-   CASE condBATTLE
-    intgrabber num, 0, gen(genMaxFormation)
-   CASE condSHOP
-    intgrabber num, -32000, gen(genMaxShop) + 1
-   CASE condHERO
-    intgrabber num, -99, 99
-   CASE condMONEY
-    intgrabber num, -32000, 32000
-   CASE condDOOR
-    intgrabber num, 0, 199
-   CASE condITEM
-    xintgrabber num, 0, gen(genMaxItem), 0, -gen(genMaxItem)
-   CASE condBOX
-    scrintgrabber num, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger
-   CASE condMENU
-    intgrabber num, 0, gen(genMaxMenu)
-  END SELECT
-  IF num <> read_box_conditional_by_menu_index(box, state.pt) THEN
-   'The value has changed
-   write_box_conditional_by_menu_index(box, state.pt, num)
-   textbox_update_conditional_menu box, menu$()
-  END IF
- END IF
- FOR i = state.top TO state.top + state.size
-  textcolor uilook(uiMenuItem), 0
-  IF grey(i) = YES THEN
-   c = uilook(uiSelectedDisabled)
-   SELECT CASE read_box_conditional_by_menu_index(box, i)
-    CASE -1 ' Check tag 1=OFF always true
-     c = uilook(uiHighlight)
-    CASE 0 ' Check tag 0 never true
-     c = uilook(uiDisabledItem)
-   END SELECT
-   rectangle 0, (i - state.top) * 9, 312, 8, c, dpage
-  ELSE
-   IF read_box_conditional_by_menu_index(box, i) = 0 THEN textcolor uilook(uiDisabledItem), 0
-  END IF
-  IF i = state.pt THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr menu$(i), 0, (i - state.top) * 9, dpage
- NEXT i
- draw_fullscreen_scrollbar state, , dpage
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-
 'See wiki for .SAY file format docs
 END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB textbox_conditionals(BYREF box AS TextBox)
+ DIM menu(-1 TO 22) AS STRING
+ 
+ DIM state AS MenuState
+ state.top = -1
+ state.pt = 0
+ state.first = -1
+ state.last = 22
+ state.size = 21
+
+ DIM grey(-1 TO 22)
+ 'This array tells which rows in the conditional editor are grey
+ grey(-1) = NO
+ grey(0) = YES
+ grey(1) = NO
+ grey(2) = YES
+ grey(3) = NO
+ grey(4) = NO
+ grey(5) = YES
+ grey(6) = NO
+ grey(7) = YES
+ grey(8) = NO
+ grey(9) = YES
+ grey(10) = NO
+ grey(11) = YES
+ grey(12) = NO
+ grey(13) = YES
+ grey(14) = NO
+ grey(15) = NO
+ grey(16) = NO
+ grey(17) = YES
+ grey(18) = NO
+ grey(19) = YES
+ grey(20) = NO
+ grey(21) = YES 'Menu Tag
+ grey(22) = NO
+
+ DIM num AS INTEGER
+ DIM temptrig AS INTEGER
+ DIM c AS INTEGER
+
+ textbox_update_conditional_menu box, menu()
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "textbox_conditions"
+  IF enter_or_space() THEN
+   SELECT CASE state.pt
+    CASE -1 '--Previous menu
+     EXIT DO
+    CASE 1 '--instead script
+     temptrig = large(-box.instead, 0)
+     scriptbrowse temptrig, plottrigger, "instead of textbox plotscript"
+     box.instead = -temptrig
+    CASE 22 '--after script
+     temptrig = large(-box.after, 0)
+     scriptbrowse temptrig, plottrigger, "after textbox plotscript"
+     box.after = -temptrig
+   END SELECT
+   textbox_update_conditional_menu box, menu()
+  END IF
+  usemenu state
+  IF keyval(scDelete) > 1 THEN ' Pressed the delete key
+   write_box_conditional_by_menu_index box, state.pt, 0
+  END IF
+  IF state.pt >= 0 THEN
+   num = read_box_conditional_by_menu_index(box, state.pt)
+   SELECT CASE box_conditional_type_by_menu_index(state.pt)
+    CASE condTAG
+     tag_grabber num
+    CASE condBATTLE
+     intgrabber num, 0, gen(genMaxFormation)
+    CASE condSHOP
+     intgrabber num, -32000, gen(genMaxShop) + 1
+    CASE condHERO
+     intgrabber num, -99, 99
+    CASE condMONEY
+     intgrabber num, -32000, 32000
+    CASE condDOOR
+     intgrabber num, 0, 199
+    CASE condITEM
+     xintgrabber num, 0, gen(genMaxItem), 0, -gen(genMaxItem)
+    CASE condBOX
+     scrintgrabber num, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger
+    CASE condMENU
+     intgrabber num, 0, gen(genMaxMenu)
+   END SELECT
+   IF num <> read_box_conditional_by_menu_index(box, state.pt) THEN
+    'The value has changed
+    write_box_conditional_by_menu_index(box, state.pt, num)
+    textbox_update_conditional_menu box, menu()
+   END IF
+  END IF
+  FOR i AS INTEGER = state.top TO state.top + state.size
+   textcolor uilook(uiMenuItem), 0
+   IF grey(i) = YES THEN
+    c = uilook(uiSelectedDisabled)
+    SELECT CASE read_box_conditional_by_menu_index(box, i)
+     CASE -1 ' Check tag 1=OFF always true
+      c = uilook(uiHighlight)
+     CASE 0 ' Check tag 0 never true
+      c = uilook(uiDisabledItem)
+    END SELECT
+    rectangle 0, (i - state.top) * 9, 312, 8, c, dpage
+   ELSE
+    IF read_box_conditional_by_menu_index(box, i) = 0 THEN textcolor uilook(uiDisabledItem), 0
+   END IF
+   IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
+   printstr menu(i), 0, (i - state.top) * 9, dpage
+  NEXT i
+  draw_fullscreen_scrollbar state, , dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END SUB
 
 SUB textbox_update_conditional_menu(BYREF box AS TextBox, menu() AS STRING)
  menu(-1) = "Go Back"
