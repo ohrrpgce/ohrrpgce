@@ -2305,6 +2305,16 @@ SELECT CASE AS CONST id
     scriptret = find_plotslice_handle(LookupSlice(retvals(0), plotslices(retvals(0))))
    END IF
   END IF
+ CASE 439'--slice is valid
+  scriptret = 0
+  IF retvals(0) >= LBOUND(plotslices) AND retvals(0) <= UBOUND(plotslices) THEN
+   IF plotslices(retvals(0)) <> 0 THEN
+    scriptret = 1
+    IF ENABLE_SLICE_DEBUG THEN
+     IF SliceDebugCheck(plotslices(retvals(0))) = NO THEN scriptret = 0
+    END IF
+   END IF
+  END IF
 END SELECT
 
 EXIT SUB

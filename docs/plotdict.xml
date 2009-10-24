@@ -2209,6 +2209,11 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>create rect</shortname>
 			<description>Create a new rectangle slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, and an optional <p>style</p>. The style is text box style number from 0 to 14, or -1 for an unstyled box. The default is box style 0. Like all slice types, a rect slice can be used as a container for other slices with <ref>setparent</ref></description>
 		</command>
+		<command id="sliceisvalid">
+			<canon>slice is valid (id)</canon>
+			<shortname>slice is valid</shortname>
+			<description>Returns true if the given <p>id</p> is a valid sprite handle. The main use of this command is to check whether a slice has been deleted, avoiding a script error.</description>
+		</command>
 		<command id="sliceissprite">
 			<canon>slice is sprite (handle)</canon>
 			<shortname>slice is sprite</shortname>
