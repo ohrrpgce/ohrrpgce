@@ -24,7 +24,6 @@ END TYPE
 #include "common.bi"
 
 'basic subs and functions
-'DECLARE FUNCTION filenum$ (n%)
 DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
@@ -56,8 +55,8 @@ DECLARE FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
 DECLARE SUB write_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER, num AS INTEGER)
 DECLARE FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER) AS INTEGER
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
-DECLARE SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
-DECLARE SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, m$())
+DECLARE SUB update_textbox_editor_main_menu (BYREF box AS TextBox, menu() AS STRING)
+DECLARE SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, menu() AS STRING)
 DECLARE SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, override_y AS INTEGER=-1, suppress_text AS INTEGER=NO)
 DECLARE SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
 DECLARE SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBox, BYREF st AS TextboxEditState)
@@ -524,217 +523,227 @@ DO
 LOOP
 END SUB
 
-SUB text_box_editor () 'textage
-DIM m$(10), h$(2), tagmn$, gcsr, tcur
-DIM box AS TextBox
-DIM st AS TextboxEditState
-WITH st
- .id = 1
- .search = ""
-END WITH
-
-'--For the import/export support
-DIM box_text_file AS STRING
-DIM overwrite AS INTEGER = NO
-DIM remember_boxcount AS INTEGER
-DIM backup_say AS STRING
-DIM import_warn AS STRING = ""
-
-
-m$(0) = "Return to Main Menu"
-m$(1) = "Text Box"
-m$(2) = "Edit Text"
-m$(3) = "Edit Conditionals"
-m$(4) = "Edit Choice"
-m$(5) = "Box Appearance"
-m$(6) = "Next:"
-m$(7) = "Text Search:"
-m$(8) = "Connected Boxes..."
-m$(9) = "Export text boxes..."
-m$(10) = "Import text boxes..."
-csr = 0
-style_clip = 0
-textbox_edit_load box, st, m$()
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "textbox_main"
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
-  SaveTextBox box, st.id
-  cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
-  textbox_edit_load box, st, m$()
- END IF
- usemenu csr, 0, 0, 10, 24
- remptr = st.id
- SELECT CASE csr
-  CASE 7'textsearch
-   strgrabber st.search, 36
-  CASE 6'quickchainer
-   IF scrintgrabber(box.after, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger) THEN
-    update_textbox_editor_main_menu box, m$()
-   END IF'--modify next
-  CASE ELSE '--not using the quick textbox chainer nor the search
-   IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN style_clip = st.id
-   IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
-    IF yesno("Copy box " & style_clip & "'s style to this box") THEN
-     textbox_copy_style_from_box style_clip, box, st
-     textbox_edit_load box, st, m$()
-    END IF
-   END IF
-   IF intgrabber(st.id, 0, gen(genMaxTextBox), 51, 52) THEN
-    SWAP st.id, remptr
-    SaveTextBox box, st.id
-    SWAP st.id, remptr
-    textbox_edit_load box, st, m$()
-   END IF
-   IF keyval(scLeft) > 1 AND st.id > 0 THEN
-    SaveTextBox box, st.id
-    st.id = st.id - 1
-    textbox_edit_load box, st, m$()
-   END IF
-   IF keyval(scRight) > 1 AND st.id < 32767 THEN
-    SaveTextBox box, st.id
-    st.id = st.id + 1
-    IF needaddset(st.id, gen(genMaxTextBox), "text box") THEN
-     textbox_create_from_box 0, box, st
-    END IF
-    textbox_edit_load box, st, m$()
-   END IF'--next/add text box
-   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < 32767 THEN
-    SaveTextBox box, st.id
-    IF yesno("Create a textbox like this one?") THEN
-     gen(genMaxTextBox) += 1
-     st.id = gen(genMaxTextBox)
-     textbox_create_from_box remptr, box, st
-    END IF
-    textbox_edit_load box, st, m$()
-   END IF
- END SELECT
- IF enter_or_space() THEN
-  IF csr = 0 THEN EXIT DO
-  IF csr = 2 THEN textbox_line_editor box, st
-  IF csr = 3 THEN
-   textbox_conditionals box
-   update_textbox_editor_main_menu box, m$()
-  END IF
-  IF csr = 4 THEN textbox_choice_editor box, st
-  IF csr = 5 THEN textbox_appearance_editor box, st
-  IF csr = 6 THEN
-   IF box.after > 0 THEN
-    SaveTextBox box, st.id
-    st.id = box.after
-    textbox_edit_load box, st, m$()
-   ELSE
-    temptrig = ABS(box.after)
-    scriptbrowse temptrig, plottrigger, "textbox plotscript"
-    box.after = -temptrig
-    update_textbox_editor_main_menu box, m$()
-   END IF
-  END IF
-  IF csr = 7 AND keyval(scEnter) > 1 THEN
-   textbox_seek box, st
-   textbox_edit_load box, st, m$()
-  END IF
-  IF csr = 8 THEN
-   textbox_connections box, st, m$()
-  END IF
-  IF csr = 9 THEN '--Export textboxes to a .TXT file
-   STATIC metadata(3) AS INTEGER
-   DIM metadatalabels(3) AS STRING
-   metadatalabels(0) = "Text"
-   metadata(0) = YES '--by default, export text
-   metadatalabels(1) = "Conditionals"
-   metadatalabels(2) = "Choices"
-   metadatalabels(3) = "Appearance"
-   
-   IF askwhatmetadata(metadata(), metadatalabels()) = YES THEN
-    box_text_file = inputfilename("Filename for TextBox Export?", ".txt",,NO)
-    IF box_text_file <> "" THEN
-     box_text_file = box_text_file & ".txt"
-     overwrite = YES
-     IF isfile(box_text_file) THEN
-      overwrite = yesno("File already exists, overwrite?", NO)
-     END IF
-     IF overwrite THEN
-      IF export_textboxes(box_text_file, metadata()) THEN
-       notification "Successfully exported " & box_text_file
-      ELSE
-       notification "Failed to export " & box_text_file
-      END IF '--export_textboxes
-     END IF '--overwrite
-    END IF '--box_text_file <> ""
-   END IF '--metadata
-  END IF
-  IF csr = 10 THEN '-- Import text boxes from a .TXT file
-   SaveTextBox box, st.id
-   IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
-    box_text_file = browse(0, "", "*.txt", tmpdir, 0)
-    clearpage vpage
-    backup_say = tmpdir & "backup-textbox-lump.say"
-    '--make a backup copy of the .say lump
-    copyfile game & ".say", backup_say
-    IF NOT isfile(backup_say) THEN
-     notification "unable to save a backup copy of the text box data to " & backup_say
-    ELSE
-     '--Backup was successfuly, okay to proceed
-     remember_boxcount = gen(genMaxTextbox)
-     import_warn = ""
-     IF import_textboxes(box_text_file, import_warn) THEN
-      notification "Successfully imported """ & box_text_file & """." & import_warn
-     ELSE
-      'Failure! Reset, revert, abort, run-away!
-      gen(genMaxTextBox) = remember_boxcount
-      copyfile backup_say, game & ".say"
-      notification "Import failed, restoring backup. " & import_warn
-     END IF
-    END IF
-    LoadTextBox box, st.id
-   END IF
-  END IF
- END IF
- textcolor uilook(uiMenuItem), 0
- IF csr = 1 THEN textcolor uilook(uiSelectedItem + tog), 0
-
- IF st.id = 0 THEN
-   m$(1) = "Text Box 0 [template]"
- ELSE
-   m$(1) = "Text Box " & st.id
- END IF
- m$(7) = "Text Search:" + st.search
- 
- '--Draw box
- textbox_edit_preview box, st, 96
-
- textcolor uilook(uiText), uilook(uiHighlight)
- printstr "+ to create", 232, 0, dpage
- printstr "ALT+C copy style", 192, 8, dpage
- IF style_clip > 0 THEN printstr "ALT+V paste style", 184, 16, dpage
- standardmenu m$(), 10, 10, csr, 0, 0, 0, dpage, YES
-
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-SaveTextBox box, st.id
-WITH st.portrait
- IF .sprite THEN sprite_unload @.sprite
- IF .pal    THEN palette16_unload @.pal
-END WITH
-EXIT SUB
-
-'See wiki for .SAY file format docs
-END SUB
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB text_box_editor () 'textage
+ DIM menu(10) AS STRING
+ DIM h(2) AS STRING
+ DIM tagmn AS STRING
+ DIM gcsr AS INTEGER
+ DIM tcur AS INTEGER
+ DIM box AS TextBox
+ DIM st AS TextboxEditState
+ WITH st
+  .id = 1
+  .search = ""
+ END WITH
+
+ '--For the import/export support
+ DIM box_text_file AS STRING
+ DIM overwrite AS INTEGER = NO
+ DIM remember_boxcount AS INTEGER
+ DIM backup_say AS STRING
+ DIM import_warn AS STRING = ""
+
+ menu(0) = "Return to Main Menu"
+ menu(1) = "Text Box"
+ menu(2) = "Edit Text"
+ menu(3) = "Edit Conditionals"
+ menu(4) = "Edit Choice"
+ menu(5) = "Box Appearance"
+ menu(6) = "Next:"
+ menu(7) = "Text Search:"
+ menu(8) = "Connected Boxes..."
+ menu(9) = "Export text boxes..."
+ menu(10) = "Import text boxes..."
+ 
+ DIM state AS MenuState
+ state.pt = 0
+ state.last = UBOUND(menu)
+ state.size = 24
+ 
+ DIM style_clip AS INTEGER = 0
+ 
+ DIM remptr AS INTEGER
+ DIM temptrig AS INTEGER
+ 
+ textbox_edit_load box, st, menu()
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "textbox_main"
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
+   SaveTextBox box, st.id
+   cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
+   textbox_edit_load box, st, menu()
+  END IF
+  usemenu state
+  remptr = st.id
+  SELECT CASE state.pt
+   CASE 7'textsearch
+    strgrabber st.search, 36
+   CASE 6'quickchainer
+    IF scrintgrabber(box.after, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger) THEN
+     update_textbox_editor_main_menu box, menu()
+    END IF'--modify next
+   CASE ELSE '--not using the quick textbox chainer nor the search
+    IF keyval(scAlt) > 0 AND keyval(scC) > 1 THEN style_clip = st.id
+    IF keyval(scAlt) > 0 AND keyval(scV) > 1 THEN
+     IF yesno("Copy box " & style_clip & "'s style to this box") THEN
+      textbox_copy_style_from_box style_clip, box, st
+      textbox_edit_load box, st, menu()
+     END IF
+    END IF
+    IF intgrabber(st.id, 0, gen(genMaxTextBox), scComma, scPeriod) THEN
+     SWAP st.id, remptr
+     SaveTextBox box, st.id
+     SWAP st.id, remptr
+     textbox_edit_load box, st, menu()
+    END IF
+    IF keyval(scLeft) > 1 AND st.id > 0 THEN
+     SaveTextBox box, st.id
+     st.id = st.id - 1
+     textbox_edit_load box, st, menu()
+    END IF
+    IF keyval(scRight) > 1 AND st.id < 32767 THEN
+     SaveTextBox box, st.id
+     st.id = st.id + 1
+     IF needaddset(st.id, gen(genMaxTextBox), "text box") THEN
+      textbox_create_from_box 0, box, st
+     END IF
+     textbox_edit_load box, st, menu()
+    END IF'--next/add text box
+    IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < 32767 THEN
+     SaveTextBox box, st.id
+     IF yesno("Create a textbox like this one?") THEN
+      gen(genMaxTextBox) += 1
+      st.id = gen(genMaxTextBox)
+      textbox_create_from_box remptr, box, st
+     END IF
+     textbox_edit_load box, st, menu()
+    END IF
+  END SELECT
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 2 THEN textbox_line_editor box, st
+   IF state.pt = 3 THEN
+    textbox_conditionals box
+    update_textbox_editor_main_menu box, menu()
+   END IF
+   IF state.pt = 4 THEN textbox_choice_editor box, st
+   IF state.pt = 5 THEN textbox_appearance_editor box, st
+   IF state.pt = 6 THEN
+    IF box.after > 0 THEN
+     SaveTextBox box, st.id
+     st.id = box.after
+     textbox_edit_load box, st, menu()
+    ELSE
+     temptrig = ABS(box.after)
+     scriptbrowse temptrig, plottrigger, "textbox plotscript"
+     box.after = -temptrig
+     update_textbox_editor_main_menu box, menu()
+    END IF
+   END IF
+   IF state.pt = 7 AND keyval(scEnter) > 1 THEN
+    textbox_seek box, st
+    textbox_edit_load box, st, menu()
+   END IF
+   IF state.pt = 8 THEN
+    textbox_connections box, st, menu()
+   END IF
+   IF state.pt = 9 THEN '--Export textboxes to a .TXT file
+    STATIC metadata(3) AS INTEGER
+    DIM metadatalabels(3) AS STRING
+    metadatalabels(0) = "Text"
+    metadata(0) = YES '--by default, export text
+    metadatalabels(1) = "Conditionals"
+    metadatalabels(2) = "Choices"
+    metadatalabels(3) = "Appearance"
+   
+    IF askwhatmetadata(metadata(), metadatalabels()) = YES THEN
+     box_text_file = inputfilename("Filename for TextBox Export?", ".txt",,NO)
+     IF box_text_file <> "" THEN
+      box_text_file = box_text_file & ".txt"
+      overwrite = YES
+      IF isfile(box_text_file) THEN
+       overwrite = yesno("File already exists, overwrite?", NO)
+      END IF
+      IF overwrite THEN
+       IF export_textboxes(box_text_file, metadata()) THEN
+        notification "Successfully exported " & box_text_file
+       ELSE
+        notification "Failed to export " & box_text_file
+       END IF '--export_textboxes
+      END IF '--overwrite
+     END IF '--box_text_file <> ""
+    END IF '--metadata
+   END IF
+   IF state.pt = 10 THEN '-- Import text boxes from a .TXT file
+    SaveTextBox box, st.id
+    IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
+     box_text_file = browse(0, "", "*.txt", tmpdir, 0)
+     clearpage vpage
+     backup_say = tmpdir & "backup-textbox-lump.say"
+     '--make a backup copy of the .say lump
+     copyfile game & ".say", backup_say
+     IF NOT isfile(backup_say) THEN
+      notification "unable to save a backup copy of the text box data to " & backup_say
+     ELSE
+      '--Backup was successfuly, okay to proceed
+      remember_boxcount = gen(genMaxTextbox)
+      import_warn = ""
+      IF import_textboxes(box_text_file, import_warn) THEN
+       notification "Successfully imported """ & box_text_file & """." & import_warn
+      ELSE
+       'Failure! Reset, revert, abort, run-away!
+       gen(genMaxTextBox) = remember_boxcount
+       copyfile backup_say, game & ".say"
+       notification "Import failed, restoring backup. " & import_warn
+      END IF
+     END IF
+     LoadTextBox box, st.id
+    END IF
+   END IF
+  END IF
+  textcolor uilook(uiMenuItem), 0
+  IF state.pt = 1 THEN textcolor uilook(uiSelectedItem + state.tog), 0
+
+  IF st.id = 0 THEN
+    menu(1) = "Text Box 0 [template]"
+  ELSE
+    menu(1) = "Text Box " & st.id
+  END IF
+  menu(7) = "Text Search:" + st.search
+ 
+  '--Draw box
+  textbox_edit_preview box, st, 96
+
+  textcolor uilook(uiText), uilook(uiHighlight)
+  printstr "+ to create", 232, 0, dpage
+  printstr "ALT+C copy style", 192, 8, dpage
+  IF style_clip > 0 THEN printstr "ALT+V paste style", 184, 16, dpage
+  standardmenu menu(), state, 0, 0, dpage, YES
+
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ clearpage 0
+ clearpage 1
+ clearpage 2 '--is this needed?
+ clearpage 3 '--is this needed?
+ SaveTextBox box, st.id
+ WITH st.portrait
+  IF .sprite THEN sprite_unload @.sprite
+  IF .pal    THEN palette16_unload @.pal
+ END WITH
+ 'See wiki for .SAY file format docs
+END SUB
 
 SUB textbox_conditionals(BYREF box AS TextBox)
  DIM menu(-1 TO 22) AS STRING
@@ -946,14 +955,14 @@ SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, ov
  END WITH
 END SUB
 
-SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, m$())
+SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, menu() AS STRING)
  LoadTextBox box, st.id
- update_textbox_editor_main_menu box, m$()
+ update_textbox_editor_main_menu box, menu()
  st.search = ""
  load_text_box_portrait box, st.portrait
 END SUB
 
-SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
+SUB update_textbox_editor_main_menu (BYREF box AS TextBox, menu() AS STRING)
  IF box.after = 0 THEN
   box.after_tag = 0
  ELSE
@@ -961,18 +970,18 @@ SUB update_textbox_editor_main_menu (BYREF box AS TextBox, m$())
  END IF
  SELECT CASE box.after_tag
   CASE 0
-   m$(6) = "Next: None Selected"
+   menu(6) = "Next: None Selected"
   CASE -1
    IF box.after >= 0 THEN
-    m$(6) = "Next: Box " & box.after
+    menu(6) = "Next: Box " & box.after
    ELSE
-    m$(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger)
+    menu(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger)
    END IF
   CASE ELSE
    IF box.after >= 0 THEN
-    m$(6) = "Next: Box " & box.after & " (conditional)"
+    menu(6) = "Next: Box " & box.after & " (conditional)"
    ELSE
-    m$(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger) & " (conditional)"
+    menu(6) = "Next: script " & scriptname$(ABS(box.after), plottrigger) & " (conditional)"
    END IF
  END SELECT
 END SUB
