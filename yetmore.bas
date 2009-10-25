@@ -2971,7 +2971,7 @@ NEXT i
 END SUB
 
 FUNCTION vehiclestuff (disx as integer, disy as integer, vehedge as integer) as integer
-STATIC aheadx, aheady
+STATIC aheadx, aheady, aheadedge
 
 result = 0
 IF vstate.mounting THEN '--scramble-----------------------
@@ -3025,6 +3025,7 @@ IF vstate.init_dismount THEN '--dismount---------------
    vstate.ahead = YES
    aheadx = disx * 20
    aheady = disy * 20
+   aheadedge = vehedge
   ELSE
    vstate.trigger_cleanup = YES
   END IF
@@ -3067,7 +3068,7 @@ IF vstate.trigger_cleanup THEN '--clear
  gam.random_battle_countdown = range(100, 60)
 END IF
 IF vstate.ahead THEN '--ahead
- vehscramble vstate.ahead, YES, aheadx, aheady, vehedge, result
+ vehscramble vstate.ahead, YES, aheadx, aheady, aheadedge, result
 END IF
 IF vstate.active = YES AND vehicle_is_animating() = NO THEN
  IF txt.showing = NO AND readbit(gen(), 44, suspendplayer) = 0 THEN
