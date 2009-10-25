@@ -940,7 +940,7 @@ DO
   END IF
   IF csr2 = -4 THEN 'background
    IF intgrabber(a(32), 0, max(csr2 + 5)) THEN
-    loadpage game + ".mxs", a(32), 2
+    loadmxs game + ".mxs", a(32), vpages(2)
     bgwait = 0
     bgctr = 0
    END IF
@@ -949,7 +949,7 @@ DO
    IF xintgrabber(a(34), 2, max(csr2 + 5), 0, 0) THEN
     IF bgctr > a(34) THEN
      bgctr = 0
-     loadpage game + ".mxs", a(32), 2
+     loadmxs game + ".mxs", a(32), vpages(2)
     END IF
    END IF
   END IF
@@ -1012,7 +1012,7 @@ DO
   bgwait = (bgwait + 1) MOD a(35)
   IF bgwait = 0 THEN
    bgctr = loopvar(bgctr, 0, a(34), 1)
-   loadpage game + ".mxs", (bgctr + a(32)) MOD gen(genMaxBackdrop), 2
+   loadmxs game + ".mxs", (bgctr + a(32)) MOD gen(genMaxBackdrop), vpages(2)
   END IF
  END IF
  copypage 2, dpage
@@ -1064,7 +1064,7 @@ END SUB
 sub loadform(a() as integer, pt as integer)
  setpicstuf a(), 80, -1
  loadset game + ".for", pt, 0
- loadpage game + ".mxs", a(32), 2
+ loadmxs game + ".mxs", a(32), vpages(2)
 end sub
 
 sub saveform(a() as integer, pt as integer)

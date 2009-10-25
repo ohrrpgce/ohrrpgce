@@ -8,7 +8,6 @@
 #include "allmodex.bi"
 #include "common.bi"
 
-
 Type BrowseMenuEntry
 	kind as integer
 	filename as string
@@ -53,7 +52,8 @@ mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
 REDIM tree(255) AS BrowseMenuEntry
-DIM drive$(26), catfg(6), catbg(6), bmpd(4), f = -1
+DIM drive$(26), catfg(6), catbg(6), f = -1
+DIM bmpd as BitmapInfoHeader
 
 'tree().kind contains the type of each object in the menu
 '0 = Drive (Windows only)
@@ -225,8 +225,8 @@ SELECT CASE br.special
    END IF
   END IF
  CASE 2, 3
-  IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd()) THEN
-   alert$ = bmpd(1) & "*" & bmpd(2) & " pixels, " & bmpd(0) & "-bit color"
+  IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd) THEN
+   alert$ = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
   END IF
  CASE 4
   IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
@@ -246,11 +246,11 @@ SELECT CASE br.special
     END SELECT
    ELSE
     '.bmp file
-    IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd()) THEN
-     IF bmpd(0) = 24 THEN
-      alert$ = bmpd(1) & "*" & bmpd(2) & " pixels, " & bmpd(0) & "-bit color"
+    IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd) THEN
+     IF bmpd.biBitCount = 24 THEN
+      alert$ = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
      ELSE
-      alert$ = bmpd(0) & "-bit color BMP"
+      alert$ = bmpd.biBitCount & "-bit color BMP"
      END IF
     END IF
    END IF
@@ -491,7 +491,7 @@ RETRACE
 END FUNCTION
 
 SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
-DIM bmpd(4) AS INTEGER
+DIM bmpd AS BitmapInfoHeader
 DIM tempbuf(79)
 DIM f AS STRING
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
@@ -524,8 +524,8 @@ DO UNTIL EOF(fh)
  END IF
  '---4-bit BMP browsing
  IF br.special = 2 THEN
-  IF bmpinfo(f, bmpd()) THEN
-   IF bmpd(0) <> 4 OR bmpd(1) > 320 OR bmpd(2) > 200 THEN
+  IF bmpinfo(f, bmpd) THEN
+   IF bmpd.biBitCount <> 4 OR bmpd.biWidth > 320 OR bmpd.biHeight > 200 THEN
     tree(br.treesize).kind = 6
    END IF
   ELSE
@@ -534,8 +534,8 @@ DO UNTIL EOF(fh)
  END IF
  '---320x200x24/8bit BMP files
  IF br.special = 3 THEN
-  IF bmpinfo(f, bmpd()) THEN
-   IF (bmpd(0) <> 24 AND bmpd(0) <> 8) OR bmpd(1) <> 320 OR bmpd(2) <> 200 THEN
+  IF bmpinfo(f, bmpd) THEN
+   IF (bmpd.biBitCount <> 24 AND bmpd.biBitCount <> 8) OR bmpd.biWidth <> 320 OR bmpd.biHeight <> 200 THEN
     tree(br.treesize).kind = 6
    END IF
   ELSE
@@ -554,8 +554,8 @@ DO UNTIL EOF(fh)
     tree(br.treesize).kind = 6
    END IF
   ELSE
-   IF bmpinfo(f, bmpd()) THEN
-    IF (bmpd(0) = 8 OR bmpd(0) = 24 AND (bmpd(1) = 16 AND bmpd(2) = 16)) = 0 THEN tree(br.treesize).kind = 6
+   IF bmpinfo(f, bmpd) THEN
+    IF (bmpd.biBitCount = 8 OR bmpd.biBitCount = 24 AND (bmpd.biWidth = 16 AND bmpd.biHeight = 16)) = 0 THEN tree(br.treesize).kind = 6
    ELSE
     br.treesize = br.treesize - 1
    END IF

@@ -89,7 +89,7 @@ dim shared shop as string
 REM $STATIC
 SUB cropafter (index, limit, flushafter, lump$, bytes, prompt)
 
-'if bytes is negative, then pages are used. flushafter becomes the working page number
+'if bytes is negative, then pages are used.
 
 'flushafter -1 = no flush
 'flushafter 0 = record flush
@@ -127,8 +127,9 @@ IF bytes >= 0 THEN
  
 ELSE '--use pages instead of sets
  FOR i = 0 TO index
-  loadpage lump$, i, flushafter
-  storepage tmpdir & "_cropped.tmp", i, flushafter
+  DIM temppage as Frame ptr = loadmxs(lump$, i)
+  storemxs(tmpdir & "_cropped.tmp", i, temppage)
+  sprite_unload @temppage
  NEXT i
  limit = index
  
@@ -1140,7 +1141,7 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
  DIM holdscreen AS INTEGER
  holdscreen = allocatepage
  IF box.backdrop > 0 THEN
-  loadpage game & ".mxs", box.backdrop - 1, holdscreen
+  loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
  END IF
 
  DIM i AS INTEGER
@@ -1192,7 +1193,7 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
      state.need_update = YES
      clearpage holdscreen
      IF box.backdrop > 0 THEN
-      loadpage game & ".mxs", box.backdrop - 1, holdscreen
+      loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
      END IF
     END IF
    CASE 6: state.need_update = zintgrabber(box.music, -1, gen(genMaxSong))

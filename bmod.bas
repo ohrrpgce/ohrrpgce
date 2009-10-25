@@ -174,7 +174,7 @@ DO
   bgspeed = loopvar(bgspeed, 0, formdata(35), 1)
   IF bgspeed = 0 THEN
    bat.curbg = loopvar(bat.curbg, formdata(32), formdata(32) + formdata(34), 1)
-   loadpage game + ".mxs", bat.curbg MOD gen(genMaxBackdrop), 2
+   loadmxs game + ".mxs", bat.curbg MOD gen(genMaxBackdrop), vpages(2)
   END IF
  END IF
 
@@ -1207,7 +1207,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  NEXT i
  
  bat.curbg = formdata(32)
- loadpage game + ".mxs", bat.curbg, 2
+ loadmxs game + ".mxs", bat.curbg, vpages(2)
  
  '--This checks weak/dead status for heroes
  '-- who are already weak/dead at the beginning of battle

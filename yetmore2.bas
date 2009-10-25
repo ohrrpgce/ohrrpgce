@@ -421,17 +421,17 @@ SUB correctbackdrop
 
 IF gen(genTextboxBackdrop) THEN
  '--restore text box backdrop
- loadpage game + ".mxs", gen(genTextboxBackdrop) - 1, 3
+ loadmxs game + ".mxs", gen(genTextboxBackdrop) - 1, vpages(3)
  EXIT SUB
 END IF
 
 IF gen(genScrBackdrop) THEN
  '--restore script backdrop
- loadpage game + ".mxs", gen(genScrBackdrop) - 1, 3
+ loadmxs game + ".mxs", gen(genScrBackdrop) - 1, vpages(3)
  EXIT SUB
 END IF
 
-'loadpage game + ".til", gmap(0), 3
+'loadmxs game + ".til", gmap(0), vpages(3)
 
 END SUB
 
@@ -585,7 +585,7 @@ END SUB
 
 FUNCTION titlescr () as integer
 titlescr = -1 ' default return true for success
-loadpage game + ".mxs", gen(genTitle), 3
+loadmxs game + ".mxs", gen(genTitle), vpages(3)
 needf = 2
 IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
 setkeys

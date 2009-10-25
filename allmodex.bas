@@ -9,7 +9,6 @@ include_windows_bi()
 #include "allmodex.bi"
 #include "gfx.bi"
 #include "music.bi"
-#include "bitmap.bi"
 #include "util.bi"
 #include "const.bi"
 #include "uiconst.bi"
@@ -29,8 +28,10 @@ end type
 
 declare sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
-declare SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
-declare SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
+declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
+declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
+declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
+declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 
 'used for map and pass
 DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, byval l as integer, BYVAL mp as integer ptr)
@@ -774,7 +775,7 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 					pic(p) = pic(p) or (*sptr and &h0f)
 					p += 1
 			end select
-			sptr += 320
+			sptr += vpages(page)->pitch
 			nyb += 1
 			nyb = nyb and &h03
 		next
@@ -1320,85 +1321,75 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 
 end SUB
 
-SUB storepage (fil$, BYVAL i as integer, BYVAL p as integer)
+SUB storemxs (fil$, BYVAL record as integer, BYVAL fr as Frame ptr)
 'saves a screen page to a file. Doesn't support non-320x200 pages
 	dim f as integer
-	dim idx as integer
-	dim bi as integer
-	dim ub as ubyte
+	dim as integer x, y
 	dim sptr as ubyte ptr
-	dim scrnbase as ubyte ptr
 	dim plane as integer
-
-	if wrkpage <> p then
-		setclip , , , , p
-	end if
 
 	if NOT fileiswriteable(fil$) then exit sub
 	f = freefile
 	open fil$ for binary access read write as #f
 
 	'skip to index
-	seek #f, (i*64000) + 1 'will this work with write access?
+	seek #f, (record*64000) + 1 'will this work with write access?
 
 	'modex format, 4 planes
-	scrnbase = vpages(p)->image
 	for plane = 0 to 3
-		sptr = scrnbase + plane
+		for y = 0 to 199
+			sptr = fr->image + fr->pitch * y + plane
 
-		for idx = 0 to (16000 - 1) '1/4 of a screenfull
-			ub = *sptr
-			put #f, , ub
-			sptr = sptr + 4
+			for x = 0 to (80 - 1) '1/4 of a row
+				put #f, , *sptr
+				sptr = sptr + 4
+			next
 		next
 	next
 
 	close #f
 end SUB
 
-SUB loadpage (fil$, BYVAL i as integer, BYVAL p as integer)
-'loads a whole page from a file. Doesn't support non-320x200 pages
+FUNCTION loadmxs (fil$, BYVAL record as integer, BYVAL dest as Frame ptr = NULL) as Frame ptr
+'loads a 320x200 mode X format page from a file.
+'You may optionally pass in existing frame to load into.
 	dim f as integer
-	dim idx as integer
-	dim bi as integer
-	dim ub as ubyte
+	dim as integer x, y
 	dim sptr as ubyte ptr
-	dim scrnbase as ubyte ptr
 	dim plane as integer
 
-	if wrkpage <> p then
-		setclip , , , , p
-	end if
-
-	if NOT fileisreadable(fil$) then exit sub
+	if NOT fileisreadable(fil$) then return 0
 	f = freefile
 	open fil$ for binary access read as #f
 
-	if lof(f) < (i + 1) * 64000 then
-		debug "loadpage: wanted page " & i & "; " & fil$ & " is only " & lof(f) & " bytes"
-		clearpage p
+	if lof(f) < (record + 1) * 64000 then
+		debug "loadpage: wanted page " & record & "; " & fil$ & " is only " & lof(f) & " bytes"
 		close #f
-		exit sub
+		return dest
 	end if
 
 	'skip to index
-	seek #f, (i*64000) + 1
+	seek #f, (record*64000) + 1
+
+	if dest = NULL then
+		dest = sprite_new(320, 200)
+	end if
 
 	'modex format, 4 planes
-	scrnbase = vpages(p)->image
 	for plane = 0 to 3
-		sptr = scrnbase + plane
+		for y = 0 to 199
+			sptr = dest->image + dest->pitch * y + plane
 
-		for idx = 0 to (16000 - 1) '1/4 of a screenfull
-			get #f, , ub
-			*sptr = ub
-			sptr = sptr + 4
+			for x = 0 to (80 - 1) '1/4 of a row
+				get #f, , *sptr
+				sptr = sptr + 4
+			next
 		next
 	next
 
 	close #f
-
-end SUB
+	return dest
+end FUNCTION
 
 SUB setwait (BYVAL t as integer, BYVAL flagt as integer = 0)
 't is a value in milliseconds which, in the original, is used to set the event
@@ -1724,12 +1715,12 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 	font->offset.y = 0
 	font->cols = 1
 
-	dim as integer bmpstuff(4)
 	dim as ubyte ptr image = allocate(4096)
 	dim as ubyte ptr sptr
 	dim as integer size = 0
 	dim as integer i, x, y
 	dim f as string
+	dim tempfr as Frame ptr
 	dim bchr as FontChar ptr
 	bchr = @fallback->sprite(1)->chdata(0)
 
@@ -1738,26 +1729,20 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 		with font->sprite(1)->chdata(i)
 			f = "testfont" & SLASH & i & ".bmp"
 			if isfile(f) then
-				bmpinfo(f, bmpstuff())
-
-				bitmap2page(master(), f, 2)
+				'FIXME: awful stuff
+				tempfr = sprite_import_bmp_raw(f)  ', master())
 
 				.offset = size
 				.offx = 0
 				.offy = 0
-				.w = bmpstuff(1)
-				.h = bmpstuff(2)
+				.w = tempfr->w
+				.h = tempfr->h
 				font->w(i) = .w
 				size += .w * .h
 				image = reallocate(image, size)
 				sptr = image + .offset
-				for y = 0 to .h - 1
-					for x = 0 to .w - 1
-						'bitmap2page to blame
-						*sptr = vpages(2)->image[y * vpages(2)->pitch + x]
-						sptr += 1
-					next
-				next
+				memcpy(sptr, tempfr->image, .w * .h)
+				sprite_unload @tempfr
 			else
 				if iif(fallback = null, YES, fallback->sprite(1) = null) then
 					debug "font_loadbmps: fallback font not provided"
@@ -2989,120 +2974,41 @@ end function
 'Bitmap import functions - other formats are probably quite simple
 'with Allegro or SDL or FreeImage, but we'll stick to this for now.
 '----------------------------------------------------------------------
-SUB bitmap2page (pal() as RGBcolor, bmp$, BYVAL p)
-'loads the 24- or 8-bit bitmap bmp$ into page p with palette pal()
-'This is normally, but not always, called with 320x200 pics
-'TODO/FIXME: Haven't fully translated to new Frame vpages yet, because this
-'should just wrap around a bmp->frame loader
+FUNCTION sprite_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
+'loads the 24-bit bitmap bmp$, mapped to palette pal()
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
-	dim pix as RGBTRIPLE
-	dim pix8 as UByte
 	dim bf as integer
-	dim as integer w, h, maxw, maxh
-	dim as ubyte ptr sptr, sbase
-	dim ub as ubyte
-	dim pad as integer
+	dim ret as Frame ptr
 
-	if NOT fileisreadable(bmp$) then exit sub
+	if NOT fileisreadable(bmp) then return 0
 	bf = freefile
-	open bmp$ for binary access read as #bf
+	open bmp for binary access read as #bf
 
 	get #bf, , header
 	if header.bfType <> 19778 then
 		'not a bitmap
 		close #bf
-		exit sub
+		return 0
 	end if
 
 	get #bf, , info
 
-	if info.biBitCount <> 24 AND info.biBitCount <> 8 then
+	if info.biBitCount <> 24 then
 		close #bf
-		exit sub
+		return 0
 	end if
-
-	sbase = vpages(p)->image
-
 
 	'navigate to the beginning of the bitmap data
 	seek #bf, header.bfOffBits + 1
 
+	ret = sprite_new(info.biWidth, info.biHeight)
 
-	IF info.biBitCount = 24 THEN
-		'data lines are padded to 32-bit boundaries
-		pad = 4 - ((info.biWidth * 3) mod 4)
-		if pad = 4 then	pad = 0
-		'crop images larger than screen
-		maxw = info.biWidth - 1
-		if maxw > 319 then
-			maxw = 319
-			pad = pad + ((info.biWidth - 320) * 3)
-		end if
-		maxh = info.biHeight - 1
-		if maxh > 199 then
-			maxh = 199
-		end if
-		for h = info.biHeight - 1 to 0 step -1
-			if h > maxh then
-				for w = 0 to maxw
-					'read the data
-					get #bf, , pix
-				next
-			else
-				sptr = sbase + (h * 320)
-				for w = 0 to maxw
-					'read the data
-					get #bf, , pix
-					*sptr = nearcolor(pal(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
-					sptr += 1
-				next
-			end if
-
-			'padding to dword boundary, plus excess pixels
-			for w = 0 to pad-1
-				get #bf, , ub
-			next
-		next
-	ELSEIF info.biBitCount = 8 THEN
-		'data lines are padded to 32-bit boundaries
-		pad = 4 - (info.biWidth mod 4)
-		if pad = 4 then	pad = 0
-		'crop images larger than screen
-		maxw = info.biWidth - 1
-		if maxw > 319 then
-			maxw = 319
-			pad = pad + ((info.biWidth - 320) * 3)
-		end if
-		maxh = info.biHeight - 1
-		if maxh > 199 then
-			maxh = 199
-		end if
-		for h = info.biHeight - 1 to 0 step -1
-			if h > maxh then
-				for w = 0 to maxw
-					'read the data
-					get #bf, , pix
-				next
-			else
-				sptr = sbase + (h * 320)
-				for w = 0 to maxw
-					'read the data
-					get #bf, , pix8 'assume they know what they're doing
-					*sptr = pix8
-					sptr += 1
-				next
-			end if
-
-			'padding to dword boundary, plus excess pixels
-			for w = 0 to pad-1
-				get #bf, , ub
-			next
-		next
-	END IF
+	loadbmp24(bf, ret, pal())
 
 	close #bf
-END SUB
+	return ret
+END FUNCTION
 
 SUB bitmap2pal (bmp$, pal() as RGBcolor)
 'loads the 24-bit 16x16 palette bitmap bmp$ into palette pal()
@@ -3147,126 +3053,145 @@ SUB bitmap2pal (bmp$, pal() as RGBcolor)
 	close #bf
 END SUB
 
-SUB loadbmp (f$, BYVAL x, BYVAL y, BYVAL p)
-'loads the 4-bit bitmap f$ into page p at x, y
-'sets palette to match file???
-'TODO/FIXME: Haven't fully translated to new Frame vpages yet, because this
-'should just wrap around a bmp->frame loader
+FUNCTION sprite_import_bmp_raw(bmp as string) as Frame ptr
+'load a 4- or 8-bit .BMP, ignoring the palette
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
 	dim bf as integer
-	dim as integer maxw, maxh
-	dim sbase as ubyte ptr
-	dim i as integer
-	dim col as RGBQUAD
+	dim ret as frame ptr
 
-	if NOT fileisreadable(f$) then exit sub
+	if NOT fileisreadable(bmp) then return 0
 	bf = freefile
-	open f$ for binary access read as #bf
+	open bmp for binary access read as #bf
 
 	get #bf, , header
 	if header.bfType <> 19778 then
 		'not a bitmap
 		close #bf
-		exit sub
+		return 0
 	end if
 
 	get #bf, , info
 
-	if info.biBitCount <> 4 then
+	if info.biBitCount <> 4 and info.biBitCount <> 8 then
 		close #bf
-		exit sub
+		return 0
 	end if
 
 	'use header offset to get to data
 	seek #bf, header.bfOffBits + 1
 
-	sbase = vpages(p)->image + (y * 320) + x
+	ret = sprite_new(info.biWidth, info.biHeight, , 1)
 
-	'crop images larger than screen
-	maxw = info.biWidth - 1
-	if maxw > 319 - x then	maxw = 319 - x
-	maxh = info.biHeight - 1
-	if maxh > 199 - y then 	maxh = 199 - y
-
-	'call one of two loaders depending on compression
-	if info.biCompression = BI_RGB then
-		loadbmp4(bf, info.biWidth, info.biHeight, maxw, maxh, sbase)
-	elseif info.biCompression = BI_RLE4 then
-		loadbmprle4(bf, info.biWidth, info.biHeight, maxw, maxh, sbase)
+	if info.biBitCount = 4 then
+		'call one of two loaders depending on compression
+		if info.biCompression = BI_RGB then
+			loadbmp4(bf, ret)
+		elseif info.biCompression = BI_RLE4 then
+			loadbmprle4(bf, ret)
+		end if
+	else
+		loadbmp8(bf, ret)
 	end if
 
 	close #bf
-END SUB
+	return ret
+END FUNCTION
 
-SUB loadbmp4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
-'takes an open file handle and a screen pointer, should only be called within loadbmp
-'TODO/FIXME: see loadbmp
-	dim pix as ubyte
+PRIVATE SUB loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
+'takes an open file handle, an already size Frame pointer, and a 256 colour palette to map to
+	dim pix as RGBTRIPLE
 	dim ub as ubyte
-	dim linelen as integer
-	dim toggle as integer
-	dim bcount as integer
 	dim as integer w, h
 	dim sptr as ubyte ptr
+	dim pad as integer
 
-	linelen = (iw + 1) \ 2 	'num of bytes
-	linelen = ((linelen + 3) \ 4) * 4 	'nearest dword bound
+	'data lines are padded to 32-bit boundaries
+	pad = 4 - ((fr->w * 3) mod 4)
+	if pad = 4 then	pad = 0
 
-	for h = ih - 1 to 0 step -1
-		bcount = 0
-		toggle = 0
-		if h > maxh then
-			for w = 0 to maxw
-				if toggle = 0 then
-					'read the data
-					get #bf, , pix
-					toggle = 1
-					bcount += 1
-				else
-					toggle = 0
-				end if
-			next
-		else
-			sptr = sbase + (h * 320)
-			for w = 0 to maxw
-				if toggle = 0 then
-					'read the data
-					get #bf, , pix
-					*sptr = (pix and &hf0) shr 4
-					sptr += 1
-					toggle = 1
-					bcount += 1
-				else
-					'2nd nybble in byte
-					*sptr = pix and &h0f
-					sptr += 1
-					toggle = 0
-				end if
-			next
-		end if
-
-		'padding to dword boundary, plus excess pixels
-		while bcount < linelen
+	for h = fr->h - 1 to 0 step -1
+		sptr = fr->image + h * fr->pitch
+		for w = 0 to fr->w - 1
+			'read the data
+			get #bf, , pix
+			*sptr = nearcolor(pal(), pix.rgbtRed, pix.rgbtGreen, pix.rgbtBlue)
+			sptr += 1
+		next
+			'padding to dword boundary
+		for w = 0 to pad-1
 			get #bf, , ub
-			bcount += 1
-		wend
+		next
 	next
 END SUB
 
-SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, byval maxw as integer, byval maxh as integer, byval sbase as ubyte ptr)
-'takes an open file handle and a screen pointer, should only be called within loadbmp
-'TODO/FIXME: see loadbmp
-	dim pix as ubyte
+PRIVATE SUB loadbmp8(byval bf as integer, byval fr as Frame ptr)
+'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
 	dim ub as ubyte
-	dim toggle as integer
 	dim as integer w, h
 	dim sptr as ubyte ptr
+	dim pad as integer
+
+	pad = 4 - (fr->w mod 4)
+	if pad = 4 then	pad = 0
+
+	for h = fr->h - 1 to 0 step -1
+		sptr = fr->image + h * fr->pitch
+		for w = 0 to fr->w - 1
+			'read the data
+			get #bf, , ub
+			*sptr = ub
+			sptr += 1
+		next
+
+		'padding to dword boundary
+		for w = 0 to pad-1
+			get #bf, , ub
+		next
+	next
+END SUB
+
+PRIVATE SUB loadbmp4(byval bf as integer, byval fr as Frame ptr)
+'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
+	dim ub as ubyte
+	dim as integer w, h
+	dim sptr as ubyte ptr
+	dim pad as integer
+
+	pad = 4 - ((fr->w / 2) mod 4)
+	if pad = 4 then	pad = 0
+
+	for h = fr->h - 1 to 0 step -1
+		sptr = fr->image + h * fr->pitch
+		for w = 0 to fr->w - 1
+			if w and 1 = 0 then
+				'read the data
+				get #bf, , ub
+				*sptr = (ub and &hf0) shr 4
+			else
+				'2nd nybble in byte
+				*sptr = ub and &h0f
+			end if
+			sptr += 1
+		next
+
+		'padding to dword boundary
+		for w = 0 to pad - 1
+			get #bf, , ub
+		next
+	next
+END SUB
+
+PRIVATE SUB loadbmprle4(byval bf as integer, byval fr as Frame ptr)
+'takes an open file handle and an already size Frame pointer, should only be called within loadbmp
+	dim pix as ubyte
+	dim ub as ubyte
+	dim as integer w, h
 	dim i as integer
 	dim as ubyte bval, v1, v2
 
 	w = 0
-	h = ih -1
+	h = fr->h - 1
 
 	'read bytes until we're done
 	while not eof(bf)
@@ -3287,20 +3212,14 @@ SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, b
 						get #bf, , ub
 						h = h + ub
 					case else	'absolute mode
-						toggle = 0
 						for i = 1 to ub
-							if toggle = 0 then
+							if i and 1 then
 								get #bf, , pix
-								toggle = 1
 								bval = (pix and &hf0) shr 4
 							else
-								toggle = 0
 								bval = pix and &h0f
 							end if
-							if h <= maxh and w <= maxw then
-								sptr = sbase + (h * 320) + w
-								*sptr = bval
-							end if
+							fr->image[h * fr->pitch + w] = bval
 							w += 1
 						next
 						if (ub + 1) mod 4 > 1 then	'is this right?
@@ -3312,19 +3231,13 @@ SUB loadbmprle4(byval bf as integer, byval iw as integer, byval ih as integer, b
 				v1 = (pix and &hf0) shr 4
 				v2 = pix and &h0f
 
-				toggle = 0
 				for i = 1 to ub
-					if toggle = 0 then
-						toggle = 1
+					if i and 1 then
 						bval = v1
 					else
-						toggle = 0
 						bval = v2
 					end if
-					if h <= maxh and w <= maxw then
-						sptr = sbase + (h * 320) + w
-						*sptr = bval
-					end if
+					fr->image[h * fr->pitch + w] = bval
 					w += 1
 				next
 		end select
@@ -3403,9 +3316,8 @@ SUB convertbmppal (f$, mpal() as RGBcolor, pal(), BYVAL o)
 	end if
 END SUB
 
-FUNCTION bmpinfo (f$, dat()) as integer
+FUNCTION bmpinfo (f$, byref dat as BITMAPINFOHEADER) as integer
 	dim header as BITMAPFILEHEADER
-	dim info as BITMAPINFOHEADER
 	dim bf as integer
 
 	if NOT fileisreadable(f$) then return 0
@@ -3420,18 +3332,7 @@ FUNCTION bmpinfo (f$, dat()) as integer
 		exit function
 	end if
 
-	get #bf, , info
-
-	'only these 4 fields are returned by the asm
-	dat(0) = info.biBitCount
-	dat(1) = info.biWidth
-	dat(2) = info.biHeight
-	'seems to be a gap here, or all 4 bytes of height are returned
-	'but I doubt this will be relevant anyway
-	dat(3) = 0
-	dat(4) = info.biCompression
-	'code doesn't actually seem to use anything higher than 2 anway
-
+	get #bf, , dat
 	close #bf
 
 	bmpinfo = -1

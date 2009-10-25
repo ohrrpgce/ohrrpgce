@@ -901,15 +901,15 @@ END SUB
 
 FUNCTION importmasterpal (f$, palnum)
 STATIC default$
-DIM bmpd(4) AS INTEGER
+DIM bmpd AS BitmapInfoHeader
 IF f$ = "" THEN f$ = browse$(4, default$, "", "")
 IF f$ <> "" THEN
  IF LCASE$(justextension$(f$)) = "mas" THEN
   xbload f$, buffer(), "MAS load error"
   convertpalette buffer(), master()
  ELSE
-  bmpinfo(f$, bmpd())
-  IF bmpd(0) = 24 THEN
+  bmpinfo(f$, bmpd)
+  IF bmpd.biBitCount = 24 THEN
    bitmap2pal f$, master()
   ELSE
    loadbmppal f$, master()
@@ -948,7 +948,7 @@ END SUB
 
 'FIXME:recursively enter backdrop editor instead?
 SUB titlescreenbrowse
-loadpage game + ".mxs", gen(genTitle), 2
+loadmxs game + ".mxs", gen(genTitle), vpages(2)
 setkeys
 gcsr = 0
 DO
@@ -961,7 +961,7 @@ DO
  IF keyval(scDown) > 1 AND gcsr = 0 THEN gcsr = 1
  IF gcsr = 1 THEN
   IF intgrabber(gen(genTitle), 0, gen(genMaxBackdrop) - 1) THEN 
-   loadpage game + ".mxs", gen(genTitle), 2
+   loadmxs game + ".mxs", gen(genTitle), vpages(2)
   END IF
  END IF
  IF enter_or_space() THEN

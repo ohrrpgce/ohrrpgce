@@ -144,7 +144,9 @@ END SUB
 
 SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
 STATIC default AS STRING
-DIM palmapping(255) AS INTEGER, bmpd(4) AS INTEGER
+DIM palmapping(255) AS INTEGER
+DIM bmpd AS BitmapInfoHeader
+DIM img as Frame ptr
 DIM pmask(255) as RGBcolor, temppal(255) as RGBcolor
 DIM menu(6) AS STRING, submenu(2) AS STRING
 DIM mstate as MenuState
@@ -169,7 +171,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 loadpalette pmask(), activepalette
-loadpage game + f, pt, 2
+loadmxs game + f, pt, vpages(2)
 
 setkeys
 DO
@@ -185,7 +187,7 @@ DO
  usemenu mstate
  IF intgrabber(pt, 0, count - 1) THEN
   menu(1) = CHR(27) + "Browse " & pt & CHR(26)
-  loadpage game + f, pt, 2
+  loadmxs game + f, pt, vpages(2)
  END IF
  IF enter_or_space() THEN
   IF mstate.pt = 0 THEN EXIT DO
@@ -194,7 +196,7 @@ DO
    IF srcbmp$ <> "" THEN
     GOSUB bimport
    END IF
-   loadpage game + f, pt, 2
+   loadmxs game + f, pt, vpages(2)
   END IF
   IF mstate.pt = 3 AND count < 32767 THEN
    srcbmp$ = browse$(3, default, "*.bmp", "")
@@ -205,7 +207,7 @@ DO
     IF pt = count THEN pt = oldpt 'cancelled
    END IF
    menu(1) = CHR(27) + "Browse " & pt & CHR(26)
-   loadpage game + f, pt, 2
+   loadmxs game + f, pt, vpages(2)
   END IF
   IF mstate.pt = 4 THEN GOSUB disable
   IF mstate.pt = 5 THEN
@@ -268,9 +270,9 @@ DO
 LOOP
 
 bimport:
-bmpinfo(srcbmp$, bmpd())
+bmpinfo(srcbmp$, bmpd)
 paloption = 2
-IF bmpd(0) = 8 THEN
+IF bmpd.biBitCount = 8 THEN
  loadbmppal srcbmp$, temppal()
  IF memcmp(@temppal(0), @master(0), 256 * sizeof(RGBcolor)) <> 0 THEN
   paloption = sublist(submenu$(), "importbmp_palette")
@@ -282,17 +284,20 @@ IF bmpd(0) = 8 THEN
    LoadUIColors uilook(), activepalette
   END IF
  END IF
-END IF
-bitmap2page pmask(), srcbmp$, 3
-IF paloption = 0 THEN
- convertbmppal srcbmp$, pmask(), palmapping(), 0
- FOR y = 0 TO 199
-  FOR x = 0 TO 319
-   putpixel x, y, palmapping(readpixel(x, y, 3)), 3
+ img = sprite_import_bmp_raw(srcbmp$)
+ IF paloption = 0 THEN
+  convertbmppal srcbmp$, pmask(), palmapping(), 0
+  FOR y = 0 TO img->h - 1
+   FOR x = 0 TO img->w - 1
+    putpixel img, x, y, palmapping(readpixel(img, x, y))
+   NEXT
   NEXT
- NEXT
+ END IF
+ELSE
+ img = sprite_import_bmp24(srcbmp$, pmask())
 END IF
-storepage game + f$, pt, 3
+storemxs game + f$, pt, img
+sprite_unload @img
 IF pt >= count THEN count = pt + 1
 loadpalette pmask(), activepalette
 RETRACE
@@ -325,11 +330,11 @@ DO
   IF needaddset(pagenum, gen(genMaxTile), "tile set") THEN
    WHILE pagenum > top + 20: top = top + 1: WEND
    clearpage 3
-   storepage mapfile$, pagenum, 3
+   storemxs mapfile$, pagenum, vpages(3)  'lazy
   END IF
  END IF
  IF usemenu(pagenum, top, -1, gen(genMaxTile), 20) THEN
-  IF pagenum = -1 THEN clearpage 3 ELSE loadpage mapfile$, pagenum, 3
+  IF pagenum = -1 THEN clearpage 3 ELSE loadmxs mapfile$, pagenum, vpages(3)
  END IF
  IF enter_or_space() AND pagenum = -1 THEN EXIT DO
  IF enter_or_space() AND pagenum > -1 THEN GOSUB tilemode
@@ -777,7 +782,7 @@ IF tmode = 3 THEN
  bitmenu$(7) = "Overhead Tile"
 END IF    
 
-loadpage mapfile$, pagenum, 3
+loadmxs mapfile$, pagenum, vpages(3)
 'pick block to draw/import/default
 bnum = 0
 setkeys
@@ -788,7 +793,7 @@ DO
  IF ts.gotmouse THEN
   readmouse mouse()
  END IF
- IF keyval(scESC) > 1 THEN storepage mapfile$, pagenum, 3: EXIT DO
+ IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN
   IF tmode = 3 THEN
    show_help "default_passability"
@@ -868,6 +873,7 @@ DO
  setvispage vpage
  dowait
 LOOP
+storemxs mapfile$, pagenum, vpages(3)
 IF tmode = 3 THEN
  savepasdefaults defaults(), pagenum
 END IF
@@ -1423,9 +1429,9 @@ END IF
 ts.delay = 3
 previewticks = 0
 IF ts.cuttileset THEN
- loadpage game + ".til", ts.cutfrom, 2
+ loadmxs game + ".til", ts.cutfrom, vpages(2)
 ELSE
- loadpage game + ".mxs", ts.cutfrom, 2
+ loadmxs game + ".mxs", ts.cutfrom, vpages(2)
 END IF
 setkeys
 DO
@@ -1484,7 +1490,7 @@ DO
  IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, -1)
  IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, 1)
  IF oldcut <> ts.cutfrom THEN
-  IF ts.cuttileset THEN loadpage game + ".til", ts.cutfrom, 2 ELSE loadpage game + ".mxs", ts.cutfrom, 2
+  IF ts.cuttileset THEN loadmxs game + ".til", ts.cutfrom, vpages(2) ELSE loadmxs game + ".mxs", ts.cutfrom, vpages(2)
  END IF
  '----
  IF previewticks THEN
@@ -2660,11 +2666,15 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
  'PICK BACKGROUND COLOR
  
  clearpage dpage
+ DIM impsprite AS Frame ptr
  DIM holdscreen AS INTEGER
- holdscreen = allocatepage
 
- 'This loads the BMP onto a temporary screen page
- loadbmp srcbmp, 0, 0, holdscreen
+ 'Load the bmp, and then alias it to a page because the rest of this function has
+ 'not been rewritten for sanity yet
+ impsprite = sprite_import_bmp_raw(srcbmp)
+ 'holdscreen = registerpage(impsprite)
+ holdscreen = allocatepage
+ sprite_draw impsprite, 0, 0, 0, 1, 0,  holdscreen
 
  'Temporaraly update the palette. This will be done again after the transparent color is chosen
  DIM temppal(7)
@@ -2679,11 +2689,9 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
  DIM temp_placer(2 + (ss.wide * ss.high * ss.perset) \ 4) AS INTEGER
  pickpos.x = 0
  pickpos.y = 0
- DIM bmpd(40) AS INTEGER 'Temp buffer for holding BMP header
- bmpinfo srcbmp, bmpd()
  '--set up cursor
- picksize.x = small(320, small(bmpd(1), ss.wide))
- picksize.y = small(200, small(bmpd(2), ss.high))
+ picksize.x = small(320, small(impsprite->w, ss.wide))
+ picksize.y = small(200, small(impsprite->h, ss.high))
  
  setkeys
  DO
@@ -2693,6 +2701,7 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
   IF keyval(scESC) > 1 THEN 
   '--Cancel
    freepage holdscreen
+   sprite_unload @impsprite
    EXIT SUB
   END IF
   IF keyval(scF1) > 1 THEN show_help "sprite_import16_pickbackground"
@@ -2737,8 +2746,9 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
  END IF
  '--read the sprite
  getsprite placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
- '--free the temp screen page
+ '--free the sprite and page it was aliased to
  freepage holdscreen
+ sprite_unload @impsprite
 END SUB
 
 SUB spriteedit_rotate_sprite(sprbuf() AS INTEGER, ss AS SpriteEditState, counterclockwise AS INTEGER=NO)

@@ -1196,7 +1196,7 @@ updateback:
    backpage = 2
  END SELECT
  IF wantset <> currentset THEN
-  loadpage game + ".til", wantset, 3
+  loadmxs game + ".til", wantset, vpages(3)
   currentset = wantset
  END IF
  RETRACE

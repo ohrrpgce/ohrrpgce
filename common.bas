@@ -2930,7 +2930,7 @@ SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEG
   'debug "loading tileset " & tilesetnum
 
   dim page = allocatepage
-  loadpage game + ".til", tilesetnum, page
+  loadmxs game + ".til", tilesetnum, vpages(page)
   loadtileset .spr, page
   freepage page
   loadtanim tilesetnum, .tastuf()

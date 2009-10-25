@@ -5,6 +5,7 @@
 
 #include "udts.bi"
 #include "compat.bi"
+#include "bitmap.bi"
 
 'Library routines
 DECLARE SUB setmodex ()
@@ -46,8 +47,8 @@ DECLARE SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as intege
 DECLARE SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer)
-DECLARE SUB storepage (fil as string, BYVAL i as integer, BYVAL p as integer)
-DECLARE SUB loadpage (fil as string, BYVAL i as integer, BYVAL p as integer)
+DECLARE SUB storemxs (fil as string, BYVAL record as integer, BYVAL fr as Frame ptr)
+DECLARE FUNCTION loadmxs (fil as string, BYVAL record as integer, BYVAL dest as Frame ptr = 0) as Frame ptr
 DECLARE SUB setwait (BYVAL t as integer, BYVAL flagt as integer = 0)
 DECLARE FUNCTION dowait () as integer
 DECLARE SUB printstr OVERLOAD (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f as Font, BYREF pal as Palette16, BYVAL p as integer)
@@ -65,7 +66,6 @@ DECLARE FUNCTION loadrecord overload (buf() as integer, filename as string, reco
 DECLARE SUB storerecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
 DECLARE SUB storerecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0)
 DECLARE SUB fixspriterecord (buf() as integer, w as integer, h as integer)
-DECLARE SUB bitmap2page (pal() as RGBcolor, bmp as string, BYVAL p as integer)
 DECLARE SUB findfiles (fmask as string, BYVAL attrib as integer, outfile as string)
 DECLARE SUB lumpfiles (listf as string, lump as string, path as string)
 DECLARE SUB unlump(lump as string, ulpath as string)
@@ -87,12 +87,13 @@ DECLARE SUB setfmvol (BYVAL vol as integer)
 DECLARE SUB copyfile (s as string, d as string)
 DECLARE SUB screenshot (f as string, BYVAL p as integer, maspal() as RGBcolor)
 DECLARE SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
-DECLARE SUB loadbmp (f as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
+DECLARE FUNCTION sprite_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
+DECLARE FUNCTION sprite_import_bmp_raw(bmp as string) as Frame ptr
 DECLARE SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
 DECLARE SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, BYVAL o as integer)
 DECLARE FUNCTION nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
-DECLARE FUNCTION bmpinfo (f as string, dat() as integer) as integer
+DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapInfoHeader) as integer
 DECLARE SUB array2str (arr() as integer, BYVAL o as integer, s as string)
 DECLARE SUB str2array (s as string, arr() as integer, BYVAL o as integer)
 DECLARE SUB setupstack ()
