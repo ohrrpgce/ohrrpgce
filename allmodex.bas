@@ -3164,7 +3164,7 @@ PRIVATE SUB loadbmp4(byval bf as integer, byval fr as Frame ptr)
 	for h = fr->h - 1 to 0 step -1
 		sptr = fr->image + h * fr->pitch
 		for w = 0 to fr->w - 1
-			if w and 1 = 0 then
+			if (w and 1) = 0 then
 				'read the data
 				get #bf, , ub
 				*sptr = (ub and &hf0) shr 4
