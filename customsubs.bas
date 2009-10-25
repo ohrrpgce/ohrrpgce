@@ -849,7 +849,7 @@ END SUB
 FUNCTION load_vehicle_name(vehID AS INTEGER) AS STRING
  IF vehID < 0 OR vehID > gen(genMaxVehicle) THEN RETURN ""
  DIM vehicle AS VehicleData
- LoadVehicle game & "veh", vehicle, vehID
+ LoadVehicle game + ".veh", vehicle, vehID
  RETURN vehicle.name
 END FUNCTION
 
