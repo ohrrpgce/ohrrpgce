@@ -430,8 +430,7 @@ DO
     IF carray(ccRight) > 0 THEN xgo(0) = -20: catd(0) = 1: EXIT DO
     IF carray(ccUse) > 1 AND vstate.active = NO THEN
      txt.sayer = -1
-     auto = 0
-     GOSUB usething
+     usething 0, catx(0), caty(0)
     END IF
     EXIT DO
    LOOP
@@ -717,107 +716,6 @@ IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher scrwatch, -1
 RETRACE
 
-usething:
-'auto = 0: normal use, txt.sayer = -1
-'auto = 1: touch and step-on, txt.sayer set to +NPC reference
-'auto = 2: scripted, txt.sayer set to +NPC reference
-IF auto = 0 THEN
- ux = catx(0)
- uy = caty(0)
- wrapaheadxy ux, uy, catd(0), 20, 20
-END IF
-IF txt.sayer < 0 THEN
-  IF auto <> 2 THEN 'find the NPC to trigger the hard way
-   txt.sayer = -1
-   j = -1
-   DO
-    j = j + 1
-    IF j > 299 THEN RETRACE
-    IF npc(j).id > 0 AND (j <> vstate.npc OR vstate.active = NO) THEN 'A
-     '--Step-on NPCs cannot be used
-     IF auto = 0 AND npcs(npc(j).id - 1).activation = 2 THEN CONTINUE DO
-     nx = npc(j).x
-     ny = npc(j).y
-     nd = npc(j).dir
-     IF (nx = ux AND ny = uy) THEN 'not moving NPCs
-      EXIT DO
-     ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
-      '--first check the tile the NPC is stepping into
-      nx -= npc(j).xgo
-      ny -= npc(j).ygo
-      cropposition nx, ny, 20
-      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
-      'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage
-      IF (nx = ux AND ny = uy) THEN 'check for activation
-       EXIT DO
-      END IF
-      '--also check the tile the NPC is leaving
-      nx = nx + SGN(npc(j).xgo) * 20
-      ny = ny + SGN(npc(j).ygo) * 20
-      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
-      'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage
-      IF (nx = ux AND ny = uy) THEN 'check for activation
-       '--if activating an NPC that has just walked past us, cause it to back up
-       npc(j).xgo = SGN(npc(j).xgo * -1) * (20 - ABS(npc(j).xgo))
-       npc(j).ygo = SGN(npc(j).ygo * -1) * (20 - ABS(npc(j).ygo))
-       EXIT DO
-      END IF
-     END IF
-    END IF
-   LOOP
-   txt.sayer = j
-  END IF
-END IF
-IF txt.sayer >= 0 THEN
- getit = npcs(npc(txt.sayer).id - 1).item
- IF getit THEN getitem getit, 1
- '---DIRECTION CHANGING-----------------------
- txt.old_dir = -1
- IF auto <> 2 AND npcs(npc(txt.sayer).id - 1).facetype < 2 THEN
-  txt.old_dir = npc(txt.sayer).dir
-  npc(txt.sayer).dir = catd(0)
-  npc(txt.sayer).dir = loopvar(npc(txt.sayer).dir, 0, 3, 1): npc(txt.sayer).dir = loopvar(npc(txt.sayer).dir, 0, 3, 1)
- END IF
- IF npcs(npc(txt.sayer).id - 1).usetag > 0 THEN
-  '--One-time-use tag
-  setbit tag(), 0, 1000 + npcs(npc(txt.sayer).id - 1).usetag, 1
- END IF
- IF npcs(npc(txt.sayer).id - 1).script > 0 THEN
-  '--summon a script directly from an NPC
-  rsr = runscript(npcs(npc(txt.sayer).id - 1).script, nowscript + 1, -1, "NPC", plottrigger)
-  IF rsr = 1 THEN
-   setScriptArg 0, npcs(npc(txt.sayer).id - 1).scriptarg
-   setScriptArg 1, (txt.sayer + 1) * -1 'reference
-  END IF
- END IF
- vehuse = npcs(npc(txt.sayer).id - 1).vehicle
- IF vehuse THEN '---activate a vehicle---
-  reset_vehicle vstate
-  LoadVehicle game & ".veh", vstate.dat, vehuse - 1
-  '--check mounting permissions first
-  IF vehpass(vstate.dat.mount_from, readmapblock(catx(0) \ 20, caty(0) \ 20, 0), -1) THEN
-   vstate.active = YES
-   vstate.npc = txt.sayer
-   vstate.old_speed = herospeed(0)
-   herospeed(0) = 10
-   vstate.mounting = YES '--trigger mounting sequence
-   IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 1
-  END IF
- END IF
- SELECT CASE npcs(npc(txt.sayer).id - 1).textbox
-  CASE 0
-   txt.sayer = -1
-  CASE IS > 0
-   loadsay npcs(npc(txt.sayer).id - 1).textbox
- END SELECT
- evalherotag stat()
- evalitemtag
- IF txt.id = -1 THEN
-  npcplot
- END IF
-END IF
-RETRACE
-
 movement:
 'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left 
 FOR whoi = 0 TO 3
@@ -859,11 +757,8 @@ FOR whoi = 0 TO 3
        END IF
        IF npcs(id).activation = 1 AND whoi = 0 THEN
         IF wraptouch(npc(i).x, npc(i).y, catx(0), caty(0), 20) THEN
-         ux = npc(i).x
-         uy = npc(i).y
-         auto = 1
          txt.sayer = i
-         GOSUB usething
+         usething 1, npc(i).x, npc(i).y
         END IF
        END IF '---autoactivate
       END IF ' ---NPC IS IN THE WAY
@@ -940,11 +835,8 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
     IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
      IF npcs(npc(i).id - 1).activation = 2 THEN '---NPC IS PASSABLE---
       IF npc(i).x = catx(0) AND npc(i).y = caty(0) THEN '---YOU ARE ON NPC---
-       ux = npc(i).x
-       uy = npc(i).y
-       auto = 1
        txt.sayer = i
-       GOSUB usething
+       usething 1, npc(i).x, npc(i).y
       END IF'---YOU ARE ON NPC---
      END IF ' ---NPC IS PASSABLE---
     END IF '--vehicle okay
@@ -1102,11 +994,8 @@ IF cropmovement(npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN GOSUB hitwall
 nogo:
 IF npcs(id).activation = 1 AND txt.showing = NO THEN
  IF wraptouch(npc(o).x, npc(o).y, catx(0), caty(0), 20) THEN
-  ux = npc(o).x
-  uy = npc(o).y
-  auto = 1
   txt.sayer = o
-  GOSUB usething
+  usething 1, npc(o).x, npc(o).y
  END IF
 END IF
 RETRACE
@@ -1275,8 +1164,7 @@ END IF
 IF wantusenpc > 0 THEN
  txt.sayer = wantusenpc - 1
  wantusenpc = 0
- auto = 2
- GOSUB usething
+ usething 2, 0, 0
 END IF
 RETRACE
 
@@ -3252,4 +3140,110 @@ SUB dump_vehicle_state()
  WITH vstate
   debug "active=" & .active & " npc=" & .npc & " mounting=" & .mounting & " rising=" & .rising & " falling=" & .falling & " dismount=" & .init_dismount & " cleanup=" & .trigger_cleanup & " ahead=" & .ahead
  END WITH
+END SUB
+
+SUB usething(BYVAL auto AS INTEGER, BYVAL ux AS INTEGER, BYVAL uy AS INTEGER)
+ 'auto = 0: normal use, txt.sayer = -1
+ 'auto = 1: touch and step-on, txt.sayer set to +NPC reference
+ 'auto = 2: scripted, txt.sayer set to +NPC reference
+ IF auto = 0 THEN
+  ux = catx(0)
+  uy = caty(0)
+  wrapaheadxy ux, uy, catd(0), 20, 20
+ END IF
+ DIM nx AS INTEGER
+ DIM ny AS INTEGER
+ DIM nd AS INTEGER
+ IF txt.sayer < 0 THEN
+  IF auto <> 2 THEN 'find the NPC to trigger the hard way
+   txt.sayer = -1
+   DIM j AS INTEGER = -1
+   DO
+    j += 1
+    IF j > 299 THEN EXIT SUB
+    IF npc(j).id > 0 AND (j <> vstate.npc OR vstate.active = NO) THEN
+     '--Step-on NPCs cannot be used
+     IF auto = 0 AND npcs(npc(j).id - 1).activation = 2 THEN CONTINUE DO
+     nx = npc(j).x
+     ny = npc(j).y
+     nd = npc(j).dir
+     IF (nx = ux AND ny = uy) THEN 'not moving NPCs
+      EXIT DO
+     ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
+      '--first check the tile the NPC is stepping into
+      nx -= npc(j).xgo
+      ny -= npc(j).ygo
+      cropposition nx, ny, 20
+      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
+      'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage
+      IF (nx = ux AND ny = uy) THEN 'check for activation
+       EXIT DO
+      END IF
+      '--also check the tile the NPC is leaving
+      nx = nx + SGN(npc(j).xgo) * 20
+      ny = ny + SGN(npc(j).ygo) * 20
+      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
+      'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage
+      IF (nx = ux AND ny = uy) THEN 'check for activation
+       '--if activating an NPC that has just walked past us, cause it to back up
+       npc(j).xgo = SGN(npc(j).xgo * -1) * (20 - ABS(npc(j).xgo))
+       npc(j).ygo = SGN(npc(j).ygo * -1) * (20 - ABS(npc(j).ygo))
+       EXIT DO
+      END IF
+     END IF
+    END IF
+   LOOP
+   txt.sayer = j
+  END IF
+ END IF
+ '--if we have gotten this far, we must have a valid txt.sayer
+ IF txt.sayer >= 0 THEN
+  '---Item from NPC---
+  DIM getit AS INTEGER = npcs(npc(txt.sayer).id - 1).item
+  IF getit THEN getitem getit, 1
+  '---DIRECTION CHANGING-----------------------
+  txt.old_dir = -1
+  IF auto <> 2 AND npcs(npc(txt.sayer).id - 1).facetype < 2 THEN
+   txt.old_dir = npc(txt.sayer).dir
+   npc(txt.sayer).dir = catd(0)
+   npc(txt.sayer).dir = loopvar(npc(txt.sayer).dir, 0, 3, 2)
+  END IF
+  IF npcs(npc(txt.sayer).id - 1).usetag > 0 THEN
+   '--One-time-use tag
+   setbit tag(), 0, 1000 + npcs(npc(txt.sayer).id - 1).usetag, 1
+  END IF
+  IF npcs(npc(txt.sayer).id - 1).script > 0 THEN
+   '--summon a script directly from an NPC
+   DIM rsr AS INTEGER = runscript(npcs(npc(txt.sayer).id - 1).script, nowscript + 1, -1, "NPC", plottrigger)
+   IF rsr = 1 THEN
+    setScriptArg 0, npcs(npc(txt.sayer).id - 1).scriptarg
+    setScriptArg 1, (txt.sayer + 1) * -1 'reference
+   END IF
+  END IF
+  DIM vehuse AS INTEGER = npcs(npc(txt.sayer).id - 1).vehicle
+  IF vehuse THEN '---activate a vehicle---
+   reset_vehicle vstate
+   LoadVehicle game & ".veh", vstate.dat, vehuse - 1
+   '--check mounting permissions first
+   IF vehpass(vstate.dat.mount_from, readmapblock(catx(0) \ 20, caty(0) \ 20, 0), -1) THEN
+    vstate.active = YES
+    vstate.npc = txt.sayer
+    vstate.old_speed = herospeed(0)
+    herospeed(0) = 10
+    vstate.mounting = YES '--trigger mounting sequence
+    IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 1
+   END IF
+  END IF
+  SELECT CASE npcs(npc(txt.sayer).id - 1).textbox
+   CASE 0
+    txt.sayer = -1
+   CASE IS > 0
+    loadsay npcs(npc(txt.sayer).id - 1).textbox
+  END SELECT
+  evalherotag stat()
+  evalitemtag
+  IF txt.id = -1 THEN
+   npcplot
+  END IF
+ END IF
 END SUB
