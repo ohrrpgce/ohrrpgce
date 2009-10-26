@@ -453,3 +453,8 @@ script, map changer key listener, begin
   )
 end
 
+#-----------------------------------------------------------------------
+
+plotscript, remote vehicle, begin
+  use NPC(2)
+end

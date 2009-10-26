@@ -2970,15 +2970,15 @@ FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION vehiclestuff (disx as integer, disy as integer, vehedge as integer) as integer
-STATIC aheadx, aheady, aheadedge
+FUNCTION vehiclestuff () as integer
+STATIC aheadx, aheady
 
 result = 0
 IF vstate.mounting THEN '--scramble-----------------------
  '--part of the vehicle automount where heros scramble--
  IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
   '--npc must stop before we mount
-  vehscramble vstate.mounting, NO, npc(vstate.npc).x, npc(vstate.npc).y, vehedge, result
+  vehscramble vstate.mounting, NO, npc(vstate.npc).x, npc(vstate.npc).y, result
  END IF
 END IF'--scramble mount
 IF vstate.rising THEN '--rise----------------------
@@ -3013,6 +3013,13 @@ IF vstate.falling THEN '--fall-------------------
 END IF
 IF vstate.init_dismount THEN '--dismount---------------
  vstate.init_dismount = NO
+ DIM disx AS INTEGER = INT(catx(0) / 20)
+ DIM disy AS INTEGER = INT(caty(0) / 20)
+ IF vstate.dat.dismount_ahead AND vstate.dat.pass_walls_while_dismounting THEN
+  '--dismount-ahead is true, dismount-passwalls is true
+  aheadxy disx, disy, catd(0), 1
+  cropposition disx, disy, 1
+ END IF
  IF vehpass(vstate.dat.dismount_to, readpassblock(disx, disy), -1) THEN
   '--dismount point is landable
   FOR i = 0 TO 15
@@ -3025,7 +3032,6 @@ IF vstate.init_dismount THEN '--dismount---------------
    vstate.ahead = YES
    aheadx = disx * 20
    aheady = disy * 20
-   aheadedge = vehedge
   ELSE
    vstate.trigger_cleanup = YES
   END IF
@@ -3068,7 +3074,7 @@ IF vstate.trigger_cleanup THEN '--clear
  gam.random_battle_countdown = range(100, 60)
 END IF
 IF vstate.ahead THEN '--ahead
- vehscramble vstate.ahead, YES, aheadx, aheady, aheadedge, result
+ vehscramble vstate.ahead, YES, aheadx, aheady, result
 END IF
 IF vstate.active = YES AND vehicle_is_animating() = NO THEN
  IF txt.showing = NO AND readbit(gen(), 44, suspendplayer) = 0 THEN
@@ -3577,7 +3583,7 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYVAL targx AS INTEGER, BYVAL targy AS INTEGER, BYVAL vehedge AS INTEGER, BYREF result AS INTEGER)
+SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYVAL targx AS INTEGER, BYVAL targy AS INTEGER, BYREF result AS INTEGER)
  DIM tmp AS INTEGER = 0
  DIM count AS INTEGER = herocount()
  DIM scramx AS INTEGER
@@ -3604,9 +3610,10 @@ SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYV
    IF ABS(targy - scramy) > 0 AND ygo(i) = 0 THEN
     ygo(i) = 20 * SGN(scramy - targy)
    END IF
-   IF vehedge THEN
-    xgo(i) = xgo(i) * -1
-    ygo(i) = ygo(i) * -1
+   IF gmap(5) = 1 THEN
+    '--this is a wrapping map
+    IF ABS(scramx - targx) > scroll(0) * 20 / 2 THEN xgo(i) = xgo(i) * -1
+    IF ABS(scramy - targy) > scroll(1) * 20 / 2 THEN ygo(i) = ygo(i) * -1
    END IF
    IF scramx - targx = 0 AND scramy - targy = 0 THEN tmp = tmp + 1
    catx(i * 5) = scramx
