@@ -203,8 +203,8 @@ SUB gfx_close()
   SDL_Quit()
 END SUB
 
-SUB gfx_showpage(byval raw as ubyte ptr)
-  'takes a pointer to raw 8-bit data at 320x200
+SUB gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
+  'takes a pointer to raw 8-bit data at 320x200 (w,h ignored at the moment)
   IF screenbuffer = NULL THEN
     screenbuffer = SDL_CreateRGBSurfaceFrom(raw, 320 * zoom, 200 * zoom, 8, 320, &hff000000, &h00ff0000, &h0000ff00, &h000000ff)
     IF screenbuffer = NULL THEN
@@ -232,18 +232,17 @@ SUB gfx_sdl_update_screen()
   END IF
 END SUB
 
-SUB gfx_setpal(pal() as RGBcolor)
+SUB gfx_setpal(byval pal as RGBcolor ptr)
   DIM i AS INTEGER
   FOR i = 0 TO 255
-    sdlpalette(i).r = pal(i).r
-    sdlpalette(i).g = pal(i).g
-    sdlpalette(i).b = pal(i).b
+    sdlpalette(i).r = pal[i].r
+    sdlpalette(i).g = pal[i].g
+    sdlpalette(i).b = pal[i].b
   NEXT
   gfx_sdl_update_screen()
 END SUB
 
-FUNCTION gfx_screenshot(fname as string, byval page as integer) as integer
-  'FIXME: what is the purpose of this?
+FUNCTION gfx_screenshot(fname as zstring ptr) as integer
   gfx_screenshot = 0
 END FUNCTION
 
@@ -260,14 +259,14 @@ SUB gfx_togglewindowed()
   gfx_setwindowed(windowedmode XOR -1)
 END SUB
 
-SUB gfx_windowtitle(title as string)
+SUB gfx_windowtitle(title as zstring ptr)
   IF sdl_init_done then
-    SDL_WM_SetCaption(strptr(title), strptr(title))	
+    SDL_WM_SetCaption(title, title)	
   END IF
 END SUB
 
-SUB gfx_setoption(opt as string, byval value as integer = -1)
-  IF opt = "zoom" THEN
+SUB gfx_setoption(opt as zstring ptr, byval value as integer = -1)
+  IF *opt = "zoom" THEN
     IF value >= 1 AND value <= 4 THEN
       zoom = value
       IF sdl_init_done THEN
@@ -277,10 +276,8 @@ SUB gfx_setoption(opt as string, byval value as integer = -1)
   END IF
 END SUB
 
-FUNCTION gfx_describe_options() AS STRING
- dim s as string
- s =     "-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)"
- return s
+FUNCTION gfx_describe_options() as zstring ptr
+ return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)"
 END FUNCTION
 
 SUB io_init
@@ -292,24 +289,22 @@ SUB io_pollkeyevents()
   SDL_PumpEvents()
 END SUB
 
-SUB io_updatekeys(keybd() as integer)
+SUB io_updatekeys(byval keybd as integer ptr)
   DIM a AS INTEGER
   keystate = SDL_GetKeyState(NULL)
   FOR a = 0 TO 322
     IF keystate[a] THEN
       'print "OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
       IF scantrans(a) THEN
-        keybd(scantrans(a)) = keybd(scantrans(a)) OR 8
+        keybd[scantrans(a)] = keybd[scantrans(a)] OR 8
       END IF
     END IF
   NEXT
 END SUB
 
-FUNCTION io_enablemouse() as integer
-  'FIXME: this is unneeded. It was originally for DOS mouse init voodoo
-  io_enablemouse = 0
-  SDL_ShowCursor(0)
-END FUNCTION
+SUB io_setmousevisibility(byval visible as integer)
+  SDL_ShowCursor(visible)
+END SUB
 
 SUB io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
   DIM x AS INTEGER
@@ -329,33 +324,18 @@ SUB io_setmouse(byval x as integer, byval y as integer)
   SDL_WarpMouse x * zoom, y * zoom
 END SUB
 
-SUB io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+'SUB io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
   'FIXME: not implemented yet
   'not required?
-END SUB
-
-FUNCTION io_readjoy(joybuf() as integer, byval joynum as integer) as integer
-  'FIXME: this could be removed from all backends, and replaced with a backcompat wrapper around io_readjoysane in allmodex.bas
-  'FIXME: only bothers to support the first joystick
-  IF SDL_NumJoysticks() = 0 THEN RETURN 0
-  IF sdljoystick = NULL THEN
-    sdljoystick = SDL_JoystickOpen(0)
-  END IF
-  SDL_JoystickUpdate()
-  joybuf(0) = SDL_JoystickGetAxis(sdljoystick, 0)
-  joybuf(1) = SDL_JoystickGetAxis(sdljoystick, 1)
-  joybuf(2) = SDL_JoystickGetButton(sdljoystick, 0)
-  joybuf(3) = SDL_JoystickGetButton(sdljoystick, 1)
-  RETURN 1
-END FUNCTION
+'END SUB
 
 FUNCTION io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
-  'FIXME: yetmore.bas should NOT be calling this directly! allmodex.bas need to wrap this like it does all other backend functions
   'FIXME: only bothers to support the first joystick
   IF SDL_NumJoysticks() = 0 THEN RETURN 0
   IF sdljoystick = NULL THEN
     sdljoystick = SDL_JoystickOpen(0)
   END IF
+  SDL_JoystickUpdate() 'should this be here? moved from io_readjoy
   button = 0
   IF SDL_JoystickGetButton(sdljoystick, 0) THEN button = button AND 1
   IF SDL_JoystickGetButton(sdljoystick, 1) THEN button = button AND 2

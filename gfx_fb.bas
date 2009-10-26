@@ -9,6 +9,7 @@ option explicit
 
 #include "fbgfx.bi"
 #include "gfx.bi"
+#include "compat.bi"  'for LINE_END
 
 #include once "crt.bi"
 #undef abort
@@ -59,8 +60,8 @@ end sub
 sub gfx_close
 end sub
 
-sub gfx_showpage(byval raw as ubyte ptr)
-'takes a pointer to raw 8-bit data at 320x200
+sub gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
+'takes a pointer to raw 8-bit data at 320x200 (w,h ignored for now)
 	screenlock
 
 	dim as ubyte ptr sptr = screenptr + (screen_buffer_offset * 320 * zoom)
@@ -77,17 +78,17 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	flip
 end sub
 
-sub gfx_setpal(pal() as RGBcolor)
+sub gfx_setpal(byval pal as RGBcolor ptr)
 	dim as integer i
 	if depth = 8 then
 		for i = 0 to 255
-			palette i, pal(i).r, pal(i).g, pal(i).b
+			palette i, pal[i].r, pal[i].g, pal[i].b
 		next
 	end if
 	'copy the palette, both for 32bit colour mode and when changing
 	'res requires resetting the palette
 	for i = 0 to 255
-		truepal(i) = RGB(pal(i).r, pal(i).g, pal(i).b)
+		truepal(i) = RGB(pal[i].r, pal[i].g, pal[i].b)
 	next
 	'This does not update the page "live", like the 8-bit version
 	'so fades aren't working, and there's no way to force an
@@ -95,7 +96,7 @@ sub gfx_setpal(pal() as RGBcolor)
 	'accessible.
 end sub
 
-function gfx_screenshot(fname as string, byval page as integer) as integer
+function gfx_screenshot(fname as zstring ptr) as integer
 	gfx_screenshot = 0
 end function
 
@@ -125,15 +126,15 @@ sub gfx_togglewindowed()
 	end if
 end sub
 
-sub gfx_windowtitle(title as string)
+sub gfx_windowtitle(title as zstring ptr)
 	if len(title) = 0 then
 		windowtitle ""
 	else
-		windowtitle title
+		windowtitle *title
 	end if
 end sub
 
-sub gfx_setoption(opt as string, byval value as integer = -1)
+sub gfx_setoption(opt as zstring ptr, byval value as integer = -1)
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
 'This version supports
@@ -144,7 +145,7 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 'only before gfx has been initialised
 
 	if init_gfx = 0 then
-		if opt = "zoom" then
+		if *opt = "zoom" then
 			'default zoom is 2, 1 is the only other valid value
 			if value = 1 then
 				zoom = 1
@@ -153,19 +154,19 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 			else
 				zoom = 2
 			end if
-		elseif opt = "depth" then
+		elseif *opt = "depth" then
 			if value = 24 or value = 32 then
 				depth = value
 			else
 				depth = 8
 			end if
-		elseif opt = "border" then
+		elseif *opt = "border" then
 			if value = 1 then
 				bordered = 1
 			else
 				bordered = 0
 			end if
-		elseif opt = "smooth" then
+		elseif *opt = "smooth" then
 			if value = 1 then
 				smooth = 1
 			else
@@ -198,51 +199,34 @@ sub gfx_setoption(opt as string, byval value as integer = -1)
 
 end sub
 
-function gfx_describe_options() as string
- dim s as string
- dim lineend as string
-#ifdef __FB_LINUX__
- lineend = chr(10)
-#else
- lineend = chr(13) & chr(10)
-#endif
- s =     "-z -zoom [1|2|3]    Scale screen to 1x 2x or 3x normal size (2x default)" & lineend
- s = s & "-b -border [0|1]    Add a letterbox border (default off)" & lineend
- s = s & "-d -depth [8|24|32] Set color bit-depth (default 8-bit)" & lineend
- s = s & "-s -smooth          Enable smoothing filter for zoom modes (default off)"
- return s
+function gfx_describe_options() as zstring ptr
+ return @"-z -zoom [1|2|3]    Scale screen to 1x 2x or 3x normal size (2x default)" LINE_END _
+         "-b -border [0|1]    Add a letterbox border (default off)" LINE_END _
+         "-d -depth [8|24|32] Set color bit-depth (default 8-bit)" LINE_END _
+         "-s -smooth          Enable smoothing filter for zoom modes (default off)"
 end function
 
 '------------- IO Functions --------------
 sub io_init
-	setmouse(0, 0, 0) 'hide mouse
+	'setmouse , , 0 'hide mouse
 end sub
 
 sub io_pollkeyevents()
 	'not needed by this backend
 end sub
 
-sub io_updatekeys(keybd() as integer)
+sub io_updatekeys(byval keybd as integer ptr)
 	dim as integer a
 	for a = 0 to &h7f
 		if multikey(a) then
-			keybd(a) = keybd(a) or 8
+			keybd[a] = keybd[a] or 8
 		end if
 	next
 end sub
 
-function io_enablemouse() as integer
-'returns 0 if mouse okay
-	'This fails if mouse is outside window, so just always return 0
-' 	dim as integer mx, my, mw, mb
-' 	getmouse(mx, my, mw, mb)
-' 	if (mb = -1) then	'no mouse if button = -1
-' 		io_enablemouse = -1
-' 		'debug "No mouse detected"
-' 		exit function
-' 	end if
-	io_enablemouse = 0
-end function
+sub io_setmousevisibility(byval visible as integer)
+	setmouse , , visible
+end sub
 
 sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
 	static as integer lastx = 0, lasty = 0, lastwheel = 0, lastbuttons = 0
@@ -266,37 +250,18 @@ sub io_setmouse(byval x as integer, byval y as integer)
 	setmouse(x * zoom, y * zoom + screen_buffer_offset)
 end sub
 
-sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+'sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 	'nothing to do
-end sub
-
-function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
-
-	dim x as single,y as single,button as integer
-
-	if getjoystick(joynum,button,x,y) then 'returns 1 on failure
-	  return 0
-	end if
-
-	'otherwise...
-	joybuf(0) = int(x * 100) 'x is between -1 and 1
-	joybuf(1) = int(y * 100) 'ditto
-	joybuf(2) = (button AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
-	joybuf(3) = (button AND 2) = 0 'ditto
-	'if abs(joybuf(0)) > 10 then debug "X = " + str(joybuf(0))
-	return 1
-
-end function
+'end sub
 
 function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
 	dim as single xa, ya
-	if getjoystick(joynum,button,xa,ya) then 'returns 1 on failure
+	if getjoystick(joynum, button, xa, ya) then 'returns 1 on failure
 		return 0
 	end if
 
 	x = int(xa * 100)
 	y = int(ya * 100)
 	'if abs(x) > 10 then debug "X = " + str(x)
-  return 1
-
+	return 1
 end function

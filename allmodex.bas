@@ -238,10 +238,10 @@ SUB setvispage (BYVAL page as integer)
 	'the fb backend may freeze up if they collide with the polling thread (why???)
 	mutexlock keybdmutex
 	if updatepal then
-		gfx_setpal(intpal())
+		gfx_setpal(@intpal(0))
 		updatepal = 0
 	end if	
-	gfx_showpage(vpages(page)->image)
+	gfx_showpage(vpages(page)->image, vpages(page)->w, vpages(page)->h)
 	mutexunlock keybdmutex
 end SUB
 
@@ -258,7 +258,7 @@ SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 
 	if updatepal then
 		mutexlock keybdmutex
-		gfx_setpal(intpal())
+		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
 		updatepal = 0
 	end if
@@ -288,7 +288,7 @@ SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 			end if
 		next
 		mutexlock keybdmutex
-		gfx_setpal(intpal())
+		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
         sleep 15 'how long?
 	next
@@ -303,7 +303,7 @@ SUB fadetopal (pal() as RGBcolor)
 
 	if updatepal then
 		mutexlock keybdmutex
-		gfx_setpal(intpal())
+		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
 		updatepal = 0
 	end if
@@ -333,7 +333,7 @@ SUB fadetopal (pal() as RGBcolor)
 			end if
 		next
 		mutexlock keybdmutex
-		gfx_setpal(intpal())
+		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
 	sleep 15 'how long?
 	next
@@ -954,7 +954,7 @@ sub pollingthread(byval unused as threadbs)
 	while endpollthread = 0
 		mutexlock keybdmutex
 
-		io_updatekeys keybdstate()
+		io_updatekeys @keybdstate(0)
 		'set key state for every key
 		'highest scancode in fbgfx.bi is &h79, no point overdoing it
 		for a = 0 to &h7f
@@ -2573,11 +2573,11 @@ SUB copyfile (s$, d$)
 
 end SUB
 
-SUB screenshot (f$, BYVAL p as integer, maspal() as RGBcolor)
+SUB screenshot (f$)
 	'try external first
-	if gfx_screenshot(f$, p) = 0 then
+	if gfx_screenshot(f$) = 0 then
 		'otherwise save it ourselves
-		sprite_export_bmp8(f$, vpages(p), maspal())
+		sprite_export_bmp8(f$, vpages(vpage), intpal())
 	end if
 END SUB
 
@@ -2640,15 +2640,15 @@ SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
 		close #of
 end SUB
 
-FUNCTION setmouse (mbuf() as integer) as integer
-'don't think this does much except says whether there is a mouse
-'no idea what the parameter is for
-	if io_enablemouse <> 0 then
-		setmouse = 0
-		exit function
-	end if
-	setmouse = 1
+FUNCTION havemouse() as integer
+'atm, all backends support the mouse, or don't know
+	 hidemousecursor
+	 return -1
 end FUNCTION
+
+SUB hidemousecursor ()
+	io_setmousevisibility(0)
+end SUB
 
 SUB readmouse (mbuf() as integer)
 	dim as integer mx, my, mw, mb, mc
@@ -2687,13 +2687,13 @@ SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
 	mouse_xmax = xmax
 	mouse_ymin = ymin
 	mouse_ymax = ymax
-	io_mouserect(xmin, xmax, ymin, ymax)
+	'io_mouserect(xmin, xmax, ymin, ymax)
 end sub
 
 FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
 'Return 0 if joystick is not present, or -1 (true) if joystick is present
 'jnum is the joystick to read (QB implementation supports 0 and 1)
-'joybuf(0) = Analog X axis
+'joybuf(0) = Analog X axis (scaled to -100 to 100)
 'joybuf(1) = Analog Y axis
 'joybuf(2) = button 1: 0=pressed nonzero=not pressed
 'joybuf(3) = button 2: 0=pressed nonzero=not pressed
@@ -2703,7 +2703,18 @@ FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
 '  down motion when joybuf(0) > joybuf(10)
 '  left motion when joybuf(1) < joybuf(11)
 '  right motion when joybuf(1) > joybuf(12)
-	readjoy = io_readjoy(joybuf(), jnum)
+	dim as integer buttons, x, y
+	if io_readjoysane(jnum, buttons, x, y) = 0 then return 0
+
+	joybuf(0) = x
+	joybuf(1) = y
+	joybuf(2) = (buttons AND 1) = 0 '0 = pressed, not 0 = unpressed (why???)
+	joybuf(3) = (buttons AND 2) = 0 'ditto
+	return -1
+end FUNCTION
+
+FUNCTION readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as integer
+	return io_readjoysane(joynum, buttons, x, y)
 end FUNCTION
 
 SUB array2str (arr() AS integer, BYVAL o AS integer, s$)

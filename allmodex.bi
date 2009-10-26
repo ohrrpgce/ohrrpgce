@@ -85,7 +85,7 @@ DECLARE SUB resumesong ()
 DECLARE FUNCTION getfmvol () as integer
 DECLARE SUB setfmvol (BYVAL vol as integer)
 DECLARE SUB copyfile (s as string, d as string)
-DECLARE SUB screenshot (f as string, BYVAL p as integer, maspal() as RGBcolor)
+DECLARE SUB screenshot (f as string)
 DECLARE SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
 DECLARE FUNCTION sprite_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
 DECLARE FUNCTION sprite_import_bmp_raw(bmp as string) as Frame ptr
@@ -115,11 +115,13 @@ DECLARE FUNCTION waitforanykey (modkeys as integer = -1) as integer
 DECLARE SUB setkeyrepeat (rwait as integer = 8, rrate as integer = 1)
 DECLARE SUB setkeys ()
 DECLARE SUB clearkey (byval k as integer)
-DECLARE FUNCTION setmouse (mbuf() as integer) as integer
+DECLARE FUNCTION havemouse () as integer
+DECLARE SUB hidemousecursor ()
 DECLARE SUB readmouse (mbuf() as integer)
 DECLARE SUB movemouse (BYVAL x as integer, BYVAL y as integer)
 DECLARE SUB mouserect (BYVAL xmin as integer, BYVAL xmax as integer, BYVAL ymin as integer, BYVAL ymax as integer)
-DECLARE FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
+DECLARE FUNCTION readjoy OVERLOAD (joybuf() as integer, BYVAL jnum as integer) as integer
+DECLARE FUNCTION readjoy (BYVAL joynum as integer, BYREF buttons as integer, BYREF x as integer, BYREF y as integer) as integer
 #DEFINE slowkey(key, fraction) (keyval((key), (fraction), (fraction)) > 1)
 
 DECLARE SUB resetsfx ()

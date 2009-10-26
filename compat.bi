@@ -42,7 +42,6 @@ CONST build_info as string = "" _GSTR _ESTR _SSTR _PSTR
 
 
 #undef getkey
-#undef setmouse
 
 'included only for $inclib?
 #include once "crt.bi"

@@ -794,7 +794,7 @@ SELECT CASE AS CONST id
    gen(retvals(0)) = retvals(1)
   END IF
  CASE 159'--init mouse
-  IF setmouse(mouse()) THEN scriptret = 1 ELSE scriptret = 0
+  IF havemouse() THEN scriptret = 1 ELSE scriptret = 0
   mouserect 0, 319, 0, 199
   readmouse mouse()
  CASE 160'--get mouse x
@@ -1481,7 +1481,7 @@ SELECT CASE AS CONST id
    IF keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   CASE 128 TO 147 'joystick
    dim b as integer, xaxis as integer, yaxis as integer '0 >= x and y, >= 100
-   IF io_readjoysane(bound(retvals(1),0,3),b,xaxis,yaxis) THEN
+   IF readjoy(bound(retvals(1),0,3),b,xaxis,yaxis) THEN
     IF retvals(0) >= 128 AND retvals(0) <= 143 THEN
      scriptret = (b SHR (retvals(0) - 128)) AND 1
     ELSEIF retvals(0) = 144 THEN 'x left
@@ -1551,7 +1551,7 @@ SELECT CASE AS CONST id
   retvals(1) = bound(retvals(1),0,3)
 
   b = 0
-  IF io_readjoysane(retvals(1),b,0,0) THEN
+  IF readjoy(retvals(1),b,0,0) THEN
    scriptret = (b SHR retvals(0)) AND 1
   ELSE
    scriptret = 0
@@ -1562,7 +1562,7 @@ SELECT CASE AS CONST id
 
   xaxis = 0
   yaxis = 0
-  IF io_readjoysane(retvals(2),0,xaxis,yaxis) THEN
+  IF readjoy(retvals(2),0,xaxis,yaxis) THEN
    IF retvals(0) = 0 THEN'x axis
     'debug "x " & xaxis
     scriptret = int((xaxis / 100) * retvals(1)) 'normally, xaxis * 100

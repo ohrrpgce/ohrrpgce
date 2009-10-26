@@ -18,7 +18,7 @@ dim shared screenbuf as BITMAP ptr = null
 
 dim shared mouse_hidden as integer = 0
 dim shared baroffset as integer = 0
-dim shared windowed as integer = 0
+dim shared windowed as integer = 1
 dim shared alpal(255) as RGB
 
 'Translate an allegro scancode into a normal one
@@ -73,8 +73,8 @@ sub gfx_close
 	end if
 end sub
 
-sub gfx_showpage(byval raw as ubyte ptr)
-'takes a pointer to raw 8-bit data at 320x200
+sub gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
+'takes a pointer to raw 8-bit data at 320x200 (w, h ignored)
 	dim as integer x, y
 
 	if screenbuf = null then
@@ -97,20 +97,20 @@ sub gfx_showpage(byval raw as ubyte ptr)
 	
 end sub
 
-sub gfx_setpal(pal() as RGBcolor)
+sub gfx_setpal(byval pal as RGBcolor ptr)
 'In 8 bit colour depth, allegro uses 6 bit colour components in the palette
 	dim as integer i
 	
 	for i = 0 to 255
-		alpal(i).r = pal(i).r \ 4
-		alpal(i).g = pal(i).g \ 4
-		alpal(i).b = pal(i).b \ 4
+		alpal(i).r = pal[i].r \ 4
+		alpal(i).g = pal[i].g \ 4
+		alpal(i).b = pal[i].b \ 4
 	next
 	
 	set_palette(@alpal(0))
 end sub
 
-function gfx_screenshot(fname as string, byval page as integer) as integer
+function gfx_screenshot(fname as zstring ptr) as integer
 	gfx_screenshot = 0
 end function
 
@@ -140,20 +140,20 @@ sub gfx_togglewindowed()
 	end if
 end sub
 
-sub gfx_windowtitle(title as string)
+sub gfx_windowtitle(title as zstring ptr)
 	if init_gfx = 1 then
- 		set_window_title(strptr(title))	
+ 		set_window_title(title)
  	end if
 end sub
 
-sub gfx_setoption(opt as string, byval value as integer = -1)
+sub gfx_setoption(opt as zstring ptr, byval value as integer = -1)
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
 end sub
 
-function gfx_describe_options() as string
+function gfx_describe_options() as zstring ptr
 'No options are supported by this backend
- return ""
+ return @""
 end function
 
 '------------- IO Functions --------------
@@ -169,23 +169,26 @@ sub io_pollkeyevents()
 	'not needed by this backend
 end sub
 
-sub io_updatekeys(keybd() as integer)
+sub io_updatekeys(byval keybd as integer ptr)
 	dim a as integer
 	for a = 0 to &h7f
 		if key(a) then
-			keybd(scantrans(a)) = keybd(scantrans(a)) or 8
+			keybd[scantrans(a)] = keybd[scantrans(a)] or 8
 		end if
 	next
 end sub
 
-function io_enablemouse() as integer
-'returns 0 if mouse okay
-' 	if mouse_hidden = 1 then
-' 		unscare_mouse()
-' 		mouse_hidden = 0
-' 	end if
-	io_enablemouse = 0
-end function
+sub io_setmousevisibility(byval visible as integer)
+'who know why this check is here
+ 	if visible <> 0 and mouse_hidden = 1 then
+ 		unscare_mouse()
+ 		mouse_hidden = 0
+ 	end if
+ 	if visible = 0 and mouse_hidden = 0 then
+ 		scare_mouse()
+ 		mouse_hidden = 1
+ 	end if
+end sub
 
 sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
 	mx = mouse_x \ 2		'allegro screen is double res
@@ -198,19 +201,12 @@ sub io_setmouse(byval x as integer, byval y as integer)
 	position_mouse(x * 2, y * 2 + baroffset)
 end sub
 
-sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+'sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 'doesn't seem to work fullscreen, no idea why not. Height of mouse cursor?
 ' 	set_mouse_range(xmin * 2, ymin * 2 + baroffset, xmax * 2 + 1, ymax * 2 + 1 + baroffset)
-end sub
-
-function io_readjoy(joybuf() as integer, byval joynum as integer) as integer
-	'don't know
-	io_readjoy = 0
-end function
+'end sub
 
 function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
-
-  'don't know either
+	'don't know
 	return 0
-	
 end function

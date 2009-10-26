@@ -390,7 +390,7 @@ DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
  setkeys
- readmouse mouse()  'setmouse() is optional
+ readmouse mouse()  'didn't bother to check havemouse()
  tog = tog XOR 1
  'DEBUG debug "increment play timers"
  playtimer

@@ -159,7 +159,7 @@ sub processcommandline()
 				help = help & "-v -version         Show version and build info" & LINE_END
 				help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 				help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
-				help = help & gfx_describe_options() & LINE_END
+				help = help & *gfx_describe_options() & LINE_END
 			elseif temp = "s" or temp = "smooth" then
 				gfx_setoption("smooth", 1)
 			else

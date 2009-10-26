@@ -2554,7 +2554,7 @@ IF NOT fileiswriteable(shot$) THEN
 END IF
 #ENDIF
 
-screenshot shot$, vpage, master()
+screenshot shot$
 
 END SUB
 

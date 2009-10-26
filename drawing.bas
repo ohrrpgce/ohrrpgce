@@ -212,7 +212,7 @@ DO
   IF mstate.pt = 4 THEN GOSUB disable
   IF mstate.pt = 5 THEN
    outfile$ = inputfilename("Name of file to export to?", ".bmp", trimpath$(game) & " " & cap & pt)
-   IF outfile$ <> "" THEN screenshot outfile$ & ".bmp", 2, master()
+   IF outfile$ <> "" THEN sprite_export_bmp8 outfile$ & ".bmp", vpages(2), master()
   END IF
  END IF
  IF mstate.pt <> 6 THEN
@@ -696,7 +696,7 @@ END SUB
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
 DIM ts AS TileEditState, mover(12), mouse(4), area(22) AS MouseArea
-ts.gotmouse = setmouse(mouse())
+ts.gotmouse = havemouse()
 ts.canpaste = oldpaste
 ts.drawcursor = 1
 ts.airsize = 5
@@ -1592,7 +1592,7 @@ WITH ss
  .zone.x = 0
  .zone.y = 0
  .hold = NO
- .gotmouse = setmouse(mouse())
+ .gotmouse = havemouse()
  .drawcursor = 1
  .tool = draw_tool
  .airsize = 5
