@@ -451,50 +451,50 @@ end
 #--------------------------------------------------------------------------
 # soft coded functions
 
-script,walkherotoX,who,n,begin
-if (n<<heroX(who)) then(walk hero(who,west,heroX(who)--n))
-if (n>>heroX(who)) then(walk hero(who,east,n--heroX(who)))
+script,walkherotoX,hsd:who,hsd:n,begin
+if (hsd:n<<heroX(hsd:who)) then(walk hero(hsd:who,west,heroX(hsd:who)--hsd:n))
+if (hsd:n>>heroX(hsd:who)) then(walk hero(hsd:who,east,hsd:n--heroX(hsd:who)))
 end
 
-script,walkherotoY,who,n,begin
-if (n<<heroY(who)) then(walk hero(who,north,heroY(who)--n))
-if (n>>heroY(who)) then(walk hero(who,south,n--heroY(who)))
+script,walkherotoY,hsd:who,hsd:n,begin
+if (hsd:n<<heroY(hsd:who)) then(walk hero(hsd:who,north,heroY(hsd:who)--hsd:n))
+if (hsd:n>>heroY(hsd:who)) then(walk hero(hsd:who,south,hsd:n--heroY(hsd:who)))
 end
 
-script,walkNPCtoX,who,n,begin
-if (n<<NPCX(who)) then(walk NPC(who,west,NPCX(who)--n))
-if (n>>NPCX(who)) then(walk NPC(who,east,n--NPCX(who)))
+script,walkNPCtoX,hsd:who,hsd:n,begin
+if (hsd:n<<NPCX(hsd:who)) then(walk NPC(hsd:who,west,NPCX(hsd:who)--hsd:n))
+if (hsd:n>>NPCX(hsd:who)) then(walk NPC(hsd:who,east,hsd:n--NPCX(hsd:who)))
 end
 
-script,walkNPCtoY,who,n,begin
-if (n<<NPCY(who)) then(walk NPC(who,north,NPCY(who)--n))
-if (n>>NPCY(who)) then(walk NPC(who,south,n--NPCY(who)))
+script,walkNPCtoY,hsd:who,hsd:n,begin
+if (hsd:n<<NPCY(hsd:who)) then(walk NPC(hsd:who,north,NPCY(hsd:who)--hsd:n))
+if (hsd:n>>NPCY(hsd:who)) then(walk NPC(hsd:who,south,hsd:n--NPCY(hsd:who)))
 end
 
-script,setNPCspeed,who,newspeed=4,begin
-alterNPC(who,NPCstat:movespeed,newspeed)
+script,setNPCspeed,hsd:who,hsd:newspeed=4,begin
+alterNPC(hsd:who,NPCstat:movespeed,hsd:newspeed)
 end
 
-script,swapbyname,hero1,hero2,begin
- hero1:=findhero(hero1)
- hero2:=findhero(hero2)
- if (hero1==-1,or,hero2==-1)
+script,swapbyname,hsd:hero1,hsd:hero2,begin
+ hsd:hero1:=findhero(hsd:hero1)
+ hsd:hero2:=findhero(hsd:hero2)
+ if (hsd:hero1==-1,or,hsd:hero2==-1)
   then (return(false))
-  else (return(true),swapbyposition(hero1,hero2))
+  else (return(true),swapbyposition(hsd:hero1,hsd:hero2))
 end
 
-script,renamehero,who=0,begin
-  variable(slot)
-  slot:=findhero(who)
-  if(slot>=0)
-    then(renameherobyslot(slot),return(true))
+script,renamehero,hsd:who=0,begin
+  variable(hsd:slot)
+  hsd:slot:=findhero(hsd:who)
+  if(hsd:slot>=0)
+    then(renameherobyslot(hsd:slot),return(true))
     else(return(false))
 end
 
 # this exploits an undocumented feature of getherostat. Don't use the
 # same method to set the hero level (use setherolevel instead)
-script,getherolevel,who=0,begin
-  return(getherostat(who,12,currentstat))
+script,getherolevel,hsd:who=0,begin
+  return(getherostat(hsd:who,12,currentstat))
 end
 
 script,autosave,begin
@@ -503,158 +503,158 @@ if (lastsaveslot==0)
   else(saveinslot(lastsaveslot),return(lastsaveslot))
 end
 
-script,stringtoglobals,stringID,start,length,begin
-  variable(temp,padding)
-  if (stringID>=0,and,stringID<=31) then(
-    if (length>=1) then(
-      if (length+start>>1025) then(length:=1025--start)
-      padding:=length--stringlength(stringID)
-      length:=stringlength(stringID)
-      for (temp,1,length) do(
-        writeglobal(start,asciifromstring(stringid,temp))
-        start+=1
+script,stringtoglobals,hsd:stringID,hsd:start,hsd:length,begin
+  variable(hsd:temp,hsd:padding)
+  if (hsd:stringID>=0,and,hsd:stringID<=31) then(
+    if (hsd:length>=1) then(
+      if (hsd:length+hsd:start>>1025) then(hsd:length:=1025--hsd:start)
+      hsd:padding:=hsd:length--stringlength(hsd:stringID)
+      hsd:length:=stringlength(hsd:stringID)
+      for (hsd:temp,1,hsd:length) do(
+        writeglobal(hsd:start,asciifromstring(hsd:stringID,hsd:temp))
+        hsd:start+=1
       )
-      for (temp,start,start+padding--1) do(
-        writeglobal(temp,256)
-      )
-    )
-  )
-end
-
-script,globalstostring,stringID,start,length,begin
-  variable(temp)
-  variable(temp2)
-  if (stringID>=0,and,stringID<=31) then(
-    clearstring(stringid)
-    if (length>=1) then(
-      if (length+start>>1025) then(length:=1025--start)
-      for (temp,1,length) do(
-        temp2:=readglobal(start+(temp--1))
-        if (temp2>=0,and,temp2<=255) then(appendascii(stringid,temp2))
+      for (hsd:temp,hsd:start,hsd:start+hsd:padding--1) do(
+        writeglobal(hsd:temp,256)
       )
     )
   )
 end
 
-script,showstringat,stringID=0,x=0,y=0,begin
-  setstringbit(stringID,0,1)
-  positionstring(stringID,x,y)
+script,globalstostring,hsd:stringID,hsd:start,hsd:length,begin
+  variable(hsd:temp)
+  variable(hsd:temp2)
+  if (hsd:stringID>=0,and,hsd:stringID<=31) then(
+    clearstring(hsd:stringID)
+    if (hsd:length>=1) then(
+      if (hsd:length+hsd:start>>1025) then(hsd:length:=1025--hsd:start)
+      for (hsd:temp,1,hsd:length) do(
+        hsd:temp2:=readglobal(hsd:start+(hsd:temp--1))
+        if (hsd:temp2>=0,and,hsd:temp2<=255) then(appendascii(hsd:stringID,hsd:temp2))
+      )
+    )
+  )
 end
 
-script,centerstringat,stringID=0,x=160,y=100,begin
-  setstringbit(stringID,0,1)
-  positionstring(stringID,x--(stringlength(stringID)*4),y)
+script,showstringat,hsd:stringID=0,hsd:x=0,hsd:y=0,begin
+  setstringbit(hsd:stringID,0,1)
+  positionstring(hsd:stringID,hsd:x,hsd:y)
 end
 
-script,hidestring,stringID=0,begin
-  setstringbit(stringID,0,0)
+script,centerstringat,hsd:stringID=0,hsd:x=160,hsd:y=100,begin
+  setstringbit(hsd:stringID,0,1)
+  positionstring(hsd:stringID,hsd:x--(stringlength(hsd:stringID)*4),hsd:y)
 end
 
-script,stringstyle,stringID=0,style=0,begin
-  setstringbit(stringID,1,style)
+script,hidestring,hsd:stringID=0,begin
+  setstringbit(hsd:stringID,0,0)
 end
 
-script,stringisvisible,stringID=0,begin
-  return(getstringbit(stringID,0))
+script,stringstyle,hsd:stringID=0,style=0,begin
+  setstringbit(hsd:stringID,1,style)
+end
+
+script,stringisvisible,hsd:stringID=0,begin
+  return(getstringbit(hsd:stringID,0))
 end
 
 script, last ascii, begin
-	variable(code, shift)
+	variable(hsd:code, hsd:shift)
 
-	shift := keyispressed(42) || keyispressed(54)
+	hsd:shift := keyispressed(42) || keyispressed(54)
 
-	if(keyval(30) >> 1) then (code := 65) #A...
-	if(keyval(48) >> 1) then (code := 66)
-	if(keyval(46) >> 1) then (code := 67)
-	if(keyval(32) >> 1) then (code := 68)
-	if(keyval(18) >> 1) then (code := 69)
-	if(keyval(33) >> 1) then (code := 70)
-	if(keyval(34) >> 1) then (code := 71)
-	if(keyval(35) >> 1) then (code := 72)
-	if(keyval(23) >> 1) then (code := 73)
-	if(keyval(36) >> 1) then (code := 74)
-	if(keyval(37) >> 1) then (code := 75)
-	if(keyval(38) >> 1) then (code := 76)
-	if(keyval(50) >> 1) then (code := 77)
-	if(keyval(49) >> 1) then (code := 78)
-	if(keyval(24) >> 1) then (code := 79)
-	if(keyval(25) >> 1) then (code := 80)
-	if(keyval(16) >> 1) then (code := 81)
-	if(keyval(19) >> 1) then (code := 82)
-	if(keyval(31) >> 1) then (code := 83)
-	if(keyval(20) >> 1) then (code := 84)
-	if(keyval(22) >> 1) then (code := 85)
-	if(keyval(47) >> 1) then (code := 86)
-	if(keyval(17) >> 1) then (code := 87)
-	if(keyval(45) >> 1) then (code := 88)
-	if(keyval(21) >> 1) then (code := 89)
-	if(keyval(44) >> 1) then (code := 90)#...Z
-	if(keyval(2) >> 1) then (if(shift) then (code :=33) else (code :=49)) # 1...
-	if(keyval(3) >> 1) then (if(shift) then (code :=64) else (code :=50))
-	if(keyval(4) >> 1) then (if(shift) then (code :=35) else (code :=51))
-	if(keyval(5) >> 1) then (if(shift) then (code :=36) else (code :=52))
-	if(keyval(6) >> 1) then (if(shift) then (code :=37) else (code :=53))
-	if(keyval(7) >> 1) then (if(shift) then (code :=94) else (code :=54))
-	if(keyval(8) >> 1) then (if(shift) then (code :=38) else (code :=55))
-	if(keyval(9) >> 1) then (if(shift) then (code :=42) else (code :=56))
-	if(keyval(10) >> 1) then (if(shift) then (code :=40) else (code :=57))
-	if(keyval(11) >> 1) then (if(shift) then (code :=41) else (code :=48)) # ...0
-	if(keyval(41) >> 1) then (if(shift) then (code :=126) else (code :=96)) # ` ~
-	if(keyval(12) >> 1) then (if(shift) then (code :=95) else (code :=45)) # - _
-	if(keyval(13) >> 1) then (if(shift) then (code := 43) else (code := 61)) # = +
-	if(keyval(26) >> 1) then (if(shift) then (code := 123) else (code := 91)) # [ {
-	if(keyval(27) >> 1) then (if(shift) then (code := 125) else (code := 93)) # ] }
-	if(keyval(39) >> 1) then (if(shift) then (code := 58) else (code := 59)) # ; :
-	if(keyval(40) >> 1) then (if(shift) then (code := 34) else (code := 39)) # ' "
-	if(keyval(51) >> 1) then (if(shift) then (code := 60) else (code := 44)) # , <
-	if(keyval(52) >> 1) then (if(shift) then (code := 62) else (code := 46)) # . >
-	if(keyval(53) >> 1) then (if(shift) then (code := 63) else (code := 47)) # / ?
-	if(keyval(43) >> 1) then (if(shift) then (code := 124) else (code := 92)) # \ |
-	#if(keyval(40) >> 1) then (code := 47) # Num / WTF? What's the code for the other "/"?
-	if(keyval(55) >> 1) then (code := 42) # Num *
-	if(keyval(71) >> 1) then (code := 55) # Num 7
-	if(keyval(72) >> 1) then (code := 56) # Num 8
-	if(keyval(73) >> 1) then (code := 57) # Num 9
-	if(keyval(74) >> 1) then (code := 45) # Num -
-	if(keyval(75) >> 1) then (code := 52) # Num 4
-	if(keyval(76) >> 1) then (code := 53) # Num 5
-	if(keyval(77) >> 1) then (code := 54) # Num 6
-	if(keyval(78) >> 1) then (code := 43) # Num +
-	if(keyval(79) >> 1) then (code := 49) # Num 1
-	if(keyval(80) >> 1) then (code := 50) # Num 2
-	if(keyval(81) >> 1) then (code := 51) # Num 3
-	if(keyval(82) >> 1) then (code := 48) # Num 0
-	if(keyval(83) >> 1) then (code := 46) # Num .
-	if(keyval(57) >> 1) then (code := 32) #Space
+	if(keyval(30) >> 1) then (hsd:code := 65) #A...
+	if(keyval(48) >> 1) then (hsd:code := 66)
+	if(keyval(46) >> 1) then (hsd:code := 67)
+	if(keyval(32) >> 1) then (hsd:code := 68)
+	if(keyval(18) >> 1) then (hsd:code := 69)
+	if(keyval(33) >> 1) then (hsd:code := 70)
+	if(keyval(34) >> 1) then (hsd:code := 71)
+	if(keyval(35) >> 1) then (hsd:code := 72)
+	if(keyval(23) >> 1) then (hsd:code := 73)
+	if(keyval(36) >> 1) then (hsd:code := 74)
+	if(keyval(37) >> 1) then (hsd:code := 75)
+	if(keyval(38) >> 1) then (hsd:code := 76)
+	if(keyval(50) >> 1) then (hsd:code := 77)
+	if(keyval(49) >> 1) then (hsd:code := 78)
+	if(keyval(24) >> 1) then (hsd:code := 79)
+	if(keyval(25) >> 1) then (hsd:code := 80)
+	if(keyval(16) >> 1) then (hsd:code := 81)
+	if(keyval(19) >> 1) then (hsd:code := 82)
+	if(keyval(31) >> 1) then (hsd:code := 83)
+	if(keyval(20) >> 1) then (hsd:code := 84)
+	if(keyval(22) >> 1) then (hsd:code := 85)
+	if(keyval(47) >> 1) then (hsd:code := 86)
+	if(keyval(17) >> 1) then (hsd:code := 87)
+	if(keyval(45) >> 1) then (hsd:code := 88)
+	if(keyval(21) >> 1) then (hsd:code := 89)
+	if(keyval(44) >> 1) then (hsd:code := 90)#...Z
+	if(keyval(2) >> 1) then (if(hsd:shift) then (hsd:code :=33) else (hsd:code :=49)) # 1...
+	if(keyval(3) >> 1) then (if(hsd:shift) then (hsd:code :=64) else (hsd:code :=50))
+	if(keyval(4) >> 1) then (if(hsd:shift) then (hsd:code :=35) else (hsd:code :=51))
+	if(keyval(5) >> 1) then (if(hsd:shift) then (hsd:code :=36) else (hsd:code :=52))
+	if(keyval(6) >> 1) then (if(hsd:shift) then (hsd:code :=37) else (hsd:code :=53))
+	if(keyval(7) >> 1) then (if(hsd:shift) then (hsd:code :=94) else (hsd:code :=54))
+	if(keyval(8) >> 1) then (if(hsd:shift) then (hsd:code :=38) else (hsd:code :=55))
+	if(keyval(9) >> 1) then (if(hsd:shift) then (hsd:code :=42) else (hsd:code :=56))
+	if(keyval(10) >> 1) then (if(hsd:shift) then (hsd:code :=40) else (hsd:code :=57))
+	if(keyval(11) >> 1) then (if(hsd:shift) then (hsd:code :=41) else (hsd:code :=48)) # ...0
+	if(keyval(41) >> 1) then (if(hsd:shift) then (hsd:code :=126) else (hsd:code :=96)) # ` ~
+	if(keyval(12) >> 1) then (if(hsd:shift) then (hsd:code :=95) else (hsd:code :=45)) # - _
+	if(keyval(13) >> 1) then (if(hsd:shift) then (hsd:code := 43) else (hsd:code := 61)) # = +
+	if(keyval(26) >> 1) then (if(hsd:shift) then (hsd:code := 123) else (hsd:code := 91)) # [ {
+	if(keyval(27) >> 1) then (if(hsd:shift) then (hsd:code := 125) else (hsd:code := 93)) # ] }
+	if(keyval(39) >> 1) then (if(hsd:shift) then (hsd:code := 58) else (hsd:code := 59)) # ; :
+	if(keyval(40) >> 1) then (if(hsd:shift) then (hsd:code := 34) else (hsd:code := 39)) # ' "
+	if(keyval(51) >> 1) then (if(hsd:shift) then (hsd:code := 60) else (hsd:code := 44)) # , <
+	if(keyval(52) >> 1) then (if(hsd:shift) then (hsd:code := 62) else (hsd:code := 46)) # . >
+	if(keyval(53) >> 1) then (if(hsd:shift) then (hsd:code := 63) else (hsd:code := 47)) # / ?
+	if(keyval(43) >> 1) then (if(hsd:shift) then (hsd:code := 124) else (hsd:code := 92)) # \ |
+	#if(keyval(40) >> 1) then (hsd:code := 47) # Num / WTF? What's the hsd:code for the other "/"?
+	if(keyval(55) >> 1) then (hsd:code := 42) # Num *
+	if(keyval(71) >> 1) then (hsd:code := 55) # Num 7
+	if(keyval(72) >> 1) then (hsd:code := 56) # Num 8
+	if(keyval(73) >> 1) then (hsd:code := 57) # Num 9
+	if(keyval(74) >> 1) then (hsd:code := 45) # Num -
+	if(keyval(75) >> 1) then (hsd:code := 52) # Num 4
+	if(keyval(76) >> 1) then (hsd:code := 53) # Num 5
+	if(keyval(77) >> 1) then (hsd:code := 54) # Num 6
+	if(keyval(78) >> 1) then (hsd:code := 43) # Num +
+	if(keyval(79) >> 1) then (hsd:code := 49) # Num 1
+	if(keyval(80) >> 1) then (hsd:code := 50) # Num 2
+	if(keyval(81) >> 1) then (hsd:code := 51) # Num 3
+	if(keyval(82) >> 1) then (hsd:code := 48) # Num 0
+	if(keyval(83) >> 1) then (hsd:code := 46) # Num .
+	if(keyval(57) >> 1) then (hsd:code := 32) #Space
 
 
-	if(code <= 90 && code >= 65) then, begin
-		if(shift == false) then (code += 32)
+	if(hsd:code <= 90 && hsd:code >= 65) then, begin
+		if(hsd:shift == false) then (hsd:code += 32)
 	end
 
-	return (code)
+	return (hsd:code)
 
 end
 
-script, input string, str=0, max len=40, useexist=0, center=-654321, positionx=160, positiony=110, begin
-  variable(done, key, show)
-  if(useexist) else(clear string(str))
-  trim string(str,1,maxlen)
-  show:=getstringbit(str,0)==0
-  if(center==0) then(show string at(str,positionx,positiony)) else(
-    if(center<>-654321||show) then(
-      center string at(str,positionx,positiony)
+script, input string, hsd:str=0, hsd:max len=40, hsd:useexist=0, hsd:center=-654321, hsd:positionx=160, hsd:positiony=110, begin
+  variable(hsd:done, hsd:key, hsd:show)
+  if(hsd:useexist) else(clear string(hsd:str))
+  trim string(hsd:str,1,hsd:maxlen)
+  hsd:show:=getstringbit(hsd:str,0)==0
+  if(hsd:center==0) then(show string at(hsd:str,hsd:positionx,hsd:positiony)) else(
+    if(hsd:center<>-654321||hsd:show) then(
+      center string at(hsd:str,hsd:positionx,hsd:positiony)
     )
   )
-  while(not(done)) do, begin
-    if(center||(show&&center<>0)) then(center string at(str,positionx,positiony))
+  while(not(hsd:done)) do, begin
+    if(hsd:center||(hsd:show&&hsd:center<>0)) then(center string at(hsd:str,hsd:positionx,hsd:positiony))
     wait for key
-    if(key is pressed(28)) then(done:=true, return(true)) else(
-      if(keyval(14)>>1) then(delete char(str,string length(str)))
-      key:=last ascii
-      if(key&&string length(str)<<max len) then(append ascii(str,key)) else(
+    if(key is pressed(28)) then(hsd:done:=true, return(true)) else(
+      if(keyval(14)>>1) then(delete char(hsd:str,string length(hsd:str)))
+      hsd:key:=last ascii
+      if(hsd:key&&string length(hsd:str)<<hsd:max len) then(append ascii(hsd:str,hsd:key)) else(
         while(key is pressed(1)) do, begin
-          done:=true
+          hsd:done:=true
           return(false)
           if(read general(44),and,2)
             then(wait)
@@ -663,56 +663,56 @@ script, input string, str=0, max len=40, useexist=0, center=-654321, positionx=1
       )
     )
   end
-  if(show) then(hide string)
+  if(hsd:show) then(hide string)
 end
 
-script,currentdisplaytile,tile,layernumber=0,begin
-  if(tile>=160) then(
-    return(animationstarttile(tile,layernumber)+gettileanimationoffset((tile--160)/48,layernumber))
-  ) else(return(tile))
+script,currentdisplaytile,hsd:tile,hsd:layernumber=0,begin
+  if(hsd:tile>=160) then(
+    return(animationstarttile(hsd:tile,hsd:layernumber)+gettileanimationoffset((hsd:tile--160)/48,hsd:layernumber))
+  ) else(return(hsd:tile))
 end
 
 #--------------------------------------------------------------------------
 #read/write enemy wrappers
 
-script,getenemyname,enemyID,stringID=0,begin
-variable(t)
-  for (t,1,readenemydata(enemyID,0))do(
-    appendascii(stringID,readenemydata(enemyid,t))
+script,getenemyname,hsd:enemyID,hsd:stringID=0,begin
+variable(hsd:t)
+  for (hsd:t,1,readenemydata(hsd:enemyID,0))do(
+    appendascii(hsd:stringID,readenemydata(hsd:enemyID,hsd:t))
   end
 end
 
-script,getenemystat,enemyid,stat,begin
-  return(readenemydata(enemyid,stat+62))
+script,getenemystat,hsd:enemyID,hsd:stat,begin
+  return(readenemydata(hsd:enemyID,hsd:stat+62))
 end
 
-script,setenemystat,enemyid,stat,value,begin
-  writeenemydata(enemyid,stat+62,value)
+script,setenemystat,hsd:enemyID,hsd:stat,hsd:value,begin
+  writeenemydata(hsd:enemyID,hsd:stat+62,hsd:value)
 end
 
-script,setenemyname,enemyid,stringid=0,begin
-variable(t,t2)
-if(stringlength(stringid)>=16)then(t2:=16)else(t2:=stringlength(stringid))
- writeenemydata(enemyid,0,t2)
- for(t,1,t2)do(
-  writeenemydata(enemyid,t,asciifromstring(stringid,t))
+script,setenemyname,hsd:enemyID,hsd:stringID=0,begin
+variable(hsd:t,hsd:t2)
+if(stringlength(hsd:stringID)>=16)then(hsd:t2:=16)else(hsd:t2:=stringlength(hsd:stringID))
+ writeenemydata(hsd:enemyID,0,hsd:t2)
+ for(hsd:t,1,hsd:t2)do(
+  writeenemydata(hsd:enemyID,hsd:t,asciifromstring(hsd:stringID,hsd:t))
   )
 end
 
 #get/set enemy appearance are now simply wrappers. too much confusion to remove them now
-script,getenemyappearance,enemyid,appearance,begin
-  return(readenemydata(enemyid,appearance))
+script,getenemyappearance,hsd:enemyID,hsd:appearance,begin
+  return(readenemydata(hsd:enemyID,hsd:appearance))
 end
 
-script,setenemyappearance,enemyid,appearance,value,begin
-  writeenemydata(enemyid,appearance,value)
+script,setenemyappearance,hsd:enemyID,hsd:appearance,hsd:value,begin
+  writeenemydata(hsd:enemyID,hsd:appearance,hsd:value)
 end
 
 #--------------------------------------------------------------------------
 # read/write general wrappers
 
-script,set victory music,song,begin
-  write general(3,song+1)
+script,set victory music,hsd:song,begin
+  write general(3,hsd:song+1)
 end
 
 script,get victory music,begin
@@ -727,77 +727,77 @@ script,get load script,begin
   return(read general(57))
 end
 
-script,set load script,ID=0,begin
-  write general(57,ID)
+script,set load script,hsd:ID=0,begin
+  write general(57,hsd:ID)
 end
 
-script,set battle wait mode,bit=1,begin
-  if(bit) then(bit:=1)
-  write general(101,(read general(101),and,32766)+bit)
+script,set battle wait mode,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=1)
+  write general(101,(read general(101),and,32766)+hsd:bit)
 end
 
-script,set caterpillar mode,bit=1,begin
-  if(bit) then(bit:=2)
-  write general(101,(read general(101),and,32765)+bit)
+script,set caterpillar mode,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=2)
+  write general(101,(read general(101),and,32765)+hsd:bit)
 end
 
-script,set no HP level up restore,bit=1,begin
-  if(bit) then(bit:=4)
-  write general(101,(read general(101),and,32763)+bit)
+script,set no HP level up restore,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=4)
+  write general(101,(read general(101),and,32763)+hsd:bit)
 end
 
-script,set no MP level up restore,bit=1,begin
-  if(bit) then(bit:=8)
-  write general(101,(read general(101),and,32759)+bit)
+script,set no MP level up restore,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=8)
+  write general(101,(read general(101),and,32759)+hsd:bit)
 end
 
-script,set inn no revive mode,bit=1,begin
-  if(bit) then(bit:=16)
-  write general(101,(read general(101),and,32751)+bit)
+script,set inn no revive mode,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=16)
+  write general(101,(read general(101),and,32751)+hsd:bit)
 end
 
-script,set full hero swap mode,bit=1,begin
-  if(bit) then(bit:=32)
-  write general(101,(read general(101),and,32735)+bit)
+script,set full hero swap mode,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=32)
+  write general(101,(read general(101),and,32735)+hsd:bit)
 end
 
-script,hide battle ready meter,bit=1,begin
-  if(bit) then(bit:=64)
-  write general(101,(read general(101),and,32703)+bit)
+script,hide battle ready meter,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=64)
+  write general(101,(read general(101),and,32703)+hsd:bit)
 end
 
-script,hide battle health meter,bit=1,begin
-  if(bit) then(bit:=128)
-  write general(101,(read general(101),and,32639)+bit)
+script,hide battle health meter,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=128)
+  write general(101,(read general(101),and,32639)+hsd:bit)
 end
 
-script,set debug keys disable,bit=1,begin
-  if(bit) then(bit:=256)
-  write general(101,(read general(101),and,32511)+bit)
+script,set debug keys disable,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=256)
+  write general(101,(read general(101),and,32511)+hsd:bit)
 end
 
-script,set dead heroes gain experience,bit=1,begin
-  if(bit) then(bit:=8)
-  write general(177,(read general(177),and,32759)+bit)
+script,set dead heroes gain experience,hsd:bit=1,begin
+  if(hsd:bit) then(hsd:bit:=8)
+  write general(177,(read general(177),and,32759)+hsd:bit)
 end
 
-script, get hero stat cap, stat, begin
- read general(65+stat)
+script, get hero stat cap, hsd:stat, begin
+ read general(65+hsd:stat)
 end
 
-script,set capped hero stat,who,stat,value,cur or max=0,begin
- variable(cap)
- cap := get hero stat cap(stat)
- if(cap>>0, and, cap<<value) then(value:=cap)
- set hero stat(who,stat,cur or max,value)
+script,set capped hero stat,hsd:who,hsd:stat,hsd:value,stat:cur or max=0,begin
+ variable(hsd:cap)
+ hsd:cap := get hero stat cap(hsd:stat)
+ if(hsd:cap>>0, and, hsd:cap<<hsd:value) then(hsd:value:=hsd:cap)
+ set hero stat(hsd:who,hsd:stat,stat:cur or max,hsd:value)
 end
 
 script,get damage cap,begin
   return(readgeneral(63))
 end
 
-script,set damage cap,c=0,begin
-  writegeneral(63,c)
+script,set damage cap,hsd:c=0,begin
+  writegeneral(63,hsd:c)
 end
 
 script, get inventory size, begin
@@ -805,11 +805,11 @@ script, get inventory size, begin
   exit returning (read general(85) / 3 * 3 + 3)
 end
 
-script, set inventory size, newsize, begin
-  if(newsize << 0) then(exit script)
-  if(newsize == inv:max || newsize >> 600)
+script, set inventory size, hsd:newsize, begin
+  if(hsd:newsize << 0) then(exit script)
+  if(hsd:newsize == inv:max || hsd:newsize >> 600)
   then(write general(85, 0))
-  else(write general(85, (newsize + 2) / 3 * 3 -- 1))
+  else(write general(85, (hsd:newsize + 2) / 3 * 3 -- 1))
 end
 
 #--------------------------------------------------------------------------
@@ -823,75 +823,75 @@ script, get ambient music, begin
   return (read gmap(1) -- 1)
 end
 
-script, set ambient music, song=-1, begin
-  write gmap(1,song + 1)
-  if (song >= 0) then (play song (song))
-  else (if (song == -1) then (stop song))
+script, set ambient music, hsd:song=-1, begin
+  write gmap(1,hsd:song + 1)
+  if (hsd:song >= 0) then (play song (hsd:song))
+  else (if (hsd:song == -1) then (stop song))
 end
 
-script,allow minimap,setting=1,begin
-  write gmap(2,setting)
+script,allow minimap,hsd:setting=1,begin
+  write gmap(2,hsd:setting)
 end
 
-script,allow save anywhere,setting=1,begin
-  write gmap(3,setting)
+script,allow save anywhere,hsd:setting=1,begin
+  write gmap(3,hsd:setting)
 end
 
 script,cancel map name display,begin
   write gmap(4,0)
 end
 
-script,set map edge mode,mode=0,tile=0,begin
+script,set map edge mode,mode=0,hsd:tile=0,begin
   write gmap(5,mode)
-  write gmap(6,tile)
+  write gmap(6,hsd:tile)
 end
 
 script,get map edge mode,begin
   return(read gmap(5))
 end
 
-script,set harm tile damage,damage=0,begin
-  write gmap(9,damage)
+script,set harm tile damage,hsd:damage=0,begin
+  write gmap(9,hsd:damage)
 end
 
-script,set harm tile flash,colour=0,begin
-  write gmap(10,colour)
+script,set harm tile flash,hsd:colour=0,begin
+  write gmap(10,hsd:colour)
 end
 
 script,get footoffset,begin
   return(read gmap(11))
 end
 
-script,set footoffset,offset=0,begin
-  write gmap(11,offset)
+script,set footoffset,hsd:offset=0,begin
+  write gmap(11,hsd:offset)
 end
 
 script,get instead of battle script,begin
   return (read gmap(13))
 end
 
-script,set instead of battle script,ID=0,begin
-  write gmap(13,ID)
+script,set instead of battle script,hsd:ID=0,begin
+  write gmap(13,hsd:ID)
 end
 
 script,get each step script,begin
   return (read gmap(14))
 end
 
-script,set each step script,ID=0,begin
-  write gmap(14,ID)
+script,set each step script,hsd:ID=0,begin
+  write gmap(14,hsd:ID)
 end
 
 script,get on keypress script,begin
   return (read gmap(15))
 end
 
-script,set on keypress script,ID=0,begin
-  write gmap(15,ID)
+script,set on keypress script,hsd:ID=0,begin
+  write gmap(15,hsd:ID)
 end
 
-script,draw npcs above heroes,setting=1,begin
-  write gmap(16,setting)
+script,draw npcs above heroes,hsd:setting=1,begin
+  write gmap(16,hsd:setting)
 end
 
 #--------------------------------------------------------------------------
@@ -913,323 +913,323 @@ script, seconds of play, begin
 	return(read general(54))
 end
 
-script,set days of play,d=0, begin
-	if(d >= 0) then (write general(51,d))
+script,set days of play,hsd:d=0, begin
+	if(hsd:d >= 0) then (write general(51,hsd:d))
 end
 
-script,set hours of play,h=0, begin
-	if(h >= 0, and, h << 24) then (write general(52,h))
+script,set hours of play,hsd:h=0, begin
+	if(hsd:h >= 0, and, hsd:h << 24) then (write general(52,hsd:h))
 end
 
-script,set minutes  of play,m=0, begin
-	if(m >= 0, and, m << 60) then (write general(53,m))
+script,set minutes  of play,hsd:m=0, begin
+	if(hsd:m >= 0, and, hsd:m << 60) then (write general(53,hsd:m))
 end
 
-script,set seconds of play,s=0, begin
-	if(s >= 0, and, s << 60) then (write general(54,s))
+script,set seconds of play,hsd:s=0, begin
+	if(hsd:s >= 0, and, hsd:s << 60) then (write general(54,hsd:s))
 end
 
 #--------------------------------------------------------------------------
 # menu wrappers
 
-script, first menu item, menuhandle=0, begin
-  exit returning(menu item by slot(menuhandle, 0))
+script, first menu item, hsd:menuhandle=0, begin
+  exit returning(menu item by slot(hsd:menuhandle, 0))
 end
 
-script, wait for menu, menuhandle=0, begin
-  while(menu is open(menuhandle)) do(wait(1))
+script, wait for menu, hsd:menuhandle=0, begin
+  while(menu is open(hsd:menuhandle)) do(wait(1))
 end
 
 #--------------------------------------------------------------------------
 # menu data wrappers
 
-script, get menu boxstyle, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 12))
+script, get menu boxstyle, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 12))
 end
 
-script, set menu boxstyle, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 12, n)
+script, set menu boxstyle, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 12, hsd:n)
 end
 
-script, get menu textcolor, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 13))
+script, get menu textcolor, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 13))
 end
 
-script, set menu textcolor, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 13, n)
+script, set menu textcolor, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 13, hsd:n)
 end
 
-script, get menu max rows, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 14))
+script, get menu max rows, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 14))
 end
 
-script, set menu max rows, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 14, n)
+script, set menu max rows, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 14, hsd:n)
 end
 
-script, get menu offset x, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 16))
+script, get menu offset x, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 16))
 end
 
-script, set menu offset x, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 16, n)
+script, set menu offset x, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 16, hsd:n)
 end
 
-script, get menu offset y, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 17))
+script, get menu offset y, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 17))
 end
 
-script, set menu offset y, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 17, n)
+script, set menu offset y, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 17, hsd:n)
 end
 
-script, get menu anchor x, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 18))
+script, get menu anchor x, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 18))
 end
 
-script, set menu anchor x, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 18, n)
+script, set menu anchor x, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 18, hsd:n)
 end
 
-script, get menu anchor y, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 19))
+script, get menu anchor y, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 19))
 end
 
-script, set menu anchor y, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 19, n)
+script, set menu anchor y, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 19, hsd:n)
 end
 
-script, get menu text align, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 20))
+script, get menu text align, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 20))
 end
 
-script, set menu text align, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 20, n)
+script, set menu text align, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 20, hsd:n)
 end
 
-script, get menu min chars, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 21))
+script, get menu min chars, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 21))
 end
 
-script, set menu min chars, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 21, n)
+script, set menu min chars, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 21, hsd:n)
 end
 
-script, get menu max chars, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 22))
+script, get menu max chars, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 22))
 end
 
-script, set menu max chars, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 22, n)
+script, set menu max chars, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 22, hsd:n)
 end
 
-script, get menu border, menuhandle=0, begin
-  exit returning(read menu int(menuhandle, 23))
+script, get menu border, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 23))
 end
 
-script, set menu border, menuhandle=0, n=0, begin
-  write menu int(menuhandle, 24, n)
+script, set menu border, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 24, hsd:n)
 end
 
-script, get menu bit, handle, bit, begin
-  variable(n)
-  n := read menu int(handle, 15)
-  if(n,and,2^bit) then(exit returning(true))
+script, get menu bit, hsd:handle, hsd:bit, begin
+  variable(hsd:n)
+  hsd:n := read menu int(hsd:handle, 15)
+  if(hsd:n,and,2^hsd:bit) then(exit returning(true))
   exit returning(false)
 end
 
-script, set menu bit, handle, bit, value=1, begin
-  variable(n)
-  n := read menu int(handle, 15)
-  if(value) then(n := n, or, 2^bit)
-    else(n := n, and, (-1, xor, 2^bit))
-  write menu int(handle, 15, n)
+script, set menu bit, hsd:handle, hsd:bit, hsd:value=1, begin
+  variable(hsd:n)
+  hsd:n := read menu int(hsd:handle, 15)
+  if(hsd:value) then(hsd:n := hsd:n, or, 2^hsd:bit)
+    else(hsd:n := hsd:n, and, (-1, xor, 2^hsd:bit))
+  write menu int(hsd:handle, 15, hsd:n)
 end
 
 #--------------------------------------------------------------------------
 # menu item data wrappers
 
-script, set menu item, handle=0, type=0, subtype=0, tag1=0, tag2=0, stag=0, togtag=0, begin
-  write menu item int(handle, 22, type)
-  write menu item int(handle, 23, subtype)
-  write menu item int(handle, 24, tag1)
-  write menu item int(handle, 25, tag2)
-  write menu item int(handle, 26, stag)
-  write menu item int(handle, 27, togtag)
+script, set menu item, hsd:handle=0, hsd:type=0, hsd:subtype=0, hsd:tag1=0, hsd:tag2=0, hsd:stag=0, hsd:togtag=0, begin
+  write menu item int(hsd:handle, 22, hsd:type)
+  write menu item int(hsd:handle, 23, hsd:subtype)
+  write menu item int(hsd:handle, 24, hsd:tag1)
+  write menu item int(hsd:handle, 25, hsd:tag2)
+  write menu item int(hsd:handle, 26, hsd:stag)
+  write menu item int(hsd:handle, 27, hsd:togtag)
 end
 
-script, set menu item type, handle=0, n=0, begin
-  write menu item int(handle, 22, n)
+script, set menu item type, hsd:handle=0, hsd:n=0, begin
+  write menu item int(hsd:handle, 22, hsd:n)
 end
 
-script, get menu item type, handle=0, begin
-  exit returning(read menu item int(handle, 22))
+script, get menu item type, hsd:handle=0, begin
+  exit returning(read menu item int(hsd:handle, 22))
 end
 
-script, set menu item subtype, handle=0, n=0, begin
-  write menu item int(handle, 23, n)
+script, set menu item subtype, hsd:handle=0, hsd:n=0, begin
+  write menu item int(hsd:handle, 23, hsd:n)
 end
 
-script, get menu item subtype, handle=0, begin
-  exit returning(read menu item int(handle, 23))
+script, get menu item subtype, hsd:handle=0, begin
+  exit returning(read menu item int(hsd:handle, 23))
 end
 
-script, set menu item tag, handle=0, n=0, whichtag=1, begin
-  if(whichtag == 1) then(write menu item int(handle, 24, n))
-  if(whichtag == 2) then(write menu item int(handle, 25, n))
+script, set menu item tag, hsd:handle=0, hsd:n=0, hsd:whichtag=1, begin
+  if(hsd:whichtag == 1) then(write menu item int(hsd:handle, 24, hsd:n))
+  if(hsd:whichtag == 2) then(write menu item int(hsd:handle, 25, hsd:n))
 end
 
-script, get menu item tag, handle=0, whichtag=1, begin
-  if(whichtag == 1) then(exit returning(read menu item int(handle, 24)))
-  if(whichtag == 2) then(exit returning(read menu item int(handle, 25)))
+script, get menu item tag, hsd:handle=0, hsd:whichtag=1, begin
+  if(hsd:whichtag == 1) then(exit returning(read menu item int(hsd:handle, 24)))
+  if(hsd:whichtag == 2) then(exit returning(read menu item int(hsd:handle, 25)))
 end
 
-script, set menu item settag, handle=0, n=0, begin
-  write menu item int(handle, 26, n)
+script, set menu item settag, hsd:handle=0, hsd:n=0, begin
+  write menu item int(hsd:handle, 26, hsd:n)
 end
 
-script, get menu item settag, handle=0, begin
-  exit returning(read menu item int(handle, 26))
+script, get menu item settag, hsd:handle=0, begin
+  exit returning(read menu item int(hsd:handle, 26))
 end
 
-script, set menu item togtag, handle=0, n=0, begin
-  write menu item int(handle, 27, n)
+script, set menu item togtag, hsd:handle=0, hsd:n=0, begin
+  write menu item int(hsd:handle, 27, hsd:n)
 end
 
-script, get menu item togtag, handle=0, begin
-  exit returning(read menu item int(handle, 27))
+script, get menu item togtag, hsd:handle=0, begin
+  exit returning(read menu item int(hsd:handle, 27))
 end
 
-script, get menu item bit, handle, bit, begin
-  variable(n)
-  n := read menu item int(handle, 28)
-  if(n,and,2^bit) then(exit returning(true))
+script, get menu item bit, hsd:handle, hsd:bit, begin
+  variable(hsd:n)
+  hsd:n := read menu item int(hsd:handle, 28)
+  if(hsd:n,and,2^hsd:bit) then(exit returning(true))
   exit returning(false)
 end
 
-script, set menu item bit, handle, bit, value=1, begin
-  variable(n)
-  n := read menu item int(handle, 28)
-  if(value) then(n := n, or, 2^bit)
-    else(n := n, and, (-1, xor, 2^bit))
-  write menu item int(handle, 28, n)
+script, set menu item bit, hsd:handle, hsd:bit, hsd:value=1, begin
+  variable(hsd:n)
+  hsd:n := read menu item int(hsd:handle, 28)
+  if(hsd:value) then(hsd:n := hsd:n, or, 2^hsd:bit)
+    else(hsd:n := hsd:n, and, (-1, xor, 2^hsd:bit))
+  write menu item int(hsd:handle, 28, hsd:n)
 end
 
-script, set menu item extra, handle=0, extra=0, n=0, begin
-  if(extra >= 0 && extra <= 2) then, begin
-    write menu item int(handle, 29+extra, n)
+script, set menu item extra, hsd:handle=0, hsd:extra=0, hsd:n=0, begin
+  if(hsd:extra >= 0 && hsd:extra <= 2) then, begin
+    write menu item int(hsd:handle, 29+hsd:extra, hsd:n)
   end
 end
 
-script, get menu item extra, handle=0, extra=0, begin
-  if(extra >= 0 && extra <= 2) then, begin
-    exit returning(read menu item int(handle, 29+extra))
+script, get menu item extra, hsd:handle=0, hsd:extra=0, begin
+  if(hsd:extra >= 0 && hsd:extra <= 2) then, begin
+    exit returning(read menu item int(hsd:handle, 29+hsd:extra))
   end
 end
 
-script, load enemy sprite, size, number, pal = -1, begin
-  if(size == EnemySize:small) then(return(load small enemy sprite(number, pal)))
-  if(size == EnemySize:medium) then(return(load medium enemy sprite(number, pal)))
-  if(size == EnemySize:large) then(return(load large enemy sprite(number, pal)))
+script, load enemy sprite, hsd:size, hsd:number, hsd:pal = -1, begin
+  if(hsd:size == EnemySize:small) then(return(load small enemy sprite(hsd:number, hsd:pal)))
+  if(hsd:size == EnemySize:medium) then(return(load medium enemy sprite(hsd:number, hsd:pal)))
+  if(hsd:size == EnemySize:large) then(return(load large enemy sprite(hsd:number, hsd:pal)))
 end
 
-script, replace enemy sprite, ID, size, number, pal = -1, begin
-  if(size == EnemySize:small) then(return(replace small enemy sprite(ID, number, pal)))
-  if(size == EnemySize:medium) then(return(replace medium enemy sprite(ID, number, pal)))
-  if(size == EnemySize:large) then(return(replace large enemy sprite(ID, number, pal)))
+script, replace enemy sprite, hsd:ID, hsd:size, hsd:number, hsd:pal = -1, begin
+  if(hsd:size == EnemySize:small) then(return(replace small enemy sprite(hsd:ID, hsd:number, hsd:pal)))
+  if(hsd:size == EnemySize:medium) then(return(replace medium enemy sprite(hsd:ID, hsd:number, hsd:pal)))
+  if(hsd:size == EnemySize:large) then(return(replace large enemy sprite(hsd:ID, hsd:number, hsd:pal)))
 end
 
 #--------------------------------------------------------------------------
 # slice commands
 
-script, first sprite child, parent, begin
-  variable(sl)
-  sl := first child(parent)
-  if(sl==0) then(exit returning(0))
-  if(slice is sprite(sl)) then(exit returning(sl))
-  exit returning(next sprite sibling(sl))
+script, first sprite child, hsd:parent, begin
+  variable(hsd:sl)
+  hsd:sl := first child(hsd:parent)
+  if(hsd:sl==0) then(exit returning(0))
+  if(slice is sprite(hsd:sl)) then(exit returning(hsd:sl))
+  exit returning(next sprite sibling(hsd:sl))
 end
 
-script, next sprite sibling, sib, begin
-  variable(sl)
-  sl := next sibling(sib)
-  if(sl==0) then(exit returning(0))
-  if(slice is sprite(sl)) then(exit returning(sl))
-  exit returning(next sprite sibling(sl))
+script, next sprite sibling, hsd:sib, begin
+  variable(hsd:sl)
+  hsd:sl := next sibling(hsd:sib)
+  if(hsd:sl==0) then(exit returning(0))
+  if(slice is sprite(hsd:sl)) then(exit returning(hsd:sl))
+  exit returning(next sprite sibling(hsd:sl))
 end
 
-script, first container child, parent, begin
-  variable(sl)
-  sl := first child(parent)
-  if(sl==0) then(exit returning(0))
-  if(slice is container(sl)) then(exit returning(sl))
-  exit returning(next container sibling(sl))
+script, first container child, hsd:parent, begin
+  variable(hsd:sl)
+  hsd:sl := first child(hsd:parent)
+  if(hsd:sl==0) then(exit returning(0))
+  if(slice is container(hsd:sl)) then(exit returning(hsd:sl))
+  exit returning(next container sibling(hsd:sl))
 end
 
-script, next container sibling, sib, begin
-  variable(sl)
-  sl := next sibling(sib)
-  if(sl==0) then(exit returning(0))
-  if(slice is container(sl)) then(exit returning(sl))
-  exit returning(next container sibling(sl))
+script, next container sibling, hsd:sib, begin
+  variable(hsd:sl)
+  hsd:sl := next sibling(hsd:sib)
+  if(hsd:sl==0) then(exit returning(0))
+  if(slice is container(hsd:sl)) then(exit returning(hsd:sl))
+  exit returning(next container sibling(hsd:sl))
 end
 
-script, first rect child, parent, begin
-  variable(sl)
-  sl := first child(parent)
-  if(sl==0) then(exit returning(0))
-  if(slice is rect(sl)) then(exit returning(sl))
-  exit returning(next rect sibling(sl))
+script, first rect child, hsd:parent, begin
+  variable(hsd:sl)
+  hsd:sl := first child(hsd:parent)
+  if(hsd:sl==0) then(exit returning(0))
+  if(slice is rect(hsd:sl)) then(exit returning(hsd:sl))
+  exit returning(next rect sibling(hsd:sl))
 end
 
-script, next rect sibling, sib, begin
-  variable(sl)
-  sl := next sibling(sib)
-  if(sl==0) then(exit returning(0))
-  if(slice is rect(sl)) then(exit returning(sl))
-  exit returning(next rect sibling(sl))
+script, next rect sibling, hsd:sib, begin
+  variable(hsd:sl)
+  hsd:sl := next sibling(hsd:sib)
+  if(hsd:sl==0) then(exit returning(0))
+  if(slice is rect(hsd:sl)) then(exit returning(hsd:sl))
+  exit returning(next rect sibling(hsd:sl))
 end
 
-script, free slice children, parent, begin
-  variable(sl, next)
-  sl := first child(parent)
-  while(sl) do(
-    next := next sibling(sl)
-    free slice(sl)
-    sl := next
+script, free slice children, hsd:parent, begin
+  variable(hsd:sl, hsd:next)
+  hsd:sl := first child(hsd:parent)
+  while(hsd:sl) do(
+    hsd:next := next sibling(hsd:sl)
+    free slice(hsd:sl)
+    hsd:sl := hsd:next
   )
 end
 
-script, realign slice, sl, halign, valign, hanchor=-1, vanchor=-1, begin
-  set horiz align(sl, halign)
-  set vert align(sl, valign)
-  if(hanchor <> -1) then(set horiz anchor(sl, hanchor))
-  if(vanchor <> -1) then(set vert anchor(sl, vanchor))
+script, realign slice, hsd:sl, hsd:halign, hsd:valign, hsd:hanchor=-1, hsd:vanchor=-1, begin
+  set horiz align(hsd:sl, hsd:halign)
+  set vert align(hsd:sl, hsd:valign)
+  if(hsd:hanchor <> -1) then(set horiz anchor(hsd:sl, hsd:hanchor))
+  if(hsd:vanchor <> -1) then(set vert anchor(hsd:sl, hsd:vanchor))
 end
 
-script, center slice, sl, begin
-  realign slice(sl, 1, 1, 1, 1)
+script, center slice, hsd:sl, begin
+  realign slice(hsd:sl, 1, 1, 1, 1)
 end
 
-script, set slice screen x, sl, newx, begin
-  variable(oldx, diff)
-  oldx := slice screen x(sl)
-  diff := newx -- oldx
-  set slice x(sl, slice x(sl) + diff)
+script, set slice screen x, hsd:sl, hsd:newx, begin
+  variable(hsd:oldx, hsd:diff)
+  hsd:oldx := slice screen x(hsd:sl)
+  hsd:diff := hsd:newx -- hsd:oldx
+  set slice x(hsd:sl, slice x(hsd:sl) + hsd:diff)
 end
 
-script, set slice screen y, sl, newy, begin
-  variable(oldy, diff)
-  oldy := slice screen y(sl)
-  diff := newy -- oldy
-  set slice y(sl, slice y(sl) + diff)
+script, set slice screen y, hsd:sl, hsd:newy, begin
+  variable(hsd:oldy, hsd:diff)
+  hsd:oldy := slice screen y(hsd:sl)
+  hsd:diff := hsd:newy -- hsd:oldy
+  set slice y(hsd:sl, slice y(hsd:sl) + hsd:diff)
 end
 
-script, set padding, sl, newpadding, begin
-  set left padding  (sl, newpadding)
-  set right padding (sl, newpadding)
-  set top padding   (sl, newpadding)
-  set bottom padding(sl, newpadding)
+script, set padding, hsd:sl, hsd:newpadding, begin
+  set left padding  (hsd:sl, hsd:newpadding)
+  set right padding (hsd:sl, hsd:newpadding)
+  set top padding   (hsd:sl, hsd:newpadding)
+  set bottom padding(hsd:sl, hsd:newpadding)
 end
 
 #--------------------------------------------------------------------------
