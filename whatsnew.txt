@@ -103,6 +103,8 @@ WHAT IS NEW?
       so old graphics utilities have a greater chance of working [Ralph]
     * Fix crash on using items that teach spells which also have
       textboxes selected (see Bug 750) [James]
+    * Fix bug 547, "Level MP" was missing from the list of global text
+      strings [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

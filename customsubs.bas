@@ -2946,7 +2946,7 @@ FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
 END FUNCTION
 
 SUB edit_global_text_strings()
- DIM max AS INTEGER = 122
+ DIM max AS INTEGER = 123
  DIM text(-1 TO max) AS STRING
  DIM names(-1 TO max) AS STRING
  DIM maxlen(max) AS INTEGER
@@ -2962,7 +2962,7 @@ SUB edit_global_text_strings()
 
  FOR i AS INTEGER = 0 TO max
   SELECT CASE i
-   CASE 55, 74 TO 76, 78, 80 TO 86, 88 TO 92, 97 TO 98, 106 TO 115
+   CASE 55, 74 TO 76, 78, 80 TO 86, 88 TO 92, 97 TO 98, 106 TO 115, 123
     maxlen(i) = 20
    CASE 39, 40
     maxlen(i) = 8
@@ -3086,6 +3086,7 @@ SUB edit_global_text_strings()
  names(120) = "hours":                  text(120) = readglobalstring(157, "hours", 10)
  names(121) = "minute":                 text(121) = readglobalstring(158, "minute", 10)
  names(122) = "minutes":                text(122) = readglobalstring(159, "minutes", 10)
+ names(123) = "minutes":                text(123) = readglobalstring(160, "Level MP", 20)
 
  'names() = "":      text() = readglobalstring(, "", 10)
  'NOTE: if you add global strings here, be sure to update the limit-checking on

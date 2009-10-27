@@ -116,6 +116,8 @@ reset_rewards_state rew
 bat.anim_ready = NO
 bat.wait_frames = 0
 
+bat.level_mp_caption = readglobalstring(160, "Level MP", 20)
+
 FOR i = 0 TO 11
  icons(i) = -1
  bslot(i).revenge = -1
@@ -2051,7 +2053,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
       END IF
       IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN
        '--level MP
-       cost$(i) = "Level " & (INT(i / 3) + 1) & ":   " & lmp(bat.hero_turn, INT(i / 3))
+       cost$(i) = bat.level_mp_caption & " " & (INT(i / 3) + 1) & ":  " & lmp(bat.hero_turn, INT(i / 3))
       END IF
       IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3), bslot()) THEN
        '-- check whether or not the spell is allowed

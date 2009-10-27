@@ -1690,7 +1690,7 @@ FOR i = 0 TO 23
   spel$(i) = readbadbinstring$(buffer(), 24, 10, 1)
   speld$(i) = readbinstring$(buffer(),73,38)
   IF mtype(csr) = 0 THEN cost$(i) = cost & " " & statnames(statMP) & " " & ABS(stat(pt, 0, statMP)) & "/" & ABS(stat(pt, 1, statMP))
-  IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(43, "Level", 10) & " " & (INT(i / 3) + 1) & ":  " & lmp(pt, INT(i / 3))
+  IF mtype(csr) = 1 THEN cost$(i) = readglobalstring$(160, "Level MP", 20) & " " & (INT(i / 3) + 1) & ":  " & lmp(pt, INT(i / 3))
  END IF
  WHILE LEN(spel$(i)) < 10: spel$(i) = spel$(i) + " ": WEND
 NEXT i
@@ -1889,8 +1889,9 @@ DIM mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
 DIM her AS HeroDef
 DIM portrait AS GraphicPair
 
-DIM exper_caption AS STRING = readglobalstring$(33, "Experience", 10)
-DIM level_caption AS STRING = readglobalstring$(43, "Level", 10)
+DIM exper_caption AS STRING = readglobalstring(33, "Experience", 10)
+DIM level_caption AS STRING = readglobalstring(43, "Level", 10)
+DIM level_mp_caption AS STRING = readglobalstring(160, "Level MP", 20)
 elemtype$(0) = readglobalstring(127, "Weak to", 10)
 elemtype$(1) = readglobalstring(128, "Strong to", 10)
 elemtype$(2) = readglobalstring(129, "Absorbs", 10)
@@ -1965,7 +1966,7 @@ DO
      edgeprint temp$, 236 - LEN(temp$) * 4, 105, uilook(uiText), dpage
     END IF
     IF mtype(i) = 1 THEN
-     edgeprint level_caption & " " & statnames(statMP), 236 - LEN(level_caption & " " & statnames(statMP)) * 4, 125, uilook(uiText), dpage
+     edgeprint level_mp_caption, 236 - LEN(level_mp_caption) * 4, 125, uilook(uiText), dpage
      temp$ = ""
      FOR o = 0 TO 3
       temp$ = temp$ + STR$(ABS(lmp(pt, o))) + "/"

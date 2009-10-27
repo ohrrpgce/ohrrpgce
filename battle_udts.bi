@@ -178,6 +178,7 @@ TYPE BattleState
           ({-1,-1}) }
  curbg AS INTEGER      'Current background
  wait_frames AS INTEGER 'used by the attack animation
+ level_mp_caption AS STRING
 END TYPE
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1
