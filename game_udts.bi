@@ -23,6 +23,7 @@ TYPE GameState
   random_battle_countdown AS INTEGER
   stock(99, 49) AS INTEGER 'Keeps track of available inventory at each shop
   foe_freq(254) AS INTEGER 'A cache of the fight frequency for each formation set
+  walk_through_walls AS INTEGER 'used for F11 cheat mode
 END TYPE
 
 TYPE TextBoxState

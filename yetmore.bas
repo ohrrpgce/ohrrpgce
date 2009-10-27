@@ -3114,6 +3114,8 @@ FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
 '--true means passable
 '--false means impassable
 
+'debug "vehpass(" & n & "," & tile & "," & default & ")"
+
 v = default
 
 SELECT CASE n
@@ -3209,10 +3211,10 @@ FOR i = 0 TO 3
  END IF
 NEXT i
 
-IF ygo > 0 AND movdivis(ygo) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (isveh AND vehpass(vstate.dat.blocked_by, pd(0), 0))) THEN ygo = 0: wrappass = 1
-IF ygo < 0 AND movdivis(ygo) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (isveh AND vehpass(vstate.dat.blocked_by, pd(2), 0))) THEN ygo = 0: wrappass = 1
-IF xgo > 0 AND movdivis(xgo) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (isveh AND vehpass(vstate.dat.blocked_by, pd(3), 0))) THEN xgo = 0: wrappass = 1
-IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh AND vehpass(vstate.dat.blocked_by, pd(1), 0))) THEN xgo = 0: wrappass = 1
+IF ygo > 0 AND movdivis(ygo) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(0), 0))) THEN ygo = 0: wrappass = 1
+IF ygo < 0 AND movdivis(ygo) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(2), 0))) THEN ygo = 0: wrappass = 1
+IF xgo > 0 AND movdivis(xgo) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(3), 0))) THEN xgo = 0: wrappass = 1
+IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(1), 0))) THEN xgo = 0: wrappass = 1
 
 END FUNCTION
 

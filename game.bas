@@ -35,6 +35,7 @@ DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
 DECLARE SUB advance_text_box ()
+DECLARE FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
 
 REMEMBERSTATE
 
@@ -381,7 +382,7 @@ force_npc_check = YES
 '--Reset some stuff related to debug keys
 showtags = 0
 shownpcinfo = 0
-walk_through_walls = 0
+gam.walk_through_walls = NO
 
 'DEBUG debug "pre-call movement"
 GOSUB movement
@@ -533,7 +534,7 @@ DO
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets()
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
    IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
-   IF keyval(scF11) > 1 THEN walk_through_walls = walk_through_walls XOR 1
+   IF keyval(scF11) > 1 THEN gam.walk_through_walls = NOT gam.walk_through_walls
   END IF
  END IF
  IF wantloadgame > 0 THEN
@@ -722,7 +723,7 @@ FOR whoi = 0 TO 3
  thisherotilex = INT(catx(whoi * 5) / 20)
  thisherotiley = INT(caty(whoi * 5) / 20)
  '--if if aligned in at least one direction and passibility is enabled ... and some vehicle stuff ...
- IF (movdivis(xgo(whoi)) OR movdivis(ygo(whoi))) AND walk_through_walls = 0 AND vstate.dat.pass_walls = NO AND vehpass(vstate.dat.override_walls, readmapblock(thisherotilex, thisherotiley, 0), 0) = 0 THEN
+ IF want_to_check_for_walls(whoi) THEN
   IF readbit(gen(), 44, suspendherowalls) = 0 AND vehicle_is_animating() = NO THEN
    '--this only happens if herowalls is on
    '--wrapping passability
@@ -3247,3 +3248,15 @@ SUB usething(BYVAL auto AS INTEGER, BYVAL ux AS INTEGER, BYVAL uy AS INTEGER)
   END IF
  END IF
 END SUB
+
+FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
+ IF movdivis(xgo(who)) = 0 AND movdivis(ygo(who)) = 0 THEN RETURN NO
+ IF gam.walk_through_walls = YES THEN RETURN NO
+ IF vstate.dat.pass_walls = YES THEN RETURN NO
+ IF vstate.active THEN
+  DIM thisherotilex AS INTEGER = INT(catx(who * 5) / 20)
+  DIM thisherotiley AS INTEGER = INT(caty(who * 5) / 20)
+  IF vehpass(vstate.dat.override_walls, readmapblock(thisherotilex, thisherotiley, 0), 0) <> 0 THEN RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
