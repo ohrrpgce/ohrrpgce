@@ -3226,7 +3226,7 @@ SUB usething(BYVAL auto AS INTEGER, BYVAL ux AS INTEGER, BYVAL uy AS INTEGER)
    reset_vehicle vstate
    LoadVehicle game & ".veh", vstate.dat, vehuse - 1
    '--check mounting permissions first
-   IF vehpass(vstate.dat.mount_from, readmapblock(catx(0) \ 20, caty(0) \ 20, 0), -1) THEN
+   IF vehpass(vstate.dat.mount_from, readpassblock(catx(0) \ 20, caty(0) \ 20), -1) THEN
     vstate.active = YES
     vstate.npc = txt.sayer
     vstate.old_speed = herospeed(0)

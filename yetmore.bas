@@ -3114,8 +3114,6 @@ FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
 '--true means passable
 '--false means impassable
 
-'debug "vehpass(" & n & "," & tile & "," & default & ")"
-
 v = default
 
 SELECT CASE n
