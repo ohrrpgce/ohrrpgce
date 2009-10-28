@@ -105,6 +105,9 @@ WHAT IS NEW?
       textboxes selected (see Bug 750) [James]
     * Fix bug 547, "Level MP" was missing from the list of global text
       strings [James]
+    * Fix bug 588, Heroes get free attack if stunned while selecting a
+      target. Also fixed the fact that stun status was only pausing the
+      ready-meter, not pausing delays. [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

@@ -430,6 +430,16 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
       bslot(targ).attack = 0
      END IF
     END IF
+    IF attack.cancel_targets_attack OR bslot(targ).stat.cur.stun < bslot(targ).stat.max.stun THEN
+     '--If the currently targeting hero is the one hit, stop targetting
+     '--note that stunning implies cancellation of untargetted attacks,
+     '--but does not imply cancellation of already-targeted attacks.
+     IF bat.hero_turn = targ THEN
+      bat.targ.mode = targNONE
+      bat.hero_turn = -1
+      bslot(targ).attack = 0 'This might seem redundant to the above, but it is okay. Needed for stun
+     END IF
+    END IF
     IF attack.erase_rewards = YES THEN
      es(targ - 4, 56) = 0
      es(targ - 4, 57) = 0
@@ -880,7 +890,13 @@ IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN RETRACE
 FOR i = 0 TO 11
 
  'delays for attacks already selected
- IF bat.hero_turn <> i THEN bslot(i).delay = large(bslot(i).delay - 1, 0)
+ IF bat.hero_turn <> i THEN
+  IF bslot(i).stat.cur.stun < bslot(i).stat.max.stun THEN
+   '--delay does not count when stunned
+  ELSE
+   bslot(i).delay = large(bslot(i).delay - 1, 0)
+  END IF
+ END IF
 
  '--poison
  WITH bslot(i).stat
