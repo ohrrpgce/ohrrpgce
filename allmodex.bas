@@ -28,6 +28,7 @@ end type
 
 declare sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
+declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
 declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
@@ -40,7 +41,7 @@ DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, byval l as i
 declare function matchmask(match as string, mask as string) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 
-'internal allmodex use only sprite functions
+'not to be exposed outside allmodex
 declare sub sprite_freemem(byval f as frame ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 
@@ -2534,65 +2535,6 @@ SUB screenshot (f$)
 	end if
 END SUB
 
-SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
-'Not sure whether this should be in here or in gfx. Possibly both?
-'	bsave f$, 0
-
-		dim header as BITMAPFILEHEADER
-		dim info as BITMAPINFOHEADER
-		dim argb as RGBQUAD
-
-		dim as integer of, h, i, bfSize, biSizeImage, bfOffBits, biClrUsed
-		dim as ubyte ptr s
-
-		biSizeImage = fr->w * fr->h
-		bfOffBits = 54 + 1024
-		bfSize = bfOffBits + biSizeImage
-		biClrUsed = 256
-
-		header.bfType = 19778
-		header.bfSize = bfSize
-		header.bfReserved1 = 0
-		header.bfReserved2 = 0
-		header.bfOffBits = bfOffBits
-
-		info.biSize = 40
-		info.biWidth = fr->w
-		info.biHeight = fr->h
-		info.biPlanes = 1
-		info.biBitCount = 8
-		info.biCompression = 0
-		info.biSizeImage = biSizeImage
-		info.biXPelsPerMeter = &hB12
-		info.biYPelsPerMeter = &hB12
-		info.biClrUsed = biClrUsed
-		info.biClrImportant = biClrUsed
-
-		if NOT fileiswriteable(f$) then exit sub
-		of = freefile
-		open f$ for binary access write as #of
-
-		put #of, , header
-		put #of, , info
-
-		for i = 0 to 255
-			argb.rgbRed = maspal(i).r
-			argb.rgbGreen = maspal(i).g
-			argb.rgbBlue = maspal(i).b
-			put #of, , argb
-		next
-
-		h = fr->h
-		s = fr->image + (h - 1) * fr->pitch
-		while h > 0
-			fput(of, , s, fr->w)
-			s -= fr->pitch
-			h -= 1
-		wend
-
-		close #of
-end SUB
-
 FUNCTION havemouse() as integer
 'atm, all backends support the mouse, or don't know
 	 hidemousecursor
@@ -2935,9 +2877,119 @@ function calcblock(byval x as integer, byval y as integer, byval l as integer, b
 end function
 
 '----------------------------------------------------------------------
-'Bitmap import functions - other formats are probably quite simple
+'BMP functions - other formats are probably quite simple
 'with Allegro or SDL or FreeImage, but we'll stick to this for now.
 '----------------------------------------------------------------------
+
+SUB sprite_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
+	dim argb as RGBQUAD
+	dim as integer of, y, i, skipbytes
+	dim as ubyte ptr sptr
+
+	of = write_bmp_header(f, fr->w, fr->h, 8)
+	if of = -1 then exit sub
+
+	for i = 0 to 255
+		argb.rgbRed = maspal(i).r
+		argb.rgbGreen = maspal(i).g
+		argb.rgbBlue = maspal(i).b
+		put #of, , argb
+	next
+
+	skipbytes = 4 - (fr->w mod 4)
+	if skipbytes = 4 then skipbytes = 0
+	sptr = fr->image + (fr->h - 1) * fr->pitch
+	for y = fr->h - 1 to 0 step -1
+		'put is possibly the most screwed up FB builtin; the use of the fput wrapper soothes the soul
+		fput(of, , sptr, fr->w) 'equivalent to "put #of, , *sptr, fr->w"
+		sptr -= fr->pitch
+		'write some interesting dummy data
+		put #of, , @argb, skipbytes
+	next
+
+	close #of
+end SUB
+
+SUB sprite_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
+	dim argb as RGBQUAD
+	dim as integer of, x, y, i, skipbytes
+	dim as ubyte ptr sptr
+	dim as ubyte pix
+
+	of = write_bmp_header(f, fr->w, fr->h, 4)
+	if of = -1 then exit sub
+
+	for i = 0 to 15
+		argb.rgbRed = maspal(pal->col(i)).r
+		argb.rgbGreen = maspal(pal->col(i)).g
+		argb.rgbBlue = maspal(pal->col(i)).b
+		put #of, , argb
+	next
+
+	skipbytes = 4 - ((fr->w / 2) mod 4)
+	if skipbytes = 4 then skipbytes = 0
+	sptr = fr->image + (fr->h - 1) * fr->pitch
+	for y = fr->h - 1 to 0 step -1
+		for x = 0 to fr->w - 1
+			if (x and 1) = 0 then
+				pix = sptr[x] shl 4
+			else
+				pix or= sptr[x]
+				put #of, , pix
+			end if
+		next
+		if fr->w mod 2 then
+			put #of, , pix
+		end if
+		sptr -= fr->pitch
+		'write some interesting dummy data
+		put #of, , @argb, skipbytes
+	next
+
+	close #of
+end SUB
+
+'Creates a new file and writes the bmp headers to it.
+'Returns a file handle, or -1 on error.
+private function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
+	dim header as BITMAPFILEHEADER
+	dim info as BITMAPINFOHEADER
+
+	dim as integer of, imagesize, imageoff
+
+	imagesize = ((w * bitdepth + 31) \ 32) * 4 * h
+
+	imageoff = 54 + (1 shl bitdepth) * 4
+
+	header.bfType = 19778
+	header.bfSize = imageoff + imagesize
+	header.bfReserved1 = 0
+	header.bfReserved2 = 0
+	header.bfOffBits = imageoff
+
+	info.biSize = 40
+	info.biWidth = w
+	info.biHeight = h
+	info.biPlanes = 1
+	info.biBitCount = bitdepth
+	info.biCompression = 0
+	info.biSizeImage = imagesize
+	info.biXPelsPerMeter = &hB12
+	info.biYPelsPerMeter = &hB12
+	info.biClrUsed = 0
+	info.biClrImportant = 0
+
+	if NOT fileiswriteable(f$) then return -1
+	safekill f$
+	of = freefile
+	open f$ for binary access write as #of
+
+	put #of, , header
+	put #of, , info
+
+	return of
+end function
+
 FUNCTION sprite_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
 'loads the 24-bit bitmap bmp$, mapped to palette pal()
 	dim header as BITMAPFILEHEADER

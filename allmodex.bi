@@ -86,7 +86,8 @@ DECLARE SUB resumesong ()
 DECLARE FUNCTION getfmvol () as integer
 DECLARE SUB setfmvol (BYVAL vol as integer)
 DECLARE SUB screenshot (f as string)
-DECLARE SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
+DECLARE SUB sprite_export_bmp4 (f$, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
+DECLARE SUB sprite_export_bmp8 (f$, byval fr as Frame Ptr, maspal() as RGBcolor)
 DECLARE FUNCTION sprite_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
 DECLARE FUNCTION sprite_import_bmp_raw(bmp as string) as Frame ptr
 DECLARE SUB bitmap2pal (bmp as string, pal() as RGBcolor)
