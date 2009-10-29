@@ -547,7 +547,7 @@ ELSE
 END IF
 
 'Copy in new lump
-copyfile sourcesong$, songfile$
+filecopy sourcesong$, songfile$
 
 IF oggtemp <> "" THEN KILL oggtemp
 
@@ -567,7 +567,7 @@ IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
 END IF
 outfile$ = inputfilename(query$, ext$)
 IF outfile$ = "" THEN RETRACE
-copyfile songfile$, outfile$ + ext$
+filecopy songfile$, outfile$ + ext$
 RETRACE
 
 ssongdata:
@@ -738,7 +738,7 @@ sname$ = a$
 sfxfile$ = workingdir + SLASH + "sfx" + STR$(snum) + "." + justextension$(sourcesfx$)
 
 '--copy in the new lump
-copyfile sourcesfx$, sfxfile$
+filecopy sourcesfx$, sfxfile$
 
 IF oggtemp <> "" THEN KILL oggtemp
 
@@ -751,7 +751,7 @@ exportsfx:
 query$ = "Name of file to export to?"
 outfile$ = inputfilename(query$, ext$)
 IF outfile$ = "" THEN RETRACE
-copyfile sfxfile$, outfile$ + ext$
+filecopy sfxfile$, outfile$ + ext$
 RETRACE
 
 ssfxdata:

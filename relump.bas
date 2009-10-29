@@ -24,7 +24,6 @@ DECLARE SUB setwait (BYVAL t)
 DECLARE SUB dowait ()
 DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
 DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
-DECLARE SUB copyfile (s$, d$)
 DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$)
 DECLARE SUB lumpfiles (listf$, lump$, path$)
 DECLARE SUB array2str (arr(), BYVAL o, s$)
@@ -45,6 +44,7 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 
 #include "util.bi"
 #include "const.bi"
+#include "file.bi"
 
 #IFDEF __FB_LINUX__
  CONST SLASH = "/"
@@ -442,7 +442,7 @@ function matchmask(match as string, mask as string) as integer
 end function
 
 SUB fixorder (f$)
-copyfile f$, "fixorder.tmp"
+filecopy f$, "fixorder.tmp"
 
 ofh = FREEFILE
 OPEN f$ FOR OUTPUT AS #ofh
@@ -490,53 +490,6 @@ CLOSE #ifh
 CLOSE #ofh
 KILL "fixorder.tmp"
 END SUB
-
-SUB copyfile (s$, d$)
-	dim bufr as ubyte ptr
-	dim as integer fi, fo, size, csize
-
-	fi = freefile
-	open s$ for binary access read as #fi
-	if err <> 0 then
-		exit sub
-	end if
-
-	fo = freefile
-	open d$ for binary access write as #fo
-	if err <> 0 then
-		close #fi
-		exit sub
-	end if
-
-	size = lof(fi)
-
-	if size < 16000 then
-		bufr = allocate(size)
-		'copy a chunk of file
-		fget(fi, , bufr, size)
-		fput(fo, , bufr, size)
-	else
-		bufr = allocate(16000)
-
-		'write lump
-		while size > 0
-			if size > 16000 then
-				csize = 16000
-			else
-				csize = size
-			end if
-			'copy a chunk of file
-			fget(fi, , bufr, csize)
-			fput(fo, , bufr, csize)
-			size = size - csize
-		wend
-	end if
-
-	deallocate bufr
-	close #fi
-	close #fo
-
-end SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$)
     ' attrib 0: all files 'cept folders, attrib 16: folders only

@@ -27,7 +27,6 @@ option explicit
 #ENDIF
 
 #undef rectangle
-#undef copyfile
 #undef opaque
 #include once "allmodex.bi"
 

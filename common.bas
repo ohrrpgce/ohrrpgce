@@ -308,7 +308,7 @@ IF isdir(package$) THEN
  IF ignoremissing THEN
   IF NOT isfile(package$ + SLASH + lump$) THEN EXIT SUB
  END IF
- copyfile package$ + SLASH + lump$, dest$ + lump$
+ filecopy package$ + SLASH + lump$, dest$ + lump$
 ELSE
  'lumpfile
  unlumpfile package$, lump$, dest$
@@ -1543,7 +1543,7 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
   DIM records AS INTEGER = LOF(ff) / oldsize
   CLOSE #ff
 
-  copyfile lumpf, tempf
+  filecopy lumpf, tempf
   KILL lumpf
 
   FOR i AS INTEGER = 0 TO records - 1
@@ -1851,7 +1851,7 @@ IF NOT isfile(game + ".veh") THEN
  DIM template AS STRING = finddatafile("ohrrpgce.new")
  IF template <> "" THEN
   unlumpfile(template, "ohrrpgce.veh", tmpdir)
-  copyfile tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
+  filecopy tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
   safekill tmpdir & SLASH & "ohrrpgce.veh"
   gen(genMaxVehicle) = 2
  END IF

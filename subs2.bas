@@ -135,7 +135,7 @@ ELSE '--use pages instead of sets
  
 END IF'--separate setpicstuf
 
-copyfile tmpdir & "_cropped.tmp", lump$
+filecopy tmpdir & "_cropped.tmp", lump$
 safekill tmpdir & "_cropped.tmp"
 
 END SUB
@@ -304,7 +304,7 @@ SUB importscripts (f$)
  reset_console
  IF buffer(0) = 21320 AND buffer(1) = 0 THEN
 
-  copyfile f$, game + ".hsp"
+  filecopy f$, game + ".hsp"
   textcolor uilook(uiMenuItem), 0
   unlumpfile(game + ".hsp", "scripts.bin", tmpdir)
   IF isfile(tmpdir & "scripts.bin") THEN
@@ -370,7 +370,7 @@ SUB importscripts (f$)
 
   '--save a temporary backup copy of plotscr.lst
   IF isfile(workingdir & SLASH & "plotscr.lst") THEN
-   copyfile workingdir & SLASH & "plotscr.lst", tmpdir & "plotscr.lst.tmp"
+   filecopy workingdir & SLASH & "plotscr.lst", tmpdir & "plotscr.lst.tmp"
   END IF
 
   gen(genMaxPlotscript) = 0
@@ -690,7 +690,7 @@ SUB text_box_editor () 'textage
      clearpage vpage
      backup_say = tmpdir & "backup-textbox-lump.say"
      '--make a backup copy of the .say lump
-     copyfile game & ".say", backup_say
+     filecopy game & ".say", backup_say
      IF NOT isfile(backup_say) THEN
       notification "unable to save a backup copy of the text box data to " & backup_say
      ELSE
@@ -702,7 +702,7 @@ SUB text_box_editor () 'textage
       ELSE
        'Failure! Reset, revert, abort, run-away!
        gen(genMaxTextBox) = remember_boxcount
-       copyfile backup_say, game & ".say"
+       filecopy backup_say, game & ".say"
        notification "Import failed, restoring backup. " & import_warn
       END IF
      END IF

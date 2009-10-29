@@ -6,6 +6,7 @@
 #include "udts.bi"
 #include "compat.bi"
 #include "bitmap.bi"
+#include "file.bi"   'FB header
 
 'Library routines
 DECLARE SUB setmodex ()
@@ -84,7 +85,6 @@ DECLARE SUB pausesong ()
 DECLARE SUB resumesong ()
 DECLARE FUNCTION getfmvol () as integer
 DECLARE SUB setfmvol (BYVAL vol as integer)
-DECLARE SUB copyfile (s as string, d as string)
 DECLARE SUB screenshot (f as string)
 DECLARE SUB sprite_export_bmp8 (f$, fr as Frame Ptr, maspal() as RGBcolor)
 DECLARE FUNCTION sprite_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr

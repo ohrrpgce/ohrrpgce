@@ -54,7 +54,6 @@ option explicit
 #undef rectangle
 #undef paintat
 #undef max
-#undef copyfile
 #undef setmouse
 #undef regtype
 #undef isfile

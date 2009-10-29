@@ -177,7 +177,7 @@ IF isdir(gamefile) THEN
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
-  copyfile gamefile + SLASH + filename$, workingdir + SLASH + filename$
+  filecopy gamefile + SLASH + filename$, workingdir + SLASH + filename$
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
@@ -642,7 +642,7 @@ REM $STATIC
 
 SUB fixorder (f$)
 
-copyfile f$, "fixorder.tmp"
+filecopy f$, "fixorder.tmp"
 
 ofh = FREEFILE
 OPEN f$ FOR OUTPUT AS #ofh
@@ -848,7 +848,7 @@ RETRACE
 importfont:
 newfont$ = browse$(0, default$, "*.ohf", "")
 IF newfont$ <> "" THEN
- copyfile newfont$, game + ".fnt"
+ filecopy newfont$, game + ".fnt"
 
  '--never overwrite 0 thru 31
  FOR i = 0 TO 2047
@@ -892,7 +892,7 @@ DO
 
  IF keyval(scEnter) > 1 THEN
   GOSUB savefont
-  copyfile game + ".fnt", newfont$ + ".ohf"
+  filecopy game + ".fnt", newfont$ + ".ohf"
   EXIT DO
  END IF
 
@@ -1287,7 +1287,7 @@ FUNCTION newRPGfile (template$, newrpg$)
   w = getkey
   EXIT FUNCTION
  END IF
- copyfile template$, newrpg$
+ filecopy template$, newrpg$
  printstr "Unlumping", 0, 60, vpage
  setvispage vpage 'refresh
  unlump newrpg$, workingdir + SLASH
@@ -1319,7 +1319,7 @@ IF isdir(filetolump$) THEN
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
   safekill filetolump$ + SLASH + filename$
-  copyfile workingdir + SLASH + filename$, filetolump$ + SLASH + filename$
+  filecopy workingdir + SLASH + filename$, filetolump$ + SLASH + filename$
   'FIXME: move file?
  LOOP
  CLOSE #fh

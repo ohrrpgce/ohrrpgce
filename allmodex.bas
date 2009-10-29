@@ -2526,53 +2526,6 @@ SUB setfmvol (BYVAL vol as integer)
 	music_setvolume(vol)
 end SUB
 
-SUB copyfile (s$, d$)
-	dim bufr as ubyte ptr
-	dim as integer fi, fo, size, csize
-
-	fi = freefile
-	open s$ for binary access read as #fi
-	if err <> 0 then
-		exit sub
-	end if
-
-	fo = freefile
-	open d$ for binary access write as #fo
-	if err <> 0 then
-		close #fi
-		exit sub
-	end if
-
-	size = lof(fi)
-
-	if size < 16000 then
-		bufr = callocate(size)
-		'copy a chunk of file
-		fget(fi, , bufr, size)
-		fput(fo, , bufr, size)
-	else
-		bufr = callocate(16000)
-
-		'write lump
-		while size > 0
-			if size > 16000 then
-				csize = 16000
-			else
-				csize = size
-			end if
-			'copy a chunk of file
-			fget(fi, , bufr, csize)
-			fput(fo, , bufr, csize)
-			size = size - csize
-		wend
-	end if
-
-	deallocate bufr
-	close #fi
-	close #fo
-
-end SUB
-
 SUB screenshot (f$)
 	'try external first
 	if gfx_screenshot(f$) = 0 then
