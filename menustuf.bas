@@ -29,6 +29,8 @@ DECLARE SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
+DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
+
 
 REM $STATIC
 
@@ -534,13 +536,14 @@ setbit permask(), 0, 3 + i, t2
 setbit permask(), 0, 3 + o, t1
 END SUB
 
-FUNCTION items (stat() as integer) as integer
+FUNCTION items_menu (stat() as integer) as integer
+DIM istate AS ItemsMenuState
 DIM itemdata(100) AS INTEGER
 DIM itemtemp(100) AS INTEGER
 DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
 DIM learn_attack AS AttackData 'FIXME: used only when learning an attack, move to a sub when that code is subified
 DIM iuse((inventoryMax + 3) / 16) 'bit 0 of iuse, permask, correspond to item -3
-DIM permask((inventoryMax + 3) / 16)
+DIM permask((inventoryMax + 3) / 16) AS INTEGER
 DIM atkIDs(inventoryMax)
 DIM special$(-3 TO -1)
 DIM autosort_changed AS INTEGER = 0
@@ -574,8 +577,13 @@ FOR i = 0 TO last_inv_slot()
   END IF
  END IF
 NEXT i
-ic = -3: top = -3: sel = -4: wptr = 0: spred = 0: pick = 0
-info$ = ""
+istate.cursor = -3
+top = -3
+istate.sel = -4
+wptr = 0
+spred = 0
+pick = 0
+istate.info = ""
 
 DIM rect AS RectType
 WITH rect
@@ -598,7 +606,7 @@ WITH state
  .size = 20
 END WITH
 
-GOSUB infostr
+items_menu_infostr istate, permask()
 setkeys
 quit = 0
 wtogl = 0
@@ -618,14 +626,14 @@ DO
   textcolor uilook(uiDisabledItem), 0
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
-  IF ic = i THEN
+  IF istate.cursor = i THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight2)
    IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
    IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
   END IF
-  IF sel = i THEN
+  IF istate.sel = i THEN
    textcolor uilook(uiMenuItem), uilook(uiHighlight + tog)
-   IF ic = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
+   IF istate.cursor = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
   END IF
   IF i >= 0 THEN
    display$ = inventory(i).text
@@ -635,7 +643,7 @@ DO
   printstr display$, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - top) \ 3), dpage
  NEXT i
  centerfuz 160, 192, 312, 16, 4, dpage
- edgeprint info$, xstring(info$, 160), 187, uilook(uiText), dpage
+ edgeprint istate.info, xstring(istate.info, 160), 187, uilook(uiText), dpage
  IF pick = 1 THEN
   centerbox 160, 47, 160, 88, 2, dpage
   IF spred = 0 AND wptr >= 0 THEN
@@ -662,7 +670,7 @@ DO
  END IF
  WITH state
   state.top = INT(top / 3)
-  state.pt = INT(ic / 3)
+  state.pt = INT(istate.cursor / 3)
  END WITH
  draw_scrollbar state, scrollrect, , dpage
  SWAP vpage, dpage
@@ -675,27 +683,13 @@ FOR t = 4 TO 5: carray(t) = 0: NEXT t
 freepage holdscreen
 EXIT FUNCTION
 
-infostr:
-info$ = ""
-IF sel >= 0 AND ic = -1 THEN
- IF inventory(sel).used THEN
-  info$ = readglobalstring$(41, "Discard", 10) + " " + inventory(sel).text
-  IF readbit(permask(), 0, 3 + sel) THEN info$ = readglobalstring$(42, "Cannot", 10) + " " + info$ + "!"
- END IF
-END IF
-IF ic < 0 THEN RETRACE
-IF inventory(ic).used = 0 THEN RETRACE
-loaditemdata itemtemp(), inventory(ic).id
-info$ = readbadbinstring$(itemtemp(), 9, 35, 0)
-RETRACE
-
 itcontrol:
 '--keyboard checking and associated actions for the item menu
 IF pick = 0 THEN '--have not picked an item yet
  IF carray(ccMenu) > 1 THEN
   '--deselect currently selected item
-  IF sel > -1 THEN
-   sel = -4
+  IF istate.sel > -1 THEN
+   istate.sel = -4
    menusound gen(genCancelSFX)
   ELSE
    quit = 1
@@ -703,34 +697,34 @@ IF pick = 0 THEN '--have not picked an item yet
  END IF
  IF carray(ccUse) > 1 THEN
   '--exit
-  IF ic = -3 THEN quit = 1
+  IF istate.cursor = -3 THEN quit = 1
   '--sort
-  IF ic = -2 THEN GOSUB autosort
-  IF ic = -1 AND sel >= 0 AND readbit(permask(), 0, 3 + sel) = 0 THEN
+  IF istate.cursor = -2 THEN GOSUB autosort
+  IF istate.cursor = -1 AND istate.sel >= 0 AND readbit(permask(), 0, 3 + istate.sel) = 0 THEN
    '--try to thow item away
-   IF inventory(sel).used THEN MenuSound gen(genAcceptSFX)
-   inventory(sel).text = SPACE$(11)
-   inventory(sel).used = 0
-   setbit iuse(), 0, 3 + sel, 0
-   sel = -4
-   GOSUB infostr
+   IF inventory(istate.sel).used THEN MenuSound gen(genAcceptSFX)
+   inventory(istate.sel).text = SPACE$(11)
+   inventory(istate.sel).used = 0
+   setbit iuse(), 0, 3 + istate.sel, 0
+   istate.sel = -4
+   items_menu_infostr istate, permask()
    RETRACE
   END IF
-  IF sel >= 0 THEN
-   IF ic >= 0 AND ic <> sel THEN
+  IF istate.sel >= 0 THEN
+   IF istate.cursor >= 0 AND istate.cursor <> istate.sel THEN
     '--swap the selected item and the item under the cursor
-    itemmenuswap inventory(), atkIDs(), iuse(), permask(), ic, sel
-    sel = -4
-    GOSUB infostr
+    itemmenuswap inventory(), atkIDs(), iuse(), permask(), istate.cursor, istate.sel
+    istate.sel = -4
+    items_menu_infostr istate, permask()
     MenuSound gen(genAcceptSFX)
     RETRACE
    END IF
-   IF ic >= 0 AND sel = ic THEN
+   IF istate.cursor >= 0 AND istate.sel = istate.cursor THEN
     '--try to use the current item
-    sel = -4
+    istate.sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
-    IF readbit(iuse(), 0, 3 + ic) = 0 OR inventory(ic).used = 0 THEN RETRACE
-    loaditemdata itemdata(), inventory(ic).id
+    IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN RETRACE
+    loaditemdata itemdata(), inventory(istate.cursor).id
     IF itemdata(50) > 0 THEN '--learn a spell
      ttype = 0
      pick = 1: wptr = 0
@@ -762,8 +756,8 @@ IF pick = 0 THEN '--have not picked an item yet
      RETRACE
     END IF
     IF itemdata(51) < 0 THEN '--trigger a text box
-     IF itemdata(73) = 1 THEN dummy = consumeitem(ic)
-     items = itemdata(51) * -1
+     IF itemdata(73) = 1 THEN dummy = consumeitem(istate.cursor)
+     items_menu = itemdata(51) * -1
      MenuSound gen(genAcceptSFX)
      freepage holdscreen
      RETRIEVESTATE
@@ -771,67 +765,67 @@ IF pick = 0 THEN '--have not picked an item yet
     END IF
    END IF
   END IF
-  IF sel < -3 AND ic >= 0 THEN
-   sel = ic
+  IF istate.sel < -3 AND istate.cursor >= 0 THEN
+   istate.sel = istate.cursor
    MenuSound gen(genAcceptSFX)
    RETRACE
   END IF
  END IF
- IF carray(ccUp) > 1 AND ic >= 0 THEN
+ IF carray(ccUp) > 1 AND istate.cursor >= 0 THEN
   menusound gen(genCursorSFX)
-  ic = ic - 3
-  GOSUB infostr
-  IF ic < top THEN top = top - 3
+  istate.cursor = istate.cursor - 3
+  items_menu_infostr istate, permask()
+  IF istate.cursor < top THEN top = top - 3
  END IF
- IF carray(ccDown) > 1 AND ic <= last_inv_slot() - 3 THEN
+ IF carray(ccDown) > 1 AND istate.cursor <= last_inv_slot() - 3 THEN
   menusound gen(genCursorSFX)
-  ic = ic + 3
-  GOSUB infostr
-  IF ic > top + 62 THEN top = top + 3
+  istate.cursor = istate.cursor + 3
+  items_menu_infostr istate, permask()
+  IF istate.cursor > top + 62 THEN top = top + 3
  END IF
  IF carray(ccLeft) > 1 THEN
   menusound gen(genCursorSFX)
-  IF (ic MOD 3) = 0 THEN
-   ic = ic + 2
+  IF (istate.cursor MOD 3) = 0 THEN
+   istate.cursor = istate.cursor + 2
   ELSE
-   IF ic > -3 THEN ic = ic - 1
+   IF istate.cursor > -3 THEN istate.cursor = istate.cursor - 1
   END IF
-  GOSUB infostr
+  items_menu_infostr istate, permask()
  END IF
  IF carray(ccRight) > 1 THEN
   menusound gen(genCursorSFX)
-  IF ((ic + 3) MOD 3) = 2 THEN ' the +3 adjust for the first negative row
-   ic = ic - 2
+  IF ((istate.cursor + 3) MOD 3) = 2 THEN ' the +3 adjust for the first negative row
+   istate.cursor = istate.cursor - 2
   ELSE
-   IF ic < last_inv_slot() THEN ic = ic + 1
+   IF istate.cursor < last_inv_slot() THEN istate.cursor = istate.cursor + 1
   END IF
-  GOSUB infostr
+  items_menu_infostr istate, permask()
  END IF
  IF keyval(scPageUp) > 1 THEN
-  ic -= (state.size+1) * 3
-  WHILE ic < 0: ic += 3: WEND
-  WHILE ic < top : top = top - 3 : WEND
+  istate.cursor -= (state.size+1) * 3
+  WHILE istate.cursor < 0: istate.cursor += 3: WEND
+  WHILE istate.cursor < top : top = top - 3 : WEND
  END IF
  IF keyval(scPageDown) > 1 THEN
-  ic += (state.size+1) * 3
-  WHILE ic > last_inv_slot(): ic -= 3: WEND
-  WHILE ic >= top + (state.size+1) * 3 : top = top + 3 : WEND
+  istate.cursor += (state.size+1) * 3
+  WHILE istate.cursor > last_inv_slot(): istate.cursor -= 3: WEND
+  WHILE istate.cursor >= top + (state.size+1) * 3 : top = top + 3 : WEND
  END IF
 ELSE '--an item is already selected
  IF carray(ccMenu) > 1 THEN
   menusound gen(genCancelSFX)
   pick = 0
-  GOSUB infostr
+  items_menu_infostr istate, permask()
   RETRACE
  END IF
- info$ = inventory(ic).text
+ istate.info = inventory(istate.cursor).text
  IF spred = 0 THEN
   IF carray(ccUp) > 1 THEN
-   getOOBtarg -1, wptr, atkIDs(ic), stat()
+   getOOBtarg -1, wptr, atkIDs(istate.cursor), stat()
    MenuSound gen(genCursorSFX)
   END IF
   IF carray(ccDown) > 1 THEN
-   getOOBtarg 1, wptr, atkIDs(ic), stat()
+   getOOBtarg 1, wptr, atkIDs(istate.cursor), stat()
    MenuSound gen(genCursorSFX)
   END IF
  END IF
@@ -840,7 +834,7 @@ ELSE '--an item is already selected
    MenuSound gen(genCursorSFX)
    IF spred = 0 THEN
     FOR i = 0 TO 3
-     IF chkOOBtarg(i, atkIDs(ic), stat()) THEN spred = spred + 1
+     IF chkOOBtarg(i, atkIDs(istate.cursor), stat()) THEN spred = spred + 1
     NEXT i
    ELSE
     spred = 0
@@ -849,7 +843,7 @@ ELSE '--an item is already selected
  END IF
  IF carray(ccUse) > 1 THEN
   'DO ACTUAL EFFECT
-  loaditemdata itemtemp(), inventory(ic).id
+  loaditemdata itemtemp(), inventory(istate.cursor).id
   'if can teach a spell
   didlearn = 0
   IF itemtemp(50) > 0 THEN '--teach spell
@@ -873,13 +867,13 @@ ELSE '--an item is already selected
   '--do (cure) attack outside of battle
   didcure = 0
   IF itemtemp(51) > 0 THEN
-   didcure = outside_battle_cure(atkIDs(ic), wptr, -1, stat(), spred)
+   didcure = outside_battle_cure(atkIDs(istate.cursor), wptr, -1, stat(), spred)
   END IF 'itemtemp(51) > 0
   IF itemtemp(73) = 1 AND (didcure OR didlearn = 1) THEN
-   IF consumeitem(ic) THEN
-    setbit iuse(), 0, 3 + ic, 0
+   IF consumeitem(istate.cursor) THEN
+    setbit iuse(), 0, 3 + istate.cursor, 0
     pick = 0
-    GOSUB infostr
+    items_menu_infostr istate, permask()
    END IF
   END IF
  END IF ' SPACE or ENTER
@@ -913,7 +907,7 @@ ELSE
 END IF
 RETRACE
 
-END FUNCTION
+END FUNCTION 'gosub gosub
 
 SUB update_inventory_caption (i)
 IF inventory(i).used = 0 THEN
@@ -2470,4 +2464,19 @@ SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
   IF gen(genStatCap + i) > 0 THEN st.stat_bonus(i) = small(st.stat_bonus(i), gen(genStatCap + i))
  NEXT i
 
+END SUB
+
+SUB items_menu_infostr(istate AS ItemsMenuState, permask() AS INTEGER)
+ istate.info = ""
+ IF istate.sel >= 0 AND istate.cursor = -1 THEN
+  IF inventory(istate.sel).used THEN
+   istate.info = readglobalstring(41, "Discard", 10) & " " & inventory(istate.sel).text
+   IF readbit(permask(), 0, 3 + istate.sel) THEN istate.info = readglobalstring(42, "Cannot", 10) & " " & istate.info & "!"
+  END IF
+ END IF
+ IF istate.cursor < 0 THEN EXIT SUB
+ IF inventory(istate.cursor).used = 0 THEN EXIT SUB
+ DIM itemtemp(100) AS INTEGER
+ loaditemdata itemtemp(), inventory(istate.cursor).id
+ istate.info = readbadbinstring(itemtemp(), 9, 35, 0)
 END SUB

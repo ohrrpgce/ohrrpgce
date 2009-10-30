@@ -1678,7 +1678,7 @@ WITH scrat(nowscript)
    CASE 151'--show mini map
     minimap catx(0), caty(0), tilesets()
    CASE 153'--items menu
-    wantbox = items(stat())
+    wantbox = items_menu(stat())
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
@@ -2364,7 +2364,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
     CASE 1 ' Special
      SELECT CASE .sub_t
       CASE 0 ' item
-       menu_text_box = items(stat())
+       menu_text_box = items_menu(stat())
        IF menu_text_box > 0 THEN
         remove_menu topmenu
         EXIT DO

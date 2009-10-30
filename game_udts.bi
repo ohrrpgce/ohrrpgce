@@ -57,5 +57,10 @@ TYPE EquipMenuState
   stat_bonus(11)      AS INTEGER 'Cache stat bonuses for currently selected equippable
 END TYPE
 
+TYPE ItemsMenuState
+  cursor AS INTEGER
+  sel    AS INTEGER
+  info   AS STRING
+END TYPE
 
 #ENDIF
