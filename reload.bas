@@ -606,6 +606,7 @@ Function LoadDocument(fil as string) as DocPtr
 	ret->root = LoadNode(f, ret)
 	
 	if ret->root = null then
+		close #f
 		delete ret
 		return null
 	end if
@@ -616,6 +617,8 @@ Function LoadDocument(fil as string) as DocPtr
 	LoadStringTable(f, table())
 	
 	FixNodeName(ret->root, table())
+	
+	close #f
 	
 	return ret
 End Function
