@@ -61,6 +61,11 @@ TYPE ItemsMenuState
   cursor AS INTEGER
   sel    AS INTEGER
   info   AS STRING
+  'FIXME: the following are only used for item-using, move this there later
+  ttype AS INTEGER 
+  pick  AS INTEGER
+  wptr  AS INTEGER
+  spred AS INTEGER
 END TYPE
 
 #ENDIF
