@@ -5,13 +5,9 @@
 ' gfx_*
 
 #ifdef EXTERN_GFX
-' I would just always declare everything as external (either "C" or "Windows-MS"), however
+' I would just always declare everything as external, however
 ' FB angrily complains that we have to also stick EXTERN blocks in each backend .bas as well!
-#ifdef __FB_WIN32__
-extern "Windows-MS"
-#else
 extern "C"
-#endif
 #endif
 
 declare sub gfx_init ()		'initilization
