@@ -922,12 +922,14 @@ SELECT CASE AS CONST id
   IF bound_item(retvals(0), "get item") THEN
    IF retvals(1) >= 1 THEN
     getitem retvals(0) + 1, retvals(1)
+    evalitemtag
    END IF
   END IF
  CASE 18'--delete item
   IF bound_item(retvals(0), "delete item") THEN
    IF retvals(1) >= 1 THEN
     delitem retvals(0) + 1, retvals(1)
+    evalitemtag
    END IF
   END IF
  CASE 19'--leader
@@ -2339,6 +2341,7 @@ SELECT CASE AS CONST id
     END WITH
    END IF
    update_inventory_caption retvals(0)
+   evalitemtag
   END IF
  CASE 442'--item count in slot
   IF valid_item_slot(retvals(0), "item count in slot") THEN
@@ -2366,6 +2369,7 @@ SELECT CASE AS CONST id
     END WITH
    END IF
    update_inventory_caption retvals(0)
+   evalitemtag
   END IF
 
 END SELECT
