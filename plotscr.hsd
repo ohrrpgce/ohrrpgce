@@ -446,6 +446,10 @@ define function, begin
 437,lookupslice,2,0,0         #find a slice using a lookup code constant
 438,resetgame,0               #reset the game
 439,sliceisvalid,1,0          #checks for a real, non-deleted slice handle
+440,iteminslot,1,0            #read inventory by position
+441,setiteminslot,2,0,0       #write inventory by position
+442,itemcountinslot,1,0       #read item count by position
+443,setitemcountinslot,2,0,0  #write item count by position
 end
 
 #--------------------------------------------------------------------------

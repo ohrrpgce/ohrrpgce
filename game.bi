@@ -9,6 +9,7 @@
 
 #INCLUDE "game_udts.bi"
 
+declare function valid_item_slot(item_slot as integer, cmd as string) as integer
 declare function bound_item(itemid as integer, cmd as string) as integer
 declare function bound_hero_party(who as integer, cmd as string, minimum as integer=0) as integer
 declare function bound_menuslot(menuslot as integer, cmd as string) as integer

@@ -482,11 +482,11 @@ FOR i = 0 TO last_inv_slot()
  IF inventory(i).used AND getit - 1 = inventory(i).id AND room > 0 THEN
   IF room < numitems THEN
    inventory(i).num = 99
-   itstr i
+   update_inventory_caption i
    numitems -= room
   ELSE
    inventory(i).num += numitems
-   itstr i
+   update_inventory_caption i
    EXIT SUB
   END IF
  END IF
@@ -498,7 +498,7 @@ FOR i = 0 TO last_inv_slot()
   inventory(i).id = getit - 1
   inventory(i).num = small(numitems, 99)
   numitems -= inventory(i).num
-  itstr i
+  update_inventory_caption i
   IF numitems = 0 THEN EXIT SUB
  END IF
 NEXT
@@ -915,7 +915,7 @@ RETRACE
 
 END FUNCTION
 
-SUB itstr (i)
+SUB update_inventory_caption (i)
 IF inventory(i).used = 0 THEN
  inventory(i).text = SPACE$(11)
 ELSE

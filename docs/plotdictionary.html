@@ -868,6 +868,12 @@
 		<a href="#about-isfillingparent">is filling parent (handle)</a><br>
 		
 	
+		<a href="#about-itemcountinslot">item count in slot (slot)</a><br>
+		
+	
+		<a href="#about-iteminslot">item in slot (slot)</a><br>
+		
+	
 		<a href="#about-itemsmenu">items menu</a><br>
 		
 	
@@ -1489,6 +1495,12 @@
 		<a href="#about-setinventorysize">set inventory size (new size)</a><br>
 		
 	
+		<a href="#about-setitemcountinslot">set item count in slot (slot, count)</a><br>
+		
+	
+		<a href="#about-setiteminslot">set item in slot (slot, item)</a><br>
+		
+	
 		<a href="#about-setleftpadding">set left padding (handle, pixels)</a><br>
 		
 	
@@ -1757,6 +1769,9 @@
 		
 	
 		<a href="#about-sliceistext">slice is text (handle)</a><br>
+		
+	
+		<a href="#about-sliceisvalid">slice is valid (id)</a><br>
 		
 	
 		<a href="#about-slicescreenx">slice screen x (handle)</a><br>
@@ -5187,6 +5202,14 @@ set horiz align(sl, edge:right)
 			
 			
 		</tt></p>
+		<a name="about-sliceisvalid"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice is valid (id)</font></b><br>
+			Returns true if the given <span class="param">id</span> is a valid sprite handle. The main use of this command is to check whether a slice has been deleted, avoiding a script error.<br>
+			
+			
+		</tt></p>
 		<a name="about-sliceissprite"></a>
 		<p>
 		<tt>
@@ -6399,6 +6422,70 @@ end
 			Reseeds the random number generator. If called with no argument, this will reseed the random number generator to a new random sequence. If you pass in a number, the random number generator will be seeded with that number, allowing for repeatable random sequences.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-random" class="ref">random</a></li></ul>
+		</tt></p>
+		<a name="about-iteminslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">item in slot (slot)</font></b><br>
+			Return a the item ID number at a specific slot in your inventory. If the inventory slot is empty, it will return -1. Slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
+<li>
+<a href="#about-itemcountinslot" class="ref">item count in slot</a>, </li>
+<li>
+<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
+<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setiteminslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set item in slot (slot, item)</font></b><br>
+			Change the item ID number at a specific slot in your inventory. The <span class="param">slot</span> argument is the position in your inventory screen, and the <span class="param">item</span> argument is the item ID number, or one of the <span class="param">item:name</span> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-iteminslot" class="ref">item in slot</a>, </li>
+<li>
+<a href="#about-itemcountinslot" class="ref">item count in slot</a>, </li>
+<li>
+<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
+<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+</ul>
+		</tt></p>
+		<a name="about-itemcountinslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">item count in slot (slot)</font></b><br>
+			Return a the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-iteminslot" class="ref">item in slot</a>, </li>
+<li>
+<a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
+<li>
+<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
+<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setitemcountinslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set item count in slot (slot, count)</font></b><br>
+			Change the count of items at a specific slot in your inventory. The <span class="param">count</span> argument is the new number of items from 1 to 99, or 0 if you want to delete any items currently in the slot. If the slot is empty, this command will fail.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-iteminslot" class="ref">item in slot</a>, </li>
+<li>
+<a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
+<li>
+<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
+<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+</ul>
 		</tt></p>
 		<a name="about-inventory"></a>
 		<p>
@@ -9032,7 +9119,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 656 commands in this file, of which 53 are only references to other commands.</p>
+	<p>Stats: There are 661 commands in this file, of which 53 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

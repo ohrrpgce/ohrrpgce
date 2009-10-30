@@ -2000,6 +2000,10 @@ RETRACE
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
+FUNCTION valid_item_slot(item_slot AS INTEGER, cmd AS STRING) AS INTEGER
+ RETURN bound_arg(item_slot, 0, gen(genMaxInventory), cmd, "item slot")
+END FUNCTION
+
 FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
  RETURN bound_arg(itemID, 0, gen(genMaxItem), cmd, "item ID")
 END FUNCTION

@@ -164,6 +164,8 @@ WHAT IS NEW?
     * "suspend timers", and "resume timers" [James]
     * "use menu item" [James]
     * "reset game" [James]
+    * Inventory manipulation commands: "item in slot", "set item in
+      slot", "item count in slot", "set item count in slot" [James]
     * hspeak now automatically stores a backup copy of your script
       inside the .hs file. Use the -n command line option if you
       want to disable this feature [James]

@@ -264,7 +264,7 @@ IF inventory(index).num <= 0 THEN
  inventory(index).used = 0
  consumeitem = -1
 END IF
-itstr index
+update_inventory_caption index
 END FUNCTION
 
 FUNCTION countitem (it as integer) as integer
@@ -287,7 +287,7 @@ FOR o = 0 TO last_inv_slot()
    inventory(o).num -= amount
    amount = 0
   END IF
-  itstr o
+  update_inventory_caption o
   IF amount = 0 THEN EXIT FOR
  END IF
 NEXT o
@@ -2638,6 +2638,6 @@ END FUNCTION
 SUB rebuild_inventory_captions (invent() AS InventSlot)
  DIM i AS INTEGER
  FOR i = 0 TO inventoryMax
-  itstr i
+  update_inventory_caption i
  NEXT i
 END SUB

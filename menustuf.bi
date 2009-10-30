@@ -8,7 +8,7 @@ DECLARE SUB getitem (getit as integer, num as integer)
 DECLARE FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
 DECLARE SUB itemmenuswap (invent() AS InventSlot, atkIDs() AS INTEGER, iuse() as integer, permask() as integer, i as integer, o as integer)
 DECLARE FUNCTION items (stat() as integer) as integer
-DECLARE SUB itstr (i as integer)
+DECLARE SUB update_inventory_caption (i as integer)
 DECLARE SUB oobcure (w as integer, t as integer, atk as integer, spred as integer, stat() as integer)
 DECLARE SUB patcharray (array() as integer, n as string)
 DECLARE FUNCTION picksave (loading as integer) as integer

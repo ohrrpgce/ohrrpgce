@@ -2315,6 +2315,59 @@ SELECT CASE AS CONST id
     END IF
    END IF
   END IF
+ CASE 440'--item in slot
+  IF valid_item_slot(retvals(0), "item in slot") THEN
+   IF inventory(retvals(0)).used = NO THEN
+    scriptret = -1
+   ELSE
+    scriptret = inventory(retvals(0)).id
+   END IF
+  END IF
+ CASE 441'--set item in slot
+  IF valid_item_slot(retvals(0), "set item in slot") THEN
+   IF retvals(1) = -1 THEN
+    WITH inventory(retvals(0))
+     .used = NO
+     .id = 0
+     .num = 0
+    END WITH
+   ELSEIF bound_item(retvals(1), "set item in slot") THEN
+    WITH inventory(retvals(0))
+     .id = retvals(1)
+     IF .num < 1 THEN .num = 1
+     .used = YES
+    END WITH
+   END IF
+   update_inventory_caption retvals(0)
+  END IF
+ CASE 442'--item count in slot
+  IF valid_item_slot(retvals(0), "item count in slot") THEN
+   IF inventory(retvals(0)).used = NO THEN
+    scriptret = 0
+   ELSE
+    scriptret = inventory(retvals(0)).num
+   END IF
+  END IF
+ CASE 443'--set item count in slot
+  IF valid_item_slot(retvals(0), "set item count in slot") THEN
+   IF retvals(1) = 0 THEN
+    WITH inventory(retvals(0))
+     .used = NO
+     .id = 0
+     .num = 0
+    END WITH
+   ELSEIF bound_arg(retvals(1), 1, 99, "set item count in slot", "count") THEN
+    WITH inventory(retvals(0))
+     IF .used = NO THEN
+      scripterr "set item count in slot: can't set count for empty slot " & retvals(0), 3
+     ELSE
+      .num = retvals(1)
+     END IF
+    END WITH
+   END IF
+   update_inventory_caption retvals(0)
+  END IF
+
 END SELECT
 
 EXIT SUB

@@ -3208,6 +3208,50 @@ end
 				<ref>random</ref>
 			</seealso>
 		</command>
+		<command id="iteminslot">
+			<canon>item in slot (slot)</canon>
+			<shortname>item in slot</shortname>
+			<description>Return a the item ID number at a specific slot in your inventory. If the inventory slot is empty, it will return -1. Slots are numbered from 0 to <ref>getinventorysize</ref>-1.</description>
+			<seealso>
+				<ref>setiteminslot</ref>
+				<ref>itemcountinslot</ref>
+				<ref>setitemcountinslot</ref>
+				<ref>getinventorysize</ref>
+			</seealso>
+		</command>
+		<command id="setiteminslot">
+			<canon>set item in slot (slot, item)</canon>
+			<shortname>set item in slot</shortname>
+			<description>Change the item ID number at a specific slot in your inventory. The <p>slot</p> argument is the position in your inventory screen, and the <p>item</p> argument is the item ID number, or one of the <p>item:name</p> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID</description>
+			<seealso>
+				<ref>iteminslot</ref>
+				<ref>itemcountinslot</ref>
+				<ref>setitemcountinslot</ref>
+				<ref>getinventorysize</ref>
+			</seealso>
+		</command>
+		<command id="itemcountinslot">
+			<canon>item count in slot (slot)</canon>
+			<shortname>item count in slot</shortname>
+			<description>Return a the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <ref>getinventorysize</ref>-1.</description>
+			<seealso>
+				<ref>iteminslot</ref>
+				<ref>setiteminslot</ref>
+				<ref>setitemcountinslot</ref>
+				<ref>getinventorysize</ref>
+			</seealso>
+		</command>
+		<command id="setitemcountinslot">
+			<canon>set item count in slot (slot, count)</canon>
+			<shortname>set item count in slot</shortname>
+			<description>Change the count of items at a specific slot in your inventory. The <p>count</p> argument is the new number of items from 1 to 99, or 0 if you want to delete any items currently in the slot. If the slot is empty, this command will fail.</description>
+			<seealso>
+				<ref>iteminslot</ref>
+				<ref>setiteminslot</ref>
+				<ref>setitemcountinslot</ref>
+				<ref>getinventorysize</ref>
+			</seealso>
+		</command>
 		<command id="inventory">
 			<canon>inventory (item)</canon>
 			<shortname>inventory</shortname>
