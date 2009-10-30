@@ -52,11 +52,11 @@ Function CreateNode(doc as DocPtr, nam as string) as NodePtr
 	
 	if doc = null then return null
 	
-	ret = Callocate(1, sizeof(Node))
+	ret = New Node
 	
 	ret->doc = doc
 	ret->name = nam
-	ret->nodeType = 0
+	ret->nodeType = rltNull
 	ret->numChildren = 0
 	ret->children = null
 	
@@ -68,14 +68,14 @@ sub FreeNode(nod as NodePtr)
 	
 	dim tmp as NodePtr
 	
-	if nod->nodeType = rliChildren then
+	if nod->nodeType = rltChildren then
 		do while nod->children <> 0
 			FreeNode(nod->children)
 		loop
 	end if
 	
 	if nod->parent then
-		if nod->parent->nodeType = rliChildren then
+		if nod->parent->nodeType = rltChildren then
 			if nod->parent->children = nod then
 				nod->parent->children = nod->nextSib
 			end if
@@ -107,57 +107,58 @@ end sub
 
 sub SetContent (nod as NodePtr, dat as string)
 	if nod = null then exit sub
-	if nod->nodeType = rliChildren then
+	if nod->nodeType = rltChildren then
 		'we need to free the children
 		FreeNode(nod->Children)
 		nod->Children = null
 		nod->NumChildren = 0
 	end if
-	nod->nodeType = rliString
+	nod->nodeType = rltString
 	nod->str = dat
 end sub
 
 sub SetContent(nod as NodePtr, dat as longint)
 	if nod = null then exit sub
-	if nod->nodeType = rliChildren then
+	if nod->nodeType = rltChildren then
 		'we need to free the children
 		FreeNode(nod->Children)
 		nod->Children = null
 		nod->NumChildren = 0
 	end if
-	if dat > 2147483647 or dat < -2147483648 then
-		nod->nodeType = rliLong
-	elseif dat > 32767 or dat < -32768 then
-		nod->nodeType = rliInt
-	elseif dat > 127 or dat < -128 then
-		nod->nodeType = rliShort
-	else
-		nod->nodeType = rliByte
-	end if
+	'if dat > 2147483647 or dat < -2147483648 then
+	'	nod->nodeType = rliLong
+	'elseif dat > 32767 or dat < -32768 then
+	'	nod->nodeType = rliInt
+	'elseif dat > 127 or dat < -128 then
+	'	nod->nodeType = rliShort
+	'else
+	'	nod->nodeType = rliByte
+	'end if
+	nod->nodeType = rltInt
 	nod->num = dat
 end sub
 
 sub SetContent(nod as NodePtr, dat as double)
 	if nod = null then exit sub
-	if nod->nodeType = rliChildren then
+	if nod->nodeType = rltChildren then
 		'we need to free the children
 		FreeNode(nod->Children)
 		nod->Children = null
 		nod->NumChildren = 0
 	end if
-	nod->nodeType = rliFloat
+	nod->nodeType = rltFloat
 	nod->flo = dat
 end sub
 
 sub SetContent(nod as NodePtr)
 	if nod = null then exit sub
-	if nod->nodeType = rliChildren then
+	if nod->nodeType = rltChildren then
 		'we need to free the children
 		FreeNode(nod->Children)
 		nod->Children = null
 		nod->NumChildren = 0
 	end if
-	nod->nodeType = rliNull
+	nod->nodeType = rltNull
 end sub
 
 Sub RemoveParent(nod as NodePtr)
@@ -192,7 +193,7 @@ function AddChild(par as NodePtr, nod as NodePtr) as NodePtr
 		nod->parent = par
 		par->numChildren += 1
 		
-		par->nodeType = rliChildren
+		par->nodeType = rltChildren
 		
 		if par->children = null then
 			par->children = nod
@@ -293,7 +294,7 @@ sub BuildStringTable(nod as NodePtr, table() as string)
 	AddStringToTable(nod->name, table())
 	
 	dim n as NodePtr
-	if nod->nodeType = rliChildren then
+	if nod->nodeType = rltChildren then
 		n = nod->children
 		do while n <> 0
 			BuildStringTable(n, table())
@@ -318,9 +319,9 @@ sub serializeXML (nod as NodePtr, ind as integer = 0)
 	
 	
 	select case nod->nodeType
-		case rliNull
+		case rltNull
 			print string(ind, "  ") & "<" & nod->name & " />"
-		case rliByte, rliShort, rliInt, rliLong
+		case rltInt
 			print string(ind, "  ");
 			if 1 or nod->name <> "" then
 				print "<" & nod->name & ">";
@@ -331,7 +332,7 @@ sub serializeXML (nod as NodePtr, ind as integer = 0)
 			else
 				print
 			end if
-		case rliFloat
+		case rltFloat
 			print string(ind, "  ");
 			if 1 or nod->name <> "" then
 				print "<" & nod->name & ">";
@@ -342,7 +343,7 @@ sub serializeXML (nod as NodePtr, ind as integer = 0)
 			else
 				print
 			end if
-		case rliString
+		case rltString
 			print string(ind, "  ");
 			if 1 or nod->name <> "" then
 				print "<" & nod->name & ">";
@@ -353,7 +354,7 @@ sub serializeXML (nod as NodePtr, ind as integer = 0)
 			else
 				print
 			end if
-		case rliChildren
+		case rltChildren
 			dim n as NodePtr
 			print string(ind, "  ") & "<" & nod->name & ">"
 			n = nod->children
@@ -409,40 +410,58 @@ sub SerializeBin(file as string, doc as DocPtr)
 end sub
 
 sub serializeBin(nod as NodePtr, f as integer, table() as string)
-	dim i as integer, us as ushort
+	dim i as integer, us as ushort, ub as ubyte
 	us = FindStringInTable(nod->name, table())
 	if us = -1 then
 		print "ERROR, THIS SHOULD NOT HAPPEN"
 		exit sub
 	end if
 	put #f, , us
-	put #f, , nod->nodeType
 	
 	select case nod->nodeType
-		case rliNull
+		case rltNull
 			'yeah, no
-		case rliByte
-			dim b as byte = nod->num
-			put #f, , b
-		case rliShort
-			dim s as short = nod->num
-			put #f, , s
-		case rliInt
-			i = nod->num
-			put #f, , i
-		case rliLong
-			put #f, , nod->num
-		case rliFloat
+			ub = rliNull
+			put #f, , ub
+		case rltInt
+			if nod->num > 2147483647 or nod->num < -2147483648 then
+				ub = rliLong
+				put #f, , ub
+				put #f, , nod->num
+			elseif nod->num > 32767 or nod->num < -32768 then
+				ub = rliInt
+				put #f, , ub
+				i = nod->num
+				put #f, , i
+			elseif nod->num > 127 or nod->num < -128 then
+				ub = rliShort
+				put #f, , ub
+				dim s as short = nod->num
+				put #f, , s
+			else
+				ub = rliByte
+				put #f, , ub
+				dim b as byte = nod->num
+				put #f, , b
+			end if
+		case rltFloat
+			ub = rliFloat
+			put #f, , ub
 			put #f, , nod->flo
-		case rliString
+		case rltString
+			ub = rliString
+			put #f, , ub
 			i = len(nod->str)
 			put #f, , i
 			put #f, , nod->str
-		case rliChildren
+		case rltChildren
+			ub = rliChildren
+			put #f, , ub
 			dim as integer here, here2, dif
 			here = 0
 			put #f, , here 'will fill this in later
-			put #f, , cint(nod->numChildren)
+			here = nod->numChildren
+			put #f, , here
 			here = seek(f)
 			dim n as NodePtr
 			n = nod->children
@@ -462,7 +481,7 @@ end sub
 Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
 	if nod = null then return null
 	if nod->name = nam then return nod
-	if nod->nodeType <> rliChildren then return null
+	if nod->nodeType <> rltChildren then return null
 	dim child as NodePtr
 	dim ret as NodePtr
 	child = nod->children
@@ -488,23 +507,29 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 			dim b as byte
 			get #f, , b
 			ret->num = b
+			ret->nodeType = rltInt
 		case rliShort
 			dim s as short
 			get #f, , s
 			ret->num = s
+			ret->nodeType = rltInt
 		case rliInt
 			dim i as integer
 			get #f, , i
 			ret->num = i
+			ret->nodeType = rltInt
 		case rliLong
 			get #f, , ret->num
+			ret->nodeType = rltInt
 		case rliFloat
 			get #f, , ret->flo
+			ret->nodeType = rltFloat
 		case rliString
 			dim size as integer
 			get #f, , size
 			ret->str = string(size, " ")
 			get #f, , ret->str
+			ret->nodeType = rltString
 		case rliChildren
 			dim nod as nodeptr
 			dim size as integer
@@ -516,8 +541,10 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 					freenode(ret)
 					return null
 				end if
+				ret->numChildren -= 1
 				AddChild(ret, nod)
 			next
+			ret->nodeType = rltChildren
 		case else
 			delete ret
 			return null
@@ -548,8 +575,13 @@ function FixNodeName(nod as nodeptr, table() as string) as integer
 		return -1
 	end if
 	
-	if nod->namenum > 0 then nod->name = table(nod->namenum - 1)
-	if nod->nodetype = rliChildren then
+	if nod->namenum > 0 then
+		nod->name = table(nod->namenum - 1)
+	else
+		nod->name = ""
+	end if
+	
+	if nod->nodetype = rltChildren then
 		dim tmp as nodeptr
 		tmp = nod->children
 		do while tmp <> null
@@ -616,7 +648,7 @@ Function LoadDocument(fil as string) as DocPtr
 	
 	LoadStringTable(f, table())
 	
-	FixNodeName(ret->root, table())
+	print FixNodeName(ret->root, table())
 	
 	close #f
 	
@@ -627,15 +659,15 @@ Function GetString(node as nodeptr) as string
 	if node = null then return ""
 	
 	select case node->nodeType
-		case rliByte, rliShort, rliInt, rliLong
+		case rltInt
 			return str(node->num)
-		case rliFloat
+		case rltFloat
 			return str(node->flo)
-		case rliNull
+		case rltNull
 			return ""
-		case rliString
+		case rltString
 			return node->str
-		case rliChildren
+		case rltChildren
 			return "<" & node->name & ">"
 		case else
 			return "Unknown value: " & node->nodeType
@@ -646,15 +678,15 @@ Function GetInteger(node as nodeptr) as LongInt
 	if node = null then return 0
 	
 	select case node->nodeType
-		case rliByte, rliShort, rliInt, rliLong
+		case rltInt
 			return node->num
-		case rliFloat
+		case rltFloat
 			return cint(node->flo)
-		case rliNull
+		case rltNull
 			return 0
-		case rliString
+		case rltString
 			return cint(node->str)
-		case rliChildren
+		case rltChildren
 			return 0
 		case else
 			return 0
@@ -665,15 +697,15 @@ Function GetDouble(node as nodeptr) as Double
 	if node = null then return 0.0
 	
 	select case node->nodeType
-		case rliByte, rliShort, rliInt, rliLong
+		case rltInt
 			return cdbl(node->num)
-		case rliFloat
+		case rltFloat
 			return node->flo
-		case rliNull
+		case rltNull
 			return 0.0
-		case rliString
+		case rltString
 			return cdbl(node->str)
-		case rliChildren
+		case rltChildren
 			return 0.0
 		case else
 			return 0.0

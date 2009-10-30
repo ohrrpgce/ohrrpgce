@@ -73,32 +73,44 @@ print "Tore down memory in " & int((timer - starttime) * 1000) & " ms"
 
 print "Finished in " & int((timer - realStart) * 1000) & " ms"
 
+' This function takes an XML node and creates a RELOAD node based on it.
 function chug(node as xmlNodeptr, dc as DocPtr, ind as integer = 0) as NodePtr
 	
 	dim this as nodeptr
 	
 	select case node->type
-		case XML_ELEMENT_NODE
+		case XML_ELEMENT_NODE 'this is something like "<foo>...</foo>"
+			
+			'create the RELOAD node
 			this = CreateNode(dc, *node->name)
+			
+			'take a look at the children
 			dim cur_node as xmlNodePtr = node->children
 			do while cur_node <> null
-				'print string(ind, " ") & *cur_node->name
-				
+				'recurse to parse the children
 				dim ch as nodeptr = chug(cur_node, dc, ind + 1)
+				
+				'add the new child to the document tree
 				AddChild(this, ch)
 				
+				'move to the next child
 				cur_node = cur_node->next
 			loop
-		case XML_TEXT_NODE
+		case XML_TEXT_NODE 'this is any text data - aka, the content of "<foo>...</foo>"
+			'if the text node is blank, we don't care about it
 			if xmlIsBlankNode(node) = 0 then
+				'otherwise, create a node with a null name
 				this = CreateNode(dc, "")
-				SetContent(this, trim(*node->content, any !" \t\n"))
+				'and, set the content to the value of this node, less any padding of spaces, tabs or new lines
+				SetContent(this, trim(*node->content, any !" \t\n\r"))
 			end if
-		case XML_ATTRIBUTE_NODE
+		case XML_ATTRIBUTE_NODE 'this is an attribute: <foo bar="1" />
+			'Except, RELOAD doesn't do attributes. So, we reserve @ for those
 			print "@" & *node->name
 			this = CreateNode(dc, "@" & *node->name)
 			SetContent(this, *node->content)
 		case else
+			'Let's see, comments, CDATA sections, <?tags?> etc
 			print "??? " & node->type
 	end select
 	
@@ -107,30 +119,39 @@ function chug(node as xmlNodeptr, dc as DocPtr, ind as integer = 0) as NodePtr
 	return this
 end function
 
+'since all XML nodes are strings, this function figures out which can be represented by simpler data types
+'it also fixes the <foo><>content</></foo> thing
 sub optimize(node as nodePtr)
 	select case node->nodeType
-		case rliString
-			if ValLng(node->str) <> 0 or Str(ValLng(node->str)) = "0" then
+		case rltString
+			'Basically, if the string can be parsed as a number, it will be. We need to back off a little bit
+			'Eg, FB will parse "1234 dots on the door!" as 1234
+			'I will parse it as a string
+			if (ValLng(node->str) <> 0 AND ValLng(node->str & "1") <> ValLng(node->str)) or node->str = "0" then
 				SetContent(node, ValLng(node->str))
+			elseif (Val(node->str) <> 0 AND Val(node->str & "1") <> Val(node->str)) or node->str = "0" then
+				SetContent(node, Val(node->str))
 			end if
-		case rliChildren
-			if node->numChildren = 1 AND node->children->name = "" then
-				select case node->children->nodeType
-					case rliByte, rliInt, rliLong, rliShort
+		case rltChildren 'if there are child nodes...
+			if node->numChildren = 1 AND node->children->name = "" then 'this is the <>text</> wrapper
+				select case node->children->nodeType 'figure out what kind of wrapper it is, and make it so
+					case rltInt 'hoist the number up a level
 						SetContent(node, node->children->num)
 						optimize(node)
-					case rliFloat
+					case rltFloat 'lift the double
 						SetContent(node, node->children->flo)
 						optimize(node)
-					case rliString
+					case rltString 'raise the string
 						dim s as string
 						s = node->children->str
 						SetContent(node, s)
 						optimize(node)
-					case rliNull
+					case rltNull 'uh... remove all content.
 						SetContent(node)
 						optimize(node)
-					case rliChildren 'invalid, but whatever.
+					case rltChildren ' this should be impossible. This will not happen in XML documents: <foo><><bar /></></foo>
+					                 ' in case it does happen, though, this will hoist the children up... I think...
+						'TODO: does this work? Does it matter?
 						dim tmp as nodeptr
 						node->children->children->parent = node
 						tmp = node->children->children
@@ -139,10 +160,11 @@ sub optimize(node as nodePtr)
 						
 						optimize(node)
 				end select
-			else
+			else 'whelp, nothing we can do here.
 				dim tmp as nodeptr
 				tmp = node->children
 				do while tmp <> null
+					'we do want to optimize the children, though.
 					optimize(tmp)
 					tmp = tmp->nextSib
 				loop
