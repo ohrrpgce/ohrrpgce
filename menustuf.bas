@@ -30,7 +30,7 @@ DECLARE SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYREF st AS EquipMenuStat
 DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
-
+DECLARE SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
 
 REM $STATIC
 
@@ -546,8 +546,6 @@ DIM iuse((inventoryMax + 3) / 16) 'bit 0 of iuse, permask, correspond to item -3
 DIM permask((inventoryMax + 3) / 16) AS INTEGER
 DIM atkIDs(inventoryMax)
 DIM special$(-3 TO -1)
-DIM autosort_changed AS INTEGER = 0
-
 
 special$(-3) = rpad(readglobalstring$(35, "DONE", 10), " ", 11)
 special$(-2) = rpad(readglobalstring$(36, "AUTOSORT", 10), " ", 11)
@@ -699,7 +697,7 @@ IF pick = 0 THEN '--have not picked an item yet
   '--exit
   IF istate.cursor = -3 THEN quit = 1
   '--sort
-  IF istate.cursor = -2 THEN GOSUB autosort
+  IF istate.cursor = -2 THEN items_menu_autosort atkIDs(), iuse(), permask()
   IF istate.cursor = -1 AND istate.sel >= 0 AND readbit(permask(), 0, 3 + istate.sel) = 0 THEN
    '--try to thow item away
    IF inventory(istate.sel).used THEN MenuSound gen(genAcceptSFX)
@@ -877,33 +875,6 @@ ELSE '--an item is already selected
    END IF
   END IF
  END IF ' SPACE or ENTER
-END IF
-RETRACE
-
-autosort:
-autosort_changed = 0
-FOR i = 0 TO last_inv_slot() - 1
- FOR o = i + 1 TO last_inv_slot()
-  IF inventory(i).used = 0 AND inventory(o).used THEN
-   itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
-   autosort_changed = -1
-   EXIT FOR
-  END IF
- NEXT o
-NEXT i
-FOR i = 0 TO last_inv_slot() - 1
- FOR o = i + 1 TO last_inv_slot()
-  IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
-   itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
-   autosort_changed = -1
-   EXIT FOR
-  END IF
- NEXT o
-NEXT i
-IF autosort_changed THEN
- menusound gen(genAcceptSFX)
-ELSE
- menusound gen(genCancelSFX)
 END IF
 RETRACE
 
@@ -2479,4 +2450,31 @@ SUB items_menu_infostr(istate AS ItemsMenuState, permask() AS INTEGER)
  DIM itemtemp(100) AS INTEGER
  loaditemdata itemtemp(), inventory(istate.cursor).id
  istate.info = readbadbinstring(itemtemp(), 9, 35, 0)
+END SUB
+
+SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
+ DIM autosort_changed AS INTEGER = NO
+ FOR i AS INTEGER = 0 TO last_inv_slot() - 1
+  FOR o AS INTEGER = i + 1 TO last_inv_slot()
+   IF inventory(i).used = 0 AND inventory(o).used THEN
+    itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
+    autosort_changed = YES
+    EXIT FOR
+   END IF
+  NEXT o
+ NEXT i
+ FOR i AS INTEGER = 0 TO last_inv_slot() - 1
+  FOR o AS INTEGER = i + 1 TO last_inv_slot()
+   IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
+    itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
+    autosort_changed = YES
+    EXIT FOR
+   END IF
+  NEXT o
+ NEXT i
+ IF autosort_changed THEN
+  menusound gen(genAcceptSFX)
+ ELSE
+  menusound gen(genCancelSFX)
+ END IF
 END SUB
