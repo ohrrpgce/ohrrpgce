@@ -407,17 +407,16 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 		print "ERROR, THIS SHOULD NOT HAPPEN"
 		exit sub
 	end if
-	put #f, , us
 	
-	
-	
+	WriteVLI(f, us)
+	'put #f, , us
 	
 	select case nod->nodeType
 		case rltNull
 			'yeah, no
 			ub = rliNull
 			put #f, , ub
-		case rltInt
+		case rltInt 'this is good enough, don't need VLI for this
 			if nod->num > 2147483647 or nod->num < -2147483648 then
 				ub = rliLong
 				put #f, , ub
@@ -446,13 +445,15 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 			ub = rliString
 			put #f, , ub
 			i = len(nod->str)
-			put #f, , i
+			'put #f, , i
+			WriteVLI(f, i)
 			put #f, , nod->str
 			
 	end select
 	
-	dim tmp as integer = nod->numChildren
-	put #f, , tmp
+	'dim tmp as integer = nod->numChildren
+	'put #f, , tmp
+	WriteVLI(f, nod->numChildren)
 	
 	dim n as NodePtr
 	n = nod->children
@@ -494,7 +495,8 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 	
 	here = seek(f)
 	
-	get #f, , ret->namenum
+	'get #f, , ret->namenum
+	ret->namenum = cshort(ReadVLI(f))
 	get #f, , ret->nodetype
 	
 	select case ret->nodeType
@@ -522,7 +524,8 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 			ret->nodeType = rltFloat
 		case rliString
 			dim size as integer
-			get #f, , size
+			'get #f, , size
+			size = cint(ReadVLI(f))
 			ret->str = string(size, " ")
 			get #f, , ret->str
 			ret->nodeType = rltString
@@ -532,7 +535,8 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 	end select
 	
 	dim nod as nodeptr
-	get #f, , ret->numChildren
+	'get #f, , ret->numChildren
+	ret->numChildren = ReadVLI(f)
 	print ret->numChildren
 	for i as integer = 0 to ret->numChildren - 1
 		nod = LoadNode(f, doc)
@@ -709,5 +713,64 @@ Function GetDouble(node as nodeptr) as Double
 			return 0.0
 	end select
 End Function
+
+Sub WriteVLI(f as integer, v as Longint)
+	dim o as ubyte
+	dim neg as integer
+	
+	if o < 0 then
+		neg = yes
+		v = abs(v)
+	end if
+	
+	o = v and &b111111
+	v /= 64
+	
+	if neg then   o AND=  &b1000000
+	
+	if v > 0 then o AND= &b10000000
+	
+	put #f, , o
+	
+	do while v > 0
+		o = v and &b1111111
+		v /= 128
+		
+		if v > 0 then o AND= &b10000000
+		
+		put #f, , o
+	loop
+
+end sub
+
+function ReadVLI(f as integer) as longint
+	dim o as ubyte
+	dim ret as longint
+	dim neg as integer
+	
+	get #f, , o
+	
+	if o AND &b1000000 then neg = yes
+	
+	ret = o AND &b111111
+	
+	if o AND &b10000000 then
+		ret *= 64
+	end if
+	
+	do while o AND &b10000000
+		get #f, , o
+		
+		ret += o AND &b1111111
+		
+		if o and &b10000000 then
+			ret *= 128
+		end if
+	loop
+	
+	return ret
+	
+end function
+
 
 End Namespace

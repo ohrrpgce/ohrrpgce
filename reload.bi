@@ -82,6 +82,8 @@ Declare Function GetFloat(node as nodeptr) as Double
 
 Declare Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
 
+Declare function ReadVLI(f as integer) as longint
+declare Sub WriteVLI(f as integer, v as Longint)
 
 End Namespace
 
