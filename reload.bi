@@ -23,7 +23,6 @@ ENUM NodeInTypes
 	rliLong = 4
 	rliFloat = 5
 	rliString = 6
-	rliChildren = 7
 END ENUM
 
 ENUM NodeTypes
@@ -31,7 +30,6 @@ ENUM NodeTypes
 	rltInt
 	rltFloat
 	rltString
-	rltChildren
 END ENUM
 
 TYPE DocPtr as Doc ptr

@@ -67,20 +67,17 @@ sub FreeNode(nod as NodePtr)
 	if nod = null then exit sub
 	
 	dim tmp as NodePtr
-	
-	if nod->nodeType = rltChildren then
-		do while nod->children <> 0
-			FreeNode(nod->children)
-		loop
-	end if
+	do while nod->children <> 0
+		FreeNode(nod->children)
+	loop
 	
 	if nod->parent then
-		if nod->parent->nodeType = rltChildren then
-			if nod->parent->children = nod then
-				nod->parent->children = nod->nextSib
-			end if
-			nod->parent->numChildren -= 1
+		'if nod->parent->nodeType = rltChildren then
+		if nod->parent->children = nod then
+			nod->parent->children = nod->nextSib
 		end if
+		nod->parent->numChildren -= 1
+		'end if
 		
 		if nod->nextSib then
 			nod->nextSib->prevSib = nod->prevSib
@@ -107,32 +104,23 @@ end sub
 
 sub SetContent (nod as NodePtr, dat as string)
 	if nod = null then exit sub
-	if nod->nodeType = rltChildren then
+	'if nod->nodeType = rltChildren then
 		'we need to free the children
-		FreeNode(nod->Children)
-		nod->Children = null
-		nod->NumChildren = 0
-	end if
+		'FreeNode(nod->Children)
+		'nod->Children = null
+		'nod->NumChildren = 0
+	'end if
 	nod->nodeType = rltString
 	nod->str = dat
 end sub
 
 sub SetContent(nod as NodePtr, dat as longint)
 	if nod = null then exit sub
-	if nod->nodeType = rltChildren then
+	'if nod->nodeType = rltChildren then
 		'we need to free the children
-		FreeNode(nod->Children)
-		nod->Children = null
-		nod->NumChildren = 0
-	end if
-	'if dat > 2147483647 or dat < -2147483648 then
-	'	nod->nodeType = rliLong
-	'elseif dat > 32767 or dat < -32768 then
-	'	nod->nodeType = rliInt
-	'elseif dat > 127 or dat < -128 then
-	'	nod->nodeType = rliShort
-	'else
-	'	nod->nodeType = rliByte
+		'FreeNode(nod->Children)
+		'nod->Children = null
+		'nod->NumChildren = 0
 	'end if
 	nod->nodeType = rltInt
 	nod->num = dat
@@ -140,24 +128,24 @@ end sub
 
 sub SetContent(nod as NodePtr, dat as double)
 	if nod = null then exit sub
-	if nod->nodeType = rltChildren then
+	'if nod->nodeType = rltChildren then
 		'we need to free the children
-		FreeNode(nod->Children)
-		nod->Children = null
-		nod->NumChildren = 0
-	end if
+		'FreeNode(nod->Children)
+		'nod->Children = null
+		'nod->NumChildren = 0
+	'end if
 	nod->nodeType = rltFloat
 	nod->flo = dat
 end sub
 
 sub SetContent(nod as NodePtr)
 	if nod = null then exit sub
-	if nod->nodeType = rltChildren then
+	'if nod->nodeType = rltChildren then
 		'we need to free the children
-		FreeNode(nod->Children)
-		nod->Children = null
-		nod->NumChildren = 0
-	end if
+		'FreeNode(nod->Children)
+		'nod->Children = null
+		'nod->NumChildren = 0
+	'end if
 	nod->nodeType = rltNull
 end sub
 
@@ -193,7 +181,7 @@ function AddChild(par as NodePtr, nod as NodePtr) as NodePtr
 		nod->parent = par
 		par->numChildren += 1
 		
-		par->nodeType = rltChildren
+		'par->nodeType = rltChildren
 		
 		if par->children = null then
 			par->children = nod
@@ -294,13 +282,13 @@ sub BuildStringTable(nod as NodePtr, table() as string)
 	AddStringToTable(nod->name, table())
 	
 	dim n as NodePtr
-	if nod->nodeType = rltChildren then
-		n = nod->children
-		do while n <> 0
-			BuildStringTable(n, table())
-			n = n->nextSib
-		loop
-	end if
+	'if nod->nodeType = rltChildren then
+	n = nod->children
+	do while n <> 0
+		BuildStringTable(n, table())
+		n = n->nextSib
+	loop
+	'end if
 	
 	if start = nod then
 		first = no
@@ -317,53 +305,45 @@ end sub
 sub serializeXML (nod as NodePtr, ind as integer = 0)
 	if nod = null then exit sub
 	
+	print string(ind, "  ");
+	if nod->nodeType <> rltNull or nod->numChildren <> 0 then
+		if nod->name <> "" then
+			print "<" & nod->name & ">";
+		end if
+	elseif nod->nodeType = rltNull and nod->numChildren = 0 then
+		print "<" & nod->name & " />"
+		exit sub
+	end if
+	
+	if nod->numChildren <> 0 then print
 	
 	select case nod->nodeType
-		case rltNull
-			print string(ind, "  ") & "<" & nod->name & " />"
 		case rltInt
-			print string(ind, "  ");
-			if 1 or nod->name <> "" then
-				print "<" & nod->name & ">";
-			end if
 			print nod->num;
-			if 1 or nod->name <> "" then
-				print "</" + nod->name + ">"
-			else
-				print
-			end if
 		case rltFloat
-			print string(ind, "  ");
-			if 1 or nod->name <> "" then
-				print "<" & nod->name & ">";
-			end if
 			print nod->flo;
-			if 1 or nod->name <> "" then
-				print "</" + nod->name + ">"
-			else
-				print
-			end if
 		case rltString
-			print string(ind, "  ");
-			if 1 or nod->name <> "" then
-				print "<" & nod->name & ">";
-			end if
 			print nod->str;
-			if 1 or nod->name <> "" then
-				print "</" + nod->name + ">"
-			else
-				print
-			end if
-		case rltChildren
-			dim n as NodePtr
-			print string(ind, "  ") & "<" & nod->name & ">"
-			n = nod->children
-			do while n <> null
-				serializeXML(n, ind + 1)
-				n = n->nextSib
-			loop
-			print string(ind, "  ") & "</" + nod->name + ">"
+		case rltNull
+			print ;
+		'case rltChildren
 	end select
+	
+	if nod->numChildren <> 0 and nod->nodeType <> rltNull then print
+	
+	dim n as NodePtr = nod->children
+	
+	do while n <> null
+		serializeXML(n, ind + 1)
+		n = n->nextSib
+	loop
+
+	if nod->nodeType <> rltNull or nod->numChildren <> 0 then
+		print string(ind, "  ");
+		if nod->name <> "" then
+			print "</" & nod->name & ">"
+		end if
+	end if
 	
 end sub
 
@@ -454,34 +434,32 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 			i = len(nod->str)
 			put #f, , i
 			put #f, , nod->str
-		case rltChildren
-			ub = rliChildren
-			put #f, , ub
-			dim as integer here, here2, dif
-			here = 0
-			put #f, , here 'will fill this in later
-			here = nod->numChildren
-			put #f, , here
-			here = seek(f)
-			dim n as NodePtr
-			n = nod->children
-			do while n <> null
-				serializeBin(n, f, table())
-				n = n->nextSib
-			loop
-			here2= seek(f)
-			dif = here2 - here
-			seek #f, here - 8
-			put #f, , dif
-			seek #f, here2
 			
 	end select
+	
+	dim as integer here, here2, dif
+	here = 0
+	put #f, , here 'will fill this in later
+	here = nod->numChildren
+	put #f, , here
+	here = seek(f)
+	dim n as NodePtr
+	n = nod->children
+	do while n <> null
+		serializeBin(n, f, table())
+		n = n->nextSib
+	loop
+	here2 = seek(f)
+	dif = here2 - here
+	seek #f, here - 8
+	put #f, , dif
+	seek #f, here2
 end sub
 
 Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
 	if nod = null then return null
 	if nod->name = nam then return nod
-	if nod->nodeType <> rltChildren then return null
+	'if nod->nodeType <> rltChildren then return null
 	dim child as NodePtr
 	dim ret as NodePtr
 	child = nod->children
@@ -530,25 +508,24 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 			ret->str = string(size, " ")
 			get #f, , ret->str
 			ret->nodeType = rltString
-		case rliChildren
-			dim nod as nodeptr
-			dim size as integer
-			get #f, , size
-			get #f, , ret->numChildren
-			for i as integer = 0 to ret->numChildren - 1
-				nod = LoadNode(f, doc)
-				if nod = null then
-					freenode(ret)
-					return null
-				end if
-				ret->numChildren -= 1
-				AddChild(ret, nod)
-			next
-			ret->nodeType = rltChildren
 		case else
 			delete ret
 			return null
 	end select
+	
+	dim nod as nodeptr
+	dim size as integer
+	get #f, , size
+	get #f, , ret->numChildren
+	for i as integer = 0 to ret->numChildren - 1
+		nod = LoadNode(f, doc)
+		if nod = null then
+			freenode(ret)
+			return null
+		end if
+		ret->numChildren -= 1
+		AddChild(ret, nod)
+	next
 	
 	return ret
 End Function
@@ -581,14 +558,13 @@ function FixNodeName(nod as nodeptr, table() as string) as integer
 		nod->name = ""
 	end if
 	
-	if nod->nodetype = rltChildren then
-		dim tmp as nodeptr
-		tmp = nod->children
+	'if nod->nodetype = rltChildren then
+		dim tmp as nodeptr = nod->children
 		do while tmp <> null
 			FixNodeName(tmp, table())
 			tmp = tmp->nextSib
 		loop
-	end if
+	'end if
 end function
 
 Function LoadDocument(fil as string) as DocPtr
@@ -667,8 +643,8 @@ Function GetString(node as nodeptr) as string
 			return ""
 		case rltString
 			return node->str
-		case rltChildren
-			return "<" & node->name & ">"
+		'case rltChildren
+		'	return "<" & node->name & ">"
 		case else
 			return "Unknown value: " & node->nodeType
 	end select
@@ -686,8 +662,8 @@ Function GetInteger(node as nodeptr) as LongInt
 			return 0
 		case rltString
 			return cint(node->str)
-		case rltChildren
-			return 0
+		'case rltChildren
+		'	return 0
 		case else
 			return 0
 	end select
@@ -705,8 +681,8 @@ Function GetDouble(node as nodeptr) as Double
 			return 0.0
 		case rltString
 			return cdbl(node->str)
-		case rltChildren
-			return 0.0
+		'case rltChildren
+		'	return 0.0
 		case else
 			return 0.0
 	end select
