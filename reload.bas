@@ -768,6 +768,8 @@ function ReadVLI(f as integer) as longint
 		end if
 	loop
 	
+	if neg then ret *= -1
+	
 	return ret
 	
 end function
