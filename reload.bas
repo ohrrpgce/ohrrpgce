@@ -726,9 +726,9 @@ Sub WriteVLI(f as integer, v as Longint)
 	o = v and &b111111
 	v /= 64
 	
-	if neg then   o AND=  &b1000000
+	if neg then   o OR=  &b1000000
 	
-	if v > 0 then o AND= &b10000000
+	if v > 0 then o OR= &b10000000
 	
 	put #f, , o
 	
@@ -736,7 +736,7 @@ Sub WriteVLI(f as integer, v as Longint)
 		o = v and &b1111111
 		v /= 128
 		
-		if v > 0 then o AND= &b10000000
+		if v > 0 then o OR= &b10000000
 		
 		put #f, , o
 	loop
