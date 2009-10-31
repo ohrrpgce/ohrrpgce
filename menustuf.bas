@@ -31,10 +31,10 @@ DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
 DECLARE SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, BYREF trigger_box AS INTEGER)
+DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER, BYREF trigger_box AS INTEGER)
+DECLARE FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
 
 REM $STATIC
-
 
 SUB buystuff (id, shoptype, storebuf(), stat())
 DIM b(dimbinsize(binSTF) * 50), stuf$(50), vmask(5), emask(5), buytype$(5, 1), wbuf(100), walks(15), tradestf(3, 1)
@@ -419,6 +419,7 @@ END SUB
 
 FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
 'true if valid, false if not valid
+'atk id can be -1 for when no attack is relevant
  IF target < 0 OR target > 40 THEN RETURN NO
  IF hero(target) = 0 THEN RETURN NO
  IF atk < -1 OR atk > gen(genMaxAttack) THEN RETURN NO
@@ -509,6 +510,7 @@ END SUB
 
 FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
  '--return true on success, false on failure
+ '--atk id can be -1 for when no attack is relevant
  IF recheck THEN target -= 1 ' For a re-check, back the cursor up so if the current target is still valid, it won't change
  DIM safety AS INTEGER = 0
  DO
@@ -579,10 +581,8 @@ NEXT i
 istate.cursor = -3
 top = -3
 istate.sel = -4
-istate.wptr = 0
-istate.spred = 0
-istate.pick = 0
 istate.info = ""
+istate.re_use = NO
 
 DIM rect AS RectType
 WITH rect
@@ -643,30 +643,6 @@ DO
  NEXT i
  centerfuz 160, 192, 312, 16, 4, dpage
  edgeprint istate.info, xstring(istate.info, 160), 187, uilook(uiText), dpage
- IF istate.pick = 1 THEN
-  centerbox 160, 47, 160, 88, 2, dpage
-  IF istate.spred = 0 AND istate.wptr >= 0 THEN
-   rectangle 84, 8 + istate.wptr * 20, 152, 20, uilook(uiHighlight2), dpage
-  ELSEIF istate.spred <> 0 THEN
-   rectangle 84, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
-  END IF
-  o = 0
-  FOR i = 0 TO 3
-   IF hero(i) > 0 THEN
-    wt = 0: IF istate.wptr = i THEN wt = INT(wtogl / 2)
-    sprite_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 89, 8 + i * 20, 1, -1, dpage
-    col = uilook(uiMenuItem): IF i = istate.wptr THEN col = uilook(uiSelectedItem + tog)
-    tstat = atktemp(18)
-    IF tstat = 0 or tstat = 1 THEN
-     temp$ = STR$(ABS(stat(i, 0, tstat))) & "/" & STR$(ABS(stat(i, 1, tstat)))
-    ELSE
-     temp$ = STR$(ABS(stat(i, 0, tstat)))
-    END IF
-    edgeprint temp$, 119, 16 + i * 20, col, dpage
-    o = o + 1
-   END IF
-  NEXT i
- END IF
  WITH state
   state.top = INT(top / 3)
   state.pt = INT(istate.cursor / 3)
@@ -675,7 +651,9 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  copypage holdscreen, dpage
- dowait
+ IF istate.re_use = NO THEN
+  dowait
+ END IF
 LOOP
 menusound gen(genCancelSFX)
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
@@ -683,8 +661,11 @@ freepage holdscreen
 EXIT FUNCTION
 
 itcontrol:
-'--keyboard checking and associated actions for the item menu
-IF istate.pick = 0 THEN '--have not picked an item yet
+ IF istate.re_use THEN
+  istate.re_use = NO
+  use_item_in_slot istate.cursor, istate, atktemp(), iuse(), permask(), trigger_box
+  RETRACE
+ END IF
  IF carray(ccMenu) > 1 THEN
   '--deselect currently selected item
   IF istate.sel > -1 THEN
@@ -723,7 +704,7 @@ IF istate.pick = 0 THEN '--have not picked an item yet
     istate.sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
     IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN RETRACE
-    use_item_in_slot istate.cursor, istate, atktemp(), trigger_box
+    use_item_in_slot istate.cursor, istate, atktemp(), iuse(), permask(), trigger_box
     IF trigger_box >= 0 THEN
      freepage holdscreen
      RETRIEVESTATE
@@ -778,76 +759,9 @@ IF istate.pick = 0 THEN '--have not picked an item yet
   WHILE istate.cursor > last_inv_slot(): istate.cursor -= 3: WEND
   WHILE istate.cursor >= top + (state.size+1) * 3 : top = top + 3 : WEND
  END IF
-ELSE '--an item is already selected
- IF carray(ccMenu) > 1 THEN
-  menusound gen(genCancelSFX)
-  istate.pick = 0
-  items_menu_infostr istate, permask()
-  RETRACE
- END IF
- istate.info = inventory(istate.cursor).text
- IF istate.spred = 0 THEN
-  IF carray(ccUp) > 1 THEN
-   getOOBtarg -1, istate.wptr, atkIDs(istate.cursor), stat()
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(ccDown) > 1 THEN
-   getOOBtarg 1, istate.wptr, atkIDs(istate.cursor), stat()
-   MenuSound gen(genCursorSFX)
-  END IF
- END IF
- IF istate.ttype = 2 THEN
-  IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
-   MenuSound gen(genCursorSFX)
-   IF istate.spred = 0 THEN
-    FOR i = 0 TO 3
-     IF chkOOBtarg(i, atkIDs(istate.cursor), stat()) THEN istate.spred = istate.spred + 1
-    NEXT i
-   ELSE
-    istate.spred = 0
-   END IF
-  END IF
- END IF
- IF carray(ccUse) > 1 THEN
-  'DO ACTUAL EFFECT
-  loaditemdata itemtemp(), inventory(istate.cursor).id
-  'if can teach a spell
-  didlearn = 0
-  IF itemtemp(50) > 0 THEN '--teach spell
-   atk = itemtemp(50)
-   '--trylearn
-   didlearn = trylearn(istate.wptr, atk, 0)
-   '--announce learn
-   IF didlearn = 1 THEN
-    menusound gen(genItemLearnSFX)
-    loadattackdata learn_attack, atk - 1
-    tmp$ = names(istate.wptr) + " " + readglobalstring$(124, "learned", 10) + " " + learn_attack.name
-    centerbox 160, 100, small(LEN(tmp$) * 8 + 16, 320), 24, 1, vpage
-    edgeprint tmp$, large(xstring(tmp$, 160), 0), 95, uilook(uiText), vpage
-    IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
-    setvispage vpage
-    dummy = getkey
-   ELSE
-    menusound gen(genCantLearnSFX)
-   END IF
-  END IF
-  '--do (cure) attack outside of battle
-  didcure = 0
-  IF itemtemp(51) > 0 THEN
-   didcure = outside_battle_cure(atkIDs(istate.cursor), istate.wptr, -1, stat(), istate.spred)
-  END IF 'itemtemp(51) > 0
-  IF itemtemp(73) = 1 AND (didcure OR didlearn = 1) THEN
-   IF consumeitem(istate.cursor) THEN
-    setbit iuse(), 0, 3 + istate.cursor, 0
-    istate.pick = 0
-    items_menu_infostr istate, permask()
-   END IF
-  END IF
- END IF ' SPACE or ENTER
-END IF
 RETRACE
 
-END FUNCTION 'gosub gosub
+END FUNCTION
 
 SUB update_inventory_caption (i)
 IF inventory(i).used = 0 THEN
@@ -2448,7 +2362,7 @@ SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INT
  END IF
 END SUB
 
-SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, BYREF trigger_box AS INTEGER)
+SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER, BYREF trigger_box AS INTEGER)
  'FIXME: If you were hoping to call this sub anywhere other than from
  'the inventory menu, you are out of luck... at least until this
  'code has been cleaned up enough that it does not require istate
@@ -2456,37 +2370,37 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() 
  
  DIM itemdata(100) AS INTEGER
  loaditemdata itemdata(), inventory(slot).id
+ DIM should_consume AS INTEGER = (itemdata(73) = 1)
 
  IF itemdata(50) > 0 THEN '--learn a spell
-  istate.ttype = 0
-  istate.pick = 1
-  istate.wptr = 0
   '--target the first non-dead hero
-  WHILE hero(istate.wptr) = 0 OR stat(istate.wptr, 0, statHP) = 0
-   istate.wptr = loopvar(istate.wptr, 0, 3, 1)
-  WEND
-  istate.spred = 0
   MenuSound gen(genAcceptSFX)
+  IF item_targ_picker(-1, itemdata(50)-1, inventory(istate.cursor).text) THEN
+   istate.re_use = YES
+   IF should_consume THEN
+    '--true if we learned from the item and must consume it
+    IF consumeitem(istate.cursor) THEN
+     setbit iuse(), 0, 3 + istate.cursor, 0
+    END IF
+    items_menu_infostr istate, permask()
+   END IF
+  END IF
   EXIT SUB
  END IF
  
  IF itemdata(51) > 0 THEN '--attack/oobcure
   loadattackdata atktemp(), itemdata(51) - 1
-  istate.ttype = atktemp(4)
-  istate.wptr = -1
-  IF getOOBtarg(1, istate.wptr, itemdata(51) - 1, stat()) = NO THEN
-   'Failed to get a target
-   MenuSound gen(genCancelSFX)
-   EXIT SUB
-  END IF
-  istate.pick = 1
-  istate.spred = 0 ' Default to focused
-  IF istate.ttype = 1 THEN ' Spread (but not optional spread) defaults to spread
-   FOR i AS INTEGER = 0 TO 3
-    IF chkOOBtarg(i, istate.wptr, stat()) THEN istate.spred = istate.spred + 1
-   NEXT i
-  END IF
   MenuSound gen(genAcceptSFX)
+  IF item_targ_picker(itemdata(51)-1, -1, inventory(istate.cursor).text) THEN
+   istate.re_use = YES
+   IF should_consume THEN
+    '--if true, we used an item and must consume it
+    IF consumeitem(istate.cursor) THEN
+     setbit iuse(), 0, 3 + istate.cursor, 0
+    END IF
+   END IF
+  END IF
+  items_menu_infostr istate, permask()
   EXIT SUB
  END IF
  IF itemdata(51) < 0 THEN '--trigger a text box
@@ -2496,3 +2410,181 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() 
   EXIT SUB
  END IF
 END SUB
+
+FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
+ 'Returns true if the attack/spell was actually used/learned
+ item_targ_picker = NO
+
+ STATIC targ AS INTEGER
+ STATIC spread AS INTEGER
+
+ '--Preserve background for display beneath the targ picker menu
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+ copypage holdscreen, dpage
+
+ DIM cater AS INTEGER
+ DIM walk AS INTEGER
+ DIM wtogl AS INTEGER
+ DIM tog
+ DIM col AS INTEGER
+ DIM atk AS AttackData
+ DIM learn_attack AS AttackData
+ DIM caption AS STRING
+ DIM check_consume AS INTEGER = NO
+ DIM allow_spread AS INTEGER = NO
+ DIM must_spread AS INTEGER = NO
+ 
+ IF attack_id >= 0 THEN
+  loadattackdata atk, attack_id
+  allow_spread = (atk.targ_set = 2)
+  must_spread = (atk.targ_set = 1)
+ END IF
+ 
+ IF learn_id >= 0 THEN
+  loadattackdata learn_attack, learn_id
+ END IF
+
+ '--make sure the default target is okay
+ IF chkOOBtarg(targ, attack_id, stat()) = NO THEN
+  targ = -1
+  FOR i AS INTEGER = 0 TO 3
+   IF chkOOBtarg(i, attack_id, stat()) THEN
+    targ = i
+    EXIT FOR
+   END IF
+  NEXT i
+ END IF
+
+ IF allow_spread THEN
+  IF spread > 0 THEN
+   '--if a spread target was previously recorded, update it
+   spread = 0
+   FOR i AS INTEGER = 0 TO 3
+    IF chkOOBtarg(i, attack_id, stat()) THEN spread += 1
+   NEXT i
+  END IF
+ ELSE
+  spread = 0
+ END IF
+
+ IF must_spread THEN
+  spread = 0
+  FOR i AS INTEGER = 0 TO 3
+   IF chkOOBtarg(i, attack_id, stat()) THEN spread += 1
+  NEXT i
+ END IF
+
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  tog = tog XOR 1
+  wtogl = loopvar(wtogl, 0, 3, 1)
+
+  control
+  '--handle keys
+  IF carray(ccMenu) > 1 THEN
+   menusound gen(genCancelSFX)
+   EXIT DO
+  END IF
+  IF spread = 0 THEN
+   IF carray(ccUp) > 1 THEN
+    getOOBtarg -1, targ, attack_id, stat()
+    MenuSound gen(genCursorSFX)
+   END IF
+   IF carray(ccDown) > 1 THEN
+    getOOBtarg 1, targ, attack_id, stat()
+    MenuSound gen(genCursorSFX)
+   END IF
+  END IF
+  
+  IF allow_spread THEN
+   IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
+    MenuSound gen(genCursorSFX)
+    IF spread = 0 THEN
+     FOR i AS INTEGER = 0 TO 3
+      IF chkOOBtarg(i, attack_id, stat()) THEN spread += 1
+     NEXT i
+    ELSE
+     spread = 0
+    END IF
+   END IF
+  END IF
+  
+  IF carray(ccUse) > 1 THEN
+   'DO ACTUAL EFFECT
+   IF targ = -1 THEN
+    menusound gen(genCancelSFX)
+    EXIT DO
+   END IF
+   'if can teach a spell
+   IF learn_id >= 0 THEN '--teach spell
+    '--trylearn
+    IF trylearn(targ, learn_id+1, 0) THEN
+     '--announce learn
+     menusound gen(genItemLearnSFX)
+     caption = names(targ) & " " & readglobalstring(124, "learned", 10) & " " & learn_attack.name
+     centerbox 160, 100, small(LEN(caption) * 8 + 16, 320), 24, 1, vpage
+     edgeprint caption, large(xstring(caption, 160), 0), 95, uilook(uiText), vpage
+     IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
+     setvispage vpage
+     waitforanykey
+     item_targ_picker = YES
+    ELSE
+     menusound gen(genCantLearnSFX)
+    END IF
+   END IF
+   
+   '--do attack outside of battle (cure)
+   IF attack_id >= 0 THEN
+    IF outside_battle_cure(attack_id, targ, -1, stat(), spread) THEN
+     item_targ_picker = YES
+    END IF
+   END IF
+  
+   EXIT DO
+  END IF '--done using item
+
+  '--draw the targ picker menu
+  centerbox 160, 47, 160, 88, 2, dpage
+  IF spread = 0 AND targ >= 0 THEN
+   rectangle 84, 8 + targ * 20, 152, 20, uilook(uiHighlight2), dpage
+  ELSEIF spread <> 0 THEN
+   rectangle 84, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
+  END IF
+  cater = 0
+  FOR i AS INTEGER = 0 TO 3
+   IF hero(i) > 0 THEN
+    walk = 0
+    IF targ = i THEN walk = INT(wtogl / 2)
+    sprite_draw herow(cater).sprite + (2 * 2) + walk, herow(cater).pal, 89, 8 + i * 20, 1, -1, dpage
+    col = uilook(uiMenuItem)
+    IF i = targ THEN col = uilook(uiSelectedItem + tog)
+    IF attack_id >= 0 THEN
+     IF atk.targ_stat = 0 or atk.targ_stat = 1 THEN
+      caption = STR(stat(i, 0, atk.targ_stat)) & "/" & STR(stat(i, 1, atk.targ_stat)) & " " & statnames(atk.targ_stat)
+     ELSE
+      caption = STR(stat(i, 0, atk.targ_stat)) & " " & statnames(atk.targ_stat)
+     END IF
+     edgeprint caption, 119, 16 + i * 20, col, dpage
+    ELSEIF learn_id >= 0 THEN
+     edgeprint names(cater), 119, 16 + i * 20, col, dpage
+    END IF
+    cater += 1
+   END IF
+  NEXT i
+  centerfuz 160, 100, LEN(use_caption) * 8 + 32, 16, 4, dpage
+  edgeprint use_caption, xstring(use_caption, 160), 95, uilook(uiText), dpage
+ 
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+ 
+ carray(ccUse) = 0
+ carray(ccMenu) = 0
+ freepage holdscreen
+END FUNCTION
