@@ -31,7 +31,7 @@ DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
 DECLARE SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER, BYREF trigger_box AS INTEGER)
+DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
 
 REM $STATIC
@@ -541,6 +541,8 @@ END SUB
 
 FUNCTION items_menu (stat() as integer) as integer
 DIM istate AS ItemsMenuState
+istate.trigger_box = -1
+
 DIM itemtemp(100) AS INTEGER
 DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
 DIM learn_attack AS AttackData 'FIXME: used only when learning an attack, move to a sub when that code is subified
@@ -548,13 +550,10 @@ DIM iuse((inventoryMax + 3) / 16) 'bit 0 of iuse, permask, correspond to item -3
 DIM permask((inventoryMax + 3) / 16) AS INTEGER
 DIM atkIDs(inventoryMax)
 DIM special$(-3 TO -1)
-DIM trigger_box AS INTEGER = -1
 
 special$(-3) = rpad(readglobalstring$(35, "DONE", 10), " ", 11)
 special$(-2) = rpad(readglobalstring$(36, "AUTOSORT", 10), " ", 11)
 special$(-1) = rpad(readglobalstring$(37, "TRASH", 10), " ", 11)
-
-REMEMBERSTATE
 
 '--Preserve background for display beneath the item menu
 holdscreen = allocatepage
@@ -619,7 +618,15 @@ DO
  playtimer
  control
  GOSUB itcontrol
- IF quit THEN EXIT DO
+ IF istate.trigger_box >= 0 THEN
+  '--return the box number to trigger
+  items_menu = istate.trigger_box
+  EXIT DO
+ END IF
+ IF quit THEN
+  menusound gen(genCancelSFX)
+  EXIT DO
+ END IF
  edgeboxstyle rect.x, rect.y, rect.wide, rect.high, 0, dpage
  FOR i = top TO small(top + 62, last_inv_slot())
   textcolor uilook(uiDisabledItem), 0
@@ -655,15 +662,15 @@ DO
   dowait
  END IF
 LOOP
-menusound gen(genCancelSFX)
-FOR t = 4 TO 5: carray(t) = 0: NEXT t
+carray(ccUse) = 0
+carray(ccMenu) = 0
 freepage holdscreen
 EXIT FUNCTION
 
 itcontrol:
  IF istate.re_use THEN
   istate.re_use = NO
-  use_item_in_slot istate.cursor, istate, atktemp(), iuse(), permask(), trigger_box
+  use_item_in_slot istate.cursor, istate, atktemp(), iuse(), permask()
   RETRACE
  END IF
  IF carray(ccMenu) > 1 THEN
@@ -704,12 +711,7 @@ itcontrol:
     istate.sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
     IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN RETRACE
-    use_item_in_slot istate.cursor, istate, atktemp(), iuse(), permask(), trigger_box
-    IF trigger_box >= 0 THEN
-     freepage holdscreen
-     RETRIEVESTATE
-     RETURN trigger_box
-    END IF
+    use_item_in_slot istate.cursor, istate, atktemp(), iuse(), permask()
     RETRACE
    END IF
   END IF
@@ -2362,7 +2364,7 @@ SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INT
  END IF
 END SUB
 
-SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER, BYREF trigger_box AS INTEGER)
+SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
  'FIXME: If you were hoping to call this sub anywhere other than from
  'the inventory menu, you are out of luck... at least until this
  'code has been cleaned up enough that it does not require istate
@@ -2405,7 +2407,7 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() 
  END IF
  IF itemdata(51) < 0 THEN '--trigger a text box
   IF itemdata(73) = 1 THEN consumeitem slot
-  trigger_box = itemdata(51) * -1
+  istate.trigger_box = itemdata(51) * -1
   MenuSound gen(genAcceptSFX)
   EXIT SUB
  END IF

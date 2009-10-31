@@ -62,6 +62,7 @@ TYPE ItemsMenuState
   sel    AS INTEGER
   info   AS STRING
   re_use AS INTEGER
+  trigger_box AS INTEGER
 END TYPE
 
 #ENDIF
