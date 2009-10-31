@@ -2375,12 +2375,12 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() 
  IF itemdata(50) > 0 THEN '--learn a spell
   '--target the first non-dead hero
   MenuSound gen(genAcceptSFX)
-  IF item_targ_picker(-1, itemdata(50)-1, inventory(istate.cursor).text) THEN
+  IF item_targ_picker(-1, itemdata(50)-1, inventory(slot).text) THEN
    istate.re_use = YES
    IF should_consume THEN
     '--true if we learned from the item and must consume it
-    IF consumeitem(istate.cursor) THEN
-     setbit iuse(), 0, 3 + istate.cursor, 0
+    IF consumeitem(slot) THEN
+     setbit iuse(), 0, 3 + slot, 0
     END IF
     items_menu_infostr istate, permask()
    END IF
@@ -2391,12 +2391,12 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() 
  IF itemdata(51) > 0 THEN '--attack/oobcure
   loadattackdata atktemp(), itemdata(51) - 1
   MenuSound gen(genAcceptSFX)
-  IF item_targ_picker(itemdata(51)-1, -1, inventory(istate.cursor).text) THEN
+  IF item_targ_picker(itemdata(51)-1, -1, inventory(slot).text) THEN
    istate.re_use = YES
    IF should_consume THEN
     '--if true, we used an item and must consume it
-    IF consumeitem(istate.cursor) THEN
-     setbit iuse(), 0, 3 + istate.cursor, 0
+    IF consumeitem(slot) THEN
+     setbit iuse(), 0, 3 + slot, 0
     END IF
    END IF
   END IF
@@ -2404,7 +2404,7 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() 
   EXIT SUB
  END IF
  IF itemdata(51) < 0 THEN '--trigger a text box
-  IF itemdata(73) = 1 THEN consumeitem istate.cursor
+  IF itemdata(73) = 1 THEN consumeitem slot
   trigger_box = itemdata(51) * -1
   MenuSound gen(genAcceptSFX)
   EXIT SUB
