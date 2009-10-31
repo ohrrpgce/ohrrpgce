@@ -31,7 +31,7 @@ DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
 DECLARE SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
+DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
 
 REM $STATIC
@@ -428,10 +428,10 @@ FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS IN
  hp = stat(target, 0, statHP)
 
  IF atk >= 0 THEN
-  DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
-  loadattackdata atktemp(), atk
-  IF hp = 0 AND (atktemp(3) = 4 OR atktemp(3) = 10) THEN RETURN YES
-  IF hp > 0 AND atktemp(3) = 10 THEN RETURN NO
+  DIM attack AS AttackData
+  loadattackdata attack, atk
+  IF hp = 0 AND (attack.targ_class = 4 OR attack.targ_class = 10) THEN RETURN YES
+  IF hp > 0 AND attack.targ_class = 10 THEN RETURN NO
  END IF
 
  IF hp = 0 THEN RETURN NO
@@ -544,7 +544,6 @@ DIM istate AS ItemsMenuState
 istate.trigger_box = -1
 
 DIM itemtemp(100) AS INTEGER
-DIM atktemp(40 + dimbinsize(binATTACK)) AS INTEGER
 DIM learn_attack AS AttackData 'FIXME: used only when learning an attack, move to a sub when that code is subified
 DIM iuse((inventoryMax + 3) / 16) 'bit 0 of iuse, permask, correspond to item -3
 DIM permask((inventoryMax + 3) / 16) AS INTEGER
@@ -670,7 +669,7 @@ EXIT FUNCTION
 itcontrol:
  IF istate.re_use THEN
   istate.re_use = NO
-  use_item_in_slot istate.cursor, istate, atktemp(), iuse(), permask()
+  use_item_in_slot istate.cursor, istate, iuse(), permask()
   RETRACE
  END IF
  IF carray(ccMenu) > 1 THEN
@@ -711,7 +710,7 @@ itcontrol:
     istate.sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
     IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN RETRACE
-    use_item_in_slot istate.cursor, istate, atktemp(), iuse(), permask()
+    use_item_in_slot istate.cursor, istate, iuse(), permask()
     RETRACE
    END IF
   END IF
@@ -2364,7 +2363,7 @@ SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INT
  END IF
 END SUB
 
-SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
+SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
  'FIXME: If you were hoping to call this sub anywhere other than from
  'the inventory menu, you are out of luck... at least until this
  'code has been cleaned up enough that it does not require istate
@@ -2391,7 +2390,6 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, atktemp() 
  END IF
  
  IF itemdata(51) > 0 THEN '--attack/oobcure
-  loadattackdata atktemp(), itemdata(51) - 1
   MenuSound gen(genAcceptSFX)
   IF item_targ_picker(itemdata(51)-1, -1, inventory(slot).text) THEN
    istate.re_use = YES
