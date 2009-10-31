@@ -774,11 +774,10 @@ END IF
 END SUB
 
 SUB oobcure (w, t, atk, spred, stat())
+'--outside-of-battle cure
 
 DIM st(13, 1)
-dim atksize
-atksize = 40 + dimbinsize(binATTACK)
-dim attack(atksize)
+dim attack AS AttackData
 dim h, h2
 '--average stats for item-triggered spells
 IF w = -1 THEN
@@ -803,33 +802,33 @@ ELSE
  NEXT i
 END IF
 
-loadattackdata attack(), atk
+loadattackdata attack, atk
 
-targstat = attack(18)
+targstat = attack.targ_stat
 
 'attack + defense base
 a = st(2, 0)
-IF attack(58) <> 0 THEN
- d = st(attack(58)-1, 0) 
+IF attack.base_def_stat <> 0 THEN
+ d = st(attack.base_def_stat-1, 0) 
 ELSE
  IF targstat = 6 THEN d = st(7,0) ELSE d = st(4,0)
 END IF
 
-IF attack(7) = 1 THEN a = st(6, 0) ': d = st(7, 0)
-IF attack(7) = 2 THEN a = st(0, 0)
-IF attack(7) = 3 THEN a = (st(0, 1) - st(0, 0))
-IF attack(7) = 4 THEN a = INT(RND * 999)
-IF attack(7) = 5 THEN a = 100
-IF attack(7) >= 6 THEN a = st(attack(7) - 6, 0)
+IF attack.base_atk_stat = 1 THEN a = st(6, 0) ': d = st(7, 0)
+IF attack.base_atk_stat = 2 THEN a = st(0, 0)
+IF attack.base_atk_stat = 3 THEN a = (st(0, 1) - st(0, 0))
+IF attack.base_atk_stat = 4 THEN a = INT(RND * 999)
+IF attack.base_atk_stat = 5 THEN a = 100
+IF attack.base_atk_stat >= 6 THEN a = st(attack.base_atk_stat - 6, 0)
 
 'calc defence
 am! = 1: dm! = .5
-IF attack(5) = 1 THEN am! = .8: dm! = .1
-IF attack(5) = 2 THEN am! = 1.3: dm! = 1
-IF attack(5) = 3 THEN am! = 1: dm! = 0
+IF attack.damage_math = 1 THEN am! = .8: dm! = .1
+IF attack.damage_math = 2 THEN am! = 1.3: dm! = 1
+IF attack.damage_math = 3 THEN am! = 1: dm! = 0
 
 'resetting
-IF readbit(attack(), 20, 57) = 1 THEN
+IF attack.reset_targ_stat_before_hit THEN
  stat(t, 0, targstat) = stat(t, 1, targstat)
 END IF
 
@@ -838,40 +837,40 @@ h2 = (a * am!) - (d * dm!)
 'no elemental support
 
 'extra damage
-h2 = h2 + (h2 / 100) * attack(11)
+h2 = h2 + (h2 / 100) * attack.extra_damage
 
 'randomize
-IF readbit(attack(), 20, 61) = 0 THEN h2 = range(h2, 20)
+IF attack.do_not_randomize = NO THEN h2 = range(h2, 20)
 
 'spread damage
-IF readbit(attack(), 20, 1) = 1 THEN h2 = h2 / (spred + 1)
+IF attack.divide_spread_damage = YES THEN h2 = h2 / (spred + 1)
 
-'cap out
-IF readbit(attack(), 20, 62) = 0 AND h2 <= 0 THEN h2 = 1
+'minimum cap
+IF attack.damage_can_be_zero = NO AND h2 <= 0 THEN h2 = 1
 
 'cure bit
-IF readbit(attack(), 20, 0) = 1 THEN h2 = ABS(h2) * -1
+IF attack.cure_instead_of_harm = YES THEN h2 = ABS(h2) * -1
 
 'backcompat MP-targstat
-IF readbit(attack(), 20, 60) THEN
+IF attack.obsolete_damage_mp = YES THEN
  IF targstat = 0 THEN targstat = 1
 END IF
 
  chp& = stat(t, 0, targstat)
  mhp& = stat(t, 1, targstat)
- IF readbit(attack(), 65, 5) = 1 THEN
-  SELECT CASE attack(5)
+ IF attack.percent_damage_not_set = YES THEN
+  SELECT CASE attack.damage_math
    CASE 5'% of max   
-    h2 = mhp& + (attack(11) * mhp& / 100)
+    h2 = mhp& + (attack.extra_damage * mhp& / 100)
    CASE 6'% of cur
-    h2 = chp& + (attack(11) * chp& / 100)
+    h2 = chp& + (attack.extra_damage * chp& / 100)
   END SELECT
  ELSE
-  SELECT CASE attack(5) 
+  SELECT CASE attack.damage_math
    CASE 5'% of max
-    h2 = chp& - (mhp& + (attack(11) * mhp& / 100))
+    h2 = chp& - (mhp& + (attack.extra_damage * mhp& / 100))
    CASE 6'% of cur
-    h2 = chp& - (chp& + (attack(11) * chp& / 100))
+    h2 = chp& - (chp& + (attack.extra_damage * chp& / 100))
   END SELECT
  END IF
 IF h2 > 32767 THEN h2 = 32767
@@ -882,13 +881,13 @@ h = h2
 stat(t, 0, targstat) = stat(t, 0, targstat) - h
 
 'Sound effect
-MenuSound attack(99)
+MenuSound attack.sound_effect
 
 'bounds
 stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
 IF w >= 0 THEN stat(w, 0, targstat) = large(stat(w, 0, targstat), 0)
 'bitset 58 allows cure to exceed maximum
-IF readbit(attack(), 20, 58) = 0 THEN
+IF attack.allow_cure_to_exceed_maximum = NO THEN
  stat(t, 0, targstat) = small(stat(t, 0, targstat), stat(t, 1, targstat))
  IF w >= 0 THEN stat(w, 0, targstat) = small(stat(w, 0, targstat), stat(w, 1, targstat))
 ELSE
@@ -899,10 +898,7 @@ ELSE
  END IF
 END IF
 
-'--TODO: Must add the attack-tag conditional stuff. Except, this sub doesn't use
-'        the full attack data set, so I can't access the data. I also don't
-'        know enough about it to make it use the whole thing...
-'        [Note from James: The above is no longer true. oobcure has access to all attack data]
+'--TODO: Must add the attack-tag conditional stuff.
 
 END SUB
 
