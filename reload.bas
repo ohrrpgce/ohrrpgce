@@ -5,6 +5,7 @@
 '
 
 #include "reload.bi"
+#include "util.bi"
 DECLARE SUB debug (s AS STRING)
 
 Namespace Reload
@@ -378,12 +379,14 @@ sub SerializeBin(file as string, doc as DocPtr)
 	
 	seek f, i + 1
 	
-	dim s as short
+	dim s as uinteger
 	s = ubound(table) - lbound(table) + 1
-	put #f, , s
+	writeVLI(f, s)
+	'put #f, , s
 	for i = lbound(table) to ubound(table)
 		s = len(table(i))
-		put #f, , s
+		writeVLI(f, s)
+		'put #f, , s
 		put #f, , table(i)
 	next
 	close #f
@@ -537,7 +540,7 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 	dim nod as nodeptr
 	'get #f, , ret->numChildren
 	ret->numChildren = ReadVLI(f)
-	print ret->numChildren
+	'print ret->numChildren
 	for i as integer = 0 to ret->numChildren - 1
 		nod = LoadNode(f, doc)
 		if nod = null then
@@ -557,15 +560,18 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 End Function
 
 Sub LoadStringTable(f as integer, table() as string)
-	dim as ushort count, size
+	dim as uinteger count, size
 	
-	get #f, , count
+	count = cint(ReadVLI(f))
+	'get #f, , count
 	
 	if count <= 0 then exit sub
 	
+	redim preserve table(count - 1) 'why on earth was this INSIDE the loop?!
+	
 	for i as integer = 0 to count - 1
-		redim preserve table(i)
-		get #f, , size
+		size = cint(ReadVLI(f))
+		'get #f, , size
 		table(i) = string(size, " ")
 		get #f, , table(i)
 	next
@@ -713,6 +719,111 @@ Function GetDouble(node as nodeptr) as Double
 			return 0.0
 	end select
 End Function
+
+
+'rpf MUST BE A DYNAMIC ARRAY!
+Function RPathParseQuery(query as string, rpf() as RPathFragment) as integer
+	dim tok() as string
+	split(trim(query), tok(), "/")
+	
+	if ubound(tok) = 0 AND tok(0) = "" then
+		return no
+	end if
+	
+	redim rpf(ubound(tok))
+	
+	for i as integer = 0 to ubound(tok)
+		print tok(i)
+		
+		rpf(i).nodename = tok(i)
+		
+	next
+	
+	return yes
+End Function
+
+Function RPathSearch(query() as RPathFragment, depth as integer, from as NodePtr, results() as nodePtr) as integer
+	if from = null then return 0
+	
+	dim found as integer = 0
+	
+	if from->name = query(depth).nodename then
+		if depth = ubound(query) then
+			if results(0) = null then
+				redim results(0)
+				results(0) = from
+				'for i as integer = lbound(results) to ubound(results)
+				'	print i, results(i)
+				'next
+				'print
+			else
+				redim preserve results(ubound(results) + 1)
+				'print from
+				results(ubound(results)) = from
+				'for i as integer = lbound(results) to ubound(results)
+				'	print i, results(i)
+				'next
+				'print
+			end if
+			found += 1
+		else
+			dim n as nodeptr = from->Children
+			do while n <> null
+				found += RPathSearch(query(), depth + 1, n, results())
+				n = n->nextSib
+			loop
+		end if
+	end if
+	
+	dim n as nodeptr = from->Children
+	do while n <> null
+		found += RPathSearch(query(), 0, n, results())
+		n = n->nextSib
+	loop
+	
+	return found
+End Function
+
+Function RPathQuery(query as String, context as NodePtr) as NodeSetPtr
+	dim ret as NodeSetPtr = new NodeSet
+	dim found as integer
+	Redim nodes(0) as nodePtr
+	
+	Redim rpf(0) as RPathFragment
+	
+	if RPathParseQuery(query, rpf()) = no then
+		return null
+	end if
+	
+	found = RPathSearch(rpf(), 0, context, nodes())
+	
+	if found > 0 then
+		ret->nodes = new NodePtr[found]
+		
+		for i as integer = 0 to found - 1
+			ret->nodes[i] = nodes(i)
+			'print ret->nodes[i], nodes(i)
+		next
+		
+		ret->numNodes = found
+		ret->doc = context->doc
+		
+		return ret
+	else
+		delete ret
+		return null
+	end if
+end Function
+
+sub FreeNodeSet(nodeset as NodeSetPtr)
+	if nodeset = null then exit sub
+	
+	if nodeset->nodes then
+		delete[] nodeset->nodes
+	end if
+	
+	delete nodeset
+end sub
 
 Sub WriteVLI(f as integer, v as Longint)
 	dim o as ubyte

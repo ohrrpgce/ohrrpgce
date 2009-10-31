@@ -23,6 +23,22 @@ print "okay"
 
 serializeXML(doc)
 
+print "Running RPath query... "
+
+dim nodes as NodeSetPtr = RPathQuery("bar", doc->root)
+
+if nodes = null then
+	print "Error!"
+else
+	print "Found " & nodes->numNodes & " nodes!"
+	for i as integer = 0 to nodes->numNodes - 1
+		serializeXML(nodes->nodes[i])
+	next
+	
+	
+end if
+
+
 
 
 print "Freeing document... ";

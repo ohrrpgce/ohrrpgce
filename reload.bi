@@ -34,6 +34,7 @@ END ENUM
 
 TYPE DocPtr as Doc ptr
 TYPE NodePtr as Node ptr
+TYPE NodeSetPtr as NodeSet Ptr
 
 TYPE Doc
 	version as integer
@@ -54,6 +55,17 @@ TYPE Node
 	nextSib as NodePtr
 	prevSib as NodePtr
 END TYPE
+
+Type NodeSet
+	numNodes as integer
+	doc as DocPtr
+	nodes as NodePtr Ptr
+End Type
+
+
+Type RPathFragment
+	nodename as string
+end Type
 
 Declare Function CreateDocument() as DocPtr
 Declare Function CreateNode(doc as DocPtr, nam as string) as NodePtr
@@ -84,6 +96,8 @@ Declare Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
 
 Declare function ReadVLI(f as integer) as longint
 declare Sub WriteVLI(f as integer, v as Longint)
+
+Declare Function RPathQuery(query as String, context as NodePtr) as NodeSetPtr
 
 End Namespace
 
