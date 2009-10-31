@@ -305,7 +305,7 @@ end sub
 sub serializeXML (nod as NodePtr, ind as integer = 0)
 	if nod = null then exit sub
 	
-	print string(ind, "  ");
+	print string(ind, "	");
 	if nod->nodeType <> rltNull or nod->numChildren <> 0 then
 		if nod->name <> "" then
 			print "<" & nod->name & ">";
@@ -315,21 +315,21 @@ sub serializeXML (nod as NodePtr, ind as integer = 0)
 		exit sub
 	end if
 	
-	if nod->numChildren <> 0 then print
+	if nod->nodeType <> rltNull and nod->numChildren <> 0 then print
 	
 	select case nod->nodeType
 		case rltInt
-			print nod->num;
+			print "" & nod->num;
 		case rltFloat
-			print nod->flo;
+			print "" & nod->flo;
 		case rltString
-			print nod->str;
-		case rltNull
-			print ;
+			print "" & nod->str;
+		'case rltNull
+		'	print ;
 		'case rltChildren
 	end select
 	
-	if nod->numChildren <> 0 and nod->nodeType <> rltNull then print
+	if nod->numChildren <> 0 then print
 	
 	dim n as NodePtr = nod->children
 	
@@ -337,11 +337,15 @@ sub serializeXML (nod as NodePtr, ind as integer = 0)
 		serializeXML(n, ind + 1)
 		n = n->nextSib
 	loop
-
+	
+	if nod->numChildren <> 0 then print string(ind, "	");
+	
 	if nod->nodeType <> rltNull or nod->numChildren <> 0 then
-		print string(ind, "  ");
+		
 		if nod->name <> "" then
 			print "</" & nod->name & ">"
+		else
+			print
 		end if
 	end if
 	
@@ -391,12 +395,22 @@ end sub
 
 sub serializeBin(nod as NodePtr, f as integer, table() as string)
 	dim i as integer, us as ushort, ub as ubyte
+	
+	dim as integer siz, here = 0, here2, dif
+	siz = seek(f)
+	put #f, , here 'will fill this in later
+	
+	here = seek(f)
+	
 	us = FindStringInTable(nod->name, table())
 	if us = -1 then
 		print "ERROR, THIS SHOULD NOT HAPPEN"
 		exit sub
 	end if
 	put #f, , us
+	
+	
+	
 	
 	select case nod->nodeType
 		case rltNull
@@ -437,12 +451,9 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 			
 	end select
 	
-	dim as integer here, here2, dif
-	here = 0
-	put #f, , here 'will fill this in later
-	here = nod->numChildren
-	put #f, , here
-	here = seek(f)
+	dim tmp as integer = nod->numChildren
+	put #f, , tmp
+	
 	dim n as NodePtr
 	n = nod->children
 	do while n <> null
@@ -451,8 +462,8 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 	loop
 	here2 = seek(f)
 	dif = here2 - here
-	seek #f, here - 8
-	put #f, , dif
+	put #f, siz, dif
+	'print "size: " & dif
 	seek #f, here2
 end sub
 
@@ -475,6 +486,13 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 	dim ret as NodePtr
 	
 	ret = CreateNode(doc, "!")
+	
+	dim size as integer
+	
+	dim as integer here, here2
+	get #f, , size
+	
+	here = seek(f)
 	
 	get #f, , ret->namenum
 	get #f, , ret->nodetype
@@ -514,9 +532,8 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 	end select
 	
 	dim nod as nodeptr
-	dim size as integer
-	get #f, , size
 	get #f, , ret->numChildren
+	print ret->numChildren
 	for i as integer = 0 to ret->numChildren - 1
 		nod = LoadNode(f, doc)
 		if nod = null then
@@ -526,6 +543,11 @@ Function LoadNode(f as integer, doc as DocPtr) as NodePtr
 		ret->numChildren -= 1
 		AddChild(ret, nod)
 	next
+	
+	if seek(f) - here <> size then
+		print "OHFUCK read " & (seek(f) - here) & " bytes instead of " & size & "!"
+		end 1
+	end if
 	
 	return ret
 End Function

@@ -109,6 +109,7 @@ function chug(node as xmlNodeptr, dc as DocPtr, ind as integer = 0) as NodePtr
 			print "@" & *node->name
 			this = CreateNode(dc, "@" & *node->name)
 			SetContent(this, *node->content)
+		case XML_PI_NODE 'we don't support these.
 		case else
 			'Let's see, comments, CDATA sections, <?tags?> etc
 			print "??? " & node->type
@@ -162,7 +163,7 @@ sub optimize(node as nodePtr)
 		dim tmp as nodeptr
 		tmp = node->children
 		do while tmp <> null
-			print tmp
+			'print tmp
 			'we do want to optimize the children, though.
 			optimize(tmp)
 			tmp = tmp->nextSib
