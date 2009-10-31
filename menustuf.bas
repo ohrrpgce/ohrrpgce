@@ -30,9 +30,10 @@ DECLARE SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYREF st AS EquipMenuStat
 DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
-DECLARE SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
+DECLARE SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
+DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 
 REM $STATIC
 
@@ -524,10 +525,9 @@ FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk A
  RETURN NO
 END FUNCTION
 
-SUB itemmenuswap (invent() AS InventSlot, atkIDs() AS INTEGER, iuse(), permask(), i, o)
+SUB itemmenuswap (invent() AS InventSlot, iuse(), permask(), i, o)
 'this sub called from items()
 SWAP invent(i), invent(o)
-SWAP atkIDs(i), atkIDs(o)
 
 t1 = readbit(iuse(), 0, 3 + i)
 t2 = readbit(iuse(), 0, 3 + o)
@@ -544,10 +544,8 @@ DIM istate AS ItemsMenuState
 istate.trigger_box = -1
 
 DIM itemtemp(100) AS INTEGER
-DIM learn_attack AS AttackData 'FIXME: used only when learning an attack, move to a sub when that code is subified
 DIM iuse((inventoryMax + 3) / 16) 'bit 0 of iuse, permask, correspond to item -3
 DIM permask((inventoryMax + 3) / 16) AS INTEGER
-DIM atkIDs(inventoryMax)
 DIM special$(-3 TO -1)
 
 special$(-3) = rpad(readglobalstring$(35, "DONE", 10), " ", 11)
@@ -562,7 +560,6 @@ FOR i = 0 TO 2
  setbit iuse(), 0, i, 1
 NEXT i
 FOR i = 0 TO last_inv_slot()
- atkIDs(i) = -1
  IF inventory(i).used THEN
   loaditemdata itemtemp(), inventory(i).id
   IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
@@ -570,14 +567,13 @@ FOR i = 0 TO last_inv_slot()
    setbit iuse(), 0, 3 + i, 1
   ELSEIF itemtemp(51) > 0 THEN
    setbit iuse(), 0, 3 + i, 1
-   atkIDs(i) = itemtemp(51) - 1
   ELSEIF itemtemp(51) < 0 THEN
    setbit iuse(), 0, 3 + i, 1
   END IF
  END IF
 NEXT i
 istate.cursor = -3
-top = -3
+istate.top = -3
 istate.sel = -4
 istate.info = ""
 istate.re_use = NO
@@ -596,8 +592,7 @@ WITH scrollrect
  .wide = 287
  .high = 168
 END WITH
-DIM state AS MenuState
-WITH state
+WITH istate.scroll
  .first = -1
  .last = INT(last_inv_slot() / 3)
  .size = 20
@@ -605,7 +600,6 @@ END WITH
 
 items_menu_infostr istate, permask()
 setkeys
-quit = 0
 wtogl = 0
 menusound gen(genAcceptSFX)
 
@@ -615,19 +609,24 @@ DO
  tog = tog XOR 1
  wtogl = loopvar(wtogl, 0, 3, 1)
  playtimer
+ 
  control
- GOSUB itcontrol
+ items_menu_control istate, iuse(), permask()
  IF istate.trigger_box >= 0 THEN
   '--return the box number to trigger
   items_menu = istate.trigger_box
   EXIT DO
  END IF
- IF quit THEN
+ IF istate.quit THEN
   menusound gen(genCancelSFX)
   EXIT DO
  END IF
+ IF istate.refresh THEN
+  items_menu_infostr istate, permask()
+ END IF
+ 
  edgeboxstyle rect.x, rect.y, rect.wide, rect.high, 0, dpage
- FOR i = top TO small(top + 62, last_inv_slot())
+ FOR i = istate.top TO small(istate.top + 62, last_inv_slot())
   textcolor uilook(uiDisabledItem), 0
   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
@@ -645,15 +644,15 @@ DO
   ELSE
    display$ = special$(i)
   END IF
-  printstr display$, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - top) \ 3), dpage
+  printstr display$, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - istate.top) \ 3), dpage
  NEXT i
  centerfuz 160, 192, 312, 16, 4, dpage
  edgeprint istate.info, xstring(istate.info, 160), 187, uilook(uiText), dpage
- WITH state
-  state.top = INT(top / 3)
-  state.pt = INT(istate.cursor / 3)
+ WITH istate.scroll
+  .top = INT(istate.top / 3)
+  .pt = INT(istate.cursor / 3)
  END WITH
- draw_scrollbar state, scrollrect, , dpage
+ draw_scrollbar istate.scroll, scrollrect, , dpage
  SWAP vpage, dpage
  setvispage vpage
  copypage holdscreen, dpage
@@ -664,104 +663,6 @@ LOOP
 carray(ccUse) = 0
 carray(ccMenu) = 0
 freepage holdscreen
-EXIT FUNCTION
-
-itcontrol:
- IF istate.re_use THEN
-  istate.re_use = NO
-  use_item_in_slot istate.cursor, istate, iuse(), permask()
-  RETRACE
- END IF
- IF carray(ccMenu) > 1 THEN
-  '--deselect currently selected item
-  IF istate.sel > -1 THEN
-   istate.sel = -4
-   menusound gen(genCancelSFX)
-  ELSE
-   quit = 1
-  END IF
- END IF
- IF carray(ccUse) > 1 THEN
-  '--exit
-  IF istate.cursor = -3 THEN quit = 1
-  '--sort
-  IF istate.cursor = -2 THEN items_menu_autosort atkIDs(), iuse(), permask()
-  IF istate.cursor = -1 AND istate.sel >= 0 AND readbit(permask(), 0, 3 + istate.sel) = 0 THEN
-   '--try to thow item away
-   IF inventory(istate.sel).used THEN MenuSound gen(genAcceptSFX)
-   inventory(istate.sel).text = SPACE$(11)
-   inventory(istate.sel).used = 0
-   setbit iuse(), 0, 3 + istate.sel, 0
-   istate.sel = -4
-   items_menu_infostr istate, permask()
-   RETRACE
-  END IF
-  IF istate.sel >= 0 THEN
-   IF istate.cursor >= 0 AND istate.cursor <> istate.sel THEN
-    '--swap the selected item and the item under the cursor
-    itemmenuswap inventory(), atkIDs(), iuse(), permask(), istate.cursor, istate.sel
-    istate.sel = -4
-    items_menu_infostr istate, permask()
-    MenuSound gen(genAcceptSFX)
-    RETRACE
-   END IF
-   IF istate.cursor >= 0 AND istate.sel = istate.cursor THEN
-    '--try to use the current item
-    istate.sel = -4
-    '--if the usability bit is off, or you dont have any of the item, exit
-    IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN RETRACE
-    use_item_in_slot istate.cursor, istate, iuse(), permask()
-    RETRACE
-   END IF
-  END IF
-  IF istate.sel < -3 AND istate.cursor >= 0 THEN
-   istate.sel = istate.cursor
-   MenuSound gen(genAcceptSFX)
-   RETRACE
-  END IF
- END IF
- IF carray(ccUp) > 1 AND istate.cursor >= 0 THEN
-  menusound gen(genCursorSFX)
-  istate.cursor = istate.cursor - 3
-  items_menu_infostr istate, permask()
-  IF istate.cursor < top THEN top = top - 3
- END IF
- IF carray(ccDown) > 1 AND istate.cursor <= last_inv_slot() - 3 THEN
-  menusound gen(genCursorSFX)
-  istate.cursor = istate.cursor + 3
-  items_menu_infostr istate, permask()
-  IF istate.cursor > top + 62 THEN top = top + 3
- END IF
- IF carray(ccLeft) > 1 THEN
-  menusound gen(genCursorSFX)
-  IF (istate.cursor MOD 3) = 0 THEN
-   istate.cursor = istate.cursor + 2
-  ELSE
-   IF istate.cursor > -3 THEN istate.cursor = istate.cursor - 1
-  END IF
-  items_menu_infostr istate, permask()
- END IF
- IF carray(ccRight) > 1 THEN
-  menusound gen(genCursorSFX)
-  IF ((istate.cursor + 3) MOD 3) = 2 THEN ' the +3 adjust for the first negative row
-   istate.cursor = istate.cursor - 2
-  ELSE
-   IF istate.cursor < last_inv_slot() THEN istate.cursor = istate.cursor + 1
-  END IF
-  items_menu_infostr istate, permask()
- END IF
- IF keyval(scPageUp) > 1 THEN
-  istate.cursor -= (state.size+1) * 3
-  WHILE istate.cursor < 0: istate.cursor += 3: WEND
-  WHILE istate.cursor < top : top = top - 3 : WEND
- END IF
- IF keyval(scPageDown) > 1 THEN
-  istate.cursor += (state.size+1) * 3
-  WHILE istate.cursor > last_inv_slot(): istate.cursor -= 3: WEND
-  WHILE istate.cursor >= top + (state.size+1) * 3 : top = top + 3 : WEND
- END IF
-RETRACE
-
 END FUNCTION
 
 SUB update_inventory_caption (i)
@@ -2332,12 +2233,12 @@ SUB items_menu_infostr(istate AS ItemsMenuState, permask() AS INTEGER)
  istate.info = readbadbinstring(itemtemp(), 9, 35, 0)
 END SUB
 
-SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INTEGER)
+SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
  DIM autosort_changed AS INTEGER = NO
  FOR i AS INTEGER = 0 TO last_inv_slot() - 1
   FOR o AS INTEGER = i + 1 TO last_inv_slot()
    IF inventory(i).used = 0 AND inventory(o).used THEN
-    itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
+    itemmenuswap inventory(), iuse(), permask(), i, o
     autosort_changed = YES
     EXIT FOR
    END IF
@@ -2346,7 +2247,7 @@ SUB items_menu_autosort(atkIDs() AS INTEGER, iuse() AS INTEGER, permask() AS INT
  FOR i AS INTEGER = 0 TO last_inv_slot() - 1
   FOR o AS INTEGER = i + 1 TO last_inv_slot()
    IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
-    itemmenuswap inventory(), atkIDs(), iuse(), permask(), i, o
+    itemmenuswap inventory(), iuse(), permask(), i, o
     autosort_changed = YES
     EXIT FOR
    END IF
@@ -2379,7 +2280,7 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS 
     IF consumeitem(slot) THEN
      setbit iuse(), 0, 3 + slot, 0
     END IF
-    items_menu_infostr istate, permask()
+    istate.refresh = YES
    END IF
   END IF
   EXIT SUB
@@ -2396,7 +2297,7 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS 
     END IF
    END IF
   END IF
-  items_menu_infostr istate, permask()
+  istate.refresh = YES
   EXIT SUB
  END IF
  IF itemdata(51) < 0 THEN '--trigger a text box
@@ -2479,6 +2380,7 @@ FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER,
   tog = tog XOR 1
   wtogl = loopvar(wtogl, 0, 3, 1)
 
+  playtimer
   control
   '--handle keys
   IF carray(ccMenu) > 1 THEN
@@ -2584,3 +2486,108 @@ FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER,
  carray(ccMenu) = 0
  freepage holdscreen
 END FUNCTION
+
+SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
+ istate.refresh = NO
+ IF istate.re_use THEN
+  istate.re_use = NO
+  use_item_in_slot istate.cursor, istate, iuse(), permask()
+  EXIT SUB
+ END IF
+ IF carray(ccMenu) > 1 THEN
+  '--deselect currently selected item
+  IF istate.sel > -1 THEN
+   istate.sel = -4
+   menusound gen(genCancelSFX)
+  ELSE
+   istate.quit = YES
+  END IF
+ END IF
+ IF carray(ccUse) > 1 THEN
+  '--exit
+  IF istate.cursor = -3 THEN istate.quit = YES
+  '--sort
+  IF istate.cursor = -2 THEN items_menu_autosort iuse(), permask()
+  IF istate.cursor = -1 AND istate.sel >= 0 AND readbit(permask(), 0, 3 + istate.sel) = 0 THEN
+   '--try to thow item away
+   IF inventory(istate.sel).used THEN MenuSound gen(genAcceptSFX)
+   WITH inventory(istate.sel)
+    .used = 0
+    .id = 0
+    .num = 0
+   END WITH
+   update_inventory_caption istate.sel
+   setbit iuse(), 0, 3 + istate.sel, 0
+   istate.sel = -4
+   istate.refresh = YES
+   EXIT SUB
+  END IF
+  IF istate.sel >= 0 THEN
+   IF istate.cursor >= 0 AND istate.cursor <> istate.sel THEN
+    '--swap the selected item and the item under the cursor
+    itemmenuswap inventory(), iuse(), permask(), istate.cursor, istate.sel
+    istate.sel = -4
+    istate.refresh = YES
+    MenuSound gen(genAcceptSFX)
+    EXIT SUB
+   END IF
+   IF istate.cursor >= 0 AND istate.sel = istate.cursor THEN
+    '--try to use the current item
+    istate.sel = -4
+    '--if the usability bit is off, or you dont have any of the item, exit
+    IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN EXIT SUB
+    use_item_in_slot istate.cursor, istate, iuse(), permask()
+    EXIT SUB
+   END IF
+  END IF
+  IF istate.sel < -3 AND istate.cursor >= 0 THEN
+   istate.sel = istate.cursor
+   MenuSound gen(genAcceptSFX)
+   EXIT SUB
+  END IF
+ END IF
+ IF carray(ccUp) > 1 AND istate.cursor >= 0 THEN
+  menusound gen(genCursorSFX)
+  istate.cursor -= 3
+  istate.refresh = YES
+  IF istate.cursor < istate.top THEN istate.top -= 3
+ END IF
+ IF carray(ccDown) > 1 AND istate.cursor <= last_inv_slot() - 3 THEN
+  menusound gen(genCursorSFX)
+  istate.cursor = istate.cursor + 3
+  istate.refresh = YES
+  IF istate.cursor > istate.top + 62 THEN istate.top += 3
+ END IF
+ IF carray(ccLeft) > 1 THEN
+  menusound gen(genCursorSFX)
+  IF (istate.cursor MOD 3) = 0 THEN
+   istate.cursor = istate.cursor + 2
+  ELSE
+   IF istate.cursor > -3 THEN istate.cursor -= 1
+  END IF
+  istate.refresh = YES
+ END IF
+ IF carray(ccRight) > 1 THEN
+  menusound gen(genCursorSFX)
+  IF ((istate.cursor + 3) MOD 3) = 2 THEN ' the +3 adjust for the first negative row
+   istate.cursor = istate.cursor - 2
+  ELSE
+   IF istate.cursor < last_inv_slot() THEN istate.cursor += 1
+  END IF
+  istate.refresh = YES
+ END IF
+ IF keyval(scPageUp) > 1 THEN
+  menusound gen(genCursorSFX)
+  istate.cursor -= (istate.scroll.size+1) * 3
+  WHILE istate.cursor < -3 : istate.cursor += 3: WEND
+  WHILE istate.cursor < istate.top : istate.top -= 3 : WEND
+  istate.refresh = YES
+ END IF
+ IF keyval(scPageDown) > 1 THEN
+  menusound gen(genCursorSFX)
+  istate.cursor += (istate.scroll.size+1) * 3
+  WHILE istate.cursor > last_inv_slot(): istate.cursor -= 3: WEND
+  WHILE istate.cursor >= istate.top + (istate.scroll.size+1) * 3 : istate.top += 3 : WEND
+  istate.refresh = YES
+ END IF
+END SUB

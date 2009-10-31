@@ -60,9 +60,13 @@ END TYPE
 TYPE ItemsMenuState
   cursor AS INTEGER
   sel    AS INTEGER
+  top    AS INTEGER
   info   AS STRING
   re_use AS INTEGER
   trigger_box AS INTEGER
+  quit   AS INTEGER
+  scroll AS MenuState
+  refresh AS INTEGER
 END TYPE
 
 #ENDIF
