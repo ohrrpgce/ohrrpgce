@@ -42,9 +42,9 @@ option explicit
 	#include once "win/msacm.bi"
 	#IFNDEF USE_ALLEGRO
 		#include once "win/mmsystem.bi"
-  #ELSE
-	  DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
-    DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
+	#ELSE
+		DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
+		DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
 	#ENDIF
 
 #ENDIF

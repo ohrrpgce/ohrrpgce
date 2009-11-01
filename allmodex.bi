@@ -5,7 +5,10 @@
 
 #include "udts.bi"
 #include "compat.bi"
-#include "bitmap.bi"
+#IFNDEF BITMAP
+ 'windows.bi may have been included
+ #include "bitmap.bi"
+#ENDIF
 #include "file.bi"   'FB header
 
 'Library routines
