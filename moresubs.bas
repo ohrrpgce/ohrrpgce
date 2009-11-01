@@ -407,11 +407,13 @@ FOR i = 3 TO 0 STEP -1
  IF hero(i) > 0 THEN leader = hero(i) - 1
 NEXT i
 
-FOR i = 0 TO small(gen(genMaxHero), 59) '--for each available hero
+FOR i = 0 TO small(gen(genMaxHero), UBOUND(herobits, 1)) '--for each available hero
+ 'unset all tags, including ones used on heroes not in the party 
  FOR j = 0 TO 3
   IF herobits(i, j) > 1 THEN setbit tag(), 0, herobits(i, j), 0
  NEXT j
- FOR j = 0 TO 40
+ 'scan party
+ FOR j = 0 TO UBOUND(hero)
   IF hero(j) - 1 = i THEN
    IF herobits(i, 0) > 1 THEN setbit tag(), 0, herobits(i, 0), 1 '---HAVE HERO
    IF herobits(i, 1) > 1 AND stat(j, 0, statHP) THEN setbit tag(), 0, herobits(i, 1), 1 '---IS ALIVE
@@ -421,10 +423,6 @@ FOR i = 0 TO small(gen(genMaxHero), 59) '--for each available hero
  NEXT j
 NEXT i
 
-'292     have hero tag
-'293     is alive tag
-'294     is leader tag
-'295     is in active party tag
 END SUB
 
 SUB evalitemtag
