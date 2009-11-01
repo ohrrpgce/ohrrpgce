@@ -379,7 +379,7 @@ sub SerializeBin(file as string, doc as DocPtr)
 	
 	seek f, i + 1
 	
-	dim s as uinteger
+	dim s as longint
 	s = ubound(table) - lbound(table) + 1
 	writeVLI(f, s)
 	'put #f, , s
@@ -397,7 +397,7 @@ sub SerializeBin(file as string, doc as DocPtr)
 end sub
 
 sub serializeBin(nod as NodePtr, f as integer, table() as string)
-	dim i as integer, us as ushort, ub as ubyte
+	dim i as integer, strno as longint, ub as ubyte
 	
 	dim as integer siz, here = 0, here2, dif
 	siz = seek(f)
@@ -405,14 +405,14 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 	
 	here = seek(f)
 	
-	us = FindStringInTable(nod->name, table())
-	if us = -1 then
+	strno = FindStringInTable(nod->name, table())
+	if strno = -1 then
 		print "ERROR, THIS SHOULD NOT HAPPEN"
 		exit sub
 	end if
 	
-	WriteVLI(f, us)
-	'put #f, , us
+	WriteVLI(f, strno)
+	'put #f, , strno
 	
 	select case nod->nodeType
 		case rltNull
@@ -447,16 +447,16 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 		case rltString
 			ub = rliString
 			put #f, , ub
-			i = len(nod->str)
+			'i = len(nod->str)
 			'put #f, , i
-			WriteVLI(f, i)
+			WriteVLI(f, len(nod->str))
 			put #f, , nod->str
 			
 	end select
 	
 	'dim tmp as integer = nod->numChildren
 	'put #f, , tmp
-	WriteVLI(f, nod->numChildren)
+	WriteVLI(f, cast(longint, nod->numChildren))
 	
 	dim n as NodePtr
 	n = nod->children
