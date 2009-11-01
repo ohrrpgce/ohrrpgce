@@ -39,6 +39,11 @@ call nightly-gfx-music alleg sdl
 
 del game*.exe
 del custom*.exe
+call make.bat alleg native2
+call nightly-gfx-music alleg native2
+
+del game*.exe
+del custom*.exe
 call make.bat alleg allegro
 call nightly-gfx-music alleg allegro
 
