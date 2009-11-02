@@ -1582,7 +1582,7 @@ FUNCTION str2bool(q AS STRING, default AS INTEGER = NO, invert AS INTEGER = NO) 
  RETURN default
 END FUNCTION
 
-SUB xy_position_on_slice (sl AS Slice Ptr, BYREF x AS INTEGER, BYREF y AS INTEGER, caption AS STRING)
+SUB xy_position_on_slice (sl AS Slice Ptr, BYREF x AS INTEGER, BYREF y AS INTEGER, caption AS STRING, helpkey AS STRING)
  DIM col AS INTEGER
  DIM tog AS INTEGER
  DIM root AS Slice Ptr
@@ -1594,7 +1594,7 @@ SUB xy_position_on_slice (sl AS Slice Ptr, BYREF x AS INTEGER, BYREF y AS INTEGE
   tog = tog XOR 1
 
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "xy_position_on_sprite"
+  IF keyval(scF1) > 1 THEN show_help helpkey
   IF enter_or_space() THEN EXIT DO
   IF keyval(scLeft) > 0  THEN x -= 1
   IF keyval(scRight) > 0 THEN x += 1
@@ -1619,7 +1619,7 @@ SUB xy_position_on_slice (sl AS Slice Ptr, BYREF x AS INTEGER, BYREF y AS INTEGE
  LOOP
 END SUB
 
-SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL frame AS INTEGER, BYVAL wide AS INTEGER, byval high AS INTEGER, caption AS STRING)
+SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL frame AS INTEGER, BYVAL wide AS INTEGER, byval high AS INTEGER, caption AS STRING, helpkey AS STRING)
  DIM col AS INTEGER
  DIM tog AS INTEGER
  setkeys
@@ -1629,7 +1629,7 @@ SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS IN
   tog = tog XOR 1
 
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "xy_position_on_sprite"
+  IF keyval(scF1) > 1 THEN show_help helpkey
   IF enter_or_space() THEN EXIT DO
   IF keyval(scLeft) > 0  THEN x -= 1
   IF keyval(scRight) > 0 THEN x += 1

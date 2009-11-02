@@ -660,7 +660,7 @@ DO
     preview->AlignVert = 1
     WITH sprite_sizes(recbuf(EnDatPicSize) + 1)
      recbuf(EnDatCursorX) += .size.x / 2 '--offset relative to the top middle
-     xy_position_on_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset"
+     xy_position_on_slice preview, recbuf(EnDatCursorX), recbuf(EnDatCursorY), "Targetting Cursor Offset", "xy_target_cursor"
      recbuf(EnDatCursorX) -= .size.x / 2
     END WITH
     '--move the preview image back how it was before
@@ -1697,11 +1697,11 @@ DO
   IF pt = 0 THEN EXIT DO
   IF a(49) > 0 THEN
    IF pt = 16 THEN
-    xy_position_on_sprite wep_img, a(80), a(81), 0, 24, 24, "weapon handle position"
+    xy_position_on_sprite wep_img, a(80), a(81), 0, 24, 24, "weapon handle position", "xy_weapon_handle"
     need_update = YES
    END IF
    IF pt = 17 THEN
-    xy_position_on_sprite wep_img, a(78), a(79), 1, 24, 24, "weapon handle position"
+    xy_position_on_sprite wep_img, a(78), a(79), 1, 24, 24, "weapon handle position", "xy_weapon_handle"
     need_update = YES
    END IF
    IF pt = 18 THEN
@@ -2118,9 +2118,9 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
      CASE 4
       her.walk_sprite_pal = pal16browse(her.walk_sprite_pal, 4, her.walk_sprite)
      CASE 8
-      xy_position_on_sprite st.battle, her.hand_a_x, her.hand_a_y, 2, 32, 40, "hand position (for weapon)"
+      xy_position_on_sprite st.battle, her.hand_a_x, her.hand_a_y, 2, 32, 40, "hand position (for weapon)", "xy_hero_hand"
      CASE 9
-      xy_position_on_sprite st.battle, her.hand_b_x, her.hand_b_y, 3, 32, 40, "hand position (for weapon)"
+      xy_position_on_sprite st.battle, her.hand_b_x, her.hand_b_y, 3, 32, 40, "hand position (for weapon)", "xy_hero_hand"
      CASE 11
       her.portrait_pal = pal16browse(her.portrait_pal, 8, her.portrait)
     END SELECT
