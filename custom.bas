@@ -379,14 +379,14 @@ DO
  usemenu csr, top, 0, last, 20
  IF enter_or_space() THEN
   IF csr = 0 THEN
-   game = inputfilename("Filename of New Game?", ".rpg")
+   game = inputfilename("Filename of New Game?", ".rpg", "input_file_new_game")
    IF game <> "" THEN
      IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game + ".rpg") THEN GOTO finis
      gamefile = game + ".rpg"
      EXIT DO
    END IF
   ELSEIF csr = 1 THEN
-   gamefile = browse$(7, "", "*.rpg", tmpdir, 0)
+   gamefile = browse$(7, "", "*.rpg", tmpdir, 0, "browse_rpg")
    game = trimextension$(trimpath$(gamefile))
    IF game <> "" THEN EXIT DO
   ELSEIF csr = 2 THEN
@@ -488,7 +488,7 @@ quit_menu(1) = "Save changes and continue editing"
 quit_menu(2) = "Save changes and quit"
 quit_menu(3) = "Discard changes and quit"
 clearkey(-1) 'stop firing esc's, if the user hit esc+pgup+pgdown
-quitnow = sublist(quit_menu())
+quitnow = sublist(quit_menu(), "quit_and_save")
 IF keyval(-1) THEN '2nd quit request? Right away!
  a$ = trimextension(gamefile)
  i = 0
@@ -846,7 +846,7 @@ NEXT i
 RETRACE
 
 importfont:
-newfont$ = browse$(0, default$, "*.ohf", "")
+newfont$ = browse$(0, default$, "*.ohf", "", , "browse_font")
 IF newfont$ <> "" THEN
  filecopy newfont$, game + ".fnt"
 
@@ -873,6 +873,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(scEsc) > 1 THEN EXIT DO
+ IF keyval(scF1) > 1 THEN show_help "input_file_export_font"
 
  old$ = newfont$
  IF strgrabber(newfont$, 8) THEN

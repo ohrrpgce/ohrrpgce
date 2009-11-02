@@ -1082,7 +1082,7 @@ FUNCTION fixfilename (s AS STRING) AS STRING
  RETURN result
 END FUNCTION
 
-FUNCTION inputfilename (query AS STRING, ext AS STRING, default AS STRING="", check_for_existing AS INTEGER=YES) AS STRING
+FUNCTION inputfilename (query AS STRING, ext AS STRING, helpkey AS STRING, default AS STRING="", check_for_existing AS INTEGER=YES) AS STRING
  DIM filename AS STRING = default
  DIM alert AS STRING
  DIM alert_time AS INTEGER = 0
@@ -1093,6 +1093,7 @@ FUNCTION inputfilename (query AS STRING, ext AS STRING, default AS STRING="", ch
   setkeys
   tog = tog XOR 1
   IF keyval(scEsc) > 1 THEN RETURN ""
+  IF keyval(scF1) > 1 THEN show_help helpkey
   strgrabber filename, 40
   filename = fixfilename(filename)
   IF keyval(scEnter) > 1 THEN

@@ -516,7 +516,7 @@ importsongfile:
 pausesong
 
 'browse for new song
-sourcesong$ = browse$(5, default$, "", "")
+sourcesong$ = browse$(5, default$, "", "",, "browse_import_song")
 
 'Get song name
 a$ = trimextension$(trimpath$(sourcesong$))
@@ -565,7 +565,7 @@ IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
  IF choice = 1 THEN ext$ = ".bam" : songfile$ = bamfile$
  IF choice = 2 THEN RETRACE
 END IF
-outfile$ = inputfilename(query$, ext$)
+outfile$ = inputfilename(query$, ext$, "input_file_export_song")
 IF outfile$ = "" THEN RETRACE
 filecopy songfile$, outfile$ + ext$
 RETRACE
@@ -714,7 +714,7 @@ RETRACE
 
 importsfxfile:
 
-sourcesfx$ = browse$(6, default$, "", "")
+sourcesfx$ = browse$(6, default$, "", "",, "browse_import_sfx")
 
 '-- get name
 a$ = trimextension$(trimpath$(sourcesfx$))
@@ -749,7 +749,7 @@ RETRACE
 
 exportsfx:
 query$ = "Name of file to export to?"
-outfile$ = inputfilename(query$, ext$)
+outfile$ = inputfilename(query$, ext$, "input_file_export_sfx")
 IF outfile$ = "" THEN RETRACE
 filecopy sfxfile$, outfile$ + ext$
 RETRACE
@@ -902,7 +902,7 @@ END SUB
 FUNCTION importmasterpal (f$, palnum)
 STATIC default$
 DIM bmpd AS BitmapInfoHeader
-IF f$ = "" THEN f$ = browse$(4, default$, "", "")
+IF f$ = "" THEN f$ = browse$(4, default$, "", "",, "browse_import_master_palette")
 IF f$ <> "" THEN
  IF LCASE$(justextension$(f$)) = "mas" THEN
   xbload f$, buffer(), "MAS load error"

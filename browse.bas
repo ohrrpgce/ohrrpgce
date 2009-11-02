@@ -8,6 +8,11 @@
 #include "allmodex.bi"
 #include "common.bi"
 
+#IFDEF IS_CUSTOM
+'this is used for showing help
+#include "customsubs.bi"
+#ENDIF
+
 Type BrowseMenuEntry
 	kind as integer
 	filename as string
@@ -32,7 +37,7 @@ DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMen
 DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 DECLARE FUNCTION show_mp3_info() AS STRING
 
-FUNCTION browse (special, default$, fmask$, tmp$, needf) as string
+FUNCTION browse (special, default$, fmask$, tmp$, needf, helpkey as string) as string
 STATIC remember$
 browse = ""
 
@@ -111,6 +116,9 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(scEsc) > 1 THEN EXIT DO
+#IFDEF IS_CUSTOM
+ IF keyval(scF1) > 1 THEN show_help helpkey
+#ENDIF
  IF usemenu(treeptr, treetop, 0, br.treesize, br.viewsize) OR changed THEN
   alert$ = ""
   changed = 0

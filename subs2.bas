@@ -504,7 +504,7 @@ DO
    CASE 1
     exportnames
    CASE 2
-    f$ = browse(0, defaultdir$, "*.hs", "")
+    f$ = browse(0, defaultdir$, "*.hs", "",, "browse_hs")
     IF f$ <> "" THEN
      importscripts f$
     END IF
@@ -666,7 +666,7 @@ SUB text_box_editor () 'textage
     metadatalabels(3) = "Appearance"
    
     IF askwhatmetadata(metadata(), metadatalabels()) = YES THEN
-     box_text_file = inputfilename("Filename for TextBox Export?", ".txt",,NO)
+     box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "input_file_export_textbox",,NO)
      IF box_text_file <> "" THEN
       box_text_file = box_text_file & ".txt"
       overwrite = YES
@@ -686,7 +686,7 @@ SUB text_box_editor () 'textage
    IF state.pt = 10 THEN '-- Import text boxes from a .TXT file
     SaveTextBox box, st.id
     IF yesno("Are you sure? Boxes will be overwritten", NO) THEN
-     box_text_file = browse(0, "", "*.txt", tmpdir, 0)
+     box_text_file = browse(0, "", "*.txt", tmpdir, 0, "browse_import_textbox")
      clearpage vpage
      backup_say = tmpdir & "backup-textbox-lump.say"
      '--make a backup copy of the .say lump

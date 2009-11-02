@@ -232,7 +232,7 @@ IF autorungame = 0 THEN
 END IF
 IF autorungame = 0 THEN
  'DEBUG debug "browse for RPG"
- sourcerpg = browse$(7, "", "*.rpg", tmpdir, 1)
+ sourcerpg = browse$(7, "", "*.rpg", tmpdir, 1, "browse_rpg")
  IF sourcerpg = "" THEN exitprogram 0
  IF isdir(sourcerpg) THEN
   usepreunlump = 1

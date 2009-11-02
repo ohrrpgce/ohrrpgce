@@ -192,14 +192,14 @@ DO
  IF enter_or_space() THEN
   IF mstate.pt = 0 THEN EXIT DO
   IF mstate.pt = 2 THEN
-   srcbmp$ = browse$(3, default, "*.bmp", "")
+   srcbmp$ = browse$(3, default, "*.bmp", "",,"browse_import_" & cap)
    IF srcbmp$ <> "" THEN
     GOSUB bimport
    END IF
    loadmxs game + f, pt, vpages(2)
   END IF
   IF mstate.pt = 3 AND count < 32767 THEN
-   srcbmp$ = browse$(3, default, "*.bmp", "")
+   srcbmp$ = browse$(3, default, "*.bmp", "",,"browse_import_" & cap)
    IF srcbmp$ <> "" THEN
     oldpt = pt
     pt = count
@@ -2621,7 +2621,7 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
  STATIC default AS STRING
  
  setkeyrepeat
- srcbmp = browse(2, default, "*.bmp", "")
+ srcbmp = browse(2, default, "*.bmp", "",, "browse_import_sprite")
  IF srcbmp = "" THEN EXIT SUB
  '--------------------
  'DECIDE ABOUT PALETTE
