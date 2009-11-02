@@ -20,7 +20,6 @@ DIM SHARED windowedmode AS INTEGER = -1
 DIM SHARED keystate AS Uint8 PTR = NULL
 DIM SHARED sdljoystick AS SDL_Joystick PTR = NULL
 DIM SHARED sdlpalette(0 TO 255) AS SDL_Color
-DIM SHARED source_rect AS SDL_Rect
 DIM SHARED dest_rect AS SDL_Rect
 
 'Translate SDL scancodes into a OHR scancodes
@@ -166,12 +165,6 @@ SUB gfx_init()
   IF sdl_init_done = 0 THEN
     SDL_Init(SDL_INIT_VIDEO or SDL_INIT_AUDIO)
     sdl_init_done = -1
-    WITH source_rect
-      .x = 0
-      .y = 0
-      .w = 320
-      .h = 200
-    END WITH
     gfx_sdl_set_screen_mode()
   END IF
 END SUB
@@ -205,25 +198,32 @@ END SUB
 
 SUB gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
   'takes a pointer to raw 8-bit data at 320x200 (w,h ignored at the moment)
-  IF screenbuffer = NULL THEN
-    screenbuffer = SDL_CreateRGBSurfaceFrom(raw, 320 * zoom, 200 * zoom, 8, 320, &hff000000, &h00ff0000, &h0000ff00, &h000000ff)
-    IF screenbuffer = NULL THEN
-      print "Failed to allocate screen buffer " & 320 * zoom & "x" & 200 * zoom
-      SYSTEM
-    END IF
+
+  'I came this close to just swapping screenbuffer->pixels, but it made even me feel filthy
+  'IF screenbuffer->w <> w OR screenbuffer->h <> h THEN
+  IF screenbuffer THEN
+    SDL_FreeSurface(screenbuffer)
   END IF
+
+  screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
+  IF screenbuffer = NULL THEN
+    print "Failed to allocate page wrapping surface"
+    SYSTEM
+  END IF
+
   gfx_sdl_update_screen()
 END SUB
 
 SUB gfx_sdl_update_screen()
   IF screenbuffer <> NULL and screensurface <> NULL THEN
     SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256)
-    SDL_BlitSurface(screenbuffer, @source_rect, screensurface, @dest_rect)
+    SDL_BlitSurface(screenbuffer, NULL, screensurface, @dest_rect)
     IF zoom > 1 THEN
       SDL_LockSurface(screensurface)
 
       DIM bpp AS INTEGER = screensurface->format->BytesPerPixel
-      smoothzoomblit_anybit(screensurface->pixels, screensurface->pixels, zoom, 0, bpp, screensurface->pitch)
+      DIM destptr AS ANY PTR = screensurface->pixels + dest_rect.x + dest_rect.y * screensurface->pitch
+      smoothzoomblit_anybit(destptr, destptr, dest_rect.w, dest_rect.h, zoom, 0, bpp, screensurface->pitch)
 
       SDL_UnlockSurface(screensurface)
     END IF

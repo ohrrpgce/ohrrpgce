@@ -8,15 +8,15 @@
 #include once "crt.bi"
 
 
-sub smoothzoomblit_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval zoom as integer, byval smooth as integer)
-'rptr: source 320x200 buffer paletted 8 bit
+sub smoothzoomblit_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval w as integer, byval h as integer, byval zoom as integer, byval smooth as integer)
+'rptr: source w x h buffer paletted 8 bit
 'dptr: destination scaled buffer also 8 bit
 
 	dim sptr as ubyte ptr
 	dim as integer mult = 1
 	dim as integer i, j
 	dim as integer fx, fy, p0, p1, p2, p3, p4, pstep'for 2x/3x filtering
-	dim as integer wide = 320 * zoom, high = 200 * zoom
+	dim as integer wide = w * zoom, high = h * zoom
 
 
 	sptr = dptr
@@ -28,8 +28,8 @@ sub smoothzoomblit_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval 
 			mult = mult shl 8 + 1
 		next
 
-		for j = 0 to 200 - 1
-			for i = 320 / 4 - 1 to 0 step -1
+		for j = 0 to h - 1
+			for i = w / 4 - 1 to 0 step -1
 				'could just multiple by &h1010101, but FB produces truly daft code for multiplication by constants
 				*cast(integer ptr, sptr) = rptr[0] * mult
 				sptr += zoom
@@ -80,21 +80,21 @@ sub smoothzoomblit_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval 
 
 end sub
 
-sub smoothzoomblit_32bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval zoom as integer, byval smooth as integer, byval pal as integer ptr)
-'rptr: source 320x200 buffer paletted 8 bit
+sub smoothzoomblit_32bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval w as integer, byval h as integer, byval zoom as integer, byval smooth as integer, byval pal as integer ptr)
+'rptr: source w x h buffer paletted 8 bit
 'dptr: destination scaled buffer 32 bit
 
 	dim sptr as integer ptr
 	dim as integer i, j
 	dim as integer pixel
 	dim as integer fx, fy, p0, p1, p2, p3, p4, pstep'for 2x/3x filtering
-	dim as integer wide = 320 * zoom, high = 200 * zoom
+	dim as integer wide = w * zoom, high = h * zoom
 
 	sptr = cast(integer ptr, dptr)
 
-	for j = 0 to 200 - 1
+	for j = 0 to h - 1
 		'repeat row zoom times
-		for i = 0 to 320 - 1
+		for i = 0 to w - 1
 			'get colour
 			pixel = pal[*rptr]
 			'zoom sptrs for each rptr
@@ -141,16 +141,17 @@ sub smoothzoomblit_32bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval
 	end if
 end sub
 
-sub smoothzoomblit_anybit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval zoom as integer, byval smooth as integer, byval bpp as integer, byval pitch as integer)
+sub smoothzoomblit_anybit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval w as integer, byval h as integer, byval zoom as integer, byval smooth as integer, byval bpp as integer, byval pitch as integer)
 'moved from gfx_sdl, it might be needed, probably just replace with 15/16 bit version of above
-'rptr: source pitchx200 buffer variable bbp
+'no smoothing done yet
+'rptr: source pitch x h buffer variable bbp
 'dptr: destination scaled buffer variable bbp
 
 	DIM AS INTEGER x, y, b, z
 	DIM zoombuffer(pitch) AS ubyte
 
-	FOR y = 199 TO 0 STEP -1
-		FOR x = 0 TO 319
+	FOR y = h - 1 TO 0 STEP -1
+		FOR x = 0 TO w - 1
 			FOR z = 0 TO zoom - 1
 				FOR b = 0 TO bpp - 1
 					zoombuffer((x * zoom + z) * bpp + b) = rptr[y * pitch + (x * bpp + b)]

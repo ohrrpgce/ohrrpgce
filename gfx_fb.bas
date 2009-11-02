@@ -61,15 +61,15 @@ sub gfx_close
 end sub
 
 sub gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
-'takes a pointer to raw 8-bit data at 320x200 (w,h ignored for now)
+'takes a pointer to raw 8-bit data at 320x200 (don't claim that anything else is supported)
 	screenlock
 
 	dim as ubyte ptr sptr = screenptr + (screen_buffer_offset * 320 * zoom)
 
 	if depth = 8 then
-		smoothzoomblit_8bit(raw, sptr, zoom, smooth)
+		smoothzoomblit_8bit(raw, sptr, w, h, zoom, smooth)
 	elseif depth = 32 then
-		smoothzoomblit_32bit(raw, sptr, zoom, smooth, @truepal(0))
+		smoothzoomblit_32bit(raw, sptr, w, h, zoom, smooth, @truepal(0))
 	else
 		debug "gfx_showpage: depth " & depth
 	end if
