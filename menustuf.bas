@@ -539,132 +539,6 @@ setbit permask(), 0, 3 + i, t2
 setbit permask(), 0, 3 + o, t1
 END SUB
 
-FUNCTION items_menu (stat() as integer) as integer
-DIM istate AS ItemsMenuState
-istate.trigger_box = -1
-
-DIM itemtemp(100) AS INTEGER
-DIM iuse((inventoryMax + 3) / 16) 'bit 0 of iuse, permask, correspond to item -3
-DIM permask((inventoryMax + 3) / 16) AS INTEGER
-DIM special$(-3 TO -1)
-
-special$(-3) = rpad(readglobalstring$(35, "DONE", 10), " ", 11)
-special$(-2) = rpad(readglobalstring$(36, "AUTOSORT", 10), " ", 11)
-special$(-1) = rpad(readglobalstring$(37, "TRASH", 10), " ", 11)
-
-'--Preserve background for display beneath the item menu
-holdscreen = allocatepage
-copypage vpage, holdscreen
-
-FOR i = 0 TO 2
- setbit iuse(), 0, i, 1
-NEXT i
-FOR i = 0 TO last_inv_slot()
- IF inventory(i).used THEN
-  loaditemdata itemtemp(), inventory(i).id
-  IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
-  IF itemtemp(50) > 0 THEN '--teach spell
-   setbit iuse(), 0, 3 + i, 1
-  ELSEIF itemtemp(51) > 0 THEN
-   setbit iuse(), 0, 3 + i, 1
-  ELSEIF itemtemp(51) < 0 THEN
-   setbit iuse(), 0, 3 + i, 1
-  END IF
- END IF
-NEXT i
-istate.cursor = -3
-istate.top = -3
-istate.sel = -4
-istate.info = ""
-istate.re_use = NO
-
-DIM rect AS RectType
-WITH rect
- .x = 8
- .y = 5
- .wide = 304
- .high = small(180, 12 + (INT((last_inv_slot() + 1) / 3) + 1) * 8)
-END WITH
-DIM scrollrect AS RectType
-WITH scrollrect
- .x = 20
- .y = 12
- .wide = 287
- .high = 168
-END WITH
-WITH istate.scroll
- .first = -1
- .last = INT(last_inv_slot() / 3)
- .size = 20
-END WITH
-
-items_menu_infostr istate, permask()
-setkeys
-wtogl = 0
-menusound gen(genAcceptSFX)
-
-DO
- setwait speedcontrol
- setkeys
- tog = tog XOR 1
- wtogl = loopvar(wtogl, 0, 3, 1)
- playtimer
- 
- control
- items_menu_control istate, iuse(), permask()
- IF istate.trigger_box >= 0 THEN
-  '--return the box number to trigger
-  items_menu = istate.trigger_box
-  EXIT DO
- END IF
- IF istate.quit THEN
-  menusound gen(genCancelSFX)
-  EXIT DO
- END IF
- IF istate.refresh THEN
-  items_menu_infostr istate, permask()
- END IF
- 
- edgeboxstyle rect.x, rect.y, rect.wide, rect.high, 0, dpage
- FOR i = istate.top TO small(istate.top + 62, last_inv_slot())
-  textcolor uilook(uiDisabledItem), 0
-  IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
-  IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
-  IF istate.cursor = i THEN
-   textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
-   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
-  END IF
-  IF istate.sel = i THEN
-   textcolor uilook(uiMenuItem), uilook(uiHighlight + tog)
-   IF istate.cursor = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
-  END IF
-  IF i >= 0 THEN
-   display$ = inventory(i).text
-  ELSE
-   display$ = special$(i)
-  END IF
-  printstr display$, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - istate.top) \ 3), dpage
- NEXT i
- centerfuz 160, 192, 312, 16, 4, dpage
- edgeprint istate.info, xstring(istate.info, 160), 187, uilook(uiText), dpage
- WITH istate.scroll
-  .top = INT(istate.top / 3)
-  .pt = INT(istate.cursor / 3)
- END WITH
- draw_scrollbar istate.scroll, scrollrect, , dpage
- SWAP vpage, dpage
- setvispage vpage
- copypage holdscreen, dpage
- IF istate.re_use = NO THEN
-  dowait
- END IF
-LOOP
-carray(ccUse) = 0
-carray(ccMenu) = 0
-freepage holdscreen
-END FUNCTION
-
 SUB update_inventory_caption (i)
 IF inventory(i).used = 0 THEN
  inventory(i).text = SPACE$(11)
@@ -2217,6 +2091,140 @@ SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
  NEXT i
 
 END SUB
+
+FUNCTION items_menu (stat() as integer) as integer
+ DIM istate AS ItemsMenuState
+ WITH istate
+  .trigger_box = -1
+  .cursor = -3
+  .top = -3
+  .sel = -4
+  .info = ""
+  .re_use = NO
+ END WITH
+
+ DIM itemtemp(100) AS INTEGER
+ DIM iuse((inventoryMax + 3) / 16) AS INTEGER 'bit 0 of iuse, permask, correspond to item -3
+ DIM permask((inventoryMax + 3) / 16) AS INTEGER
+ DIM special(-3 TO -1) AS STRING
+
+ special(-3) = rpad(readglobalstring(35, "DONE", 10), " ", 11)
+ special(-2) = rpad(readglobalstring(36, "AUTOSORT", 10), " ", 11)
+ special(-1) = rpad(readglobalstring(37, "TRASH", 10), " ", 11)
+
+ '--Preserve background for display beneath the item menu
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ DIM i AS INTEGER
+ 
+ FOR i = 0 TO 2
+  setbit iuse(), 0, i, 1
+ NEXT i
+ FOR i = 0 TO last_inv_slot()
+  IF inventory(i).used THEN
+   loaditemdata itemtemp(), inventory(i).id
+   IF itemtemp(73) = 2 THEN setbit permask(), 0, 3 + i, 1
+   IF itemtemp(50) > 0 THEN '--teach spell
+    setbit iuse(), 0, 3 + i, 1
+   ELSEIF itemtemp(51) > 0 THEN
+    setbit iuse(), 0, 3 + i, 1
+   ELSEIF itemtemp(51) < 0 THEN
+    setbit iuse(), 0, 3 + i, 1
+   END IF
+  END IF
+ NEXT i
+
+ DIM rect AS RectType
+ WITH rect
+  .x = 8
+  .y = 5
+  .wide = 304
+  .high = small(180, 12 + (INT((last_inv_slot() + 1) / 3) + 1) * 8)
+ END WITH
+ DIM scrollrect AS RectType
+ WITH scrollrect
+  .x = 20
+  .y = 12
+  .wide = 287
+  .high = 168
+ END WITH
+ WITH istate.scroll
+  .first = -1
+  .last = INT(last_inv_slot() / 3)
+  .size = 20
+ END WITH
+
+ items_menu_infostr istate, permask()
+ 
+ DIM display AS STRING
+ DIM tog AS INTEGER = 0
+ DIM wtogl AS INTEGER = 0
+ menusound gen(genAcceptSFX)
+
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  tog = tog XOR 1
+  wtogl = loopvar(wtogl, 0, 3, 1)
+  playtimer
+ 
+  control
+  items_menu_control istate, iuse(), permask()
+  IF istate.trigger_box >= 0 THEN
+   '--return the box number to trigger
+   items_menu = istate.trigger_box
+   EXIT DO
+  END IF
+  IF istate.quit THEN
+   menusound gen(genCancelSFX)
+   EXIT DO
+  END IF
+  IF istate.refresh THEN
+   items_menu_infostr istate, permask()
+  END IF
+ 
+  edgeboxstyle rect.x, rect.y, rect.wide, rect.high, 0, dpage
+  FOR i = istate.top TO small(istate.top + 62, last_inv_slot())
+   textcolor uilook(uiDisabledItem), 0
+   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
+   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
+   IF istate.cursor = i THEN
+    textcolor uilook(uiMenuItem), uilook(uiHighlight2)
+    IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
+    IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
+   END IF
+   IF istate.sel = i THEN
+    textcolor uilook(uiMenuItem), uilook(uiHighlight + tog)
+    IF istate.cursor = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
+   END IF
+   IF i >= 0 THEN
+    display = inventory(i).text
+   ELSE
+    display = special(i)
+   END IF
+   printstr display, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - istate.top) \ 3), dpage
+  NEXT i
+  centerfuz 160, 192, 312, 16, 4, dpage
+  edgeprint istate.info, xstring(istate.info, 160), 187, uilook(uiText), dpage
+  WITH istate.scroll
+   .top = INT(istate.top / 3)
+   .pt = INT(istate.cursor / 3)
+  END WITH
+  draw_scrollbar istate.scroll, scrollrect, , dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  IF istate.re_use = NO THEN
+   dowait
+  END IF
+ LOOP
+ carray(ccUse) = 0
+ carray(ccMenu) = 0
+ freepage holdscreen
+END FUNCTION
 
 SUB items_menu_infostr(istate AS ItemsMenuState, permask() AS INTEGER)
  istate.info = ""
