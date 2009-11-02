@@ -4,7 +4,7 @@ Use the arrow keys to navigate the menu.
 
 In the left column you can type in attack ID numbers, or browse through available attacks with the < and > keys.
 
-In the right column, the available choices are "Learned from Item" or "Learned at Level". You can type in a level number, or hit BACKSPACE to set "Learned from Item"
+In the right column, the available choices are "Learned from Item" or "Learned at Level". You can type in a level number, or hit BACKSPACE to set "Learned from Item".
 
 "Learned from Item" means that the Hero will not be able to use the spell until the player uses an item which is set to "Teach" that spell.
 
@@ -12,4 +12,4 @@ In the right column, the available choices are "Learned from Item" or "Learned a
 
 "Learned at level#" means that the hero will gain the spell automatically when they reach that experience level.
 
-You can also press ENTER or SPACE on any value if you want to change it using the left and right arrow keys. Press ENTER or SPACE again to return the arrow keys to normal motion. (Why andybody would want to do this is a mystery to everyone!)
+You can also press ENTER or SPACE on any value if you want to change it using the left and right arrow keys. Press ENTER or SPACE again to return the arrow keys to normal motion. (Why anybody would want to do this is a mystery to everyone!)

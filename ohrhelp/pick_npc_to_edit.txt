@@ -1,7 +1,7 @@
 This is the NPC picker. Here you can select from the available NPCs for the current map. You will see a preview of each NPC's picture plus the first line of text from any text box that is attached to the NPC.
 
-use the up and down arrow keys to navigate the menu.
+Use the up and down arrow keys to navigate the menu.
 
-Press ENTER or SPACE to choose an NPC.
+Press ENTER or SPACE to choose an NPC to edit.
 
 Press ESC to go back to the previous menu.

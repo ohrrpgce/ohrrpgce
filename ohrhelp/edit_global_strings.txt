@@ -1,6 +1,6 @@
 Global Text Strings are all the little pieces of text that are used in the standard menus and the standard battle system. You can customize the text of your game here. Editing your global text strings is also essential if you are making a game in some language other than English.
 
-Use the up and down arrow keys to navigate the menu. The currently selected text string will be displayed in the blue box at the bottom of the screen. You can type a new value.
+Use the up and down arrow keys to navigate the menu. The currently selected text string will be displayed in the blue box at the bottom of the screen. You can type in a new value.
 
 The size of the blue box shows you how long the text string is allowed to be.
 

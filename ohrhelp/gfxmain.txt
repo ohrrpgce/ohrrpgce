@@ -1,2 +1,23 @@
 This menu is where you can edit the various graphical elements of your game. Navigate the menu using the arrow keys. Press ENTER or SPACE to select a sub-menu, or press ESC to go back to the previous menu.
 
+Choose "Edit Maptiles" to edit and create new tilesets to use for the various layers of your maps.
+
+Choose "Draw Walkabout Graphics" to edit and create new sets of graphics for all heroes and NPCs to use when "walking about" on your maps.
+
+Choose "Draw Hero Graphics" to edit and create new sets of graphics for your heroes to use in battle.
+
+Choose "Draw Small/Medium/Big Enemy Graphics" to edit and create new sets of graphics for enemies to use in battle (if you want enemies to show up on the map, you should draw them Walkabout graphics and make them an NPC on your map).
+
+Choose "Draw Attacks" to edit and create new sets of graphics for attacks to use in battle.  Actually, all actions in battle are considered attacks, such as using items or healing spells, so you should draw them all here.
+
+Choose "Draw Weapons" to edit and create new sets of graphics for items to use when equipped as a weapon by a hero.
+
+Choose "Draw Box Edges" to edit and create new sets of graphics for text boxes to use as their borders.
+
+Choose "Draw Portrait Graphics" to edit and create new sets of graphics to put into text boxes when certain characters are speaking.
+
+Choose "Import/Export Screens" to view, import, or export full screen graphics for use as backgrounds for battles, certain textboxes, or other special circumstances.  See the help file in that menu for more details.
+
+Choose "Import/Export Full Maptile Sets" to view, import, or export full screen graphics that are automatically split up into tiles for use on maps.  See the help file in that menu for more details.
+
+Choose "Change User-Interface Colors" to pick colors for various menu-related uses in both custom AND game.  You can also restore these colors to their defaults in this menu.

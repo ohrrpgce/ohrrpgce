@@ -1,4 +1,4 @@
-This is the hero editor.
+This is the hero editor.  Every single character that the player will have control of at some point throughout the game needs to be defined as a separate hero.
 
 Use the up and down arrow keys to navigate the menu.
 

@@ -1,6 +1,6 @@
 This screen lets you choose a default tileset, and lets you customize each map layer.
 
-Press left and right to change values, or you can type in tileset numbers. Press enter to enable or disable a layer.
+Press left and right to change values, or you can type in tileset numbers. Press ENTER to enable or disable a layer.
 
 Each map can have 3 layers, numbered 0 to 2.
 

@@ -1,4 +1,4 @@
-The map editor is in Picture mode, (also known as "Tilemap mode").
+The map editor is in Picture mode (also known as "Tilemap mode").
 
 F2 switch to picture mode
 F3 switch to passability mode
@@ -24,11 +24,13 @@ CTRL+R replaces all tiles like the one under the cursor with the currently selec
 
 ~ shows a small preview of the entire map.
 
+TAB toggles a blue rectangle that shows roughly what portion of the map you are currently looking at.
+
 CTRL+H moves the hero's starting location to this location on this map. Remember that only one map in your game needs a hero starting location.
 
-Press 1 or 2 to make the tile under the cursor animate using animation pattern 0 or 1
+Press 1 or 2 to make the tile under the cursor animate using animation pattern 0 or 1.
 
-Hold CTRL and press 1 or 2 to make all tiles on the map like the one under the cursor animate using animation pattern 0 or 1
+Hold CTRL and press 1 or 2 to make all tiles on the map like the one under the cursor animate using animation pattern 0 or 1.
 
 CTRL+D toggles whether default tile passability will be used for any new tiles that you place.
 

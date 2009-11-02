@@ -1,4 +1,5 @@
-This screen lets you define the default passability (also known as "wallmapping") for the tiles in this tileset.
+This screen lets you define the default passability (also known as "wallmapping") for the tiles in this tileset.  When you place these tiles on your maps with default passability
+turned on, they will automatically be given these wallmap settings.
 
 Hold CTRL and press the arrow keys to toggle walls on the currently selected tile. Flashing grey boxes will appear to show you which sides of the tile will be impassable.
 

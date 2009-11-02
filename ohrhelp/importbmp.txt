@@ -1,4 +1,4 @@
-This screen lets you import full-screen BMP files, and to preview the ones that you have already imported.
+This screen lets you import full-screen BMP files, and preview the ones that you have already imported.
 
 Use the up and down arrow keys to navigate the menu.
 
@@ -8,8 +8,8 @@ Pick "Replace current" to import a new BMP to replace the one you are currently 
 
 Pick "Append a new" to import a new BMP and add it to the end of the list.
 
-When you import a 24-bit BMP file, it gets fit to the current 256 color master palette. Sometimes certain colors match poorly. You can use "Disable palette colors for import" to disable the colors that look bad, then you can re-import and the importer will be forced to choose different colors.
+When you import a 24-bit BMP file, it gets fit to the current 256 color master palette. Sometimes certain colors match poorly. You can use "Disable palette colors for import" to disable the colors that look bad, then you can re-import and the importer will be forced to choose different colors.  See the help file in that menu for more info.
 
 You can also export a BMP file.
 
-"full screen view" allows you to preview the image with no menu floating over it. Press the up or down rrow keys to get out of preview mode.
+"full screen view" allows you to preview the image with no menu floating over it. Press the up or down arrow keys to get out of full screen mode.

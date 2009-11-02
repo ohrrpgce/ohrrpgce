@@ -1,4 +1,4 @@
-Use the arrow keys to choose a maptile set to edit. if you want to add a new maptile set, just press the down arrow at the bottom of the menu.
+Use the arrow keys to choose a maptile set to edit. If you want to add a new maptile set, just press the down arrow at the bottom of the menu.
 
 Press ENTER or SPACE to select a maptile set to edit.
 

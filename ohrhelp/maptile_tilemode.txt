@@ -2,10 +2,6 @@ Choose "Draw Tiles" if you want to edit the tiles in this tileset.
 
 Choose "Cut Tiles" if you want to copy tiles from another tileset or extract tiles from an imported background
 
-Choose "Set default passaibility" if you want to define default walls for each tile in this tileset.
+Choose "Set Default Passability" if you want to define default walls for each tile in this tileset.
 
-Choose "define tile animation" if you want to set up certain tiles to animate automatically when placed in a map.
-
-
-
-
+Choose "Define Tile Animation" if you want to set up certain tiles to animate automatically when placed in a map.

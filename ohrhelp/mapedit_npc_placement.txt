@@ -26,3 +26,5 @@ CTRL+Right: Place and NPC facing right
 It is also possible to put more than one NPC on the same tile using CTRL+arrows.
 
 Two numbers are displayed on each NPC you place. The top number is the NPC's ID, and the bottom number is the NPC's copy-number. You may need the ID and copy number if you want to manipulate the NPC using plotscripting.
+
+TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.

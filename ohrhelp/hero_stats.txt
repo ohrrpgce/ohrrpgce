@@ -4,4 +4,6 @@ Use the arrow keys to navigate around the menu.
 
 Press < and > to change the numbers, or just type in new numbers.
 
+You cannot change the names of the stats here.  To do that you should go to the Edit Global Text Strings menu (from the Main Menu).
+
 Press ESC to return to the previous menu.

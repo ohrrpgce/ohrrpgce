@@ -4,24 +4,24 @@ Use the up and down arrow keys to navigate the menu.
 
 Use the left or right arrow keys to change values, or you can type in numbers.
 
-Battle picture: This is the sprite set that the hero will use in battle mode. You will see a preview standing on the right.
+Battle Picture: This is the sprite set that the hero will use in battle mode. You will see a preview standing on the right.
 
-Battle palette: Normally you will just leave this as "default", but if you want to, you can type in a palette number or press ENTER or SPACE to bring up the 16-color palette browser.
+Battle Palette: "default" is the palette you used to draw the sprite, but if you want to, you can change it by typing in a palette number or pressing ENTER or SPACE to bring up the 16-color palette browser.
 
-Walkabout picture: This is the walkabout sprite set that the hero will use on the map. You will see a preview running in circles on the right.
+Walkabout Picture: This is the walkabout sprite set that the hero will use on the map. You will see a preview running in circles on the right.
 
-Walkabout palette: Normally you will just leave this as "default", but if you want to, you can type in a palette number or press ENTER or SPACE to bring up the 16-color palette browser.
+Walkabout Palette: "default" is the palette you used to draw the sprite, but if you want to, you can change it by typing in a palette number or pressing ENTER or SPACE to bring up the 16-color palette browser.
 
-Base Level: This is the level that the hero will start at when they join your party. You can type in a number, or press left to choose "party average" which sets the base level according to the level of the other heroes in the party. (Why this is in the Hero Appearance menu is a mystery to everyone!)
+Base Level: This is the level that the hero will start at when they join the party. You can type in a number, or press left to choose "party average" which sets the base level according to the level of the other heroes in the party. (Why this is in the Hero Appearance menu is a mystery to everyone!)
 
-Default weapon: This is and item which will be used by the hero as a weapon if no other weapon is equipped. Press the right and left arrow keys to browse through available items. Default should is usually be something like "Fist" "Punch" or "Nothing". (Why this is in the Hero Appearance menu is a mystery to everyone!)
+Default Weapon: This is an item which will be used by the hero as a weapon if no other weapon is equipped. Press the right and left arrow keys to browse through available items. Default should usually be something like "Fist" "Punch" or "Nothing".  However, you cannot type in a name here; you must create the default as an item in the Item Editor. (Why this is in the Hero Appearance menu is a mystery to everyone!)
 
 Max Name Length: By default, the maximum length of a hero's name is 16 letters. Here you can type a shorter limit. (This only matters for heroes that can be renamed by the player)
 
-Hand position A: Press ENTER or SPACE to choose where the hero's hand is located for its first frame of attack animation. This is used for weapon positioning in battle.
+Hand Position A: Press ENTER or SPACE to choose where the hero's hand is located for its first frame of attack animation. This is used for weapon positioning in battle.
 
 Hand position B: Press ENTER or SPACE to choose where the hero's hand is located for its second frame of attack animation. This is used for weapon positioning in battle.
 
-Portrait picture: This is the portrait sprite that will be displayed on the hero's status screen. It can also be used in textboxes. You will see a preview in the bottom right.
+Portrait Picture: This is the portrait sprite that will be displayed on the hero's status screen. It can also be used in textboxes. You will see a preview in the bottom right.
 
-Portrait palette: Normally you will just leave this as "default", but if you want to, you can type in a palette number or press ENTER or SPACE to bring up the 16-color palette browser.
+Portrait Palette: "default" is the palette you used to draw the portrait, but if you want to, you can change it by typing in a palette number or pressing ENTER or SPACE to bring up the 16-color palette browser.

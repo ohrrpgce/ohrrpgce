@@ -26,6 +26,6 @@ Speed: This determines how fast the enemy can attack in battle. Smaller numbers 
 
 Counter: This does not currently have any specifically defined purpose, but you can use it as a base stat for your attacks in various ways.
 
-Focus: This is a percentage by which the enemy's MP consuption. Normally this should be 0.
+Focus: This is a percentage by which the enemy's MP consuption is reduced. Normally this should be 0.
 
 Extra Hit: This stat causes the enemy to get extra attacks every turn. You almost always want to keep this at 0.

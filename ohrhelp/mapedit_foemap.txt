@@ -14,12 +14,14 @@ Foe mapping allows you to specify where random battles can happen. Whenever the 
 
 The number is the same as the Formation Set ID number from the Formation Set Editor.
 
-Press < and > to change the current formation number, or type in a number.
+Press < and > to change the current formation set number, or type in a number.
 
-Press SPACE to mark the tile under the cursor so that random battles from the selected formation set can happen there.
+Press SPACE to mark the tile under the cursor so that random battles from the selected formation set can happen there. Only one formation set can be assigned to each tile.
 
 To remove random battles from a tile, press DELETE (or change the formation set number to 0).
 
-Press CTRL+F to fill the screen with the currently selected formation number.
+Press CTRL+F to fill the screen with the currently selected formation set number.
 
 Press CAPSLOCK to change the selected formation set to the one under the cursor (eyedropper tool).
+
+TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.

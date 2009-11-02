@@ -1,13 +1,11 @@
 This screen lets you define an animation pattern.
 
-You should think of the animation as a cursor that moves around the tileset starting from a base tile.
-
-For example, you might have two tiles side-by-side in your tileset. You can make an animation pattern that moves an imaginary cursor back and forth between these two tiles, resulting in an animation.
-
 There can be up to 9 commands in the pattern. Use the up and down arrow keys to move through the list of animation commands. Press ENTER or SPACE to start editing a command.
 These commands will be evaluated in order from the top to the bottom. When the animation reaches the end of the list, it starts over again at the top.
 
 When you are editing a command, you can use the left and right arrows to choose a command type. Each command also has a value which you can type. Press ENTER when you are done editing a command to return to the list of commands.
+
+Think of the animation as a cursor that moves around the tileset choosing which tile to display, starting from a base tile.  Then the commands act on this cursor like so:
 
 Up: Moves the animation cursor up one
     or more tiles.
@@ -21,7 +19,7 @@ Wait: waits for a given number of
     game ticks before the animation
     continues. If you don't have
     any waits, your animation will
-    be too quick to see! 18 game t
+    be too quick to see! 18 game
     ticks is pretty close to 1
     second.
 If tag do rest: This lets you choose
@@ -40,12 +38,10 @@ End of animation: This causes the
     your animation is simple and does
     not require all 9 commands.
 
-Here is a simple example animation:
+For example, you might have two tiles side-by-side in your tileset. You can make an animation pattern that moves an imaginary cursor back and forth between these two tiles, resulting in an animation.  Here is how the pattern would be written:
 
 right 1
 wait 4
 left 1
 wait 4
 end of animation
-
-This animation simply toggles between a tile and the tile one space to the right of it every 4 ticks.

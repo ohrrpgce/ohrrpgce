@@ -1,9 +1,9 @@
-Use the arrow keys to choose a tile to edit. Press ENTER or SPACE to open the tile editor.
+Use the arrow keys to choose a tile to edit/cut. Press ENTER or SPACE to open the tile editor/cutter.
 
 Press ESC to go back to the previous menu.
 
 You can also use the mouse here. Click on a tile to edit it. Isn't it a shame there isn't more mouse support in the OHRRPGCE? Yep. A cryin' shame!
 
 Press CTRL+C to copy a tile.
-Press CTRL+V to paste a tile.
-Press CTRL+T to transparently paste a tile onto another: colour 0 is treated as transparency.
+Press CTRL+V to paste a copied tile.
+Press CTRL+T to transparently paste a copied tile onto another: colour 0 is treated as transparency.

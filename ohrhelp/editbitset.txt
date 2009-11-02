@@ -6,4 +6,4 @@ To turn a bitset ON, press the right arrow.
 
 To turn a bitset OFF, press the left arrow.
 
-Press SPACE to toggle a bitset.
+Press SPACE or ENTER to toggle a bitset.

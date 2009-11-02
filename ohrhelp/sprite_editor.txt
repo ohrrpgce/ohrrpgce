@@ -1,6 +1,6 @@
 Welcome to the 16-color sprite editor!
 
-The box on the left is the drawing area. You can click here with the mouse, or use the arrow keys to move the cursor.
+The box on the left is the drawing area. You can click here with the mouse, or use the arrow keys to move the cursor.  In the drawing area, press SPACE or left-click to draw.  Press ENTER or right-click to select the color under the cursor.
 
 The big block of small colored boxes at the top right is the "master palette". Right below it is a row of 16 small boxes, which is your current 16-color palette. Press < and > to choose which color in your 16-color palette you are working with. ALT+arrow keys changes which color from your master palette is assigned to the selected slot in your 16-color palette. You can also click on the palettes with your mouse.
 
@@ -53,11 +53,9 @@ C Clone tool. This tool paints using
   does not work when using the air-
   brush tool)
 
-Press backspace to horizontally flip the sprite. You can vertically flip a sprite if you rotate it, then flip it, then rotate it back, but that is kindof a pain, isn't it?
+Press backspace to horizontally flip the sprite. You can vertically flip a sprite if you rotate it, then flip it, then rotate it back, but that is kind of a pain, isn't it?
 
 Press I to import a 16-color BMP image. If you are in single-frame mode, this will import a single frame. If you are in full spriteset mode, this will import a full spriteset.
-
-Press ENTER or right-click on the drawing area to select a color.
 
 Hold CAPSLOCK and press the arrow keys to recenter your drawing. Use this feature with caution, since moving your drawing outside of the drawing area will cause pixels to be deleted.
 

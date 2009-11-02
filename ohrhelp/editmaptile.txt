@@ -1,11 +1,11 @@
 You can use arrow keys or the mouse.
 
-Left-Click on pixels to draw, (or press SPACE)
-Right-Click to select a color from the tile (or press ENTER)
+Left-Click on pixels to draw (or press SPACE).
+Right-Click to select the color under the cursor (or press ENTER).
 
 Left click on a color in the palette at the bottom to select it. (ALT + arrow keys will pick palette colors too!)
 
-See the "Undo" bar along the right? Click there to cancel a change, or press CTRL+Z
+See the "Undo" bar along the right? Click there to revert to an earlier state, or press CTRL+Z to go back one step, so to speak.
 
 On the left is a panel of tool buttons. Each of them can also be triggered with a keypress.
 
@@ -15,8 +15,8 @@ D Draw tool. Use this for single
 R Rectangle tool. Use this to draw
   filled rectangles.
 
-L Line tool. Use this to draw strait
-  lines.
+L Line tool. Use this to draw
+  straight lines.
 
 F Fill tool. Use this to flood-fill
   paint an area. Like the paint
@@ -45,7 +45,7 @@ C Clone tool. Draw on the tile using
   (normally black) will be
   transparent.
 
-Backspace flips the tile horizontally
+Backspace flips the tile horizontally.
 
 CTRL+Backspace flips the tile
   vertically.

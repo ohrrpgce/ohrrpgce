@@ -8,22 +8,22 @@ Hold the ALT key to see the name of the enemy that you are editing. While holdin
 
 Gold: You will receive this much money after the battle.
 
-Experience Points: This meany experience points will be divided between the members of your party after the battle.
+Experience Points: This amount of experience points will be divided between the living heroes in the party after the battle.
 
-Item: You have a chance of receiving this item after the battle.
+Item: The player has a chance of receiving this item after the battle.
 
-Item %: this is the chance that you will receive the item.
+Item %: This is the chance that he will receive the item.
 
-Rare Item: If you fail to win the normal iitem, then you have a chance of winning the rare item instead.
+Rare Item: If the player fails to win the normal item, then he has a chance of winning the rare item instead.
 
-Rare Item %: This is the chance that you will receive the rare item, IF you do not receive the normal item. For example, if Item % is 50 and Rate Item % is 50, then the actual chances of receiving the rare item will be 25%
+Rare Item %: This is the chance that he will receive the rare item, IF he does not receive the normal item. For example, if Item % is 50 and Rare Item % is 50, then the actual chances of receiving the rare item will be 25%
 
-Steal Availability: Determines whether you will be able to steal many items from this enemy, or just steal one.
+Steal Availability: Determines whether a hero will be able to steal many items from this enemy, or just steal one, or none.
 
-Stealable Item: If a hero attacks this enemy using an attack that is capable of stealing, you will have a chance of receiving this item.
+Stealable Item: If a hero attacks this enemy using an attack that is capable of stealing, he will have a chance of receiving this item.
 
 Steal Rate %: This is the percentage of the time that a stealing attack will successfully steal the item.
 
 Rare Stealable Item: If the stealing attack fails to steal the normal stealable item, it has a chance of stealing this item instead.
 
-Rare Stealable Rate: This is ttthe percentage of the time that a stealing attack can steal the rare item, IF the normal stealable item was not stolen. The percentage works the same way as the Rare Item % does.
+Rare Stealable Rate: This is the percentage of the time that a stealing attack can steal the rare item, IF the normal stealable item was not stolen. The percentage works the same way as the Rare Item % does.

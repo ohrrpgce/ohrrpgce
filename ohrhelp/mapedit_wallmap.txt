@@ -1,4 +1,4 @@
-The map editor is in Passability mode, (also known as "Wallmap mode").
+The map editor is in Passability mode (also known as "Wallmap mode").
 
 F2 switch to picture mode
 F3 switch to passability mode
@@ -25,8 +25,10 @@ impassable on the right side.
 
 H marks the tile as a harm tile that can damage the hero when the player steps on it.
 
-A marks the tile as special for Airships (or other vehicle or scripting purposes)
+A marks the tile as special for Airships (or other vehicle or scripting purposes).
 
-B marks the tile as special for Boats (or other vehicle or scripting purposes)
+B marks the tile as special for Boats (or other vehicle or scripting purposes).
 
 O marks the tile as overhead. This is obsolete. You should use Layer 2 in Tilemapping mode instead if you want make tiles overhead.
+
+TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.
