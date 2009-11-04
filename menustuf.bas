@@ -35,6 +35,7 @@ DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iu
 DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
 DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB spells_menu_refresh_list(sp AS SpellsMenuState)
+DECLARE SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
 
 REM $STATIC
 
@@ -1193,15 +1194,13 @@ RETRACE
 
 END SUB
 
-SUB spells (who AS INTEGER, stat())
+SUB spells_menu (who AS INTEGER)
+'stat() is global
 REMEMBERSTATE
 
 DIM sp AS SpellsMenuState
 sp.hero = who
 sp.listnum = 0
-
-DIM menu$(4), mi(4)
-dim her as herodef
 
 cancelmenu$ = readglobalstring$(51, "(CANCEL)", 10)
 hasnone$ = readglobalstring$(133, "has no spells", 20)
@@ -1209,11 +1208,10 @@ hasnone$ = readglobalstring$(133, "has no spells", 20)
 pick = 0
 spred = 0
 wptr = 0
-last = 0
 sptr = 0
 mset = 0
 
-GOSUB splname
+spells_menu_refresh_hero sp
 '--Preserve background for display beneath the spells menu
 holdscreen = allocatepage
 copypage vpage, holdscreen
@@ -1233,8 +1231,8 @@ DO
  centerbox 56, 50, 84, 60, 2, dpage     'menu box
  centerbox 160, 134, 308, 96, 2, dpage  'spell list
  rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), dpage 'divider 2
- FOR i = 0 TO last
-  IF mi(i) >= 0 AND sp.listnum = i THEN
+ FOR i = 0 TO sp.last
+  IF sp.lists(i).menu_index >= 0 AND sp.listnum = i THEN
    FOR o = 0 TO 23
     'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
     textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
@@ -1261,9 +1259,9 @@ DO
   END IF
   textcolor uilook(uiMenuItem), 0
   IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2): IF mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-  printstr menu$(i), 16, 25 + i * 10, dpage 'spell menu
+  printstr sp.lists(i).name, 16, 25 + i * 10, dpage 'spell menu
  NEXT i
- IF last = 0 THEN edgeprint names(sp.hero) + " " + hasnone$, xstring(names(sp.hero) + " " + hasnone$, 160), 120, uilook(uiText), dpage
+ IF sp.last = 0 THEN edgeprint names(sp.hero) + " " + hasnone$, xstring(names(sp.hero) + " " + hasnone$, 160), 120, uilook(uiText), dpage
  edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), dpage
  IF pick = 1 THEN
   centerbox 196, 47, 160, 88, 2, dpage
@@ -1295,52 +1293,6 @@ DO
  dowait
 LOOP
 
-splname:
-loadherodata @her, hero(sp.hero) - 1 'why the heck would we load this 12 times?!
-FOR i = 0 TO 5
- '--for each btl menu slot
- '--clear menu type
- sp.lists(i).magic_type = -1
- '--if it is a menu...
- IF bmenu(sp.hero, i) < 0 AND bmenu(sp.hero, i) > -10 THEN
-  '--set spell-menu-id and menu-type
-  sp.lists(i).mapto = (bmenu(sp.hero, i) + 1) * -1
-  sp.lists(i).magic_type = her.list_type(sp.lists(i).mapto)
- END IF
-NEXT i
-last = 0
-FOR o = 0 TO 5
- IF sp.lists(o).magic_type >= 0 AND sp.lists(o).magic_type < 2 THEN
-  IF readbit(her.bits(), 0, 26) <> 0 then
-   IF count_available_spells(sp.hero, o - 1) = 0 THEN CONTINUE FOR
-  END IF
-  menu$(last) = ""
-  sp.lists(last).magic_type = sp.lists(o).magic_type
-  sp.lists(last).mapto = sp.lists(o).mapto
-
-  '--get menu index
-  mi(last) = (bmenu(sp.hero, o) + 1) * -1
-
-  '--read menu name
-  menu$(last) = her.list_name(mi(last))
-
-  '--if non-null...
-  IF menu$(last) <> "" THEN
-   '--right-pad the name
-   menu$(last) = rpad(menu$(last), " ", 10)
-   '--increment the spell-list counter because
-   '--we only (currently) care about non-null-named spell lists
-   last = last + 1
-  END IF
- END IF
-NEXT o
-menu$(last) = rpad(readglobalstring$(46, "Exit", 10), " ", 10)
-mi(last) = -1
-sp.lists(last).magic_type = -1
-IF sp.listnum > last THEN sp.listnum = last
-spells_menu_refresh_list sp
-RETRACE
-
 scontrol:
 IF pick = 0 THEN '--picking which spell list
  IF mset = 0 THEN
@@ -1350,14 +1302,14 @@ IF pick = 0 THEN '--picking which spell list
     sp.hero = loopvar(sp.hero, 0, 3, -1)
    LOOP UNTIL hero(sp.hero) > 0
    menusound gen(genCursorSFX)
-   GOSUB splname
+   spells_menu_refresh_hero sp
   END IF
   IF carray(ccRight) > 1 THEN
    DO
     sp.hero = loopvar(sp.hero, 0, 3, 1)
    LOOP UNTIL hero(sp.hero) > 0
    menusound gen(genCursorSFX)
-   GOSUB splname
+   spells_menu_refresh_hero sp
   END IF
   IF carray(ccUp) > 1 THEN
    sp.listnum = large(sp.listnum - 1, 0)
@@ -1365,12 +1317,12 @@ IF pick = 0 THEN '--picking which spell list
    spells_menu_refresh_list sp
   END IF
   IF carray(ccDown) > 1 THEN
-   sp.listnum = small(sp.listnum + 1, last)
+   sp.listnum = small(sp.listnum + 1, sp.last)
    menusound gen(genCursorSFX)
    spells_menu_refresh_list sp
   END IF
   IF carray(ccUse) > 1 THEN
-   IF mi(sp.listnum) = -1 THEN GOTO exitpoint
+   IF sp.lists(sp.listnum).menu_index = -1 THEN GOTO exitpoint
    menusound gen(genAcceptSFX)
    mset = 1: sptr = 0
   END IF
@@ -2628,4 +2580,55 @@ SUB spells_menu_refresh_list(sp AS SpellsMenuState)
    .name = rpad(.name, " ", 10)
   END WITH
  NEXT i
+END SUB
+
+SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
+ DIM her AS HeroDef
+ loadherodata @her, hero(sp.hero) - 1 'hero() is a global
+ FOR i AS INTEGER = 0 TO UBOUND(sp.lists)
+  WITH sp.lists(i)
+   '--for each battle menu slot
+   '--clear menu type
+   .magic_type = -1
+   '--if it is a menu...
+   IF bmenu(sp.hero, i) < 0 AND bmenu(sp.hero, i) > -10 THEN
+    '--set spell-menu-id and menu-type
+    .mapto = (bmenu(sp.hero, i) + 1) * -1
+    .magic_type = her.list_type(.mapto)
+   END IF
+  END WITH
+ NEXT i
+ sp.last = 0
+ FOR o AS INTEGER = 0 TO 5
+  WITH sp.lists(o)
+   IF .magic_type >= 0 AND .magic_type < 2 THEN
+    IF readbit(her.bits(), 0, 26) <> 0 THEN
+     IF count_available_spells(sp.hero, o - 1) = 0 THEN CONTINUE FOR
+    END IF
+    sp.lists(sp.last).name = ""
+    sp.lists(sp.last).magic_type = .magic_type
+    sp.lists(sp.last).mapto = .mapto
+
+    '--get menu index
+    sp.lists(sp.last).menu_index = (bmenu(sp.hero, o) + 1) * -1
+
+    '--read menu name
+    sp.lists(sp.last).name = her.list_name(sp.lists(sp.last).menu_index)
+
+    '--if non-null...
+    IF sp.lists(sp.last).name <> "" THEN
+     '--right-pad the name
+     sp.lists(sp.last).name = rpad(sp.lists(sp.last).name, " ", 10)
+     '--increment the spell-list counter because
+     '--we only (currently) care about non-null-named spell lists
+     sp.last += 1
+    END IF
+   END IF
+  END WITH
+ NEXT o
+ sp.lists(sp.last).name = rpad(readglobalstring(46, "Exit", 10), " ", 10)
+ sp.lists(sp.last).menu_index = -1
+ sp.lists(sp.last).magic_type = -1
+ IF sp.listnum > sp.last THEN sp.listnum = sp.last
+ spells_menu_refresh_list sp
 END SUB

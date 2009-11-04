@@ -2371,7 +2371,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
        END IF
       CASE 1 ' spell
        slot = onwho(readglobalstring$(106, "Whose Spells?", 20), 0)
-       IF slot >= 0 THEN spells slot, stat() : updatetags = YES
+       IF slot >= 0 THEN spells_menu slot : updatetags = YES
       CASE 2 ' status
        slot = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
        IF slot >= 0 THEN status slot, stat() : updatetags = YES

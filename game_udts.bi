@@ -80,6 +80,8 @@ TYPE SpellsMenuSlot
 END TYPE
 
 TYPE SpellsMenuList
+  name       AS STRING
+  menu_index AS INTEGER 'FIXME: Is this the same as .mapto ?
   magic_type AS INTEGER
   mapto      AS INTEGER 'maps to index in spells() global
 END TYPE
@@ -87,6 +89,7 @@ END TYPE
 TYPE SpellsMenuState
   hero      AS INTEGER
   listnum   AS INTEGER
+  last      AS INTEGER 'last occupied slot in .lists()
   lists(5)  AS SpellsMenuList
   spell(24) AS SpellsMenuSlot
 END TYPE
