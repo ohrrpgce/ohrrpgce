@@ -32,7 +32,7 @@ DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
 DECLARE SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
+DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
 DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 
 REM $STATIC
@@ -2281,7 +2281,7 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS 
  IF itemdata(50) > 0 THEN '--learn a spell
   '--target the first non-dead hero
   MenuSound gen(genAcceptSFX)
-  IF item_targ_picker(-1, itemdata(50)-1, inventory(slot).text) THEN
+  IF menu_attack_targ_picker(-1, itemdata(50)-1, inventory(slot).text) THEN
    istate.re_use = YES
    IF should_consume THEN
     '--true if we learned from the item and must consume it
@@ -2296,7 +2296,7 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS 
  
  IF itemdata(51) > 0 THEN '--attack/oobcure
   MenuSound gen(genAcceptSFX)
-  IF item_targ_picker(itemdata(51)-1, -1, inventory(slot).text) THEN
+  IF menu_attack_targ_picker(itemdata(51)-1, -1, inventory(slot).text) THEN
    istate.re_use = YES
    IF should_consume THEN
     '--if true, we used an item and must consume it
@@ -2316,9 +2316,9 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS 
  END IF
 END SUB
 
-FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
+FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
  'Returns true if the attack/spell was actually used/learned
- item_targ_picker = NO
+ menu_attack_targ_picker = NO
 
  STATIC targ AS INTEGER
  STATIC spread AS INTEGER
@@ -2437,7 +2437,7 @@ FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER,
      IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
      setvispage vpage
      waitforanykey
-     item_targ_picker = YES
+     menu_attack_targ_picker = YES
     ELSE
      menusound gen(genCantLearnSFX)
     END IF
@@ -2446,7 +2446,7 @@ FUNCTION item_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER,
    '--do attack outside of battle (cure)
    IF attack_id >= 0 THEN
     IF outside_battle_cure(attack_id, targ, -1, stat(), spread) THEN
-     item_targ_picker = YES
+     menu_attack_targ_picker = YES
     END IF
    END IF
   
