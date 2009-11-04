@@ -53,7 +53,7 @@ DECLARE FUNCTION scriptstate (targetscript as integer, recurse as integer = -1) 
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER) as integer
 DECLARE SUB loadsay (box_id as integer)
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
-DECLARE FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as integer
+DECLARE FUNCTION valid_plotslice(byval handle as integer, byval cmd as string, errlev as integer=4) as integer
 DECLARE FUNCTION valid_plotsprite(byval handle as integer, byval cmd as string) as integer
 DECLARE FUNCTION valid_plotrect(byval handle as integer, byval cmd as string) as integer
 DECLARE FUNCTION valid_plottextslice(byval handle as integer, byval cmd as string) as integer

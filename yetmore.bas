@@ -1746,9 +1746,7 @@ SELECT CASE AS CONST id
  CASE 322'--load hero sprite
   scriptret = load_sprite_plotslice(0, retvals(0), retvals(1))
  CASE 323'--free sprite
-  IF retvals(0) = 0 THEN
-   scripterr "free sprite: invalid slice handle " & retvals(0), 1
-  ELSEIF valid_plotslice(retvals(0), "free sprite") THEN
+  IF valid_plotslice(retvals(0), "free sprite", 1) THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DeleteSlice @plotslices(retvals(0))
    ELSE
@@ -1879,9 +1877,7 @@ SELECT CASE AS CONST id
  CASE 360 '--sprite layer
   scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
  CASE 361 '--free slice
-  IF retvals(0) = 0 THEN
-   scripterr "free slice: invalid slice handle " & retvals(0), 1
-  ELSEIF valid_plotslice(retvals(0), "free slice") THEN
+  IF valid_plotslice(retvals(0), "free slice", 1) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->SliceType = slRoot OR sl->SliceType = slSpecial THEN
@@ -3819,13 +3815,13 @@ FUNCTION valid_spriteslice_dat(BYVAL sl AS Slice Ptr) AS INTEGER
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_plotslice(byval handle as integer, byval cmd as string) as integer
+FUNCTION valid_plotslice(byval handle as integer, byval cmd as string, errlev as integer=4) as integer
  IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
-  scripterr cmd & ": invalid slice handle " & handle, 4
+  scripterr cmd & ": invalid slice handle " & handle, errlev
   RETURN NO
  END IF
  IF plotslices(handle) = 0 THEN
-  scripterr cmd & ": slice handle " & handle & " has already been deleted", 4
+  scripterr cmd & ": slice handle " & handle & " has already been deleted", errlev
   RETURN NO
  END IF
  IF ENABLE_SLICE_DEBUG THEN
