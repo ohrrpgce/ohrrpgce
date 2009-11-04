@@ -69,4 +69,26 @@ TYPE ItemsMenuState
   refresh AS INTEGER
 END TYPE
 
+TYPE SpellsMenuSlot
+  id      AS INTEGER    'attack id (or -1 for none)
+  name    AS STRING
+  desc    AS STRING
+  cost    AS STRING
+  can_use AS INTEGER
+  targt   AS INTEGER
+  tstat   AS INTEGER
+END TYPE
+
+TYPE SpellsMenuList
+  magic_type AS INTEGER
+  mapto      AS INTEGER 'maps to index in spells() global
+END TYPE
+
+TYPE SpellsMenuState
+  hero      AS INTEGER
+  listnum   AS INTEGER
+  lists(5)  AS SpellsMenuList
+  spell(24) AS SpellsMenuSlot
+END TYPE
+
 #ENDIF

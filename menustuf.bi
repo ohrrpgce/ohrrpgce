@@ -13,7 +13,7 @@ DECLARE SUB oobcure (w as integer, t as integer, atk as integer, spred as intege
 DECLARE SUB patcharray (array() as integer, n as string)
 DECLARE FUNCTION picksave (loading as integer) as integer
 DECLARE SUB sellstuff (id as integer, storebuf() as integer, stat() as integer)
-DECLARE SUB spells (pt as integer, stat() as integer)
+DECLARE SUB spells (who as integer, stat() as integer)
 DECLARE SUB status (pt as integer, stat() as integer)
 DECLARE FUNCTION trylearn (who as integer, atk as integer, learntype as integer) as integer
 DECLARE SUB unequip (who as integer, where as integer, defwep as integer, stat() as integer, resetdw as integer)
