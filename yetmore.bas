@@ -1746,7 +1746,9 @@ SELECT CASE AS CONST id
  CASE 322'--load hero sprite
   scriptret = load_sprite_plotslice(0, retvals(0), retvals(1))
  CASE 323'--free sprite
-  IF valid_plotslice(retvals(0), "free sprite") THEN
+  IF retvals(0) = 0 THEN
+   scripterr "free sprite: invalid slice handle " & retvals(0), 1
+  ELSEIF valid_plotslice(retvals(0), "free sprite") THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DeleteSlice @plotslices(retvals(0))
    ELSE
@@ -1877,7 +1879,9 @@ SELECT CASE AS CONST id
  CASE 360 '--sprite layer
   scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
  CASE 361 '--free slice
-  IF valid_plotslice(retvals(0), "free slice") THEN
+  IF retvals(0) = 0 THEN
+   scripterr "free slice: invalid slice handle " & retvals(0), 1
+  ELSEIF valid_plotslice(retvals(0), "free slice") THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->SliceType = slRoot OR sl->SliceType = slSpecial THEN
