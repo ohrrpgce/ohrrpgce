@@ -2547,8 +2547,8 @@ SUB spells_menu_refresh_list(sp AS SpellsMenuState)
    .targt = 0
    .tstat = 0
    'NOTE: spell() is a global
-   IF spell(sp.hero, sp.lists(sp.listnum).mapto, i) > 0 THEN
-    .id = spell(sp.hero, sp.lists(sp.listnum).mapto, i) - 1
+   IF spell(sp.hero, sp.lists(sp.listnum).menu_index, i) > 0 THEN
+    .id = spell(sp.hero, sp.lists(sp.listnum).menu_index, i) - 1
     loadattackdata atk, .id
     IF atk.useable_outside_battle THEN
      .can_use = atk.targ_class + 1
@@ -2585,50 +2585,53 @@ END SUB
 SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
  DIM her AS HeroDef
  loadherodata @her, hero(sp.hero) - 1 'hero() is a global
+ 
+ '--first blank out lists
  FOR i AS INTEGER = 0 TO UBOUND(sp.lists)
   WITH sp.lists(i)
-   '--for each battle menu slot
-   '--clear menu type
    .magic_type = -1
-   '--if it is a menu...
-   IF bmenu(sp.hero, i) < 0 AND bmenu(sp.hero, i) > -10 THEN
-    '--set spell-menu-id and menu-type
-    .mapto = (bmenu(sp.hero, i) + 1) * -1
-    .magic_type = her.list_type(.mapto)
-   END IF
+   .menu_index = -1
+   .name = ""
   END WITH
  NEXT i
- sp.last = 0
- FOR o AS INTEGER = 0 TO 5
-  WITH sp.lists(o)
-   IF .magic_type >= 0 AND .magic_type < 2 THEN
-    IF readbit(her.bits(), 0, 26) <> 0 THEN
-     IF count_available_spells(sp.hero, o - 1) = 0 THEN CONTINUE FOR
+
+ DIM bmenu_id AS INTEGER
+ DIM slot AS INTEGER = 0
+ '--loop through the battle menu looking for valid lists
+ FOR i AS INTEGER = 0 TO UBOUND(bmenu, 2)
+  bmenu_id = bmenu(sp.hero, i)
+  IF bmenu_id < 0 AND bmenu_id > -10 THEN
+   'Positive numbers in bmenu() are attacks (from weapon)
+   '-10 in bmenu is the item menu.
+   'In theory -1 thru -9 are spell lists, but in reality only -1 thru -4 ever exist
+   WITH sp.lists(slot)
+    .menu_index = ABS(bmenu_id + 1)
+    .magic_type = her.list_type(.menu_index)
+    IF .magic_type = 0 OR .magic_type = 1 THEN
+     'Only display MP-based and LMP-based spell lists. Ignore Random lists.
+     IF readbit(her.bits(), 0, 26) <> 0 THEN
+      'If the bitset to hide empty lists is turned on...
+      IF count_available_spells(sp.hero, .menu_index) = 0 THEN CONTINUE FOR
+     END IF
+     .name = her.list_name(.menu_index)
+     IF .name <> "" THEN
+      'Only show lists with non-blank names
+      .name = rpad(.name, " ", 10)
+      slot += 1
+     END IF
     END IF
-    sp.lists(sp.last).name = ""
-    sp.lists(sp.last).magic_type = .magic_type
-    sp.lists(sp.last).mapto = .mapto
-
-    '--get menu index
-    sp.lists(sp.last).menu_index = (bmenu(sp.hero, o) + 1) * -1
-
-    '--read menu name
-    sp.lists(sp.last).name = her.list_name(sp.lists(sp.last).menu_index)
-
-    '--if non-null...
-    IF sp.lists(sp.last).name <> "" THEN
-     '--right-pad the name
-     sp.lists(sp.last).name = rpad(sp.lists(sp.last).name, " ", 10)
-     '--increment the spell-list counter because
-     '--we only (currently) care about non-null-named spell lists
-     sp.last += 1
-    END IF
-   END IF
-  END WITH
- NEXT o
- sp.lists(sp.last).name = rpad(readglobalstring(46, "Exit", 10), " ", 10)
- sp.lists(sp.last).menu_index = -1
- sp.lists(sp.last).magic_type = -1
+   END WITH 
+  END IF
+ NEXT i
+ 
+ sp.last = slot
+ 
+ WITH sp.lists(sp.last)
+  .name = rpad(readglobalstring(46, "Exit", 10), " ", 10)
+  .menu_index = -1
+  .magic_type = -1
+ END WITH
  IF sp.listnum > sp.last THEN sp.listnum = sp.last
+
  spells_menu_refresh_list sp
 END SUB
