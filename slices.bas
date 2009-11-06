@@ -397,7 +397,8 @@ Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 end sub
 
 Sub YSortChildSlices(byval parent as slice ptr)
- if parent = 0 then debug "YSortChildSlices: null ptr" : EXIT SUB
+ if parent = 0 then debug "YSortChildSlices: null ptr" : exit sub
+ if parent->NumChildren = 0 then exit sub
  dim slice_list(parent->NumChildren - 1) as slice ptr
  UnlinkChildren parent, slice_list()
  'Sort the siblings by Y
@@ -415,7 +416,8 @@ Sub YSortChildSlices(byval parent as slice ptr)
 end sub
 
 Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
- if parent = 0 then debug "CustomSortChildSlices: null ptr" : EXIT SUB
+ if parent = 0 then debug "CustomSortChildSlices: null ptr" : exit sub
+ if parent->NumChildren = 0 then exit sub
  dim slice_list(parent->NumChildren - 1) as slice ptr
  UnlinkChildren parent, slice_list()
  'Sort the siblings by Sorter
