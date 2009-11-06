@@ -2672,13 +2672,33 @@ END SUB
 
 'The following function is an atrocious mess. Don't worry too much; it'll be totally replaced.
 SUB scriptwatcher (mode, drawloop)
-STATIC localsscroll, globalsscroll
+STATIC localsscroll, globalsscroll, stringsscroll
 STATIC selectedscript, bottom, viewmode, lastscript
 'viewmode: 0 = script state, 1 = local variables, 2 = global variables
 'mode: 0 = do nothing, 1 = non-interactive (display over game), 2 = clean and sane
 '2 = interactive (display game and step on input), 3 = clean and sane
 
 DIM as string helpstr, help()
+DIM as string plots, marginstr, strings()
+
+FOR i = 0 TO 31
+ plots = plotstr(i).s
+ marginstr = LEFT(i & ": ", 3)
+ linelen = 0
+ FOR j = 0 TO LEN(plots) - 1
+  linelen += 1
+  IF (linelen = 37 OR plots[j] = ASC(!"\n")) AND j <> LEN(plots) - 1 THEN 
+   'notice intentional waste of last string
+   REDIM PRESERVE strings(UBOUND(strings) + 1)
+   strings(UBOUND(strings) - 1) = marginstr + MID(plots, (j + 2) - linelen, linelen)
+   marginstr = "   "
+   linelen = 0
+  END IF
+ NEXT
+ REDIM PRESERVE strings(UBOUND(strings) + 1)
+ strings(UBOUND(strings) - 1) = marginstr + MID(plots, LEN(plots) + 1 - linelen, linelen)
+NEXT
+stringsscroll = small(stringsscroll, (UBOUND(strings) - 1) - 19) 'recall one string wasted
 
 IF nowscript >= 0 THEN
  WITH scrat(nowscript)
@@ -2751,7 +2771,7 @@ IF mode > 1 AND viewmode = 0 THEN
  END IF
 END IF
 
-IF mode > 1 AND viewmode = 1 THEN
+IF mode > 1 AND viewmode = 1 AND selectedscript >= 0 THEN
  'local variables and return value. Show up to 9 variables at a time
  reloadscript scrat(selectedscript), 0
  WITH scrat(selectedscript)
@@ -2798,13 +2818,28 @@ IF mode > 1 AND viewmode = 2 THEN
  ol -= 9
 END IF
 
+IF mode > 1 AND viewmode = 3 THEN
+ 'display strings, 20 lines at a time
+ FOR i = 19 TO 0 STEP -1
+  IF MID(strings(i + stringsscroll), 1, 1) <> " " THEN
+   'string number text
+   edgeprint MID(strings(i + stringsscroll), 1, 3), 0, ol, uilook(uiText), page   
+  END IF
+  textcolor uilook(uiText), uilook(uiDescription)
+  printstr MID(strings(i + stringsscroll), 4), 3*8, ol, page
+  ol -= 9
+ NEXT
+ edgeprint "Plotstrings:", 0, ol, uilook(uiText), page
+ ol -= 9
+END IF
+
 'IF mode > 1 THEN
 ' edgeprint "argc=" & scrat(selectedscript).curargc & " argn=" & scrat(selectedscript).curargn & " ptr=" & scrat(selectedscript).ptr, 0, ol, uilook(uiDescription), page
 ' ol -= 9
 'END IF
 
 
-IF mode > 1 AND viewmode <> 2 THEN
+IF mode > 1 AND viewmode <> 2 AND viewmode <> 3 THEN
  'not displaying globals
 
  '6 rows up
@@ -2859,7 +2894,7 @@ IF mode > 1 AND drawloop = 0 THEN
  w = getkey
  IF w = scF10 THEN mode = 0: clearkey(scF10)
  IF w = scEsc THEN mode = 0: clearkey(scEsc)
- IF w = 47 THEN viewmode = loopvar(viewmode, 0, 2, 1): GOTO redraw 'v
+ IF w = 47 THEN viewmode = loopvar(viewmode, 0, 3, 1): GOTO redraw 'v
  IF w = 73 THEN 'pgup
   selectedscript += 1
   localsscroll = 0
@@ -2873,10 +2908,12 @@ IF mode > 1 AND drawloop = 0 THEN
  IF w = 12 OR w = 74 THEN '-
   IF viewmode = 1 THEN localsscroll = large(0, localsscroll - 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = large(0, globalsscroll - 21): GOTO redraw
+  IF viewmode = 3 THEN stringsscroll = large(0, stringsscroll - 1): GOTO redraw
  END IF
  IF w = 13 OR w = 78 THEN '+
   IF viewmode = 1 THEN localsscroll = small(large(scrat(selectedscript).scr->vars - 8, 0), localsscroll + 3): GOTO redraw
   IF viewmode = 2 THEN globalsscroll = small(4096 - 60, globalsscroll + 21): GOTO redraw
+  IF viewmode = 3 THEN stringsscroll = small(stringsscroll + 1, (UBOUND(strings) - 1) - 19): GOTO redraw
  END IF
 
  IF w = scF1 THEN
