@@ -62,10 +62,14 @@ Type NodeSet
 	nodes as NodePtr Ptr
 End Type
 
-
 Type RPathFragment
 	nodename as string
 end Type
+
+Type RPathCompiledQuery
+	numFragments as integer
+	fragment as RPathFragment ptr
+End Type
 
 Declare Function CreateDocument() as DocPtr
 Declare Function CreateNode(doc as DocPtr, nam as string) as NodePtr
@@ -97,7 +101,11 @@ Declare Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
 Declare function ReadVLI(f as integer) as longint
 declare Sub WriteVLI(f as integer, v as Longint)
 
-Declare Function RPathQuery(query as String, context as NodePtr) as NodeSetPtr
+Declare Function RPathCompile(query as string) as RPathCompiledQuery Ptr
+Declare Sub RPathFreeCompiledQuery(rpf as RPathCompiledQuery ptr)
+
+Declare Function RPathQuery Overload(query as String, context as NodePtr) as NodeSetPtr
+Declare Function RPathQuery Overload(query as RPathCompiledQuery Ptr, context as NodePtr) as NodeSetPtr
 
 End Namespace
 

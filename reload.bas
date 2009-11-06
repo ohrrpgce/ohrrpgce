@@ -721,34 +721,59 @@ Function GetDouble(node as nodeptr) as Double
 End Function
 
 
-'rpf MUST BE A DYNAMIC ARRAY!
-Function RPathParseQuery(query as string, rpf() as RPathFragment) as integer
+Function RPathCompile(query as string) as RPathCompiledQuery Ptr
 	dim tok() as string
 	split(trim(query), tok(), "/")
 	
 	if ubound(tok) = 0 AND tok(0) = "" then
-		return no
+		return 0
 	end if
 	
-	redim rpf(ubound(tok))
+	dim ret as RPathCompiledQuery Ptr = new RPathCompiledQuery
+	
+	if ret = 0 then return 0
+	
+	ret->numFragments = ubound(tok) + 1
+	ret->fragment = new RPathFragment[ret->numFragments]
+	
+	if ret->fragment = 0 then
+		delete ret
+		return 0
+	end if
 	
 	for i as integer = 0 to ubound(tok)
 		print tok(i)
 		
-		rpf(i).nodename = tok(i)
+		ret->fragment[i].nodename = tok(i)
 		
 	next
 	
-	return yes
+	return ret
 End Function
 
-Function RPathSearch(query() as RPathFragment, depth as integer, from as NodePtr, results() as nodePtr) as integer
-	if from = null then return 0
+sub RPathFreeCompiledQuery(rpf as RPathCompiledQuery ptr)
+	if rpf = 0 then exit sub
+	
+	if rpf->fragment then
+		delete[] rpf->fragment
+		rpf->fragment = 0
+	end if
+	
+	delete rpf
+end sub
+
+Function RPathSearch(query as RPathCompiledQuery ptr, depth as integer, from as NodePtr, results() as nodePtr) as integer
+	if from = 0 or query = 0 then
+		print "from: " ; from; " query: " ; query
+		return 0
+	end if
 	
 	dim found as integer = 0
 	
-	if from->name = query(depth).nodename then
-		if depth = ubound(query) then
+	if depth >= query->numFragments or depth < 0 then return 0
+	
+	if from->name = query->fragment[depth].nodename then
+		if depth = query->numFragments - 1 then
 			if results(0) = null then
 				redim results(0)
 				results(0) = from
@@ -769,7 +794,7 @@ Function RPathSearch(query() as RPathFragment, depth as integer, from as NodePtr
 		else
 			dim n as nodeptr = from->Children
 			do while n <> null
-				found += RPathSearch(query(), depth + 1, n, results())
+				found += RPathSearch(query, depth + 1, n, results())
 				n = n->nextSib
 			loop
 		end if
@@ -777,25 +802,23 @@ Function RPathSearch(query() as RPathFragment, depth as integer, from as NodePtr
 	
 	dim n as nodeptr = from->Children
 	do while n <> null
-		found += RPathSearch(query(), 0, n, results())
+		found += RPathSearch(query, 0, n, results())
 		n = n->nextSib
 	loop
 	
 	return found
 End Function
 
-Function RPathQuery(query as String, context as NodePtr) as NodeSetPtr
+Function RPathQuery(query as RPathCompiledQuery Ptr, context as NodePtr) as NodeSetPtr
+	if query = 0 then return 0
+	
 	dim ret as NodeSetPtr = new NodeSet
 	dim found as integer
 	Redim nodes(0) as nodePtr
 	
-	Redim rpf(0) as RPathFragment
+	found = RPathSearch(query, 0, context, nodes())
 	
-	if RPathParseQuery(query, rpf()) = no then
-		return null
-	end if
-	
-	found = RPathSearch(rpf(), 0, context, nodes())
+	print "found: " ; found
 	
 	if found > 0 then
 		ret->nodes = new NodePtr[found]
@@ -814,6 +837,13 @@ Function RPathQuery(query as String, context as NodePtr) as NodeSetPtr
 		return null
 	end if
 end Function
+
+Function RPathQuery(query as String, context as NodePtr) as NodeSetPtr
+	dim rpf as RPathCompiledQuery ptr = RPathCompile(query)
+	dim ret as NodeSetPtr = RPathQuery(rpf, context)
+	RPathFreeCompiledQuery(rpf)
+	return ret
+End Function
 
 sub FreeNodeSet(nodeset as NodeSetPtr)
 	if nodeset = null then exit sub
