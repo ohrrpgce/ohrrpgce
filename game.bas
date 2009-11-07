@@ -62,10 +62,6 @@ fmvol = getfmvol
 
 '$dynamic
 
-'Module local variables
-DIM font(1024)
-DIM didgo(0 TO 3)
-
 'shared module variables
 DIM SHARED needf
 DIM SHARED harmtileflash = NO
@@ -102,6 +98,7 @@ DIM npc(300) as NPCInst
 DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
 DIM err_suppress_lvl
 DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir, homedir
+DIM prefsdir as string
 
 'Menu Data
 DIM menu_set AS MenuSet
@@ -109,7 +106,6 @@ DIM menus(0) AS MenuDef 'This is an array because it holds a stack of heirarchia
 DIM mstates(0) AS MenuState
 DIM topmenu AS INTEGER = -1
 
-DIM prefsdir as string
 DIM timers(15) as PlotTimer
 DIM fatal
 DIM lastformation
@@ -147,6 +143,10 @@ retvalsp = @retvals(0)
 plotslicesp = @plotslices(1)
 
 'End global variables
+
+'Module local variables
+DIM font(1024)
+DIM didgo(0 TO 3)
 
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the game
@@ -205,6 +205,8 @@ FOR i = 1 TO commandlineargcount
 
 #IFNDEF __FB_LINUX__
  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
+#ELSE
+ IF MID$(a$, 1, 1) <> "/" THEN a$ = curdir$ + SLASH + a$
 #ENDIF
  IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
   sourcerpg = a$
@@ -249,6 +251,20 @@ IF NOT isdir(prefsdir) THEN makedir prefsdir
 'This is not used anywhere yet in the Windows version
 prefsdir = ENVIRON$("APPDATA") + SLASH + "OHRRPGCE" + SLASH + trimextension$(trimpath$(sourcerpg))
 #ENDIF
+
+'-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to homedir
+a$ = trimfilename(sourcerpg)
+IF a$ <> "" ANDALSO fileiswriteable(a$ + SLASH + "writetest.tmp") THEN
+ 'first choice is game directory
+ safekill a$ + SLASH + "writetest.tmp"
+ CHDIR a$
+ELSEIF fileiswriteable(exepath + SLASH + "writetest.tmp") THEN
+ safekill exepath + SLASH + "writetest.tmp"
+ CHDIR exepath
+ELSE
+ 'should prefsdir be used instead?
+ CHDIR homedir
+END IF
 
 '--set up savegame file
 savefile = trimextension$(sourcerpg) + ".sav"

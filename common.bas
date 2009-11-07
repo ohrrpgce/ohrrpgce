@@ -3477,6 +3477,7 @@ SUB set_homedir()
 END SUB
 
 FUNCTION get_help_dir() AS STRING
+'what happened to prefsdir?
 IF isfile(homedir & SLASH & "ohrhelp") THEN RETURN homedir & SLASH & "ohrhelp"
 #IFDEF __FB_LINUX__
 #IFDEF DATAFILES
