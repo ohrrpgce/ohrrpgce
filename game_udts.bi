@@ -91,6 +91,10 @@ TYPE SpellsMenuState
   last      AS INTEGER 'last occupied slot in .lists()
   lists(4)  AS SpellsMenuList
   spell(24) AS SpellsMenuSlot
+  quit      AS INTEGER
+  cursor    AS INTEGER
+  mset      AS INTEGER
+  re_use    AS INTEGER
 END TYPE
 
 #ENDIF

@@ -32,10 +32,11 @@ DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
 DECLARE SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
+DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0) AS INTEGER
 DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB spells_menu_refresh_list(sp AS SpellsMenuState)
 DECLARE SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
+DECLARE SUB spells_menu_control(sp AS SpellsMenuState)
 
 REM $STATIC
 
@@ -1205,11 +1206,8 @@ sp.listnum = 0
 cancelmenu$ = readglobalstring$(51, "(CANCEL)", 10)
 hasnone$ = readglobalstring$(133, "has no spells", 20)
 
-pick = 0
 spred = 0
 wptr = 0
-sptr = 0
-mset = 0
 
 spells_menu_refresh_hero sp
 '--Preserve background for display beneath the spells menu
@@ -1225,7 +1223,8 @@ DO
  wtogl = loopvar(wtogl, 0, 3, 1)
  playtimer
  control
- GOSUB scontrol
+ spells_menu_control sp
+ IF sp.quit THEN EXIT DO
  centerfuz 160, 100, 312, 184, 1, dpage 'outer box
  centerbox 206, 36, 200, 17, 2, dpage   'name box
  centerbox 56, 50, 84, 60, 2, dpage     'menu box
@@ -1236,7 +1235,7 @@ DO
    FOR o = 0 TO 23
     'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
     textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
-    IF sptr = o AND mset = 1 THEN
+    IF sp.cursor = o AND sp.mset = 1 THEN
      IF sp.spell(o).can_use > 0 THEN 
       textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight) 
      ELSE 
@@ -1246,186 +1245,32 @@ DO
     printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, dpage 'spells
    NEXT o
    textcolor uilook(uiMenuItem), 0
-   IF sptr = 24 AND mset = 1 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
+   IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
    printstr cancelmenu$, 16, 171, dpage 'cancel
-   IF mset = 1 THEN
-    IF sp.spell(sptr).desc <> "" THEN
+   IF sp.mset = 1 THEN
+    IF sp.spell(sp.cursor).desc <> "" THEN
      rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), dpage  'description divider
     END IF
     textcolor uilook(uiDescription), 0
-    printstr sp.spell(sptr).cost, 303 - LEN(sp.spell(sptr).cost) * 8, 171, dpage 'cost
-    printstr sp.spell(sptr).desc, 9, 158, dpage 'description
+    printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, dpage 'cost
+    printstr sp.spell(sp.cursor).desc, 9, 158, dpage 'description
    END IF
   END IF
   textcolor uilook(uiMenuItem), 0
-  IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2): IF mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
+  IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2): IF sp.mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
   printstr sp.lists(i).name, 16, 25 + i * 10, dpage 'spell menu
  NEXT i
  IF sp.last = 0 THEN edgeprint names(sp.hero) + " " + hasnone$, xstring(names(sp.hero) + " " + hasnone$, 160), 120, uilook(uiText), dpage
  edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), dpage
- IF pick = 1 THEN
-  centerbox 196, 47, 160, 88, 2, dpage
-  IF spred = 0 AND wptr >= 0 THEN
-   rectangle 120, 8 + wptr * 20, 152, 20, uilook(uiHighlight2), dpage
-  ELSEIF spred <> 0 THEN
-   rectangle 120, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
-  END IF
-  o = 0
-  FOR i = 0 TO 3
-   IF hero(i) > 0 THEN
-    wt = 0: IF wptr = i THEN wt = INT(wtogl / 2)
-    sprite_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 125, 8 + i * 20, 1, -1, dpage
-    IF sp.spell(sptr).tstat = 0 or sp.spell(sptr).tstat = 1 THEN
-     temp$ = STR$(ABS(stat(i, 0, sp.spell(sptr).tstat))) & "/" & STR$(ABS(stat(i, 1, sp.spell(sptr).tstat)))
-    ELSE
-     temp$ = STR$(ABS(stat(i, 0, sp.spell(sptr).tstat)))
-    END IF
-    col = uilook(uiMenuItem): IF i = wptr THEN col = uilook(uiSelectedItem + tog)
-    edgeprint temp$, 155, 16 + i * 20, col, dpage
-    o = o + 1
-   END IF
-  NEXT i
- END IF
 
  SWAP vpage, dpage
  setvispage vpage
  copypage holdscreen, dpage
- dowait
+ IF sp.re_use = NO THEN
+  dowait
+ END IF
 LOOP
 
-scontrol:
-IF pick = 0 THEN '--picking which spell list
- IF mset = 0 THEN
-  IF carray(ccMenu) > 1 THEN GOTO exitpoint
-  IF carray(ccLeft) > 1 THEN
-   DO
-    sp.hero = loopvar(sp.hero, 0, 3, -1)
-   LOOP UNTIL hero(sp.hero) > 0
-   menusound gen(genCursorSFX)
-   spells_menu_refresh_hero sp
-  END IF
-  IF carray(ccRight) > 1 THEN
-   DO
-    sp.hero = loopvar(sp.hero, 0, 3, 1)
-   LOOP UNTIL hero(sp.hero) > 0
-   menusound gen(genCursorSFX)
-   spells_menu_refresh_hero sp
-  END IF
-  IF carray(ccUp) > 1 THEN
-   sp.listnum = large(sp.listnum - 1, 0)
-   menusound gen(genCursorSFX)
-   spells_menu_refresh_list sp
-  END IF
-  IF carray(ccDown) > 1 THEN
-   sp.listnum = small(sp.listnum + 1, sp.last)
-   menusound gen(genCursorSFX)
-   spells_menu_refresh_list sp
-  END IF
-  IF carray(ccUse) > 1 THEN
-   IF sp.lists(sp.listnum).menu_index = -1 THEN GOTO exitpoint
-   menusound gen(genAcceptSFX)
-   mset = 1: sptr = 0
-  END IF
- ELSE
-  IF carray(ccMenu) > 1 THEN
-   mset = 0
-   menusound gen(genCancelSFX)
-  END IF
-  IF carray(ccUp) > 1 THEN
-   sptr = sptr - 3
-   menusound gen(genCursorSFX)
-   IF sptr < 0 THEN sptr = 24
-  END IF
-  IF carray(ccDown) > 1 THEN
-   IF sptr < 24 THEN
-    sptr = small(sptr + 3, 24)
-   ELSE
-    sptr = 0
-   END IF
-   menusound gen(genCursorSFX)
-  END IF
-  IF sptr < 24 THEN
-   IF carray(ccLeft) > 1 THEN
-    IF sptr MOD 3 THEN
-     sptr = sptr - 1
-    ELSE
-     sptr = sptr + 2
-    END IF
-    menusound gen(genCursorSFX)
-   END IF
-   IF carray(ccRight) > 1 THEN
-    menusound gen(genCursorSFX)
-    IF sptr MOD 3 = 2 THEN sptr = sptr - 2 ELSE sptr = sptr + 1
-   END IF
-  END IF
-  IF carray(ccUse) > 1 THEN
-   IF sptr = 24 THEN mset = 0
-   IF sp.spell(sptr).can_use > 0 THEN
-    '--spell that can be used oob
-    wptr = sp.hero - 1
-    IF getOOBtarg(1, wptr, sp.spell(sptr).id, stat()) = 0 THEN
-     '--Failed to get target
-     wptr = -1
-     menusound gen(genCancelSFX)
-    END IF
-    pick = 1
-    spred = 0
-    menusound gen(genAcceptSFX)
-    IF sp.spell(sptr).targt = 1 AND sp.spell(sptr).can_use - 1 <> 2 THEN
-     FOR i = 0 TO 3
-      IF chkOOBtarg(i, sp.spell(sptr).id, stat()) THEN spred = spred + 1
-     NEXT i
-    END IF
-   ELSE
-    menusound gen(genCancelSFX)
-   END IF
-  END IF
- END IF
-ELSE
- IF carray(ccMenu) > 1 THEN
-  menusound gen(genCancelSFX)
-  pick = 0
- END IF
- IF sp.spell(sptr).can_use - 1 <> 2 AND spred = 0 THEN
-  IF carray(ccUp) > 1 THEN
-   getOOBtarg -1, wptr, sp.spell(sptr).id, stat()
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(ccDown) > 1 THEN
-   getOOBtarg 1, wptr, sp.spell(sptr).id, stat()
-   MenuSound gen(genCursorSFX)
-  END IF
- END IF
- IF sp.spell(sptr).targt = 2 AND sp.spell(sptr).can_use - 1 <> 2 THEN
-  IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
-   IF spred = 0 THEN
-    FOR i = 0 TO 3
-     IF chkOOBtarg(i, sp.spell(sptr).id, stat()) THEN spred = spred + 1
-    NEXT i
-   ELSE
-    spred = 0
-   END IF
-  END IF
- END IF
- IF carray(ccUse) > 1 THEN
-  IF sp.lists(sp.listnum).magic_type = 0 THEN
-   loadattackdata buffer(), sp.spell(sptr).id
-   cost = focuscost(buffer(8), stat(sp.hero, 0, statFocus))
-   IF cost > stat(sp.hero, 0, statMP) THEN pick = 0: RETRACE
-   stat(sp.hero, 0, statMP) = small(large(stat(sp.hero, 0, statMP) - cost, 0), stat(sp.hero, 1, statMP))
-  END IF
-  IF sp.lists(sp.listnum).magic_type = 1 THEN
-   IF lmp(sp.hero, INT(sptr / 3)) = 0 THEN pick = 0: RETRACE
-   lmp(sp.hero, INT(sptr / 3)) = lmp(sp.hero, INT(sptr / 3)) - 1
-  END IF
-  'DO ACTUAL EFFECT
-  outside_battle_cure sp.spell(sptr).id, wptr, sp.hero, stat(), spred
-  spells_menu_refresh_list sp
- END IF
-END IF
-RETRACE
-
-exitpoint:
 menusound gen(genCancelSFX)
 setkeys
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
@@ -1433,7 +1278,7 @@ freepage holdscreen
 RETRIEVESTATE
 EXIT SUB
 
-END SUB 'gosub gosub gosub
+END SUB
 
 SUB status (pt, stat())
 DIM mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
@@ -2247,8 +2092,11 @@ SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS 
  END IF
 END SUB
 
-FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING) AS INTEGER
+FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0) AS INTEGER
  'Returns true if the attack/spell was actually used/learned
+ 
+ 'FIXME: x_offset should probably go away in favor of a slice template at some point in the future
+ 
  menu_attack_targ_picker = NO
 
  STATIC targ AS INTEGER
@@ -2382,21 +2230,21 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
    END IF
   
    EXIT DO
-  END IF '--done using item
+  END IF '--done using attack
 
   '--draw the targ picker menu
-  centerbox 160, 47, 160, 88, 2, dpage
+  centerbox 160 + x_offset, 47, 160, 88, 2, dpage
   IF spread = 0 AND targ >= 0 THEN
-   rectangle 84, 8 + targ * 20, 152, 20, uilook(uiHighlight2), dpage
+   rectangle 84 + x_offset, 8 + targ * 20, 152, 20, uilook(uiHighlight2), dpage
   ELSEIF spread <> 0 THEN
-   rectangle 84, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
+   rectangle 84 + x_offset, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
   END IF
   cater = 0
   FOR i AS INTEGER = 0 TO 3
    IF hero(i) > 0 THEN
     walk = 0
     IF targ = i THEN walk = INT(wtogl / 2)
-    sprite_draw herow(cater).sprite + (2 * 2) + walk, herow(cater).pal, 89, 8 + i * 20, 1, -1, dpage
+    sprite_draw herow(cater).sprite + (2 * 2) + walk, herow(cater).pal, 89 + x_offset, 8 + i * 20, 1, -1, dpage
     col = uilook(uiMenuItem)
     IF i = targ THEN col = uilook(uiSelectedItem + tog)
     IF attack_id >= 0 THEN
@@ -2405,15 +2253,15 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
      ELSE
       caption = STR(stat(i, 0, atk.targ_stat)) & " " & statnames(atk.targ_stat)
      END IF
-     edgeprint caption, 119, 16 + i * 20, col, dpage
+     edgeprint caption, 119 + x_offset, 16 + i * 20, col, dpage
     ELSEIF learn_id >= 0 THEN
-     edgeprint names(cater), 119, 16 + i * 20, col, dpage
+     edgeprint names(cater), 119 + x_offset, 16 + i * 20, col, dpage
     END IF
     cater += 1
    END IF
   NEXT i
-  centerfuz 160, 100, LEN(use_caption) * 8 + 32, 16, 4, dpage
-  edgeprint use_caption, xstring(use_caption, 160), 95, uilook(uiText), dpage
+  centerfuz 160 + x_offset, 100, LEN(use_caption) * 8 + 32, 16, 4, dpage
+  edgeprint use_caption, xstring(use_caption, 160 + x_offset), 95, uilook(uiText), dpage
  
   SWAP vpage, dpage
   setvispage vpage
@@ -2634,4 +2482,105 @@ SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
  IF sp.listnum > sp.last THEN sp.listnum = sp.last
 
  spells_menu_refresh_list sp
+END SUB
+
+SUB spells_menu_control(sp AS SpellsMenuState)
+ IF sp.mset = 0 THEN '--picking which spell list
+  IF carray(ccMenu) > 1 THEN sp.quit = YES : EXIT SUB
+  IF carray(ccLeft) > 1 THEN
+   DO
+    sp.hero = loopvar(sp.hero, 0, 3, -1)
+   LOOP UNTIL hero(sp.hero) > 0
+   menusound gen(genCursorSFX)
+   spells_menu_refresh_hero sp
+  END IF
+  IF carray(ccRight) > 1 THEN
+   DO
+    sp.hero = loopvar(sp.hero, 0, 3, 1)
+   LOOP UNTIL hero(sp.hero) > 0
+   menusound gen(genCursorSFX)
+   spells_menu_refresh_hero sp
+  END IF
+  IF carray(ccUp) > 1 THEN
+   sp.listnum = large(sp.listnum - 1, 0)
+   menusound gen(genCursorSFX)
+   spells_menu_refresh_list sp
+  END IF
+  IF carray(ccDown) > 1 THEN
+   sp.listnum = small(sp.listnum + 1, sp.last)
+   menusound gen(genCursorSFX)
+   spells_menu_refresh_list sp
+  END IF
+  IF carray(ccUse) > 1 THEN
+   IF sp.lists(sp.listnum).menu_index = -1 THEN sp.quit = YES : EXIT SUB
+   menusound gen(genAcceptSFX)
+   sp.mset = 1
+   sp.cursor = 0
+  END IF
+ ELSE '--picking a specific spell from a list
+  IF sp.re_use = NO THEN
+   IF carray(ccMenu) > 1 THEN
+    sp.mset = 0
+    menusound gen(genCancelSFX)
+   END IF
+   IF carray(ccUp) > 1 THEN
+    sp.cursor = sp.cursor - 3
+    menusound gen(genCursorSFX)
+    IF sp.cursor < 0 THEN sp.cursor = 24
+   END IF
+   IF carray(ccDown) > 1 THEN
+    IF sp.cursor < 24 THEN
+     sp.cursor = small(sp.cursor + 3, 24)
+    ELSE
+     sp.cursor = 0
+    END IF
+    menusound gen(genCursorSFX)
+   END IF
+   IF sp.cursor < 24 THEN
+    IF carray(ccLeft) > 1 THEN
+     IF sp.cursor MOD 3 THEN
+      sp.cursor = sp.cursor - 1
+     ELSE
+      sp.cursor = sp.cursor + 2
+     END IF
+     menusound gen(genCursorSFX)
+    END IF
+    IF carray(ccRight) > 1 THEN
+     menusound gen(genCursorSFX)
+     IF sp.cursor MOD 3 = 2 THEN sp.cursor = sp.cursor - 2 ELSE sp.cursor += 1
+    END IF
+   END IF
+  END IF
+  IF carray(ccUse) > 1 OR sp.re_use THEN
+   sp.re_use = NO
+   IF sp.cursor = 24 THEN sp.mset = 0
+   IF sp.spell(sp.cursor).can_use > 0 THEN
+    '--spell that can be used oob
+    
+    DIM atk AS AttackData
+    loadattackdata atk, sp.spell(sp.cursor).id
+    '--NOTE: atkallowed isn't needed here because the check is done elswehere...
+    '--still, it would be nice if we could use it anyway...
+    'IF atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, INT(sp.cursor / 3), )
+    IF menu_attack_targ_picker(sp.spell(sp.cursor).id, -1, TRIM(sp.spell(sp.cursor).name), 36) THEN
+     '--attack was actually used
+     'FIXME: outside-battle and inside-battle attack cost consumption should be unified
+     '--deduct MP
+     DIM cost AS INTEGER
+     cost = focuscost(atk.mp_cost, stat(sp.hero, 0, statFocus))
+     stat(sp.hero, 0, statMP) = small(large(stat(sp.hero, 0, statMP) - cost, 0), stat(sp.hero, 1, statMP))
+     IF sp.lists(sp.listnum).magic_type = 1 THEN
+      '--deduct LMP
+      lmp(sp.hero, INT(sp.cursor / 3)) = lmp(sp.hero, INT(sp.cursor / 3)) - 1
+     END IF
+     spells_menu_refresh_hero sp
+     sp.re_use = YES
+    ELSE
+     menusound gen(genCancelSFX)
+    END IF
+   ELSE
+    menusound gen(genCancelSFX)
+   END IF
+  END IF
+ END IF
 END SUB
