@@ -1,15 +1,7 @@
 ;type "alt-x load-file <RET> with.el" to load
 ;and then "alt-x with-gosub-warn-all-files" (or "alt-x with-gosub-warn" with a file open)
 
-(defun add-line-copy-indent ()
-  "Add a new line after this one, beginning with exactly the same whitespace."
-  (interactive)
-  (beginning-of-line)
-  (copy-region-as-kill (point) (progn (skip-chars-forward " \t") (point)))
-  (end-of-line)
-  (newline)
-  (yank)
-  (pop-mark))
+(load-file "fbutils.el")
 
 (defun with-gosub-warn ()
   "Insert a warning after every GOSUB out of a WITH block."
