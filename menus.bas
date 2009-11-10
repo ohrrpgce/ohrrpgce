@@ -565,7 +565,7 @@ IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
  IF choice = 1 THEN ext$ = ".bam" : songfile$ = bamfile$
  IF choice = 2 THEN RETRACE
 END IF
-outfile$ = inputfilename(query$, ext$, "input_file_export_song")
+outfile$ = inputfilename(query$, ext$, "", "input_file_export_song")
 IF outfile$ = "" THEN RETRACE
 filecopy songfile$, outfile$ + ext$
 RETRACE
@@ -749,7 +749,7 @@ RETRACE
 
 exportsfx:
 query$ = "Name of file to export to?"
-outfile$ = inputfilename(query$, ext$, "input_file_export_sfx")
+outfile$ = inputfilename(query$, ext$, "", "input_file_export_sfx")
 IF outfile$ = "" THEN RETRACE
 filecopy sfxfile$, outfile$ + ext$
 RETRACE

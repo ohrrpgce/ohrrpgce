@@ -666,20 +666,14 @@ SUB text_box_editor () 'textage
     metadatalabels(3) = "Appearance"
    
     IF askwhatmetadata(metadata(), metadatalabels()) = YES THEN
-     box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "input_file_export_textbox",,NO)
+     box_text_file = inputfilename("Filename for TextBox Export?", ".txt", "", "input_file_export_textbox")
      IF box_text_file <> "" THEN
       box_text_file = box_text_file & ".txt"
-      overwrite = YES
-      IF isfile(box_text_file) THEN
-       overwrite = yesno("File already exists, overwrite?", NO)
-      END IF
-      IF overwrite THEN
-       IF export_textboxes(box_text_file, metadata()) THEN
-        notification "Successfully exported " & box_text_file
-       ELSE
-        notification "Failed to export " & box_text_file
-       END IF '--export_textboxes
-      END IF '--overwrite
+      IF export_textboxes(box_text_file, metadata()) THEN
+       notification "Successfully exported " & box_text_file
+      ELSE
+       notification "Failed to export " & box_text_file
+      END IF '--export_textboxes
      END IF '--box_text_file <> ""
     END IF '--metadata
    END IF

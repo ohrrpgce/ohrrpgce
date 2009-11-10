@@ -37,7 +37,7 @@ DECLARE FUNCTION speed_estimate(speed AS INTEGER, suffix AS STRING=" seconds", z
 DECLARE FUNCTION seconds_estimate(ticks AS INTEGER) AS STRING
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 DECLARE FUNCTION fixfilename (s AS STRING) AS STRING
-DECLARE FUNCTION inputfilename (query AS STRING, ext AS STRING, helpkey AS STRING, default AS STRING="", check_for_existing AS INTEGER=YES) AS STRING
+DECLARE FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, helpkey AS STRING, default AS STRING="", allow_overwrite AS INTEGER=YES) AS STRING
 DECLARE FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
 DECLARE FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
 DECLARE FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS INTEGER

@@ -55,14 +55,8 @@ DIM tmpdir as string
 DIM homedir as string
 'why do we use different temp dirs in game and custom?
 set_homedir
-#IFDEF __FB_LINUX__
-tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH
-IF NOT isdir(tmpdir) THEN makedir tmpdir
-#ELSE
-'Custom on Windows works in the current dir
-tmpdir = exepath$ + SLASH
-#ENDIF
 
+'temporarily set current directory, will be changed to game directory later if writable
 IF fileiswriteable(exepath$ + SLASH + "writetest.tmp") THEN
  'When CUSTOM is installed read-write, work in CUSTOM's folder
  safekill exepath$ + SLASH + "writetest.tmp"
@@ -70,11 +64,15 @@ IF fileiswriteable(exepath$ + SLASH + "writetest.tmp") THEN
 ELSE
  'If CUSTOM is installed read-only, use your home dir as the default
  CHDIR homedir
- #IFNDEF __FB_LINUX__
-  'under Windows, need a new tmpdir too
-  tmpdir = homedir + SLASH
- #ENDIF
 END IF
+
+#IFDEF __FB_LINUX__
+tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH
+IF NOT isdir(tmpdir) THEN makedir tmpdir
+#ELSE
+'Custom on Windows works in the current dir
+tmpdir = CURDIR + SLASH
+#ENDIF
 
 start_new_debug
 debuginfo long_version & build_info
@@ -157,11 +155,28 @@ IF game = "" THEN
  hsfile$ = ""
  GOSUB chooserpg
 END IF
+
+end_debug
+
+#IFNDEF __FB_LINUX__
+ IF MID$(gamefile, 2, 1) <> ":" THEN gamefile = curdir$ + SLASH + gamefile
+#ELSE
+ IF MID$(gamefile, 1, 1) <> "/" THEN gamefile = curdir$ + SLASH + gamefile
+#ENDIF
+a$ = trimfilename(gamefile)
+IF a$ <> "" ANDALSO fileiswriteable(a$ + SLASH + "writetest.tmp") THEN
+ safekill a$ + SLASH + "writetest.tmp"
+ CHDIR a$
+END IF
+'otherwise, keep current directory as it was, net effect: it is the same as in Game
+
+start_new_debug
+debuginfo long_version & build_info
+debuginfo "Editing game " & trimpath(gamefile) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
+
 setwindowtitle "OHRRPGCE - " + gamefile
 
 GOSUB checkpass
-
-debuginfo "Editing game " & trimpath(gamefile) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 clearpage vpage
 textcolor uilook(uiText), 0
@@ -379,10 +394,11 @@ DO
  usemenu csr, top, 0, last, 20
  IF enter_or_space() THEN
   IF csr = 0 THEN
-   game = inputfilename("Filename of New Game?", ".rpg", "input_file_new_game")
+   game = inputfilename("Filename of New Game?", ".rpg", CURDIR, "input_file_new_game", , NO)
    IF game <> "" THEN
      IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game + ".rpg") THEN GOTO finis
      gamefile = game + ".rpg"
+     game = trimpath$(game)
      EXIT DO
    END IF
   ELSEIF csr = 1 THEN
@@ -583,7 +599,6 @@ xbsave game + ".gen", gen(), 1000
 GOSUB dorelump
 GOSUB cleanupfiles
 end_debug
-CHDIR curdir$
 restoremode
 SYSTEM
 
@@ -599,7 +614,6 @@ IF keyval(-1) = 0 THEN
  pop_warning "Don't forget to keep backup copies of your work! You never know when an unknown bug or a hard-drive crash or a little brother might delete your files!"
 END IF
 end_debug
-CHDIR curdir$
 restoremode
 END
 

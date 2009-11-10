@@ -3080,7 +3080,7 @@ END FUNCTION
 SUB notification (show_msg AS STRING)
  DIM msg AS STRING = show_msg
  DIM ypos AS INTEGER
- DIM high AS INTEGER = 16
+ DIM high AS INTEGER = 18
 
  'Find the height
  DO WHILE LEN(msg) > 38
@@ -3090,11 +3090,9 @@ SUB notification (show_msg AS STRING)
 
  msg = show_msg
  
- edgeprint msg, 8, ypos, uilook(uiText), vpage
+ edgeboxstyle 4, 100 - high \ 2, 312, high, 2, vpage
 
- edgeboxstyle 4, 4, 312, high, 2, vpage
-
- ypos = 8
+ ypos = 103 - high \ 2
  DO WHILE LEN(msg) > 38
   edgeprint LEFT(msg, 38), 8, ypos, uilook(uiText), vpage
   msg = MID(msg, 39)

@@ -1075,18 +1075,17 @@ FUNCTION fixfilename (s AS STRING) AS STRING
   ch = MID(s, i, 1)
   ascii = ASC(ch)
   SELECT CASE ascii
-   CASE 32, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45
+   CASE 32, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45  '[ 0-9A-Za-z_~-]
     result = result & ch
   END SELECT
  NEXT i
  RETURN result
 END FUNCTION
 
-FUNCTION inputfilename (query AS STRING, ext AS STRING, helpkey AS STRING, default AS STRING="", check_for_existing AS INTEGER=YES) AS STRING
+FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, helpkey AS STRING, default AS STRING="", allow_overwrite AS INTEGER=YES) AS STRING
  DIM filename AS STRING = default
- DIM alert AS STRING
- DIM alert_time AS INTEGER = 0
  DIM tog AS INTEGER
+ IF directory = "" THEN directory = CURDIR 'trimfilename(gamefile)
  setkeys
  DO
   setwait 55
@@ -1098,20 +1097,26 @@ FUNCTION inputfilename (query AS STRING, ext AS STRING, helpkey AS STRING, defau
   filename = fixfilename(filename)
   IF keyval(scEnter) > 1 THEN
    filename = TRIM(filename)
-   IF check_for_existing AND isfile(filename & ext) AND filename <> "" THEN
-    alert = filename & ext & " already exists"
-    alert_time = 30
-   ELSE
-    IF filename <> "" THEN RETURN filename
+   IF filename <> "" THEN
+    IF isfile(directory + SLASH + filename + ext) THEN
+     If allow_overwrite THEN
+      IF yesno("File already exists, overwrite?") THEN RETURN directory + SLASH + filename
+     ELSE
+      notification filename & ext & " already exists"
+     END IF
+    ELSE
+     RETURN directory + SLASH + filename
+    END IF
    END IF
   END IF
   textcolor uilook(uiText), 0
   printstr query, 160 - LEN(query) * 4, 20, dpage
-  IF alert_time > 0 THEN printstr alert, 160 - LEN(alert) * 4, 40, dpage: alert_time =- 1
+  printstr "Output directory: ", 160 - 18 * 4, 35, dpage
+  printstr directory, xstring(directory, 160), 45, dpage
   textcolor uilook(uiSelectedItem + tog), 1
-  printstr filename, 160 - LEN(filename & ext) * 4 , 30, dpage
+  printstr filename, 160 - LEN(filename & ext) * 4 , 60, dpage
   textcolor uilook(uiText), uilook(uiHighlight)
-  printstr ext, 160 + (LEN(filename) - LEN(ext)) * 4 , 30, dpage
+  printstr ext, 160 + (LEN(filename) - LEN(ext)) * 4 , 60, dpage
   SWAP vpage, dpage
   setvispage vpage
   clearpage dpage

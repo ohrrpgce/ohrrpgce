@@ -211,7 +211,7 @@ DO
   END IF
   IF mstate.pt = 4 THEN GOSUB disable
   IF mstate.pt = 5 THEN
-   outfile$ = inputfilename("Name of file to export to?", ".bmp", trimpath$(game) & " " & cap & pt)
+   outfile$ = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_" & cap, trimextension$(trimpath$(gamefile)) & " " & cap & pt)
    IF outfile$ <> "" THEN sprite_export_bmp8 outfile$ & ".bmp", vpages(2), master()
   END IF
  END IF
