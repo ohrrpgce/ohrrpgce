@@ -1195,91 +1195,6 @@ RETRACE
 
 END SUB
 
-SUB spells_menu (who AS INTEGER)
-'stat() is global
-REMEMBERSTATE
-
-DIM sp AS SpellsMenuState
-sp.hero = who
-sp.listnum = 0
-
-cancelmenu$ = readglobalstring$(51, "(CANCEL)", 10)
-hasnone$ = readglobalstring$(133, "has no spells", 20)
-
-spred = 0
-wptr = 0
-
-spells_menu_refresh_hero sp
-'--Preserve background for display beneath the spells menu
-holdscreen = allocatepage
-copypage vpage, holdscreen
-
-menusound gen(genAcceptSFX)
-setkeys
-DO
- setwait speedcontrol
- setkeys
- tog = tog XOR 1
- wtogl = loopvar(wtogl, 0, 3, 1)
- playtimer
- control
- spells_menu_control sp
- IF sp.quit THEN EXIT DO
- centerfuz 160, 100, 312, 184, 1, dpage 'outer box
- centerbox 206, 36, 200, 17, 2, dpage   'name box
- centerbox 56, 50, 84, 60, 2, dpage     'menu box
- centerbox 160, 134, 308, 96, 2, dpage  'spell list
- rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), dpage 'divider 2
- FOR i = 0 TO sp.last
-  IF sp.lists(i).menu_index >= 0 AND sp.listnum = i THEN
-   FOR o = 0 TO 23
-    'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
-    textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
-    IF sp.cursor = o AND sp.mset = 1 THEN
-     IF sp.spell(o).can_use > 0 THEN 
-      textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight) 
-     ELSE 
-      textcolor uilook(uiMenuItem), uilook(uiHighlight)
-     END IF
-    END IF
-    printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, dpage 'spells
-   NEXT o
-   textcolor uilook(uiMenuItem), 0
-   IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
-   printstr cancelmenu$, 16, 171, dpage 'cancel
-   IF sp.mset = 1 THEN
-    IF sp.spell(sp.cursor).desc <> "" THEN
-     rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), dpage  'description divider
-    END IF
-    textcolor uilook(uiDescription), 0
-    printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, dpage 'cost
-    printstr sp.spell(sp.cursor).desc, 9, 158, dpage 'description
-   END IF
-  END IF
-  textcolor uilook(uiMenuItem), 0
-  IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2): IF sp.mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-  printstr sp.lists(i).name, 16, 25 + i * 10, dpage 'spell menu
- NEXT i
- IF sp.last = 0 THEN edgeprint names(sp.hero) + " " + hasnone$, xstring(names(sp.hero) + " " + hasnone$, 160), 120, uilook(uiText), dpage
- edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), dpage
-
- SWAP vpage, dpage
- setvispage vpage
- copypage holdscreen, dpage
- IF sp.re_use = NO THEN
-  dowait
- END IF
-LOOP
-
-menusound gen(genCancelSFX)
-setkeys
-FOR i = 0 TO 7: carray(i) = 0: NEXT i
-freepage holdscreen
-RETRIEVESTATE
-EXIT SUB
-
-END SUB
-
 SUB status (pt, stat())
 DIM mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
 DIM her AS HeroDef
@@ -2583,4 +2498,85 @@ SUB spells_menu_control(sp AS SpellsMenuState)
    END IF
   END IF
  END IF
+END SUB
+
+SUB spells_menu (who AS INTEGER)
+ 'stat() is global
+
+ DIM sp AS SpellsMenuState
+ sp.hero = who
+ sp.listnum = 0
+
+ DIM cancelmenu AS STRING = readglobalstring(51, "(CANCEL)", 10)
+ DIM hasnone AS STRING = readglobalstring(133, "has no spells", 20)
+
+ spells_menu_refresh_hero sp
+ '--Preserve background for display beneath the spells menu
+ DIM holdscreen AS INTEGER = allocatepage
+ copypage vpage, holdscreen
+
+ menusound gen(genAcceptSFX)
+ DIM tog AS INTEGER = 0
+ DIM wtogl AS INTEGER = 0
+ setkeys
+ DO
+  setwait speedcontrol
+  setkeys
+  tog = tog XOR 1
+  wtogl = loopvar(wtogl, 0, 3, 1)
+  playtimer
+  control
+  spells_menu_control sp
+  IF sp.quit THEN EXIT DO
+  centerfuz 160, 100, 312, 184, 1, dpage 'outer box
+  centerbox 206, 36, 200, 17, 2, dpage   'name box
+  centerbox 56, 50, 84, 60, 2, dpage     'menu box
+  centerbox 160, 134, 308, 96, 2, dpage  'spell list
+  rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), dpage 'divider 2
+  FOR i AS INTEGER = 0 TO sp.last
+   IF sp.lists(i).menu_index >= 0 AND sp.listnum = i THEN
+    FOR o AS INTEGER = 0 TO 23
+    'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
+     textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
+     IF sp.cursor = o AND sp.mset = 1 THEN
+      IF sp.spell(o).can_use > 0 THEN 
+       textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight) 
+      ELSE 
+       textcolor uilook(uiMenuItem), uilook(uiHighlight)
+      END IF
+     END IF
+     printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, dpage 'spells
+    NEXT o
+    textcolor uilook(uiMenuItem), 0
+    IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
+    printstr cancelmenu, 16, 171, dpage 'cancel
+    IF sp.mset = 1 THEN
+     IF sp.spell(sp.cursor).desc <> "" THEN
+      rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), dpage  'description divider
+     END IF
+     textcolor uilook(uiDescription), 0
+     printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, dpage 'cost
+     printstr sp.spell(sp.cursor).desc, 9, 158, dpage 'description
+    END IF
+   END IF
+   textcolor uilook(uiMenuItem), 0
+   IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2): IF sp.mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
+   printstr sp.lists(i).name, 16, 25 + i * 10, dpage 'spell menu
+  NEXT i
+  IF sp.last = 0 THEN edgeprint names(sp.hero) & " " & hasnone, xstring(names(sp.hero) & " " & hasnone, 160), 120, uilook(uiText), dpage
+  edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  IF sp.re_use = NO THEN
+   dowait
+  END IF
+ LOOP
+
+ menusound gen(genCancelSFX)
+ setkeys
+ flusharray carray(), 7
+ freepage holdscreen
+
 END SUB
