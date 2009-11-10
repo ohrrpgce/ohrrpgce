@@ -1477,6 +1477,7 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   .check_costs_as_item            = xreadbit(buf(), 16, 65)
   .recheck_costs_after_delay      = xreadbit(buf(), 17, 65)
   .targ_does_not_flinch           = xreadbit(buf(), 18, 65)
+  .do_not_exceed_targ_stat        = xreadbit(buf(), 19, 65)
  END WITH
 END SUB
 

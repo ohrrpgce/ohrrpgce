@@ -100,6 +100,7 @@ atkbit(79) = "Do not trigger spawning on kill"
 atkbit(80) = "Check costs when used as an item"
 atkbit(81) = "Re-check costs after attack delay"
 atkbit(82) = "Do not cause target to flinch"
+atkbit(83) = "Don't allow damage to exceed target stat"
 '             ^---------------------------------------^
 '               the amount of room you have (39 chars)
 

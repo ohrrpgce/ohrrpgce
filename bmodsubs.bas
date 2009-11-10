@@ -445,7 +445,7 @@ IF attack.damage_math <> 4 THEN
  'spread damage
  IF attack.divide_spread_damage = YES THEN h = h / (tcount + 1)
 
- 'cap out
+ 'cap under
  IF h <= 0 THEN
   IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
  END IF
@@ -478,6 +478,17 @@ IF attack.damage_math <> 4 THEN
  IF attack.cure_instead_of_harm = YES THEN h = ABS(h) * -1 'cure bit
  IF bslot(t).harmed_by_cure = YES THEN h = ABS(h)  'zombie
  IF cure = 1 THEN h = ABS(h) * -1                  'elemental absorb
+
+ IF attack.do_not_exceed_targ_stat THEN
+  IF h > 0 THEN 'damage
+   h = small(h, bslot(t).stat.cur.sta(targstat))
+  ELSEIF h < 0 THEN ' cure
+   DIM diff AS INTEGER = bslot(t).stat.max.sta(targstat) - bslot(t).stat.cur.sta(targstat)
+   IF diff >= 0 THEN
+    h = large(h, diff * -1)
+   END IF
+  END IF
+ END IF
 
  IF attack.percent_damage_not_set = NO THEN
   'percentage attacks set stat
