@@ -45,6 +45,7 @@ DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState
 DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
 DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
+DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -253,7 +254,7 @@ DO
 
  '--Begin display 
  copypage 2, dpage
- GOSUB sprite
+ draw_battle_sprites bslot()
  GOSUB display
  IF vic.state = vicEXITDELAY THEN vic.state = vicEXIT
  IF vic.state > 0 THEN show_victory vic, rew, exstat(), bslot()
@@ -1008,62 +1009,6 @@ FOR i = 0 TO 11
 NEXT i
 RETRACE
 
-sprite:
-SCOPE 'until moved into a sub
- DIM zbuf(24) AS INTEGER, basey(24) AS INTEGER, harm_text_offset AS INTEGER = 0
- FOR i = 0 TO 24
-  basey(i) = bslot(i).y + bslot(i).h
- NEXT i
- sort_integers_indices(zbuf(), @basey(0))
- FOR i = 0 TO 24
- IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
-   dim w as BattleSprite ptr
-   w = @bslot(zbuf(i))
-   with bslot(zbuf(i))
-    dim spr as frame ptr = .sprites
-    
-    if .sprites = 0 then continue for
-    
-    'debug(str(zbuf(i)))
-    
-    if .frame < .sprite_num then spr += .frame
-    
-    if .d then
-     spr = sprite_duplicate(spr)
-     sprite_flip_horiz(spr)
-    else
-     spr = sprite_reference(spr)
-    end if
-    
-    if is_enemy(zbuf(i)) and .dissolve > 0 and .flee = 0 then
-     dim spr2 as frame ptr = spr
-     spr = sprite_dissolved(spr2, .deathtime, .deathtime - .dissolve, .deathtype)
-     sprite_unload(@spr2)
-    end if
-    
-    sprite_draw(spr, .pal, .x, .y - .z, 1, -1, dpage)
-    
-    sprite_unload(@spr)
-   end with
-  END IF
- NEXT i
- FOR i = 0 TO 11
-  WITH bslot(i).harm
-   IF .ticks > 0 THEN
-    IF gen(genDamageDisplayTicks) <> 0 THEN
-     harm_text_offset = gen(genDamageDisplayRise) / gen(genDamageDisplayTicks) * (gen(genDamageDisplayTicks) - .ticks)
-    ELSE
-     harm_text_offset = 0 'Avoid div by zero (which shouldn't be possible anyway)
-    END IF
-    edgeprint .text, .pos.x - LEN(.text) * 4, .pos.y - harm_text_offset, .col, dpage
-    .ticks -= 1
-    IF .ticks = 0 THEN .col = uilook(uiText)
-   END IF
-  END WITH
- NEXT i
-END SCOPE
-RETRACE
-
 seestuff:
 FOR i = 0 TO 11
  c = uilook(uiSelectedDisabled)
@@ -1115,6 +1060,63 @@ END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB draw_battle_sprites(bslot() AS BattleSprite)
+ DIM zbuf(24) AS INTEGER
+ DIM basey(24) AS INTEGER
+ DIM harm_text_offset AS INTEGER = 0
+ 
+ FOR i AS INTEGER = 0 TO 24
+  basey(i) = bslot(i).y + bslot(i).h
+ NEXT i
+ sort_integers_indices(zbuf(), @basey(0))
+ FOR i AS INTEGER = 0 TO 24
+ IF (bslot(zbuf(i)).vis = 1 OR bslot(zbuf(i)).dissolve > 0) THEN
+   dim w as BattleSprite ptr
+   w = @bslot(zbuf(i))
+   with bslot(zbuf(i))
+    dim spr as frame ptr = .sprites
+    
+    if .sprites = 0 then continue for
+    
+    'debug(str(zbuf(i)))
+    
+    if .frame < .sprite_num then spr += .frame
+    
+    if .d then
+     spr = sprite_duplicate(spr)
+     sprite_flip_horiz(spr)
+    else
+     spr = sprite_reference(spr)
+    end if
+    
+    if is_enemy(zbuf(i)) and .dissolve > 0 and .flee = 0 then
+     dim spr2 as frame ptr = spr
+     spr = sprite_dissolved(spr2, .deathtime, .deathtime - .dissolve, .deathtype)
+     sprite_unload(@spr2)
+    end if
+    
+    sprite_draw(spr, .pal, .x, .y - .z, 1, -1, dpage)
+    
+    sprite_unload(@spr)
+   end with
+  END IF
+ NEXT i
+ FOR i AS INTEGER = 0 TO 11
+  WITH bslot(i).harm
+   IF .ticks > 0 THEN
+    IF gen(genDamageDisplayTicks) <> 0 THEN
+     harm_text_offset = gen(genDamageDisplayRise) / gen(genDamageDisplayTicks) * (gen(genDamageDisplayTicks) - .ticks)
+    ELSE
+     harm_text_offset = 0 'Avoid div by zero (which shouldn't be possible anyway)
+    END IF
+    edgeprint .text, .pos.x - LEN(.text) * 4, .pos.y - harm_text_offset, .col, dpage
+    .ticks -= 1
+    IF .ticks = 0 THEN .col = uilook(uiText)
+   END IF
+  END WITH
+ NEXT i
+END SUB
 
 SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), ctr(), lifemeter())
  DIM i AS INTEGER
