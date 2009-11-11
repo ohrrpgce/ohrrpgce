@@ -9,13 +9,7 @@ DEFINT A-Z
 DECLARE SUB exitprogram (needfade%)
 DECLARE FUNCTION gethighbyte% (n%)
 DECLARE SUB wrappedsong (songnumber%)
-DECLARE SUB calibrate ()
 DECLARE SUB getitem (getit%, num%)
-DECLARE SUB resetlmp (slot%, lev%)
-DECLARE FUNCTION atlevel% (now%, a0%, a99%)
-DECLARE SUB snapshot ()
-DECLARE SUB delitem (it%, num%)
-DECLARE FUNCTION countitem% (it%)
 
 
 #include "bmod.bi"
@@ -28,7 +22,8 @@ DECLARE FUNCTION countitem% (it%)
 #include "const.bi"
 #include "uiconst.bi"
 #include "udts.bi"
-#INCLUDE "battle_udts.bi"
+#include "battle_udts.bi"
+#include "moresubs.bi"
 
 DECLARE SUB confirm_auto_spread (who as integer, tmask() as integer, bslot() AS BattleSprite)
 DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atk as AttackData, bslot() AS BattleSprite)
@@ -115,6 +110,8 @@ ELSE
   checktheftchance = 0
  END IF
 END IF
+'Update tags, this may matter for attack chaining
+evalitemtag
 END FUNCTION
 
 SUB control

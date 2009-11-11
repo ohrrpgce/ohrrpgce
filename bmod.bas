@@ -517,6 +517,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
        ELSEIF .number < 0 THEN 'add items
         getitem(.id, abs(.number))
        END IF
+       'Update tags when items have changed because it could affect chain conditionals
+       evalitemtag
       END IF
      END WITH
     NEXT i
@@ -526,7 +528,10 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    END IF
    IF conlmp(bat.acting) > 0 THEN lmp(bat.acting, conlmp(bat.acting) - 1) = lmp(bat.acting, conlmp(bat.acting) - 1) - 1: conlmp(bat.acting) = 0
    IF icons(bat.acting) >= 0 THEN
-    IF consumeitem(icons(bat.acting)) THEN setbit iuse(), 0, icons(bat.acting), 0
+    IF consumeitem(icons(bat.acting)) THEN
+     setbit iuse(), 0, icons(bat.acting), 0
+     evalitemtag
+    END IF
     icons(bat.acting) = -1
    END IF
    o = 0
