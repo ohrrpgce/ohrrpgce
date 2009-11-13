@@ -1,0 +1,9 @@
+Here you can choose whether you want to save your work or not, and whether or not you want to quit.
+
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Choose an option with ENTER or SPACE.
+
+If you press ESC again, you will be returned to the Main Menu without saving. This is to stop you from accidentally saving or losing something by pressing the ESC key too many times somewhere!
+
+If you are quitting for now, have a great day!

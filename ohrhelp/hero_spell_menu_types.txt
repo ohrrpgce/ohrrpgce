@@ -1,6 +1,6 @@
 This menu allows you to choose which of the hero's four spell menus that you want to edit.
 
-Use the up and down arrow keys to navigate the menu. Press ENTER or SPACE to begin editing a spell list.
+Use the Up and Down arrow keys to navigate the menu. Press ENTER or SPACE to begin editing a spell list.
 
 You can also change the type of a spell list by pressing the left and right arrow keys. There are three types of spell lists.
 

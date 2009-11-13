@@ -1,5 +1,56 @@
 In this menu you can customize the visual display of the text box.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the left and right arrow keys to change values, or you can type in numbers.
+Use the Left and Right arrow keys to change values, or you can type in numbers. The text box will act as a preview for what the player will see.
+
+Position: Change the vertical
+position of the text box onscreen.
+
+Shrink: Change the vertical height of the box.  0 signifies no shrink, and is the largest a text box can be. Going left from 0, or pressing -, sets the shrink to "auto" which means the text box will size itself to fit snugly around the last line of text.
+
+Textcolor: Choose the color of the text. Press ENTER or SPACE to see the whole palette to choose from.
+
+Box style: Choose the color of the textbox background.  There are only 15 choices (0-14), but you can change them in the Graphics Editor under User Interface Colors.
+
+Backdrop: Choose a special fullscreen backdrop to be displayed while this text box is present. Import backdrops in the Graphics Editor.
+
+Music: Choose a special song to start playing when this text box is displayed. Import songs in the Main Menu.
+
+Show Box: You can optionally turn off the box to just show the text alone.
+
+Translucent: You can optionally make the textbox's background color "translucent".
+
+Restore Music: You can set this text box to restore the map's ambient music when it is displayed. Set the map's ambient music in the Map Editor.
+
+Portrait Type: You can show a character portrait attached to the text box. Draw your portraits in the Graphics Editor first.
+
+ * Fixed - Portrait ID will be the ID
+  number of the portrait. Use this if
+  you knkow who will be speaking.
+
+ * Hero (by caterpillar order) -
+  Portrait ID will be a position in
+  the caterpillar party (0-3, empty
+  slots are skipped), and the
+  portrait will be that of the
+  corresponding hero at the time.
+  Use this if you want a hero to
+  speak but can't be sure which hero
+  the player will be using.
+
+ * Hero (by party order) - Same as
+  above except that empty slots in
+  the party are NOT skipped, and you
+  can choose heroes not in the
+  current walkabout party.
+
+Portrait Palette: "default" is the 16-color palette you used to draw the portrait, but you can change it with the arrow keys or by pressing ENTER or SPACE to browse your available palettes.
+
+Portrait Box: Choose whether or not to show a box around the portrait.
+
+Position Portrait: Position where the portrait will appear onscreen.
+
+Sound Effect: Choose a special sound effect to play when this text box is displayed.
+
+Stop sound after box: Have the game automatically stop the sound effect when the player proceeds past this text box.

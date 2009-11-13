@@ -1,6 +1,6 @@
 This is the song importer.
 
-Use the up and down arrow keys to navigate the menu. To change which song you are editing, select the Song number and press the left and right arrow keys.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu. To change which song you are editing, select the Song number and press the Left and Right arrow keys.
 
 When you add a new song slot, it starts out empty. You need to import a file into it. Pick "Import Song..." and press ENTER or SPACE.
 
@@ -32,7 +32,7 @@ Here is a list of the supported song formats:
   filesize. When you import an MP3
   file it will automatically be
   converted to OGG (using the madplay
-  and oggenc tools)
+  and oggenc tools).
 
 .BAM - Bob's Adlib Music format was
   once the only format supported.
@@ -52,4 +52,4 @@ Here is a list of the supported song formats:
   they are played on. Their filesize
   is usually bigger than MIDI or BAM
   but is usually smaller than OGG
-  or MP3
+  or MP3.

@@ -2,7 +2,7 @@ There is a reason that the script debugger was not officially announced.
 You might find a little more help on the "Script Debugger" wiki page.
 
 Press V to toggle view mode. The default, script state view, shows the currently running command.
-Change selected script with pageup & pagedown. Depending on view mode, press +/- to scroll globals, locals or strings (no editing).
+Change selected script with pageup & pagedown. Depending on view mode, press +/- to scroll globals and locals (no editing).
 Press N to continue running until the script changes; press W to wait until the selected script is returned to.
   Advanced (buggy) stepping commands:
 Press S to step through part of a command; U to wait for a command to finish (go Up a command); pressing P lets you continue to play the game: in this mode non-script-debug keys cause the game to unpause for one tick, and are passed to the game.

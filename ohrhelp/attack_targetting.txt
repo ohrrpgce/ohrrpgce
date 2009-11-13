@@ -1,8 +1,8 @@
 This is the attack target editor.
 
-Use the up and down arrow keys to navigate through the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate through the menu.
 
-Use the left and right arrow keys to change values, or you can type in numbers.
+Use the Left and Right arrow keys to change values, or you can type in numbers.
 
 You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
 
@@ -30,7 +30,7 @@ Target Class: This controls who the attack can be used on.
   who are already dead. This is
   intended for "Life" potions or
   spells. For enemies, this is no
-  different than "Ally"
+  different from "Ally".
 
 * Ally not self - Just like "Ally"
   but the attacker is not permitted
@@ -65,12 +65,12 @@ Target Class: This controls who the attack can be used on.
   all.
 
 * Deal Allies (hero only) - This
-  attack can only target dead heros.
+  attack can only target dead heroes.
   If no heroes are dead, the attack
   will be unusable. The attack cannot
   be used by enemies.
 
-* Thankvenge (last to  cure attacker)   This means the attack will only be
+* Thankvenge (last to cure attacker)    This means the attack will only be
   able to target the last hero or
   enemy to deal negative damage
   (cure) the attacker. If the
@@ -87,7 +87,7 @@ Target Class: This controls who the attack can be used on.
   never been cuured, the attack will
   be unusable.
 
-Target setting: This controls how the attack can be targetted if more than one valid target are available in the chosen target class.
+Target Setting: This controls how the attack can be targetted if more than one valid target is available in the chosen target class.
 
 * Focused - This means that only one
   target can be chosen.
@@ -104,18 +104,18 @@ Target setting: This controls how the attack can be targetted if more than one v
 
 * Random Target - Like "Focus" this
   chooses only a single target, but
-  the hero will not be allowed to
+  the player will not be allowed to
   choose which target. If used by an
   enemy, this is not any different
-  than "Focus"
+  from "Focus".
 
 * First Target - This always targets
   the first valid target in the
-  target class. it is not random.
+  target class. It is not random.
 
 Prefer Target: For heroes, this affects which target the target selection cursor starts on. For enemies this affects which target the enemy will choose from its available targets.
 
-* Default - For heros, starts the
+* Default - For heroes, starts the
   cursor on the first valid target.
   For enemies, the enemy will choose
   a random target.
@@ -129,7 +129,7 @@ Prefer Target: For heroes, this affects which target the target selection cursor
   closest to the attacker.
 
 * Farthest - Chooses the target
-  furthest away from the attacker.
+  farthest away from the attacker.
 
 * Random - For heroes, starts the
   cursor on a random valid target.

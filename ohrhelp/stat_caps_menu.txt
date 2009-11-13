@@ -1,0 +1,7 @@
+This is the Stat Cap Editor, where you can set global maximums for the various battle stats used in the game.
+
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Use the Left and Right arrow keys to change the values, or just type in a number.
+
+"Damage Cap" refers to the maximum amount of damage that an attack will be allowed to do at once.

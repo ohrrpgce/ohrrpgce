@@ -1,0 +1,5 @@
+Type in a name for this song to be exported as. The file will be exported to the same location as the .RPG file for your game.
+
+Press ENTER to confirm the name.
+
+Press ESC to cancel and return to the Song Menu.

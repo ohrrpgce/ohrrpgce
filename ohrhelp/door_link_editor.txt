@@ -1,8 +1,8 @@
 This is the door linking tool. The door on the top is the entrance door. the door on the bottom is the exit door.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys to navigate the menu.
 
-Use the left and right arrow keys to change numers. You can also type door ID numbers or map ID numbers.
+Use the Left and Right arrow keys to change numers. You can also type door ID numbers or map ID numbers.
 
 When you are finished, press ESC to exit the door linking tool.
 

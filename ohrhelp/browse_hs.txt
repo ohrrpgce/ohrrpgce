@@ -1,0 +1,9 @@
+Choose a script file to import into your game.
+
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Press ENTER or SPACE on a folder (blue font) to open it.
+
+Press ENTER or SPACE on a file (gray font) to import it.
+
+The file must be a .HS file. This is NOT the file where you typed your scripts. That file should be compiled by HSpeak first, which will produce the corresponding .HS file. See the OHR wiki for more info.

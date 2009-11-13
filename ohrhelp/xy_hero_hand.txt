@@ -1,0 +1,3 @@
+Choose a hand position on the sprite. This will be matched to the "handle position" defined for the equipped weapon in the Item Editor when the hero attacks.
+
+Move the flashing cursor with the arrow keys, and press ENTER or SPACE to confirm a position.

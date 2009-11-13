@@ -1,8 +1,8 @@
 This is the enemy attack editor.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the left and right arrow keys to change the attacks, or type in attack ID numbers.
+Use the Left and Right arrow keys to change the attacks, or type in attack ID numbers.
 
 Hold ALT to show the name of the enemy you are currently editing. While holding ALT, you can press the left and right arrow keys to change which enemy you are editing, or you can type in an enemy ID number.
 

@@ -1,0 +1,7 @@
+Choose the text file to import. This file should be in the same format as the exported text file. It will replace all of the existing text boxes in the game.
+
+Use the up and down arrow keys to browse.
+
+Press ENTER on a folder to open it, or on a file to choose it.
+
+Press ESC to cancel.

@@ -1,16 +1,18 @@
-This is the attack chaining editor. Chaining means that you can attach two or more attacks together in a chain
+This is the attack chaining editor. Chaining means that you can attach two or more attacks together in a chain.
 
-Use the up and down arrow keys to navigate through the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate through the menu.
 
-Use the left and right arrow keys to change values, or you can type in numbers.
+Use the Left and Right arrow keys to change values, or you can type in numbers.
 
 You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
 
 There are three types of chaining.
 
-* Default Chain - This attack will be used after the current attack finishes
+* Default Chain - This chain will be evaluated after the current attack finishes. If the evaluation succeeds, then this attack will be used next.
 
-* Else-Chain - If the default chain is not used, then the else-chain will be used
+* Else-Chain - If the default chain's evaluation fails, then the else-chain will be evaluated. If the evaluation succeeds, then this attack will be used next.
+
+[NOTE: If the default chain's evaluation succeeds, but the ensuing attack itself fails, whether for aiming or any other reasons, the Else-Chain is not evaluated]
 
 * Instead-Chain - [Not implemented yet] - This attack will be used instead of the current attack. In other words, it will replace the current attack. If an attack gets replaced by its instead-chain, then the only thing about the original attack that will matter is its targetting data.
 
@@ -33,13 +35,13 @@ For each chain, there are several different options.
 
 * Condition - There are several different options for chain condition
 
-  * Tag check - check whether a pair
+  * Tag Check - check whether a pair
     of tags is ON or OFF before
     allowing the chain to continue.
     (you can just use one tag if you
     want)
 
-  * Stat check - Don't allow the
+  * Stat Check - Don't allow the
     chain to continue unless the
     attacker's stat is above or
     below a given threshold. The
@@ -52,4 +54,3 @@ Note that for all three chain types, if the target class and target setting of t
 
 [NOTE: Different-Target Chains]
 When the target class or target setting are different, the chained attack will pick a new target automatically according to its "preferred target" rules. This will not be interrupted if the first attack's target dies.
-

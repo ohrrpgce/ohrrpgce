@@ -1,8 +1,8 @@
 This is the enemy appearance editor.
 
-Use the up and down arrows to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the left and right arrow keys to change values.
+Use the Left and Right arrow keys to change values.
 
 Hold ALT to see the name of the enemy you are editing. While holding ALT, you can use the left and right arrow keys to change which enemy you are editing, or you can type in an enemy ID number.
 

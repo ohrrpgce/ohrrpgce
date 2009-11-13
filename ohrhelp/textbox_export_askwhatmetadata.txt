@@ -6,7 +6,7 @@ Press ENTER or SPACE to change which data to include. Data types shown in white 
 
 Press ENTER or SPACE on "done" when  you are ready to export.
 
-Text: This is all the actuall text of
+Text: This is all the actual text of
    each text box.
 
 Conditionals: This includes all tag

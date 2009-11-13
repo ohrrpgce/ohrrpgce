@@ -1,6 +1,6 @@
 This is the sound effect import screen. The terms "SFX" and "Sound Effect" are used interchangeably.
 
-Use the up and down arrow keys to navigate the menu. Press Left and Right arrows on the SFX number to change which sound effect you are editing.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu. Press Left and Right arrows on the SFX number to change which sound effect you are editing.
 
 When you create a new sound effect, it starts empty. You must import a sound file. Press ENTER or SPACE on "Import Sound..."
 

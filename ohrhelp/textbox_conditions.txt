@@ -2,8 +2,8 @@ Conditionals are special actions that can happen when a text box is displayed. E
 
 Grey lines mean that the action below the line will never be done. It is disabled.
 
-Blue lines mean that the action below the line will always be done. To turn a grey line blue, just press the left arrow key.
+Blue lines mean that the action below the line will always be done. To turn a grey line blue, just press the Left arrow key.
 
-Brown lines check tags, and the action below the line will only tage place depending on whether the tag is OFF or ON. You can press ENTER or SPACE to choose a tag from the tag browser.
+Brown lines check tags, and the action below the line will only take place depending on whether the tag is OFF or ON. You can press ENTER or SPACE to choose a tag from the tag browser.
 
-Press - to switch between requiring the tag to be OFF or ON.
+Press - to switch between requiring a tag to be OFF or ON, or to switch between gaining or losing things (money and items).

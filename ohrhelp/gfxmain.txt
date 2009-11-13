@@ -1,4 +1,4 @@
-This menu is where you can edit the various graphical elements of your game. Navigate the menu using the arrow keys. Press ENTER or SPACE to select a sub-menu, or press ESC to go back to the previous menu.
+This is the Graphics Editor where you can edit the various graphical elements of your game. Navigate the menu using the arrow keys (or PgUp, PgDn, Home, and End). Press ENTER or SPACE to select a sub-menu, or press ESC to go back to the previous menu.
 
 Choose "Edit Maptiles" to edit and create new tilesets to use for the various layers of your maps.
 

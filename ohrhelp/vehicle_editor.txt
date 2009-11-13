@@ -1,0 +1,33 @@
+This is the Vehicle Editor. NPCs in the Map Editor can be labeled as vehicles as defined here.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
+
+Use the Left and Right arrow keys to choose settings.
+
+Press ENTER or SPACE to enter submenus.
+
+Vehicle #: Choose which vehicle you are editting. Every type of vehicle is assigned a specific ID number.
+
+Name: Type in a name for the vehicle. This name is for your convenience only, and is not displayed in the game. There are some default vehicles already named for you, but you can change them to whatever you like.
+
+Speed: Choose a speed in pixels per tick. Only factors of 20 are available as choices. The heroes' default speed is 4.
+
+Vehicle Bitsets: Choose special options for the vehicle. Most of these are self explanatory, but note that if you plan on making a "boat" type of vehicle where boarding the boat will involve passing what would normally be a wall, you will need to turn on "Pass walls while dismounting".
+
+Override walls: This allows the vehicle to pass only certain walls. Maptiles can be marked as A or B tiles in the Passability Mode of the Map Editor to work in conjunction with these options.
+
+Blocked by: This allows the vehicle to be blocked by only certain walls.  Maptiles can be marked as A or B tiles in the Passability Mode of the Map Editor to work in conjunction with these options.
+
+Mount from: Choose what types of maptiles allow the player to mount onto this vehicle.  Note that this refers to the tile where the hero is standing, NOT where the vehicle is "parked".  Maptiles can be marked as A or B tiles in the Passability Mode of the Map Editor.
+
+Dismount from: Choose what types of maptiles the player can dismount onto from this ehicle.  Note that this refers to the tile that the hero is trying to step onto, NOT where the vehicle is "parking".  Maptiles can be marked as A or B tiles in the Passability Mode of the Map Editor.
+
+Random Battles: The vehicle can disable all random battles, or enable them normally, or can be given its own special formation set to choose random battles from regardless of what tile it is on. Formation sets need to be defined in the Battle Formation Editor.
+
+Use/Menu Button: Choose what these buttons will trigger when the player presses them in the vehicle.  Press ENTER to choose a plotscript if desired. You can also disable the use of the button altogether by pressing the left arrow key twice.
+
+If riding TAG: Choose a tag to affect while the player is riding the vehicle. Press ENTER to enter a tag browser. Press - to toggle between setting the tag ON or OFF while riding the vehicle (dismounting the vehicle will set the tag to the opposite of what is chosen here).
+
+On Mount/Disable: Choose a text box to be called when the vehicle is mounted/dismounted by typing in a number. Choose a script by pressing ENTER.
+
+Elevation: The number of pixels that the vehicle will be displayed above its current tile while being ridden in. A non-zero elevation will automatically display a shadow underneath unless the "disable flying shadow" bitset is turned on in the Vehicle Bitsets submenu above.

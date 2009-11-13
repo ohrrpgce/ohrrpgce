@@ -1,0 +1,13 @@
+Use this screen to choose a song to import.
+
+Navigate with the Up and Down arrow keys.
+
+Press ENTER or SPACE on a folder to open it.
+
+Press ENTER or SPACE on a file to choose it to import. The following file extensions are recognized as importable songs:
+ -.MID; .OGG; .MP3; .BAM; .MOD; .SM;
+  .IT; .S3M 
+
+Press ESC to cancel and return to the Song Menu.
+
+Some default songs are provided for you in the "import" folder.

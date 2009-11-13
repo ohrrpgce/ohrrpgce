@@ -1,8 +1,8 @@
 This is the attack cost editor.
 
-Use the up and down arrow keys to navigate through the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate through the menu.
 
-Use the left and right arrow keys to change values, or you can type in numbers.
+Use the Left and Right arrow keys to change values, or you can type in numbers.
 
 You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
 
@@ -12,6 +12,6 @@ HP Cost: This is how much self-damage the attacker does when using the attack. A
 
 Gold Cost: If the attack is used by the hero, this is the amount of money the party will lose. A positive number loses money, and a negative number gains money. This has no effect when used by an enemy.
 
-Item 1,2,3: Here yu can specify up to 3 items that are required for this attack to be used. You can think of these items as "Ammunition" for the attack
+Item 1,2,3: Here you can specify up to 3 items that are required for this attack to be used. You can think of these items as "Ammunition" for the attack.
 
-Item Cost: For each item, specify a number of items required. This should be a positive number for ammunition. For example, you might make a "Crossbow" attack that requires 1 arrow for each time it is used. You can also use a negative number, and the attack will give you that many items. For example, you could make a "Shotgun" attack that requires 2 "Shell" items for each attack, but gives you back 2 "Casing" items eah time you use it. You can then sell the empty casings when you get to a store.
+Item Cost: For each item, specify a number of items required. This should be a positive number for ammunition. For example, you might make a "Crossbow" attack that requires 1 arrow for each time it is used. You can also use a negative number, and the attack will give that many items. For example, you could make a "Shotgun" attack that requires 2 "Shell" items for each attack, but gives back 2 "Casing" items each time it's used. The player can then sell the empty casings when he gets to a store.

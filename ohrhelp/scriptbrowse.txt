@@ -1,6 +1,6 @@
-This is the script browser. it shows a list of all the plotscripts that you have imported into your game.
+This is the script browser. It shows a list of all the plotscripts that you have imported into your game.
 
-Use the up and down arrow keys to navigate the list, and press ENTER or SPACE to choose a script.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list, and press ENTER or SPACE to choose a script.
 
 If some of your scripts have a number at the beginning of their names, that is because they are "old style" scripts.
 

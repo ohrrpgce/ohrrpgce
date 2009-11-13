@@ -1,8 +1,8 @@
 This screen lets you import full-screen BMP files, and preview the ones that you have already imported.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the left and right arrow keys to switch between screens.
+Use the Left and Right arrow keys to switch between screens.
 
 Pick "Replace current" to import a new BMP to replace the one you are currently looking at.
 

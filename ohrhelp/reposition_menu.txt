@@ -1,0 +1,7 @@
+Choose where the menu will appear onscreen during the game.
+
+Use the arrow keys to move the menu.
+
+Use SHIFT+arrow keys to move the menu more quickly.
+
+Press ESC to confirm a position for the menu and return to the menu editor.

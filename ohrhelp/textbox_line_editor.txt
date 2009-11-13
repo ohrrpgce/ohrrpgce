@@ -4,7 +4,7 @@ Use the arrow keys to move the cursor.
 
 Type to edit the lines.
 
-The special codes listed at the bottom of the screen can be used to embed names iinto the text box.
+The special codes listed at the bottom of the screen can be used to embed variable words/numbers into the text box.
 
 Press CTRL+SPACE to choose special characters to insert at the current cursor location.
 

@@ -3,13 +3,16 @@ The script management menu allows you to access some tasks and tools related to 
 * "Export names for scripts (.hsi)"
   creates or updates a list of names
   (constants) that you can use while
-  writing your scripts.
+  writing your scripts. This is
+  typically necessary for writing
+  your plotscripts.
 
 * "Import compiled plotscripts (.hs)"
-  import a file of compiled scripts
+  imports a file of compiled scripts
   produced by HSpeak. This overwrites
   any existing scripts - you must
-  compile and import them all at once
+  compile and import them all at
+  once.
 
 * "Check where scripts are used"
   produces a list of all the places

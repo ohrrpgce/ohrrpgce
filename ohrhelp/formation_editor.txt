@@ -1,0 +1,19 @@
+This is the Battle Formation Editor. Every type of battle that can occur in the game needs to be defined as a separate battle formation.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
+
+Use the left and right arrow keys to change numbers. You can also type in numbers.
+
+<Formation #>: Choose which formation you are working on. This battle will be referred to by this number throughout both custom.exe and your plotscripts.
+
+Backdrop: Choose a background for this battle. Import full-screen backdrops in the Graphics Editor.
+
+Backdrop Animation: Choose how many frames you want for a background animation. To use this feature you must have your backdrops imported in the order that you would like them to cycle through for the animation.
+
+Ticks per Backdrop Frame: Choose how many ticks each backdrop remains onscreen during the animation. One second is approximately 18 ticks.
+
+Battle Music: Choose what song should play during this battle. You can also choose -silence- or -same music as map- by going all the way to the left.
+
+Choose up to eight enemies defined in the Enemy Editor to be included in this battle formation, and press ENTER or SPACE on them to reposition them onscreen.
+
+NOTE: If you plan on having these enemies spawn new enemies in the middle of the battle (see Spawning in the Enemy Editor), you should also position some of the empty enemy slots to the places you would like the spawning enemies to appear.  To do this, temporarily put an enemy in the empty slot and move it to where the spawned enemy should appear, then make the slot empty again.

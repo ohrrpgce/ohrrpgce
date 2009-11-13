@@ -1,15 +1,19 @@
-This is the text box editor.
+This is the Text Box Editor.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the left and right arrow keys to change which text box you are working on, or type in a text box ID number.
+Use the Left and Right arrow keys to change which text box you are working on, or type in a text box ID number.
+
+To make a new text box (which will be based on the template of text box 0, see below), press the right arrow key on the final text box.
 
 Press ENTER or SPACE to open the various sub-menus.
 
-To find a text box, you can type in the "Search" field and press ENTER
+To find a text box, you can type in the "Search" field and press ENTER.
 
 Press + to add a new text box based on a copy of the currently selected text box.
 
-Press ALT+C to copy the style of a text box (color and other appearance data, but not text)
+Press ALT+C to copy the style of a text box (color and other appearance data, but not text).
 
 Press ALT+V to paste a previously copied text box style onto the currently selected text box. This will not replace the text.
+
+Text box number zero is a special box that will be used as the default template for all new text boxes created. This is helpful if you have a set style that you want all text boxes to follow.

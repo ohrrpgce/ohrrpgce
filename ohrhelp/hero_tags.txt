@@ -1,5 +1,5 @@
 This screen allows you to choose tags that will automatically be turned ON depending on whether or not the hero is in your party.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys to navigate the menu.
 
 Press ENTER or SPACE to open the tag browser.

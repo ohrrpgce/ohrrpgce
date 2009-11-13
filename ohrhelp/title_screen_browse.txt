@@ -1,0 +1,5 @@
+Choose a backdrop to be displayed when the game is opened by the player (before choosing a save file to load).
+
+Use the Left and Right arrow keys to choose a backdrop.
+
+The backdrop must first be imported through the Graphics Editor.

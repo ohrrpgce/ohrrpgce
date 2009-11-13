@@ -1,8 +1,8 @@
 This is the hero appearance editor.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the left or right arrow keys to change values, or you can type in numbers.
+Use the Left or Right arrow keys to change values, or you can type in numbers.
 
 Battle Picture: This is the sprite set that the hero will use in battle mode. You will see a preview standing on the right.
 

@@ -1,0 +1,3 @@
+Type in a name for your text export file.  It will be saved in the same directory as the game itself.
+
+Press ENTER to confirm, or ESC to cancel.

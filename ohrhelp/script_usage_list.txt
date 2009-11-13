@@ -1,0 +1,7 @@
+This is a list of all the places in custom that trigger your scripts, listed in order by script ID number.
+
+You cannot do anything to your scripts from this screen; it is merely to see at a glance where your scripts are being used.
+
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Press ESC to go back to the Script Management menu.

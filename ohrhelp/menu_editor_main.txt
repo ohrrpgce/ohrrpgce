@@ -1,14 +1,14 @@
-This is the menu editor. The translucent menu that fills the screen is used for editing your menu. Behind it is a preview of the in-game menu that you are customizing.
+This is the Menu Editor. The translucent menu that fills the screen is used for editing your menu. Behind it is a preview of the in-game menu that you are customizing.
 
-Use the up and down arrow keys to navigate.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate.
 
-To change which menu you are working on, select "Menu #" and press the left and right arrow keys or type a menu ID number. If you press the right arrow while the last menu is selected, you will be prompted to add a new menu.
+To change which menu you are working on, select "Menu #" and press the Left and Right arrow keys or type a menu ID number. If you press the right arrow while the last menu is selected, you will be prompted to add a new menu.
 
 Name: This is a name for the menu. It is only for your reference, and is not displayed in-game.
 
 Edit Items: Press ENTER or SPACE to edit the menu items that appear in the menu.
 
-Background: Background box style.
+Background: Background box style. There are onlly 15 choices (0-14), but you can change them in the Graphics Editor under User Interface Colors.
 
 Text Color: Press ENTER or SPACE for a color browser.
 
@@ -21,7 +21,7 @@ Edit Bitsets: Press ENTER or SPACE to go to a list of OFF/ON bitsets that config
  *"Never show scrollbar"
 
  *"Allow gameplay & scripts"
-  If this iis turned on then the menu
+  If this is turned on then the menu
   will NOT pause the rest of the
   game. The player will still be able
   to walk around. NPCs will still

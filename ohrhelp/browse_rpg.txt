@@ -1,0 +1,9 @@
+Choose a .RPG file to edit.
+
+Navigate using the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Press ENTER or SPACE on a folder (blue font) to open it.
+
+Press ENTER or SPACE on a file (gray font) to choose it as the game to edit.
+
+Press ESC to cancel and quit.

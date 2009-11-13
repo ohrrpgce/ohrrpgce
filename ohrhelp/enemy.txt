@@ -1,8 +1,8 @@
-This is the enemy editor.  In general, any character/active "thing" present in a battle (besides the heroes) must be defined as an enemy.
+This is the Enemy Editor.  In general, any character/active "thing" present in a battle (besides the heroes) must be defined as an enemy.
 
-Use the up and down arrow keys to navigate through the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate through the menu.
 
-Use the left and right arrow keys to change which enemy you are editing.
+Use the Left and Right arrow keys to change which enemy you are editing.
 
 You can also hold the ALT key and type an enemy ID number.
 

@@ -1,6 +1,6 @@
 This is the item selection menu.
 
-Use the up and down arrow keys to select an item from the list.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to select an item from the list.
 
 Press ENTER or SPACE to start editing an item.
 

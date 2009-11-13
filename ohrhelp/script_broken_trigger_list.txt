@@ -1,0 +1,7 @@
+This screen shows any places in your game where you have set a script to be called that no longer exists.
+
+You cannot fix the problem here; this is merely to see at a glance where broken script triggers are set in your game. You should go to the proper editor and change the trigger there.
+
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Press ESC to return to the Script Management menu.

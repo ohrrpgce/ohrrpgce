@@ -1,0 +1,12 @@
+Use this screen to choose a file to import as a sound effect.
+
+Navigate with the Up and Down arrow keys.
+
+Press ENTER or SPACE on a folder to open it.
+
+Press ENTER or SPACE on a file to choose it to import. Supported file extensions are:
+ -.WAV; .OGG; .MP3
+
+Press ESC to cancel and return to the Sound Effect Menu.
+
+Some default sound effects are provided for you in the "import" folder.

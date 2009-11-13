@@ -1,0 +1,7 @@
+This screen shows a visual guide for the chain(s) that the currently selected attack is involved in.
+
+Use the arrow keys to browse the various attacks in the chain, and press SPACE or ENTER to select an attack.
+
+The selected attack will be placed in the middle column, and all attacks that chain to it will be on the left. Attacks that it can chain to will be shown on the right.
+
+Press ESC to go back and edit the currently selected attack.

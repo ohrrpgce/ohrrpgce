@@ -1,6 +1,6 @@
-This is the hero editor.  Every single character that the player will have control of at some point throughout the game needs to be defined as a separate hero.
+This is the Hero Editor.  Every single character that the player will have control of at some point throughout the game needs to be defined as a separate hero.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
 To change which hero you are working on, select "Pick Hero" and press the left or right arrow keys, or type in a hero ID number.
 

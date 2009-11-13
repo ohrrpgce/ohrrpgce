@@ -1,0 +1,11 @@
+This is the Battle Formation main menu.
+
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Press ESC to go back to the main menu.
+
+Press ENTER or the SPACE bar to enter a submenu.
+
+Choose Edit Individual Formations to create each and every single battle that can occur in the game.
+
+Choose Construct Formation Sets to create sets of battles that the game will choose from when it initiates a random battle on a map.

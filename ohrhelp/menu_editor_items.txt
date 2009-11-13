@@ -1,8 +1,8 @@
 On this screen you can add and edit menu items.
 
-Use the Up and Down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Press ENTER or SPACE on [NEW MENU ITEM]  to add a new menu item to the bottom of the menu.
+Press ENTER or SPACE on [NEW MENU ITEM] to add a new menu item to the bottom of the menu.
 
 To re-order menu items, hold SHIFT and press the up and down arrow keys.
 

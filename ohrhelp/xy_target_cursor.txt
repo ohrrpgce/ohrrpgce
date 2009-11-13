@@ -1,0 +1,1 @@
+This is the Cursor Offset positioner. Move the cursor with the arrow keys, and press ENTER or SPACE when done.  This is where the cursor will appear in game when a player is targetting this enemy.

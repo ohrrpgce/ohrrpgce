@@ -1,7 +1,15 @@
-This is the main menu of the shop editor.
+This is the main menu of the Shop Editor. Shops include Inns and also places to "hire" new heroes.
 
-Up and down arrow keys navigate the menu.
+Up and Down arrow keys (or PgUp, PgDn, Home, and End) navigate the menu.
 
-Press left and right arrow keys on the shop number to change which shop you are editing.
+Press the Left and Right arrow keys on the shop number to change which shop you are editing.
 
-Press ENTER or SPACE to open ssubmenus.
+Press ENTER or SPACE to open the various submenus.
+
+You can give the shop a name here.
+
+The first submenu you should enter will probably be the Edit Shop Bitsets menu, where you can decide what services are available at this shop.
+
+Choose Edit Available Stuff to choose the shop's stock if the shop sells things (marked with Buy, Sell, or Hire in the Edit Shop Bitsets menu).
+
+If the shop includes an inn (marked with Inn in the Edit Shop Bitsets menu), then you can set the price here, and optionally set a script to be run if the player stays here.

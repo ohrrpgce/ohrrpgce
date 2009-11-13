@@ -1,8 +1,8 @@
 This is the item stat bonus editor.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the left and right arrow keys to change values, or type in numbers.
+Use the Left and Right arrow keys to change values, or type in numbers.
 
 Positive numbers will increase the selected stat when the item is equipped.
 

@@ -1,16 +1,16 @@
 This screen allows you to change how
 much damage an attack will do and how it will come up with the numbers.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the left or right arrow keys to change the values.
+Use the Left or Right arrow keys to change the values.
 
 Hold ALT and press the left or right arrow keys to change which attack you are editing, or type in an ID number.
 
 *************************************
 
 Damage Math: Changes the formula for
-how much damage is done. Below are the different formulas you can use and how to use them.
+how much damage is done. The formula for each choice is shown on-screen.  Below are comments on using them.
 
 -Normal: Good for your basic attacks    as the standard formula.
 
@@ -20,28 +20,34 @@ how much damage is done. Below are the different formulas you can use and how to
   halve defense. Effective on low       defense.
 
 -Pure Damage: Ignores defense           entirely, making it better for        attacks with low power, status        effect damage, items that heal for    certain values, and so on.
-  Also great for all powerful,          devistating attacks.
+  Also great for all powerful,          devastating attacks.
 
 -No Damage: Doesn't do damage at all.
   Good if you are making an attack      that isn't a real attack, such as     for graphical effect or for doing     certain kinds of attack chains.
 
 -<Stat> = [N]% of Maximum: Sets the     <target stat> to a percentage of      its maximum value.
 
-  For HP and MP,the max is self         explanatory, but for other stats      it's considered what the stat was     when the battle started.
+  For HP and MP, the max is self        explanatory, but for other stats      it's considered what the stat was     when the battle started.
 
   Good for making stats weaker or       stronger without stacking if used     more than once such as a Haste or     Protect spell.
 
-  If the "percent is damage instead     of set" bitset is turned on, then     this becomes great for things such    as Healing 33% of HP.
+  If the "percent is damage instead     of set" bitset is turned on
+  (bitsets are accessed from the
+  previous menu), then this becomes
+  great for things such as Healing
+  33% of HP.
 
   The percent, [N]%, can be changed     by changing the 'Extra Damage'        number.
 
--<Stat> = [N]% of Current: Much like    above, but instead of using the       maximum value, it changes based on    what the stat currenty is.
+-<Stat> = [N]% of Current: Much like    above, but instead of using the       maximum value, it changes based on    what the stat currently is.
 
 *************************************
 
-Base Attack Stat: What the "attack"    is in a formula. The stats            themselves are self-explanatory in    use, so here are explanations as to   some of the special values.
+Base Attack Stat: What the word ATK 
+  is in the formula. The stats
+  themselves are self-explanatory in    use, so here are explanations as to   some of the special values.
 
--Previous Attack: The same base         attack as the last attack             performed. Can be considered          Mime-like at least in what the        strength of the attack is.
+-Previous attack: The same base         attack as the last attack             performed. Can be considered          Mime-like at least in what the        strength of the attack is.
 
 -Last damage to attacker: The           strength of the attack here will be   based on how much damage the last     attack did to them.
 
@@ -59,7 +65,8 @@ Base Attack Stat: What the "attack"    is in a formula. The stats            the
 
   Use the extra damage to potentially   raise and lower the range of damage   this will do (EX: 1000% will make     this attack 0-9999, while 10% will    make it 0-99).
 
-  Keep in mind, this is a base          attack,not the end damage value,      so you may want to use Pure Damage    in conjunction unless you prefer      Defense to be factored in.
+  Keep in mind, this is a base          attack, not the end damage value,
+  so you may want to use Pure Damage    in conjunction unless you prefer      Defense to be factored in.
 
 -100: Doesn't seem special. Just 100    base attack, but this is actually     very useful in combination with       extra damage in order to get          specific values you may want for an   attack.
 
@@ -69,7 +76,10 @@ Base Attack Stat: What the "attack"    is in a formula. The stats            the
 
 *************************************
 
-Base Defense Stat: What the base       defense in the damage formula will    be. There are no special values here  other than the list of stats.
+Base Defense Stat: What the word DEF
+ in the damage formula will be. There
+ are no special values here other
+ than the list of stats.
 
 *************************************
 
@@ -79,13 +89,13 @@ Target Stat: What stat you want to     actually change. Normally HP, but     can
 
 -Poison Register: The more damage       inflicted to this, the more           poisoned the character/enemy will     be.
 
-  Take care that the poison register    actually increases with damage, so    when using "set poison register to    [N]% of maximum" that 0% is           severely poisoned,and 100% is         complely cured.
+  Take care that the poison register    actually increases with damage, so    when using "set poison register to    [N]% of maximum" that 0% is           severely poisoned, and 100% is        complely cured.
 
 -Stun Register: The more damage         inflicted to this, the longer the     stun duration lasts. Each 1 damage    is equal to 1 second of stun.
 
   As with Poison, 0% of maximum is      heavily stunned and 100% is no stun   at all.
 
--Regen Register: The opposite of        poison, where you are being           periodically cured instead of         damaged.
+-Regen Register: The opposite of        poison, where the hero is  being      periodically cured instead of         damaged.
 
   Despite being a curing status         effect, you still have to damage      the Regen register to make its        effect increase, while curing it      will remove Regen much like the       other status effects.
 
@@ -93,7 +103,7 @@ Target Stat: What stat you want to     actually change. Normally HP, but     can
 
 *************************************
 
-Extra Damage: Increse in percentage    (100% = 2x, 1000% = 11x, etc..) in    how much more (or less) damage is     done. Values above 0% increase the    damage, and values below decrease     it.
+Extra Damage: Increase in percentage   (100% = 2x, 1000% = 11x, etc..) in    how much more (or less) damage is     done. Values above 0% increase the    damage, and values below decrease     it.
 
 *************************************
 
@@ -101,18 +111,30 @@ Aim Math: Basically how accurate       attacks are. Normal, Poor, and Bad    all
 
  Besides Normal, Poor, and Bad, here   is an explantion of other accuracy    values.
 
--Never Misses: Ensures that the        attack always hits no matter what.    Great for many purposes, such as      healing spells or attacks that serve  other purposes.
+-Never Misses: Ensures that the         attack always hits no matter what.    Great for many purposes, such as      healing spells or attacks that        serve other purposes.
 
--Magic: Uses different stats to        emphasize magical aptitude and enemy  resistace to magic to determine       whether an attack hits, rather than   normal accuracy means. Its use is     rather self-explanatory.
+-Magic: Uses different stats to         emphasize magical aptitude and
+  enemy resistace to magic to
+  determine whether an attack hits,
+  rather than normal accuracy means.
+  Its use is rather self-explanatory.
 
--Percentage based formulas: These      formulas are designed to give a       different accuracy rating (0-100%)    and can allow much control over how   accurate you want your attacks to     be.
+-Percentage based formulas: These       formulas use the stats as
+  percentages out of 100 to determine
+  the success rate of attacks.  The
+  symbol * here means that the first
+  percentage is taken into account,
+  and then if it was successful the
+  second percentage is used to decide
+  if the target avoided the attack.
 
 *************************************
 
-Number of hits: Self-explanatory, how  many hits you want the attack to do.
+Number of Hits: Self-explanatory, how
+ many hits you want the attack to
+ do.
 
 *************************************
 
-Delay before attack: How long it       takes (measured in ticks) before the  attack is executed.
-
-*************************************
+Delay Before Attack: How long it       takes (measured in ticks) before
+ the attack is executed.

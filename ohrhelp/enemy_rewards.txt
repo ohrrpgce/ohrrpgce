@@ -1,8 +1,8 @@
 This is the enemy rewards menu. Here you can set the rewards that the hero will receive when they defeat this enemy.
 
-Use the up and down arrow keys to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
-Use the left and right arrow keys to change values, or you can type in numbers.
+Use the Left and Right arrow keys to change values, or you can type in numbers.
 
 Hold the ALT key to see the name of the enemy that you are editing. While holding ALT you can use the left and right arrow keys to change which enemy you are editing, or you can type in an enemy ID number.
 

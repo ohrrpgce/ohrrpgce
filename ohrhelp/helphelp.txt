@@ -1,6 +1,6 @@
 Help on Help
 
-Aha! Clever! You discovered the Help on Help screen! Obviously you already know that pressing F1 will show you the help screen. You probably also know the pressing ESC will exit the help screen.
+Aha! Clever! You discovered the Help on Help screen! Obviously you already know that pressing F1 will show you the help screen. You probably also know that pressing ESC will exit the help screen.
 
 You may also know that you can use the up and down arrow keys to scroll through long help screens.
 

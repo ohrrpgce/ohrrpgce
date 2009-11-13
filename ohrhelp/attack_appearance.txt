@@ -1,14 +1,14 @@
 This is the attack appearance editor.
 
-Use the up and down arrow keys to navigate through the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate through the menu.
 
-Use the left and right arrow keys to change values, or you can type in numbers.
+Use the Left and Right arrow keys to change values, or you can type in numbers.
 
 You can also hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
 
 Picture: This is the sprite set used by this attack in battle.
 
-Palette: This should normally be "default", but you can press ENTER or SPACE if you want to browse other palettes to use for the sprite.
+Palette: "default" is the palette you used to draw the sprite, but you can change it by pressing ENTER or SPACE if you want to browse other palettes to use for the sprite.
 
 Attack Animation: Here you can choose between several different animations with the left and right arrow keys.
 
@@ -20,11 +20,11 @@ Attack Animation: Here you can choose between several different animations with 
 
 * Reverse Projectile - The attack
    moves from the target to the
-   attacker
+   attacker.
 
 * Drop - The attack falls straight
    down from the sky and lands on the
-   target
+   target.
 
 * Ring - When used against a single
    target, 8 attack sprites appear in
@@ -54,11 +54,11 @@ Attack Animation: Here you can choose between several different animations with 
 
 * Meteor - The attack falls
    diagonally from the top of the
-   screen and strikes the target
+   screen and strikes the target.
 
-* Driveby - The moves across the
-   whole screen from the attacker's
-   side to he targets side, striking
+* Driveby - The attack moves across
+   the screen from the attacker's
+   side to the target's, striking
    the target as it passes.
 
 * Null - No animation at all. This is
@@ -79,12 +79,12 @@ Animation Pattern: This affects how the three frames of the attack's sprite set 
 * Random - The frames cycle randomly
   with no pattern.
 
-Attacker animation: This controls how the attacker moves when doing the attack.
+Attacker Animation: This controls how the attacker moves when doing the attack.
 
 * Strike - When used by a hero, the
   hero steps forward, swings its
-  weapon, and step back. When used by
-  an enemy, the enemy twitches.
+  weapon, and steps back. When used
+  by an enemy, the enemy twitches.
 
 * Cast - When used by a hero, the
   hero steps forward, shows its
@@ -120,17 +120,18 @@ Attacker animation: This controls how the attacker moves when doing the attack.
 
 * Standing Cast - If used by a hero, 
   the hero will show its casting
-  animation frame. It will not move.
-  Does nothing if used by an enemy.
+  animation frame without stepping
+  forward. Does nothing if used by an
+  enemy.
 
 * Teleport - The attacker vanishes
   and reappears close to the target,
-  then attacks, the disappears and
+  attacks, and then disappears and
   reappears in its starting point. If
   this attack is used by a hero, the
   hero's weapon will display.
 
-Caption: A line of text that can be displayed at the bottom of the string whenever the attack is used.
+Caption: A line of text that will be displayed at the bottom of the screen whenever the attack is used.
 
 Display Caption: Controls how long the attack caption is displayed. Press left and right arrow keys to change this value. This can be one of:
 
@@ -153,6 +154,6 @@ Display Caption: Controls how long the attack caption is displayed. Press left a
 
 Delay Before Caption: Allows you to specify a delay in game ticks before the caption appears. This can be useful for attacck animations that have a long lead-in, or for captions that are supposed to represent something that the attacker says after the attack has completed.
 
-Sound Effect: Use the left and right arrow keys to select a sound effect. You can press ENTER or SPACE to preview the currently selected effect. The sound effect will be played whenever the attack is used (both inside battle, or outside battle)
+Sound Effect: Use the left and right arrow keys to select a sound effect. You can press ENTER or SPACE to preview the currently selected effect. The sound effect will be played whenever the attack is used (both inside battle and outside battle)
 
 You can also specify a sound effect that wll be played when the attack is learned as a spell from a level-up or by using an item.

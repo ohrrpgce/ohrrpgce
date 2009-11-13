@@ -1,0 +1,59 @@
+This is the General Game Data Editor, where you can edit various aspects of your game that didn't seem to fit in any of the other menues.
+
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Press ENTER or the SPACE bar to enter various submenus.
+
+Long Name: Type in a "full" name for your game here (as opposed to the file name).
+
+About Line: Type in some info about your game to appear when the player is selecting what game to play.
+
+Preference Bitsets: Enter a bitset menu where you an choose certain options about your game. Most of these are self-explanatory, but here are a few notes:
+
+ * "Pause on Battle Submenus" pauses
+  the game while the player is
+  browsing item and spell menus, but
+  not while he is choosing an option
+  from the main battle menu (Attack,
+  Spell-list, Spell-list, Item).
+
+ * "Enable Caterpillar Party" makes
+  heroes in the active party appear
+  behind the leader, following him
+  while walking around.
+
+ * The "debugging keys" are special
+  keys that help with testing a game,
+  but could be used to cheat (like
+  allowing the player to walk through
+  walls).  See the OHR wiki for more
+  info on the various debugging keys.
+
+ * The "Simulate __ bug" bitsets are
+  for backwards compatability with
+  old games, and should most likely
+  be left turned off.
+
+Pick Title Screen: Choose a fullscreen backdrop to appear when the game is opened by the player (before choosing a save file).  You must import the backdrop in the Graphics Editor first.
+
+New Game Settings: Set initialization data for the player when they start a new game (such as initial money).
+
+Special Plotscripts: Choose plotscripts to be run when the player begins a game, or loads a saved game, or dies.
+
+Master Palettes: Your game can have more than one master palette available. See the submenu help file for more info.
+
+Global Music and Sound Effects: Set a wide range of default music and sounds for various aspects of your game.
+
+Stat Caps: See maximum values for battle stats and damage.
+
+Password for Editing: Set a password to be required to open the game with custom.exe (people will still be able to play the game with game.exe, obviously).
+
+Status Indicators: Choose a special font character that will stand for a status affliction so that the player can see when his heroes are afflicted. There is currently no support for Status Indicators for enemies. Press ENTER to see all of your font characters available.
+
+Enemy Dissolve: Use the Left and Right arrow keys to choose a default animation for enemies to perform when they die. This can be overriden on a case-by-case basis in the Enemy Editor.
+
+Inventory Size: This is the number of rows available for the player's item inventory. Type in a number and the screen will show you how many actual item slots will result (there are three slots in a row).
+
+Damage Display Time: Type in the number of ticks for damage numbers to show onscreen during a battle.
+
+Damage Display Rises: Type in the number of pixels for damage numbers to rise when shown during a battle.

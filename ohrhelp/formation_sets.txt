@@ -1,0 +1,11 @@
+This is the Formation Set Editor.  You can define sets of battle formations for the computer to choose from when a random battle is triggered.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
+
+Use the Left and Right arrow keys to change numbers.  You can also type in numbers.
+
+<Formation Set #>: Change what formation set you are working on.  This number will be used in the Map Editor when assigning random battles to tiles.
+
+Battle Frequency: Change how frequently tiles that are assigned this formation set will trigger a random battle.
+
+Assign up to 20 battle formations to be included in this set. If you would like certain formations to appear more than others, you should list them more than once in the set.
