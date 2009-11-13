@@ -121,6 +121,7 @@ DECLARE SUB setkeys ()
 DECLARE SUB clearkey (byval k as integer)
 DECLARE FUNCTION havemouse () as integer
 DECLARE SUB hidemousecursor ()
+DECLARE SUB unhidemousecursor ()
 DECLARE SUB readmouse (mbuf() as integer)
 DECLARE SUB movemouse (BYVAL x as integer, BYVAL y as integer)
 DECLARE SUB mouserect (BYVAL xmin as integer, BYVAL xmax as integer, BYVAL ymin as integer, BYVAL ymax as integer)

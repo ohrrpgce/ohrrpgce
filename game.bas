@@ -192,6 +192,9 @@ setfont font()
 
 keyboardsetup
 
+'init mouse
+unhidemousecursor
+
 'DEBUG debug "set up default controls"
 defaultc
 

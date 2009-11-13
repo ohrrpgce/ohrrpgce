@@ -225,7 +225,7 @@ sub io_updatekeys(byval keybd as integer ptr)
 end sub
 
 sub io_setmousevisibility(byval visible as integer)
-	setmouse , , visible
+	setmouse , , abs(sgn(visible))
 end sub
 
 sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)

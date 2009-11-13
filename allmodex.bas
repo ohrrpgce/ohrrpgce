@@ -2545,6 +2545,10 @@ SUB hidemousecursor ()
 	io_setmousevisibility(0)
 end SUB
 
+SUB unhidemousecursor ()
+	io_setmousevisibility(-1)
+end SUB
+
 SUB readmouse (mbuf() as integer)
 	dim as integer mx, my, mw, mb, mc
 
