@@ -329,7 +329,7 @@ DO:
  printstr version_code$, 0, 176, dpage
  printstr version_build$, 0, 184, dpage
  textcolor uilook(uiText), 0
- printstr "Press F1 for help on (almost) any menu!", 0, 192, dpage
+ printstr "Press F1 for help on any menu!", 0, 192, dpage
 
  SWAP vpage, dpage
  setvispage vpage
