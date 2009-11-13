@@ -1331,6 +1331,9 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite)
 
  END SELECT
 
+ '--Now copy the target into the queue
+ queue_attack bslot(), who
+
 END SUB
 
 SUB confirm_auto_spread (who, tmask(), bslot() AS BattleSprite)

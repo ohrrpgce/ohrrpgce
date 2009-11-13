@@ -6,6 +6,7 @@
 
 #include "udts.bi"
 #include "game_udts.bi"
+#include "battle_udts.bi"
 #include "slices.bi"
 
 'Misc game globals
@@ -108,6 +109,7 @@ EXTERN plotstr() as Plotstring
 EXTERN lastformation as integer
 EXTERN bstackstart as integer
 EXTERN learnmask() as integer
+EXTERN atkq() as AttackQueue
 
 EXTERN timers() as PlotTimer
 

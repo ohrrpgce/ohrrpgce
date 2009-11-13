@@ -51,4 +51,11 @@ DECLARE FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackDat
 DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
 DECLARE FUNCTION valid_statnum(statnum AS INTEGER, cmd AS STRING) AS INTEGER
 DECLARE FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
+
+DECLARE SUB queue_attack OVERLOAD (bslot() AS BattleSprite, who AS INTEGER)
+DECLARE SUB queue_attack OVERLOAD (attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
+DECLARE SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
+DECLARE SUB clear_attack_queue()
+DECLARE SUB clear_attack_queue_slot(slot AS INTEGER)
+DECLARE SUB display_attack_queue (bslot() AS BattleSprite)
 #ENDIF

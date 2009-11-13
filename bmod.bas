@@ -71,6 +71,8 @@ DIM conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
 DIM bat AS BattleState
+REDIM atkq(15) AS AttackQueue
+clear_attack_queue()
 DIM bslot(24) AS BattleSprite
 DIM vic AS VictoryState
 DIM as double timinga, timingb
@@ -91,6 +93,7 @@ WITH inv_scroll_rect
  .wide = 292
  '.high set later
 END WITH
+DIM show_info_mode AS INTEGER = 0
 
 'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
 gam.remembermusic = presentsong
@@ -185,7 +188,7 @@ DO
   '--debug keys
   IF keyval(scF4) > 1 THEN away = 11 ' Instant-cheater-running
   IF keyval(scF5) > 1 THEN rew.exper = 1000000  'Million experience!
-  IF keyval(scF11) > 1 THEN vis = vis XOR 1  'Draw debug info
+  IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
  END IF
  IF keyval(scNumlock) > 1 THEN GOSUB pgame '--PAUSE
  '--running away
@@ -258,7 +261,11 @@ DO
  GOSUB display
  IF vic.state = vicEXITDELAY THEN vic.state = vicEXIT
  IF vic.state > 0 THEN show_victory vic, rew, exstat(), bslot()
- IF vis = 1 THEN GOSUB seestuff
+ IF show_info_mode = 1 THEN
+  GOSUB seestuff
+ ELSEIF show_info_mode = 2 THEN
+  display_attack_queue bslot()
+ END IF
  IF bat.death_mode = deathENEMIES AND vic.state = 0 THEN
   IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory vic, rew, bslot(), exstat()
  END IF
@@ -741,6 +748,7 @@ FOR i = 0 TO 11
   IF bat.targ.hit_dead THEN bslot(bat.hero_turn).keep_dead_targs(i) = YES
  END IF
 NEXT i
+queue_attack bslot(), bat.hero_turn
 ctr(bat.hero_turn) = 0
 bslot(bat.hero_turn).ready = NO
 bat.hero_turn = -1
@@ -2890,6 +2898,9 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
   IF chained_attack.targ_set <> attack.targ_set OR chained_attack.targ_class <> attack.targ_class THEN
    'if the chained attack has a different target class/type then re-target
    autotarget bat.acting, chained_attack, bslot()
+  ELSEIF bslot(bat.acting).attack > 0 THEN
+   'if the old target info is reused, and this is not an immediate chain, copy it to the queue
+   queue_attack bslot(), bat.acting
   END IF
 
   RETURN YES '--chained attack okay
@@ -2928,3 +2939,68 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
  
  RETURN NO
 END FUNCTION
+
+SUB queue_attack(bslot() AS BattleSprite, who AS INTEGER)
+ queue_attack bslot(who).attack - 1, who, bslot(who).t()
+END SUB
+
+SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
+ FOR i AS INTEGER = 0 TO UBOUND(atkq)
+  IF atkq(i).used = NO THEN
+   'Recycle a queue slot
+   set_attack_queue_slot i, attack, who, targs(), blocking
+   EXIT SUB
+  END IF
+ NEXT i
+ 'No spaces to recycle, grow the queue
+ DIM oldbound AS INTEGER = UBOUND(atkq)
+ REDIM PRESERVE atkq(oldbound + 16) AS AttackQueue
+ FOR i AS INTEGER = oldbound + 2 TO UBOUND(atkq)
+  clear_attack_queue_slot i
+ NEXT i
+ set_attack_queue_slot oldbound + 1, attack, who, targs(), blocking
+END SUB
+
+SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
+ WITH atkq(slot)
+  .used = YES
+  .attack = attack
+  .attacker = who
+  FOR i AS INTEGER = 0 TO UBOUND(.t)
+   .t(i) = targs(i)
+  NEXT i
+  .blocking = blocking
+ END WITH
+END SUB
+
+SUB clear_attack_queue()
+ FOR i AS INTEGER = 0 TO UBOUND(atkq)
+  clear_attack_queue_slot i
+ NEXT i
+END SUB
+
+SUB clear_attack_queue_slot(slot AS INTEGER)
+ WITH atkq(slot)
+  .used = NO
+  .attack = -1
+  .attacker = -1
+  FOR i AS INTEGER = 0 TO UBOUND(.t)
+   .t(i) = -1
+  NEXT i
+  .blocking = YES
+ END WITH
+END SUB
+
+SUB display_attack_queue (bslot() AS BattleSprite)
+ DIM s AS STRING
+ FOR i AS INTEGER = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used THEN
+    s = i & " " & bslot(.attacker).name & "(" & .attacker & ") " & readattackname(.attack) & "(" & .attack & ") " & yesorno(.blocking, "B", "Q")
+   ELSE
+    s = STR(i)
+   END IF
+   edgeprint s, 0, i * 10, uilook(uiText), dpage
+  END WITH
+ NEXT i
+END SUB
