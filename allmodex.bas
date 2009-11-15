@@ -2908,7 +2908,7 @@ SUB sprite_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor
 		fput(of, , sptr, fr->w) 'equivalent to "put #of, , *sptr, fr->w"
 		sptr -= fr->pitch
 		'write some interesting dummy data
-		put #of, , @argb, skipbytes
+		fput(of, , fr->image, skipbytes)
 	next
 
 	close #of
@@ -2947,7 +2947,7 @@ SUB sprite_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor
 		end if
 		sptr -= fr->pitch
 		'write some interesting dummy data
-		put #of, , @argb, skipbytes
+		fput(of, , fr->image, skipbytes)
 	next
 
 	close #of
