@@ -2183,7 +2183,7 @@ SUB scripterr (e AS STRING, errorlevel as integer = 4)
  state.pt = 0
  DIM menu AS MenuDef
  menu.anchor.y = -1
- menu.offset.y = -100 + 35 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
+ menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4
 
  append_menu_item menu, "Ignore"

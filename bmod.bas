@@ -2819,8 +2819,8 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
  bat.targ.mode = targMANUAL
 END SUB
 
-FUNCTION valid_statnum(statnum AS INTEGER, cmd AS STRING) AS INTEGER
- RETURN bound_arg(statnum, 0, 15, cmd, "stat number")
+FUNCTION valid_statnum(statnum AS INTEGER, context AS STRING) AS INTEGER
+ RETURN bound_arg(statnum, 0, 15, "stat number", context, NO)
 END FUNCTION
 
 FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER

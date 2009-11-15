@@ -1,5 +1,5 @@
 ;Some Emacs Lisp routines for manipulating FB source files
-
+;because visual-basic-mode is unusable for FB
 
 (defmacro override-optional (override bindings &rest body)
   "If override, for each pair (sym1 sym2) in bindings temporarily (in body) set the \
@@ -13,6 +13,7 @@ function cell of sym1 to sym2, as in (setf 'sym1 'sym2)"
 	     body))
     (cons 'progn body)))
 
+
 (defun add-line-copy-indent ()
   "Add a new line after this one, beginning with exactly the same whitespace."
   (interactive)
@@ -23,6 +24,22 @@ function cell of sym1 to sym2, as in (setf 'sym1 'sym2)"
   (yank)
   (pop-mark))
 
+
+(defun fb-narrow-to-arglist ()
+  "Assuming point is after a function or sub name, narrow buffer to its arglist,
+not including parentheses if any."
+  (interactive)
+  (skip-chars-forward " \t")
+  (cond ((= (char-after) ?\( )	;function
+	 (narrow-to-region (1+ (point))
+			   (save-excursion (forward-sexp) (1- (point)))))
+	(t			;sub
+					;not good enough: doesn't correctly restrict from inside a one-line IF
+	 (narrow-to-region (point)
+			   (save-excursion (re-search-forward "[^_]$"))))))
+
+
+;TODO: turn this into a func to move over expressions
 (defun fb-mark-arg (args &optional limit)
   "In the middle of an argument list, set the region around the args-th arg on from point."
   (interactive "nSkip forward how many args? ")
@@ -45,25 +62,48 @@ function cell of sym1 to sym2, as in (setf 'sym1 'sym2)"
 ;  (when (> args 0) (backward-char)))
 
 
-(defun fb-search-forward-by-argno (funcname n)
-  "Searches forward for the next call of a function/sub matching a regex with at least n args
+(defun fb-enum-args ()
+  "Assuming point is after a function or sub name, which has n arguments,
+return a list length n+1 of the positions of each argument plus the end of arglist."
+  (save-excursion
+    (save-restriction
+      (fb-narrow-to-arglist)
+      (let (char
+	    (argno 1)
+	    (ret (list (point))))
+	(while		;when search fails, go to limit and break if on last arg
+	    (re-search-forward "[,(\"]" nil 0)
+	  (setq char (char-before))
+	  (cond ((char-equal char ?\( ) (backward-char) (forward-sexp 1))
+	      ((char-equal char ?, ) (setq ret (append ret (list (1- (point))))))
+					;I assume forward-sexp uses normal escape codes, not ideal
+	      ((char-equal char ?\") (backward-char) (forward-sexp 1))))
+	(when (< (point) (buffer-end 1)) (backward-char))
+	(append ret (list (point)))))))
 
-Places point after the n-th (counted from 1) arg, and mark at the comma before it.
+
+(defun fb-search-forward-by-argno (funcname n)
+  "Searches forward for the next call of a function/sub matching a regex with at least abs(n) args.
+
+Specify the argument number either with positive n starting from 1,
+or negative n starting from -1 to count from the end of the arglist backwards.
+Places point after the argument, and mark before it.
 Assumes function syntax is being used iff a ( follows the function name."
+
   (interactive "sFunction/Sub name? \nnArgument number? ")
   (setq case-fold-search t)
-  (while
-      (progn 
-	(re-search-forward funcname)
-	(skip-chars-forward " \t")
-	(condition-case nil
-	    (progn (fb-mark-arg n
-				(cond ((= (char-after) ?\( )   ;function
-				       (prog1 (save-excursion (forward-sexp) (1- (point)))
-					 (forward-char)))
-				      (t    ;sub
-					;not good enough: doesn't correctly restrict from inside a one-line IF
-				       (save-excursion (re-search-forward "[^_]$")))))
-					;if fb-mark-arg runs without errors, stop the loop, otherwise assume not enough args, repeat
-		   nil)
-	  (error (pop-mark) t)))))
+  (let (argloc argnum argno)
+    (while
+	(progn 
+	  (re-search-forward (concat funcname "[a-z_]*"))
+	  (skip-chars-forward " \t")
+	  (setq argloc (fb-enum-args))
+	  (setq argnum (1- (length argloc)))
+	  (setq argno (if (< n 0)
+			  (+ n argnum 1)
+			n))
+					;skip if this call does not have enough arguments
+	  (or (<= argno 0) (> argno argnum))))
+    (push-mark (elt argloc (1- argno)))
+    (goto-char (elt argloc argno))))
+

@@ -150,7 +150,7 @@ DECLARE SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS I
 DECLARE SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF where AS XYPair)
 DECLARE FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0) as integer
 
-DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING, fromscript AS INTEGER=YES) AS INTEGER
+DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTRING PTR, context AS ZSTRING PTR=nulzstr, fromscript AS INTEGER=YES) AS INTEGER
 
 DECLARE FUNCTION load_tag_name (index AS INTEGER) AS STRING
 DECLARE SUB save_tag_name (tagname AS STRING, index AS INTEGER)

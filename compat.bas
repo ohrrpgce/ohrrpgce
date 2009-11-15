@@ -14,6 +14,8 @@ option explicit
 
 extern workingdir, game
 
+dim nulzstr as zstring ptr  '(see compat.bi)
+
 declare SUB debug (s$)
 
 'Gosub workaround

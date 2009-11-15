@@ -1545,9 +1545,9 @@ WITH scrat(nowscript)
     END IF
     evalitemtag
    CASE 24'--force equip
-    IF bound_hero_party(retvals(0), "force equip") THEN
+    IF valid_hero_party(retvals(0)) THEN
      i = retvals(0)
-     IF bound_item(retvals(2), "force equip") THEN
+     IF valid_item(retvals(2)) THEN
       unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 0
       doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat()
      END IF
@@ -1580,8 +1580,8 @@ WITH scrat(nowscript)
      scriptret = 0
     END IF
    CASE 56'--set default weapon
-    IF bound_hero_party(retvals(0), "set default weapon") THEN
-     IF bound_item(retvals(1), "set default weapon") THEN
+    IF valid_hero_party(retvals(0)) THEN
+     IF valid_item(retvals(1)) THEN
       '--identify new default weapon
       newdfw = retvals(1) + 1
       '--remember old default weapon
@@ -1791,29 +1791,29 @@ WITH scrat(nowscript)
    CASE 267'--main menu
     add_menu 0
    CASE 274'--open menu
-    IF bound_arg(retvals(0), 0, gen(genMaxMenu), "open menu", "menu ID") THEN
+    IF bound_arg(retvals(0), 0, gen(genMaxMenu), "menu ID") THEN
      scriptret = add_menu(retvals(0), (retvals(1) <> 0))
     END IF
    CASE 275'--read menu int
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "read menu int") THEN
+    IF valid_menuslot(menuslot) THEN
      scriptret = read_menu_int(menus(menuslot), retvals(1))
     END IF
    CASE 276'--write menu int
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "write menu int") THEN
+    IF valid_menuslot(menuslot) THEN
      write_menu_int(menus(menuslot), retvals(1), retvals(2))
     END IF
    CASE 277'--read menu item int
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "read menu item int") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      WITH menus(menuslot)
       IF .items(mislot).exists THEN scriptret = read_menu_item_int(.items(mislot), retvals(1))
      END WITH
     END IF
    CASE 278'--write menu item int
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "write menu item int") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      WITH menus(menuslot)
       IF .items(mislot).exists THEN write_menu_item_int(.items(mislot), retvals(1), retvals(2))
      END WITH
@@ -1823,7 +1823,7 @@ WITH scrat(nowscript)
     menus(topmenu).allow_gameplay = YES
    CASE 280'--close menu
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "close menu") THEN
+    IF valid_menuslot(menuslot) THEN
      remove_menu menuslot
     END IF
    CASE 281'--top menu
@@ -1832,12 +1832,12 @@ WITH scrat(nowscript)
     END IF
    CASE 282'--bring menu forward
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "bring menu forward") THEN
+    IF valid_menuslot(menuslot) THEN
      bring_menu_forward menuslot
     END IF
    CASE 283'--add menu item
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "add menu item") THEN
+    IF valid_menuslot(menuslot) THEN
      i = append_menu_item(menus(menuslot), "")
      IF i >= 0 THEN
       scriptret = assign_menu_item_handle(menus(menuslot).items(i))
@@ -1848,7 +1848,7 @@ WITH scrat(nowscript)
     END IF
    CASE 284'--delete menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "delete menu item") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      WITH menus(menuslot)
       ClearMenuItem .items(mislot)
       SortMenuItems .items()
@@ -1857,27 +1857,27 @@ WITH scrat(nowscript)
     END IF
    CASE 285'--get menu item caption
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "get menu item caption") THEN
-     IF bound_plotstr(retvals(1), "get menu item caption") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+     IF valid_plotstr(retvals(1)) THEN
       plotstr(retvals(1)).s = get_menu_item_caption(menus(menuslot).items(mislot), menus(menuslot))
      END IF
     END IF
    CASE 286'--set menu item caption
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "set menu item caption") THEN
-     IF bound_plotstr(retvals(1), "set menu item caption") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+     IF valid_plotstr(retvals(1)) THEN
       menus(menuslot).items(mislot).caption = plotstr(retvals(1)).s
      END IF
     END IF
    CASE 287'--get level mp
-    IF bound_hero_party(retvals(0), "get level mp") THEN
-     IF bound_arg(retvals(1), 0, 7, "get level mp", "mp level") THEN
+    IF valid_hero_party(retvals(0)) THEN
+     IF bound_arg(retvals(1), 0, 7, "mp level") THEN
       scriptret = lmp(retvals(0), retvals(1))
      END IF
     END IF
    CASE 288'--set level mp
-    IF bound_hero_party(retvals(0), "set level mp") THEN
-     IF bound_arg(retvals(1), 0, 7, "set level mp", "mp level") THEN
+    IF valid_hero_party(retvals(0)) THEN
+     IF bound_arg(retvals(1), 0, 7, "mp level") THEN
       lmp(retvals(0), retvals(1)) = retvals(2)
      END IF
     END IF
@@ -1887,7 +1887,7 @@ WITH scrat(nowscript)
     END IF
    CASE 290'--previous menu
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "previous menu") THEN
+    IF valid_menuslot(menuslot) THEN
      menuslot = menuslot - 1
      IF menuslot >= 0 THEN
       scriptret = menus(menuslot).handle
@@ -1895,7 +1895,7 @@ WITH scrat(nowscript)
     END IF
    CASE 291'--next menu
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "next menu") THEN
+    IF valid_menuslot(menuslot) THEN
      menuslot = menuslot + 1
      IF menuslot <= topmenu THEN
       scriptret = menus(menuslot).handle
@@ -1903,53 +1903,53 @@ WITH scrat(nowscript)
     END IF
    CASE 292'--menu item by slot
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "menu item by slot") THEN
+    IF valid_menuslot(menuslot) THEN
      scriptret = menu_item_handle_by_slot(menuslot, retvals(1), retvals(2)<>0)
     END IF
    CASE 293'--previous menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "previous menu item") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      scriptret = menu_item_handle_by_slot(menuslot, mislot - 1, retvals(1)<>0)
     END IF
    CASE 294'--next menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "next menu item") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      scriptret = menu_item_handle_by_slot(menuslot, mislot - 1, retvals(1)<>0)
     END IF
    CASE 295'--selected menu item
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "selected menu item") THEN
+    IF valid_menuslot(menuslot) THEN
      scriptret = menu_item_handle_by_slot(menuslot, mstates(menuslot).pt)
     END IF
    CASE 296'--select menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "select menu item") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      mstates(menuslot).pt = menu_item_handle_by_slot(menuslot, mislot)
      mstates(menuslot).need_update = YES
     END IF
    CASE 297'--parent menu
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "parent menu") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      scriptret = menus(menuslot).handle
     END IF
    CASE 298'--get menu ID
     menuslot = find_menu_handle(retvals(0))
-    IF bound_menuslot(menuslot, "get menu ID") THEN
+    IF valid_menuslot(menuslot) THEN
      scriptret = menus(menuslot).record
     END IF
    CASE 299'--swap menu items
     DIM AS INTEGER menuslot2, mislot2
     mislot = find_menu_item_handle(retvals(0), menuslot)
     mislot2 = find_menu_item_handle(retvals(1), menuslot2)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "swap menu items") THEN
-     IF bound_menuslot_and_mislot(menuslot2, mislot2, "swap menu items") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
+     IF valid_menuslot_and_mislot(menuslot2, mislot2) THEN
       SWAP menus(menuslot).items(mislot), menus(menuslot2).items(mislot2)
       mstates(menuslot).need_update = YES
       mstates(menuslot2).need_update = YES
      END IF
     END IF
    CASE 300'--find menu item caption
-    IF bound_plotstr(retvals(1), "find menu item caption") THEN
+    IF valid_plotstr(retvals(1)) THEN
      menuslot = find_menu_handle(retvals(0))
      DIM start_slot AS INTEGER
      IF retvals(3) = 0 THEN
@@ -1957,13 +1957,13 @@ WITH scrat(nowscript)
      ELSE
       start_slot = find_menu_item_handle_in_menuslot(retvals(3), menuslot) + 1
      END IF
-     IF bound_menuslot_and_mislot(menuslot, start_slot, "find menu item caption") THEN
+     IF valid_menuslot_and_mislot(menuslot, start_slot) THEN
       mislot = find_menu_item_slot_by_string(menuslot, plotstr(retvals(1)).s, start_slot, (retvals(2) <> 0))
       IF mislot >= 0 THEN scriptret = menus(menuslot).items(mislot).handle
      END IF
     END IF
    CASE 301'--find menu ID
-    IF bound_arg(retvals(0), 0, gen(genMaxMenu), "find menu ID", "menu ID") THEN
+    IF bound_arg(retvals(0), 0, gen(genMaxMenu), "menu ID") THEN
      menuslot = find_menu_id(retvals(0))
      IF menuslot >= 0 THEN
       scriptret = menus(menuslot).handle
@@ -1978,13 +1978,13 @@ WITH scrat(nowscript)
     END IF
    CASE 303'--menu item slot
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "menu item slot") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      scriptret = mislot
     END IF
    CASE 304'--outside battle cure
-    IF bound_arg(retvals(0), 0, gen(genMaxAttack), "outside battle cure", "attack ID") THEN
-     IF bound_hero_party(retvals(1), "outside battle cure") THEN
-      IF bound_hero_party(retvals(2), "outside battle cure", -1) THEN
+    IF bound_arg(retvals(0), 0, gen(genMaxAttack), "attack ID") THEN
+     IF valid_hero_party(retvals(1)) THEN
+      IF valid_hero_party(retvals(2), -1) THEN
        scriptret = ABS(outside_battle_cure(retvals(0), retvals(1), retvals(2), stat(), 0))
       END IF
      END IF
@@ -1998,7 +1998,7 @@ WITH scrat(nowscript)
     IF txt.showing = YES THEN scriptret = txt.id
    CASE 432 '--use menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
-    IF bound_menuslot_and_mislot(menuslot, mislot, "use menu item") THEN
+    IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      WITH menus(menuslot)
       IF .items(mislot).exists THEN activate_menu_item(.items(mislot), NO)
      END WITH
@@ -2019,40 +2019,40 @@ RETRACE
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-FUNCTION valid_item_slot(item_slot AS INTEGER, cmd AS STRING) AS INTEGER
- RETURN bound_arg(item_slot, 0, gen(genMaxInventory), cmd, "item slot")
+FUNCTION valid_item_slot(item_slot AS INTEGER) AS INTEGER
+ RETURN bound_arg(item_slot, 0, gen(genMaxInventory), "item slot")
 END FUNCTION
 
-FUNCTION bound_item(itemID AS INTEGER, cmd AS STRING) AS INTEGER
- RETURN bound_arg(itemID, 0, gen(genMaxItem), cmd, "item ID")
+FUNCTION valid_item(itemID AS INTEGER) AS INTEGER
+ RETURN bound_arg(itemID, 0, gen(genMaxItem), "item ID")
 END FUNCTION
 
-FUNCTION bound_hero_party(who AS INTEGER, cmd AS STRING, minimum AS INTEGER=0) AS INTEGER
- RETURN bound_arg(who, minimum, 40, cmd, "hero party slot")
+FUNCTION valid_hero_party(who AS INTEGER, minimum AS INTEGER) AS INTEGER
+ RETURN bound_arg(who, minimum, 40, "hero party slot")
 END FUNCTION
 
-FUNCTION bound_menuslot(menuslot AS INTEGER, cmd AS STRING) AS INTEGER
- RETURN bound_arg(menuslot, 0, topmenu, cmd, "menu handle")
+FUNCTION valid_menuslot(menuslot AS INTEGER) AS INTEGER
+ RETURN bound_arg(menuslot, 0, topmenu, "menu handle")
 END FUNCTION
 
-FUNCTION bound_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER, cmd AS STRING) AS INTEGER
- IF bound_menuslot(menuslot, cmd) THEN
-  RETURN bound_arg(mislot, 0, UBOUND(menus(menuslot).items), cmd, "menu item handle")
+FUNCTION valid_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER) AS INTEGER
+ IF valid_menuslot(menuslot) THEN
+  RETURN bound_arg(mislot, 0, UBOUND(menus(menuslot).items), "menu item handle")
  END IF
  RETURN NO
 END FUNCTION
 
-FUNCTION bound_plotstr(n AS INTEGER, cmd AS STRING) AS INTEGER
- RETURN bound_arg(n, 0, UBOUND(plotstr), cmd, "string ID")
+FUNCTION valid_plotstr(n AS INTEGER) AS INTEGER
+ RETURN bound_arg(n, 0, UBOUND(plotstr), "string ID")
 END FUNCTION
 
-FUNCTION bound_formation(form AS INTEGER, cmd AS STRING) AS INTEGER
- RETURN bound_arg(form, 0, gen(genMaxFormation), cmd, "formation ID")
+FUNCTION valid_formation(form AS INTEGER) AS INTEGER
+ RETURN bound_arg(form, 0, gen(genMaxFormation), "formation ID")
 END FUNCTION
 
-FUNCTION bound_formation_slot(form AS INTEGER, slot AS INTEGER, cmd AS STRING) AS INTEGER
- IF bound_arg(form, 0, gen(genMaxFormation), cmd, "formation ID") THEN
-  RETURN bound_arg(slot, 0, 7, cmd, "formation slot")
+FUNCTION valid_formation_slot(form AS INTEGER, slot AS INTEGER) AS INTEGER
+ IF bound_arg(form, 0, gen(genMaxFormation), "formation ID") THEN
+  RETURN bound_arg(slot, 0, 7, "formation slot")
  END IF
  RETURN NO
 END FUNCTION

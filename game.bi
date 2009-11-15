@@ -9,14 +9,14 @@
 
 #INCLUDE "game_udts.bi"
 
-declare function valid_item_slot(item_slot as integer, cmd as string) as integer
-declare function bound_item(itemid as integer, cmd as string) as integer
-declare function bound_hero_party(who as integer, cmd as string, minimum as integer=0) as integer
-declare function bound_menuslot(menuslot as integer, cmd as string) as integer
-declare function bound_menuslot_and_mislot(menuslot as integer, mislot as integer, cmd as string) as integer
-declare function bound_plotstr(n as integer, cmd as string) as integer
-declare function bound_formation(form as integer, cmd as string) as integer
-declare function bound_formation_slot(form as integer, slot as integer, cmd as string) as integer
+declare function valid_item_slot(item_slot as integer) as integer
+declare function valid_item(itemid as integer) as integer
+declare function valid_hero_party(who as integer, minimum as integer=0) as integer
+declare function valid_menuslot(menuslot as integer) as integer
+declare function valid_menuslot_and_mislot(menuslot as integer, mislot as integer) as integer
+declare function valid_plotstr(n as integer) as integer
+declare function valid_formation(form as integer) as integer
+declare function valid_formation_slot(form as integer, slot as integer) as integer
 declare sub loadmap_gmap(mapnum)
 declare sub loadmap_npcl(mapnum)
 declare sub loadmap_npcd(mapnum)

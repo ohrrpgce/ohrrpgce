@@ -49,7 +49,7 @@ DECLARE SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, icons(), iuse())
 DECLARE FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
 DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
-DECLARE FUNCTION valid_statnum(statnum AS INTEGER, cmd AS STRING) AS INTEGER
+DECLARE FUNCTION valid_statnum(statnum AS INTEGER, context AS STRING) AS INTEGER
 DECLARE FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
 
 DECLARE SUB queue_attack OVERLOAD (bslot() AS BattleSprite, who AS INTEGER)

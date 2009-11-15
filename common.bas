@@ -31,6 +31,8 @@ REDIM keyv(55, 3)
 DECLARE SUB embedtext (text$, limit=0)
 DECLARE FUNCTION istag (num, zero) as integer
 DECLARE SUB scripterr (e as string, errorlevel as integer = 4)
+DECLARE FUNCTION commandname (byval id as integer) as string
+EXTERN curcmd as ScriptCommand ptr
 #ENDIF
 
 'Allocate sprite size table
@@ -2705,15 +2707,18 @@ SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
  END WITH
 END SUB
 
-FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, cmd AS STRING, argname AS STRING, fromscript AS INTEGER=YES) AS INTEGER
+FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTRING PTR, context AS ZSTRING PTR=nulzstr, fromscript AS INTEGER=YES) AS INTEGER
+ 'This function takes zstring ptr arguments because passing strings is actually really expensive
+ '(it performs an allocation, copy, delete), and would be easily noticeable by scripts.
  IF n < min OR n > max THEN
 #IFDEF IS_GAME
   IF fromscript THEN
-   scripterr cmd & ": invalid " & argname & " " & n, 3
+   IF *context = "" THEN *context = commandname(curcmd->value)
+   scripterr *context & ": invalid " & *argname & " " & n, 3
    RETURN NO
   END IF
 #ENDIF
-  debug cmd & ": invalid " & argname & " " & n
+  debug *context & ": invalid " & *argname & " " & n
   RETURN NO
  END IF
  RETURN YES

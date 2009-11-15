@@ -187,7 +187,7 @@ DO WHILE start < LEN(text$)
      END IF
     CASE "S": '--string variable by ID
      insert$ = ""
-     IF bound_plotstr(arg, "${S#} text box insert") THEN
+     IF bound_arg(arg, 0, UBOUND(plotstr), "string ID", "${S#} text box insert", NO) THEN
       insert$ = plotstr(arg).s
      END IF
    END SELECT
@@ -919,14 +919,14 @@ SELECT CASE AS CONST id
    npcplot
   END IF
  CASE 17'--get item
-  IF bound_item(retvals(0), "get item") THEN
+  IF valid_item(retvals(0)) THEN
    IF retvals(1) >= 1 THEN
     getitem retvals(0) + 1, retvals(1)
     evalitemtag
    END IF
   END IF
  CASE 18'--delete item
-  IF bound_item(retvals(0), "delete item") THEN
+  IF valid_item(retvals(0)) THEN
    IF retvals(1) >= 1 THEN
     delitem retvals(0) + 1, retvals(1)
     evalitemtag
@@ -1016,8 +1016,8 @@ SELECT CASE AS CONST id
   END IF
  CASE 60'--equip where
   scriptret = 0
-  IF bound_item(retvals(1), "equip where") THEN
-   IF bound_hero_party(retvals(0), "equip where") THEN
+  IF valid_item(retvals(1)) THEN
+   IF valid_hero_party(retvals(0)) THEN
     loaditemdata buffer(), retvals(1)
     i = hero(retvals(0)) - 1
     IF i >= 0 THEN
@@ -1210,7 +1210,7 @@ SELECT CASE AS CONST id
  CASE 145'--pick hero
   scriptret = onwho(readglobalstring$(135, "Which Hero?", 20), 1)
  CASE 146'--rename hero by slot
-  IF bound_hero_party(retvals(0), "rename hero by slot") THEN
+  IF valid_hero_party(retvals(0)) THEN
    IF hero(retvals(0)) > 0 THEN
     renamehero retvals(0)
    END IF
@@ -1326,14 +1326,14 @@ SELECT CASE AS CONST id
  CASE 203'--current song
   scriptret = presentsong
  CASE 204'--get hero name(str,her)
-  IF bound_plotstr(retvals(0), "get hero name") AND bound_hero_party(retvals(1), "get hero name") THEN
+  IF valid_plotstr(retvals(0)) AND valid_hero_party(retvals(1)) THEN
    plotstr(retvals(0)).s = names(retvals(1))
    scriptret = 1
   ELSE
    scriptret = 0
   END IF
  CASE 205'--set hero name
-  IF bound_plotstr(retvals(0), "set hero name") AND bound_hero_party(retvals(1), "set hero name") THEN
+  IF valid_plotstr(retvals(0)) AND valid_hero_party(retvals(1)) THEN
    names(retvals(1)) = plotstr(retvals(0)).s
    scriptret = 1
   ELSE
@@ -1341,21 +1341,21 @@ SELECT CASE AS CONST id
   END IF
  CASE 206'--get item name(str,itm)
   scriptret = 0
-  IF bound_plotstr(retvals(0), "get item name") THEN
-   IF bound_item(retvals(1), "get item name") THEN
+  IF valid_plotstr(retvals(0)) THEN
+   IF valid_item(retvals(1)) THEN
     plotstr(retvals(0)).s = readitemname(retvals(1))
     scriptret = 1
    END IF
   END IF
  CASE 207'--get map name(str,map)
-   IF bound_plotstr(retvals(0), "get map name") = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxMap) THEN
+   IF valid_plotstr(retvals(0)) = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxMap) THEN
    scriptret = 0
   ELSE
    plotstr(retvals(0)).s = getmapname$(retvals(1))
    scriptret = 1
   END IF
  CASE 208'--get attack name(str,atk)
-  IF bound_plotstr(retvals(0), "get attack name") = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
+  IF valid_plotstr(retvals(0)) = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
    scriptret = 0
   ELSE
    plotstr(retvals(0)).s = readattackname$(retvals(1) + 1)
@@ -1364,41 +1364,41 @@ SELECT CASE AS CONST id
  CASE 209'--get global string(str,glo)
   'This command is basically unusable without a table of constants, it has almost certainly never been used.
   'Maybe someday it will be replaced - we can't add 'setglobalstring' unless the length is encoded in the offset constant.
-  IF bound_plotstr(retvals(0), "get global string") = NO OR retvals(1) < 0 OR retvals(1) > 160 THEN
+  IF valid_plotstr(retvals(0)) = NO OR retvals(1) < 0 OR retvals(1) > 160 THEN
    scriptret = 0
   ELSE
    plotstr(retvals(0)).s = readglobalstring$(retvals(1), "", 255)
    scriptret = 1
   END IF
  CASE 211'--clear string
-  IF bound_plotstr(retvals(0), "clear string") THEN plotstr(retvals(0)).s = ""
+  IF valid_plotstr(retvals(0)) THEN plotstr(retvals(0)).s = ""
  CASE 212'--append ascii
-  IF bound_plotstr(retvals(0), "append ascii") THEN
+  IF valid_plotstr(retvals(0)) THEN
    IF retvals(1) >= 0 AND retvals(1) <= 255 THEN
     plotstr(retvals(0)).s = plotstr(retvals(0)).s + CHR$(retvals(1))
     scriptret = LEN(plotstr(retvals(0)).s)
    END IF
   END IF
  CASE 213'--append number
-  IF bound_plotstr(retvals(0), "append number") THEN
+  IF valid_plotstr(retvals(0)) THEN
    plotstr(retvals(0)).s = plotstr(retvals(0)).s & retvals(1)
    scriptret = LEN(plotstr(retvals(0)).s)
   END IF
  CASE 214'--copy string
-  IF bound_plotstr(retvals(0), "copy string") AND bound_plotstr(retvals(1), "copy string") THEN
+  IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
    plotstr(retvals(0)).s = plotstr(retvals(1)).s
   END IF
  CASE 215'--concatenate strings
-  IF bound_plotstr(retvals(0), "concatenate string") AND bound_plotstr(retvals(1), "concatenate string") THEN
+  IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
    plotstr(retvals(0)).s = plotstr(retvals(0)).s + plotstr(retvals(1)).s
    scriptret = LEN(plotstr(retvals(0)).s)
   END IF
  CASE 216'--string length
-  IF bound_plotstr(retvals(0), "string length") THEN
+  IF valid_plotstr(retvals(0)) THEN
    scriptret = LEN(plotstr(retvals(0)).s)
   END IF
  CASE 217'--delete char
-  IF bound_plotstr(retvals(0), "delete char") THEN
+  IF valid_plotstr(retvals(0)) THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
     temp2$ = LEFT$(plotstr(retvals(0)).s, retvals(1) - 1)
     temp3$ = MID$(plotstr(retvals(0)).s, retvals(1) + 1)
@@ -1408,22 +1408,22 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 218'--replace char
-  IF bound_plotstr(retvals(0), "replace char") AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
+  IF valid_plotstr(retvals(0)) AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
     MID$(plotstr(retvals(0)).s, retvals(1), 1) = CHR$(retvals(2))
    END IF
   END IF
  CASE 219'--ascii from string
-  IF bound_plotstr(retvals(0), "ascii from string") AND retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
+  IF valid_plotstr(retvals(0)) AND retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
    scriptret = plotstr(retvals(0)).s[retvals(1)-1]'you can index strings a la C
   END IF
  CASE 220'--position string
-  IF bound_plotstr(retvals(0), "position string") THEN
+  IF valid_plotstr(retvals(0)) THEN
    plotstr(retvals(0)).X = retvals(1)
    plotstr(retvals(0)).Y = retvals(2)
   END IF
  CASE 221'--set string bit
-  IF bound_plotstr(retvals(0), "set string bit") AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
+  IF valid_plotstr(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
    if retvals(2) then
     plotstr(retvals(0)).bits = plotstr(retvals(0)).bits or 2 ^ retvals(1)
    else
@@ -1431,22 +1431,22 @@ SELECT CASE AS CONST id
    end if
   END IF
  CASE 222'--get string bit
-  IF bound_plotstr(retvals(0), "get string bit") AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
+  IF valid_plotstr(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= 15 THEN
    'scriptret = readbit(plotstrBits(), retvals(0), retvals(1))
    scriptret = plotstr(retvals(0)).bits AND 2 ^ retvals(1)
    IF scriptret THEN scriptret = 1
   END IF
  CASE 223'--string color
-  IF bound_plotstr(retvals(0), "string color") THEN
+  IF valid_plotstr(retvals(0)) THEN
    plotstr(retvals(0)).Col = bound(retvals(1), 0, 255)
    plotstr(retvals(0)).BGCol = bound(retvals(2), 0, 255)
   END IF
  CASE 224'--string X
-  IF bound_plotstr(retvals(0), "string X") THEN
+  IF valid_plotstr(retvals(0)) THEN
    scriptret = plotstr(retvals(0)).X
   END IF
  CASE 225'--string Y
-  IF bound_plotstr(retvals(0), "string Y") THEN
+  IF valid_plotstr(retvals(0)) THEN
    scriptret = plotstr(retvals(0)).Y
   END IF
  CASE 226'--system day (date$ is always mm-dd-yyyy)
@@ -1456,7 +1456,7 @@ SELECT CASE AS CONST id
  CASE 228'--system year
   scriptret = str2int(MID$(DATE$, 7, 4))
  CASE 229'--string compare
-  IF bound_plotstr(retvals(0), "string compare") AND bound_plotstr(retvals(1), "string compare") THEN
+  IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
    scriptret = (plotstr(retvals(0)).s = plotstr(retvals(1)).s)
   END IF
  CASE 230'--read enemy data
@@ -1470,11 +1470,11 @@ SELECT CASE AS CONST id
   Writeshort f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, retvals(2)
   CLOSE #f
  CASE 232'--trace
-  IF bound_plotstr(retvals(0), "trace") THEN
+  IF valid_plotstr(retvals(0)) THEN
    debug "TRACE: " + plotstr(retvals(0)).s
   END IF
  CASE 233'--get song name
-  IF bound_plotstr(retvals(0), "get song name") AND retvals(1) >= 0 THEN
+  IF valid_plotstr(retvals(0)) AND retvals(1) >= 0 THEN
    plotstr(retvals(0)).s = getsongname$(retvals(1))
   END IF
  CASE 235'--key is pressed
@@ -1513,7 +1513,7 @@ SELECT CASE AS CONST id
     scriptret = 8
   END IF
  CASE 238'--search string
-  IF bound_plotstr(retvals(0), "search string") AND bound_plotstr(retvals(1), "search string") THEN
+  IF valid_plotstr(retvals(0)) AND valid_plotstr(retvals(1)) THEN
     WITH plotstr(retvals(0))
      scriptret = instr(bound(retvals(2), 1, LEN(.s)), .s, plotstr(retvals(1)).s)
     END WITH
@@ -1521,7 +1521,7 @@ SELECT CASE AS CONST id
    scriptret = 0
   END IF
  CASE 239'--trim string
-  IF bound_plotstr(retvals(0), "trim string") THEN
+  IF valid_plotstr(retvals(0)) THEN
    IF retvals(1) = -1 THEN
     plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
    ELSE
@@ -1535,7 +1535,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 240'-- string from textbox
-  IF bound_plotstr(retvals(0), "string from textbox") THEN
+  IF valid_plotstr(retvals(0)) THEN
    DIM box AS TextBox
    retvals(1) = bound(retvals(1),0,gen(genMaxTextbox))
    retvals(2) = bound(retvals(2),0,7)
@@ -1545,7 +1545,7 @@ SELECT CASE AS CONST id
    plotstr(retvals(0)).s = trim$(plotstr(retvals(0)).s)
   END IF
  CASE 241'-- expand string(id)
-  IF bound_plotstr(retvals(0), "expand string") THEN
+  IF valid_plotstr(retvals(0)) THEN
    embedtext plotstr(retvals(0)).s
   END IF
  CASE 242'-- joystick button
@@ -1583,11 +1583,11 @@ SELECT CASE AS CONST id
  CASE 250'--set money
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--set string from table
-  IF bound_plotstr(retvals(0), "set string from table") AND scrat(nowscript).scr->strtable THEN
+  IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# = \"...\"") AND scrat(nowscript).scr->strtable THEN
    plotstr(retvals(0)).s = read32bitstring$(scrat(nowscript).scrdata + scrat(nowscript).scr->strtable + retvals(1))
   END IF
  CASE 252'--append string from table
-  IF bound_plotstr(retvals(0), "append string from table") AND scrat(nowscript).scr->strtable THEN
+  IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# + \"...\"") AND scrat(nowscript).scr->strtable THEN
    plotstr(retvals(0)).s += read32bitstring$(scrat(nowscript).scrdata + scrat(nowscript).scr->strtable + retvals(1))
   END IF
  CASE 256'--suspend map music
@@ -1605,7 +1605,7 @@ SELECT CASE AS CONST id
       END IF
       IF retvals(3) <> -1 THEN .trigger = retvals(3)
       IF retvals(4) <> -1 THEN
-       IF bound_plotstr(retvals(4), "set timer") THEN
+       IF valid_plotstr(retvals(4)) THEN
         .st = retvals(4) + 1
         plotstr(retvals(4)).s = seconds2str(.count)
        END IF
@@ -1649,7 +1649,7 @@ SELECT CASE AS CONST id
   scriptret = fmod((TIMER * 1000) + 2147483648.0, 4294967296.0) - 2147483648.0
  CASE 308'--add enemy to formation (formation, enemy id, x, y, slot = -1)
   scriptret = -1
-  IF bound_formation(retvals(0), "add enemy to formation") AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxEnemy) THEN
+  IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxEnemy) THEN
    loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
    temp = -1
    FOR i = 0 TO 7
@@ -1671,7 +1671,7 @@ SELECT CASE AS CONST id
    scriptret = temp
   END IF
  CASE 309'--find enemy in formation (formation, enemy id, number)
-  IF bound_formation(retvals(0), "find enemy in formation") THEN
+  IF valid_formation(retvals(0)) THEN
    loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
    temp = 0
    scriptret = -1
@@ -1684,16 +1684,16 @@ SELECT CASE AS CONST id
    IF retvals(2) = -1 THEN scriptret = temp
   END IF
  CASE 310'--delete enemy from formation (formation, slot)
-  IF bound_formation_slot(retvals(0), retvals(1), "delete enemy from formation") THEN
+  IF valid_formation_slot(retvals(0), retvals(1)) THEN
    WriteShort tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1, 0
   END IF
  CASE 311'--formation slot enemy (formation, slot)
   scriptret = -1
-  IF bound_formation_slot(retvals(0), retvals(1), "formation slot enemy") THEN
+  IF valid_formation_slot(retvals(0), retvals(1)) THEN
    scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) - 1
   END IF
  CASE 312, 313'--formation slot x (formation, slot), formation slot y (formation, slot)
-  IF bound_formation_slot(retvals(0), retvals(1), "formation slot x/y") THEN
+  IF valid_formation_slot(retvals(0), retvals(1)) THEN
    temp = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) 'enemy id + 1
    scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + (id - 311) * 2 + 1) 'x or y
    'now find the position of the bottom center of the enemy sprite
@@ -1706,7 +1706,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 314'--set formation background (formation, background, animation frames, animation ticks)
-  IF bound_formation(retvals(0), "set formation background") AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxBackdrop) - 1 THEN 
+  IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxBackdrop) - 1 THEN 
    loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
    buffer(32) = retvals(1)
    buffer(34) = bound(retvals(2) - 1, 0, 49)
@@ -1714,7 +1714,7 @@ SELECT CASE AS CONST id
    storerecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
   END IF
  CASE 315'--get formation background (formation)
-  IF bound_formation(retvals(0), "get formation background") THEN
+  IF valid_formation(retvals(0)) THEN
    scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 32 + 1)
   END IF
  CASE 316'--last formation
@@ -1746,7 +1746,7 @@ SELECT CASE AS CONST id
  CASE 322'--load hero sprite
   scriptret = load_sprite_plotslice(0, retvals(0), retvals(1))
  CASE 323'--free sprite
-  IF valid_plotslice(retvals(0), "free sprite", 1) THEN
+  IF valid_plotslice(retvals(0), 1) THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DeleteSlice @plotslices(retvals(0))
    ELSE
@@ -1754,20 +1754,20 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 324 '--place sprite
-  IF valid_plotslice(retvals(0), "place sprite") THEN
+  IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
     .x = retvals(1)
     .y = retvals(2)
    END WITH
   END IF
  CASE 326 '--set sprite palette
-  IF valid_plotslice(retvals(0), "set sprite palette") THEN
+  IF valid_plotslice(retvals(0)) THEN
    ChangeSpriteSlice plotslices(retvals(0)), , ,retvals(1)
   END IF
  CASE 327 '--replace hero sprite
   change_sprite_plotslice retvals(0), 0, retvals(1), retvals(2)
  CASE 328 '--set sprite frame
-  IF valid_plotslice(retvals(0), "set sprite frame") THEN
+  IF valid_plotslice(retvals(0)) THEN
    ChangeSpriteSlice plotslices(retvals(0)), , , , retvals(1)
   END IF
  CASE 329'--load walkabout sprite
@@ -1803,7 +1803,7 @@ SELECT CASE AS CONST id
  CASE 344 '--replace portrait sprite
   change_sprite_plotslice retvals(0), 8, retvals(1), retvals(2)
  CASE 345 '--clone sprite
-  IF valid_plotsprite(retvals(0), "clone sprite") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    WITH *dat
@@ -1812,13 +1812,13 @@ SELECT CASE AS CONST id
    END WITH
   END IF
  CASE 346 '--get sprite frame
-  IF valid_plotsprite(retvals(0), "get sprite frame") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->frame
   END IF
  CASE 347 '--sprite frame count
-  IF valid_plotsprite(retvals(0), "sprite frame count") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    WITH *dat
@@ -1826,58 +1826,58 @@ SELECT CASE AS CONST id
    END WITH
   END IF
  CASE 348 '--slice x
-  IF valid_plotslice(retvals(0), "slice x") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->X
   END IF
  CASE 349 '--slice y
-  IF valid_plotslice(retvals(0), "slice y") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->Y
   END IF
  CASE 350 '--set slice x
-  IF valid_plotslice(retvals(0), "set slice x") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->X = retvals(1)
   END IF
  CASE 351 '--set slice y
-  IF valid_plotslice(retvals(0), "set slice y") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->Y = retvals(1)
   END IF
  CASE 352 '--slice width
-  IF valid_plotslice(retvals(0), "slice width") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->Width
   END IF
  CASE 353 '--slice height
-  IF valid_plotslice(retvals(0), "slice height") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->Height
   END IF
  CASE 354 '--set horiz align
-  IF valid_plotslice(retvals(0), "set horiz align") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->AlignHoriz = retvals(1)
   END IF
  CASE 355 '--set vert align
-  IF valid_plotslice(retvals(0), "set vert align") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->AlignVert = retvals(1)
   END IF
  CASE 356 '--set horiz anchor
-  IF valid_plotslice(retvals(0), "set horiz anchor") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->AnchorHoriz = retvals(1)
   END IF
  CASE 357 '--set vert anchor
-  IF valid_plotslice(retvals(0), "set vert anchor") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->AnchorVert = retvals(1)
   END IF
  CASE 358 '--number from string
-  IF bound_plotstr(retvals(0), "number from string") THEN
+  IF valid_plotstr(retvals(0)) THEN
    scriptret = str2int(plotstr(retvals(0)).s, retvals(1))
   END IF
  CASE 359 '--slice is sprite
-  IF valid_plotslice(retvals(0), "slice is sprite") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = 0
    IF plotslices(retvals(0))->SliceType = slSprite THEN scriptret = 1
   END IF
  CASE 360 '--sprite layer
   scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
  CASE 361 '--free slice
-  IF valid_plotslice(retvals(0), "free slice", 1) THEN
+  IF valid_plotslice(retvals(0), 1) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->SliceType = slRoot OR sl->SliceType = slSpecial THEN
@@ -1887,13 +1887,13 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 362 '--first child
-  IF valid_plotslice(retvals(0), "first child") THEN
+  IF valid_plotslice(retvals(0)) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    scriptret = find_plotslice_handle(sl->FirstChild)
   END IF
  CASE 363 '--next sibling
-  IF valid_plotslice(retvals(0), "next sibling") THEN
+  IF valid_plotslice(retvals(0)) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    scriptret = find_plotslice_handle(sl->NextSibling)
@@ -1905,7 +1905,7 @@ SELECT CASE AS CONST id
   sl->Height = retvals(1)
   scriptret = create_plotslice_handle(sl)
  CASE 365 '--set parent
-  IF valid_plotslice(retvals(0), "set parent") AND valid_plotslice(retvals(1), "set parent") THEN
+  IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
    IF verifySliceLineage(plotslices(retvals(0)), plotslices(retvals(1))) THEN
     SetSliceParent plotslices(retvals(0)), plotslices(retvals(1))
    ELSE
@@ -1913,27 +1913,27 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 366 '--check parentage
-  IF valid_plotslice(retvals(0), "check parentage") AND valid_plotslice(retvals(1), "check parentage") THEN
+  IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
    IF verifySliceLineage(plotslices(retvals(0)), plotslices(retvals(1))) THEN
     scriptret = 1
    END IF
   END IF
  CASE 367 '--slice screen x
-  IF valid_plotslice(retvals(0), "slice screen x") THEN
+  IF valid_plotslice(retvals(0)) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    scriptret = sl->ScreenX + SliceXAnchor(sl)
   END IF
  CASE 368 '--slice screen y
-  IF valid_plotslice(retvals(0), "slice screen y") THEN
+  IF valid_plotslice(retvals(0)) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    scriptret = sl->ScreenY + SliceYAnchor(sl)
   END IF
  CASE 369 '--slice is container
-  IF valid_plotslice(retvals(0), "slice is container") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = 0
    IF plotslices(retvals(0))->SliceType = slContainer THEN scriptret = 1
   END IF
@@ -1942,172 +1942,172 @@ SELECT CASE AS CONST id
   sl = NewSliceOfType(slRectangle, SliceTable.scriptsprite)
   sl->Width = retvals(0)
   sl->Height = retvals(1)
-  IF bound_arg(retvals(2), -1, 14, "create rect", "style") THEN
+  IF bound_arg(retvals(2), -1, 14, "style") THEN
    ChangeRectangleSlice sl, retvals(2)
   END IF
   scriptret = create_plotslice_handle(sl)
  CASE 371 '--slice is rect
-  IF valid_plotslice(retvals(0), "slice is rect") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = 0
    IF plotslices(retvals(0))->SliceType = slRectangle THEN scriptret = 1
   END IF
  CASE 372 '--set slice width
-  IF valid_resizeable_slice(retvals(0), "set slice width") THEN
+  IF valid_resizeable_slice(retvals(0)) THEN
    plotslices(retvals(0))->Width = retvals(1)
   END IF
  CASE 373 '--set slice height
-  IF valid_resizeable_slice(retvals(0), "set slice height") THEN
+  IF valid_resizeable_slice(retvals(0)) THEN
    plotslices(retvals(0))->Height = retvals(1)
   END IF
  CASE 374 '--get rect style
-  IF valid_plotrect(retvals(0), "get rect style") THEN
+  IF valid_plotrect(retvals(0)) THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->style
   END IF
  CASE 375 '--set rect style
-  IF bound_arg(retvals(1), -1, 14, "set rect style", "style") THEN
+  IF bound_arg(retvals(1), -1, 14, "style") THEN
    change_rect_plotslice retvals(0), retvals(1)
   END IF
  CASE 376 '--get rect fgcol
-  IF valid_plotrect(retvals(0), "get rect fgcol") THEN
+  IF valid_plotrect(retvals(0)) THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->fgcol
   END IF
  CASE 377 '--set rect fgcol
-  IF bound_arg(retvals(1), 0, 255, "set rect fgcol", "fgcol") THEN
+  IF bound_arg(retvals(1), 0, 255, "fgcol") THEN
    change_rect_plotslice retvals(0), , ,retvals(1)
   END IF
  CASE 378 '--get rect bgcol
-  IF valid_plotrect(retvals(0), "get rect bgcol") THEN
+  IF valid_plotrect(retvals(0)) THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->bgcol
   END IF
  CASE 379 '--set rect bgcol
-  IF bound_arg(retvals(1), 0, 255, "set rect bgcol", "bgcol") THEN
+  IF bound_arg(retvals(1), 0, 255, "bgcol") THEN
    change_rect_plotslice retvals(0), ,retvals(1)
   END IF
  CASE 380 '--get rect border
-  IF valid_plotrect(retvals(0), "get rect border") THEN
+  IF valid_plotrect(retvals(0)) THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->border
   END IF
  CASE 381 '--set rect border
-  IF bound_arg(retvals(1), -2, 14, "set rect border", "border") THEN
+  IF bound_arg(retvals(1), -2, 14, "border") THEN
    change_rect_plotslice retvals(0), , , ,retvals(1)
   END IF
  CASE 382 '--get rect trans
-  IF valid_plotrect(retvals(0), "get rect trans") THEN
+  IF valid_plotrect(retvals(0)) THEN
    DIM dat AS RectangleSliceData ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->translucent
   END IF
  CASE 383 '--set rect trans
-  IF bound_arg(retvals(1), 0, 2, "set rect trans", "transparency") THEN
+  IF bound_arg(retvals(1), 0, 2, "transparency") THEN
    change_rect_plotslice retvals(0), , , , ,retvals(1)
   END IF
  CASE 384 '--slice collide point
-  IF valid_plotslice(retvals(0), "slice collide point") THEN
+  IF valid_plotslice(retvals(0)) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    RefreshSliceScreenPos sl
    scriptret = ABS(SliceCollidePoint(sl, retvals(1), retvals(2)))
   END IF
  CASE 385 '--slice collide
-  IF valid_plotslice(retvals(0), "slice collide") THEN
-   IF valid_plotslice(retvals(1), "slice collide") THEN
+  IF valid_plotslice(retvals(0)) THEN
+   IF valid_plotslice(retvals(1)) THEN
     RefreshSliceScreenPos plotslices(retvals(0))
     RefreshSliceScreenPos plotslices(retvals(1))
     scriptret = ABS(SliceCollide(plotslices(retvals(0)), plotslices(retvals(1))))
    END IF
   END IF
  CASE 386 '--slice contains
-  IF valid_plotslice(retvals(0), "slice contains") THEN
-   IF valid_plotslice(retvals(1), "slice contains") THEN
+  IF valid_plotslice(retvals(0)) THEN
+   IF valid_plotslice(retvals(1)) THEN
     scriptret = ABS(SliceContains(plotslices(retvals(0)), plotslices(retvals(1))))
    END IF
   END IF
  CASE 387 '--clamp slice
-  IF valid_plotslice(retvals(0), "clamp slice") THEN
-   IF valid_plotslice(retvals(1), "clamp slice") THEN
+  IF valid_plotslice(retvals(0)) THEN
+   IF valid_plotslice(retvals(1)) THEN
     SliceClamp plotslices(retvals(1)), plotslices(retvals(0))
    END IF
   END IF
  CASE 388 '--horiz flip sprite
-  IF valid_plotsprite(retvals(0), "horiz flip sprite") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    change_sprite_plotslice retvals(0), dat->spritetype, dat->record, , , (retvals(1) <> 0)
   END IF
  CASE 389 '--vert flip sprite
-  IF valid_plotsprite(retvals(0), "vert flip sprite") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    change_sprite_plotslice retvals(0), dat->spritetype, dat->record, , , , (retvals(1) <> 0)
   END IF
  CASE 390 '--sprite is horiz flipped
-  IF valid_plotsprite(retvals(0), "sprite is horiz flipped") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    IF dat->flipHoriz THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 391 '--sprite is vert flipped
-  IF valid_plotsprite(retvals(0), "sprite is vert flipped") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    IF dat->flipVert THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 392 '--set top padding
-  IF valid_plotslice(retvals(0), "set top padding") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->PaddingTop = retvals(1)
   END IF
  CASE 393 '--get top padding
-  IF valid_plotslice(retvals(0), "get top padding") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->PaddingTop
   END IF
  CASE 394 '--set left padding
-  IF valid_plotslice(retvals(0), "set left padding") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->PaddingLeft = retvals(1)
   END IF
  CASE 395 '--get left padding
-  IF valid_plotslice(retvals(0), "get left padding") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->PaddingLeft
   END IF
  CASE 396 '--set bottom padding
-  IF valid_plotslice(retvals(0), "set bottom padding") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->PaddingBottom = retvals(1)
   END IF
  CASE 397 '--get bottom padding
-  IF valid_plotslice(retvals(0), "get bottom padding") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->PaddingBottom
   END IF
  CASE 398 '--set right padding
-  IF valid_plotslice(retvals(0), "set right padding") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->PaddingRight = retvals(1)
   END IF
  CASE 399 '--get right padding
-  IF valid_plotslice(retvals(0), "get right padding") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->PaddingRight
   END IF
  CASE 400 '--fill parent
-  IF valid_resizeable_slice(retvals(0), "fill parent", YES) THEN
+  IF valid_resizeable_slice(retvals(0), YES) THEN
    plotslices(retvals(0))->Fill = (retvals(1) <> 0)
   END IF
  CASE 401 '--is filling parent
-  IF valid_plotslice(retvals(0), "is filling parent") THEN
+  IF valid_plotslice(retvals(0)) THEN
    IF plotslices(retvals(0))->Fill THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 402 '--slice to front
-  IF valid_plotslice(retvals(0), "slice to front") THEN
+  IF valid_plotslice(retvals(0)) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))->Parent
    SetSliceParent plotslices(retvals(0)), sl
   END IF
  CASE 403 '--slice to back
-  IF valid_plotslice(retvals(0), "slice to back") THEN
+  IF valid_plotslice(retvals(0)) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Parent = 0 THEN
@@ -2117,43 +2117,43 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 404 '--last child
-  IF valid_plotslice(retvals(0), "last child") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = find_plotslice_handle(LastChild(plotslices(retvals(0))))
   END IF
  CASE 405 '--y sort children
-  IF valid_plotslice(retvals(0), "y sort children") THEN
+  IF valid_plotslice(retvals(0)) THEN
    YSortChildSlices plotslices(retvals(0))
   END IF
  CASE 406 '--set sort order
-  IF valid_plotslice(retvals(0), "set sort order") THEN
+  IF valid_plotslice(retvals(0)) THEN
    plotslices(retvals(0))->Sorter = retvals(1)
   END IF
  CASE 407 '--sort children
-  IF valid_plotslice(retvals(0), "sort children") THEN
+  IF valid_plotslice(retvals(0)) THEN
    CustomSortChildSlices plotslices(retvals(0)), retvals(1)
   END IF
  CASE 408 '--previous sibling
-  IF valid_plotslice(retvals(0), "previous sibling") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = find_plotslice_handle(plotslices(retvals(0))->PrevSibling)
   END IF 
  CASE 409 '--get sort order
-  IF valid_plotslice(retvals(0), "get sort order") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->Sorter
   END IF
  CASE 410 '--get slice extra (handle, extra)
-  IF valid_plotslice(retvals(0), "get slice extra") THEN
+  IF valid_plotslice(retvals(0)) THEN
    IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
     scriptret = plotslices(retvals(0))->Extra(retvals(1))
    END IF
   END IF
  CASE 411 '--set slice extra (handle, extra, val)
-  IF valid_plotslice(retvals(0), "set slice extra") THEN
+  IF valid_plotslice(retvals(0)) THEN
    IF retvals(1) >= 0 AND retvals(1) <= 2 THEN
     plotslices(retvals(0))->Extra(retvals(1)) = retvals(2)
    END IF
   END IF
  CASE 412 '--get sprite type
-  IF valid_plotsprite(retvals(0), "get sprite type") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
     scriptret = dat->spritetype
@@ -2162,12 +2162,12 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 413 '--get sprite set number
-  IF valid_plotsprite(retvals(0), "get sprite set number") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
    scriptret = dat->record
   END IF 
  CASE 414 '--get sprite palette
-  IF valid_plotsprite(retvals(0), "get sprite palette") THEN
+  IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
    scriptret = dat->pal
   END IF 
@@ -2180,28 +2180,28 @@ SELECT CASE AS CONST id
    timers(i).pause = NO
   NEXT i
  CASE 325, 417 '--set sprite visible
-  IF valid_plotslice(retvals(0), "set slice visible") THEN
+  IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
     .Visible = (retvals(1) <> 0)
    END WITH
   END IF
  CASE 418 '--get sprite visible
-  IF valid_plotslice(retvals(0), "get slice visible") THEN
+  IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
     scriptret = ABS(.Visible)
    END WITH
   END IF
  CASE 419 '--slice edge x
-  IF valid_plotslice(retvals(0), "slice edge x") THEN
-   IF bound_arg(retvals(1), 0, 2, "slice edge x", "edge") THEN
+  IF valid_plotslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge") THEN
     DIM sl AS Slice Ptr
     sl = plotslices(retvals(0))
     scriptret = sl->X - SliceXAnchor(sl) + SliceEdgeX(sl, retvals(1))
    END IF
   END IF
  CASE 420 '--slice edge y
-  IF valid_plotslice(retvals(0), "slice edge y") THEN
-   IF bound_arg(retvals(1), 0, 2, "slice edge y", "edge") THEN
+  IF valid_plotslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge") THEN
     DIM sl AS Slice Ptr
     sl = plotslices(retvals(0))
     scriptret = sl->Y - SliceYAnchor(sl) + SliceEdgeY(sl, retvals(1))
@@ -2212,62 +2212,62 @@ SELECT CASE AS CONST id
   sl = NewSliceOfType(slText, SliceTable.scriptsprite)
   scriptret = create_plotslice_handle(sl)
  CASE 422 '--set slice text
-  IF valid_plottextslice(retvals(0), "set slice text") THEN
-   IF bound_plotstr(retvals(1), "set slice text") THEN
+  IF valid_plottextslice(retvals(0)) THEN
+   IF valid_plotstr(retvals(1)) THEN
     ChangeTextSlice plotslices(retvals(0)), plotstr(retvals(1)).s
    END IF
   END IF
  CASE 423 '--get text color
-  IF valid_plottextslice(retvals(0), "get text color") THEN
+  IF valid_plottextslice(retvals(0)) THEN
    DIM dat AS TextSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->col
   END IF
  CASE 424 '--set text color
-  IF valid_plottextslice(retvals(0), "set text color") THEN
-   IF bound_arg(retvals(1), 0, 255, "set text color", "color") THEN
+  IF valid_plottextslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 255, "color") THEN
     ChangeTextSlice plotslices(retvals(0)), , retvals(1)
    END IF
   END IF
  CASE 425 '--get wrap
-  IF valid_plottextslice(retvals(0), "get wrap") THEN
+  IF valid_plottextslice(retvals(0)) THEN
    DIM dat AS TextSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = ABS(dat->wrap)
   END IF
  CASE 426 '--set wrap
-  IF valid_plottextslice(retvals(0), "set wrap") THEN
+  IF valid_plottextslice(retvals(0)) THEN
    ChangeTextSlice plotslices(retvals(0)), , , ,(retvals(1)<>0)
   END IF
  CASE 427 '--slice is text
-  IF valid_plotslice(retvals(0), "slice is text") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = 0
    IF plotslices(retvals(0))->SliceType = slText THEN scriptret = 1
   END IF
  CASE 428 '--get text bg
-  IF valid_plottextslice(retvals(0), "get text bg") THEN
+  IF valid_plottextslice(retvals(0)) THEN
    DIM dat AS TextSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->bgcol
   END IF
  CASE 429 '--set text bg
-  IF valid_plottextslice(retvals(0), "set text bg") THEN
-   IF bound_arg(retvals(1), 0, 255, "set text bg", "color") THEN
+  IF valid_plottextslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 255, "color") THEN
     ChangeTextSlice plotslices(retvals(0)), , , , , retvals(1)
    END IF
   END IF
  CASE 430 '--get outline
-  IF valid_plottextslice(retvals(0), "get outline") THEN
+  IF valid_plottextslice(retvals(0)) THEN
    DIM dat AS TextSliceData Ptr
    dat = plotslices(retvals(0))->SliceData
    scriptret = ABS(dat->outline)
   END IF
  CASE 431 '--set outline
-  IF valid_plottextslice(retvals(0), "set outline") THEN
+  IF valid_plottextslice(retvals(0)) THEN
    ChangeTextSlice plotslices(retvals(0)), , ,(retvals(1)<>0)
   END IF
  CASE 433'--slice at pixel(parent, x, y, num, descend)
-  IF valid_plotslice(retvals(0), "slice at pixel") THEN
+  IF valid_plotslice(retvals(0)) THEN
    RefreshSliceScreenPos plotslices(retvals(0))
    IF retvals(3) <= -1 THEN
     temp = -1
@@ -2278,7 +2278,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 434'--find colliding slice(parent, handle, num, descend)
-  IF valid_plotslice(retvals(0), "find colliding slice") AND valid_plotslice(retvals(1), "find colliding slice") THEN
+  IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
    RefreshSliceScreenPos plotslices(retvals(0))
    RefreshSliceScreenPos plotslices(retvals(1))
    IF retvals(2) <= -1 THEN
@@ -2290,11 +2290,11 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 435'--parent slice
-  IF valid_plotslice(retvals(0), "parent slice") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = find_plotslice_handle(plotslices(retvals(0))->Parent)
   END IF
  CASE 436'--child count
-  IF valid_plotslice(retvals(0), "child count") THEN
+  IF valid_plotslice(retvals(0)) THEN
    scriptret = plotslices(retvals(0))->NumChildren
   END IF
  CASE 437'--lookup slice
@@ -2303,7 +2303,7 @@ SELECT CASE AS CONST id
    scriptret = find_plotslice_handle(LookupSlice(retvals(0)))
   ELSE
    '--search starting from a certain slice
-   IF valid_plotslice(retvals(1), "lookup slice") THEN
+   IF valid_plotslice(retvals(1)) THEN
     scriptret = find_plotslice_handle(LookupSlice(retvals(0), plotslices(retvals(0))))
    END IF
   END IF
@@ -2318,7 +2318,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 440'--item in slot
-  IF valid_item_slot(retvals(0), "item in slot") THEN
+  IF valid_item_slot(retvals(0)) THEN
    IF inventory(retvals(0)).used = NO THEN
     scriptret = -1
    ELSE
@@ -2326,14 +2326,14 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 441'--set item in slot
-  IF valid_item_slot(retvals(0), "set item in slot") THEN
+  IF valid_item_slot(retvals(0)) THEN
    IF retvals(1) = -1 THEN
     WITH inventory(retvals(0))
      .used = NO
      .id = 0
      .num = 0
     END WITH
-   ELSEIF bound_item(retvals(1), "set item in slot") THEN
+   ELSEIF valid_item(retvals(1)) THEN
     WITH inventory(retvals(0))
      .id = retvals(1)
      IF .num < 1 THEN .num = 1
@@ -2344,7 +2344,7 @@ SELECT CASE AS CONST id
    evalitemtag
   END IF
  CASE 442'--item count in slot
-  IF valid_item_slot(retvals(0), "item count in slot") THEN
+  IF valid_item_slot(retvals(0)) THEN
    IF inventory(retvals(0)).used = NO THEN
     scriptret = 0
    ELSE
@@ -2352,14 +2352,14 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 443'--set item count in slot
-  IF valid_item_slot(retvals(0), "set item count in slot") THEN
+  IF valid_item_slot(retvals(0)) THEN
    IF retvals(1) = 0 THEN
     WITH inventory(retvals(0))
      .used = NO
      .id = 0
      .num = 0
     END WITH
-   ELSEIF bound_arg(retvals(1), 1, 99, "set item count in slot", "count") THEN
+   ELSEIF bound_arg(retvals(1), 1, 99, "count") THEN
     WITH inventory(retvals(0))
      IF .used = NO THEN
       scripterr "set item count in slot: can't set count for empty slot " & retvals(0), 3
@@ -3852,72 +3852,72 @@ FUNCTION valid_spriteslice_dat(BYVAL sl AS Slice Ptr) AS INTEGER
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_plotslice(byval handle as integer, byval cmd as string, errlev as integer=4) as integer
+FUNCTION valid_plotslice(byval handle as integer, errlev as integer=4) as integer
  IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
-  scripterr cmd & ": invalid slice handle " & handle, errlev
+  scripterr commandname(curcmd->value) & ": invalid slice handle " & handle, errlev
   RETURN NO
  END IF
  IF plotslices(handle) = 0 THEN
-  scripterr cmd & ": slice handle " & handle & " has already been deleted", errlev
+  scripterr commandname(curcmd->value) & ": slice handle " & handle & " has already been deleted", errlev
   RETURN NO
  END IF
  IF ENABLE_SLICE_DEBUG THEN
   IF SliceDebugCheck(plotslices(handle)) = NO THEN
-   scripterr "ERROR: " & cmd & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", 6
+   scripterr commandname(curcmd->value) & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", 6
    RETURN NO
   END IF
  END IF
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_plotsprite(byval handle as integer, byval cmd as string) as integer
- IF valid_plotslice(handle, cmd) THEN
+FUNCTION valid_plotsprite(byval handle as integer) as integer
+ IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slSprite THEN
    IF valid_spriteslice_dat(plotslices(handle)) THEN
     RETURN YES
    END IF
   ELSE
-   scripterr cmd & ": slice handle " & handle & " is not a sprite", 4
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a sprite", 4
   END IF
  END IF
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plotrect(byval handle as integer, byval cmd as string) as integer
- IF valid_plotslice(handle, cmd) THEN
+FUNCTION valid_plotrect(byval handle as integer) as integer
+ IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slRectangle THEN
    RETURN YES
   ELSE
-   scripterr cmd & ": slice handle " & handle & " is not a rect", 4
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a rect", 4
   END IF
  END IF
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_plottextslice(byval handle as integer, byval cmd as string) as integer
- IF valid_plotslice(handle, cmd) THEN
+FUNCTION valid_plottextslice(byval handle as integer) as integer
+ IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slText THEN
    IF plotslices(handle)->SliceData = 0 THEN
-    scripterr cmd & ": text slice handle " & handle & " has null data", 6
+    scripterr commandname(curcmd->value) & ": text slice handle " & handle & " has null data", 6
     RETURN NO
    END IF
    RETURN YES
   ELSE
-   scripterr cmd & ": slice handle " & handle & " is not text", 4
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not text", 4
   END IF
  END IF
  RETURN NO
 END FUNCTION
 
-FUNCTION valid_resizeable_slice(byval handle as integer, byval cmd as string, byval ignore_fill as integer=NO) as integer
- IF valid_plotslice(handle, cmd) THEN
+FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as integer=NO) as integer
+ IF valid_plotslice(handle) THEN
   DIM sl AS Slice Ptr
   sl = plotslices(handle)
   IF sl->SliceType = slRectangle OR sl->SliceType = slContainer THEN
    IF sl->Fill = NO OR ignore_fill THEN
     RETURN YES
    ELSE
-    scripterr cmd & ": slice handle " & handle & " cannot be resized while filling parent", 4
+    scripterr commandname(curcmd->value) & ": slice handle " & handle & " cannot be resized while filling parent", 4
    END IF
   ELSE
    IF sl->SliceType = slText THEN
@@ -3927,10 +3927,10 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval cmd as string, by
     IF dat->wrap = YES THEN
      RETURN YES
     ELSE
-     scripterr cmd & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", 4
+     scripterr commandname(curcmd->value) & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", 4
     END IF
    ELSE
-    scripterr cmd & ": slice handle " & handle & " is not resizeable", 4
+    scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not resizeable", 4
    END IF
   END IF
  END IF
@@ -3972,7 +3972,7 @@ END FUNCTION
 
 FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1) AS INTEGER
  WITH sprite_sizes(spritetype)
-  IF bound_arg(record, 0, gen(.genmax), "load_sprite_plotslice/" & .name, "sprite number") THEN
+  IF bound_arg(record, 0, gen(.genmax), "sprite number") THEN
    DIM sl AS Slice Ptr
    sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
    ChangeSpriteSlice sl, spritetype, record, pal
@@ -3984,8 +3984,8 @@ END FUNCTION
 
 SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1, BYVAL frame AS INTEGER=-1, BYVAL fliph AS INTEGER=-2, BYVAL flipv AS INTEGER=-2)
  WITH sprite_sizes(spritetype)
-  IF valid_plotslice(handle, "change_sprite_plotslice/" & .name) THEN
-   IF bound_arg(record, 0, gen(.genmax), "change_sprite_plotslice/" & .name, "sprite number") THEN
+  IF valid_plotslice(handle) THEN
+   IF bound_arg(record, 0, gen(.genmax), "sprite number") THEN
     ChangeSpriteSlice plotslices(handle), spritetype, record, pal, frame, fliph, flipv
    END IF
   END IF
@@ -3993,13 +3993,13 @@ SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER
 END SUB
 
 SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BYVAL bgcol AS INTEGER=-1, BYVAL fgcol AS INTEGER=-1, BYVAL border AS INTEGER=-3, BYVAL translucent AS RectTransTypes=transUndef)
- IF valid_plotslice(handle, "change_rect_plotslice") THEN
+ IF valid_plotslice(handle) THEN
   DIM sl AS Slice Ptr
   sl = plotslices(handle)
   IF sl->SliceType = slRectangle THEN
    ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent
   ELSE
-   scripterr "change_rect_plotslice: " & SliceTypeName(sl) & " is not a rect", 4 
+   scripterr commandname(curcmd->value) & ": " & SliceTypeName(sl) & " is not a rect", 4 
   END IF
  END IF
 END SUB
