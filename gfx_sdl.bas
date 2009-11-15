@@ -199,17 +199,28 @@ END SUB
 SUB gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
   'takes a pointer to raw 8-bit data at 320x200 (w,h ignored at the moment)
 
-  'I came this close to just swapping screenbuffer->pixels, but it made even me feel filthy
-  'IF screenbuffer->w <> w OR screenbuffer->h <> h THEN
+  'We may either blit to screensurface (doing 8 bit -> display pixel format conversion) first
+  'and then smoothzoom, with smoothzoomblit_anybit
+  'Or smoothzoom first, with smoothzoomblit_8_to_8bit, and then blit to screensurface
+
+  'unfinished variable resolution handling
   IF screenbuffer THEN
-    SDL_FreeSurface(screenbuffer)
+    IF screenbuffer->w <> w * zoom OR screenbuffer->h <> h * zoom THEN
+      SDL_FreeSurface(screenbuffer)
+      screenbuffer = NULL
+    END IF
   END IF
 
-  screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
+  IF screenbuffer = NULL THEN
+    screenbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, w * zoom, h * zoom, 8, 0,0,0,0)
+  END IF
+  'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
   IF screenbuffer = NULL THEN
     print "Failed to allocate page wrapping surface"
     SYSTEM
   END IF
+
+  smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, zoom, 0)
 
   gfx_sdl_update_screen()
 END SUB
@@ -218,6 +229,7 @@ SUB gfx_sdl_update_screen()
   IF screenbuffer <> NULL and screensurface <> NULL THEN
     SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256)
     SDL_BlitSurface(screenbuffer, NULL, screensurface, @dest_rect)
+/'
     IF zoom > 1 THEN
       SDL_LockSurface(screensurface)
 
@@ -227,6 +239,7 @@ SUB gfx_sdl_update_screen()
 
       SDL_UnlockSurface(screensurface)
     END IF
+'/
     SDL_Flip(screensurface)
     SDL_PumpEvents()
   END IF
