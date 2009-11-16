@@ -76,6 +76,7 @@ WHAT IS NEW?
       and given options such as entering the slightly improved script
       debugger. But many script errors still occur silently. [Ralph]
     * Each text box can now have a sound effect attached. [James]
+    * Press F1 anywhere in custom for help [James, Ralph, Msw, NN]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"
