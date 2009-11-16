@@ -1087,7 +1087,7 @@ DO
     FOR i = 0 TO 7
      buffer(4 + i) = recbuf(AtkDatBitsets2 + i)
     NEXT i
-    editbitset buffer(), 0, UBOUND(atkbit), atkbit()
+    editbitset buffer(), 0, UBOUND(atkbit), atkbit(), "attack_bitsets"
     'split the buffer to the two bitset blocks
     FOR i = 0 TO 3
      recbuf(AtkDatBitsets + i) = buffer(i)
@@ -1096,13 +1096,13 @@ DO
      recbuf(AtkDatBitsets2 + i) = buffer(4 + i)
     NEXT i
    CASE AtkChainBits
-    editbitset recbuf(), AtkDatChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
+    editbitset recbuf(), AtkDatChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names(), "attack_chain_bitsets"
     state.need_update = YES
    CASE AtkElseChainBits
-    editbitset recbuf(), AtkDatElseChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
+    editbitset recbuf(), AtkDatElseChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names(), "attack_chain_bitsets"
     state.need_update = YES
    CASE AtkInsteadChainBits
-    editbitset recbuf(), AtkDatInsteadChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names()
+    editbitset recbuf(), AtkDatInsteadChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names(), "attack_chain_bitsets"
     state.need_update = YES
    CASE AtkChainBrowserAct
     saveattackdata recbuf(), recindex

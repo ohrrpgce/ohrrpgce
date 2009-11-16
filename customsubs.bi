@@ -49,7 +49,7 @@ DECLARE SUB edit_menu_item_bits (mi AS MenuDefItem)
 DECLARE SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
 DECLARE SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
 DECLARE FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRING
-DECLARE SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING)
+DECLARE SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING, helpkey AS STRING="editbitset")
 DECLARE FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING) AS STRING
 DECLARE SUB scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING)
 DECLARE FUNCTION scrintgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77, BYVAL scriptside AS INTEGER, BYVAL triggertype AS INTEGER) AS INTEGER
@@ -59,7 +59,7 @@ DECLARE SUB script_usage_list ()
 DECLARE SUB script_broken_trigger_list()
 DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
 DECLARE SUB autofix_broken_old_scripts()
-DECLARE FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO, BYVAL wrapchars AS INTEGER=1) AS INTEGER
+DECLARE FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=1, BYVAL wrapchars AS INTEGER=1) AS INTEGER
 DECLARE FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
 DECLARE SUB edit_global_text_strings()
 DECLARE SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)

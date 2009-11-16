@@ -1,4 +1,4 @@
-This is a list of bitsets. Each one is a simple setting that can either be OFF or ON. Bitsets that are turned OFF are displayed in grey, and bitsets that are turned ON are displayed in white.
+This is a list of bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
 

@@ -1,0 +1,11 @@
+This is a list of bitsets specific to a menu item - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+
+Modifiy bitsets with Left, Right, SPACE and ENTER.
+
+There are two bitsets:
+
+*"Hide if disabled" - This causes the menu item to completely vanish from the menu if it has been disabled by tags or if it is a "Special" type menu item that is not allowed on the current map. Otherwise the menu item will still appear but will be greyed out and unable to be selected.
+
+*"Close menu if selected" - This causes the menu to be closed after the menu item is selected. It is often useful with menu items in menus that have the "allow gameplay & scripts" bitset turned OFF, since text boxes and scripts triggered by menu items will wait for the menu to close.

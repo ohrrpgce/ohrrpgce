@@ -22,16 +22,7 @@ For each chain, there are several different options.
 
 * Rate - This is a percentage that controls how often the chain succeeds. A chain rate of 50 would only chain half the time. If you want the chain to happen every time, use 100.
 
-* Option settings - this is a list of bitsets that affects chain behaviour. 
-  * "Attacker must know chained
-    attack" causes the chain to fail
-    if the attacker does not have
-    the chained attack in their
-    spell lists or weapon attack.
-  * "Ignore chained attack's delay"
-    causes the chained attack to
-    happen immediately, even if it
-    has a delay when used normally.
+* Option settings - this is a list of bitsets that affect chain behaviour. See the sub-menu help screen.
 
 * Condition - There are several different options for chain condition
 

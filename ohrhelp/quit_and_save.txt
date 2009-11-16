@@ -1,9 +1,11 @@
-Here you can choose whether you want to save your work or not, and whether or not you want to quit.
+Here you can choose to save your work, and whether or not you want to quit.
 
 Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
 
 Choose an option with ENTER or SPACE.
 
 If you press ESC again, you will be returned to the Main Menu without saving. This is to stop you from accidentally saving or losing something by pressing the ESC key too many times somewhere!
+
+You can go to this screen instantly by pressing PgUp+PgDn+Esc, or by attempting to close the program (eg. Alt+F4). Doing this a second time quits immediately, saving the game as a .BAK file.
 
 If you are quitting for now, have a great day!

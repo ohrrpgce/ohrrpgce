@@ -2,4 +2,4 @@ This screen allows you to choose which 3 rows of tiles are allowed to animate wi
 
 Just use the up and down arrow keys and press ENTER or SPACE when you are done.
 
-Animatiing tiles are optional, and maybe animation will only make sense for one or two tiles in this range. That is okay.
+Setting tiles to animate is optional, and maybe animation will only make sense for one or two tiles in this range. That is okay.

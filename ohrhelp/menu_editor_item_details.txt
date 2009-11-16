@@ -65,26 +65,6 @@ This is the menu item detail editor. This is where you define what a menu item a
 
 *Toggle Tag - This tag will be switch OFF if it is ON and ON if it is OFF whenever this menu item is used. Press ENTER or SPACE to browse tags.
 
-*Bitsets - There are two bitsets.
+*Bitsets - See the help screen in this submenu for details.
 
-  *"Hide if disabled" - This causes
-    the menu item to completely
-    vanish from the menu if it has
-    been disabled by tags or if it is
-    a "Special" type menu item that
-    is not allowed on the current
-    map. Otherwise the menu item will
-    still appear but will be greyed
-    out and unable to be selected.
-
-  *"Close menu if selected" - This
-   causes the menu to be closed after
-   the menu item is selected. It is
-   often useful with menu items in
-   menus that have the "allow
-   gameplay & scripts" bitset turned
-   OFF, since text boxes and scripts
-   triggered by menu items will wait
-   for the menu to close.
-
-*Extra Data - There are 3 pieces of extra data that you can attach to each menu item. These are just numbers. They don't mean anything unless you use them for your own special purposes from a plotscript.
+*Extra Data - There are 3 pieces of extra data that you can attach to each menu item. These are just numbers. They don't mean anything unless you use them for your own special purposes from a plotscript. They are passed to triggered scripts as arguments if the menu bitset "Allow gameplay & scripts" is off.

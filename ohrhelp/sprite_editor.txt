@@ -65,6 +65,8 @@ CTRL+C Copies the sprite
 
 CTRL+V Pastes a copy of the sprite.
 
+CTRL+T Pastes a sprite, treating color 0 as transparent.
+
 ALT+C Copies the 16-color palette.
 
 ALT+V Pastes a copy of the 16-color

@@ -1,10 +1,10 @@
 This is the text box line editor.
 
-Use the arrow keys to move the cursor.
+Use the arrow keys to move the cursor, and CTRL+Left or CTRL+Right to move by word.
 
 Type to edit the lines.
 
-The special codes listed at the bottom of the screen can be used to embed variable words/numbers into the text box.
+The special codes listed at the bottom of the screen can be used to embed variable words/numbers into the text.
 
 Press CTRL+SPACE to choose special characters to insert at the current cursor location.
 

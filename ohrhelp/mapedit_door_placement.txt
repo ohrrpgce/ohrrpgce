@@ -14,7 +14,7 @@ Press the SPACE bar to place a door.
 
 If you want to remove a door, position the cursor over it and press SPACE again.
 
-To link a door to another door, position the cursor over the door and press ENTER. This will take to the door linking tool.
+To link a door to another door, position the cursor over the door and press ENTER. This will take you to the door linking tool.
 
 Remember that for a door to be usable in both directions, it needs to be linked from both directions. If you only link a door one way, it will only be usable one way.
 

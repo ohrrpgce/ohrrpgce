@@ -1,0 +1,9 @@
+This is a list of attack chaining option bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+
+Modifiy bitsets with Left, Right, SPACE and ENTER.
+
+* "Attacker must know chained attack" causes the chain to fail if the attacker does not have the chained attack in their spell lists or weapon attack.
+
+* "Ignore chained attack's delay" causes the chained attack to happen immediately, even if it has a delay when used normally.

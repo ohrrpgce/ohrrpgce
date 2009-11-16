@@ -2,6 +2,8 @@ Help on Help
 
 Aha! Clever! You discovered the Help on Help screen! Obviously you already know that pressing F1 will show you the help screen. You probably also know that pressing ESC will exit the help screen.
 
-You may also know that you can use the up and down arrow keys to scroll through long help screens.
+You may also know that you can use the up and down arrow keys and pageup and pagedown to scroll through long help screens.
 
 But did you know that you can press E to edit the help screens? Think of it as a tiny wiki built into the program. If you make improvements to any of the help screens, you can zip up a copy of your ohrhelp folder and mail it to the developers, and they can integrate your improvements into the official help files. Cool huh?
+
+While editing, CTRL+Left and CTRL+Right move by word, and Home and End move by line.

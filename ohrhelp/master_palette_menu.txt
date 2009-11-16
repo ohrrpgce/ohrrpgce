@@ -1,0 +1,16 @@
+This menu lets you import master palettes. Each master palette also has its own set of UI colors.
+
+Only one master palette can be used at a time. The ability to import multiple palettes into your game exists so that you can switch to a different palette using the loadpalette script command, such as for some self-contained section of the game like a sequence of backdrops.
+
+The active editing palette is the master palette being used for the current editing session; this setting is not saved.
+
+You can replace the selected palette, or add a new one by pressing Right at the last palette.
+
+Master palettes can be imported either from a 256-color .BMP file of any size, a 16x16 24-bit color .BMP where each pixel is a color, or the old uneditable .MAS format.
+
+Each color used as a UI color is highlighted when selecting a relevant menu option.
+
+When a master palette is imported, its UI colors are automatically selected to be as similar as possible to the UI colors of the active editing palette.
+"Nearest-match active palette's UI colors" lets you repeat this process, to copy changes from one palette to another.
+
+"Copy active palette's UI data" basically copy-pastes UI color indices between palettes without remapping, for when you want to do something like create a darkened version of a palette and affect the user interface as well.

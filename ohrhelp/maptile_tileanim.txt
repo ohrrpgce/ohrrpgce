@@ -1,8 +1,8 @@
 This is where you define maptile animations.
 
-Press left and right on "Animation set" to choose which set you are going to edit. There are only two animation sets for each tileset, and they are numbered 0 and 1
+Press left and right on "Animation set" to choose which set you are going to edit. There are only two animation sets for each tileset, and they are numbered 0 and 1.
 
-The "Animation Range" is the set of tiles that are allowed to use this animation.
+The "Animation Range" is the set of tiles that are allowed to use this animation. This is an engine limitation.
 
 The "Animation Pattern" is a series of simple commands that describe the animation.
 

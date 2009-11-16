@@ -1,0 +1,23 @@
+This is a list of menu bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+
+Modifiy bitsets with Left, Right, SPACE and ENTER.
+
+ *"Translucent Box"
+
+ *"Never show scrollbar"
+
+ *"Allow gameplay & scripts" - If this is turned on then the menu will NOT pause the rest of the game. The player will still be able to walk around. NPCs will still move. Random battles can still happen. Scripts will still run.
+
+ *"Suspend player even if gameplay allowed" - This only matters if the "Allow gameplay & scripts" bitset is on. Turning this bitset on causes the hero to be paused while the menu is active, but other activity like NPCs and scripts may continue.
+
+ *"No Box"
+
+ *"Cancel button doesn't close menu" - Use this if the menu is an always-up display, or if you prefer to close it using the "close menu when selected" bitset on one of the items in the menu or the closemenu script command.
+
+ *"No player control of menu" - This is useful for menus that are controlled by scripts.
+
+ *"Prevent main menu activation" - Stops the player from opening the main menu as long as this menu is active. This is useful for sub-menus called from the main menu.
+
+ *"Advance text box when menu closes"

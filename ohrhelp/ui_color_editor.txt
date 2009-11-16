@@ -8,4 +8,6 @@ If you press ENTER or SPACE on a color, you will see a palette browser that lets
 
 You can press CTRL+D to revert a color back to its default value.
 
+You can also find UI color options related to using multiple palettes in `General Game Data->Master Palettes'.
+
 If you accidentally make it impossible to read the screen, either by changing the background color or the text colors, you can fix it by pressing the down arrow, then CTRL+D then the down arrow again, and CTRl+D and repeat until the menu is visible again.

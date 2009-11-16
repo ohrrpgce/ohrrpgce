@@ -1675,7 +1675,7 @@ SUB edit_menu_bits (menu AS MenuDef)
  bitname(8) = "Advance text box when menu closes"
 
  MenuBitsToArray menu, bits()
- editbitset bits(), 0, UBOUND(bitname), bitname()
+ editbitset bits(), 0, UBOUND(bitname), bitname(), "menu_editor_bitsets"
  MenuBitsFromArray menu, bits()  
 END SUB
 
@@ -1687,7 +1687,7 @@ SUB edit_menu_item_bits (mi AS MenuDefItem)
  bitname(1) = "Close menu if selected"
 
  MenuItemBitsToArray mi, bits()
- editbitset bits(), 0, UBOUND(bitname), bitname()
+ editbitset bits(), 0, UBOUND(bitname), bitname(), "menu_editor_item_bitsets"
  MenuItemBitsFromArray mi, bits()  
 END SUB
 
@@ -1769,7 +1769,7 @@ FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRI
  RETURN s
 END FUNCTION
 
-SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING)
+SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING, helpkey AS STRING="editbitset")
 
  '---DIM AND INIT---
  DIM state AS MenuState
@@ -1805,7 +1805,7 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
   setkeys
   state.tog = state.tog XOR 1
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "editbitset"
+  IF keyval(scF1) > 1 THEN show_help helpkey
   usemenu state
   IF state.pt >= 0 THEN
    IF keyval(scLeft) > 1 OR keyval(scComma) > 1 THEN setbit array(), wof, bits(state.pt), 0
@@ -2195,7 +2195,7 @@ SUB show_help(helpkey AS STRING)
   setkeys
   
   IF editing THEN  
-   cursor_line = stredit(dat->s, 32767, YES, INT(help_text->Width / 8))
+   cursor_line = stredit(dat->s, 32767, dat->line_limit, INT(help_text->Width / 8))
    'The limit of 32767 chars is totally arbitrary and maybe not a good limit
    dat->insert = insert '--copy the global stredit() insert point
   END IF
@@ -2222,6 +2222,10 @@ SUB show_help(helpkey AS STRING)
     '--not editing, just browsing
     IF keyval(scUp) > 1 THEN dat->first_line -= 1
     IF keyval(scDown) > 1 THEN dat->first_line += 1
+    IF keyval(scPageUp) > 1 THEN dat->first_line -= dat->line_limit - 1
+    IF keyval(scPageDown) > 1 THEN dat->first_line += dat->line_limit - 1
+    IF keyval(scHome) > 1 THEN dat->first_line = 0
+    IF keyval(scEnd) > 1 THEN dat->first_line = dat->line_count
    END IF
    dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
   END IF
@@ -2787,8 +2791,8 @@ SUB autofix_broken_old_scripts()
 
 END SUB
 
-FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER=NO, BYVAL wrapchars AS INTEGER=1) AS INTEGER
- 'Return value is the line that the cursor is on, or 0 if multiline=NO
+FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=1, BYVAL wrapchars AS INTEGER=1) AS INTEGER
+ 'Return value is the line that the cursor is on, or 0 if numlines=1
  stredit = 0
  
  'insert is declared EXTERN in cglobals.bi and DIMed in custom.bas
@@ -2806,12 +2810,21 @@ FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER
   IF keyval(scLeft) > 1 THEN insert = large(0, insert - 1)
   IF keyval(scRight) > 1 THEN insert = small(LEN(s), insert + 1)
  ELSE 'CTRL
-  IF keyval(scleft) > 1 THEN insert = 0
-  IF keyval(scRight) > 1 THEN insert = LEN(s)
+  IF keyval(scLeft) > 1 THEN 'move by word
+   IF insert > 0 THEN 'searching from position -1 searches from the end
+    insert = INSTRREV(s, ANY !" \n", insert - 1)  'different argument order: the FB devs, they are so funny
+   END IF
+  END IF
+  IF keyval(scRight) > 1 THEN
+   insert = INSTR(insert + 1, s, ANY !" \n")
+   IF insert = 0 THEN insert = LEN(s)
+  END IF
+  IF keyval(scHome) > 1 THEN insert = 0
+  IF keyval(scEnd) > 1 THEN insert = LEN(s)
  END IF
 
  '--up and down arrow keys
- IF multiline THEN
+ IF numlines > 1 THEN
   DIM wrapped AS STRING
   wrapped = wordwrap(s, large(1, wrapchars))
   DIM lines() AS STRING
@@ -2819,6 +2832,7 @@ FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER
   DIM count AS INTEGER = 0
   DIM found_insert AS INTEGER = -1
   DIM line_chars AS INTEGER
+  DIM move_lines AS INTEGER = 0
   FOR i AS INTEGER = 0 TO UBOUND(lines)
    IF count + LEN(lines(i)) >= insert THEN
     found_insert = i
@@ -2830,38 +2844,34 @@ FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER
   IF found_insert >= 0 THEN
    '--set return value
    stredit = found_insert
-   IF keyval(scUp) > 1 AND found_insert > 0 THEN
+   IF keyval(scUp) > 1 THEN move_lines = -1
+   IF keyval(scDown) > 1 THEN move_lines = 1
+   IF keyval(scPageUp) > 1 THEN move_lines = -(numlines - 2)
+   IF keyval(scPageDown) > 1 THEN move_lines = numlines - 2
+   IF move_lines THEN
+    found_insert = bound(found_insert + move_lines, 0, UBOUND(lines) - 1)
     insert = 0
-    FOR i AS INTEGER = 0 TO found_insert - 2
+    FOR i AS INTEGER = 0 TO found_insert - 1
      insert += LEN(lines(i)) + 1
     NEXT i
-    insert += small(line_chars, LEN(lines(found_insert - 1)))
+    insert += small(line_chars, LEN(lines(found_insert)))
     '--set return value
-    stredit = found_insert - 1
+    stredit = found_insert
    END IF
-   IF keyval(scDown) > 1 AND found_insert < UBOUND(lines) THEN
-    insert = 0
-    FOR i AS INTEGER = 0 TO found_insert
-     insert += LEN(lines(i)) + 1
-    NEXT i
-    insert += small(line_chars, LEN(lines(found_insert + 1)))
-    '--set return value
-    stredit = found_insert + 1
+   '--end of special handling for up and down motion
+  END IF
+  '--Home and end keys: go to previous/next newline,
+  '--unless Ctrl is pressed, which is handled above
+  IF keyval(scCtrl) = 0 THEN
+   IF keyval(scHome) > 1 THEN
+    IF insert > 0 THEN 'searching from position -1 searches from the end
+     insert = INSTRREV(s, CHR(10), insert - 1)
+    END IF
    END IF
-   '--end of special handling for up and down arrows
-  END IF
-  '--Home and end keys
-  IF keyval(scHome) > 1 THEN
-   DO WHILE insert > 0
-    insert -= 1
-    IF MID(s, 1 + insert, 1) = CHR(10) THEN insert += 1 : EXIT DO
-   LOOP
-  END IF
-  IF keyval(scEnd) > 1 THEN
-   DO WHILE insert < LEN(s)
-    IF MID(s, 1 + insert, 1) = CHR(10) THEN EXIT DO
-    insert += 1
-   LOOP
+   IF keyval(scEnd) > 1 THEN
+    insert = INSTR(insert + 1, s, CHR(10))
+    IF insert = 0 THEN insert = LEN(s)
+   END IF
   END IF
   '--end of special keys that only work in multiline mode
  END IF
@@ -2899,7 +2909,7 @@ FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL multiline AS INTEGER
     '--charlist support
     pre = pre & charpicker()
    END IF
-  ELSEIF multiline AND keyval(scEnter) > 1 THEN
+  ELSEIF numlines > 1 AND keyval(scEnter) > 1 THEN
    pre = pre & CHR(10)
   ELSE
    IF keyval(scCtrl) = 0 THEN

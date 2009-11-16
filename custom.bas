@@ -1063,7 +1063,7 @@ EXIT SUB
 menugen:
 menu$(0) = "Return to Main Menu"
 menu$(3) = "Edit Available Stuff..."
-menu$(4) = "Edit Shop Bitsets..."
+menu$(4) = "Select Shop Menu Items..."
 GOSUB menuup
 RETRACE
 

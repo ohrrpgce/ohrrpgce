@@ -643,7 +643,7 @@ DO
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic))
     GOSUB EnUpdateMenu
    CASE EnMenuBitsetAct
-    editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit()
+    editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit(), "enemy_bitsets"
    CASE EnMenuDissolve, EnMenuDissolveTime
     IF recbuf(EnDatDissolve) THEN dissolve_type = recbuf(EnDatDissolve) - 1 ELSE dissolve_type = gen(genEnemyDissolve)
     dissolve_time = recbuf(EnDatDissolveTime) 

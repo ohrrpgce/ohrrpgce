@@ -132,7 +132,7 @@ DO
    END IF
   CASE 4
    IF enter_or_space() THEN
-    editbitset veh(), 9, 8, vehbit$()
+    editbitset veh(), 9, 8, vehbit$(), "vehicle_bitsets"
    END IF
   CASE 10, 11
    IF enter_or_space() THEN
@@ -1099,12 +1099,12 @@ SUB statcapsmenu
    NEXT
   END IF
 
-  clearpage dpage
-  standardmenu m$(), state, 0, 0, dpage, 0
-  setvispage dpage
+  clearpage vpage
+  standardmenu m$(), state, 0, 0, vpage, 0
+  setvispage vpage
   dowait
  LOOP
- clearpage dpage
+ clearpage vpage
 END SUB
 
 SUB startingdatamenu
@@ -1156,12 +1156,12 @@ SUB startingdatamenu
    m$(4) = "Starting Money: " & gen(genStartMoney)
   END IF
 
-  clearpage dpage
-  standardmenu m$(), state, 0, 0, dpage, 0
-  setvispage dpage
+  clearpage vpage
+  standardmenu m$(), state, 0, 0, vpage, 0
+  setvispage vpage
   dowait
  LOOP
- clearpage dpage
+ clearpage vpage
 END SUB
 
 SUB generate_gen_menu(m$(), longname$, aboutline$)
@@ -1176,7 +1176,7 @@ m$(15) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
 IF gen(genMaxInventory) = 0 THEN
  m$(16) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
 ELSE
- m$(16) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, 0-" & gen(genMaxInventory) & " slots"
+ m$(16) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
 END IF
 m$(17) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
 m$(18) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
@@ -1291,7 +1291,7 @@ SUB gendata ()
     bittemp(0) = gen(genBits)
     bittemp(1) = gen(genBits2)
     bittemp(2) = gen(genBits2+1)
-    editbitset bittemp(), 0, 19, bitname()
+    editbitset bittemp(), 0, 19, bitname(), "general_game_bitsets"
     gen(genBits) = bittemp(0)
     gen(genBits2) = bittemp(1)
     gen(genBits2+1) = bittemp(2)

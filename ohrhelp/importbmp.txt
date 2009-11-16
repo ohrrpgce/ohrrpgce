@@ -1,4 +1,4 @@
-This screen lets you import full-screen BMP files, and preview the ones that you have already imported.
+This screen lets you import 320x200 BMP files, serving either as fullscreen backdrops or as tilesets.
 
 Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
 
@@ -8,8 +8,12 @@ Pick "Replace current" to import a new BMP to replace the one you are currently 
 
 Pick "Append a new" to import a new BMP and add it to the end of the list.
 
-When you import a 24-bit BMP file, it gets fit to the current 256 color master palette. Sometimes certain colors match poorly. You can use "Disable palette colors for import" to disable the colors that look bad, then you can re-import and the importer will be forced to choose different colors.  See the help file in that menu for more info.
+When you import a 24-bit BMP file, it gets fit to the current 256 color master palette.
+
+When you import an 8-bit BMP file with a palette different from the master palette you can choose whether to perform nearest-match color remapping, to leave the color indices alone, or to import a new master palette: see the help screen for `General Game Data->Master Palettes'
+
+Sometimes certain colors match poorly. You can use "Disable palette colors for import" to disable the colors that look bad, then you can re-import and the importer will be forced to choose different colors.  See the help file in that menu for more info.
 
 You can also export a BMP file.
 
-"full screen view" allows you to preview the image with no menu floating over it. Press the up or down arrow keys to get out of full screen mode.
+"Full screen view" allows you to preview the image with no menu floating over it. Press the up or down arrow keys to get out of full screen mode.
