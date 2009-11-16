@@ -1,0 +1,26 @@
+Here you can browse for a BMP file to import as a sprite, for example, a sprite that you drew in an external graphics editor.
+
+Sprites should be saved in BMP format with 4-bit color (that is 16 colors)
+
+The browser will show you the bit-depth of any BMP file you highlight, so you can easily identify any file that will fail to import because it was saved.
+
+The correct pixel size for each sprite type is as follows:
+
+32x40  Hero battle pictures
+34x34  Small enemies
+50x50  Medium enemies
+80x80  Large enemies
+20x20  Walkabouts
+50x50  Attacks
+24x24  Weapons
+16x16  Box borders
+
+Also, if you are in full-spriteset mode (CTRL+F on the sprit list)  you can import an entire sprite set from a single file. here are the sizes for sprite sets:
+
+256x40  Hero battle picture sets
+160x20  Walkabout sets
+150x50  Attack sets
+48x24   Weapon sets
+256x16  Box border sets
+
+Note that you are allowed to import files that don't exactly match the correct sprite size. If the BMP is too big, the right and bottom edges will be cropped. If the BMP is too small, the right abd bottom edges will be padded with empty space.
