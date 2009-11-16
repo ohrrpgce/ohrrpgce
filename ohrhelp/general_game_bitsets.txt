@@ -18,7 +18,7 @@ The "debugging keys" are special keys that help with testing a game, but could b
 
 The "Simulate __ bug" bitsets are for backwards compatibility with old games, and should most likely be left turned off.
 
-"Permit double-triggering of scripts" turns off a check that a prevents a script from being triggered if it is already the current active/"topmost" script. This check doesn't work if the triggered script calls another; it is often better to check manually.
+"Permit double-triggering of scripts" turns off a check that a prevents a script from being triggered if it is already the current active/"topmost" script. This check doesn't work if the triggered script calls another; it is often better to check manually. Be aware that if you allow double triggering of scripts, any scripts called by NPC activation will require manual checking to prevent double activation, otherwise it will be extremely easy to get stuck in endless loops.
 
 "Default passability disabled by default" changes the default Default Passability setting in the map tilemap editor; set to your preference, it doesn't affect the game.
 
