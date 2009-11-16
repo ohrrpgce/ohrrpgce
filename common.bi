@@ -99,6 +99,7 @@ DECLARE SUB upgrade (font() as integer)
 DECLARE SUB rpgversion (v as integer)
 DECLARE SUB fix_sprite_record_count(BYVAL pt_num AS INTEGER)
 DECLARE SUB fix_record_count(BYREF last_rec_index AS INTEGER, BYREF record_byte_size AS INTEGER, lumpname AS STRING, info AS STRING, skip_header_bytes AS INTEGER=0, count_offset AS INTEGER=0)
+DECLARE SUB loadglobalstrings ()
 DECLARE FUNCTION readglobalstring (index as integer, default as string, maxlen as integer=10) as string
 DECLARE SUB load_default_master_palette (master_palette() AS RGBColor)
 DECLARE SUB dump_master_palette_as_hex (master_palette() AS RGBColor)

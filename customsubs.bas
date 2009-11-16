@@ -3181,6 +3181,7 @@ SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
  ch = LEFT(s, small(maxlen, 255))
  PUT #fh, 2 + index * 11, ch
  CLOSE #fh
+ loadglobalstrings
 END SUB
 
 FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS INTEGER=NO) AS INTEGER

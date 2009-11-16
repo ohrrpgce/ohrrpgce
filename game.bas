@@ -318,6 +318,7 @@ FOR i = 0 TO 254
  loadset game + ".efs", i, 0
  gam.foe_freq(i) = buffer(0)
 NEXT i
+loadglobalstrings
 getstatnames statnames()
 j = 0
 

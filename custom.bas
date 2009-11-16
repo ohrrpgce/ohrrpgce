@@ -239,6 +239,7 @@ LoadUIColors uilook(), activepalette
 setfont font()
 rpgversion gen(genVersion)
 
+loadglobalstrings
 getstatnames statnames()
 
 menumode = 0

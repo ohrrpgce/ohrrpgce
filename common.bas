@@ -54,6 +54,9 @@ DIM SHARED importantdebug AS INTEGER = 0
 DIM SHARED box_border_cache_loaded AS INTEGER = NO
 DIM SHARED box_border_cache(14) AS GraphicPair
 
+'.stt lump read into memory
+DIM SHARED global_strings_buffer AS STRING
+
 'fade in and out not actually used in custom
 SUB fadein ()
 fadestate = 1
@@ -2345,6 +2348,7 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
  DIM col AS INTEGER
  DIM where AS XYPair
 
+ 'we actually calculate each menu item caption twice: once also in position_menu
  position_menu menu
  
  WITH menu.rect
@@ -2485,32 +2489,30 @@ FUNCTION count_menu_items (menu AS MenuDef) as integer
  RETURN count
 END FUNCTION
 
-FUNCTION readglobalstring (index AS INTEGER, default AS STRING, maxlen AS INTEGER=10) as string
+SUB loadglobalstrings
+'we load the whole lump into memory because readglobalstring can be called
+'hunderds of times a second. It's stored in a raw format; good enough.
 DIM fh AS INTEGER = FREEFILE
 OPEN game + ".stt" FOR BINARY AS #fh
-
-DIM namelen AS UBYTE
-GET #fh, 1 + index * 11, namelen
-IF maxlen < namelen THEN namelen = maxlen
-
-DIM result AS STRING
-IF index * 11 + namelen + 1 > LOF(fh) THEN
- result = default
-ELSEIF namelen > 0 THEN
- result = STRING(namelen, 0)
- GET #fh, index * 11 + 2, result
-ELSE
- result = ""
+IF LOF(fh) > 0 THEN
+ global_strings_buffer = STRING(LOF(fh), 0)
+ GET #fh, 1, global_strings_buffer
 END IF
-
 CLOSE #fh
+END SUB
 
-RETURN result
+FUNCTION readglobalstring (index AS INTEGER, default AS STRING, maxlen AS INTEGER=10) as string
+IF index * 11 + 2 > LEN(global_strings_buffer) THEN
+ RETURN DEFAULT
+ELSE
+ DIM namelen AS UBYTE = global_strings_buffer[index * 11]
+ IF maxlen < namelen THEN namelen = maxlen
+ RETURN MID(global_strings_buffer, index * 11 + 2, namelen)
+END IF
 END FUNCTION
 
 FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
  DIM cap AS STRING
- DIM menutemp AS MenuDef
  cap = mi.caption
  IF LEN(cap) = 0 THEN
   'No caption, use the default
@@ -2519,7 +2521,7 @@ FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
     cap = get_special_menu_caption(mi.sub_t, menu.edit_mode)
    CASE 2 ' another menu
     '--Loading the target menu name here may be inadvisable for performance reasons.
-    '--this routine gets called for evert    
+    '--A caching getmenuname function might be required to prevent bug 707 recurrence   
     'LoadMenuData menu_set, menutemp, mi.sub_t, YES
     'cap = menutemp.name
     cap = "Menu " & mi.sub_t
