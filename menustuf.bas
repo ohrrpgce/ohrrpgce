@@ -1797,7 +1797,7 @@ FUNCTION items_menu (stat() as integer) as integer
  DIM itemtemp(100) AS INTEGER
  DIM iuse((inventoryMax + 3) / 16) AS INTEGER 'bit 0 of iuse, permask, correspond to item -3
  DIM permask((inventoryMax + 3) / 16) AS INTEGER
- DIM special(-3 TO -1) AS STRING
+ DIM special(-3 TO 0) AS STRING  'upper bound should be -1, had to change due to FB bug #2898546 
 
  special(-3) = rpad(readglobalstring(35, "DONE", 10), " ", 11)
  special(-2) = rpad(readglobalstring(36, "AUTOSORT", 10), " ", 11)
