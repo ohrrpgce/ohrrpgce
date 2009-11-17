@@ -236,6 +236,8 @@ sub io_updatekeys(byval keybd as integer ptr)
 			keybd[a] = keybd[a] or 8
 		end if
 	next
+	'the polling thread ought to ensure that these are caught timeously
+	if inkey = chr(255) + "k" then post_terminate_signal
 end sub
 
 sub io_setmousevisibility(byval visible as integer)

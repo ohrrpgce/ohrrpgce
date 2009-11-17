@@ -2,8 +2,6 @@
 
 #include "udts.bi"
 
-' gfx_*
-
 #ifdef EXTERN_GFX
 ' I would just always declare everything as external, however
 ' FB angrily complains that we have to also stick EXTERN blocks in each backend .bas as well!
@@ -37,7 +35,13 @@ declare function io_readjoysane (byval as integer, byref as integer, byref as in
 end extern
 #endif
 
-' gfxsubs
+' functions in allmodex.bas
+
+'Call on window or application close request event. Maybe ought to guarantee backend won't be reentered
+'Allowed to be called from another thread.
+declare sub post_terminate_signal cdecl ()
+
+' functions in gfxsubs.bas
 
 declare sub smoothzoomblit_8_to_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer)
 declare sub smoothzoomblit_8_to_32bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer, byval pal as integer ptr)

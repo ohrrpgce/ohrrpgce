@@ -527,7 +527,7 @@ IF usepreunlump = 0 THEN RMDIR workingdir
 restoremode
 'DEBUG debug "Terminate NOW (boom!)"
 end_debug
-SYSTEM
+END
 
 END SUB
 
@@ -599,7 +599,7 @@ DO
  END IF
  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN EXIT DO
  FOR i = 2 TO 88
-  IF keyval(i) > 1 THEN
+  IF i <> scNumlock AND i <> scCapslock AND keyval(i) > 1 THEN  'DELETEME: a workaround for bug 619
    EXIT DO
   END IF
  NEXT i

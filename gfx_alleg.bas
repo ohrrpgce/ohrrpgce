@@ -61,6 +61,7 @@ sub gfx_init
 		
 		install_keyboard
 		install_mouse
+		set_window_close_hook(@post_terminate_signal)
 		
 		init_gfx = 1
 	end if

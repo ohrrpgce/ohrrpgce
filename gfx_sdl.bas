@@ -13,6 +13,7 @@ option explicit
 
 DECLARE SUB gfx_sdl_set_screen_mode()
 DECLARE SUB gfx_sdl_update_screen()
+DECLARE SUB gfx_sdl_process_events()
 
 DIM SHARED zoom AS INTEGER = 2
 DIM SHARED screensurface AS SDL_Surface PTR = NULL
@@ -242,7 +243,8 @@ SUB gfx_sdl_update_screen()
     END IF
 '/
     SDL_Flip(screensurface)
-    SDL_PumpEvents()
+    'frankly, I have no idea why this is here
+    gfx_sdl_process_events()
   END IF
 END SUB
 
@@ -302,15 +304,25 @@ SUB io_init
   'nothing needed at the moment...
 END SUB
 
+SUB gfx_sdl_process_events()
+'The SDL event queue only holds 128 events, after which SDL_QuitEvents will be lost
+'Of course, we might actually like to do something with some of the other events
+  DIM tempevent as SDL_Event
+
+  WHILE SDL_PollEvent(@tempevent)
+    IF tempevent.type = SDL_EXIT THEN post_terminate_signal
+  WEND
+END SUB
+
 SUB io_pollkeyevents()
   SDL_Flip(screensurface)
-  SDL_PumpEvents()
+  gfx_sdl_process_events()
 END SUB
 
 SUB io_updatekeys(byval keybd as integer ptr)
-  DIM a AS INTEGER
+  gfx_sdl_process_events()
   keystate = SDL_GetKeyState(NULL)
-  FOR a = 0 TO 322
+  FOR a as integer = 0 TO 322
     IF keystate[a] THEN
       'print "OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
       IF scantrans(a) THEN

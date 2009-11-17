@@ -13,6 +13,10 @@ include_windows_bi()
 #include "const.bi"
 #include "uiconst.bi"
 
+#ifdef IS_GAME
+declare sub exitprogram (needfade as integer)
+#endif
+
 option explicit
 
 #define NULL 0
@@ -89,6 +93,8 @@ dim shared keysteps(127) as integer
 dim shared keyrepeatwait as integer = 8
 dim shared keyrepeatrate as integer = 1
 dim shared diagonalhack as integer
+
+dim shared closerequest as integer = 0
 
 dim shared keybdmutex as intptr  'controls access to keybdstate(), mouseflags and mouselastflags
 dim shared keybdthread as intptr   'id of the polling thread
@@ -856,6 +862,7 @@ FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as 
 	RETURN result
 end FUNCTION
 
+'one of waitforanykey and getkey must go
 FUNCTION waitforanykey (modkeys=-1) as integer
 	dim i as integer
 	setkeys
@@ -864,13 +871,16 @@ FUNCTION waitforanykey (modkeys=-1) as integer
 		setkeys
 		for i = 1 to &h7f
 			if not modkeys and (i=29 or i=56 or i=42 or i=54) then continue for
-			if keyval(i) > 1 then return i
+			if i <> scNumlock and i <> scCapslock then  'DELETEME: a workaround for bug 619
+				if keyval(i) > 1 then return i
+			end if
 		next i
 		dowait
 	loop
 	return 0
 end FUNCTION
 
+'one of waitforanykey and getkey must go
 FUNCTION getkey () as integer
 	dim i as integer, key as integer
 	dim as integer joybutton = 0, joyx = 0, joyy = 0, sleepjoy = 3
@@ -880,9 +890,8 @@ FUNCTION getkey () as integer
 	do
 		io_pollkeyevents()
 		setkeys
-		'keybd(0) may contain garbage (but in assembly, keyval(0) contains last key pressed)
 		for i=1 to &h7f
-			if keyval(i) > 1 then
+			if i <> scNumlock and i <> scCapslock and keyval(i) > 1 then  'DELETEME: a workaround for bug 619
 				key = i
 				exit do
 			end if
@@ -926,12 +935,13 @@ SUB setkeys ()
 		end if
 		keybdstate(a) = keybdstate(a) and 1
 	next
+	mutexunlock keybdmutex
 
-	'FIXME: This is gfx_fb specific and does not work with other backends!
 	'Check to see if the operating system has received a request
 	'to close the window (clicking the X) and set the magic keyboard
 	'index -1 if so. It can only be unset with clearkey.
-	IF INKEY$ = CHR$(255) + "k" THEN
+	IF closerequest THEN
+		closerequest = 0
 		keybd(-1) = 1
 	'ELSE
 		'keybd(-1) = 0
@@ -940,9 +950,14 @@ SUB setkeys ()
 
 #ifdef IS_CUSTOM
 	if keybd(-1) then keybd(scEsc) = 7
+#else
+	'Quick abort (could probably do better, just moving this here for now)
+	IF keyval(-1) THEN
+		'uncomment for slice debugging
+		'DestroyGameSlices YES
+		exitprogram 0
+	END IF
 #endif
-
-	mutexunlock keybdmutex
 
 	'reset arrow key fire state
 	diagonalhack = -1
@@ -1005,6 +1020,11 @@ sub pollingthread(byval unused as threadbs)
 
 		sleep 25
 	wend
+end sub
+
+sub post_terminate_signal cdecl ()
+	'in future, we might like to do something here about infinite loops and bug 233, etc
+	closerequest = 1
 end sub
 
 SUB putpixel (byval spr as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
