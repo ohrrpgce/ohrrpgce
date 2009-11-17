@@ -14,11 +14,14 @@ declare sub gfx_init ()		'initilization
 declare sub gfx_close ()		'put it back how we found it
 declare sub gfx_showpage (byval raw as ubyte ptr, byval w as integer, byval h as integer) 'the main event
 declare sub gfx_setpal (byval pal as RGBcolor ptr) 'set colour palette. May reuse last raw pointer to showpage, so you may not change it!
-declare function gfx_screenshot (fname as zstring ptr) as integer
+declare function gfx_screenshot (byval fname as zstring ptr) as integer
 declare sub gfx_setwindowed (byval iswindow as integer)
 declare sub gfx_togglewindowed ()
-declare sub gfx_windowtitle (title as zstring ptr)
-declare sub gfx_setoption (opt as zstring ptr, byval value as integer = -1)
+declare sub gfx_windowtitle (byval title as zstring ptr)
+
+'gfx_setoption recieves an option name and the following option which may or may not be a related argument
+'returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled
+declare function gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 declare function gfx_describe_options () as zstring ptr
 
 declare sub io_init ()

@@ -168,6 +168,22 @@ sub restoremode()
 	releasestack
 end sub
 
+function allmodex_setoption(opt as string, arg as string) as integer
+	'general backend options
+	if opt = "w" or opt = "windowed" then
+		gfx_setwindowed(1)
+		return 1
+	elseif opt = "f" or opt = "fullscreen" then
+		gfx_setwindowed(0)
+		return 1
+	end if
+	return 0
+end function
+
+SUB setwindowtitle (title as string)
+	gfx_windowtitle title
+END SUB
+
 SUB freepage (byval page as integer)
 	if page < 0 orelse page > ubound(vpages) orelse vpages(page) = NULL then
 		debug "Tried to free unallocated/invalid page " & page
@@ -910,6 +926,8 @@ SUB setkeys ()
 		end if
 		keybdstate(a) = keybdstate(a) and 1
 	next
+
+	'FIXME: This is gfx_fb specific and does not work with other backends!
 	'Check to see if the operating system has received a request
 	'to close the window (clicking the X) and set the magic keyboard
 	'index -1 if so. It can only be unset with clearkey.
@@ -931,6 +949,12 @@ SUB setkeys ()
 
 	if keyval(scCtrl) > 0 and keyval(scTilde) and 4 then
 		showfps xor= 1
+	end if
+
+	'FIXME: should be handled completely by gfx backend
+	'alt-enter toggle windowed
+	if keyval(scAlt) > 0 and keyval(scEnter) > 0 then
+		gfx_togglewindowed
 	end if
 
 	'FIXME DELETEME

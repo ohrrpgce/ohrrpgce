@@ -203,8 +203,9 @@ defaultc
 'DEBUG debug "enable autorunning"
 autorungame = 0
 usepreunlump = 0
-FOR i = 1 TO commandlineargcount
- a$ = commandlinearg(i)
+
+FOR i = 1 TO UBOUND(cmdline_args)
+ a$ = cmdline_args(i)
 
 #IFNDEF __FB_LINUX__
  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
@@ -224,6 +225,7 @@ FOR i = 1 TO commandlineargcount
    workingdir = a$
   END IF
   EXIT FOR
+'ELSE nothing; custom throws a warning
  END IF
 NEXT
 

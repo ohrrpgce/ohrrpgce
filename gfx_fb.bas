@@ -10,6 +10,7 @@ option explicit
 #include "fbgfx.bi"
 #include "gfx.bi"
 #include "compat.bi"  'for LINE_END
+#include "common.bi"
 
 #include once "crt.bi"
 #undef abort
@@ -17,6 +18,7 @@ option explicit
 
 'subs only used internally
 declare sub gfx_screenres()		'set screen res, etc
+declare sub calculate_screen_res()
 
 'border required to fit standard 4:3 screen at zoom 1
 #define BORDER 20
@@ -35,14 +37,13 @@ dim shared smooth as integer = 0
 'internal palette for 32-bit mode, with RGB colour components packed into a int
 dim shared truepal(255) as integer
 
-declare sub debug(s$)
-
 'Note, init is called before the browser is shown, and close is
 'called when an RPG is exited, they will usually be run more than
 'once. Perhaps there is also call for once-only routines outside
 'the main loop?
 sub gfx_init
 	if init_gfx = 0 then
+		calculate_screen_res
 		gfx_screenres
 		screenset 1, 0
 		init_gfx = 1
@@ -96,7 +97,7 @@ sub gfx_setpal(byval pal as RGBcolor ptr)
 	'accessible.
 end sub
 
-function gfx_screenshot(fname as zstring ptr) as integer
+function gfx_screenshot(byval fname as zstring ptr) as integer
 	gfx_screenshot = 0
 end function
 
@@ -126,7 +127,7 @@ sub gfx_togglewindowed()
 	end if
 end sub
 
-sub gfx_windowtitle(title as zstring ptr)
+sub gfx_windowtitle(byval title as zstring ptr)
 	if len(title) = 0 then
 		windowtitle ""
 	else
@@ -134,76 +135,89 @@ sub gfx_windowtitle(title as zstring ptr)
 	end if
 end sub
 
-sub gfx_setoption(opt as zstring ptr, byval value as integer = -1)
+function gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
 'This version supports
-'	zoom (1, 2*, 3),
-'	depth (8*, 24),
+'	zoom (1, 2*, 3, 4),
+'	depth (8*, 32),
 '	border (0*, 1)
 '	smooth (0*, 1)
 'only before gfx has been initialised
-
+	dim as integer value = str2int(*arg, -1)
+	dim as integer ret = 0
 	if init_gfx = 0 then
-		if *opt = "zoom" then
-			'default zoom is 2, 1 is the only other valid value
-			if value = 1 then
-				zoom = 1
-			elseif value = 3 then
-				zoom = 3
-			else
-				zoom = 2
+		if *opt = "zoom" or *opt = "z" then
+			if value >= 1 and value <= 4 then
+				zoom = value
 			end if
-		elseif *opt = "depth" then
+			ret = 1
+		elseif *opt = "depth" or *opt = "d" then
 			if value = 24 or value = 32 then
 				depth = value
 			else
 				depth = 8
 			end if
-		elseif *opt = "border" then
-			if value = 1 then
+			ret = 1
+		elseif *opt = "border" or *opt = "b" then
+			if value = 1 or value = -1 then  'arg optional
 				bordered = 1
 			else
 				bordered = 0
 			end if
-		elseif *opt = "smooth" then
-			if value = 1 then
+			ret = 1
+		elseif *opt = "smooth" or *opt = "s" then
+			if value = 1 or value = -1 then  'arg optional
 				smooth = 1
 			else
 				smooth = 0
 			end if
+			ret = 1
 		end if
-		'calculate mode
-		if zoom = 1 then
-			if depth = 8 then
-				screenmodex = 320
-				screenmodey = 200 + (bordered * BORDER * zoom)
-			else
-				'only bordered is supported in 24-bit it seems
-				bordered = 1
-				screenmodex = 320
-				screenmodey = 240
-			end if
-		elseif zoom = 3 then
-			bordered = 0 ' bordered mode is not supported in 3x zoom
-			screen_buffer_offset = 0
-			screenmodex = 960
-			screenmodey = 600
-		else
-			screenmodex = 640
-			screenmodey = 400 + (bordered * BORDER * zoom)
-		end if
-		'calculate offset
-		if bordered = 1 and zoom <> 3 then screen_buffer_offset = (BORDER / 2) * zoom
+		'all these take numeric arguments, so gobble the arg if it is
+		'a number, whether or not it was valid
+		if ret = 1 and is_int(*arg) then ret = 2
 	end if
 
+	return ret
+end function
+
+sub calculate_screen_res()
+	'FIXME: this is an utter mess
+	'calculate mode
+	if zoom = 1 then
+		if depth = 8 then
+			screenmodex = 320
+			screenmodey = 200 + (bordered * BORDER * zoom)
+		else
+			'only bordered is supported in 24-bit it seems
+			bordered = 1
+			screenmodex = 320
+			screenmodey = 240
+		end if
+	elseif zoom = 2 then
+		screenmodex = 640
+		screenmodey = 400 + (bordered * BORDER * zoom)
+	elseif zoom = 3 then
+		bordered = 0 ' bordered mode is not supported in 3x zoom
+		screen_buffer_offset = 0
+		screenmodex = 960
+		screenmodey = 600
+	elseif zoom = 4 then
+		bordered = 0 ' bordered mode is not supported in 3x zoom
+		screen_buffer_offset = 0
+		screenmodex = 1280
+		screenmodey = 800
+	end if
+	'calculate offset
+	if bordered = 1 and zoom < 3 then screen_buffer_offset = (BORDER / 2) * zoom
 end sub
 
 function gfx_describe_options() as zstring ptr
- return @"-z -zoom [1|2|3]    Scale screen to 1x 2x or 3x normal size (2x default)" LINE_END _
-         "-b -border [0|1]    Add a letterbox border (default off)" LINE_END _
-         "-d -depth [8|24|32] Set color bit-depth (default 8-bit)" LINE_END _
-         "-s -smooth          Enable smoothing filter for zoom modes (default off)"
+	return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)" LINE_END _
+	        "-b -border [0|1]    Add a letterbox border (default off)" LINE_END _
+	        "-d -depth [8|32]    Set color bit-depth (default 8-bit)" LINE_END _
+	        "-s -smooth          Enable smoothing filter for zoom modes (default off)"
 end function
 
 '------------- IO Functions --------------

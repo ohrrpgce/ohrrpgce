@@ -147,11 +147,6 @@ IF keyval(-1) THEN
  exitprogram 0
 END IF
 
-'alt-enter toggle windowed
-if keyval(scAlt) > 0 and keyval(scEnter) > 0 then
-	togglewindowed
-end if
-
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 
 IF keyval(scF12) > 0 THEN snapshot

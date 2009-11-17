@@ -8,6 +8,7 @@ option explicit
 
 #include "crt.bi"
 #include "gfx.bi"
+#include "common.bi"
 #include once "sdl_common.bi"
 
 DECLARE SUB gfx_sdl_set_screen_mode()
@@ -255,7 +256,7 @@ SUB gfx_setpal(byval pal as RGBcolor ptr)
   gfx_sdl_update_screen()
 END SUB
 
-FUNCTION gfx_screenshot(fname as zstring ptr) as integer
+FUNCTION gfx_screenshot(byval fname as zstring ptr) as integer
   gfx_screenshot = 0
 END FUNCTION
 
@@ -272,22 +273,26 @@ SUB gfx_togglewindowed()
   gfx_setwindowed(windowedmode XOR -1)
 END SUB
 
-SUB gfx_windowtitle(title as zstring ptr)
+SUB gfx_windowtitle(byval title as zstring ptr)
   IF sdl_init_done then
     SDL_WM_SetCaption(title, title)	
   END IF
 END SUB
 
-SUB gfx_setoption(opt as zstring ptr, byval value as integer = -1)
-  IF *opt = "zoom" THEN
+FUNCTION gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
+  IF *opt = "zoom" or *opt = "z" THEN
+    DIM value as integer = str2int(*arg)
     IF value >= 1 AND value <= 4 THEN
       zoom = value
       IF sdl_init_done THEN
         gfx_sdl_set_screen_mode()
       END IF
     END IF
+    'globble numerical args even if invalid
+    IF is_int(*arg) THEN RETURN 2 ELSE RETURN 1
   END IF
-END SUB
+  RETURN 0  'unrecognised
+END FUNCTION
 
 FUNCTION gfx_describe_options() as zstring ptr
  return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)"

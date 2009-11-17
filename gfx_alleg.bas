@@ -110,7 +110,7 @@ sub gfx_setpal(byval pal as RGBcolor ptr)
 	set_palette(@alpal(0))
 end sub
 
-function gfx_screenshot(fname as zstring ptr) as integer
+function gfx_screenshot(byval fname as zstring ptr) as integer
 	gfx_screenshot = 0
 end function
 
@@ -140,16 +140,18 @@ sub gfx_togglewindowed()
 	end if
 end sub
 
-sub gfx_windowtitle(title as zstring ptr)
+sub gfx_windowtitle(byval title as zstring ptr)
 	if init_gfx = 1 then
  		set_window_title(title)
  	end if
 end sub
 
-sub gfx_setoption(opt as zstring ptr, byval value as integer = -1)
+function gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
-end sub
+	'unrecognised
+	return 0
+end function
 
 function gfx_describe_options() as zstring ptr
 'No options are supported by this backend

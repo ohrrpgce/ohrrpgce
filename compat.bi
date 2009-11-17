@@ -164,13 +164,9 @@ DECLARE SUB getdefaultfont (font() as integer)
 DECLARE SUB xbload (f as string, array() as integer, e as string)
 DECLARE SUB xbsave (f as string, array() as integer, bsize as integer)
 DECLARE SUB crashexplain ()
-declare sub togglewindowed()
 declare sub processcommandline()
-DECLARE function commandlineargcount() as integer
-DECLARE function commandlinearg(argnum as integer) as string
 DECLARE SUB romfontchar (font() as integer, char as integer)
 DECLARE SUB makedir (dirname as string)
-DECLARE SUB setwindowtitle (title as string)
 DECLARE FUNCTION ReadShort overload (fh as integer,p as long=-1) as short
 DECLARE FUNCTION ReadShort overload (filename as string, p as integer) as short
 DECLARE Sub WriteShort overload (fh as integer,p as long, v as integer)

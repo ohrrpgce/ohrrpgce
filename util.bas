@@ -47,6 +47,52 @@ small = n1
 IF n2 < n1 THEN small = n2
 END FUNCTION
 
+FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
+ DIM a AS INTEGER
+ a = (number / 100) * percent
+ RETURN number + INT(RND * (a * 2)) - a
+END FUNCTION
+
+FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
+ DIM result AS STRING
+ result = LEFT(s, size)
+ WHILE LEN(result) < size: result = result & pad_char: WEND
+ RETURN result
+END FUNCTION
+
+FUNCTION is_int (s AS STRING) AS INTEGER
+ 'Even stricter than str2int (doesn't accept "00")
+ DIM n AS INTEGER = VALINT(s)
+ RETURN (n <> 0 ANDALSO n <> VALINT(s + "1")) ORELSE s = "0"
+END FUNCTION
+
+FUNCTION str2int (stri as string, default as integer=0) as integer
+ 'Use this in contrast to QuickBasic's VALINT.
+ 'it is stricter, and returns a default on failure
+ DIM n AS INTEGER = 0
+ DIM s AS STRING = LTRIM(stri)
+ IF s = "" THEN RETURN default
+ DIM sign AS INTEGER = 1
+
+ DIM ch AS STRING
+ DIM c AS INTEGER
+ FOR i AS INTEGER = 1 TO LEN(s)
+  ch = MID(s, i, 1)
+  IF ch = "-" AND i = 1 THEN
+   sign = -1
+   CONTINUE FOR
+  END IF
+  c = ASC(ch) - 48
+  IF c >= 0 AND c <= 9 THEN
+   n = n * 10 + (c * sign)
+  ELSE
+   RETURN default
+  END IF
+ NEXT i
+
+ RETURN n
+END FUNCTION
+
 FUNCTION trimpath(filename as string) as string
 'return the file/directory name without path
 dim i as integer

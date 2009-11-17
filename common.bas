@@ -39,6 +39,9 @@ EXTERN curcmd as ScriptCommand ptr
 REDIM sprite_sizes(8) AS SpriteSize
 setup_sprite_sizes
 
+'holds commandline args not recognised by the backends or anything else
+REDIM cmdline_args(0) AS STRING
+
 'a primitive system for printing messages that scroll
 TYPE ConsoleData
  AS INTEGER x = 0, y = 0, top = 0, bottom = 199, c = 0
@@ -3071,19 +3074,6 @@ SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0, page AS
  draw_scrollbar state, rect, boxstyle, page
 END SUB
 
-FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
- DIM a AS INTEGER
- a = (number / 100) * percent
- RETURN number + INT(RND * (a * 2)) - a
-END FUNCTION
-
-FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
- DIM result AS STRING
- result = LEFT(s, size)
- WHILE LEN(result) < size: result = result & pad_char: WEND
- RETURN result
-END FUNCTION
-
 SUB notification (show_msg AS STRING)
  DIM msg AS STRING = show_msg
  DIM ypos AS INTEGER
@@ -3209,34 +3199,6 @@ SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
  sprite_unload @img.sprite
  palette16_unload @img.pal
 END SUB
-
-FUNCTION str2int (stri as string, default as integer=0) as integer
- 'Use this in contrast to QuickBasic's VALINT.
- 'it is stricter, and returns a default on failure
- DIM n AS INTEGER = 0
- DIM s AS STRING = LTRIM(stri)
- IF s = "" THEN RETURN default
- DIM sign AS INTEGER = 1
-
- DIM ch AS STRING
- DIM c AS INTEGER
- FOR i AS INTEGER = 1 TO LEN(s)
-  ch = MID(s, i, 1)
-  IF ch = "-" AND i = 1 THEN
-   sign = -1
-   CONTINUE FOR
-  END IF
-  c = ASC(ch) - 48
-  IF c >= 0 AND c <= 9 THEN
-   n = n * 10 + (c * sign)
-  ELSE
-   RETURN default
-  END IF
- NEXT i
-
- RETURN n
-
-END FUNCTION
 
 FUNCTION decode_backslash_codes(s AS STRING) AS STRING
  DIM result AS STRING = ""

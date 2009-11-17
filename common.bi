@@ -1,3 +1,4 @@
+
 'OHRRPGCE - Some Custom/Game common code
 '
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
@@ -172,10 +173,6 @@ DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, boxst
 DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, menu AS MenuDef, page AS INTEGER)
 DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0, page AS INTEGER)
 
-DECLARE FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
-DECLARE FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
-DECLARE FUNCTION str2int (stri AS STRING, default AS INTEGER=0) AS INTEGER
-
 DECLARE SUB load_box_border_cache()
 DECLARE SUB clear_box_border_cache()
 
@@ -211,5 +208,6 @@ EXTERN gen() as integer
 EXTERN fmvol as integer
 EXTERN sprite_sizes() AS SpriteSize
 EXTERN statnames() as string
+EXTERN cmdline_args() as string
 
 #ENDIF

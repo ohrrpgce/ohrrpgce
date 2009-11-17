@@ -14,6 +14,8 @@
 'Library routines
 DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
+DECLARE FUNCTION allmodex_setoption(opt as string, arg as string) as integer
+DECLARE SUB setwindowtitle (title as string)
 DECLARE FUNCTION allocatepage() as integer
 DECLARE SUB freepage (BYVAL page as integer)
 DECLARE FUNCTION registerpage (BYVAL spr as Frame ptr) as integer

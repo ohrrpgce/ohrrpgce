@@ -26,6 +26,10 @@ declare function bound overload (byval n as double, byval lowest as double, byva
 declare function large (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER
 declare function loopvar (byval var AS INTEGER, byval min AS INTEGER, byval max AS INTEGER, byval inc AS INTEGER) AS INTEGER
 declare function small (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER
+declare function range (number as integer, percent as integer) as integer
+declare function rpad (s as string, pad_char as string, size as integer) as string
+declare function is_int(s as string) as integer
+declare function str2int (stri as string, default as integer=0) as integer
 declare function trimpath (filename as string) as string
 declare function trimfilename (filename as string) as string
 declare function trimextension (filename as string) as string
