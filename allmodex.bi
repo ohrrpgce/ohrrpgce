@@ -79,6 +79,7 @@ DECLARE SUB unlumpfile(lump as string, fmask as string, path as string)
 DECLARE FUNCTION islumpfile (lump as string, fmask as string) as integer
 DECLARE FUNCTION isfile (n as string) as integer
 DECLARE FUNCTION isdir (sDir as string) as integer
+DECLARE FUNCTION is_absolute_path (sDir as string) as integer
 DECLARE FUNCTION drivelist (d() as string) as integer
 DECLARE FUNCTION drivelabel (drive as string) as string
 DECLARE FUNCTION isremovable (drive as string) as integer
@@ -114,6 +115,7 @@ DECLARE SUB drawbox(BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, 
 DECLARE FUNCTION isawav(fi as string) as integer
 DECLARE FUNCTION fileisreadable(f as string) as integer
 DECLARE FUNCTION fileiswriteable(f as string) as integer
+DECLARE FUNCTION diriswriteable(d as string) as integer
 
 DECLARE FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as integer = 0) as integer
 DECLARE FUNCTION getkey () as integer

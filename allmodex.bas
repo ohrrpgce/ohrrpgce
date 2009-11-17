@@ -2457,6 +2457,17 @@ FUNCTION isdir (sDir$) as integer
 #ENDIF
 END FUNCTION
 
+FUNCTION is_absolute_path (sDir as string) as integer
+#IFDEF __FB_LINUX__
+	if left(sDir, 1) = "/" then return -1
+#ELSE
+	dim first as string = lcase(left(sDir, 1))
+	if first = "\" then return -1
+	if first >= "a" andalso first <= "z" andalso mid(sDir, 2, 2) = ":\" then return -1
+#ENDIF
+	return 0
+END FUNCTION
+
 FUNCTION drivelist (drives$()) as integer
 #ifdef __FB_LINUX__
 	' on Linux there is only one drive, the root /
@@ -3722,6 +3733,15 @@ Function fileiswriteable(f$) as integer
 	end if
 	close #fh
 	return -1
+end Function
+
+Function diriswriteable(d as string) as integer
+	dim testfile as string = d & SLASH & "__testwrite_" & INT(RND * 100000) & ".tmp"
+	if fileiswriteable(testfile) then
+		kill testfile
+		return -1
+	end if
+	return 0
 end Function
 
 FUNCTION getmusictype (file$) as integer

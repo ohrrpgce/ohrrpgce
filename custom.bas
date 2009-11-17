@@ -80,6 +80,7 @@ debuginfo long_version & build_info
 dim workingdir as string
 workingdir = tmpdir & "working.tmp"
 
+orig_dir = CURDIR()
 processcommandline
 
 REDIM gen(360)

@@ -142,8 +142,21 @@ function usage_setoption(opt as string, arg as string) as integer
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 		help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
 		help = help & *gfx_describe_options() & LINE_END
+		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
 		display_help_string help
 		return 1
+	elseif opt = "log" then
+		dim d as string = arg 
+		if not is_absolute_path(d) then d = orig_dir & SLASH & d
+		if right(d, 1) <> SLASH then d = d & SLASH
+		if isdir(d) ANDALSO diriswriteable(d) then
+			debug "logging to: """ & d & """"
+			log_dir = d
+			return 2
+		else
+			debug "log dir """ & d & """ is not valid"
+			return 1
+		end if
 	end if
 	return 0
 end function

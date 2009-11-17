@@ -42,6 +42,12 @@ setup_sprite_sizes
 'holds commandline args not recognised by the backends or anything else
 REDIM cmdline_args(0) AS STRING
 
+'holds the directory to dump logfiles into
+DIM log_dir AS STRING
+
+'It is very important for this to be populated _before_ any calls to CHDIR
+DIM orig_dir AS STRING
+
 'a primitive system for printing messages that scroll
 TYPE ConsoleData
  AS INTEGER x = 0, y = 0, top = 0, bottom = 199, c = 0
@@ -237,7 +243,7 @@ SUB debuginfo (s AS STRING)
    filename = "c_debug.txt"
  #ENDIF
  fh = FREEFILE
- OPEN filename FOR APPEND AS #fh
+ OPEN log_dir & filename FOR APPEND AS #fh
  IF LOF(fh) > 2 * 1024 * 1024 THEN
   IF sizeerror = 0 THEN PRINT #fh, "too much debug() output, not printing any more messages"
   sizeerror = -1

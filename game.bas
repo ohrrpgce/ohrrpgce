@@ -45,6 +45,7 @@ debuginfo long_version & build_info
 'DEBUG debug "randomize timer"
 RANDOMIZE TIMER, 3 ' Mersenne Twister
 
+orig_dir = CURDIR()
 processcommandline
 
 '---get temp dir---

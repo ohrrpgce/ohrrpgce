@@ -209,5 +209,7 @@ EXTERN fmvol as integer
 EXTERN sprite_sizes() AS SpriteSize
 EXTERN statnames() as string
 EXTERN cmdline_args() as string
+EXTERN log_dir as string
+EXTERN orig_dir as string
 
 #ENDIF
