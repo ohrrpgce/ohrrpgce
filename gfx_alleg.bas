@@ -147,6 +147,10 @@ sub gfx_windowtitle(byval title as zstring ptr)
  	end if
 end sub
 
+function gfx_getwindowstate() as WindowState ptr
+	return 0
+end function
+
 function gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.

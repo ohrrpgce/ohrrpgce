@@ -281,6 +281,14 @@ SUB gfx_windowtitle(byval title as zstring ptr)
   END IF
 END SUB
 
+FUNCTION gfx_getwindowstate() as WindowState ptr
+  STATIC state as WindowState
+  DIM temp as integer = SDL_GetAppState()
+  state.focused = (temp AND SDL_APPINPUTFOCUS) <> 0
+  state.minimised = (temp AND SDL_APPACTIVE) = 0
+  RETURN @state
+END FUNCTION
+
 FUNCTION gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   IF *opt = "zoom" or *opt = "z" THEN
     DIM value as integer = str2int(*arg)
