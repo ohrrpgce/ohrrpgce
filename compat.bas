@@ -150,11 +150,10 @@ function usage_setoption(opt as string, arg as string) as integer
 		if not is_absolute_path(d) then d = orig_dir & SLASH & d
 		if right(d, 1) <> SLASH then d = d & SLASH
 		if isdir(d) ANDALSO diriswriteable(d) then
-			debug "logging to: """ & d & """"
 			log_dir = d
 			return 2
 		else
-			debug "log dir """ & d & """ is not valid"
+			debuginfo "log dir """ & d & """ is not valid"
 			return 1
 		end if
 	end if
