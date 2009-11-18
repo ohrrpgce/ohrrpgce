@@ -153,7 +153,9 @@ function usage_setoption(opt as string, arg as string) as integer
 			log_dir = d
 			return 2
 		else
-			debuginfo "log dir """ & d & """ is not valid"
+			help = "log dir """ & d & """ is not valid." & LINE_END
+			help = help & "a valid argument to -log must be a writable folder that exists."
+			display_help_string help
 			return 1
 		end if
 	end if
