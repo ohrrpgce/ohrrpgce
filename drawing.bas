@@ -1813,7 +1813,7 @@ DO
   stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
   spriteedit_save_what_you_see(spritefile, state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
  END IF
- IF keyval(scF1) > 1 THEN
+ IF keyval(scF2) > 1 THEN
   debug_palettes = debug_palettes XOR 1
  END IF
  'draw sprite sets
