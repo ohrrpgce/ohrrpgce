@@ -95,7 +95,7 @@ DIM cleanup_menu(2) AS STRING
 DIM quit_menu(3) AS STRING
 DIM quit_confirm(1) AS STRING
 'more global variables
-DIM game as string, gamefile as string, insert, activepalette
+DIM game as string, sourcerpg as string, insert, activepalette
 DIM vpage, dpage, fadestate
 DIM fmvol
 
@@ -127,7 +127,7 @@ keyboardsetup
 
 dpage = 1: vpage = 0
 game = ""
-gamefile = ""
+sourcerpg = ""
 hsfile$ = ""
 
 GOSUB makeworkingdir
@@ -148,8 +148,8 @@ FOR i = 1 TO UBOUND(cmdline_args)
  END IF
 
  IF (LCASE$(justextension$(cmdline$)) = "rpg" AND isfile(cmdline$)) OR isdir(cmdline$) THEN
-  gamefile = cmdline$
-  game = trimextension$(trimpath$(gamefile))
+  sourcerpg = cmdline$
+  game = trimextension$(trimpath$(sourcerpg))
  END IF
 NEXT
 IF game = "" THEN
@@ -160,11 +160,11 @@ END IF
 end_debug
 
 #IFNDEF __FB_LINUX__
- IF MID$(gamefile, 2, 1) <> ":" THEN gamefile = curdir$ + SLASH + gamefile
+ IF MID$(sourcerpg, 2, 1) <> ":" THEN sourcerpg = curdir$ + SLASH + sourcerpg
 #ELSE
- IF MID$(gamefile, 1, 1) <> "/" THEN gamefile = curdir$ + SLASH + gamefile
+ IF MID$(sourcerpg, 1, 1) <> "/" THEN sourcerpg = curdir$ + SLASH + sourcerpg
 #ENDIF
-a$ = trimfilename(gamefile)
+a$ = trimfilename(sourcerpg)
 IF a$ <> "" ANDALSO fileiswriteable(a$ + SLASH + "writetest.tmp") THEN
  safekill a$ + SLASH + "writetest.tmp"
  CHDIR a$
@@ -173,9 +173,9 @@ END IF
 
 start_new_debug
 debuginfo long_version & build_info
-debuginfo "Editing game " & trimpath(gamefile) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
+debuginfo "Editing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
-setwindowtitle "OHRRPGCE - " + gamefile
+setwindowtitle "OHRRPGCE - " + sourcerpg
 
 GOSUB checkpass
 
@@ -186,19 +186,19 @@ setvispage vpage
 
 touchfile workingdir + SLASH + "__danger.tmp"
 
-IF isdir(gamefile) THEN
+IF isdir(sourcerpg) THEN
  'work on an unlumped RPG file
- findfiles gamefile + SLASH + ALLFILES, 0, "filelist.tmp"
+ findfiles sourcerpg + SLASH + ALLFILES, 0, "filelist.tmp"
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
   LINE INPUT #fh, filename$
-  filecopy gamefile + SLASH + filename$, workingdir + SLASH + filename$
+  filecopy sourcerpg + SLASH + filename$, workingdir + SLASH + filename$
  LOOP
  CLOSE #fh
  KILL "filelist.tmp"
 ELSE
- unlump gamefile, workingdir + SLASH
+ unlump sourcerpg, workingdir + SLASH
 END IF
 game = workingdir + SLASH + game
 verifyrpg
@@ -399,13 +399,13 @@ DO
    game = inputfilename("Filename of New Game?", ".rpg", CURDIR, "input_file_new_game", , NO)
    IF game <> "" THEN
      IF NOT newRPGfile(finddatafile("ohrrpgce.new"), game + ".rpg") THEN GOTO finis
-     gamefile = game + ".rpg"
+     sourcerpg = game + ".rpg"
      game = trimpath$(game)
      EXIT DO
    END IF
   ELSEIF csr = 1 THEN
-   gamefile = browse$(7, "", "*.rpg", tmpdir, 0, "browse_rpg")
-   game = trimextension$(trimpath$(gamefile))
+   sourcerpg = browse$(7, "", "*.rpg", tmpdir, 0, "browse_rpg")
+   game = trimextension$(trimpath$(sourcerpg))
    IF game <> "" THEN EXIT DO
   ELSEIF csr = 2 THEN
    GOTO finis
@@ -508,7 +508,7 @@ quit_menu(3) = "Discard changes and quit"
 clearkey(-1) 'stop firing esc's, if the user hit esc+pgup+pgdown
 quitnow = sublist(quit_menu(), "quit_and_save")
 IF keyval(-1) THEN '2nd quit request? Right away!
- a$ = trimextension(gamefile)
+ a$ = trimextension(sourcerpg)
  i = 0
  DO
   lumpfile$ = a$ & ".rpg_" & i & ".bak"
@@ -542,14 +542,14 @@ setvispage 0 'refresh
 '--verify that maps are not corrupt--
 verifyrpg
 '--lump data to SAVE rpg file
-dolumpfiles gamefile
+dolumpfiles sourcerpg
 RETRACE
 
 checkpass:
-copylump gamefile, "archinym.lmp", workingdir, -1
+copylump sourcerpg, "archinym.lmp", workingdir, -1
 '--set game according to the archinym
 game = readarchinym()
-copylump gamefile, game + ".gen", workingdir
+copylump sourcerpg, game + ".gen", workingdir
 xbload workingdir + SLASH + game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 '----load password-----
 IF gen(genPassVersion) >= 256 THEN

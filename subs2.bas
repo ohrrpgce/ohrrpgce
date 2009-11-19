@@ -150,7 +150,7 @@ menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 
 max = 32
 
-outf$ = trimextension$(gamefile) + ".hsi"
+outf$ = trimextension$(trimpath$(sourcerpg)) + ".hsi"
 
 clearpage 0
 clearpage 1
@@ -166,7 +166,7 @@ setvispage 0
 
 fh = FREEFILE
 OPEN outf$ FOR OUTPUT AS #fh
-PRINT #fh, "# HamsterSpeak constant definitions for " & trimpath$(gamefile)
+PRINT #fh, "# HamsterSpeak constant definitions for " & trimpath$(sourcerpg)
 PRINT #fh, ""
 PRINT #fh, "define constant, begin"
 

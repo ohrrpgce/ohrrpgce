@@ -10,7 +10,6 @@
 #include "slices.bi"
 
 'Misc game globals
-EXTERN sourcerpg as string
 EXTERN prefsdir as string ' currently only used by Linux
 EXTERN savefile as string
 EXTERN timing() as integer

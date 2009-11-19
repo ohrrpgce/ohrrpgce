@@ -197,6 +197,7 @@ DECLARE SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYV
 DECLARE SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
 
 'Global variables
+EXTERN sourcerpg as string
 EXTERN as string game, tmpdir, exename, workingdir, homedir
 EXTERN uilook() as integer
 EXTERN as integer vpage, dpage

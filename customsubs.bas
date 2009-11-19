@@ -1085,7 +1085,7 @@ END FUNCTION
 FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, helpkey AS STRING, default AS STRING="", allow_overwrite AS INTEGER=YES) AS STRING
  DIM filename AS STRING = default
  DIM tog AS INTEGER
- IF directory = "" THEN directory = CURDIR 'trimfilename(gamefile)
+ IF directory = "" THEN directory = CURDIR
  setkeys
  DO
   setwait 55
