@@ -9,7 +9,7 @@ option explicit
 #include "crt.bi"
 #include "gfx.bi"
 #include "common.bi"
-#include once "sdl_common.bi"
+#include "SDL\SDL.bi"
 
 DECLARE SUB gfx_sdl_set_screen_mode()
 DECLARE SUB gfx_sdl_update_screen()
@@ -163,12 +163,20 @@ scantrans(SDLK_POWER) = 0
 scantrans(SDLK_EURO) = 0
 scantrans(SDLK_UNDO) = 0
 
+
 SUB gfx_init()
-  IF sdl_init_done = 0 THEN
-    SDL_Init(SDL_INIT_VIDEO or SDL_INIT_AUDIO)
-    sdl_init_done = -1
-    gfx_sdl_set_screen_mode()
+  IF SDL_WasInit(0) = 0 THEN
+    IF SDL_Init(SDL_INIT_VIDEO) THEN
+      debug "Can't start SDL (video): " & *SDL_GetError
+      SYSTEM
+    END IF
+  ELSEIF SDL_WasInit(SDL_INIT_VIDEO) = 0 THEN
+    IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
+      debug "Can't start SDL video subsys: " & *SDL_GetError
+      SYSTEM
+    END IF
   END IF
+  gfx_sdl_set_screen_mode()
 END SUB
 
 SUB gfx_sdl_set_screen_mode()
@@ -191,11 +199,14 @@ SUB gfx_sdl_set_screen_mode()
 END SUB
 
 SUB gfx_close()
-  IF screenbuffer <> NULL THEN SDL_FreeSurface(screenbuffer)
-  IF sdljoystick <> NULL THEN SDL_JoystickClose(sdljoystick)
-  DIM i AS INTEGER
-  SDL_VideoQuit()
-  SDL_Quit()
+  IF SDL_WasInit(SDL_INIT_VIDEO) THEN
+    IF screenbuffer <> NULL THEN SDL_FreeSurface(screenbuffer)
+    IF sdljoystick <> NULL THEN SDL_JoystickClose(sdljoystick)
+    SDL_QuitSubSystem(SDL_INIT_VIDEO)
+    IF SDL_WasInit(0) = 0 THEN
+      SDL_Quit()
+    END IF
+  END IF
 END SUB
 
 SUB gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
@@ -276,7 +287,7 @@ SUB gfx_togglewindowed()
 END SUB
 
 SUB gfx_windowtitle(byval title as zstring ptr)
-  IF sdl_init_done then
+  IF SDL_WasInit(SDL_INIT_VIDEO) then
     SDL_WM_SetCaption(title, title)	
   END IF
 END SUB
@@ -294,7 +305,7 @@ FUNCTION gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as in
     DIM value as integer = str2int(*arg)
     IF value >= 1 AND value <= 4 THEN
       zoom = value
-      IF sdl_init_done THEN
+      IF SDL_WasInit(SDL_INIT_VIDEO) THEN
         gfx_sdl_set_screen_mode()
       END IF
     END IF

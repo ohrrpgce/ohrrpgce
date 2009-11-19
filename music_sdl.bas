@@ -6,11 +6,11 @@
 
 option explicit
 
-#include "util.bi"
 #include "music.bi"
-#include once "sdl_common.bi"
-DIM sdl_init_done AS INTEGER = 0
-DIM sdl_audio_only AS INTEGER = 0
+#include "util.bi"
+'warning: due to a FB bug, overloaded functions must be declared before SDL.bi is included
+#include "SDL\SDL.bi"
+#include "SDL\SDL_mixer.bi"
 
 'extern
 declare sub debug(s$)
@@ -24,7 +24,7 @@ declare function GetSlot(byval num as integer) as integer
 declare function next_free_slot() as integer
 declare function sfx_slot_info (slot as integer) as string
 
-dim shared music_on as integer = 0
+dim shared music_on as integer = 0  '-1 indicates error, don't try again
 dim shared music_vol as integer
 dim shared music_paused as integer
 dim shared music_song as Mix_Music ptr = NULL
@@ -42,6 +42,15 @@ end type
 dim shared delhead as delitem ptr = null
 dim shared callback_set_up as integer = 0
 
+sub quit_sdl_audio()
+	if SDL_WasInit(SDL_INIT_AUDIO) then
+		SDL_QuitSubSystem(SDL_INIT_AUDIO)
+		if SDL_WasInit(0) = 0 then
+			SDL_Quit()
+		end if
+	end if
+end sub
+
 sub music_init()	
 	if music_on = 0 then
 		dim audio_rate as integer
@@ -58,17 +67,26 @@ sub music_init()
 		'At the time, I found that this gave better results than 1k or 2k buffers. I am stubborn
 		audio_buffers = 1536  
 		
-		if sdl_init_done = 0 then
-			SDL_Init(SDL_INIT_AUDIO)
-			sdl_init_done = -1
-			sdl_audio_only = -1
+		if SDL_WasInit(0) = 0 then
+			if SDL_Init(SDL_INIT_AUDIO) then
+				debug "Can't start SDL (audio): " & *SDL_GetError
+				music_on = -1  'error
+				exit sub
+			end if
+		elseif SDL_WasInit(SDL_INIT_AUDIO) = 0 then
+			if SDL_InitSubSystem(SDL_INIT_AUDIO) then
+				debug "Can't start SDL audio subsys: " & *SDL_GetError
+				music_on = -1  'error
+				quit_sdl_audio()
+				exit sub
+			end if
 		end if
 		
 		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
 			if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, 2048)) <> 0 then
 				debug "Can't open audio : " & *Mix_GetError
-				music_on = -1
-				SDL_Quit()
+				music_on = -1  'error
+				quit_sdl_audio()
 				exit sub
 			end if
 		end if
@@ -97,9 +115,8 @@ sub music_close()
 		end if
 		
 		Mix_CloseAudio
-		if sdl_audio_only then
-		  SDL_Quit
-		end if
+		quit_sdl_audio()
+
 		music_on = 0
 		callback_set_up = 0 	' For SFX
 		
