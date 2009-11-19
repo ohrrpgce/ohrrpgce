@@ -54,7 +54,9 @@ sub music_init()
 		audio_rate = MIX_DEFAULT_FREQUENCY
 		audio_format = MIX_DEFAULT_FORMAT
 		audio_channels = 2
-		audio_buffers = 1536  'despite the documentation, non power of 2 buffer size works, and pygame even does it
+		'Despite the documentation, non power of 2 buffer size MAY work depending on the driver, and pygame even does it
+		'At the time, I found that this gave better results than 1k or 2k buffers. I am stubborn
+		audio_buffers = 1536  
 		
 		if sdl_init_done = 0 then
 			SDL_Init(SDL_INIT_AUDIO)
@@ -63,16 +65,18 @@ sub music_init()
 		end if
 		
 		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
-			Debug "Can't open audio"
-			music_on = -1
-			SDL_Quit()
-			exit sub
+			if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, 2048)) <> 0 then
+				debug "Can't open audio : " & *Mix_GetError
+				music_on = -1
+				SDL_Quit()
+				exit sub
+			end if
 		end if
 		
 		music_vol = 8
 		music_on = 1
 		music_paused = 0
-	end if	
+	end if
 end sub
 
 sub music_close()
@@ -169,7 +173,7 @@ sub music_play(songname as string, fmt as integer)
 
 		music_song = Mix_LoadMUS(songname)
 		if music_song = 0 then
-			debug "Could not load song " + songname
+			debug "Could not load song " + songname + " : " & *Mix_GetError
 			exit sub
 		end if
 		
