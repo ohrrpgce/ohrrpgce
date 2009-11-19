@@ -3639,8 +3639,17 @@ SUB fontedit (font() AS INTEGER)
   END SELECT
   IF mode >= 0 THEN
    '--copy and paste support
-   IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN GOSUB copychar
-   IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN GOSUB pastechar
+   IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN
+    FOR i = 0 TO 63
+     setbit copybuf(), 0, i, readbit(font(), 0, f(pt) * 64 + i)
+    NEXT i
+   END IF
+   IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN
+    FOR i = 0 TO 63
+     setbit font(), 0, f(pt) * 64 + i, readbit(copybuf(), 0, i)
+    NEXT i
+    setfont font()
+   END IF
   END IF
 
   IF mode = -1 THEN
@@ -3705,19 +3714,6 @@ SUB fontedit (font() AS INTEGER)
  
  xbsave game + ".fnt", font(), 2048
 EXIT SUB
-
-copychar:
-FOR i = 0 TO 63
- setbit copybuf(), 0, i, readbit(font(), 0, f(pt) * 64 + i)
-NEXT i
-RETRACE
-
-pastechar:
-FOR i = 0 TO 63
- setbit font(), 0, f(pt) * 64 + i, readbit(copybuf(), 0, i)
-NEXT i
- setfont font()
-RETRACE
 
 END SUB
 
