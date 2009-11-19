@@ -3548,3 +3548,215 @@ SUB attack_preview_slice_defocus(BYVAL sl AS Slice Ptr)
  IF sl = 0 THEN EXIT SUB
  ChangeRectangleSlice sl, , , , -1
 END SUB
+
+SUB fontedit (font() AS INTEGER)
+
+ DIM f(255) AS INTEGER
+ DIM copybuf(4) AS INTEGER
+ DIM menu(3) AS STRING
+
+ menu(0) = "Previous Menu"
+ menu(1) = "Edit Font..."
+ menu(2) = "Import Font..."
+ menu(3) = "Export Font..."
+
+ DIM i AS INTEGER
+
+ DIM last AS INTEGER = -1
+ FOR i = 32 TO 255
+  last += 1
+  f(last) = i
+ NEXT i
+
+ DIM mode AS INTEGER = -1
+
+ 'This state is used for the menu, not the charpicker
+ DIM state AS MenuState
+ WITH state
+  .pt = 0
+  .top = 0
+  .last = UBOUND(menu)
+  .size = 22
+ END WITH
+
+ DIM linesize AS INTEGER = 14
+ DIM pt AS INTEGER = -1 * linesize
+
+ DIM x AS INTEGER
+ DIM y AS INTEGER
+ 
+ DIM xoff AS INTEGER
+ DIM yoff AS INTEGER
+ 
+ DIM c AS INTEGER
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+  IF keyval(scF1) > 1 THEN show_help "fontedit"
+  SELECT CASE mode
+   CASE -1
+    IF keyval(scEsc) > 1 THEN EXIT DO
+    usemenu state
+    IF enter_or_space() THEN
+     IF state.pt = 0 THEN EXIT DO
+     IF state.pt = 1 THEN mode = 0
+     IF state.pt = 2 THEN
+      fontedit_import_font font()
+      state.pt = 1
+      mode = 0
+     END IF
+     IF state.pt = 3 THEN fontedit_export_font font()
+    END IF
+   CASE 0
+    IF keyval(scEsc) > 1 THEN mode = -1
+    IF keyval(scUp) > 1 THEN pt = large(pt - linesize, -1 * linesize)
+    IF keyval(scDown) > 1 THEN pt = small(pt + linesize, last)
+    IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
+    IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
+    IF enter_or_space() THEN
+     IF pt < 0 THEN
+      mode = -1
+     ELSE
+      mode = 1
+      x = 0
+      y = 0
+     END IF
+    END IF
+    IF keyval(scCtrl) > 0 AND keyval(scR) > 1 THEN romfontchar font(), pt
+   CASE 1
+    IF keyval(scEsc) > 1 OR keyval(scEnter) > 1 THEN mode = 0
+    IF keyval(scUp) > 1 THEN y = loopvar(y, 0, 7, -1)
+    IF keyval(scDown) > 1 THEN y = loopvar(y, 0, 7, 1)
+    IF keyval(scLeft) > 1 THEN x = loopvar(x, 0, 7, -1)
+    IF keyval(scRight) > 1 THEN x = loopvar(x, 0, 7, 1)
+    IF keyval(scSpace) > 1 THEN
+     setbit font(), 0, (f(pt) * 8 + x) * 8 + y, (readbit(font(), 0, (f(pt) * 8 + x) * 8 + y) XOR 1)
+     setfont font()
+    END IF
+  END SELECT
+  IF mode >= 0 THEN
+   '--copy and paste support
+   IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN GOSUB copychar
+   IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN GOSUB pastechar
+  END IF
+
+  IF mode = -1 THEN
+   standardmenu menu(), state, 0, 0, dpage
+  END IF
+
+  IF mode >= 0 THEN
+   xoff = 8
+   yoff = 8
+   FOR i = 0 TO last
+    textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+    IF pt >= 0 THEN
+     IF mode = 0 THEN
+      IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
+     END IF
+     IF pt = i THEN textcolor uilook(uiSelectedItem + state.tog), 0
+    END IF
+    printstr CHR(f(i)), xoff + (i MOD linesize) * 9, yoff + (i \ linesize) * 9, dpage
+   NEXT i
+   textcolor uilook(uiMenuItem), 0
+   IF pt < 0 THEN textcolor uilook(uiSelectedItem + state.tog), 0
+   printstr menu(0), 8, 0, dpage
+
+   IF pt >= 0 THEN
+    xoff = 150
+    yoff = 4
+    rectangle xoff, yoff, 160, 160, uilook(uiDisabledItem), dpage
+    FOR i = 0 TO 7
+     FOR j AS INTEGER = 0 TO 7
+      IF readbit(font(), 0, (f(pt) * 8 + i) * 8 + j) THEN
+       rectangle xoff + i * 20, yoff + j * 20, 20, 20, uilook(uiMenuItem), dpage
+      END IF
+     NEXT j
+    NEXT i
+    IF mode = 1 THEN
+     IF readbit(font(), 0, (f(pt) * 8 + x) * 8 + y) THEN
+      c = uilook(uiSelectedItem2)
+     ELSE
+      c = uilook(uiSelectedDisabled)
+     END IF
+     rectangle xoff + x * 20, yoff + y * 20, 20, 20, c, dpage
+    END IF
+    textcolor uilook(uiText), 0
+    printstr "ASCII " & f(pt), 20, 190, dpage
+    IF f(pt) < 32 THEN
+     printstr "RESERVED", 120, 190, dpage
+    ELSE
+     FOR i = 2 TO 53
+      IF f(pt) = keyv(i, 2) THEN printstr "ALT+" + UCASE(CHR(keyv(i, 0))), 120, 190, dpage
+      IF f(pt) = keyv(i, 3) THEN printstr "ALT+SHIFT+" + UCASE(CHR(keyv(i, 0))), 120, 190, dpage
+     NEXT i
+     IF f(pt) = 32 THEN printstr "SPACE", 120, 190, dpage
+    END IF
+   END IF
+  END IF
+
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ 
+ xbsave game + ".fnt", font(), 2048
+EXIT SUB
+
+copychar:
+FOR i = 0 TO 63
+ setbit copybuf(), 0, i, readbit(font(), 0, f(pt) * 64 + i)
+NEXT i
+RETRACE
+
+pastechar:
+FOR i = 0 TO 63
+ setbit font(), 0, f(pt) * 64 + i, readbit(copybuf(), 0, i)
+NEXT i
+ setfont font()
+RETRACE
+
+END SUB
+
+SUB fontedit_export_font(font() AS INTEGER)
+
+ DIM newfont AS STRING = "newfont"
+ newfont = inputfilename("Input a filename to save to", ".ohf", "", "input_file_export_font") 
+
+ IF newfont <> "" THEN
+  xbsave game & ".fnt", font(), 2048
+  filecopy game & ".fnt", newfont & ".ohf"
+ END IF
+
+END SUB
+
+SUB fontedit_import_font(font() AS INTEGER)
+
+ STATIC default AS STRING
+ DIM newfont AS STRING = browse(0, default, "*.ohf", "", , "browse_font")
+ 
+ IF newfont <> "" THEN
+  filecopy newfont, game & ".fnt"
+
+  DIM i AS INTEGER
+  DIM font_tmp(1024) AS INTEGER
+
+  '--never overwrite 0 thru 31
+  FOR i = 0 TO 2047
+   setbit font_tmp(), 0, i, readbit(font(), 0, i)
+  NEXT i
+
+  '--Reload the font
+  xbload game + ".fnt", font(), "Can't load font"
+  setfont font()
+
+  '--write back the old 0-31 values
+  FOR i = 0 TO 2047
+   setbit font(), 0, i, readbit(font_tmp(), 0, i)
+  NEXT i
+  
+ END IF
+END SUB
