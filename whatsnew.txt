@@ -170,6 +170,8 @@ WHAT IS NEW?
     * hspeak now automatically stores a backup copy of your script
       inside the .hs file. Use the -n command line option if you
       want to disable this feature [James]
+    * On-keypress scripts are now run when the mouse is clicked if
+      initmouse was called [Ralph]
 
   * Vikings of Midgard
 

@@ -633,6 +633,10 @@ IF doit = 0 THEN
  NEXT i
 END IF
 
+IF gam.mouse_enabled THEN
+ IF mouse(3) THEN doit = 1
+END IF
+
 IF nowscript >= 0 THEN
  IF scrat(nowscript).state = stwait AND scrat(nowscript).curvalue = 9 THEN
   '--never trigger a onkey script when the previous script
@@ -797,6 +801,7 @@ SELECT CASE AS CONST id
   IF havemouse() THEN scriptret = 1 ELSE scriptret = 0
   mouserect 0, 319, 0, 199
   readmouse mouse()
+  gam.mouse_enabled = YES
  CASE 160'--get mouse x
   scriptret = mouse(0)
  CASE 161'--get mouse y

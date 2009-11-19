@@ -2773,6 +2773,7 @@ SUB reset_game_state ()
  gam.wonbattle = NO
  gam.remembermusic = -1
  gam.random_battle_countdown = range(100, 60)
+ gam.mouse_enabled = NO
 END SUB
 
 SUB reset_map_state (map AS MapModeState)
