@@ -37,7 +37,6 @@ DECLARE SUB scriptmath
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 DECLARE SUB shop (id as integer, needf as integer, stat() as integer, tilesets() AS TilesetData ptr)
 DECLARE FUNCTION useinn (inn as integer, price as integer, needf as integer, stat() as integer, holdscreen as integer) as integer
-DECLARE SUB snapshot
 DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings
 DECLARE SUB writescriptvar (BYVAL id as integer, BYVAL newval as integer)

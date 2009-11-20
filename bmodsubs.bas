@@ -142,8 +142,6 @@ STATIC joyuse, joymenu
 
 FOR i = 0 TO 7: carray(i) = 0: NEXT i
 
-IF keyval(scF12) > 0 THEN snapshot
-
 'commented due to bug 619: gfx_sdl weirdness. Anyway, this check is from the DOS days
 'IF keyval(scNumlock) = 0 THEN ' no controls while PAUSE is pressed, because of its scancode wierdness
  GOSUB keyboard

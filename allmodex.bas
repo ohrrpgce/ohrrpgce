@@ -38,6 +38,8 @@ declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 
+declare sub snapshot_check
+
 'used for map and pass
 DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, byval l as integer, BYVAL mp as integer ptr)
 DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, byval l as integer, BYVAL mp as integer ptr) as integer
@@ -958,6 +960,8 @@ SUB setkeys ()
 		exitprogram 0
 	END IF
 #endif
+
+	snapshot_check
 
 	'reset arrow key fire state
 	diagonalhack = -1
@@ -2589,6 +2593,56 @@ SUB screenshot (f$)
 		sprite_export_bmp8(f$, vpages(vpage), intpal())
 	end if
 END SUB
+
+sub snapshot_check
+'The best of both worlds. Holding down F12 takes a screenshot each frame, however besides
+'the first, they're saved to the temporary directory until key repeat kicks in, and then
+'moved, to prevent littering
+'NOTE: global variables like tmpdir can change between calls, have to be lenient
+	'dynamic static array. Redim before use.
+	static as string backlog()
+	redim preserve backlog(ubound(backlog))
+	static as integer backlog_num
+
+	dim as integer n
+
+	if keyval(scf12) = 0 then
+		'delete the backlog
+		for n = 1 to ubound(backlog)
+			'debug "killing " & backlog(n)
+			safekill backlog(n)
+		next
+		redim backlog(0)
+		backlog_num = 0
+	else
+		dim as string shot
+		dim as string gamename = trimextension(trimpath(sourcerpg))
+		if gamename = "" then
+			gamename = "ohrrpgce"
+		end if
+
+		for n = backlog_num to 9999
+			shot = gamename + right("000" & n, 4) + ".bmp"
+			'checking curdir, which is export directory
+			if isfile(shot) = 0 then exit for
+		next
+		backlog_num = n + 1		
+
+		if keyval(scf12) = 1 then
+			shot = tmpdir + shot
+			str_array_append(backlog(), shot)
+		else
+			'move our backlog of screenshots to the visible location
+			for n = 1 to ubound(backlog)
+				'debug "moving " & backlog(n) & " to " & curdir + slash + trimpath(backlog(n))
+				name backlog(n), curdir + slash + trimpath(backlog(n))
+			next
+			redim backlog(0)
+		end if
+		'debug "screen " & shot
+		screenshot shot
+	end if
+end sub
 
 FUNCTION havemouse() as integer
 'atm, all backends support the mouse, or don't know

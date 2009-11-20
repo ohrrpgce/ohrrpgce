@@ -662,6 +662,7 @@ clearpage 2
 clearpage 3
 DestroyGameSlices
 SliceDebugDump YES
+sourcerpg = ""
 RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 

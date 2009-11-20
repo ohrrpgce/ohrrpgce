@@ -2534,28 +2534,6 @@ DO
 LOOP
 END FUNCTION
 
-SUB snapshot
-pre$ = trimextension$(sourcerpg)
-
-n = 0
-DO
- num$ = "" & n
- WHILE LEN(num$) < 4 : num$ = "0" & num$: WEND
- shot$ = pre$ & num$ & ".bmp"
- IF isfile(shot$) = 0 THEN EXIT DO
- n = n + 1
-LOOP UNTIL n > 9999
-
-#IFDEF __FB_LINUX__
-IF NOT fileiswriteable(shot$) THEN
-  shot$ = ENVIRON$("HOME") + SLASH + trimpath$(shot$)
-END IF
-#ENDIF
-
-screenshot shot$
-
-END SUB
-
 SUB tagdisplay
 STATIC pt, top
 
