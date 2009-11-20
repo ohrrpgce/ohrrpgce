@@ -13,6 +13,7 @@ END TYPE
 
 TYPE SpriteEditState
   '--sprite set state
+  spritefile AS STRING
   framenum AS INTEGER
   wide AS INTEGER
   high AS INTEGER

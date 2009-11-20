@@ -40,8 +40,8 @@ DECLARE SUB maptile (font())
 DECLARE SUB importmasterpal (f$, palnum%)
 
 'Local SUBs and FUNCTIONS
-DECLARE SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
-DECLARE SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
+DECLARE SUB spriteedit_load_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
+DECLARE SUB spriteedit_save_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
 DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
@@ -1579,6 +1579,7 @@ DIM mouse(4)
 
 DIM ss AS SpriteEditState
 WITH ss
+ .spritefile = game & ".pt" & fileset
  .framenum = 0
  .wide = xw
  .high = yw
@@ -1617,9 +1618,6 @@ DIM AS INTEGER tick = 0
 DIM caption AS STRING
 'FOR Loop counters
 DIM AS INTEGER i, j, o
-
-DIM spritefile AS STRING
-spritefile = game & ".pt" & fileset
 
 DIM state AS MenuState
 WITH state
@@ -1705,7 +1703,7 @@ DO
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
   GOSUB savealluc
-  cropafter state.pt, sets, 0, spritefile, ss.setsize, 1
+  cropafter state.pt, sets, 0, ss.spritefile, ss.setsize, 1
   clearpage 3
   GOSUB loadalluc
  END IF
@@ -1762,7 +1760,7 @@ DO
    FOR i = 0 TO ss.setsize / 2
     buffer(i) = 0
    NEXT i
-   storeset spritefile, state.pt, 0
+   storeset ss.spritefile, state.pt, 0
    '-- re-size the array that stores the default palette offset
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    '--add a new blank default palette
@@ -1811,7 +1809,7 @@ DO
   drawsprite spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage
   getsprite placer(), 0, 0, 0, ss.wide, ss.high, dpage
   stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
-  spriteedit_save_what_you_see(spritefile, state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
+  spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
  END IF
  IF keyval(scF2) > 1 THEN
   debug_palettes = debug_palettes XOR 1
@@ -1910,7 +1908,7 @@ DO
 LOOP
 setkeyrepeat
 j = state.pt
-spriteedit_save_what_you_see(spritefile, j, state.top, sets, ss, soff, placer(), workpal(), poffset())
+spriteedit_save_what_you_see(j, state.top, sets, ss, soff, placer(), workpal(), poffset())
 changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 RETRACE
 
@@ -2320,13 +2318,13 @@ RETRACE
 
 savealluc:
 FOR j = state.top TO state.top + ss.at_a_time
- spriteedit_save_what_you_see(spritefile, j, state.top, sets, ss, soff, placer(), workpal(), poffset()) 
+ spriteedit_save_what_you_see(j, state.top, sets, ss, soff, placer(), workpal(), poffset()) 
 NEXT j
 RETRACE
 
 loadalluc:
 FOR j = state.top TO state.top + ss.at_a_time
- spriteedit_load_what_you_see(spritefile, j, state.top, sets, ss, soff, placer(), workpal(), poffset())
+ spriteedit_load_what_you_see(j, state.top, sets, ss, soff, placer(), workpal(), poffset())
 NEXT
 RETRACE
 
@@ -2584,12 +2582,12 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
+SUB spriteedit_load_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
  DIM i AS INTEGER
  getpal16 workpal(), j - top, poffset(j)
  IF j <= sets THEN
   setpicstuf buffer(), ss.setsize, 2
-  loadset spritefile, large(j, 0), 0
+  loadset ss.spritefile, large(j, 0), 0
   FOR i = 0 TO (ss.perset - 1)
    loadsprite placer(), 0, ss.size * i, 0, ss.wide, ss.high, 2
    stosprite placer(), 0, ss.size * i, soff * (j - top), 3
@@ -2597,7 +2595,7 @@ SUB spriteedit_load_what_you_see(spritefile AS STRING, j, top, sets, ss AS Sprit
  END IF
 END SUB
 
-SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
+SUB spriteedit_save_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
  DIM i AS INTEGER
  IF j <= sets THEN
   setpicstuf buffer(), ss.setsize, 2
@@ -2605,7 +2603,7 @@ SUB spriteedit_save_what_you_see(spritefile AS STRING, j, top, sets, ss AS Sprit
    loadsprite placer(), 0, ss.size * i, soff * (j - top), ss.wide, ss.high, 3
    stosprite placer(), 0, ss.size * i, 0, 2
   NEXT i
-  storeset spritefile, large(j, 0), 0
+  storeset ss.spritefile, large(j, 0), 0
  END IF
 END SUB
 
