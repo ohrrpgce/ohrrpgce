@@ -42,6 +42,8 @@ DECLARE SUB importmasterpal (f$, palnum%)
 'Local SUBs and FUNCTIONS
 DECLARE SUB spriteedit_load_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
+DECLARE SUB spriteedit_save_all_you_see(top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
+DECLARE SUB spriteedit_load_all_you_see(top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
 DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
@@ -1686,7 +1688,7 @@ FOR i = 0 TO 15
  poke8bit ss.nulpal(), i, i
 NEXT i
 loaddefaultpals fileset, poffset(), sets
-GOSUB loadalluc
+spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
 
 setkeys
 DO
@@ -1702,54 +1704,54 @@ DO
   END IF
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
-  GOSUB savealluc
+  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   cropafter state.pt, sets, 0, ss.spritefile, ss.setsize, 1
   clearpage 3
-  GOSUB loadalluc
+  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
  END IF
  IF enter_or_space() THEN
-  GOSUB savealluc
+  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   GOSUB spriteage
-  GOSUB loadalluc
+  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scF) > 1 THEN
   IF fullset = NO AND perset > 1 THEN
-   GOSUB savealluc
+   spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
    sprite xw * perset, yw, sets, 1, soff, info$(), 1, fileset, font(), YES, state.pt, state.top
    loaddefaultpals fileset, poffset(), sets
-   GOSUB loadalluc
+   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   END IF
  END IF
  IF keyval(scPageup) > 1 THEN
-  GOSUB savealluc
+  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   state.pt = large(state.pt - ss.at_a_time, 0)
   state.top = state.pt
-  GOSUB loadalluc
+  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
  END IF
  IF keyval(scPagedown) > 1 THEN
-  GOSUB savealluc
+  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   state.top = large(small(state.pt, sets - ss.at_a_time), 0)
   state.pt = small(state.pt + ss.at_a_time, sets)
-  GOSUB loadalluc
+  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
  END IF
  IF keyval(scHome) > 1 THEN
-  GOSUB savealluc
+  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   state.pt = 0
   state.top = 0
-  GOSUB loadalluc
+  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
  END IF
  IF keyval(scEnd) > 1 THEN
-  GOSUB savealluc
+  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   state.pt = sets
   state.top = large(small(state.pt, sets - ss.at_a_time), 0)
-  GOSUB loadalluc
+  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
  END IF
  IF keyval(scUp) > 1 THEN
   state.pt = large(state.pt - 1, 0)
   IF state.pt < state.top THEN
-   GOSUB savealluc
+   spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
    state.top = state.pt
-   GOSUB loadalluc
+   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   END IF
  END IF
  IF keyval(scDown) > 1 AND state.pt < 32767 THEN
@@ -1765,12 +1767,12 @@ DO
    REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    '--add a new blank default palette
    poffset(state.pt) = 0
-   GOSUB loadalluc
+   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   END IF
   IF state.pt > state.top + ss.at_a_time THEN
-   GOSUB savealluc
+   spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
    state.top = state.top + 1
-   GOSUB loadalluc
+   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   END IF
  END IF
  IF keyval(scLeft) > 1 THEN ss.framenum = large(ss.framenum - 1, 0)
@@ -1856,7 +1858,7 @@ DO
  dowait
 LOOP
 changepal poffset(state.pt), 0, workpal(), state.pt - state.top
-GOSUB savealluc
+spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
 savedefaultpals fileset, poffset(), sets
 clearpage 0
 clearpage 1
@@ -2316,18 +2318,6 @@ drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.ho
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
-savealluc:
-FOR j = state.top TO state.top + ss.at_a_time
- spriteedit_save_what_you_see(j, state.top, sets, ss, soff, placer(), workpal(), poffset()) 
-NEXT j
-RETRACE
-
-loadalluc:
-FOR j = state.top TO state.top + ss.at_a_time
- spriteedit_load_what_you_see(j, state.top, sets, ss, soff, placer(), workpal(), poffset())
-NEXT
-RETRACE
-
 END SUB '----END of sprite()
 
 SUB writeundospr (placer(), ss AS SpriteEditState, is_rotate AS INTEGER=NO)
@@ -2581,6 +2571,18 @@ END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB spriteedit_save_all_you_see(top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
+ FOR j AS INTEGER = top TO top + ss.at_a_time
+  spriteedit_save_what_you_see(j, top, sets, ss, soff, placer(), workpal(), poffset()) 
+ NEXT j
+END SUB
+
+SUB spriteedit_load_all_you_see(top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
+ FOR j AS INTEGER = top TO top + ss.at_a_time
+  spriteedit_load_what_you_see(j, top, sets, ss, soff, placer(), workpal(), poffset())
+ NEXT j
+END SUB
 
 SUB spriteedit_load_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
  DIM i AS INTEGER
