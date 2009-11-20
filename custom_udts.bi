@@ -8,12 +8,16 @@
 
 TYPE SpriteEditStatic
   clonemarked AS INTEGER
-  clonebuf(2560) AS INTEGER 'Needs to be big enough for w*h*sets/4 for the largest possible sprite set
+  clonebuf(2561) AS INTEGER 'Needs to be big enough for 2+w*h*sets/4 for the largest possible sprite set
+  spriteclip(2561) AS INTEGER 'Needs to be big enough for 2+w*h*sets/4 for the largest possible sprite set
+  clipsize AS XYPair
+  paste AS INTEGER
 END TYPE
 
 TYPE SpriteEditState
   '--sprite set state
   spritefile AS STRING
+  fileset AS INTEGER
   framenum AS INTEGER
   wide AS INTEGER
   high AS INTEGER
@@ -52,6 +56,7 @@ TYPE SpriteEditState
   adjustpos AS XYPair
   previewpos AS XYPair
   nulpal(8) AS INTEGER '--nulpal is used for getsprite and can go away once we convert to use Frame
+  clippedpal AS INTEGER
 END TYPE
 
 TYPE TileCloneBuffer
