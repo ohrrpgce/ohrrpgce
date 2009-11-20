@@ -1536,7 +1536,7 @@ IF curbinsize(bindex) MOD 2 <> 0 THEN
 END IF
 
 IF getbinsize(bindex) > curbinsize(bindex) THEN
-  fatalerror "Oh noes! getbinsize(" & bindex & ") = " & getbinsize(bindex) & ", but new value " & curbinsize(bindex) & " is less than that! This means your RPG file's BINSIZE.BIN may be corrupted!"
+  fatalerror "Oh noes! getbinsize(" & bindex & ") = " & getbinsize(bindex) & ", but new value " & curbinsize(bindex) & " is less than that! This probably means you are opening a new RPG file in an old version of the OHRRPGCE"
 END IF
 
 IF getbinsize(bindex) < curbinsize(bindex) THEN
