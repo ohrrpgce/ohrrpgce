@@ -37,10 +37,6 @@ dim shared smooth as integer = 0
 'internal palette for 32-bit mode, with RGB colour components packed into a int
 dim shared truepal(255) as integer
 
-'Note, init is called before the browser is shown, and close is
-'called when an RPG is exited, they will usually be run more than
-'once. Perhaps there is also call for once-only routines outside
-'the main loop?
 sub gfx_init
 	if init_gfx = 0 then
 		calculate_screen_res
@@ -116,14 +112,6 @@ sub gfx_setwindowed(byval iswindow as integer)
 				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF
 			next
 		end if
-	end if
-end sub
-
-sub gfx_togglewindowed()
-	if windowed = 0 then
-		gfx_setwindowed(1)
-	else
-		gfx_setwindowed(0)
 	end if
 end sub
 

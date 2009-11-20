@@ -282,10 +282,6 @@ SUB gfx_setwindowed(byval iswindow as integer)
   gfx_sdl_set_screen_mode()
 END SUB
 
-SUB gfx_togglewindowed()
-  gfx_setwindowed(windowedmode XOR -1)
-END SUB
-
 SUB gfx_windowtitle(byval title as zstring ptr)
   IF SDL_WasInit(SDL_INIT_VIDEO) then
     SDL_WM_SetCaption(title, title)	
@@ -329,7 +325,18 @@ SUB gfx_sdl_process_events()
   DIM tempevent as SDL_Event
 
   WHILE SDL_PollEvent(@tempevent)
-    IF tempevent.type = SDL_EXIT THEN post_terminate_signal
+    SELECT CASE tempevent.type
+      CASE SDL_EXIT
+        post_terminate_signal
+      CASE SDL_KEYDOWN
+        keystate = SDL_GetKeyState(NULL)
+        IF tempevent.key.keysym.sym = SDLK_RETURN ANDALSO (tempevent.key.keysym.mod_ AND KMOD_ALT) THEN
+          'alt-enter
+          gfx_setwindowed(windowedmode XOR -1)
+        END IF
+      'CASE SDL_VIDEORESIZE
+        'debug "SDL_VIDEORESIZE: w=" & tempevent.resize.w & " h=" & tempevent.resize.h
+    END SELECT
   WEND
 END SUB
 

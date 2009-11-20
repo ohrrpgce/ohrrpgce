@@ -970,12 +970,6 @@ SUB setkeys ()
 		showfps xor= 1
 	end if
 
-	'FIXME: should be handled completely by gfx backend
-	'alt-enter toggle windowed
-	if keyval(scAlt) > 0 and keyval(scEnter) > 0 then
-		gfx_togglewindowed
-	end if
-
 	'FIXME DELETEME
 	'--This code is for screen page debugging, and will be removed in the future!
 	if keyval(scScrollLock) > 0 then 'Scroll-lock

@@ -41,10 +41,6 @@ dim shared scantrans(0 to 127) as integer => { _
 	0, 0, 0, 0, 0, 0, 0, 0 _
 }
 
-'Note, init is called before the browser is shown, and close is
-'called when an RPG is exited, they will usually be run more than
-'once. Perhaps there is also call for once-only routines outside
-'the main loop?
 sub gfx_init
 	if init_gfx = 0 then
 		allegro_init()
@@ -122,6 +118,10 @@ sub gfx_setwindowed(byval iswindow as integer)
 	windowed = iswindow
 	
 	if init_gfx = 1 then
+		if screenbuf <> null then
+			destroy_bitmap(screenbuf)
+			screenbuf = null
+		end if
 		if windowed <> 0 then
 			set_gfx_mode(GFX_AUTODETECT_WINDOWED, 640, 400, 0, 0)
 			baroffset = 0
@@ -130,14 +130,6 @@ sub gfx_setwindowed(byval iswindow as integer)
 			baroffset = 40
 		end if
 		set_palette(@alpal(0))		
-	end if
-end sub
-
-sub gfx_togglewindowed()
-	if windowed = 0 then
-		gfx_setwindowed(1)
-	else
-		gfx_setwindowed(0)
 	end if
 end sub
 
@@ -183,6 +175,14 @@ sub io_updatekeys(byval keybd as integer ptr)
 			keybd[scantrans(a)] = keybd[scantrans(a)] or 8
 		end if
 	next
+
+	if key(KEY_ENTER) andalso (key_shifts and KB_ALT_FLAG) then
+		if windowed = 0 then
+			gfx_setwindowed(1)
+		else
+			gfx_setwindowed(0)
+		end if
+	end if
 end sub
 
 sub io_setmousevisibility(byval visible as integer)

@@ -77,6 +77,8 @@ WHAT IS NEW?
       debugger. But many script errors still occur silently. [Ralph]
     * Each text box can now have a sound effect attached. [James]
     * Press F1 anywhere in custom for help [James, Ralph, Msw, NN]
+    * F12 to take a screenshot, alt+tab to toggle fullscreen, and alt+F4
+      now work everywhere in Game and Custom with all backends [Ralph]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"
