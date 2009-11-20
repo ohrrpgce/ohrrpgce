@@ -1570,7 +1570,7 @@ END SUB
 
 OPTION EXPLICIT '======== FIXME: move this up as code gets cleaned up =====================
 
-SUB sprite (xw, yw, sets, perset, soff, atatime, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
+SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
 STATIC spriteclip(2 + (32 * 40 * 8) \ 4) 'Because this is static we have to make it the max possible sprite-set size, which is the hero sprite set
 STATIC clippedpal, clippedw, clippedh, paste
 STATIC ss_save AS SpriteEditStatic
@@ -1586,6 +1586,7 @@ WITH ss
  .size = .wide * .high / 2
  .setsize = .size * .perset
  .zoom = zoom
+ .at_a_time = INT(200 / (.high + 5)) - 1
  '--Editor
  .x = 0
  .y = 0
@@ -1605,11 +1606,10 @@ END WITH
 DIM area(22) AS MouseArea
 init_sprite_zones area(), ss
 
-DIM sprites(atatime) AS Frame
 DIM placer(2 + (xw * yw * perset) \ 4), pclip(8)
 DIM toolinfo(7) AS ToolInfoType
-DIM workpal(8 * (atatime + 1))
-REDIM poffset(large(sets, atatime))
+DIM workpal(8 * (ss.at_a_time + 1))
+REDIM poffset(large(sets, ss.at_a_time))
 DIM AS INTEGER do_paste = 0
 DIM AS INTEGER paste_transparent = 0
 DIM AS INTEGER debug_palettes = 0
@@ -1717,21 +1717,21 @@ DO
  IF keyval(scCtrl) > 0 AND keyval(scF) > 1 THEN
   IF fullset = NO AND perset > 1 THEN
    GOSUB savealluc
-   sprite xw * perset, yw, sets, 1, soff, atatime, info$(), 1, fileset, font(), YES, state.pt, state.top
+   sprite xw * perset, yw, sets, 1, soff, info$(), 1, fileset, font(), YES, state.pt, state.top
    loaddefaultpals fileset, poffset(), sets
    GOSUB loadalluc
   END IF
  END IF
  IF keyval(scPageup) > 1 THEN
   GOSUB savealluc
-  state.pt = large(state.pt - atatime, 0)
+  state.pt = large(state.pt - ss.at_a_time, 0)
   state.top = state.pt
   GOSUB loadalluc
  END IF
  IF keyval(scPagedown) > 1 THEN
   GOSUB savealluc
-  state.top = large(small(state.pt, sets - atatime), 0)
-  state.pt = small(state.pt + atatime, sets)
+  state.top = large(small(state.pt, sets - ss.at_a_time), 0)
+  state.pt = small(state.pt + ss.at_a_time, sets)
   GOSUB loadalluc
  END IF
  IF keyval(scHome) > 1 THEN
@@ -1743,7 +1743,7 @@ DO
  IF keyval(scEnd) > 1 THEN
   GOSUB savealluc
   state.pt = sets
-  state.top = large(small(state.pt, sets - atatime), 0)
+  state.top = large(small(state.pt, sets - ss.at_a_time), 0)
   GOSUB loadalluc
  END IF
  IF keyval(scUp) > 1 THEN
@@ -1764,12 +1764,12 @@ DO
    NEXT i
    storeset spritefile, state.pt, 0
    '-- re-size the array that stores the default palette offset
-   REDIM PRESERVE poffset(large(sets, atatime))
+   REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    '--add a new blank default palette
    poffset(state.pt) = 0
    GOSUB loadalluc
   END IF
-  IF state.pt > state.top + atatime THEN
+  IF state.pt > state.top + ss.at_a_time THEN
    GOSUB savealluc
    state.top = state.top + 1
    GOSUB loadalluc
@@ -1819,7 +1819,7 @@ DO
  'draw sprite sets
  rectangle 0, 0, 320, 200, uilook(uiDisabledItem), dpage
  rectangle 4 + (ss.framenum * (ss.wide + 1)), (state.pt - state.top) * (ss.high + 5), ss.wide + 2, ss.high + 2, uilook(uiText), dpage
- FOR i = state.top TO small(state.top + atatime, sets)
+ FOR i = state.top TO small(state.top + ss.at_a_time, sets)
   FOR o = 0 TO ss.perset - 1
    rectangle 5 + (o * (ss.wide + 1)), 1 + ((i - state.top) * (ss.high + 5)), ss.wide, ss.high, 0, dpage
    loadsprite placer(), 0, ss.size * o, soff * (i - state.top), ss.wide, ss.high, 3
@@ -1832,7 +1832,7 @@ DO
   rectangle 271 + i * 3, 8, 3, 8, peek8bit(workpal(), (state.pt - state.top) * 16 + i), dpage
  NEXT i
  IF debug_palettes THEN
-   FOR j = 0 TO atatime
+   FOR j = 0 TO ss.at_a_time
      FOR i = 0 TO 15
       rectangle 271 + i * 3, 40 + j * 5, 3, 4, peek8bit(workpal(), j * 16 + i), dpage
      NEXT i
@@ -2319,13 +2319,13 @@ getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
 savealluc:
-FOR j = state.top TO state.top + atatime
+FOR j = state.top TO state.top + ss.at_a_time
  spriteedit_save_what_you_see(spritefile, j, state.top, sets, ss, soff, placer(), workpal(), poffset()) 
 NEXT j
 RETRACE
 
 loadalluc:
-FOR j = state.top TO state.top + atatime
+FOR j = state.top TO state.top + ss.at_a_time
  spriteedit_load_what_you_see(spritefile, j, state.top, sets, ss, soff, placer(), workpal(), poffset())
 NEXT
 RETRACE

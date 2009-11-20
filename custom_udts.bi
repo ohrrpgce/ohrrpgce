@@ -19,6 +19,7 @@ TYPE SpriteEditState
   perset AS INTEGER
   size AS INTEGER ' In bytes, two pixels per byte
   setsize AS INTEGER ' In bytes, two pixels per byte
+  at_a_time AS INTEGER 'Number of sprite sets that fit on the browsing screen
  
   '--sprite editor state
   zoom AS INTEGER

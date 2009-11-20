@@ -17,7 +17,7 @@ DECLARE SUB verifyrpg ()
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB scriptman ()
 DECLARE SUB mapmaker (font%())
-DECLARE SUB sprite (xw, yw, sets, perset, soff, atatime, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
+DECLARE SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
 DECLARE SUB importsfx ()
@@ -300,18 +300,18 @@ DO:
    CASE 1'--graphics mode
     IF pt = 0 THEN pt = 0: menumode = 0: GOSUB setmainmenu
     IF pt = 1 THEN maptile font()
-    IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, 7, walkabout_frame_captions(),  4, 4, font()
-    IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, 3, hero_frame_captions(), 4, 0, font()
-    IF pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, 4, enemy_frame_captions(), 4, 1, font()
-    IF pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, 2, enemy_frame_captions(), 2, 2, font()
-    IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, 1, enemy_frame_captions(), 2, 3, font()
-    IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, 2, attack_frame_captions(), 2, 6, font()
-    IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, 5, weapon_frame_captions(), 4, 5, font()
+    IF pt = 2 THEN sprite 20, 20, gen(genMaxNPCPic),    8, 5, walkabout_frame_captions(),  4, 4, font()
+    IF pt = 3 THEN sprite 32, 40, gen(genMaxHeroPic),   8, 16, hero_frame_captions(), 4, 0, font()
+    IF pt = 4 THEN sprite 34, 34, gen(genMaxEnemy1Pic), 1, 2, enemy_frame_captions(), 4, 1, font()
+    IF pt = 5 THEN sprite 50, 50, gen(genMaxEnemy2Pic), 1, 4, enemy_frame_captions(), 2, 2, font()
+    IF pt = 6 THEN sprite 80, 80, gen(genMaxEnemy3Pic), 1, 10, enemy_frame_captions(), 2, 3, font()
+    IF pt = 7 THEN sprite 50, 50, gen(genMaxAttackPic), 3, 12, attack_frame_captions(), 2, 6, font()
+    IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, weapon_frame_captions(), 4, 5, font()
     IF pt = 9 THEN
-     sprite 16, 16, gen(genMaxBoxBorder), 16, 7, 8, box_border_captions(), 4, 7, font()
+     sprite 16, 16, gen(genMaxBoxBorder), 16, 7, box_border_captions(), 4, 7, font()
      clear_box_border_cache
     END IF
-    IF pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, 2, portrait_captions(), 2, 8, font()
+    IF pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8, font()
     IF pt = 11 THEN importbmp ".mxs", "screen", gen(genMaxBackdrop)
     IF pt = 12 THEN
      gen(genMaxTile) = gen(genMaxTile) + 1
