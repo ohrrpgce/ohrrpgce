@@ -767,7 +767,9 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 end SUB
 
 SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL page)
-'This seems to convert a normal graphic into a sprite, storing the result in pic() at picoff
+'This reads a rectangular region of a screen page into sprite buffer array pic() at picoff
+'It assumes that all the pixels it encounters will be colors 0-15 of the master palette
+'even though those colors will certainly be mapped to some other 16 color palette when drawn
 	dim as ubyte ptr sbase, sptr
 	dim nyb as integer = 0
 	dim p as integer = 0
