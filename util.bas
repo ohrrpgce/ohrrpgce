@@ -193,6 +193,33 @@ FUNCTION escape_string(s AS STRING, chars AS STRING) AS STRING
  RETURN result
 END FUNCTION
 
+
+FUNCTION exclude (s as string, x as string) as string
+ DIM outf AS STRING = ""
+ DIM ok AS INTEGER
+ FOR i AS INTEGER = 1 TO LEN(s)
+  ok = -1
+  FOR j AS INTEGER = 1 TO LEN(x)
+   IF MID(s, i, 1) = MID(x, j, 1) THEN ok = 0
+  NEXT j
+  IF ok THEN outf &= MID(s, i, 1)
+ NEXT i
+ RETURN outf
+END FUNCTION
+
+FUNCTION exclusive (s as string, x as string) as string
+ DIM outf AS STRING = ""
+ DIM ok AS INTEGER
+ FOR i AS INTEGER = 1 TO LEN(s)
+  ok = 0
+  FOR j AS INTEGER = 1 TO LEN(x)
+   IF MID(s, i, 1) = MID(x, j, 1) THEN ok = -1
+  NEXT j
+  IF ok THEN outf &= MID(s, i, 1)
+ NEXT i
+ RETURN outf
+END FUNCTION
+
 SUB createstack (st as Stack)
   WITH st
     .size = STACK_SIZE_INC - 4

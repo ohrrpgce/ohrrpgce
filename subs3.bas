@@ -16,8 +16,6 @@ DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique% (s$, u$(), r%)
-DECLARE FUNCTION exclude$ (s$, x$)
-DECLARE FUNCTION exclusive$ (s$, x$)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB formation ()
 DECLARE SUB enemydata ()
@@ -34,30 +32,6 @@ DECLARE SUB maptile (font%())
 #include "scrconst.bi"
 
 REM $STATIC
-
-FUNCTION exclude$ (s$, x$)
-outf$ = ""
-FOR i = 1 TO LEN(s$)
- ok = -1
- FOR j = 1 TO LEN(x$)
-  IF MID$(s$, i, 1) = MID$(x$, j, 1) THEN ok = 0
- NEXT j
- IF ok THEN outf$ = outf$ + MID$(s$, i, 1)
-NEXT i
-exclude$ = outf$
-END FUNCTION
-
-FUNCTION exclusive$ (s$, x$)
-outf$ = ""
-FOR i = 1 TO LEN(s$)
- ok = 0
- FOR j = 1 TO LEN(x$)
-  IF MID$(s$, i, 1) = MID$(x$, j, 1) THEN ok = 1
- NEXT j
- IF ok THEN outf$ = outf$ + MID$(s$, i, 1)
-NEXT i
-exclusive$ = outf$
-END FUNCTION
 
 FUNCTION filesize$ (file$)
 'returns size of a file in formatted string
