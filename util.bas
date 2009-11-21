@@ -436,3 +436,44 @@ SUB remove_string_cache (cache() as IntStrPair, byval key as integer)
   END IF
  NEXT
 END SUB
+
+#define ROT(a,b) ((a shl b) or (a shr (32 - b)))
+
+'Fairly fast (in original C) string hash, ported from from fb2c++ (as strihash,
+'original was case insensitive) which I wrote and tested myself
+FUNCTION strhash(byval strp as zstring ptr, byval leng as integer) as unsigned integer
+ DIM as unsigned integer hash = &hbaad1dea
+
+ IF (leng and 3) = 3 THEN
+  hash xor= *strp shl 16
+  strp += 1
+ END IF
+ IF (leng and 3) >= 2 THEN
+  hash xor= *strp shl 8
+  strp += 1
+ END IF
+ IF (leng and 3) >= 1 THEN
+  hash xor= *strp
+  strp += 1
+  hash = (hash shl 5) - hash
+  hash xor= ROT(hash, 19)
+ END IF
+
+ leng \= 4
+ WHILE leng
+  hash += *cast(unsigned integer ptr, strp)
+  strp += 4
+  hash = (hash shl 5) - hash  ' * 31
+  hash xor= ROT(hash, 19)
+  leng -= 1
+ WEND
+ 'No need to be too thorough, will get rehashed if needed anyway
+ hash += ROT(hash, 2)
+ hash xor= ROT(hash, 27)
+ hash += ROT(hash, 16)
+ RETURN hash
+END FUNCTION
+
+FUNCTION strhash(hstr as string) as unsigned integer
+ RETURN strhash(hstr, len(hstr))
+END FUNCTION

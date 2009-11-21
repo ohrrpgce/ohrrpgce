@@ -18,6 +18,122 @@ option explicit
 declare function matchmask(match as string, mask as string) as integer
 
 
+'----------------------------------------------------------------------
+'                          LumpIndex class
+
+
+sub construct_lumpindex(byref this as LumpIndex)
+	this.numlumps = 0
+	this.tablesize = 512
+	this.first = NULL
+	this.last = NULL
+	this.table = callocate(sizeof(any ptr) * this.tablesize)
+	this.fhandle = 0
+end sub
+
+sub destruct_lumpindex(byref this as LumpIndex)
+	dim as Lump ptr lmp, temp
+
+	if this.fhandle then close this.fhandle
+
+	lmp = this.first
+	while lmp
+		temp = lmp->next
+		'destruct_lump(*lmp)
+		deallocate(lmp)
+		lmp = temp
+	wend
+
+	deallocate(this.table)
+end sub
+
+sub lumpindex_addlump(byref this as LumpIndex, byval lump as Lump ptr)
+	dim hash as unsigned integer
+	dim lmpp as Lump ptr ptr
+	
+	hash = strhash(lump->lumpname)
+	lmpp = @this.table[hash mod this.tablesize]
+	while *lmpp
+		lmpp = @(*lmpp)->bucket_chain
+	wend
+	*lmpp = lump
+
+	this.numlumps += 1
+	if this.first = NULL then
+		this.first = lump
+		this.last = lump
+	else
+		this.last->next = lump
+		this.last = lump
+	end if
+end sub
+
+'case sensitive
+function lumpindex_findlump(byref this as LumpIndex, lumpname as string) as Lump ptr
+	dim hash as unsigned integer
+	dim lmp as Lump ptr
+
+	hash = strhash(lumpname)
+	lmp = this.table[hash mod this.tablesize]
+	while lmp
+		if lmp->lumpname = lumpname then return lmp
+		lmp = lmp->bucket_chain
+	wend
+
+	return NULL
+end function
+
+'verify integrity and print contents
+sub lumpindex_debug(byref this as LumpIndex)
+	dim lmp as Lump ptr
+	dim numlumps as integer = 0
+
+	debug "===lumpindex_debug==="
+
+	for i as integer = 0 to this.tablesize - 1
+		lmp = this.table[i]
+		while lmp
+			numlumps += 1
+			if (strhash(lmp->lumpname) mod this.tablesize) <> i then
+				debug "lumpindex_debug error: lump in wrong bucket"
+			end if
+			lmp = lmp->bucket_chain
+		wend
+	next
+
+	if numlumps <> this.numlumps then
+		debug "error: " & numlumps & " lumps in table, " & this.numlumps & " recorded"
+	end if
+
+	numlumps = 0
+	lmp = this.first
+	do
+		numlumps += 1
+		debug lmp->lumpname
+		debug "  at " & lmp->offset & " len " & lmp->length & "   mark=" & lmp->unlumpmark
+		if lmp->next = NULL then
+			if lmp <> this.last then
+				debug "error: ->last corrupt"
+			end if
+			exit do
+		end if
+		lmp = lmp->next
+	loop
+
+	if numlumps <> this.numlumps then
+		debug "error: " & numlumps & " lumps chained, " & this.numlumps & " recorded"
+	end if
+
+	debug "====================="
+end sub
+
+
+'----------------------------------------------------------------------
+'                           16-bit records
+'Why is this here? Because according to the Plan, binsize expanding may be
+'handled transparently by the Lump object rather than actually occurring
+
+
 function loadrecord (buf() as integer, fh as integer, recordsize as integer, record as integer = -1) as integer
 'common sense alternative to loadset, setpicstuf
 'loads 16bit records in an array
@@ -45,22 +161,22 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 	loadrecord = 1
 end function
 
-function loadrecord (buf() as integer, filen$, recordsize as integer, record as integer = 0) as integer
+function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0) as integer
 'wrapper for above
 	dim f as integer
 	dim i as integer
 
 	if recordsize <= 0 then return 0
 
-	if NOT fileisreadable(filen$) then
-		debug "File not found loading record " & record & " from " & filen$
+	if NOT fileisreadable(filen) then
+		debug "File not found loading record " & record & " from " & filen
 		for i = 0 to recordsize - 1
 			buf(i) = 0
 		next
 		return 0
 	end if
 	f = freefile
-	open filen$ for binary access read as #f
+	open filen for binary access read as #f
 
 	loadrecord = loadrecord (buf(), f, recordsize, record)
 	close #f
@@ -85,23 +201,107 @@ sub storerecord (buf() as integer, fh as integer, recordsize as integer, record 
 	put #fh, , writebuf()
 end sub
 
-sub storerecord (buf() as integer, filen$, recordsize as integer, record as integer = 0)
+sub storerecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0)
 'wrapper for above
 	dim f as integer
 
-	if NOT fileiswriteable(filen$) then exit sub
+	if NOT fileiswriteable(filen) then exit sub
 	f = freefile
-	open filen$ for binary access read write as #f
+	open filen for binary access read write as #f
 
 	storerecord buf(), f, recordsize, record
 	close #f
 end sub
 
-sub unlump (lump$, ulpath$)
-	unlumpfile(lump$, "", ulpath$)
+
+'----------------------------------------------------------------------
+'                           Lumped files
+
+
+function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as LumpIndex ptr
+	dim index as LumpIndex ptr
+	dim lf as integer
+	dim dat as ubyte
+	dim size as integer
+	dim maxsize as integer
+	dim lname as string
+	dim i as integer
+
+	if NOT fileisreadable(lumpfile) then return NULL
+
+	index = callocate(sizeof(LumpIndex))
+	construct_lumpindex(*index)
+
+	lf = freefile
+	open lumpfile for binary access read lock write as #lf
+	if keepopen then index->fhandle = lf
+	maxsize = lof(lf)
+
+	while not eof(lf)
+		'get lump name
+		lname = ""
+		i = 0
+		while not eof(lf) and i < 50
+			get #lf, , dat
+			if dat = 0 then exit while
+			lname = lname + chr(dat)
+			i += 1
+		wend
+		if i >= 50 then 'corrupt file, really if i > 12
+			debug "corrupt lump file " + lumpfile + " : lump name too long"
+			exit while
+		end if
+		if eof(lf) then
+			debug "corrupt lump file " + lumpfile + " : garbage"
+			exit while
+		end if
+
+		lname = lcase(lname)
+		'debug "lump name <" + lname + ">"
+
+		'if instr(lname, "\") or instr(lname, "/") then
+		'	debug "lump file " + lumpfile + " : unsafe lump name " + lname
+		'	exit while
+		'end if
+
+		'get lump size - byte order = 3,4,1,2
+		fget lf, , cast(short ptr, @size) + 1, 2
+		fget lf, , cast(short ptr, @size), 2
+		'debug "lump size " + str(size)
+
+		if size + seek(lf) > maxsize + 1 then
+			debug lumpfile + ": corrupt lump size " & size & " exceeds source size " & maxsize
+			exit while
+		end if
+
+		dim lmp as Lump ptr
+		lmp = callocate(sizeof(Lump))
+		lmp->lumpname = lname
+		lmp->offset = seek(lf)
+		lmp->length = size
+		lmp->unlumpmark = 0
+		lumpindex_addlump(*index, lmp)
+
+		seek #lf, seek(lf) + size
+		if eof(lf) then
+			'success
+			if keepopen = 0 then close lf
+			return index
+		end if
+	wend
+	'while loop exits on error
+
+	'closes file
+	destruct_lumpindex(*index)
+	deallocate(index)
+	return NULL
+end function
+
+sub unlump (lumpfile as string, ulpath as string)
+	unlumpfile(lumpfile, "", ulpath)
 end sub
 
-sub unlumpfile (lump$, fmask$, path$)
+sub unlumpfile (lumpfile as string, fmask as string, path as string)
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
@@ -111,12 +311,12 @@ sub unlumpfile (lump$, fmask$, path$)
 	dim bufr as ubyte ptr
 	dim nowildcards as integer = 0
 
-	if NOT fileisreadable(lump$) then exit sub
+	if NOT fileisreadable(lumpfile) then exit sub
 	lf = freefile
-	open lump$ for binary access read as #lf
+	open lumpfile for binary access read as #lf
 	maxsize = LOF(lf)
 
-	if len(path$) > 0 and right(path$, 1) <> SLASH then path$ = path$ & SLASH
+	if len(path) > 0 and right(path, 1) <> SLASH then path = path & SLASH
 
 	bufr = callocate(16383)
 	if bufr = null then
@@ -125,8 +325,8 @@ sub unlumpfile (lump$, fmask$, path$)
 	end if
 
 	'should make browsing a bit faster
-	if len(fmask$) > 0 then
-		if instr(fmask$, "*") = 0 and instr(fmask$, "?") = 0 then
+	if len(fmask) > 0 then
+		if instr(fmask, "*") = 0 and instr(fmask, "?") = 0 then
 			nowildcards = -1
 		end if
 	end if
@@ -137,12 +337,12 @@ sub unlumpfile (lump$, fmask$, path$)
 		lname = ""
 		i = 0
 		while not eof(lf) and dat <> 0 and i < 64
-			lname = lname + chr$(dat)
+			lname = lname + chr(dat)
 			get #lf, , dat
 			i += 1
 		wend
 		if i > 50 then 'corrupt file, really if i > 12
-			debug "corrupt lump file: lump name too long"
+			debug "corrupt lump file " + lumpfile + " : lump name too long"
 			exit while
 		end if
 		'force to lower-case
@@ -150,7 +350,7 @@ sub unlumpfile (lump$, fmask$, path$)
 		'debug "lump name " + lname
 
 		if instr(lname, "\") or instr(lname, "/") then
-			debug "unsafe lump name " + str$(lname)
+			debug "lump file " + lumpfile + " : unsafe lump name " + lname
 			exit while
 		end if
 
@@ -165,21 +365,21 @@ sub unlumpfile (lump$, fmask$, path$)
 			get #lf, , dat
 			size = size or (dat shl 8)
 			if size > maxsize then
-				debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
+				debug lumpfile + ": corrupt lump size " & size & " exceeds source size " & maxsize
 				exit while
 			end if
 
-			'debug "lump size " + str$(size)
+			'debug "lump size " + str(size)
 
 			'do we want this file?
-			if matchmask(lname, lcase$(fmask$)) then
+			if matchmask(lname, lcase(fmask)) then
 				'write yon file
 				dim of as integer
 				dim csize as integer
 
-				if NOT fileiswriteable(path$ + lname) then exit while
+				if NOT fileiswriteable(path + lname) then exit while
 				of = freefile
-				open path$ + lname for binary access write as #of
+				open path + lname for binary access write as #of
 
 				'copy the data
 				while size > 0
@@ -216,7 +416,7 @@ sub unlumpfile (lump$, fmask$, path$)
 
 end sub
 
-function islumpfile (lump$, fmask$) as integer
+function islumpfile (lumpfile as string, fmask as string) as integer
 	dim lf as integer
 	dim dat as ubyte
 	dim size as integer
@@ -226,9 +426,9 @@ function islumpfile (lump$, fmask$) as integer
 
 	islumpfile = 0
 
-	if NOT fileisreadable(lump$) then exit function
+	if NOT fileisreadable(lumpfile) then exit function
 	lf = freefile
-	open lump$ for binary access read as #lf
+	open lumpfile for binary access read as #lf
 	maxsize = LOF(lf)
 
 	get #lf, , dat	'read first byte
@@ -237,12 +437,12 @@ function islumpfile (lump$, fmask$) as integer
 		lname = ""
 		i = 0
 		while not eof(lf) and dat <> 0 and i < 64
-			lname = lname + chr$(dat)
+			lname = lname + chr(dat)
 			get #lf, , dat
 			i += 1
 		wend
 		if i > 50 then 'corrupt file, really if i > 12
-			debug "corrupt lump file: lump name too long"
+			debug "corrupt lump file " + lumpfile + " : lump name too long"
 			exit while
 		end if
 		'force to lower-case
@@ -250,7 +450,7 @@ function islumpfile (lump$, fmask$) as integer
 		'debug "lump name " + lname
 
 		if instr(lname, "\") or instr(lname, "/") then
-			debug "unsafe lump name " + str$(lname)
+			debug "lump file " + lumpfile + " : unsafe lump name " + lname
 			exit while
 		end if
 
@@ -265,14 +465,14 @@ function islumpfile (lump$, fmask$) as integer
 			get #lf, , dat
 			size = size or (dat shl 8)
 			if size > maxsize then
-				debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
+				debug lumpfile + ": corrupt lump size " & size & " exceeds source size " & maxsize
 				exit while
 			end if
 
 			'do we want this file?
-			if matchmask(lname, lcase$(fmask$)) then
-                islumpfile = -1
-                exit function
+			if matchmask(lname, lcase(fmask)) then
+				islumpfile = -1
+				exit function
 			else
 				'skip to next name
 				seek #lf, seek(lf) + size
@@ -287,7 +487,7 @@ function islumpfile (lump$, fmask$) as integer
 	close #lf
 end function
 
-sub lumpfiles (listf$, lump$, path$)
+sub lumpfiles (listf as string, lumpfile as string, path as string)
 	dim as integer lf, fl, tl	'lumpfile, filelist, tolump
 
 	dim dat as ubyte
@@ -298,15 +498,15 @@ sub lumpfiles (listf$, lump$, path$)
 	dim as integer i, t, textsize(1)
 
 	fl = freefile
-	open listf$ for input as #fl
+	open listf for input as #fl
 	if err <> 0 then
 		exit sub
 	end if
 
 	lf = freefile
-	open lump$ for binary access write as #lf
+	open lumpfile for binary access write as #lf
 	if err <> 0 then
-		'debug "Could not open file " + lump$
+		'debug "Could not open file " + lumpfile
 		close #fl
 		exit sub
 	end if
@@ -333,9 +533,9 @@ sub lumpfiles (listf$, lump$, path$)
 		end if
 
 		tl = freefile
-		open path$ + lname for binary access read as #tl
+		open path + lname for binary access read as #tl
 		if err <> 0 then
-			'debug "failed to open " + path$ + lname
+			'debug "failed to open " + path + lname
 			continue do
 		end if
 

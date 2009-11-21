@@ -50,7 +50,8 @@ declare sub sort_integers_indices(indices() as integer, byval start as integer p
 declare function search_string_cache (cache() as IntStrPair, byval key as integer, resetter as string = CHR(234)) as string
 declare sub add_string_cache (cache() as IntStrPair, byval key as integer, value as string)
 declare sub remove_string_cache (cache() as IntStrPair, byval key as integer)
-
+declare function strhash overload (byval strp as zstring ptr, byval leng as integer) as unsigned integer
+declare function strhash overload (hstr as string) as unsigned integer
 
 declare sub createstack (st as Stack)
 declare sub destroystack (st as Stack)
