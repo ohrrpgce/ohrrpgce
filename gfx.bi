@@ -19,7 +19,6 @@ declare sub gfx_showpage (byval raw as ubyte ptr, byval w as integer, byval h as
 declare sub gfx_setpal (byval pal as RGBcolor ptr) 'set colour palette. May reuse last raw pointer to showpage, so you may not change it!
 declare function gfx_screenshot (byval fname as zstring ptr) as integer
 declare sub gfx_setwindowed (byval iswindow as integer)
-declare sub gfx_togglewindowed ()  'to be removed
 declare sub gfx_windowtitle (byval title as zstring ptr)
 declare function gfx_getwindowstate () as WindowState ptr
 

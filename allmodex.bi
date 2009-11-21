@@ -10,6 +10,7 @@
  #include "bitmap.bi"
 #ENDIF
 #include "file.bi"   'FB header
+#include "lumpfile.bi"
 
 'Library routines
 DECLARE SUB setmodex ()
@@ -67,16 +68,8 @@ DECLARE FUNCTION readbit (b() as integer, BYVAL w as integer, BYVAL b as integer
 DECLARE SUB storeset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB loadset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
-DECLARE FUNCTION loadrecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1) as integer
-DECLARE FUNCTION loadrecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0) as integer
-DECLARE SUB storerecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1)
-DECLARE SUB storerecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0)
 DECLARE SUB fixspriterecord (buf() as integer, w as integer, h as integer)
 DECLARE SUB findfiles (fmask as string, BYVAL attrib as integer, outfile as string)
-DECLARE SUB lumpfiles (listf as string, lump as string, path as string)
-DECLARE SUB unlump(lump as string, ulpath as string)
-DECLARE SUB unlumpfile(lump as string, fmask as string, path as string)
-DECLARE FUNCTION islumpfile (lump as string, fmask as string) as integer
 DECLARE FUNCTION isfile (n as string) as integer
 DECLARE FUNCTION isdir (sDir as string) as integer
 DECLARE FUNCTION is_absolute_path (sDir as string) as integer
