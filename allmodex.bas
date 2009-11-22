@@ -3085,7 +3085,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 
 	if scale <> 1 then
 		' isn't code duplication convenient?
-		sprite_draw @spr, NULL, x, y, scale, trans, page
+		sprite_draw @spr, pal, x, y, scale, trans, page
 		exit sub
 	end if
 
@@ -3882,14 +3882,14 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 	
 	With *spr
 		'ty = syfrom
-		if trans <> 0 then
+		if trans = 0 then
 			for ty = syfrom to syto
 				'tx = sxfrom
 				for tx = sxfrom to sxto
 					'figure out where to put the pixel
 					pix = (ty * vpages(page)->pitch) + tx
 					'and where to get the pixel from
-					spix = (((ty-syfrom) \ scale) * .pitch) + ((tx-sxfrom) \ scale)
+					spix = (((ty - y) \ scale) * .pitch) + ((tx - x) \ scale)
 					
 					if pal <> 0 then
 						sptr[pix] = pal->col(.image[spix])
@@ -3905,7 +3905,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 					'figure out where to put the pixel
 					pix = (ty * vpages(page)->pitch) + tx
 					'and where to get the pixel from
-					spix = (((ty-y) \ scale) * .pitch) + ((tx-x) \ scale)
+					spix = (((ty - y) \ scale) * .pitch) + ((tx - x) \ scale)
 					
 					'check mask
 					if mptr[spix] then
