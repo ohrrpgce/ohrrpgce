@@ -16,6 +16,11 @@ option explicit
 #undef abort
 #undef strlen
 
+'a public rtlib function that they seem to have forgotten to expose to FB programs?
+declare function KeyHit alias "fb_KeyHit" () as integer
+'OK, now this one is in manual, but it's not exposed either! WTH
+declare function Getkey alias "fb_Getkey" () as integer
+
 'subs only used internally
 declare sub gfx_screenres()		'set screen res, etc
 declare sub calculate_screen_res()
@@ -106,7 +111,7 @@ sub gfx_setwindowed(byval iswindow as integer)
 	if init_gfx = 1 then
 		dim i as integer
 		gfx_screenres
-        'palette must be re-set
+		'palette must be re-set
 		if depth = 8 then
 			for i = 0 to 255
 				palette i, (truepal(i) and &hFF0000) shr 16, (truepal(i) and &hFF00) shr 8, truepal(i) and &hFF
@@ -229,7 +234,14 @@ sub io_updatekeys(byval keybd as integer ptr)
 		end if
 	next
 	'the polling thread ought to ensure that these are caught timeously
-	if inkey = chr(255) + "k" then post_terminate_signal
+	'inkey does not seem to be threadsafe (bug 790)
+	'if inkey = chr(255) + "k" then post_terminate_signal
+	while keyhit
+		a = getkey
+		'there are two different getkey values that cause fb_GfxInkey to return "\255k"
+		if a = &h100 or a = &h6bff then post_terminate_signal
+	wend
+	if multikey(SC_ALT) and multikey(SC_F4) then post_terminate_signal
 end sub
 
 sub io_setmousevisibility(byval visible as integer)

@@ -330,9 +330,13 @@ SUB gfx_sdl_process_events()
         post_terminate_signal
       CASE SDL_KEYDOWN
         keystate = SDL_GetKeyState(NULL)
-        IF tempevent.key.keysym.sym = SDLK_RETURN ANDALSO (tempevent.key.keysym.mod_ AND KMOD_ALT) THEN
-          'alt-enter
-          gfx_setwindowed(windowedmode XOR -1)
+        IF tempevent.key.keysym.mod_ AND KMOD_ALT THEN
+          IF tempevent.key.keysym.sym = SDLK_RETURN THEN  'alt-enter
+            gfx_setwindowed(windowedmode XOR -1)
+          END IF
+          IF tempevent.key.keysym.sym = SDLK_F4 THEN  'alt-F4
+            post_terminate_signal
+          END IF
         END IF
       'CASE SDL_VIDEORESIZE
         'debug "SDL_VIDEORESIZE: w=" & tempevent.resize.w & " h=" & tempevent.resize.h
