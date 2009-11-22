@@ -51,6 +51,9 @@ DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS Sp
 DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INTEGER, counterclockwise AS INTEGER=NO)
 DECLARE SUB spriteedit_rotate_sprite(sprbuf() AS INTEGER, ss AS SpriteEditState, counterclockwise AS INTEGER=NO)
 DECLARE SUB writeundospr (placer(), ss AS SpriteEditState, is_rotate AS INTEGER=NO)
+DECLARE FUNCTION spriteedit_export_name (ss AS SpriteEditState, state AS MenuState) AS STRING
+DECLARE SUB spriteedit_export OVERLOAD (default_name AS STRING, placer() AS INTEGER, nulpal() AS INTEGER, palnum AS INTEGER)
+DECLARE SUB spriteedit_export OVERLOAD (default_name AS STRING, img AS GraphicPair)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -481,7 +484,7 @@ END SUB
 
 FUNCTION mouseover (mouse(), BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea)
 
-FOR i = 22 TO 0 STEP -1
+FOR i = UBOUND(area) TO 0 STEP -1
  IF area(i).w <> 0 AND area(i).h <> 0 THEN
   IF mouse(0) >= area(i).x AND mouse(0) < area(i).x + area(i).w THEN
    IF mouse(1) >= area(i).y AND mouse(1) < area(i).y + area(i).h THEN
@@ -1588,6 +1591,7 @@ WITH ss
  .setsize = .size * .perset
  .zoom = zoom
  .at_a_time = INT(200 / (.high + 5)) - 1
+ .fullset = fullset
  '--Editor
  .x = 0
  .y = 0
@@ -1634,7 +1638,7 @@ DO
  state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN
-  IF fullset THEN
+  IF ss.fullset THEN
    show_help "sprite_pickset_fullset"
   ELSE
    show_help "sprite_pickset"
@@ -1652,7 +1656,7 @@ DO
   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scF) > 1 THEN
-  IF fullset = NO AND ss.perset > 1 THEN
+  IF ss.fullset = NO AND ss.perset > 1 THEN
    spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
    sprite ss.wide * ss.perset, ss.high, sets, 1, soff, info$(), 1, ss.fileset, font(), YES, state.pt, state.top
    loaddefaultpals ss.fileset, poffset(), sets
@@ -1753,6 +1757,10 @@ DO
  IF keyval(scF2) > 1 THEN
   debug_palettes = debug_palettes XOR 1
  END IF
+ IF keyval(scE) > 1 THEN
+  loadsprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
+  spriteedit_export spriteedit_export_name(ss, state), placer(), ss.nulpal(), poffset(state.pt)
+ END IF
  'draw sprite sets
  rectangle 0, 0, 320, 200, uilook(uiDisabledItem), dpage
  rectangle 4 + (ss.framenum * (ss.wide + 1)), (state.pt - state.top) * (ss.high + 5), ss.wide + 2, ss.high + 2, uilook(uiText), dpage
@@ -1781,9 +1789,9 @@ DO
  caption = info$(ss.framenum)
  printstr caption, 320 - (LEN(caption) * 8), 24, dpage
  caption = ""
- IF fullset = NO AND ss.perset > 1 THEN
+ IF ss.fullset = NO AND ss.perset > 1 THEN
   caption = "CTRL+F Full-Set Mode, "
- ELSEIF fullset = YES THEN
+ ELSEIF ss.fullset = YES THEN
   caption = "ESC back to Single-Frame Mode, "
  END IF
  caption = caption & "F1 Help"
@@ -1904,10 +1912,13 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
  NEXT i
  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
  IF ss.zonenum = 4 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
- printstr CHR(7), 182, 190, dpage
+ printstr CHR(7), area(3).x, area(3).y, dpage
  textcolor uilook(uiMenuitem), uilook(uiDisabledItem)
  IF ss.zonenum = 13 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
- printstr "I", 194, 190, dpage
+ printstr "I", area(12).x, area(12).y, dpage
+ textcolor uilook(uiMenuitem), uilook(uiDisabledItem)
+ IF ss.zonenum = 24 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
+ printstr "E", area(23).x, area(23).y, dpage
  IF ss.undodepth = 0 THEN
   textcolor uilook(uiBackground), uilook(uiDisabledItem)
  ELSE
@@ -1974,7 +1985,7 @@ SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
  area(2).h = 96
  area(2).hidecursor = NO
  'FLIP BUTTON
- area(3).x = 182
+ area(3).x = 174
  area(3).y = 190
  area(3).w = 8
  area(3).h = 10
@@ -2000,7 +2011,7 @@ SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
   area(6 + i).hidecursor = NO
  NEXT i
  'IMPORT BUTTON
- area(12).x = 194
+ area(12).x = 186
  area(12).y = 190
  area(12).w = 8
  area(12).h = 10
@@ -2052,6 +2063,12 @@ SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
   area(21 + i).h = 10
   area(21 + i).hidecursor = NO
  NEXT i
+ 'IMPORT BUTTON
+ area(23).x = 196
+ area(23).y = 190
+ area(23).w = 8
+ area(23).h = 10
+ area(23).hidecursor = NO
 END SUB
 
 SUB spriteedit_save_all_you_see(top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
@@ -2088,6 +2105,46 @@ SUB spriteedit_save_what_you_see(j, top, sets, ss AS SpriteEditState, soff, plac
    stosprite placer(), 0, ss.size * i, 0, 2
   NEXT i
   storeset ss.spritefile, large(j, 0), 0
+ END IF
+END SUB
+
+FUNCTION spriteedit_export_name (ss AS SpriteEditState, state AS MenuState) AS STRING
+ DIM s AS STRING
+ s = trimpath(trimextension(sourcerpg)) & " " & exclude(LCASE(sprite_sizes(ss.fileset).name), " ")
+ IF ss.fullset THEN
+  s &= " set " & state.pt
+ ELSE
+  s &= " " & state.pt
+  IF ss.perset > 1 THEN s &= " frame " & ss.framenum
+ END IF
+ RETURN s
+END FUNCTION
+
+SUB spriteedit_export(default_name AS STRING, placer() AS INTEGER, nulpal() AS INTEGER, palnum AS INTEGER)
+ 'palnum is offset into pal lump of the 16 color palette this sprite should use
+
+ DIM img AS GraphicPair
+ img.sprite = sprite_new(placer(0), placer(1), 1, YES, NO)
+ img.pal = palette16_load(palnum)
+
+ DIM pg AS INTEGER
+ pg = registerpage(img.sprite)
+ drawsprite placer(), 0, nulpal(), 0, 0, 0, pg
+ freepage pg
+ 
+ '--hand off the frame and palette to the real export function
+ spriteedit_export default_name, img
+ 
+ '--cleanup
+ sprite_unload @(img.sprite)
+ palette16_unload @(img.pal)
+END SUB
+
+SUB spriteedit_export(default_name AS STRING, img AS GraphicPair)
+ DIM outfile AS STRING
+ outfile = inputfilename("Export to bitmap file", ".bmp", "", "input_file_export_sprite", default_name)
+ IF outfile <> "" THEN
+  sprite_export_bmp4 outfile & ".bmp", img.sprite, master(), img.pal
  END IF
 END SUB
 
@@ -2271,7 +2328,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
 
  DIM pclip(8) AS INTEGER
 
- DIM area(22) AS MouseArea
+ DIM area(23) AS MouseArea
  init_sprite_zones area(), ss
 
  DIM toolinfo(7) AS ToolInfoType
@@ -2701,6 +2758,10 @@ IF keyval(scI) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN
  GOSUB spedbak
  setkeyrepeat 25, 5
 END IF
+IF keyval(scE) > 1 OR (ss.zonenum = 24 AND mouse(3) > 0) THEN
+ changepal poffset(state.pt), 0, workpal(), state.pt - state.top '--this saves the current palette in case it has changed
+ spriteedit_export spriteedit_export_name(ss, state), placer(), ss.nulpal(), poffset(state.pt)
+END IF
 RETRACE
 
 resettool:
@@ -2784,3 +2845,4 @@ drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.ho
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 END SUB
+

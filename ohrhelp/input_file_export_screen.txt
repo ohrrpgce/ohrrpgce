@@ -2,4 +2,4 @@ Type in a name for the backdrop/tileset to be exported as a 320x200 8-bit BMP fi
 
 Press ENTER to confirm the file name and export.
 
-Press ESC to cancel and return to the Sound Effect Menu.
+Press ESC to cancel and return to the previous menu.

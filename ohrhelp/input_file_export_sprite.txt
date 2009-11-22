@@ -1,0 +1,5 @@
+Type in a name for the sprite to be exported as a 4-bit (16-color) BMP file. The file will be exported to the same location as the .RPG file for your game.
+
+Press ENTER to confirm the file name and export.
+
+Press ESC to cancel and return to the Sprite editor.

@@ -57,6 +57,8 @@ Press backspace to horizontally flip the sprite. You can vertically flip a sprit
 
 Press I to import a 16-color BMP image. If you are in single-frame mode, this will import a single frame. If you are in full spriteset mode, this will import a full spriteset.
 
+Press E to export the sprite to a 16-color BMP image. If you are in single-frame mode this exports an single frame, if you are in full spriteset mode this will export the full spriteset.
+
 Hold CAPSLOCK and press the arrow keys to recenter your drawing. Use this feature with caution, since moving your drawing outside of the drawing area will cause pixels to be deleted.
 
 Press CTRL+Z or click the Undo button to revert an unwanted change.

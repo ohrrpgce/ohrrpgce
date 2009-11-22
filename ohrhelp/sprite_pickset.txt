@@ -15,3 +15,5 @@ CTRL+V pastes a sprite.
 CTRL+T pastes a sprite using color 0 as transparent.
 
 You can switch to full-spriteset mode by pressing CTRL+F. Full-spriteset mode is important because it allows you to import an entire spriteset from a single file.
+
+Press E to export the currently selected frame (or spriteset) to a BMP file.
