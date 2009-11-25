@@ -4142,7 +4142,7 @@ end function
 private sub flip_image(byval pixels as ubyte ptr, byval d1len as integer, byval d1stride as integer, byval d2len as integer, byval d2stride as integer)
 	for x1 as integer = 0 to d1len - 1
 		dim as ubyte ptr pixelp = pixels + x1 * d1stride
-		for offset as integer = d2len - 1 to 0 step -2 * d2stride
+		for offset as integer = (d2len - 1) * d2stride to 0 step -2 * d2stride
 			dim as ubyte temp = pixelp[0]
 			pixelp[0] = pixelp[offset]
 			pixelp[offset] = temp
