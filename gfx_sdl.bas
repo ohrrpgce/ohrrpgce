@@ -10,6 +10,12 @@ option explicit
 #include "gfx.bi"
 #include "common.bi"
 #include "SDL\SDL.bi"
+/'
+#ifdef __FB_WIN32__
+'to load the window from resource file
+include_windows_bi()
+#endif
+'/
 
 DECLARE SUB gfx_sdl_set_screen_mode()
 DECLARE SUB gfx_sdl_update_screen()
@@ -164,7 +170,15 @@ scantrans(SDLK_EURO) = 0
 scantrans(SDLK_UNDO) = 0
 
 
-SUB gfx_init()
+SUB gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+/' Trying to load the resource as a SDL_Surface, Unfinished - the winapi has lost me
+#ifdef __FB_WIN32__
+  DIM as HBITMAP iconh
+  DIM as BITMAP iconbmp
+  iconh = cast(HBITMAP, LoadImage(NULL, windowicon, IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION))
+  GetObject(iconh, sizeof(iconbmp), @iconbmp);
+#endif
+'/
   IF SDL_WasInit(0) = 0 THEN
     IF SDL_Init(SDL_INIT_VIDEO) THEN
       debug "Can't start SDL (video): " & *SDL_GetError

@@ -13,7 +13,9 @@ type WindowState
 	minimised as integer
 end type
 
-declare sub gfx_init ()		'initilization
+'terminate_signal_handler is a pointer to post_terminate_signal, for dynamically linked graphics backends.
+'windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere
+declare sub gfx_init (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 declare sub gfx_close ()		'put it back how we found it
 declare sub gfx_showpage (byval raw as ubyte ptr, byval w as integer, byval h as integer) 'the main event
 declare sub gfx_setpal (byval pal as RGBcolor ptr) 'set colour palette. May reuse last raw pointer to showpage, so you may not change it!

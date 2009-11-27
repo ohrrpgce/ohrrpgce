@@ -41,7 +41,7 @@ dim shared scantrans(0 to 127) as integer => { _
 	0, 0, 0, 0, 0, 0, 0, 0 _
 }
 
-sub gfx_init
+sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 	if init_gfx = 0 then
 		allegro_init()
 	

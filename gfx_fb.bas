@@ -42,7 +42,7 @@ dim shared smooth as integer = 0
 'internal palette for 32-bit mode, with RGB colour components packed into a int
 dim shared truepal(255) as integer
 
-sub gfx_init
+sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 	if init_gfx = 0 then
 		calculate_screen_res
 		gfx_screenres

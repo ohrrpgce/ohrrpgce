@@ -17,7 +17,7 @@ shift
 :nobackends
 
 set GFX_XTRA=gfxsubs.bas gfx_%OHRGFX%.bas
-if "%OHRGFX%"=="directx" set GFX_XTRA=-l gfx_directx gfx_directx.res -d EXTERN_GFX
+if "%OHRGFX%"=="directx" set GFX_XTRA=-l gfx_directx -d EXTERN_GFX
 
 if not exist "music_%OHRMUSIC%.bas" set OHRMUSIC=sdl
 

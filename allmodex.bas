@@ -134,7 +134,11 @@ sub setmodex()
 	next
 	'other vpages slots are for temporary pages
 
-	gfx_init
+#ifdef IS_GAME
+	gfx_init(@post_terminate_signal, "game.ico")
+#else
+	gfx_init(@post_terminate_signal, "custom.ico")
+#endif
 	setclip , , , , 0
 
 	'init vars
