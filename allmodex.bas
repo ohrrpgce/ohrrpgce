@@ -134,11 +134,7 @@ sub setmodex()
 	next
 	'other vpages slots are for temporary pages
 
-#ifdef IS_GAME
-	gfx_init(@post_terminate_signal, "game.ico")
-#else
-	gfx_init(@post_terminate_signal, "custom.ico")
-#endif
+	gfx_init(@post_terminate_signal, "FB_PROGRAM_ICON")
 	setclip , , , , 0
 
 	'init vars
