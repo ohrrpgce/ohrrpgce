@@ -164,6 +164,7 @@ DECLARE SUB getdefaultfont (font() as integer)
 DECLARE SUB xbload (f as string, array() as integer, e as string)
 DECLARE SUB xbsave (f as string, array() as integer, bsize as integer)
 DECLARE SUB crashexplain ()
+DECLARE function with_orig_path(dir_name as string, add_slash as integer=0) as string
 declare sub processcommandline()
 DECLARE SUB romfontchar (font() as integer, char as integer)
 DECLARE SUB makedir (dirname as string)

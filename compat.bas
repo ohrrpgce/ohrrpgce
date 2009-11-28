@@ -146,9 +146,7 @@ function usage_setoption(opt as string, arg as string) as integer
 		display_help_string help
 		return 1
 	elseif opt = "log" then
-		dim d as string = arg 
-		if not is_absolute_path(d) then d = orig_dir & SLASH & d
-		if right(d, 1) <> SLASH then d = d & SLASH
+		dim d as string = with_orig_path(arg, YES)
 		if isdir(d) ANDALSO diriswriteable(d) then
 			log_dir = d
 			return 2
@@ -160,6 +158,13 @@ function usage_setoption(opt as string, arg as string) as integer
 		end if
 	end if
 	return 0
+end function
+
+function with_orig_path(file_or_dir as string, add_slash as integer=0) as string
+	dim d as string = file_or_dir
+	if not is_absolute_path(d) then d = orig_dir & SLASH & d
+	if add_slash and right(d, 1) <> SLASH then d = d & SLASH
+	return d
 end function
 
 sub processcommandline()
