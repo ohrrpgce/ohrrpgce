@@ -766,7 +766,7 @@ SELECT CASE AS CONST id
   gen(cameramode) = stopcam
   mapx = retvals(0)
   mapy = retvals(1)
-  limitcamera
+  limitcamera mapx, mapy
  CASE 138'--heropixelx
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    scriptret = catx(retvals(0))
@@ -986,6 +986,7 @@ SELECT CASE AS CONST id
   gen(cameraArg2) = (retvals(1) * 20) - 90
   gen(cameraArg3) = ABS(retvals(2))
   gen(cameraArg4) = ABS(retvals(2))
+  limitcamera gen(cameraArg), gen(cameraArg2)
  CASE 42'--wait for camera
   GOSUB setwaitstate
  CASE 43'--hero x

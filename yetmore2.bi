@@ -11,7 +11,7 @@ DECLARE SUB initgamedefaults
 DECLARE SUB innRestore (stat() as integer)
 DECLARE FUNCTION isonscreen (x as integer, y as integer) as integer
 DECLARE SUB setmapxy
-DECLARE SUB limitcamera 
+DECLARE SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
 DECLARE SUB setScriptArg (arg as integer, value as integer)
 DECLARE SUB showplotstrings
 DECLARE FUNCTION strgrabber (s as string, maxl as integer) AS INTEGER

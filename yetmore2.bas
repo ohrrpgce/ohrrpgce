@@ -314,36 +314,10 @@ SELECT CASE gen(cameramode)
   ELSE
    mapy += SGN(temp) * gen(cameraArg4)
   END IF
-  limitcamera
+  limitcamera mapx, mapy
   IF gen(cameraArg3) = 0 AND gen(cameraArg4) = 0 THEN gen(cameramode) = stopcam
 END SELECT
-limitcamera
-END SUB
-
-SUB limitcamera 
-IF gmap(5) = 0 THEN
- 'when cropping the camera to the map, stop camera movements that attempt to go over the edge
- oldmapx = mapx
- oldmapy = mapy
- mapx = bound(mapx, 0, scroll(0) * 20 - 320)
- mapy = bound(mapy, 0, scroll(1) * 20 - 200)
- IF oldmapx <> mapx THEN
-  IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
-  IF gen(cameramode) = focuscam THEN gen(cameraArg3) = 0
- END IF
- IF oldmapy <> mapy THEN
-  IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
-  IF gen(cameramode) = focuscam THEN gen(cameraArg4) = 0
- END IF
-END IF
-IF gmap(5) = 1 THEN
- 'Wrap the camera according to the center, not the top-left
- mapx += 160
- mapy += 160
- wrapxy mapx, mapy, scroll(0) * 20, scroll(1) * 20
- mapx -= 160
- mapy -= 160
-END IF
+limitcamera mapx, mapy
 END SUB
 
 SUB setScriptArg (arg, value)
@@ -978,4 +952,33 @@ SUB npc_debug_display ()
    END IF
   END WITH
  NEXT
+END SUB
+
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
+SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
+ IF gmap(5) = 0 THEN
+  'when cropping the camera to the map, stop camera movements that attempt to go over the edge
+  DIM oldmapx AS INTEGER = x
+  DIM oldmapy AS INTEGER = y
+  x = bound(x, 0, scroll(0) * 20 - 320)
+  y = bound(y, 0, scroll(1) * 20 - 200)
+  IF oldmapx <> x THEN
+   IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
+   IF gen(cameramode) = focuscam THEN gen(cameraArg3) = 0
+  END IF
+  IF oldmapy <> y THEN
+   IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
+   IF gen(cameramode) = focuscam THEN gen(cameraArg4) = 0
+  END IF
+ END IF
+ IF gmap(5) = 1 THEN
+  'Wrap the camera according to the center, not the top-left
+  x += 160
+  y += 160
+  wrapxy x, y, scroll(0) * 20, scroll(1) * 20
+  x -= 160
+  y -= 160
+ END IF
 END SUB
