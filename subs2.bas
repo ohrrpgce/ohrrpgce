@@ -296,6 +296,12 @@ END SUB
 
 SUB importscripts (f$)
  DIM triggers(1 TO 15) AS triggerset, triggercount(15), temp AS SHORT
+ 
+ 'Under the best conditions this check is redundant, but it is still good to check anyway...
+ IF NOT isfile(f$) THEN
+  pop_warning f$ & " does not exist."
+  EXIT SUB
+ END IF
 
  setpicstuf buffer(), 7, -1
  loadset f$, 0, 0
