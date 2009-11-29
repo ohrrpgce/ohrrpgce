@@ -8,6 +8,7 @@ option explicit
 
 #include "music.bi"
 #include "util.bi"
+#include "file.bi"
 'warning: due to a FB bug, overloaded functions must be declared before SDL.bi is included
 #include "SDL\SDL.bi"
 #include "SDL\SDL_mixer.bi"
@@ -17,6 +18,7 @@ declare sub debug(s$)
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 declare function isfile(n$) as integer
 declare function soundfile$ (sfxnum%)
+declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 extern tmpdir as string
 
 'local functions
@@ -140,18 +142,18 @@ sub music_close()
 	end if
 end sub
 
+sub music_play(byval lump as Lump ptr, fmt as integer)
+
+end sub
+
 sub music_play(songname as string, fmt as integer)
 	if music_on = 1 then
 		songname = rtrim$(songname)	'lose any added nulls
 		
 		if fmt = FORMAT_BAM then
 			dim midname as string
-			dim as integer bf, flen
-			'get length of input file
-			bf = freefile
-			open songname for binary access read as #bf
-			flen = lof(bf)
-			close #bf
+			dim as integer flen
+			flen = filelen(songname)
 			'use last 3 hex digits of length as a kind of hash, 
 			'to verify that the .bmd does belong to this file
 			flen = flen and &h0fff
@@ -468,26 +470,20 @@ Function LoadSound overload(byval num as integer) as integer
   return LoadSound(soundfile(num), num)
 End Function
 
+function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) as integer
+	return -1
+end function
+
 function LoadSound overload(byval f as string,  byval num as integer = -1) as integer
 	dim slot as integer
 	dim sfx as Mix_Chunk ptr
-	dim as integer ff
-	dim as long size
 	
 	if f="" then return -1
 	if not isfile(f) then return -1
 	
 	'File size restriction to stop massive oggs being decompressed
 	'into memory
-	ff = FREEFILE
- 	open f for binary as #ff
- 	if err <> 0 then
- 		'not a valid file
- 		return -1
- 	end if
- 	size = LOF(ff)
- 	close #ff
- 	if size > 500*1024 then 
+ 	if filelen(f) > 500*1024 then 
  		debug "Sound effect file too large (>500k): " & f 
  		return -1
  	end if

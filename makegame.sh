@@ -18,6 +18,10 @@ if [ "${MUSIC}" = "native" ] ; then
   #EXTRA="-p audwrap -l audwrap"
 fi
 
+if [ "${MUSIC}" = "sdl" ] ; then
+  EXTRA="${EXTRA} sdl_lumprwops.bas"
+fi
+
 fbc -lang deprecated verprint.bas
 ./verprint ${GFX} ${MUSIC}
 fbc -lang deprecated -g -v -exx -mt -m game -d IS_GAME -d DATAFILES='"/usr/share/games/ohrrpgce"' \

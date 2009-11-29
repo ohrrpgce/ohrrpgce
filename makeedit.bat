@@ -21,8 +21,11 @@ if "%OHRGFX%"=="directx" set GFX_XTRA=-l gfx_directx -d EXTERN_GFX
 
 if not exist "music_%OHRMUSIC%.bas" set OHRMUSIC=sdl
 
+set MUSIC_XTRA=music_%OHRMUSIC%.bas
+if "%OHRMUSIC%"=="sdl" set MUSIC_XTRA=music_sdl.bas sdl_lumprwops.bas
+
 echo Now compiling CUSTOM with %OHRGFX% graphics module, and %OHRMUSIC% music module
 call fbc -lang deprecated verprint.bas
 verprint %OHRGFX% %OHRMUSIC%
-call fbc -lang deprecated -s gui -mt -m custom custom.bas customsubs.bas drawing.bas subs.bas subs2.bas subs3.bas mapsubs.bas flexmenu.bas menus.bas allmodex.bas lumpfile.bas compat.bas bam2mid.bas slices.bas sliceedit.bas reload.bas %GFX_XTRA% music_%OHRMUSIC%.bas loading.bas common.bas browse.bas util.bas cicon.rc -d IS_CUSTOM  %1 %2 %3 %4 %5 %6 %7 %8 %9
+call fbc -lang deprecated -s gui -mt -m custom custom.bas customsubs.bas drawing.bas subs.bas subs2.bas subs3.bas mapsubs.bas flexmenu.bas menus.bas allmodex.bas lumpfile.bas compat.bas bam2mid.bas slices.bas sliceedit.bas reload.bas %GFX_XTRA% %MUSIC_XTRA% loading.bas common.bas browse.bas util.bas cicon.rc -d IS_CUSTOM  %1 %2 %3 %4 %5 %6 %7 %8 %9
 echo.

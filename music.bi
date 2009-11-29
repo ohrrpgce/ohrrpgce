@@ -2,6 +2,7 @@
 #DEFINE __MUSIC_BI__
 
 #INCLUDE "compat.bi"
+#INCLUDE "lumpfile.bi"
 
 '' External music functions
 
@@ -32,7 +33,8 @@ END ENUM
 declare sub music_init()
 declare sub music_close()
 
-declare sub music_play(songname as string, fmt as integer=FORMAT_BAM)
+declare sub music_play overload(songname as string, fmt as integer=FORMAT_BAM)
+declare sub music_play overload(byval lump as Lump ptr, fmt as integer=FORMAT_BAM)
 declare sub music_pause()
 declare sub music_resume()
 declare sub music_stop()
@@ -54,6 +56,7 @@ declare sub sound_free(byval num as integer)'only used by custom for the importi
 declare function sound_playing(byval num as integer,  byval s as integer = 0) as integer
 
 declare function LoadSound overload(byval num as integer) as integer
+declare function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) as integer
 declare function LoadSound overload(byval filename as string,  byval num as integer = -1) as integer
 
 declare sub UnloadSound(byval num as integer)

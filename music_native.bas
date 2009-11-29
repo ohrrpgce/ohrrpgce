@@ -287,18 +287,18 @@ sub music_close()
 		'sound_close
 end sub
 
+sub music_play overload(byval lump as Lump ptr, fmt as integer=FORMAT_BAM)
+
+end sub
+
 sub music_play(songname as string, fmt as integer)
 	if music_on then
 		songname = rtrim$(songname)	'lose any added nulls
     dim ext as string = lcase(justextension(songname))
 		if fmt = FORMAT_BAM then
 			dim midname as string
-			dim as integer bf, flen
-			'get length of input file
-			bf = freefile
-			open songname for binary access read as #bf
-			flen = lof(bf)
-			close #bf
+			dim as integer flen
+			flen = filelen(songname)
 			'use last 3 hex digits of length as a kind of hash,
 			'to verify that the .bmd does belong to this file
 			flen = flen and &h0fff
@@ -862,6 +862,10 @@ Function LoadSound overload(byval num as integer) as integer
   if ret >= 0 then return ret
 
   return LoadSound(soundfile(num), num)
+End Function
+
+Function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) as integer
+  return -1
 End Function
 
 Function LoadSound(byval f as string,  byval num as integer = -1) as integer

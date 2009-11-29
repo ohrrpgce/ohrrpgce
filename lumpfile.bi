@@ -5,6 +5,7 @@
 #ifndef LUMPFILE_BI
 #define LUMPFILE_BI
 
+#include "const.bi"
 
 enum Lumptype
 	LT_LUMPED
@@ -15,8 +16,9 @@ enum Lumptype
 	LT_NUM
 end enum
 
-'forward declaration
+'forward declarations
 type LumpPtr as Lump ptr
+type LumpIndexPtr as LumpIndex ptr
 
 type LumpedLump
 	type as Lumptype
@@ -24,6 +26,7 @@ type LumpedLump
 	length as integer
 	bucket_chain as LumpPtr
 	next as LumpPtr
+	index as LumpIndexPtr
 
 	'usual FB start-from-one offset of start of data for this lump
 	offset as integer
@@ -35,6 +38,7 @@ type FileLump
 	length as integer
 	bucket_chain as LumpPtr
 	next as LumpPtr
+	index as LumpIndexPtr
 
 	'fhandle as integer
 end type
@@ -48,6 +52,8 @@ type Lump
 	bucket_chain as LumpPtr
 	'used to iterate over lumps in order they are in the file (or whatever else you want)
 	next as LumpPtr
+
+	index as LumpIndexPtr
 end type
 
 /'
@@ -80,9 +86,9 @@ end type
 
 
 type FnLumpDestruct as sub (byref as Lump)
-type FnLumpWriteToFile as sub (byref as Lump, byval as LumpIndex ptr, byval as integer, byval as integer)
-type FnLumpWriteChanges as sub (byref as Lump, byval as LumpIndex ptr, byval as integer, byval as integer)
-type FnLumpRead as function (byref as any, byval as LumpIndex ptr, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
+type FnLumpWriteToFile as sub (byref as Lump, byval as integer, byval as integer)
+type FnLumpWriteChanges as sub (byref as Lump, byval as integer, byval as integer)
+type FnLumpRead as function (byref as any, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 
 type LumpVTable_t
 	destruct    as FnLumpDestruct
@@ -108,8 +114,9 @@ end type
 declare sub destruct_LumpIndex(byref this as LumpIndex)
 declare function LumpIndex_findlump(byref this as LumpIndex, lumpname as string) as Lump ptr
 declare sub LumpIndex_debug(byref this as LumpIndex)
-declare sub LumpIndex_unlumpfile(byref this as LumpIndex, byval lump as Lump ptr, whereto as string)
-declare function LumpIndex_read(byref this as LumpIndex, byref lump as Lump ptr, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
+
+declare sub Lump_unlumpfile(byref this as Lump, whereto as string)
+declare function Lump_read(byref this as Lump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 
 declare function loadrecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1) as integer
 declare function loadrecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0) as integer
@@ -122,5 +129,28 @@ declare sub lumpfiles (listf as string, lump as string, path as string)
 declare sub unlump(lump as string, ulpath as string)
 declare sub unlumpfile(lump as string, fmask as string, path as string)
 declare function islumpfile (lump as string, fmask as string) as integer
+
+
+'----------------------------------------------------------------------
+'                         Lump FileWrapper
+'Here is a C stdio-style wrapper around a Lump plus file position, since
+'all of FB_FILE, SDL_RWops and Audiere's File need such a wrapper
+
+type FileWrapper
+	lump as Lump ptr
+	'index as LumpIndex ptr
+	pos as integer
+	' for FileLumps?
+	'fhandle as integer
+end type
+
+declare function FileWrapper_open(byval lump as Lump ptr) as FileWrapper ptr
+declare sub FileWrapper_close(byref this as FileWrapper)
+'returns final position in lump. whence is one of SEEK_SET, SEEK_CUR, or SEEK_END from stdio.h
+declare function FileWrapper_seek(byref this as FileWrapper, byval offset as integer, byval whence as integer) as integer
+'returns number of records (size bytes), out of maxnum requested, successfully read
+declare function FileWrapper_read(byref this as FileWrapper, byval bufr as any ptr, byval size as integer, byval maxnum as integer) as integer
+'declare function FileWrapper_write(byref this as FileWrapper, byval bufr as any ptr, byval size as integer) as integer
+'don't need tell: call seek
 
 #endif

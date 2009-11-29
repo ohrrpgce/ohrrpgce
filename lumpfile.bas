@@ -1,4 +1,4 @@
-'OHHRPGCE COMMON - Lumped file format routines
+'OHRRPGCE COMMON - Lumped file format routines
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
@@ -19,10 +19,10 @@ option explicit
 
 declare function matchmask(match as string, mask as string) as integer
 
-declare sub LumpedLump_writetofile(byref this as LumpedLump, byval index as LumpIndex ptr, byval fileno as integer, byval position as integer)
-declare function LumpedLump_read(byref this as LumpedLump, byval index as LumpIndex ptr, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
-declare sub FileLump_writetofile(byref this as FileLump, byval index as LumpIndex ptr, byval fileno as integer, byval position as integer)
-declare function FileLump_read(byref this as FileLump, byval index as LumpIndex ptr, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
+declare sub LumpedLump_writetofile(byref this as LumpedLump, byval fileno as integer, byval position as integer)
+declare function LumpedLump_read(byref this as LumpedLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
+declare sub FileLump_writetofile(byref this as FileLump, byval fileno as integer, byval position as integer)
+declare function FileLump_read(byref this as FileLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 
 dim shared lumpvtable(LT_NUM - 1) as LumpVTable_t
 LMPVTAB(LT_LUMPED,   NULL, ULMP(LumpedLump_,writetofile), NULL, ULMP(LumpedLump_,read))
@@ -51,7 +51,7 @@ sub destruct_LumpIndex(byref this as LumpIndex)
 	lmp = this.first
 	while lmp
 		temp = lmp->next
-		'lumpvtable(lump->type).destruct(this, lump, whereto)
+		'lumpvtable(lump->type).destruct(*lump, whereto)
 		deallocate(lmp)
 		lmp = temp
 	wend
@@ -69,6 +69,8 @@ sub LumpIndex_addlump(byref this as LumpIndex, byval lump as Lump ptr)
 		lmpp = @(*lmpp)->bucket_chain
 	wend
 	*lmpp = lump
+
+	lump->index = @this
 
 	this.numlumps += 1
 	if this.first = NULL then
@@ -145,36 +147,41 @@ sub LumpIndex_debug(byref this as LumpIndex)
 	debug "====================="
 end sub
 
-sub LumpIndex_unlumpfile(byref this as LumpIndex, byval lump as Lump ptr, whereto as string)
+
+'----------------------------------------------------------------------
+'                           Lump base class
+
+
+sub Lump_unlumpfile(byref this as Lump, whereto as string)
 	dim dest as string
 	dim of as integer
 
-	if lump = 0 then
+	if @this = 0 then
 		debug "Null lump error"
 		exit sub
 	end if
-	if lumpvtable(lump->type).writetofile = 0 then
+	if lumpvtable(this.type).writetofile = 0 then
 		debug "lump writetofile method not supported"
 		exit sub
 	end if
 
-	dest = whereto + lump->lumpname
+	dest = whereto + this.lumpname
 	if fileiswriteable(dest) = 0 then
-		debug "Could not write to " + dest
+		debug "Could not unlump to " + dest
 		exit sub
 	end if
 	of = freefile
 	open dest for binary access write as #of
-	lumpvtable(lump->type).writetofile(*lump, @this, of, 1)
+	lumpvtable(this.type).writetofile(this, of, 1)
 	close of
 end sub
 
-function LumpIndex_read(byref this as LumpIndex, byref lump as Lump ptr, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
-	if lump = 0 then
+function Lump_read(byref this as Lump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
+	if @this = 0 then
 		debug "Null lump error"
 		return 0
 	end if
-	return lumpvtable(lump->type).read(*lump, @this, position, bufr, size)
+	return lumpvtable(this.type).read(this, position, bufr, size)
 end function
 
 
@@ -268,17 +275,17 @@ end sub
 '                           FileLump class
 
 
-sub FileLump_writetofile(byref this as FileLump, byval index as LumpIndex ptr, byval fileno as integer, byval position as integer)
+sub FileLump_writetofile(byref this as FileLump, byval fileno as integer, byval position as integer)
 	'unfinished
 end sub
 
 /'
-sub FileLump_unlumpfile(byref this as FileLump, byval index as LumpIndex ptr, whereto as string)
-	filecopy index->unlumpeddir + this.lumpname, whereto + this.lumpname
+sub FileLump_unlumpfile(byref this as FileLump, whereto as string)
+	filecopy this.index->unlumpeddir + this.lumpname, whereto + this.lumpname
 end sub
 '/
 
-function FileLump_read(byref this as FileLump, byval index as LumpIndex ptr, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
+function FileLump_read(byref this as FileLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 	'unfinished
 	return 0
 end function
@@ -316,11 +323,11 @@ end function
 '                           LumpedLump class
 
 
-sub LumpedLump_writetofile(byref this as LumpedLump, byval index as LumpIndex ptr, byval fileno as integer, byval position as integer)
+sub LumpedLump_writetofile(byref this as LumpedLump, byval fileno as integer, byval position as integer)
 	dim bufr as byte ptr
 	dim size as integer
 
-	if index->fhandle = 0 then
+	if this.index->fhandle = 0 then
 		debug "lumped file not open"
 		exit sub
 	end if
@@ -328,20 +335,20 @@ sub LumpedLump_writetofile(byref this as LumpedLump, byval index as LumpIndex pt
 	bufr = allocate(32768)
 
 	'copy the data
-	seek index->fhandle, this.offset
+	seek this.index->fhandle, this.offset
 	seek fileno, position
 	size = this.length
 	while size > 0
-		fget index->fhandle, , bufr, small(size, 32768)
+		fget this.index->fhandle, , bufr, small(size, 32768)
 		fput fileno, , bufr, small(size, 32768)
 		size -= 32768
 	wend
 	deallocate(bufr)
 end sub
 
-function LumpedLump_read(byref this as LumpedLump, byval index as LumpIndex ptr, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
+function LumpedLump_read(byref this as LumpedLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 	dim amount as unsigned integer
-	fgetiob(index->fhandle, this.offset + position, bufr, small(size, this.length - position), @amount)
+	fgetiob(this.index->fhandle, this.offset + position, bufr, small(size, this.length - position), @amount)
 	return amount
 end function
 
@@ -425,6 +432,47 @@ function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as 
 	destruct_LumpIndex(*index)
 	deallocate(index)
 	return NULL
+end function
+
+
+'----------------------------------------------------------------------
+'                         Lump FileWrapper
+
+
+function FileWrapper_open(byval lump as Lump ptr) as FileWrapper ptr
+	dim filew as FileWrapper ptr
+	filew = callocate(sizeof(FileWrapper))
+	filew->lump = lump
+	'filew->index = index
+	filew->pos = 0
+	
+	return filew
+end function
+
+sub FileWrapper_close(byref this as FileWrapper)
+	deallocate(@this)
+end sub
+
+function FileWrapper_seek(byref this as FileWrapper, byval offset as integer, byval whence as integer) as integer
+	if whence = SEEK_SET then
+		this.pos = offset
+	elseif whence = SEEK_CUR then
+		this.pos += offset
+	elseif whence = SEEK_END then
+		this.pos = this.lump->length + offset
+	end if
+	this.pos = bound(this.pos, 0, this.lump->length)
+	return this.pos
+end function
+
+function FileWrapper_read(byref this as FileWrapper, byval bufr as any ptr, byval size as integer, byval maxnum as integer) as integer
+	dim ret as integer
+	if size <= 0 or maxnum <= 0 then
+		return 0
+	end if
+	ret = Lump_read(*this.lump, this.pos, bufr, size * maxnum)
+	this.pos = bound(this.pos + ret, 0, this.lump->length)
+	return ret \ size
 end function
 
 
