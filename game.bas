@@ -325,6 +325,7 @@ loadglobalstrings
 getstatnames statnames()
 j = 0
 
+IF err_suppress_lvl = 0 THEN err_suppress_lvl = 3  'might be changed by -errlvl
 nowscript = -1
 numloadedscr = 0
 totalscrmem = 0
@@ -349,7 +350,6 @@ abortg = 0
 resetg = NO
 lastformation = -1
 scrwatch = 0
-err_suppress_lvl = 3
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 

@@ -982,3 +982,15 @@ SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
   y -= 160
  END IF
 END SUB
+
+FUNCTION game_setoption(opt as string, arg as string) as integer
+ IF opt = "errlvl" THEN
+  IF is_int(arg) THEN
+   err_suppress_lvl = str2int(arg, 4)
+   RETURN 2
+  ELSE
+   RETURN 1
+  END IF
+ END IF
+ RETURN 0
+END FUNCTION

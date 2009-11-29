@@ -46,5 +46,6 @@ DECLARE SUB resetinterpreter
 DECLARE SUB reloadscript (si as ScriptInst, updatestats as integer = -1)
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
+DECLARE FUNCTION game_setoption(opt as string, arg as string) as integer
 
 #endif

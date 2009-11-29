@@ -11,6 +11,9 @@ option explicit
 #include "gfx.bi"
 #include "common.bi"
 #include "music.bi"
+#ifdef IS_GAME
+#include "yetmore2.bi"
+#endif
 
 dim nulzstr as zstring ptr  '(see compat.bi)
 
@@ -129,7 +132,7 @@ end function
 function usage_setoption(opt as string, arg as string) as integer
 	dim help as string = ""
 	if opt = "v" or opt = "version" then
-		help = help & long_version$ & LINE_END
+		help = help & long_version & build_info & LINE_END
 		help = help & "(C) Copyright 1997-2007 James Paige and Hamster Republic Productions" & LINE_END
 		help = help & "This game engine is free software under the terms of the GNU GPL v2+" & LINE_END
 		help = help & "For source-code see http://HamsterRepublic.com/ohrrpgce/source.php" & LINE_END
@@ -185,6 +188,9 @@ sub processcommandline()
 			argsused = gfx_setoption(opt, arg)
 			if argsused = 0 then argsused = allmodex_setoption(opt, arg)
 			if argsused = 0 then argsused = usage_setoption(opt, arg)
+			#ifdef IS_GAME
+				if argsused = 0 then argsused = game_setoption(opt, arg)
+			#endif
 		end if
 		'debug "opt = " & opt & " arg = " & arg & " used = " & argsused
 
