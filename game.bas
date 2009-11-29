@@ -1922,9 +1922,15 @@ WITH scrat(nowscript)
      scriptret = menu_item_handle_by_slot(menuslot, mislot - 1, retvals(1)<>0)
     END IF
    CASE 295'--selected menu item
-    menuslot = find_menu_handle(retvals(0))
-    IF valid_menuslot(menuslot) THEN
-     scriptret = menu_item_handle_by_slot(menuslot, mstates(menuslot).pt)
+    IF retvals(0) = -1 THEN
+     IF topmenu >= 0 THEN
+      scriptret = menu_item_handle_by_slot(topmenu, mstates(topmenu).pt)
+     END IF
+    ELSE
+     menuslot = find_menu_handle(retvals(0))
+     IF valid_menuslot(menuslot) THEN
+      scriptret = menu_item_handle_by_slot(menuslot, mstates(menuslot).pt)
+     END IF
     END IF
    CASE 296'--select menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)

@@ -301,7 +301,7 @@ define function, begin
 292,menuitembyslot,3,0,0,true #menu item by slot(menu handle, slotnum, visible only) returns menuitemhandle
 293,previousmenuitem,2,0,true #given a menuitemhandle return handle to the menu item before it
 294,nextmenuitem,2,0,true     #given a menuitemhandle return handle to the menu item after it
-295,selectedmenuitem,1,0      #selected menu item(menu handle) returns menuitemhandle
+295,selectedmenuitem,1,-1     #selected menu item(menu handle) returns menuitemhandle
 296,selectmenuitem,1,0        #select menu item(menu item handle) moves the cursor
 297,parentmenu,1,0            #parent menu(menu item handle) returns menu handle
 298,getmenuid,1,0             #menu ID(menu handle) returns the ID of the menu

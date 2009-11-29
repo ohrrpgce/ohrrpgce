@@ -1518,7 +1518,7 @@ end</example>
 		<command id="selectedmenuitem">
 			<canon>selected menu item(menu handle)</canon>
 			<shortname>selected menu item</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a menu item handle for the menu item that is currently selected</description>
+			<description>Returns the handle for the selected menu item in the topmost menu, false if no menus are open, or, when given an optional <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>) returns the selected item in that menu.</description>
 		</command>
 		<command id="activatemenuitem">
 			<canon>use menu item(menu item handle)</canon>
