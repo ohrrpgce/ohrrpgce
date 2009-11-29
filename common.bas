@@ -2724,8 +2724,11 @@ FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTR
  IF n < min OR n > max THEN
 #IFDEF IS_GAME
   IF fromscript THEN
-   IF *context = "" THEN *context = commandname(curcmd->value)
-   scripterr *context & ": invalid " & *argname & " " & n, 3
+   IF *context = "" THEN
+    scripterr commandname(curcmd->value) + ": invalid " & *argname & " " & n, 3
+   ELSE
+    scripterr *context & ": invalid " & *argname & " " & n, 3
+   END IF
    RETURN NO
   END IF
 #ENDIF
