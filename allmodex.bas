@@ -2224,7 +2224,7 @@ SUB screenshot (f$)
 	'try external first
 	if gfx_screenshot(f$) = 0 then
 		'otherwise save it ourselves
-		sprite_export_bmp8(f$, vpages(vpage), intpal())
+		sprite_export_bmp8(f$ + ".bmp", vpages(vpage), intpal())
 	end if
 END SUB
 
@@ -2233,14 +2233,15 @@ sub snapshot_check
 'the first, they're saved to the temporary directory until key repeat kicks in, and then
 'moved, to prevent littering
 'NOTE: global variables like tmpdir can change between calls, have to be lenient
+	static as string*4 image_exts(3) => {".bmp", ".png", ".jpg", ".dds"}
 	'dynamic static array. Redim before use.
 	static as string backlog()
 	redim preserve backlog(ubound(backlog))
 	static as integer backlog_num
 
-	dim as integer n
+	dim as integer n, i
 
-	if keyval(scf12) = 0 then
+	if keyval(scF12) = 0 then
 		'delete the backlog
 		for n = 1 to ubound(backlog)
 			'debug "killing " & backlog(n)
@@ -2256,16 +2257,23 @@ sub snapshot_check
 		end if
 
 		for n = backlog_num to 9999
-			shot = gamename + right("000" & n, 4) + ".bmp"
+			shot = gamename + right("000" & n, 4)
 			'checking curdir, which is export directory
-			if isfile(shot) = 0 then exit for
+			for i = 0 to ubound(image_exts)
+				if isfile(shot + image_exts(i)) then continue for, for
+			next
+			exit for
 		next
 		backlog_num = n + 1		
 
-		if keyval(scf12) = 1 then
+		if keyval(scF12) = 1 then
 			shot = tmpdir + shot
-			str_array_append(backlog(), shot)
+			screenshot shot
+			for i = 0 to ubound(image_exts)
+				if isfile(shot + image_exts(i)) then str_array_append(backlog(), shot + image_exts(i))
+			next
 		else
+			screenshot shot
 			'move our backlog of screenshots to the visible location
 			for n = 1 to ubound(backlog)
 				'debug "moving " & backlog(n) & " to " & curdir + slash + trimpath(backlog(n))
@@ -2274,7 +2282,6 @@ sub snapshot_check
 			redim backlog(0)
 		end if
 		'debug "screen " & shot
-		screenshot shot
 	end if
 end sub
 
