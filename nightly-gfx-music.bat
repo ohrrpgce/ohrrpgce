@@ -39,11 +39,11 @@ support\zip -q distrib\ohrrpgce-wip-%1-%2%3.zip SDL.dll SDL_mixer.dll
 :skipmussdl
 
 IF NOT %2==native GOTO skipmusnative
-support\zip -q distrib\ohrrpgce-wip-%1-%2%3.zip audiere.dll audwrap.dll
+support\zip -q distrib\ohrrpgce-wip-%1-%2%3.zip audiere.dll
 :skipmusnative
 
 IF NOT %2==native2 GOTO skip2musnative
-support\zip -q distrib\ohrrpgce-wip-%1-%2%3.zip audiere.dll audwrap.dll
+support\zip -q distrib\ohrrpgce-wip-%1-%2%3.zip audiere.dll
 :skip2musnative
 
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-wip-%1-%2%3.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/

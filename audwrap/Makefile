@@ -1,12 +1,14 @@
 OUTPUT=libaudwrap.a
+#HOST_PLATFORM = ${shell $(CXX) -dumpmachine}
+#ifeq ($(HOST_PLATFORM), mingw32)  ...
 
 all: audwrap
 
-audwrap: CXXFLAGS+=-DAUDIERE_EXPORTS -O3 -Wall -Wno-non-virtual-dtor
+audwrap: CXXFLAGS+=-O3 -Wall -Wno-non-virtual-dtor
 audwrap: $(OUTPUT)
 
 $(OUTPUT): audwrap.o
-	$(CXX) -shared -Wall -o $(OUTPUT) audwrap.o -L./ -laudiere -lvorbisfile -lvorbis -logg -lrt -lpthread
+	$(AR) rcs $(OUTPUT) audwrap.o
 
 clean:
 	@$(RM) audwrap.o

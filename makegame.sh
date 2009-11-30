@@ -15,7 +15,8 @@ if [ "${MUSIC}" = "native" ] ; then
   cd audwrap
   make
   cd ..
-  #EXTRA="-p audwrap -l audwrap"
+  #./libaudwrap.a is built for windows!
+  EXTRA="${EXTRA} -Wl audwrap/libaudwrap.a -l audiere -l vorbisfile -l vorbis -l ogg"
 fi
 
 if [ "${MUSIC}" = "sdl" ] ; then

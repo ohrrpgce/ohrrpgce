@@ -23,6 +23,8 @@ if not exist "music_%OHRMUSIC%.bas" set OHRMUSIC=sdl
 
 set MUSIC_XTRA=music_%OHRMUSIC%.bas
 if "%OHRMUSIC%"=="sdl" set MUSIC_XTRA=music_sdl.bas sdl_lumprwops.bas
+if "%OHRMUSIC%"=="native" set MUSIC_XTRA=music_native.bas -l audwrap -l audiere
+if "%OHRMUSIC%"=="native2" set MUSIC_XTRA=music_native2.bas -l audwrap -l audiere
 
 echo Now compiling GAME with %OHRGFX% graphics module, and %OHRMUSIC% music module
 call fbc -lang deprecated verprint.bas
