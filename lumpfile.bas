@@ -6,6 +6,7 @@
 #include "compat.bi"
 #include "common.bi"
 #include "lumpfile.bi"
+#include "lumpfilewrapper.bi"
 
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
@@ -13,8 +14,6 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 declare function fgetiob alias "fb_FileGetIOB" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger, byval bytesread as uinteger ptr ) as integer
 
 option explicit
-
-#define NULL 0
 
 
 declare function matchmask(match as string, mask as string) as integer
@@ -438,6 +437,7 @@ end function
 '----------------------------------------------------------------------
 '                         Lump FileWrapper
 
+extern "C"
 
 function FileWrapper_open(byval lump as Lump ptr) as FileWrapper ptr
 	dim filew as FileWrapper ptr
@@ -475,6 +475,7 @@ function FileWrapper_read(byref this as FileWrapper, byval bufr as any ptr, byva
 	return ret \ size
 end function
 
+end extern
 
 '----------------------------------------------------------------------
 '                           Lumped files

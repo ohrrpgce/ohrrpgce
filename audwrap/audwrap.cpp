@@ -5,9 +5,8 @@ See README.txt for code docs. This code (unlike the main source) is clean and
 elegant, so no appologies are necessary.
 */
 
+#include <stdio.h>
 #include "audwrap.h"
-#include "audiere.h"
-
 using namespace audiere;
 
 AudioDevicePtr device = 0;
@@ -51,14 +50,29 @@ AUDWRAP_API void AudClose(void) {
 
 
 //Loads a sound into the internal buffer, and returns an index to it
-//f is the file name
 //st is whether or not to stream the sound (MP3, OGG should be streamed, WAV probably not, etc)
+
+//f is the file name
 AUDWRAP_API int AudLoadSound(const char *f, bool st) {
     int s = findFreeSlot();
 
     if(s < 0) return (-1);
 
     sounds[s] = OpenSound(device, f, st);
+
+    if(!sounds[s]) return(-1);
+
+    sounds[s]->setVolume(1.0f);
+
+    return(s);
+}
+
+AUDWRAP_API int AudLoadSoundLump(Lump *lump, bool st) {
+    int s = findFreeSlot();
+
+    if(s < 0) return (-1);
+
+    sounds[s] = OpenSound(device, FilePtr(new LumpFile(lump)), st);
 
     if(!sounds[s]) return(-1);
 
@@ -174,4 +188,35 @@ inline bool isvalid(int s) {
     return(true);
 }
 
+//LumpFile wrapper around the FileWrapper wrapper around the Lump wrapper
 
+LumpFile::LumpFile(Lump *lump) {
+    wrapper = FileWrapper_open(lump);
+    length = FileWrapper_seek(*wrapper, 0, SEEK_END);
+    //FileWrapper_seek(*wrapper, 0, SEEK_SET);
+}
+
+LumpFile::~LumpFile() {
+    FileWrapper_close(*wrapper);
+}
+
+int LumpFile::read(void *buffer, int size) {
+    return FileWrapper_read(*wrapper, buffer, 1, size);
+}
+
+bool LumpFile::seek(int position, SeekMode mode) {
+    switch (mode) {
+    case CURRENT:
+        int initpos = tell();
+        return FileWrapper_seek(*wrapper, position, SEEK_CUR) - initpos == position;
+    case BEGIN:
+        return FileWrapper_seek(*wrapper, position, SEEK_SET) == position;
+    case END:
+        return FileWrapper_seek(*wrapper, position, SEEK_END) - length == position;
+    }
+    return false;
+}
+
+int LumpFile::tell() {
+    return FileWrapper_seek(*wrapper, SEEK_CUR, 0);
+}

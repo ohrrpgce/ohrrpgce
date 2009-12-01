@@ -6,6 +6,7 @@
 
 #include "SDL/SDL.bi"
 #include "lumpfile.bi"
+#include "lumpfilewrapper.bi"
 
 #define FWptr(context)  cast(FileWrapper ptr, context->hidden.unknown.data1)
 

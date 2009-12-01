@@ -6,12 +6,15 @@
 #ifndef __AUDWRAP_BI__
 #define __AUDWRAP_BI__
 
+#include "../lumpfile.bi"
+
 'initing routines
 declare function AudInit cdecl alias "AudInit" () as integer
 declare sub AudClose cdecl alias "AudClose" ()
 
 'sound management
 declare function AudLoadSound cdecl alias "AudLoadSound" (byval as ZString ptr, byval as integer) as integer
+declare function AudLoadSoundLump cdecl alias "AudLoadSoundLump" (byval as Lump ptr, byval as integer) as integer
 declare sub AudUnloadSound cdecl alias "AudUnloadSound" (byval as integer)
 declare function AudIsPlaying cdecl alias "AudIsPlaying" (byval as integer) as integer
 declare sub AudPlay cdecl alias "AudPlay" (byval as integer)
