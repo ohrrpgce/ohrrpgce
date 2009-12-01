@@ -504,3 +504,68 @@ END FUNCTION
 FUNCTION strhash(hstr as string) as unsigned integer
  RETURN strhash(hstr, len(hstr))
 END FUNCTION
+
+
+#define DLFOLLOW(someptr)  cast(DListItem(Any) ptr, cast(byte ptr, someptr) + this.memberoffset)
+
+SUB dlist_construct (byref this as DoubleList(Any), byval itemoffset as integer)
+  this.numitems = 0
+  this.first = NULL
+  this.last = NULL
+  this.memberoffset = itemoffset
+END SUB
+
+'NULL as beforeitem inserts at end
+SUB dlist_insertat (byref this as DoubleList(Any), byval beforeitem as any ptr, byval newitem as any ptr)
+  dim litem as DListItem(Any) ptr = DLFOLLOW(newitem)
+
+  litem->next = beforeitem
+
+  if beforeitem = NULL then
+    litem->prev = this.last
+    this.last = newitem
+  else
+    dim bitem as DListItem(Any) ptr = DLFOLLOW(beforeitem)
+    litem->prev = bitem->prev
+    bitem->prev = newitem
+  end if
+
+  if litem->prev then
+    DLFOLLOW(litem->prev)->next = newitem
+  else
+    this.first = newitem
+  end if
+
+  this.numitems += 1
+END SUB
+
+SUB dlist_remove (byref this as DoubleList(Any), byval item as any ptr)
+  dim litem as DListItem(Any) ptr = DLFOLLOW(item)
+
+  if litem->prev then
+    DLFOLLOW(litem->prev)->next = litem->next
+  else
+    this.first = litem->next
+  end if
+  if litem->next then
+    DLFOLLOW(litem->next)->prev = litem->prev
+  else
+    this.last = litem->prev
+  end if
+  litem->next = NULL
+  litem->prev = NULL
+
+  this.numitems -= 1
+END SUB
+
+FUNCTION dlist_find (byref this as DoubleList(Any), byval item as any ptr) as integer
+  dim n as integer = 1
+  dim lit as any ptr = this.first
+  while lit
+    if lit = item then return n
+    n += 1
+    lit = DLFOLLOW(lit)->next
+  wend
+  return 0
+END FUNCTION
+

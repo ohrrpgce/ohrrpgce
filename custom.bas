@@ -30,7 +30,7 @@ DECLARE SUB attackdata ()
 DECLARE SUB text_box_editor ()
 DECLARE SUB menu_editor ()
 DECLARE SUB maptile (font())
-DECLARE FUNCTION newRPGfile (template$, newrpg$)
+DECLARE FUNCTION newRPGfile (templatefile$, newrpg$)
 DECLARE SUB dolumpfiles (filetolump$)
 DECLARE FUNCTION readarchinym$ ()
 DECLARE SUB importscripts (f$)
@@ -1067,21 +1067,21 @@ RETRACE
 
 END SUB
 
-FUNCTION newRPGfile (template$, newrpg$)
+FUNCTION newRPGfile (templatefile$, newrpg$)
  newRPGfile = 0 ' default return value 0 means failure
  IF newrpg$ = "" THEN EXIT FUNCTION
  textcolor uilook(uiSelectedDisabled), 0
  printstr "Please Wait...", 0, 40, vpage
  printstr "Creating RPG File", 0, 50, vpage
  setvispage vpage
- IF NOT isfile(template$) THEN
+ IF NOT isfile(templatefile$) THEN
   printstr "Error: ohrrpgce.new not found", 0, 60, vpage
   printstr "Press Enter to quit", 0, 70, vpage
  setvispage vpage
   w = getkey
   EXIT FUNCTION
  END IF
- filecopy template$, newrpg$
+ filecopy templatefile$, newrpg$
  printstr "Unlumping", 0, 60, vpage
  setvispage vpage 'refresh
  unlump newrpg$, workingdir + SLASH

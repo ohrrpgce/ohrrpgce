@@ -2,6 +2,7 @@
 #DEFINE UDTS_BI
 
 #INCLUDE "const.bi"
+#INCLUDE "util.bi"
 
 UNION XYPair
   TYPE
@@ -522,20 +523,6 @@ END TYPE
 TYPE DefArray
  a(160) AS INTEGER  '161 elements required
 END TYPE
-
-'it's not possible to include utils.bi in here, because of compat.bi
-#ifndef UTIL_BI
-TYPE Stack
-  pos as integer ptr
-  bottom as integer ptr
-  size as integer
-END TYPE
-
-TYPE IntStrPair
-  i as integer
-  s as string
-END TYPE
-#endif
 
 TYPE PlotSprite
  used as integer

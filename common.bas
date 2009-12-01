@@ -1862,9 +1862,9 @@ END IF
 IF NOT isfile(game + ".veh") THEN
  upgrade_message "add vehicle data"
  '--make sure vehicle lump is present
- DIM template AS STRING = finddatafile("ohrrpgce.new")
- IF template <> "" THEN
-  unlumpfile(template, "ohrrpgce.veh", tmpdir)
+ DIM templatefile AS STRING = finddatafile("ohrrpgce.new")
+ IF templatefile <> "" THEN
+  unlumpfile(templatefile, "ohrrpgce.veh", tmpdir)
   filecopy tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
   safekill tmpdir & SLASH & "ohrrpgce.veh"
   gen(genMaxVehicle) = 2
