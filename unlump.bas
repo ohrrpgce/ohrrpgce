@@ -53,7 +53,7 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 #define ALLFILES "*.*"
 #endif
 
-CONST null  = 0
+CONST nul  = 0
 
 DIM SHARED createddir = 0, dest$, olddir$
 
@@ -479,7 +479,7 @@ SUB unlumpfile (lump$, fmask$, path$)
 	maxsize = LOF(lf)
 
 	bufr = allocate(16383)
-	if bufr = null then
+	if bufr = nul then
 		close #lf
 		exit sub
 	end if
