@@ -2261,7 +2261,7 @@ FUNCTION count_sav(filename AS STRING) AS INTEGER
 END FUNCTION
 
 FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
- IF record > = 0 AND allow_duplicate = NO THEN
+ IF record >= 0 AND allow_duplicate = NO THEN
   'If adding a non-blank menu, first check if the requested menu is already open
   DIM menuslot AS INTEGER
   menuslot = find_menu_id(record)
@@ -2285,6 +2285,7 @@ FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
   LoadMenuData menu_set, menus(topmenu), record
  END IF
  init_menu_state mstates(topmenu), menus(topmenu)
+ IF topmenu > 0 THEN mstates(topmenu - 1).active = NO
  mstates(topmenu).active = YES
  check_menu_tags
  RETURN assign_menu_handles(menus(topmenu))
@@ -2303,7 +2304,7 @@ SUB remove_menu (slot AS INTEGER)
  END IF
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1
- IF topmenu >=0 THEN
+ IF topmenu >= 0 THEN
   REDIM PRESERVE menus(topmenu) AS MenuDef
   REDIM PRESERVE mstates(topmenu) AS MenuState
   mstates(topmenu).active = YES
@@ -2312,11 +2313,13 @@ END SUB
 
 SUB bring_menu_forward (slot AS INTEGER)
  DIM i AS INTEGER
- IF slot < 0 OR slot > UBOUND(menus) THEN scripterr "bring_menu_forward: invalid slot " & slot, 3 : EXIT SUB
+ IF slot < 0 OR slot > UBOUND(menus) OR slot > topmenu THEN scripterr "bring_menu_forward: invalid slot " & slot, 3 : EXIT SUB
+ mstates(topmenu).active = NO
  FOR i = slot TO topmenu - 1
   SWAP menus(i), menus(i + 1)
   SWAP mstates(i), mstates(i + 1)
  NEXT i
+ mstates(topmenu).active = YES
 END SUB
 
 FUNCTION menus_allow_gameplay () AS INTEGER
@@ -2435,7 +2438,6 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
        activated = NO
      END SELECT
     CASE 2 ' Menu
-     mstates(topmenu).active = NO
      open_other_menu = .sub_t
     CASE 3 ' Text box
      menu_text_box = .sub_t

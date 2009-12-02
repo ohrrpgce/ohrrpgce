@@ -2529,11 +2529,7 @@ FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
    CASE 1 ' special screen
     cap = get_special_menu_caption(mi.sub_t, menu.edit_mode)
    CASE 2 ' another menu
-    '--Loading the target menu name here may be inadvisable for performance reasons.
-    '--A caching getmenuname function might be required to prevent bug 707 recurrence   
-    'LoadMenuData menu_set, menutemp, mi.sub_t, YES
-    'cap = menutemp.name
-    cap = "Menu " & mi.sub_t
+    cap = getmenuname(mi.sub_t)
    CASE 3 ' Text Box
     cap = "Text Box " & mi.sub_t
    CASE 4 ' Run Script
@@ -3040,12 +3036,24 @@ FUNCTION getheroname (hero_id AS INTEGER) AS STRING
 END FUNCTION
 
 FUNCTION getmenuname(record AS INTEGER) AS STRING
+ DIM as string ret
+#IFDEF IS_GAME
+ STATIC cache(32) as IntStrPair
+ ret = search_string_cache(cache(), record, game)
+ IF ret <> "" THEN RETURN ret
+#ENDIF
+
  DIM menu_set AS MenuSet
  menu_set.menufile = workingdir + SLASH + "menus.bin"
  menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
  DIM menu AS MenuDef
  LoadMenuData menu_set, menu, record, NO
- RETURN menu.name
+ ret = menu.name
+
+#IFDEF IS_GAME
+ add_string_cache cache(), record, ret
+#ENDIF
+ RETURN ret
 END FUNCTION
 
 SUB draw_scrollbar(state AS MenuState, menu AS MenuDef, page AS INTEGER)

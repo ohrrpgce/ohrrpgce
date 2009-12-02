@@ -1820,10 +1820,12 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
     END SELECT
    CASE 1
     .caption = .caption & " " & get_special_menu_caption(mi.sub_t, YES)
+   CASE 2
+    .caption = .caption & " " & getmenuname(mi.sub_t)
    CASE 4
     .caption = "Subtype: " & scriptname$(mi.sub_t, plottrigger)
    CASE ELSE
-   .caption = "Subtype: " & mi.sub_t
+    .caption = "Subtype: " & mi.sub_t
   END SELECT
  END WITH
  
