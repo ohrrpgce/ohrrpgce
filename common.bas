@@ -2530,6 +2530,7 @@ FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
     cap = get_special_menu_caption(mi.sub_t, menu.edit_mode)
    CASE 2 ' another menu
     cap = getmenuname(mi.sub_t)
+    IF cap = "" THEN cap = "Menu " & mi.sub_t
    CASE 3 ' Text Box
     cap = "Text Box " & mi.sub_t
    CASE 4 ' Run Script
