@@ -46,9 +46,9 @@ CALL update-import.bat
 REM ------------------------------------------
 ECHO Erasing old distrib files ...
 
-IF NOT EXIST distrib\ohrrpgce-floppy.zip GOTO DONEDELFLOPPY
-del distrib\ohrrpgce-floppy.zip
-:DONEDELFLOPPY
+IF NOT EXIST distrib\ohrrpgce-minimal.zip GOTO DONEDELMINIMAL
+del distrib\ohrrpgce-minimal.zip
+:DONEDELMINIMAL
 IF NOT EXIST distrib\ohrrpgce.zip GOTO DONEDELCUSTOM
 del distrib\ohrrpgce.zip
 :DONEDELCUSTOM
@@ -57,7 +57,7 @@ del distrib\ohrrpgce-win-installer.exe
 :DONEDELINSTALL
 
 REM ------------------------------------------
-ECHO Packaging minimalist ohrrpgce-floppy.zip ...
+ECHO Packaging minimalist ohrrpgce-minimal.zip ...
 del tmpdist\*.???
 support\cp game.exe tmpdist
 support\cp custom.exe tmpdist
@@ -71,21 +71,30 @@ support\cp IMPORTANT-nightly.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
-support\cp support\madplay+oggenc.URL tmpdist
+mkdir tmpdist\support
+support\cp support\madplay.exe tmpdist\support
+support\cp support\LICENSE-madplay.txt tmpdist\support
+support\cp support\oggenc.exe tmpdist\support
+support\cp support\LICENSE-oggenc.txt tmpdist\support
 mkdir tmpdist\ohrhelp
 support\cp ohrhelp\*.txt tmpdist\ohrhelp
 mkdir tmpdist\docs
 support\cp docs\*.URL tmpdist\docs
+support\cp docs\plotdictionary.html tmpdist\docs
+support\cp docs\more-docs.txt tmpdist\docs
+
+support\upx -q --best tmpdist\custom.exe tmpdist\game.exe
 
 cd tmpdist
-..\support\zip -9 -q -r ..\distrib\ohrrpgce-floppy.zip *.*
+..\support\zip -9 -q -r ..\distrib\ohrrpgce-minimal.zip *.*
 cd ..
 
 del tmpdist\*.???
 RMDIR /s /q tmpdist\ohrhelp
 RMDIR /s /q tmpdist\docs
+RMDIR /s /q tmpdist\support
 cd tmpdist
-..\support\unzip -q ..\distrib\ohrrpgce-floppy.zip game.exe
+..\support\unzip -q ..\distrib\ohrrpgce-minimal.zip game.exe
 cd ..
 IF NOT EXIST tmpdist\game.exe GOTO SANITYFAIL
 del tmpdist\game.exe
@@ -190,7 +199,7 @@ rmdir /s /q tmpdist
 REM ------------------------------------------
 ECHO Rename results...
 ECHO %OHRVERDATE%-%OHRVERCODE%
-move distrib\ohrrpgce-floppy.zip distrib\ohrrpgce-floppy-%OHRVERDATE%-%OHRVERCODE%.zip
+move distrib\ohrrpgce-minimal.zip distrib\ohrrpgce-minimal-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce.zip distrib\ohrrpgce-%OHRVERDATE%-%OHRVERCODE%.zip
 move distrib\ohrrpgce-win-installer.exe distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe
 move distrib\ohrrpgce-source.zip distrib\ohrrpgce-source-%OHRVERDATE%-%OHRVERCODE%.zip
