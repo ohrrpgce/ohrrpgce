@@ -3717,8 +3717,8 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">init mouse</font></b><br>
-			Initializes the mouse, returning <a href="#about-booleanconstants" class="ref">true</a> if one is present, and loads the mouse driver. This command much be run before any mouse functions can be used. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br>The mouse will start in the middle of the screen with bounds of 0-319 horizontally and 0-199 vertically. The bounds can be changed with <a href="#about-mouseregion" class="ref">mouse region</a>, and you can reposition the mouse with <a href="#about-putmouse" class="ref">put mouse</a>.<br><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor on screen - your script must do this itself by placing an npc at the appropriate location.<br clear="all">
+			Initializes the mouse, returning <a href="#about-booleanconstants" class="ref">true</a> if one is present. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and for mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor on screen - your script must do this itself by placing a slice or npc at the appropriate location.<br clear="all">
 </div> Here is an example:<br>
 			<pre>include,plotscr.hsd
 
@@ -4210,7 +4210,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">selected menu item(menu handle)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a menu item handle for the menu item that is currently selected<br>
+			Returns the handle for the selected menu item in the topmost menu, false if no menus are open, or, when given an optional <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>) returns the selected item in that menu.<br>
 			
 			
 		</tt></p>
