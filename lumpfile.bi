@@ -5,6 +5,7 @@
 #ifndef LUMPFILE_BI
 #define LUMPFILE_BI
 
+#include "util.bi"
 #include "const.bi"
 
 enum Lumptype
@@ -20,13 +21,17 @@ end enum
 type LumpPtr as Lump ptr
 type LumpIndexPtr as LumpIndex ptr
 
+MAKETYPE_DListItem(Lump)
+MAKETYPE_DoubleList(Lump)
+
 type LumpedLump
 	type as Lumptype
 	lumpname as string
 	length as integer
 	bucket_chain as LumpPtr
-	next as LumpPtr
+	seq as DListItem(Lump)
 	index as LumpIndexPtr
+	opencount as integer 'refcount
 
 	'usual FB start-from-one offset of start of data for this lump
 	offset as integer
@@ -37,10 +42,15 @@ type FileLump
 	lumpname as string
 	length as integer
 	bucket_chain as LumpPtr
-	next as LumpPtr
+	seq as DListItem(Lump)
 	index as LumpIndexPtr
+	opencount as integer 'refcount
 
-	'fhandle as integer
+	fhandle as integer
+	'if empty, file name is index->unlumpeddir + lumpname (FIXME: stupid)
+	filename as string
+	'temp file lumps are automatically deleted when their refcount hits 0, and the file removed
+	istemp:1 as integer
 end type
 
 type Lump
@@ -51,9 +61,11 @@ type Lump
 
 	bucket_chain as LumpPtr
 	'used to iterate over lumps in order they are in the file (or whatever else you want)
-	next as LumpPtr
+	seq as DListItem(Lump)
 
 	index as LumpIndexPtr
+
+	opencount as integer 'refcount
 end type
 
 /'
@@ -67,11 +79,9 @@ end type
 '/
 
 type LumpIndex
-	numlumps as integer
 	tablesize as integer
 	table as Lump ptr ptr
-	first as Lump ptr
-	last as Lump ptr
+	lumps as DoubleList(Lump)
 
 	'if non-zero, handle of open file
 	fhandle as integer
@@ -86,25 +96,38 @@ end type
 
 
 type FnLumpDestruct as sub (byref as Lump)
+type FnLumpOpen as sub (byref as Lump)
+type FnLumpClose as sub (byref as Lump)
 type FnLumpWriteToFile as sub (byref as Lump, byval as integer, byval as integer)
 type FnLumpWriteChanges as sub (byref as Lump, byval as integer, byval as integer)
 type FnLumpRead as function (byref as any, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 
 type LumpVTable_t
-	destruct    as FnLumpDestruct
+	destruct     as FnLumpDestruct
+	open         as FnLumpOpen
+	close        as FnLumpClose
 	writetofile  as FnLumpWriteToFile
 	writechanges as FnLumpWriteChanges
 	read         as FnLumpRead
 end type
 
+'(recall NULL is define'd as 0)
+#define _PRE0 NULL
+
 'Upcast Lump-subclass Method Ptr
 'We can't concatenate an underscore between class and method because when the FB preprocessor
 'and underscores mix, massive explosions rupture your body! You die.
-#define ULMP(class, method) cast(FnLump##method, @class##method)
+#define _PREULMP(class, method) cast(FnLump##method, @class##method)
+
+'Quick Lump-subclass Method Ptr
+#define _PREQLMP(method) cast(FnLump##method, @_CONCAT(CURLUMPCLASS,method))
 
 'Because FB doesn't allow casts in array initialisers! Claims they are not constant expressions!
-#define LMPVTAB(classid, destructFn, writeoutFn, writechangesFn, readFn) _
-	lumpvtable(classid) = type(destructFn, writeoutFn, writechangesFn, readFn)
+#macro LMPVTAB(classid, classname, destructFn, openFn, closeFn, writeoutFn, writechangesFn, readFn)
+	#define CURLUMPCLASS classname
+	lumpvtable(classid) = type(_PRE##destructFn, _PRE##openFn, _PRE##closeFn, _PRE##writeoutFn, _PRE##writechangesFn, _PRE##readFn)
+	#undef CURLUMPCLASS
+#endmacro
 
 
 '----------------------------------------------------------------------
@@ -115,8 +138,12 @@ declare sub destruct_LumpIndex(byref this as LumpIndex)
 declare function LumpIndex_findlump(byref this as LumpIndex, lumpname as string) as Lump ptr
 declare sub LumpIndex_debug(byref this as LumpIndex)
 
-declare sub Lump_unlumpfile(byref this as Lump, whereto as string)
+declare sub Lump_open(byref this as Lump)
+declare sub Lump_close(byref this as Lump)
+declare function Lump_unlumpfile(byref this as Lump, whereto as string) as integer
 declare function Lump_read(byref this as Lump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
+
+declare function FileLump_tempfromlump(byref lmp as Lump) as FileLump ptr
 
 declare function loadrecord overload (buf() as integer, fh as integer, recordsize as integer, record as integer = -1) as integer
 declare function loadrecord overload (buf() as integer, filename as string, recordsize as integer, record as integer = 0) as integer

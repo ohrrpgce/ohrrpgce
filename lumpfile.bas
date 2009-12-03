@@ -18,14 +18,18 @@ option explicit
 
 declare function matchmask(match as string, mask as string) as integer
 
+declare sub Lump_destruct(byref this as Lump)
 declare sub LumpedLump_writetofile(byref this as LumpedLump, byval fileno as integer, byval position as integer)
 declare function LumpedLump_read(byref this as LumpedLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
+declare sub FileLump_destruct (byref this as FileLump)
+declare sub FileLump_open(byref this as FileLump)
+declare sub FileLump_close(byref this as FileLump)
 declare sub FileLump_writetofile(byref this as FileLump, byval fileno as integer, byval position as integer)
 declare function FileLump_read(byref this as FileLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 
 dim shared lumpvtable(LT_NUM - 1) as LumpVTable_t
-LMPVTAB(LT_LUMPED,   NULL, ULMP(LumpedLump_,writetofile), NULL, ULMP(LumpedLump_,read))
-LMPVTAB(LT_FILE,     NULL, ULMP(FileLump_,writetofile),   NULL, ULMP(FileLump_,read))
+LMPVTAB(LT_LUMPED, LumpedLump_,  ULMP(Lump_,destruct), NULL,       NULL,        QLMP(writetofile), NULL, QLMP(read))
+LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), QLMP(writetofile), NULL, QLMP(read))
 
 
 '----------------------------------------------------------------------
@@ -33,10 +37,11 @@ LMPVTAB(LT_FILE,     NULL, ULMP(FileLump_,writetofile),   NULL, ULMP(FileLump_,r
 
 
 sub construct_LumpIndex(byref this as LumpIndex)
-	this.numlumps = 0
+	'this.numlumps = 0
 	this.tablesize = 512
-	this.first = NULL
-	this.last = NULL
+	'this.first = NULL
+	'this.last = NULL
+	dlist_construct(this.lumps.generic, offsetof(Lump, seq))
 	this.table = callocate(sizeof(any ptr) * this.tablesize)
 	this.fhandle = 0
 	this.unlumpeddir = ""
@@ -47,10 +52,11 @@ sub destruct_LumpIndex(byref this as LumpIndex)
 
 	if this.fhandle then close this.fhandle
 
-	lmp = this.first
+	lmp = this.lumps.first
 	while lmp
-		temp = lmp->next
-		'lumpvtable(lump->type).destruct(*lump, whereto)
+		temp = lmp->seq.next
+		lmp->index = NULL  'prevents the destructor from bothering to unlink
+		lumpvtable(lmp->type).destruct(*lmp)
 		deallocate(lmp)
 		lmp = temp
 	wend
@@ -71,14 +77,26 @@ sub LumpIndex_addlump(byref this as LumpIndex, byval lump as Lump ptr)
 
 	lump->index = @this
 
-	this.numlumps += 1
-	if this.first = NULL then
-		this.first = lump
-		this.last = lump
-	else
-		this.last->next = lump
-		this.last = lump
-	end if
+	dlist_append(this.lumps.generic, lump)
+end sub
+
+sub LumpIndex_dellump(byref this as LumpIndex, byval lump as Lump ptr)
+	dim hash as unsigned integer
+	dim lmpp as Lump ptr ptr
+	
+	hash = strhash(lump->lumpname)
+	lmpp = @this.table[hash mod this.tablesize]
+	while *lmpp
+		if *lmpp = lump then
+			*lmpp = lump->bucket_chain
+			exit while
+		end if
+		lmpp = @(*lmpp)->bucket_chain
+	wend
+	lump->bucket_chain = NULL
+
+	dlist_remove(this.lumps.generic, lump)
+	lump->index = NULL	
 end sub
 
 'case sensitive
@@ -115,12 +133,12 @@ sub LumpIndex_debug(byref this as LumpIndex)
 		wend
 	next
 
-	if numlumps <> this.numlumps then
-		debug "error: " & numlumps & " lumps in table, " & this.numlumps & " recorded"
+	if numlumps <> this.lumps.numitems then
+		debug "error: " & numlumps & " lumps in table, " & this.lumps.numitems & " recorded"
 	end if
 
 	numlumps = 0
-	lmp = this.first
+	lmp = this.lumps.first
 	do
 		numlumps += 1
 		debug lmp->lumpname
@@ -130,17 +148,17 @@ sub LumpIndex_debug(byref this as LumpIndex)
 		elseif lmp->type = LT_FILE then
 			debug "  in " + this.unlumpeddir
 		end if
-		if lmp->next = NULL then
-			if lmp <> this.last then
+		if lmp->seq.next = NULL then
+			if lmp <> this.lumps.last then
 				debug "error: ->last corrupt"
 			end if
 			exit do
 		end if
-		lmp = lmp->next
+		lmp = lmp->seq.next
 	loop
 
-	if numlumps <> this.numlumps then
-		debug "error: " & numlumps & " lumps chained, " & this.numlumps & " recorded"
+	if numlumps <> this.lumps.numitems then
+		debug "error: " & numlumps & " lumps chained, " & this.lumps.numitems & " recorded"
 	end if
 
 	debug "====================="
@@ -151,29 +169,60 @@ end sub
 '                           Lump base class
 
 
-sub Lump_unlumpfile(byref this as Lump, whereto as string)
+'Not intended to be called on a Lump ptr, instead is used as default destructor of subclasses
+private sub Lump_destruct(byref this as Lump)
+	if this.opencount then
+		debug this.lumpname + " at destruction had nonzero opencount " & this.opencount
+	end if
+	if this.index then
+		LumpIndex_dellump(*this.index, @this)  'FIXME: best idea?
+	end if
+end sub
+
+'aka ref()
+sub Lump_open(byref this as Lump)
+	if lumpvtable(this.type).open = 0 then
+		'default (which I can't be bothered to put in a separate function and stick in the vtable)
+		this.opencount += 1
+	else
+		lumpvtable(this.type).open(this)
+	end if
+end sub
+
+'aka unref()
+sub Lump_close(byref this as Lump)
+	if lumpvtable(this.type).close = 0 then
+		this.opencount -= 1
+	else
+		lumpvtable(this.type).close(this)
+	end if
+end sub
+
+'returns true on success
+function Lump_unlumpfile(byref this as Lump, whereto as string) as integer
 	dim dest as string
 	dim of as integer
 
 	if @this = 0 then
 		debug "Null lump error"
-		exit sub
+		return NO
 	end if
 	if lumpvtable(this.type).writetofile = 0 then
 		debug "lump writetofile method not supported"
-		exit sub
+		return NO
 	end if
 
 	dest = whereto + this.lumpname
 	if fileiswriteable(dest) = 0 then
 		debug "Could not unlump to " + dest
-		exit sub
+		return NO
 	end if
 	of = freefile
 	open dest for binary access write as #of
 	lumpvtable(this.type).writetofile(this, of, 1)
 	close of
-end sub
+	return YES
+end function
 
 function Lump_read(byref this as Lump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 	if @this = 0 then
@@ -274,6 +323,83 @@ end sub
 '                           FileLump class
 
 
+'A constructor of temporary file lumps.
+'Used to extract a file from a lump, creating a new file only if necessary.
+'Will delete itself and the file when closed, if a file/FileLump had to be created.
+'Read only! Behaviour when the actual or retyrned lumps are written to is undefined.
+function FileLump_tempfromlump(byref lmp as Lump) as FileLump ptr
+	dim flump as FileLump ptr
+	if lmp.type = LT_FILE then
+		flump = cast(FileLump ptr, @lmp)
+		'don't need to open an actual file handle; just increment the refcount
+		'FileLump_open(*flump)
+		flump->opencount += 1
+		'FIXME
+		if flump->filename = "" then flump->filename = flump->index->unlumpeddir + flump->lumpname
+		return flump
+	else
+		'new file, in a Lump wrapper
+		dim filename as string
+		filename = tmpdir & int(RND * 100000000) & "_" & lmp.lumpname
+
+		if Lump_unlumpfile(lmp, tmpdir) = 0 then return NULL
+		rename tmpdir + lmp.lumpname, filename
+
+		flump = callocate(sizeof(FileLump))
+		with *flump
+			.type = LT_FILE
+			.lumpname = lmp.lumpname
+			.length = lmp.length
+			.filename = filename
+			.opencount = 1
+			.istemp = YES
+
+		 	'leaving .index as NULL, and not adding to any index
+		end with
+		return flump
+	end if
+end function
+
+sub FileLump_destruct (byref this as FileLump)
+	if this.opencount then
+		debug this.lumpname + " at destruction had nonzero opencount " & this.opencount
+	end if
+	if this.fhandle then
+		close this.fhandle
+	end if
+	if this.istemp then
+		if this.filename <> "" then
+			safekill this.filename
+		else
+			debug "FileLump without explicit filename marked temp"
+		end if
+	end if
+end sub
+
+sub FileLump_open(byref this as FileLump)
+	this.opencount += 1
+	if this.fhandle = 0 then
+		dim fname as string = this.filename
+		if fname = "" then fname = this.index->unlumpeddir + this.lumpname
+		this.fhandle = freefile
+		open fname for binary access write lock write as #this.fhandle
+	end if
+end sub
+
+sub FileLump_close(byref this as FileLump)
+	this.opencount -= 1
+	if this.opencount = 0 then
+		if this.fhandle then
+			close this.fhandle
+			this.fhandle = 0
+		end if
+		if this.istemp then
+			FileLump_destruct(this)
+			deallocate(@this)
+		end if
+	end if
+end sub
+
 sub FileLump_writetofile(byref this as FileLump, byval fileno as integer, byval position as integer)
 	'unfinished
 end sub
@@ -285,8 +411,14 @@ end sub
 '/
 
 function FileLump_read(byref this as FileLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
-	'unfinished
-	return 0
+	if this.fhandle = 0 then
+		'temporarily open instead?
+		debug "open FileLump before read"
+		return 0
+	end if
+	dim amnt as integer
+	fgetiob this.fhandle, position, bufr, size, @amnt
+	return amnt
 end function
 
 function indexunlumpeddir (whichdir as string) as LumpIndex ptr
