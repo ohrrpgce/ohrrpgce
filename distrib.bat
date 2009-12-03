@@ -153,7 +153,7 @@ del tmpdist\custom.exe
 REM ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer.exe ...
 echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
-IF %1=="nightly" GOTO LEAVEWARNTXT
+IF "%1"=="nightly" GOTO LEAVEWARNTXT
 echo. > iextratxt.txt
 :LEAVEWARNTXT
 
