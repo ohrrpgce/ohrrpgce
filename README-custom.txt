@@ -7,6 +7,9 @@ Official Hamster Republic RPG Construction Engine
 
 To get started, read http://HamsterRepublic.com/ohrrpgce/
 
+While editing your game you can press F1 at any time to
+get help about the current screen.
+
 ---
 
 Please see WHATSNEW.TXT for revision information.
