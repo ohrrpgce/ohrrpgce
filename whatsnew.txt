@@ -1,8 +1,9 @@
 WHAT IS NEW?
 
-???? ?? 20?? [Ypsiliform]
+Dec ?? 2009 [Ypsiliform]
 
   * New Features
+    * Press F1 anywhere in custom for help [James, Ralph, Msw, NN]
     * Plotscripting can now load sprites, and place them on screen.
       [Mike, James]
     * Limit on maximum items has been raised from 254 to 32000 [James]
@@ -40,6 +41,8 @@ WHAT IS NEW?
     * The sprite editor now has a full-spriteset mode which allows you
       to import (or manipulate) full sprite sets instead of working
       one frame at a time [James]
+    * Press E in the sprite editor to export your sprite to a file
+      [Ralph, James]
     * Press + and - in the sprite editor to rotate your sprite [James]
     * The clone tool in the sprite editor now allows you to rotate the
       cloned area. [James]
@@ -76,7 +79,6 @@ WHAT IS NEW?
       and given options such as entering the slightly improved script
       debugger. But many script errors still occur silently. [Ralph]
     * Each text box can now have a sound effect attached. [James]
-    * Press F1 anywhere in custom for help [James, Ralph, Msw, NN]
     * F12 to take a screenshot, alt+tab to toggle fullscreen, and alt+F4
       now work everywhere in Game and Custom with all backends [Ralph]
 
