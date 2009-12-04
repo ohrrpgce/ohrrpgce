@@ -1919,7 +1919,7 @@ WITH scrat(nowscript)
    CASE 294'--next menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
-     scriptret = menu_item_handle_by_slot(menuslot, mislot - 1, retvals(1)<>0)
+     scriptret = menu_item_handle_by_slot(menuslot, mislot + 1, retvals(1)<>0)
     END IF
    CASE 295'--selected menu item
     IF retvals(0) = -1 THEN
