@@ -113,6 +113,8 @@ Dec ?? 2009 [Ypsiliform]
     * Fix bug 588, Heroes get free attack if stunned while selecting a
       target. Also fixed the fact that stun status was only pausing the
       ready-meter, not pausing delays. [James]
+    * selectmenuitem did not work, and unselected menus didn't become
+      inactive when the topmost menu was changed by script [Ralph]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

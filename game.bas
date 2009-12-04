@@ -1935,7 +1935,7 @@ WITH scrat(nowscript)
    CASE 296'--select menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
-     mstates(menuslot).pt = menu_item_handle_by_slot(menuslot, mislot)
+     mstates(menuslot).pt = mislot
      mstates(menuslot).need_update = YES
     END IF
    CASE 297'--parent menu
