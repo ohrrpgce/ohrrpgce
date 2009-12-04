@@ -92,12 +92,13 @@ FUNCTION usemenu (pt, top, first, last, size) as integer
 oldptr = pt
 oldtop = top
 
-IF keyval(scUp) > 1 THEN pt = loopvar(pt, first, last, -1) 'UP
-IF keyval(scDown) > 1 THEN pt = loopvar(pt, first, last, 1)  'DOWN
-IF keyval(scPageup) > 1 THEN pt = large(pt - size, first)      'PGUP
-IF keyval(scPagedown) > 1 THEN pt = small(pt + size, last)       'PGDN
-IF keyval(scHome) > 1 THEN pt = first                         'HOME
-IF keyval(scEnd) > 1 THEN pt = last                          'END
+IF keyval(scUp) > 1 THEN pt = loopvar(pt, first, last, -1)
+IF keyval(scDown) > 1 THEN pt = loopvar(pt, first, last, 1)
+IF keyval(scPageup) > 1 THEN pt = pt - size
+IF keyval(scPagedown) > 1 THEN pt = pt + size
+IF keyval(scHome) > 1 THEN pt = first
+IF keyval(scEnd) > 1 THEN pt = last
+pt = small(large(pt, first), last)  '=last when last<first, ie. menu empty
 top = bound(top, pt - size, pt)
 
 IF oldptr = pt AND oldtop = top THEN
@@ -116,20 +117,20 @@ WITH state
  oldtop = .top
  d = 0
 
- IF keyval(scUp) > 1 THEN d = -1   'UP
- IF keyval(scDown) > 1 THEN d = 1    'DOWN
- IF keyval(scPageup) > 1 THEN            'PGUP
+ IF keyval(scUp) > 1 THEN d = -1
+ IF keyval(scDown) > 1 THEN d = 1
+ IF keyval(scPageup) > 1 THEN
   .pt = large(.pt - .size, .first)
-  WHILE enabled(.pt) = 0 AND .pt > 0 : .pt = loopvar(.pt, .first, .last, -1) : WEND
+  WHILE enabled(.pt) = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
   IF enabled(.pt) = 0 THEN d = 1
  END IF
- IF keyval(scPagedown) > 1 THEN            'PGDN
+ IF keyval(scPagedown) > 1 THEN
   .pt = small(.pt + .size, .last)
   WHILE enabled(.pt) = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
   IF enabled(.pt) = 0 THEN d = -1
  END IF
- IF keyval(scHome) > 1 THEN .pt = .last : d = 1    'HOME
- IF keyval(scEnd) > 1 THEN .pt = .first : d = -1    'END
+ IF keyval(scHome) > 1 THEN .pt = .last : d = 1
+ IF keyval(scEnd) > 1 THEN .pt = .first : d = -1
 
  IF d THEN 
   DO
@@ -2466,10 +2467,11 @@ FUNCTION anchor_point(anchor AS INTEGER, size AS INTEGER) AS INTEGER
 END FUNCTION
 
 SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
+ state.first = 0
  state.last = count_menu_items(menu) - 1
  state.size = menu.maxrows - 1
  IF state.size = -1 THEN state.size = 20
- state.pt = bound(state.pt, 0, state.last)
+ state.pt = small(large(state.pt, state.first), state.last)  'explicitly -1 when empty
  state.top = bound(state.top, 0, large(state.last - state.size, 0))
 END SUB
 
@@ -3058,16 +3060,18 @@ FUNCTION getmenuname(record AS INTEGER) AS STRING
 END FUNCTION
 
 SUB draw_scrollbar(state AS MenuState, menu AS MenuDef, page AS INTEGER)
- draw_scrollbar state, menu.rect, count_menu_items(menu) - 1, menu.boxstyle, page
+ draw_scrollbar state, menu.rect, menu.boxstyle, page
 END SUB
 
 SUB draw_scrollbar(state AS MenuState, rect AS RectType, boxstyle AS INTEGER=0, page AS INTEGER)
- DIM count AS INTEGER = state.last - state.first
+ DIM count AS INTEGER = state.last - state.first + 1
  draw_scrollbar state, rect, count, boxstyle, page
 END SUB
 
+'count being the number of (visible) menu items
 SUB draw_scrollbar(state AS MenuState, rect AS RectType, count AS INTEGER, boxstyle AS INTEGER=0, page AS INTEGER)
- IF (state.top > state.first OR (count-1) >= state.size) AND count > 0 THEN
+ 'recall state.size is off-by-1
+ IF (state.top > state.first OR count > (state.size + 1)) AND count > 0 THEN
   IF count > 0 THEN
    DIM sbar AS RectType
    DIM slider AS RectType
@@ -3076,8 +3080,8 @@ SUB draw_scrollbar(state AS MenuState, rect AS RectType, count AS INTEGER, boxst
    sbar.wide = 4
    sbar.high = rect.high - 4
    WITH sbar
-    slider.y = ((.high * 200) / (count) * (state.top - state.first)) / 200
-    slider.high = ((.high * 200) / (count) * state.size) / 200
+    slider.y = .high / count * (state.top - state.first)
+    slider.high = .high / count * (state.size + 1)
     rectangle .x, .y, .wide, .high, uilook(uiBackground), page
     rectangle .x, .y + slider.y, .wide, slider.high, uilook(uiTextBox + boxstyle * 2 + 1), page
    END WITH

@@ -2278,7 +2278,6 @@ FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
   REDIM PRESERVE mstates(topmenu) AS MenuState
  END IF
  mstates(topmenu).top = 0
- mstates(topmenu).pt = 0
  IF record = -1 THEN
   ClearMenuData menus(topmenu)
  ELSE
@@ -2338,6 +2337,7 @@ SUB player_menu_keys (stat(), catx(), caty(), tilesets() AS TilesetData ptr)
  DIM menu_handle AS INTEGER
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
+  IF mstates(topmenu).last = -1 THEN EXIT SUB
   menu_handle = menus(topmenu).handle 'store handle for later use
   IF game_usemenu(mstates(topmenu)) THEN
    menusound gen(genCursorSFX)
@@ -2487,6 +2487,7 @@ SUB check_menu_tags ()
    changed = NO
    FOR i = 0 TO UBOUND(.items)
     WITH .items(i)
+     IF .exists = NO THEN CONTINUE FOR
      old = .disabled
      .disabled = NO
      IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
