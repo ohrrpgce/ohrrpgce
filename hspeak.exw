@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3J 2009-12-05 Multiple function names may now alias the same id
 --3I 2009-07-27 Export a backup copy of full source to source.txt lump
 --              disable with -n option
 --3H 2009-06-18 Export function names to commands.bin lump
@@ -1054,19 +1055,20 @@ end procedure
 --VAR_ARGS indicating a variable (unlimited) number of arguments.
 function create_function(sequence list,integer id,sequence name,object arglist,integer func_type,integer line)
   integer at
-  at=find(id,column(list,PAIR_NUM))
-  if at then
-    src_error(sprintf("%s ID "&COLYEL&"%d"&COLRED&" is already defined as "&COLYEL&"%s"&COLRED,{RESERVE_NAMES[func_type],id,list[at][PAIR_NAME]}),line)
-  else
-    if id=0 and func_type=RESERVE_SCRIPT then
+  if func_type=RESERVE_SCRIPT then
+    at=find(id,column(list,PAIR_NUM))
+    if at then
+      src_error(sprintf("%s ID "&COLYEL&"%d"&COLRED&" is already defined as "&COLYEL&"%s"&COLRED,{RESERVE_NAMES[func_type],id,list[at][PAIR_NAME]}),line)
+    end if
+    if id=0 then
       src_error(sprintf("ID "&COLYEL&"%d"&COLRED&" is not valid",{id}),line)
     elsif id<0 then
       id=autonumber_id
       autonumber_id-=1
     end if
-    list=append(list,{id,name,arglist,line})
-    reserved=alpha_tree_insert(reserved,name,func_type)
   end if
+  list=append(list,{id,name,arglist,line})
+  reserved=alpha_tree_insert(reserved,name,func_type)
   return(list)
 end function
 
