@@ -582,8 +582,8 @@ SUB interpolatecat
 'given the current positions of the caterpillar party, interpolate their inbetween frames
 FOR o = 0 TO 10 STEP 5
  FOR i = o + 1 TO o + 4
-  catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 4)
-  caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 4)
+  catx(i) = catx(i - 1) + ((catx(o + 5) - catx(o)) / 5)
+  caty(i) = caty(i - 1) + ((caty(o + 5) - caty(o)) / 5)
   catd(i) = catd(o)
  NEXT i
 NEXT o
