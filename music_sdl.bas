@@ -66,8 +66,8 @@ sub music_init()
 		audio_format = MIX_DEFAULT_FORMAT
 		audio_channels = 2
 		'Despite the documentation, non power of 2 buffer size MAY work depending on the driver, and pygame even does it
-		'At the time, I found that this gave better results than 1k or 2k buffers. I am stubborn
-		audio_buffers = 1536  
+		'1024 seems to give much lower delay than 1536 before being played, maybe a non-power of two problem
+		audio_buffers = 1024 '1536  
 		
 		if SDL_WasInit(0) = 0 then
 			if SDL_Init(SDL_INIT_AUDIO) then
@@ -85,12 +85,12 @@ sub music_init()
 		end if
 		
 		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
-			if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, 2048)) <> 0 then
+			'if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, 2048)) <> 0 then
 				debug "Can't open audio : " & *Mix_GetError
 				music_on = -1  'error
 				quit_sdl_audio()
 				exit sub
-			end if
+			'end if
 		end if
 		
 		music_vol = 8
