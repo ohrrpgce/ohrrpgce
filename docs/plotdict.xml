@@ -2044,10 +2044,14 @@ end</example>
 				<ref>freesprite</ref>
 			</seealso>
 		</command>
+		<command id="putsprite">
+			<canon>put sprite (handle, x, y)</canon>
+			<shortname>put sprite</shortname>
+			<description>Moves sprite <p>handle</p> to position (<p>x</p>, <p>y</p>). This can only be used on sprites, use <ref>putslice</ref> in general. </description>
+		</command>
 		<command id="placesprite">
-			<canon>place sprite (handle, x, y)</canon>
+			<alias>putsprite</alias>
 			<shortname>place sprite</shortname>
-			<description>Moves sprite <p>handle</p> to position (<p>x</p>, <p>y</p>).</description>
 		</command>
 		<command id="getspritetype">
 			<canon>get sprite type (handle)</canon>
@@ -2254,11 +2258,21 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>slicescreeny</ref>
 			</seealso>
 		</command>
+		<command id="putslice">
+			<canon>put slice (handle, X, Y)</canon>
+			<shortname>put slice</shortname>
+			<description>Changes the position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
+			<seealso>
+				<ref>putsprite</ref>
+				<ref>putslicescreen</ref>
+			</seealso>
+		</command>
 		<command id="setslicex">
 			<canon>set slice x (handle, X)</canon>
 			<shortname>set slice x</shortname>
 			<description>Changes the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
 			<seealso>
+				<ref>putslice</ref>
 				<ref>slicex</ref>
 				<ref>setslicey</ref>
 			</seealso>
@@ -2268,6 +2282,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>set slice y</shortname>
 			<description>Changes the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.</description>
 			<seealso>
+				<ref>putslice</ref>
 				<ref>slicey</ref>
 				<ref>setslicex</ref>
 			</seealso>
@@ -2290,11 +2305,22 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>slicey</ref>
 			</seealso>
 		</command>
+		<command id="putslicescreen">
+			<canon>put slice screen (handle, x, y)</canon>
+			<shortname>put slice screen</shortname>
+			<description>Change the screen position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed. Note that this does not work when a slice is filling its parent.</description>
+			<seealso>
+				<ref>putslice</ref>
+				<ref>slicescreenx</ref>
+				<ref>setslicescreeny</ref>
+			</seealso>
+		</command>
 		<command id="setslicescreenx">
 			<canon>set slice screen x (handle, x)</canon>
 			<shortname>set slice screen x</shortname>
-			<description>Change the screen X position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.</description>
+			<description>Change the screen X position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed. Note that this does not work when a slice is filling its parent.</description>
 			<seealso>
+				<ref>putslicescreen</ref>
 				<ref>slicescreenx</ref>
 				<ref>setslicescreeny</ref>
 			</seealso>
@@ -2302,8 +2328,9 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="setslicescreeny">
 			<canon>set slice screen y (handle, y)</canon>
 			<shortname>set slice screen y</shortname>
-			<description>Change the screen Y position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.</description>
+			<description>Change the screen Y position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed. Note that this does not work when a slice is filling its parent.</description>
 			<seealso>
+				<ref>putslicescreen</ref>
 				<ref>slicescreeny</ref>
 				<ref>setslicescreenx</ref>
 			</seealso>
@@ -2932,7 +2959,7 @@ end
 		<command id="getrecttrans">
 			<canon>get rect trans (handle)</canon>
 			<shortname>get rect trans</shortname>
-			<description>Given a rect slice <p>handle</p>, returns one of: the constant <p>rect:fuzzy</p> if it is drawn semi-transparent, <p>rect:hollow</p> if it is fully transparent, or <p>rect:opaque</p> (equal to <ref>false</ref>) if it is drawn solid.</description>
+			<description>Given a rect slice <p>handle</p>, returns one of: the constant <p>trans:fuzzy</p> if it is drawn semi-transparent, <p>trans:hollow</p> if it is fully transparent, or <p>trans:opaque</p> (equal to <ref>false</ref>) if it is drawn solid.</description>
 			<seealso>
 				<ref>setrecttrans</ref>
 			</seealso>
@@ -2940,7 +2967,7 @@ end
 		<command id="setrecttrans">
 			<canon>set rect trans (handle, transparency setting)</canon>
 			<shortname>set rect trans</shortname>
-			<description>Given a rect slice <p>handle</p>, change how transparently it is drawn. For <p>transparency setting</p>, pass in one of the constants <p>rect:fuzzy</p> for semi-transparency (checkered), <p>rect:hollow</p> for fully transparent (the border drawn only), or <p>rect:opaque</p> (equal to <ref>false</ref>) for solid.</description>
+			<description>Given a rect slice <p>handle</p>, change how transparently it is drawn. For <p>transparency setting</p>, pass in one of the constants <p>trans:fuzzy</p> for semi-transparency (checkered), <p>trans:hollow</p> for fully transparent (the border drawn only), or <p>trans:opaque</p> (equal to <ref>false</ref>) for solid.</description>
 			<seealso>
 				<ref>getrecttrans</ref>
 			</seealso>
