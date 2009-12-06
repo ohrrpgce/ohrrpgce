@@ -128,25 +128,25 @@ Dec ?? 2009 [Ypsiliform]
       "load weapon sprite", "replace weapon sprite",
       "load border sprite", "replace border sprite",
       "load portrait sprite", "replace portrait sprite",
-      "free sprite", "place sprite", "set sprite visible",
+      "free sprite", "put sprite", "set sprite visible",
       "get sprite type", "get sprite set number", "get sprite palette"
       "set sprite palette", "clone sprite", "set sprite frame",
       "get sprite frame", "sprite frame count", "slice is sprite",
       "sprite layer", "horiz flip sprite", "vert flip sprite",
       "sprite is horiz flipped", "sprite is vert flipped"
       [Mike, James]
-    * "slice x", "slice y", "set slice x", "set slice y", "slice width",
-      "slice height", "set horiz align", "set vert align",
+    * "slice x", "slice y", "set slice x", "set slice y", "put slice",
+      "slice width", "slice height", "set horiz align", "set vert align",
       "set horiz anchor", "set vert anchor", "free slice", "child count",
       "first child", "next sibling", "last child", "previous sibling",
       "free slice children", "create container", "check parentage",
       "set parent", "parent slice", "slice screen x", "slice screen y",
-      "slice is container", "create rect", "slice is rect",
-      "set slice width", "set slice height", "get rect style",
+      "put slice screen", "slice is container", "set slice width", 
+      "set slice height", "create rect", "get rect style",
       "set rect style", "get rect fgcol", "set rect fgcol",
       "get rect bgcol", "set rect bgcol", "get rect border",
       "set rect border", "get rect trans", "set rect trans",
-      "first container child", "next container child",
+      "slice is rect", "first container child", "next container child",
       "first sprite child", "next sprite sibling", "first rect child",
       "next rect sibling", "realign slice", "center slice",
       "slice collide point", "slice collide", "slice contains",
@@ -161,10 +161,8 @@ Dec ?? 2009 [Ypsiliform]
       "get slice extra", "slice edge x", "slice edge y", "create text",
       "set slice text", "get text color", "set text color",
       "get text bg", "set text bg", "get outline", "set outline",
-      "set wrap", "get wrap", "slice is text", "slice is valid" [James]
-    * "set slice visible", "get slice visible". Old command
-      "set sprite visible" still exists but is now just an alias
-      for "set slice visible". [James]
+      "set wrap", "get wrap", "slice is text", "slice is valid",
+      "set slice visible", "get slice visible". [James]
     * "number from string" [James]
     * "set dead heroes gain experience" [James]
     * There are now 3 NPC extra data fields (0-2) accessible with

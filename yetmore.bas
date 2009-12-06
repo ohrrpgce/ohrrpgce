@@ -1759,7 +1759,7 @@ SELECT CASE AS CONST id
     scripterr "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0))), 4
    END IF
   END IF
- CASE 324 '--place sprite
+ CASE 324 '--put slice  (previously place sprite)
   IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
     .x = retvals(1)
@@ -2159,7 +2159,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 412 '--get sprite type
-  IF valid_plotsprite(retvals(0)) THEN
+  IF valid_plotslice(retvals(0)) THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
     scriptret = dat->spritetype
@@ -2185,13 +2185,13 @@ SELECT CASE AS CONST id
   FOR i = 0 TO 15
    timers(i).pause = NO
   NEXT i
- CASE 325, 417 '--set sprite visible
+ CASE 325, 417 '--set sprite visible, set slice visible
   IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
     .Visible = (retvals(1) <> 0)
    END WITH
   END IF
- CASE 418 '--get sprite visible
+ CASE 418 '--get slice visible
   IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
     scriptret = ABS(.Visible)
@@ -2376,6 +2376,13 @@ SELECT CASE AS CONST id
    END IF
    update_inventory_caption retvals(0)
    evalitemtag
+  END IF
+ CASE 444 '--put sprite, place sprite
+  IF valid_plotsprite(retvals(0)) THEN
+   WITH *plotslices(retvals(0))
+    .X = retvals(1)
+    .Y = retvals(2)
+   END WITH
   END IF
 
 END SELECT

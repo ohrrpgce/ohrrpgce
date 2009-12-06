@@ -16,6 +16,10 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2009-05-14: (Backdated!)
+Old command "set sprite visible" still exists but is now just an alias for
+"set slice visible".
+
 2009-09-24:
 We have just realised that (all versions of) Custom did not warn if an RPG is
 in a new format that it does not fully support! If you downgrade your Custom
@@ -30,3 +34,7 @@ possibly interrupting your previously apparently-working game.
 If you edited your text boxes with any build from 2974 to 2982 your text boxes
 will be corrupted. The bug was fixed in revision 2983
 
+2009-12-05:
+The old "place sprite", unlike the other sprite commands, could be used on
+slices as well as sprites. This is now an error, but will only affect you
+when you recompile your scripts. Use "put slice" instead.

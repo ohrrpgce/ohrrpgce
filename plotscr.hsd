@@ -330,7 +330,7 @@ define function, begin
 321,getherospeed,1,0          #hero walk speed (hero)
 322,loadherosprite,2,0,-1     #load hero sprite (number, palette)
 323,freesprite,1,0            #frees a sprite (id)
-324,placesprite,3,0,0,0       #move a sprite(id, x, y)
+324,putslice,3,0,0,0          #change the position of a slice
 325,setspritevisible,2,0,0    #alias for set slice visible
 326,setspritepalette,2,0,0    #set sprite palette(id, pal)
 327,replaceherosprite,3,0,0,-1 #replaces the sprite with a hero sprite (id, num, pal)
@@ -450,6 +450,8 @@ define function, begin
 441,setiteminslot,2,0,0       #write inventory by position
 442,itemcountinslot,1,0       #read item count by position
 443,setitemcountinslot,2,0,0  #write item count by position
+444,putsprite,3,0,0,0         #change a sprite's position (handle, x, y)
+444,placesprite,3,0,0,0       #change a sprite's position (handle, x, y)
 end
 
 #--------------------------------------------------------------------------
@@ -1227,6 +1229,11 @@ script, set slice screen y, hsd:sl, hsd:newy, begin
   hsd:oldy := slice screen y(hsd:sl)
   hsd:diff := hsd:newy -- hsd:oldy
   set slice y(hsd:sl, slice y(hsd:sl) + hsd:diff)
+end
+
+script, put slice screen, hsd:sl, hsd:newx, hsd:newy, begin
+  put slice(hsd:sl, slice x(hsd:sl) + hsd:newx -- slice screen x(hsd:sl),
+                    slice y(hsd:sl) + hsd:newy -- slice screen y(hsd:sl))
 end
 
 script, set padding, hsd:sl, hsd:newpadding, begin
