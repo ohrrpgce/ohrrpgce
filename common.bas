@@ -815,7 +815,10 @@ FUNCTION maplumpname (map AS INTEGER, oldext AS STRING) as string
 END FUNCTION
 
 SUB fatalerror (e AS STRING)
+STATIC entered = 0  'don't allow reentry
 DIM ypos AS INTEGER
+IF entered THEN EXIT SUB
+entered = 1
 debug "fatal error:" & e
 
 #IFDEF IS_GAME
@@ -834,6 +837,8 @@ edgeprint "or any other key to ignore the", 8, ypos + 10, uilook(uiMenuItem), 0
 edgeprint "error and try to continue playing.", 8, ypos + 20, uilook(uiMenuItem), 0
 
 '--Reset palette (in case the error happened in a fade-to-black)
+'--load the default in case loadpalette fails
+load_default_master_palette master()
 loadpalette master(), gen(genMasterPal)
 LoadUIColors uilook(), gen(genMasterPal)
 setpal master()
@@ -895,6 +900,7 @@ IF w = scEsc THEN
  SYSTEM
 END IF
 #ENDIF
+entered = 0
 END SUB
 
 FUNCTION xstring (s AS STRING, x AS INTEGER) as integer
