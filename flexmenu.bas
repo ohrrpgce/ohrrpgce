@@ -227,7 +227,7 @@ DIM AtkCapTargSetting AS INTEGER = capindex
 addcaption caption(), capindex, "Focused"
 addcaption caption(), capindex, "Spread"
 addcaption caption(), capindex, "Optional Spread"
-addcaption caption(), capindex, "Random Focus"
+addcaption caption(), capindex, "Random Roulette"
 addcaption caption(), capindex, "First Target"
 
 CONST AtkLimDamageEq = 5

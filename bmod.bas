@@ -2895,8 +2895,9 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    bslot(bat.acting).attack = 0
   END IF
   
-  IF chained_attack.targ_set <> attack.targ_set OR chained_attack.targ_class <> attack.targ_class THEN
+  IF chained_attack.targ_set <> attack.targ_set OR chained_attack.targ_class <> attack.targ_class OR chained_attack.targ_set = 3 THEN
    'if the chained attack has a different target class/type then re-target
+   'also retarget if the chained attack has target setting "random roulette"
    autotarget bat.acting, chained_attack, bslot()
   ELSEIF bslot(bat.acting).attack > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue

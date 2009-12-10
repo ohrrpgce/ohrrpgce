@@ -1321,7 +1321,7 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite)
 
  SELECT CASE atk.targ_set
 
-  CASE 0, 3: '--focus and random focus
+  CASE 0, 3: '--focus and random roulette
    confirm_auto_focus who, tmask(), atk, bslot()
 
   CASE 1: '--spread attack
@@ -1389,6 +1389,10 @@ FUNCTION find_preferred_target(tmask() as integer, who as integer, atk as Attack
  CASE 0 '--Default
   IF is_hero(who) THEN
    atk.prefer_targ = 1 ' heroes default to first target
+   IF atk.targ_set = 3 THEN
+    'unless the target setting is random roulette, in which case random
+    atk.prefer_targ = 4
+   END IF
   ELSEIF is_enemy(who) THEN
    atk.prefer_targ = 4 ' enemies default to a random target
   END IF

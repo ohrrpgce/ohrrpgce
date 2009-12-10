@@ -116,6 +116,9 @@ Dec ?? 2009 [Ypsiliform]
     * selectmenuitem and nextmenuitem did not work, and unselected menus
       didn't become inactive when the topmost menu was changed by script
       [Ralph]
+    * Renamed "Random Focus" attack target setting to "Random roulette"
+      to more accurately reflect what it does, and make sure it actually
+      behaves randomly when used in chains [James]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
