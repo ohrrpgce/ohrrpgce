@@ -42,13 +42,20 @@ declare function io_readjoysane (byval as integer, byref as integer, byref as in
 end extern
 #endif
 
+extern "C"
+
 ' functions in allmodex.bas
 
 'Call on window or application close request event. Maybe ought to guarantee backend won't be reentered
 'Allowed to be called from another thread.
-declare sub post_terminate_signal cdecl ()
+declare sub post_terminate_signal ()
 
-' functions in gfxsubs.bas
+' functions in blit.c
+
+declare sub blitohr(byval spr as Frame ptr, byval destspr as Frame ptr, byval pal as Palette16 ptr, byval startoffset as integer, byval startx as integer, byval starty as integer, byval endx as integer, byval endy as integer, byval trans as integer)
+declare sub blitohrscaled(byval spr as Frame ptr, byval destspr as Frame ptr, byval pal as Palette16 ptr, byval x as integer, byval y as integer, byval startx as integer, byval starty as integer, byval endx as integer, byval endy as integer, byval trans as integer, byval scale as integer)
 
 declare sub smoothzoomblit_8_to_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer)
 declare sub smoothzoomblit_8_to_32bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer, byval pal as integer ptr)
+
+end extern

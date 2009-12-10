@@ -3080,11 +3080,8 @@ end sub
 
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
 sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
-	dim as integer i, j
-	dim as ubyte ptr maskp, srcp
-	dim as ubyte ptr sptr
-	dim as integer srclineinc, destlineinc
 	dim as integer startx, starty, endx, endy
+	dim as integer srcoffset
 
 	if page <> wrkpage then
 		setclip , , , , page
@@ -3096,36 +3093,22 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 		exit sub
 	end if
 
-	srcp = spr.image
-
-	maskp = spr.mask
-	if maskp = 0 then
-		maskp = srcp
-		'we could add an optimised version for this case, which is the 99% case
-	end if
-
 	startx = x
 	endx = x + spr.w - 1
 	starty = y
 	endy = y + spr.h - 1
 
-	srclineinc = 0
-
 	if startx < clipl then
-		srclineinc = (clipl - startx)
-		srcp += srclineinc
-		maskp += srclineinc
+		srcoffset = (clipl - startx)
 		startx = clipl
 	end if
 
 	if starty < clipt then
-		srcp += (clipt - starty) * spr.pitch
-		maskp += (clipt - starty) * spr.pitch
+		srcoffset += (clipt - starty) * spr.pitch
 		starty = clipt
 	end if
 
 	if endx > clipr then
-		srclineinc += endx - clipr
 		endx = clipr
 	end if
 
@@ -3135,96 +3118,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 
 	if starty > endy or startx > endx then exit sub
 
-	'above we calculate how many bytes of pixels should be skipped at the beginning+end
-	'of each source line, now add on number of bytes skipped due to pitch
-	srclineinc += spr.pitch - spr.w
-
-	sptr = vpages(page)->image + startx + starty * vpages(page)->pitch
-	destlineinc = vpages(page)->pitch - (endx - startx + 1)
-
-	if scale = 1 then
-		if pal <> 0 and trans <> 0 then
-			for i = starty to endy
-				'loop unrolling copied from below, but not nearly as effective
-				for j = endx - startx to 3 step -4
-					if maskp[0] then sptr[0] = pal->col(srcp[0])
-					if maskp[1] then sptr[1] = pal->col(srcp[1])
-					if maskp[2] then sptr[2] = pal->col(srcp[2])
-					if maskp[3] then sptr[3] = pal->col(srcp[3])
-					maskp += 4
-					srcp += 4
-					sptr += 4
-				next
-				while j >= 0
-					if maskp[0] then sptr[0] = pal->col(srcp[0])
-					maskp += 1
-					srcp += 1
-					sptr += 1
-					j -= 1
-				wend
-
-				sptr += destlineinc
-				maskp += srclineinc
-				srcp += srclineinc
-			next
-		elseif pal <> 0 and trans = 0 then
-			for i = starty to endy
-				'loop unrolling blindly copied from below
-				for j = endx - startx to 3 step -4
-					sptr[0] = pal->col(srcp[0])
-					sptr[1] = pal->col(srcp[1])
-					sptr[2] = pal->col(srcp[2])
-					sptr[3] = pal->col(srcp[3])
-					srcp += 4
-					sptr += 4
-				next
-				while j >= 0
-					sptr[0] = pal->col(srcp[0])
-					srcp += 1
-					sptr += 1
-					j -= 1
-				wend
-
-				sptr += destlineinc
-				srcp += srclineinc
-			next
-		elseif trans = 0 then 'and pal = 0
-			for i = starty to endy
-				memcpy(sptr, srcp, endx - startx + 1)
-				srcp += spr.pitch
-				sptr += vpages(page)->pitch
-			next
-		else 'pal = 0 and trans <> 0
-			for i = starty to endy
-				'a little loop unrolling
-				for j = endx - startx to 3 step -4
-					'the following line is surprisingly slow
-					'*cast(integer ptr, sptr) = (*cast(integer ptr, srcp) and *cast(integer ptr, maskp)) or (*cast(integer ptr, sptr) and not *cast(integer ptr, maskp))
-					if maskp[0] then sptr[0] = srcp[0]
-					if maskp[1] then sptr[1] = srcp[1]
-					if maskp[2] then sptr[2] = srcp[2]
-					if maskp[3] then sptr[3] = srcp[3]
-					maskp += 4
-					srcp += 4
-					sptr += 4
-				next
-				while j >= 0
-					if *maskp then *sptr = *srcp
-					maskp += 1
-					srcp += 1
-					sptr += 1
-					j -= 1
-				wend
-
-				sptr += destlineinc
-				maskp += srclineinc
-				srcp += srclineinc
-			next
-		end if
-	else
-		'see above
-	end if
-
+	blitohr (@spr, vpages(page), pal, srcoffset, startx, starty, endx, endy, trans)
 end sub
 
 sub unloadtileset(byref tileset as Frame ptr)
@@ -3853,11 +3747,6 @@ end function
 ' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the
 ' mask will be wholly ignored. Just like drawohr, masks are optional, otherwise use colourkey 0
 sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
-	dim sptr as ubyte ptr
-	dim mptr as ubyte ptr
-	dim as integer tx, ty
-	dim as integer sx, sy, pix, spix
-
 	if spr = 0 then
 		debug "trying to draw null sprite"
 		exit sub
@@ -3872,13 +3761,6 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 		setclip , , , , page
 	end if
 
-	sptr = vpages(page)->image
-
-	mptr = spr->mask
-	if spr->mask = 0 then
-		mptr = spr->image
-	end if
-	
 	dim as integer sxfrom, sxto, syfrom, syto
 	
 	sxfrom = large(clipl, x)
@@ -3887,47 +3769,7 @@ sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as i
 	syfrom = large(clipt, y)
 	syto = small(clipb, y + (spr->h * scale) - 1)
 	
-	With *spr
-		'ty = syfrom
-		if trans = 0 then
-			for ty = syfrom to syto
-				'tx = sxfrom
-				for tx = sxfrom to sxto
-					'figure out where to put the pixel
-					pix = (ty * vpages(page)->pitch) + tx
-					'and where to get the pixel from
-					spix = (((ty - y) \ scale) * .pitch) + ((tx - x) \ scale)
-					
-					if pal <> 0 then
-						sptr[pix] = pal->col(.image[spix])
-					else
-						sptr[pix] = .image[spix]
-					end if
-				next
-			next
-		else
-			for ty = syfrom to syto
-				'tx = sxfrom
-				for tx = sxfrom to sxto
-					'figure out where to put the pixel
-					pix = (ty * vpages(page)->pitch) + tx
-					'and where to get the pixel from
-					spix = (((ty - y) \ scale) * .pitch) + ((tx - x) \ scale)
-					
-					'check mask
-					if mptr[spix] then
-						if pal <> 0 then
-							sptr[pix] = pal->col(.image[spix])
-						else
-							sptr[pix] = .image[spix]
-						end if
-					end if
-					
-				next
-			next
-		end if
-
-	End With
+	blitohrscaled (spr, vpages(page), pal, x, y, sxfrom, syfrom, sxto, syto, trans, scale)
 end sub
 
 'Public:
