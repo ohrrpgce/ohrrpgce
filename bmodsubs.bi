@@ -43,6 +43,7 @@ declare sub traceshow (s as string)
 declare function trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, es() as integer) as integer
 declare function exptolevel (level as integer) as integer
 declare sub updatestatslevelup (i as integer, exstat() as integer, stats AS BattleStats, allowforget as integer)
+declare sub learn_spells_for_current_level(BYVAL who AS INTEGER, exstat() AS INTEGER, BYVAL allowforget AS INTEGER)
 declare sub giveheroexperience (i as integer, exstat() as integer, exper as integer)
 declare sub setheroexperience (byval who as integer, byval amount as integer, byval allowforget as integer, exstat() as integer, exlev() as integer)
 declare function visibleandalive (o as integer, bslot() as battlesprite) as integer

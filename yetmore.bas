@@ -310,7 +310,7 @@ SELECT CASE AS CONST id
   heroswap 0, stat()
  CASE 158'--team menu
   heroswap 1, stat()
- CASE 183'--setherolevel (who, what, allow forgetting spells)
+ CASE 183'--set hero level (who, what, allow forgetting spells)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
    DIM dummystats as BattleStats 'just need HP and MP
    stat(retvals(0), 1, 12) = retvals(1) - stat(retvals(0), 0, 12)

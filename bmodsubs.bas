@@ -839,6 +839,9 @@ SUB updatestatslevelup (i as integer, exstat() as integer, stats AS BattleStats,
 ' allowforget = forget spells if level dropped below requirement
 
 'wipe learnmask for this hero
+'note that this gets wiped again later, but that is okay.
+'this makes sure that learnmask gets cleared for this battle
+'even if the hero *doesn't* get a level-up.
 FOR o = i * 6 TO i * 6 + 5
  learnmask(o) = 0
 NEXT
@@ -889,27 +892,45 @@ IF exstat(i, 1, 12) THEN
   exstat(i, 0, o) = exstat(i, 1, o)
  NEXT o
 
+ learn_spells_for_current_level(i, exstat(), allowforget)
+
+END IF
+
+END SUB
+
+SUB learn_spells_for_current_level(BYVAL who AS INTEGER, exstat() AS INTEGER, BYVAL allowforget AS INTEGER)
+
+ 'Teaches all spells that can be learned from level
+ ' up to the hero's current level.
+ '(but should not overwrite any spells learned with "write spell")
+
+ 'wipe learnmask for this hero
+ FOR o AS INTEGER = who * 6 TO who * 6 + 5
+  learnmask(o) = 0
+ NEXT
+
+ dim her as herodef
+ loadherodata @her, hero(who) - 1
+
  'learn spells
- FOR j = 0 TO 3
-  FOR o = 0 TO 23
+ FOR j AS INTEGER = 0 TO 3
+  FOR o AS INTEGER = 0 TO 23
    WITH her.spell_lists(j,o)
     '--if slot is empty and slot accepts a spell and learn-by-level condition is true
-    IF spell(i, j, o) = 0 AND .attack > 0 AND .learned - 1 <= exstat(i, 0, 12) AND .learned > 0 THEN
-     spell(i, j, o) = .attack
-     setbit learnmask(), 0, i * 96 + j * 24 + o, 1
+    IF spell(who, j, o) = 0 AND .attack > 0 AND .learned - 1 <= exstat(who, 0, 12) AND .learned > 0 THEN
+     spell(who, j, o) = .attack
+     setbit learnmask(), 0, who * 96 + j * 24 + o, 1
     END IF
     IF allowforget THEN
      '--plotscripts may lower level, forget spells if drop below requirement and know the spell specified
-     IF spell(i, j, o) = .attack AND .learned - 1 > exstat(i, 0, 12) THEN
-      spell(i, j, o) = 0
+     IF spell(who, j, o) = .attack AND .learned - 1 > exstat(who, 0, 12) THEN
+      spell(who, j, o) = 0
      END IF
     END IF
    END WITH
   NEXT o
  NEXT j
-
-END IF
-
+ 
 END SUB
 
 SUB giveheroexperience (i as integer, exstat() as integer, exper as integer)
