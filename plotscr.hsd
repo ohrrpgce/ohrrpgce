@@ -452,6 +452,7 @@ define function, begin
 443,setitemcountinslot,2,0,0  #write item count by position
 444,putsprite,3,0,0,0         #change a sprite's position (handle, x, y)
 444,placesprite,3,0,0,0       #change a sprite's position (handle, x, y)
+445,updateleveluplearning,2,0,1 #refresh spells learned from level ups
 end
 
 #--------------------------------------------------------------------------

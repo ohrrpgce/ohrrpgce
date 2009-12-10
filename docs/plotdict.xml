@@ -1185,6 +1185,11 @@ plotscript, print learnt spells, who=0, begin
   hide string (0)
 end</example>
 		</command>
+		<command id="updateleveluplearning">
+			<canon>update level up learning(who, allowforget)</canon>
+			<shortname>update level up learning</shortname>
+			<description>Update a hero to make sure they know the spells they are supposed to have learned for their current level. The <p>who</p> is the hero's position in the battle party. You can optionally pass <ref>false</ref> as the <p>allowforget</p> argument if you want to make sure the hero will not forget any spells that they are not supposed to know yet. This spell is most useful for situations where you are manipulating the heros level, and for some reason do not want to use <ref>setherolevel</ref> which automatically handles learning. This command can also be handy when playtesting a game in progress, since it can be used to make sure that heroes loaded from a saved-game will learn spells that did not exist yet at the time when they got their last level-ups.</description>
+		</command>
 		<command id="outsidebattlecure">
 			<canon>outside battle cure (attack, target, attacker)</canon>
 			<shortname>outside battle cure</shortname>

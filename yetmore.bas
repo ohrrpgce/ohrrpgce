@@ -376,6 +376,10 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN
    setheroexperience retvals(0), retvals(1), retvals(2), stat(), exlev()
   END IF
+ CASE 445'--update level up learning(who, allowforget)
+  IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
+   learn_spells_for_current_level retvals(0), stat(), (retvals(1)<>0)
+  END IF
 END SELECT
 END SUB
 

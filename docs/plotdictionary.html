@@ -1171,8 +1171,8 @@
 		<a href="#about-pickhero">pick hero</a><br>
 		
 	
-		<a href="#about-placesprite">place sprite (handle, x, y)</a><br>
 		
+		<a href="#about-putsprite">place sprite</a><br>
 	
 		<a href="#about-playsong">play song (song)</a><br>
 		
@@ -1205,6 +1205,15 @@
 		
 	
 		<a href="#about-putnpc">put npc (who,x,y)</a><br>
+		
+	
+		<a href="#about-putslice">put slice (handle, X, Y)</a><br>
+		
+	
+		<a href="#about-putslicescreen">put slice screen (handle, x, y)</a><br>
+		
+	
+		<a href="#about-putsprite">put sprite (handle, x, y)</a><br>
 		
 	
 		<a href="#about-random">random (lownumber, highnumber)</a><br>
@@ -2016,6 +2025,9 @@
 	
 		
 		<a href="#about-directionconstants">up</a><br>
+	
+		<a href="#about-updateleveluplearning">update level up learning(who, allowforget)</a><br>
+		
 	
 		<a href="#about-updatepalette">update palette</a><br>
 		
@@ -3697,6 +3709,14 @@ plotscript, print learnt spells, who=0, begin
 end</pre>
 			
 		</tt></p>
+		<a name="about-updateleveluplearning"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">update level up learning(who, allowforget)</font></b><br>
+			Update a hero to make sure they know the spells they are supposed to have learned for their current level. The <span class="param">who</span> is the hero's position in the battle party. You can optionally pass <a href="#about-booleanconstants" class="ref">false</a> as the <span class="param">allowforget</span> argument if you want to make sure the hero will not forget any spells that they are not supposed to know yet. This spell is most useful for situations where you are manipulating the heros level, and for some reason do not want to use <a href="#about-setherolevel" class="ref">set hero level</a> which automatically handles learning. This command can also be handy when playtesting a game in progress, since it can be used to make sure that heroes loaded from a saved-game will learn spells that did not exist yet at the time when they got their last level-ups.<br>
+			
+			
+		</tt></p>
 		<a name="about-outsidebattlecure"></a>
 		<p>
 		<tt>
@@ -4978,14 +4998,21 @@ end</pre>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
-		<a name="about-placesprite"></a>
+		<a name="about-putsprite"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">place sprite (handle, x, y)</font></b><br>
-			Moves sprite <span class="param">handle</span> to position (<span class="param">x</span>, <span class="param">y</span>).<br>
+		<b><font color="yellow">put sprite (handle, x, y)</font></b><br>
+			Moves sprite <span class="param">handle</span> to position (<span class="param">x</span>, <span class="param">y</span>). This can only be used on sprites, use <a href="#about-putslice" class="ref">put slice</a> in general. <br>
 			
 			
 		</tt></p>
+		<a name="about-placesprite"></a>
+		<p>
+		<tt>
+		
+				<b><font color="yellow">place sprite</font></b><br>
+				See <a href="#about-putsprite">put sprite</a>
+			</tt></p>
 		<a name="about-getspritetype"></a>
 		<p>
 		<tt>
@@ -5270,6 +5297,18 @@ set horiz align(sl, edge:right)
 <li><a href="#about-slicescreeny" class="ref">slice screen y</a></li>
 </ul>
 		</tt></p>
+		<a name="about-putslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">put slice (handle, X, Y)</font></b><br>
+			Changes the position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-putsprite" class="ref">put sprite</a>, </li>
+<li><a href="#about-putslicescreen" class="ref">put slice screen</a></li>
+</ul>
+		</tt></p>
 		<a name="about-setslicex"></a>
 		<p>
 		<tt>
@@ -5277,6 +5316,8 @@ set horiz align(sl, edge:right)
 			Changes the x position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.<br>
 			
 			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-putslice" class="ref">put slice</a>, </li>
 <li>
 <a href="#about-slicex" class="ref">slice x</a>, </li>
 <li><a href="#about-setslicey" class="ref">set slice y</a></li>
@@ -5289,6 +5330,8 @@ set horiz align(sl, edge:right)
 			Changes the y position of any slice, for example a sprite. This position is relative to the slice's parent, and may depend upon the slice's Align settings.<br>
 			
 			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-putslice" class="ref">put slice</a>, </li>
 <li>
 <a href="#about-slicey" class="ref">slice y</a>, </li>
 <li><a href="#about-setslicex" class="ref">set slice x</a></li>
@@ -5318,13 +5361,29 @@ set horiz align(sl, edge:right)
 <li><a href="#about-slicey" class="ref">slice y</a></li>
 </ul>
 		</tt></p>
+		<a name="about-putslicescreen"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">put slice screen (handle, x, y)</font></b><br>
+			Change the screen position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed. Note that this does not work when a slice is filling its parent.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-putslice" class="ref">put slice</a>, </li>
+<li>
+<a href="#about-slicescreenx" class="ref">slice screen x</a>, </li>
+<li><a href="#about-setslicescreeny" class="ref">set slice screen y</a></li>
+</ul>
+		</tt></p>
 		<a name="about-setslicescreenx"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">set slice screen x (handle, x)</font></b><br>
-			Change the screen X position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.<br>
+			Change the screen X position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed. Note that this does not work when a slice is filling its parent.<br>
 			
 			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-putslicescreen" class="ref">put slice screen</a>, </li>
 <li>
 <a href="#about-slicescreenx" class="ref">slice screen x</a>, </li>
 <li><a href="#about-setslicescreeny" class="ref">set slice screen y</a></li>
@@ -5334,9 +5393,11 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">set slice screen y (handle, y)</font></b><br>
-			Change the screen Y position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed.<br>
+			Change the screen Y position of any slice. The position of the slice relative to its parent will automatically be corrected. Alignment and anchor will not be changed. Note that this does not work when a slice is filling its parent.<br>
 			
 			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-putslicescreen" class="ref">put slice screen</a>, </li>
 <li>
 <a href="#about-slicescreeny" class="ref">slice screen y</a>, </li>
 <li><a href="#about-setslicescreenx" class="ref">set slice screen x</a></li>
@@ -6079,7 +6140,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">get rect trans (handle)</font></b><br>
-			Given a rect slice <span class="param">handle</span>, returns one of: the constant <span class="param">rect:fuzzy</span> if it is drawn semi-transparent, <span class="param">rect:hollow</span> if it is fully transparent, or <span class="param">rect:opaque</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) if it is drawn solid.<br>
+			Given a rect slice <span class="param">handle</span>, returns one of: the constant <span class="param">trans:fuzzy</span> if it is drawn semi-transparent, <span class="param">trans:hollow</span> if it is fully transparent, or <span class="param">trans:opaque</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) if it is drawn solid.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setrecttrans" class="ref">set rect trans</a></li></ul>
 		</tt></p>
@@ -6087,7 +6148,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">set rect trans (handle, transparency setting)</font></b><br>
-			Given a rect slice <span class="param">handle</span>, change how transparently it is drawn. For <span class="param">transparency setting</span>, pass in one of the constants <span class="param">rect:fuzzy</span> for semi-transparency (checkered), <span class="param">rect:hollow</span> for fully transparent (the border drawn only), or <span class="param">rect:opaque</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) for solid.<br>
+			Given a rect slice <span class="param">handle</span>, change how transparently it is drawn. For <span class="param">transparency setting</span>, pass in one of the constants <span class="param">trans:fuzzy</span> for semi-transparency (checkered), <span class="param">trans:hollow</span> for fully transparent (the border drawn only), or <span class="param">trans:opaque</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) for solid.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getrecttrans" class="ref">get rect trans</a></li></ul>
 		</tt></p>
@@ -9119,7 +9180,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 661 commands in this file, of which 53 are only references to other commands.</p>
+	<p>Stats: There are 665 commands in this file, of which 54 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
