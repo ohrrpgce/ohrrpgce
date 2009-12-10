@@ -102,12 +102,14 @@ Target Setting: This controls how the attack can be targetted if more than one v
   single target or all available
   targets.
 
-* Random Target - Like "Focus" this
+* Random Roulette - Like "Focus" this
   chooses only a single target, but
   the player will not be allowed to
-  choose which target. If used by an
-  enemy, this is not any different
-  from "Focus".
+  choose which target. The targetting   cursor will rapidly change.
+  If used by an enemy, this is not
+  any different from "Focus", and if
+  used as part of a chain, this will
+  simply pick a random target.
 
 * First Target - This always targets
   the first valid target in the
@@ -155,3 +157,6 @@ Prefer Target: For heroes, this affects which target the target selection cursor
   for that stat.
 
 Weak/Strong Stat: This only applies if you have chosen "weakest" "strongest" "weakest%" or "strongest%" as the "Prefer Target" setting. Valid values are "same as target stat", or any specific stat, or any affliction register such as "poision" or "mute".
+
+
+Note that if the attack is used as part of a chain, and both the target class and the target setting are the same as the previous attack, and the preferred target is "Default" then the attack will use the exact same target as the previous attack.
