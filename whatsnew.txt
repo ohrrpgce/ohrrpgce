@@ -119,6 +119,7 @@ Dec ?? 2009 [Ypsiliform]
     * Renamed "Random Focus" attack target setting to "Random roulette"
       to more accurately reflect what it does, and make sure it actually
       behaves randomly when used in chains [James]
+    * EVIL bug 233 "OHR freezes on startup", unsolved for 3 years [Ralph]
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]

@@ -187,7 +187,9 @@ function allmodex_setoption(opt as string, arg as string) as integer
 end function
 
 SUB setwindowtitle (title as string)
+	mutexlock keybdmutex
 	gfx_windowtitle title
+	mutexunlock keybdmutex
 END SUB
 
 SUB freepage (byval page as integer)
