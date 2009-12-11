@@ -424,6 +424,9 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    checkTagCond attack.tagset(1), 1
    IF inflict(bat.acting, targ, bslot(), attack, tcount) THEN
     '--attack succeeded
+    IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
+     changefoe targ - 4, attack.transmog_enemy, formdata(), es(), bslot(), attack.transmog_hp, attack.transmog_stats
+    END IF
     IF attack.cancel_targets_attack THEN
      '--try to cancel target's attack
      IF bslot(targ).attack > 0 THEN
@@ -1262,7 +1265,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  'fulldeathcheck fades out only enemies set to die without a boss
  'so additionally call triggerfade on 0 hp enemies here
  'or might that be expected behaviour in some games?
- FOR i = 0 TO 7
+ FOR i = 4 TO 11
   IF bslot(i).stat.cur.hp <= 0 THEN
    triggerfade i, bslot()
   END IF

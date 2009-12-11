@@ -169,14 +169,17 @@ CONST AtkDatInsteadChainVal1 = 114
 CONST AtkDatInsteadChainVal2 = 115
 CONST AtkDatInsteadChainBits = 116
 CONST AtkDatLearnSoundEffect = 117
+CONST AtkDatTransmogEnemy = 118
+CONST AtkDatTransmogHp = 119
+CONST AtkDatTransmogStats = 120
 
 'anything past this requires expanding the data
 
 
 '----------------------------------------------------------
 DIM capindex AS INTEGER = 0
-DIM caption(151) AS STRING
-DIM max(37), min(37)
+DIM caption(155) AS STRING
+DIM max(39), min(39)
 
 'Limit(0) is not used
 
@@ -448,11 +451,24 @@ CONST AtkLimInsteadChainVal2 = 37
 max(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 min(AtkLimInsteadChainVal2) = 0 '--updated by update_attack_editor_for_chain()
 
-'next limit is 38 (remember to update the dim)
+CONST AtkLimTransmogStats = 38
+max(AtkLimTransmogStats) = 3
+min(AtkLimTransmogStats) = 0
+DIM AtkCapTransmogStats AS INTEGER = capindex
+addcaption caption(), capindex, "keep old current"  '0
+addcaption caption(), capindex, "restore to new max"  '1
+addcaption caption(), capindex, "preserve % of max"   '2
+addcaption caption(), capindex, "keep old current, limit to new max"  '3
+
+CONST AtkLimTransmogEnemy = 39
+max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
+min(AtkLimTransmogEnemy) = 0
+
+'next limit is 40 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 69
+CONST MnuItems = 73
 DIM menu(MnuItems) AS STRING, menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -843,7 +859,29 @@ menutype(AtkLearnSoundEffect) = 11
 menuoff(AtkLearnSoundEffect) = AtkDatLearnSoundEffect
 menulimits(AtkLearnSoundEffect) = AtkLimSFX
 
-'Next menu item is 70 (remember to update the dims)
+CONST AtkTransmogAct = 70
+menu(AtkTransmogAct) = "Transmogrification..."
+menutype(AtkTransmogAct) = 1
+
+CONST AtkTransmogEnemy = 71
+menu(AtkTransmogEnemy) = "Enemy target becomes:"
+menutype(AtkTransmogEnemy) = 9 'enemy name
+menuoff(AtkTransmogEnemy) = AtkDatTransmogEnemy
+menulimits(AtkTransmogEnemy) = AtkLimTransmogEnemy
+
+CONST AtkTransmogHp = 72
+menu(AtkTransmogHp) = "Health:"
+menutype(AtkTransmogHp) = 2000 + AtkCapTransmogStats
+menuoff(AtkTransmogHp) = AtkDatTransmogHp
+menulimits(AtkTransmogHp) = AtkLimTransmogStats
+
+CONST AtkTransmogStats = 73
+menu(AtkTransmogStats) = "Other stats:"
+menutype(AtkTransmogStats) = 2000 + AtkCapTransmogStats
+menuoff(AtkTransmogStats) = AtkDatTransmogStats
+menulimits(AtkTransmogStats) = AtkLimTransmogStats
+
+'Next menu item is 74 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -851,7 +889,7 @@ DIM workmenu(22), dispmenu(22) AS STRING
 DIM state as MenuState
 state.size = 22
 
-DIM mainMenu(10)
+DIM mainMenu(11)
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
@@ -863,6 +901,7 @@ mainMenu(7) = AtkCostAct
 mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
 mainMenu(10) = AtkTagAct
+mainMenu(11) = AtkTransmogAct
 
 DIM appearMenu(10)
 appearMenu(0) = AtkBackAct
@@ -940,6 +979,12 @@ tagMenu(3) = AtkTag
 tagMenu(4) = AtkTagIf2
 tagMenu(5) = AtkTagAnd2
 tagMenu(6) = AtkTag2
+
+DIM transmogMenu(3)
+transmogMenu(0) = AtkBackAct
+transmogMenu(1) = AtkTransmogEnemy
+transmogMenu(2) = AtkTransmogHp
+transmogMenu(3) = AtkTransmogStats
 
 '--Create the box that holds the preview
 DIM preview_box AS Slice Ptr
@@ -1076,6 +1121,10 @@ DO
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), tagMenu(), state
     helpkey = "attack_tags"
+   CASE AtkTransmogAct
+    atk_edit_pushptr state, laststate, menudepth
+    setactivemenu workmenu(), transmogMenu(), state
+    helpkey = "attack_transmogrify"
    CASE AtkPal
     recbuf(AtkDatPal) = pal16browse(recbuf(AtkDatPal), 6, recbuf(AtkDatPic))
     state.need_update = YES

@@ -81,6 +81,7 @@ Dec ?? 2009 [Ypsiliform]
     * Each text box can now have a sound effect attached. [James]
     * F12 to take a screenshot, alt+tab to toggle fullscreen, and alt+F4
       now work everywhere in Game and Custom with all backends [Ralph]
+    * Attacks can transmogrify enemies into different enemies [James]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

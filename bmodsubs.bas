@@ -35,6 +35,7 @@ DECLARE FUNCTION battle_distance(who1 as integer, who2 as integer, bslot() AS Ba
 DECLARE SUB transfer_enemy_bits(slot AS INTEGER, es() AS INTEGER, bslot() AS BattleSprite)
 DECLARE SUB setup_non_volitile_enemy_state(slot AS INTEGER, es() AS INTEGER, bslot() AS BattleSprite)
 DECLARE SUB setup_enemy_sprite_and_name(slot AS INTEGER, es() AS INTEGER, bslot() AS BattleSprite)
+DECLARE SUB change_foe_stat(BYREF bspr AS BattleSprite, stat_num AS INTEGER, new_max AS INTEGER, stat_rule AS INTEGER)
 
 REM $STATIC
 FUNCTION is_hero(who as integer) as integer
@@ -1593,7 +1594,7 @@ SUB setup_enemy_sprite_and_name(slot AS INTEGER, es() AS INTEGER, bslot() AS Bat
  NEXT i
 END SUB
 
-SUB changefoe(slot as integer, new_id AS INTEGER, formdata() as integer, es() as integer, bslot() AS BattleSprite)
+SUB changefoe(slot as integer, new_id AS INTEGER, formdata() as integer, es() as integer, bslot() AS BattleSprite, hp_rule AS INTEGER, other_stats_rule AS INTEGER)
  IF formdata(slot * 4) = 0 THEN
   debug "changefoe doesn't work on empty slot " & slot & " " & new_id
   EXIT SUB
@@ -1627,9 +1628,30 @@ SUB changefoe(slot as integer, new_id AS INTEGER, formdata() as integer, es() as
  setup_enemy_sprite_and_name slot, es(), bslot()
 
  '--update stats
- 'FOR i = 0 TO 11
- ' bslot(4 + slot).stat.cur.sta(o) = es(slot, 62 + o)
- ' bslot(4 + slot).stat.max.sta(o) = es(slot, 62 + o)
- 'NEXT o
+ change_foe_stat bslot(4 + slot), 0, es(slot, 62), hp_rule
+ FOR i AS INTEGER = 1 TO 11
+  change_foe_stat bslot(4 + slot), i, es(slot, 62 + i), other_stats_rule
+ NEXT i
  
+END SUB
+
+SUB change_foe_stat(BYREF bspr AS BattleSprite, stat_num AS INTEGER, new_max AS INTEGER, stat_rule AS INTEGER)
+ WITH bspr.stat
+  '--selectively alter current stat
+  SELECT CASE stat_rule
+   CASE 0 '--keep old current
+   CASE 1 '--use new max
+    .cur.sta(stat_num) = new_max
+   CASE 2 '--preserve % of max
+    IF .max.sta(stat_num) > 0 THEN
+     .cur.sta(stat_num) = CINT(new_max / .max.sta(stat_num) * .cur.sta(stat_num))
+    ELSE
+     .cur.sta(stat_num) = 0
+    END IF
+   CASE 3 '--keep old current, crop to new max
+    .cur.sta(stat_num) = small(.cur.sta(stat_num), new_max)
+  END SELECT
+  '--always use new max stat
+  .max.sta(stat_num) = new_max
+ END WITH
 END SUB

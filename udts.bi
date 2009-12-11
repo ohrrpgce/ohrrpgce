@@ -335,6 +335,9 @@ Type AttackData
 	elsechain as AttackDataChain
 	instead as AttackDataChain
 	learn_sound_effect as integer ' ID + 1
+	transmog_enemy as integer ' ID + 1, 0 no change
+	transmog_hp as integer
+	transmog_stats as integer
 	'----Bitsets----
 	cure_instead_of_harm as integer
 	divide_spread_damage as integer

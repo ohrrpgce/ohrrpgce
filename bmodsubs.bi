@@ -29,6 +29,7 @@ declare function inflict (w as integer, as integer, bslot() as battlesprite, att
 declare function liveherocount overload (bslot() AS BattleSprite) as integer
 declare function liveherocount (oobstat() AS integer) as integer
 declare sub loadfoe (slot as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)
+declare sub changefoe(slot as integer, new_id AS INTEGER, formdata() as integer, es() as integer, bslot() AS BattleSprite, hp_rule AS INTEGER, other_stats_rule AS INTEGER)
 declare function randomally (who as integer) as integer
 declare function randomfoe (who as integer) as integer
 declare sub anim_retreat (who as integer, attack as AttackData, bslot() AS BattleSprite)
