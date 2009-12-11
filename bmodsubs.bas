@@ -576,101 +576,6 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-SUB loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)
-DIM tempbits(4) AS INTEGER ' This is a hack because readbit doesn't work on double-index arrays
-IF formdata(i * 4) > 0 THEN
- loadenemydata buffer(), formdata(i * 4) - 1, -1
- FOR o = 0 TO 160
-  es(i, o) = buffer(o)
- NEXT o
- 
- 'Copy elemental bits and other bits from es() to bslot()
- FOR o = 0 TO 4
-  tempbits(o) = es(i, 74 + o)
- NEXT o
- WITH bslot(4 + i)
-  .harmed_by_cure = xreadbit(tempbits(), 54)
-  .mp_idiot = xreadbit(tempbits(), 55)
-  .is_boss = xreadbit(tempbits(), 56)
-  .unescapable = xreadbit(tempbits(), 57)
-  .die_without_boss = xreadbit(tempbits(), 58)
-  .flee_instead_of_die = xreadbit(tempbits(), 59)
-  .enemy_untargetable = xreadbit(tempbits(), 60)
-  .hero_untargetable = xreadbit(tempbits(), 61)
-  .death_unneeded = xreadbit(tempbits(), 62)
-  .never_flinch = xreadbit(tempbits(), 63)
-  .ignore_for_alone = xreadbit(tempbits(), 64)
-  FOR o = 0 TO 7
-   .weak(o) = xreadbit(tempbits(), o)
-   .strong(o) = xreadbit(tempbits(), 8 + o)
-   .absorb(o) = xreadbit(tempbits(), 16 + o)
-   .enemytype(o) = xreadbit(tempbits(), 24 + o)
-  NEXT o
- END WITH
- 
- IF allow_dead = NO THEN
-  'enemies which spawn already-dead should be killed off immediately
-  'die without boss or 0 hp?
-  IF dieWOboss(4 + i, bslot()) OR es(i, 62) <= 0 THEN
-   'rewards and spawn enemies on death
-   'enemy is only partially constructed, but already have everything needed.
-   DIM atktype(8) 'regular "spawn on death"
-   dead_enemy 4 + i, -1, bat, rew, bslot(), es(), formdata()
-   EXIT SUB
-  END IF
- END IF
- WITH bslot(4 + i)
-  .basex = formdata(i * 4 + 1)
-  .basey = formdata(i * 4 + 2)
-  .x = bslot(4 + i).basex
-  .y = bslot(4 + i).basey
-  .vis = 1
-  .d = 0
-  .dissolve = 0
-  .flee = 0
-  .w = sprite_sizes(1 + es(i, 55)).size.x
-  .h = sprite_sizes(1 + es(i, 55)).size.y
-  .deathtype = es(i, 22) - 1
-  IF .deathtype = -1 THEN .deathtype = gen(genEnemyDissolve)
-  .deathtime = es(i, 23)
-  IF .deathtime = 0 THEN
-   .deathtime = .w / 2
-   'squash, vapourise, phase out
-   IF .deathtype = 4 or .deathtype = 6 or .deathtype = 7 THEN .deathtime = .w / 5
-  END IF
-  .cursorpos.x = .w / 2 - es(i, 25) '--X offset is subtracted instead of added because enemies are always h-flipped
-  .cursorpos.y = es(i, 26)
-  .death_sfx = es(i, 24)
-  .revenge = -1
-  .thankvenge = -1
-  FOR o = 0 TO 11
-   .revengemask(o) = NO
-   .last_targs(o) = NO
-   .stored_targs(o) = NO
-   .thankvengemask(o) = NO
-  NEXT o
- END WITH
-END IF
-IF bslot(4 + i).vis = 1 THEN
- with bslot(4 + i)
-  .sprite_num = 1
-  .sprites = sprite_load(1 + es(i, 55), es(i, 53))
-  .pal = palette16_load(es(i, 54), 1 + es(i, 55), es(i, 53))
- end with
- FOR o = 0 TO 11
-  bslot(4 + i).stat.cur.sta(o) = es(i, 62 + o)
-  bslot(4 + i).stat.max.sta(o) = es(i, 62 + o)
- NEXT o
- 'can't use readbadbinstring because es is 2D
- bslot(4 + i).name = ""
- FOR o = 1 TO es(i, 0)
-  bslot(4 + i).name = bslot(4 + i).name + CHR$(es(i, o))
- NEXT o
-ELSE
- bslot(4 + i).sprites = 0
-END IF
-END SUB
-
 FUNCTION randomally (who as integer) as integer
 IF is_hero(who) THEN
  randomally = INT(RND * 4)
@@ -1545,3 +1450,123 @@ FUNCTION targenemycount (bslot() AS BattleSprite, for_alone_ai as integer=0) as 
  NEXT i
  RETURN count
 END FUNCTION
+
+SUB loadfoe (i as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)
+ '--i is the enemy formation slot
+
+ DIM o AS INTEGER
+ 
+ IF formdata(i * 4) > 0 THEN '-- if this slot is occupied
+ 
+  '--load enemy data into a buffer
+  
+  DIM enemy_buf(159) AS INTEGER
+  loadenemydata enemy_buf(), formdata(i * 4) - 1, -1
+  FOR o = 0 TO 159
+   es(i, o) = enemy_buf(o)
+  NEXT o
+ 
+  '--Copy elemental bits and other bits from es() to bslot()
+  
+  DIM tempbits(4) AS INTEGER ' This is a hack because readbit doesn't work on double-index arrays
+  FOR o = 0 TO 4
+   tempbits(o) = es(i, 74 + o)
+  NEXT o
+  
+  WITH bslot(4 + i)
+   .harmed_by_cure = xreadbit(tempbits(), 54)
+   .mp_idiot = xreadbit(tempbits(), 55)
+   .is_boss = xreadbit(tempbits(), 56)
+   .unescapable = xreadbit(tempbits(), 57)
+   .die_without_boss = xreadbit(tempbits(), 58)
+   .flee_instead_of_die = xreadbit(tempbits(), 59)
+   .enemy_untargetable = xreadbit(tempbits(), 60)
+   .hero_untargetable = xreadbit(tempbits(), 61)
+   .death_unneeded = xreadbit(tempbits(), 62)
+   .never_flinch = xreadbit(tempbits(), 63)
+   .ignore_for_alone = xreadbit(tempbits(), 64)
+   FOR o = 0 TO 7
+    .weak(o) = xreadbit(tempbits(), o)
+    .strong(o) = xreadbit(tempbits(), 8 + o)
+    .absorb(o) = xreadbit(tempbits(), 16 + o)
+    .enemytype(o) = xreadbit(tempbits(), 24 + o)
+   NEXT o
+  END WITH
+
+  '--Special handling for spawning already-dead enemies
+ 
+  IF allow_dead = NO THEN
+   'enemies which spawn already-dead should be killed off immediately
+   'die without boss or 0 hp?
+   IF dieWOboss(4 + i, bslot()) OR es(i, 62) <= 0 THEN
+    'rewards and spawn enemies on death
+    'enemy is only partially constructed, but already have everything needed.
+    DIM atktype(8) 'regular "spawn on death"
+    dead_enemy 4 + i, -1, bat, rew, bslot(), es(), formdata()
+    EXIT SUB
+   END IF
+  END IF
+
+  '--set up battle state
+  WITH bslot(4 + i)
+   .basex = formdata(i * 4 + 1)
+   .basey = formdata(i * 4 + 2)
+   .x = bslot(4 + i).basex
+   .y = bslot(4 + i).basey
+   .vis = 1
+   .d = 0
+   .dissolve = 0
+   .flee = 0
+   .w = sprite_sizes(1 + es(i, 55)).size.x
+   .h = sprite_sizes(1 + es(i, 55)).size.y
+   .deathtype = es(i, 22) - 1
+   IF .deathtype = -1 THEN .deathtype = gen(genEnemyDissolve)
+   .deathtime = es(i, 23)
+   IF .deathtime = 0 THEN
+    .deathtime = .w / 2
+    'squash, vapourise, phase out
+    IF .deathtype = 4 or .deathtype = 6 or .deathtype = 7 THEN .deathtime = .w / 5
+   END IF
+   .cursorpos.x = .w / 2 - es(i, 25) '--X offset is subtracted instead of added because enemies are always h-flipped
+   .cursorpos.y = es(i, 26)
+   .death_sfx = es(i, 24)
+   .revenge = -1
+   .thankvenge = -1
+   FOR o = 0 TO 11
+    .revengemask(o) = NO
+    .last_targs(o) = NO
+    .stored_targs(o) = NO
+    .thankvengemask(o) = NO
+   NEXT o
+  END WITH
+  
+ END IF 'this slot is occupied
+ 
+ '--if the enemy in this slot is visible
+ IF bslot(4 + i).vis = 1 THEN
+ 
+  '--Update sprite
+  with bslot(4 + i)
+   .sprite_num = 1
+   .sprites = sprite_load(1 + es(i, 55), es(i, 53))
+   .pal = palette16_load(es(i, 54), 1 + es(i, 55), es(i, 53))
+  end with
+  
+  '--update stats
+  FOR o = 0 TO 11
+   bslot(4 + i).stat.cur.sta(o) = es(i, 62 + o)
+   bslot(4 + i).stat.max.sta(o) = es(i, 62 + o)
+  NEXT o
+  
+  'can't use readbadbinstring because es is 2D
+  bslot(4 + i).name = ""
+  FOR o = 1 TO es(i, 0)
+   bslot(4 + i).name = bslot(4 + i).name + CHR$(es(i, o))
+  NEXT o
+  
+ELSE
+ '--if the enemy in this slot is not visible, mark its sprite count as 0
+ bslot(4 + i).sprites = 0
+END IF
+
+END SUB
