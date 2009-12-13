@@ -266,15 +266,16 @@ function loadrecord (buf() as integer, fh as integer, recordsize as integer, rec
 	loadrecord = 1
 end function
 
-function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0) as integer
+function loadrecord (buf() as integer, filen as string, recordsize as integer, record as integer = 0, expectfile as integer = YES) as integer
 'wrapper for above
+'set expectfile = NO to suppress errors
 	dim f as integer
 	dim i as integer
 
 	if recordsize <= 0 then return 0
 
 	if NOT fileisreadable(filen) then
-		debug "File not found loading record " & record & " from " & filen
+		if expectfile = YES then debug "File not found loading record " & record & " from " & filen
 		for i = 0 to recordsize - 1
 			buf(i) = 0
 		next
@@ -310,7 +311,10 @@ sub storerecord (buf() as integer, filen as string, recordsize as integer, recor
 'wrapper for above
 	dim f as integer
 
-	if NOT fileiswriteable(filen) then exit sub
+	if NOT fileiswriteable(filen) then
+		debug "could not write record to " & filen
+		exit sub
+	end if
 	f = freefile
 	open filen for binary access read write as #f
 

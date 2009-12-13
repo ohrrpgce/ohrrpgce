@@ -572,7 +572,7 @@ DO UNTIL EOF(fh)
  '--RPG files
  IF br.special = 7 THEN
   copylump f, "browse.txt", br.tmp, -1
-  IF loadrecord(tempbuf(), br.tmp + "browse.txt", 40) THEN
+  IF loadrecord(tempbuf(), br.tmp + "browse.txt", 40, , NO) THEN
    tree(br.treesize).caption = readbinstring(tempbuf(), 0, 38)
    tree(br.treesize).about = readbinstring(tempbuf(), 20, 38)
    safekill br.tmp + "browse.txt"

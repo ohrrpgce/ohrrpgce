@@ -536,7 +536,7 @@ DIM a AS STRING
 
 DIM buf(19) AS INTEGER
 IF num >= 16384 AND trigger > 0 THEN
- IF loadrecord (buf(), workingdir + SLASH + "lookup" + STR(trigger) + ".bin", 20, num - 16384) THEN
+ IF loadrecord (buf(), workingdir + SLASH + "lookup" + STR(trigger) + ".bin", 20, num - 16384, NO) THEN
   DIM sname AS STRING = readbinstring(buf(), 1, 36)
   IF buf(0) THEN
    a = sname

@@ -2478,14 +2478,10 @@ FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
  DIM fname AS STRING
  IF trigger >= 16384 THEN
   fname = workingdir & SLASH & "lookup" & trigtype & ".bin"
-  IF isfile(fname) THEN
-   IF loadrecord (buf(), fname$, 20, trigger - 16384) THEN
-    RETURN buf(0)
-   ELSE
-    debug "decodetrigger: record " & (trigger - 16384) & " could not be loaded"
-   END IF
+  IF loadrecord (buf(), fname$, 20, trigger - 16384) THEN
+   RETURN buf(0)
   ELSE
-   debug "decodetrigger: file " & fname & " could not be found"
+   debug "decodetrigger: record " & (trigger - 16384) & " could not be loaded"
   END IF
  ELSE
   '--this is an old-style script
