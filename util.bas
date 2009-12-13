@@ -506,6 +506,8 @@ FUNCTION strhash(hstr as string) as unsigned integer
 END FUNCTION
 
 
+'--------- Doubly Linked List ---------
+
 #define DLFOLLOW(someptr)  cast(DListItem(Any) ptr, cast(byte ptr, someptr) + this.memberoffset)
 
 SUB dlist_construct (byref this as DoubleList(Any), byval itemoffset as integer)
@@ -542,6 +544,9 @@ END SUB
 SUB dlist_remove (byref this as DoubleList(Any), byval item as any ptr)
   dim litem as DListItem(Any) ptr = DLFOLLOW(item)
 
+  'check whether item isn't the member of a list
+  if litem->next = NULL andalso item <> this.last then exit sub
+
   if litem->prev then
     DLFOLLOW(litem->prev)->next = litem->next
   else
@@ -569,3 +574,100 @@ FUNCTION dlist_find (byref this as DoubleList(Any), byval item as any ptr) as in
   return 0
 END FUNCTION
 
+FUNCTION dlist_walk (byref this as DoubleList(Any), byval item as any ptr, byval n as integer) as any ptr
+  if item = NULL then item = this.first
+  while n > 0 andalso item
+    item = DLFOLLOW(item)->next
+    n -= 1
+  wend
+  while n < 0 andalso item
+    item = DLFOLLOW(item)->prev
+    n += 1
+  wend
+  return item
+END FUNCTION
+
+
+'------------- Hash Table -------------
+
+#define HTCASTUSERPTR(someptr)  cast(any ptr, cast(byte ptr, someptr) - this.memberoffset)
+#define HTCASTITEMPTR(someptr)  cast(HashedItem ptr, cast(byte ptr, someptr) + this.memberoffset)
+
+SUB hash_construct(byref this as HashTable, byval itemoffset as integer, byval tablesize as integer = 256)
+  this.numitems = 0
+  this.tablesize = tablesize
+  this.table = callocate(sizeof(any ptr) * this.tablesize)
+  this.comparefunc = NULL
+  this.memberoffset = itemoffset
+END SUB
+
+SUB hash_destruct(byref this as HashTable)
+  deallocate(this.table)
+  this.table = NULL
+END SUB
+
+SUB hash_add(byref this as HashTable, byval item as any ptr)
+  dim bucket as HashedItem ptr ptr
+  dim it as HashedItem ptr = HTCASTITEMPTR(item)
+  
+  bucket = @this.table[it->hash mod this.tablesize]
+  it->_prevp = bucket
+  it->_next = *bucket
+  if *bucket then
+    it->_next->_prevp = @it->_next
+  end if
+  *bucket = it
+
+  this.numitems += 1
+END SUB
+
+SUB hash_remove(byref this as HashTable, byval item as any ptr)
+  IF item = NULL THEN EXIT SUB
+
+  dim it as HashedItem ptr = HTCASTITEMPTR(item)
+
+  *(it->_prevp) = it->_next
+  IF it->_next THEN
+    it->_next->_prevp = it->_prevp
+  END IF
+  it->_next = NULL
+  it->_prevp = NULL
+  this.numitems -= 1
+END SUB
+
+FUNCTION hash_find(byref this as HashTable, byval hash as integer, byval key as any ptr = NULL) as any ptr
+  dim bucket as HashedItem ptr ptr
+  dim it as HashedItem ptr
+  
+  it = this.table[hash mod this.tablesize]
+  while it
+    if it->hash = hash then
+      dim ret as any ptr = HTCASTUSERPTR(it)
+      if key andalso this.comparefunc then
+        if this.comparefunc(ret, key) then
+          return ret
+        end if
+      else
+        return ret
+      end if
+    end if
+    it = it->_next
+  wend
+  return NULL
+END FUNCTION
+
+FUNCTION hash_iter(byref this as HashTable, byref state as integer, byref item as any ptr) as any ptr
+  dim it as HashedItem ptr = NULL
+  if item then
+    it = HTCASTITEMPTR(item)->_next
+  end if
+
+  while it = NULL
+    if state > this.tablesize then return NULL
+    it = this.table[state]
+    state += 1
+  wend
+ 
+  item = HTCASTUSERPTR(it)
+  return item
+END FUNCTION

@@ -113,6 +113,8 @@ declare sub int_array_append (array() as integer, k as integer)
 declare function int_array_find (array() as integer, value as integer) as integer
 
 
+'--------------- Stack ----------------
+
 TYPE Stack
   pos as integer ptr
   bottom as integer ptr
@@ -129,6 +131,8 @@ declare sub checkoverflow (st as Stack, byval amount as integer = 1)
 #define checkunderflow(stack, amount) ((stack).pos - (amount) < (stack).bottom)
 
 
+'------------ String Cache ------------
+
 TYPE IntStrPair
   i as integer
   s as string
@@ -139,12 +143,14 @@ declare sub add_string_cache (cache() as IntStrPair, byval key as integer, value
 declare sub remove_string_cache (cache() as IntStrPair, byval key as integer)
 
 
+'--------- Doubly Linked List ---------
+
 'doubly linked list header
 TEMPLATE_GENERIC(DoubleList, T)
   numitems as integer
   first as T ptr
   last as T ptr
-  memberoffset as integer
+  memberoffset as integer '= OFFSETOF(T, DListItem)
 #ENDMACRO
 ENDGENERIC
 
@@ -169,6 +175,50 @@ declare sub dlist_remove (byref this as DoubleList(Any), byval item as any ptr)
 
 'returns 1-based index of item in the list, or 0 if not found
 declare function dlist_find (byref this as DoubleList(Any), byval item as any ptr) as integer
+
+'Move along a list n spaces: positive is forward, negative backwards. Returns NULL past either end
+declare function dlist_walk (byref this as DoubleList(Any), byval startitem as any ptr, byval n as integer) as any ptr
+
+'the nth item in a list, counting from 1. NULL past end
+#define dlist_nth(this, n) dlist_insertat((this), NULL, (n)-1)
+
+
+'------------- Hash Table -------------
+
+TYPE HashedItem
+  hash as unsigned integer
+  'these are internal
+  _next as HashedItem ptr       
+  _prevp as HashedItem ptr ptr  'pointer to either a _next pointer to this, or table entry
+END TYPE
+'(notice that unlike DListItem, the HashedItem next/prev point to HashedItem rather than containing objects)
+
+TYPE CompareFn as function(byval as any ptr, byval as any ptr) as integer
+
+'if we had classes, then this would work well as a template, but it's pointless at the moment
+TYPE HashTable
+  numitems as integer
+  tablesize as integer
+  table as any ptr ptr
+  'arguments to comparefunc are (byval as TypeContainingHashedItem ptr, byval as KeyType ptr)
+  comparefunc as CompareFn
+  memberoffset as integer
+END TYPE
+
+'a HashTable compares items by their hash values. If two different keys might hash to the same value, you should
+'set the 'comparefunc' function pointer in the HashTable, and pass 'key' to hash_find
+
+declare sub hash_construct(byref this as HashTable, byval itemoffset as integer, byval tablesize as integer = 256)
+declare sub hash_destruct(byref this as HashTable)
+
+'Pass an object containing HashedItem member with .hash already set
+declare sub hash_add(byref this as HashTable, byval item as any ptr)
+declare sub hash_remove(byref this as HashTable, byval item as any ptr)
+declare function hash_find(byref this as HashTable, byval hash as integer, byval key as any ptr = NULL) as any ptr
+
+'to iterate over a hash table, dim an integer = 0 and object pointer = NULL and
+'pass to hash_iter until item = NULL. Returns item.
+declare function hash_iter(byref this as HashTable, byref state as integer, byref item as any ptr) as any ptr
 
 
 '----------------------------------------------------------------------
