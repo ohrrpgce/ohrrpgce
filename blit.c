@@ -12,6 +12,8 @@ struct Palette16 {
 	int refcount; //private
 };
 
+struct SpriteCacheEntry;
+
 //sprites use this
 struct Frame {
 	int w;
@@ -22,6 +24,7 @@ struct Frame {
 	int refcount;  //see sprite_unload in particular for documentation
 	int arraylen;  //how many frames were contiguously allocated in this frame array
 	struct Frame *base;   //the Frame which actually owns this memory
+	struct SpriteCacheEntry *cacheentry;
 	int cached:1;  //(not set for views onto cached sprites)
 	int arrayelem:1;  //not the first frame in a frame array
 	int isview:1;

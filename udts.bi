@@ -24,7 +24,10 @@ TYPE Palette16
 	refcount as integer 'private
 END TYPE
 
+TYPE SpriteCacheEntryFwd as SpriteCacheEntry
+
 'sprites use this
+'don't forget to update definition in blit.c when changing this!!
 type Frame
 	w as integer
 	h as integer
@@ -34,6 +37,7 @@ type Frame
 	refcount as integer  'see sprite_unload in particular for documentation
 	arraylen as integer  'how many frames were contiguously allocated in this frame array
 	base as Frame ptr    'the Frame which actually owns this memory
+	cacheentry as SpriteCacheEntryFwd ptr
 	cached:1 as integer  '(not set for views onto cached sprites)
 	arrayelem:1 as integer  'not the first frame in a frame array
 	isview:1 as integer

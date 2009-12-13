@@ -45,10 +45,6 @@ DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer
 DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, byval l as integer, BYVAL mp as integer ptr) as integer
 declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
 
-'not to be exposed outside allmodex
-declare sub sprite_freemem(byval f as frame ptr)
-declare sub Palette16_delete(byval f as Palette16 ptr ptr)
-
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
@@ -125,6 +121,23 @@ dim shared fpstime as double = 0.0
 dim shared fpsstring as string
 dim shared showfps as integer = 0
 
+MAKETYPE_DoubleList(SpriteCacheEntry)
+MAKETYPE_DListItem(SpriteCacheEntry)
+type SpriteCacheEntry
+	'cachelist used only if object is a member of sprcacheB
+	cacheB as DListItem(SpriteCacheEntry)
+	hashed as HashedItem
+	p as frame ptr
+	cost as integer
+	Bcached as integer
+end type
+
+dim shared sprcache as HashTable
+dim shared sprcacheB as DoubleList(SpriteCacheEntry)
+dim shared sprcacheB_used as integer  'number of slots full
+'dim shared as integer cachehit, cachemiss
+
+
 sub setmodex()
 	dim i as integer
 
@@ -136,6 +149,10 @@ sub setmodex()
 
 	gfx_init(@post_terminate_signal, "FB_PROGRAM_ICON")
 	setclip , , , , 0
+
+	hash_construct(sprcache, offsetof(SpriteCacheEntry, hashed))
+	dlist_construct(sprcacheB.generic, offsetof(SpriteCacheEntry, cacheB))
+	sprcacheB_used = 0
 
 	'init vars
 	stacksize = -1
@@ -170,6 +187,9 @@ sub restoremode()
 	for i as integer = 0 to ubound(vpages)
 		sprite_unload(@vpages(i))
 	next
+
+	hash_destruct(sprcache)
+	'debug "cachehit = " & cachehit & " mis == " & cachemiss
 
 	releasestack
 end sub
@@ -3327,101 +3347,157 @@ FUNCTION getmusictype (file$) as integer
   return chk
 END FUNCTION
 
-'This should be replaced with a real hash
-'Really? How likely is loading graphics to be time-critical to the microsecond?
-type SpriteCache
-	key as integer
-	p as frame ptr
-end type
-redim shared sprcache(60) as SpriteCache
+'not to be used outside of the sprite functions
+declare sub sprite_freemem(byval f as frame ptr)
+declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 
-' seeks a frame, and removes it from the cache. It does not free it or
-' do any sort of memory management, it just removes it from the cache.
-private sub sprite_remove_cache(byval spr as frame ptr)
-	dim i as integer
-	for i = 0 to ubound(sprcache)
-		if sprcache(i).p = spr then
-			sprcache(i).key = 0
-			sprcache(i).p = 0
-			exit sub
+'The sprite cache, which is a HashTable (sprcache) containing all loaded sprites, is split in
+'two: the A cache containing currently in-use sprites (which is not explicitly tracked), and
+'the B cache holding those not in use, which is a LRU list 'sprcacheB' which holds a maximum
+'of SPRCACHEB_SZ entries.
+'The number/size of in-use sprites is not limited, and does not count towards the B cache
+'unless COMBINED_SPRCACHE_LIMIT is defined. It should be left undefined when memory usage
+'is not actually important.
+
+'I couldn't find any algorithms for inequal cost caching so invented my own: sprite size is
+'measured in 'base size' units, and instead of being added to the head of the LRU list,
+'sprites are moved a number of places back from the head equal to their size. This is probably
+'an unnecessary complication over LRU, but it's fun.
+
+CONST SPRCACHE_BASE_SZ = 4096  'bytes
+CONST SPRCACHEB_SZ = 256  'in SPRITE_BASE_SZ units
+'#DEFINE COMBINED_SPRCACHE_LIMIT 1
+
+
+' removes a sprite from the cache, and frees it.
+private sub sprite_remove_cache(byval entry as SpriteCacheEntry ptr)
+	if entry->p->refcount <> 1 then
+		debug "error: invalidly uncaching sprite " & sprite_describe(entry->p)
+	end if
+	dlist_remove(sprcacheB.generic, entry)
+	hash_remove(sprcache, entry)
+	sprite_freemem(entry->p)
+	#ifdef COMBINED_SPRCACHE_LIMIT
+		sprcacheB_used -= entry->cost
+	#else
+		if entry->Bcached then
+			sprcacheB_used -= entry->cost
 		end if
-	next
+	#endif
+	deallocate(entry)
 end sub
 
-' looks for a key in the cache. Will return the pointer associated with it.
-private function sprite_find_cache(byval key as integer) as frame ptr
-	dim i as integer
-	for i = 0 to ubound(sprcache)
-		if sprcache(i).key = key then return sprcache(i).p
-	next
-	return 0
+'Free some sprites from the end of the B cache
+'Returns true if enough space was freed
+private function sprite_cacheB_shrink(byval amount as integer) as integer
+	sprite_cacheB_shrink = (amount <= SPRCACHEB_SZ)
+	if sprcacheB_used + amount <= SPRCACHEB_SZ then exit function
+
+	dim as SpriteCacheEntry ptr pt, prevpt
+	pt = sprcacheB.last
+	while pt
+		prevpt = pt->cacheB.prev
+		sprite_remove_cache(pt)
+		if sprcacheB_used + amount <= SPRCACHEB_SZ then exit function
+		pt = prevpt
+	wend
 end function
+
 
 'Completely empty the sprite cache
 sub sprite_empty_cache()
-	dim i as integer
-	for i = 0 to ubound(sprcache)
-		with sprcache(i)
-			if .p <> 0 then
-				debug "warning: leaked sprite: " & .key & " with " & .p->refcount & " references"
-				sprite_unload @.p
-			elseif .key <> 0 then
-				debug "warning: phantom cached sprite " & .key
-			end if
-			.key = 0
-		end with
-	next
+	dim iterstate as integer = 0
+	dim as SpriteCacheEntry ptr pt, nextpt
+
+	nextpt = NULL
+	pt = hash_iter(sprcache, iterstate, nextpt)
+	while pt
+		nextpt = hash_iter(sprcache, iterstate, nextpt)
+		'recall that the cache counts as a reference
+		if pt->p->refcount <> 1 then
+			debug "warning: leaked sprite: " & pt->hashed.hash & " with " & pt->p->refcount & " references"
+		end if
+		sprite_remove_cache(pt)
+		pt = nextpt
+	wend
+	if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
+		debug "sprite cache corrupt: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
+	end if
 end sub
 
 sub sprite_debug_cache()
 	debug "==sprcache=="
-	for i as integer = 0 to ubound(sprcache)
-		with sprcache(i)
-			debug i & " " & .key & " " & sprite_describe(.p)
-		end with
-	next i
+	dim iterstate as integer = 0
+	dim pt as SpriteCacheEntry ptr = NULL
+
+	while hash_iter(sprcache, iterstate, pt)
+		debug pt->hashed.hash & " cost=" & pt->cost & " : " & sprite_describe(pt->p)
+	wend
+
+	debug "==sprcacheB== (used units = " & sprcacheB_used & "/" & SPRCACHEB_SZ & ")"
+	pt = sprcacheB.first
+	while pt
+		debug pt->hashed.hash & " cost=" & pt->cost & " : " & sprite_describe(pt->p)
+		pt = pt->cacheB.next
+	wend
 end sub
 
-' adds a frame to the cache with a given key.
-' will overwrite older sprites with refcounts of 0 or less.
-' if the key already exists, will update it to this pointer.
-' will also expand the cache if it is full of referenced sprites.
+'a sprite has no references, move it to the B cache
+private sub sprite_to_B_cache(byval entry as SpriteCacheEntry ptr)
+	dim pt as SpriteCacheEntry ptr
+
+	if sprite_cacheB_shrink(entry->cost) = NO then
+		'fringe case: bigger than the max cache size
+		sprite_remove_cache(entry)
+		exit sub
+	end if
+
+	'apply size penalty
+	pt = sprcacheB.first
+	dim tobepaid as integer = entry->cost
+	while pt
+		tobepaid -= pt->cost
+		if tobepaid <= 0 then exit while
+		pt = pt->cacheB.next
+	wend
+	dlist_insertat(sprcacheB.generic, pt, entry)
+	entry->Bcached = YES
+	#ifndef COMBINED_SPRCACHE_LIMIT
+		sprcacheB_used += entry->cost
+	#endif
+end sub
+
+' move a sprite out of the B cache
+private sub sprite_from_B_cache(byval entry as SpriteCacheEntry ptr)
+	dlist_remove(sprcacheB.generic, entry)
+	entry->Bcached = NO
+	#ifndef COMBINED_SPRCACHE_LIMIT
+		sprcacheB_used -= entry->cost
+	#endif
+end sub
+
+' adds a newly loaded frame to the cache with a given key
 private sub sprite_add_cache(byval key as integer, byval p as frame ptr)
 	if p = 0 then exit sub
-	dim as integer i, sec = -1
+
+	dim entry as SpriteCacheEntry ptr
+	entry = callocate(sizeof(SpriteCacheEntry))
+
+	entry->hashed.hash = key
+	entry->p = p
+	entry->cost = (p->w * p->h * p->arraylen) \ SPRCACHE_BASE_SZ + 1
+	'leave entry->cacheB unlinked
+	entry->Bcached = NO
 
 	'the cache counts as a reference, but only to the head element of an array!!
 	p->cached = 1
 	p->refcount += 1
+	p->cacheentry = entry
+	hash_add(sprcache, entry)
 
-	for i = 0 to ubound(sprcache)
-		with sprcache(i)
-			'we don't check whether the key is equal; we can't reliably
-			'find that case without checking everything, and it should never happen
-			if .key = 0 then
-				.key = key
-				.p = p
-				exit sub
-			elseif .p->refcount <= 0 then
-				sec = i
-			end if
-		end with
-	next
-
-	if sec > -1 then
-		'NOTE: currently, sprites are always freed as soon as all references are unloaded, so this never happens
-		'NOTE: we can not call sprite_unload from in here
-		'NOTE: the following is no longer correct! sprite_unload has lots of extra logic which can't be skipped
-		sprite_freemem(sprcache(sec).p)
-		sprcache(sec).key = key
-		sprcache(sec).p = p
-		exit sub
-	end if
-
-	'no room? pah.
-	redim preserve sprcache(ubound(sprcache) * 1.3 + 5)
-	sprcache(i).key = key
-	sprcache(i).p = p	
+	#ifdef COMBINED_SPRCACHE_LIMIT
+		sprcacheB_used += entry->cost
+	#endif
 end sub
 
 function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
@@ -3516,18 +3592,24 @@ end sub
 ' It will return a pointer to the first frame, and subsequent frames
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
 function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
-	dim ret as frame ptr
+	dim entry as SpriteCacheEntry ptr
+	dim ret as Frame ptr
 	dim key as integer = ptno * 1000000 + rec
 	
-	ret = sprite_find_cache(key)
-	
-	'AKA  if ret then
-	if sprite_is_valid(ret) then
-		ret->refcount += 1
-		return ret
+	entry = hash_find(sprcache, key)
+
+	if entry then
+		'cachehit += 1
+		if entry->Bcached then
+			sprite_from_B_cache(entry)
+		end if
+		entry->p->refcount += 1
+		return entry->p
 	end if
 
 	with sprite_sizes(ptno)
+		'debug "loading " & ptno & "  " & rec
+		'cachemiss += 1
 		ret = sprite_load(game + ".pt" & ptno, rec, .frames, .size.x, .size.y)
 		if ret = 0 then return 0
 	end with
@@ -3542,7 +3624,7 @@ end function
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
 function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
 	dim ret as frame ptr
-	
+
 	'first, we do a bit of math:
 	dim frsize as integer = wid * hei / 2
 	dim recsize as integer = frsize * num
@@ -3627,14 +3709,12 @@ sub sprite_unload(byval p as frame ptr ptr)
 				sprite_unload @.base
 				deallocate(*p)
 			else
-				'current policy is to unload all sprite as soon as they are unused, but this could be changed easily.
-				if .cached then sprite_remove_cache(*p)
 				for i as integer = 1 to .arraylen - 1
 					if (*p)[i].refcount <> 1 then
 						debug sprite_describe(*p) & " freed with refcount " & .refcount
 					end if
 				next
-				sprite_freemem(*p)
+				if .cached then sprite_to_B_cache((*p)->cacheentry) else sprite_freemem(*p)
 			end if
 		end if
 	end with
@@ -3669,7 +3749,7 @@ function sprite_is_valid(byval p as frame ptr) as integer
 	if ret = 0 then
 		debug "Invalid sprite " & sprite_describe(p)
 		'if we get here, we are probably doomed, but this might be a recovery
-		sprite_remove_cache(p)
+		if p->cacheentry then sprite_remove_cache(p->cacheentry)
 	end if
 	return ret
 end function
@@ -4121,6 +4201,8 @@ end sub
 ' end function
 
 'This should be replaced with a real hash
+'Note that the palette cache works completely differently to the sprite cache,
+'and the palette refcounting system too!
 
 type Palette16Cache
 	s as string
@@ -4138,7 +4220,7 @@ sub Palette16_delete(byval f as Palette16 ptr ptr)
 end sub
 
 'Completely empty the palette16 cache
-'Unlike the sprite cache, palettes aren't uncached when they hit 0 references
+'palettes aren't uncached either when they hit 0 references
 sub Palette16_empty_cache()
 	dim i as integer
 	for i = 0 to ubound(palcache)
