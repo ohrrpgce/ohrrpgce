@@ -880,7 +880,9 @@ FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as 
 		IF a = scLeft OR a = scRight OR a = scUp OR a = scDown THEN arrowkey = -1
 		IF arrowkey AND diagonalhack <> -1 THEN RETURN (result AND 5) OR (diagonalhack AND keybd(a) > 0)
 		IF keysteps(a) >= rwait THEN
-			IF ((keysteps(a) - rwait - 1) MOD rrate = 0) THEN result OR= 2
+			IF a <> scNumlock AND a <> scCapslock THEN 'workaround for special case in old versions of SDL
+				IF ((keysteps(a) - rwait - 1) MOD rrate = 0) THEN result OR= 2
+			END IF
 			IF arrowkey THEN diagonalhack = result AND 2
 		END IF
 	END IF
@@ -896,9 +898,7 @@ FUNCTION waitforanykey (modkeys=-1) as integer
 		setkeys
 		for i = 1 to &h7f
 			if not modkeys and (i=29 or i=56 or i=42 or i=54) then continue for
-			if i <> scNumlock and i <> scCapslock then  'DELETEME: a workaround for bug 619
-				if keyval(i) > 1 then return i
-			end if
+			if keyval(i) > 1 then return i
 		next i
 		dowait
 	loop
@@ -916,7 +916,7 @@ FUNCTION getkey () as integer
 		io_pollkeyevents()
 		setkeys
 		for i=1 to &h7f
-			if i <> scNumlock and i <> scCapslock and keyval(i) > 1 then  'DELETEME: a workaround for bug 619
+			if keyval(i) > 1 then
 				key = i
 				exit do
 			end if

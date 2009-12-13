@@ -9,6 +9,7 @@ option explicit
 #include "crt.bi"
 #include "gfx.bi"
 #include "common.bi"
+'#define NEED_SDL_GETENV
 #include "SDL\SDL.bi"
 /'
 #ifdef __FB_WIN32__
@@ -16,6 +17,15 @@ option explicit
 include_windows_bi()
 #endif
 '/
+
+'why is this missing from crt.bi?
+extern "C"
+declare function putenv (byval as zstring ptr) as integer
+end extern
+
+'declare function SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
+'declare function SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
+
 
 DECLARE SUB gfx_sdl_set_screen_mode()
 DECLARE SUB gfx_sdl_update_screen()
@@ -179,6 +189,10 @@ SUB gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as
   GetObject(iconh, sizeof(iconbmp), @iconbmp);
 #endif
 '/
+  'disable capslock/numlock/pause special keypress behaviour
+  debug " " & putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
+  debug " " & putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
+
   IF SDL_WasInit(0) = 0 THEN
     IF SDL_Init(SDL_INIT_VIDEO) THEN
       debug "Can't start SDL (video): " & *SDL_GetError
