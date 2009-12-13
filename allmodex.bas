@@ -177,11 +177,12 @@ sub setmodex()
 end sub
 
 sub restoremode()
-	gfx_close
 	'clean up io stuff
 	endpollthread = 1
 	threadwait keybdthread
 	mutexdestroy keybdmutex
+
+	gfx_close
 
 	'clear up software gfx
 	for i as integer = 0 to ubound(vpages)
