@@ -2506,7 +2506,11 @@ SUB check_menu_tags ()
     END WITH
    NEXT i
    IF changed = YES THEN
-    remember = .items(mstates(j).pt).sortorder
+    IF mstates(j).pt >= 0 THEN
+     remember = .items(mstates(j).pt).sortorder
+    ELSE
+     remember = -1
+    END IF
     SortMenuItems .items()
     FOR i = 0 TO UBOUND(.items)
      WITH .items(i)
