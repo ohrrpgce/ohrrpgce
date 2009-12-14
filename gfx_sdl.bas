@@ -32,6 +32,7 @@ DECLARE SUB gfx_sdl_update_screen()
 DECLARE SUB gfx_sdl_process_events()
 
 DIM SHARED zoom AS INTEGER = 2
+DIM SHARED smooth AS INTEGER = 0
 DIM SHARED screensurface AS SDL_Surface PTR = NULL
 DIM SHARED screenbuffer AS SDL_Surface PTR = NULL
 DIM SHARED windowedmode AS INTEGER = -1
@@ -261,7 +262,7 @@ SUB gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
     SYSTEM
   END IF
 
-  smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, zoom, 0)
+  smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, zoom, smooth)
 
   gfx_sdl_update_screen()
 END SUB
@@ -325,22 +326,32 @@ FUNCTION gfx_getwindowstate() as WindowState ptr
 END FUNCTION
 
 FUNCTION gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
+  DIM ret as integer = 0
+  DIM value as integer = str2int(*arg, -1)
   IF *opt = "zoom" or *opt = "z" THEN
-    DIM value as integer = str2int(*arg)
     IF value >= 1 AND value <= 4 THEN
       zoom = value
       IF SDL_WasInit(SDL_INIT_VIDEO) THEN
         gfx_sdl_set_screen_mode()
       END IF
     END IF
-    'globble numerical args even if invalid
-    IF is_int(*arg) THEN RETURN 2 ELSE RETURN 1
+    ret = 1
+  ELSEIF *opt = "smooth" OR *opt = "s" THEN
+    IF value = 1 OR value = -1 THEN  'arg optional (-1)
+      smooth = 1
+    ELSE
+      smooth = 0
+    END IF
+    ret = 1
   END IF
-  RETURN 0  'unrecognised
+  'globble numerical args even if invalid
+  IF ret = 1 AND is_int(*arg) THEN ret = 2
+  RETURN ret
 END FUNCTION
 
 FUNCTION gfx_describe_options() as zstring ptr
- return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)"
+  return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)" _
+          "-s -smooth          Enable smoothing filter for zoom modes (default off)"
 END FUNCTION
 
 SUB io_init
