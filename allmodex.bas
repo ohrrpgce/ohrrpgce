@@ -102,11 +102,6 @@ dim shared stackbottom as ubyte ptr
 dim shared stackptr as ubyte ptr
 dim shared stacksize as integer
 
-dim shared mouse_xmin as integer
-dim shared mouse_xmax as integer
-dim shared mouse_ymin as integer
-dim shared mouse_ymax as integer
-
 dim shared textfg as integer
 dim shared textbg as integer
 dim shared fonts(2) as Font
@@ -169,7 +164,7 @@ sub setmodex()
 	keybdthread = threadcreate(@pollingthread)
 
 	io_init
-	mouserect(0,319,0,199)
+	'mouserect(-1,-1,-1,-1)
 
 	fpstime = TIMER
 	fpsframes = 0
@@ -2329,7 +2324,6 @@ end sub
 
 FUNCTION havemouse() as integer
 'atm, all backends support the mouse, or don't know
-	 hidemousecursor
 	 return -1
 end FUNCTION
 
@@ -2339,6 +2333,7 @@ end SUB
 
 SUB unhidemousecursor ()
 	io_setmousevisibility(-1)
+	io_mouserect(-1, -1, -1, -1)
 end SUB
 
 SUB readmouse (mbuf() as integer)
@@ -2354,11 +2349,6 @@ SUB readmouse (mbuf() as integer)
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
 	'gfx_sdl: button state works offscreen. wheel state not implemented yet
 
-	if (mx > mouse_xmax) then mx = mouse_xmax
-	if (mx < mouse_xmin) then mx = mouse_xmin
-	if (my > mouse_ymax) then my = mouse_ymax
-	if (my < mouse_ymin) then my = mouse_ymin
-
 	mbuf(0) = mx
 	mbuf(1) = my
 	mbuf(2) = mb   'current button state bits, plus missed clicks since last call
@@ -2370,11 +2360,7 @@ SUB movemouse (BYVAL x as integer, BYVAL y as integer)
 end SUB
 
 SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
-	mouse_xmin = xmin
-	mouse_xmax = xmax
-	mouse_ymin = ymin
-	mouse_ymax = ymax
-	'io_mouserect(xmin, xmax, ymin, ymax)
+	io_mouserect(xmin, xmax, ymin, ymax)
 end sub
 
 FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer

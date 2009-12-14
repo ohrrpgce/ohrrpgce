@@ -57,6 +57,7 @@ sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as
 		
 		install_keyboard
 		install_mouse
+		unscare_mouse
 		set_window_close_hook(@post_terminate_signal)
 		
 		init_gfx = 1
@@ -208,10 +209,11 @@ sub io_setmouse(byval x as integer, byval y as integer)
 	position_mouse(x * 2, y * 2 + baroffset)
 end sub
 
-'sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 'doesn't seem to work fullscreen, no idea why not. Height of mouse cursor?
-' 	set_mouse_range(xmin * 2, ymin * 2 + baroffset, xmax * 2 + 1, ymax * 2 + 1 + baroffset)
-'end sub
+'FIXME: doesn't seem to restrict to the window at all.
+ 	set_mouse_range(xmin * 2, ymin * 2 + baroffset, xmax * 2 + 1, ymax * 2 + 1 + baroffset)
+end sub
 
 function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
 	'don't know

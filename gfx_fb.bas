@@ -17,9 +17,9 @@ option explicit
 #undef strlen
 
 'a public rtlib function that they seem to have forgotten to expose to FB programs?
-declare function KeyHit alias "fb_KeyHit" () as integer
+declare function fb_KeyHit alias "fb_KeyHit" () as integer
 'OK, now this one is in manual, but it's not exposed either! WTH
-declare function Getkey alias "fb_Getkey" () as integer
+declare function fb_Getkey alias "fb_Getkey" () as integer
 
 'subs only used internally
 declare sub gfx_screenres()		'set screen res, etc
@@ -38,6 +38,8 @@ dim shared screenmodey as integer = 400
 dim shared bordered as integer = 0
 dim shared depth as integer = 8
 dim shared smooth as integer = 0
+dim shared mouseclipped as integer = 0
+dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 
 'internal palette for 32-bit mode, with RGB colour components packed into a int
 dim shared truepal(255) as integer
@@ -236,9 +238,9 @@ sub io_updatekeys(byval keybd as integer ptr)
 	'the polling thread ought to ensure that these are caught timeously
 	'inkey does not seem to be threadsafe (bug 790)
 	'if inkey = chr(255) + "k" then post_terminate_signal
-	while keyhit
-		a = getkey
-		'there are two different getkey values that cause fb_GfxInkey to return "\255k"
+	while fb_keyhit
+		a = fb_getkey
+		'there are two different fb_getkey values that cause fb_GfxInkey to return "\255k"
 		if a = &h100 or a = &h6bff then post_terminate_signal
 	wend
 	if multikey(SC_ALT) and multikey(SC_F4) then post_terminate_signal
@@ -250,9 +252,17 @@ end sub
 
 sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
 	static as integer lastx = 0, lasty = 0, lastwheel = 0, lastbuttons = 0
-	dim as integer dmx, dmy, dw, db
+	dim as integer dmx, dmy, dw, db, remx, remy
 	if getmouse(dmx, dmy, dw, db) = 0 then
 		'mouse is inside window
+		if mouseclipped then
+			remx = dmx
+			remy = dmy
+			dmx = bound(dmx, mxmin, mxmax)
+			dmy = bound(dmy, mymin, mymax)
+			'calling setmouse at the same position rapidly causes the mouse to crawl
+			if remx <> dmx or remy <> dmy then setmouse dmx, dmy
+		end if
 		dmx = dmx \ zoom
 		dmy = (dmy \ zoom) - screen_buffer_offset
 		lastx = dmx
@@ -270,9 +280,21 @@ sub io_setmouse(byval x as integer, byval y as integer)
 	setmouse(x * zoom, y * zoom + screen_buffer_offset)
 end sub
 
-'sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-	'nothing to do
-'end sub
+sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+	mxmin = xmin * zoom
+	mxmax = xmax * zoom + zoom - 1
+	mymin = (ymin + screen_buffer_offset) * zoom
+	mymax = (ymax + screen_buffer_offset) * zoom + zoom - 1
+	if xmin >= 0 then
+		'enable clipping
+		mouseclipped = 1
+		setmouse  , , , 1
+	else
+		'disable clipping
+		mouseclipped = 0
+		setmouse  , , , 0
+	end if
+end sub
 
 function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
 	dim as single xa, ya

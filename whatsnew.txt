@@ -181,8 +181,10 @@ Dec ?? 2009 [Ypsiliform]
     * hspeak now automatically stores a backup copy of your script
       inside the .hs file. Use the -n command line option if you
       want to disable this feature [James]
-    * On-keypress scripts are now run when the mouse is clicked if
-      initmouse was called [Ralph]
+    * Calling initmouse now causes on-keypress scripts to be run when
+      the mouse is clicked, and restricts the mouse to the game window
+      so that you can actually move it to the edge. You can let the
+      mouse leave the window with mouseregion. [Ralph]
 
   * Vikings of Midgard
 

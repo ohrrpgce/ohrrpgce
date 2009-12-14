@@ -703,6 +703,7 @@ SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
 DIM ts AS TileEditState, mover(12), mouse(4), area(22) AS MouseArea
 ts.gotmouse = havemouse()
+hidemousecursor
 ts.canpaste = oldpaste
 ts.drawcursor = 1
 ts.airsize = 5
@@ -873,7 +874,7 @@ DO
   ELSE
    textcolor uilook(uiDescription), 0
   END IF
-  printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
+  printstr CHR$(2), mouse(0) - 2, mouse(1) - 2, dpage
  END IF
  SWAP dpage, vpage
  setvispage vpage
@@ -884,6 +885,7 @@ IF tmode = 3 THEN
  savepasdefaults defaults(), pagenum
 END IF
 oldpaste = ts.canpaste
+unhidemousecursor
 END SUB
 
 SUB refreshtileedit (mover(), state AS TileEditState)
@@ -1220,7 +1222,7 @@ DO
   ELSE
    textcolor uilook(uiDescription), 0
   END IF
-  printstr CHR$(2 + c), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
+  printstr CHR$(2 + c), mouse(0) - 2, mouse(1) - 2, dpage
  END IF
  SWAP dpage, vpage
  setvispage vpage
@@ -1534,7 +1536,7 @@ DO
   ELSE
    textcolor uilook(uiDescription), 0
   END IF
-  printstr CHR$(2), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
+  printstr CHR$(2), mouse(0) - 2, mouse(1) - 2, dpage
  END IF
  SWAP dpage, vpage
  setvispage vpage
@@ -1962,7 +1964,7 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
   ELSE
    textcolor uilook(uiDescription), 0
   END IF
-  printstr CHR(2 + ss.zonecursor), small(large(mouse(0) - 2, 0), 311), small(large(mouse(1) - 2, 0), 191), dpage
+  printstr CHR(2 + ss.zonecursor), mouse(0) - 2, mouse(1) - 2, dpage
  END IF
 END SUB
 
@@ -2399,6 +2401,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
  ss.undomax = (32000 \ ss.size) - 1
  GOSUB spedbak
  loadsprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
+ hidemousecursor
  setkeyrepeat 25, 5
  setkeys
  DO
@@ -2433,6 +2436,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
   IF dowait THEN tick = 1: state.tog = state.tog XOR 1
  LOOP
  setkeyrepeat
+ unhidemousecursor
  spriteedit_save_what_you_see(state.pt, state.top, sets, ss, soff, placer(), workpal(), poffset())
  changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 EXIT SUB

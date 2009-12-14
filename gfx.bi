@@ -47,7 +47,8 @@ declare sub io_mousebits (byref mx as integer, byref my as integer, byref mwheel
 declare sub io_setmousevisibility (byval visible as integer)
 declare sub io_getmouse (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
 declare sub io_setmouse (byval x as integer, byval y as integer)
-'declare sub io_mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+'call io_mouserect(-1, -1, -1, -1) to disable clipping
+declare sub io_mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 declare function io_readjoysane (byval as integer, byref as integer, byref as integer, byref as integer) as integer
 
 #ifdef EXTERN_GFX

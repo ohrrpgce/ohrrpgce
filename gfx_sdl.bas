@@ -40,6 +40,9 @@ DIM SHARED keystate AS Uint8 PTR = NULL
 DIM SHARED sdljoystick AS SDL_Joystick PTR = NULL
 DIM SHARED sdlpalette(0 TO 255) AS SDL_Color
 DIM SHARED dest_rect AS SDL_Rect
+DIM SHARED mouseclipped AS INTEGER = 0
+DIM SHARED AS INTEGER mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
+DIM SHARED AS INTEGER privatemx, privatemy, lastmx, lastmy
 
 'Translate SDL scancodes into a OHR scancodes
 DIM SHARED scantrans(0 to 322) AS INTEGER
@@ -239,7 +242,7 @@ SUB gfx_close()
 END SUB
 
 SUB gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
-  'takes a pointer to raw 8-bit data at 320x200 (w,h ignored at the moment)
+  'takes a pointer to raw 8-bit data at 320x200 (changing screen dimensions not supported yet)
 
   'We may either blit to screensurface (doing 8 bit -> display pixel format conversion) first
   'and then smoothzoom, with smoothzoomblit_anybit
@@ -377,6 +380,13 @@ SUB gfx_sdl_process_events()
             post_terminate_signal
           END IF
         END IF
+      CASE SDL_ACTIVEEVENT
+        IF mouseclipped = 1 AND tempevent.active.gain = 1 AND (tempevent.active.state AND SDL_APPINPUTFOCUS) THEN
+          SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
+          SDL_PumpEvents
+          lastmx = screensurface->w \ 2
+          lastmy = screensurface->h \ 2
+        END IF
       'CASE SDL_VIDEORESIZE
         'debug "SDL_VIDEORESIZE: w=" & tempevent.resize.w & " h=" & tempevent.resize.h
     END SELECT
@@ -402,17 +412,44 @@ SUB io_updatekeys(byval keybd as integer ptr)
 END SUB
 
 SUB io_setmousevisibility(byval visible as integer)
-  SDL_ShowCursor(visible)
+  SDL_ShowCursor(iif(visible, 1, 0))
 END SUB
 
 SUB io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
   DIM x AS INTEGER
   DIM y AS INTEGER
   DIM buttons AS Uint8
+
   buttons = SDL_GetMouseState(@x, @y)
-	
-  mx = x \ zoom
-  my = y \ zoom
+  IF mouseclipped THEN
+    IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
+      'Not moving the mouse back to the centre of the window rapidly is widely recommended.
+      'Implemented only due to attempting to fix eventually unrelated problem. Possibly beneficial to keep
+      'debug "mousestate " & x & " " & y & " (" & lastmx & " " & lastmy & ")"
+      privatemx += x - lastmx
+      privatemy += y - lastmy
+      IF x < screensurface->w \ 4 OR x > 3 * screensurface->w \ 4 OR _
+         y < screensurface->h \ 4 OR y > 3 * screensurface->h \ 4 THEN
+        SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
+        'Required after warping the mouse for it to take effect. Discovered with much blood, sweat, and murderous rage
+        SDL_PumpEvents
+        lastmx = screensurface->w \ 2
+        lastmy = screensurface->h \ 2
+        'debug "warped"
+      ELSE
+        lastmx = x
+        lastmy = y
+      END IF
+      privatemx = bound(privatemx, mxmin, mxmax)
+      privatemy = bound(privatemy, mymin, mymax)
+    END IF
+    mx = privatemx \ zoom
+    my = privatemy \ zoom
+  ELSE
+    mx = x \ zoom
+    my = y \ zoom
+  END IF
+
   mbuttons = 0
   IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR 1
   IF SDL_BUTTON(SDL_BUTTON_RIGHT) AND buttons THEN mbuttons = mbuttons OR 2
@@ -420,13 +457,43 @@ SUB io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as int
 END SUB
 
 SUB io_setmouse(byval x as integer, byval y as integer)
-  SDL_WarpMouse x * zoom, y * zoom
+  IF mouseclipped THEN
+    privatemx = x * zoom
+    privatemy = y * zoom
+    'IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
+    '  SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
+    'END IF
+  ELSE
+    IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
+      SDL_WarpMouse x * zoom, y * zoom
+      SDL_PumpEvents
+    END IF
+  END IF
 END SUB
 
-'SUB io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-  'FIXME: not implemented yet
-  'not required?
-'END SUB
+SUB io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+  IF mouseclipped = 0 AND (xmin >= 0) THEN
+    'enter clipping mode
+    'SDL_WM_GrabInput causes most WM key combinations to be blocked, which I find unacceptable, so instead
+    'we stick the mouse at the centre of the window. It's a very common hack.
+    mouseclipped = 1
+    SDL_GetMouseState(@privatemx, @privatemy)
+    IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
+      SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
+      SDL_PumpEvents
+    END IF
+    lastmx = screensurface->w \ 2
+    lastmy = screensurface->h \ 2
+  ELSEIF mouseclipped = 1 AND (xmin = -1) THEN
+    'exit clipping mode
+    mouseclipped = 0
+    SDL_WarpMouse privatemx, privatemy
+  END IF
+  mxmin = xmin * zoom
+  mxmax = xmax * zoom + zoom - 1
+  mymin = ymin * zoom
+  mymax = ymax * zoom + zoom - 1
+END SUB
 
 FUNCTION io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
   'FIXME: only bothers to support the first joystick
