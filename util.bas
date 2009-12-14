@@ -663,7 +663,7 @@ FUNCTION hash_iter(byref this as HashTable, byref state as integer, byref item a
   end if
 
   while it = NULL
-    if state > this.tablesize then return NULL
+    if state >= this.tablesize then return NULL
     it = this.table[state]
     state += 1
   wend
