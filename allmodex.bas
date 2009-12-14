@@ -830,37 +830,6 @@ SUB getsprite (pic(), BYVAL picoff, BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL pa
 
 END SUB
 
-'FIXME DELETEME
-'--This code is for screen page debugging, and will be removed in the future!  (FIXME: this is getting old)
-DECLARE SUB debug_screen_page(p AS INTEGER)
-SUB debug_screen_page(p AS INTEGER)
-	dim caption as string
-	dim k as integer
-	copypage p, vpage
-	caption = "Screen Page: "
-	IF p = dpage THEN
-		caption = caption & "drawing page"
-	else
-	caption = caption & p
-	end if
-	edgeprint caption, 0, 0, uilook(uiText), vpage
-	edgeprint "B:blank, W:whiteout, N:Nukepicstuf", 0, 190, uilook(uiText), vpage
-	setvispage vpage
-	k = waitforanykey(NO)
-	if k = 48 then clearpage p
-	if k = 17 then rectangle 0, 0, 320, 200, 15, p
-	if k = 49 then
-		dim x as integer
-		dim c as integer
-		c = 1
-		for x = 2 to 319
-			rectangle x, 0, 1, 200, c, p
-			c = (c + 1) MOD 255
-		next x
-	end if
-	clearkey (k)
-END SUB
-
 FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as integer = 0) as integer
 'except for special keys (like -1), each key reports 3 bits:
 '
@@ -993,13 +962,6 @@ SUB setkeys ()
 		showfps xor= 1
 	end if
 
-	'FIXME DELETEME
-	'--This code is for screen page debugging, and will be removed in the future!
-	if keyval(scScrollLock) > 0 then 'Scroll-lock
-		clearkey(scScrollLock)
-		if keyval(sc2) > 1 then clearkey(sc2) : debug_screen_page 2
-		if keyval(sc3) > 1 then clearkey(sc3) : debug_screen_page 3
-	end if
 end SUB
 
 SUB clearkey(byval k as integer)
