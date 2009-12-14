@@ -132,6 +132,9 @@ dim shared sprcacheB as DoubleList(SpriteCacheEntry)
 dim shared sprcacheB_used as integer  'number of slots full
 'dim shared as integer cachehit, cachemiss
 
+dim shared mouse_grab_requested as integer = 0
+dim shared mouse_grab_overridden as integer = 0
+dim shared remember_mouse_grab(3) as integer = {-1, -1, -1, -1}
 
 sub setmodex()
 	dim i as integer
@@ -960,6 +963,15 @@ SUB setkeys ()
 
 	if keyval(scCtrl) > 0 and keyval(scTilde) and 4 then
 		showfps xor= 1
+	end if
+
+	if mouse_grab_requested then
+		if keyval(scScrollLock) > 1 then
+			clearkey(scScrollLock)
+			mouserect -1, -1, -1, -1
+			mouse_grab_requested = -1
+			mouse_grab_overridden = -1
+		end if
 	end if
 
 end SUB
@@ -2315,6 +2327,12 @@ SUB readmouse (mbuf() as integer)
 	mbuf(1) = my
 	mbuf(2) = mb   'current button state bits, plus missed clicks since last call
 	mbuf(3) = mc   '1 if new (left?) click since last call to readmouse
+	
+	if mc <> 0 then
+		if mouse_grab_requested andalso mouse_grab_overridden then
+			mouserect remember_mouse_grab(0), remember_mouse_grab(1), remember_mouse_grab(2), remember_mouse_grab(3)
+		end if
+	end if
 end SUB
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)
@@ -2322,7 +2340,19 @@ SUB movemouse (BYVAL x as integer, BYVAL y as integer)
 end SUB
 
 SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
+	if xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1 then
+		mouse_grab_requested = 0
+	else
+		remember_mouse_grab(0) = xmin
+		remember_mouse_grab(1) = xmax
+		remember_mouse_grab(2) = ymin
+		remember_mouse_grab(3) = ymax
+		mouse_grab_requested = -1
+		mouse_grab_overridden = 0
+	end if
+	mutexlock keybdmutex
 	io_mouserect(xmin, xmax, ymin, ymax)
+	mutexunlock keybdmutex
 end sub
 
 FUNCTION readjoy (joybuf() as integer, BYVAL jnum as integer) as integer
