@@ -84,7 +84,6 @@ dim shared flagtime as double = 0.0
 dim shared waitset as integer
 
 dim shared keybd(-1 to 127) as integer  'keyval array
-dim shared keybdstate(127) as integer  '"real"time array
 dim shared keysteps(127) as integer
 dim shared keyrepeatwait as integer = 8
 dim shared keyrepeatrate as integer = 1
@@ -92,9 +91,12 @@ dim shared diagonalhack as integer
 
 dim shared closerequest as integer = 0
 
-dim shared keybdmutex as intptr  'controls access to keybdstate(), mouseflags and mouselastflags
+dim shared keybdmutex as intptr  'controls access to keybdstate(), mouseflags, mouselastflags, and various backend functions
 dim shared keybdthread as intptr   'id of the polling thread
 dim shared endpollthread as integer  'signal the polling thread to quit
+dim shared keybdstate(127) as integer  '"real"time keyboard array
+dim shared mouseflags as integer
+dim shared mouselastflags as integer
 
 dim shared stackbottom as ubyte ptr
 dim shared stackptr as ubyte ptr
@@ -104,8 +106,6 @@ dim shared mouse_xmin as integer
 dim shared mouse_xmax as integer
 dim shared mouse_ymin as integer
 dim shared mouse_ymax as integer
-dim shared mouseflags as integer
-dim shared mouselastflags as integer
 
 dim shared textfg as integer
 dim shared textbg as integer
@@ -178,8 +178,11 @@ end sub
 
 sub restoremode()
 	'clean up io stuff
-	endpollthread = 1
-	threadwait keybdthread
+	if keybdthread then
+		endpollthread = 1
+		threadwait keybdthread
+		keybdthread = 0
+	end if
 	mutexdestroy keybdmutex
 
 	gfx_close
@@ -953,14 +956,16 @@ SUB setkeys ()
 
 	dim a as integer
 	mutexlock keybdmutex
+	io_keybits(@keybd(0))
+	mutexunlock keybdmutex
 	for a = 0 to &h7f
-		keybd(a) = keybdstate(a)
+		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then  'I am also confused
+			keysteps(a) = 0
+		end if
 		if keybd(a) and 1 then
 			keysteps(a) += 1
 		end if
-		keybdstate(a) = keybdstate(a) and 1
 	next
-	mutexunlock keybdmutex
 
 	'Check to see if the operating system has received a request
 	'to close the window (clicking the X) and set the magic keyboard
@@ -1009,6 +1014,23 @@ SUB clearkey(byval k as integer)
 	end if
 end sub
 
+'these are wrappers provided by the polling thread
+SUB io_keybits(keybdarray as integer ptr)
+	for a as integer = 0 to &h7f
+		keybdarray[a] = keybdstate(a)
+		keybdstate(a) = keybdstate(a) and 1
+	next
+END SUB
+
+SUB io_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
+	'get the mouse state one last time, for good measure
+	io_getmouse(mx, my, mwheel, mbuttons)
+	mclicks = mouseflags or (mbuttons and not mouselastflags)
+	mouselastflags = mbuttons
+	mouseflags = 0
+	mbuttons = mbuttons or mclicks
+END SUB
+
 sub pollingthread(byval unused as threadbs)
 	dim as integer a, dummy, buttons
 
@@ -1020,26 +1042,23 @@ sub pollingthread(byval unused as threadbs)
 		'highest scancode in fbgfx.bi is &h79, no point overdoing it
 		for a = 0 to &h7f
 			if keybdstate(a) and 8 then
-				'clear the bit that io_updatekeys sets
-				keybdstate(a) = keybdstate(a) and 7
-
 				'decide whether to fire a new key event, otherwise the keystate is preserved
-				if keysteps(a) = 0 then
+				if (keybdstate(a) and 1) = 0 then
 					'this is a new keypress
 					keybdstate(a) = keybdstate(a) or 6 'key was triggered, new keypress
 				end if
-				keybdstate(a) = keybdstate(a) or 1 'key is pressed
-			else
-				keybdstate(a) = keybdstate(a) and 6 'no longer pressed, but was seen
-				keysteps(a) = 0 '0 means it's a new press next time
 			end if
+			'move the bit (clearing it) that io_updatekeys sets from 8 to 1
+			keybdstate(a) = (keybdstate(a) and 6) or ((keybdstate(a) shr 3) and 1)
 		next
 		io_getmouse dummy, dummy, dummy, buttons
 		mouseflags = mouseflags or (buttons and not mouselastflags)
 		mouselastflags = buttons
 		mutexunlock keybdmutex
 
-		sleep 25
+		'Despite this being so low, some clicks are still missed on some computers!
+		'Normally, 25ms was found to be sufficient
+		sleep 8
 	wend
 end sub
 
@@ -2325,29 +2344,25 @@ end SUB
 SUB readmouse (mbuf() as integer)
 	dim as integer mx, my, mw, mb, mc
 
-	io_getmouse(mx, my, mw, mb)
+	mutexlock keybdmutex   'is this necessary?
+	io_mousebits(mx, my, mw, mb, mc)
+	mutexunlock keybdmutex
+
 	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
 	'gfx_fb: If you release a mouse button offscreen, it becomes stuck (FB bug)
 	'        wheel scrolls offscreen are registered when you move back onscreen
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
-	'gfx_sdl: button state works offscreen. wheel state unavailable
+	'gfx_sdl: button state works offscreen. wheel state not implemented yet
 
 	if (mx > mouse_xmax) then mx = mouse_xmax
 	if (mx < mouse_xmin) then mx = mouse_xmin
 	if (my > mouse_ymax) then my = mouse_ymax
 	if (my < mouse_ymin) then my = mouse_ymin
 
-	mutexlock keybdmutex   'is this necessary?
-	mc = mouseflags or (mb and not mouselastflags)
-	mouselastflags = mb
-	mouseflags = 0
-
-	mutexunlock keybdmutex
-
 	mbuf(0) = mx
 	mbuf(1) = my
-	mbuf(2) = mb or mc   'current button state bits, plus missed clicks since last call
-	mbuf(3) = mc         '1 if new (left?) click since last call to readmouse
+	mbuf(2) = mb   'current button state bits, plus missed clicks since last call
+	mbuf(3) = mc   '1 if new (left?) click since last call to readmouse
 end SUB
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)

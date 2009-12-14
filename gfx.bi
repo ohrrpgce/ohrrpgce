@@ -31,7 +31,19 @@ declare function gfx_describe_options () as zstring ptr
 
 declare sub io_init ()
 declare sub io_pollkeyevents ()
+
+'Primary keyboard state function. Get keypress events (since last call) and keyboard state:
+'bit 0: key down, bit 1 and 2: keypress since last call
+declare sub io_keybits (keybdarray as integer ptr)
+
+'Get current up/down state of each key. Only used by the polling thread, not needed otherwise
+'set bit 3 (8) on each key if current down
 declare sub io_updatekeys (byval keybd as integer ptr)
+
+'Primary mouse state function
+'mbuttons is currently down keys, mclicks is new clicks since last call. left, right, middle buttons are bits 0, 1, 2
+declare sub io_mousebits (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
+
 declare sub io_setmousevisibility (byval visible as integer)
 declare sub io_getmouse (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer)
 declare sub io_setmouse (byval x as integer, byval y as integer)
