@@ -21,8 +21,15 @@ PRINT "Version ID " + datetag$
 PRINT "Codename " + codename$
 
 DIM gfxmods() AS STRING
+DIM gfxstring AS STRING
+DIM gfxchoices AS STRING
 
 split(command(1), gfxmods(), "+")
+gfxchoices = "#define GFX_CHOICES_INIT  redim gfx_choices(" & UBOUND(gfxmods) & ")"
+FOR i AS INTEGER = 0 TO UBOUND(gfxmods)
+  gfxstring += gfxmods(i) + " "
+  gfxchoices += " :  gfx_choices(" & i & ") = @" + gfxmods(i) + "_stuff"
+NEXT
 
 long_version$ = "CONST long_version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + "." + svnrev$ + " gfx_" + command(1) + "/music_" + command(2) + " " + __FB_SIGNATURE__ + " (" + __FB_BUILD_DATE__ + ")" + CHR$(34)
 
@@ -35,6 +42,9 @@ a$ = "#DEFINE MUSIC_" + UCASE$(command(2)) + "_BACKEND"
 PRINT #1, a$
 a$ = "#DEFINE MUSIC_BACKEND """ + LCASE$(command(2)) + """"
 PRINT #1, a$
+a$ = "#DEFINE SUPPORTED_GFX """ + gfxstring + """"
+PRINT #1, a$
+PRINT #1, gfxchoices
 a$ = "CONST version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + CHR$(34)
 PRINT #1, a$
 a$ = "CONST version_code as string = " + CHR$(34) + "OHRRPGCE Editor version " + codename$ + CHR$(34)
@@ -53,6 +63,9 @@ a$ = "#DEFINE MUSIC_" + UCASE$(command(2)) + "_BACKEND"
 PRINT #1, a$
 a$ = "#DEFINE MUSIC_BACKEND """ + LCASE$(command(2)) + """"
 PRINT #1, a$
+a$ = "#DEFINE SUPPORTED_GFX """ + gfxstring + """"
+PRINT #1, a$
+PRINT #1, gfxchoices
 a$ = "CONST version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + CHR$(34)
 PRINT #1, a$
 PRINT #1, long_version$

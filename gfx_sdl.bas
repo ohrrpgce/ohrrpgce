@@ -26,7 +26,6 @@ DECLARE FUNCTION putenv (byval as zstring ptr) as integer
 'DECLARE FUNCTION SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
-DECLARE SUB gfx_sdl_setprocptrs()
 DECLARE SUB gfx_sdl_set_screen_mode()
 DECLARE SUB gfx_sdl_update_screen()
 DECLARE SUB gfx_sdl_process_events()
@@ -199,7 +198,6 @@ SUB gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowico
   putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
 
-  gfx_sdl_setprocptrs
   IF SDL_WasInit(0) = 0 THEN
     DIM ver as SDL_version ptr = SDL_Linked_Version()
     gfxbackendinfo += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
@@ -514,7 +512,7 @@ FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, by
   y = SDL_JoystickGetAxis(sdljoystick, 1)
 END FUNCTION
 
-SUB gfx_sdl_setprocptrs
+FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_close = @gfx_sdl_close
   gfx_showpage = @gfx_sdl_showpage
   gfx_setpal = @gfx_sdl_setpal
@@ -534,6 +532,8 @@ SUB gfx_sdl_setprocptrs
   io_setmouse = @io_sdl_setmouse
   io_mouserect = @io_sdl_mouserect
   io_readjoysane = @io_sdl_readjoysane
-END SUB
+
+  RETURN 1
+END FUNCTION
 
 END EXTERN

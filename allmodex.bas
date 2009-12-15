@@ -199,18 +199,6 @@ sub restoremode()
 	releasestack
 end sub
 
-function allmodex_setoption(opt as string, arg as string) as integer
-	'general backend options
-	if opt = "w" or opt = "windowed" then
-		gfx_setwindowed(1)
-		return 1
-	elseif opt = "f" or opt = "fullscreen" then
-		gfx_setwindowed(0)
-		return 1
-	end if
-	return 0
-end function
-
 SUB settemporarywindowtitle (title as string)
 	'just like setwindowtitle but does not memorize the title
 	mutexlock keybdmutex

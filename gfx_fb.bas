@@ -24,7 +24,6 @@ declare function fb_Getkey alias "fb_Getkey" () as integer
 extern "C"
 
 'subs only used internally
-declare sub gfx_fb_setprocptrs()
 declare sub gfx_fb_screenres()		'set screen res, etc
 declare sub calculate_screen_res()
 
@@ -49,7 +48,6 @@ dim shared truepal(255) as integer
 
 
 sub gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
-	gfx_fb_setprocptrs
 	if init_gfx = 0 then
 		calculate_screen_res
 		gfx_fb_screenres
@@ -313,7 +311,7 @@ function io_fb_readjoysane(byval joynum as integer, byref button as integer, byr
 	return 1
 end function
 
-sub gfx_fb_setprocptrs
+function gfx_fb_setprocptrs() as integer
 	gfx_close = @gfx_fb_close
 	gfx_showpage = @gfx_fb_showpage
 	gfx_setpal = @gfx_fb_setpal
@@ -333,6 +331,8 @@ sub gfx_fb_setprocptrs
 	io_setmouse = @io_fb_setmouse
 	io_mouserect = @io_fb_mouserect
 	io_readjoysane = @io_fb_readjoysane
-end sub
+
+	return 1
+end function
 
 end extern

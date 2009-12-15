@@ -43,10 +43,7 @@ dim shared scantrans(0 to 127) as integer => { _
 
 extern "C"
 
-declare sub gfx_alleg_setprocptrs
-
 sub gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
-	gfx_alleg_setprocptrs
 	if init_gfx = 0 then
 		allegro_init()
 	
@@ -225,7 +222,7 @@ function io_alleg_readjoysane(byval joynum as integer, byref button as integer, 
 	return 0
 end function
 
-sub gfx_alleg_setprocptrs
+function gfx_alleg_setprocptrs() as integer
 	gfx_close = @gfx_alleg_close
 	gfx_showpage = @gfx_alleg_showpage
 	gfx_setpal = @gfx_alleg_setpal
@@ -245,6 +242,8 @@ sub gfx_alleg_setprocptrs
 	io_setmouse = @io_alleg_setmouse
 	io_mouserect = @io_alleg_mouserect
 	io_readjoysane = @io_alleg_readjoysane
-end sub
+
+	return 1
+end function
 
 end extern

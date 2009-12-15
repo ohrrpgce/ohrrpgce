@@ -15,6 +15,10 @@ option explicit
 #include "yetmore2.bi"
 #endif
 
+extern "C"
+DECLARE FUNCTION backends_setoption(opt as string, arg as string) as integer
+end extern
+
 dim nulzstr as zstring ptr  '(see compat.bi)
 
 'Gosub workaround
@@ -24,9 +28,6 @@ dim shared gosubptr as integer = 0
 #ifdef timer_variables
 dim timer_variables
 #endif
-
-'private Subs and functions oly used internally
-DECLARE SUB display_help_string(help as string)
 
 SUB getdefaultfont(font() as integer)
 	dim i as integer
@@ -142,6 +143,8 @@ function usage_setoption(opt as string, arg as string) as integer
 	elseif opt = "?" or opt = "help" then
 		help = help & "-? -help            Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
+		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
+		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 		help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
 		help = help & *gfx_describe_options() & LINE_END
@@ -185,8 +188,8 @@ sub processcommandline()
 			arg = command(i + 1)
 			if commandline_flag(arg) then arg = ""
 
-			argsused = gfx_setoption(opt, arg)
-			if argsused = 0 then argsused = allmodex_setoption(opt, arg)
+			argsused = backends_setoption(opt, arg)  'this must be first, it loads the backend if needed
+			if argsused = 0 then argsused = gfx_setoption(opt, arg)
 			if argsused = 0 then argsused = usage_setoption(opt, arg)
 			#ifdef IS_GAME
 				if argsused = 0 then argsused = game_setoption(opt, arg)
