@@ -13,6 +13,9 @@ end type
 'windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere
 declare sub gfx_init (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 
+'(note that gfx_*_init in the backends has a different prototype:)
+'function gfx_init (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
+
 extern gfx_close as sub ()		'put it back how we found it
 extern gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h as integer) 'the main event
 extern gfx_setpal as sub (byval pal as RGBcolor ptr) 'set colour palette. May reuse last raw pointer to showpage, so you may not change it!

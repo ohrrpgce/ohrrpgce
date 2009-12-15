@@ -31,9 +31,9 @@ dim io_readjoysane as function (byval as integer, byref as integer, byref as int
 dim as string gfxbackend, musicbackend
 dim as string gfxbackendinfo, musicbackendinfo
 
-declare sub gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
-declare sub gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
-declare sub gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+declare function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
+declare function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
+declare function gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
 
 declare function gfx_alleg_setprocptrs() as integer
 declare function gfx_directx_setprocptrs() as integer
@@ -45,7 +45,7 @@ type GfxBackendStuff
 	'FB doesn't allow initialising UDTs containing var-length strings
 	name as string * 7
 	load as function () as integer
-	init as sub (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+	init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
 end type
 
 #ifdef GFX_ALLEG_BACKEND
@@ -73,11 +73,18 @@ extern "C"
 dim shared gfx_directx as any ptr
 dim shared gfx_loaded as integer = 0
 
+#ifdef GFX_DIRECTX_BACKEND
+
+dim shared gfx_directx_init as sub (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+
 ' gfx_directx needs updating
+function gfx_dxdummy_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
+	gfx_directx_init(terminate_signal_handler, windowicon)
+	return 1
+end function
+
 sub io_dummy_mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 end sub
-
-#ifdef GFX_DIRECTX_BACKEND
 
 function gfx_directx_setprocptrs() as integer
 	if gfx_directx <> 0 then return 1
@@ -87,7 +94,11 @@ function gfx_directx_setprocptrs() as integer
 
 	'TODO: verify version
 
-	directx_stuff.init = dylibsymbol(gfx_directx, "gfx_init")
+	'temporary until gfx_init updated
+	'directx_stuff.init = dylibsymbol(gfx_directx, "gfx_init")
+	gfx_directx_init = dylibsymbol(gfx_directx, "gfx_init")
+	directx_stuff.init = @gfx_dxdummy_init
+
 	gfx_close = dylibsymbol(gfx_directx, "gfx_close")
 	gfx_showpage = dylibsymbol(gfx_directx, "gfx_showpage")
 	gfx_setpal = dylibsymbol(gfx_directx, "gfx_setpal")
@@ -183,7 +194,11 @@ function gfx_load(onlyfirst as integer) as integer
 	if gfx_loaded then return 1 'hmm
 	gfx_loaded = YES
 	for i as integer = 0 to ubound(gfx_choices)
-		if gfx_choices(i)->load() then return 1
+		if gfx_choices(i)->load() then
+			gfxbackendinfo = "gfx_" + gfx_choices(i)->name
+			gfxbackend = gfx_choices(i)->name
+			return 1
+		end if
 		if onlyfirst then return 0
 	next
 	display_help_string "could not load any graphic backend!"
@@ -197,13 +212,13 @@ sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as
 				debuginfo "Initialising gfx_" + .name + "..."
 				gfxbackendinfo = "gfx_" + .name
 				gfxbackend = .name
-				.init(terminate_signal_handler, windowicon)
-				exit sub
+				if .init(terminate_signal_handler, windowicon) then exit sub
+				'FIXME: ought to unload on failure
 			end if
 		end with
 	next
 
-	print "No graphics backend"
+	display_help_string "No working graphic backend!"
 	system
 end sub
 

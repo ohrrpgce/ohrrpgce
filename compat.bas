@@ -143,12 +143,13 @@ function usage_setoption(opt as string, arg as string) as integer
 	elseif opt = "?" or opt = "help" then
 		help = help & "-? -help            Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
+		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
 		help = help & "-w -windowed        Start in windowed mode (default)" & LINE_END
+		help = help & " Backend-specific options for gfx_" & gfxbackend & ": (use -gfx to see others)" & LINE_END
 		help = help & *gfx_describe_options() & LINE_END
-		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
 		display_help_string help
 		return 1
 	elseif opt = "log" then

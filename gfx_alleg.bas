@@ -43,7 +43,7 @@ dim shared scantrans(0 to 127) as integer => { _
 
 extern "C"
 
-sub gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
 	if init_gfx = 0 then
 		allegro_init()
 	
@@ -64,7 +64,8 @@ sub gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowi
 		
 		init_gfx = 1
 	end if
-end sub
+	return 1
+end function
 
 sub gfx_alleg_close
 	if screenbuf <> null then

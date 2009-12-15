@@ -47,14 +47,15 @@ dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 dim shared truepal(255) as integer
 
 
-sub gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
 	if init_gfx = 0 then
 		calculate_screen_res
 		gfx_fb_screenres
 		screenset 1, 0
 		init_gfx = 1
 	end if
-end sub
+	return 1
+end function
 
 sub gfx_fb_screenres
 	if windowed = 0 then

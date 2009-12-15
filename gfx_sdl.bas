@@ -26,7 +26,7 @@ DECLARE FUNCTION putenv (byval as zstring ptr) as integer
 'DECLARE FUNCTION SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
-DECLARE SUB gfx_sdl_set_screen_mode()
+DECLARE FUNCTION gfx_sdl_set_screen_mode() as integer
 DECLARE SUB gfx_sdl_update_screen()
 DECLARE SUB gfx_sdl_process_events()
 
@@ -185,7 +185,7 @@ scantrans(SDLK_UNDO) = 0
 EXTERN "C"
 
 
-SUB gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
 /' Trying to load the resource as a SDL_Surface, Unfinished - the winapi has lost me
 #ifdef __FB_WIN32__
   DIM as HBITMAP iconh
@@ -203,18 +203,18 @@ SUB gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowico
     gfxbackendinfo += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
     IF SDL_Init(SDL_INIT_VIDEO) THEN
       debug "Can't start SDL (video): " & *SDL_GetError
-      SYSTEM
+      RETURN 0
     END IF
   ELSEIF SDL_WasInit(SDL_INIT_VIDEO) = 0 THEN
     IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
       debug "Can't start SDL video subsys: " & *SDL_GetError
-      SYSTEM
+      RETURN 0
     END IF
   END IF
-  gfx_sdl_set_screen_mode()
-END SUB
+  RETURN gfx_sdl_set_screen_mode()
+END FUNCTION
 
-SUB gfx_sdl_set_screen_mode()
+FUNCTION gfx_sdl_set_screen_mode() as integer
   DIM flags AS Uint32 = 0
   IF windowedmode = 0 THEN
     flags = flags OR SDL_FULLSCREEN
@@ -222,8 +222,8 @@ SUB gfx_sdl_set_screen_mode()
   END IF
   screensurface = SDL_SetVideoMode(320 * zoom, 200 * zoom, 0, flags)
   IF screensurface = NULL THEN
-    print "Failed to allocate display"
-    SYSTEM
+    debug "Failed to allocate display"
+    RETURN 0
   END IF
   WITH dest_rect
     .x = 0
@@ -231,7 +231,8 @@ SUB gfx_sdl_set_screen_mode()
     .w = 320 * zoom
     .h = 200 * zoom
   END WITH
-END SUB
+  RETURN 1
+END FUNCTION
 
 SUB gfx_sdl_close()
   IF SDL_WasInit(SDL_INIT_VIDEO) THEN
