@@ -136,6 +136,9 @@ dim shared mouse_grab_requested as integer = 0
 dim shared mouse_grab_overridden as integer = 0
 dim shared remember_mouse_grab(3) as integer = {-1, -1, -1, -1}
 
+dim shared remember_title as string
+
+
 sub setmodex()
 	dim i as integer
 
@@ -208,7 +211,15 @@ function allmodex_setoption(opt as string, arg as string) as integer
 	return 0
 end function
 
+SUB settemporarywindowtitle (title as string)
+	'just like setwindowtitle but does not memorize the title
+	mutexlock keybdmutex
+	gfx_windowtitle title
+	mutexunlock keybdmutex
+END SUB
+
 SUB setwindowtitle (title as string)
+	remember_title = title
 	mutexlock keybdmutex
 	gfx_windowtitle title
 	mutexunlock keybdmutex
@@ -2342,6 +2353,7 @@ end SUB
 SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
 	if xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1 then
 		mouse_grab_requested = 0
+		settemporarywindowtitle remember_title
 	else
 		remember_mouse_grab(0) = xmin
 		remember_mouse_grab(1) = xmax
@@ -2349,6 +2361,7 @@ SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
 		remember_mouse_grab(3) = ymax
 		mouse_grab_requested = -1
 		mouse_grab_overridden = 0
+		settemporarywindowtitle remember_title & " (ScrlLock to free mouse)"
 	end if
 	mutexlock keybdmutex
 	io_mouserect(xmin, xmax, ymin, ymax)
