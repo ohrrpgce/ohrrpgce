@@ -4,22 +4,20 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the li
 
 Modify bitsets with Left, Right, SPACE and ENTER.
 
-[unfinished]
-
 * Cure Instead of Harm
-When this bitset is on, the attack will cure the target stat instead of damaging it. (this works for any target stat, not just HP)
+When this bitset is on, the attack will cure the target stat instead of damaging it. (This works for any target stat, not just HP)
 
 * Divide Spread Damage
 When the attack is targeted to more than one target, this will divide the damage evenly between them.
 
 * Absorb Damage
-Any damage dealt will be added to the attacker. (this works for any target stat, not just HP)
+Any damage dealt will be added to the attacker. (This works for any target stat, not just HP.)
 
 * Unreversable Picture
 Normally, an attack picture will be flipped to match the direction the attacker is facing. This bitset makes the attack picture always appear unflipped, exactly as you drew it.
 
 * Steal Item
-Gives the attacker a chance to steal an item (Only works for enemy targets. See the "Rewards" menu in the enemy editor.)
+Gives the attacker a chance to steal an item. (Only works for enemy targets. See the "Rewards" menu in the enemy editor.)
 
 * Elemental Damage
 Causes the attack to do elemental damage, which may result in more or less damage depending on the target's strengths and weaknesses. Multiple elemental bitsets can be combined. (If all the elemental bitsets are off, the attack counts as a "Physical" attack for spawning purposes.)
@@ -58,7 +56,7 @@ When an attack with this bitset is used, the attacker will forget any previously
 Causes the attacker to automatically choose a target according to the attack's preferred target settings. This bitset is only useful for attacks used by heroes, since enemies always automatically choose targets regardless of this bitset.
 
 * Show attack name
-Causes the attack's name to be displayed alongside the attack's damage (This can be used together with the "Do not display Damage" bitset if you want only the attack's name to be shown)
+Causes the attack's name to be displayed alongside the attack's damage. (This can be used together with the "Do not display Damage" bitset if you want only the attack's name to be shown)
 
 * Do not display Damage
 Although the damage will still be dealt to the target, this bitset will prevent the damage from being displayed.
@@ -82,7 +80,7 @@ Normally damage is randomized plus or minus 20%. Turning this bitset on disables
 Normally the minimum amount of damage that an attack can do is 1. This bitset allows damage to be 0.
 
 * Cause heroes to run away
-If this bitset is turned on, the attack will cause the heroes to run away. This can be used in combination with the general bitset "Disable ESC to run from battle" if you are implementing your on alternate running-away system.
+If this bitset is turned on, the attack will cause the heroes to run away. This can be used in combination with the general bitset "Disable ESC to run from battle" if you are implementing your own alternate running-away system.
 
 * Mutable
 If this bitset is turned on, this attack will be disabled for anyone with a damaged Mute register.
@@ -130,16 +128,16 @@ This bitset is used to make attacks which cannot be interrupted by other attacks
 When this bitset is turned on, the attack will not trigger the target's hit spawning.
 
 * Do not trigger spawning on kill
-When this bitset is turned on, if the attack kills the target, it will not trigger death spawning.
+When this bitset is turned on, if the attack kills the target it will not trigger death spawning.
 
 * Check costs when used as an item
-This bitset only matters for attacks that done when an item is used from the Items menu in battle. Normally item attacks can always be used regardless of whether or not the attacker has enough MP, or enough items to satisfy the item cost. This bitset causes weapon attacks to be disabled when the attacker cannot afford them, just like attacks in spell lists.
+This bitset only matters for attacks that are done when an item is used from the Items menu in battle. Normally item attacks can always be used regardless of whether or not the attacker has enough MP, or enough items to satisfy the item cost. This bitset causes weapon attacks to be disabled when the attacker cannot afford them, just like attacks in spell lists.
 
 * Re-check costs after attack delay
-if this bitset is turned on, the attack will fail if the attacker does not have enough MP or items at the moment when the attack is executed. This can happen if they are hit with an MP-draining attack while they are preparing to cast a spell, or if another character uses up an item that they were trying to use.
+If this bitset is turned on, the attack will fail if the attacker does not have enough MP or items at the moment when the attack is executed. This can happen if they are hit with an MP-draining attack while they are preparing to cast a spell, or if another character uses up an item that they were trying to use.
 
 * Do not cause target to flinch
-Normally the target of an attack flinches. For heroes this is their "Hurt" frame, and fro enemies this is a small horizontal twitch. This bitset prevents the flinching.
+Normally the target of an attack flinches. For heroes this is their "Hurt" frame, and for enemies this is a small horizontal twitch. This bitset prevents the flinching.
 
 * Don't allow damage to exceed target stat
 This bitset prevents the attack from doing any more damage than the target's target stat. For example, if an attack is capable of doing 100 damage, but the target only has 25 HP left, this bitset would limit the damage to 25. This also works for curing attacks. For example, if a cure spell can restore 100 HP, but the target is only 25 HP below max, this bitset will limit the cure to 25 HP. (This bitset also works for other target stats besides HP)
