@@ -18,15 +18,15 @@ include_windows_bi()
 #endif
 '/
 
+EXTERN "C"
+
 'why is this missing from crt.bi?
-extern "C"
-declare function putenv (byval as zstring ptr) as integer
-end extern
+DECLARE FUNCTION putenv (byval as zstring ptr) as integer
 
-'declare function SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
-'declare function SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
+'DECLARE FUNCTION SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
+'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
-
+DECLARE SUB gfx_sdl_setprocptrs()
 DECLARE SUB gfx_sdl_set_screen_mode()
 DECLARE SUB gfx_sdl_update_screen()
 DECLARE SUB gfx_sdl_process_events()
@@ -44,6 +44,7 @@ DIM SHARED mouseclipped AS INTEGER = 0
 DIM SHARED AS INTEGER mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 DIM SHARED AS INTEGER privatemx, privatemy, lastmx, lastmy
 
+END EXTERN 'weirdness
 'Translate SDL scancodes into a OHR scancodes
 DIM SHARED scantrans(0 to 322) AS INTEGER
 scantrans(SDLK_UNKNOWN) = 0
@@ -182,9 +183,10 @@ scantrans(SDLK_MENU) = 0
 scantrans(SDLK_POWER) = 0
 scantrans(SDLK_EURO) = 0
 scantrans(SDLK_UNDO) = 0
+EXTERN "C"
 
 
-SUB gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+SUB gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 /' Trying to load the resource as a SDL_Surface, Unfinished - the winapi has lost me
 #ifdef __FB_WIN32__
   DIM as HBITMAP iconh
@@ -197,6 +199,7 @@ SUB gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as
   debug " " & putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   debug " " & putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
 
+  gfx_sdl_setprocptrs
   IF SDL_WasInit(0) = 0 THEN
     IF SDL_Init(SDL_INIT_VIDEO) THEN
       debug "Can't start SDL (video): " & *SDL_GetError
@@ -230,7 +233,7 @@ SUB gfx_sdl_set_screen_mode()
   END WITH
 END SUB
 
-SUB gfx_close()
+SUB gfx_sdl_close()
   IF SDL_WasInit(SDL_INIT_VIDEO) THEN
     IF screenbuffer <> NULL THEN SDL_FreeSurface(screenbuffer)
     IF sdljoystick <> NULL THEN SDL_JoystickClose(sdljoystick)
@@ -241,7 +244,7 @@ SUB gfx_close()
   END IF
 END SUB
 
-SUB gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
+SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
   'takes a pointer to raw 8-bit data at 320x200 (changing screen dimensions not supported yet)
 
   'We may either blit to screensurface (doing 8 bit -> display pixel format conversion) first
@@ -291,7 +294,7 @@ SUB gfx_sdl_update_screen()
   END IF
 END SUB
 
-SUB gfx_setpal(byval pal as RGBcolor ptr)
+SUB gfx_sdl_setpal(byval pal as RGBcolor ptr)
   DIM i AS INTEGER
   FOR i = 0 TO 255
     sdlpalette(i).r = pal[i].r
@@ -301,11 +304,11 @@ SUB gfx_setpal(byval pal as RGBcolor ptr)
   gfx_sdl_update_screen()
 END SUB
 
-FUNCTION gfx_screenshot(byval fname as zstring ptr) as integer
-  gfx_screenshot = 0
+FUNCTION gfx_sdl_screenshot(byval fname as zstring ptr) as integer
+  gfx_sdl_screenshot = 0
 END FUNCTION
 
-SUB gfx_setwindowed(byval iswindow as integer)
+SUB gfx_sdl_setwindowed(byval iswindow as integer)
   IF iswindow = 0 THEN
     windowedmode = 0
   ELSE
@@ -314,13 +317,13 @@ SUB gfx_setwindowed(byval iswindow as integer)
   gfx_sdl_set_screen_mode()
 END SUB
 
-SUB gfx_windowtitle(byval title as zstring ptr)
+SUB gfx_sdl_windowtitle(byval title as zstring ptr)
   IF SDL_WasInit(SDL_INIT_VIDEO) then
     SDL_WM_SetCaption(title, title)	
   END IF
 END SUB
 
-FUNCTION gfx_getwindowstate() as WindowState ptr
+FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
   STATIC state as WindowState
   DIM temp as integer = SDL_GetAppState()
   state.focused = (temp AND SDL_APPINPUTFOCUS) <> 0
@@ -328,7 +331,7 @@ FUNCTION gfx_getwindowstate() as WindowState ptr
   RETURN @state
 END FUNCTION
 
-FUNCTION gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
+FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
   IF *opt = "zoom" or *opt = "z" THEN
@@ -352,12 +355,12 @@ FUNCTION gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as in
   RETURN ret
 END FUNCTION
 
-FUNCTION gfx_describe_options() as zstring ptr
+FUNCTION gfx_sdl_describe_options() as zstring ptr
   return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)" _
           "-s -smooth          Enable smoothing filter for zoom modes (default off)"
 END FUNCTION
 
-SUB io_init
+SUB io_sdl_init
   'nothing needed at the moment...
 END SUB
 
@@ -374,7 +377,7 @@ SUB gfx_sdl_process_events()
         keystate = SDL_GetKeyState(NULL)
         IF tempevent.key.keysym.mod_ AND KMOD_ALT THEN
           IF tempevent.key.keysym.sym = SDLK_RETURN THEN  'alt-enter
-            gfx_setwindowed(windowedmode XOR -1)
+            gfx_sdl_setwindowed(windowedmode XOR -1)
           END IF
           IF tempevent.key.keysym.sym = SDLK_F4 THEN  'alt-F4
             post_terminate_signal
@@ -393,12 +396,12 @@ SUB gfx_sdl_process_events()
   WEND
 END SUB
 
-SUB io_pollkeyevents()
+SUB io_sdl_pollkeyevents()
   SDL_Flip(screensurface)
   gfx_sdl_process_events()
 END SUB
 
-SUB io_updatekeys(byval keybd as integer ptr)
+SUB io_sdl_updatekeys(byval keybd as integer ptr)
   gfx_sdl_process_events()
   keystate = SDL_GetKeyState(NULL)
   FOR a as integer = 0 TO 322
@@ -411,11 +414,11 @@ SUB io_updatekeys(byval keybd as integer ptr)
   NEXT
 END SUB
 
-SUB io_setmousevisibility(byval visible as integer)
+SUB io_sdl_setmousevisibility(byval visible as integer)
   SDL_ShowCursor(iif(visible, 1, 0))
 END SUB
 
-SUB io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+SUB io_sdl_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
   DIM x AS INTEGER
   DIM y AS INTEGER
   DIM buttons AS Uint8
@@ -456,7 +459,7 @@ SUB io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as int
   IF SDL_BUTTON(SDL_BUTTON_MIDDLE) AND buttons THEN mbuttons = mbuttons OR 4
 END SUB
 
-SUB io_setmouse(byval x as integer, byval y as integer)
+SUB io_sdl_setmouse(byval x as integer, byval y as integer)
   IF mouseclipped THEN
     privatemx = x * zoom
     privatemy = y * zoom
@@ -471,7 +474,7 @@ SUB io_setmouse(byval x as integer, byval y as integer)
   END IF
 END SUB
 
-SUB io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
   IF mouseclipped = 0 AND (xmin >= 0) THEN
     'enter clipping mode
     'SDL_WM_GrabInput causes most WM key combinations to be blocked, which I find unacceptable, so instead
@@ -495,13 +498,13 @@ SUB io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as int
   mymax = ymax * zoom + zoom - 1
 END SUB
 
-FUNCTION io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
+FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
   'FIXME: only bothers to support the first joystick
   IF SDL_NumJoysticks() = 0 THEN RETURN 0
   IF sdljoystick = NULL THEN
     sdljoystick = SDL_JoystickOpen(0)
   END IF
-  SDL_JoystickUpdate() 'should this be here? moved from io_readjoy
+  SDL_JoystickUpdate() 'should this be here? moved from io_sdl_readjoy
   button = 0
   IF SDL_JoystickGetButton(sdljoystick, 0) THEN button = button AND 1
   IF SDL_JoystickGetButton(sdljoystick, 1) THEN button = button AND 2
@@ -509,3 +512,26 @@ FUNCTION io_readjoysane(byval joynum as integer, byref button as integer, byref 
   y = SDL_JoystickGetAxis(sdljoystick, 1)
 END FUNCTION
 
+SUB gfx_sdl_setprocptrs
+  gfx_close = @gfx_sdl_close
+  gfx_showpage = @gfx_sdl_showpage
+  gfx_setpal = @gfx_sdl_setpal
+  gfx_screenshot = @gfx_sdl_screenshot
+  gfx_setwindowed = @gfx_sdl_setwindowed
+  gfx_windowtitle = @gfx_sdl_windowtitle
+  gfx_getwindowstate = @gfx_sdl_getwindowstate
+  gfx_setoption = @gfx_sdl_setoption
+  gfx_describe_options = @gfx_sdl_describe_options
+  io_init = @io_sdl_init
+  io_pollkeyevents = @io_sdl_pollkeyevents
+  io_keybits = @io_amx_keybits
+  io_updatekeys = @io_sdl_updatekeys
+  io_mousebits = @io_amx_mousebits
+  io_setmousevisibility = @io_sdl_setmousevisibility
+  io_getmouse = @io_sdl_getmouse
+  io_setmouse = @io_sdl_setmouse
+  io_mouserect = @io_sdl_mouserect
+  io_readjoysane = @io_sdl_readjoysane
+END SUB
+
+END EXTERN

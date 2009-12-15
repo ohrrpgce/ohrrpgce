@@ -21,8 +21,11 @@ declare function fb_KeyHit alias "fb_KeyHit" () as integer
 'OK, now this one is in manual, but it's not exposed either! WTH
 declare function fb_Getkey alias "fb_Getkey" () as integer
 
+extern "C"
+
 'subs only used internally
-declare sub gfx_screenres()		'set screen res, etc
+declare sub gfx_fb_setprocptrs()
+declare sub gfx_fb_screenres()		'set screen res, etc
 declare sub calculate_screen_res()
 
 'border required to fit standard 4:3 screen at zoom 1
@@ -44,16 +47,18 @@ dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 'internal palette for 32-bit mode, with RGB colour components packed into a int
 dim shared truepal(255) as integer
 
-sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+
+sub gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+	gfx_fb_setprocptrs
 	if init_gfx = 0 then
 		calculate_screen_res
-		gfx_screenres
+		gfx_fb_screenres
 		screenset 1, 0
 		init_gfx = 1
 	end if
 end sub
 
-sub gfx_screenres
+sub gfx_fb_screenres
 	if windowed = 0 then
 		screenres screenmodex, screenmodey, depth, 1, GFX_FULLSCREEN
 	else
@@ -61,10 +66,10 @@ sub gfx_screenres
 	end if
 end sub
 
-sub gfx_close
+sub gfx_fb_close
 end sub
 
-sub gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
+sub gfx_fb_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
 'takes a pointer to raw 8-bit data at 320x200 (don't claim that anything else is supported)
 	screenlock
 
@@ -75,14 +80,14 @@ sub gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
 	elseif depth = 32 then
 		smoothzoomblit_8_to_32bit(raw, sptr, w, h, w * zoom, zoom, smooth, @truepal(0))
 	else
-		debug "gfx_showpage: depth " & depth
+		debug "gfx_fb_showpage: depth " & depth
 	end if
 
 	screenunlock
 	flip
 end sub
 
-sub gfx_setpal(byval pal as RGBcolor ptr)
+sub gfx_fb_setpal(byval pal as RGBcolor ptr)
 	dim as integer i
 	if depth = 8 then
 		for i = 0 to 255
@@ -100,11 +105,11 @@ sub gfx_setpal(byval pal as RGBcolor ptr)
 	'accessible.
 end sub
 
-function gfx_screenshot(byval fname as zstring ptr) as integer
-	gfx_screenshot = 0
+function gfx_fb_screenshot(byval fname as zstring ptr) as integer
+	gfx_fb_screenshot = 0
 end function
 
-sub gfx_setwindowed(byval iswindow as integer)
+sub gfx_fb_setwindowed(byval iswindow as integer)
 	if iswindow <> 0 then iswindow = 1 'only 1 "true" value
 	if iswindow = windowed then exit sub
 
@@ -112,7 +117,7 @@ sub gfx_setwindowed(byval iswindow as integer)
 
 	if init_gfx = 1 then
 		dim i as integer
-		gfx_screenres
+		gfx_fb_screenres
 		'palette must be re-set
 		if depth = 8 then
 			for i = 0 to 255
@@ -122,7 +127,7 @@ sub gfx_setwindowed(byval iswindow as integer)
 	end if
 end sub
 
-sub gfx_windowtitle(byval title as zstring ptr)
+sub gfx_fb_windowtitle(byval title as zstring ptr)
 	if len(title) = 0 then
 		windowtitle ""
 	else
@@ -130,11 +135,11 @@ sub gfx_windowtitle(byval title as zstring ptr)
 	end if
 end sub
 
-function gfx_getwindowstate() as WindowState ptr
+function gfx_fb_getwindowstate() as WindowState ptr
 	return 0
 end function
 
-function gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
+function gfx_fb_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
 'This version supports
@@ -212,7 +217,7 @@ sub calculate_screen_res()
 	if bordered = 1 and zoom < 3 then screen_buffer_offset = (BORDER / 2) * zoom
 end sub
 
-function gfx_describe_options() as zstring ptr
+function gfx_fb_describe_options() as zstring ptr
 	return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)" LINE_END _
 	        "-b -border [0|1]    Add a letterbox border (default off)" LINE_END _
 	        "-d -depth [8|32]    Set color bit-depth (default 8-bit)" LINE_END _
@@ -220,15 +225,15 @@ function gfx_describe_options() as zstring ptr
 end function
 
 '------------- IO Functions --------------
-sub io_init
+sub io_fb_init
 	'setmouse , , 0 'hide mouse
 end sub
 
-sub io_pollkeyevents()
+sub io_fb_pollkeyevents()
 	'not needed by this backend
 end sub
 
-sub io_updatekeys(byval keybd as integer ptr)
+sub io_fb_updatekeys(byval keybd as integer ptr)
 	dim as integer a
 	for a = 0 to &h7f
 		if multikey(a) then
@@ -246,11 +251,11 @@ sub io_updatekeys(byval keybd as integer ptr)
 	if multikey(SC_ALT) and multikey(SC_F4) then post_terminate_signal
 end sub
 
-sub io_setmousevisibility(byval visible as integer)
+sub io_fb_setmousevisibility(byval visible as integer)
 	setmouse , , abs(sgn(visible))
 end sub
 
-sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+sub io_fb_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
 	static as integer lastx = 0, lasty = 0, lastwheel = 0, lastbuttons = 0
 	dim as integer dmx, dmy, dw, db, remx, remy
 	if getmouse(dmx, dmy, dw, db) = 0 then
@@ -276,11 +281,11 @@ sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as int
 	mbuttons = lastbuttons
 end sub
 
-sub io_setmouse(byval x as integer, byval y as integer)
+sub io_fb_setmouse(byval x as integer, byval y as integer)
 	setmouse(x * zoom, y * zoom + screen_buffer_offset)
 end sub
 
-sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+sub io_fb_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 	mxmin = xmin * zoom
 	mxmax = xmax * zoom + zoom - 1
 	mymin = (ymin + screen_buffer_offset) * zoom
@@ -296,7 +301,7 @@ sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as int
 	end if
 end sub
 
-function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
+function io_fb_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
 	dim as single xa, ya
 	if getjoystick(joynum, button, xa, ya) then 'returns 1 on failure
 		return 0
@@ -307,3 +312,27 @@ function io_readjoysane(byval joynum as integer, byref button as integer, byref 
 	'if abs(x) > 10 then debug "X = " + str(x)
 	return 1
 end function
+
+sub gfx_fb_setprocptrs
+	gfx_close = @gfx_fb_close
+	gfx_showpage = @gfx_fb_showpage
+	gfx_setpal = @gfx_fb_setpal
+	gfx_screenshot = @gfx_fb_screenshot
+	gfx_setwindowed = @gfx_fb_setwindowed
+	gfx_windowtitle = @gfx_fb_windowtitle
+	gfx_getwindowstate = @gfx_fb_getwindowstate
+	gfx_setoption = @gfx_fb_setoption
+	gfx_describe_options = @gfx_fb_describe_options
+	io_init = @io_fb_init
+	io_pollkeyevents = @io_fb_pollkeyevents
+	io_keybits = @io_amx_keybits
+	io_updatekeys = @io_fb_updatekeys
+	io_mousebits = @io_amx_mousebits
+	io_setmousevisibility = @io_fb_setmousevisibility
+	io_getmouse = @io_fb_getmouse
+	io_setmouse = @io_fb_setmouse
+	io_mouserect = @io_fb_mouserect
+	io_readjoysane = @io_fb_readjoysane
+end sub
+
+end extern

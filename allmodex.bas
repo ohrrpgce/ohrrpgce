@@ -169,7 +169,7 @@ sub setmodex()
 	keybdmutex = mutexcreate
 	keybdthread = threadcreate(@pollingthread)
 
-	io_init
+	io_init()
 	'mouserect(-1,-1,-1,-1)
 
 	fpstime = TIMER
@@ -186,7 +186,7 @@ sub restoremode()
 	end if
 	mutexdestroy keybdmutex
 
-	gfx_close
+	gfx_close()
 
 	'clear up software gfx
 	for i as integer = 0 to ubound(vpages)
@@ -214,14 +214,14 @@ end function
 SUB settemporarywindowtitle (title as string)
 	'just like setwindowtitle but does not memorize the title
 	mutexlock keybdmutex
-	gfx_windowtitle title
+	gfx_windowtitle(title)
 	mutexunlock keybdmutex
 END SUB
 
 SUB setwindowtitle (title as string)
 	remember_title = title
 	mutexlock keybdmutex
-	gfx_windowtitle title
+	gfx_windowtitle(title)
 	mutexunlock keybdmutex
 END SUB
 
@@ -995,14 +995,14 @@ SUB clearkey(byval k as integer)
 end sub
 
 'these are wrappers provided by the polling thread
-SUB io_keybits(keybdarray as integer ptr)
+SUB io_amx_keybits cdecl (keybdarray as integer ptr)
 	for a as integer = 0 to &h7f
 		keybdarray[a] = keybdstate(a)
 		keybdstate(a) = keybdstate(a) and 1
 	next
 END SUB
 
-SUB io_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
+SUB io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 	'get the mouse state one last time, for good measure
 	io_getmouse(mx, my, mwheel, mbuttons)
 	mclicks = mouseflags or (mbuttons and not mouselastflags)
@@ -1017,7 +1017,7 @@ sub pollingthread(byval unused as threadbs)
 	while endpollthread = 0
 		mutexlock keybdmutex
 
-		io_updatekeys @keybdstate(0)
+		io_updatekeys(@keybdstate(0))
 		'set key state for every key
 		'highest scancode in fbgfx.bi is &h79, no point overdoing it
 		for a = 0 to &h7f
@@ -1031,7 +1031,7 @@ sub pollingthread(byval unused as threadbs)
 			'move the bit (clearing it) that io_updatekeys sets from 8 to 1
 			keybdstate(a) = (keybdstate(a) and 6) or ((keybdstate(a) shr 3) and 1)
 		next
-		io_getmouse dummy, dummy, dummy, buttons
+		io_getmouse(dummy, dummy, dummy, buttons)
 		mouseflags = mouseflags or (buttons and not mouselastflags)
 		mouselastflags = buttons
 		mutexunlock keybdmutex

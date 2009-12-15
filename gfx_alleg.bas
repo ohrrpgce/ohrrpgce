@@ -41,7 +41,12 @@ dim shared scantrans(0 to 127) as integer => { _
 	0, 0, 0, 0, 0, 0, 0, 0 _
 }
 
-sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+extern "C"
+
+declare sub gfx_alleg_setprocptrs
+
+sub gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+	gfx_alleg_setprocptrs
 	if init_gfx = 0 then
 		allegro_init()
 	
@@ -64,14 +69,14 @@ sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as
 	end if
 end sub
 
-sub gfx_close
+sub gfx_alleg_close
 	if screenbuf <> null then
 		destroy_bitmap(screenbuf)
 		screenbuf = null
 	end if
 end sub
 
-sub gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
+sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
 'takes a pointer to raw 8-bit data at 320x200 (w, h ignored)
 	dim as integer x, y
 
@@ -95,7 +100,7 @@ sub gfx_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
 	
 end sub
 
-sub gfx_setpal(byval pal as RGBcolor ptr)
+sub gfx_alleg_setpal(byval pal as RGBcolor ptr)
 'In 8 bit colour depth, allegro uses 6 bit colour components in the palette
 	dim as integer i
 	
@@ -108,11 +113,11 @@ sub gfx_setpal(byval pal as RGBcolor ptr)
 	set_palette(@alpal(0))
 end sub
 
-function gfx_screenshot(byval fname as zstring ptr) as integer
-	gfx_screenshot = 0
+function gfx_alleg_screenshot(byval fname as zstring ptr) as integer
+	gfx_alleg_screenshot = 0
 end function
 
-sub gfx_setwindowed(byval iswindow as integer)
+sub gfx_alleg_setwindowed(byval iswindow as integer)
 	if iswindow <> 0 then iswindow = 1 'only 1 "true" value
 	if iswindow = windowed then exit sub
 	
@@ -134,30 +139,30 @@ sub gfx_setwindowed(byval iswindow as integer)
 	end if
 end sub
 
-sub gfx_windowtitle(byval title as zstring ptr)
+sub gfx_alleg_windowtitle(byval title as zstring ptr)
 	if init_gfx = 1 then
  		set_window_title(title)
  	end if
 end sub
 
-function gfx_getwindowstate() as WindowState ptr
+function gfx_alleg_getwindowstate() as WindowState ptr
 	return 0
 end function
 
-function gfx_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
+function gfx_alleg_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
 'handle command-line options in a generic way, so that they
 'can be ignored or supported as the library permits.
 	'unrecognised
 	return 0
 end function
 
-function gfx_describe_options() as zstring ptr
+function gfx_alleg_describe_options() as zstring ptr
 'No options are supported by this backend
  return @""
 end function
 
 '------------- IO Functions --------------
-sub io_init
+sub io_alleg_init
 ' 	'mostly handled above
 ' 	if mouse_hidden = 0 then
 ' 		scare_mouse() 'hide mouse
@@ -165,11 +170,11 @@ sub io_init
 ' 	end if
 end sub
 
-sub io_pollkeyevents()
+sub io_alleg_pollkeyevents()
 	'not needed by this backend
 end sub
 
-sub io_updatekeys(byval keybd as integer ptr)
+sub io_alleg_updatekeys(byval keybd as integer ptr)
 	dim a as integer
 	for a = 0 to &h7f
 		if key(a) then
@@ -179,14 +184,14 @@ sub io_updatekeys(byval keybd as integer ptr)
 
 	if key(KEY_ENTER) andalso (key_shifts and KB_ALT_FLAG) then
 		if windowed = 0 then
-			gfx_setwindowed(1)
+			gfx_alleg_setwindowed(1)
 		else
-			gfx_setwindowed(0)
+			gfx_alleg_setwindowed(0)
 		end if
 	end if
 end sub
 
-sub io_setmousevisibility(byval visible as integer)
+sub io_alleg_setmousevisibility(byval visible as integer)
 'who know why this check is here
  	if visible <> 0 and mouse_hidden = 1 then
  		unscare_mouse()
@@ -198,24 +203,48 @@ sub io_setmousevisibility(byval visible as integer)
  	end if
 end sub
 
-sub io_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+sub io_alleg_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
 	mx = mouse_x \ 2		'allegro screen is double res
 	my = (mouse_y \ 2) - baroffset	'and centred
 	mwheel = mouse_z
 	mbuttons = mouse_b
 end sub
 
-sub io_setmouse(byval x as integer, byval y as integer)
+sub io_alleg_setmouse(byval x as integer, byval y as integer)
 	position_mouse(x * 2, y * 2 + baroffset)
 end sub
 
-sub io_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+sub io_alleg_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 'doesn't seem to work fullscreen, no idea why not. Height of mouse cursor?
 'FIXME: doesn't seem to restrict to the window at all.
  	set_mouse_range(xmin * 2, ymin * 2 + baroffset, xmax * 2 + 1, ymax * 2 + 1 + baroffset)
 end sub
 
-function io_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
+function io_alleg_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
 	'don't know
 	return 0
 end function
+
+sub gfx_alleg_setprocptrs
+	gfx_close = @gfx_alleg_close
+	gfx_showpage = @gfx_alleg_showpage
+	gfx_setpal = @gfx_alleg_setpal
+	gfx_screenshot = @gfx_alleg_screenshot
+	gfx_setwindowed = @gfx_alleg_setwindowed
+	gfx_windowtitle = @gfx_alleg_windowtitle
+	gfx_getwindowstate = @gfx_alleg_getwindowstate
+	gfx_setoption = @gfx_alleg_setoption
+	gfx_describe_options = @gfx_alleg_describe_options
+	io_init = @io_alleg_init
+	io_pollkeyevents = @io_alleg_pollkeyevents
+	io_keybits = @io_amx_keybits
+	io_updatekeys = @io_alleg_updatekeys
+	io_mousebits = @io_amx_mousebits
+	io_setmousevisibility = @io_alleg_setmousevisibility
+	io_getmouse = @io_alleg_getmouse
+	io_setmouse = @io_alleg_setmouse
+	io_mouserect = @io_alleg_mouserect
+	io_readjoysane = @io_alleg_readjoysane
+end sub
+
+end extern

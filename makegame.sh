@@ -31,5 +31,5 @@ fbc -lang deprecated -g -v -exx -mt -m game -d IS_GAME -d DATAFILES='"/usr/share
   ${3} ${4} ${5} ${6} ${7} ${8} \
   game.bas bmod.bas bmodsubs.bas allmodex.bas menustuf.bas moresubs.bas yetmore.bas yetmore2.bas \
   compat.bas bam2mid.bas loading.bas common.bas browse.bas util.bas slices.bas blit.o \
-  lumpfile.bas gfx_${GFX}.bas music_${MUSIC}.bas ${EXTRA} \
+  lumpfile.bas backends.bas gfx_${GFX}.bas music_${MUSIC}.bas ${EXTRA} \
 && mv game ohrrpgce-game
