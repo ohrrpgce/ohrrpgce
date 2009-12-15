@@ -8,17 +8,18 @@ option explicit
 
 #include "music.bi"
 #include "util.bi"
+#include "common.bi"
 #include "file.bi"
 'warning: due to a FB bug, overloaded functions must be declared before SDL.bi is included
 #include "SDL\SDL.bi"
 #include "SDL\SDL_mixer.bi"
 
 'extern
-declare sub debug(s$)
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
 declare function isfile(n$) as integer
-declare function soundfile$ (sfxnum%)
+extern "C" 
 declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
+end extern
 extern tmpdir as string
 
 'local functions
@@ -53,8 +54,9 @@ sub quit_sdl_audio()
 	end if
 end sub
 
-sub music_init()	
+sub music_init()
 	if music_on = 0 then
+		dim ver as SDL_version ptr
 		dim audio_rate as integer
 		dim audio_format as Uint16
 		dim audio_channels as integer
@@ -70,6 +72,8 @@ sub music_init()
 		audio_buffers = 1024 '1536  
 		
 		if SDL_WasInit(0) = 0 then
+			ver = SDL_Linked_Version()
+			musicbackendinfo += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
 			if SDL_Init(SDL_INIT_AUDIO) then
 				debug "Can't start SDL (audio): " & *SDL_GetError
 				music_on = -1  'error
@@ -83,7 +87,10 @@ sub music_init()
 				exit sub
 			end if
 		end if
-		
+
+		ver = Mix_Linked_Version()
+		musicbackendinfo += ", SDL_Mixer " & ver->major & "." & ver->minor & "." & ver->patch
+
 		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
 			'if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, 2048)) <> 0 then
 				debug "Can't open audio : " & *Mix_GetError

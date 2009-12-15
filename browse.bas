@@ -195,7 +195,7 @@ DO
  edgeprint alert$, 8, 34 + br.viewsize * 9, uilook(uiText), dpage
  IF br.special = 7 THEN
   rectangle 0, 190, 320, 10, uilook(uiDisabledItem), dpage
-  edgeprint version$, 8, 190, uilook(uiMenuItem), dpage
+  edgeprint version$ + " " + gfxbackend + "/" + musicbackend, 8, 190, uilook(uiMenuItem), dpage
   textcolor uilook(uiText), 0
  END IF
  textcolor uilook(uiText), 0

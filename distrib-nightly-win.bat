@@ -14,63 +14,58 @@ pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-win-installer-%OHRVERDATE%
 
 del game*.exe
 del custom*.exe
-call make.bat fb sdl
-call nightly-gfx-music fb sdl
+call make.bat fb ~ sdl
+call nightly-gfx-music fb sdl ~ SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat fb native
-call nightly-gfx-music fb native
+call make.bat fb ~ native
+call nightly-gfx-music fb native ~ audiere.dll
 
 del game*.exe
 del custom*.exe
-call make.bat fb native2
-call nightly-gfx-music fb native2
+call make.bat fb ~ native2
+call nightly-gfx-music fb native2 ~ audiere.dll
 
 del game*.exe
 del custom*.exe
-call make.bat alleg native
-call nightly-gfx-music alleg native
+call make.bat alleg ~ native
+call nightly-gfx-music alleg native ~ alleg40.dll audiere.dll
 
 del game*.exe
 del custom*.exe
-call make.bat alleg sdl
-call nightly-gfx-music alleg sdl
+call make.bat alleg ~ sdl
+call nightly-gfx-music alleg sdl ~ alleg40.dll SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat alleg native2
-call nightly-gfx-music alleg native2
+call make.bat alleg ~ native2
+call nightly-gfx-music alleg native2 ~ alleg40.dll audiere.dll
 
 del game*.exe
 del custom*.exe
-call make.bat alleg allegro
-call nightly-gfx-music alleg allegro
+call make.bat sdl ~ sdl
+call nightly-gfx-music sdl sdl ~ SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat sdl sdl
-call nightly-gfx-music sdl sdl
+call make.bat fb ~ silence
+call nightly-gfx-music fb silence ~ 
 
 del game*.exe
 del custom*.exe
-call make.bat fb silence
-call nightly-gfx-music fb silence
+call make.bat fb ~ sdl -g
+call nightly-gfx-music fb sdl -debug SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat fb sdl -g
-call nightly-gfx-music fb sdl -debug
+call make.bat fb ~ sdl -g -exx -s console
+call nightly-gfx-music fb sdl -debug-exx SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat fb sdl -g -exx -s console
-call nightly-gfx-music fb sdl -debug-exx
-
-del game*.exe
-del custom*.exe
-call make.bat fb sdl -g -d SCRIPTPROFILE
-call nightly-gfx-music fb sdl -scriptprofile
+call make.bat fb ~ sdl -g -d SCRIPTPROFILE
+call nightly-gfx-music fb sdl -scriptprofile SDL.dll SDL_mixer.dll 
 
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/

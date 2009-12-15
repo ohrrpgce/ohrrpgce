@@ -196,11 +196,13 @@ SUB gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowico
 #endif
 '/
   'disable capslock/numlock/pause special keypress behaviour
-  debug " " & putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
-  debug " " & putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
+  putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
+  putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
 
   gfx_sdl_setprocptrs
   IF SDL_WasInit(0) = 0 THEN
+    DIM ver as SDL_version ptr = SDL_Linked_Version()
+    gfxbackendinfo += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
     IF SDL_Init(SDL_INIT_VIDEO) THEN
       debug "Can't start SDL (video): " & *SDL_GetError
       SYSTEM

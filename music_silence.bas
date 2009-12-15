@@ -12,6 +12,8 @@ sub music_init() : end sub
 
 sub music_close() : end sub
 
+sub music_play(byval lump as Lump ptr, fmt as integer) : end sub
+
 sub music_play(songname as string, fmt as integer=FORMAT_BAM) : end sub
 
 sub music_pause() : end sub
@@ -45,6 +47,10 @@ function sound_playing(byval num as integer,  byval s as integer = 0) as integer
 end function
 
 function LoadSound overload(byval num as integer) as integer
+	return 0
+end function
+
+function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) as integer
 	return 0
 end function
 

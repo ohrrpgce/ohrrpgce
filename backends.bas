@@ -3,6 +3,7 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
 #include "compat.bi"
+#include "common.bi"
 #include "gfx.bi"
 
 extern "C"
@@ -27,12 +28,16 @@ dim io_setmouse as sub (byval x as integer, byval y as integer)
 dim io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 dim io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
 
+dim as string gfxbackend, musicbackend
+dim as string gfxbackendinfo, musicbackendinfo
+
 declare sub gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 declare sub gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 declare sub gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 dim shared gfx_directx_init as sub (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 
 dim shared gfx_directx as any ptr
+
 
 
 ' gfx_directx needs updating
@@ -65,7 +70,9 @@ function load_gfx_directx() as integer
 	io_setmousevisibility = dylibsymbol(gfx_directx, "io_setmousevisibility")
 	io_getmouse = dylibsymbol(gfx_directx, "io_getmouse")
 	io_setmouse = dylibsymbol(gfx_directx, "io_setmouse")
-	io_mouserect = @io_dummy_mouserect
+	io_mouserect = dylibsymbol(gfx_directx, "io_mouserect")
+	'implemented or not?
+	if io_mouserect = NULL then io_mouserect = @io_dummy_mouserect
 	io_readjoysane = dylibsymbol(gfx_directx, "io_readjoysane")
 	
 	return 1
@@ -74,21 +81,33 @@ end function
 #endif
 
 sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
-	#ifdef GFX_FB_BACKEND
-		gfx_fb_init(terminate_signal_handler, windowicon)
-		exit sub
-	#endif
-	#ifdef GFX_SDL_BACKEND
-		gfx_sdl_init(terminate_signal_handler, windowicon)
-		exit sub
-	#endif
 	#ifdef GFX_DIRECTX_BACKEND
 		if load_gfx_directx then
+			debuginfo "Initialising gfx_directx..."
+			gfxbackendinfo = "gfx_directx"
+			gfxbackend = "directx"
 			gfx_directx_init(terminate_signal_handler, windowicon)
 			exit sub
 		end if
 	#endif
+	#ifdef GFX_FB_BACKEND
+		debuginfo "Initialising gfx_fb..."
+		gfxbackendinfo = "gfx_fb"
+		gfxbackend = "fb"
+		gfx_fb_init(terminate_signal_handler, windowicon)
+		exit sub
+	#endif
+	#ifdef GFX_SDL_BACKEND
+		debuginfo "Initialising gfx_sdl..."
+		gfxbackendinfo = "gfx_sdl"
+		gfxbackend = "sdl"
+		gfx_sdl_init(terminate_signal_handler, windowicon)
+		exit sub
+	#endif
 	#ifdef GFX_ALLEG_BACKEND
+		debuginfo "Initialising gfx_alleg..."
+		gfxbackendinfo = "gfx_alleg"
+		gfxbackend = "alleg"
 		gfx_alleg_init(terminate_signal_handler, windowicon)
 		exit sub
 	#endif
@@ -96,5 +115,9 @@ sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as
 	system
 end sub
 
-
 end extern
+
+'initialise the music backend name because it's static, yet music_init
+'might not be called until Import Music menu
+musicbackend = MUSIC_BACKEND
+musicbackendinfo = "music_" + MUSIC_BACKEND

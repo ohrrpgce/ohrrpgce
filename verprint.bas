@@ -5,6 +5,7 @@
 '
 DECLARE FUNCTION get_date_tag () AS STRING
 DECLARE FUNCTION get_svn_rev () AS STRING
+DECLARE SUB split (BYVAL z AS STRING, ret() AS STRING, sep AS STRING = CHR(10))
 DEFINT A-Z
 '$DYNAMIC
 
@@ -19,28 +20,40 @@ codename$ = LEFT$(codename$, 15)
 PRINT "Version ID " + datetag$
 PRINT "Codename " + codename$
 
+DIM gfxmods() AS STRING
+
+split(command(1), gfxmods(), "+")
+
 long_version$ = "CONST long_version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + "." + svnrev$ + " gfx_" + command(1) + "/music_" + command(2) + " " + __FB_SIGNATURE__ + " (" + __FB_BUILD_DATE__ + ")" + CHR$(34)
 
 OPEN "cver.txt" FOR OUTPUT AS #1
-a$ = "#DEFINE GFX_" + UCASE$(command(1)) + "_BACKEND"
-PRINT #1, a$
+FOR i AS INTEGER = 0 TO UBOUND(gfxmods)
+  a$ = "#DEFINE GFX_" + UCASE$(gfxmods(i)) + "_BACKEND"
+  PRINT #1, a$
+NEXT
 a$ = "#DEFINE MUSIC_" + UCASE$(command(2)) + "_BACKEND"
 PRINT #1, a$
-a$ = "CONST version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + " " + command(1) + "/" + command(2) + CHR$(34)
+a$ = "#DEFINE MUSIC_BACKEND """ + LCASE$(command(2)) + """"
+PRINT #1, a$
+a$ = "CONST version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + CHR$(34)
 PRINT #1, a$
 a$ = "CONST version_code as string = " + CHR$(34) + "OHRRPGCE Editor version " + codename$ + CHR$(34)
 PRINT #1, a$
-a$ = "CONST version_build as string = " + CHR$(34) + "build:" + datetag$ + " gfx_" + command(1) + " music_" + command(2) + CHR$(34)
+a$ = "CONST version_build as string = " + CHR$(34) + datetag$ + " gfx_" + command(1) + " music_" + command(2) + CHR$(34)
 PRINT #1, a$
 PRINT #1, long_version$
 CLOSE #1
 
 OPEN "gver.txt" FOR OUTPUT AS #1
-a$ = "#DEFINE GFX_" + UCASE$(command(1)) + "_BACKEND"
-PRINT #1, a$
+FOR i AS INTEGER = 0 TO UBOUND(gfxmods)
+  a$ = "#DEFINE GFX_" + UCASE$(gfxmods(i)) + "_BACKEND"
+  PRINT #1, a$
+NEXT
 a$ = "#DEFINE MUSIC_" + UCASE$(command(2)) + "_BACKEND"
 PRINT #1, a$
-a$ = "CONST version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + " " + command(1) + "/" + command(2) + CHR$(34)
+a$ = "#DEFINE MUSIC_BACKEND """ + LCASE$(command(2)) + """"
+PRINT #1, a$
+a$ = "CONST version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + CHR$(34)
 PRINT #1, a$
 PRINT #1, long_version$
 CLOSE #1
@@ -106,3 +119,26 @@ CLOSE #fh
 KILL "svninfo.tmp"
 END FUNCTION
 
+'copied from util.bas. Bad things might happen if it were used directly?
+SUB split(byval z as string, ret() as string, sep as string = chr(10))
+ redim ret(0)
+ dim as integer i = 0, i2 = 1, j = 0
+ dim as string in = z
+ i = instr(i2, in, sep)
+ if i = 0 then
+  ret(0) = in
+  exit sub
+ end if
+ do
+  redim preserve ret(j) 
+  if i = 0 then 
+   ret(j) = mid(in, i2)
+   exit do
+  else
+   ret(j) = mid(in, i2, i - i2)
+  end if
+  i2 = i + 1
+  i = instr(i2, in, sep)
+  j+=1
+ loop
+end sub

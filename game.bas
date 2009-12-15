@@ -41,6 +41,7 @@ REMEMBERSTATE
 
 start_new_debug
 debuginfo long_version & build_info
+debuginfo DATE & " " & TIME
 
 'DEBUG debug "randomize timer"
 RANDOMIZE TIMER, 3 ' Mersenne Twister
@@ -304,7 +305,7 @@ END IF
 
 end_debug 'messages generated before this point, or previous game
 start_new_debug
-debuginfo long_version & build_info
+debuginfo long_version & " " & gfxbackendinfo & " " & musicbackendinfo & build_info
 debuginfo "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
