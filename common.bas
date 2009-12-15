@@ -169,11 +169,11 @@ SUB start_new_debug
 
  DIM as string logfile, oldfile
  #IFDEF IS_GAME
-   logfile = "g_debug.txt"
-   oldfile = "g_debug_archive.txt"
+   logfile = log_dir & "g_debug.txt"
+   oldfile = log_dir & "g_debug_archive.txt"
  #ELSE
-   logfile = "c_debug.txt"
-   oldfile = "c_debug_archive.txt"
+   logfile = log_dir & "c_debug.txt"
+   oldfile = log_dir & "c_debug_archive.txt"
  #ENDIF
  IF NOT isfile(logfile) THEN EXIT SUB
 
@@ -220,12 +220,13 @@ SUB start_new_debug
 END SUB
 
 SUB end_debug
+ DIM filename AS STRING
  #IFDEF IS_GAME
-   filename$ = "g_debug.txt"
+   filename = "g_debug.txt"
  #ELSE
-   filename$ = "c_debug.txt"
+   filename = "c_debug.txt"
  #ENDIF
- IF NOT importantdebug THEN safekill filename$
+ IF NOT importantdebug THEN safekill log_dir & filename
  importantdebug = 0
 END SUB
 
