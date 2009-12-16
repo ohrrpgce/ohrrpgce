@@ -64,6 +64,7 @@ DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
 DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER, tilesets() AS TilesetData ptr)
 DECLARE SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
+DECLARE SUB mapedit_pickblock(tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER, menubar() AS INTEGER, pass() AS INTEGER, menu AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -643,7 +644,7 @@ DO
      setbit jiggle(), 0, layer, (readbit(jiggle(), 0, layer) XOR 1)
    END IF
    IF keyval(scTilde) > 1 THEN show_minimap map(), tilesets()
-   IF keyval(scEnter) > 1 THEN GOSUB pickblock
+   IF keyval(scEnter) > 1 THEN mapedit_pickblock tilepick, layer, usetile(), menubarstart(), menubar(), pass(), menu, cursor(), tilesets(), cursorpal()
    IF keyval(scSpace) > 0 THEN
     setmapblock x, y, layer, usetile(layer)
     IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tilesets()
@@ -1021,43 +1022,6 @@ DO
  dowait
 LOOP
 RETRACE '--end of mapping GOSUB block
-
-pickblock:
-setkeys
-menubar(0) = 16
-menubar(1) = 10
-setmapdata menubar(), pass(), 0, 0
-DO
- setwait 80
- setkeys
- IF keyval(scEnter) > 1 OR keyval(scESC) > 1 THEN menu = usetile(layer): EXIT DO
- IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
- IF (keyval(scUp) AND 5) AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
- IF (keyval(scDown) AND 5) AND tilepick.y < 9 THEN tilepick.y += 1: usetile(layer) = usetile(layer) + 16
- IF (keyval(scLeft) AND 5) AND tilepick.x > 0 THEN tilepick.x -= 1: usetile(layer) = usetile(layer) - 1
- IF (keyval(scRight) AND 5) AND tilepick.x < 15 THEN tilepick.x += 1: usetile(layer) = usetile(layer) + 1
- IF (keyval(scComma) AND 5) AND usetile(layer) > 0 THEN
-  usetile(layer) -= 1
-  tilepick.x -= 1
-  IF tilepick.x < 0 THEN tilepick.x = 15: tilepick.y -= 1
- END IF
- IF (keyval(scPeriod) AND 5) AND usetile(layer) < 159 THEN
-  usetile(layer) += 1
-  tilepick.x += 1
-  IF tilepick.x > 15 THEN tilepick.x = 0: tilepicky += 1
- END IF
- tog = tog XOR 1
- drawmap 0, 0, 0, 0, tilesets(layer), dpage
- loadsprite cursor(), 0, 0, 0, 20, 20, 2
- drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, tilepick.x * 20, tilepick.y * 20, dpage
-' copypage dpage, vpage
- setvispage dpage
- dowait
-LOOP
-menubar(0) = 160
-menubar(1) = 1
-update_tilepicker tilepick, layer, usetile(), menubarstart()
-RETRACE
 
 '----
 'gmap(20)
@@ -2016,4 +1980,45 @@ array(160) = 4444
 '--write defaults into tile set defaults file
 setpicstuf array(), 322, -1
 storeset workingdir + SLASH + "defpass.bin", tilesetnum, 0
+END SUB
+
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
+SUB mapedit_pickblock(tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER, menubar() AS INTEGER, pass() AS INTEGER, menu AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
+ menubar(0) = 16
+ menubar(1) = 10
+ setmapdata menubar(), pass(), 0, 0
+ DIM tog AS INTEGER= 0
+ setkeys
+ DO
+  setwait 80
+  setkeys
+  IF keyval(scEnter) > 1 OR keyval(scESC) > 1 THEN menu = usetile(layer): EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
+  IF (keyval(scUp) AND 5) AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
+  IF (keyval(scDown) AND 5) AND tilepick.y < 9 THEN tilepick.y += 1: usetile(layer) = usetile(layer) + 16
+  IF (keyval(scLeft) AND 5) AND tilepick.x > 0 THEN tilepick.x -= 1: usetile(layer) = usetile(layer) - 1
+  IF (keyval(scRight) AND 5) AND tilepick.x < 15 THEN tilepick.x += 1: usetile(layer) = usetile(layer) + 1
+  IF (keyval(scComma) AND 5) AND usetile(layer) > 0 THEN
+   usetile(layer) -= 1
+   tilepick.x -= 1
+   IF tilepick.x < 0 THEN tilepick.x = 15: tilepick.y -= 1
+  END IF
+  IF (keyval(scPeriod) AND 5) AND usetile(layer) < 159 THEN
+   usetile(layer) += 1
+   tilepick.x += 1
+   IF tilepick.x > 15 THEN tilepick.x = 0: tilepick.y += 1
+  END IF
+  tog = tog XOR 1
+  drawmap 0, 0, 0, 0, tilesets(layer), dpage
+  loadsprite cursor(), 0, 0, 0, 20, 20, 2
+  drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, tilepick.x * 20, tilepick.y * 20, dpage
+  ' copypage dpage, vpage
+  setvispage dpage
+  dowait
+ LOOP
+ menubar(0) = 160
+ menubar(1) = 1
+ update_tilepicker tilepick, layer, usetile(), menubarstart()
 END SUB
