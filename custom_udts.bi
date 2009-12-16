@@ -123,6 +123,7 @@ TYPE MapEditState
   npc_inst(299) AS NPCInst
   tilepick AS XYPair
   layer AS INTEGER
+  usetile(0 to 2) AS INTEGER
 END TYPE
 
 ENUM EditRuleMode
