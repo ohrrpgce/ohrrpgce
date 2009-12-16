@@ -64,7 +64,7 @@ DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
 DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER, tilesets() AS TilesetData ptr)
 DECLARE SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB mapedit_pickblock(BYREF st AS MapEditState, menubar() AS INTEGER, pass() AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
+DECLARE SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -138,7 +138,7 @@ END FUNCTION
 
 SUB mapmaker (font())
 DIM st AS MapEditState
-DIM menubar(82), cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(binMAP)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
+DIM cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(binMAP)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
 DIM her AS HeroDef
 DIM tilesets(2) as TilesetData ptr
 DIM defaults(2) as DefArray
@@ -194,10 +194,11 @@ mode$(1) = "Passability Mode"
 mode$(2) = "Door Placement Mode"
 mode$(3) = "NPC Placement Mode"
 mode$(4) = "Foe Mapping Mode"
-menubar(0) = 160: menubar(1) = 1
+st.menubar(0) = 160
+st.menubar(1) = 1
 sampmap(0) = 1
 sampmap(1) = 1
-setmapdata menubar(), pass(), 180, 0
+setmapdata st.menubar(), pass(), 180, 0
 FOR i = 0 TO 159
  setmapblock i, 0, 0, i
 NEXT
@@ -643,7 +644,7 @@ DO
      setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
    END IF
    IF keyval(scTilde) > 1 THEN show_minimap map(), tilesets()
-   IF keyval(scEnter) > 1 THEN mapedit_pickblock st, menubar(), pass(), cursor(), tilesets(), cursorpal()
+   IF keyval(scEnter) > 1 THEN mapedit_pickblock st, pass(), cursor(), tilesets(), cursorpal()
    IF keyval(scSpace) > 0 THEN
     setmapblock x, y, st.layer, st.usetile(st.layer)
     IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tilesets()
@@ -870,7 +871,7 @@ DO
  
  '--draw menubar
  IF editmode = 0 THEN
-  setmapdata menubar(), pass(), 0, 180
+  setmapdata st.menubar(), pass(), 0, 180
   drawmap st.menubarstart(st.layer) * 20, 0, 0, 0, tilesets(st.layer), dpage
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
@@ -1984,10 +1985,10 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB mapedit_pickblock(BYREF st AS MapEditState, menubar() AS INTEGER, pass() AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
- menubar(0) = 16
- menubar(1) = 10
- setmapdata menubar(), pass(), 0, 0
+SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
+ st.menubar(0) = 16
+ st.menubar(1) = 10
+ setmapdata st.menubar(), pass(), 0, 0
  DIM tog AS INTEGER= 0
  setkeys
  DO
@@ -2017,7 +2018,7 @@ SUB mapedit_pickblock(BYREF st AS MapEditState, menubar() AS INTEGER, pass() AS 
   setvispage dpage
   dowait
  LOOP
- menubar(0) = 160
- menubar(1) = 1
+ st.menubar(0) = 160
+ st.menubar(1) = 1
  update_tilepicker st
 END SUB
