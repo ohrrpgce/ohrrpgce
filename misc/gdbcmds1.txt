@@ -1,4 +1,5 @@
 break fb_ErrorThrowEx
+break abort
 echo                Running...\n
 run
 if $_exitcode == 0

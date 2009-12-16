@@ -1,3 +1,6 @@
 echo Dumping state\n
+p GFXBACKENDINFO
+p MUSICBACKENDINFO
+info threads
 bt full
 quit
