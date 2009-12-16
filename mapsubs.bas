@@ -64,7 +64,7 @@ DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
 DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER, tilesets() AS TilesetData ptr)
 DECLARE SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
+DECLARE SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, tilesets() as TilesetData ptr)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -138,7 +138,7 @@ END FUNCTION
 
 SUB mapmaker (font())
 DIM st AS MapEditState
-DIM cursor(600), mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(binMAP)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), cursorpal(8), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
+DIM mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(binMAP)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
 DIM her AS HeroDef
 DIM tilesets(2) as TilesetData ptr
 DIM defaults(2) as DefArray
@@ -165,29 +165,33 @@ textcolor uilook(uiText), 0
 
 wide = 0: high = 0: nptr = 0
 mapname$ = ""
-DIM as string xtemp
+DIM xtemp AS STRING
 
-FOR i = 0 TO 15: xtemp = xtemp + CHR$(i): NEXT i ' Populate this 16-palette with the first 16 colors of the master palette, just... because...
-str2array xtemp, cursorpal(), 0
-'Correct the colors that actually get used
-poke8bit cursorpal(), 15, uilook(uiText)
-poke8bit cursorpal(), 7, uilook(uiMenuItem)
+'--create a palette for the cursor
+st.cursor.pal = palette16_new()
+'set the colors that actually get used
+st.cursor.pal->col(1) = uilook(uiText)
+st.cursor.pal->col(2) = uilook(uiMenuItem)
 
 '--create cursor
-'-- there is a good reason this doesn't use uilook(). getsprite expects voodoo like this.
-'-- See also the construction of cursorpal() above
-clearpage 2
-rectangle 0, 0, 20, 20, 15, 2
-rectangle 1, 1, 18, 18, 0, 2
-rectangle 2, 2, 16, 16, 7, 2
-rectangle 3, 3, 14, 14, 0, 2
-getsprite cursor(), 200, 0, 0, 20, 20, 2
-clearpage 2
-rectangle 0, 0, 20, 20, 15, 2
-rectangle 1, 1, 18, 18, 0, 2
-rectangle 3, 3, 14, 14, 7, 2
-rectangle 4, 4, 12, 12, 0, 2
-getsprite cursor(), 400, 0, 0, 20, 20, 2
+' the colors here are actually offsets into the 16-color palette.
+' see the st.cursor.pal construction above
+st.cursor.sprite = sprite_new(20, 20, 2, YES)
+DIM cursorpage AS INTEGER
+
+cursorpage = registerpage(st.cursor.sprite)
+rectangle 0, 0, 20, 20, 1, cursorpage
+rectangle 1, 1, 18, 18, 0, cursorpage
+rectangle 2, 2, 16, 16, 2, cursorpage
+rectangle 3, 3, 14, 14, 0, cursorpage
+freepage cursorpage
+
+cursorpage = registerpage(st.cursor.sprite + 1)
+rectangle 0, 0, 20, 20, 1, cursorpage
+rectangle 1, 1, 18, 18, 0, cursorpage
+rectangle 3, 3, 14, 14, 2, cursorpage
+rectangle 4, 4, 12, 12, 0, cursorpage
+freepage cursorpage
 
 mode$(0) = "Picture Mode"
 mode$(1) = "Passability Mode"
@@ -247,6 +251,8 @@ clearpage 1
 clearpage 2
 clearpage 3
 unloadmaptilesets tilesets()
+sprite_unload @(st.cursor.sprite)
+palette16_unload @(st.cursor.pal)
 EXIT SUB
 
 whattodo:
@@ -644,7 +650,7 @@ DO
      setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
    END IF
    IF keyval(scTilde) > 1 THEN show_minimap map(), tilesets()
-   IF keyval(scEnter) > 1 THEN mapedit_pickblock st, pass(), cursor(), tilesets(), cursorpal()
+   IF keyval(scEnter) > 1 THEN mapedit_pickblock st, pass(), tilesets()
    IF keyval(scSpace) > 0 THEN
     setmapblock x, y, st.layer, st.usetile(st.layer)
     IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tilesets()
@@ -975,8 +981,10 @@ DO
  
  '--normal cursor--
  IF editmode <> 3 THEN
-  drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, (x * 20) - mapx, (y * 20) - mapy + 20, dpage
-  IF editmode = 0 THEN drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, dpage
+  sprite_draw st.cursor.sprite + tog, st.cursor.pal, (x * 20) - mapx, (y * 20) - mapy + 20, , , dpage
+  IF editmode = 0 THEN
+   sprite_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
+  END IF
  END IF
  
  '--npc placement cursor--
@@ -1985,7 +1993,7 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
+SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, tilesets()  as TilesetData ptr)
  st.menubar(0) = 16
  st.menubar(1) = 10
  setmapdata st.menubar(), pass(), 0, 0
@@ -2012,8 +2020,7 @@ SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, cursor() AS I
   END IF
   tog = tog XOR 1
   drawmap 0, 0, 0, 0, tilesets(st.layer), dpage
-  loadsprite cursor(), 0, 0, 0, 20, 20, 2
-  drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, st.tilepick.x * 20, st.tilepick.y * 20, dpage
+  sprite_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , dpage
   ' copypage dpage, vpage
   setvispage dpage
   dowait

@@ -126,6 +126,7 @@ TYPE MapEditState
   usetile(0 to 2) AS INTEGER
   menubarstart(0 to 2) AS INTEGER
   menubar(82) AS INTEGER 'setmapdata buffer
+  cursor AS GraphicPair
 END TYPE
 
 ENUM EditRuleMode
