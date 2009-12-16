@@ -41,6 +41,7 @@ dim shared bordered as integer = 0
 dim shared depth as integer = 8
 dim shared smooth as integer = 0
 dim shared mouseclipped as integer = 0
+dim shared rememmvis as integer = 1
 dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 
 'internal palette for 32-bit mode, with RGB colour components packed into a int
@@ -53,6 +54,10 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		gfx_fb_screenres
 		screenset 1, 0
 		init_gfx = 1
+		dim bpp as integer 'bits, not bytes. see, bits is b, bytes is B
+		dim driver as string
+		screeninfo , , bpp, , , , driver
+		gfxbackendinfo += ", " & bpp & "bpp, " & driver & " driver"
 	end if
 	return 1
 end function
@@ -60,8 +65,10 @@ end function
 sub gfx_fb_screenres
 	if windowed = 0 then
 		screenres screenmodex, screenmodey, depth, 1, GFX_FULLSCREEN
+		setmouse , , 0
 	else
 		screenres screenmodex, screenmodey, depth, 1, GFX_WINDOWED
+		setmouse , , rememmvis
 	end if
 end sub
 
@@ -228,30 +235,73 @@ sub io_fb_init
 	'setmouse , , 0 'hide mouse
 end sub
 
-sub io_fb_pollkeyevents()
-	'not needed by this backend
-end sub
-
-sub io_fb_updatekeys(byval keybd as integer ptr)
-	dim as integer a
-	for a = 0 to &h7f
-		if multikey(a) then
-			keybd[a] = keybd[a] or 8
+sub process_events()
+'	static last_enter_state as integer
+	dim e as Event
+	while ScreenEvent(@e)
+		'unhide the mouse when the window loses focus
+		if e.type = EVENT_WINDOW_LOST_FOCUS then
+			setmouse , , 1
 		end if
-	next
+		if e.type = EVENT_WINDOW_GOT_FOCUS then
+			if windowed then
+				setmouse , , rememmvis
+			else
+				setmouse , , 0
+			end if
+		end if
+	wend
+
+
 	'the polling thread ought to ensure that these are caught timeously
 	'inkey does not seem to be threadsafe (bug 790)
 	'if inkey = chr(255) + "k" then post_terminate_signal
 	while fb_keyhit
-		a = fb_getkey
+		dim a as integer = fb_getkey
 		'there are two different fb_getkey values that cause fb_GfxInkey to return "\255k"
 		if a = &h100 or a = &h6bff then post_terminate_signal
 	wend
-	if multikey(SC_ALT) and multikey(SC_F4) then post_terminate_signal
+	if multikey(SC_ALT) andalso multikey(SC_F4) then post_terminate_signal
+
+	'Try to catch fullscreening to reduce mouse visibility confusion. However, fullscreening
+	'with the window button is not considered.
+	'We can't directly detect alt+enter because FB doesn't report key events when alt is held
+	'extremely insensitive, useless.
+/'	if multikey(SC_ALT) andalso multikey(SC_ENTER) andalso last_enter_state = 0 then
+		windowed xor= 1
+		if windowed then
+			setmouse , , rememmvis
+		else
+			setmouse , , 0
+		end if
+	end if
+	last_enter_state = multikey(SC_ENTER)
+'/
+end sub
+
+sub io_fb_pollkeyevents()
+	'not really needed by this backend
+	process_events()
+end sub
+
+sub io_fb_updatekeys(byval keybd as integer ptr)
+	process_events()
+
+	for a as integer = 0 to &h7f
+		if multikey(a) then
+			keybd[a] = keybd[a] or 8
+		end if
+	next
 end sub
 
 sub io_fb_setmousevisibility(byval visible as integer)
-	setmouse , , abs(sgn(visible))
+	'Note that 'windowed' is an approximation - see process_events()
+	rememmvis = iif(visible, 1, 0)
+	if windowed then
+		setmouse , , rememmvis
+	else
+		setmouse , , 0
+	end if
 end sub
 
 sub io_fb_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)

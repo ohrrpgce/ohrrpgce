@@ -35,6 +35,7 @@ DIM SHARED smooth AS INTEGER = 0
 DIM SHARED screensurface AS SDL_Surface PTR = NULL
 DIM SHARED screenbuffer AS SDL_Surface PTR = NULL
 DIM SHARED windowedmode AS INTEGER = -1
+DIM SHARED rememmvis AS INTEGER = 1
 DIM SHARED keystate AS Uint8 PTR = NULL
 DIM SHARED sdljoystick AS SDL_Joystick PTR = NULL
 DIM SHARED sdlpalette(0 TO 255) AS SDL_Color
@@ -219,6 +220,8 @@ FUNCTION gfx_sdl_set_screen_mode() as integer
   IF windowedmode = 0 THEN
     flags = flags OR SDL_FULLSCREEN
     SDL_ShowCursor(0)
+  ELSE
+    SDL_ShowCursor(rememmvis)
   END IF
   screensurface = SDL_SetVideoMode(320 * zoom, 200 * zoom, 0, flags)
   IF screensurface = NULL THEN
@@ -357,7 +360,7 @@ FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) a
 END FUNCTION
 
 FUNCTION gfx_sdl_describe_options() as zstring ptr
-  return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)" _
+  return @"-z -zoom [1|2|3|4]  Scale screen to 1,2,3 or 4x normal size (2x default)" LINE_END _
           "-s -smooth          Enable smoothing filter for zoom modes (default off)"
 END FUNCTION
 
@@ -385,11 +388,25 @@ SUB gfx_sdl_process_events()
           END IF
         END IF
       CASE SDL_ACTIVEEVENT
-        IF mouseclipped = 1 AND tempevent.active.gain = 1 AND (tempevent.active.state AND SDL_APPINPUTFOCUS) THEN
-          SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
-          SDL_PumpEvents
-          lastmx = screensurface->w \ 2
-          lastmy = screensurface->h \ 2
+        'debug "SDL_ACTIVEEVENT " & tempevent.active.state
+        IF tempevent.active.state AND SDL_APPINPUTFOCUS THEN 
+          IF tempevent.active.gain = 0 THEN
+            SDL_ShowCursor(1)
+          END IF
+          IF tempevent.active.gain = 1 THEN
+            IF windowedmode THEN
+              SDL_ShowCursor(rememmvis)
+            ELSE
+              SDL_ShowCursor(0)
+            END IF
+          END IF
+          IF mouseclipped = 1 AND tempevent.active.gain = 1 THEN
+            SDL_GetMouseState(@privatemx, @privatemy)
+            SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
+            SDL_PumpEvents
+            lastmx = screensurface->w \ 2
+            lastmy = screensurface->h \ 2
+	  END IF
         END IF
       'CASE SDL_VIDEORESIZE
         'debug "SDL_VIDEORESIZE: w=" & tempevent.resize.w & " h=" & tempevent.resize.h
@@ -416,7 +433,8 @@ SUB io_sdl_updatekeys(byval keybd as integer ptr)
 END SUB
 
 SUB io_sdl_setmousevisibility(byval visible as integer)
-  SDL_ShowCursor(iif(visible, 1, 0))
+  rememmvis = iif(visible, 1, 0)
+  SDL_ShowCursor(iif(windowedmode, rememmvis, 0))
 END SUB
 
 SUB io_sdl_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
@@ -425,8 +443,8 @@ SUB io_sdl_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as
   DIM buttons AS Uint8
 
   buttons = SDL_GetMouseState(@x, @y)
-  IF mouseclipped THEN
-    IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
+  IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
+    IF mouseclipped THEN
       'Not moving the mouse back to the centre of the window rapidly is widely recommended.
       'Implemented only due to attempting to fix eventually unrelated problem. Possibly beneficial to keep
       'debug "mousestate " & x & " " & y & " (" & lastmx & " " & lastmy & ")"
@@ -446,13 +464,14 @@ SUB io_sdl_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as
       END IF
       privatemx = bound(privatemx, mxmin, mxmax)
       privatemy = bound(privatemy, mymin, mymax)
+    ELSE
+      privatemx = x
+      privatemy = y
     END IF
-    mx = privatemx \ zoom
-    my = privatemy \ zoom
-  ELSE
-    mx = x \ zoom
-    my = y \ zoom
   END IF
+  mx = privatemx \ zoom
+  my = privatemy \ zoom
+
 
   mbuttons = 0
   IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR 1
