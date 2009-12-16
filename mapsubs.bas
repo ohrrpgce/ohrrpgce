@@ -47,24 +47,24 @@ DECLARE SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pas
 DECLARE SUB resizemapmenu (map(), tilesets() AS TilesetData ptr, byref newwide, byref newhigh, byref tempx, byref tempy)
 
 DECLARE SUB make_top_map_menu(maptop, topmenu$())
-DECLARE SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
+DECLARE SUB update_tilepicker(BYREF st AS MapEditState, usetile() AS INTEGER, menubarstart() AS INTEGER)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
 DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
 DECLARE SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB new_blank_map (BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, tilesets() AS TilesetData ptr)
 DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
-DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
+DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr)
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
-DECLARE SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray, BYREF layer AS INTEGER)
+DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray)
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
 DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER, tilesets() AS TilesetData ptr)
 DECLARE SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB mapedit_pickblock(tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER, menubar() AS INTEGER, pass() AS INTEGER, menu AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
+DECLARE SUB mapedit_pickblock(BYREF st AS MapEditState, usetile() AS INTEGER, menubarstart() AS INTEGER, menubar() AS INTEGER, pass() AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -147,7 +147,6 @@ redim doors(99) as door, link(199) as doorlink
 
 DIM as integer usetile(0 to 2)
 DIM as integer menubarstart(0 to 2)
-DIM as integer layer
 DIM as integer jiggle(0)
 DIM as integer visible(0) = {&b111} 'used as bitsets
 
@@ -159,8 +158,6 @@ DIM npc_img(max_npc_defs) AS GraphicPair
 REDIM map(2) ' dummy empty map data, will be resized later
 REDIM pass(2)
 REDIM emap(2)
-
-DIM tilepick AS XYPair
 
 DIM foe AS INTEGER = 0 ' Formation number for foemapping mode
 
@@ -254,7 +251,11 @@ unloadmaptilesets tilesets()
 EXIT SUB
 
 whattodo:
-x = 0: y = 0: mapx = 0: mapy = 0: layer = 0
+x = 0
+y = 0
+mapx = 0
+mapy = 0
+st.layer = 0
 list$(0) = "Return to Map Menu"
 list$(1) = "Edit General Map Data..."
 list$(2) = "Resize Map..."
@@ -302,7 +303,7 @@ DO
    mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), tilesets(), doors(), link(), mapname$
   END IF
   IF csr = 3 THEN
-   mapedit_layers gmap(), visible(), tilesets(), defaults(), layer
+   mapedit_layers st, gmap(), visible(), tilesets(), defaults()
   END IF
   IF csr = 4 THEN
    npcdef st.npc_def(), npc_img(), pt
@@ -310,7 +311,7 @@ DO
   IF csr >= 5 AND csr <= 9 THEN editmode = csr - 5: GOSUB mapping
   IF csr = 10 THEN mapedit_linkdoors st, pt, map(), pass(), emap(), gmap(), tilesets(), doors(), link(), mapname$
   IF csr = 11 THEN
-   mapedit_delete st, pt, wide, high, x, y, mapx, mapy, layer, map(), pass(), emap(), doors(), link()
+   mapedit_delete st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), doors(), link()
    IF pt > gen(genMaxMap) THEN
     pt -= 1
     EXIT DO
@@ -564,8 +565,8 @@ DO
     clearkey(sc1 + i)
     togglelayerenabled(gmap(), i)
     if layerisenabled(gmap(), i) then
-     if layer = i then
-      do until layerisenabled(gmap(), layer): layer -= 1: loop
+     if st.layer = i then
+      do until layerisenabled(gmap(), st.layer): st.layer -= 1: loop
      end if
     end if
    end if
@@ -578,12 +579,12 @@ DO
   next
   
   if keyval(scTilde) > 1 then
-   togglelayervisible(visible(), layer)
+   togglelayervisible(visible(), st.layer)
    clearkey(scTilde)
   end if
  end if
  
- IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers gmap(), visible(), tilesets(), defaults(), layer  'ctrl-L
+ IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), tilesets(), defaults()  'ctrl-L
  IF keyval(scTab) > 1 THEN tiny = tiny XOR 1
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    'delete tile
@@ -623,69 +624,69 @@ DO
    IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+F Fill screen
     FOR tx = 0 TO 14
      FOR ty = 0 TO 8
-      setmapblock mapx \ 20 + tx, mapy \ 20 + ty, layer, usetile(layer)
+      setmapblock mapx \ 20 + tx, mapy \ 20 + ty, st.layer, usetile(st.layer)
       IF defpass THEN calculatepassblock mapx \ 20 + tx, mapy \ 20 + ty, map(), pass(), defaults(), tilesets()
      NEXT ty
     NEXT tx
    END IF
    IF keyval(scR) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+R to replace-all
-    old = readmapblock(x, y, layer)
+    old = readmapblock(x, y, st.layer)
     FOR ty = 0 to map(1) - 1
      FOR tx = 0 to map(0) - 1
-      IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, usetile(layer)
+      IF readmapblock(tx, ty, st.layer) = old THEN setmapblock tx, ty, st.layer, usetile(st.layer)
      NEXT tx
     NEXT ty
    END IF
    IF keyval(scP) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+P to paint a continuous section of maptiles
-    old = readmapblock(x, y, layer)
-    paint_map_area old, x, y, layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
+    old = readmapblock(x, y, st.layer)
+    paint_map_area old, x, y, st.layer, usetile(), map(), pass(), defaults(), tilesets(), defpass
    END IF
    IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
-     setbit jiggle(), 0, layer, (readbit(jiggle(), 0, layer) XOR 1)
+     setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
    END IF
    IF keyval(scTilde) > 1 THEN show_minimap map(), tilesets()
-   IF keyval(scEnter) > 1 THEN mapedit_pickblock tilepick, layer, usetile(), menubarstart(), menubar(), pass(), menu, cursor(), tilesets(), cursorpal()
+   IF keyval(scEnter) > 1 THEN mapedit_pickblock st, usetile(), menubarstart(), menubar(), pass(), cursor(), tilesets(), cursorpal()
    IF keyval(scSpace) > 0 THEN
-    setmapblock x, y, layer, usetile(layer)
+    setmapblock x, y, st.layer, usetile(st.layer)
     IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tilesets()
    END IF
    IF keyval(scDelete) > 1 THEN 'delete
-    setmapblock x, y, layer, 0
+    setmapblock x, y, st.layer, 0
    END IF
    IF keyval(scCapslock) > 1 THEN 'grab tile
-    usetile(layer) = animadjust(readmapblock(x, y, layer), tilesets(layer)->tastuf())
-    update_tilepicker tilepick, layer, usetile(), menubarstart()
+    usetile(st.layer) = animadjust(readmapblock(x, y, st.layer), tilesets(st.layer)->tastuf())
+    update_tilepicker st, usetile(), menubarstart()
    END IF
    IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN defpass = defpass XOR 1   
    FOR i = 0 TO 1 
     IF keyval(sc1 + i) > 1 THEN 'animate tile
      newtile = -1
-     old = readmapblock(x, y, layer)
+     old = readmapblock(x, y, st.layer)
      IF old >= 160 + i * 48 AND old < 160 + i * 48 + 48 THEN
-      newtile = (old - (160 + (i * 48))) + tilesets(layer)->tastuf(i * 20)
-     ELSEIF old >= tilesets(layer)->tastuf(i * 20) AND old < tilesets(layer)->tastuf(i * 20) + 48 THEN
-      newtile = 160 + (i * 48) + (old - tilesets(layer)->tastuf(i * 20))
+      newtile = (old - (160 + (i * 48))) + tilesets(st.layer)->tastuf(i * 20)
+     ELSEIF old >= tilesets(st.layer)->tastuf(i * 20) AND old < tilesets(st.layer)->tastuf(i * 20) + 48 THEN
+      newtile = 160 + (i * 48) + (old - tilesets(st.layer)->tastuf(i * 20))
      END IF
      IF newtile >= 0 THEN
       IF keyval(scCtrl) = 0 THEN
-       setmapblock x, y, layer, newtile
+       setmapblock x, y, st.layer, newtile
       ELSE
        FOR tx = 0 TO map(0) - 1
         FOR ty = 0 TO map(1) - 1
-         IF readmapblock(tx, ty, layer) = old THEN setmapblock tx, ty, layer, newtile
+         IF readmapblock(tx, ty, st.layer) = old THEN setmapblock tx, ty, st.layer, newtile
         NEXT ty
        NEXT tx
       END IF
      END IF
     END IF
    NEXT i
-   IF keyval(scComma) > 1 AND usetile(layer) > 0 THEN
-    usetile(layer) = usetile(layer) - 1
-    update_tilepicker tilepick, layer, usetile(), menubarstart()
+   IF keyval(scComma) > 1 AND usetile(st.layer) > 0 THEN
+    usetile(st.layer) = usetile(st.layer) - 1
+    update_tilepicker st, usetile(), menubarstart()
    END IF
-   IF keyval(scPeriod) > 1 AND usetile(layer) < 159 THEN
-    usetile(layer) = usetile(layer) + 1
-    update_tilepicker tilepick, layer, usetile(), menubarstart()
+   IF keyval(scPeriod) > 1 AND usetile(st.layer) < 159 THEN
+    usetile(st.layer) = usetile(st.layer) + 1
+    update_tilepicker st, usetile(), menubarstart()
    END IF
    '---PASSMODE-------
   CASE 1
@@ -844,22 +845,22 @@ DO
  
  IF editmode = 0 THEN 'tilemode, uses layers
   IF keyval(scPageup) > 1 THEN
-   FOR i = layer+1 TO 2
+   FOR i = st.layer+1 TO 2
     IF layerisenabled(gmap(), i) THEN
-     layer = i
-     setlayervisible(visible(), layer, 1)
-     update_tilepicker tilepick, layer, usetile(), menubarstart()
+     st.layer = i
+     setlayervisible(visible(), st.layer, 1)
+     update_tilepicker st, usetile(), menubarstart()
      EXIT FOR
     END IF
    NEXT i
   END IF
 
   IF keyval(scPageDown) > 1 THEN
-   FOR i = layer-1 TO 0 STEP -1
+   FOR i = st.layer-1 TO 0 STEP -1
     IF layerisenabled(gmap(), i) THEN
-     layer = i
-     setlayervisible(visible(), layer, 1)
-     update_tilepicker tilepick, layer, usetile(), menubarstart()
+     st.layer = i
+     setlayervisible(visible(), st.layer, 1)
+     update_tilepicker st, usetile(), menubarstart()
      EXIT FOR
     END IF
    NEXT
@@ -872,7 +873,7 @@ DO
  '--draw menubar
  IF editmode = 0 THEN
   setmapdata menubar(), pass(), 0, 180
-  drawmap menubarstart(layer) * 20, 0, 0, 0, tilesets(layer), dpage
+  drawmap menubarstart(st.layer) * 20, 0, 0, 0, tilesets(st.layer), dpage
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
  END IF
@@ -976,7 +977,7 @@ DO
  '--normal cursor--
  IF editmode <> 3 THEN
   drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, (x * 20) - mapx, (y * 20) - mapy + 20, dpage
-  IF editmode = 0 THEN drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, ((usetile(layer) - menubarstart(layer)) * 20), 0, dpage
+  IF editmode = 0 THEN drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, ((usetile(st.layer) - menubarstart(st.layer)) * 20), 0, dpage
  END IF
  
  '--npc placement cursor--
@@ -1003,7 +1004,7 @@ DO
  
  textcolor uilook(uiSelectedItem + tog), 0
  if editmode = 0 then
- printstr "Layer " & layer, 0, 180, dpage
+ printstr "Layer " & st.layer, 0, 180, dpage
  end if
  printstr "X " & x & "   Y " & y, 0, 192, dpage
  setmapdata map(), pass(), 20, 0
@@ -1053,7 +1054,7 @@ RETRACE '--end of mapping GOSUB block
 '128 overhead
 END SUB
 
-SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray, BYREF layer AS INTEGER)
+SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray)
  DIM state AS MenuState
  DIM menu$(10)
  DIM enabled(10) AS INTEGER
@@ -1063,7 +1064,7 @@ SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS Tiles
  currentset = -1
  clearpage 2
 
- state.pt = (layer + 1) * 3
+ state.pt = (st.layer + 1) * 3
  state.top = 0
  state.last = UBOUND(menu$)
  state.size = 19
@@ -1140,7 +1141,7 @@ SUB mapedit_layers (gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS Tiles
  FOR i = 0 TO 2
   loadpasdefaults defaults(i).a(), tilesets(i)->num
  NEXT
- IF layerisenabled(gmap(), layer) = 0 THEN layer = 0
+ IF layerisenabled(gmap(), st.layer) = 0 THEN st.layer = 0
  EXIT SUB
 
 updateback:
@@ -1408,7 +1409,7 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
 END SUB
 
-SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, BYREF layer AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
+SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
  setvispage vpage
  IF yesno("Delete this map?", NO) THEN
   printstr "Please Wait...", 0, 40, vpage
@@ -1432,7 +1433,7 @@ SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
   y = 0
   mapx = 0
   mapy = 0
-  layer = 0
+  st.layer = 0
   '--if this is the last map, then actually remove it entirely, rather than just blanking it
   IF mapnum = gen(genMaxMap) THEN
    gen(genMaxMap) -= 1
@@ -1445,10 +1446,10 @@ SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  END IF
 END SUB
 
-SUB update_tilepicker(BYREF tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER)
- menubarstart(layer) = bound(menubarstart(layer), large(usetile(layer) - 14, 0), small(usetile(layer), 145))
- tilepick.y = usetile(layer) \ 16
- tilepick.x = usetile(layer) - (tilepick.y * 16)
+SUB update_tilepicker(BYREF st AS MapEditState, usetile() AS INTEGER, menubarstart() AS INTEGER)
+ menubarstart(st.layer) = bound(menubarstart(st.layer), large(usetile(st.layer) - 14, 0), small(usetile(st.layer), 145))
+ st.tilepick.y = usetile(st.layer) \ 16
+ st.tilepick.x = usetile(st.layer) - (st.tilepick.y * 16)
 END SUB
 
 SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
@@ -1985,7 +1986,7 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB mapedit_pickblock(tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER, menubarstart() AS INTEGER, menubar() AS INTEGER, pass() AS INTEGER, menu AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
+SUB mapedit_pickblock(BYREF st AS MapEditState, usetile() AS INTEGER, menubarstart() AS INTEGER, menubar() AS INTEGER, pass() AS INTEGER, cursor() AS INTEGER, tilesets()  as TilesetData ptr, cursorpal() AS INTEGER)
  menubar(0) = 16
  menubar(1) = 10
  setmapdata menubar(), pass(), 0, 0
@@ -1994,31 +1995,31 @@ SUB mapedit_pickblock(tilepick AS XYPair, layer AS INTEGER, usetile() AS INTEGER
  DO
   setwait 80
   setkeys
-  IF keyval(scEnter) > 1 OR keyval(scESC) > 1 THEN menu = usetile(layer): EXIT DO
+  IF keyval(scEnter) > 1 OR keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap_picktile"
-  IF (keyval(scUp) AND 5) AND tilepick.y > 0 THEN tilepick.y -= 1: usetile(layer) = usetile(layer) - 16
-  IF (keyval(scDown) AND 5) AND tilepick.y < 9 THEN tilepick.y += 1: usetile(layer) = usetile(layer) + 16
-  IF (keyval(scLeft) AND 5) AND tilepick.x > 0 THEN tilepick.x -= 1: usetile(layer) = usetile(layer) - 1
-  IF (keyval(scRight) AND 5) AND tilepick.x < 15 THEN tilepick.x += 1: usetile(layer) = usetile(layer) + 1
-  IF (keyval(scComma) AND 5) AND usetile(layer) > 0 THEN
-   usetile(layer) -= 1
-   tilepick.x -= 1
-   IF tilepick.x < 0 THEN tilepick.x = 15: tilepick.y -= 1
+  IF (keyval(scUp) AND 5) AND st.tilepick.y > 0 THEN st.tilepick.y -= 1: usetile(st.layer) = usetile(st.layer) - 16
+  IF (keyval(scDown) AND 5) AND st.tilepick.y < 9 THEN st.tilepick.y += 1: usetile(st.layer) = usetile(st.layer) + 16
+  IF (keyval(scLeft) AND 5) AND st.tilepick.x > 0 THEN st.tilepick.x -= 1: usetile(st.layer) = usetile(st.layer) - 1
+  IF (keyval(scRight) AND 5) AND st.tilepick.x < 15 THEN st.tilepick.x += 1: usetile(st.layer) = usetile(st.layer) + 1
+  IF (keyval(scComma) AND 5) AND usetile(st.layer) > 0 THEN
+   usetile(st.layer) -= 1
+   st.tilepick.x -= 1
+   IF st.tilepick.x < 0 THEN st.tilepick.x = 15: st.tilepick.y -= 1
   END IF
-  IF (keyval(scPeriod) AND 5) AND usetile(layer) < 159 THEN
-   usetile(layer) += 1
-   tilepick.x += 1
-   IF tilepick.x > 15 THEN tilepick.x = 0: tilepick.y += 1
+  IF (keyval(scPeriod) AND 5) AND usetile(st.layer) < 159 THEN
+   usetile(st.layer) += 1
+   st.tilepick.x += 1
+   IF st.tilepick.x > 15 THEN st.tilepick.x = 0: st.tilepick.y += 1
   END IF
   tog = tog XOR 1
-  drawmap 0, 0, 0, 0, tilesets(layer), dpage
+  drawmap 0, 0, 0, 0, tilesets(st.layer), dpage
   loadsprite cursor(), 0, 0, 0, 20, 20, 2
-  drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, tilepick.x * 20, tilepick.y * 20, dpage
+  drawsprite cursor(), 200 * (1 + tog), cursorpal(), 0, st.tilepick.x * 20, st.tilepick.y * 20, dpage
   ' copypage dpage, vpage
   setvispage dpage
   dowait
  LOOP
  menubar(0) = 160
  menubar(1) = 1
- update_tilepicker tilepick, layer, usetile(), menubarstart()
+ update_tilepicker st, usetile(), menubarstart()
 END SUB

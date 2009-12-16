@@ -121,6 +121,8 @@ END TYPE
 TYPE MapEditState
   npc_def(99) AS NPCType
   npc_inst(299) AS NPCInst
+  tilepick AS XYPair
+  layer AS INTEGER
 END TYPE
 
 ENUM EditRuleMode
