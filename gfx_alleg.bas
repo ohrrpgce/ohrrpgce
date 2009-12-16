@@ -43,7 +43,7 @@ dim shared scantrans(0 to 127) as integer => { _
 
 extern "C"
 
-function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
+function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	if init_gfx = 0 then
 		allegro_init()
 	
@@ -73,6 +73,10 @@ sub gfx_alleg_close
 		screenbuf = null
 	end if
 end sub
+
+function gfx_alleg_getversion() as integer
+	return 1
+end function
 
 sub gfx_alleg_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
 'takes a pointer to raw 8-bit data at 320x200 (w, h ignored)
@@ -225,6 +229,7 @@ end function
 
 function gfx_alleg_setprocptrs() as integer
 	gfx_close = @gfx_alleg_close
+	gfx_getversion = @gfx_alleg_getversion
 	gfx_showpage = @gfx_alleg_showpage
 	gfx_setpal = @gfx_alleg_setpal
 	gfx_screenshot = @gfx_alleg_screenshot

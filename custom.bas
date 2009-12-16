@@ -172,7 +172,8 @@ END IF
 'otherwise, keep current directory as it was, net effect: it is the same as in Game
 
 start_new_debug
-debuginfo long_version & " " & gfxbackendinfo & " " & musicbackendinfo & build_info
+debuginfo long_version & build_info
+debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo 
 debuginfo "Editing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 setwindowtitle "OHRRPGCE - " + sourcerpg

@@ -186,7 +186,7 @@ scantrans(SDLK_UNDO) = 0
 EXTERN "C"
 
 
-FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
+FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 /' Trying to load the resource as a SDL_Surface, Unfinished - the winapi has lost me
 #ifdef __FB_WIN32__
   DIM as HBITMAP iconh
@@ -201,14 +201,14 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
 
   IF SDL_WasInit(0) = 0 THEN
     DIM ver as SDL_version ptr = SDL_Linked_Version()
-    gfxbackendinfo += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
+    *info_buffer = MID(", SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
     IF SDL_Init(SDL_INIT_VIDEO) THEN
-      debug "Can't start SDL (video): " & *SDL_GetError
+      *info_buffer = MID("Can't start SDL (video): " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
       RETURN 0
     END IF
   ELSEIF SDL_WasInit(SDL_INIT_VIDEO) = 0 THEN
     IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
-      debug "Can't start SDL video subsys: " & *SDL_GetError
+      *info_buffer = MID("Can't start SDL video subsys: " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
       RETURN 0
     END IF
   END IF
@@ -247,6 +247,10 @@ SUB gfx_sdl_close()
     END IF
   END IF
 END SUB
+
+FUNCTION gfx_sdl_getversion() as integer
+  RETURN 1
+END FUNCTION
 
 SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
   'takes a pointer to raw 8-bit data at 320x200 (changing screen dimensions not supported yet)
@@ -534,6 +538,7 @@ END FUNCTION
 
 FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_close = @gfx_sdl_close
+  gfx_getversion = @gfx_sdl_getversion
   gfx_showpage = @gfx_sdl_showpage
   gfx_setpal = @gfx_sdl_setpal
   gfx_screenshot = @gfx_sdl_screenshot

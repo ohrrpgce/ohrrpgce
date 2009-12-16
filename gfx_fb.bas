@@ -48,7 +48,7 @@ dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 dim shared truepal(255) as integer
 
 
-function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
+function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	if init_gfx = 0 then
 		calculate_screen_res
 		gfx_fb_screenres
@@ -57,7 +57,7 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		dim bpp as integer 'bits, not bytes. see, bits is b, bytes is B
 		dim driver as string
 		screeninfo , , bpp, , , , driver
-		gfxbackendinfo += ", " & bpp & "bpp, " & driver & " driver"
+		*info_buffer = MID(", " & bpp & "bpp, " & driver & " driver", 1, info_buffer_size)
 	end if
 	return 1
 end function
@@ -74,6 +74,10 @@ end sub
 
 sub gfx_fb_close
 end sub
+
+function gfx_fb_getversion() as integer
+  return 1
+end function
 
 sub gfx_fb_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
 'takes a pointer to raw 8-bit data at 320x200 (don't claim that anything else is supported)
@@ -364,6 +368,7 @@ end function
 
 function gfx_fb_setprocptrs() as integer
 	gfx_close = @gfx_fb_close
+	gfx_getversion = @gfx_fb_getversion
 	gfx_showpage = @gfx_fb_showpage
 	gfx_setpal = @gfx_fb_setpal
 	gfx_screenshot = @gfx_fb_screenshot

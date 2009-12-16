@@ -9,6 +9,7 @@
 extern "C"
 
 dim gfx_close as sub ()
+dim gfx_getversion as function () as integer
 dim gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h as integer)
 dim gfx_setpal as sub (byval pal as RGBcolor ptr)
 dim gfx_screenshot as function (byval fname as zstring ptr) as integer
@@ -31,12 +32,13 @@ dim io_readjoysane as function (byval as integer, byref as integer, byref as int
 dim as string gfxbackend, musicbackend
 dim as string gfxbackendinfo, musicbackendinfo
 
-declare function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
-declare function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
-declare function gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
+declare function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
+declare function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
+declare function gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 
 declare function gfx_alleg_setprocptrs() as integer
 declare function gfx_directx_setprocptrs() as integer
+declare sub gfx_directx_unload()
 declare function gfx_fb_setprocptrs() as integer
 declare function gfx_sdl_setprocptrs() as integer
 declare function gfx_load(onlyfirst as integer = NO) as integer
@@ -45,20 +47,21 @@ type GfxBackendStuff
 	'FB doesn't allow initialising UDTs containing var-length strings
 	name as string * 7
 	load as function () as integer
-	init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
+	unload as sub ()
+	init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 end type
 
 #ifdef GFX_ALLEG_BACKEND
-dim shared as GfxBackendStuff alleg_stuff = ("alleg", @gfx_alleg_setprocptrs, @gfx_alleg_init)
+dim shared as GfxBackendStuff alleg_stuff = ("alleg", @gfx_alleg_setprocptrs, NULL, @gfx_alleg_init)
 #endif
 #ifdef GFX_DIRECTX_BACKEND
-dim shared as GfxBackendStuff directx_stuff = ("directx", @gfx_directx_setprocptrs, NULL)
+dim shared as GfxBackendStuff directx_stuff = ("directx", @gfx_directx_setprocptrs, @gfx_directx_unload, NULL)
 #endif
 #ifdef GFX_FB_BACKEND
-dim shared as GfxBackendStuff fb_stuff = ("fb", @gfx_fb_setprocptrs, @gfx_fb_init)
+dim shared as GfxBackendStuff fb_stuff = ("fb", @gfx_fb_setprocptrs, NULL, @gfx_fb_init)
 #endif
 #ifdef GFX_SDL_BACKEND
-dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, @gfx_sdl_init)
+dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, NULL, @gfx_sdl_init)
 #endif
 
 
@@ -72,19 +75,9 @@ extern "C"
 
 dim shared gfx_directx as any ptr
 dim shared gfx_loaded as integer = 0
+dim shared queue_error as string  'queue up errors until it's possible to actually display them (TODO: not implemented)
 
 #ifdef GFX_DIRECTX_BACKEND
-
-dim shared gfx_directx_init as sub (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
-
-' gfx_directx needs updating
-function gfx_dxdummy_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr) as integer
-	gfx_directx_init(terminate_signal_handler, windowicon)
-	return 1
-end function
-
-sub io_dummy_mouserect (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
-end sub
 
 function gfx_directx_setprocptrs() as integer
 	if gfx_directx <> 0 then return 1
@@ -92,13 +85,18 @@ function gfx_directx_setprocptrs() as integer
 	gfx_directx = dylibload("gfx_directx.dll")
 	if gfx_directx = 0 then return 0
 
-	'TODO: verify version
+	gfx_getversion = dylibsymbol(gfx_directx, "gfx_getversion")
+	dim as integer apiver = -1
+	if gfx_getversion <> NULL then apiver = gfx_getversion()
+	if apiver <> 1 then
+		queue_error = "Bad gfx_version API version: expected 1, got " & apiver
+		debug queue_error
+		dylibfree(gfx_directx)
+		gfx_directx = NULL
+		return 0
+	end if
 
-	'temporary until gfx_init updated
-	'directx_stuff.init = dylibsymbol(gfx_directx, "gfx_init")
-	gfx_directx_init = dylibsymbol(gfx_directx, "gfx_init")
-	directx_stuff.init = @gfx_dxdummy_init
-
+	directx_stuff.init = dylibsymbol(gfx_directx, "gfx_init")
 	gfx_close = dylibsymbol(gfx_directx, "gfx_close")
 	gfx_showpage = dylibsymbol(gfx_directx, "gfx_showpage")
 	gfx_setpal = dylibsymbol(gfx_directx, "gfx_setpal")
@@ -117,12 +115,17 @@ function gfx_directx_setprocptrs() as integer
 	io_getmouse = dylibsymbol(gfx_directx, "io_getmouse")
 	io_setmouse = dylibsymbol(gfx_directx, "io_setmouse")
 	io_mouserect = dylibsymbol(gfx_directx, "io_mouserect")
-	'implemented or not?
-	if io_mouserect = NULL then io_mouserect = @io_dummy_mouserect
 	io_readjoysane = dylibsymbol(gfx_directx, "io_readjoysane")
 	
 	return 1
 end function
+
+sub gfx_directx_unload()
+	if gfx_directx then
+		dylibfree(gfx_directx)
+		gfx_directx = NULL
+	end if
+end sub
 
 #endif
 
@@ -192,9 +195,9 @@ end function
 'onlyfirst: only try the most prefered. Returns 1 on success
 function gfx_load(onlyfirst as integer) as integer
 	if gfx_loaded then return 1 'hmm
-	gfx_loaded = YES
 	for i as integer = 0 to ubound(gfx_choices)
 		if gfx_choices(i)->load() then
+			gfx_loaded = YES
 			gfxbackendinfo = "gfx_" + gfx_choices(i)->name
 			gfxbackend = gfx_choices(i)->name
 			return 1
@@ -209,11 +212,19 @@ sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if .load() then
+				dim info_buffer as zstring * 256
 				debuginfo "Initialising gfx_" + .name + "..."
 				gfxbackendinfo = "gfx_" + .name
 				gfxbackend = .name
-				if .init(terminate_signal_handler, windowicon) then exit sub
-				'FIXME: ought to unload on failure
+				if .init(terminate_signal_handler, windowicon, @info_buffer, 256) = 0 then 
+					if .unload then .unload()
+					queue_error = info_buffer
+					debug queue_error
+				else
+					gfxbackendinfo += info_buffer
+					debuginfo gfxbackendinfo
+					exit sub
+				end if
 			end if
 		end with
 	next
