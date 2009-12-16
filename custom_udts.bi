@@ -124,6 +124,7 @@ TYPE MapEditState
   tilepick AS XYPair
   layer AS INTEGER
   usetile(0 to 2) AS INTEGER
+  menubarstart(0 to 2) AS INTEGER
 END TYPE
 
 ENUM EditRuleMode
