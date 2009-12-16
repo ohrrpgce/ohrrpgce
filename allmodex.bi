@@ -156,6 +156,7 @@ declare function sprite_is_valid(byval p as frame ptr) as integer
 declare sub sprite_debug_cache()
 declare function sprite_describe(byval p as frame ptr) as string
 
+declare function palette16_new() as palette16 ptr
 declare function palette16_load overload (byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 declare function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 declare sub palette16_unload(byval p as palette16 ptr ptr)

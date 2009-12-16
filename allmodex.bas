@@ -4269,6 +4269,12 @@ sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as
 	Palette16_add_cache(s, p, i)
 end sub
 
+function palette16_new() as palette16 ptr
+  dim ret as palette16 ptr
+  '--create a new palette which is not connected to any data file
+  return callocate(sizeof(palette16))
+end function
+
 function palette16_load(byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 	dim as Palette16 ptr ret = palette16_load(game + ".pal", num, autotype, spr)
 	if ret = 0 then
