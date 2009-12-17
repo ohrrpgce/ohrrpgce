@@ -20,7 +20,6 @@ DECLARE SUB verifyrpg ()
 DECLARE FUNCTION numbertail$ (s$)
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB resizetiledata (array%(), xoff%, yoff%, neww%, newh%, yout%, page%, layer%)
 DECLARE SUB mapmaker (font%())
 DECLARE SUB shopdata ()
 DECLARE SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, pt%)
@@ -44,7 +43,9 @@ DECLARE Sub ToggleLayerEnabled(vis() as integer, byval l as integer)
 DECLARE SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, map(), pass(), doors() as door, link() as doorlink, gmap())
 
 DECLARE SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS DefArray)
-DECLARE SUB resizemapmenu (BYREF st AS MapEditState, map(), byref newwide, byref newhigh, byref tempx, byref tempy)
+DECLARE SUB resizemapmenu (BYREF st AS MapEditState, map(), BYREF rs AS MapResizeState)
+DECLARE SUB resizetiledata OVERLOAD (array() AS INTEGER, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER, layers AS INTEGER)
+DECLARE SUB resizetiledata OVERLOAD (array() AS INTEGER, x_off AS INTEGER, y_off AS INTEGER, new_width AS INTEGER, new_height AS INTEGER, BYREF yout AS INTEGER, page AS INTEGER, layers AS INTEGER)
 
 DECLARE SUB make_top_map_menu(maptop, topmenu() AS STRING)
 DECLARE SUB update_tilepicker(BYREF st AS MapEditState)
@@ -1360,32 +1361,31 @@ END SUB
 
 SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 'sizemap:
- DIM size AS XYPair
- DIM spot AS XYPair
- size.x = 0
- size.y = 0
- spot.x = 0
- spot.y = 0
- resizemapmenu st, map(), size.x, size.y, spot.x, spot.y
- IF size.x = -1 THEN EXIT SUB
+ DIM rs AS MapResizeState
+ rs.size.x = 0
+ rs.size.y = 0
+ rs.spot.x = 0
+ rs.spot.y = 0
+ resizemapmenu st, map(), rs
+ IF rs.size.x = -1 THEN EXIT SUB
 
  clearpage 0
  clearpage 1
  
  DIM yout AS INTEGER = 0
  edgeprint "TILEMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
- resizetiledata map(), spot.x, spot.y, size.x, size.y, yout, vpage, 3
+ resizetiledata map(), rs, yout, vpage, 3
  edgeprint "PASSMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
- resizetiledata pass(), spot.x, spot.y, size.x, size.y, yout, vpage, 1
+ resizetiledata pass(), rs, yout, vpage, 1
  edgeprint "FOEMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
- resizetiledata emap(), spot.x, spot.y, size.x, size.y, yout, vpage, 1
+ resizetiledata emap(), rs, yout, vpage, 1
  ' update SAV x/y offset in MAP lump
- gmap(20) += spot.x * - 1
- gmap(21) += spot.y * - 1
+ gmap(20) += rs.spot.x * - 1
+ gmap(21) += rs.spot.y * - 1
  ' update hero's starting position (if on current map)
  IF gen(genStartMap) = mapnum THEN
-  gen(genStartX) += spot.x * -1
-  gen(genStartY) += spot.y * -1 
+  gen(genStartX) += rs.spot.x * -1
+  gen(genStartY) += rs.spot.y * -1 
  END IF
  setmapdata map(), pass(), 20, 0
  wide = map(0)
@@ -1398,16 +1398,16 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  edgeprint "Aligning and truncating doors", 0, yout * 10, uilook(uiText), vpage: yout += 1
  DIM i AS INTEGER
  FOR i = 0 TO 99
-  doors(i).x -= spot.x
-  doors(i).y -= spot.y
+  doors(i).x -= rs.spot.x
+  doors(i).y -= rs.spot.y
   IF doors(i).x < 0 OR doors(i).y < 0 OR doors(i).x >= wide OR doors(i).y >= high THEN
    setbit(doors(i).bits(),0,0,0)
   END IF
  NEXT
  edgeprint "Aligning and truncating NPCs", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
  FOR i = 0 TO 299
-  st.npc_inst(i).x = st.npc_inst(i).x - spot.x * 20
-  st.npc_inst(i).y = st.npc_inst(i).y - spot.y * 20
+  st.npc_inst(i).x = st.npc_inst(i).x - rs.spot.x * 20
+  st.npc_inst(i).y = st.npc_inst(i).y - rs.spot.y * 20
   IF st.npc_inst(i).x < 0 OR st.npc_inst(i).y < 0 OR st.npc_inst(i).x >= wide * 20 OR st.npc_inst(i).y >= high * 20 THEN
    st.npc_inst(i).id = 0
   END IF
@@ -1742,7 +1742,14 @@ SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map
  setpassblock x, y, n
 END SUB
 
-SUB resizetiledata (array(), x_off, y_off, new_width, new_height, yout, page, layers)
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
+SUB resizetiledata (array() AS INTEGER, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER, layers AS INTEGER)
+ resizetiledata array(), rs.spot.x, rs.spot.y, rs.size.x, rs.size.y, yout, page, layers
+END SUB
+
+SUB resizetiledata (array() AS INTEGER, x_off AS INTEGER, y_off AS INTEGER, new_width AS INTEGER, new_height AS INTEGER, BYREF yout AS INTEGER, page AS INTEGER, layers AS INTEGER)
  edgeprint "Resizing Map...", 0, yout * 10, uilook(uiText), page
  yout += 1
  setvispage page
@@ -1754,7 +1761,7 @@ SUB resizetiledata (array(), x_off, y_off, new_width, new_height, yout, page, la
 '       "new_width = " & new_width & ", " & _
 '       "new_height = " & new_height
 
- dim as integer tmp(ubound(array)), i, x, y
+ dim as integer tmp(ubound(array)), i, x, y, j
 
  memcpy (@tmp(0), @array(0), sizeof(integer) * (ubound(array) + 1))  'why doesn't sizeof work on arrays?!
  cleantiledata array(), new_width, new_height, layers
@@ -1773,18 +1780,23 @@ SUB resizetiledata (array(), x_off, y_off, new_width, new_height, yout, page, la
  next
 END SUB
 
-SUB resizemapmenu (BYREF st AS MapEditState, map(), byref tempw, byref temph, byref tempx, byref tempy)
+SUB resizemapmenu (BYREF st AS MapEditState, map(), BYREF rs AS MapResizeState)
  'returns the new size and offset in passed args, or -1 width to cancel
-DIM minimap AS Frame Ptr
-DIM menu$(6), tog, csr = 1, zoom = 0
-wide = map(0)
-high = map(1)
-tempw = wide
-temph = high
-tempx = 0
-tempy = 0
+ DIM minimap AS Frame Ptr
+ DIM menu(6) AS STRING
+ DIM tog AS INTEGER
+ DIM csr AS INTEGER = 1
+ DIM zoom AS INTEGER = 0
+ DIM wide AS INTEGER = map(0)
+ DIM high AS INTEGER = map(1)
+ DIM incval AS INTEGER = 0
+ DIM drawoff AS XYPair
+ rs.size.x = wide
+ rs.size.y = high
+ rs.spot.x = 0
+ rs.spot.y = 0
 setmapdata map(), map(), 20, 0
-resize_rezoom_mini_map st, zoom, wide, high, tempx, tempy, tempw, temph, minimap, map()
+resize_rezoom_mini_map st, zoom, wide, high, rs.spot.x, rs.spot.y, rs.size.x, rs.size.y, minimap, map()
 GOSUB buildmenu
 setkeys
 DO
@@ -1792,8 +1804,8 @@ DO
  setkeys
  tog = tog xor 1
  IF keyval(scESC) > 1 THEN
-  tempw = -1
-  temph = -1
+  rs.size.x = -1
+  rs.size.y = -1
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "resize_map"
@@ -1802,35 +1814,35 @@ DO
  SELECT CASE csr
   CASE 0
    IF keyval(scEnter) > 1 THEN
-    tempw = -1
-    temph = -1
+    rs.size.x = -1
+    rs.size.y = -1
     EXIT DO
    END IF
   CASE 1
-   IF keyval(scLeft) > 0 THEN tempw -= incval 
-   IF keyval(scRight) > 0 THEN tempw += incval
+   IF keyval(scLeft) > 0 THEN rs.size.x -= incval 
+   IF keyval(scRight) > 0 THEN rs.size.x += incval
    GOSUB correctw
   CASE 2
-   IF keyval(scLeft) > 0 THEN temph -= incval 
-   IF keyval(scRight) > 0 THEN temph += incval
+   IF keyval(scLeft) > 0 THEN rs.size.y -= incval 
+   IF keyval(scRight) > 0 THEN rs.size.y += incval
    GOSUB correcth
   CASE 3
-   IF keyval(scLeft) > 0 THEN tempx -= incval: tempw += incval
-   IF keyval(scRight) > 0 THEN tempx += incval: tempw -= incval
+   IF keyval(scLeft) > 0 THEN rs.spot.x -= incval: rs.size.x += incval
+   IF keyval(scRight) > 0 THEN rs.spot.x += incval: rs.size.x -= incval
    GOSUB correctw
   CASE 4
-   IF keyval(scLeft) > 0 THEN tempy -= incval: temph += incval
-   IF keyval(scRight) > 0 THEN tempy += incval: temph -= incval
+   IF keyval(scLeft) > 0 THEN rs.spot.y -= incval: rs.size.y += incval
+   IF keyval(scRight) > 0 THEN rs.spot.y += incval: rs.size.y -= incval
    GOSUB correcth
  END SELECT
  IF keyval(scEnter) > 1 THEN EXIT DO
 
  clearpage dpage
- drawoffx = large(0, -tempx * zoom)
- drawoffy = large(0, -tempy * zoom)
- sprite_draw minimap, NULL, drawoffx, drawoffy, 1, NO, dpage
+ drawoff.x = large(0, -rs.spot.x * zoom)
+ drawoff.y = large(0, -rs.spot.y * zoom)
+ sprite_draw minimap, NULL, drawoff.x, drawoff.y, 1, NO, dpage
  standardmenu menu$(), UBOUND(menu$), 28, csr, 0, 0, 140, dpage, YES
- drawbox drawoffx + zoom * tempx, drawoffy + zoom * tempy, zoom * tempw, zoom * temph, 14 + tog, dpage
+ drawbox drawoff.x + zoom * rs.spot.x, drawoff.y + zoom * rs.spot.y, zoom * rs.size.x, zoom * rs.size.y, 14 + tog, dpage
 
  SWAP dpage, vpage
  setvispage vpage
@@ -1840,50 +1852,51 @@ sprite_unload @minimap
 EXIT SUB
 
 correctw:
-tempw = bound(tempw, 16, 32000)
-tempx = bound(tempx, -tempw + 1, wide - 1)
-WHILE temph * tempw > 32000 AND temph > 10
- temph -= 1
+rs.size.x = bound(rs.size.x, 16, 32000)
+rs.spot.x = bound(rs.spot.x, -rs.size.x + 1, wide - 1)
+WHILE rs.size.y * rs.size.x > 32000 AND rs.size.y > 10
+ rs.size.y -= 1
 WEND
-GOTO dimchange
+GOSUB dimchange
+RETRACE
 
 correcth:
-temph = bound(temph, 10, 32000)
-tempy = bound(tempy, -temph + 1, high - 1)
-WHILE temph * tempw > 32000 AND tempw > 16
- tempw -= 1
+rs.size.y = bound(rs.size.y, 10, 32000)
+rs.spot.y = bound(rs.spot.y, -rs.size.y + 1, high - 1)
+WHILE rs.size.y * rs.size.x > 32000 AND rs.size.x > 16
+ rs.size.x -= 1
 WEND
-GOTO dimchange
+GOSUB dimchange
+RETRACE
 
 dimchange:
-WHILE temph * tempw > 32000
- temph = large(temph - 1, 10)
- tempw = large(tempw - 1, 16)
+WHILE rs.size.y * rs.size.x > 32000
+ rs.size.y = large(rs.size.y - 1, 10)
+ rs.size.x = large(rs.size.x - 1, 16)
 WEND
-resize_rezoom_mini_map st, zoom, wide, high, tempx, tempy, tempw, temph, minimap, map()
+resize_rezoom_mini_map st, zoom, wide, high, rs.spot.x, rs.spot.y, rs.size.x, rs.size.y, minimap, map()
+GOSUB buildmenu
+RETRACE
 
 buildmenu:
 menu$(0) = "Cancel"
-menu$(1) = "Width " & wide & CHR$(26) & tempw
-menu$(2) = "Height " & high & CHR$(26) & temph
-IF tempx > 0 THEN
- menu$(3) = "Left edge: trim " & tempx & " tiles"
+menu$(1) = "Width " & wide & CHR$(26) & rs.size.x
+menu$(2) = "Height " & high & CHR$(26) & rs.size.y
+IF rs.spot.x > 0 THEN
+ menu$(3) = "Left edge: trim " & rs.spot.x & " tiles"
 ELSE
- menu$(3) = "Left edge: add " & -tempx & " tiles"
+ menu$(3) = "Left edge: add " & -rs.spot.x & " tiles"
 END IF
-IF tempy > 0 THEN
- menu$(4) = "Top edge: trim " & tempy & " tiles"
+IF rs.spot.y > 0 THEN
+ menu$(4) = "Top edge: trim " & rs.spot.y & " tiles"
 ELSE
- menu$(4) = "Top edge: add " & -tempy & " tiles"
+ menu$(4) = "Top edge: add " & -rs.spot.y & " tiles"
 END IF
-menu$(5) = "Area " & (wide * high) & CHR$(26) & (temph * tempw)
+menu$(5) = "Area " & (wide * high) & CHR$(26) & (rs.size.y * rs.size.x)
 menu$(6) = zoom & "x zoom"
 RETRACE
 
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER)
  DIM lastzoom AS INTEGER

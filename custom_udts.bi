@@ -130,6 +130,11 @@ TYPE MapEditState
   tilesets(2) as TilesetData ptr
 END TYPE
 
+TYPE MapResizeState
+  size AS XYPair
+  spot AS XYPair
+END TYPE
+
 ENUM EditRuleMode
   erNone              'Used for labels and links
   erIntgrabber
