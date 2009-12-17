@@ -399,7 +399,7 @@ SUB gfx_sdl_process_events()
         IF key THEN keybdstate(key) AND= NOT 1
       CASE SDL_MOUSEBUTTONDOWN
         'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't
-        mouseclicks OR= 1 SHL evnt.button.button
+        mouseclicks OR= SDL_BUTTON(evnt.button.button)
       CASE SDL_ACTIVEEVENT
         'debug "SDL_ACTIVEEVENT " & evnt.active.state
         IF evnt.active.state AND SDL_APPINPUTFOCUS THEN 
