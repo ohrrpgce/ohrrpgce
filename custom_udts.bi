@@ -132,8 +132,7 @@ END TYPE
 
 TYPE MapResizeState
   menu AS MenuDef
-  size AS XYPair
-  spot AS XYPair
+  rect AS RectType
   oldsize AS XYPair
   zoom AS INTEGER
   minimap AS Frame Ptr
