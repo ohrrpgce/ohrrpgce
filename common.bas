@@ -2920,7 +2920,7 @@ SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
   tileset->refcount -= 1
   IF tileset->refcount = 0 THEN
    'debug "unloading tileset " & tileset->num
-   unloadtileset tileset->spr
+   sprite_unload @tileset->spr
    Deallocate(tileset)
   END IF
   tileset = NULL
@@ -2954,10 +2954,7 @@ SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEG
   .refcount = 1
   'debug "loading tileset " & tilesetnum
 
-  dim page = allocatepage
-  loadmxs game + ".til", tilesetnum, vpages(page)
-  loadtileset .spr, page
-  freepage page
+  .spr = tileset_load(tilesetnum)
   loadtanim tilesetnum, .tastuf()
   DIM i AS INTEGER
   FOR i = 0 TO 1

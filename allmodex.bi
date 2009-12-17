@@ -25,8 +25,8 @@ DECLARE SUB setvispage (BYVAL page as integer)
 DECLARE SUB setpal (pal() as RGBcolor)
 DECLARE SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 DECLARE SUB fadetopal (pal() as RGBcolor)
-DECLARE SUB loadtileset (BYREF tileset as Frame ptr, BYVAL page as integer)
-DECLARE SUB unloadtileset (BYREF tileset as Frame ptr)
+DECLARE FUNCTION sprite_to_tileset(BYVAL spr as frame ptr) as frame ptr
+DECLARE FUNCTION tileset_load(BYVAL num as integer) as Frame ptr
 DECLARE SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL b as integer)
 DECLARE SUB setmapblock (BYVAL x as integer, BYVAL y as integer, byval l as integer, BYVAL v as integer)
 DECLARE FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer, byval l as integer) as integer

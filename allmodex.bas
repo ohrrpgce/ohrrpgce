@@ -2329,9 +2329,9 @@ SUB readmouse (mbuf() as integer)
 
 	mbuf(0) = mx
 	mbuf(1) = my
-	mbuf(2) = mb   'current button state bits, plus missed clicks since last call
-	mbuf(3) = mc   '1 if new (left?) click since last call to readmouse
-	
+	mbuf(2) = mb   'bitmask: current button state bits, OR new clicks since last call
+	mbuf(3) = mc   'new clicks since last call
+
 	if mc <> 0 then
 		if mouse_grab_requested andalso mouse_grab_overridden then
 			mouserect remember_mouse_grab(0), remember_mouse_grab(1), remember_mouse_grab(2), remember_mouse_grab(3)
@@ -3143,18 +3143,9 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 	blitohr (@spr, vpages(page), pal, srcoffset, startx, starty, endx, endy, trans)
 end sub
 
-sub unloadtileset(byref tileset as Frame ptr)
-	'tilesets are never cached at the moment
-	sprite_unload @tileset
-end sub
-
-sub loadtileset(byref tileset as Frame ptr, byval page as integer)
-'TODO/FIXME: Haven't fully translated to new Frame vpages yet, because this
-'should just load from a file or 320x200 Frame, not a video page
-'TODO: cache tilesets like everything else
-	if tileset = null then
-		tileset = sprite_new(20, 20 * 160)
-	end if
+function sprite_to_tileset(byval spr as Frame ptr) as Frame ptr
+	dim tileset as Frame ptr
+	tileset = sprite_new(20, 20 * 160)
 
 	dim as ubyte ptr sptr = tileset->image
 	dim as ubyte ptr srcp
@@ -3162,7 +3153,7 @@ sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 
 	for tiley = 0 to 9
 		for tilex = 0 to 15
-			srcp = vpages(page)->image + tilex * 20 + tiley * 320 * 20
+			srcp = spr->image + tilex * 20 + tiley * 320 * 20
 			for py = 0 to 19
 				for px = 0 to 19
 					*sptr = *srcp
@@ -3173,7 +3164,8 @@ sub loadtileset(byref tileset as Frame ptr, byval page as integer)
 			next
 		next
 	next
-end sub
+	return tileset
+end function
 
 /'
 sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
@@ -3476,6 +3468,23 @@ private sub sprite_from_B_cache(byval entry as SpriteCacheEntry ptr)
 	#endif
 end sub
 
+' search cache, update as required if found
+private function sprite_fetch_from_cache(byval key as integer) as Frame ptr
+	dim entry as SpriteCacheEntry ptr
+	
+	entry = hash_find(sprcache, key)
+
+	if entry then
+		'cachehit += 1
+		if entry->Bcached then
+			sprite_from_B_cache(entry)
+		end if
+		entry->p->refcount += 1
+		return entry->p
+	end if
+	return NULL
+end function
+
 ' adds a newly loaded frame to the cache with a given key
 private sub sprite_add_cache(byval key as integer, byval p as frame ptr)
 	if p = 0 then exit sub
@@ -3592,20 +3601,11 @@ end sub
 ' It will return a pointer to the first frame, and subsequent frames
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
 function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
-	dim entry as SpriteCacheEntry ptr
 	dim ret as Frame ptr
 	dim key as integer = ptno * 1000000 + rec
-	
-	entry = hash_find(sprcache, key)
 
-	if entry then
-		'cachehit += 1
-		if entry->Bcached then
-			sprite_from_B_cache(entry)
-		end if
-		entry->p->refcount += 1
-		return entry->p
-	end if
+	ret = sprite_fetch_from_cache(key)
+	if ret then return ret
 
 	with sprite_sizes(ptno)
 		'debug "loading " & ptno & "  " & rec
@@ -3615,6 +3615,26 @@ function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
 	end with
 
 	sprite_add_cache(key, ret)
+	return ret
+end function
+
+function tileset_load(byval num as integer) as Frame ptr
+	dim ret as Frame ptr
+	dim key as integer = 100000000 + num
+
+	ret = sprite_fetch_from_cache(key)
+	if ret then return ret
+
+	'debug "loading tileset" & ptno & "  " & rec
+	'cachemiss += 1
+
+	dim mxs as Frame ptr
+	mxs = loadmxs(game + ".til", num)
+	if mxs = NULL then return NULL
+	ret = sprite_to_tileset(mxs)
+	sprite_unload @mxs
+
+	if ret then sprite_add_cache(key, ret)
 	return ret
 end function
 

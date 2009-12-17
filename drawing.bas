@@ -638,7 +638,7 @@ DIM tileset as Frame ptr = NULL
 clearpage vpage
 clearpage dpage
 
-loadtileset tileset, 3
+tileset = sprite_to_tileset(vpages(3))
 
 sample(0) = 3
 sample(1) = 3
@@ -685,7 +685,7 @@ DO
  
  dowait
 LOOP
-unloadtileset tileset
+sprite_unload @tileset
 EXIT SUB
 
 setupsample:
