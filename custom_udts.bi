@@ -131,10 +131,12 @@ TYPE MapEditState
 END TYPE
 
 TYPE MapResizeState
+  menu(6) AS STRING
   size AS XYPair
   spot AS XYPair
   oldsize AS XYPair
   zoom AS INTEGER
+  minimap AS Frame Ptr
 END TYPE
 
 ENUM EditRuleMode
