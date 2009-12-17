@@ -63,9 +63,10 @@ DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
-DECLARE SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER)
+DECLARE SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF rs AS MapResizeState, BYREF minimap AS Frame Ptr, map() AS INTEGER)
 DECLARE SUB show_minimap(BYREF map AS MapEditState, map() AS INTEGER)
 DECLARE SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER)
+DECLARE SUB resize_buildmenu(BYREF rs AS MapResizeState, menu() AS STRING)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -1786,18 +1787,18 @@ SUB resizemapmenu (BYREF st AS MapEditState, map(), BYREF rs AS MapResizeState)
  DIM menu(6) AS STRING
  DIM tog AS INTEGER
  DIM csr AS INTEGER = 1
- DIM zoom AS INTEGER = 0
- DIM wide AS INTEGER = map(0)
- DIM high AS INTEGER = map(1)
  DIM incval AS INTEGER = 0
  DIM drawoff AS XYPair
- rs.size.x = wide
- rs.size.y = high
+ rs.zoom = 0
+ rs.oldsize.x = map(0)
+ rs.oldsize.y = map(1)
+ rs.size.x = rs.oldsize.x
+ rs.size.y = rs.oldsize.y
  rs.spot.x = 0
  rs.spot.y = 0
 setmapdata map(), map(), 20, 0
-resize_rezoom_mini_map st, zoom, wide, high, rs.spot.x, rs.spot.y, rs.size.x, rs.size.y, minimap, map()
-GOSUB buildmenu
+resize_rezoom_mini_map st, rs, minimap, map()
+resize_buildmenu rs, menu()
 setkeys
 DO
  setwait 55
@@ -1838,11 +1839,11 @@ DO
  IF keyval(scEnter) > 1 THEN EXIT DO
 
  clearpage dpage
- drawoff.x = large(0, -rs.spot.x * zoom)
- drawoff.y = large(0, -rs.spot.y * zoom)
+ drawoff.x = large(0, -rs.spot.x * rs.zoom)
+ drawoff.y = large(0, -rs.spot.y * rs.zoom)
  sprite_draw minimap, NULL, drawoff.x, drawoff.y, 1, NO, dpage
- standardmenu menu$(), UBOUND(menu$), 28, csr, 0, 0, 140, dpage, YES
- drawbox drawoff.x + zoom * rs.spot.x, drawoff.y + zoom * rs.spot.y, zoom * rs.size.x, zoom * rs.size.y, 14 + tog, dpage
+ standardmenu menu(), UBOUND(menu), 28, csr, 0, 0, 140, dpage, YES
+ drawbox drawoff.x + rs.zoom * rs.spot.x, drawoff.y + rs.zoom * rs.spot.y, rs.zoom * rs.size.x, rs.zoom * rs.size.y, 14 + tog, dpage
 
  SWAP dpage, vpage
  setvispage vpage
@@ -1853,7 +1854,7 @@ EXIT SUB
 
 correctw:
 rs.size.x = bound(rs.size.x, 16, 32000)
-rs.spot.x = bound(rs.spot.x, -rs.size.x + 1, wide - 1)
+rs.spot.x = bound(rs.spot.x, -rs.size.x + 1, rs.oldsize.x - 1)
 WHILE rs.size.y * rs.size.x > 32000 AND rs.size.y > 10
  rs.size.y -= 1
 WEND
@@ -1862,7 +1863,7 @@ RETRACE
 
 correcth:
 rs.size.y = bound(rs.size.y, 10, 32000)
-rs.spot.y = bound(rs.spot.y, -rs.size.y + 1, high - 1)
+rs.spot.y = bound(rs.spot.y, -rs.size.y + 1, rs.oldsize.y - 1)
 WHILE rs.size.y * rs.size.x > 32000 AND rs.size.x > 16
  rs.size.x -= 1
 WEND
@@ -1874,42 +1875,42 @@ WHILE rs.size.y * rs.size.x > 32000
  rs.size.y = large(rs.size.y - 1, 10)
  rs.size.x = large(rs.size.x - 1, 16)
 WEND
-resize_rezoom_mini_map st, zoom, wide, high, rs.spot.x, rs.spot.y, rs.size.x, rs.size.y, minimap, map()
-GOSUB buildmenu
-RETRACE
-
-buildmenu:
-menu$(0) = "Cancel"
-menu$(1) = "Width " & wide & CHR$(26) & rs.size.x
-menu$(2) = "Height " & high & CHR$(26) & rs.size.y
-IF rs.spot.x > 0 THEN
- menu$(3) = "Left edge: trim " & rs.spot.x & " tiles"
-ELSE
- menu$(3) = "Left edge: add " & -rs.spot.x & " tiles"
-END IF
-IF rs.spot.y > 0 THEN
- menu$(4) = "Top edge: trim " & rs.spot.y & " tiles"
-ELSE
- menu$(4) = "Top edge: add " & -rs.spot.y & " tiles"
-END IF
-menu$(5) = "Area " & (wide * high) & CHR$(26) & (rs.size.y * rs.size.x)
-menu$(6) = zoom & "x zoom"
+resize_rezoom_mini_map st, rs, minimap, map()
+resize_buildmenu rs, menu()
 RETRACE
 
 END SUB
 
-SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER)
+SUB resize_buildmenu(BYREF rs AS MapResizeState, menu() AS STRING)
+ menu(0) = "Cancel"
+ menu(1) = "Width " & rs.oldsize.x & CHR(26) & rs.size.x
+ menu(2) = "Height " & rs.oldsize.y & CHR(26) & rs.size.y
+ IF rs.spot.x > 0 THEN
+  menu(3) = "Left edge: trim " & rs.spot.x & " tiles"
+ ELSE
+  menu(3) = "Left edge: add " & -rs.spot.x & " tiles"
+ END IF
+ IF rs.spot.y > 0 THEN
+  menu(4) = "Top edge: trim " & rs.spot.y & " tiles"
+ ELSE
+  menu(4) = "Top edge: add " & -rs.spot.y & " tiles"
+ END IF
+ menu(5) = "Area " & (rs.oldsize.x * rs.oldsize.y) & CHR(26) & (rs.size.y * rs.size.x)
+ menu(6) = rs.zoom & "x zoom"
+END SUB
+
+SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF rs AS MapResizeState, BYREF minimap AS Frame Ptr, map() AS INTEGER)
  DIM lastzoom AS INTEGER
- lastzoom = zoom
+ lastzoom = rs.zoom
  DIM AS INTEGER tw, th
- tw = large(wide, tempx + tempw) 'right most point
- IF tempx < 0 THEN tw -= tempx   'plus left most
- th = large(high, tempy + temph)
- IF tempy < 0 THEN th -= tempy
- zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
- IF zoom <> lastzoom THEN
+ tw = large(rs.oldsize.x, rs.spot.x + rs.size.x) 'right most point
+ IF rs.spot.x < 0 THEN tw -= rs.spot.x   'plus left most
+ th = large(rs.oldsize.y, rs.spot.y + rs.size.y)
+ IF rs.spot.y < 0 THEN th -= rs.spot.y
+ rs.zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
+ IF rs.zoom <> lastzoom THEN
   sprite_unload @minimap
-  minimap = createminimap(map(), st.tilesets(), zoom)
+  minimap = createminimap(map(), st.tilesets(), rs.zoom)
  END IF
 END SUB
 

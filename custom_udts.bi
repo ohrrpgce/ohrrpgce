@@ -133,6 +133,8 @@ END TYPE
 TYPE MapResizeState
   size AS XYPair
   spot AS XYPair
+  oldsize AS XYPair
+  zoom AS INTEGER
 END TYPE
 
 ENUM EditRuleMode
