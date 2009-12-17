@@ -46,7 +46,7 @@ DECLARE SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tiles
 DECLARE SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS DefArray, tilesets() AS TilesetData ptr)
 DECLARE SUB resizemapmenu (map(), tilesets() AS TilesetData ptr, byref newwide, byref newhigh, byref tempx, byref tempy)
 
-DECLARE SUB make_top_map_menu(maptop, topmenu$())
+DECLARE SUB make_top_map_menu(maptop, topmenu() AS STRING)
 DECLARE SUB update_tilepicker(BYREF st AS MapEditState)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
 DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
@@ -1883,6 +1883,9 @@ RETRACE
 
 END SUB
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER, tilesets() AS TilesetData ptr)
  DIM lastzoom AS INTEGER
  lastzoom = zoom
@@ -1911,18 +1914,18 @@ SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
  waitforanykey
 END SUB
 
-SUB make_top_map_menu(maptop, topmenu$())
+SUB make_top_map_menu(maptop, topmenu() AS STRING)
 DIM i AS INTEGER
 FOR i = 0 TO 24
  SELECT CASE maptop + i
   CASE 0
-   topmenu$(i) = "Return to Main Menu"
+   topmenu(i) = "Return to Main Menu"
   CASE 1 TO gen(genMaxMap) + 1
-   topmenu$(i) = "Map " + filenum((maptop + i) - 1) + ": " + getmapname$((maptop + i) - 1)
+   topmenu(i) = "Map " + filenum((maptop + i) - 1) + ": " + getmapname((maptop + i) - 1)
   CASE gen(genMaxMap) + 2
-   topmenu$(i) = "Add a New Map"
+   topmenu(i) = "Add a New Map"
   CASE ELSE
-   topmenu$(i) = ""
+   topmenu(i) = ""
  END SELECT
 NEXT i
 END SUB
@@ -1975,7 +1978,7 @@ SUB loadpasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
  flusharray array(), 160, 0
  '--load defaults from tile set defaults file
  setpicstuf array(), 322, -1
- loadset workingdir + SLASH + "defpass.bin", tilesetnum, 0
+ loadset workingdir & SLASH & "defpass.bin", tilesetnum, 0
  '--enforce magic number and filesize
  IF array(160) <> 4444 THEN
   flusharray array(), 160, 0
@@ -1987,11 +1990,8 @@ SUB savepasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
 array(160) = 4444
 '--write defaults into tile set defaults file
 setpicstuf array(), 322, -1
-storeset workingdir + SLASH + "defpass.bin", tilesetnum, 0
+storeset workingdir & SLASH & "defpass.bin", tilesetnum, 0
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, tilesets()  as TilesetData ptr)
  st.menubar(0) = 16
