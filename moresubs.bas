@@ -475,7 +475,7 @@ SUB heroswap (iAll%, stat())
 holdscreen = allocatepage
 copypage vpage, holdscreen
 
-DIM swindex(40), swname$(40)
+DIM swindex(40), swname(40) as string
 
 swapme = -1
 ecsr = -1
@@ -618,7 +618,7 @@ IF iAll THEN
   IF swapme > -1 AND swapme < 4 THEN
    IF (numhero < 2 AND i = la) OR readbit(hmask(), 0, acsr) THEN c = uilook(uiTimeBar + ((ecsr = i) * tog)) '8 + ((ecsr = i) * tog)
   END IF
-  edgeprint swname$(i), xstring(swname$(i), 160), 100 + (i - top) * 10, c, dpage
+  edgeprint swname(i), xstring(swname(i), 160), 100 + (i - top) * 10, c, dpage
  NEXT i
 END IF
 IF LEN(info$) THEN
@@ -635,15 +635,15 @@ FOR i = 4 TO 40
  IF readbit(hmask(), 0, i) = 0 AND hero(i) THEN
   la = la + 1
   swindex(la) = i
-  swname$(la) = names(i)
-  wide = large(wide, LEN(swname$(la)))
+  swname(la) = names(i)
+  wide = large(wide, LEN(swname(la)))
  END IF
 NEXT i
 la = la + 1
 FOR i = 40 TO 4 STEP -1
  IF hero(i) = 0 THEN
   swindex(la) = i
-  swname$(la) = readglobalstring$(48, "-REMOVE-", 10)
+  swname(la) = readglobalstring$(48, "-REMOVE-", 10)
   wide = large(wide, 7)
  END IF
 NEXT i
@@ -2348,27 +2348,27 @@ END FUNCTION
 
 SUB shop (id, needf, stat(), tilesets() AS TilesetData ptr)
 
-DIM storebuf(40), menu$(10), menuid(10)
+DIM storebuf(40), menu(10) AS STRING, menuid(10)
 
 FOR i = 0 TO 7
  menuid(i) = i
 NEXT i
 
-menu$(0) = readglobalstring$(70, "Buy", 10)
-menu$(1) = readglobalstring$(71, "Sell", 10)
-menu$(2) = readglobalstring$(73, "Hire", 10)
-menu$(3) = readglobalstring$(72, "Inn", 10)
-menu$(4) = readglobalstring$(63, "Equip", 10)
-menu$(5) = readglobalstring$(66, "Save", 10)
-menu$(6) = readglobalstring$(68, "Map", 10)
-menu$(7) = readglobalstring$(65, "Team", 10)
+menu(0) = readglobalstring$(70, "Buy", 10)
+menu(1) = readglobalstring$(71, "Sell", 10)
+menu(2) = readglobalstring$(73, "Hire", 10)
+menu(3) = readglobalstring$(72, "Inn", 10)
+menu(4) = readglobalstring$(63, "Equip", 10)
+menu(5) = readglobalstring$(66, "Save", 10)
+menu(6) = readglobalstring$(68, "Map", 10)
+menu(7) = readglobalstring$(65, "Team", 10)
 
 sn$ = ""
 last = -1
 GOSUB initshop
 IF last = -1 THEN EXIT SUB
 IF last = 0 THEN autopick = 1
-last = last + 1: menu$(last) = readglobalstring$(74, "Exit", 10)
+last = last + 1: menu(last) = readglobalstring$(74, "Exit", 10)
 
 menusound gen(genAcceptSFX)
 
@@ -2440,7 +2440,7 @@ DO
  edgeprint sn$, xstring(sn$, 160), 85, uilook(uiText), dpage
  FOR i = 0 TO last
   c = uilook(uiMenuItem): IF pt = i THEN c = uilook(uiSelectedItem + tog)
-  edgeprint menu$(i), xstring(menu$(i), 160), 109 + i * 10, c, dpage
+  edgeprint menu(i), xstring(menu(i), 160), 109 + i * 10, c, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -2460,7 +2460,7 @@ sn$ = readbadbinstring$(storebuf(), 0, 15, 0)
 o = 0
 FOR i = 0 TO 7
  IF readbit(storebuf(), 17, i) THEN
-  SWAP menu$(i), menu$(o)
+  SWAP menu(i), menu(o)
   SWAP menuid(i), menuid(o)
   last = o
   o = o + 1
@@ -2470,13 +2470,13 @@ RETRACE
 END SUB
 
 FUNCTION useinn (inn as integer, price as integer, needf as integer, stat() as integer, holdscreen as integer) as integer
-DIM menu$(1)
+DIM menu(1) AS STRING
 DIM AS INTEGER i, y
 
 useinn = 0
 
-menu$(0) = readglobalstring$(49, "Pay", 10)
-menu$(1) = readglobalstring$(50, "Cancel", 10)
+menu(0) = readglobalstring$(49, "Pay", 10)
+menu(1) = readglobalstring$(50, "Cancel", 10)
 inncost$ = readglobalstring$(143, "THE INN COSTS", 20)
 youhave$ = readglobalstring$(145, "You have", 20)
 menusound gen(genAcceptSFX)
@@ -2523,7 +2523,7 @@ DO
  edgeprint youhave$ & " " & gold & " " & readglobalstring(32, "Money"), 160 - LEN(youhave$ & gold & " " & readglobalstring(32, "Money")) * 4, 80, uilook(uiText), dpage
  FOR i = 0 TO 1
   col = uilook(uiMenuItem): IF inn = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint menu$(i), 160 - LEN(menu$(i)) * 4, 94 + i * 8, col, dpage
+  edgeprint menu(i), 160 - LEN(menu(i)) * 4, 94 + i * 8, col, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage

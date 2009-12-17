@@ -311,7 +311,7 @@ RETRACE
 END SUB
 
 SUB maptile (font())
-DIM menu$(10), tastuf(40)
+DIM menu(10) AS STRING, tastuf(40)
 
 mapfile$ = game + ".til"
 
@@ -390,7 +390,7 @@ DO
  FOR i = 0 TO 5
   c = uilook(uiMenuItem)
   IF tmode = i THEN c = uilook(uiSelectedItem + tog)
-  edgeprint menu$(i), 10, 8 * (i + 1), c, dpage
+  edgeprint menu(i), 10, 8 * (i + 1), c, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -398,22 +398,22 @@ DO
  dowait
 LOOP
 tilemodemenu:
-menu$(0) = "Draw Tiles"
-menu$(1) = "Cut Tiles from Tilesets"
-menu$(2) = "Cut Tiles from Backdrops"
-menu$(3) = "Set Default Passability"
-menu$(4) = "Define Tile Animation"
-menu$(5) = "Cancel"
+menu(0) = "Draw Tiles"
+menu(1) = "Cut Tiles from Tilesets"
+menu(2) = "Cut Tiles from Backdrops"
+menu(3) = "Set Default Passability"
+menu(4) = "Define Tile Animation"
+menu(5) = "Cancel"
 RETRACE
 
 tileanim:
 taset = 0
 loadtanim pagenum, tastuf()
 GOSUB utamenu
-menu$(0) = "Previous Menu"
-menu$(2) = "Set Animation Range"
-menu$(3) = "Set Animation Pattern"
-menu$(5) = "Test Animations"
+menu(0) = "Previous Menu"
+menu(2) = "Set Animation Range"
+menu(3) = "Set Animation Pattern"
+menu(5) = "Test Animations"
 setkeys
 DO
  setwait 55
@@ -438,7 +438,7 @@ DO
  FOR i = 0 TO 5
   textcolor uilook(uiMenuItem), uilook(uiOutline)
   IF taptr = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiOutline)
-  printstr menu$(i), 10, 8 * (i + 1), dpage
+  printstr menu(i), 10, 8 * (i + 1), dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -447,8 +447,8 @@ DO
 LOOP
 
 utamenu:
-menu$(1) = CHR$(27) + "Animation set " & taset & CHR$(26)
-menu$(4) = tag_condition_caption(tastuf(1 + 20 * taset), "Disable if Tag", "No tag check")
+menu(1) = CHR$(27) + "Animation set " & taset & CHR$(26)
+menu(4) = tag_condition_caption(tastuf(1 + 20 * taset), "Disable if Tag", "No tag check")
 RETRACE
 
 setanimrange:
@@ -501,16 +501,16 @@ NEXT i
 END FUNCTION
 
 SUB setanimpattern (tastuf(), taset)
-DIM menu$(12), stuff$(7), llim(7), ulim(7)
-menu$(0) = "Previous Menu"
-stuff$(0) = "end of animation"
-stuff$(1) = "up"
-stuff$(2) = "down"
-stuff$(3) = "right"
-stuff$(4) = "left"
-stuff$(5) = "wait"
-stuff$(6) = "if tag do rest"
-stuff$(7) = "unknown command"
+DIM menu(12) AS STRING, stuff(7) AS STRING, llim(7), ulim(7)
+menu(0) = "Previous Menu"
+stuff(0) = "end of animation"
+stuff(1) = "up"
+stuff(2) = "down"
+stuff(3) = "right"
+stuff(4) = "left"
+stuff(5) = "wait"
+stuff(6) = "if tag do rest"
+stuff(7) = "unknown command"
 FOR i = 1 TO 2
  llim(i) = 0
  ulim(i) = 9
@@ -569,7 +569,7 @@ DO
    textcolor uilook(uiSelectedItem + tog), 0
   END IF
   IF context = 1 THEN textcolor uilook(uiDisabledItem), 0
-  printstr menu$(i), 0, i * 8, dpage
+  printstr menu(i), 0, i * 8, dpage
  NEXT i
  IF pt > 0 THEN
   FOR i = 0 TO 1
@@ -578,7 +578,7 @@ DO
     textcolor uilook(uiSelectedItem + tog), 0
    END IF
    IF context = 0 THEN textcolor uilook(uiDisabledItem), 0
-   printstr menu$(10 + i), 0, 100 + i * 8, dpage
+   printstr menu(10 + i), 0, 100 + i * 8, dpage
   NEXT i
  END IF 'pt > 1
  SWAP vpage, dpage
@@ -592,30 +592,30 @@ EXIT SUB
 refreshmenu:
 GOSUB forcebounds
 FOR i = 1 TO 9
- menu$(i) = "-"
+ menu(i) = "-"
 NEXT i
-menu$(10) = ""
+menu(10) = ""
 FOR i = 0 TO 8
  a = bound(tastuf((2 + i) + 20 * taset), 0, 7)
  b = tastuf((11 + i) + 20 * taset)
- menu$(i + 1) = stuff$(a)
+ menu(i + 1) = stuff(a)
  IF a = 0 THEN EXIT FOR
- IF a > 0 AND a < 6 THEN menu$(i + 1) = menu$(i + 1) & " " & b
- IF a = 6 THEN menu$(i + 1) = menu$(i + 1) & " (" & load_tag_name(b) & ")"
+ IF a > 0 AND a < 6 THEN menu(i + 1) = menu(i + 1) & " " & b
+ IF a = 6 THEN menu(i + 1) = menu(i + 1) & " (" & load_tag_name(b) & ")"
 NEXT i
-IF i = 8 THEN menu$(10) = "end of animation"
-menu$(10) = "Action=" + stuff$(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
-menu$(11) = "Value="
+IF i = 8 THEN menu(10) = "end of animation"
+menu(10) = "Action=" + stuff(bound(tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset), 0, 7))
+menu(11) = "Value="
 this = tastuf(11 + bound(pt - 1, 0, 8) + 20 * taset)
 SELECT CASE tastuf(2 + bound(pt - 1, 0, 8) + 20 * taset)
  CASE 1 TO 4
-  menu$(11) = menu$(11) + STR$(this) + " Tiles"
+  menu(11) = menu(11) + STR$(this) + " Tiles"
  CASE 5
-  menu$(11) = menu$(11) + STR$(this) + " Ticks"
+  menu(11) = menu(11) + STR$(this) + " Ticks"
  CASE 6
-  menu$(11) = menu$(11) + tag_condition_caption(this)
+  menu(11) = menu(11) + tag_condition_caption(this)
  CASE ELSE
-  menu$(11) = menu$(11) + "N/A"
+  menu(11) = menu(11) + "N/A"
 END SELECT
 RETRACE
 
@@ -768,7 +768,7 @@ FOR i = 0 TO 1
  area(21 + i).w = 8
  area(21 + i).h = 8
 NEXT i
-DIM pastogkey(7), defaults(160), bitmenu$(10)
+DIM pastogkey(7), defaults(160), bitmenu(10) AS STRING
 IF tmode = 3 THEN
  pastogkey(0) = 72
  pastogkey(1) = 77
@@ -779,14 +779,14 @@ IF tmode = 3 THEN
  pastogkey(6) = 35
  pastogkey(7) = 24
  loadpasdefaults defaults(), pagenum
- bitmenu$(0) = "Impassable to the North"
- bitmenu$(1) = "Impassable to the East"
- bitmenu$(2) = "Impassable to the South"
- bitmenu$(3) = "Impassable to the West"
- bitmenu$(4) = "A-type vehicle Tile"
- bitmenu$(5) = "B-type vehicle Tile"
- bitmenu$(6) = "Harm Tile"
- bitmenu$(7) = "Overhead Tile"
+ bitmenu(0) = "Impassable to the North"
+ bitmenu(1) = "Impassable to the East"
+ bitmenu(2) = "Impassable to the South"
+ bitmenu(3) = "Impassable to the West"
+ bitmenu(4) = "A-type vehicle Tile"
+ bitmenu(5) = "B-type vehicle Tile"
+ bitmenu(6) = "Harm Tile"
+ bitmenu(7) = "Overhead Tile"
 END IF    
 
 loadmxs mapfile$, pagenum, vpages(3)
@@ -848,7 +848,7 @@ DO
    tilecut ts, mouse(), area()
   END IF 
   IF tmode = 3 THEN
-   editbitset defaults(), bnum, 7, bitmenu$()
+   editbitset defaults(), bnum, 7, bitmenu()
   END IF
  END IF
  tog = tog XOR 1

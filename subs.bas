@@ -59,10 +59,10 @@ END SUB
 SUB enemydata
 
 '--stat names
-DIM nof(11), elemtype$(2)
-elemtype$(0) = readglobalstring$(127, "Weak to", 10)
-elemtype$(1) = readglobalstring$(128, "Strong to", 10)
-elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
+DIM nof(11), elemtype(2) AS STRING
+elemtype(0) = readglobalstring$(127, "Weak to", 10)
+elemtype(1) = readglobalstring$(128, "Strong to", 10)
+elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
 '--name offsets
 nof(0) = 0
 nof(1) = 1
@@ -85,9 +85,9 @@ clearallpages
 DIM ebit(64) AS STRING
 
 FOR i = 0 TO 7
- ebit(0 + i) = elemtype$(0) & " " & readglobalstring(17 + i, "Element" & i+1)
- ebit(8 + i) = elemtype$(1) & " " & readglobalstring(17 + i, "Element" & i+1)
- ebit(16 + i) = elemtype$(2) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ebit(0 + i) = elemtype(0) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ebit(8 + i) = elemtype(1) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ebit(16 + i) = elemtype(2) & " " & readglobalstring(17 + i, "Element" & i+1)
  ebit(24 + i) = "Is " & readglobalstring(9 + i, "EnemyType" & i+1)
 NEXT i
 FOR i = 32 TO 53
@@ -148,7 +148,7 @@ CONST EnDatAtkAlone = 102' to 106
 '-------------------------------------------------------------------------
 
 capindex = 0
-DIM caption$(14)
+DIM caption(14) AS STRING
 DIM max(26), min(26)
 'Limit 0 is not used
 
@@ -161,9 +161,9 @@ max(EnLimUInt) = 32767
 CONST EnLimPicSize = 3
 max(EnLimPicSize) = 2
 EnCapPicSize = capindex
-addcaption caption$(), capindex, "Small 34x34"
-addcaption caption$(), capindex, "Medium 50x50"
-addcaption caption$(), capindex, "Big 80x80"
+addcaption caption(), capindex, "Small 34x34"
+addcaption caption(), capindex, "Medium 50x50"
+addcaption caption(), capindex, "Big 80x80"
 
 CONST EnLimItem = 4
 max(EnLimItem) = gen(genMaxItem)
@@ -192,10 +192,10 @@ max(EnLimStr16) = 16
 CONST EnLimStealAvail = 22
 min(EnLimStealAvail) = -1
 max(EnLimStealAvail) = 1
-addcaption caption$(), capindex, "Disabled"
+addcaption caption(), capindex, "Disabled"
 EnCapStealAvail = capindex
-addcaption caption$(), capindex, "Only one"
-addcaption caption$(), capindex, "Unlimited"
+addcaption caption(), capindex, "Only one"
+addcaption caption(), capindex, "Unlimited"
 
 CONST EnLimPal16 = 23
 max(EnLimPal16) = 32767
@@ -205,15 +205,15 @@ CONST EnLimDissolve = 24
 min(EnLimDissolve) = 0
 max(EnLimDissolve) = 8
 EnCapDissolve = capindex
-addcaption caption$(), capindex, "Global Default"
-addcaption caption$(), capindex, "Random scatter"
-addcaption caption$(), capindex, "Crossfade"
-addcaption caption$(), capindex, "Diagonal vanish"
-addcaption caption$(), capindex, "Sink into ground"
-addcaption caption$(), capindex, "Squash"
-addcaption caption$(), capindex, "Melt"
-addcaption caption$(), capindex, "Vapourise"
-addcaption caption$(), capindex, "Phase out"
+addcaption caption(), capindex, "Global Default"
+addcaption caption(), capindex, "Random scatter"
+addcaption caption(), capindex, "Crossfade"
+addcaption caption(), capindex, "Diagonal vanish"
+addcaption caption(), capindex, "Sink into ground"
+addcaption caption(), capindex, "Squash"
+addcaption caption(), capindex, "Melt"
+addcaption caption(), capindex, "Vapourise"
+addcaption caption(), capindex, "Phase out"
 
 CONST EnLimDissolveTime = 25
 min(EnLimDissolveTime) = 0
@@ -227,103 +227,103 @@ max(EnLimDeathSFX) = gen(genMaxSFX) + 1
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu$(67), menutype(67), menuoff(67), menulimits(67)
+DIM menu(67) AS STRING, menutype(67), menuoff(67), menulimits(67)
 
 CONST EnMenuBackAct = 0
-menu$(EnMenuBackAct) = "Previous Menu"
+menu(EnMenuBackAct) = "Previous Menu"
 menutype(EnMenuBackAct) = 1
 
 CONST EnMenuChooseAct = 1
-menu$(EnMenuChooseAct) = "Enemy"
+menu(EnMenuChooseAct) = "Enemy"
 menutype(EnMenuChooseAct) = 5
 
 CONST EnMenuName = 2
-menu$(EnMenuName) = "Name:"
+menu(EnMenuName) = "Name:"
 menutype(EnMenuName) = 4
 menuoff(EnMenuName) = EnDatName
 menulimits(EnMenuName) = EnLimStr16
 
 CONST EnMenuAppearAct = 3
-menu$(EnMenuAppearAct) = "Appearance..."
+menu(EnMenuAppearAct) = "Appearance..."
 menutype(EnMenuAppearAct) = 1
 
 CONST EnMenuRewardAct = 4
-menu$(EnMenuRewardAct) = "Rewards..."
+menu(EnMenuRewardAct) = "Rewards..."
 menutype(EnMenuRewardAct) = 1
 
 CONST EnMenuStatAct = 5
-menu$(EnMenuStatAct) = "Stats..."
+menu(EnMenuStatAct) = "Stats..."
 menutype(EnMenuStatAct) = 1
 
 CONST EnMenuBitsetAct = 6
-menu$(EnMenuBitsetAct) = "Bitsets..."
+menu(EnMenuBitsetAct) = "Bitsets..."
 menutype(EnMenuBitsetAct) = 1
 
 CONST EnMenuSpawnAct = 7
-menu$(EnMenuSpawnAct) = "Spawning..."
+menu(EnMenuSpawnAct) = "Spawning..."
 menutype(EnMenuSpawnAct) = 1
 
 CONST EnMenuAtkAct = 8
-menu$(EnMenuAtkAct) = "Attacks..."
+menu(EnMenuAtkAct) = "Attacks..."
 menutype(EnMenuAtkAct) = 1
 
 CONST EnMenuPic = 9
-menu$(EnMenuPic) = "Picture:"
+menu(EnMenuPic) = "Picture:"
 menutype(EnMenuPic) = 0
 menuoff(EnMenuPic) = EnDatPic
 menulimits(EnMenuPic) = EnLimPic
 
 CONST EnMenuPal = 10
-menu$(EnMenuPal) = "Palette:"
+menu(EnMenuPal) = "Palette:"
 menutype(EnMenuPal) = 12
 menuoff(EnMenuPal) = EnDatPal
 menulimits(EnMenuPal) = EnLimPal16
 
 CONST EnMenuPicSize = 11
-menu$(EnMenuPicSize) = "Picture Size:"
+menu(EnMenuPicSize) = "Picture Size:"
 menutype(EnMenuPicSize) = 2000 + EnCapPicSize
 menuoff(EnMenuPicSize) = EnDatPicSize
 menulimits(EnMenuPicSize) = EnLimPicSize
 
 CONST EnMenuGold = 12
-menu$(EnMenuGold) = "Gold:"
+menu(EnMenuGold) = "Gold:"
 menutype(EnMenuGold) = 0
 menuoff(EnMenuGold) = EnDatGold
 menulimits(EnMenuGold) = EnLimUInt
 
 CONST EnMenuExp = 13
-menu$(EnMenuExp) = "Experience Points:"
+menu(EnMenuExp) = "Experience Points:"
 menutype(EnMenuExp) = 0
 menuoff(EnMenuExp) = EnDatExp
 menulimits(EnMenuExp) = EnLimUInt
 
 CONST EnMenuItem = 14
-menu$(EnMenuItem) = "Item:"
+menu(EnMenuItem) = "Item:"
 menutype(EnMenuItem) = 8
 menuoff(EnMenuItem) = EnDatItem
 menulimits(EnMenuItem) = EnLimItem
 
 CONST EnMenuItemP = 15
-menu$(EnMenuItemP) = "Item%:"
+menu(EnMenuItemP) = "Item%:"
 menutype(EnMenuItemP) = 0
 menuoff(EnMenuItemP) = EnDatItemP
 menulimits(EnMenuItemP) = EnLimPercent
 
 CONST EnMenuRareItem = 16
-menu$(EnMenuRareItem) = "Rare Item:"
+menu(EnMenuRareItem) = "Rare Item:"
 menutype(EnMenuRareItem) = 8
 menuoff(EnMenuRareItem) = EnDatRareItem
 menulimits(EnMenuRareItem) = EnLimItem
 
 CONST EnMenuRareItemP = 17
-menu$(EnMenuRareItemP) = "Rare Item%:"
+menu(EnMenuRareItemP) = "Rare Item%:"
 menutype(EnMenuRareItemP) = 0
 menuoff(EnMenuRareItemP) = EnDatRareItemP
 menulimits(EnMenuRareItemP) = EnLimPercent
 
 CONST EnMenuStat = 18' to 29
 FOR i = 0 TO 11
- menu$(EnMenuStat + i) = readglobalstring(nof(i), "Stat" & i) & ":"
+ menu(EnMenuStat + i) = readglobalstring(nof(i), "Stat" & i) & ":"
  menutype(EnMenuStat + i) = 0
  menuoff(EnMenuStat + i) = EnDatStat + i
  menulimits(EnMenuStat + i) = EnLimStat + i
@@ -331,46 +331,46 @@ NEXT i
 menutype(EnMenuStat + 8) = 15 'Speed should show turn-time estimate
 
 CONST EnMenuSpawnDeath = 30
-menu$(EnMenuSpawnDeath) = "Spawn on Death:"
+menu(EnMenuSpawnDeath) = "Spawn on Death:"
 menutype(EnMenuSpawnDeath) = 9
 menuoff(EnMenuSpawnDeath) = EnDatSpawnDeath
 menulimits(EnMenuSpawnDeath) = EnLimSpawn
 
 CONST EnMenuSpawnNEDeath = 31
-menu$(EnMenuSpawnNEDeath) = "on Non-Elemental Death:"
+menu(EnMenuSpawnNEDeath) = "on Non-Elemental Death:"
 menutype(EnMenuSpawnNEDeath) = 9
 menuoff(EnMenuSpawnNEDeath) = EnDatSpawnNEDeath
 menulimits(EnMenuSpawnNEDeath) = EnLimSpawn
 
 CONST EnMenuSpawnAlone = 32
-menu$(EnMenuSpawnAlone) = "Spawn When Alone:"
+menu(EnMenuSpawnAlone) = "Spawn When Alone:"
 menutype(EnMenuSpawnAlone) = 9
 menuoff(EnMenuSpawnAlone) = EnDatSpawnAlone
 menulimits(EnMenuSpawnAlone) = EnLimSpawn
 
 CONST EnMenuSpawnNEHit = 33
-menu$(EnMenuSpawnNEHit) = "on Non-Elemental Hit:"
+menu(EnMenuSpawnNEHit) = "on Non-Elemental Hit:"
 menutype(EnMenuSpawnNEHit) = 9
 menuoff(EnMenuSpawnNEHit) = EnDatSpawnNEHit
 menulimits(EnMenuSpawnNEHit) = EnLimSpawn
 
 CONST EnMenuSpawnElement = 34' to 41
 FOR i = 0 TO 7
- menu$(EnMenuSpawnElement + i) = "on " & readglobalstring(17 + i, "Element" & i+1) & " Hit:"
+ menu(EnMenuSpawnElement + i) = "on " & readglobalstring(17 + i, "Element" & i+1) & " Hit:"
  menutype(EnMenuSpawnElement + i) = 9
  menuoff(EnMenuSpawnElement + i) = EnDatSpawnElement + i
  menulimits(EnMenuSpawnElement + i) = EnLimSpawn
 NEXT i
 
 CONST EnMenuSpawnNum = 42
-menu$(EnMenuSpawnNum) = "How Many to Spawn:"
+menu(EnMenuSpawnNum) = "How Many to Spawn:"
 menutype(EnMenuSpawnNum) = 0
 menuoff(EnMenuSpawnNum) = EnDatSpawnNum
 menulimits(EnMenuSpawnNum) = EnLimSpawnNum
 
 CONST EnMenuAtkNormal = 43' to 47
 FOR i = 0 TO 4
- menu$(EnMenuAtkNormal + i) = "Normal:"
+ menu(EnMenuAtkNormal + i) = "Normal:"
  menutype(EnMenuAtkNormal + i) = 7
  menuoff(EnMenuAtkNormal + i) = EnDatAtkNormal + i
  menulimits(EnMenuAtkNormal + i) = EnLimAtk
@@ -378,7 +378,7 @@ NEXT i
 
 CONST EnMenuAtkDesp = 48' to 52
 FOR i = 0 TO 4
- menu$(EnMenuAtkDesp + i) = "Desperation:"
+ menu(EnMenuAtkDesp + i) = "Desperation:"
  menutype(EnMenuAtkDesp + i) = 7
  menuoff(EnMenuAtkDesp + i) = EnDatAtkDesp + i
  menulimits(EnMenuAtkDesp + i) = EnLimAtk
@@ -386,66 +386,66 @@ NEXT i
 
 CONST EnMenuAtkAlone = 53' to 57
 FOR i = 0 TO 4
- menu$(EnMenuAtkAlone + i) = "Alone:"
+ menu(EnMenuAtkAlone + i) = "Alone:"
  menutype(EnMenuAtkAlone + i) = 7
  menuoff(EnMenuAtkAlone + i) = EnDatAtkAlone + i
  menulimits(EnMenuAtkAlone + i) = EnLimAtk
 NEXT i
 
 CONST EnMenuStealItem = 58
-menu$(EnMenuStealItem) = "Stealable Item:"
+menu(EnMenuStealItem) = "Stealable Item:"
 menutype(EnMenuStealItem) = 8
 menuoff(EnMenuStealItem) = EnDatStealItem
 menulimits(EnMenuStealItem) = EnLimItem
 
 CONST EnMenuStealRItem = 59
-menu$(EnMenuStealRItem) = "Rare Stealable Item:"
+menu(EnMenuStealRItem) = "Rare Stealable Item:"
 menutype(EnMenuStealRItem) = 8
 menuoff(EnMenuStealRItem) = EnDatStealRItem
 menulimits(EnMenuStealRItem) = EnLimItem
 
 CONST EnMenuStealItemP = 60
-menu$(EnMenuStealItemP) = "Steal Rate%:"
+menu(EnMenuStealItemP) = "Steal Rate%:"
 menutype(EnMenuStealItemP) = 0
 menuoff(EnMenuStealItemP) = EnDatStealItemP
 menulimits(EnMenuStealItemP) = EnLimPercent
 
 CONST EnMenuStealRItemP = 61
-menu$(EnMenuStealRItemP) = "Rare Steal Rate%:"
+menu(EnMenuStealRItemP) = "Rare Steal Rate%:"
 menutype(EnMenuStealRItemP) = 0
 menuoff(EnMenuStealRItemP) = EnDatStealRItemP
 menulimits(EnMenuStealRItemP) = EnLimPercent
 
 CONST EnMenuStealAvail = 62
-menu$(EnMenuStealAvail) = "Steal Availability:"
+menu(EnMenuStealAvail) = "Steal Availability:"
 menutype(EnMenuStealAvail) = 2000 + EnCapStealAvail
 menuoff(EnMenuStealAvail) = EnDatStealAvail
 menulimits(EnMenuStealAvail) = EnLimStealAvail
 
 CONST EnMenuDissolve = 63
-menu$(EnMenuDissolve) = "Death Animation:"
+menu(EnMenuDissolve) = "Death Animation:"
 menutype(EnMenuDissolve) = 2000 + EnCapDissolve
 menuoff(EnMenuDissolve) = EnDatDissolve
 menulimits(EnMenuDissolve) = EnLimDissolve
 
 CONST EnMenuDissolveTime = 64
-menu$(EnMenuDissolveTime) = "Death Animation ticks:"
+menu(EnMenuDissolveTime) = "Death Animation ticks:"
 menutype(EnMenuDissolveTime) = 13
 menuoff(EnMenuDissolveTime) = EnDatDissolveTime
 menulimits(EnMenuDissolveTime) = EnLimDissolveTime
 
 CONST EnMenuDeathSFX = 65
-menu$(EnMenuDeathSFX) = "Death Sound Effect:"
+menu(EnMenuDeathSFX) = "Death Sound Effect:"
 menutype(EnMenuDeathSFX) = 14
 menuoff(EnMenuDeathSFX) = EnDatDeathSFX
 menulimits(EnMenuDeathSFX) = EnLimDeathSFX
 
 CONST EnMenuCursorOffset = 66
-menu$(EnMenuCursorOffset) = "Cursor Offset..."
+menu(EnMenuCursorOffset) = "Cursor Offset..."
 menutype(EnMenuCursorOffset) = 1
 '-------------------------------------------------------------------------
 '--menu structure
-DIM workmenu(15), dispmenu$(15)
+DIM workmenu(15), dispmenu(15) AS STRING
 DIM state AS MenuState
 state.size = 22
 
@@ -693,7 +693,7 @@ DO
  
  DrawSlice preview_box, dpage
 
- standardmenu dispmenu$(), state, 0, 0, dpage
+ standardmenu dispmenu(), state, 0, 0, dpage
  IF keyval(scAlt) > 0 THEN 'holding ALT
   tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) & " " & recindex
   textcolor uilook(uiText), uilook(uiHighlight)
@@ -728,7 +728,7 @@ max(EnLimPic) = gen(genMaxEnemy1Pic + bound(recbuf(EnDatPicSize), 0, 2))
 '--re-enforce bounds, as they might have just changed
 enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 
-updateflexmenu state.pt, dispmenu$(), workmenu(), state.last, menu$(), menutype(), menuoff(), menulimits(), recbuf(), caption$(), max(), recindex
+updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
 
 '--update the picture and palette preview
 sprite_unload @preview_sprite
@@ -771,14 +771,14 @@ SUB formation
 
 clearallpages
 
-DIM a(40), c(24), menu$(10), max(10), min(10), bmenu$(22)
+DIM a(40), c(24), menu(10) AS STRING, max(10), min(10), bmenu(22) as string
 dim as integer col, csr, bcsr, csr2, csr3, tog, pt, gptr, i, o, movpix, thiswidth
 DIM as GraphicPair egraphics(7)
 DIM as string ename(7)
 
-menu$(0) = "Return to Main Menu"
-menu$(1) = "Edit Individual Formations..."
-menu$(2) = "Construct Formation Sets..."
+menu(0) = "Return to Main Menu"
+menu(1) = "Edit Individual Formations..."
+menu(2) = "Construct Formation Sets..."
 setkeys
 DO
  setwait 55
@@ -794,7 +794,7 @@ DO
   clearpage dpage
  END IF
 
- standardmenu menu$(), 2, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu(), 2, 22, csr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
@@ -810,7 +810,7 @@ clearpage 2
 EXIT SUB
 
 formsets:
-bmenu$(0) = "Previous Menu"
+bmenu(0) = "Previous Menu"
 pt = 0
 GOSUB loadfset
 GOSUB lpreviewform
@@ -855,14 +855,14 @@ DO
  ELSE
   clearpage dpage
  END IF
- bmenu$(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
- bmenu$(2) = "Battle Frequency: " & c(0) & " (" & step_estimate(c(0), 60, 100, "-", " steps") & ")"
+ bmenu(1) = CHR(27) & "Formation Set " & (gptr + 1) & CHR(26)
+ bmenu(2) = "Battle Frequency: " & c(0) & " (" & step_estimate(c(0), 60, 100, "-", " steps") & ")"
  FOR i = 3 TO 22
-  bmenu$(i) = "Formation " & c(i - 2) - 1
-  IF c(i - 2) = 0 THEN bmenu$(i) = "Empty"
+  bmenu(i) = "Formation " & c(i - 2) - 1
+  IF c(i - 2) = 0 THEN bmenu(i) = "Empty"
  NEXT i
 
- standardmenu bmenu$(), 22, 22, bcsr, 0, 0, 0, dpage, 1
+ standardmenu bmenu(), 22, 22, bcsr, 0, 0, 0, dpage, 1
 
  SWAP vpage, dpage
  setvispage vpage
@@ -904,7 +904,7 @@ loadform(a(),pt)
 formpics(ename(), a(), egraphics())
 setkeys
 
-menu$(3) = "Previous Menu"
+menu(3) = "Previous Menu"
 
 DO
  setwait 55
@@ -1022,23 +1022,23 @@ DO
   edgeboxstyle 240 + i * 8, 75 + i * 22, 32, 40, 0, dpage, NO, YES
  NEXT i
  IF csr3 = 0 THEN
-  menu$(4) = CHR(27) + "Formation " & pt & CHR(26)
-  menu$(5) = "Backdrop: " & a(32)
-  IF a(34) = 0 THEN menu$(6) = "Backdrop Animation: none" ELSE menu$(6) = "Backdrop Animation: " & (a(34) + 1) & " frames"
-  menu$(7) = " Ticks per Backdrop Frame: " & a(35)
-  IF a(34) = 0 THEN menu$(7) = " Ticks per Backdrop Frame: -NA-"
-  menu$(8) = "Battle Music:"
+  menu(4) = CHR(27) + "Formation " & pt & CHR(26)
+  menu(5) = "Backdrop: " & a(32)
+  IF a(34) = 0 THEN menu(6) = "Backdrop Animation: none" ELSE menu(6) = "Backdrop Animation: " & (a(34) + 1) & " frames"
+  menu(7) = " Ticks per Backdrop Frame: " & a(35)
+  IF a(34) = 0 THEN menu(7) = " Ticks per Backdrop Frame: -NA-"
+  menu(8) = "Battle Music:"
   IF a(33) = -1 THEN
-    menu$(8) = menu$(8) & " -same music as map-"
+    menu(8) = menu(8) & " -same music as map-"
   ELSEIF a(33) = 0 THEN
-    menu$(8) = menu$(8) & " -silence-"
+    menu(8) = menu(8) & " -silence-"
   ELSEIF a(33) > 0 THEN
-    menu$(8) = menu$(8) & " " & (a(33) - 1) & " " & getsongname$(a(33) - 1)
+    menu(8) = menu(8) & " " & (a(33) - 1) & " " & getsongname$(a(33) - 1)
   END IF
   FOR i = 0 TO 5
    col = uilook(uiMenuItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedItem + tog)
    IF i = 4 AND a(34) = 0 THEN col = uilook(uiDisabledItem): IF csr2 + 6 = i THEN col = uilook(uiSelectedDisabled + tog)
-   edgeprint menu$(i + 3), 1, 1 + (i * 10), col, dpage
+   edgeprint menu(i + 3), 1, 1 + (i * 10), col, dpage
   NEXT i
   FOR i = 0 TO 7
    col = uilook(uiMenuItem): IF csr2 = i THEN col = uilook(uiSelectedItem + tog)
@@ -1110,7 +1110,7 @@ SUB drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as in
 END SUB
 
 SUB herodata
-DIM menu$(9), bmenu$(40), max(40), min(40), nof(12), attack$(24), opt$(10), hbit$(-1 TO 26), hmenu$(4), elemtype$(2)
+DIM menu(9) AS STRING, bmenu(40) AS STRING, max(40), min(40), nof(12), attack(24) AS STRING, opt(10) AS STRING, hbit(-1 TO 26) AS STRING, hmenu(4) AS STRING, elemtype(2) AS STRING
 DIM AS HeroDef her, blankhero
 DIM st AS HeroEditState
 WITH st
@@ -1126,32 +1126,32 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-elemtype$(0) = readglobalstring$(127, "Weak to", 10)
-elemtype$(1) = readglobalstring$(128, "Strong to", 10)
-elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
+elemtype(0) = readglobalstring$(127, "Weak to", 10)
+elemtype(1) = readglobalstring$(128, "Strong to", 10)
+elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
 st.previewframe = -1
 
 pt = 0
 csr = 1
 FOR i = 0 TO 7
- hbit$(i) = elemtype$(0) & " " & readglobalstring(17 + i, "Element" & i+1)
- hbit$(i + 8) = elemtype$(1) & " " & readglobalstring(17 + i, "Element" & i+1)
- hbit$(i + 16) = elemtype$(2) & " " & readglobalstring(17 + i, "Element" & i+1)
+ hbit(i) = elemtype(0) & " " & readglobalstring(17 + i, "Element" & i+1)
+ hbit(i + 8) = elemtype(1) & " " & readglobalstring(17 + i, "Element" & i+1)
+ hbit(i + 16) = elemtype(2) & " " & readglobalstring(17 + i, "Element" & i+1)
 NEXT i
-hbit$(24) = "Rename when added to party"
-hbit$(25) = "Permit renaming on status screen"
-hbit$(26) = "Do not show spell lists if empty"
+hbit(24) = "Rename when added to party"
+hbit(25) = "Permit renaming on status screen"
+hbit(26) = "Do not show spell lists if empty"
 
-menu$(0) = "Return to Main Menu"
-menu$(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
-menu$(2) = "Name:"
-menu$(3) = "Appearance and Misc..."
-menu$(4) = "Edit Stats..."
-menu$(5) = "Edit Spell Lists..."
-menu$(6) = "Name Spell Lists..."
-menu$(7) = "Bitsets..."
-menu$(8) = "Hero Tags..."
-menu$(9) = "Equipment..."
+menu(0) = "Return to Main Menu"
+menu(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
+menu(2) = "Name:"
+menu(3) = "Appearance and Misc..."
+menu(4) = "Edit Stats..."
+menu(5) = "Edit Spell Lists..."
+menu(6) = "Name Spell Lists..."
+menu(7) = "Bitsets..."
+menu(8) = "Hero Tags..."
+menu(9) = "Equipment..."
 nam$ = ""
 GOSUB thishero
 
@@ -1173,7 +1173,7 @@ DO
   IF csr = 4 THEN GOSUB levstats
   IF csr = 5 THEN GOSUB speltypes '--spell list contents
   IF csr = 6 THEN GOSUB heromenu '--spell list names
-  IF csr = 7 THEN editbitset her.bits(), 0, 26, hbit$()
+  IF csr = 7 THEN editbitset her.bits(), 0, 26, hbit()
   IF csr = 8 THEN herotags her
   IF csr = 9 THEN hero_editor_equipment_list pt, her
  END IF
@@ -1199,10 +1199,10 @@ DO
  END IF
  IF csr = 2 THEN
   strgrabber nam$, 16
-  menu$(2) = "Name:" + nam$
+  menu(2) = "Name:" + nam$
  END IF
 
- standardmenu menu$(), 9, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu(), 9, 22, csr, 0, 0, 0, dpage, 0
 
  draw_hero_preview st, her
  SWAP vpage, dpage
@@ -1219,7 +1219,7 @@ clearpage 3
 EXIT SUB
 
 heromenu:
-bmenu$(0) = "Previous Menu": bctr = 0
+bmenu(0) = "Previous Menu": bctr = 0
 setkeys
 DO
  setwait 55
@@ -1230,14 +1230,14 @@ DO
  IF enter_or_space() AND bctr = 0 THEN RETRACE
  usemenu bctr, 0, 0, 4, 24
  IF bctr > 0 THEN
-  strgrabber hmenu$(bctr - 1), 10
+  strgrabber hmenu(bctr - 1), 10
  END IF
- bmenu$(1) = "Spell List 1:" + hmenu$(0)
- bmenu$(2) = "Spell List 2:" + hmenu$(1)
- bmenu$(3) = "Spell List 3:" + hmenu$(2)
- bmenu$(4) = "Spell List 4:" + hmenu$(3)
+ bmenu(1) = "Spell List 1:" + hmenu(0)
+ bmenu(2) = "Spell List 2:" + hmenu(1)
+ bmenu(3) = "Spell List 3:" + hmenu(2)
+ bmenu(4) = "Spell List 4:" + hmenu(3)
 
- standardmenu bmenu$(), 4, 22, bctr, 0, 0, 0, dpage, 0
+ standardmenu bmenu(), 4, 22, bctr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
@@ -1250,10 +1250,10 @@ FOR i = 0 TO 3
  IF her.list_type(i) > 10 OR her.list_type(i) < 0 THEN her.list_type(i) = 0
 NEXT i
 bctr = -1
-opt$(0) = "Spells (MP Based)"
-opt$(1) = "Spells (FF1 Style)"
-opt$(2) = "Random Effects"
-opt$(3) = "Item Consuming (not implemented)"
+opt(0) = "Spells (MP Based)"
+opt(1) = "Spells (FF1 Style)"
+opt(2) = "Random Effects"
+opt(3) = "Item Consuming (not implemented)"
 setkeys
 DO
  setwait 55
@@ -1275,7 +1275,7 @@ DO
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 0 TO 3
   textcolor uilook(uiMenuItem), 0: IF bctr = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr "Type " & i & " Spells: " & opt$(her.list_type(i)), 0, 8 + i * 8, dpage
+  printstr "Type " & i & " Spells: " & opt(her.list_type(i)), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1285,7 +1285,7 @@ LOOP
 
 levstats:
 bctr = 0
-bmenu$(0) = "Previous Menu"
+bmenu(0) = "Previous Menu"
 FOR i = 1 TO 24: min(i) = 0: max(i) = 999: NEXT
 FOR i = 1 TO 4: max(i) = 9999: NEXT i
 FOR i = 21 TO 22: max(i) = 100: NEXT i
@@ -1315,17 +1315,17 @@ DO
  END IF
  textcolor uilook(uiMenuItem), 0
  IF 0 = bctr THEN textcolor uilook(uiSelectedItem + tog), 0
- printstr bmenu$(0), 8, 0, dpage
+ printstr bmenu(0), 8, 0, dpage
  textcolor uilook(uiDescription), 0
  printstr "LEVEL ZERO", 8, 12, dpage
  printstr "LEVEL NINETY-NINE", 160, 12, dpage
  FOR i = 0 TO 11
   textcolor uilook(uiMenuItem), 0
   IF 1 + i * 2 = bctr THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr bmenu$(1 + i * 2), 8, 20 + i * 8, dpage
+  printstr bmenu(1 + i * 2), 8, 20 + i * 8, dpage
   textcolor uilook(uiMenuItem), 0
   IF 2 + i * 2 = bctr THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr bmenu$(2 + i * 2), 160, 20 + i * 8, dpage
+  printstr bmenu(2 + i * 2), 160, 20 + i * 8, dpage
  NEXT i
  IF bctr > 0 THEN GOSUB graph
  IF (bctr - 1) \ 2 = 8 THEN 'Speed
@@ -1392,12 +1392,12 @@ DO
    GOSUB setsticky
   END IF
  END IF
- textcolor uilook(uiDescription), 0: printstr UCASE$(opt$(her.list_type(listnum))), 300 - LEN(opt$(her.list_type(listnum))) * 8, 0, dpage
+ textcolor uilook(uiDescription), 0: printstr UCASE$(opt(her.list_type(listnum))), 300 - LEN(opt(her.list_type(listnum))) * 8, 0, dpage
  textcolor uilook(uiMenuItem), 0: IF bctr = 0 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 1 TO 24
   textcolor uilook(uiMenuItem), 0: IF bctr = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  temp1$ = attack$(i)
+  temp1$ = attack(i)
   WITH her.spell_lists(listnum, i-1)
    IF .attack > 0 THEN
     IF .learned = 0 THEN temp2$ = "Learned from Item"
@@ -1430,9 +1430,9 @@ RETRACE
 gosubatkname:
 WITH her.spell_lists(listnum, o-1)
  IF .attack = 0 THEN
-  attack$(o) = "EMPTY"
+  attack(o) = "EMPTY"
  ELSE
-  attack$(o) = STR$(.attack - 1) + ":" + readattackname$(.attack - 1)
+  attack(o) = STR$(.attack - 1) + ":" + readattackname$(.attack - 1)
  END IF
 END WITH
 RETRACE
@@ -1454,8 +1454,8 @@ RETRACE
 
 smi:
 FOR i = 0 TO 11
- bmenu$(i * 2 + 1) = readglobalstring(nof(i), "Stat" & i) & " " & her.Lev0.sta(i)
- bmenu$(i * 2 + 2) = readglobalstring(nof(i), "Stat" & i) & " " & her.Lev99.sta(i)
+ bmenu(i * 2 + 1) = readglobalstring(nof(i), "Stat" & i) & " " & her.Lev0.sta(i)
+ bmenu(i * 2 + 2) = readglobalstring(nof(i), "Stat" & i) & " " & her.Lev99.sta(i)
 NEXT i
 RETRACE
 
@@ -1468,7 +1468,7 @@ RETRACE
 lasthero:
 her.name = nam$
 FOR i = 0 TO 3
- her.list_name(i) = hmenu$(i)
+ her.list_name(i) = hmenu(i)
 NEXT i
 saveherodata @her, pt
 RETRACE
@@ -1477,10 +1477,10 @@ thishero:
 loadherodata @her, pt
 nam$ = her.name
 FOR i = 0 TO 3
- hmenu$(i) = her.list_name(i)
+ hmenu(i) = her.list_name(i)
 NEXT i
-menu$(2) = "Name:" + nam$
-menu$(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
+menu(2) = "Name:" + nam$
+menu(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
 update_hero_preview_pics st, her
 RETRACE
 
@@ -1489,12 +1489,12 @@ END SUB 'End of herodata
 SUB herotags (BYREF hero AS HeroDef)
 DIM tagnum AS INTEGER
 DIM tagcaption AS STRING
-DIM menu$(5)
-menu$(0) = "Previous Menu"
-menu$(1) = "have hero TAG"
-menu$(2) = "is alive TAG"
-menu$(3) = "is leader TAG"
-menu$(4) = "is in party now TAG"
+DIM menu(5) AS STRING
+menu(0) = "Previous Menu"
+menu(1) = "have hero TAG"
+menu(2) = "is alive TAG"
+menu(3) = "is leader TAG"
+menu(4) = "is in party now TAG"
 
 WITH hero
 
@@ -1543,7 +1543,7 @@ DO
     tagcaption += load_tag_name(tagnum) & "(" & tagnum & ")"
   END SELECT
   IF i = 0 THEN tagcaption = ""
-  printstr menu$(i) & tagcaption, 0, i * 8, dpage
+  printstr menu(i) & tagcaption, 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -1556,8 +1556,8 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM a(99), menu$(20), bmenu$(40), nof(12), ibit$(-1 TO 59), eqst$(5), max(18), min(18), sbmax(11), elemtype$(2), frame
-DIM item$(maxMaxItems)
+DIM a(99), menu(20) AS STRING, bmenu(40) AS STRING, nof(12), ibit(-1 TO 59) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), elemtype(2) AS STRING, frame
+DIM item(maxMaxItems) AS STRING
 DIM wep_img AS GraphicPair 'This is only used in edititem
 DIM box_preview AS STRING = "" 'This is only used in edititem
 imax = 32
@@ -1566,14 +1566,14 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-elemtype$(0) = readglobalstring$(127, "Weak to", 10)
-elemtype$(1) = readglobalstring$(128, "Strong to", 10)
-elemtype$(2) = readglobalstring$(129, "Absorbs ", 10)
+elemtype(0) = readglobalstring$(127, "Weak to", 10)
+elemtype(1) = readglobalstring$(128, "Strong to", 10)
+elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
 
-eqst$(0) = "NEVER EQUIPPED"
-eqst$(1) = "Weapon"
+eqst(0) = "NEVER EQUIPPED"
+eqst(1) = "Weapon"
 FOR i = 0 TO 3
- eqst$(i + 2) = readglobalstring(25 + i, "Armor" & i+1)
+ eqst(i + 2) = readglobalstring(25 + i, "Armor" & i+1)
 NEXT i
 FOR i = 0 TO 1
  sbmax(i) = 9999
@@ -1588,7 +1588,7 @@ sbmax(11) = 10
 
 csr = 0: top = -1: pt = 0
 DIM caption AS STRING
-load_item_names item$()
+load_item_names item()
 setkeys
 DO
  setwait 55
@@ -1598,7 +1598,7 @@ DO
  IF keyval(scF1) > 1 THEN show_help "item_editor_pickitem"
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 AND csr >= 0 THEN
   cropafter csr, gen(genMaxItem), 0, game + ".itm", 200, 1
-  load_item_names item$()
+  load_item_names item()
  END IF
  usemenu csr, top, -1, gen(genMaxItem) + 1, 23
  intgrabber csr, -1, gen(genMaxItem) + 1
@@ -1633,7 +1633,7 @@ DO
       IF i = csr THEN textcolor uilook(uiSelectedDisabled + tog), 0
      END IF
     CASE ELSE
-     caption = i & " " & item$(i)
+     caption = i & " " & item(i)
    END SELECT
    printstr caption, 0, (i - top) * 8, dpage
   END IF
@@ -1653,10 +1653,10 @@ edititem:
 loaditemdata a(), csr
 info$ = readbadbinstring$(a(), 9, 35, 0)
 
-menu$(0) = "Back to Item Menu"
-menu$(18) = "Stat Bonuses..."
-menu$(19) = "Equipment Bits..."
-menu$(20) = "Who Can Equip?..."
+menu(0) = "Back to Item Menu"
+menu(18) = "Stat Bonuses..."
+menu(19) = "Equipment Bits..."
+menu(20) = "Who Can Equip?..."
 max(3) = 32767
 max(4) = gen(genMaxAttack) + 1
 max(5) = gen(genMaxAttack) + 1
@@ -1673,7 +1673,7 @@ max(14) = 999
 max(15) = 999
 
 loaditemdata a(), csr
-generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), box_preview
+generate_item_edit_menu menu(), a(), csr, pt, item(csr), info$, eqst(), box_preview
 
 IF wep_img.sprite THEN sprite_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
@@ -1724,11 +1724,11 @@ DO
  END IF
  SELECT CASE pt
   CASE 1
-   strgrabber item$(csr), 8
-   menu$(1) = "Name:" + item$(csr)
+   strgrabber item(csr), 8
+   menu(1) = "Name:" + item(csr)
   CASE 2
    strgrabber info$, 34
-   menu$(2) = "Info:" + info$
+   menu(2) = "Info:" + info$
   CASE 3, 6, 9, 10
    IF intgrabber(a(46 + (pt - 3)), min(pt), max(pt)) THEN
     need_update = YES
@@ -1752,7 +1752,7 @@ DO
  END SELECT
  IF need_update THEN
   need_update = NO
-  generate_item_edit_menu menu$(), a(), csr, pt, item$(csr), info$, eqst$(), box_preview
+  generate_item_edit_menu menu(), a(), csr, pt, item(csr), info$, eqst(), box_preview
   IF wep_img.sprite THEN sprite_unload @wep_img.sprite
   IF wep_img.pal    THEN palette16_unload @wep_img.pal
   wep_img.sprite = sprite_load(5, a(52))
@@ -1765,7 +1765,7 @@ DO
    textcolor uilook(uiDisabledItem), 0
    IF pt = i THEN textcolor uilook(uiSelectedDisabled + tog), 0
   END IF
-  printstr menu$(i), 0, i * 8, dpage
+  printstr menu(i), 0, i * 8, dpage
  NEXT i
  IF a(49) = 1 THEN
   sprite_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160,,,dpage
@@ -1817,9 +1817,9 @@ LOOP
 
 sitemname:
 loaditemdata a(), i
-a(0) = LEN(item$(i))
+a(0) = LEN(item(i))
 FOR o = 1 TO a(0)
- a(o) = ASC(MID$(item$(i), o, 1))
+ a(o) = ASC(MID$(item(i), o, 1))
 NEXT o
 a(9) = LEN(info$)
 FOR o = 10 TO 9 + a(9)
@@ -1830,11 +1830,11 @@ RETRACE
 
 ibitset:
 FOR i = 0 TO 7
- ibit$(i) = elemtype$(0) & " " & readglobalstring(17 + i, "Element" & i+1)
- ibit$(i + 8) = elemtype$(1) & " " & readglobalstring(17 + i, "Element" & i+1)
- ibit$(i + 16) = elemtype$(2) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ibit(i) = elemtype(0) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ibit(i + 8) = elemtype(1) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ibit(i + 16) = elemtype(2) & " " & readglobalstring(17 + i, "Element" & i+1)
 NEXT i
-editbitset a(), 70, 23, ibit$()
+editbitset a(), 70, 23, ibit()
 RETRACE
 
 END SUB

@@ -66,7 +66,7 @@ DIM attack AS AttackData
 DIM targets_attack AS AttackData
 DIM autotarg_attack AS AttackData
 DIM st(3) as herodef, es(7, 160), ctr(11)
-DIM menubits(2), spel$(23), speld$(23), spel(23), cost$(23), walk(3)
+DIM menubits(2), spelname(23) AS STRING, speld(23) AS STRING, spel(23), cost(23) AS STRING, walk(3)
 DIM conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
@@ -250,7 +250,7 @@ DO
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
    IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, inv_scroll, bslot(), icons(), iuse()
    IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bslot(), conlmp()
-   IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st()
+   IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), spelname(), speld(), cost(), spel(), spelmask(), iuse(), st()
   END IF
   IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN GOSUB picktarg
  END IF
@@ -843,21 +843,21 @@ IF vic.state = 0 THEN 'only display interface till you win
   IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
    centerbox 160, 53, 310, 95, 1, dpage
    IF bat.sptr < 24 THEN
-    IF speld$(bat.sptr) <> "" THEN rectangle 5, 74, 311, 1, uilook(uiTextBox + 1), dpage
+    IF speld(bat.sptr) <> "" THEN rectangle 5, 74, 311, 1, uilook(uiTextBox + 1), dpage
    END IF
    rectangle 5, 87, 310, 1, uilook(uiTextBox + 1), dpage
    FOR i = 0 TO 23
     textcolor uilook(uiDisabledItem - readbit(spelmask(), 0, i)), 0
     IF bat.sptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(spelmask(), 0, i)) + tog), uilook(uiHighlight)
-    printstr spel$(i), 16 + (i MOD 3) * 104, 8 + (i \ 3) * 8, dpage
+    printstr spelname(i), 16 + (i MOD 3) * 104, 8 + (i \ 3) * 8, dpage
    NEXT i
    textcolor uilook(uiMenuItem), 0
    IF bat.sptr = 24 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
    printstr cancelspell$, 9, 90, dpage
    textcolor uilook(uiDescription), 0
    IF bat.sptr < 24 THEN
-    printstr speld$(bat.sptr), 9, 77, dpage
-    printstr cost$(bat.sptr), 308 - LEN(cost$(bat.sptr)) * 8, 90, dpage
+    printstr speld(bat.sptr), 9, 77, dpage
+    printstr cost(bat.sptr), 308 - LEN(cost(bat.sptr)) * 8, 90, dpage
    END IF
   END IF
   'if keyval(scS) > 1 then gen(genMaxInventory) += 3
@@ -2015,7 +2015,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER
 
 END SUB
 
-SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
+SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, spelname() AS STRING, speld() AS STRING, cost() AS STRING, spel(), spelmask(), iuse(), st() as herodef)
 
  DIM mp_name AS STRING = readglobalstring(1, "MP", 10)
      
@@ -2070,31 +2070,31 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
     bat.menu_mode = batMENUSPELL
     bat.sptr = 0
     FOR i = 0 TO 23 '-- loop through the spell list setting up menu items for each
-     spel$(i) = ""
-     speld$(i) = ""
-     cost$(i) = ""
+     spelname(i) = ""
+     speld(i) = ""
+     cost(i) = ""
      spel(i) = -1
      setbit spelmask(), 0, i, 0
      IF spell(bat.hero_turn, bat.listslot, i) > 0 THEN '--there is a spell in this slot
       spellcount += 1
       spel(i) = spell(bat.hero_turn, bat.listslot, i) - 1
       loadattackdata atk, spel(i)
-      spel$(i) = atk.name
-      speld$(i) = atk.description
+      spelname(i) = atk.name
+      speld(i) = atk.description
       IF st(bat.hero_turn).list_type(bat.listslot) = 0 THEN
        '--regular MP
-       cost$(i) = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.foc) & " " & mp_name & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
+       cost(i) = " " & focuscost(atk.mp_cost, bslot(bat.hero_turn).stat.cur.foc) & " " & mp_name & " " & bslot(bat.hero_turn).stat.cur.mp & "/" & bslot(bat.hero_turn).stat.max.mp
       END IF
       IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN
        '--level MP
-       cost$(i) = bat.level_mp_caption & " " & (INT(i / 3) + 1) & ":  " & lmp(bat.hero_turn, INT(i / 3))
+       cost(i) = bat.level_mp_caption & " " & (INT(i / 3) + 1) & ":  " & lmp(bat.hero_turn, INT(i / 3))
       END IF
       IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(i / 3), bslot()) THEN
        '-- check whether or not the spell is allowed
        setbit spelmask(), 0, i, 1
       END IF
      END IF
-     spel$(i) = rpad(spel$(i), " ", 10) '-- pad the spell menu caption
+     spelname(i) = rpad(spelname(i), " ", 10) '-- pad the spell menu caption
     NEXT i
    ELSEIF st(bat.hero_turn).list_type(bat.listslot) = 2 THEN '-- this is a random spell list
     spellcount = 0

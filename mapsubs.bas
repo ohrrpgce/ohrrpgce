@@ -84,7 +84,7 @@ FUNCTION addmaphow () AS INTEGER
 '  -1  =New blank
 '  >=0 =Copy
 
-DIM temp$(2)
+DIM temp(2) AS STRING
 DIM need_update AS INTEGER
 DIM maptocopy AS INTEGER = 0
 DIM pt AS INTEGER = 0
@@ -116,11 +116,11 @@ DO
  END IF
  IF need_update THEN
   need_update = NO
-  temp$(0) = "Cancel"
-  temp$(1) = "New Blank Map"
-  temp$(2) = "Copy of map " & maptocopy & " " & getmapname$(maptocopy)
+  temp(0) = "Cancel"
+  temp(1) = "New Blank Map"
+  temp(2) = "Copy of map " & maptocopy & " " & getmapname$(maptocopy)
  END IF
- standardmenu temp$(), 2, 22, pt, 0, 0, 0, dpage, 0
+ standardmenu temp(), 2, 22, pt, 0, 0, 0, dpage, 0
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
@@ -139,7 +139,7 @@ END FUNCTION
 
 SUB mapmaker (font())
 DIM st AS MapEditState
-DIM mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(binMAP)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
+DIM mode(12) AS STRING, list(13) AS STRING, menu(-1 TO 20) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), gdmenu(0 TO 20) AS STRING, gdmax(20), gdmin(20), sampmap(2), pal16(288), gmapscr(5) AS STRING, gmapscrof(5), npcnum(max_npc_defs)
 DIM her AS HeroDef
 DIM defaults(2) as DefArray
 
@@ -165,7 +165,7 @@ textcolor uilook(uiText), 0
 
 wide = 0: high = 0: nptr = 0
 mapname$ = ""
-DIM xtemp AS STRING
+DIM xtemp AS STRING, temp AS INTEGER
 
 '--create a palette for the cursor
 st.cursor.pal = palette16_new()
@@ -193,11 +193,11 @@ rectangle 3, 3, 14, 14, 2, cursorpage
 rectangle 4, 4, 12, 12, 0, cursorpage
 freepage cursorpage
 
-mode$(0) = "Picture Mode"
-mode$(1) = "Passability Mode"
-mode$(2) = "Door Placement Mode"
-mode$(3) = "NPC Placement Mode"
-mode$(4) = "Foe Mapping Mode"
+mode(0) = "Picture Mode"
+mode(1) = "Passability Mode"
+mode(2) = "Door Placement Mode"
+mode(3) = "NPC Placement Mode"
+mode(4) = "Foe Mapping Mode"
 st.menubar(0) = 160
 st.menubar(1) = 1
 sampmap(0) = 1
@@ -210,7 +210,7 @@ NEXT
 maptop = 0
 pt = 0
 csr = 0
-make_top_map_menu maptop, topmenu$()
+make_top_map_menu maptop, topmenu()
 setkeys
 DO
  setwait 55
@@ -219,7 +219,7 @@ DO
  IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
  oldtop = maptop
  usemenu pt, maptop, 0, 2 + gen(genMaxMap), 24
- IF oldtop <> maptop THEN make_top_map_menu maptop, topmenu$()
+ IF oldtop <> maptop THEN make_top_map_menu maptop, topmenu()
  IF enter_or_space() THEN
   IF pt = 0 THEN EXIT DO
   IF pt > 0 AND pt <= gen(genMaxMap) + 1 THEN
@@ -228,18 +228,18 @@ DO
    mapedit_loadmap st, pt, wide, high, map(), pass(), emap(), gmap(), visible(), doors(), link(), defaults(), mapname$
    GOSUB whattodo
    pt = pt + 1
-   make_top_map_menu maptop, topmenu$()
+   make_top_map_menu maptop, topmenu()
   END IF
   IF pt = gen(genMaxMap) + 2 THEN
    mapedit_addmap st, map(), pass(), emap(), gmap(), doors(), link()
-   make_top_map_menu maptop, topmenu$()
+   make_top_map_menu maptop, topmenu()
   END IF
  END IF
  tog = tog XOR 1
  FOR i = 0 TO 24
   textcolor uilook(uiMenuItem), 0
   IF pt = maptop + i THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr topmenu$(i), 0, i * 8, dpage
+  printstr topmenu(i), 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -261,20 +261,20 @@ y = 0
 mapx = 0
 mapy = 0
 st.layer = 0
-list$(0) = "Return to Map Menu"
-list$(1) = "Edit General Map Data..."
-list$(2) = "Resize Map..."
-list$(3) = "Layers and Tilesets..."
-list$(4) = "Edit NPCs..."
-list$(5) = "Edit Tilemap..."
-list$(6) = "Edit Wallmap..."
-list$(7) = "Place Doors..."
-list$(8) = "Place NPCs..."
-list$(9) = "Edit Foemap..."
-list$(10) = "Link Doors..."
-list$(11) = "Erase Map Data"
-list$(12) = "Re-load Default Passability"
-list$(13) = "Map name:"
+list(0) = "Return to Map Menu"
+list(1) = "Edit General Map Data..."
+list(2) = "Resize Map..."
+list(3) = "Layers and Tilesets..."
+list(4) = "Edit NPCs..."
+list(5) = "Edit Tilemap..."
+list(6) = "Edit Wallmap..."
+list(7) = "Place Doors..."
+list(8) = "Place NPCs..."
+list(9) = "Edit Foemap..."
+list(10) = "Link Doors..."
+list(11) = "Erase Map Data"
+list(12) = "Re-load Default Passability"
+list(13) = "Map name:"
 
 '--load NPC graphics--
 FOR i = 0 TO max_npc_defs
@@ -336,10 +336,10 @@ DO
   END IF
  END IF
  IF csr = 13 THEN strgrabber mapname$, 39
- list$(13) = "Map name:" + mapname$
- IF LEN(list$(13)) > 40 THEN list$(13) = mapname$
+ list(13) = "Map name:" + mapname$
+ IF LEN(list(13)) > 40 THEN list(13) = mapname$
  
- standardmenu list$(), 13, 13, csr, 0, 0, 0, dpage, 0
+ standardmenu list(), 13, 13, csr, 0, 0, 0, dpage, 0
  
  SWAP vpage, dpage
  setvispage vpage
@@ -358,25 +358,25 @@ RETRACE
 gmapdata:
 gmapmax = 18
 gd = 0
-gd$(0) = "Previous Menu"
-gd$(1) = "Ambient Music:"
-gd$(2) = "Minimap Available:"
-gd$(3) = "Save Anywhere:"
-gd$(4) = "Display Map Name:"
-gd$(5) = "Map Edge Mode:"
-gd$(6) = "Default Edge Tile:"
-gd$(7) = "Autorun Script: "
-gd$(8) = "Script Argument:"
-gd$(9) = "Harm-Tile Damage:"
-gd$(10) = "Harm-Tile Flash:"
-gd$(11) = "Foot Offset:"
-gd$(12) = "After-Battle Script:"
-gd$(13) = "Instead-of-Battle Script:"
-gd$(14) = "Each-Step Script:"
-gd$(15) = "On-Keypress Script:"
-gd$(16) = "Walkabout Layering:"
-gd$(17) = "NPC Data:"
-gd$(18) = "Tile Data:"
+gdmenu(0) = "Previous Menu"
+gdmenu(1) = "Ambient Music:"
+gdmenu(2) = "Minimap Available:"
+gdmenu(3) = "Save Anywhere:"
+gdmenu(4) = "Display Map Name:"
+gdmenu(5) = "Map Edge Mode:"
+gdmenu(6) = "Default Edge Tile:"
+gdmenu(7) = "Autorun Script: "
+gdmenu(8) = "Script Argument:"
+gdmenu(9) = "Harm-Tile Damage:"
+gdmenu(10) = "Harm-Tile Flash:"
+gdmenu(11) = "Foot Offset:"
+gdmenu(12) = "After-Battle Script:"
+gdmenu(13) = "Instead-of-Battle Script:"
+gdmenu(14) = "Each-Step Script:"
+gdmenu(15) = "On-Keypress Script:"
+gdmenu(16) = "Walkabout Layering:"
+gdmenu(17) = "NPC Data:"
+gdmenu(18) = "Tile Data:"
 gdmax(1) = gen(genMaxSong) + 1:        gdmin(1) = -1
 gdmax(2) = 1:                              gdmin(2) = 0
 gdmax(3) = 1:                              gdmin(3) = 0
@@ -407,7 +407,7 @@ FOR i = 1 TO gmapmax
  gmap(i) = bound(gmap(i), gdmin(i), gdmax(i))
 NEXT i
 FOR i = 0 TO 4
- gmapscr$(i) = scriptname$(gmap(gmapscrof(i)), plottrigger)
+ gmapscr(i) = scriptname$(gmap(gmapscrof(i)), plottrigger)
 NEXT i
 setkeys
 DO
@@ -425,9 +425,9 @@ DO
   CASE 7, 12 TO 15
    IF gd = 7 THEN idx = 0 ELSE idx = gd - 11
    IF enter_or_space() THEN
-    gmapscr$(idx) = scriptbrowse_string(gmap(gd), plottrigger, "plotscript")
+    gmapscr(idx) = scriptbrowse_string(gmap(gd), plottrigger, "plotscript")
    ELSEIF scrintgrabber(gmap(gd), 0, 0, 75, 77, 1, plottrigger) THEN
-    gmapscr$(idx) = scriptname$(gmap(gd), plottrigger)
+    gmapscr(idx) = scriptname$(gmap(gd), plottrigger)
    END IF
   CASE 10' Harm tile color
    intgrabber gmap(gd), gdmin(gd), gdmax(gd)
@@ -469,7 +469,7 @@ DO
      xtemp = "N/A"
     END IF
    CASE 7, 12 TO 15
-    xtemp = gmapscr$(scri)
+    xtemp = gmapscr(scri)
     scri = scri + 1
    CASE 8
     IF gmap(7) = 0 THEN
@@ -512,8 +512,8 @@ DO
   END SELECT
   textcolor uilook(uiMenuItem), 0
   IF i = gd THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr gd$(i) + " " + xtemp, 0, 8 * i, dpage
-  IF i = 10 THEN rectangle 4 + (8 * (LEN(gd$(i)) + 1 + LEN(xtemp))), 8 * i, 8, 8, gmap(i), dpage
+  printstr gdmenu(i) + " " + xtemp, 0, 8 * i, dpage
+  IF i = 10 THEN rectangle 4 + (8 * (LEN(gdmenu(i)) + 1 + LEN(xtemp))), 8 * i, 8, 8, gmap(i), dpage
  NEXT
  IF gmap(5) = 2 THEN
   '--show default edge tile
@@ -1023,7 +1023,7 @@ DO
   printstr status$, 124, 192, dpage
  END IF
  textcolor uilook(uiText), 0
- printstr mode$(editmode), 0, 24, dpage
+ printstr mode(editmode), 0, 24, dpage
  IF editmode = 4 THEN textcolor uilook(uiText), uilook(uiHighlight): printstr "Formation Set: " & foe, 0, 16, dpage
  SWAP vpage, dpage
  setvispage vpage
@@ -1063,7 +1063,7 @@ END SUB
 
 SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray)
  DIM state AS MenuState
- DIM menu$(10)
+ DIM menu(10) AS STRING
  DIM enabled(10) AS INTEGER
  DIM itemcol(10) AS INTEGER
 
@@ -1073,7 +1073,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
 
  state.pt = (st.layer + 1) * 3
  state.top = 0
- state.last = UBOUND(menu$)
+ state.last = UBOUND(menu)
  state.size = 19
 
  GOSUB makelayermenu
@@ -1135,7 +1135,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
     col = itemcol(i)
     'IF enabled(i) = 0 THEN col = uilook(uiDisabledItem)
     IF state.pt = i THEN col = uilook(uiSelectedItem + tog)
-    edgeprint menu$(i), 0, (i - state.top) * 9, col, dpage
+    edgeprint menu(i), 0, (i - state.top) * 9, col, dpage
    END IF
   NEXT
 
@@ -1173,47 +1173,47 @@ updateback:
 makelayermenu:
  flusharray enabled(), UBOUND(enabled), YES
  flusharray itemcol(), UBOUND(itemcol), uilook(uiMenuItem)
- menu$(0) = "Go back"
- menu$(1) = "Default tileset: "
-' menu$(1) = "Bottom Layer "
-' menu$(2) = "Middle Layer "
-' menu$(3) = "Top Layer    "
+ menu(0) = "Go back"
+ menu(1) = "Default tileset: "
+' menu(1) = "Bottom Layer "
+' menu(2) = "Middle Layer "
+' menu(3) = "Top Layer    "
  
  needdefault = NO
  
  temp = 2
  FOR i = 0 TO 2
   enabled(temp) = NO
-  menu$(temp) = "Layer " & i
+  menu(temp) = "Layer " & i
   temp += 1
 
   IF layerisenabled(gmap(), i) THEN
    IF layerisvisible(visible(), i) THEN
-    menu$(temp) = " Enabled (" & CHR$(27) & "Visible in editor" & CHR$(26) & ")"
+    menu(temp) = " Enabled (" & CHR$(27) & "Visible in editor" & CHR$(26) & ")"
     itemcol(temp - 1) = uilook(uiSelectedDisabled)
    ELSE
-    menu$(temp) = " Enabled (" & CHR$(27) & "Invisible in editor" & CHR$(26) & ")"
+    menu(temp) = " Enabled (" & CHR$(27) & "Invisible in editor" & CHR$(26) & ")"
     itemcol(temp - 1) = uilook(uiDisabledItem)
    END IF
   ELSE
-   menu$(temp) = " Disabled in-game"
+   menu(temp) = " Disabled in-game"
    itemcol(temp - 1) = uilook(uiDisabledItem)
   END IF
   temp += 1
 
   IF gmap(22 + i) = 0 THEN
-   menu$(temp) = " Tileset: Default"
+   menu(temp) = " Tileset: Default"
    needdefault = YES
   ELSE
-   menu$(temp) = " Tileset: " & gmap(22 + i) - 1
+   menu(temp) = " Tileset: " & gmap(22 + i) - 1
   END IF
   temp += 1
  NEXT
  
  IF needdefault THEN
-  menu$(1) += STR$(gmap(0))
+  menu(1) += STR$(gmap(0))
  ELSE
-  menu$(1) += "(Not used)"
+  menu(1) += "(Not used)"
   enabled(1) = NO
   itemcol(1) = uilook(uiDisabledItem)
  END IF

@@ -1379,16 +1379,16 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 
 end SUB
 
-SUB storemxs (fil$, BYVAL record as integer, BYVAL fr as Frame ptr)
+SUB storemxs (fil as string, BYVAL record as integer, BYVAL fr as Frame ptr)
 'saves a screen page to a file. Doesn't support non-320x200 pages
 	dim f as integer
 	dim as integer x, y
 	dim sptr as ubyte ptr
 	dim plane as integer
 
-	if NOT fileiswriteable(fil$) then exit sub
+	if NOT fileiswriteable(fil) then exit sub
 	f = freefile
-	open fil$ for binary access read write as #f
+	open fil for binary access read write as #f
 
 	'skip to index
 	seek #f, (record*64000) + 1 'will this work with write access?
@@ -1408,7 +1408,7 @@ SUB storemxs (fil$, BYVAL record as integer, BYVAL fr as Frame ptr)
 	close #f
 end SUB
 
-FUNCTION loadmxs (fil$, BYVAL record as integer, BYVAL dest as Frame ptr = NULL) as Frame ptr
+FUNCTION loadmxs (fil as string, BYVAL record as integer, BYVAL dest as Frame ptr = NULL) as Frame ptr
 'loads a 320x200 mode X format page from a file.
 'You may optionally pass in existing frame to load into.
 	dim f as integer
@@ -1416,12 +1416,12 @@ FUNCTION loadmxs (fil$, BYVAL record as integer, BYVAL dest as Frame ptr = NULL)
 	dim sptr as ubyte ptr
 	dim plane as integer
 
-	if NOT fileisreadable(fil$) then return 0
+	if NOT fileisreadable(fil) then return 0
 	f = freefile
-	open fil$ for binary access read as #f
+	open fil for binary access read as #f
 
 	if lof(f) < (record + 1) * 64000 then
-		debug "loadpage: wanted page " & record & "; " & fil$ & " is only " & lof(f) & " bytes"
+		debug "loadpage: wanted page " & record & "; " & fil & " is only " & lof(f) & " bytes"
 		close #f
 		return dest
 	end if
@@ -1893,7 +1893,7 @@ FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as i
 	end if
 end FUNCTION
 
-SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
+SUB storeset (fil as string, BYVAL i as integer, BYVAL l as integer)
 ' i = index, l = line (only if reading from screen buffer)
 	dim f as integer
 	dim idx as integer
@@ -1902,9 +1902,9 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 	dim toggle as integer
 	dim sptr as ubyte ptr
 
-	if NOT fileiswriteable(fil$) then exit sub
+	if NOT fileiswriteable(fil) then exit sub
 	f = freefile
-	open fil$ for binary access read write as #f
+	open fil for binary access read write as #f
 
 	seek #f, (i*bsize) + 1 'does this work properly with write?
 	'this is a horrible hack to get 2 bytes per integer, even though
@@ -1940,7 +1940,7 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 	close #f
 end SUB
 
-SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
+SUB loadset (fil as string, BYVAL i as integer, BYVAL l as integer)
 ' i = index, l = line (only if reading to screen buffer)
 	dim f as integer
 	dim idx as integer
@@ -1949,9 +1949,9 @@ SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
 	dim toggle as integer
 	dim sptr as ubyte ptr
 
-	if NOT fileisreadable(fil$) then exit sub
+	if NOT fileisreadable(fil) then exit sub
 	f = freefile
-	open fil$ for binary access read as #f
+	open fil for binary access read as #f
 
 	seek #f, (i*bsize) + 1
 	'this is a horrible hack to get 2 bytes per integer, even though
@@ -2033,100 +2033,100 @@ SUB fixspriterecord (buf() as integer, w as integer, h as integer)
  
 END SUB
 
-SUB findfiles (fmask$, BYVAL attrib, outfile$)
+SUB findfiles (fmask AS STRING, BYVAL attrib AS INTEGER, outfile AS STRING)
 	' attrib 0: all files 'cept folders, attrib 16: folders only
 #ifdef __FB_LINUX__
-	'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
-	DIM grep$, shellout$
-	shellout$ = "/tmp/ohrrpgce-findfiles-" + STR$(RND * 10000) + ".tmp"
-	grep$ = "-v '/$'"
-	IF attrib AND 16 THEN grep$ = "'/$'"
-	DIM i%
-	FOR i = LEN(fmask$) TO 1 STEP -1
-		IF MID$(fmask$, i, 1) = CHR$(34) THEN fmask$ = LEFT$(fmask$, i - 1) + "\" + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i)
+	'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR
+	DIM AS STRING grep, shellout
+	shellout = "/tmp/ohrrpgce-findfiles-" + STR(RND * 10000) + ".tmp"
+	grep = "-v '/$'"
+	IF attrib AND 16 THEN grep = "'/$'"
+	DIM i AS INTEGER
+	FOR i = LEN(fmask) TO 1 STEP -1
+		IF MID(fmask, i, 1) = CHR(34) THEN fmask = LEFT(fmask, i - 1) + "\" + CHR(34) + RIGHT(fmask, LEN(fmask) - i)
 	NEXT i
-	i = INSTR(fmask$, "*")
+	i = INSTR(fmask, "*")
 	IF i THEN
-		fmask$ = CHR$(34) + LEFT$(fmask$, i - 1) + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i + 1)
+		fmask = CHR(34) + LEFT(fmask, i - 1) + CHR(34) + RIGHT(fmask, LEN(fmask) - i + 1)
 	ELSE
-		fmask$ = CHR$(34) + fmask$ + CHR$(34)
+		fmask = CHR(34) + fmask + CHR(34)
 	END IF
-	SHELL "ls -d1p " + fmask$ + " 2>/dev/null |grep "+ grep$ + ">" + shellout$ + " 2>&1"
+	SHELL "ls -d1p " + fmask + " 2>/dev/null |grep "+ grep + ">" + shellout + " 2>&1"
 	DIM AS INTEGER f1, f2
 	f1 = FreeFile
-	OPEN shellout$ FOR INPUT AS #f1
+	OPEN shellout FOR INPUT AS #f1
 	f2 = FreeFile
-	OPEN outfile$ FOR OUTPUT AS #f2
-	DIM s$
+	OPEN outfile FOR OUTPUT AS #f2
+	DIM s AS STRING
 	DO UNTIL EOF(f1)
-		LINE INPUT #f1, s$
-		IF s$ = "/dev/" OR s$ = "/proc/" OR s$ = "/sys/" THEN CONTINUE DO
-		IF RIGHT$(s$, 1) = "/" THEN s$ = LEFT$(s$, LEN(s$) - 1)
-		DO WHILE INSTR(s$, "/")
-			s$ = RIGHT$(s$, LEN(s$) - INSTR(s$, "/"))
+		LINE INPUT #f1, s
+		IF s = "/dev/" OR s = "/proc/" OR s = "/sys/" THEN CONTINUE DO
+		IF RIGHT(s, 1) = "/" THEN s = LEFT(s, LEN(s) - 1)
+		DO WHILE INSTR(s, "/")
+			s = RIGHT(s, LEN(s) - INSTR(s, "/"))
 		LOOP
-		PRINT #f2, s$
+		PRINT #f2, s
 	LOOP
 	CLOSE #f1
 	CLOSE #f2
-	KILL shellout$
+	KILL shellout
 #else
-	DIM a$, i%, folder$
+	DIM a AS STRING, i AS INTEGER, folder AS STRING
 	if attrib = 0 then attrib = 255 xor 16
 	if attrib = 16 then attrib = 55 '*sigh*
-	FOR i = LEN(fmask$) TO 1 STEP -1
-		IF MID$(fmask$, i, 1) = "\" THEN folder$ = MID$(fmask$, 1, i): EXIT FOR
+	FOR i = LEN(fmask) TO 1 STEP -1
+		IF MID(fmask, i, 1) = "\" THEN folder = MID(fmask, 1, i): EXIT FOR
 	NEXT
 
-	dim tempf%, realf%
+	DIM AS INTEGER tempf, realf
 	tempf = FreeFile
-	a$ = DIR$(fmask$, attrib)
-	if a$ = "" then
+	a = DIR(fmask, attrib)
+	if a = "" then
 		'create an empty file
-		OPEN outfile$ FOR OUTPUT AS #tempf
+		OPEN outfile FOR OUTPUT AS #tempf
 		close #tempf
 		exit sub
 	end if
-	OPEN outfile$ + ".tmp" FOR OUTPUT AS #tempf
-	DO UNTIL a$ = ""
-		PRINT #tempf, a$
-		a$ = DIR$ '("", attrib)
+	OPEN outfile + ".tmp" FOR OUTPUT AS #tempf
+	DO UNTIL a = ""
+		PRINT #tempf, a
+		a = DIR '("", attrib)
 	LOOP
 	CLOSE #tempf
-	OPEN outfile$ + ".tmp" FOR INPUT AS #tempf
+	OPEN outfile + ".tmp" FOR INPUT AS #tempf
 	realf = FREEFILE
-	OPEN outfile$ FOR OUTPUT AS #realf
+	OPEN outfile FOR OUTPUT AS #realf
 	DO UNTIL EOF(tempf)
-	LINE INPUT #tempf, a$
+	LINE INPUT #tempf, a
 	IF attrib = 55 THEN
-		'alright, we want directories, but DIR$ is too broken to give them to us
+		'alright, we want directories, but DIR is too broken to give them to us
 		'files with attribute 0 appear in the list, so single those out
-		IF DIR$(folder$ + a$, 55) <> "" AND DIR$(folder$ + a$, 39) = "" THEN PRINT #realf, a$
+		IF DIR(folder + a, 55) <> "" AND DIR(folder + a, 39) = "" THEN PRINT #realf, a
 	ELSE
-		PRINT #realf, a$
+		PRINT #realf, a
 	END IF
 	LOOP
 	CLOSE #tempf
 	CLOSE #realf
-	KILL outfile$ + ".tmp"
+	KILL outfile + ".tmp"
 #endif
 END SUB
 
-FUNCTION isfile (n$) as integer
+FUNCTION isfile (n as string) as integer
 	' directories don't count as files
 	' this is a simple wrapper for fileisreadable
-	if n$ = "" then return 0
-	return fileisreadable(n$)
+	if n = "" then return 0
+	return fileisreadable(n)
 END FUNCTION
 
-FUNCTION isdir (sDir$) as integer
+FUNCTION isdir (sDir as string) as integer
 #IFDEF __FB_LINUX__
-	'Special hack for broken Linux dir$() behavior
-	sDir$ = escape_string(sDir$, """`\$")
-	isdir = SHELL("[ -d """ + sDir$ + """ ]") = 0
+	'Special hack for broken Linux dir() behavior
+	sDir = escape_string(sDir, """`\$")
+	isdir = SHELL("[ -d """ + sDir + """ ]") = 0
 #ELSE
 	'Windows just uses dir
-	dim ret as integer = dir$(sDir$, 55) <> "" AND dir$(sDir$, 39) = ""
+	dim ret as integer = dir(sDir, 55) <> "" AND dir(sDir, 39) = ""
 	return ret
 #ENDIF
 END FUNCTION
@@ -2142,7 +2142,7 @@ FUNCTION is_absolute_path (sDir as string) as integer
 	return 0
 END FUNCTION
 
-FUNCTION drivelist (drives$()) as integer
+FUNCTION drivelist (drives() as string) as integer
 #ifdef __FB_LINUX__
 	' on Linux there is only one drive, the root /
 	drivelist = 0
@@ -2155,8 +2155,8 @@ FUNCTION drivelist (drives$()) as integer
 
 	drivebptr = @drivebuf
 	while drivebptr < @drivebuf + zslen
-		drives$(i) = *drivebptr
-		drivebptr += len(drives$(i)) + 1
+		drives(i) = *drivebptr
+		drivebptr += len(drives(i)) + 1
 		i += 1
 	wend
 
@@ -2164,10 +2164,10 @@ FUNCTION drivelist (drives$()) as integer
 #endif
 end FUNCTION
 
-FUNCTION drivelabel (drive$) as string
+FUNCTION drivelabel (drive as string) as string
 #ifdef __FB_WIN32__
 	dim tmpname as zstring * 256
-	if GetVolumeInformation(drive$, tmpname, 255, NULL, NULL, NULL, NULL, 0) = 0 then
+	if GetVolumeInformation(drive, tmpname, 255, NULL, NULL, NULL, NULL, 0) = 0 then
 		drivelabel = "<not ready>"
 	else
 		drivelabel = tmpname
@@ -2177,17 +2177,17 @@ FUNCTION drivelabel (drive$) as string
 #endif
 END FUNCTION
 
-FUNCTION isremovable (drive$) as integer
+FUNCTION isremovable (drive as string) as integer
 #ifdef __FB_WIN32__
-	isremovable = GetDriveType(drive$) = DRIVE_REMOVABLE
+	isremovable = GetDriveType(drive as string) = DRIVE_REMOVABLE
 #else
 	isremovable = 0
 #endif
 end FUNCTION
 
-FUNCTION hasmedia (drive$) as integer
+FUNCTION hasmedia (drive as string) as integer
 #ifdef __FB_WIN32__
-	hasmedia = GetVolumeInformation(drive$, NULL, 0, NULL, NULL, NULL, NULL, 0)
+	hasmedia = GetVolumeInformation(drive, NULL, 0, NULL, NULL, NULL, NULL, 0)
 #else
 	hasmedia = 0
 #endif
@@ -3302,25 +3302,25 @@ Function diriswriteable(d as string) as integer
 	return 0
 end Function
 
-FUNCTION getmusictype (file$) as integer
+FUNCTION getmusictype (file as string) as integer
 
-	if file$ = "" then
+	if file = "" then
 	  'no further checking for blank names
 	  return 0
 	end if
 
-	if isdir(file$) OR right(file$, 1) = SLASH then
+	if isdir(file) OR right(file, 1) = SLASH then
 	  'no further checking if this is a directory
 	  return 0
 	end if
 
-	DIM ext$, chk
-	ext$ = lcase(justextension(file$))
+	DIM ext as string, chk as integer
+	ext = lcase(justextension(file))
 
 	'special case
-	if str(cint(ext$)) = ext$ then return FORMAT_BAM
+	if str(cint(ext)) = ext then return FORMAT_BAM
 
-	SELECT CASE ext$
+	SELECT CASE ext
 	CASE "bam"
 		chk = FORMAT_BAM
 	CASE "mid"
@@ -3340,7 +3340,7 @@ FUNCTION getmusictype (file$) as integer
 	CASE "mod"
 	  chk = FORMAT_MOD
 	CASE ELSE
-	  debug "unknown format: " & file$ & " - " & ext$
+	  debug "unknown format: " & file & " - " & ext
 	  chk = 0
 	END SELECT
 

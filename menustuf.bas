@@ -41,7 +41,7 @@ DECLARE SUB spells_menu_control(sp AS SpellsMenuState)
 REM $STATIC
 
 SUB buystuff (id, shoptype, storebuf(), stat())
-DIM b(dimbinsize(binSTF) * 50), stuf$(50), vmask(5), emask(5), buytype$(5, 1), wbuf(100), walks(15), tradestf(3, 1)
+DIM b(dimbinsize(binSTF) * 50), stuf(50) AS STRING, vmask(5), emask(5), buytype(5, 1) AS STRING, wbuf(100), walks(15), tradestf(3, 1)
 DIM is_equipable AS INTEGER
 DIM itembuf(99) AS INTEGER
 DIM hiresprite AS Frame PTR
@@ -56,10 +56,10 @@ recordsize = curbinsize(binSTF) / 2 ' get size in INTs
 holdscreen = allocatepage
 copypage vpage, holdscreen
 
-buytype$(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
-buytype$(0, 1) = readglobalstring$(87, "Joins for", 20) + " "
-buytype$(1, 0) = readglobalstring$(89, "Cannot Afford", 20) + " "
-buytype$(1, 1) = readglobalstring$(91, "Cannot Hire", 20) + " "
+buytype(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
+buytype(0, 1) = readglobalstring$(87, "Joins for", 20) + " "
+buytype(1, 0) = readglobalstring$(89, "Cannot Afford", 20) + " "
+buytype(1, 1) = readglobalstring$(91, "Cannot Hire", 20) + " "
 wepslot$ = readglobalstring$(38, "Weapon", 10)
 purchased$ = readglobalstring$(93, "Purchased", 20)
 joined$ = readglobalstring$(95, "Joined!", 20)
@@ -86,9 +86,9 @@ walks(14) = 3
 
 loadshopstuf b(), id
 FOR o = 0 TO storebuf(16)
- stuf$(o) = ""
+ stuf(o) = ""
  FOR i = 1 TO small(b(o * recordsize + 0), 16)
-  IF b(o * recordsize + i) >= 0 AND b(o * recordsize + i) < 256 THEN stuf$(o) = stuf$(o) + CHR$(b(o * recordsize + i))
+  IF b(o * recordsize + i) >= 0 AND b(o * recordsize + i) < 256 THEN stuf(o) = stuf(o) + CHR$(b(o * recordsize + i))
  NEXT i
 NEXT o
 
@@ -162,7 +162,7 @@ DO
     getitem b(pt * recordsize + 18) + 1, 1
     acol = 4
     alert = 10
-    alert$ = purchased$ + " " + stuf$(pt)
+    alert$ = purchased$ + " " + stuf(pt)
    END IF '-------END IF ITEM-------------------------------------
    IF b(pt * recordsize + 17) = 1 THEN '---HIRE HERO------------------
     menusound gen(genHireSFX)
@@ -172,7 +172,7 @@ DO
     addhero b(pt * recordsize + 18) + 1, slot, stat(), b(pt * recordsize + 26)
     acol = 4
     alert = 10
-    alert$ = stuf$(pt) + " " + joined$
+    alert$ = stuf(pt) + " " + joined$
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
    'stuff changed
@@ -182,7 +182,7 @@ DO
    menusound gen(genCantBuySFX)
    acol = 3
    alert = 10
-   alert$ = buytype$(1, shoptype) + stuf$(pt)
+   alert$ = buytype(1, shoptype) + stuf(pt)
   END IF '--------END BUY THING------------
   GOSUB stufmask
   DO WHILE readbit(vmask(), 0, pt) = 1
@@ -206,7 +206,7 @@ DO
  centerbox 240, 19, LEN(temp$) * 8 + 8, 14, 4, dpage
  edgeprint temp$, xstring(temp$, 240), 14, uilook(uiText), dpage
  o = 0
- edgeprint stuf$(pt), xstring(stuf$(pt), 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
+ edgeprint stuf(pt), xstring(stuf(pt), 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
  IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
  IF info2$ <> "" THEN edgeprint info2$, xstring(info2$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
  IF eqinfo$ <> "" THEN edgeprint eqinfo$, xstring(eqinfo$, 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
@@ -245,7 +245,7 @@ DO
   IF readbit(vmask(), 0, i) = 0 THEN
    c = uilook(uiMenuItem): IF pt = i THEN c = uilook(uiSelectedItem + tog)
    IF readbit(emask(), 0, i) THEN c = uilook(uiDisabledItem): IF pt = i THEN c = uilook(uiMenuItem + tog)
-   edgeprint stuf$(i), 10, 15 + o * 10, c, dpage
+   edgeprint stuf(i), 10, 15 + o * 10, c, dpage
    o = o + 1
    IF o > 14 THEN
     IF pt > i THEN
@@ -331,7 +331,7 @@ FOR i = 0 TO 3
  IF tradestf(i, 0) > -1 THEN
   tradingitems = 1
   IF price$ = "" THEN
-   price$ = buytype$(0, shoptype)
+   price$ = buytype(0, shoptype)
   ELSE
    IF tradestf(i, 1) = 1 THEN
     price$ = price$ + " " + anda$ + " "
@@ -682,7 +682,7 @@ END SUB
 
 SUB patcharray (array(), n$)
 
-DIM num$(2), hexk(15)
+DIM num(2) as string, hexk(15)
 
 clearpage dpage
 clearpage vpage
@@ -714,21 +714,21 @@ DO
    IF keyval(hexk(i)) > 1 THEN setbit array(), pt, i, readbit(array(), pt, i) XOR 1
   NEXT i
  END IF
- num$(0) = n$ & "(" & ABS(pt) & ")"
- num$(1) = "value = " & array(pt)
- num$(2) = ""
+ num(0) = n$ & "(" & ABS(pt) & ")"
+ num(1) = "value = " & array(pt)
+ num(2) = ""
  FOR i = 0 TO 15
   IF readbit(array(), pt, i) THEN
-   num$(2) = num$(2) + "1"
+   num(2) = num(2) + "1"
   ELSE
-   num$(2) = num$(2) + "0"
+   num(2) = num(2) + "0"
   END IF
  NEXT i
  edgeprint "DEBUG MODE", 120, 50, uilook(uiText), dpage
  centerbox 160, 100, 140, 60, 1, dpage
  FOR i = 0 TO 2
   c = uilook(uiMenuItem): IF i = csr THEN c = uilook(uiSelectedItem + tog)
-  edgeprint num$(i), 160 - LEN(num$(i)) * 4, 80 + i * 10, c, dpage
+  edgeprint num(i), 160 - LEN(num(i)) * 4, 80 + i * 10, c, dpage
  NEXT i
  edgeprint "0123456789ABCDEF", 96, 110, uilook(uiSelectedDisabled), dpage
  SWAP vpage, dpage
@@ -741,7 +741,7 @@ END SUB
 
 FUNCTION picksave (loading as integer) as integer
 
-DIM full(3), herosname$(3), mapname$(3), svtime$(3), lev$(3), id(3, 3), tstat(3, 1, 16), confirm$(1), menu$(1)
+DIM full(3), herosname(3) AS STRING, mapname(3) AS STRING, svtime(3) AS STRING, lev(3) AS STRING, id(3, 3), tstat(3, 1, 16), confirm(1) AS STRING, menu(1) AS STRING
 DIM sprites(3, 3) AS GraphicPair
 
 '--loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen. it fades the screen in
@@ -752,20 +752,20 @@ IF loading = 2 THEN
  needf = 2
 END IF
 
-'--load strings. menu$ array holds the names of the options
+'--load strings. menu array holds the names of the options
 '--at the top of the screeen (only one appears when saving)
 
 IF loading THEN
  cursor = 0
- menu$(0) = readglobalstring$(52, "New Game", 10)
- menu$(1) = readglobalstring$(53, "Exit", 10)
+ menu(0) = readglobalstring$(52, "New Game", 10)
+ menu(1) = readglobalstring$(53, "Exit", 10)
 ELSE
  cursor = lastsaveslot - 1
- confirm$(0) = readglobalstring$(44, "Yes", 10)
- confirm$(1) = readglobalstring$(45, "No", 10)
- menu$(0) = readglobalstring$(59, "CANCEL", 10)
+ confirm(0) = readglobalstring$(44, "Yes", 10)
+ confirm(1) = readglobalstring$(45, "No", 10)
+ menu(0) = readglobalstring$(59, "CANCEL", 10)
  replacedat$ = readglobalstring$(102, "Replace Old Data?", 20)
- menuwidth = 8 * large(LEN(confirm$(0)), LEN(confirm$(1)))
+ menuwidth = 8 * large(LEN(confirm(0)), LEN(confirm(1)))
 END IF
 
 holdscreen = allocatepage
@@ -797,7 +797,7 @@ FOR i = 0 TO 3
   '--get play time
   '--if the save format changes, so must this
   z = 34 + 51
-  svtime$(i) = playtime$(buffer(z), buffer(z + 1), buffer(z + 2))
+  svtime(i) = playtime$(buffer(z), buffer(z + 1), buffer(z + 2))
   '--hero ID
   foundleader = 0
   FOR o = 0 TO 3
@@ -808,9 +808,9 @@ FOR i = 0 TO 3
     foundleader = 1
     FOR j = 0 TO 15
      k = buffer(11259 + (o * 17) + j)
-     IF k > 0 AND k < 255 THEN herosname$(i) = herosname$(i) + CHR$(k)
+     IF k > 0 AND k < 255 THEN herosname(i) = herosname(i) + CHR$(k)
     NEXT j
-    lev$(i) = readglobalstring$(43, "Level", 10) & " " & tstat(o, 0, 12)
+    lev(i) = readglobalstring$(43, "Level", 10) & " " & tstat(o, 0, 12)
    END IF
   NEXT o
   '--load second record
@@ -842,7 +842,7 @@ FOR i = 0 TO 3
     END IF
    END IF
   NEXT o
-  mapname$(i) = getmapname$(map)
+  mapname(i) = getmapname(map)
  END IF
 NEXT i
 
@@ -959,7 +959,7 @@ DO
  edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * cursor), uilook(uiText), dpage
  FOR i = 0 TO 1
  col = uilook(uiSelectedItem + tog): IF allow = i THEN col = uilook(uiMenuItem)
-  edgeprint confirm$(i), 216, 5 + (i * 9) + (44 * cursor), col, dpage
+  edgeprint confirm(i), 216, 5 + (i * 9) + (44 * cursor), col, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -992,17 +992,17 @@ FOR i = 0 TO 3
   NEXT o
   col = uilook(uiMenuItem)
   IF cursor = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint herosname$(i), 14, 25 + i * 44, col, dpage
-  edgeprint lev$(i), 14, 34 + i * 44, col, dpage
-  edgeprint svtime$(i), 14, 43 + i * 44, col, dpage
-  edgeprint mapname$(i), 14, 52 + i * 44, col, dpage
+  edgeprint herosname(i), 14, 25 + i * 44, col, dpage
+  edgeprint lev(i), 14, 34 + i * 44, col, dpage
+  edgeprint svtime(i), 14, 43 + i * 44, col, dpage
+  edgeprint mapname(i), 14, 52 + i * 44, col, dpage
  END IF
 NEXT i
 col = uilook(uiMenuItem): IF cursor = -1 THEN col = uilook(uiSelectedItem + tog)
-edgeprint menu$(0), xstring(menu$(0), 50), 6, col, dpage
+edgeprint menu(0), xstring(menu(0), 50), 6, col, dpage
 IF loading THEN
  col = uilook(uiMenuItem): IF cursor = -2 THEN col = uilook(uiSelectedItem + tog)
- edgeprint menu$(1), xstring(menu$(1), 270), 6, col, dpage
+ edgeprint menu(1), xstring(menu(1), 270), 6, col, dpage
 END IF
 RETRACE
 
@@ -1196,16 +1196,16 @@ RETRACE
 END SUB
 
 SUB status (pt, stat())
-DIM mtype(5), hbits(3, 4), thishbits(4), elemtype$(2), info$(25)
+DIM mtype(5), hbits(3, 4), thishbits(4), elemtype(2) AS STRING, info(25) AS STRING
 DIM her AS HeroDef
 DIM portrait AS GraphicPair
 
 DIM exper_caption AS STRING = readglobalstring(33, "Experience", 10)
 DIM level_caption AS STRING = readglobalstring(43, "Level", 10)
 DIM level_mp_caption AS STRING = readglobalstring(160, "Level MP", 20)
-elemtype$(0) = readglobalstring(127, "Weak to", 10)
-elemtype$(1) = readglobalstring(128, "Strong to", 10)
-elemtype$(2) = readglobalstring(129, "Absorbs", 10)
+elemtype(0) = readglobalstring(127, "Weak to", 10)
+elemtype(1) = readglobalstring(128, "Strong to", 10)
+elemtype(2) = readglobalstring(129, "Absorbs", 10)
 
 '--calculate bitsets with equipment
 FOR i = 0 TO 3
@@ -1299,7 +1299,7 @@ DO
 
    '--show elementals
    FOR i = 0 TO 10
-    IF top + i <= 25 THEN edgeprint info$(top + i), 20, 62 + i * 10, uilook(uiText), dpage
+    IF top + i <= 25 THEN edgeprint info(top + i), 20, 62 + i * 10, uilook(uiText), dpage
    NEXT i
 
   CASE 2
@@ -1349,15 +1349,15 @@ lastinfo = 0
 FOR o = 0 TO 2
  FOR i = 0 TO 7
   IF readbit(thishbits(), 0, i + o * 8) THEN
-   info$(lastinfo) = elemtype$(o) & " " & readglobalstring(17 + i, "Type" & i+1)
+   info(lastinfo) = elemtype(o) & " " & readglobalstring(17 + i, "Type" & i+1)
    lastinfo = lastinfo + 1
   END IF
  NEXT i
 NEXT o
-IF lastinfo = 0 THEN info$(lastinfo) = readglobalstring$(130, "No Elemental Effects", 30): lastinfo = lastinfo + 1
+IF lastinfo = 0 THEN info(lastinfo) = readglobalstring$(130, "No Elemental Effects", 30): lastinfo = lastinfo + 1
 
 FOR i = lastinfo TO 25
- info$(i) = ""
+ info(i) = ""
 NEXT i
 
 IF portrait.sprite THEN sprite_unload @portrait.sprite
@@ -1481,7 +1481,7 @@ END FUNCTION
 SUB equip (who, stat())
 
 '--dim stuff
-DIM m$(4), menu$(6)
+DIM m(4) AS STRING, menu(6) AS STRING
 DIM holdscreen = allocatepage
 DIM st AS EquipMenuState
 
@@ -1492,12 +1492,12 @@ DIM col AS INTEGER
 DIM item_id AS INTEGER
 
 '--get names
-m$(0) = readglobalstring$(38, "Weapon", 10)
+m(0) = readglobalstring$(38, "Weapon", 10)
 FOR i = 0 TO 3
- m$(i + 1) = readglobalstring(25 + i, "Armor" & i+1)
+ m(i + 1) = readglobalstring(25 + i, "Armor" & i+1)
 NEXT i
-menu$(5) = rpad(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
-menu$(6) = rpad(readglobalstring$(40, "-EXIT-", 8), " ", 8)
+menu(5) = rpad(readglobalstring$(39, "-REMOVE-", 8), " ", 8)
+menu(6) = rpad(readglobalstring$(40, "-EXIT-", 8), " ", 8)
 
 '--initialize
 WITH st
@@ -1508,7 +1508,7 @@ WITH st
  .default_weapon_name = ""
  .unequip_caption = rpad(readglobalstring$(110, "Nothing", 10), " ", 11)
 END WITH
-equip_menu_setup st, menu$()
+equip_menu_setup st, menu()
 
 '--prepare the backdrop
 'preserve the background behind the equip menu
@@ -1532,12 +1532,12 @@ DO
   END IF
   IF carray(ccLeft) > 1 THEN 'Left: previous hero
    DO: st.who = loopvar(st.who, 0, 3, -1): LOOP UNTIL hero(st.who) > 0
-   equip_menu_setup st, menu$()
+   equip_menu_setup st, menu()
    MenuSound gen(genCursorSFX)
   END IF
   IF carray(ccRight) > 1 THEN 'Right: next hero
    DO: st.who = loopvar(st.who, 0, 3, 1): LOOP UNTIL hero(st.who) > 0
-   equip_menu_setup st, menu$()
+   equip_menu_setup st, menu()
    MenuSound gen(genCursorSFX)
   END IF
   IF carray(ccUp) > 1 THEN 'Up: slot cursor up
@@ -1568,7 +1568,7 @@ DO
     FOR i AS INTEGER = 0 TO 4
      unequip st.who, i, st.default_weapon, stat(), 1
     NEXT i
-    equip_menu_setup st, menu$()
+    equip_menu_setup st, menu()
     'UPDATE ITEM POSESSION BITSETS
     evalitemtag
    END IF
@@ -1597,12 +1597,12 @@ DO
    IF st.eq_cursor.pt = st.eq(st.slot).count THEN
     '--unequip
     unequip st.who, st.slot, st.default_weapon, stat(), 1
-    equip_menu_back_to_menu st, menu$()
+    equip_menu_back_to_menu st, menu()
     MenuSound gen(genCancelSFX)
    ELSE
     '--normal equip
     item_id = inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id
-    equip_menu_do_equip item_id + 1, st, menu$()
+    equip_menu_do_equip item_id + 1, st, menu()
     MenuSound gen(genAcceptSFX)
    END IF
   END IF
@@ -1642,11 +1642,11 @@ DO
       IF st.eq(i).count = 0 THEN textcolor uilook(uiSelectedItem), uilook(uiHighlight2)
     END IF
    END IF
-   printstr menu$(i), 204, 45 + i * 9, dpage
+   printstr menu(i), 204, 45 + i * 9, dpage
   NEXT i
   IF st.slot < 5 THEN
-   centerbox 236, 22, (LEN(m$(st.slot)) + 2) * 8, 16, 4, dpage
-   edgeprint m$(st.slot), 236 - (LEN(m$(st.slot)) * 4), 17, uilook(uiText), dpage
+   centerbox 236, 22, (LEN(m(st.slot)) + 2) * 8, 16, 4, dpage
+   edgeprint m(st.slot), 236 - (LEN(m(st.slot)) * 4), 17, uilook(uiText), dpage
   END IF
  END IF
  IF st.mode = 1 THEN

@@ -89,7 +89,7 @@ REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
 DIM font(1024), joy(4)
 DIM statnames() AS STRING
-DIM menu$(22)
+DIM menu(22) AS STRING
 DIM chooserpg_menu(2) AS STRING
 DIM cleanup_menu(2) AS STRING
 DIM quit_menu(3) AS STRING
@@ -98,8 +98,6 @@ DIM quit_confirm(1) AS STRING
 DIM game as string, sourcerpg as string, insert, activepalette
 DIM vpage, dpage, fadestate
 DIM fmvol
-
-dim shared trit as string 'to fix an undefined variable error
 
 RANDOMIZE TIMER, 3 ' mersenne twister
 
@@ -326,7 +324,7 @@ DO:
   xbsave game + ".gen", gen(), 1000
  END IF
 
- standardmenu menu$(), mainmax, 22, pt, 0, 0, 0, dpage, 0
+ standardmenu menu(), mainmax, 22, pt, 0, 0, 0, dpage, 0
 
  textcolor uilook(uiSelectedDisabled), 0
  printstr version_code$, 0, 176, dpage
@@ -342,44 +340,44 @@ LOOP
 
 setmainmenu:
 mainmax = 19
-menu$(0) = "Edit Graphics"
-menu$(1) = "Edit Map Data"
-menu$(2) = "Edit Global Text Strings"
-menu$(3) = "Edit Hero Stats"
-menu$(4) = "Edit Enemy Stats"
-menu$(5) = "Edit Attacks"
-menu$(6) = "Edit Items"
-menu$(7) = "Edit Shops"
-menu$(8) = "Edit Battle Formations"
-menu$(9) = "Edit Text Boxes"
-menu$(10) = "Edit Menus"
-menu$(11) = "Edit Vehicles"
-menu$(12) = "Edit Tag Names"
-menu$(13) = "Import Music"
-menu$(14) = "Import Sound Effects"
-menu$(15) = "Edit Font"
-menu$(16) = "Edit General Game Data"
-menu$(17) = "Script Management"
-menu$(18) = "Edit Screen Layouts"
-menu$(19) = "Quit Editing"
+menu(0) = "Edit Graphics"
+menu(1) = "Edit Map Data"
+menu(2) = "Edit Global Text Strings"
+menu(3) = "Edit Hero Stats"
+menu(4) = "Edit Enemy Stats"
+menu(5) = "Edit Attacks"
+menu(6) = "Edit Items"
+menu(7) = "Edit Shops"
+menu(8) = "Edit Battle Formations"
+menu(9) = "Edit Text Boxes"
+menu(10) = "Edit Menus"
+menu(11) = "Edit Vehicles"
+menu(12) = "Edit Tag Names"
+menu(13) = "Import Music"
+menu(14) = "Import Sound Effects"
+menu(15) = "Edit Font"
+menu(16) = "Edit General Game Data"
+menu(17) = "Script Management"
+menu(18) = "Edit Screen Layouts"
+menu(19) = "Quit Editing"
 RETRACE
 
 setgraphicmenu:
 mainmax = 13
-menu$(0) = "Back to the main menu"
-menu$(1) = "Edit Maptiles"
-menu$(2) = "Draw Walkabout Graphics"
-menu$(3) = "Draw Hero Graphics"
-menu$(4) = "Draw Small Enemy Graphics  34x34"
-menu$(5) = "Draw Medium Enemy Graphics 50x50"
-menu$(6) = "Draw Big Enemy Graphics    80x80"
-menu$(7) = "Draw Attacks"
-menu$(8) = "Draw Weapons"
-menu$(9) = "Draw Box Edges"
-menu$(10) = "Draw Portrait Graphics"
-menu$(11) = "Import/Export Screens"
-menu$(12) = "Import/Export Full Maptile Sets"
-menu$(13) = "Change User-Interface Colors"
+menu(0) = "Back to the main menu"
+menu(1) = "Edit Maptiles"
+menu(2) = "Draw Walkabout Graphics"
+menu(3) = "Draw Hero Graphics"
+menu(4) = "Draw Small Enemy Graphics  34x34"
+menu(5) = "Draw Medium Enemy Graphics 50x50"
+menu(6) = "Draw Big Enemy Graphics    80x80"
+menu(7) = "Draw Attacks"
+menu(8) = "Draw Weapons"
+menu(9) = "Draw Box Edges"
+menu(10) = "Draw Portrait Graphics"
+menu(11) = "Import/Export Screens"
+menu(12) = "Import/Export Full Maptile Sets"
+menu(13) = "Change User-Interface Colors"
 RETRACE
 
 chooserpg:
@@ -708,21 +706,23 @@ safekill "fixorder.tmp"
 END SUB
 
 SUB shopdata
-DIM a(20), b(curbinsize(binSTF) / 2), menu$(24), smenu$(24), max(24), min(24), sbit$(-1 TO 10), stf$(16), tradestf$(3)
+DIM a(20), b(curbinsize(binSTF) / 2), menu(24) AS STRING, smenu(24) AS STRING, max(24), min(24), sbit(-1 TO 10) AS STRING, stf(16) AS STRING, tradestf(3) AS STRING
 DIM her AS HeroDef' Used to get hero name for default stuff name
 DIM item_tmp(99) ' This is only used for loading the default buy/sell price for items
+DIM sn AS STRING = "", trit AS STRING = ""
 
-maxcount = 32: pt = 0: it$ = "-NONE-": sn$ = ""
+
+maxcount = 32: pt = 0
 havestuf = 0
-sbit$(0) = "Buy"
-sbit$(1) = "Sell"
-sbit$(2) = "Hire"
-sbit$(3) = "Inn"
-sbit$(4) = "Equip"
-sbit$(5) = "Save"
-sbit$(6) = "Map"
-sbit$(7) = "Team"
-smenu$(0) = "Previous Menu"
+sbit(0) = "Buy"
+sbit(1) = "Sell"
+sbit(2) = "Hire"
+sbit(3) = "Inn"
+sbit(4) = "Equip"
+sbit(5) = "Save"
+sbit(6) = "Map"
+sbit(7) = "Team"
+smenu(0) = "Previous Menu"
 max(3) = 1
 min(5) = -1
 max(5) = 99
@@ -744,15 +744,15 @@ max(21) = gen(genMaxItem)
 min(21) = -1
 max(22) = 99
 min(22) = 1
-stf$(0) = "Item"
-stf$(1) = "Hero"
-stf$(2) = "Script"
-stf$(3) = "Normal"
-stf$(4) = "Aquire Inventory"
-stf$(5) = "Increment Inventory"
-stf$(6) = "Refuse to Buy"
-stf$(7) = "In Stock: Infinite"
-stf$(8) = "In Stock: None"
+stf(0) = "Item"
+stf(1) = "Hero"
+stf(2) = "Script"
+stf(3) = "Normal"
+stf(4) = "Aquire Inventory"
+stf(5) = "Increment Inventory"
+stf(6) = "Refuse to Buy"
+stf(7) = "In Stock: Infinite"
+stf(8) = "In Stock: None"
 clearpage 0
 clearpage 1
 clearpage 2
@@ -801,7 +801,7 @@ DO
   END IF
  END IF
  IF csr = 2 THEN
-  strgrabber sn$, 15
+  strgrabber sn, 15
   GOSUB menuup
  END IF
  IF enter_or_space() THEN
@@ -810,9 +810,9 @@ DO
    GOSUB shopstuf
    GOSUB sstuf
   END IF
-  IF csr = 4 THEN editbitset a(), 17, 7, sbit$(): GOSUB menuup
+  IF csr = 4 THEN editbitset a(), 17, 7, sbit(): GOSUB menuup
   IF csr = 6 THEN
-   menu$(6) = "Inn Script: " & scriptbrowse_string(a(19), plottrigger, "Inn Plotscript")
+   menu(6) = "Inn Script: " & scriptbrowse_string(a(19), plottrigger, "Inn Plotscript")
   END IF
  END IF
  IF csr = 5 THEN
@@ -827,7 +827,7 @@ DO
    c = uilook(uiDisabledItem): IF i = csr THEN c = uilook(uiSelectedDisabled + tog)
   END IF
   textcolor c, 0
-  printstr menu$(i), 0, i * 8, dpage
+  printstr menu(i), 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -842,38 +842,38 @@ clearpage 3
 EXIT SUB
 
 menugen:
-menu$(0) = "Return to Main Menu"
-menu$(3) = "Edit Available Stuff..."
-menu$(4) = "Select Shop Menu Items..."
+menu(0) = "Return to Main Menu"
+menu(3) = "Edit Available Stuff..."
+menu(4) = "Select Shop Menu Items..."
 GOSUB menuup
 RETRACE
 
 lshopset:
 setpicstuf a(), 40, -1
 loadset game + ".sho", pt, 0
-sn$ = ""
+sn = ""
 FOR i = 1 TO small(a(0), 15)
- sn$ = sn$ + CHR$(a(i))
+ sn = sn + CHR$(a(i))
 NEXT i
 GOSUB menuup
 RETRACE
 
 sshopset:
 a(16) = small(a(16), 49)
-a(0) = LEN(sn$)
+a(0) = LEN(sn)
 FOR i = 1 TO small(a(0), 15)
- a(i) = ASC(MID$(sn$, i, 1))
+ a(i) = ASC(MID$(sn, i, 1))
 NEXT i
 setpicstuf a(), 40, -1
 storeset game + ".sho", pt, 0
 RETRACE
 
 menuup:
-menu$(1) = CHR(27) & " Shop " & pt & " of " & gen(genMaxShop) & CHR(26)
-menu$(2) = "Name: " & sn$
-menu$(5) = "Inn Price: " & a(18)
-IF readbit(a(), 17, 3) = 0 THEN menu$(5) = "Inn Price: N/A"
-menu$(6) = "Inn Script: " & scriptname$(a(19), plottrigger)
+menu(1) = CHR(27) & " Shop " & pt & " of " & gen(genMaxShop) & CHR(26)
+menu(2) = "Name: " & sn
+menu(5) = "Inn Price: " & a(18)
+IF readbit(a(), 17, 3) = 0 THEN menu(5) = "Inn Price: N/A"
+menu(6) = "Inn Script: " & scriptname$(a(19), plottrigger)
 IF readbit(a(), 17, 0) OR readbit(a(), 17, 1) OR readbit(a(), 17, 2) THEN havestuf = 1 ELSE havestuf = 0
 RETRACE
 
@@ -972,7 +972,7 @@ DO
  GOSUB othertype
  GOSUB stufmenu
 
- standardmenu smenu$(), last, 22, tcsr, 0, 0, 0, dpage, 0
+ standardmenu smenu(), last, 22, tcsr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
@@ -997,39 +997,39 @@ END SELECT
 RETRACE
 
 stufmenu:
-smenu$(1) = CHR(27) & "Shop Thing " & thing & " of " & a(16) & CHR(26)
-smenu$(2) = "Name: " & thing$
-smenu$(3) = "Type: " & b(17) & "-" & stf$(bound(b(17), 0, 2))
-smenu$(4) = "Number: " & b(18) & " " & defaultthing$
+smenu(1) = CHR(27) & "Shop Thing " & thing & " of " & a(16) & CHR(26)
+smenu(2) = "Name: " & thing$
+smenu(3) = "Type: " & b(17) & "-" & stf(bound(b(17), 0, 2))
+smenu(4) = "Number: " & b(18) & " " & defaultthing$
 IF b(19) > 0 THEN
- smenu$(5) = "In Stock: " & b(19)
+ smenu(5) = "In Stock: " & b(19)
 ELSE
- smenu$(5) = stf$(8 + bound(b(19), -1, 0))
+ smenu(5) = stf(8 + bound(b(19), -1, 0))
 END IF
-smenu$(6) = tag_condition_caption(b(20), "Buy Require Tag", "No Tag Check")
-smenu$(7) = tag_condition_caption(b(21), "Sell Require Tag", "No Tag Check")
-smenu$(8) = tag_condition_caption(b(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu$(9) = tag_condition_caption(b(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu$(10) = readglobalstring(32, "Money") & " Price: " & b(24)
-smenu$(11) = "Must Trade in " & (b(30) + 1) & " of: " & tradestf$(0)
-smenu$(12) = " (Change Amount)"
-smenu$(13) = "Must Trade in " & (b(32) + 1) & " of: " & tradestf$(1)
-smenu$(14) = " (Change Amount)"
-smenu$(15) = "Must Trade in " & (b(34) + 1) & " of: " & tradestf$(2)
-smenu$(16) = " (Change Amount)"
-smenu$(17) = "Must Trade in " & (b(36) + 1) & " of: " & tradestf$(3)
-smenu$(18) = " (Change Amount)"
+smenu(6) = tag_condition_caption(b(20), "Buy Require Tag", "No Tag Check")
+smenu(7) = tag_condition_caption(b(21), "Sell Require Tag", "No Tag Check")
+smenu(8) = tag_condition_caption(b(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
+smenu(9) = tag_condition_caption(b(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
+smenu(10) = readglobalstring(32, "Money") & " Price: " & b(24)
+smenu(11) = "Must Trade in " & (b(30) + 1) & " of: " & tradestf(0)
+smenu(12) = " (Change Amount)"
+smenu(13) = "Must Trade in " & (b(32) + 1) & " of: " & tradestf(1)
+smenu(14) = " (Change Amount)"
+smenu(15) = "Must Trade in " & (b(34) + 1) & " of: " & tradestf(2)
+smenu(16) = " (Change Amount)"
+smenu(17) = "Must Trade in " & (b(36) + 1) & " of: " & tradestf(3)
+smenu(18) = " (Change Amount)"
 IF b(17) = 0 THEN
- smenu$(19) = "Sell type: " & stf$(bound(b(26), 0, 3) + 3)
- smenu$(20) = "Sell Price: " & b(27)
- smenu$(21) = "Trade in for " & (b(29) + 1) & " of: " & trit$
- smenu$(22) = " (Change Amount)"
+ smenu(19) = "Sell type: " & stf(bound(b(26), 0, 3) + 3)
+ smenu(20) = "Sell Price: " & b(27)
+ smenu(21) = "Trade in for " & (b(29) + 1) & " of: " & trit$
+ smenu(22) = " (Change Amount)"
 ELSE
- smenu$(19) = "Experience Level: "
+ smenu(19) = "Experience Level: "
  IF b(26) = -1 THEN
-  smenu$(19) = smenu$(19) & "default"
+  smenu(19) = smenu(19) & "default"
  ELSE
-  smenu$(19) = smenu$(19) & b(26)
+  smenu(19) = smenu(19) & b(26)
  END IF
 END IF
 '--mutate menu for item/hero
@@ -1060,10 +1060,10 @@ storeset game + ".stf", pt * 50 + thing, 0
 RETRACE
 
 itstrsh:
-tradestf$(0) = load_item_name(b(25),0,0)
-tradestf$(1) = load_item_name(b(31),0,0)
-tradestf$(2) = load_item_name(b(33),0,0)
-tradestf$(3) = load_item_name(b(35),0,0)
+tradestf(0) = load_item_name(b(25),0,0)
+tradestf(1) = load_item_name(b(31),0,0)
+tradestf(2) = load_item_name(b(33),0,0)
+tradestf(3) = load_item_name(b(35),0,0)
 trit$ = load_item_name(b(28),0,0)
 RETRACE
 

@@ -38,7 +38,7 @@ DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 DECLARE FUNCTION show_mp3_info() AS STRING
 
 FUNCTION browse (special, default$, fmask$, tmp$, needf, helpkey as string) as string
-STATIC remember$
+STATIC remember as string
 browse = ""
 
 DIM br AS BrowseMenuState
@@ -57,7 +57,7 @@ mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
 REDIM tree(255) AS BrowseMenuEntry
-DIM drive$(26), catfg(6), catbg(6), f = -1
+DIM drive(26) as string, catfg(6) as integer, catbg(6) as integer, f as integer = -1
 DIM bmpd as BitmapInfoHeader
 
 'tree().kind contains the type of each object in the menu
@@ -90,9 +90,9 @@ IF needf = 1 THEN
  setpal temppal()
 END IF
 
-IF remember$ = "" THEN remember$ = curdir$ + SLASH
+IF remember = "" THEN remember = curdir$ + SLASH
 IF default$ = "" THEN
- br.nowdir = remember$
+ br.nowdir = remember
 ELSE
  br.nowdir = default$
 END IF
@@ -214,7 +214,7 @@ DO
  dowait
 LOOP
 IF default$ = "" THEN
- remember$ = br.nowdir
+ remember = br.nowdir
 ELSE
  default$ = br.nowdir
 END IF
@@ -316,17 +316,17 @@ NEXT i
   'tree(br.treesize).caption = "Refresh drives list"
   'tree(br.treesize).kind = 5
 
-  drivetotal = drivelist(drive$())
+  drivetotal = drivelist(drive())
   FOR i = 0 TO drivetotal - 1
    br.treesize += 1
-   tree(br.treesize).filename = drive$(i)
-   tree(br.treesize).caption = drive$(i)
+   tree(br.treesize).filename = drive(i)
+   tree(br.treesize).caption = drive(i)
    tree(br.treesize).kind = 0
    IF getdrivenames THEN
-'    IF isremovable(drive$(i)) THEN
+'    IF isremovable(drive(i)) THEN
 '     tree(br.treesize).caption += " (removable)"
 '    ELSE
-     tree(br.treesize).caption += " " + drivelabel$(drive$(i))
+     tree(br.treesize).caption += " " + drivelabel$(drive(i))
 '    END IF
    END IF
    draw_browse_meter br
@@ -505,12 +505,12 @@ DIM f AS STRING
 mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
 paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
-DIM filelist$
-filelist$ = br.tmp + "hrbrowse.tmp"
-findfiles br.nowdir + anycase$(wildcard$), attrib, filelist$
+DIM filelist AS STRING
+filelist = br.tmp + "hrbrowse.tmp"
+findfiles br.nowdir + anycase$(wildcard$), attrib, filelist
 
 fh = FREEFILE
-OPEN filelist$ FOR INPUT AS #fh
+OPEN filelist FOR INPUT AS #fh
 DO UNTIL EOF(fh)
  br.treesize = br.treesize + 1
  IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
@@ -585,7 +585,7 @@ DO UNTIL EOF(fh)
  draw_browse_meter br
 LOOP
 CLOSE #fh
-safekill filelist$
+safekill filelist
 
 END SUB
 
@@ -600,26 +600,27 @@ WITH br
 END WITH
 END SUB
 
-FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
+FUNCTION validmusicfile (file AS STRING, types = FORMAT_BAM AND FORMAT_MIDI)
 '-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
-	DIM ext$, a$, realhd$, musfh, v, chk
-	ext$ = lcase(justextension(file$))
-	chk = getmusictype(file$)
+	DIM AS STRING ext, a, realhd
+	DIM AS INTEGER musfh, v, chk
+	ext = lcase(justextension(file))
+	chk = getmusictype(file)
 
 	if (chk AND types) = 0 then return 0
 
 	SELECT CASE chk
 	CASE FORMAT_BAM
-		a$ = "    "
-		realhd$ = "CBMF"
+		a = "    "
+		realhd = "CBMF"
 		v = 1
 	CASE FORMAT_MIDI
-		a$ = "    "
-		realhd$ = "MThd"
+		a = "    "
+		realhd = "MThd"
 		v = 1
 	CASE FORMAT_XM
-		a$ =      "                 "
-		realhd$ = "Extended Module: "
+		a =      "                 "
+		realhd = "Extended Module: "
 		v = 1
 	CASE FORMAT_MP3
 		return can_convert_mp3()
@@ -627,10 +628,10 @@ FUNCTION validmusicfile (file$, types = FORMAT_BAM AND FORMAT_MIDI)
 
 	if v then
 		musfh = FREEFILE
-		OPEN file$ FOR BINARY AS #musfh
-		GET #musfh, 1, a$
+		OPEN file FOR BINARY AS #musfh
+		GET #musfh, 1, a
 		CLOSE #musfh
-		IF a$ <> realhd$ THEN return 0
+		IF a <> realhd THEN return 0
 	end if
 
 	return 1

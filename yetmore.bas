@@ -841,15 +841,15 @@ END SUB
 
 SUB scriptdump (s$)
 
-DIM statestr$(7)
-statestr$(0) = "none"
-statestr$(1) = "wait"
-statestr$(2) = "read"
-statestr$(3) = "return"
-statestr$(4) = "next"
-statestr$(5) = "doarg"
-statestr$(6) = "done"
-statestr$(7) = "error"
+DIM statestr(7) AS STRING
+statestr(0) = "none"
+statestr(1) = "wait"
+statestr(2) = "read"
+statestr(3) = "return"
+statestr(4) = "next"
+statestr(5) = "doarg"
+statestr(6) = "done"
+statestr(7) = "error"
 
 IF scrat(nowscript).depth >= 0 THEN
   indent$ = STRING$(scrat(nowscript).depth, " ")
@@ -859,7 +859,7 @@ END IF
 
 SELECT CASE scrat(nowscript).state
  CASE 0 TO 7
-   state$ = statestr$(scrat(nowscript).state)
+   state$ = statestr(scrat(nowscript).state)
  CASE ELSE
    state$ = "illegal: " & scrat(nowscript).state
 END SELECT
@@ -3433,22 +3433,22 @@ FUNCTION scriptstate (targetscript as integer, recurse as integer = -1) as strin
  'recurse 2 = all scripts, including suspended ones
  'recurse 3 = only the specified script
 
- DIM flowname$(15), flowtype(15), flowbrakbrk(15), state as ScriptInst, laststate as ScriptInst
+ DIM flowname(15) as string, flowtype(15), flowbrakbrk(15), state as ScriptInst, laststate as ScriptInst
 
- flowtype(0) = 0:	flowname$(0) = "do"
- flowtype(3) = 1:	flowname$(3) = "return"
- flowtype(4) = 3:	flowname$(4) = "if":		flowbrakbrk(4) = 1
- flowtype(5) = 0:	flowname$(5) = "then"
- flowtype(6) = 0:	flowname$(6) = "else"
- flowtype(7) = 2:	flowname$(7) = "for":		flowbrakbrk(7) = 4
- flowtype(10) = 2:	flowname$(10) = "while":	flowbrakbrk(10) = 1
- flowtype(11) = 1:	flowname$(11) = "break"
- flowtype(12) = 1:	flowname$(12) = "continue"
- flowtype(13) = 1:	flowname$(13) = "exit"
- flowtype(14) = 1:	flowname$(14) = "exitreturn"
- flowtype(15) = 3:	flowname$(15) = "switch"
+ flowtype(0) = 0:	flowname(0) = "do"
+ flowtype(3) = 1:	flowname(3) = "return"
+ flowtype(4) = 3:	flowname(4) = "if":		flowbrakbrk(4) = 1
+ flowtype(5) = 0:	flowname(5) = "then"
+ flowtype(6) = 0:	flowname(6) = "else"
+ flowtype(7) = 2:	flowname(7) = "for":		flowbrakbrk(7) = 4
+ flowtype(10) = 2:	flowname(10) = "while":		flowbrakbrk(10) = 1
+ flowtype(11) = 1:	flowname(11) = "break"
+ flowtype(12) = 1:	flowname(12) = "continue"
+ flowtype(13) = 1:	flowname(13) = "exit"
+ flowtype(14) = 1:	flowname(14) = "exitreturn"
+ flowtype(15) = 3:	flowname(15) = "switch"
 
- DIM mathname$(22) = {_
+ DIM mathname(22) as string = {_
          "random", "exponent", "mod", "divide", "multiply", "subtract"_
          ,"add", "xor", "or", "and", "equal", "!equal", "<<", ">>"_
          ,"<=", ">=", "setvar", "inc", "dec", "not", "&&", "||", "^^"_
@@ -3522,7 +3522,7 @@ FUNCTION scriptstate (targetscript as integer, recurse as integer = -1) as strin
      outstr$ = STR$(state.curvalue)
      hidearg = -1
     CASE tyflow
-     cmd$ = flowname$(state.curvalue)
+     cmd$ = flowname(state.curvalue)
      hidearg = -3
      IF state.depth = 0 THEN cmd$ = scriptname$(state.id)
      IF state.state = stread THEN hidearg = -1
@@ -3567,7 +3567,7 @@ FUNCTION scriptstate (targetscript as integer, recurse as integer = -1) as strin
      outstr$ = localvariablename$(state.curvalue, state.scr->args)
      hidearg = -1
     CASE tymath
-     cmd$ = mathname$(state.curvalue)
+     cmd$ = mathname(state.curvalue)
     CASE tyfunct
      cmd$ = commandname$(state.curvalue)
     CASE tyscript

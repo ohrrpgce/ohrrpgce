@@ -346,10 +346,8 @@ NEXT i
 END SUB
 
 FUNCTION strgrabber (s$, maxl) AS INTEGER
-STATIC clip$
-
-DIM old$
-old$ = s$
+DIM old AS STRING
+old = s$
 
 '--BACKSPACE support
 IF keyval(scBackspace) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
@@ -377,7 +375,7 @@ IF LEN(s$) < maxl THEN
 END IF
 
 'Return true of the string has changed
-RETURN (s$ <> old$)
+RETURN (s$ <> old)
 
 END FUNCTION
 

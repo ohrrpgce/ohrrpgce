@@ -44,30 +44,30 @@ REM $STATIC
 
 SUB vehicles
 
-DIM menu$(20), veh(39), min(39), max(39), offset(39), vehbit$(15), tiletype$(8)
-DIM vehname$ = ""
+DIM menu(20) AS STRING, veh(39), min(39), max(39), offset(39), vehbit(15) AS STRING, tiletype(8) AS STRING
+DIM vehname AS STRING = ""
 
 pt = 0: csr = 0: top = 0
 
-vehbit$(0) = "Pass through walls"
-vehbit$(1) = "Pass through NPCs"
-vehbit$(2) = "Enable NPC activation"
-vehbit$(3) = "Enable door use"
-vehbit$(4) = "Do not hide leader"
-vehbit$(5) = "Do not hide party"
-vehbit$(6) = "Dismount one space ahead"
-vehbit$(7) = "Pass walls while dismounting"
-vehbit$(8) = "Disable flying shadow"
+vehbit(0) = "Pass through walls"
+vehbit(1) = "Pass through NPCs"
+vehbit(2) = "Enable NPC activation"
+vehbit(3) = "Enable door use"
+vehbit(4) = "Do not hide leader"
+vehbit(5) = "Do not hide party"
+vehbit(6) = "Dismount one space ahead"
+vehbit(7) = "Pass walls while dismounting"
+vehbit(8) = "Disable flying shadow"
 
-tiletype$(0) = "default"
-tiletype$(1) = "A"
-tiletype$(2) = "B"
-tiletype$(3) = "A and B"
-tiletype$(4) = "A or B"
-tiletype$(5) = "not A"
-tiletype$(6) = "not B"
-tiletype$(7) = "neither A nor B"
-tiletype$(8) = "everywhere"
+tiletype(0) = "default"
+tiletype(1) = "A"
+tiletype(2) = "B"
+tiletype(3) = "A and B"
+tiletype(4) = "A or B"
+tiletype(5) = "not A"
+tiletype(6) = "not B"
+tiletype(7) = "neither A nor B"
+tiletype(8) = "everywhere"
 
 min(3) = 0: max(3) = 5: offset(3) = 8             'speed
 FOR i = 0 TO 3
@@ -81,7 +81,7 @@ min(13) = gen(genMaxRegularScript) * -1: max(13) = gen(genMaxTextbox): offset(13
 min(14) = gen(genMaxRegularScript) * -1: max(14) = gen(genMaxTextbox): offset(14) = 16'dismount
 min(15) = 0: max(15) = 99: offset(15) = 21'dismount
 
-LoadVehicle game + ".veh", veh(), vehname$, pt
+LoadVehicle game + ".veh", veh(), vehname, pt
 GOSUB vehmenu
 
 setkeys
@@ -99,27 +99,27 @@ DO
    END IF
   CASE 1
    IF pt = gen(genMaxVehicle) AND keyval(scRight) > 1 THEN
-    SaveVehicle game + ".veh", veh(), vehname$, pt
+    SaveVehicle game + ".veh", veh(), vehname, pt
     pt = bound(pt + 1, 0, 32767)
     IF needaddset(pt, gen(genMaxVehicle), "vehicle") THEN
      FOR i = 0 TO 39
       veh(i) = 0
      NEXT i
-     vehname$ = ""
+     vehname = ""
      GOSUB vehmenu
     END IF
    END IF
    newptr = pt
    IF intgrabber(newptr, 0, gen(genMaxVehicle)) THEN
-    SaveVehicle game + ".veh", veh(), vehname$, pt
+    SaveVehicle game + ".veh", veh(), vehname, pt
     pt = newptr
-    LoadVehicle game + ".veh", veh(), vehname$, pt
+    LoadVehicle game + ".veh", veh(), vehname, pt
     GOSUB vehmenu
    END IF
   CASE 2
-   oldname$ = vehname$
-   strgrabber vehname$, 15
-   IF oldname$ <> vehname$ THEN GOSUB vehmenu
+   oldname$ = vehname
+   strgrabber vehname, 15
+   IF oldname$ <> vehname THEN GOSUB vehmenu
   CASE 3, 5 TO 9, 15
    IF intgrabber(veh(offset(csr)), min(csr), max(csr)) THEN
     GOSUB vehmenu
@@ -130,7 +130,7 @@ DO
    END IF
   CASE 4
    IF enter_or_space() THEN
-    editbitset veh(), 9, 8, vehbit$(), "vehicle_bitsets"
+    editbitset veh(), 9, 8, vehbit(), "vehicle_bitsets"
    END IF
   CASE 10, 11
    IF enter_or_space() THEN
@@ -150,31 +150,31 @@ DO
     GOSUB vehmenu
    END IF
  END SELECT
- standardmenu menu$(), 15, 15, csr, top, 0, 0, dpage, 0
+ standardmenu menu(), 15, 15, csr, top, 0, 0, dpage, 0
  SWAP vpage, dpage
  setvispage vpage
  clearpage dpage
  dowait
 LOOP
-SaveVehicle game + ".veh", veh(), vehname$, pt
+SaveVehicle game + ".veh", veh(), vehname, pt
 EXIT SUB
 
 vehmenu:
-menu$(0) = "Previous Menu"
-menu$(1) = "Vehicle " & pt
-menu$(2) = "Name: " + vehname$
+menu(0) = "Previous Menu"
+menu(1) = "Vehicle " & pt
+menu(2) = "Name: " + vehname
 
 IF veh(offset(3)) = 3 THEN tmp$ = "10" ELSE tmp$ = STR(veh(8))
-menu$(3) = "Speed: " + tmp$
+menu(3) = "Speed: " + tmp$
 
-menu$(4) = "Vehicle Bitsets..." '9,10
+menu(4) = "Vehicle Bitsets..." '9,10
 
-menu$(5) = "Override walls: "
-menu$(6) = "Blocked by: "
-menu$(7) = "Mount from: "
-menu$(8) = "Dismount to: "
+menu(5) = "Override walls: "
+menu(6) = "Blocked by: "
+menu(7) = "Mount from: "
+menu(8) = "Dismount to: "
 FOR i = 0 TO 3
- menu$(5 + i) = menu$(5 + i) + tiletype$(bound(veh(offset(5 + i)), 0, 8))
+ menu(5 + i) = menu(5 + i) + tiletype(bound(veh(offset(5 + i)), 0, 8))
 NEXT i
 
 SELECT CASE veh(offset(9))
@@ -185,7 +185,7 @@ SELECT CASE veh(offset(9))
  CASE ELSE
   tmp$ = "formation set " & veh(offset(9))
 END SELECT
-menu$(9) = "Random Battles: " + tmp$ '11
+menu(9) = "Random Battles: " + tmp$ '11
 
 FOR i = 0 TO 1
  SELECT CASE veh(offset(10 + i))
@@ -198,8 +198,8 @@ FOR i = 0 TO 1
   CASE ELSE
    tmp$ = "script " + scriptname$(ABS(veh(offset(10 + i))), plottrigger)
  END SELECT
- IF i = 0 THEN menu$(10 + i) = "Use button: " + tmp$'12
- IF i = 1 THEN menu$(10 + i) = "Menu button: " + tmp$'13
+ IF i = 0 THEN menu(10 + i) = "Use button: " + tmp$'12
+ IF i = 1 THEN menu(10 + i) = "Menu button: " + tmp$'13
 NEXT i
 
 SELECT CASE ABS(veh(offset(12)))
@@ -210,7 +210,7 @@ SELECT CASE ABS(veh(offset(12)))
  CASE ELSE
   tmp$ = " (" + load_tag_name(ABS(veh(offset(12)))) + ")"  '14
 END SELECT
-menu$(12) = "If riding Tag " & ABS(veh(offset(12))) & "=" & onoroff$(veh(offset(12))) & tmp$
+menu(12) = "If riding Tag " & ABS(veh(offset(12))) & "=" & onoroff$(veh(offset(12))) & tmp$
 
 SELECT CASE veh(offset(13))
  CASE 0
@@ -220,7 +220,7 @@ SELECT CASE veh(offset(13))
  CASE IS > 0
   tmp$ = "text box " & veh(offset(13))
 END SELECT
-menu$(13) = "On Mount: " + tmp$
+menu(13) = "On Mount: " + tmp$
 
 SELECT CASE veh(offset(14))
  CASE 0
@@ -230,23 +230,23 @@ SELECT CASE veh(offset(14))
  CASE IS > 0
   tmp$ = "text box " & veh(offset(14))
 END SELECT
-menu$(14) = "On Dismount: " + tmp$
+menu(14) = "On Dismount: " + tmp$
 
-menu$(15) = "Elevation: " & veh(offset(15)) & " pixels"
+menu(15) = "Elevation: " & veh(offset(15)) & " pixels"
 RETRACE
 
 END SUB
 
 SUB generalscriptsmenu ()
-DIM menu$(3), scrname$(3)
+DIM menu(3) AS STRING, scrname(3) AS STRING
 DIM scriptgenoff(3) = {0, 41, 42, 57}
-menu$(0) = "Previous Menu"
-menu$(1) = "new-game plotscript"
-menu$(2) = "game-over plotscript"
-menu$(3) = "load-game plotscript"
-scrname$(0) = ""
+menu(0) = "Previous Menu"
+menu(1) = "new-game plotscript"
+menu(2) = "game-over plotscript"
+menu(3) = "load-game plotscript"
+scrname(0) = ""
 FOR i = 1 TO 3
- scrname$(i) = ": " + scriptname$(gen(scriptgenoff(i)), plottrigger)
+ scrname(i) = ": " + scriptname$(gen(scriptgenoff(i)), plottrigger)
 NEXT
 
 pt = 0
@@ -263,14 +263,14 @@ DO
   IF enter_or_space() THEN EXIT DO
  ELSE
   IF enter_or_space() THEN
-   scrname$(pt) = ": " & scriptbrowse_string(gen(scriptgenoff(pt)), plottrigger, menu$(pt))
+   scrname(pt) = ": " & scriptbrowse_string(gen(scriptgenoff(pt)), plottrigger, menu(pt))
   ELSEIF scrintgrabber(gen(scriptgenoff(pt)), 0, 0, 75, 77, 1, plottrigger) THEN
-   scrname$(pt) = ": " + scriptname$(gen(scriptgenoff(pt)), plottrigger)
+   scrname(pt) = ": " + scriptname$(gen(scriptgenoff(pt)), plottrigger)
   END IF
  END IF
  FOR i = 0 TO menusize
   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0 ELSE textcolor uilook(uiMenuItem), 0
-  printstr menu$(i) + scrname$(i), 0, i * 8, dpage
+  printstr menu(i) + scrname(i), 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -356,17 +356,17 @@ SUB generalmusicsfxmenu ()
 END SUB
 
 SUB importsong ()
-STATIC default$
+STATIC default AS STRING
 DIM oggtemp AS STRING
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-DIM menu$(10), submenu$(2)
-menu$(0) = "Previous Menu"
-menu$(3) = "Import Song..."
-menu$(4) = "Export Song..."
-menu$(5) = "Delete Song"
+DIM menu(10) AS STRING, submenu(2) AS STRING
+menu(0) = "Previous Menu"
+menu(3) = "Import Song..."
+menu(4) = "Export Song..."
+menu(5) = "Delete Song"
 
 csr = 1
 snum = 0
@@ -387,7 +387,7 @@ DO
 
  IF csr = 2 AND songfile$ <> "" THEN
   strgrabber sname$, 30
-  menu$(2) = "Name: " + sname$
+  menu(2) = "Name: " + sname$
  ELSE
   '-- check for switching song
   newsong = snum
@@ -424,7 +424,7 @@ DO
   END IF
  END IF
 
- standardmenu menu$(), 10, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
@@ -493,18 +493,18 @@ ELSE
  sname$ = ""
 END IF
 
-menu$(1) = "<- Song " + STR$(snum) + " of " + STR$(gen(genMaxSong)) + " ->"
-IF songfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
-menu$(7) = ""
-menu$(8) = "Type: " + songtype$
-menu$(9) = "Filesize: " + filesize$(songfile$)
+menu(1) = "<- Song " + STR$(snum) + " of " + STR$(gen(genMaxSong)) + " ->"
+IF songfile$ <> "" THEN menu(2) = "Name: " + sname$ ELSE menu(2) = "-Unused-"
+menu(7) = ""
+menu(8) = "Type: " + songtype$
+menu(9) = "Filesize: " + filesize$(songfile$)
 IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
- menu$(10) = "BAM fallback exists. Filesize: " + filesize$(bamfile$)
- menu$(6) = "Delete BAM fallback"
+ menu(10) = "BAM fallback exists. Filesize: " + filesize$(bamfile$)
+ menu(6) = "Delete BAM fallback"
  optionsbottom = 6
 ELSE
- menu$(10) = ""
- menu$(6) = ""
+ menu(10) = ""
+ menu(6) = ""
  optionsbottom = 5
 END IF
 '-- add author, length, etc, info here
@@ -514,7 +514,7 @@ importsongfile:
 pausesong
 
 'browse for new song
-sourcesong$ = browse$(5, default$, "", "",, "browse_import_song")
+sourcesong$ = browse$(5, default, "", "",, "browse_import_song")
 
 'Get song name
 a$ = trimextension$(trimpath$(sourcesong$))
@@ -556,10 +556,10 @@ RETRACE
 exportsong:
 query$ = "Name of file to export to?"
 IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
- submenu$(0) = "Export " + ext$ + " file"
- submenu$(1) = "Export .bam fallback file"
- submenu$(2) = "Cancel"
- choice = sublist(submenu$(), "export_song")
+ submenu(0) = "Export " + ext$ + " file"
+ submenu(1) = "Export .bam fallback file"
+ submenu(2) = "Cancel"
+ choice = sublist(submenu(), "export_song")
  IF choice = 1 THEN ext$ = ".bam" : songfile$ = bamfile$
  IF choice = 2 THEN RETRACE
 END IF
@@ -579,21 +579,21 @@ END SUB
 
 
 SUB importsfx ()
-STATIC default$
+STATIC default AS STRING
 DIM oggtemp AS STRING
 
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-DIM menu$(11), submenu$(2), optionsbottom
+DIM menu(11) AS STRING, submenu(2) AS STRING, optionsbottom
 optionsbottom = 7
-menu$(0) = "Previous Menu"
-menu$(3) = "Import Sound..."
-menu$(4) = "Export Sound..."
-menu$(5) = "Delete Sound"
-menu$(6) = "Play Sound"
-menu$(7) = "Streaming"
+menu(0) = "Previous Menu"
+menu(3) = "Import Sound..."
+menu(4) = "Export Sound..."
+menu(5) = "Delete Sound"
+menu(6) = "Play Sound"
+menu(7) = "Streaming"
 
 csr = 1
 snum = 0
@@ -612,7 +612,7 @@ DO
 
  IF csr = 2 AND sfxfile$ <> "" THEN
   strgrabber sname$, 30
-  menu$(2) = "Name: " + sname$
+  menu(2) = "Name: " + sname$
  ELSE
   '-- check for switching sfx
   newsfx = snum
@@ -657,7 +657,7 @@ DO
 
  END IF
 
- standardmenu menu$(), 10, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
@@ -701,18 +701,18 @@ ELSE '--sfx doesn't exist
  sname$ = ""
 END IF
 
-menu$(1) = "<- SFX " + STR$(snum) + " of " + STR$(gen(genMaxSFX)) + " ->"
-IF sfxfile$ <> "" THEN menu$(2) = "Name: " + sname$ ELSE menu$(2) = "-Unused-"
-menu$(8) = ""
-menu$(9) = "Type: " + sfxtype$
-menu$(10) = "Filesize: " + filesize$(sfxfile$)
+menu(1) = "<- SFX " + STR$(snum) + " of " + STR$(gen(genMaxSFX)) + " ->"
+IF sfxfile$ <> "" THEN menu(2) = "Name: " + sname$ ELSE menu(2) = "-Unused-"
+menu(8) = ""
+menu(9) = "Type: " + sfxtype$
+menu(10) = "Filesize: " + filesize$(sfxfile$)
 
 '-- add author, length, etc, info here
 RETRACE
 
 importsfxfile:
 
-sourcesfx$ = browse$(6, default$, "", "",, "browse_import_sfx")
+sourcesfx$ = browse$(6, default, "", "",, "browse_import_sfx")
 
 '-- get name
 a$ = trimextension$(trimpath$(sourcesfx$))
@@ -763,7 +763,7 @@ RETRACE
 END SUB
 
 SUB masterpalettemenu
-DIM menu$(7), oldpal
+DIM menu(7) AS STRING, oldpal
 
 csr = 1
 palnum = activepalette
@@ -780,7 +780,7 @@ DO
 
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "master_palette_menu"
- usemenu csr, 0, 0, UBOUND(menu$), 10
+ usemenu csr, 0, 0, UBOUND(menu), 10
 
  oldpal = palnum
  IF keyval(scRight) > 1 AND palnum = gen(genMaxMasterPal) THEN
@@ -840,7 +840,7 @@ DO
 
  'draw the menu
  clearpage dpage
- FOR i = 0 TO UBOUND(menu$)
+ FOR i = 0 TO UBOUND(menu)
   IF (i = 6 AND palnum = gen(genMasterPal)) OR ((i = 4 OR i = 5 OR i = 7) AND palnum = activepalette) THEN
    col = uilook(uiDisabledItem)
    IF csr = i THEN col = uilook(uiSelectedDisabled + tog)
@@ -849,7 +849,7 @@ DO
    IF csr = i THEN col = uilook(uiSelectedItem + tog)
   END IF
   textcolor col, 0
-  printstr menu$(i), 0, i * 8, dpage
+  printstr menu(i), 0, i * 8, dpage
  NEXT i
 
  FOR i = 0 TO 255
@@ -877,30 +877,30 @@ clearpage vpage
 EXIT SUB
 
 buildmenu:
-menu$(0) = "Previous Menu"
-menu$(1) = "<- Master Palette " & palnum & " ->"
-menu$(2) = "Replace this Master Palette"
-menu$(3) = "Edit User Interface Colors..."
-menu$(4) = "Nearest-match active palette's UI colors"
-menu$(5) = "Copy active palette's UI data"
+menu(0) = "Previous Menu"
+menu(1) = "<- Master Palette " & palnum & " ->"
+menu(2) = "Replace this Master Palette"
+menu(3) = "Edit User Interface Colors..."
+menu(4) = "Nearest-match active palette's UI colors"
+menu(5) = "Copy active palette's UI data"
 IF palnum = gen(genMasterPal) THEN
- menu$(6) = "Current default in-game Master Palette"
+ menu(6) = "Current default in-game Master Palette"
 ELSE
- menu$(6) = "Set as in-game Master Palette"
+ menu(6) = "Set as in-game Master Palette"
 END IF
 IF palnum = activepalette THEN
- menu$(7) = "Current active editing palette"
+ menu(7) = "Current active editing palette"
 ELSE
- menu$(7) = "Set as active editing palette"
+ menu(7) = "Set as active editing palette"
 END IF
 RETRACE
 
 END SUB
 
 FUNCTION importmasterpal (f$, palnum)
-STATIC default$
+STATIC default AS STRING
 DIM bmpd AS BitmapInfoHeader
-IF f$ = "" THEN f$ = browse$(4, default$, "", "",, "browse_import_master_palette")
+IF f$ = "" THEN f$ = browse$(4, default, "", "",, "browse_import_master_palette")
 IF f$ <> "" THEN
  IF LCASE$(justextension$(f$)) = "mas" THEN
   xbload f$, buffer(), "MAS load error"
@@ -1054,7 +1054,7 @@ OPTION EXPLICIT
 
 SUB statcapsmenu
  CONST maxMenu = 13
- DIM m$(maxMenu)
+ DIM m(maxMenu) AS STRING
  DIM max(maxMenu)
  DIM index(maxMenu)
  DIM state AS MenuState
@@ -1088,17 +1088,17 @@ SUB statcapsmenu
   END IF
   IF state.need_update THEN
    state.need_update = NO
-   m$(0) = "Previous Menu"
-   m$(1) = "Damage Cap: "
-   IF gen(genDamageCap) = 0 THEN m$(1) += "None" ELSE m$(1) &= gen(genDamageCap)
+   m(0) = "Previous Menu"
+   m(1) = "Damage Cap: "
+   IF gen(genDamageCap) = 0 THEN m(1) += "None" ELSE m(1) &= gen(genDamageCap)
    FOR i = 0 to 11
-    m$(2 + i) = statnames(i) + " Cap: "
-    IF gen(genStatCap + i) = 0 THEN m$(2 + i) = m$(2 + i) + "None" ELSE m$(2 + i) = m$(2 + i) & gen(genStatCap + i)
+    m(2 + i) = statnames(i) + " Cap: "
+    IF gen(genStatCap + i) = 0 THEN m(2 + i) = m(2 + i) + "None" ELSE m(2 + i) = m(2 + i) & gen(genStatCap + i)
    NEXT
   END IF
 
   clearpage vpage
-  standardmenu m$(), state, 0, 0, vpage, 0
+  standardmenu m(), state, 0, 0, vpage, 0
   setvispage vpage
   dowait
  LOOP
@@ -1107,7 +1107,7 @@ END SUB
 
 SUB startingdatamenu
  CONST maxMenu = 4
- DIM m$(maxMenu)
+ DIM m(maxMenu) AS STRING
  DIM max(maxMenu)
  DIM index(maxMenu)
  DIM state AS MenuState
@@ -1147,15 +1147,15 @@ SUB startingdatamenu
     lastmap = gen(genStartMap)
    END IF
 
-   m$(0) = "Previous Menu"
-   m$(1) = "Starting X: " & gen(genStartX)
-   m$(2) = "Starting Y: " & gen(genStartY)
-   m$(3) = "Starting Map: " & gen(genStartMap) & " " & getmapname(gen(genStartMap))
-   m$(4) = "Starting Money: " & gen(genStartMoney)
+   m(0) = "Previous Menu"
+   m(1) = "Starting X: " & gen(genStartX)
+   m(2) = "Starting Y: " & gen(genStartY)
+   m(3) = "Starting Map: " & gen(genStartMap) & " " & getmapname(gen(genStartMap))
+   m(4) = "Starting Money: " & gen(genStartMoney)
   END IF
 
   clearpage vpage
-  standardmenu m$(), state, 0, 0, vpage, 0
+  standardmenu m(), state, 0, 0, vpage, 0
   setvispage vpage
   dowait
  LOOP
@@ -1182,11 +1182,11 @@ END SUB
 
 SUB gendata ()
  CONST maxMenu = 18
- DIM m$(maxMenu)
+ DIM m(maxMenu) AS STRING
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
  DIM enabled(maxMenu)
- DIM d$
+ DIM d AS STRING
 
  DIM state AS MenuState
  WITH state
@@ -1202,15 +1202,15 @@ SUB gendata ()
  'make sure genMaxInventory is a valid value (possible in older versions)
  IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
  
- m$(0) = "Return to Main Menu"
- m$(3) = "Preference Bitsets..."
- m$(4) = "Pick Title Screen..."
- m$(5) = "New Game Settings..."
- m$(6) = "Special Plotscripts..."
- m$(7) = "Master Palettes..."
- m$(8) = "Global Music and Sound Effects..."
- m$(9) = "Stat Caps..."
- m$(10) = "Password For Editing..."
+ m(0) = "Return to Main Menu"
+ m(3) = "Preference Bitsets..."
+ m(4) = "Pick Title Screen..."
+ m(5) = "New Game Settings..."
+ m(6) = "Special Plotscripts..."
+ m(7) = "Master Palettes..."
+ m(8) = "Global Music and Sound Effects..."
+ m(9) = "Stat Caps..."
+ m(10) = "Password For Editing..."
 
  flusharray enabled(), UBOUND(enabled), YES
  enabled(11) = NO
@@ -1231,22 +1231,22 @@ SUB gendata ()
  max(18) = 1000
  min(18) = -1000
 
- DIM pas$ = ""
- DIM aboutline$ = ""
- DIM longname$ = ""
+ DIM pas AS STRING = ""
+ DIM aboutline AS STRING = ""
+ DIM longname AS STRING = ""
  DIM tempbuf(79)
 
  IF gen(genPassVersion) >= 256 THEN
   '--new simple format
-  pas$ = readpassword$
+  pas = readpassword$
  ELSE
   '--old scattertable format
-  readscatter pas$, gen(genPW2Length), 200
-  pas$ = rotascii(pas$, gen(genPW2Offset) * -1)
+  readscatter pas, gen(genPW2Length), 200
+  pas = rotascii(pas, gen(genPW2Offset) * -1)
  END IF
  IF loadrecord(tempbuf(), workingdir + SLASH + "browse.txt", 40) THEN
-  longname$ = readbinstring(tempbuf(), 0, 38)
-  aboutline$ = readbinstring(tempbuf(), 20, 38)
+  longname = readbinstring(tempbuf(), 0, 38)
+  aboutline = readbinstring(tempbuf(), 20, 38)
  END IF
 
  setkeys
@@ -1255,7 +1255,7 @@ SUB gendata ()
   setkeys
 
   IF state.need_update THEN
-   generate_gen_menu m$(), longname$, aboutline$
+   generate_gen_menu m(), longname, aboutline
    state.need_update = NO
   END IF
 
@@ -1300,20 +1300,20 @@ SUB gendata ()
    IF state.pt = 7 THEN masterpalettemenu
    IF state.pt = 8 THEN generalmusicsfxmenu
    IF state.pt = 9 THEN statcapsmenu
-   IF state.pt = 10 THEN inputpasw pas$
+   IF state.pt = 10 THEN inputpasw pas
 
    IF state.pt >= 12 AND state.pt <= 14 THEN
-    d$ = charpicker$
-    IF d$ <> "" THEN
-     gen(index(state.pt)) = ASC(d$)
+    d = charpicker$
+    IF d <> "" THEN
+     gen(index(state.pt)) = ASC(d)
      state.need_update = YES
     END IF
    END IF
   END IF
   IF state.pt = 1 THEN
-   IF strgrabber(longname$, 38) THEN state.need_update = YES
+   IF strgrabber(longname, 38) THEN state.need_update = YES
   ELSEIF state.pt = 2 THEN
-   IF strgrabber(aboutline$, 38) THEN state.need_update = YES
+   IF strgrabber(aboutline, 38) THEN state.need_update = YES
   ELSEIF index(state.pt) = genMaxInventory THEN
    DIM AS INTEGER temp = (gen(genMaxInventory) + 1) \ 3
    IF intgrabber(temp, min(state.pt), max(state.pt)) THEN
@@ -1326,7 +1326,7 @@ SUB gendata ()
   END IF
 
   draw_fullscreen_scrollbar state, , dpage
-  standardmenu m$(), state, 0, 0, dpage, 0
+  standardmenu m(), state, 0, 0, dpage, 0
 
   SWAP vpage, dpage
   setvispage vpage
@@ -1334,18 +1334,18 @@ SUB gendata ()
   dowait
  LOOP
  
- DIM newpas$ = pas$
- writepassword newpas$
+ DIM AS STRING newpas = pas
+ writepassword newpas
 
  '--also write old scattertable format, for backwards
  '-- compatability with older versions of game.exe
  gen(genPW2Offset) = INT(RND * 250) + 1
- DIM oldpas$ = rotascii(pas$, gen(genPW2Offset))
- writescatter oldpas$, gen(genPW2Length), 200
+ DIM AS STRING oldpas = rotascii(pas, gen(genPW2Offset))
+ writescatter oldpas, gen(genPW2Length), 200
 
  '--write long name and about line
- writebinstring longname$, tempbuf(), 0, 38
- writebinstring aboutline$, tempbuf(), 20, 38
+ writebinstring longname, tempbuf(), 0, 38
+ writebinstring aboutline, tempbuf(), 20, 38
  storerecord tempbuf(), workingdir + SLASH + "browse.txt", 40
  
  clearpage 0

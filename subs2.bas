@@ -92,12 +92,12 @@ SUB cropafter (index, limit, flushafter, lump$, bytes, prompt)
 'flushafter -1 = no flush
 'flushafter 0 = record flush
 
-DIM menu$(1)
+DIM menu(1) as string
 
 IF prompt THEN
- menu$(0) = "No do not delete anything"
- menu$(1) = "Yes, delete all records after this one"
- IF sublist(menu$(), "cropafter") < 1 THEN
+ menu(0) = "No do not delete anything"
+ menu(1) = "Yes, delete all records after this one"
+ IF sublist(menu(), "cropafter") < 1 THEN
   setkeys
   EXIT SUB
  ELSE
@@ -140,7 +140,7 @@ END SUB
 
 SUB exportnames ()
 
-DIM u$(1024)
+DIM u(1024) AS STRING
 DIM her AS HeroDef
 DIM menu_set AS MenuSet
 menu_set.menufile = workingdir & SLASH & "menus.bin"
@@ -169,85 +169,85 @@ PRINT #fh, ""
 PRINT #fh, "define constant, begin"
 
 printstr "tag names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 2 TO 999
- writeconstant fh, i, load_tag_name(i), u$(), "tag"
+ writeconstant fh, i, load_tag_name(i), u(), "tag"
 NEXT i
 
 printstr "song names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO gen(genMaxSong)
- writeconstant fh, i, getsongname$(i), u$(), "song"
+ writeconstant fh, i, getsongname$(i), u(), "song"
 NEXT i
 setvispage 0
 
 printstr "sound effect names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO gen(genMaxSFX)
- writeconstant fh, i, getsfxname$(i), u$(), "sfx"
+ writeconstant fh, i, getsfxname$(i), u(), "sfx"
 NEXT i
 setvispage 0
 
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO gen(genMaxHero)
  loadherodata @her, i
- writeconstant fh, i, her.name, u$(), "hero"
+ writeconstant fh, i, her.name, u(), "hero"
 NEXT i
 
 printstr "item names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO gen(genMaxItem)
- writeconstant fh, i, readitemname$(i), u$(), "item"
+ writeconstant fh, i, readitemname$(i), u(), "item"
 NEXT i
 setvispage 0
 
 printstr "stat names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO UBOUND(statnames)
- writeconstant fh, i, statnames(i), u$(), "stat"
+ writeconstant fh, i, statnames(i), u(), "stat"
 NEXT i
 
 printstr "slot names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
-writeconstant fh, 1, "Weapon", u$(), "slot"
-writeconstant fh, 1, readglobalstring(38, "Weapon"), u$(), "slot"
+isunique "", u(), 1
+writeconstant fh, 1, "Weapon", u(), "slot"
+writeconstant fh, 1, readglobalstring(38, "Weapon"), u(), "slot"
 FOR i = 0 TO 3
- writeconstant fh, i + 2, readglobalstring(25 + i, "Armor" & i+1), u$(), "slot"
+ writeconstant fh, i + 2, readglobalstring(25 + i, "Armor" & i+1), u(), "slot"
 NEXT i
 setvispage 0
 
 printstr "map names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO gen(genMaxMap)
- writeconstant fh, i, getmapname$(i), u$(), "map"
+ writeconstant fh, i, getmapname$(i), u(), "map"
 NEXT i
 
 printstr "attack names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO gen(genMaxAttack)
- writeconstant fh, i + 1, readattackname$(i), u$(), "atk"
+ writeconstant fh, i + 1, readattackname$(i), u(), "atk"
 NEXT i
 setvispage 0
 
 printstr "shop names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO gen(genMaxShop)
- writeconstant fh, i, readshopname$(i), u$(), "shop"
+ writeconstant fh, i, readshopname$(i), u(), "shop"
 NEXT i
 setvispage 0
 
 printstr "menu names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO gen(genMaxMenu)
- writeconstant fh, i, getmenuname(i), u$(), "menu"
+ writeconstant fh, i, getmenuname(i), u(), "menu"
 NEXT i
 setvispage 0
 
 printstr "enemy names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u$(), 1
+isunique "", u(), 1
 FOR i = 0 TO gen(genMaxEnemy)
- writeconstant fh, i, readenemyname$(i), u$(), "enemy"
+ writeconstant fh, i, readenemyname$(i), u(), "enemy"
 NEXT i
 setvispage 0
 
@@ -482,15 +482,15 @@ isunique = -1
 END FUNCTION
 
 SUB scriptman ()
-STATIC defaultdir$
-DIM menu$(5)
+STATIC defaultdir as string
+DIM menu(5) as string
 
 menumax = 4
-menu$(0) = "Previous Menu"
-menu$(1) = "export names for scripts (.hsi)"
-menu$(2) = "import compiled plotscripts (.hs)"
-menu$(3) = "check where scripts are used..."
-menu$(4) = "find broken script triggers..."
+menu(0) = "Previous Menu"
+menu(1) = "export names for scripts (.hsi)"
+menu(2) = "import compiled plotscripts (.hs)"
+menu(3) = "check where scripts are used..."
+menu(4) = "find broken script triggers..."
 
 pt = 0
 setkeys
@@ -508,7 +508,7 @@ DO
    CASE 1
     exportnames
    CASE 2
-    f$ = browse(0, defaultdir$, "*.hs", "",, "browse_hs")
+    f$ = browse(0, defaultdir, "*.hs", "",, "browse_hs")
     IF f$ <> "" THEN
      importscripts f$
     END IF
@@ -519,7 +519,7 @@ DO
   END SELECT
  END IF
  
- standardmenu menu$(), menumax, 22, pt, 0, 0, 0, dpage, 0
+ standardmenu menu(), menumax, 22, pt, 0, 0, 0, dpage, 0
  
  SWAP vpage, dpage
  setvispage vpage
