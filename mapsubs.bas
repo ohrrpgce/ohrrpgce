@@ -32,7 +32,7 @@ DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB maptile (font())
-DECLARE SUB paint_map_area(st AS MapEditState, oldTile%, x%, y%, map%(), pass%(), defaults() AS DefArray, tilesets%(), defpass%)
+DECLARE SUB paint_map_area(st AS MapEditState, oldTile%, x%, y%, map%(), pass%(), defaults() AS DefArray, defpass%)
 
 DECLARE Function LayerIsVisible(vis() as integer, byval l as integer) as integer
 DECLARE Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
@@ -41,30 +41,30 @@ DECLARE Sub SetLayerEnabled(gmap() as integer, byval l as integer, byval v as in
 DECLARE Sub ToggleLayerVisible(vis() as integer, byval l as integer)
 DECLARE Sub ToggleLayerEnabled(vis() as integer, byval l as integer)
 
-DECLARE SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as TilesetData ptr, doors() as door, link() as doorlink, gmap())
+DECLARE SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, map(), pass(), doors() as door, link() as doorlink, gmap())
 
-DECLARE SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS DefArray, tilesets() AS TilesetData ptr)
-DECLARE SUB resizemapmenu (map(), tilesets() AS TilesetData ptr, byref newwide, byref newhigh, byref tempx, byref tempy)
+DECLARE SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS DefArray)
+DECLARE SUB resizemapmenu (BYREF st AS MapEditState, map(), byref newwide, byref newhigh, byref tempx, byref tempy)
 
 DECLARE SUB make_top_map_menu(maptop, topmenu() AS STRING)
 DECLARE SUB update_tilepicker(BYREF st AS MapEditState)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
-DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
+DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
 DECLARE SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB new_blank_map (BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
-DECLARE SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, tilesets() AS TilesetData ptr)
-DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
+DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
-DECLARE SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
-DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray)
+DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
+DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray)
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS INTEGER
-DECLARE SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
-DECLARE SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, tilesets() as TilesetData ptr)
+DECLARE SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER)
+DECLARE SUB show_minimap(BYREF map AS MapEditState, map() AS INTEGER)
+DECLARE SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER)
 
 #include "compat.bi"
 #include "allmodex.bi"
@@ -140,7 +140,6 @@ SUB mapmaker (font())
 DIM st AS MapEditState
 DIM mode$(12), list$(13), temp$(12), menu$(-1 TO 20), topmenu$(24), gmap(dimbinsize(binMAP)), gd$(0 TO 20), gdmax(20), gdmin(20), sampmap(2), pal16(288), gmapscr$(5), gmapscrof(5), npcnum(max_npc_defs)
 DIM her AS HeroDef
-DIM tilesets(2) as TilesetData ptr
 DIM defaults(2) as DefArray
 
 redim doors(99) as door, link(199) as doorlink
@@ -225,13 +224,13 @@ DO
   IF pt > 0 AND pt <= gen(genMaxMap) + 1 THEN
    '--silly backcompat pt adjustment
    pt = pt - 1
-   mapedit_loadmap st, pt, wide, high, map(), pass(), emap(), gmap(), visible(), tilesets(), doors(), link(), defaults(), mapname$
+   mapedit_loadmap st, pt, wide, high, map(), pass(), emap(), gmap(), visible(), doors(), link(), defaults(), mapname$
    GOSUB whattodo
    pt = pt + 1
    make_top_map_menu maptop, topmenu$()
   END IF
   IF pt = gen(genMaxMap) + 2 THEN
-   mapedit_addmap st, map(), pass(), emap(), gmap(), doors(), link(), tilesets()
+   mapedit_addmap st, map(), pass(), emap(), gmap(), doors(), link()
    make_top_map_menu maptop, topmenu$()
   END IF
  END IF
@@ -250,7 +249,7 @@ clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-unloadmaptilesets tilesets()
+unloadmaptilesets st.tilesets()
 sprite_unload @(st.cursor.sprite)
 palette16_unload @(st.cursor.pal)
 EXIT SUB
@@ -305,16 +304,16 @@ DO
    GOSUB gmapdata
   END IF
   IF csr = 2 THEN
-   mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), tilesets(), doors(), link(), mapname$
+   mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), doors(), link(), mapname$
   END IF
   IF csr = 3 THEN
-   mapedit_layers st, gmap(), visible(), tilesets(), defaults()
+   mapedit_layers st, gmap(), visible(), defaults()
   END IF
   IF csr = 4 THEN
    npcdef st.npc_def(), npc_img(), pt
   END IF
   IF csr >= 5 AND csr <= 9 THEN editmode = csr - 5: GOSUB mapping
-  IF csr = 10 THEN mapedit_linkdoors st, pt, map(), pass(), emap(), gmap(), tilesets(), doors(), link(), mapname$
+  IF csr = 10 THEN mapedit_linkdoors st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
   IF csr = 11 THEN
    mapedit_delete st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), doors(), link()
    IF pt > gen(genMaxMap) THEN
@@ -329,7 +328,7 @@ DO
    IF sublist(defpass_reload_confirm(), "defpass_reload_confirm") = 1 THEN
     FOR tx = 0 TO pass(0) - 1
      FOR ty = 0 TO pass(1) - 1
-      calculatepassblock tx, ty, map(), pass(), defaults(), tilesets()
+      calculatepassblock st, tx, ty, map(), pass(), defaults()
      NEXT ty
     NEXT tx
    END IF
@@ -519,7 +518,7 @@ DO
   '--show default edge tile
   setmapdata sampmap(), sampmap(), 180, 0
   setmapblock 0, 0, 0, gmap(6)
-  drawmap 0, -180, 0, 0, tilesets(0), dpage
+  drawmap 0, -180, 0, 0, st.tilesets(0), dpage
   rectangle 20, 180, 300, 20, uilook(uiBackground), dpage
  END IF
  
@@ -589,7 +588,7 @@ DO
   end if
  end if
  
- IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), tilesets(), defaults()  'ctrl-L
+ IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), defaults()  'ctrl-L
  IF keyval(scTab) > 1 THEN tiny = tiny XOR 1
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    'delete tile
@@ -630,7 +629,7 @@ DO
     FOR tx = 0 TO 14
      FOR ty = 0 TO 8
       setmapblock mapx \ 20 + tx, mapy \ 20 + ty, st.layer, st.usetile(st.layer)
-      IF defpass THEN calculatepassblock mapx \ 20 + tx, mapy \ 20 + ty, map(), pass(), defaults(), tilesets()
+      IF defpass THEN calculatepassblock st, mapx \ 20 + tx, mapy \ 20 + ty, map(), pass(), defaults()
      NEXT ty
     NEXT tx
    END IF
@@ -644,22 +643,22 @@ DO
    END IF
    IF keyval(scP) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+P to paint a continuous section of maptiles
     old = readmapblock(x, y, st.layer)
-    paint_map_area st, old, x, y, map(), pass(), defaults(), tilesets(), defpass
+    paint_map_area st, old, x, y, map(), pass(), defaults(), defpass
    END IF
    IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
      setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
    END IF
-   IF keyval(scTilde) > 1 THEN show_minimap map(), tilesets()
-   IF keyval(scEnter) > 1 THEN mapedit_pickblock st, pass(), tilesets()
+   IF keyval(scTilde) > 1 THEN show_minimap st, map()
+   IF keyval(scEnter) > 1 THEN mapedit_pickblock st, pass()
    IF keyval(scSpace) > 0 THEN
     setmapblock x, y, st.layer, st.usetile(st.layer)
-    IF defpass THEN calculatepassblock x, y, map(), pass(), defaults(), tilesets()
+    IF defpass THEN calculatepassblock st, x, y, map(), pass(), defaults()
    END IF
    IF keyval(scDelete) > 1 THEN 'delete
     setmapblock x, y, st.layer, 0
    END IF
    IF keyval(scCapslock) > 1 THEN 'grab tile
-    st.usetile(st.layer) = animadjust(readmapblock(x, y, st.layer), tilesets(st.layer)->tastuf())
+    st.usetile(st.layer) = animadjust(readmapblock(x, y, st.layer), st.tilesets(st.layer)->tastuf())
     update_tilepicker st
    END IF
    IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN defpass = defpass XOR 1   
@@ -668,9 +667,9 @@ DO
      newtile = -1
      old = readmapblock(x, y, st.layer)
      IF old >= 160 + i * 48 AND old < 160 + i * 48 + 48 THEN
-      newtile = (old - (160 + (i * 48))) + tilesets(st.layer)->tastuf(i * 20)
-     ELSEIF old >= tilesets(st.layer)->tastuf(i * 20) AND old < tilesets(st.layer)->tastuf(i * 20) + 48 THEN
-      newtile = 160 + (i * 48) + (old - tilesets(st.layer)->tastuf(i * 20))
+      newtile = (old - (160 + (i * 48))) + st.tilesets(st.layer)->tastuf(i * 20)
+     ELSEIF old >= st.tilesets(st.layer)->tastuf(i * 20) AND old < st.tilesets(st.layer)->tastuf(i * 20) + 48 THEN
+      newtile = 160 + (i * 48) + (old - st.tilesets(st.layer)->tastuf(i * 20))
      END IF
      IF newtile >= 0 THEN
       IF keyval(scCtrl) = 0 THEN
@@ -724,12 +723,12 @@ DO
      mapedit_savemap st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
      doorlinkid = find_first_doorlink_by_door(doorid, link())
      IF doorlinkid >= 0 THEN
-      link_one_door pt, doorlinkid, link(), doors(), map(), pass(), gmap(), tilesets()
+      link_one_door st, pt, doorlinkid, link(), doors(), map(), pass(), gmap()
      ELSE
       doorlinkid = find_last_used_doorlink(link()) + 1
       IF doorlinkid >= 0 AND doorlinkid <= UBOUND(link) THEN
        link(doorlinkid).source = doorid
-       link_one_door pt, doorlinkid, link(), doors(), map(), pass(), gmap(), tilesets()
+       link_one_door st, pt, doorlinkid, link(), doors(), map(), pass(), gmap()
       END IF
      END IF
     END IF
@@ -878,14 +877,14 @@ DO
  '--draw menubar
  IF editmode = 0 THEN
   setmapdata st.menubar(), pass(), 0, 180
-  drawmap st.menubarstart(st.layer) * 20, 0, 0, 0, tilesets(st.layer), dpage
+  drawmap st.menubarstart(st.layer) * 20, 0, 0, 0, st.tilesets(st.layer), dpage
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
  END IF
  
  '--draw map
  setmapdata map(), pass(), 20, 0
- animatetilesets tilesets()
+ animatetilesets st.tilesets()
  rectangle 0, 20, 320, 180, uilook(uiBackground), dpage
  for i = 0 to 2
  	if layerisvisible(visible(), i) AND layerisenabled(gmap(), i) then
@@ -896,19 +895,19 @@ DO
 			if i = 2 then jigx = -1: jigy = -1
 		end if
 		if i = 0 then
-			drawmap mapx + jigx, mapy + jigy - 20, 0, 1, tilesets(0), dpage, 0
+			drawmap mapx + jigx, mapy + jigy - 20, 0, 1, st.tilesets(0), dpage, 0
 		elseif i = 1 then
-			drawmap mapx + jigx, mapy + jigy - 20, 1, 0, tilesets(1), dpage, 1
+			drawmap mapx + jigx, mapy + jigy - 20, 1, 0, st.tilesets(1), dpage, 1
 		elseif i = 2 then
-			drawmap mapx + jigx, mapy + jigy - 20, 2, 0, tilesets(2), dpage, 1
+			drawmap mapx + jigx, mapy + jigy - 20, 2, 0, st.tilesets(2), dpage, 1
 		end if
 	end if
  next
  if layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
 	if readbit(jiggle(), 0, 0) and tog then
-		drawmap mapx + 1, mapy - 20, 0, 2, tilesets(0), dpage, 0
+		drawmap mapx + 1, mapy - 20, 0, 2, st.tilesets(0), dpage, 0
 	else
-		drawmap mapx, mapy - 20, 0, 2, tilesets(0), dpage, 0
+		drawmap mapx, mapy - 20, 0, 2, st.tilesets(0), dpage, 0
 	end if
  end if
  
@@ -1061,7 +1060,7 @@ RETRACE '--end of mapping GOSUB block
 '128 overhead
 END SUB
 
-SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, defaults() AS DefArray)
+SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray)
  DIM state AS MenuState
  DIM menu$(10)
  DIM enabled(10) AS INTEGER
@@ -1144,9 +1143,9 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   dowait
  LOOP
  clearpage dpage
- loadmaptilesets tilesets(), gmap()
+ loadmaptilesets st.tilesets(), gmap()
  FOR i = 0 TO 2
-  loadpasdefaults defaults(i).a(), tilesets(i)->num
+  loadpasdefaults defaults(i).a(), st.tilesets(i)->num
  NEXT
  IF layerisenabled(gmap(), st.layer) = 0 THEN st.layer = 0
  EXIT SUB
@@ -1251,7 +1250,7 @@ FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS 
  RETURN -1
 END FUNCTION
 
-SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, tilesets() AS TilesetData ptr)
+SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
  DIM how AS INTEGER
  
  'Temporary buffers for making the copy
@@ -1271,7 +1270,7 @@ SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER
   mapedit_savemap st, gen(genMaxMap), map(), pass(), emap(), gmap(), doors(), link(), ""
  ELSEIF how >= 0 THEN
   gen(genMaxMap) += 1
-  mapedit_loadmap st, how, copysize.x, copysize.y, map(), pass(), emap(), gmap(), visible(), tilesets(), doors(), link(), defaults(), copyname
+  mapedit_loadmap st, how, copysize.x, copysize.y, map(), pass(), emap(), gmap(), visible(), doors(), link(), defaults(), copyname
   mapedit_savemap st, gen(genMaxMap), map(), pass(), emap(), gmap(), doors(), link(), copyname
  END IF
 END SUB
@@ -1288,12 +1287,12 @@ SUB new_blank_map (BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER
  cleandoorlinks link()
 END SUB
 
-SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
+SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
  loadrecord gmap(), game & ".map", dimbinsize(binMAP), mapnum
  visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
- loadmaptilesets tilesets(), gmap()
+ loadmaptilesets st.tilesets(), gmap()
  FOR i = 0 TO 2
-  loadpasdefaults defaults(i).a(), tilesets(i)->num
+  loadpasdefaults defaults(i).a(), st.tilesets(i)->num
  NEXT
  loadtiledata maplumpname$(mapnum, "t"), map(), 3, wide, high
  loadtiledata maplumpname$(mapnum, "p"), pass()
@@ -1359,7 +1358,7 @@ SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  waitforanykey
 END SUB
 
-SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 'sizemap:
  DIM size AS XYPair
  DIM spot AS XYPair
@@ -1367,7 +1366,7 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  size.y = 0
  spot.x = 0
  spot.y = 0
- resizemapmenu map(), tilesets(), size.x, size.y, spot.x, spot.y
+ resizemapmenu st, map(), size.x, size.y, spot.x, spot.y
  IF size.x = -1 THEN EXIT SUB
 
  clearpage 0
@@ -1459,7 +1458,7 @@ SUB update_tilepicker(BYREF st AS MapEditState)
  st.tilepick.x = st.usetile(st.layer) - (st.tilepick.y * 16)
 END SUB
 
-SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
  mapedit_savemap st, mapnum, map(), pass(), emap(), gmap(), doors(), link(), mapname
  
  DIM state AS MenuState
@@ -1485,7 +1484,7 @@ SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INT
   IF usemenu(state) THEN state.need_update = YES
   IF enter_or_space() THEN
    IF state.pt = state.last AND link(state.pt).source = -1 THEN link(state.pt).source = 0
-   link_one_door mapnum, state.pt, link(), doors(), map(), pass(), gmap(), tilesets()
+   link_one_door st, mapnum, state.pt, link(), doors(), map(), pass(), gmap()
    state.need_update = YES
    IF state.pt = state.last AND link(state.pt).source >= 0 THEN
     state.last = small(state.last + 1, UBOUND(link))
@@ -1493,7 +1492,7 @@ SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INT
   END IF
   IF state.need_update THEN
    state.need_update = NO
-   DrawDoorPair mapnum, state.pt, map(), pass(), tilesets(), doors(), link(), gmap()
+   DrawDoorPair st, mapnum, state.pt, map(), pass(), doors(), link(), gmap()
   END IF
   FOR i = state.top TO small(state.top + state.size, state.last)
    col = uilook(uiMenuItem)
@@ -1534,7 +1533,7 @@ SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INT
  LOOP
 END SUB
 
-SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER, tilesets() AS TilesetData ptr)
+SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
  DIM ulim(4) AS INTEGER, llim(4) AS INTEGER
  ulim(0) = 99: llim(0) = -1
  ulim(1) = 99: llim(1) = 0
@@ -1563,7 +1562,7 @@ SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doo
  DIM menu_temp AS STRING
  DIM col AS INTEGER
 
- DrawDoorPair mapnum, linknum, map(), pass(), tilesets(), doors(), link(), gmap()
+ DrawDoorPair st, mapnum, linknum, map(), pass(), doors(), link(), gmap()
 
  setkeys
  DO
@@ -1572,7 +1571,7 @@ SUB link_one_door(mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doo
   state.tog = state.tog XOR 1
   IF preview_delay > 0 THEN
    preview_delay -= 1
-   IF preview_delay = 0 THEN DrawDoorPair mapnum, linknum, map(), pass(), tilesets(), doors(), link(), gmap()
+   IF preview_delay = 0 THEN DrawDoorPair st, mapnum, linknum, map(), pass(), doors(), link(), gmap()
   END IF
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "door_link_editor"
@@ -1668,7 +1667,7 @@ Sub ToggleLayerEnabled(gmap() as integer, byval l as integer)
 	setbit(gmap(), 19, l - 1, readbit(gmap(), 19, l-1) xor 1)
 end sub
 
-SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as TilesetData ptr, doors() as door, link() as doorlink, gmap())
+SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, map(), pass(), doors() as door, link() as doorlink, gmap())
  DIM as integer dmx, dmy, i
  DIM as string caption
  DIM destdoor(99) as door
@@ -1686,11 +1685,11 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as
   dmy = small(large(dmy, 0), map(1) * 20 - 100)
   FOR i = 0 to 2
    IF LayerIsEnabled(gmap(), i) THEN
-     drawmap dmx, dmy, i, 0, tilesets(i), 2, i <> 0
+     drawmap dmx, dmy, i, 0, st.tilesets(i), 2, i <> 0
    END IF
   NEXT i
   IF LayerIsEnabled(gmap(), 0) THEN
-   drawmap dmx, dmy, 0, 2, tilesets(0), 2, 0
+   drawmap dmx, dmy, 0, 2, st.tilesets(0), 2, 0
   END IF
   edgebox doors(link(cur).source).x * 20 - dmx, doors(link(cur).source).y * 20 - dmy - 20, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
   textcolor uilook(uiBackground), 0
@@ -1704,7 +1703,7 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as
  LoadTiledata maplumpname$(destmap, "t"), map(), 3
  LoadTiledata maplumpname$(destmap, "p"), pass()
 ' loadmaptilesets othertilesets(), gmap2()
- loadmaptilesets tilesets(), gmap2()
+ loadmaptilesets st.tilesets(), gmap2()
 
  setmapdata map(), pass(), 101, 0
  IF readbit(destdoor(link(cur).dest).bits(),0,0) = 1 THEN
@@ -1714,11 +1713,11 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as
   dmy = small(large(dmy, 0), map(1) * 20 - 100)
   FOR i = 0 TO 2
    IF LayerIsEnabled(gmap2(), i) THEN
-     drawmap dmx, dmy - 100, i, 0, tilesets(i), 2, i <> 0
+     drawmap dmx, dmy - 100, i, 0, st.tilesets(i), 2, i <> 0
    END IF
   NEXT i
   IF LayerIsEnabled(gmap2(), 0) THEN
-   drawmap dmx, dmy - 100, 0, 2, tilesets(0), 2, 0
+   drawmap dmx, dmy - 100, 0, 2, st.tilesets(0), 2, 0
   END IF
   edgebox destdoor(link(cur).dest).x * 20 - dmx, destdoor(link(cur).dest).y * 20 - dmy + 80, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
   textcolor uilook(uiBackground), 0
@@ -1728,16 +1727,16 @@ SUB DrawDoorPair(curmap as integer, cur as integer, map(), pass(), tilesets() as
  '-----------------RESET DATA
  LoadTiledata maplumpname$(curmap, "t"), map(), 3
  LoadTiledata maplumpname$(curmap, "p"), pass()
- loadmaptilesets tilesets(), gmap()
+ loadmaptilesets st.tilesets(), gmap()
 END SUB
 
-SUB calculatepassblock(x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS DefArray, tilesets() AS TilesetData ptr)
+SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS DefArray)
  setmapdata map(), pass(), 0, 0
  n = 0
  FOR i = 0 TO 2
   tilenum = readmapblock(x, y, i)
   IF i = 0 OR tilenum > 0 THEN
-   n = n OR defaults(i).a(animadjust(tilenum, tilesets(i)->tastuf()))
+   n = n OR defaults(i).a(animadjust(tilenum, st.tilesets(i)->tastuf()))
   END IF
  NEXT i
  setpassblock x, y, n
@@ -1774,7 +1773,7 @@ SUB resizetiledata (array(), x_off, y_off, new_width, new_height, yout, page, la
  next
 END SUB
 
-SUB resizemapmenu (map(), tilesets() as TilesetData ptr, byref tempw, byref temph, byref tempx, byref tempy)
+SUB resizemapmenu (BYREF st AS MapEditState, map(), byref tempw, byref temph, byref tempx, byref tempy)
  'returns the new size and offset in passed args, or -1 width to cancel
 DIM minimap AS Frame Ptr
 DIM menu$(6), tog, csr = 1, zoom = 0
@@ -1785,7 +1784,7 @@ temph = high
 tempx = 0
 tempy = 0
 setmapdata map(), map(), 20, 0
-resize_rezoom_mini_map zoom, wide, high, tempx, tempy, tempw, temph, minimap, map(), tilesets()
+resize_rezoom_mini_map st, zoom, wide, high, tempx, tempy, tempw, temph, minimap, map()
 GOSUB buildmenu
 setkeys
 DO
@@ -1861,7 +1860,7 @@ WHILE temph * tempw > 32000
  temph = large(temph - 1, 10)
  tempw = large(tempw - 1, 16)
 WEND
-resize_rezoom_mini_map zoom, wide, high, tempx, tempy, tempw, temph, minimap, map(), tilesets()
+resize_rezoom_mini_map st, zoom, wide, high, tempx, tempy, tempw, temph, minimap, map()
 
 buildmenu:
 menu$(0) = "Cancel"
@@ -1886,7 +1885,7 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER, tilesets() AS TilesetData ptr)
+SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEGER, tempx AS INTEGER, tempy AS INTEGER, tempw AS INTEGER, temph AS INTEGER, BYREF minimap AS Frame Ptr, map() AS INTEGER)
  DIM lastzoom AS INTEGER
  lastzoom = zoom
  DIM AS INTEGER tw, th
@@ -1897,13 +1896,13 @@ SUB resize_rezoom_mini_map(BYREF zoom AS INTEGER, wide AS INTEGER, high AS INTEG
  zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
  IF zoom <> lastzoom THEN
   sprite_unload @minimap
-  minimap = createminimap(map(), tilesets(), zoom)
+  minimap = createminimap(map(), st.tilesets(), zoom)
  END IF
 END SUB
 
-SUB show_minimap(map() AS INTEGER, tilesets() AS TilesetData ptr)
+SUB show_minimap(BYREF st AS MapEditState, map() AS INTEGER)
  DIM minimap AS Frame Ptr
- minimap = createminimap(map(), tilesets())
+ minimap = createminimap(map(), st.tilesets())
 
  clearpage vpage
  sprite_draw minimap, NULL, 0, 0, 1, NO, vpage
@@ -1942,7 +1941,7 @@ END SUB
 
 'tile fill tool: iterate through all contiguous maptiles, changing if the area continues, and stopping if it is blocked by a different kind of maptile
 'do a breadth first search instead of using the stack; that's prone to overflow
-SUB paint_map_area(st AS MapEditState, oldTile, x, y, map(), pass(), defaults() AS DefArray, tilesets(), defpass)
+SUB paint_map_area(st AS MapEditState, oldTile, x, y, map(), pass(), defaults() AS DefArray, defpass)
  IF oldTile = st.usetile(st.layer) THEN EXIT SUB
  REDIM queue(250) AS XYPair 'a circular buffer. We don't use the last element
  DIM AS INTEGER head, tail, i, oldend
@@ -1963,7 +1962,7 @@ SUB paint_map_area(st AS MapEditState, oldTile, x, y, map(), pass(), defaults() 
   WITH queue(tail)
    IF readmapblock(.x, .y, st.layer) = oldTile THEN
     setmapblock .x, .y, st.layer, st.usetile(st.layer)
-    IF defpass THEN calculatepassblock .x, .y, map(), pass(), defaults(), tilesets()
+    IF defpass THEN calculatepassblock st, .x, .y, map(), pass(), defaults()
     paint_map_add_node oldTile, .x + 1, .y, map(0), map(1), st.layer, head, queue()
     paint_map_add_node oldTile, .x - 1, .y, map(0), map(1), st.layer, head, queue()
     paint_map_add_node oldTile, .x, .y + 1, map(0), map(1), st.layer, head, queue()
@@ -1993,7 +1992,7 @@ setpicstuf array(), 322, -1
 storeset workingdir & SLASH & "defpass.bin", tilesetnum, 0
 END SUB
 
-SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, tilesets()  as TilesetData ptr)
+SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER)
  st.menubar(0) = 16
  st.menubar(1) = 10
  setmapdata st.menubar(), pass(), 0, 0
@@ -2019,7 +2018,7 @@ SUB mapedit_pickblock(BYREF st AS MapEditState, pass() AS INTEGER, tilesets()  a
    IF st.tilepick.x > 15 THEN st.tilepick.x = 0: st.tilepick.y += 1
   END IF
   tog = tog XOR 1
-  drawmap 0, 0, 0, 0, tilesets(st.layer), dpage
+  drawmap 0, 0, 0, 0, st.tilesets(st.layer), dpage
   sprite_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , dpage
   ' copypage dpage, vpage
   setvispage dpage
