@@ -1228,6 +1228,9 @@ makelayermenu:
 
 END SUB
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
  DIM i AS INTEGER
  FOR i = 0 TO UBOUND(doors)
@@ -1297,29 +1300,28 @@ SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS 
  loadrecord gmap(), game & ".map", dimbinsize(binMAP), mapnum
  visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
  loadmaptilesets st.tilesets(), gmap()
- FOR i = 0 TO 2
+ FOR i AS INTEGER = 0 TO 2
   loadpasdefaults defaults(i).a(), st.tilesets(i)->num
  NEXT
- loadtiledata maplumpname$(mapnum, "t"), map(), 3, wide, high
- loadtiledata maplumpname$(mapnum, "p"), pass()
- loadtiledata maplumpname$(mapnum, "e"), emap()
+ loadtiledata maplumpname(mapnum, "t"), map(), 3, wide, high
+ loadtiledata maplumpname(mapnum, "p"), pass()
+ loadtiledata maplumpname(mapnum, "e"), emap()
  LoadNPCL maplumpname(mapnum, "l"), st.npc_inst()
  LoadNPCD maplumpname(mapnum, "n"), st.npc_def()
  deserdoors game & ".dox", doors(), mapnum
- deserdoorlinks maplumpname$(mapnum, "d"), link()
- mapname$ = getmapname$(mapnum)
- verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
+ deserdoorlinks maplumpname(mapnum, "d"), link()
+ verify_map_size mapnum, wide, high, map(), pass(), emap(), getmapname(mapnum)
 END SUB
 
 SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
  storerecord gmap(), game & ".map", getbinsize(binMAP) / 2, mapnum
- savetiledata maplumpname$(mapnum, "t"), map(), 3
- savetiledata maplumpname$(mapnum, "p"), pass()
- savetiledata maplumpname$(mapnum, "e"), emap()
+ savetiledata maplumpname(mapnum, "t"), map(), 3
+ savetiledata maplumpname(mapnum, "p"), pass()
+ savetiledata maplumpname(mapnum, "e"), emap()
  SaveNPCL maplumpname(mapnum, "l"), st.npc_inst()
  SaveNPCD maplumpname(mapnum, "n"), st.npc_def()
  serdoors game & ".dox", doors(), mapnum
- serdoorlinks maplumpname$(mapnum, "d"), link()
+ serdoorlinks maplumpname(mapnum, "d"), link()
  '--save map name
  DIM mapsave(39) AS INTEGER
  mapsave(0) = LEN(mapname)
@@ -1351,12 +1353,12 @@ SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  'map(0) = wide: map(1) = high
  pass(0) = wide: pass(1) = high
  emap(0) = wide: emap(1) = high
- savetiledata maplumpname$(mapnum, "t"), map(), 3
- savetiledata maplumpname$(mapnum, "p"), pass()
- savetiledata maplumpname$(mapnum, "e"), emap()
- loadtiledata maplumpname$(mapnum, "t"), map(), 3, wide, high
- loadtiledata maplumpname$(mapnum, "p"), pass()
- loadtiledata maplumpname$(mapnum, "e"), emap()
+ savetiledata maplumpname(mapnum, "t"), map(), 3
+ savetiledata maplumpname(mapnum, "p"), pass()
+ savetiledata maplumpname(mapnum, "e"), emap()
+ loadtiledata maplumpname(mapnum, "t"), map(), 3, wide, high
+ loadtiledata maplumpname(mapnum, "p"), pass()
+ loadtiledata maplumpname(mapnum, "e"), emap()
  j += 1
  printstr "please report this error to", 0, j * 8, vpage: j += 1
  printstr "ohrrpgce@HamsterRepublic.com", 0, j * 8, vpage: j += 1
@@ -1499,7 +1501,7 @@ SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INT
    state.need_update = NO
    DrawDoorPair st, mapnum, state.pt, map(), pass(), doors(), link(), gmap()
   END IF
-  FOR i = state.top TO small(state.top + state.size, state.last)
+  FOR i AS INTEGER = state.top TO small(state.top + state.size, state.last)
    col = uilook(uiMenuItem)
    IF state.pt = i THEN
     col = uilook(uiSelectedItem + state.tog)
@@ -1603,7 +1605,7 @@ SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGE
    IF enter_or_space() THEN EXIT DO
   END IF
   rectangle 0, 100, 320, 2, uilook(uiSelectedDisabled + state.tog), dpage
-  FOR i = -1 TO 4
+  FOR i AS INTEGER = -1 TO 4
    menu_temp = ""
    SELECT CASE i
     CASE 0
@@ -1676,8 +1678,8 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
  DIM as integer dmx, dmy, i
  DIM as string caption
  DIM destdoor(99) as door
+ DIM destmap AS INTEGER
  DIM gmap2(dimbinsize(binMAP))
-' DIM othertilesets(2) as TilesetData ptr
  
  clearpage 2
  IF link(cur).source = -1 THEN EXIT SUB
@@ -1707,7 +1709,6 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
  deserdoors game + ".dox", destdoor(), destmap
  LoadTiledata maplumpname$(destmap, "t"), map(), 3
  LoadTiledata maplumpname$(destmap, "p"), pass()
-' loadmaptilesets othertilesets(), gmap2()
  loadmaptilesets st.tilesets(), gmap2()
 
  setmapdata map(), pass(), 101, 0
@@ -1734,9 +1735,6 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
  LoadTiledata maplumpname$(curmap, "p"), pass()
  loadmaptilesets st.tilesets(), gmap()
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS DefArray)
  setmapdata map(), pass(), 0, 0
