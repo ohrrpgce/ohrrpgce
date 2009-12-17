@@ -1735,10 +1735,14 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
  loadmaptilesets st.tilesets(), gmap()
 END SUB
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map() AS INTEGER, pass() AS INTEGER, defaults() AS DefArray)
  setmapdata map(), pass(), 0, 0
- n = 0
- FOR i = 0 TO 2
+ DIM n AS INTEGER = 0
+ DIM tilenum AS INTEGER
+ FOR i AS INTEGER = 0 TO 2
   tilenum = readmapblock(x, y, i)
   IF i = 0 OR tilenum > 0 THEN
    n = n OR defaults(i).a(animadjust(tilenum, st.tilesets(i)->tastuf()))
@@ -1746,9 +1750,6 @@ SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map
  NEXT i
  setpassblock x, y, n
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB resizetiledata (array() AS INTEGER, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER, layers AS INTEGER)
  resizetiledata array(), rs.spot.x, rs.spot.y, rs.size.x, rs.size.y, yout, page, layers
@@ -1758,13 +1759,6 @@ SUB resizetiledata (array() AS INTEGER, x_off AS INTEGER, y_off AS INTEGER, new_
  edgeprint "Resizing Map...", 0, yout * 10, uilook(uiText), page
  yout += 1
  setvispage page
-' debug "sizemar"
-' debug "old_width = " & old_width & ", " & _
-'       "old_height = " & old_height & ", " & _
-'       "old_x = " & old_x & ", " & _
-'       "old_y = " & old_y & ", " & _
-'       "new_width = " & new_width & ", " & _
-'       "new_height = " & new_height
 
  dim as integer tmp(ubound(array)), i, x, y, j
 
@@ -1787,10 +1781,32 @@ END SUB
 
 SUB resizemapmenu (BYREF st AS MapEditState, map(), BYREF rs AS MapResizeState)
  'returns the new size and offset in passed args, or -1 width to cancel
- DIM tog AS INTEGER
- DIM csr AS INTEGER = 1
+
+ WITH rs.menu
+  .anchor.x = -1
+  .anchor.y = 1
+  .offset.x = -160
+  .offset.y = 100
+  .align = -1
+  .no_box = YES
+  .bordersize = -8
+ END WITH
+ append_menu_item rs.menu, "Cancel"
+ FOR i AS INTEGER = 1 TO 6
+  append_menu_item rs.menu, ""
+ NEXT i
+ rs.menu.items(5).disabled = YES
+ rs.menu.items(6).disabled = YES
+
+ DIM state AS MenuState
+ state.active = YES
+ init_menu_state state, rs.menu
+ state.pt = 1
+ state.last = 4
+ 
  DIM incval AS INTEGER = 0
  DIM drawoff AS XYPair
+ 
  rs.zoom = 0
  rs.oldsize.x = map(0)
  rs.oldsize.y = map(1)
@@ -1798,60 +1814,60 @@ SUB resizemapmenu (BYREF st AS MapEditState, map(), BYREF rs AS MapResizeState)
  rs.size.y = rs.oldsize.y
  rs.spot.x = 0
  rs.spot.y = 0
-setmapdata map(), map(), 20, 0
-resize_rezoom_mini_map st, rs, map()
-resize_buildmenu rs
-setkeys
-DO
- setwait 55
+ 
+ setmapdata map(), map(), 20, 0
+ resize_rezoom_mini_map st, rs, map()
+ resize_buildmenu rs
  setkeys
- tog = tog xor 1
- IF keyval(scESC) > 1 THEN
-  rs.size.x = -1
-  rs.size.y = -1
-  EXIT DO
- END IF
- IF keyval(scF1) > 1 THEN show_help "resize_map"
- usemenu csr, 0, 0, 4, 10
- IF keyval(scAlt) > 0 THEN incval = 8 ELSE incval = 1
- SELECT CASE csr
-  CASE 0
-   IF keyval(scEnter) > 1 THEN
-    rs.size.x = -1
-    rs.size.y = -1
-    EXIT DO
-   END IF
-  CASE 1
-   IF keyval(scLeft) > 0 THEN rs.size.x -= incval 
-   IF keyval(scRight) > 0 THEN rs.size.x += incval
-   resize_correct_width st, rs, map()
-  CASE 2
-   IF keyval(scLeft) > 0 THEN rs.size.y -= incval 
-   IF keyval(scRight) > 0 THEN rs.size.y += incval
-   resize_correct_height st, rs, map()
-  CASE 3
-   IF keyval(scLeft) > 0 THEN rs.spot.x -= incval: rs.size.x += incval
-   IF keyval(scRight) > 0 THEN rs.spot.x += incval: rs.size.x -= incval
-   resize_correct_width st, rs, map()
-  CASE 4
-   IF keyval(scLeft) > 0 THEN rs.spot.y -= incval: rs.size.y += incval
-   IF keyval(scRight) > 0 THEN rs.spot.y += incval: rs.size.y -= incval
-   resize_correct_height st, rs, map()
- END SELECT
- IF keyval(scEnter) > 1 THEN EXIT DO
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN
+   rs.size.x = -1
+   rs.size.y = -1
+   EXIT DO
+  END IF
+  IF keyval(scF1) > 1 THEN show_help "resize_map"
+  usemenu state
+  IF keyval(scAlt) > 0 THEN incval = 8 ELSE incval = 1
+  SELECT CASE state.pt
+   CASE 0
+    IF keyval(scEnter) > 1 THEN
+     rs.size.x = -1
+     rs.size.y = -1
+     EXIT DO
+    END IF
+   CASE 1
+    IF keyval(scLeft) > 0 THEN rs.size.x -= incval 
+    IF keyval(scRight) > 0 THEN rs.size.x += incval
+    resize_correct_width st, rs, map()
+   CASE 2
+    IF keyval(scLeft) > 0 THEN rs.size.y -= incval 
+    IF keyval(scRight) > 0 THEN rs.size.y += incval
+    resize_correct_height st, rs, map()
+   CASE 3
+    IF keyval(scLeft) > 0 THEN rs.spot.x -= incval: rs.size.x += incval
+    IF keyval(scRight) > 0 THEN rs.spot.x += incval: rs.size.x -= incval
+    resize_correct_width st, rs, map()
+   CASE 4
+    IF keyval(scLeft) > 0 THEN rs.spot.y -= incval: rs.size.y += incval
+    IF keyval(scRight) > 0 THEN rs.spot.y += incval: rs.size.y -= incval
+    resize_correct_height st, rs, map()
+  END SELECT
+  IF keyval(scEnter) > 1 THEN EXIT DO
 
- clearpage dpage
- drawoff.x = large(0, -rs.spot.x * rs.zoom)
- drawoff.y = large(0, -rs.spot.y * rs.zoom)
- sprite_draw rs.minimap, NULL, drawoff.x, drawoff.y, 1, NO, dpage
- standardmenu rs.menu(), UBOUND(rs.menu), 28, csr, 0, 0, 140, dpage, YES
- drawbox drawoff.x + rs.zoom * rs.spot.x, drawoff.y + rs.zoom * rs.spot.y, rs.zoom * rs.size.x, rs.zoom * rs.size.y, 14 + tog, dpage
+  clearpage dpage
+  drawoff.x = large(0, -rs.spot.x * rs.zoom)
+  drawoff.y = large(0, -rs.spot.y * rs.zoom)
+  sprite_draw rs.minimap, NULL, drawoff.x, drawoff.y, 1, NO, dpage
+  draw_menu rs.menu, state, dpage
+  drawbox drawoff.x + rs.zoom * rs.spot.x, drawoff.y + rs.zoom * rs.spot.y, rs.zoom * rs.size.x, rs.zoom * rs.size.y, 14 + state.tog, dpage
 
- SWAP dpage, vpage
- setvispage vpage
- dowait
-LOOP
-sprite_unload @(rs.minimap)
+  SWAP dpage, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ sprite_unload @(rs.minimap)
 EXIT SUB
 
 END SUB
@@ -1884,21 +1900,20 @@ SUB resize_dimchange(BYREF st AS MapEditState, BYREF rs AS MapResizeState, map()
 END SUB
 
 SUB resize_buildmenu(BYREF rs AS MapResizeState)
- rs.menu(0) = "Cancel"
- rs.menu(1) = "Width " & rs.oldsize.x & CHR(26) & rs.size.x
- rs.menu(2) = "Height " & rs.oldsize.y & CHR(26) & rs.size.y
+ rs.menu.items(1).caption = "Width " & rs.oldsize.x & CHR(26) & rs.size.x
+ rs.menu.items(2).caption = "Height " & rs.oldsize.y & CHR(26) & rs.size.y
  IF rs.spot.x > 0 THEN
-  rs.menu(3) = "Left edge: trim " & rs.spot.x & " tiles"
+  rs.menu.items(3).caption = "Left edge: trim " & rs.spot.x & " tiles"
  ELSE
-  rs.menu(3) = "Left edge: add " & -rs.spot.x & " tiles"
+  rs.menu.items(3).caption = "Left edge: add " & -rs.spot.x & " tiles"
  END IF
  IF rs.spot.y > 0 THEN
-  rs.menu(4) = "Top edge: trim " & rs.spot.y & " tiles"
+  rs.menu.items(4).caption = "Top edge: trim " & rs.spot.y & " tiles"
  ELSE
-  rs.menu(4) = "Top edge: add " & -rs.spot.y & " tiles"
+  rs.menu.items(4).caption = "Top edge: add " & -rs.spot.y & " tiles"
  END IF
- rs.menu(5) = "Area " & (rs.oldsize.x * rs.oldsize.y) & CHR(26) & (rs.size.y * rs.size.x)
- rs.menu(6) = rs.zoom & "x zoom"
+ rs.menu.items(5).caption = "Area " & (rs.oldsize.x * rs.oldsize.y) & CHR(26) & (rs.size.y * rs.size.x)
+ rs.menu.items(6).caption = rs.zoom & "x zoom"
 END SUB
 
 SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF rs AS MapResizeState, map() AS INTEGER)

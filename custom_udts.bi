@@ -131,7 +131,7 @@ TYPE MapEditState
 END TYPE
 
 TYPE MapResizeState
-  menu(6) AS STRING
+  menu AS MenuDef
   size AS XYPair
   spot AS XYPair
   oldsize AS XYPair
