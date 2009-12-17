@@ -288,6 +288,10 @@ sub io_fb_pollkeyevents()
 	process_events()
 end sub
 
+sub io_fb_waitprocessing()
+	'not needed by this backend
+end sub
+
 sub io_fb_updatekeys(byval keybd as integer ptr)
 	process_events()
 
@@ -379,6 +383,7 @@ function gfx_fb_setprocptrs() as integer
 	gfx_describe_options = @gfx_fb_describe_options
 	io_init = @io_fb_init
 	io_pollkeyevents = @io_fb_pollkeyevents
+	io_waitprocessing = @io_fb_waitprocessing
 	io_keybits = @io_amx_keybits
 	io_updatekeys = @io_fb_updatekeys
 	io_mousebits = @io_amx_mousebits

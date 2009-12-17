@@ -20,6 +20,7 @@ dim gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring pt
 dim gfx_describe_options as function () as zstring ptr
 dim io_init as sub ()
 dim io_pollkeyevents as sub ()
+dim io_waitprocessing as sub ()
 dim io_keybits as sub (keybdarray as integer ptr)
 dim io_updatekeys as sub (byval keybd as integer ptr)
 dim io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
@@ -28,9 +29,6 @@ dim io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel a
 dim io_setmouse as sub (byval x as integer, byval y as integer)
 dim io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 dim io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
-
-dim as string gfxbackend, musicbackend
-dim as string gfxbackendinfo, musicbackendinfo
 
 declare function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 declare function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
@@ -49,19 +47,20 @@ type GfxBackendStuff
 	load as function () as integer
 	unload as sub ()
 	init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
+	wantpolling as integer
 end type
 
 #ifdef GFX_ALLEG_BACKEND
-dim shared as GfxBackendStuff alleg_stuff = ("alleg", @gfx_alleg_setprocptrs, NULL, @gfx_alleg_init)
+dim shared as GfxBackendStuff alleg_stuff = ("alleg", @gfx_alleg_setprocptrs, NULL, @gfx_alleg_init, YES)
 #endif
 #ifdef GFX_DIRECTX_BACKEND
-dim shared as GfxBackendStuff directx_stuff = ("directx", @gfx_directx_setprocptrs, @gfx_directx_unload, NULL)
+dim shared as GfxBackendStuff directx_stuff = ("directx", @gfx_directx_setprocptrs, @gfx_directx_unload, NULL, YES)
 #endif
 #ifdef GFX_FB_BACKEND
-dim shared as GfxBackendStuff fb_stuff = ("fb", @gfx_fb_setprocptrs, NULL, @gfx_fb_init)
+dim shared as GfxBackendStuff fb_stuff = ("fb", @gfx_fb_setprocptrs, NULL, @gfx_fb_init, YES)
 #endif
 #ifdef GFX_SDL_BACKEND
-dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, NULL, @gfx_sdl_init)
+dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, NULL, @gfx_sdl_init, NO)
 #endif
 
 
@@ -69,15 +68,22 @@ dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, NULL, @g
 'plus the extern block nonsense, oh what a mess
 end extern
 dim shared gfx_choices() as GfxBackendStuff ptr
+
 'sets up pointers to *_stuff variables, in some build-dependent order
 GFX_CHOICES_INIT
 extern "C"
 
+dim shared currentgfxbackend as GfxBackendStuff ptr = NULL
 dim shared gfx_directx as any ptr
-dim shared gfx_loaded as integer = 0
 dim shared queue_error as string  'queue up errors until it's possible to actually display them (TODO: not implemented)
+dim wantpollingthread as integer
+dim as string gfxbackend, musicbackend
+dim as string gfxbackendinfo, musicbackendinfo
 
 #ifdef GFX_DIRECTX_BACKEND
+
+sub io_dummy_waitprocessing()
+end sub
 
 function gfx_directx_setprocptrs() as integer
 	if gfx_directx <> 0 then return 1
@@ -108,6 +114,7 @@ function gfx_directx_setprocptrs() as integer
 	gfx_describe_options = dylibsymbol(gfx_directx, "gfx_describe_options")
 	io_init = dylibsymbol(gfx_directx, "io_init")
 	io_pollkeyevents = dylibsymbol(gfx_directx, "io_pollkeyevents")
+	io_waitprocessing = @io_dummy_waitprocessing
 	io_keybits = @io_amx_keybits
 	io_updatekeys = dylibsymbol(gfx_directx, "io_updatekeys")
 	io_mousebits = @io_amx_mousebits
@@ -194,12 +201,13 @@ end function
 
 'onlyfirst: only try the most prefered. Returns 1 on success
 function gfx_load(onlyfirst as integer) as integer
-	if gfx_loaded then return 1 'hmm
+	if currentgfxbackend <> NULL then return 1 'hmm
 	for i as integer = 0 to ubound(gfx_choices)
 		if gfx_choices(i)->load() then
-			gfx_loaded = YES
+			currentgfxbackend = gfx_choices(i)
 			gfxbackendinfo = "gfx_" + gfx_choices(i)->name
 			gfxbackend = gfx_choices(i)->name
+			wantpollingthread = gfx_choices(i)->wantpolling
 			return 1
 		end if
 		if onlyfirst then return 0
@@ -208,7 +216,7 @@ function gfx_load(onlyfirst as integer) as integer
 	return 0
 end function
 
-sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
+sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if .load() then
@@ -218,6 +226,8 @@ sub gfx_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as
 				gfxbackend = .name
 				if .init(terminate_signal_handler, windowicon, @info_buffer, 256) = 0 then 
 					if .unload then .unload()
+					currentgfxbackend = NULL
+					'TODO: what about the polling thread?
 					queue_error = info_buffer
 					debug queue_error
 				else

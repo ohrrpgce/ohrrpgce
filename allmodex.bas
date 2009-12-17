@@ -148,7 +148,7 @@ sub setmodex()
 	next
 	'other vpages slots are for temporary pages
 
-	gfx_init(@post_terminate_signal, "FB_PROGRAM_ICON")
+	gfx_backend_init(@post_terminate_signal, "FB_PROGRAM_ICON")
 	setclip , , , , 0
 
 	hash_construct(sprcache, offsetof(SpriteCacheEntry, hashed))
@@ -167,7 +167,9 @@ sub setmodex()
 	mouseflags = 0
 
 	keybdmutex = mutexcreate
-	keybdthread = threadcreate(@pollingthread)
+	if wantpollingthread then
+		keybdthread = threadcreate(@pollingthread)
+	end if
 
 	io_init()
 	'mouserect(-1,-1,-1,-1)
@@ -336,7 +338,7 @@ SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 		mutexlock keybdmutex
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
-        sleep 15 'how long?
+		sleep 15 'how long?
 	next
 
 	'Make sure the palette gets set on the final pass
@@ -864,9 +866,10 @@ FUNCTION waitforanykey (modkeys=-1) as integer
 	setkeys
 	do
 		setwait 100
+		io_pollkeyevents()
 		setkeys
 		for i = 1 to &h7f
-			if not modkeys and (i=29 or i=56 or i=42 or i=54) then continue for
+			if not modkeys and (i=29 or i=56 or i=42 or i=54) then continue for  'what's the reason for this again? If I knew, I'd delete this function
 			if keyval(i) > 1 then return i
 		next i
 		dowait
@@ -882,6 +885,7 @@ FUNCTION getkey () as integer
 
 	setkeys
 	do
+		setwait 50
 		io_pollkeyevents()
 		setkeys
 		for i=1 to &h7f
@@ -897,7 +901,7 @@ FUNCTION getkey () as integer
 				if joybutton and (i ^ 2) then key = 127 + i
 			next i
 		end if
-		sleep 50
+		dowait
 	loop while key = 0
 	'prevent crazy fast pseudo-keyrepeat
 	sleep 25
@@ -1019,14 +1023,15 @@ sub pollingthread(byval unused as threadbs)
 			'move the bit (clearing it) that io_updatekeys sets from 8 to 1
 			keybdstate(a) = (keybdstate(a) and 6) or ((keybdstate(a) shr 3) and 1)
 		next
+
 		io_getmouse(dummy, dummy, dummy, buttons)
 		mouseflags = mouseflags or (buttons and not mouselastflags)
 		mouselastflags = buttons
+
 		mutexunlock keybdmutex
 
-		'Despite this being so low, some clicks are still missed on some computers!
-		'Normally, 25ms was found to be sufficient
-		sleep 8
+		'25ms was found to be sufficient
+		sleep 25
 	wend
 end sub
 
@@ -1466,7 +1471,8 @@ FUNCTION dowait () as integer
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
 	dim i as integer
 	do while timer <= waittime
-		sleep 5 'is this worth it?
+		sleep 9
+		io_waitprocessing()
 	loop
 	if waitset = 1 then
 		waitset = 0
@@ -1911,9 +1917,9 @@ SUB storeset (fil$, BYVAL i as integer, BYVAL l as integer)
 		sptr = sptr + (vpages(wrkpage)->pitch * l)
 		idx = bsize
 		while idx > vpages(wrkpage)->w
-		      fput(f, , sptr, vpages(wrkpage)->w)
-		      idx -= vpages(wrkpage)->w
-		      sptr += vpages(wrkpage)->pitch
+			fput(f, , sptr, vpages(wrkpage)->w)
+			idx -= vpages(wrkpage)->w
+			sptr += vpages(wrkpage)->pitch
 		wend
 		fput(f, , sptr, idx)
 	else
@@ -1958,9 +1964,9 @@ SUB loadset (fil$, BYVAL i as integer, BYVAL l as integer)
 		sptr = sptr + (vpages(wrkpage)->pitch * l)
 		idx = bsize
 		while idx > vpages(wrkpage)->w
-		      fget(f, , sptr, vpages(wrkpage)->w)
-		      idx -= vpages(wrkpage)->w
-		      sptr += vpages(wrkpage)->pitch
+			fget(f, , sptr, vpages(wrkpage)->w)
+			idx -= vpages(wrkpage)->w
+			sptr += vpages(wrkpage)->pitch
 		wend
 		fget(f, , sptr, idx)
 	else
@@ -2028,9 +2034,9 @@ SUB fixspriterecord (buf() as integer, w as integer, h as integer)
 END SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$)
-    ' attrib 0: all files 'cept folders, attrib 16: folders only
+	' attrib 0: all files 'cept folders, attrib 16: folders only
 #ifdef __FB_LINUX__
-        'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
+	'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
 	DIM grep$, shellout$
 	shellout$ = "/tmp/ohrrpgce-findfiles-" + STR$(RND * 10000) + ".tmp"
 	grep$ = "-v '/$'"
@@ -2092,7 +2098,7 @@ SUB findfiles (fmask$, BYVAL attrib, outfile$)
 	OPEN outfile$ FOR OUTPUT AS #realf
 	DO UNTIL EOF(tempf)
 	LINE INPUT #tempf, a$
-        IF attrib = 55 THEN
+	IF attrib = 55 THEN
 		'alright, we want directories, but DIR$ is too broken to give them to us
 		'files with attribute 0 appear in the list, so single those out
 		IF DIR$(folder$ + a$, 55) <> "" AND DIR$(folder$ + a$, 39) = "" THEN PRINT #realf, a$
@@ -2210,8 +2216,7 @@ SUB loadsong (f$)
 	songname = f$
 	songtype = getmusictype(f$)
 
-  music_play(songname, songtype)
-
+	music_play(songname, songtype)
 end SUB
 
 SUB pausesong ()

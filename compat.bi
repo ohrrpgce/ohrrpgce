@@ -40,6 +40,7 @@
 #ENDIF
 CONST build_info as string = "" _GSTR _ESTR _SSTR _PSTR
 
+EXTERN wantpollingthread as integer
 EXTERN as string gfxbackend, musicbackend
 EXTERN as string gfxbackendinfo, musicbackendinfo
 

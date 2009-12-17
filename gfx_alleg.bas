@@ -176,6 +176,10 @@ sub io_alleg_pollkeyevents()
 	'not needed by this backend
 end sub
 
+sub io_alleg_waitprocessing()
+	'not needed by this backend
+end sub
+
 sub io_alleg_updatekeys(byval keybd as integer ptr)
 	dim a as integer
 	for a = 0 to &h7f
@@ -240,6 +244,7 @@ function gfx_alleg_setprocptrs() as integer
 	gfx_describe_options = @gfx_alleg_describe_options
 	io_init = @io_alleg_init
 	io_pollkeyevents = @io_alleg_pollkeyevents
+	io_waitprocessing = @io_alleg_waitprocessing
 	io_keybits = @io_amx_keybits
 	io_updatekeys = @io_alleg_updatekeys
 	io_mousebits = @io_amx_mousebits

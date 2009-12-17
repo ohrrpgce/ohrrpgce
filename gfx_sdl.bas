@@ -28,7 +28,8 @@ DECLARE FUNCTION putenv (byval as zstring ptr) as integer
 
 DECLARE FUNCTION gfx_sdl_set_screen_mode() as integer
 DECLARE SUB gfx_sdl_update_screen()
-DECLARE SUB gfx_sdl_process_events()
+DECLARE SUB update_state()
+DECLARE FUNCTION update_mouse() as integer
 
 DIM SHARED zoom AS INTEGER = 2
 DIM SHARED smooth AS INTEGER = 0
@@ -43,6 +44,8 @@ DIM SHARED dest_rect AS SDL_Rect
 DIM SHARED mouseclipped AS INTEGER = 0
 DIM SHARED AS INTEGER mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 DIM SHARED AS INTEGER privatemx, privatemy, lastmx, lastmy
+DIM SHARED keybdstate(127) AS INTEGER  '"real"time keyboard array
+DIM SHARED mouseclicks AS INTEGER
 
 END EXTERN 'weirdness
 'Translate SDL scancodes into a OHR scancodes
@@ -297,8 +300,7 @@ SUB gfx_sdl_update_screen()
     END IF
 '/
     SDL_Flip(screensurface)
-    'frankly, I have no idea why this is here
-    gfx_sdl_process_events()
+    update_state()
   END IF
 END SUB
 
@@ -327,7 +329,7 @@ END SUB
 
 SUB gfx_sdl_windowtitle(byval title as zstring ptr)
   IF SDL_WasInit(SDL_INIT_VIDEO) then
-    SDL_WM_SetCaption(title, title)	
+    SDL_WM_SetCaption(title, title)
   END IF
 END SUB
 
@@ -375,65 +377,87 @@ END SUB
 SUB gfx_sdl_process_events()
 'The SDL event queue only holds 128 events, after which SDL_QuitEvents will be lost
 'Of course, we might actually like to do something with some of the other events
-  DIM tempevent as SDL_Event
+  DIM evnt as SDL_Event
 
-  WHILE SDL_PollEvent(@tempevent)
-    SELECT CASE tempevent.type
+  WHILE SDL_PeepEvents(@evnt, 1, SDL_GETEVENT, SDL_ALLEVENTS)
+    SELECT CASE evnt.type
       CASE SDL_EXIT
         post_terminate_signal
       CASE SDL_KEYDOWN
-        keystate = SDL_GetKeyState(NULL)
-        IF tempevent.key.keysym.mod_ AND KMOD_ALT THEN
-          IF tempevent.key.keysym.sym = SDLK_RETURN THEN  'alt-enter
+        IF evnt.key.keysym.mod_ AND KMOD_ALT THEN
+          IF evnt.key.keysym.sym = SDLK_RETURN THEN  'alt-enter (not processed normally when using SDL)
             gfx_sdl_setwindowed(windowedmode XOR -1)
           END IF
-          IF tempevent.key.keysym.sym = SDLK_F4 THEN  'alt-F4
+          IF evnt.key.keysym.sym = SDLK_F4 THEN  'alt-F4
             post_terminate_signal
           END IF
         END IF
+        DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
+        IF key THEN keybdstate(key) = 7
+      CASE SDL_KEYUP
+        DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
+        IF key THEN keybdstate(key) AND= NOT 1
+      CASE SDL_MOUSEBUTTONDOWN
+        'note SDL_GetMouseState is still used, while SDL_GetKeyState isn't
+        mouseclicks OR= 1 SHL evnt.button.button
       CASE SDL_ACTIVEEVENT
-        'debug "SDL_ACTIVEEVENT " & tempevent.active.state
-        IF tempevent.active.state AND SDL_APPINPUTFOCUS THEN 
-          IF tempevent.active.gain = 0 THEN
+        'debug "SDL_ACTIVEEVENT " & evnt.active.state
+        IF evnt.active.state AND SDL_APPINPUTFOCUS THEN 
+          IF evnt.active.gain = 0 THEN
             SDL_ShowCursor(1)
-          END IF
-          IF tempevent.active.gain = 1 THEN
+            IF mouseclipped = 1 THEN
+              SDL_WarpMouse privatemx, privatemy
+              SDL_PumpEvents
+            END IF
+          ELSE
             IF windowedmode THEN
               SDL_ShowCursor(rememmvis)
             ELSE
               SDL_ShowCursor(0)
             END IF
+            IF mouseclipped = 1 THEN
+              SDL_GetMouseState(@privatemx, @privatemy)
+              lastmx = privatemx
+              lastmy = privatemy
+              'SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
+              'SDL_PumpEvents
+              'lastmx = screensurface->w \ 2
+              'lastmy = screensurface->h \ 2
+            END IF
           END IF
-          IF mouseclipped = 1 AND tempevent.active.gain = 1 THEN
-            SDL_GetMouseState(@privatemx, @privatemy)
-            SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
-            SDL_PumpEvents
-            lastmx = screensurface->w \ 2
-            lastmy = screensurface->h \ 2
-	  END IF
         END IF
       'CASE SDL_VIDEORESIZE
-        'debug "SDL_VIDEORESIZE: w=" & tempevent.resize.w & " h=" & tempevent.resize.h
+        'debug "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
     END SELECT
   WEND
 END SUB
 
-SUB io_sdl_pollkeyevents()
-  SDL_Flip(screensurface)
+'may only be called from the main thread
+SUB update_state()
+  SDL_PumpEvents()
+  update_mouse()
   gfx_sdl_process_events()
 END SUB
 
-SUB io_sdl_updatekeys(byval keybd as integer ptr)
-  gfx_sdl_process_events()
-  keystate = SDL_GetKeyState(NULL)
-  FOR a as integer = 0 TO 322
-    IF keystate[a] THEN
-      'print "OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
-      IF scantrans(a) THEN
-        keybd[scantrans(a)] = keybd[scantrans(a)] OR 8
-      END IF
-    END IF
+SUB io_sdl_pollkeyevents()
+  'might need to redraw the screen if exposed
+  SDL_Flip(screensurface)
+  update_state()
+END SUB
+
+SUB io_sdl_waitprocessing()
+  update_state()
+END SUB
+
+SUB io_sdl_keybits (keybdarray as integer ptr)
+  FOR a AS INTEGER = 0 TO &h7f
+    keybdarray[a] = keybdstate(a)
+    keybdstate(a) = keybdstate(a) and 1
   NEXT
+END SUB
+
+SUB io_sdl_updatekeys(byval keybd as integer ptr)
+  'supports io_keybits instead
 END SUB
 
 SUB io_sdl_setmousevisibility(byval visible as integer)
@@ -441,7 +465,16 @@ SUB io_sdl_setmousevisibility(byval visible as integer)
   SDL_ShowCursor(iif(windowedmode, rememmvis, 0))
 END SUB
 
-SUB io_sdl_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+'Change from SDL to OHR mouse button numbering (swap middle and right)
+FUNCTION fix_buttons(byval buttons as integer)
+  DIM mbuttons as integer = 0
+  IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR 1
+  IF SDL_BUTTON(SDL_BUTTON_RIGHT) AND buttons THEN mbuttons = mbuttons OR 2
+  IF SDL_BUTTON(SDL_BUTTON_MIDDLE) AND buttons THEN mbuttons = mbuttons OR 4
+  RETURN mbuttons
+END FUNCTION
+
+FUNCTION update_mouse() as integer
   DIM x AS INTEGER
   DIM y AS INTEGER
   DIM buttons AS Uint8
@@ -449,13 +482,13 @@ SUB io_sdl_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as
   buttons = SDL_GetMouseState(@x, @y)
   IF SDL_GetAppState() AND SDL_APPINPUTFOCUS THEN
     IF mouseclipped THEN
-      'Not moving the mouse back to the centre of the window rapidly is widely recommended.
+      'Not moving the mouse back to the centre of the window rapidly is widely recommended, but I haven't seen (nor looked for) evidence that it's bad.
       'Implemented only due to attempting to fix eventually unrelated problem. Possibly beneficial to keep
       'debug "mousestate " & x & " " & y & " (" & lastmx & " " & lastmy & ")"
       privatemx += x - lastmx
       privatemy += y - lastmy
-      IF x < screensurface->w \ 4 OR x > 3 * screensurface->w \ 4 OR _
-         y < screensurface->h \ 4 OR y > 3 * screensurface->h \ 4 THEN
+      IF x < 3 * screensurface->w \ 8 OR x > 5 * screensurface->w \ 8 OR _
+         y < 3 * screensurface->h \ 8 OR y > 5 * screensurface->h \ 8 THEN
         SDL_WarpMouse screensurface->w \ 2, screensurface->h \ 2
         'Required after warping the mouse for it to take effect. Discovered with much blood, sweat, and murderous rage
         SDL_PumpEvents
@@ -473,14 +506,22 @@ SUB io_sdl_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as
       privatemy = y
     END IF
   END IF
+  RETURN buttons
+END FUNCTION
+
+SUB io_sdl_mousebits (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
+  DIM buttons as integer
+  buttons = update_mouse()
   mx = privatemx \ zoom
   my = privatemy \ zoom
 
+  mclicks = fix_buttons(mouseclicks)
+  mbuttons = fix_buttons(buttons or mouseclicks)
+  mouseclicks = 0
+END SUB
 
-  mbuttons = 0
-  IF SDL_BUTTON(SDL_BUTTON_LEFT) AND buttons THEN mbuttons = mbuttons OR 1
-  IF SDL_BUTTON(SDL_BUTTON_RIGHT) AND buttons THEN mbuttons = mbuttons OR 2
-  IF SDL_BUTTON(SDL_BUTTON_MIDDLE) AND buttons THEN mbuttons = mbuttons OR 4
+SUB io_sdl_getmouse(mx as integer, my as integer, mwheel as integer, mbuttons as integer)
+  'supports io_mousebits instead
 END SUB
 
 SUB io_sdl_setmouse(byval x as integer, byval y as integer)
@@ -549,9 +590,10 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_describe_options = @gfx_sdl_describe_options
   io_init = @io_sdl_init
   io_pollkeyevents = @io_sdl_pollkeyevents
-  io_keybits = @io_amx_keybits
+  io_waitprocessing = @io_sdl_waitprocessing
+  io_keybits = @io_sdl_keybits
   io_updatekeys = @io_sdl_updatekeys
-  io_mousebits = @io_amx_mousebits
+  io_mousebits = @io_sdl_mousebits
   io_setmousevisibility = @io_sdl_setmousevisibility
   io_getmouse = @io_sdl_getmouse
   io_setmouse = @io_sdl_setmouse
