@@ -232,6 +232,7 @@ function io_alleg_readjoysane(byval joynum as integer, byref button as integer, 
 end function
 
 function gfx_alleg_setprocptrs() as integer
+	gfx_init = @gfx_alleg_init
 	gfx_close = @gfx_alleg_close
 	gfx_getversion = @gfx_alleg_getversion
 	gfx_showpage = @gfx_alleg_showpage

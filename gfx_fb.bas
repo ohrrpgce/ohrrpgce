@@ -371,6 +371,7 @@ function io_fb_readjoysane(byval joynum as integer, byref button as integer, byr
 end function
 
 function gfx_fb_setprocptrs() as integer
+	gfx_init = @gfx_fb_init
 	gfx_close = @gfx_fb_close
 	gfx_getversion = @gfx_fb_getversion
 	gfx_showpage = @gfx_fb_showpage

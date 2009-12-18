@@ -8,6 +8,7 @@
 
 extern "C"
 
+dim gfx_init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 dim gfx_close as sub ()
 dim gfx_getversion as function () as integer
 dim gfx_showpage as sub (byval raw as ubyte ptr, byval w as integer, byval h as integer)
@@ -30,9 +31,6 @@ dim io_setmouse as sub (byval x as integer, byval y as integer)
 dim io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 dim io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
 
-declare function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
-declare function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
-declare function gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 declare function gfx_alleg_setprocptrs() as integer
 declare function gfx_directx_setprocptrs() as integer
 declare function gfx_fb_setprocptrs() as integer
@@ -42,22 +40,21 @@ type GfxBackendStuff
 	'FB doesn't allow initialising UDTs containing var-length strings
 	name as string * 7
 	load as function () as integer  'maybe not be NULL
-	init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	wantpolling as integer  'run the polling thread?
 	dylib as any ptr  'handle on a loaded library
 end type
 
 #ifdef GFX_ALLEG_BACKEND
-dim shared as GfxBackendStuff alleg_stuff = ("alleg", @gfx_alleg_setprocptrs, @gfx_alleg_init, YES)
+dim shared as GfxBackendStuff alleg_stuff = ("alleg", @gfx_alleg_setprocptrs, YES)
 #endif
 #ifdef GFX_DIRECTX_BACKEND
-dim shared as GfxBackendStuff directx_stuff = ("directx", @gfx_directx_setprocptrs, NULL)
+dim shared as GfxBackendStuff directx_stuff = ("directx", @gfx_directx_setprocptrs)  'work out wantpolling when loading
 #endif
 #ifdef GFX_FB_BACKEND
-dim shared as GfxBackendStuff fb_stuff = ("fb", @gfx_fb_setprocptrs, @gfx_fb_init, YES)
+dim shared as GfxBackendStuff fb_stuff = ("fb", @gfx_fb_setprocptrs, YES)
 #endif
 #ifdef GFX_SDL_BACKEND
-dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, @gfx_sdl_init, NO)
+dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, NO)
 #endif
 
 
@@ -108,7 +105,7 @@ function gfx_directx_setprocptrs() as integer
 		return 0
 	end if
 
-	directx_stuff.init = dylibsymbol(gfx_directx, "gfx_init")
+	gfx_init = dylibsymbol(gfx_directx, "gfx_init")
 	gfx_close = dylibsymbol(gfx_directx, "gfx_close")
 	gfx_showpage = dylibsymbol(gfx_directx, "gfx_showpage")
 	gfx_setpal = dylibsymbol(gfx_directx, "gfx_setpal")
@@ -257,7 +254,7 @@ sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windo
 			if load_backend(gfx_choices(i)) then
 				dim info_buffer as zstring * 256
 				debuginfo "Initialising gfx_" + .name + "..."
-				if .init(terminate_signal_handler, windowicon, @info_buffer, 256) = 0 then 
+				if gfx_init(terminate_signal_handler, windowicon, @info_buffer, 256) = 0 then 
 					unload_backend(gfx_choices(i))
 					currentgfxbackend = NULL
 					'TODO: what about the polling thread?

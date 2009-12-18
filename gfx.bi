@@ -11,11 +11,10 @@ end type
 
 'terminate_signal_handler is a pointer to post_terminate_signal, for dynamically linked graphics backends.
 'windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere
+'(unrelated to gfx_init)
 declare sub gfx_backend_init (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 
-'(note that gfx_*_init in the backends has a different prototype:)
-'function gfx_init (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
-
+extern gfx_init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 extern gfx_close as sub ()
 
 'API version. Must return 1

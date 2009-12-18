@@ -578,6 +578,7 @@ FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, by
 END FUNCTION
 
 FUNCTION gfx_sdl_setprocptrs() as integer
+  gfx_init = @gfx_sdl_init
   gfx_close = @gfx_sdl_close
   gfx_getversion = @gfx_sdl_getversion
   gfx_showpage = @gfx_sdl_showpage
