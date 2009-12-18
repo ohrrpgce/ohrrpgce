@@ -33,34 +33,31 @@ dim io_readjoysane as function (byval as integer, byref as integer, byref as int
 declare function gfx_alleg_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 declare function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 declare function gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
-
 declare function gfx_alleg_setprocptrs() as integer
 declare function gfx_directx_setprocptrs() as integer
-declare sub gfx_directx_unload()
 declare function gfx_fb_setprocptrs() as integer
 declare function gfx_sdl_setprocptrs() as integer
-declare function gfx_load(onlyfirst as integer = NO) as integer
 
 type GfxBackendStuff
 	'FB doesn't allow initialising UDTs containing var-length strings
 	name as string * 7
 	load as function () as integer  'maybe not be NULL
-	unload as sub ()  'maybe be NULL
 	init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 	wantpolling as integer  'run the polling thread?
+	dylib as any ptr  'handle on a loaded library
 end type
 
 #ifdef GFX_ALLEG_BACKEND
-dim shared as GfxBackendStuff alleg_stuff = ("alleg", @gfx_alleg_setprocptrs, NULL, @gfx_alleg_init, YES)
+dim shared as GfxBackendStuff alleg_stuff = ("alleg", @gfx_alleg_setprocptrs, @gfx_alleg_init, YES)
 #endif
 #ifdef GFX_DIRECTX_BACKEND
-dim shared as GfxBackendStuff directx_stuff = ("directx", @gfx_directx_setprocptrs, @gfx_directx_unload, NULL, YES)
+dim shared as GfxBackendStuff directx_stuff = ("directx", @gfx_directx_setprocptrs, NULL)
 #endif
 #ifdef GFX_FB_BACKEND
-dim shared as GfxBackendStuff fb_stuff = ("fb", @gfx_fb_setprocptrs, NULL, @gfx_fb_init, YES)
+dim shared as GfxBackendStuff fb_stuff = ("fb", @gfx_fb_setprocptrs, @gfx_fb_init, YES)
 #endif
 #ifdef GFX_SDL_BACKEND
-dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, NULL, @gfx_sdl_init, NO)
+dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, @gfx_sdl_init, NO)
 #endif
 
 
@@ -73,19 +70,28 @@ dim shared gfx_choices() as GfxBackendStuff ptr
 GFX_CHOICES_INIT
 extern "C"
 
+declare function gfx_load(onlyfirst as integer = NO) as integer
+declare sub unload_backend(which as GFxBackendStuff ptr)
+
 dim shared currentgfxbackend as GfxBackendStuff ptr = NULL
-dim shared gfx_directx as any ptr
 dim shared queue_error as string  'queue up errors until it's possible to actually display them (TODO: not implemented)
 dim wantpollingthread as integer
 dim as string gfxbackend, musicbackend
 dim as string gfxbackendinfo, musicbackendinfo
 
+sub io_dummy_waitprocessing() : end sub
+sub io_dummy_pollkeyevents() : end sub
+sub io_dummy_keybits(keybdarray as integer ptr) : end sub
+sub io_dummy_updatekeys(byval keybd as integer ptr) : end sub
+sub io_dummy_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer) : end sub
+sub io_dummy_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer) : end sub
+
 #ifdef GFX_DIRECTX_BACKEND
 
-sub io_dummy_waitprocessing()
-end sub
-
+'this is actually totally general minus the name of the dll and directx_stuff and variable name
 function gfx_directx_setprocptrs() as integer
+	dim gfx_directx as any ptr = directx_stuff.dylib
+	dim needpolling as integer = NO
 	if gfx_directx <> 0 then return 1
 
 	gfx_directx = dylibload("gfx_directx.dll")
@@ -113,26 +119,37 @@ function gfx_directx_setprocptrs() as integer
 	gfx_setoption = dylibsymbol(gfx_directx, "gfx_setoption")
 	gfx_describe_options = dylibsymbol(gfx_directx, "gfx_describe_options")
 	io_init = dylibsymbol(gfx_directx, "io_init")
+
 	io_pollkeyevents = dylibsymbol(gfx_directx, "io_pollkeyevents")
-	io_waitprocessing = @io_dummy_waitprocessing
-	io_keybits = @io_amx_keybits
+	if io_pollkeyevents = NULL then io_pollkeyevents = @io_dummy_pollkeyevents
+	io_waitprocessing = dylibsymbol(gfx_directx, "io_waitprocessing")
+	if io_waitprocessing = NULL then io_waitprocessing = @io_dummy_waitprocessing
+
+	io_keybits = dylibsymbol(gfx_directx, "io_keybits")
+	if io_keybits = NULL then
+		io_keybits = @io_amx_keybits
+		needpolling = YES
+	end if
 	io_updatekeys = dylibsymbol(gfx_directx, "io_updatekeys")
-	io_mousebits = @io_amx_mousebits
-	io_setmousevisibility = dylibsymbol(gfx_directx, "io_setmousevisibility")
+	if io_updatekeys = NULL then io_updatekeys = @io_dummy_updatekeys
+
+	io_mousebits = dylibsymbol(gfx_directx, "io_mousebits")
+	if io_mousebits = NULL then
+		io_mousebits = @io_amx_mousebits
+		needpolling = YES
+	end if
 	io_getmouse = dylibsymbol(gfx_directx, "io_getmouse")
+	if io_getmouse = NULL then io_getmouse = @io_dummy_getmouse
+
+	io_setmousevisibility = dylibsymbol(gfx_directx, "io_setmousevisibility")
 	io_setmouse = dylibsymbol(gfx_directx, "io_setmouse")
 	io_mouserect = dylibsymbol(gfx_directx, "io_mouserect")
 	io_readjoysane = dylibsymbol(gfx_directx, "io_readjoysane")
 	
+	directx_stuff.dylib = gfx_directx
+	directx_stuff.wantpolling = needpolling
 	return 1
 end function
-
-sub gfx_directx_unload()
-	if gfx_directx then
-		dylibfree(gfx_directx)
-		gfx_directx = NULL
-	end if
-end sub
 
 #endif
 
@@ -202,7 +219,7 @@ end function
 function load_backend(which as GFxBackendStuff ptr) as integer
 	if currentgfxbackend = which then return 1
 	if currentgfxbackend <> NULL then
-		if currentgfxbackend->unload then currentgfxbackend->unload()
+		unload_backend(currentgfxbackend)
 		currentgfxbackend = NULL
 	end if
 
@@ -215,6 +232,13 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 	end if
 	return 0
 end function
+
+sub unload_backend(which as GFxBackendStuff ptr)
+	if which->dylib then
+		dylibfree(which->dylib)
+		which->dylib = NULL
+	end if
+end sub
 
 'onlyfirst: only try the most prefered. Returns 1 on success
 function gfx_load(onlyfirst as integer) as integer
@@ -234,7 +258,7 @@ sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windo
 				dim info_buffer as zstring * 256
 				debuginfo "Initialising gfx_" + .name + "..."
 				if .init(terminate_signal_handler, windowicon, @info_buffer, 256) = 0 then 
-					if .unload then .unload()
+					unload_backend(gfx_choices(i))
 					currentgfxbackend = NULL
 					'TODO: what about the polling thread?
 					queue_error = info_buffer
