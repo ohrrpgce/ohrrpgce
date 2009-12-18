@@ -59,6 +59,7 @@ DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wi
 DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray)
+DECLARE SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, BYREF backpage AS INTEGER, visible() AS INTEGER)
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
@@ -1066,13 +1067,16 @@ RETRACE '--end of mapping GOSUB block
 '128 overhead
 END SUB
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray)
  DIM state AS MenuState
- DIM menu(10) AS STRING
- DIM enabled(10) AS INTEGER
- DIM itemcol(10) AS INTEGER
+ DIM menu(10) AS SimpleMenu
 
- DIM backpage, currentset
+ DIM layerno AS INTEGER
+ DIM backpage AS INTEGER
+ DIM currentset AS INTEGER
  currentset = -1
  clearpage 2
 
@@ -1081,16 +1085,18 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
  state.last = UBOUND(menu)
  state.size = 19
 
- GOSUB makelayermenu
+ DIM col AS INTEGER
+
+ mapedit_makelayermenu menu(), state, gmap(), currentset, backpage, visible()
  DO 
   setwait 55
   setkeys
-  tog = tog XOR 1
+  state.tog = state.tog XOR 1
 
   IF keyval(scESC) > 1 THEN clearkey(scESC): EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
 
-  IF usemenu(state, enabled()) THEN
+  IF usemenu(state, menu()) THEN
    state.need_update = YES
   END IF
 
@@ -1121,7 +1127,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
 
   IF state.need_update THEN
    state.need_update = NO
-   GOSUB makelayermenu
+   mapedit_makelayermenu menu(), state, gmap(), currentset, backpage, visible()
   END IF
 
   copypage backpage, dpage
@@ -1135,12 +1141,11 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
     edgeprint "  Transparent  Above NPCs/Heroes", 0, 190, uilook(uiText), dpage
   END SELECT
   
-  FOR i = state.top TO state.top + state.size
+  FOR i AS INTEGER = state.top TO state.top + state.size
    IF i <= state.last THEN
-    col = itemcol(i)
-    'IF enabled(i) = 0 THEN col = uilook(uiDisabledItem)
-    IF state.pt = i THEN col = uilook(uiSelectedItem + tog)
-    edgeprint menu(i), 0, (i - state.top) * 9, col, dpage
+    col = menu(i).col
+    IF state.pt = i THEN col = uilook(uiSelectedItem + state.tog)
+    edgeprint menu(i).text, 0, (i - state.top) * 9, col, dpage
    END IF
   NEXT
 
@@ -1150,14 +1155,64 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
  LOOP
  clearpage dpage
  loadmaptilesets st.tilesets(), gmap()
- FOR i = 0 TO 2
+ FOR i AS INTEGER = 0 TO 2
   loadpasdefaults defaults(i).a(), st.tilesets(i)->num
  NEXT
  IF layerisenabled(gmap(), st.layer) = 0 THEN st.layer = 0
- EXIT SUB
 
-updateback:
- wantset = currentset
+END SUB
+
+SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, BYREF backpage AS INTEGER, visible() AS INTEGER)
+ FOR i AS INTEGER = 0 TO UBOUND(menu)
+  menu(i).enabled = YES
+  menu(i).col = uilook(uiMenuItem)
+ NEXT i
+ menu(0).text = "Go back"
+ menu(1).text = "Default tileset: "
+' menu(1).text = "Bottom Layer "
+' menu(2).text = "Middle Layer "
+' menu(3).text = "Top Layer    "
+ 
+ DIM needdefault AS INTEGER = NO
+ 
+ DIM slot AS INTEGER = 2
+ FOR i AS INTEGER = 0 TO 2
+  menu(slot).enabled = NO
+  menu(slot).text = "Layer " & i
+  slot += 1
+
+  IF layerisenabled(gmap(), i) THEN
+   IF layerisvisible(visible(), i) THEN
+    menu(slot).text = " Enabled (" & CHR(27) & "Visible in editor" & CHR(26) & ")"
+    menu(slot - 1).col = uilook(uiSelectedDisabled)
+   ELSE
+    menu(slot).text = " Enabled (" & CHR(27) & "Invisible in editor" & CHR(26) & ")"
+    menu(slot - 1).col = uilook(uiDisabledItem)
+   END IF
+  ELSE
+   menu(slot).text = " Disabled in-game"
+   menu(slot - 1).col = uilook(uiDisabledItem)
+  END IF
+  slot += 1
+
+  IF gmap(22 + i) = 0 THEN
+   menu(slot).text = " Tileset: Default"
+   needdefault = YES
+  ELSE
+   menu(slot).text = " Tileset: " & gmap(22 + i) - 1
+  END IF
+  slot += 1
+ NEXT
+ 
+ IF needdefault THEN
+  menu(1).text += STR(gmap(0))
+ ELSE
+  menu(1).text += "(Not used)"
+  menu(1).enabled = NO
+  menu(1).col = uilook(uiDisabledItem)
+ END IF
+
+ DIM wantset AS INTEGER = currentset
  SELECT CASE state.pt
   CASE 1
    wantset = gmap(0)
@@ -1173,63 +1228,8 @@ updateback:
   loadmxs game + ".til", wantset, vpages(3)
   currentset = wantset
  END IF
- RETRACE
-
-makelayermenu:
- flusharray enabled(), UBOUND(enabled), YES
- flusharray itemcol(), UBOUND(itemcol), uilook(uiMenuItem)
- menu(0) = "Go back"
- menu(1) = "Default tileset: "
-' menu(1) = "Bottom Layer "
-' menu(2) = "Middle Layer "
-' menu(3) = "Top Layer    "
  
- needdefault = NO
- 
- temp = 2
- FOR i = 0 TO 2
-  enabled(temp) = NO
-  menu(temp) = "Layer " & i
-  temp += 1
-
-  IF layerisenabled(gmap(), i) THEN
-   IF layerisvisible(visible(), i) THEN
-    menu(temp) = " Enabled (" & CHR$(27) & "Visible in editor" & CHR$(26) & ")"
-    itemcol(temp - 1) = uilook(uiSelectedDisabled)
-   ELSE
-    menu(temp) = " Enabled (" & CHR$(27) & "Invisible in editor" & CHR$(26) & ")"
-    itemcol(temp - 1) = uilook(uiDisabledItem)
-   END IF
-  ELSE
-   menu(temp) = " Disabled in-game"
-   itemcol(temp - 1) = uilook(uiDisabledItem)
-  END IF
-  temp += 1
-
-  IF gmap(22 + i) = 0 THEN
-   menu(temp) = " Tileset: Default"
-   needdefault = YES
-  ELSE
-   menu(temp) = " Tileset: " & gmap(22 + i) - 1
-  END IF
-  temp += 1
- NEXT
- 
- IF needdefault THEN
-  menu(1) += STR$(gmap(0))
- ELSE
-  menu(1) += "(Not used)"
-  enabled(1) = NO
-  itemcol(1) = uilook(uiDisabledItem)
- END IF
-
- GOSUB updateback
- RETRACE
-
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
  DIM i AS INTEGER

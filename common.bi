@@ -18,6 +18,7 @@ DECLARE SUB fadeout (red as integer, green as integer, blue as integer)
 DECLARE FUNCTION usemenu OVERLOAD (pt as integer, top as integer, first as integer, last as integer, size as integer) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, enabled() AS INTEGER) as integer
+DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, menudata() AS SimpleMenu) as integer
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state AS MenuState, x as integer, y as integer, page as integer, edge as integer=NO, hidecursor as integer=NO)
 DECLARE SUB standardmenu OVERLOAD (menu() as string, size as integer, vis as integer, pt as integer, top as integer, x as integer, y as integer, page as integer, edge as integer=NO)
 DECLARE SUB clamp_menu_state (BYREF state AS MenuState)

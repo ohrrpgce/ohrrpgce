@@ -109,6 +109,45 @@ END IF
 
 END FUNCTION
 
+FUNCTION usemenu (state AS MenuState, menudata() AS SimpleMenu) as integer
+'a version for menus with unselectable items, skip items for which menudata().enabled = 0
+
+WITH state
+ oldptr = .pt
+ oldtop = .top
+ d = 0
+
+ IF keyval(scUp) > 1 THEN d = -1
+ IF keyval(scDown) > 1 THEN d = 1
+ IF keyval(scPageup) > 1 THEN
+  .pt = large(.pt - .size, .first)
+  WHILE menudata(.pt).enabled = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
+  IF menudata(.pt).enabled = 0 THEN d = 1
+ END IF
+ IF keyval(scPagedown) > 1 THEN
+  .pt = small(.pt + .size, .last)
+  WHILE menudata(.pt).enabled = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
+  IF menudata(.pt).enabled = 0 THEN d = -1
+ END IF
+ IF keyval(scHome) > 1 THEN .pt = .last : d = 1
+ IF keyval(scEnd) > 1 THEN .pt = .first : d = -1
+
+ IF d THEN 
+  DO
+   .top = bound(.top, .pt - .size, .pt)
+   .pt = loopvar(.pt, .first, .last, d)
+  LOOP WHILE menudata(.pt).enabled = 0
+ END IF
+ .top = bound(.top, .pt - .size, .pt)
+
+ IF oldptr = .pt AND oldtop = .top THEN
+  usemenu = 0
+ ELSE
+  usemenu = 1
+ END IF
+END WITH
+END FUNCTION
+
 FUNCTION usemenu (state AS MenuState, enabled() AS INTEGER) as integer
 'a version for menus with unselectable items, skip items for which enabled = 0
 
