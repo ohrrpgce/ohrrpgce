@@ -44,10 +44,10 @@ declare function gfx_load(onlyfirst as integer = NO) as integer
 type GfxBackendStuff
 	'FB doesn't allow initialising UDTs containing var-length strings
 	name as string * 7
-	load as function () as integer
-	unload as sub ()
+	load as function () as integer  'maybe not be NULL
+	unload as sub ()  'maybe be NULL
 	init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
-	wantpolling as integer
+	wantpolling as integer  'run the polling thread?
 end type
 
 #ifdef GFX_ALLEG_BACKEND
@@ -199,31 +199,40 @@ function backends_setoption(opt as string, arg as string) as integer
 	return 0
 end function
 
+function load_backend(which as GFxBackendStuff ptr) as integer
+	if currentgfxbackend = which then return 1
+	if currentgfxbackend <> NULL then
+		if currentgfxbackend->unload then currentgfxbackend->unload()
+		currentgfxbackend = NULL
+	end if
+
+	if which->load() then
+		currentgfxbackend = which
+		gfxbackendinfo = "gfx_" + which->name
+		gfxbackend = which->name
+		wantpollingthread = which->wantpolling
+		return 1
+	end if
+	return 0
+end function
+
 'onlyfirst: only try the most prefered. Returns 1 on success
 function gfx_load(onlyfirst as integer) as integer
 	if currentgfxbackend <> NULL then return 1 'hmm
 	for i as integer = 0 to ubound(gfx_choices)
-		if gfx_choices(i)->load() then
-			currentgfxbackend = gfx_choices(i)
-			gfxbackendinfo = "gfx_" + gfx_choices(i)->name
-			gfxbackend = gfx_choices(i)->name
-			wantpollingthread = gfx_choices(i)->wantpolling
-			return 1
-		end if
+		if load_backend(gfx_choices(i)) then return 1
 		if onlyfirst then return 0
 	next
-	display_help_string "could not load any graphic backend!"
+	display_help_string "Could not load any graphic backend! (Who forgot to compile without at least gfx_fb?)"
 	return 0
 end function
 
 sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr)
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
-			if .load() then
+			if load_backend(gfx_choices(i)) then
 				dim info_buffer as zstring * 256
 				debuginfo "Initialising gfx_" + .name + "..."
-				gfxbackendinfo = "gfx_" + .name
-				gfxbackend = .name
 				if .init(terminate_signal_handler, windowicon, @info_buffer, 256) = 0 then 
 					if .unload then .unload()
 					currentgfxbackend = NULL
