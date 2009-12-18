@@ -22,7 +22,8 @@ option explicit
 #define NULL 0
 
 'Note: While this works (at last check), it's not used anywhere, and you most probably do not need it
-Const NOREFC = -1234
+const NOREFC = -1234
+const FREEDREFC = -4321
 
 type node 	'only used for floodfill
 	x as integer
@@ -3368,6 +3369,7 @@ private sub sprite_remove_cache(byval entry as SpriteCacheEntry ptr)
 	end if
 	dlist_remove(sprcacheB.generic, entry)
 	hash_remove(sprcache, entry)
+	entry->p->cacheentry = NULL  'help to detect double free
 	sprite_freemem(entry->p)
 	#ifdef COMBINED_SPRCACHE_LIMIT
 		sprcacheB_used -= entry->cost
@@ -3592,6 +3594,9 @@ private sub sprite_freemem(byval f as frame ptr)
 	for i as integer = 0 to f->arraylen - 1
 		deallocate(f[i].image)
 		deallocate(f[i].mask)
+		f[i].image = NULL
+		f[i].mask = NULL
+		f[i].refcount = FREEDREFC  'help to detect double free
 	next
 	deallocate(f)
 end sub
@@ -3716,6 +3721,11 @@ sub sprite_unload(byval p as frame ptr ptr)
 	with **p
 		if .refcount <> NOREFC then
 			.refcount -= 1
+			if .refcount = FREEDREFC then
+				debug sprite_describe(*p) & " already freed!"
+				*p = 0
+				exit sub
+			end if
 			if .refcount < 0 then debug sprite_describe(*p) & " has refcount " & .refcount
 		end if
 		'if cached, can free two references at once

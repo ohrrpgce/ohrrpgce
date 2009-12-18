@@ -655,14 +655,14 @@ LOOP ' This is the end of the DO that encloses a specific RPG file
 
 'resetg final cleanup
 cleanup_text_box
+resetinterpreter 'unload scripts
+unloadmaptilesets tilesets()
+refresh_map_slice_tilesets '--zeroes them out
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()
 resetsfx()
 IF autorungame THEN exitprogram (NOT abortg)
-unloadmaptilesets tilesets()
-refresh_map_slice_tilesets '--zeroes them out
-resetinterpreter 'unload scripts
 cleanuptemp
 fadeout 0, 0, 0
 stopsong
