@@ -2179,7 +2179,7 @@ END FUNCTION
 
 FUNCTION isremovable (drive as string) as integer
 #ifdef __FB_WIN32__
-	isremovable = GetDriveType(drive as string) = DRIVE_REMOVABLE
+	isremovable = GetDriveType(drive) = DRIVE_REMOVABLE
 #else
 	isremovable = 0
 #endif
