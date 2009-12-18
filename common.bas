@@ -2956,14 +2956,21 @@ FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER
  RETURN 0
 END FUNCTION
 
+SUB lockstep_tile_animation (tilesets() AS TilesetData ptr, layer AS INTEGER)
+ 'Called after changing a layer's tileset to make sure its tile animation is in phase with other layers of the same tileset
+ FOR i AS INTEGER = 0 TO UBOUND(tilesets)
+  IF i <> layer ANDALSO tilesets(i) ANDALSO tilesets(i)->num = tilesets(layer)->num THEN
+   memcpy(@tilesets(layer)->anim(0), @tilesets(i)->anim(0), sizeof(tilesets(i)->anim))
+   EXIT SUB
+  END IF
+ NEXT
+END SUB
+
 SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
  IF tileset <> NULL THEN
-  tileset->refcount -= 1
-  IF tileset->refcount = 0 THEN
-   'debug "unloading tileset " & tileset->num
-   sprite_unload @tileset->spr
-   Deallocate(tileset)
-  END IF
+  'debug "unloading tileset " & tileset->num
+  sprite_unload @tileset->spr
+  Deallocate(tileset)
   tileset = NULL
  END IF
 END SUB
@@ -2974,70 +2981,43 @@ SUB maptilesetsprint (tilesets() AS TilesetData ptr)
   IF tilesets(i) = NULL THEN
    debug i & ": NULL"
   ELSE 
-   debug i & ": " & tilesets(i)->num & "  ref: " & tilesets(i)->refcount
+   debug i & ": " & tilesets(i)->num
   END IF
  NEXT
 END SUB
 
-SUB loadtilesetdata (BYREF tileset AS TilesetData ptr, BYVAL tilesetnum AS INTEGER)
-'tileset may already be loaded
+SUB loadtilesetdata (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVAL tilesetnum AS INTEGER, BYVAL lockstep AS INTEGER = YES)
+'the tileset may already be loaded
 'note that tile animation data is NOT reset if the old tileset was the same	
 
- IF tileset <> NULL THEN
-  IF tileset->num = tilesetnum THEN EXIT SUB
-  unloadtilesetdata tileset
+ IF tilesets(layer) = NULL ORELSE tilesets(layer)->num <> tilesetnum THEN
+  unloadtilesetdata tilesets(layer)
+  tilesets(layer) = Callocate(sizeof(TilesetData))
+
+  WITH *tilesets(layer)
+   .num = tilesetnum
+   'debug "loading tileset " & tilesetnum
+
+   .spr = tileset_load(tilesetnum)
+   loadtanim tilesetnum, .tastuf()
+  END WITH
  END IF
-
- tileset = Callocate(sizeof(TilesetData))
-
- WITH *tileset
-  .num = tilesetnum
-  .refcount = 1
-  'debug "loading tileset " & tilesetnum
-
-  .spr = tileset_load(tilesetnum)
-  loadtanim tilesetnum, .tastuf()
-  DIM i AS INTEGER
-  FOR i = 0 TO 1
-   WITH .anim(i)
-    .cycle = 0
-    .pt = 0
-    .skip = 0
-   END WITH
-  NEXT
- END WITH
-END SUB
-
-SUB loadtilesetdata (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVAL tilesetnum AS INTEGER)
- DIM i AS INTEGER
- FOR i = 0 TO UBOUND(tilesets)
-  IF i <> layer AND tilesets(i) <> NULL THEN
-   IF tilesets(i)->num = tilesetnum THEN
-
-    unloadtilesetdata tilesets(layer)
-    tilesets(layer) = tilesets(i)
-    tilesets(layer)->refcount += 1
-    EXIT SUB
-   END IF
-  END IF
+ FOR i AS INTEGER = 0 TO 1
+  WITH tilesets(layer)->anim(i)
+   .cycle = 0
+   .pt = 0
+   .skip = 0
+  END WITH
  NEXT
-
- loadtilesetdata tilesets(layer), tilesetnum
+ IF lockstep THEN lockstep_tile_animation tilesets(), layer
 END SUB
 
 SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL resetanimations AS INTEGER = YES)
 'tilesets() may contain already loaded tilesets. In this case, we can reuse them
-'but this mechanism is crude, tilesets might be freed then reloaded (code to fix commented)
-
-' REDIM tilesets(0 TO 2 * UBOUND(tilesets) + 1)
-' FOR i = 0 TO 2
-'  IF tilesets(i) <> NULL THEN tilesets(UBOUND(tilesets) - i) = tilesets(i): tilesets(i)->refcount += 1
-' NEXT
-
  DIM AS INTEGER i, j
  DIM tileset AS INTEGER
 
- FOR i = 0 TO 2
+ FOR i = 0 TO UBOUND(tilesets)
   IF gmap(22 + i) <> 0 THEN
    tileset = gmap(22 + i) - 1
   ELSE
@@ -3045,10 +3025,6 @@ SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL res
   END IF
 
   loadtilesetdata tilesets(), i, tileset
- NEXT
-
- FOR i = 0 TO 2
-'  unloadtilesetdata tilesets(UBOUND(tilesets - i))
   IF resetanimations THEN
    FOR j = 0 TO 1
     WITH tilesets(i)->anim(j)
@@ -3059,7 +3035,6 @@ SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL res
    NEXT
   END IF
  NEXT
-' REDIM PRESERVE tilesets(UBOUND(tilesets) \ 2)
 END SUB
 
 SUB unloadmaptilesets (tilesets() AS TilesetData ptr)
