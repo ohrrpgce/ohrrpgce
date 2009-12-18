@@ -60,6 +60,8 @@ DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum A
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray)
 DECLARE SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, BYREF backpage AS INTEGER, visible() AS INTEGER)
+DECLARE SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
+
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
 DECLARE FUNCTION find_first_free_door (doors() AS Door) AS INTEGER
@@ -145,7 +147,7 @@ END FUNCTION
 
 SUB mapmaker (font())
 DIM st AS MapEditState
-DIM mode(12) AS STRING, list(13) AS STRING, menu(-1 TO 20) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), gdmenu(0 TO 20) AS STRING, gdmax(20), gdmin(20), sampmap(2), pal16(288), gmapscr(5) AS STRING, gmapscrof(5), npcnum(max_npc_defs)
+DIM mode(12) AS STRING, list(13) AS STRING, menu(-1 TO 20) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs)
 DIM her AS HeroDef
 DIM defaults(2) as DefArray
 
@@ -206,8 +208,6 @@ mode(3) = "NPC Placement Mode"
 mode(4) = "Foe Mapping Mode"
 st.menubar(0) = 160
 st.menubar(1) = 1
-sampmap(0) = 1
-sampmap(1) = 1
 setmapdata st.menubar(), pass(), 180, 0
 FOR i = 0 TO 159
  setmapblock i, 0, 0, i
@@ -308,7 +308,7 @@ DO
    EXIT DO
   END IF
   IF csr = 1 THEN
-   GOSUB gmapdata
+   mapedit_gmapdata st, gmap()
   END IF
   IF csr = 2 THEN
    mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), doors(), link(), mapname$
@@ -359,181 +359,6 @@ FOR i = 0 TO max_npc_defs
   if .pal then palette16_unload(@.pal)
  END WITH
 NEXT i
-RETRACE
-
-gmapdata:
-gmapmax = 18
-gd = 0
-gdmenu(0) = "Previous Menu"
-gdmenu(1) = "Ambient Music:"
-gdmenu(2) = "Minimap Available:"
-gdmenu(3) = "Save Anywhere:"
-gdmenu(4) = "Display Map Name:"
-gdmenu(5) = "Map Edge Mode:"
-gdmenu(6) = "Default Edge Tile:"
-gdmenu(7) = "Autorun Script: "
-gdmenu(8) = "Script Argument:"
-gdmenu(9) = "Harm-Tile Damage:"
-gdmenu(10) = "Harm-Tile Flash:"
-gdmenu(11) = "Foot Offset:"
-gdmenu(12) = "After-Battle Script:"
-gdmenu(13) = "Instead-of-Battle Script:"
-gdmenu(14) = "Each-Step Script:"
-gdmenu(15) = "On-Keypress Script:"
-gdmenu(16) = "Walkabout Layering:"
-gdmenu(17) = "NPC Data:"
-gdmenu(18) = "Tile Data:"
-gdmax(1) = gen(genMaxSong) + 1:        gdmin(1) = -1
-gdmax(2) = 1:                              gdmin(2) = 0
-gdmax(3) = 1:                              gdmin(3) = 0
-gdmax(4) = 255:                            gdmin(4) = 0
-gdmax(5) = 2:                              gdmin(5) = 0
-gdmax(6) = 255:                            gdmin(6) = 0
-gdmax(7) = 32767:                          gdmin(7) = 0
-gdmax(8) = 32767:                          gdmin(8) = -32767
-gdmax(9) = 32767:                          gdmin(9) = -32767
-gdmax(10) = 255:                           gdmin(10) = 0
-gdmax(11) = 20:                            gdmin(11) = -20
-gdmax(12) = 32767:                         gdmin(12) = 0
-gdmax(13) = 32767:                         gdmin(13) = 0
-gdmax(14) = 32767:                         gdmin(14) = 0
-gdmax(15) = 32767:                         gdmin(15) = 0
-gdmax(16) = 1:                             gdmin(16) = 0
-gdmax(17) = 2:                             gdmin(16) = 0
-gdmax(18) = 2:                             gdmin(16) = 0
-
-gmapscrof(0) = 7
-gmapscrof(1) = 12
-gmapscrof(2) = 13
-gmapscrof(3) = 14
-gmapscrof(4) = 15
-
-IF gmap(16) > 1 THEN gmap(16) = 0
-FOR i = 1 TO gmapmax
- gmap(i) = bound(gmap(i), gdmin(i), gdmax(i))
-NEXT i
-FOR i = 0 TO 4
- gmapscr(i) = scriptname$(gmap(gmapscrof(i)), plottrigger)
-NEXT i
-setkeys
-DO
- setwait 55
- setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "general_map_data"
- usemenu gd, 0, 0, gmapmax, 24
- SELECT CASE gd
-  CASE 0
-   IF enter_or_space() THEN EXIT DO
-  CASE 1
-   zintgrabber(gmap(gd), gdmin(gd) - 1, gdmax(gd) - 1) 'song is optional
-  CASE 7, 12 TO 15
-   IF gd = 7 THEN idx = 0 ELSE idx = gd - 11
-   IF enter_or_space() THEN
-    gmapscr(idx) = scriptbrowse_string(gmap(gd), plottrigger, "plotscript")
-   ELSEIF scrintgrabber(gmap(gd), 0, 0, 75, 77, 1, plottrigger) THEN
-    gmapscr(idx) = scriptname$(gmap(gd), plottrigger)
-   END IF
-  CASE 10' Harm tile color
-   intgrabber gmap(gd), gdmin(gd), gdmax(gd)
-   IF enter_or_space() THEN
-    gmap(gd) = color_browser_256(gmap(gd))
-   END IF
-  CASE ELSE
-   intgrabber gmap(gd), gdmin(gd), gdmax(gd)
- END SELECT
- scri = 0
- FOR i = 0 TO gmapmax
-  xtemp = ""
-  SELECT CASE i
-   CASE 1
-    IF gmap(1) = 0 THEN
-     xtemp = "-silence-"
-    ELSEIF gmap(1) = -1 THEN
-     xtemp = "-same as previous map-"
-    ELSE
-     xtemp = (gmap(1) - 1) & " " & getsongname$(gmap(1) - 1)
-    END IF
-   CASE 2, 3
-    IF gmap(i) = 0 THEN xtemp = "NO" ELSE xtemp = "YES"
-   CASE 4
-    IF gmap(i) = 0 THEN xtemp = "NO" ELSE xtemp = gmap(i) & " ticks"
-   CASE 5
-    SELECT CASE gmap(i)
-     CASE 0
-      xtemp = "Crop"
-     CASE 1
-      xtemp = "Wrap"
-     CASE 2
-      xtemp = "use default edge tile"
-    END SELECT
-   CASE 6
-    IF gmap(5) = 2 THEN
-     xtemp = STR(gmap(i))
-    ELSE
-     xtemp = "N/A"
-    END IF
-   CASE 7, 12 TO 15
-    xtemp = gmapscr(scri)
-    scri = scri + 1
-   CASE 8
-    IF gmap(7) = 0 THEN
-     xtemp = "N/A"
-    ELSE
-     xtemp = STR(gmap(i))
-    END IF
-   CASE 9
-    xtemp = STR(gmap(i))
-   CASE 10
-    IF gmap(i) = 0 THEN
-     xtemp = "none"
-    ELSE
-     xtemp = STR(gmap(i))
-    END IF
-   CASE 11
-    SELECT CASE gmap(i)
-     CASE 0
-      xtemp = "none"
-     CASE IS < 0
-      xtemp = "up " & ABS(gmap(i)) & " pixels"
-     CASE IS > 0
-      xtemp = "down " & gmap(i) & " pixels"
-    END SELECT
-   CASE 16
-    IF gmap(i) = 1 THEN
-     xtemp = "NPCs over Heroes"
-    ELSE
-     xtemp = "Heroes over NPCs"
-    END IF
-   CASE 17, 18
-    SELECT CASE gmap(i)
-     CASE 0
-      xtemp = "Don't save state when leaving"
-     CASE 1
-      xtemp = "Remember state when leaving"
-     CASE 2
-      xtemp = "Ignore saved state, load anew"
-    END SELECT
-  END SELECT
-  textcolor uilook(uiMenuItem), 0
-  IF i = gd THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr gdmenu(i) + " " + xtemp, 0, 8 * i, dpage
-  IF i = 10 THEN rectangle 4 + (8 * (LEN(gdmenu(i)) + 1 + LEN(xtemp))), 8 * i, 8, 8, gmap(i), dpage
- NEXT
- IF gmap(5) = 2 THEN
-  '--show default edge tile
-  setmapdata sampmap(), sampmap(), 180, 0
-  setmapblock 0, 0, 0, gmap(6)
-  drawmap 0, -180, 0, 0, st.tilesets(0), dpage
-  rectangle 20, 180, 300, 20, uilook(uiBackground), dpage
- END IF
- 
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
 RETRACE
 
 mapping:
@@ -1037,38 +862,210 @@ DO
 LOOP
 RETRACE '--end of mapping GOSUB block
 
-'----
-'gmap(20)
-'0=tileset
-'1=ambient music
-'2=minimap
-'3=save anywhere
-'4=show map name
-'5=map edge mode
-'6=default edge tile
-'7=autorun script
-'8=script argument
-'9=harm tile damage
-'10=harm tile flash
-'11=default foot-offset
-'12=afterbattle script
-'13=instead-of-battle script
-'14=eachstep script
-'15=onkeypress script
-
-'tiles
-'1   north
-'2   east
-'4   south
-'8   west
-'16  vehicle A
-'32  vehicle B
-'64  harm tile
-'128 overhead
 END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
+ DIM gdmenu(0 TO 18) AS STRING
+ gdmenu(0) = "Previous Menu"
+ gdmenu(1) = "Ambient Music:"
+ gdmenu(2) = "Minimap Available:"
+ gdmenu(3) = "Save Anywhere:"
+ gdmenu(4) = "Display Map Name:"
+ gdmenu(5) = "Map Edge Mode:"
+ gdmenu(6) = "Default Edge Tile:"
+ gdmenu(7) = "Autorun Script: "
+ gdmenu(8) = "Autorun Script Argument:"
+ gdmenu(9) = "Harm-Tile Damage:"
+ gdmenu(10) = "Harm-Tile Flash:"
+ gdmenu(11) = "Foot Offset:"
+ gdmenu(12) = "After-Battle Script:"
+ gdmenu(13) = "Instead-of-Battle Script:"
+ gdmenu(14) = "Each-Step Script:"
+ gdmenu(15) = "On-Keypress Script:"
+ gdmenu(16) = "Walkabout Layering:"
+ gdmenu(17) = "NPC Data:"
+ gdmenu(18) = "Tile Data:"
+
+ DIM gdmax(20) AS INTEGER,        gdmin(20) AS INTEGER
+ gdmax(1) = gen(genMaxSong) + 1:  gdmin(1) = -1
+ gdmax(2) = 1:                    gdmin(2) = 0
+ gdmax(3) = 1:                    gdmin(3) = 0
+ gdmax(4) = 255:                  gdmin(4) = 0
+ gdmax(5) = 2:                    gdmin(5) = 0
+ gdmax(6) = 255:                  gdmin(6) = 0
+ gdmax(7) = 32767:                gdmin(7) = 0
+ gdmax(8) = 32767:                gdmin(8) = -32767
+ gdmax(9) = 32767:                gdmin(9) = -32767
+ gdmax(10) = 255:                 gdmin(10) = 0
+ gdmax(11) = 20:                  gdmin(11) = -20
+ gdmax(12) = 32767:               gdmin(12) = 0
+ gdmax(13) = 32767:               gdmin(13) = 0
+ gdmax(14) = 32767:               gdmin(14) = 0
+ gdmax(15) = 32767:               gdmin(15) = 0
+ gdmax(16) = 1:                   gdmin(16) = 0
+ gdmax(17) = 2:                   gdmin(17) = 0
+ gdmax(18) = 2:                   gdmin(18) = 0
+
+ DIM state AS MenuState
+ state.pt = 0
+ state.last = UBOUND(gdmenu)
+ state.size = 24
+
+ DIM idx AS INTEGER
+ DIM scri AS INTEGER
+ DIM gmapscrof(5)
+ gmapscrof(0) = 7  'autorun
+ gmapscrof(1) = 12 'after-battle
+ gmapscrof(2) = 13 'instead-of-battle
+ gmapscrof(3) = 14 'each-step
+ gmapscrof(4) = 15 'on-keypress
+
+ DIM gmapscr(5) AS STRING
+ FOR i AS INTEGER = 0 TO 4
+  gmapscr(i) = scriptname(gmap(gmapscrof(i)), plottrigger)
+ NEXT i
+
+ 'default out-of-bounds hero/npc draw order
+ IF gmap(16) > 1 THEN gmap(16) = 0
+ 
+ FOR i AS INTEGER = 1 TO UBOUND(gdmenu)
+  'Safety-bounding of gmap data, prevents crashes in cases of corruption
+  gmap(i) = bound(gmap(i), gdmin(i), gdmax(i))
+ NEXT i
+
+ 'A sample map of a single tile, used to preview the default edge tile
+ DIM sampmap(2) AS INTEGER
+ sampmap(0) = 1
+ sampmap(1) = 1
+ 
+ DIM caption AS STRING
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  state.tog = state.tog XOR 1
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "general_map_data"
+  usemenu state
+  SELECT CASE state.pt
+   CASE 0
+    IF enter_or_space() THEN EXIT DO
+   CASE 1 'music
+    zintgrabber(gmap(state.pt), gdmin(state.pt) - 1, gdmax(state.pt) - 1) 'song is optional
+   CASE 7, 12 TO 15 'scripts
+    IF state.pt = 7 THEN idx = 0 ELSE idx = state.pt - 11
+    IF enter_or_space() THEN
+     gmapscr(idx) = scriptbrowse_string(gmap(state.pt), plottrigger, "plotscript")
+    ELSEIF scrintgrabber(gmap(state.pt), 0, 0, scLeft, scRight, 1, plottrigger) THEN
+     gmapscr(idx) = scriptname(gmap(state.pt), plottrigger)
+    END IF
+   CASE 10' Harm tile color
+    intgrabber gmap(state.pt), gdmin(state.pt), gdmax(state.pt)
+    IF enter_or_space() THEN
+     gmap(state.pt) = color_browser_256(gmap(state.pt))
+    END IF
+   CASE ELSE 'all other gmap data is simple integers
+    intgrabber gmap(state.pt), gdmin(state.pt), gdmax(state.pt)
+  END SELECT
+  scri = 0
+  FOR i AS INTEGER = 0 TO UBOUND(gdmenu)
+   caption = ""
+   SELECT CASE i
+    CASE 1 'music
+     IF gmap(1) = 0 THEN
+      caption = "-silence-"
+     ELSEIF gmap(1) = -1 THEN
+      caption = "-same as previous map-"
+     ELSE
+      caption = (gmap(1) - 1) & " " & getsongname(gmap(1) - 1)
+     END IF
+    CASE 2, 3 'minimap available and save anywhere
+     caption = yesorno(gmap(i))
+    CASE 4 'show map name
+     IF gmap(i) = 0 THEN caption = "NO" ELSE caption = gmap(i) & " ticks"
+    CASE 5 'map edge mode
+     SELECT CASE gmap(i)
+      CASE 0
+       caption = "Crop"
+      CASE 1
+       caption = "Wrap"
+      CASE 2
+       caption = "use default edge tile"
+     END SELECT
+    CASE 6 'default edge tile
+     IF gmap(5) = 2 THEN
+      caption = STR(gmap(i))
+     ELSE
+      caption = "N/A"
+     END IF
+    CASE 7, 12 TO 15 'scripts
+     caption = gmapscr(scri)
+     scri += 1
+    CASE 8 'script argument
+     IF gmap(7) = 0 THEN
+      caption = "N/A"
+     ELSE
+      caption = STR(gmap(i))
+     END IF
+    CASE 9 'harm tile damage
+     caption = STR(gmap(i))
+    CASE 10 'harm tile flash
+     IF gmap(i) = 0 THEN
+      caption = "none"
+     ELSE
+      caption = STR(gmap(i))
+     END IF
+    CASE 11 'foot offset
+     SELECT CASE gmap(i)
+      CASE 0
+       caption = "none"
+      CASE IS < 0
+       caption = "up " & ABS(gmap(i)) & " pixels"
+      CASE IS > 0
+       caption = "down " & gmap(i) & " pixels"
+     END SELECT
+    CASE 16 'hero/npc draw order
+     IF gmap(i) = 1 THEN
+      caption = "NPCs over Heroes"
+     ELSE
+      caption = "Heroes over NPCs"
+     END IF
+    CASE 17, 18 'NPC and Tile data saving
+     SELECT CASE gmap(i)
+      CASE 0
+       caption = "Don't save state when leaving"
+      CASE 1
+       caption = "Remember state when leaving"
+      CASE 2
+       caption = "Ignore saved state, load anew"
+     END SELECT
+   END SELECT
+   textcolor uilook(uiMenuItem), 0
+   IF i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
+   printstr gdmenu(i) & " " & caption, 0, 8 * i, dpage
+   IF i = 10 THEN
+    'Harm tile flash color preview
+    rectangle 4 + (8 * (LEN(gdmenu(i)) + 1 + LEN(caption))), 8 * i, 8, 8, gmap(i), dpage
+   END IF
+  NEXT
+  IF gmap(5) = 2 THEN
+   '--show default edge tile
+   setmapdata sampmap(), sampmap(), 180, 0
+   setmapblock 0, 0, 0, gmap(6)
+   drawmap 0, -180, 0, 0, st.tilesets(0), dpage
+   rectangle 20, 180, 300, 20, uilook(uiBackground), dpage
+  END IF
+ 
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+END SUB
 
 SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray)
  DIM state AS MenuState
@@ -1310,7 +1307,8 @@ SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS 
  LoadNPCD maplumpname(mapnum, "n"), st.npc_def()
  deserdoors game & ".dox", doors(), mapnum
  deserdoorlinks maplumpname(mapnum, "d"), link()
- verify_map_size mapnum, wide, high, map(), pass(), emap(), getmapname(mapnum)
+ mapname = getmapname(mapnum)
+ verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
 END SUB
 
 SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)

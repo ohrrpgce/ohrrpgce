@@ -421,6 +421,8 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
  RETURN 0
 END FUNCTION
 
+'Asks a yes-or-no pop-up question.
+'(Not to be confused with yesorno(), which returns a yes/no string)
 FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
  IF defaultval THEN defaultval = 0 ELSE defaultval = 1
  IF escval THEN escval = 0 ELSE escval = 1

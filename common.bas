@@ -2807,6 +2807,8 @@ FUNCTION onoroff (n AS INTEGER) AS STRING
  RETURN "OFF"
 END FUNCTION
 
+'Returns a YES/NO string. Not to be confused with yesno() in customsubs.bas
+'which asks an interactive yes/no question
 FUNCTION yesorno (n AS INTEGER, yes_cap AS STRING="YES", no_cap AS STRING="NO") AS STRING
  IF n THEN RETURN yes_cap
  RETURN no_cap
