@@ -317,6 +317,7 @@ DO:
      gen(genMaxTile) = gen(genMaxTile) + 1
      importbmp ".til", "tileset", gen(genMaxTile)
      gen(genMaxTile) = gen(genMaxTile) - 1
+     tileset_empty_cache
     END IF
     IF pt = 13 THEN ui_color_editor(activepalette)
   END SELECT

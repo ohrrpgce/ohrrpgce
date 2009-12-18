@@ -152,6 +152,7 @@ declare sub sprite_flip_vert(byval spr as frame ptr)
 declare function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
 declare sub sprite_clear(byval spr as frame ptr)
 declare sub sprite_empty_cache()
+declare sub tileset_empty_cache()
 declare function sprite_is_valid(byval p as frame ptr) as integer
 declare sub sprite_debug_cache()
 declare function sprite_describe(byval p as frame ptr) as string

@@ -228,18 +228,26 @@ UNION RGBcolor
 END UNION
 
 Type TileAnimState
- cycle AS INTEGER
- pt AS INTEGER
- skip AS INTEGER
+  cycle AS INTEGER
+  pt AS INTEGER
+  skip AS INTEGER
 END Type
 
 Type TilesetData
   num as integer
-  refcount as integer  'exists (and unused) in spr too, but using that one would be tacky
-  spr as Frame ptr     '(uncached) could be a Frame, but sprite_delete doesn't like that
+  spr as Frame ptr
   anim(1) as TileAnimState
   tastuf(40) as integer
 End Type
+
+/'
+Type MapLayer
+  w as integer
+  h as integer
+  data as ubyte ptr
+  tileset as TilesetData
+End Type
+'/
 
 Type FontChar
 	offset as integer  'offset into spr.image

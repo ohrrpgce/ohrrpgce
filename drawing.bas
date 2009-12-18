@@ -362,6 +362,7 @@ clearpage 3
 clearpage 2
 clearpage 1
 clearpage 0
+tileset_empty_cache
 EXIT SUB
 
 tilemode:

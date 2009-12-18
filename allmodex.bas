@@ -2,6 +2,7 @@
 '' GPL and stuff. See LICENSE.txt.
 '
 #include "compat.bi"
+#include "crt/limits.bi"
 #ifdef __FB_WIN32__
 include_windows_bi()
 #endif
@@ -3397,9 +3398,7 @@ private function sprite_cacheB_shrink(byval amount as integer) as integer
 	wend
 end function
 
-
-'Completely empty the sprite cache
-sub sprite_empty_cache()
+sub sprite_purge_cache(byval minkey as integer, byval maxkey as integer, leakmsg as string, byval freeleaks as integer = NO)
 	dim iterstate as integer = 0
 	dim as SpriteCacheEntry ptr pt, nextpt
 
@@ -3409,14 +3408,26 @@ sub sprite_empty_cache()
 		nextpt = hash_iter(sprcache, iterstate, nextpt)
 		'recall that the cache counts as a reference
 		if pt->p->refcount <> 1 then
-			debug "warning: leaked sprite: " & pt->hashed.hash & " with " & pt->p->refcount & " references"
+			debug "warning: " & leakmsg & pt->hashed.hash & " with " & pt->p->refcount & " references"
+			if freeleaks then sprite_remove_cache(pt)
+		else
+			sprite_remove_cache(pt)
 		end if
-		sprite_remove_cache(pt)
 		pt = nextpt
 	wend
+end sub
+
+'Completely empty the sprite cache
+sub sprite_empty_cache()
+	sprite_purge_cache(INT_MIN, INT_MAX, "leaked sprite ", YES)
 	if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
-		debug "sprite cache corrupt: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
+		debug "sprite_empty_cache: corruption: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
 	end if
+end sub
+
+'removes all tilesets from the cache
+sub tileset_empty_cache()
+	sprite_purge_cache (100000000, 110000000, "could not purge tileset ")
 end sub
 
 sub sprite_debug_cache()
