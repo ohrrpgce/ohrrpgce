@@ -1060,7 +1060,7 @@ END SUB
 SUB SaveVehicle (file AS STRING, veh(), vehname$, record AS INTEGER)
  veh(0) = bound(LEN(vehname$), 0, 15)
  str2array vehname$, veh(), 1
- storerecord veh(), vehname$, 40, record
+ storerecord veh(), file, 40, record
 END SUB
 
 SUB ClearVehicle (vehicle AS VehicleData)
