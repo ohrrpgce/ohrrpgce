@@ -31,7 +31,7 @@ DECLARE SUB enemydata ()
 DECLARE SUB herodata ()
 DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB maptile (font())
-DECLARE SUB paint_map_area(st AS MapEditState, oldTile%, x%, y%, map%(), pass%(), defaults() AS DefArray, defpass%)
+DECLARE SUB paint_map_area(st AS MapEditState, oldTile%, x%, y%, map%(), pass%(), defaults() AS DefArray)
 
 DECLARE Function LayerIsVisible(vis() as integer, byval l as integer) as integer
 DECLARE Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
@@ -47,15 +47,15 @@ DECLARE SUB resizemapmenu (BYREF st AS MapEditState, map(), BYREF rs AS MapResiz
 DECLARE SUB resizetiledata OVERLOAD (array() AS INTEGER, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER, layers AS INTEGER)
 DECLARE SUB resizetiledata OVERLOAD (array() AS INTEGER, x_off AS INTEGER, y_off AS INTEGER, new_width AS INTEGER, new_height AS INTEGER, BYREF yout AS INTEGER, page AS INTEGER, layers AS INTEGER)
 
-DECLARE SUB make_top_map_menu(maptop, topmenu() AS STRING)
+DECLARE SUB make_top_map_menu(BYREF maptop AS INTEGER, topmenu() AS STRING)
 DECLARE SUB update_tilepicker(BYREF st AS MapEditState)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, mapname AS STRING)
 DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
 DECLARE SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB new_blank_map (BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB mapedit_addmap(BYREF st AS MapEditState, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
-DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
-DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
+DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS INTEGER, pass() AS INTEGER, gmap() AS INTEGER)
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray)
@@ -145,6 +145,9 @@ IF pic >= 160 THEN pic = (pic - 160) + tastuf(0)
 animadjust = pic
 END FUNCTION
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 SUB mapmaker (font())
 DIM st AS MapEditState
 DIM mode(12) AS STRING, list(13) AS STRING, menu(-1 TO 20) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs)
@@ -171,8 +174,10 @@ DIM defpass_reload_confirm(1) AS STRING
 
 textcolor uilook(uiText), 0
 
-wide = 0: high = 0: nptr = 0
-mapname$ = ""
+DIM wide AS INTEGER = 0
+DIM high AS INTEGER = 0
+DIM nptr AS INTEGER = 0
+DIM mapname AS STRING = ""
 DIM xtemp AS STRING, temp AS INTEGER
 
 '--create a palette for the cursor
@@ -209,42 +214,54 @@ mode(4) = "Foe Mapping Mode"
 st.menubar(0) = 160
 st.menubar(1) = 1
 setmapdata st.menubar(), pass(), 180, 0
-FOR i = 0 TO 159
+FOR i AS INTEGER = 0 TO 159
  setmapblock i, 0, 0, i
 NEXT
 
-maptop = 0
-pt = 0
-csr = 0
-make_top_map_menu maptop, topmenu()
+DIM state AS MenuState
+state.last = 2 + gen(genMaxMap)
+state.size = 24
+
+DIM csr AS INTEGER = 0
+DIM oldtop AS INTEGER
+DIM oldtile AS INTEGER
+DIM newtile AS INTEGER
+DIM over AS INTEGER
+DIM npcdir AS INTEGER
+DIM oldrel AS XYPair
+DIM flash AS INTEGER
+DIM jig AS XYPair
+DIM walk AS INTEGER
+
+make_top_map_menu state.top, topmenu()
 setkeys
 DO
  setwait 55
  setkeys
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
- oldtop = maptop
- usemenu pt, maptop, 0, 2 + gen(genMaxMap), 24
- IF oldtop <> maptop THEN make_top_map_menu maptop, topmenu()
+ oldtop = state.top
+ usemenu state
+ IF oldtop <> state.top THEN make_top_map_menu state.top, topmenu()
  IF enter_or_space() THEN
-  IF pt = 0 THEN EXIT DO
-  IF pt > 0 AND pt <= gen(genMaxMap) + 1 THEN
-   '--silly backcompat pt adjustment
-   pt = pt - 1
-   mapedit_loadmap st, pt, wide, high, map(), pass(), emap(), gmap(), visible(), doors(), link(), defaults(), mapname$
+  IF state.pt = 0 THEN EXIT DO
+  IF state.pt > 0 AND state.pt <= gen(genMaxMap) + 1 THEN
+   '--silly backcompat state.pt adjustment
+   state.pt = state.pt - 1
+   mapedit_loadmap st, state.pt, wide, high, map(), pass(), emap(), gmap(), visible(), doors(), link(), defaults(), mapname
    GOSUB whattodo
-   pt = pt + 1
-   make_top_map_menu maptop, topmenu()
+   state.pt = state.pt + 1
+   make_top_map_menu state.top, topmenu()
   END IF
-  IF pt = gen(genMaxMap) + 2 THEN
+  IF state.pt = gen(genMaxMap) + 2 THEN
    mapedit_addmap st, map(), pass(), emap(), gmap(), doors(), link()
-   make_top_map_menu maptop, topmenu()
+   make_top_map_menu state.top, topmenu()
   END IF
  END IF
- tog = tog XOR 1
- FOR i = 0 TO 24
+ state.tog = state.tog XOR 1
+ FOR i AS INTEGER = 0 TO 24
   textcolor uilook(uiMenuItem), 0
-  IF pt = maptop + i THEN textcolor uilook(uiSelectedItem + tog), 0
+  IF state.pt = state.top + i THEN textcolor uilook(uiSelectedItem + state.tog), 0
   printstr topmenu(i), 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
@@ -262,10 +279,10 @@ palette16_unload @(st.cursor.pal)
 EXIT SUB
 
 whattodo:
-x = 0
-y = 0
-mapx = 0
-mapy = 0
+st.x = 0
+st.y = 0
+st.mapx = 0
+st.mapy = 0
 st.layer = 0
 list(0) = "Return to Map Menu"
 list(1) = "Edit General Map Data..."
@@ -283,7 +300,7 @@ list(12) = "Re-load Default Passability"
 list(13) = "Map name:"
 
 '--load NPC graphics--
-FOR i = 0 TO max_npc_defs
+FOR i AS INTEGER = 0 TO max_npc_defs
  'Load the picture and palette
  WITH npc_img(i)
   .sprite = sprite_load(4, st.npc_def(i).picture)
@@ -295,36 +312,36 @@ setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
+ state.tog = state.tog XOR 1
  IF keyval(scESC) > 1 THEN
-  mapedit_savemap st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
+  mapedit_savemap st, state.pt, map(), pass(), emap(), gmap(), doors(), link(), mapname
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
  usemenu csr, 0, 0, 13, 24
  IF enter_or_space() THEN
   IF csr = 0 THEN
-   mapedit_savemap st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
+   mapedit_savemap st, state.pt, map(), pass(), emap(), gmap(), doors(), link(), mapname
    EXIT DO
   END IF
   IF csr = 1 THEN
    mapedit_gmapdata st, gmap()
   END IF
   IF csr = 2 THEN
-   mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), gmap(), doors(), link(), mapname$
+   mapedit_resize st, state.pt, wide, high, map(), pass(), emap(), gmap(), doors(), link(), mapname
   END IF
   IF csr = 3 THEN
    mapedit_layers st, gmap(), visible(), defaults()
   END IF
   IF csr = 4 THEN
-   npcdef st.npc_def(), npc_img(), pt
+   npcdef st.npc_def(), npc_img(), state.pt
   END IF
-  IF csr >= 5 AND csr <= 9 THEN editmode = csr - 5: GOSUB mapping
-  IF csr = 10 THEN mapedit_linkdoors st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
+  IF csr >= 5 AND csr <= 9 THEN st.mode = csr - 5: GOSUB mapping
+  IF csr = 10 THEN mapedit_linkdoors st, state.pt, map(), pass(), emap(), gmap(), doors(), link(), mapname
   IF csr = 11 THEN
-   mapedit_delete st, pt, wide, high, x, y, mapx, mapy, map(), pass(), emap(), doors(), link()
-   IF pt > gen(genMaxMap) THEN
-    pt -= 1
+   mapedit_delete st, state.pt, wide, high, map(), pass(), emap(), doors(), link()
+   IF state.pt > gen(genMaxMap) THEN
+    state.pt -= 1
     EXIT DO
    END IF
   END IF
@@ -333,17 +350,17 @@ DO
    defpass_reload_confirm(0) = "No, Nevermind. No passability changes"
    defpass_reload_confirm(1) = "Set default passability for whole map"
    IF sublist(defpass_reload_confirm(), "defpass_reload_confirm") = 1 THEN
-    FOR tx = 0 TO pass(0) - 1
-     FOR ty = 0 TO pass(1) - 1
+    FOR tx AS INTEGER = 0 TO pass(0) - 1
+     FOR ty AS INTEGER = 0 TO pass(1) - 1
       calculatepassblock st, tx, ty, map(), pass(), defaults()
      NEXT ty
     NEXT tx
    END IF
   END IF
  END IF
- IF csr = 13 THEN strgrabber mapname$, 39
- list(13) = "Map name:" + mapname$
- IF LEN(list(13)) > 40 THEN list(13) = mapname$
+ IF csr = 13 THEN strgrabber mapname, 39
+ list(13) = "Map name:" + mapname
+ IF LEN(list(13)) > 40 THEN list(13) = mapname
  
  standardmenu list(), 13, 13, csr, 0, 0, 0, dpage, 0
  
@@ -353,7 +370,7 @@ DO
  dowait
 LOOP
 'Unload NPC graphics
-FOR i = 0 TO max_npc_defs
+FOR i AS INTEGER = 0 TO max_npc_defs
  WITH npc_img(i)
   if .sprite then sprite_unload(@.sprite)
   if .pal then palette16_unload(@.pal)
@@ -369,10 +386,10 @@ loadherodata @her, 0
 loadrecord heroimg(), game + ".pt4", 100, her.walk_sprite * 8 + 4
 fixspriterecord heroimg(), 20, 20
 getpal16 heropal(), 0, her.walk_sprite_pal, 4, her.walk_sprite
-defpass = 1
-IF readbit(gen(), genBits, 15) THEN defpass = 0 ' option to default the defaults to OFF
-doorid = 0
-doorlinkid = 0
+st.defpass = YES
+IF readbit(gen(), genBits, 15) THEN st.defpass = NO ' option to default the defaults to OFF
+st.doorid = 0
+st.doorlinkid = 0
 
 setkeys
 DO
@@ -381,22 +398,22 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
   IF keyval(scF2) > 1 THEN
-   editmode = 0
+   st.mode = 0
   END IF
   IF keyval(scF3) > 1 THEN
-   editmode = 1
+   st.mode = 1
   END IF
   IF keyval(scF4) > 1 THEN
-   editmode = 2
+   st.mode = 2
   END IF
   IF keyval(scF5) > 1 THEN
-   editmode = 3
+   st.mode = 3
   END IF
   IF keyval(scF6) > 1 THEN
-   editmode = 4
+   st.mode = 4
   END IF
  else
-  for i = 0 to 2
+  for i as integer = 0 to 2
    if keyval(scAlt) > 0 AND keyval(sc1 + i) > 1 then
     clearkey(sc1 + i)
     togglelayerenabled(gmap(), i)
@@ -421,61 +438,61 @@ DO
  end if
  
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), defaults()  'ctrl-L
- IF keyval(scTab) > 1 THEN tiny = tiny XOR 1
+ IF keyval(scTab) > 1 THEN st.tiny = NOT st.tiny
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    'delete tile
    setmapdata map(), pass(), 20, 0
-   FOR i = 0 TO 2
-    setmapblock x, y, i, 0
+   FOR i AS INTEGER = 0 TO 2
+    setmapblock st.x, st.y, i, 0
    NEXT i
    'delete passability
-   setpassblock x, y, 0
+   setpassblock st.x, st.y, 0
    'delete foemap
    setmapdata emap(), pass(), 20, 0
-   setmapblock x, y, 0, 0
+   setmapblock st.x, st.y, 0, 0
    'setmapdata sucks. we should find a better way...
    setmapdata map(), pass(), 20, 0
    'delete NPC
-   FOR i = 0 TO 299
+   FOR i AS INTEGER = 0 TO 299
     IF st.npc_inst(i).id > 0 THEN
-     IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0
+     IF st.npc_inst(i).x = st.x * 20 AND st.npc_inst(i).y = st.y * 20 THEN st.npc_inst(i).id = 0
     END IF
    NEXT i
    'delete door
-   doorid = find_door_at_spot(x, y, doors())
-   IF doorid >= 0 THEN
-    setbit doors(doorid).bits(), 0, 0, 1
+   st.doorid = find_door_at_spot(st.x, st.y, doors())
+   IF st.doorid >= 0 THEN
+    setbit doors(st.doorid).bits(), 0, 0, 1
    END IF
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scH) > 1 THEN 'Ctrl+H for hero start position
-  gen(genStartMap) = pt
-  gen(genStartX) = x
-  gen(genStartY) = y
+  gen(genStartMap) = state.pt
+  gen(genStartX) = st.x
+  gen(genStartY) = st.y
  END IF
- SELECT CASE editmode
+ SELECT CASE st.mode
   '---TILEMODE------
   CASE 0
    IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
    setmapdata map(), pass(), 20, 0
    IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+F Fill screen
-    FOR tx = 0 TO 14
-     FOR ty = 0 TO 8
-      setmapblock mapx \ 20 + tx, mapy \ 20 + ty, st.layer, st.usetile(st.layer)
-      IF defpass THEN calculatepassblock st, mapx \ 20 + tx, mapy \ 20 + ty, map(), pass(), defaults()
+    FOR tx AS INTEGER = 0 TO 14
+     FOR ty AS INTEGER = 0 TO 8
+      setmapblock st.mapx \ 20 + tx, st.mapy \ 20 + ty, st.layer, st.usetile(st.layer)
+      IF st.defpass THEN calculatepassblock st, st.mapx \ 20 + tx, st.mapy \ 20 + ty, map(), pass(), defaults()
      NEXT ty
     NEXT tx
    END IF
    IF keyval(scR) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+R to replace-all
-    old = readmapblock(x, y, st.layer)
-    FOR ty = 0 to map(1) - 1
-     FOR tx = 0 to map(0) - 1
-      IF readmapblock(tx, ty, st.layer) = old THEN setmapblock tx, ty, st.layer, st.usetile(st.layer)
+    oldtile = readmapblock(st.x, st.y, st.layer)
+    FOR ty AS INTEGER = 0 to map(1) - 1
+     FOR tx AS INTEGER = 0 to map(0) - 1
+      IF readmapblock(tx, ty, st.layer) = oldtile THEN setmapblock tx, ty, st.layer, st.usetile(st.layer)
      NEXT tx
     NEXT ty
    END IF
    IF keyval(scP) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+P to paint a continuous section of maptiles
-    old = readmapblock(x, y, st.layer)
-    paint_map_area st, old, x, y, map(), pass(), defaults(), defpass
+    oldtile = readmapblock(st.x, st.y, st.layer)
+    paint_map_area st, oldtile, st.x, st.y, map(), pass(), defaults()
    END IF
    IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
      setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
@@ -483,33 +500,33 @@ DO
    IF keyval(scTilde) > 1 THEN show_minimap st, map()
    IF keyval(scEnter) > 1 THEN mapedit_pickblock st, pass()
    IF keyval(scSpace) > 0 THEN
-    setmapblock x, y, st.layer, st.usetile(st.layer)
-    IF defpass THEN calculatepassblock st, x, y, map(), pass(), defaults()
+    setmapblock st.x, st.y, st.layer, st.usetile(st.layer)
+    IF st.defpass THEN calculatepassblock st, st.x, st.y, map(), pass(), defaults()
    END IF
    IF keyval(scDelete) > 1 THEN 'delete
-    setmapblock x, y, st.layer, 0
+    setmapblock st.x, st.y, st.layer, 0
    END IF
    IF keyval(scCapslock) > 1 THEN 'grab tile
-    st.usetile(st.layer) = animadjust(readmapblock(x, y, st.layer), st.tilesets(st.layer)->tastuf())
+    st.usetile(st.layer) = animadjust(readmapblock(st.x, st.y, st.layer), st.tilesets(st.layer)->tastuf())
     update_tilepicker st
    END IF
-   IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN defpass = defpass XOR 1   
-   FOR i = 0 TO 1 
+   IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN st.defpass = NOT st.defpass
+   FOR i AS INTEGER = 0 TO 1 
     IF keyval(sc1 + i) > 1 THEN 'animate tile
      newtile = -1
-     old = readmapblock(x, y, st.layer)
-     IF old >= 160 + i * 48 AND old < 160 + i * 48 + 48 THEN
-      newtile = (old - (160 + (i * 48))) + st.tilesets(st.layer)->tastuf(i * 20)
-     ELSEIF old >= st.tilesets(st.layer)->tastuf(i * 20) AND old < st.tilesets(st.layer)->tastuf(i * 20) + 48 THEN
-      newtile = 160 + (i * 48) + (old - st.tilesets(st.layer)->tastuf(i * 20))
+     oldtile = readmapblock(st.x, st.y, st.layer)
+     IF oldtile >= 160 + i * 48 AND oldtile < 160 + i * 48 + 48 THEN
+      newtile = (oldtile - (160 + (i * 48))) + st.tilesets(st.layer)->tastuf(i * 20)
+     ELSEIF oldtile >= st.tilesets(st.layer)->tastuf(i * 20) AND oldtile < st.tilesets(st.layer)->tastuf(i * 20) + 48 THEN
+      newtile = 160 + (i * 48) + (oldtile - st.tilesets(st.layer)->tastuf(i * 20))
      END IF
      IF newtile >= 0 THEN
       IF keyval(scCtrl) = 0 THEN
-       setmapblock x, y, st.layer, newtile
+       setmapblock st.x, st.y, st.layer, newtile
       ELSE
-       FOR tx = 0 TO map(0) - 1
-        FOR ty = 0 TO map(1) - 1
-         IF readmapblock(tx, ty, st.layer) = old THEN setmapblock tx, ty, st.layer, newtile
+       FOR tx AS INTEGER = 0 TO map(0) - 1
+        FOR ty AS INTEGER = 0 TO map(1) - 1
+         IF readmapblock(tx, ty, st.layer) = oldtile THEN setmapblock tx, ty, st.layer, newtile
         NEXT ty
        NEXT tx
       END IF
@@ -528,101 +545,101 @@ DO
   CASE 1
    IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
    setmapdata map(), pass(), 20, 0
-   over = readpassblock(x, y)
-   IF keyval(scSpace) > 1 AND (over AND 15) = 0 THEN setpassblock x, y, 15
-   IF keyval(scSpace) > 1 AND (over AND 15) = 15 THEN setpassblock x, y, 0
-   IF keyval(scSpace) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN setpassblock x, y, 0
+   over = readpassblock(st.x, st.y)
+   IF keyval(scSpace) > 1 AND (over AND 15) = 0 THEN setpassblock st.x, st.y, 15
+   IF keyval(scSpace) > 1 AND (over AND 15) = 15 THEN setpassblock st.x, st.y, 0
+   IF keyval(scSpace) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN setpassblock st.x, st.y, 0
    IF keyval(scDelete) > 1 THEN 'delete
-    setpassblock x, y, 0
+    setpassblock st.x, st.y, 0
    END IF
    IF keyval(scCtrl) > 0 THEN
-    IF keyval(scUp) > 1 THEN setpassblock x, y, (over XOR 1)
-    IF keyval(scRight) > 1 THEN setpassblock x, y, (over XOR 2)
-    IF keyval(scDown) > 1 THEN setpassblock x, y, (over XOR 4)
-    IF keyval(scLeft) > 1 THEN setpassblock x, y, (over XOR 8)
+    IF keyval(scUp) > 1 THEN setpassblock st.x, st.y, (over XOR 1)
+    IF keyval(scRight) > 1 THEN setpassblock st.x, st.y, (over XOR 2)
+    IF keyval(scDown) > 1 THEN setpassblock st.x, st.y, (over XOR 4)
+    IF keyval(scLeft) > 1 THEN setpassblock st.x, st.y, (over XOR 8)
    END IF
-   IF keyval(scA) > 1 THEN setpassblock x, y, (over XOR 16) 'vehicle A
-   IF keyval(scB) > 1 THEN setpassblock x, y, (over XOR 32) 'vehicle B
-   IF keyval(scH) > 1 THEN setpassblock x, y, (over XOR 64) 'harm tile
-   IF keyval(scO) > 1 THEN setpassblock x, y, (over XOR 128)'overhead
+   IF keyval(scA) > 1 THEN setpassblock st.x, st.y, (over XOR 16) 'vehicle A
+   IF keyval(scB) > 1 THEN setpassblock st.x, st.y, (over XOR 32) 'vehicle B
+   IF keyval(scH) > 1 THEN setpassblock st.x, st.y, (over XOR 64) 'harm tile
+   IF keyval(scO) > 1 THEN setpassblock st.x, st.y, (over XOR 128)'overhead
    '---DOORMODE-----
   CASE 2
    IF keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
    IF keyval(scEnter) > 1 THEN ' enter to link a door
-    doorid = find_door_at_spot(x, y, doors())
-    IF doorid >= 0 THEN
+    st.doorid = find_door_at_spot(st.x, st.y, doors())
+    IF st.doorid >= 0 THEN
      'Save currently-worked-on map data
-     mapedit_savemap st, pt, map(), pass(), emap(), gmap(), doors(), link(), mapname$
-     doorlinkid = find_first_doorlink_by_door(doorid, link())
-     IF doorlinkid >= 0 THEN
-      link_one_door st, pt, doorlinkid, link(), doors(), map(), pass(), gmap()
+     mapedit_savemap st, state.pt, map(), pass(), emap(), gmap(), doors(), link(), mapname
+     st.doorlinkid = find_first_doorlink_by_door(st.doorid, link())
+     IF st.doorlinkid >= 0 THEN
+      link_one_door st, state.pt, st.doorlinkid, link(), doors(), map(), pass(), gmap()
      ELSE
-      doorlinkid = find_last_used_doorlink(link()) + 1
-      IF doorlinkid >= 0 AND doorlinkid <= UBOUND(link) THEN
-       link(doorlinkid).source = doorid
-       link_one_door st, pt, doorlinkid, link(), doors(), map(), pass(), gmap()
+      st.doorlinkid = find_last_used_doorlink(link()) + 1
+      IF st.doorlinkid >= 0 AND st.doorlinkid <= UBOUND(link) THEN
+       link(st.doorlinkid).source = st.doorid
+       link_one_door st, state.pt, st.doorlinkid, link(), doors(), map(), pass(), gmap()
       END IF
      END IF
     END IF
    END IF
    IF keyval(scSpace) > 1 THEN ' space to place a door
-    doorid = find_door_at_spot(x, y, doors())
-    IF doorid >= 0 THEN
+    st.doorid = find_door_at_spot(st.x, st.y, doors())
+    IF st.doorid >= 0 THEN
      'clear an existing door
-     setbit doors(doorid).bits(), 0, 0, 0
+     setbit doors(st.doorid).bits(), 0, 0, 0
     ELSE
      'place a new door
-     doorid = find_first_free_door(doors())
-     IF doorid >= 0 THEN
-      doors(doorid).x = x
-      doors(doorid).y = y + 1
-      setbit doors(doorid).bits(), 0, 0, 1
+     st.doorid = find_first_free_door(doors())
+     IF st.doorid >= 0 THEN
+      doors(st.doorid).x = st.x
+      doors(st.doorid).y = st.y + 1
+      setbit doors(st.doorid).bits(), 0, 0, 1
      END IF
     END IF
    END IF
    IF keyval(scDelete) > 1 THEN
-    doorid = find_door_at_spot(x, y, doors())
-    IF doorid >= 0 THEN
-     setbit doors(doorid).bits(), 0, 0, 0
+    st.doorid = find_door_at_spot(st.x, st.y, doors())
+    IF st.doorid >= 0 THEN
+     setbit doors(st.doorid).bits(), 0, 0, 0
     END IF
    END IF
    '---NPCMODE------
   CASE 3
    IF keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
    IF keyval(scDelete) > 1 THEN
-    FOR i = 0 TO 299
+    FOR i AS INTEGER = 0 TO 299
      IF st.npc_inst(i).id > 0 THEN
-      IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0
+      IF st.npc_inst(i).x = st.x * 20 AND st.npc_inst(i).y = st.y * 20 THEN st.npc_inst(i).id = 0
      END IF
     NEXT i
    END IF
-   nd = -1
+   npcdir = -1
    IF keyval(scCtrl) > 0 OR keyval(scSpace) > 1 THEN
-    IF slowkey(scUp, 12)    THEN nd = 0
-    IF slowkey(scRight, 12) THEN nd = 1
-    IF slowkey(scDown, 12)  THEN nd = 2
-    IF slowkey(scLeft, 12)  THEN nd = 3
+    IF slowkey(scUp, 12)    THEN npcdir = 0
+    IF slowkey(scRight, 12) THEN npcdir = 1
+    IF slowkey(scDown, 12)  THEN npcdir = 2
+    IF slowkey(scLeft, 12)  THEN npcdir = 3
    END IF
-   IF keyval(scSpace) > 1 OR nd > -1 THEN
+   IF keyval(scSpace) > 1 OR npcdir > -1 THEN
     temp = 0
-    IF nd = -1 THEN
-     FOR i = 0 TO 299
+    IF npcdir = -1 THEN
+     FOR i AS INTEGER = 0 TO 299
       IF st.npc_inst(i).id > 0 THEN
-       IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0: temp = 1
+       IF st.npc_inst(i).x = st.x * 20 AND st.npc_inst(i).y = st.y * 20 THEN st.npc_inst(i).id = 0: temp = 1
       END IF
      NEXT i
     END IF
-    IF nd = -1 THEN nd = 2
+    IF npcdir = -1 THEN npcdir = 2
     IF temp = 0 THEN
      temp = -1
-     FOR i = 299 TO 0 STEP -1
+     FOR i AS INTEGER = 299 TO 0 STEP -1
       IF st.npc_inst(i).id = 0 THEN temp = i
      NEXT i
      IF temp >= 0 THEN
-      st.npc_inst(temp).x = x * 20
-      st.npc_inst(temp).y = y * 20
+      st.npc_inst(temp).x = st.x * 20
+      st.npc_inst(temp).y = st.y * 20
       st.npc_inst(temp).id = nptr + 1
-      st.npc_inst(temp).dir = nd
+      st.npc_inst(temp).dir = npcdir
      END IF
     END IF
    END IF
@@ -633,22 +650,22 @@ DO
    intgrabber(foe, 0, 255, 51, 52)
    IF keyval(scSpace) > 0 THEN
     setmapdata emap(), pass(), 20, 0
-    setmapblock x, y, 0, foe
+    setmapblock st.x, st.y, 0, foe
    END IF
    IF keyval(scDelete) > 1 THEN
     setmapdata emap(), pass(), 20, 0
-    setmapblock x, y, 0, 0
+    setmapblock st.x, st.y, 0, 0
    END IF
    IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN
     setmapdata emap(), pass(), 20, 0
-    FOR i = 0 TO 14
-     FOR o = 0 TO 8
-      setmapblock INT(mapx / 20) + i, INT(mapy / 20) + o, 0, foe
+    FOR i AS INTEGER = 0 TO 14
+     FOR o AS INTEGER = 0 TO 8
+      setmapblock INT(st.mapx / 20) + i, INT(st.mapy / 20) + o, 0, foe
      NEXT o
     NEXT i
    END IF
    setmapdata emap(), pass(), 20, 0
-   IF keyval(scCapslock) > 1 THEN foe = readmapblock(x, y, 0)
+   IF keyval(scCapslock) > 1 THEN foe = readmapblock(st.x, st.y, 0)
    '--done input-modes-------
  END SELECT
  
@@ -656,32 +673,44 @@ DO
  
  '--general purpose controls----
  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
-  xrate = 8
-  yrate = 5
+  st.scrollrate.x = 8
+  st.scrollrate.y = 5
  ELSE
-  xrate = 1
-  yrate = 1
+  st.scrollrate.x = 1
+  st.scrollrate.y = 1
  END IF
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
-  IF slowkey(scUp, 2) THEN y = large(y - yrate, 0): IF y < INT(mapy / 20) THEN mapy = y * 20
-  IF slowkey(scDown, 2) THEN y = small(y + yrate, high - 1): IF y > INT(mapy / 20) + 8 THEN mapy = y * 20 - 160
-  IF slowkey(scLeft, 2) THEN x = large(x - xrate, 0): IF x < INT(mapx / 20) THEN mapx = x * 20
-  IF slowkey(scRight, 2) THEN x = small(x + xrate, wide - 1): IF x > INT(mapx / 20) + 14 THEN mapx = x * 20 - 280
+  IF slowkey(scUp, 2) THEN
+   st.y = large(st.y - st.scrollrate.y, 0)
+   IF st.y < INT(st.mapy / 20) THEN st.mapy = st.y * 20
+  END IF
+  IF slowkey(scDown, 2) THEN
+   st.y = small(st.y + st.scrollrate.y, high - 1)
+   IF st.y > INT(st.mapy / 20) + 8 THEN st.mapy = st.y * 20 - 160
+  END IF
+  IF slowkey(scLeft, 2) THEN
+   st.x = large(st.x - st.scrollrate.x, 0)
+   IF st.x < INT(st.mapx / 20) THEN st.mapx = st.x * 20
+  END IF
+  IF slowkey(scRight, 2) THEN
+   st.x = small(st.x + st.scrollrate.x, wide - 1)
+   IF st.x > INT(st.mapx / 20) + 14 THEN st.mapx = st.x * 20 - 280
+  END IF
  END IF
  IF keyval(scAlt) > 0 AND keyval(scCtrl) = 0 THEN
-  oldrelx = x - mapx / 20
-  oldrely = y - mapy / 20
-  IF slowkey(scUp, 2) THEN mapy = large(mapy - 20 * yrate, 0)
-  IF slowkey(scDown, 2) THEN mapy = small(mapy + 20 * yrate, high * 20 - 180)
-  IF slowkey(scLeft, 2) THEN mapx = large(mapx - 20 * xrate, 0)
-  IF slowkey(scRight, 2) THEN mapx = small(mapx + 20 * xrate, wide * 20 - 300)
-  x = mapx / 20 + oldrelx
-  y = mapy / 20 + oldrely
+  oldrel.x = st.x - st.mapx / 20
+  oldrel.y = st.y - st.mapy / 20
+  IF slowkey(scUp, 2) THEN st.mapy = large(st.mapy - 20 * st.scrollrate.y, 0)
+  IF slowkey(scDown, 2) THEN st.mapy = small(st.mapy + 20 * st.scrollrate.y, high * 20 - 180)
+  IF slowkey(scLeft, 2) THEN st.mapx = large(st.mapx - 20 * st.scrollrate.x, 0)
+  IF slowkey(scRight, 2) THEN st.mapx = small(st.mapx + 20 * st.scrollrate.x, wide * 20 - 300)
+  st.x = st.mapx / 20 + oldrel.x
+  st.y = st.mapy / 20 + oldrel.y
  END IF
  
- IF editmode = 0 THEN 'tilemode, uses layers
+ IF st.mode = 0 THEN 'tilemode, uses layers
   IF keyval(scPageup) > 1 THEN
-   FOR i = st.layer+1 TO 2
+   FOR i AS INTEGER = st.layer+1 TO 2
     IF layerisenabled(gmap(), i) THEN
      st.layer = i
      setlayervisible(visible(), st.layer, 1)
@@ -692,7 +721,7 @@ DO
   END IF
 
   IF keyval(scPageDown) > 1 THEN
-   FOR i = st.layer-1 TO 0 STEP -1
+   FOR i AS INTEGER = st.layer-1 TO 0 STEP -1
     IF layerisenabled(gmap(), i) THEN
      st.layer = i
      setlayervisible(visible(), st.layer, 1)
@@ -703,11 +732,11 @@ DO
   END IF
  END IF
  
- tog = tog XOR 1
+ state.tog = state.tog XOR 1
  flash = loopvar(flash, 0, 3, 1)
  
  '--draw menubar
- IF editmode = 0 THEN
+ IF st.mode = 0 THEN
   setmapdata st.menubar(), pass(), 0, 180
   drawmap st.menubarstart(st.layer) * 20, 0, 0, 0, st.tilesets(st.layer), dpage
  ELSE
@@ -718,42 +747,43 @@ DO
  setmapdata map(), pass(), 20, 0
  animatetilesets st.tilesets()
  rectangle 0, 20, 320, 180, uilook(uiBackground), dpage
- for i = 0 to 2
- 	if layerisvisible(visible(), i) AND layerisenabled(gmap(), i) then
-		jigx = 0: jigy = 0
-		if readbit(jiggle(), 0, i) and tog then
-			if i = 0 then jigx = 1
-			if i = 1 then jigy = 1
-			if i = 2 then jigx = -1: jigy = -1
-		end if
-		if i = 0 then
-			drawmap mapx + jigx, mapy + jigy - 20, 0, 1, st.tilesets(0), dpage, 0
-		elseif i = 1 then
-			drawmap mapx + jigx, mapy + jigy - 20, 1, 0, st.tilesets(1), dpage, 1
-		elseif i = 2 then
-			drawmap mapx + jigx, mapy + jigy - 20, 2, 0, st.tilesets(2), dpage, 1
-		end if
-	end if
+ for i as integer = 0 to 2
+  if layerisvisible(visible(), i) AND layerisenabled(gmap(), i) then
+   jig.x = 0
+   jig.y = 0
+   if readbit(jiggle(), 0, i) and state.tog then
+    if i = 0 then jig.x = 1
+    if i = 1 then jig.y = 1
+    if i = 2 then jig.x = -1: jig.y = -1
+   end if
+   if i = 0 then
+    drawmap st.mapx + jig.x, st.mapy + jig.y - 20, 0, 1, st.tilesets(0), dpage, 0
+   elseif i = 1 then
+    drawmap st.mapx + jig.x, st.mapy + jig.y - 20, 1, 0, st.tilesets(1), dpage, 1
+   elseif i = 2 then
+    drawmap st.mapx + jig.x, st.mapy + jig.y - 20, 2, 0, st.tilesets(2), dpage, 1
+   end if
+  end if
  next
  if layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
-	if readbit(jiggle(), 0, 0) and tog then
-		drawmap mapx + 1, mapy - 20, 0, 2, st.tilesets(0), dpage, 0
-	else
-		drawmap mapx, mapy - 20, 0, 2, st.tilesets(0), dpage, 0
-	end if
+  if readbit(jiggle(), 0, 0) and state.tog then
+   drawmap st.mapx + 1, st.mapy - 20, 0, 2, st.tilesets(0), dpage, 0
+  else
+   drawmap st.mapx, st.mapy - 20, 0, 2, st.tilesets(0), dpage, 0
+  end if
  end if
  
  '--show passmode overlay
- IF editmode = 1 THEN
+ IF st.mode = 1 THEN
   setmapdata pass(), pass(), 20, 0
-  FOR o = 0 TO 8
-   FOR i = 0 TO 14
-    over = readpassblock((mapx \ 20) + i, (mapy \ 20) + o)
-    IF (over AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (over AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
-    IF (over AND 4) THEN rectangle i * 20, o * 20 + 37, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (over AND 8) THEN rectangle i * 20, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
-    textcolor uilook(uiSelectedItem + tog), 0
+  FOR o AS INTEGER = 0 TO 8
+   FOR i AS INTEGER = 0 TO 14
+    over = readpassblock((st.mapx \ 20) + i, (st.mapy \ 20) + o)
+    IF (over AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, uilook(uiMenuItem + state.tog), dpage
+    IF (over AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, uilook(uiMenuItem + state.tog), dpage
+    IF (over AND 4) THEN rectangle i * 20, o * 20 + 37, 20, 3, uilook(uiMenuItem + state.tog), dpage
+    IF (over AND 8) THEN rectangle i * 20, o * 20 + 20, 3, 20, uilook(uiMenuItem + state.tog), dpage
+    textcolor uilook(uiSelectedItem + state.tog), 0
     IF (over AND 16) THEN printstr "A", i * 20, o * 20 + 20, dpage
     IF (over AND 32) THEN printstr "B", i * 20 + 10, o * 20 + 20, dpage
     IF (over AND 64) THEN printstr "H", i * 20, o * 20 + 30, dpage
@@ -763,41 +793,42 @@ DO
  END IF
  
  '--door display--
- IF editmode = 2 THEN
+ IF st.mode = 2 THEN
   textcolor uilook(uiBackground), 0
-  FOR i = 0 TO 99
-   IF doors(i).x >= INT(mapx / 20) AND doors(i).x < INT(mapx / 20) + 16 AND doors(i).y > INT(mapy / 20) AND doors(i).y <= INT(mapy / 20) + 9 AND readbit(doors(i).bits(),0,0) = 1 THEN
-    rectangle doors(i).x * 20 - mapx, doors(i).y * 20 - mapy, 20, 20, uilook(uiSelectedItem + tog), dpage
-    printstr STR$(i), doors(i).x * 20 - mapx + 10 - (4 * LEN(STR$(i))), doors(i).y * 20 - mapy + 6, dpage
+  FOR i AS INTEGER = 0 TO 99
+   IF doors(i).x >= INT(st.mapx / 20) AND doors(i).x < INT(st.mapx / 20) + 16 AND doors(i).y > INT(st.mapy / 20) AND doors(i).y <= INT(st.mapy / 20) + 9 AND readbit(doors(i).bits(),0,0) = 1 THEN
+    rectangle doors(i).x * 20 - st.mapx, doors(i).y * 20 - st.mapy, 20, 20, uilook(uiSelectedItem + state.tog), dpage
+    printstr STR$(i), doors(i).x * 20 - st.mapx + 10 - (4 * LEN(STR$(i))), doors(i).y * 20 - st.mapy + 6, dpage
    END IF
   NEXT
  END IF
 
  '--hero start location display--
- IF gen(genStartMap) = pt THEN
-  IF gen(genStartX) >= INT(mapx / 20) AND gen(genStartX) < INT(mapx / 20) + 16 AND gen(genStartY) > INT(mapy / 20) AND gen(genStartY) <= INT(mapy / 20) + 9 THEN
-   drawsprite heroimg(), 0, heropal(), 0, gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 20 - mapy, dpage
-   printstr "Hero", gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 30 - mapy, dpage
+ IF gen(genStartMap) = state.pt THEN
+  IF gen(genStartX) >= INT(st.mapx / 20) AND gen(genStartX) < INT(st.mapx / 20) + 16 AND gen(genStartY) > INT(st.mapy / 20) AND gen(genStartY) <= INT(st.mapy / 20) + 9 THEN
+   drawsprite heroimg(), 0, heropal(), 0, gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 20 - st.mapy, dpage
+   printstr "Hero", gen(genStartX) * 20 - st.mapx, gen(genStartY) * 20 + 30 - st.mapy, dpage
   END IF
  END IF
 
  '--npc display--
- IF editmode = 3 THEN
-  FOR i = 0 to max_npc_defs
+ IF st.mode = 3 THEN
+  FOR i AS INTEGER = 0 to max_npc_defs
    npcnum(i) = 0
   NEXT
-  walk = walk + 1: IF walk > 3 THEN walk = 0
-  FOR i = 0 TO 299
+  walk = walk + 1
+  IF walk > 3 THEN walk = 0
+  FOR i AS INTEGER = 0 TO 299
    IF st.npc_inst(i).id > 0 THEN
-    IF st.npc_inst(i).x >= mapx AND st.npc_inst(i).x < mapx + 320 AND st.npc_inst(i).y >= mapy AND st.npc_inst(i).y < mapy + 200 THEN
+    IF st.npc_inst(i).x >= st.mapx AND st.npc_inst(i).x < st.mapx + 320 AND st.npc_inst(i).y >= st.mapy AND st.npc_inst(i).y < st.mapy + 200 THEN
      WITH npc_img(st.npc_inst(i).id - 1)
-      sprite_draw .sprite + (2 * st.npc_inst(i).dir) + walk \ 2, .pal, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy, 1, -1, dpage
+      sprite_draw .sprite + (2 * st.npc_inst(i).dir) + walk \ 2, .pal, st.npc_inst(i).x - st.mapx, st.npc_inst(i).y + 20 - st.mapy, 1, -1, dpage
      END WITH
-     textcolor uilook(uiSelectedItem + tog), 0
+     textcolor uilook(uiSelectedItem + state.tog), 0
      xtemp = STR$(st.npc_inst(i).id - 1)
-     printstr xtemp, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 3, dpage
+     printstr xtemp, st.npc_inst(i).x - st.mapx, st.npc_inst(i).y + 20 - st.mapy + 3, dpage
      xtemp = STR$(npcnum(st.npc_inst(i).id - 1))
-     printstr xtemp, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 12, dpage
+     printstr xtemp, st.npc_inst(i).x - st.mapx, st.npc_inst(i).y + 20 - st.mapy + 12, dpage
     END IF
     npcnum(st.npc_inst(i).id - 1) = npcnum(st.npc_inst(i).id - 1) + 1
    END IF
@@ -805,57 +836,55 @@ DO
  END IF
  
  '--position finder--
- IF tiny = 1 THEN
+ IF st.tiny THEN
   fuzzyrect 0, 20, wide, high, uilook(uiHighlight), dpage
-  rectangle mapx / 20, (mapy / 20) + 20, 15, 9, uilook(uiDescription), dpage
+  rectangle st.mapx / 20, (st.mapy / 20) + 20, 15, 9, uilook(uiDescription), dpage
  END IF
  
  '--normal cursor--
- IF editmode <> 3 THEN
-  sprite_draw st.cursor.sprite + tog, st.cursor.pal, (x * 20) - mapx, (y * 20) - mapy + 20, , , dpage
-  IF editmode = 0 THEN
-   sprite_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
+ IF st.mode <> 3 THEN
+  sprite_draw st.cursor.sprite + state.tog, st.cursor.pal, (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 20, , , dpage
+  IF st.mode = 0 THEN
+   sprite_draw st.cursor.sprite + state.tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
   END IF
  END IF
  
  '--npc placement cursor--
- IF editmode = 3 THEN
+ IF st.mode = 3 THEN
   WITH npc_img(nptr)
-   sprite_draw .sprite + (2 * walk), .pal, x * 20 - mapx, y * 20 - mapy + 20, 1, -1, dpage
+   sprite_draw .sprite + (2 * walk), .pal, st.x * 20 - st.mapx, st.y * 20 - st.mapy + 20, 1, -1, dpage
   END WITH
-  textcolor uilook(uiSelectedItem + tog), 0
+  textcolor uilook(uiSelectedItem + state.tog), 0
   xtemp = STR(nptr)
-  printstr xtemp, (x * 20) - mapx, (y * 20) - mapy + 28, dpage
+  printstr xtemp, (st.x * 20) - st.mapx, (st.y * 20) - st.mapy + 28, dpage
  END IF
  
  '--show foemap--
- IF editmode = 4 THEN
+ IF st.mode = 4 THEN
   setmapdata emap(), pass(), 20, 0
-  textcolor uilook(uiSelectedItem + tog), 0
-  FOR i = 0 TO 14
-   FOR o = 0 TO 8
-    temp = readmapblock(INT(mapx / 20) + i, INT(mapy / 20) + o, 0)
+  textcolor uilook(uiSelectedItem + state.tog), 0
+  FOR i AS INTEGER = 0 TO 14
+   FOR o AS INTEGER = 0 TO 8
+    temp = readmapblock(INT(st.mapx / 20) + i, INT(st.mapy / 20) + o, 0)
     IF temp > 0 THEN printstr STR$(temp), i * 20 - ((temp < 10) * 5), o * 20 + 26, dpage
    NEXT o
   NEXT i
  END IF
  
- textcolor uilook(uiSelectedItem + tog), 0
- if editmode = 0 then
+ textcolor uilook(uiSelectedItem + state.tog), 0
+ if st.mode = 0 then
  printstr "Layer " & st.layer, 0, 180, dpage
  end if
- printstr "X " & x & "   Y " & y, 0, 192, dpage
+ printstr "X " & st.x & "   Y " & st.y, 0, 192, dpage
  setmapdata map(), pass(), 20, 0
  rectangle 300, 0, 20, 200, uilook(uiBackground), dpage
  rectangle 0, 19, 320, 1, uilook(uiText), dpage
- IF editmode = 0 THEN
-  status$ = "Default Passability "
-  IF defpass THEN status$ = status$ + "On" ELSE status$ = status$ + "Off"
-  printstr status$, 124, 192, dpage
+ IF st.mode = 0 THEN
+  printstr "Default Passability " & yesorno(st.defpass, "On", "Off"), 124, 192, dpage
  END IF
  textcolor uilook(uiText), 0
- printstr mode(editmode), 0, 24, dpage
- IF editmode = 4 THEN textcolor uilook(uiText), uilook(uiHighlight): printstr "Formation Set: " & foe, 0, 16, dpage
+ printstr mode(st.mode), 0, 24, dpage
+ IF st.mode = 4 THEN textcolor uilook(uiText), uilook(uiHighlight): printstr "Formation Set: " & foe, 0, 16, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -863,9 +892,6 @@ LOOP
 RETRACE '--end of mapping GOSUB block
 
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
  DIM gdmenu(0 TO 18) AS STRING
@@ -1364,7 +1390,7 @@ SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  waitforanykey
 END SUB
 
-SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 'sizemap:
  DIM rs AS MapResizeState
  rs.rect.wide = 0
@@ -1396,10 +1422,10 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  wide = map(0)
  high = map(1)
  '--reset map scroll position
- x = 0
- y = 0
- mapx = 0
- mapy = 0
+ st.x = 0
+ st.y = 0
+ st.mapx = 0
+ st.mapy = 0
  edgeprint "Aligning and truncating doors", 0, yout * 10, uilook(uiText), vpage: yout += 1
  DIM i AS INTEGER
  FOR i = 0 TO 99
@@ -1420,7 +1446,7 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  verify_map_size mapnum, wide, high, map(), pass(), emap(), mapname
 END SUB
 
-SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
+SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS INTEGER, pass() AS INTEGER, emap() AS INTEGER, doors() AS Door, link() AS DoorLink)
  setvispage vpage
  IF yesno("Delete this map?", NO) THEN
   printstr "Please Wait...", 0, 40, vpage
@@ -1440,10 +1466,10 @@ SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
   serdoorlinks maplumpname$(mapnum, "d"), link()
   serdoors game + ".dox", doors(), mapnum
   '--reset scroll position
-  x = 0
-  y = 0
-  mapx = 0
-  mapy = 0
+  st.x = 0
+  st.y = 0
+  st.mapx = 0
+  st.mapy = 0
   st.layer = 0
   '--if this is the last map, then actually remove it entirely, rather than just blanking it
   IF mapnum = gen(genMaxMap) THEN
@@ -1563,7 +1589,7 @@ SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGE
  
  DIM preview_delay AS INTEGER = 0
  DIM outmap AS STRING
- outmap = getmapname$(link(linknum).dest_map)
+ outmap = getmapname(link(linknum).dest_map)
  DIM menu_temp AS STRING
  DIM col AS INTEGER
 
@@ -1590,7 +1616,7 @@ SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGE
     CASE 2
      IF intgrabber(link(linknum).dest_map, llim(state.pt), ulim(state.pt)) THEN
       preview_delay = 3
-      outmap = getmapname$(link(linknum).dest_map)
+      outmap = getmapname(link(linknum).dest_map)
      END IF
     CASE 3
      tag_grabber link(linknum).tag1
@@ -1940,7 +1966,7 @@ SUB show_minimap(BYREF st AS MapEditState, map() AS INTEGER)
  waitforanykey
 END SUB
 
-SUB make_top_map_menu(maptop, topmenu() AS STRING)
+SUB make_top_map_menu(BYREF maptop AS INTEGER, topmenu() AS STRING)
 DIM i AS INTEGER
 FOR i = 0 TO 24
  SELECT CASE maptop + i
@@ -1968,7 +1994,7 @@ END SUB
 
 'tile fill tool: iterate through all contiguous maptiles, changing if the area continues, and stopping if it is blocked by a different kind of maptile
 'do a breadth first search instead of using the stack; that's prone to overflow
-SUB paint_map_area(st AS MapEditState, oldTile, x, y, map(), pass(), defaults() AS DefArray, defpass)
+SUB paint_map_area(st AS MapEditState, oldTile, x, y, map(), pass(), defaults() AS DefArray)
  IF oldTile = st.usetile(st.layer) THEN EXIT SUB
  REDIM queue(250) AS XYPair 'a circular buffer. We don't use the last element
  DIM AS INTEGER head, tail, i, oldend
@@ -1989,7 +2015,7 @@ SUB paint_map_area(st AS MapEditState, oldTile, x, y, map(), pass(), defaults() 
   WITH queue(tail)
    IF readmapblock(.x, .y, st.layer) = oldTile THEN
     setmapblock .x, .y, st.layer, st.usetile(st.layer)
-    IF defpass THEN calculatepassblock st, .x, .y, map(), pass(), defaults()
+    IF st.defpass THEN calculatepassblock st, .x, .y, map(), pass(), defaults()
     paint_map_add_node oldTile, .x + 1, .y, map(0), map(1), st.layer, head, queue()
     paint_map_add_node oldTile, .x - 1, .y, map(0), map(1), st.layer, head, queue()
     paint_map_add_node oldTile, .x, .y + 1, map(0), map(1), st.layer, head, queue()
