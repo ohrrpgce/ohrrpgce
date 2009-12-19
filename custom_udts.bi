@@ -128,16 +128,6 @@ TYPE MapEditState
   menubar(82) AS INTEGER 'setmapdata buffer
   cursor AS GraphicPair
   tilesets(2) as TilesetData ptr
-  x AS INTEGER
-  y AS INTEGER
-  mapx AS INTEGER
-  mapy AS INTEGER
-  mode AS INTEGER
-  defpass AS INTEGER
-  doorid AS INTEGER
-  doorlinkid AS INTEGER
-  tiny AS INTEGER
-  scrollrate AS XYPair
 END TYPE
 
 TYPE MapResizeState
