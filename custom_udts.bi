@@ -125,7 +125,8 @@ TYPE MapEditState
   layer AS INTEGER
   usetile(0 to 2) AS INTEGER
   menubarstart(0 to 2) AS INTEGER
-  menubar(82) AS INTEGER 'setmapdata buffer
+  menubar AS TileMap
+  tilesetview AS TileMap
   cursor AS GraphicPair
   tilesets(2) as TilesetData ptr
 END TYPE

@@ -298,36 +298,108 @@ SUB LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTE
   NEXT i
 END SUB
 
-SUB LoadTiledata(filename as string, array() as integer, byval numlayers as integer, byref wide as integer, byref high as integer)
-  'resize array and attempt to read numlayers of tile data, if that many are not present, default to 1 layer (blank out the rest)
-  DIM AS INTEGER fh, i
+SUB UnloadTilemap(map as TileMap)
+  DEALLOCATE map.data
+  map.data = NULL
+END SUB
+
+SUB UnloadTilemaps(layers() as TileMap)
+  FOR i as integer = 0 TO UBOUND(layers)
+    DEALLOCATE layers(i).data
+    layers(i).data = NULL
+  NEXT
+END SUB
+
+SUB LoadTilemap(map as TileMap, filename as string)
+  IF map.data THEN DEALLOCATE map.data
+
+  DIM AS INTEGER fh
   fh = FREEFILE
-  OPEN filename$ FOR BINARY AS #fh
-  SEEK #fh, 8
-  wide = Readshort(fh, -1)
-  high = ReadShort(fh, -1)
-  REDIM array(1 + (numlayers * wide * high + 1) \ 2)
-  IF LOF(fh) < 7 + 4 + numlayers * wide * high THEN numlayers = 1
-  DIM temparray(1 + (numlayers * wide * high + 1) \ 2) AS SHORT
-  GET #fh, 8, temparray()    'handles odd bytes
-  FOR i = 0 TO UBOUND(temparray)
-   array(i) = temparray(i)
+  OPEN filename FOR BINARY AS #fh
+  map.wide = bound(readshort(fh, 8), 16, 32678)
+  map.high = bound(readshort(fh, 10), 10, 32678)
+  map.layernum = 0
+  IF map.wide * map.high + 11 <> LOF(fh) THEN
+    debug "tilemap " & filename & " (" & map.wide & "x" & map.high & ") bad length or size; " & LOF(fh) & " bytes"
+    'show the user their garbled mess, always interesting
+  END IF
+  map.data = ALLOCATE(map.wide * map.high)
+  GET #fh, 12, *map.data, map.wide * map.high
+  CLOSE #fh
+END SUB
+
+SUB LoadTilemaps(layers() as TileMap, filename as string)
+  DIM AS INTEGER fh, numlayers, i, wide, high
+  FOR i = 0 TO UBOUND(layers)
+    IF layers(i).data THEN DEALLOCATE layers(i).data
+  NEXT
+
+  fh = FREEFILE
+  OPEN filename FOR BINARY AS #fh
+  wide = bound(readshort(fh, 8), 16, 32678)
+  high = bound(readshort(fh, 10), 10, 32678)
+  numlayers = (LOF(fh) - 11) \ (wide * high)
+  IF numlayers > 3 OR numlayers * wide * high + 11 <> LOF(fh) THEN
+    debug "tilemap " & filename & " (" & wide & "x" & high & ") bad length or size; " & LOF(fh) & " bytes"
+    'show the user their garbled mess, always interesting
+    numlayers = bound(numlayers, 1, 3)
+  END IF
+  REDIM layers(numlayers - 1)
+  SEEK fh, 12
+  FOR i = 0 TO numlayers - 1
+    WITH layers(i)
+      .data = ALLOCATE(wide * high)
+      .wide = wide
+      .high = high
+      .layernum = i
+      GET #fh, , *.data, wide * high
+    END WITH
   NEXT
   CLOSE #fh
 END SUB
 
-SUB SaveTiledata(filename as string, array() as integer, byval numlayers as integer)
-  DIM AS INTEGER wide, high
-  wide = array(0)
-  high = array(1)
-  xbsave filename, array(), 4 + numlayers * wide * high
+SUB SaveTilemap(tmap as TileMap, filename as string)
+  DIM fh as integer
+  fh = FREEFILE
+  OPEN filename FOR BINARY AS #fh
+  writeshort fh, 8, tmap.wide
+  writeshort fh, 10, tmap.high
+  PUT #fh, 12, *tmap.data, tmap.wide * tmap.high
+  CLOSE #fh
 END SUB
 
-SUB CleanTiledata(array() as integer, wide as integer, high as integer, numlayers as integer)
-  'aka AllocateTiledata
-  REDIM array(1 + (numlayers * wide * high + 1) \ 2)
-  array(0) = wide
-  array(1) = high
+SUB SaveTilemaps(tmaps() as TileMap, filename as string)
+  DIM fh as integer
+  fh = FREEFILE
+  OPEN filename FOR BINARY AS #fh
+  writeshort fh, 8, tmaps(0).wide
+  writeshort fh, 10, tmaps(0).high
+  SEEK #fh, 12
+  FOR i as integer = 0 TO UBOUND(tmaps(0))
+    PUT #fh, , *tmaps(i).data, tmaps(i).wide * tmaps(i).high
+  NEXT
+  CLOSE #fh
+END SUB
+
+SUB CleanTilemap(map as TileMap, wide as integer, high as integer)
+  'two purposes: allocate a new tilemap, or blank an existing one
+  UnloadTilemap(map)
+  map.wide = wide
+  map.high = high
+  map.data = CALLOCATE(wide * high)
+END SUB
+
+SUB CleanTilemaps(layers() as TileMap, wide as integer, high as integer, numlayers as integer)
+  'two purposes: allocate a new tilemap, or blank an existing one
+  UnloadTilemaps layers()
+  REDIM layers(numlayers - 1)
+  FOR i as integer = 0 TO numlayers - 1
+    WITH layers(i)
+      .wide = wide
+      .high = high
+      .data = CALLOCATE(wide * high)
+    END WITH
+  NEXT
 END SUB
 
 SUB DeserDoorLinks(filename as string, array() as doorlink)

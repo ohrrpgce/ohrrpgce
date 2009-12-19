@@ -1052,8 +1052,8 @@ Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
 
  with *dat
   if .tileset = 0 then exit sub 'quit silently on a null tileset ptr
-  'First two arguments to drawmap are "camera position" of upper left of the screen.
-  drawmap sl->ScreenX * -1, sl->ScreenY * -1, .layer, .overlay, .tileset, p, .transparent
+  '2nd, 3rd arguments to drawmap are "camera position" of upper left of the screen.
+  drawmap *.tiles, sl->ScreenX * -1, sl->ScreenY * -1, .overlay, .tileset, p, .transparent
  end with
 end sub
 
@@ -1112,26 +1112,17 @@ Sub ChangeMapSliceTileset(byval sl as slice ptr, byval tileset as TilesetData pt
 end sub
 
 Sub ChangeMapSlice(byval sl as slice ptr,_
-                   byval tiles_wide as integer=-1,_
-                   byval tiles_high as integer=-1,_
-                   byval layer as integer=-1,_
+                   byval tiles as TileMap ptr=NULL,_
                    byval transparent as integer=-2,_
                    byval overlay as integer=-1)
  if sl = 0 then debug "ChangeMapSlice null ptr" : exit sub
  if sl->SliceType <> slMap then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
  dim dat as MapSliceData Ptr = sl->SliceData
  with *dat
-  if tiles_wide >= 0 then
-   .size.x = tiles_wide
-   sl->Width = .size.x * 20
-  end if
-  if tiles_high >= 0 then
-   .size.y = tiles_high
-   sl->Height = .size.y * 20
-  end if
-  if layer >= 0 and layer <= 2 then
-   '--which map layer this draws
-   .layer = layer 'valid values 0, 1, 2
+  if tiles <> NULL then
+   .tiles = tiles
+   sl->Width = tiles->wide * 20
+   sl->Height = tiles->high * 20
   end if
   if transparent >= -1 then
    .transparent = (transparent <> 0) 'boolean
@@ -1833,7 +1824,7 @@ SUB SliceDebugRemember(sl AS Slice Ptr)
  next i
  '--no more room in the slice debug table
  dim newsize as integer = ubound(SliceDebug) + 50
- debug "enlarge slice debug table to " & newsize
+ debuginfo "enlarge slice debug table to " & newsize
  redim preserve SliceDebug(newsize) as Slice Ptr
  SliceDebugRemember sl
 END SUB

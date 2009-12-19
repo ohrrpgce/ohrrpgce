@@ -56,9 +56,10 @@ EXTERN nativehbits() as integer
 
 'Map state globals
 EXTERN gmap() as integer
-EXTERN scroll() as integer
-EXTERN pass() as integer
-EXTERN as integer mapx, mapy
+EXTERN maptiles() as TileMap
+EXTERN pass as TileMap
+EXTERN mapsizetiles as XYPair
+EXTERN as integer mapx, mapy  'camera pos
 EXTERN framex as integer
 EXTERN framey as integer
 EXTERN tilesets() as TilesetData ptr

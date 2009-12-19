@@ -42,10 +42,7 @@ declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 
 declare sub snapshot_check
 
-'used for map and pass
-DECLARE SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, byval l as integer, BYVAL mp as integer ptr)
-DECLARE FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, byval l as integer, BYVAL mp as integer ptr) as integer
-declare function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
+declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval t as integer) as integer
 
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
@@ -71,12 +68,9 @@ dim shared bsize as integer
 dim shared bpage as integer
 
 dim shared bordertile as integer
-dim shared mptr as integer ptr	' map ptr
-dim shared pptr as integer ptr	' pass ptr
+dim shared pmapptr as TileMap ptr	' pass map ptr
 dim shared maptop as integer
 dim shared maplines as integer
-dim shared map_x as integer
-dim shared map_y as integer
 
 dim shared anim1 as integer
 dim shared anim2 as integer
@@ -394,81 +388,37 @@ end SUB
 #define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
 #define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
 
-SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL b as integer)
-'I think this is a setup routine like setpicstuf
+SUB setmapdata (pas as TileMap ptr = NULL, BYVAL t as integer, BYVAL b as integer)
 't and b are top and bottom margins
-	map_x = array(0)
-	map_y = array(1)
-	mptr = @array(2)
-	pptr = @pas(2)
+	pmapptr = pas
 	maptop = t
 	maplines = 200 - t - b
 end SUB
 
-SUB setmapblock (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL v as integer)
-	setblock(x, y, v, l, mptr)
-end sub
-
-FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer, byval l as integer) as integer
-	return readblock(x, y, l, mptr)
-end function
-
-SUB setpassblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
-	setblock(x, y, v, 0, pptr)
-END SUB
-
-FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer) as integer
-	return readblock(x, y, 0, pptr)
+FUNCTION readblock (map as TileMap, BYVAL x as integer, BYVAL y as integer) as integer
+	if x < 0 OR x >= map.wide OR y < 0 OR y >= map.high then
+		debug "illegal readblock call " & x & " " & y
+		exit function
+	end if
+	return map.data[x + y * map.wide]
 END FUNCTION
 
-SUB setblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer, BYVAL l as integer, BYVAL mp as integer ptr)
-	dim index as integer
-	dim hilow as integer
-
-	index = (map_x * map_y * l) + (map_x * y) + x	'raw byte offset
-	hilow = index mod 2		'which byte in word
-	index = index shr 1 	'divide by 2
-
-	if hilow > 0 then
-		'delete original value
-		mp[index] = mp[index] and &hff
-		'set new value
-		mp[index] = mp[index] or ((v and &hff) shl 8)
-	else
-		'delete original value
-		mp[index] = mp[index] and &hff00
-		'set new value
-		mp[index] = mp[index] or (v and &hff)
+SUB writeblock (map as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
+	if x < 0 OR x >= map.wide OR y < 0 OR y >= map.high then
+		debug "illegal writeblock call " & x & " " & y
+		exit sub
 	end if
+	map.data[x + y * map.wide] = v
+END SUB
 
-end SUB
-
-FUNCTION readblock (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL mp as integer ptr) as integer
-	dim block as integer
-	dim index as integer
-	dim hilow as integer
-
-	index = (map_x * map_y * l) + (map_x * y) + x	'raw byte offset
-	hilow = index mod 2		'which byte in word
-	index = index shr 1 	'divide by 2
-
-	if hilow > 0 then
-		block = (mp[index] and &hff00) shr 8
-	else
-		block = mp[index] and &hff
-	end if
-
-	readblock = block
-end FUNCTION
-
-SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, byval trans as integer = 0)
+SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, byval trans as integer = 0)
 	'overrides setanim
 	anim1 = tileset->tastuf(0) + tileset->anim(0).cycle
 	anim2 = tileset->tastuf(20) + tileset->anim(1).cycle
-	drawmap x, y, l, t, tileset->spr, p, trans
+	drawmap tmap, x, y, t, tileset->spr, p, trans
 END SUB
 
-SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
+SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
 	dim sptr as ubyte ptr
 	dim plane as integer
 
@@ -521,7 +471,7 @@ SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t
 		tx = xoff
 		xpos = xstart
 		while tx < 320
-			todraw = calcblock(xpos, ypos, l, t)
+			todraw = calcblock(tmap, xpos, ypos, t)
 			if (todraw >= 160) then
 				if (todraw > 207) then
 					todraw = (todraw - 48 + anim2) MOD 160
@@ -2534,7 +2484,7 @@ FUNCTION readstackdw (BYVAL off as integer) as integer
 	end if
 END FUNCTION
 
-function calcblock(byval x as integer, byval y as integer, byval l as integer, byval t as integer) as integer
+function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval t as integer) as integer
 'returns -1 to draw no tile
 't = 1 : draw non overhead tiles only (to avoid double draw)
 't = 2 : draw overhead tiles only
@@ -2544,20 +2494,20 @@ function calcblock(byval x as integer, byval y as integer, byval l as integer, b
 	if bordertile = -1 then
 		'wrap
 		while y < 0
-			y = y + map_y
+			y = y + tmap.high
 		wend
-		while y >= map_y
-			y = y - map_y
+		while y >= tmap.high
+			y = y - tmap.high
 		wend
 		while x < 0
-			x = x + map_x
+			x = x + tmap.wide
 		wend
-		while x >= map_x
-			x = x - map_x
+		while x >= tmap.wide
+			x = x - tmap.wide
 		wend
 	else
-		if (y < 0) or (y >= map_y) or (x < 0) or (x >= map_x) then
-			if l = 0 and t <= 1 then
+		if (y < 0) or (y >= tmap.high) or (x < 0) or (x >= tmap.wide) then
+			if tmap.layernum = 0 and t <= 1 then
 				'only draw the border tile once!
 				return bordertile
 			else
@@ -2566,14 +2516,16 @@ function calcblock(byval x as integer, byval y as integer, byval l as integer, b
 		end if
 	end if
 
-	block = readmapblock(x, y, l)
+	block = readblock(tmap, x, y)
 
-	if block = 0 and l > 0 then
+	if block = 0 and tmap.layernum > 0 then
 		return -1
 	end if
 
 	if t > 0 then
-		if ((readpassblock(x, y) and 128) <> 0) xor (t = 2) then
+		if x >= pmapptr->wide or y >= pmapptr->high or pmapptr = NULL then
+			if t = 2 then block = -1
+		elseif ((readblock(*pmapptr, x, y) and 128) <> 0) xor (t = 2) then
 			block = -1
 		end if
 	end if

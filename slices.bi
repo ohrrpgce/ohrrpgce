@@ -174,13 +174,12 @@ End Type
 'Doesn't yet have the ability to load other non-current maps
 Type MapSliceData
  'FIXME: Should I even use this at all in this early
- 'incarnation? maybe not yet.
- size AS XYPair 'Currently read-only informational (this is in tiles, whereas the .width and .height are for the size in pixels)
+ 'incarnation? maybe not yet. (It certainly was a huge hassle when rewriting up tilemap stuff)
  map AS INTEGER 'Currently read-only informational
- layer AS INTEGER 'Currently read-only informational
  transparent AS INTEGER 'Whether or not color 0 is transparent
  overlay AS INTEGER 'For backcompat with layers that observe the old overlay feature.
- tileset as TilesetData ptr 'NOTE: ptr to the same memory pointed to by the ptrs in the tilesets() array in game.bas
+ tileset as TilesetData ptr 'NOTE: ptr to the same memory pointed to by the ptrs in the tilesets() array in game.bas (Not owned!)
+ tiles as TileMap ptr 'NOTE: ptr to one of maptiles() in game.bas (Not owned!)
 End Type
 
 Type MenuSliceData
@@ -275,11 +274,9 @@ DECLARE Function LoadMapSlice (Byval sl as SliceFwd ptr, key as string, valstr a
 DECLARE Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as slice ptr
 DECLARE Sub ChangeMapSliceTileset (byval sl as slice ptr, byval tileset as TilesetData ptr)
 DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
-                   byval tiles_wide as integer=-1,_
-                   byval tiles_high as integer=-1,_
-                   byval layer as integer=-1,_
+                   byval tiles as TileMap ptr=NULL,_
                    byval transparent as integer=-2,_
-                   byval overlay as integer=-1) ' All arguments default to no change
+                   byval overlay as integer=-1) ' All arguments default to no change (can't change .tiles to NULL)
 
 '--Saving and loading slices
 DECLARE Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)

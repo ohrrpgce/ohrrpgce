@@ -24,9 +24,15 @@ declare sub serinventory8bit(invent() as inventslot, z as integer, buf() as inte
 declare sub deserinventory8bit(invent() as inventslot, z as integer, buf() as integer)
 declare sub cleaninventory(invent() as inventslot)
 
-declare sub loadtiledata(filename as string, array() as integer, byval numlayers as integer = 1, byref wide as integer = 0, byref high as integer = 0)
-declare sub savetiledata(filename as string, array() as integer, byval numlayers as integer = 1)
-declare sub cleantiledata(array() as integer, wide as integer, high as integer, numlayers as integer = 1)
+declare sub UnloadTilemap(map as TileMap)
+declare sub UnloadTilemaps(layers() as TileMap)
+declare sub LoadTilemap(map as TileMap, filename as string)
+declare sub LoadTilemaps(layers() as TileMap, filename as string)
+declare sub SaveTilemap(tmap as TileMap, filename as string)
+declare sub SaveTilemaps(tmaps() as TileMap, filename as string)
+declare sub CleanTilemap(map as TileMap, wide as integer, high as integer)
+declare sub CleanTilemaps(layers() as TileMap, wide as integer, high as integer, numlayers as integer)
+
 declare SUB DeserDoorLinks(filename as string, array() as doorlink)
 declare Sub SerDoorLinks(filename as string, array() as doorlink, withhead as integer = 1)
 declare sub CleanDoorLinks(array() as doorlink)

@@ -17,8 +17,8 @@ DECLARE FUNCTION istag (num as integer, zero as integer) as integer
 DECLARE SUB loaddoor (map as integer)
 DECLARE SUB loadgame (slot as integer, stat() as integer)
 DECLARE SUB loadglobalvars (slot as integer, first as integer, last as integer)
-DECLARE SUB minimap (x as integer, y as integer, tilesets() as TilesetData ptr)
-DECLARE FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
+DECLARE SUB minimap (x as integer, y as integer)
+DECLARE FUNCTION teleporttool () as integer
 DECLARE FUNCTION movdivis (xygo as integer) as integer
 DECLARE FUNCTION onwho (caption as string, alone as integer) as integer
 DECLARE SUB readjoysettings
@@ -35,7 +35,7 @@ DECLARE SUB saveglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB scripterr (e as string, errorlevel as integer = 4)
 DECLARE SUB scriptmath
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
-DECLARE SUB shop (id as integer, needf as integer, stat() as integer, tilesets() AS TilesetData ptr)
+DECLARE SUB shop (id as integer, needf as integer, stat() as integer)
 DECLARE FUNCTION useinn (inn as integer, price as integer, needf as integer, stat() as integer, holdscreen as integer) as integer
 DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings

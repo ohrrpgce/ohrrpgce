@@ -240,14 +240,12 @@ Type TilesetData
   tastuf(40) as integer
 End Type
 
-/'
-Type MapLayer
-  w as integer
-  h as integer
+Type TileMap
+  wide as integer
+  high as integer
   data as ubyte ptr
-  tileset as TilesetData
+  layernum as integer
 End Type
-'/
 
 Type FontChar
 	offset as integer  'offset into spr.image

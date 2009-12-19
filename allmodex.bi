@@ -27,16 +27,16 @@ DECLARE SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as 
 DECLARE SUB fadetopal (pal() as RGBcolor)
 DECLARE FUNCTION sprite_to_tileset(BYVAL spr as frame ptr) as frame ptr
 DECLARE FUNCTION tileset_load(BYVAL num as integer) as Frame ptr
-DECLARE SUB setmapdata (array() as integer, pas() as integer, BYVAL t as integer, BYVAL b as integer)
-DECLARE SUB setmapblock (BYVAL x as integer, BYVAL y as integer, byval l as integer, BYVAL v as integer)
-DECLARE FUNCTION readmapblock (BYVAL x as integer, BYVAL y as integer, byval l as integer) as integer
-DECLARE SUB setpassblock (BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
-DECLARE FUNCTION readpassblock (BYVAL x as integer, BYVAL y as integer) as integer
-DECLARE SUB setclip (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL page as integer = -1)
-DECLARE SUB drawmap overload (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, byval trans as integer = 0)
-DECLARE SUB drawmap (BYVAL x as integer, BYVAL y as integer, BYVAL l as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
+
+DECLARE FUNCTION readblock (map as TileMap, BYVAL x as integer, BYVAL y as integer) as integer
+DECLARE SUB writeblock (map as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
+DECLARE SUB drawmap overload (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, byval trans as integer = 0)
+DECLARE SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
+DECLARE SUB setmapdata (pas as TileMap ptr = NULL, BYVAL t as integer, BYVAL b as integer)
 DECLARE SUB setanim (BYVAL cycle1 as integer, BYVAL cycle2 as integer)
 DECLARE SUB setoutside (BYVAL defaulttile as integer)
+
+DECLARE SUB setclip (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL page as integer = -1)
 DECLARE SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 DECLARE SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
 DECLARE SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)

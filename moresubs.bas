@@ -30,7 +30,7 @@ DEFINT A-Z
 
 '--Local subs and functions
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
-DECLARE SUB teleporttooltend (BYREF mini AS Frame Ptr, tilemap(), tilesets() AS TilesetData ptr, BYREF zoom, BYVAL map, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
+DECLARE SUB teleporttooltend (BYREF mini AS Frame Ptr, maptilesX() AS TileMap, tilesets2() AS TilesetData ptr, BYREF zoom, BYVAL map, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
 
 REM $STATIC
@@ -1003,11 +1003,10 @@ ELSE
 END IF
 END SUB
 
-SUB minimap (x, y, tilesets() as TilesetData ptr)
+SUB minimap (x, y)
  DIM mini AS Frame Ptr
  DIM zoom AS INTEGER = -1
- mini = createminimap(scroll(), tilesets(), zoom)
- setmapdata scroll(), pass(), 0, 0
+ mini = createminimap(maptiles(), tilesets(), zoom)
 
  DIM minisize AS XYPair
  minisize.x = mini->w
@@ -1044,8 +1043,9 @@ SUB minimap (x, y, tilesets() as TilesetData ptr)
  MenuSound gen(genCancelSFX)
 END SUB
 
-FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
- REDIM tilemap(2) AS INTEGER
+FUNCTION teleporttool () as integer
+ REDIM maptiles2(0) AS TileMap
+ DIM tilesets2(2) as TilesetData ptr
  DIM mini AS Frame Ptr
  DIM zoom AS INTEGER
  DIM i AS INTEGER
@@ -1054,8 +1054,9 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
  DIM minisize AS XYPair 'pixels
  DIM offset AS XYPair
 
- 'We don't bother reloading tilesets and tilemaps if not changing map
- teleporttooltend mini, scroll(), tilesets(), zoom, -1, mapsize, minisize, offset
+ 'Notice that we initially use the real map's maptiles(), rather than reloading them into maptiles2(),
+ 'but we DO reload the tilesets (they are cached anyway)
+ teleporttooltend mini, maptiles(), tilesets2(), zoom, -1, mapsize, minisize, offset
 
  DIM dest AS XYPair
  dest.x = catx(0) \ 20
@@ -1096,7 +1097,7 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
   IF preview_delay > 0 THEN
    preview_delay -= 1
    IF preview_delay = 0 THEN
-    teleporttooltend mini, tilemap(), tilesets(), zoom, destmap, mapsize, minisize, offset
+    teleporttooltend mini, maptiles2(), tilesets2(), zoom, destmap, mapsize, minisize, offset
     dest.x = small(dest.x, mapsize.x - 1)
     dest.y = small(dest.y, mapsize.y - 1)
     camera.x = bound(dest.x * zoom - minisize.x \ 2, 0, mapsize.x * zoom - minisize.x)
@@ -1108,10 +1109,8 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
   control
   IF pickpoint = NO THEN
    usemenu state
-   IF carray(ccMenu) > 1 THEN
-    loadmaptilesets tilesets(), gmap()
-    refresh_map_slice_tilesets
-    EXIT DO 'cancel
+   IF carray(ccMenu) > 1 THEN  'cancel
+    EXIT DO
    END IF
    IF state.pt = 0 THEN
     IF intgrabber(destmap, 0, gen(genMaxMap)) THEN
@@ -1162,10 +1161,11 @@ FUNCTION teleporttool (tilesets() as TilesetData ptr) as integer
   dowait
  LOOP
  sprite_unload @mini
+ unloadtilemaps maptiles2()
+ unloadmaptilesets tilesets2()
  setkeys
  flusharray carray(), 7, 0
  MenuSound gen(genCancelSFX)
- setmapdata scroll(), pass(), 0, 0
  EXIT FUNCTION
 
 redraw:
@@ -1177,21 +1177,22 @@ redraw:
 
 END FUNCTION
 
-SUB teleporttooltend (BYREF mini AS Frame Ptr, tilemap(), tilesets() AS TilesetData ptr, BYREF zoom, BYVAL map, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
+'map = -1 means don't load maptiles; already loaded (maptilesX() == maptiles() global)
+SUB teleporttooltend (BYREF mini AS Frame Ptr, maptilesX() AS TileMap, tilesets2() AS TilesetData ptr, BYREF zoom, BYVAL map, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
  IF map > -1 THEN
   DIM gmap2(dimbinsize(binMAP)) AS INTEGER
-  loadtiledata maplumpname$(map, "t"), tilemap(), 3
   loadrecord gmap2(), game + ".map", dimbinsize(binMAP), map
-  loadmaptilesets tilesets(), gmap2()
-  refresh_map_slice_tilesets
-  refresh_map_slice
+  loadmaptilesets tilesets2(), gmap2()
+  loadtilemaps maptilesX(), maplumpname$(map, "t")
+ ELSE
+  loadmaptilesets tilesets2(), gmap()
  END IF
  'minimum zoom level to make tiles easy to pick
- zoom = bound(small(320 \ tilemap(0), 200 \ tilemap(1)), 5, 20)
+ zoom = bound(small(320 \ maptilesX(0).wide, 200 \ maptilesX(0).high), 5, 20)
  sprite_unload @mini
- mini = createminimap(tilemap(), tilesets(), zoom)
- mapsize.x = tilemap(0)
- mapsize.y = tilemap(1)
+ mini = createminimap(maptilesX(), tilesets2(), zoom)
+ mapsize.x = maptilesX(0).wide
+ mapsize.y = maptilesX(0).high
  offset.x = large(160 - mini->w / 2, 0)
  offset.y = large(100 - mini->h / 2, 0)
  minisize.x = 320 - offset.x * 2
@@ -2346,9 +2347,11 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stat(), tilesets() AS TilesetData ptr)
+SUB shop (id, needf, stat())
 
 DIM storebuf(40), menu(10) AS STRING, menuid(10)
+DIM sn AS STRING
+DIM AS INTEGER i, autopick, last, pt, w, temp, tog, inn, rsr, h, c, t, o, holdscreen
 
 FOR i = 0 TO 7
  menuid(i) = i
@@ -2363,7 +2366,6 @@ menu(5) = readglobalstring$(66, "Save", 10)
 menu(6) = readglobalstring$(68, "Map", 10)
 menu(7) = readglobalstring$(65, "Team", 10)
 
-sn$ = ""
 last = -1
 GOSUB initshop
 IF last = -1 THEN EXIT SUB
@@ -2398,7 +2400,7 @@ DO
    buystuff id, 1, storebuf(), stat()
   END IF
   IF menuid(pt) = 6 THEN '--MAP
-   minimap catx(0), caty(0), tilesets()
+   minimap catx(0), caty(0)
   END IF
   IF menuid(pt) = 7 THEN '--TEAM
    heroswap 1, stat()
@@ -2436,8 +2438,8 @@ DO
  END IF
  h = (last + 2) * 10
  centerbox 160, 104 + (h * .5), 96, h, 1, dpage
- centerbox 160, 90, LEN(sn$) * 8 + 8, 16, 1, dpage
- edgeprint sn$, xstring(sn$, 160), 85, uilook(uiText), dpage
+ centerbox 160, 90, LEN(sn) * 8 + 8, 16, 1, dpage
+ edgeprint sn, xstring(sn, 160), 85, uilook(uiText), dpage
  FOR i = 0 TO last
   c = uilook(uiMenuItem): IF pt = i THEN c = uilook(uiSelectedItem + tog)
   edgeprint menu(i), xstring(menu(i), 160), 109 + i * 10, c, dpage
@@ -2456,7 +2458,7 @@ EXIT SUB
 initshop:
 setpicstuf storebuf(), 40, -1
 loadset game + ".sho", id, 0
-sn$ = readbadbinstring$(storebuf(), 0, 15, 0)
+sn = readbadbinstring$(storebuf(), 0, 15, 0)
 o = 0
 FOR i = 0 TO 7
  IF readbit(storebuf(), 17, i) THEN

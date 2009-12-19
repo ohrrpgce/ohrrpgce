@@ -732,19 +732,8 @@ NEXT i
 rankincaterpillar = result
 END FUNCTION
 
-FUNCTION readfoemap (x as integer, y as integer, wide as integer, high as integer, fh as integer) as integer
-
-a$ = CHR$(0)
-
-o = 12 + (y * wide) + x
-
-IF o <= LOF(fh) THEN
- GET #fh, o, a$
- readfoemap = ASC(a$)
-ELSE
- readfoemap = 0
-END IF
-
+FUNCTION readfoemap (x as integer, y as integer, fh as integer) as integer
+RETURN readbyte(fh, 12 + (y * mapsizetiles.x) + x) 
 END FUNCTION
 
 SUB scriptadvanced (id)
@@ -1274,9 +1263,9 @@ SELECT CASE AS CONST id
    scriptret = -1
   END IF
  CASE 180'--mapwidth
-  scriptret = scroll(0)
+  scriptret = mapsizetiles.x
  CASE 181'--mapheight
-  scriptret = scroll(1)
+  scriptret = mapsizetiles.y
  CASE 187'--getmusicvolume
   scriptret = fmvol * 17
  CASE 188'--setmusicvolume
@@ -3136,7 +3125,7 @@ IF vstate.init_dismount THEN '--dismount---------------
   aheadxy disx, disy, catd(0), 1
   cropposition disx, disy, 1
  END IF
- IF vehpass(vstate.dat.dismount_to, readpassblock(disx, disy), -1) THEN
+ IF vehpass(vstate.dat.dismount_to, readblock(pass, disx, disy), -1) THEN
   '--dismount point is landable
   FOR i = 0 TO 15
    catx(i) = catx(0)
@@ -3290,7 +3279,7 @@ SUB wrapaheadxy (x, y, direction, distance, unitsize)
 aheadxy x, y, direction, distance
 
 IF gmap(5) = 1 THEN
- wrapxy x, y, scroll(0) * unitsize, scroll(1) * unitsize
+ wrapxy x, y, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
 END IF
 
 END SUB
@@ -3298,10 +3287,10 @@ END SUB
 SUB cropposition (BYREF x, BYREF y, unitsize)
 
 IF gmap(5) = 1 THEN
- wrapxy x, y, scroll(0) * unitsize, scroll(1) * unitsize
+ wrapxy x, y, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
 ELSE
- x = bound(x, 0, (scroll(0) - 1) * unitsize)
- y = bound(y, 0, (scroll(1) - 1) * unitsize)
+ x = bound(x, 0, (mapsizetiles.x - 1) * unitsize)
+ y = bound(y, 0, (mapsizetiles.y - 1) * unitsize)
 END IF
 
 END SUB
@@ -3313,15 +3302,15 @@ DIM pd(3)
 wrappass = 0
 
 tilex = x: tiley = y
-p = readpassblock(tilex, tiley)
+p = readblock(pass, tilex, tiley)
 
 FOR i = 0 TO 3
  tilex = x: tiley = y
  wrapaheadxy tilex, tiley, i, 1, 1
- IF tilex < 0 OR tilex >= scroll(0) OR tiley < 0 OR tiley >= scroll(1) THEN
+ IF tilex < 0 OR tilex >= pass.wide OR tiley < 0 OR tiley >= pass.high THEN
   pd(i) = 15
  ELSE
-  pd(i) = readpassblock(tilex, tiley)
+  pd(i) = readblock(pass, tilex, tiley)
  END IF
 NEXT i
 
@@ -3340,7 +3329,7 @@ FUNCTION wrapcollision (xa as integer, ya as integer, xgoa as integer, ygoa as i
  y2 = (yb - bound(ygob, -20, 20)) \ 20
 
  IF gmap(5) = 1 THEN
-  wrapcollision = (x1 - x2) MOD scroll(0) = 0 AND (y1 - y2) MOD scroll(1) = 0
+  wrapcollision = (x1 - x2) MOD mapsizetiles.x = 0 AND (y1 - y2) MOD mapsizetiles.y = 0
  ELSE
   wrapcollision = (x1 = x2) AND (y1 = y2)
  END IF
@@ -3351,7 +3340,7 @@ FUNCTION wraptouch (x1 as integer, y1 as integer, x2 as integer, y2 as integer, 
  'whether 2 walkabouts are within distance pixels horizontally + vertically
  wraptouch = 0
  IF gmap(5) = 1 THEN
-  IF ABS((x1 - x2) MOD (scroll(0) * 20 - distance)) <= distance AND ABS((y1 - y2) MOD (scroll(1) * 20 - distance)) <= distance THEN wraptouch = 1
+  IF ABS((x1 - x2) MOD (mapsizetiles.x * 20 - distance)) <= distance AND ABS((y1 - y2) MOD (mapsizetiles.y * 20 - distance)) <= distance THEN wraptouch = 1
  ELSE
   IF ABS(x1 - x2) <= 20 AND ABS(y1 - y2) <= 20 THEN wraptouch = 1
  END IF
@@ -3728,8 +3717,8 @@ SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYV
    END IF
    IF gmap(5) = 1 THEN
     '--this is a wrapping map
-    IF ABS(scramx - targx) > scroll(0) * 20 / 2 THEN xgo(i) = xgo(i) * -1
-    IF ABS(scramy - targy) > scroll(1) * 20 / 2 THEN ygo(i) = ygo(i) * -1
+    IF ABS(scramx - targx) > mapsizetiles.x * 20 / 2 THEN xgo(i) = xgo(i) * -1
+    IF ABS(scramy - targy) > mapsizetiles.y * 20 / 2 THEN ygo(i) = ygo(i) * -1
    END IF
    IF scramx - targx = 0 AND scramy - targy = 0 THEN tmp = tmp + 1
    catx(i * 5) = scramx

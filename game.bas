@@ -82,8 +82,9 @@ DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3
 DIM herow(3) as GraphicPair
 DIM statnames() as string
 
-DIM scroll(), pass()
+DIM maptiles(0) as TileMap, pass as TileMap
 DIM tilesets(2) as TilesetData ptr
+DIM mapsizetiles as XYPair  'for convienence
 
 DIM master(255) as RGBcolor
 DIM uilook(uiColors)
@@ -554,7 +555,7 @@ DO
   IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
   IF keyval(scCtrl) > 0 THEN ' holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN 
-    IF teleporttool(tilesets()) THEN 'CTRL + F1
+    IF teleporttool() THEN 'CTRL + F1
      prepare_map
     END IF
    END IF
@@ -564,7 +565,7 @@ DO
    END IF
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
-   IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0), tilesets()
+   IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
    IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
    IF keyval(scF11) > 1 THEN gam.walk_through_walls = NOT gam.walk_through_walls
@@ -586,7 +587,7 @@ DO
  END IF
  'DEBUG debug "random enemies"
  IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
-  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
+  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), foemaph)
   IF vstate.active AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN
    batform = random_formation(temp - 1)
@@ -658,6 +659,8 @@ cleanup_text_box
 resetinterpreter 'unload scripts
 unloadmaptilesets tilesets()
 refresh_map_slice_tilesets '--zeroes them out
+unloadtilemaps maptiles()
+unloadtilemap pass
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()
@@ -702,8 +705,9 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   .X = mapx * -1
   .Y = mapy * -1
  END WITH
+ setmapdata @pass, 0, 0
  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
- ChangeMapSlice SliceTable.MapLayer(0), , , , , overlay
+ ChangeMapSlice SliceTable.MapLayer(0), , , overlay
  DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  IF readbit(gmap(), 19, 0) THEN DrawSlice SliceTable.MapLayer(1), dpage
  'DEBUG debug "draw npcs and heroes"
@@ -717,7 +721,7 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  'DEBUG debug "drawoverhead"
  IF readbit(gmap(), 19, 1) THEN DrawSlice SliceTable.MapLayer(2), dpage
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN
-  ChangeMapSlice SliceTable.MapLayer(0), , , , , 2
+  ChangeMapSlice SliceTable.MapLayer(0), , , 2
   DrawSlice SliceTable.MapLayer(0), dpage
  END IF
  DrawSlice SliceTable.scriptsprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
@@ -839,7 +843,7 @@ FOR whoi = 0 TO 3
   '--Stuff that should only happen when you finish moving
   IF didgo(o) = 1 AND xgo(o) = 0 AND ygo(o) = 0 THEN
    '---check for harm tile
-   p = readpassblock(catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
+   p = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
    IF (p AND 64) THEN
     o = -1
     FOR i = 0 TO whoi
@@ -882,7 +886,7 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
   opendoor
  END IF
  IF needf = 0 THEN
-  temp = readfoemap(catx(0) \ 20, caty(0) \ 20, scroll(0), scroll(1), foemaph)
+  temp = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
  END IF
@@ -944,14 +948,14 @@ FOR o = 0 TO 299
        IF INT(RND * 100) < 50 THEN
         IF caty(0) < npc(o).y THEN temp = 0
         IF caty(0) > npc(o).y THEN temp = 2
-        IF gmap(5) = 1 AND caty(0) - scroll(1) * 10 > npc(o).y THEN temp = 0
-        IF gmap(5) = 1 AND caty(0) + scroll(1) * 10 < npc(o).y THEN temp = 2
+        IF gmap(5) = 1 AND caty(0) - mapsizetiles.y * 10 > npc(o).y THEN temp = 0
+        IF gmap(5) = 1 AND caty(0) + mapsizetiles.y * 10 < npc(o).y THEN temp = 2
         IF caty(0) = npc(o).y THEN temp = INT(RND * 4)
        ELSE
         IF catx(0) < npc(o).x THEN temp = 3
         IF catx(0) > npc(o).x THEN temp = 1
-        IF gmap(5) = 1 AND catx(0) - scroll(0) * 10 > npc(o).x THEN temp = 3
-        IF gmap(5) = 1 AND catx(0) + scroll(0) * 10 < npc(o).x THEN temp = 1
+        IF gmap(5) = 1 AND catx(0) - mapsizetiles.x * 10 > npc(o).x THEN temp = 3
+        IF gmap(5) = 1 AND catx(0) + mapsizetiles.x * 10 < npc(o).x THEN temp = 1
         IF catx(0) = npc(o).x THEN temp = INT(RND * 4)
        END IF
        IF movetype = 7 THEN temp = loopvar(temp, 0, 3, 2)
@@ -1176,7 +1180,7 @@ IF wantdoor > 0 THEN
  opendoor wantdoor
  wantdoor = 0
  IF needf = 0 THEN
-  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
+  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), foemaph)
   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
  END IF
@@ -1585,7 +1589,7 @@ WITH scrat(nowscript)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
-     shop retvals(0), needf, stat(), tilesets()
+     shop retvals(0), needf, stat()
      reloadnpc stat()
     END IF
    CASE 55'--get default weapon
@@ -1663,14 +1667,18 @@ WITH scrat(nowscript)
     advance_text_box
    CASE 97'--read map block
     IF curcmd->argc = 2 THEN retvals(2) = 0
-    scriptret = readmapblock(bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(2), 0, 2))
+    IF retvals(2) >= 0 AND retvals(2) <= 2 THEN
+     scriptret = readblock(maptiles(retvals(2)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1))
+    END IF
    CASE 98'--write map block
     IF curcmd->argc = 3 THEN retvals(3) = 0
-    setmapblock bound(retvals(0), 0, scroll(0)-1), bound(retvals(1), 0, scroll(1)-1), bound(retvals(3),0,2), bound(retvals(2), 0, 255)
+    IF retvals(3) >= 0 AND retvals(3) <= 2 AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
+     writeblock maptiles(retvals(3)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), retvals(2)
+    END IF
    CASE 99'--read pass block
-    scriptret = readpassblock(bound(retvals(0), 0, pass(0)-1), bound(retvals(1), 0, pass(1)-1))
+    scriptret = readblock(pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1))
    CASE 100'--write pass block
-    setpassblock bound(retvals(0), 0, pass(0)-1), bound(retvals(1), 0, pass(1)-1), bound(retvals(2), 0, 255)
+    writeblock pass, bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), bound(retvals(2), 0, 255)
    CASE 144'--load tileset
     'version that doesn't modify gmap
     IF retvals(0) <= gen(genMaxTile) THEN
@@ -1710,7 +1718,7 @@ WITH scrat(nowscript)
      refresh_map_slice_tilesets
     END IF
    CASE 151'--show mini map
-    minimap catx(0), caty(0), tilesets()
+    minimap catx(0), caty(0)
    CASE 153'--items menu
     wantbox = items_menu(stat())
    CASE 155, 170'--save menu
@@ -2110,7 +2118,9 @@ SUB loadmap_npcd(mapnum)
 END SUB
 
 SUB loadmap_tilemap(mapnum)
- LoadTileData maplumpname$(mapnum, "t"), scroll(), 3
+ LoadTileMaps maptiles(), maplumpname$(mapnum, "t")
+ mapsizetiles.x = maptiles(0).wide
+ mapsizetiles.y = maptiles(0).high
  refresh_map_slice 
  
  '--as soon as we know the dimensions of the map, enforce hero position boundaries
@@ -2118,7 +2128,7 @@ SUB loadmap_tilemap(mapnum)
 END SUB
 
 SUB loadmap_passmap(mapnum)
- LoadTileData maplumpname$(mapnum, "p"), pass(), 1
+ LoadTileMap pass, maplumpname$(mapnum, "p")
 END SUB
 
 SUB loadmaplumps (mapnum, loadmask)
@@ -2428,7 +2438,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
       CASE 6 ' order/team
        heroswap readbit(gen(), 101, 5), stat() : updatetags = YES
       CASE 7,12 ' map
-       minimap catx(0), caty(0), tilesets()
+       minimap catx(0), caty(0)
       CASE 8,13 ' save
        slot = picksave(0)
        IF slot >= 0 THEN savegame slot, stat()
@@ -2731,7 +2741,6 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
    loadmap_npcl gam.map.id
   END IF
  END IF
- setmapdata scroll(), pass(), 0, 0
 
  IF isfile(maplumpname$(gam.map.id, "e")) THEN
   CLOSE #foemaph
@@ -2912,7 +2921,7 @@ SUB advance_text_box ()
  '---SHOP/INN/SAVE/ETC------------
  IF istag(txt.box.shop_tag, 0) THEN
   IF txt.box.shop > 0 THEN
-   shop txt.box.shop - 1, needf, stat(), tilesets()
+   shop txt.box.shop - 1, needf, stat()
    reloadnpc stat()
   END IF
   DIM inn AS INTEGER = 0
@@ -2937,7 +2946,7 @@ SUB advance_text_box ()
   opendoor txt.box.door + 1
   IF needf = 0 THEN
    DIM temp AS INTEGER
-   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), scroll(0), scroll(1), foemaph)
+   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), foemaph)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
    IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
   END IF
@@ -3151,12 +3160,12 @@ END SUB
 SUB refresh_map_slice()
  '--Store info about the map in the map slices
  WITH *(SliceTable.MapRoot)
-  .Width = scroll(0) * 20
-  .Height = scroll(1) * 20
+  .Width = mapsizetiles.x * 20
+  .Height = mapsizetiles.y * 20
  END WITH
  FOR i AS INTEGER = 0 TO 2
-  '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets)
-  ChangeMapSlice SliceTable.MapLayer(i), scroll(0), scroll(1), i, (i > 0), 0
+  '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
+  ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), (i > 0), 0
   WITH *(SliceTable.MapLayer(i))
    .Fill = YES
   END WITH
@@ -3278,7 +3287,7 @@ SUB usething(BYVAL auto AS INTEGER, BYVAL ux AS INTEGER, BYVAL uy AS INTEGER)
    reset_vehicle vstate
    LoadVehicle game & ".veh", vstate.dat, vehuse - 1
    '--check mounting permissions first
-   IF vehpass(vstate.dat.mount_from, readpassblock(catx(0) \ 20, caty(0) \ 20), -1) THEN
+   IF vehpass(vstate.dat.mount_from, readblock(pass, catx(0) \ 20, caty(0) \ 20), -1) THEN
     vstate.active = YES
     vstate.npc = txt.sayer
     vstate.old_speed = herospeed(0)
@@ -3308,7 +3317,7 @@ FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
  IF vstate.active THEN
   DIM thisherotilex AS INTEGER = INT(catx(who * 5) / 20)
   DIM thisherotiley AS INTEGER = INT(caty(who * 5) / 20)
-  IF vehpass(vstate.dat.override_walls, readmapblock(thisherotilex, thisherotiley, 0), 0) <> 0 THEN RETURN NO
+  IF vehpass(vstate.dat.override_walls, readblock(pass, thisherotilex, thisherotiley), 0) <> 0 THEN RETURN NO
  END IF
  RETURN YES
 END FUNCTION

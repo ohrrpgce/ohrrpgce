@@ -48,14 +48,14 @@ IF readbit(gen(), 101, 1) = 1 AND (vstate.active = NO OR vstate.dat.do_not_hide_
   NEXT
  NEXT
  FOR i = 0 TO catlen - 1
-  IF framewalkabout(catx(zsort(i) * 5), caty(zsort(i) * 5) + gmap(11), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+  IF framewalkabout(catx(zsort(i) * 5), caty(zsort(i) * 5) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
    IF herow(zsort(i)).sprite = NULL THEN fatalerror "cathero: hero sprite " & zsort(i) & " missing!"
    sprite_draw herow(zsort(i)).sprite + catd(zsort(i) * 5) * 2 + (wtog(zsort(i)) \ 2), herow(zsort(i)).pal, framex, framey - catz(zsort(i) * 5), 1, -1, dpage
   END IF
  NEXT i
 ELSE
  '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
- IF framewalkabout(catx(0), caty(0) + gmap(11), framex, framey, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+ IF framewalkabout(catx(0), caty(0) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
   IF herow(0).sprite = NULL THEN fatalerror "cathero: hero sprite missing!"
   sprite_draw herow(0).sprite + catd(0) * 2 + (wtog(0) \ 2), herow(0).pal, framex, framey - catz(0), 1, -1, dpage
  END IF
@@ -68,16 +68,16 @@ FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as intege
  cropmovement = 0
  IF gmap(5) = 1 THEN
   '--wrap walking
-  IF x < 0 THEN x = x + scroll(0) * 20
-  IF x >= scroll(0) * 20 THEN x = x - scroll(0) * 20
-  IF y < 0 THEN y = y + scroll(1) * 20
-  IF y >= scroll(1) * 20 THEN y = y - scroll(1) * 20
+  IF x < 0 THEN x = x + mapsizetiles.x * 20
+  IF x >= mapsizetiles.x * 20 THEN x = x - mapsizetiles.x * 20
+  IF y < 0 THEN y = y + mapsizetiles.y * 20
+  IF y >= mapsizetiles.y * 20 THEN y = y - mapsizetiles.y * 20
  ELSE
   '--crop walking
   IF x < 0 THEN x = 0: xgo = 0: cropmovement = 1
-  IF x > (scroll(0) - 1) * 20 THEN x = (scroll(0) - 1) * 20: xgo = 0: cropmovement = 1
+  IF x > (mapsizetiles.x - 1) * 20 THEN x = (mapsizetiles.x - 1) * 20: xgo = 0: cropmovement = 1
   IF y < 0 THEN y = 0: ygo = 0: cropmovement = 1
-  IF y > (scroll(1) - 1) * 20 THEN y = (scroll(1) - 1) * 20: ygo = 0: cropmovement = 1
+  IF y > (mapsizetiles.y - 1) * 20 THEN y = (mapsizetiles.y - 1) * 20: ygo = 0: cropmovement = 1
  END IF
 END FUNCTION
 
@@ -101,7 +101,7 @@ SUB drawnpcs
    z = 0
    drawnpcX = 0
    drawnpcY = 0
-   IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawnpcX, drawnpcY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+   IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawnpcX, drawnpcY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
     IF vstate.active AND vstate.npc = i THEN z = catz(0) '--special vehicle magic
     IF z AND vstate.dat.disable_flying_shadow = NO THEN '--shadow
      rectangle npc(i).x - mapx + 6, npc(i).y - mapy + gmap(11) + 13, 8, 5, uilook(uiShadow), dpage
@@ -658,11 +658,11 @@ SUB savemapstate_npcd(mapnum, prefix$)
 END SUB
 
 SUB savemapstate_tilemap(mapnum, prefix$)
- savetiledata mapstatetemp$(mapnum, prefix$) + "_t.tmp", scroll(), 3
+ savetilemaps maptiles(), mapstatetemp$(mapnum, prefix$) + "_t.tmp"
 END SUB
 
 SUB savemapstate_passmap(mapnum, prefix$)
- savetiledata mapstatetemp$(mapnum, prefix$) + "_p.tmp", pass()
+ savetilemap pass, mapstatetemp$(mapnum, prefix$) + "_p.tmp"
 END SUB
 
 SUB savemapstate (mapnum, savemask = 255, prefix$)
@@ -770,7 +770,9 @@ SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
   GET #fh, 8, mapsize()
   CLOSE #fh
   IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
-   loadtiledata filebase$ + "_t.tmp", scroll(), 3
+   loadtilemaps maptiles(), filebase$ + "_t.tmp"
+   mapsizetiles.x = maptiles(0).wide
+   mapsizetiles.y = maptiles(0).high
    refresh_map_slice
 
    '--as soon as we know the dimensions of the map, enforce hero position boundaries
@@ -796,7 +798,7 @@ SUB loadmapstate_passmap (mapnum, prefix$, dontfallback = 0)
   GET #fh, 8, mapsize()
   CLOSE #fh
   IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
-   loadtiledata filebase$ + "_p.tmp", pass()
+   loadtilemap pass, filebase$ + "_p.tmp"
   ELSE
    IF dontfallback = 0 THEN loadmap_passmap mapnum
   END IF
@@ -914,7 +916,7 @@ SUB debug_npcs ()
   WITH npc(i)
    IF .id <> 0 THEN
     DIM AS INTEGER drawX, drawY
-    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
      debug " " & i & ": ID=" & SGN(.id) * (ABS(.id) - 1) & " x=" & .x & " y=" & .y & " screenx=" & drawX & " screeny=" & drawY
     ELSE
      debug " " & i & ": ID=" & SGN(.id) * (ABS(.id) - 1) & " x=" & .x & " y=" & .y
@@ -932,7 +934,7 @@ SUB npc_debug_display ()
   WITH npc(i)
    IF .id <> 0 THEN
     DIM AS INTEGER drawX, drawY
-    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, scroll(0) * 20, scroll(1) * 20, gmap(5)) THEN
+    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
      textcolor uilook(uiText), 0
      'the numbers can overlap quite badly, try to squeeze them in
      temp = STR$(SGN(.id) * (ABS(.id) - 1))
@@ -958,8 +960,8 @@ SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
   'when cropping the camera to the map, stop camera movements that attempt to go over the edge
   DIM oldmapx AS INTEGER = x
   DIM oldmapy AS INTEGER = y
-  x = bound(x, 0, scroll(0) * 20 - 320)
-  y = bound(y, 0, scroll(1) * 20 - 200)
+  x = bound(x, 0, mapsizetiles.x * 20 - 320)
+  y = bound(y, 0, mapsizetiles.y * 20 - 200)
   IF oldmapx <> x THEN
    IF gen(cameramode) = pancam THEN gen(cameramode) = stopcam
    IF gen(cameramode) = focuscam THEN gen(cameraArg3) = 0
@@ -973,7 +975,7 @@ SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
   'Wrap the camera according to the center, not the top-left
   x += 160
   y += 160
-  wrapxy x, y, scroll(0) * 20, scroll(1) * 20
+  wrapxy x, y, mapsizetiles.x * 20, mapsizetiles.y * 20
   x -= 160
   y -= 160
  END IF

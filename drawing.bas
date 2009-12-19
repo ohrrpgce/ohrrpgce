@@ -632,7 +632,8 @@ END SUB
 
 SUB testanimpattern (tastuf(), taset)
 
-DIM sample(7)
+DIM sample as TileMap
+DIM tilesetview as TileMap
 DIM tanim_state(1) AS TileAnimState
 DIM tileset as Frame ptr = NULL
 
@@ -641,16 +642,12 @@ clearpage dpage
 
 tileset = sprite_to_tileset(vpages(3))
 
-sample(0) = 3
-sample(1) = 3
-buffer(0) = 16
-buffer(1) = 3
-setmapdata buffer(), buffer(), 10, 130
-FOR i = 0 TO 47
- y = INT(i / 16)
- x = i - y * 16
- setmapblock x, y, 0, tastuf(20 * taset) + i
-NEXT i
+cleantilemap tilesetview, 16, 3
+FOR y = 0 TO 2
+ FOR x = 0 TO 15
+  writeblock tilesetview, x, y, tastuf(20 * taset) + x + y * 16
+ NEXT
+NEXT
 
 GOSUB setupsample
 
@@ -669,13 +666,13 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  '--draw available animating tiles--
- setmapdata buffer(), buffer(), 10, 130
- drawmap 0, -10, 0, 0, tileset, dpage
+ setmapdata , 10, 130
+ drawmap tilesetview, 0, -10, 0, tileset, dpage
  '--draw sample--
- setmapdata sample(), sample(), 100, 40
+ setmapdata , 100, 40
  setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
  cycletile tanim_state(), tastuf()
- drawmap -130, -100, 0, 0, tileset, dpage
+ drawmap sample, -130, -100, 0, tileset, dpage
  '--Draw cursor--
  y = INT(csr / 16)
  x = csr - y * 16
@@ -687,15 +684,17 @@ DO
  dowait
 LOOP
 sprite_unload @tileset
+unloadtilemap sample
+unloadtilemap tilesetview
 EXIT SUB
 
 setupsample:
-setmapdata sample(), sample(), 100, 70
-FOR i = 0 TO 8
- y = INT(i / 3)
- x = i - y * 3
- setmapblock x, y, 0, 160 + (taset * 48) + csr
-NEXT i
+cleantilemap sample, 3, 3
+FOR x = 0 TO 2
+ FOR y = 0 TO 2
+  writeblock sample, x, y, 160 + (taset * 48) + csr
+ NEXT
+NEXT
 RETRACE
 
 END SUB

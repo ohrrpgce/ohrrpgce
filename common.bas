@@ -1074,17 +1074,16 @@ FUNCTION getmapname (m) as string
  RETURN a
 END FUNCTION
 
-FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
+FUNCTION createminimap (map() AS TileMap, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
  'if zoom is -1, calculate and store it
- 'Cobbles setmapdata! (this is only a temporary warning)
 
  IF zoom = -1 THEN
   'auto-detect best zoom
-  zoom = bound(small(320 \ map(0), 200 \ map(1)), 1, 20)
+  zoom = bound(small(320 \ map(0).wide, 200 \ map(0).high), 1, 20)
  END IF
 
  DIM mini as Frame Ptr
- mini = sprite_new(zoom * map(0), zoom * map(1))
+ mini = sprite_new(zoom * map(0).wide, zoom * map(0).high)
 
  DIM AS SINGLE fraction
  fraction = 20 / zoom
@@ -1095,16 +1094,15 @@ FUNCTION createminimap (map() AS INTEGER, tilesets() AS TilesetData ptr, BYREF z
  DIM y AS INTEGER
  DIM block AS INTEGER
  
- setmapdata map(), map(), 20, 0
- FOR j AS INTEGER = 0 TO zoom * map(1) - 1
-  FOR i AS INTEGER = 0 TO zoom * map(0) - 1
+ FOR j AS INTEGER = 0 TO zoom * map(0).high - 1
+  FOR i AS INTEGER = 0 TO zoom * map(0).wide - 1
    tx = i \ zoom
    ty = j \ zoom
    x = INT(((i MOD zoom) + RND) * fraction)
    y = INT(((j MOD zoom) + RND) * fraction)
    'layers but not overhead tiles
-   FOR k AS INTEGER = 2 TO 0 STEP -1
-    block = readmapblock(tx, ty, k)
+   FOR k AS INTEGER = UBOUND(map) TO 0 STEP -1
+    block = readblock(map(k), tx, ty)
     IF block = 0 AND k > 0 THEN CONTINUE FOR
 
     WITH *tilesets(k)
@@ -1760,17 +1758,18 @@ IF gen(genVersion) = 1 THEN
   savetanim i, buffer()
  NEXT i
  DIM tx AS INTEGER, ty AS INTEGER
+ DIM tmap AS TileMap
  FOR i = 0 TO gen(genMaxMap)
   upgrade_message " map " & i
-  XBLOAD maplumpname(i, "t"), buffer(), "Map not loaded"
-  setmapdata buffer(), buffer(), 0, 0
-  FOR tx = 0 TO buffer(0)
-   FOR ty = 0 TO buffer(1)
-    IF readmapblock(tx, ty, 0) = 158 THEN setmapblock tx, ty, 0, 206
+  loadtilemap tmap, maplumpname(i, "t")
+  FOR tx = 0 TO tmap.wide - 1
+   FOR ty = 0 TO tmap.high - 1
+    IF readblock(tmap, tx, ty) = 158 THEN writeblock tmap, tx, ty, 206
    NEXT ty
   NEXT tx
-  xbsave maplumpname(i, "t"), buffer(), buffer(0) * buffer(1) + 4
+  savetilemap tmap, maplumpname(i, "t")
  NEXT i
+ unloadtilemap tmap
 END IF
 '---VERSION 3---
 IF gen(genVersion) = 2 THEN
