@@ -1891,8 +1891,7 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
    temppos.x += (ss.adjustpos.x - ss.x)
    temppos.y += (ss.adjustpos.y - ss.y)
   END IF
- IF ss.zoom = 4 THEN hugesprite ss_save.clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
- IF ss.zoom = 2 THEN bigsprite ss_save.clonebuf(), workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage
+  drawspritex ss_save.clonebuf(), 0, workpal(), (state.pt - state.top) * 16, 4 + temppos.x * ss.zoom, 1 + temppos.y * ss.zoom, dpage, ss.zoom, NO
   drawsprite ss_save.clonebuf(), 0, workpal(), (state.pt - state.top) * 16, ss.previewpos.x + temppos.x, ss.previewpos.y + temppos.y, dpage
  END IF
  putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, state.tog * 15, dpage
