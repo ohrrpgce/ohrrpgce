@@ -1,0 +1,396 @@
+--------------------------------------------------
+12/21/09
+v1.2
+
+Added Features:
+
+-Fixed a few more bugs
+
+-Code cleanup
+
+-Window title now alerts user when they can lock/free the mouse if the mouse is acquired by ohr
+
+-All binaries released from this point will be default msvc static, d3dx dynamic, which is designated by x.y.1.
+
+-The backend is now added to the ohr repository!
+
+Feature Request:
+
+-"Snap to Native Resolution" button
+
+-Joystick support
+
+-Rewrite backend interfaces (code side)
+
+
+
+
+--------------------------------------------------
+12/18/09
+v1.1
+
+Added Features:
+
+-Fixed a few bugs
+
+-Changed the dialog box to modeless so that the engine doesn't hang while Options are being set
+
+-Added ability to use Scroll Lock to toggle the os mouse cursor being tied to the window. Useful if the ohr engine requests use of its own cursor and disables the os mouse cursor, and you want your os mouse cursor back.
+
+-Adjusted initialization routines slightly
+
+-The msvc static, d3dx dynamic build has been chosen as the default build type, so v1.1.1 is the official dll.
+
+Feature Request:
+
+-"Snap to Native Resolution" button
+
+-Joystick support
+
+
+
+
+--------------------------------------------------
+12/17/09
+v1.0
+aka Beta + 1
+Official public release... ;)
+
+Added Features:
+
+-Switching version nomenclature to Major.Minor.BuildInfo--Major releases are not compatible with each other. Minor releases are bugfixes or feature request implementations that can be solved by just recopying the dll to the folder. BuildInfo identifies whether the dll was compiled dynamically or statically: Bit 0 on identifies directx library was linked dynamically, Bit 1 on identifies msvc 2008 was linked dynamically. (ie. Version 1.0.0 means major release 1, revision 0, and statically linked d3dx lib and msvc 2008 runtime. Version 1.0.3 means major release 1, revision 0, and dynamically linked d3dx lib and msvc 2008 runtime.)
+
+-Enabled visual themes for Options dialog so dialog appears like a modern window gui
+
+-Added a mouse input rectangle clip that doesn't affect the os mouse
+
+-os mouse hides when ohr mouse is active now
+
+-Removed shader support entirely--no benefit in this situation to using shaders over IDirect3DDevice9::StretchRect()
+
+-Multiple binary options for directx/msvc dependency issues. The dll's are interchangeable after the program is built with any of the lib files.
+
+-Integration with runtime graphics loading
+
+Known Bugs:
+
+-None
+
+Feature Request:
+
+-"Snap to Native Resolution multiple" button
+
+-Joystick support
+
+
+
+
+--------------------------------------------------
+12/08/09
+Beta
+Public release.
+
+Added Features:
+
+-Enabled os mouse hiding in fullscreen--not in windowed mode. Waiting on ohr engine to fix backend notification on os mouse hiding.
+
+-Adjusted screenshot capture to capture only the image, not the aspect ratio padding
+
+-Added support for pre-shader 2.0 graphics cards
+
+-Fixed a few direct input keys convert to fb scancodes
+
+Known Bugs:
+
+-None
+
+Features to be added:
+
+-Joystick support
+
+
+
+
+--------------------------------------------------
+12/04/09
+Alpha + 7
+
+Added Features:
+
+-Options to set format of screenshots available, including in Options dialog
+
+-All options can be set from command line
+
+-Major update to Options dialog
+
+-Removed 'Native Resolutions' from Options
+
+-Added a status note in Options to report problems
+
+-Added a "Set Defaults" button in Options
+
+-Fixed resolution setting issue
+
+-Backend now alerts ohr engine of quit requests
+
+-Window icon is app icon now
+
+-Fixed effect driver support
+
+-Support for more video cards that require square textures.
+
+-Stronger error handling built in
+
+-All dependencies have been removed, including directx and vc2008
+
+Known Bugs:
+
+-Temporarily disabled os mouse hiding, including in fullscreen
+
+Features to be added:
+
+-Joystick support
+
+
+
+
+--------------------------------------------------
+11/25/09
+Alpha + 6
+
+Added Features:
+
+-Dll maintains all resources, no longer need other resources in compilation
+
+-No need to recompile binaries if dll is updated.
+
+-Size of ohr app is reduced because resources do not need to be added to it.
+
+-App icon is now appropriate (though not in the window, yet. Still waiting for that adjustment to ohr engine.)
+
+-Pixel distortions are negligible. No fixing being done there.
+
+-Screenshots altered to capture the backbuffer.
+
+Known Bugs:
+
+-No joystick (not really a bug, just a feature request. This will be removed on the next release from Known Bugs).
+
+Features to be added soon:
+
+-Options can be set from a command line at program start
+
+-Options to set the format of screenshots
+
+-Joystick support
+
+
+
+
+--------------------------------------------------
+11/25/09
+Alpha + 5
+
+Added Features:
+
+-Fixed power of two texture stretching, again...
+
+-Aspect ratio preservation will pad the sides of the window to preserve the aspect ratio (320/200) of the ohr frames. It is enabled in the options dialog by default.
+
+-Window resizing now dynamically adjusts the backbuffer resolution.
+
+Known Bugs:
+
+-Pixel distortion at very small resolution (probably negligible at this point)
+
+-Screenshots do not appear correctly on some graphics cards (power-of-2 problem)
+
+-No joystick
+
+-App icon is neutral
+
+
+
+
+--------------------------------------------------
+11/24/09
+Alpha + 4
+
+Added Features:
+
+-Fixed power of two texture stretching.
+
+-Native resolution zoomx3 is default resolution.
+
+-Fullscreen resolution is the current desktop screen resolution. The engine keeps its aspect ratio by buffering the sides of the image with black space.
+
+-Jazzed up options dialog with graphic
+
+-User can choose smooth or sharp graphics from options dialog
+
+-Right alt and control keys are now supported.
+
+Known Bugs:
+
+-Pixel distortions with texel mismatching at lowest native resolution
+
+-No joystick support
+
+-App icon is neutral until the ohr engine is adjusted to load the icon
+
+
+
+
+--------------------------------------------------
+11/24/09
+Alpha + 3
+
+Added Features:
+
+-Support for power of 2-only textures
+
+-Minor fix on native resolution buttons
+
+-Window title works
+
+-Fixed ALT key combination messages getting to ohr engine except for external system messages(ALT-Tab, etc)
+
+Known Bugs:
+
+-Limited resolution support for fullscreen and windowed
+
+-Pixel distortions with texel mismatching at lowest native resolution
+
+-No joystick support
+
+-App icon should not be part of this release
+
+
+
+
+--------------------------------------------------
+11/13/09
+Alpha + 2
+
+Added Features:
+
+-FPS display is off by default
+
+-Palette fades now work
+
+-Native Resolution adjusted to 320x200
+
+-3 Zoom levels available for Native Resolution
+
+-Mouse cursor hides when ohr cursor is present
+
+-Mouse cursor appears when the Options dialog is chosen even if the ohr cursor is live
+
+-Mouse cursor messages optimized in window procedure to improve performance and clean up tasks
+
+-Engine input stops when in Options dialog or any other window gains focus
+
+Known bugs:
+
+-Fullscreen supports only 800x600, though windowed now supports 800x600, and 3 "native" resolutions
+
+-Pixel distortions due to texture stretching/matching texels to pixels on the truly native 320x200 resolution when maximized, not so much on zoomed resolutions
+
+-Window title still scrambled, hidden
+
+-joysticks not supported
+
+To be petitioned:
+
+-exposing .fx variables to script api
+
+
+
+
+--------------------------------------------------
+11/10/09
+Alpha + 1
+
+Added Features:
+
+-Window icon is classic "RPG" game.exe icon
+
+-"Options" dialog box available through window system menu (top-left corner of window)
+
+-FPS display can be toggled in "Options"
+
+-Vsync can be toggled in "Options"
+
+-Option to run in "Native" Resolution, or 640x480--defaults to 800x600 if disabled
+
+-.fx file hidden inside .exe
+
+-.fx file renders with "POINT" interpolation now, though picking smooth or sharp will be enabled soon
+
+-Mouse cursor hidden when in full screen
+
+-enable "ALT-Enter" to toggle fullscreen/windowed modes
+
+-Disable user closing the window, except through game interface
+
+Known bugs:
+
+-Window title still scrambled, though hidden now
+
+-joysticks not supported
+
+To be petitioned:
+
+-.fx variables exposed to script api
+
+
+
+
+--------------------------------------------------
+11/4/09
+Alpha
+Initial release.
+
+Features:
+
+-Directx 9.0c shader enabled graphics rendering.
+
+-FPS display (cannot remove until window gui expanded)
+
+-800x600 resolution (cannot adjust until window gui expanded)
+
+-.fx file controls rendering. You can adjust the file to affect rendering without recompiling game.exe or gfx_directx.dll.
+
+-currently, .fx file is rendering linear interpolation smoothing algorithms across the screen
+
+-lost/reset graphics devices from situations like alt-tab from fullscreen
+
+-screenshots saved as .jpg without fps displayed and without .fx rendering (pure ohr image)
+
+-DirectInput8 input supports mouse with wheel
+
+-DirectInput8 input supports keyboard
+
+-reacquire input devices from situations like window losing focus
+
+Known bugs: 
+
+-window title is scrambled
+
+-joysticks not supported yet
+
+-process hangs if window is closed (ohr engine restriction)
+
+To be added:
+
+-move window procedure to gfx_directx.cpp so globals can interact with window messages, such as toggling vsync, toggling fps display, setting resolutions, choosing different .fx files/settings to render, mouse sensitivity, joystick configuration
+
+-adding joystick support
+
+-workaround the process hang
+
+To be petitioned:
+
+-callback to engine to alert of close/other messages
+
+-exposing .fx variables to scripts

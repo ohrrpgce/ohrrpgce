@@ -1,0 +1,121 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+DIALOGOPTIONS DIALOGEX 0, 0, 348, 177
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Options"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,237,156,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,290,156,50,14
+    CONTROL         "Enable FPS Display",IDC_OPTIONS_EnableFps,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,100,91,8
+    CONTROL         "Enable Vsync",IDC_OPTIONS_EnableVsync,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,74,58,10
+    CONTROL         "OhrrpgceBmp",IDC_OPTIONS_Image,"Static",SS_BITMAP,7,7,15,13
+    LTEXT           "DirectX Backend version: Unknown\r\nhttp://www.hamsterrepublic.com",IDC_OPTIONS_Info,220,60,120,24,0,WS_EX_RIGHT
+    CONTROL         "Enable Smooth Draw",IDC_OPTIONS_EnableSmooth,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,86,82,10
+    CONTROL         "Enable Aspect Ratio Preservation",IDC_OPTIONS_EnablePreserveAspectRatio,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,62,123,10
+    GROUPBOX        "Screen Shot format",IDC_OPTIONS_ScrnShotFormats,7,115,141,55
+    CONTROL         "JPEG (.jpg)",IDC_OPTIONS_ScrnShotFormats_JPG,"Button",BS_AUTORADIOBUTTON,18,129,52,10
+    CONTROL         "BMP (.bmp)",IDC_OPTIONS_ScrnShotFormats_BMP,"Button",BS_AUTORADIOBUTTON,18,141,53,10
+    CONTROL         "PNG (.png)",IDC_OPTIONS_ScrnShotFormats_PNG,"Button",BS_AUTORADIOBUTTON,18,153,51,10
+    CONTROL         "DDS (.dds)",IDC_OPTIONS_ScrnShotFormats_DDS,"Button",BS_AUTORADIOBUTTON,85,129,51,10
+    CONTROL         "OHR (.bmp)",IDC_OPTIONS_ScrnShotFormats_OHR,"Button",BS_AUTORADIOBUTTON,85,141,54,10
+    PUSHBUTTON      "Set Defaults",IDC_OPTIONS_SetDefaults,184,156,50,14
+    EDITTEXT        IDC_OPTIONS_Status,185,86,155,57,ES_MULTILINE | ES_READONLY
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    "DIALOGOPTIONS", DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 340
+        VERTGUIDE, 20
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 170
+        HORZGUIDE, 60
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+OHRRPGCEBMP             BITMAP                  "Ohrrpgce.bmp"
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
