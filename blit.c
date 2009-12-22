@@ -156,7 +156,7 @@ void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *p
 	} else {
 		for (ty = starty; ty <= endy; ty++) {
 			//tx = startx
-			for (x = startx; x <= endx; x++) {
+			for (tx = startx; tx <= endx; tx++) {
 				//figure out where to put the pixel
 				pix = (ty * destspr->pitch) + tx;
 				//and where to get the pixel from
