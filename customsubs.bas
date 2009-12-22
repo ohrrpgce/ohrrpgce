@@ -956,7 +956,7 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
     sprite_unload @sprite(i)
     palette16_unload @pal16(i)
     sprite(i) = sprite_load(picset, picnum)
-    pal16(i) = palette16_load(state.top + i, picset, picnum)
+    IF state.top + i <= gen(genMaxPal) THEN pal16(i) = palette16_load(state.top + i, picset, picnum)
    NEXT i
   END IF
 
