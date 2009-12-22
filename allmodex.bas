@@ -3318,7 +3318,7 @@ CONST SPRCACHEB_SZ = 256  'in SPRITE_BASE_SZ units
 ' removes a sprite from the cache, and frees it.
 private sub sprite_remove_cache(byval entry as SpriteCacheEntry ptr)
 	if entry->p->refcount <> 1 then
-		debug "error: invalidly uncaching sprite " & sprite_describe(entry->p)
+		debug "error: invalidly uncaching sprite " & entry->hashed.hash & " " & sprite_describe(entry->p)
 	end if
 	dlist_remove(sprcacheB.generic, entry)
 	hash_remove(sprcache, entry)
@@ -3369,9 +3369,9 @@ sub sprite_purge_cache(byval minkey as integer, byval maxkey as integer, leakmsg
 	wend
 end sub
 
-'Completely empty the sprite cache
+'Attempt to completely empty the sprite cache, detecting memory leaks
 sub sprite_empty_cache()
-	sprite_purge_cache(INT_MIN, INT_MAX, "leaked sprite ", YES)
+	sprite_purge_cache(INT_MIN, INT_MAX, "leaked sprite ")
 	if sprcacheB_used <> 0 or sprcache.numitems <> 0 then
 		debug "sprite_empty_cache: corruption: sprcacheB_used=" & sprcacheB_used & " items=" & sprcache.numitems
 	end if
@@ -3683,12 +3683,12 @@ sub sprite_unload(byval p as frame ptr ptr)
 	if *p = 0 then exit sub
 	with **p
 		if .refcount <> NOREFC then
-			.refcount -= 1
 			if .refcount = FREEDREFC then
 				debug sprite_describe(*p) & " already freed!"
 				*p = 0
 				exit sub
 			end if
+			.refcount -= 1
 			if .refcount < 0 then debug sprite_describe(*p) & " has refcount " & .refcount
 		end if
 		'if cached, can free two references at once
@@ -3704,7 +3704,7 @@ sub sprite_unload(byval p as frame ptr ptr)
 			else
 				for i as integer = 1 to .arraylen - 1
 					if (*p)[i].refcount <> 1 then
-						debug sprite_describe(*p) & " freed with refcount " & .refcount
+						debug sprite_describe(*p + i) & " array elem freed with bad refcount"
 					end if
 				next
 				if .cached then sprite_to_B_cache((*p)->cacheentry) else sprite_freemem(*p)
