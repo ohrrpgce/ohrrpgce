@@ -12,7 +12,7 @@ using namespace gfx;
 #include "di2fb_scancodes.h"
 #include "resource.h"
 
-#define DX_BUILD_DIRECTX_DYNAMIC TRUE //can only be TRUE or FALSE, or 1 or 0 respectively
+#define DX_BUILD_DIRECTX_DYNAMIC FALSE //can only be TRUE or FALSE, or 1 or 0 respectively
 #define DX_BUILD_MSVC_DYNAMIC FALSE //can only be TRUE or FALSE, or 1 or 0 respectively
 #define DX_VERSION_MAJOR 0x1
 #define DX_VERSION_MINOR 0x2
