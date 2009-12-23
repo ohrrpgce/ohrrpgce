@@ -1778,6 +1778,7 @@ END SUB
 SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapResizeState)
  'returns the new size and offset in passed args, or -1 width to cancel
 
+ ClearMenuData rs.menu
  WITH rs.menu
   .anchor.x = -1
   .anchor.y = 1
@@ -1791,8 +1792,8 @@ SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapRe
  FOR i AS INTEGER = 1 TO 6
   append_menu_item rs.menu, ""
  NEXT i
- rs.menu.items(5).disabled = YES
- rs.menu.items(6).disabled = YES
+ rs.menu.items[5]->disabled = YES
+ rs.menu.items[6]->disabled = YES
 
  DIM state AS MenuState
  state.active = YES
@@ -1895,20 +1896,20 @@ SUB resize_dimchange(BYREF st AS MapEditState, BYREF rs AS MapResizeState, map()
 END SUB
 
 SUB resize_buildmenu(BYREF rs AS MapResizeState)
- rs.menu.items(1).caption = "Width " & rs.oldsize.x & CHR(26) & rs.rect.wide
- rs.menu.items(2).caption = "Height " & rs.oldsize.y & CHR(26) & rs.rect.high
+ rs.menu.items[1]->caption = "Width " & rs.oldsize.x & CHR(26) & rs.rect.wide
+ rs.menu.items[2]->caption = "Height " & rs.oldsize.y & CHR(26) & rs.rect.high
  IF rs.rect.x > 0 THEN
-  rs.menu.items(3).caption = "Left edge: trim " & rs.rect.x & " tiles"
+  rs.menu.items[3]->caption = "Left edge: trim " & rs.rect.x & " tiles"
  ELSE
-  rs.menu.items(3).caption = "Left edge: add " & -rs.rect.x & " tiles"
+  rs.menu.items[3]->caption = "Left edge: add " & -rs.rect.x & " tiles"
  END IF
  IF rs.rect.y > 0 THEN
-  rs.menu.items(4).caption = "Top edge: trim " & rs.rect.y & " tiles"
+  rs.menu.items[4]->caption = "Top edge: trim " & rs.rect.y & " tiles"
  ELSE
-  rs.menu.items(4).caption = "Top edge: add " & -rs.rect.y & " tiles"
+  rs.menu.items[4]->caption = "Top edge: add " & -rs.rect.y & " tiles"
  END IF
- rs.menu.items(5).caption = "Area " & (rs.oldsize.x * rs.oldsize.y) & CHR(26) & (rs.rect.high * rs.rect.wide)
- rs.menu.items(6).caption = rs.zoom & "x zoom"
+ rs.menu.items[5]->caption = "Area " & (rs.oldsize.x * rs.oldsize.y) & CHR(26) & (rs.rect.high * rs.rect.wide)
+ rs.menu.items[6]->caption = rs.zoom & "x zoom"
 END SUB
 
 SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF rs AS MapResizeState, map() AS TileMap)

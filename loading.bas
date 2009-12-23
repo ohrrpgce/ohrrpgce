@@ -12,6 +12,11 @@
 
 option explicit
 
+DECLARE SUB LoadMenuItems(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
+DECLARE SUB LoadMenuItem(f AS INTEGER, items() AS MenuDefItem ptr, record AS INTEGER)
+DECLARE SUB SaveMenuItems(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
+DECLARE SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER, menunum AS INTEGER, itemnum AS INTEGER)
+
 SUB LoadNPCD(file as string, dat() as NPCType)
   DIM i AS INTEGER, j AS INTEGER, f AS INTEGER
   f = FREEFILE
@@ -694,6 +699,7 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	close #f
 end sub
 
+'This initialises a menu if it has not been already
 SUB ClearMenuData(dat AS MenuDef)
  DIM bits(0) AS INTEGER
  WITH dat
@@ -711,29 +717,34 @@ SUB ClearMenuData(dat AS MenuDef)
   .min_chars = 0
   .max_chars = 0
   .bordersize = 0
-  ClearMenuItems dat
+  IF .items THEN
+   DeleteMenuItems dat
+  ELSE
+   dlist_construct .itemlist, OFFSETOF(MenuDefItem, trueorder)
+  END IF
  END WITH
  bits(0) = 0
  MenuBitsFromArray dat, bits()
 END SUB
 
-SUB ClearMenuItems(menu AS MenuDef)
+SUB DeleteMenuItems(menu AS MenuDef)
  DIM i AS INTEGER
  WITH menu
-  FOR i = 0 TO UBOUND(.items)
-   ClearMenuItem(.items(i))
+  FOR i = 0 TO .numitems - 1
+   dlist_remove menu.itemlist, .items[i]
+   DELETE .items[i]
   NEXT i
+  DEALLOCATE(.items)
+  .items = NULL
  END WITH
 END SUB
 
+'This is not used anywhere currently. This has nothing to do with deleting a menu item!
 SUB ClearMenuItem(mi AS MenuDefItem)
  DIM bits(0) AS INTEGER
  DIM i AS INTEGER
  WITH mi
-  .exists = 0
-  .member = 0
   .caption = ""
-  .sortorder = 0
   .t = 0
   .sub_t = 0
   .tag1 = 0
@@ -774,26 +785,30 @@ SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_
   .min_chars = ReadShort(f)
   .max_chars = ReadShort(f)
   .bordersize = ReadShort(f)
+  IF .items THEN
+   DeleteMenuItems dat
+  ELSE
+   dlist_construct .itemlist, OFFSETOF(MenuDefItem, trueorder)
+  END IF
  END WITH
  CLOSE #f
  IF ignore_items = NO THEN 'This is disableable for performance when all you care about loading is the menu's name
-  LoadMenuItems menu_set, dat.items(), record
+  LoadMenuItems menu_set, dat, record
  END IF
 END SUB
 
-SUB LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
+SUB LoadMenuItems(menu_set AS MenuSet, menu AS MenuDef, record AS INTEGER)
  DIM i AS INTEGER
  DIM f AS INTEGER
  DIM member AS INTEGER
- DIM elem AS INTEGER = 0
  DIM actual_record_count AS INTEGER = 0
-
- FOR i = 0 TO UBOUND(mi)
-  ClearMenuItem mi(i)
- NEXT i
+ 'The items may appear out-of-order in menuitem.bin, so rather than just append them as
+ 'we find the, first we store them in this temp array:
+ REDIM itemarray(0) AS MenuDefItem ptr
 
  f = FREEFILE
  OPEN menu_set.itemfile FOR BINARY AS #f
+ 'FIXME: this shouldn't be here, it's covered in upgrade() (but commented out currently)
  actual_record_count = LOF(f) / getbinsize(binMENUITEM)
  IF actual_record_count <> gen(genMaxMenuItem) + 1 THEN
   debug "menuitem.bin record count sanity check failed " & gen(genMaxMenuItem) & "->" & actual_record_count - 1
@@ -803,24 +818,37 @@ SUB LoadMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
   member = ReadShort(f)
   IF member = record + 1 THEN
-   LoadMenuItem f, mi(elem), i
-   elem = elem + 1
-   IF elem > UBOUND(mi) THEN EXIT FOR
+   LoadMenuItem f, itemarray(), i
   END IF
  NEXT i
  CLOSE #f
- SortMenuItems mi()
+
+ 'build the item list
+ FOR i = 0 TO UBOUND(itemarray)
+  IF itemarray(i) <> NULL THEN
+   dlist_append(menu.itemlist, itemarray(i))
+  ELSE
+   'can't create a zero length FB array
+   IF UBOUND(itemarray) <> 0 THEN
+    debug "menu " & record & " item " & i & " could not be found in " & menu_set.itemfile
+   END IF
+  END IF
+ NEXT
+ 'build the items[] array
+ SortMenuItems menu
 END SUB
 
-SUB LoadMenuItem(f AS INTEGER, BYREF mi AS MenuDefItem, record AS INTEGER)
+SUB LoadMenuItem(f AS INTEGER, items() AS MenuDefItem ptr, record AS INTEGER)
  DIM i AS INTEGER
  DIM bits(0) AS INTEGER
+ DIM mi AS MenuDefItem ptr
+ DIM itemnum AS INTEGER
+ mi = NEW MenuDefItem
  SEEK #f, record * getbinsize(binMENUITEM) + 1
- WITH mi
-  .member = ReadShort(f)
-  .exists = (.member >= 0)
+ WITH *mi
+  ReadShort(f) 'throw away member
   .caption = ReadByteStr(f, 38)
-  .sortorder = ReadShort(f)
+  itemnum = ReadShort(f)
   .t = ReadShort(f)
   .sub_t = ReadShort(f)
   .tag1 = ReadShort(f)
@@ -832,7 +860,9 @@ SUB LoadMenuItem(f AS INTEGER, BYREF mi AS MenuDefItem, record AS INTEGER)
    .extra(i) = ReadShort(f)
   NEXT i
  END WITH
- MenuItemBitsFromArray mi, bits()
+ IF itemnum > UBOUND(items) THEN REDIM PRESERVE items(itemnum)
+ items(itemnum) = mi
+ MenuItemBitsFromArray *mi, bits()
 END SUB
 
 SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
@@ -858,26 +888,16 @@ SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
   WriteShort(f, -1, .bordersize)
  END WITH
  CLOSE #f
- DIM i AS INTEGER
- SaveMenuItems menu_set, dat.items(), record
+ SaveMenuItems menu_set, dat, record
 END SUB
 
-SUB SaveMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
+SUB SaveMenuItems(menu_set AS MenuSet, menu AS MenuDef, record AS INTEGER)
  DIM i AS INTEGER
  DIM f AS INTEGER
  DIM member AS INTEGER
  DIM elem AS INTEGER = 0
+ DIM mi AS MenuDefItem ptr
  DIM blankmi AS MenuDefItem
-
- FOR i = 0 TO UBOUND(mi)
-  'Force all items to use the correct member and sortorder
-  WITH mi(i)
-   IF .exists THEN
-    .member = record + 1
-    .sortorder = i
-   END IF
-  END WITH
- NEXT i
  
  f = FREEFILE
  OPEN menu_set.itemfile FOR BINARY AS #f
@@ -886,38 +906,39 @@ SUB SaveMenuItems(menu_set AS MenuSet, mi() AS MenuDefItem, record AS INTEGER)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
   member = ReadShort(f)
   IF member = record + 1 THEN
-   SaveMenuItem f, blankmi, i
+   SaveMenuItem f, blankmi, i, -1, 0
   END IF
  NEXT i
  'Loop through each record, writing new values into orphan slots
+ mi = menu.first
  FOR i = 0 TO gen(genMaxMenuItem)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
   member = ReadShort(f)
   IF member = 0 THEN
-   SaveMenuItem f, mi(elem), i
+   SaveMenuItem f, *mi, i, record, elem
    elem = elem + 1
-   IF elem > UBOUND(mi) THEN EXIT FOR
+   mi = mi->trueorder.next
+   IF mi = NULL THEN EXIT FOR
   END IF
  NEXT i
- DO WHILE elem <= UBOUND(mi)
+ DO WHILE mi
   'More items need to be written, append them
-  IF mi(elem).exists THEN
-   gen(genMaxMenuItem) += 1
-   SaveMenuItem f, mi(elem), gen(genMaxMenuItem)
-  END IF
+  gen(genMaxMenuItem) += 1
+  SaveMenuItem f, *mi, gen(genMaxMenuItem), record, elem
   elem += 1
+  mi = mi->trueorder.next
  LOOP
  CLOSE #f
 END SUB
 
-SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER)
+SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER, menunum AS INTEGER, itemnum AS INTEGER)
  DIM i AS INTEGER
  DIM bits(0) AS INTEGER
  SEEK #f, record * getbinsize(binMENUITEM) + 1
  WITH mi
-  WriteShort(f, -1, .member)
+  WriteShort(f, -1, menunum + 1)
   WriteByteStr(f, 38, .caption)
-  WriteShort(f, -1, .sortorder)
+  WriteShort(f, -1, itemnum)
   WriteShort(f, -1, .t)
   WriteShort(f, -1, .sub_t)
   WriteShort(f, -1, .tag1)
@@ -976,23 +997,35 @@ SUB MenuItemBitsFromArray (mi AS MenuDefItem, bits() AS INTEGER)
  END WITH
 END SUB
 
-SUB SortMenuItems(mi() AS MenuDefItem)
+'recreate a menu's items[] array, which sorts visible items to the top
+SUB SortMenuItems(menu AS MenuDef)
  DIM AS INTEGER i, j, lowest, found
- FOR i = 0 TO UBOUND(mi)
-  lowest = 32767
-  found = -1
-  FOR j = i TO UBOUND(mi)
-   WITH mi(j)
-    IF .sortorder < lowest AND .exists AND (NOT (.disabled AND .hide_if_disabled)) THEN
-     lowest = .sortorder
-     found = j
-    END IF
-   END WITH
-  NEXT j
-  IF found >= 0 THEN
-   SWAP mi(i), mi(found)
+ DIM mi AS MenuDefItem ptr
+ IF menu.numitems = 0 THEN
+  DEALLOCATE(menu.items)
+  menu.items = NULL
+  EXIT SUB
+ END IF
+ menu.items = REALLOCATE(menu.items, SIZEOF(any ptr) * menu.numitems)
+ 'stick all visible items in .items[]
+ i = 0
+ mi = menu.first
+ WHILE mi
+  IF (mi->disabled AND mi->hide_if_disabled) = 0 THEN
+   menu.items[i] = mi
+   i += 1
   END IF
- NEXT i
+  mi = mi->trueorder.next
+ WEND
+ 'append all invisible items
+ mi = menu.first
+ WHILE mi
+  IF mi->disabled AND mi->hide_if_disabled THEN
+   menu.items[i] = mi
+   i += 1
+  END IF
+  mi = mi->trueorder.next
+ WEND
 END SUB
 
 SUB LoadVehicle (file AS STRING, vehicle AS VehicleData, record AS INTEGER)

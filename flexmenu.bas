@@ -1517,6 +1517,7 @@ DIM dstate AS MenuState 'detail state
 dstate.active = NO
 
 DIM edmenu AS MenuDef
+ClearMenuData edmenu
 edmenu.align = -1
 edmenu.anchor.x = -1
 edmenu.anchor.y = -1
@@ -1528,6 +1529,7 @@ edmenu.min_chars = 38
 DIM menudata AS MenuDef
 LoadMenuData menu_set, menudata, record
 DIM detail AS MenuDef
+ClearMenuData detail
 detail.align = -1
 detail.anchor.x = -1
 detail.anchor.y = 1
@@ -1546,7 +1548,7 @@ DO
  IF mstate.active = YES THEN
   menu_editor_menu_keys mstate, dstate, menudata, record
  ELSEIF dstate.active = YES THEN
-  menu_editor_detail_keys dstate, mstate, detail, menudata.items(mstate.pt)
+  menu_editor_detail_keys dstate, mstate, detail, *menudata.items[mstate.pt]
  ELSE
   menu_editor_keys state, mstate, menudata, record, menu_set
  END IF
@@ -1563,9 +1565,9 @@ DO
  END IF
  IF dstate.need_update THEN
   dstate.need_update = NO
-  update_detail_menu detail, menudata.items(mstate.pt)
+  update_detail_menu detail, *menudata.items[mstate.pt]
   init_menu_state dstate, detail
-  WITH menudata.items(mstate.pt)
+  WITH *menudata.items[mstate.pt]
    IF .t = 3 THEN '--text box
     box_preview = textbox_preview_line(.sub_t)
    END IF
@@ -1583,7 +1585,7 @@ DO
  END IF
  IF dstate.active THEN
   draw_menu detail, dstate, dpage
-  IF menudata.items(mstate.pt).t = 3 THEN '--textbox
+  IF menudata.items[mstate.pt]->t = 3 THEN '--textbox
    edgeprint box_preview, 0, 191, uilook(uiText), dpage
   END IF
  END IF
@@ -1639,6 +1641,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
     mstate.active = YES
     mstate.need_update = YES
     menudata.edit_mode = YES
+    append_menu_item menudata, "[NEW MENU ITEM]"
    END IF
   CASE 4
    IF intgrabber(menudata.boxstyle, 0, 14) THEN state.need_update = YES
@@ -1680,15 +1683,17 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
  IF keyval(scESC) > 1 THEN
   mstate.active = NO
   menudata.edit_mode = NO
+  mstate.need_update = YES
+  'remove [NEW MENU ITEM]
+  remove_menu_item menudata, menudata.last
   EXIT SUB
  END IF
  IF keyval(scF1) > 1 THEN show_help "menu_editor_items"
 
  usemenu mstate
-
- IF mstate.pt >= 0 AND mstate.pt <= UBOUND(menudata.items) THEN
- WITH menudata.items(mstate.pt)
-  IF .exists THEN
+ IF mstate.pt >= 0 AND mstate.pt < menudata.numitems THEN
+ WITH *menudata.items[mstate.pt]
+  IF NOT (menudata.edit_mode = YES AND .trueorder.next = NULL) THEN  'not the last item, "NEW MENU ITEM"
    strgrabber .caption, 38
    IF keyval(scEnter) > 1 THEN '--Enter
     mstate.active = NO
@@ -1697,20 +1702,19 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
    END IF
    IF keyval(scDelete) > 1 THEN '-- Delete
     IF yesno("Delete this menu item?", NO) THEN
-     ClearMenuItem menudata.items(mstate.pt)
-     SortMenuItems menudata.items()
+     remove_menu_item menudata, mstate.pt
      mstate.need_update = YES
     END IF
    END IF
    IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN '--holding Shift
     IF keyval(scUp) > 1 AND mstate.pt < mstate.last - 1 THEN ' just went up
      'NOTE: Cursor will have already moved because of usemenu call above
-     SWAP menudata.items(mstate.pt), menudata.items(mstate.pt + 1)
+     swap_menu_items menudata, mstate.pt, menudata, mstate.pt + 1
      mstate.need_update = YES
     END IF
     IF keyval(scDown) > 1 AND mstate.pt > mstate.first THEN ' just went down
      'NOTE: Cursor will have already moved because of usemenu call above
-     SWAP menudata.items(mstate.pt), menudata.items(mstate.pt - 1)
+     swap_menu_items menudata, mstate.pt, menudata, mstate.pt - 1
      mstate.need_update = YES
     END IF
    END IF
@@ -1718,7 +1722,8 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
    IF menudata.edit_mode = YES THEN
     'Selecting the item that appends new items
     IF enter_or_space() THEN
-     .exists = YES
+     menudata.last->caption = ""
+     append_menu_item menudata, "[NEW MENU ITEM]"
      mstate.active = NO
      mstate.need_update = YES
      dstate.active = YES
@@ -1734,6 +1739,7 @@ SUB menu_editor_menu_keys (mstate AS MenuState, dstate AS MenuState, menudata AS
    IF yesno("Reload the default main menu?") THEN
     ClearMenuData menudata
     create_default_menu menudata
+    append_menu_item menudata, "[NEW MENU ITEM]"
     mstate.need_update = YES
    END IF
   END IF
@@ -1809,7 +1815,7 @@ END SUB
 
 SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
  DIM cap AS STRING
- ClearMenuItems edmenu
+ DeleteMenuItems edmenu
  
  append_menu_item edmenu, "Previous Menu"
  
@@ -1835,7 +1841,7 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
  DIM i AS INTEGER
  DIM cap AS STRING
  DIM index AS INTEGER
- ClearMenuItems detail
+ DeleteMenuItems detail
  
  append_menu_item detail, "Go Back"
  
@@ -1843,8 +1849,8 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
  IF LEN(cap) = 0 THEN cap = "[DEFAULT]"
  append_menu_item detail, "Caption: " & cap
  
- index = append_menu_item(detail, "Type")
- WITH detail.items(index)
+ append_menu_item(detail, "Type")
+ WITH *detail.last
   SELECT CASE mi.t
    CASE 0
     .caption = "Type: " & mi.t & " Caption"
@@ -1859,8 +1865,8 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
   END SELECT
  END WITH
  
- index = append_menu_item(detail, "Subtype: " & mi.sub_t)
- WITH detail.items(index)
+ append_menu_item(detail, "Subtype: " & mi.sub_t)
+ WITH *detail.last
   SELECT CASE mi.t
    CASE 0
     SELECT CASE mi.sub_t
@@ -1887,4 +1893,3 @@ SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
   append_menu_item detail, "Extra data " & i & ": " & mi.extra(i)
  NEXT i
 END SUB
-

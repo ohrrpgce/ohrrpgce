@@ -161,17 +161,21 @@ TEMPLATE_GENERIC(DListItem, T)
 #ENDMACRO
 ENDGENERIC
 
-'DList functions 'item' arguments are pointer to objects containing DListItem instances.
-'You have to provide the offset of the the DListItem as itemoffset to dlist_construct.
+'DList function 'item' arguments are pointers to objects containing DListItem instances.
+'You have to provide the offset of the DListItem as itemoffset to dlist_construct.
 'Pass
 declare sub dlist_construct (byref this as DoubleList(Any), byval itemoffset as integer)
 
 'NULL as beforeitem inserts at end
+'newitem must not already be a member of a list!
 declare sub dlist_insertat (byref this as DoubleList(Any), byval beforeitem as any ptr, byval newitem as any ptr)
 
 #define dlist_append(this, newitem) dlist_insertat((this), NULL, (newitem))
 
 declare sub dlist_remove (byref this as DoubleList(Any), byval item as any ptr)
+
+'swap the positions of two items, already in (possibly different) lists
+declare sub dlist_swap (byref this as DoubleList(Any), byval item1 as any ptr, byref that as DoubleList(Any), byval item2 as any ptr)
 
 'returns 1-based index of item in the list, or 0 if not found
 declare function dlist_find (byref this as DoubleList(Any), byval item as any ptr) as integer
@@ -180,8 +184,9 @@ declare function dlist_find (byref this as DoubleList(Any), byval item as any pt
 declare function dlist_walk (byref this as DoubleList(Any), byval startitem as any ptr, byval n as integer) as any ptr
 
 'the nth item in a list, counting from 1. NULL past end
-#define dlist_nth(this, n) dlist_insertat((this), NULL, (n)-1)
+#define dlist_nth(this, n) dlist_walk((this), NULL, (n)-1)
 
+'declare sub dlist_print (byref this as DoubleList(Any))
 
 '------------- Hash Table -------------
 

@@ -563,6 +563,21 @@ SUB dlist_remove (byref this as DoubleList(Any), byval item as any ptr)
   this.numitems -= 1
 END SUB
 
+SUB dlist_swap (byref this as DoubleList(Any), byval item1 as any ptr, byref that as DoubleList(Any), byval item2 as any ptr)
+  'dlist_insertat can't move items from one list to another
+  if item1 = item2 then exit sub
+  dim dest2 as any ptr = DLFOLLOW(item1)->next
+  dlist_remove(this, item1)
+  if dest2 = item2 then
+    'items are arranged like  -> item1 -> item2 ->
+    dlist_insertat(that, DLFOLLOW(item2)->next, item1)
+  else
+    dlist_insertat(that, item2, item1)
+    dlist_remove(that, item2)
+    dlist_insertat(this, dest2, item2)
+  end if
+END SUB
+
 FUNCTION dlist_find (byref this as DoubleList(Any), byval item as any ptr) as integer
   dim n as integer = 1
   dim lit as any ptr = this.first
@@ -587,6 +602,16 @@ FUNCTION dlist_walk (byref this as DoubleList(Any), byval item as any ptr, byval
   return item
 END FUNCTION
 
+/'
+SUB dlist_print (byref this as DoubleList(Any))
+  dim ptt as any ptr = this.first
+  debug "numitems=" & this.numitems & " first=" & hex(ptt) & " last=" & hex(this.last) & " items:"
+  while ptt
+    debug " 0x" & hex(ptt) & " n:0x" & hex(DLFOLLOW(ptt)->next) & " p:0x" & hex(DLFOLLOW(ptt)->prev) '& " " & get_menu_item_caption(*ptt, menudata)
+    ptt = DLFOLLOW(ptt)->next
+  wend
+END SUB
+'/
 
 '------------- Hash Table -------------
 

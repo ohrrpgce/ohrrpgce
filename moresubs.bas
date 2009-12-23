@@ -2183,6 +2183,7 @@ SUB scripterr (e AS STRING, errorlevel as integer = 4)
  DIM state AS MenuState
  state.pt = 0
  DIM menu AS MenuDef
+ ClearMenuData menu
  menu.anchor.y = -1
  menu.offset.y = -100 + 38 + 10 * UBOUND(errtext) 'menus are always offset from the center of the screen
  menu.bordersize = -4

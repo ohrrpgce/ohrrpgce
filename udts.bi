@@ -53,13 +53,14 @@ TYPE MenuSet
   itemfile AS STRING
 END TYPE
 
+MAKETYPE_DoubleList(MenuDefItem)
+MAKETYPE_DListItem(MenuDefItem)
+
 TYPE MenuDefItem
   handle    AS INTEGER
-  exists    AS INTEGER
   disabled  AS INTEGER ' set at run-time based on .tag1 and .tag2
-  member    AS INTEGER
   caption   AS STRING
-  sortorder AS INTEGER
+  trueorder AS DListItem(MenuDefItem) ' contains next, prev
   t         AS INTEGER
   sub_t     AS INTEGER
   tag1      AS INTEGER
@@ -71,6 +72,7 @@ TYPE MenuDefItem
   close_if_selected AS INTEGER ' Bitset
 END TYPE
 
+'MenuDef's must be initialised by ClearMenuData or LoadMenuData!
 TYPE MenuDef
   record    AS INTEGER
   handle    AS INTEGER
@@ -79,7 +81,9 @@ TYPE MenuDef
   textcolor AS INTEGER
   maxrows   AS INTEGER
   edit_mode AS INTEGER 'Never hide disabled items, allow selection of unselectable items
-  items(20) AS MenuDefItem
+  items     AS MenuDefItem Ptr Ptr
+  'adds first, last, numitems, itemlist members
+  INHERITAS_DoubleList(MenuDefItem, itemlist) 'True order of menu items, ignoring sort-invisible-items-to-end
   translucent      AS INTEGER ' Bitset 0
   no_scrollbar     AS INTEGER ' Bitset 1
   allow_gameplay   AS INTEGER ' Bitset 2

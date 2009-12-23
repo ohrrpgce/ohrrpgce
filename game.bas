@@ -1831,14 +1831,14 @@ WITH scrat(nowscript)
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      WITH menus(menuslot)
-      IF .items(mislot).exists THEN scriptret = read_menu_item_int(.items(mislot), retvals(1))
+      scriptret = read_menu_item_int(*.items[mislot], retvals(1))
      END WITH
     END IF
    CASE 278'--write menu item int
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      WITH menus(menuslot)
-      IF .items(mislot).exists THEN write_menu_item_int(.items(mislot), retvals(1), retvals(2))
+      write_menu_item_int(*.items[mislot], retvals(1), retvals(2))
      END WITH
     END IF
    CASE 279'--create menu
@@ -1861,35 +1861,28 @@ WITH scrat(nowscript)
    CASE 283'--add menu item
     menuslot = find_menu_handle(retvals(0))
     IF valid_menuslot(menuslot) THEN
-     i = append_menu_item(menus(menuslot), "")
-     IF i >= 0 THEN
-      scriptret = assign_menu_item_handle(menus(menuslot).items(i))
-      mstates(menuslot).need_update = YES
-     ELSE
-      scripterr "add menu item: failed. menu " & menuslot & " is full", 3
-     END IF
+     append_menu_item(menus(menuslot), "")
+     scriptret = assign_menu_item_handle(*menus(menuslot).last)
+     mstates(menuslot).need_update = YES
     END IF
    CASE 284'--delete menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
-     WITH menus(menuslot)
-      ClearMenuItem .items(mislot)
-      SortMenuItems .items()
-     END WITH
+     remove_menu_item menus(menuslot), mislot
      mstates(menuslot).need_update = YES
     END IF
    CASE 285'--get menu item caption
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      IF valid_plotstr(retvals(1)) THEN
-      plotstr(retvals(1)).s = get_menu_item_caption(menus(menuslot).items(mislot), menus(menuslot))
+      plotstr(retvals(1)).s = get_menu_item_caption(*menus(menuslot).items[mislot], menus(menuslot))
      END IF
     END IF
    CASE 286'--set menu item caption
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      IF valid_plotstr(retvals(1)) THEN
-      menus(menuslot).items(mislot).caption = plotstr(retvals(1)).s
+      menus(menuslot).items[mislot]->caption = plotstr(retvals(1)).s
      END IF
     END IF
    CASE 287'--get level mp
@@ -1972,7 +1965,7 @@ WITH scrat(nowscript)
     mislot2 = find_menu_item_handle(retvals(1), menuslot2)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
      IF valid_menuslot_and_mislot(menuslot2, mislot2) THEN
-      SWAP menus(menuslot).items(mislot), menus(menuslot2).items(mislot2)
+      swap_menu_items menus(menuslot), mislot, menus(menuslot2), mislot2
       mstates(menuslot).need_update = YES
       mstates(menuslot2).need_update = YES
      END IF
@@ -1988,7 +1981,7 @@ WITH scrat(nowscript)
      END IF
      IF valid_menuslot_and_mislot(menuslot, start_slot) THEN
       mislot = find_menu_item_slot_by_string(menuslot, plotstr(retvals(1)).s, start_slot, (retvals(2) <> 0))
-      IF mislot >= 0 THEN scriptret = menus(menuslot).items(mislot).handle
+      IF mislot >= 0 THEN scriptret = menus(menuslot).items[mislot]->handle
      END IF
     END IF
    CASE 301'--find menu ID
@@ -2028,9 +2021,7 @@ WITH scrat(nowscript)
    CASE 432 '--use menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
-     WITH menus(menuslot)
-      IF .items(mislot).exists THEN activate_menu_item(.items(mislot), NO)
-     END WITH
+     activate_menu_item(*menus(menuslot).items[mislot], NO)
     END IF
    CASE 438 '--reset game
     resetg = YES
@@ -2066,7 +2057,7 @@ END FUNCTION
 
 FUNCTION valid_menuslot_and_mislot(menuslot AS INTEGER, mislot AS INTEGER) AS INTEGER
  IF valid_menuslot(menuslot) THEN
-  RETURN bound_arg(mislot, 0, UBOUND(menus(menuslot).items), "menu item handle")
+  RETURN bound_arg(mislot, 0, menus(menuslot).numitems - 1, "menu item handle")
  END IF
  RETURN NO
 END FUNCTION
@@ -2297,6 +2288,7 @@ FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
   REDIM PRESERVE menus(topmenu) AS MenuDef
   REDIM PRESERVE mstates(topmenu) AS MenuState
  END IF
+ mstates(topmenu).pt = 0
  mstates(topmenu).top = 0
  IF record = -1 THEN
   ClearMenuData menus(topmenu)
@@ -2376,10 +2368,10 @@ SUB player_menu_keys (stat(), catx(), caty(), tilesets() AS TilesetData ptr)
   END IF
   activated = NO
   DIM mi AS MenuDefItem '--use a copy of the menu item here because activate_menu_item() can deallocate it
-  mi = menus(topmenu).items(mstates(topmenu).pt)
+  mi = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
   IF carray(ccUse) > 1 THEN
-   activated = activate_menu_item(menus(topmenu).items(mstates(topmenu).pt))
+   activated = activate_menu_item(*menus(topmenu).items[mstates(topmenu).pt])
   END IF
   IF mi.t = 1 AND mi.sub_t = 11 THEN '--volume
    IF carray(ccLeft) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
@@ -2502,12 +2494,12 @@ SUB check_menu_tags ()
  DIM old AS INTEGER
  DIM changed AS INTEGER
  DIM remember AS INTEGER
+ DIM selecteditem AS MenuDefItem ptr
  FOR j = 0 TO topmenu
   WITH menus(j)
    changed = NO
-   FOR i = 0 TO UBOUND(.items)
-    WITH .items(i)
-     IF .exists = NO THEN CONTINUE FOR
+   FOR i = 0 TO .numitems - 1
+    WITH *.items[i]
      old = .disabled
      .disabled = NO
      IF NOT (istag(.tag1, YES) AND istag(.tag2, YES)) THEN .disabled = YES
@@ -2519,21 +2511,30 @@ SUB check_menu_tags ()
    NEXT i
    IF changed = YES THEN
     IF mstates(j).pt >= 0 THEN
-     remember = .items(mstates(j).pt).sortorder
+     selecteditem = .items[mstates(j).pt]
     ELSE
-     remember = -1
+     selecteditem = NULL
     END IF
-    SortMenuItems .items()
-    FOR i = 0 TO UBOUND(.items)
-     WITH .items(i)
-      IF .exists = NO THEN EXIT FOR
-      IF .disabled AND .hide_if_disabled THEN EXIT FOR
-      IF remember = .sortorder THEN
+    SortMenuItems menus(j)
+    IF selecteditem THEN
+     'first forwards look for the next visible item
+     WHILE selecteditem ANDALSO (selecteditem->disabled AND selecteditem->hide_if_disabled)
+      selecteditem = selecteditem->trueorder.next
+      FOR i = 0 TO .numitems - 1
+       IF .items[i] = selecteditem THEN mstates(j).pt = i
+      NEXT i
+     WEND
+     IF selecteditem = NULL THEN
+      'then try last visible (ie, look backwards), finally give up
+      mstates(j).pt = -1
+      FOR i = .numitems - 1 TO 0 STEP -1
+       IF (.items[i]->disabled AND .items[i]->hide_if_disabled) = 0 THEN
         mstates(j).pt = i
         EXIT FOR
-      END IF
-     END WITH
-    NEXT i
+       END IF
+      NEXT
+     END IF
+    END IF
     mstates(j).need_update = YES
    END IF
   END WITH
@@ -2582,12 +2583,8 @@ END FUNCTION
 FUNCTION find_menu_item_handle_in_menuslot (handle AS INTEGER, menuslot AS INTEGER) AS INTEGER
  DIM mislot AS INTEGER
  WITH menus(menuslot)
-  FOR mislot = 0 TO UBOUND(.items)
-   WITH .items(mislot)
-    IF .exists AND .handle = handle THEN
-     RETURN mislot
-    END IF
-   END WITH
+  FOR mislot = 0 TO .numitems - 1
+   IF .items[mislot]->handle = handle THEN RETURN mislot
   NEXT mislot
  END WITH
  RETURN -1 ' Not found
@@ -2610,12 +2607,9 @@ END FUNCTION
 
 FUNCTION assign_menu_item_handle (BYREF mi AS MenuDefItem) AS INTEGER
  STATIC new_handle = 0
- IF mi.exists THEN
-  new_handle = new_handle + 1
-  mi.handle = new_handle
-  RETURN new_handle
- END IF
- RETURN 0
+ new_handle = new_handle + 1
+ mi.handle = new_handle
+ RETURN new_handle
 END FUNCTION
 
 FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
@@ -2623,8 +2617,8 @@ FUNCTION assign_menu_handles (BYREF menu AS MenuDef) AS INTEGER
  STATIC new_handle = 0
  new_handle = new_handle + 1
  menus(topmenu).handle = new_handle
- FOR i = 0 TO UBOUND(menu.items)
-  assign_menu_item_handle menu.items(i)
+ FOR i = 0 TO menu.numitems - 1
+  assign_menu_item_handle *menu.items[i]
  NEXT i
  RETURN new_handle
 END FUNCTION
@@ -2632,9 +2626,8 @@ END FUNCTION
 FUNCTION menu_item_handle_by_slot(menuslot AS INTEGER, mislot AS INTEGER, visible_only AS INTEGER=YES) AS INTEGER
  IF menuslot >= 0 AND menuslot <= topmenu THEN
   WITH menus(menuslot)
-   IF mislot >= 0 AND mislot <= UBOUND(.items) THEN
-    WITH .items(mislot)
-     IF .exists = NO THEN RETURN 0
+   IF mislot >= 0 AND mislot < .numitems THEN
+    WITH *.items[mislot]
      IF visible_only AND .disabled AND .hide_if_disabled THEN RETURN 0
      RETURN .handle
     END WITH
@@ -2648,11 +2641,10 @@ FUNCTION find_menu_item_slot_by_string(menuslot AS INTEGER, s AS STRING, mislot 
  DIM i AS INTEGER
  DIM cap AS STRING
  WITH menus(menuslot)
-  FOR i = mislot TO UBOUND(.items)
-   WITH .items(i)
-    IF .exists = NO THEN CONTINUE FOR
+  FOR i = mislot TO .numitems - 1
+   WITH *.items[i]
     IF visible_only AND .disabled AND .hide_if_disabled THEN CONTINUE FOR
-    cap = get_menu_item_caption(menus(menuslot).items(i), menus(menuslot))
+    cap = get_menu_item_caption(*menus(menuslot).items[i], menus(menuslot))
     IF cap = s THEN
      RETURN i
     END IF

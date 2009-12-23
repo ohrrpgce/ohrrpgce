@@ -233,6 +233,7 @@ SUB ui_color_editor(palnum AS INTEGER)
  DIM default_colors(uiColors) AS INTEGER
 
  DIM sample_menu AS MenuDef
+ ClearMenuData sample_menu
  WITH sample_menu
   .anchor.x = 1
   .anchor.y = -1
@@ -241,8 +242,8 @@ SUB ui_color_editor(palnum AS INTEGER)
  END WITH
  append_menu_item sample_menu, "Sample"
  append_menu_item sample_menu, "Example"
- i = append_menu_item(sample_menu, "Disabled")
- sample_menu.items(i).disabled = YES
+ append_menu_item sample_menu, "Disabled"
+ sample_menu.last->disabled = YES
  
  DIM sample_state AS MenuState
  sample_state.active = YES
@@ -435,6 +436,7 @@ END FUNCTION
 FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1) AS INTEGER
  DIM state AS MenuState
  DIM menu AS MenuDef
+ ClearMenuData menu
  DIM result AS INTEGER
 
  append_menu_item menu, strA
@@ -2352,12 +2354,10 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
  DIM menutmp AS MenuDef
  FOR i = 0 TO gen(genMaxMenu)
   LoadMenuData menu_set, menutmp, i
-  FOR j = 0 TO UBOUND(menutmp.items)
-   WITH menutmp.items(j)
-    IF .exists THEN
-     IF .t = 4 THEN
-      IF .sub_t = id THEN str_array_append list(), "  menu " & i & " item " & j & " """ & .caption & """"
-     END IF
+  FOR j = 0 TO menutmp.numitems - 1
+   WITH *menutmp.items[j]
+    IF .t = 4 THEN
+     IF .sub_t = id THEN str_array_append list(), "  menu " & i & " item " & j & " """ & .caption & """"
     END IF
    END WITH
   NEXT j
@@ -2584,12 +2584,10 @@ SUB script_broken_trigger_list()
  DIM menutmp AS MenuDef
  FOR i = 0 TO gen(genMaxMenu)
   LoadMenuData menu_set, menutmp, i
-  FOR j = 0 TO UBOUND(menutmp.items)
-   WITH menutmp.items(j)
-    IF .exists THEN
-     IF .t = 4 THEN
-      check_broken_script_trigger list(), .sub_t, "menu " & i & " item " & j & " """ & .caption & """"
-     END IF
+  FOR j = 0 TO menutmp.numitems - 1
+   WITH *menutmp.items[j]
+    IF .t = 4 THEN
+     check_broken_script_trigger list(), .sub_t, "menu " & i & " item " & j & " """ & .caption & """"
     END IF
    END WITH
   NEXT j
@@ -2776,12 +2774,10 @@ SUB autofix_broken_old_scripts()
  FOR i = 0 TO gen(genMaxMenu)
   resave = NO
   LoadMenuData menu_set, menutmp, i
-  FOR j = 0 TO UBOUND(menutmp.items)
-   WITH menutmp.items(j)
-    IF .exists THEN
-     IF .t = 4 THEN
-      IF autofix_old_script(.sub_t) THEN resave = YES
-     END IF
+  FOR j = 0 TO menutmp.numitems - 1
+   WITH *menutmp.items[j]
+    IF .t = 4 THEN
+     IF autofix_old_script(.sub_t) THEN resave = YES
     END IF
    END WITH
   NEXT j

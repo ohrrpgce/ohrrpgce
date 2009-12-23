@@ -82,6 +82,7 @@ Dec ?? 2009 [Ypsiliform]
     * F12 to take a screenshot, alt+tab to toggle fullscreen, and alt+F4
       now work everywhere in Game and Custom with all backends [Ralph]
     * Attacks can transmogrify enemies into different enemies [James]
+    * Menus are no longer limited to 21 items [Ralph]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"
@@ -114,9 +115,11 @@ Dec ?? 2009 [Ypsiliform]
     * Fix bug 588, Heroes get free attack if stunned while selecting a
       target. Also fixed the fact that stun status was only pausing the
       ready-meter, not pausing delays. [James]
-    * selectmenuitem and nextmenuitem did not work, and unselected menus
-      didn't become inactive when the topmost menu was changed by script
-      [Ralph]
+    * selectmenuitem and nextmenuitem did not work, unselected menus
+      didn't become inactive when the topmost menu was changed by script,
+      appendmenuitem sometimes added items in the middle of a menu, and
+      the order of menu items created by scripts changed in various
+      circumstances [Ralph]
     * Renamed "Random Focus" attack target setting to "Random roulette"
       to more accurately reflect what it does, and make sure it actually
       behaves randomly when used in chains [James]

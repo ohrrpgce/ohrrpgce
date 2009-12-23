@@ -2419,29 +2419,22 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
 
  FOR i = 0 TO state.size
   elem = state.top + i
-  IF elem <= UBOUND(menu.items) AND elem >= LBOUND(menu.items) THEN
+  IF elem >= 0 AND elem < menu.numitems THEN
    col = menu.textcolor
    IF col = 0 THEN col = uilook(uiMenuItem)
    IF state.pt = elem AND state.active THEN col = uilook(uiSelectedItem + state.tog)
-   WITH menu.items(elem)
+   WITH *menu.items[elem]
     IF .disabled THEN
      col = uilook(uiDisabledItem)
      IF state.pt = elem AND state.active THEN col = uilook(uiSelectedDisabled + state.tog)
     END IF
-    IF .exists AND (NOT (.disabled AND .hide_if_disabled)) THEN
-     cap = get_menu_item_caption(menu.items(elem), menu)
+    IF NOT (.disabled AND .hide_if_disabled) THEN
+     cap = get_menu_item_caption(*menu.items[elem], menu)
      position_menu_item menu, cap, i, where
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
       edgeboxstyle where.x, where.y, fmvol * 3, 10, menu.boxstyle, page, NO, YES
      END IF
      edgeprint cap, where.x, where.y, col, page
-    ELSE
-     IF menu.edit_mode = YES THEN
-      cap = "[NEW MENU ITEM]"
-      position_menu_item menu, cap, i, where
-      edgeprint cap, where.x, where.y, col, page
-     END IF
-     EXIT FOR ' Give up after we find the first non-existant item (which will always be sorted to the end)
     END IF
    END WITH
   END IF
@@ -2474,19 +2467,14 @@ SUB position_menu (menu AS MenuDef)
  menu.rect.wide = bord * 2
  menu.rect.high = bord * 2
 
- FOR i = 0 TO UBOUND(menu.items)
-  WITH menu.items(i)
-   IF .exists THEN
-    cap = get_menu_item_caption(menu.items(i), menu)
-    menu.rect.wide = large(menu.rect.wide, LEN(cap) * 8 + bord * 2)
-    IF .disabled AND .hide_if_disabled THEN CONTINUE FOR 'hidden matter for auto-width but not auto-height
-    menu.rect.high = menu.rect.high + 10
-   END IF
+ FOR i = 0 TO menu.numitems - 1
+  WITH *menu.items[i]
+   cap = get_menu_item_caption(*menu.items[i], menu)
+   menu.rect.wide = large(menu.rect.wide, LEN(cap) * 8 + bord * 2)
+   IF .disabled AND .hide_if_disabled THEN CONTINUE FOR 'hidden matter for auto-width but not auto-height
+   menu.rect.high = menu.rect.high + 10
   END WITH
  NEXT i
- IF menu.edit_mode = YES THEN
-  menu.rect.high = menu.rect.high + 10
- END IF
  '--enforce min width
  menu.rect.wide = large(menu.rect.wide, menu.min_chars * 8 + bord * 2)
  '--enforce screen boundaries
@@ -2515,33 +2503,20 @@ SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
  state.first = 0
  state.last = count_menu_items(menu) - 1
  state.size = menu.maxrows - 1
- IF state.size = -1 THEN state.size = 20
+ IF state.size = -1 THEN state.size = 17
  state.pt = small(large(state.pt, state.first), state.last)  'explicitly -1 when empty
  state.top = bound(state.top, 0, large(state.last - state.size, 0))
 END SUB
 
-FUNCTION find_empty_menu_item (menu AS MenuDef) as integer
- DIM i AS INTEGER
- FOR i = 0 TO UBOUND(menu.items)
-  WITH menu.items(i)
-   IF .exists = NO THEN RETURN i
-  END WITH
- NEXT i
- RETURN -1
-END FUNCTION
-
 FUNCTION count_menu_items (menu AS MenuDef) as integer
  DIM i AS INTEGER
  DIM count AS INTEGER = 0
- FOR i = 0 TO UBOUND(menu.items)
-  WITH menu.items(i)
+ FOR i = 0 TO menu.numitems - 1
+  WITH *menu.items[i]
    IF .disabled AND .hide_if_disabled THEN CONTINUE FOR
-   IF .exists THEN
-    count += 1
-   END IF
+   count += 1
   END WITH
  NEXT i
- IF menu.edit_mode = YES THEN count += 1
  RETURN count
 END FUNCTION
 
@@ -2629,37 +2604,18 @@ END FUNCTION
 
 SUB create_default_menu(menu AS MenuDef)
  DIM i AS INTEGER
- FOR i = 0 TO 3
-  WITH menu.items(i)
-   .exists = YES
-   .t = 1
-   .sub_t = i ' item, spell, status, equip
-  END WITH
+ ClearMenuData menu
+ FOR i = 0 TO 3  ' item, spell, status, equip
+  append_menu_item(menu, "", 1, i)
  NEXT i
- WITH menu.items(4)
-  .exists = YES
-  .t = 1
-  .sub_t = 6 ' Order/Status menu
- END WITH
- WITH menu.items(5)
-  .exists = YES
-  .t = 1
-  .sub_t = 7 ' map
-  .hide_if_disabled = YES
- END WITH
- WITH menu.items(6)
-  .exists = YES
-  .t = 1
-  .sub_t = 8 ' save
-  .hide_if_disabled = YES
- END WITH
- FOR i = 0 TO 1
-  WITH menu.items(7 + i)
-   .exists = YES
-   .t = 1
-   .sub_t = 10 + i ' quit, volume
-  END WITH
- NEXT i
+ append_menu_item(menu, "", 1, 6)  ' Order/Status menu
+ FOR i = 7 TO 8  ' map, save
+  append_menu_item(menu, "", 1, i)
+  menu.last->hide_if_disabled = YES
+ NEXT
+ FOR i = 10 TO 11  ' quit, volume
+  append_menu_item(menu, "", 1, i)
+ NEXT
  menu.translucent = YES
  menu.min_chars = 14
 END SUB
@@ -2889,20 +2845,47 @@ END FUNCTION
 
 FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0) as integer
  DIM i AS INTEGER
- FOR i = 0 TO UBOUND(menu.items)
-  WITH menu.items(i)
-   IF .exists = NO THEN
-    .exists = YES
-    .caption = caption
-    .t = t
-    .sub_t = sub_t
-    RETURN i
-   END IF
-  END WITH
- NEXT i
- debug "No room to append """ & caption & """ to menu " & menu.name 
- RETURN -1 'failure
+ DIM item AS MenuDefItem ptr
+ 'item = NEW MenuDefItem
+ item = CALLOCATE(SIZEOF(MenuDefItem))
+ WITH *item
+  .caption = caption
+  .t = t
+  .sub_t = sub_t
+ END WITH
+
+ dlist_append(menu.itemlist, item) 'updates .numitems
+
+ 'rather than call SortMenuItems, shuffle hidden items down a slot and insert new item
+ menu.items = REALLOCATE(menu.items, menu.numitems * SIZEOF(any ptr))
+ FOR i = menu.numitems - 2 TO 0 STEP -1  'last item in array is garbage
+  IF menu.items[i]->disabled AND menu.items[i]->hide_if_disabled THEN
+   SWAP menu.items[i], menu.items[i + 1]
+  ELSE
+   EXIT FOR
+  END IF
+ NEXT
+ menu.items[i + 1] = item
+
+ RETURN menu.numitems - 1
 END FUNCTION
+
+SUB remove_menu_item(BYREF menu AS MenuDef, BYVAL mi AS MenuDefItem ptr)
+ dlist_remove menu.itemlist, mi
+ DELETE mi
+ 'rebuild menu.items[]
+ SortMenuItems menu
+END SUB
+
+SUB remove_menu_item(BYREF menu AS MenuDef, BYVAL mislot AS INTEGER)
+ remove_menu_item menu, menu.items[mislot]
+END SUB
+
+SUB swap_menu_items(BYREF menu1 AS MenuDef, BYVAL mislot1 AS INTEGER, BYREF menu2 AS MenuDef, BYVAL mislot2 AS INTEGER)
+ dlist_swap(menu1.itemlist, menu1.items[mislot1], menu2.itemlist, menu2.items[mislot2])
+ SortMenuItems menu1
+ SortMenuItems menu2
+END SUB
 
 SUB write_npc_int (npcdata AS NPCType, intoffset AS INTEGER, n AS INTEGER)
  '--intoffset is the integer offset, same as appears in the .N lump documentation
@@ -3069,7 +3052,7 @@ FUNCTION getmenuname(record AS INTEGER) AS STRING
  menu_set.menufile = workingdir + SLASH + "menus.bin"
  menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
  DIM menu AS MenuDef
- LoadMenuData menu_set, menu, record, NO
+ LoadMenuData menu_set, menu, record, YES
  ret = menu.name
 
 #IFDEF IS_GAME
