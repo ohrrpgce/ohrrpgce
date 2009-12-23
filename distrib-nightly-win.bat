@@ -14,6 +14,11 @@ pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-win-installer-%OHRVERDATE%
 
 del game*.exe
 del custom*.exe
+call make.bat directx sdl ~ sdl
+call nightly-gfx-music directx+sdl sdl ~ gfx_directx.dll SDL.dll SDL_mixer.dll 
+
+del game*.exe
+del custom*.exe
 call make.bat fb ~ sdl
 call nightly-gfx-music fb sdl ~ SDL.dll SDL_mixer.dll 
 
