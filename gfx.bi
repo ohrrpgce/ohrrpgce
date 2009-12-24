@@ -39,7 +39,7 @@ extern io_init as sub ()
 '(optional) called in loops where gfx_showpage is not.
 extern io_pollkeyevents as sub ()
 
-'(optional) called every 10ms during waits
+'(optional) called every 5ms during waits
 extern io_waitprocessing as sub ()
 
 'one of io_keybits or io_updatekeys, and one of io_mousebits or io_getmouse is required.
