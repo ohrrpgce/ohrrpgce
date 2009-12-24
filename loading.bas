@@ -325,6 +325,7 @@ SUB LoadTilemap(map as TileMap, filename as string)
   map.high = bound(readshort(fh, 10), 10, 32678)
   map.layernum = 0
   IF map.wide * map.high + 11 <> LOF(fh) THEN
+    'PROBLEM: early versions always saved 32000 bytes of tile data (ie, 32011 total)!
     debug "tilemap " & filename & " (" & map.wide & "x" & map.high & ") bad length or size; " & LOF(fh) & " bytes"
     'show the user their garbled mess, always interesting
   END IF
@@ -333,6 +334,8 @@ SUB LoadTilemap(map as TileMap, filename as string)
   CLOSE #fh
 END SUB
 
+'FIXME: early versions always saved 32000 bytes of tile data (ie, 32011 total)!
+'This will cause extra spurious map layers to be loaded!
 SUB LoadTilemaps(layers() as TileMap, filename as string)
   DIM AS INTEGER fh, numlayers, i, wide, high
   FOR i = 0 TO UBOUND(layers)
@@ -344,10 +347,10 @@ SUB LoadTilemaps(layers() as TileMap, filename as string)
   wide = bound(readshort(fh, 8), 16, 32678)
   high = bound(readshort(fh, 10), 10, 32678)
   numlayers = (LOF(fh) - 11) \ (wide * high)
-  IF numlayers > 3 OR numlayers * wide * high + 11 <> LOF(fh) THEN
+  IF numlayers > maplayerMax + 1 OR numlayers * wide * high + 11 <> LOF(fh) THEN
     debug "tilemap " & filename & " (" & wide & "x" & high & ") bad length or size; " & LOF(fh) & " bytes"
     'show the user their garbled mess, always interesting
-    numlayers = bound(numlayers, 1, 3)
+    numlayers = bound(numlayers, 1, maplayerMax + 1)
   END IF
   REDIM layers(numlayers - 1)
   SEEK fh, 12
@@ -386,15 +389,16 @@ SUB SaveTilemaps(tmaps() as TileMap, filename as string)
   CLOSE #fh
 END SUB
 
-SUB CleanTilemap(map as TileMap, wide as integer, high as integer)
+SUB CleanTilemap(map as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL layernum as integer = 0)
   'two purposes: allocate a new tilemap, or blank an existing one
   UnloadTilemap(map)
   map.wide = wide
   map.high = high
   map.data = CALLOCATE(wide * high)
+  map.layernum = layernum
 END SUB
 
-SUB CleanTilemaps(layers() as TileMap, wide as integer, high as integer, numlayers as integer)
+SUB CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL numlayers as integer)
   'two purposes: allocate a new tilemap, or blank an existing one
   UnloadTilemaps layers()
   REDIM layers(numlayers - 1)
@@ -403,6 +407,7 @@ SUB CleanTilemaps(layers() as TileMap, wide as integer, high as integer, numlaye
       .wide = wide
       .high = high
       .data = CALLOCATE(wide * high)
+      .layernum = i
     END WITH
   NEXT
 END SUB

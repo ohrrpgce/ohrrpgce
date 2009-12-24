@@ -128,7 +128,7 @@ TYPE MapEditState
   menubar AS TileMap
   tilesetview AS TileMap
   cursor AS GraphicPair
-  tilesets(2) as TilesetData ptr
+  tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
 END TYPE
 
 TYPE MapResizeState

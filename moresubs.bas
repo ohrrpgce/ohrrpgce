@@ -1045,7 +1045,7 @@ END SUB
 
 FUNCTION teleporttool () as integer
  REDIM maptiles2(0) AS TileMap
- DIM tilesets2(2) as TilesetData ptr
+ DIM tilesets2(maplayerMax) as TilesetData ptr
  DIM mini AS Frame Ptr
  DIM zoom AS INTEGER
  DIM i AS INTEGER
@@ -1182,8 +1182,8 @@ SUB teleporttooltend (BYREF mini AS Frame Ptr, maptilesX() AS TileMap, tilesets2
  IF map > -1 THEN
   DIM gmap2(dimbinsize(binMAP)) AS INTEGER
   loadrecord gmap2(), game + ".map", dimbinsize(binMAP), map
-  loadmaptilesets tilesets2(), gmap2()
   loadtilemaps maptilesX(), maplumpname$(map, "t")
+  loadmaptilesets tilesets2(), gmap2()
  ELSE
   loadmaptilesets tilesets2(), gmap()
  END IF

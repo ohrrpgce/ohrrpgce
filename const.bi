@@ -154,6 +154,7 @@ CONST max_npc_defs = 99
 CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 59 'This is the max value possible for gen(genMaxHero) 'FIXME: not used everywhere
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
+CONST maplayerMax = 2 'The limit on the highest numbered map layer
 #IFDEF SCRIPTPROFILE
 CONST scriptmemMax = 10000000 'in 4-byte ints
 CONST scriptTableSize = 512  'hash table size, power of 2 please

@@ -1051,6 +1051,7 @@ Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
  dim dat as MapSliceData ptr = cptr(MapSliceData ptr, sl->SliceData)
 
  with *dat
+  if .tiles = 0 then exit sub 'tilemap ptr null if the layer doesn't exist. This slice probably shouldn't either.
   if .tileset = 0 then exit sub 'quit silently on a null tileset ptr
   '2nd, 3rd arguments to drawmap are "camera position" of upper left of the screen.
   drawmap *.tiles, sl->ScreenX * -1, sl->ScreenY * -1, .overlay, .tileset, p, .transparent
@@ -1112,17 +1113,22 @@ Sub ChangeMapSliceTileset(byval sl as slice ptr, byval tileset as TilesetData pt
 end sub
 
 Sub ChangeMapSlice(byval sl as slice ptr,_
-                   byval tiles as TileMap ptr=NULL,_
+                   byval tiles as TileMap ptr=cast(TileMap ptr, 1),_
                    byval transparent as integer=-2,_
                    byval overlay as integer=-1)
  if sl = 0 then debug "ChangeMapSlice null ptr" : exit sub
  if sl->SliceType <> slMap then debug "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a map" : exit sub
  dim dat as MapSliceData Ptr = sl->SliceData
  with *dat
-  if tiles <> NULL then
+  if tiles <> 1 then
    .tiles = tiles
-   sl->Width = tiles->wide * 20
-   sl->Height = tiles->high * 20
+   if tiles = NULL then
+    sl->Width = 0
+    sl->Height = 0
+   else
+    sl->Width = tiles->wide * 20
+    sl->Height = tiles->high * 20
+   end if
   end if
   if transparent >= -1 then
    .transparent = (transparent <> 0) 'boolean

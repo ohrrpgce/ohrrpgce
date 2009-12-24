@@ -83,7 +83,7 @@ DIM herow(3) as GraphicPair
 DIM statnames() as string
 
 DIM maptiles(0) as TileMap, pass as TileMap
-DIM tilesets(2) as TilesetData ptr
+DIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
 DIM mapsizetiles as XYPair  'for convienence
 
 DIM master(255) as RGBcolor
@@ -439,7 +439,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- player_menu_keys stat(), catx(), caty(), tilesets()
+ player_menu_keys stat(), catx(), caty()
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
  IF gmap(15) THEN onkeyscript gmap(15)
@@ -1667,12 +1667,12 @@ WITH scrat(nowscript)
     advance_text_box
    CASE 97'--read map block
     IF curcmd->argc = 2 THEN retvals(2) = 0
-    IF retvals(2) >= 0 AND retvals(2) <= 2 THEN
+    IF retvals(2) >= 0 AND retvals(2) <= UBOUND(maptiles) THEN
      scriptret = readblock(maptiles(retvals(2)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1))
     END IF
    CASE 98'--write map block
     IF curcmd->argc = 3 THEN retvals(3) = 0
-    IF retvals(3) >= 0 AND retvals(3) <= 2 AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
+    IF retvals(3) >= 0 AND retvals(3) <= UBOUND(maptiles) AND retvals(2) >= 0 AND retvals(2) <= 255 THEN
      writeblock maptiles(retvals(3)), bound(retvals(0), 0, mapsizetiles.x-1), bound(retvals(1), 0, mapsizetiles.y-1), retvals(2)
     END IF
    CASE 99'--read pass block
@@ -1693,7 +1693,7 @@ WITH scrat(nowscript)
        IF gmap(23) = 0 THEN loadtilesetdata tilesets(), 1, retvals(0)
        IF gmap(24) = 0 THEN loadtilesetdata tilesets(), 2, retvals(0)
       END IF
-     ELSEIF retvals(1) >= 0 AND retvals(1) <= 2 AND retvals(0) >= 0 THEN
+     ELSEIF retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) AND retvals(0) >= 0 THEN
       'load tileset for an individual layer. 
       loadtilesetdata tilesets(), retvals(1), retvals(0)
      END IF
@@ -1710,7 +1710,7 @@ WITH scrat(nowscript)
        'change default
        gmap(0) = retvals(0)
       END IF
-     ELSEIF retvals(1) >= 0 AND retvals(1) <= 2 THEN
+     ELSEIF retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) THEN
       'load tileset for an individual layer
       gmap(22 + retvals(1)) = large(0, retvals(0) + 1)
      END IF
@@ -1774,19 +1774,19 @@ WITH scrat(nowscript)
     deletemapstate gam.map.id, retvals(0), "map"
    CASE 253'--settileanimationoffset
     IF curcmd->argc < 3 THEN retvals(2) = 0
-    IF (retvals(0) = 0 OR retvals(0) = 1) AND retvals(2) >= 0 AND retvals(2) <= 2 THEN
+    IF (retvals(0) = 0 OR retvals(0) = 1) AND retvals(2) >= 0 AND retvals(2) <= UBOUND(maptiles) THEN
      tilesets(retvals(2))->anim(retvals(0)).cycle = retvals(1) MOD 160
     END IF
    CASE 254'--gettileanimationoffset
     IF curcmd->argc < 2 THEN retvals(1) = 0
-    IF (retvals(0) = 0 OR retvals(0) = 1) AND retvals(1) >= 0 AND retvals(1) <= 2 THEN
+    IF (retvals(0) = 0 OR retvals(0) = 1) AND retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) THEN
      scriptret = tilesets(retvals(1))->anim(retvals(0)).cycle
     END IF
    CASE 255'--animationstarttile
     IF curcmd->argc < 2 THEN retvals(1) = 0
     IF retvals(0) < 160 THEN
      scriptret = retvals(0)
-    ELSEIF retvals(0) < 256 AND retvals(1) >= 0 AND retvals(1) <= 2 THEN
+    ELSEIF retvals(0) < 256 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) THEN
      scriptret = tilesets(retvals(1))->tastuf(((retvals(0) - 160) \ 48) * 20) + (retvals(0) - 160) MOD 48
     END IF
    CASE 258'--checkherowall
@@ -2012,7 +2012,7 @@ WITH scrat(nowscript)
      END IF
     END IF
    CASE 306'--layer tileset
-    IF retvals(0) >= 0 AND retvals(0) <= 2 THEN
+    IF retvals(0) >= 0 AND retvals(0) <= UBOUND(maptiles) THEN
      scriptret = tilesets(retvals(0))->num
     END IF
    CASE 320'--current text box
@@ -2343,7 +2343,7 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
-SUB player_menu_keys (stat(), catx(), caty(), tilesets() AS TilesetData ptr)
+SUB player_menu_keys (stat(), catx(), caty())
  DIM i AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
@@ -3155,17 +3155,21 @@ SUB refresh_map_slice()
   .Width = mapsizetiles.x * 20
   .Height = mapsizetiles.y * 20
  END WITH
- FOR i AS INTEGER = 0 TO 2
+ FOR i AS INTEGER = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
   ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), (i > 0), 0
   WITH *(SliceTable.MapLayer(i))
    .Fill = YES
   END WITH
  NEXT i
+ FOR i AS INTEGER = UBOUND(maptiles) + 1 TO maplayerMax
+  '--FIXME: what is the correct thing to do?
+  ChangeMapSlice SliceTable.MapLayer(i), NULL, (i > 0), 0
+ NEXT i
 END SUB
 
 SUB refresh_map_slice_tilesets()
- FOR i AS INTEGER = 0 TO 2
+ FOR i AS INTEGER = 0 TO maplayerMax
   '--reset map layer tileset ptrs
   ChangeMapSliceTileset SliceTable.MapLayer(i), tilesets(i)
  NEXT i

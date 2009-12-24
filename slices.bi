@@ -120,7 +120,7 @@ END TYPE
 TYPE SliceTable_
   root AS Slice Ptr
   maproot AS Slice Ptr
-  maplayer(2) AS Slice Ptr
+  maplayer(maplayerMax) AS Slice Ptr
   scriptsprite AS Slice Ptr
   textbox AS Slice Ptr
   menu AS Slice Ptr
@@ -274,9 +274,9 @@ DECLARE Function LoadMapSlice (Byval sl as SliceFwd ptr, key as string, valstr a
 DECLARE Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as slice ptr
 DECLARE Sub ChangeMapSliceTileset (byval sl as slice ptr, byval tileset as TilesetData ptr)
 DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
-                   byval tiles as TileMap ptr=NULL,_
+                   byval tiles as TileMap ptr=cast(TileMap ptr, 1),_
                    byval transparent as integer=-2,_
-                   byval overlay as integer=-1) ' All arguments default to no change (can't change .tiles to NULL)
+                   byval overlay as integer=-1) ' All arguments default to no change (explaining weird tiles default)
 
 '--Saving and loading slices
 DECLARE Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
