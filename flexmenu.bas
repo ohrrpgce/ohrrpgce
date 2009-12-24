@@ -1024,6 +1024,9 @@ DIM recindex AS INTEGER = 0
 DIM lastindex AS INTEGER = 0
 laststate.need_update = NO
 
+DIM rememberindex AS INTEGER = -1
+DIM show_name AS INTEGER = 0
+
 'load data here
 loadattackdata recbuf(), recindex
 state.need_update = YES
@@ -1085,6 +1088,18 @@ DO
     loadattackdata recbuf(), recindex
     state.need_update = YES
    END IF
+  END IF
+ END IF
+
+ IF keyval(scTab) > 1 THEN
+  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+   rememberindex = recindex
+  ELSEIF rememberindex >= 0 AND rememberindex <= gen(genMaxAttack) THEN
+   saveattackdata recbuf(), recindex
+   SWAP rememberindex, recindex
+   loadattackdata recbuf(), recindex
+   state.need_update = YES
+   show_name = 23
   END IF
  END IF
 
@@ -1191,7 +1206,8 @@ DO
  DrawSlice preview_box, dpage
 
  standardmenu dispmenu(), state, 0, 0, dpage
- IF keyval(scAlt) > 0 THEN 'holding ALT
+ IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just tab-flipped, show ID and name
+   show_name = large(0, show_name - 1)
    tmpstr = readbadbinstring(recbuf(), AtkDatName, 10, 1) & " " & recindex
    textcolor uilook(uiText), uilook(uiHighlight)
    printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, dpage

@@ -554,6 +554,9 @@ lastptr = 0
 lasttop = 0
 recindex = 0
 
+DIM rememberindex AS INTEGER = -1
+DIM show_name AS INTEGER = 0
+
 'load data here
 GOSUB EnLoadSub
 
@@ -604,6 +607,17 @@ DO
  END IF
 
  IF keyval(scF1) > 1 THEN show_help helpkey
+
+ IF keyval(scTab) > 1 THEN
+  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+   rememberindex = recindex
+  ELSEIF rememberindex >= 0 AND rememberindex <= gen(genMaxEnemy) THEN
+   saveenemydata recbuf(), recindex
+   SWAP rememberindex, recindex
+   GOSUB EnLoadSub
+   show_name = 23
+  END IF
+ END IF
 
  IF enter_or_space() THEN
   SELECT CASE workmenu(state.pt)
@@ -694,7 +708,8 @@ DO
  DrawSlice preview_box, dpage
 
  standardmenu dispmenu(), state, 0, 0, dpage
- IF keyval(scAlt) > 0 THEN 'holding ALT
+ IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just pressed TAB
+  show_name = large(0, show_name - 1)
   tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) & " " & recindex
   textcolor uilook(uiText), uilook(uiHighlight)
   printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage

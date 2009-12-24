@@ -9,3 +9,5 @@ You can also hold the ALT key and type an attack ID number.
 In this menu you can type a name for your attack, and you can type a description which will be displayed if the attack is used as a spell in a spell list.
 
 Press ENTER or SPACE to access the various sub-menus.
+
+If you want to quickly switch back and forth between two attacks, select one of them and press SHIFT+TAB, then go to the other attack, and you can press TAB to jump back and forth between the two attacks.

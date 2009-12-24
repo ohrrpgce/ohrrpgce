@@ -7,3 +7,5 @@ Use the Left and Right arrow keys to change which enemy you are editing.
 You can also hold the ALT key and type an enemy ID number.
 
 In this menu you can type in a name for your enemy, or press ENTER or SPACE to access the various sub-menus.
+
+If you want to quickly switch between two enemies, select one of them and press SHIFT+TAB. Then you can select the other enemy, and press TAB to quickly switch back and forth between them.
