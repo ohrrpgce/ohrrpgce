@@ -1423,8 +1423,7 @@ FUNCTION dowait () as integer
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
 	dim i as integer
 	do while timer <= waittime
-		i = bound((waittime - tt) * 1000, 1, 5)
-		sleep i
+		sleep 9
 		io_waitprocessing()
 	loop
 	if waitset = 1 then
