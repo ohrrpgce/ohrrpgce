@@ -19,6 +19,11 @@ call nightly-gfx-music directx sdl ~ gfx_directx.dll SDL.dll SDL_mixer.dll
 
 del game*.exe
 del custom*.exe
+call make.bat directx fb ~ native
+call nightly-gfx-music directx native ~ gfx_directx.dll audiere.dll
+
+del game*.exe
+del custom*.exe
 call make.bat fb directx sdl ~ sdl
 call nightly-gfx-music fb sdl ~ SDL.dll SDL_mixer.dll 
 
@@ -54,23 +59,33 @@ call nightly-gfx-music sdl sdl ~ SDL.dll SDL_mixer.dll
 
 del game*.exe
 del custom*.exe
-call make.bat fb directx ~ silence
-call nightly-gfx-music fb silence ~ 
+call make.bat sdl directx fb ~ native
+call nightly-gfx-music sdl native ~ audiere.dll SDL.dll
 
 del game*.exe
 del custom*.exe
-call make.bat fb directx sdl ~ sdl -g
-call nightly-gfx-music fb sdl -debug SDL.dll SDL_mixer.dll 
+call make.bat sdl directx fb ~ native2
+call nightly-gfx-music sdl native2 ~ audiere.dll SDL.dll
 
 del game*.exe
 del custom*.exe
-call make.bat fb directx sdl ~ sdl -g -exx -s console
-call nightly-gfx-music fb sdl -debug-exx SDL.dll SDL_mixer.dll 
+call make.bat sdl directx fb ~ silence
+call nightly-gfx-music sdl silence ~ SDL.dll
 
 del game*.exe
 del custom*.exe
-call make.bat fb directx sdl ~ sdl -g -d SCRIPTPROFILE
-call nightly-gfx-music fb sdl -scriptprofile SDL.dll SDL_mixer.dll 
+call make.bat sdl directx fb ~ sdl -g
+call nightly-gfx-music sdl sdl -debug SDL.dll SDL_mixer.dll 
+
+del game*.exe
+del custom*.exe
+call make.bat sdl directx fb ~ sdl -g -exx -s console
+call nightly-gfx-music sdl sdl -debug-exx SDL.dll SDL_mixer.dll 
+
+del game*.exe
+del custom*.exe
+call make.bat sdl directx fb ~ sdl -g -d SCRIPTPROFILE
+call nightly-gfx-music sdl sdl -scriptprofile SDL.dll SDL_mixer.dll 
 
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
