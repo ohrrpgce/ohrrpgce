@@ -805,7 +805,7 @@ FUNCTION curbinsize (id AS INTEGER) as integer
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
- IF id = 4 THEN RETURN 50  '.map
+ IF id = 4 THEN RETURN 62  '.map
  IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 126 'uicolors.bin

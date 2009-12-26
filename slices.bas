@@ -66,9 +66,9 @@ Sub SetupGameSlices
  SliceTable.Root = NewSliceOfType(slRoot)
  
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
- SliceTable.MapLayer(0) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0)
- SliceTable.MapLayer(1) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER1)
- SliceTable.MapLayer(2) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER2)
+ FOR i AS INTEGER = 0 TO maplayerMax
+  SliceTable.MapLayer(i) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0 + i)
+ NEXT
  
  SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
  SliceTable.ScriptSprite->Fill = YES
@@ -90,9 +90,9 @@ Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
  '--after deleting root, all other slices should be gone, but the pointers
  '--in SliceTable still need zeroing
  SliceTable.MapRoot = 0
- SliceTable.MapLayer(0) = 0
- SliceTable.MapLayer(1) = 0
- SliceTable.MapLayer(2) = 0
+ FOR i AS INTEGER = 0 TO maplayerMax
+  SliceTable.MapLayer(i) = 0
+ NEXT
  SliceTable.ScriptSprite = 0
  SliceTable.TextBox = 0
  SliceTable.Menu = 0

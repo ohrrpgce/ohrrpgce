@@ -57,7 +57,8 @@ DECLARE SUB resizetiledata OVERLOAD (tmap AS TileMap, x_off AS INTEGER, y_off AS
 DECLARE SUB make_top_map_menu(maptop, topmenu() AS STRING)
 DECLARE SUB update_tilepicker(BYREF st AS MapEditState)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, mapname AS STRING)
-DECLARE SUB add_more_layers(map() as TileMap, BYVAL numlayers as integer)
+DECLARE SUB add_more_layers(map() as TileMap, BYVAL numlayers AS INTEGER)
+DECLARE SUB fix_tilemaps(map() as TileMap)
 DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
 DECLARE SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB new_blank_map (BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
@@ -68,6 +69,8 @@ DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum A
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray, map() AS TileMap)
 DECLARE SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, BYVAL numlayers AS INTEGER, itemsinfo() AS LayerMenuItem)
+DECLARE SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL where AS INTEGER)
+DECLARE SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL l1 AS INTEGER, BYVAL l2 AS INTEGER)
 DECLARE SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
 
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
@@ -1081,6 +1084,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
  REDIM itemsinfo(0) AS LayerMenuItem
 
  DIM layerno AS INTEGER
+ DIM layering AS INTEGER
  DIM currentset AS INTEGER
  currentset = -1
  clearpage 2
@@ -1101,18 +1105,46 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   setkeys
   state.tog = state.tog XOR 1
 
+  layerno = itemsinfo(state.pt).layernum
+  layering = layerno
+  IF layering > gmap(31) THEN layering += 1
+
   IF keyval(scESC) > 1 THEN clearkey(scESC): EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
   IF keyval(scPlus) > 1 AND UBOUND(map) < maplayerMax THEN
-   add_more_layers map(), UBOUND(map) + 1
+   IF layerno > -1 THEN
+    add_more_layers map(), UBOUND(map) + 1
+   ELSE
+    mapedit_insert_layer st, map(), visible(), gmap(), layerno + 1
+   END IF
    state.need_update = YES
   END IF
-
-  IF usemenu(state, menu()) THEN
-   state.need_update = YES
+  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+   IF keyval(scUp) > 1 AND layering > 0 THEN
+    IF layering = gmap(31) + 1 THEN
+     'swapping with NPC/Hero layers
+     gmap(31) -= 1
+    ELSE
+     mapedit_swap_layers st, map(), visible(), gmap(), layerno, layerno - 1
+    END IF
+    state.need_update = YES
+   END IF
+   'can't move npcs/heroes below layer 0.
+   'UBOUND(map) + 1 is the maximum layering (can't adjust overhead tiles either)
+   IF keyval(scDown) > 1 AND (gmap(31) > 1 OR layerno > 0) AND layering < UBOUND(map) + 1 THEN
+    IF layering = gmap(31) THEN
+     'swapping with NPC/Hero layers
+     gmap(31) -= 1
+    ELSE
+     mapedit_swap_layers st, map(), visible(), gmap(), layerno, layerno + 1
+    END IF
+    state.need_update = YES
+   END IF
+  ELSE
+   IF usemenu(state, menu()) THEN
+    state.need_update = YES
+   END IF
   END IF
-
-  layerno = itemsinfo(state.pt).layernum
 
   IF state.pt = 0 THEN
    IF enter_or_space() THEN
@@ -1145,7 +1177,12 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   copypage 2, dpage
 
   IF UBOUND(map) < maplayerMax THEN
-   edgeprint "Press + to add a new layer", 0, 190, uilook(uiText), dpage
+    edgeprint "SHIFT+arrows to reorder layers", 0, 180, uilook(uiText), dpage
+   IF layerno > -1 THEN
+    edgeprint "+ to add a new layer after this one", 0, 190, uilook(uiText), dpage
+   ELSE
+    edgeprint "+ to add a new layer", 0, 190, uilook(uiText), dpage
+   END IF
   END IF
   
   FOR i AS INTEGER = state.top TO state.top + state.size
@@ -1220,7 +1257,7 @@ SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS IN
  DIM needdefault AS INTEGER = NO
  
  DIM slot AS INTEGER = 2
- FOR i AS INTEGER = 0 TO small(numlayers - 1, 1)
+ FOR i AS INTEGER = 0 TO small(numlayers - 1, gmap(31) - 1)
   mapedit_makelayermenu_layer menu(), gmap(), visible(), itemsinfo(), slot, i, needdefault
  NEXT
 
@@ -1238,7 +1275,7 @@ SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS IN
   menu(slot - 1).text = "NPCs layer"
  END IF   
 
- FOR i AS INTEGER = 2 TO numlayers - 1
+ FOR i AS INTEGER = gmap(31) TO numlayers - 1
   mapedit_makelayermenu_layer menu(), gmap(), visible(), itemsinfo(), slot, i, needdefault
  NEXT
 
@@ -1341,6 +1378,7 @@ END SUB
 
 SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
  loadrecord gmap(), game & ".map", dimbinsize(binMAP), mapnum
+ IF gmap(31) = 0 THEN gmap(31) = 2
  visible(0) = &b111   'default all layers to visible, if they're enabled too, of course
  loadtilemaps map(), maplumpname(mapnum, "t")
  loadtilemap pass, maplumpname(mapnum, "p")
@@ -1422,6 +1460,35 @@ SUB add_more_layers(map() as TileMap, BYVAL numlayers as integer)
    CleanTilemap map(i), map(0).wide, map(0).high, i
    'SetLayerVisible
   NEXT
+END SUB
+
+SUB fix_tilemaps(map() as TileMap)
+ FOR i as integer = 0 TO UBOUND(map)
+  map(i).layernum = i
+ NEXT
+END SUB
+
+SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() as integer, gmap() as integer, BYVAL l1 as integer, BYVAL l2 as integer)
+ DIM temp as integer
+ SWAP map(l1), map(l2)
+ SWAP st.usetile(l1), st.usetile(l2)
+ SWAP st.menubarstart(l1), st.menubarstart(l2)
+ temp = layerisenabled(gmap(), l1)
+ setlayerenabled(gmap(), l2, temp)
+ temp = layerisvisible(vis(), l1)
+ setlayerenabled(vis(), l2, temp)
+END SUB
+
+SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() as integer, gmap() as integer, BYVAL where as integer)
+ 'doesn't reload tilesets or passability defaults, layers menu does that
+ IF UBOUND(map) = maplayerMax THEN EXIT SUB
+
+ REDIM PRESERVE map(UBOUND(map) + 1)
+ CleanTilemap map(UBOUND(map)), map(0).wide, map(0).high
+ FOR i as integer = UBOUND(map) - 1 TO where STEP - 1
+  mapedit_swap_layers st, map(), vis(), gmap(), i, i + 1
+ NEXT
+ fix_tilemaps map()
 END SUB
 
 SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)

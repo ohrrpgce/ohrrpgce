@@ -709,7 +709,9 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
  ChangeMapSlice SliceTable.MapLayer(0), , , overlay
  DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
- IF readbit(gmap(), 19, 0) THEN DrawSlice SliceTable.MapLayer(1), dpage
+ FOR i = 1 TO gmap(31) - 1
+  IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
+ NEXT
  'DEBUG debug "draw npcs and heroes"
  IF gmap(16) = 1 THEN
   cathero
@@ -718,8 +720,10 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   drawnpcs
   cathero
  END IF
+ FOR i = gmap(31) TO UBOUND(maptiles)
+  IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
+ NEXT
  'DEBUG debug "drawoverhead"
- IF readbit(gmap(), 19, 1) THEN DrawSlice SliceTable.MapLayer(2), dpage
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN
   ChangeMapSlice SliceTable.MapLayer(0), , , 2
   DrawSlice SliceTable.MapLayer(0), dpage
@@ -2079,6 +2083,7 @@ END FUNCTION
 
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game + ".map", getbinsize(binMAP) / 2, mapnum
+ IF gmap(31) = 0 THEN gmap(31) = 2
 
  loadmaptilesets tilesets(), gmap()
  refresh_map_slice_tilesets
@@ -3163,7 +3168,7 @@ SUB refresh_map_slice()
   END WITH
  NEXT i
  FOR i AS INTEGER = UBOUND(maptiles) + 1 TO maplayerMax
-  '--FIXME: what is the correct thing to do?
+  '--this map layer slices thing isn't quite polished...
   ChangeMapSlice SliceTable.MapLayer(i), NULL, (i > 0), 0
  NEXT i
 END SUB

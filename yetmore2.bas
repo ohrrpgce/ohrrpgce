@@ -694,6 +694,7 @@ SUB loadmapstate_gmap (mapnum, prefix$, dontfallback = 0)
  OPEN filebase$ + "_map.tmp" FOR BINARY AS #fh
  GET #fh, , gmap()
  CLOSE #fh
+ IF gmap(31) = 0 THEN gmap(31) = 2
 
  loadmaptilesets tilesets(), gmap()
  refresh_map_slice_tilesets
