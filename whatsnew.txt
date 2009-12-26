@@ -86,6 +86,11 @@ Dec ?? 2009 [Ypsiliform]
     * Maps may now have up to 8 layers. You can insert, delete, and
       reorder layers and set the number of layers drawn beneath NPCs and
       heroes. [Ralph]
+    * A new graphics backend, gfx_directx, which supports vsync, a
+      resizeable window, and other excellent improvements over the other
+      backends. All builds of the OHR include support for it, as long as
+      gfx_directx.dll is present.
+      Enable with the commandline option "-gfx directx" [Jay Tennant]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"
