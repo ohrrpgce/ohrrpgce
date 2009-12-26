@@ -1089,6 +1089,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
  DIM currentset AS INTEGER
  DIM resetpt AS INTEGER
  DIM col AS INTEGER
+ DIM tileset AS INTEGER
 
  state.top = 0
  state.size = 18
@@ -1174,8 +1175,12 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
    state.need_update = YES
   ELSEIF layerno > -1 THEN
    IF itemsinfo(state.pt).gmapindex > -1 THEN
-    zintgrabber gmap(itemsinfo(state.pt).gmapindex), -1, gen(genMaxTile)
-    state.need_update = YES
+    IF zintgrabber(gmap(itemsinfo(state.pt).gmapindex), -1, gen(genMaxTile)) THEN
+     tileset = gmap(itemsinfo(state.pt).gmapindex) - 1
+     IF tileset = -1 THEN tileset = gmap(0)
+     loadtilesetdata st.tilesets(), layerno, tileset
+     state.need_update = YES
+    END IF
    ELSE
     IF enter_or_space() THEN
      ToggleLayerEnabled(gmap(), layerno)
