@@ -127,6 +127,13 @@ Dec ?? 2009 [Ypsiliform]
       to more accurately reflect what it does, and make sure it actually
       behaves randomly when used in chains [James]
     * EVIL bug 233 "OHR freezes on startup", unsolved for 3 years [Ralph]
+    * The default graphics backend has been changed to gfx_sdl. That
+      means the following gfx_fb bugs are gone:
+      * Bug 185 - Colors messed up in full-screen mode on some computers
+      * Bug 766 - Zonealarm thinks the OHRRPGCE is a keylogger
+      * Keypresses often blocked for a few seconds after switching app
+      * A whole lot of laptop keyboard problems seem to be gone or
+        less severe, eg. bugs 334, 785, and right shift key not working
 
   * New Plotscripting Stuff
     * "get inventory size" and "set inventory size" [James]
