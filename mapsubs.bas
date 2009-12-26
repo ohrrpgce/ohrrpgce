@@ -751,9 +751,9 @@ DO
  next
  if layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
 	if readbit(jiggle(), 0, 0) and tog then
-		drawmap map(0), mapx, mapy - 20, 2, st.tilesets(0), dpage, 0
-	else
 		drawmap map(0), mapx, mapy - 20 - 1, 2, st.tilesets(0), dpage, 0
+	else
+		drawmap map(0), mapx, mapy - 20, 2, st.tilesets(0), dpage, 0
 	end if
  end if
  
