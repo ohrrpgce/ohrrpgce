@@ -752,12 +752,12 @@ wait for text box # wait until the player continues</example>
 		<command id="gameover">
 			<canon>game over</canon>
 			<shortname>game over</shortname>
-			<description>Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is subtly different from <ref>resetgame</ref> in that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.</description>
+			<description>Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is similar to <ref>resetgame</ref>, the main difference being that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.</description>
 		</command>
 		<command id="resetgame">
 			<canon>reset game</canon>
 			<shortname>reset game</shortname>
-			<description>Resets the game and returns you to the title screen. This is subtly different from <ref>gameover</ref> in that it will not exit the program if the title screen and load screen have been disabled. it always resets the game back to the beginning.</description>
+			<description>Resets and starts a new game, skipping both title and load game screens. This can be necessary to use this instead of <ref>gameover</ref> as it will not exit the program if the title screen and load screen have been disabled. It always resets the game back to the beginning.</description>
 		</command>
 		<command id="showvalue">
 			<canon>show value (number)</canon>
@@ -831,7 +831,7 @@ wait for text box # wait until the player continues</example>
 		<command id="loadmenu">
 			<canon>load menu (reallyload)</canon>
 			<shortname>load menu</shortname>
-			<description>Displays the load game menu. The player can load a game or select New Game or Exit/Cancel. If the player picks New Game then the calling script continues, otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually loading or quiting. If you do this, you'll need to interpret the return value to find out which option the player selected: positive values are save slot numbers, 0 means New Game and -1 is Quit.</description>
+			<description>Displays the load game menu. The player can load a game or select New Game or Exit/Cancel. If the player picks New Game then the calling script continues, otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded. If you want the New Game option to actually reset the game, call <ref>resetgame</ref> immediately after <p>load menu</p>. You can optionally pass an argument of <ref>false</ref> to make the menu display without actually loading or quiting. If you do this, you'll need to interpret the return value to find out which option the player selected: positive values are save slot numbers, 0 means New Game and -1 is Quit.</description>
 			<seealso>
 				<ref>loadfromslot</ref>
 			</seealso>
