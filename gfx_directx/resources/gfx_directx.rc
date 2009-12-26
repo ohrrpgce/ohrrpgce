@@ -59,7 +59,6 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,237,156,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,290,156,50,14
-    CONTROL         "Enable FPS Display",IDC_OPTIONS_EnableFps,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,100,91,8
     CONTROL         "Enable Vsync",IDC_OPTIONS_EnableVsync,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,74,58,10
     CONTROL         "OhrrpgceBmp",IDC_OPTIONS_Image,"Static",SS_BITMAP,7,7,15,13
     LTEXT           "DirectX Backend version: Unknown\r\nhttp://www.hamsterrepublic.com",IDC_OPTIONS_Info,220,60,120,24,0,WS_EX_RIGHT

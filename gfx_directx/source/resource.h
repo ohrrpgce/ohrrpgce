@@ -3,10 +3,9 @@
 // Used by gfx_directx.rc
 //
 #define IDD_OPTIONS                     101
-#define IDC_OPTIONS_EnableFps           1001
-#define IDC_OPTIONS_EnableVsync         1002
-#define IDC_OPTIONS_EnableSmooth        1003
-#define IDC_OPTIONS_EnablePreserveAspectRatio 1004
+#define IDC_OPTIONS_EnableVsync         1001
+#define IDC_OPTIONS_EnableSmooth        1002
+#define IDC_OPTIONS_EnablePreserveAspectRatio 1003
 #define IDC_OPTIONS_ScrnShotFormats     1011
 #define IDC_OPTIONS_ScrnShotFormats_JPG 1012
 #define IDC_OPTIONS_ScrnShotFormats_BMP 1013

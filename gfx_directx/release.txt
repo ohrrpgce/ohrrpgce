@@ -1,4 +1,33 @@
 --------------------------------------------------
+12/26/09
+v1.3
+
+Added Features:
+
+-Fixed a backend silent failure bug that left a window around.
+
+-Fixed some other minor bugs.
+
+-Code cleanup. Removed a lot of old code used for shaders, fps display.
+
+-Fps display has been removed. The engine can already display that statistic.
+
+-Native resolution multiples can be acheived by dragging the corners of the windows. The window will snap to the closest native resolution.
+
+-The backend now tests to see whether d3d9.dll and d3dx9_24.dll are present on the system, then only loads the functions (only 2) necessary to run. This allows a drammatically reduced size while maintaining _lots_ of compatibility (it's the next best thing to statically linked d3dx lib.) If the dll's are present, it uses them. Otherwise, it reports to the engine failure at initialization without crashing.
+
+-By moving to StretchRect() instead of using shaders, the texel-pixel distortion issue that wan't going to be fixed was resolved. The picture is now pure.
+
+Feature Request:
+
+-Joystick support
+
+-Continuing to revise the backend interfaces
+
+
+
+
+--------------------------------------------------
 12/21/09
 v1.2
 

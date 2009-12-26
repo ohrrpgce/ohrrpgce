@@ -145,29 +145,29 @@ int MidSurface::Initialize(IDirect3DDevice9* d3ddev, UINT width, UINT height, D3
 	if(d3ddev == NULL || width == 0 || height == 0)
 		return -1;
 	m_d3ddev = d3ddev;
-	m_dimensions.cx = 1;
-	m_dimensions.cy = 1;
-	D3DCAPS9 caps;
-	m_d3ddev->GetDeviceCaps(&caps);
-	if(caps.TextureCaps & D3DPTEXTURECAPS_POW2)
-	{//these tests might not be necessary now that we're not using textures
-		while(m_dimensions.cx < width)
-			m_dimensions.cx <<= 1;
-		while(m_dimensions.cy < height)
-			m_dimensions.cy <<= 1;
-	}
-	else
-	{
+	//m_dimensions.cx = 1;
+	//m_dimensions.cy = 1;
+	//D3DCAPS9 caps;
+	//m_d3ddev->GetDeviceCaps(&caps);
+	//if(caps.TextureCaps & D3DPTEXTURECAPS_POW2)
+	//{//these tests might not be necessary now that we're not using textures
+	//	while(m_dimensions.cx < width)
+	//		m_dimensions.cx <<= 1;
+	//	while(m_dimensions.cy < height)
+	//		m_dimensions.cy <<= 1;
+	//}
+	//else
+	//{
 		m_dimensions.cx = width;
 		m_dimensions.cy = height;
-	}
-	if(caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
-	{
-		if(m_dimensions.cx > m_dimensions.cy)
-			m_dimensions.cy = m_dimensions.cx;
-		else
-			m_dimensions.cx = m_dimensions.cy;
-	}
+	//}
+	//if(caps.TextureCaps & D3DPTEXTURECAPS_SQUAREONLY)
+	//{
+	//	if(m_dimensions.cx > m_dimensions.cy)
+	//		m_dimensions.cy = m_dimensions.cx;
+	//	else
+	//		m_dimensions.cx = m_dimensions.cy;
+	//}
 	m_format = surfaceFormat;
 	m_d3ddev->CreateOffscreenPlainSurface(m_dimensions.cx, m_dimensions.cy, m_format, D3DPOOL_DEFAULT, &m_surface, 0);
 	if(m_surface == NULL)
@@ -197,8 +197,8 @@ void MidSurface::CopySystemPage(UCHAR *pRawPage, UINT width, UINT height, gfx::P
 	D3DLOCKED_RECT lr;
 	HRESULT hr = m_surface->LockRect(&lr, 0, 0);
 	UINT* pData = (UINT*)lr.pBits;
-	for(UINT i = 0; i < height && i < m_dimensions.cy; i++)
-		for(UINT j = 0; j < width && j < m_dimensions.cx; j++)
+	for(UINT i = 0; i < height && i < (UINT)m_dimensions.cy; i++)
+		for(UINT j = 0; j < width && j < (UINT)m_dimensions.cx; j++)
 			pData[i * lr.Pitch / 4 + j] = (*pPalette)[pRawPage[i * width + j]] | 0xff000000;
 	hr = m_surface->UnlockRect();
 }

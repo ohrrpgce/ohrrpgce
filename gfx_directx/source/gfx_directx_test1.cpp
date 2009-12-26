@@ -46,7 +46,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 		j %= 256;
 
 		gfx_showpage(g_frameTest, 320, 200);
-		io_waitprocessing();
+		//io_waitprocessing();
 		::ZeroMemory(g_keys, sizeof(g_keys));
 		io_updatekeys(g_keys);
 		if(g_keys[SC_LEFT])

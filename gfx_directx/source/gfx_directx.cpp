@@ -15,12 +15,12 @@ using namespace gfx;
 #define DX_BUILD_DIRECTX_DYNAMIC FALSE //can only be TRUE or FALSE, or 1 or 0 respectively
 #define DX_BUILD_MSVC_DYNAMIC FALSE //can only be TRUE or FALSE, or 1 or 0 respectively
 #define DX_VERSION_MAJOR 0x1
-#define DX_VERSION_MINOR 0x2
+#define DX_VERSION_MINOR 0x3
 #define DX_VERSION_BUILD ((DX_BUILD_MSVC_DYNAMIC << 1) + DX_BUILD_DIRECTX_DYNAMIC)
 #define DX_BACKEND_VERSION ((DX_VERSION_MAJOR << 16) + (DX_VERSION_MINOR << 8) + DX_VERSION_BUILD)
 
-#pragma comment(lib, "d3d9.lib")
-#pragma comment(lib, "d3dx9.lib")
+//#pragma comment(lib, "d3d9.lib")
+//#pragma comment(lib, "d3dx9.lib")
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 
@@ -56,6 +56,7 @@ struct gfx_BackendState
 	tstring strWindowTitle;
 	bool bClosing; //flagged when shutting down
 	bool bBlockOhrMouseInput; //toggles ohr mouse control
+	bool bUseNativeResolutionMultiple; //if true, snaps window resolution to closest native resolution multiple (figured by area)
 	WindowState winState;
 	void (__cdecl *post_terminate_signal)(void);
 } g_State;
@@ -64,6 +65,8 @@ LRESULT CALLBACK OHRGameWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 //INT_PTR CALLBACK OHRGameOptionsDlg(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK OHRGameOptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 void PumpMessages();
+SIZE CalculateNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth = 320, UINT targetHeight = 200);
+bool IsNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth = 320, UINT targetHeight = 200);
 
 int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
 {
@@ -77,15 +80,22 @@ int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* window
 #endif
 	if(S_OK != g_Window.Initialize(::GetModuleHandle(MODULENAME), (windowicon ? szWindowIconRsrc : NULL), (WNDPROC)OHRGameWndProc))
 		return FALSE;
-	if(DX_OK != g_DirectX.Initialize(&g_Window, MODULENAME, false))
+	if(DX_OK != g_DirectX.Initialize(&g_Window, MODULENAME/*, false*/))
+	{
+		g_Window.Shutdown(0);
 		return FALSE;
+	}
 	g_Window.SetClientSize(960, 600);
 	g_Window.SetWindowTitle(TEXT("DirectX Backend"));
 	g_Window.CenterWindow();
 	g_OSMouse.Initialize(g_Window.GetWindowHandle());
 	TEST_ONLY_BLOCK(::MessageBox(0, g_DirectX.GetLastErrorMessage(), TEXT("Debug Initialize"), MB_OK););
 	if(S_OK != g_DirectInput.Initialize(&g_Window))
+	{
+		g_DirectX.Shutdown();
+		g_Window.Shutdown(0);
 		return FALSE;
+	}
 	io_mouserect(-1,-1,-1,-1);
 	return TRUE;
 }
@@ -216,13 +226,13 @@ int gfx_setoption(const char* opt, const char* arg)
 		else
 			g_DirectX.SetView(false);
 	}
-	else if(::strcmp(opt, "fps") == 0)
-	{
-		if(*arg == '0')
-			g_DirectX.SetFps(false);
-		else
-			g_DirectX.SetFps(true);
-	}
+	//else if(::strcmp(opt, "fps") == 0)
+	//{
+	//	if(*arg == '0')
+	//		g_DirectX.SetFps(false);
+	//	else
+	//		g_DirectX.SetFps(true);
+	//}
 	else if(::strcmp(opt, "v") == 0 || ::strcmp(opt, "vsync") == 0)
 	{
 		if(*arg == '0')
@@ -268,7 +278,7 @@ const char* gfx_describe_options()
 		"-h -height [x]  sets the height of the client area\n" \
 		"-f -fullscreen [0* | 1]  toggles fullscreen on startup\n" \
 		"    the above may NOT be called before width and height\n" \
-		"-fps [0* | 1]  toggles the fps display\n" \
+		/*"-fps [0* | 1]  toggles the fps display\n"*/ \
 		"-v -vsync [0 | 1*]  toggles vsync\n" \
 		"-a -aspect [0 | 1*]  toggles aspect ratio preservation\n" \
 		"-s -smooth [0* | 1]  toggles smooth linear interpolation of display\n" \
@@ -285,6 +295,7 @@ void io_pollkeyevents()
 	g_DirectInput.PollKeyboard();
 	if(!g_State.bBlockOhrMouseInput)
 		g_DirectInput.PollMouse();
+	gfx_showpage(g_pRaw, g_pRawSize.cx, g_pRawSize.cy); //must be here because of implied draw (why is there an implied draw on this function call?)
 }
 
 //void io_waitprocessing()
@@ -383,6 +394,45 @@ void PumpMessages()
 	}
 }
 
+SIZE CalculateNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth, UINT targetHeight)
+{
+	SIZE ret = {targetWidth, targetHeight};
+	UINT targetArea = targetWidth * targetHeight;
+	UINT area = width * height;
+	UINT i = 1;
+	while(area > targetArea * i * i)
+		i++;
+	if(i != 1)
+	{
+		float midArea = targetArea * (i-.5f) * (i-.5f);
+		if(area < (UINT)midArea)
+		{
+			ret.cx = targetWidth * (i-1);
+			ret.cy = targetHeight * (i-1);
+		}
+		else
+		{
+			ret.cx = targetWidth * i;
+			ret.cy = targetHeight * i;
+		}
+	}
+	return ret;
+}
+
+bool IsNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth, UINT targetHeight)
+{
+	if(width * height < targetWidth * targetHeight)
+		return false;
+	UINT i = 1;
+	while(width > targetWidth * i)
+		i++;
+	if(width != targetWidth * i)
+		return false;
+	if(height != targetHeight * i)
+		return false;
+	return true;
+}
+
 LRESULT CALLBACK OHRGameWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	const UINT_PTR ID_MENU_OPTIONS = 101;
@@ -477,15 +527,130 @@ TEST_ONLY_BLOCK(
 		} break;
 	case WM_SIZE:
 		{
-			LRESULT ret = ::DefWindowProc(hWnd, msg, wParam, lParam);
+			//wrong application, moving to WM_SIZING
+			//if(!g_DirectX.IsViewFullscreen())
+			//{
+			//	if(!IsNativeResolutionMultiple(LOWORD(lParam), HIWORD(lParam)))
+			//	{
+			//		SIZE resolution = CalculateNativeResolutionMultiple(LOWORD(lParam), HIWORD(lParam));
+			//		lParam = resolution.cy & 0xffff;
+			//		lParam &= (resolution.cx & 0xffff) << 16;
+			//	}
+			//}
+			::DefWindowProc(hWnd, msg, wParam, lParam);
 			if(wParam == SIZE_MINIMIZED)
 			{
 				g_OSMouse.Push_State();
-				return ret;
 			}
-			g_DirectX.SetResolution(LOWORD(lParam), HIWORD(lParam));
-			g_OSMouse.Pop_State();
-			return ret;
+			else
+			{
+				g_DirectX.SetResolution(LOWORD(lParam), HIWORD(lParam));
+				g_OSMouse.Pop_State();
+			}
+		} break;
+	case WM_SIZING:
+		{
+			if(!g_DirectX.IsViewFullscreen())
+			{
+				static RECT rWindowTest = {0,0,400,400};
+				static BOOL bRunOnce = FALSE;
+				static SIZE sPadding = {0,0};
+				if(bRunOnce == FALSE)
+				{
+					bRunOnce = TRUE;
+					::AdjustWindowRectEx(&rWindowTest, WS_OVERLAPPEDWINDOW, FALSE, 0);
+					sPadding.cx = rWindowTest.right - rWindowTest.left - 400;
+					sPadding.cy = rWindowTest.bottom - rWindowTest.top - 400;
+				}
+				switch(wParam)
+				{
+				//case WMSZ_BOTTOM:
+				//	{
+				//		RECT r = *(RECT*)lParam;
+				//		if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
+				//		{
+				//			SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
+				//			r.bottom = r.top + (resolution.cy + sPadding.cy);
+				//			*(RECT*)lParam = r;
+				//		}
+				//	} break;
+				case WMSZ_BOTTOMLEFT:
+					{
+						RECT r = *(RECT*)lParam;
+						if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
+						{
+							SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
+							r.bottom = r.top + (resolution.cy + sPadding.cy);
+							r.left = r.right - (resolution.cx + sPadding.cx);
+							*(RECT*)lParam = r;
+						}
+					} break;
+				case WMSZ_BOTTOMRIGHT:
+					{
+						RECT r = *(RECT*)lParam;
+						if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
+						{
+							SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
+							r.bottom = r.top + (resolution.cy + sPadding.cy);
+							r.right = r.left + (resolution.cx + sPadding.cx);
+							*(RECT*)lParam = r;
+						}
+					} break;
+				//case WMSZ_LEFT:
+				//	{
+				//		RECT r = *(RECT*)lParam;
+				//		if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
+				//		{
+				//			SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
+				//			r.left = r.right - (resolution.cx + sPadding.cx);
+				//			*(RECT*)lParam = r;
+				//		}
+				//	} break;
+				//case WMSZ_RIGHT:
+				//	{
+				//		RECT r = *(RECT*)lParam;
+				//		if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
+				//		{
+				//			SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
+				//			r.right = r.left + (resolution.cx + sPadding.cx);
+				//			*(RECT*)lParam = r;
+				//		}
+				//	} break;
+				//case WMSZ_TOP:
+				//	{
+				//		RECT r = *(RECT*)lParam;
+				//		if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
+				//		{
+				//			SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
+				//			r.top = r.bottom - (resolution.cy + sPadding.cy);
+				//			*(RECT*)lParam = r;
+				//		}
+				//	} break;
+				case WMSZ_TOPLEFT:
+					{
+						RECT r = *(RECT*)lParam;
+						if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
+						{
+							SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
+							r.top = r.bottom - (resolution.cy + sPadding.cy);
+							r.left = r.right - (resolution.cx + sPadding.cx);
+							*(RECT*)lParam = r;
+						}
+					} break;
+				case WMSZ_TOPRIGHT:
+					{
+						RECT r = *(RECT*)lParam;
+						if(!IsNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy))
+						{
+							SIZE resolution = CalculateNativeResolutionMultiple(r.right - r.left - sPadding.cx, r.bottom - r.top - sPadding.cy);
+							r.top = r.bottom - (resolution.cy + sPadding.cy);
+							r.right = r.left + (resolution.cx + sPadding.cx);
+							*(RECT*)lParam = r;
+						}
+					} break;
+				}
+			}
+			::DefWindowProc(hWnd, msg, wParam, lParam);
 		} break;
 	case WM_CLOSE:
 		{
@@ -609,7 +774,8 @@ BOOL CALLBACK OHRGameOptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, L
 			{//control id
 			case IDC_OPTIONS_SetDefaults:
 				{//sets defaults
-					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableFps, BST_UNCHECKED);
+					//::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableFps, BST_UNCHECKED);
+					//::CheckDlgButton(hWndDlg, IDC_OPTIONS_SnapToNativeResolutionMultiple, BST_UNCHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, BST_CHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, BST_UNCHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, BST_CHECKED);
@@ -622,7 +788,14 @@ BOOL CALLBACK OHRGameOptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, L
 				} break;
 			case IDOK:
 				{//apply all changes and return
-					g_DirectX.SetFps(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableFps));
+					//g_DirectX.SetFps(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableFps));
+					//g_State.bUseNativeResolutionMultiple = (BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_SnapToNativeResolutionMultiple));
+					//if(g_State.bUseNativeResolutionMultiple)
+					//{
+					//	SIZE s = g_Window.GetClientSize();
+					//	s = CalculateNativeResolutionMultiple(s.cx, s.cy);
+					//	g_Window.SetClientSize(s.cx, s.cy);
+					//}
 					g_DirectX.SetVSync(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
 					g_DirectX.SetSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
 					g_DirectX.SetAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
@@ -650,7 +823,8 @@ BOOL CALLBACK OHRGameOptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, L
 	case WM_INITDIALOG:
 		{
 			g_OSMouse.Push_State();
-			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableFps, (g_DirectX.IsFpsEnabled() ? BST_CHECKED : BST_UNCHECKED));
+			//::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableFps, (g_DirectX.IsFpsEnabled() ? BST_CHECKED : BST_UNCHECKED));
+			//::CheckDlgButton(hWndDlg, IDC_OPTIONS_SnapToNativeResolutionMultiple, (g_State.bUseNativeResolutionMultiple ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, (g_DirectX.IsVsyncEnabled() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, (g_DirectX.IsSmooth() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, (g_DirectX.IsAspectRatioPreserved() ? BST_CHECKED : BST_UNCHECKED));
