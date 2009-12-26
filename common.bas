@@ -2999,9 +2999,14 @@ SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL res
  DIM AS INTEGER i, j
  DIM tileset AS INTEGER
 
- FOR i = 0 TO 2  'UBOUND(tilesets)  'we don't know about tilesets above the 3rd layer
-  IF gmap(22 + i) <> 0 THEN
-   tileset = gmap(22 + i) - 1
+ FOR i = 0 TO UBOUND(tilesets)
+  IF i <= 2 THEN
+   tileset = gmap(22 + i)
+  ELSE
+   tileset = gmap(23 + i)
+  END IF
+  IF tileset <> 0 THEN
+   tileset = tileset - 1
   ELSE
    tileset = gmap(0)
   END IF

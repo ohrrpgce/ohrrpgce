@@ -39,3 +39,5 @@ CTRL+L opens the Layer menu, where you can change tilesets and layer visibility.
 PageUp and PageDown change which layer you are working on. Remember that layer 0 is the bottom layer, and that layer 2 is drawn on top.
 
 CTRL+J makes the current layer jiggle. This can be useful to visually distinguish a layer you are working on from another layer that covers it up. Press CTRL+J again to stop the jiggling.
+
+ALT+1 or 2 disables or enables that layer (you can't disable layer 0). Disabled layers aren't drawn while editing or playing.

@@ -123,8 +123,8 @@ TYPE MapEditState
   npc_inst(299) AS NPCInst
   tilepick AS XYPair
   layer AS INTEGER
-  usetile(0 to 2) AS INTEGER
-  menubarstart(0 to 2) AS INTEGER
+  usetile(0 to maplayerMax) AS INTEGER
+  menubarstart(0 to maplayerMax) AS INTEGER
   menubar AS TileMap
   tilesetview AS TileMap
   cursor AS GraphicPair

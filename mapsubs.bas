@@ -33,6 +33,11 @@ DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB maptile (font())
 DECLARE SUB paint_map_area(st AS MapEditState, oldTile, x%, y%, map() AS TileMap, pass AS TileMap, defaults() AS DefArray, defpass%)
 
+TYPE LayerMenuItem
+ layernum AS INTEGER '-1 if not a layer
+ gmapindex AS INTEGER '-1 if enabled/visibility choice rather than tileset choice
+END TYPE
+
 DECLARE Function LayerIsVisible(vis() as integer, byval l as integer) as integer
 DECLARE Function LayerIsEnabled(gmap() as integer, byval l as integer) as integer
 DECLARE Sub SetLayerVisible(vis() as integer, byval l as integer, byval v as integer)
@@ -62,7 +67,7 @@ DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wi
 DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER)
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray, map() AS TileMap)
-DECLARE SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, BYREF backpage AS INTEGER, visible() AS INTEGER)
+DECLARE SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, BYVAL numlayers AS INTEGER, itemsinfo() AS LayerMenuItem)
 DECLARE SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
 
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
@@ -406,14 +411,16 @@ DO
    editmode = 4
   END IF
  else
-  for i = 0 to maplayerMax
-   if keyval(scAlt) > 0 AND keyval(sc1 + i) > 1 then
+  for i = 1 to maplayerMax
+   if keyval(scAlt) > 0 AND keyval(sc1 + (i - 1)) > 1 then
     clearkey(sc1 + i)
     togglelayerenabled(gmap(), i)
     if layerisenabled(gmap(), i) then
      if i > ubound(map) then
-      'enabling a layer automatically creates it
-      add_more_layers map(), i
+      temp = i - ubound(map)
+      if yesno("Create " & iif_string(temp = 1, "a new map layer?", temp & " new map layers?")) then
+       add_more_layers map(), i
+      end if
      end if
     else
      if st.layer = i then
@@ -1070,22 +1077,25 @@ END SUB
 
 SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray, map() AS TileMap)
  DIM state AS MenuState
- DIM menu(10) AS SimpleMenu
+ REDIM menu(0) AS SimpleMenu
+ REDIM itemsinfo(0) AS LayerMenuItem
 
  DIM layerno AS INTEGER
- DIM backpage AS INTEGER
  DIM currentset AS INTEGER
  currentset = -1
  clearpage 2
 
- state.pt = (st.layer + 1) * 3
+ mapedit_makelayermenu menu(), state, gmap(), currentset, visible(), UBOUND(map) + 1, itemsinfo()
+
+ FOR i AS INTEGER = UBOUND(menu) TO 0 STEP -1
+  IF itemsinfo(i).layernum = st.layer THEN state.pt = i
+ NEXT
  state.top = 0
  state.last = UBOUND(menu)
  state.size = 19
 
  DIM col AS INTEGER
 
- mapedit_makelayermenu menu(), state, gmap(), currentset, backpage, visible()
  DO 
   setwait 55
   setkeys
@@ -1093,55 +1103,50 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
 
   IF keyval(scESC) > 1 THEN clearkey(scESC): EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
+  IF keyval(scPlus) > 1 AND UBOUND(map) < maplayerMax THEN
+   add_more_layers map(), UBOUND(map) + 1
+   state.need_update = YES
+  END IF
 
   IF usemenu(state, menu()) THEN
    state.need_update = YES
   END IF
 
-  layerno = (state.pt - 2) \ 3
-  IF state.pt <= 1 THEN layerno = -1
+  layerno = itemsinfo(state.pt).layernum
 
-  SELECT CASE state.pt
-   CASE 0
-    IF enter_or_space() THEN
-     EXIT DO
-    END IF
-   case 1
-    intgrabber gmap(0), 0, gen(genMaxTile)
+  IF state.pt = 0 THEN
+   IF enter_or_space() THEN
+    EXIT DO
+   END IF
+  ELSEIF state.pt = 1 THEN
+   intgrabber gmap(0), 0, gen(genMaxTile)
+   state.need_update = YES
+  ELSEIF layerno > -1 THEN
+   IF itemsinfo(state.pt).gmapindex > -1 THEN
+    zintgrabber gmap(itemsinfo(state.pt).gmapindex), -1, gen(genMaxTile)
     state.need_update = YES
-   CASE 3,6,9
+   ELSE
     IF enter_or_space() THEN
      ToggleLayerEnabled(gmap(), layerno)
-     IF LayerIsEnabled(gmap(), layerno) AND layerno > UBOUND(map) THEN
-      add_more_layers map(), layerno
-     END IF
      state.need_update = YES
     END IF
     IF layerisenabled(gmap(), layerno) AND (keyval(scLeft) > 1 OR keyval(scRight) > 1) THEN
      ToggleLayerVisible(visible(), layerno)
      state.need_update = YES
     END IF
-   CASE 4,7,10
-    zintgrabber gmap(22 + layerno), -1, gen(genMaxTile)
-    state.need_update = YES
-  END SELECT
+   END IF
+  END IF
 
   IF state.need_update THEN
    state.need_update = NO
-   mapedit_makelayermenu menu(), state, gmap(), currentset, backpage, visible()
+   mapedit_makelayermenu menu(), state, gmap(), currentset, visible(), UBOUND(map) + 1, itemsinfo()
   END IF
 
-  copypage backpage, dpage
+  copypage 2, dpage
 
-  edgeprint "Map has " & UBOUND(map) + 1 & " layers", 0, 180, uilook(uiText), dpage
-  SELECT CASE layerno
-   CASE 0
-    edgeprint "  Opaque       Underneath NPCs/Heroes", 0, 190, uilook(uiText), dpage
-   CASE 1
-    edgeprint "  Transparent  Underneath NPCs/Heroes", 0, 190, uilook(uiText), dpage
-   CASE 2
-    edgeprint "  Transparent  Above NPCs/Heroes", 0, 190, uilook(uiText), dpage
-  END SELECT
+  IF UBOUND(map) < maplayerMax THEN
+   edgeprint "Press + to add a new layer", 0, 190, uilook(uiText), dpage
+  END IF
   
   FOR i AS INTEGER = state.top TO state.top + state.size
    IF i <= state.last THEN
@@ -1165,47 +1170,82 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
 
 END SUB
 
-SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, BYREF backpage AS INTEGER, visible() AS INTEGER)
+SUB mapedit_makelayermenu_layer(menu() AS SimpleMenu, gmap() AS INTEGER, visible() AS INTEGER, itemsinfo() AS LayerMenuItem, BYREF slot AS INTEGER, BYVAL layer AS INTEGER, BYREF needdefault AS INTEGER)
+
+ menu(slot).enabled = NO
+ menu(slot).text = "Tile layer " & layer
+ slot += 1
+
+ IF layerisenabled(gmap(), layer) THEN
+  IF layerisvisible(visible(), layer) THEN
+   menu(slot).text = " Enabled (" & CHR(27) & "Visible in editor" & CHR(26) & ")"
+   menu(slot - 1).col = uilook(uiSelectedDisabled)
+  ELSE
+   menu(slot).text = " Enabled (" & CHR(27) & "Invisible in editor" & CHR(26) & ")"
+   menu(slot - 1).col = uilook(uiDisabledItem)
+  END IF
+ ELSE
+  menu(slot).text = " Disabled in-game"
+  menu(slot - 1).col = uilook(uiDisabledItem)
+ END IF
+ itemsinfo(slot).layernum = layer
+ slot += 1
+
+ DIM layerindex AS INTEGER
+ IF layer <= 2 THEN layerindex = 22 + layer ELSE layerindex = 23 + layer
+
+ IF gmap(layerindex) = 0 THEN
+  menu(slot).text = " Tileset: Default"
+  needdefault = YES
+ ELSE
+  menu(slot).text = " Tileset: " & gmap(layerindex) - 1
+ END IF
+ itemsinfo(slot).layernum = layer
+ itemsinfo(slot).gmapindex = layerindex
+ slot += 1
+END SUB
+
+SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, BYVAL numlayers AS INTEGER, itemsinfo() AS LayerMenuItem)
+ REDIM menu(1 + 3 * numlayers + 3)
+ REDIM itemsinfo(1 + 3 * numlayers + 3)
  FOR i AS INTEGER = 0 TO UBOUND(menu)
   menu(i).enabled = YES
   menu(i).col = uilook(uiMenuItem)
+  itemsinfo(i).layernum = -1
+  itemsinfo(i).gmapindex = -1
  NEXT i
  menu(0).text = "Go back"
  menu(1).text = "Default tileset: "
-' menu(1).text = "Bottom Layer "
-' menu(2).text = "Middle Layer "
-' menu(3).text = "Top Layer    "
  
  DIM needdefault AS INTEGER = NO
  
  DIM slot AS INTEGER = 2
- FOR i AS INTEGER = 0 TO 2
-  menu(slot).enabled = NO
-  menu(slot).text = "Layer " & i
-  slot += 1
-
-  IF layerisenabled(gmap(), i) THEN
-   IF layerisvisible(visible(), i) THEN
-    menu(slot).text = " Enabled (" & CHR(27) & "Visible in editor" & CHR(26) & ")"
-    menu(slot - 1).col = uilook(uiSelectedDisabled)
-   ELSE
-    menu(slot).text = " Enabled (" & CHR(27) & "Invisible in editor" & CHR(26) & ")"
-    menu(slot - 1).col = uilook(uiDisabledItem)
-   END IF
-  ELSE
-   menu(slot).text = " Disabled in-game"
-   menu(slot - 1).col = uilook(uiDisabledItem)
-  END IF
-  slot += 1
-
-  IF gmap(22 + i) = 0 THEN
-   menu(slot).text = " Tileset: Default"
-   needdefault = YES
-  ELSE
-   menu(slot).text = " Tileset: " & gmap(22 + i) - 1
-  END IF
-  slot += 1
+ FOR i AS INTEGER = 0 TO small(numlayers - 1, 1)
+  mapedit_makelayermenu_layer menu(), gmap(), visible(), itemsinfo(), slot, i, needdefault
  NEXT
+
+ menu(slot).enabled = NO
+ menu(slot).col = uilook(uiSelectedDisabled)
+ slot += 1
+ menu(slot).enabled = NO
+ menu(slot).col = uilook(uiSelectedDisabled)
+ slot += 1
+ IF gmap(18) = 0 THEN
+  menu(slot - 2).text = "NPCs layer"
+  menu(slot - 1).text = "Heroes layer"
+ ELSE
+  menu(slot - 2).text = "Heroes layer"
+  menu(slot - 1).text = "NPCs layer"
+ END IF   
+
+ FOR i AS INTEGER = 2 TO numlayers - 1
+  mapedit_makelayermenu_layer menu(), gmap(), visible(), itemsinfo(), slot, i, needdefault
+ NEXT
+
+ menu(slot).enabled = NO
+ menu(slot).col = uilook(uiSelectedDisabled)
+ menu(slot).text = "Tile layer 0 overhead tiles (obsolete)"
+ slot += 1
  
  IF needdefault THEN
   menu(1).text += STR(gmap(0))
@@ -1215,20 +1255,20 @@ SUB mapedit_makelayermenu(menu() AS SimpleMenu, state AS MenuState, gmap() AS IN
   menu(1).col = uilook(uiDisabledItem)
  END IF
 
- DIM wantset AS INTEGER = currentset
- SELECT CASE state.pt
-  CASE 1
-   wantset = gmap(0)
-   backpage = 3
-  CASE 4,7,10
-   wantset = gmap(22 + (state.pt - 2) \ 3) - 1
-   IF wantset = -1 THEN wantset = gmap(0)
-   backpage = 3
-  CASE ELSE
-   backpage = 2
- END SELECT
+ DIM wantset AS INTEGER = -1
+ IF state.pt = 1 THEN
+  wantset = gmap(0)
+ ELSEIF itemsinfo(state.pt).gmapindex > -1 THEN
+  wantset = gmap(itemsinfo(state.pt).gmapindex) - 1
+  IF wantset = -1 THEN wantset = gmap(0)
+ END IF
  IF wantset <> currentset THEN
-  loadmxs game + ".til", wantset, vpages(3)
+  IF wantset = -1 THEN
+   clearpage 2
+  ELSE
+   loadmxs game + ".til", wantset, vpages(2)
+   fuzzyrect 0, 0, 320, 200, uilook(uiBackground), 2
+  END IF
   currentset = wantset
  END IF
  
@@ -1292,7 +1332,7 @@ SUB new_blank_map (BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, 
  cleantilemaps map(), 64, 64, 1
  cleantilemap pass, 64, 64
  cleantilemap emap, 64, 64
- flusharray gmap(), 19, 0
+ flusharray gmap(), -1, 0
  CleanNPCL st.npc_inst()
  CleanNPCD st.npc_def()
  cleandoors doors()

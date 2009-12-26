@@ -271,6 +271,10 @@ FUNCTION zero_default(n as integer, zerocaption AS STRING="default", displayoffs
  RETURN "" & (n + displayoffset)
 END FUNCTION
 
+FUNCTION iif_string(byval condition as integer, s1 as string, s2 as string) as string
+ IF condition THEN RETURN s1 ELSE RETURN s2
+END FUNCTION
+
 'returns a copy of the string with separators inserted; use together with split()
 Function wordwrap(Byval z as string, byval wid as integer, byval sep as string = chr(10)) as string
  dim as string ret, in
