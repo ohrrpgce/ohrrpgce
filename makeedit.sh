@@ -10,7 +10,7 @@ MUSIC=${2}
 EXTRA=
 
 if [ -z "${GFX}" ] ; then
-  GFX=sdl
+  GFX=sdl+fb
 fi
 
 if [ -z "${MUSIC}" ] ; then
