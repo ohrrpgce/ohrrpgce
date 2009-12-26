@@ -151,6 +151,11 @@ FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
   CASE SL_MAP_LAYER0: RETURN "map_layer0"
   CASE SL_MAP_LAYER1: RETURN "map_layer1"
   CASE SL_MAP_LAYER2: RETURN "map_layer2"
+  CASE SL_MAP_LAYER3: RETURN "map_layer3"
+  CASE SL_MAP_LAYER4: RETURN "map_layer4"
+  CASE SL_MAP_LAYER5: RETURN "map_layer5"
+  CASE SL_MAP_LAYER6: RETURN "map_layer6"
+  CASE SL_MAP_LAYER7: RETURN "map_layer7"
 '</SLICE LOOKUP NAMES>
   CASE ELSE
    RETURN STR(sl->Lookup)

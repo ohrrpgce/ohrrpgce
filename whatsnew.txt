@@ -83,6 +83,9 @@ Dec ?? 2009 [Ypsiliform]
       now work everywhere in Game and Custom with all backends [Ralph]
     * Attacks can transmogrify enemies into different enemies [James]
     * Menus are no longer limited to 21 items [Ralph]
+    * Maps may now have up to 8 layers. You can insert, delete, and
+      reorder layers and set the number of layers drawn beneath NPCs and
+      heroes. [Ralph]
 
   * Bugfixes
     * Fix bug 325 "Cleaner upgrade from old-style to new-style scripts"

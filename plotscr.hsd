@@ -1491,5 +1491,10 @@ define constant, begin
 -101000, sl:map layer0
 -101001, sl:map layer1
 -101002, sl:map layer2
+-101003, sl:map layer3
+-101004, sl:map layer4
+-101005, sl:map layer5
+-101006, sl:map layer6
+-101007, sl:map layer7
 end
 #</SLICE LOOKUP CODES>

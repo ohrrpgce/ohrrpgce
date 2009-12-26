@@ -116,6 +116,7 @@ WITH state
  oldptr = .pt
  oldtop = .top
  d = 0
+ moved_d = 0
 
  IF keyval(scUp) > 1 THEN d = -1
  IF keyval(scDown) > 1 THEN d = 1
@@ -123,20 +124,33 @@ WITH state
   .pt = large(.pt - .size, .first)
   WHILE menudata(.pt).enabled = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
   IF menudata(.pt).enabled = 0 THEN d = 1
+  moved_d = -1
  END IF
  IF keyval(scPagedown) > 1 THEN
   .pt = small(.pt + .size, .last)
   WHILE menudata(.pt).enabled = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
   IF menudata(.pt).enabled = 0 THEN d = -1
+  moved_d = 1
  END IF
  IF keyval(scHome) > 1 THEN .pt = .last : d = 1
  IF keyval(scEnd) > 1 THEN .pt = .first : d = -1
 
  IF d THEN 
+  moved_d = d
   DO
    .top = bound(.top, .pt - .size, .pt)
    .pt = loopvar(.pt, .first, .last, d)
   LOOP WHILE menudata(.pt).enabled = 0
+ END IF
+
+ IF moved_d THEN
+  'we look ahead of the actual cursor, to bring unselectable items at the ends of the menu into view
+  DIM lookahead AS INTEGER = .pt
+  DO
+   lookahead += moved_d
+  LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO menudata(lookahead).enabled = 0
+  lookahead = bound(lookahead, .first, .last)
+  .top = bound(.top, lookahead - .size, lookahead)
  END IF
  .top = bound(.top, .pt - .size, .pt)
 
@@ -155,6 +169,7 @@ WITH state
  oldptr = .pt
  oldtop = .top
  d = 0
+ moved_d = 0
 
  IF keyval(scUp) > 1 THEN d = -1
  IF keyval(scDown) > 1 THEN d = 1
@@ -162,20 +177,33 @@ WITH state
   .pt = large(.pt - .size, .first)
   WHILE enabled(.pt) = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
   IF enabled(.pt) = 0 THEN d = 1
+  moved_d = -1
  END IF
  IF keyval(scPagedown) > 1 THEN
   .pt = small(.pt + .size, .last)
   WHILE enabled(.pt) = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
   IF enabled(.pt) = 0 THEN d = -1
+  moved_d = 1
  END IF
  IF keyval(scHome) > 1 THEN .pt = .last : d = 1
  IF keyval(scEnd) > 1 THEN .pt = .first : d = -1
 
- IF d THEN 
+ IF d THEN
+  moved_d = d
   DO
    .top = bound(.top, .pt - .size, .pt)
    .pt = loopvar(.pt, .first, .last, d)
   LOOP WHILE enabled(.pt) = 0
+ END IF
+
+ IF moved_d THEN
+  'we look ahead of the actual cursor, to bring unselectable items at the ends of the menu into view
+  DIM lookahead AS INTEGER = .pt
+  DO
+   lookahead += moved_d
+  LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO enabled(lookahead) = 0
+  lookahead = bound(lookahead, .first, .last)
+  .top = bound(.top, lookahead - .size, lookahead)
  END IF
  .top = bound(.top, .pt - .size, .pt)
 
@@ -805,7 +833,7 @@ FUNCTION curbinsize (id AS INTEGER) as integer
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
- IF id = 4 THEN RETURN 62  '.map
+ IF id = 4 THEN RETURN 64  '.map
  IF id = 5 THEN RETURN 48  'menus.bin
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 126 'uicolors.bin
@@ -1093,6 +1121,7 @@ FUNCTION createminimap (map() AS TileMap, tilesets() AS TilesetData ptr, BYREF z
  DIM x AS INTEGER
  DIM y AS INTEGER
  DIM block AS INTEGER
+ DIM pixel AS INTEGER
  
  FOR j AS INTEGER = 0 TO zoom * map(0).high - 1
   FOR i AS INTEGER = 0 TO zoom * map(0).wide - 1
@@ -1101,22 +1130,31 @@ FUNCTION createminimap (map() AS TileMap, tilesets() AS TilesetData ptr, BYREF z
    x = INT(((i MOD zoom) + RND) * fraction)
    y = INT(((j MOD zoom) + RND) * fraction)
    'layers but not overhead tiles
+   pixel = 0
    FOR k AS INTEGER = UBOUND(map) TO 0 STEP -1
     block = readblock(map(k), tx, ty)
-    IF block = 0 AND k > 0 THEN CONTINUE FOR
+    IF block = 0 AND map(k).layernum > 0 THEN CONTINUE FOR
 
     WITH *tilesets(k)
      IF block > 207 THEN block = (block - 48 + .tastuf(20) + .anim(1).cycle) MOD 160
      IF block > 159 THEN block = (block + .tastuf(0) + .anim(0).cycle) MOD 160
-     DIM AS INTEGER temp = .spr->image[block * 400 + y * 20 + x]
-     mini->image[i + j * mini->w] = temp 
-     IF temp <> 0 THEN EXIT FOR
+     pixel = .spr->image[block * 400 + y * 20 + x]
+     IF pixel <> 0 THEN EXIT FOR
     END WITH
    NEXT
+   mini->image[i + j * mini->w] = pixel
   NEXT
  NEXT
 
  RETURN mini
+END FUNCTION
+
+FUNCTION createminimap (layer AS TileMap, tileset AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
+ DIM layers(0) AS TileMap
+ DIM tilesets(0) AS TilesetData ptr
+ layers(0) = layer
+ tilesets(0) = tileset
+ RETURN createminimap(layers(), tilesets(), zoom)
 END FUNCTION
 
 FUNCTION readattackname (index) as string

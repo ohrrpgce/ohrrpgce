@@ -83,7 +83,8 @@ DECLARE SUB loadpalette(pal() as RGBcolor, palnum as integer)
 DECLARE SUB savepalette(pal() as RGBcolor, palnum as integer)
 DECLARE SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
 
-DECLARE FUNCTION createminimap (map() AS TileMap, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
+DECLARE FUNCTION createminimap OVERLOAD (map() AS TileMap, tilesets() AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
+DECLARE FUNCTION createminimap OVERLOAD (layer AS TileMap, tileset AS TilesetData ptr, BYREF zoom AS INTEGER = -1) AS Frame PTR
 DECLARE SUB animatetilesets (tilesets() AS TilesetData ptr)
 DECLARE SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
 DECLARE SUB loadtilesetdata (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVAL tilesetnum AS INTEGER, BYVAL lockstep AS INTEGER = YES)
