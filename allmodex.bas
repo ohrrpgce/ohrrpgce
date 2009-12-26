@@ -2297,17 +2297,19 @@ SUB movemouse (BYVAL x as integer, BYVAL y as integer)
 end SUB
 
 SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
-	if xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1 then
-		mouse_grab_requested = 0
-		settemporarywindowtitle remember_title
-	else
-		remember_mouse_grab(0) = xmin
-		remember_mouse_grab(1) = xmax
-		remember_mouse_grab(2) = ymin
-		remember_mouse_grab(3) = ymax
-		mouse_grab_requested = -1
-		mouse_grab_overridden = 0
-		settemporarywindowtitle remember_title & " (ScrlLock to free mouse)"
+	if gfxbackend = "fb" or gfxbackend = "sdl" then
+		if xmin = -1 and xmax = -1 and ymin = -1 and ymax = -1 then
+			mouse_grab_requested = 0
+			settemporarywindowtitle remember_title
+		else
+			remember_mouse_grab(0) = xmin
+			remember_mouse_grab(1) = xmax
+			remember_mouse_grab(2) = ymin
+			remember_mouse_grab(3) = ymax
+			mouse_grab_requested = -1
+			mouse_grab_overridden = 0
+			settemporarywindowtitle remember_title & " (ScrlLock to free mouse)"
+		end if
 	end if
 	mutexlock keybdmutex
 	io_mouserect(xmin, xmax, ymin, ymax)
