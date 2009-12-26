@@ -3032,6 +3032,11 @@ SUB loadtilesetdata (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVA
  IF lockstep THEN lockstep_tile_animation tilesets(), layer
 END SUB
 
+FUNCTION layer_tileset_index(BYVAL layer AS INTEGER) AS INTEGER
+'return the gmap() index containing a layer's tileset
+ IF layer <= 2 THEN RETURN 22 + layer ELSE RETURN 23 + layer
+END FUNCTION
+
 SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL resetanimations AS INTEGER = YES)
 'tilesets() may contain already loaded tilesets. In this case, we can reuse them
  DIM AS INTEGER i, j

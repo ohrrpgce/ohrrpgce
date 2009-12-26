@@ -1253,8 +1253,7 @@ SUB mapedit_makelayermenu_layer(BYREF st AS MapEditState, menu() AS SimpleMenu, 
  itemsinfo(slot).layernum = layer
  slot += 1
 
- DIM layerindex AS INTEGER
- IF layer <= 2 THEN layerindex = 22 + layer ELSE layerindex = 23 + layer
+ DIM layerindex AS INTEGER = layer_tileset_index(layer)
 
  IF gmap(layerindex) = 0 THEN
   menu(slot).text = " Tileset: Default"
@@ -1512,6 +1511,8 @@ SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() as int
  SWAP map(l1), map(l2)
  SWAP st.usetile(l1), st.usetile(l2)
  SWAP st.menubarstart(l1), st.menubarstart(l2)
+ SWAP gmap(layer_tileset_index(l1)), gmap(layer_tileset_index(l2))
+ SWAP st.tilesets(l1), st.tilesets(l2)
  temp = layerisenabled(gmap(), l1)
  setlayerenabled(gmap(), l2, temp)
  temp = layerisvisible(vis(), l1)
@@ -1519,7 +1520,7 @@ SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() as int
 END SUB
 
 SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() as integer, gmap() as integer, BYVAL where as integer)
- 'doesn't reload tilesets or passability defaults, layers menu does that
+ 'doesn't reload (all) tilesets or passability defaults, layers menu does that
  IF UBOUND(map) = maplayerMax THEN EXIT SUB
 
  REDIM PRESERVE map(UBOUND(map) + 1)
