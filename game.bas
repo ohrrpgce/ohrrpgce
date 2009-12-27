@@ -348,6 +348,8 @@ setupstack
 
 SetupGameSlices
 'beginplay
+resetg = NO
+
 DO' This loop encloses the playable game for a specific RPG file
 
 loadpalette master(), gen(genMasterPal)
@@ -358,7 +360,6 @@ initgamedefaults
 reset_game_state
 fatal = 0
 abortg = 0
-resetg = NO
 lastformation = -1
 scrwatch = 0
 menu_set.menufile = workingdir & SLASH & "menus.bin"
@@ -381,16 +382,18 @@ txt.sayer = -1
 txt.id = -1
 
 temp = -1
-IF readbit(gen(), genBits, 11) = 0 THEN
+'resetg is YES when we are skipping straight to launching the game
+IF readbit(gen(), genBits, 11) = 0 AND resetg = NO THEN
  IF titlescr = 0 THEN EXIT DO'resetg
  IF readbit(gen(), genBits, 12) = 0 THEN temp = picksave(1)
 ELSE
  readjoysettings
- IF readbit(gen(), genBits, 12) = 0 THEN
+ IF readbit(gen(), genBits, 12) = 0 AND resetg = NO THEN
   IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
   temp = picksave(2)
  END IF
 END IF
+resetg = NO
 'DEBUG debug "picked save slot " & temp
 stopsong
 fadeout 0, 0, 0
@@ -629,8 +632,8 @@ DO
  GOSUB displayall
  IF fatal = 1 OR abortg > 0 OR resetg THEN
   resetgame stat(), scriptout$
-  IF resetg THEN EXIT DO
-  'if skip loadmenu and title bits set, quit
+  IF resetg THEN EXIT DO  'skip to new game
+  'if skipping title and loadmenu, quit
   IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
   ELSE
