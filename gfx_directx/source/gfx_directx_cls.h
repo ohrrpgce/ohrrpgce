@@ -111,6 +111,7 @@ namespace gfx
 		bool IsViewFullscreen(); //returns true if view is fullscreen
 		bool IsSmooth(); //returns true if linear interpolation is used on the texture
 		bool IsAspectRatioPreserved(); //returns true if aspect ratio is preserved
+		bool IsScreenShotsActive(); //returns true if screen shot library was loaded
 		D3DXIMAGE_FILEFORMAT GetImageFileFormat(); //returns image file format of screenshots
 		DirectX_ErrorCode GetLastErrorCode(); //returns last error code
 		TCHAR* GetLastErrorMessage(); //gets last error message

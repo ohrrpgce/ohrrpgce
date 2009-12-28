@@ -21,15 +21,17 @@ DirectX::DirectX()
 		return;
 	}
 
+	m_bLibrariesLoaded = true; //moved here because screenshots will always work, whether d3dx9_*.dll is found or not
+
 	m_hD3dx9 = ::LoadLibrary(TEXT("d3dx9_24.dll")); //d3dx9_24.dll is the earliest dx runtime released as a dll
-	if(m_hD3dx9 == NULL)
-		return;
+	if(m_hD3dx9 != NULL)
+	{
 #ifdef _UNICODE
-	D3DXSaveSurfaceToFile_call = (D3DX_SAVESURFACE_CALL)::GetProcAddress(m_hD3dx9, "D3DXSaveSurfaceToFileW");
+		D3DXSaveSurfaceToFile_call = (D3DX_SAVESURFACE_CALL)::GetProcAddress(m_hD3dx9, "D3DXSaveSurfaceToFileW");
 #else
-	D3DXSaveSurfaceToFile_call = (D3DX_SAVESURFACE_CALL)::GetProcAddress(m_hD3dx9, "D3DXSaveSurfaceToFileA");
+		D3DXSaveSurfaceToFile_call = (D3DX_SAVESURFACE_CALL)::GetProcAddress(m_hD3dx9, "D3DXSaveSurfaceToFileA");
 #endif
-	m_bLibrariesLoaded = true;
+	}
 }
 
 DirectX::~DirectX()
@@ -295,6 +297,8 @@ DirectX_ErrorCode DirectX::ScreenShot(TCHAR *strName)
 {
 	if(!m_bInitialized)
 		return DX_NotInitialized;
+	if(D3DXSaveSurfaceToFile_call == NULL)
+		return DX_LibrariesMissing;
 	if(strName == NULL)
 		return Report(DX_ScreenShot_ParamNotValid);
 	if(m_saveFormat == D3DXIFF_FORCE_DWORD)
@@ -471,6 +475,11 @@ bool DirectX::IsSmooth()
 bool DirectX::IsAspectRatioPreserved()
 {
 	return m_bPreserveAspectRatio;
+}
+
+bool DirectX::IsScreenShotsActive()
+{
+	return (D3DXSaveSurfaceToFile_call != NULL);
 }
 
 D3DXIMAGE_FILEFORMAT DirectX::GetImageFileFormat()

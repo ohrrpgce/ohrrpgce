@@ -11,9 +11,16 @@
 
 namespace gfx
 {
+	typedef HRESULT (__stdcall *DINPUT_CREATE_CALL)(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID * ppvOut, LPUNKNOWN punkOuter);
+
 	class DirectInput
 	{
 	protected:
+		HMODULE m_hDinput8;
+		DINPUT_CREATE_CALL DirectInput8Create_call;
+		DIDATAFORMAT *m_dfKeyboard;
+		DIDATAFORMAT *m_dfMouse;
+		bool m_bLibraryLoaded;
 		SmartPtr<IDirectInput8> m_dinput;
 		SmartPtr<IDirectInputDevice8> m_keyboard;
 		SmartPtr<IDirectInputDevice8> m_mouse;

@@ -1,38 +1,64 @@
 #include "gfx_directx_cls_dinput.h"
 using namespace gfx;
 
-DirectInput::DirectInput() : m_bInitialized(false), m_bClipping(false)
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "dinput8.lib") //can't remove until c_dfDI* are replaced/linked at runtime
+
+DirectInput::DirectInput() : m_bInitialized(false), m_bClipping(false),
+m_bLibraryLoaded(false), m_hDinput8(NULL), m_dfKeyboard(NULL), m_dfMouse(NULL)
 {
 	::ZeroMemory(&m_mouseState, sizeof(m_mouseState));
 	::ZeroMemory(&m_mouseStateChange, sizeof(m_mouseStateChange));
 	::ZeroMemory(&m_rClip, sizeof(m_rClip));
 	::ZeroMemory(m_keyboardState, sizeof(m_keyboardState));
+	DirectInput8Create_call = NULL;
+
+	m_hDinput8 = ::LoadLibrary(TEXT("dinput8.dll"));
+	if(m_hDinput8 == NULL)
+		return;
+	DirectInput8Create_call = (DINPUT_CREATE_CALL)::GetProcAddress(m_hDinput8, "DirectInput8Create");
+	if(DirectInput8Create_call == NULL)
+		return;
+
+	m_bLibraryLoaded = true; //remove when c_dfDI* are successfully replaced/linked at runtime
+
+	//doesn't work quite yet--may be c_dfDI* were __declspec(dllimport)
+	m_dfKeyboard = (DIDATAFORMAT*)::GetProcAddress(m_hDinput8, "c_dfDIKeyboard");
+	m_dfMouse = (DIDATAFORMAT*)::GetProcAddress(m_hDinput8, "c_dfDIMouse2");
+	if(m_dfKeyboard == NULL || m_dfMouse == NULL)
+		return;
+	
+	m_bLibraryLoaded = true;
 }
 
 DirectInput::~DirectInput()
 {
 	Shutdown();
+	if(m_hDinput8)
+		::FreeLibrary(m_hDinput8);
 }
 
 int DirectInput::Initialize(gfx::Window *pWindow)
 {
+	if(!m_bLibraryLoaded)
+		return -1;
 	Shutdown();
 	if(pWindow == NULL)
 		return -1;
 
-	::DirectInput8Create(pWindow->GetAppHandle(), DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_dinput, NULL);
+	DirectInput8Create_call(pWindow->GetAppHandle(), DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_dinput, NULL);
 	if(m_dinput == NULL)
 		return -1;
 	m_dinput->CreateDevice(GUID_SysKeyboard, &m_keyboard, 0);
 	if(m_keyboard == NULL)
 		return -1;
-	m_keyboard->SetDataFormat(&c_dfDIKeyboard);
+	m_keyboard->SetDataFormat(/*m_dfKeyboard*/&c_dfDIKeyboard); //need to figure out how to replace this value
 	m_keyboard->SetCooperativeLevel(pWindow->GetWindowHandle(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
 
 	m_dinput->CreateDevice(GUID_SysMouse, &m_mouse, 0);
 	if(m_mouse == NULL)
 		return -1;
-	m_mouse->SetDataFormat(&c_dfDIMouse2);
+	m_mouse->SetDataFormat(/*m_dfMouse*/&c_dfDIMouse2); //here, too
 	m_mouse->SetCooperativeLevel(pWindow->GetWindowHandle(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
 
 	m_keyboard->Acquire();

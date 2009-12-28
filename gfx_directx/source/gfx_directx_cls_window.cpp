@@ -71,7 +71,7 @@ int Window::Initialize(HINSTANCE hInstance, TCHAR* szIconResource, WNDPROC lpfnW
 
 void Window::Shutdown(int nExitCode)
 {
-	::PostQuitMessage(nExitCode);
+	::DestroyWindow(m_hWnd);
 }
 
 int Window::PumpMessages()

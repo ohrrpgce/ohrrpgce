@@ -1,4 +1,27 @@
 --------------------------------------------------
+12/28/09
+v1.4
+
+Added Features:
+
+-Fixed a bug when the backend failed to initialize.
+
+-Screenshot options are disabled if the d3dx9 library to load the screen shot function fails. This means the user does not need the d3dx9 libraries at all to run the directx backend.
+
+-Preparing modules to not be dependent on dinput8.dll being present on system.
+
+-Some code cleanup.
+
+Feature Request:
+
+-Joystick support
+
+-Revised backend interfaces
+
+
+
+
+--------------------------------------------------
 12/26/09
 v1.3
 

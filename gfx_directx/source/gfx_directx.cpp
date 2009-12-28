@@ -12,17 +12,20 @@ using namespace gfx;
 #include "di2fb_scancodes.h"
 #include "resource.h"
 
-#define DX_BUILD_DIRECTX_DYNAMIC FALSE //can only be TRUE or FALSE, or 1 or 0 respectively
+#define DX_BUILD_DIRECTX_DYNAMIC TRUE //can only be TRUE or FALSE, or 1 or 0 respectively
 #define DX_BUILD_MSVC_DYNAMIC FALSE //can only be TRUE or FALSE, or 1 or 0 respectively
 #define DX_VERSION_MAJOR 0x1
-#define DX_VERSION_MINOR 0x3
+#define DX_VERSION_MINOR 0x4
 #define DX_VERSION_BUILD ((DX_BUILD_MSVC_DYNAMIC << 1) + DX_BUILD_DIRECTX_DYNAMIC)
 #define DX_BACKEND_VERSION ((DX_VERSION_MAJOR << 16) + (DX_VERSION_MINOR << 8) + DX_VERSION_BUILD)
 
+//can be removed
 //#pragma comment(lib, "d3d9.lib")
 //#pragma comment(lib, "d3dx9.lib")
-#pragma comment(lib, "dinput8.lib")
-#pragma comment(lib, "dxguid.lib")
+
+//moved to gfx_directx_cls_dinput.cpp
+//#pragma comment(lib, "dinput8.lib")
+//#pragma comment(lib, "dxguid.lib")
 
 //use common controls available on different windows OS'
 #if defined _M_IX86
@@ -83,6 +86,7 @@ int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* window
 	if(DX_OK != g_DirectX.Initialize(&g_Window, MODULENAME/*, false*/))
 	{
 		g_Window.Shutdown(0);
+		PumpMessages();
 		return FALSE;
 	}
 	g_Window.SetClientSize(960, 600);
@@ -94,6 +98,7 @@ int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* window
 	{
 		g_DirectX.Shutdown();
 		g_Window.Shutdown(0);
+		PumpMessages();
 		return FALSE;
 	}
 	io_mouserect(-1,-1,-1,-1);
@@ -108,7 +113,7 @@ void gfx_close()
 	g_State.bClosing = true;
 	g_DirectX.Shutdown();
 	g_Window.Shutdown(0);
-	while(g_Window.PumpMessages() == S_OK);
+	PumpMessages();
 }
 
 int gfx_getversion()
@@ -501,16 +506,16 @@ LRESULT CALLBACK OHRGameWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
 			}
 		} break;
-TEST_ONLY_BLOCK(
-	case WM_CHAR:
-		{
-			if(wParam == 'D' || wParam == 'd')
-				::MessageBox(0, g_DirectX.GetCapsMessage(), TEXT("Debug D3D9 Capabilities"), MB_OK);
-			else if(wParam == 'L' || wParam == 'l')
-				::MessageBox(0, g_DirectX.GetLastErrorMessage(), TEXT("Debug D3D9 Last Error"), MB_OK);
-			return ::DefWindowProc(hWnd, msg, wParam, lParam);
-		} break;
-	); //TEST_ONLY_BLOCK
+//TEST_ONLY_BLOCK(
+//	case WM_CHAR:
+//		{
+//			if(wParam == 'D' || wParam == 'd')
+//				::MessageBox(0, g_DirectX.GetCapsMessage(), TEXT("Debug D3D9 Capabilities"), MB_OK);
+//			else if(wParam == 'L' || wParam == 'l')
+//				::MessageBox(0, g_DirectX.GetLastErrorMessage(), TEXT("Debug D3D9 Last Error"), MB_OK);
+//			return ::DefWindowProc(hWnd, msg, wParam, lParam);
+//		} break;
+//	); //TEST_ONLY_BLOCK
 	case WM_ACTIVATE:
 		{
 			if(LOWORD(wParam) == WA_INACTIVE)
@@ -779,11 +784,14 @@ BOOL CALLBACK OHRGameOptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, L
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, BST_CHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, BST_UNCHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, BST_CHECKED);
-					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG, BST_CHECKED);
-					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_BMP, BST_UNCHECKED);
-					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_PNG, BST_UNCHECKED);
-					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_DDS, BST_UNCHECKED);
-					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_OHR, BST_UNCHECKED);
+					if(g_DirectX.IsScreenShotsActive())
+					{
+						::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG, BST_CHECKED);
+						::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_BMP, BST_UNCHECKED);
+						::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_PNG, BST_UNCHECKED);
+						::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_DDS, BST_UNCHECKED);
+						::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_OHR, BST_UNCHECKED);
+					}
 					return TRUE;
 				} break;
 			case IDOK:
@@ -832,22 +840,34 @@ BOOL CALLBACK OHRGameOptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, L
 			TCHAR strInfoBuffer[128] = TEXT("");
 			::_stprintf_s<128>(strInfoBuffer, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Info, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
-			switch(g_DirectX.GetImageFileFormat())
+			if(g_DirectX.IsScreenShotsActive())
 			{
-			case D3DXIFF_JPG:
-				::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG, BST_CHECKED);
-				break;
-			case D3DXIFF_BMP:
-				::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_BMP, BST_CHECKED);
-				break;
-			case D3DXIFF_PNG:
-				::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_PNG, BST_CHECKED);
-				break;
-			case D3DXIFF_DDS:
-				::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_DDS, BST_CHECKED);
-				break;
-			default:
+				switch(g_DirectX.GetImageFileFormat())
+				{
+				case D3DXIFF_JPG:
+					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG, BST_CHECKED);
+					break;
+				case D3DXIFF_BMP:
+					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_BMP, BST_CHECKED);
+					break;
+				case D3DXIFF_PNG:
+					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_PNG, BST_CHECKED);
+					break;
+				case D3DXIFF_DDS:
+					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_DDS, BST_CHECKED);
+					break;
+				default:
+					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_OHR, BST_CHECKED);
+				}
+			}
+			else
+			{
 				::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_OHR, BST_CHECKED);
+				::EnableWindow(::GetDlgItem(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG), FALSE);
+				::EnableWindow(::GetDlgItem(hWndDlg, IDC_OPTIONS_ScrnShotFormats_BMP), FALSE);
+				::EnableWindow(::GetDlgItem(hWndDlg, IDC_OPTIONS_ScrnShotFormats_PNG), FALSE);
+				::EnableWindow(::GetDlgItem(hWndDlg, IDC_OPTIONS_ScrnShotFormats_DDS), FALSE);
+				::EnableWindow(::GetDlgItem(hWndDlg, IDC_OPTIONS_ScrnShotFormats_OHR), FALSE);
 			}
 		} break;
 	default:
