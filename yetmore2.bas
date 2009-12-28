@@ -861,7 +861,7 @@ FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
   IF loadrecord (buf(), fname$, 20, trigger - 16384) THEN
    decodetrigger = buf(0)
    IF buf(0) = 0 THEN
-    scripterr "Script " + readbinstring(buf(), 1, 36) + " is not imported", 5
+    scripterr "Script " + readbinstring(buf(), 1, 36) + " is used but has not been imported", 6
    END IF
   END IF
  END IF

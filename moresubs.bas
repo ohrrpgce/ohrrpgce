@@ -1318,7 +1318,7 @@ SELECT CASE id
  CASE 0 TO 4095 'global variable
   readscriptvar = global(id)
  CASE ELSE
-  scripterr "Cannot read global " & id & ". Out of range", 4
+  scripterr "Cannot read global " & id & ". Out of range", 5
 END SELECT
 
 END FUNCTION
@@ -1520,9 +1520,8 @@ IF n = 0 THEN
 END IF
 
 IF index > 127 THEN
- scripterr "interpreter overloaded", 5
  runscript = 0 '--error
- scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n), 5
+ scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n) & ", interpreter overloaded", 6
  EXIT FUNCTION
 END IF
 
@@ -1550,7 +1549,7 @@ WITH scrat(index)
  IF .scr = NULL THEN
   '--failed to load
   runscript = 0'--error
-  scripterr "Failed to load " + er$ + " script " & n & " " & scriptname(n), 5
+  scripterr "Failed to load " + er$ + " script " & n & " " & scriptname(n), 6
   EXIT FUNCTION
  END IF
  .scr->totaluse += 1
@@ -1571,9 +1570,8 @@ WITH scrat(index)
  scrat(index + 1).heap = .heap + .scr->vars
 
  IF scrat(index + 1).heap > 2048 THEN
-  scripterr "Script heap overflow", 5
   runscript = 0'--error
-  scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n), 5
+  scripterr "failed to load " + er$ + " script " & n & " " & scriptname(n) & ", script heap overflow", 6
   EXIT FUNCTION
  END IF
 
@@ -1625,7 +1623,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
    '--because TMC once suggested that preunlumping the .hsp lump would be a good way to reduce (SoJ) loading time
    scriptfile$ = workingdir & SLASH & n & ".hsx"
    IF NOT isfile(scriptfile$) THEN
-    scripterr "script id " & n & " does not exist", 5
+    scripterr "script id " & n & " does not exist", 6
     RETURN NULL
    END IF
   END IF
@@ -1659,7 +1657,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
    scrformat = 0
   END IF
   IF scrformat > 2 THEN
-   scripterr "script " & n & " is in an unsupported format", 5
+   scripterr "script " & n & " is in an unsupported format", 6
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -1679,7 +1677,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
   'set an arbitrary max script buffer size (scriptmemMax in const.bi), individual scripts must also obey
   .size = (LOF(f) - skip) \ wordsize
   IF .size > scriptmemMax THEN
-   scripterr "Script " & n & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", 5
+   scripterr "Script " & n & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", 6
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -1692,7 +1690,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
 
   .ptr = allocate(.size * sizeof(integer))
   IF .ptr = 0 THEN
-   scripterr "Could not allocate memory to load script", 5
+   scripterr "Could not allocate memory to load script", 6
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
@@ -2137,12 +2135,13 @@ END SUB
 
 'errorlevel scheme:
 '1: informative messages
-'2: suspicious operation on weak type or suspicious argument type (unimplemented)
-'3: warning on auto-bound() argument  (suppressed in old games)
-'4: bad argument/operation       (not suppressed by default)
-'5: corrupt script data/unimplemented feature/interpreter can't continue
-'6: impossible condition; engine bug
-SUB scripterr (e AS STRING, errorlevel as integer = 4)
+'2: possibly suspicious operation, eg. re-freeing a slice
+'3: suspicious operation on weak type or suspicious argument type (unimplemented)
+'4: warning on auto-bound() argument  (suppressed in old games)
+'5: bad argument/operation       (not suppressed by default)
+'6: corrupt script data/unimplemented feature/interpreter can't continue
+'7: impossible condition; engine bug
+SUB scripterr (e AS STRING, errorlevel as integer = 5)
  'mechanism to handle scriptwatch throwing errors
  STATIC as integer recursivecall
 
@@ -2164,8 +2163,8 @@ SUB scripterr (e AS STRING, errorlevel as integer = 4)
 
  recursivecall += 1
 
- IF errorlevel = 5 THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
- IF errorlevel >= 6 THEN e = "PLEASE REPORT THIS POSSIBLE ENGINE BUG" + CHR(10) + e
+ IF errorlevel = 6 THEN e = "Script data may be corrupt or unsupported:" + CHR(10) + e
+ IF errorlevel >= 7 THEN e = "PLEASE REPORT THIS POSSIBLE ENGINE BUG" + CHR(10) + e
 
  IF nowscript < 0 THEN
   e = e + CHR(10) + CHR(10) + "Funny... no scripts running!"
@@ -2220,7 +2219,7 @@ SUB scripterr (e AS STRING, errorlevel as integer = 4)
     CASE 0 'ignore
      EXIT DO
     CASE 1 'hide errors (but not engine bugs)
-     err_suppress_lvl = 5
+     err_suppress_lvl = 6
      EXIT DO
     CASE 2 'hide some errors
      err_suppress_lvl = errorlevel
@@ -2243,7 +2242,7 @@ SUB scripterr (e AS STRING, errorlevel as integer = 4)
 
   centerbox 160, 12, 310, 15, 3, vpage
   textcolor uilook(uiText), 0
-  IF errorlevel >= 6 THEN
+  IF errorlevel >= 7 THEN
    printstr "Impossible error/engine bug!", 160 - 28*4, 7, vpage
   ELSE
    printstr "Script Error!", 160 - 13*4, 7, vpage
@@ -2275,13 +2274,13 @@ SELECT CASE AS CONST curcmd->value
   scriptret = retvals(0) ^ retvals(1)
  CASE 2' modulus
   IF retvals(1) = 0 THEN
-   scripterr "division by zero", 4
+   scripterr "division by zero", 5
   ELSE
    scriptret = retvals(0) MOD retvals(1)
   END IF
  CASE 3' divide
   IF retvals(1) = 0 THEN
-   scripterr "division by zero", 4
+   scripterr "division by zero", 5
   ELSE
    scriptret = retvals(0) \ retvals(1)
   END IF
@@ -2329,7 +2328,7 @@ SELECT CASE AS CONST curcmd->value
  CASE 22'^^
   IF retvals(0) <> 0 XOR retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
  CASE ELSE
-  scripterr "unsupported math function id " & curcmd->value, 5
+  scripterr "unsupported math function id " & curcmd->value, 6
 END SELECT
 END SUB
 
@@ -2598,7 +2597,7 @@ SELECT CASE id
  CASE 0 TO 4095 'global variable
   global(id) = newval
  CASE ELSE
-  scripterr "Cannot write global " & id &  ". Out of range", 4
+  scripterr "Cannot write global " & id &  ". Out of range", 5
 END SELECT
 
 END SUB

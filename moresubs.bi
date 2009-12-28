@@ -32,7 +32,7 @@ DECLARE SUB freescripts (mem as integer)
 DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB savegame (slot as integer, stat() as integer)
 DECLARE SUB saveglobalvars (slot as integer, first as integer, last as integer)
-DECLARE SUB scripterr (e as string, errorlevel as integer = 4)
+DECLARE SUB scripterr (e as string, errorlevel as integer = 5)
 DECLARE SUB scriptmath
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 DECLARE SUB shop (id as integer, needf as integer, stat() as integer)

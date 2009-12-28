@@ -30,8 +30,9 @@ REDIM keyv(55, 3)
 #IFDEF IS_GAME
 DECLARE SUB embedtext (text$, limit=0)
 DECLARE FUNCTION istag (num, zero) as integer
-DECLARE SUB scripterr (e as string, errorlevel as integer = 4)
+DECLARE SUB scripterr (e as string, errorlevel as integer = 5)
 DECLARE FUNCTION commandname (byval id as integer) as string
+EXTERN insideinterpreter as integer
 EXTERN curcmd as ScriptCommand ptr
 #ENDIF
 
@@ -2762,10 +2763,10 @@ FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTR
  IF n < min OR n > max THEN
 #IFDEF IS_GAME
   IF fromscript THEN
-   IF *context = "" THEN
-    scripterr commandname(curcmd->value) + ": invalid " & *argname & " " & n, 3
+   IF *context = "" ANDALSO curcmd->kind = tyfunct THEN
+    scripterr commandname(curcmd->value) + ": invalid " & *argname & " " & n, 4
    ELSE
-    scripterr *context & ": invalid " & *argname & " " & n, 3
+    scripterr *context & ": invalid " & *argname & " " & n, 4
    END IF
    RETURN NO
   END IF
@@ -2775,6 +2776,20 @@ FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTR
  END IF
  RETURN YES
 END FUNCTION
+
+SUB reporterr(msg AS STRING, errlvl AS INTEGER = 5)
+ 'this is a placeholder for some more detailing replacement of debug, so scripterrs can be thrown from slices.bas
+#IFDEF IS_CUSTOM
+ debug msg
+#ELSE
+ IF insideinterpreter THEN
+  IF curcmd->kind = tyfunct THEN msg = commandname(curcmd->value) + ": " + msg
+  scripterr msg, errlvl
+ ELSE
+  debug msg
+ END IF
+#ENDIF
+END SUB
 
 FUNCTION tag_set_caption(n AS INTEGER, prefix AS STRING="Set Tag") AS STRING
  RETURN tag_condition_caption(n, prefix, "N/A", "Unchangeable", "Unchangeable")

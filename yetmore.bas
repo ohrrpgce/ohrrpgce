@@ -452,7 +452,7 @@ si.state = stnext
 checkoverflow(scrst, curcmd->argc + 5)
 
 IF curcmd->kind <> tyflow THEN
- scripterr "Root script command not flow, but " & curcmd->kind, 5
+ scripterr "Root script command not flow, but " & curcmd->kind, 6
  si.state = sterror
 END IF
 END SUB
@@ -473,7 +473,7 @@ SELECT CASE cmdptr->kind
   pushs(scrst, cmdptr->value)
  CASE tyglobal
   IF cmdptr->value < 0 OR cmdptr->value > 4095 THEN
-   scripterr "Illegal global variable id " & cmdptr->value, 4
+   scripterr "Illegal global variable id " & cmdptr->value, 5
    si.state = sterror
    EXIT SUB
   END IF
@@ -503,7 +503,7 @@ SELECT CASE cmdptr->kind
   IF curcmd->argc = 0 THEN EXIT SUB
   GOTO quickrepeat
  CASE ELSE
-  scripterr "Illegal statement type " & cmdptr->kind, 5
+  scripterr "Illegal statement type " & cmdptr->kind, 6
   si.state = sterror
   EXIT SUB
 END SELECT
@@ -966,7 +966,7 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) < 127 THEN
    scriptret = keyval(retvals(0)) AND 3
   ELSE
-   scripterr "invalid scancode keyval(" & retvals(0) & ")", 3
+   scripterr "invalid scancode keyval(" & retvals(0) & ")", 4
   END IF
  CASE 31'--rank in caterpillar
   scriptret = rankincaterpillar(retvals(0))
@@ -1125,13 +1125,13 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
    scriptret = global(retvals(0))
   ELSE
-   scripterr "readglobal: Cannot read global " & retvals(0) & ". Out of range", 4
+   scripterr "readglobal: Cannot read global " & retvals(0) & ". Out of range", 5
   END IF
  CASE 115'--write global
   IF retvals(0) >= 0 AND retvals(0) <= 4095 THEN
    global(retvals(0)) = retvals(1)
   ELSE
-   scripterr "writeglobal: Cannot write global " & retvals(0) & ". Out of range", 4
+   scripterr "writeglobal: Cannot write global " & retvals(0) & ". Out of range", 5
   END IF
  CASE 116'--hero is walking
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -1184,7 +1184,7 @@ SELECT CASE AS CONST id
   partyslot = bound(retvals(0), 0, 40)
   heroID = hero(partyslot) - 1
   IF heroID = -1 THEN
-   scripterr "can learn spell: fail on empty party slot " & partyslot, 3
+   scripterr "can learn spell: fail on empty party slot " & partyslot, 4
   ELSE
    IF retvals(1) > 0 THEN
     DIM her as herodef ptr
@@ -1259,7 +1259,7 @@ SELECT CASE AS CONST id
    NEXT i
    'NOTE: scriptret is not set here when this command is successful. The return value of the called script will be returned.
   ELSE
-   scripterr "run script by id failed loading " & retvals(0), 5
+   scripterr "run script by id failed loading " & retvals(0), 6
    scriptret = -1
   END IF
  CASE 180'--mapwidth
@@ -1750,11 +1750,11 @@ SELECT CASE AS CONST id
  CASE 322'--load hero sprite
   scriptret = load_sprite_plotslice(0, retvals(0), retvals(1))
  CASE 323'--free sprite
-  IF valid_plotslice(retvals(0), 1) THEN
+  IF valid_plotslice(retvals(0), 2) THEN
    IF plotslices(retvals(0))->SliceType = slSprite THEN
     DeleteSlice @plotslices(retvals(0))
    ELSE
-    scripterr "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0))), 4
+    scripterr "free sprite: slice " & retvals(0) & " is a " & SliceTypeName(plotslices(retvals(0))), 5
    END IF
   END IF
  CASE 324 '--put slice  (previously place sprite)
@@ -1881,11 +1881,11 @@ SELECT CASE AS CONST id
  CASE 360 '--sprite layer
   scriptret = find_plotslice_handle(SliceTable.ScriptSprite)
  CASE 361 '--free slice
-  IF valid_plotslice(retvals(0), 1) THEN
+  IF valid_plotslice(retvals(0), 2) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->SliceType = slRoot OR sl->SliceType = slSpecial THEN
-    scripterr "free slice: cannot free " & SliceTypeName(sl) & " slice " & retvals(0), 4
+    scripterr "free slice: cannot free " & SliceTypeName(sl) & " slice " & retvals(0), 5
    ELSE
     DeleteSlice @plotslices(retvals(0))
    END IF
@@ -1910,11 +1910,7 @@ SELECT CASE AS CONST id
   scriptret = create_plotslice_handle(sl)
  CASE 365 '--set parent
   IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
-   IF verifySliceLineage(plotslices(retvals(0)), plotslices(retvals(1))) THEN
-    SetSliceParent plotslices(retvals(0)), plotslices(retvals(1))
-   ELSE
-    scripterr "set parent: cannot make slice " & retvals(0) & " a child of its own child " & retvals(1), 4
-   END IF
+   SetSliceParent plotslices(retvals(0)), plotslices(retvals(1))
   END IF
  CASE 366 '--check parentage
   IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
@@ -2115,7 +2111,7 @@ SELECT CASE AS CONST id
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Parent = 0 THEN
-    scripterr "slice to back: invalid on root slice", 4
+    scripterr "slice to back: invalid on root slice", 5
    ELSE
     InsertSliceBefore sl->Parent->FirstChild, sl
    END IF
@@ -2366,7 +2362,7 @@ SELECT CASE AS CONST id
    ELSEIF bound_arg(retvals(1), 1, 99, "count") THEN
     WITH inventory(retvals(0))
      IF .used = NO THEN
-      scripterr "set item count in slot: can't set count for empty slot " & retvals(0), 3
+      scripterr "set item count in slot: can't set count for empty slot " & retvals(0), 4
      ELSE
       .num = retvals(1)
      END IF
@@ -2385,7 +2381,7 @@ SELECT CASE AS CONST id
  CASE 446 '--move slice below
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
    IF retvals(0) = retvals(1) THEN
-    scripterr "moveslicebelow: tried to move a slice below itself", 1  'maybe new errlvl?
+    scripterr "moveslicebelow: tried to move a slice below itself", 2
    ELSE
     InsertSliceBefore plotslices(retvals(1)), plotslices(retvals(0))
    END IF
@@ -2393,14 +2389,14 @@ SELECT CASE AS CONST id
  CASE 447 '--move slice above
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
    IF retvals(0) = retvals(1) THEN
-    scripterr "movesliceabove: tried to move a slice above itself", 1  'maybe new errlvl?
+    scripterr "movesliceabove: tried to move a slice above itself", 2
    ELSE
     DIM sl AS Slice Ptr = plotslices(retvals(1))
     IF sl->NextSibling THEN
      InsertSliceBefore sl->NextSibling, plotslices(retvals(0))
     ELSE
      IF sl->Parent = NULL THEN
-      scripterr "movesliceabove: Root shouldn't have siblings", 4
+      scripterr "movesliceabove: Root shouldn't have siblings", 5
      ELSE
       'sets as last child
       SetSliceParent plotslices(retvals(0)), sl->Parent
@@ -2545,11 +2541,11 @@ SELECT CASE AS CONST id
      IF npc(i).id <= 0 THEN EXIT FOR
     NEXT
     'I don't want to raise a scripterr here, again because it probably happens in routine in games like SoJ
-    scripterr "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20, 3
+    scripterr "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20, 1
     IF i = -1 THEN 
-     scripterr "create NPC error: couldn't create NPC: too many NPCs exist", 3
+     scripterr "create NPC error: couldn't create NPC: too many NPCs exist", 4
     ELSE
-     scripterr "create NPC warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", 3
+     scripterr "create NPC warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", 4
     END IF
    END IF
    IF i > -1 THEN
@@ -3880,16 +3876,16 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 END SUB
 
 FUNCTION valid_spriteslice_dat(BYVAL sl AS Slice Ptr) AS INTEGER
- IF sl = 0 THEN scripterr "null slice ptr in valid_spriteslice_dat", 6 : RETURN NO
+ IF sl = 0 THEN scripterr "null slice ptr in valid_spriteslice_dat", 7 : RETURN NO
  DIM dat AS SpriteSliceData Ptr = sl->SliceData
  IF dat = 0 THEN
-  scripterr SliceTypeName(sl) & " handle " & retvals(0) & " has null dat pointer", 6
+  scripterr SliceTypeName(sl) & " handle " & retvals(0) & " has null dat pointer", 7
   RETURN NO
  END IF
  RETURN YES
 END FUNCTION
 
-FUNCTION valid_plotslice(byval handle as integer, errlev as integer=4) as integer
+FUNCTION valid_plotslice(byval handle as integer, errlev as integer=5) as integer
  IF handle < LBOUND(plotslices) OR handle > UBOUND(plotslices) THEN
   scripterr commandname(curcmd->value) & ": invalid slice handle " & handle, errlev
   RETURN NO
@@ -3900,7 +3896,7 @@ FUNCTION valid_plotslice(byval handle as integer, errlev as integer=4) as intege
  END IF
  IF ENABLE_SLICE_DEBUG THEN
   IF SliceDebugCheck(plotslices(handle)) = NO THEN
-   scripterr commandname(curcmd->value) & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", 6
+   scripterr commandname(curcmd->value) & ": slice " & handle & " " & plotslices(handle) & " is not in the slice debug table!", 7
    RETURN NO
   END IF
  END IF
@@ -3914,7 +3910,7 @@ FUNCTION valid_plotsprite(byval handle as integer) as integer
     RETURN YES
    END IF
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a sprite", 4
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a sprite", 5
   END IF
  END IF
  RETURN NO
@@ -3925,7 +3921,7 @@ FUNCTION valid_plotrect(byval handle as integer) as integer
   IF plotslices(handle)->SliceType = slRectangle THEN
    RETURN YES
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a rect", 4
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a rect", 5
   END IF
  END IF
  RETURN NO
@@ -3935,12 +3931,12 @@ FUNCTION valid_plottextslice(byval handle as integer) as integer
  IF valid_plotslice(handle) THEN
   IF plotslices(handle)->SliceType = slText THEN
    IF plotslices(handle)->SliceData = 0 THEN
-    scripterr commandname(curcmd->value) & ": text slice handle " & handle & " has null data", 6
+    scripterr commandname(curcmd->value) & ": text slice handle " & handle & " has null data", 7
     RETURN NO
    END IF
    RETURN YES
   ELSE
-   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not text", 4
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not text", 5
   END IF
  END IF
  RETURN NO
@@ -3954,20 +3950,20 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
    IF sl->Fill = NO OR ignore_fill THEN
     RETURN YES
    ELSE
-    scripterr commandname(curcmd->value) & ": slice handle " & handle & " cannot be resized while filling parent", 4
+    scripterr commandname(curcmd->value) & ": slice handle " & handle & " cannot be resized while filling parent", 5
    END IF
   ELSE
    IF sl->SliceType = slText THEN
     DIM dat AS TextSliceData ptr
     dat = sl->SliceData
-    IF dat = 0 THEN scripterr "sanity check fail, text slice " & handle & " has null data", 6 : RETURN NO
+    IF dat = 0 THEN scripterr "sanity check fail, text slice " & handle & " has null data", 7 : RETURN NO
     IF dat->wrap = YES THEN
      RETURN YES
     ELSE
-     scripterr commandname(curcmd->value) & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", 4
+     scripterr commandname(curcmd->value) & ": text slice handle " & handle & " cannot be resized unless wrap is enabled", 5
     END IF
    ELSE
-    scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not resizeable", 4
+    scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not resizeable", 5
    END IF
   END IF
  END IF
@@ -3975,10 +3971,10 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
 END FUNCTION
 
 FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
- IF sl = 0 THEN scripterr "create_plotslice_handle null ptr", 6 : RETURN 0
+ IF sl = 0 THEN scripterr "create_plotslice_handle null ptr", 7 : RETURN 0
  IF sl->TableSlot <> 0 THEN
   'this should not happen! Call find_plotslice_handle instead.
-  scripterr "Error: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot), 6
+  scripterr "Error: " & SliceTypeName(sl) & " " & sl & " references plotslices(" & sl->TableSlot & ") which has " & plotslices(sl->TableSlot), 7
   RETURN 0
  END IF
  DIM i as integer
@@ -4036,7 +4032,7 @@ SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BY
   IF sl->SliceType = slRectangle THEN
    ChangeRectangleSlice sl, style, bgcol, fgcol, border, translucent
   ELSE
-   scripterr commandname(curcmd->value) & ": " & SliceTypeName(sl) & " is not a rect", 4 
+   scripterr commandname(curcmd->value) & ": " & SliceTypeName(sl) & " is not a rect", 5
   END IF
  END IF
 END SUB

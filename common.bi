@@ -158,6 +158,7 @@ DECLARE SUB remove_menu_item OVERLOAD(BYREF menu AS MenuDef, BYVAL mislot AS INT
 DECLARE SUB swap_menu_items(BYREF menu1 AS MenuDef, BYVAL mislot1 AS INTEGER, BYREF menu2 AS MenuDef, BYVAL mislot2 AS INTEGER)
 
 DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTRING PTR, context AS ZSTRING PTR=nulzstr, fromscript AS INTEGER=YES) AS INTEGER
+DECLARE SUB reporterr(msg AS STRING, errlvl AS INTEGER = 5)
 
 DECLARE FUNCTION load_tag_name (index AS INTEGER) AS STRING
 DECLARE SUB save_tag_name (tagname AS STRING, index AS INTEGER)
