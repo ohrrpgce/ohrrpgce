@@ -40,6 +40,23 @@ plotscript, test, begin
   wait(5)
   $0="sort tests: y sort", show string(0)
   y sort children (cont)
+  wait(5)
+  $0="sort tests: shuffle red up", show string(0)
+  sl := last child(cont)
+  sl2 := first child(cont)
+  while(sl) do, begin
+    sl3 := previous sibling(sl)
+    set slice y(sl, slice y(sl) + 1)
+    if (get rect style(sl) == 2) then(
+      sl2 := next sibling(sl)
+      if (sl2) then(
+        move slice above(sl, sl2)
+        if(previous sibling(sl) <> sl2) then($1="move slice above failed", trace(1))
+      )
+    )
+    sl := sl3
+    wait(15)
+  end
   wait(10)
   $0="sort tests: reverse y sort (sort children)", show string(0)
   sl := first child(cont)

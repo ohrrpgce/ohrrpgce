@@ -185,7 +185,8 @@ Dec ?? 2009 [Ypsiliform]
       "set slice text", "get text color", "set text color",
       "get text bg", "set text bg", "get outline", "set outline",
       "set wrap", "get wrap", "slice is text", "slice is valid",
-      "set slice visible", "get slice visible". [James]
+      "set slice visible", "get slice visible", "move slice below",
+      "move slice above". [James, Ralph]
     * "number from string" [James]
     * "set dead heroes gain experience" [James]
     * There are now 3 NPC extra data fields (0-2) accessible with

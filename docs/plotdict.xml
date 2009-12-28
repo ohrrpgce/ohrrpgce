@@ -2174,7 +2174,7 @@ end
 		<command id="lookupslice">
 			<canon>lookup slice (lookup code, start slice)</canon>
 			<shortname>lookup slice</shortname>
-			<description>Search for a special slice and return a handle to it, or 0 if it is not found. Special slices are named using slice lookup code constants. You can optionally specify a slice to start searching from, but if you do not, the whole slice tree will be searched.<note>There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your slices to these special slices, but moving them around is definitely out.</note> You may parent a slice to a map layer to make it move with the camera as if placed on the map.</description>
+			<description>Search for a special slice and return a handle to it, or 0 if it is not found. Special slices are named using slice lookup code constants. You can optionally specify a slice to start searching from, but if you do not, the whole slice tree will be searched. Currently, there is point ever specifying a start slice - this feature is unfinished. <note>There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your slices to these special slices, but moving them around is definitely out.</note> You may parent a slice to a map layer to make it move with the camera as if placed on the map.</description>
 <example>
 # this example gets a handle to the portrait of the currently displaying
 # text box (if any) and allows you to manipulate it.
@@ -2600,6 +2600,8 @@ end
 				<ref>freeslice</ref>
 				<ref>slicetofront</ref>
 				<ref>slicetoback</ref>
+				<ref>movesliceabove</ref>
+				<ref>moveslicebelow</ref>
 			</seealso>
 		</command>
 		<command id="previoussibling">
@@ -2611,6 +2613,8 @@ end
 				<ref>freeslice</ref>
 				<ref>slicetofront</ref>
 				<ref>slicetoback</ref>
+				<ref>movesliceabove</ref>
+				<ref>moveslicebelow</ref>
 			</seealso>
 		</command>
 		<command id="firstspritechild">
@@ -2762,6 +2766,7 @@ end
 </example>
 			<seealso>
 				<ref>slicetoback</ref>
+				<ref>movesliceabove</ref>
 			</seealso>
 		</command>
 		<command id="slicetoback">
@@ -2841,6 +2846,29 @@ end
 </example>
 			<seealso>
 				<ref>slicetofront</ref>
+				<ref>moveslicebelow</ref>
+			</seealso>
+		</command>
+		<command id="movesliceabove">
+			<canon>move slice above (handle, above what handle)</canon>
+			<shortname>move slice above</shortname>
+			<description>Given a slice <p>handle</p>, move it so that it is the next sibling of another slice given by <p>above what handle</p> (changing its parent if necessary). This will cause it to be drawn immediately after that slice.</description>
+			<seealso>
+				<ref>moveslicebelow</ref>
+				<ref>slicetofront</ref>
+				<ref>slicetoback</ref>
+				<ref>nextsibling</ref>
+			</seealso>
+		</command>
+		<command id="moveslicebelow">
+			<canon>move slice below (handle, below what handle)</canon>
+			<shortname>move slice below</shortname>
+			<description>Given a slice <p>handle</p>, move it so that it is the previous sibling of another slice given by <p>below what handle</p> (changing its parent if necessary). This will cause it to be drawn immediately before that slice.</description>
+			<seealso>
+				<ref>movesliceabove</ref>
+				<ref>slicetofront</ref>
+				<ref>slicetoback</ref>
+				<ref>previoussibling</ref>
 			</seealso>
 		</command>
 		<command id="ysortchildren">

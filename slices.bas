@@ -329,6 +329,7 @@ Sub OrphanSlice(byval sl as slice ptr)
 end sub
 
 Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
+ 'Note: might be reparenting a slice to its parent, to make it the last child
  if sl = 0 then debug "SetSliceParent null ptr": exit sub
 
  'first, remove the slice from its existing parent
@@ -352,7 +353,7 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
    parent->NumChildren += 1
    sl->parent = parent
   else
-   debug "Detected inbreeding in slice system!"
+   debug "Attempted to parent a slice to itself or descendents!"
   end if
  end if
  
@@ -444,16 +445,24 @@ Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
  RelinkChildren parent, slice_list()
 End sub
 
-Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
+Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
  'newsl will be removed from its current parent (if any) and attached to the same
- 'parent as sl
- if sl = 0 then debug "InsertSiblingSlice: null sl": EXIT SUB
- if newsl = 0 then debug "InsertSiblingSlice: null newsl": EXIT SUB
+ 'parent as sl as the child before sl
+ if sl = 0 then debug "InsertSliceBefore: null sl": EXIT SUB
+ if newsl = 0 then debug "InsertSliceBefore: null newsl": EXIT SUB
  if sl = newsl then EXIT SUB ' Fail quietly when trying to insert a slice as a sibling
                              ' of itself because this is normal if you are using this function
                              ' to move a slice to the beginning of its sibling list when it is
                              ' already the first sibling
- if sl->Parent = 0 then debug "InsertSiblingSlice: Root shouldn't have siblings": EXIT SUB
+ if sl->PrevSibling = newsl then EXIT SUB 'already done
+ if sl->Parent = 0 then debug "InsertSliceBefore: Root shouldn't have siblings": EXIT SUB
+
+ 'Verify the family
+ if verifySliceLineage(newsl, sl->Parent) = NO then
+  debug "InsertSliceBefore: attempted to parent a slice to itself or descendents"
+  EXIT SUB
+ end if
+
  if newsl->Parent <> 0 then OrphanSlice newsl
 
  'Tell the new sibling about its parent
@@ -479,8 +488,6 @@ Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
  'One more mouth to feed...
  newsl->Parent->NumChildren += 1
  
- 'Verify the family
- if verifySliceLineage(newsl, sl->Parent) = NO then debug "slice inbreeding detected"
 end sub
 
 Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)

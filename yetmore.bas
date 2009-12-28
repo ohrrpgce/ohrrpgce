@@ -2115,9 +2115,9 @@ SELECT CASE AS CONST id
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
    IF sl->Parent = 0 THEN
-    scripterr "slice to back: null parent", 6 'right?
+    scripterr "slice to back: invalid on root slice", 4
    ELSE
-    InsertSiblingSlice sl->Parent->FirstChild, sl
+    InsertSliceBefore sl->Parent->FirstChild, sl
    END IF
   END IF
  CASE 404 '--last child
@@ -2381,6 +2381,32 @@ SELECT CASE AS CONST id
     .X = retvals(1)
     .Y = retvals(2)
    END WITH
+  END IF
+ CASE 446 '--move slice below
+  IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
+   IF retvals(0) = retvals(1) THEN
+    scripterr "moveslicebelow: tried to move a slice below itself", 1  'maybe new errlvl?
+   ELSE
+    InsertSliceBefore plotslices(retvals(1)), plotslices(retvals(0))
+   END IF
+  END IF
+ CASE 447 '--move slice above
+  IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
+   IF retvals(0) = retvals(1) THEN
+    scripterr "movesliceabove: tried to move a slice above itself", 1  'maybe new errlvl?
+   ELSE
+    DIM sl AS Slice Ptr = plotslices(retvals(1))
+    IF sl->NextSibling THEN
+     InsertSliceBefore sl->NextSibling, plotslices(retvals(0))
+    ELSE
+     IF sl->Parent = NULL THEN
+      scripterr "movesliceabove: Root shouldn't have siblings", 4
+     ELSE
+      'sets as last child
+      SetSliceParent plotslices(retvals(0)), sl->Parent
+     END IF
+    END IF
+   END IF
   END IF
 
 END SELECT

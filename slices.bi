@@ -207,7 +207,7 @@ DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
 DECLARE Sub OrphanSlice(byval sl as slice ptr)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
-DECLARE Sub InsertSiblingSlice(byval sl as slice ptr, byval newsl as slice ptr)
+DECLARE Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
 DECLARE Sub SwapSiblingSlices(byval sl1 as slice ptr, byval sl2 as slice ptr)
 DECLARE Function LookupSlice OVERLOAD (byval lookup_code as integer) as slice ptr
 DECLARE Function LookupSlice OVERLOAD (byval lookup_code as integer, byval start_sl as slice ptr) as slice ptr

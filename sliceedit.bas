@@ -151,7 +151,7 @@ SUB slice_editor ()
   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
     IF state.pt > 0 THEN
-     InsertSiblingSlice menu(state.pt).handle, NewSliceOfType(slice_type)
+     InsertSliceBefore menu(state.pt).handle, NewSliceOfType(slice_type)
     ELSE
      NewSliceOfType(slice_type, edslice)
     END IF
