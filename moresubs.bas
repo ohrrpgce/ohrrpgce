@@ -2244,8 +2244,12 @@ SUB scripterr (e AS STRING, errorlevel as integer = 5)
   textcolor uilook(uiText), 0
   IF errorlevel >= 7 THEN
    printstr "Impossible error/engine bug!", 160 - 28*4, 7, vpage
-  ELSE
+  ELSEIF errorlevel >= 4 THEN
    printstr "Script Error!", 160 - 13*4, 7, vpage
+  ELSEIF errorlevel >= 2 THEN
+   printstr "Script Warning", 160 - 14*4, 7, vpage
+  ELSE
+   printstr "Script Diagnostic", 160 - 17*4, 7, vpage
   END IF
 
   FOR i as integer = 0 TO UBOUND(errtext)

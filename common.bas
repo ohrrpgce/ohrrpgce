@@ -36,6 +36,10 @@ EXTERN insideinterpreter as integer
 EXTERN curcmd as ScriptCommand ptr
 #ENDIF
 
+#IFDEF IS_CUSTOM
+DECLARE FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+#ENDIF
+
 'Allocate sprite size table
 REDIM sprite_sizes(8) AS SpriteSize
 setup_sprite_sizes
@@ -2300,6 +2304,18 @@ fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names", -84 'Note
 'fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menus.bin", "Menu Items"
 fix_record_count gen(genMaxItem), 200, game & ".itm", "Items"
 
+IF gen(genErrorLevel) = 0 THEN
+ #IFDEF IS_GAME
+  gen(genErrorLevel) = 5
+ #ELSE
+  IF yesno("Start showing all script warnings?", YES) THEN
+   gen(genErrorLevel) = 2
+  ELSE
+   gen(genErrorLevel) = 5
+  END IF
+ #ENDIF
+END IF
+
 'Save changes to GEN lump (important when exiting to the title screen and loading a SAV)
 xbsave game + ".gen", gen(), 1000
 
@@ -2352,19 +2368,21 @@ SUB fix_sprite_record_count(BYVAL pt_num AS INTEGER)
  END WITH
 END SUB
 
-SUB standardmenu (menu() AS STRING, state AS MenuState, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO)
+SUB standardmenu (menu() AS STRING, state AS MenuState, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO, wide AS INTEGER=999)
  DIM p AS INTEGER
  WITH state
   p = .pt
   IF hidecursor THEN p = .first - 1
-  standardmenu menu(), .last, .size, p, .top, x, y, page, edge
+  standardmenu menu(), .last, .size, p, .top, x, y, page, edge, wide
  END WITH
 END SUB
 
-SUB standardmenu (menu() AS STRING, size, vis, pt, top, x, y, page, edge=NO)
+SUB standardmenu (menu() AS STRING, size, vis, pt, top, x, y, page, edge=NO, wide=999)
+'the default for wide is 999 until I know whether it'd break anything to set it to 40
 STATIC tog
 DIM i AS INTEGER
 DIM col AS INTEGER
+DIM text AS STRING
 
 tog = tog XOR 1
 
@@ -2372,12 +2390,20 @@ FOR i = top TO top + vis
  IF i <= size THEN
   IF edge THEN
    col = uilook(uiMenuItem)
-   IF pt = i THEN col = uilook(uiSelectedItem + tog)
-   edgeprint menu(i), x + 0, y + (i - top) * 8, col, page
+   text = menu(i)
+   IF pt = i THEN
+    col = uilook(uiSelectedItem + tog)
+    text = RIGHT(text, wide)
+   END IF
+   edgeprint text, x + 0, y + (i - top) * 8, col, page
   ELSE
    textcolor uilook(uiMenuItem), 0
-   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-   printstr menu(i), x + 0, y + (i - top) * 8, page
+   text = menu(i)
+   IF pt = i THEN
+    textcolor uilook(uiSelectedItem + tog), 0
+    text = RIGHT(text, wide)
+   END IF
+   printstr text, x + 0, y + (i - top) * 8, page
   END IF
  END IF
 NEXT i

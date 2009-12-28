@@ -336,7 +336,7 @@ loadglobalstrings
 getstatnames statnames()
 j = 0
 
-IF err_suppress_lvl = 0 THEN err_suppress_lvl = 4  'might be changed by -errlvl
+IF err_suppress_lvl = 0 THEN err_suppress_lvl = bound(gen(genErrorLevel) - 1, 0, 5)  'might be changed by -errlvl
 nowscript = -1
 numloadedscr = 0
 totalscrmem = 0
@@ -420,7 +420,7 @@ force_npc_check = YES
 showtags = 0
 shownpcinfo = 0
 gam.walk_through_walls = NO
-
+debug "err supp " & err_suppress_lvl
 'DEBUG debug "pre-call movement"
 GOSUB movement
 setkeys

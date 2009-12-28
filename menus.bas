@@ -1164,9 +1164,7 @@ END SUB
 
 SUB generate_gen_menu(m$(), longname$, aboutline$)
 m$(1) = "Long Name:" + longname$
-IF LEN(longname$) > 30 THEN m$(1) = longname$
 m$(2) = "About Line:" + aboutline$
-IF LEN(aboutline$) > 29 THEN m$(2) = aboutline$
 m$(12) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
 m$(13) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
 m$(14) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
@@ -1178,10 +1176,18 @@ ELSE
 END IF
 m$(17) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
 m$(18) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
+m$(19) = "Script errors: "
+SELECT CASE gen(genErrorLevel)
+ CASE 2: m$(19) += "Show all warnings"
+ CASE 3: m$(19) += "Hide nit-picking warnings"
+ CASE 4: m$(19) += "Hide all warnings"
+ CASE 5: m$(19) += "Hide errors not reported in old versions"
+ CASE 6: m$(19) += "Hide all ignoreable errors"
+END SELECT
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 18
+ CONST maxMenu = 19
  DIM m(maxMenu) AS STRING
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
@@ -1230,6 +1236,9 @@ SUB gendata ()
  index(18) = genDamageDisplayRise
  max(18) = 1000
  min(18) = -1000
+ index(19) = genErrorLevel
+ max(19) = 6
+ min(19) = 2
 
  DIM pas AS STRING = ""
  DIM aboutline AS STRING = ""
@@ -1326,7 +1335,7 @@ SUB gendata ()
   END IF
 
   draw_fullscreen_scrollbar state, , dpage
-  standardmenu m(), state, 0, 0, dpage, 0
+  standardmenu m(), state, 0, 0, dpage, 0, , 40
 
   SWAP vpage, dpage
   setvispage vpage

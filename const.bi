@@ -87,6 +87,7 @@ CONST genMaxItem = 82           'max item in .ITM
 CONST genMaxBoxBorder = 83      'max box borders in .PT7
 CONST genMaxPortrait = 84       'max portrait graphics in .PT8
 CONST genMaxInventory = 85      'max available inventory slot (0 means use inventoryMax)
+CONST genErrorLevel = 86        'value to set err_suppress_lvl to, if nonzero
 CONST genPW2Offset = 93         'old password offset
 CONST genPW2Length = 94         'old password length
 CONST genVersion = 95           'RPG file format version(6 is the latest)
