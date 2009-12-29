@@ -23,6 +23,7 @@ struct GFX_PREFERENCES
 	int left; //window left
 	int width; //client width
 	int height; //client height
+	int bAspectRatioPreservation; //0 = false; if true, aspect ratio preservation is enabled
 	int bFullscreen; //0 = false; if true, backend preference is fullscreen
 	int bSmooth; //0 = false; if true, backend preference is smooth linear interpolation
 	int bVsync; //0 = false; if true, backend preference is vsync enabled
@@ -48,13 +49,6 @@ int gfx_ScreenShot(const char* szFileName); //takes a screenshot; if failed, ret
 
 void gfx_SetWindowTitle(const char* szTitle); //sets the window title; the backend may add messages to the window title to describe further option
 const char* gfx_GetWindowTitle(); //returns the window title without the backend's possible additions
-
-//sends a command string option and argument to the backend;
-//on no recognition, returns 0;
-//on recognition, but szArgument was not needed, returns 1;
-//on recognition and szArgument was used, returns 2;
-int gfx_SendCommandString(const char* szOption, const char* szArgument);
-const char* gfx_GetCommandStringDescription(); //returns a description of the command strings the backend will accept
 
 int gfx_AcquireKeyboard(int bEnable); //alerts backend of the engine's request for keyboard input; if bEnable == 0, the keyboard is freed; returns 0 on failure
 int gfx_AcquireMouse(int bEnable); //alerts backend of the engine's request for mouse input; if bEnable == 0, the mouse is freed; returns 0 on failure
