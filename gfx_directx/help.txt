@@ -1,0 +1,39 @@
+gfx_directx backend help.txt
+updated 12/29/09
+
+General:
+gfx_directx.dll is a windows-only graphics backend. It will not run on other operating systems. It is also dependent on d3d9.dll, and dinput8.dll. If any of those libraries are missing, the backend will fail. The backend also depends on d3dx9_24.dll, though if absent will only result in not being able to take backend-specific screenshots.
+
+The backend is built for directx 9.0, but has ability to run on 8.1 hardware (possibly earlier).
+
+
+
+
+Main window:
+-Click the system menu (the upper-left corner of the window, with the icon) to access the Options dialog.
+
+-Click and drag any side to change the size of the window. If Aspect Ratio Preservation is enabled, black padding will be added to the sides of the image to preserve aspect ratio.
+
+-Click and drag any corner to change the size of the window to a multiple of the native resolution. This includes 320x200, 640x400, 960x600, 1280x800, etc. The window will snap to the closest multiple of the native resolution.
+
+-To go fullscreen, press Alt-Enter. To return, press Alt-Enter.
+
+-If the mouse is acquired for input by the ohr engine, the operating system's mouse cursor will disappear. If you leave the window (ie. Alt-Tab) it will reappear. A message also posts to the top of the window: "Press Scroll Lock to lock/free the mouse". If Scroll Lock is pressed, the mouse will be freed from control of the ohr. The ohr will not continue receiving input from the mouse until Scroll Lock is pressed again.
+
+
+
+
+Options dialog:
+-"Enable Aspect Ratio Preservation" : toggles whether the aspect ratio of the ohr image will be preserved though the window may stretch to dimensions other than multiples of the ohr resolution. If enabled, the image will be padded to keep the aspect ratio.
+
+-"Enable Vsync" : toggles video synchronization with the monitor refresh rate. Because the ohr engine is running at 17fps, there is not a performance hit if enabled. Best to keep enabled always, as it prevents video tearing.
+
+-"Enable Smooth Draw" : toggles smooth linear interpolation of the image when it is stretched. This does not affect the image when viewed at the native resolution: 320x200.
+
+-"Screen Shot format" : a selection of formats available for taking screenshots. If the d3dx9_*.dll was not found, this selection will be grayed out (disabled). The last format, OHR(.bmp), is the ohr's native screenshot algorithm.
+
+-"DirectX Backend version: x.y.z" : reports the version of the backend. The first number is release, the second is revision (bug-fixing), and the third is build information. The build information will always be 1. See readme.txt for more information.
+
+-Text box : reports backend state. It should read DX_OK, but there is a potential for other errors reported here.
+
+-"Set Defaults" : sets all check boxes and screenshot format to the default selection.
