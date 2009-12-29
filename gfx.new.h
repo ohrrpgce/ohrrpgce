@@ -64,8 +64,8 @@ int gfx_GetMouseMovement(int& dx, int& dy, int& dWheel, int& buttons); //gets th
 int gfx_GetMousePosition(int& x, int& y, int& wheel, int& buttons); //gets the mouse position and button state; returns 0 on failure
 int gfx_SetMousePosition(int x, int y); //sets the mouse position; returns 0 on failure
 
-int gfx_GetJoystickMovement(int& nDevice, int& dx, int& dy, int& buttons); //gets the indexed joystick movement since last input poll and button state; returns 0 on failure
-int gfx_GetJoystickPosition(int& nDevice, int& x, int& y, int& buttons); //gets the indexed joystick position and button state; returns 0 on failure
+int gfx_GetJoystickMovement(int nDevice, int& dx, int& dy, int& buttons); //gets the indexed joystick movement since last input poll and button state; returns 0 on failure
+int gfx_GetJoystickPosition(int nDevice, int& x, int& y, int& buttons); //gets the indexed joystick position and button state; returns 0 on failure
 int gfx_SetJoystickPosition(int nDevice, int x, int y); //sets the indexed joystick position; returns 0 on failure
 
 #ifdef __cplusplus
