@@ -4,8 +4,10 @@
 #ifndef GFX_NEW_H
 #define GFX_NEW_H
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 
 struct GFX_INIT
 {
@@ -15,8 +17,23 @@ struct GFX_INIT
 	void (__cdecl *OnCriticalError)(const char* szError);
 };
 
-int gfx_Initialize(const struct GFX_INIT* pCreationData); //initializes the backend; if failed, returns 0
+struct GFX_PREFERENCES
+{
+	int top; //window top
+	int left; //window left
+	int width; //client width
+	int height; //client height
+	int bFullscreen; //0 = false; if true, backend preference is fullscreen
+	int bSmooth; //0 = false; if true, backend preference is smooth linear interpolation
+	int bVsync; //0 = false; if true, backend preference is vsync enabled
+	int nScreenshotFormat; //0 = ohr bmp, 1 = jpg, 2 = bmp, 3 = png, 4 = dds
+};
+
+int gfx_Initialize(const GFX_INIT* pCreationData); //initializes the backend; if failed, returns 0
 void gfx_Close(); //closes the backend--does not post the termination signal
+
+void gfx_SetPreferences(const GFX_PREFERENCES* pPreferences); //sets the preferences for a backend
+void gfx_GetPreferences(GFX_PREFERENCES* pPreferences); //gets the preferences of a backend
 
 int gfx_GetVersion(); //returns the backend version
 
@@ -57,6 +74,8 @@ int gfx_GetJoystickMovement(int& nDevice, int& dx, int& dy, int& buttons); //get
 int gfx_GetJoystickPosition(int& nDevice, int& x, int& y, int& buttons); //gets the indexed joystick position and button state; returns 0 on failure
 int gfx_SetJoystickPosition(int nDevice, int x, int y); //sets the indexed joystick position; returns 0 on failure
 
+#ifdef __cplusplus
 } //extern "C"
+#endif
 
 #endif //GFX_NEW_H
