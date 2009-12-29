@@ -15,6 +15,7 @@ struct GFX_INIT
 	char* szWindowIcon;
 	void (__cdecl *PostTerminateSignal)(void);
 	void (__cdecl *OnCriticalError)(const char* szError);
+	void (__cdecl *OutputDebugString)(const char* szMessage);
 };
 
 struct GFX_PREFERENCES
