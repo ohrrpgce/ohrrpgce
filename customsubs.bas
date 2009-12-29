@@ -438,6 +438,13 @@ FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", de
  DIM menu AS MenuDef
  ClearMenuData menu
  DIM result AS INTEGER
+ DIM captlines() AS STRING
+ DIM wide AS INTEGER
+
+ split(wordwrap(capt, 37), captlines())
+ FOR i AS INTEGER = 0 TO UBOUND(captlines)
+  wide = large(wide, LEN(captlines(i)))
+ NEXT
 
  append_menu_item menu, strA
  append_menu_item menu, strB
@@ -445,6 +452,7 @@ FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", de
  state.active = YES
  init_menu_state state, menu
  state.pt = defaultval
+ menu.offset.Y = 5 * UBOUND(captlines)
 
  'Keep whatever was on the screen already as a background
  copypage vpage, dpage
@@ -468,8 +476,10 @@ FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", de
   
   usemenu state
 
-  centerbox 160, 70, small(16 + LEN(capt) * 8, 320), 16, 2, 0
-  edgeprint capt, xstring(capt, 160), 65, uilook(uiMenuItem), 0
+  centerbox 160, 70, 16 + wide * 8, 16 + 10 * UBOUND(captlines), 2, 0
+  FOR i AS INTEGER = 0 TO UBOUND(captlines)
+   edgeprint captlines(i), xstring(captlines(i), 160), 65 - 5 * UBOUND(captlines) + i * 10, uilook(uiMenuItem), 0
+  NEXT
   draw_menu menu, state, 0
   setvispage 0
   copypage 1, 0

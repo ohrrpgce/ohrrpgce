@@ -2308,7 +2308,7 @@ IF gen(genErrorLevel) = 0 THEN
  #IFDEF IS_GAME
   gen(genErrorLevel) = 5
  #ELSE
-  IF yesno("Start showing all script warnings?", YES) THEN
+  IF yesno("Set script error reporting level to new default, showing all warnings and error messages?", YES) THEN
    gen(genErrorLevel) = 2
   ELSE
    gen(genErrorLevel) = 5

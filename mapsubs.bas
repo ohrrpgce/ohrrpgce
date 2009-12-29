@@ -1125,7 +1125,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
    currentset = -2
    state.need_update = YES
   END IF
-  IF keyval(scMinus) > 1 ANDALSO UBOUND(map) > 0 ANDALSO yesno("Really delete layer " & layerno & "??") THEN
+  IF keyval(scMinus) > 1 ANDALSO UBOUND(map) > 0 ANDALSO yesno("Really delete layer " & layerno & "?", NO) THEN
    IF layerno < gmap(31) THEN gmap(31) = large(gmap(31) - 1, 1)
    mapedit_delete_layer st, map(), visible(), gmap(), layerno
    st.layer = small(layerno, UBOUND(map) + 1)
