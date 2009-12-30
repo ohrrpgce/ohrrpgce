@@ -8,7 +8,7 @@ type GFX_INIT
 	szWindowIcon as zstring ptr
 	PostTerminateSignal as sub cdecl()
 	OnCriticalError as sub cdecl(byval szError as zstring ptr)
-	OutputDebugString as sub cdecl(byval szMessage as const zstring ptr)
+	SendDebugString as sub cdecl(byval szMessage as const zstring ptr)
 	end type
 
 type GFX_PREFERENCES
