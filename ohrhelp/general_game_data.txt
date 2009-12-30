@@ -33,3 +33,11 @@ Inventory Size: This is the number of rows available for the player's item inven
 Damage Display Time: Type in the number of ticks for damage numbers to show onscreen during a battle.
 
 Damage Display Rises: Type in the number of pixels for damage numbers to rise when shown during a battle.
+
+Script Errors: Control which script errors will be shown at runtime.
+
+ Show All Warnings (Recommended)
+ Hide Nit-picking Warnings
+ Hide All Warnings
+ Hide Errors not reported in old vers
+ Hide All Ignoreable Errors

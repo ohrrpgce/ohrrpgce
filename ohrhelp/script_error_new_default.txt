@@ -1,0 +1,7 @@
+This version of the OHRRPGCE has better script error reporting capabilities than the version that you most recently edited your game with.
+
+If you choose "Yes", then the improved error reporting will be turned on. This is great for finding bugs in your scripts, but you should playtest all of your scripts to make sure that there were not any previously undetected errors lurking. This is the best choice, but it requires a little extra work for you to test all of your scripts
+
+If you choose "No" all of your scripts will continue to run even if they contain errors that the new script debugger is capable of catching. This is not the best choice, buut it is safer, if you are not ready to test your scripts for hidden errors yet.
+
+If this choice is frightening to you, don't worry! You can always change this selection later on by going into the "General Game Data" menu.

@@ -433,7 +433,7 @@ FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGE
  IF result = 1 THEN RETURN NO
 END FUNCTION
 
-FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1) AS INTEGER
+FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
  DIM state AS MenuState
  DIM menu AS MenuDef
  ClearMenuData menu
@@ -467,6 +467,10 @@ FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", de
    state.active = NO
   END IF
 
+  IF keyval(scF1) > 1 ANDALSO LEN(helpkey) > 0 THEN
+   show_help helpkey
+  END IF
+
   IF enter_or_space() THEN
    result = state.pt
    state.active = NO
@@ -481,6 +485,9 @@ FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", de
    edgeprint captlines(i), xstring(captlines(i), 160), 65 - 5 * UBOUND(captlines) + i * 10, uilook(uiMenuItem), 0
   NEXT
   draw_menu menu, state, 0
+  IF LEN(helpkey) > 0 THEN
+   edgeprint "F1 Help", 0, 190, uilook(uiMenuItem), dpage
+  END IF
   setvispage 0
   copypage 1, 0
   dowait

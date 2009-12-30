@@ -37,7 +37,8 @@ EXTERN curcmd as ScriptCommand ptr
 #ENDIF
 
 #IFDEF IS_CUSTOM
-DECLARE FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+'This only exists here to support the choice popup in upgrade that only happens for custom...
+DECLARE FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
 #ENDIF
 
 'Allocate sprite size table
@@ -2308,7 +2309,7 @@ IF gen(genErrorLevel) = 0 THEN
  #IFDEF IS_GAME
   gen(genErrorLevel) = 5
  #ELSE
-  IF yesno("Set script error reporting level to new default, showing all warnings and error messages?", YES) THEN
+  IF twochoice("Set script error reporting level to new default, showing all warnings and error messages?", "Yes (Best)", "No (Safest)", 1, 1, "script_error_new_default") = 0 THEN
    gen(genErrorLevel) = 2
   ELSE
    gen(genErrorLevel) = 5
