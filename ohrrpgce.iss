@@ -35,6 +35,7 @@ Source: "game.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "custom.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SDL.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SDL_mixer.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "gfx_directx.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "hspeak.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "unlump.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "relump.exe"; DestDir: "{app}"; Flags: ignoreversion
