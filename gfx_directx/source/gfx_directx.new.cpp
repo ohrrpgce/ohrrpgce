@@ -1,6 +1,7 @@
 #include "gfx_directx_TESTAPPconst.h"
 
 #include "gfx_directx.new.h"
+#include "gfx_msg.h"
 #include "gfx_directx_cls_window.h"
 #include "gfx_directx_cls.h"
 #include "gfx_directx_cls_dinput.h"
@@ -35,6 +36,7 @@ struct gfx_BackendState
 	void (__cdecl *PostTerminateSignal)(void);
 	void (__cdecl *OnCriticalError)(const char* szError);
 	void (__cdecl *SendDebugString)(const char* szMessage);
+	int (__cdecl *DefGfxMessageProc)(unsigned int msg, unsigned int dwParam, void* pvParam);
 	bool bClosing; //flagged when shutting down
 	bool bBlockOhrMouseInput; //toggles ohr mouse control
 } g_State;
@@ -54,8 +56,9 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 	g_State.PostTerminateSignal = pCreationData->PostTerminateSignal;
 	g_State.OnCriticalError = pCreationData->OnCriticalError;
 	g_State.SendDebugString = pCreationData->SendDebugString;
+	g_State.DefGfxMessageProc = pCreationData->DefGfxMessageProc;
 
-	if(g_State.PostTerminateSignal == NULL || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL)
+	if(g_State.PostTerminateSignal == NULL || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL || g_State.DefGfxMessageProc == NULL)
 		return FALSE;
 
 	g_State.SendDebugString("gfx_directx: Initializing...");
@@ -186,6 +189,104 @@ void gfx_GetPreferences(GFX_PREFERENCES *pPreferences)
 	default:
 		pPreferences->nScreenshotFormat = 0;
 	}
+}
+
+int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void *pvParam)
+{
+	switch(msg)
+	{
+	case OM_GFX_SETWIDTH:
+		g_Window.SetClientSize(dwParam, g_Window.GetClientSize().cy);
+		break;
+	case OM_GFX_SETHEIGHT:
+		g_Window.SetClientSize(g_Window.GetClientSize().cx, dwParam);
+		break;
+	case OM_GFX_SETCLIENTAREA:
+		g_Window.SetClientSize(dwParam, (int)pvParam);
+		break;
+	case OM_GFX_SETLEFT:
+		g_Window.SetWindowPosition(dwParam, g_Window.GetWindowSize().top);
+		break;
+	case OM_GFX_SETTOP:
+		g_Window.SetWindowPosition(g_Window.GetWindowSize().left, dwParam);
+		break;
+	case OM_GFX_SETPOSITION:
+		g_Window.SetWindowPosition(dwParam, (int)pvParam);
+		break;
+	case OM_GFX_SETARP:
+		g_DirectX.SetAspectRatioPreservation(dwParam != FALSE);
+		break;
+	case OM_GFX_SETWINDOWED:
+		g_DirectX.SetView(dwParam != FALSE);
+		break;
+	case OM_GFX_SETSMOOTH:
+		g_DirectX.SetSmooth(dwParam != FALSE);
+		break;
+	case OM_GFX_SETVSYNC:
+		g_DirectX.SetVSync(dwParam != FALSE);
+		break;
+	case OM_GFX_SETSSFORMAT:
+		switch(dwParam)
+		{
+		case 0:
+			g_DirectX.SetImageFileFormat(D3DXIFF_FORCE_DWORD);
+			break;
+		case 1:
+			g_DirectX.SetImageFileFormat(D3DXIFF_JPG);
+			break;
+		case 2:
+			g_DirectX.SetImageFileFormat(D3DXIFF_BMP);
+			break;
+		case 3:
+			g_DirectX.SetImageFileFormat(D3DXIFF_PNG);
+			break;
+		case 4:
+			g_DirectX.SetImageFileFormat(D3DXIFF_DDS);
+			break;
+		default:
+			g_DirectX.SetImageFileFormat(D3DXIFF_FORCE_DWORD);
+			break;
+		}
+		break;
+
+	case OM_GFX_GETWIDTH:
+		return g_Window.GetClientSize().cx;
+	case OM_GFX_GETHEIGHT:
+		return g_Window.GetClientSize().cy;
+	case OM_GFX_GETCLIENTAREA:
+		return (g_Window.GetClientSize().cx << 16) | g_Window.GetClientSize().cy;
+	case OM_GFX_GETLEFT:
+		return g_Window.GetWindowSize().left;
+	case OM_GFX_GETTOP:
+		return g_Window.GetWindowSize().top;
+	case OM_GFX_GETPOSITION:
+		return (g_Window.GetWindowSize().left << 16) | g_Window.GetWindowSize().top;
+	case OM_GFX_GETARP:
+		return g_DirectX.IsAspectRatioPreserved() ? TRUE : FALSE;
+	case OM_GFX_GETWINDOWED:
+		return g_DirectX.IsViewFullscreen() ? FALSE : TRUE;
+	case OM_GFX_GETSMOOTH:
+		return g_DirectX.IsSmooth() ? TRUE : FALSE;
+	case OM_GFX_GETVSYNC:
+		return g_DirectX.IsVsyncEnabled() ? TRUE : FALSE;
+	case OM_GFX_GETSSFORMAT:
+		switch(g_DirectX.GetImageFileFormat())
+		{
+		case D3DXIFF_JPG:
+			return 1;
+		case D3DXIFF_BMP:
+			return 2;
+		case D3DXIFF_PNG:
+			return 3;
+		case D3DXIFF_DDS:
+			return 4;
+		default:
+			return 0;
+		}
+	default:
+		return g_State.DefGfxMessageProc(msg, dwParam, pvParam);
+	}
+	return TRUE;
 }
 
 int gfx_GetVersion()

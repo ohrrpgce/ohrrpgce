@@ -1,12 +1,16 @@
 #include "gfx_directx.new.h"
 #include "gfx_directx.h"
+#include "gfx_msg.h"
+
+#include <string>
 
 void OnCriticalError(const char* szError) {}
 void SendDebugString(const char* szMessage) {}
+int DefMsgProc(unsigned int msg, unsigned int dwParam, void *pvParam) {return 0;}
 
 int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
 {
-	GFX_INIT gfxInit = {"DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString};
+	GFX_INIT gfxInit = {"DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString, DefMsgProc};
 	return gfx_Initialize(&gfxInit);
 }
 
@@ -38,7 +42,8 @@ int gfx_screenshot(const char* fname)
 }
 
 void gfx_setwindowed(int iswindow)
-{//there isn't an equivalent message in the new backend
+{
+	gfx_SendMessage(OM_GFX_SETWINDOWED, iswindow, 0);
 }
 
 void gfx_windowtitle(const char* title)
@@ -52,13 +57,70 @@ WindowState* gfx_getwindowstate()
 }
 
 int gfx_setoption(const char* opt, const char* arg)
-{//this is replaced with the preference structure
-	return 0;
+{
+	if(!opt || !arg)
+		return 0;
+	if(::strcmp(opt, "w") == 0 || ::strcmp(opt, "width") == 0)
+		gfx_SendMessage(OM_GFX_SETWIDTH, ::atoi(arg), 0);
+	else if(::strcmp(opt, "h") == 0 || ::strcmp(opt, "height") == 0)
+		gfx_SendMessage(OM_GFX_SETHEIGHT, ::atoi(arg), 0);
+	else if(::strcmp(opt, "f") == 0 || ::strcmp(opt, "fullscreen") == 0)
+	{
+		if(*arg == '0')
+			gfx_SendMessage(OM_GFX_SETWINDOWED, 0, 0);
+		else
+			gfx_SendMessage(OM_GFX_SETWINDOWED, 1, 0);
+	}
+	else if(::strcmp(opt, "v") == 0 || ::strcmp(opt, "vsync") == 0)
+	{
+		if(*arg == '0')
+			gfx_SendMessage(OM_GFX_SETVSYNC, 0, 0);
+		else
+			gfx_SendMessage(OM_GFX_SETVSYNC, 1, 0);
+	}
+	else if(::strcmp(opt, "a") == 0 || ::strcmp(opt, "aspect") == 0)
+	{
+		if(*arg == '0')
+			gfx_SendMessage(OM_GFX_SETARP, 0, 0);
+		else
+			gfx_SendMessage(OM_GFX_SETARP, 1, 0);
+	}
+	else if(::strcmp(opt, "s") == 0 || ::strcmp(opt, "smooth") == 0)
+	{
+		if(*arg == '0')
+			gfx_SendMessage(OM_GFX_SETSMOOTH, 0, 0);
+		else
+			gfx_SendMessage(OM_GFX_SETSMOOTH, 1, 0);
+	}
+	else if(::strcmp(opt, "ss") == 0 || ::strcmp(opt, "screenshot") == 0)
+	{
+		if(*arg == 'j')
+			gfx_SendMessage(OM_GFX_SETSSFORMAT, 1, 0);
+		else if(*arg == 'b')
+			gfx_SendMessage(OM_GFX_SETSSFORMAT, 2, 0);
+		else if(*arg == 'p')
+			gfx_SendMessage(OM_GFX_SETSSFORMAT, 3, 0);
+		else if(*arg == 'd')
+			gfx_SendMessage(OM_GFX_SETSSFORMAT, 4, 0);
+		else
+			gfx_SendMessage(OM_GFX_SETSSFORMAT, 0, 0);
+	}
+	else
+		return 0;
+	return 2;
 }
 
 const char* gfx_describe_options()
-{//this is replaced with the preference structure
-	return "Command line options have been deprecated for this backend.";
+{
+	return "-w -width [x]  sets the width of the client area\n" \
+		"-h -height [x]  sets the height of the client area\n" \
+		"-f -fullscreen [0* | 1]  toggles fullscreen on startup\n" \
+		"    the above may NOT be called before width and height\n" \
+		"-v -vsync [0 | 1*]  toggles vsync\n" \
+		"-a -aspect [0 | 1*]  toggles aspect ratio preservation\n" \
+		"-s -smooth [0* | 1]  toggles smooth linear interpolation of display\n" \
+		"-ss -screenshot [jpg* | bmp | png | dds | ohr]\n" \
+		"     the above sets the screen shot format";
 }
 
 void io_init()

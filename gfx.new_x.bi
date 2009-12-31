@@ -9,6 +9,7 @@ type GFX_INIT
 	PostTerminateSignal as sub cdecl()
 	OnCriticalError as sub cdecl(byval szError as zstring ptr)
 	SendDebugString as sub cdecl(byval szMessage as const zstring ptr)
+	DefGfxMessageProc as function cdecl(byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as void ptr) as integer
 	end type
 
 type GFX_PREFERENCES
@@ -28,6 +29,8 @@ DECLARE SUB gfx_x_Close () 'closes the backend--does not post the termination si
 
 DECLARE SUB gfx_x_SetPreferences (byval pPreferences as const GFX_PREFERENCES ptr) 'sets the preferences for a backend
 DECLARE SUB gfx_x_GetPreferences (byval pPreferences as GFX_PREFERENCES ptr) 'gets the preferences of a backend
+
+DECLARE FUNCTION gfx_SendMessage (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as void ptr) as integer 'sends a message to the backend; return value depends on message sent
 
 DECLARE FUNCTION gfx_x_GetVersion () as integer 'returns the backend version
 

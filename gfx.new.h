@@ -16,6 +16,7 @@ struct GFX_INIT
 	void (__cdecl *PostTerminateSignal)(void);
 	void (__cdecl *OnCriticalError)(const char* szError);
 	void (__cdecl *SendDebugString)(const char* szMessage);
+	int (__cdecl *DefGfxMessageProc)(unsigned int msg, unsigned int dwParam, void* pvParam);
 };
 
 struct GFX_PREFERENCES
@@ -36,6 +37,8 @@ void gfx_Close(); //closes the backend--does not post the termination signal
 
 void gfx_SetPreferences(const GFX_PREFERENCES* pPreferences); //sets the preferences for a backend
 void gfx_GetPreferences(GFX_PREFERENCES* pPreferences); //gets the preferences of a backend
+
+int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void* pvParam); //sends a message to the backend; return value depends on message sent
 
 int gfx_GetVersion(); //returns the backend version
 
