@@ -547,17 +547,36 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	static BOOL bVsyncEnabled, bSmoothEnabled, bARPEnabled;
+
 	switch(msg)
 	{
 	case WM_COMMAND:
 		{
 			switch(LOWORD(wParam))
 			{//control id
+			case IDC_OPTIONS_EnableVsync:
+				{
+					g_DirectX.SetVSync(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
+				} break;
+			case IDC_OPTIONS_EnableSmooth:
+				{
+					g_DirectX.SetSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
+				} break;
+			case IDC_OPTIONS_EnablePreserveAspectRatio:
+				{
+					g_DirectX.SetAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
+				} break;
 			case IDC_OPTIONS_SetDefaults:
 				{//sets defaults
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, BST_CHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, BST_UNCHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, BST_CHECKED);
+
+					g_DirectX.SetVSync(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
+					g_DirectX.SetSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
+					g_DirectX.SetAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
+
 					if(g_DirectX.IsScreenShotsActive())
 					{
 						::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG, BST_CHECKED);
@@ -583,9 +602,15 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 						g_DirectX.SetImageFileFormat(D3DXIFF_DDS);
 					else
 						g_DirectX.SetImageFileFormat(D3DXIFF_FORCE_DWORD);
-				} //fallthrough on purpose
+					g_OSMouse.Pop_State();
+					::DestroyWindow(hWndDlg);
+					g_hWndDlg = NULL;
+				} break;
 			case IDCANCEL:
-				{//ignore all changes and return
+				{//revert all changes and return
+					g_DirectX.SetVSync(bVsyncEnabled == TRUE);
+					g_DirectX.SetSmooth(bSmoothEnabled == TRUE);
+					g_DirectX.SetAspectRatioPreservation(bARPEnabled == TRUE);
 					g_OSMouse.Pop_State();
 					::DestroyWindow(hWndDlg);
 					g_hWndDlg = NULL;
@@ -597,6 +622,11 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 	case WM_INITDIALOG:
 		{
 			g_OSMouse.Push_State();
+
+			bVsyncEnabled = g_DirectX.IsVsyncEnabled() ? TRUE : FALSE;
+			bSmoothEnabled = g_DirectX.IsSmooth() ? TRUE : FALSE;
+			bARPEnabled = g_DirectX.IsAspectRatioPreserved() ? TRUE : FALSE;
+
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, (g_DirectX.IsVsyncEnabled() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, (g_DirectX.IsSmooth() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, (g_DirectX.IsAspectRatioPreserved() ? BST_CHECKED : BST_UNCHECKED));

@@ -1,4 +1,15 @@
 --------------------------------------------------
+12/31/09
+v1.6
+
+Added Features:
+
+-Made options in the Options dialog immediately affect the game/custom window. If cancel is pressed, the options are reverted.
+
+
+
+
+--------------------------------------------------
 12/29/09-12/31/09
 v1.5
 
