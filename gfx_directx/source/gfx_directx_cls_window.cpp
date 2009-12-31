@@ -22,10 +22,10 @@ Window::Window() : m_hInst(NULL), m_hWnd(NULL), m_bRunning(false)
 
 Window::~Window()
 {
-	Shutdown(0);
+	Shutdown();
 }
 
-int Window::Initialize(HINSTANCE hInstance, TCHAR* szIconResource, WNDPROC lpfnWndProc)
+int Window::Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc)
 {
 	m_hInst = hInstance;
 	WNDCLASSEX wc = {0};
@@ -69,7 +69,7 @@ int Window::Initialize(HINSTANCE hInstance, TCHAR* szIconResource, WNDPROC lpfnW
 	return 0;
 }
 
-void Window::Shutdown(int nExitCode)
+void Window::Shutdown()
 {
 	::DestroyWindow(m_hWnd);
 }
@@ -129,10 +129,6 @@ void Window::CenterWindow()
 	SetWindowPosition(left, top);
 }
 
-void Window::SetMouseVisibility(bool bVisible)
-{
-}
-
 HINSTANCE Window::GetAppHandle()
 {
 	return m_hInst;
@@ -154,4 +150,14 @@ SIZE Window::GetClientSize()
 	::GetClientRect(m_hWnd, &rClient);
 	SIZE ret = {rClient.right, rClient.bottom};
 	return ret;
+}
+
+int Window::PostWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	return ::PostMessage(m_hWnd, msg, wParam, lParam);
+}
+
+int Window::SendWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	return ::SendMessage(m_hWnd, msg, wParam, lParam);
 }

@@ -1,4 +1,21 @@
 --------------------------------------------------
+12/29/09-12/31/09
+v1.5
+
+Added Features:
+
+-Fixed a graphical bug on text boxes
+
+-Support for the both versions of backend interfaces: the current 1.0, and the next generation 2.0.
+
+-Help file added.
+
+-Lots of code cleanup.
+
+
+
+
+--------------------------------------------------
 12/28/09
 v1.4
 

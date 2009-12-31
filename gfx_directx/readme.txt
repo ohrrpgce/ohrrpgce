@@ -1,6 +1,6 @@
 to build the dll:
 -create an empty win32 .dll project
--add all "root\source" code to project
+-add all "root\source" code to project _EXCEPT_ gfx_directx.old.cpp
 -add the contents of "root\resources" to the working directory
 -add the resource script "root\resources\gfx_directx.rc" to the project
 

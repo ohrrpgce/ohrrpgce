@@ -1,24 +1,15 @@
 #include "gfx_directx_TESTAPPconst.h"
-#if !TESTAPP
-#define ISOLATION_AWARE_ENABLED  1
-#endif
 
 #include "gfx_directx.new.h"
 #include "gfx_directx_cls_window.h"
 #include "gfx_directx_cls.h"
 #include "gfx_directx_cls_dinput.h"
 #include "gfx_directx_cls_osmouse.h"
+#include "gfx_directx_version.h"
 using namespace gfx;
 
 #include "di2fb_scancodes.h"
 #include "resource.h"
-
-#define DX_BUILD_DIRECTX_DYNAMIC TRUE //can only be TRUE or FALSE, or 1 or 0 respectively
-#define DX_BUILD_MSVC_DYNAMIC FALSE //can only be TRUE or FALSE, or 1 or 0 respectively
-#define DX_VERSION_MAJOR 0x2
-#define DX_VERSION_MINOR 0x0
-#define DX_VERSION_BUILD ((DX_BUILD_MSVC_DYNAMIC << 1) + DX_BUILD_DIRECTX_DYNAMIC)
-#define DX_BACKEND_VERSION ((DX_VERSION_MAJOR << 16) + (DX_VERSION_MINOR << 8) + DX_VERSION_BUILD)
 
 //use common controls available on different windows OS'
 #if defined _M_IX86
@@ -30,13 +21,6 @@ using namespace gfx;
 #else
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
-
-//resource loading from module
-#if TESTAPP
-#define MODULENAME NULL
-#else
-#define MODULENAME TEXT("gfx_directx.dll")
-#endif //TESTAPP
 
 Window g_Window;
 HWND g_hWndDlg;
@@ -122,6 +106,7 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 
 	g_Window.SetClientSize(640, 400);
 	g_Window.CenterWindow();
+	g_DirectInput.ClipMouseMovement(0,0,319,199);
 
 	g_State.SendDebugString("gfx_directx: Initialization success!");
 	return TRUE;
@@ -221,7 +206,7 @@ void gfx_PumpMessages()
 	}
 	g_DirectInput.PollKeyboard();
 	if(!g_State.bBlockOhrMouseInput)
-		g_DirectInput.PollKeyboard();
+		g_DirectInput.PollMouse();
 }
 
 void gfx_Present(unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
@@ -240,6 +225,19 @@ int gfx_ScreenShot(const char *szFileName)
 	TCHAR buffer[256] = TEXT("");
 	if(DX_OK != g_DirectX.ScreenShot(CharToTchar(buffer, 256, szFileName, 0)))
 		return FALSE;
+	switch(g_DirectX.GetImageFileFormat())
+	{
+	case D3DXIFF_JPG:
+		::_tcscat_s<256>(buffer, TEXT(".jpg"));
+	case D3DXIFF_BMP:
+		::_tcscat_s<256>(buffer, TEXT(".bmp"));
+	case D3DXIFF_PNG:
+		::_tcscat_s<256>(buffer, TEXT(".png"));
+	case D3DXIFF_DDS:
+		::_tcscat_s<256>(buffer, TEXT(".dds"));
+	default:
+		return FALSE;
+	}
 	return TRUE;
 }
 

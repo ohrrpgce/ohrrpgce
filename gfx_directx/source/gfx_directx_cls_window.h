@@ -5,6 +5,7 @@
 #ifndef GFX_DIRECTX_CLS_WINDOW_H
 #define GFX_DIRECTX_CLS_WINDOW_H
 
+#include "gfx_directx_TESTAPPconst.h"
 #include <windows.h>
 
 namespace gfx
@@ -23,21 +24,21 @@ namespace gfx
 		Window();
 		virtual ~Window();
 
-		int Initialize(HINSTANCE hInstance, TCHAR* szIconResource, WNDPROC lpfnWndProc);
-		void Shutdown(int nExitCode);
+		int Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc);
+		void Shutdown();
 		int PumpMessages();
 		void SetWindowTitle(const TCHAR* strTitle);
 		void SetClientSize(int width, int height);
 		void SetWindowSize(int width, int height); //does not call AdjustWindowRect()
 		void SetWindowPosition(int left, int top);
 		void CenterWindow(); //centers window on the screen
-		void SetMouseVisibility(bool bVisible); //sets whether the windows mouse is visible or not
 
 		HINSTANCE GetAppHandle();
 		HWND GetWindowHandle();
 		RECT GetWindowSize();
 		SIZE GetClientSize();
-		int PostWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam);
+		int PostWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam); //non-blocking window message call
+		int SendWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam); //blocking window message call
 	};
 }
 
