@@ -35,9 +35,18 @@ Damage Display Time: Type in the number of ticks for damage numbers to show onsc
 Damage Display Rises: Type in the number of pixels for damage numbers to rise when shown during a battle.
 
 Script Errors: Control which script errors will be shown at runtime.
+Note that future versions of the engine will raise many new types of warnings and errors, so it could be a bad idea to release with warnings enabled.
 
- Show All Warnings (Recommended)
+ Show All Warnings
+          (Recommended for testing)
  Hide Nit-picking Warnings
+  -This setting hides extra-
+   paranoid warnings about suspicious
+   code
  Hide All Warnings
+          (Recommended for release)
  Hide Errors not reported in old vers
+  -Emulates old versions which
+   ignored almost every mistake that
+   you could make
  Hide All Ignoreable Errors
