@@ -149,6 +149,8 @@ declare sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byva
 declare function sprite_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
 declare sub sprite_flip_horiz(byval spr as frame ptr)
 declare sub sprite_flip_vert(byval spr as frame ptr)
+declare function sprite_rotated_90(byval spr as Frame ptr) as Frame ptr
+declare function sprite_rotated_270(byval spr as Frame ptr) as Frame ptr
 declare function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
 declare sub sprite_clear(byval spr as frame ptr)
 declare sub sprite_empty_cache()

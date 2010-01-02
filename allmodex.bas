@@ -4078,6 +4078,20 @@ private sub flip_image(byval pixels as ubyte ptr, byval d1len as integer, byval 
 	next
 end sub
 
+'not-in-place isometric transformation of a pixel buffer
+'dimensions/strides of source is taken from src, but srcpixels specifies the actual pixel buffer
+'destorigin points to the pixel in the destination buffer where the pixel at the (top left) origin should be put
+private sub transform_image(byval src as Frame ptr, byval srcpixels as ubyte ptr, byval destorigin as ubyte ptr, byval d1stride as integer, byval d2stride as integer)
+	for y as integer = 0 to src->h - 1
+		dim as ubyte ptr sptr = srcpixels + y * src->pitch
+		dim as ubyte ptr dptr = destorigin + y * d1stride
+		for x as integer = 0 to src->w - 1
+			*dptr = sptr[x]
+			dptr += d2stride
+		next
+	next
+end sub
+
 'Public:
 ' flips a sprite horizontally. In place: you are only allowed to do this on sprites with no other references
 sub sprite_flip_horiz(byval spr as frame ptr)
@@ -4095,7 +4109,7 @@ sub sprite_flip_horiz(byval spr as frame ptr)
 end sub
 
 'Public:
-' returns a copy of the sprite flipped vertically. See sprite_flip_horiz for documentation
+' flips a sprite vertically. In place: you are only allowed to do this on sprites with no other references
 sub sprite_flip_vert(byval spr as frame ptr)
 	if spr = 0 then exit sub
 	
@@ -4109,6 +4123,38 @@ sub sprite_flip_vert(byval spr as frame ptr)
 		flip_image(spr->mask, spr->w, 1, spr->h, spr->pitch)
 	end if
 end sub
+
+'90 degree (anticlockwise) rotation. Unlike flipping functions, non-destructive!
+function sprite_rotated_90(byval spr as Frame ptr) as Frame ptr
+	if spr = 0 then return NULL
+
+	dim ret as Frame ptr = sprite_new(spr->h, spr->w, 1, (spr->mask <> NULL))
+
+	'top left corner transformed to bottom left corner
+	transform_image(spr, spr->image, ret->image + ret->pitch * (ret->h - 1), 1, -ret->pitch)
+
+	if spr->mask <> NULL then
+		transform_image(spr, spr->mask, ret->mask + ret->pitch * (ret->h - 1), 1, -ret->pitch)
+	end if
+
+	return ret
+end function
+
+'270 degree (anticlockwise) rotation. Unlike flipping functions, non-destructive!
+function sprite_rotated_270(byval spr as Frame ptr) as Frame ptr
+	if spr = 0 then return NULL
+
+	dim ret as Frame ptr = sprite_new(spr->h, spr->w, 1, (spr->mask <> NULL))
+
+	'top left corner transformed to top right corner
+	transform_image(spr, spr->image, ret->image + (ret->w - 1), -1, ret->pitch)
+
+	if spr->mask <> NULL then
+		transform_image(spr, spr->mask, ret->mask + (ret->w - 1), -1, ret->pitch)
+	end if
+
+	return ret
+end function
 
 'Note that we clear masks to transparent! I'm not sure if this is best (not currently used anywhere), but notice that
 'sprite_duplicate with clr=1 does the same
