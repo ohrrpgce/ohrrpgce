@@ -26,6 +26,9 @@ DEFINT A-Z
 'Subs2.bas:
 DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 
+'Menus.bas
+DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
+
 'Defined in this file:
 DECLARE SUB herotags (BYREF hero AS HeroDef)
 DECLARE sub drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as integer)
@@ -206,14 +209,9 @@ min(EnLimDissolve) = 0
 max(EnLimDissolve) = 8
 EnCapDissolve = capindex
 addcaption caption(), capindex, "Global Default"
-addcaption caption(), capindex, "Random scatter"
-addcaption caption(), capindex, "Crossfade"
-addcaption caption(), capindex, "Diagonal vanish"
-addcaption caption(), capindex, "Sink into ground"
-addcaption caption(), capindex, "Squash"
-addcaption caption(), capindex, "Melt"
-addcaption caption(), capindex, "Vapourise"
-addcaption caption(), capindex, "Phase out"
+FOR i = 1 TO 8
+ addcaption caption(), capindex, dissolve_type_caption(i - 1)
+NEXT
 
 CONST EnLimDissolveTime = 25
 min(EnLimDissolveTime) = 0

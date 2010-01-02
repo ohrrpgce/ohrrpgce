@@ -1041,10 +1041,14 @@ END SUB
 
 FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
  SELECT CASE n
-  CASE 0: RETURN "Default"
+  CASE 0: RETURN "Random scatter"
   CASE 1: RETURN "Crossfade"
   CASE 2: RETURN "Diagonal Vanish"
   CASE 3: RETURN "Sink into Ground"
+  CASE 4: RETURN "Squash"
+  CASE 5: RETURN "Melt"
+  CASE 6: RETURN "Vapourise"
+  CASE 7: RETURN "Phase out"
   CASE ELSE: RETURN n & " Invalid!"
  END SELECT
 END FUNCTION
@@ -1168,7 +1172,7 @@ m$(2) = "About Line:" + aboutline$
 m$(12) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
 m$(13) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
 m$(14) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
-m$(15) = "Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
+m$(15) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
 IF gen(genMaxInventory) = 0 THEN
  m$(16) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
 ELSE
@@ -1228,7 +1232,7 @@ SUB gendata ()
   max(i) = 255
  NEXT
  index(15) = genEnemyDissolve
- max(15) = 3
+ max(15) = 7
  index(16) = genMaxInventory
  max(16) = (inventoryMax + 1) \ 3
  index(17) = genDamageDisplayTicks
