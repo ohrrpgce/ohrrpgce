@@ -526,7 +526,24 @@ SUB hugesprite (pic(), pal(), BYVAL p, BYVAL x, BYVAL y, BYVAL page, BYVAL trans
 	drawspritex(pic(), 0, pal(), p, x, y, page, 4, trans)
 END SUB
 
-SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer, byval trans as integer = -1)
+FUNCTION palette16_new_from_buffer(pal() as integer, BYVAL po as integer) as Palette16 ptr
+	dim ret as Palette16 ptr
+	dim word as integer
+	ret = allocate(sizeof(Palette16))
+
+	for i as integer = 0 to 15
+		'palettes are interleaved like everything else
+		word = pal((po + i) \ 2)	' get color from palette
+		if (po + i) mod 2 = 1 then
+			ret->col(i) = (word and &hff00) shr 8
+		else
+			ret->col(i) = word and &hff
+		end if
+	next
+	return ret
+END FUNCTION
+
+FUNCTION sprite_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Frame ptr
 'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	dim sw as integer
 	dim sh as integer
@@ -535,12 +552,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	dim nib as integer
 	dim i as integer
 	dim spix as integer
-	dim pix as integer
 	dim row as integer
-
-	if wrkpage <> page then
-		setclip , , , , page
-	end if
 
 	sw = pic(picoff)
 	sh = pic(picoff+1)
@@ -566,18 +578,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 				spix = pic(picoff) and &h0f
 				picoff = picoff + 1
 		end select
-		if spix = 0 and trans then
-			pix = 0					' transparent
-		else
-			'palettes are interleaved like everything else
-			pix = pal((po + spix) \ 2)	' get color from palette
-			if (po + spix) mod 2 = 1 then
-				pix = (pix and &hff00) shr 8
-			else
-				pix = pix and &hff
-			end if
-		end if
-		*dspr = pix				' set image pixel
+		*dspr = spix				' set image pixel
 		dspr = dspr + sw
 		row = row + 1
 		if (row >= sh) then 	'ugh
@@ -588,10 +589,25 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 		nib = nib + 1
 		nib = nib and 3
 	next
+	return hspr
+END FUNCTION
+
+SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer, byval trans as integer = -1)
+	if wrkpage <> page then
+		setclip , , , , page
+	end if
+	
+	'convert the buffer into a Frame
+	dim hspr as frame ptr
+	dim hpal as palette16 ptr
+	hspr = sprite_new_from_buffer(pic(), picoff)
+	hpal = palette16_new_from_buffer(pal(), po)
+	
 	'now draw the image
-	drawohr(*hspr, , x, y, scale, trans, page)
+	drawohr(*hspr, hpal, x, y, scale, trans, page)
 	'what a waste
 	sprite_unload(@hspr)
+	deallocate(hpal)
 end SUB
 
 SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans = -1)
