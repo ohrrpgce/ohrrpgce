@@ -1669,12 +1669,12 @@ end</example>
 		<command id="getmenubit">
 			<canon>get menu bit(menu handle, bit)</canon>
 			<shortname>get menu bit</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, Return <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF. You can use constants for the <p>bit</p> bit number in the form of <p>menubit:translucent box</p> <p>menubit:never show scrollbar</p> <p>menubit:allow gameplay</p> <p>menubit:suspend player even if gameplay allowed</p> <p>menubit:no box</p> <p>menubit:no close</p> <p>menubit:no controls</p> <p>menubit:prevent main menu</p></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, Return <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF. For the <p>bit</p> bit number you should use one of the constants: <ul><li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li></ul></description>
 		</command>
 		<command id="setmenubit">
 			<canon>set menu bit(menu handle, bit, value)</canon>
 			<shortname>set menu bit</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. You can use constants for the <p>bit</p> bit number in the form of <p>menubit:translucent box</p> <p>menubit:never show scrollbar</p> <p>menubit:allow gameplay</p> <p>menubit:suspend player even if gameplay allowed</p> <p>menubit:no box</p> <p>menubit:no close</p> <p>menubit:no controls</p> <p>menubit:no close</p> <p>menubit:no controls</p> <p>menubit:prevent main menu</p></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. For the <p>bit</p> bit number you should use one of the constants: <ul><li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li></ul></description>
 		</command>
 		<command id="parentmenu">
 			<canon>parent menu(menu item handle)</canon>
@@ -3710,7 +3710,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</example>
 		<command id="getenemyappearance">
 			<canon>get enemy appearance (enemyid, appearance)</canon>
 			<shortname>get enemy appearance</shortname>
-			<description>Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <li>enemy:picture</li><li>enemy:palette</li><li>enemy:picturesize</li> <lb/>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large</description>
+			<description>Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <ul><li>enemy:picture</li><li>enemy:palette</li><li>enemy:picturesize</li></ul> <lb/>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large</description>
 			<seealso>
 				<ref>setenemyappearance</ref>
 			</seealso>
@@ -3726,7 +3726,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</example>
 		<command id="readenemydata">
 			<canon>read enemy data (enemyid, data)</canon>
 			<shortname>read enemy data</shortname>
-			<description>Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<li>enemy:gold</li><li>enemy:experience</li><li>enemy:item</li><li>enemy:itempercent</li><li>enemy:rareitem</li><li>enemy:rareitempercent</li><li>stealability</li><li>stealableitem</li><li>stealableitemchance</li><li>stealablerareitem</li><li>stealablerareitemchance</li></description>
+			<description>Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<ul><li>enemy:gold</li><li>enemy:experience</li><li>enemy:item</li><li>enemy:itempercent</li><li>enemy:rareitem</li><li>enemy:rareitempercent</li><li>stealability</li><li>stealableitem</li><li>stealableitemchance</li><li>stealablerareitem</li><li>stealablerareitemchance</li></ul></description>
 			<seealso>
 				<ref>writeenemydata</ref>
 			</seealso>
