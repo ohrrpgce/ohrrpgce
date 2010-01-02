@@ -2299,28 +2299,26 @@ SUB spriteedit_rotate_sprite(sprbuf() AS INTEGER, ss AS SpriteEditState, counter
 END SUB
 
 SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INTEGER, counterclockwise AS INTEGER=NO)
+ DIM AS Frame ptr spr1, spr2
+ spr1 = sprite_new_from_buffer(sprbuf(), 0)
+
+ IF counterclockwise THEN
+  spr2 = sprite_rotated_90(spr1)
+ ELSE
+  spr2 = sprite_rotated_270(spr1)
+ END IF
+ sprite_unload @spr1
+
  DIM holdscreen AS INTEGER
- holdscreen = allocatepage
- 
+ holdscreen = registerpage(spr2)
+
  DIM size AS XYPair
  size.x = sprbuf(0)
  size.y = sprbuf(1)
- 
- drawsprite sprbuf(), 0, nulpal(), 0, 0, 0, holdscreen
- DIM pixel AS INTEGER
- FOR y AS INTEGER = 0 TO size.y - 1
-  FOR x AS INTEGER = 0 TO size.x - 1
-   pixel = readpixel(x, y, holdscreen)
-   IF counterclockwise THEN
-    putpixel size.x + y, size.x - 1 - x, pixel, holdscreen
-   ELSE
-    putpixel size.x + (size.y - 1 - y), x, pixel, holdscreen
-   END IF
-  NEXT x
- NEXT y
- getsprite sprbuf(), 0, size.x, 0, size.y, size.x, holdscreen
- 
+ getsprite sprbuf(), 0, 0, 0, size.y, size.x, holdscreen
+
  freepage holdscreen
+ sprite_unload @spr2
 END SUB
 
 SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, soff AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, BYVAL sets AS INTEGER)
