@@ -1413,12 +1413,10 @@ s = TRIM(s)
 RETURN s
 #ELSE
 '--Find helper app on Windows
-DIM AS STRING exedir
-exedir = trimfilename(exename)
 'First look in the support subdirectory
-IF isfile(exedir & "support\" & appname & ".exe") THEN RETURN exedir & "support\" & appname & ".exe"
+IF isfile(exepath & "\support\" & appname & ".exe") THEN RETURN exepath & "\support\" & appname & ".exe"
 'Then look in the same folder as CUSTOM/GAME
-IF isfile(exedir & appname & ".exe") THEN RETURN exedir & appname & ".exe"
+IF isfile(exepath & "\" & appname & ".exe") THEN RETURN exepath & "\" & appname & ".exe"
 RETURN ""
 #ENDIF
 END FUNCTION
