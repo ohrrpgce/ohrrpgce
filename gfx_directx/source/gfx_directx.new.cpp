@@ -535,7 +535,10 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			case VK_RETURN: //alt-enter
 				{
 					if(!(lParam & 0x40000000)) //key was not pressed before
+					{
 						g_DirectX.SetView(g_DirectX.IsViewFullscreen());
+						g_OSMouse.Fullscreen(g_DirectX.IsViewFullscreen());
+					}
 				} break;
 			default:
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
