@@ -278,11 +278,14 @@ SELECT CASE br.special
    UnloadSound(f)
    f = -1
   END IF
-  IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
-   f = LoadSound(br.nowdir + tree(treeptr).filename)
-   sound_play(f, 0, -1)
-  ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
-   alert$ = show_mp3_info()
+  IF tree(treeptr).kind <> 6 THEN
+   'not disabled because of size
+   IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
+    f = LoadSound(br.nowdir + tree(treeptr).filename)
+    sound_play(f, 0, -1)
+   ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
+    alert$ = show_mp3_info()
+   END IF
   END IF
  CASE 7
   alert$ = tree(treeptr).about
@@ -528,6 +531,9 @@ DO UNTIL EOF(fh)
   IF validmusicfile(f, VALID_FX_FORMAT) = 0 THEN
    tree(br.treesize).kind = 6
    tree(br.treesize).about = "Not a valid sound effect file"
+  ELSEIF FILELEN(f) > 500 * 1024 THEN
+   tree(br.treesize).kind = 6
+   tree(br.treesize).about = "File is too large (limit 500kB)"
   END IF
  END IF
  '---4-bit BMP browsing

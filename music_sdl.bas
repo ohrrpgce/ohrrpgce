@@ -489,7 +489,8 @@ function LoadSound overload(byval f as string,  byval num as integer = -1) as in
 	if not isfile(f) then return -1
 	
 	'File size restriction to stop massive oggs being decompressed
-	'into memory
+	'into memory. Maybe allow larger .wav files?
+	'(this same check is done in browse.bas)
  	if filelen(f) > 500*1024 then 
  		debug "Sound effect file too large (>500k): " & f 
  		return -1
