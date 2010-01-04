@@ -12,23 +12,8 @@ type GFX_INIT
 	DefGfxMessageProc as function cdecl(byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
 	end type
 
-type GFX_PREFERENCES
-	top as integer 'window top
-	left as integer 'window left
-	width as integer 'client width
-	height as integer 'client height
-	bAspectRatioPreservation as integer '0 = false; if true, aspect ratio preservation is enabled
-	bFullscreen as integer '0 = false; if true, backend preference is fullscreen
-	bSmooth as integer '0 = false; if true, backend preference is smooth linear interpolation
-	bVsync as integer '0 = false; if true, backend preference is vsync enabled
-	nScreenshotFormat as integer '0 = ohr bmp, 1 = jpg, 2 = bmp, 3 = png, 4 = dds
-	end type
-
 extern gfx_Initialize as function (byval pCreationData as const GFX_INIT ptr) as integer 'initializes the backend; if failed, returns 0
 extern gfx_Close as sub () 'closes the backend--does not post the termination signal
-
-extern gfx_SetPreferences as sub (byval pPreferences as const GFX_PREFERENCES ptr) 'sets the preferences for a backend
-extern gfx_GetPreferences as sub (byval pPreferences as GFX_PREFERENCES ptr) 'gets the preferences of a backend
 
 extern gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer 'sends a message to the backend; return value depends on message sent
 

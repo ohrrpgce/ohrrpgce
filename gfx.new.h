@@ -19,24 +19,8 @@ struct GFX_INIT
 	int (__cdecl *DefGfxMessageProc)(unsigned int msg, unsigned int dwParam, void* pvParam);
 };
 
-struct GFX_PREFERENCES
-{
-	int top; //window top
-	int left; //window left
-	int width; //client width
-	int height; //client height
-	int bAspectRatioPreservation; //0 = false; if true, aspect ratio preservation is enabled
-	int bFullscreen; //0 = false; if true, backend preference is fullscreen
-	int bSmooth; //0 = false; if true, backend preference is smooth linear interpolation
-	int bVsync; //0 = false; if true, backend preference is vsync enabled
-	int nScreenshotFormat; //0 = ohr bmp, 1 = jpg, 2 = bmp, 3 = png, 4 = dds
-};
-
 int gfx_Initialize(const GFX_INIT* pCreationData); //initializes the backend; if failed, returns 0
 void gfx_Close(); //closes the backend--does not post the termination signal
-
-void gfx_SetPreferences(const GFX_PREFERENCES* pPreferences); //sets the preferences for a backend
-void gfx_GetPreferences(GFX_PREFERENCES* pPreferences); //gets the preferences of a backend
 
 int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void* pvParam); //sends a message to the backend; return value depends on message sent
 
