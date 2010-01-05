@@ -20,7 +20,7 @@ struct GFX_INIT
 };
 
 int gfx_Initialize(const GFX_INIT* pCreationData); //initializes the backend; if failed, returns 0
-void gfx_Close(); //closes the backend--does not post the termination signal
+void gfx_Shutdown(); //shuts down the backend--does not post the termination signal
 
 int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void* pvParam); //sends a message to the backend; return value depends on message sent
 
