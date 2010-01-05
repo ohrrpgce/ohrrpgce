@@ -1,35 +1,43 @@
 //_tstring.h
-//by Jay Tennant 12/8/09
-//typedef's a string template of type TCHAR
+//by Jay Tennant 12/8/09; updated 1/5/10
+//typedef's a string template of type T_CHAR
 
 #ifndef _TSTRING_H
 #define _TSTRING_H
 
-#include <windows.h>
 #include <string>
-#include <tchar.h>
 
-typedef std::basic_string<TCHAR> _tstring;
+typedef wchar_t W_CHAR;
+typedef char A_CHAR;
+
+#ifdef _UNICODE
+typedef W_CHAR T_CHAR;
+#define T_TEXT(quote) L##quote
+#else
+typedef A_CHAR T_CHAR;
+#define T_TEXT(quote) quote
+#endif
+
+typedef std::basic_string<T_CHAR> _tstring;
 
 class tstring : public _tstring
 {
 public:
 	tstring();
-	tstring(wchar_t* uniString);
-	tstring(char* ansiString);
-	virtual ~tstring();
+	tstring(W_CHAR* uniString);
+	tstring(A_CHAR* ansiString);
 };
 
 //converts char to tchar; if nSrcSize == 0, the length of the source string is taken
-TCHAR* CharToTchar(TCHAR* szDest, UINT nDestSize, const CHAR* szSrc, UINT nSrcSize);
+T_CHAR* CharToTchar(T_CHAR* szDest, unsigned int nDestSize, const A_CHAR* szSrc, unsigned int nSrcSize);
 
 //converts wchar_t to tchar; if nSrcSize == 0, the length of the source string is taken
-TCHAR* WcharToTchar(TCHAR* szDest, UINT nDestSize, const WCHAR* szSrc, UINT nSrcSize);
+T_CHAR* WcharToTchar(T_CHAR* szDest, unsigned int nDestSize, const W_CHAR* szSrc, unsigned int nSrcSize);
 
 //converts tchar to wchar_t; if nSrcSize == 0, the length of the source string is taken
-WCHAR* TcharToWchar(WCHAR* szDest, UINT nDestSize, const TCHAR* szSrc, UINT nSrcSize);
+W_CHAR* TcharToWchar(W_CHAR* szDest, unsigned int nDestSize, const T_CHAR* szSrc, unsigned int nSrcSize);
 
 //converts tchar to char; if nSrcSize == 0, the length of the source string is taken
-CHAR* TcharToChar(CHAR* szDest, UINT nDestSize, const TCHAR* szSrc, UINT nSrcSize);
+A_CHAR* TcharToChar(A_CHAR* szDest, unsigned int nDestSize, const T_CHAR* szSrc, unsigned int nSrcSize);
 
 #endif

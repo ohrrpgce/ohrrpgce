@@ -8,4 +8,6 @@ to run the test app, modify the above by:
 -instead, create an empty win32 .exe project
 -set the macro TESTAPP in gfx_directx_TESTAPPconst.h to the value 1
 
+[the above info is out of date, and will not work right. Being revised...]
+
 The binary was compiled for 32-bit systems using Visual Studio 2008 SP1, Unicode character set. The msvc runtime is officially statically linked, and the d3dx library is officially dynamically linked. The official version is x.y.1.
