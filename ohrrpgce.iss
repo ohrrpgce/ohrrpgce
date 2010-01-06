@@ -57,8 +57,9 @@ Source: "support\LICENSE-*.txt"; DestDir: "{app}\support\"; Flags: ignoreversion
 Source: "vikings.rpg"; DestDir: "{app}"; Flags: ignoreversion
 Source: "vikings\Vikings script files\viking.txt"; DestDir: "{app}\Vikings script files\"; Flags: ignoreversion
 Source: "vikings\Vikings script files\viking.hsi"; DestDir: "{app}\Vikings script files\"; Flags: ignoreversion
+Source: "vikings\Vikings script files\thirdparty.hsi"; DestDir: "{app}\Vikings script files\"; Flags: ignoreversion
 Source: "vikings\Vikings script files\utility.lib"; DestDir: "{app}\Vikings script files\"; Flags: ignoreversion
-Source: "vikings\Viking README.rtf"; DestDir: "{app}"; Flags: ignoreversion
+Source: "vikings\README-vikings.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "import\background\*"; DestDir: "{app}\import\background"; Flags: ignoreversion
 Source: "import\fonts\*"; DestDir: "{app}\import\fonts"; Flags: ignoreversion
 Source: "import\Music\*"; DestDir: "{app}\import\Music"; Flags: ignoreversion

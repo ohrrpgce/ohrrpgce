@@ -66,7 +66,7 @@ cp -p whatsnew.txt tmp
 echo "  Including Vikings of Midgard"
 cp -p vikings.rpg tmp
 cp -pr "vikings/Vikings script files" tmp
-cp -p "vikings/Viking README.rtf" tmp
+cp -p "vikings/README-vikings.txt" tmp
 
 echo "  Including import"
 mkdir tmp/import
