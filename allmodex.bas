@@ -544,7 +544,6 @@ FUNCTION palette16_new_from_buffer(pal() as integer, BYVAL po as integer) as Pal
 END FUNCTION
 
 FUNCTION sprite_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Frame ptr
-'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	dim sw as integer
 	dim sh as integer
 	dim hspr as frame ptr
@@ -593,6 +592,7 @@ FUNCTION sprite_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Fr
 END FUNCTION
 
 SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer, byval trans as integer = -1)
+'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
 	if wrkpage <> page then
 		setclip , , , , page
 	end if

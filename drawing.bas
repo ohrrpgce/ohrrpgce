@@ -50,6 +50,7 @@ DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS Spr
 DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
 DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INTEGER, counterclockwise AS INTEGER=NO)
 DECLARE SUB spriteedit_rotate_sprite(sprbuf() AS INTEGER, ss AS SpriteEditState, counterclockwise AS INTEGER=NO)
+DECLARE SUB spriteedit_clip (placer(), ss AS SpriteEditState)
 DECLARE SUB writeundospr (placer(), ss AS SpriteEditState, is_rotate AS INTEGER=NO)
 DECLARE FUNCTION spriteedit_export_name (ss AS SpriteEditState, state AS MenuState) AS STRING
 DECLARE SUB spriteedit_export OVERLOAD (default_name AS STRING, placer() AS INTEGER, nulpal() AS INTEGER, palnum AS INTEGER)
@@ -1817,6 +1818,15 @@ EXIT SUB
 
 END SUB '----END of sprite()
 
+SUB spriteedit_clip (placer(), ss AS SpriteEditState)
+ 'clip possibly rotated sprite buffer to sprite's frame size
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, holdscreen
+ getsprite placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
+ freepage holdscreen
+END SUB
+
 SUB writeundospr (placer(), ss AS SpriteEditState, is_rotate AS INTEGER=NO)
  IF placer(0) <> ss.wide OR placer(1) <> ss.high THEN
   IF is_rotate THEN
@@ -1825,11 +1835,7 @@ SUB writeundospr (placer(), ss AS SpriteEditState, is_rotate AS INTEGER=NO)
   END IF
   'This is a hack to compensate for the fact that the sprite buffer
   'remains in a rotated state after a rotation operation
-  DIM holdscreen AS INTEGER
-  holdscreen = allocatepage
-  drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, holdscreen
-  getsprite placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
-  freepage holdscreen
+  spriteedit_clip placer(), ss
  END IF
  stosprite placer(), 0, ss.undoslot * ss.size, 100, 3
  ss.undoslot = loopvar(ss.undoslot, 0, ss.undomax, 1)
@@ -2415,6 +2421,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
    IF ss.hold = YES THEN
     GOSUB resettool
    ELSE
+    spriteedit_clip placer(), ss
     stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
     GOSUB resettool
     EXIT DO
