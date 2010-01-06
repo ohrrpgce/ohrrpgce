@@ -1497,6 +1497,7 @@ SUB add_more_layers(map() as TileMap, vis() as integer, gmap() as integer, BYVAL
   CleanTilemap map(i), map(0).wide, map(0).high, i
   SetLayerEnabled(gmap(), i, YES)
   SetLayerVisible(vis(), i, YES)
+  gmap(layer_tileset_index(i)) = 0
  NEXT
 END SUB
 
@@ -1507,16 +1508,20 @@ SUB fix_tilemaps(map() as TileMap)
 END SUB
 
 SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() as integer, gmap() as integer, BYVAL l1 as integer, BYVAL l2 as integer)
- DIM temp as integer
+ DIM as integer temp1, temp2
  SWAP map(l1), map(l2)
  SWAP st.usetile(l1), st.usetile(l2)
  SWAP st.menubarstart(l1), st.menubarstart(l2)
  SWAP gmap(layer_tileset_index(l1)), gmap(layer_tileset_index(l2))
  SWAP st.tilesets(l1), st.tilesets(l2)
- temp = layerisenabled(gmap(), l1)
- setlayerenabled(gmap(), l2, temp)
- temp = layerisvisible(vis(), l1)
- setlayervisible(vis(), l2, temp)
+ temp1 = layerisenabled(gmap(), l1)
+ temp2 = layerisenabled(gmap(), l2)
+ setlayerenabled(gmap(), l2, temp1)
+ setlayerenabled(gmap(), l1, temp2)
+ temp1 = layerisvisible(vis(), l1)
+ temp2 = layerisvisible(vis(), l2)
+ setlayervisible(vis(), l2, temp1)
+ setlayervisible(vis(), l1, temp2)
 END SUB
 
 SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() as integer, gmap() as integer, BYVAL where as integer)
@@ -1527,6 +1532,7 @@ SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() as in
  CleanTilemap map(UBOUND(map)), map(0).wide, map(0).high
  setlayerenabled(gmap(), UBOUND(map), YES)
  setlayervisible(vis(), UBOUND(map), YES)
+ gmap(layer_tileset_index(UBOUND(map))) = 0
  FOR i as integer = UBOUND(map) - 1 TO where STEP -1
   mapedit_swap_layers st, map(), vis(), gmap(), i, i + 1
  NEXT
@@ -1539,6 +1545,8 @@ SUB mapedit_delete_layer(BYREF st AS MapEditState, map() as TileMap, vis() as in
   mapedit_swap_layers st, map(), vis(), gmap(), i, i + 1
  NEXT
  UnloadTilemap map(UBOUND(map))
+ 'currently (temporarily) tilesets for unused layers are still loaded, so reset to default
+ gmap(layer_tileset_index(UBOUND(map))) = 0
  REDIM PRESERVE map(UBOUND(map) - 1)
  fix_tilemaps map()
 END SUB
