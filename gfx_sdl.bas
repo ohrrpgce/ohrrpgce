@@ -393,7 +393,9 @@ SUB gfx_sdl_process_events()
           END IF
         END IF
         DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
-        IF key THEN keybdstate(key) = 7
+        'lowest bit is now set in io_keybits, from SDL_GetKeyState
+        'IF key THEN keybdstate(key) = 7
+        IF key THEN keybdstate(key) = 6
       CASE SDL_KEYUP
         DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
         IF key THEN keybdstate(key) AND= NOT 1
@@ -450,9 +452,22 @@ SUB io_sdl_waitprocessing()
 END SUB
 
 SUB io_sdl_keybits (keybdarray as integer ptr)
-  FOR a AS INTEGER = 0 TO &h7f
+  FOR a as integer = 0 TO &h7f
     keybdarray[a] = keybdstate(a)
     keybdstate(a) = keybdstate(a) and 1
+  NEXT
+
+  'calling SHELL on Windows when not compiled with -s console seems to cause SDL to not send
+  'key up events for currently held keys, so we have to abandon the events-only scheme
+  DIM keystate AS UINT8 PTR = NULL
+  keystate = SDL_GetKeyState(NULL)
+  FOR a as integer = 0 TO 322
+    IF keystate[a] THEN
+      'print "OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
+      IF scantrans(a) THEN
+        keybdarray[scantrans(a)] OR= 1
+      END IF
+    END IF
   NEXT
 END SUB
 
