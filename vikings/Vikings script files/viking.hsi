@@ -1,4 +1,4 @@
-# HamsterSpeak constant definitions for Viking.RPG
+# HamsterSpeak constant definitions for Viking.rpg
 
 define constant, begin
 2,tag:YesNo
@@ -168,6 +168,51 @@ define constant, begin
 173,tag:Guiltdefeated
 174,tag:Ericsilen
 175,tag:Condensation
+176,tag:Dogeroend
+177,tag:Dracula
+178,tag:Cure2
+179,tag:Shayna
+180,tag:Fire2
+181,tag:Flee
+182,tag:Heal2
+183,tag:Bandage
+184,tag:Rush
+185,tag:Beastmasterlead
+186,tag:NecromancerLead
+187,tag:Riftfix
+188,tag:jerkstore
+189,tag:clock1
+190,tag:suck1
+191,tag:suck2
+192,tag:suck3
+193,tag:Ericback
+194,tag:Billybeat
+195,tag:firesmash
+196,tag:icebrand
+197,tag:stickman
+198,tag:boltslash
+199,tag:Utgard
+200,tag:DelvireBrag
+201,tag:LOWTEIR
+202,tag:MIDTEIR
+203,tag:UPPERTEIR
+204,tag:HIGHTEIR
+205,tag:QUARTERFINALS
+206,tag:SEMIFINALS
+207,tag:Rellfavor
+208,tag:Crone
+209,tag:RELLFIGHT
+210,tag:Skadi1
+211,tag:Skadi2
+212,tag:DelvirePromise
+213,tag:Delvire2
+214,tag:Managarm defeated
+215,tag:IrregularDefeated
+216,tag:Thule3
+217,tag:Thule4
+218,tag:IcyStone
+219,tag:BuckText
+220,tag:Thule5
 1,song:Asgard
 2,song:piano02
 3,song:song04
@@ -209,11 +254,18 @@ define constant, begin
 39,song:MrTriangleBossTheme
 40,song:Ride of the Valkyries
 41,song:thule1
-42,song:SOJ Battle
+42,song:Battle for Jade
 43,song:Moogle1  An Infernal Scheme
 44,song:Moogle1  Enemy's Lair The
-45,song:Clorinda_False_Adieu
+45,song:Sabre Dance
 46,song:Setu Firestorm  Buddha
+47,song:Crystalhaus
+48,song:MrChoir
+49,song:Jade World
+50,song:Humoresque
+51,song:Shore of Midgardsorm
+52,song:NightmareAnimus
+53,song:Mortua
 1,sfx:Cancel8Bit
 2,sfx:ChargedLightningAttack8Bit
 3,sfx:ChargedSonicBoomAttack8Bit
@@ -228,7 +280,7 @@ define constant, begin
 12,sfx:Slash8Bit
 13,sfx:SmallExplosion8Bit
 14,sfx:Soft_Airy_Swish
-15,sfx:Ice crash
+15,sfx:Ice Crash
 16,sfx:Beam Attack
 17,sfx:Blizzard Loop
 18,sfx:Electricity
@@ -242,6 +294,25 @@ define constant, begin
 26,sfx:lightning
 27,sfx:WARNING
 28,sfx:earthquake
+29,sfx:BigWave
+30,sfx:DrainMagic
+31,sfx:StormMagic
+32,sfx:TornadoMagic
+33,sfx:ThunderMagic
+34,sfx:FlameMagic
+35,sfx:FreezeMagic
+36,sfx:KirbyStyleLaser
+37,sfx:RobotNoise
+38,sfx:EnemyDeath
+39,sfx:BossDeath
+40,sfx:BigBossDeath
+41,sfx:Delvire
+42,sfx:Wilhelm
+43,sfx:Mistress
+44,sfx:Death
+45,sfx:Fart
+46,sfx:ExtralongWarp
+47,sfx:wolfhowl
 0,hero:Freki
 1,hero:Kitt
 2,hero:Styrge
@@ -254,6 +325,8 @@ define constant, begin
 9,hero:Renard
 10,hero:Xephes
 11,hero:Dragon
+12,hero:Kyle
+13,hero:Triangle Man
 1,item:Mead
 2,item:Herbs
 3,item:Honey
@@ -300,7 +373,7 @@ define constant, begin
 44,item:Blood
 45,item:Holy
 46,item:Defend
-47,item:Jade
+47,item:Glow
 48,item:Ragnrok
 49,item:Zetsabr
 50,item:Leather
@@ -358,12 +431,12 @@ define constant, begin
 102,item:Wolfy
 103,item:Ultra
 104,item:Berserk
-105,item:Bard
-106,item:Thief
+105,item:Skald
+106,item:Brigand
 107,item:Valkyre2
 108,item:Warrior
 109,item:Saintly
-110,item:Daemon
+110,item:Summon
 111,item:Nevok
 112,item:DMatter
 113,item:Panacea
@@ -371,18 +444,18 @@ define constant, begin
 115,item:Apple
 116,item:Soma
 117,item:Dash
-118,item:Chicken
+118,item:Paradox
 119,item:Bravery
 120,item:Longnus
-121,item:Dart
-122,item:Kunai
-123,item:Shurken
-124,item:Flame3
-125,item:Raijin
-126,item:Tsunami
-127,item:Blink
-128,item:Assasin
-129,item:Amatrsu
+121,item:Star
+122,item:Power2
+123,item:Dexter
+124,item:Magic
+125,item:Reacter
+126,item:Spirit
+127,item:Slime
+128,item:Red Sun
+129,item:Woogy
 130,item:RestBag
 131,item:Vigor
 132,item:Claws
@@ -402,7 +475,7 @@ define constant, begin
 146,item:Cider
 147,item:Cosmos
 148,item:Xclsior
-149,item:Flame4
+149,item:Flame3
 150,item:Frost
 151,item:Thunder2
 152,item:Aegis
@@ -435,15 +508,15 @@ define constant, begin
 179,item:Crystal5
 180,item:Stealth
 181,item:Runic
-182,item:Void
+182,item:Daemon
 183,item:Skirmsh
-184,item:Brigand
+184,item:Brigand2
 185,item:Warrior2
 186,item:Priest2
 187,item:Shaman
 188,item:Ranger
 189,item:Berserk2
-190,item:Bard2
+190,item:Bard
 191,item:Valkyre3
 192,item:Beast
 193,item:Necro
@@ -466,6 +539,12 @@ define constant, begin
 210,item:Buckler
 211,item:Cape
 212,item:Ring
+213,item:Jade
+214,item:BlkBelt
+215,item:Spoon
+216,item:Mjolnir
+217,item:Emerald
+218,item:Emerald2
 0,stat:HP
 1,stat:MP
 2,stat: Attack
@@ -479,14 +558,15 @@ define constant, begin
 10,stat: Soul
 11,stat: Attacks
 1,slot:Weapon
+1,slot: Weapon
 2,slot: Head
 3,slot: Body
 4,slot: Hand
 5,slot: Extra
-0,map:Midgard
+0,map:Mannheim
 1,map:Valhalla
 2,map:The book of ages
-3,map:Midgard Interiors
+3,map:Mannheim Interiors
 4,map:Ironwood Forest
 5,map:Ironwood Forest2
 6,map:Musphel Desert
@@ -502,7 +582,7 @@ define constant, begin
 16,map:Vile Castle
 17,map:Thule
 18,map:Forbidden Zone
-19,map:Midgard Timestop
+19,map:Mannheim Timestop
 20,map:Forbidden Zone II
 21,map:Shore of the Midgarsorm
 22,map:Panopticon Tower Ext
@@ -532,6 +612,13 @@ define constant, begin
 46,map:Coral Lake
 47,map:The Blue Marble
 48,map:Arfenhouse
+49,map:Dracula's Castle
+50,map:Everwinter
+51,map:Jade Fields
+52,map:Mannheim Outskirts
+53,map:Jerkstore
+54,map:Vanaheim
+55,map:Vanaheim Stadium
 1,atk:Attack
 2,atk:Recover
 3,atk:Mana
@@ -604,7 +691,7 @@ define constant, begin
 70,atk:Valiant
 71,atk:valdie
 72,atk:Wind
-73,atk:Smoke
+73,atk:Life Mist
 74,atk:Ice Age
 75,atk:Inspire
 76,atk:Silence
@@ -612,9 +699,9 @@ define constant, begin
 78,atk:Pilfer
 79,atk:Backstab
 80,atk:Flee
-81,atk:Haste
+81,atk:Red Shift
 82,atk:Mesmerize
-83,atk:Quick
+83,atk:Flux Time
 84,atk:GreenFire
 85,atk:too cold
 87,atk:Tattack
@@ -668,7 +755,7 @@ define constant, begin
 135,atk:Flame
 136,atk:Raijin
 137,atk:Tsunami
-138,atk:Smoke2
+138,atk:Smoke
 139,atk:Assassin
 140,atk:Banzai
 141,atk:Prokove
@@ -752,6 +839,90 @@ define constant, begin
 219,atk:1
 220,atk:Megaflare
 221,atk:Megaflprep
+222,atk:Wait
+223,atk:Thanks
+224,atk:Thanks2
+225,atk:Terrible
+226,atk:ThankVeliu
+227,atk:Myshinies
+228,atk:Stop that
+229,atk:Geez jerks
+230,atk:Laterz
+231,atk:Hmmm
+232,atk:Detect
+233,atk:merstu
+234,atk:Isthatreal
+235,atk:EnNurse
+236,atk:Fighton
+237,atk:1minute de
+238,atk:Siva1
+239,atk:Siva2
+240,atk:Siva3
+241,atk:Jump1
+242,atk:Land1
+243,atk:Jump2
+244,atk:Land2
+245,atk:jump3
+246,atk:Spearstorm
+247,atk:Land3
+248,atk:Sivaend
+249,atk:bandages
+250,atk:Alex1
+251,atk:Alex2
+252,atk:Alex3
+253,atk:Alex4
+254,atk:Alex5
+255,atk:Alex6
+256,atk:Alex7
+257,atk:Alex8
+258,atk:Alex9
+259,atk:Alexfinal
+260,atk:Cora1
+261,atk:Cora2
+262,atk:Cora3
+263,atk:Cora4
+264,atk:Cora5
+265,atk:cora6
+266,atk:Cora7
+267,atk:Cora8
+268,atk:Cora9
+269,atk:Cora10
+270,atk:Cora11
+271,atk:Cora12
+272,atk:Cora13
+273,atk:Cora14
+274,atk:Cora15
+275,atk:Cora16
+276,atk:Cora17
+277,atk:Velly1
+278,atk:Velly2
+279,atk:Velly3
+280,atk:Velly4
+281,atk:Velly5
+282,atk:Velly6
+283,atk:Velly7
+284,atk:Strup
+285,atk:Accup
+286,atk:evaup
+287,atk:Magup
+288,atk:Merge
+289,atk:Muaha
+290,atk:Jarate
+291,atk:Excalipoor
+292,atk:JadeSlash
+293,atk:Trianglesw
+294,atk:carrot att
+295,atk:Whalebard
+296,atk:Inara1
+297,atk:Inara2
+298,atk:Inara3
+299,atk:InaraAttac
+300,atk:Inarakick
+301,atk:Inaraheal
+302,atk:inaraamaze
+303,atk:holy fist
+304,atk:Timetoendd
+305,atk:Lifemist2
 1,shop:Valhalla Weapon
 2,shop:Valhalla Tools
 3,shop:Valhalla Armor
@@ -777,7 +948,15 @@ define constant, begin
 23,shop:Herbalist
 24,shop:Rachel's Shop
 25,shop:Before Combat
-1,enemy:Damned
+26,shop:Augment Potions
+27,shop:Jerkstore
+28,shop:Vanaheim Tools
+29,shop:Vanaheim Weapon
+30,shop:Crone's things
+31,shop:Frigga's Jewels
+1,menu:UTGARD ARENA
+2,menu:Boundless Ocean
+1,enemy:Legion
 2,enemy:Troll
 3,enemy:Flame Giant
 4,enemy:Frost Giant
@@ -792,8 +971,8 @@ define constant, begin
 13,enemy:Wight
 14,enemy:Shade
 15,enemy:Dragon Knight
-16,enemy:Shadow Ninja
-17,enemy:Ornithopter
+16,enemy:Shadow Reaper
+17,enemy:Thopter
 18,enemy:Gullinbursti
 19,enemy:Skidbladnir
 20,enemy:Naglfar
@@ -802,7 +981,7 @@ define constant, begin
 23,enemy:Red Dragon
 24,enemy:Snow Dragon
 25,enemy:Midgardsorm
-26,enemy:Dark Dragon
+26,enemy:Jabberwocky
 27,enemy:Garm
 28,enemy:Skoll
 29,enemy:Hati
@@ -816,12 +995,12 @@ define constant, begin
 37,enemy:Airsh2
 38,enemy:Fen1
 39,enemy:Fen2
-40,enemy:Velius
-41,enemy:Delvire
-42,enemy:Sasha
-43,enemy:Siva
-44,enemy:Alex
-45,enemy:Kotaru
+40,enemy:Warlock
+41,enemy:Brigand
+42,enemy:Devout
+43,enemy:Dragoon
+44,enemy:Barbarian
+45,enemy:Replicanthrope
 46,enemy:Mushroomer
 47,enemy:Ogre
 48,enemy:Kirpa
@@ -848,10 +1027,10 @@ define constant, begin
 77,enemy:YogSothoth5
 78,enemy:YogSothoth6
 79,enemy:YogSothoth7
-80,enemy:Dogero
-81,enemy:Mi'La
-82,enemy:Johan
-83,enemy:Pyrus
+80,enemy:Daguerro
+81,enemy:Mi'Ra
+82,enemy:Johawn
+83,enemy:Pylus
 84,enemy:Yoghint
 85,enemy:Patroller
 86,enemy:Enforcer
@@ -869,7 +1048,7 @@ define constant, begin
 100,enemy:Chewie
 101,enemy:Bob the Hamster
 102,enemy:Josh of the Dead
-103,enemy:Crimson Berserk
+103,enemy:Irregular Red
 104,enemy:Rell
 105,enemy:Chainsaw Jack
 106,enemy:Broaste
@@ -899,7 +1078,7 @@ define constant, begin
 131,enemy:Aboleth
 132,enemy:Bloodless
 133,enemy:Langolier
-134,enemy:Invisable Man
+134,enemy:Invisible Man
 135,enemy:Kothyl Drone
 136,enemy:Josh the ReDead
 137,enemy:Skeleton
@@ -909,7 +1088,7 @@ define constant, begin
 141,enemy:Thellos
 142,enemy:Zidane
 143,enemy:Vellan
-144,enemy:Cthulhu Reborn
+144,enemy:Cthulhu2
 145,enemy:Reaper
 146,enemy:Frankenstein
 147,enemy:Mummy
@@ -932,8 +1111,8 @@ define constant, begin
 164,enemy:Ice Cream
 165,enemy:Red Hood
 166,enemy:Cactus
-167,enemy:FFH Thief
-168,enemy:FFH Fighter
+167,enemy:Alfar
+168,enemy:Wolfling
 169,enemy:Mushman
 170,enemy:Sirius
 171,enemy:Berserker2
@@ -971,10 +1150,60 @@ define constant, begin
 203,enemy:Rectangle Girl
 204,enemy:Circle Woman
 205,enemy:Grandpa Diamond
-206,enemy:Guilt
+206,enemy:Shape Stealer
 207,enemy:Elements Animus
 208,enemy:Elements Animus2
 209,enemy:Elements Animus3
 210,enemy:Elements Animus4
 211,enemy:Hati2
+212,enemy:Devirish
+213,enemy:Mad Bomber
+214,enemy:Rifleman
+215,enemy:Hell Emperor
+216,enemy:Iron Eagle
+217,enemy:Iron Chariot
+218,enemy:Comrade Bomb
+219,enemy:Narvi
+220,enemy:Sasha
+221,enemy:Velius
+222,enemy:Delvire
+223,enemy:Siva
+224,enemy:Alex
+225,enemy:Master Disaster
+226,enemy:Blackwyvern
+227,enemy:Gold Pile
+228,enemy:Time Death
+229,enemy:Legi
+233,enemy:Dr Mu
+234,enemy:Shape Creator
+235,enemy:Squiggler
+236,enemy:Aimee
+237,enemy:Woogy
+238,enemy:Master Disaster2
+239,enemy:Master Disaster3
+240,enemy:Anon
+241,enemy:Gitleh
+242,enemy:Fedora
+243,enemy:Shoda
+244,enemy:Nix
+245,enemy:Horace
+246,enemy:Microsaurus
+247,enemy:Supersaurus
+248,enemy:Gigantosaurus
+249,enemy:Quetzalcoatl
+250,enemy:Nogitsune
+251,enemy:Lemon Puppy
+252,enemy:Ayatollah
+253,enemy:Guerilla
+254,enemy:Son of Sung
+255,enemy:Commodant
+256,enemy:Delvire2
+257,enemy:Inara
+258,enemy:Tunneler
+259,enemy:Surt
+260,enemy:Fafnir
+261,enemy:PersistentKiller
+262,enemy:Yo Ghost
+263,enemy:Captain Texas
+264,enemy:Mimic
 end
