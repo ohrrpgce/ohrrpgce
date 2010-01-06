@@ -238,7 +238,7 @@ SELECT CASE joymenu
 END SELECT
 
 FOR i = 0 TO 3
- carray( + i) = carray(i)
+ carray(10 + i) = carray(i)
 NEXT i
 RETRACE
 
