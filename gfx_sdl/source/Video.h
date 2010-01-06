@@ -1,9 +1,9 @@
-//Graphics.h
+//Video.h
 //started 1/5/10
 //sdl graphics interface
 
-#ifndef GRAPHICS_H
-#define GRAPHICS_H
+#ifndef GFX_VIDEO_H
+#define GFX_VIDEO_H
 
 #include "SDL.h"
 #include "gfx_palette.h"
@@ -13,7 +13,7 @@ namespace gfx
 {
 	struct Resolution { Uint32 w, h; };
 
-	class SDL
+	class Video
 	{
 	protected:
 		SDL_Surface *m_pFrontBuffer;
@@ -22,14 +22,14 @@ namespace gfx
 		{
 			Image() : pSurface(0), width(0), height(0){}
 			~Image() {Free(); palette.Free();}
-			void AllocateSurface(UINT nWidth, UINT nHeight)
+			void AllocateSurface(Uint32 nWidth, Uint32 nHeight)
 			{
 				Free();
 				if(nWidth == 0 || nHeight == 0)
 					return;
 				width = nWidth;
 				height = nHeight;
-				pSurface = new BYTE[width * height];
+				pSurface = new Uint8[width * height];
 			}
 			void Free()
 			{
@@ -47,8 +47,8 @@ namespace gfx
 		bool m_bARP; //aspect ratio preservation
 		bool m_bInitialized;
 	public:
-		SDL();
-		virtual ~SDL();
+		Video();
+		virtual ~Video();
 
 		int Initialize();
 		void Shutdown();

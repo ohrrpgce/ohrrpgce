@@ -4,13 +4,13 @@ tstring::tstring() : _tstring()
 {
 }
 
-tstring::tstring(W_CHAR *uniString) : _tstring()
+tstring::tstring(const W_CHAR *uniString) : _tstring()
 {
 	T_CHAR buffer[256] = T_TEXT("");
 	assign(WcharToTchar(buffer, 256, uniString, 0));
 }
 
-tstring::tstring(A_CHAR *ansiString) : _tstring()
+tstring::tstring(const A_CHAR *ansiString) : _tstring()
 {
 	T_CHAR buffer[256] = T_TEXT("");
 	assign(CharToTchar(buffer, 256, ansiString, 0));

@@ -24,8 +24,8 @@ class tstring : public _tstring
 {
 public:
 	tstring();
-	tstring(W_CHAR* uniString);
-	tstring(A_CHAR* ansiString);
+	tstring(const W_CHAR* uniString);
+	tstring(const A_CHAR* ansiString);
 };
 
 //converts char to tchar; if nSrcSize == 0, the length of the source string is taken

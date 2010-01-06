@@ -1,4 +1,4 @@
-//gfx_directx_cls_palette.h
+//gfx_palette.h
 //by Jay Tennant 10/30/09
 //template class for a palette
 

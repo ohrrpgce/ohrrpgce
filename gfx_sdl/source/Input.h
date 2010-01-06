@@ -2,31 +2,19 @@
 //started 1/5/10
 //manages input
 
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef GFX_INPUT_H
+#define GFX_INPUT_H
 
 #include "SDL.h"
 
 namespace gfx
 {
-	enum InputMessage
-	{
-		IM_KEYDOWN,
-		IM_KEYUP,
-		IM_MOUSEMOVE,
-		IM_MOUSECLICK,
-		IM_JOYMOVE,
-		IM_JOYCLICK,
-	};
-
 	class Input
 	{
 	protected:
 	public:
 		Input();
 		virtual ~Input();
-
-		void SendMessage(InputMessage msg, Uint32 dwParam, Uint32 dwParam2);
 
 		void Poll();
 		void PollKeyboard(); //updates key state
@@ -40,9 +28,9 @@ namespace gfx
 		int GetMouseX();
 		int GetMouseY();
 		int GetMouseWheel();
-		void SetMouseX(LONG xPos);
-		void SetMouseY(LONG yPos);
-		void SetMouseWheel(LONG zPos);
+		void SetMouseX(int xPos);
+		void SetMouseY(int yPos);
+		void SetMouseWheel(int zPos);
 		int GetMouseXChange(); //returns change in movement along x-axis
 		int GetMouseYChange(); //returns change in movement along y-axis
 		int GetMouseWheelChange(); //returns change in wheel movement

@@ -2,31 +2,30 @@
 //started 1/5/10
 //manages sdl window interface
 
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef GFX_WINDOW_H
+#define GFX_WINDOW_H
 
 #include "SDL.h"
 #include "_tstring.h"
 
-#include "Graphics.h"
-#include "Input.h"
-
 namespace gfx
 {
+	typedef int (*SDL_EventProc)(const SDL_Event *pEvent);
+
 	class Window
 	{
 	protected:
+		SDL_EventFilter m_pfnEventFilter;
+		SDL_EventProc m_pfnEventProc;
 	public:
 		Window();
 		virtual ~Window();
 
-		int PumpMessages();
+		void PumpMessages();
 		void SetWindowTitle(const tstring& szWindowTitle);
-		void SetEventFilter(SDL_EventFilter* pFilter);
-		void PushEvent(const SDL_Event* pSdlEvent);
-
-		void SetInput(gfx::Input *pInput);
-		void SetGraphics(gfx::SDL *pGraphics);
+		void SetEventFilter(SDL_EventFilter pfnEventFilter);
+		void SetEventProc(SDL_EventProc pfnEventProc);
+		void PushEvent(SDL_Event* pSdlEvent); //all events pushed bypasses event filter
 	};
 }
 
