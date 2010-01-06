@@ -67,12 +67,14 @@ Source: "import\Master Palettes\*"; DestDir: "{app}\import\Master Palettes"; Fla
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\OHRRPGCE Game Player"; Filename: "{app}\game.exe"; WorkingDir: "{app}"; Flags: closeonexit
 Name: "{userdesktop}\OHRRPGCE Game Player"; Filename: "{app}\game.exe"; WorkingDir: "{app}"; Flags: closeonexit; Tasks: desktopicon
-Name: "{group}\OHRRPGCE Custom Editor"; Filename: "{app}\custom.exe"; WorkingDir: "{app}"; Flags: closeonexit
 Name: "{userdesktop}\OHRRPGCE Custom Editor"; Filename: "{app}\custom.exe"; WorkingDir: "{app}"; Flags: closeonexit; Tasks: desktopicon
 Name: "{userdesktop}\OHRRPGCE Folder (install games here)"; Filename: "{app}"; WorkingDir: "{app}"; Tasks: desktopicon
-Name: "{group}\OHRRPGCE Folder (install games here)"; Filename: "{app}"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{group}\OHRRPGCE Game Player"; Filename: "{app}\game.exe"; WorkingDir: "{app}"; Flags: closeonexit
+Name: "{group}\OHRRPGCE Custom Editor"; Filename: "{app}\custom.exe"; WorkingDir: "{app}"; Flags: closeonexit
+Name: "{group}\OHRRPGCE Game Player (directx)"; Filename: "{app}\game.exe"; Parameters: "-gfx directx"; WorkingDir: "{app}"; Flags: closeonexit
+Name: "{group}\OHRRPGCE Custom Editor (directx)"; Filename: "{app}\custom.exe"; Parameters: "-gfx directx"; WorkingDir: "{app}"; Flags: closeonexit
+Name: "{group}\OHRRPGCE Folder (install games here)"; Filename: "{app}"; WorkingDir: "{app}";
 Name: "{group}\Website (Help, HOWTO, FAQ)"; Filename: "http://HamsterRepublic.com/ohrrpgce/";
 Name: "{group}\Download RPG Games"; Filename: "http://HamsterRepublic.com/ohrrpgce/index.php/Games.html";
 
