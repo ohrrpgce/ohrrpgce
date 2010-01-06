@@ -9,9 +9,24 @@
 
 namespace gfx
 {
+	struct RECT
+	{
+		int left, top, right, bottom;
+	};
+
 	class Input
 	{
 	protected:
+		Uint8 m_keyboardState[256];
+		struct Mouse
+		{
+			int x;
+			int y;
+			int wheel;
+			Uint8 buttonState[8]; //support for 8 buttons
+		} m_mousePosition, m_mouseChange; //m_mouseChange is used for button state
+		bool m_bClipped; //if true, mouse position is clipped to a specified range (not the os cursor)
+		gfx::RECT m_rClip;
 	public:
 		Input();
 		virtual ~Input();
