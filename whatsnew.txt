@@ -206,6 +206,10 @@ Dec ?? 2009 [Ypsiliform]
       mouse leave the window with mouseregion. [Ralph]
 
   * Vikings of Midgard
+    * More story scenes for the plot to unfold more naturally.
+    * Enemies and elemental system completely revamped.
+    * Even MORE subquests to explore.
+    * "complete" up to the "world of ruin" part of the game.
 
   * Stuff only Developers Will Notice
     * New slice routines for rectangular objects of various styles that
