@@ -1,4 +1,4 @@
-# HamsterSpeak constant definitions for Viking.rpg
+# HamsterSpeak constant definitions for vikings.rpgdir
 
 define constant, begin
 2,tag:YesNo
@@ -213,6 +213,8 @@ define constant, begin
 218,tag:IcyStone
 219,tag:BuckText
 220,tag:Thule5
+221,tag:Collietime
+222,tag:Thulequestsover
 1,song:Asgard
 2,song:piano02
 3,song:song04
@@ -547,22 +549,22 @@ define constant, begin
 218,item:Emerald2
 0,stat:HP
 1,stat:MP
-2,stat: Attack
-3,stat: Accuracy
-4,stat: Defense
-5,stat: Evasion
-6,stat: Magic
-7,stat: Wisdom
-8,stat: Speed
-9,stat: Vigor
-10,stat: Soul
-11,stat: Attacks
+2,stat:Attack
+3,stat:Accuracy
+4,stat:Defense
+5,stat:Evasion
+6,stat:Magic
+7,stat:Wisdom
+8,stat:Speed
+9,stat:Vigor
+10,stat:Soul
+11,stat:Attacks
 1,slot:Weapon
-1,slot: Weapon
-2,slot: Head
-3,slot: Body
-4,slot: Hand
-5,slot: Extra
+1,slot:Weapon2
+2,slot:Head
+3,slot:Body
+4,slot:Hand
+5,slot:Extra
 0,map:Mannheim
 1,map:Valhalla
 2,map:The book of ages
@@ -619,6 +621,7 @@ define constant, begin
 53,map:Jerkstore
 54,map:Vanaheim
 55,map:Vanaheim Stadium
+56,map:Ironwood Forest Ragnarok
 1,atk:Attack
 2,atk:Recover
 3,atk:Mana
