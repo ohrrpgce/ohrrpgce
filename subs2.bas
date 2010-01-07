@@ -22,24 +22,6 @@ END TYPE
 #include "custom_udts.bi"
 #include "const.bi"
 #include "common.bi"
-
-'basic subs and functions
-DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
-DECLARE FUNCTION numbertail$ (s$)
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE FUNCTION isunique% (s$, u$(), r%)
-DECLARE SUB exportnames ()
-DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION boxconditionheroname$ (num%, cond%())
-DECLARE SUB formation ()
-DECLARE SUB enemydata ()
-DECLARE SUB herodata ()
-DECLARE SUB attackdata ()
-DECLARE SUB maptile (font%())
-DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
-DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
-DECLARE FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
-
 #include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
@@ -49,7 +31,19 @@ DECLARE FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
 
 #include "scrconst.bi"
 
+'--external subs and functions
+DECLARE FUNCTION numbertail (s$) AS STRING
+DECLARE FUNCTION boxconditionheroname$ (num%, cond%())
+
 '--Local subs and functions
+DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique() AS STRING, prefix$)
+DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
+DECLARE FUNCTION isunique (s AS STRING, set() AS STRING) AS INTEGER
+DECLARE SUB exportnames ()
+DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
+
+DECLARE FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
+DECLARE FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
 DECLARE SUB write_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER, num AS INTEGER)
 DECLARE FUNCTION read_box_conditional_by_menu_index(BYREF box AS TextBox, menuindex AS INTEGER) AS INTEGER
 DECLARE FUNCTION box_conditional_type_by_menu_index(menuindex AS INTEGER) AS INTEGER
@@ -140,13 +134,11 @@ END SUB
 
 SUB exportnames ()
 
-DIM u(1024) AS STRING
+REDIM u(0) AS STRING
 DIM her AS HeroDef
 DIM menu_set AS MenuSet
 menu_set.menufile = workingdir & SLASH & "menus.bin"
 menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
-
-max = 32
 
 outf$ = trimextension$(trimpath$(sourcerpg)) + ".hsi"
 
@@ -169,47 +161,47 @@ PRINT #fh, ""
 PRINT #fh, "define constant, begin"
 
 printstr "tag names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 2 TO 999
  writeconstant fh, i, load_tag_name(i), u(), "tag"
 NEXT i
 
 printstr "song names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO gen(genMaxSong)
  writeconstant fh, i, getsongname$(i), u(), "song"
 NEXT i
 setvispage 0
 
 printstr "sound effect names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO gen(genMaxSFX)
  writeconstant fh, i, getsfxname$(i), u(), "sfx"
 NEXT i
 setvispage 0
 
 printstr "hero names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO gen(genMaxHero)
  loadherodata @her, i
  writeconstant fh, i, her.name, u(), "hero"
 NEXT i
 
 printstr "item names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO gen(genMaxItem)
  writeconstant fh, i, readitemname$(i), u(), "item"
 NEXT i
 setvispage 0
 
 printstr "stat names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO UBOUND(statnames)
  writeconstant fh, i, statnames(i), u(), "stat"
 NEXT i
 
 printstr "slot names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 writeconstant fh, 1, "Weapon", u(), "slot"
 writeconstant fh, 1, readglobalstring(38, "Weapon"), u(), "slot"
 FOR i = 0 TO 3
@@ -218,34 +210,34 @@ NEXT i
 setvispage 0
 
 printstr "map names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO gen(genMaxMap)
  writeconstant fh, i, getmapname$(i), u(), "map"
 NEXT i
 
 printstr "attack names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO gen(genMaxAttack)
  writeconstant fh, i + 1, readattackname$(i), u(), "atk"
 NEXT i
 setvispage 0
 
 printstr "shop names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO gen(genMaxShop)
  writeconstant fh, i, readshopname$(i), u(), "shop"
 NEXT i
 setvispage 0
 
 printstr "menu names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO gen(genMaxMenu)
  writeconstant fh, i, getmenuname(i), u(), "menu"
 NEXT i
 setvispage 0
 
 printstr "enemy names", 0, pl * 8, 0: pl = pl + 1
-isunique "", u(), 1
+REDIM u(0) AS STRING
 FOR i = 0 TO gen(genMaxEnemy)
  writeconstant fh, i, readenemyname$(i), u(), "enemy"
 NEXT i
@@ -458,27 +450,15 @@ SUB importscripts (f$)
  END IF
 END SUB
 
-FUNCTION isunique (s$, u$(), r)
-STATIC uptr
-
-IF r THEN '--reset
- FOR i = 0 TO uptr
-  u$(i) = s$
+FUNCTION isunique (s AS STRING, set() AS STRING) AS INTEGER
+ DIM key AS STRING
+ key = exclusive(LCASE(s), "abcdefghijklmnopqrstuvwxyz0123456789_'~")
+ FOR i = 1 TO UBOUND(set)
+  IF key = set(i) THEN RETURN NO
  NEXT i
- uptr = -1
- EXIT FUNCTION
-END IF
 
-IF s$ = "" THEN isunique = -1: EXIT FUNCTION
-
-FOR i = 0 TO uptr
- IF LCASE$(s$) = u$(i) THEN isunique = 0: EXIT FUNCTION
-NEXT i
-
-uptr = small(uptr + 1, 1024)'--gives up trying after 1024 records
-u$(uptr) = LCASE$(s$)
-isunique = -1
-
+ str_array_append set(), key
+ RETURN YES
 END FUNCTION
 
 SUB scriptman ()
@@ -518,12 +498,12 @@ DO
     script_broken_trigger_list()
   END SELECT
  END IF
- 
+
+ clearpage dpage
  standardmenu menu(), menumax, 22, pt, 0, 0, 0, dpage, 0
- 
+
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
  dowait
 LOOP
 END SUB
@@ -1019,9 +999,9 @@ END SUB
 SUB writeconstant (filehandle AS INTEGER, num AS INTEGER, names AS STRING, unique() AS STRING, prefix AS STRING)
  'prints a hamsterspeak constant to already-open filehandle
  DIM s AS STRING
- s = exclusive(names, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
- WHILE NOT isunique(s, unique(), 0): s = numbertail(s): WEND
+ s = TRIM(exclusive(names, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~"))
  IF s <> "" THEN
+  WHILE NOT isunique(s, unique()): s = numbertail(s): WEND
   s = num & "," & prefix & ":" & s
   PRINT #filehandle, s
  END IF
