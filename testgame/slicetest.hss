@@ -55,14 +55,13 @@ plotscript, test, begin
       )
     )
     sl := sl3
-    wait(15)
+    wait(2)
   end
   wait(10)
   $0="sort tests: reverse y sort (sort children)", show string(0)
-  sl := first child(cont)
-  while(sl) do, begin
+  for(i, 0, child count(cont) -- 1) do, begin
+    sl := slice child(cont, i)
     set sort order(sl, slice y(sl) * -1)
-    sl := next sibling(sl)
   end
   sort children(cont)
   wait(10)

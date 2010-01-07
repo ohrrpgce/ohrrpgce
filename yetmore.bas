@@ -2404,6 +2404,15 @@ SELECT CASE AS CONST id
     END IF
    END IF
   END IF
+ CASE 448 '--slice child
+  IF valid_plotslice(retvals(0)) THEN
+   DIM sl AS Slice Ptr = plotslices(retvals(0))->FirstChild
+   FOR i = 0 TO retvals(1)
+    IF sl = NULL THEN EXIT FOR
+    IF i = retvals(1) THEN scriptret = find_plotslice_handle(sl)
+    sl = sl->NextSibling
+   NEXT
+  END IF
 
 END SELECT
 

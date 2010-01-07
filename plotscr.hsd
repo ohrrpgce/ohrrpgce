@@ -455,6 +455,7 @@ define function, begin
 445,updateleveluplearning,2,0,1 #refresh spells learned from level ups
 446,moveslicebelow,2,0,0      #make a slice the previous sibling of another slice
 447,movesliceabove,2,0,0      #make a slice the next sibling of another slice
+448,slicechild,2,0,0          #the nth child of a slice, counting from 0
 end
 
 #--------------------------------------------------------------------------

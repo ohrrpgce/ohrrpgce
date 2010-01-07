@@ -158,10 +158,11 @@ Dec ?? 2009 [Ypsiliform]
       "sprite layer", "horiz flip sprite", "vert flip sprite",
       "sprite is horiz flipped", "sprite is vert flipped"
       [Mike, James]
-    * "slice x", "slice y", "set slice x", "set slice y", "put slice",
-      "slice width", "slice height", "set horiz align", "set vert align",
-      "set horiz anchor", "set vert anchor", "free slice", "child count",
-      "first child", "next sibling", "last child", "previous sibling",
+    * "slice x", "slice y", "set slice x", "set slice y",
+      "put slice", "slice width", "slice height", "set horiz align",
+      "set vert align", "set horiz anchor", "set vert anchor",
+      "free slice", "slice child", "child count", "first child",
+      "next sibling", "last child", "previous sibling",
       "free slice children", "create container", "check parentage",
       "set parent", "parent slice", "slice screen x", "slice screen y",
       "put slice screen", "slice is container", "set slice width", 

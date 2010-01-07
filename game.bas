@@ -420,7 +420,6 @@ force_npc_check = YES
 showtags = 0
 shownpcinfo = 0
 gam.walk_through_walls = NO
-debug "err supp " & err_suppress_lvl
 'DEBUG debug "pre-call movement"
 GOSUB movement
 setkeys

@@ -2549,10 +2549,21 @@ end
 				<ref>freeslice</ref>
 			</seealso>
 		</command>
+		<command id="slicechild">
+			<canon>slice child (handle, number)</canon>
+			<shortname>slice child</shortname>
+			<description>Returns a handle for the nth child of a slice, counting from 0. Returns <p>false</p> if <p>number</p> is too large (<p>last child(handle)</p> is equivalent to <p>slice child(handle, child count(handle) -- 1)</p>). Note that you will need to use <ref>firstchild</ref> and <ref>nextsibling</ref> to iterate over the children of a slice, rather than this command, when you are moving the children around.</description>
+			<seealso>
+				<ref>childcount</ref>
+				<ref>parentslice</ref>
+				<ref>firstchild</ref>
+				<ref>lastchild</ref>
+			</seealso>
+		</command>
 		<command id="firstchild">
 			<canon>first child(handle)</canon>
 			<shortname>first child</shortname>
-			<description>Returns a slice handle for the first child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no children. You can use this to loop through all all the children of a slice</description>
+			<description>Returns a slice handle for the first child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no children. You can use this to loop through all the children of a slice.</description>
 			<example>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin
@@ -2563,6 +2574,7 @@ while (sl) do, begin
 end
 </example>
 			<seealso>
+				<ref>slicechild</ref>
 				<ref>firstspritechild</ref>
 				<ref>firstrectchild</ref>
 				<ref>firstcontainerchild</ref>
@@ -2575,6 +2587,7 @@ end
 			<shortname>last child</shortname>
 			<description>Returns a slice handle for the last child of a given slice <p>handle</p>. Returns <p>false</p> if the slice has no children.</description>
 			<seealso>
+				<ref>slicechild</ref>
 				<ref>firstchild</ref>
 				<ref>childcount</ref>
 			</seealso>
@@ -2597,6 +2610,7 @@ end
 				<ref>nextspritesibling</ref>
 				<ref>nextrectsibling</ref>
 				<ref>nextcontainersibling</ref>
+				<ref>slicechild</ref>
 				<ref>freeslice</ref>
 				<ref>slicetofront</ref>
 				<ref>slicetoback</ref>
@@ -2610,6 +2624,7 @@ end
 			<description>Returns a slice handle for the previous sibling of a given slice <p>handle</p>, the inverse of <ref>nextsibling</ref> . Returns <p>false</p> if the given slice is the first sibling of its parent. This is useful when looping through slices.</description>
 			<seealso>
 				<ref>nextsibling</ref>
+				<ref>slicechild</ref>
 				<ref>freeslice</ref>
 				<ref>slicetofront</ref>
 				<ref>slicetoback</ref>
@@ -2678,6 +2693,7 @@ end
 			<seealso>
 				<ref>setparent</ref>
 				<ref>checkparentage</ref>
+				<ref>slicechild</ref>
 			</seealso>
 		</command>
 		<command id="setparent">
@@ -2687,6 +2703,7 @@ end
 			<seealso>
 				<ref>parentslice</ref>
 				<ref>checkparentage</ref>
+				<ref>slicechild</ref>
 			</seealso>
 		</command>
 		<command id="checkparentage">
@@ -2702,6 +2719,7 @@ end
 			<shortname>child count</shortname>
 			<description>Returns the number of children that slice <p>handle</p> has.</description>
 			<seealso>
+				<ref>slicechild</ref>
 				<ref>firstchild</ref>
 			</seealso>
 		</command>
