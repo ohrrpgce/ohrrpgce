@@ -17,7 +17,7 @@ namespace gfx
 	class Input
 	{
 	protected:
-		Uint8 m_keyboardState[256];
+		Uint8 m_keyboardState[322];
 		struct Mouse
 		{
 			int x;
@@ -36,7 +36,7 @@ namespace gfx
 		void PollMouse(); //updates mouse position and button state
 		void PollJoystick(); //updates joystick position and button state
 
-		Uint8* GetKeyboardState(); //returns 256 byte array of keyboard state
+		Uint8* GetKeyboardState(); //returns 322 byte array of keyboard state
 		bool IsKeyDown(int sdlCode); //returns true if sdlCode key is down
 		bool IsKeyUp(int sdlCode); //returns true if sdlCode key is up
 

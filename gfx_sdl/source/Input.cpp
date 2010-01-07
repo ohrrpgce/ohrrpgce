@@ -25,7 +25,7 @@ void Input::PollKeyboard()
 {
 	int nKeys = 0;
 	Uint8 *pKeys = ::SDL_GetKeyState(&nKeys);
-	for(int i = 0; i < nKeys; i++)
+	for(int i = 0; i < nKeys && i < 322; i++)
 		m_keyboardState[i] = pKeys[i];
 }
 
@@ -33,11 +33,11 @@ void Input::PollMouse()
 {
 	Uint8 buttons = ::SDL_GetRelativeMouseState(&m_mouseChange.x, &m_mouseChange.y);
 	for(int i = 0; i < 8; i++)
-		m_mouseChange.buttonState[i] = buttons & (1 << i); //need to check if buttons are being interpreted correctly
+		m_mouseChange.buttonState[i] = buttons & (1 << i);
 
 	m_mousePosition.x += m_mouseChange.x;
 	m_mousePosition.y += m_mouseChange.y;
-	//m_mousePosition.wheel += m_mouseChange.wheel; //sdl does not support yet :(
+	//m_mousePosition.wheel += m_mouseChange.wheel; //implemented in sdl proc in gfx_sdl.cpp, not in this input module
 
 	if(m_bClipped)
 	{
@@ -123,7 +123,7 @@ Uint8* Input::GetMouseButtonState()
 
 bool Input::IsMouseLButtonDown()
 {
-	return (m_mouseChange.buttonState[0] != 0 ? true : false);
+	return (m_mouseChange.buttonState[SDL_BUTTON(SDL_BUTTON_LEFT)] != 0 ? true : false);
 }
 
 bool Input::IsMouseLButtonUp()
@@ -133,7 +133,7 @@ bool Input::IsMouseLButtonUp()
 
 bool Input::IsMouseRButtonDown()
 {
-	return (m_mouseChange.buttonState[1] != 0 ? true : false);
+	return (m_mouseChange.buttonState[SDL_BUTTON(SDL_BUTTON_RIGHT)] != 0 ? true : false);
 }
 
 bool Input::IsMouseRButtonUp()
@@ -143,7 +143,7 @@ bool Input::IsMouseRButtonUp()
 
 bool Input::IsMouseMButtonDown()
 {
-	return (m_mouseChange.buttonState[2] != 0 ? true : false);
+	return (m_mouseChange.buttonState[SDL_BUTTON(SDL_BUTTON_MIDDLE)] != 0 ? true : false);
 }
 
 bool Input::IsMouseMButtonUp()
@@ -155,7 +155,7 @@ bool Input::IsMouseXButtonDown(int n)
 {
 	if(n < 0 || n >= 8)
 		return false;
-	return (m_mouseChange.buttonState[n] != 0 ? true : false);
+	return (m_mouseChange.buttonState[SDL_BUTTON(n)] != 0 ? true : false);
 }
 
 bool Input::IsMouseXButtonUp(int n)
