@@ -133,7 +133,6 @@ support\cp vikings.rpg tmpdist
 mkdir "tmpdist\Vikings script files"
 support\cp "vikings\Vikings script files\viking.txt" "tmpdist\Vikings script files"
 support\cp "vikings\Vikings script files\viking.hsi" "tmpdist\Vikings script files"
-support\cp "vikings\Vikings script files\thirdparty.hsi" "tmpdist\Vikings script files"
 support\cp "vikings\Vikings script files\utility.lib" "tmpdist\Vikings script files"
 support\cp "vikings\README-vikings.txt" tmpdist
 
