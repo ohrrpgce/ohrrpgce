@@ -14,7 +14,6 @@ DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
 'the below functions require cleaning
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB scriptman ()
 DECLARE SUB mapmaker (font%())
 DECLARE SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
@@ -770,7 +769,7 @@ DO
  tog = tog XOR 1
  IF keyval(scEsc) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "shop_main"
- IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxShop), 0, game + ".sho", 40, 1: GOSUB menugen
+ IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxShop), 0, game + ".sho", 40: GOSUB menugen
  usemenu csr, 0, 0, li, 24
  IF csr = 1 THEN
   IF pt = gen(genMaxShop) AND keyval(scRight) > 1 THEN

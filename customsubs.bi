@@ -76,5 +76,7 @@ DECLARE SUB position_chain_preview_boxes(sl_list() AS Slice ptr, st AS MenuState
 DECLARE SUB fontedit (font() AS INTEGER)
 DECLARE SUB fontedit_export_font(font() AS INTEGER)
 DECLARE SUB fontedit_import_font(font() AS INTEGER)
+DECLARE SUB cropafter (BYVAL index AS INTEGER, BYREF limit AS INTEGER, BYVAL flushafter AS INTEGER, lump AS STRING, BYVAL bytes AS INTEGER, BYVAL prompt AS INTEGER=YES)
+DECLARE FUNCTION numbertail (s AS STRING) AS STRING
 
 #endif

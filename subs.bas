@@ -23,9 +23,6 @@ DEFINT A-Z
 
 #include "flexmenu.bi"
 
-'Subs2.bas:
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-
 'Menus.bas
 DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
 
@@ -577,7 +574,7 @@ DO
 
  '--CTRL+BACKSPACE
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
-  cropafter recindex, gen(genMaxEnemy), 0, game + ".dt1", 320, 1
+  cropafter recindex, gen(genMaxEnemy), 0, game + ".dt1", 320
  END IF
 
  usemenu state
@@ -942,7 +939,7 @@ DO
    RETRACE
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_editor"
-  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxFormation), 0, game + ".for", 80, 1
+  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxFormation), 0, game + ".for", 80
   usemenu csr2, -6, -6, 7, 25
   IF enter_or_space() THEN
    IF csr2 = -6 THEN
@@ -1177,7 +1174,7 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "hero_editor"
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
-  cropafter pt, gen(genMaxHero), -1, game + ".dt0", 636, 1
+  cropafter pt, gen(genMaxHero), -1, game + ".dt0", 636
  END IF
  usemenu csr, 0, 0, 9, 24
  IF enter_or_space() THEN
@@ -1610,7 +1607,7 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "item_editor_pickitem"
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 AND csr >= 0 THEN
-  cropafter csr, gen(genMaxItem), 0, game + ".itm", 200, 1
+  cropafter csr, gen(genMaxItem), 0, game + ".itm", 200
   load_item_names item()
  END IF
  usemenu csr, top, -1, gen(genMaxItem) + 1, 23

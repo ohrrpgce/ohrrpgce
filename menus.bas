@@ -17,17 +17,7 @@ DEFINT A-Z
 #include "uiconst.bi"
 #include "loading.bi"
 
-'basic subs and functions
-DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique$(), prefix$)
-DECLARE FUNCTION numbertail$ (s$)
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE FUNCTION isunique% (s$, u$(), r%)
-DECLARE SUB testanimpattern (tastuf%(), taset%)
-DECLARE SUB formation ()
-DECLARE SUB herodata ()
-DECLARE SUB attackdata ()
-DECLARE SUB maptile (font%())
-DECLARE FUNCTION filesize$ (file$)
+'local subs and functions
 DECLARE SUB generalscriptsmenu ()
 DECLARE SUB generalmusicsfxmenu ()
 DECLARE SUB masterpalettemenu ()

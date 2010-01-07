@@ -31,13 +31,8 @@ END TYPE
 
 #include "scrconst.bi"
 
-'--external subs and functions
-DECLARE FUNCTION numbertail (s$) AS STRING
-DECLARE FUNCTION boxconditionheroname$ (num%, cond%())
-
 '--Local subs and functions
 DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique() AS STRING, prefix$)
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE FUNCTION isunique (s AS STRING, set() AS STRING) AS INTEGER
 DECLARE SUB exportnames ()
 DECLARE SUB addtrigger (scrname$, id%, BYREF triggers AS TRIGGERSET)
@@ -76,61 +71,7 @@ CONST condITEM   = 6
 CONST condBOX    = 7
 CONST condMENU   = 8
 
-dim shared shop as string
-
 REM $STATIC
-SUB cropafter (index, limit, flushafter, lump$, bytes, prompt)
-
-'if bytes is negative, then pages are used.
-
-'flushafter -1 = no flush
-'flushafter 0 = record flush
-
-DIM menu(1) as string
-
-IF prompt THEN
- menu(0) = "No do not delete anything"
- menu(1) = "Yes, delete all records after this one"
- IF sublist(menu(), "cropafter") < 1 THEN
-  setkeys
-  EXIT SUB
- ELSE
-  setkeys
- END IF
-END IF
-
-IF bytes >= 0 THEN
- setpicstuf buffer(), bytes, -1
- FOR i = 0 TO index
-  loadset lump$, i, 0
-  storeset tmpdir & "_cropped.tmp", i, 0
- NEXT i
- IF flushafter THEN
-  'FIXME: this flushafter hack only exists for the .DT0 lump,
-  ' out of fear that some code with read hero data past the end of the file.
-  ' after cleanup of all hero code has confurmed this fear is unfounded, we can
-  ' eliminate this hack entirely
-  flusharray buffer(), INT(bytes / 2) + 1, 0
-  FOR i = index + 1 TO limit
-   storeset tmpdir & "_cropped.tmp", i, 0
-  NEXT i
- END IF
- limit = index
- 
-ELSE '--use pages instead of sets
- FOR i = 0 TO index
-  DIM temppage as Frame ptr = loadmxs(lump$, i)
-  storemxs(tmpdir & "_cropped.tmp", i, temppage)
-  sprite_unload @temppage
- NEXT i
- limit = index
- 
-END IF'--separate setpicstuf
-
-filecopy tmpdir & "_cropped.tmp", lump$
-safekill tmpdir & "_cropped.tmp"
-
-END SUB
 
 SUB exportnames ()
 
@@ -563,7 +504,7 @@ SUB text_box_editor () 'textage
   IF keyval(scF1) > 1 THEN show_help "textbox_main"
   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
    SaveTextBox box, st.id
-   cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY), 1
+   cropafter st.id, gen(genMaxTextBox), 0, game & ".say", curbinsize(binSAY)
    textbox_edit_load box, st, menu()
   END IF
   usemenu state
@@ -999,10 +940,15 @@ END SUB
 SUB writeconstant (filehandle AS INTEGER, num AS INTEGER, names AS STRING, unique() AS STRING, prefix AS STRING)
  'prints a hamsterspeak constant to already-open filehandle
  DIM s AS STRING
+ DIM n AS INTEGER = 2
+ DIM suffix AS STRING
  s = TRIM(exclusive(names, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~"))
  IF s <> "" THEN
-  WHILE NOT isunique(s, unique()): s = numbertail(s): WEND
-  s = num & "," & prefix & ":" & s
+  WHILE NOT isunique(s + suffix, unique())
+   suffix = " " & n
+   n += 1
+  WEND
+  s = num & "," & prefix & ":" & s & suffix
   PRINT #filehandle, s
  END IF
 END SUB

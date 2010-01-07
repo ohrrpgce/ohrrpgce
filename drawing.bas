@@ -9,7 +9,12 @@ DEFINT A-Z
 #include "udts.bi"
 #include "custom_udts.bi"
 
-'basic subs and functions
+'External subs and functions
+DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
+DECLARE SUB savepasdefaults (array%(), tilesetnum%)
+DECLARE SUB importmasterpal (f$, palnum%)
+
+'Local SUBs and FUNCTIONS
 DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
 DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea)
 DECLARE SUB tilecut (ts AS TileEditState, mouse(), area() AS MouseArea)
@@ -24,22 +29,13 @@ DECLARE SUB tilepaste (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB copymapblock (buf%(), sx%, sy%, sp%, dx%, dy%, dp%)
 DECLARE SUB changepal (palval%, palchange%, workpal%(), aindex%)
-DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
-DECLARE SUB savepasdefaults (array%(), tilesetnum%)
 DECLARE SUB airbrush (x%, y%, d%, m%, c%, p%)
 DECLARE SUB ellipse (x%, y%, radius%, c%, p%, squish1%, squish2%)
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB setanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION mouseover% (mouse%(), BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea)
-DECLARE SUB formation ()
-DECLARE SUB enemydata ()
-DECLARE SUB herodata ()
-DECLARE SUB attackdata (atkdat$(), atklim%())
 DECLARE SUB maptile (font())
-DECLARE SUB importmasterpal (f$, palnum%)
 
-'Local SUBs and FUNCTIONS
 DECLARE SUB spriteedit_load_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_all_you_see(top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
@@ -186,7 +182,7 @@ DO
  setkeys
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
   this = count - 1
-  cropafter pt, this, 3, game + f, -1, 1
+  cropafter pt, this, 3, game + f, 64000
   count = this + 1
  END IF
  IF keyval(scESC) > 1 THEN EXIT DO
@@ -330,7 +326,7 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "maptile_pickset"
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 AND pagenum > -1 THEN
-  cropafter pagenum, gen(genMaxTile), 3, game + ".til", -1, 1
+  cropafter pagenum, gen(genMaxTile), 3, game + ".til", 64000
  END IF
  IF keyval(scDown) > 1 AND pagenum = gen(genMaxTile) AND gen(genMaxTile) < 32767 THEN
   pagenum = pagenum + 1
@@ -1649,7 +1645,7 @@ DO
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
   spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
-  cropafter state.pt, sets, 0, ss.spritefile, ss.setsize, 1
+  cropafter state.pt, sets, 0, ss.spritefile, ss.setsize
   clearpage 3
   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
  END IF

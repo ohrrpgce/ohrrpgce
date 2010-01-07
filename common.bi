@@ -29,6 +29,7 @@ DECLARE SUB debuginfo (s as string)
 DECLARE SUB visible_debug (s as string)
 DECLARE FUNCTION soundfile (sfxnum as integer) as string
 DECLARE SUB safekill (f as string)
+DECLARE FUNCTION filesize (file as string) as string
 DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
 DECLARE FUNCTION aquiretempdir () as string

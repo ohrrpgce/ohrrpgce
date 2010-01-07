@@ -3770,3 +3770,55 @@ SUB fontedit_import_font(font() AS INTEGER)
   
  END IF
 END SUB
+
+SUB cropafter (BYVAL index AS INTEGER, BYREF limit AS INTEGER, BYVAL flushafter AS INTEGER, lump AS STRING, BYVAL bytes AS INTEGER, BYVAL prompt AS INTEGER=YES)
+ 'flushafter -1 = flush records
+ 'flushafter 0 = trim file
+ DIM i as integer
+
+ IF prompt THEN
+  DIM menu(1) as string
+  menu(0) = "No do not delete anything"
+  menu(1) = "Yes, delete all records after this one"
+  IF sublist(menu(), "cropafter") < 1 THEN
+   setkeys
+   EXIT SUB
+  ELSE
+   setkeys
+  END IF
+ END IF
+
+ DIM buf(bytes \ 2 - 1) AS INTEGER
+ FOR i = 0 TO index
+  loadrecord buf(), lump, bytes \ 2, i
+  storerecord buf(), tmpdir & "_cropped.tmp", bytes \ 2, i
+ NEXT i
+ IF flushafter THEN
+  'FIXME: this flushafter hack only exists for the .DT0 lump,
+  ' out of fear that some code with read hero data past the end of the file.
+  ' after cleanup of all hero code has confurmed this fear is unfounded, we can
+  ' eliminate this hack entirely
+  flusharray buf()
+  FOR i = index + 1 TO limit
+   storerecord buf(), tmpdir & "_cropped.tmp", bytes \ 2, i
+  NEXT i
+ END IF
+ limit = index
+
+ filecopy tmpdir & "_cropped.tmp", lump
+ safekill tmpdir & "_cropped.tmp"
+END SUB
+
+FUNCTION numbertail (s AS STRING) AS STRING
+ DIM n AS INTEGER
+
+ IF s = "" THEN RETURN "BLANK"
+
+ FOR i AS INTEGER = 1 TO LEN(s)
+  IF is_int(MID(s, i)) THEN
+   n = str2int(MID(s, i)) + 1
+   RETURN LEFT(s, i - 1) & n
+  END IF
+ NEXT
+ RETURN s + "2"  
+END FUNCTION

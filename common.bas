@@ -87,6 +87,28 @@ SUB safekill (f$)
 IF isfile(f$) THEN KILL f$
 END SUB
 
+FUNCTION filesize (file as string) as string
+ 'returns size of a file in formatted string
+ DIM as integer size, spl
+ DIM as string fsize, units
+ IF isfile(file) THEN
+  size = FILELEN(file)
+  units = " B"
+  spl = 0
+  IF size > 1024 THEN spl = 1 : units = " KB"
+  IF size > 1048576 THEN spl = 1 : size = size / 1024 : units = " MB"
+  fsize = STR(size)
+  IF spl <> 0 THEN
+   size = size / 102.4
+   fsize = STR(size \ 10)
+   IF size < 1000 THEN fsize = fsize + "." + STR(size MOD 10)
+  END IF
+  RETURN fsize + units
+ ELSE
+  RETURN "N/A"
+ END IF
+END FUNCTION
+
 FUNCTION usemenu (state AS MenuState) as integer
  WITH state
   RETURN usemenu(.pt, .top, .first, .last, .size)

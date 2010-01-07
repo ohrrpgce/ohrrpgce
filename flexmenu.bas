@@ -20,9 +20,6 @@ DEFINT A-Z
 #include "loading.bi"
 #include "slices.bi"
 
-'This is in subs2.bas:
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-
 'This is in subs.bas:
 DECLARE SUB clearallpages ()
 
@@ -1055,7 +1052,7 @@ DO
 
  '--CTRL+BACKSPACE
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
-  cropafter recindex, gen(genMaxAttack), 0, game + ".dt6", 80, 1
+  cropafter recindex, gen(genMaxAttack), 0, game + ".dt6", 80
   '--this is a hack to detect if it is safe to erase the extended data
   '--in the second file
   IF recindex = gen(genMaxAttack) THEN

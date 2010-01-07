@@ -10,27 +10,14 @@ DEFINT A-Z
 #include "udts.bi"
 #include "custom_udts.bi"
 
-'basic subs and functions
+'external subs and functions
+DECLARE SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, pt%)
+
+'local subs and functions
 DECLARE FUNCTION addmaphow () AS INTEGER
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
 DECLARE SUB loadpasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
-DECLARE SUB fixorder (f$)
-DECLARE SUB vehicles ()
-DECLARE SUB verifyrpg ()
-DECLARE FUNCTION numbertail$ (s$)
-DECLARE SUB cropafter (index%, limit%, flushafter%, lump$, bytes%, prompt%)
-DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB mapmaker (font%())
-DECLARE SUB shopdata ()
-DECLARE SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, pt%)
-DECLARE SUB importsong ()
-DECLARE SUB gendata ()
-DECLARE SUB itemdata ()
-DECLARE SUB formation ()
-DECLARE SUB enemydata ()
-DECLARE SUB herodata ()
-DECLARE SUB attackdata (atkdat$(), atklim%())
-DECLARE SUB maptile (font())
 DECLARE SUB paint_map_area(st AS MapEditState, oldTile, x%, y%, map() AS TileMap, pass AS TileMap, defaults() AS DefArray, defpass%)
 
 TYPE LayerMenuItem
