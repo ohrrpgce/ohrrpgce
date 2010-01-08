@@ -1039,6 +1039,12 @@
 		<a href="#about-mouseregion">mouse region (x min, x max, y min, y max)</a><br>
 		
 	
+		<a href="#about-movesliceabove">move slice above (handle, above what handle)</a><br>
+		
+	
+		<a href="#about-moveslicebelow">move slice below (handle, below what handle)</a><br>
+		
+	
 		<a href="#about-multiply">number * number</a><br>
 		
 	
@@ -1201,7 +1207,7 @@
 		<a href="#about-puthero">put hero (who, x, y)</a><br>
 		
 	
-		<a href="#about-putmouse">put mouse (X,Y)</a><br>
+		<a href="#about-putmouse">put mouse (X, Y)</a><br>
 		
 	
 		<a href="#about-putnpc">put npc (who,x,y)</a><br>
@@ -1748,6 +1754,9 @@
 		<a href="#about-numericconstants">six</a><br>
 	
 		<a href="#about-sliceatpixel">slice at pixel (parent, x, y, number, check descendants)</a><br>
+		
+	
+		<a href="#about-slicechild">slice child (handle, number)</a><br>
 		
 	
 		<a href="#about-slicecollide">slice collide (handle1, handle2)</a><br>
@@ -3064,7 +3073,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">game over</font></b><br>
-			Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is subtly different from <a href="#about-resetgame" class="ref">reset game</a> in that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.<br>
+			Resets the game and returns you to the title screen. This command is most useful for after-you-win-the-game type scripts, and for death-scripts that are triggered when you lose in battle. This command is similar to <a href="#about-resetgame" class="ref">reset game</a>, the main difference being that if the title screen and load screen have been disabled, it will completely exit the game, taking you back to the game select screen, or exiting to the operating system.<br>
 			
 			
 		</tt></p>
@@ -3072,7 +3081,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">reset game</font></b><br>
-			Resets the game and returns you to the title screen. This is subtly different from <a href="#about-gameover" class="ref">game over</a> in that it will not exit the program if the title screen and load screen have been disabled. it always resets the game back to the beginning.<br>
+			Resets and starts a new game, skipping both title and load game screens. This can be necessary to use this instead of <a href="#about-gameover" class="ref">game over</a> as it will not exit the program if the title screen and load screen have been disabled. It always resets the game back to the beginning.<br>
 			
 			
 		</tt></p>
@@ -3188,7 +3197,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">load menu (reallyload)</font></b><br>
-			Displays the load game menu. The player can load a game or select New Game or Exit/Cancel. If the player picks New Game then the calling script continues, otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded. You can optionally pass an argument of <a href="#about-booleanconstants" class="ref">false</a> to make the menu display without actually loading or quiting. If you do this, you'll need to interpret the return value to find out which option the player selected: positive values are save slot numbers, 0 means New Game and -1 is Quit.<br>
+			Displays the load game menu. The player can load a game or select New Game or Exit/Cancel. If the player picks New Game then the calling script continues, otherwise the current game is terminated and either quits to the titlescreen (if there is one) or a game is loaded. If you want the New Game option to actually reset the game, call <a href="#about-resetgame" class="ref">reset game</a> immediately after <span class="param">load menu</span>. You can optionally pass an argument of <a href="#about-booleanconstants" class="ref">false</a> to make the menu display without actually loading or quiting. If you do this, you'll need to interpret the return value to find out which option the player selected: positive values are save slot numbers, 0 means New Game and -1 is Quit.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-loadfromslot" class="ref">load from slot</a></li></ul>
 		</tt></p>
@@ -3737,7 +3746,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">init mouse</font></b><br>
-			Initializes the mouse, returning <a href="#about-booleanconstants" class="ref">true</a> if one is present. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and for mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
+			Initializes the mouse, returning <a href="#about-booleanconstants" class="ref">true</a> if one is present. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, prevents the mouse cursor from leaving the window, and causes mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor on screen - your script must do this itself by placing a slice or npc at the appropriate location.<br clear="all">
 </div> Here is an example:<br>
 			<pre>include,plotscr.hsd
@@ -3763,7 +3772,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">mouse pixel X</font></b><br>
-			Returns the X coordinate in pixels of the mouse on the screen. <a href="#about-initmouse" class="ref">init mouse</a> must be called before this command can be used.<br>
+			Returns the X coordinate in pixels of the mouse on the screen.<br>
 			
 			
 		</tt></p>
@@ -3771,7 +3780,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">mouse pixel Y</font></b><br>
-			Returns the Y coordinate in pixels of the mouse on the screen. <a href="#about-initmouse" class="ref">init mouse</a> must be called before this command can be used.<br>
+			Returns the Y coordinate in pixels of the mouse on the screen.<br>
 			
 			
 		</tt></p>
@@ -3779,15 +3788,15 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">mouse button (which)</font></b><br>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button is pressed. You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button. <a href="#about-initmouse" class="ref">init mouse</a> must be called before this command can be used.<br>
+			Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button is pressed. You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.<br>
 			
 			
 		</tt></p>
 		<a name="about-putmouse"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">put mouse (X,Y)</font></b><br>
-			Changes the location of the mouse on the screen, in pixels. <a href="#about-initmouse" class="ref">init mouse</a> must be called before this command can be used.<br>
+		<b><font color="yellow">put mouse (X, Y)</font></b><br>
+			Changes the location of the mouse on the screen, in pixels. Note that this function might do nothing, if the game's window is not active. <a href="#about-initmouse" class="ref">init mouse</a> should be called before this command is used.<br>
 			
 			
 		</tt></p>
@@ -3795,7 +3804,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">mouse region (x min, x max, y min, y max)</font></b><br>
-			Sets the edges of the rectangle to which the mouse is constricted. Use if you want to force the mouse into some region, like a choice selection box. <a href="#about-initmouse" class="ref">init mouse</a> must be called before this command can be used.<br>
+			Sets the edges of the rectangle to which the mouse is constricted. Use if you want to force the mouse into some region, like a choice selection box. The maximum values are inclusive. Without arguments, resets the rectangle to the whole window. You can unrestrict the mouse and let it leave the window by calling <span class="param">mouse region (-1, -1, -1, -1)</span>. <a href="#about-initmouse" class="ref">init mouse</a> should be called before this command is used.<br>
 			
 			
 		</tt></p>
@@ -4436,7 +4445,10 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu bit(menu handle, bit)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menubit:translucent box</span> <span class="param">menubit:never show scrollbar</span> <span class="param">menubit:allow gameplay</span> <span class="param">menubit:suspend player even if gameplay allowed</span> <span class="param">menubit:no box</span> <span class="param">menubit:no close</span> <span class="param">menubit:no controls</span> <span class="param">menubit:prevent main menu</span><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. For the <span class="param">bit</span> bit number you should use one of the constants: <ul>
+<li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li>
+</ul>
+<br>
 			
 			
 		</tt></p>
@@ -4444,7 +4456,10 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu bit(menu handle, bit, value)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. You can use constants for the <span class="param">bit</span> bit number in the form of <span class="param">menubit:translucent box</span> <span class="param">menubit:never show scrollbar</span> <span class="param">menubit:allow gameplay</span> <span class="param">menubit:suspend player even if gameplay allowed</span> <span class="param">menubit:no box</span> <span class="param">menubit:no close</span> <span class="param">menubit:no controls</span> <span class="param">menubit:no close</span> <span class="param">menubit:no controls</span> <span class="param">menubit:prevent main menu</span><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. For the <span class="param">bit</span> bit number you should use one of the constants: <ul>
+<li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li>
+</ul>
+<br>
 			
 			
 		</tt></p>
@@ -5180,7 +5195,9 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">lookup slice (lookup code, start slice)</font></b><br>
-			Search for a special slice and return a handle to it, or 0 if it is not found. Special slices are named using slice lookup code constants. You can optionally specify a slice to start searching from, but if you do not, the whole slice tree will be searched.<br>
+			Search for a special slice and return a handle to it, or 0 if it is not found. Special slices are named using slice lookup code constants. You can optionally specify a slice to start searching from, but if you do not, the whole slice tree will be searched. Currently, there is point ever specifying a start slice - this feature is unfinished. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your slices to these special slices, but moving them around is definitely out.<br clear="all">
+</div> You may parent a slice to a map layer to make it move with the camera as if placed on the map.<br>
 			<pre>
 # this example gets a handle to the portrait of the currently displaying
 # text box (if any) and allows you to manipulate it.
@@ -5202,6 +5219,11 @@ lookup slice(sl:maproot)
 lookup slice(sl:map layer0)
 lookup slice(sl:map layer1)
 lookup slice(sl:map layer2)
+lookup slice(sl:map layer3)
+lookup slice(sl:map layer4)
+lookup slice(sl:map layer5)
+lookup slice(sl:map layer6)
+lookup slice(sl:map layer7)
 </pre>
 			
 		</tt></p>
@@ -5656,11 +5678,27 @@ end
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-freeslice" class="ref">free slice</a></li></ul>
 		</tt></p>
+		<a name="about-slicechild"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice child (handle, number)</font></b><br>
+			Returns a handle for the nth child of a slice, counting from 0. Returns <span class="param">false</span> if <span class="param">number</span> is too large (<span class="param">last child(handle)</span> is equivalent to <span class="param">slice child(handle, child count(handle) -- 1)</span>). Note that you will need to use <a href="#about-firstchild" class="ref">first child</a> and <a href="#about-nextsibling" class="ref">next sibling</a> to iterate over the children of a slice, rather than this command, when you are moving the children around.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-childcount" class="ref">child count</a>, </li>
+<li>
+<a href="#about-parentslice" class="ref">parent slice</a>, </li>
+<li>
+<a href="#about-firstchild" class="ref">first child</a>, </li>
+<li><a href="#about-lastchild" class="ref">last child</a></li>
+</ul>
+		</tt></p>
 		<a name="about-firstchild"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">first child(handle)</font></b><br>
-			Returns a slice handle for the first child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no children. You can use this to loop through all all the children of a slice<br>
+			Returns a slice handle for the first child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no children. You can use this to loop through all the children of a slice.<br>
 			<pre>variable(sl)
 sl := first child(sprite layer)
 while (sl) do, begin
@@ -5671,6 +5709,8 @@ while (sl) do, begin
 end
 </pre>
 			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-slicechild" class="ref">slice child</a>, </li>
 <li>
 <a href="#about-firstspritechild" class="ref">first sprite child</a>, </li>
 <li>
@@ -5689,6 +5729,8 @@ end
 			Returns a slice handle for the last child of a given slice <span class="param">handle</span>. Returns <span class="param">false</span> if the slice has no children.<br>
 			
 			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-slicechild" class="ref">slice child</a>, </li>
 <li>
 <a href="#about-firstchild" class="ref">first child</a>, </li>
 <li><a href="#about-childcount" class="ref">child count</a></li>
@@ -5718,10 +5760,16 @@ end
 <li>
 <a href="#about-nextcontainersibling" class="ref">next container sibling</a>, </li>
 <li>
+<a href="#about-slicechild" class="ref">slice child</a>, </li>
+<li>
 <a href="#about-freeslice" class="ref">free slice</a>, </li>
 <li>
 <a href="#about-slicetofront" class="ref">slice to front</a>, </li>
-<li><a href="#about-slicetoback" class="ref">slice to back</a></li>
+<li>
+<a href="#about-slicetoback" class="ref">slice to back</a>, </li>
+<li>
+<a href="#about-movesliceabove" class="ref">move slice above</a>, </li>
+<li><a href="#about-moveslicebelow" class="ref">move slice below</a></li>
 </ul>
 		</tt></p>
 		<a name="about-previoussibling"></a>
@@ -5734,10 +5782,16 @@ end
 <li>
 <a href="#about-nextsibling" class="ref">next sibling</a>, </li>
 <li>
+<a href="#about-slicechild" class="ref">slice child</a>, </li>
+<li>
 <a href="#about-freeslice" class="ref">free slice</a>, </li>
 <li>
 <a href="#about-slicetofront" class="ref">slice to front</a>, </li>
-<li><a href="#about-slicetoback" class="ref">slice to back</a></li>
+<li>
+<a href="#about-slicetoback" class="ref">slice to back</a>, </li>
+<li>
+<a href="#about-movesliceabove" class="ref">move slice above</a>, </li>
+<li><a href="#about-moveslicebelow" class="ref">move slice below</a></li>
 </ul>
 		</tt></p>
 		<a name="about-firstspritechild"></a>
@@ -5821,7 +5875,9 @@ end
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-setparent" class="ref">set parent</a>, </li>
-<li><a href="#about-checkparentage" class="ref">check parentage</a></li>
+<li>
+<a href="#about-checkparentage" class="ref">check parentage</a>, </li>
+<li><a href="#about-slicechild" class="ref">slice child</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setparent"></a>
@@ -5833,7 +5889,9 @@ end
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-parentslice" class="ref">parent slice</a>, </li>
-<li><a href="#about-checkparentage" class="ref">check parentage</a></li>
+<li>
+<a href="#about-checkparentage" class="ref">check parentage</a>, </li>
+<li><a href="#about-slicechild" class="ref">slice child</a></li>
 </ul>
 		</tt></p>
 		<a name="about-checkparentage"></a>
@@ -5850,7 +5908,11 @@ end
 		<b><font color="yellow">child count (handle)</font></b><br>
 			Returns the number of children that slice <span class="param">handle</span> has.<br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-firstchild" class="ref">first child</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-slicechild" class="ref">slice child</a>, </li>
+<li><a href="#about-firstchild" class="ref">first child</a></li>
+</ul>
 		</tt></p>
 		<a name="about-slicetofront"></a>
 		<p>
@@ -5912,7 +5974,11 @@ script, easier safe sorting, begin
   sort children(sprite layer)
 end
 </pre>
-			<br>See also: <ul class="seealso"><li><a href="#about-slicetoback" class="ref">slice to back</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-slicetoback" class="ref">slice to back</a>, </li>
+<li><a href="#about-movesliceabove" class="ref">move slice above</a></li>
+</ul>
 		</tt></p>
 		<a name="about-slicetoback"></a>
 		<p>
@@ -5990,7 +6056,43 @@ script, easier safe sorting, begin
   sort children(sprite layer)
 end
 </pre>
-			<br>See also: <ul class="seealso"><li><a href="#about-slicetofront" class="ref">slice to front</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-slicetofront" class="ref">slice to front</a>, </li>
+<li><a href="#about-moveslicebelow" class="ref">move slice below</a></li>
+</ul>
+		</tt></p>
+		<a name="about-movesliceabove"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">move slice above (handle, above what handle)</font></b><br>
+			Given a slice <span class="param">handle</span>, move it so that it is the next sibling of another slice given by <span class="param">above what handle</span> (changing its parent if necessary). This will cause it to be drawn immediately after that slice.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-moveslicebelow" class="ref">move slice below</a>, </li>
+<li>
+<a href="#about-slicetofront" class="ref">slice to front</a>, </li>
+<li>
+<a href="#about-slicetoback" class="ref">slice to back</a>, </li>
+<li><a href="#about-nextsibling" class="ref">next sibling</a></li>
+</ul>
+		</tt></p>
+		<a name="about-moveslicebelow"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">move slice below (handle, below what handle)</font></b><br>
+			Given a slice <span class="param">handle</span>, move it so that it is the previous sibling of another slice given by <span class="param">below what handle</span> (changing its parent if necessary). This will cause it to be drawn immediately before that slice.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-movesliceabove" class="ref">move slice above</a>, </li>
+<li>
+<a href="#about-slicetofront" class="ref">slice to front</a>, </li>
+<li>
+<a href="#about-slicetoback" class="ref">slice to back</a>, </li>
+<li><a href="#about-previoussibling" class="ref">previous sibling</a></li>
+</ul>
 		</tt></p>
 		<a name="about-ysortchildren"></a>
 		<p>
@@ -7241,9 +7343,11 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get enemy appearance (enemyid, appearance)</font></b><br>
-			Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <li>enemy:picture</li>
+			Returns data on the appearance of a enemy. Enemyid is the enemy number that you want to return the appearance of, appearance is either picture, palette, or size. You can use the following constants for appearance: <ul>
+<li>enemy:picture</li>
 <li>enemy:palette</li>
-<li>enemy:picturesize</li> <br>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large<br>
+<li>enemy:picturesize</li>
+</ul> <br>You can compare the values returned from enemy:picturesize with the constants enemysize:small, enemysize:medium and enemysize:large<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setenemyappearance" class="ref">set enemy appearance</a></li></ul>
 		</tt></p>
@@ -7262,7 +7366,8 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">read enemy data (enemyid, data)</font></b><br>
-			Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<li>enemy:gold</li>
+			Returns the enemy's reward values. Enemyid is the number of enemy, data is a predefined constant defining the data you want returned. Use the following constants:<ul>
+<li>enemy:gold</li>
 <li>enemy:experience</li>
 <li>enemy:item</li>
 <li>enemy:itempercent</li>
@@ -7273,6 +7378,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 <li>stealableitemchance</li>
 <li>stealablerareitem</li>
 <li>stealablerareitemchance</li>
+</ul>
 <br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-writeenemydata" class="ref">write enemy data</a></li></ul>
@@ -9180,7 +9286,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 665 commands in this file, of which 54 are only references to other commands.</p>
+	<p>Stats: There are 668 commands in this file, of which 54 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
