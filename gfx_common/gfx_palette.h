@@ -74,7 +74,7 @@ namespace gfx
 			return;
 		if(nSize > m_nDataSize || m_pData == 0)
 			Allocate(nSize);
-		for(UINT i = 0; i < m_nDataSize; i++)
+		for(unsigned int i = 0; i < m_nDataSize; i++)
 			m_pData[i] = pData[i];
 	}
 	template <class T>

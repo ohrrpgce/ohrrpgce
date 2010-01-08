@@ -8,6 +8,8 @@
 #include "gfx_msg.h"
 using namespace gfx;
 
+#pragma comment(lib, "SDL.lib")
+
 Window g_Window;
 Video g_Video;
 Input g_Input;
@@ -52,7 +54,11 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 
 void gfx_Shutdown()
 {
+	SDL_QuitEvent qe;
+	qe.type = SDL_QUIT;
+	g_Window.PushEvent((SDL_Event*)&qe);
 	g_Window.PumpMessages();
+
 	g_Video.Shutdown();
 }
 
@@ -99,7 +105,7 @@ int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void* pvParam)
 	case OM_GFX_GETZOOM:
 		return g_Video.GetResolution().w / 320;
 	case OM_GFX_GETBITDEPTH:
-		break;
+		return 32;
 	default:
 		return g_State.DefGfxMessageProc(msg, dwParam, pvParam);
 	}
@@ -107,8 +113,8 @@ int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void* pvParam)
 }
 
 int gfx_GetVersion()
-{//need to support v1 as well
-	return 2;
+{//need to support v1 and v2
+	return 1;
 }
 
 void gfx_PumpMessages()
@@ -124,7 +130,7 @@ void gfx_PumpMessages()
 
 void gfx_Present(unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
 {
-	g_Video.Present(pSurface, nWidth, nHeight, &Palette<Uint32>((Uint32*)pPalette, 256));
+	g_Video.Present(pSurface, nWidth, nHeight, (pPalette ? &Palette<Uint32>((Uint32*)pPalette, 256) : NULL));
 }
 
 int gfx_ScreenShot(const char* szFileName)
@@ -277,6 +283,9 @@ int OHREventProc(const SDL_Event* pEvent)
 					}
 				}
 			}
+		} break;
+	case SDL_VIDEORESIZE:
+		{//needs work
 		} break;
 	default:
 		return 1;

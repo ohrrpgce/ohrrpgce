@@ -16,8 +16,8 @@ namespace gfx
 	class Video
 	{
 	protected:
-		SDL_Surface *m_pFrontBuffer;
 		SDL_Surface *m_pBackBuffer;
+		SDL_Surface *m_pSurface;
 		struct Image
 		{
 			Image() : pSurface(0), width(0), height(0){}
@@ -42,10 +42,12 @@ namespace gfx
 			Uint32 height;
 			Palette<Uint32> palette;
 		} m_image;
+		Resolution m_resolution;
 		bool m_bFullscreen;
 		bool m_bSmooth;
 		bool m_bARP; //aspect ratio preservation
 		bool m_bInitialized;
+		void StretchCopy();
 	public:
 		Video();
 		virtual ~Video();
