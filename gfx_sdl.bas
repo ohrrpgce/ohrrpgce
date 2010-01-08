@@ -205,7 +205,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   IF SDL_WasInit(0) = 0 THEN
     DIM ver as SDL_version ptr = SDL_Linked_Version()
     *info_buffer = MID(", SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
-    IF SDL_Init(SDL_INIT_VIDEO) THEN
+    IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK) THEN
       *info_buffer = MID("Can't start SDL (video): " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
       RETURN 0
     END IF
@@ -586,10 +586,11 @@ FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, by
   END IF
   SDL_JoystickUpdate() 'should this be here? moved from io_sdl_readjoy
   button = 0
-  IF SDL_JoystickGetButton(sdljoystick, 0) THEN button = button AND 1
-  IF SDL_JoystickGetButton(sdljoystick, 1) THEN button = button AND 2
+  IF SDL_JoystickGetButton(sdljoystick, 0) THEN button = button OR 1
+  IF SDL_JoystickGetButton(sdljoystick, 1) THEN button = button OR 2
   x = SDL_JoystickGetAxis(sdljoystick, 0)
   y = SDL_JoystickGetAxis(sdljoystick, 1)
+  'debug "x=" & x & " y=" & y & " button=" & button
 END FUNCTION
 
 FUNCTION gfx_sdl_setprocptrs() as integer
