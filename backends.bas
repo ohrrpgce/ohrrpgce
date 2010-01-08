@@ -5,8 +5,35 @@
 #include "compat.bi"
 #include "common.bi"
 #include "gfx.bi"
+'until we're ready to make the switch over to backend interface 2, this has to be
+'disabled--gfx_GetVersion() and gfx_getversion() are interpreted the same (I think)
+'so are gfx_ScreenShot() and gfx_screenshot()
+'#include "gfx.new.bi"
 
 extern "C"
+
+'set gfx_Initialize() back to other form when moving to interface 2
+dim gfx_Initialize as function () as integer '(byval pCreationData as const GFX_INIT ptr) as integer
+dim gfx_Shutdown as sub ()
+dim gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
+'dim gfx_GetVersion as function () as integer
+dim gfx_PumpMessages as sub ()
+dim gfx_Present as sub (byval pSurface as ubyte ptr, byval nWidth as integer, byval nHeight as integer, byval pPalette as RGBcolor ptr)
+'dim gfx_ScreenShot as function (byval szFileName as const zstring ptr) as integer
+dim gfx_SetWindowTitle as sub (byval szTitleconst as const zstring ptr)
+dim gfx_GetWindowTitle as function () as const zstring ptr
+dim gfx_AcquireKeyboard as function (byval bEnable as integer) as integer
+dim gfx_AcquireMouse as function (byval bEnable as integer) as integer
+dim gfx_AcquireJoystick as function (byval bEnable as integer, byval nDevice as integer) as integer
+dim gfx_GetKeyboard as function (byval pKeyboard as integer ptr) as integer
+dim gfx_GetMouseMovement as function (byref dx as integer, byref dy as integer, byref dWheel as integer, byref buttons as integer) as integer
+dim gfx_GetMousePosition as function (byref x as integer, byref y as integer, byref wheel as integer, byref buttons as integer) as integer
+dim gfx_SetMousePosition as function (byval x as integer, byval y as integer) as integer
+dim gfx_GetJoystickMovement as function (byval nDevice as integer, byref dx as integer, byref dy as integer, byref buttons as integer) as integer
+dim gfx_GetJoystickPosition as function (byval nDevice as integer, byref x as integer, byref y as integer, byref buttons as integer) as integer
+dim gfx_SetJoystickPosition as function (byval nDevice as integer, byval x as integer, byval y as integer) as integer
+
+declare function gfx_LoadDllBackendProcs(ByVal strFile As String, ByRef hModule As any ptr) As Integer
 
 dim gfx_init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 dim gfx_close as sub ()
@@ -152,73 +179,52 @@ end function
 
 'loads dll graphics backends' procs into memory
 'strFile is the name of the file, ie. "gfx_directx.dll" 
-'info is the structure associated with the backend
-Function gfx_LoadDllBackendProcs(ByVal strFile As String, ByRef info As GfxBackendStuff) As Integer
+'hModule is the handle to the loaded library that is returned
+Function gfx_LoadDllBackendProcs(ByVal strFile As String, ByRef hModule As any ptr) As Integer
     Dim hFile As any ptr
     hFile = dylibload(strFile)
     If hFile = NULL Then Return 0
 
-    gfx_getversion = dylibsymbol(hFile, "gfx_getversion")
-    If gfx_getversion = NULL Then
-        gfx_getversion = dylibsymbol(hFile, "gfx_GetVersion")
-        If gfx_getversion = NULL Then
+    gfx_GetVersion = dylibsymbol(hFile, "gfx_GetVersion")
+    If gfx_GetVersion = NULL Then
+        gfx_GetVersion = dylibsymbol(hFile, "gfx_getversion")
+        If gfx_GetVersion = NULL Then
             dylibfree(hFile)
             Return 0
         End If
     End If
 
     Dim apiVersion As Integer
-    apiVersion = gfx_getversion()
-    If (apiVersion Or 1) = 0 Then
-        queue_error = strFile + " backend does not support v1--reports v" & apiVersion
+    apiVersion = gfx_GetVersion()
+    If (apiVersion Or 2) = 0 Then
+        queue_error = strFile + " backend does not support v2--reports v" & apiVersion
         debug(queue_error)
         dylibfree(hFile)
         Return 0
     End If
 
     'backend checks out ok; start loading functions
-    gfx_init = dylibsymbol(hFile, "gfx_init")
-    gfx_close = dylibsymbol(hFile, "gfx_close")
-    gfx_showpage = dylibsymbol(hFile, "gfx_showpage")
-    gfx_setpal = dylibsymbol(hFile, "gfx_setpal")
-    gfx_screenshot = dylibsymbol(hFile, "gfx_screenshot")
-    gfx_setwindowed = dylibsymbol(hFile, "gfx_setwindowed")
-    gfx_windowtitle = dylibsymbol(hFile, "gfx_windowtitle")
-    gfx_getwindowstate = dylibsymbol(hFile, "gfx_getwindowstate")
-    gfx_setoption = dylibsymbol(hFile, "gfx_setoption")
-    gfx_describe_options = dylibsymbol(hFile, "gfx_describe_options")
-    io_init = dylibsymbol(hFile, "io_init")
+    gfx_Initialize = dylibsymbol(hFile, "gfx_Initialize")
+    gfx_Shutdown = dylibsymbol(hFile, "gfx_Shutdown")
+    gfx_SendMessage = dylibsymbol(hFile, "gfx_SendMessage")
+    gfx_PumpMessages = dylibsymbol(hFile, "gfx_PumpMessages")
+    gfx_Present = dylibsymbol(hFile, "gfx_Present")
+    gfx_ScreenShot = dylibsymbol(hFile, "gfx_ScreenShot")
+    gfx_SetWindowTitle = dylibsymbol(hFile, "gfx_SetWindowTitle")
+    gfx_GetWindowTitle = dylibsymbol(hFile, "gfx_GetWindowTitle")
+    gfx_AcquireKeyboard = dylibsymbol(hFile, "gfx_AcquireKeyboard")
+    gfx_AcquireMouse = dylibsymbol(hFile, "gfx_AcquireMouse")
+    gfx_AcquireJoystick = dylibsymbol(hFile, "gfx_AcquireJoystick")
+    gfx_GetKeyboard = dylibsymbol(hFile, "gfx_GetKeyboard")
+    gfx_GetMouseMovement = dylibsymbol(hFile, "gfx_GetMouseMovement")
+    gfx_GetMousePosition = dylibsymbol(hFile, "gfx_GetMousePosition")
+    gfx_SetMousePosition = dylibsymbol(hFile, "gfx_SetMousePosition")
+    gfx_GetJoystickMovement = dylibsymbol(hFile, "gfx_GetJoystickMovement")
+    gfx_GetJoystickPosition = dylibsymbol(hFile, "gfx_GetJoystickPosition")
+    gfx_SetJoystickPosition = dylibsymbol(hFile, "gfx_SetJoystickPosition")
 
-    io_pollkeyevents = dylibsymbol(hFile, "io_pollkeyevents")
-	if io_pollkeyevents = NULL then io_pollkeyevents = @io_dummy_pollkeyevents
-    io_waitprocessing = dylibsymbol(hFile, "io_waitprocessing")
-	if io_waitprocessing = NULL then io_waitprocessing = @io_dummy_waitprocessing
-
-    io_keybits = dylibsymbol(hFile, "io_keybits")
-    If io_keybits = NULL Then
-		io_keybits = @io_amx_keybits
-        needpolling = YES
-    End If
-    io_updatekeys = dylibsymbol(hFile, "io_updatekeys")
-	if io_updatekeys = NULL then io_updatekeys = @io_dummy_updatekeys
-
-    io_mousebits = dylibsymbol(hFile, "io_mousebits")
-    If io_mousebits = NULL Then
-		io_mousebits = @io_amx_mousebits
-        needpolling = YES
-    End If
-    io_getmouse = dylibsymbol(hFile, "io_getmouse")
-	if io_getmouse = NULL then io_getmouse = @io_dummy_getmouse
-
-    io_setmousevisibility = dylibsymbol(hFile, "io_setmousevisibility")
-    io_setmouse = dylibsymbol(hFile, "io_setmouse")
-    io_mouserect = dylibsymbol(hFile, "io_mouserect")
-    io_readjoysane = dylibsymbol(hFile, "io_readjoysane")
-
-    'success; fill out info form
-    info.wantpolling = needpolling
-    If info.dylib <> 0 Then dylibfree(info.dylib)
-    info.dylib = hFile
+    'success
+    hModule = hFile
 
     Return 1
 End Function
