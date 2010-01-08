@@ -21,24 +21,24 @@ ECHO Building executables...
 del game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
 ECHO   Windows executables...
-CALL make.bat > NUL
+CALL make.bat
 IF NOT EXIST game.exe GOTO NOEXE
 IF NOT EXIST custom.exe GOTO NOEXE
 
 ECHO   Utilities...
-CALL makeutil.bat > NUL
+CALL makeutil.bat
 IF NOT EXIST unlump.exe GOTO NOEXE
 IF NOT EXIST relump.exe GOTO NOEXE
 
 ECHO   Hspeak compiler...
-CALL makehspeak.bat > NUL
+CALL makehspeak.bat
 IF NOT EXIST hspeak.exe GOTO NOEXE
 
 ECHO   Lumping Vikings of Midgard
 IF NOT EXIST vikings.rpg GOTO SKIPDELVIKING
 DEL vikings.rpg
 :SKIPDELVIKING
-relump vikings\vikings.rpgdir vikings.rpg > NUL
+relump vikings\vikings.rpgdir vikings.rpg
 IF NOT EXIST vikings.rpg GOTO NORPG
 
 CALL update-import.bat 
@@ -67,7 +67,6 @@ support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
 support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
-support\cp IMPORTANT-nightly.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
@@ -108,11 +107,11 @@ support\cp hspeak.exe tmpdist
 support\cp ohrrpgce.new tmpdist
 support\cp README-game.txt tmpdist
 support\cp README-custom.txt tmpdist
-support\cp IMPORTANT-nightly.txt tmpdist
 support\cp LICENSE.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
+support\cp gfx_directx.dll tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
 mkdir tmpdist\ohrhelp
@@ -161,7 +160,6 @@ del tmpdist\custom.exe
 
 REM ------------------------------------------
 ECHO Packaging ohrrpgce-win-installer.exe ...
-echo InfoBeforeFile=IMPORTANT-nightly.txt > iextratxt.txt
 IF "%1"=="nightly" GOTO LEAVEWARNTXT
 echo. > iextratxt.txt
 :LEAVEWARNTXT
