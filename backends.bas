@@ -95,15 +95,15 @@ function gfx_directx_setprocptrs() as integer
 	if gfx_directx = 0 then return 0
 
 	gfx_getversion = dylibsymbol(gfx_directx, "gfx_getversion")
-	dim as integer apiver = -1
+	dim as integer apiver = 0
 	if gfx_getversion <> NULL then apiver = gfx_getversion()
-	if apiver <> 1 then
-		queue_error = "Bad gfx_version API version: expected 1, got " & apiver
-		debug queue_error
-		dylibfree(gfx_directx)
-		gfx_directx = NULL
-		return 0
-	end if
+    If (apiver Or 1) = 0 Then 'adjusted to bitwise OR-ing
+        queue_error = "gfx_version: does not support v1--reports v" & apiver
+        debug(queue_error)
+        dylibfree(gfx_directx)
+        gfx_directx = NULL
+        Return 0
+    End If
 
 	gfx_init = dylibsymbol(gfx_directx, "gfx_init")
 	gfx_close = dylibsymbol(gfx_directx, "gfx_close")
@@ -149,6 +149,79 @@ function gfx_directx_setprocptrs() as integer
 end function
 
 #endif
+
+'loads dll graphics backends' procs into memory
+'strFile is the name of the file, ie. "gfx_directx.dll" 
+'info is the structure associated with the backend
+Function gfx_LoadDllBackendProcs(ByVal strFile As String, ByRef info As GfxBackendStuff) As Integer
+    Dim hFile As any ptr
+    hFile = dylibload(strFile)
+    If hFile = NULL Then Return 0
+
+    gfx_getversion = dylibsymbol(hFile, "gfx_getversion")
+    If gfx_getversion = NULL Then
+        gfx_getversion = dylibsymbol(hFile, "gfx_GetVersion")
+        If gfx_getversion = NULL Then
+            dylibfree(hFile)
+            Return 0
+        End If
+    End If
+
+    Dim apiVersion As Integer
+    apiVersion = gfx_getversion()
+    If (apiVersion Or 1) = 0 Then
+        queue_error = strFile + " backend does not support v1--reports v" & apiVersion
+        debug(queue_error)
+        dylibfree(hFile)
+        Return 0
+    End If
+
+    'backend checks out ok; start loading functions
+    gfx_init = dylibsymbol(hFile, "gfx_init")
+    gfx_close = dylibsymbol(hFile, "gfx_close")
+    gfx_showpage = dylibsymbol(hFile, "gfx_showpage")
+    gfx_setpal = dylibsymbol(hFile, "gfx_setpal")
+    gfx_screenshot = dylibsymbol(hFile, "gfx_screenshot")
+    gfx_setwindowed = dylibsymbol(hFile, "gfx_setwindowed")
+    gfx_windowtitle = dylibsymbol(hFile, "gfx_windowtitle")
+    gfx_getwindowstate = dylibsymbol(hFile, "gfx_getwindowstate")
+    gfx_setoption = dylibsymbol(hFile, "gfx_setoption")
+    gfx_describe_options = dylibsymbol(hFile, "gfx_describe_options")
+    io_init = dylibsymbol(hFile, "io_init")
+
+    io_pollkeyevents = dylibsymbol(hFile, "io_pollkeyevents")
+	if io_pollkeyevents = NULL then io_pollkeyevents = @io_dummy_pollkeyevents
+    io_waitprocessing = dylibsymbol(hFile, "io_waitprocessing")
+	if io_waitprocessing = NULL then io_waitprocessing = @io_dummy_waitprocessing
+
+    io_keybits = dylibsymbol(hFile, "io_keybits")
+    If io_keybits = NULL Then
+		io_keybits = @io_amx_keybits
+        needpolling = YES
+    End If
+    io_updatekeys = dylibsymbol(hFile, "io_updatekeys")
+	if io_updatekeys = NULL then io_updatekeys = @io_dummy_updatekeys
+
+    io_mousebits = dylibsymbol(hFile, "io_mousebits")
+    If io_mousebits = NULL Then
+		io_mousebits = @io_amx_mousebits
+        needpolling = YES
+    End If
+    io_getmouse = dylibsymbol(hFile, "io_getmouse")
+	if io_getmouse = NULL then io_getmouse = @io_dummy_getmouse
+
+    io_setmousevisibility = dylibsymbol(hFile, "io_setmousevisibility")
+    io_setmouse = dylibsymbol(hFile, "io_setmouse")
+    io_mouserect = dylibsymbol(hFile, "io_mouserect")
+    io_readjoysane = dylibsymbol(hFile, "io_readjoysane")
+
+    'success; fill out info form
+    info.wantpolling = needpolling
+    If info.dylib <> 0 Then dylibfree(info.dylib)
+    info.dylib = hFile
+
+    Return 1
+End Function
 
 sub prefer_backend(b as GfxBackendStuff ptr)
 	for i as integer = ubound(gfx_choices) - 1 to 0 step -1
