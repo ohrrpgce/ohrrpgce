@@ -6,8 +6,8 @@ code :)
 http://HamsterRepublic.com/ohrrpgce/source.php for more information 
 -----------------------------------------------------------------------------
 WINDOWS/LINUX:
-  Recommends FreeBasic version 0.18.6b
-  Requires minimum FreeBasic version 0.18.0b
+  Recommends FreeBasic version 0.20.0b
+  Requires minimum FreeBasic version 0.20.0b
   Download FreeBasic from http://freebasic.net/
   Building HSpeak requires any version Euphoria http://www.RapidEuphoria.com/
 -----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ WHAT IF YOU WANT TO BREAK COMPATIBILITY?
   LICENSE.txt
 -----------------------------------------------------------------------------
 HISTORY & AN APOLOGY
-  Most of the OHRRPGCE's Source code is ugly. UGLY! Messy! Poorly planned! I
+  Much of the OHRRPGCE's Source code is ugly. UGLY! Messy! Poorly planned! I
   most sincerely apologize for this fact, and I protest that I am not really
   the terribly incompetent programmer that you might assume I am just by
   reading this code.
