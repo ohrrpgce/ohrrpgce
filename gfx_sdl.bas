@@ -591,6 +591,7 @@ FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, by
   x = SDL_JoystickGetAxis(sdljoystick, 0)
   y = SDL_JoystickGetAxis(sdljoystick, 1)
   'debug "x=" & x & " y=" & y & " button=" & button
+  RETURN 1
 END FUNCTION
 
 FUNCTION gfx_sdl_setprocptrs() as integer
