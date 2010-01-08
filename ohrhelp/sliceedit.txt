@@ -1,4 +1,4 @@
-This is the slice editor.
+Yay! You found the slice editor! (you did it by pressing ~ on the main menu, in case you did it by accident)
 
 Actually, it isn't really useful for much of anything right now :(
 

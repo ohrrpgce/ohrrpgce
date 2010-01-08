@@ -270,6 +270,7 @@ DO:
   END SELECT
  END IF
  usemenu pt, 0, 0, mainmax, 24
+ IF keyval(scTilde) > 0 THEN slice_editor
  IF enter_or_space() THEN
   SELECT CASE menumode
    CASE 0'--normal mode
@@ -291,8 +292,7 @@ DO:
     IF pt = 15 THEN fontedit font()
     IF pt = 16 THEN gendata
     IF pt = 17 THEN scriptman
-    IF pt = 18 THEN slice_editor
-    IF pt = 19 THEN
+    IF pt = 18 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis
     END IF
@@ -339,7 +339,7 @@ DO:
 LOOP
 
 setmainmenu:
-mainmax = 19
+mainmax = 18
 menu(0) = "Edit Graphics"
 menu(1) = "Edit Map Data"
 menu(2) = "Edit Global Text Strings"
@@ -358,7 +358,6 @@ menu(14) = "Import Sound Effects"
 menu(15) = "Edit Font"
 menu(16) = "Edit General Game Data"
 menu(17) = "Script Management"
-menu(18) = "Edit Screen Layouts"
 menu(19) = "Quit Editing"
 RETRACE
 
