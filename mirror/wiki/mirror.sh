@@ -13,6 +13,7 @@ httrack --quiet --extended-parsing=YES \
   +"*hamsterrepublic*.jpg" \
   +"*hamsterrepublic*.jpeg" \
   -"*hamsterrepublic.com/bobcomic*" \
+  -"*thehamsterwheel.net*" \
   -"*Special:*" \
   +"*Special:Categories*" \
   -"*Special:Categories&article=*" \
