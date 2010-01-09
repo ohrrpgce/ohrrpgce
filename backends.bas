@@ -5,10 +5,8 @@
 #include "compat.bi"
 #include "common.bi"
 #include "gfx.bi"
-'until we're ready to make the switch over to backend interface 2, this has to be
-'disabled--gfx_GetVersion() and gfx_getversion() are interpreted the same (I think)
-'so are gfx_ScreenShot() and gfx_screenshot()
-'#include "gfx.new.bi"
+
+#include "gfx.new.bi"
 
 extern "C"
 

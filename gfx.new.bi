@@ -1,6 +1,9 @@
 'new backend interfaces--proposal
 'started 12/22/09
 
+'gfx_GetVersion() and gfx_getversion(), and gfx_ScreenShot() and gfx_screenshot()
+'collide, so are disabled for now
+
 extern "C"
 
 type GFX_INIT
@@ -10,14 +13,14 @@ type GFX_INIT
 	OnCriticalError as sub cdecl(byval szError as zstring ptr)
 	SendDebugString as sub cdecl(byval szMessage as const zstring ptr)
 	DefGfxMessageProc as function cdecl(byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
-	end type
+end type
 
-extern gfx_Initialize as function (byval pCreationData as const GFX_INIT ptr) as integer 'initializes the backend; if failed, returns 0
+extern gfx_Initialize as function () as integer '(byval pCreationData as const GFX_INIT ptr) as integer 'initializes the backend; if failed, returns 0
 extern gfx_Shutdown as sub () 'shuts down the backend--does not post the termination signal
 
 extern gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer 'sends a message to the backend; return value depends on message sent
 
-extern gfx_GetVersion as function () as integer 'returns the backend version
+'extern gfx_GetVersion as function () as integer 'returns the backend version
 
 extern gfx_PumpMessages as sub () 'pumps the backend's message queues and polls input
 
@@ -26,7 +29,7 @@ extern gfx_PumpMessages as sub () 'pumps the backend's message queues and polls 
 'if pPalette == NULL, a maintained copy of the palette will be used
 extern gfx_Present as sub (byval pSurface as ubyte ptr, byval nWidth as integer, byval nHeight as integer, byval pPalette as RGBcolor ptr)
 
-extern gfx_ScreenShot as function (byval szFileName as const zstring ptr) as integer 'takes a screenshot; if failed, returns 0
+'extern gfx_ScreenShot as function (byval szFileName as const zstring ptr) as integer 'takes a screenshot; if failed, returns 0
 
 extern gfx_SetWindowTitle as sub (byval szTitleconst as const zstring ptr) 'sets the window title; the backend may add messages to the window title to describe further option
 extern gfx_GetWindowTitle as function () as const zstring ptr 'returns the window title without the backend's possible additions
