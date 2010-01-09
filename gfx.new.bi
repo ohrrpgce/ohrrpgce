@@ -15,7 +15,7 @@ type GFX_INIT
 	DefGfxMessageProc as function cdecl(byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
 end type
 
-extern gfx_Initialize as function () as integer '(byval pCreationData as const GFX_INIT ptr) as integer 'initializes the backend; if failed, returns 0
+extern gfx_Initialize as function (byval pCreationData as const GFX_INIT ptr) as integer 'initializes the backend; if failed, returns 0
 extern gfx_Shutdown as sub () 'shuts down the backend--does not post the termination signal
 
 extern gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer 'sends a message to the backend; return value depends on message sent

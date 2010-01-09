@@ -10,8 +10,7 @@
 
 extern "C"
 
-'set gfx_Initialize() back to other form when moving to interface 2
-dim gfx_Initialize as function () as integer '(byval pCreationData as const GFX_INIT ptr) as integer
+dim gfx_Initialize as function (byval pCreationData as const GFX_INIT ptr) as integer
 dim gfx_Shutdown as sub ()
 dim gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
 'dim gfx_GetVersion as function () as integer
