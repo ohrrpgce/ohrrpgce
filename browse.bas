@@ -531,7 +531,7 @@ DO UNTIL EOF(fh)
   IF validmusicfile(f, VALID_FX_FORMAT) = 0 THEN
    tree(br.treesize).kind = 6
    tree(br.treesize).about = "Not a valid sound effect file"
-  ELSEIF FILELEN(f) > 500 * 1024 THEN
+  ELSEIF FILELEN(f) > 500 * 1024 AND justextension(tree(br.treesize).filename) <> "wav" THEN
    tree(br.treesize).kind = 6
    tree(br.treesize).about = "File is too large (limit 500kB)"
   END IF
