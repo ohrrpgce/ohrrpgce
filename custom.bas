@@ -358,7 +358,7 @@ menu(14) = "Import Sound Effects"
 menu(15) = "Edit Font"
 menu(16) = "Edit General Game Data"
 menu(17) = "Script Management"
-menu(19) = "Quit Editing"
+menu(18) = "Quit Editing"
 RETRACE
 
 setgraphicmenu:
