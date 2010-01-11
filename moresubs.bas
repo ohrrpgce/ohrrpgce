@@ -2553,7 +2553,7 @@ IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
   pt = large(pt - 1, 0)
  END IF
 END IF
-IF keyval(scNumpadPlus) > 1 OR keyval(scEquals) > 1 THEN
+IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN
  '--plus
  IF keyval(scCtrl) > 0 THEN
   setbit tag(), 0, pt, 1

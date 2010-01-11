@@ -1,5 +1,10 @@
 WHAT IS NEW?
 
+??? ?? 2010 [Ypsiliform+]
+
+  * Bugfixes
+    * Bug 802: tileset confusion when adding a layer
+
 Jan 08 2010 [Ypsiliform]
 
   * New Features
