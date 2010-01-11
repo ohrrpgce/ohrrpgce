@@ -1,5 +1,22 @@
 WHAT IS NEW?
 
+??? ?? ???? [????]
+
+  * New Features
+
+  * Bugfixes
+
+  * New Plotscripting Stuff
+
+  * Vikings of Midgard
+
+  * Stuff only Developers Will Notice
+
+??? ?? 2010 [Ypsiliform+]
+
+  * Bugfixes
+    * Bug 802: tileset confusion when adding a layer
+
 Jan 08 2010 [Ypsiliform]
 
   * New Features

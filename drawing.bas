@@ -1131,7 +1131,7 @@ DO
     ts.airsize = large(ts.airsize - 1, 1)
    END IF
   END IF
-  IF keyval(scEquals) > 1 OR keyval(scNumpadPlus) > 1 THEN
+  IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
    IF keyval(scCtrl) > 0 THEN
     ts.mist = small(ts.mist + 1, 99)
    ELSE
@@ -2563,7 +2563,7 @@ IF ss.tool = airbrush_tool THEN '--adjust airbrush
    ss.airsize = large(ss.airsize - 1, 1)
   END IF
  END IF
- IF keyval(scEquals) > 1 OR keyval(scNumpadPlus) > 1 THEN
+ IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1 THEN
   IF keyval(scCtrl) > 0 THEN
    ss.mist = small(ss.mist + 1, 99)
   ELSE

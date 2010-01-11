@@ -1241,7 +1241,8 @@ ELSE
  NEXT i
  IF keyval(sc0) > 1 THEN n *= 10
  IF min < 0 AND max > 0 THEN
-  IF keyval(scMinus) > 1 OR keyval(scEquals) > 1 OR keyval(scNumpadMinus) > 1 OR keyval(scNumpadPlus) > 1 THEN s = s * -1
+  IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN s = s * -1
+  IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND s < 0 THEN s = s * -1
  END IF
  IF min < 0 AND (s < 0 OR max = 0) THEN n = -n
  'CLIPBOARD
@@ -1316,7 +1317,7 @@ END IF
 intgrabber temp, nmax, pmax, less, more
 
 DIM negated AS INTEGER = 0
-IF keyval(scMinus) > 1 OR keyval(scEquals) > 1 OR keyval(scNumpadMinus) > 1 OR keyval(scNumpadPlus) > 1 THEN negated = 1
+IF keyval(scMinus) > 1 OR keyval(scPlus) > 1 OR keyval(scNumpadMinus) > 1 OR keyval(scNumpadPlus) > 1 THEN negated = 1
 
 IF old > 0 THEN
  IF temp >= pmin AND temp <= pmax THEN

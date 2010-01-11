@@ -1097,7 +1097,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
 
   IF keyval(scESC) > 1 THEN clearkey(scESC): EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
-  IF keyval(scPlus) > 1 AND UBOUND(map) < maplayerMax THEN
+  IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND UBOUND(map) < maplayerMax THEN
    IF layerno = -1 THEN
     add_more_layers map(), visible(), gmap(), UBOUND(map) + 1
     st.layer = UBOUND(map)
@@ -1112,7 +1112,8 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
    currentset = -2
    state.need_update = YES
   END IF
-  IF keyval(scMinus) > 1 ANDALSO UBOUND(map) > 0 ANDALSO yesno("Really delete layer " & layerno & "?", NO) THEN
+  IF (keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1) ANDALSO UBOUND(map) > 0 ANDALSO layerno >= 0 _
+     ANDALSO yesno("Really delete layer " & layerno & "?", NO) THEN
    IF layerno < gmap(31) THEN gmap(31) = large(gmap(31) - 1, 1)
    mapedit_delete_layer st, map(), visible(), gmap(), layerno
    st.layer = small(layerno, UBOUND(map))
@@ -1162,6 +1163,10 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
    state.need_update = YES
   ELSEIF layerno > -1 THEN
    IF itemsinfo(state.pt).gmapindex > -1 THEN
+    clearkey(scPlus)
+    clearkey(scNumpadPlus)
+    clearkey(scMinus)
+    clearkey(scNumpadMinus)
     IF zintgrabber(gmap(itemsinfo(state.pt).gmapindex), -1, gen(genMaxTile)) THEN
      tileset = gmap(itemsinfo(state.pt).gmapindex) - 1
      IF tileset = -1 THEN tileset = gmap(0)
