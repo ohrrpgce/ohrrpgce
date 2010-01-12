@@ -258,8 +258,7 @@ int gfx_ScreenShot(const char *szFileName)
 	if(szFileName == NULL)
 		return FALSE;
 	TCHAR buffer[256] = TEXT("");
-	if(DX_OK != g_DirectX.ScreenShot(CharToTchar(buffer, 256, szFileName, 0)))
-		return FALSE;
+	CharToTchar(buffer, 256, szFileName, 0);
 	switch(g_DirectX.GetImageFileFormat())
 	{
 	case D3DXIFF_JPG:
@@ -273,6 +272,8 @@ int gfx_ScreenShot(const char *szFileName)
 	default:
 		return FALSE;
 	}
+	if(DX_OK != g_DirectX.ScreenShot(buffer))
+		return FALSE;
 	return TRUE;
 }
 
