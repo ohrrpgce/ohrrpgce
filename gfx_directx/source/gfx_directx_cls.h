@@ -11,7 +11,7 @@
 #include "smartptr.h"
 #include <string>
 #include <tchar.h>
-#include "_tstring.h"
+#include "gfx_common\\_tstring.h"
 
 #include "gfx_directx_TESTAPPconst.h"
 #include "gfx_directx_cls_window.h"

@@ -263,12 +263,16 @@ int gfx_ScreenShot(const char *szFileName)
 	{
 	case D3DXIFF_JPG:
 		::_tcscat_s<256>(buffer, TEXT(".jpg"));
+		break;
 	case D3DXIFF_BMP:
 		::_tcscat_s<256>(buffer, TEXT(".bmp"));
+		break;
 	case D3DXIFF_PNG:
 		::_tcscat_s<256>(buffer, TEXT(".png"));
+		break;
 	case D3DXIFF_DDS:
 		::_tcscat_s<256>(buffer, TEXT(".dds"));
+		break;
 	default:
 		return FALSE;
 	}

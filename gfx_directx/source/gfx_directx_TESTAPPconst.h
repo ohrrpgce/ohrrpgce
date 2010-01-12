@@ -9,6 +9,14 @@
 #include <string>
 #endif
 
+//resource loading from module
+#if TESTAPP
+#define MODULENAME NULL
+#else
+#define MODULENAME TEXT("gfx_directx.dll")
+#define ISOLATION_AWARE_ENABLED  1
+#endif //TESTAPP
+
 //used in testing hresult's
 #define TEST_HR(hresult, errorCode)  if(S_OK != hresult) return Report(errorCode);
 
