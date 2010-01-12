@@ -1,3 +1,4 @@
+#include <cstring>
 #include "Input.h"
 using namespace gfx;
 

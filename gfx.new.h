@@ -4,6 +4,8 @@
 #ifndef GFX_NEW_H
 #define GFX_NEW_H
 
+#include "gfx_common/config.h"
+
 #ifdef __cplusplus
 extern "C"
 {

@@ -1,3 +1,7 @@
+#include <cstring>
+#include <cstdlib>
+#include <cerrno>
+#include "config.h"
 #include "_tstring.h"
 
 tstring::tstring() : _tstring()
@@ -21,9 +25,9 @@ T_CHAR* CharToTchar(T_CHAR* szDest, unsigned int nDestSize, const A_CHAR* szSrc,
 {
 #ifdef _UNICODE
 	size_t n = 0;
-	::mbstowcs_s(&n, szDest, nDestSize, szSrc, (nSrcSize != 0 ? nSrcSize : ::strlen(szSrc)));
+	mbstowcs_s(&n, szDest, nDestSize, szSrc, (nSrcSize != 0 ? nSrcSize : ::strlen(szSrc)));
 #else
-	::strcpy_s(szDest, nDestSize, szSrc);
+	strcpy_s(szDest, nDestSize, szSrc);
 #endif
 	return szDest;
 }
@@ -32,10 +36,10 @@ T_CHAR* CharToTchar(T_CHAR* szDest, unsigned int nDestSize, const A_CHAR* szSrc,
 T_CHAR* WcharToTchar(T_CHAR* szDest, unsigned int nDestSize, const W_CHAR* szSrc, unsigned int nSrcSize)
 {
 #ifdef _UNICODE
-	::wcscpy_s(szDest, nDestSize, szSrc);
+	wcscpy_s(szDest, nDestSize, szSrc);
 #else
 	size_t n = 0;
-	::wcstombs_s(&n, szDest, nDestSize, szSrc, (nSrcSize != 0 ? nSrcSize : ::wcslen(szSrc)));
+	wcstombs_s(&n, szDest, nDestSize, szSrc, (nSrcSize != 0 ? nSrcSize : ::wcslen(szSrc)));
 #endif
 	return szDest;
 }
@@ -44,10 +48,10 @@ T_CHAR* WcharToTchar(T_CHAR* szDest, unsigned int nDestSize, const W_CHAR* szSrc
 W_CHAR* TcharToWchar(W_CHAR* szDest, unsigned int nDestSize, const T_CHAR* szSrc, unsigned int nSrcSize)
 {
 #ifdef _UNICODE
-	::wcscpy_s(szDest, nDestSize, szSrc);
+	wcscpy_s(szDest, nDestSize, szSrc);
 #else
 	size_t n = 0;
-	::mbstowcs_s(&n, szDest, nDestSize, szSrc, (nSrcSize != 0 ? nSrcSize : ::strlen(szSrc)));
+	mbstowcs_s(&n, szDest, nDestSize, szSrc, (nSrcSize != 0 ? nSrcSize : ::strlen(szSrc)));
 #endif
 	return szDest;
 }
@@ -57,9 +61,9 @@ A_CHAR* TcharToChar(A_CHAR* szDest, unsigned int nDestSize, const T_CHAR* szSrc,
 {
 #ifdef _UNICODE
 	size_t n = 0;
-	::wcstombs_s(&n, szDest, nDestSize, szSrc, (nSrcSize != 0 ? nSrcSize : ::wcslen(szSrc)));
+	wcstombs_s(&n, szDest, nDestSize, szSrc, (nSrcSize != 0 ? nSrcSize : ::wcslen(szSrc)));
 #else
-	::strcpy_s(szDest, nDestSize, szSrc);
+	strcpy_s(szDest, nDestSize, szSrc);
 #endif
 	return szDest;
 }

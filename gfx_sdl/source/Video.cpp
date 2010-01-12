@@ -1,3 +1,4 @@
+#include <cstring>
 #include "Video.h"
 using namespace gfx;
 

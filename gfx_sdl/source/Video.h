@@ -7,6 +7,7 @@
 
 #include "SDL.h"
 #include "gfx_palette.h"
+#include "config.h"
 #include "_tstring.h"
 
 namespace gfx
