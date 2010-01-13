@@ -113,6 +113,7 @@ support\cp LICENSE.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp plotscr.hsd tmpdist
 support\cp scancode.hsi tmpdist
+support\cp gfx_directx.dll tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
 mkdir tmpdist\ohrhelp
