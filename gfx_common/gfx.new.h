@@ -5,7 +5,7 @@
 #ifndef GFX_NEW_H
 #define GFX_NEW_H
 
-#define DLLEXPORT __declspec(dllexport)
+#include "config.h"
 
 #ifdef __cplusplus
 extern "C"

@@ -30,8 +30,6 @@ dim gfx_GetJoystickMovement as function (byval nDevice as integer, byref dx as i
 dim gfx_GetJoystickPosition as function (byval nDevice as integer, byref x as integer, byref y as integer, byref buttons as integer) as integer
 dim gfx_SetJoystickPosition as function (byval nDevice as integer, byval x as integer, byval y as integer) as integer
 
-declare function gfx_LoadDllBackendProcs(ByVal strFile As String, ByRef hModule As any ptr) As Integer
-
 dim gfx_init as function (byval terminate_signal_handler as sub cdecl (), byval windowicon as zstring ptr, byval info_buffer as zstring ptr, byval info_buffer_size as integer) as integer
 dim gfx_close as sub ()
 dim gfx_getversion as function () as integer
@@ -56,29 +54,34 @@ dim io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymi
 dim io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
 
 declare function gfx_alleg_setprocptrs() as integer
-declare function gfx_directx_setprocptrs() as integer
 declare function gfx_fb_setprocptrs() as integer
 declare function gfx_sdl_setprocptrs() as integer
+'declare function gfx_sdlpp_setprocptrs() as integer
 
 type GfxBackendStuff
 	'FB doesn't allow initialising UDTs containing var-length strings
 	name as string * 7
-	load as function () as integer  'maybe not be NULL
+	libname as string * 15
+	load as function () as integer
 	wantpolling as integer  'run the polling thread?
 	dylib as any ptr  'handle on a loaded library
 end type
 
 #ifdef GFX_ALLEG_BACKEND
-dim shared as GfxBackendStuff alleg_stuff = ("alleg", @gfx_alleg_setprocptrs, YES)
+dim shared as GfxBackendStuff alleg_stuff = ("alleg", "", @gfx_alleg_setprocptrs, YES)
 #endif
 #ifdef GFX_DIRECTX_BACKEND
-dim shared as GfxBackendStuff directx_stuff = ("directx", @gfx_directx_setprocptrs)  'work out wantpolling when loading
+dim shared as GfxBackendStuff directx_stuff = ("directx", "", NULL)  'work out wantpolling when loading
 #endif
 #ifdef GFX_FB_BACKEND
-dim shared as GfxBackendStuff fb_stuff = ("fb", @gfx_fb_setprocptrs, YES)
+dim shared as GfxBackendStuff fb_stuff = ("fb", "", @gfx_fb_setprocptrs, YES)
 #endif
 #ifdef GFX_SDL_BACKEND
-dim shared as GfxBackendStuff sdl_stuff = ("sdl", @gfx_sdl_setprocptrs, NO)
+dim shared as GfxBackendStuff sdl_stuff = ("sdl", "", @gfx_sdl_setprocptrs, NO)
+#endif
+#ifdef GFX_SDLPP_BACKEND
+dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "gfx_sdl", NULL)
+'dim shared as GfxBackendStuff sdlpp_stuff = ("sdl++", "", @gfx_sdlpp_setprocptrs)
 #endif
 
 
@@ -107,123 +110,119 @@ sub io_dummy_updatekeys(byval keybd as integer ptr) : end sub
 sub io_dummy_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer) : end sub
 sub io_dummy_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer) : end sub
 
-#ifdef GFX_DIRECTX_BACKEND
-
-'this is actually totally general minus the name of the dll and directx_stuff and variable name
-function gfx_directx_setprocptrs() as integer
-	dim gfx_directx as any ptr = directx_stuff.dylib
+function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as string) as integer
+	dim hFile as any ptr = backendinfo->dylib
 	dim needpolling as integer = NO
-	if gfx_directx <> 0 then return 1
+	if hFile <> 0 then return 1
 
-	gfx_directx = dylibload("gfx_directx.dll")
-	if gfx_directx = 0 then return 0
+	hFile = dylibload(filename)
+	if hFile = 0 then return 0
 
-	gfx_getversion = dylibsymbol(gfx_directx, "gfx_getversion")
+	gfx_getversion = dylibsymbol(hFile, "gfx_getversion")
 	dim as integer apiver = 0
 	if gfx_getversion <> NULL then apiver = gfx_getversion()
-    If (apiver Or 1) = 0 Then 'adjusted to bitwise OR-ing
-        queue_error = "gfx_version: does not support v1--reports v" & apiver
-        debug(queue_error)
-        dylibfree(gfx_directx)
-        gfx_directx = NULL
-        Return 0
-    End If
+	if (apiver or 1) = 0 then 'adjusted to bitwise OR-ing (FIXME)
+		queue_error = "gfx_version: does not support v1--reports v" & apiver
+		debug(queue_error)
+		dylibfree(hFile)
+		hFile = NULL
+		return 0
+	end if
 
-	gfx_init = dylibsymbol(gfx_directx, "gfx_init")
-	gfx_close = dylibsymbol(gfx_directx, "gfx_close")
-	gfx_showpage = dylibsymbol(gfx_directx, "gfx_showpage")
-	gfx_setpal = dylibsymbol(gfx_directx, "gfx_setpal")
-	gfx_screenshot = dylibsymbol(gfx_directx, "gfx_screenshot")
-	gfx_setwindowed = dylibsymbol(gfx_directx, "gfx_setwindowed")
-	gfx_windowtitle = dylibsymbol(gfx_directx, "gfx_windowtitle")
-	gfx_getwindowstate = dylibsymbol(gfx_directx, "gfx_getwindowstate")
-	gfx_setoption = dylibsymbol(gfx_directx, "gfx_setoption")
-	gfx_describe_options = dylibsymbol(gfx_directx, "gfx_describe_options")
-	io_init = dylibsymbol(gfx_directx, "io_init")
+	gfx_init = dylibsymbol(hFile, "gfx_init")
+	gfx_close = dylibsymbol(hFile, "gfx_close")
+	gfx_showpage = dylibsymbol(hFile, "gfx_showpage")
+	gfx_setpal = dylibsymbol(hFile, "gfx_setpal")
+	gfx_screenshot = dylibsymbol(hFile, "gfx_screenshot")
+	gfx_setwindowed = dylibsymbol(hFile, "gfx_setwindowed")
+	gfx_windowtitle = dylibsymbol(hFile, "gfx_windowtitle")
+	gfx_getwindowstate = dylibsymbol(hFile, "gfx_getwindowstate")
+	gfx_setoption = dylibsymbol(hFile, "gfx_setoption")
+	gfx_describe_options = dylibsymbol(hFile, "gfx_describe_options")
+	io_init = dylibsymbol(hFile, "io_init")
 
-	io_pollkeyevents = dylibsymbol(gfx_directx, "io_pollkeyevents")
+	io_pollkeyevents = dylibsymbol(hFile, "io_pollkeyevents")
 	if io_pollkeyevents = NULL then io_pollkeyevents = @io_dummy_pollkeyevents
-	io_waitprocessing = dylibsymbol(gfx_directx, "io_waitprocessing")
+	io_waitprocessing = dylibsymbol(hFile, "io_waitprocessing")
 	if io_waitprocessing = NULL then io_waitprocessing = @io_dummy_waitprocessing
 
-	io_keybits = dylibsymbol(gfx_directx, "io_keybits")
+	io_keybits = dylibsymbol(hFile, "io_keybits")
 	if io_keybits = NULL then
 		io_keybits = @io_amx_keybits
 		needpolling = YES
 	end if
-	io_updatekeys = dylibsymbol(gfx_directx, "io_updatekeys")
+	io_updatekeys = dylibsymbol(hFile, "io_updatekeys")
 	if io_updatekeys = NULL then io_updatekeys = @io_dummy_updatekeys
 
-	io_mousebits = dylibsymbol(gfx_directx, "io_mousebits")
+	io_mousebits = dylibsymbol(hFile, "io_mousebits")
 	if io_mousebits = NULL then
 		io_mousebits = @io_amx_mousebits
 		needpolling = YES
 	end if
-	io_getmouse = dylibsymbol(gfx_directx, "io_getmouse")
+	io_getmouse = dylibsymbol(hFile, "io_getmouse")
 	if io_getmouse = NULL then io_getmouse = @io_dummy_getmouse
 
-	io_setmousevisibility = dylibsymbol(gfx_directx, "io_setmousevisibility")
-	io_setmouse = dylibsymbol(gfx_directx, "io_setmouse")
-	io_mouserect = dylibsymbol(gfx_directx, "io_mouserect")
-	io_readjoysane = dylibsymbol(gfx_directx, "io_readjoysane")
+	io_setmousevisibility = dylibsymbol(hFile, "io_setmousevisibility")
+	io_setmouse = dylibsymbol(hFile, "io_setmouse")
+	io_mouserect = dylibsymbol(hFile, "io_mouserect")
+	io_readjoysane = dylibsymbol(hFile, "io_readjoysane")
 	
-	directx_stuff.dylib = gfx_directx
-	directx_stuff.wantpolling = needpolling
+	backendinfo->dylib = hFile
+	backendinfo->wantpolling = needpolling
 	return 1
 end function
 
-#endif
+'loads dynamic library graphics backends' procs into memory - new interface
+'filename is the name of the file, ie. "gfx_directx.dll" 
+'backendinfo is modified with relevant data
+function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename as string) as integer
+	Dim hFile As any ptr
+	hFile = dylibload(filename)
+	If hFile = NULL Then Return 0
 
-'loads dll graphics backends' procs into memory
-'strFile is the name of the file, ie. "gfx_directx.dll" 
-'hModule is the handle to the loaded library that is returned
-Function gfx_LoadDllBackendProcs(ByVal strFile As String, ByRef hModule As any ptr) As Integer
-    Dim hFile As any ptr
-    hFile = dylibload(strFile)
-    If hFile = NULL Then Return 0
+	gfx_GetVersion = dylibsymbol(hFile, "gfx_GetVersion")
+	If gfx_GetVersion = NULL Then
+		gfx_GetVersion = dylibsymbol(hFile, "gfx_getversion")
+		If gfx_GetVersion = NULL Then
+			dylibfree(hFile)
+			Return 0
+		End If
+	End If
 
-    gfx_GetVersion = dylibsymbol(hFile, "gfx_GetVersion")
-    If gfx_GetVersion = NULL Then
-        gfx_GetVersion = dylibsymbol(hFile, "gfx_getversion")
-        If gfx_GetVersion = NULL Then
-            dylibfree(hFile)
-            Return 0
-        End If
-    End If
+	Dim apiVersion As Integer
+	apiVersion = gfx_GetVersion()
+	If (apiVersion Or 2) = 0 Then
+		queue_error = filename + " backend does not support v2--reports v" & apiVersion
+		debug(queue_error)
+		dylibfree(hFile)
+		Return 0
+	End If
 
-    Dim apiVersion As Integer
-    apiVersion = gfx_GetVersion()
-    If (apiVersion Or 2) = 0 Then
-        queue_error = strFile + " backend does not support v2--reports v" & apiVersion
-        debug(queue_error)
-        dylibfree(hFile)
-        Return 0
-    End If
+	'backend checks out ok; start loading functions
+	gfx_Initialize = dylibsymbol(hFile, "gfx_Initialize")
+	gfx_Shutdown = dylibsymbol(hFile, "gfx_Shutdown")
+	gfx_SendMessage = dylibsymbol(hFile, "gfx_SendMessage")
+	gfx_PumpMessages = dylibsymbol(hFile, "gfx_PumpMessages")
+	gfx_Present = dylibsymbol(hFile, "gfx_Present")
+	gfx_ScreenShot = dylibsymbol(hFile, "gfx_ScreenShot")
+	gfx_SetWindowTitle = dylibsymbol(hFile, "gfx_SetWindowTitle")
+	gfx_GetWindowTitle = dylibsymbol(hFile, "gfx_GetWindowTitle")
+	gfx_AcquireKeyboard = dylibsymbol(hFile, "gfx_AcquireKeyboard")
+	gfx_AcquireMouse = dylibsymbol(hFile, "gfx_AcquireMouse")
+	gfx_AcquireJoystick = dylibsymbol(hFile, "gfx_AcquireJoystick")
+	gfx_GetKeyboard = dylibsymbol(hFile, "gfx_GetKeyboard")
+	gfx_GetMouseMovement = dylibsymbol(hFile, "gfx_GetMouseMovement")
+	gfx_GetMousePosition = dylibsymbol(hFile, "gfx_GetMousePosition")
+	gfx_SetMousePosition = dylibsymbol(hFile, "gfx_SetMousePosition")
+	gfx_GetJoystickMovement = dylibsymbol(hFile, "gfx_GetJoystickMovement")
+	gfx_GetJoystickPosition = dylibsymbol(hFile, "gfx_GetJoystickPosition")
+	gfx_SetJoystickPosition = dylibsymbol(hFile, "gfx_SetJoystickPosition")
 
-    'backend checks out ok; start loading functions
-    gfx_Initialize = dylibsymbol(hFile, "gfx_Initialize")
-    gfx_Shutdown = dylibsymbol(hFile, "gfx_Shutdown")
-    gfx_SendMessage = dylibsymbol(hFile, "gfx_SendMessage")
-    gfx_PumpMessages = dylibsymbol(hFile, "gfx_PumpMessages")
-    gfx_Present = dylibsymbol(hFile, "gfx_Present")
-    gfx_ScreenShot = dylibsymbol(hFile, "gfx_ScreenShot")
-    gfx_SetWindowTitle = dylibsymbol(hFile, "gfx_SetWindowTitle")
-    gfx_GetWindowTitle = dylibsymbol(hFile, "gfx_GetWindowTitle")
-    gfx_AcquireKeyboard = dylibsymbol(hFile, "gfx_AcquireKeyboard")
-    gfx_AcquireMouse = dylibsymbol(hFile, "gfx_AcquireMouse")
-    gfx_AcquireJoystick = dylibsymbol(hFile, "gfx_AcquireJoystick")
-    gfx_GetKeyboard = dylibsymbol(hFile, "gfx_GetKeyboard")
-    gfx_GetMouseMovement = dylibsymbol(hFile, "gfx_GetMouseMovement")
-    gfx_GetMousePosition = dylibsymbol(hFile, "gfx_GetMousePosition")
-    gfx_SetMousePosition = dylibsymbol(hFile, "gfx_SetMousePosition")
-    gfx_GetJoystickMovement = dylibsymbol(hFile, "gfx_GetJoystickMovement")
-    gfx_GetJoystickPosition = dylibsymbol(hFile, "gfx_GetJoystickPosition")
-    gfx_SetJoystickPosition = dylibsymbol(hFile, "gfx_SetJoystickPosition")
+	'success
+	backendinfo->dylib = hFile
+	backendinfo->wantpolling = NO
 
-    'success
-    hModule = hFile
-
-    Return 1
+	Return 1
 End Function
 
 sub prefer_backend(b as GfxBackendStuff ptr)
@@ -296,14 +295,24 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 		currentgfxbackend = NULL
 	end if
 
-	if which->load() then
-		currentgfxbackend = which
-		gfxbackendinfo = "gfx_" + which->name
-		gfxbackend = which->name
-		wantpollingthread = which->wantpolling
-		return 1
+	if which->load = NULL then
+		dim filename as string = which->libname
+		if filename = "" then filename = "gfx_" + which->name
+#ifdef __FB_WIN32__
+		filename += ".dll"
+#else
+		filename += ".so"   'try other paths?
+#endif
+		if gfx_load_library(which, filename) = 0 then return 0
+	else
+		if which->load() = 0 then return 0
 	end if
-	return 0
+
+	currentgfxbackend = which
+	gfxbackendinfo = "gfx_" + which->name
+	gfxbackend = which->name
+	wantpollingthread = which->wantpolling
+	return 1
 end function
 
 sub unload_backend(which as GFxBackendStuff ptr)

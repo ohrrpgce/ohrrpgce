@@ -5,8 +5,9 @@
 #ifndef GFX_OLD_H
 #define GFX_OLD_H
 
+#include "config.h"
+
 //gfx_*
-#define DLLEXPORT __declspec(dllexport)
 
 extern "C" {
 
@@ -18,7 +19,7 @@ struct WindowState
 
 //terminate_signal_handler is a pointer to post_terminate_signal, for dynamically linked graphics backends.
 //windowicon is platform specific: name of the icon resource on Windows, no meaning yet elsewhere
-DLLEXPORT int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size);
+DLLEXPORT int gfx_init(void (__cdecl *terminate_signal_handler)(void), const char* windowicon, char* info_buffer, int info_buffer_size);
 DLLEXPORT void gfx_close();		//put it back how we found it
 
 DLLEXPORT int gfx_getversion();

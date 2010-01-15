@@ -13,6 +13,7 @@ set GFX_MODULES=
 :trygfx
 if exist "gfx_%1.bas" goto gfxok
 if "%1"=="directx" goto gfxok
+if "%1"=="sdlpp" goto gfxok
 goto endgfxbackends
 :gfxok
 
@@ -20,6 +21,7 @@ if not "%GFX_MODULES%"=="" set GFX_MODULES=%GFX_MODULES%+
 set GFX_MODULES=%GFX_MODULES%%1
 set GFX_XTRA=gfx_%1.bas
 if "%1"=="directx" set GFX_XTRA=
+if "%1"=="sdlpp" set GFX_XTRA=
 
 set GFX_XTRAS=%GFX_XTRAS% %GFX_XTRA%
 shift

@@ -8,9 +8,10 @@ void OnCriticalError(const char* szError) {}
 void SendDebugString(const char* szMessage) {}
 int DefMsgProc(unsigned int msg, unsigned int dwParam, void *pvParam) {return 0;}
 
-int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
+int gfx_init(void (__cdecl *terminate_signal_handler)(void), const char* windowicon, char* info_buffer, int info_buffer_size)
 {
-	GFX_INIT gfxInit = {"SDL Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString, DefMsgProc};
+	//gcc oddly considers gfxInit->szWindowIcon 'char *'
+	GFX_INIT gfxInit = {"SDL Backend", (char *)windowicon, terminate_signal_handler, OnCriticalError, SendDebugString, DefMsgProc};
 	return gfx_Initialize(&gfxInit);
 }
 

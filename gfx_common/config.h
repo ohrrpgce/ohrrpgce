@@ -3,7 +3,15 @@
 
 /* Cross-platform workarounds */
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER 
+ /* Microsoft C++ */
+
+#define DLLEXPORT __declspec(dllexport)
+
+#else
+ /* standard C++ compiler/Mingw */
+
+#define DLLEXPORT
 
 #ifndef __cdecl
 // #define __cdecl __attribute__((__cdecl__)) 

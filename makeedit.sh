@@ -18,7 +18,14 @@ if [ -z "${MUSIC}" ] ; then
 fi
 
 for backend in `echo ${GFX} | tr "+" "\n"` ; do
-  EXTRA="${EXTRA} gfx_${backend}.bas"
+  if [ "${backend}" = "sdlpp" ] ; then
+    cd gfx_sdl/source
+    make old
+    cd ../..
+    # EXTRA="${EXTRA} -Wl gfx_sdl/source/libgfx_sdl++_old.a"
+  else
+    EXTRA="${EXTRA} gfx_${backend}.bas"
+  fi
 done
 EXTRA="${EXTRA} music_${MUSIC}.bas"
 
