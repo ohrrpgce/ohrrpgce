@@ -1858,7 +1858,7 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
  DIM gmap2(dimbinsize(binMAP))
  REDIM map2(0) AS TileMap
  DIM pass2 AS TileMap
- DIM tilesets2(2) AS TilesetData ptr
+ DIM tilesets2(maplayerMax) AS TilesetData ptr
  
  clearpage 2
  IF link(cur).source = -1 THEN EXIT SUB
