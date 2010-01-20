@@ -9,6 +9,10 @@ UNION XYPair
    x AS INTEGER
    y AS INTEGER
   END TYPE
+  TYPE
+   w AS INTEGER
+   h AS INTEGER
+  END TYPE
   n(1) AS INTEGER
 END UNION
 
@@ -20,11 +24,12 @@ TYPE RectType
 END TYPE
 
 TYPE Palette16
-	col(15) as ubyte 'indicies into the master palette
+	col(15) as ubyte 'indices into the master palette
 	refcount as integer 'private
 END TYPE
 
 TYPE SpriteCacheEntryFwd as SpriteCacheEntry
+TYPE SpriteSetFwd as SpriteSet
 
 'sprites use this
 'don't forget to update definition in blit.c when changing this!!
@@ -41,7 +46,52 @@ type Frame
 	cached:1 as integer  '(not set for views onto cached sprites)
 	arrayelem:1 as integer  'not the first frame in a frame array
 	isview:1 as integer
+
+	'used only by frames in a SpriteSet, for now
+	offset as XYPair
+	'parentset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
+	                               'will need to be freed at the same time
 end type
+
+ENUM AnimOpType
+	animOpWait	'(ticks)
+	animOpFrame	'(framenum)
+	animOpSetOffset	'(x,y)
+	animOpRelOffset	'(x,y)
+END ENUM
+
+TYPE AnimationOp
+	type as AnimOpType
+	arg1 as integer		
+	arg2 as integer		
+END TYPE
+
+TYPE Animation
+	name as string
+	numitems as integer
+	ops as AnimationOp ptr
+END TYPE
+
+TYPE SpriteSet
+	'refcount as integer
+	numanimations as integer
+	animations as Animation ptr
+	numframes as integer 'number of Frames
+	frames as Frame ptr
+END TYPE
+
+'A REAL sprite; This is basically a state of a SpriteSet
+TYPE SpriteState
+	set as SpriteSet ptr
+	curframe as Frame ptr  'convenience ptr to set->frames[.frame_id]
+	pal as Palette16 ptr
+	frame_id as integer
+	anim as Animation ptr
+	anim_step as integer
+	anim_wait as integer
+	anim_loop as integer '-1:infinite, 0<:number of times to play after current
+	offset as XYPair
+END TYPE
 
 TYPE GraphicPair
 	sprite as frame ptr

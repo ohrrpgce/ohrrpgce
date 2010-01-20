@@ -22,7 +22,7 @@ option explicit
 
 #define NULL 0
 
-'Note: While this works (at last check), it's not used anywhere, and you most probably do not need it
+'Note: While non-refcounted frames work (at last check), it's not used anywhere, and you most probably do not need it
 const NOREFC = -1234
 const FREEDREFC = -4321
 
@@ -3597,7 +3597,7 @@ function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
 	with sprite_sizes(ptno)
 		'debug "loading " & ptno & "  " & rec
 		'cachemiss += 1
-		ret = sprite_load(game + ".pt" & ptno, rec, .frames, .size.x, .size.y)
+		ret = sprite_load(game + ".pt" & ptno, rec, .frames, .size.w, .size.h)
 		if ret = 0 then return 0
 	end with
 
@@ -4459,4 +4459,124 @@ sub Palette16_update_cache(fil as string, byval num as integer)
 		Palette16_delete(@cache->p)
 		cache->p = oldpal
 	end if
+end sub
+
+'-------------- SpriteSet and SpriteState routines -----------------
+
+'TODO: a caching scheme
+function spriteset_load_from_pt(byval ptno as integer, byval rec as integer) as SpriteSet ptr
+	dim frameset as Frame ptr
+	frameset = sprite_load(ptno, rec)
+	if frameset = NULL then return NULL
+
+	dim ret as SpriteSet ptr
+	ret = new SpriteSet
+	ret->numframes = sprite_sizes(ptno).frames
+	ret->frames = frameset
+	'frameset->parentset = ret
+
+	return ret
+end function
+
+private sub spriteset_freemem(byval sprset as SpriteSet ptr)
+	sprite_unload @sprset->frames
+	deallocate sprset->animations
+	deallocate sprset
+end sub
+
+function ss_load(byval ptno as integer, byval rec as integer, byval palno as integer = -1) as SpriteState ptr
+	dim sprset as SpriteSet ptr = spriteset_load_from_pt(ptno, rec)
+	if sprset = NULL then return NULL
+
+	dim ret as SpriteState ptr
+	ret = new SpriteState
+	with *ret
+		.set = sprset
+		.pal = palette16_load(palno, ptno, rec)
+		.frame_id = 0
+		.curframe = @sprset->frames[.frame_id]
+	end with
+	return ret
+end function
+
+'TODO: refcounting
+sub ss_unload(byref spr as SpriteState ptr)
+	if spr = NULL then exit sub
+	spriteset_freemem spr->set
+	palette16_unload @spr->pal
+	spr = NULL
+end sub
+
+'loop is number of times to play, or <=0 for infinite
+sub ss_play_animation(spr as SpriteState ptr, anim_name as string, loopcount as integer = 1)
+	spr->anim_wait = 0
+	spr->anim_step = 0
+	spr->anim_loop = loopcount - 1
+	dim animp as Animation ptr = spr->set->animations
+	for i as integer = 0 to spr->set->numanimations - 1
+		if animp->name = anim_name then
+			spr->anim = animp
+			exit sub
+		end if
+		animp += 1
+	next
+	debug "Could not find animation '" & anim_name & "'"
+end sub
+
+sub ss_animate(spr as SpriteState ptr)
+	with *spr
+		if .anim = NULL then exit sub
+
+		dim looplimit as integer = 40
+		do
+			if .anim_step >= .anim->numitems then
+				if .anim_loop = 0 then 
+					.anim = NULL
+					exit sub
+				end if
+				if .anim_loop > 0 then .anim_loop -= 1
+				.anim_step = 0
+			end if
+
+			dim op as AnimationOp ptr = @.anim->ops[.anim_step]
+			select case op->type
+				case animOpWait
+					.anim_wait += 1
+					if .anim_wait > op->arg1 then
+						.anim_wait = 0
+					else
+						exit do
+					end if
+				case animOpFrame
+					if op->arg1 >= .set->numframes then
+						debug "Animation '" & .anim->name & "': illegal frame number " & op->arg1
+						.anim = NULL
+						exit sub
+					end if
+					.frame_id = op->arg1
+					.curframe = @.set->frames[.frame_id]
+				case animOpSetOffset
+					.offset.x = op->arg1
+					.offset.y = op->arg2
+				case animOpRelOffset
+					.offset.x += op->arg1
+					.offset.y += op->arg2
+				case else
+					debug "bad animation opcode " & op->type & " in '" & .anim->name & "'"
+					.anim = NULL
+					exit sub
+			end select
+			.anim_step += 1
+
+			looplimit -= 1
+			if looplimit = 0 then .anim = NULL: exit do
+		loop
+	end with
+end sub
+
+sub ss_draw(spr as SpriteState ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
+	dim as integer realx, realy
+	realx = x + spr->curframe->offset.x + spr->offset.x
+	realy = y + spr->curframe->offset.y + spr->offset.y
+	sprite_draw(spr->curframe, spr->pal, realx, realy, scale, trans, page)
 end sub
