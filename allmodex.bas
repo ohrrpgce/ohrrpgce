@@ -3315,6 +3315,12 @@ END FUNCTION
 'not to be used outside of the sprite functions
 declare sub sprite_freemem(byval f as frame ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
+declare sub spriteset_freemem(byval sprset as SpriteSet ptr)
+
+'The sprite cache holds Frame ptrs, which may also be Frame arrays and SpriteSets. Since
+'each SpriteSet is associated with a unique Frame array, we don't need a separate cache
+'for SpriteSets. SpriteSet data can be loaded after and linked to the cached Frame array
+'if it was initially not loaded as a SpriteSet.
 
 'The sprite cache, which is a HashTable (sprcache) containing all loaded sprites, is split in
 'two: the A cache containing currently in-use sprites (which is not explicitly tracked), and
@@ -3580,6 +3586,11 @@ private sub sprite_freemem(byval f as frame ptr)
 		f[i].mask = NULL
 		f[i].refcount = FREEDREFC  'help to detect double free
 	next
+	'spriteset_freemem also calls sprite_freemem
+	if f->sprset then
+		f->sprset->frames = NULL
+		spriteset_freemem f->sprset
+	end if
 	deallocate(f)
 end sub
 
@@ -3735,9 +3746,15 @@ end sub
 
 function sprite_describe(byval p as frame ptr) as string
 	if p = 0 then return "'(null)'"
+	dim temp as string
+	if p->sprset then
+		temp = "spriteset:<" & p->sprset->numframes & " frames: 0x" & hex(p->sprset->frames) _
+		       & "," & p->sprset->numanimations & " animations: 0x" & hex(p->sprset->animations) & ">"
+	end if
 	return "'(0x" & hex(p) & ") " & p->arraylen & "x" & p->w & "x" & p->h & " img=0x" & hex(p->image) _
 	       & " msk=0x" & hex(p->mask) & " pitch=" & p->pitch & " cached=" & p->cached & " aelem=" _
-	       & p->arrayelem & " view=" & p->isview & " base=0x" & hex(p->base) & " refc=" & p->refcount & "'"
+	       & p->arrayelem & " view=" & p->isview & " base=0x" & hex(p->base) & " refc=" & p->refcount & "' " _
+	       & temp
 end function
 
 'this is mostly just a gimmick
@@ -4463,25 +4480,41 @@ end sub
 
 '-------------- SpriteSet and SpriteState routines -----------------
 
-'TODO: a caching scheme
 function spriteset_load_from_pt(byval ptno as integer, byval rec as integer) as SpriteSet ptr
 	dim frameset as Frame ptr
 	frameset = sprite_load(ptno, rec)
 	if frameset = NULL then return NULL
 
-	dim ret as SpriteSet ptr
-	ret = new SpriteSet
-	ret->numframes = sprite_sizes(ptno).frames
-	ret->frames = frameset
-	'frameset->parentset = ret
+	if frameset->sprset = NULL then
+		'this Frame array was previously loaded using sprite_load; add SpriteSet data
+		frameset->sprset = allocate(sizeof(SpriteSet))
+		with *frameset->sprset
+			.numframes = sprite_sizes(ptno).frames
+			.frames = frameset
+			'TODO: should pt? records have default animations?
+		end with
+	end if
 
-	return ret
+	return frameset->sprset
 end function
 
 private sub spriteset_freemem(byval sprset as SpriteSet ptr)
-	sprite_unload @sprset->frames
+	'sprite_freemem also calls spriteset_freemem
+	if sprset->frames then
+		sprset->frames->sprset = NULL
+		sprite_freemem sprset->frames
+	end if
 	deallocate sprset->animations
 	deallocate sprset
+end sub
+
+sub spriteset_unload(byref ss as SpriteSet ptr)
+	'a SpriteSet and its Frame array are never unloaded separately;
+	'sprite_unload is responsible for all refcounting and unloading
+	if ss = NULL then exit sub
+	dim temp as Frame ptr = ss->frames
+	sprite_unload @temp
+	ss = NULL
 end sub
 
 function ss_load(byval ptno as integer, byval rec as integer, byval palno as integer = -1) as SpriteState ptr
@@ -4489,7 +4522,7 @@ function ss_load(byval ptno as integer, byval rec as integer, byval palno as int
 	if sprset = NULL then return NULL
 
 	dim ret as SpriteState ptr
-	ret = new SpriteState
+	ret = allocate(sizeof(SpriteState))
 	with *ret
 		.set = sprset
 		.pal = palette16_load(palno, ptno, rec)
@@ -4499,12 +4532,13 @@ function ss_load(byval ptno as integer, byval rec as integer, byval palno as int
 	return ret
 end function
 
-'TODO: refcounting
-sub ss_unload(byref spr as SpriteState ptr)
+sub ss_unload(byval spr as SpriteState ptr ptr)
 	if spr = NULL then exit sub
-	spriteset_freemem spr->set
-	palette16_unload @spr->pal
-	spr = NULL
+	if *spr = NULL then exit sub
+	spriteset_unload((*spr)->set)
+	palette16_unload(@(*spr)->pal)
+	deallocate *spr
+	*spr = NULL
 end sub
 
 'loop is number of times to play, or <=0 for infinite

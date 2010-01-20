@@ -49,8 +49,8 @@ type Frame
 
 	'used only by frames in a SpriteSet, for now
 	offset as XYPair
-	'parentset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
-	                               'will need to be freed at the same time
+	sprset as SpriteSetFwd ptr  'if not NULL, this Frame array is part of a SpriteSet which
+                                    'will need to be freed at the same time
 end type
 
 ENUM AnimOpType
@@ -72,15 +72,17 @@ TYPE Animation
 	ops as AnimationOp ptr
 END TYPE
 
+'in effect, inherits from Frame
 TYPE SpriteSet
-	'refcount as integer
 	numanimations as integer
 	animations as Animation ptr
-	numframes as integer 'number of Frames
+	numframes as integer  'redundant to frames->arraylen
 	frames as Frame ptr
+	'uses refcount from frames
 END TYPE
 
-'A REAL sprite; This is basically a state of a SpriteSet
+'A REAL sprite; This is basically a SpriteSet object with state
+'Not refcounted. I don't currently see a reason that it should be (each the state of a single object)
 TYPE SpriteState
 	set as SpriteSet ptr
 	curframe as Frame ptr  'convenience ptr to set->frames[.frame_id]
@@ -99,7 +101,7 @@ TYPE GraphicPair
 END TYPE
 
 TYPE MenuSet
-  menufile  AS STRING
+  menufile AS STRING
   itemfile AS STRING
 END TYPE
 
