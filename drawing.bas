@@ -1499,19 +1499,23 @@ DO
  END IF
  '----
  IF previewticks THEN
+  DIM preview as Frame ptr
   previewy = bound(ts.tiley * 20 - 20, 0, 140)
+  preview = frame_new_view(vpages(3), 0, previewy, vpages(3)->w, 59)
+
+  copypage 2, dpage
   IF ts.y < 100 THEN
-   'tileset preview at bottom of screen
-   copypage 2, dpage, 0, 0, 139
-   copypage 3, dpage, previewy, 141, 199
+   'preview 59 pixels of tileset at bottom of screen
+   frame_draw preview, , 0, 141, , NO, dpage
    rectangle 0, 139, 320, 2, uilook(uiSelectedItem + tog), dpage
    drawbox ts.tilex * 20, 141 + ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), dpage
   ELSE
-   copypage 3, dpage, bound(ts.tiley * 20 - 20, 0, 140), 0, 59
-   copypage 2, dpage, 59, 59, 199
+   'tileset preview at top of screen
+   frame_draw preview, , 0, 0, , NO, dpage
    rectangle 0, 59, 320, 2, uilook(uiSelectedItem + tog), dpage
    drawbox ts.tilex * 20, ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), dpage
   END IF
+  frame_unload @preview
   previewticks -= 1
  ELSE
   copypage 2, dpage

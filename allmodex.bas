@@ -61,7 +61,8 @@ declare sub pollingthread(byval as threadbs)
 dim vpages(0 to 15) as Frame ptr  'up to 6 used at once, last I counted
 
 'module shared
-dim shared wrkpage as integer  'used to track which page the clips are for; also used by some legacy modex functions
+dim shared wrkpage as integer  'used by some legacy modex functions. Usually points at clippedframe
+dim shared clippedframe as Frame ptr  'used to track which Frame the clips are set for
 
 'temporary exploratory variable resolution stuff
 dim shared windowsize as XYPair = (320, 200)
@@ -217,6 +218,7 @@ SUB setwindowtitle (title as string)
 	mutexunlock keybdmutex
 END SUB
 
+'would crash if page 0 was freed...
 SUB freepage (byval page as integer)
 	if page < 0 orelse page > ubound(vpages) orelse vpages(page) = NULL then
 		debug "Tried to free unallocated/invalid page " & page
@@ -224,7 +226,7 @@ SUB freepage (byval page as integer)
 	end if
 
 	frame_unload(@vpages(page))
-	if wrkpage = page then
+	if clippedframe = vpages(page) then
 		setclip , , , , 0
 	end if
 END SUB
@@ -250,28 +252,18 @@ FUNCTION allocatepage(BYVAL w as integer = 320, BYVAL h as integer = 200) as int
 	return ret
 END FUNCTION
 
-'TODO: this sub has not been modified for frame pitch yet, because of a catch-22 situation
-'anyway, I'd rather get rid of all those ugly arguments
-SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
-	if vpages(page1)->w <> vpages(page2)->w then
-		debug "bad page copy"
-		exit sub
-	end if
-	top = bound(top, 0, vpages(page2)->h - 1)
-	y = bound(y, 0, vpages(page1)->h - 1)
-	dim size as integer
-	size = vpages(page1)->w * bound(bottom - top + 1, 0, vpages(page1)->h - large(y, top))
-	memmove(vpages(page2)->image + vpages(page2)->w * top, vpages(page1)->image + vpages(page1)->w * y, size)
-	'video pages do not use masks
+'copy page1 to page2
+'should copying to a page of different size resize that page?
+SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)
+	'if vpages(page1)->w <> vpages(page2)->w or vpages(page1)->h <> vpages(page2)->h then
+	'	debug "warning, copied to page of unequal size"
+	'end if
+	frame_draw vpages(page1), , 0, 0, , NO, vpages(page2)
 end sub
 
-'want to get rid of those ugly arguments
-'TODO: delete this sub; not updated for pitch either
-SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
+SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1)
 	if colour = -1 then colour = uilook(uiBackground)
-	top = bound(top, 0, vpages(page)->h - 1)
-	bottom = bound(bottom, top, vpages(page)->h - 1)
-	memset(vpages(page)->image + vpages(page)->w * top, colour, vpages(page)->w * (bottom - top + 1))
+	frame_clear vpages(page), colour
 end SUB
 
 'TEMPORARY
@@ -486,7 +478,7 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as
 	dim todraw as integer
 	dim tileframe as frame
 	
-	if wrkpage <> p then
+	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
 
@@ -646,7 +638,7 @@ END FUNCTION
 
 SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer, byval trans as integer = -1)
 'draw sprite scaled, used for drawsprite(x1), bigsprite(x2) and hugesprite(x4)
-	if wrkpage <> page then
+	if clippedframe <> vpages(page) then
 		setclip , , , , page
 	end if
 	
@@ -676,7 +668,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	dim pix as integer
 	dim row as integer
 
-	if wrkpage <> page then
+	if clippedframe <> vpages(page) then
 		setclip , , , , page
 	end if
 
@@ -744,7 +736,7 @@ SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BY
 	dim h as integer
 	dim w as integer
 
-	if wrkpage <> page then
+	if clippedframe <> vpages(page) then
 		setclip , , , , page
 	end if
 
@@ -782,7 +774,7 @@ SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, B
 	dim sbytes as integer
 	dim temp as integer
 
-	if wrkpage <> page then
+	if clippedframe <> vpages(page) then
 		setclip , , , , page
 	end if
 
@@ -1095,7 +1087,7 @@ SUB putpixel (byval spr as Frame ptr, byval x as integer, byval y as integer, by
 end SUB
 
 SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
-	if wrkpage <> p then
+	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
 
@@ -1116,7 +1108,7 @@ FUNCTION readpixel (byval spr as Frame ptr, byval x as integer, byval y as integ
 end FUNCTION
 
 FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
-	if wrkpage <> p then
+	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
 
@@ -1129,7 +1121,7 @@ FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) 
 end FUNCTION
 
 SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	if wrkpage <> p then
+	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
 
@@ -1165,7 +1157,7 @@ SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h
 end SUB
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	if wrkpage <> p then
+	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
 
@@ -1189,7 +1181,7 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 end SUB
 
 SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	if wrkpage <> p then
+	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
 
@@ -1238,7 +1230,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 'Macro to simplify code
 #define DRAW_SLICE(a) for i=0 to a-1: *sptr = c: sptr += instep: next
 
-	if wrkpage <> p then
+	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
 
@@ -1356,7 +1348,7 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 	dim i as integer
 	dim tnode as node ptr = null
 
-	if wrkpage <> page then
+	if clippedframe <> vpages(page) then
 		setclip , , , , page
 	end if
 
@@ -1531,7 +1523,7 @@ end FUNCTION
 
 'FIXME: sprite pitch and so on!
 SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f as Font, BYREF pal as Palette16, BYVAL p as integer)
-	if wrkpage <> p then
+	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
 
@@ -2040,7 +2032,7 @@ end SUB
 
 SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 	if p >= 0 then
-		if wrkpage <> p then
+		if clippedframe <> vpages(p) then
 			setclip , , , , p
 		end if
 	end if
@@ -3143,7 +3135,14 @@ end function
 'these should be removed.
 sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval page as integer = -1)
 	if page <> -1 then wrkpage = page
-	with *vpages(wrkpage)
+	setclip l, t, r, b, vpages(wrkpage)
+end sub
+
+'more modern version
+'would call this directly everywhere, but don't want to break that edge case that actually needs wrkpage set
+sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval fr as Frame ptr)
+	clippedframe = fr
+	with *clippedframe
 		clipl = bound(l, 0, .w) '.w valid, prevents any drawing
 		clipt = bound(t, 0, .h)
 		clipr = bound(r, 0, .w - 1)
@@ -3152,6 +3151,7 @@ sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer =
 end sub
 
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
+'warning! Make sure setclip has been called before calling this
 sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as integer = -1)
 	dim as integer startx, starty, endx, endy
 	dim as integer srcoffset
@@ -3925,30 +3925,34 @@ end function
 'Public:
 ' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the
 ' mask will be wholly ignored. Just like drawohr, masks are optional, otherwise use colourkey 0
-sub frame_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
-	if spr = 0 then
-		debug "trying to draw null sprite"
+sub frame_draw(byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
+	if src = 0 then
+		debug "trying to draw null frame"
 		exit sub
 	end if
 
-	if page <> wrkpage then
-		setclip , , , , page
+	frame_draw src, pal, x, y, scale, trans, vpages(page)
+end sub
+
+sub frame_draw(byval src as Frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval dest as Frame ptr)
+	if dest <> clippedframe then
+		setclip , , , , dest
 	end if
 
 	if scale = 1 then
-		drawohr spr, vpages(page), pal, x, y, trans
+		drawohr src, dest, pal, x, y, trans
 		exit sub
 	end if
 
 	dim as integer sxfrom, sxto, syfrom, syto
 	
 	sxfrom = large(clipl, x)
-	sxto = small(clipr, x + (spr->w * scale) - 1)
+	sxto = small(clipr, x + (src->w * scale) - 1)
 	
 	syfrom = large(clipt, y)
-	syto = small(clipb, y + (spr->h * scale) - 1)
+	syto = small(clipb, y + (src->h * scale) - 1)
 	
-	blitohrscaled (spr, vpages(page), pal, x, y, sxfrom, syfrom, sxto, syto, trans, scale)
+	blitohrscaled (src, dest, pal, x, y, sxfrom, syfrom, sxto, syto, trans, scale)
 end sub
 
 'Public:
@@ -4259,13 +4263,13 @@ end function
 
 'Note that we clear masks to transparent! I'm not sure if this is best (not currently used anywhere), but notice that
 'frame_duplicate with clr=1 does the same
-sub frame_clear(byval spr as frame ptr)
+sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 	if spr->image then
 		if spr->w = spr->pitch then
-			memset(spr->image, 0, spr->w * spr->h)
+			memset(spr->image, colour, spr->w * spr->h)
 		else
 			for i as integer = 0 to spr->h - 1
-				memset(spr->image + i * spr->pitch, 0, spr->w)
+				memset(spr->image + i * spr->pitch, colour, spr->w)
 			next
 		end if
 	end if

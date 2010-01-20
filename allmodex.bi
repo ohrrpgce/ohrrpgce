@@ -19,8 +19,8 @@ DECLARE SUB setwindowtitle (title as string)
 DECLARE FUNCTION allocatepage(BYVAL w as integer = 320, BYVAL h as integer = 200) as integer
 DECLARE SUB freepage (BYVAL page as integer)
 DECLARE FUNCTION registerpage (BYVAL spr as Frame ptr) as integer
-DECLARE SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
-DECLARE SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
+DECLARE SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)
+DECLARE SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1)
 DECLARE FUNCTION updatepagesize (BYVAL page as integer) as integer
 DECLARE SUB unlockresolution (BYVAL min_w as integer = -1, BYVAL min_h as integer = -1)
 DECLARE SUB setresolution (BYVAL w as integer, BYVAL h as integer)
@@ -41,6 +41,7 @@ DECLARE SUB setmapdata (pas as TileMap ptr = NULL, BYVAL t as integer, BYVAL b a
 DECLARE SUB setanim (BYVAL cycle1 as integer, BYVAL cycle2 as integer)
 DECLARE SUB setoutside (BYVAL defaulttile as integer)
 
+DECLARE SUB setclip OVERLOAD (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL fr as Frame ptr)
 DECLARE SUB setclip (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL page as integer = -1)
 DECLARE SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 DECLARE SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
@@ -151,14 +152,15 @@ declare function frame_load overload (byval ptno as integer, byval rec as intege
 declare function frame_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
 declare function frame_reference(byval p as frame ptr) as frame ptr
 declare sub frame_unload(byval p as frame ptr ptr)
-declare sub frame_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
+declare sub frame_draw overload (byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
+declare sub frame_draw(byval src as Frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval dest as Frame ptr)
 declare function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
 declare sub frame_flip_horiz(byval spr as frame ptr)
 declare sub frame_flip_vert(byval spr as frame ptr)
 declare function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
 declare function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 declare function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
-declare sub frame_clear(byval spr as frame ptr)
+declare sub frame_clear(byval spr as frame ptr, byval colour as integer = 0)
 declare sub sprite_empty_cache()
 declare sub tileset_empty_cache()
 declare function frame_is_valid(byval p as frame ptr) as integer

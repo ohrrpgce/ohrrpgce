@@ -56,7 +56,7 @@ DIM orig_dir AS STRING
 
 'a primitive system for printing messages that scroll
 TYPE ConsoleData
- AS INTEGER x = 0, y = 0, top = 0, bottom = 199, c = 0
+ AS INTEGER x = 0, y = 0, top = 0, h = 200, c = 0
 END TYPE
 DIM SHARED console AS ConsoleData
 
@@ -1485,21 +1485,25 @@ END SUB
 SUB upgrade_message (s AS STRING)
  IF NOT upgrademessages THEN
   upgrademessages = -1
-  reset_console 20, 199
+  reset_console 20, vpages(vpage)->h - 20, uilook(uiBackground)
   upgrade_message "Auto-Updating obsolete RPG file"
  END IF
  debuginfo "rpgfix:" & s
  show_message(s)
 END SUB
 
-SUB reset_console (top AS INTEGER = 0, bottom AS INTEGER = 199, c AS INTEGER = 0)
+'admittedly, these 'console' functions suck
+SUB reset_console (top AS INTEGER = 0, h AS INTEGER = 200, c AS INTEGER = 0)
  WITH console
   .top = top
-  .bottom = bottom
+  .h = h
   .x = 0
   .y = top
   .c = c
-  clearpage vpage, c, .top, .bottom
+  DIM tempfr as Frame ptr
+  tempfr = frame_new_view(vpages(vpage), 0, .top, vpages(vpage)->w, .h)
+  frame_clear tempfr, c
+  frame_unload @tempfr
  END WITH
 END SUB
 
@@ -1512,12 +1516,17 @@ END SUB
 
 SUB append_message (s AS STRING)
  WITH console
-  IF .x > 0 AND LEN(s) * 8 + .x > 320 THEN .x = 0 : .y += 8
-  IF .y >= .bottom - 8 THEN
+  IF .x > 0 AND LEN(s) * 8 + .x > vpages(vpage)->w THEN .x = 0 : .y += 8
+  IF .y >= .top + .h - 8 THEN
    'scroll page up 2 lines
-   copypage vpage, vpage, .top + 16, .top, .bottom
-   clearpage vpage, 0, .bottom - 15, .bottom
+   DIM as Frame ptr tempfr, copied
+   tempfr = frame_new_view(vpages(vpage), 0, .top + 16, vpages(vpage)->w, .h - 16)
+   copied = frame_duplicate(tempfr)
+   frame_clear tempfr, .c
+   frame_draw copied, , 0, .top, , NO, vpage
    .y -= 16
+   frame_unload @copied
+   frame_unload @tempfr
   END IF
   printstr s, .x, .y, vpage
   .x += LEN(s) * 8
