@@ -4386,11 +4386,11 @@ function palette16_load(byval fil as string, byval num as integer, byval autotyp
 	dim hashstring as string
 	dim cache as Palette16Cache ptr
 	if num > -1 then
-		hashstring = trimpath(fil) & "#" & num & ":0"
+		hashstring = trimpath(fil) & "#" & num
 	else
 		num = getdefaultpal(autotype, spr)
 		if num <> -1 then
-			hashstring = trimpath(fil) & "#" & num & ":" & spr
+			hashstring = trimpath(fil) & "#" & num
 		else
 			return 0
 		end if
@@ -4470,7 +4470,7 @@ sub Palette16_update_cache(fil as string, byval num as integer)
 	dim hashstring as string
 	dim cache as Palette16Cache ptr
 
-	hashstring = trimpath(fil) & "#" & num & ":0"
+	hashstring = trimpath(fil) & "#" & num
 	cache = Palette16_find_cache(hashstring)
 
 	if cache then
