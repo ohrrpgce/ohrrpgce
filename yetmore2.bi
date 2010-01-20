@@ -12,7 +12,6 @@ DECLARE SUB innRestore (stat() as integer)
 DECLARE FUNCTION isonscreen (x as integer, y as integer) as integer
 DECLARE SUB setmapxy
 DECLARE SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
-DECLARE SUB setScriptArg (arg as integer, value as integer)
 DECLARE SUB showplotstrings
 DECLARE FUNCTION strgrabber (s as string, maxl as integer) AS INTEGER
 DECLARE SUB makebackups
@@ -41,9 +40,6 @@ DECLARE SUB loadmapstate (mapnum as integer, loadmask as integer, prefix as stri
 DECLARE SUB deletemapstate (mapnum as integer, killmask as integer, prefix as string)
 DECLARE SUB deletetemps
 DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
-DECLARE SUB killallscripts
-DECLARE SUB resetinterpreter
-DECLARE SUB reloadscript (si as ScriptInst, updatestats as integer = -1)
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
 DECLARE FUNCTION game_setoption(opt as string, arg as string) as integer

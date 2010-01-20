@@ -57,5 +57,6 @@ DECLARE FUNCTION vehicle_is_animating() AS INTEGER
 DECLARE SUB reset_vehicle(v AS vehicleState)
 DECLARE SUB dump_vehicle_state()
 DECLARE SUB usething(BYVAL auto AS INTEGER, BYVAL ux AS INTEGER, BYVAL uy AS INTEGER)
+DECLARE SUB sfunctions (BYVAL cmdid AS INTEGER)
 
 #ENDIF

@@ -320,12 +320,6 @@ END SELECT
 limitcamera mapx, mapy
 END SUB
 
-SUB setScriptArg (arg, value)
- IF scrat(nowscript).scr->args > arg THEN
-  heap(scrat(nowscript).heap + arg) = value
- END IF
-END SUB
-
 SUB showplotstrings
 
 FOR i = 0 TO 31
@@ -866,46 +860,6 @@ FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
   END IF
  END IF
 END FUNCTION
-
-SUB killallscripts
-'this kills all running scripts.
-'for use in cases of massive errors, quiting to titlescreen or loading a game.
-
- FOR i = nowscript TO 0 STEP -1 
-  IF scrat(i).scr <> NULL THEN scrat(i).scr->refcount -= 1
- NEXT
- nowscript = -1
-
- destroystack(scrst)  'temp
- createstack(scrst)
-
-END SUB
-
-SUB resetinterpreter
-'unload all scripts and wipe interpreter state. use when quitting the game.
-
- IF nowscript > -1 THEN killallscripts
-
- IF numloadedscr > 0 THEN freescripts(0)
-END SUB
-
-SUB reloadscript (si as ScriptInst, updatestats)
- IF si.scr = NULL THEN
-  si.scr = loadscript(si.id)
-  IF si.scr = NULL THEN killallscripts: EXIT SUB
-  si.scrdata = si.scr->ptr
-  si.scr->refcount += 1
-  IF updatestats THEN si.scr->totaluse += 1
- END IF
- IF updatestats THEN
-  'a rather hackish and not very good attempt to give .lastuse a qualitative use
-  'instead of just for sorting; a priority queue is probably a much better solution
-  IF si.scr->lastuse <= scriptctr - 10 THEN
-   scriptctr += 1
-   si.scr->lastuse = scriptctr
-  END IF
- END IF
-END SUB
 
 SUB debug_npcs ()
  debug "NPC types:"

@@ -16,6 +16,7 @@ DEFINT A-Z
 #include "uiconst.bi"
 #include "loading.bi"
 #include "slices.bi"
+#include "hsinterpreter.bi"
 
 #include "game.bi"
 #include "yetmore.bi"
@@ -1310,19 +1311,6 @@ END IF
 
 END SUB
 
-FUNCTION readscriptvar (id as integer) as integer
-
-SELECT CASE id
- CASE IS < 0 'local variable
-  readscriptvar = heap(scrat(nowscript).heap + ABS(id) - 1)
- CASE 0 TO 4095 'global variable
-  readscriptvar = global(id)
- CASE ELSE
-  scripterr "Cannot read global " & id & ". Out of range", 5
-END SELECT
-
-END FUNCTION
-
 SUB renamehero (who)
 
 dim her as herodef
@@ -2270,72 +2258,6 @@ SUB scripterr (e AS STRING, errorlevel as integer = 5)
  recursivecall -= 1
 END SUB
 
-SUB scriptmath
-SELECT CASE AS CONST curcmd->value
- CASE 0' random
-  scriptret = retvals(0) + INT(RND * (1.0 + retvals(1) - retvals(0))) 'handles the case max-min = 2^32
- CASE 1' exponent
-  scriptret = retvals(0) ^ retvals(1)
- CASE 2' modulus
-  IF retvals(1) = 0 THEN
-   scripterr "division by zero", 5
-  ELSE
-   scriptret = retvals(0) MOD retvals(1)
-  END IF
- CASE 3' divide
-  IF retvals(1) = 0 THEN
-   scripterr "division by zero", 5
-  ELSE
-   scriptret = retvals(0) \ retvals(1)
-  END IF
- CASE 4'multiply
-  scriptret = retvals(0) * retvals(1)
- CASE 5'subtract
-  scriptret = retvals(0) - retvals(1)
- CASE 6'add
-  scriptret = retvals(0) + retvals(1)
- CASE 7'xor
-  scriptret = retvals(0) XOR retvals(1)
- CASE 8'or
-  scriptret = retvals(0) OR retvals(1)
- CASE 9'and
-  scriptret = retvals(0) AND retvals(1)
- CASE 10'equal
-  scriptret = (retvals(0) = retvals(1)) * -1
- CASE 11'not equal
-  scriptret = (retvals(0) <> retvals(1)) * -1
- CASE 12'less than
-  scriptret = (retvals(0) < retvals(1)) * -1
- CASE 13'greater than
-  scriptret = (retvals(0) > retvals(1)) * -1
- CASE 14'less than or equal to
-  scriptret = (retvals(0) <= retvals(1)) * -1
- CASE 15'greater than or equal to
-  scriptret = (retvals(0) >= retvals(1)) * -1
- CASE 16'set variable
-  writescriptvar retvals(0), retvals(1)
-  scriptret = retvals(1)
- CASE 17'increment
-  writescriptvar retvals(0), readscriptvar(retvals(0)) + retvals(1)
- CASE 18'decrement
-  writescriptvar retvals(0), readscriptvar(retvals(0)) - retvals(1)
- CASE 19'not
-  IF retvals(0) = 0 THEN
-   scriptret = 1
-  ELSE
-   scriptret = 0
-  END IF
- CASE 20'&&
-  IF retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
- CASE 21'||
-  IF retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
- CASE 22'^^
-  IF retvals(0) <> 0 XOR retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
- CASE ELSE
-  scripterr "unsupported math function id " & curcmd->value, 6
-END SELECT
-END SUB
-
 FUNCTION settingstring (searchee$, setting$, result$) as integer
 
 ' checks to see if searchee$ begins with setting$ =
@@ -2591,19 +2513,6 @@ PRINT #fh, "RIGHTTHRESH=" + STR$(joy(12))
 PRINT #fh, "USEBUTTON=" + STR$(joy(13) - 2)
 PRINT #fh, "MENUBUTTON=" + STR$(joy(14 - 2))
 CLOSE #fh
-END SUB
-
-SUB writescriptvar (BYVAL id, BYVAL newval)
-
-SELECT CASE id
- CASE IS < 0 'local variable
-  heap(scrat(nowscript).heap + ABS(id) - 1) = newval
- CASE 0 TO 4095 'global variable
-  global(id) = newval
- CASE ELSE
-  scripterr "Cannot write global " & id &  ". Out of range", 5
-END SELECT
-
 END SUB
 
 FUNCTION herocount (last AS INTEGER = 3) AS INTEGER

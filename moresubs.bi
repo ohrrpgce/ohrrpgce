@@ -1,5 +1,6 @@
 #ifndef MORESUBS_BI
 #define MORESUBS_BI
+
 DECLARE SUB addhero (who as integer, slot as integer, stat() as integer, forcelevel as integer=-1)
 DECLARE FUNCTION atlevel (now as integer, a0 as integer, a99 as integer) as integer
 DECLARE FUNCTION averagelev (stat() as integer) as integer
@@ -22,7 +23,6 @@ DECLARE FUNCTION teleporttool () as integer
 DECLARE FUNCTION movdivis (xygo as integer) as integer
 DECLARE FUNCTION onwho (caption as string, alone as integer) as integer
 DECLARE SUB readjoysettings
-DECLARE FUNCTION readscriptvar (id as integer) as integer
 DECLARE SUB renamehero (who as integer)
 DECLARE SUB resetgame (stat() as integer, scriptout as string)
 DECLARE SUB resetlmp (slot as integer, lev as integer)
@@ -33,12 +33,11 @@ DECLARE FUNCTION commandname (byval id as integer) as string
 DECLARE SUB savegame (slot as integer, stat() as integer)
 DECLARE SUB saveglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB scripterr (e as string, errorlevel as integer = 5)
-DECLARE SUB scriptmath
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 DECLARE SUB shop (id as integer, needf as integer, stat() as integer)
 DECLARE FUNCTION useinn (inn as integer, price as integer, needf as integer, stat() as integer, holdscreen as integer) as integer
 DECLARE SUB tagdisplay
 DECLARE SUB writejoysettings
-DECLARE SUB writescriptvar (BYVAL id as integer, BYVAL newval as integer)
 DECLARE FUNCTION herocount (last as integer = 3) as integer
+
 #endif
