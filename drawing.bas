@@ -215,7 +215,7 @@ DO
   IF mstate.pt = 4 THEN GOSUB disable
   IF mstate.pt = 5 THEN
    outfile$ = inputfilename("Name of file to export to?", ".bmp", "", "input_file_export_screen", trimextension$(trimpath$(sourcerpg)) & " " & cap & pt)
-   IF outfile$ <> "" THEN sprite_export_bmp8 outfile$ & ".bmp", vpages(2), master()
+   IF outfile$ <> "" THEN frame_export_bmp8 outfile$ & ".bmp", vpages(2), master()
   END IF
  END IF
  IF mstate.pt <> 6 THEN
@@ -287,7 +287,7 @@ IF bmpd.biBitCount = 8 THEN
    LoadUIColors uilook(), activepalette
   END IF
  END IF
- img = sprite_import_bmp_raw(srcbmp$)
+ img = frame_import_bmp_raw(srcbmp$)
  IF paloption = 0 THEN
   convertbmppal srcbmp$, pmask(), palmapping(), 0
   FOR y = 0 TO img->h - 1
@@ -297,10 +297,10 @@ IF bmpd.biBitCount = 8 THEN
   NEXT
  END IF
 ELSE
- img = sprite_import_bmp24(srcbmp$, pmask())
+ img = frame_import_bmp24(srcbmp$, pmask())
 END IF
 storemxs game + f$, pt, img
-sprite_unload @img
+frame_unload @img
 IF pt >= count THEN count = pt + 1
 loadpalette pmask(), activepalette
 RETRACE
@@ -637,7 +637,7 @@ DIM tileset as Frame ptr = NULL
 clearpage vpage
 clearpage dpage
 
-tileset = sprite_to_tileset(vpages(3))
+tileset = frame_to_tileset(vpages(3))
 
 cleantilemap tilesetview, 16, 3
 FOR y = 0 TO 2
@@ -680,7 +680,7 @@ DO
  
  dowait
 LOOP
-sprite_unload @tileset
+frame_unload @tileset
 unloadtilemap sample
 unloadtilemap tilesetview
 EXIT SUB
@@ -2129,7 +2129,7 @@ SUB spriteedit_export(default_name AS STRING, placer() AS INTEGER, nulpal() AS I
  'palnum is offset into pal lump of the 16 color palette this sprite should use
 
  DIM img AS GraphicPair
- img.sprite = sprite_new(placer(0), placer(1), 1, YES, NO)
+ img.sprite = frame_new(placer(0), placer(1), 1, YES, NO)
  img.pal = palette16_load(palnum)
 
  DIM pg AS INTEGER
@@ -2141,7 +2141,7 @@ SUB spriteedit_export(default_name AS STRING, placer() AS INTEGER, nulpal() AS I
  spriteedit_export default_name, img
  
  '--cleanup
- sprite_unload @(img.sprite)
+ frame_unload @(img.sprite)
  palette16_unload @(img.pal)
 END SUB
 
@@ -2149,7 +2149,7 @@ SUB spriteedit_export(default_name AS STRING, img AS GraphicPair)
  DIM outfile AS STRING
  outfile = inputfilename("Export to bitmap file", ".bmp", "", "input_file_export_sprite", default_name)
  IF outfile <> "" THEN
-  sprite_export_bmp4 outfile & ".bmp", img.sprite, master(), img.pal
+  frame_export_bmp4 outfile & ".bmp", img.sprite, master(), img.pal
  END IF
 END SUB
 
@@ -2182,7 +2182,7 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
   setkeys
   palstate.tog = palstate.tog XOR 1
   IF keyval(scESC) > 1 THEN EXIT SUB
-  IF keyval(scF1) > 1 THEN show_help "sprite_import16"
+  IF keyval(scF1) > 1 THEN show_help "frame_import16"
   IF keyval(scLeft) > 1 OR keyval(scLeftBracket) > 1 THEN
    changepal poffset(state.pt), -1, workpal(), state.pt - state.top
   END IF
@@ -2215,10 +2215,10 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
 
  'Load the bmp, and then alias it to a page because the rest of this function has
  'not been rewritten for sanity yet
- impsprite = sprite_import_bmp_raw(srcbmp)
+ impsprite = frame_import_bmp_raw(srcbmp)
  'holdscreen = registerpage(impsprite)
  holdscreen = allocatepage
- sprite_draw impsprite, 0, 0, 0, 1, 0,  holdscreen
+ frame_draw impsprite, 0, 0, 0, 1, 0,  holdscreen
 
  'Temporaraly update the palette. This will be done again after the transparent color is chosen
  DIM temppal(7)
@@ -2245,10 +2245,10 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
   IF keyval(scESC) > 1 THEN 
   '--Cancel
    freepage holdscreen
-   sprite_unload @impsprite
+   frame_unload @impsprite
    EXIT SUB
   END IF
-  IF keyval(scF1) > 1 THEN show_help "sprite_import16_pickbackground"
+  IF keyval(scF1) > 1 THEN show_help "frame_import16_pickbackground"
   IF keyval(scALT) THEN movespeed = 9 ELSE movespeed = 1
   IF keyval(scUp) > 0 THEN pickpos.y = large(pickpos.y - movespeed, 0)
   IF keyval(scDown) > 0 THEN pickpos.y = small(pickpos.y + movespeed, picksize.y - 1)
@@ -2292,7 +2292,7 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
  getsprite placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
  '--free the sprite and page it was aliased to
  freepage holdscreen
- sprite_unload @impsprite
+ frame_unload @impsprite
 END SUB
 
 SUB spriteedit_rotate_sprite(sprbuf() AS INTEGER, ss AS SpriteEditState, counterclockwise AS INTEGER=NO)
@@ -2302,14 +2302,14 @@ END SUB
 
 SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INTEGER, counterclockwise AS INTEGER=NO)
  DIM AS Frame ptr spr1, spr2
- spr1 = sprite_new_from_buffer(sprbuf(), 0)
+ spr1 = frame_new_from_buffer(sprbuf(), 0)
 
  IF counterclockwise THEN
-  spr2 = sprite_rotated_90(spr1)
+  spr2 = frame_rotated_90(spr1)
  ELSE
-  spr2 = sprite_rotated_270(spr1)
+  spr2 = frame_rotated_270(spr1)
  END IF
- sprite_unload @spr1
+ frame_unload @spr1
 
  DIM holdscreen AS INTEGER
  holdscreen = registerpage(spr2)
@@ -2320,7 +2320,7 @@ SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INTEGER, co
  getsprite sprbuf(), 0, 0, 0, size.y, size.x, holdscreen
 
  freepage holdscreen
- sprite_unload @spr2
+ frame_unload @spr2
 END SUB
 
 SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, soff AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, BYVAL sets AS INTEGER)

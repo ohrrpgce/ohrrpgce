@@ -70,7 +70,7 @@ eqprefix$ = readglobalstring$(99, "Equip:", 10)
 noroom$ = readglobalstring$(100, "No Room in Party", 20)
 
 FOR i = 0 TO 3
- herosprite(i) = sprite_load(0, stat(i, 0, 14))
+ herosprite(i) = frame_load(0, stat(i, 0, 14))
  IF herosprite(i) = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & stat(i,0,14)
  heropal(i) = palette16_load(stat(i, 0, 15), 0, stat(i, 0, 14))
  IF heropal(i) = 0 THEN debug "Failed to load palette for hero (#" & i & ")"
@@ -216,7 +216,7 @@ DO
  IF showhero > -1 THEN
   'This happens only if a hireable hero is selected
   centerbox 240, 130, 36, 44, 4, dpage
-  sprite_draw(hiresprite + walks(walk), hirepal, 224, 110, 1, -1, dpage)
+  frame_draw(hiresprite + walks(walk), hirepal, 224, 110, 1, -1, dpage)
  END IF
  IF is_equipable THEN
   FOR i = 0 TO 3
@@ -235,7 +235,7 @@ DO
    edgeboxstyle heropos.x - 1, heropos.y - 2, 34, 44, col, dpage, , YES
    IF hero(i) > 0 THEN
     'If there is a hero in this slot
-    sprite_draw(herosprite(i) + heroframe, heropal(i), heropos.x, heropos.y, 1, -1, dpage)
+    frame_draw(herosprite(i) + heroframe, heropal(i), heropos.x, heropos.y, 1, -1, dpage)
    END IF
   NEXT i
  END IF
@@ -276,10 +276,10 @@ LOOP
 cleanupquit:
 'Unload the sprites used to display the heroes
 FOR i = 0 TO 3
- sprite_unload(@herosprite(i))
+ frame_unload(@herosprite(i))
  palette16_unload(@heropal(i))
 NEXT i
-sprite_unload(@hiresprite)
+frame_unload(@hiresprite)
 palette16_unload(@hirepal)
 freepage holdscreen
 menusound gen(genCancelSFX)
@@ -387,8 +387,8 @@ IF b(pt * recordsize + 17) = 1 THEN
  showhero = her.sprite
  
  'Load the sprite for the hireable hero
- sprite_unload @hiresprite
- hiresprite = sprite_load(0, showhero)
+ frame_unload @hiresprite
+ hiresprite = frame_load(0, showhero)
  IF hiresprite = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & showhero
  palette16_unload @hirepal
  hirepal = palette16_load(her.sprite_pal, 0, showhero)
@@ -831,13 +831,13 @@ FOR i = 0 TO 3
    IF id(i, o) >= 0 THEN
     '--hero pic and palette
     IF picpalmagic = 4444 THEN
-     sprites(i, o).sprite = sprite_load(0, tstat(o, 0, 14))
+     sprites(i, o).sprite = frame_load(0, tstat(o, 0, 14))
      sprites(i, o).pal = palette16_load(tstat(o, 0, 15), 0, tstat(o, 0, 14))
     ELSE
      '--backcompat
      dim her as herodef
      loadherodata @her, id(i,o) - 1
-     sprites(i, o).sprite = sprite_load(0, her.sprite)
+     sprites(i, o).sprite = frame_load(0, her.sprite)
      sprites(i, o).pal = palette16_load(her.sprite_pal, 0, her.sprite)
     END IF
    END IF
@@ -928,7 +928,7 @@ freepage holdscreen
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 FOR i = 0 TO 3
  FOR o = 0 TO 3
-  sprite_unload(@sprites(i, o).sprite)
+  frame_unload(@sprites(i, o).sprite)
   palette16_unload(@sprites(i, o).pal)
  NEXT
 NEXT
@@ -987,7 +987,7 @@ FOR i = 0 TO 3
  IF full(i) = 1 THEN
   FOR o = 0 TO 3
    IF id(i, o) > 0 THEN
-    sprite_draw sprites(i, o).sprite + iif(cursor = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, dpage
+    frame_draw sprites(i, o).sprite + iif(cursor = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, dpage
    END IF
   NEXT o
   col = uilook(uiMenuItem)
@@ -1247,7 +1247,7 @@ DO
  END SELECT
  IF her.portrait >= 0 THEN
   edgeboxstyle 262, 8, 50, 50, 3, dpage
-  sprite_draw portrait.sprite, portrait.pal, 262, 8,,,dpage
+  frame_draw portrait.sprite, portrait.pal, 262, 8,,,dpage
  END IF
 
  edgeprint names(pt), 142 - LEN(names(pt)) * 4, 20, uilook(uiText), dpage
@@ -1318,7 +1318,7 @@ DO
  dowait
 LOOP
 menusound gen(genCancelSFX)
-IF portrait.sprite THEN sprite_unload @portrait.sprite
+IF portrait.sprite THEN frame_unload @portrait.sprite
 IF portrait.pal    THEN palette16_unload @portrait.pal
 freepage holdscreen
 FOR t = 4 TO 5
@@ -1360,10 +1360,10 @@ FOR i = lastinfo TO 25
  info(i) = ""
 NEXT i
 
-IF portrait.sprite THEN sprite_unload @portrait.sprite
+IF portrait.sprite THEN frame_unload @portrait.sprite
 IF portrait.pal    THEN palette16_unload @portrait.pal
 IF her.portrait >= 0 THEN
- portrait.sprite = sprite_load(8, her.portrait)
+ portrait.sprite = frame_load(8, her.portrait)
  portrait.pal    = palette16_load(her.portrait_pal, 8, her.portrait)
 END IF
 RETRACE
@@ -2159,7 +2159,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
    IF hero(i) > 0 THEN
     walk = 0
     IF targ = i THEN walk = INT(wtogl / 2)
-    sprite_draw herow(cater).sprite + (2 * 2) + walk, herow(cater).pal, 89 + x_offset, 8 + i * 20, 1, -1, dpage
+    frame_draw herow(cater).sprite + (2 * 2) + walk, herow(cater).pal, 89 + x_offset, 8 + i * 20, 1, -1, dpage
     col = uilook(uiMenuItem)
     IF i = targ THEN col = uilook(uiSelectedItem + tog)
     IF attack_id >= 0 THEN

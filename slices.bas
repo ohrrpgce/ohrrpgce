@@ -911,20 +911,20 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 
   'some redesign needed to prevent this continous flipping
   if .flipHoriz then
-   if have_copy = NO THEN spr = sprite_duplicate(spr)
+   if have_copy = NO THEN spr = frame_duplicate(spr)
    have_copy = YES
-   sprite_flip_horiz(spr)
+   frame_flip_horiz(spr)
   end if
   if .flipVert then
-   if have_copy = NO THEN spr = sprite_duplicate(spr)
+   if have_copy = NO THEN spr = frame_duplicate(spr)
    have_copy = YES
-   sprite_flip_vert(spr)
+   frame_flip_vert(spr)
   end if
  
-  sprite_draw spr, .img.pal, sl->screenX, sl->screenY, , ,dpage
+  frame_draw spr, .img.pal, sl->screenX, sl->screenY, , ,dpage
   
   if have_copy then
-   sprite_unload(@spr)
+   frame_unload(@spr)
   end if
  end with
 end sub
@@ -943,9 +943,9 @@ Sub SetSpriteFrame(byval sl as slice ptr, byval fr as Frame ptr)
  with *dat
   'Should not matter whether the sprite is loaded; however if we set .loaded=YES, have to have a palette
   '(since this is 4-bit). Where do we get the palette from? O:
-  sprite_unload(@.img.sprite)
+  frame_unload(@.img.sprite)
   if .img.pal = 0 then palette16_load(.pal, .spritetype, .record)
-  .img.sprite = fr  'sprite_reference(fr)
+  .img.sprite = fr  'frame_reference(fr)
 
   sl->Width = fr->w
   sl->Height = fr->h

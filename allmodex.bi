@@ -25,7 +25,7 @@ DECLARE SUB setvispage (BYVAL page as integer)
 DECLARE SUB setpal (pal() as RGBcolor)
 DECLARE SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 DECLARE SUB fadetopal (pal() as RGBcolor)
-DECLARE FUNCTION sprite_to_tileset(BYVAL spr as frame ptr) as frame ptr
+DECLARE FUNCTION frame_to_tileset(BYVAL spr as frame ptr) as frame ptr
 DECLARE FUNCTION tileset_load(BYVAL num as integer) as Frame ptr
 
 DECLARE FUNCTION readblock (map as TileMap, BYVAL x as integer, BYVAL y as integer) as integer
@@ -84,10 +84,10 @@ DECLARE SUB resumesong ()
 DECLARE FUNCTION getfmvol () as integer
 DECLARE SUB setfmvol (BYVAL vol as integer)
 DECLARE SUB screenshot (f as string)
-DECLARE SUB sprite_export_bmp4 (f$, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
-DECLARE SUB sprite_export_bmp8 (f$, byval fr as Frame Ptr, maspal() as RGBcolor)
-DECLARE FUNCTION sprite_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
-DECLARE FUNCTION sprite_import_bmp_raw(bmp as string) as Frame ptr
+DECLARE SUB frame_export_bmp4 (f$, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
+DECLARE SUB frame_export_bmp8 (f$, byval fr as Frame Ptr, maspal() as RGBcolor)
+DECLARE FUNCTION frame_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
+DECLARE FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 DECLARE SUB bitmap2pal (bmp as string, pal() as RGBcolor)
 DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
 DECLARE SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, BYVAL o as integer)
@@ -139,26 +139,26 @@ DECLARE FUNCTION getmusictype (file as string) as integer
 'DECLARE SUB setsoundvol (BYVAL vol)
 
 'new sprite functions
-declare function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
-declare function sprite_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
-declare function sprite_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Frame ptr
-declare function sprite_load overload (byval ptno as integer, byval rec as integer) as frame ptr
-declare function sprite_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
-declare function sprite_reference(byval p as frame ptr) as frame ptr
-declare sub sprite_unload(byval p as frame ptr ptr)
-declare sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
-declare function sprite_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
-declare sub sprite_flip_horiz(byval spr as frame ptr)
-declare sub sprite_flip_vert(byval spr as frame ptr)
-declare function sprite_rotated_90(byval spr as Frame ptr) as Frame ptr
-declare function sprite_rotated_270(byval spr as Frame ptr) as Frame ptr
-declare function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
-declare sub sprite_clear(byval spr as frame ptr)
+declare function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
+declare function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
+declare function frame_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Frame ptr
+declare function frame_load overload (byval ptno as integer, byval rec as integer) as frame ptr
+declare function frame_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
+declare function frame_reference(byval p as frame ptr) as frame ptr
+declare sub frame_unload(byval p as frame ptr ptr)
+declare sub frame_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
+declare function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
+declare sub frame_flip_horiz(byval spr as frame ptr)
+declare sub frame_flip_vert(byval spr as frame ptr)
+declare function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
+declare function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
+declare function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
+declare sub frame_clear(byval spr as frame ptr)
 declare sub sprite_empty_cache()
 declare sub tileset_empty_cache()
-declare function sprite_is_valid(byval p as frame ptr) as integer
+declare function frame_is_valid(byval p as frame ptr) as integer
 declare sub sprite_debug_cache()
-declare function sprite_describe(byval p as frame ptr) as string
+declare function frame_describe(byval p as frame ptr) as string
 
 declare function palette16_new() as palette16 ptr
 declare function palette16_load overload (byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr

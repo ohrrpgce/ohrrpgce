@@ -39,7 +39,7 @@ type Frame
 	pitch as integer     'pixel (x,y) is at .image[.x + .pitch * .y]; mask and image pitch are the same!
 	image as ubyte ptr
 	mask as ubyte ptr
-	refcount as integer  'see sprite_unload in particular for documentation
+	refcount as integer  'see frame_unload in particular for documentation
 	arraylen as integer  'how many frames were contiguously allocated in this frame array
 	base as Frame ptr    'the Frame which actually owns this memory
 	cacheentry as SpriteCacheEntryFwd ptr

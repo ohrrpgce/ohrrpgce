@@ -720,7 +720,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  facetype(1) = "Face Player"
  facetype(2) = "Do Not Face Player"
 
- npcdata.sprite = sprite_load(4, npcdata.picture)
+ npcdata.sprite = frame_load(4, npcdata.picture)
  npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
 
  itemname = load_item_name(npcdata.item, 0, 0)
@@ -740,9 +740,9 @@ SUB edit_npc (BYREF npcdata AS NPCType)
   SELECT CASE state.pt
    CASE 0'--picture
     IF intgrabber(npcdata.picture, lnpc(state.pt), unpc(state.pt)) THEN
-     sprite_unload @npcdata.sprite
+     frame_unload @npcdata.sprite
      palette16_unload @npcdata.pal
-     npcdata.sprite = sprite_load(4, npcdata.picture)
+     npcdata.sprite = frame_load(4, npcdata.picture)
      npcdata.pal = palette16_load(npcdata.palette, 4, npcdata.picture)
     END IF
    CASE 1'--palette
@@ -851,7 +851,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
    printstr menucaption(i) + caption, 0, 8 + (8 * i), dpage
   NEXT i
   edgebox 9, 139, 22, 22, uilook(uiDisabledItem), uilook(uiText), dpage
-  sprite_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, 10, 140, 1, YES, dpage
+  frame_draw npcdata.sprite + 4 + (walk \ 2), npcdata.pal, 10, 140, 1, YES, dpage
   appearstring = "Appears if tag " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1) & " and tag " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2)
   IF npcdata.tag1 <> 0 AND npcdata.tag2 = 0 THEN appearstring = "Appears if tag " & ABS(npcdata.tag1) & " = " & onoroff$(npcdata.tag1)
   IF npcdata.tag1 = 0 AND npcdata.tag2 <> 0 THEN appearstring = "Appears if tag " & ABS(npcdata.tag2) & " = " & onoroff$(npcdata.tag2)
@@ -866,7 +866,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
   dowait
  LOOP
 
- sprite_unload @npcdata.sprite
+ frame_unload @npcdata.sprite
  palette16_unload @npcdata.pal
 END SUB
 
@@ -972,9 +972,9 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
   IF state.need_update THEN
    state.need_update = NO
    FOR i = 0 TO 9
-    sprite_unload @sprite(i)
+    frame_unload @sprite(i)
     palette16_unload @pal16(i)
-    sprite(i) = sprite_load(picset, picnum)
+    sprite(i) = frame_load(picset, picnum)
     IF state.top + i <= gen(genMaxPal) THEN pal16(i) = palette16_load(state.top + i, picset, picnum)
    NEXT i
   END IF
@@ -998,7 +998,7 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
       IF pal16(i) THEN
        WITH sprite_sizes(picset)
         FOR k = 0 TO .frames - 1
-         sprite_draw sprite(i) + k, pal16(i), o + 140 + (k * .size.x), i * 20 - (.size.y \ 2 - 10), 1, YES, dpage
+         frame_draw sprite(i) + k, pal16(i), o + 140 + (k * .size.x), i * 20 - (.size.y \ 2 - 10), 1, YES, dpage
         NEXT k
        END WITH
       END IF
@@ -1014,7 +1014,7 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
    IF pal16(i) THEN
     WITH sprite_sizes(picset)
      FOR k = 0 TO .frames - 1
-      sprite_draw sprite(i) + k, pal16(i), o + 130 + (k * .size.x), i * 20 - (.size.y \ 2 - 10), 1, YES, dpage
+      frame_draw sprite(i) + k, pal16(i), o + 130 + (k * .size.x), i * 20 - (.size.y \ 2 - 10), 1, YES, dpage
      NEXT k
     END WITH
    END IF
@@ -1027,7 +1027,7 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
  LOOP
 
  FOR i = 0 TO 9
-  sprite_unload @sprite(i)
+  frame_unload @sprite(i)
   palette16_unload @pal16(i)
  NEXT
  RETURN curpal
@@ -1065,7 +1065,7 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
  DIM pal_id AS INTEGER = -1
  DIM her AS HeroDef
  WITH gfx
-  IF .sprite THEN sprite_unload @.sprite
+  IF .sprite THEN frame_unload @.sprite
   IF .pal    THEN palette16_unload @.pal
   SELECT CASE box.portrait_type
    CASE 1' Fixed ID number
@@ -1083,7 +1083,7 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
     pal_id = her.portrait_pal
   END SELECT
   IF img_id >= 0 THEN
-   .sprite = sprite_load(8, img_id)
+   .sprite = frame_load(8, img_id)
    .pal    = palette16_load(pal_id, 8, img_id)
   END IF
  END WITH
@@ -1666,7 +1666,7 @@ SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS IN
   IF keyval(scDown) > 0  THEN y += 1
 
   emptybox 160 - wide, 100 - high, wide * 2, high * 2, uilook(uiSelectedDisabled), 1, dpage
-  sprite_draw spr.sprite + frame, spr.pal, 160 - wide, 100 - high, 2,, dpage
+  frame_draw spr.sprite + frame, spr.pal, 160 - wide, 100 - high, 2,, dpage
   col = uilook(uiBackground)
   IF tog = 0 THEN col = uilook(uiSelectedItem)
   rectangle 160 - wide + x * 2 - 2, 100 - high + y * 2, 2, 2, col, dpage

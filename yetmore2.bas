@@ -50,14 +50,14 @@ IF readbit(gen(), 101, 1) = 1 AND (vstate.active = NO OR vstate.dat.do_not_hide_
  FOR i = 0 TO catlen - 1
   IF framewalkabout(catx(zsort(i) * 5), caty(zsort(i) * 5) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
    IF herow(zsort(i)).sprite = NULL THEN fatalerror "cathero: hero sprite " & zsort(i) & " missing!"
-   sprite_draw herow(zsort(i)).sprite + catd(zsort(i) * 5) * 2 + (wtog(zsort(i)) \ 2), herow(zsort(i)).pal, framex, framey - catz(zsort(i) * 5), 1, -1, dpage
+   frame_draw herow(zsort(i)).sprite + catd(zsort(i) * 5) * 2 + (wtog(zsort(i)) \ 2), herow(zsort(i)).pal, framex, framey - catz(zsort(i) * 5), 1, -1, dpage
   END IF
  NEXT i
 ELSE
  '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
  IF framewalkabout(catx(0), caty(0) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
   IF herow(0).sprite = NULL THEN fatalerror "cathero: hero sprite missing!"
-  sprite_draw herow(0).sprite + catd(0) * 2 + (wtog(0) \ 2), herow(0).pal, framex, framey - catz(0), 1, -1, dpage
+  frame_draw herow(0).sprite + catd(0) * 2 + (wtog(0) \ 2), herow(0).pal, framex, framey - catz(0), 1, -1, dpage
  END IF
 END IF
 END SUB
@@ -107,7 +107,7 @@ SUB drawnpcs
      rectangle npc(i).x - mapx + 6, npc(i).y - mapy + gmap(11) + 13, 8, 5, uilook(uiShadow), dpage
      rectangle npc(i).x - mapx + 5, npc(i).y - mapy + gmap(11) + 14, 10, 3, uilook(uiShadow), dpage
     END IF
-    sprite_draw npcs(o).sprite + (2 * npc(i).dir) + npc(i).frame \ 2, npcs(o).pal, drawnpcX, drawnpcY - z, 1, -1, dpage
+    frame_draw npcs(o).sprite + (2 * npc(i).dir) + npc(i).frame \ 2, npcs(o).pal, drawnpcX, drawnpcY - z, 1, -1, dpage
    END IF
   END IF
  NEXT i
@@ -543,7 +543,7 @@ SUB verquit
   IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = 3
   IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = 1
   centerbox 160, 95, 200, 42, 15, dpage
-  sprite_draw herow(0).sprite + direction * 2 + (wtog(0) \ 2), herow(0).pal, 150 + ptr2, 90, 1, -1, dpage
+  frame_draw herow(0).sprite + direction * 2 + (wtog(0) \ 2), herow(0).pal, 150 + ptr2, 90, 1, -1, dpage
   edgeprint quitprompt$, xstring(quitprompt$, 160), 80, uilook(uiText), dpage
   col = uilook(uiMenuItem): IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
   edgeprint quityes$, 70, 96, col, dpage
@@ -604,9 +604,9 @@ SUB reloadnpc (stat())
 vishero stat()
 FOR i = 0 TO max_npc_defs
  with npcs(i)
-  if .sprite then sprite_unload(@.sprite)
+  if .sprite then frame_unload(@.sprite)
   if .pal then palette16_unload(@.pal)
-  .sprite = sprite_load(4, .picture)
+  .sprite = frame_load(4, .picture)
   .pal = palette16_load(.palette, 4, .picture)
  end with
 NEXT i

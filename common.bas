@@ -448,11 +448,11 @@ SUB load_box_border_cache()
  DIM index AS INTEGER
  FOR i = 0 TO 14
   WITH box_border_cache(i)
-   IF .sprite THEN sprite_unload(@.sprite)
+   IF .sprite THEN frame_unload(@.sprite)
    IF .pal THEN palette16_unload(@.pal)
    index = uilook(uiTextBoxFrame + i) - 1
    IF index >= 0 THEN
-    .sprite = sprite_load(7, index)
+    .sprite = frame_load(7, index)
     .pal = palette16_load(-1, 7, index)
    END IF
   END WITH
@@ -464,7 +464,7 @@ SUB clear_box_border_cache()
  DIM i AS INTEGER
  FOR i = 0 TO 14
   WITH box_border_cache(i)
-   IF .sprite THEN sprite_unload(@.sprite)
+   IF .sprite THEN frame_unload(@.sprite)
    IF .pal THEN palette16_unload(@.pal)
   END WITH
  NEXT i
@@ -512,62 +512,62 @@ ELSEIF border >= 0 AND border <= 14 THEN
    '--Top and bottom edges
    FOR i = x + 8 TO x + w - 24 STEP 16
     setclip , , , y + h - 1
-    sprite_draw .sprite + 2, .pal, i, y - 8, 1, YES, p
+    frame_draw .sprite + 2, .pal, i, y - 8, 1, YES, p
     setclip , y, , 
-    sprite_draw .sprite + 13, .pal, i, y + h - 8, 1, YES, p
+    frame_draw .sprite + 13, .pal, i, y + h - 8, 1, YES, p
    NEXT i
    '--Left and right edges
    FOR i = y + 8 TO y + h - 24 STEP 16
     setclip , , x + w - 1, 
-    sprite_draw .sprite + 7, .pal, x - 8, i, 1, YES, p
+    frame_draw .sprite + 7, .pal, x - 8, i, 1, YES, p
     setclip x, , , 
-    sprite_draw .sprite + 8, .pal, x + w - 8, i, 1, YES, p
+    frame_draw .sprite + 8, .pal, x + w - 8, i, 1, YES, p
    NEXT i
    'Draw end-pieces
    IF w > 26 THEN
     '--Top end pieces
     setclip , , , y + h - 1
-    sprite_draw .sprite + 3, .pal, x + w - 24, y - 8, 1, YES, p
-    sprite_draw .sprite + 1, .pal, x + 8, y - 8, 1, YES, p
+    frame_draw .sprite + 3, .pal, x + w - 24, y - 8, 1, YES, p
+    frame_draw .sprite + 1, .pal, x + 8, y - 8, 1, YES, p
     '--Bottom end pieces
     setclip , y, , 
-    sprite_draw .sprite + 14, .pal, x + w - 24, y + h - 8, 1, YES, p
-    sprite_draw .sprite + 12, .pal, x + 8, y + h - 8, 1, YES, p
+    frame_draw .sprite + 14, .pal, x + w - 24, y + h - 8, 1, YES, p
+    frame_draw .sprite + 12, .pal, x + 8, y + h - 8, 1, YES, p
    ELSEIF w > 16 THEN
     '--Not enough space for the end pieces, have to draw part of the edge after all
     '--Top and bottom edges
     setclip x + 8, , x + w - 9, y + h - 1
-    sprite_draw .sprite + 2, .pal, x + 8, y - 8, 1, YES, p
+    frame_draw .sprite + 2, .pal, x + 8, y - 8, 1, YES, p
     setclip x + 8, y, x + w - 9, 
-    sprite_draw .sprite + 13, .pal, x + 8, y + h - 8, 1, YES, p
+    frame_draw .sprite + 13, .pal, x + 8, y + h - 8, 1, YES, p
    END IF
    IF h > 26 THEN
     '--Left side end pieces
     setclip , , x + w - 1, 
-    sprite_draw .sprite + 9, .pal, x - 8, y + h - 24, 1, YES, p
-    sprite_draw .sprite + 5, .pal, x - 8, y + 8, 1, YES, p
+    frame_draw .sprite + 9, .pal, x - 8, y + h - 24, 1, YES, p
+    frame_draw .sprite + 5, .pal, x - 8, y + 8, 1, YES, p
     '--Right side end pieces
     setclip x, , , 
-    sprite_draw .sprite + 10, .pal, x + w - 8, y + h - 24, 1, YES, p
-    sprite_draw .sprite + 6, .pal, x + w - 8, y + 8, 1, YES, p
+    frame_draw .sprite + 10, .pal, x + w - 8, y + h - 24, 1, YES, p
+    frame_draw .sprite + 6, .pal, x + w - 8, y + 8, 1, YES, p
    ELSEIF h > 16 THEN
     '--Not enough space for the end pieces, have to draw part of the edge after all
     '--Left and right edges
     setclip , y + 8, x + w - 1, y + h - 9
-    sprite_draw .sprite + 7, .pal, x - 8, y + 8, 1, YES, p
+    frame_draw .sprite + 7, .pal, x - 8, y + 8, 1, YES, p
     setclip x, y + 8, , y + h - 9
-    sprite_draw .sprite + 8, .pal, x + w - 8, y + 8, 1, YES, p
+    frame_draw .sprite + 8, .pal, x + w - 8, y + 8, 1, YES, p
    END IF
    'Draw corners
    'If the box is really tiny, we need to only draw part of each corner
    setclip , , x + w - 1, y + h - 1
-   sprite_draw .sprite, .pal, x - 8, y - 8, 1, YES, p
+   frame_draw .sprite, .pal, x - 8, y - 8, 1, YES, p
    setclip x, , , y + h - 1
-   sprite_draw .sprite + 4, .pal, x + w - 8, y - 8, 1, YES, p
+   frame_draw .sprite + 4, .pal, x + w - 8, y - 8, 1, YES, p
    setclip , y, x + w - 1,
-   sprite_draw .sprite + 11, .pal, x - 8, y + h - 8, 1, YES, p
+   frame_draw .sprite + 11, .pal, x - 8, y + h - 8, 1, YES, p
    setclip x, y, , 
-   sprite_draw .sprite + 15, .pal, x + w - 8, y + h - 8, 1, YES, p
+   frame_draw .sprite + 15, .pal, x + w - 8, y + h - 8, 1, YES, p
    setclip
   END IF
  END WITH
@@ -1139,7 +1139,7 @@ FUNCTION createminimap (map() AS TileMap, tilesets() AS TilesetData ptr, BYREF z
  END IF
 
  DIM mini as Frame Ptr
- mini = sprite_new(zoom * map(0).wide, zoom * map(0).high)
+ mini = frame_new(zoom * map(0).wide, zoom * map(0).high)
 
  DIM AS SINGLE fraction
  fraction = 20 / zoom
@@ -3052,7 +3052,7 @@ END SUB
 SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
  IF tileset <> NULL THEN
   'debug "unloading tileset " & tileset->num
-  sprite_unload @tileset->spr
+  frame_unload @tileset->spr
   Deallocate(tileset)
   tileset = NULL
  END IF
@@ -3326,12 +3326,12 @@ END SUB
 
 SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
  unload_sprite_and_pal img
- img.sprite = sprite_load(spritetype, index)
+ img.sprite = frame_load(spritetype, index)
  img.pal    = palette16_load(palnum, spritetype, index)
 END SUB
 
 SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
- sprite_unload @img.sprite
+ frame_unload @img.sprite
  palette16_unload @img.pal
 END SUB
 

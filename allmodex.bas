@@ -140,7 +140,7 @@ sub setmodex()
 
 	'initialise software gfx
 	for i as integer = 0 to 3
-		vpages(i) = sprite_new(320, 200, , YES)
+		vpages(i) = frame_new(320, 200, , YES)
 	next
 	'other vpages slots are for temporary pages
 
@@ -188,7 +188,7 @@ sub restoremode()
 
 	'clear up software gfx
 	for i as integer = 0 to ubound(vpages)
-		sprite_unload(@vpages(i))
+		frame_unload(@vpages(i))
 	next
 
 	hash_destruct(sprcache)
@@ -217,7 +217,7 @@ SUB freepage (byval page as integer)
 		exit sub
 	end if
 
-	sprite_unload(@vpages(page))
+	frame_unload(@vpages(page))
 	if wrkpage = page then
 		setclip , , , , 0
 	end if
@@ -236,10 +236,10 @@ FUNCTION registerpage (byval spr as Frame ptr) as integer
 END FUNCTION
 
 FUNCTION allocatepage() as integer
-	dim fr as Frame ptr = sprite_new(320, 200, , YES)
+	dim fr as Frame ptr = frame_new(320, 200, , YES)
 
 	dim ret as integer = registerpage(fr)
-	sprite_unload(@fr) 'we're not hanging onto it, vpages() is
+	frame_unload(@fr) 'we're not hanging onto it, vpages() is
 	
 	return ret
 END FUNCTION
@@ -543,7 +543,7 @@ FUNCTION palette16_new_from_buffer(pal() as integer, BYVAL po as integer) as Pal
 	return ret
 END FUNCTION
 
-FUNCTION sprite_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Frame ptr
+FUNCTION frame_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Frame ptr
 	dim sw as integer
 	dim sh as integer
 	dim hspr as frame ptr
@@ -557,7 +557,7 @@ FUNCTION sprite_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Fr
 	sh = pic(picoff+1)
 	picoff = picoff + 2
 
-	hspr = sprite_new(sw, sh)
+	hspr = frame_new(sw, sh)
 	dspr = hspr->image
 
 	'now do the pixels
@@ -600,13 +600,13 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	'convert the buffer into a Frame
 	dim hspr as frame ptr
 	dim hpal as palette16 ptr
-	hspr = sprite_new_from_buffer(pic(), picoff)
+	hspr = frame_new_from_buffer(pic(), picoff)
 	hpal = palette16_new_from_buffer(pal(), po)
 	
 	'now draw the image
 	drawohr(*hspr, hpal, x, y, scale, trans, page)
 	'what a waste
-	sprite_unload(@hspr)
+	frame_unload(@hspr)
 	deallocate(hpal)
 end SUB
 
@@ -631,7 +631,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	sh = pic(picoff+1)
 	picoff = picoff + 2
 
-	hspr = sprite_new(sw, sh)
+	hspr = frame_new(sw, sh)
 	dspr = hspr->image
 	dspr = dspr + sw - 1 'jump to last column
 
@@ -678,7 +678,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	'now draw the image
 	drawohr(*hspr, , x, y, , trans, page)
 
-	sprite_unload(@hspr)
+	frame_unload(@hspr)
 end SUB
 
 SUB stosprite (pic() as integer, BYVAL picoff as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer)
@@ -1398,7 +1398,7 @@ FUNCTION loadmxs (fil as string, BYVAL record as integer, BYVAL dest as Frame pt
 	seek #f, (record*64000) + 1
 
 	if dest = NULL then
-		dest = sprite_new(320, 200)
+		dest = frame_new(320, 200)
 	end if
 
 	'modex format, 4 planes
@@ -1529,16 +1529,16 @@ SUB textcolor (BYVAL f as integer, BYVAL b as integer)
 	textbg = b
 end SUB
 
-'TODO/FIXME: need to use sprite_* functions PROPERLY to handle Frame stuff
+'TODO/FIXME: need to use frame_* functions PROPERLY to handle Frame stuff
 SUB font_unload (byval font as Font ptr)
 	if font = null then exit sub
 
 	'look! polymorphism! definitely not hackery! yeah... look it up sometime.
-	sprite_unload cast(Frame ptr ptr, @font->sprite(0))
-	sprite_unload cast(Frame ptr ptr, @font->sprite(1))
+	frame_unload cast(Frame ptr ptr, @font->sprite(0))
+	frame_unload cast(Frame ptr ptr, @font->sprite(1))
 end SUB
 
-'TODO/FIXME: need to use sprite_* functions to handle Frame stuff
+'TODO/FIXME: need to use frame_* functions to handle Frame stuff
 SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	if basefont = null then
 		debug "createedgefont wasn't passed a font!"
@@ -1620,7 +1620,7 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	next
 end SUB
 
-'TODO/FIXME: need to use sprite_* functions to handle Frame stuff (and some dodgy non-pitch-aware stuff here)
+'TODO/FIXME: need to use frame_* functions to handle Frame stuff (and some dodgy non-pitch-aware stuff here)
 SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, byval xdrop as integer = 1, byval ydrop as integer = 1)
 	if basefont = null then
 		debug "createshadowfont wasn't passed a font!"
@@ -1640,7 +1640,7 @@ SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, by
 	font->sprite(1)->spr.refcount += 1
 	font->cols += 1
 
-	'wish I could call sprite_duplicate. A little OO would fix that.
+	'wish I could call frame_duplicate. A little OO would fix that.
 	memcpy(font->sprite(0), font->sprite(1), sizeof(FontLayer))
 
 	for ch as integer = 0 to 255
@@ -1667,7 +1667,7 @@ SUB font_create_shadowed (byval font as Font ptr, byval basefont as Font ptr, by
 	end with
 end SUB
 
-'TODO/FIXME: need to use sprite_* functions to handle Frame stuff
+'TODO/FIXME: need to use frame_* functions to handle Frame stuff
 sub font_loadold1bit (byval font as Font ptr, byval fontdata as ubyte ptr)
 	if font = null then exit sub
 	font_unload font
@@ -1729,7 +1729,7 @@ end SUB
 
 'This sub is for testing purposes only, and will be removed unless this happens to become
 'the adopted font format. Includes hardcoded values
-'TODO/FIXME: need to use sprite_* functions to handle Frame stuff (plus pitch-awareness)
+'TODO/FIXME: need to use frame_* functions to handle Frame stuff (plus pitch-awareness)
 'FIXME: setclip?
 SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 	font_unload font
@@ -1758,7 +1758,7 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 			f = "testfont" & SLASH & i & ".bmp"
 			if isfile(f) then
 				'FIXME: awful stuff
-				tempfr = sprite_import_bmp_raw(f)  ', master())
+				tempfr = frame_import_bmp_raw(f)  ', master())
 
 				.offset = size
 				.offx = 0
@@ -1770,7 +1770,7 @@ SUB font_loadbmps (byval font as Font ptr, byval fallback as Font ptr = null)
 				image = reallocate(image, size)
 				sptr = image + .offset
 				memcpy(sptr, tempfr->image, .w * .h)
-				sprite_unload @tempfr
+				frame_unload @tempfr
 			else
 				if iif(fallback = null, YES, fallback->sprite(1) = null) then
 					debug "font_loadbmps: fallback font not provided"
@@ -2208,7 +2208,7 @@ SUB screenshot (f$)
 	'try external first
 	if gfx_screenshot(f$) = 0 then
 		'otherwise save it ourselves
-		sprite_export_bmp8(f$ + ".bmp", vpages(vpage), intpal())
+		frame_export_bmp8(f$ + ".bmp", vpages(vpage), intpal())
 	end if
 END SUB
 
@@ -2557,7 +2557,7 @@ end function
 'with Allegro or SDL or FreeImage, but we'll stick to this for now.
 '----------------------------------------------------------------------
 
-SUB sprite_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
+SUB frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
 	dim argb as RGBQUAD
 	dim as integer of, y, i, skipbytes
 	dim as ubyte ptr sptr
@@ -2586,7 +2586,7 @@ SUB sprite_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor
 	close #of
 end SUB
 
-SUB sprite_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
+SUB frame_export_bmp4 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
 	dim argb as RGBQUAD
 	dim as integer of, x, y, i, skipbytes
 	dim as ubyte ptr sptr
@@ -2666,7 +2666,7 @@ private function write_bmp_header(f as string, byval w as integer, byval h as in
 	return of
 end function
 
-FUNCTION sprite_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
+FUNCTION frame_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
 'loads the 24-bit bitmap bmp$, mapped to palette pal()
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
@@ -2694,7 +2694,7 @@ FUNCTION sprite_import_bmp24(bmp as string, pal() as RGBcolor) as Frame ptr
 	'navigate to the beginning of the bitmap data
 	seek #bf, header.bfOffBits + 1
 
-	ret = sprite_new(info.biWidth, info.biHeight)
+	ret = frame_new(info.biWidth, info.biHeight)
 
 	loadbmp24(bf, ret, pal())
 
@@ -2745,7 +2745,7 @@ SUB bitmap2pal (bmp$, pal() as RGBcolor)
 	close #bf
 END SUB
 
-FUNCTION sprite_import_bmp_raw(bmp as string) as Frame ptr
+FUNCTION frame_import_bmp_raw(bmp as string) as Frame ptr
 'load a 4- or 8-bit .BMP, ignoring the palette
 	dim header as BITMAPFILEHEADER
 	dim info as BITMAPINFOHEADER
@@ -2773,7 +2773,7 @@ FUNCTION sprite_import_bmp_raw(bmp as string) as Frame ptr
 	'use header offset to get to data
 	seek #bf, header.bfOffBits + 1
 
-	ret = sprite_new(info.biWidth, info.biHeight, , 1)
+	ret = frame_new(info.biWidth, info.biHeight, , 1)
 
 	if info.biBitCount = 4 then
 		'call one of two loaders depending on compression
@@ -3084,7 +3084,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 
 	if scale <> 1 then
 		' isn't code duplication convenient?
-		sprite_draw @spr, pal, x, y, scale, trans, page
+		frame_draw @spr, pal, x, y, scale, trans, page
 		exit sub
 	end if
 
@@ -3116,9 +3116,9 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 	blitohr (@spr, vpages(page), pal, srcoffset, startx, starty, endx, endy, trans)
 end sub
 
-function sprite_to_tileset(byval spr as Frame ptr) as Frame ptr
+function frame_to_tileset(byval spr as Frame ptr) as Frame ptr
 	dim tileset as Frame ptr
-	tileset = sprite_new(20, 20 * 160)
+	tileset = frame_new(20, 20 * 160)
 
 	dim as ubyte ptr sptr = tileset->image
 	dim as ubyte ptr srcp
@@ -3313,7 +3313,7 @@ FUNCTION getmusictype (file as string) as integer
 END FUNCTION
 
 'not to be used outside of the sprite functions
-declare sub sprite_freemem(byval f as frame ptr)
+declare sub frame_freemem(byval f as frame ptr)
 declare sub Palette16_delete(byval f as Palette16 ptr ptr)
 declare sub spriteset_freemem(byval sprset as SpriteSet ptr)
 
@@ -3343,12 +3343,12 @@ CONST SPRCACHEB_SZ = 256  'in SPRITE_BASE_SZ units
 ' removes a sprite from the cache, and frees it.
 private sub sprite_remove_cache(byval entry as SpriteCacheEntry ptr)
 	if entry->p->refcount <> 1 then
-		debug "error: invalidly uncaching sprite " & entry->hashed.hash & " " & sprite_describe(entry->p)
+		debug "error: invalidly uncaching sprite " & entry->hashed.hash & " " & frame_describe(entry->p)
 	end if
 	dlist_remove(sprcacheB.generic, entry)
 	hash_remove(sprcache, entry)
 	entry->p->cacheentry = NULL  'help to detect double free
-	sprite_freemem(entry->p)
+	frame_freemem(entry->p)
 	#ifdef COMBINED_SPRCACHE_LIMIT
 		sprcacheB_used -= entry->cost
 	#else
@@ -3413,13 +3413,13 @@ sub sprite_debug_cache()
 	dim pt as SpriteCacheEntry ptr = NULL
 
 	while hash_iter(sprcache, iterstate, pt)
-		debug pt->hashed.hash & " cost=" & pt->cost & " : " & sprite_describe(pt->p)
+		debug pt->hashed.hash & " cost=" & pt->cost & " : " & frame_describe(pt->p)
 	wend
 
 	debug "==sprcacheB== (used units = " & sprcacheB_used & "/" & SPRCACHEB_SZ & ")"
 	pt = sprcacheB.first
 	while pt
-		debug pt->hashed.hash & " cost=" & pt->cost & " : " & sprite_describe(pt->p)
+		debug pt->hashed.hash & " cost=" & pt->cost & " : " & frame_describe(pt->p)
 		pt = pt->cacheB.next
 	wend
 end sub
@@ -3499,7 +3499,7 @@ private sub sprite_add_cache(byval key as integer, byval p as frame ptr)
 	#endif
 end sub
 
-function sprite_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
+function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
 	dim ret as frame ptr
 	'this hack was Mike's idea, not mine!
 	ret = callocate(sizeof(Frame) * frames)
@@ -3513,7 +3513,7 @@ function sprite_new(byval w as integer, byval h as integer, byval frames as inte
 	dim as integer i, j
 	for i = 0 to frames - 1
 		with ret[i]
-			'the caller to sprite_new is considered to have a ref to the head; and the head to have a ref to each other elem
+			'the caller to frame_new is considered to have a ref to the head; and the head to have a ref to each other elem
 			'so set each refcount to 1
 			.refcount = 1
 			.arraylen = frames
@@ -3533,7 +3533,7 @@ function sprite_new(byval w as integer, byval h as integer, byval frames as inte
 			if .image = 0 or (.mask = 0 and wantmask <> 0) then
 				debug "Could not allocate sprite frames, no memory"
 				'well, I don't really see the point freeing memory, but who knows...
-				sprite_freemem(ret)
+				frame_freemem(ret)
 				return 0
 			end if
 		end with
@@ -3542,7 +3542,7 @@ function sprite_new(byval w as integer, byval h as integer, byval frames as inte
 end function
 
 'create a frame which is a view onto part of a larger frame
-function sprite_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
+function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
 	dim ret as frame ptr = callocate(sizeof(Frame))
 
 	if ret = 0 then
@@ -3573,10 +3573,10 @@ function sprite_new_view(byval spr as Frame ptr, byval x as integer, byval y as 
 end function
 
 ' unconditionally frees a sprite from memory. 
-' You should never need to call this: use sprite_unload
+' You should never need to call this: use frame_unload
 ' Should only be called on the head of an array (and not a view, obv)!
-' Warning: not all code calls sprite_freemem to free sprites! Grrr!
-private sub sprite_freemem(byval f as frame ptr)
+' Warning: not all code calls frame_freemem to free sprites! Grrr!
+private sub frame_freemem(byval f as frame ptr)
 	if f = 0 then exit sub
 	if f->arrayelem then debug "can't free arrayelem!": exit sub
 	for i as integer = 0 to f->arraylen - 1
@@ -3586,7 +3586,7 @@ private sub sprite_freemem(byval f as frame ptr)
 		f[i].mask = NULL
 		f[i].refcount = FREEDREFC  'help to detect double free
 	next
-	'spriteset_freemem also calls sprite_freemem
+	'spriteset_freemem also calls frame_freemem
 	if f->sprset then
 		f->sprset->frames = NULL
 		spriteset_freemem f->sprset
@@ -3598,7 +3598,7 @@ end sub
 ' Loads a 4-bit sprite (stored in columns (2/byte)) from one of the .pt? files, with caching.
 ' It will return a pointer to the first frame, and subsequent frames
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
-function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
+function frame_load(byval ptno as integer, byval rec as integer) as frame ptr
 	dim ret as Frame ptr
 	dim key as integer = ptno * 1000000 + rec
 
@@ -3608,7 +3608,7 @@ function sprite_load(byval ptno as integer, byval rec as integer) as frame ptr
 	with sprite_sizes(ptno)
 		'debug "loading " & ptno & "  " & rec
 		'cachemiss += 1
-		ret = sprite_load(game + ".pt" & ptno, rec, .frames, .size.w, .size.h)
+		ret = frame_load(game + ".pt" & ptno, rec, .frames, .size.w, .size.h)
 		if ret = 0 then return 0
 	end with
 
@@ -3629,8 +3629,8 @@ function tileset_load(byval num as integer) as Frame ptr
 	dim mxs as Frame ptr
 	mxs = loadmxs(game + ".til", num)
 	if mxs = NULL then return NULL
-	ret = sprite_to_tileset(mxs)
-	sprite_unload @mxs
+	ret = frame_to_tileset(mxs)
+	frame_unload @mxs
 
 	if ret then sprite_add_cache(key, ret)
 	return ret
@@ -3640,7 +3640,7 @@ end function
 ' No code does this. Does not use a cache.
 ' It will return a pointer to the first frame (of num frames), and subsequent frames
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
-function sprite_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
+function frame_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
 	dim ret as frame ptr
 
 	'first, we do a bit of math:
@@ -3660,7 +3660,7 @@ function sprite_load(byval fi as string, byval rec as integer, byval num as inte
 	end if
 	
 	'if we get here, we can assume that all's well, and allocate the memory
-	ret = sprite_new(wid, hei, num)
+	ret = frame_new(wid, hei, num)
 	
 	if ret = 0 then
 		close #f
@@ -3703,23 +3703,23 @@ end function
 'Public:
 ' Releases a reference to a sprite and nulls the pointer.
 ' If it is refcounted, decrements the refcount, otherwise it is freed immediately.
-' A note on frame arrays: you may pass around pointers to frames in it (call sprite_reference
+' A note on frame arrays: you may pass around pointers to frames in it (call frame_reference
 ' on them) and then unload them, but no memory will be freed until the head pointer refcount reaches 0.
 ' The head element will have 1 extra refcount if the frame array is in the cache. Each of the non-head
 ' elements also have 1 refcount, indicating that they are 'in use' by the head element,
 ' but this is just for feel-good book keeping
-sub sprite_unload(byval p as frame ptr ptr)
+sub frame_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
 	with **p
 		if .refcount <> NOREFC then
 			if .refcount = FREEDREFC then
-				debug sprite_describe(*p) & " already freed!"
+				debug frame_describe(*p) & " already freed!"
 				*p = 0
 				exit sub
 			end if
 			.refcount -= 1
-			if .refcount < 0 then debug sprite_describe(*p) & " has refcount " & .refcount
+			if .refcount < 0 then debug frame_describe(*p) & " has refcount " & .refcount
 		end if
 		'if cached, can free two references at once
 		if (.refcount - .cached) <= 0 then
@@ -3729,22 +3729,22 @@ sub sprite_unload(byval p as frame ptr ptr)
 				exit sub
 			end if
 			if .isview then
-				sprite_unload @.base
+				frame_unload @.base
 				deallocate(*p)
 			else
 				for i as integer = 1 to .arraylen - 1
 					if (*p)[i].refcount <> 1 then
-						debug sprite_describe(*p + i) & " array elem freed with bad refcount"
+						debug frame_describe(*p + i) & " array elem freed with bad refcount"
 					end if
 				next
-				if .cached then sprite_to_B_cache((*p)->cacheentry) else sprite_freemem(*p)
+				if .cached then sprite_to_B_cache((*p)->cacheentry) else frame_freemem(*p)
 			end if
 		end if
 	end with
 	*p = 0
 end sub
 
-function sprite_describe(byval p as frame ptr) as string
+function frame_describe(byval p as frame ptr) as string
 	if p = 0 then return "'(null)'"
 	dim temp as string
 	if p->sprset then
@@ -3758,7 +3758,7 @@ function sprite_describe(byval p as frame ptr) as string
 end function
 
 'this is mostly just a gimmick
-function sprite_is_valid(byval p as frame ptr) as integer
+function frame_is_valid(byval p as frame ptr) as integer
 	if p = 0 then return 0
 	dim ret = -1
 	
@@ -3776,16 +3776,16 @@ function sprite_is_valid(byval p as frame ptr) as integer
 	if p->mask = &hFEEEFEEE or p->image = &hFEEEFEEE then ret = 0
 	
 	if ret = 0 then
-		debug "Invalid sprite " & sprite_describe(p)
+		debug "Invalid sprite " & frame_describe(p)
 		'if we get here, we are probably doomed, but this might be a recovery
 		if p->cacheentry then sprite_remove_cache(p->cacheentry)
 	end if
 	return ret
 end function
 
-'for a copy you intend to modify. Otherwise use sprite_reference
+'for a copy you intend to modify. Otherwise use frame_reference
 'note: does not copy frame arrays, only single frames
-function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
+function frame_duplicate(byval p as frame ptr, byval clr as integer = 0, byval addmask as integer = 0) as frame ptr
 	dim ret as frame ptr, i as integer
 	
 	if p = 0 then return 0
@@ -3844,7 +3844,7 @@ function sprite_duplicate(byval p as frame ptr, byval clr as integer = 0, byval 
 	return ret
 end function
 
-function sprite_reference(byval p as frame ptr) as frame ptr
+function frame_reference(byval p as frame ptr) as frame ptr
 	if p = 0 then return 0
 	if p->refcount = NOREFC then
 		debug "tried to reference a non-refcounted sprite!"
@@ -3857,7 +3857,7 @@ end function
 'Public:
 ' draws a sprite to a page. scale must be greater than or equal to 1. if trans is false, the
 ' mask will be wholly ignored. Just like drawohr, masks are optional, otherwise use colourkey 0
-sub sprite_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
+sub frame_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
 	if spr = 0 then
 		debug "trying to draw null sprite"
 		exit sub
@@ -3887,14 +3887,14 @@ end sub
 ' Returns a (copy of the) sprite (any bitdepth) in the midst of a given fade out.
 ' tlength is the desired length of the transition (in any time units you please),
 ' t is the number of elasped time units. style is the specific transition.
-function sprite_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
-	if t > tlength then return sprite_duplicate(spr, YES)
+function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
+	if t > tlength then return frame_duplicate(spr, YES)
 
 	'by default, sprites use colourkey transparency instead of masks.
 	'We could easily not use a mask here, but by using one, this function can be called on 8-bit graphics
 	'too; just in case you ever want to fade out a backdrop or something?
 	dim cpy as frame ptr
-	cpy = sprite_duplicate(spr, 0, 1)
+	cpy = frame_duplicate(spr, 0, 1)
 	if cpy = 0 then return 0
 	
 	dim as integer i, j, sx, sy, tog
@@ -4098,7 +4098,7 @@ function sprite_dissolved(byval spr as frame ptr, byval tlength as integer, byva
 	return cpy
 end function
 
-'Used by sprite_flip_horiz and sprite_flip_vert
+'Used by frame_flip_horiz and frame_flip_vert
 private sub flip_image(byval pixels as ubyte ptr, byval d1len as integer, byval d1stride as integer, byval d2len as integer, byval d2stride as integer)
 	for x1 as integer = 0 to d1len - 1
 		dim as ubyte ptr pixelp = pixels + x1 * d1stride
@@ -4127,11 +4127,11 @@ end sub
 
 'Public:
 ' flips a sprite horizontally. In place: you are only allowed to do this on sprites with no other references
-sub sprite_flip_horiz(byval spr as frame ptr)
+sub frame_flip_horiz(byval spr as frame ptr)
 	if spr = 0 then exit sub
 	
 	if spr->refcount > 1 then
-		debug "illegal hflip on " & sprite_describe(spr)
+		debug "illegal hflip on " & frame_describe(spr)
 		exit sub
 	end if
 
@@ -4143,11 +4143,11 @@ end sub
 
 'Public:
 ' flips a sprite vertically. In place: you are only allowed to do this on sprites with no other references
-sub sprite_flip_vert(byval spr as frame ptr)
+sub frame_flip_vert(byval spr as frame ptr)
 	if spr = 0 then exit sub
 	
 	if spr->refcount > 1 then
-		debug "illegal vflip on " & sprite_describe(spr)
+		debug "illegal vflip on " & frame_describe(spr)
 		exit sub
 	end if
 
@@ -4158,10 +4158,10 @@ sub sprite_flip_vert(byval spr as frame ptr)
 end sub
 
 '90 degree (anticlockwise) rotation. Unlike flipping functions, non-destructive!
-function sprite_rotated_90(byval spr as Frame ptr) as Frame ptr
+function frame_rotated_90(byval spr as Frame ptr) as Frame ptr
 	if spr = 0 then return NULL
 
-	dim ret as Frame ptr = sprite_new(spr->h, spr->w, 1, (spr->mask <> NULL))
+	dim ret as Frame ptr = frame_new(spr->h, spr->w, 1, (spr->mask <> NULL))
 
 	'top left corner transformed to bottom left corner
 	transform_image(spr, spr->image, ret->image + ret->pitch * (ret->h - 1), 1, -ret->pitch)
@@ -4174,10 +4174,10 @@ function sprite_rotated_90(byval spr as Frame ptr) as Frame ptr
 end function
 
 '270 degree (anticlockwise) rotation. Unlike flipping functions, non-destructive!
-function sprite_rotated_270(byval spr as Frame ptr) as Frame ptr
+function frame_rotated_270(byval spr as Frame ptr) as Frame ptr
 	if spr = 0 then return NULL
 
-	dim ret as Frame ptr = sprite_new(spr->h, spr->w, 1, (spr->mask <> NULL))
+	dim ret as Frame ptr = frame_new(spr->h, spr->w, 1, (spr->mask <> NULL))
 
 	'top left corner transformed to top right corner
 	transform_image(spr, spr->image, ret->image + (ret->w - 1), -1, ret->pitch)
@@ -4190,8 +4190,8 @@ function sprite_rotated_270(byval spr as Frame ptr) as Frame ptr
 end function
 
 'Note that we clear masks to transparent! I'm not sure if this is best (not currently used anywhere), but notice that
-'sprite_duplicate with clr=1 does the same
-sub sprite_clear(byval spr as frame ptr)
+'frame_duplicate with clr=1 does the same
+sub frame_clear(byval spr as frame ptr)
 	if spr->image then
 		if spr->w = spr->pitch then
 			memset(spr->image, 0, spr->w * spr->h)
@@ -4213,11 +4213,11 @@ sub sprite_clear(byval spr as frame ptr)
 end sub
 
 'Warning: this code is rotting; don't assume ->mask is used, etc. Anyway the whole thing should be replaced with a memmove call or two.
-' function sprite_scroll(byval spr as frame ptr, byval h as integer = 0, byval v as integer = 0, byval wrap as integer = 0, byval direct as integer = 0) as frame ptr
+' function frame_scroll(byval spr as frame ptr, byval h as integer = 0, byval v as integer = 0, byval wrap as integer = 0, byval direct as integer = 0) as frame ptr
 
 ' 	dim ret as frame ptr, x as integer, y as integer
 ' 	
-' 	ret = sprite_clear(spr, -1)
+' 	ret = frame_clear(spr, -1)
 ' 	
 ' 	'first scroll horizontally
 ' 	
@@ -4482,11 +4482,11 @@ end sub
 
 function spriteset_load_from_pt(byval ptno as integer, byval rec as integer) as SpriteSet ptr
 	dim frameset as Frame ptr
-	frameset = sprite_load(ptno, rec)
+	frameset = frame_load(ptno, rec)
 	if frameset = NULL then return NULL
 
 	if frameset->sprset = NULL then
-		'this Frame array was previously loaded using sprite_load; add SpriteSet data
+		'this Frame array was previously loaded using frame_load; add SpriteSet data
 		frameset->sprset = allocate(sizeof(SpriteSet))
 		with *frameset->sprset
 			.numframes = sprite_sizes(ptno).frames
@@ -4499,10 +4499,10 @@ function spriteset_load_from_pt(byval ptno as integer, byval rec as integer) as 
 end function
 
 private sub spriteset_freemem(byval sprset as SpriteSet ptr)
-	'sprite_freemem also calls spriteset_freemem
+	'frame_freemem also calls spriteset_freemem
 	if sprset->frames then
 		sprset->frames->sprset = NULL
-		sprite_freemem sprset->frames
+		frame_freemem sprset->frames
 	end if
 	deallocate sprset->animations
 	deallocate sprset
@@ -4510,14 +4510,14 @@ end sub
 
 sub spriteset_unload(byref ss as SpriteSet ptr)
 	'a SpriteSet and its Frame array are never unloaded separately;
-	'sprite_unload is responsible for all refcounting and unloading
+	'frame_unload is responsible for all refcounting and unloading
 	if ss = NULL then exit sub
 	dim temp as Frame ptr = ss->frames
-	sprite_unload @temp
+	frame_unload @temp
 	ss = NULL
 end sub
 
-function ss_load(byval ptno as integer, byval rec as integer, byval palno as integer = -1) as SpriteState ptr
+function sprite_load(byval ptno as integer, byval rec as integer, byval palno as integer = -1) as SpriteState ptr
 	dim sprset as SpriteSet ptr = spriteset_load_from_pt(ptno, rec)
 	if sprset = NULL then return NULL
 
@@ -4532,7 +4532,7 @@ function ss_load(byval ptno as integer, byval rec as integer, byval palno as int
 	return ret
 end function
 
-sub ss_unload(byval spr as SpriteState ptr ptr)
+sub sprite_unload(byval spr as SpriteState ptr ptr)
 	if spr = NULL then exit sub
 	if *spr = NULL then exit sub
 	spriteset_unload((*spr)->set)
@@ -4542,7 +4542,7 @@ sub ss_unload(byval spr as SpriteState ptr ptr)
 end sub
 
 'loop is number of times to play, or <=0 for infinite
-sub ss_play_animation(spr as SpriteState ptr, anim_name as string, loopcount as integer = 1)
+sub sprite_play_animation(spr as SpriteState ptr, anim_name as string, loopcount as integer = 1)
 	spr->anim_wait = 0
 	spr->anim_step = 0
 	spr->anim_loop = loopcount - 1
@@ -4557,7 +4557,7 @@ sub ss_play_animation(spr as SpriteState ptr, anim_name as string, loopcount as 
 	debug "Could not find animation '" & anim_name & "'"
 end sub
 
-sub ss_animate(spr as SpriteState ptr)
+sub sprite_animate(spr as SpriteState ptr)
 	with *spr
 		if .anim = NULL then exit sub
 
@@ -4608,9 +4608,9 @@ sub ss_animate(spr as SpriteState ptr)
 	end with
 end sub
 
-sub ss_draw(spr as SpriteState ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
+sub sprite_draw(spr as SpriteState ptr, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
 	dim as integer realx, realy
 	realx = x + spr->curframe->offset.x + spr->offset.x
 	realy = y + spr->curframe->offset.y + spr->offset.y
-	sprite_draw(spr->curframe, spr->pal, realx, realy, scale, trans, page)
+	frame_draw(spr->curframe, spr->pal, realx, realy, scale, trans, page)
 end sub

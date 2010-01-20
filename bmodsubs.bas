@@ -1583,7 +1583,7 @@ SUB setup_enemy_sprite_and_name(slot AS INTEGER, es() AS INTEGER, bslot() AS Bat
  '--Update sprite
  with bslot(4 + slot)
   .sprite_num = 1
-  .sprites = sprite_load(1 + es(slot, 55), es(slot, 53))
+  .sprites = frame_load(1 + es(slot, 55), es(slot, 53))
   .pal = palette16_load(es(slot, 54), 1 + es(slot, 55), es(slot, 53))
  end with
 

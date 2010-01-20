@@ -329,7 +329,7 @@ clearpage 3
 
 
 for i = lbound(bslot) to ubound(bslot)
-	sprite_unload(@bslot(i).sprites)
+	frame_unload(@bslot(i).sprites)
 	palette16_unload(@bslot(i).pal)
 next
 
@@ -1095,21 +1095,21 @@ SUB draw_battle_sprites(bslot() AS BattleSprite)
     if .frame < .sprite_num then spr += .frame
     
     if .d then
-     spr = sprite_duplicate(spr)
-     sprite_flip_horiz(spr)
+     spr = frame_duplicate(spr)
+     frame_flip_horiz(spr)
     else
-     spr = sprite_reference(spr)
+     spr = frame_reference(spr)
     end if
     
     if is_enemy(zbuf(i)) and .dissolve > 0 and .flee = 0 then
      dim spr2 as frame ptr = spr
-     spr = sprite_dissolved(spr2, .deathtime, .deathtime - .dissolve, .deathtype)
-     sprite_unload(@spr2)
+     spr = frame_dissolved(spr2, .deathtime, .deathtime - .dissolve, .deathtype)
+     frame_unload(@spr2)
     end if
     
-    sprite_draw(spr, .pal, .x, .y - .z, 1, -1, dpage)
+    frame_draw(spr, .pal, .x, .y - .z, 1, -1, dpage)
     
-    sprite_unload(@spr)
+    frame_unload(@spr)
    end with
   END IF
  NEXT i
@@ -1174,7 +1174,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
     .vis = 1
     'load hero sprites
     .sprite_num = 8
-    .sprites = sprite_load(0, exstat(i, 0, 14))
+    .sprites = frame_load(0, exstat(i, 0, 14))
     .pal = palette16_load(exstat(i, 0, 15), 0, exstat(i, 0, 14))
     .frame = 0
     .death_sfx = -1 'No death sounds for heroes (for now)
@@ -2288,9 +2288,9 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   with bslot(i)
    .sprite_num = 3
    .frame = 0
-   sprite_unload(@.sprites)
+   frame_unload(@.sprites)
    palette16_unload(@.pal)
-   .sprites = sprite_load(6, attack.picture)
+   .sprites = frame_load(6, attack.picture)
    .pal = palette16_load(attack.pal, 6, attack.picture)
   end with
  NEXT i
@@ -2349,8 +2349,8 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   'load weapon sprites
   with bslot(24)
    .sprite_num = 2
-   sprite_unload @.sprites
-   .sprites = sprite_load(5, exstat(bat.acting, 0, 13))
+   frame_unload @.sprites
+   .sprites = frame_load(5, exstat(bat.acting, 0, 13))
    palette16_unload @.pal
    .pal = palette16_load(exstat(bat.acting, 1, 13), 5, exstat(bat.acting, 0, 13))
    .frame = 0

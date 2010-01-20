@@ -1654,8 +1654,8 @@ WITH scrat(nowscript)
        IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
         writesafe = 0
        ELSE
-        if npcs(retvals(0)).sprite then sprite_unload(@npcs(retvals(0)).sprite)
-        npcs(retvals(0)).sprite = sprite_load(4, retvals(2))
+        if npcs(retvals(0)).sprite then frame_unload(@npcs(retvals(0)).sprite)
+        npcs(retvals(0)).sprite = frame_load(4, retvals(2))
        END IF
       END IF
       IF retvals(1) = 1 THEN
@@ -2976,7 +2976,7 @@ SUB advance_text_box ()
   correctbackdrop
  END IF
  WITH txt.portrait
-  IF .sprite THEN sprite_unload @.sprite
+  IF .sprite THEN frame_unload @.sprite
   IF .pal    THEN palette16_unload @.pal
  END WITH
  txt.showing = NO
@@ -3150,7 +3150,7 @@ SUB cleanup_text_box ()
   .old_dir = 0
  END WITH
  WITH txt.portrait
-  IF .sprite THEN sprite_unload @.sprite
+  IF .sprite THEN frame_unload @.sprite
   IF .pal    THEN palette16_unload @.pal
  END WITH
  IF txt.sl THEN DeleteSlice @(txt.sl)

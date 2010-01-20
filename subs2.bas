@@ -659,7 +659,7 @@ SUB text_box_editor () 'textage
  clearpage 3 '--is this needed?
  SaveTextBox box, st.id
  WITH st.portrait
-  IF .sprite THEN sprite_unload @.sprite
+  IF .sprite THEN frame_unload @.sprite
   IF .pal    THEN palette16_unload @.pal
  END WITH
  'See wiki for .SAY file format docs
@@ -871,7 +871,7 @@ SUB textbox_edit_preview (BYREF box AS TextBox, BYREF st AS TextboxEditState, ov
   edgeboxstyle 4 + box.portrait_pos.x, ypos  + box.portrait_pos.y, 50, 50, box.boxstyle, dpage, YES
  END IF
  WITH st.portrait
-  IF .sprite THEN sprite_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y,,,dpage
+  IF .sprite THEN frame_draw .sprite, .pal, 4 + box.portrait_pos.x, ypos + box.portrait_pos.y,,,dpage
  END WITH
 END SUB
 

@@ -534,7 +534,7 @@ WITH *preview
  .AlignVert = 2
 END WITH
 
-'--Need a copy of the sprite to call sprite_dissolved on
+'--Need a copy of the sprite to call frame_dissolved on
 DIM preview_sprite as Frame ptr
 
 '--dissolve_ticks is >= 0 while playing a dissolve; > dissolve_time while during lag period afterwards
@@ -692,7 +692,7 @@ DO
    GOSUB EnUpdateMenu
   ELSE
    IF dissolve_ticks <= dissolve_time THEN
-    SetSpriteFrame preview, sprite_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type)
+    SetSpriteFrame preview, frame_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type)
    END IF
   END IF
  END IF
@@ -721,7 +721,7 @@ saveenemydata recbuf(), recindex
 
 clearallpages
 DeleteSlice @preview_box
-sprite_unload @preview_sprite
+frame_unload @preview_sprite
 
 EXIT SUB
 
@@ -741,8 +741,8 @@ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
 
 '--update the picture and palette preview
-sprite_unload @preview_sprite
-preview_sprite = sprite_load(1 + recbuf(EnDatPicSize), recbuf(EnDatPic))
+frame_unload @preview_sprite
+preview_sprite = frame_load(1 + recbuf(EnDatPicSize), recbuf(EnDatPic))
 dissolve_ticks = -1
 '--resets if dissolved
 ChangeSpriteSlice preview, 1 + recbuf(EnDatPicSize), recbuf(EnDatPic), recbuf(EnDatPal), ,YES
@@ -1109,7 +1109,7 @@ SUB drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as in
  FOR i as integer = 0 TO 7
   IF a(z(i) * 4 + 0) > 0 THEN
    WITH egraphics(z(i))
-    sprite_draw .sprite, .pal, a(z(i) * 4 + 1), a(z(i) * 4 + 2), , , dpage
+    frame_draw .sprite, .pal, a(z(i) * 4 + 1), a(z(i) * 4 + 2), , , dpage
     IF csr2 = z(i) THEN
      textcolor flash, 0
      printstr CHR$(25), a(z(i) * 4 + 1) + .sprite->w \ 2 - 4, a(z(i) * 4 + 2), dpage
@@ -1685,9 +1685,9 @@ max(15) = 999
 loaditemdata a(), csr
 generate_item_edit_menu menu(), a(), csr, pt, item(csr), info$, eqst(), box_preview
 
-IF wep_img.sprite THEN sprite_unload @wep_img.sprite
+IF wep_img.sprite THEN frame_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
-wep_img.sprite = sprite_load(5, a(52))
+wep_img.sprite = frame_load(5, a(52))
 wep_img.pal    = palette16_load(a(53), 5, a(52))
 
 need_update = NO
@@ -1763,9 +1763,9 @@ DO
  IF need_update THEN
   need_update = NO
   generate_item_edit_menu menu(), a(), csr, pt, item(csr), info$, eqst(), box_preview
-  IF wep_img.sprite THEN sprite_unload @wep_img.sprite
+  IF wep_img.sprite THEN frame_unload @wep_img.sprite
   IF wep_img.pal    THEN palette16_unload @wep_img.pal
-  wep_img.sprite = sprite_load(5, a(52))
+  wep_img.sprite = frame_load(5, a(52))
   wep_img.pal    = palette16_load(a(53), 5, a(52))
  END IF
  FOR i = 0 TO 20
@@ -1778,7 +1778,7 @@ DO
   printstr menu(i), 0, i * 8, dpage
  NEXT i
  IF a(49) = 1 THEN
-  sprite_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160,,,dpage
+  frame_draw wep_img.sprite + 1 - frame, wep_img.pal, 280, 160,,,dpage
   textcolor uilook(uiMenuItem), 0
   drawline 278 + a(78 + frame * 2),160 + a(79 + frame * 2),279 + a(78 + frame * 2), 160 + a(79 + frame * 2),14 + tog,dpage
   drawline 280 + a(78 + frame * 2),158 + a(79 + frame * 2),280 + a(78 + frame * 2), 159 + a(79 + frame * 2),14 + tog,dpage
@@ -1791,7 +1791,7 @@ DO
  clearpage dpage
  dowait
 LOOP
-IF wep_img.sprite THEN sprite_unload @wep_img.sprite
+IF wep_img.sprite THEN frame_unload @wep_img.sprite
 IF wep_img.pal    THEN palette16_unload @wep_img.pal
 RETRACE
 
@@ -1918,8 +1918,8 @@ DO
   edit_npc npc(cur)
   '--Having edited the NPC, we must re-load the picture and palette
   WITH npc_img(cur)
-   IF .sprite THEN sprite_unload(@.sprite)
-   .sprite = sprite_load(4, npc(cur).picture)
+   IF .sprite THEN frame_unload(@.sprite)
+   .sprite = frame_load(4, npc(cur).picture)
    IF .pal THEN palette16_unload(@.pal)
    .pal = palette16_load(npc(cur).palette, 4, npc(cur).picture)
   END WITH
@@ -1932,7 +1932,7 @@ DO
   IF cur = i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr "" & i, 0, ((i - top) * 25) + 5, dpage
   WITH npc_img(i)
-   sprite_draw .sprite + 4, .pal, 32, (i - top) * 25, 1, -1, dpage
+   frame_draw .sprite + 4, .pal, 32, (i - top) * 25, 1, -1, dpage
   END WITH
   textcolor uilook(uiMenuItem), uilook(uiHighlight)
   IF cur = i THEN textcolor uilook(uiText), uilook(uiHighlight)
@@ -1976,12 +1976,12 @@ END SUB
 SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
  clear_hero_preview_pics st
  WITH st
-  .battle.sprite    = sprite_load(0, her.sprite)
+  .battle.sprite    = frame_load(0, her.sprite)
   .battle.pal       = palette16_load(her.sprite_pal, 0, her.sprite)
-  .walkabout.sprite = sprite_load(4, her.walk_sprite)
+  .walkabout.sprite = frame_load(4, her.walk_sprite)
   .walkabout.pal    = palette16_load(her.walk_sprite_pal, 4, her.walk_sprite)
   IF her.portrait >= 0 THEN
-   .portrait.sprite = sprite_load(8, her.portrait)
+   .portrait.sprite = frame_load(8, her.portrait)
    .portrait.pal    = palette16_load(her.portrait_pal, 8, her.portrait)
   END IF
  END WITH
@@ -1989,11 +1989,11 @@ END SUB
 
 SUB clear_hero_preview_pics(BYREF st AS HeroEditState)
  WITH st
-  IF .battle.sprite    THEN sprite_unload    @.battle.sprite
+  IF .battle.sprite    THEN frame_unload    @.battle.sprite
   IF .battle.pal       THEN palette16_unload @.battle.pal
-  IF .walkabout.sprite THEN sprite_unload    @.walkabout.sprite
+  IF .walkabout.sprite THEN frame_unload    @.walkabout.sprite
   IF .walkabout.pal    THEN palette16_unload @.walkabout.pal
-  IF .portrait.sprite  THEN sprite_unload    @.portrait.sprite
+  IF .portrait.sprite  THEN frame_unload    @.portrait.sprite
   IF .portrait.pal     THEN palette16_unload @.portrait.pal
  END WITH
 END SUB
@@ -2008,9 +2008,9 @@ SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
  ELSE
   frame = tog
  END IF
- sprite_draw st.battle.sprite + frame, st.battle.pal, 250, 25,,,dpage
+ frame_draw st.battle.sprite + frame, st.battle.pal, 250, 25,,,dpage
  frame = st.preview_walk_direction * 2 + tog
- sprite_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y,,,dpage
+ frame_draw st.walkabout.sprite + frame, st.walkabout.pal, 230 + st.preview_walk_pos.x, 5 + st.preview_walk_pos.y,,,dpage
  DIM hand AS XYPair
  IF st.previewframe <> -1 THEN
   IF st.previewframe = 0 THEN
@@ -2025,7 +2025,7 @@ SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
   drawline 251 + hand.x,25 + hand.y,252 + hand.x, 25 + hand.y,14 + tog, dpage
   drawline 250 + hand.x,26 + hand.y,250 + hand.x, 27 + hand.y,14 + tog, dpage
  END IF
- IF st.portrait.sprite THEN sprite_draw st.portrait.sprite, st.portrait.pal, 240, 110,,,dpage
+ IF st.portrait.sprite THEN frame_draw st.portrait.sprite, st.portrait.pal, 240, 110,,,dpage
 END SUB
 
 SUB animate_hero_preview(BYREF st AS HeroEditState)

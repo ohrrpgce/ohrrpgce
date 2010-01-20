@@ -183,7 +183,7 @@ st.cursor.pal->col(2) = uilook(uiMenuItem)
 '--create cursor
 ' the colors here are actually offsets into the 16-color palette.
 ' see the st.cursor.pal construction above
-st.cursor.sprite = sprite_new(20, 20, 2, YES)
+st.cursor.sprite = frame_new(20, 20, 2, YES)
 DIM cursorpage AS INTEGER
 
 cursorpage = registerpage(st.cursor.sprite)
@@ -263,7 +263,7 @@ unloadtilemap st.tilesetview
 unloadtilemaps map()
 unloadtilemap pass
 unloadtilemap emap
-sprite_unload @(st.cursor.sprite)
+frame_unload @(st.cursor.sprite)
 palette16_unload @(st.cursor.pal)
 EXIT SUB
 
@@ -292,7 +292,7 @@ list(13) = "Map name:"
 FOR i = 0 TO max_npc_defs
  'Load the picture and palette
  WITH npc_img(i)
-  .sprite = sprite_load(4, st.npc_def(i).picture)
+  .sprite = frame_load(4, st.npc_def(i).picture)
   .pal    = palette16_load(st.npc_def(i).palette, 4, st.npc_def(i).picture)
  END WITH
 NEXT i
@@ -361,7 +361,7 @@ LOOP
 'Unload NPC graphics
 FOR i = 0 TO max_npc_defs
  WITH npc_img(i)
-  if .sprite then sprite_unload(@.sprite)
+  if .sprite then frame_unload(@.sprite)
   if .pal then palette16_unload(@.pal)
  END WITH
 NEXT i
@@ -792,7 +792,7 @@ DO
    IF st.npc_inst(i).id > 0 THEN
     IF st.npc_inst(i).x >= mapx AND st.npc_inst(i).x < mapx + 320 AND st.npc_inst(i).y >= mapy AND st.npc_inst(i).y < mapy + 200 THEN
      WITH npc_img(st.npc_inst(i).id - 1)
-      sprite_draw .sprite + (2 * st.npc_inst(i).dir) + walk \ 2, .pal, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy, 1, -1, dpage
+      frame_draw .sprite + (2 * st.npc_inst(i).dir) + walk \ 2, .pal, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy, 1, -1, dpage
      END WITH
      textcolor uilook(uiSelectedItem + tog), 0
      xtemp = STR$(st.npc_inst(i).id - 1)
@@ -813,16 +813,16 @@ DO
  
  '--normal cursor--
  IF editmode <> 3 THEN
-  sprite_draw st.cursor.sprite + tog, st.cursor.pal, (x * 20) - mapx, (y * 20) - mapy + 20, , , dpage
+  frame_draw st.cursor.sprite + tog, st.cursor.pal, (x * 20) - mapx, (y * 20) - mapy + 20, , , dpage
   IF editmode = 0 THEN
-   sprite_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
+   frame_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
   END IF
  END IF
  
  '--npc placement cursor--
  IF editmode = 3 THEN
   WITH npc_img(nptr)
-   sprite_draw .sprite + (2 * walk), .pal, x * 20 - mapx, y * 20 - mapy + 20, 1, -1, dpage
+   frame_draw .sprite + (2 * walk), .pal, x * 20 - mapx, y * 20 - mapy + 20, 1, -1, dpage
   END WITH
   textcolor uilook(uiSelectedItem + tog), 0
   xtemp = STR(nptr)
@@ -1328,8 +1328,8 @@ SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state 
    clearpage 2
    DIM preview AS Frame Ptr
    preview = createminimap(map(wantset - 1000000), st.tilesets(wantset - 1000000))
-   sprite_draw preview, NULL, 0, 0, , , 2
-   sprite_unload @preview
+   frame_draw preview, NULL, 0, 0, , , 2
+   frame_unload @preview
    'fuzzyrect 0, 0, 320, 200, uilook(uiBackground), 2
   ELSE
    loadmxs game + ".til", wantset, vpages(2)
@@ -2037,7 +2037,7 @@ SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapRe
   clearpage dpage
   drawoff.x = large(0, -rs.rect.x * rs.zoom)
   drawoff.y = large(0, -rs.rect.y * rs.zoom)
-  sprite_draw rs.minimap, NULL, drawoff.x, drawoff.y, 1, NO, dpage
+  frame_draw rs.minimap, NULL, drawoff.x, drawoff.y, 1, NO, dpage
   draw_menu rs.menu, state, dpage
   drawbox drawoff.x + rs.zoom * rs.rect.x, drawoff.y + rs.zoom * rs.rect.y, rs.zoom * rs.rect.wide, rs.zoom * rs.rect.high, 14 + state.tog, dpage
 
@@ -2045,7 +2045,7 @@ SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapRe
   setvispage vpage
   dowait
  LOOP
- sprite_unload @(rs.minimap)
+ frame_unload @(rs.minimap)
 EXIT SUB
 
 END SUB
@@ -2104,7 +2104,7 @@ SUB resize_rezoom_mini_map(BYREF st AS MapEditState, BYREF rs AS MapResizeState,
  IF rs.rect.y < 0 THEN th -= rs.rect.y
  rs.zoom = bound(small(320 \ tw, 200 \ th), 1, 20)
  IF rs.zoom <> lastzoom THEN
-  sprite_unload @(rs.minimap)
+  frame_unload @(rs.minimap)
   rs.minimap = createminimap(map(), st.tilesets(), rs.zoom)
  END IF
 END SUB
@@ -2114,8 +2114,8 @@ SUB show_minimap(BYREF st AS MapEditState, map() AS TileMap)
  minimap = createminimap(map(), st.tilesets())
 
  clearpage vpage
- sprite_draw minimap, NULL, 0, 0, 1, NO, vpage
- sprite_unload @minimap
+ frame_draw minimap, NULL, 0, 0, 1, NO, vpage
+ frame_unload @minimap
 
  edgeprint "Press Any Key", 0, 180, uilook(uiText), vpage
  setvispage vpage
@@ -2226,7 +2226,7 @@ SUB mapedit_pickblock(BYREF st AS MapEditState)
   tog = tog XOR 1
   setmapdata , 0, 0
   drawmap st.tilesetview, 0, 0, 0, st.tilesets(st.layer), dpage
-  sprite_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , dpage
+  frame_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , dpage
   ' copypage dpage, vpage
   setvispage dpage
   dowait

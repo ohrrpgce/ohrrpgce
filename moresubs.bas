@@ -600,7 +600,7 @@ FOR i = 0 TO 3
  IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), dpage
  IF hero(i) THEN
   '5th frame: down
-  sprite_draw herow(o).sprite + 4, herow(o).pal, 105 + i * 30, 60 + (i = swapme) * 6, 1, -1, dpage
+  frame_draw herow(o).sprite + 4, herow(o).pal, 105 + i * 30, 60 + (i = swapme) * 6, 1, -1, dpage
   o = o + 1
  END IF
 NEXT i
@@ -1017,8 +1017,8 @@ SUB minimap (x, y)
  offset.y = 100 - minisize.y / 2
 
  edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
- sprite_draw mini, NULL, offset.x, offset.y, 1, NO, vpage
- sprite_unload @mini
+ frame_draw mini, NULL, offset.x, offset.y, 1, NO, vpage
+ frame_unload @mini
 
  MenuSound gen(genAcceptSFX)
 
@@ -1160,7 +1160,7 @@ FUNCTION teleporttool () as integer
   setvispage dpage
   dowait
  LOOP
- sprite_unload @mini
+ frame_unload @mini
  unloadtilemaps maptiles2()
  unloadmaptilesets tilesets2()
  setkeys
@@ -1172,7 +1172,7 @@ redraw:
  'reblit the minimap to a spare page
  copypage 3, vpage
  edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
- sprite_draw mini, NULL, offset.x - camera.x, offset.y - camera.y, 1, NO, vpage
+ frame_draw mini, NULL, offset.x - camera.x, offset.y - camera.y, 1, NO, vpage
  RETRACE
 
 END FUNCTION
@@ -1189,7 +1189,7 @@ SUB teleporttooltend (BYREF mini AS Frame Ptr, maptilesX() AS TileMap, tilesets2
  END IF
  'minimum zoom level to make tiles easy to pick
  zoom = bound(small(320 \ maptilesX(0).wide, 200 \ maptilesX(0).high), 5, 20)
- sprite_unload @mini
+ frame_unload @mini
  mini = createminimap(maptilesX(), tilesets2(), zoom)
  mapsize.x = maptilesX(0).wide
  mapsize.y = maptilesX(0).high
@@ -1252,7 +1252,7 @@ DO
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    wt = 0: IF w = i THEN wt = INT(wtg / 2)
-   sprite_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 100 + i * 30, 100, 1, -1, dpage
+   frame_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 100 + i * 30, 100, 1, -1, dpage
    o = o + 1
   END IF
  NEXT i
@@ -1465,13 +1465,13 @@ killallscripts
 
 FOR i = 0 TO max_npc_defs
  WITH npcs(i)
-  sprite_unload(@.sprite)
+  frame_unload(@.sprite)
   palette16_unload(@.pal)
  END WITH
 NEXT i
 FOR i = 0 TO UBOUND(herow)
  WITH herow(i)
-  sprite_unload(@.sprite)
+  frame_unload(@.sprite)
   palette16_unload(@.pal)
  END WITH
 NEXT

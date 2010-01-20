@@ -3289,13 +3289,13 @@ END FUNCTION
 
 SUB vishero (stat())
 FOR i = 0 TO UBOUND(herow)
- sprite_unload @herow(i).sprite
+ frame_unload @herow(i).sprite
  palette16_unload @herow(i).pal
 NEXT
 o = 0
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
-  herow(o).sprite = sprite_load(4, stat(i, 1, 14))
+  herow(o).sprite = frame_load(4, stat(i, 1, 14))
   herow(o).pal = palette16_load(stat(i, 1, 15), 4, stat(i, 1, 14))
   o = o + 1
  END IF
@@ -3859,7 +3859,7 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
  DIM hero_id AS INTEGER = -1
  DIM her AS HeroDef
  WITH gfx
-  IF .sprite THEN sprite_unload @.sprite
+  IF .sprite THEN frame_unload @.sprite
   IF .pal    THEN palette16_unload @.pal
   SELECT CASE box.portrait_type
    CASE 1' Fixed ID number
@@ -3878,7 +3878,7 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
    pal_id = her.portrait_pal
   END IF
   IF img_id >= 0 THEN
-   .sprite = sprite_load(8, img_id)
+   .sprite = frame_load(8, img_id)
    .pal    = palette16_load(pal_id, 8, img_id)
   END IF
  END WITH
