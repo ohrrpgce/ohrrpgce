@@ -7,14 +7,21 @@
 
 #include <string.h>
 
+struct XYPair {
+	int w;
+	int h;
+};
+
 struct Palette16 {
 	unsigned char col[16];  //indicies into the master palette
 	int refcount; //private
 };
 
 struct SpriteCacheEntry;
+struct SpriteSet;
 
 //sprites use this
+//Copied from udts.bi
 struct Frame {
 	int w;
 	int h;
@@ -28,6 +35,11 @@ struct Frame {
 	int cached:1;  //(not set for views onto cached sprites)
 	int arrayelem:1;  //not the first frame in a frame array
 	int isview:1;
+
+	//used only by frames in a SpriteSet, for now
+	struct XYPair offset;
+	struct SpriteSet *sprset;  //if not NULL, this Frame array is part of a SpriteSet which
+	                           //will need to be freed at the same time
 };
 
 

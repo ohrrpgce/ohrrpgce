@@ -40,6 +40,7 @@ DIM SHARED rememmvis AS INTEGER = 1
 DIM SHARED keystate AS Uint8 PTR = NULL
 DIM SHARED sdljoystick AS SDL_Joystick PTR = NULL
 DIM SHARED sdlpalette(0 TO 255) AS SDL_Color
+DIM SHARED framesize AS XYPair
 DIM SHARED dest_rect AS SDL_Rect
 DIM SHARED mouseclipped AS INTEGER = 0
 DIM SHARED AS INTEGER mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
@@ -215,6 +216,8 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
       RETURN 0
     END IF
   END IF
+  framesize.w = 320
+  framesize.h = 200
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
@@ -226,17 +229,17 @@ FUNCTION gfx_sdl_set_screen_mode() as integer
   ELSE
     SDL_ShowCursor(rememmvis)
   END IF
-  screensurface = SDL_SetVideoMode(320 * zoom, 200 * zoom, 0, flags)
+  WITH dest_rect
+    .x = 0
+    .y = 0
+    .w = framesize.w * zoom
+    .h = framesize.h * zoom
+  END WITH
+  screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, 0, flags)
   IF screensurface = NULL THEN
     debug "Failed to allocate display"
     RETURN 0
   END IF
-  WITH dest_rect
-    .x = 0
-    .y = 0
-    .w = 320 * zoom
-    .h = 200 * zoom
-  END WITH
   RETURN 1
 END FUNCTION
 
@@ -262,9 +265,12 @@ SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as inte
   'and then smoothzoom, with smoothzoomblit_anybit
   'Or smoothzoom first, with smoothzoomblit_8_to_8bit, and then blit to screensurface
 
-  'unfinished variable resolution handling
-  IF screenbuffer THEN
-    IF screenbuffer->w <> w * zoom OR screenbuffer->h <> h * zoom THEN
+  'variable resolution handling
+  IF framesize.w <> w OR framesize.h <> h THEN
+    framesize.w = w
+    framesize.h = h
+    gfx_sdl_set_screen_mode()
+    IF screenbuffer THEN
       SDL_FreeSurface(screenbuffer)
       screenbuffer = NULL
     END IF

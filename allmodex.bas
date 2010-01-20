@@ -32,7 +32,7 @@ type node 	'only used for floodfill
 	nextnode as node ptr
 end type
 
-declare sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
+declare sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as integer = -1)
 declare sub grabrect(page as integer, x as integer, y as integer, w as integer, h as integer, ibuf as ubyte ptr, tbuf as ubyte ptr = 0)
 declare function write_bmp_header(f as string, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
 declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBcolor)
@@ -62,6 +62,7 @@ dim vpages(0 to 15) as Frame ptr  'up to 6 used at once, last I counted
 
 'module shared
 dim shared wrkpage as integer  'used to track which page the clips are for; also used by some legacy modex functions
+dim shared windowsize as XYPair = (320, 200)
 
 dim shared bptr as integer ptr	' buffer
 dim shared bsize as integer
@@ -279,13 +280,26 @@ SUB setvispage (BYVAL page as integer)
 		edgeprint fpsstring, 255, 190, uilook(uiText), page
 	end if
 
-	'the fb backend may freeze up if they collide with the polling thread (why???)
+	'the fb backend may freeze up if it collides with the polling thread
 	mutexlock keybdmutex
 	if updatepal then
 		gfx_setpal(@intpal(0))
 		updatepal = 0
-	end if	
-	gfx_showpage(vpages(page)->image, vpages(page)->w, vpages(page)->h)
+	end if
+	with *vpages(page)
+		if .w = windowsize.w and .h = windowsize.h then
+			gfx_showpage(.image, .w, .h)
+		else
+			dim resizefr as Frame ptr
+			dim tpage as integer
+			resizefr = frame_new(windowsize.w, windowsize.h, 1, YES)
+			tpage = registerpage(resizefr)
+			frame_draw vpages(page), NULL, 0, 0, 1, 0, tpage
+			gfx_showpage(resizefr->image, windowsize.w, windowsize.h)
+			freepage(tpage)
+			frame_unload @resizefr
+		end if
+	end with
 	mutexunlock keybdmutex
 end SUB
 
@@ -490,7 +504,7 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as
 				end if
 
 				'draw it on the map
-				drawohr(tileframe, , tx, ty, , trans, p)
+				drawohr(@tileframe, vpages(p), , tx, ty, trans)
 			end if
 
 			tx = tx + 20
@@ -604,7 +618,7 @@ SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BY
 	hpal = palette16_new_from_buffer(pal(), po)
 	
 	'now draw the image
-	drawohr(*hspr, hpal, x, y, scale, trans, page)
+	frame_draw(hspr, hpal, x, y, scale, trans, page)
 	'what a waste
 	frame_unload(@hspr)
 	deallocate(hpal)
@@ -676,7 +690,7 @@ SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYV
 	next
 
 	'now draw the image
-	drawohr(*hspr, , x, y, , trans, page)
+	frame_draw(hspr, NULL, x, y, , trans, page)
 
 	frame_unload(@hspr)
 end SUB
@@ -934,6 +948,16 @@ SUB setkeys ()
 
 	if keyval(scCtrl) > 0 and keyval(scTilde) and 4 then
 		showfps xor= 1
+	end if
+
+	'some debug keys for working on resolution independence
+	if keyval(scAlt) > 0 and keyval(scRightBrace) > 1 then
+		windowsize.w += 10
+		windowsize.h += 10
+	end if
+	if keyval(scAlt) > 0 and keyval(scLeftBrace) > 1 then
+		windowsize.w -= 10
+		windowsize.h -= 10
 	end if
 
 	if mouse_grab_requested then
@@ -1486,7 +1510,7 @@ SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f 
 				charframe.w = .w
 				charframe.h = .h
 				charframe.pitch = .w
-				drawohr(charframe, @pal, x + .offx, y + .offy, 1, trans_type, p)
+				drawohr(@charframe, vpages(p), @pal, x + .offx, y + .offy, trans_type)
 
 				'print one character past the end of the line
 				'(I think this is a reasonable approximation)
@@ -3074,24 +3098,14 @@ sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer =
 end sub
 
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
-sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval scale as integer = 1, byval trans as integer = -1, byval page as integer)
+sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as integer = -1)
 	dim as integer startx, starty, endx, endy
 	dim as integer srcoffset
 
-	if page <> wrkpage then
-		setclip , , , , page
-	end if
-
-	if scale <> 1 then
-		' isn't code duplication convenient?
-		frame_draw @spr, pal, x, y, scale, trans, page
-		exit sub
-	end if
-
 	startx = x
-	endx = x + spr.w - 1
+	endx = x + src->w - 1
 	starty = y
-	endy = y + spr.h - 1
+	endy = y + src->h - 1
 
 	if startx < clipl then
 		srcoffset = (clipl - startx)
@@ -3099,7 +3113,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 	end if
 
 	if starty < clipt then
-		srcoffset += (clipt - starty) * spr.pitch
+		srcoffset += (clipt - starty) * src->pitch
 		starty = clipt
 	end if
 
@@ -3113,7 +3127,7 @@ sub drawohr(byref spr as frame, byval pal as Palette16 ptr = null, byval x as in
 
 	if starty > endy or startx > endx then exit sub
 
-	blitohr (@spr, vpages(page), pal, srcoffset, startx, starty, endx, endy, trans)
+	blitohr(src, dest, pal, srcoffset, startx, starty, endx, endy, trans)
 end sub
 
 function frame_to_tileset(byval spr as Frame ptr) as Frame ptr
@@ -3863,13 +3877,13 @@ sub frame_draw(byval spr as frame ptr, Byval pal as Palette16 ptr, Byval x as in
 		exit sub
 	end if
 
-	if scale = 1 then
-		drawohr *spr, pal, x, y, scale, trans, page
-		exit sub
-	end if
-
 	if page <> wrkpage then
 		setclip , , , , page
+	end if
+
+	if scale = 1 then
+		drawohr spr, vpages(page), pal, x, y, trans
+		exit sub
 	end if
 
 	dim as integer sxfrom, sxto, syfrom, syto
