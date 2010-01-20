@@ -62,7 +62,12 @@ dim vpages(0 to 15) as Frame ptr  'up to 6 used at once, last I counted
 
 'module shared
 dim shared wrkpage as integer  'used to track which page the clips are for; also used by some legacy modex functions
+
+'temporary exploratory variable resolution stuff
 dim shared windowsize as XYPair = (320, 200)
+dim shared variablerez as integer = NO
+dim shared minwinsize as XYPair
+dim shared forcevispageresize as integer = NO  'for mischief!
 
 dim shared bptr as integer ptr	' buffer
 dim shared bsize as integer
@@ -236,8 +241,8 @@ FUNCTION registerpage (byval spr as Frame ptr) as integer
 	fatalerror "Max number of video pages exceeded"
 END FUNCTION
 
-FUNCTION allocatepage() as integer
-	dim fr as Frame ptr = frame_new(320, 200, , YES)
+FUNCTION allocatepage(BYVAL w as integer = 320, BYVAL h as integer = 200) as integer
+	dim fr as Frame ptr = frame_new(w, h, , YES)
 
 	dim ret as integer = registerpage(fr)
 	frame_unload(@fr) 'we're not hanging onto it, vpages() is
@@ -269,6 +274,40 @@ SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1, BYVAL top as
 	memset(vpages(page)->image + vpages(page)->w * top, colour, vpages(page)->w * (bottom - top + 1))
 end SUB
 
+'TEMPORARY
+'resizes a page to match the 'window size' (which is a fake, currently) - if so, the page is erased
+'returns whether the page size was changed
+FUNCTION updatepagesize (BYVAL page as integer) as integer
+	if vpages(page)->w = windowsize.w and vpages(page)->h = windowsize.h then return NO
+	frame_unload @vpages(page)
+	vpages(page) = frame_new(windowsize.w, windowsize.h, , YES)
+	return YES
+end FUNCTION
+
+'TEMPORARY
+SUB unlockresolution (BYVAL min_w as integer = -1, BYVAL min_h as integer = -1)
+	variablerez = YES
+	minwinsize.w = iif(min_w = -1, 320, min_w)
+	minwinsize.h = iif(min_h = -1, 200, min_h)
+	windowsize.w = large(windowsize.w, minwinsize.w)
+	windowsize.h = large(windowsize.h, minwinsize.h)
+end SUB
+
+'TEMPORARY
+SUB setresolution (BYVAL w as integer, BYVAL h as integer)
+	windowsize.w = large(w, minwinsize.w)
+	windowsize.h = large(h, minwinsize.h)
+end SUB
+
+'TEMPORARY
+SUB resetresolution ()
+	variablerez = NO
+	windowsize = Type(320, 200)
+	for i as integer = 0 to ubound(vpages)
+		if vpages(i) then updatepagesize i
+	next
+end SUB
+
 SUB setvispage (BYVAL page as integer)
 	fpsframes += 1
 	if timer > fpstime + 1 then
@@ -290,17 +329,17 @@ SUB setvispage (BYVAL page as integer)
 		if .w = windowsize.w and .h = windowsize.h then
 			gfx_showpage(.image, .w, .h)
 		else
-			dim resizefr as Frame ptr
 			dim tpage as integer
-			resizefr = frame_new(windowsize.w, windowsize.h, 1, YES)
-			tpage = registerpage(resizefr)
+			tpage = allocatepage(windowsize.w, windowsize.h)
 			frame_draw vpages(page), NULL, 0, 0, 1, 0, tpage
-			gfx_showpage(resizefr->image, windowsize.w, windowsize.h)
-			freepage(tpage)
-			frame_unload @resizefr
+			gfx_showpage(vpages(tpage)->image, windowsize.w, windowsize.h)
+			freepage tpage
 		end if
 	end with
 	mutexunlock keybdmutex
+
+	'for having fun
+	if forcevispageresize then updatepagesize page
 end SUB
 
 sub setpal(pal() as RGBcolor)
@@ -951,13 +990,28 @@ SUB setkeys ()
 	end if
 
 	'some debug keys for working on resolution independence
-	if keyval(scAlt) > 0 and keyval(scRightBrace) > 1 then
-		windowsize.w += 10
-		windowsize.h += 10
-	end if
-	if keyval(scAlt) > 0 and keyval(scLeftBrace) > 1 then
-		windowsize.w -= 10
-		windowsize.h -= 10
+	if (keyval(scLeftShift) > 0 or keyval(scRightShift) > 0) and keyval(sc1) > 0 then
+		if variablerez then
+			if keyval(scRightBrace) > 1 then
+				windowsize.w += 10
+				windowsize.h += 10
+			end if
+			if keyval(scLeftBrace) > 1 then
+				windowsize.w -= 10
+				windowsize.h -= 10
+				windowsize.w = large(windowsize.w, minwinsize.w)
+				windowsize.h = large(windowsize.h, minwinsize.h)
+			end if
+		end if
+		if keyval(scR) > 1 then
+			variablerez xor= 1
+			if forcevispageresize = NO then
+				forcevispageresize = YES
+			else
+				forcevispageresize = NO
+				resetresolution
+			end if
+		end if
 	end if
 
 	if mouse_grab_requested then

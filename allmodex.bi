@@ -16,15 +16,20 @@
 DECLARE SUB setmodex ()
 DECLARE SUB restoremode ()
 DECLARE SUB setwindowtitle (title as string)
-DECLARE FUNCTION allocatepage() as integer
+DECLARE FUNCTION allocatepage(BYVAL w as integer = 320, BYVAL h as integer = 200) as integer
 DECLARE SUB freepage (BYVAL page as integer)
 DECLARE FUNCTION registerpage (BYVAL spr as Frame ptr) as integer
 DECLARE SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer, BYVAL y as integer = 0, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
 DECLARE SUB clearpage (BYVAL page as integer, BYVAL colour as integer = -1, BYVAL top as integer = 0, BYVAL bottom as integer = 199)
+DECLARE FUNCTION updatepagesize (BYVAL page as integer) as integer
+DECLARE SUB unlockresolution (BYVAL min_w as integer = -1, BYVAL min_h as integer = -1)
+DECLARE SUB setresolution (BYVAL w as integer, BYVAL h as integer)
+DECLARE SUB resetresolution ()
 DECLARE SUB setvispage (BYVAL page as integer)
 DECLARE SUB setpal (pal() as RGBcolor)
 DECLARE SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 DECLARE SUB fadetopal (pal() as RGBcolor)
+
 DECLARE FUNCTION frame_to_tileset(BYVAL spr as frame ptr) as frame ptr
 DECLARE FUNCTION tileset_load(BYVAL num as integer) as Frame ptr
 
