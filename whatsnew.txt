@@ -1,9 +1,14 @@
 WHAT IS NEW?
 
-??? ?? 2010 [Ypsiliform+]
+Jan 21 2010 [Ypsiliform+1]
 
   * Bugfixes
     * Bug 802: tileset confusion when adding a layer
+    * Bug 813: crash and map corruption when linking doors to a
+      map with more than 3 layers
+    * No longer prevents importing WAV files over 500k in size
+      (they often become smaller than 500k when converted to ogg)
+    * Fix missing "Quit Editing" on main menu
 
 Jan 08 2010 [Ypsiliform]
 
