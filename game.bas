@@ -36,6 +36,10 @@ DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
 DECLARE SUB advance_text_box ()
 DECLARE FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
+DECLARE SUB hitwall (npci AS NPCInst, npcdata AS NPCType)
+DECLARE SUB sfunctions (BYVAL cmdid AS INTEGER)
+DECLARE SUB interpret ()
+DECLARE SUB scriptinterpreter ()
 
 REMEMBERSTATE
 
@@ -68,6 +72,7 @@ fmvol = getfmvol
 DIM SHARED needf
 DIM SHARED harmtileflash = NO
 DIM SHARED wantbox, wantdoor, wantbattle, wantteleport, wantusenpc, wantloadgame
+DIM SHARED scriptout AS STRING
 
 'global variables
 DIM gam AS GameState
@@ -130,6 +135,7 @@ DIM plotstr(31) as Plotstring
 DIM scrst as Stack
 DIM curcmd as ScriptCommand ptr
 DIM insideinterpreter
+DIM wantimmediate
 
 'incredibly frustratingly fbc doesn't export global array debugging symbols
 DIM globalp as integer ptr
@@ -448,7 +454,7 @@ DO
  'breakpoint : called after keypress script is run, but don't get called by wantimmediate
  IF scrwatch > 1 THEN breakpoint scrwatch, 4
  'DEBUG debug "enter script interpreter"
- GOSUB interpret
+ interpret
  'DEBUG debug "increment script timers"
  dotimer(0)
  'DEBUG debug "keyboard handling"
@@ -992,7 +998,7 @@ IF movdivis(npc(o).xgo) OR movdivis(npc(o).ygo) THEN
   IF wrappass(npc(o).x \ 20, npc(o).y \ 20, npc(o).xgo, npc(o).ygo, 0) THEN
    npc(o).xgo = 0
    npc(o).ygo = 0
-   GOSUB hitwall
+   hitwall(npc(o), npcs(id))
    GOTO nogo
   END IF
  END IF
@@ -1003,7 +1009,7 @@ IF movdivis(npc(o).xgo) OR movdivis(npc(o).ygo) THEN
     IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
      npc(o).xgo = 0
      npc(o).ygo = 0
-     GOSUB hitwall
+     hitwall(npc(o), npcs(id))
      GOTO nogo
     END IF
    END IF
@@ -1016,7 +1022,7 @@ IF movdivis(npc(o).xgo) OR movdivis(npc(o).ygo) THEN
      npc(o).ygo = 0
      '--a 0-3 tick delay before pacing enemies bounce off hero
      IF npc(o).frame = 3 THEN
-      GOSUB hitwall
+      hitwall(npc(o), npcs(id))
       GOTO nogo
      END IF
     END IF
@@ -1035,7 +1041,7 @@ ELSE
  npc(o).xgo = 0
  npc(o).ygo = 0
 END IF
-IF cropmovement(npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN GOSUB hitwall
+IF cropmovement(npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN hitwall(npc(o), npcs(id))
 nogo:
 IF npcs(id).activation = 1 AND txt.showing = NO THEN
  IF wraptouch(npc(o).x, npc(o).y, catx(0), caty(0), 20) THEN
@@ -1045,14 +1051,19 @@ IF npcs(id).activation = 1 AND txt.showing = NO THEN
 END IF
 RETRACE
 
-hitwall:
-IF npcs(id).movetype = 2 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 2)
-IF npcs(id).movetype = 3 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, 1)
-IF npcs(id).movetype = 4 THEN npc(o).dir = loopvar(npc(o).dir, 0, 3, -1)
-IF npcs(id).movetype = 5 THEN npc(o).dir = INT(RND * 4)
-RETRACE
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
 
-interpret:
+SUB hitwall(npci AS NPCInst, npcdata AS NPCType)
+ IF npcdata.movetype = 2 THEN npci.dir = loopvar(npci.dir, 0, 3, 2)
+ IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)
+ IF npcdata.movetype = 4 THEN npci.dir = loopvar(npci.dir, 0, 3, -1)
+ IF npcdata.movetype = 5 THEN npci.dir = INT(RND * 4)
+END SUB
+
+SUB interpret()
+DIM AS INTEGER i, n, npcref, temp
+reentersub:
 IF nowscript >= 0 THEN
 WITH scrat(nowscript)
  SELECT CASE .state
@@ -1154,7 +1165,7 @@ WITH scrat(nowscript)
    scrat(nowscript).scr->entered += 1
    TIMER_START(scrat(nowscript).scr->totaltime)
 #ENDIF
-   GOSUB interpretloop
+   scriptinterpreter
    '--WARNING: WITH pointer probably corrupted
 #IFDEF SCRIPTPROFILE
    IF nowscript >= 0 THEN TIMER_STOP(scrat(nowscript).scr->totaltime)
@@ -1173,7 +1184,7 @@ WITH scrat(nowscript)
  IF wantimmediate = -1 THEN
   '--wow! I hope this doesnt screw things up!
   wantimmediate = 0
-  GOTO interpret
+  GOTO reentersub
  END IF
 END WITH
 END IF
@@ -1211,10 +1222,12 @@ IF wantusenpc > 0 THEN
  wantusenpc = 0
  usething 2, 0, 0
 END IF
-RETRACE
+END SUB
+
+SUB scriptinterpreter ()
+DIM i, rsr, temp, tmpstate, tmpcase, tmpstart, tmpend, tmpstep, tmpnow, tmpvar, tmpkind
 
 interpretloop:
-DIM tmpstate, tmpcase  'tmpstart, tmpend, tmpstep, tmpnow, tmpvar
 WITH scrat(nowscript)
 DO
  SELECT CASE .state
@@ -1239,8 +1252,7 @@ DO
        scriptmath
        '.state = streturn
       ELSE
-       GOSUB sfunctions
-       '--WARNING: WITH pointer probably corrupted
+       sfunctions(curcmd->value)
        '--nowscript might be changed
        '--unless you have switched to wait mode, return
        'IF scrat(nowscript).state = stnext THEN scrat(nowscript).state = streturn'---return
@@ -1423,7 +1435,7 @@ DO
          ELSE
           pops(scrst, tmpcase)
           pops(scrst, tmpstate)
-          doseek = 0 ' whether or not to search argument list for something to execute
+          DIM AS INTEGER doseek = 0 ' whether or not to search argument list for something to execute
           IF tmpstate = 0 THEN
            '--not fallen in, check tmpvar
            IF tmpcase = reads(scrst, 0) THEN 
@@ -1532,23 +1544,28 @@ DO
  END SELECT
 LOOP
 END WITH
-RETRACE
+EXIT SUB
 
+'GOSUB is faster than a function call
 dumpandreturn:
 scrst.pos -= scrat(nowscript).curargn
 scriptret = 0
 scrat(nowscript).state = streturn'---return
 RETRACE
 
+END SUB
+
 '---DO THE ACTUAL EFFECTS OF MATH AND FUNCTIONS----
-sfunctions:
-DIM menuslot AS INTEGER = 0
-DIM mislot AS INTEGER = 0
+SUB sfunctions(BYVAL cmdid AS INTEGER)
+DIM menuslot AS INTEGER = ANY
+DIM mislot AS INTEGER = ANY
+DIM npcref AS INTEGER = ANY
+DIM i AS INTEGER = ANY
 scriptret = 0
 WITH scrat(nowscript)
   'the only commands that belong at the top level are the ones that need
-  'access to main-module top-level global variables or GOSUBs
-  SELECT CASE AS CONST curcmd->value
+  'access to main-module shared variables (rather few of the commands actually here)
+  SELECT CASE AS CONST cmdid
    CASE 11'--Show Text Box (box)
     wantbox = retvals(0)
    CASE 15'--use door
@@ -1608,11 +1625,11 @@ WITH scrat(nowscript)
     IF valid_hero_party(retvals(0)) THEN
      IF valid_item(retvals(1)) THEN
       '--identify new default weapon
-      newdfw = retvals(1) + 1
+      DIM AS INTEGER newdfw = retvals(1) + 1
       '--remember old default weapon
-      olddfw = stat(retvals(0), 0, 16)
+      DIM AS INTEGER olddfw = stat(retvals(0), 0, 16)
       '--remeber currently equipped weapon
-      cureqw = eqstuf(retvals(0), 0)
+      DIM AS INTEGER cureqw = eqstuf(retvals(0), 0)
       '--change default
       stat(retvals(0), 0, 16) = newdfw
       '--blank weapon
@@ -1649,7 +1666,7 @@ WITH scrat(nowscript)
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) < 0 AND retvals(0) >= -300 THEN retvals(0) = ABS(npc(ABS(retvals(0) + 1)).id) - 1
      IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
-      writesafe = 1
+      DIM AS INTEGER writesafe = 1
       IF retvals(1) = 0 THEN
        IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
         writesafe = 0
@@ -1730,7 +1747,7 @@ WITH scrat(nowscript)
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
-    IF scriptret > 0 AND (retvals(0) OR curcmd->value = 155) THEN
+    IF scriptret > 0 AND (retvals(0) OR cmdid = 155) THEN
      savegame scriptret - 1, stat()
     END IF
    CASE 166'--save in slot
@@ -1797,8 +1814,7 @@ WITH scrat(nowscript)
     END IF
    CASE 258'--checkherowall
     IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-     tempxgo = 0
-     tempygo = 0
+     DIM AS INTEGER tempxgo = 0, tempygo = 0
      IF retvals(1) = 0 THEN tempygo = 20
      IF retvals(1) = 1 THEN tempxgo = -20
      IF retvals(1) = 2 THEN tempygo = -20
@@ -1809,8 +1825,7 @@ WITH scrat(nowscript)
     npcref = getnpcref(retvals(0), 0)
     IF npcref >= 0 THEN
      'Only check walls for NPC who actually exists
-     tempxgo = 0
-     tempygo = 0
+     DIM AS INTEGER tempxgo = 0, tempygo = 0
      IF retvals(1) = 0 THEN tempygo = 20
      IF retvals(1) = 1 THEN tempxgo = -20
      IF retvals(1) = 2 THEN tempygo = -20
@@ -2032,18 +2047,15 @@ WITH scrat(nowscript)
    CASE 438 '--reset game
     resetg = YES
     .state = stwait
-   CASE ELSE '--try all the scripts implemented in subs
-    scriptnpc curcmd->value
-    scriptmisc curcmd->value
-    scriptadvanced curcmd->value
-    scriptstat curcmd->value, stat()
+   CASE ELSE '--try all the scripts implemented in subs (insanity!)
+    scriptnpc cmdid
+    scriptmisc cmdid
+    scriptadvanced cmdid
+    scriptstat cmdid, stat()
     '---------
   END SELECT
 END WITH
-RETRACE
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
+END SUB
 
 FUNCTION valid_item_slot(item_slot AS INTEGER) AS INTEGER
  RETURN bound_arg(item_slot, 0, gen(genMaxInventory), "item slot")

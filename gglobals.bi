@@ -85,6 +85,7 @@ EXTERN global() as integer
 EXTERN heap() as integer
 EXTERN scrat() as ScriptInst
 EXTERN retvals() as integer
+EXTERN wantimmediate as integer
 EXTERN insideinterpreter as integer
 EXTERN scrwatch as integer
 EXTERN nowscript as integer
