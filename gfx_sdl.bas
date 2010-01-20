@@ -159,7 +159,7 @@ scantrans(SDLK_F8) = 66
 scantrans(SDLK_F9) = 67
 scantrans(SDLK_F10) = 68
 scantrans(SDLK_F11) = 87
-scantrans(SDLK_F12) = 89
+scantrans(SDLK_F12) = 88
 scantrans(SDLK_F13) = 0
 scantrans(SDLK_F14) = 0
 scantrans(SDLK_F15) = 0
@@ -463,7 +463,7 @@ SUB io_sdl_keybits (keybdarray as integer ptr)
   keystate = SDL_GetKeyState(NULL)
   FOR a as integer = 0 TO 322
     IF keystate[a] THEN
-      'print "OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
+      'debug "OHRkey=" & scantrans(a) & " SDLkey=" & a & " " & *SDL_GetKeyName(a)
       IF scantrans(a) THEN
         keybdarray[scantrans(a)] OR= 1
       END IF
