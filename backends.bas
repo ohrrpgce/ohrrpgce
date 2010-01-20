@@ -265,6 +265,13 @@ function backends_setoption(opt as string, arg as string) as integer
 				failed = YES
 			#endif
 			unsupported = YES
+		elseif arg = "sdlpp" or arg = "sdl++" then
+			#ifdef GFX_SDLPP_BACKEND
+				prefer_backend(@sdlpp_stuff)
+				if gfx_load(YES) then return 2
+				failed = YES
+			#endif
+			unsupported = YES
 		else
 			display_help_string """" + arg + """ is not a valid graphics backend"
 		end if
