@@ -202,8 +202,8 @@ void smoothzoomblit_8_to_8bit(unsigned char *rptr, unsigned char *dptr, int w, i
 	if (zoom == 1) {
 		for (i = 0; i <= h - 1; i++) {
 			memcpy(sptr, rptr, w);
-			rptr += pitch;
-			sptr += w;
+			rptr += w;
+			sptr += pitch;
 		}
 	} else {
 		for (i = 2; i <= zoom; i++)

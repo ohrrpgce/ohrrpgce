@@ -263,7 +263,7 @@ FUNCTION gfx_sdl_getversion() as integer
 END FUNCTION
 
 SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
-  'takes a pointer to raw 8-bit data at 320x200 (changing screen dimensions not supported yet)
+  'takes a pointer to a raw 8-bit image, with pitch = w
 
   'We may either blit to screensurface (doing 8 bit -> display pixel format conversion) first
   'and then smoothzoom, with smoothzoomblit_anybit
