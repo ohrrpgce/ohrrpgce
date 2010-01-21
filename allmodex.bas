@@ -270,6 +270,7 @@ end SUB
 'resizes a page to match the 'window size' (which is a fake, currently) - if so, the page is erased
 'returns whether the page size was changed
 FUNCTION updatepagesize (BYVAL page as integer) as integer
+	gfx_getresize(windowsize)
 	if vpages(page)->w = windowsize.w and vpages(page)->h = windowsize.h then return NO
 	frame_unload @vpages(page)
 	vpages(page) = frame_new(windowsize.w, windowsize.h, , YES)
@@ -992,6 +993,7 @@ SUB setkeys ()
 		end if
 		if keyval(scR) > 1 then
 			variablerez xor= 1
+			gfx_setresizable(variablerez)
 			if forcevispageresize = NO then
 				forcevispageresize = YES
 			else

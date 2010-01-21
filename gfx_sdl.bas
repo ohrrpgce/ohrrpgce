@@ -36,6 +36,9 @@ DIM SHARED smooth AS INTEGER = 0
 DIM SHARED screensurface AS SDL_Surface PTR = NULL
 DIM SHARED screenbuffer AS SDL_Surface PTR = NULL
 DIM SHARED windowedmode AS INTEGER = -1
+DIM SHARED resizable AS INTEGER = NO
+DIM SHARED resizerequested AS INTEGER = NO
+DIM SHARED resizerequest AS XYPair
 DIM SHARED rememmvis AS INTEGER = 1
 DIM SHARED keystate AS Uint8 PTR = NULL
 DIM SHARED sdljoystick AS SDL_Joystick PTR = NULL
@@ -229,6 +232,7 @@ FUNCTION gfx_sdl_set_screen_mode() as integer
   ELSE
     SDL_ShowCursor(rememmvis)
   END IF
+  IF resizable THEN flags = flags OR SDL_RESIZABLE
   WITH dest_rect
     .x = 0
     .y = 0
@@ -347,6 +351,20 @@ FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
   RETURN @state
 END FUNCTION
 
+SUB gfx_sdl_setresizable(byval able as integer)
+  resizable = able
+  gfx_sdl_set_screen_mode()
+END SUB
+
+FUNCTION gfx_sdl_getresize(byref ret as XYPair) as integer
+  IF resizerequested THEN
+    ret = resizerequest
+    resizerequested = NO
+    RETURN YES
+  END IF
+  RETURN NO
+END FUNCTION
+
 FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
@@ -434,8 +452,13 @@ SUB gfx_sdl_process_events()
             END IF
           END IF
         END IF
-      'CASE SDL_VIDEORESIZE
+      CASE SDL_VIDEORESIZE
         'debug "SDL_VIDEORESIZE: w=" & evnt.resize.w & " h=" & evnt.resize.h
+	IF resizable THEN
+          resizerequested = YES
+	  resizerequest.w = evnt.resize.w / zoom
+	  resizerequest.h = evnt.resize.h / zoom
+	END IF
     END SELECT
   WEND
 END SUB
@@ -610,6 +633,8 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   gfx_setwindowed = @gfx_sdl_setwindowed
   gfx_windowtitle = @gfx_sdl_windowtitle
   gfx_getwindowstate = @gfx_sdl_getwindowstate
+  gfx_getresize = @gfx_sdl_getresize
+  gfx_setresizable = @gfx_sdl_setresizable
   gfx_setoption = @gfx_sdl_setoption
   gfx_describe_options = @gfx_sdl_describe_options
   io_init = @io_sdl_init

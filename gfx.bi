@@ -29,6 +29,10 @@ extern Gfx_setwindowed as sub (byval iswindow as integer)
 extern Gfx_windowtitle as sub (byval title as zstring ptr)
 extern Gfx_getwindowstate as function () as WindowState ptr
 
+'(optional, temporary/experimental)
+extern Gfx_getresize as function (byref ret as XYPair) as integer
+extern Gfx_setresizable as sub (byval able as integer)
+
 'gfx_setoption recieves an option name and the following option which may or may not be a related argument
 'returns 0 if unrecognised, 1 if recognised but arg is ignored, 2 if arg is gobbled
 extern Gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer

@@ -39,6 +39,8 @@ dim gfx_screenshot as function (byval fname as zstring ptr) as integer
 dim gfx_setwindowed as sub (byval iswindow as integer)
 dim gfx_windowtitle as sub (byval title as zstring ptr)
 dim gfx_getwindowstate as function () as WindowState ptr
+dim gfx_getresize as function (byref ret as XYPair) as integer
+dim gfx_setresizable as sub (byval able as integer)
 dim gfx_setoption as function (byval opt as zstring ptr, byval arg as zstring ptr) as integer
 dim gfx_describe_options as function () as zstring ptr
 dim io_init as sub ()
@@ -103,6 +105,8 @@ dim wantpollingthread as integer
 dim as string gfxbackend, musicbackend
 dim as string gfxbackendinfo, musicbackendinfo
 
+function gfx_dummy_getresize(byref ret as XYPair) as integer : return NO : end function
+sub gfx_dummy_setresizable(byval able as integer) : end sub
 sub io_dummy_waitprocessing() : end sub
 sub io_dummy_pollkeyevents() : end sub
 sub io_dummy_keybits(keybdarray as integer ptr) : end sub
@@ -301,6 +305,9 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 		unload_backend(currentgfxbackend)
 		currentgfxbackend = NULL
 	end if
+
+	Gfx_getresize = @gfx_dummy_getresize
+	Gfx_setresizable = @gfx_dummy_setresizable
 
 	if which->load = NULL then
 		dim filename as string = which->libname
