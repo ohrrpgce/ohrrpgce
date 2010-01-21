@@ -259,4 +259,7 @@ declare sub sort_integers_indices(indices() as integer, byval start as integer p
 declare function strhash overload (byval strp as zstring ptr, byval leng as integer) as unsigned integer
 declare function strhash overload (hstr as string) as unsigned integer
 
+'Euclidean modulo (always positive)
+#DEFINE POSMOD(dividend, divisor) ((((dividend) MOD (divisor)) + (divisor)) MOD (divisor))
+
 #ENDIF

@@ -147,89 +147,37 @@ IF vstate.active THEN
 END IF
 END SUB
 
+'called on each coordinate of a screen position to wrap it around the map so that's it's as close as possible to being on the screen
+FUNCTION closestwrappedpos (coord as integer, screenlen as integer, maplen as integer) as integer
+ 'consider two possibilities: one negative but as large as possible; and the one after that
+ DIM as integer lowposs, highposs
+ lowposs = (coord MOD maplen) + 10 'center of tile
+ IF lowposs >= 0 THEN lowposs -= maplen
+ highposs = lowposs + maplen
+
+ 'now evaluate which of lowposs or highposs are in or closer to the interval [0, screenlen]
+ IF highposs - screenlen < 0 - lowposs THEN RETURN highposs - 10
+ RETURN lowposs - 10
+END FUNCTION
+
 FUNCTION framewalkabout (x as integer, y as integer, framex as integer, framey as integer, mapwide as integer, maphigh as integer, wrapmode as integer) as integer
-'Given an X and a Y returns true if a walkabout at that
-'spot would be on-screen, and false if off-screen.
+'Given an X and a Y returns true if a walkabout at that spot might be on-screen.
+'We always return true because with offset variable sized frames and slices
+'attached to NPCs, it's practically impossible to tell.
 'Also checks wraparound map, and sets framex and framey
-'to the position on screen where the walkabout should
-'be drawn (relative to the top-left corner of the screen,
-'not the top left corner of the map)
+'to the position on screen most likely to be the best place to 
+'draw the walkabout (closest to the screen edge). (relative to the top-left
+'corner of the screen, not the top left corner of the map)
+'TODO: improve by taking into account frame offset once that's implemented.
 
-'--by default, assume we will not draw the walkaout
-yesdraw = 0
-
-IF isonscreen(x, y) THEN
- '--walkabout is on-screen
- yesdraw = 1
- framex = x - mapx
- framey = y - mapy
-ELSE
  IF wrapmode = 1 THEN
-  '--in wrap-mode
-  '--I hope this checking isn't too slow!
-  DO '--just so I can exit do
-   IF isonscreen(x - mapwide, y) THEN
-    '--off-left
-    yesdraw = 1
-    framex = (x - mapwide) - mapx
-    framey = y - mapy
-    EXIT DO
-   END IF
-   IF isonscreen(x + mapwide, y) THEN
-    '--off-right
-    yesdraw = 1
-    framex = (x + mapwide) - mapx
-    framey = y - mapy
-    EXIT DO
-   END IF
-   IF isonscreen(x, y - maphigh) THEN
-    '--off-top
-    yesdraw = 1
-    framex = x - mapx
-    framey = (y - maphigh) - mapy
-    EXIT DO
-   END IF
-   IF isonscreen(x, y + maphigh) THEN
-    '--off-bottom
-    yesdraw = 1
-    framex = x - mapx
-    framey = (y + maphigh) - mapy
-    EXIT DO
-   END IF
-   IF isonscreen(x - mapwide, y - maphigh) THEN
-    '--off-top-left
-    yesdraw = 1
-    framex = (x - mapwide) - mapx
-    framey = (y - maphigh) - mapy
-    EXIT DO
-   END IF
-   IF isonscreen(x + mapwide, y - maphigh) THEN
-    '--off-top-right
-    yesdraw = 1
-    framex = (x + mapwide) - mapx
-    framey = (y - maphigh) - mapy
-    EXIT DO
-   END IF
-   IF isonscreen(x - mapwide, y + maphigh) THEN
-    '--off-bottom-left
-    yesdraw = 1
-    framex = (x - mapwide) - mapx
-    framey = (y + maphigh) - mapy
-    EXIT DO
-   END IF
-   IF isonscreen(x + mapwide, y + maphigh) THEN
-    '--off-bottom-right
-    yesdraw = 1
-    framex = (x + mapwide) - mapx
-    framey = (y + maphigh) - mapy
-    EXIT DO
-   END IF
-   EXIT DO
-  LOOP
+  framex = closestwrappedpos(x - mapx, vpages(dpage)->w, mapwide)
+  framey = closestwrappedpos(y - mapy, vpages(dpage)->h, maphigh)
+ ELSE
+  framex = x - mapx
+  framey = y - mapy
  END IF
-END IF
-
-framewalkabout = yesdraw
+ RETURN YES
 END FUNCTION
 
 SUB initgamedefaults
@@ -273,26 +221,14 @@ NEXT i
 
 END SUB
 
-FUNCTION isonscreen (x as integer, y as integer) as integer
-IF x >= mapx - 20 AND x <= mapx + 340 AND y >= mapy - 20 AND y <= mapy + 200 THEN
- isonscreen = -1
-ELSE
- isonscreen = 0
-END IF
-
-'17*20=340
-'10*20=200
-
-END FUNCTION
-
 SUB setmapxy
 SELECT CASE gen(cameramode)
  CASE herocam
-  mapx = catx(gen(cameraArg)) - 150
-  mapy = caty(gen(cameraArg)) - 90
+  mapx = catx(gen(cameraArg)) - (vpages(dpage)->w \ 2 - 10)
+  mapy = caty(gen(cameraArg)) - (vpages(dpage)->h \ 2 - 10)
  CASE npccam
-  mapx = npc(gen(cameraArg)).x - 150
-  mapy = npc(gen(cameraArg)).y - 90
+  mapx = npc(gen(cameraArg)).x - (vpages(dpage)->w \ 2 - 10)
+  mapy = npc(gen(cameraArg)).y - (vpages(dpage)->h \ 2 - 10)
  CASE pancam ' 1=dir, 2=ticks, 3=step
   IF gen(cameraArg2) > 0 THEN
    aheadxy mapx, mapy, gen(cameraArg), gen(cameraArg3)

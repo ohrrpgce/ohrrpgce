@@ -9,7 +9,6 @@ DECLARE SUB forcedismount (catd() as integer)
 DECLARE FUNCTION framewalkabout (x as integer, y as integer, framex as integer, framey as integer, mapwide as integer, maphigh as integer, wrapmode as integer) as integer
 DECLARE SUB initgamedefaults
 DECLARE SUB innRestore (stat() as integer)
-DECLARE FUNCTION isonscreen (x as integer, y as integer) as integer
 DECLARE SUB setmapxy
 DECLARE SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
 DECLARE SUB showplotstrings
