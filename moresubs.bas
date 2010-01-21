@@ -1229,6 +1229,7 @@ IF alone = 0 AND herocount() <= 1 THEN onwho = w: setkeys: EXIT FUNCTION
 menusound gen(genAcceptSFX)
 copypage dpage, vpage
 setvispage vpage
+DIM page as integer = compatpage
 setkeys
 DO
  setwait speedcontrol
@@ -1251,22 +1252,21 @@ DO
   menusound gen(genCursorSFX)
  END IF
  IF carray(ccUse) > 1 THEN onwho = w: EXIT DO
- centerbox 160, 100, 140, 52, 1, dpage
+ centerbox 160, 100, 140, 52, 1, page
  o = 0
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    wt = 0: IF w = i THEN wt = INT(wtg / 2)
-   frame_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 100 + i * 30, 100, 1, -1, dpage
+   frame_draw herow(o).sprite + (2 * 2) + wt, herow(o).pal, 100 + i * 30, 100, 1, -1, page
    o = o + 1
   END IF
  NEXT i
- edgeprint CHR(25), 106 + w * 30, 90, uilook(uiSelectedItem + tog), dpage
- edgeprint caption, xstring(caption, 160), 80, uilook(uiText), dpage
- SWAP vpage, dpage
+ edgeprint CHR(25), 106 + w * 30, 90, uilook(uiSelectedItem + tog), page
+ edgeprint caption, xstring(caption, 160), 80, uilook(uiText), page
  setvispage vpage
  dowait
 LOOP
-
+freepage page
 setkeys
 flusharray carray(), 7, 0
 
