@@ -711,14 +711,14 @@ DO
  
  '--draw menubar
  IF editmode = 0 THEN
-  setmapdata , 0, 180
+  setmapdata , 0, 20
   drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, 0, st.tilesets(st.layer), dpage
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
  END IF
  
  '--draw map
- setmapdata @pass, 20, 0
+ setmapdata @pass, 20
  animatetilesets st.tilesets()
  rectangle 0, 20, 320, 180, uilook(uiBackground), dpage
  for i = 0 to ubound(map)
@@ -734,14 +734,14 @@ DO
 			jigx *= i \ 8 + 1
 			jigy *= i \ 8 + 1
 		end if
-		drawmap map(i), mapx + jigx, mapy + jigy - 20, iif(i = 0, 1, 0), st.tilesets(i), dpage, iif(i = 0, 0, 1)
+		drawmap map(i), mapx + jigx, mapy + jigy, iif(i = 0, 1, 0), st.tilesets(i), dpage, iif(i = 0, 0, 1)
 	end if
  next
  if layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
 	if readbit(jiggle(), 0, 0) and tog then
-		drawmap map(0), mapx, mapy - 20 - 1, 2, st.tilesets(0), dpage, 0
+		drawmap map(0), mapx, mapy - 1, 2, st.tilesets(0), dpage, 0
 	else
-		drawmap map(0), mapx, mapy - 20, 2, st.tilesets(0), dpage, 0
+		drawmap map(0), mapx, mapy, 2, st.tilesets(0), dpage, 0
 	end if
  end if
  
@@ -845,7 +845,6 @@ DO
  printstr "Layer " & st.layer, 0, 180, dpage
  end if
  printstr "X " & x & "   Y " & y, 0, 192, dpage
- rectangle 300, 0, 20, 200, uilook(uiBackground), dpage
  rectangle 0, 19, 320, 1, uilook(uiText), dpage
  IF editmode = 0 THEN
   status$ = "Default Passability "
@@ -1053,9 +1052,9 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
   IF gmap(5) = 2 THEN
    '--show default edge tile
    writeblock sampmap, 0, 0, gmap(6)
-   setmapdata  , 180, 0
-   drawmap sampmap, 0, -180, 0, st.tilesets(0), dpage
-   rectangle 20, 180, 300, 20, uilook(uiBackground), dpage
+   setmapdata  , 180, 20
+   drawmap sampmap, 0, 0, 0, st.tilesets(0), dpage
+   rectangle 20, 180, 300, 20, uilook(uiBackground), dpage 'that's hacky
   END IF
  
   SWAP vpage, dpage
@@ -1868,7 +1867,7 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
   dmy = doors(link(cur).source).y * 20 - 65
   dmx = small(large(dmx, 0), map(0).wide * 20 - 320)
   dmy = small(large(dmy, 0), map(0).high * 20 - 100)
-  setmapdata @pass, 0, 101
+  setmapdata @pass, 0, 99
   FOR i = 0 TO UBOUND(map)
    IF LayerIsEnabled(gmap(), i) THEN
      drawmap map(i), dmx, dmy, 0, st.tilesets(i), 2, i <> 0
@@ -1895,14 +1894,14 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
   dmy = destdoor(link(cur).dest).y * 20 - 65
   dmx = small(large(dmx, 0), map2(0).wide * 20 - 320)
   dmy = small(large(dmy, 0), map2(0).high * 20 - 100)
-  setmapdata @pass2, 101, 0
+  setmapdata @pass2, 101, 
   FOR i = 0 TO UBOUND(map2)
    IF LayerIsEnabled(gmap2(), i) THEN
-     drawmap map2(i), dmx, dmy - 100, 0, tilesets2(i), 2, i <> 0
+     drawmap map2(i), dmx, dmy, 0, tilesets2(i), 2, i <> 0
    END IF
   NEXT i
   IF LayerIsEnabled(gmap2(), 0) THEN
-   drawmap map2(0), dmx, dmy - 100, 2, tilesets2(0), 2, 0
+   drawmap map2(0), dmx, dmy, 2, tilesets2(0), 2, 0
   END IF
   edgebox destdoor(link(cur).dest).x * 20 - dmx, destdoor(link(cur).dest).y * 20 - dmy + 80, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
   textcolor uilook(uiBackground), 0
@@ -2224,7 +2223,7 @@ SUB mapedit_pickblock(BYREF st AS MapEditState)
    IF st.tilepick.x > 15 THEN st.tilepick.x = 0: st.tilepick.y += 1
   END IF
   tog = tog XOR 1
-  setmapdata , 0, 0
+  setmapdata , 0
   drawmap st.tilesetview, 0, 0, 0, st.tilesets(st.layer), dpage
   frame_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , dpage
   ' copypage dpage, vpage

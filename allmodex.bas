@@ -433,11 +433,11 @@ end SUB
 #define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
 #define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
 
-SUB setmapdata (pas as TileMap ptr = NULL, BYVAL t as integer, BYVAL b as integer)
-'t and b are top and bottom margins
+SUB setmapdata (pas as TileMap ptr = NULL, BYVAL t as integer = 0, BYVAL h as integer = -1)
+'t and h are top and height. h=-1 indicates extend to bottom on screen
 	pmapptr = pas
 	maptop = t
-	maplines = 200 - t - b
+	maplines = h
 end SUB
 
 FUNCTION readblock (map as TileMap, BYVAL x as integer, BYVAL y as integer) as integer
@@ -464,6 +464,13 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as
 END SUB
 
 SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
+	dim mapview as Frame ptr
+	mapview = frame_new_view(vpages(p), 0, maptop, vpages(p)->w, iif(maplines = -1, vpages(p)->h, maplines))
+	drawmap tmap, x, y, t, tilesetsprite, mapview, trans
+	frame_unload @mapview
+END SUB
+
+SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL dest as Frame ptr, byval trans as integer = 0)
 	dim sptr as ubyte ptr
 	dim plane as integer
 
@@ -477,13 +484,8 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as
 	dim tx as integer
 	dim todraw as integer
 	dim tileframe as frame
-	
-	if clippedframe <> vpages(p) then
-		setclip , , , , p
-	end if
 
-	'set viewport to allow for top and bottom bars (TODO: remove this)
-	setclip(0, maptop, 319, maptop + maplines - 1)
+	setclip , , , , dest
 
 	'copied from the asm
 	ypos = y \ 20
@@ -503,19 +505,15 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as
 	xoff = -calc
 	xstart = xpos
 
-	'debug trans
-
 	tileframe.w = 20
 	tileframe.h = 20
 	tileframe.pitch = 20
 
-	'screen is 16 * 10 tiles, which means we need to draw 17x11
-	'to allow for partial tiles
 	ty = yoff
-	while ty < 200
+	while ty < dest->h
 		tx = xoff
 		xpos = xstart
-		while tx < 320
+		while tx < dest->w
 			todraw = calcblock(tmap, xpos, ypos, t)
 			if (todraw >= 160) then
 				if (todraw > 207) then
@@ -535,7 +533,7 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as
 				end if
 
 				'draw it on the map
-				drawohr(@tileframe, vpages(p), , tx, ty, trans)
+				drawohr(@tileframe, dest, , tx, ty, trans)
 			end if
 
 			tx = tx + 20
@@ -544,9 +542,6 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as
 		ty = ty + 20
 		ypos = ypos + 1
 	wend
-
-	'reset viewport
-	setclip
 end SUB
 
 SUB setanim (BYVAL cycle1 as integer, BYVAL cycle2 as integer)

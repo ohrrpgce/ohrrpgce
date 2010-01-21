@@ -712,7 +712,7 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   .X = mapx * -1
   .Y = mapy * -1
  END WITH
- setmapdata @pass, 0, 0
+ setmapdata @pass
  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
  ChangeMapSlice SliceTable.MapLayer(0), , , overlay
  DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
