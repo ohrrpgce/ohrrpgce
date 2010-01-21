@@ -42,5 +42,6 @@ DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as inte
 DECLARE SUB debug_npcs ()
 DECLARE SUB npc_debug_display ()
 DECLARE FUNCTION game_setoption(opt as string, arg as string) as integer
+DECLARE FUNCTION compatpage() as integer
 
 #endif

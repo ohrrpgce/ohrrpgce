@@ -1135,7 +1135,7 @@ FUNCTION createminimap (map() AS TileMap, tilesets() AS TilesetData ptr, BYREF z
 
  IF zoom = -1 THEN
   'auto-detect best zoom
-  zoom = bound(small(320 \ map(0).wide, 200 \ map(0).high), 1, 20)
+  zoom = bound(small(vpages(vpage)->w \ map(0).wide, vpages(vpage)->h \ map(0).high), 1, 20)
  END IF
 
  DIM mini as Frame Ptr

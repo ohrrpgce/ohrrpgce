@@ -17,6 +17,7 @@ DEFINT A-Z
 
 #include "game.bi"
 #include "yetmore.bi"
+#include "yetmore2.bi"
 #include "moresubs.bi"
 #include "menustuf.bi"
 #include "bmodsubs.bi"
@@ -53,8 +54,11 @@ DIM heropos AS XYPair
 recordsize = curbinsize(binSTF) / 2 ' get size in INTs
 
 '--Preserve background for display beneath the buy menu
+DIM page AS INTEGER
+DIM holdscreen AS INTEGER
+page = compatpage
 holdscreen = allocatepage
-copypage vpage, holdscreen
+copypage page, holdscreen
 
 buytype(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
 buytype(0, 1) = readglobalstring$(87, "Joins for", 20) + " "
@@ -199,24 +203,24 @@ DO
   GOSUB curinfo
  END IF '---------END TRY BUY THING--------
 
- centerbox 80, 94, 150, 168, 1, dpage
- centerbox 240, 94, 150, 168, 1, dpage
+ centerbox 80, 94, 150, 168, 1, page
+ centerbox 240, 94, 150, 168, 1, page
  '-----RIGHT PANEL------------------------------------------
  temp$ = gold & " " & readglobalstring(32, "Money")
- centerbox 240, 19, LEN(temp$) * 8 + 8, 14, 4, dpage
- edgeprint temp$, xstring(temp$, 240), 14, uilook(uiText), dpage
+ centerbox 240, 19, LEN(temp$) * 8 + 8, 14, 4, page
+ edgeprint temp$, xstring(temp$, 240), 14, uilook(uiText), page
  o = 0
- edgeprint stuf(pt), xstring(stuf(pt), 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
- IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
- IF info2$ <> "" THEN edgeprint info2$, xstring(info2$, 240), 30 + o * 10, uilook(uiDisabledItem), dpage: o = o + 1
- IF eqinfo$ <> "" THEN edgeprint eqinfo$, xstring(eqinfo$, 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
+ edgeprint stuf(pt), xstring(stuf(pt), 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
+ IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
+ IF info2$ <> "" THEN edgeprint info2$, xstring(info2$, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
+ IF eqinfo$ <> "" THEN edgeprint eqinfo$, xstring(eqinfo$, 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
  IF gam.stock(id, pt) > 1 THEN
-  edgeprint (gam.stock(id, pt) - 1) & " " & instock$ & " ", xstring((gam.stock(id, pt) - 1) & " " & instock$ & " ", 240), 30 + o * 10, uilook(uiMenuItem), dpage: o = o + 1
+  edgeprint (gam.stock(id, pt) - 1) & " " & instock$ & " ", xstring((gam.stock(id, pt) - 1) & " " & instock$ & " ", 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
  END IF
  IF showhero > -1 THEN
   'This happens only if a hireable hero is selected
-  centerbox 240, 130, 36, 44, 4, dpage
-  frame_draw(hiresprite + walks(walk), hirepal, 224, 110, 1, -1, dpage)
+  centerbox 240, 130, 36, 44, 4, page
+  frame_draw(hiresprite + walks(walk), hirepal, 224, 110, 1, -1, page)
  END IF
  IF is_equipable THEN
   FOR i = 0 TO 3
@@ -232,10 +236,10 @@ DO
      col = 3
     END IF
    END IF
-   edgeboxstyle heropos.x - 1, heropos.y - 2, 34, 44, col, dpage, , YES
+   edgeboxstyle heropos.x - 1, heropos.y - 2, 34, 44, col, page, , YES
    IF hero(i) > 0 THEN
     'If there is a hero in this slot
-    frame_draw(herosprite(i) + heroframe, heropal(i), heropos.x, heropos.y, 1, -1, dpage)
+    frame_draw(herosprite(i) + heroframe, heropal(i), heropos.x, heropos.y, 1, -1, page)
    END IF
   NEXT i
  END IF
@@ -245,7 +249,7 @@ DO
   IF readbit(vmask(), 0, i) = 0 THEN
    c = uilook(uiMenuItem): IF pt = i THEN c = uilook(uiSelectedItem + tog)
    IF readbit(emask(), 0, i) THEN c = uilook(uiDisabledItem): IF pt = i THEN c = uilook(uiMenuItem + tog)
-   edgeprint stuf(i), 10, 15 + o * 10, c, dpage
+   edgeprint stuf(i), 10, 15 + o * 10, c, page
    o = o + 1
    IF o > 14 THEN
     IF pt > i THEN
@@ -258,18 +262,17 @@ DO
   END IF
  NEXT i
  IF price$ <> "" THEN
-  centerbox 160, 187, LEN(price$) * 8 + 8, 14 + xtralines * 10, 1, dpage
-  edgeprint price$, xstring(price$, 160), 182 - xtralines * 5, uilook(uiText), dpage
-  IF xtralines >= 1 THEN edgeprint price2$, xstring(price2$, 160), 187, uilook(uiText), dpage
+  centerbox 160, 187, LEN(price$) * 8 + 8, 14 + xtralines * 10, 1, page
+  edgeprint price$, xstring(price$, 160), 182 - xtralines * 5, uilook(uiText), page
+  IF xtralines >= 1 THEN edgeprint price2$, xstring(price2$, 160), 187, uilook(uiText), page
  END IF
  IF alert THEN
   alert = alert - 1
-  centerbox 160, 178, LEN(alert$) * 8 + 8, 14, acol, dpage
-  edgeprint alert$, xstring(alert$, 160), 173, uilook(uiSelectedItem + tog), dpage
+  centerbox 160, 178, LEN(alert$) * 8 + 8, 14, acol, page
+  edgeprint alert$, xstring(alert$, 160), 173, uilook(uiSelectedItem + tog), page
  END IF
- SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen, dpage
+ copypage holdscreen, page
  dowait
 LOOP
 
@@ -281,6 +284,7 @@ FOR i = 0 TO 3
 NEXT i
 frame_unload(@hiresprite)
 palette16_unload(@hirepal)
+freepage page
 freepage holdscreen
 menusound gen(genCancelSFX)
 vishero stat()
@@ -745,7 +749,7 @@ DIM full(3), herosname(3) AS STRING, mapname(3) AS STRING, svtime(3) AS STRING, 
 DIM sprites(3, 3) AS GraphicPair
 
 '--loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen. it fades the screen in
-'--loading 0+1 use dpage as background, loading 2 uses none. pages 2 and 3 are preserved
+'--loading 0+1 use vpage as background, loading 2 uses none. pages 2 and 3 are preserved
 '--terribly sorry for the dirtyness
 needf = 0
 IF loading = 2 THEN
@@ -768,10 +772,13 @@ ELSE
  menuwidth = 8 * large(LEN(confirm(0)), LEN(confirm(1)))
 END IF
 
+DIM holdscreen AS INTEGER
+DIM page AS INTEGER
+page = compatpage
 holdscreen = allocatepage
 IF loading < 2 THEN
  '--preserve background for display beneath the save/load picker
- copypage vpage, holdscreen
+ copypage page, holdscreen
 END IF
 'otherwise, holdscreen is black
 
@@ -912,9 +919,8 @@ DO
   END IF
  END IF
  GOSUB drawmenugosub
- SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen, dpage
+ copypage holdscreen, page
  IF needf = 1 THEN   'the titlescreen might be skipped and with it the fading in
   needf = 0
   fadein
@@ -924,6 +930,7 @@ DO
 LOOP
 
 freesprites:
+freepage page
 freepage holdscreen
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 FOR i = 0 TO 3
@@ -955,54 +962,53 @@ DO
  END IF
  IF carray(ccUse) > 1 THEN RETRACE
  GOSUB drawmenugosub
- centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 24, 3, dpage
- edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * cursor), uilook(uiText), dpage
+ centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 24, 3, page
+ edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * cursor), uilook(uiText), page
  FOR i = 0 TO 1
  col = uilook(uiSelectedItem + tog): IF allow = i THEN col = uilook(uiMenuItem)
-  edgeprint confirm(i), 216, 5 + (i * 9) + (44 * cursor), col, dpage
+  edgeprint confirm(i), 216, 5 + (i * 9) + (44 * cursor), col, page
  NEXT i
- SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen, dpage
+ copypage holdscreen, page
  dowait
 LOOP
 
 drawmenugosub:
-centerbox 50, 11, 80, 14, 15, dpage
-IF loading THEN centerbox 270, 11, 80, 14, 15, dpage
+centerbox 50, 11, 80, 14, 15, page
+IF loading THEN centerbox 270, 11, 80, 14, 15, page
 FOR i = 0 TO 3
- centerbox 160, 44 + i * 44, 310, 42, 15, dpage
+ centerbox 160, 44 + i * 44, 310, 42, 15, page
 NEXT i
 'load and save menus enjoy different colour schemes
 IF loading THEN activec = 2 ELSE activec = 1
 SELECT CASE cursor
  CASE -2
-  centerbox 270, 11, 82, 16, activec, dpage
+  centerbox 270, 11, 82, 16, activec, page
  CASE -1
-  centerbox 50, 11, 82, 16, activec, dpage
+  centerbox 50, 11, 82, 16, activec, page
  CASE ELSE
-  centerbox 160, 44 + cursor * 44, 312, 44, activec, dpage
+  centerbox 160, 44 + cursor * 44, 312, 44, activec, page
 END SELECT
 FOR i = 0 TO 3
  IF full(i) = 1 THEN
   FOR o = 0 TO 3
    IF id(i, o) > 0 THEN
-    frame_draw sprites(i, o).sprite + iif(cursor = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, dpage
+    frame_draw sprites(i, o).sprite + iif(cursor = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, page
    END IF
   NEXT o
   col = uilook(uiMenuItem)
   IF cursor = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint herosname(i), 14, 25 + i * 44, col, dpage
-  edgeprint lev(i), 14, 34 + i * 44, col, dpage
-  edgeprint svtime(i), 14, 43 + i * 44, col, dpage
-  edgeprint mapname(i), 14, 52 + i * 44, col, dpage
+  edgeprint herosname(i), 14, 25 + i * 44, col, page
+  edgeprint lev(i), 14, 34 + i * 44, col, page
+  edgeprint svtime(i), 14, 43 + i * 44, col, page
+  edgeprint mapname(i), 14, 52 + i * 44, col, page
  END IF
 NEXT i
 col = uilook(uiMenuItem): IF cursor = -1 THEN col = uilook(uiSelectedItem + tog)
-edgeprint menu(0), xstring(menu(0), 50), 6, col, dpage
+edgeprint menu(0), xstring(menu(0), 50), 6, col, page
 IF loading THEN
  col = uilook(uiMenuItem): IF cursor = -2 THEN col = uilook(uiSelectedItem + tog)
- edgeprint menu(1), xstring(menu(1), 270), 6, col, dpage
+ edgeprint menu(1), xstring(menu(1), 270), 6, col, page
 END IF
 RETRACE
 
@@ -1013,8 +1019,11 @@ DIM b(dimbinsize(binSTF) * 50), permask(15), price(200)
 recordsize = curbinsize(binSTF) / 2 ' get size in INTs
 
 '--preserve background for display under sell menu
+DIM page AS INTEGER
+DIM holdscreen AS INTEGER
+page = compatpage
 holdscreen = allocatepage
-copypage vpage, holdscreen
+copypage page, holdscreen
 
 cannotsell$ = readglobalstring$(75, "CANNOT SELL", 20)
 worth$ = readglobalstring$(77, "Worth", 20)
@@ -1046,7 +1055,7 @@ DO
  control
  GOSUB keysell
  IF quit THEN EXIT DO
- centerbox 160, 92, 304, 176, 1, dpage
+ centerbox 160, 92, 304, 176, 1, page
  FOR i = top TO top + 62
   textcolor uilook(uiMenuItem), 0
   IF readbit(permask(), 0, i) THEN textcolor uilook(uiDisabledItem), 0
@@ -1054,21 +1063,21 @@ DO
    textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
    IF readbit(permask(), 0, i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
   END IF
-  printstr inventory(i).text, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), dpage
+  printstr inventory(i).text, 20 + 96 * (i MOD 3), 12 + 8 * ((i - top) \ 3), page
  NEXT i
- centerfuz 160, 180, 312, 20, 4, dpage
- edgeprint info$, xstring(info$, 160), 175, uilook(uiText), dpage
- edgeprint gold & " " & readglobalstring(32, "Money"), 310 - LEN(gold & " " & readglobalstring(32, "Money")) * 8, 1, uilook(uiGold), dpage
+ centerfuz 160, 180, 312, 20, 4, page
+ edgeprint info$, xstring(info$, 160), 175, uilook(uiText), page
+ edgeprint gold & " " & readglobalstring(32, "Money"), 310 - LEN(gold & " " & readglobalstring(32, "Money")) * 8, 1, uilook(uiGold), page
  IF alert THEN
   alert = alert - 1
-  centerbox 160, 178, LEN(alert$) * 8 + 8, 14, 4, dpage
-  edgeprint alert$, xstring(alert$, 160), 173, uilook(uiSelectedItem + tog), dpage
+  centerbox 160, 178, LEN(alert$) * 8 + 8, 14, 4, page
+  edgeprint alert$, xstring(alert$, 160), 173, uilook(uiSelectedItem + tog), page
  END IF
- SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen, dpage
+ copypage holdscreen, page
  dowait
 LOOP
+freepage page
 freepage holdscreen
 menusound gen(genCancelSFX)
 EXIT SUB
@@ -1199,6 +1208,8 @@ SUB status (pt, stat())
 DIM mtype(5), hbits(3, 4), thishbits(4), elemtype(2) AS STRING, info(25) AS STRING
 DIM her AS HeroDef
 DIM portrait AS GraphicPair
+DIM page AS INTEGER
+DIM holdscreen AS INTEGER
 
 DIM exper_caption AS STRING = readglobalstring(33, "Experience", 10)
 DIM level_caption AS STRING = readglobalstring(43, "Level", 10)
@@ -1218,8 +1229,9 @@ lastinfo = 0
 
 GOSUB nextstat
 '--Preserve background for display under status menu
+page = compatpage
 holdscreen = allocatepage
-copypage vpage, holdscreen
+copypage page, holdscreen
 
 menusound gen(genAcceptSFX)
 setkeys
@@ -1236,70 +1248,70 @@ DO
  IF carray(ccUp) > 1 THEN top = large(top - 1, 0): menusound gen(genCursorSFX)
  IF carray(ccDown) > 1 THEN top = small(top + 1, large(0, lastinfo - 11)): menusound gen(genCursorSFX)
 
- centerfuz 160, 100, 304, 184, 1, dpage
- centerbox 160, 36, 292, 40, 4, dpage
+ centerfuz 160, 100, 304, 184, 1, page
+ centerbox 160, 36, 292, 40, 4, page
  SELECT CASE mode
   CASE 0
-   centerbox 84, 120, 140, 120, 4, dpage
-   centerbox 236, 120, 140, 120, 4, dpage
+   centerbox 84, 120, 140, 120, 4, page
+   centerbox 236, 120, 140, 120, 4, page
   CASE 1, 2
-   centerbox 160, 120, 292, 120, 4, dpage
+   centerbox 160, 120, 292, 120, 4, page
  END SELECT
  IF her.portrait >= 0 THEN
-  edgeboxstyle 262, 8, 50, 50, 3, dpage
-  frame_draw portrait.sprite, portrait.pal, 262, 8,,,dpage
+  edgeboxstyle 262, 8, 50, 50, 3, page
+  frame_draw portrait.sprite, portrait.pal, 262, 8,,,page
  END IF
 
- edgeprint names(pt), 142 - LEN(names(pt)) * 4, 20, uilook(uiText), dpage
- edgeprint level_caption & " " & stat(pt, 0, 12), 142 - LEN(level_caption & " " & stat(pt, 0, 12)) * 4, 30, uilook(uiText), dpage
+ edgeprint names(pt), 142 - LEN(names(pt)) * 4, 20, uilook(uiText), page
+ edgeprint level_caption & " " & stat(pt, 0, 12), 142 - LEN(level_caption & " " & stat(pt, 0, 12)) * 4, 30, uilook(uiText), page
  temp$ = (exlev(pt, 1) - exlev(pt, 0)) & " " & exper_caption & " " & readglobalstring$(47, "for next", 10) & " " & level_caption
- edgeprint temp$, 142 - LEN(temp$) * 4, 40, uilook(uiText), dpage
+ edgeprint temp$, 142 - LEN(temp$) * 4, 40, uilook(uiText), page
 
  SELECT CASE mode
   CASE 0
    '--show stats
    FOR i = 0 TO 9
-    edgeprint statnames(i + 2), 20, 62 + i * 10, uilook(uiText), dpage
+    edgeprint statnames(i + 2), 20, 62 + i * 10, uilook(uiText), page
     temp$ = STR$(stat(pt, 0, i + 2))
-    edgeprint temp$, 148 - LEN(temp$) * 8, 62 + i * 10, uilook(uiText), dpage
+    edgeprint temp$, 148 - LEN(temp$) * 8, 62 + i * 10, uilook(uiText), page
    NEXT i
 
    'current/max HP
-   edgeprint statnames(statHP), 236 - LEN(statnames(statHP)) * 4, 65, uilook(uiText), dpage
+   edgeprint statnames(statHP), 236 - LEN(statnames(statHP)) * 4, 65, uilook(uiText), page
    temp$ = STR$(ABS(stat(pt, 0, statHP))) + "/" + STR$(ABS(stat(pt, 1, statHP)))
-   edgeprint temp$, 236 - LEN(temp$) * 4, 75, uilook(uiText), dpage
+   edgeprint temp$, 236 - LEN(temp$) * 4, 75, uilook(uiText), page
 
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
-     edgeprint statnames(statMP), 236 - LEN(statnames(statMP)) * 4, 95, uilook(uiText), dpage
+     edgeprint statnames(statMP), 236 - LEN(statnames(statMP)) * 4, 95, uilook(uiText), page
      temp$ = STR$(ABS(stat(pt, 0, statMP))) + "/" + STR$(ABS(stat(pt, 1, statMP)))
-     edgeprint temp$, 236 - LEN(temp$) * 4, 105, uilook(uiText), dpage
+     edgeprint temp$, 236 - LEN(temp$) * 4, 105, uilook(uiText), page
     END IF
     IF mtype(i) = 1 THEN
-     edgeprint level_mp_caption, 236 - LEN(level_mp_caption) * 4, 125, uilook(uiText), dpage
+     edgeprint level_mp_caption, 236 - LEN(level_mp_caption) * 4, 125, uilook(uiText), page
      temp$ = ""
      FOR o = 0 TO 3
       temp$ = temp$ + STR$(ABS(lmp(pt, o))) + "/"
      NEXT o
      temp$ = LEFT$(temp$, LEN(temp$) - 1)
-     edgeprint temp$, 236 - LEN(temp$) * 4, 135, uilook(uiText), dpage
+     edgeprint temp$, 236 - LEN(temp$) * 4, 135, uilook(uiText), page
      temp$ = ""
      FOR o = 4 TO 7
       temp$ = temp$ + STR$(ABS(lmp(pt, o))) + "/"
      NEXT o
      temp$ = LEFT$(temp$, LEN(temp$) - 1)
-     edgeprint temp$, 236 - LEN(temp$) * 4, 145, uilook(uiText), dpage
+     edgeprint temp$, 236 - LEN(temp$) * 4, 145, uilook(uiText), page
     END IF
    NEXT i
 
    '--gold
-   edgeprint gold & " " & readglobalstring(32, "Money"), 236 - LEN(gold & " " & readglobalstring(32, "Money")) * 4, 167, uilook(uiGold), dpage
+   edgeprint gold & " " & readglobalstring(32, "Money"), 236 - LEN(gold & " " & readglobalstring(32, "Money")) * 4, 167, uilook(uiGold), page
   CASE 1
 
    '--show elementals
    FOR i = 0 TO 10
-    IF top + i <= 25 THEN edgeprint info(top + i), 20, 62 + i * 10, uilook(uiText), dpage
+    IF top + i <= 25 THEN edgeprint info(top + i), 20, 62 + i * 10, uilook(uiText), page
    NEXT i
 
   CASE 2
@@ -1312,14 +1324,14 @@ DO
 
  END SELECT
 
- SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen, dpage
+ copypage holdscreen, page
  dowait
 LOOP
 menusound gen(genCancelSFX)
 IF portrait.sprite THEN frame_unload @portrait.sprite
 IF portrait.pal    THEN palette16_unload @portrait.pal
+freepage page
 freepage holdscreen
 FOR t = 4 TO 5
  carray(t) = 0
@@ -1482,6 +1494,7 @@ SUB equip (who, stat())
 
 '--dim stuff
 DIM m(4) AS STRING, menu(6) AS STRING
+DIM page AS INTEGER = compatpage
 DIM holdscreen = allocatepage
 DIM st AS EquipMenuState
 
@@ -1512,7 +1525,7 @@ equip_menu_setup st, menu()
 
 '--prepare the backdrop
 'preserve the background behind the equip menu
-copypage vpage, holdscreen
+copypage page, holdscreen
 
 '--main loop
 MenuSound gen(genAcceptSFX)
@@ -1609,16 +1622,16 @@ DO
  END IF
 
  '--display
- centerfuz 160, 100, 304, 184, 1, dpage 'backdrop box
- centerbox 84, 18, 140, 16, 4, dpage    'hero name
- centerbox 84, 102, 140, 130, 4, dpage  'stats
- centerbox 236, 75, 80, 78, 4, dpage    'equipment
- edgeprint names(st.who), 84 - LEN(names(st.who)) * 4, 13, uilook(uiText), dpage
+ centerfuz 160, 100, 304, 184, 1, page 'backdrop box
+ centerbox 84, 18, 140, 16, 4, page    'hero name
+ centerbox 84, 102, 140, 130, 4, page  'stats
+ centerbox 236, 75, 80, 78, 4, page    'equipment
+ edgeprint names(st.who), 84 - LEN(names(st.who)) * 4, 13, uilook(uiText), page
  FOR i = 0 TO 11
   stat_caption = ""
   IF st.stat_bonus(i) > 0 THEN stat_caption = stat_caption & "+" & st.stat_bonus(i)
   IF st.stat_bonus(i) < 0 THEN stat_caption = stat_caption & st.stat_bonus(i)
-  edgeprint statnames(i) & stat_caption, 20, 42 + i * 10, uilook(uiMenuItem), dpage
+  edgeprint statnames(i) & stat_caption, 20, 42 + i * 10, uilook(uiMenuItem), page
   col = uilook(uiMenuItem)
   IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
   IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)
@@ -1627,7 +1640,7 @@ DO
   ELSE
    stat_caption = STR$(stat(st.who, 1, i) + st.stat_bonus(i))
   END IF
-  edgeprint stat_caption, 148 - LEN(stat_caption) * 8, 42 + i * 10, col, dpage
+  edgeprint stat_caption, 148 - LEN(stat_caption) * 8, 42 + i * 10, col, page
  NEXT i
  IF st.mode = 0 THEN
   '--main menu display
@@ -1642,16 +1655,16 @@ DO
       IF st.eq(i).count = 0 THEN textcolor uilook(uiSelectedItem), uilook(uiHighlight2)
     END IF
    END IF
-   printstr menu(i), 204, 45 + i * 9, dpage
+   printstr menu(i), 204, 45 + i * 9, page
   NEXT i
   IF st.slot < 5 THEN
-   centerbox 236, 22, (LEN(m(st.slot)) + 2) * 8, 16, 4, dpage
-   edgeprint m(st.slot), 236 - (LEN(m(st.slot)) * 4), 17, uilook(uiText), dpage
+   centerbox 236, 22, (LEN(m(st.slot)) + 2) * 8, 16, 4, page
+   edgeprint m(st.slot), 236 - (LEN(m(st.slot)) * 4), 17, uilook(uiText), page
   END IF
  END IF
  IF st.mode = 1 THEN
   '--change equipment menu
-  centerbox 236, 100, 96, 152, 4, dpage
+  centerbox 236, 100, 96, 152, 4, page
   FOR i = st.eq_cursor.top TO st.eq_cursor.top + st.eq_cursor.size
    textcolor uilook(uiMenuItem), 0
    IF i = st.eq_cursor.pt THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
@@ -1659,24 +1672,24 @@ DO
     IF i = st.eq(st.slot).count THEN
      '--unequip option
      IF st.slot = 0 THEN
-      printstr st.default_weapon_name, 192, 28 + (i - st.eq_cursor.top) * 8, dpage
+      printstr st.default_weapon_name, 192, 28 + (i - st.eq_cursor.top) * 8, page
      ELSE
-      printstr st.unequip_caption, 192, 28 + (i - st.eq_cursor.top) * 8, dpage
+      printstr st.unequip_caption, 192, 28 + (i - st.eq_cursor.top) * 8, page
      END IF
     ELSE
      '--all done!
      EXIT FOR
     END IF
    ELSE
-    printstr inventory(st.eq(st.slot).offset(i)).text, 192, 28 + (i - st.eq_cursor.top) * 8, dpage
+    printstr inventory(st.eq(st.slot).offset(i)).text, 192, 28 + (i - st.eq_cursor.top) * 8, page
    END IF
   NEXT i
  END IF
- SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen, dpage
+ copypage holdscreen, page
  dowait
 LOOP
+freepage page
 freepage holdscreen
 MenuSound gen(genCancelSFX)
 evalitemtag
@@ -1804,9 +1817,11 @@ FUNCTION items_menu (stat() as integer) as integer
  special(-1) = rpad(readglobalstring(37, "TRASH", 10), " ", 11)
 
  '--Preserve background for display beneath the item menu
+ DIM page AS INTEGER
  DIM holdscreen AS INTEGER
+ page = compatpage
  holdscreen = allocatepage
- copypage vpage, holdscreen
+ copypage page, holdscreen
 
  DIM i AS INTEGER
  
@@ -1877,7 +1892,7 @@ FUNCTION items_menu (stat() as integer) as integer
    items_menu_infostr istate, permask()
   END IF
  
-  edgeboxstyle rect.x, rect.y, rect.wide, rect.high, 0, dpage
+  edgeboxstyle rect.x, rect.y, rect.wide, rect.high, 0, page
   FOR i = istate.top TO small(istate.top + 62, last_inv_slot())
    textcolor uilook(uiDisabledItem), 0
    IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
@@ -1896,24 +1911,24 @@ FUNCTION items_menu (stat() as integer) as integer
    ELSE
     display = special(i)
    END IF
-   printstr display, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - istate.top) \ 3), dpage
+   printstr display, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - istate.top) \ 3), page
   NEXT i
-  centerfuz 160, 192, 312, 16, 4, dpage
-  edgeprint istate.info, xstring(istate.info, 160), 187, uilook(uiText), dpage
+  centerfuz 160, 192, 312, 16, 4, page
+  edgeprint istate.info, xstring(istate.info, 160), 187, uilook(uiText), page
   WITH istate.scroll
    .top = INT(istate.top / 3)
    .pt = INT(istate.cursor / 3)
   END WITH
-  draw_scrollbar istate.scroll, scrollrect, , dpage
-  SWAP vpage, dpage
+  draw_scrollbar istate.scroll, scrollrect, , page
   setvispage vpage
-  copypage holdscreen, dpage
+  copypage holdscreen, page
   IF istate.re_use = NO THEN
    dowait
   END IF
  LOOP
  carray(ccUse) = 0
  carray(ccMenu) = 0
+ freepage page
  freepage holdscreen
 END FUNCTION
 
@@ -2018,6 +2033,8 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
  STATIC spread AS INTEGER
 
  '--Preserve background for display beneath the targ picker menu
+ DIM page AS INTEGER
+ page = compatpage
  DIM holdscreen AS INTEGER
  holdscreen = allocatepage
  copypage vpage, holdscreen
@@ -2186,6 +2203,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
  
  carray(ccUse) = 0
  carray(ccMenu) = 0
+ freepage page
  freepage holdscreen
 END FUNCTION
 
@@ -2512,8 +2530,10 @@ SUB spells_menu (who AS INTEGER)
 
  spells_menu_refresh_hero sp
  '--Preserve background for display beneath the spells menu
+ DIM page AS INTEGER
+ page = compatpage
  DIM holdscreen AS INTEGER = allocatepage
- copypage vpage, holdscreen
+ copypage page, holdscreen
 
  menusound gen(genAcceptSFX)
  DIM tog AS INTEGER = 0
@@ -2528,11 +2548,11 @@ SUB spells_menu (who AS INTEGER)
   control
   spells_menu_control sp
   IF sp.quit THEN EXIT DO
-  centerfuz 160, 100, 312, 184, 1, dpage 'outer box
-  centerbox 206, 36, 200, 17, 2, dpage   'name box
-  centerbox 56, 50, 84, 60, 2, dpage     'menu box
-  centerbox 160, 134, 308, 96, 2, dpage  'spell list
-  rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), dpage 'divider 2
+  centerfuz 160, 100, 312, 184, 1, page 'outer box
+  centerbox 206, 36, 200, 17, 2, page   'name box
+  centerbox 56, 50, 84, 60, 2, page     'menu box
+  centerbox 160, 134, 308, 96, 2, page  'spell list
+  rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), page 'divider 2
   FOR i AS INTEGER = 0 TO sp.last
    IF sp.lists(i).menu_index >= 0 AND sp.listnum = i THEN
     FOR o AS INTEGER = 0 TO 23
@@ -2545,30 +2565,29 @@ SUB spells_menu (who AS INTEGER)
        textcolor uilook(uiMenuItem), uilook(uiHighlight)
       END IF
      END IF
-     printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, dpage 'spells
+     printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, page 'spells
     NEXT o
     textcolor uilook(uiMenuItem), 0
     IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
-    printstr cancelmenu, 16, 171, dpage 'cancel
+    printstr cancelmenu, 16, 171, page 'cancel
     IF sp.mset = 1 THEN
      IF sp.spell(sp.cursor).desc <> "" THEN
-      rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), dpage  'description divider
+      rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), page  'description divider
      END IF
      textcolor uilook(uiDescription), 0
-     printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, dpage 'cost
-     printstr sp.spell(sp.cursor).desc, 9, 158, dpage 'description
+     printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, page 'cost
+     printstr sp.spell(sp.cursor).desc, 9, 158, page 'description
     END IF
    END IF
    textcolor uilook(uiMenuItem), 0
    IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2): IF sp.mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-   printstr sp.lists(i).name, 16, 25 + i * 10, dpage 'spell menu
+   printstr sp.lists(i).name, 16, 25 + i * 10, page 'spell menu
   NEXT i
-  IF sp.last = 0 THEN edgeprint names(sp.hero) & " " & hasnone, xstring(names(sp.hero) & " " & hasnone, 160), 120, uilook(uiText), dpage
-  edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), dpage
+  IF sp.last = 0 THEN edgeprint names(sp.hero) & " " & hasnone, xstring(names(sp.hero) & " " & hasnone, 160), 120, uilook(uiText), page
+  edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), page
 
-  SWAP vpage, dpage
   setvispage vpage
-  copypage holdscreen, dpage
+  copypage holdscreen, page
   IF sp.re_use = NO THEN
    dowait
   END IF
@@ -2577,6 +2596,7 @@ SUB spells_menu (who AS INTEGER)
  menusound gen(genCancelSFX)
  setkeys
  flusharray carray(), 7
+ freepage page
  freepage holdscreen
 
 END SUB

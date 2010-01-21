@@ -471,10 +471,13 @@ NEXT i
 findhero = result
 END FUNCTION
 
-SUB heroswap (iAll%, stat())
+SUB heroswap (iAll, stat())
 '--Preserve background for display beneath the hero swapper
+DIM page AS INTEGER
+DIM holdscreen AS INTEGER
+page = compatpage
 holdscreen = allocatepage
-copypage vpage, holdscreen
+copypage page, holdscreen
 
 DIM swindex(40), swname(40) as string
 
@@ -577,13 +580,13 @@ DO
  END IF
 
  GOSUB showswapmenu
- SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen, dpage
+ copypage holdscreen, page
  dowait
 LOOP
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
 MenuSound gen(genCancelSFX)
+freepage page
 freepage holdscreen
 EXIT SUB
 
@@ -595,19 +598,19 @@ RETRACE
 
 '---DRAWS SWAP MENU AND CURRENT SELECTION----
 showswapmenu:
-centerbox 160, 66, 130, 38, 1, dpage
+centerbox 160, 66, 130, 38, 1, page
 o = 0
 FOR i = 0 TO 3
- IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), dpage
+ IF i = swapme OR hero(i) > 0 THEN rectangle 105 + (30 * i), 60, 20, 20, uilook(uiTextBox), page
  IF hero(i) THEN
   '5th frame: down
-  frame_draw herow(o).sprite + 4, herow(o).pal, 105 + i * 30, 60 + (i = swapme) * 6, 1, -1, dpage
+  frame_draw herow(o).sprite + 4, herow(o).pal, 105 + i * 30, 60 + (i = swapme) * 6, 1, -1, page
   o = o + 1
  END IF
 NEXT i
-IF ecsr < 0 THEN edgeprint CHR$(24), 111 + 30 * acsr, 52, uilook(uiSelectedItem + tog), dpage
+IF ecsr < 0 THEN edgeprint CHR$(24), 111 + 30 * acsr, 52, uilook(uiSelectedItem + tog), page
 IF iAll THEN
- centerbox 160, 100 + small(high, 8) * 5, wide * 8 + 16, small(high, 8) * 10 + 10, 1, dpage
+ centerbox 160, 100 + small(high, 8) * 5, wide * 8 + 16, small(high, 8) * 10 + 10, 1, page
  FOR i = top TO small(top + 7, la)
   'Some of the colours are a bit bizarre, here, especially the time bar stuff below
   c = uilook(uiMenuItem)
@@ -619,12 +622,12 @@ IF iAll THEN
   IF swapme > -1 AND swapme < 4 THEN
    IF (numhero < 2 AND i = la) OR readbit(hmask(), 0, acsr) THEN c = uilook(uiTimeBar + ((ecsr = i) * tog)) '8 + ((ecsr = i) * tog)
   END IF
-  edgeprint swname(i), xstring(swname(i), 160), 100 + (i - top) * 10, c, dpage
+  edgeprint swname(i), xstring(swname(i), 160), 100 + (i - top) * 10, c, page
  NEXT i
 END IF
 IF LEN(info$) THEN
- centerbox 160, 44, (LEN(info$) + 2) * 8, 14, 1, dpage
- edgeprint info$, xstring(info$, 160), 39, uilook(uiText), dpage
+ centerbox 160, 44, (LEN(info$) + 2) * 8, 14, 1, page
+ edgeprint info$, xstring(info$, 160), 39, uilook(uiText), page
 END IF
 RETRACE
 
@@ -1014,8 +1017,8 @@ SUB minimap (x, y)
  minisize.y = mini->h
  
  DIM offset AS XYPair
- offset.x = 160 - minisize.x / 2
- offset.y = 100 - minisize.y / 2
+ offset.x = vpages(vpage)->w / 2 - minisize.x / 2
+ offset.y = vpages(vpage)->h / 2 - minisize.y / 2
 
  edgeboxstyle offset.x - 2, offset.y - 2, minisize.x + 4, minisize.y + 4, 0, vpage
  frame_draw mini, NULL, offset.x, offset.y, 1, NO, vpage
@@ -2277,7 +2280,9 @@ SUB shop (id, needf, stat())
 
 DIM storebuf(40), menu(10) AS STRING, menuid(10)
 DIM sn AS STRING
-DIM AS INTEGER i, autopick, last, pt, w, temp, tog, inn, rsr, h, c, t, o, holdscreen
+DIM AS INTEGER i, autopick, last, pt, w, temp, tog, inn, rsr, h, c, t, o
+DIM page AS INTEGER
+DIM holdscreen AS INTEGER
 
 FOR i = 0 TO 7
  menuid(i) = i
@@ -2301,8 +2306,9 @@ last = last + 1: menu(last) = readglobalstring$(74, "Exit", 10)
 menusound gen(genAcceptSFX)
 
 '--Preserve background for display beneath top-level shop menu
+page = compatpage
 holdscreen = allocatepage
-copypage vpage, holdscreen
+copypage page, holdscreen
 
 setkeys
 DO
@@ -2363,21 +2369,21 @@ DO
   IF autopick THEN EXIT DO
  END IF
  h = (last + 2) * 10
- centerbox 160, 104 + (h * .5), 96, h, 1, dpage
- centerbox 160, 90, LEN(sn) * 8 + 8, 16, 1, dpage
- edgeprint sn, xstring(sn, 160), 85, uilook(uiText), dpage
+ centerbox 160, 104 + (h * .5), 96, h, 1, page
+ centerbox 160, 90, LEN(sn) * 8 + 8, 16, 1, page
+ edgeprint sn, xstring(sn, 160), 85, uilook(uiText), page
  FOR i = 0 TO last
   c = uilook(uiMenuItem): IF pt = i THEN c = uilook(uiSelectedItem + tog)
-  edgeprint menu(i), xstring(menu(i), 160), 109 + i * 10, c, dpage
+  edgeprint menu(i), xstring(menu(i), 160), 109 + i * 10, c, page
  NEXT i
- SWAP vpage, dpage
  setvispage vpage
- copypage holdscreen, dpage
+ copypage holdscreen, page
  IF needf = 1 THEN needf = 0: fadein: setkeys
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
 FOR t = 4 TO 5: carray(t) = 0: NEXT t
+freepage page
 freepage holdscreen
 EXIT SUB
 

@@ -449,7 +449,10 @@ keyv(40, 1) = 34
 END SUB
 
 SUB verquit
- copypage dpage, vpage
+ 'copypage dpage, vpage
+ DIM page AS INTEGER
+ page = compatpage
+
  quitprompt$ = readglobalstring$(55, "Quit Playing?", 20)
  quityes$ = readglobalstring$(57, "Yes", 10)
  quitno$ = readglobalstring$(58, "No", 10)
@@ -468,18 +471,18 @@ SUB verquit
    IF ptr2 < 0 THEN abortg = 1: fadeout 0, 0, 0
    setkeys
    flusharray carray(), 7, 0
+   freepage page
    EXIT SUB
   END IF
   IF carray(ccLeft) > 0 THEN ptr2 = ptr2 - 5: direction = 3
   IF carray(ccRight) > 0 THEN ptr2 = ptr2 + 5: direction = 1
-  centerbox 160, 95, 200, 42, 15, dpage
-  frame_draw herow(0).sprite + direction * 2 + (wtog(0) \ 2), herow(0).pal, 150 + ptr2, 90, 1, -1, dpage
-  edgeprint quitprompt$, xstring(quitprompt$, 160), 80, uilook(uiText), dpage
+  centerbox 160, 95, 200, 42, 15, page
+  frame_draw herow(0).sprite + direction * 2 + (wtog(0) \ 2), herow(0).pal, 150 + ptr2, 90, 1, -1, page
+  edgeprint quitprompt$, xstring(quitprompt$, 160), 80, uilook(uiText), page
   col = uilook(uiMenuItem): IF ptr2 < -20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
-  edgeprint quityes$, 70, 96, col, dpage
+  edgeprint quityes$, 70, 96, col, page
   col = uilook(uiMenuItem): IF ptr2 > 20 THEN col = uilook(uiSelectedItem + tog) '10 + tog * 5
-  edgeprint quitno$, 256 - LEN(quitno$) * 8, 96, col, dpage
-  SWAP vpage, dpage
+  edgeprint quitno$, 256 - LEN(quitno$) * 8, 96, col, page
   setvispage vpage
   dowait
  LOOP
@@ -882,4 +885,14 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
   END IF
  END IF
  RETURN 0
+END FUNCTION
+
+'return a video page which is a view on vpage that is 320x200 (or smaller) and centred
+FUNCTION compatpage() as integer
+ DIM fakepage AS INTEGER
+ DIM centreview AS Frame ptr
+ centreview = frame_new_view(vpages(vpage), (vpages(vpage)->w - 320) / 2, (vpages(vpage)->h - 200) / 2, 320, 200)
+ fakepage = registerpage(centreview)
+ frame_unload @centreview
+ RETURN fakepage
 END FUNCTION
