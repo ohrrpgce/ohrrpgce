@@ -198,6 +198,12 @@ SUB slice_editor ()
   setvispage vpage
   clearpage dpage
   dowait
+
+  updatepagesize dpage
+  WITH *edslice
+   .Width = vpages(dpage)->w
+   .Height = vpages(dpage)->h
+  END WITH
  LOOP
 
  DIM fw AS SliceFileWrite
@@ -243,6 +249,12 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
   setvispage vpage
   clearpage dpage
   dowait
+
+  updatepagesize dpage
+  WITH *rootsl
+   .Width = vpages(dpage)->w
+   .Height = vpages(dpage)->h
+  END WITH
  LOOP
 END SUB
 

@@ -139,7 +139,7 @@ DECLARE SUB reset_console (top AS INTEGER = 0, h AS INTEGER = 200, c AS INTEGER 
 DECLARE SUB show_message (s AS STRING)
 DECLARE SUB append_message (s AS STRING)
 
-DECLARE SUB position_menu (menu AS MenuDef)
+DECLARE SUB position_menu (menu AS MenuDef, page AS INTEGER)
 DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
 DECLARE SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
 DECLARE FUNCTION count_menu_items (menu AS MenuDef) as integer

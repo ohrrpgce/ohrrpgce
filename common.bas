@@ -2500,7 +2500,7 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
  DIM where AS XYPair
 
  'we actually calculate each menu item caption twice: once also in position_menu
- position_menu menu
+ position_menu menu, page
  
  WITH menu.rect
   IF menu.no_box = NO THEN
@@ -2554,7 +2554,7 @@ SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF wher
  END WITH
 END SUB
 
-SUB position_menu (menu AS MenuDef)
+SUB position_menu (menu AS MenuDef, page AS INTEGER)
  DIM i AS INTEGER
  DIM cap AS STRING
  DIM bord AS INTEGER
@@ -2574,13 +2574,13 @@ SUB position_menu (menu AS MenuDef)
  '--enforce min width
  menu.rect.wide = large(menu.rect.wide, menu.min_chars * 8 + bord * 2)
  '--enforce screen boundaries
- menu.rect.wide = small(menu.rect.wide, 320)
- menu.rect.high = small(menu.rect.high, 200)
+ menu.rect.wide = small(menu.rect.wide, vpages(page)->w)
+ menu.rect.high = small(menu.rect.high, vpages(page)->h)
  IF menu.maxrows > 0 THEN menu.rect.high = small(menu.rect.high, menu.maxrows * 10 + bord * 2)
 
  WITH menu
-  .rect.x = 160 - anchor_point(.anchor.x, .rect.wide) + menu.offset.x
-  .rect.y = 100 - anchor_point(.anchor.y, .rect.high) + menu.offset.y
+  .rect.x = vpages(page)->w \ 2 - anchor_point(.anchor.x, .rect.wide) + menu.offset.x
+  .rect.y = vpages(page)->h \ 2 - anchor_point(.anchor.y, .rect.high) + menu.offset.y
  END WITH
 END SUB
 
