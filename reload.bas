@@ -6,7 +6,18 @@
 
 #include "reload.bi"
 #include "util.bi"
+
+#ifdef IS_GAME
 DECLARE SUB debug (s AS STRING)
+#else
+#ifdef IS_CUSTOM
+DECLARE SUB debug (s AS STRING)
+#else
+SUB debug (s AS STRING)
+ print "debug: " & s
+END SUB
+#endif
+#endif
 
 Namespace Reload
 
@@ -65,27 +76,35 @@ Function CreateNode(doc as DocPtr, nam as string) as NodePtr
 End function
 
 sub FreeNode(nod as NodePtr)
-	if nod = null then exit sub
+	if nod = null then
+		debug "FreeNode ptr already null"
+		exit sub
+	end if
 	
 	dim tmp as NodePtr
 	do while nod->children <> 0
 		FreeNode(nod->children)
 	loop
 	
+	'If this node has a parent, we should remove this node from
+	'its list of children
 	if nod->parent then
-		'if nod->parent->nodeType = rltChildren then
-		if nod->parent->children = nod then
-			nod->parent->children = nod->nextSib
-		end if
-		nod->parent->numChildren -= 1
-		'end if
+		dim par as NodePtr = nod->parent
 		
-		if nod->nextSib then
-			nod->nextSib->prevSib = nod->prevSib
+		if par->children = nod then
+			par->children = nod->nextSib
 		end if
 		
-		if nod->prevSib then
-			nod->prevSib->nextSib = nod->nextSib
+		par->numChildren -= 1
+		
+		if nod then
+			if nod->nextSib then
+				nod->nextSib->prevSib = nod->prevSib
+			end if
+			
+			if nod->prevSib then
+				nod->prevSib->nextSib = nod->nextSib
+			end if
 		end if
 	end if
 	
@@ -397,6 +416,10 @@ sub SerializeBin(file as string, doc as DocPtr)
 end sub
 
 sub serializeBin(nod as NodePtr, f as integer, table() as string)
+	if nod = 0 then
+		debug "serializeBin null node ptr"
+		exit sub
+	end if
 	dim i as integer, strno as longint, ub as ubyte
 	
 	dim as integer siz, here = 0, here2, dif
@@ -472,15 +495,30 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 end sub
 
 Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
+	'recursively searches for a child by name, depth-first
+	'can also find self
 	if nod = null then return null
 	if nod->name = nam then return nod
-	'if nod->nodeType <> rltChildren then return null
 	dim child as NodePtr
 	dim ret as NodePtr
 	child = nod->children
 	while child <> null
 		ret = FindChildByName(child, nam)
 		if ret <> null then return ret
+		child = child->nextSib
+	wend
+	return null
+End function
+
+Function GetChildByName(nod as NodePtr, nam as string) as NodePtr
+	'Not recursive!
+	'does not find self.
+	if nod = null then return null
+	dim child as NodePtr
+	dim ret as NodePtr
+	child = nod->children
+	while child <> null
+		if child->name = nam then return child
 		child = child->nextSib
 	wend
 	return null

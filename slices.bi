@@ -8,6 +8,7 @@
 
 #include "udts.bi"
 #include "common.bi"
+#include "reload.bi"
 
 CONST ENABLE_SLICE_DEBUG = NO
 
@@ -72,8 +73,8 @@ Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
 Type SliceUpdate as Sub(Byval as SliceFwd ptr)
-Type SliceSave as Sub(Byval as SliceFwd ptr, byref f as SliceFileWrite)
-Type SliceLoad as Function(Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
+Type SliceSave as Sub(Byval as SliceFwd ptr, byval node as Reload.Nodeptr)
+Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
 
 TYPE Slice
   Parent as Slice Ptr
@@ -274,8 +275,6 @@ DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
 DECLARE Sub DisposeMapSlice(byval sl as slice ptr)
 DECLARE Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function GetMapSliceData(byval sl as slice ptr) as MapSliceData ptr
-DECLARE Sub SaveMapSlice(byval sl as slice ptr, byref f as SliceFileWrite)
-DECLARE Function LoadMapSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
 DECLARE Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as slice ptr
 DECLARE Sub ChangeMapSliceTileset (byval sl as slice ptr, byval tileset as TilesetData ptr)
 DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
@@ -284,17 +283,18 @@ DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
                    byval overlay as integer=-1) ' All arguments default to no change (explaining weird tiles default)
 
 '--Saving and loading slices
-DECLARE Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
-DECLARE Sub CloseSliceFileWrite (BYREF f AS SliceFileWrite)
-DECLARE Sub WriteSliceFileLine (BYREF f AS SliceFileWrite, s AS STRING)
-DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, quotes AS INTEGER=YES, default AS STRING="", BYVAL skipdefault AS INTEGER=YES)
-DECLARE Sub WriteSliceFileVal OVERLOAD (BYREF f AS SliceFileWrite, nam AS STRING, n AS INTEGER, default AS INTEGER=0, BYVAL skipdefault AS INTEGER=YES)
-DECLARE Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER, default AS INTEGER=NO, BYVAL skipdefault AS INTEGER=YES)
-DECLARE Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
-
+'OLD STUFF!
 DECLARE Sub OpenSliceFileRead (BYREF f AS SliceFileRead, filename AS STRING)
 DECLARE Sub CloseSliceFileRead (BYREF f AS SliceFileRead)
 DECLARE Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_read AS INTEGER=NO)
+
+'NEW STUFF!
+DECLARE Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
+DECLARE Sub SliceSaveToFile(BYVAL sl AS Slice Ptr, filename AS STRING)
+DECLARE Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
+DECLARE Sub SliceLoadFromFile(BYVAL sl AS Slice Ptr, filename AS STRING)
+
+
 
 EXTERN AS SliceTable_ SliceTable
 

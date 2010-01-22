@@ -101,14 +101,7 @@ SUB slice_editor ()
   .Height = 200
  END WITH
 
- DIM filename AS STRING
- filename = workingdir & SLASH & "slicetree_0.txt"
- IF isfile(filename) THEN
-  DIM fr AS SliceFileRead
-  OpenSliceFileRead fr, filename
-  LoadSlice fr, edslice
-  CloseSliceFileRead fr
- END IF
+ SliceLoadFromFile edslice, workingdir & SLASH & "slicetree_0.reld"
 
  DIM menu(0) AS SliceEditMenuItem
  DIM plainmenu(0) AS STRING 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
@@ -206,10 +199,8 @@ SUB slice_editor ()
   END WITH
  LOOP
 
- DIM fw AS SliceFileWrite
- OpenSliceFileWrite fw, workingdir & SLASH & "slicetree_0.txt"
- SaveSlice fw, edslice
- CloseSliceFileWrite fw
+ SliceSaveToFile edslice, workingdir & SLASH & "slicetree_0.reld"
+ 
  DeleteSlice @edslice
 
 END SUB
@@ -640,3 +631,4 @@ SUB DrawSliceAnts (BYVAL sl AS Slice Ptr, dpage AS INTEGER)
  NEXT i
  ant = loopvar(ant, 0, 2, 1)
 END SUB
+

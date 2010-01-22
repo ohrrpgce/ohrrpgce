@@ -26,10 +26,12 @@ extern plotslices() as integer
 
 '==============================================================================
 
-'String manipulation functions used by save/load
-DECLARE Function StripQuotes (s AS STRING) AS STRING
-DECLARE Function EscapeChar (s AS STRING, char AS STRING, escaper AS STRING="\") AS STRING
-DECLARE Function FindUnquotedChar (s AS STRING, char AS STRING) AS INTEGER
+'Reload helper functions used by saving/loading
+DECLARE Sub SaveProp OVERLOAD (node AS Reload.Nodeptr, propname AS STRING, value AS INTEGER)
+DECLARE Sub SaveProp OVERLOAD (node AS Reload.Nodeptr, propname AS STRING, s AS STRING)
+DECLARE Function LoadPropStr(node AS Reload.Nodeptr, propname as string, default as string="") as string
+DECLARE Function LoadProp(node AS Reload.Nodeptr, propname as string, default as integer=0) as integer
+DECLARE Function LoadPropBool(node AS Reload.Nodeptr, propname as string, default as integer=NO) as integer
 
 '==============================================================================
 
@@ -59,8 +61,8 @@ END WITH
 Sub DrawNullSlice(byval s as slice ptr, byval p as integer) : end sub
 Sub DisposeNullSlice(byval s as slice ptr) : end sub
 Sub UpdateNullSlice(byval s as slice ptr) : end sub
-Sub SaveNullSlice(byval s as slice ptr, byref f as SliceFileWrite) : end sub
-Function LoadNullSlice(Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer : return NO: end function
+Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
+Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 
 Sub SetupGameSlices
  SliceTable.Root = NewSliceOfType(slRoot)
@@ -594,33 +596,27 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol, dat->fgcol, p, dat->translucent, dat->border
 end sub
 
-Sub SaveRectangleSlice(byval sl as slice ptr, byref f as SliceFileWrite)
- if sl = 0 then debug "SaveRectangleSlice null ptr": exit sub
+Sub SaveRectangleSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveRectangleSlice null ptr": exit sub
  DIM dat AS RectangleSliceData Ptr
  dat = sl->SliceData
- WriteSliceFileVal f, "style", dat->style, -1
- WriteSliceFileVal f, "fg", dat->fgcol
- WriteSliceFileVal f, "bg", dat->bgcol
- WriteSliceFileBool f, "trans", dat->translucent
- WriteSliceFileVal f, "border", dat->border, -1
+ SaveProp node, "style", dat->style
+ SaveProp node, "fg", dat->fgcol
+ SaveProp node, "bg", dat->bgcol
+ SaveProp node, "trans", dat->translucent
+ SaveProp node, "border", dat->border
 End Sub
 
-Function LoadRectangleSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
- 'Return value is YES if the key is understood, NO if ignored
- 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
- if sl = 0 then debug "LoadRectangleSlice null ptr": return 0
+Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadRectangleSlice null ptr": exit sub
  dim dat AS RectangleSliceData Ptr
  dat = sl->SliceData
- select case key
-  case "style": dat->style = n
-  case "fg": dat->fgcol = n
-  case "bg": dat->bgcol = n
-  case "trans": dat->translucent = n
-  case "border": dat->border = n
-  case else: return NO
- end select
- return YES
-End Function
+ dat->style = LoadProp(node, "style", -1)
+ dat->fgcol = LoadProp(node, "fg")
+ dat->bgcol = LoadProp(node, "bg")
+ dat->translucent = LoadPropBool(node, "trans")
+ dat->border = LoadProp(node, "border", -1)
+End Sub
 
 Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
  dim ret as Slice ptr
@@ -632,7 +628,7 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  
  dim d as RectangleSliceData ptr = new RectangleSliceData
  *d = dat
- '--Set defaults here since we have no constructors yet
+ '--Set non-zero defaults here
  d->border = -1
  d->style = -1
  
@@ -786,33 +782,27 @@ Function GetTextSliceData(byval sl as slice ptr) as TextSliceData ptr
  return sl->SliceData
 End Function
 
-Sub SaveTextSlice(byval sl as slice ptr, byref f as SliceFileWrite)
- if sl = 0 then debug "SaveTextSlice null ptr": exit sub
+Sub SaveTextSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveTextSlice null ptr": exit sub
  DIM dat AS TextSliceData Ptr
  dat = sl->SliceData
- WriteSliceFileVal f, "s", dat->s
- WriteSliceFileVal f, "col", dat->col
- WriteSliceFileBool f, "outline", dat->outline
- WriteSliceFileBool f, "wrap", dat->wrap
- WriteSliceFileVal f, "bgcol", dat->bgcol
+ SaveProp node, "s", dat->s
+ SaveProp node, "col", dat->col
+ SaveProp node, "outline", dat->outline
+ SaveProp node, "wrap", dat->wrap
+ SaveProp node, "bgcol", dat->bgcol
 End Sub
 
-Function LoadTextSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
- 'Return value is YES if the key is understood, NO if ignored
- 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
- if sl = 0 then debug "LoadTextSlice null ptr": return 0
+Sub LoadTextSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadTextSlice null ptr": exit sub
  dim dat AS TextSliceData Ptr
  dat = sl->SliceData
- select case key
-  case "s": dat->s = StripQuotes(valstr) : checkn = NO
-  case "col": dat->col = n
-  case "outline": dat->outline = n
-  case "wrap": dat->wrap = n
-  case "bgcol": dat->bgcol = n
-  case else: return NO
- end select
- return YES
-End Function
+ dat->s       = LoadPropStr(node, "s")
+ dat->col     = LoadProp(node, "col")
+ dat->outline = LoadPropBool(node, "outline")
+ dat->wrap    = LoadPropBool(node, "wrap")
+ dat->bgcol   = LoadProp(node, "bgcol")
+End Sub
 
 Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
  dim ret as Slice ptr
@@ -956,35 +946,29 @@ Sub SetSpriteFrame(byval sl as slice ptr, byval fr as Frame ptr)
  end with
 End Sub
 
-Sub SaveSpriteSlice(byval sl as slice ptr, byref f as SliceFileWrite)
- if sl = 0 then debug "SaveSpriteSlice null ptr": exit sub
+Sub SaveSpriteSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveSpriteSlice null ptr": exit sub
  DIM dat AS SpriteSliceData Ptr
  dat = sl->SliceData
- WriteSliceFileVal f, "sprtype", dat->spritetype
- WriteSliceFileVal f, "rec", dat->record
- WriteSliceFileVal f, "pal", dat->pal, -1
- WriteSliceFileVal f, "frame", dat->frame
- WriteSliceFileBool f, "fliph", dat->flipHoriz
- WriteSliceFileBool f, "flipv", dat->flipVert
+ SaveProp node, "sprtype", dat->spritetype
+ SaveProp node, "rec", dat->record
+ SaveProp node, "pal", dat->pal
+ SaveProp node, "frame", dat->frame
+ SaveProp node, "fliph", dat->flipHoriz
+ SaveProp node, "flipv", dat->flipVert
 end sub
 
-Function LoadSpriteSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
- 'Return value is YES if the key is understood, NO if ignored
- 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
- if sl = 0 then debug "LoadSpriteSlice null ptr": return 0
+Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadSpriteSlice null ptr": exit sub
  dim dat AS SpriteSliceData Ptr
  dat = sl->SliceData
- select case key
-  case "sprtype": dat->spritetype = n
-  case "rec": dat->record = n
-  case "pal": dat->pal = n
-  case "frame": dat->frame = n
-  case "fliph": dat->flipHoriz = n
-  case "flipv": dat->flipVert = n
-  case else: return NO
- end select
- return YES
-End Function
+ dat->spritetype = LoadProp(node, "sprtype")
+ dat->record     = LoadProp(node, "rec")
+ dat->pal        = LoadProp(node, "pal", -1)
+ dat->frame      = LoadProp(node, "frame")
+ dat->flipHoriz  = LoadProp(node, "fliph")
+ dat->flipVert   = LoadProp(node, "flipv")
+End Sub
 
 Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
  dim ret as Slice ptr
@@ -997,7 +981,8 @@ Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData)
  dim d as SpriteSliceData ptr = new SpriteSliceData
  *d = dat
 
- d->pal = -1 'FIXME: Hack to make up for the lack of constructors
+ 'Set non-zero defaults
+ d->pal = -1
  
  ret->SliceType = slSprite
  ret->SliceData = d
@@ -1076,26 +1061,19 @@ Function GetMapSliceData(byval sl as slice ptr) as MapSliceData ptr
  return sl->SliceData
 End Function
 
-Sub SaveMapSlice(byval sl as slice ptr, byref f as SliceFileWrite)
- if sl = 0 then debug "SaveMapSlice null ptr": exit sub
+Sub SaveMapSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveMapSlice null ptr": exit sub
  DIM dat AS SpriteSliceData Ptr
  dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
 end sub
 
-Function LoadMapSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
- 'Return value is YES if the key is understood, NO if ignored
- 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
- if sl = 0 then debug "LoadMapSlice null ptr": return 0
+Sub LoadMapSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadMapSlice null ptr": exit sub
  dim dat AS SpriteSliceData Ptr
  dat = sl->SliceData
  'FIXME: current MapSlice impl. has no savable properties
- select case key
-  'case "name": dat->name = n
-  case else: return NO
- end select
- return YES
-End Function
+End Sub
 
 Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as slice ptr
  dim ret as Slice ptr
@@ -1176,28 +1154,21 @@ Function GetMenuSliceData(byval sl as slice ptr) as MenuSliceData ptr
  return sl->SliceData
 End Function
 
-Sub SaveMenuSlice(byval sl as slice ptr, byref f as SliceFileWrite)
- if sl = 0 then debug "SaveMenuSlice null ptr": exit sub
+Sub SaveMenuSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveMenuSlice null ptr": exit sub
  DIM dat AS MenuSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
  debug "SaveMenuSlice not implemented"
 end sub
 
-Function LoadMenuSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
- 'Return value is YES if the key is understood, NO if ignored
- 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
- if sl = 0 then debug "LoadMenuSlice null ptr": return 0
+Sub LoadMenuSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadMenuSlice null ptr": exit sub
  dim dat AS MenuSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
  debug "LoadMenuSlice not implemented"
- select case key
-  'case "keyname": dat->datamember = n
-  case else: return NO
- end select
- return YES
-End Function
+End Sub
 
 Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr
  dim ret as Slice ptr
@@ -1263,28 +1234,21 @@ Function GetMenuItemSliceData(byval sl as slice ptr) as MenuItemSliceData ptr
  return sl->SliceData
 End Function
 
-Sub SaveMenuItemSlice(byval sl as slice ptr, byref f as SliceFileWrite)
- if sl = 0 then debug "GetMenuItemSliceData null ptr": exit sub
+Sub SaveMenuItemSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "GetMenuItemSliceData null ptr": exit sub
  DIM dat AS MenuItemSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
  debug "SaveMenuItemSlice not implemented"
 end sub
 
-Function LoadMenuItemSlice (Byval sl as SliceFwd ptr, key as string, valstr as string, byval n as integer, byref checkn as integer) as integer
- 'Return value is YES if the key is understood, NO if ignored
- 'set checkn=NO if you read a string. checkn defaults to YES which causes integer/boolean checking to happen afterwards
- if sl = 0 then debug "LoadMenuItemSlice null ptr": return 0
+Sub LoadMenuItemSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadMenuItemSlice null ptr": exit sub
  dim dat AS MenuItemSliceData Ptr
  dat = sl->SliceData
  'FIXME: Implement me!
  debug "LoadMenuItemSlice not implemented"
- select case key
-  'case "keyname": dat->datamember = n
-  case else: return NO
- end select
- return YES
-End Function
+End Sub
 
 Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
  dim ret as Slice ptr
@@ -1593,243 +1557,170 @@ End Function
 
 '--saving----------------------------------------------------------------------
 
-Sub OpenSliceFileWrite (BYREF f AS SliceFileWrite, filename AS STRING)
- f.name = filename
- f.indent = 0
- f.handle = FREEFILE
- OPEN f.name FOR OUTPUT AS f.handle
- WriteSliceFileLine f, "#OHR SliceTree - This format has not yet been finalized"
+Sub SaveProp(node AS Reload.Nodeptr, propname AS STRING, value AS INTEGER)
+ if node = 0 then debug "SaveProp null node ptr": Exit Sub
+ Reload.setContent(Reload.AddChild(node, Reload.CreateNode(node->doc, propname)), CLNGINT(value))
 End Sub
 
-Sub CloseSliceFileWrite (BYREF f AS SliceFileWrite)
- IF f.indent <> 0 THEN debug "SliceFileWrite indent check fail " & f.indent & " " & f.name
- CLOSE f.handle
+Sub SaveProp(node AS Reload.Nodeptr, propname AS STRING, s AS STRING)
+ if node = 0 then debug "SaveProp null node ptr": Exit Sub
+ Reload.setContent(Reload.AddChild(node, Reload.CreateNode(node->doc, propname)), s)
 End Sub
 
-Sub WriteSliceFileLine (BYREF f AS SliceFileWrite, s AS STRING)
- PRINT # f.handle, STRING(f.indent, " ") & s
+Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
+ if sl = 0 then debug "SliceSaveToNode null slice ptr": Exit Sub
+ if node = 0 then debug "SliceSaveToNode null node ptr": Exit Sub
+ if node->numChildren <> 0 then debug "SliceSaveToNode non-empty node has " & node->numChildren & " children"
+ '--Save standard slice properties
+ SaveProp node, "x", sl->x
+ SaveProp node, "y", sl->Y
+ SaveProp node, "w", sl->Width
+ SaveProp node, "h", sl->Height
+ SaveProp node, "vis", sl->Visible
+ SaveProp node, "alignh", sl->AlignHoriz
+ SaveProp node, "alignv", sl->AlignVert
+ SaveProp node, "anchorh", sl->AnchorHoriz
+ SaveProp node, "anchorv", sl->AnchorVert
+ SaveProp node, "padt", sl->PaddingTop
+ SaveProp node, "padl", sl->PaddingLeft
+ SaveProp node, "padr", sl->PaddingRight
+ SaveProp node, "padb", sl->PaddingBottom
+ SaveProp node, "fill", sl->Fill
+ SaveProp node, "type", SliceTypeName(sl)
+ '--Save properties specific to this slice type
+ sl->Save(sl, node)
+ '--Now save all the children
+ if sl->NumChildren > 0 then
+  '--make a container node for all the child nodes
+  dim children as Reload.NodePtr
+  children = Reload.CreateNode(node->doc, "children")
+  Reload.AddChild(node, children)
+  'now loop through the children of this slice and create a new node for each one
+  dim ch_node AS Reload.NodePtr
+  dim ch_slice AS Slice Ptr = sl->FirstChild
+  do while ch_slice <> 0
+   ch_node = Reload.CreateNode(children->doc, "")
+   Reload.AddChild(children, ch_node)
+   SliceSaveToNode ch_slice, ch_node
+   ch_slice = ch_slice->NextSibling
+  loop
+ end if
 End sub
 
-Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, s AS STRING, quotes AS INTEGER=YES, default AS STRING="", BYVAL skipdefault AS INTEGER=YES)
- IF skipdefault THEN
-  IF s = default THEN EXIT SUB
- END IF
- DIM valstring AS STRING = s
- IF quotes THEN
-  valstring = """" & EscapeChar(s, """") & """"
- END IF
- WriteSliceFileLine f, LCASE(nam) & ":" & valstring
-End Sub
+Sub SliceSaveToFile(BYVAL sl AS Slice Ptr, filename AS STRING)
+ 
+ 'First create a reload document
+ dim doc as Reload.DocPtr
+ doc = Reload.CreateDocument()
+ if doc = null then
+   debug "Reload.CreateDocument failed in SliceSaveToFile"
+   exit sub
+ end if
+ 
+ 'Create a node, and save the slice tree into it
+ dim node as Reload.Nodeptr
+ node = Reload.CreateNode(doc, "")
+ Reload.SetRootNode(doc, node)
+ SliceSaveToNode sl, node
+ 
+ 'Write the reload document to the file
+ Reload.SerializeBin filename, doc
+ 
+ Reload.FreeDocument(doc)
 
-Sub WriteSliceFileVal (BYREF f AS SliceFileWrite, nam AS STRING, n AS INTEGER, default AS INTEGER=0, BYVAL skipdefault AS INTEGER=YES)
- IF skipdefault THEN
-  IF n = default THEN EXIT SUB
- END IF
- WriteSliceFileLine f, LCASE(nam) & ":" & n
-End Sub
-
-Sub WriteSliceFileBool (BYREF f AS SliceFileWrite, nam AS STRING, b AS INTEGER, default AS INTEGER=NO, BYVAL skipdefault AS INTEGER=YES)
- IF skipdefault THEN
-  IF b = default THEN EXIT SUB
- END IF
- WriteSliceFileVal f, nam, yesorno(b, "true", "false"), NO
-End Sub
-
-Sub SaveSlice (BYREF f AS SliceFileWrite, BYVAL sl AS Slice Ptr)
- if sl = 0 then debug "SaveSlice null ptr": Exit Sub
- WriteSliceFileLine f, "{"
- f.indent += 1
- WriteSliceFileVal f, "x", sl->X
- WriteSliceFileVal f, "y", sl->Y
- WriteSliceFileVal f, "w", sl->Width
- WriteSliceFileVal f, "h", sl->Height
- WriteSliceFileBool f, "vis", sl->Visible
- WriteSliceFileVal f, "alh", sl->AlignHoriz
- WriteSliceFileVal f, "alv", sl->AlignVert
- WriteSliceFileVal f, "anh", sl->AnchorHoriz
- WriteSliceFileVal f, "anv", sl->AnchorVert
- WriteSliceFileVal f, "padt", sl->PaddingTop
- WriteSliceFileVal f, "padl", sl->PaddingLeft
- WriteSliceFileVal f, "padr", sl->PaddingRight
- WriteSliceFileVal f, "padb", sl->PaddingBottom
- WriteSliceFileBool f, "fill", sl->Fill
- 'WriteSliceFileVal f, "attach", sl->Attach 'FIXME: should probably store this as a string?
- 'WriteSliceFileVal f, "attached", "" 'this should definitely NOT be the pointer. Instead need some other scheme for storing this
- WriteSliceFileVal f, "type", SliceTypeName(sl), , , NO 'Never omit type, even if it something crazy like ""
- 'Now save all properties specific to this type of slice
- sl->Save(sl, f)
- IF sl->NumChildren > 0 THEN
-  'Now save all children
-  WriteSliceFileLine f, "child:["
-  f.indent += 1
-  DIM child AS Slice Ptr = sl->FirstChild
-  DO WHILE child <> 0
-   SaveSlice f, child
-   child = child->NextSibling
-  LOOP
-  f.indent -= 1
-  WriteSliceFileLine f, "]"
- END IF
- f.indent -= 1
- WriteSliceFileLine f, "}"
 End sub
 
 '--loading---------------------------------------------------------------------
 
-Sub OpenSliceFileRead (BYREF f AS SliceFileRead, filename AS STRING)
- f.name = filename
- f.handle = FREEFILE
- OPEN f.name FOR INPUT AS f.handle
-End Sub
+Function LoadPropStr(node AS Reload.Nodeptr, propname as string, default as string="") as string
+ if node = 0 then debug "LoadPropStr null node ptr": return default
+ dim prop_node as Reload.Nodeptr
+ prop_node = Reload.GetChildByName(node, propname)
+ if prop_node = 0 then return default
+ return Reload.GetString(prop_node)
+End function
 
-Sub CloseSliceFileRead (BYREF f AS SliceFileRead)
- CLOSE f.handle
-End Sub
+Function LoadProp(node AS Reload.Nodeptr, propname as string, default as integer=0) as integer
+ if node = 0 then debug "LoadProp null node ptr": return default
+ dim prop_node as Reload.Nodeptr
+ prop_node = Reload.GetChildByName(node, propname)
+ if prop_node = 0 then return default
+ return Clngint(Reload.GetInteger(prop_node))
+End function
 
-Function ReadSliceFileLine (BYREF f AS SliceFileRead) AS STRING
- DIM s AS STRING
- LINE INPUT # f.handle, s
- f.linenum += 1
- RETURN s
-End Function
+Function LoadPropBool(node AS Reload.Nodeptr, propname as string, default as integer=NO) as integer
+ if node = 0 then debug "LoadPropBool null node ptr": return default
+ dim prop_node as Reload.Nodeptr
+ prop_node = Reload.GetChildByName(node, propname)
+ if prop_node = 0 then return default
+ return Reload.GetInteger(prop_node) <> 0
+End function
 
-Function CleanSliceFileLine (s AS STRING) AS STRING
- DIM result AS STRING
- result = TRIM(s)
- DIM commentmark AS INTEGER
- commentmark = FindUnquotedChar(result, "#")
- IF commentmark >= 0 THEN
-  '--Strip out any comments
-  result = MID(result, 1, commentmark)
- END IF
- RETURN result
-End Function
-
-Function LoadSliceSplitPair (BYREF s AS STRING, BYREF key AS STRING, BYREF valstr AS STRING)
- 'Returns NO on failure
- DIM colon AS INTEGER
- colon = FindUnquotedChar(s, ":")
- IF colon < 0 THEN RETURN NO
- key = MID(s, 1, colon)
- valstr = MID(s, colon + 2)
- RETURN YES
-End Function
-
-Function LoadSliceConvertInt(BYREF s AS STRING) AS INTEGER
- IF s = "true" THEN RETURN -1
- IF s = "false" THEN RETURN 0
- RETURN VALINT(s)
-End Function
-
-ENUM LoadSliceMode
- lsmBegin
- lsmReading
- lsmNextChild
-END ENUM
-
-Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_read AS INTEGER=NO)
- 'sl should be a new empty slice. Its data will get overwritten.
- if sl = 0 then debug "LoadSlice null ptr": Exit Sub
- DIM mode AS LoadSliceMode
- mode = lsmBegin
- IF skip_to_read THEN mode = lsmReading
- DIM rawline AS STRING
- DIM s AS STRING
- DIM key AS STRING
- DIM valstr AS STRING
- DIM n AS INTEGER
- DIM checkn AS INTEGER
- DIM clean_exit AS INTEGER = NO
- DIM typestr AS STRING
- DIM typenum AS SliceTypes
- DIM newsl AS Slice Ptr
- DO
-  rawline = ReadSliceFileLine(f)
-  s = CleanSliceFileLine(rawline)
-  IF s = "" THEN CONTINUE DO '--Ignore blank lines
-  SELECT CASE mode
-   CASE lsmBegin
-    IF s = "{" THEN '--start a new slice
-     mode = lsmReading
-    ELSE
-     debug "LoadSlice expected { in line " & f.linenum & " but found:"
-     debug rawline 
-    END IF
-   CASE lsmReading
-    IF s = "}" THEN
-     clean_exit = YES
-     EXIT DO
-    END IF
-    IF LoadSliceSplitPair(s, key, valstr) = NO THEN
-     debug "LoadSliceSplitPair failed on line " & f.linenum
-     debug rawline
-    END IF
-    n = LoadSliceConvertInt(valstr)
-    checkn = YES
-    SELECT CASE key
-     CASE "x": sl->X = n
-     CASE "y": sl->Y = n
-     CASE "w": sl->Width = n
-     CASE "h": sl->Height = n
-     CASE "vis": sl->Visible = n
-     CASE "alh": sl->AlignHoriz = n
-     CASE "alv": sl->AlignVert = n
-     CASE "anh": sl->AnchorHoriz = n
-     CASE "anv": sl->AnchorVert = n
-     CASE "padt": sl->PaddingTop = n
-     CASE "padl": sl->PaddingLeft = n
-     CASE "padr": sl->PaddingRight = n
-     CASE "padb": sl->PaddingBottom = n
-     CASE "fill": sl->Fill = n
-     CASE "type"
-      checkn = NO
-      typestr = StripQuotes(valstr)
-      typenum = SliceTypeByName(typestr)
-      newsl = NewSliceOfType(typenum)
-      ReplaceSliceType sl, newsl
-     CASE "child"
-      checkn = NO
-      IF valstr <> "[" THEN
-       debug "LoadSlice expected [ in line " & f.linenum
-       debug rawline
-      END IF
-      'Append a new child slice, then recurse to populate it
-      newsl = NewSlice(sl)
-      LoadSlice f, newsl
-      mode = lsmNextChild
-     CASE ELSE
-      '--This key was not understood as a genereric data member, check to see if
-      '--it is understood as a data member specific to this type
-      IF sl->Load(sl, key, valstr, n, checkn) = NO THEN
-       debug "LoadSlice ignored key """ & key & """ at line " & f.linenum
-       debug rawline
-      END IF
-    END SELECT
-    IF checkn THEN
-     IF STR(n) = valstr OR (n = -1 AND valstr = "true") OR (n = 0 AND valstr = "false") THEN
-     ELSE
-      debug "LoadSlice integer conversion mismatch " & n & "<>" & valstr & " in line " & f.linenum
-      debug rawline 
-     END IF
-    END IF
-   CASE lsmNextChild
-    IF s = "]" THEN
-     mode = lsmReading
-    ELSEIF s = "{" THEN
-     'Append another child, then recurse to populate it
-     newsl = NewSlice(sl)
-     LoadSlice f, newsl, YES
-    ELSE
-     debug "LoadSlice: Expected ] or { in line " & f.linenum & " but found:"
-     debug rawline
-    END IF
-  END SELECT
- LOOP UNTIL EOF(f.handle)
- IF clean_exit = NO THEN
-  debug "LoadSlice: File ended mid-slice on line " & f.linenum
-  debug rawline
- END IF
+Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
+ if sl = 0 then debug "SliceLoadFromNode null slice ptr": Exit Sub
+ if node = 0 then debug "SliceLoadFromNode null node ptr": Exit Sub
+ if sl->NumChildren > 0 then debug "SliceLoadFromNode slice already has " & node->numChildren & " children"
+ '--Load standard slice properties
+ sl->x = LoadProp(node, "x")
+ sl->y = LoadProp(node, "y")
+ sl->Width = LoadProp(node, "w")
+ sl->Height = LoadProp(node, "h")
+ sl->Visible = LoadPropBool(node, "vis")
+ sl->AlignHoriz = LoadProp(node, "alignh")
+ sl->AlignVert = LoadProp(node, "alignv")
+ sl->AnchorHoriz = LoadProp(node, "anchorh")
+ sl->AnchorVert = LoadProp(node, "anchorv")
+ sl->PaddingTop = LoadProp(node, "padt")
+ sl->PaddingLeft = LoadProp(node, "padl")
+ sl->PaddingRight = LoadProp(node, "padr")
+ sl->PaddingBottom = LoadProp(node, "padb")
+ sl->Fill = LoadPropBool(node, "fill")
+ 'now update the type
+ dim typestr as string = LoadPropStr(node, "type")
+ if typestr = "" then
+  debug "Bad type while loading slice from node"
+ else
+  dim typenum as integer = SliceTypeByName(typestr)
+  dim newsl as Slice Ptr = NewSliceOfType(typenum)
+  ReplaceSliceType sl, newsl
+  '--Load properties specific to this slice type
+  sl->Load(sl, node)
+ end if
+ '--Now load all the children
+ dim children as Reload.NodePtr
+ children = Reload.GetChildByName(node, "children")
+ if children then
+  'now loop through the children of this node and create a new slice for each one
+  dim ch_slice AS Slice Ptr
+  dim ch_node AS Reload.NodePtr = children->children
+  do while ch_node <> 0
+   ch_slice = NewSlice(sl)
+   SliceLoadFromNode ch_slice, ch_node
+   ch_node = ch_node->nextSib
+  loop
+ end if
 End sub
+
+Sub SliceLoadFromFile(BYVAL sl AS Slice Ptr, filename AS STRING)
+ 
+ 'First create a reload document
+ dim doc as Reload.DocPtr
+ doc = Reload.LoadDocument(filename)
+ if doc = null or doc->root = null then
+   debug "Reload.LoadDocument failed in SliceLoadFromFile"
+   exit sub
+ end if
+ 
+ 'Populate the slice tree with data from the reload tree
+ dim node as Reload.Nodeptr
+ node = doc->root
+ SliceLoadFromNode sl, node
+ 
+ Reload.FreeDocument(doc)
+
+End sub
+
+'--slice debug stuff
 
 SUB SliceDebugRemember(sl AS Slice Ptr)
  if ENABLE_SLICE_DEBUG = NO then exit sub

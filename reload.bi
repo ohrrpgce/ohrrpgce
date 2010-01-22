@@ -96,7 +96,8 @@ Declare Function GetString(node as nodeptr) as string
 Declare Function GetInteger(node as nodeptr) as LongInt
 Declare Function GetFloat(node as nodeptr) as Double
 
-Declare Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
+Declare Function GetChildByName(nod as NodePtr, nam as string) as NodePtr 'NOT recursive
+Declare Function FindChildByName(nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
 
 Declare function ReadVLI(f as integer) as longint
 declare Sub WriteVLI(f as integer, v as Longint)
