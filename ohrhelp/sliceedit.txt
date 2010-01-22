@@ -1,8 +1,8 @@
 This is the slice editor.
 
-Actually, it isn't really useful for much of anything right now :(
+Actually, it isn't really useful for much of anything right now, but we are working on that ;)
 
-But in the future it will be usable to create your own custom screen layouts, and to provide a much greater level of customizability for things like the battle interface, the status menu, the spells menu, or shops.
+In the future it will be usable to create your own custom screen layouts, and to provide a much greater level of customizability for things like the battle interface, the status menu, the spells menu, or shops.
 
 You are welcome to play around with it right now to get an idea of what it is capable of. Please report any bugs you find.
 
@@ -17,3 +17,7 @@ Hold the SHIFT key and use the arrow keys to reorder the slice in the slice list
 Hold shift and press the left and right arrow keys to change the parentage of a slice. If a slice is indented that means it is a child of the slice right above it in the menu.
 
 Child slices are grouped together with their parent, and they move as a group.
+
+Press E to export your slice collection to a file.
+
+Press I to import a slice collection (the collection you are currentlly working on will be replaced.)

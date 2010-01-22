@@ -97,8 +97,7 @@ SUB slice_editor ()
  WITH *edslice
   .Attach = slScreen
   .SliceType = slRoot
-  .Width = 320
-  .Height = 200
+  .Fill = YES
  END WITH
 
  SliceLoadFromFile edslice, workingdir & SLASH & "slicetree_0.reld"
@@ -115,6 +114,8 @@ SUB slice_editor ()
 
  DIM slice_type AS SliceTypes
  DIM shift AS INTEGER
+
+ DIM filename AS STRING
 
  setkeys
  DO
@@ -140,6 +141,25 @@ SUB slice_editor ()
     slice_edit_detail menu(state.pt).handle, edslice
     state.need_update = YES
    END IF 
+  END IF
+  IF keyval(scE) > 1 THEN
+   filename = inputfilename("Export slice collection", ".slice", "", "input_filename_export_slices")
+   IF filename <> "" THEN
+    SliceSaveToFile edslice, filename & ".slice"
+   END IF
+  END IF
+  IF keyval(scI) > 1 THEN
+   filename = browse(0, "", "*.slice", "",, "browse_import_slices")
+   IF filename <> "" THEN
+    DeleteSlice @edslice
+    edslice = NewSlice
+    WITH *edslice
+     .Attach = slScreen
+     .SliceType = slRoot
+     .Fill = YES
+    END WITH
+    SliceLoadFromFile edslice, filename
+   END IF
   END IF
   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
