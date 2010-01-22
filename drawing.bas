@@ -1661,7 +1661,9 @@ DO
  IF keyval(scCtrl) > 0 AND keyval(scF) > 1 THEN
   IF ss.fullset = NO AND ss.perset > 1 THEN
    spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
+   savedefaultpals ss.fileset, poffset(), sets
    sprite ss.wide * ss.perset, ss.high, sets, 1, soff, info$(), 1, ss.fileset, font(), YES, state.pt, state.top
+   REDIM PRESERVE poffset(large(sets, ss.at_a_time))
    loaddefaultpals ss.fileset, poffset(), sets
    spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   END IF
