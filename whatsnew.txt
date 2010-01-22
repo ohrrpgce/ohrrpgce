@@ -4,6 +4,8 @@ Jan 21 2010 [Ypsiliform+1]
 
   * Bugfixes
     * Bug 802: tileset confusion when adding a layer
+    * Bug 812: crash after adding a new spriteset while in
+      full-set mode
     * Bug 813: crash and map corruption when linking doors to a
       map with more than 3 layers
     * Bug 814: F12 for screenshots not working for SDL backend
