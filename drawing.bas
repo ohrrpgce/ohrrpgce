@@ -2469,6 +2469,8 @@ IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse(3) > 0) THEN '--call palette br
  '--save current palette
  storepal16 workpal(), state.pt - state.top, poffset(state.pt)
  poffset(state.pt) = pal16browse(poffset(state.pt), ss.fileset, state.pt)
+ clearkey(scEnter)
+ clearkey(scSpace)
  setkeyrepeat 25, 5
  getpal16 workpal(), state.pt - state.top, poffset(state.pt)
 END IF

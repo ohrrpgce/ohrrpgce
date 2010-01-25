@@ -1014,6 +1014,10 @@ FUNCTION caption_or_int (n AS INTEGER, captions() AS STRING) AS STRING
 END FUNCTION
 
 SUB poke8bit (array16() AS INTEGER, index AS INTEGER, val8 AS INTEGER)
+ IF index \ 2 > UBOUND(array16) THEN
+  debug "Dang rotten poke8bit(array(" & UBOUND(array16) & ")," & index & "," & val8 & ") out of range"
+  EXIT SUB
+ END IF
  IF val8 <> (val8 AND &hFF) THEN
    debug "Warning: " & val8 & " is not an 8-bit number. Discarding bits: " & (val8 XOR &hFF)
    val8 = val8 AND &hFF
@@ -1031,6 +1035,10 @@ SUB poke8bit (array16() AS INTEGER, index AS INTEGER, val8 AS INTEGER)
 END SUB
 
 FUNCTION peek8bit (array16() AS INTEGER, index AS INTEGER) as integer
+ IF index \ 2 > UBOUND(array16) THEN
+  debug "Dang rotten peek8bit(array(" & UBOUND(array16) & ")," & index & ") out of range"
+  RETURN 0
+ END IF
  DIM element AS INTEGER = array16(index \ 2)
  IF index AND 1 THEN
   RETURN (element AND &hFF00) SHR 8
