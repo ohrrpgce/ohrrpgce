@@ -2289,6 +2289,8 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
   'swap black with the transparent color
   poke8bit workpal(), pixelval + (state.pt - state.top) * 16, peek8bit(workpal(), 0 + (state.pt - state.top) * 16)
   poke8bit workpal(), 0 + (state.pt - state.top) * 16, 0
+  'If the palette has changed, update genMaxPal
+  gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
  END IF
  '--read the sprite
  getsprite placer(), 0, 0, 0, ss.wide, ss.high, holdscreen
@@ -2519,9 +2521,13 @@ IF keyval(scAlt) > 0 THEN
  IF keyval(scDown) > 1 AND ss.curcolor < 240 THEN ss.curcolor += 16
  IF keyval(scLeft) > 1 AND ss.curcolor > 0 THEN ss.curcolor -= 1
  IF keyval(scRight) > 1 AND ss.curcolor < 255 THEN ss.curcolor += 1
+ 'If the palette has changed, update genMaxPal
+ gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
 END IF
 IF mouse(3) = 1 AND ss.zonenum = 3 THEN
  ss.curcolor = INT(INT(ss.zone.y / 6) * 16) + INT(ss.zone.x / 4)
+ 'If the palette has changed, update genMaxPal
+ gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
 END IF
 poke8bit workpal(), (state.pt - state.top) * 16 + ss.palindex, ss.curcolor
 IF keyval(scAlt) = 0 THEN
