@@ -1429,12 +1429,26 @@ SELECT CASE AS CONST id
  CASE 250'--set money
   IF retvals(0) >= 0 THEN gold = retvals(0)
  CASE 251'--set string from table
-  IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# = \"...\"") AND scrat(nowscript).scr->strtable THEN
-   plotstr(retvals(0)).s = read32bitstring$(scrat(nowscript).scrdata + scrat(nowscript).scr->strtable + retvals(1))
+  IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# = \"...\"") THEN
+   WITH *scrat(nowscript).scr
+    DIM stringp AS INTEGER PTR = .ptr + .strtable + retvals(1)
+    IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
+     scripterr "script corrupt: illegal string offset", 6
+    ELSE
+     plotstr(retvals(0)).s = read32bitstring(stringp)
+    END IF
+   END WITH
   END IF
  CASE 252'--append string from table
-  IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# + \"...\"") AND scrat(nowscript).scr->strtable THEN
-   plotstr(retvals(0)).s += read32bitstring$(scrat(nowscript).scrdata + scrat(nowscript).scr->strtable + retvals(1))
+  IF bound_arg(retvals(0), 0, UBOUND(plotstr), "string ID", !"$# + \"...\"") THEN
+   WITH *scrat(nowscript).scr
+    DIM stringp AS INTEGER PTR = .ptr + .strtable + retvals(1)
+    IF .strtable + retvals(1) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
+     scripterr "script corrupt: illegal string offset", 6
+    ELSE
+     plotstr(retvals(0)).s += read32bitstring(stringp)
+    END IF
+   END WITH
   END IF
  CASE 256'--suspend map music
   setbit gen(), 44, suspendambientmusic, 1

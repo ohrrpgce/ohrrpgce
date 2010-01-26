@@ -1620,23 +1620,37 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
   END IF
  END IF
 
- thisscr = allocate(sizeof(ScriptData))
- WITH *thisscr
+ f = FREEFILE
+ OPEN scriptfile$ FOR BINARY AS #f
 
-  f = FREEFILE
-  OPEN scriptfile$ FOR BINARY AS #f
+ 'minimum length of a valid 16-bit .hsx
+ IF LOF(f) < 10 THEN
+  scripterr "script " & n & " corrupt (" & LOF(f) & " bytes)", 6
+  CLOSE #f
+  RETURN NULL
+ END IF
+
+ thisscr = callocate(sizeof(ScriptData))
+ WITH *thisscr
 
   GET #f, 1, temp
   skip = temp
 
+  IF skip < 4 THEN
+   scripterr "script " & n & " is corrupt (header length " & skip & ")", 6
+   CLOSE #f
+   deallocate(thisscr)
+   RETURN NULL
+  END IF
+
   GET #f, 3, temp
   'some HSX files seem to have an illegal negative number of variables
   .vars = temp
-  .vars = large(.vars, 0)
+  .vars = bound(.vars, 0, 256)
  
   IF skip >= 6 THEN
    GET #f, 5, temp
-   .args = temp
+   .args = bound(temp, 0, .vars)
   ELSE
    .args = 999
   END IF
@@ -1669,6 +1683,13 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
   .size = (LOF(f) - skip) \ wordsize
   IF .size > scriptmemMax THEN
    scripterr "Script " & n & " exceeds maximum size by " & .size * 100 \ scriptmemMax - 99 & "%", 6
+   CLOSE #f
+   deallocate(thisscr)
+   RETURN NULL
+  END IF
+
+  IF .strtable < 0 OR .strtable > .size THEN
+   scripterr "Script " & n & " corrupt; bad string table offset", 6
    CLOSE #f
    deallocate(thisscr)
    RETURN NULL
