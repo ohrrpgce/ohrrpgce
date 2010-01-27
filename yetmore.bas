@@ -378,6 +378,35 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    learn_spells_for_current_level retvals(0), stat(), (retvals(1)<>0)
   END IF
+ CASE 449'--reset hero picture
+  i = retvals(0)
+  j = retvals(1)
+  IF valid_hero_party(i) THEN
+   IF hero(i) > 0 THEN
+    IF bound_arg(j, 0, 1, "in or out of battle") THEN
+     DIM her as herodef
+     loadherodata @her, hero(i) - 1
+     IF j = 0 THEN stat(i, 0, 14) = her.sprite
+     IF j = 1 THEN stat(i, 1, 14) = her.walk_sprite
+     IF i < 4 THEN vishero stat()
+    END IF
+   END IF
+  END IF
+ CASE 450'--reset hero palette
+  i = retvals(0)
+  j = retvals(1)
+  IF valid_hero_party(i) THEN
+   IF hero(i) > 0 THEN
+    IF bound_arg(j, 0, 1, "in or out of battle") THEN
+     DIM her as herodef
+     loadherodata @her, hero(i) - 1
+     IF j = 0 THEN stat(i, 0, 15) = her.sprite_pal
+     IF j = 1 THEN stat(i, 1, 15) = her.walk_sprite_pal
+     IF i < 4 THEN vishero stat()
+    END IF
+   END IF
+  END IF
+
 END SELECT
 END SUB
 
@@ -1029,20 +1058,18 @@ SELECT CASE AS CONST id
    scripterr "can learn spell: fail on empty party slot " & partyslot, 4
   ELSE
    IF retvals(1) > 0 THEN
-    DIM her as herodef ptr
-    her = Allocate(sizeof(herodef))
-    loadherodata her, heroID
+    DIM her as herodef
+    loadherodata @her, heroID
     FOR i = 0 TO 3
      FOR j = 0 TO 23
       IF spell(partyslot, i, j) = 0 THEN
-       IF her->spell_lists(i,j).attack = retvals(1) AND her->spell_lists(i,j).learned = retvals(2) THEN
+       IF her.spell_lists(i,j).attack = retvals(1) AND her.spell_lists(i,j).learned = retvals(2) THEN
         scriptret = 1
         EXIT FOR
        END IF
       END IF
      NEXT j
     NEXT i
-    Deallocate(her)
    END IF
   END IF
  CASE 133'--hero by slot

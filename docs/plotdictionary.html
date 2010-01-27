@@ -1297,6 +1297,12 @@
 		<a href="#about-resetgame">reset game</a><br>
 		
 	
+		<a href="#about-resetheropalette">reset hero palette (who,type)</a><br>
+		
+	
+		<a href="#about-resetheropicture">reset hero picture (who,type)</a><br>
+		
+	
 		<a href="#about-resetmapstate">reset map state (whichdata)</a><br>
 		
 	
@@ -8025,17 +8031,17 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero picture (who,picture,type)</font></b><br>
-			Permanently changes a hero's picture. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the index number of the picture to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Permanently changes a hero's picture. The first argument is the hero's position in the party. (use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is the index number of the picture to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-resetheropicture" class="ref">reset hero picture</a></li></ul>
 		</tt></p>
 		<a name="about-setheropalette"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero palette (who,palette,type)</font></b><br>
-			Permanently changes a hero's 16-color palette. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the index number of the 16-color palette to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Permanently changes a hero's 16-color palette. The first argument is the hero's position in the party. (use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is the index number of the 16-color palette to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-resetheropalette" class="ref">reset hero palette</a></li></ul>
 		</tt></p>
 		<a name="about-getheropicture"></a>
 		<p>
@@ -8052,6 +8058,22 @@ end</pre>
 			A function that returns the index number of a hero's 16-color palette. The first argument is the hero's position in the party as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are checking the hero's battle palette or their walkabout palette. If the second argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			
+		</tt></p>
+		<a name="about-resetheropicture"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">reset hero picture (who,type)</font></b><br>
+			Resets a hero's picture that was previously changed with <a href="#about-setheropicture" class="ref">set hero picture</a> back to the default picture. The first argument is the hero's position in the party. (use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setheropicture" class="ref">set hero picture</a></li></ul>
+		</tt></p>
+		<a name="about-resetheropalette"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">reset hero palette (who,type)</font></b><br>
+			Resets a hero's palette that was previously changed with <a href="#about-setheropalette" class="ref">set hero palette</a> back to the default palette. The first argument is the hero's position in the party. (use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setheropicture" class="ref">set hero picture</a></li></ul>
 		</tt></p>
 		<a name="about-alternpc"></a>
 		<p>
@@ -9038,7 +9060,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">inside battle</font></b><br>
-			A constant used in the <a href="#about-getheropicture" class="ref">get hero picture</a>, <a href="#about-setheropicture" class="ref">set hero picture</a>, <a href="#about-getheropalette" class="ref">get hero palette</a> and <a href="#about-setheropalette" class="ref">set hero palette</a> commands to represent the battle graphics.<br>
+			A constant used in the <a href="#about-getheropicture" class="ref">get hero picture</a>, <a href="#about-setheropicture" class="ref">set hero picture</a>, <a href="#about-getheropalette" class="ref">get hero palette</a>, <a href="#about-setheropalette" class="ref">set hero palette</a>, <a href="#about-resetheropicture" class="ref">reset hero picture</a> and <a href="#about-resetheropalette" class="ref">reset hero palette</a> commands to represent the battle graphics.<br>
 			
 			
 		</tt></p>
@@ -9046,7 +9068,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">outside battle</font></b><br>
-			A constant used in the <a href="#about-getheropicture" class="ref">get hero picture</a>, <a href="#about-setheropicture" class="ref">set hero picture</a>, <a href="#about-getheropalette" class="ref">get hero palette</a> and <a href="#about-setheropalette" class="ref">set hero palette</a> commands to represent the walkabout graphics.<br>
+			A constant used in the <a href="#about-getheropicture" class="ref">get hero picture</a>, <a href="#about-setheropicture" class="ref">set hero picture</a>, <a href="#about-getheropalette" class="ref">get hero palette</a>, <a href="#about-setheropalette" class="ref">set hero palette</a>, <a href="#about-resetheropicture" class="ref">reset hero picture</a> and <a href="#about-resetheropalette" class="ref">reset hero palette</a> commands to represent the walkabout graphics.<br>
 			
 			
 		</tt></p>
@@ -9286,7 +9308,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 668 commands in this file, of which 54 are only references to other commands.</p>
+	<p>Stats: There are 670 commands in this file, of which 54 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

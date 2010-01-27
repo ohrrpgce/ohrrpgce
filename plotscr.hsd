@@ -456,6 +456,8 @@ define function, begin
 446,moveslicebelow,2,0,0      #make a slice the previous sibling of another slice
 447,movesliceabove,2,0,0      #make a slice the next sibling of another slice
 448,slicechild,2,0,0          #the nth child of a slice, counting from 0
+449,resetheropicture,2,0,1    #reset a hero's picture to their default
+450,resetheropalette,2,0,1    #reset a hero's palette to their default
 end
 
 #--------------------------------------------------------------------------
