@@ -1516,45 +1516,6 @@ end sub
 
 '==Slice saving and loading====================================================
 
-'--String manupilation functions used by saving/loading------------------------
-
-Function FindUnquotedChar (s AS STRING, char AS STRING) AS INTEGER
- 'Returns the index of the first occurance of a char that is not inside a double-quote
- DIM mode AS INTEGER = 0
- FOR i AS INTEGER = 0 TO LEN(s) - 1
-  SELECT CASE mode
-   CASE 0'--Looking
-    IF s[i] = ASC("""") THEN mode = 1
-    IF s[i] = ASC(char) THEN RETURN i
-   CASE 1'--"Found opening doublequote, seek another
-    IF s[i] = ASC("""") THEN mode = 0
-    IF s[i] = ASC("\") THEN mode = 2
-   CASE 2'--Ignoring any backslash escaped chars inside a string
-    mode = 1 ' Go back to searching for an ending quote
-  END SELECT
- NEXT i
- RETURN -1
-End Function
-
-Function EscapeChar (s AS STRING, char AS STRING, escaper AS STRING="\") AS STRING
- DIM result AS STRING = ""
- FOR i AS INTEGER = 0 TO LEN(s) - 1
-  IF s[i] = ASC(char) THEN result &= escaper
-  result &= CHR(s[i])
- NEXT i
- RETURN result
-End Function
-
-Function StripQuotes (s AS STRING) AS STRING
- IF LEFT(s, 1) <> """" OR RIGHT(s, 1) <> """" THEN debug "StripQuotes: unmatched quotes": debug s
- DIM result AS STRING = ""
- FOR i AS INTEGER = 1 TO LEN(s) - 2
-  IF s[i] = ASC("\") AND s[i+1] = ASC("""") THEN CONTINUE FOR
-  result &= CHR(s[i])
- NEXT i
- RETURN result
-End Function
-
 '--saving----------------------------------------------------------------------
 
 Sub SaveProp(node AS Reload.Nodeptr, propname AS STRING, value AS INTEGER)
