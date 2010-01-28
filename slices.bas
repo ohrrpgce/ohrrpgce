@@ -33,6 +33,10 @@ DECLARE Function LoadPropStr(node AS Reload.Nodeptr, propname as string, default
 DECLARE Function LoadProp(node AS Reload.Nodeptr, propname as string, default as integer=0) as integer
 DECLARE Function LoadPropBool(node AS Reload.Nodeptr, propname as string, default as integer=NO) as integer
 
+'Other local subs and functions
+DECLARE Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+DECLARE Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+
 '==============================================================================
 
 Dim SliceTable as SliceTable_
@@ -63,6 +67,20 @@ Sub DisposeNullSlice(byval s as slice ptr) : end sub
 Sub UpdateNullSlice(byval s as slice ptr) : end sub
 Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
+Sub DefaultChildRefresh(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr)
+ if ch = 0 then debug "DefaultChildRefresh null ptr": exit sub
+ with *ch
+  if .Fill then
+   .ScreenX = par->ScreenX + par->paddingLeft
+   .ScreenY = par->ScreenY + par->paddingTop
+   .Width = par->Width - par->paddingLeft - par->paddingRight
+   .height = par->Height - par->paddingTop - par->paddingBottom
+  else ' Not fill
+   .ScreenX = .X + SliceXAlign(ch, par) - SliceXAnchor(ch)
+   .ScreenY = .Y + SliceYAlign(ch, par) - SliceYAnchor(ch)
+  end if
+ end with
+End sub
 
 Sub SetupGameSlices
  SliceTable.Root = NewSliceOfType(slRoot)
@@ -230,6 +248,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->Update = @UpdateNullSlice
  ret->Save = @SaveNullSlice
  ret->Load = @LoadNullSlice
+ ret->ChildRefresh = @DefaultChildRefresh
 
  SliceDebugRemember ret
  
@@ -512,6 +531,7 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
   sl->Update    = .Update
   sl->Save      = .Save
   sl->Load      = .Load
+  sl->ChildRefresh = .ChildRefresh
   sl->SliceData = .SliceData
   sl->SliceType = .SliceType
   'Break slice connection to data
@@ -1349,21 +1369,6 @@ Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
  END SELECT
 End Function
 
-Sub LocalRefreshSliceScreenPos(byval s as slice ptr, byval attach as slice ptr)
- if s = 0 then debug "LocalRefreshSliceScreenPos null ptr": exit sub
- with *s
-  if .Fill then
-   .ScreenX = attach->ScreenX + attach->paddingLeft
-   .ScreenY = attach->ScreenY + attach->paddingTop
-   .Width = attach->Width - attach->paddingLeft - attach->paddingRight
-   .height = attach->Height - attach->paddingTop - attach->paddingBottom
-  else ' Not fill
-   .ScreenX = .X + SliceXAlign(s, attach) - SliceXAnchor(s)
-   .ScreenY = .Y + SliceYAlign(s, attach) - SliceYAnchor(s)
-  end if
- end with
-end sub
-
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  if s = 0 then debug "DrawSlice null ptr": exit sub
  'first, draw this slice
@@ -1371,9 +1376,8 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
   'calc it's X,Y
   DIM attach AS Slice Ptr
   attach = GetSliceDrawAttachParent(s)
+  if attach then attach->ChildRefresh(attach, s)
   with *s
-   LocalRefreshSliceScreenPos s, attach
-   
    if .Draw <> 0 THEN .Draw(s, page)
    'draw its children
    dim ch as slice ptr = .FirstChild
@@ -1395,7 +1399,7 @@ Sub RefreshSliceScreenPos(byval s as slice ptr)
  if attach = 0 then exit sub
  if attach = ScreenSlice then exit sub
  RefreshSliceScreenPos attach
- LocalRefreshSliceScreenPos s, attach
+ attach->ChildRefresh(attach, s)
 end sub
 
 Function SliceCollide(byval sl1 as Slice Ptr, sl2 as Slice Ptr) as integer
@@ -1446,7 +1450,7 @@ Function FindSliceCollision(byval parent as Slice Ptr, byval sl as Slice Ptr, by
  while s
   if s <> sl then
    with *s
-    LocalRefreshSliceScreenPos s, parent
+    parent->ChildRefresh(parent, s)
  
     if .SliceType <> slSpecial and SliceCollide(s, sl) then  '--impossible to encounter the root
      if num = 0 then return s
@@ -1471,7 +1475,7 @@ Function FindSliceAtPoint(byval parent as Slice Ptr, byval x as integer, byval y
  s = parent->FirstChild
  while s
   with *s
-   LocalRefreshSliceScreenPos s, parent
+   parent->ChildRefresh(parent, s)
 
    if .SliceType <> slSpecial and SliceCollidePoint(s, x, y) then  '--impossible to encounter the root
     if num = 0 then return s

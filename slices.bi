@@ -75,6 +75,7 @@ Type SliceDispose as Sub(Byval as SliceFwd ptr)
 Type SliceUpdate as Sub(Byval as SliceFwd ptr)
 Type SliceSave as Sub(Byval as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr)
 
 TYPE Slice
   Parent as Slice Ptr
@@ -116,6 +117,7 @@ TYPE Slice
   Update as SliceUpdate
   Save as SliceSave
   Load as SliceLoad
+  ChildRefresh as SliceChildRefresh
   SliceData as any ptr
   SliceType as SliceTypes
   
@@ -283,12 +285,6 @@ DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
                    byval overlay as integer=-1) ' All arguments default to no change (explaining weird tiles default)
 
 '--Saving and loading slices
-'OLD STUFF!
-DECLARE Sub OpenSliceFileRead (BYREF f AS SliceFileRead, filename AS STRING)
-DECLARE Sub CloseSliceFileRead (BYREF f AS SliceFileRead)
-DECLARE Sub LoadSlice (BYREF f AS SliceFileRead, BYVAL sl AS Slice Ptr, BYVAL skip_to_read AS INTEGER=NO)
-
-'NEW STUFF!
 DECLARE Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
 DECLARE Sub SliceSaveToFile(BYVAL sl AS Slice Ptr, filename AS STRING)
 DECLARE Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
