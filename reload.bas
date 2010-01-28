@@ -611,7 +611,9 @@ Sub LoadStringTable(f as integer, table() as string)
 		size = cint(ReadVLI(f))
 		'get #f, , size
 		table(i) = string(size, " ")
-		get #f, , table(i)
+		if size > 0 then
+			get #f, , table(i)
+		end if
 	next
 end sub
 
