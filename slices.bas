@@ -135,6 +135,7 @@ FUNCTION SliceTypeName (t AS SliceTypes) AS STRING
   CASE slMenu:           RETURN "Menu"
   CASE slMenuItem:       RETURN "MenuItem"
   CASE slMap:            RETURN "Map"
+  CASE slGrid:           RETURN "Grid"
  END SELECT
  RETURN "Unknown"
 END FUNCTION
@@ -150,7 +151,9 @@ FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
   CASE "Menu":           RETURN slMenu
   CASE "MenuItem":       RETURN slMenuItem
   CASE "Map":            RETURN slMap
+  CASE "Grid":           RETURN slGrid
  END SELECT
+ debug "Unrecognized slice name """ & s & """"
 END FUNCTION
 
 FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
@@ -223,6 +226,9 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYV
   CASE slMap:
    DIM dat AS MapSliceData
    newsl = NewMapSlice(parent, dat)
+  CASE slGrid:
+   DIM dat AS GridSliceData
+   newsl = NewGridSlice(parent, dat)
   CASE ELSE
    debug "NewSliceByType: Warning! type " & t & " is invalid"
    newsl = NewSlice(parent)
@@ -584,6 +590,20 @@ Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integ
  loop
  return yes
 end function
+
+Function IndexAmongSiblings(byref sl as Slice Ptr) as integer
+ '--Returns the 0-based index of this slice among is siblings.
+ 'FIXME: slow for large families
+ if sl = 0 then return 0
+ if sl->parent = 0 then return 0
+ dim sib as Slice Ptr = sl->parent->FirstChild
+ for i as integer = 0 TO sl->parent->NumChildren - 1
+  if sib = 0 then exit for
+  if sib = sl then return i
+  sib = sib->NextSibling
+ next i
+ return 0
+End function
 
 '==Special slice types=========================================================
 
@@ -1149,6 +1169,137 @@ Sub ChangeMapSlice(byval sl as slice ptr,_
    .overlay = overlay 'valid values 0, 1, 2
   end if
  end with
+end sub
+
+'--Grid-------------------------------------------------------------------
+Sub DisposeGridSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as GridSliceData ptr = cptr(GridSliceData ptr, sl->SliceData)
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Sub DrawGridSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ dim dat as GridSliceData ptr = cptr(GridSliceData ptr, sl->SliceData)
+
+ '--teporary display for debugging, will normally be invis
+ emptybox sl->screenx, sl->screeny, sl->width, sl->height, uilook(uiText), 1, p
+ dim w as integer = sl->width \ large(1, dat->cols)
+ dim h as integer = sl->height \ large(1, dat->rows)
+ for row as integer = 0 to dat->rows - 1
+  for col as integer = 0 to dat->cols - 1
+   'emptybox sl->screenx + col * w, sl->screeny + row * h, w, h, uilook(uiText), 1, p
+   rectangle sl->screenx + col * w, sl->screeny + row * h, w, 1, uilook(uiText), p
+   rectangle sl->screenx + col * w, sl->screeny + row * h, 1, h, uilook(uiText), p
+  next col
+ next row
+end sub
+
+Sub SaveGridSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveGridSlice null ptr": exit sub
+ DIM dat AS GridSliceData Ptr
+ dat = sl->SliceData
+ SaveProp node, "cols", dat->cols
+ SaveProp node, "rows", dat->rows
+End Sub
+
+Sub LoadGridSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadGridSlice null ptr": exit sub
+ dim dat AS GridSliceData Ptr
+ dat = sl->SliceData
+ dat->cols = large(1, LoadProp(node, "cols", 1))
+ dat->rows = large(1, LoadProp(node, "rows", 1))
+End Sub
+
+Function GridSliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr, BYVAL w AS INTEGER) AS INTEGER
+ if sl = 0 then debug "GridSliceXAlign null ptr": Return 0
+ SELECT CASE sl->AlignHoriz
+  CASE 0: RETURN alignTo->ScreenX + alignTo->paddingLeft
+  CASE 1: RETURN alignTo->ScreenX + alignTo->paddingLeft + (w - alignTo->paddingLeft - alignTo->paddingRight) \ 2
+  CASE 2: RETURN alignTo->ScreenX + w - alignTo->paddingRight
+ END SELECT
+End Function
+
+Function GridSliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr, BYVAL h AS INTEGER) AS INTEGER
+ if sl = 0 then debug "GridSliceYAlign null ptr": Return 0
+ SELECT CASE sl->AlignVert
+  CASE 0: RETURN alignTo->ScreenY + alignTo->paddingTop
+  CASE 1: RETURN alignTo->ScreenY + alignTo->paddingTop + (h - alignTo->paddingTop - alignTo->paddingBottom) \ 2
+  CASE 2: RETURN alignTo->ScreenY + h - alignTo->paddingBottom
+ END SELECT
+End Function
+
+Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
+ if ch = 0 then debug "GridChildRefresh null ptr": exit sub
+ '--get grid data
+ dim dat as GridSliceData ptr
+ dat = par->SliceData
+ dim w as integer = par->Width \ large(1, dat->cols)
+ dim h as integer = par->Height \ large(1, dat->rows)
+ '--Figure out which child this is
+ dim slot as integer = IndexAmongSiblings(ch)
+ dim xslot as integer = slot mod large(1, dat->cols)
+ dim yslot as integer = slot \ large(1, dat->cols)
+ with *ch
+  if .Fill then
+   .ScreenX = par->ScreenX + xslot * w + par->paddingLeft
+   .ScreenY = par->ScreenY + yslot * h + par->paddingTop
+   .Width = w - par->paddingLeft - par->paddingRight
+   .height = h - par->paddingTop - par->paddingBottom
+  else ' Not fill
+   .ScreenX = .X + GridSliceXAlign(ch, par, w) - SliceXAnchor(ch) + xslot * w
+   .ScreenY = .Y + GridSliceYAlign(ch, par, h) - SliceYAnchor(ch) + yslot * h
+  end if
+ end with
+End sub
+
+Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as GridSliceData ptr = new GridSliceData
+ *d = dat
+ '--Set non-zero defaults here
+ d->cols = 1
+ d->rows = 1
+ 
+ ret->SliceType = slGrid
+ ret->SliceData = d
+ ret->Draw = @DrawGridSlice
+ ret->Dispose = @DisposeGridSlice
+ ret->Save = @SaveGridSlice
+ ret->Load = @LoadGridSlice
+ ret->ChildRefresh = @GridChildRefresh
+ 
+ return ret
+end function
+
+Function GetGridSliceData(byval sl as slice ptr) as GridSliceData ptr
+ if sl = 0 then debug "GetGridSliceData null ptr": return 0
+ return sl->SliceData
+End Function
+
+'All arguments default to no-change
+Sub ChangeGridSlice(byval sl as slice ptr,_
+                      byval rows as integer=0,_
+                      byval cols as integer=0)
+ if sl = 0 then debug "ChangeGridSlice null ptr" : exit sub
+ if sl->SliceType <> slGrid then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a grid", 5 : exit sub
+ dim dat as GridSliceData Ptr = sl->SliceData
+ if rows > 0 then
+  dat->rows = rows
+ end if
+ if cols > 0 then
+  dat->cols = cols
+ end if
 end sub
 
 '--Menu-------------------------------------------------------------------

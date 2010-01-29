@@ -20,7 +20,6 @@ CONST ENABLE_SLICE_DEBUG = NO
 'as a constant in someone's script, and changing it would break any
 'non-recompiled script that used it.
 
-'Note that once you 
 '<SLICE LOOKUP CODES>
 CONST SL_TEXTBOX_TEXT     = -100001
 CONST SL_TEXTBOX_PORTRAIT = -100002
@@ -50,6 +49,7 @@ Enum SliceTypes
  slMenu
  slMenuItem
  slMap
+ slGrid
 End Enum
 
 Enum AttachTypes
@@ -201,6 +201,10 @@ Type MenuItemSliceData
  disabled as integer
 End Type
 
+Type GridSliceData
+ rows as integer
+ cols as integer
+End Type
 
 DECLARE Sub SetupGameSlices
 DECLARE Sub DestroyGameSlices(Byval dumpdebug AS INTEGER=0)
@@ -283,6 +287,11 @@ DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
                    byval tiles as TileMap ptr=cast(TileMap ptr, 1),_
                    byval transparent as integer=-2,_
                    byval overlay as integer=-1) ' All arguments default to no change (explaining weird tiles default)
+
+DECLARE Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as slice ptr
+DECLARE Sub ChangeGridSlice(byval sl as slice ptr,_
+                      byval rows as integer=0,_
+                      byval cols as integer=0)
 
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)

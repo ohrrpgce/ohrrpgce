@@ -27,11 +27,12 @@ END TYPE
 
 '==============================================================================
 
-DIM SHARED editable_slice_types(3) AS SliceTypes
+DIM SHARED editable_slice_types(4) AS SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlRectangle
 editable_slice_types(2) = SlSprite
 editable_slice_types(3) = SlText
+editable_slice_types(4) = SlGrid
 
 '==============================================================================
 
@@ -461,6 +462,13 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule_tog rules(), @(dat->flipHoriz), slgrUPDATESPRITE
     str_array_append menu(), "Flip vert.: " & yesorno(dat->flipVert)
     sliceed_rule_tog rules(), @(dat->flipVert), slgrUPDATESPRITE
+   CASE slGrid
+    DIM dat AS GridSliceData Ptr
+    dat = .SliceData
+    str_array_append menu(), "Rows: " & dat->rows
+    sliceed_rule rules(), erIntgrabber, @(dat->rows), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
+    str_array_append menu(), "Columns: " & dat->cols
+    sliceed_rule rules(), erIntgrabber, @(dat->cols), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), @.Visible
