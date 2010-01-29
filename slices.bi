@@ -76,6 +76,7 @@ Type SliceUpdate as Sub(Byval as SliceFwd ptr)
 Type SliceSave as Sub(Byval as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr)
+Type SliceChildDraw as Sub(Byval s as SliceFwd ptr, Byval page as SliceFwd ptr)
 
 TYPE Slice
   Parent as Slice Ptr
@@ -118,6 +119,8 @@ TYPE Slice
   Save as SliceSave
   Load as SliceLoad
   ChildRefresh as SliceChildRefresh
+  ChildDraw as SliceChildDraw
+  
   SliceData as any ptr
   SliceType as SliceTypes
   
