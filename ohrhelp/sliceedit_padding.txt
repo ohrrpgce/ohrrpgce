@@ -1,0 +1,3 @@
+Padding is used to add margins around the children of a slice. This is most noticeable for child slices that are set to "Fill", but it applies to all child slices no matter how they are attached to the current slice.
+
+Padding is also allowed to be negative, which causes child slices to overflow the parent slice.

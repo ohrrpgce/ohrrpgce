@@ -25,6 +25,24 @@ TYPE SliceEditMenuItem
  handle AS Slice Ptr
 END TYPE
 
+'------------------------------------------------------------------------------
+
+ENUM EditRuleMode
+  erNone              'Used for labels and links
+  erIntgrabber
+  erStrgrabber
+  erToggle
+END ENUM
+
+TYPE EditRule
+  dataptr AS ANY PTR  'It scares the heck out of me that I think this is the best solution
+  mode AS EditRuleMode
+  lower AS INTEGER
+  upper AS INTEGER
+  group AS INTEGER    'Marks this rule as a member of a numbered group, the meaning of which is defined in the implementation
+  helpkey AS STRING   'actually appended to "sliceedit_" to get the full helpkey
+END TYPE
+
 '==============================================================================
 
 DIM SHARED editable_slice_types(4) AS SliceTypes
@@ -72,9 +90,9 @@ DECLARE SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focus
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS SliceTypes
 
 'Slice EditRule convenience functions
-DECLARE SUB sliceed_rule(rules() AS EditRule, mode AS EditRuleMode, BYVAL dataptr AS ANY PTR, BYVAL lower AS INTEGER=0, BYVAL upper AS INTEGER=0, BYVAL group AS INTEGER = 0)
-DECLARE SUB sliceed_rule_tog(rules() AS EditRule, BYVAL dataptr AS INTEGER PTR, BYVAL group AS INTEGER=0)
-DECLARE SUB sliceed_rule_none(rules() AS EditRule, BYVAL group AS INTEGER = 0)
+DECLARE SUB sliceed_rule(rules() AS EditRule, helpkey AS String, mode AS EditRuleMode, BYVAL dataptr AS ANY PTR, BYVAL lower AS INTEGER=0, BYVAL upper AS INTEGER=0, BYVAL group AS INTEGER = 0)
+DECLARE SUB sliceed_rule_tog(rules() AS EditRule, helpkey AS String, BYVAL dataptr AS INTEGER PTR, BYVAL group AS INTEGER=0)
+DECLARE SUB sliceed_rule_none(rules() AS EditRule, helpkey AS String, BYVAL group AS INTEGER = 0)
 
 '==============================================================================
 
@@ -252,7 +270,7 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "sliceedit_detail"
+  IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
 
   IF state.need_update THEN
    slice_edit_detail_refresh state, menu(), sl, rules()
@@ -395,7 +413,7 @@ SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Sl
  LOOP
 END SUB
 
-SUB sliceed_rule(rules() AS EditRule, mode AS EditRuleMode, BYVAL dataptr AS ANY PTR, BYVAL lower AS INTEGER=0, BYVAL upper AS INTEGER=0, BYVAL group AS INTEGER = 0)
+SUB sliceed_rule(rules() AS EditRule, helpkey AS String, mode AS EditRuleMode, BYVAL dataptr AS ANY PTR, BYVAL lower AS INTEGER=0, BYVAL upper AS INTEGER=0, BYVAL group AS INTEGER = 0)
  DIM index AS INTEGER = UBOUND(rules) + 1
  REDIM PRESERVE rules(index) AS EditRule
  WITH rules(index)
@@ -404,106 +422,108 @@ SUB sliceed_rule(rules() AS EditRule, mode AS EditRuleMode, BYVAL dataptr AS ANY
   .lower = lower
   .upper = upper
   .group = group
+  .helpkey = helpkey
  END WITH 
 END SUB
 
-SUB sliceed_rule_none(rules() AS EditRule, BYVAL group AS INTEGER = 0)
- sliceed_rule rules(), erNone, 0, 0, 0, group
+SUB sliceed_rule_none(rules() AS EditRule, helpkey AS String, BYVAL group AS INTEGER = 0)
+ sliceed_rule rules(), helpkey, erNone, 0, 0, 0, group
 END SUB
 
-SUB sliceed_rule_tog(rules() AS EditRule, BYVAL dataptr AS INTEGER PTR, BYVAL group AS INTEGER=0)
- sliceed_rule rules(), erToggle, dataptr, -1, 0, group
+SUB sliceed_rule_tog(rules() AS EditRule, helpkey AS String, BYVAL dataptr AS INTEGER PTR, BYVAL group AS INTEGER=0)
+ sliceed_rule rules(), helpkey, erToggle, dataptr, -1, 0, group
 END SUB
 
 SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
  REDIM menu(5)
  REDIM rules(0)
+ rules(0).helpkey = "detail"
  menu(0) = "Previous Menu"
  WITH *sl
   menu(1) = "Slice type: " & SliceTypeName(sl)
-  sliceed_rule_none rules(), slgrPICKTYPE
+  sliceed_rule_none rules(), "slicetype", slgrPICKTYPE
   menu(2) = "X: " & .X
-  sliceed_rule rules(), erIntgrabber, @.X, -9999, 9999, slgrPICKXY
+  sliceed_rule rules(), "pos", erIntgrabber, @.X, -9999, 9999, slgrPICKXY
   menu(3) = "Y: " & .Y
-  sliceed_rule rules(), erIntgrabber, @.Y, -9999, 9999, slgrPICKXY
+  sliceed_rule rules(), "pos", erIntgrabber, @.Y, -9999, 9999, slgrPICKXY
   menu(4) = "Width: " & .Width
-  sliceed_rule rules(), erIntgrabber, @.Width, 0, 9999, slgrPICKWH
+  sliceed_rule rules(), "size", erIntgrabber, @.Width, 0, 9999, slgrPICKWH
   menu(5) = "Height: " & .Height
-  sliceed_rule rules(), erIntgrabber, @.Height, 0, 9999, slgrPICKWH
+  sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
   SELECT CASE .SliceType
    CASE slRectangle
     DIM dat AS RectangleSliceData Ptr
     dat = .SliceData
     str_array_append menu(), "Style: " & defaultint(dat->style, "None")
-    sliceed_rule rules(), erIntgrabber, @(dat->style), -1, 14, slgrUPDATERECTSTYLE
+    sliceed_rule rules(), "rect_style", erIntgrabber, @(dat->style), -1, 14, slgrUPDATERECTSTYLE
     str_array_append menu(), "Background color: " & defaultint(dat->bgcol)
-    sliceed_rule rules(), erIntgrabber, @(dat->bgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
+    sliceed_rule rules(), "rect_bg", erIntgrabber, @(dat->bgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     str_array_append menu(), "Foreground color: " & defaultint(dat->fgcol)
-    sliceed_rule rules(), erIntgrabber, @(dat->fgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
+    sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     str_array_append menu(), "Border: " & caption_or_int(dat->border, BorderCaptions())
-    sliceed_rule rules(), erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
+    sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
     str_array_append menu(), "Translucent: " & yesorno(dat->translucent)
-    sliceed_rule_tog rules(), @(dat->translucent)
+    sliceed_rule_tog rules(), "rect_trans", @(dat->translucent)
    CASE slText
     DIM dat AS TextSliceData Ptr
     dat = .SliceData
     str_array_append menu(), "Text: " & dat->s
-    sliceed_rule rules(), erStrgrabber, @(dat->s), 0, 0
+    sliceed_rule rules(), "text_text", erStrgrabber, @(dat->s), 0, 0
     str_array_append menu(), "Color: " & zero_default(dat->col)
-    sliceed_rule rules(), erIntgrabber, @(dat->col), 0, 255, slgrPICKCOL
+    sliceed_rule rules(), "text_color", erIntgrabber, @(dat->col), 0, 255, slgrPICKCOL
     str_array_append menu(), "Outline: " & yesorno(dat->outline)
-    sliceed_rule_tog rules(), @(dat->outline)
+    sliceed_rule_tog rules(), "text_outline", @(dat->outline)
     str_array_append menu(), "Wrap: " & yesorno(dat->wrap)
-    sliceed_rule_tog rules(), @(dat->wrap)
+    sliceed_rule_tog rules(), "text_wrap", @(dat->wrap)
     str_array_append menu(), "Background Color: " & zero_default(dat->bgcol)
-    sliceed_rule rules(), erIntgrabber, @(dat->bgcol), 0, 255, slgrPICKCOL
+    sliceed_rule rules(), "text_bg", erIntgrabber, @(dat->bgcol), 0, 255, slgrPICKCOL
    CASE slSprite
     DIM dat AS SpriteSliceData Ptr
     dat = .SliceData
     str_array_append menu(), "Sprite Type: " & sprite_sizes(dat->spritetype).name
-    sliceed_rule rules(), erIntgrabber, @(dat->spritetype), 0, 8, slgrUPDATESPRITE
+    sliceed_rule rules(), "sprite_type", erIntgrabber, @(dat->spritetype), 0, 8, slgrUPDATESPRITE
     str_array_append menu(), "Sprite Number: " & dat->record
-    sliceed_rule rules(), erIntgrabber, @(dat->record), 0, gen(sprite_sizes(dat->spritetype).genmax), slgrUPDATESPRITE
+    sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(sprite_sizes(dat->spritetype).genmax), slgrUPDATESPRITE
     str_array_append menu(), "Sprite Palette: " & defaultint(dat->pal)
-    sliceed_rule rules(), erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
+    sliceed_rule rules(), "sprite_pal", erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
     str_array_append menu(), "Sprite Frame: " & dat->frame
-    sliceed_rule rules(), erIntgrabber, @(dat->frame), 0, sprite_sizes(dat->spritetype).frames - 1
+    sliceed_rule rules(), "sprite_frame", erIntgrabber, @(dat->frame), 0, sprite_sizes(dat->spritetype).frames - 1
     str_array_append menu(), "Flip horiz.: " & yesorno(dat->flipHoriz)
-    sliceed_rule_tog rules(), @(dat->flipHoriz), slgrUPDATESPRITE
+    sliceed_rule_tog rules(), "sprite_flip", @(dat->flipHoriz), slgrUPDATESPRITE
     str_array_append menu(), "Flip vert.: " & yesorno(dat->flipVert)
-    sliceed_rule_tog rules(), @(dat->flipVert), slgrUPDATESPRITE
+    sliceed_rule_tog rules(), "sprite_flip", @(dat->flipVert), slgrUPDATESPRITE
    CASE slGrid
     DIM dat AS GridSliceData Ptr
     dat = .SliceData
     str_array_append menu(), "Rows: " & dat->rows
-    sliceed_rule rules(), erIntgrabber, @(dat->rows), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
+    sliceed_rule rules(), "grid_rows", erIntgrabber, @(dat->rows), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
     str_array_append menu(), "Columns: " & dat->cols
-    sliceed_rule rules(), erIntgrabber, @(dat->cols), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
+    sliceed_rule rules(), "grid_cols", erIntgrabber, @(dat->cols), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)
-  sliceed_rule_tog rules(), @.Visible
+  sliceed_rule_tog rules(), "vis", @.Visible
   str_array_append menu(), "Fill Parent: " & yesorno(.Fill)
-  sliceed_rule_tog rules(), @.Fill
+  sliceed_rule_tog rules(), "fill", @.Fill
   str_array_append menu(), "Clip Children: " & yesorno(.Clip)
-  sliceed_rule_tog rules(), @.Clip
+  sliceed_rule_tog rules(), "clip", @.Clip
   IF .Fill = NO THEN
    str_array_append menu(), "Align horiz. with: " & HorizCaptions(.AlignHoriz)
-   sliceed_rule rules(), erIntgrabber, @.AlignHoriz, 0, 2
+   sliceed_rule rules(), "align", erIntgrabber, @.AlignHoriz, 0, 2
    str_array_append menu(), "Align vert. with: " & VertCaptions(.AlignVert)
-   sliceed_rule rules(), erIntgrabber, @.AlignVert, 0, 2
+   sliceed_rule rules(), "align", erIntgrabber, @.AlignVert, 0, 2
    str_array_append menu(), "Anchor horiz. on: " & HorizCaptions(.AnchorHoriz)
-   sliceed_rule rules(), erIntgrabber, @.AnchorHoriz, 0, 2
+   sliceed_rule rules(), "anchor", erIntgrabber, @.AnchorHoriz, 0, 2
    str_array_append menu(), "Anchor vert. on: " & VertCaptions(.AnchorVert)
-   sliceed_rule rules(), erIntgrabber, @.AnchorVert, 0, 2
+   sliceed_rule rules(), "anchor", erIntgrabber, @.AnchorVert, 0, 2
   END IF
   str_array_append menu(), "Padding Top: " & .PaddingTop
-  sliceed_rule rules(), erIntgrabber, @.PaddingTop, -9999, 9999
+  sliceed_rule rules(), "padding", erIntgrabber, @.PaddingTop, -9999, 9999
   str_array_append menu(), "Padding Right: " & .PaddingRight
-  sliceed_rule rules(), erIntgrabber, @.PaddingRight, -9999, 9999
+  sliceed_rule rules(), "padding", erIntgrabber, @.PaddingRight, -9999, 9999
   str_array_append menu(), "Padding Bottom: " & .PaddingBottom
-  sliceed_rule rules(), erIntgrabber, @.PaddingBottom, -9999, 9999
+  sliceed_rule rules(), "padding", erIntgrabber, @.PaddingBottom, -9999, 9999
   str_array_append menu(), "Padding Left: " & .PaddingLeft
-  sliceed_rule rules(), erIntgrabber, @.PaddingLeft, -9999, 9999
+  sliceed_rule rules(), "padding", erIntgrabber, @.PaddingLeft, -9999, 9999
  END WITH
   
  state.last = UBOUND(menu)

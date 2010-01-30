@@ -1,0 +1,1 @@
+Marking a rectangle as translucent hides the background color, and causes only the border to be drawn.

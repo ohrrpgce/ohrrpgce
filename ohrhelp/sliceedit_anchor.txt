@@ -1,0 +1,3 @@
+The anchor setting controls which corner or edge of this slice is used to position it.
+
+You can imagine that the slice is pinned to its parent with a magic thumbtack at the anchor point.

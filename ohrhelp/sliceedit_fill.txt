@@ -1,0 +1,3 @@
+When a slice is marked to Fill its parent, it will be automatically resized to fill the parent slice. If the parent size changes, the child slice changes too.
+
+If the parent slice is a grid, the slice will only fill one cell of the grid.

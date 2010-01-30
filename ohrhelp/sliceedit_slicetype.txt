@@ -1,0 +1,11 @@
+Press the left and right arrow keys to change slice types, or press Enter or Space to browse a list of available slice types.
+
+Container - An invisible slice used for positioning other slices.
+
+Rectangle - A box which can be give a color and a border-style
+
+Sprite - A sprite. Draw sprites in the graphics menu (go back to the main menu to find it)
+
+Text - A string of text. Can optionally wrap as multiple lines.
+
+Grid - A special container with rows and columns. Children of the grid are automatically positioned relative to the grid cells.

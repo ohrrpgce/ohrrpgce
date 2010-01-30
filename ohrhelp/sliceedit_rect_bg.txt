@@ -1,0 +1,1 @@
+Press Enter or Space to browse for a color that will be used as the background color for this rectangle.

@@ -1,0 +1,3 @@
+Press the left and right arrow keys to change the rectangle's border style. There are 15 border styles (defined in the Edit Graphics menu) numbered from 0 to 14, or you can choose to use a simple line as a border, or you can choose not to use a border at all.
+
+This menu option is different from the "Style" menu option because it only changes the border, not the background color.

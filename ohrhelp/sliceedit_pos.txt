@@ -1,0 +1,1 @@
+Each slice has an X and Y position relative to its parent. You can type in a number, or you can press Enter or Space to reposition the slice using the arrow keys.

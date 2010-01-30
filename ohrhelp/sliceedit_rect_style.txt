@@ -1,0 +1,3 @@
+Press the left and right arrows to change the rectangle style. There are 15 styles (defined in the Edit Graphics menu) numbered from 0 to 14
+
+Changing a rectangle's style will automatically adjust the color and border style.

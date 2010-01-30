@@ -1,0 +1,1 @@
+If a slice is configured to clip its children, child slices will be clipped at the edges of the slice, even if they are too big to fit inside.

@@ -1,0 +1,3 @@
+Normally slices are visible. if you mark a slice as not visible, it will be hidden, and so will all of its children.
+
+For slices that don't have any picture, such as a container or a blank sprite, the visible setting still matters for child visibility.

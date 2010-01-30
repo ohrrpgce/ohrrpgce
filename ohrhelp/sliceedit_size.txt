@@ -1,0 +1,7 @@
+Each slice has a width and a height.
+
+You can type in a new width and height, or press Enter or Space to resize the slice using the arrow keys.
+
+Some slice types like Sprites and non-wrapping Text automatically adjust their size when their content changes.
+
+Slices that are set to fill their parent are also automatically sized.
