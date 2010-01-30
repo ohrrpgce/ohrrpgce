@@ -87,7 +87,7 @@ Sub DefaultClipper(Byval s as slice ptr, Byval ch as slice ptr, byval page as in
  if s = 0 then debug "DefaultClipper null ptr": exit sub
  'ch is not used by the default clipper
  with *s
-  setclip .ScreenX + .paddingLeft, _
+  shrinkclip .ScreenX + .paddingLeft, _
           .ScreenY + .paddingTop, _
           .ScreenX + .Width - 1 - .paddingRight, _
           .ScreenY + .Height - 1 - .paddingBottom, _
@@ -1300,7 +1300,7 @@ Sub GridClipper(Byval s as slice ptr, Byval ch as slice ptr, byval page as integ
  dim yslot as integer = slot \ large(1, dat->cols)
  
  with *s
-  setclip .ScreenX + xslot * w + .paddingLeft, _
+  shrinkclip .ScreenX + xslot * w + .paddingLeft, _
           .ScreenY + yslot * h + .paddingTop, _
           .ScreenX + xslot * w + w - 1 - .paddingRight, _
           .ScreenY + yslot * h + h - 1 - .paddingBottom, _
@@ -1579,7 +1579,6 @@ Sub SliceClipping(byref sl as Slice ptr, byval page as integer)
  do while par
   if par->Clip then
    par->Clipper(par, sl, page)
-   exit sub
   end if
   par = par->parent
  loop

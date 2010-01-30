@@ -3147,6 +3147,23 @@ sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer =
 	end with
 end sub
 
+'Shrinks clipping area, never grows it
+sub shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval page as integer = -1)
+	if page <> -1 then wrkpage = page
+	shrinkclip l, t, r, b, vpages(wrkpage)
+end sub
+
+'Shrinks clipping area, never grows it
+sub shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval fr as Frame ptr)
+	clippedframe = fr
+	with *clippedframe
+		clipl = bound(large(clipl, l), 0, .w) '.w valid, prevents any drawing
+		clipt = bound(large(clipt, t), 0, .h)
+		clipr = bound(small(clipr, r), 0, .w - 1)
+		clipb = bound(small(clipb, b), 0, .h - 1)
+	end with
+end sub
+
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
 'warning! Make sure setclip has been called before calling this
 sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as integer = -1)
