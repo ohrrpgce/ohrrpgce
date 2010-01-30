@@ -118,6 +118,9 @@ SUB slice_editor ()
 
  DIM filename AS STRING
 
+ '--this early draw ensures that all the slices are updated before the loop starts
+ DrawSlice edslice, dpage
+
  setkeys
  DO
   setwait 55
@@ -474,6 +477,8 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
   sliceed_rule_tog rules(), @.Visible
   str_array_append menu(), "Fill Parent: " & yesorno(.Fill)
   sliceed_rule_tog rules(), @.Fill
+  str_array_append menu(), "Clip Children: " & yesorno(.Clip)
+  sliceed_rule_tog rules(), @.Clip
   IF .Fill = NO THEN
    str_array_append menu(), "Align horiz. with: " & HorizCaptions(.AlignHoriz)
    sliceed_rule rules(), erIntgrabber, @.AlignHoriz, 0, 2

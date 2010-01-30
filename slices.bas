@@ -36,6 +36,7 @@ DECLARE Function LoadPropBool(node AS Reload.Nodeptr, propname as string, defaul
 'Other local subs and functions
 DECLARE Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
 DECLARE Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+DECLARE Sub SliceClipping(byref sl as Slice ptr, byval page as integer)
 
 '==============================================================================
 
@@ -67,7 +68,7 @@ Sub DisposeNullSlice(byval s as slice ptr) : end sub
 Sub UpdateNullSlice(byval s as slice ptr) : end sub
 Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
-Sub DefaultChildRefresh(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr)
+Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr)
  if ch = 0 then debug "DefaultChildRefresh null ptr": exit sub
  with *ch
   if .Fill then
@@ -79,6 +80,18 @@ Sub DefaultChildRefresh(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr)
    .ScreenX = .X + SliceXAlign(ch, par) - SliceXAnchor(ch)
    .ScreenY = .Y + SliceYAlign(ch, par) - SliceYAnchor(ch)
   end if
+ end with
+End sub
+Sub DefaultClipper(Byval s as slice ptr, Byval ch as slice ptr, byval page as integer)
+ 'Only called with .Clip is set
+ if s = 0 then debug "DefaultClipper null ptr": exit sub
+ 'ch is not used by the default clipper
+ with *s
+  setclip .ScreenX + .paddingLeft, _
+          .ScreenY + .paddingTop, _
+          .ScreenX + .Width - 1 - .paddingRight, _
+          .ScreenY + .Height - 1 - .paddingBottom, _
+          page
  end with
 End sub
 
@@ -255,6 +268,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->Save = @SaveNullSlice
  ret->Load = @LoadNullSlice
  ret->ChildRefresh = @DefaultChildRefresh
+ ret->Clipper = @DefaultClipper
 
  SliceDebugRemember ret
  
@@ -538,6 +552,7 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
   sl->Save      = .Save
   sl->Load      = .Load
   sl->ChildRefresh = .ChildRefresh
+  sl->Clipper   = .Clipper
   sl->SliceData = .SliceData
   sl->SliceType = .SliceType
   'Break slice connection to data
@@ -633,6 +648,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
   UpdateRectangleSliceStyle dat
  end if
 
+ SliceClipping sl, p
  edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol, dat->fgcol, p, dat->translucent, dat->border
 end sub
 
@@ -777,6 +793,8 @@ Sub DrawTextSlice(byval sl as slice ptr, byval p as integer)
    chars += len(lines(i)) + 1
   next i
  end if
+
+ SliceClipping sl, p
  for i as integer = dat->first_line to last_line
   ypos = (i - dat->first_line) * 10
   if dat->show_insert then
@@ -951,7 +969,8 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    frame_flip_vert(spr)
   end if
  
-  frame_draw spr, .img.pal, sl->screenX, sl->screenY, , ,dpage
+  SliceClipping sl, p
+  frame_draw spr, .img.pal, sl->screenX, sl->screenY, , ,p
   
   if have_copy then
    frame_unload(@spr)
@@ -1092,6 +1111,7 @@ Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
   if .tiles = 0 then exit sub 'tilemap ptr null if the layer doesn't exist. This slice probably shouldn't either.
   if .tileset = 0 then exit sub 'quit silently on a null tileset ptr
   '2nd, 3rd arguments to drawmap are "camera position" of upper left of the screen.
+  SliceClipping sl, p
   drawmap *.tiles, sl->ScreenX * -1, sl->ScreenY * -1, .overlay, .tileset, p, .transparent
  end with
 end sub
@@ -1186,6 +1206,7 @@ Sub DrawGridSlice(byval sl as slice ptr, byval p as integer)
  
  dim dat as GridSliceData ptr = cptr(GridSliceData ptr, sl->SliceData)
 
+ SliceClipping sl, p
  '--teporary display for debugging, will normally be invis
  emptybox sl->screenx, sl->screeny, sl->width, sl->height, uilook(uiText), 1, p
  dim w as integer = sl->width \ large(1, dat->cols)
@@ -1235,6 +1256,7 @@ End Function
 
 Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  if ch = 0 then debug "GridChildRefresh null ptr": exit sub
+ 
  '--get grid data
  dim dat as GridSliceData ptr
  dat = par->SliceData
@@ -1244,6 +1266,7 @@ Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  dim slot as integer = IndexAmongSiblings(ch)
  dim xslot as integer = slot mod large(1, dat->cols)
  dim yslot as integer = slot \ large(1, dat->cols)
+ 
  with *ch
   if .Fill then
    .ScreenX = par->ScreenX + xslot * w + par->paddingLeft
@@ -1254,6 +1277,30 @@ Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
    .ScreenX = .X + GridSliceXAlign(ch, par, w) - SliceXAnchor(ch) + xslot * w
    .ScreenY = .Y + GridSliceYAlign(ch, par, h) - SliceYAnchor(ch) + yslot * h
   end if
+ end with
+End sub
+
+Sub GridClipper(Byval s as slice ptr, Byval ch as slice ptr, byval page as integer)
+ 'Only called with .Clip is set
+ if s = 0 then debug "GridClipper null ptr": exit sub
+ if ch = 0 then debug "GridClipper null child ptr": exit sub
+ 
+ '--get grid data
+ dim dat as GridSliceData ptr
+ dat = s->SliceData
+ dim w as integer = s->Width \ large(1, dat->cols)
+ dim h as integer = s->Height \ large(1, dat->rows)
+ '--Figure out which child this is
+ dim slot as integer = IndexAmongSiblings(ch)
+ dim xslot as integer = slot mod large(1, dat->cols)
+ dim yslot as integer = slot \ large(1, dat->cols)
+ 
+ with *s
+  setclip .ScreenX + xslot * w + .paddingLeft, _
+          .ScreenY + yslot * h + .paddingTop, _
+          .ScreenX + xslot * w + w - 1 - .paddingRight, _
+          .ScreenY + yslot * h + h - 1 - .paddingBottom, _
+          page
  end with
 End sub
 
@@ -1278,6 +1325,7 @@ Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as 
  ret->Save = @SaveGridSlice
  ret->Load = @LoadGridSlice
  ret->ChildRefresh = @GridChildRefresh
+ ret->Clipper = @GridClipper
  
  return ret
 end function
@@ -1385,6 +1433,7 @@ Sub DrawMenuItemSlice(byval sl as slice ptr, byval p as integer)
    c = uiDisabledItem
   end if
   
+  SliceClipping sl, p
   if .selected = dat->ordinal then
    edgeprint dat->caption, sl->screenx, sl->screeny, uilook(.tog + uiSelectedItem), p
   else
@@ -1520,11 +1569,23 @@ Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
  END SELECT
 End Function
 
+Sub SliceClipping(byref sl as Slice ptr, byval page as integer)
+ '--setup clipping for the next draw operation
+ dim par as Slice Ptr = sl->parent
+ do while par
+  if par->Clip then
+   par->Clipper(par, sl, page)
+   exit sub
+  end if
+  par = par->parent
+ loop
+End sub
+
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  if s = 0 then debug "DrawSlice null ptr": exit sub
  'first, draw this slice
  if s->Visible then
-  'calc it's X,Y
+  'calc the slice's X,Y
   DIM attach AS Slice Ptr
   attach = GetSliceDrawAttachParent(s)
   if attach then attach->ChildRefresh(attach, s)
@@ -1538,6 +1599,9 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
    Loop
   end with
  end if
+ '--Reset the clipping in case this slice or any child changed it
+ 'FIXME: I think this is important, but I am not certain. I wish I was certain [James]
+ setclip , , , , page
 end sub
 
 Sub RefreshSliceScreenPos(byval s as slice ptr)
@@ -1693,6 +1757,7 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  SaveProp node, "w", sl->Width
  SaveProp node, "h", sl->Height
  SaveProp node, "vis", sl->Visible
+ SaveProp node, "clip", sl->Clip
  SaveProp node, "alignh", sl->AlignHoriz
  SaveProp node, "alignv", sl->AlignVert
  SaveProp node, "anchorh", sl->AnchorHoriz
@@ -1782,6 +1847,7 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  sl->Width = LoadProp(node, "w")
  sl->Height = LoadProp(node, "h")
  sl->Visible = LoadPropBool(node, "vis")
+ sl->Clip = LoadPropBool(node, "clip")
  sl->AlignHoriz = LoadProp(node, "alignh")
  sl->AlignVert = LoadProp(node, "alignv")
  sl->AnchorHoriz = LoadProp(node, "anchorh")
