@@ -1207,17 +1207,19 @@ Sub DrawGridSlice(byval sl as slice ptr, byval p as integer)
  dim dat as GridSliceData ptr = cptr(GridSliceData ptr, sl->SliceData)
 
  SliceClipping sl, p
- '--teporary display for debugging, will normally be invis
- emptybox sl->screenx, sl->screeny, sl->width, sl->height, uilook(uiText), 1, p
- dim w as integer = sl->width \ large(1, dat->cols)
- dim h as integer = sl->height \ large(1, dat->rows)
- for row as integer = 0 to dat->rows - 1
-  for col as integer = 0 to dat->cols - 1
-   'emptybox sl->screenx + col * w, sl->screeny + row * h, w, h, uilook(uiText), 1, p
-   rectangle sl->screenx + col * w, sl->screeny + row * h, w, 1, uilook(uiText), p
-   rectangle sl->screenx + col * w, sl->screeny + row * h, 1, h, uilook(uiText), p
-  next col
- next row
+ 
+ if dat->show then
+  emptybox sl->screenx, sl->screeny, sl->width, sl->height, uilook(uiText), 1, p
+  dim w as integer = sl->width \ large(1, dat->cols)
+  dim h as integer = sl->height \ large(1, dat->rows)
+  for row as integer = 0 to dat->rows - 1
+   for col as integer = 0 to dat->cols - 1
+    'emptybox sl->screenx + col * w, sl->screeny + row * h, w, h, uilook(uiText), 1, p
+    rectangle sl->screenx + col * w, sl->screeny + row * h, w, 1, uilook(uiText), p
+    rectangle sl->screenx + col * w, sl->screeny + row * h, 1, h, uilook(uiText), p
+   next col
+  next row
+ end if
 end sub
 
 Sub SaveGridSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
@@ -1226,6 +1228,7 @@ Sub SaveGridSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  dat = sl->SliceData
  SaveProp node, "cols", dat->cols
  SaveProp node, "rows", dat->rows
+ SaveProp node, "show", dat->show
 End Sub
 
 Sub LoadGridSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
@@ -1234,6 +1237,7 @@ Sub LoadGridSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat = sl->SliceData
  dat->cols = large(1, LoadProp(node, "cols", 1))
  dat->rows = large(1, LoadProp(node, "rows", 1))
+ dat->show = LoadPropBool(node, "show")
 End Sub
 
 Function GridSliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr, BYVAL w AS INTEGER) AS INTEGER

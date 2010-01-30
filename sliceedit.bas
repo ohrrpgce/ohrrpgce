@@ -499,6 +499,8 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule rules(), "grid_rows", erIntgrabber, @(dat->rows), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
     str_array_append menu(), "Columns: " & dat->cols
     sliceed_rule rules(), "grid_cols", erIntgrabber, @(dat->cols), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
+    str_array_append menu(), "Show Grid: " & yesorno(dat->show)
+    sliceed_rule_tog rules(), "grid_show", @(dat->show)
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), "vis", @.Visible
@@ -696,6 +698,36 @@ SUB DrawSliceAnts (BYVAL sl AS Slice Ptr, dpage AS INTEGER)
   putpixel sl->ScreenX + i, sl->ScreenY, col, dpage
   putpixel sl->ScreenX + i, sl->ScreenY + sl->Height - 1, col, dpage
  NEXT i
+ '--Draw gridlines if this is a grid
+ IF sl->SliceType = slGrid THEN
+  DIM dat AS GridSliceData Ptr = sl->SliceData
+  IF dat THEN
+   DIM w AS INTEGER = sl->Width \ large(1, dat->cols)
+   DIM h AS INTEGER = sl->Height \ large(1, dat->rows)
+   '--draw verticals
+   FOR i AS INTEGER = 1 TO dat->cols - 1
+    FOR y AS INTEGER = 0 TO large(ABS(sl->Height) - 1, 2)
+     SELECT CASE (y + ant) MOD 3
+      CASE 0: CONTINUE FOR
+      CASE 1: col = uiLook(uiText)
+      CASE 2: col = uiLook(uiBackground)
+     END SELECT
+     putpixel sl->ScreenX + i * w, sl->ScreenY + y, col, dpage
+    NEXT y
+   NEXT i
+   '--draw horizontals
+   FOR i AS INTEGER = 1 TO dat->rows - 1
+    FOR x AS INTEGER = 0 TO large(ABS(sl->Width) - 1, 2)
+     SELECT CASE (x + ant) MOD 3
+      CASE 0: CONTINUE FOR
+      CASE 1: col = uiLook(uiText)
+      CASE 2: col = uiLook(uiBackground)
+     END SELECT
+     putpixel sl->ScreenX + x, sl->ScreenY + i * h, col, dpage
+    NEXT x
+   NEXT i
+  END IF
+ END IF
  ant = loopvar(ant, 0, 2, 1)
 END SUB
 

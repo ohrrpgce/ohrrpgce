@@ -1,0 +1,3 @@
+Normally a grid is invisible, but you can optionally turn on gridlines to give a visual indication of the grid cells.
+
+This can be convenient when you are setting up your grid, and then you can turn off the gridlines when you are done.

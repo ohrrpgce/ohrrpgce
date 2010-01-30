@@ -194,6 +194,7 @@ Type MenuItemSliceData
 End Type
 
 Type GridSliceData
+ show as integer
  rows as integer
  cols as integer
 End Type
