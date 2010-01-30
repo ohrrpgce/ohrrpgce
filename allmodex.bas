@@ -3125,6 +3125,12 @@ end function
 
 
 '-------------- Software GFX mode routines -----------------
+
+'NOTE: there is only one set of clipping values, shared globally for
+'all drawing operations... this is probably a bad thing, but that is how
+'it works. The frame or page argument to setclip() is used to determine
+'the allowed range of clipping values.
+
 'Set the bounds used by various (not quite all?) video page drawing functions.
 'setclip must be called to reset the clip bounds whenever the wrkpage changes, to ensure
 'that they are valid (the video page dimensions might differ).
