@@ -60,6 +60,7 @@ DECLARE SUB SliceAdoptNiece (BYVAL sl AS Slice Ptr)
 
 'Functions only used locally
 DECLARE SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
+DECLARE SUB slice_editor_refresh_delete (BYREF index AS INTEGER, menu() AS SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, caption AS STRING, sl AS Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr)
 DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
@@ -172,6 +173,12 @@ SUB slice_editor ()
     ELSE
      NewSliceOfType(slice_type, edslice)
     END IF
+    state.need_update = YES
+   END IF
+  END IF
+  IF keyval(scDelete) > 1 THEN
+   IF yesno("Delete this " & SliceTypeName(slice_type) & " slice?", NO) THEN
+    slice_editor_refresh_delete state.pt, menu()
     state.need_update = YES
    END IF
   END IF
@@ -574,6 +581,13 @@ SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem,
   .pt = small(.pt, .last)
   .top = bound(.top, .pt - .size, .pt)
  END WITH
+END SUB
+
+SUB slice_editor_refresh_delete (BYREF index AS INTEGER, menu() AS SliceEditMenuItem)
+ DeleteSlice @(menu(index).handle)
+ FOR i AS INTEGER = index + 1 TO UBOUND(menu)
+  SWAP menu(i), menu(i - 1)
+ NEXT i
 END SUB
 
 SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, caption AS STRING, sl AS Slice Ptr=0)
