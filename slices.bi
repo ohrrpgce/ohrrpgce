@@ -57,18 +57,6 @@ Enum AttachTypes
  slScreen
 End Enum
 
-TYPE SliceFileWrite
-  name AS STRING
-  handle AS INTEGER
-  indent AS INTEGER
-END TYPE
-
-TYPE SliceFileRead
-  name AS STRING
-  handle AS INTEGER
-  linenum AS INTEGER
-END TYPE
-
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
