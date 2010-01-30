@@ -224,6 +224,10 @@ SUB slice_editor ()
     END IF
    END IF
   END IF
+  IF keyval(scLeft) > 1 THEN
+   cursor_seek = (menu(state.pt).handle)->parent
+   state.need_update = YES
+  END IF
   IF state.need_update = NO THEN
    'Only do normal cursor movement when no updates are needed
    usemenu state
