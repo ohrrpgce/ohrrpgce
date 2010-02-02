@@ -593,20 +593,21 @@ DO
   IF vstate.active AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN
    batform = random_formation(temp - 1)
-   IF batform >= 0 THEN
-    IF gmap(13) <= 0 THEN
-     '--normal battle
+   IF gmap(13) <= 0 THEN 'if no random battle script is defined
+    IF batform >= 0 THEN 'and if the randomly selected battle is valid
+     'trigger a normal random battle
      fatal = 0
      gam.wonbattle = battle(batform, fatal, stat())
      dotimerafterbattle
      prepare_map YES
      needf = 2
-    ELSE
-     rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
-     IF rsr = 1 THEN
-      setScriptArg 0, batform
-      setScriptArg 1, temp
-     END IF
+    END IF
+   ELSE
+    'trigger the instead-of-battle script
+    rsr = runscript(gmap(13), nowscript + 1, -1, "rand-battle", plottrigger)
+    IF rsr = 1 THEN
+     setScriptArg 0, batform
+     setScriptArg 1, temp
     END IF
    END IF
    gam.random_battle_countdown = range(100, 60)

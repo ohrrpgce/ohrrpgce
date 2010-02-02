@@ -1,5 +1,10 @@
 WHAT IS NEW?
 
+Feb ? 2010 [Ypsiliform+2]
+
+  * Bugfixes
+    * Bug 815: Trailblazers Frozen
+
 Jan 24 2010 [Ypsiliform+1]
 
   * Bugfixes
