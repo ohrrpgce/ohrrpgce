@@ -13,7 +13,12 @@ WHAT IS NEW?
 
   * Stuff only Developers Will Notice
 
-Jan 21 2010 [Ypsiliform+1]
+Feb ? 2010 [Ypsiliform+2]
+
+  * Bugfixes
+    * Bug 815: Trailblazers Frozen
+
+Jan 24 2010 [Ypsiliform+1]
 
   * Bugfixes
     * Bug 802: tileset confusion when adding a layer
@@ -25,6 +30,8 @@ Jan 21 2010 [Ypsiliform+1]
     * No longer prevents importing WAV files over 500k in size
       (they often become smaller than 500k when converted to ogg)
     * Fix missing "Quit Editing" on main menu
+    * Fix palette browser to update added palettes and to not
+      crash the sprite editor.
 
 Jan 08 2010 [Ypsiliform]
 
