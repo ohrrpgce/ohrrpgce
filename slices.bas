@@ -1891,7 +1891,7 @@ Sub SliceLoadFromFile(BYVAL sl AS Slice Ptr, filename AS STRING)
  'First create a reload document
  dim doc as Reload.DocPtr
  doc = Reload.LoadDocument(filename)
- if doc = null or doc->root = null then
+ if doc = null orelse doc->root = null then
    debug "Reload.LoadDocument failed in SliceLoadFromFile"
    exit sub
  end if
