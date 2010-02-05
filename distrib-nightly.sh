@@ -50,10 +50,12 @@ if [ ! -d ohrrpgce-build ] ; then
   svn checkout svn://gilgamesh.HamsterRepublic.com/ohrrpgce ./ohrrpgce-build
 fi
 
-cd ohrrpgce-build/wip
+cd ohrrpgce-build
 
 svn cleanup
 svn update
+
+cd wip
 
 ./distrib.sh
 
