@@ -97,16 +97,20 @@ DECLARE SUB sliceed_rule_none(rules() AS EditRule, helpkey AS String, BYVAL grou
 '==============================================================================
 
 DIM SHARED HorizCaptions(2) AS STRING
-DIM SHARED VertCaptions(2) AS STRING
-DIM SHARED BorderCaptions(-2 TO -1) AS STRING
 HorizCaptions(0) = "Left"
 HorizCaptions(1) = "Center"
 HorizCaptions(2) = "Right"
+DIM SHARED VertCaptions(2) AS STRING
 VertCaptions(0) = "Top"
 VertCaptions(1) = "Center"
 VertCaptions(2) = "Bottom"
+DIM SHARED BorderCaptions(-2 TO -1) AS STRING
 BorderCaptions(-2) = "None"
 BorderCaptions(-1) = "Line"
+DIM SHARED TransCaptions(0 TO 2) AS STRING
+TransCaptions(0) = "Solid"
+TransCaptions(1) = "Fuzzy"
+TransCaptions(2) = "Hollow"
 
 '==============================================================================
 
@@ -466,8 +470,8 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule rules(), "rect_fg", erIntgrabber, @(dat->fgcol), 0, 255, (slgrUPDATERECTCOL OR slgrPICKCOL)
     str_array_append menu(), "Border: " & caption_or_int(dat->border, BorderCaptions())
     sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
-    str_array_append menu(), "Translucent: " & yesorno(dat->translucent)
-    sliceed_rule_tog rules(), "rect_trans", @(dat->translucent)
+    str_array_append menu(), "Translucency: " & TransCaptions(dat->translucent)
+    sliceed_rule rules(), "rect_trans", erIntgrabber, @(dat->translucent), 0, 2
    CASE slText
     DIM dat AS TextSliceData Ptr
     dat = .SliceData

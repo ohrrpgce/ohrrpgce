@@ -670,7 +670,7 @@ Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->style = LoadProp(node, "style", -1)
  dat->fgcol = LoadProp(node, "fg")
  dat->bgcol = LoadProp(node, "bg")
- dat->translucent = LoadPropBool(node, "trans")
+ dat->translucent = LoadProp(node, "trans")
  dat->border = LoadProp(node, "border", -1)
 End Sub
 
