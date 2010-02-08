@@ -17,6 +17,7 @@ Feb ? 2010 [Ypsiliform+2]
 
   * Bugfixes
     * Bug 815: Trailblazers Frozen
+    * Fix crash when saving an empty menu
 
 Jan 24 2010 [Ypsiliform+1]
 
