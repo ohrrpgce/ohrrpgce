@@ -13,7 +13,7 @@ WHAT IS NEW?
 
   * Stuff only Developers Will Notice
 
-Feb ? 2010 [Ypsiliform+2]
+Feb 8 2010 [Ypsiliform+2]
 
   * Bugfixes
     * Bug 815: Trailblazers Frozen
