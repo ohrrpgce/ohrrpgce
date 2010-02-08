@@ -920,10 +920,10 @@ SUB SaveMenuItems(menu_set AS MenuSet, menu AS MenuDef, record AS INTEGER)
   SEEK #f, i * getbinsize(binMENUITEM) + 1
   member = ReadShort(f)
   IF member = 0 THEN
+   IF mi = NULL THEN EXIT FOR
    SaveMenuItem f, *mi, i, record, elem
    elem = elem + 1
    mi = mi->trueorder.next
-   IF mi = NULL THEN EXIT FOR
   END IF
  NEXT i
  DO WHILE mi
