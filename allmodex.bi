@@ -59,7 +59,8 @@ DECLARE SUB putpixel OVERLOAD (BYVAL spr as Frame ptr, BYVAL x as integer, BYVAL
 DECLARE SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE FUNCTION readpixel OVERLOAD (BYVAL spr as Frame ptr, BYVAL x as integer, BYVAL y as integer) as integer
 DECLARE FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
-DECLARE SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
 DECLARE SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer)

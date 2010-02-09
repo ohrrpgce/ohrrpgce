@@ -1157,6 +1157,10 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
+	rectangle x, y, w, h, c, vpages(p)
+END SUB
+
+SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
 
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
@@ -1169,13 +1173,13 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 
 	if w <= 0 or h <= 0 then exit sub
 
-	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->pitch) + x
+	dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
 	while h > 0
 		memset(sptr, c, w)
-		sptr += vpages(p)->pitch
+		sptr += fr->pitch
 		h -= 1
 	wend
-end SUB
+END SUB
 
 SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 	if clippedframe <> vpages(p) then
