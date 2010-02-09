@@ -4,7 +4,7 @@ OUTPUT=libaudwrap.a
 
 all: audwrap
 
-audwrap: CXXFLAGS+=-O3 -Wall -Wno-non-virtual-dtor
+audwrap: CXXFLAGS+=-O3 -g -Wall -Wno-non-virtual-dtor
 audwrap: $(OUTPUT)
 
 $(OUTPUT): audwrap.o

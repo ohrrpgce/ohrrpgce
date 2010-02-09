@@ -29,7 +29,7 @@ for backend in `echo ${GFX} | tr "+" "\n"` ; do
 done
 EXTRA="${EXTRA} music_${MUSIC}.bas"
 
-gcc -c -O3 blit.c
+gcc -c -g -O3 blit.c
 
 if [ "${MUSIC}" = "native" ] ; then
   cd audwrap
