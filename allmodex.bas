@@ -3648,6 +3648,8 @@ function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as i
 		return 0
 	end if
 
+	x = bound(x, 0, spr->w - 1)
+	y = bound(y, 0, spr->h - 1)
 	with *ret
 		.w = bound(w, 1, spr->w - x)
 		.h = bound(h, 1, spr->h - y)
