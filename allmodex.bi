@@ -42,6 +42,13 @@ DECLARE SUB setmapdata (pas as TileMap ptr = NULL, BYVAL t as integer = 0, BYVAL
 DECLARE SUB setanim (BYVAL cycle1 as integer, BYVAL cycle2 as integer)
 DECLARE SUB setoutside (BYVAL defaulttile as integer)
 
+'--box drawing
+DECLARE SUB drawbox OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE SUB drawbox OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr AS Frame Ptr)
+DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
+DECLARE SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
+
 'NOTE: clipping values are global.
 DECLARE SUB setclip OVERLOAD (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL fr as Frame ptr)
 DECLARE SUB setclip (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL page as integer = -1)
@@ -59,9 +66,6 @@ DECLARE SUB putpixel OVERLOAD (BYVAL spr as Frame ptr, BYVAL x as integer, BYVAL
 DECLARE SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE FUNCTION readpixel OVERLOAD (BYVAL spr as Frame ptr, BYVAL x as integer, BYVAL y as integer) as integer
 DECLARE FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
-DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
-DECLARE SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer)
 DECLARE SUB storemxs (fil as string, BYVAL record as integer, BYVAL fr as Frame ptr)
@@ -114,7 +118,6 @@ DECLARE FUNCTION popdw () as integer
 DECLARE SUB releasestack ()
 DECLARE FUNCTION stackpos () as integer
 DECLARE FUNCTION readstackdw (BYVAL off as integer) as integer
-DECLARE SUB drawbox(BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE FUNCTION isawav(fi as string) as integer
 DECLARE FUNCTION fileisreadable(f as string) as integer
 DECLARE FUNCTION fileiswriteable(f as string) as integer

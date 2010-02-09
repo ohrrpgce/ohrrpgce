@@ -1121,6 +1121,12 @@ SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h
 	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
+	drawbox x, y, w, h, c, vpages(p)
+END SUB
+
+SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr AS Frame Ptr)
+
+	if fr = 0 then debug "drawbox null ptr": exit sub
 
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
@@ -1133,25 +1139,25 @@ SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h
 
 	if w <= 0 or h <= 0 then exit sub
 
-	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->pitch) + x
+	dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
 	if h >= 1 then
 		'draw the top
 		memset(sptr, c, w)
-		sptr += vpages(p)->pitch
+		sptr += fr->pitch
 	end if
 	if h >= 3 then
 		'draw the sides
 		for i as integer = h - 3 to 0 step -1
 			sptr[0] = c
 			sptr[w - 1] = c
-			sptr += vpages(p)->pitch
+			sptr += fr->pitch
 		next
 	end if
 	if h >= 2 then
 		'draw the bottom
 		memset(sptr, c, w)
 	end if
-end SUB
+END SUB
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 	if clippedframe <> vpages(p) then
@@ -1161,6 +1167,8 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 END SUB
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
+
+	if fr = 0 then debug "rectangle null ptr": exit sub
 
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
