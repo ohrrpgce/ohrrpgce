@@ -183,6 +183,7 @@ declare sub palette16_empty_cache()
 declare sub palette16_update_cache(fil as string, byval num as integer)
 
 'globals
-extern vpages(0 to 15) as Frame ptr
+extern vpages() as Frame ptr
+extern vpagesp as Frame ptr ptr
 
 #ENDIF

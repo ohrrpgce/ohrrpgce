@@ -58,7 +58,8 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 declare sub pollingthread(byval as threadbs)
 
 'global
-dim vpages(0 to 15) as Frame ptr  'up to 6 used at once, last I counted
+dim vpages() as Frame ptr
+dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
 
 'module shared
 dim shared wrkpage as integer  'used by some legacy modex functions. Usually points at clippedframe
@@ -146,6 +147,8 @@ sub setmodex()
 	dim i as integer
 
 	'initialise software gfx
+	redim vpages(3)
+	vpagesp = @vpages(0)
 	for i as integer = 0 to 3
 		vpages(i) = frame_new(320, 200, , YES)
 	next
@@ -232,15 +235,18 @@ SUB freepage (byval page as integer)
 END SUB
 
 FUNCTION registerpage (byval spr as Frame ptr) as integer
+	if spr->refcount <> NOREFC then	spr->refcount += 1
 	for i as integer = 0 to ubound(vpages)
 		if vpages(i) = NULL then
 			vpages(i) = spr
-			if spr->refcount <> NOREFC then	spr->refcount += 1
 			return i
 		end if
 	next
 
-	fatalerror "Max number of video pages exceeded"
+	redim preserve vpages(ubound(vpages) + 1)
+	vpagesp = @vpages(0)
+	vpages(ubound(vpages)) = spr
+	return ubound(vpages)
 END FUNCTION
 
 FUNCTION allocatepage(BYVAL w as integer = 320, BYVAL h as integer = 200) as integer
