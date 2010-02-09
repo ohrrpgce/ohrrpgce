@@ -1118,13 +1118,13 @@ FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) 
 end FUNCTION
 
 SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	if clippedframe <> vpages(p) then
-		setclip , , , , p
-	end if
 	drawbox x, y, w, h, c, vpages(p)
 END SUB
 
 SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr AS Frame Ptr)
+	if clippedframe <> fr then
+		setclip , , , , fr
+	end if
 
 	if fr = 0 then debug "drawbox null ptr": exit sub
 
@@ -1160,13 +1160,13 @@ SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h
 END SUB
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	if clippedframe <> vpages(p) then
-		setclip , , , , p
-	end if
 	rectangle x, y, w, h, c, vpages(p)
 END SUB
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
+	if clippedframe <> fr then
+		setclip , , , , fr
+	end if
 
 	if fr = 0 then debug "rectangle null ptr": exit sub
 
@@ -1190,13 +1190,13 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 END SUB
 
 SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	if clippedframe <> vpages(p) then
-		setclip , , , , p
-	end if
-	fuzzyrect x, y, w, h, c, p
+	fuzzyrect x, y, w, h, c, vpages(p)
 END SUB
 
 SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
+	if clippedframe <> fr then
+		setclip , , , , fr
+	end if
 
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
@@ -3167,12 +3167,6 @@ sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer =
 		clipr = bound(r, 0, .w - 1)
 		clipb = bound(b, 0, .h - 1)
 	end with
-end sub
-
-'Shrinks clipping area, never grows it
-sub shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval page as integer = -1)
-	if page <> -1 then wrkpage = page
-	shrinkclip l, t, r, b, vpages(wrkpage)
 end sub
 
 'Shrinks clipping area, never grows it

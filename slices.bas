@@ -91,7 +91,7 @@ Sub DefaultClipper(Byval s as slice ptr, Byval ch as slice ptr, byval page as in
           .ScreenY + .paddingTop, _
           .ScreenX + .Width - 1 - .paddingRight, _
           .ScreenY + .Height - 1 - .paddingBottom, _
-          page
+          vpages(page)
  end with
 End sub
 
@@ -1304,7 +1304,7 @@ Sub GridClipper(Byval s as slice ptr, Byval ch as slice ptr, byval page as integ
           .ScreenY + yslot * h + .paddingTop, _
           .ScreenX + xslot * w + w - 1 - .paddingRight, _
           .ScreenY + yslot * h + h - 1 - .paddingBottom, _
-          page
+          vpages(page)
  end with
 End sub
 

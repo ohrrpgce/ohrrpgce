@@ -53,8 +53,7 @@ DECLARE SUB fuzzyrect OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w 
 'NOTE: clipping values are global.
 DECLARE SUB setclip OVERLOAD (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL fr as Frame ptr)
 DECLARE SUB setclip (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL page as integer = -1)
-DECLARE SUB shrinkclip OVERLOAD (byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval fr as Frame ptr)
-DECLARE SUB shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval page as integer = -1)
+DECLARE SUB shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval fr as Frame ptr)
 DECLARE SUB drawspritex (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, byval scale as integer=1, BYVAL trans as integer = -1)
 DECLARE SUB drawsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
 DECLARE SUB wardsprite (pic() as integer, BYVAL picoff as integer, pal() as integer, BYVAL po as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
