@@ -1193,6 +1193,10 @@ SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 	if clippedframe <> vpages(p) then
 		setclip , , , , p
 	end if
+	fuzzyrect x, y, w, h, c, p
+END SUB
+
+SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
 
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
@@ -1205,13 +1209,13 @@ SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 
 	if w <= 0 or h <= 0 then exit sub
 
-	dim sptr as ubyte ptr = vpages(p)->image + (y * vpages(p)->pitch) + x
+	dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
 	while h > 0
 		for i as integer = h mod 2 to w-1 step 2
 			sptr[i] = c
 		next
 		h -= 1
-		sptr += vpages(p)->pitch
+		sptr += fr->pitch
 	wend
 end SUB
 
