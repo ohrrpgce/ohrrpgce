@@ -1132,15 +1132,16 @@ SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h
 	if h < 0 then y = y + h + 1: h = -h
 
 	'clip
-	if x + w > clipr then w = (clipr - x) + 1
-	if y + h > clipb then h = (clipb - y) + 1
-	if x < clipl then w -= (clipl - x) : x = clipl
-	if y < clipt then h -= (clipt - y) : y = clipt
+	dim as integer notop, nobottom, noleft, noright
+	if x + w > clipr then w = (clipr - x) + 1 : noright = YES
+	if y + h > clipb then h = (clipb - y) + 1 : nobottom = YES
+	if x < clipl then w -= (clipl - x) : x = clipl : noleft = YES
+	if y < clipt then h -= (clipt - y) : y = clipt : notop = YES
 
 	if w <= 0 or h <= 0 then exit sub
 
 	dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
-	if h >= 1 then
+	if h >= 1 and notop = NO then
 		'draw the top
 		memset(sptr, c, w)
 		sptr += fr->pitch
@@ -1148,12 +1149,12 @@ SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h
 	if h >= 3 then
 		'draw the sides
 		for i as integer = h - 3 to 0 step -1
-			sptr[0] = c
-			sptr[w - 1] = c
+			if noleft = NO then sptr[0] = c
+			if noright = NO then sptr[w - 1] = c
 			sptr += fr->pitch
 		next
 	end if
-	if h >= 2 then
+	if h >= 2 and nobottom = NO then
 		'draw the bottom
 		memset(sptr, c, w)
 	end if
