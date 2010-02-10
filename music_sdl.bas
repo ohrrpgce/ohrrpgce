@@ -481,7 +481,7 @@ function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) 
 	return -1
 end function
 
-function LoadSound overload(byval f as string,  byval num as integer = -1) as integer
+function LoadSound overload(f as string, byval num as integer = -1) as integer
 	dim slot as integer
 	dim sfx as Mix_Chunk ptr
 	

@@ -252,9 +252,9 @@ declare function exclusive (s as string, x as string) as string
 declare function sign_string(n as integer, neg_str as string, zero_str as string, pos_str as string) as string
 declare function iif_string(byval condition as integer, s1 as string, s2 as string) as string
 declare function zero_default(n as integer, zerocaption AS STRING="default", displayoffset AS INTEGER = 0) as string
-declare Function wordwrap(Byval inp as string, byval width as integer, byval sep as string = chr(10)) as string
-declare sub split(byval in as string, ret() as string, sep as string = chr(10))
-declare function textwidth(byval z as string) as integer
+declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
+declare sub split(in as string, ret() as string, sep as string = chr(10))
+declare function textwidth(z as string) as integer
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
 declare function strhash overload (byval strp as zstring ptr, byval leng as integer) as unsigned integer
 declare function strhash overload (hstr as string) as unsigned integer

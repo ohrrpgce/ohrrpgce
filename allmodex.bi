@@ -157,7 +157,7 @@ declare function frame_new(byval w as integer, byval h as integer, byval frames 
 declare function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
 declare function frame_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Frame ptr
 declare function frame_load overload (byval ptno as integer, byval rec as integer) as frame ptr
-declare function frame_load(byval as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
+declare function frame_load(as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
 declare function frame_reference(byval p as frame ptr) as frame ptr
 declare sub frame_unload(byval p as frame ptr ptr)
 declare sub frame_draw overload (byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
@@ -177,7 +177,7 @@ declare function frame_describe(byval p as frame ptr) as string
 
 declare function palette16_new() as palette16 ptr
 declare function palette16_load overload (byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
-declare function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
+declare function palette16_load(fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 declare sub palette16_unload(byval p as palette16 ptr ptr)
 declare sub palette16_empty_cache()
 declare sub palette16_update_cache(fil as string, byval num as integer)

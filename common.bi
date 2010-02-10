@@ -59,7 +59,7 @@ DECLARE SUB edgebox (x as integer, y as integer, w as integer, h as integer, col
 DECLARE SUB emptybox (x as integer, y as integer, w as integer, h as integer, col as integer, thick as integer, p as integer)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname (num as integer, trigger as integer = 0) as string
-DECLARE Function seconds2str(byval sec as integer, byval f as string = " %m: %S") as string
+DECLARE Function seconds2str(byval sec as integer, f as string = " %m: %S") as string
 
 DECLARE SUB loaddefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB savedefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)

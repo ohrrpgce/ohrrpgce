@@ -54,7 +54,7 @@ function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) 
 	return 0
 end function
 
-function LoadSound overload(byval filename as string,  byval num as integer = -1) as integer
+function LoadSound overload(filename as string,  byval num as integer = -1) as integer
 	return 0
 end function
 

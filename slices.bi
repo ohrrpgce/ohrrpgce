@@ -148,7 +148,7 @@ Type TextSliceData
  s as String
  'lines() as string
  wrap as integer
- 'Declare constructor(byval st as string, byval col as integer = -1, byval ol as integer = YES)
+ 'Declare constructor(st as string, byval col as integer = -1, byval ol as integer = YES)
  insert as integer 'char offset of insertion pointer
  show_insert as integer ' set to YES to display insertion point
  insert_tog as integer 'flashing
@@ -252,7 +252,7 @@ DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceD
 DECLARE Function NewMenuItemSlice(byval parent as Slice ptr, byref dat as MenuItemSliceData) as slice ptr
 DECLARE Sub UpdateTextSlice(byval sl as slice ptr)
 DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
-                      byval s as string=CHR(1) & CHR(255),_
+                      s as string=CHR(1) & CHR(255),_
                       byval col as integer=-1,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_

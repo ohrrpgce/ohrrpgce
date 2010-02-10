@@ -889,7 +889,7 @@ end function
 
 'All arguments default to no-change
 Sub ChangeTextSlice(byval sl as slice ptr,_
-                      byval s as string=CHR(1) & CHR(255),_
+                      s as string=CHR(1) & CHR(255),_
                       byval col as integer=-1,_
                       byval outline as integer=-2,_
                       byval wrap as integer=-2,_

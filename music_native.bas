@@ -868,7 +868,7 @@ Function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) 
   return -1
 End Function
 
-Function LoadSound(byval f as string,  byval num as integer = -1) as integer
+Function LoadSound(f as string,  byval num as integer = -1) as integer
   dim ret as integer
   'the steps
   ' 1. allocate space in the sound pool

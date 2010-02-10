@@ -276,7 +276,7 @@ FUNCTION iif_string(byval condition as integer, s1 as string, s2 as string) as s
 END FUNCTION
 
 'returns a copy of the string with separators inserted; use together with split()
-Function wordwrap(Byval z as string, byval wid as integer, byval sep as string = chr(10)) as string
+Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as string
  dim as string ret, in
  in = z
  if len(in) <= wid then return in
@@ -318,10 +318,9 @@ Function wordwrap(Byval z as string, byval wid as integer, byval sep as string =
 end function
 
 'Splits a line at the separators; use together with wordwrap() to do wrapping
-sub split(byval z as string, ret() as string, sep as string = chr(10))
+sub split(in as string, ret() as string, sep as string = chr(10))
  redim ret(0)
  dim as integer i = 0, i2 = 1, j = 0
- dim as string in = z
  i = instr(i2, in, sep)
  if i = 0 then
   ret(0) = in
@@ -341,7 +340,7 @@ sub split(byval z as string, ret() as string, sep as string = chr(10))
  loop
 end sub
 
-function textwidth(byval z as string) as integer
+function textwidth(z as string) as integer
  dim lines() as string
  split(z, lines())
  dim ret as integer = 0

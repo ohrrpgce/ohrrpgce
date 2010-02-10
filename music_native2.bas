@@ -284,7 +284,7 @@ function closeMidi() as integer
 #ENDIF
 end function
 
-sub dumpMidi_event overload(byval m as MIDI_EVENT ptr, byval c as integer = -1, byval f as string = "mididump.txt")
+sub dumpMidi_event overload(byval m as MIDI_EVENT ptr, byval c as integer = -1, f as string = "mididump.txt")
   dim i as integer, fh as integer, w as string
 
   'debug "dumping internal buffer"
@@ -328,7 +328,7 @@ sub dumpMidi_event overload(byval m as MIDI_EVENT ptr, byval c as integer = -1, 
   close #fh
 end sub
 
-sub dumpMidi_event (byval m as MIDIEVENT ptr, byval c as integer, byval f as string = "mididump.txt")
+sub dumpMidi_event (byval m as MIDIEVENT ptr, byval c as integer, f as string = "mididump.txt")
   dim i as integer, fh as integer, w as string
 
   debug "dumping external buffer (c = " & c & ")"
@@ -1068,7 +1068,7 @@ Function LoadSound overload(byval lump as Lump ptr,  byval num as integer = -1) 
   return -1
 End Function
 
-Function LoadSound(byval f as string,  byval num as integer = -1) as integer
+Function LoadSound(f as string, byval num as integer = -1) as integer
   dim ret as integer
   'the steps
   ' 1. allocate space in the sound pool

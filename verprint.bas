@@ -5,7 +5,7 @@
 '
 DECLARE FUNCTION get_date_tag () AS STRING
 DECLARE FUNCTION get_svn_rev () AS STRING
-DECLARE SUB split (BYVAL z AS STRING, ret() AS STRING, sep AS STRING = CHR(10))
+DECLARE SUB split (z AS STRING, ret() AS STRING, sep AS STRING = CHR(10))
 DEFINT A-Z
 '$DYNAMIC
 
@@ -133,7 +133,7 @@ KILL "svninfo.tmp"
 END FUNCTION
 
 'copied from util.bas. Bad things might happen if it were used directly?
-SUB split(byval z as string, ret() as string, sep as string = chr(10))
+SUB split(z as string, ret() as string, sep as string = chr(10))
  redim ret(0)
  dim as integer i = 0, i2 = 1, j = 0
  dim as string in = z

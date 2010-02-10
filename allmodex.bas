@@ -3745,7 +3745,7 @@ end function
 ' No code does this. Does not use a cache.
 ' It will return a pointer to the first frame (of num frames), and subsequent frames
 ' will be immediately after it in memory. (This is a hack, and will probably be removed)
-function frame_load(byval fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
+function frame_load(fi as string, byval rec as integer, byval num as integer, byval wid as integer, byval hei as integer) as frame ptr
 	dim ret as frame ptr
 
 	'first, we do a bit of math:
@@ -4420,7 +4420,7 @@ sub Palette16_empty_cache()
 	next
 end sub
 
-function Palette16_find_cache(byval s as string) as Palette16Cache ptr
+function Palette16_find_cache(s as string) as Palette16Cache ptr
 	dim i as integer
 	for i = 0 to ubound(palcache)
 		if palcache(i).s = s then return @palcache(i)
@@ -4428,7 +4428,7 @@ function Palette16_find_cache(byval s as string) as Palette16Cache ptr
 	return NULL
 end function
 
-sub Palette16_add_cache(byval s as string, byval p as Palette16 ptr, byval fr as integer = 0)
+sub Palette16_add_cache(s as string, byval p as Palette16 ptr, byval fr as integer = 0)
 	if p = 0 then exit sub
 	dim as integer i, sec = -1
 	for i = fr to ubound(palcache)
@@ -4476,7 +4476,7 @@ function palette16_load(byval num as integer, byval autotype as integer = 0, byv
 	return ret
 end function
 
-function palette16_load(byval fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
+function palette16_load(fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 	dim f as integer, ret as palette16 ptr
 	dim hashstring as string
 	dim cache as Palette16Cache ptr
