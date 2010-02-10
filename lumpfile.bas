@@ -638,7 +638,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 
 	if len(path) > 0 and right(path, 1) <> SLASH then path = path & SLASH
 
-	bufr = callocate(16383)
+	bufr = callocate(16384)
 	if bufr = null then
 		close #lf
 		exit sub
@@ -661,21 +661,20 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 			get #lf, , dat
 			i += 1
 		wend
-		if i > 50 then 'corrupt file, really if i > 12
+		if i > 50 then
 			debug "corrupt lump file " + lumpfile + " : lump name too long"
 			exit while
 		end if
-		'force to lower-case
 		lname = lcase(lname)
 		'debug "lump name " + lname
 
-		if instr(lname, "\") or instr(lname, "/") then
-			debug "lump file " + lumpfile + " : unsafe lump name " + lname
+		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-.") then
+			debug "corrupt lump file " + lumpfile + " : unallowable lump name '" + lname + "'"
 			exit while
 		end if
 
 		if not eof(lf) then
-			'get lump size - byte order = 3,4,1,2 I think
+			'get lump size - PDP-endian byte order = 3,4,1,2
 			get #lf, , dat
 			size = (dat shl 16)
 			get #lf, , dat
@@ -703,11 +702,7 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 
 				'copy the data
 				while size > 0
-					if size > 16383 then
-						csize = 16383
-					else
-						csize = size
-					end if
+					csize = small(16384, size)
 					'copy a chunk of file
 					fget lf, , bufr, csize
 					fput of, , bufr, csize
@@ -733,7 +728,6 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 
 	deallocate bufr
 	close #lf
-
 end sub
 
 function islumpfile (lumpfile as string, fmask as string) as integer
@@ -761,21 +755,20 @@ function islumpfile (lumpfile as string, fmask as string) as integer
 			get #lf, , dat
 			i += 1
 		wend
-		if i > 50 then 'corrupt file, really if i > 12
+		if i > 50 then
 			debug "corrupt lump file " + lumpfile + " : lump name too long"
 			exit while
 		end if
-		'force to lower-case
 		lname = lcase(lname)
 		'debug "lump name " + lname
 
-		if instr(lname, "\") or instr(lname, "/") then
-			debug "lump file " + lumpfile + " : unsafe lump name " + lname
+		if lname <> exclusive(lname, "abcdefghijklmnopqrstuvwxyz0123456789_-.") then
+			debug "corrupt lump file " + lumpfile + " : unallowable lump name '" + lname + "'"
 			exit while
 		end if
 
 		if not eof(lf) then
-			'get lump size - byte order = 3,4,1,2 I think
+			'get lump size - PDP-endian byte order = 3,4,1,2
 			get #lf, , dat
 			size = (dat shl 16)
 			get #lf, , dat
@@ -815,7 +808,6 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 	dim lname as string
 	dim bufr as ubyte ptr
 	dim csize as integer
-	dim as integer i, t, textsize(1)
 
 	fl = freefile
 	open listf for input as #fl
@@ -831,24 +823,15 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 		exit sub
 	end if
 
-	bufr = callocate(16000)
+	bufr = callocate(16384)
 
 	'get file to lump
 	do until eof(fl)
 		line input #fl, lname
 
-		'validate that lumpname is 8.3 or ignore the file
-		textsize(0) = 0
-		textsize(1) = 0
-		t = 0
-		for i = 0 to len(lname)-1
-			if lname[i] = asc(".") then t = 1
-			textsize(t) += 1
-		next
-		'note extension includes the "." so can be 4 chars
-		if textsize(0) > 8 or textsize(1) > 4 then
-			debug "name too long: " + lname
-			debug " name = " + str(textsize(0)) + ", ext = " + str(textsize(1))
+		lname = ucase(lname)
+		if len(lname) > 50 orelse lname <> exclusive(lname, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.") then
+			debug "lumpfiles: bad lump name '" & lname & "'"
 			continue do
 		end if
 
@@ -859,13 +842,12 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 			continue do
 		end if
 
-		'write lump name (seems to need to be upper-case, at least
-		'for any files opened with unlumpone in the QB version)
-		put #lf, , ucase(lname)
+		'write lump name
+		put #lf, , lname
 		dat = 0
 		put #lf, , dat
 
-		'write lump size - byte order = 3,4,1,2 I think
+		'write lump size - PDP-endian byte order = 3,4,1,2
 		size = lof(tl)
 		dat = (size and &hff0000) shr 16
 		put #lf, , dat
@@ -878,11 +860,7 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 
 		'write lump
 		while size > 0
-			if size > 16000 then
-				csize = 16000
-			else
-				csize = size
-			end if
+			csize = small(16384, size)
 			'copy a chunk of file
 			fget(tl, , bufr, csize)
 			fput(lf, , bufr, csize)
@@ -967,5 +945,4 @@ function matchmask(match as string, mask as string) as integer
 	else
 		matchmask = 1
 	end if
-
 end function
