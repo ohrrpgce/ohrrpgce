@@ -228,10 +228,10 @@ SUB freepage (byval page as integer)
 		exit sub
 	end if
 
-	frame_unload(@vpages(page))
 	if clippedframe = vpages(page) then
 		setclip , , , , 0
 	end if
+	frame_unload(@vpages(page))
 END SUB
 
 FUNCTION registerpage (byval spr as Frame ptr) as integer
@@ -3157,15 +3157,15 @@ end function
 'that they are valid (the video page dimensions might differ).
 'Aside from tracking which page the clips are for, some legacy code actually uses wrkpage,
 'these should be removed.
-sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval page as integer = -1)
-	if page <> -1 then wrkpage = page
+sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval page as integer)
+	wrkpage = page
 	setclip l, t, r, b, vpages(wrkpage)
 end sub
 
 'more modern version
 'would call this directly everywhere, but don't want to break that edge case that actually needs wrkpage set
-sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval fr as Frame ptr)
-	clippedframe = fr
+sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval fr as Frame ptr = 0)
+	if fr <> 0 then clippedframe = fr
 	with *clippedframe
 		clipl = bound(l, 0, .w) '.w valid, prevents any drawing
 		clipt = bound(t, 0, .h)
