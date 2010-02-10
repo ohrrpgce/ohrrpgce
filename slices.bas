@@ -59,6 +59,11 @@ WITH *ScreenSlice
  .Height = 200
 END WITH
 
+'frame_new_view changes the position of the origin. This is the transform needed to translate
+'a slice's ScreenX/Y position to X/Y position on the current view slice. It starts at 0,0 when
+'drawing a slice tree, and is modified whenever recursing to the children of a clipping slice.
+Dim Shared GlobalCoordOffset AS XYPair
+
 '==General slice code==========================================================
 
 'stub functions:
@@ -86,12 +91,33 @@ Sub DefaultChildDraw(Byval s as Slice Ptr, byval page as integer)
  'NOTE: we don't bother to null check s here because this sub is only
  '      ever called from DrawSlice which does null check it.
  with *s
+  if .Clip then
+   GlobalCoordOffset.X -= .ScreenX
+   GlobalCoordOffset.Y -= .ScreenY
+
+   dim clipview as Frame ptr
+   clipview = frame_new_view(vpages(page), _
+                             .ScreenX + .paddingLeft, _
+                             .ScreenY + .paddingTop, _
+                             .Width - .paddingLeft - .paddingRight, _
+                             .Height - .paddingTop - .paddingBottom)
+   page = registerpage(clipview)
+   frame_unload @clipview
+  end if
+
   'draw the slice's children
   dim ch as slice ptr = .FirstChild
   do while ch <> 0
    DrawSlice(ch, page)
    ch = ch->NextSibling
   Loop
+
+  if .Clip then
+   freepage page
+   GlobalCoordOffset.X += .ScreenX
+   GlobalCoordOffset.Y += .ScreenY
+  end if
+
  end with
 End sub
 
@@ -1278,6 +1304,62 @@ Sub GridChildRefresh(byval par as slice ptr, byval ch as slice ptr)
  end with
 End sub
 
+Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
+ 'NOTE: this Sub only handles the clipping of the children of a Grid slice which
+ '      is set to clip. It might seem the logical place to position the children
+ '      too, but that's in GridChildRefresh. Which is probably correct: drawing
+ '      and calculating position are independent.
+ 'NOTE: we don't bother to null check s here because this sub is only
+ '      ever called from DrawSlice which does null check it.
+
+ if s->Clip = NO then
+  'no special behaviour
+  DefaultChildDraw s, page
+  exit sub
+ end if
+
+ with *s
+  '--get grid data
+  dim dat as GridSliceData ptr
+  dat = .SliceData
+  dim w as integer = .Width \ large(1, dat->cols)
+  dim h as integer = .Height \ large(1, dat->rows)
+
+  dim slotoff as XYPair
+  dim clipview as Frame ptr
+  dim childpage as integer
+
+  'draw the slice's children
+  dim ch as slice ptr = .FirstChild
+  for yslot as integer = 0 to dat->rows - 1
+   for xslot as integer = 0 to dat->cols - 1
+    if ch = 0 then exit for, for
+
+    slotoff.X = xslot * w + .paddingLeft
+    slotoff.Y = yslot * h + .paddingTop
+    GlobalCoordOffset.X -= .ScreenX + slotoff.X
+    GlobalCoordOffset.Y -= .ScreenY + slotoff.Y
+
+    clipview = frame_new_view(vpages(page), _
+                              .ScreenX + slotoff.X, _
+                              .ScreenY + slotoff.Y, _
+                              w - .paddingLeft - .paddingRight, _
+                              h - .paddingTop - .paddingBottom)
+    childpage = registerpage(clipview)
+    frame_unload @clipview
+
+    DrawSlice(ch, childpage)
+
+    freepage childpage
+    GlobalCoordOffset.X += .ScreenX + slotoff.X
+    GlobalCoordOffset.Y += .ScreenY + slotoff.Y
+
+    ch = ch->NextSibling
+   next
+  next
+ end with
+End Sub
+
 Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as slice ptr
  dim ret as Slice ptr
  ret = NewSlice(parent)
@@ -1299,6 +1381,7 @@ Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as 
  ret->Save = @SaveGridSlice
  ret->Load = @LoadGridSlice
  ret->ChildRefresh = @GridChildRefresh
+ ret->ChildDraw = @GridChildDraw
  
  return ret
 end function
@@ -1550,7 +1633,15 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
   DIM attach AS Slice Ptr
   attach = GetSliceDrawAttachParent(s)
   if attach  then attach->ChildRefresh(attach, s)
-  if s->Draw then s->Draw(s, page)
+  if s->Draw then
+   'translate screenX/Y by the position difference between page (due to it
+   'potentially being a view on the screen) and the screen.
+   s->ScreenX += GlobalCoordOffset.X
+   s->ScreenY += GlobalCoordOffset.Y
+   s->Draw(s, page)
+   s->ScreenX -= GlobalCoordOffset.X
+   s->ScreenY -= GlobalCoordOffset.Y
+  end if
   if attach  then
    attach->ChildDraw(s, page)
   else
