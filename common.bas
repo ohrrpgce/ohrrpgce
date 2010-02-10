@@ -489,85 +489,90 @@ SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
  edgebox x, y, w, h, textcol, bordercol, p, trans, borders
 END SUB
 
+
 SUB edgebox (x, y, w, h, col, bordercol, p, trans AS RectTransTypes=transOpaque, border=-1)
+ edgebox x, y, w, h, col, bordercol, vpages(p), trans, border
+END SUB
+
+SUB edgebox (x, y, w, h, col, bordercol, BYVAL fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, border=-1)
 '--border: -2 is none, -1 is simple line, 0+ is styled box edge
 IF trans = transFuzzy THEN
- fuzzyrect x, y, w, h, col, p
+ fuzzyrect x, y, w, h, col, fr
 ELSEIF trans = transOpaque THEN
- rectangle x, y, w, h, col, p
+ rectangle x, y, w, h, col, fr
 END IF
 IF border = -1 THEN
  '--Simple line border
- drawbox x, y, w, h, bordercol, p
+ drawbox x, y, w, h, bordercol, fr
 ELSEIF border >= 0 AND border <= 14 THEN
  '--Normal Border
- IF trans <> transHollow THEN drawbox x, y, w, h, bordercol, p
+ IF trans <> transHollow THEN drawbox x, y, w, h, bordercol, fr
  IF box_border_cache_loaded = NO THEN load_box_border_cache
  DIM i AS INTEGER
  WITH box_border_cache(border)
   IF .sprite THEN ' Only proceed if a sprite is actually selected
    'Draw edges
    'ensure we are clipping the correct page (there are many ways of doing this)
-   setclip , , , , p
+   setclip , , , , fr
    '--Top and bottom edges
    FOR i = x + 8 TO x + w - 24 STEP 16
     setclip , , , y + h - 1
-    frame_draw .sprite + 2, .pal, i, y - 8, 1, YES, p
+    frame_draw .sprite + 2, .pal, i, y - 8, 1, YES, fr
     setclip , y, , 
-    frame_draw .sprite + 13, .pal, i, y + h - 8, 1, YES, p
+    frame_draw .sprite + 13, .pal, i, y + h - 8, 1, YES, fr
    NEXT i
    '--Left and right edges
    FOR i = y + 8 TO y + h - 24 STEP 16
     setclip , , x + w - 1, 
-    frame_draw .sprite + 7, .pal, x - 8, i, 1, YES, p
+    frame_draw .sprite + 7, .pal, x - 8, i, 1, YES, fr
     setclip x, , , 
-    frame_draw .sprite + 8, .pal, x + w - 8, i, 1, YES, p
+    frame_draw .sprite + 8, .pal, x + w - 8, i, 1, YES, fr
    NEXT i
    'Draw end-pieces
    IF w > 26 THEN
     '--Top end pieces
     setclip , , , y + h - 1
-    frame_draw .sprite + 3, .pal, x + w - 24, y - 8, 1, YES, p
-    frame_draw .sprite + 1, .pal, x + 8, y - 8, 1, YES, p
+    frame_draw .sprite + 3, .pal, x + w - 24, y - 8, 1, YES, fr
+    frame_draw .sprite + 1, .pal, x + 8, y - 8, 1, YES, fr
     '--Bottom end pieces
     setclip , y, , 
-    frame_draw .sprite + 14, .pal, x + w - 24, y + h - 8, 1, YES, p
-    frame_draw .sprite + 12, .pal, x + 8, y + h - 8, 1, YES, p
+    frame_draw .sprite + 14, .pal, x + w - 24, y + h - 8, 1, YES, fr
+    frame_draw .sprite + 12, .pal, x + 8, y + h - 8, 1, YES, fr
    ELSEIF w > 16 THEN
     '--Not enough space for the end pieces, have to draw part of the edge after all
     '--Top and bottom edges
     setclip x + 8, , x + w - 9, y + h - 1
-    frame_draw .sprite + 2, .pal, x + 8, y - 8, 1, YES, p
+    frame_draw .sprite + 2, .pal, x + 8, y - 8, 1, YES, fr
     setclip x + 8, y, x + w - 9, 
-    frame_draw .sprite + 13, .pal, x + 8, y + h - 8, 1, YES, p
+    frame_draw .sprite + 13, .pal, x + 8, y + h - 8, 1, YES, fr
    END IF
    IF h > 26 THEN
     '--Left side end pieces
     setclip , , x + w - 1, 
-    frame_draw .sprite + 9, .pal, x - 8, y + h - 24, 1, YES, p
-    frame_draw .sprite + 5, .pal, x - 8, y + 8, 1, YES, p
+    frame_draw .sprite + 9, .pal, x - 8, y + h - 24, 1, YES, fr
+    frame_draw .sprite + 5, .pal, x - 8, y + 8, 1, YES, fr
     '--Right side end pieces
     setclip x, , , 
-    frame_draw .sprite + 10, .pal, x + w - 8, y + h - 24, 1, YES, p
-    frame_draw .sprite + 6, .pal, x + w - 8, y + 8, 1, YES, p
+    frame_draw .sprite + 10, .pal, x + w - 8, y + h - 24, 1, YES, fr
+    frame_draw .sprite + 6, .pal, x + w - 8, y + 8, 1, YES, fr
    ELSEIF h > 16 THEN
     '--Not enough space for the end pieces, have to draw part of the edge after all
     '--Left and right edges
     setclip , y + 8, x + w - 1, y + h - 9
-    frame_draw .sprite + 7, .pal, x - 8, y + 8, 1, YES, p
+    frame_draw .sprite + 7, .pal, x - 8, y + 8, 1, YES, fr
     setclip x, y + 8, , y + h - 9
-    frame_draw .sprite + 8, .pal, x + w - 8, y + 8, 1, YES, p
+    frame_draw .sprite + 8, .pal, x + w - 8, y + 8, 1, YES, fr
    END IF
    'Draw corners
    'If the box is really tiny, we need to only draw part of each corner
    setclip , , x + w - 1, y + h - 1
-   frame_draw .sprite, .pal, x - 8, y - 8, 1, YES, p
+   frame_draw .sprite, .pal, x - 8, y - 8, 1, YES, fr
    setclip x, , , y + h - 1
-   frame_draw .sprite + 4, .pal, x + w - 8, y - 8, 1, YES, p
+   frame_draw .sprite + 4, .pal, x + w - 8, y - 8, 1, YES, fr
    setclip , y, x + w - 1,
-   frame_draw .sprite + 11, .pal, x - 8, y + h - 8, 1, YES, p
+   frame_draw .sprite + 11, .pal, x - 8, y + h - 8, 1, YES, fr
    setclip x, y, , 
-   frame_draw .sprite + 15, .pal, x + w - 8, y + h - 8, 1, YES, p
+   frame_draw .sprite + 15, .pal, x + w - 8, y + h - 8, 1, YES, fr
    setclip
   END IF
  END WITH
