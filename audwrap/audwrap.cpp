@@ -205,9 +205,10 @@ int LumpFile::read(void *buffer, int size) {
 }
 
 bool LumpFile::seek(int position, SeekMode mode) {
+    int initpos;
     switch (mode) {
     case CURRENT:
-        int initpos = tell();
+        initpos = tell();
         return FileWrapper_seek(*wrapper, position, SEEK_CUR) - initpos == position;
     case BEGIN:
         return FileWrapper_seek(*wrapper, position, SEEK_SET) == position;
