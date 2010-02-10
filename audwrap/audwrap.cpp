@@ -54,6 +54,8 @@ AUDWRAP_API void AudClose(void) {
 
 //f is the file name
 AUDWRAP_API int AudLoadSound(const char *f, bool st) {
+    if (!device) return -1; 
+
     int s = findFreeSlot();
 
     if(s < 0) return (-1);
@@ -68,6 +70,8 @@ AUDWRAP_API int AudLoadSound(const char *f, bool st) {
 }
 
 AUDWRAP_API int AudLoadSoundLump(Lump *lump, bool st) {
+    if (!device) return -1; 
+
     int s = findFreeSlot();
 
     if(s < 0) return (-1);

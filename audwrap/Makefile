@@ -4,13 +4,13 @@ OUTPUT=libaudwrap.a
 
 all: audwrap
 
-audwrap: CXXFLAGS+=-O3 -g -Wall -Wno-non-virtual-dtor
+audwrap: CXXFLAGS+=-O2 -g -Wall -Wno-non-virtual-dtor
 audwrap: $(OUTPUT)
 
 $(OUTPUT): audwrap.o
 	$(AR) rcs $(OUTPUT) audwrap.o
 
 clean:
-	@$(RM) audwrap.o
+	@$(RM) audwrap.o $(OUTPUT)
 
 .PHONY: all audwrap clean relink
