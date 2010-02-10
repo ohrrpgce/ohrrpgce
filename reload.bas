@@ -21,7 +21,7 @@ END SUB
 
 Namespace Reload
 
-Function verifyNodeLineage(byval sl as NodePtr, parent as NodePtr) as integer
+Function verifyNodeLineage(byval sl as NodePtr, byval parent as NodePtr) as integer
  dim s as NodePtr
  if sl = 0 then return no
  s = parent
@@ -32,7 +32,7 @@ Function verifyNodeLineage(byval sl as NodePtr, parent as NodePtr) as integer
  return yes
 end function
 
-Function verifyNodeSiblings(byval sl as NodePtr, family as NodePtr) as integer
+Function verifyNodeSiblings(byval sl as NodePtr, byval family as NodePtr) as integer
  dim s as NodePtr
  if sl = 0 then return no
  s = family
@@ -59,7 +59,7 @@ Function CreateDocument() as DocPtr
 	return ret
 End function
 
-Function CreateNode(doc as DocPtr, nam as string) as NodePtr
+Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	dim ret as NodePtr
 	
 	if doc = null then return null
@@ -75,7 +75,7 @@ Function CreateNode(doc as DocPtr, nam as string) as NodePtr
 	return ret
 End function
 
-sub FreeNode(nod as NodePtr)
+sub FreeNode(byval nod as NodePtr)
 	if nod = null then
 		debug "FreeNode ptr already null"
 		exit sub
@@ -97,21 +97,19 @@ sub FreeNode(nod as NodePtr)
 		
 		par->numChildren -= 1
 		
-		if nod then
-			if nod->nextSib then
-				nod->nextSib->prevSib = nod->prevSib
-			end if
-			
-			if nod->prevSib then
-				nod->prevSib->nextSib = nod->nextSib
-			end if
+		if nod->nextSib then
+			nod->nextSib->prevSib = nod->prevSib
+		end if
+		
+		if nod->prevSib then
+			nod->prevSib->nextSib = nod->nextSib
 		end if
 	end if
 	
 	delete nod
 end sub
 
-sub FreeDocument(doc as DocPtr)
+sub FreeDocument(byval doc as DocPtr)
 	if doc = null then return
 	
 	if doc->root then
@@ -122,7 +120,7 @@ sub FreeDocument(doc as DocPtr)
 	delete doc
 end sub
 
-sub SetContent (nod as NodePtr, dat as string)
+sub SetContent (byval nod as NodePtr, dat as string)
 	if nod = null then exit sub
 	'if nod->nodeType = rltChildren then
 		'we need to free the children
@@ -134,7 +132,7 @@ sub SetContent (nod as NodePtr, dat as string)
 	nod->str = dat
 end sub
 
-sub SetContent(nod as NodePtr, dat as longint)
+sub SetContent(byval nod as NodePtr, byval dat as longint)
 	if nod = null then exit sub
 	'if nod->nodeType = rltChildren then
 		'we need to free the children
@@ -146,7 +144,7 @@ sub SetContent(nod as NodePtr, dat as longint)
 	nod->num = dat
 end sub
 
-sub SetContent(nod as NodePtr, dat as double)
+sub SetContent(byval nod as NodePtr, byval dat as double)
 	if nod = null then exit sub
 	'if nod->nodeType = rltChildren then
 		'we need to free the children
@@ -158,7 +156,7 @@ sub SetContent(nod as NodePtr, dat as double)
 	nod->flo = dat
 end sub
 
-sub SetContent(nod as NodePtr)
+sub SetContent(byval nod as NodePtr)
 	if nod = null then exit sub
 	'if nod->nodeType = rltChildren then
 		'we need to free the children
@@ -169,7 +167,7 @@ sub SetContent(nod as NodePtr)
 	nod->nodeType = rltNull
 end sub
 
-Sub RemoveParent(nod as NodePtr)
+Sub RemoveParent(byval nod as NodePtr)
 	if nod->parent then
 		if nod->parent->children = nod then
 			nod->parent->children = nod->nextSib
@@ -189,7 +187,7 @@ Sub RemoveParent(nod as NodePtr)
 	end if
 end sub
 
-function AddChild(par as NodePtr, nod as NodePtr) as NodePtr
+function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
 	
 	if verifyNodeLineage(nod, par) = NO then return nod
 	
@@ -220,7 +218,7 @@ function AddChild(par as NodePtr, nod as NodePtr) as NodePtr
 	return nod
 end function
 
-function AddSiblingAfter(sib as NodePtr, nod as NodePtr) as NodePtr
+function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 
 	if verifyNodeSiblings(nod, sib) = NO then return nod
 	
@@ -237,7 +235,7 @@ function AddSiblingAfter(sib as NodePtr, nod as NodePtr) as NodePtr
 	return nod
 end function
 
-function AddSiblingBefore(sib as NodePtr, nod as NodePtr) as NodePtr
+function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 
 	if verifyNodeSiblings(nod, sib) = NO then return nod
 	
@@ -254,7 +252,7 @@ function AddSiblingBefore(sib as NodePtr, nod as NodePtr) as NodePtr
 	return nod
 end function
 
-sub SetRootNode(doc as DocPtr, nod as NodePtr)
+sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	if verifyNodeLineage(nod, doc->root) = YES and verifyNodeLineage(doc->root, nod) = YES then
 		FreeNode(doc->root)
 	end if
@@ -288,7 +286,7 @@ Function AddStringToTable(st as string, table() as string) as integer
 	end if
 end function
 
-sub BuildStringTable(nod as NodePtr, table() as string)
+sub BuildStringTable(byval nod as NodePtr, table() as string)
 	static first as integer, start as NodePtr
 	
 	if nod = null then exit sub
@@ -316,13 +314,13 @@ sub BuildStringTable(nod as NodePtr, table() as string)
 	end if
 end sub
 
-sub SerializeXML (doc as DocPtr)
+sub SerializeXML (byval doc as DocPtr)
 	if doc = null then exit sub
 	
 	serializeXML(doc->root)
 end sub
 
-sub serializeXML (nod as NodePtr, ind as integer = 0)
+sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	if nod = null then exit sub
 	
 	print string(ind, "	");
@@ -371,7 +369,7 @@ sub serializeXML (nod as NodePtr, ind as integer = 0)
 	
 end sub
 
-sub SerializeBin(file as string, doc as DocPtr)
+sub SerializeBin(file as string, byval doc as DocPtr)
 	if doc = null then exit sub
 	
 	dim f as integer = freefile
@@ -415,7 +413,7 @@ sub SerializeBin(file as string, doc as DocPtr)
 	kill file & ".tmp"
 end sub
 
-sub serializeBin(nod as NodePtr, f as integer, table() as string)
+sub serializeBin(byval nod as NodePtr, byval f as integer, table() as string)
 	if nod = 0 then
 		debug "serializeBin null node ptr"
 		exit sub
@@ -494,7 +492,7 @@ sub serializeBin(nod as NodePtr, f as integer, table() as string)
 	seek #f, here2
 end sub
 
-Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
+Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr
 	'recursively searches for a child by name, depth-first
 	'can also find self
 	if nod = null then return null
@@ -510,7 +508,7 @@ Function FindChildByName(nod as NodePtr, nam as string) as NodePtr
 	return null
 End function
 
-Function GetChildByName(nod as NodePtr, nam as string) as NodePtr
+Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr
 	'Not recursive!
 	'does not find self.
 	if nod = null then return null
@@ -524,7 +522,7 @@ Function GetChildByName(nod as NodePtr, nam as string) as NodePtr
 	return null
 End Function
 
-Function LoadNode(f as integer, doc as DocPtr) as NodePtr
+Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	dim ret as NodePtr
 	
 	ret = CreateNode(doc, "!")
@@ -617,7 +615,7 @@ Sub LoadStringTable(f as integer, table() as string)
 	next
 end sub
 
-function FixNodeName(nod as nodeptr, table() as string) as integer
+function FixNodeName(byval nod as nodeptr, table() as string) as integer
 	if nod = null then return -1
 	
 	if nod->namenum > ubound(table) + 1 or nod->namenum < 0 then
@@ -703,7 +701,7 @@ Function LoadDocument(fil as string) as DocPtr
 	return ret
 End Function
 
-Function GetString(node as nodeptr) as string
+Function GetString(byval node as nodeptr) as string
 	if node = null then return ""
 	
 	select case node->nodeType
@@ -722,7 +720,7 @@ Function GetString(node as nodeptr) as string
 	end select
 End Function
 
-Function GetInteger(node as nodeptr) as LongInt
+Function GetInteger(byval node as nodeptr) as LongInt
 	if node = null then return 0
 	
 	select case node->nodeType
@@ -741,7 +739,7 @@ Function GetInteger(node as nodeptr) as LongInt
 	end select
 End Function
 
-Function GetDouble(node as nodeptr) as Double
+Function GetDouble(byval node as nodeptr) as Double
 	if node = null then return 0.0
 	
 	select case node->nodeType
@@ -791,7 +789,7 @@ Function RPathCompile(query as string) as RPathCompiledQuery Ptr
 	return ret
 End Function
 
-sub RPathFreeCompiledQuery(rpf as RPathCompiledQuery ptr)
+sub RPathFreeCompiledQuery(byval rpf as RPathCompiledQuery ptr)
 	if rpf = 0 then exit sub
 	
 	if rpf->fragment then
@@ -802,7 +800,7 @@ sub RPathFreeCompiledQuery(rpf as RPathCompiledQuery ptr)
 	delete rpf
 end sub
 
-Function RPathSearch(query as RPathCompiledQuery ptr, depth as integer, from as NodePtr, results() as nodePtr) as integer
+Function RPathSearch(byval query as RPathCompiledQuery ptr, byval depth as integer, byval from as NodePtr, results() as nodePtr) as integer
 	if from = 0 or query = 0 then
 		print "from: " ; from; " query: " ; query
 		return 0
@@ -849,7 +847,7 @@ Function RPathSearch(query as RPathCompiledQuery ptr, depth as integer, from as 
 	return found
 End Function
 
-Function RPathQuery(query as RPathCompiledQuery Ptr, context as NodePtr) as NodeSetPtr
+Function RPathQuery(byval query as RPathCompiledQuery Ptr, byval context as NodePtr) as NodeSetPtr
 	if query = 0 then return 0
 	
 	dim ret as NodeSetPtr = new NodeSet
@@ -878,14 +876,14 @@ Function RPathQuery(query as RPathCompiledQuery Ptr, context as NodePtr) as Node
 	end if
 end Function
 
-Function RPathQuery(query as String, context as NodePtr) as NodeSetPtr
+Function RPathQuery(query as String, byval context as NodePtr) as NodeSetPtr
 	dim rpf as RPathCompiledQuery ptr = RPathCompile(query)
 	dim ret as NodeSetPtr = RPathQuery(rpf, context)
 	RPathFreeCompiledQuery(rpf)
 	return ret
 End Function
 
-sub FreeNodeSet(nodeset as NodeSetPtr)
+sub FreeNodeSet(byval nodeset as NodeSetPtr)
 	if nodeset = null then exit sub
 	
 	if nodeset->nodes then
@@ -895,7 +893,7 @@ sub FreeNodeSet(nodeset as NodeSetPtr)
 	delete nodeset
 end sub
 
-Sub WriteVLI(f as integer, v as Longint)
+Sub WriteVLI(byval f as integer, byval v as Longint)
 	dim o as ubyte
 	dim neg as integer
 	
@@ -924,7 +922,7 @@ Sub WriteVLI(f as integer, v as Longint)
 
 end sub
 
-function ReadVLI(f as integer) as longint
+function ReadVLI(byval f as integer) as longint
 	dim o as ubyte
 	dim ret as longint
 	dim neg as integer

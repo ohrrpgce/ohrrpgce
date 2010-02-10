@@ -72,41 +72,41 @@ Type RPathCompiledQuery
 End Type
 
 Declare Function CreateDocument() as DocPtr
-Declare Function CreateNode(doc as DocPtr, nam as string) as NodePtr
-Declare sub FreeNode(nod as NodePtr)
-Declare sub FreeDocument(doc as DocPtr)
-Declare sub SetContent Overload (nod as NodePtr, dat as string)
-Declare sub SetContent(nod as NodePtr, dat as longint)
-Declare sub setContent(nod as NodePtr, dat as double)
-Declare sub setContent(nod as NodePtr)
-Declare Function AddSiblingBefore(sib as NodePtr, nod as NodePtr) as NodePtr
-Declare Function AddSiblingAfter(sib as NodePtr, nod as NodePtr) as NodePtr
-Declare Function AddChild(par as NodePtr, nod as NodePtr) as NodePtr
-Declare sub SetRootNode(doc as DocPtr, nod as NodePtr)
+Declare Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
+Declare sub FreeNode(byval nod as NodePtr)
+Declare sub FreeDocument(byval doc as DocPtr)
+Declare sub SetContent Overload (byval nod as NodePtr, dat as string)
+Declare sub SetContent(byval nod as NodePtr, byval dat as longint)
+Declare sub setContent(byval nod as NodePtr, byval dat as double)
+Declare sub setContent(byval nod as NodePtr)
+Declare Function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
+Declare Function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
+Declare Function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
+Declare sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 
 Declare Function LoadDocument(fil as string) as DocPtr
 
-Declare sub SerializeXML overload (doc as DocPtr)
-Declare sub serializeXML (nod as NodePtr, ind as integer = 0)
+Declare sub SerializeXML overload (byval doc as DocPtr)
+Declare sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 
-Declare sub SerializeBin overload (file as string, doc as DocPtr)
-Declare sub serializeBin (nod as NodePtr, f as integer = 0, table() as string)
+Declare sub SerializeBin overload (file as string, byval doc as DocPtr)
+Declare sub serializeBin (byval nod as NodePtr, byval f as integer = 0, table() as string)
 
-Declare Function GetString(node as nodeptr) as string
-Declare Function GetInteger(node as nodeptr) as LongInt
-Declare Function GetFloat(node as nodeptr) as Double
+Declare Function GetString(byval node as nodeptr) as string
+Declare Function GetInteger(byval node as nodeptr) as LongInt
+Declare Function GetFloat(byval node as nodeptr) as Double
 
-Declare Function GetChildByName(nod as NodePtr, nam as string) as NodePtr 'NOT recursive
-Declare Function FindChildByName(nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
+Declare Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr 'NOT recursive
+Declare Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
 
-Declare function ReadVLI(f as integer) as longint
-declare Sub WriteVLI(f as integer, v as Longint)
+Declare function ReadVLI(byval f as integer) as longint
+declare Sub WriteVLI(byval f as integer, byval v as Longint)
 
 Declare Function RPathCompile(query as string) as RPathCompiledQuery Ptr
-Declare Sub RPathFreeCompiledQuery(rpf as RPathCompiledQuery ptr)
+Declare Sub RPathFreeCompiledQuery(byval rpf as RPathCompiledQuery ptr)
 
-Declare Function RPathQuery Overload(query as String, context as NodePtr) as NodeSetPtr
-Declare Function RPathQuery Overload(query as RPathCompiledQuery Ptr, context as NodePtr) as NodeSetPtr
+Declare Function RPathQuery Overload(query as String, byval context as NodePtr) as NodeSetPtr
+Declare Function RPathQuery Overload(byval query as RPathCompiledQuery Ptr, byval context as NodePtr) as NodeSetPtr
 
 End Namespace
 
