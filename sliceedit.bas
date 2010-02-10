@@ -186,6 +186,7 @@ SUB slice_editor ()
      .Fill = YES
     END WITH
     SliceLoadFromFile edslice, filename
+    state.need_update = YES
    END IF
   END IF
   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
