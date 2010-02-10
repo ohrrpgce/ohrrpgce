@@ -156,6 +156,7 @@ DECLARE FUNCTION getmusictype (file as string) as integer
 declare function frame_new(byval w as integer, byval h as integer, byval frames as integer = 1, byval clr as integer = NO, byval wantmask as integer = NO) as Frame ptr
 declare function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
 declare function frame_new_from_buffer(pic() as integer, BYVAL picoff as integer) as Frame ptr
+declare function frame_cropped_view(byval spr as Frame ptr, byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999) as Frame ptr
 declare function frame_load overload (byval ptno as integer, byval rec as integer) as frame ptr
 declare function frame_load(as string, byval as integer, byval as integer , byval as integer, byval as integer) as frame ptr
 declare function frame_reference(byval p as frame ptr) as frame ptr
