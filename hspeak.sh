@@ -8,9 +8,6 @@ fi
 export PATH=${PATH}:${EUDIR}/bin
 export TERM=ansi
 
-SCRIPT_DIR=`echo ${0} | sed s/"hspeak.sh$"/""/`
-if [ ! -z "${SCRIPT_DIR}" ] ; then
-  cd "${SCRIPT_DIR}"
-fi
+SCRIPT_DIR=`dirname $0`
 
-exu hspeak.exw "$@"
+exu ${SCRIPT_DIR}/hspeak.exw "$@"
