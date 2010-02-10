@@ -82,6 +82,19 @@ Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr)
  end with
 End sub
 
+Sub DefaultChildDraw(Byval s as Slice Ptr, byval page as integer)
+ 'NOTE: we don't bother to null check s here because this sub is only
+ '      ever called from DrawSlice which does null check it.
+ with *s
+  'draw the slice's children
+  dim ch as slice ptr = .FirstChild
+  do while ch <> 0
+   DrawSlice(ch, page)
+   ch = ch->NextSibling
+  Loop
+ end with
+End sub
+
 Sub SetupGameSlices
  SliceTable.Root = NewSliceOfType(slRoot)
  
@@ -255,6 +268,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->Save = @SaveNullSlice
  ret->Load = @LoadNullSlice
  ret->ChildRefresh = @DefaultChildRefresh
+ ret->ChildDraw = @DefaultChildDraw
 
  SliceDebugRemember ret
  
@@ -538,6 +552,7 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
   sl->Save      = .Save
   sl->Load      = .Load
   sl->ChildRefresh = .ChildRefresh
+  sl->ChildDraw = .ChildDraw
   sl->SliceData = .SliceData
   sl->SliceType = .SliceType
   'Break slice connection to data
@@ -1534,16 +1549,14 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
 
   DIM attach AS Slice Ptr
   attach = GetSliceDrawAttachParent(s)
-  if attach then attach->ChildRefresh(attach, s)
-  with *s
-   if .Draw <> 0 THEN .Draw(s, page)
-   'draw its children
-   dim ch as slice ptr = .FirstChild
-   do while ch <> 0
-    DrawSlice(ch, page)
-    ch = ch->NextSibling
-   Loop
-  end with
+  if attach  then attach->ChildRefresh(attach, s)
+  if s->Draw then s->Draw(s, page)
+  if attach  then
+   attach->ChildDraw(s, page)
+  else
+   'For parentless slices like the Root
+   DefaultChildDraw s, page
+  end if
  end if
 end sub
 
