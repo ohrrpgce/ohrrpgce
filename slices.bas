@@ -90,19 +90,24 @@ End sub
 Sub DefaultChildDraw(Byval s as Slice Ptr, byval page as integer)
  'NOTE: we don't bother to null check s here because this sub is only
  '      ever called from DrawSlice which does null check it.
+ dim clippos as XYPair = any
  with *s
   if .Clip then
-   GlobalCoordOffset.X -= .ScreenX
-   GlobalCoordOffset.Y -= .ScreenY
-
    dim clipview as Frame ptr
+   clippos.X = .ScreenX + .paddingLeft + GlobalCoordOffset.X
+   clippos.Y = .ScreenY + .paddingTop + GlobalCoordOffset.Y
    clipview = frame_new_view(vpages(page), _
-                             .ScreenX + .paddingLeft, _
-                             .ScreenY + .paddingTop, _
+                             clippos.X, _
+                             clippos.Y, _
                              .Width - .paddingLeft - .paddingRight, _
                              .Height - .paddingTop - .paddingBottom)
    page = registerpage(clipview)
    frame_unload @clipview
+
+   'frame_new_view doesn't move the origin past the edges of the screen
+   '(we don't need to check for going off the bottom or right edges because that's always a zero-size view)
+   GlobalCoordOffset.X -= large(clippos.X, 0)
+   GlobalCoordOffset.Y -= large(clippos.Y, 0)
   end if
 
   'draw the slice's children
@@ -114,8 +119,8 @@ Sub DefaultChildDraw(Byval s as Slice Ptr, byval page as integer)
 
   if .Clip then
    freepage page
-   GlobalCoordOffset.X += .ScreenX
-   GlobalCoordOffset.Y += .ScreenY
+   GlobalCoordOffset.X += large(clippos.X, 0)
+   GlobalCoordOffset.Y += large(clippos.Y, 0)
   end if
 
  end with
@@ -1312,6 +1317,8 @@ Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
  'NOTE: we don't bother to null check s here because this sub is only
  '      ever called from DrawSlice which does null check it.
 
+ if s->SliceType <> slGrid then debug "GridChildDraw illegal slice type": exit sub
+
  if s->Clip = NO then
   'no special behaviour
   DefaultChildDraw s, page
@@ -1325,7 +1332,7 @@ Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
   dim w as integer = .Width \ large(1, dat->cols)
   dim h as integer = .Height \ large(1, dat->rows)
 
-  dim slotoff as XYPair
+  dim clippos as XYPair
   dim clipview as Frame ptr
   dim childpage as integer
 
@@ -1335,24 +1342,27 @@ Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
    for xslot as integer = 0 to dat->cols - 1
     if ch = 0 then exit for, for
 
-    slotoff.X = xslot * w + .paddingLeft
-    slotoff.Y = yslot * h + .paddingTop
-    GlobalCoordOffset.X -= .ScreenX + slotoff.X
-    GlobalCoordOffset.Y -= .ScreenY + slotoff.Y
+    clippos.X = .ScreenX + xslot * w + .paddingLeft + GlobalCoordOffset.X
+    clippos.Y = .ScreenY + yslot * h + .paddingTop + GlobalCoordOffset.Y
 
     clipview = frame_new_view(vpages(page), _
-                              .ScreenX + slotoff.X, _
-                              .ScreenY + slotoff.Y, _
+                              clippos.X, _
+                              clippos.Y, _
                               w - .paddingLeft - .paddingRight, _
                               h - .paddingTop - .paddingBottom)
     childpage = registerpage(clipview)
     frame_unload @clipview
 
+    'frame_new_view doesn't move the origin past the edges of the screen
+    '(we don't need to check for going off the bottom or right edges because that's always a zero-size view)
+    GlobalCoordOffset.X -= large(clippos.X, 0)
+    GlobalCoordOffset.Y -= large(clippos.Y, 0)
+
     DrawSlice(ch, childpage)
 
     freepage childpage
-    GlobalCoordOffset.X += .ScreenX + slotoff.X
-    GlobalCoordOffset.Y += .ScreenY + slotoff.Y
+    GlobalCoordOffset.X += large(clippos.X, 0)
+    GlobalCoordOffset.Y += large(clippos.Y, 0)
 
     ch = ch->NextSibling
    next
@@ -1632,7 +1642,7 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
 
   DIM attach AS Slice Ptr
   attach = GetSliceDrawAttachParent(s)
-  if attach  then attach->ChildRefresh(attach, s)
+  if attach then attach->ChildRefresh(attach, s)
   if s->Draw then
    'translate screenX/Y by the position difference between page (due to it
    'potentially being a view on the screen) and the screen.

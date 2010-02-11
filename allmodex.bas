@@ -3644,7 +3644,8 @@ function frame_new(byval w as integer, byval h as integer, byval frames as integ
 	return ret
 end function
 
-'create a frame which is a view onto part of a larger frame
+'Create a frame which is a view onto part of a larger frame
+'Can return a zero-size view. Seems to work, but not yet sure that all operations will work correctly on such a frame.
 function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as integer, byval w as integer, byval h as integer) as Frame ptr
 	dim ret as frame ptr = callocate(sizeof(Frame))
 
@@ -3653,11 +3654,16 @@ function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as i
 		return 0
 	end if
 
-	x = bound(x, 0, spr->w - 1)
-	y = bound(y, 0, spr->h - 1)
+	if x < 0 then w -= -x: x = 0
+	if y < 0 then h -= -y: y = 0
 	with *ret
-		.w = bound(w, 1, spr->w - x)
-		.h = bound(h, 1, spr->h - y)
+		.w = bound(w, 0, spr->w - x)
+		.h = bound(h, 0, spr->h - y)
+		if x >= spr->w or y >= spr->h or .w = 0 or .h = 0 then
+			'this might help to keep things slightly saner
+			.w = 0
+			.h = 0
+		end if
 		.pitch = spr->pitch
 		.image = spr->image + .pitch * y + x
 		if spr->mask then
