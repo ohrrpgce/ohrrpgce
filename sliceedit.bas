@@ -675,7 +675,13 @@ SUB SliceAdoptNiece (BYVAL sl AS Slice Ptr)
 END SUB
 
 SUB AdjustSlicePosToNewParent (BYVAL sl AS Slice Ptr, BYVAL newparent AS Slice Ptr)
- '--Re-adjust X/Y position for new parent
+ '--Re-adjust ScreenX/ScreenY position for new parent
+ IF newparent->SliceType = slGrid THEN
+  '--except if the new parent is a grid. Then it would be silly to preserve Screen pos.
+  sl->X = 0
+  sl->Y = 0
+  EXIT SUB
+ END IF
  DIM oldpos AS XYPair
  oldpos.x = sl->ScreenX
  oldpos.y = sl->ScreenY
