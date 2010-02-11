@@ -805,7 +805,8 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 
 	dim dat as ubyte
 	dim size as integer
-	dim lname as string
+	dim lumpname as string 'name of the file to lump
+	dim lname as string 'name actually written
 	dim bufr as ubyte ptr
 	dim csize as integer
 
@@ -827,16 +828,16 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 
 	'get file to lump
 	do until eof(fl)
-		line input #fl, lname
+		line input #fl, lumpname
 
-		lname = ucase(lname)
+		lumpname = ucase(lname)
 		if len(lname) > 50 orelse lname <> exclusive(lname, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.") then
 			debug "lumpfiles: bad lump name '" & lname & "'"
 			continue do
 		end if
 
 		tl = freefile
-		open path + lname for binary access read as #tl
+		open path + lumpname for binary access read as #tl
 		if err <> 0 then
 			'debug "failed to open " + path + lname
 			continue do
