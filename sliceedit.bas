@@ -229,9 +229,11 @@ SUB slice_editor ()
     END IF
    END IF
   END IF
-  IF keyval(scLeft) > 1 THEN
-   cursor_seek = (menu(state.pt).handle)->parent
-   state.need_update = YES
+  IF NOT shift THEN
+   IF keyval(scLeft) > 1 THEN
+    cursor_seek = (menu(state.pt).handle)->parent
+    state.need_update = YES
+   END IF
   END IF
   IF state.need_update = NO THEN
    'Only do normal cursor movement when no updates are needed
@@ -677,9 +679,10 @@ SUB AdjustSlicePosToNewParent (BYVAL sl AS Slice Ptr, BYVAL newparent AS Slice P
  DIM oldpos AS XYPair
  oldpos.x = sl->ScreenX
  oldpos.y = sl->ScreenY
+ RefreshSliceScreenPos sl
  DIM newpos AS XYPair
- newpos.x = newparent->ScreenX + sl->X
- newpos.y = newparent->ScreenY + sl->Y
+ newpos.x = sl->ScreenX
+ newpos.y = sl->ScreenY
  sl->X += oldpos.x - newpos.x
  sl->Y += oldpos.y - newpos.y
 END SUB
