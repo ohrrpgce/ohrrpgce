@@ -1317,7 +1317,7 @@ Sub GridChildDraw(Byval s as Slice Ptr, byval page as integer)
   DefaultChildDraw s, page
   exit sub
  end if
-
+ 
  with *s
   '--get grid data
   dim dat as GridSliceData ptr
@@ -1642,12 +1642,7 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
    s->ScreenX -= GlobalCoordOffset.X
    s->ScreenY -= GlobalCoordOffset.Y
   end if
-  if attach  then
-   attach->ChildDraw(s, page)
-  else
-   'For parentless slices like the Root
-   DefaultChildDraw s, page
-  end if
+  s->ChildDraw(s, page)
  end if
 end sub
 
