@@ -830,7 +830,7 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 	do until eof(fl)
 		line input #fl, lumpname
 
-		lumpname = ucase(lname)
+		lname = ucase(lumpname)
 		if len(lname) > 50 orelse lname <> exclusive(lname, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.") then
 			debug "lumpfiles: bad lump name '" & lname & "'"
 			continue do
