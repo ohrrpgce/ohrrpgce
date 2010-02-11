@@ -3677,12 +3677,6 @@ function frame_new_view(byval spr as Frame ptr, byval x as integer, byval y as i
 	return ret
 end function
 
-'this is like frame_new_view, but it accepts arguments in the same
-'format as setclip does. FIXME: still seems broken!
-function frame_cropped_view(byval spr as Frame ptr, byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999) as Frame ptr
- return frame_new_view(spr, l, t, r - l, b - t)
-end function
-
 ' unconditionally frees a sprite from memory. 
 ' You should never need to call this: use frame_unload
 ' Should only be called on the head of an array (and not a view, obv)!
