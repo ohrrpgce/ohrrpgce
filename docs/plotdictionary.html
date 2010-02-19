@@ -1369,6 +1369,9 @@
 		<a href="#about-runscriptbyid">run script by ID (id, argument1, argument2, argument3...)</a><br>
 		
 	
+		<a href="#about-sameslice">same slice (handle, handle)</a><br>
+		
+	
 		<a href="#about-saveinslot">save in slot (slot)</a><br>
 		
 	
@@ -5294,6 +5297,14 @@ set horiz align(sl, edge:right)
 		<tt>
 		<b><font color="yellow">slice is text (handle)</font></b><br>
 			Returns true if the given slice <span class="param">handle</span> is a text slice.<br>
+			
+			
+		</tt></p>
+		<a name="about-sameslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">same slice (handle, handle)</font></b><br>
+			Returns true if both the given <span class="param">handle</span>s point to the same slice. This is better than (handle1 == handle2) because it will still be accurate even if the handles hold different references to the same slice.<br>
 			
 			
 		</tt></p>
@@ -9308,7 +9319,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 670 commands in this file, of which 54 are only references to other commands.</p>
+	<p>Stats: There are 671 commands in this file, of which 54 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

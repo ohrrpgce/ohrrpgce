@@ -2296,6 +2296,16 @@ SELECT CASE AS CONST id
     sl = sl->NextSibling
    NEXT
   END IF
+ CASE 451 '--same slice
+  IF retvals(0) = 0 ORELSE retvals(1) = 0 THEN
+   scriptret = 0
+  ELSE
+   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
+    IF plotslices(retvals(0)) = plotslices(retvals(1)) THEN
+     scriptret = 1
+    END IF
+   END IF
+  END IF
 
 END SELECT
 
