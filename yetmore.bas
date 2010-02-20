@@ -3138,8 +3138,11 @@ FUNCTION create_plotslice_handle(byval sl as Slice Ptr) AS INTEGER
  NEXT
  'If no room is available, make the array bigger.
  REDIM PRESERVE plotslices(LBOUND(plotslices) TO UBOUND(plotslices) + 32)
- 'Store the slice pointer in the handle slot and return the handle number
+ 'Store the slice pointer in the handle slot
  plotslices(i) = sl
+ 'Store the handle slot in the slice
+ sl->TableSlot = i
+ ' and return the handle number
  RETURN i
 END FUNCTION
 
