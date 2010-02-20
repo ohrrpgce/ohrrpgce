@@ -2248,11 +2248,6 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>slice is text</shortname>
 			<description>Returns true if the given slice <p>handle</p> is a text slice.</description>
 		</command>
-		<command id="sameslice">
-			<canon>same slice (handle, handle)</canon>
-			<shortname>same slice</shortname>
-			<description>Returns true if both the given <p>handle</p>s point to the same slice. This is better than (handle1 == handle2) because it will still be accurate even if the handles hold different references to the same slice.</description>
-		</command>
 		<command id="slicex">
 			<canon>slice x (handle)</canon>
 			<shortname>slice x</shortname>

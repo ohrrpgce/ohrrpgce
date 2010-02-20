@@ -8,7 +8,6 @@ WHAT IS NEW?
 
   * New Plotscripting Stuff
     * "reset hero picture" and "reset hero palette" [James]
-    * "same slice" slice identity test [James]
 
   * Vikings of Midgard
 
