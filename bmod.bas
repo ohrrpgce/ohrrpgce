@@ -2889,6 +2889,7 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
   
   IF chained_attack.attack_delay > 0 AND ch.no_delay = NO THEN
    '--chain is delayed, queue the attack
+   bat.atk.id = -1 '--terminate the attack that lead to this chain
    bslot(bat.acting).attack = ch.atk_id
    bslot(bat.acting).delay = chained_attack.attack_delay
   ELSE
