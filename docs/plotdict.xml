@@ -1304,17 +1304,17 @@ end</example>
 		<command id="replacechar">
 			<canon>replace char (ID, position, char)</canon>
 			<shortname>replace char</shortname>
-			<description>Replaces the character at <p>position</p> in string #<p>ID</p> with a character with ascii code <p>char</p>.</description>
+			<description>Replaces the character at <p>position</p> in string #<p>ID</p> with a character with ascii code <p>char</p>. The first position of the string is 1, and the last position of the string is the same as <ref>stringlength</ref>.</description>
 		</command>
 		<command id="deletechar">
 			<canon>delete char (ID, position)</canon>
 			<shortname>delete char</shortname>
-			<description>This deletes the character at <p>postion</p> in string #<p>ID</p>, causing all the following characters to move over a slot.</description>
+			<description>This deletes the character at <p>postion</p> in string #<p>ID</p>, causing all the following characters to move over a slot. The first position of the string is 1, and the last position of the string is the same as <ref>stringlength</ref>.</description>
         </command>
 		<command id="asciifromstring">
 			<canon>ascii from string (ID, position)</canon>
 			<shortname>ascii from string</shortname>
-			<description>Returns the ascii code of the character at <p>position</p> in string #<p>ID</p>.</description>
+			<description>Returns the ascii code of the character at <p>position</p> in string #<p>ID</p>. The first position of the string is 1, and the last position of the string is the same as <ref>stringlength</ref>. If you pass 0 as the position or a position past the end of the string, 0 will be returned.</description>
 		</command>
 		<command id="stringtoglobals">
 			<canon>string to globals (ID, starting global, length)</canon>

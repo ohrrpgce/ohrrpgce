@@ -3906,7 +3906,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">replace char (ID, position, char)</font></b><br>
-			Replaces the character at <span class="param">position</span> in string #<span class="param">ID</span> with a character with ascii code <span class="param">char</span>.<br>
+			Replaces the character at <span class="param">position</span> in string #<span class="param">ID</span> with a character with ascii code <span class="param">char</span>. The first position of the string is 1, and the last position of the string is the same as <a href="#about-stringlength" class="ref">string length</a>.<br>
 			
 			
 		</tt></p>
@@ -3914,7 +3914,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">delete char (ID, position)</font></b><br>
-			This deletes the character at <span class="param">postion</span> in string #<span class="param">ID</span>, causing all the following characters to move over a slot.<br>
+			This deletes the character at <span class="param">postion</span> in string #<span class="param">ID</span>, causing all the following characters to move over a slot. The first position of the string is 1, and the last position of the string is the same as <a href="#about-stringlength" class="ref">string length</a>.<br>
 			
 			
 		</tt></p>
@@ -3922,7 +3922,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">ascii from string (ID, position)</font></b><br>
-			Returns the ascii code of the character at <span class="param">position</span> in string #<span class="param">ID</span>.<br>
+			Returns the ascii code of the character at <span class="param">position</span> in string #<span class="param">ID</span>. The first position of the string is 1, and the last position of the string is the same as <a href="#about-stringlength" class="ref">string length</a>. If you pass 0 as the position or a position past the end of the string, 0 will be returned.<br>
 			
 			
 		</tt></p>
