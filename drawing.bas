@@ -663,13 +663,13 @@ DO
  SWAP vpage, dpage
  setvispage vpage
  '--draw available animating tiles--
- setmapdata , 10, 130
- drawmap tilesetview, 0, -10, 0, tileset, dpage
+ setmapdata , 10, 60
+ drawmap tilesetview, 0, 0, 0, tileset, dpage
  '--draw sample--
- setmapdata , 100, 40
+ setmapdata , 100, 60
  setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
  cycletile tanim_state(), tastuf()
- drawmap sample, -130, -100, 0, tileset, dpage
+ drawmap sample, -130, 0, 0, tileset, dpage
  '--Draw cursor--
  y = INT(csr / 16)
  x = csr - y * 16
