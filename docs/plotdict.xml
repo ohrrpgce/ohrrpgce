@@ -757,7 +757,7 @@ wait for text box # wait until the player continues</example>
 		<command id="resetgame">
 			<canon>reset game</canon>
 			<shortname>reset game</shortname>
-			<description>Resets and starts a new game, skipping both title and load game screens. This can be necessary to use this instead of <ref>gameover</ref> as it will not exit the program if the title screen and load screen have been disabled. It always resets the game back to the beginning.</description>
+			<description>Resets and starts a new game, skipping both title and load game screens. It can be necessary to use this instead of <ref>gameover</ref> as it will not exit the program if the title screen and load screen have been disabled. It always resets the game back to the beginning.</description>
 		</command>
 		<command id="showvalue">
 			<canon>show value (number)</canon>
@@ -1304,17 +1304,17 @@ end</example>
 		<command id="replacechar">
 			<canon>replace char (ID, position, char)</canon>
 			<shortname>replace char</shortname>
-			<description>Replaces the character at <p>position</p> in string #<p>ID</p> with a character with ascii code <p>char</p>.</description>
+			<description>Replaces the character at <p>position</p> in string #<p>ID</p> with a character with ascii code <p>char</p>. The first position of the string is 1, and the last position of the string is the same as <ref>stringlength</ref>.</description>
 		</command>
 		<command id="deletechar">
 			<canon>delete char (ID, position)</canon>
 			<shortname>delete char</shortname>
-			<description>This deletes the character at <p>postion</p> in string #<p>ID</p>, causing all the following characters to move over a slot.</description>
+			<description>This deletes the character at <p>postion</p> in string #<p>ID</p>, causing all the following characters to move over a slot. The first position of the string is 1, and the last position of the string is the same as <ref>stringlength</ref>.</description>
         </command>
 		<command id="asciifromstring">
 			<canon>ascii from string (ID, position)</canon>
 			<shortname>ascii from string</shortname>
-			<description>Returns the ascii code of the character at <p>position</p> in string #<p>ID</p>.</description>
+			<description>Returns the ascii code of the character at <p>position</p> in string #<p>ID</p>. The first position of the string is 1, and the last position of the string is the same as <ref>stringlength</ref>. If you pass 0 as the position or a position past the end of the string, 0 will be returned.</description>
 		</command>
 		<command id="stringtoglobals">
 			<canon>string to globals (ID, starting global, length)</canon>
@@ -3353,7 +3353,7 @@ end
 		<command id="leader">
 			<canon>leader</canon>
 			<shortname>leader</shortname>
-			<description>Returns the hero number of the current leader</description>
+			<description>Returns the hero ID number (as given in the Edit Hero Stats menu) of the current caterpillar party leader.</description>
 		</command>
 		<command id="herox">
 			<canon>hero X (who)</canon>
@@ -4210,12 +4210,12 @@ end</example></description>
 		<command id="setheropicture">
 			<canon>set hero picture (who,picture,type)</canon>
 			<shortname>set hero picture</shortname>
-			<description>Permanently changes a hero&apos;s picture. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is the index number of the picture to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>Permanently changes a hero&apos;s picture. The first argument is the hero's position in the party. (use <ref>findhero</ref> if you want refer to the hero by name). The second argument is the index number of the picture to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 		</command>
 		<command id="setheropalette">
 			<canon>set hero palette (who,palette,type)</canon>
 			<shortname>set hero palette</shortname>
-			<description>Permanently changes a hero&apos;s 16-color palette. The first argument is the hero's position in the party as returned by <ref>findhero</ref>. The second argument is the index number of the 16-color palette to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
+			<description>Permanently changes a hero&apos;s 16-color palette. The first argument is the hero's position in the party. (use <ref>findhero</ref> if you want refer to the hero by name). The second argument is the index number of the 16-color palette to use, and the last argument is a constant <ref>insidebattle</ref> or <ref>outsidebattle</ref>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <ref>outsidebattle</ref> is assumed.</description>
 		</command>
 		<command id="getheropicture">
 			<canon>get hero picture (who,type)</canon>
