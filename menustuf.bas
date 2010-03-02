@@ -559,8 +559,7 @@ SUB oobcure (w, t, atk, spred, stat())
 '--outside-of-battle cure
 
 DIM st(13, 1)
-dim attack AS AttackData
-dim h, h2
+
 '--average stats for item-triggered spells
 IF w = -1 THEN
  j = 0
@@ -584,101 +583,54 @@ ELSE
  NEXT i
 END IF
 
+DIM attack AS AttackData
 loadattackdata attack, atk
 
-targstat = attack.targ_stat
-
-'attack + defense base
-a = st(2, 0)
-IF attack.base_def_stat <> 0 THEN
- d = st(attack.base_def_stat-1, 0) 
-ELSE
- IF targstat = 6 THEN d = st(7,0) ELSE d = st(4,0)
+'--out of battle attacks that target stats other than HP and MP
+'--always affect the max stat, so force exceed_maximum on
+IF attack.targ_stat > 1 THEN
+ attack.allow_cure_to_exceed_maximum = YES
 END IF
 
-IF attack.base_atk_stat = 1 THEN a = st(6, 0) ': d = st(7, 0)
-IF attack.base_atk_stat = 2 THEN a = st(0, 0)
-IF attack.base_atk_stat = 3 THEN a = (st(0, 1) - st(0, 0))
-IF attack.base_atk_stat = 4 THEN a = INT(RND * 999)
-IF attack.base_atk_stat = 5 THEN a = 100
-IF attack.base_atk_stat >= 6 THEN a = st(attack.base_atk_stat - 6, 0)
+DIM AS BattleSprite attacker, target
 
-'calc defence
-am! = 1: dm! = .5
-IF attack.damage_math = 1 THEN am! = .8: dm! = .1
-IF attack.damage_math = 2 THEN am! = 1.3: dm! = 1
-IF attack.damage_math = 3 THEN am! = 1: dm! = 0
-
-'resetting
-IF attack.reset_targ_stat_before_hit THEN
- stat(t, 0, targstat) = stat(t, 1, targstat)
+'--populate attacker object
+IF w = -1 THEN '--use average stats
+ FOR i AS INTEGER = 0 to 11
+  attacker.stat.cur.sta(i) = st(i, 0)
+  attacker.stat.max.sta(i) = st(i, 1)
+ NEXT i
+ELSE '--use actual stats
+ FOR i AS INTEGER = 0 to 11
+  attacker.stat.cur.sta(i) = stat(w, 0, i)
+  attacker.stat.max.sta(i) = stat(w, 1, i)
+ NEXT i
 END IF
 
-'calc harm
-h2 = (a * am!) - (d * dm!)
-'no elemental support
+'--populate the target object
+FOR i AS INTEGER = 0 to 11
+ target.stat.cur.sta(i) = stat(t, 0, i)
+ target.stat.max.sta(i) = stat(t, 1, i)
+NEXT i
+'FIXME: populate elemental bits here
 
-'extra damage
-h2 = h2 + (h2 / 100) * attack.extra_damage
+inflict(0, 1, attacker, target, attack, spred)
 
-'randomize
-IF attack.do_not_randomize = NO THEN h2 = range(h2, 20)
-
-'spread damage
-IF attack.divide_spread_damage = YES THEN h2 = h2 / (spred + 1)
-
-'minimum cap
-IF attack.damage_can_be_zero = NO AND h2 <= 0 THEN h2 = 1
-
-'cure bit
-IF attack.cure_instead_of_harm = YES THEN h2 = ABS(h2) * -1
-
-'backcompat MP-targstat
-IF attack.obsolete_damage_mp = YES THEN
- IF targstat = 0 THEN targstat = 1
-END IF
-
- chp& = stat(t, 0, targstat)
- mhp& = stat(t, 1, targstat)
- IF attack.percent_damage_not_set = YES THEN
-  SELECT CASE attack.damage_math
-   CASE 5'% of max   
-    h2 = mhp& + (attack.extra_damage * mhp& / 100)
-   CASE 6'% of cur
-    h2 = chp& + (attack.extra_damage * chp& / 100)
-  END SELECT
- ELSE
-  SELECT CASE attack.damage_math
-   CASE 5'% of max
-    h2 = chp& - (mhp& + (attack.extra_damage * mhp& / 100))
-   CASE 6'% of cur
-    h2 = chp& - (chp& + (attack.extra_damage * chp& / 100))
-  END SELECT
- END IF
-IF h2 > 32767 THEN h2 = 32767
-IF h2 < -32768 THEN h2 = -32768
-h = h2
-
-'Inflict the damage
-stat(t, 0, targstat) = stat(t, 0, targstat) - h
+'--copy back stats that need copying back
+'--first copy HP and MP normally
+FOR i AS INTEGER = 0 to 1
+ stat(t, 0, i) = target.stat.cur.sta(i)
+ stat(t, 1, i) = target.stat.max.sta(i)
+NEXT i
+'--Then update just the max for the other stats
+'--this kinda sucks but it is consistent with the way outside of battle cure has always worked
+FOR i AS INTEGER = 2 to 11
+ stat(t, 1, i) = target.stat.cur.sta(i)
+ stat(t, 0, i) = stat(t, 1, i)
+NEXT i
 
 'Sound effect
 MenuSound attack.sound_effect
-
-'bounds
-stat(t, 0, targstat) = large(stat(t, 0, targstat), 0)
-IF w >= 0 THEN stat(w, 0, targstat) = large(stat(w, 0, targstat), 0)
-'bitset 58 allows cure to exceed maximum
-IF attack.allow_cure_to_exceed_maximum = NO THEN
- stat(t, 0, targstat) = small(stat(t, 0, targstat), stat(t, 1, targstat))
- IF w >= 0 THEN stat(w, 0, targstat) = small(stat(w, 0, targstat), stat(w, 1, targstat))
-ELSE
- 'increase maximum as well if not hp or mp
- IF targstat > 1 THEN
-  stat(t, 1, targstat) = large(stat(t, 0, targstat), stat(t, 1, targstat))
-  IF w >= 0 THEN stat(w, 0, targstat) = large(stat(w, 0, targstat), stat(w, 1, targstat))
- END IF
-END IF
 
 '--TODO: Must add the attack-tag conditional stuff.
 
