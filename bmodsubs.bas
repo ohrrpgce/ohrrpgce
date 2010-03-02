@@ -282,22 +282,22 @@ Function GetHeroPos(h as integer,f as integer,isY as integer) as integer'or x?
  CLOSE #FH
 End Function
 
-FUNCTION inflict (w as integer, t as integer, bslot() AS BattleSprite, attack as AttackData, tcount as integer) as integer
+FUNCTION inflict (w as integer, t as integer, BYREF attacker AS BattleSprite, BYREF target AS BattleSprite, attack as AttackData, tcount as integer) as integer
 
 DIM h = 0
 
 'failure by default
 inflict = 0
-bslot(w).attack_succeeded = 0
+attacker.attack_succeeded = 0
 
 'remember this target
-bslot(w).last_targs(t) = YES
+attacker.last_targs(t) = YES
 
 'stored targs
-IF attack.store_targ THEN bslot(w).stored_targs(t) = YES
+IF attack.store_targ THEN attacker.stored_targs(t) = YES
 IF attack.delete_stored_targ THEN
  FOR i = 0 TO 11
-  bslot(w).stored_targs(i) = NO
+  attacker.stored_targs(i) = NO
  NEXT i
 END IF
 
@@ -306,7 +306,7 @@ IF attack.damage_math <> 4 THEN
 
  'init
  cure = 0
- WITH bslot(t)
+ WITH target
   .harm.text = ""
   .harm.ticks = gen(genDamageDisplayTicks)
   .harm.pos.x = .x + (.w * .5)
@@ -316,15 +316,15 @@ IF attack.damage_math <> 4 THEN
  END WITH
 
  'accuracy
- a = bslot(w).stat.cur.acc
- d = bslot(t).stat.cur.dog
+ a = attacker.stat.cur.acc
+ d = target.stat.cur.dog
  dm! = .25
  IF attack.aim_math = 1 THEN dm! = .5
  IF attack.aim_math = 2 THEN dm! = 1
  IF attack.aim_math = 4 THEN dm! = 1.25
  IF attack.aim_math = 4 OR attack.aim_math = 7 OR attack.aim_math = 8 THEN
-  a = bslot(w).stat.cur.mag
-  d = bslot(t).stat.cur.wil
+  a = attacker.stat.cur.mag
+  d = target.stat.cur.wil
  END IF
 
  attackhit = range(a, 75) >= range(d * dm!, 75)
@@ -332,11 +332,11 @@ IF attack.damage_math <> 4 THEN
  IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = RND * 100 < (a * (100 - d)) / 100 
  IF attack.aim_math = 6 OR attack.aim_math = 8 THEN attackhit = RND * 100 < a
  IF attackhit = 0 THEN
-  bslot(t).harm.text = readglobalstring$(120, "miss", 20)
+  target.harm.text = readglobalstring$(120, "miss", 20)
   EXIT FUNCTION
  END IF
 
- WITH bslot(t)
+ WITH target
   IF attack.fail_if_targ_poison = YES AND .stat.cur.poison < .stat.max.poison THEN
    .harm.text = readglobalstring$(122, "fail", 20)
    EXIT FUNCTION
@@ -356,36 +356,36 @@ IF attack.damage_math <> 4 THEN
  END WITH
 
  'attack and defense base
- a = bslot(w).stat.cur.str
- d = bslot(t).stat.cur.def
+ a = attacker.stat.cur.str
+ d = target.stat.cur.def
  SELECT CASE attack.base_atk_stat
   CASE 1
-   a = bslot(w).stat.cur.mag
-   d = bslot(t).stat.cur.wil
+   a = attacker.stat.cur.mag
+   d = target.stat.cur.wil
   CASE 2
-   a = bslot(w).stat.cur.hp
+   a = attacker.stat.cur.hp
   CASE 3
-   a = bslot(w).stat.max.hp - bslot(w).stat.cur.hp
+   a = attacker.stat.max.hp - attacker.stat.cur.hp
   CASE 4
    a = INT(RND * 999)
   CASE 5
    a = 100
   CASE 6 TO 17
-   a = bslot(w).stat.cur.sta(attack.base_atk_stat - 6)
+   a = attacker.stat.cur.sta(attack.base_atk_stat - 6)
   CASE 18
-   a = bslot(w).repeatharm
+   a = attacker.repeatharm
   CASE 19
-   a = bslot(w).revengeharm
+   a = attacker.revengeharm
   CASE 20
-   a = bslot(t).revengeharm
+   a = target.revengeharm
   CASE 21
-   a = bslot(w).thankvengecure
+   a = attacker.thankvengecure
   CASE 22
-   a = bslot(t).thankvengecure
+   a = target.thankvengecure
  END SELECT
 
  '--defense base
- IF attack.base_def_stat > 0 AND attack.base_def_stat <= UBOUND(bslot(t).stat.cur.sta) + 1 THEN d = bslot(t).stat.cur.sta(attack.base_def_stat - 1)
+ IF attack.base_def_stat > 0 AND attack.base_def_stat <= UBOUND(target.stat.cur.sta) + 1 THEN d = target.stat.cur.sta(attack.base_def_stat - 1)
 
  'calc defense
  am! = 1: dm! = .5                    'atk-def*.5
@@ -395,7 +395,7 @@ IF attack.damage_math <> 4 THEN
 
  'resetting
  IF attack.reset_targ_stat_before_hit = YES THEN
-  bslot(t).stat.cur.sta(targstat) = bslot(t).stat.max.sta(targstat)
+  target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
  END IF
 
  'calc harm
@@ -404,22 +404,22 @@ IF attack.damage_math <> 4 THEN
  'elementals
  FOR i = 0 TO 7
   IF attack.elemental_damage(i) = YES THEN
-   IF bslot(t).weak(i) = YES THEN h = h * 2   'weakness
-   IF bslot(t).strong(i) = YES THEN h = h * .12 'resistance
-   IF bslot(t).absorb(i) = YES THEN cure = 1    'absorb
+   IF target.weak(i) = YES THEN h = h * 2   'weakness
+   IF target.strong(i) = YES THEN h = h * .12 'resistance
+   IF target.absorb(i) = YES THEN cure = 1    'absorb
   END IF
   IF attack.monster_type_bonus(i) = YES THEN
-   IF is_enemy(t) AND bslot(t).enemytype(i) = YES THEN h = h * 1.8
+   IF is_enemy(t) AND target.enemytype(i) = YES THEN h = h * 1.8
   END IF
   IF attack.fail_vs_elemental(i) = YES THEN
-   IF bslot(t).strong(i) = YES THEN
-    bslot(t).harm.text = readglobalstring$(122, "fail", 20)
+   IF target.strong(i) = YES THEN
+    target.harm.text = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
   END IF
   IF attack.fail_vs_monster_type(i) = YES THEN
-   IF is_enemy(t) AND bslot(t).enemytype(i) = YES THEN
-    bslot(t).harm.text = readglobalstring$(122, "fail", 20)
+   IF is_enemy(t) AND target.enemytype(i) = YES THEN
+    target.harm.text = readglobalstring$(122, "fail", 20)
     EXIT FUNCTION
    END IF
   END IF
@@ -445,12 +445,12 @@ IF attack.damage_math <> 4 THEN
  END IF
 
  'remember target stat
- remtargstat = bslot(t).stat.cur.sta(targstat)
- rematkrstat = bslot(w).stat.cur.sta(targstat)
+ remtargstat = target.stat.cur.sta(targstat)
+ rematkrstat = attacker.stat.cur.sta(targstat)
 
  'pre-calculate percentage damage for display
- chp = bslot(t).stat.cur.sta(targstat)
- mhp = bslot(t).stat.max.sta(targstat)
+ chp = target.stat.cur.sta(targstat)
+ mhp = target.stat.max.sta(targstat)
  IF attack.percent_damage_not_set = YES THEN
   'percentage attacks do damage
   'FIXME: see bug 134 about moving this block up the function. This should be base damage?
@@ -465,14 +465,14 @@ IF attack.damage_math <> 4 THEN
  END IF
 
  IF attack.cure_instead_of_harm = YES THEN h = ABS(h) * -1 'cure bit
- IF bslot(t).harmed_by_cure = YES THEN h = ABS(h)  'zombie
+ IF target.harmed_by_cure = YES THEN h = ABS(h)  'zombie
  IF cure = 1 THEN h = ABS(h) * -1                  'elemental absorb
 
  IF attack.do_not_exceed_targ_stat THEN
   IF h > 0 THEN 'damage
-   h = small(h, bslot(t).stat.cur.sta(targstat))
+   h = small(h, target.stat.cur.sta(targstat))
   ELSEIF h < 0 THEN ' cure
-   DIM diff AS INTEGER = bslot(t).stat.max.sta(targstat) - bslot(t).stat.cur.sta(targstat)
+   DIM diff AS INTEGER = target.stat.max.sta(targstat) - target.stat.cur.sta(targstat)
    IF diff >= 0 THEN
     h = large(h, diff * -1)
    END IF
@@ -499,9 +499,9 @@ IF attack.damage_math <> 4 THEN
    IF h < -gen(genDamageCap) THEN h = -gen(genDamageCap)
   END IF
 
-  bslot(t).stat.cur.sta(targstat) = safesubtract(bslot(t).stat.cur.sta(targstat), h)
+  target.stat.cur.sta(targstat) = safesubtract(target.stat.cur.sta(targstat), h)
   IF attack.absorb_damage THEN
-   WITH bslot(w)
+   WITH attacker
     '--drain
     IF attack.do_not_display_damage = NO THEN
      .harm.text = STR(ABS(h))
@@ -517,51 +517,51 @@ IF attack.damage_math <> 4 THEN
  END IF
 
  'enforce bounds
- bslot(t).stat.cur.sta(targstat) = large(bslot(t).stat.cur.sta(targstat), 0)
- bslot(w).stat.cur.sta(targstat) = large(bslot(w).stat.cur.sta(targstat), 0)
+ target.stat.cur.sta(targstat) = large(target.stat.cur.sta(targstat), 0)
+ attacker.stat.cur.sta(targstat) = large(attacker.stat.cur.sta(targstat), 0)
  IF attack.allow_cure_to_exceed_maximum = NO THEN
-  bslot(t).stat.cur.sta(targstat) = small(bslot(t).stat.cur.sta(targstat), large(bslot(t).stat.max.sta(targstat), remtargstat))
-  bslot(w).stat.cur.sta(targstat) = small(bslot(w).stat.cur.sta(targstat), large(bslot(w).stat.max.sta(targstat), rematkrstat))
+  target.stat.cur.sta(targstat) = small(target.stat.cur.sta(targstat), large(target.stat.max.sta(targstat), remtargstat))
+  attacker.stat.cur.sta(targstat) = small(attacker.stat.cur.sta(targstat), large(attacker.stat.max.sta(targstat), rematkrstat))
  END IF
 
  'set damage display
  IF attack.do_not_display_damage = NO THEN
-  bslot(t).harm.text = STR(ABS(h))
+  target.harm.text = STR(ABS(h))
   '--if cure, show + sign
-  IF h < 0 THEN bslot(t).harm.text = "+" + bslot(t).harm.text
+  IF h < 0 THEN target.harm.text = "+" + target.harm.text
  END IF
 
  'remember revenge data
- IF remtargstat > bslot(t).stat.cur.sta(targstat) THEN
-  bslot(t).revengemask(w) = YES
-  bslot(t).revenge = w
-  bslot(t).revengeharm = remtargstat - bslot(t).stat.cur.sta(targstat)
-  bslot(w).repeatharm = remtargstat - bslot(t).stat.cur.sta(targstat)
+ IF remtargstat > target.stat.cur.sta(targstat) THEN
+  target.revengemask(w) = YES
+  target.revenge = w
+  target.revengeharm = remtargstat - target.stat.cur.sta(targstat)
+  attacker.repeatharm = remtargstat - target.stat.cur.sta(targstat)
  END IF
 
  'remember thankvenge data
- IF remtargstat < bslot(t).stat.cur.sta(targstat) THEN
-  bslot(t).thankvengemask(w) = YES
-  bslot(t).thankvenge = w
-  bslot(t).thankvengecure = ABS(remtargstat - bslot(t).stat.cur.sta(targstat))
+ IF remtargstat < target.stat.cur.sta(targstat) THEN
+  target.thankvengemask(w) = YES
+  target.thankvenge = w
+  target.thankvengecure = ABS(remtargstat - target.stat.cur.sta(targstat))
  END IF
 
 END IF 'skips to here if no damage
 
 IF attack.show_name = YES THEN
- IF LEN(bslot(t).harm.text) > 0 THEN bslot(t).harm.text += " "
- bslot(t).harm.text += attack.name
+ IF LEN(target.harm.text) > 0 THEN target.harm.text += " "
+ target.harm.text += attack.name
 END IF
 
 'reset registers as per convenience bits
-IF attack.reset_poison = YES THEN bslot(t).stat.cur.poison = bslot(t).stat.max.poison
-IF attack.reset_regen = YES  THEN bslot(t).stat.cur.regen  = bslot(t).stat.max.regen
-IF attack.reset_stun = YES   THEN bslot(t).stat.cur.stun   = bslot(t).stat.max.stun
-IF attack.reset_mute = YES   THEN bslot(t).stat.cur.mute   = bslot(t).stat.max.mute
+IF attack.reset_poison = YES THEN target.stat.cur.poison = target.stat.max.poison
+IF attack.reset_regen = YES  THEN target.stat.cur.regen  = target.stat.max.regen
+IF attack.reset_stun = YES   THEN target.stat.cur.stun   = target.stat.max.stun
+IF attack.reset_mute = YES   THEN target.stat.cur.mute   = target.stat.max.mute
 
 '--success!
 inflict = 1
-bslot(w).attack_succeeded = 1
+attacker.attack_succeeded = 1
 
 END FUNCTION
 

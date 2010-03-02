@@ -422,7 +422,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond attack.tagset(0), 1
    checkTagCond attack.tagset(1), 1
-   IF inflict(bat.acting, targ, bslot(), attack, tcount) THEN
+   IF inflict(bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount) THEN
     '--attack succeeded
     IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
      changefoe targ - 4, attack.transmog_enemy, formdata(), es(), bslot(), attack.transmog_hp, attack.transmog_stats
