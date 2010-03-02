@@ -808,7 +808,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 19'--leader
   FOR i = 0 TO 3
-   IF hero(0) > 0 THEN scriptret = hero(0) - 1: EXIT FOR
+   IF hero(i) > 0 THEN scriptret = hero(i) - 1: EXIT FOR
   NEXT i
  CASE 20'--get money
   gold = gold + retvals(0)
