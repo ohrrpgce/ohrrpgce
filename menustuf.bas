@@ -592,6 +592,9 @@ IF attack.targ_stat > 1 THEN
  attack.allow_cure_to_exceed_maximum = YES
 END IF
 
+'--out of battle attacks aren't allowed to miss.
+attack.aim_math = 3
+
 DIM AS BattleSprite attacker, target
 
 '--populate attacker object
