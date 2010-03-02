@@ -1188,7 +1188,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
     bslot(i).stat.max.sta(o) = exstat(i, 1, o)
    NEXT o
    
-   herobattlebits bslot(), i
+   herobattlebits bslot(i), i
    bslot(i).name = names(i)
    
    '--load hero menu captions
@@ -1577,18 +1577,18 @@ SUB herobattlebits_raw (bitbuf(), who)
 
 END SUB
 
-SUB herobattlebits (bslot() AS BattleSprite, who)
+SUB herobattlebits (bspr AS BattleSprite, who)
 DIM i AS INTEGER
 DIM bitbuf(11, 4) AS INTEGER ' Temporary buffer for getting bits. FIXME: remove this eventually
 DIM tempbits(1) AS INTEGER  ' Temporary buffer for reading bits
 
 herobattlebits_raw bitbuf(), who
 
-'--Copy elemental bits to bslot()
+'--Copy elemental bits to bspr
 tempbits(0) = bitbuf(who, 0)
 tempbits(1) = bitbuf(who, 1)
 FOR i = 0 TO 7
- WITH bslot(who)
+ WITH bspr
   .weak(i) = xreadbit(tempbits(), i)
   .strong(i) = xreadbit(tempbits(), 8 + i)
   .absorb(i) = xreadbit(tempbits(), 16 + i)

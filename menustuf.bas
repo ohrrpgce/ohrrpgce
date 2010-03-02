@@ -612,6 +612,8 @@ FOR i AS INTEGER = 0 to 11
  target.stat.cur.sta(i) = stat(t, 0, i)
  target.stat.max.sta(i) = stat(t, 1, i)
 NEXT i
+herobattlebits target, t
+
 'FIXME: populate elemental bits here
 
 inflict(0, 1, attacker, target, attack, spred)
