@@ -49,13 +49,7 @@ declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as i
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
 
 
-#if __FB_VERSION__ > "0.16"
-#define threadbs any ptr
-#else
-#define threadbs integer
-#endif
-
-declare sub pollingthread(byval as threadbs)
+declare sub pollingthread(byval as any ptr)
 
 'global
 dim vpages() as Frame ptr
@@ -95,8 +89,8 @@ dim shared diagonalhack as integer
 
 dim shared closerequest as integer = 0
 
-dim shared keybdmutex as intptr  'controls access to keybdstate(), mouseflags, mouselastflags, and various backend functions
-dim shared keybdthread as intptr   'id of the polling thread
+dim shared keybdmutex as any ptr  'controls access to keybdstate(), mouseflags, mouselastflags, and various backend functions
+dim shared keybdthread as any ptr   'id of the polling thread
 dim shared endpollthread as integer  'signal the polling thread to quit
 dim shared keybdstate(127) as integer  '"real"time keyboard array
 dim shared mouseflags as integer
@@ -1044,7 +1038,7 @@ SUB io_amx_mousebits cdecl (byref mx as integer, byref my as integer, byref mwhe
 	mbuttons = mbuttons or mclicks
 END SUB
 
-sub pollingthread(byval unused as threadbs)
+sub pollingthread(byval unused as any ptr)
 	dim as integer a, dummy, buttons
 
 	while endpollthread = 0
@@ -2092,7 +2086,7 @@ END SUB
 
 SUB findfiles (fmask AS STRING, BYVAL attrib AS INTEGER, outfile AS STRING)
 	' attrib 0: all files 'cept folders, attrib 16: folders only
-#ifdef __FB_LINUX__
+#ifdef __UNIX__
 	'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR
 	DIM AS STRING grep, shellout
 	shellout = "/tmp/ohrrpgce-findfiles-" + STR(RND * 10000) + ".tmp"
@@ -2177,7 +2171,7 @@ FUNCTION isfile (n as string) as integer
 END FUNCTION
 
 FUNCTION isdir (sDir as string) as integer
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
 	'Special hack for broken Linux dir() behavior
 	sDir = escape_string(sDir, """`\$")
 	isdir = SHELL("[ -d """ + sDir + """ ]") = 0
@@ -2189,7 +2183,7 @@ FUNCTION isdir (sDir as string) as integer
 END FUNCTION
 
 FUNCTION is_absolute_path (sDir as string) as integer
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
 	if left(sDir, 1) = "/" then return -1
 #ELSE
 	dim first as string = lcase(left(sDir, 1))
@@ -2200,8 +2194,8 @@ FUNCTION is_absolute_path (sDir as string) as integer
 END FUNCTION
 
 FUNCTION drivelist (drives() as string) as integer
-#ifdef __FB_LINUX__
-	' on Linux there is only one drive, the root /
+#ifdef __UNIX__
+	' on Unix there is only one drive, the root /
 	drivelist = 0
 #else
 	dim drivebuf as zstring * 1000

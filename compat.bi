@@ -26,10 +26,25 @@
 #ELSE
  #DEFINE _ESTR
 #ENDIF
-#IFDEF __FB_LINUX__
+#IF     defined( __FB_LINUX__)
  #DEFINE _PSTR & " Linux"
+ #DEFINE __UNIX__
+#ELSEIF defined(__FB_FREEBSD__)
+ #DEFINE _PSTR & " FreeBSD"
+ #DEFINE __UNIX__
+#ELSEIF defined(__FB_NETBSD__)
+ #DEFINE _PSTR & " NetBSD"
+ #DEFINE __UNIX__
+#ELSEIF defined(__FB_OPENBSD__)
+ #DEFINE _PSTR & " OpenBSD"
+ #DEFINE __UNIX__
+#ELSEIF defined(__FB_DARWIN__)
+ #DEFINE _PSTR & " Darwin"
+ #DEFINE __UNIX__
 #ELSEIF defined(__FB_WIN32__)
  #DEFINE _PSTR & " Win32"
+#ELSEIF defined(__FB_DOS__)
+ #DEFINE _PSTR & " DOS"
 #ELSE
  #DEFINE _PSTR & " Other"
 #ENDIF
@@ -117,14 +132,12 @@ option nokeyword gosub
 '#DEFINE CLEAROBJ(OBJ) memset(@(OBJ),0,LEN(OBJ))
 '#DEFINE COPYOBJ(TO,FROM) memcpy(@(TO),@(FROM),LEN(FROM))
 
-#ifdef __FB_LINUX__
-#define LINUX -1
+#ifdef __UNIX__
 #define SLASH "/"
 #define LINE_END !"\n"
 #define CUSTOMEXE "ohrrpgce-custom"
 #define ALLFILES "*"
 #else
-#define LINUX 0
 #define SLASH "\"
 #define LINE_END !"\r\n"
 #define CUSTOMEXE "CUSTOM.EXE"

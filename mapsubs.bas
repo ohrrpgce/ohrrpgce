@@ -420,7 +420,8 @@ DO
     end if
    end if
   next
-  #IFNDEF __FB_LINUX__
+  #IFNDEF __UNIX__
+  'common WM keys
   for i = 0 to ubound(map)
    if keyval(scCtrl) > 0 AND keyval(scF1 + i) > 1 then
     clearkey(scF1 + i)

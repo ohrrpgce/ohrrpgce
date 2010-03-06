@@ -384,7 +384,7 @@ SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
 END SUB
 
 FUNCTION aquiretempdir () as string
-#IFNDEF __FB_LINUX__
+#IFDEF __FB_WIN32__
 'Windows only behavior
 tmp$ = environ$("TEMP")
 IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN tmp$ = environ("TMP")
@@ -395,7 +395,7 @@ safekill tmp$ & SLASH & "writetest.tmp"
 IF RIGHT$(tmp$, 1) <> SLASH THEN tmp$ = tmp$ & SLASH
 tmp$ = tmp$ & "ohrrpgce"
 #ELSE
-'Linux only behavior
+'Unix only behavior
 #IFDEF IS_CUSTOM
 RETURN "" 'Custom doesn't use this sub anyway...
 #ELSE
@@ -1431,8 +1431,8 @@ END FUNCTION
 
 FUNCTION find_helper_app (appname AS STRING) AS STRING
 'Returns an empty string if the app is not found, or the full path if it is found
-#IFDEF __FB_LINUX__
-'--Find helper app on Linux
+#IFDEF __UNIX__
+'--Find helper app on Unix
 DIM AS INTEGER fh
 DIM AS STRING tempfile
 DIM AS STRING s
@@ -1651,7 +1651,7 @@ FUNCTION finddatafile(filename AS STRING) AS STRING
 IF isfile(filename) THEN RETURN filename
 'same folder as executable
 IF isfile(exepath & SLASH & filename) THEN RETURN exepath & SLASH & filename
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
 '~/.ohrrpgce/
 IF isfile(tmpdir & SLASH & filename) THEN RETURN tmpdir & SLASH & filename
 #IFDEF DATAFILES
@@ -3589,7 +3589,7 @@ FUNCTION readbadbinstring (array() AS INTEGER, offset AS INTEGER, maxlen AS INTE
 END FUNCTION
 
 SUB set_homedir()
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
  homedir = ENVIRON$("HOME")
 #ELSE
  homedir = ENVIRON$("USERPROFILE") & SLASH & "My Documents" 'Is My Documents called something else for non-English versions of Windows?
@@ -3603,7 +3603,7 @@ END SUB
 FUNCTION get_help_dir() AS STRING
 'what happened to prefsdir?
 IF isfile(homedir & SLASH & "ohrhelp") THEN RETURN homedir & SLASH & "ohrhelp"
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
 #IFDEF DATAFILES
  IF isfile(DATAFILES & SLASH & "ohrhelp") THEN RETURN DATAFILES & SLASH & "ohrhelp"
 #ENDIF

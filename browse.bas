@@ -310,7 +310,7 @@ FOR i = br.treesize + 1 TO UBOUND(tree)
  tree(i).kind = 0
 NEXT i
 
-#IFNDEF __FB_LINUX__
+#IFDEF __FB_WIN32__
  '--Drive list
  IF br.drivesshown = 0 THEN
   '--Refresh drives option
@@ -350,7 +350,7 @@ ELSE
  b$ = MID$(a$, 1, INSTR(a$, SLASH))
  tree(br.treesize).filename = b$
  tree(br.treesize).kind = 4
-#IFNDEF __FB_LINUX__
+#IFDEF __FB_WIN32__
  IF hasmedia(b$) = 0 THEN
   'Somebody pulled out the disk
   changed = 0
@@ -377,7 +377,7 @@ ELSE
   b$ = b$ + LEFT$(a$, 1)
   a$ = RIGHT$(a$, LEN(a$) - 1)
   IF RIGHT$(b$, 1) = SLASH THEN
-#IFNDEF __FB_LINUX__
+#IFDEF __FB_WIN32__
    'Special handling of My Documents in Windows
    IF b$ = "My Documents\" OR b$ = "MYDOCU~1\" THEN
     FOR i = br.treesize TO br.drivesshown STEP -1

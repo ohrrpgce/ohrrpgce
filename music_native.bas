@@ -32,9 +32,7 @@ option explicit
 #ENDIF
 
 '#IFNDEF USE_ALLEGRO
-#IFDEF __FB_LINUX__
-	'???
-#ELSE
+#IFDEF __FB_WIN32__
 	#undef getcommandline
 	#include once "windows.bi"
 	#undef createevent
@@ -46,7 +44,8 @@ option explicit
 		DECLARE SUB win_set_window CDECL ALIAS "win_set_window" (BYVAL wnd as HWND)
 		DECLARE FUNCTION win_get_window CDECL ALIAS "win_get_window"() as HWND
 	#ENDIF
-
+#ELSE
+	'???
 #ENDIF
 
 '#ENDIF
@@ -82,7 +81,7 @@ dim shared tag(2000), global(1025)
 #include once "music.bi"
 
 #IFNDEF USE_ALLEGRO
-#IFNDEF __FB_LINUX__
+#IFDEF __FB_WIN32__
 dim shared midi_handle as HMIDIOUT
 #ELSE
 dim shared midi_handle as FILE ptr
@@ -121,7 +120,7 @@ dim shared division as short
 dim shared midibuffer as UByte ptr, midibufferlen as integer, midibufferused as integer
 
 function openMidi() as integer
-    #IFNDEF __FB_LINUX__
+    #IFDEF __FB_WIN32__
     dim moc as MIDIOUTCAPS
     midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
     'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
@@ -131,31 +130,31 @@ function openMidi() as integer
 end function
 
 function closeMidi() as integer
-    #IFNDEF __FB_LINUX__
+    #IFDEF __FB_WIN32__
     return midiOutClose (midi_handle)
     #ENDIF
 end function
 
 'emit a single event to the device
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
-    #IFDEF __FB_LINUX__
-	'todo
-    #ELSE
+    #IFDEF __FB_WIN32__
     if b = 255 then '-1
     	return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8)
     else
     	return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
     end if
+    #ELSE
+	'todo
     #ENDIF
 
 end function
 
 'emit a stream of bytes to the device
 function longMidi(dat as UByte ptr, l as integer) as integer
-    #IFDEF __FB_LINUX__
-    '???
-    #ELSE
+    #IFDEF __FB_WIN32__
     '??? - api doesn't support streaming?
+    #ELSE
+    '???
     #ENDIF
     return -1
 end function

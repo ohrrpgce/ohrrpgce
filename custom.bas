@@ -64,7 +64,7 @@ ELSE
  CHDIR homedir
 END IF
 
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
 tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH
 IF NOT isdir(tmpdir) THEN makedir tmpdir
 #ELSE
@@ -156,10 +156,10 @@ END IF
 
 end_debug
 
-#IFNDEF __FB_LINUX__
+#IFDEF __FB_WIN32__
  IF MID$(sourcerpg, 2, 1) <> ":" THEN sourcerpg = curdir$ + SLASH + sourcerpg
 #ELSE
- IF MID$(sourcerpg, 1, 1) <> "/" THEN sourcerpg = curdir$ + SLASH + sourcerpg
+ IF MID$(sourcerpg, 1, 1) <> SLASH THEN sourcerpg = curdir$ + SLASH + sourcerpg
 #ENDIF
 a$ = trimfilename(sourcerpg)
 IF a$ <> "" ANDALSO fileiswriteable(a$ + SLASH + "writetest.tmp") THEN

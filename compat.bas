@@ -113,8 +113,8 @@ function commandline_flag(opt as string) as integer
 'returns true if opt is a flag (prefixed with -,--,/) and removes the prefix
 	dim temp as string
 	temp = left(opt, 1)
-	'/ should not be a flag under linux
-#ifdef __FB_LINUX__
+	'/ should not be a flag under unix
+#ifdef __UNIX__
 	if temp = "-" then
 #else
 	if temp = "-" or temp = "/" then
@@ -226,7 +226,7 @@ END SUB
 
 SUB makedir (dirname$)
 MKDIR dirname$
-#ifdef __FB_LINUX__
+#ifdef __UNIX__
  ' work around broken file permissions in dirs created by linux version
  ' MKDIR creates with mode 644, should create with mode 755
  SHELL "chmod +x """ + dirname$ + """"

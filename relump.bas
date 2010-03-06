@@ -15,7 +15,7 @@ DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
 DECLARE SUB forcewd (wd$)
 DECLARE FUNCTION getcurdir$ ()
-DECLARE SUB xbload (f$, array%(), e$)
+'DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 DECLARE SUB fixorder (f$)
 
@@ -42,17 +42,10 @@ DECLARE FUNCTION hasmedia (BYVAL d)
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
 
+#include "compat.bi"
 #include "util.bi"
 #include "const.bi"
 #include "file.bi"
-
-#IFDEF __FB_LINUX__
- CONST SLASH = "/"
- CONST ALLFILES = "*"
-#ELSE
- CONST SLASH = "\"
- CONST ALLFILES = "*.*"
-#ENDIF
 
 olddir$ = getcurdir
 
@@ -350,7 +343,7 @@ FUNCTION isfile (n$) as integer
 END FUNCTION
 
 FUNCTION isdir (sDir$) as integer
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
 	'Special hack for broken Linux dir$() behavior
 	isdir = 0
 	SHELL "if [ -d """ + sDir$ + """ ] ; then echo dir ; fi > isdirhack.tmp"
@@ -493,7 +486,7 @@ END SUB
 
 SUB findfiles (fmask$, BYVAL attrib, outfile$)
     ' attrib 0: all files 'cept folders, attrib 16: folders only
-#ifdef __FB_LINUX__
+#ifdef __UNIX__
         'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
 	DIM grep$
 	grep$ = "-v '/$'"

@@ -13,7 +13,7 @@ DECLARE FUNCTION readkey$ ()
 DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
-DECLARE SUB xbload (f$, array%(), e$)
+'DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 'DECLARE FUNCTION readpassword$ ()
 
@@ -40,18 +40,9 @@ DECLARE FUNCTION isremovable (BYVAL d)
 DECLARE FUNCTION isvirtual (BYVAL d)
 DECLARE FUNCTION hasmedia (BYVAL d)
 
+#include "compat.bi"
 #include "util.bi"
 #include "const.bi"
-
-#ifdef __FB_LINUX__
-#define LINUX -1
-#define SLASH "/"
-#define ALLFILES "*"
-#else
-#define LINUX 0
-#define SLASH "\"
-#define ALLFILES "*.*"
-#endif
 
 DIM SHARED createddir = 0, dest$, olddir$
 
@@ -366,7 +357,7 @@ FUNCTION isfile (n$) as integer
 END FUNCTION
 
 FUNCTION isdir (sDir$) as integer
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
 	'Special hack for broken Linux dir$() behavior
 	isdir = 0
 	sDir$ = escape_string(sDir$, """`\$")

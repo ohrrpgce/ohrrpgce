@@ -144,7 +144,10 @@ END FUNCTION
 
 FUNCTION anycase (filename as string) as string
  'make a filename case-insensitive
-#IFDEF __FB_LINUX__
+#IFDEF __FB_WIN32__
+ 'Windows filenames are always case-insenstitive
+ RETURN filename
+#ELSE
  DIM ascii AS INTEGER
  dim as string result = ""
  FOR i as integer = 1 TO LEN(filename)
@@ -158,9 +161,6 @@ FUNCTION anycase (filename as string) as string
   END IF
  NEXT i
  RETURN result
-#ELSE
- 'Windows filenames are always case-insenstitive
- RETURN filename
 #ENDIF
 END FUNCTION
 

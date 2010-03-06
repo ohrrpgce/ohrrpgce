@@ -21,15 +21,15 @@ dim shared tag(2000), global(1025)
 #ENDIF
 
 '#IFNDEF USE_ALLEGRO
-#IFDEF __FB_LINUX__
-	'???
-#ELSE
+#IFDEF __FB_WIN32__
 	#undef getcommandline
 	#include once "windows.bi"
 	#undef createevent
 	#include "externs.bi"
 	#include once "win/msacm.bi"
 	#include once "win/mmsystem.bi"
+#ELSE
+	'???
 #ENDIF
 
 #undef rectangle
@@ -243,7 +243,7 @@ end function
 
 
 function openMidi() as integer
-    #IFNDEF __FB_LINUX__
+    #IFDEF __FB_WIN32__
     'dim moc as MIDIOUTCAPS
     'midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
     'debug "Midi port supports Volume changes:" + str$(moc.dwSupport AND MIDICAPS_VOLUME)
@@ -270,7 +270,7 @@ function openMidi() as integer
 end function
 
 function closeMidi() as integer
-#IFNDEF __FB_LINUX__
+#IFDEF __FB_WIN32__
 
     #IF USE_DEBUG_WINDOW
     killDebugWindow

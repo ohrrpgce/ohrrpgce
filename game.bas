@@ -215,10 +215,10 @@ usepreunlump = 0
 FOR i = 1 TO UBOUND(cmdline_args)
  a$ = cmdline_args(i)
 
-#IFNDEF __FB_LINUX__
+#IFDEF __FB_WIN32__
  IF MID$(a$, 2, 1) <> ":" THEN a$ = curdir$ + SLASH + a$
 #ELSE
- IF MID$(a$, 1, 1) <> "/" THEN a$ = curdir$ + SLASH + a$
+ IF MID$(a$, 1, 1) <> SLASH THEN a$ = curdir$ + SLASH + a$
 #ENDIF
  IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
   sourcerpg = a$
@@ -264,8 +264,8 @@ IF autorungame = 0 THEN
 END IF
 
 '-- set up prefs dir
-#IFDEF __FB_LINUX__
-'This is important on linux in case you are playing an rpg file installed in /usr/share/games
+#IFDEF __UNIX__
+'This is important on unix in case you are playing an rpg file installed in /usr/share/games
 prefsdir = ENVIRON$("HOME") + SLASH + ".ohrrpgce" + SLASH + trimextension$(trimpath$(sourcerpg))
 IF NOT isdir(prefsdir) THEN makedir prefsdir
 #ELSE
@@ -289,7 +289,7 @@ END IF
 
 '--set up savegame file
 savefile = trimextension$(sourcerpg) + ".sav"
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
 IF NOT fileisreadable(savefile) THEN
  savefile = prefsdir + SLASH + trimpath$(savefile)
 END IF
