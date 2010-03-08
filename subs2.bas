@@ -18,11 +18,11 @@ TYPE triggerset
  usedbits AS UNSIGNED INTEGER PTR
 END TYPE
 
+#include "compat.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
 #include "const.bi"
 #include "common.bi"
-#include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "customsubs.bi"

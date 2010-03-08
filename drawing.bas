@@ -6,6 +6,7 @@
 '!$DYNAMIC
 DEFINT A-Z
 
+#include "compat.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
 
@@ -52,7 +53,6 @@ DECLARE FUNCTION spriteedit_export_name (ss AS SpriteEditState, state AS MenuSta
 DECLARE SUB spriteedit_export OVERLOAD (default_name AS STRING, placer() AS INTEGER, nulpal() AS INTEGER, palnum AS INTEGER)
 DECLARE SUB spriteedit_export OVERLOAD (default_name AS STRING, img AS GraphicPair)
 
-#include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "loading.bi"

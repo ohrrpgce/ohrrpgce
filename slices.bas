@@ -16,6 +16,7 @@
 extern plotslices() as integer
 #endif
 
+#include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "const.bi"

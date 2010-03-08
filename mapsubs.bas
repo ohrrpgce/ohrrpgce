@@ -6,6 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 
+#include "compat.bi"
 #include "const.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
@@ -74,7 +75,6 @@ DECLARE SUB resize_dimchange(BYREF st AS MapEditState, BYREF rs AS MapResizeStat
 DECLARE SUB resize_correct_width(BYREF st AS MapEditState, BYREF rs AS MapResizeState, map() AS TileMap)
 DECLARE SUB resize_correct_height(BYREF st AS MapEditState, BYREF rs AS MapResizeState, map() AS TileMap)
 
-#include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "customsubs.bi"

@@ -43,6 +43,11 @@ if [ "${MUSIC}" = "sdl" ] ; then
   EXTRA="${EXTRA} sdl_lumprwops.bas"
 fi
 
+if [ `uname` = "FreeBSD" ] ; then
+  # apparent FB bug
+  EXTRA="${EXTRA} -l gcc_s"
+fi
+
 fbc -lang deprecated verprint.bas
 ./verprint ${GFX} ${MUSIC}
 fbc -lang deprecated -g -v -exx -mt -m custom -d IS_CUSTOM -d DATAFILES='"/usr/share/games/ohrrpgce"' \

@@ -6,6 +6,7 @@
 
 option explicit
 
+#include "compat.bi"
 #include "crt.bi"
 #include "gfx.bi"
 #include "common.bi"

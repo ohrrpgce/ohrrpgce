@@ -55,6 +55,11 @@
 #ENDIF
 CONST build_info as string = "" _GSTR _ESTR _SSTR _PSTR
 
+#IFDEF __UNIX__
+ 'FB's headers check for __FB_LINUX__
+ #DEFINE __FB_LINUX__
+#ENDIF
+
 EXTERN wantpollingthread as integer
 EXTERN as string gfxbackend, musicbackend
 EXTERN as string gfxbackendinfo, musicbackendinfo

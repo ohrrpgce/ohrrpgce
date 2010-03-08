@@ -12,9 +12,9 @@ DECLARE SUB wrappedsong (songnumber%)
 DECLARE SUB getitem (getit%, num%)
 
 
+#include "compat.bi"
 #include "bmod.bi"
 #include "bmodsubs.bi"
-#include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "loading.bi"

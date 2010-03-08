@@ -7,10 +7,10 @@
 DEFINT A-Z
 'basic subs and functions
 
+#include "compat.bi"
 #include "const.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
-#include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "loading.bi"

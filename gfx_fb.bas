@@ -7,9 +7,9 @@
 
 option explicit
 
+#include "compat.bi"
 #include "fbgfx.bi"
 #include "gfx.bi"
-#include "compat.bi"  'for LINE_END
 #include "common.bi"
 
 #include once "crt.bi"

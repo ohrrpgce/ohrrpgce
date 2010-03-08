@@ -2,8 +2,8 @@
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 
-#include "allmodex.bi"
 #include "compat.bi"
+#include "allmodex.bi"
 #include "common.bi"
 #include "lumpfile.bi"
 #include "lumpfilewrapper.bi"

@@ -6,10 +6,10 @@
 '!$DYNAMIC
 'DEFINT A-Z
 
+#include "compat.bi"
 #include "udts.bi"
 #include "game_udts.bi"
 #include "slices.bi"
-#include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "gglobals.bi"

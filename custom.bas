@@ -5,6 +5,7 @@
 '
 DEFINT A-Z
 
+#include "compat.bi"
 #include "udts.bi"
 #include "const.bi"
 
@@ -36,7 +37,6 @@ DECLARE SUB importscripts (f$)
 DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
 DECLARE SUB slice_editor ()
 
-#include "compat.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "loading.bi"
