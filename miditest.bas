@@ -1,9 +1,20 @@
 option explicit
 
-
+#include "compat.bi"
 #include "crt.bi"
-#IFDEF __FB_LINUX__
+#IFDEF __UNIX__
+'Open Sound System
 #include "soundcard.bi"
+
+'These headers are both totally nonfunctional, so use manual declarations
+'#include "crt/linux/fcntl.bi"
+'#include "crt/io.bi"
+
+#define O_WRONLY 01
+declare function _close cdecl alias "close" (byval as integer) as integer
+declare function _open cdecl alias "open" (byval as zstring ptr, byval as integer) as integer
+declare function _write cdecl alias "write" (byval as integer, byval as any ptr, byval as uinteger) as integer
+
 #ELSE
 #include "windows.bi"
 #include "win/mmsystem.bi"
@@ -11,15 +22,15 @@ option explicit
 #undef createevent
 #ENDIF
 
-#IFDEF __FB_LINUX__
-dim shared midi_handle as FILE ptr
+#IFDEF __UNIX__
+dim shared midi_handle as integer
 #ELSE
 dim shared midi_handle as HMIDIOUT
 #ENDIF
 function openMidi() as integer
-    #IFDEF __FB_LINUX__
-    midi_handle = open("/dev/sequencer",O_WRONLY)
-    return midi_handle = NULL
+    #IFDEF __UNIX__
+    midi_handle = _open("/dev/sequencer",O_WRONLY)
+    return midi_handle = 0
     #ELSE
     'dim moc as MIDIOUTCAPS
     'midiOutGetDevCaps MIDI_MAPPER, @moc, len(MIDIOUTCAPS)
@@ -31,23 +42,23 @@ function openMidi() as integer
 end function
 
 function closeMidi() as integer
-    #IFDEF __FB_LINUX__
-    return fclose(midi_handle)
+    #IFDEF __UNIX__
+    return _close(midi_handle)
     #ELSE
     return midiOutClose (midi_handle)
     #ENDIF
 end function
 
 function shortMidi(event as UByte, a as UByte, b as UByte) as integer
-	#IFDEF __FB_LINUX__
+	#IFDEF __UNIX__
 	DIM packet(3) as UByte
 	packet(0) = SEQ_MIDIPUTC
 	packet(1) = event
-	write(midi_handle,@packet(0),4)
+	_write(midi_handle,@packet(0),4)
 	packet(1) = a
-	write(midi_handle,@packet(0),4)
+	_write(midi_handle,@packet(0),4)
 	packet(1) = b
-	write(midi_handle,@packet(0),4)
+	_write(midi_handle,@packet(0),4)
     return 0
     #ELSE
     return midiOutShortMSG(midi_handle,event SHL 0 + a SHL 8 + b SHL 16)
