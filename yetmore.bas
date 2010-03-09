@@ -783,11 +783,11 @@ SELECT CASE AS CONST id
  CASE 143'--camerapixely
   scriptret = mapy
  CASE 147'--read general
-  IF retvals(0) >= 0 AND retvals(0) <= 104 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(gen) THEN
    scriptret = gen(retvals(0))
   END IF
  CASE 148'--write general
-  IF retvals(0) >= 0 AND retvals(0) <= 104 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(gen) THEN
    gen(retvals(0)) = retvals(1)
   END IF
  CASE 159'--init mouse
