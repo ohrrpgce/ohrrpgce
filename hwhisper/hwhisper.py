@@ -62,15 +62,10 @@ class HWhisper(object):
         # use GtkBuilder to build our interface from the XML file 
         builder = gtk.Builder()
         try:
-            builder.add_from_file(self.xml_file) 
+            builder.add_from_file(self.from_prog_dir(self.xml_file)) 
         except:
-            # didn't find the xml file in the current directory, try explicitly checking the program's directory
-            xml_file = os.path.join(os.path.dirname(sys.argv[0]), self.xml_file)
-            try:
-                builder.add_from_file(xml_file)
-            except:
-                self.error_message("Failed to load UI XML file: " + xml_file)
-                sys.exit(1)
+            self.error_message("Failed to load UI XML file: " + xml_file)
+            sys.exit(1)
         
         # get the widgets which will be referenced in callbacks
         self.window = builder.get_object("window")
@@ -122,8 +117,8 @@ class HWhisper(object):
         builder.connect_signals(self)
         
         # set the default icon
-        gtk.window_set_default_icon_from_file("hwhisper.png")
-        
+        gtk.window_set_default_icon_from_file(self.from_prog_dir("hwhisper.png"))
+
         # setup and initialize our statusbar
         self.statusbar_cid = self.statusbar.get_context_id(self.app_name)
         self.update_status()
@@ -156,6 +151,9 @@ class HWhisper(object):
         self.parse_command_line()
 
     #-------------------------------------------------------------------
+
+    def from_prog_dir(self, filename):
+        return os.path.join(os.path.dirname(sys.argv[0]), filename)
 
     def cleanup(self):
         console_size = self.splitpanes.get_position()
