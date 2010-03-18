@@ -44,8 +44,6 @@ class HWhisper(object):
     # We use the initialization of the HWhisper class to establish
     # references to the widgets we'll need to work with in the callbacks for
     # various signals. This is done using the XML file we created with Glade
-    # Convert the glade file to the XML file with the following command:
-    ### gtk-builder-convert hwhisper.glade hwhisper.xml
     def __init__(self):
         # Configuration
         self.version_number = version.version
@@ -107,6 +105,8 @@ class HWhisper(object):
         # goto line dialog
         self.goto_line_d = DialogHolder(builder.get_object("line_dialog"))
         self.goto_line_d.entry = builder.get_object("line_entry")
+        # recent files menu
+        self.recent_menu = builder.get_object("recent_menu")
         
         # Load config file
         self.config.load()
@@ -121,8 +121,8 @@ class HWhisper(object):
         # connect signals
         builder.connect_signals(self)
         
-        # set the default icon to the GTK "edit" icon
-        gtk.window_set_default_icon_name(gtk.STOCK_EDIT)
+        # set the default icon
+        gtk.window_set_default_icon_from_file("hwhisper.png")
         
         # setup and initialize our statusbar
         self.statusbar_cid = self.statusbar.get_context_id(self.app_name)
@@ -294,20 +294,9 @@ class HWhisper(object):
         self.doc.remember_cursor()
         self.update_status()
 
-    def find_named_menu(self, menu, name):
-        for item in menu:
-            sub = item.get_submenu()
-            if sub is not None:
-                if sub.get_name() == name:
-                    return sub
-                recurse = self.find_named_menu(sub, name)
-                if recurse is not None:
-                    return recurse
-        return None
-
     def reload_recent_menu(self):
         recent_list = self.config.get_list("files", "recent", "|")
-        menu = self.find_named_menu(self.menu, "recent_menu_top")
+        menu = self.recent_menu
         for item in menu:
             menu.remove(item)
         for name in recent_list:
