@@ -36,6 +36,7 @@ from xml.etree import ElementTree
 import re
 
 import version
+import undobuffer
 
 # -----------------------------------------------------------------------------
 
@@ -111,7 +112,9 @@ class HWhisper(object):
         self.indent_string = self.get_indent_string()
         
         self.docs = []
-        self.add_doc(builder.get_object("text_view"))
+        text_view = builder.get_object("text_view")
+        text_view.set_buffer(undobuffer.UndoableBuffer())
+        self.add_doc(text_view)
         
         # connect signals
         builder.connect_signals(self)
@@ -175,7 +178,7 @@ class HWhisper(object):
                    # Just use the existing untitled doc
                    return
         if text_view is None:
-            text_view = gtk.TextView()
+            text_view = gtk.TextView(undobuffer.UndoableBuffer())
             scroller = gtk.ScrolledWindow()
             scroller.add(text_view)
             lbl = gtk.Label("")
@@ -204,13 +207,10 @@ class HWhisper(object):
         if self.check_for_save(): self.on_save_menu_item_activate(None, None)
         
         if len(self.docs) == 1:
-            # Clear the document since it is the only one left
-            buff = self.doc.buffer()
-            buff.set_text("")
-            buff.set_modified(False)
+            # Only one doc left, give it a new empty buffer
+            self.doc.text_view.set_buffer(undobuffer.UndoableBuffer())
             self.doc.filename = None
             self.update_status()
-            self.doc.undo.reset("")
         else:
             # Remove the document since it is the last one left
             # Remove it from the document list
@@ -289,7 +289,6 @@ class HWhisper(object):
         selection_bound = buff.get_selection_bound()
         buff.move_mark(selection_bound, stop)
         self.doc.text_view.scroll_to_mark(insert, 0.1)
-        self.doc.remember_cursor()
         self.update_status()
 
     def reload_recent_menu(self):
@@ -885,9 +884,7 @@ class HWhisper(object):
         stop_iter = buff.get_iter_at_mark(stop_mark)
         offset = self.lower_iter(start_iter, stop_iter).get_offset()
         # Replace selected text
-        self.doc.undo.pause = True
         buff.delete(start_iter, stop_iter)
-        self.doc.undo.pause = False
         buff.insert_at_cursor(block)
         # Re-select block
         self.move_selection(buff.get_iter_at_offset(offset), buff.get_iter_at_offset(offset + len(block)))
@@ -923,10 +920,6 @@ class HWhisper(object):
         self.config.set("text", "indent", set)
 
     def cursor_movement(self, textview, doc):
-        # remember cursor position
-        doc.remember_cursor()
-        # snap off undo timeout on any mouse click or cursor movement
-        doc.undo.snap()
         # Update line number display
         self.update_status()
 
@@ -957,8 +950,6 @@ class HWhisper(object):
     # This is called whenever the user starts to change text
     def on_text_changed(self, buff, doc):
         text = buff.get_text(buff.get_start_iter(), buff.get_end_iter())
-        doc.remember_cursor()
-        doc.undo.remember(text)
         self.update_status()
 
     def on_text_view_key_press_event(self, textview, event, doc):
@@ -970,9 +961,6 @@ class HWhisper(object):
             return True
 
     def on_text_view_key_release_event(self, textview, event, doc):
-        if event.keyval in (keyconst.ENTER, keyconst.SPACE):
-            doc.undo.snap()
-        doc.remember_cursor()
         self.update_status()
 
     def on_text_view_move_cursor(self, textview, stepsize, count, extended, doc):
@@ -1035,22 +1023,15 @@ class HWhisper(object):
     # Called when the user clicks the 'Undo' menu.
     def on_undo_menu_item_activate(self, menuitem, data=None):
         buff = self.doc.buffer()
-        (text, offset, selsize) = self.doc.undo.pop()
-        if text is not None:
-            self.doc.undo.pause = True
-            buff.set_text(text)
-            self.move_cursor_to_offset(offset, selsize)
-            self.doc.undo.pause = False
+        buff.undo()
+        cursor = buff.get_insert()
+        iter = buff.get_iter_at_mark(cursor)
+        self.doc.text_view.scroll_to_iter(iter, 0.1)
 
     # Called when the user clicks the 'Redo' menu.
     def on_redo_menu_item_activate(self, menuitem, data=None):
         buff = self.doc.buffer()
-        (text, offset, selsize) = self.doc.undo.redo()
-        if text is not None:
-            self.doc.undo.pause = True
-            buff.set_text(text)
-            self.move_cursor_to_offset(offset, selsize)
-            self.doc.undo.pause = False
+        buff.redo()
 
     # Called when the user clicks the 'Cut' menu.
     def on_cut_menu_item_activate(self, menuitem, data=None):
@@ -1491,6 +1472,7 @@ class HWhisper(object):
         except:
             # error loading file, show message to user
             self.error_message ("Could not open file: %s" % filename)
+            raise
             
         else:
             mode = self.lineend.detect(text, self.error_message)
@@ -1502,14 +1484,18 @@ class HWhisper(object):
                 unicode(text, "utf-8")
             except UnicodeDecodeError:
                 self.error_message("File %s failed to load. Maybe it is a binary file or contains invalid UTF-8 codes?" % filename)
+                raise
             else:
                 # disable the text view while loading the buffer with the text
                 try:
                     self.doc.text_view.set_sensitive(False)
                     buff = self.doc.buffer()
+                    buff.begin_not_undoable_action()
                     buff.set_text(text)
+                    buff.end_not_undoable_action()
                 except:
                     self.error_message ("Could not load file into buffer: %s" % filename)
+                    raise
                 else:
                     # loading was a success
                     buff.set_modified(False)
@@ -1518,8 +1504,6 @@ class HWhisper(object):
                     # this stuff is done when the load succeeds.
                     # Move the cursor to the top
                     self.doc.move_cursor_to_top()
-                    # reset the undo buffer
-                    self.doc.undo.reset(text)
                     # Save filename in the recent menu
                     self.add_recent(filename)
                 
@@ -1647,114 +1631,6 @@ class keyconst(object):
     PGUP  = 65365
     PGDN  = 65365
     F3    = 65472
-
-# -----------------------------------------------------------------------------
-
-from datetime import datetime
-from datetime import timedelta
-
-class UndoManager(object):
-
-    # Undo manager handles keeping an undo/redo history of the text buffer
-    def __init__(self):
-        self.minimim_levels = 3
-        self.maximum_size = 1024 * 1000 
-        self.merge_seconds = 1.5
-        self.reset("")
-        self.last_cursor_offset = 0
-        self.last_selection_size = 0
-
-    def reset(self, starting_text):
-        self._history = [(starting_text, 0, 0)]
-        self._redo = []
-        self._one_char = False
-        self.timestamp = None
-        self.pause = False
-
-    # Use to stop the undo system from combinging simple edits
-    def snap(self):
-        self.timestamp = None
-        self._one_char = False
-
-    def remember(self, text):
-        if self.pause:
-            return
-        self._redo = []
-        if self.count() > 0:
-            last_len = len(self._history[-1][0])
-        else:
-            last_len = 0
-        if self.timestamp is not None:
-          if self.timestamp + timedelta(seconds=self.merge_seconds) < datetime.now():
-              self._one_char = False
-        if abs(len(text) - last_len) == 1:
-            # Only one char changed
-            if self._one_char:
-              # Last time was only one char too, so just update the last history push
-              self.repush(text, self.last_cursor_offset, self.last_selection_size)
-            else:
-              # Last time was a full push, so start push a new history entry
-              self.push(text, self.last_cursor_offset, self.last_selection_size)
-            self._one_char = True
-        else:
-          self._one_char = False
-          self.push(text, self.last_cursor_offset, self.last_selection_size)
-        self.__expire()
-        self.timestamp = datetime.now()
-
-    # Replace the last text on the stack
-    def repush(self, text, offset, selsize):
-        if len(self._history):
-            self._history[-1] = (text, offset, selsize)
-        else:
-            self.push(text, offset, selsize)
-
-    # Add new text to the stack
-    def push(self, text, offset, selsize):
-        entry = (text, offset, selsize)
-        self._history.append(entry)
-
-    # Throws the top of the stack to the redo buffer
-    # and returns the next one down
-    def pop(self):
-        if self.count() == 0:
-            return None
-        if self.count() == 1:
-            return self._history[0]
-        self._redo.append(self._history[-1])
-        self._history = self._history[:-1]
-        return self._history[-1]
-
-    # Pops and returns the top of the redo buffer (if possible)
-    def redo(self):
-        if len(self._redo) == 0:
-            return (None, None, 0)
-        entry = self._redo[-1]
-        (text, offset, selsize) = entry
-        self.push(text, offset, selsize)
-        self._redo = self._redo[:-1]
-        return entry
-
-    def size(self):
-        n = 0
-        for entry in self._history:
-            (s, offset, selsize) = entry
-            n += len(s)
-        return n
-
-    def count(self):
-        return len(self._history)
-
-    # Remove old stuff from the undo buffer if it gets too big
-    def __expire(self):
-        # Always keep a minimum number of undo entries, even if they are gigantic
-        if self.count() > self.minimim_levels:
-            # If undo size is too large, expire the oldest one.
-            if self.size() > self.maximum_size:
-                self._history = self._history[1:]
-
-    def __str__(self):
-        return "(Undo:%d,%d)" % (self.count(), self.size())
 
 # -----------------------------------------------------------------------------
 
@@ -1886,7 +1762,6 @@ class DocumentHolder(object):
         self.tabbar = tabbar
         self.text_view = text_view
         self.filename = filename
-        self.undo = UndoManager()
         self.lineend = lineend
         self._line_end = None
         self.indent_string = indent_string
@@ -1950,10 +1825,6 @@ class DocumentHolder(object):
 
     def selection_size(self):
         return len(self.selection())
-
-    def remember_cursor(self):
-        self.undo.last_cursor_offset = self.cursor_offset()
-        self.undo.last_selection_size = self.selection_size()
 
     def move_cursor_to_top(self):
         buff = self.buffer()

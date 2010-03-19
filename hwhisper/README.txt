@@ -1,6 +1,7 @@
 Hamster Whisper - Source code editor for OHRRPGCE Plotscripting.
 Copyright (C) 2009 James Paige & Hamster Republic Prodictions
-Copyright (C) 2007 Micah Carrick
+Portions Copyright (C) 2007 Micah Carrick
+Portions Copyright (C) 2009 Florian Heinle
 This is free software under the terms of the GPL. See LICENSE.txt
 --------------------------------------------------------
 
@@ -15,8 +16,9 @@ more about the OHRRPGCE and PlotScripting
 
 --------------------------------------------------------
 
-HSSED was written in Python+PyGTK by James Paige.
+HWhisper was written in Python+PyGTK by James Paige.
 
 It is derived from Micah Carrick's simple text editor.
 http://www.micahcarrick.com/12-24-2007/gtk-glade-tutorial-part-1.html
 
+Undo support is provided by Florian Heinle's UndoableBuffer module
