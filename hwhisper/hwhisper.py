@@ -1032,6 +1032,9 @@ class HWhisper(object):
     def on_redo_menu_item_activate(self, menuitem, data=None):
         buff = self.doc.buffer()
         buff.redo()
+        cursor = buff.get_insert()
+        iter = buff.get_iter_at_mark(cursor)
+        self.doc.text_view.scroll_to_iter(iter, 0.1)
 
     # Called when the user clicks the 'Cut' menu.
     def on_cut_menu_item_activate(self, menuitem, data=None):
