@@ -29,7 +29,7 @@ setup(
         }
     ],
     options=opts,
-    data_files=[("hwhisper.xml")],
+    data_files=[("hwhisper.xml"), ("hwhisper.png")],
 )
 
 if not os.path.isdir("dist"): raise Exception("dist dir is missing")
