@@ -36,7 +36,7 @@ from xml.etree import ElementTree
 import re
 
 import version
-import undobuffer
+import gtksourceview2
 
 # -----------------------------------------------------------------------------
 
@@ -111,9 +111,18 @@ class HWhisper(object):
         self.lineend = LineEndingManager(self.config)
         self.indent_string = self.get_indent_string()
         
+        langman = gtksourceview2.LanguageManager()
+        pathlist = langman.get_search_path()
+        cur_dir = self.from_prog_dir(".")
+        pathlist.append(cur_dir)
+        langman.set_search_path(pathlist)
+        pathlist = langman.get_search_path()
+        self.langman = langman
+        
         self.docs = []
-        text_view = builder.get_object("text_view")
-        text_view.set_buffer(undobuffer.UndoableBuffer())
+        scrolledwindow = builder.get_object("scrolledwindow")
+        text_view = gtksourceview2.View(gtksourceview2.Buffer())
+        scrolledwindow.add(text_view)
         self.add_doc(text_view)
         
         # connect signals
@@ -178,7 +187,7 @@ class HWhisper(object):
                    # Just use the existing untitled doc
                    return
         if text_view is None:
-            text_view = gtk.TextView(undobuffer.UndoableBuffer())
+            text_view = gtksourceview2.View(gtksourceview2.Buffer())
             scroller = gtk.ScrolledWindow()
             scroller.add(text_view)
             lbl = gtk.Label("")
@@ -208,7 +217,7 @@ class HWhisper(object):
         
         if len(self.docs) == 1:
             # Only one doc left, give it a new empty buffer
-            self.doc.text_view.set_buffer(undobuffer.UndoableBuffer())
+            self.doc.text_view.set_buffer(gtksourceview2.Buffer())
             self.doc.filename = None
             self.update_status()
         else:
@@ -1509,6 +1518,8 @@ class HWhisper(object):
                     self.doc.move_cursor_to_top()
                     # Save filename in the recent menu
                     self.add_recent(filename)
+                    #set up the syntax highlighting for this file
+                    self.syntax_highlight()
                 
         # re-enable the textview no matter what happens above
         self.doc.text_view.set_sensitive(True)
@@ -1558,7 +1569,14 @@ class HWhisper(object):
         # clear saving status and restore default     
         self.statusbar_pop()
         self.update_status()
-        
+    
+    def syntax_highlight(self):
+        buff = self.doc.buffer()
+        lang = self.langman.get_language("hamsterspeak")
+        buff.set_language(lang)
+        buff.set_highlight_syntax(True)
+        buff.set_highlight_matching_brackets(True)
+    
     def update_status(self):
         status = ""
         
