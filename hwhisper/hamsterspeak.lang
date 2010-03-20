@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+ Author: James Paige <Bob@HamsterRepublic.com>
+ Copyright (C) 2010 James Paige <Bob@HamsterRepublic.com>
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
+
+ You should have received a copy of the GNU Library General Public
+ License along with this library; if not, write to the
+ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ Boston, MA 02111-1307, USA.
+
+-->
+<language id="hamsterspeak" _name="OHRRPGCE Plotscript (HamsterSpeak)" version="2.0" _section="Scripts">
+  <metadata>
+    <property name="mimetypes">text/x-hamsterspeak</property>
+    <property name="globs">*.hss;*.hsi;*.hsd;*.txt</property>
+    <property name="line-comment-start">#</property>
+  </metadata>
+
+  <styles>
+    <style id="comment"             _name="Comment"             map-to="def:comment"/>
+    <style id="include"             _name="Include"             map-to="def:preprocessor"/>
+    <style id="declare"             _name="Declare"             map-to="def:statement"/>
+    <style id="obsolete"            _name="Obsolete"            map-to="def:error"/>
+    <style id="flow"                _name="Flow"                map-to="def:statement"/>
+    <style id="number"              _name="Number"              map-to="def:number"/>
+    <style id="operator"            _name="Operator"            map-to="def:operator"/>
+    <style id="token"               _name="Token"               map-to="def:identifier"/>
+  </styles>
+
+  <default-regex-options case-sensitive="false"/>
+
+  <definitions>
+
+    <!-- d is for delimiter -->
+    <define-regex id="d">(?=[ \t]*($|[,\(]))</define-regex>
+
+    <context id="comment" style-ref="comment">
+      <match>#.*$</match>
+    </context>
+
+    <context id="include" style-ref="include">
+      <match>^[ \t]*include[ \t]*,.*$</match>
+    </context>
+
+    <context id="declare" style-ref="declare">
+      <match>((plot)?[ \t]*script|define[ \t]*(constant|function|operator)|(global)?[ \t]*variable)\%{d}</match>
+    </context>
+
+    <context id="obsolete" style-ref="obsolete">
+      <match>[define[ \t]*script\%{d}</match>
+    </context>
+
+    <context id="flow" style-ref="flow">
+      <match>(begin|end|if|then|else|while|do|for|return|exit[ \t]+(returning|script)|break|continue|switch|case)\%{d}</match>
+    </context>
+
+    <context id="operator" style-ref="operator">
+      <match>(\^|(mod|xor|and|or|not)\%{d}|/|\*|[-][-]|\+=|\+|==|&lt;&gt;|&lt;&lt;|&gt;&gt;|&lt;=|&gt;=|&amp;&amp;|\|\||\^\^|:=|[+]=|[-]=|\$=|\$\+|@)</match>
+    </context>
+
+    <context id="number" style-ref="number">
+      <match extended="true">
+        (?&lt;![\w\.])
+        [+-]?([1-9][0-9]*|0)
+        (?![\w\.])
+      </match>
+    </context>
+
+    <context id="token" style-ref="token">
+      <match>\b[A-Z_][-A-Z0-9_ \t:]+\b</match>
+    </context>
+    
+    <context id="hamsterspeak">
+      <include>
+        <context ref="comment"/>
+        <context ref="include"/>
+        <context ref="operator"/>
+        <context ref="number"/>
+        <context ref="declare"/>
+        <context ref="obsolete"/>
+        <context ref="flow"/>
+        <context ref="token"/>
+      </include>
+    </context>
+
+  </definitions>
+
+</language>
