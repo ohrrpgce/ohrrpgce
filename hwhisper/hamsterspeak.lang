@@ -35,6 +35,7 @@
     <style id="flow"                _name="Flow"                map-to="def:statement"/>
     <style id="number"              _name="Number"              map-to="def:number"/>
     <style id="operator"            _name="Operator"            map-to="def:operator"/>
+    <style id="string"              _name="string"              map-to="def:string"/>
     <style id="token"               _name="Token"               map-to="def:identifier"/>
   </styles>
 
@@ -43,7 +44,7 @@
   <definitions>
 
     <!-- d is for delimiter -->
-    <define-regex id="d">(?=[ \t]*($|[,\(]))</define-regex>
+    <define-regex id="d">(?=[ \t]*($|[,\(\)]))</define-regex>
 
     <context id="comment" style-ref="comment">
       <match>#.*$</match>
@@ -77,6 +78,10 @@
       </match>
     </context>
 
+    <context id="string" style-ref="string">
+      <match>".*?"</match>
+    </context>
+
     <context id="token" style-ref="token">
       <match>\b[A-Z_][-A-Z0-9_ \t:]+\b</match>
     </context>
@@ -90,6 +95,7 @@
         <context ref="declare"/>
         <context ref="obsolete"/>
         <context ref="flow"/>
+        <context ref="string"/>
         <context ref="token"/>
       </include>
     </context>
