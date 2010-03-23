@@ -1289,7 +1289,7 @@ end</example>
 		<command id="concatenatestrings">
 			<canon>concatenate strings (dest, source)</canon>
 			<shortname>concatenate strings</shortname>
-			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>. However, unlike <ref>copystring</ref>, the text is appended to the end of <p>dest</p>. The resulting string is then trimmed to the limit of 40 characters. <lb/>If you prefer, you can write <p>dest $+ source</p> instead. You must supply string id numbers, not strings, as arguments.</description>
+			<description>Copies the text from string #<p>source</p> to string #<p>dest</p>. However, unlike <ref>copystring</ref>, the text is appended to the end of <p>dest</p>.  <lb/>If you prefer, you can write <p>dest $+ source</p> instead. You must supply string id numbers, not strings, as arguments.</description>
 		</command>
 		<command id="stringlength">
 			<canon>string length (ID)</canon>

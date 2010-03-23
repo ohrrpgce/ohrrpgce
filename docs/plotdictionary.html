@@ -3087,7 +3087,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">reset game</font></b><br>
-			Resets and starts a new game, skipping both title and load game screens. This can be necessary to use this instead of <a href="#about-gameover" class="ref">game over</a> as it will not exit the program if the title screen and load screen have been disabled. It always resets the game back to the beginning.<br>
+			Resets and starts a new game, skipping both title and load game screens. It can be necessary to use this instead of <a href="#about-gameover" class="ref">game over</a> as it will not exit the program if the title screen and load screen have been disabled. It always resets the game back to the beginning.<br>
 			
 			
 		</tt></p>
@@ -3882,7 +3882,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">concatenate strings (dest, source)</font></b><br>
-			Copies the text from string #<span class="param">source</span> to string #<span class="param">dest</span>. However, unlike <a href="#about-copystring" class="ref">copy string</a>, the text is appended to the end of <span class="param">dest</span>. The resulting string is then trimmed to the limit of 40 characters. <br>If you prefer, you can write <span class="param">dest $+ source</span> instead. You must supply string id numbers, not strings, as arguments.<br>
+			Copies the text from string #<span class="param">source</span> to string #<span class="param">dest</span>. However, unlike <a href="#about-copystring" class="ref">copy string</a>, the text is appended to the end of <span class="param">dest</span>.  <br>If you prefer, you can write <span class="param">dest $+ source</span> instead. You must supply string id numbers, not strings, as arguments.<br>
 			
 			
 		</tt></p>
@@ -6684,7 +6684,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">leader</font></b><br>
-			Returns the hero number of the current leader<br>
+			Returns the hero ID number (as given in the Edit Hero Stats menu) of the current caterpillar party leader.<br>
 			
 			
 		</tt></p>
@@ -8031,7 +8031,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero picture (who,picture,type)</font></b><br>
-			Permanently changes a hero's picture. The first argument is the hero's position in the party. (use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is the index number of the picture to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Permanently changes a hero's picture. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is the index number of the picture to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle picture or their walkabout picture. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-resetheropicture" class="ref">reset hero picture</a></li></ul>
 		</tt></p>
@@ -8039,7 +8039,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero palette (who,palette,type)</font></b><br>
-			Permanently changes a hero's 16-color palette. The first argument is the hero's position in the party. (use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is the index number of the 16-color palette to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Permanently changes a hero's 16-color palette. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is the index number of the 16-color palette to use, and the last argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-resetheropalette" class="ref">reset hero palette</a></li></ul>
 		</tt></p>
@@ -8071,7 +8071,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">reset hero palette (who,type)</font></b><br>
-			Resets a hero's palette that was previously changed with <a href="#about-setheropalette" class="ref">set hero palette</a> back to the default palette. The first argument is the hero's position in the party. (use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name). The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
+			Resets a hero's palette that was previously changed with <a href="#about-setheropalette" class="ref">set hero palette</a> back to the default palette. The first argument is the hero's position in the party. (Use <a href="#about-findhero" class="ref">find hero</a> if you want refer to the hero by name.) The second argument is a constant <a href="#about-insidebattle" class="ref">inside battle</a> or <a href="#about-outsidebattle" class="ref">outside battle</a>, which determines if you are changing the hero's battle palette or their walkabout palette. If the last argument is left out, <a href="#about-outsidebattle" class="ref">outside battle</a> is assumed.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setheropicture" class="ref">set hero picture</a></li></ul>
 		</tt></p>
