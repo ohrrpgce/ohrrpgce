@@ -17,7 +17,7 @@ DECLARE SUB spells_menu (who as integer)
 DECLARE SUB status (pt as integer, stat() as integer)
 DECLARE FUNCTION trylearn (who as integer, atk as integer, learntype as integer) as integer
 DECLARE SUB unequip (who as integer, where as integer, defwep as integer, stat() as integer, resetdw as integer)
-DECLARE SUB loadshopstuf (array() as integer, id as integer)
+DECLARE SUB loadshopstuf (array() as integer, byval id as integer)
 DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
 DECLARE FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
 #endif

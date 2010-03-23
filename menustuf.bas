@@ -1403,23 +1403,23 @@ END IF
 
 END SUB
 
-SUB loadshopstuf (array(), id)
-ol = getbinsize(binSTF) / 2 'old size on disk
-nw = curbinsize(binSTF) / 2 'new size in memory
-flusharray array(), nw * 50, 0
-'load shop data from STF lump
-setpicstuf buffer(), ol * 2 * 50, -1
-loadset game + ".stf", id, 0
-'in case shop data has been resized, scale records to new size
-FOR i = 0 TO ol - 1
- FOR o = 0 to 49
-  array(o * nw + i) = buffer(o * ol + i)
- NEXT o
-NEXT i
-END SUB
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB loadshopstuf (array() AS INTEGER, BYVAL id AS INTEGER)
+ DIM ol AS INTEGER = getbinsize(binSTF) / 2 'old size on disk
+ DIM nw AS INTEGER = curbinsize(binSTF) / 2 'new size in memory
+ flusharray array(), nw * 50, 0
+ 'load shop data from STF lump
+ setpicstuf buffer(), ol * 2 * 50, -1
+ loadset game + ".stf", id, 0
+ 'in case shop data has been resized, scale records to new size
+ FOR i AS INTEGER = 0 TO ol - 1
+  FOR o AS INTEGER = 0 to 49
+   array(o * nw + i) = buffer(o * ol + i)
+  NEXT o
+ NEXT i
+END SUB
 
 FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
  DIM i AS INTEGER
