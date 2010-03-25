@@ -868,10 +868,10 @@ SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
  IF gmap(5) = 1 THEN
   'Wrap the camera according to the center, not the top-left
   x += 160
-  y += 160
+  y += 100
   wrapxy x, y, mapsizetiles.x * 20, mapsizetiles.y * 20
   x -= 160
-  y -= 160
+  y -= 100
  END IF
 END SUB
 
