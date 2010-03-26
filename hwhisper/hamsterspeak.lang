@@ -83,7 +83,7 @@
     </context>
 
     <context id="token" style-ref="token">
-      <match>\b[A-Z_][-A-Z0-9_ \t:]+\b</match>
+      <match>\b[A-Z_][-A-Z0-9_ \t:]*\b</match>
     </context>
     
     <context id="hamsterspeak">
