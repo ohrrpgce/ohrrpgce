@@ -210,6 +210,8 @@ class HWhisper(object):
         # Grab focus
         self.tabbar.show_all()
         self.tabbar.set_current_page(page_num)
+        # syntax highlight
+        self.syntax_highlight()
 
     def close_doc(self):
         # Check for save
