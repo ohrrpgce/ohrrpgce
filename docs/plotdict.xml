@@ -3015,7 +3015,7 @@ end
 		<command id="getrecttrans">
 			<canon>get rect trans (handle)</canon>
 			<shortname>get rect trans</shortname>
-			<description>Given a rect slice <p>handle</p>, returns one of: the constant <p>trans:fuzzy</p> if it is drawn semi-transparent, <p>trans:hollow</p> if it is fully transparent, or <p>trans:opaque</p> (equal to <ref>false</ref>) if it is drawn solid.</description>
+			<description>Given a rect slice <p>handle</p>, returns one of: the constant <p>trans:fuzzy</p> if it is drawn semi-transparent, <p>trans:hollow</p> if it is fully transparent, or <p>trans:solid</p> (equal to <ref>false</ref>) if it is drawn solid.</description>
 			<seealso>
 				<ref>setrecttrans</ref>
 			</seealso>
@@ -3023,7 +3023,7 @@ end
 		<command id="setrecttrans">
 			<canon>set rect trans (handle, transparency setting)</canon>
 			<shortname>set rect trans</shortname>
-			<description>Given a rect slice <p>handle</p>, change how transparently it is drawn. For <p>transparency setting</p>, pass in one of the constants <p>trans:fuzzy</p> for semi-transparency (checkered), <p>trans:hollow</p> for fully transparent (the border drawn only), or <p>trans:opaque</p> (equal to <ref>false</ref>) for solid.</description>
+			<description>Given a rect slice <p>handle</p>, change how transparently it is drawn. For <p>transparency setting</p>, pass in one of the constants <p>trans:fuzzy</p> for semi-transparency (checkered), <p>trans:hollow</p> for fully transparent (the border drawn only), or <p>trans:solid</p> (equal to <ref>false</ref>) for solid.</description>
 			<seealso>
 				<ref>getrecttrans</ref>
 			</seealso>
