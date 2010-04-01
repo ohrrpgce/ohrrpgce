@@ -26,6 +26,12 @@ TYPE SliceEditMenuItem
  handle AS Slice Ptr
 END TYPE
 
+TYPE SliceEditState
+ collection_number AS INTEGER
+ collection_group_number AS INTEGER
+ collection_file AS STRING
+END TYPE
+
 '------------------------------------------------------------------------------
 
 ENUM EditRuleMode
@@ -78,7 +84,7 @@ DECLARE SUB AdjustSlicePosToNewParent (BYVAL sl AS Slice Ptr, BYVAL newparent AS
 DECLARE SUB SliceAdoptNiece (BYVAL sl AS Slice Ptr)
 
 'Functions only used locally
-DECLARE SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
+DECLARE SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
 DECLARE SUB slice_editor_refresh_delete (BYREF index AS INTEGER, menu() AS SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, caption AS STRING, sl AS Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr)
@@ -86,6 +92,9 @@ DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
 DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule)
 DECLARE SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Slice Ptr, BYVAL rootsl AS Slice Ptr)
+DECLARE FUNCTION slice_editor_filename(BYREF ses AS SliceEditState) AS STRING
+DECLARE SUB slice_editor_load(BYREF edslice AS Slice Ptr, filename AS STRING)
+DECLARE SUB slice_editor_save(BYVAL edslice AS Slice Ptr, filename AS STRING)
 
 'Functions that need to be aware of magic numbers for SliceType
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS SliceTypes
@@ -117,6 +126,8 @@ TransCaptions(2) = "Hollow"
 
 SUB slice_editor ()
 
+ DIM ses AS SliceEditState
+
  DIM edslice AS Slice Ptr
  edslice = NewSlice
  WITH *edslice
@@ -125,7 +136,14 @@ SUB slice_editor ()
   .Fill = YES
  END WITH
 
- SliceLoadFromFile edslice, workingdir & SLASH & "slicetree_0.reld"
+ IF isfile(slice_editor_filename(ses)) THEN
+  SliceLoadFromFile edslice, slice_editor_filename(ses)
+ ELSE
+  '--FIXME: this backcompat is of very low importance (probably only matters to James)
+  '--and can be removed completely before Zenzizenzic
+  SliceLoadFromFile edslice, workingdir & SLASH & "slicetree_0.reld"
+  safekill workingdir & SLASH & "slicetree_0.reld"
+ END IF
 
  DIM menu(0) AS SliceEditMenuItem
  DIM plainmenu(0) AS STRING 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
@@ -141,6 +159,8 @@ SUB slice_editor ()
  DIM shift AS INTEGER
 
  DIM filename AS STRING
+ 
+ DIM jump_to_collection AS INTEGER
 
  '--this early draw ensures that all the slices are updated before the loop starts
  DrawSlice edslice, dpage
@@ -153,7 +173,7 @@ SUB slice_editor ()
   IF keyval(scF1) > 1 THEN show_help "sliceedit"
 
   IF state.need_update THEN
-   slice_editor_refresh(state, menu(), edslice, cursor_seek)
+   slice_editor_refresh(ses, state, menu(), edslice, cursor_seek)
    REDIM plainmenu(state.last) AS STRING
    FOR i AS INTEGER = 0 TO UBOUND(plainmenu)
     plainmenu(i) = menu(i).s
@@ -170,6 +190,16 @@ SUB slice_editor ()
     state.need_update = YES
    END IF 
   END IF
+  IF state.pt = 1 THEN
+   '--Browse collections
+   jump_to_collection = ses.collection_number
+   IF intgrabber(jump_to_collection, 0, 32767) THEN
+    slice_editor_save edslice, slice_editor_filename(ses)
+    ses.collection_number = jump_to_collection
+    slice_editor_load edslice, slice_editor_filename(ses)
+    state.need_update = YES
+   END IF
+  END IF
   IF keyval(scE) > 1 THEN
    filename = inputfilename("Export slice collection", ".slice", "", "input_filename_export_slices")
    IF filename <> "" THEN
@@ -179,23 +209,16 @@ SUB slice_editor ()
   IF keyval(scI) > 1 THEN
    filename = browse(0, "", "*.slice", "",, "browse_import_slices")
    IF filename <> "" THEN
-    DeleteSlice @edslice
-    edslice = NewSlice
-    WITH *edslice
-     .Attach = slScreen
-     .SliceType = slRoot
-     .Fill = YES
-    END WITH
-    SliceLoadFromFile edslice, filename
+    slice_editor_load edslice, filename
     state.need_update = YES
    END IF
   END IF
   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
-    IF state.pt > 0 THEN
+    IF state.pt > 1 THEN
      InsertSliceBefore menu(state.pt).handle, NewSliceOfType(slice_type)
     ELSE
-     NewSliceOfType(slice_type, edslice)
+     cursor_seek = NewSliceOfType(slice_type, edslice)
     END IF
     state.need_update = YES
    END IF
@@ -208,32 +231,36 @@ SUB slice_editor ()
   END IF
   IF state.pt > 0 THEN
    IF shift THEN
-    IF keyval(scUp) > 1 THEN
-     SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->PrevSibling
-     cursor_seek = menu(state.pt).handle
-     state.need_update = YES
-    END IF
-    IF keyval(scDown) > 1 AND state.pt < state.last THEN
-     SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->NextSibling
-     cursor_seek = menu(state.pt).handle
-     state.need_update = YES
-    END IF
-    IF keyval(scRight) > 1 THEN
-     SliceAdoptSister menu(state.pt).handle
-     cursor_seek = menu(state.pt).handle
-     state.need_update = YES
-    END IF
-    If keyval(scLeft) > 1 THEN
-     SliceAdoptNiece menu(state.pt).handle
-     cursor_seek = menu(state.pt).handle
-     state.need_update = YES
+    IF menu(state.pt).handle THEN
+     IF keyval(scUp) > 1 THEN
+      SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->PrevSibling
+      cursor_seek = menu(state.pt).handle
+      state.need_update = YES
+     END IF
+     IF keyval(scDown) > 1 AND state.pt < state.last THEN
+      SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->NextSibling
+      cursor_seek = menu(state.pt).handle
+      state.need_update = YES
+     END IF
+     IF keyval(scRight) > 1 THEN
+      SliceAdoptSister menu(state.pt).handle
+      cursor_seek = menu(state.pt).handle
+      state.need_update = YES
+     END IF
+      If keyval(scLeft) > 1 THEN
+      SliceAdoptNiece menu(state.pt).handle
+      cursor_seek = menu(state.pt).handle
+      state.need_update = YES
+     END IF
     END IF
    END IF
   END IF
   IF NOT shift THEN
    IF keyval(scLeft) > 1 THEN
-    cursor_seek = (menu(state.pt).handle)->parent
-    state.need_update = YES
+    IF menu(state.pt).handle THEN
+     cursor_seek = (menu(state.pt).handle)->parent
+     state.need_update = YES
+    END IF
    END IF
   END IF
   IF state.need_update = NO THEN
@@ -260,13 +287,38 @@ SUB slice_editor ()
   END WITH
  LOOP
 
- SliceSaveToFile edslice, workingdir & SLASH & "slicetree_0.reld"
+ slice_editor_save edslice, slice_editor_filename(ses)
  
  DeleteSlice @edslice
 
 END SUB
 
+SUB slice_editor_load(BYREF edslice AS Slice Ptr, filename AS STRING)
+ DeleteSlice @edslice
+ edslice = NewSlice
+ WITH *edslice
+  .Attach = slScreen
+  .SliceType = slRoot
+  .Fill = YES
+ END WITH
+ IF isfile(filename) THEN
+  SliceLoadFromFile edslice, filename
+ END IF
+END SUB
+
+SUB slice_editor_save(BYVAL edslice AS Slice Ptr, filename AS STRING)
+ IF edslice->NumChildren > 0 THEN
+  '--save non-empty slice collections
+  SliceSaveToFile edslice, filename
+ ELSE
+  '--erase empty slice collections
+  safekill filename
+ END IF
+END SUB
+
 SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
+
+ IF sl = 0 THEN EXIT SUB
 
  DIM menu(0) AS STRING
  DIM rules(0) AS EditRule
@@ -401,6 +453,10 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
   UpdateTextSlice sl
  END IF
 END SUB
+
+FUNCTION slice_editor_filename(BYREF ses AS SliceEditState) AS STRING
+ RETURN workingdir & SLASH & "slicetree_" & ses.collection_group_number & "_" & ses.collection_number & ".reld"
+END FUNCTION
 
 SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Slice Ptr, BYVAL rootsl AS Slice Ptr)
  DIM shift AS INTEGER = 0
@@ -590,7 +646,7 @@ FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
  END WITH
 END FUNCTION
 
-SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
+SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
  FOR i AS INTEGER = 0 TO UBOUND(menu)
   menu(i).s = ""
  NEXT i
@@ -598,6 +654,7 @@ SUB slice_editor_refresh (BYREF state AS MenuState, menu() AS SliceEditMenuItem,
 
  DIM indent AS INTEGER = 0
  slice_editor_refresh_append index, menu(), "Previous Menu"
+ slice_editor_refresh_append index, menu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
  slice_editor_refresh_recurse index, menu(), indent, edslice
 
  IF cursor_seek <> 0 THEN
@@ -696,6 +753,7 @@ END SUB
 
 SUB DrawSliceAnts (BYVAL sl AS Slice Ptr, dpage AS INTEGER)
  STATIC ant AS INTEGER = 0
+ IF sl = 0 THEN EXIT SUB
  DIM col AS INTEGER
  '--Draw verticals
  FOR i AS INTEGER = 0 TO large(ABS(sl->Height) - 1, 2)

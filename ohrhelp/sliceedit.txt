@@ -1,12 +1,12 @@
-This is the slice editor.
+This is the slice collection editor.
 
-Actually, it isn't really useful for much of anything right now, but we are working on that ;)
+Here you can create collections of slices that can be loaded using plotscripting.
 
-In the future it will be usable to create your own custom screen layouts, and to provide a much greater level of customizability for things like the battle interface, the status menu, the spells menu, or shops.
+In the future it will also be usable to create your own custom screen layouts, and to provide a much greater level of customizability for things like the battle interface, the status menu, the spells menu, or shops.
 
-You are welcome to play around with it right now to get an idea of what it is capable of. Please report any bugs you find.
+To change which slice collection you are editing, select the Slice Collection number and press left or right arrows or type in a new slice number.
 
-Press + to add a new slice.
+Press + to add a new slice to the current collection.
 
 Once you have added a slice it will be added to the list. You should add several slices so you can get a feel for how they interact with each other in terms of layering and positioning.
 
