@@ -138,7 +138,7 @@ SUB slice_editor ()
  edslice = NewSlice
  WITH *edslice
   .Attach = slScreen
-  .SliceType = slRoot
+  .SliceType = slContainer
   .Fill = YES
  END WITH
 
@@ -335,7 +335,7 @@ SUB slice_editor_load(BYREF edslice AS Slice Ptr, filename AS STRING)
  edslice = NewSlice
  WITH *edslice
   .Attach = slScreen
-  .SliceType = slRoot
+  .SliceType = slContainer
   .Fill = YES
  END WITH
  IF isfile(filename) THEN
