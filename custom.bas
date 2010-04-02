@@ -35,7 +35,7 @@ DECLARE SUB dolumpfiles (filetolump$)
 DECLARE FUNCTION readarchinym$ ()
 DECLARE SUB importscripts (f$)
 DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
-DECLARE SUB slice_editor ()
+DECLARE SUB slice_editor (BYVAL use_index AS INTEGER)
 
 #include "allmodex.bi"
 #include "common.bi"
@@ -291,7 +291,7 @@ DO:
     IF pt = 15 THEN fontedit font()
     IF pt = 16 THEN gendata
     IF pt = 17 THEN scriptman
-    IF pt = 18 THEN slice_editor
+    IF pt = 18 THEN slice_editor YES
     IF pt = 19 THEN
      GOSUB relump
      IF quitnow > 1 THEN GOTO finis

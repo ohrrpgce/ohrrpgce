@@ -30,6 +30,8 @@ TYPE SliceEditState
  collection_number AS INTEGER
  collection_group_number AS INTEGER
  collection_file AS STRING
+ use_index AS INTEGER
+ last_non_slice AS INTEGER
 END TYPE
 
 '------------------------------------------------------------------------------
@@ -72,7 +74,7 @@ CONST slgrUPDATERECTSTYLE = 64
 '==============================================================================
 
 'Public functions (will put these in a bi file if there turns out to be more than 1)
-DECLARE SUB slice_editor ()
+DECLARE SUB slice_editor (BYVAL use_index AS INTEGER=0)
 
 'Functions that might go better in slices.bas ... we shall see
 DECLARE FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
@@ -124,9 +126,10 @@ TransCaptions(2) = "Hollow"
 
 '==============================================================================
 
-SUB slice_editor ()
+SUB slice_editor (BYVAL use_index AS INTEGER=0)
 
  DIM ses AS SliceEditState
+ ses.use_index = use_index
 
  DIM edslice AS Slice Ptr
  edslice = NewSlice
@@ -136,13 +139,15 @@ SUB slice_editor ()
   .Fill = YES
  END WITH
 
- IF isfile(slice_editor_filename(ses)) THEN
-  SliceLoadFromFile edslice, slice_editor_filename(ses)
- ELSE
-  '--FIXME: this backcompat is of very low importance (probably only matters to James)
-  '--and can be removed completely before Zenzizenzic
-  SliceLoadFromFile edslice, workingdir & SLASH & "slicetree_0.reld"
-  safekill workingdir & SLASH & "slicetree_0.reld"
+ IF ses.use_index THEN
+  IF isfile(slice_editor_filename(ses)) THEN
+   SliceLoadFromFile edslice, slice_editor_filename(ses)
+  ELSE
+   '--FIXME: this backcompat is of very low importance (probably only matters to James)
+   '--and can be removed completely before Zenzizenzic
+   SliceLoadFromFile edslice, workingdir & SLASH & "slicetree_0.reld"
+   safekill workingdir & SLASH & "slicetree_0.reld"
+  END IF
  END IF
 
  DIM menu(0) AS SliceEditMenuItem
@@ -190,14 +195,16 @@ SUB slice_editor ()
     state.need_update = YES
    END IF 
   END IF
-  IF state.pt = 1 THEN
-   '--Browse collections
-   jump_to_collection = ses.collection_number
-   IF intgrabber(jump_to_collection, 0, 32767) THEN
-    slice_editor_save edslice, slice_editor_filename(ses)
-    ses.collection_number = jump_to_collection
-    slice_editor_load edslice, slice_editor_filename(ses)
-    state.need_update = YES
+  IF ses.use_index THEN
+   IF state.pt = 1 THEN
+    '--Browse collections
+    jump_to_collection = ses.collection_number
+    IF intgrabber(jump_to_collection, 0, 32767) THEN
+     slice_editor_save edslice, slice_editor_filename(ses)
+     ses.collection_number = jump_to_collection
+     slice_editor_load edslice, slice_editor_filename(ses)
+     state.need_update = YES
+    END IF
    END IF
   END IF
   IF keyval(scE) > 1 THEN
@@ -215,7 +222,7 @@ SUB slice_editor ()
   END IF
   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
-    IF state.pt > 1 THEN
+    IF state.pt > ses.last_non_slice THEN
      InsertSliceBefore menu(state.pt).handle, NewSliceOfType(slice_type)
     ELSE
      cursor_seek = NewSliceOfType(slice_type, edslice)
@@ -287,7 +294,9 @@ SUB slice_editor ()
   END WITH
  LOOP
 
- slice_editor_save edslice, slice_editor_filename(ses)
+ IF ses.use_index THEN
+  slice_editor_save edslice, slice_editor_filename(ses)
+ END IF
  
  DeleteSlice @edslice
 
@@ -654,7 +663,11 @@ SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState,
 
  DIM indent AS INTEGER = 0
  slice_editor_refresh_append index, menu(), "Previous Menu"
- slice_editor_refresh_append index, menu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
+ ses.last_non_slice = 0
+ IF ses.use_index THEN
+  slice_editor_refresh_append index, menu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
+  ses.last_non_slice += 1
+ END IF
  slice_editor_refresh_recurse index, menu(), indent, edslice
 
  IF cursor_seek <> 0 THEN
