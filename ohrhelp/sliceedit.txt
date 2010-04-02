@@ -23,3 +23,5 @@ Press Delete if you want to remove a slice.
 Press E to export your slice collection to a file.
 
 Press I to import a slice collection (the collection you are currentlly working on will be replaced.)
+
+Press CTRL+F to edit the children of the currently selected slice in full-screen.

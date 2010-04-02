@@ -19,12 +19,9 @@
 #include "custom_udts.bi"
 #include "customsubs.bi"
 
-'==============================================================================
+#include "sliceedit.bi"
 
-TYPE SliceEditMenuItem
- s AS STRING
- handle AS Slice Ptr
-END TYPE
+'==============================================================================
 
 TYPE SliceEditState
  collection_number AS INTEGER
@@ -32,6 +29,12 @@ TYPE SliceEditState
  collection_file AS STRING
  use_index AS INTEGER
  last_non_slice AS INTEGER
+ saved_size AS XYPair
+END TYPE
+
+TYPE SliceEditMenuItem
+ s AS STRING
+ handle AS Slice Ptr
 END TYPE
 
 '------------------------------------------------------------------------------
@@ -73,8 +76,9 @@ CONST slgrUPDATERECTSTYLE = 64
 
 '==============================================================================
 
-'Public functions (will put these in a bi file if there turns out to be more than 1)
-DECLARE SUB slice_editor (BYVAL use_index AS INTEGER=0)
+'This overload of slice_editor is only allowed locally.
+'The other public overloads are in sliceedit.bi
+DECLARE SUB slice_editor OVERLOAD (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL use_index AS INTEGER=0)
 
 'Functions that might go better in slices.bas ... we shall see
 DECLARE FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
@@ -89,7 +93,7 @@ DECLARE SUB SliceAdoptNiece (BYVAL sl AS Slice Ptr)
 DECLARE SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
 DECLARE SUB slice_editor_refresh_delete (BYREF index AS INTEGER, menu() AS SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, caption AS STRING, sl AS Slice Ptr=0)
-DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr)
+DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr, rootslice AS Slice Ptr)
 DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
 DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
 DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule)
@@ -126,10 +130,9 @@ TransCaptions(2) = "Hollow"
 
 '==============================================================================
 
-SUB slice_editor (BYVAL use_index AS INTEGER=0)
+SUB slice_editor ()
 
  DIM ses AS SliceEditState
- ses.use_index = use_index
 
  DIM edslice AS Slice Ptr
  edslice = NewSlice
@@ -139,16 +142,34 @@ SUB slice_editor (BYVAL use_index AS INTEGER=0)
   .Fill = YES
  END WITH
 
- IF ses.use_index THEN
-  IF isfile(slice_editor_filename(ses)) THEN
-   SliceLoadFromFile edslice, slice_editor_filename(ses)
-  ELSE
-   '--FIXME: this backcompat is of very low importance (probably only matters to James)
-   '--and can be removed completely before Zenzizenzic
-   SliceLoadFromFile edslice, workingdir & SLASH & "slicetree_0.reld"
-   safekill workingdir & SLASH & "slicetree_0.reld"
-  END IF
+ IF isfile(slice_editor_filename(ses)) THEN
+  SliceLoadFromFile edslice, slice_editor_filename(ses)
+ ELSE
+  '--FIXME: this backcompat is of very low importance (probably only matters to James)
+  '--and can be removed completely before Zenzizenzic
+  SliceLoadFromFile edslice, workingdir & SLASH & "slicetree_0.reld"
+  safekill workingdir & SLASH & "slicetree_0.reld"
  END IF
+
+ slice_editor ses, edslice, YES
+
+ slice_editor_save edslice, slice_editor_filename(ses)
+ 
+ DeleteSlice @edslice
+
+END SUB
+
+SUB slice_editor (BYREF edslice AS Slice Ptr)
+ DIM ses AS SliceEditState
+ slice_editor ses, edslice, NO
+END SUB
+
+SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL use_index AS INTEGER=0)
+ '--use_index controls the display of the collection number index
+
+ ses.use_index = use_index
+ ses.saved_size.x = edslice->Width
+ ses.saved_size.y = edslice->Height
 
  DIM menu(0) AS SliceEditMenuItem
  DIM plainmenu(0) AS STRING 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
@@ -213,11 +234,19 @@ SUB slice_editor (BYVAL use_index AS INTEGER=0)
     SliceSaveToFile edslice, filename & ".slice"
    END IF
   END IF
-  IF keyval(scI) > 1 THEN
-   filename = browse(0, "", "*.slice", "",, "browse_import_slices")
-   IF filename <> "" THEN
-    slice_editor_load edslice, filename
-    state.need_update = YES
+  IF ses.use_index THEN
+   '--import is only allowed when regular index editing mode is enabled...
+   IF keyval(scI) > 1 THEN
+    filename = browse(0, "", "*.slice", "",, "browse_import_slices")
+    IF filename <> "" THEN
+     slice_editor_load edslice, filename
+     state.need_update = YES
+    END IF
+   END IF
+  END IF
+  IF keyval(scF) > 1 THEN
+   IF state.pt > ses.last_non_slice THEN
+    slice_editor menu(state.pt).handle
    END IF
   END IF
   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
@@ -254,10 +283,12 @@ SUB slice_editor (BYVAL use_index AS INTEGER=0)
       cursor_seek = menu(state.pt).handle
       state.need_update = YES
      END IF
-      If keyval(scLeft) > 1 THEN
-      SliceAdoptNiece menu(state.pt).handle
-      cursor_seek = menu(state.pt).handle
-      state.need_update = YES
+     IF keyval(scLeft) > 1 THEN
+      IF (menu(state.pt).handle)->parent <> edslice THEN
+       SliceAdoptNiece menu(state.pt).handle
+       cursor_seek = menu(state.pt).handle
+       state.need_update = YES
+      END IF
      END IF
     END IF
    END IF
@@ -294,11 +325,8 @@ SUB slice_editor (BYVAL use_index AS INTEGER=0)
   END WITH
  LOOP
 
- IF ses.use_index THEN
-  slice_editor_save edslice, slice_editor_filename(ses)
- END IF
- 
- DeleteSlice @edslice
+ edslice->Width = ses.saved_size.x
+ edslice->Height = ses.saved_size.y
 
 END SUB
 
@@ -668,7 +696,7 @@ SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState,
   slice_editor_refresh_append index, menu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
   ses.last_non_slice += 1
  END IF
- slice_editor_refresh_recurse index, menu(), indent, edslice
+ slice_editor_refresh_recurse index, menu(), indent, edslice, edslice
 
  IF cursor_seek <> 0 THEN
   FOR i AS INTEGER = 0 TO index - 1
@@ -703,23 +731,23 @@ SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenu
  index += 1
 END SUB
 
-SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr)
+SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr, rootslice AS Slice Ptr)
  WITH *sl
   DIM caption AS STRING
   caption = STRING(indent, " ")
   caption = caption & SliceTypeName(sl)
   caption = caption & " " & SlicePositionString(sl)
-  IF .SliceType <> slRoot THEN
+  IF sl <> rootslice THEN
    slice_editor_refresh_append index, menu(), caption, sl
    indent += 1
   END IF
   'Now append the children
   DIM ch AS slice ptr = .FirstChild
   DO WHILE ch <> 0
-   slice_editor_refresh_recurse index, menu(), indent, ch
+   slice_editor_refresh_recurse index, menu(), indent, ch, rootslice
    ch = ch->NextSibling
   LOOP
-  IF .SliceType <> slRoot THEN
+  IF sl <> rootslice THEN
    indent -= 1
   END IF
  END WITH
