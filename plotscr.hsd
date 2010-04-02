@@ -458,6 +458,8 @@ define function, begin
 448,slicechild,2,0,0          #the nth child of a slice, counting from 0
 449,resetheropicture,2,0,1    #reset a hero's picture to their default
 450,resetheropalette,2,0,1    #reset a hero's palette to their default
+451,setsliceclipping,2,0,1    #set whether a slice will crop its children
+452,getsliceclipping,1,0      #return whether a slice will crop its children
 end
 
 #--------------------------------------------------------------------------

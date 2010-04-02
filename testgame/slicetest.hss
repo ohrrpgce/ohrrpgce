@@ -3,6 +3,34 @@ include, plotscr.hsd
 plotscript, test, begin
   variable(sl, sl2, sl3, i, cont)
 
+  $0="clipping tests", show string(0)
+  wait(3)
+  
+  cont := create container(50, 50)
+  $0=""
+  append number(0, slice width(cont))
+  $0+","
+  append number(0, slice height(cont))
+  trace(0)
+  center slice(cont)
+  set slice clipping(cont, true)
+  sl := load large enemy sprite(0)
+  set parent(sl, cont)
+  wait(5)
+  glide pos(sl, -2, 0, 40)
+  glide pos(sl, 0, 2, 40)
+  glide pos(sl, 2, -2, 40)
+  
+  wait(5)
+  set slice clipping(sl, not(get slice clipping(sl)))
+  wait(6)
+  set slice clipping(sl, not(get slice clipping(sl)))
+  wait(5)
+  
+  free slice(cont)
+  cont := 0
+  sl := 0
+
   $0="sort tests", show string(0)
   wait(5)
   

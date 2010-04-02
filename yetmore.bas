@@ -2296,6 +2296,14 @@ SELECT CASE AS CONST id
     sl = sl->NextSibling
    NEXT
   END IF
+ CASE 451 '--set slice clipping
+  IF valid_plotslice(retvals(0)) THEN
+   plotslices(retvals(0))->Clip = (retvals(1) <> 0)
+  END IF
+ CASE 452 '--get slice clipping
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = ABS(plotslices(retvals(0))->Clip <> 0)
+  END IF
 
 END SELECT
 
