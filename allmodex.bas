@@ -215,16 +215,13 @@ SUB setwindowtitle (title as string)
 	mutexunlock keybdmutex
 END SUB
 
-'would crash if page 0 was freed...
 SUB freepage (byval page as integer)
 	if page < 0 orelse page > ubound(vpages) orelse vpages(page) = NULL then
 		debug "Tried to free unallocated/invalid page " & page
 		exit sub
 	end if
 
-	if clippedframe = vpages(page) then
-		setclip , , , , 0
-	end if
+	if page = wrkpage then wrkpage = 0 'no setclip call: legacy wrkpage code doesn't even use clips anyway
 	frame_unload(@vpages(page))
 END SUB
 
@@ -3816,6 +3813,8 @@ end function
 sub frame_unload(byval p as frame ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
+
+	if clippedframe = *p then clippedframe = 0
 	with **p
 		if .refcount <> NOREFC then
 			if .refcount = FREEDREFC then
