@@ -2304,6 +2304,50 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0)) THEN
    scriptret = ABS(plotslices(retvals(0))->Clip <> 0)
   END IF
+ CASE 453 '--create grid
+  DIM sl AS Slice Ptr
+  sl = NewSliceOfType(slGrid, SliceTable.scriptsprite)
+  scriptret = create_plotslice_handle(sl)
+  sl->Width = retvals(0)
+  sl->Height = retvals(1)
+  ChangeGridSlice sl, retvals(2), retvals(3)
+ CASE 454 '--slice is grid
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = 0
+   IF plotslices(retvals(0))->SliceType = slGrid THEN scriptret = 1
+  END IF
+ CASE 455 '--set grid columns
+  IF valid_plotgridslice(retvals(0)) THEN
+   ChangeGridSlice plotslices(retvals(0)), , retvals(1)
+  END IF
+ CASE 456 '--get grid columns
+  IF valid_plotgridslice(retvals(0)) THEN
+   DIM dat AS GridSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->cols
+  END IF
+ CASE 457 '--set grid rows
+  IF valid_plotgridslice(retvals(0)) THEN
+   ChangeGridSlice plotslices(retvals(0)), retvals(1)
+  END IF
+ CASE 458 '--get grid rows
+  IF valid_plotgridslice(retvals(0)) THEN
+   DIM dat AS GridSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->rows
+  END IF
+ CASE 459 '--show grid
+  IF valid_plotgridslice(retvals(0)) THEN
+   DIM dat AS GridSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   dat->show = (retvals(1) <> 0)
+  END IF
+ CASE 460 '--grid is shown
+  IF valid_plotgridslice(retvals(0)) THEN
+   DIM dat AS GridSliceData Ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = ABS(dat->show <> 0)
+  END IF
 
 END SELECT
 
@@ -3087,11 +3131,22 @@ FUNCTION valid_plottextslice(byval handle as integer) as integer
  RETURN NO
 END FUNCTION
 
+FUNCTION valid_plotgridslice(byval handle as integer) as integer
+ IF valid_plotslice(handle) THEN
+  IF plotslices(handle)->SliceType = slGrid THEN
+   RETURN YES
+  ELSE
+   scripterr commandname(curcmd->value) & ": slice handle " & handle & " is not a grid", 5
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
 FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as integer=NO) as integer
  IF valid_plotslice(handle) THEN
   DIM sl AS Slice Ptr
   sl = plotslices(handle)
-  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer THEN
+  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid THEN
    IF sl->Fill = NO OR ignore_fill THEN
     RETURN YES
    ELSE

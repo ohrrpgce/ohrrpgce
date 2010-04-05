@@ -3120,6 +3120,72 @@ end
 				<ref>getwrap</ref>
 			</seealso>
 		</command>
+		<command id="creategrid">
+			<canon>create grid (width, height, rows, columns)</canon>
+			<shortname>create grid</shortname>
+			<description>Creates a new grid slice, and returns an handle to it. Grid slices are special containers that automatically arrange their children into rows and columns. No manual child positioning is required. The first two arguments are the width and height of the whole grid. The next two arguments are the number of rows and columns that should appear in the grid. If rows or columns are left out, the grid with be a boring 1x1.</description>
+		</command>
+		<command id="sliceisgrid">
+			<canon>slice is grid (handle)</canon>
+			<shortname>slice is grid</shortname>
+			<description>Return true if the <p>handle</p> is a grid slice, or false if it is any other type of slice.</description>
+		</command>
+		<command id="setgridcolumns">
+			<canon>set grid columns (handle, columns)</canon>
+			<shortname>set grid columns</shortname>
+			<description>Changes the number of columns in a grid slice. Child slices will be automatically repositioned.</description>
+			<seealso>
+				<ref>getgridcolumns</ref>
+				<ref>setgridrows</ref>
+				<ref>getgridrows</ref>
+			</seealso>
+		</command>
+		<command id="getgridcolumns">
+			<canon>get grid columns (handle)</canon>
+			<shortname>get grid columns</shortname>
+			<description>Returns the number of columns in a grid slice.</description>
+			<seealso>
+				<ref>setgridcolumns</ref>
+				<ref>setgridrows</ref>
+				<ref>getgridrows</ref>
+			</seealso>
+		</command>
+		<command id="setgridrows">
+			<canon>set grid rows (handle, rows)</canon>
+			<shortname>set grid rows</shortname>
+			<description>Changes the number of rows in a grid slice. Child slices will be automatically repositioned.</description>
+			<seealso>
+				<ref>setgridcolumns</ref>
+				<ref>getgridcolumns</ref>
+				<ref>getgridrows</ref>
+			</seealso>
+		</command>
+		<command id="getgridrows">
+			<canon>get grid rows (handle)</canon>
+			<shortname>get grid rows</shortname>
+			<description>Returns the number of rows in a grid slice.</description>
+			<seealso>
+				<ref>setgridcolumns</ref>
+				<ref>getgridcolumns</ref>
+				<ref>setgridrows</ref>
+			</seealso>
+		</command>
+		<command id="showgrid">
+			<canon>show grid (handle, shown)</canon>
+			<shortname>show grid</shortname>
+			<description>Grid slices are normally invisible, but they can optionally display gridlines. This command takes a grid slice <p>handle</p> and a true or false value. This command has no effect on the visibility of the grid's children. Don't confuse this command with <ref>setslicevisible</ref>.</description>
+			<seealso>
+				<ref>gridisshown</ref>
+			</seealso>
+		</command>
+		<command id="gridisshown">
+			<canon>grid is shown (handle)</canon>
+			<shortname>grid is shown</shortname>
+			<description>This command takes a grid slice <p>handle</p> and returns true if the grid is showing its optional grid lines. If the grid is in its normal invisible state, this command returns false. Don't confuse this command with <ref>getslicevisible</ref>.</description>
+			<seealso>
+				<ref>gridisshown</ref>
+			</seealso>
+		</command>
 		<command id="slicecollidepoint">
 			<canon>slice collide point (handle, x, y)</canon>
 			<shortname>slice collide point</shortname>

@@ -3,23 +3,60 @@ include, plotscr.hsd
 plotscript, test, begin
   variable(sl, sl2, sl3, i, cont)
 
+  $0="grid tests", show string(0)
+  wait(3)
+
+  cont := create grid(200, 200, 4, 4)
+  
+  for(i, 0, 15) do(
+    sl := load large enemy sprite(random(0, 1))
+    set parent(sl, cont)
+    center slice(sl)
+    wait(3)
+  )
+  
+  wait(5)
+  
+  glide size(cont, -2, 0, 12, 1)
+  glide size(cont, 0, -2, 12, 1)
+  glide size(cont, 2, 2, 12, 1)
+  
+  wait(3)
+  show grid(cont, not(grid is shown(cont)))
+  
+  for(i, get grid columns(cont) + 2, 1, -1) do(
+    set grid columns(cont, i)
+    wait(6)
+  )
+  for(i, 2, 6) do(
+    set grid columns(cont, i)
+    wait(6)
+  )
+  
+  for(i, get grid rows(cont), 1, -1) do(
+    set grid rows(cont, i)
+    wait(3)
+  )
+  for(i, 2, 6) do(
+    set grid rows(cont, i)
+    wait(3)
+  )
+
+  free slice(cont)
+  wait(5)
+
   $0="clipping tests", show string(0)
   wait(3)
   
   cont := create container(50, 50)
-  $0=""
-  append number(0, slice width(cont))
-  $0+","
-  append number(0, slice height(cont))
-  trace(0)
   center slice(cont)
   set slice clipping(cont, true)
   sl := load large enemy sprite(0)
   set parent(sl, cont)
   wait(5)
-  glide pos(sl, -2, 0, 40)
-  glide pos(sl, 0, 2, 40)
-  glide pos(sl, 2, -2, 40)
+  glide pos(sl, -2, 0, 25)
+  glide pos(sl, 0, 2, 25)
+  glide pos(sl, 2, -2, 25)
   
   wait(5)
   set slice clipping(sl, not(get slice clipping(sl)))

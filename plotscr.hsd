@@ -460,6 +460,14 @@ define function, begin
 450,resetheropalette,2,0,1    #reset a hero's palette to their default
 451,setsliceclipping,2,0,1    #set whether a slice will crop its children
 452,getsliceclipping,1,0      #return whether a slice will crop its children
+453,creategrid,4,0,0,1,1      #create a grid slice of a specified size
+454,sliceisgrid,1,0           #true if the slice is a grid
+455,setgridcolumns,2,0,1      #change grid horizontal count
+456,getgridcolumns,1,0        #return the number of horizontal cells
+457,setgridrows,2,0,1         #change grid vertical count
+458,getgridrows,1,0           #return the number of vertical cells
+459,showgrid,2,0,1            #make a grid visible
+460,gridisshown,1,0           #return true if grid is visible
 end
 
 #--------------------------------------------------------------------------

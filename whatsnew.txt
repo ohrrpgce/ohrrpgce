@@ -14,6 +14,9 @@ WHAT IS NEW?
   * New Plotscripting Stuff
     * "reset hero picture" and "reset hero palette" [James]
     * "set slice clipping", "get slice clipping" [James, Ralph]
+    * "create grid", "slice is grid", "set grid columns",
+      "get grid columns", "set grid rows", "get grid rows",
+      "show grid", "grid is shown"
 
   * Vikings of Midgard
 
