@@ -46,9 +46,7 @@ cp -p unlump tmp
 cp -p relump tmp
 
 echo "  Including hspeak"
-cp -p hspeak.sh tmp
-cp -p hspeak.exw tmp
-cp -p hsspiffy.e tmp
+cp -p hspeak tmp
 
 echo "  Including support files"
 cp -p ohrrpgce.new tmp

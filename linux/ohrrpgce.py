@@ -21,7 +21,8 @@ files = [
   prefix + "relump"]
 
 executables = [prefix + "ohrrpgce-game",
-               prefix + "ohrrpgce-custom"]
+               prefix + "ohrrpgce-custom",
+               prefix + "hspeak"]
 
 depends = "libc6 (>= 2.3), libncurses5 (>= 5.4), libsdl-mixer1.2 (>= 1.2), libsdl1.2debian (>> 1.2), libx11-6, libxext6, libxpm4, libxrandr2, libxrender1"
 recommends = "madplay, vorbis-tools"
