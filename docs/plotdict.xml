@@ -2473,6 +2473,16 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>get slice visible</shortname>
 			<description>Returns the visibilty setting for slice <p>handle</p>.  This is true for visible, or false for invisible. Note that this only tells you if the slice is set to be invisible, it will not tell you if the slice is invisible for some other reason, such as if it is offscreen, or if it is the child of an invisible parent or grandparent.</description>
 		</command>
+		<command id="setsliceclipping">
+			<canon>set slice clipping (handle, clip)</canon>
+			<shortname>set slice clipping</shortname>
+			<description>Changes whether or not a slice will clip its children if they overflow its edges. The first argument is a slice <p>handle</p>. The second argument is true to make the slice clip, or false to allow its children to overflow. (newly created slices do not clip by default)</description>
+		</command>
+		<command id="getsliceclipping">
+			<canon>get slice clipping (handle)</canon>
+			<shortname>set slice clipping</shortname>
+			<description>Returns true if the slice <p>handle</p> is set to clip drawing its children, or false if child slices are allowed to be drawn overflowing its edges.</description>
+		</command>
 		<command id="freeslice">
 			<canon>free slice (handle)</canon>
 			<shortname>free slice</shortname>

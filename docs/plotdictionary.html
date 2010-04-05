@@ -733,6 +733,9 @@
 		<a href="#about-getrightpadding">get right padding (handle)</a><br>
 		
 	
+		<a href="#about-getsliceclipping">get slice clipping (handle)</a><br>
+		
+	
 		<a href="#about-getsliceextra">get slice extra (handle, extra)</a><br>
 		
 	
@@ -1655,6 +1658,9 @@
 		
 	
 		<a href="#about-setsecondssofplay">set seconds of play (sec)</a><br>
+		
+	
+		<a href="#about-setsliceclipping">set slice clipping (handle, clip)</a><br>
 		
 	
 		<a href="#about-setsliceextra">set slice extra (handle, extra, value)</a><br>
@@ -5606,6 +5612,22 @@ set horiz align(sl, edge:right)
 			
 			
 		</tt></p>
+		<a name="about-setsliceclipping"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice clipping (handle, clip)</font></b><br>
+			Changes whether or not a slice will clip its children if they overflow its edges. The first argument is a slice <span class="param">handle</span>. The second argument is true to make the slice clip, or false to allow its children to overflow. (newly created slices do not clip by default)<br>
+			
+			
+		</tt></p>
+		<a name="about-getsliceclipping"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get slice clipping (handle)</font></b><br>
+			Returns true if the slice <span class="param">handle</span> is set to clip drawing its children, or false if child slices are allowed to be drawn overflowing its edges.<br>
+			
+			
+		</tt></p>
 		<a name="about-freeslice"></a>
 		<p>
 		<tt>
@@ -9308,7 +9330,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 670 commands in this file, of which 54 are only references to other commands.</p>
+	<p>Stats: There are 672 commands in this file, of which 54 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

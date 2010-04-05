@@ -13,6 +13,7 @@ WHAT IS NEW?
 
   * New Plotscripting Stuff
     * "reset hero picture" and "reset hero palette" [James]
+    * "set slice clipping", "get slice clipping" [James, Ralph]
 
   * Vikings of Midgard
 
