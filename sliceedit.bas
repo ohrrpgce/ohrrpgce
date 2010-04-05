@@ -29,6 +29,7 @@ TYPE SliceEditState
  collection_file AS STRING
  use_index AS INTEGER
  last_non_slice AS INTEGER
+ saved_pos AS XYPair
  saved_size AS XYPair
 END TYPE
 
@@ -168,8 +169,12 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
  '--use_index controls the display of the collection number index
 
  ses.use_index = use_index
+ ses.saved_pos.x = edslice->X
+ ses.saved_pos.y = edslice->Y
  ses.saved_size.x = edslice->Width
  ses.saved_size.y = edslice->Height
+ edslice->X = 0
+ edslice->Y = 0
 
  DIM menu(0) AS SliceEditMenuItem
  DIM plainmenu(0) AS STRING 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
@@ -319,12 +324,15 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   dowait
 
   updatepagesize dpage
+  
   WITH *edslice
    .Width = vpages(dpage)->w
    .Height = vpages(dpage)->h
   END WITH
  LOOP
 
+ edslice->X = ses.saved_pos.x
+ edslice->Y = ses.saved_pos.y
  edslice->Width = ses.saved_size.x
  edslice->Height = ses.saved_size.y
 
