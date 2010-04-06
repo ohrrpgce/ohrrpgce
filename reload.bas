@@ -436,7 +436,8 @@ sub serializeBin(byval nod as NodePtr, byval f as integer, table() as string)
 	
 	select case nod->nodeType
 		case rltNull
-			'yeah, no [apparently rtlNulls are bad? I don't understand the preceding comment -- James]
+			'Nulls have no data, but convey information by existing or not existing.
+			'They can also have children.
 			ub = rliNull
 			put #f, , ub
 		case rltInt 'this is good enough, don't need VLI for this
