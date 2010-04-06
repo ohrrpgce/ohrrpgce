@@ -524,6 +524,7 @@ End Function
 Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	dim ret as NodePtr
 	
+	
 	ret = CreateNode(doc, "!") '--the "!" indicates no tag name has been loaded for this node yet
 	
 	dim size as integer
@@ -534,6 +535,7 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	here = seek(f)
 	
 	ret->namenum = cshort(ReadVLI(f))
+	
 	get #f, , ret->nodetype
 	
 	select case ret->nodeType
@@ -560,10 +562,10 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 			get #f, , ret->flo
 			ret->nodeType = rltFloat
 		case rliString
-			dim size as integer
+			dim mysize as integer
 			'get #f, , size
-			size = cint(ReadVLI(f))
-			ret->str = string(size, " ")
+			mysize = cint(ReadVLI(f))
+			ret->str = string(mysize, " ")
 			get #f, , ret->str
 			ret->nodeType = rltString
 		case else
@@ -572,10 +574,12 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 			return null
 	end select
 	
+	
+	
 	dim nod as nodeptr
-	'get #f, , ret->numChildren
+	
 	ret->numChildren = ReadVLI(f)
-	'print ret->numChildren
+	
 	for i as integer = 0 to ret->numChildren - 1
 		nod = LoadNode(f, doc)
 		if nod = null then
@@ -588,8 +592,9 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	next
 	
 	if seek(f) - here <> size then
+		freenode(ret)
 		debug "GOSH-diddly-DARN-it! Why did we read " & (seek(f) - here) & " bytes instead of " & size & "!?"
-		end 1
+		return null
 	end if
 	
 	return ret
@@ -635,6 +640,7 @@ function FixNodeName(byval nod as nodeptr, table() as string) as integer
 			tmp = tmp->nextSib
 		loop
 	'end if
+	return 0
 end function
 
 Function LoadDocument(fil as string) as DocPtr
@@ -698,7 +704,7 @@ Function LoadDocument(fil as string) as DocPtr
 	
 	LoadStringTable(f, table())
 	
-	print FixNodeName(ret->root, table())
+	FixNodeName(ret->root, table())
 	
 	close #f
 	
@@ -899,7 +905,7 @@ end sub
 
 Sub WriteVLI(byval f as integer, byval v as Longint)
 	dim o as ubyte
-	dim neg as integer
+	dim neg as integer = 0
 	
 	if o < 0 then
 		neg = yes
@@ -907,7 +913,7 @@ Sub WriteVLI(byval f as integer, byval v as Longint)
 	end if
 	
 	o = v and &b111111
-	v /= 64
+	v = v SHR 6
 	
 	if neg then   o OR=  &b1000000
 	
@@ -917,7 +923,7 @@ Sub WriteVLI(byval f as integer, byval v as Longint)
 	
 	do while v > 0
 		o = v and &b1111111
-		v /= 128
+		v = v SHR 7
 		
 		if v > 0 then o OR= &b10000000
 		
@@ -928,27 +934,22 @@ end sub
 
 function ReadVLI(byval f as integer) as longint
 	dim o as ubyte
-	dim ret as longint
-	dim neg as integer
+	dim ret as longint = 0
+	dim neg as integer = 0
+	dim bit as integer = 0
 	
 	get #f, , o
 	
 	if o AND &b1000000 then neg = yes
 	
-	ret = o AND &b111111
-	
-	if o AND &b10000000 then
-		ret *= 64
-	end if
+	ret OR= (o AND &b111111) SHL bit
+	bit += 6
 	
 	do while o AND &b10000000
 		get #f, , o
 		
-		ret += o AND &b1111111
-		
-		if o and &b10000000 then
-			ret *= 128
-		end if
+		ret OR= (o AND &b1111111) SHL bit
+		bit += 7
 	loop
 	
 	if neg then ret *= -1
