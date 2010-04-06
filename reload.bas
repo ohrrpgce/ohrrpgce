@@ -387,7 +387,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	i = 13
 	put #f, , i 'size of header
 	i = 0 
-	put #f, , i 'we're going to fill this in later
+	put #f, , i 'we're going to fill this in later. it is the string table post relative to the beginning of the file.
 	
 	serializeBin(doc->root, f, table())
 	
@@ -422,22 +422,21 @@ sub serializeBin(byval nod as NodePtr, byval f as integer, table() as string)
 	
 	dim as integer siz, here = 0, here2, dif
 	siz = seek(f)
-	put #f, , here 'will fill this in later
+	put #f, , here 'will fill this in later, this is node content size
 	
 	here = seek(f)
 	
 	strno = FindStringInTable(nod->name, table())
 	if strno = -1 then
-		print "ERROR, THIS SHOULD NOT HAPPEN"
+		debug "failed to find string " & nod->name & " in string table"
 		exit sub
 	end if
 	
 	WriteVLI(f, strno)
-	'put #f, , strno
 	
 	select case nod->nodeType
 		case rltNull
-			'yeah, no
+			'yeah, no [apparently rtlNulls are bad? I don't understand the preceding comment -- James]
 			ub = rliNull
 			put #f, , ub
 		case rltInt 'this is good enough, don't need VLI for this
@@ -525,7 +524,7 @@ End Function
 Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	dim ret as NodePtr
 	
-	ret = CreateNode(doc, "!")
+	ret = CreateNode(doc, "!") '--the "!" indicates no tag name has been loaded for this node yet
 	
 	dim size as integer
 	
@@ -534,7 +533,6 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	
 	here = seek(f)
 	
-	'get #f, , ret->namenum
 	ret->namenum = cshort(ReadVLI(f))
 	get #f, , ret->nodetype
 	
@@ -569,6 +567,7 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 			get #f, , ret->str
 			ret->nodeType = rltString
 		case else
+			debug "unknown node type " & ret->nodeType
 			delete ret
 			return null
 	end select
@@ -581,6 +580,7 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 		nod = LoadNode(f, doc)
 		if nod = null then
 			freenode(ret)
+			debug "child " & i & " node load failed"
 			return null
 		end if
 		ret->numChildren -= 1
@@ -588,7 +588,7 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	next
 	
 	if seek(f) - here <> size then
-		print "OHFUCK read " & (seek(f) - here) & " bytes instead of " & size & "!"
+		debug "GOSH-diddly-DARN-it! Why did we read " & (seek(f) - here) & " bytes instead of " & size & "!?"
 		end 1
 	end if
 	
@@ -642,6 +642,7 @@ Function LoadDocument(fil as string) as DocPtr
 	dim f as integer = freefile
 	
 	if open(fil, for binary, as #f) then
+		debug "failed to open file " & fil
 		return null
 	end if
 	
@@ -655,6 +656,7 @@ Function LoadDocument(fil as string) as DocPtr
 	
 	if magic <> "RELD" then
 		close #f
+		debug "No RELD magic"
 		return null
 	end if
 	
@@ -666,6 +668,7 @@ Function LoadDocument(fil as string) as DocPtr
 			
 			if headSize <> 13 then 'uh oh, the header is the wrong size
 				close #f
+				debug "Reload header is " & headSize & "instead of 13"
 				return null
 			end if
 			
@@ -673,6 +676,7 @@ Function LoadDocument(fil as string) as DocPtr
 			
 		case else ' dunno. Let's quit.
 			close #f
+			debug "Reload version " & ver & " not supported"
 			return null
 	end select
 	
