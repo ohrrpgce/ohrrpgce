@@ -543,6 +543,14 @@ DO
   IF hero(acsr) AND ecsr < 0 THEN info$ = names(acsr) ELSE info$ = ""
  END IF
  IF carray(ccUse) > 1 THEN
+  DO
+  IF readbit(gen(), genBits2, 4) THEN
+   '--If this bit is set, we refuse to reorder locked heroes
+   IF readbit(hmask(), 0, acsr) ORELSE (swapme >= 0 ANDALSO readbit(hmask(), 0, swapme)) THEN
+    MenuSound gen(genCancelSFX)
+    EXIT DO
+   END IF
+  END IF
   IF swapme = -1 THEN
    MenuSound gen(genAcceptSFX)
    IF ecsr < 0 THEN
@@ -575,8 +583,10 @@ DO
     swapme = -1
     GOSUB resetswap
     EXIT DO
-   LOOP
+   LOOP '--this loop just exists for convenient breaking with EXIT DO
   END IF
+  EXIT DO
+  LOOP '--this loop just exists for convenient breaking with EXIT DO
  END IF
 
  GOSUB showswapmenu
