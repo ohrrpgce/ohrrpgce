@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ja 2010-04-07 Wrote a (nearly) proper lexer
 --3J 2009-12-05 Multiple function names may now alias the same id
 --3I 2009-07-27 Export a backup copy of full source to source.txt lump
 --              disable with -n option
@@ -102,7 +103,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="I "
+constant COMPILER_SUB_VERSION="Ja"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -112,6 +113,15 @@ constant COLPNK=239 + BRIGHT_RED
 constant COLWHI=239 + WHITE
 constant COLBWHI=239 + BRIGHT_WHITE
 
+constant LEX_CHAR=0
+constant LEX_SPACE=1
+constant LEX_BEGIN=2
+constant LEX_END=3
+constant LEX_KEYWORD=4
+constant LEX_COMMENT=5
+constant LEX_STRING=6
+constant LEX_COMMA=7
+constant LEX_WARN=8
 constant SRC_TEXT=1
 constant SRC_LINE=2
 constant SRC_FILE=3
@@ -128,7 +138,7 @@ constant RESERVE_END=8
 constant RESERVE_OPERATOR=9
 constant RESERVE_BUILTIN=10
 constant RESERVE_NAMES={"declaration"
-                       ,"unimplimented keyword"
+                       ,"unimplemented keyword/operator"
                        ,"flow control"
                        ,"hardcoded function"
                        ,"user script"
@@ -237,6 +247,14 @@ sequence math_list        math_list={
                              ,{21,"logor",{0,0}} 
                              ,{22,"logxor",{0,0}} 
                           }
+
+sequence separator_list   separator_list={
+                             "+=","-=","$+","$=","$","+","--","/","*","^^","^"
+                             ,"==","<>",">>","<<","<=",">=",":=","=","&&","||"
+                          }
+sequence lexer_table      lexer_table={}
+sequence lexer_states     lexer_states={}
+
 sequence all_scripts      all_scripts={}                        
 sequence current_script   current_script=""
 integer  colors_enabled   colors_enabled=true
@@ -441,7 +459,21 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---initializes global variables, and generaly gets things ready to roll
+procedure init_lexer()
+  lexer_table=" (),#\t\r\"[]{}"
+  lexer_states={LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}
+  --add the one-character prefix of each operator
+  for i=1 to length(separator_list) do
+    if find(separator_list[i][1],lexer_table)=0 then
+      lexer_table=append(lexer_table,separator_list[i][1])
+      lexer_states=lexer_states&LEX_KEYWORD
+    end if
+  end for
+end procedure
+
+---------------------------------------------------------------------------
+
+--initializes global variables, and generally gets things ready to roll
 procedure init()
   sequence args
   integer index
@@ -469,7 +501,7 @@ procedure init()
   end if
   if find('f',optlist) then
     fast_mode=true
-    color_print("using fast mode. some size optimization disabled\n",{})
+    color_print("Using fast mode. Some size optimization disabled\n",{})
   end if
   if find('c',optlist) then
     colors_enabled=false
@@ -501,7 +533,7 @@ procedure init()
         if hs_lower(key)='y' then
           exit
         elsif hs_lower(key)='n' then
-          simple_error("output file overwrite canceled by user")
+          simple_error("output file overwrite cancelled by user")
         else  
           wrap_print(COLYEL&"%s"&COLWHI&"? "&COLYEL&"%s"&COLWHI&"!? How is that Y or N?",{key,hs_upper(key)})
         end if
@@ -535,10 +567,12 @@ procedure init()
           ,{"exitreturning" ,RESERVE_FLOW}
           ,{"switch"        ,RESERVE_FLOW}
           ,{"case"          ,RESERVE_FLOW}
+          ,{"="             ,RESERVE_UNIMPLEMENTED}
         })--end mass_insert   
   for i=1 to length(math_list) do
     reserved=alpha_tree_insert(reserved,math_list[i][PAIR_NAME],RESERVE_BUILTIN)
   end for
+  init_lexer()
 end procedure
 
 ---------------------------------------------------------------------------
@@ -632,120 +666,6 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function convert_strings(sequence s)
-  integer start
-  integer stringstart
-  integer ptr
-  integer switch
-  integer state
-  sequence output
-  sequence result
-  sequence string
-  start=1
-  result=""
-  while start<length(s) do
-    stringstart=find('$',s[start..length(s)])
-    if stringstart=0 then
-      exit
-    end if
-    stringstart+=start-1
-    if stringstart>start then
-      result=result&s[start..stringstart-1]
-    end if
-    start=stringstart
-    ptr=stringstart
-    state=0
-    while ptr<length(s) do
-      if s[ptr]='$' then
-        state=0
-        stringstart=ptr
-        result=result&s[start..stringstart-1]
-        start=stringstart
-      elsif state=0 then
-        if s[ptr]='=' then
-          state=1
-          output=",setstringfromtable(" & s[stringstart+1..ptr-1]
-        elsif s[ptr]='+' then
-          state=1
-          output=",appendstringfromtable(" & s[stringstart+1..ptr-1]
-        end if
-      elsif state=1 then
-        if s[ptr]='"' then
-          state=2
-          exit
-        elsif s[ptr]!=' ' then
-          state=0
-        end if
-      end if
-      ptr+=1
-    end while
-    if state!=2 then
-      exit
-    end if
-    ptr+=1
-    switch=false
-    string=""
-    while true do
-      if ptr>length(s) then  --did not find a closing " so not a valid string (previous matches presumably a coincidence)
-        return(result&s[stringstart..length(s)])
-      end if
-      if switch then
-        if s[ptr]='"' then
-          string&='"'
-        elsif s[ptr]='\\' then
-          string&='\\'
-        else
-          --invalid sequence
-          string&='\\'
-          string&=s[ptr]
-        end if
-        switch=false
-      else
-        if s[ptr]='"' then
-          string_list=append(string_list,string)
-          result=result&output&sprintf(",@$string%d)",{length(string_list)})
-          start=ptr+1
-          exit
-        elsif s[ptr]='\\' then
-          switch=true
-        else
-          string&=s[ptr]
-        end if
-      end if
-      ptr+=1
-    end while
-  end while
-  return(result&s[start..length(s)])
-end function
-
----------------------------------------------------------------------------
-
-function smush_line(sequence s)
-  integer at
-  integer start
-  sequence sep
-  sequence masked
-  s=convert_strings(s)
-  s=hs_lower(exclude(strip_comments(s)," \t\n"))
-  s=substring_replace(s,"(",",begin,")
-  s=substring_replace(s,")",",end,")
-  masked=s
-  sep={"+=","-=","$+","$=","+","--","/","*","^^","^","==","<>",">>","<<","<=",">=",":=","&&","||"}
-  for i=1 to length(sep) do
-    at=match(sep[i],masked)
-    start=1
-    while at>=start do
-      s=s[1..at-1] & "," & sep[i] & "," & s[at+length(sep[i])..length(s)]
-      masked=masked[1..at-1] & repeat(0,length(sep[i])+2) & masked[at+length(sep[i])..length(masked)]
-      start=at+length(sep[i])+2
-      at=match(sep[i],masked)
-    end while
-  end for
-  return(s)
-end function
-
----------------------------------------------------------------------------
-
 procedure src_warn(sequence s,integer line)
   if not find('w',optlist) then
     --do not warn if -w is set
@@ -783,34 +703,180 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-procedure future_symbol_warnings(sequence s, integer src_line)
-  integer at
-  sequence future_symbols, symbol
-  future_symbols = {"[","]","{","}"}
-  for i = 1 to length(future_symbols) do
-    symbol=future_symbols[i]
-    at=match(symbol, s)
-    if at > 0 then
-      src_warn(sprintf("FUTURE COMPATABILITY PROBLEM: %s should not be used in names!", {symbol}), src_line)
+--reads and processes the escape codes in a string and returns it enclosed in quote marks
+function lexer_read_string(sequence s,integer i,integer line)
+  sequence string
+  integer switch
+  switch=false
+  string="\""
+  while true do
+    if i>length(s) then  --did not find a closing " so not a valid string
+      src_error("Expected \" at end of line to end string (multi-line strings are not supported)",line)
     end if
-  end for
-end procedure
+    if switch then
+      if s[i]='"' or s[i]='\\' then
+        string&=s[i]
+      else
+        --invalid sequence
+        string&='\\'
+        string&=s[i]
+      end if
+      switch=false
+    else
+      if s[i]='"' then
+        return({i,string&'"'})
+        exit
+      elsif s[i]='\\' then
+        switch=true
+      else
+        string&=s[i]
+      end if
+    end if
+    i+=1
+  end while
+end function
+
+---------------------------------------------------------------------------
+
+function lex_line(sequence s,integer line)
+  integer state
+  sequence tokens
+  sequence ident
+  sequence temp
+  sequence temp2
+  sequence masked
+  integer i
+  integer found
+  i=1
+  ident=""
+  tokens={}
+  while i<=length(s) do
+    state=find(s[i],lexer_table)
+    if state then
+      state=lexer_states[state]
+    end if
+    --color_print("lexing %d=%s state %d\n",{s[i],{s[i]},state})
+    if state=LEX_CHAR then
+      ident=ident & hs_lower(s[i])
+    elsif state=LEX_SPACE then
+    elsif state=LEX_WARN then
+      ident=ident & hs_lower(s[i])
+      src_warn(sprintf("FUTURE COMPATIBILITY PROBLEM: "&COLYEL&"%s"&COLRED&" should not be used in names!", {s[i]}), line)
+    else
+      temp2=ident  --for backtracking
+      if length(ident) then
+        tokens=append(tokens,{ident,line})
+      end if
+      ident=""
+      if state=LEX_BEGIN then
+        tokens=append(tokens,{"begin",line})
+      elsif state=LEX_END then
+        tokens=append(tokens,{"end",line})
+      elsif state=LEX_COMMA then
+      elsif state=LEX_COMMENT then
+        exit
+      elsif state=LEX_STRING then
+        temp=lexer_read_string(s,i+1,line)
+        tokens=append(tokens,{temp[2],line})
+        i=temp[1]
+      elsif state=LEX_KEYWORD then
+        found=0
+        if i=length(s) then
+          masked=s[$..$]
+        else
+          masked=s[i..i+1]
+        end if
+        for j=1 to length(separator_list) do
+          if match(separator_list[j],masked)=1 then --sep2[j] is a prefix of s
+            tokens=append(tokens,{separator_list[j],line})
+            found=1
+            i+=length(separator_list[j])-1
+            exit
+          end if
+        end for
+        if found=0 then  --need to backtrack, in particular for -
+          ident=temp2 & hs_lower(s[i])
+          if length(temp2) then
+            tokens=tokens[1..$-1]
+          end if
+        end if
+      end if
+    end if
+    i+=1
+  end while
+  if length(ident) then
+    tokens=append(tokens,{ident,line})
+  end if
+  return(tokens)
+end function
+
+---------------------------------------------------------------------------
+
+--this also checks for rogue strings and $'s
+function translate_plotstrings(sequence tokens,integer line)
+  integer state
+  integer start_token
+  integer i
+  sequence string_func
+  sequence string_token
+  state=0
+  i=1
+  while i<=length(tokens) do
+    if compare(tokens[i][CMD_TEXT],"$")=0 then
+      if state=0 then
+        state=1
+        start_token=i
+      else
+        --jump to error throw
+        state=1
+        exit
+      end if
+    end if
+    if state=2 then
+      if tokens[i][CMD_TEXT][1]='"' then
+        string_list=append(string_list,tokens[i][CMD_TEXT][2..$-1])
+        string_token={sprintf("@$string%d",{length(string_list)}),line}
+        tokens=tokens[1..start_token-1]&{string_func,{"begin",line}}&tokens[start_token+1..i-2]&{string_token,{"end",line}}&tokens[i+1..$]
+        state=0  --may have multiple strings on one line
+      else  --we saw a + (or illegal =) inside the string number expression
+        state=1
+      end if
+    else
+      if tokens[i][CMD_TEXT][1]='"' then
+        src_error(
+          sprintf(
+            "The string "&COLYEL&"%s"&COLRED&" is illegal here: strings may only be used as part of a $...=\"...\" or $...+\"...\" construct",
+            {shorten_string(tokens[i][CMD_TEXT],15)}),
+          line
+        )
+      end if
+    end if
+    if state=1 and compare(tokens[i][CMD_TEXT],"=")=0 then
+      string_func={"setstringfromtable",line}
+      state=2
+    elsif state=1 and compare(tokens[i][CMD_TEXT],"+")=0 then
+      string_func={"appendstringfromtable",line}
+      state=2
+    end if
+    i+=1
+  end while
+
+  if state!=0 then
+    --we've seen a surplus $, not right
+    src_error("$ may only be used as part of a $...=\"...\" or $...+\"...\" construct",line)
+  end if
+  return(tokens)
+end function
 
 ---------------------------------------------------------------------------
 
 procedure split_commands()
-  sequence line,broken
-  color_print("splitting commands\n",{})
+  sequence broken
+  color_print("tokenizing\n",{})
   for i=1 to length(source) do
-    line=smush_line(source[i][SRC_TEXT])
-    broken=explode(line,",")
-    for j=1 to length(broken) do
-      --text,origin
-      if length(broken[j]) then
-        future_symbol_warnings(broken[j],i)
-        cmd=append(cmd,{broken[j],i})
-      end if
-    end for
+    broken=lex_line(source[i][SRC_TEXT],i)
+    --this is probably not the best place to do this translation, but for now we simply emulate old lexer
+    cmd&=translate_plotstrings(broken,i)
   end for
 end procedure
 
@@ -1144,7 +1210,9 @@ procedure parse_script(sequence trigger)
   sequence arglist
   sequence s
   sequence this
+  sequence err_string
   integer depth
+  integer temp
   name=get_cmd()
   current_script=name[CMD_TEXT]
   arglist={}
@@ -1156,7 +1224,8 @@ procedure parse_script(sequence trigger)
     if compare("begin",this[CMD_TEXT])=0 then
       exit--break the while
     end if
-    arglist=append(arglist,{try_undefined_string(this,"argument name"),this[CMD_LINE]})
+    --arglist=append(arglist,{try_undefined_string(this,"argument name"),this[CMD_LINE]})
+    arglist=append(arglist,this)
   end while
   --every script is nested inside a big fat do() block
   s={{"do",this[CMD_LINE]}}
@@ -1171,14 +1240,15 @@ procedure parse_script(sequence trigger)
     elsif compare("begin",this[CMD_TEXT])=0 then
       depth+=1
     else
-      if alpha_tree_data(reserved,this[CMD_TEXT],3)<=RESERVE_UNIMPLEMENTED then
-        src_error(
-          sprintf(
-             "%s "&COLYEL&"%s"&COLRED&" is not permitted inside a script. Perhaps "&COLYEL&"%s"&COLRED&" has an extra "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED
-            ,{RESERVE_NAMES[alpha_tree_data(reserved,this[CMD_TEXT],0)],this[CMD_TEXT],name[CMD_TEXT]}
-          )
-          ,this[CMD_LINE]
+      temp=alpha_tree_data(reserved,this[CMD_TEXT],3)
+      if temp<=RESERVE_UNIMPLEMENTED then
+        err_string=sprintf(
+          "%s "&COLYEL&"%s"&COLRED&" is not permitted inside a script.",{RESERVE_NAMES[alpha_tree_data(reserved,this[CMD_TEXT],0)],this[CMD_TEXT]}
         )
+        if temp=RESERVE_CORE then
+          err_string&=sprintf(" Perhaps "&COLYEL&"%s"&COLRED&" has an extra "&COLYEL&"begin"&COLRED&" or "&COLYEL&"("&COLRED,{name[CMD_TEXT]})
+        end if
+        src_error(err_string,this[CMD_LINE])
       end if
     end if
     if get_cmd_pointer>length(cmd) then
@@ -2551,31 +2621,34 @@ end procedure
 function process_arglist(sequence args,sequence script_name)
   sequence arglist
   sequence defaults
-  integer at
+  integer i
   integer using_defaults
   arglist={}
   defaults={}
   using_defaults=false
-
-  for i=1 to length(args) do
-    at=find('=',args[i][CMD_TEXT])
-    if at=1 or at=length(args[i][CMD_TEXT]) then
-      --continue
-      src_error(sprintf("Syntax error in script argument "&COLYEL&"%s"&COLRED&" in script "&COLYEL&"%s"&COLRED,{args[i][CMD_TEXT],script_name}),args[i][CMD_LINE])
+  i=1
+  while i<=length(args) do
+    if compare("=",args[i][CMD_TEXT])=0 then
+      src_error(sprintf("Syntax error: spurious = in script argument list of script "&COLYEL&"%s"&COLRED,{script_name}),args[i][CMD_LINE])
     end if
-    if at>0 then
-      arglist=append(arglist,{try_undefined_string({args[i][CMD_TEXT][1..at-1],args[i][CMD_LINE]},"argument name"),args[i][CMD_LINE]})
-      defaults&=try_string_to_number({enforce_constants(args[i][CMD_TEXT][at+1..length(args[i][CMD_TEXT])]),args[i][CMD_LINE]})
+    if i<length(args) and compare("=",args[i+1][CMD_TEXT])=0 then
+      if i+2>length(args) then
+        src_error(sprintf("Syntax error: expected default value for script argument "&COLYEL&"%s"&COLRED&" in script "&COLYEL&"%s"&COLRED,{args[i][CMD_TEXT],script_name}),args[i+1][CMD_LINE])
+      end if
+      arglist=append(arglist,{try_undefined_string({args[i][CMD_TEXT],args[i][CMD_LINE]},"argument name"),args[i][CMD_LINE]})
+      defaults&=try_string_to_number({enforce_constants(args[i+2][CMD_TEXT]),args[i+2][CMD_LINE]})
       using_defaults=true
+      i+=3
     else
       if using_defaults=true then
         --any argument with a default must be followed with arguments with defaults
-        src_error(sprintf("Default value missing for argument "&COLYEL&"%s"&COLRED&" to script "&COLYEL&"%s"&COLRED,{args[i][CMD_TEXT],script_name}),args[i][CMD_LINE])
+        src_error(sprintf("Default value missing for argument "&COLYEL&"%s"&COLRED&" to script "&COLYEL&"%s"&COLRED&": the previous argument had a default value, so all following ones must too",{args[i][CMD_TEXT],script_name}),args[i][CMD_LINE])
       end if
       arglist=append(arglist,args[i])
       defaults=append(defaults,NO_DEFAULT)
+      i+=1
     end if
-  end for
+  end while
   return({arglist,defaults})
 end function
 
@@ -2716,7 +2789,11 @@ function generate_commands_dot_bin()
   integer offset
   integer records
   function_list=sort(function_list)
-  records=function_list[$][PAIR_NUM]+1
+  if length(function_list) then
+    records=function_list[$][PAIR_NUM]+1
+  else
+    records=0
+  end if
   if records>2048 then
     simple_warn(sprintf("Maximum function id was %d, but will not export function names above id 2047",{records-1}))
     records=2048

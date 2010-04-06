@@ -517,3 +517,21 @@ end function
 
 ---------------------------------------------------------------------------
 
+--replace the end of a string with ellipsis if too long
+global function shorten_string(sequence s, integer len)
+  integer quotes
+  quotes=0
+  if length(s)>0 and s[1]='"' and s[$]='"' then
+    quotes=1
+    s=s[2..$-1]
+    len-=2
+  end if
+  if length(s)>len then
+    s=s[1..len-3]&"..."
+  end if
+  if quotes then
+    return("\""&s&"\"")
+  else
+    return(s)
+  end if
+end function

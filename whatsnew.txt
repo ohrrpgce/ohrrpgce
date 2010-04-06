@@ -13,6 +13,8 @@ WHAT IS NEW?
       to spells used outside of battle. [James]
 
   * New Plotscripting Stuff
+    * You may no longer used the characters ", $ or = in script and
+      variable names.
     * "reset hero picture" and "reset hero palette" [James]
     * "set slice clipping", "get slice clipping" [James, Ralph]
     * "create grid", "slice is grid", "set grid columns",
