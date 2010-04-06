@@ -2348,6 +2348,11 @@ SELECT CASE AS CONST id
    dat = plotslices(retvals(0))->SliceData
    scriptret = ABS(dat->show <> 0)
   END IF
+ CASE 461 '--load slice collection
+  DIM sl AS Slice Ptr
+  sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
+  SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld"
+  scriptret = create_plotslice_handle(sl)
 
 END SELECT
 

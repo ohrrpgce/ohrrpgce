@@ -2171,6 +2171,11 @@ end
 		</command>
 	</section>
 	<section title="Slice Functions">
+		<command id="loadslicecollection">
+			<canon>load slice collection (id)</canon>
+			<shortname>load slice collection</shortname>
+			<description>Loads a collection of slices that you have defined in the slice collection editor. The argument is the <p>id</p> number of the collection. The return value is a handle to the container that holds the loaded collection.</description>
+		</command>
 		<command id="lookupslice">
 			<canon>lookup slice (lookup code, start slice)</canon>
 			<shortname>lookup slice</shortname>

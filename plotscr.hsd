@@ -468,6 +468,7 @@ define function, begin
 458,getgridrows,1,0           #return the number of vertical cells
 459,showgrid,2,0,1            #make a grid visible
 460,gridisshown,1,0           #return true if grid is visible
+461,loadslicecollection,1,0   #load a collection of slices
 end
 
 #--------------------------------------------------------------------------

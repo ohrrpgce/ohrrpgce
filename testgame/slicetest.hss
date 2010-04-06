@@ -3,6 +3,17 @@ include, plotscr.hsd
 plotscript, test, begin
   variable(sl, sl2, sl3, i, cont)
 
+  $0="collection tests", show string(0)
+  wait(3)
+  
+  cont := load slice collection(1)
+  
+  wait(18)
+  
+  free slice(cont)
+  cont := 0
+  wait(4)
+
   $0="grid tests", show string(0)
   wait(3)
 
