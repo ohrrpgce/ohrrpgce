@@ -21,44 +21,56 @@ END SUB
 
 Namespace Reload
 
-Function verifyNodeLineage(byval sl as NodePtr, byval parent as NodePtr) as integer
- dim s as NodePtr
- if sl = 0 then return no
- s = parent
- do while s <> 0
-  if s = sl then return no
-  s = s->parent
- loop
- return yes
+'this checks to see if a node is part of a tree, for example before adding to a new parent
+Function verifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as integer
+	if nod = null then return no
+	do while parent <> null
+		if nod = parent then return no
+		parent = parent->parent
+	loop
+	return yes
 end function
 
+'this checks to see whether a node is part of a given family or not
 Function verifyNodeSiblings(byval sl as NodePtr, byval family as NodePtr) as integer
- dim s as NodePtr
- if sl = 0 then return no
- s = family
- do while s <> 0
-  if s = sl then return no
-  s = s->prevSib
- loop
- s = family
- do while s <> 0
-  if s = sl then return no
-  s = s->nextSib
- loop
- return yes
+	dim s as NodePtr
+	if sl = 0 then return no
+	s = family
+	do while s <> 0
+		if s = sl then return no
+		s = s->prevSib
+	loop
+	s = family
+	do while s <> 0
+		if s = sl then return no
+		s = s->nextSib
+	loop
+	return yes
 end function
 
+'creates and initializes a blank document
 Function CreateDocument() as DocPtr
 	dim ret as DocPtr
 	
-	ret = Callocate(1, sizeof(Doc))
+	'Holy crap! allocating memory with malloc (and friends), and freeing it with delete?!
+	'never, ever do that! In this case, it probably didn't hurt anything, since Doc doesn't
+	'have a constructor or destructor. But, if it did... bad things! *shudder*
+	' -- Mike, Apr 6, 2010
+	' PS: It was me who did this :'(
 	
-	ret->version = 1
-	ret->root = null
+	'ret = Callocate(1, sizeof(Doc))
+	ret = New Doc
+	
+	if ret then
+		ret->version = 1
+		ret->root = null
+	end if
 	
 	return ret
 End function
 
+'creates and initilalizes an empty node with a given name.
+'it associates the node with the given document, and cannot be added to another one!
 Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	dim ret as NodePtr
 	
@@ -75,6 +87,8 @@ Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	return ret
 End function
 
+'destroys a node and any children still attached to it.
+'if it's still attached to another node, it will be removed from it
 sub FreeNode(byval nod as NodePtr)
 	if nod = null then
 		debug "FreeNode ptr already null"
@@ -109,6 +123,9 @@ sub FreeNode(byval nod as NodePtr)
 	delete nod
 end sub
 
+'This frees an entire document, its root node, and any of its children
+'NOTE! This does not free any nodes that are not currently attached to the
+'root node! Beware!
 sub FreeDocument(byval doc as DocPtr)
 	if doc = null then return
 	
@@ -120,66 +137,53 @@ sub FreeDocument(byval doc as DocPtr)
 	delete doc
 end sub
 
+'This marks a node as a string type and sets its data to the provided string
 sub SetContent (byval nod as NodePtr, dat as string)
 	if nod = null then exit sub
-	'if nod->nodeType = rltChildren then
-		'we need to free the children
-		'FreeNode(nod->Children)
-		'nod->Children = null
-		'nod->NumChildren = 0
-	'end if
 	nod->nodeType = rltString
 	nod->str = dat
 end sub
 
+'This marks a node as an integer, and sets its data to the provided integer
 sub SetContent(byval nod as NodePtr, byval dat as longint)
 	if nod = null then exit sub
-	'if nod->nodeType = rltChildren then
-		'we need to free the children
-		'FreeNode(nod->Children)
-		'nod->Children = null
-		'nod->NumChildren = 0
-	'end if
 	nod->nodeType = rltInt
 	nod->num = dat
 end sub
 
+'This marks a node as a floating-point number, and sets its data to the provided double
 sub SetContent(byval nod as NodePtr, byval dat as double)
 	if nod = null then exit sub
-	'if nod->nodeType = rltChildren then
-		'we need to free the children
-		'FreeNode(nod->Children)
-		'nod->Children = null
-		'nod->NumChildren = 0
-	'end if
 	nod->nodeType = rltFloat
 	nod->flo = dat
 end sub
 
+'This marks a node as a null node. It leaves the old data (but it's no longer accessible)
 sub SetContent(byval nod as NodePtr)
 	if nod = null then exit sub
-	'if nod->nodeType = rltChildren then
-		'we need to free the children
-		'FreeNode(nod->Children)
-		'nod->Children = null
-		'nod->NumChildren = 0
-	'end if
 	nod->nodeType = rltNull
 end sub
 
+'This removes a node from its parent node (eg, pruning it)
+'It updates its parent and siblings as to their new relatives
 Sub RemoveParent(byval nod as NodePtr)
 	if nod->parent then
+		'if we are the first child of the parent, special case!
 		if nod->parent->children = nod then
 			nod->parent->children = nod->nextSib
-			nod->parent = null
 		end if
-		nod->parent->numChildren -= 1
 		
+		'disown our parent
+		nod->parent->numChildren -= 1
+		nod->parent = null
+		
+		'update our brethren
 		if nod->nextSib then
 			nod->nextSib->prevSib = nod->prevSib
 			nod->nextSib = null
 		end if
 		
+		'them too
 		if nod->prevSib then
 			nod->prevSib->nextSib = nod->nextSib
 			nod->prevSib = null
@@ -187,8 +191,10 @@ Sub RemoveParent(byval nod as NodePtr)
 	end if
 end sub
 
+'This adds a node as a child to another node, updating their relatives
 function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
 	
+	'If a node is part of the tree already, we can't add it again
 	if verifyNodeLineage(nod, par) = NO then return nod
 	
 	'first, remove us from our old parent
@@ -198,8 +204,6 @@ function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
 	if par then
 		nod->parent = par
 		par->numChildren += 1
-		
-		'par->nodeType = rltChildren
 		
 		if par->children = null then
 			par->children = nod
@@ -218,8 +222,9 @@ function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
 	return nod
 end function
 
+'This adds the given node as a sibling *after* another node.
 function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
-
+	
 	if verifyNodeSiblings(nod, sib) = NO then return nod
 	
 	if sib = 0 then return nod
@@ -235,8 +240,9 @@ function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	return nod
 end function
 
+'This adds the given node as a sibling *before* another node.
 function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
-
+	
 	if verifyNodeSiblings(nod, sib) = NO then return nod
 	
 	if sib = 0 then return nod
@@ -252,7 +258,13 @@ function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	return nod
 end function
 
+'This promotes a node to Root Node status (which, really, isn't that big a deal.)
+'NOTE: It automatically frees the old root node (unless it's the same as the new root node)
 sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
+	if doc = null then return
+	
+	if doc->root = nod then return
+	
 	if verifyNodeLineage(nod, doc->root) = YES and verifyNodeLineage(doc->root, nod) = YES then
 		FreeNode(doc->root)
 	end if
@@ -261,6 +273,8 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	
 end sub
 
+'Internal function
+'Locates a string in the string table. If it's not there, returns -1
 Function FindStringInTable(st as string, table() as string) as integer
 	if st = "" then return 0
 	for i as integer = lbound(table) to ubound(table)
@@ -269,6 +283,8 @@ Function FindStringInTable(st as string, table() as string) as integer
 	return -1
 end function
 
+'Adds a string to the string table. If it already exists, return the index
+'If it doesn't already exist, add it, and return the new index
 Function AddStringToTable(st as string, table() as string) as integer
 	dim ret as integer
 	
@@ -286,6 +302,7 @@ Function AddStringToTable(st as string, table() as string) as integer
 	end if
 end function
 
+'This traverses a node tree, and gathers all the node names into a string table
 sub BuildStringTable(byval nod as NodePtr, table() as string)
 	static first as integer, start as NodePtr
 	
@@ -300,13 +317,12 @@ sub BuildStringTable(byval nod as NodePtr, table() as string)
 	AddStringToTable(nod->name, table())
 	
 	dim n as NodePtr
-	'if nod->nodeType = rltChildren then
+	
 	n = nod->children
 	do while n <> 0
 		BuildStringTable(n, table())
 		n = n->nextSib
 	loop
-	'end if
 	
 	if start = nod then
 		first = no
@@ -314,12 +330,15 @@ sub BuildStringTable(byval nod as NodePtr, table() as string)
 	end if
 end sub
 
+'Serializes a document as XML to standard out
 sub SerializeXML (byval doc as DocPtr)
 	if doc = null then exit sub
 	
 	serializeXML(doc->root)
 end sub
 
+'serializes a node as XML to standard out.
+'It pretty-prints it by adding indentation.
 sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	if nod = null then exit sub
 	
@@ -344,7 +363,6 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 			print "" & nod->str;
 		'case rltNull
 		'	print ;
-		'case rltChildren
 	end select
 	
 	if nod->numChildren <> 0 then print
@@ -369,6 +387,7 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	
 end sub
 
+'This serializes a document as a binary file. This is where the magic happens :)
 sub SerializeBin(file as string, byval doc as DocPtr)
 	if doc = null then exit sub
 	
@@ -377,6 +396,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	
 	BuildStringTable(doc->root, table())
 	
+	'In case things go wrong, we serialize to a temporary file first
 	kill file & ".tmp"
 	open file & ".tmp" for binary as #f
 	
@@ -399,11 +419,9 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	dim s as longint
 	s = ubound(table) - lbound(table) + 1
 	writeVLI(f, s)
-	'put #f, , s
 	for i = lbound(table) to ubound(table)
 		s = len(table(i))
 		writeVLI(f, s)
-		'put #f, , s
 		put #f, , table(i)
 	next
 	close #f
@@ -413,6 +431,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	kill file & ".tmp"
 end sub
 
+'This serializes a node to a binary file.
 sub serializeBin(byval nod as NodePtr, byval f as integer, table() as string)
 	if nod = 0 then
 		debug "serializeBin null node ptr"
@@ -468,16 +487,12 @@ sub serializeBin(byval nod as NodePtr, byval f as integer, table() as string)
 		case rltString
 			ub = rliString
 			put #f, , ub
-			'i = len(nod->str)
-			'put #f, , i
 			WriteVLI(f, len(nod->str))
 			put #f, , nod->str
 			
 	end select
 	
-	'dim tmp as integer = nod->numChildren
-	'put #f, , tmp
-	WriteVLI(f, cast(longint, nod->numChildren))
+	WriteVLI(f, cast(longint, nod->numChildren)) 'is this cast necessary?
 	
 	dim n as NodePtr
 	n = nod->children
@@ -522,9 +537,9 @@ Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr
 	return null
 End Function
 
+'Loads a node from a binary file, into a document
 Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	dim ret as NodePtr
-	
 	
 	ret = CreateNode(doc, "!") '--the "!" indicates no tag name has been loaded for this node yet
 	
@@ -601,6 +616,8 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	return ret
 End Function
 
+'This loads the string table from a binary document (as if the name didn't clue you in)
+'Please, please make sure you pass a dynamic array as the table :(
 Sub LoadStringTable(f as integer, table() as string)
 	dim as uinteger count, size
 	
@@ -610,6 +627,7 @@ Sub LoadStringTable(f as integer, table() as string)
 	if count <= 0 then exit sub
 	
 	redim preserve table(count - 1) 'why on earth was this INSIDE the loop?!
+	                                'why not? ;) --Mike
 	
 	for i as integer = 0 to count - 1
 		size = cint(ReadVLI(f))
@@ -621,6 +639,8 @@ Sub LoadStringTable(f as integer, table() as string)
 	next
 end sub
 
+'After loading a binary document, the in-memory nodes don't have names, only numbers represting entries
+'in the string table. This function fixes that by copying out of the string table
 function FixNodeName(byval nod as nodeptr, table() as string) as integer
 	if nod = null then return -1
 	
@@ -634,13 +654,12 @@ function FixNodeName(byval nod as nodeptr, table() as string) as integer
 		nod->name = ""
 	end if
 	
-	'if nod->nodetype = rltChildren then
-		dim tmp as nodeptr = nod->children
-		do while tmp <> null
-			FixNodeName(tmp, table())
-			tmp = tmp->nextSib
-		loop
-	'end if
+	dim tmp as nodeptr = nod->children
+	do while tmp <> null
+		FixNodeName(tmp, table())
+		tmp = tmp->nextSib
+	loop
+	
 	return 0
 end function
 
@@ -694,6 +713,8 @@ Function LoadDocument(fil as string) as DocPtr
 	
 	ret->root = LoadNode(f, ret)
 	
+	'Is is possible to serialize a null root? I mean, I don't know why you would want to, but...
+	'regardless, if it's null here, it's because of an error
 	if ret->root = null then
 		close #f
 		delete ret
@@ -705,6 +726,9 @@ Function LoadDocument(fil as string) as DocPtr
 	
 	LoadStringTable(f, table())
 	
+	'String table: Apply directly to the document tree
+	'String table: Apply directly to the document tree
+	'String table: Apply directly to the document tree
 	FixNodeName(ret->root, table())
 	
 	close #f
@@ -712,6 +736,7 @@ Function LoadDocument(fil as string) as DocPtr
 	return ret
 End Function
 
+'This returns a node's content in string form.
 Function GetString(byval node as nodeptr) as string
 	if node = null then return ""
 	
@@ -724,13 +749,14 @@ Function GetString(byval node as nodeptr) as string
 			return ""
 		case rltString
 			return node->str
-		'case rltChildren
-		'	return "<" & node->name & ">"
 		case else
 			return "Unknown value: " & node->nodeType
 	end select
 End Function
 
+'This returns a node's content in integer form. If the node is a string, and the string
+'does not represent an integer of some kind, it will likely return 0.
+'Also, null nodes are worth 0
 Function GetInteger(byval node as nodeptr) as LongInt
 	if node = null then return 0
 	
@@ -738,18 +764,19 @@ Function GetInteger(byval node as nodeptr) as LongInt
 		case rltInt
 			return node->num
 		case rltFloat
-			return cint(node->flo)
+			return clngint(node->flo)
 		case rltNull
 			return 0
 		case rltString
 			return cint(node->str)
-		'case rltChildren
-		'	return 0
 		case else
 			return 0
 	end select
 End Function
 
+'This returns a node's content in floating point form. If the node is a string, and the string
+'does not represent a number of some kind, it will likely return 0.
+'Also, null nodes are worth 0
 Function GetDouble(byval node as nodeptr) as Double
 	if node = null then return 0.0
 	
@@ -762,8 +789,6 @@ Function GetDouble(byval node as nodeptr) as Double
 			return 0.0
 		case rltString
 			return cdbl(node->str)
-		'case rltChildren
-		'	return 0.0
 		case else
 			return 0.0
 	end select
@@ -904,6 +929,8 @@ sub FreeNodeSet(byval nodeset as NodeSetPtr)
 	delete nodeset
 end sub
 
+'This writes an integer out in such a fashion as to minimize the number of bytes used. Eg, 36 will
+'be stored in one byte, while 365 will be stored in two, 10000 in three bytes, etc
 Sub WriteVLI(byval f as integer, byval v as Longint)
 	dim o as ubyte
 	dim neg as integer = 0
@@ -913,17 +940,17 @@ Sub WriteVLI(byval f as integer, byval v as Longint)
 		v = abs(v)
 	end if
 	
-	o = v and &b111111
+	o = v and &b111111 'first, extract the low six bits
 	v = v SHR 6
 	
-	if neg then   o OR=  &b1000000
+	if neg then   o OR=  &b1000000 'bit 6 is the "number is negative" bit
 	
-	if v > 0 then o OR= &b10000000
+	if v > 0 then o OR= &b10000000 'bit 7 is the "omg there's more data" bit
 	
 	put #f, , o
 	
 	do while v > 0
-		o = v and &b1111111
+		o = v and &b1111111 'extract the next 7 bits
 		v = v SHR 7
 		
 		if v > 0 then o OR= &b10000000
@@ -933,6 +960,7 @@ Sub WriteVLI(byval f as integer, byval v as Longint)
 
 end sub
 
+'This reads the number back in again
 function ReadVLI(byval f as integer) as longint
 	dim o as ubyte
 	dim ret as longint = 0
