@@ -1,4 +1,5 @@
 
+#define RELOADHIDETYPES
 #include "reload.bi"
 
 Using Reload
@@ -36,7 +37,7 @@ sub doTest(t as string, theTest as testPtr)
 		diff += 86400
 	loop
 	
-	diff /= 1000
+	'diff *= 1000000
 	
 	if ret then
 		print "FAIL"
@@ -45,7 +46,18 @@ sub doTest(t as string, theTest as testPtr)
 		print "Pass"
 	end if
 	
-	print "Took " & int(diff) & " ms "
+	if(diff < 1) then
+		diff *= 1000
+		if(diff < 1) then
+			diff *= 1000
+			print "Took " & int(diff) & " us "
+		else
+			print "Took " & int(diff) & " ms "
+		end if
+	else
+		print "Took " & int(diff) & " s "
+	end if
+	
 end sub
 
 #define pass return 0
@@ -106,7 +118,7 @@ startTest(addRootNode)
 	
 	SetRootNode(doc, nod)
 	
-	if doc->root <> nod then fail
+	if DocumentRoot(doc) <> nod then fail
 endTest
 
 startTest(addSmallInteger)
@@ -117,12 +129,12 @@ startTest(addSmallInteger)
 	dim i as integer = int(Rnd * 20)
 	SetContent(nod2, i)
 	
-	if nod2->nodeType <> rltInt then fail
-	if nod2->num <> i then fail
+	if NodeType(nod2) <> rltInt then fail
+	if GetInteger(nod2) <> i then fail
 	
-	AddChild(doc->root, nod2)
+	AddChild(DocumentRoot(doc), nod2)
 	
-	if doc->root->numChildren <> 1 then fail
+	if NumChildren(DocumentRoot(doc)) <> 1 then fail
 	
 endTest
 
@@ -134,12 +146,12 @@ startTest(addLargeInteger)
 	dim i as LongInt = int(Rnd * 200000000000) + 5000000000 'we want something > 32 bits ;)
 	SetContent(nod2, i)
 	
-	if nod2->nodeType <> rltInt then fail
-	if nod2->num <> i then fail
+	if NodeType(nod2) <> rltInt then fail
+	if GetInteger(nod2) <> i then fail
 	
-	AddChild(doc->root, nod2)
+	AddChild(DocumentRoot(doc), nod2)
 	
-	if doc->root->numChildren <> 2 then fail
+	if NumChildren(DocumentRoot(doc)) <> 2 then fail
 	
 endTest
 
@@ -151,12 +163,12 @@ startTest(addFloat)
 	dim i as Double = Rnd * 20000000
 	SetContent(nod2, i)
 	
-	if nod2->nodeType <> rltFloat then fail
-	if nod2->flo <> i then fail
+	if NodeType(nod2) <> rltFloat then fail
+	if GetFloat(nod2) <> i then fail
 	
-	AddChild(doc->root, nod2)
+	AddChild(DocumentRoot(doc), nod2)
 	
-	if doc->root->numChildren <> 3 then fail
+	if NumChildren(DocumentRoot(doc)) <> 3 then fail
 	
 endTest
 
@@ -168,12 +180,12 @@ startTest(addString)
 	dim i as String = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 	SetContent(nod2, i)
 	
-	if nod2->nodeType <> rltString then fail
-	if nod2->str <> i then fail
+	if NodeType(nod2) <> rltString then fail
+	if GetString(nod2) <> i then fail
 	
-	AddChild(doc->root, nod2)
+	AddChild(DocumentRoot(doc), nod2)
 	
-	if doc->root->numChildren <> 4 then fail
+	if NumChildren(DocumentRoot(doc)) <> 4 then fail
 	
 endTest
 
@@ -182,11 +194,11 @@ startTest(addEmpty)
 	
 	if nod2 = 0 then fail
 	
-	if nod2->nodeType <> rltNull then fail
+	if NodeType(nod2) <> rltNull then fail
 	
-	AddChild(doc->root, nod2)
+	AddChild(DocumentRoot(doc), nod2)
 	
-	if doc->root->numChildren <> 5 then fail
+	if NumChildren(DocumentRoot(doc)) <> 5 then fail
 endTest
 
 startTest(addNested)
@@ -194,7 +206,7 @@ startTest(addNested)
 	
 	if nod = 0 then fail
 	
-	AddChild(doc->root, nod)
+	AddChild(DocumentRoot(doc), nod)
 	
 	dim nod2 as NodePtr
 	
@@ -205,11 +217,11 @@ startTest(addNested)
 		nod = nod2
 	next
 	
-	if doc->root->numChildren <> 6 then fail
+	if NumChildren(DocumentRoot(doc)) <> 6 then fail
 endTest
 
 startTest(helperFunctions)
-	dim nod as nodeptr = SetChildNode(doc->root, "helper")
+	dim nod as nodeptr = SetChildNode(DocumentRoot(doc), "helper")
 	SetChildNode(nod, "int", 12345)
 	SetChildNode(nod, "float", 1234.5678)
 	SetChildNode(nod, "string", "1 2 3 4 5 6 7 8 9 0")
@@ -243,29 +255,29 @@ startTest(loadFile)
 endTest
 
 function comparenode(nod1 as nodeptr, nod2 as nodeptr) as integer
-	if nod1->name <> nod2->name then return 1
+	if NodeName(nod1) <> NodeName(nod2) then return 1
 	
-	if nod1->nodeType <> nod2->nodeType then return 1
+	if NodeType(nod1) <> NodeType(nod2) then return 1
 	
-	select case nod1->nodeType
+	select case NodeType(nod1)
 		case rltNull
 		case rltInt
-			if nod1->num <> nod2->num then return 1
-		case rltFloat 'fun fact: num and flo are a union, so these checks are redundant!
-			if nod1->flo <> nod2->flo then return 1
+			if GetInteger(nod1) <> GetInteger(nod2) then return 1
+		case rltFloat
+			if GetFloat(nod1) <> GetFloat(nod2) then return 1
 		case rltString
-			if nod1->str <> nod2->str then return 1
+			if GetString(nod1) <> GetString(nod2) then return 1
 	end select
 	
-	if nod1->numChildren <> nod2->numChildren then return 1
+	if NumChildren(nod1) <> NumChildren(nod2) then return 1
 	
-	nod1 = nod1->children
-	nod2 = nod2->children
-	for i as integer = 0 to nod1->numChildren - 1
+	nod1 = FirstChild(nod1)
+	nod2 = FirstChild(nod2)
+	for i as integer = 0 to NumChildren(nod1) - 1
 		if comparenode(nod1, nod2) then return 1
 		
-		nod1 = nod1->nextSib
-		nod2 = nod2->nextSib
+		nod1 = NextSibling(nod1)
+		nod2 = NextSibling(nod2)
 	next
 	
 	'I GUESS they're the same...
@@ -273,7 +285,7 @@ function comparenode(nod1 as nodeptr, nod2 as nodeptr) as integer
 end function
 
 startTest(compareDocuments)
-	if comparenode(doc->root, doc2->root) then fail
+	if comparenode(DocumentRoot(doc), DocumentRoot(doc2)) then fail
 endTest
 
 

@@ -36,27 +36,38 @@ TYPE DocPtr as Doc ptr
 TYPE NodePtr as Node ptr
 TYPE NodeSetPtr as NodeSet Ptr
 
-TYPE Doc
-	version as integer
-	root as NodePtr
-END TYPE
+#ifdef RELOADHIDETYPES
+#ifndef RELOADINTERNAL
+	TYPE Doc
+		thisIsPrivate as ubyte
+	End Type
+	TYPE Node
+		thisIsPrivate as ubyte
+	End Type
+#endif
+#else
+	TYPE Doc
+		version as integer
+		root as NodePtr
+	END TYPE
 
-TYPE Node
-	name as string
-	namenum as short 'in the string table, used while loading
-	nodeType as ubyte
-	str as string 'I'd throw this into the union too, but can't :(
-	Union 'this saves eight bytes per node!
-	num as LongInt
-	flo as Double
-	end Union
-	numChildren as integer
-	children as NodePtr
-	doc as DocPtr
-	parent as NodePtr
-	nextSib as NodePtr
-	prevSib as NodePtr
-END TYPE
+	TYPE Node
+		name as string
+		namenum as short 'in the string table, used while loading
+		nodeType as ubyte
+		str as string 'I'd throw this into the union too, but can't :(
+		Union 'this saves sizeof(Double) bytes per node!
+			num as LongInt
+			flo as Double
+		end Union
+		numChildren as integer
+		children as NodePtr
+		doc as DocPtr
+		parent as NodePtr
+		nextSib as NodePtr
+		prevSib as NodePtr
+	END TYPE
+#endif
 
 Type NodeSet
 	numNodes as integer
@@ -100,6 +111,14 @@ Declare Function GetFloat(byval node as nodeptr) as Double
 
 Declare Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr 'NOT recursive
 Declare Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
+
+Declare Function DocumentRoot(byval doc as DocPtr) as NodePtr
+Declare Function NumChildren(byval nod as NodePtr) as Integer
+Declare Function FirstChild(byval nod as NodePtr) as NodePtr
+Declare Function NextSibling(byval nod as NodePtr) as NodePtr
+Declare Function PrevSibling(byval nod as NodePtr) as NodePtr
+Declare Function NodeType(byval nod as NodePtr) as NodeTypes
+Declare Function NodeName(byval nod as NodePtr) as String
 
 'Helper functions:
 Declare Function SetChildNode Overload (parent as NodePtr, n as string) as NodePtr

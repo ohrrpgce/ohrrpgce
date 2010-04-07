@@ -3,6 +3,7 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+#define RELOADINTERNAL
 
 #include "reload.bi"
 #include "util.bi"
@@ -20,6 +21,32 @@ END SUB
 #endif
 
 Namespace Reload
+
+#ifndef Doc
+TYPE Doc
+	version as integer
+	root as NodePtr
+END TYPE
+#endif
+
+#ifndef Doc
+TYPE Node
+	name as string
+	namenum as short 'in the string table, used while loading
+	nodeType as ubyte
+	str as string 'I'd throw this into the union too, but can't :(
+	Union 'this saves sizeof(Double) bytes per node!
+		num as LongInt
+		flo as Double
+	end Union
+	numChildren as integer
+	children as NodePtr
+	doc as DocPtr
+	parent as NodePtr
+	nextSib as NodePtr
+	prevSib as NodePtr
+END TYPE
+#endif
 
 'this checks to see if a node is part of a tree, for example before adding to a new parent
 Function verifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as integer
@@ -917,6 +944,35 @@ Function GetChildNodeExists(parent as NodePtr, n as string) as integer
 	
 	return nod <> 0
 end function
+
+Function DocumentRoot(byval doc as DocPtr) as NodePtr
+	return doc->root
+end Function
+
+Function NumChildren(byval nod as NodePtr) as Integer
+	return nod->numChildren
+end Function
+
+Function FirstChild(byval nod as NodePtr) as NodePtr
+	return nod->children
+end Function
+
+Function NextSibling(byval nod as NodePtr) as NodePtr
+	return nod->nextSib
+End Function
+
+Function PrevSibling(byval nod as NodePtr) as NodePtr
+	return nod->prevSib
+End Function
+
+Function NodeType(byval nod as NodePtr) as NodeTypes
+	return nod->nodeType
+End Function
+
+Function NodeName(byval nod as NodePtr) as String
+	return nod->name
+End Function
+
 
 Function RPathCompile(query as string) as RPathCompiledQuery Ptr
 	dim tok() as string
