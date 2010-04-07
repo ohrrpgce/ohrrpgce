@@ -777,7 +777,7 @@ End Function
 'This returns a node's content in floating point form. If the node is a string, and the string
 'does not represent a number of some kind, it will likely return 0.
 'Also, null nodes are worth 0
-Function GetDouble(byval node as nodeptr) as Double
+Function GetFloat(byval node as nodeptr) as Double
 	if node = null then return 0.0
 	
 	select case node->nodeType
@@ -794,6 +794,129 @@ Function GetDouble(byval node as nodeptr) as Double
 	end select
 End Function
 
+'Sets the child node of name n to a null value. If n doesn't exist, it adds it
+Function SetChildNode(parent as NodePtr, n as string) as NodePtr
+	if parent = 0 then return 0
+	
+	'first, check to see if this node already exists
+	dim ret as NodePtr = GetChildByName(parent, n)
+	
+	'it doesn't, so add a new one
+	if ret = 0 then
+		ret = CreateNode(parent->doc, n)
+		AddChild(parent, ret)
+	end if
+	
+	SetContent(ret)
+	
+	return ret
+end Function
+
+'Sets the child node of name n to an integer value. If n doesn't exist, it adds it
+Function SetChildNode(parent as NodePtr, n as string, val as longint) as NodePtr
+	if parent = 0 then return 0
+	
+	'first, check to see if this node already exists
+	dim ret as NodePtr = GetChildByName(parent, n)
+	
+	'it doesn't, so add a new one
+	if ret = 0 then
+		ret = CreateNode(parent->doc, n)
+		AddChild(parent, ret)
+	end if
+	
+	SetContent(ret, val)
+	
+	return ret
+end Function
+
+'Sets the child node of name n to a floating point value. If n doesn't exist, it adds it
+Function SetChildNode(parent as NodePtr, n as string, val as double) as NodePtr
+	if parent = 0 then return 0
+	
+	'first, check to see if this node already exists
+	dim ret as NodePtr = GetChildByName(parent, n)
+	
+	'it doesn't, so add a new one
+	if ret = 0 then
+		ret = CreateNode(parent->doc, n)
+		AddChild(parent, ret)
+	end if
+	
+	SetContent(ret, val)
+	
+	return ret
+end Function
+
+'Sets the child node of name n to a string value. If n doesn't exist, it adds it
+Function SetChildNode(parent as NodePtr, n as string, val as string) as NodePtr
+	if parent = 0 then return 0
+	
+	'first, check to see if this node already exists
+	dim ret as NodePtr = GetChildByName(parent, n)
+	
+	'it doesn't, so add a new one
+	if ret = 0 then
+		ret = CreateNode(parent->doc, n)
+		AddChild(parent, ret)
+	end if
+	
+	SetContent(ret, val)
+	
+	return ret
+end Function
+
+'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
+Function GetChildNodeInt(parent as NodePtr, n as string, d as longint) as longint
+	if parent = 0 then return d
+	
+	dim nod as NodePtr = GetChildByName(parent, n)
+	
+	if nod = 0 then return d
+	return GetInteger(nod) 'yes, I realize I don't check for null. GetInteger does, though.
+end function
+
+'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
+Function GetChildNodeFloat(parent as NodePtr, n as string, d as double) as Double
+	if parent = 0 then return d
+	
+	dim nod as NodePtr = GetChildByName(parent, n)
+	
+	if nod = 0 then return d
+	
+	return GetFloat(nod) 'yes, I realize I don't check for null. GetInteger does, though.
+end function
+
+'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
+Function GetChildNodeStr(parent as NodePtr, n as string, d as string) as string
+	if parent = 0 then return d
+	
+	dim nod as NodePtr = GetChildByName(parent, n)
+	
+	if nod = 0 then return d
+	
+	return GetString(nod) 'yes, I realize I don't check for null. GetInteger does, though.
+end function
+
+'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
+Function GetChildNodeBool(parent as NodePtr, n as string, d as integer) as integer
+	if parent = 0 then return d
+	
+	dim nod as NodePtr = GetChildByName(parent, n)
+	
+	if nod = 0 then return d <> 0
+	
+	return GetInteger(nod) <> 0 'yes, I realize I don't check for null. GetInteger does, though.
+end function
+
+'looks for a child node of the name n, and returns whether it finds it or not. For "flags", etc
+Function GetChildNodeExists(parent as NodePtr, n as string) as integer
+	if parent = 0 then return 0
+	
+	dim nod as NodePtr = GetChildByName(parent, n)
+	
+	return nod <> 0
+end function
 
 Function RPathCompile(query as string) as RPathCompiledQuery Ptr
 	dim tok() as string

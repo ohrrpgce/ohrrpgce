@@ -208,6 +208,20 @@ startTest(addNested)
 	if doc->root->numChildren <> 6 then fail
 endTest
 
+startTest(helperFunctions)
+	dim nod as nodeptr = SetChildNode(doc->root, "helper")
+	SetChildNode(nod, "int", 12345)
+	SetChildNode(nod, "float", 1234.5678)
+	SetChildNode(nod, "string", "1 2 3 4 5 6 7 8 9 0")
+	SetChildNode(nod, "null")
+	
+	if GetChildNodeInt(nod, "int") <> 12345 then fail
+	if GetChildNodeFloat(nod, "float") <> 1234.5678 then fail
+	if GetChildNodeStr(nod, "string") <> "1 2 3 4 5 6 7 8 9 0" then fail
+	if not GetChildNodeExists(nod, "null") then fail
+	if not GetChildNodeBool(nod, "int") then fail
+endTest
+
 startTest(serializeXML)
 	print
 	

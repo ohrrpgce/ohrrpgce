@@ -101,6 +101,18 @@ Declare Function GetFloat(byval node as nodeptr) as Double
 Declare Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr 'NOT recursive
 Declare Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
 
+'Helper functions:
+Declare Function SetChildNode Overload (parent as NodePtr, n as string) as NodePtr
+Declare Function SetChildNode(parent as NodePtr, n as string, val as longint) as NodePtr
+Declare Function SetChildNode(parent as NodePtr, n as string, val as double) as NodePtr
+Declare Function SetChildNode(parent as NodePtr, n as string, val as string) as NodePtr
+Declare Function GetChildNodeInt(parent as NodePtr, n as string, d as longint = 0) as longint
+Declare Function GetChildNodeFloat(parent as NodePtr, n as string, d as double = 0.0) as Double
+Declare Function GetChildNodeStr(parent as NodePtr, n as string, d as string = "") as string
+Declare Function GetChildNodeBool(parent as NodePtr, n as string, d as integer = 0) as integer
+Declare Function GetChildNodeExists(parent as NodePtr, n as string) as integer
+
+
 Declare function ReadVLI(byval f as integer) as longint
 declare Sub WriteVLI(byval f as integer, byval v as Longint)
 
