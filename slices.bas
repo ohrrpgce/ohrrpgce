@@ -1792,12 +1792,12 @@ end sub
 
 Sub SaveProp(node AS Reload.Nodeptr, propname AS STRING, value AS INTEGER)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
- Reload.setContent(Reload.AddChild(node, Reload.CreateNode(node->doc, propname)), CLNGINT(value))
+ Reload.SetChildNode(node, propname, CLNGINT(value))
 End Sub
 
 Sub SaveProp(node AS Reload.Nodeptr, propname AS STRING, s AS STRING)
  if node = 0 then debug "SaveProp null node ptr": Exit Sub
- Reload.setContent(Reload.AddChild(node, Reload.CreateNode(node->doc, propname)), s)
+ Reload.SetChildNode(node, propname, s)
 End Sub
 
 Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
@@ -1868,26 +1868,17 @@ End sub
 
 Function LoadPropStr(node AS Reload.Nodeptr, propname as string, default as string="") as string
  if node = 0 then debug "LoadPropStr null node ptr": return default
- dim prop_node as Reload.Nodeptr
- prop_node = Reload.GetChildByName(node, propname)
- if prop_node = 0 then return default
- return Reload.GetString(prop_node)
+ return Reload.GetChildNodeStr(node, propname, default)
 End function
 
 Function LoadProp(node AS Reload.Nodeptr, propname as string, default as integer=0) as integer
  if node = 0 then debug "LoadProp null node ptr": return default
- dim prop_node as Reload.Nodeptr
- prop_node = Reload.GetChildByName(node, propname)
- if prop_node = 0 then return default
- return Clngint(Reload.GetInteger(prop_node))
+ return Reload.GetChildNodeInt(node, propname, CLNGINT(default))
 End function
 
 Function LoadPropBool(node AS Reload.Nodeptr, propname as string, default as integer=NO) as integer
  if node = 0 then debug "LoadPropBool null node ptr": return default
- dim prop_node as Reload.Nodeptr
- prop_node = Reload.GetChildByName(node, propname)
- if prop_node = 0 then return default
- return Reload.GetInteger(prop_node) <> 0
+ return Reload.GetChildNodeBool(node, propname, default)
 End function
 
 Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
