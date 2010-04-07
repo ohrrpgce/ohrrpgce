@@ -3,12 +3,15 @@ include, plotscr.hsd
 plotscript, test, begin
   variable(sl, sl2, sl3, i, cont)
 
-  $0="collection tests", show string(0)
+  $0="collection & lookup tests", show string(0)
   wait(3)
   
   cont := load slice collection(1)
   
   wait(18)
+  
+  sl := lookup slice(1, cont)
+  glide size(sl, -2, 0, 18, 1)
   
   free slice(cont)
   cont := 0

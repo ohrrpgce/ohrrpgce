@@ -184,6 +184,15 @@ FOR i = 0 TO gen(genMaxEnemy)
 NEXT i
 setvispage 0
 
+printstr "slice lookup names", 0, pl * 8, 0: pl = pl + 1
+REDIM u(0) AS STRING
+REDIM slicelookup(0) AS STRING
+load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
+FOR i = 1 TO UBOUND(slicelookup)
+ writeconstant fh, i, slicelookup(i), u(), "sli"
+NEXT i
+setvispage 0
+
 PRINT #fh, "end"
 CLOSE #fh
 

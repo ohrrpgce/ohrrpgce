@@ -2412,16 +2412,16 @@ SUB fix_sprite_record_count(BYVAL pt_num AS INTEGER)
  END WITH
 END SUB
 
-SUB standardmenu (menu() AS STRING, state AS MenuState, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO, wide AS INTEGER=999)
+SUB standardmenu (menu() AS STRING, state AS MenuState, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO, wide AS INTEGER=999, highlight AS INTEGER=NO)
  DIM p AS INTEGER
  WITH state
   p = .pt
   IF hidecursor THEN p = .first - 1
-  standardmenu menu(), .last, .size, p, .top, x, y, page, edge, wide
+  standardmenu menu(), .last, .size, p, .top, x, y, page, edge, wide, highlight
  END WITH
 END SUB
 
-SUB standardmenu (menu() AS STRING, size, vis, pt, top, x, y, page, edge=NO, wide=999)
+SUB standardmenu (menu() AS STRING, size, vis, pt, top, x, y, page, edge=NO, wide=999, highlight=NO)
 'the default for wide is 999 until I know whether it'd break anything to set it to 40
 STATIC tog
 DIM i AS INTEGER
@@ -2432,9 +2432,15 @@ tog = tog XOR 1
 
 FOR i = top TO top + vis
  IF i <= size THEN
+  text = menu(i)
+  IF pt = i AND highlight THEN
+   DIM w AS INTEGER
+   w = 8 * LEN(text)
+   IF w = 0 THEN w = small(wide * 8, 320)
+   rectangle x + 0, y + (i - top) * 8, w, 8, uilook(uiHighlight), page
+  END IF
   IF edge THEN
    col = uilook(uiMenuItem)
-   text = menu(i)
    IF pt = i THEN
     col = uilook(uiSelectedItem + tog)
     text = RIGHT(text, wide)
@@ -2442,7 +2448,6 @@ FOR i = top TO top + vis
    edgeprint text, x + 0, y + (i - top) * 8, col, page
   ELSE
    textcolor uilook(uiMenuItem), 0
-   text = menu(i)
    IF pt = i THEN
     textcolor uilook(uiSelectedItem + tog), 0
     text = RIGHT(text, wide)

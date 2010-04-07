@@ -204,7 +204,11 @@ END FUNCTION
 FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
  '--Used for debugging
  IF sl = 0 THEN RETURN "[null]"
- SELECT CASE sl->Lookup
+ RETURN SliceLookupCodename(sl->Lookup)
+END FUNCTION
+
+FUNCTION SliceLookupCodename (BYVAL code AS INTEGER) AS STRING
+ SELECT CASE code
   CASE 0: RETURN ""
 '--the following is updated from slices.bi using the misc/sl_lookup.py script
 '<SLICE LOOKUP NAMES>
@@ -226,7 +230,7 @@ FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
   CASE SL_MAP_LAYER7: RETURN "map_layer7"
 '</SLICE LOOKUP NAMES>
   CASE ELSE
-   RETURN STR(sl->Lookup)
+   RETURN STR(code)
  END SELECT
  RETURN ""
 END FUNCTION
@@ -1805,6 +1809,9 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  if node = 0 then debug "SliceSaveToNode null node ptr": Exit Sub
  if node->numChildren <> 0 then debug "SliceSaveToNode non-empty node has " & node->numChildren & " children"
  '--Save standard slice properties
+ if sl->lookup <> 0 then
+  SaveProp node, "lookup", sl->lookup
+ end if
  SaveProp node, "x", sl->x
  SaveProp node, "y", sl->Y
  SaveProp node, "w", sl->Width
@@ -1886,6 +1893,7 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  if node = 0 then debug "SliceLoadFromNode null node ptr": Exit Sub
  if sl->NumChildren > 0 then debug "SliceLoadFromNode slice already has " & node->numChildren & " children"
  '--Load standard slice properties
+ sl->lookup = LoadProp(node, "lookup")
  sl->x = LoadProp(node, "x")
  sl->y = LoadProp(node, "y")
  sl->Width = LoadProp(node, "w")

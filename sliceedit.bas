@@ -18,6 +18,7 @@
 #include "slices.bi"
 #include "custom_udts.bi"
 #include "customsubs.bi"
+#include "loading.bi"
 
 #include "sliceedit.bi"
 
@@ -74,6 +75,8 @@ CONST slgrPICKCOL = 8
 CONST slgrUPDATESPRITE = 16
 CONST slgrUPDATERECTCOL = 32
 CONST slgrUPDATERECTSTYLE = 64
+CONST slgrPICKLOOKUP = 128
+'--This system won't be able to expand forever ... :(
 
 '==============================================================================
 
@@ -82,7 +85,6 @@ CONST slgrUPDATERECTSTYLE = 64
 DECLARE SUB slice_editor OVERLOAD (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL use_index AS INTEGER=0)
 
 'Functions that might go better in slices.bas ... we shall see
-DECLARE FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
 DECLARE SUB DrawSliceAnts (BYVAL sl AS Slice Ptr, dpage AS INTEGER)
 
 'Functions that use awkward adoption metaphors
@@ -91,17 +93,20 @@ DECLARE SUB AdjustSlicePosToNewParent (BYVAL sl AS Slice Ptr, BYVAL newparent AS
 DECLARE SUB SliceAdoptNiece (BYVAL sl AS Slice Ptr)
 
 'Functions only used locally
-DECLARE SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
+DECLARE SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr, slicelookup() AS STRING)
 DECLARE SUB slice_editor_refresh_delete (BYREF index AS INTEGER, menu() AS SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, caption AS STRING, sl AS Slice Ptr=0)
-DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr, rootslice AS Slice Ptr)
-DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
-DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
-DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule)
+DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr, rootslice AS Slice Ptr, slicelookup() AS STRING)
+DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS STRING)
+DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule, slicelookup() AS STRING)
+DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule, slicelookup() AS STRING)
 DECLARE SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Slice Ptr, BYVAL rootsl AS Slice Ptr)
 DECLARE FUNCTION slice_editor_filename(BYREF ses AS SliceEditState) AS STRING
 DECLARE SUB slice_editor_load(BYREF edslice AS Slice Ptr, filename AS STRING)
 DECLARE SUB slice_editor_save(BYVAL edslice AS Slice Ptr, filename AS STRING)
+DECLARE FUNCTION slice_lookup_code_caption(BYVAL code AS INTEGER, slicelookup() AS STRING) AS STRING
+DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() AS STRING, BYVAL start_at_code AS INTEGER) AS INTEGER
+DECLARE FUNCTION slice_caption (sl AS Slice Ptr, slicelookup() AS STRING) AS STRING
 
 'Functions that need to be aware of magic numbers for SliceType
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS SliceTypes
@@ -168,13 +173,23 @@ END SUB
 SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL use_index AS INTEGER=0)
  '--use_index controls the display of the collection number index
 
+ '--use_index controls whether or not this is the indexed collection editor
+ '--or the non-indexed single-collection editor
  ses.use_index = use_index
+ 
+ '--save the dimensions of the outer container to restore them later
  ses.saved_pos.x = edslice->X
  ses.saved_pos.y = edslice->Y
  ses.saved_size.x = edslice->Width
  ses.saved_size.y = edslice->Height
+ 
+ '--zero the position, in case we are editing an existing slice in full-screen
  edslice->X = 0
  edslice->Y = 0
+
+ '--user-defined slice lookup codes
+ DIM slicelookup(10) AS STRING
+ load_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
 
  DIM menu(0) AS SliceEditMenuItem
  DIM plainmenu(0) AS STRING 'FIXME: This is a hack because I didn't want to re-implement standardmenu right now
@@ -204,7 +219,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   IF keyval(scF1) > 1 THEN show_help "sliceedit"
 
   IF state.need_update THEN
-   slice_editor_refresh(ses, state, menu(), edslice, cursor_seek)
+   slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
    REDIM plainmenu(state.last) AS STRING
    FOR i AS INTEGER = 0 TO UBOUND(plainmenu)
     plainmenu(i) = menu(i).s
@@ -217,7 +232,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
    IF state.pt = 0 THEN
     EXIT DO
    ELSE
-    slice_edit_detail menu(state.pt).handle, edslice
+    slice_edit_detail menu(state.pt).handle, edslice, slicelookup()
     state.need_update = YES
    END IF 
   END IF
@@ -315,7 +330,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   IF state.pt > 0 THEN
    DrawSliceAnts menu(state.pt).handle, dpage
   END IF
-  standardmenu plainmenu(), state, 0, 0, dpage, YES
+  standardmenu plainmenu(), state, 0, 0, dpage, YES, , , YES
   edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, 190, uilook(uiText), dpage
 
   SWAP vpage, dpage
@@ -361,7 +376,7 @@ SUB slice_editor_save(BYVAL edslice AS Slice Ptr, filename AS STRING)
  END IF
 END SUB
 
-SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
+SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS STRING)
 
  IF sl = 0 THEN EXIT SUB
 
@@ -382,17 +397,17 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
 
   IF state.need_update THEN
-   slice_edit_detail_refresh state, menu(), sl, rules()
+   slice_edit_detail_refresh state, menu(), sl, rules(), slicelookup()
    state.need_update = NO
   END IF
 
   usemenu state
   IF state.pt = 0 AND enter_or_space() THEN EXIT DO
-  slice_edit_detail_keys state, sl, rootsl, rules()
+  slice_edit_detail_keys state, sl, rootsl, rules(), slicelookup()
   
   DrawSlice rootsl, dpage
   DrawSliceAnts sl, dpage
-  standardmenu menu(), state, 0, 0, dpage, YES
+  standardmenu menu(), state, 0, 0, dpage, YES, , , YES
 
   SWAP vpage, dpage
   setvispage vpage
@@ -407,7 +422,7 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr)
  LOOP
 END SUB
 
-SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule)
+SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule, slicelookup() AS STRING)
  DIM rule AS EditRule = rules(state.pt)
  SELECT CASE rule.mode
   CASE erIntgrabber
@@ -466,6 +481,13 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
   IF enter_or_space() THEN
    DIM n AS INTEGER PTR = rule.dataptr
    *n = color_browser_256(*n)
+   state.need_update = YES
+  END IF
+ END IF
+ IF rule.group AND slgrPICKLOOKUP THEN
+  IF enter_or_space() THEN
+   DIM n AS INTEGER PTR = rule.dataptr
+   *n = edit_slice_lookup_codes(slicelookup(), *n)
    state.need_update = YES
   END IF
  END IF
@@ -547,8 +569,8 @@ SUB sliceed_rule_tog(rules() AS EditRule, helpkey AS String, BYVAL dataptr AS IN
  sliceed_rule rules(), helpkey, erToggle, dataptr, -1, 0, group
 END SUB
 
-SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule)
- REDIM menu(5)
+SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule, slicelookup() AS STRING)
+ REDIM menu(6)
  REDIM rules(0)
  rules(0).helpkey = "detail"
  menu(0) = "Previous Menu"
@@ -563,6 +585,8 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
   sliceed_rule rules(), "size", erIntgrabber, @.Width, 0, 9999, slgrPICKWH
   menu(5) = "Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
+  menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, slicelookup())
+  sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(slicelookup), slgrPICKLOOKUP
   SELECT CASE .SliceType
    CASE slRectangle
     DIM dat AS RectangleSliceData Ptr
@@ -684,14 +708,19 @@ FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS S
  RETURN NO 
 END FUNCTION
 
-FUNCTION SlicePositionString (sl AS Slice Ptr) AS STRING
+FUNCTION slice_caption (sl AS Slice Ptr, slicelookup() AS STRING) AS STRING
  'This shows the absolute screen position of a slice.
+ DIM s AS STRING
  WITH *sl
-  RETURN .ScreenX & "," & .ScreenY & "(" & .Width & "x" & .Height & ")"
+  s = .ScreenX & "," & .ScreenY & "(" & .Width & "x" & .Height & ")"
+  IF .Lookup > 0 AND .Lookup <= UBOUND(slicelookup) THEN
+   s &= " " & slicelookup(.Lookup)
+  END IF
  END WITH
+ RETURN s
 END FUNCTION
 
-SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr)
+SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState, menu() AS SliceEditMenuItem, edslice AS Slice Ptr, BYREF cursor_seek AS Slice Ptr, slicelookup() AS STRING)
  FOR i AS INTEGER = 0 TO UBOUND(menu)
   menu(i).s = ""
  NEXT i
@@ -704,7 +733,7 @@ SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS MenuState,
   slice_editor_refresh_append index, menu(), CHR(27) & " Slice Collection " & ses.collection_number & " " & CHR(26)
   ses.last_non_slice += 1
  END IF
- slice_editor_refresh_recurse index, menu(), indent, edslice, edslice
+ slice_editor_refresh_recurse index, menu(), indent, edslice, edslice, slicelookup()
 
  IF cursor_seek <> 0 THEN
   FOR i AS INTEGER = 0 TO index - 1
@@ -739,12 +768,12 @@ SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenu
  index += 1
 END SUB
 
-SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr, rootslice AS Slice Ptr)
+SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr, rootslice AS Slice Ptr, slicelookup() AS STRING)
  WITH *sl
   DIM caption AS STRING
   caption = STRING(indent, " ")
   caption = caption & SliceTypeName(sl)
-  caption = caption & " " & SlicePositionString(sl)
+  caption = caption & " " & slice_caption(sl, slicelookup())
   IF sl <> rootslice THEN
    slice_editor_refresh_append index, menu(), caption, sl
    indent += 1
@@ -752,7 +781,7 @@ SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMen
   'Now append the children
   DIM ch AS slice ptr = .FirstChild
   DO WHILE ch <> 0
-   slice_editor_refresh_recurse index, menu(), indent, ch, rootslice
+   slice_editor_refresh_recurse index, menu(), indent, ch, rootslice, slicelookup()
    ch = ch->NextSibling
   LOOP
   IF sl <> rootslice THEN
@@ -857,3 +886,99 @@ SUB DrawSliceAnts (BYVAL sl AS Slice Ptr, dpage AS INTEGER)
  ant = loopvar(ant, 0, 2, 1)
 END SUB
 
+FUNCTION slice_lookup_code_caption(BYVAL code AS INTEGER, slicelookup() AS STRING) AS STRING
+ DIM s AS STRING
+ IF code = 0 THEN RETURN "None"
+ IF code < 0 THEN
+  '--negative codes are hard-coded slice code
+  s = SliceLookupCodeName(code)
+ ELSE
+  s = STR(code)
+  IF code <= UBOUND(slicelookup) THEN
+   s = s & " " & slicelookup(code)
+  END IF
+ END IF
+ RETURN s
+END FUNCTION
+
+FUNCTION edit_slice_lookup_codes(slicelookup() AS STRING, BYVAL start_at_code AS INTEGER) AS INTEGER
+
+ DIM result AS INTEGER
+ result = start_at_code
+ 
+ '--temporarily put a menu label in string 0
+ slicelookup(0) = "Previous Menu..."
+
+ '--make the list longer so there will be at least one blank space at the end
+ REDIM PRESERVE slicelookup(UBOUND(slicelookup) + 1) AS STRING
+
+ DIM state AS MenuState
+ WITH state
+  .size = 24
+  .last = UBOUND(slicelookup)
+  IF start_at_code > 0 THEN
+   '--start at the specified starting point
+   .pt = start_at_code
+  ELSE
+   '--but if start_at_code is zero, then look for the first blank line
+   FOR i AS INTEGER = 1 TO UBOUND(slicelookup)
+    IF TRIM(slicelookup(i)) = "" THEN
+     .pt = i
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
+ END WITH
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "slice_lookup_codes"
+  IF keyval(scEnter) > 1 THEN
+   result = state.pt
+   EXIT DO
+  END IF
+
+  usemenu state
+  IF state.pt > 0 THEN
+   IF strgrabber(slicelookup(state.pt), 40) THEN
+    slicelookup(state.pt) = exclusive(slicelookup(state.pt), "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _'~")
+   END IF
+  END IF
+  
+  '--make the list longer if we have selected the last item in the list and it is not blank
+  IF state.pt = UBOUND(slicelookup) ANDALSO TRIM(slicelookup(state.pt)) <> "" THEN
+   REDIM PRESERVE slicelookup(UBOUND(slicelookup) + 1) AS STRING
+   state.last = UBOUND(slicelookup)
+  END IF
+
+  draw_fullscreen_scrollbar state, , dpage
+  standardmenu slicelookup(), state, 0, 0, dpage, , , , YES
+
+  SWAP vpage, dpage
+  setvispage vpage
+  clearpage dpage
+  dowait
+ LOOP
+ 
+ '--shrink the end of the list to exclude blank ones.
+ DIM last AS INTEGER = UBOUND(slicelookup)
+ FOR i AS INTEGER = UBOUND(slicelookup) TO 0 STEP -1
+  IF TRIM(slicelookup(i)) <> "" THEN
+   last = i
+   EXIT FOR
+  END IF
+ NEXT i
+ IF UBOUND(slicelookup) <> last THEN
+  REDIM PRESERVE slicelookup(last) AS STRING 
+ END IF
+
+ '--re-blank the 0 string
+ slicelookup(0) = ""
+ 
+ save_string_list slicelookup(), workingdir & SLASH & "slicelookup.txt"
+
+ RETURN result
+END FUNCTION

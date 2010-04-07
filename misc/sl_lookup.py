@@ -119,8 +119,8 @@ class Replacer(object):
         f.close()
 
 class DocReplacer(Replacer):
-    pattern = r"^# This is a list of slice lookup codes.*?^\<\/example\>"
-    replace = "# This is a list of slice lookup codes\n%s</example>"
+    pattern = r"^# This is a list of special slice lookup codes.*?^\<\/example\>"
+    replace = "# This is a list of special slice lookup codes\n%s</example>"
 
 class NameReplacer(Replacer):
     pattern = r"^\'[ \t]*\<SLICE LOOKUP NAMES\>.*?^\'[ \t]*\<\/SLICE LOOKUP NAMES\>"

@@ -96,4 +96,7 @@ DECLARE SUB saveitemdata (array() as integer, index as integer)
 DECLARE SUB loadenemydata (array() as integer, index as integer, altfile as integer = 0)
 DECLARE SUB saveenemydata (array() as integer, index as integer, altfile as integer = 0)
 
+DECLARE SUB save_string_list(array() AS STRING, filename AS STRING)
+DECLARE SUB load_string_list(array() AS STRING, filename AS STRING)
+
 #ENDIF

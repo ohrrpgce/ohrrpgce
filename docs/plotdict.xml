@@ -2179,7 +2179,17 @@ end
 		<command id="lookupslice">
 			<canon>lookup slice (lookup code, start slice)</canon>
 			<shortname>lookup slice</shortname>
-			<description>Search for a special slice and return a handle to it, or 0 if it is not found. Special slices are named using slice lookup code constants. You can optionally specify a slice to start searching from, but if you do not, the whole slice tree will be searched. Currently, there is point ever specifying a start slice - this feature is unfinished. <note>There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your slices to these special slices, but moving them around is definitely out.</note> You may parent a slice to a map layer to make it move with the camera as if placed on the map.</description>
+			<description>Search for an important slice using a lookup code, and return a handle to it, or 0 if it is not found. User defined slice lookup codes are defined in the slice collection editor. You will find them as constants in your .hsi file with sli: prefixes. There are also some special slice lookup codes with names that start with sl: prefixes. You can optionally specify a slice for the <p>lookup slice</p> command to start searching from, but if you do not, the whole slice tree will be searched.
+				<note>Although the user-defined slice lookup codes are always safe to use for any purpose, There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your own slices to these special slices, but moving special slices around is definitely a bad idea.</note>
+			You may <ref>setparent</ref> a slice to a map layer to make it move with the camera just like heros and NPCs do.</description>
+<example>
+# this example loads a saved slice collection,
+# and gets a handle to a slice in it that you
+# have marked with a slice lookup code name.
+variable(collection, sl)
+collection := load slice collection(5)
+sl := lookup slice(sli:my special slice, collection)
+</example>
 <example>
 # this example gets a handle to the portrait of the currently displaying
 # text box (if any) and allows you to manipulate it.
@@ -2189,7 +2199,7 @@ if(portrait) then(
   replace portrait sprite(portrait, 5)
 )
 
-# This is a list of slice lookup codes
+# This is a list of special slice lookup codes
 lookup slice(sl:textbox text)
 lookup slice(sl:textbox portrait)
 lookup slice(sl:textbox choice0)

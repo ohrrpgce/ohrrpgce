@@ -1,0 +1,7 @@
+This is the Slice Lookup code name editor.
+
+Here you can define names that can be assigned to yur slices.
+
+A slice only needs a lookup code name if you want to be able to use the "lookup slice" plotscripting command to get a handle to the slice.
+
+The names you define here will be exported in your HSI file.

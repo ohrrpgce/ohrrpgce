@@ -215,7 +215,8 @@ DECLARE Function LastChild(byval parent as slice ptr) as slice ptr
 DECLARE Function verifySliceLineage(byval sl as slice ptr, parent as slice ptr) as integer
 DECLARE FUNCTION SliceTypeName OVERLOAD (sl AS Slice Ptr) AS STRING
 DECLARE FUNCTION SliceTypeName OVERLOAD (t AS SliceTypes) AS STRING
-DECLARE FUNCTION SliceLookupCodename (sl AS Slice Ptr) AS STRING
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (sl AS Slice Ptr) AS STRING
+DECLARE FUNCTION SliceLookupCodename OVERLOAD (BYVAL code AS INTEGER) AS STRING
 DECLARE Sub RefreshSliceScreenPos(byval sl as slice ptr)
 DECLARE Function SliceXAnchor(BYVAL sl AS Slice Ptr) AS INTEGER
 DECLARE Function SliceYAnchor(BYVAL sl AS Slice Ptr) AS INTEGER

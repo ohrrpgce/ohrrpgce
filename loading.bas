@@ -1730,3 +1730,54 @@ SUB saveherodata (hero as herodef ptr, index as integer)
  serherodef game & ".dt0", hero, index
 END SUB
 
+SUB save_string_list(array() AS STRING, filename AS STRING)
+
+ DIM fh AS INTEGER = FREEFILE
+ OPEN filename FOR BINARY ACCESS WRITE AS #fh
+
+ DIM s AS STRING
+ 
+ FOR i AS INTEGER = 0 TO UBOUND(array)
+  s = escape_nonprintable_ascii(array(i)) & CHR(10)
+  PUT #fh, , s
+ NEXT i
+ 
+ CLOSE #fh
+
+END SUB
+
+SUB load_string_list(array() AS STRING, filename AS STRING)
+
+ DIM i AS INTEGER = 0
+
+ IF isfile(filename) THEN
+
+  DIM fh AS INTEGER = FREEFILE
+  OPEN filename FOR INPUT AS #fh
+
+  DIM s AS STRING
+ 
+  DO WHILE NOT EOF(fh)
+   '--get the next line
+   LINE INPUT #fh, s
+   '--if the array is not big enough to hold the new line, make it bigger
+   IF i > UBOUND(array) THEN
+    REDIM PRESERVE array(i) AS STRING
+   END IF
+   '--store the string in the array
+   array(i) = decode_backslash_codes(s)
+   '--ready for the next line
+   i += 1
+  LOOP
+ 
+  CLOSE #fh
+
+ ELSE
+  '--file does not exist, but still act like we read a single (empty) line
+  i += 1
+ END IF
+ 
+ '--resize the array to fit the number of lines loaded
+ REDIM PRESERVE array(i - 1) AS STRING
+ 
+END SUB
