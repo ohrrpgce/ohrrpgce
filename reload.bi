@@ -45,9 +45,11 @@ TYPE Node
 	name as string
 	namenum as short 'in the string table, used while loading
 	nodeType as ubyte
-	str as string
+	str as string 'I'd throw this into the union too, but can't :(
+	Union 'this saves eight bytes per node!
 	num as LongInt
 	flo as Double
+	end Union
 	numChildren as integer
 	children as NodePtr
 	doc as DocPtr
