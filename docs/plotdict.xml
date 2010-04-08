@@ -882,7 +882,7 @@ end</example>
 		<command id="addhero">
 			<canon>add hero (who)</canon>
 			<shortname>add hero</shortname>
-			<description>Puts the named hero in your party. If there is no room, the hero will be added to your reserve. Use the constants defined in your HSI file. They are in the form of hero:name</description>
+			<description>Puts the named hero in your party. If there is no room, the hero will be added to your reserve. Use the constants defined in your HSI file. They are in the form of hero:name. This command returns the party slot that the hero was added to, or -1 if both the active and reserve parties are completely full.</description>
 		</command>
 		<command id="deletehero">
 			<canon>delete hero (who)</canon>

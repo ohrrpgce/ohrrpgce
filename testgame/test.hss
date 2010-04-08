@@ -458,3 +458,19 @@ end
 plotscript, remote vehicle, begin
   use NPC(2)
 end
+
+plotscript, add hero test, begin
+  variable(slot)
+  slot := add hero(0)
+  $0="added hero at slot "
+  append number(0, slot)
+  trace(0)
+  wait(2)
+end
+
+plotscript, delete hero test, begin
+  delete hero(0)
+  $0="deleted a yorgo"
+  trace(0)
+  wait(2)
+end

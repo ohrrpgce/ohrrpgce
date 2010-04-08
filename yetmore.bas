@@ -211,12 +211,19 @@ SELECT CASE AS CONST id
   scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
  CASE 66'--add hero
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
-   FOR i = 37 TO 0 STEP -1
-    IF hero(i) = 0 THEN slot = i
-   NEXT i
-   'retvals(0) is the real hero id, addhero removes the 1 again
-   addhero retvals(0) + 1, slot, stat()
-   vishero stat()
+   slot = -1
+   IF free_slots_in_party() > 0 THEN
+    slot = first_free_slot_in_active_party()
+    IF slot = -1 THEN
+     slot = first_free_slot_in_reserve_party()
+    END IF
+   END IF
+   IF slot >= 0 THEN
+    'retvals(0) is the real hero id, addhero subtracts the 1 again
+    addhero retvals(0) + 1, slot, stat()
+    vishero stat()
+   END IF
+   scriptret = slot
   END IF
  CASE 67'--delete hero
   IF herocount(40) > 1 THEN

@@ -13,6 +13,8 @@ WHAT IS NEW?
     * Bug 819: %-based attacks don't heal outside of battle [James]
     * Bug 9: Elemental strength/weakness/absorbtion is not yet applied
       to spells used outside of battle. [James]
+    * Fixed a case where "add hero" could add more heroes than you
+      are supposed to be able to have under certain conditions [James]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
@@ -23,6 +25,8 @@ WHAT IS NEW?
       "get grid columns", "set grid rows", "get grid rows",
       "show grid", "grid is shown" [James]
     * "load slice collection" [James]
+    * "add hero" command now returns the party slot it added the hero
+      to, or -1 if the party is full. [James]
 
   * Vikings of Midgard
 

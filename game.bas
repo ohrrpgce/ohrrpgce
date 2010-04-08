@@ -2996,3 +2996,29 @@ FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
  END IF
  RETURN YES
 END FUNCTION
+
+FUNCTION first_free_slot_in_active_party() AS INTEGER
+ '--returns the first free slot, or -1 if all slots are full
+ FOR i AS INTEGER = 0 TO 3
+  IF hero(i) = 0 THEN RETURN i
+ NEXT i
+ RETURN -1
+END FUNCTION
+
+FUNCTION free_slots_in_party() AS INTEGER
+ '--Returns the number of free slots in the active+reserve party
+ 'Note that there can only be 38 heroes total even though there are 41
+ 'hero slots. This is because 3 reserve slots have to be saved to
+ 'allow active party members to be swapped out.
+ RETURN 38 - herocount(40)
+END FUNCTION
+
+FUNCTION first_free_slot_in_reserve_party() AS INTEGER
+ '--returns the first free slot, or -1 if all slots are full
+ IF free_slots_in_party() > 0 THEN
+  FOR i AS INTEGER = 4 TO 40
+   IF hero(i) = 0 THEN RETURN i
+  NEXT i
+ END IF
+ RETURN -1
+END FUNCTION
