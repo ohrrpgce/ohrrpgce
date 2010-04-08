@@ -50,7 +50,7 @@ sub doTest(t as string, theTest as testPtr)
 		diff *= 1000
 		if(diff < 1) then
 			diff *= 1000
-			print "Took " & int(diff) & " us "
+			print "Took " & int(diff) & !" \u03BCs "
 		else
 			print "Took " & int(diff) & " ms "
 		end if
@@ -255,26 +255,47 @@ startTest(loadFile)
 endTest
 
 function comparenode(nod1 as nodeptr, nod2 as nodeptr) as integer
-	if NodeName(nod1) <> NodeName(nod2) then return 1
+	if NodeName(nod1) <> NodeName(nod2) then
+		print "Names of nodes differ! " & NodeName(nod1) & " vs" & NodeName(nod2)
+		return 1
+	end if
 	
-	if NodeType(nod1) <> NodeType(nod2) then return 1
+	if NodeType(nod1) <> NodeType(nod2) then
+		print "Types of node " & NodeName(nod1) & " differ! " & NodeType(nod1) & " vs" & NodeType(nod2)
+		return 1
+	end if
 	
 	select case NodeType(nod1)
 		case rltNull
 		case rltInt
-			if GetInteger(nod1) <> GetInteger(nod2) then return 1
+			if GetInteger(nod1) <> GetInteger(nod2) then
+				print "Value of node " & NodeName(nod1) & " differ! " & GetInteger(nod1) & " vs " & GetInteger(nod2)
+				return 1
+			end if
 		case rltFloat
-			if GetFloat(nod1) <> GetFloat(nod2) then return 1
+			if GetFloat(nod1) <> GetFloat(nod2) then
+				print "Value of node " & NodeName(nod1) & " differ! " & GetFloat(nod1) & " vs " & GetFloat(nod2)
+				return 1
+			end if
 		case rltString
-			if GetString(nod1) <> GetString(nod2) then return 1
+			if GetString(nod1) <> GetString(nod2) then
+				print "Value of node " & NodeName(nod1) & " differ! " & GetString(nod1) & " vs " & GetString(nod2)
+				return 1
+			end if
 	end select
 	
-	if NumChildren(nod1) <> NumChildren(nod2) then return 1
+	if NumChildren(nod1) <> NumChildren(nod2) then
+		print "Number of children on node " & NodeName(nod1) & " differ! " & NumChildren(nod1) & " vs " & NumChildren(nod2)
+		return 1
+	end if
 	
 	nod1 = FirstChild(nod1)
 	nod2 = FirstChild(nod2)
 	for i as integer = 0 to NumChildren(nod1) - 1
-		if comparenode(nod1, nod2) then return 1
+		if comparenode(nod1, nod2) then
+			print "Comparison of children failed"
+			return 1
+		end if
 		
 		nod1 = NextSibling(nod1)
 		nod2 = NextSibling(nod2)

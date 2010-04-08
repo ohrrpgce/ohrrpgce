@@ -22,32 +22,6 @@ END SUB
 
 Namespace Reload
 
-#ifndef Doc
-TYPE Doc
-	version as integer
-	root as NodePtr
-END TYPE
-#endif
-
-#ifndef Doc
-TYPE Node
-	name as string
-	namenum as short 'in the string table, used while loading
-	nodeType as ubyte
-	str as string 'I'd throw this into the union too, but can't :(
-	Union 'this saves sizeof(Double) bytes per node!
-		num as LongInt
-		flo as Double
-	end Union
-	numChildren as integer
-	children as NodePtr
-	doc as DocPtr
-	parent as NodePtr
-	nextSib as NodePtr
-	prevSib as NodePtr
-END TYPE
-#endif
-
 'this checks to see if a node is part of a tree, for example before adding to a new parent
 Function verifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as integer
 	if nod = null then return no
@@ -91,6 +65,8 @@ Function CreateDocument() as DocPtr
 	if ret then
 		ret->version = 1
 		ret->root = null
+		ret->numStrings = 0
+		ret->numAllocStrings = 0
 	end if
 	
 	return ret
@@ -159,6 +135,11 @@ sub FreeDocument(byval doc as DocPtr)
 	if doc->root then
 		FreeNode(doc->root)
 		doc->root = null
+	end if
+	
+	if doc->strings then
+		Deallocate(doc->strings)
+		doc->strings = null
 	end if
 	
 	delete doc
@@ -302,57 +283,68 @@ end sub
 
 'Internal function
 'Locates a string in the string table. If it's not there, returns -1
-Function FindStringInTable(st as string, table() as string) as integer
+Function FindStringInTable(st as string, doc as DocPtr) as integer
 	if st = "" then return 0
-	for i as integer = lbound(table) to ubound(table)
-		if table(i) = st then return i + 1
+	for i as integer = 0 to doc->numStrings - 1
+		if doc->strings[i] = st then return i + 1
 	next
 	return -1
 end function
 
 'Adds a string to the string table. If it already exists, return the index
 'If it doesn't already exist, add it, and return the new index
-Function AddStringToTable(st as string, table() as string) as integer
+Function AddStringToTable(st as string, doc as DocPtr) as integer
 	dim ret as integer
 	
-	ret = FindStringInTable(st, table())
+	ret = FindStringInTable(st, doc)
 	
 	if ret <> -1 then return ret
 	
-	if table(0) = "" then
-		table(0) = st
+	if doc->numAllocStrings = 0 then
+		doc->strings = Callocate(16, sizeof(string))
+		doc->numAllocStrings = 16
+		doc->numStrings = 1
+		doc->strings[0] = st
 		return 1
 	else
-		redim preserve table(ubound(table) + 1)
-		table(ubound(table)) = st
-		return ubound(table) + 1
+		if doc->numStrings >= doc->numAllocStrings then 'I hope it's only ever equals...
+			dim s as string ptr = Reallocate(doc->strings, sizeof(string) * (doc->numAllocStrings * 1.5 + 5))
+			if s = 0 then 'panic
+				debug "Error resizing string table"
+				return -1
+			end if
+			doc->strings = s
+			doc->numAllocStrings = doc->numAllocStrings * 1.5 + 5
+		end if
+		
+		doc->strings[doc->numStrings] = st
+		doc->numStrings += 1
+		
+		return doc->numStrings
 	end if
 end function
 
 'This traverses a node tree, and gathers all the node names into a string table
-sub BuildStringTable(byval nod as NodePtr, table() as string)
-	static first as integer, start as NodePtr
+sub BuildStringTable(byval nod as NodePtr, doc as DocPtr)
+	static start as NodePtr
 	
 	if nod = null then exit sub
 	
-	if first = no then
-		redim table(0)
+	if start = 0 then
 		start = nod
-		first = yes
 	end if
 	
-	AddStringToTable(nod->name, table())
+	AddStringToTable(nod->name, doc)
 	
 	dim n as NodePtr
 	
 	n = nod->children
 	do while n <> 0
-		BuildStringTable(n, table())
+		BuildStringTable(n, doc)
 		n = n->nextSib
 	loop
 	
 	if start = nod then
-		first = no
 		start = null
 	end if
 end sub
@@ -419,9 +411,8 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	if doc = null then exit sub
 	
 	dim f as integer = freefile
-	dim table() as string
 	
-	BuildStringTable(doc->root, table())
+	BuildStringTable(doc->root, doc)
 	
 	'In case things go wrong, we serialize to a temporary file first
 	kill file & ".tmp"
@@ -436,7 +427,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	i = 0 
 	put #f, , i 'we're going to fill this in later. it is the string table post relative to the beginning of the file.
 	
-	serializeBin(doc->root, f, table())
+	serializeBin(doc->root, f, doc)
 	
 	i = seek(f) - 1
 	put #f, 10, i 'filling in the string table position
@@ -444,12 +435,13 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	seek f, i + 1
 	
 	dim s as longint
-	s = ubound(table) - lbound(table) + 1
+	's = ubound(table) - lbound(table) + 1
+	s = doc->numAllocStrings
 	writeVLI(f, s)
-	for i = lbound(table) to ubound(table)
-		s = len(table(i))
+	for i = 0 to doc->numAllocStrings - 1
+		s = len((doc->strings[i]))
 		writeVLI(f, s)
-		put #f, , table(i)
+		put #f, , doc->strings[i]
 	next
 	close #f
 	
@@ -459,7 +451,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 end sub
 
 'This serializes a node to a binary file.
-sub serializeBin(byval nod as NodePtr, byval f as integer, table() as string)
+sub serializeBin(byval nod as NodePtr, byval f as integer, byval doc as DocPtr)
 	if nod = 0 then
 		debug "serializeBin null node ptr"
 		exit sub
@@ -472,7 +464,7 @@ sub serializeBin(byval nod as NodePtr, byval f as integer, table() as string)
 	
 	here = seek(f)
 	
-	strno = FindStringInTable(nod->name, table())
+	strno = FindStringInTable(nod->name, doc)
 	if strno = -1 then
 		debug "failed to find string " & nod->name & " in string table"
 		exit sub
@@ -524,7 +516,7 @@ sub serializeBin(byval nod as NodePtr, byval f as integer, table() as string)
 	dim n as NodePtr
 	n = nod->children
 	do while n <> null
-		serializeBin(n, f, table())
+		serializeBin(n, f, doc)
 		n = n->nextSib
 	loop
 	here2 = seek(f)
@@ -644,8 +636,7 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 End Function
 
 'This loads the string table from a binary document (as if the name didn't clue you in)
-'Please, please make sure you pass a dynamic array as the table :(
-Sub LoadStringTable(f as integer, table() as string)
+Sub LoadStringTable(byval f as integer, byval doc as docptr)
 	dim as uinteger count, size
 	
 	count = cint(ReadVLI(f))
@@ -653,37 +644,42 @@ Sub LoadStringTable(f as integer, table() as string)
 	
 	if count <= 0 then exit sub
 	
-	redim preserve table(count - 1) 'why on earth was this INSIDE the loop?!
-	                                'why not? ;) --Mike
+	if doc->strings <> 0 then
+		Deallocate(doc->strings)
+	end if
+	
+	doc->strings = Callocate(count, sizeof(string))
+	doc->numStrings = count
+	doc->numAllocStrings = count
 	
 	for i as integer = 0 to count - 1
 		size = cint(ReadVLI(f))
 		'get #f, , size
-		table(i) = string(size, " ")
+		doc->strings[i] = string(size, " ")
 		if size > 0 then
-			get #f, , table(i)
+			get #f, , doc->strings[i]
 		end if
 	next
 end sub
 
 'After loading a binary document, the in-memory nodes don't have names, only numbers represting entries
 'in the string table. This function fixes that by copying out of the string table
-function FixNodeName(byval nod as nodeptr, table() as string) as integer
+function FixNodeName(byval nod as nodeptr, byval doc as DocPtr) as integer
 	if nod = null then return -1
 	
-	if nod->namenum > ubound(table) + 1 or nod->namenum < 0 then
+	if nod->namenum > doc->numStrings + 1 or nod->namenum < 0 then
 		return -1
 	end if
 	
 	if nod->namenum > 0 then
-		nod->name = table(nod->namenum - 1)
+		nod->name = doc->strings[nod->namenum - 1]
 	else
 		nod->name = ""
 	end if
 	
 	dim tmp as nodeptr = nod->children
 	do while tmp <> null
-		FixNodeName(tmp, table())
+		FixNodeName(tmp, doc)
 		tmp = tmp->nextSib
 	loop
 	
@@ -740,7 +736,7 @@ Function LoadDocument(fil as string) as DocPtr
 	
 	ret->root = LoadNode(f, ret)
 	
-	'Is is possible to serialize a null root? I mean, I don't know why you would want to, but...
+	'Is it possible to serialize a null root? I mean, I don't know why you would want to, but...
 	'regardless, if it's null here, it's because of an error
 	if ret->root = null then
 		close #f
@@ -748,15 +744,12 @@ Function LoadDocument(fil as string) as DocPtr
 		return null
 	end if
 	
-	'now, we load the string table
-	dim table() as string
-	
-	LoadStringTable(f, table())
+	LoadStringTable(f, ret)
 	
 	'String table: Apply directly to the document tree
 	'String table: Apply directly to the document tree
 	'String table: Apply directly to the document tree
-	FixNodeName(ret->root, table())
+	FixNodeName(ret->root, ret)
 	
 	close #f
 	

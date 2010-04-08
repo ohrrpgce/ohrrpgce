@@ -36,19 +36,13 @@ TYPE DocPtr as Doc ptr
 TYPE NodePtr as Node ptr
 TYPE NodeSetPtr as NodeSet Ptr
 
-#ifdef RELOADHIDETYPES
-#ifndef RELOADINTERNAL
-	TYPE Doc
-		thisIsPrivate as ubyte
-	End Type
-	TYPE Node
-		thisIsPrivate as ubyte
-	End Type
-#endif
-#else
+#if not defined(RELOADHIDETYPES) or defined(RELOADINTERNAL)
 	TYPE Doc
 		version as integer
 		root as NodePtr
+		strings as string ptr
+		numStrings as integer
+		numAllocStrings as integer
 	END TYPE
 
 	TYPE Node
@@ -67,6 +61,13 @@ TYPE NodeSetPtr as NodeSet Ptr
 		nextSib as NodePtr
 		prevSib as NodePtr
 	END TYPE
+#else
+	TYPE Doc
+		thisIsPrivate as ubyte
+	End Type
+	TYPE Node
+		thisIsPrivate as ubyte
+	End Type
 #endif
 
 Type NodeSet
@@ -103,7 +104,7 @@ Declare sub SerializeXML overload (byval doc as DocPtr)
 Declare sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 
 Declare sub SerializeBin overload (file as string, byval doc as DocPtr)
-Declare sub serializeBin (byval nod as NodePtr, byval f as integer = 0, table() as string)
+Declare sub serializeBin (byval nod as NodePtr, byval f as integer = 0, byval doc as DocPtr)
 
 Declare Function GetString(byval node as nodeptr) as string
 Declare Function GetInteger(byval node as nodeptr) as LongInt
