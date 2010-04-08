@@ -2997,20 +2997,23 @@ FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
  RETURN YES
 END FUNCTION
 
+FUNCTION first_free_slot_in_party() AS INTEGER
+ DIM slot AS INTEGER = -1
+ IF free_slots_in_party() > 0 THEN
+  slot = first_free_slot_in_active_party()
+  IF slot = -1 THEN
+   slot = first_free_slot_in_reserve_party()
+  END IF
+ END IF
+ RETURN slot
+END FUNCTION
+
 FUNCTION first_free_slot_in_active_party() AS INTEGER
  '--returns the first free slot, or -1 if all slots are full
  FOR i AS INTEGER = 0 TO 3
   IF hero(i) = 0 THEN RETURN i
  NEXT i
  RETURN -1
-END FUNCTION
-
-FUNCTION free_slots_in_party() AS INTEGER
- '--Returns the number of free slots in the active+reserve party
- 'Note that there can only be 38 heroes total even though there are 41
- 'hero slots. This is because 3 reserve slots have to be saved to
- 'allow active party members to be swapped out.
- RETURN 38 - herocount(40)
 END FUNCTION
 
 FUNCTION first_free_slot_in_reserve_party() AS INTEGER
@@ -3021,4 +3024,19 @@ FUNCTION first_free_slot_in_reserve_party() AS INTEGER
   NEXT i
  END IF
  RETURN -1
+END FUNCTION
+
+FUNCTION free_slots_in_party() AS INTEGER
+ '--Returns the number of free slots in the active+reserve party
+ 'Note that there can only be 38 heroes total even though there are 41
+ 'hero slots. This is because 3 reserve slots have to be saved to
+ 'allow active party members to be swapped out.
+ 'FIXME: the above would be true except that it has been broken so
+ 'very long that games could already exist that rely on having 41 heroes
+ 
+ '--This is the "correct" intended limit that has never been enforced right.
+ 'RETURN 38 - herocount(40)
+
+ RETURN 41 - herocount(40)
+
 END FUNCTION

@@ -51,6 +51,7 @@ DIM herosprite(3) AS Frame PTR
 DIM heropal(3) AS Palette16 PTR
 DIM heroframe AS INTEGER
 DIM heropos AS XYPair
+DIM room_to_hire AS INTEGER = NO
 recordsize = curbinsize(binSTF) / 2 ' get size in INTs
 
 '--Preserve background for display beneath the buy menu
@@ -170,13 +171,13 @@ DO
    END IF '-------END IF ITEM-------------------------------------
    IF b(pt * recordsize + 17) = 1 THEN '---HIRE HERO------------------
     menusound gen(genHireSFX)
-    FOR i = 37 TO 0 STEP -1
-     IF hero(i) = 0 THEN slot = i
-    NEXT i
-    addhero b(pt * recordsize + 18) + 1, slot, stat(), b(pt * recordsize + 26)
-    acol = 4
-    alert = 10
-    alert$ = stuf(pt) + " " + joined$
+    slot = first_free_slot_in_active_party()
+    IF slot >= 0 THEN
+     addhero b(pt * recordsize + 18) + 1, slot, stat(), b(pt * recordsize + 26)
+     acol = 4
+     alert = 10
+     alert$ = stuf(pt) + " " + joined$
+    END IF
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
    'stuff changed
@@ -291,15 +292,13 @@ vishero stat()
 EXIT SUB
 
 stufmask:
+'--this figures out if it is okay to buy (or hire) particular stuff.
 total = 0
 FOR i = 0 TO 5
  vmask(i) = 0
  emask(i) = 0
 NEXT i
-eslot = 4
-FOR i = 0 TO 3
- eslot = eslot - SGN(hero(i))
-NEXT i
+room_to_hire = herocount(3) < 4 ANDALSO free_slots_in_party() > 0
 FOR i = 0 TO storebuf(16)
  '--for each shop-thing
  IF gam.stock(id, i) = 1 THEN setbit vmask(), 0, i, 1
@@ -313,7 +312,9 @@ FOR i = 0 TO storebuf(16)
   END IF
  NEXT
  '---PREVENT PARTY OVERFLOW
- IF b(i * recordsize + 17) = 1 AND eslot = 0 THEN setbit emask(), 0, i, 1
+ IF b(i * recordsize + 17) = 1 THEN
+  IF room_to_hire = NO THEN setbit emask(), 0, i, 1
+ END IF
  IF readbit(vmask(), 0, i) = 0 THEN total = total + 1
 NEXT i
 RETRACE
@@ -398,7 +399,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  hirepal = palette16_load(her.sprite_pal, 0, showhero)
  IF hirepal = 0 THEN debug "Failed to load palette for hireable hero (#" & her.sprite_pal & ")"
 
- IF eslot = 0 THEN info1$ = noroom$
+ IF room_to_hire = NO THEN info1$ = noroom$
 END IF
 RETRACE
 END SUB

@@ -39,7 +39,7 @@ SUB add_rem_swap_lock_hero (box AS TextBox, stat())
 '---ADD/REMOVE/SWAP/LOCK
 '---ADD---
 IF box.hero_addrem > 0 THEN
- i = findhero(0, 0, 40, 1)
+ i = first_free_slot_in_party()
  IF i > -1 THEN
   addhero box.hero_addrem, i, stat()
   vishero stat()
@@ -211,13 +211,7 @@ SELECT CASE AS CONST id
   scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
  CASE 66'--add hero
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
-   slot = -1
-   IF free_slots_in_party() > 0 THEN
-    slot = first_free_slot_in_active_party()
-    IF slot = -1 THEN
-     slot = first_free_slot_in_reserve_party()
-    END IF
-   END IF
+   slot = first_free_slot_in_party()
    IF slot >= 0 THEN
     'retvals(0) is the real hero id, addhero subtracts the 1 again
     addhero retvals(0) + 1, slot, stat()
