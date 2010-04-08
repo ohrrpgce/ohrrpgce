@@ -32,11 +32,16 @@ ENUM NodeTypes
 	rltString
 END ENUM
 
+ENUM LoadOptions
+	optNone = 0
+	optNoDelay = 1
+END ENUM
+
 TYPE DocPtr as Doc ptr
 TYPE NodePtr as Node ptr
 TYPE NodeSetPtr as NodeSet Ptr
 
-#if not defined(RELOADHIDETYPES) or defined(RELOADINTERNAL)
+#if defined(RELOADINTERNAL)
 	TYPE Doc
 		version as integer
 		root as NodePtr
@@ -86,7 +91,8 @@ Type RPathCompiledQuery
 End Type
 
 Declare Function CreateDocument() as DocPtr
-Declare Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
+Declare Function CreateNode overload(byval doc as DocPtr, nam as string) as NodePtr
+Declare Function CreateNode(byval nod as NodePtr, nam as string) as NodePtr
 Declare sub FreeNode(byval nod as NodePtr)
 Declare sub FreeDocument(byval doc as DocPtr)
 Declare sub SetContent Overload (byval nod as NodePtr, dat as string)
@@ -98,7 +104,7 @@ Declare Function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as 
 Declare Function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
 Declare sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 
-Declare Function LoadDocument(fil as string) as DocPtr
+Declare Function LoadDocument(fil as string, byval options as LoadOptions = optNone) as DocPtr
 
 Declare sub SerializeXML overload (byval doc as DocPtr)
 Declare sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)

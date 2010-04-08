@@ -90,6 +90,10 @@ Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	return ret
 End function
 
+Function CreateNode(byval nod as NodePtr, nam as string) as NodePtr
+	return CreateNode(nod->doc, nam)
+end function
+
 'destroys a node and any children still attached to it.
 'if it's still attached to another node, it will be removed from it
 sub FreeNode(byval nod as NodePtr)
@@ -686,7 +690,7 @@ function FixNodeName(byval nod as nodeptr, byval doc as DocPtr) as integer
 	return 0
 end function
 
-Function LoadDocument(fil as string) as DocPtr
+Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	dim ret as DocPtr
 	dim f as integer = freefile
 	

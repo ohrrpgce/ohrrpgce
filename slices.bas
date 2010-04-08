@@ -1807,7 +1807,7 @@ End Sub
 Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  if sl = 0 then debug "SliceSaveToNode null slice ptr": Exit Sub
  if node = 0 then debug "SliceSaveToNode null node ptr": Exit Sub
- if node->numChildren <> 0 then debug "SliceSaveToNode non-empty node has " & node->numChildren & " children"
+ if Reload.NumChildren(node) <> 0 then debug "SliceSaveToNode non-empty node has " & Reload.NumChildren(node) & " children"
  '--Save standard slice properties
  if sl->lookup <> 0 then
   SaveProp node, "lookup", sl->lookup
@@ -1834,13 +1834,13 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  if sl->NumChildren > 0 then
   '--make a container node for all the child nodes
   dim children as Reload.NodePtr
-  children = Reload.CreateNode(node->doc, "children")
+  children = Reload.CreateNode(node, "children")
   Reload.AddChild(node, children)
   'now loop through the children of this slice and create a new node for each one
   dim ch_node AS Reload.NodePtr
   dim ch_slice AS Slice Ptr = sl->FirstChild
   do while ch_slice <> 0
-   ch_node = Reload.CreateNode(children->doc, "")
+   ch_node = Reload.CreateNode(children, "")
    Reload.AddChild(children, ch_node)
    SliceSaveToNode ch_slice, ch_node
    ch_slice = ch_slice->NextSibling
@@ -1891,7 +1891,7 @@ End function
 Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  if sl = 0 then debug "SliceLoadFromNode null slice ptr": Exit Sub
  if node = 0 then debug "SliceLoadFromNode null node ptr": Exit Sub
- if sl->NumChildren > 0 then debug "SliceLoadFromNode slice already has " & node->numChildren & " children"
+ if sl->NumChildren > 0 then debug "SliceLoadFromNode slice already has " & sl->numChildren & " children"
  '--Load standard slice properties
  sl->lookup = LoadProp(node, "lookup")
  sl->x = LoadProp(node, "x")
@@ -1926,11 +1926,11 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  if children then
   'now loop through the children of this node and create a new slice for each one
   dim ch_slice AS Slice Ptr
-  dim ch_node AS Reload.NodePtr = children->children
+  dim ch_node AS Reload.NodePtr = Reload.FirstChild(children)
   do while ch_node <> 0
    ch_slice = NewSlice(sl)
    SliceLoadFromNode ch_slice, ch_node
-   ch_node = ch_node->nextSib
+   ch_node = Reload.NextSibling(ch_node)
   loop
  end if
 End sub
@@ -1940,14 +1940,14 @@ Sub SliceLoadFromFile(BYVAL sl AS Slice Ptr, filename AS STRING)
  'First create a reload document
  dim doc as Reload.DocPtr
  doc = Reload.LoadDocument(filename)
- if doc = null orelse doc->root = null then
+ if doc = null then 'the root node will never be null -- Mike
    debug "Reload.LoadDocument failed in SliceLoadFromFile"
    exit sub
  end if
  
  'Populate the slice tree with data from the reload tree
  dim node as Reload.Nodeptr
- node = doc->root
+ node = Reload.DocumentRoot(doc)
  SliceLoadFromNode sl, node
  
  Reload.FreeDocument(doc)
