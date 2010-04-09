@@ -42,12 +42,18 @@ TYPE NodePtr as Node ptr
 TYPE NodeSetPtr as NodeSet Ptr
 
 #if defined(RELOADINTERNAL)
+#if defined(__FB_WIN32__)
+#include "windows.bi"
+#endif
 	TYPE Doc
 		version as integer
 		root as NodePtr
 		strings as string ptr
 		numStrings as integer
 		numAllocStrings as integer
+#if defined(__FB_WIN32__)
+		heap as HANDLE
+#endif
 	END TYPE
 
 	TYPE Node

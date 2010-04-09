@@ -59,7 +59,6 @@ Function CreateDocument() as DocPtr
 	' -- Mike, Apr 6, 2010
 	' PS: It was me who did this :'(
 	
-	'ret = Callocate(1, sizeof(Doc))
 	ret = New Doc
 	
 	if ret then
@@ -67,6 +66,9 @@ Function CreateDocument() as DocPtr
 		ret->root = null
 		ret->numStrings = 0
 		ret->numAllocStrings = 0
+#if defined(__FB_WIN32__)
+		ret->heap = HeapCreate(0, 0, 0)
+#endif
 	end if
 	
 	return ret
@@ -78,8 +80,13 @@ Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	dim ret as NodePtr
 	
 	if doc = null then return null
-	
+
+#if defined(__FB_WIN32__)
+	dim void as any ptr = HeapAlloc(doc->heap, HEAP_ZERO_MEMORY, sizeof(Node))
+	ret = New (void) Node
+#else
 	ret = New Node
+#endif
 	
 	ret->doc = doc
 	ret->name = nam
@@ -126,16 +133,26 @@ sub FreeNode(byval nod as NodePtr)
 			nod->prevSib->nextSib = nod->nextSib
 		end if
 	end if
-	
+#if defined(__FB_WIN32__)
+	HeapFree(nod->doc->heap, 0, nod)
+#else
 	delete nod
+#endif
 end sub
 
 'This frees an entire document, its root node, and any of its children
+#if defined(__FB_WIN32__)
+'NOTE: this frees ALL nodes that were ever attached to this document!
+#else
 'NOTE! This does not free any nodes that are not currently attached to the
 'root node! Beware!
+#endif
 sub FreeDocument(byval doc as DocPtr)
 	if doc = null then return
 	
+#if defined(__FB_WIN32__)
+	HeapDestroy(doc->heap)
+#else
 	if doc->root then
 		FreeNode(doc->root)
 		doc->root = null
@@ -145,6 +162,7 @@ sub FreeDocument(byval doc as DocPtr)
 		Deallocate(doc->strings)
 		doc->strings = null
 	end if
+#endif
 	
 	delete doc
 end sub
@@ -305,14 +323,22 @@ Function AddStringToTable(st as string, doc as DocPtr) as integer
 	if ret <> -1 then return ret
 	
 	if doc->numAllocStrings = 0 then
+#if defined(__FB_WIN32__)
+		doc-> strings = HeapAlloc(doc->heap, HEAP_ZERO_MEMORY, 16 * sizeof(string))
+#else
 		doc->strings = Callocate(16, sizeof(string))
+#endif
 		doc->numAllocStrings = 16
 		doc->numStrings = 1
 		doc->strings[0] = st
 		return 1
 	else
 		if doc->numStrings >= doc->numAllocStrings then 'I hope it's only ever equals...
+#if defined(__FB_WIN32__)
+			dim s as string ptr = HeapRealloc(doc->heap, HEAP_ZERO_MEMORY, doc->strings, sizeof(string) * (doc->numAllocStrings * 1.5 + 5))
+#else
 			dim s as string ptr = Reallocate(doc->strings, sizeof(string) * (doc->numAllocStrings * 1.5 + 5))
+#endif
 			if s = 0 then 'panic
 				debug "Error resizing string table"
 				return -1
@@ -419,7 +445,9 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	BuildStringTable(doc->root, doc)
 	
 	'In case things go wrong, we serialize to a temporary file first
-	kill file & ".tmp"
+	if dir(file & ".tmp") <> "" then
+		kill file & ".tmp"
+	end if
 	open file & ".tmp" for binary as #f
 	
 	dim i as uinteger, b as ubyte
