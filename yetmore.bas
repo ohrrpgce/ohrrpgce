@@ -2188,7 +2188,7 @@ SELECT CASE AS CONST id
   ELSE
    '--search starting from a certain slice
    IF valid_plotslice(retvals(1)) THEN
-    scriptret = find_plotslice_handle(LookupSlice(retvals(0), plotslices(retvals(0))))
+    scriptret = find_plotslice_handle(LookupSlice(retvals(0), plotslices(retvals(1))))
    END IF
   END IF
  CASE 439'--slice is valid
