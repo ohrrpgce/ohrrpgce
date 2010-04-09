@@ -27,10 +27,13 @@ WHAT IS NEW?
     * "load slice collection" [James]
     * "add hero" command now returns the party slot it added the hero
       to, or -1 if the party is full. [James]
+    * "set slice edge x", "set slice edge y" [James]
 
   * Vikings of Midgard
 
   * Stuff only Developers Will Notice
+    * Hspeak compiler now uses a lexer [Ralph]
+    * Test suite and benchmarks for RELOAD format [Mike]
 
 Mar ? 2010 [Ypsiliform+3]
 

@@ -469,6 +469,8 @@ define function, begin
 459,showgrid,2,0,1            #make a grid visible
 460,gridisshown,1,0           #return true if grid is visible
 461,loadslicecollection,1,0   #load a collection of slices
+462,setsliceedgex,3,0,0,0     #set a slice's position by an arbitrary edge
+463,setsliceedgey,3,0,0,0     #set a slice's position by an arbitrary edge
 end
 
 #--------------------------------------------------------------------------

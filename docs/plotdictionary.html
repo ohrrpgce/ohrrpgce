@@ -1684,6 +1684,12 @@
 		<a href="#about-setsliceclipping">set slice clipping (handle, clip)</a><br>
 		
 	
+		<a href="#about-setsliceedgex">set slice edge x (handle, edge, value)</a><br>
+		
+	
+		<a href="#about-setsliceedgey">set slice edge y (handle, edge, value)</a><br>
+		
+	
 		<a href="#about-setsliceextra">set slice extra (handle, extra, value)</a><br>
 		
 	
@@ -5536,7 +5542,13 @@ set horiz align(sl, edge:right)
 		<b><font color="yellow">slice edge x (handle, edge)</font></b><br>
 			Returns the x position of a particular edge of a slice. use the constants <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span><br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-sliceedgey" class="ref">slice edge y</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-sliceedgey" class="ref">slice edge y</a>, </li>
+<li>
+<a href="#about-setsliceedgex" class="ref">set slice edge x</a>, </li>
+<li><a href="#about-setsliceedgey" class="ref">set slice edge y</a></li>
+</ul>
 		</tt></p>
 		<a name="about-sliceedgey"></a>
 		<p>
@@ -5544,7 +5556,41 @@ set horiz align(sl, edge:right)
 		<b><font color="yellow">slice edge y (handle, edge)</font></b><br>
 			Returns the y position of a particular edge of a slice. use the constants <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span><br>
 			
-			<br>See also: <ul class="seealso"><li><a href="#about-sliceedgex" class="ref">slice edge x</a></li></ul>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-sliceedgex" class="ref">slice edge x</a>, </li>
+<li>
+<a href="#about-setsliceedgex" class="ref">set slice edge x</a>, </li>
+<li><a href="#about-setsliceedgey" class="ref">set slice edge y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setsliceedgex"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice edge x (handle, edge, value)</font></b><br>
+			Changes the x position of a specific edge of a slice. This is like <a href="#about-setslicex" class="ref">set slice x</a>, except that you can set by any edge regardless of the slice's anchor. Use the constants <span class="param">edge:left</span>, <span class="param">edge:center</span>, <span class="param">edge:right</span><br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-sliceedgex" class="ref">slice edge x</a>, </li>
+<li>
+<a href="#about-sliceedgey" class="ref">slice edge y</a>, </li>
+<li><a href="#about-setsliceedgey" class="ref">set slice edge y</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setsliceedgey"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice edge y (handle, edge, value)</font></b><br>
+			Changes the x position of a specific edge of a slice. This is like <a href="#about-setslicey" class="ref">set slice y</a>, except that you can set by any edge regardless of the slice's anchor. use the constants <span class="param">edge:top</span>, <span class="param">edge:middle</span>, <span class="param">edge:bottom</span><br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-sliceedgex" class="ref">slice edge x</a>, </li>
+<li>
+<a href="#about-sliceedgey" class="ref">slice edge y</a>, </li>
+<li><a href="#about-setsliceedgex" class="ref">set slice edge x</a></li>
+</ul>
 		</tt></p>
 		<a name="about-sethorizalign"></a>
 		<p>
@@ -9463,7 +9509,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 681 commands in this file, of which 54 are only references to other commands.</p>
+	<p>Stats: There are 683 commands in this file, of which 54 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

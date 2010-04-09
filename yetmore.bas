@@ -2354,6 +2354,22 @@ SELECT CASE AS CONST id
   sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
   SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld"
   scriptret = create_plotslice_handle(sl)
+ CASE 462 '--set slice edge x
+  IF valid_plotslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge") THEN
+    DIM sl AS Slice Ptr
+    sl = plotslices(retvals(0))
+    sl->X = retvals(2) + SliceXAnchor(sl) - SliceEdgeX(sl, retvals(1))
+   END IF
+  END IF
+ CASE 463 '--slice edge y
+  IF valid_plotslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 2, "edge") THEN
+    DIM sl AS Slice Ptr
+    sl = plotslices(retvals(0))
+    sl->Y = retvals(2) + SliceYAnchor(sl) - SliceEdgeY(sl, retvals(1))
+   END IF
+  END IF
 
 END SELECT
 

@@ -2402,6 +2402,8 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<description>Returns the x position of a particular edge of a slice. use the constants <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p></description>
 			<seealso>
 				<ref>sliceedgey</ref>
+				<ref>setsliceedgex</ref>
+				<ref>setsliceedgey</ref>
 			</seealso>
 		</command>
 		<command id="sliceedgey">
@@ -2410,6 +2412,28 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<description>Returns the y position of a particular edge of a slice. use the constants <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p></description>
 			<seealso>
 				<ref>sliceedgex</ref>
+				<ref>setsliceedgex</ref>
+				<ref>setsliceedgey</ref>
+			</seealso>
+		</command>
+		<command id="setsliceedgex">
+			<canon>set slice edge x (handle, edge, value)</canon>
+			<shortname>set slice edge x</shortname>
+			<description>Changes the x position of a specific edge of a slice. This is like <ref>setslicex</ref>, except that you can set by any edge regardless of the slice's anchor. Use the constants <p>edge:left</p>, <p>edge:center</p>, <p>edge:right</p></description>
+			<seealso>
+				<ref>sliceedgex</ref>
+				<ref>sliceedgey</ref>
+				<ref>setsliceedgey</ref>
+			</seealso>
+		</command>
+		<command id="setsliceedgey">
+			<canon>set slice edge y (handle, edge, value)</canon>
+			<shortname>set slice edge y</shortname>
+			<description>Changes the x position of a specific edge of a slice. This is like <ref>setslicey</ref>, except that you can set by any edge regardless of the slice's anchor. use the constants <p>edge:top</p>, <p>edge:middle</p>, <p>edge:bottom</p></description>
+			<seealso>
+				<ref>sliceedgex</ref>
+				<ref>sliceedgey</ref>
+				<ref>setsliceedgex</ref>
 			</seealso>
 		</command>
 		<command id="sethorizalign">
