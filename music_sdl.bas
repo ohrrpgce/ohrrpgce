@@ -16,7 +16,6 @@ option explicit
 
 'extern
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
-declare function isfile(n$) as integer
 extern "C" 
 declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 end extern

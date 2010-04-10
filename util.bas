@@ -18,6 +18,10 @@ OPTION EXPLICIT
 
 'DECLARE SUB debug (str$)
 
+
+ '------------- Other -------------
+
+
 FUNCTION bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
 bound = n
 IF n < lowest THEN bound = lowest
@@ -92,83 +96,6 @@ FUNCTION str2int (stri as string, default as integer=0) as integer
 
  RETURN n
 END FUNCTION
-
-FUNCTION trimpath(filename as string) as string
-'return the file/directory name without path
-dim i as integer
-for i = 0 to len(filename) -1 
-	if filename[i] = asc("\") or filename[i] = asc("/") then filename[i] = asc(SLASH)
-next
-IF filename <> "" ANDALSO filename[LEN(filename) - 1] = asc(SLASH) THEN
- filename = MID(filename, 1, LEN(filename) - 1)
-END IF
-IF INSTR(filename,SLASH) = 0 THEN RETURN filename
-FOR i = LEN(filename) TO 1 STEP -1
- IF MID(filename, i, 1) = SLASH THEN i += 1 : EXIT FOR
-NEXT
-RETURN MID(filename, i)
-END FUNCTION
-
-FUNCTION trimfilename (filename as string) as string
-'return the path without the filename
-dim i as integer
-for i = 0 to len(filename) -1 
-	if filename[i] = asc("\") or filename[i] = asc("/") then filename[i] = asc(SLASH)
-next
-IF INSTR(filename,SLASH) = 0 THEN RETURN ""
-FOR i = LEN(filename) TO 1 STEP -1
- IF MID(filename, i, 1) = SLASH THEN i -= 1 : EXIT FOR
-NEXT
-RETURN MID(filename, 1, i)
-END FUNCTION
-
-FUNCTION trimextension (filename as string) as string
-'return the filename without extension
-dim as integer i
-IF INSTR(filename,".") = 0 THEN RETURN filename
-FOR i = LEN(filename) TO 1 STEP -1
- IF MID(filename, i, 1) = "." THEN i -= 1 : EXIT FOR
-NEXT
-RETURN MID(filename, 1, i)
-END FUNCTION
-
-FUNCTION justextension (filename as string) as string
-'return only the extension (everything after the *last* period)
-FOR i as integer = LEN(filename) TO 1 STEP -1
- dim as string char = MID(filename, i, 1)
- IF char = "." THEN RETURN RIGHT(filename, LEN(filename) - i)
- IF char = SLASH THEN RETURN ""
-NEXT
-RETURN ""
-END FUNCTION
-
-FUNCTION anycase (filename as string) as string
- 'make a filename case-insensitive
-#IFDEF __FB_WIN32__
- 'Windows filenames are always case-insenstitive
- RETURN filename
-#ELSE
- DIM ascii AS INTEGER
- dim as string result = ""
- FOR i as integer = 1 TO LEN(filename)
-  ascii = ASC(MID(filename, i, 1))
-  IF ascii >= 65 AND ascii <= 90 THEN
-   result = result + "[" + CHR(ascii) + CHR(ascii + 32) + "]"
-  ELSEIF ascii >= 97 AND ascii <= 122 THEN
-   result = result + "[" + CHR(ascii - 32) + CHR(ascii) + "]"
-  ELSE
-   result = result + CHR(ascii)
-  END IF
- NEXT i
- RETURN result
-#ENDIF
-END FUNCTION
-
-SUB touchfile (filename as string)
-dim as integer fh = FREEFILE
-OPEN filename FOR BINARY AS #fh
-CLOSE #fh
-END SUB
 
 FUNCTION rotascii (s as string, o as integer) as string
  dim as string temp = ""
@@ -506,6 +433,252 @@ END FUNCTION
 
 FUNCTION strhash(hstr as string) as unsigned integer
  RETURN strhash(hstr, len(hstr))
+END FUNCTION
+
+
+'------------- File Functions -------------
+
+FUNCTION trimpath(filename as string) as string
+  'return the file/directory name without path
+  dim i as integer
+  for i = 0 to len(filename) - 1 
+    if filename[i] = asc("\") or filename[i] = asc("/") then filename[i] = asc(SLASH)
+  next
+  IF filename <> "" ANDALSO filename[LEN(filename) - 1] = asc(SLASH) THEN
+    filename = MID(filename, 1, LEN(filename) - 1)
+  END IF
+  IF INSTR(filename,SLASH) = 0 THEN RETURN filename
+  FOR i = LEN(filename) TO 1 STEP -1
+    IF MID(filename, i, 1) = SLASH THEN i += 1 : EXIT FOR
+  NEXT
+  RETURN MID(filename, i)
+END FUNCTION
+
+FUNCTION trimfilename (filename as string) as string
+  'return the path without the filename
+  dim i as integer
+  for i = 0 to len(filename) -1 
+    if filename[i] = asc("\") or filename[i] = asc("/") then filename[i] = asc(SLASH)
+  next
+  IF INSTR(filename,SLASH) = 0 THEN RETURN ""
+  FOR i = LEN(filename) TO 1 STEP -1
+    IF MID(filename, i, 1) = SLASH THEN i -= 1 : EXIT FOR
+  NEXT
+  RETURN MID(filename, 1, i)
+END FUNCTION
+
+FUNCTION trimextension (filename as string) as string
+  'return the filename without extension
+  dim as integer i
+  IF INSTR(filename,".") = 0 THEN RETURN filename
+  FOR i = LEN(filename) TO 1 STEP -1
+    IF MID(filename, i, 1) = "." THEN i -= 1 : EXIT FOR
+  NEXT
+  RETURN MID(filename, 1, i)
+END FUNCTION
+
+FUNCTION justextension (filename as string) as string
+  'return only the extension (everything after the *last* period)
+  FOR i as integer = LEN(filename) TO 1 STEP -1
+    dim as string char = MID(filename, i, 1)
+    IF char = "." THEN RETURN RIGHT(filename, LEN(filename) - i)
+    IF char = SLASH THEN RETURN ""
+  NEXT
+  RETURN ""
+END FUNCTION
+
+FUNCTION is_absolute_path (sDir as string) as integer
+#IFDEF __UNIX__
+  if left(sDir, 1) = "/" then return -1
+#ELSE
+  dim first as string = lcase(left(sDir, 1))
+  if first = "\" then return -1
+  if first >= "a" andalso first <= "z" andalso mid(sDir, 2, 2) = ":\" then return -1
+#ENDIF
+  return 0
+END FUNCTION
+
+FUNCTION anycase (filename as string) as string
+  'make a filename case-insensitive
+#IFDEF __FB_WIN32__
+  'Windows filenames are always case-insenstitive
+  RETURN filename
+#ELSE
+  DIM ascii AS INTEGER
+  dim as string result = ""
+  FOR i as integer = 1 TO LEN(filename)
+    ascii = ASC(MID(filename, i, 1))
+    IF ascii >= 65 AND ascii <= 90 THEN
+      result = result + "[" + CHR(ascii) + CHR(ascii + 32) + "]"
+    ELSEIF ascii >= 97 AND ascii <= 122 THEN
+      result = result + "[" + CHR(ascii - 32) + CHR(ascii) + "]"
+    ELSE
+      result = result + CHR(ascii)
+    END IF
+  NEXT i
+  RETURN result
+#ENDIF
+END FUNCTION
+
+SUB touchfile (filename as string)
+  dim as integer fh = FREEFILE
+  OPEN filename FOR BINARY AS #fh
+  CLOSE #fh
+END SUB
+
+SUB findfiles (fmask AS STRING, BYVAL attrib AS INTEGER, outfile AS STRING)
+  ' attrib 0: all files 'cept folders, attrib 16: folders only
+#ifdef __UNIX__
+  'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR
+  DIM AS STRING grep, shellout
+  shellout = "/tmp/ohrrpgce-findfiles-" + STR(RND * 10000) + ".tmp"
+  grep = "-v '/$'"
+  IF attrib AND 16 THEN grep = "'/$'"
+  DIM i AS INTEGER
+  FOR i = LEN(fmask) TO 1 STEP -1
+    IF MID(fmask, i, 1) = CHR(34) THEN fmask = LEFT(fmask, i - 1) + "\" + CHR(34) + RIGHT(fmask, LEN(fmask) - i)
+  NEXT i
+  i = INSTR(fmask, "*")
+  IF i THEN
+    fmask = CHR(34) + LEFT(fmask, i - 1) + CHR(34) + RIGHT(fmask, LEN(fmask) - i + 1)
+  ELSE
+    fmask = CHR(34) + fmask + CHR(34)
+  END IF
+  SHELL "ls -d1p " + fmask + " 2>/dev/null |grep "+ grep + ">" + shellout + " 2>&1"
+  DIM AS INTEGER f1, f2
+  f1 = FreeFile
+  OPEN shellout FOR INPUT AS #f1
+  f2 = FreeFile
+  OPEN outfile FOR OUTPUT AS #f2
+  DIM s AS STRING
+  DO UNTIL EOF(f1)
+    LINE INPUT #f1, s
+    IF s = "/dev/" OR s = "/proc/" OR s = "/sys/" THEN CONTINUE DO
+    IF RIGHT(s, 1) = "/" THEN s = LEFT(s, LEN(s) - 1)
+    DO WHILE INSTR(s, "/")
+      s = RIGHT(s, LEN(s) - INSTR(s, "/"))
+    LOOP
+    PRINT #f2, s
+  LOOP
+  CLOSE #f1
+  CLOSE #f2
+  KILL shellout
+#else
+  DIM a AS STRING, i AS INTEGER, folder AS STRING
+  if attrib = 0 then attrib = 255 xor 16
+  if attrib = 16 then attrib = 55 '*sigh*
+  FOR i = LEN(fmask) TO 1 STEP -1
+    IF MID(fmask, i, 1) = "\" THEN folder = MID(fmask, 1, i): EXIT FOR
+  NEXT
+
+  DIM AS INTEGER tempf, realf
+  tempf = FreeFile
+  a = DIR(fmask, attrib)
+  if a = "" then
+    'create an empty file
+    OPEN outfile FOR OUTPUT AS #tempf
+    close #tempf
+    exit sub
+  end if
+  OPEN outfile + ".tmp" FOR OUTPUT AS #tempf
+  DO UNTIL a = ""
+    PRINT #tempf, a
+    a = DIR '("", attrib)
+  LOOP
+  CLOSE #tempf
+  OPEN outfile + ".tmp" FOR INPUT AS #tempf
+  realf = FREEFILE
+  OPEN outfile FOR OUTPUT AS #realf
+  DO UNTIL EOF(tempf)
+  LINE INPUT #tempf, a
+  IF attrib = 55 THEN
+    'alright, we want directories, but DIR is too broken to give them to us
+    'files with attribute 0 appear in the list, so single those out
+    IF DIR(folder + a, 55) <> "" AND DIR(folder + a, 39) = "" THEN PRINT #realf, a
+  ELSE
+    PRINT #realf, a
+  END IF
+  LOOP
+  CLOSE #tempf
+  CLOSE #realf
+  KILL outfile + ".tmp"
+#endif
+END SUB
+
+SUB killdir(directory as string)
+  dim fh as integer
+  dim filename as string
+  findfiles directory + SLASH + ALLFILES, 0, "filelist.tmp"
+  fh = FREEFILE
+  OPEN "filelist.tmp" FOR INPUT AS #fh
+  DO UNTIL EOF(fh)
+    LINE INPUT #fh, filename
+    KILL directory + SLASH + filename
+  LOOP
+  CLOSE #fh
+  KILL "filelist.tmp"
+  RMDIR directory
+  IF isdir(directory) THEN
+    'debug "Failed to delete directory " & directory
+  END IF
+END SUB
+
+SUB safekill (f as string)
+  IF isfile(f) THEN KILL f
+END SUB
+
+FUNCTION fileisreadable(f as string) as integer
+  dim fh as integer, err_code as integer
+  fh = freefile
+  err_code = open(f for binary access read as #fh)
+  if err_code = 2 then
+    ''debug f & " unreadable (ignored)"
+    return 0
+  elseif err_code <> 0 then
+    'debug "Error " & err_code & " reading " & f   
+    return 0
+  end if
+  close #fh
+  return -1
+END FUNCTION
+
+FUNCTION fileiswriteable(f as string) as integer
+  dim fh as integer
+  fh = freefile
+  if open (f for binary access read write as #fh) = 2 then
+    ''debug f & " unreadable (ignored)"
+    return 0 
+  end if
+  close #fh
+  return -1
+END FUNCTION
+
+FUNCTION diriswriteable(d as string) as integer
+  dim testfile as string = d & SLASH & "__testwrite_" & INT(RND * 100000) & ".tmp"
+  if fileiswriteable(testfile) then
+    kill testfile
+    return -1
+  end if
+  return 0
+END FUNCTION
+
+FUNCTION isfile (n as string) as integer
+  ' directories don't count as files
+  ' this is a simple wrapper for fileisreadable
+  if n = "" then return 0
+  return fileisreadable(n)
+END FUNCTION
+
+FUNCTION isdir (sDir as string) as integer
+#IFDEF __UNIX__
+  'Special hack for broken Linux dir() behavior
+  sDir = escape_string(sDir, """`\$")
+  isdir = SHELL("[ -d """ + sDir + """ ]") = 0
+#ELSE
+  'Windows just uses dir
+  dim ret as integer = dir(sDir, 55) <> "" AND dir(sDir, 39) = ""
+  return ret
+#ENDIF
 END FUNCTION
 
 

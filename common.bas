@@ -83,10 +83,6 @@ fadestate = 0
 fadeto red, green, blue
 END SUB
 
-SUB safekill (f$)
-IF isfile(f$) THEN KILL f$
-END SUB
-
 FUNCTION filesize (file as string) as string
  'returns size of a file in formatted string
  DIM as integer size, spl

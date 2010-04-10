@@ -619,19 +619,7 @@ restoremode
 END
 
 cleanupfiles:
-IF nocleanup = 0 THEN
- 'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir + SLASH + ALLFILES, 0, "filelist.tmp"
- fh = FREEFILE
- OPEN "filelist.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  LINE INPUT #fh, filename$
-  KILL workingdir + SLASH + filename$
- LOOP
- CLOSE #fh
- KILL "filelist.tmp"
- RMDIR workingdir
-END IF
+IF nocleanup = 0 THEN killdir workingdir
 safekill "temp.lst"
 RETRACE
 

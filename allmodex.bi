@@ -83,10 +83,6 @@ DECLARE SUB storeset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB loadset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 DECLARE SUB fixspriterecord (buf() as integer, w as integer, h as integer)
-DECLARE SUB findfiles (fmask as string, BYVAL attrib as integer, outfile as string)
-DECLARE FUNCTION isfile (n as string) as integer
-DECLARE FUNCTION isdir (sDir as string) as integer
-DECLARE FUNCTION is_absolute_path (sDir as string) as integer
 DECLARE FUNCTION drivelist (d() as string) as integer
 DECLARE FUNCTION drivelabel (drive as string) as string
 DECLARE FUNCTION isremovable (drive as string) as integer
@@ -119,9 +115,6 @@ DECLARE SUB releasestack ()
 DECLARE FUNCTION stackpos () as integer
 DECLARE FUNCTION readstackdw (BYVAL off as integer) as integer
 DECLARE FUNCTION isawav(fi as string) as integer
-DECLARE FUNCTION fileisreadable(f as string) as integer
-DECLARE FUNCTION fileiswriteable(f as string) as integer
-DECLARE FUNCTION diriswriteable(d as string) as integer
 
 DECLARE FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as integer = 0) as integer
 DECLARE FUNCTION getkey () as integer

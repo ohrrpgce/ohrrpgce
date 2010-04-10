@@ -227,6 +227,27 @@ declare function hash_iter(byref this as HashTable, byref state as integer, byre
 
 
 '----------------------------------------------------------------------
+'                          File Functions
+
+
+declare function trimpath (filename as string) as string
+declare function trimfilename (filename as string) as string
+declare function trimextension (filename as string) as string
+declare function justextension (filename as string) as string
+declare function is_absolute_path (sDir as string) as integer
+declare function anycase (filename as string) as string
+declare sub touchfile (filename as string)
+declare sub findfiles (fmask as string, BYVAL attrib as integer, outfile as string)
+declare sub killdir (directory as string)
+declare sub safekill (f as string)
+declare function fileisreadable(f as string) as integer
+declare function fileiswriteable(f as string) as integer
+declare function diriswriteable(d as string) as integer
+declare function isfile (n as string) as integer
+declare function isdir (sdir as string) as integer
+
+
+'----------------------------------------------------------------------
 '                              Other
 
 
@@ -239,12 +260,6 @@ declare function range (number as integer, percent as integer) as integer
 declare function rpad (s as string, pad_char as string, size as integer) as string
 declare function is_int(s as string) as integer
 declare function str2int (stri as string, default as integer=0) as integer
-declare function trimpath (filename as string) as string
-declare function trimfilename (filename as string) as string
-declare function trimextension (filename as string) as string
-declare function justextension (filename as string) as string
-declare function anycase (filename as string) as string
-declare sub touchfile (filename as string)
 declare function rotascii (s as string, o as integer) as string
 declare function escape_string(s as string, chars as string) as string
 declare function exclude (s as string, x as string) as string
