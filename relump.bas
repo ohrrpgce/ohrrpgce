@@ -13,30 +13,10 @@ DECLARE FUNCTION readkey$ ()
 DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
-DECLARE SUB forcewd (wd$)
 DECLARE FUNCTION getcurdir$ ()
 'DECLARE SUB xbload (f$, array%(), e$)
-DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 DECLARE SUB fixorder (f$)
-
-'assembly subs and functions
-DECLARE SUB setwait (BYVAL t)
-DECLARE SUB dowait ()
-DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
-DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
-DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$)
 DECLARE SUB lumpfiles (listf$, lump$, path$)
-DECLARE SUB array2str (arr(), BYVAL o, s$)
-DECLARE SUB str2array (s$, arr(), BYVAL o)
-DECLARE SUB getstring (path$)
-DECLARE FUNCTION rpathlength ()
-DECLARE FUNCTION envlength (e$)
-DECLARE FUNCTION drivelist (drbuf())
-DECLARE FUNCTION isfile (n$)
-DECLARE FUNCTION isdir (dir$)
-DECLARE FUNCTION isremovable (BYVAL d)
-DECLARE FUNCTION isvirtual (BYVAL d)
-DECLARE FUNCTION hasmedia (BYVAL d)
 
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
@@ -50,14 +30,13 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 olddir$ = getcurdir
 
 IF COMMAND$ = "" THEN
- PRINT "O.H.R.RPG.C.E. game relumping utility"
+ PRINT "O.H.R.RPG.C.E. lumping utility"
  PRINT ""
  PRINT "syntax:"
- PRINT "relump folder filename.rpg"
+ PRINT "relump folder filename"
  PRINT ""
- PRINT "A utility to package the contents of an RPG folder back into"
- PRINT "a RPG format lumpfile."
- PRINT "If a password is required, you will be prompted to enter it."
+ PRINT "A utility to package the contents of a folder into an OHRRPGCE"
+ PRINT "lumpfile, such as an .RPG file"
  PRINT ""
  PRINT "Windows users can drag-and-drop their rpgdir file onto this program"
  PRINT "to relump it."
@@ -69,14 +48,20 @@ END IF
 
 src$ = COMMAND$(1)
 dest$ = COMMAND$(2)
-IF dest$ = "" THEN
- dest$ = trimextension$(src$) + ".rpg"
- IF dest$ = "" THEN fatalerror "please specify an output folder"
-END IF
+
+IF RIGHT(src$,1)=SLASH THEN src$=LEFT(src$,LEN(src$)-1)
 
 IF NOT isdir(src$) THEN
   IF isfile(src$) THEN fatalerror src$ + "' is a file, not a folder"
   fatalerror "rpgdir folder `" + src$ + "' was not found"
+END IF
+
+IF dest$ = "" THEN
+ IF RIGHT(src$,7) = ".rpgdir" THEN
+  dest$ = trimextension$(src$) + ".rpg"
+ ELSE
+  fatalerror "please specify an output folder"
+ END IF
 END IF
 
 PRINT "From " + src$ + " to " + dest$
@@ -89,108 +74,21 @@ END IF
 
 IF isdir(dest$) THEN fatalerror "destination file " + dest$ + " already exists as a folder."
 
-dim game as string
-
-'--set game according to the archinym
-IF isfile(src$ + SLASH + "archinym.lmp") THEN
- fh = FREEFILE
- OPEN src$ + SLASH + "archinym.lmp" FOR INPUT AS #fh
- LINE INPUT #fh, a$
- CLOSE #fh
- IF LEN(a$) <= 8 THEN
-  game = a$
- END IF
-ELSE
- PRINT "WARNING: " + src$ + SLASH + "archinym.lmp is missing."
- game ="ohrrpgce"
-END IF
-
-DIM gen(360)
-xbload src$ + SLASH + LCASE(game) + ".gen", gen(), "unable to open general data"
-
-passokay = -1
-
-IF gen(genPW2Length) > -1 THEN
- passokay = 0
- '----load password-----
- 'Note that this is still using the old 2nd-style password format, not the
- 'newer simpler 3rd-style password format. This is okay for now, since
- 'CUSTOM writes both 2nd and 3rd style passwords, but supporting 3rd-style
- 'here also would be desireable
- rpas$ = ""
- readscatter rpas$, gen(genPW2Length), gen(), 200
- rpas$ = rotascii(rpas$, gen(genPW2Offset) * -1)
- 'PRINT rpas$
- '-----get inputed password-----
- print "Password Required"
- pas$ = ""
- DO
-  w$ = readkey$
-  IF w$ = CHR$(13) THEN
-   PRINT ""
-   IF pas$ <> rpas$ THEN fatalerror "password mismatch"
-   passokay = -1
-   EXIT DO
-  END IF
-  LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT " "; : NEXT i
-  cur = 0
-  pas$ = editstr(pas$, w$, cur, 17, 0)
-  LOCATE , 1: FOR i = 1 TO LEN(pas$): PRINT "*"; : NEXT i
-  sleep 80,1
- LOOP
-END IF
-
-IF passokay THEN
- '--build the list of files to lump
- findfiles src$ + SLASH + ALLFILES, 0, "temp.lst"
- fixorder "temp.lst"
- '---relump data into lumpfile package---
- lumpfiles "temp.lst", dest$, src$ + SLASH
- KILL "temp.lst"
-END IF
+'--build the list of files to lump
+findfiles src$ + SLASH + ALLFILES, 0, "temp.lst"
+fixorder "temp.lst"
+'---relump data into lumpfile package---
+lumpfiles "temp.lst", dest$, src$ + SLASH
+KILL "temp.lst"
 
 SYSTEM
 
 REM $STATIC
-FUNCTION editstr$ (stri$, key$, cur, max, number)
-
-pre$ = LEFT$(stri$, cur)
-post$ = RIGHT$(stri$, LEN(stri$) - cur)
-
-SELECT CASE key$
- CASE CHR$(8)
-  'backspace
-  IF LEN(pre$) > 0 THEN pre$ = LEFT$(pre$, LEN(pre$) - 1): cur = cur - 1
- CASE CHR$(0) + CHR$(83)
-  'delete
-  IF LEN(post$) > 0 THEN post$ = RIGHT$(post$, LEN(post$) - 1)
- CASE ELSE
-  IF LEN(key$) > 0 THEN
-   IF (ASC(key$) >= 32 AND ASC(key$) < 127 AND key$ <> "," AND key$ <> "~" AND number = 0) OR (ASC(key$) >= 48 AND ASC(key$) <= 57 AND number) THEN
-    IF LEN(post$) = 0 AND LEN(pre$) < max THEN post$ = " "
-    IF LEN(post$) > 0 THEN
-     MID$(post$, 1, 1) = key$
-     cur = bound(cur + 1, 0, LEN(pre$ + post$))
-    END IF
-   END IF
-  END IF
-END SELECT
-
-editstr$ = pre$ + post$
-
-
-END FUNCTION
 
 SUB fatalerror (e$)
 
 IF e$ <> "" THEN PRINT "ERROR: " + e$
 SYSTEM
-
-END SUB
-
-SUB forcewd (wd$)
-
-CHDIR wd$
 
 END SUB
 
@@ -210,19 +108,6 @@ WEND
 readkey$ = w$
 
 END FUNCTION
-
-SUB readscatter (s$, lhold, array(), start)
-DIM stray(10)
-s$ = STRING$(20, "!")
-
-FOR i = 0 TO lhold
- setbit stray(), 0, i, readbit(array(), start - 1, array(start + i))
-NEXT i
-
-array2str stray(), 0, s$
-s$ = LEFT$(s$, INT((lhold + 1) / 8))
-
-END SUB
 
 FUNCTION rightafter$ (s$, d$)
 
@@ -270,97 +155,6 @@ SUB xbload (f$, array(), e$)
 	END IF
 
 END SUB
-
-FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as integer
-	dim mask as uinteger
-	dim woff as integer
-	dim wb as integer
-
-	woff = w + (b \ 16)
-	wb = b mod 16
-
-	mask = 1 shl wb
-
-	if (bb(woff) and mask) then
-		readbit = 1
-	else
-		readbit = 0
-	end if
-end FUNCTION
-
-SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
-	dim mask as uinteger
-	dim woff as integer
-	dim wb as integer
-
-	woff = w + (b \ 16)
-	wb = b mod 16
-
-	if woff > ubound(bb) then
-		exit sub
-	end if
-
-	mask = 1 shl wb
-	if v = 1 then
-		bb(woff) = bb(woff) or mask
-	else
-		mask = not mask
-		bb(woff) = bb(woff) and mask
-	end if
-end SUB
-
-SUB array2str (arr() AS integer, BYVAL o AS integer, s$)
-'String s$ is already filled out with spaces to the requisite size
-'o is the offset in bytes from the start of the buffer
-'the buffer will be packed 2 bytes to an int, for compatibility, even
-'though FB ints are 4 bytes long  ** leave like this? not really wise
-	DIM i AS Integer
-	dim bi as integer
-	dim bp as integer ptr
-	dim toggle as integer
-
-	bp = @arr(0)
-	bi = o \ 2 'offset is in bytes
-	toggle = o mod 2
-
-	for i = 0 to len(s$) - 1
-		if toggle = 0 then
-			s$[i] = bp[bi] and &hff
-			toggle = 1
-		else
-			s$[i] = (bp[bi] and &hff00) shr 8
-			toggle = 0
-			bi = bi + 1
-		end if
-	next
-
-END SUB
-
-FUNCTION isfile (n$) as integer
-    ' I'm assuming we don't count directories as files
-	'return dir$(n$) <> ""
-    return dir$(n$, 255 xor 16) <> ""
-END FUNCTION
-
-FUNCTION isdir (sDir$) as integer
-#IFDEF __UNIX__
-	'Special hack for broken Linux dir$() behavior
-	isdir = 0
-	SHELL "if [ -d """ + sDir$ + """ ] ; then echo dir ; fi > isdirhack.tmp"
-	DIM AS INTEGER fh
-	fh = FREEFILE
-	OPEN "isdirhack.tmp" FOR INPUT AS #fh
-	DIM s$
-	LINE INPUT #fh, s$
-	IF TRIM$(s$) = "dir" THEN isdir = -1
-	CLOSE #fh
-	KILL "isdirhack.tmp"
-#ELSE
-	'Windows just uses dir
-	dim ret as integer = dir$(sDir$, 55) <> "" AND dir$(sDir$, 39) = ""
-	return ret
-#ENDIF
-END FUNCTION
 
 function matchmask(match as string, mask as string) as integer
 	dim i as integer
@@ -482,81 +276,6 @@ WEND
 CLOSE #ifh
 CLOSE #ofh
 KILL "fixorder.tmp"
-END SUB
-
-SUB findfiles (fmask$, BYVAL attrib, outfile$)
-    ' attrib 0: all files 'cept folders, attrib 16: folders only
-#ifdef __UNIX__
-        'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR$
-	DIM grep$
-	grep$ = "-v '/$'"
-	IF attrib AND 16 THEN grep$ = "'/$'"
-	DIM i%
-	FOR i = LEN(fmask$) TO 1 STEP -1
-		IF MID$(fmask$, i, 1) = CHR$(34) THEN fmask$ = LEFT$(fmask$, i - 1) + SLASH + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i)
-	NEXT i
-	i = INSTR(fmask$, "*")
-	IF i THEN
-		fmask$ = CHR$(34) + LEFT$(fmask$, i - 1) + CHR$(34) + RIGHT$(fmask$, LEN(fmask$) - i + 1)
-	ELSE
-		fmask$ = CHR$(34) + fmask$ + CHR$(34)
-	END IF
-	SHELL "ls -d1p " + fmask$ + "|grep "+ grep$ + ">" + outfile$ + ".tmp"
-	DIM AS INTEGER f1, f2
-	f1 = FreeFile
-	OPEN outfile$ + ".tmp" FOR INPUT AS #f1
-	f2 = FreeFile
-	OPEN outfile$ FOR OUTPUT AS #f2
-	DIM s$
-	DO UNTIL EOF(f1)
-		LINE INPUT #f1, s$
-		IF RIGHT$(s$, 1) = "/" THEN s$ = LEFT$(s$, LEN(s$) - 1)
-		DO WHILE INSTR(s$, "/")
-			s$ = RIGHT$(s$, LEN(s$) - INSTR(s$, "/"))
-		LOOP
-		PRINT #f2, s$
-	LOOP
-	CLOSE #f1
-	CLOSE #f2
-	KILL outfile$ + ".tmp"
-#else
-    DIM a$, i%, folder$
-	if attrib = 0 then attrib = 255 xor 16
-
-	FOR i = LEN(fmask$) TO 1 STEP -1
-        IF MID$(fmask$, i, 1) = SLASH THEN folder$ = MID$(fmask$, 1, i): EXIT FOR
-    NEXT
-
-	dim tempf%, realf%
-	tempf = FreeFile
-	OPEN outfile$ + ".tmp" FOR OUTPUT AS #tempf
-	a$ = DIR$(fmask$, attrib)
-	if a$ = "" then
-		close #tempf
-		exit sub
-	end if
-	DO UNTIL a$ = ""
-		PRINT #tempf, a$
-		a$ = DIR$("", attrib)
-	LOOP
-	CLOSE #tempf
-    OPEN outfile$ + ".tmp" FOR INPUT AS #tempf
-    realf = FREEFILE
-    OPEN outfile$ FOR OUTPUT AS #realf
-    DO UNTIL EOF(tempf)
-        LINE INPUT #tempf, a$
-        IF attrib = 16 THEN
-            'alright, we want directories, but DIR$ is too broken to give them to us
-            'files with attribute 0 appear in the list, so single those out
-            IF DIR$(folder$ + a$, 255 xor 16) = "" THEN PRINT #realf, a$
-        ELSE
-            PRINT #realf, a$
-        END IF
-    LOOP
-    CLOSE #tempf
-    CLOSE #realf
-    KILL outfile$ + ".tmp"
-#endif
 END SUB
 
 SUB lumpfiles (listf$, lump$, path$)

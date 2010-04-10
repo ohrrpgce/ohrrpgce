@@ -17,28 +17,12 @@ DECLARE FUNCTION rightafter$ (s$, d$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 'DECLARE FUNCTION readpassword$ ()
 
-'assembly subs and functions
-DECLARE SUB setwait (BYVAL t)
-DECLARE SUB dowait ()
 DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
 DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
-DECLARE SUB findfiles (fmask$, BYVAL attrib, outfile$)
-DECLARE SUB lumpfiles (listf$, lump$, path$)
 DECLARE SUB unlump (lump$, ulpath$)
 DECLARE SUB unlumpfile (lump$, fmask$, path$)
 DECLARE FUNCTION islumpfile (lump$, fmask$)
 DECLARE SUB array2str (arr(), BYVAL o, s$)
-DECLARE SUB str2array (s$, arr(), BYVAL o)
-DECLARE SUB getstring (path$)
-DECLARE FUNCTION rpathlength ()
-DECLARE FUNCTION envlength (e$)
-DECLARE FUNCTION drivelist (drbuf())
-DECLARE Function fileisreadable(f$)
-DECLARE FUNCTION isfile (n$)
-DECLARE FUNCTION isdir (dir$)
-DECLARE FUNCTION isremovable (BYVAL d)
-DECLARE FUNCTION isvirtual (BYVAL d)
-DECLARE FUNCTION hasmedia (BYVAL d)
 
 #include "compat.bi"
 #include "util.bi"
@@ -77,12 +61,12 @@ dest$ = COMMAND$(2)
 isrpg = islumpfile(lump$, "browse.txt")
 
 IF dest$ = "" THEN
+ IF LEN(rightafter(lump$, ".")) = LEN(lump$) - 1 THEN fatalerror "please specify an output directory"
  IF isrpg THEN
   dest$ = trimextension$(lump$) + ".rpgdir"
  ELSE
   dest$ = trimextension$(lump$) + ".unlmp"
  END IF
- IF LEN(rightafter(lump$, ".")) > 3 OR dest$ = "" THEN fatalerror "please specify an output directory"
 END IF
 
 IF NOT isfile(lump$) THEN fatalerror "lump file `" + lump$ + "' was not found"
@@ -101,16 +85,17 @@ IF isdir(dest$) THEN
  PRINT "destination directory `" + dest$ + "' already exists. use it anyway? (y/n)"
  w$ = readkey
  IF w$ <> "Y" AND w$ <> "y" THEN SYSTEM
-ELSE
- MKDIR dest$
- createddir = -1
+ killdir dest$
 END IF
+MKDIR dest$
+createddir = -1
 
 IF NOT isdir(dest$) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
 
 IF NOT isrpg THEN
  unlump lump$, dest$ + SLASH
  CHDIR olddir$
+ PRINT "Done."
  SYSTEM
 END IF
  
@@ -169,7 +154,7 @@ IF passokay THEN
 END IF
 
 CHDIR olddir$
-
+PRINT "Done."
 SYSTEM
 
 REM $STATIC
@@ -348,34 +333,6 @@ SUB array2str (arr() AS integer, BYVAL o AS integer, s$)
 	next
 
 END SUB
-
-FUNCTION isfile (n$) as integer
-	' directories don't count as files
-	' this is a simple wrapper for fileisreadable
-	if n$ = "" then return 0
-	return fileisreadable(n$)
-END FUNCTION
-
-FUNCTION isdir (sDir$) as integer
-#IFDEF __UNIX__
-	'Special hack for broken Linux dir$() behavior
-	isdir = 0
-	sDir$ = escape_string(sDir$, """`\$")
-	SHELL "if [ -d """ + sDir$ + """ ] ; then echo dir ; fi > isdirhack.tmp"
-	DIM AS INTEGER fh
-	fh = FREEFILE
-	OPEN "isdirhack.tmp" FOR INPUT AS #fh
-	DIM s$
-	LINE INPUT #fh, s$
-	IF TRIM$(s$) = "dir" THEN isdir = -1
-	CLOSE #fh
-	KILL "isdirhack.tmp"
-#ELSE
-	'Windows just uses dir
-	dim ret as integer = dir$(sDir$, 55) <> "" AND dir$(sDir$, 39) = ""
-	return ret
-#ENDIF
-END FUNCTION
 
 function matchmask(match as string, mask as string) as integer
 	dim i as integer
@@ -584,7 +541,7 @@ FUNCTION islumpfile (lump$, fmask$)
 	dim lname as string
 	dim i as integer
 
-    islumpfile = 0
+	islumpfile = 0
 
 	lf = freefile
 	open lump$ for binary access read as #lf
@@ -594,7 +551,7 @@ FUNCTION islumpfile (lump$, fmask$)
 	end if
 	maxsize = LOF(lf)
 
-    get #lf, , dat	'read first byte
+	get #lf, , dat	'read first byte
 	while not eof(lf)
 		'get lump name
 		lname = ""
@@ -649,21 +606,6 @@ FUNCTION islumpfile (lump$, fmask$)
 
 	close #lf
 end FUNCTION
-
-Function fileisreadable(f$)
-	dim fh as integer, err_code as integer
-	fh = freefile
-	err_code = open(f$ for binary access read as #fh)
-	if err_code = 2 then
-		'debug f$ & " unreadable (ignored)"
-		return 0
-	elseif err_code <> 0 then
-		PRINT "Error " & err_code & " reading " & f$
-		return 0
-	end if
-	close #fh
-	return -1
-end Function
 
 'FUNCTION readpassword$
 '
