@@ -58,13 +58,15 @@ TYPE NodePtr as Node ptr
 	END TYPE
 
 	TYPE Node
-		name as string
+		'name as string
+		name as zstring ptr
 		namenum as short 'in the string table, used while loading
 		nodeType as ubyte
-		str as string 'I'd throw this into the union too, but can't :(
+		'str as string 'I'd throw this into the union too, but can't :(
 		Union 'this saves sizeof(Double) bytes per node!
 			num as LongInt
 			flo as Double
+			str as zstring ptr
 		end Union
 		numChildren as integer
 		children as NodePtr

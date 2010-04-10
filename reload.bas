@@ -150,7 +150,8 @@ Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	ret = RAllocate(sizeof(Node), doc)
 	
 	ret->doc = doc
-	ret->name = nam
+	ret->name = RAllocate(len(nam) + 1, doc)
+	*ret->name = nam
 	ret->nodeType = rltNull
 	ret->numChildren = 0
 	ret->children = null
@@ -201,6 +202,8 @@ sub FreeNode(byval nod as NodePtr, byval options as integer)
 		end if
 	end if
 	if (options and 1) = 0 then
+		if nod->name <> 0 then RDeallocate(nod->name, nod->doc)
+		if nod->nodeType = rltString and nod->str <> 0 then RDeallocate(nod->str, nod->doc)
 		RDeallocate(nod, nod->doc)
 	end if
 end sub
@@ -239,13 +242,22 @@ end sub
 'This marks a node as a string type and sets its data to the provided string
 sub SetContent (byval nod as NodePtr, dat as string)
 	if nod = null then exit sub
+	if nod->nodeType = rltString then
+		if nod->str then RDeallocate(nod->str, nod->doc)
+		nod->str = 0
+	end if
 	nod->nodeType = rltString
-	nod->str = dat
+	nod->str = RAllocate(len(dat) + 1, nod->doc)
+	*nod->str = dat
 end sub
 
 'This marks a node as an integer, and sets its data to the provided integer
 sub SetContent(byval nod as NodePtr, byval dat as longint)
 	if nod = null then exit sub
+	if nod->nodeType = rltString then
+		if nod->str then RDeallocate(nod->str, nod->doc)
+		nod->str = 0
+	end if
 	nod->nodeType = rltInt
 	nod->num = dat
 end sub
@@ -253,6 +265,10 @@ end sub
 'This marks a node as a floating-point number, and sets its data to the provided double
 sub SetContent(byval nod as NodePtr, byval dat as double)
 	if nod = null then exit sub
+	if nod->nodeType = rltString then
+		if nod->str then RDeallocate(nod->str, nod->doc)
+		nod->str = 0
+	end if
 	nod->nodeType = rltFloat
 	nod->flo = dat
 end sub
@@ -260,6 +276,10 @@ end sub
 'This marks a node as a null node. It leaves the old data (but it's no longer accessible)
 sub SetContent(byval nod as NodePtr)
 	if nod = null then exit sub
+	if nod->nodeType = rltString then
+		if nod->str then RDeallocate(nod->str, nod->doc)
+		nod->str = 0
+	end if
 	nod->nodeType = rltNull
 end sub
 
@@ -427,7 +447,7 @@ sub BuildStringTable(byval nod as NodePtr, doc as DocPtr)
 		start = nod
 	end if
 	
-	AddStringToTable(nod->name, doc)
+	if nod->name then AddStringToTable(*nod->name, doc)
 	
 	dim n as NodePtr
 	
@@ -456,13 +476,13 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	
 	print string(ind, "	");
 	if nod->nodeType = rltArray then
-		print "<" & nod->name & "reload:array=""array"">"
+		print "<" & *nod->name & "reload:array=""array"">"
 	elseif nod->nodeType <> rltNull or nod->numChildren <> 0 then
-		if nod->name <> "" then
-			print "<" & nod->name & ">";
+		if *nod->name <> "" then
+			print "<" & *nod->name & ">";
 		end if
 	elseif nod->nodeType = rltNull and nod->numChildren = 0 then
-		print "<" & nod->name & " />"
+		print "<" & *nod->name & " />"
 		exit sub
 	end if
 	
@@ -474,7 +494,7 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 		case rltFloat
 			print "" & nod->flo;
 		case rltString
-			print "" & nod->str;
+			print "" & *nod->str;
 		'case rltNull
 		'	print ;
 	end select
@@ -497,8 +517,8 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	if nod->numChildren <> 0 then print string(ind, "	");
 	
 	if nod->nodeType <> rltNull or nod->numChildren <> 0 then
-		if nod->name <> "" then
-			print "</" & nod->name & ">"
+		if nod->name then
+			print "</" & *nod->name & ">"
 		else
 			print
 		end if
@@ -584,9 +604,9 @@ sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr
 	'here = seek(f)
 	here = ftell(f)
 	
-	strno = FindStringInTable(nod->name, doc)
+	strno = FindStringInTable(*nod->name, doc)
 	if strno = -1 then
-		debug "failed to find string " & nod->name & " in string table"
+		debug "failed to find string " & *nod->name & " in string table"
 		exit sub
 	end if
 	
@@ -626,7 +646,7 @@ sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr
 		case rltString
 			ub = rliString
 			fputc(ub, f)
-			WriteVLI(f, len(nod->str))
+			WriteVLI(f, len(*nod->str))
 			fputs(nod->str, f)
 			
 	end select
@@ -651,7 +671,7 @@ Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr
 	'recursively searches for a child by name, depth-first
 	'can also find self
 	if nod = null then return null
-	if nod->name = nam then return nod
+	if *nod->name = nam then return nod
 	dim child as NodePtr
 	dim ret as NodePtr
 	child = nod->children
@@ -671,7 +691,7 @@ Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr
 	dim ret as NodePtr
 	child = nod->children
 	while child <> null
-		if child->name = nam then return child
+		if *child->name = nam then return child
 		child = child->nextSib
 	wend
 	return null
@@ -693,9 +713,11 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 	ret->namenum = cshort(ReadVLI(f))
 	
 	if ret->namenum > 0 and ret->namenum <= doc->numStrings then
-		ret->name = *doc->strings[ret->namenum - 1]
+		ret->name = RAllocate(len(*doc->strings[ret->namenum - 1]) + 1, doc)
+		*ret->name = *doc->strings[ret->namenum - 1]
 	else
-		ret->name = ""
+		ret->name = RAllocate(1, doc)
+		*ret->name = ""
 	end if
 	
 	ret->nodetype = fgetc(f)
@@ -724,8 +746,9 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 		case rliString
 			dim mysize as integer
 			mysize = cint(ReadVLI(f))
-			ret->str = string(mysize, " ")
-			fread(strptr(ret->str), 1, mysize, f)
+			'ret->str = string(mysize, " ")
+			ret->str = RAllocate(mysize + 1, doc)
+			fread(ret->str, 1, mysize, f)
 			ret->nodeType = rltString
 		case else
 			debug "unknown node type " & ret->nodeType
@@ -739,7 +762,7 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 	
 #if defined(RELOAD_TRACE)
 	static tablevel as integer
-	dim debugs as string = string(tablevel, "  ") & "<" & ret->name
+	dim debugs as string = string(tablevel, "  ") & "<" & *ret->name
 	if ret->numChildren > 0 then debugs = debugs & ">" else debugs = debugs & " />"
 	
 	debug debugs
@@ -760,7 +783,7 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 #if defined(RELOAD_TRACE)
 	tablevel -= 1
 	if ret->numChildren > 0 then
-		debug string(tablevel, "  ") & "</" & ret->name & ">"
+		debug string(tablevel, "  ") & "</" & *ret->name & ">"
 	end if
 #endif
 	
@@ -802,30 +825,6 @@ Sub LoadStringTable(byval f as .FILE ptr, byval doc as docptr)
 		end if
 	next
 end sub
-
-'After loading a binary document, the in-memory nodes don't have names, only numbers represting entries
-'in the string table. This function fixes that by copying out of the string table
-function FixNodeName(byval nod as nodeptr, byval doc as DocPtr) as integer
-	if nod = null then return -1
-	
-	if nod->namenum > doc->numStrings + 1 or nod->namenum < 0 then
-		return -1
-	end if
-	
-	if nod->namenum > 0 then
-		nod->name = *doc->strings[nod->namenum - 1]
-	else
-		nod->name = ""
-	end if
-	
-	dim tmp as nodeptr = nod->children
-	do while tmp <> null
-		FixNodeName(tmp, doc)
-		tmp = tmp->nextSib
-	loop
-	
-	return 0
-end function
 
 Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	dim ret as DocPtr
@@ -916,7 +915,7 @@ Function GetString(byval node as nodeptr) as string
 		case rltNull
 			return ""
 		case rltString
-			return node->str
+			return *node->str
 		case else
 			return "Unknown value: " & node->nodeType
 	end select
@@ -936,7 +935,7 @@ Function GetInteger(byval node as nodeptr) as LongInt
 		case rltNull
 			return 0
 		case rltString
-			return cint(node->str)
+			return cint(*node->str)
 		case else
 			return 0
 	end select
@@ -956,7 +955,7 @@ Function GetFloat(byval node as nodeptr) as Double
 		case rltNull
 			return 0.0
 		case rltString
-			return cdbl(node->str)
+			return cdbl(*node->str)
 		case else
 			return 0.0
 	end select
@@ -1111,7 +1110,7 @@ Function NodeType(byval nod as NodePtr) as NodeTypes
 End Function
 
 Function NodeName(byval nod as NodePtr) as String
-	return nod->name
+	return *nod->name
 End Function
 
 
