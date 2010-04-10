@@ -46,10 +46,16 @@ TYPE NodePtr as Node ptr
 #if defined(__FB_WIN32__)
 #include "windows.bi"
 #endif
+	
+	Type StringTableEntry
+		str as Zstring Ptr
+		uses as integer
+	End Type
+	
 	TYPE Doc
 		version as integer
 		root as NodePtr
-		strings as zstring ptr ptr
+		strings as StringTableEntry ptr
 		numStrings as integer
 		numAllocStrings as integer
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
