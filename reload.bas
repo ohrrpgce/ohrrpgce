@@ -9,11 +9,11 @@
 'somehow fscked up the private heap implementation. Or, someone else touched something without
 'understanding how it works...
 
-#define RELOAD_NOPRIVATEHEAP
+'#define RELOAD_NOPRIVATEHEAP
 
 'This causes RELOAD to spit out a bunch of debugging stuff when loading documents.
 
-#define RELOAD_TRACE
+'#define RELOAD_TRACE
 
 #include "reload.bi"
 #include "util.bi"
@@ -733,11 +733,18 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 			return null
 	end select
 	
-	
-	
 	dim nod as nodeptr
 	
 	ret->numChildren = ReadVLI(f)
+	
+#if defined(RELOAD_TRACE)
+	static tablevel as integer
+	dim debugs as string = string(tablevel, "  ") & "<" & ret->name
+	if ret->numChildren > 0 then debugs = debugs & ">" else debugs = debugs & " />"
+	
+	debug debugs
+	tablevel += 1
+#endif
 	
 	for i as integer = 0 to ret->numChildren - 1
 		nod = LoadNode(f, doc)
@@ -749,6 +756,13 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 		ret->numChildren -= 1
 		AddChild(ret, nod)
 	next
+	
+#if defined(RELOAD_TRACE)
+	tablevel -= 1
+	if ret->numChildren > 0 then
+		debug string(tablevel, "  ") & "</" & ret->name & ">"
+	end if
+#endif
 	
 	if ftell(f) - here <> size then
 		FreeNode(ret)
