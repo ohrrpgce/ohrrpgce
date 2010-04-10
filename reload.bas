@@ -9,7 +9,11 @@
 'somehow fscked up the private heap implementation. Or, someone else touched something without
 'understanding how it works...
 
-'#define RELOAD_NOPRIVATEHEAP
+#define RELOAD_NOPRIVATEHEAP
+
+'This causes RELOAD to spit out a bunch of debugging stuff when loading documents.
+
+#define RELOAD_TRACE
 
 #include "reload.bi"
 #include "util.bi"
@@ -688,6 +692,12 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 	
 	ret->namenum = cshort(ReadVLI(f))
 	
+	if ret->namenum > 0 and ret->namenum <= doc->numStrings then
+		ret->name = *doc->strings[ret->namenum - 1]
+	else
+		ret->name = ""
+	end if
+	
 	ret->nodetype = fgetc(f)
 	
 	select case ret->nodeType
@@ -851,6 +861,13 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	ret = CreateDocument()
 	ret->version = ver
 	
+	'We'll load the string table first, to assist in debugging.
+	
+	fseek(f, datSize, 0)
+	LoadStringTable(f, ret)
+	
+	fseek(f, headSize, 0)
+	
 	ret->root = LoadNode(f, ret)
 	
 	'Is it possible to serialize a null root? I mean, I don't know why you would want to, but...
@@ -861,13 +878,12 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 		return null
 	end if
 	
-	fseek(f, datSize, 0)
-	LoadStringTable(f, ret)
+	'String table: Apply directly to the document tree
+	'String table: Apply directly to the document tree
+	'String table: Apply directly to the document tree
+	'FixNodeName(ret->root, ret)
 	
-	'String table: Apply directly to the document tree
-	'String table: Apply directly to the document tree
-	'String table: Apply directly to the document tree
-	FixNodeName(ret->root, ret)
+	'String table: already applied long ago
 	
 	fclose(f)
 	
