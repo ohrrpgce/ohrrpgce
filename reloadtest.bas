@@ -104,6 +104,12 @@ end function
 
 dim shared doc as DocPtr, doc2 as DocPtr
 
+#if 0
+startTest(testStringTables)
+	TestStringTables()
+endTest
+#endif
+
 startTest(createDocument)
 	
 	doc = CreateDocument()
@@ -317,4 +323,3 @@ startTest(freeDocument)
 	doc2 = 0
 	pass
 endTest
-

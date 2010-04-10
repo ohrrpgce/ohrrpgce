@@ -23,6 +23,7 @@ ENUM NodeInTypes
 	rliLong = 4
 	rliFloat = 5
 	rliString = 6
+	rliArray = 7
 END ENUM
 
 ENUM NodeTypes
@@ -30,6 +31,7 @@ ENUM NodeTypes
 	rltInt
 	rltFloat
 	rltString
+	rltArray
 END ENUM
 
 ENUM LoadOptions
@@ -39,7 +41,6 @@ END ENUM
 
 TYPE DocPtr as Doc ptr
 TYPE NodePtr as Node ptr
-TYPE NodeSetPtr as NodeSet Ptr
 
 #if defined(RELOADINTERNAL)
 #if defined(__FB_WIN32__)
@@ -48,10 +49,10 @@ TYPE NodeSetPtr as NodeSet Ptr
 	TYPE Doc
 		version as integer
 		root as NodePtr
-		strings as string ptr
+		strings as zstring ptr ptr
 		numStrings as integer
 		numAllocStrings as integer
-#if defined(__FB_WIN32__)
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 		heap as HANDLE
 #endif
 	END TYPE
@@ -81,25 +82,11 @@ TYPE NodeSetPtr as NodeSet Ptr
 	End Type
 #endif
 
-Type NodeSet
-	numNodes as integer
-	doc as DocPtr
-	nodes as NodePtr Ptr
-End Type
-
-Type RPathFragment
-	nodename as string
-end Type
-
-Type RPathCompiledQuery
-	numFragments as integer
-	fragment as RPathFragment ptr
-End Type
 
 Declare Function CreateDocument() as DocPtr
 Declare Function CreateNode overload(byval doc as DocPtr, nam as string) as NodePtr
 Declare Function CreateNode(byval nod as NodePtr, nam as string) as NodePtr
-Declare sub FreeNode(byval nod as NodePtr)
+Declare sub FreeNode(byval nod as NodePtr, byval options as integer = 0) 'don't use options.
 Declare sub FreeDocument(byval doc as DocPtr)
 Declare sub SetContent Overload (byval nod as NodePtr, dat as string)
 Declare sub SetContent(byval nod as NodePtr, byval dat as longint)
@@ -116,7 +103,6 @@ Declare sub SerializeXML overload (byval doc as DocPtr)
 Declare sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 
 Declare sub SerializeBin overload (file as string, byval doc as DocPtr)
-Declare sub serializeBin (byval nod as NodePtr, byval f as integer = 0, byval doc as DocPtr)
 
 Declare Function GetString(byval node as nodeptr) as string
 Declare Function GetInteger(byval node as nodeptr) as LongInt
@@ -145,14 +131,10 @@ Declare Function GetChildNodeBool(parent as NodePtr, n as string, d as integer =
 Declare Function GetChildNodeExists(parent as NodePtr, n as string) as integer
 
 
-Declare function ReadVLI(byval f as integer) as longint
-declare Sub WriteVLI(byval f as integer, byval v as Longint)
+Declare function ReadVLI overload(byval f as integer) as longint
+declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
 
-Declare Function RPathCompile(query as string) as RPathCompiledQuery Ptr
-Declare Sub RPathFreeCompiledQuery(byval rpf as RPathCompiledQuery ptr)
-
-Declare Function RPathQuery Overload(query as String, byval context as NodePtr) as NodeSetPtr
-Declare Function RPathQuery Overload(byval query as RPathCompiledQuery Ptr, byval context as NodePtr) as NodeSetPtr
+Declare Sub TestStringTables()
 
 End Namespace
 

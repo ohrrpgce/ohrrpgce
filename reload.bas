@@ -5,22 +5,82 @@
 '
 #define RELOADINTERNAL
 
+'if you find yourself debugging heap issues, define this. If the crashes go away, then I (Mike Caron)
+'somehow fscked up the private heap implementation. Or, someone else touched something without
+'understanding how it works...
+
+'#define RELOAD_NOPRIVATEHEAP
+
 #include "reload.bi"
 #include "util.bi"
+#include "crt/stdio.bi"
 
-#ifdef IS_GAME
-DECLARE SUB debug (s AS STRING)
-#else
-#ifdef IS_CUSTOM
+#if defined(IS_GAME) or defined(IS_CUSTOM)
 DECLARE SUB debug (s AS STRING)
 #else
 SUB debug (s AS STRING)
  print "debug: " & s
 END SUB
 #endif
-#endif
+
 
 Namespace Reload
+
+Declare function ReadVLI(byval f as .FILE ptr) as longint
+declare Sub WriteVLI(byval f as .FILE ptr, byval v as Longint)
+
+function RHeapInit(byval doc as docptr) as integer
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
+	doc->heap = HeapCreate(0, 0, 0)
+	return doc->heap <> 0
+#else
+	'nothing, use the default heap
+	return 1
+#endif
+end function
+
+Function RHeapDestroy(byval doc as docptr) as integer
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
+	HeapDestroy(doc->heap) 'poof
+	doc->heap = 0
+	return 0
+#else
+	'they need to free memory manually
+	return 1
+#endif
+end function
+
+Function RAllocate(byval s as integer, byval doc as docptr) as any ptr
+	dim ret as any ptr
+	
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
+	ret = HeapAlloc(doc->heap, HEAP_ZERO_MEMORY, s)
+#else
+	ret = CAllocate(s)
+#endif
+	
+	return ret
+end function
+
+Function RReallocate(byval p as any ptr, byval doc as docptr, byval newsize as integer) as any ptr
+	dim ret as any ptr
+	
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
+	ret = HeapReAlloc(doc->heap, HEAP_ZERO_MEMORY, p, newsize)
+#else
+	ret = Reallocate(p, newsize)
+#endif
+	
+	return ret
+end function
+
+Sub RDeallocate(byval p as any ptr, byval doc as docptr)
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
+	HeapFree(doc->heap, 0, p)
+#else
+	Deallocate(p)
+#endif
+End Sub
 
 'this checks to see if a node is part of a tree, for example before adding to a new parent
 Function verifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as integer
@@ -62,13 +122,15 @@ Function CreateDocument() as DocPtr
 	ret = New Doc
 	
 	if ret then
+		if 0 = RHeapInit(ret) then
+			debug "Unable to create heap on Document :("
+			delete ret
+			return null
+		end if
 		ret->version = 1
 		ret->root = null
 		ret->numStrings = 0
 		ret->numAllocStrings = 0
-#if defined(__FB_WIN32__)
-		ret->heap = HeapCreate(0, 0, 0)
-#endif
 	end if
 	
 	return ret
@@ -80,13 +142,8 @@ Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	dim ret as NodePtr
 	
 	if doc = null then return null
-
-#if defined(__FB_WIN32__)
-	dim void as any ptr = HeapAlloc(doc->heap, HEAP_ZERO_MEMORY, sizeof(Node))
-	ret = New (void) Node
-#else
-	ret = New Node
-#endif
+	
+	ret = RAllocate(sizeof(Node), doc)
 	
 	ret->doc = doc
 	ret->name = nam
@@ -103,20 +160,26 @@ end function
 
 'destroys a node and any children still attached to it.
 'if it's still attached to another node, it will be removed from it
-sub FreeNode(byval nod as NodePtr)
+sub FreeNode(byval nod as NodePtr, byval options as integer)
 	if nod = null then
 		debug "FreeNode ptr already null"
 		exit sub
 	end if
 	
 	dim tmp as NodePtr
-	do while nod->children <> 0
-		FreeNode(nod->children)
-	loop
+	if nod->nodeType <> rltArray then
+		do while nod->children <> 0
+			FreeNode(nod->children)
+		loop
+	else
+		for i as integer = 0 to nod->numChildren - 1
+			FreeNode(nod->children + i, 1)
+		next
+	end if
 	
 	'If this node has a parent, we should remove this node from
 	'its list of children
-	if nod->parent then
+	if nod->parent <> 0 and (options and 1) = 0 then
 		dim par as NodePtr = nod->parent
 		
 		if par->children = nod then
@@ -133,15 +196,13 @@ sub FreeNode(byval nod as NodePtr)
 			nod->prevSib->nextSib = nod->nextSib
 		end if
 	end if
-#if defined(__FB_WIN32__)
-	HeapFree(nod->doc->heap, 0, nod)
-#else
-	delete nod
-#endif
+	if (options and 1) = 0 then
+		RDeallocate(nod, nod->doc)
+	end if
 end sub
 
 'This frees an entire document, its root node, and any of its children
-#if defined(__FB_WIN32__)
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 'NOTE: this frees ALL nodes that were ever attached to this document!
 #else
 'NOTE! This does not free any nodes that are not currently attached to the
@@ -150,20 +211,24 @@ end sub
 sub FreeDocument(byval doc as DocPtr)
 	if doc = null then return
 	
-#if defined(__FB_WIN32__)
-	HeapDestroy(doc->heap)
-#else
-	if doc->root then
-		FreeNode(doc->root)
-		doc->root = null
+	if RHeapDestroy(doc) then
+		if doc->root then
+			FreeNode(doc->root)
+			doc->root = null
+		end if
+		
+		if doc->strings then
+			for i as integer = 0 to doc->numAllocStrings - 1
+				if doc->strings[i] then
+					RDeallocate(doc->strings[i], doc)
+				end if
+			next
+			RDeallocate(doc->strings, doc)
+			doc->strings = null
+		end if
 	end if
 	
-	if doc->strings then
-		Deallocate(doc->strings)
-		doc->strings = null
-	end if
-#endif
-	
+	'regardless of what heap is in use, doc is on the default heap
 	delete doc
 end sub
 
@@ -308,7 +373,7 @@ end sub
 Function FindStringInTable(st as string, doc as DocPtr) as integer
 	if st = "" then return 0
 	for i as integer = 0 to doc->numStrings - 1
-		if doc->strings[i] = st then return i + 1
+		if *doc->strings[i] = st then return i + 1
 	next
 	return -1
 end function
@@ -323,35 +388,29 @@ Function AddStringToTable(st as string, doc as DocPtr) as integer
 	if ret <> -1 then return ret
 	
 	if doc->numAllocStrings = 0 then
-#if defined(__FB_WIN32__)
-		doc-> strings = HeapAlloc(doc->heap, HEAP_ZERO_MEMORY, 16 * sizeof(string))
-#else
-		doc->strings = Callocate(16, sizeof(string))
-#endif
+		doc->strings = RAllocate(16 * sizeof(zstring ptr), doc)
 		doc->numAllocStrings = 16
-		doc->numStrings = 1
-		doc->strings[0] = st
-		return 1
 	else
 		if doc->numStrings >= doc->numAllocStrings then 'I hope it's only ever equals...
-#if defined(__FB_WIN32__)
-			dim s as string ptr = HeapRealloc(doc->heap, HEAP_ZERO_MEMORY, doc->strings, sizeof(string) * (doc->numAllocStrings * 1.5 + 5))
-#else
-			dim s as string ptr = Reallocate(doc->strings, sizeof(string) * (doc->numAllocStrings * 1.5 + 5))
-#endif
+			dim s as zstring ptr ptr = RReallocate(doc->strings, doc, sizeof(zstring ptr) * (doc->numAllocStrings * 2))
 			if s = 0 then 'panic
 				debug "Error resizing string table"
 				return -1
 			end if
+			for i as integer = doc->numAllocStrings to doc->numAllocStrings * 2 - 1
+				s[i] = 0
+			next
+			
 			doc->strings = s
-			doc->numAllocStrings = doc->numAllocStrings * 1.5 + 5
+			doc->numAllocStrings = doc->numAllocStrings * 2
 		end if
-		
-		doc->strings[doc->numStrings] = st
-		doc->numStrings += 1
-		
-		return doc->numStrings
 	end if
+	
+	doc->strings[doc->numStrings] = RAllocate(len(st) + 1, doc)
+	*doc->strings[doc->numStrings] = st
+	doc->numStrings += 1
+	
+	return doc->numStrings
 end function
 
 'This traverses a node tree, and gathers all the node names into a string table
@@ -392,7 +451,9 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	if nod = null then exit sub
 	
 	print string(ind, "	");
-	if nod->nodeType <> rltNull or nod->numChildren <> 0 then
+	if nod->nodeType = rltArray then
+		print "<" & nod->name & "reload:array=""array"">"
+	elseif nod->nodeType <> rltNull or nod->numChildren <> 0 then
 		if nod->name <> "" then
 			print "<" & nod->name & ">";
 		end if
@@ -418,15 +479,20 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	
 	dim n as NodePtr = nod->children
 	
-	do while n <> null
-		serializeXML(n, ind + 1)
-		n = n->nextSib
-	loop
+	if nod->nodeType <> rltArray then
+		do while n <> null
+			serializeXML(n, ind + 1)
+			n = n->nextSib
+		loop
+	else
+		for i as integer = 0 to nod->numChildren - 1
+			serializeXML(n + i, ind + 1)
+		next
+	end if
 	
 	if nod->numChildren <> 0 then print string(ind, "	");
 	
 	if nod->nodeType <> rltNull or nod->numChildren <> 0 then
-		
 		if nod->name <> "" then
 			print "</" & nod->name & ">"
 		else
@@ -436,11 +502,13 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	
 end sub
 
+Declare sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr)
+
 'This serializes a document as a binary file. This is where the magic happens :)
 sub SerializeBin(file as string, byval doc as DocPtr)
 	if doc = null then exit sub
 	
-	dim f as integer = freefile
+	dim f as .FILE ptr
 	
 	BuildStringTable(doc->root, doc)
 	
@@ -448,42 +516,55 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	if dir(file & ".tmp") <> "" then
 		kill file & ".tmp"
 	end if
-	open file & ".tmp" for binary as #f
+	
+	f = fopen(file & ".tmp", "wb")
+	
+	if f = 0 then
+		debug "Unable to open file"
+		exit sub
+	end if
 	
 	dim i as uinteger, b as ubyte
-	put #f, , "RELD"
-	b = 1
-	put #f, , b 'version
-	i = 13
-	put #f, , i 'size of header
-	i = 0 
-	put #f, , i 'we're going to fill this in later. it is the string table post relative to the beginning of the file.
 	
+	fputs("RELD", f) 'magic signature
+	
+	fputc(1, f)'version
+	
+	i = 13 'the size of the header (i.e., offset to the data)
+	fwrite(@i, 4, 1, f)
+	
+	i = 0 'we're going to fill this in later. it is the string table post relative to the beginning of the file.
+	fwrite(@i, 4, 1, f) 
+	
+	'write out the body
 	serializeBin(doc->root, f, doc)
 	
-	i = seek(f) - 1
-	put #f, 10, i 'filling in the string table position
+	'this is the location of the string table (immediately after the data)
+	i = ftell(f)
 	
-	seek f, i + 1
+	fseek(f, 9, 0) 
+	fwrite(@i, 4, 1, f) 'filling in the string table position
 	
-	dim s as longint
-	's = ubound(table) - lbound(table) + 1
-	s = doc->numAllocStrings
-	writeVLI(f, s)
-	for i = 0 to doc->numAllocStrings - 1
-		s = len((doc->strings[i]))
-		writeVLI(f, s)
-		put #f, , doc->strings[i]
+	'jump back to the string table
+	fseek(f, i, 0)
+	
+	'first comes the number of strings
+	writeVLI(f, doc->numStrings)
+	
+	'then, write out each string, size then body
+	for i = 0 to doc->numStrings - 1
+		dim zs as zstring ptr = doc->strings[i]
+		writeVLI(f, len(*zs))
+		fputs(zs, f)
 	next
-	close #f
+	fclose(f)
 	
 	kill file
 	rename file & ".tmp", file
 	kill file & ".tmp"
 end sub
 
-'This serializes a node to a binary file.
-sub serializeBin(byval nod as NodePtr, byval f as integer, byval doc as DocPtr)
+sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr)
 	if nod = 0 then
 		debug "serializeBin null node ptr"
 		exit sub
@@ -491,10 +572,13 @@ sub serializeBin(byval nod as NodePtr, byval f as integer, byval doc as DocPtr)
 	dim i as integer, strno as longint, ub as ubyte
 	
 	dim as integer siz, here = 0, here2, dif
-	siz = seek(f)
-	put #f, , here 'will fill this in later, this is node content size
+	'siz = seek(f)
+	siz = ftell(f)
+	'put #f, , here 'will fill this in later, this is node content size
+	fwrite(@here, 4, 1, f)
 	
-	here = seek(f)
+	'here = seek(f)
+	here = ftell(f)
 	
 	strno = FindStringInTable(nod->name, doc)
 	if strno = -1 then
@@ -509,41 +593,41 @@ sub serializeBin(byval nod as NodePtr, byval f as integer, byval doc as DocPtr)
 			'Nulls have no data, but convey information by existing or not existing.
 			'They can also have children.
 			ub = rliNull
-			put #f, , ub
+			fputc(ub, f)
 		case rltInt 'this is good enough, don't need VLI for this
 			if nod->num > 2147483647 or nod->num < -2147483648 then
 				ub = rliLong
-				put #f, , ub
-				put #f, , nod->num
+				fputc(ub, f)
+				fwrite(@(nod->num), 8, 1, f)
 			elseif nod->num > 32767 or nod->num < -32768 then
 				ub = rliInt
-				put #f, , ub
+				fputc(ub, f)
 				i = nod->num
-				put #f, , i
+				fwrite(@i, 4, 1, f)
 			elseif nod->num > 127 or nod->num < -128 then
 				ub = rliShort
-				put #f, , ub
+				fputc(ub, f)
 				dim s as short = nod->num
-				put #f, , s
+				fwrite(@s, 2, 1, f)
 			else
 				ub = rliByte
-				put #f, , ub
+				fputc(ub, f)
 				dim b as byte = nod->num
-				put #f, , b
+				fputc(b, f)
 			end if
 		case rltFloat
 			ub = rliFloat
-			put #f, , ub
-			put #f, , nod->flo
+			fputc(ub, f)
+			fwrite(@(nod->flo), 8, 1, f)
 		case rltString
 			ub = rliString
-			put #f, , ub
+			fputc(ub, f)
 			WriteVLI(f, len(nod->str))
-			put #f, , nod->str
+			fputs(nod->str, f)
 			
 	end select
 	
-	WriteVLI(f, cast(longint, nod->numChildren)) 'is this cast necessary?
+	WriteVLI(f, nod->numChildren) 'is this cast necessary?
 	
 	dim n as NodePtr
 	n = nod->children
@@ -551,11 +635,12 @@ sub serializeBin(byval nod as NodePtr, byval f as integer, byval doc as DocPtr)
 		serializeBin(n, f, doc)
 		n = n->nextSib
 	loop
-	here2 = seek(f)
+	
+	here2 = ftell(f)
 	dif = here2 - here
-	put #f, siz, dif
-	'print "size: " & dif
-	seek #f, here2
+	fseek(f, siz, 0)
+	fwrite(@dif, 4, 1, f)
+	fseek(f, here2, 0)
 end sub
 
 Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr
@@ -589,7 +674,7 @@ Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr
 End Function
 
 'Loads a node from a binary file, into a document
-Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
+Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 	dim ret as NodePtr
 	
 	ret = CreateNode(doc, "!") '--the "!" indicates no tag name has been loaded for this node yet
@@ -597,47 +682,44 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	dim size as integer
 	
 	dim as integer here, here2
-	get #f, , size
+	fread(@size, 4, 1, f)
 	
-	here = seek(f)
+	here = ftell(f)
 	
 	ret->namenum = cshort(ReadVLI(f))
 	
-	get #f, , ret->nodetype
+	ret->nodetype = fgetc(f)
 	
 	select case ret->nodeType
 		case rliNull
 		case rliByte
-			dim b as byte
-			get #f, , b
-			ret->num = b
+			ret->num = fgetc(f)
 			ret->nodeType = rltInt
 		case rliShort
 			dim s as short
-			get #f, , s
+			fread(@s, 2, 1, f)
 			ret->num = s
 			ret->nodeType = rltInt
 		case rliInt
 			dim i as integer
-			get #f, , i
+			fread(@i, 4, 1, f)
 			ret->num = i
 			ret->nodeType = rltInt
 		case rliLong
-			get #f, , ret->num
+			fread(@(ret->num), 8, 1, f)
 			ret->nodeType = rltInt
 		case rliFloat
-			get #f, , ret->flo
+			fread(@(ret->flo), 8, 1, f)
 			ret->nodeType = rltFloat
 		case rliString
 			dim mysize as integer
-			'get #f, , size
 			mysize = cint(ReadVLI(f))
 			ret->str = string(mysize, " ")
-			get #f, , ret->str
+			fread(strptr(ret->str), 1, mysize, f)
 			ret->nodeType = rltString
 		case else
 			debug "unknown node type " & ret->nodeType
-			delete ret
+			FreeNode(ret)
 			return null
 	end select
 	
@@ -650,7 +732,7 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 	for i as integer = 0 to ret->numChildren - 1
 		nod = LoadNode(f, doc)
 		if nod = null then
-			freenode(ret)
+			FreeNode(ret)
 			debug "child " & i & " node load failed"
 			return null
 		end if
@@ -658,9 +740,9 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 		AddChild(ret, nod)
 	next
 	
-	if seek(f) - here <> size then
-		freenode(ret)
-		debug "GOSH-diddly-DARN-it! Why did we read " & (seek(f) - here) & " bytes instead of " & size & "!?"
+	if ftell(f) - here <> size then
+		FreeNode(ret)
+		debug "GOSH-diddly-DARN-it! Why did we read " & (ftell(f) - here) & " bytes instead of " & size & "!?"
 		return null
 	end if
 	
@@ -668,28 +750,31 @@ Function LoadNode(f as integer, byval doc as DocPtr) as NodePtr
 End Function
 
 'This loads the string table from a binary document (as if the name didn't clue you in)
-Sub LoadStringTable(byval f as integer, byval doc as docptr)
+Sub LoadStringTable(byval f as .FILE ptr, byval doc as docptr)
 	dim as uinteger count, size
 	
 	count = cint(ReadVLI(f))
-	'get #f, , count
 	
 	if count <= 0 then exit sub
 	
 	if doc->strings <> 0 then
-		Deallocate(doc->strings)
+		for i as integer = 0 to doc->numAllocStrings - 1
+			RDeallocate(doc->strings[i], doc)
+		next
+		RDeallocate(doc->strings, doc)
 	end if
 	
-	doc->strings = Callocate(count, sizeof(string))
+	doc->strings = RAllocate(count * sizeof(zstring ptr), doc)
 	doc->numStrings = count
 	doc->numAllocStrings = count
 	
 	for i as integer = 0 to count - 1
 		size = cint(ReadVLI(f))
 		'get #f, , size
-		doc->strings[i] = string(size, " ")
+		doc->strings[i] = RAllocate(size + 1, doc)
+		dim zs as zstring ptr = doc->strings[i]
 		if size > 0 then
-			get #f, , doc->strings[i]
+			fread(zs, 1, size, f)
 		end if
 	next
 end sub
@@ -704,7 +789,7 @@ function FixNodeName(byval nod as nodeptr, byval doc as DocPtr) as integer
 	end if
 	
 	if nod->namenum > 0 then
-		nod->name = doc->strings[nod->namenum - 1]
+		nod->name = *doc->strings[nod->namenum - 1]
 	else
 		nod->name = ""
 	end if
@@ -720,9 +805,10 @@ end function
 
 Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	dim ret as DocPtr
-	dim f as integer = freefile
+	dim f as .FILE ptr
 	
-	if open(fil, for binary, as #f) then
+	f = fopen(fil, "rb")
+	if f = 0 then
 		debug "failed to open file " & fil
 		return null
 	end if
@@ -733,30 +819,29 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	
 	dim b as ubyte, i as integer
 	
-	get #f, , magic
+	fread(strptr(magic), 1, 4, f)
 	
 	if magic <> "RELD" then
-		close #f
+		fclose(f)
 		debug "No RELD magic"
 		return null
 	end if
 	
-	get #f, , ver
+	ver = fgetc(f)
 	
 	select case ver
 		case 1 ' no biggie
-			get #f, , headSize
-			
+			fread(@headSize, 4, 1, f)
 			if headSize <> 13 then 'uh oh, the header is the wrong size
-				close #f
+				fclose(f)
 				debug "Reload header is " & headSize & "instead of 13"
 				return null
 			end if
 			
-			get #f, , datSize
+			fread(@datSize, 4, 1, f)
 			
 		case else ' dunno. Let's quit.
-			close #f
+			fclose(f)
 			debug "Reload version " & ver & " not supported"
 			return null
 	end select
@@ -771,11 +856,12 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	'Is it possible to serialize a null root? I mean, I don't know why you would want to, but...
 	'regardless, if it's null here, it's because of an error
 	if ret->root = null then
-		close #f
-		delete ret
+		fclose(f)
+		FreeDocument(ret)
 		return null
 	end if
 	
+	fseek(f, datSize, 0)
 	LoadStringTable(f, ret)
 	
 	'String table: Apply directly to the document tree
@@ -783,7 +869,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	'String table: Apply directly to the document tree
 	FixNodeName(ret->root, ret)
 	
-	close #f
+	fclose(f)
 	
 	return ret
 End Function
@@ -999,140 +1085,6 @@ Function NodeName(byval nod as NodePtr) as String
 End Function
 
 
-Function RPathCompile(query as string) as RPathCompiledQuery Ptr
-	dim tok() as string
-	split(trim(query), tok(), "/")
-	
-	if ubound(tok) = 0 AND tok(0) = "" then
-		return 0
-	end if
-	
-	dim ret as RPathCompiledQuery Ptr = new RPathCompiledQuery
-	
-	if ret = 0 then return 0
-	
-	ret->numFragments = ubound(tok) + 1
-	ret->fragment = new RPathFragment[ret->numFragments]
-	
-	if ret->fragment = 0 then
-		delete ret
-		return 0
-	end if
-	
-	for i as integer = 0 to ubound(tok)
-		print tok(i)
-		
-		ret->fragment[i].nodename = tok(i)
-		
-	next
-	
-	return ret
-End Function
-
-sub RPathFreeCompiledQuery(byval rpf as RPathCompiledQuery ptr)
-	if rpf = 0 then exit sub
-	
-	if rpf->fragment then
-		delete[] rpf->fragment
-		rpf->fragment = 0
-	end if
-	
-	delete rpf
-end sub
-
-Function RPathSearch(byval query as RPathCompiledQuery ptr, byval depth as integer, byval from as NodePtr, results() as nodePtr) as integer
-	if from = 0 or query = 0 then
-		print "from: " ; from; " query: " ; query
-		return 0
-	end if
-	
-	dim found as integer = 0
-	
-	if depth >= query->numFragments or depth < 0 then return 0
-	
-	if from->name = query->fragment[depth].nodename then
-		if depth = query->numFragments - 1 then
-			if results(0) = null then
-				redim results(0)
-				results(0) = from
-				'for i as integer = lbound(results) to ubound(results)
-				'	print i, results(i)
-				'next
-				'print
-			else
-				redim preserve results(ubound(results) + 1)
-				'print from
-				results(ubound(results)) = from
-				'for i as integer = lbound(results) to ubound(results)
-				'	print i, results(i)
-				'next
-				'print
-			end if
-			found += 1
-		else
-			dim n as nodeptr = from->Children
-			do while n <> null
-				found += RPathSearch(query, depth + 1, n, results())
-				n = n->nextSib
-			loop
-		end if
-	end if
-	
-	dim n as nodeptr = from->Children
-	do while n <> null
-		found += RPathSearch(query, 0, n, results())
-		n = n->nextSib
-	loop
-	
-	return found
-End Function
-
-Function RPathQuery(byval query as RPathCompiledQuery Ptr, byval context as NodePtr) as NodeSetPtr
-	if query = 0 then return 0
-	
-	dim ret as NodeSetPtr = new NodeSet
-	dim found as integer
-	Redim nodes(0) as nodePtr
-	
-	found = RPathSearch(query, 0, context, nodes())
-	
-	print "found: " ; found
-	
-	if found > 0 then
-		ret->nodes = new NodePtr[found]
-		
-		for i as integer = 0 to found - 1
-			ret->nodes[i] = nodes(i)
-			'print ret->nodes[i], nodes(i)
-		next
-		
-		ret->numNodes = found
-		ret->doc = context->doc
-		
-		return ret
-	else
-		delete ret
-		return null
-	end if
-end Function
-
-Function RPathQuery(query as String, byval context as NodePtr) as NodeSetPtr
-	dim rpf as RPathCompiledQuery ptr = RPathCompile(query)
-	dim ret as NodeSetPtr = RPathQuery(rpf, context)
-	RPathFreeCompiledQuery(rpf)
-	return ret
-End Function
-
-sub FreeNodeSet(byval nodeset as NodeSetPtr)
-	if nodeset = null then exit sub
-	
-	if nodeset->nodes then
-		delete[] nodeset->nodes
-	end if
-	
-	delete nodeset
-end sub
-
 'This writes an integer out in such a fashion as to minimize the number of bytes used. Eg, 36 will
 'be stored in one byte, while 365 will be stored in two, 10000 in three bytes, etc
 Sub WriteVLI(byval f as integer, byval v as Longint)
@@ -1164,6 +1116,37 @@ Sub WriteVLI(byval f as integer, byval v as Longint)
 
 end sub
 
+Sub WriteVLI(byval f as .FILE ptr, byval v as Longint)
+	dim o as ubyte
+	dim neg as integer = 0
+	
+	if o < 0 then
+		neg = yes
+		v = abs(v)
+	end if
+	
+	o = v and &b111111 'first, extract the low six bits
+	v = v SHR 6
+	
+	if neg then   o OR=  &b1000000 'bit 6 is the "number is negative" bit
+	
+	if v > 0 then o OR= &b10000000 'bit 7 is the "omg there's more data" bit
+	
+	fputc(o, f)
+	'put #f, , o
+	
+	do while v > 0
+		o = v and &b1111111 'extract the next 7 bits
+		v = v SHR 7
+		
+		if v > 0 then o OR= &b10000000
+		
+		'put #f, , o
+		fputc(o, f)
+	loop
+
+end sub
+
 'This reads the number back in again
 function ReadVLI(byval f as integer) as longint
 	dim o as ubyte
@@ -1190,6 +1173,53 @@ function ReadVLI(byval f as integer) as longint
 	return ret
 	
 end function
+
+function ReadVLI(byval f as .FILE ptr) as longint
+	dim o as ubyte
+	dim ret as longint = 0
+	dim neg as integer = 0
+	dim bit as integer = 0
+	
+	'get #f, , o
+	o = fgetc(f)
+	
+	if o AND &b1000000 then neg = yes
+	
+	ret OR= (o AND &b111111) SHL bit
+	bit += 6
+	
+	do while o AND &b10000000
+		'get #f, , o
+		o = fgetc(f)
+		
+		ret OR= (o AND &b1111111) SHL bit
+		bit += 7
+	loop
+	
+	if neg then ret *= -1
+	
+	return ret
+	
+end function
+
+
+Sub TestStringTables()
+	dim d as docptr = CreateDocument()
+	dim s as string
+	
+	for i as integer = 0 to 1200 step 3
+		s = str(i)
+		
+		if i = 2925 then
+			dim q as integer = 0
+		end if
+		
+		print s & " - " & AddStringToTable(s, d)
+	next
+	
+	FreeDocument(d)
+	
+end sub
 
 
 End Namespace
