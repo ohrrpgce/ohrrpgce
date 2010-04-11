@@ -328,9 +328,11 @@ function comparenode(nod1 as nodeptr, nod2 as nodeptr) as integer
 		return 1
 	end if
 	
+	dim numkids as integer = NumChildren(nod1)
+	
 	nod1 = FirstChild(nod1)
 	nod2 = FirstChild(nod2)
-	for i as integer = 0 to NumChildren(nod1) - 1
+	for i as integer = 0 to numkids - 1
 		if comparenode(nod1, nod2) then
 			print "Comparison of children failed"
 			return 1
