@@ -46,6 +46,7 @@ TYPE NodePtr as Node ptr
 #if defined(__FB_WIN32__)
 #include "windows.bi"
 #endif
+	TYPE Hashptr as ReloadHash ptr
 	
 	Type StringTableEntry
 		str as Zstring Ptr
@@ -61,6 +62,7 @@ TYPE NodePtr as Node ptr
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 		heap as HANDLE
 #endif
+		stringHash as HashPtr
 	END TYPE
 
 	TYPE Node
@@ -141,6 +143,8 @@ Declare Function GetChildNodeExists(parent as NodePtr, n as string) as integer
 
 Declare function ReadVLI overload(byval f as integer) as longint
 declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
+
+Declare Function MemoryUsage(doc as DocPtr) as LongInt
 
 Declare Sub TestStringTables()
 

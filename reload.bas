@@ -34,13 +34,19 @@ END SUB
 
 Namespace Reload
 
+Type hashFunction as Function(k as ZString ptr) as integer
 
 Declare function ReadVLI(byval f as .FILE ptr) as longint
 declare Sub WriteVLI(byval f as .FILE ptr, byval v as Longint)
 
 Declare Function AddStringToTable (st as string, doc as DocPtr) as integer
 Declare Function FindStringInTable overload(st as string, doc as DocPtr) as integer
-'Declare Function FindStringInTable (st as zstring ptr, doc as DocPtr) as integer
+
+Declare Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, b as integer = 65) as Hashptr
+Declare Sub DestroyHashTable(h as HashPtr)
+Declare Function FindItem(h as HashPtr, key as ZString ptr, num as integer = 1) as any ptr
+Declare Sub AddItem(h as HashPtr, key as ZString ptr, item as any ptr)
+Declare Sub RemoveKey(h as HashPtr, key as zstring ptr, num as integer = 1)
 
 function RHeapInit(byval doc as docptr) as integer
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
@@ -99,6 +105,17 @@ Sub RDeallocate(byval p as any ptr, byval doc as docptr)
 #endif
 End Sub
 
+Function HashZString(st as ZString ptr) as integer
+	dim as integer ret = 0, i = 0
+	
+	do while st[i] <> 0
+		ret += st[i]
+		i += 1
+	loop
+	
+	return ret
+end function
+
 'creates and initializes a blank document
 Function CreateDocument() as DocPtr
 	dim ret as DocPtr
@@ -126,6 +143,10 @@ Function CreateDocument() as DocPtr
 		*ret->strings[0].str = "" 'this is technically redundant.
 		ret->numStrings = 1
 		ret->numAllocStrings = 1
+		ret->stringHash = CreateHashTable(ret, @HashZString)
+		
+		'add the blank string to the hash
+		AddItem(ret->stringHash, ret->strings[0].str, cast(any ptr, 0))
 	end if
 	
 	return ret
@@ -228,6 +249,11 @@ sub FreeDocument(byval doc as DocPtr)
 			next
 			RDeallocate(doc->strings, doc)
 			doc->strings = null
+		end if
+		
+		if doc->stringHash then
+			DestroyHashTable(doc->stringHash)
+			doc->stringHash = null
 		end if
 	end if
 	
@@ -362,6 +388,8 @@ Sub LoadStringTable(byval f as .FILE ptr, byval doc as docptr)
 		if size > 0 then
 			fread(zs, 1, size, f)
 		end if
+		
+		AddItem(doc->stringHash, doc->strings[i].str, cast(any ptr, i))
 	next
 end sub
 
@@ -445,11 +473,17 @@ End Function
 'Internal function
 'Locates a string in the string table. If it's not there, returns -1
 Function FindStringInTable (st as string, doc as DocPtr) as integer
+	'if st = "" then return 0
+	'for i as integer = 0 to doc->numStrings - 1
+	'	if *doc->strings[i].str = st then return i
+	'next
+	
 	if st = "" then return 0
-	for i as integer = 0 to doc->numStrings - 1
-		if *doc->strings[i].str = st then return i
-	next
-	return -1
+	
+	dim ret as integer = cint(FindItem(doc->stringhash, st))
+	
+	if ret = 0 then return -1
+	return ret
 end function
 
 'Adds a string to the string table. If it already exists, return the index
@@ -457,7 +491,11 @@ end function
 Function AddStringToTable(st as string, doc as DocPtr) as integer
 	dim ret as integer
 	
-	'TODO: Add hash table here
+	ret = cint(FindStringInTable(st, doc))
+	
+	if ret <> -1 then
+		return ret
+	end if
 	
 	if doc->numAllocStrings = 0 then 'This should never run.
 		debug "ERROR! Unallocated string table!"
@@ -466,12 +504,6 @@ Function AddStringToTable(st as string, doc as DocPtr) as integer
 		
 		doc->strings[0].str = Rallocate(1, doc)
 		*doc->strings[0].str = ""
-	end if
-	
-	ret = FindStringInTable(st, doc)
-	
-	if ret <> -1 then
-		return ret
 	end if
 	
 	if doc->numStrings >= doc->numAllocStrings then 'I hope it's only ever equals...
@@ -492,37 +524,15 @@ Function AddStringToTable(st as string, doc as DocPtr) as integer
 	
 	doc->strings[doc->numStrings].str = RAllocate(len(st) + 1, doc)
 	*doc->strings[doc->numStrings].str = st
+	
+	AddItem(doc->stringHash, doc->strings[doc->numStrings].str, cast(any ptr, doc->numStrings))
+	
 	doc->numStrings += 1
+	
+	
 	
 	return doc->numStrings - 1
 end function
-
-'This traverses a node tree, and gathers all the node names into a string table
-sub BuildStringTable(byval nod as NodePtr, doc as DocPtr)
-	static start as NodePtr
-	
-	if nod = null then exit sub
-	
-	if start = 0 then
-		start = nod
-	end if
-	
-	if nod->name then
-		AddStringToTable(*nod->name, doc)
-	end if
-	
-	dim n as NodePtr
-	
-	n = nod->children
-	do while n <> 0
-		BuildStringTable(n, doc)
-		n = n->nextSib
-	loop
-	
-	if start = nod then
-		start = null
-	end if
-end sub
 
 Declare sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr)
 
@@ -1295,5 +1305,145 @@ Sub TestStringTables()
 	
 end sub
 
+'I am aware of the hash table implementation in util.bas. However, this is tuned
+'for this purpose. Plus, I want everything contained on the private heap (if applicable)
+Type ReloadHashItem
+	key as zstring ptr 
+	item as any ptr 'this doesn't have to be a pointer...
+	nxt as ReloadHashItem ptr
+End Type
+
+Type ReloadHash
+	bucket as ReloadHashItem ptr ptr
+	numBuckets as integer
+	numItems as integer
+	doc as DocPtr
+	hashFunc as hashFunction
+end Type
+
+
+Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, b as integer) as ReloadHash ptr
+	dim ret as HashPtr = RAllocate(sizeof(ReloadHash), doc)
+	
+	with *ret
+		.bucket = RAllocate(sizeof(ReloadHashItem ptr) * b, doc)
+		.numBuckets = b
+		.numItems = 0
+		.doc = doc
+		.hashFunc = hashFunc
+	end with
+	
+	return ret
+End Function
+
+Sub DestroyHashTable(h as HashPtr)
+	if h = 0 then return
+	
+	for i as integer = 0 to h->numBuckets
+		do while h->bucket[i]
+			dim t as ReloadHashItem ptr
+			t = h->bucket[i]->nxt
+			RDeallocate(h->bucket[i], h->doc)
+			h->bucket[i] = t
+		loop
+	next
+	RDeallocate(h->bucket, h->doc)
+	
+	RDeallocate(h, h->doc)
+end sub
+
+Function FindItem(h as HashPtr, key as ZString ptr, num as integer) as any ptr
+	dim b as ReloadHashItem ptr
+	
+	dim hash as integer = h->hashFunc(key)
+	
+	b = h->bucket[hash mod h->numBuckets]
+	
+	do while b
+		if *b->key = *key then
+			num -= 1
+			if num <= 0 then return b->item
+		end if
+		b = b->nxt
+	loop
+	
+	return 0
+End Function
+
+Sub AddItem(h as HashPtr, key as ZString ptr, item as any ptr)
+	dim hash as integer = h->hashFunc(key)
+	
+	dim as ReloadHashItem ptr b, newitem = RAllocate(sizeof(ReloadHashItem), h->doc)
+	
+	newitem->key = key
+	newitem->item = item
+	newitem->nxt = 0
+	
+	b = h->bucket[hash mod h->numBuckets]
+	
+	if b then
+		do while b->nxt
+			b = b->nxt
+		loop
+		b->nxt = newitem
+	else
+		h->bucket[hash mod h->numBuckets] = newitem
+	end if
+end Sub
+
+Sub RemoveKey(h as HashPtr, key as zstring ptr, num as integer)
+	dim as ReloadHashItem ptr b, prev
+	
+	dim hash as integer = h->hashFunc(key)
+	
+	b = h->bucket[hash mod h->numBuckets]
+	
+	prev = 0
+	do while b
+		if *b->key = *key then
+			if num <> -1 then
+				num -= 1
+				if num = 0 then
+					if prev then
+						prev->nxt = b->nxt
+					end if
+					
+					RDeallocate(b, h->doc)
+					return
+				end if
+			else
+				if prev then
+					prev->nxt = b->nxt
+				end if
+				
+				RDeallocate(b, h->doc)
+			end if
+		end if
+		prev = b
+		b = b->nxt
+	loop
+end sub
+
+Function MemoryUsage(doc as DocPtr) as longint
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
+	dim ret as longint = 0
+	if 0 = HeapLock(doc->heap) then return 0
+	
+	dim entry as PROCESS_HEAP_ENTRY
+	
+	entry.lpData = null
+	do while HeapWalk(doc->heap, @entry) <> FALSE
+		if entry.wFlags AND PROCESS_HEAP_ENTRY_BUSY then
+			ret += entry.cbData
+		end if
+	loop
+	
+	HeapUnlock(doc->heap)
+	
+	return ret
+#else
+	return 0 'who knows?
+#endif
+end function
 
 End Namespace

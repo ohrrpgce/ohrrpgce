@@ -1,5 +1,4 @@
 
-#define RELOADHIDETYPES
 #include "reload.bi"
 
 Using Reload
