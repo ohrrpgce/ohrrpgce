@@ -13,7 +13,7 @@
 
 'This causes RELOAD to spit out a bunch of debugging stuff when loading documents.
 
-'#define RELOAD_TRACE
+#define RELOAD_TRACE
 
 #include "reload.bi"
 #include "util.bi"
@@ -331,9 +331,27 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 #if defined(RELOAD_TRACE)
 	static tablevel as integer
 	dim debugs as string = string(tablevel, "  ") & "<" & *ret->name
-	if ret->numChildren > 0 then debugs = debugs & ">" else debugs = debugs & " />"
+	if ret->numChildren > 0 or ret->nodeType <> rltNull then
+		debugs &= ">"
+		
+		select case ret->nodeType
+			case rltInt
+				debugs &= GetInteger(ret)
+			case rltFloat
+				debugs &= GetFloat(ret)
+			case rltString
+				debugs &= GetString(ret)
+		end select
+	else
+		debugs &= " />"
+	end if
+	
+	if ret->numChildren = 0 and ret->nodeType <> rltNull then
+		debugs &= "</" & *ret->name & ">"
+	end if
 	
 	debug debugs
+	
 	tablevel += 1
 #endif
 	
