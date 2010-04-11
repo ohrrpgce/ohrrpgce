@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ka 2010-04-12 Throw error if source file contains binary
 --3K 2010-04-12 Error column reporting (introducing srcpos); lump
 --              original source files into source.lumped
 --3Ja 2010-04-07 Wrote a (nearly) proper lexer
@@ -105,7 +106,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="K "
+constant COMPILER_SUB_VERSION="Ka"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -124,6 +125,7 @@ constant LEX_COMMENT=5
 constant LEX_STRING=6
 constant LEX_COMMA=7
 constant LEX_WARN=8
+constant LEX_BINARY=9
 constant FILE_NAME=1
 constant FILE_LINES=2
 constant FILE_LENGTH=3
@@ -258,7 +260,6 @@ sequence separator_list   separator_list={
                              ,"==","<>",">>","<<","<=",">=",":=","=","&&","||"
                           }
 sequence lexer_table      lexer_table={}
-sequence lexer_states     lexer_states={}
 
 sequence all_scripts      all_scripts={}                        
 sequence current_script   current_script=""
@@ -487,15 +488,21 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+--build lexer_table, which for each ASCII character i, contains the lexer
+--state to transition to in entry i+1 (have to handle NUL)
 procedure init_lexer()
-  lexer_table=" (),#\t\"[]{}"
-  lexer_states={LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}
+  sequence table_insert
+  table_insert={" (),#\t\"[]{}",
+                {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
+  --by default each character is either binary, or an allowed identifier
+  --character. This is for backwards compatibility
+  lexer_table=repeat(LEX_BINARY,32) & repeat(LEX_CHAR,256-32)
+  for i=1 to length(table_insert[1]) do
+    lexer_table[table_insert[1][i]+1]=table_insert[2][i]
+  end for
   --add the one-character prefix of each operator
   for i=1 to length(separator_list) do
-    if find(separator_list[i][1],lexer_table)=0 then
-      lexer_table=append(lexer_table,separator_list[i][1])
-      lexer_states=lexer_states&LEX_KEYWORD
-    end if
+    lexer_table[separator_list[i][1]+1]=LEX_KEYWORD
   end for
 end procedure
 
@@ -809,10 +816,7 @@ function lex_line(sequence s,srcpos pos)
   textstart=0
   tokens={}
   while i<=length(s) do
-    state=find(s[i],lexer_table)
-    if state then
-      state=lexer_states[state]
-    end if
+    state=lexer_table[s[i]+1]
     --color_print("lexing %d=%s state %d\n",{s[i],{s[i]},state})
     if state=LEX_CHAR then
       ident=ident & hs_lower(s[i])
@@ -867,6 +871,9 @@ function lex_line(sequence s,srcpos pos)
             tokens=tokens[1..$-1]
           end if
         end if
+      elsif state=LEX_BINARY then
+        --better use src_error, to track down garbage if accidentally creeping in
+        src_error("This file contains binary gunk. Are you sure that this is the text file you want to compile?",pos+i)
       end if
     end if
     i+=1
