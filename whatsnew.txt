@@ -19,6 +19,8 @@ WHAT IS NEW?
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
       variable names.
+    * "include" is parsed differently; enclose your filenames in quotes
+      if they contain spaces, a path, or are case sensitive
     * "reset hero picture" and "reset hero palette" [James]
     * "set slice clipping", "get slice clipping" [James, Ralph]
     * "create grid", "slice is grid", "set grid columns",
@@ -32,7 +34,6 @@ WHAT IS NEW?
   * Vikings of Midgard
 
   * Stuff only Developers Will Notice
-    * Hspeak compiler now uses a lexer [Ralph]
     * Test suite and benchmarks for RELOAD format [Mike]
 
 Mar ? 2010 [Ypsiliform+3]

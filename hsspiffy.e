@@ -164,6 +164,19 @@ global function substring_replace(sequence seq,sequence old, sequence new)
   return(seq)
 end function
 
+--count the number of occurrences of an object in a sequence--
+global function count(object it, sequence s)
+  integer cnt
+  integer i
+  cnt=0
+  i=find(it,s)
+  while i do
+    cnt+=1
+    i=find_from(it,s,i+1)
+  end while
+  return cnt
+end function
+
 --normalize a pathname to use forward slashes--
 global function filenamix(sequence s)
   return substitute(s,'\\','/')
@@ -313,6 +326,11 @@ global function delete_slice(sequence s,integer first,integer last)
   return(s[1..first-1]&s[last+1..length(s)])
 end function
 
+--replace a slice with a sequence--
+global function replace_slice(sequence s,integer first,integer last,sequence new)
+  return(s[1..first-1]&new&s[last+1..length(s)])
+end function
+
 --trim whitespace (tabs and spaces) from beginning and end--
 global function trim_whitespace(sequence s)
   while s[1]=' ' or s[1]='\t' do
@@ -453,13 +471,44 @@ end function
 ---------------------------------------------------------------------------
 
 global function write_lump(integer filehandle,sequence name,sequence data)
-  if length(name)>12 then
+  if length(name)>50 then
     --fail if name is too long
     return(false)
   end if
   puts(filehandle,hs_upper(name)&0)
   puts(filehandle,absurd_byte_order(length(data)))
   puts(filehandle,data)
+  return(true)
+end function
+
+---------------------------------------------------------------------------
+
+--alternative to write_lump. Call lumphandle=begin_lump(...), then write
+--data to the file and call end_lump(lumphandle)
+global function begin_lump(integer filehandle,sequence name)
+  sequence handle
+  if length(name)>50 then
+    --fail if name is too long
+    return(false)
+  end if
+  puts(filehandle,hs_upper(name)&0)
+  handle={filehandle,where(filehandle)}
+  puts(filehandle,{0,0,0,0})
+  return(handle)
+end function
+
+---------------------------------------------------------------------------
+
+global function end_lump(sequence lumphandle)
+  integer curpos
+  curpos=where(lumphandle[1])
+  if seek(lumphandle[1],lumphandle[2]) then
+    return false
+  end if
+  puts(lumphandle[1],absurd_byte_order(curpos-lumphandle[2]-4))
+  if seek(lumphandle[1],curpos) then
+    return false
+  end if
   return(true)
 end function
 
