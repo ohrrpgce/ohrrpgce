@@ -13,7 +13,7 @@
 
 'This causes RELOAD to spit out a bunch of debugging stuff when loading documents.
 
-#define RELOAD_TRACE
+'#define RELOAD_TRACE
 
 #include "reload.bi"
 #include "util.bi"
