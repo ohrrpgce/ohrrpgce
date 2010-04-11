@@ -160,6 +160,40 @@ startTest(addLargeInteger)
 	
 endTest
 
+startTest(addSmallNegativeInteger)
+	dim nod2 as NodePtr = CreateNode(doc, "smallNegativeInt")
+	
+	if nod2 = 0 then fail
+	
+	dim i as integer = int(Rnd * 20) - 40
+	SetContent(nod2, i)
+	
+	if NodeType(nod2) <> rltInt then fail
+	if GetInteger(nod2) <> i then fail
+	
+	AddChild(DocumentRoot(doc), nod2)
+	
+	if NumChildren(DocumentRoot(doc)) <> 3 then fail
+	
+endTest
+
+startTest(addLargeNegativeInteger)
+	dim nod2 as NodePtr = CreateNode(doc, "largeNegativeInt")
+	
+	if nod2 = 0 then fail
+	
+	dim i as LongInt = int(Rnd * 200000000000) - 500000000000 'we want something > 32 bits ;)
+	SetContent(nod2, i)
+	
+	if NodeType(nod2) <> rltInt then fail
+	if GetInteger(nod2) <> i then fail
+	
+	AddChild(DocumentRoot(doc), nod2)
+	
+	if NumChildren(DocumentRoot(doc)) <> 4 then fail
+	
+endTest
+
 startTest(addFloat)
 	dim nod2 as NodePtr = CreateNode(doc, "floatingPoint")
 	
@@ -173,7 +207,7 @@ startTest(addFloat)
 	
 	AddChild(DocumentRoot(doc), nod2)
 	
-	if NumChildren(DocumentRoot(doc)) <> 3 then fail
+	if NumChildren(DocumentRoot(doc)) <> 5 then fail
 	
 endTest
 
@@ -190,7 +224,7 @@ startTest(addString)
 	
 	AddChild(DocumentRoot(doc), nod2)
 	
-	if NumChildren(DocumentRoot(doc)) <> 4 then fail
+	if NumChildren(DocumentRoot(doc)) <> 6 then fail
 	
 endTest
 
@@ -203,7 +237,7 @@ startTest(addEmpty)
 	
 	AddChild(DocumentRoot(doc), nod2)
 	
-	if NumChildren(DocumentRoot(doc)) <> 5 then fail
+	if NumChildren(DocumentRoot(doc)) <> 7 then fail
 endTest
 
 startTest(addNested)
@@ -222,7 +256,7 @@ startTest(addNested)
 		nod = nod2
 	next
 	
-	if NumChildren(DocumentRoot(doc)) <> 6 then fail
+	if NumChildren(DocumentRoot(doc)) <> 8 then fail
 endTest
 
 startTest(helperFunctions)

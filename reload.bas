@@ -293,7 +293,7 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 	select case ret->nodeType
 		case rliNull
 		case rliByte
-			ret->num = fgetc(f)
+			ret->num = cbyte(fgetc(f))
 			ret->nodeType = rltInt
 		case rliShort
 			dim s as short
