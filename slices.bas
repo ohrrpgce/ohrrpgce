@@ -668,9 +668,13 @@ Sub DisposeRectangleSlice(byval sl as slice ptr)
 end sub
 
 Sub UpdateRectangleSliceStyle(byval dat as RectangleSliceData ptr)
- dat->bgcol = uiLook(uiTextbox + dat->style * 2)
- dat->fgcol = uiLook(uiTextbox + dat->style * 2 + 1)
- dat->border = dat->style
+ IF dat->style >= -1 ANDALSO dat->style <= 14 THEN
+  dat->bgcol = uiLook(uiTextbox + dat->style * 2)
+  dat->fgcol = uiLook(uiTextbox + dat->style * 2 + 1)
+  dat->border = dat->style
+ ELSE
+  debug "bad rect style " & dat->style
+ END IF
  dat->style_loaded = YES
 end sub
 
