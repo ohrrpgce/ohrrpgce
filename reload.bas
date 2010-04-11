@@ -9,7 +9,7 @@
 'somehow fscked up the private heap implementation. Or, someone else touched something without
 'understanding how it works...
 
-'#define RELOAD_NOPRIVATEHEAP
+#define RELOAD_NOPRIVATEHEAP
 
 'This causes RELOAD to spit out a bunch of debugging stuff when loading documents.
 
@@ -1339,7 +1339,7 @@ End Function
 Sub DestroyHashTable(h as HashPtr)
 	if h = 0 then return
 	
-	for i as integer = 0 to h->numBuckets
+	for i as integer = 0 to h->numBuckets - 1
 		do while h->bucket[i]
 			dim t as ReloadHashItem ptr
 			t = h->bucket[i]->nxt
