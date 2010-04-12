@@ -13,6 +13,8 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Kb 2010-04-12 Whole lot of bugfixes in script declarations and
+--               checking for unreserved identifier names
 --3Ka 2010-04-12 Throw error if source file contains binary
 --3K 2010-04-12 Error column reporting (introducing srcpos); lump
 --              original source files into source.lumped
@@ -106,7 +108,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ka"
+constant COMPILER_SUB_VERSION="Kb"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -145,6 +147,7 @@ constant RESERVE_BEGIN=7
 constant RESERVE_END=8
 constant RESERVE_OPERATOR=9
 constant RESERVE_BUILTIN=10
+constant RESERVE_CONSTANT=11
 constant RESERVE_NAMES={"declaration"
                        ,"unimplemented keyword/operator"
                        ,"flow control"
@@ -155,6 +158,7 @@ constant RESERVE_NAMES={"declaration"
                        ,"bracket "&COLYEL&")"&COLRED
                        ,"operator"
                        ,"builtin command"
+                       ,"constant"
                        }
 constant PAIR_NUM=1
 constant PAIR_NAME=2
@@ -647,8 +651,8 @@ function form_error_text(sequence s,srcpos pos)
   sequence column_display
   integer tab_compensate
   src_position=decode_srcpos(pos)
-  ?pos
-  pretty_print(1,src_position,{2})
+  --?pos
+  --pretty_print(1,src_position,{2})
 
   line=substring_replace(src_position[POS_TEXT],"\t","    ")
   tab_compensate=3*count('\t',src_position[POS_TEXT][1..src_position[POS_COLUMN]])
@@ -657,11 +661,11 @@ function form_error_text(sequence s,srcpos pos)
   if length(current_script) then
     return(
       sprintf(
-         "in line %d of script "&COLYEL&"%s"&COLRED&" in "&COLPNK&"%s"&COLRED&"\n"
+         "in script "&COLYEL&"%s"&COLRED&" on line %d in "&COLPNK&"%s"&COLRED&"\n"
          &COLBWHI&"%s\n"
          &"%s^\n"
          &COLRED&"%s\n"
-        ,{src_position[POS_LINE],current_script,src_position[POS_FILENAME],line,column_display,s}
+        ,{current_script,src_position[POS_LINE],src_position[POS_FILENAME],line,column_display,s}
       )
     )
   else
@@ -1005,6 +1009,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+--Warning: you normally want to use check_undefined_string instead of this
 procedure check_for_reserved(sequence s,srcpos pos,sequence expect)
   if alpha_tree_seek(reserved,s) then
     if compare("top-level declaration",expect)=0 then
@@ -1016,11 +1021,7 @@ procedure check_for_reserved(sequence s,srcpos pos,sequence expect)
         ,pos
       )
     elsif compare("user script name",expect)=0 then
-      if alpha_tree_data(reserved,s,0)=RESERVE_FUNCTION then
-        src_warn(sprintf("%s "&COLYEL&"%s"&COLRED&" is already reserved as a %s",{expect,s,RESERVE_NAMES[alpha_tree_data(reserved,s,0)]}),pos)
-      else  
-        src_error(sprintf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
-      end if
+      src_error(sprintf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
     else  
       src_error(sprintf("Expected %s, but found %s "&COLYEL&"%s"&COLRED,{expect,RESERVE_NAMES[alpha_tree_data(reserved,s,0)],s}),pos)
     end if
@@ -1029,41 +1030,55 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function musnt_be_a_number(sequence s)
+procedure mustnt_be_a_number(sequence s)
   if length(exclude(s[CMD_TEXT],"-0123456789"))=0 and compare(s[CMD_TEXT],"--")!=0 then
     src_error(sprintf("Expected a name, but found a number "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_POS])
   end if
-  return(s[CMD_TEXT])
-end function
+end procedure
 
 ---------------------------------------------------------------------------
 
-function try_undefined_constant(sequence s)
+procedure check_undefined_constant(sequence s,atom value)
    sequence const_data
    sequence src_position
-   check_for_reserved(s[CMD_TEXT],s[CMD_POS],"constant name")
+   sequence err_string
+   sequence whats_happening
    if alpha_tree_seek(constant_list,s[CMD_TEXT]) then
      --constant is already defined
      const_data=alpha_tree_data(constant_list,s[CMD_TEXT],0)
      src_position=decode_srcpos(const_data[2])
-     src_warn(sprintf("constant "&COLYEL&"%s"&COLRED&" will be ignored because it is already defined in line "&COLYEL&"%d"&COLRED&" of "&COLBWHI&"%s"&COLRED&" with the value "&COLYEL&"%d"&COLRED
-                ,{
-                   s[CMD_TEXT]
-                  ,src_position[POS_LINE]
-                  ,src_position[POS_FILENAME]
-                  ,const_data[1]
-                }
-              ),s[CMD_POS])
+     if const_data[1]=value then
+       whats_happening="will be ignored because"
+     else
+       whats_happening="is being redefined;"
+     end if
+     err_string=sprintf("Constant "&COLYEL&"%s"&COLRED&" %s it is already defined in line %d of "&COLPNK&"%s"&COLRED&" with the value "&COLYEL&"%d"&COLRED
+                   ,{
+                      s[CMD_TEXT]
+                     ,whats_happening
+                     ,src_position[POS_LINE]
+                     ,src_position[POS_FILENAME]
+                     ,const_data[1]
+                   }
+                )
+     if const_data[1]=value then
+       src_warn(err_string,s[CMD_POS])
+     else
+       src_error(err_string,s[CMD_POS])
+     end if
+     --if it's in constant_list, then it's also in reserved.
+   else
+     check_for_reserved(s[CMD_TEXT],s[CMD_POS],"constant name")
    end if
-   return musnt_be_a_number(s)
-end function
+   mustnt_be_a_number(s)
+end procedure
 
 ---------------------------------------------------------------------------
 
-function try_undefined_string(sequence s,sequence seeking)
+procedure check_undefined_string(sequence s,sequence seeking)
    check_for_reserved(s[CMD_TEXT],s[CMD_POS],seeking)
-   return musnt_be_a_number(s)
-end function
+   mustnt_be_a_number(s)
+end procedure
 
 ---------------------------------------------------------------------------
 
@@ -1164,12 +1179,13 @@ procedure parse_constant_block(sequence block)
   sequence name
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
-      src_error("Expected name to follow but constant block ended",block[i][CMD_POS])
-    end if  
+      src_error("Expected name to follow but defineconstant block ended",block[i][CMD_POS])
+    end if
     num=try_string_to_number({enforce_constants(block[i][CMD_TEXT]),block[i][CMD_POS]})
---    name=try_undefined_constant({enforce_constants(block[i+1][CMD_TEXT]),block[i+1][CMD_POS]})
-    name=try_undefined_constant({block[i+1][CMD_TEXT],block[i+1][CMD_POS]})
+    check_undefined_constant(block[i+1],num)
+    name=block[i+1][CMD_TEXT]
     constant_list=alpha_tree_insert(constant_list,name,{num,block[i+1][CMD_POS]})
+    reserved=alpha_tree_insert(reserved,name,RESERVE_CONSTANT)
   end for
 end procedure
 
@@ -1183,7 +1199,8 @@ procedure parse_trigger_block(sequence block)
       src_error("Expected name but script trigger definition block ended",block[i][CMD_POS])
     end if  
     num=force_16_bit(try_string_to_number(block[i]),block[i][CMD_POS])
-    name=try_undefined_string(block[i+1],"script trigger name")
+    check_undefined_string(block[i+1],"script trigger name")
+    name=block[i+1][CMD_TEXT]
     trigger_list=append(trigger_list,{num,name})
     reserved=alpha_tree_insert(reserved,name,RESERVE_CORE)
   end for
@@ -1212,14 +1229,13 @@ end procedure
 
 procedure parse_global_block(sequence block)
   integer num
-  sequence name
   for i=1 to length(block) by 2 do
     if i+1>length(block) then
       src_error("expected name but globalvariable block ended",block[i][CMD_POS])
     end if
     num=try_string_to_number(block[i])
-    name=try_undefined_string(block[i+1],"global variable name")
-    create_global(num,name,block[i][CMD_POS])
+    check_undefined_string(block[i+1],"global variable name")
+    create_global(num,block[i+1][CMD_TEXT],block[i][CMD_POS])
   end for
 end procedure
 
@@ -1233,8 +1249,10 @@ procedure parse_operator_block(sequence block)
       src_error("expected name but defineoperator block ended",block[i][CMD_POS])
     end if
     num=try_string_to_number(block[i])
-    name=musnt_be_a_number(block[i+1])
-    true=musnt_be_a_number(block[i+2])
+    mustnt_be_a_number(block[i+1])
+    mustnt_be_a_number(block[i+2])
+    name=block[i+1][CMD_TEXT]
+    true=block[i+2][CMD_TEXT]
     operator_list=append(operator_list,{num,name,true,block[i+2][CMD_POS]})
     reserved=alpha_tree_insert(reserved,name,RESERVE_OPERATOR)
   end for
@@ -1270,7 +1288,7 @@ function parse_define_block(sequence block,sequence list,integer func_type)
   sequence name
   integer args
   sequence arglist
-  integer name_line
+  srcpos name_pos
   integer i
   i=1
   while i<=length(block) do
@@ -1279,8 +1297,9 @@ function parse_define_block(sequence block,sequence list,integer func_type)
       src_error(sprintf("expected %s name but define block ended",{RESERVE_NAMES[func_type]}),block[i][CMD_POS])
     else
       i+=1
-      name=try_undefined_string(block[i],RESERVE_NAMES[func_type]&" name")
-      name_line=block[i][CMD_POS]
+      check_undefined_string(block[i],RESERVE_NAMES[func_type]&" name")
+      name=block[i][CMD_TEXT]
+      name_pos=block[i][CMD_POS]
       if i+1>length(block) then
         src_error("expected argument count but define block ended",block[i][CMD_POS])
       else
@@ -1288,7 +1307,7 @@ function parse_define_block(sequence block,sequence list,integer func_type)
         args=try_string_to_number(block[i])
         arglist={}
         if args<0 then
-          list=create_function(list,num,name,VAR_ARGS,func_type,name_line)
+          list=create_function(list,num,name,VAR_ARGS,func_type,name_pos)
         else
           for j=1 to args do
             if i+1>length(block) then
@@ -1298,7 +1317,7 @@ function parse_define_block(sequence block,sequence list,integer func_type)
               arglist=append(arglist,try_string_to_number(block[i]))
             end if
           end for
-          list=create_function(list,num,name,arglist,func_type,name_line)
+          list=create_function(list,num,name,arglist,func_type,name_pos)
         end if
         i+=1
       end if
@@ -1339,6 +1358,11 @@ procedure parse_script(sequence trigger)
   integer depth
   integer temp
   name=get_cmd()
+  if not find(name[CMD_TEXT],column(script_list,PAIR_NAME)) then
+    --Doesn't appear in a definescript block; if it did the name is already reserved
+    --Note that we won't add it to script_list yet; that happens later in check_script_declarations
+    check_undefined_string(name,"user script name")
+  end if
   current_script=name[CMD_TEXT]
   arglist={}
   while true do
@@ -1349,7 +1373,8 @@ procedure parse_script(sequence trigger)
     if compare("begin",this[CMD_TEXT])=0 then
       exit--break the while
     end if
-    --arglist=append(arglist,{try_undefined_string(this,"argument name"),this[CMD_POS]})
+    --Note that arglist isn't the actual list of arguments, it's just a string of tokens right now.
+    --The actual arglist is built in process_arglist, while compiling each script.
     arglist=append(arglist,this)
   end while
   --every script is nested inside a big fat do() block
@@ -1416,21 +1441,16 @@ procedure parse_top_level()
     elsif compare("definescript",this[CMD_TEXT])=0 then
       script_list=parse_define_block(get_cmd_block(true),script_list,RESERVE_SCRIPT)
     elsif find(this[CMD_TEXT],triggers)>0 then
-     parse_script(this)
+      parse_script(this)
     else
-      if get_cmd_pointer>length(cmd) then
-        --file ends while looking for top-level declaration
-        exit
-      else  
-        check_for_reserved(this[CMD_TEXT],this[CMD_POS],"top-level declaration")
-        src_error(
-          sprintf(
-            "Expected top-level declaration but found "&COLYEL&"%s"&COLRED
-            ,{this[CMD_TEXT]}
-          )
-          ,this[CMD_POS]
+      check_for_reserved(this[CMD_TEXT],this[CMD_POS],"top-level declaration")
+      src_error(
+        sprintf(
+          "Expected top-level declaration but found "&COLYEL&"%s"&COLRED
+          ,{this[CMD_TEXT]}
         )
-      end if
+        ,this[CMD_POS]
+      )
     end if
   end while
   cmd={}
@@ -1444,17 +1464,17 @@ procedure dump_script_and_function_info(integer fh,sequence list)
   sequence src_position
   for i=1 to length(list) do
     this=list[i]
-    if this[1]>autonumber_id then
-      id_string=sprintf("AUTONUMBER=%d",{this[1]})
+    if this[PAIR_NUM]>autonumber_id then
+      id_string=sprintf("AUTONUMBER=%d",{this[PAIR_NUM]})
     else  
-      id_string=sprintf("ID=%d",{this[1]})
+      id_string=sprintf("ID=%d",{this[PAIR_NUM]})
     end if
     src_position=decode_srcpos(this[FUNC_POS])
     printf(fh,"%s %d\t%s\t%s(",{
        src_position[POS_FILENAME]
       ,src_position[POS_LINE]
       ,id_string
-      ,this[2]
+      ,this[PAIR_NAME]
     })
     if equal(this[FUNC_ARGS],VAR_ARGS) then
       printf(fh,"VARIABLE ARGS",{})
@@ -1597,7 +1617,7 @@ procedure dump_debug_report()
     end if
     fh=open(debug_file,"w")
     if fh!=failure then
-      wrap_print("Writing debug report file "&COLBWHI&"%s"&COLWHI&"\n",{debug_file})  
+      wrap_print("writing debug report file "&COLBWHI&"%s"&COLWHI&"\n",{debug_file})  
       -------------------------------------
       printf(fh,"[Scripts]\n",{})
       dump_script_and_function_info(fh,script_list)
@@ -1698,7 +1718,7 @@ end function
 
 ---------------------------------------------------------------------------
 
---identify the kind and id of a text command. Does not support untranslaed operators or floaty parethesis
+--identify the kind and id of a text command. Does not support untranslated operators or floaty parethesis
 function what_kind_and_id(sequence command,sequence local_vars)
   integer kind
   atom id
@@ -1918,13 +1938,13 @@ function gather_local_vars(sequence vars,sequence data)
           if compare("end",this[CMD_TEXT])=0 then
             exit--break the while
           end if
-          check_for_reserved(this[CMD_TEXT],this[CMD_POS],"local variable name")
+          check_undefined_string(this,"local variable name")
           at=find(this[CMD_TEXT],column(vars,CMD_TEXT))
           if at then
             src_position=decode_srcpos(vars[at][CMD_POS])
             src_error(
               sprintf(
-                "local variable/argument "&COLYEL&"%s"&COLRED&" is already defined in line %d of "&COLBWHI&"%s"&COLRED,
+                "local variable/argument "&COLYEL&"%s"&COLRED&" is already defined in line %d of "&COLPNK&"%s"&COLRED,
                 {this[CMD_TEXT],src_position[POS_LINE],src_position[POS_FILENAME]}
               )
               ,this[CMD_POS]
@@ -2739,7 +2759,7 @@ procedure compile_a_script(integer id,sequence trigger_data,sequence name_data,s
      id                   --id
     ,trigger              --trigger type
     ,name_data[CMD_TEXT]  --name
-    ,name_data[CMD_POS]  --source line
+    ,name_data[CMD_POS]   --source line
     ,script_tree
     ,local_vars
     ,binary               --compiled data to go into the HSZ lumps
@@ -2750,7 +2770,8 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function process_arglist(sequence args,sequence script_name)
+--Parse argument declarations in a script argument list
+function process_arglist(sequence args)
   sequence arglist
   sequence defaults
   integer i
@@ -2761,20 +2782,24 @@ function process_arglist(sequence args,sequence script_name)
   i=1
   while i<=length(args) do
     if compare("=",args[i][CMD_TEXT])=0 then
-      src_error(sprintf("Syntax error: spurious = in script argument list of script "&COLYEL&"%s"&COLRED,{script_name}),args[i][CMD_POS])
+      src_error("Syntax error: spurious = in script argument list",args[i][CMD_POS])
+    end if
+    check_undefined_string(args[i],"argument name")
+    if find(args[i][CMD_TEXT],column(arglist,CMD_TEXT)) then
+      src_error(sprintf("Multiple script arguments named "&COLYEL&"%s"&COLRED&" in argument list",{args[i][CMD_TEXT]}),args[i][CMD_POS])
     end if
     if i<length(args) and compare("=",args[i+1][CMD_TEXT])=0 then
       if i+2>length(args) then
-        src_error(sprintf("Syntax error: expected default value for script argument "&COLYEL&"%s"&COLRED&" in script "&COLYEL&"%s"&COLRED,{args[i][CMD_TEXT],script_name}),args[i+1][CMD_POS])
+        src_error(sprintf("Syntax error: expected default value for script argument "&COLYEL&"%s"&COLRED,{args[i][CMD_TEXT]}),args[i+1][CMD_POS])
       end if
-      arglist=append(arglist,{try_undefined_string({args[i][CMD_TEXT],args[i][CMD_POS]},"argument name"),args[i][CMD_POS]})
+      arglist=append(arglist,args[i])
       defaults&=try_string_to_number({enforce_constants(args[i+2][CMD_TEXT]),args[i+2][CMD_POS]})
       using_defaults=true
       i+=3
     else
       if using_defaults=true then
         --any argument with a default must be followed with arguments with defaults
-        src_error(sprintf("Default value missing for argument "&COLYEL&"%s"&COLRED&" to script "&COLYEL&"%s"&COLRED&": the previous argument had a default value, so all following ones must too",{args[i][CMD_TEXT],script_name}),args[i][CMD_POS])
+        src_error(sprintf("Default value missing for argument "&COLYEL&"%s"&COLRED&": the previous argument had a default value, so all following ones must too",{args[i][CMD_TEXT]}),args[i][CMD_POS])
       end if
       arglist=append(arglist,args[i])
       defaults=append(defaults,NO_DEFAULT)
@@ -2786,22 +2811,45 @@ end function
 
 ---------------------------------------------------------------------------
 
-procedure check_script_args()
+--Check that every declared script has been defined, with the same number of arguments,
+--and each script appears exactly once. Basically, compare script_list and script_cmd
+procedure check_script_declarations()
   integer at
   sequence args_and_defaults
+  sequence scripts_found
+  sequence src_position
+
+  scripts_found=repeat(false,length(script_list))
 
   for i=1 to length(script_cmd) do
     at=find(script_cmd[i][2][CMD_TEXT],column(script_list,PAIR_NAME))
 
-    args_and_defaults=process_arglist(script_cmd[i][3],script_cmd[i][2][CMD_TEXT])
+    current_script=script_cmd[i][2][CMD_TEXT]
+    args_and_defaults=process_arglist(script_cmd[i][3])
     if not at then
       --define script optional, add to script list
       script_list=create_function(script_list,-1,script_cmd[i][2][CMD_TEXT],args_and_defaults[2],RESERVE_SCRIPT,script_cmd[i][2][CMD_POS])
+      scripts_found&={true}
     else
+      if scripts_found[at]=true then
+        src_position=decode_srcpos(script_list[at][FUNC_POS])
+        src_error(
+          sprintf(
+            "Script "&COLYEL&"%s"&COLRED&" appears more than once! It was previously defined on line %d of "&COLPNK&"%s"&COLRED
+            ,{script_cmd[i][2][CMD_TEXT],src_position[POS_LINE],src_position[POS_FILENAME]}
+          )
+          ,script_cmd[i][2][CMD_POS]
+        )
+      end if
+      scripts_found[at]=true
+      --The srcpos stored for this script will be from definescript. Repoint it at the actual script
+      --(doesn't really matter, all_scripts would have ended up with that srcpos anyway)
+      script_list[at][FUNC_POS]=script_cmd[i][2][CMD_POS]
+
       if length(script_cmd[i][3]) != length(script_list[at][FUNC_ARGS]) then
         src_error(
           sprintf(
-            "script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its declaration"
+            "Script "&COLYEL&"%s"&COLRED&" has %d arguments named, but has %d arguments in its declaration"
             ,{script_cmd[i][2][CMD_TEXT],length(script_cmd[i][3]),length(script_list[at][FUNC_ARGS])}
           )
           ,script_cmd[i][2][CMD_POS]
@@ -2811,8 +2859,8 @@ procedure check_script_args()
         if not equal(args_and_defaults[2][j],NO_DEFAULT) and not equal(args_and_defaults[2][j],script_list[at][FUNC_ARGS][j]) then
           src_warn(
             sprintf(
-              "Default value for argument "&COLYEL&"%s"&COLRED&" to script "&COLYEL&"%s"&COLRED&" does not match default given in script definition, %d"
-              ,{script_cmd[i][3][j][CMD_TEXT],script_cmd[i][2][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
+              "Default value for argument "&COLYEL&"%s"&COLRED&" does not match default given in script definition, %d"
+              ,{script_cmd[i][3][j][CMD_TEXT],script_list[at][FUNC_ARGS][j]}
             )
             ,script_cmd[i][2][CMD_POS]
           )
@@ -2820,6 +2868,16 @@ procedure check_script_args()
       end for
     end if
     script_cmd[i][3]=args_and_defaults[1]
+  end for
+  current_script=""
+
+  for i=1 to length(scripts_found) do
+    if scripts_found[i]=false then
+      src_error(
+        sprintf("Script "&COLYEL&"%s"&COLRED&" was declared but is missing",{script_list[i][PAIR_NAME]})
+        ,script_list[i][FUNC_POS]
+      )
+    end if
   end for
 end procedure
 
@@ -2831,7 +2889,7 @@ procedure compile_each_script()
   count=repeat(0,length(file_list))
   color_print("compiling scripts",{})
 
-  check_script_args()
+  check_script_declarations()
 
   for i=1 to length(script_cmd) do
     at=find(script_cmd[i][2][CMD_TEXT],column(script_list,PAIR_NAME))
