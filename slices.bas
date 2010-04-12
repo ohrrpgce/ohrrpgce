@@ -71,6 +71,7 @@ Dim Shared GlobalCoordOffset AS XYPair
 Sub DrawNullSlice(byval s as slice ptr, byval p as integer) : end sub
 Sub DisposeNullSlice(byval s as slice ptr) : end sub
 Sub UpdateNullSlice(byval s as slice ptr) : end sub
+Sub CloneNullSlice(byval s as slice ptr, byval cl as slice ptr) : end sub
 Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub DefaultChildRefresh(Byval par as Slice ptr, Byval ch as Slice ptr)
@@ -301,6 +302,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  ret->Draw = @DrawNullSlice
  ret->Dispose = @DisposeNullSlice
  ret->Update = @UpdateNullSlice
+ ret->Clone = @CloneNullSlice
  ret->Save = @SaveNullSlice
  ret->Load = @LoadNullSlice
  ret->ChildRefresh = @DefaultChildRefresh
@@ -585,6 +587,7 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
   sl->Draw      = .Draw
   sl->Dispose   = .Dispose
   sl->Update    = .Update
+  sl->Clone     = .Clone
   sl->Save      = .Save
   sl->Load      = .Load
   sl->ChildRefresh = .ChildRefresh
@@ -691,6 +694,21 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
  edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol, dat->fgcol, p, dat->translucent, dat->border
 end sub
 
+Sub CloneRectangleSlice(byval sl as slice ptr, byval cl as slice ptr)
+ if sl = 0 or cl = 0 then debug "CloneRectangleSlice null ptr": exit sub
+ dim dat as RectangleSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as RectangleSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .style       = dat->style
+  .fgcol       = dat->fgcol
+  .bgcol       = dat->bgcol
+  .translucent = dat->translucent
+  .border      = dat->border
+ end with
+end sub
+
 Sub SaveRectangleSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveRectangleSlice null ptr": exit sub
  DIM dat AS RectangleSliceData Ptr
@@ -731,6 +749,7 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  ret->SliceData = d
  ret->Draw = @DrawRectangleSlice
  ret->Dispose = @DisposeRectangleSlice
+ ret->Clone = @CloneRectangleSlice
  ret->Save = @SaveRectangleSlice
  ret->Load = @LoadRectangleSlice
  
@@ -877,6 +896,21 @@ Function GetTextSliceData(byval sl as slice ptr) as TextSliceData ptr
  return sl->SliceData
 End Function
 
+Sub CloneTextSlice(byval sl as slice ptr, byval cl as slice ptr)
+ if sl = 0 or cl = 0 then debug "CloneTextSlice null ptr": exit sub
+ dim dat as TextSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as TextSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .s       = dat->s
+  .col     = dat->col
+  .outline = dat->outline
+  .wrap    = dat->wrap
+  .bgcol   = dat->bgcol
+ end with
+end sub
+
 Sub SaveTextSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveTextSlice null ptr": exit sub
  DIM dat AS TextSliceData Ptr
@@ -915,6 +949,7 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  ret->Draw = @DrawTextSlice
  ret->Dispose = @DisposeTextSlice
  ret->Update = @UpdateTextSlice
+ ret->Clone = @CloneTextSlice
  ret->Save = @SaveTextSlice
  ret->Load = @LoadTextSlice
 
@@ -1041,6 +1076,22 @@ Sub SetSpriteFrame(byval sl as slice ptr, byval fr as Frame ptr)
  end with
 End Sub
 
+Sub CloneSpriteSlice(byval sl as slice ptr, byval cl as slice ptr)
+ if sl = 0 or cl = 0 then debug "CloneSpriteSlice null ptr": exit sub
+ dim dat as SpriteSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as SpriteSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .spritetype = dat->spritetype
+  .record     = dat->record
+  .pal        = dat->pal
+  .frame      = dat->frame
+  .flipHoriz  = dat->flipHoriz
+  .flipVert   = dat->flipVert
+ end with
+end sub
+
 Sub SaveSpriteSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveSpriteSlice null ptr": exit sub
  DIM dat AS SpriteSliceData Ptr
@@ -1083,6 +1134,7 @@ Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData)
  ret->SliceData = d
  ret->Draw = @DrawSpriteSlice
  ret->Dispose = @DisposeSpriteSlice
+ ret->Clone = @CloneSpriteSlice
  ret->Save = @SaveSpriteSlice
  ret->Load = @LoadSpriteSlice
  
@@ -1185,6 +1237,8 @@ Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceData) as sl
  ret->SliceData = d
  ret->Draw = @DrawMapSlice
  ret->Dispose = @DisposeMapSlice
+ '--No cloning support for Map slice yet
+ 'ret->Clone = @CloneMapSlice
  ret->Save = @SaveMapSlice
  ret->Load = @LoadMapSlice
  
@@ -1254,6 +1308,19 @@ Sub DrawGridSlice(byval sl as slice ptr, byval p as integer)
    next col
   next row
  end if
+end sub
+
+Sub CloneGridSlice(byval sl as slice ptr, byval cl as slice ptr)
+ if sl = 0 or cl = 0 then debug "CloneGridSlice null ptr": exit sub
+ dim dat as GridSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as GridSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .cols = dat->cols
+  .rows = dat->rows
+  .show = dat->show
+ end with
 end sub
 
 Sub SaveGridSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
@@ -1397,6 +1464,7 @@ Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceData) as 
  ret->SliceData = d
  ret->Draw = @DrawGridSlice
  ret->Dispose = @DisposeGridSlice
+ ret->Clone = @CloneGridSlice
  ret->Save = @SaveGridSlice
  ret->Load = @LoadGridSlice
  ret->ChildRefresh = @GridChildRefresh
@@ -1793,6 +1861,48 @@ Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
   if diff > 0 then sl2->Y -= abs(diff)
  end if
 end sub
+
+'==Slice cloning===============================================================
+
+Function CloneSliceTree(byval sl as slice ptr) as slice ptr
+ 'clone a duplicate of a slice and all its children.
+ 'only saveable properties are cloned.
+ 'The resulting clone is parentless
+ dim clone as Slice Ptr
+ '--Create another slice of the same type
+ clone = NewSliceOfType(sl->SliceType)
+ '--Clone all standard properties
+ with *clone
+  .lookup = sl->lookup
+  .x = sl->x
+  .y = sl->y
+  .Width = sl->Width
+  .Height = sl->Height
+  .Visible = sl->Visible
+  .Clip = sl->Clip
+  .AlignHoriz = sl->AlignHoriz
+  .AlignVert = sl->AlignVert
+  .AnchorHoriz = sl->AnchorHoriz
+  .AnchorVert = sl->AnchorVert
+  .PaddingTop = sl->PaddingTop
+  .PaddingLeft = sl->PaddingLeft
+  .PaddingRight = sl->PaddingRight
+  .PaddingBottom = sl->PaddingBottom
+  .Fill = sl->Fill
+ end with
+ '--clone special properties for this slice type
+ sl->Clone(sl, clone)
+ '--Now clone all the children
+ dim ch_slice AS Slice Ptr = sl->FirstChild
+ dim ch_clone AS Slice Ptr
+ do while ch_slice <> 0
+  ch_clone = CloneSliceTree(ch_slice)
+  SetSliceParent ch_clone, clone
+  ch_slice = ch_slice->NextSibling
+ loop
+ '--return the clone
+ return clone
+end function
 
 '==Slice saving and loading====================================================
 

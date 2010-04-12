@@ -32,6 +32,7 @@ TYPE SliceEditState
  last_non_slice AS INTEGER
  saved_pos AS XYPair
  saved_size AS XYPair
+ clipboard AS Slice Ptr
 END TYPE
 
 TYPE SliceEditMenuItem
@@ -107,6 +108,8 @@ DECLARE SUB slice_editor_save(BYVAL edslice AS Slice Ptr, filename AS STRING)
 DECLARE FUNCTION slice_lookup_code_caption(BYVAL code AS INTEGER, slicelookup() AS STRING) AS STRING
 DECLARE FUNCTION edit_slice_lookup_codes(slicelookup() AS STRING, BYVAL start_at_code AS INTEGER) AS INTEGER
 DECLARE FUNCTION slice_caption (sl AS Slice Ptr, slicelookup() AS STRING) AS STRING
+DECLARE SUB slice_editor_copy(BYREF ses AS SliceEditState, BYVAL slice AS Slice Ptr)
+DECLARE SUB slice_editor_paste(BYREF ses AS SliceEditState, BYVAL slice AS Slice Ptr)
 
 'Functions that need to be aware of magic numbers for SliceType
 DECLARE FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS SliceTypes
@@ -285,6 +288,17 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
     state.need_update = YES
    END IF
   END IF
+  IF state.pt > ses.last_non_slice THEN
+   IF keyval(scCtrl) > 0 THEN
+    IF keyval(scC) > 1 THEN
+     slice_editor_copy ses, menu(state.pt).handle
+    END IF
+    IF keyval(scV) > 1 THEN
+     slice_editor_paste ses, menu(state.pt).handle
+     state.need_update = YES
+    END IF
+   END IF
+  END IF
   IF state.pt > 0 THEN
    IF shift THEN
     IF menu(state.pt).handle THEN
@@ -351,6 +365,9 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
  edslice->Width = ses.saved_size.x
  edslice->Height = ses.saved_size.y
 
+ '--free the clipboard if there is something in it
+ IF ses.clipboard THEN DeleteSlice @ses.clipboard
+
 END SUB
 
 SUB slice_editor_load(BYREF edslice AS Slice Ptr, filename AS STRING)
@@ -373,6 +390,17 @@ SUB slice_editor_save(BYVAL edslice AS Slice Ptr, filename AS STRING)
  ELSE
   '--erase empty slice collections
   safekill filename
+ END IF
+END SUB
+
+SUB slice_editor_copy(BYREF ses AS SliceEditState, BYVAL slice AS Slice Ptr)
+ IF ses.clipboard THEN DeleteSlice @ses.clipboard
+ ses.clipboard = CloneSliceTree(slice)
+END SUB
+
+SUB slice_editor_paste(BYREF ses AS SliceEditState, BYVAL slice AS Slice Ptr)
+ IF ses.clipboard THEN
+  InsertSliceBefore slice, CloneSliceTree(ses.clipboard)
  END IF
 END SUB
 

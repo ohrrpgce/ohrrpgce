@@ -61,6 +61,7 @@ Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
 Type SliceUpdate as Sub(Byval as SliceFwd ptr)
+Type SliceClone as Sub(Byval as SliceFwd ptr, byval as SliceFwd ptr)
 Type SliceSave as Sub(Byval as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceChildRefresh as Sub(Byval par as SliceFwd ptr, Byval ch as SliceFwd ptr)
@@ -105,6 +106,7 @@ TYPE Slice
   Draw as SliceDraw
   Dispose as SliceDispose
   Update as SliceUpdate
+  Clone as SliceClone
   Save as SliceSave
   Load as SliceLoad
   ChildRefresh as SliceChildRefresh
@@ -230,6 +232,7 @@ DECLARE Function FindSliceAtPoint(byval parent as Slice Ptr, byval x as integer,
 DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
 DECLARE Sub YSortChildSlices(byval parent as slice ptr)
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
+DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
 
 DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYVAL lookup_code AS INTEGER=0) AS Slice Ptr
 
@@ -292,7 +295,6 @@ DECLARE Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
 DECLARE Sub SliceSaveToFile(BYVAL sl AS Slice Ptr, filename AS STRING)
 DECLARE Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
 DECLARE Sub SliceLoadFromFile(BYVAL sl AS Slice Ptr, filename AS STRING)
-
 
 
 EXTERN AS SliceTable_ SliceTable
@@ -358,6 +360,7 @@ Function New<TYPENAME>Slice(byval parent as Slice ptr, byref dat as <TYPENAME>Sl
  ret->SliceData = d
  ret->Draw = @Draw<TYPENAME>Slice
  ret->Dispose = @Dispose<TYPENAME>Slice
+ ret->Clone = @Clone<TYPENAME>Slice
  ret->Save = @Save<TYPENAME>Slice
  ret->Load = @Load<TYPENAME>Slice
  
