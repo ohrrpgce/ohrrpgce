@@ -604,16 +604,20 @@ SUB scriptmath
   CASE 0' random
    scriptret = retvals(0) + INT(RND * (1.0 + retvals(1) - retvals(0))) 'handles the case max-min = 2^32
   CASE 1' exponent
-   scriptret = retvals(0) ^ retvals(1)
+   IF retvals(0) = 0 and retvals(1) < 0 THEN
+    scripterr "Tried to take negative power of zero, 0^" & retvals(1), 5
+   ELSE
+    scriptret = retvals(0) ^ retvals(1)
+   END IF
   CASE 2' modulus
    IF retvals(1) = 0 THEN
-    scripterr "division by zero", 5
+    scripterr "division by zero: " & retvals(0) & ",mod,0", 5
    ELSE
     scriptret = retvals(0) MOD retvals(1)
    END IF
   CASE 3' divide
    IF retvals(1) = 0 THEN
-    scripterr "division by zero", 5
+    scripterr "division by zero: " & retvals(0) & "/0", 5
    ELSE
     scriptret = retvals(0) \ retvals(1)
    END IF

@@ -439,7 +439,7 @@ global type int32(object o)
   return(false)
 end type
 
-global function string_is_an_integer(sequence s)
+global function string_is_int32(sequence s)
   object o
   o=value(s)
   if o[1]=GET_SUCCESS then

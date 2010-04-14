@@ -6,13 +6,14 @@
 -- This is a compiler for HamsterSpeak scripts used for plotscripting in
 -- the O.H.R.RPG.C.E. For more info, visit http://HamsterRepublic.com
 
--- This code is written in Euphoria. You can get the Free Open-Source
+-- This code is written in Euphoria 3.1. You can get the Free Open-Source
 -- Euphoria compiler from http://RapidEuphoria.com . I also highly recommend
 -- David Cuny's EE editor which you can download from the same site.
 
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Kd 2010-04-14 Quite a few bugfixes in optimizer
 --3Kc 2010-04-14 Start checking well-formedness of numbers with lexer
 --3Kb 2010-04-12 Whole lot of bugfixes in script declarations and
 --               checking for unreserved identifier names
@@ -92,7 +93,7 @@
 ---------------------------------------------------------------------------
 
 without warning       --to avoid annoying warnings
-without type_check    --for a small speed boost
+with type_check    --for a small speed boost
 --with profile_time     --time profiling
 
 include hsspiffy.e --various routines, sequence manipulation - James Paige
@@ -109,7 +110,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Kc"
+constant COMPILER_SUB_VERSION="Kd"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -880,7 +881,7 @@ function lexer_read_number(sequence s,integer i,srcpos pos)
     i+=1
   end while
   if not int32(sign*val) then
-    src_error(sprintf(COLYEL&"%s"&COLRED&" is too big to be stored in a 32 bit signed int. Integers must be between -2147483648 and 2147483647",{text}),pos+starti)
+    src_error(sprintf(COLYEL&"%s"&COLRED&" is too big to be stored in a 32 bit signed integer. Integers must be between -2147483648 and 2147483647",{text}),pos+starti)
   end if
   return({i,text})
 end function
@@ -1206,7 +1207,7 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function force_16_bit(integer n,srcpos pos)
+function force_16_bit(atom n,srcpos pos)
   if n>32767 then
     src_warn(sprintf("number "&COLYEL&"%d"&COLRED&" is out of range for a 16-bit signed integer, and will be truncated to "&COLYEL&"32767"&COLRED,{n}),pos)
     n=32767
@@ -1222,7 +1223,7 @@ end function
 function try_string_to_number(sequence s)
   atom result
   result=floor(string_to_object(s[CMD_TEXT],0))
-  if not string_is_an_integer(s[CMD_TEXT]) then
+  if not string_is_int32(s[CMD_TEXT]) then
     src_error(sprintf("Expected number but found "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_POS])
   end if
   return(result)
@@ -1850,7 +1851,7 @@ function what_kind_and_id(sequence command,sequence local_vars)
   sequence s
   s=command[CMD_TEXT]
   keyword=alpha_tree_data(reserved,s,0)
-  if string_is_an_integer(s) then
+  if string_is_int32(s) then
     kind=KIND_NUMBER
     id=string_to_object(s,{})
   elsif length(s) and s[1] = '@' then
@@ -1890,7 +1891,7 @@ function what_kind(sequence command,sequence local_vars, integer look_for_operat
   sequence s
   s=command[CMD_TEXT]
   keyword=alpha_tree_data(reserved,s,0)
-  if string_is_an_integer(s) then
+  if string_is_int32(s) then
     kind=KIND_NUMBER
   elsif length(s) and s[1] = '@' then
     kind=KIND_REFERENCE
@@ -2741,6 +2742,14 @@ end function
 
 ---------------------------------------------------------------------------
 
+--simulate a result overflowing a signed 32 bit register
+function overflow_int32(atom val)
+  --maybe check whether val is so large that this is could be inaccurate?
+  return(and_bits(remainder(val,#80000000),#FFFFFFFF))
+end function
+
+---------------------------------------------------------------------------
+
 function optimized_arg(sequence tree,sequence vars)
   sequence kind_and_id
   integer kind
@@ -2751,10 +2760,14 @@ function optimized_arg(sequence tree,sequence vars)
   id=kind_and_id[2]
   if kind=KIND_NUMBER then
     return(id)
-  elsif kind=KIND_MATH and id<=15 then
+  elsif kind=KIND_MATH and (id<=15 or id>=19) then
     arg1=optimized_arg(tree[TREE_BRANCHES][1],vars)
-    arg2=optimized_arg(tree[TREE_BRANCHES][2],vars)
-    if integer(arg1) and integer(arg2) then
+    if length(tree[TREE_BRANCHES])>=2 then
+      arg2=optimized_arg(tree[TREE_BRANCHES][2],vars)
+    else
+      arg2=0
+    end if
+    if atom(arg1) and atom(arg2) then
        if id=0 then
          --random
          if arg1=arg2 then
@@ -2762,22 +2775,50 @@ function optimized_arg(sequence tree,sequence vars)
          end if
        elsif id=1 then
          --exponent
-         return(power(arg1,arg2))
+         if arg2>0 then
+           --if too large, Euphoria will signal an overflow, but I'm also worried
+           --about overflow_int32 giving inaccurate results
+           if log(abs(arg1)+1)+log(abs(arg2)+1)<log(1e14) then
+             return(overflow_int32(power(arg1,arg2)))
+           end if
+         elsif arg2=0 then
+           --FB takes 0^0=1 (the most useful definition), Euphoria throws an error
+           return(1)
+         elsif arg2<0 then
+           if arg1=0 then
+             src_error(sprintf("Found the expression (or equivalent) "&COLYEL&"0 ^ %d"&COLRED&". This is division by zero.",{arg2}),tree[TREE_TRUNK][CMD_POS])
+           elsif arg1=1 or arg1=-1 then
+             return(power(arg1,arg2))
+           else
+             return(0)
+           end if
+         end if
        elsif id=2 then
          --modulus
+         if arg2=0 then
+           src_error(sprintf("Found the expression (or equivalent) "&COLYEL&"%d, mod, 0"&COLRED&". This is division by zero.",{arg1}),tree[TREE_TRUNK][CMD_POS])
+         end if
          return(floor(remainder(arg1,arg2)))
        elsif id=3 then
          --divide
-         return(floor(arg1/arg2))
+         if arg2=0 then
+           src_error(sprintf("Found the expression (or equivalent) "&COLYEL&"%d / 0"&COLRED,{arg1}),tree[TREE_TRUNK][CMD_POS])
+         end if
+         --Euphoria doesn't have a truncating function?
+         if arg1*arg2<0 then
+           return(-floor(-arg1/arg2))
+         else
+           return(floor(arg1/arg2))
+         end if
        elsif id=4 then
          --multiply
-         return(arg1*arg2)
+         return(overflow_int32(arg1*arg2))
        elsif id=5 then
          --subtract
-         return(arg1-arg2)
+         return(overflow_int32(arg1-arg2))
        elsif id=6 then
          --add
-         return(arg1+arg2)
+         return(overflow_int32(arg1+arg2))
        elsif id=7 then
          --xor
          return(xor_bits(arg1,arg2))
@@ -2789,26 +2830,46 @@ function optimized_arg(sequence tree,sequence vars)
          return(and_bits(arg1,arg2))
        elsif id=10 then
          --equal
-         return(abs(arg1=arg2)*-1)
+         return(arg1=arg2)
        elsif id=11 then
          --notequal
-         return(abs(arg1!=arg2)*-1)
+         return(arg1!=arg2)
        elsif id=12 then
          --lessthan
-         return(abs(arg1<arg2)*-1)
+         return(arg1<arg2)
        elsif id=13 then
          --greaterthan
-         return(abs(arg1>arg2)*-1)
+         return(arg1>arg2)
        elsif id=14 then
          --lessthanorequalto
-         return(abs(arg1<=arg2)*-1)
+         return(arg1<=arg2)
        elsif id=15 then
          --greaterthanorequalto
-         return(abs(arg1>=arg2)*-1)
+         return(arg1>=arg2)
+       elsif id=19 then
+         --not
+         return(arg1=0)
+       elsif id=22 then
+         --logxor
+         return((arg1=0)!=(arg2=0))
+       end if
+    end if
+    --have to allow for side effects of shortcut evaluating expressions by only checking first arg
+    if atom(arg1) then
+       if id=20 then
+         --logand
+         if arg1=0 then
+           return 0
+         end if
+       elsif id=21 then
+         --logor
+         if arg1!=0 then
+           return 1
+         end if
        end if
     end if
   end if
-  return({})
+  return({})  --return nonatom
 end function
 
 ---------------------------------------------------------------------------
@@ -2818,7 +2879,7 @@ function optimize_script(sequence tree,sequence vars)
   object arg
   for i=1 to length(tree) do
     arg=optimized_arg(tree[i],vars)
-    if integer(arg) then
+    if atom(arg) then
       tree[i][TREE_TRUNK][CMD_TEXT]=sprintf("%d",arg)
       tree[i][TREE_BRANCHES]={}
     end if
