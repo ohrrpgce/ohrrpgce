@@ -18,7 +18,8 @@ files = [
   prefix + "plotscr.hsd",
   prefix + "scancode.hsi",
   prefix + "unlump",
-  prefix + "relump"]
+  prefix + "relump",
+  prefix + "ohrhelp"]
 
 executables = [prefix + "ohrrpgce-game",
                prefix + "ohrrpgce-custom",
