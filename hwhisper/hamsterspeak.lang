@@ -73,7 +73,7 @@
     <context id="number" style-ref="number">
       <match extended="true">
         (?&lt;![\w\.])
-        [+-]?([1-9][0-9]*|0)
+        [+-]?[0-9]+
         (?![\w\.])
       </match>
     </context>
