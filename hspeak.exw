@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Kc 2010-04-14 Start checking well-formedness of numbers with lexer
 --3Kb 2010-04-12 Whole lot of bugfixes in script declarations and
 --               checking for unreserved identifier names
 --3Ka 2010-04-12 Throw error if source file contains binary
@@ -108,7 +109,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Kb"
+constant COMPILER_SUB_VERSION="Kc"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -128,6 +129,8 @@ constant LEX_STRING=6
 constant LEX_COMMA=7
 constant LEX_WARN=8
 constant LEX_BINARY=9
+constant LEX_DIGIT=10
+constant LEX_KEYWORD2=11
 constant FILE_NAME=1
 constant FILE_LINES=2
 constant FILE_LENGTH=3
@@ -167,6 +170,8 @@ constant OPER_POS=4
 constant FUNC_ARGS=3
 constant FUNC_POS=4
 constant GLB_POS=3
+constant CONST_VALUE=1
+constant CONST_POS=2
 constant NO_DEFAULT={}  --when appears in script_list[FUNC_ARGS], indicates arg with no default value
 constant VAR_ARGS=0     --when appears AS function_list[FUNC_ARGS], indicates unlimited num of args
 constant KIND_NUMBER=1
@@ -264,6 +269,7 @@ sequence separator_list   separator_list={
                              ,"==","<>",">>","<<","<=",">=",":=","=","&&","||"
                           }
 sequence lexer_table      lexer_table={}
+sequence lexer_table_key2 lexer_table_key2={}
 
 sequence all_scripts      all_scripts={}                        
 sequence current_script   current_script=""
@@ -492,10 +498,12 @@ end procedure
 
 ---------------------------------------------------------------------------
 
---build lexer_table, which for each ASCII character i, contains the lexer
---state to transition to in entry i+1 (have to handle NUL)
+--build the lexer tables, which for each ASCII character i, contains the type
+--of that character in entry i+1 (have to handle NUL)
 procedure init_lexer()
   sequence table_insert
+
+  --main table
   table_insert={" (),#\t\"[]{}",
                 {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
   --by default each character is either binary, or an allowed identifier
@@ -504,10 +512,26 @@ procedure init_lexer()
   for i=1 to length(table_insert[1]) do
     lexer_table[table_insert[1][i]+1]=table_insert[2][i]
   end for
+  for i=0 to 9 do
+    lexer_table['0'+i+1]=LEX_DIGIT
+  end for
   --add the one-character prefix of each operator
   for i=1 to length(separator_list) do
     lexer_table[separator_list[i][1]+1]=LEX_KEYWORD
   end for
+
+  --keyword suffix parsing table
+  lexer_table_key2=repeat(LEX_CHAR,256)
+  lexer_table_key2[' '+1]=LEX_SPACE
+  lexer_table_key2['\t'+1]=LEX_SPACE
+  --2nd character of each operator
+  for i=1 to length(separator_list) do
+    if length(separator_list[i])=2 then
+      lexer_table_key2[separator_list[i][2]+1]=LEX_KEYWORD2
+    end if
+  end for
+
+  --when floating point is added will want a table for number parsing
 end procedure
 
 ---------------------------------------------------------------------------
@@ -769,6 +793,13 @@ end procedure
 
 ---------------------------------------------------------------------------
 
+procedure lexer_binary_error(srcpos pos)
+  --better use src_error, to track down garbage if accidentally creeping in
+  src_error("This file contains binary gunk. Are you sure that this is the text file you want to compile?",pos)
+end procedure
+
+---------------------------------------------------------------------------
+
 --reads and processes the escape codes in a string and returns it enclosed in quote marks
 function lexer_read_string(sequence s,integer i,srcpos pos)
   sequence string
@@ -798,8 +829,60 @@ function lexer_read_string(sequence s,integer i,srcpos pos)
         string&=s[i]
       end if
     end if
+    if lexer_table[s[i]+1]=LEX_BINARY then
+      lexer_binary_error(pos+i)
+    end if
     i+=1
   end while
+end function
+
+---------------------------------------------------------------------------
+
+function lexer_read_number(sequence s,integer i,srcpos pos)
+  integer state 
+  atom val
+  integer sign
+  sequence text
+  integer starti
+
+  starti=i
+  if s[i]='-' then
+    text="-"
+    i+=1
+    sign=-1
+  else
+    text=""
+    sign=1
+  end if
+  val=0
+  while i<=length(s) do
+    state=lexer_table[s[i]+1]
+    --color_print("lexing %d=%s state %d\n",{s[i],{s[i]},state})
+    if state=LEX_DIGIT then
+      text&=s[i]
+      val=val*10+s[i]-'0'
+    elsif state=LEX_CHAR or state=LEX_WARN or state=LEX_STRING then
+      if s[i]='.' then
+        src_error("Floating point values are not yet implemented",pos+i)
+      end if
+      src_error(
+        sprintf("Expected "&COLYEL&"%s"&COLRED&" to be followed by "&COLYEL&","&COLRED&" or "&COLYEL&"("&COLRED&" or "&COLYEL&")"&COLRED&" or an operator"
+                ,{text})
+        ,pos+i
+      )
+    elsif state=LEX_SPACE then  --yes, allowed in numbers too
+    else  -- state=LEX_COMMA or state=LEX_BEGIN or state=LEX_END or state=LEX_KEYWORD or state=LEX_COMMENT or state=LEX_BINARY
+      --backtrack one character
+      --known bug: if this looks like part of a separator (KEYWORD) but isn't, then have granted a free comma where probably should throw an error instead
+      i-=1
+      exit
+    end if
+    i+=1
+  end while
+  if not int32(sign*val) then
+    src_error(sprintf(COLYEL&"%s"&COLRED&" is too big to be stored in a 32 bit signed int. Integers must be between -2147483648 and 2147483647",{text}),pos+starti)
+  end if
+  return({i,text})
 end function
 
 ---------------------------------------------------------------------------
@@ -815,8 +898,11 @@ function lex_line(sequence s,srcpos pos)
   integer textstart  --the column at which this identifier starts, otherwise 0
   sequence remem_ident
   integer remem_textstart
+  integer nonnumeral  --whether we are definitely inside an identifier, ie. a digit doesn't indicate a number
+
   i=1
   ident=""
+  nonnumeral=false
   textstart=0
   tokens={}
   while i<=length(s) do
@@ -827,12 +913,28 @@ function lex_line(sequence s,srcpos pos)
       if textstart=0 then
         textstart=i
       end if
+      nonnumeral=true
     elsif state=LEX_SPACE then
+    elsif state=LEX_DIGIT then
+      if nonnumeral then
+        ident=ident & s[i]
+      else
+        if length(ident) then  --either ident is "-" or it is ""
+          i=textstart
+          ident=""
+          textstart=0
+        end if
+        temp=lexer_read_number(s,i,pos)
+        tokens=append(tokens,{temp[2],pos+i})
+        i=temp[1]
+        --nonnumeral remains false
+      end if
     elsif state=LEX_WARN then
       ident=ident & hs_lower(s[i])
       if textstart=0 then
         textstart=i
       end if
+      nonnumeral=true
       src_warn(sprintf("FUTURE COMPATIBILITY PROBLEM: "&COLYEL&"%s"&COLRED&" should not be used in names!", {s[i]}), pos+i)
     else
       remem_ident=ident  --for backtracking
@@ -841,6 +943,7 @@ function lex_line(sequence s,srcpos pos)
         tokens=append(tokens,{ident,pos+textstart})
       end if
       ident=""
+      nonnumeral=false
       textstart=0
       if state=LEX_BEGIN then
         tokens=append(tokens,{"begin",pos+i})
@@ -850,34 +953,54 @@ function lex_line(sequence s,srcpos pos)
       elsif state=LEX_COMMENT then
         exit
       elsif state=LEX_STRING then
-        temp=lexer_read_string(s,i+1,pos+i+1)
+        temp=lexer_read_string(s,i+1,pos)
         tokens=append(tokens,{temp[2],pos+i})
         i=temp[1]
       elsif state=LEX_KEYWORD then
-        found=0
-        if i=length(s) then
-          masked=s[$..$]
-        else
-          masked=s[i..i+1]
-        end if
+        --the following mess is in order to allow whitespace in the middle of separators
+        textstart=i
+        masked=s[i..i]
+        --we only support length 1 and 2 separators
+        while i<length(s) do
+          i+=1
+          state=lexer_table_key2[s[i]+1]
+          if state=LEX_KEYWORD2 then
+            masked&=s[i]
+            exit
+          elsif state=LEX_CHAR then
+            --includes binary gunk, warning characters and comments
+            i-=1
+            exit
+          end if
+        end while
+        --now i+1 is the start of another token, or > length(s)
+        found=false
         for j=1 to length(separator_list) do
-          if match(separator_list[j],masked)=1 then --sep2[j] is a prefix of s
-            tokens=append(tokens,{separator_list[j],pos+i})
-            found=1
-            i+=length(separator_list[j])-1
+          if match(separator_list[j],masked)=1 then
+            tokens=append(tokens,{separator_list[j],pos+textstart})
+            if length(separator_list[j])=1 then
+              i=textstart
+            end if
+            found=true
             exit
           end if
         end for
-        if found=0 then  --need to backtrack, in particular for -
-          ident=remem_ident & hs_lower(s[i])
-          textstart=remem_textstart
+        if found=false then
+          --need to backtrack, in particular for -
+          ident=remem_ident & masked[1]
+          i=textstart
           if length(remem_ident) then
             tokens=tokens[1..$-1]
+            textstart=remem_textstart
+            nonnumeral=true
+          else
+            --nonnumeral remains false: we've seen exactly "-"
           end if
+        else
+          textstart=0
         end if
       elsif state=LEX_BINARY then
-        --better use src_error, to track down garbage if accidentally creeping in
-        src_error("This file contains binary gunk. Are you sure that this is the text file you want to compile?",pos+i)
+        lexer_binary_error(pos+i)
       end if
     end if
     i+=1
@@ -1031,7 +1154,8 @@ end procedure
 ---------------------------------------------------------------------------
 
 procedure mustnt_be_a_number(sequence s)
-  if length(exclude(s[CMD_TEXT],"-0123456789"))=0 and compare(s[CMD_TEXT],"--")!=0 then
+  --note that identifiers are allowed to start with -
+  if length(exclude(s[CMD_TEXT],"-0123456789"))=0 and count('-',s[CMD_TEXT])!=length(s[CMD_TEXT]) then
     src_error(sprintf("Expected a name, but found a number "&COLYEL&"%s"&COLRED,{s[CMD_TEXT]}),s[CMD_POS])
   end if
 end procedure
@@ -1046,8 +1170,8 @@ procedure check_undefined_constant(sequence s,atom value)
    if alpha_tree_seek(constant_list,s[CMD_TEXT]) then
      --constant is already defined
      const_data=alpha_tree_data(constant_list,s[CMD_TEXT],0)
-     src_position=decode_srcpos(const_data[2])
-     if const_data[1]=value then
+     src_position=decode_srcpos(const_data[CONST_POS])
+     if const_data[CONST_VALUE]=value then
        whats_happening="will be ignored because"
      else
        whats_happening="is being redefined;"
@@ -1058,10 +1182,10 @@ procedure check_undefined_constant(sequence s,atom value)
                      ,whats_happening
                      ,src_position[POS_LINE]
                      ,src_position[POS_FILENAME]
-                     ,const_data[1]
+                     ,const_data[CONST_VALUE]
                    }
                 )
-     if const_data[1]=value then
+     if const_data[CONST_VALUE]=value then
        src_warn(err_string,s[CMD_POS])
      else
        src_error(err_string,s[CMD_POS])
@@ -1111,8 +1235,8 @@ function enforce_constants(sequence s)
   object v
   v=alpha_tree_data(constant_list,s,{})
   if length(v) then
-    v=v[1]--first element is number (second is line)
-    if long_int(v) then
+    v=v[CONST_VALUE]
+    if int32(v) then
       return(sprintf("%d",{v}))
     end if
   end if
@@ -2196,10 +2320,10 @@ function convert_operators_recurse(sequence tree,integer priority)
             --has no args. if it has args, we assume it is an "or" "and" or "xor" that has already been converted
             if ptr=1 then
               --there is no room for the before-operands. Bad!
-              src_error(sprintf("operator "&COLYEL&"%s"&COLRED&" is missing its left-side operand",tree[ptr][TREE_TRUNK][CMD_TEXT]),tree[ptr][TREE_TRUNK][CMD_POS])
+              src_error(sprintf("operator "&COLYEL&"%s"&COLRED&" is missing its left-side operand",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
             elsif ptr=length(tree) then
               --there is no room for the after-operand. Bad!
-              src_error(sprintf("operator "&COLYEL&"%s"&COLRED&" is missing its right-side operand",tree[ptr][TREE_TRUNK][CMD_TEXT]),tree[ptr][TREE_TRUNK][CMD_POS])
+              src_error(sprintf("operator "&COLYEL&"%s"&COLRED&" is missing its right-side operand",{tree[ptr][TREE_TRUNK][CMD_TEXT]}),tree[ptr][TREE_TRUNK][CMD_POS])
             else
               --convert the operator to its true function name (which might be the same)
               tree[ptr][TREE_TRUNK][CMD_TEXT]=operator_list[j][OPER_TRUENAME]
