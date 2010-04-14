@@ -63,7 +63,12 @@ def build_tree(dir, files, executables):
   dest = dir + "/usr/share/games/" + dir +"/"
   quiet_mkdir(dest)
   for file in files:
-    shutil.copy(file, dest + os.path.basename(file))
+    if os.path.isdir(file):
+      # copy a folder
+      shutil.copytree(file, dest + os.path.basename(file), ignore=shutil.ignore_patterns(".svn"))
+    else:
+      # copy a file
+      shutil.copy(file, dest + os.path.basename(file))
 
 def quiet_mkdir(dir):
   try:
