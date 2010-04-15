@@ -1847,7 +1847,7 @@ END SUB
 SUB dotimer(byval l as integer)
   dim i as integer
   dim rsr as integer
-  for i = 0 to 15
+  for i = 0 to ubound(timers)
     with timers(i)
       if .pause then continue for
       if .speed > 0 then
@@ -1896,7 +1896,7 @@ function dotimerbattle() as integer
   dotimer 1  'no sense duplicating code
 
   dim i as integer
-  for i = 0 to 15
+  for i = 0 to ubound(timers)
     with timers(i)
       if .speed < 0 then 'normally, not valid. but, if a timer expired in battle, this will be -ve, -1
         if .flags AND 1 then return -1
@@ -1910,7 +1910,7 @@ function dotimermenu() as integer
   dotimer 2  'no sense duplicating code
 
   dim i as integer
-  for i = 0 to 15
+  for i = 0 to ubound(timers)
     with timers(i)
       if .speed < 0 then 'normally, not valid. but, if a timer expired in the menu, this will be -ve, -1
         if .flags AND 1 then return -1
@@ -1922,7 +1922,7 @@ end function
 
 Sub dotimerafterbattle()
   dim i as integer
-  for i = 0 to 15
+  for i = 0 to ubound(timers)
     with timers(i)
       if .speed < 0 then 'normally, not valid. but, if a timer expired in battle, this will be -ve, -1
         .speed *= -1

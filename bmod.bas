@@ -286,7 +286,7 @@ DO
  end if
 
  '--show the timer
- FOR i = 0 to 15
+ FOR i = 0 to UBOUND(timers)
    if timers(i).speed > 0 and timers(i).st > -1 and timers(i).flags and 2 = 2 then
      edgeprint plotstr(timers(i).st-1).s, 320 - len(plotstr(timers(i).st-1).s) * 10, 185, uilook(uiText), dpage
      exit for

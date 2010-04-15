@@ -217,7 +217,7 @@ TYPE PlotTimer
   speed as integer
   ticks as integer
   trigger as integer
-  flags as integer
+  flags as integer '1=critical 2=battle 4=menu 8+=undefined
   st as integer 'string, but both str and string are reserved
   pause as integer '0 unpaused, -1 paused
 END TYPE

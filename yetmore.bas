@@ -1483,7 +1483,7 @@ SELECT CASE AS CONST id
  CASE 257'--resume map music
   setbit gen(), 44, suspendambientmusic, 0
  CASE 260'--settimer(id, count, speed, trigger, string, flags)
-  IF retvals(0) >= 0 AND retvals(0) < 16 THEN
+  IF retvals(0) >= 0 AND retvals(0) <= ubound(timers) THEN
     WITH timers(retvals(0))
       IF retvals(1) > -1 THEN .count = retvals(1): .ticks = 0
       IF retvals(2) > -1 THEN
@@ -1503,9 +1503,9 @@ SELECT CASE AS CONST id
     END WITH
   END IF
  CASE 261'--stoptimer
-  IF retvals(0) >= 0 AND retvals(0) < 16 THEN timers(retvals(0)).speed = 0
+  IF retvals(0) >= 0 AND retvals(0) <= ubound(timers) THEN timers(retvals(0)).speed = 0
  CASE 262'--readtimer
-  IF retvals(0) >= 0 AND retvals(0) < 16 THEN scriptret = timers(retvals(0)).count
+  IF retvals(0) >= 0 AND retvals(0) <= ubound(timers) THEN scriptret = timers(retvals(0)).count
  CASE 263'--getcolor
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
    scriptret = master(retvals(0)).col
@@ -2056,11 +2056,11 @@ SELECT CASE AS CONST id
    scriptret = dat->pal
   END IF 
  CASE 415 '--suspend timers
-  FOR i = 0 TO 15
+  FOR i = 0 TO ubound(timers)
    timers(i).pause = YES
   NEXT i
  CASE 416 '--resume timers
-  FOR i = 0 TO 15
+  FOR i = 0 TO ubound(timers)
    timers(i).pause = NO
   NEXT i
  CASE 325, 417 '--set sprite visible, set slice visible

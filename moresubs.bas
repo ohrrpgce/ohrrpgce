@@ -1479,7 +1479,7 @@ NEXT
 
 clear_box_border_cache
 
-FOR i = 0 TO 15
+FOR i = 0 TO ubound(timers)
  WITH timers(i)
   .count = 0
   .speed = 0
