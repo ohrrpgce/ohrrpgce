@@ -8411,13 +8411,18 @@ Besides readability, there is one other important difference between these two e
 <li>Alter NPC (who,NPCstat:script,script ID)</li>
 <li>Alter NPC (who,NPCstat:script argument,number)</li>
 <li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
-</ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<br>A good way to make use of Alter NPC is to wrap it in your own script. For example:<br>
-			<pre># Example AlterNPC wrapper for changing NPC appearance
+</ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<br>A good way to make use of Alter NPC is to wrap it in your own script. For example:
+		<pre># Example AlterNPC wrapper for changing NPC appearance
 
 plotscript,change NPC,who=0,picture=0,palette=0,begin
   Alter NPC(who,NPCstat:picture,picture)
   Alter NPC(who,NPCstat:palette,palette)
 end</pre>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you want to change an NPC's palette back to the default, you can use <span class="param">Alter NPC(who, NPCstat:palette, -1)</span><br clear="all">
+</div>
+			<br>
+			
 			
 		</tt></p>
 		<a name="about-readnpc"></a>
