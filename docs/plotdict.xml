@@ -4262,7 +4262,36 @@ end</example>
 		<command id="return">
 			<canon>return(value)</canon>
 			<shortname>return</shortname>
-			<description>Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG. This command does NOT cause the script to terminate, it just sets the return value. If return is used more than once in the same script, only the last one executed matters</description>
+			<description>Sets the value to be returned by the script. This is only useful when the script has been called as a function from another script. It is irrelevant to scripts called directly from your RPG, for example, text box scripts or menu scripts. This command only matters when you are calling one script from another script. This command does NOT cause the script to terminate, it just sets the return value. If you never use the <p>return</p> command, the script will return a zero. If return is used more than once in the same script, only the last one executed matters.
+<example>
+script, key wait, ticks, begin
+  # Returns true if the wait was cancelled by a keypress.
+  # or false (0) if the wait finished uninterrupted.
+  variable(i)
+  for(i, 1, ticks) do, begin
+    wait(1)
+    if(key is pressed(key:ENTER)) then(return(true))
+    if(key is pressed(key:SPACE)) then(return(true))
+    if(key is pressed(key:CTRL)) then(return(true))
+    if(key is pressed(key:ALT)) then(return(true))
+    if(key is pressed(key:ESC)) then(return(true))
+    if(key is pressed(joy:button 1)) then(return(true))
+    if(key is pressed(joy:button 2)) then(return(true))
+  end
+end
+
+plotscript, usage example, begin
+  show text box(5) # let all volunteers take one step forward!
+  if(key wait(40)) then(
+    walk hero(me, north, 1)
+    wait for hero(me)
+    show text box(6) # You there! I saw you move! You volunteer!
+  )else(
+    show text box(7) # a bunch of lily livered cowards, eh?
+  )
+end
+</example>
+			</description>
 			<seealso>
 				<ref>exitreturning</ref>
 			</seealso>
@@ -4271,7 +4300,37 @@ end</example>
 			<canon>exit returning(value)</canon>
 			<shortname>exit returning</shortname>
 			<added>ubersetzung</added>
-			<description>Sets the value to be returned by the script, and exits the script. This is only useful when the script has been called as a function from another script.</description>
+			<description>Sets the value to be returned by the script, and exits the script. This is only useful when the script has been called as a function from another script.
+<example>
+script, key wait, ticks, begin
+  # Returns true if the wait was cancelled by a keypress.
+  variable(i)
+  for(i, 1, ticks) do, begin
+    wait(1)
+    if(key is pressed(key:ENTER)) then(exit returning(true))
+    if(key is pressed(key:SPACE)) then(exit returning(true))
+    if(key is pressed(key:CTRL)) then(exit returning(true))
+    if(key is pressed(key:ALT)) then(exit returning(true))
+    if(key is pressed(key:ESC)) then(exit returning(true))
+    if(key is pressed(joy:button 1)) then(exit returning(true))
+    if(key is pressed(joy:button 2)) then(exit returning(true))
+  end
+  exit returning(false)
+end
+
+plotscript, usage example, begin
+  show text box(5) # let all volunteers take one step forward!
+  if(key wait(40)) then(
+    walk hero(me, north, 1)
+    wait for hero(me)
+    show text box(6) # You there! I saw you move! You volunteer!
+  )else(
+    show text box(7) # a bunch of lily livered cowards, eh?
+  )
+end
+</example>
+The <p>exit returning</p> command works exactly the same as the <ref>return</ref> command followed immediately by <ref>exit script</ref>. Whether you decide to use <ref>return</ref> or <p>exit returning</p> to set your script's return value is often just a matter of style and taste.
+			</description>
 			<seealso>
 				<ref>return</ref>
 				<ref>exitscript</ref>
@@ -4290,7 +4349,7 @@ end</example>
 			<canon>break</canon>
 			<shortname>break</shortname>
 			<added>ubersetzung</added>
-			<description>breaks out of a <ref>for</ref> or <ref>while</ref> command and continue the script after the end of the <ref>do</ref> block</description>
+			<description>breaks out of a <ref>for</ref> or <ref>while</ref> command and continue the script after the end of the <ref>do</ref> block.</description>
 		</command>
 		<command id="continue">
 			<canon>continue</canon>
@@ -4302,23 +4361,55 @@ end</example>
 			<canon>switch(expression)</canon>
 			<shortname>switch</shortname>
 			<added>ubersetzung</added>
-			<description>select between a number of <ref>case</ref> statements based on the value of an expression. <example>switch(v) do, begin
-  case(0) do, begin
+			<description>select between a number of <ref>case</ref> statements based on the value of an expression.
+<example>switch(v) do(
+  case(0) do(
     do foo
-  end
-  case(1) do, begin
+  )
+  case(1) do(
     do bar
-  end
-  case(10) do, begin
+  )
+  case(2) do(
     do baz
-  end
-end</example></description>
+  )
+  case(3) do(
+    do something else
+  )
+  case(10) do(
+    do yet another thing
+  )
+)</example>
+The select command is an alternative to a big block of nested <ref>if</ref>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. The example below shows how the same switch stattement would be written with if/then/else
+<example>if(v == 0) then(
+  do foo
+)else(
+  if(v == 1) then(
+    do bar
+  )else(
+    if(v == 2) then(
+      do baz
+    )else(
+      if(v == 3) then(
+        do something else
+      )else(
+        if(v == 10) then(
+          do yet another thing
+        )
+      )
+    )
+  )
+)</example>
+Besides readability, there is one other important difference between these two examples. The switch command only checks the value of v once. the if/the/else method checks v repeatedly, so it could be slower, and could be suceptible to errors if you accidentally change the value of v somewhere in the middle.
+		</description>
+		<seealso>
+			<ref>case</ref>
+		</seealso>
 		</command>
 		<command id="case">
 			<canon>case(value)</canon>
 			<shortname>case</shortname>
 			<added>ubersetzung</added>
-			<description>See <ref>switch</ref></description>
+			<description>The case command is used to enclose a block of commands for one possible result of a <ref>switch</ref> command. See <ref>switch</ref> for more details.</description>
 		</command>
 	</section>
 	<section title="Advanced Commands">
