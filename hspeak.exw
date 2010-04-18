@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ke 2010-04-18 Add -t commandline option
 --3Kd 2010-04-14 Quite a few bugfixes in optimizer
 --3Kc 2010-04-14 Start checking well-formedness of numbers with lexer
 --3Kb 2010-04-12 Whole lot of bugfixes in script declarations and
@@ -93,7 +94,7 @@
 ---------------------------------------------------------------------------
 
 without warning       --to avoid annoying warnings
-with type_check    --for a small speed boost
+without type_check    --for a small speed boost
 --with profile_time     --time profiling
 
 include hsspiffy.e --various routines, sequence manipulation - James Paige
@@ -110,7 +111,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Kd"
+constant COMPILER_SUB_VERSION="Ke"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -198,6 +199,11 @@ constant KIND_LONGNAMES={"number"
                         }
 constant TREE_TRUNK=1
 constant TREE_BRANCHES=2
+constant TIMING_DEPTH=1
+constant TIMING_DESCRIPTION=2
+constant TIMING_TIME=3
+constant TIMING_ACTIVE=4
+
 constant CODE_START_BYTE_OFFSET=12
 constant SCRIPT_FORMAT_VERSION=2
 
@@ -220,6 +226,9 @@ sequence script_list      script_list={}
 sequence script_cmd       script_cmd={}
 sequence reserved         reserved=alpha_tree_create()
 atom start_time           start_time=time()
+atom run_time             run_time=0
+sequence timing_data      timing_data={}
+integer timing_depth      timing_depth=-1
 integer get_cmd_pointer   get_cmd_pointer=0
 integer autonumber_id     autonumber_id=32767
 sequence flow_list        flow_list={
@@ -313,7 +322,13 @@ function timeless_wait_key()
   integer key
   skip_time=time()
   key=wait_key()
-  start_time+=time()-skip_time
+  skip_time=time()-skip_time
+  start_time+=skip_time
+  for i=1 to length(timing_data) do
+    if timing_data[i][TIMING_ACTIVE] then
+      timing_data[i][TIMING_TIME]+=skip_time
+    end if
+  end for
   return(key)
 end function
 
@@ -348,6 +363,67 @@ procedure opt_wait_for_key()
     color_print("[Press Any Key]\n",{})
     key=timeless_wait_key()
   end if
+end procedure
+
+---------------------------------------------------------------------------
+
+procedure enter_timing_zone(sequence description)
+  if not find('t',optlist) then
+    return
+  end if
+  timing_depth+=1
+  timing_data=append(timing_data,{timing_depth,description,-time(),true})
+end procedure
+
+---------------------------------------------------------------------------
+
+procedure reenter_timing_zone(sequence description)
+  if not find('t',optlist) then
+    return
+  end if
+  for i=1 to length(timing_data) do
+    if equal(timing_data[i][TIMING_DESCRIPTION],description) then
+      timing_depth+=1
+      timing_data[i][TIMING_DEPTH]=timing_depth  --could change...
+      timing_data[i][TIMING_TIME]-=time()
+      timing_data[i][TIMING_ACTIVE]=true
+      return
+    end if
+  end for
+  enter_timing_zone(description)
+end procedure
+
+---------------------------------------------------------------------------
+
+procedure exit_timing_zone()
+  if not find('t',optlist) then
+    return
+  end if
+  for i=length(timing_data) to 1 by -1 do
+    --there can only be one active timing job at each depth at a time
+    if timing_data[i][TIMING_ACTIVE] and timing_data[i][TIMING_DEPTH]=timing_depth then
+      timing_data[i][TIMING_TIME]+=time()
+      timing_data[i][TIMING_ACTIVE]=false
+      exit
+    end if
+  end for
+  timing_depth-=1
+end procedure
+
+---------------------------------------------------------------------------
+
+procedure print_timing_data()
+  sequence indent
+  sequence data
+  if run_time=0 then
+    --so that all percentages show as 0%
+    run_time=1e100
+  end if
+  for i=1 to length(timing_data) do
+    data=timing_data[i]
+    indent=repeat(' ',data[TIMING_DEPTH]*4)
+    color_print("%s "&COLBWHI&"%.2f"&COLWHI&"s %4.2g%%  %s\n",{indent,data[TIMING_TIME],100*data[TIMING_TIME]/run_time,data[TIMING_DESCRIPTION]})
+  end for
 end procedure
 
 ---------------------------------------------------------------------------
@@ -478,7 +554,7 @@ procedure check_arg_count(sequence args)
   if length(args)=2 then
     wrap_print("HamsterSpeak semicompiler v%d%s (C)%s James Paige&Hamster Republic Productions\n",{COMPILER_VERSION,COMPILER_SUB_VERSION,COPYRIGHT_DATE})
     wrap_print("Please read LICENSE.txt for GPL License details and disclaimer of liability",{})
-    wrap_print(COLYEL&"%s [-acdfknswuyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
+    wrap_print(COLYEL&"%s [-acdfknstwuyz] source.hss [dest.hs]"&COLWHI&"\n\n",{hs_upper(file_only(args[2]))})
     color_print("   -c colors will be disabled\n",{})
     color_print("   -d dump debug report to hs_debug.txt\n",{})
     color_print("   -f fast mode. disables some optimization\n",{})
@@ -486,6 +562,7 @@ procedure check_arg_count(sequence args)
     color_print("   -n don't add debug info (including copy of the source code)\n",{})
     color_print("   -s print the name of each script as it is compiled\n",{})
     color_print("     -a same as -s, but including autonumbered scripts\n",{})
+    color_print("   -t print detailed timing info (for HSpeak developers)\n",{})
     color_print("   -w suppress minor warnings\n",{})
     color_print("   -u show warnings for unused variables\n",{})
     color_print("   -y overwrite the destination file without asking\n",{})
@@ -760,6 +837,7 @@ end procedure
 ---------------------------------------------------------------------------
 
 procedure load_include(sequence include_name,srcpos pos)
+  reenter_timing_zone("load_source/include")
   --try current directory
   if file_exists(include_name) then
     load_source(include_name,"including",pos)
@@ -777,6 +855,7 @@ procedure load_include(sequence include_name,srcpos pos)
       end if
     end if
   end if
+  exit_timing_zone()
 end procedure
 
 ---------------------------------------------------------------------------
@@ -823,7 +902,6 @@ function lexer_read_string(sequence s,integer i,srcpos pos)
     else
       if s[i]='"' then
         return({i,string&'"'})
-        exit
       elsif s[i]='\\' then
         switch=true
       else
@@ -1129,6 +1207,19 @@ procedure read_commands(integer file_num,sequence include_stack)
     end if
     pos+=length(file_list[file_num][FILE_LINES][i])+1
   end for
+end procedure
+
+---------------------------------------------------------------------------
+
+procedure load_and_lex()
+  enter_timing_zone("Loading & lexing files")
+  --load the first file
+  reenter_timing_zone("load_source/include")
+  load_source(source_file,"reading",0)
+  exit_timing_zone()
+  --lex while loading all included files
+  read_commands(1,{})
+  exit_timing_zone()
 end procedure
 
 ---------------------------------------------------------------------------
@@ -1455,6 +1546,7 @@ end function
 
 procedure primary_parse_pass()
   sequence this
+  enter_timing_zone("Preliminary pass")
   color_print("preliminary pass\n",{})
   get_cmd_pointer=1
   while get_cmd_pointer<=length(cmd) do
@@ -1470,6 +1562,7 @@ procedure primary_parse_pass()
   if find("script",column(trigger_list,PAIR_NUM))=0 then
     trigger_list=append(trigger_list,{0,"script"})
   end if
+  exit_timing_zone()
 end procedure
 
 ---------------------------------------------------------------------------
@@ -1547,8 +1640,9 @@ procedure parse_top_level()
   sequence this
   sequence ignore
   sequence triggers
-  triggers=column(trigger_list,PAIR_NAME)
+  enter_timing_zone("Top level pass")
   color_print("parsing top-level\n",{})
+  triggers=column(trigger_list,PAIR_NAME)
   get_cmd_pointer=1
   while get_cmd_pointer<=length(cmd) do
     --read a top-level command
@@ -1579,6 +1673,7 @@ procedure parse_top_level()
     end if
   end while
   cmd={}
+  exit_timing_zone()
 end procedure
 
 ---------------------------------------------------------------------------
@@ -2621,6 +2716,7 @@ end function
 
 function binary_compile(integer id,sequence tree,sequence vars)
   sequence result
+  sequence compiled_data
   integer at
 
   string_table={}
@@ -2654,7 +2750,10 @@ function binary_compile(integer id,sequence tree,sequence vars)
   if length(tree)!=1 then
     simple_error(sprintf("compiler bug! script tree has %s root nodes",{length(tree)}))
   end if
-  result&=convert_to_bytes(binary_compile_recurse(tree[1],vars,""))
+  reenter_timing_zone("binary_compile_recurse")
+  compiled_data=binary_compile_recurse(tree[1],vars,"")
+  exit_timing_zone()
+  result&=convert_to_bytes(compiled_data)
   --append with a table of string literals and give its offset
   if length(string_table)>0 then
     result[9..12]=int_to_bytes(length(result))
@@ -2927,19 +3026,37 @@ procedure compile_a_script(integer id,sequence trigger_data,sequence name_data,s
   trigger=trigger_list[find(trigger_data[CMD_TEXT],column(trigger_list,PAIR_NAME))][PAIR_NUM]
   current_script=name_data[CMD_TEXT]
   local_vars=arg_data --start with argument names (so we can check for conflicts)
+  reenter_timing_zone("gather_local_vars")
   local_vars=gather_local_vars(local_vars,script_data)
+  exit_timing_zone()
   used_locals={}
+  reenter_timing_zone("compile_commands")
   script_tree=compile_commands(script_data,local_vars)
+  exit_timing_zone()
+  reenter_timing_zone("convert_operators")
   script_tree=convert_operators(script_tree)
+  exit_timing_zone()
+  reenter_timing_zone("normalize_flow_control")
   script_tree=normalize_flow_control(script_tree,local_vars,"")
+  exit_timing_zone()
+  reenter_timing_zone("normalize_arguments")
   script_tree=normalize_arguments(script_tree,local_vars)
+  exit_timing_zone()
+  reenter_timing_zone("collapse_floaty_brackets")
   script_tree=collapse_floaty_brackets(script_tree)
+  exit_timing_zone()
   if not fast_mode then
+    reenter_timing_zone("optimize_script")
     script_tree=optimize_script(script_tree,local_vars)
+    exit_timing_zone()
+    reenter_timing_zone("sanity_check")
     script_tree=sanity_check(script_tree,local_vars,"")
+    exit_timing_zone()
     warn_unused_locals(local_vars)
   end if
+  reenter_timing_zone("binary_compile")
   binary=binary_compile(id,script_tree,local_vars)
+  exit_timing_zone()
   all_scripts=append(all_scripts,{
      id                   --id
     ,trigger              --trigger type
@@ -3071,16 +3188,20 @@ end procedure
 procedure compile_each_script()
   sequence count
   integer at
-  count=repeat(0,length(file_list))
+  enter_timing_zone("Compiling scripts")
   color_print("compiling scripts",{})
+  count=repeat(0,length(file_list))
 
+  enter_timing_zone("check_script_declarations")
   check_script_declarations()
+  exit_timing_zone()
 
   for i=1 to length(script_cmd) do
     at=find(script_cmd[i][2][CMD_TEXT],column(script_list,PAIR_NAME))
 
    -- color_print("%s\n",{script_cmd[i][2][CMD_TEXT]})
 
+    reenter_timing_zone("compile_a_script")
     compile_a_script(
       script_list[at][PAIR_NUM] --ID
       ,script_cmd[i][1]          --trigger
@@ -3088,6 +3209,7 @@ procedure compile_each_script()
       ,script_cmd[i][3]          --argnames
       ,script_cmd[i][4]          --data
     )
+    exit_timing_zone()
     count[get_file_number(script_cmd[i][2][CMD_POS])]+=1
 
     color_print(".",{})
@@ -3101,6 +3223,7 @@ procedure compile_each_script()
       wrap_print("compiled %d scripts from "&COLBWHI&"%s"&COLWHI&"\n",{count[i],file_list[i][FILE_NAME]})
     end if
   end for
+  exit_timing_zone()
 end procedure
 
 ---------------------------------------------------------------------------
@@ -3244,6 +3367,7 @@ end procedure
 procedure write_output_file()
   integer fh
   object lh
+  enter_timing_zone("Writing output file")
   if length(all_scripts) then
     fh=open(dest_file,"wb")
     if fh!=-1 then
@@ -3289,15 +3413,13 @@ procedure write_output_file()
   else  
     color_print("no scripts to output\n",{})  
   end if
+  exit_timing_zone()
 end procedure
 
 ---------------------------------------------------------------------------
 
 init()
---load the first file
-load_source(source_file,"reading",0)
---lex while loading all included files
-read_commands(1,{})
+load_and_lex()
 show_source_info()
 primary_parse_pass()
 parse_top_level()
@@ -3305,7 +3427,11 @@ compile_each_script()
 dump_debug_report()
 write_output_file()
 
-color_print("done (%g seconds)\n",{time()-start_time})
+run_time=time()-start_time
+color_print("done (%g seconds)\n",{run_time})
+if find('t',optlist) then
+  print_timing_data()
+end if
 opt_wait_for_key()
 if was_warnings = true then
   abort(2)
