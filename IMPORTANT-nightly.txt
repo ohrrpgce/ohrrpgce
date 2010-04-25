@@ -2,9 +2,9 @@ PLEASE ALWAYS READ THIS FILE AFTER YOU DOWNLOAD A NIGHTLY BUILD!
 We would like to be able to ASSUME that you do!
 
 This file holds important news that people who use unstable versions need to
-know. It'll be included with stable releases (for people upgrading from
-nightlies) and then wiped clean again, so ignore it if you haven't used a
-nightly build.
+know. It'll probably be included with stable releases (for people upgrading
+from nightlies), so ignore it if you haven't used a nightly build. Entries
+for old versions archived at the bottom of the file.
 
 The developers will occasionally update it with information about new bugs;
 things that have changed in a non-compatible way; things you need to do or
@@ -16,16 +16,22 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
-2009-05-14: (Backdated!)
-Old command "set sprite visible" still exists but is now just an alias for
-"set slice visible".
 
-2009-09-24:
-We have just realised that (all versions of) Custom did not warn if an RPG is
-in a new format that it does not fully support! If you downgrade your Custom
-version, you'll get no warning if you're about to scramble some data! In
-particular, games edited with recent nightlies and then with Xocolatl+2 will
-suffer attack data corruption.
+*** 2010-02-08 Ypsiliform+2 released ***
+
+*** 2010-01-24 Ypsiliform+1 released ***
+
+*** 2010-01-08 Ypsiliform released ***
+
+2009-12-27:
+"reset game" no longer behaves identically to "game over" when not both the
+titlescreen and load menu are disabled. Instead it always starts a new
+game (without showing title or load screens)
+
+2009-12-05:
+The old "place sprite", unlike the other sprite commands, could be used on
+slices as well as sprites. This is now an error, but will only affect you
+when you recompile your scripts. Use "put slice" instead.
 
 2009-10-20:
 The new script error screen will now pop up for all slice scripting errors,
@@ -34,12 +40,13 @@ possibly interrupting your previously apparently-working game.
 If you edited your text boxes with any build from 2974 to 2982 your text boxes
 will be corrupted. The bug was fixed in revision 2983
 
-2009-12-05:
-The old "place sprite", unlike the other sprite commands, could be used on
-slices as well as sprites. This is now an error, but will only affect you
-when you recompile your scripts. Use "put slice" instead.
+2009-09-24:
+We have just realised that (all versions of) Custom did not warn if an RPG is
+in a new format that it does not fully support! If you downgrade your Custom
+version, you'll get no warning if you're about to scramble some data! In
+particular, games edited with recent nightlies and then with Xocolatl+2 will
+suffer attack data corruption.
 
-2009-12-27:
-"reset game" no longer behaves identically to "game over" when not both the
-titlescreen and load menu are disabled. Instead it always starts a new
-game (without showing title or load screens)
+2009-05-14: (Backdated!)
+Old command "set sprite visible" still exists but is now just an alias for
+"set slice visible".
