@@ -748,6 +748,9 @@
 		<a href="#about-getsliceextra">get slice extra (handle, extra)</a><br>
 		
 	
+		<a href="#about-getslicelookup">get slice lookup (handle)</a><br>
+		
+	
 		<a href="#about-getslicevisible">get slice visible (handle)</a><br>
 		
 	
@@ -1694,6 +1697,9 @@
 		
 	
 		<a href="#about-setsliceheight">set slice height (handle, height)</a><br>
+		
+	
+		<a href="#about-setslicelookup">set slice lookup (handle, code)</a><br>
 		
 	
 		<a href="#about-setslicescreenx">set slice screen x (handle, x)</a><br>
@@ -5252,7 +5258,11 @@ end
 				<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Although the user-defined slice lookup codes are always safe to use for any purpose, There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your own slices to these special slices, but moving special slices around is definitely a bad idea.<br clear="all">
 </div>
-			You may <a href="#about-setparent" class="ref">set parent</a> a slice to a map layer to make it move with the camera just like heros and NPCs do.<br>
+				<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Be aware that when there is more than one slice with the same lookup code, the <span class="param">lookup slice</span> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <a href="#about-getslicelookup" class="ref">get slice lookup</a>.<br clear="all">
+</div>
+			You may <a href="#about-setparent" class="ref">set parent</a> a slice to a map layer to make it move with the camera just like heros and NPCs do.
+			<br>
 			<pre>
 # this example loads a saved slice collection,
 # and gets a handle to a slice in it that you
@@ -5288,7 +5298,35 @@ lookup slice(sl:map layer5)
 lookup slice(sl:map layer6)
 lookup slice(sl:map layer7)
 </pre>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicelookup" class="ref">set slice lookup</a>, </li>
+<li><a href="#about-getslicelookup" class="ref">get slice lookup</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getslicelookup"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get slice lookup (handle)</font></b><br>
+			Returns the lookup code of a slice, or <a href="#about-booleanconstants" class="ref">false</a> if it has none. You can compare the result with the <span class="param">sli:</span> slice lookup values in your hsi file, or with the <span class="param">sl:</span> special lookup values in plotscr.hsd<br>
 			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-lookupslice" class="ref">lookup slice</a>, </li>
+<li><a href="#about-setslicelookup" class="ref">set slice lookup</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setslicelookup"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice lookup (handle, code)</font></b><br>
+			Changes the lookup code of a slice. The first argument is the slice handle, the second is the new lookup code. You can pass <a href="#about-booleanconstants" class="ref">false</a> as the second argument to remove a slice's lookup code. This command works with the <span class="param">sli:</span> slice lookup values in your hsi file. It does not work with the <span class="param">sl:</span> special lookup values in plotscr.hsd, nor can it modify the lookup code of slices that already have special lookup codes. Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-lookupslice" class="ref">lookup slice</a>, </li>
+<li><a href="#about-getslicelookup" class="ref">get slice lookup</a></li>
+</ul>
 		</tt></p>
 		<a name="about-createcontainer"></a>
 		<p>
@@ -9601,7 +9639,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 683 commands in this file, of which 54 are only references to other commands.</p>
+	<p>Stats: There are 685 commands in this file, of which 54 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

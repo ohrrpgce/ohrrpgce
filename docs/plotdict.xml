@@ -2181,7 +2181,9 @@ end
 			<shortname>lookup slice</shortname>
 			<description>Search for an important slice using a lookup code, and return a handle to it, or 0 if it is not found. User defined slice lookup codes are defined in the slice collection editor. You will find them as constants in your .hsi file with sli: prefixes. There are also some special slice lookup codes with names that start with sl: prefixes. You can optionally specify a slice for the <p>lookup slice</p> command to start searching from, but if you do not, the whole slice tree will be searched.
 				<note>Although the user-defined slice lookup codes are always safe to use for any purpose, There is a lot of potential mischief that you can do with a handle to a special slice. If you do anything dubious, like reordering, reparenting, or god forbid freeing the special slice, don't expect your scripts to work in later versions of the engine, which are likely to impose stricter restrictions! You may parent your own slices to these special slices, but moving special slices around is definitely a bad idea.</note>
-			You may <ref>setparent</ref> a slice to a map layer to make it move with the camera just like heros and NPCs do.</description>
+				<note>Be aware that when there is more than one slice with the same lookup code, the <p>lookup slice</p> command will only return the first one it finds in a depth-first search. If you need to find multiple slices with the same lookup code, you must search manually using <ref>getslicelookup</ref>.</note>
+			You may <ref>setparent</ref> a slice to a map layer to make it move with the camera just like heros and NPCs do.
+			</description>
 <example>
 # this example loads a saved slice collection,
 # and gets a handle to a slice in it that you
@@ -2217,6 +2219,28 @@ lookup slice(sl:map layer5)
 lookup slice(sl:map layer6)
 lookup slice(sl:map layer7)
 </example>
+			<seealso>
+				<ref>setslicelookup</ref>
+				<ref>getslicelookup</ref>
+			</seealso>
+		</command>
+		<command id="getslicelookup">
+			<canon>get slice lookup (handle)</canon>
+			<shortname>get slice lookup</shortname>
+			<description>Returns the lookup code of a slice, or <ref>false</ref> if it has none. You can compare the result with the <p>sli:</p> slice lookup values in your hsi file, or with the <p>sl:</p> special lookup values in plotscr.hsd</description>
+			<seealso>
+				<ref>lookupslice</ref>
+				<ref>setslicelookup</ref>
+			</seealso>
+		</command>
+		<command id="setslicelookup">
+			<canon>set slice lookup (handle, code)</canon>
+			<shortname>set slice lookup</shortname>
+			<description>Changes the lookup code of a slice. The first argument is the slice handle, the second is the new lookup code. You can pass <ref>false</ref> as the second argument to remove a slice's lookup code. This command works with the <p>sli:</p> slice lookup values in your hsi file. It does not work with the <p>sl:</p> special lookup values in plotscr.hsd, nor can it modify the lookup code of slices that already have special lookup codes. Only user-defined lookup codes can be changed. Built-in special lookup codes cannot.</description>
+			<seealso>
+				<ref>lookupslice</ref>
+				<ref>getslicelookup</ref>
+			</seealso>
 		</command>
 		<command id="createcontainer">
 			<canon>create container (width, height)</canon>

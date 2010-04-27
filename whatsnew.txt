@@ -30,6 +30,7 @@ WHAT IS NEW?
     * "add hero" command now returns the party slot it added the hero
       to, or -1 if the party is full. [James]
     * "set slice edge x", "set slice edge y" [James]
+    * "get slice lookup", "set slice lookup" [James]
 
   * Vikings of Midgard
 

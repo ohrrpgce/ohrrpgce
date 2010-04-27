@@ -471,6 +471,8 @@ define function, begin
 461,loadslicecollection,1,0   #load a collection of slices
 462,setsliceedgex,3,0,0,0     #set a slice's position by an arbitrary edge
 463,setsliceedgey,3,0,0,0     #set a slice's position by an arbitrary edge
+464,getslicelookup,1,0        #get a slice's lookup code
+465,setslicelookup,2,0,0      #change a slice's lookup code
 end
 
 #--------------------------------------------------------------------------
