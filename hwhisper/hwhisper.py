@@ -31,6 +31,7 @@ import sys
 import os
 import gtk
 import pango
+import gio
 import subprocess
 from xml.etree import ElementTree
 import re
