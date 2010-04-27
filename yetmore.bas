@@ -2377,9 +2377,9 @@ SELECT CASE AS CONST id
  CASE 465 '--set slice lookup
   IF valid_plotslice(retvals(0)) THEN
    IF retvals(1) < 0 THEN
-    scripterr commandname(curcmd->value) & ": can't set special lookup codes.", 6
+    scripterr commandname(curcmd->value) & ": can't set special lookup codes."
    ELSEIF plotslices(retvals(0))->Lookup < 0 THEN
-    scripterr commandname(curcmd->value) & ": can't modify special lookup codes.", 6
+    scripterr commandname(curcmd->value) & ": can't modify special lookup codes."
    ELSE
     plotslices(retvals(0))->Lookup = retvals(1)
    END IF
