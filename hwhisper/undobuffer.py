@@ -20,6 +20,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #----------------------------------------------------------------------
+# 2010-04-27 James Paige - Add dummy fallbacks for some other pygtksourceview
+#                          classes and methods
+#
 # 2010-03-19 James Paige - Fixed a bug in the .undo method where the
 #                          stop iterator was invalid when undoing a
 #                          deletion
@@ -237,3 +240,36 @@ class UndoableBuffer(gtk.TextBuffer):
             self.place_cursor(start)
         self.end_not_undoable_action()
         self.undo_in_progress = False
+
+    def set_language(self, dummy_lang_obj):
+        pass
+    
+    def set_highlight_syntax(self, dummy_bool):
+        pass
+    
+    def set_highlight_matching_brackets(self, dummy_bool):
+        pass
+
+#----------------------------------------------------------------------
+
+View = gtk.TextView
+Buffer = UndoableBuffer
+
+#----------------------------------------------------------------------
+
+class LanguageManager(object):
+    
+    
+    def get_search_path(self):
+        return []
+    
+    def set_search_path(self, path_list):
+        pass
+
+    def get_language(self, lang_name):
+        return DummyLanguage()
+
+#----------------------------------------------------------------------
+
+class DummyLanguage(object):
+    pass

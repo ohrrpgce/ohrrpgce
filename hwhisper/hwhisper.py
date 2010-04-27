@@ -37,7 +37,11 @@ from xml.etree import ElementTree
 import re
 
 import version
-import gtksourceview2
+
+try:
+    import gtksourceview2 as sview
+except ImportError:
+    import undobuffer as sview
 
 # -----------------------------------------------------------------------------
 
@@ -112,7 +116,7 @@ class HWhisper(object):
         self.lineend = LineEndingManager(self.config)
         self.indent_string = self.get_indent_string()
         
-        langman = gtksourceview2.LanguageManager()
+        langman = sview.LanguageManager()
         pathlist = langman.get_search_path()
         cur_dir = self.from_prog_dir(".")
         pathlist.append(cur_dir)
@@ -122,7 +126,7 @@ class HWhisper(object):
         
         self.docs = []
         scrolledwindow = builder.get_object("scrolledwindow")
-        text_view = gtksourceview2.View(gtksourceview2.Buffer())
+        text_view = sview.View(sview.Buffer())
         scrolledwindow.add(text_view)
         self.add_doc(text_view)
         
@@ -188,7 +192,7 @@ class HWhisper(object):
                    # Just use the existing untitled doc
                    return
         if text_view is None:
-            text_view = gtksourceview2.View(gtksourceview2.Buffer())
+            text_view = sview.View(sview.Buffer())
             scroller = gtk.ScrolledWindow()
             scroller.add(text_view)
             lbl = gtk.Label("")
@@ -220,7 +224,7 @@ class HWhisper(object):
         
         if len(self.docs) == 1:
             # Only one doc left, give it a new empty buffer
-            self.doc.text_view.set_buffer(gtksourceview2.Buffer())
+            self.doc.text_view.set_buffer(sview.Buffer())
             self.doc.filename = None
             self.update_status()
         else:
