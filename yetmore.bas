@@ -2384,6 +2384,24 @@ SELECT CASE AS CONST id
     plotslices(retvals(0))->Lookup = retvals(1)
    END IF
   END IF
+ CASE 466 '--trace value internal (string, value, ...)
+  DIM result AS string
+  FOR i = 0 TO curcmd->argc - 1
+   IF i MOD 2 = 0 THEN
+    IF i <> 0 THEN result &= ", "
+    WITH *scrat(nowscript).scr
+     DIM stringp AS INTEGER PTR = .ptr + .strtable + retvals(i)
+     IF .strtable + retvals(i) >= .size ORELSE .strtable + (stringp[0] + 3) \ 4 >= .size THEN
+      scripterr "script corrupt: illegal string offset", 6
+     ELSE
+      result &= read32bitstring(stringp) & " = "
+     END IF
+    END WITH
+   ELSE
+    result &= retvals(i)
+   END IF
+  NEXT
+  debug "TRACE: " & result
 
 END SELECT
 

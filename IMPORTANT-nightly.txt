@@ -16,6 +16,8 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2010-04-29:
+"trace value" requires HSpeak 3L; download a nightly HSpeak build if desired
 
 *** 2010-02-08 Ypsiliform+2 released ***
 

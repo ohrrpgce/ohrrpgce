@@ -4859,12 +4859,23 @@ end</example>
 		<command id="trace">
 			<canon>trace (string)</canon>
 			<shortname>trace</shortname>
-			<description>Writes string #<p>string</p> to "G_DEBUG.TXT".</description>
+			<description>Writes string #<p>string</p> to "g_debug.txt", located in the same directory as the RPG file or game.exe. For debugging you will nearly always use <ref>tracevalue</ref> instead, which is much easier.</description>
+			<example>variable (i)
+i := random (1, 1000)
+$1 = "i = "
+append number (1, i) #"i = 1"
+trace (1) # writes "TRACE: i = XYZ" to g_debug.txt</example>
+		</command>
+		<command id="tracevalue">
+			<canon>trace value (expression, ...)</canon>
+			<shortname>trace value</shortname>
+			<description>Prints one or more expressions and their values to "g_debug.txt". The number of arguments to this command is variable; each is printed in original textual along with its value. You can't print strings with this command; use <ref>trace</ref> instead.</description>
 			<example>variable(i)
-i:= random(1,1000)
-$1="i = "
-append number(1,i) #"i = 1"
-trace(1) # writes "TRACE: i = 1" to G_DEBUG.TXT</example>
+i := random (1, 1000)
+trace value (i)  # writes "TRACE: i = XYZ" to g_debug.txt
+
+# This writes something like "TRACE: hero X (me) = 14, hero Y (me) = 53" to g_debug.txt
+trace value (hero X (me), hero Y (me))</example>
 		</command>
 		<command id="savemapstate">
 			<canon>save map state (whichdata, customid)</canon>

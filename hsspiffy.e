@@ -140,6 +140,16 @@ global function column(sequence s,integer column)
   return s
 end function
 
+--equivalent to 'find(it,column(s,column))'--
+global function find_in_column(object it,sequence s,integer column)
+  for i=1 to length(s) do
+    if equal(s[i][column],it) then
+      return i
+    end if
+  end for
+  return 0
+end function
+
 --substitute all instances of one object in a sequence with another object--
 global function substitute(sequence seq, object old, object new)
   for i=1 to length(seq) do
@@ -175,6 +185,16 @@ global function count(object it, sequence s)
     i=find_from(it,s,i+1)
   end while
   return cnt
+end function
+
+--find from the end of a sequence--
+global function find_rev(object it, sequence s)
+  for i=length(s) to 1 by -1 do
+    if equal(s[i],it) then
+      return i
+    end if
+  end for
+  return 0
 end function
 
 --normalize a pathname to use forward slashes--

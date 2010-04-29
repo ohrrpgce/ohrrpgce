@@ -980,7 +980,7 @@ END SUB
 
 SUB loadglobalvars (slot, first, last)
 DIM buf((last - first + 1) * 2) = ANY
-IF isfile$(savefile) THEN
+IF isfile(savefile) THEN
  fh = FREEFILE
  OPEN savefile FOR BINARY AS #fh
 

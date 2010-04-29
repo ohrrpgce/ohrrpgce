@@ -473,6 +473,7 @@ define function, begin
 463,setsliceedgey,3,0,0,0     #set a slice's position by an arbitrary edge
 464,getslicelookup,1,0        #get a slice's lookup code
 465,setslicelookup,2,0,0      #change a slice's lookup code
+466,tracevalueinternal,-1     #tracevalue is translated to this
 end
 
 #--------------------------------------------------------------------------

@@ -31,6 +31,7 @@ WHAT IS NEW?
       to, or -1 if the party is full. [James]
     * "set slice edge x", "set slice edge y" [James]
     * "get slice lookup", "set slice lookup" [James]
+    * "trace value" [Ralph]
 
   * Vikings of Midgard
 

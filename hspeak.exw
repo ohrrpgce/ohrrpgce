@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3L  2010-04-29 tracevalue support, involving a few internal changes
 --3Ke 2010-04-18 Add -t commandline option
 --3Kd 2010-04-14 Quite a few bugfixes in optimizer
 --3Kc 2010-04-14 Start checking well-formedness of numbers with lexer
@@ -111,7 +112,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ke"
+constant COMPILER_SUB_VERSION="L "
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -134,8 +135,8 @@ constant LEX_BINARY=9
 constant LEX_DIGIT=10
 constant LEX_KEYWORD2=11
 constant FILE_NAME=1
-constant FILE_LINES=2
-constant FILE_LENGTH=3
+constant FILE_TEXT=2
+constant FILE_LINE_EXTENTS=3
 constant POS_FILENAME=1
 constant POS_LINE=2
 constant POS_COLUMN=3
@@ -153,6 +154,7 @@ constant RESERVE_END=8
 constant RESERVE_OPERATOR=9
 constant RESERVE_BUILTIN=10
 constant RESERVE_CONSTANT=11
+constant RESERVE_MACRO=12
 constant RESERVE_NAMES={"declaration"
                        ,"unimplemented keyword/operator"
                        ,"flow control"
@@ -164,9 +166,12 @@ constant RESERVE_NAMES={"declaration"
                        ,"operator"
                        ,"builtin command"
                        ,"constant"
+                       ,"hardcoded function/macro"
                        }
 constant PAIR_NUM=1
 constant PAIR_NAME=2
+constant PAIR_START=1
+constant PAIR_END=2
 constant OPER_TRUENAME=3
 constant OPER_POS=4
 constant FUNC_ARGS=3
@@ -186,6 +191,7 @@ constant KIND_SCRIPT=7
 constant KIND_REFERENCE=8 --converted to KIND_NUMBER in compiled script
 constant KIND_OPERATOR=9 --never appears in compiled script
 constant KIND_PARENS=10 --never appears in compiled script
+constant KIND_MACRO=11 --never appears in compiled script
 constant KIND_LONGNAMES={"number"
                         ,"flow control statement"
                         ,"global variable"
@@ -196,6 +202,7 @@ constant KIND_LONGNAMES={"number"
                         ,"reference"
                         ,"untranslated operator"
                         ,"order-of-operations-enforcing parenthesis"
+                        ,"hard-coded function/macro"
                         }
 constant TREE_TRUNK=1
 constant TREE_BRANCHES=2
@@ -282,8 +289,9 @@ sequence lexer_table      lexer_table={}
 sequence lexer_table_key2 lexer_table_key2={}
 
 sequence all_scripts      all_scripts={}                        
-sequence current_script   current_script=""
-integer  colors_enabled   colors_enabled=true
+sequence current_script   current_script=""   --name of current script
+integer cur_script_num    cur_script_num=0    --index into script_cmd of current script
+integer colors_enabled    colors_enabled=true
 integer error_file        error_file=false
 sequence used_globals     used_globals={}
 sequence used_locals      used_locals={}
@@ -305,7 +313,7 @@ type srcpos(atom pos)
   fileno=floor(pos/power(2,23))+1
   --need to allow 0 as a dummy value
   if pos=0 or (pos>0 and pos=floor(pos) and fileno<=length(file_list)
-       and and_bits(pos,power(2,23)-1)-1<file_list[fileno][FILE_LENGTH]) then
+       and and_bits(pos,power(2,23)-1)<=length(file_list[fileno][FILE_TEXT])) then
     --odd, or and and only seem to shortcut when used as if condition, not
     --in a general expression
     return true
@@ -582,8 +590,8 @@ procedure init_lexer()
   sequence table_insert
 
   --main table
-  table_insert={" (),#\t\"[]{}",
-                {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
+  table_insert={" (),\n#\t\"[]{}",
+                {LEX_SPACE,LEX_BEGIN,LEX_END,LEX_COMMA,LEX_COMMA,LEX_COMMENT,LEX_SPACE,LEX_STRING,LEX_WARN,LEX_WARN,LEX_WARN,LEX_WARN}}
   --by default each character is either binary, or an allowed identifier
   --character. This is for backwards compatibility
   lexer_table=repeat(LEX_BINARY,32) & repeat(LEX_CHAR,256-32)
@@ -711,6 +719,7 @@ procedure init()
           ,{"switch"        ,RESERVE_FLOW}
           ,{"case"          ,RESERVE_FLOW}
           ,{"="             ,RESERVE_UNIMPLEMENTED}
+          ,{"tracevalue"    ,RESERVE_MACRO}
         })--end mass_insert   
   for i=1 to length(math_list) do
     reserved=alpha_tree_insert(reserved,math_list[i][PAIR_NAME],RESERVE_BUILTIN)
@@ -720,29 +729,44 @@ end procedure
 
 ---------------------------------------------------------------------------
 
-function get_file_number(srcpos pos)
+function srcpos_file_number(srcpos pos)
   return(floor(pos/power(2,23))+1)
 end function
 
 ---------------------------------------------------------------------------
 
---slow: should only be used for error printing
+--returns 1-based character number in file
+function srcpos_point(srcpos pos)
+  return(and_bits(pos,power(2,23)-1))
+end function
+
+---------------------------------------------------------------------------
+
+--possibly slow: prehaps avoid heavy use
 --returns {file name, line number, column number, line text}: index with POS_*
 --column number returned is 0-based
 function decode_srcpos(srcpos pos)
-  integer point, filenum, filepos
+  integer point, filenum
+  integer lineno
+  sequence filetext
   sequence lines
-  point=and_bits(pos,power(2,23)-1)-1  --character number is 1-based
+
+  point=and_bits(pos,power(2,23)-1)
   filenum=floor(pos/power(2,23))+1
-  lines=file_list[filenum][FILE_LINES]
-  filepos=0
+  filetext=file_list[filenum][FILE_TEXT]
+  lines=file_list[filenum][FILE_LINE_EXTENTS]
+  if point>length(filetext) then
+    simple_error(sprintf("compiler bug: invalid source position %d in file of length %d",{point,length(filetext)}))
+  end if
+
+  lineno=length(lines)
   for i=1 to length(lines) do
-    if point<=filepos+length(lines[i]) then
-      return({file_list[filenum][FILE_NAME],i,point-filepos,lines[i]})
+    if point<lines[i][PAIR_START] then
+      lineno=i
+      exit
     end if
-    filepos+=length(lines[i])+1
   end for
-  simple_error(sprintf("compiler bug: invalid source position %d in file of length %d",{point,filepos}))
+  return({file_list[filenum][FILE_NAME],lineno,point-lines[lineno][PAIR_START],filetext[lines[lineno][PAIR_START]..lines[lineno][PAIR_END]]})
 end function
 
 ---------------------------------------------------------------------------
@@ -807,24 +831,25 @@ procedure load_source(sequence filename,sequence reading_how,srcpos pos)
   integer fh
   object line
   sequence file_text
-  integer file_len
+  sequence line_extents  -- {start of line, end of line} pairs
 
   fh=open(filename,"r")
   if fh!=failure then
     wrap_print("%s "&COLBWHI&"%s"&COLWHI&"\n",{reading_how,filename})
 
     file_text={}
-    file_len=0
+    line_extents={}
     line=gets(fh)
     while sequence(line) do
+      line_extents=append(line_extents,{length(file_text)+1,length(file_text)+length(line)})
       line=exclude(line,"\n\r")
-      file_text=append(file_text,line)
-      file_len+=length(line)+1
+      file_text&=line
+      file_text&='\n'
       line=gets(fh)
     end while
     close(fh)
-    total_lines+=length(file_text)
-    file_list=append(file_list,{filename,file_text,file_len})
+    total_lines+=length(line_extents)
+    file_list=append(file_list,{filename,file_text,line_extents})
   else
     if pos then
       src_error(sprintf("file "&COLYEL&"%s"&COLRED&" not found\n",{filename}),pos)
@@ -966,25 +991,23 @@ end function
 
 ---------------------------------------------------------------------------
 
-function lex_line(sequence s,srcpos pos)
+function lex_line(sequence s,integer i,integer stop,srcpos pos)
   integer state
   sequence tokens
   sequence ident  --identifier text being built up
   sequence temp
   sequence masked
-  integer i
   integer found
   integer textstart  --the column at which this identifier starts, otherwise 0
   sequence remem_ident
   integer remem_textstart
   integer nonnumeral  --whether we are definitely inside an identifier, ie. a digit doesn't indicate a number
 
-  i=1
   ident=""
   nonnumeral=false
   textstart=0
   tokens={}
-  while i<=length(s) do
+  while i<=stop do
     state=lexer_table[s[i]+1]
     --color_print("lexing %d=%s state %d\n",{s[i],{s[i]},state})
     if state=LEX_CHAR then
@@ -1152,6 +1175,77 @@ end function
 
 ---------------------------------------------------------------------------
 
+--Given a command tree, get the original text from the file
+--OK, this function is horribly complicated just so tracevalue can print
+--"hero X (me)" instead of "herox(me)". It could be implemented much simpler if
+--macros were expanded in the lexer, but then compile_commands and
+--convert_macros would have to be as well
+function tree_original_text(sequence tree)
+  sequence script_toks
+  sequence subtree
+  srcpos leftmost, rightmost
+  integer left_at, right_at
+  integer filenum
+  integer left_point, right_point
+  integer depth
+  sequence tokens
+  sequence text
+
+  script_toks=script_cmd[cur_script_num][4]
+
+  --find leftmost and rightmost tokens making up the expression, not including brackets
+  leftmost=tree[TREE_TRUNK][CMD_POS]
+  subtree=tree
+  while length(subtree[TREE_BRANCHES]) do
+    subtree=subtree[TREE_BRANCHES][1]
+    if subtree[TREE_TRUNK][CMD_POS]<leftmost then
+      leftmost=subtree[TREE_TRUNK][CMD_POS]
+    end if
+  end while
+  
+  rightmost=tree[TREE_TRUNK][CMD_POS]
+  subtree=tree
+  while length(subtree[TREE_BRANCHES]) do
+    subtree=subtree[TREE_BRANCHES][$]
+    rightmost=subtree[TREE_TRUNK][CMD_POS]
+  end while
+
+  --grab those tokens from the script's token list
+  left_at=find_in_column(leftmost,script_toks,CMD_POS)
+  right_at=find_in_column(rightmost,script_toks,CMD_POS)
+  tokens=script_toks[left_at..right_at]
+  --pretty_print(stdout,{"tree_original_text tokens: ",tokens},{2})
+
+  --keep grabbing extra tokens until brackets are balanced
+  --note: this will read 'foo(bar())' but will read 'foo()' as 'foo'
+  depth=count("begin",column(tokens,CMD_TEXT))-count("end",column(tokens,CMD_TEXT))
+  while depth do
+    right_at+=1
+    if equal(script_toks[right_at][CMD_TEXT],"begin") then
+      depth+=1
+    else  --only other possibility is "end"
+      depth-=1
+    end if
+  end while
+
+  --grab original text corresponding to this range of tokens
+  filenum=srcpos_file_number(leftmost)
+  left_point=srcpos_point(leftmost)
+  --this +1 is safe, guaranteed to be followed by either another argument or "end"
+  right_point=srcpos_point(script_toks[right_at+1][CMD_POS])
+  text=file_list[filenum][FILE_TEXT][left_point..right_point-1]
+
+  --clean up the grabbed text
+  text=trim_whitespace(substitute(text,'\n',','))
+  while find(text[$],", \t") do
+    text=text[1..$-1]
+  end while
+
+  return(text)
+end function
+
+---------------------------------------------------------------------------
+
 function seek_include(sequence s)
   integer at
   at=find("include",column(s,CMD_TEXT))
@@ -1165,7 +1259,7 @@ function seek_include(sequence s)
     if length(s)>2 then
       src_error(sprintf("Found garbage "&COLYEL&"%s"&COLRED&" after name of file to include. Try enclosing the filename in \"quote marks\"?",{s[3][CMD_TEXT]}),s[3][CMD_POS])
     end if
-    if s[at+1][CMD_TEXT][1]='"' then --each element of s guarenteed nonzero length
+    if s[at+1][CMD_TEXT][1]='"' then --each element of s guaranteed nonzero length
       --is a string
       return(s[at+1][CMD_TEXT][2..$-1])
     end if
@@ -1180,13 +1274,15 @@ end function
 procedure read_commands(integer file_num,sequence include_stack)
   sequence broken
   sequence include_name
+  sequence lines
   integer include_num
   srcpos pos
   pos=(file_num-1)*power(2,23)
   include_stack=append(include_stack,file_list[file_num][FILE_NAME])
 
-  for i=1 to length(file_list[file_num][FILE_LINES]) do
-    broken=lex_line(file_list[file_num][FILE_LINES][i],pos)
+  lines=file_list[file_num][FILE_LINE_EXTENTS]
+  for i=1 to length(lines) do
+    broken=lex_line(file_list[file_num][FILE_TEXT],lines[i][PAIR_START],lines[i][PAIR_END],pos)
     include_name=seek_include(broken)
     if length(include_name) then
       if find(include_name,include_stack) then
@@ -1205,7 +1301,6 @@ procedure read_commands(integer file_num,sequence include_stack)
       --this also checks for stray strings and $'s
       cmd&=translate_plotstrings(broken)
     end if
-    pos+=length(file_list[file_num][FILE_LINES][i])+1
   end for
 end procedure
 
@@ -1824,6 +1919,31 @@ end function
 
 ---------------------------------------------------------------------------
 
+function dump_script_strings(sequence bin)
+  sequence result
+  integer table_start
+  integer offset
+  integer len
+  result=""
+  table_start=binstring_to_int(bin[9..12])
+  if table_start=0 then
+    return("")
+  end if
+  bin=bin[table_start+1..$]
+  offset=1
+  while offset<length(bin) do
+    len=binstring_to_int(bin[offset..offset+3])
+    result&=sprintf("string offset %-4d: \"%s\"\n",{offset/4,bin[offset+4..offset+4+len-1]})
+    offset+=4+len
+    if remainder(len,4) then
+      offset+=4-remainder(len,4)
+    end if
+  end while
+  return(result)
+end function
+
+---------------------------------------------------------------------------
+
 procedure dump_debug_report()
   integer fh
   sequence debug_file
@@ -1898,7 +2018,8 @@ procedure dump_debug_report()
         end for
         printf(fh,"%d bytes compiled\n",{length(all_scripts[i][7])})
 --        printf(fh,"%s\n\n",{dump_script_tree(all_scripts[i][5],0)})
-        printf(fh,"%s\n\n",{dump_script_binary(all_scripts[i][7][CODE_START_BYTE_OFFSET+1..length(all_scripts[i][7])],0,0)})
+        printf(fh,"%s",{dump_script_binary(all_scripts[i][7][CODE_START_BYTE_OFFSET+1..$],0,0)})
+        printf(fh,"%s\n\n",{dump_script_strings(all_scripts[i][7])})
       end for
       printf(fh,"\n",{})
       -------------------------------------
@@ -1971,6 +2092,9 @@ function what_kind_and_id(sequence command,sequence local_vars)
   elsif keyword=RESERVE_BUILTIN then
     kind=KIND_MATH
     id=math_list[find(s,column(math_list,PAIR_NAME))][PAIR_NUM]
+  elsif keyword=RESERVE_MACRO then
+    kind=KIND_MACRO
+    id=0
   else
     src_error(sprintf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
   end if
@@ -2006,6 +2130,8 @@ function what_kind(sequence command,sequence local_vars, integer look_for_operat
     kind=KIND_SCRIPT
   elsif keyword=RESERVE_BUILTIN then
     kind=KIND_MATH
+  elsif keyword=RESERVE_MACRO then
+    kind=KIND_MACRO
   else
     src_error(sprintf("Unrecognised name "&COLYEL&"%s"&COLRED&". It has not been defined as script, constant, variable, or anything else",{s}),command[CMD_POS])
   end if
@@ -2047,10 +2173,10 @@ end function
 ---------------------------------------------------------------------------
 
 function takes_args(integer kind)
-  if kind=KIND_PARENS or kind=KIND_FLOW or kind=KIND_MATH or kind=KIND_FUNCTION or kind=KIND_SCRIPT then
-    return(-1)
+  if kind=KIND_PARENS or kind=KIND_FLOW or kind=KIND_MATH or kind=KIND_FUNCTION or kind=KIND_SCRIPT or kind=KIND_MACRO then
+    return(true)
   else
-    return(0)
+    return(false)
   end if
 end function
 
@@ -2182,6 +2308,32 @@ function gather_local_vars(sequence vars,sequence data)
     end if
   end while
   return(vars)
+end function
+
+---------------------------------------------------------------------------
+
+--there is only one, hardcoded, macro right now: tracevalue
+function expand_macros(sequence tree)
+  sequence newargs
+  sequence string_token
+  srcpos pos
+  for ptr=1 to length(tree) do
+    if equal("tracevalue",tree[ptr][TREE_TRUNK][CMD_TEXT]) then
+      newargs={}
+      tree[ptr][TREE_TRUNK][CMD_TEXT]="tracevalueinternal"
+      pos=tree[ptr][TREE_TRUNK][CMD_POS]
+      for i=1 to length(tree[ptr][TREE_BRANCHES]) do
+        string_list=append(string_list,tree_original_text(tree[ptr][TREE_BRANCHES][i]))
+        string_token={sprintf("@$string%d",{length(string_list)}),pos}
+        newargs&={{string_token,{}},tree[ptr][TREE_BRANCHES][i]}
+      end for
+      tree[ptr][TREE_BRANCHES]=newargs
+    end if
+    if length(tree[ptr][TREE_BRANCHES]) then
+      tree[ptr][TREE_BRANCHES]=expand_macros(tree[ptr][TREE_BRANCHES])
+    end if
+  end for
+  return(tree)
 end function
 
 ---------------------------------------------------------------------------
@@ -3036,6 +3188,9 @@ procedure compile_a_script(integer id,sequence trigger_data,sequence name_data,s
   reenter_timing_zone("convert_operators")
   script_tree=convert_operators(script_tree)
   exit_timing_zone()
+  reenter_timing_zone("expand_macros")
+  script_tree=expand_macros(script_tree)
+  exit_timing_zone()
   reenter_timing_zone("normalize_flow_control")
   script_tree=normalize_flow_control(script_tree,local_vars,"")
   exit_timing_zone()
@@ -3202,6 +3357,7 @@ procedure compile_each_script()
    -- color_print("%s\n",{script_cmd[i][2][CMD_TEXT]})
 
     reenter_timing_zone("compile_a_script")
+    cur_script_num=i
     compile_a_script(
       script_list[at][PAIR_NUM] --ID
       ,script_cmd[i][1]          --trigger
@@ -3209,8 +3365,9 @@ procedure compile_each_script()
       ,script_cmd[i][3]          --argnames
       ,script_cmd[i][4]          --data
     )
+    cur_script_num=0
     exit_timing_zone()
-    count[get_file_number(script_cmd[i][2][CMD_POS])]+=1
+    count[srcpos_file_number(script_cmd[i][2][CMD_POS])]+=1
 
     color_print(".",{})
   end for
@@ -3331,7 +3488,6 @@ end function
 ---------------------------------------------------------------------------
 
 procedure write_script_files(integer fh)
-  object lh
   sequence fname
   sequence temp
   --because script files with identical names in different directories can be
@@ -3348,16 +3504,8 @@ procedure write_script_files(integer fh)
       fname=sprintf("%s~%d.%s",{temp[1..$-1],suffix,extension_only(fname)})
     end if
     --color_print("writing %d %s\n",{i,fname})
-    lh=begin_lump(fh,fname)
-    if equal(lh,false) then
-      simple_error("unable to write script source file")
-    end if
-    for j=1 to length(file_list[i][FILE_LINES]) do
-      puts(fh,file_list[i][FILE_LINES][j])
-      puts(fh,'\n')
-    end for
-    if end_lump(lh)=false then
-      simple_error("unable to finish write of script source file")
+    if write_lump(fh,fname,file_list[i][FILE_TEXT])=false then
+      simple_error("unable to write a script source lump")
     end if
   end for
 end procedure
