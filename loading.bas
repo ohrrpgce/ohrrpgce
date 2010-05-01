@@ -326,7 +326,8 @@ SUB LoadTilemap(map as TileMap, filename as string)
   map.layernum = 0
   IF map.wide * map.high + 11 <> LOF(fh) THEN
     'PROBLEM: early versions always saved 32000 bytes of tile data (ie, 32011 total)!
-    debug "tilemap " & filename & " (" & map.wide & "x" & map.high & ") bad length or size; " & LOF(fh) & " bytes"
+    'Because of bug 829, tilemaps with bad lengths are common; better not to spam this message
+    'debug "tilemap " & filename & " (" & map.wide & "x" & map.high & ") bad length or size; " & LOF(fh) & " bytes"
     'show the user their garbled mess, always interesting
   END IF
   map.data = ALLOCATE(map.wide * map.high)
@@ -348,7 +349,8 @@ SUB LoadTilemaps(layers() as TileMap, filename as string)
   high = bound(readshort(fh, 10), 10, 32678)
   numlayers = (LOF(fh) - 11) \ (wide * high)
   IF numlayers > maplayerMax + 1 OR numlayers * wide * high + 11 <> LOF(fh) THEN
-    debug "tilemap " & filename & " (" & wide & "x" & high & ") bad length or size; " & LOF(fh) & " bytes"
+    'Because of bug 829, tilemaps with bad lengths are common; better not to spam this message
+    'debug "tilemap " & filename & " (" & wide & "x" & high & ") bad length or size; " & LOF(fh) & " bytes"
     'show the user their garbled mess, always interesting
     numlayers = bound(numlayers, 1, maplayerMax + 1)
   END IF
@@ -368,6 +370,7 @@ END SUB
 
 SUB SaveTilemap(tmap as TileMap, filename as string)
   DIM fh as integer
+  safekill filename
   fh = FREEFILE
   OPEN filename FOR BINARY AS #fh
   writeshort fh, 8, tmap.wide
@@ -378,6 +381,7 @@ END SUB
 
 SUB SaveTilemaps(tmaps() as TileMap, filename as string)
   DIM fh as integer
+  safekill filename
   fh = FREEFILE
   OPEN filename FOR BINARY AS #fh
   writeshort fh, 8, tmaps(0).wide
