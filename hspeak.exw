@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3M  2010-05-02 abs, sign, sqrt; fix error reporting
 --3L  2010-04-29 tracevalue support, involving a few internal changes
 --3Ke 2010-04-18 Add -t commandline option
 --3Kd 2010-04-14 Quite a few bugfixes in optimizer
@@ -279,6 +280,9 @@ sequence math_list        math_list={
                              ,{20,"logand",{0,0}} 
                              ,{21,"logor",{0,0}} 
                              ,{22,"logxor",{0,0}} 
+                             ,{23,"abs",{0}}
+                             ,{24,"sign",{0}}
+                             ,{25,"sqrt",{0}}
                           }
 
 sequence separator_list   separator_list={
@@ -761,7 +765,7 @@ function decode_srcpos(srcpos pos)
 
   lineno=length(lines)
   for i=1 to length(lines) do
-    if point<lines[i][PAIR_START] then
+    if point<=lines[i][PAIR_END] then
       lineno=i
       exit
     end if
@@ -3103,6 +3107,18 @@ function optimized_arg(sequence tree,sequence vars)
        elsif id=22 then
          --logxor
          return((arg1=0)!=(arg2=0))
+       elsif id=23 then
+         --abs
+         return(abs(arg1))
+       elsif id=24 then
+         --sign
+         return((arg1>0)-(arg1<0))
+       elsif id=25 then
+         --sqrt
+         if arg1<0 then
+           src_error(sprintf("Found the expression (or equivalent) "&COLYEL&"sqrt(%d)"&COLRED,{arg1}),tree[TREE_TRUNK][CMD_POS])
+         end if
+         return(floor(sqrt(arg1)+0.5))
        end if
     end if
     --have to allow for side effects of shortcut evaluating expressions by only checking first arg

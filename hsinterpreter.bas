@@ -659,11 +659,22 @@ SUB scriptmath
     scriptret = 0
    END IF
   CASE 20'&&
+   '&& and || are shortcut evaluated, so retvals(0) has already been checked
    IF retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
   CASE 21'||
    IF retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
   CASE 22'^^
    IF retvals(0) <> 0 XOR retvals(1) <> 0 THEN scriptret = 1 ELSE scriptret = 0
+  CASE 23'abs
+   scriptret = ABS(retvals(0))
+  CASE 24'sign
+   scriptret = SGN(retvals(0))
+  CASE 25'sqrt
+   IF retvals(0) < 0 THEN
+    scripterr "Tried to take squareroot of " & retvals(0), 5
+   ELSE
+    scriptret = SQRT(retvals(0))
+   END IF
   CASE ELSE
    scripterr "unsupported math function id " & curcmd->value, 6
  END SELECT

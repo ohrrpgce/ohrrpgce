@@ -32,6 +32,7 @@ WHAT IS NEW?
     * "set slice edge x", "set slice edge y" [James]
     * "get slice lookup", "set slice lookup" [James]
     * "trace value" [Ralph]
+    * "abs", "sign", "sqrt" [Ralph]
 
   * Vikings of Midgard
 

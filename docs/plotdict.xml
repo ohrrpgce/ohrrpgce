@@ -3425,7 +3425,7 @@ end
 		<command id="seedrandom">
 			<canon>seed random (new seed)</canon>
 			<shortname>seedrandom</shortname>
-			<description>Reseeds the random number generator. If called with no argument, this will reseed the random number generator to a new random sequence. If you pass in a number, the random number generator will be seeded with that number, allowing for repeatable random sequences.</description>
+			<description>Reseeds the random number generator. If called with no argument, this will reseed the random number generator to a new random sequence. If you pass in a number (other than 0), the random number generator will be seeded with that number, allowing for repeatable random sequences.</description>
 			<seealso>
 				<ref>random</ref>
 			</seealso>
@@ -4164,7 +4164,22 @@ write pass block(15,3,pass)
 		<command id="exponent">
 			<canon>number ^ power</canon>
 			<shortname>^</shortname>
-			<description>Raises a number to a power and returns the result. Normally you will only be raising things to a power of 2. Raising to very large powers will most certainly produce an overflow error. This can also be written as exponent(number,power)</description>
+			<description>Raises a number to a power and returns the result. (If the result is too large and overflows no error occurs: the value is simply wrapped around a 32 bit signed integer.) This can also be written as exponent(number,power)</description>
+		</command>
+		<command id="abs">
+			<canon>abs (number)</canon>
+			<shortname>abs</shortname>
+			<description>Returns the absolute value of a value. That is, negative values are made positive and others are unchanged: abs(-14) is 14, and abs(14) is 14.</description>
+		</command>
+		<command id="sign">
+			<canon>sign (number)</canon>
+			<shortname>sign</shortname>
+			<description>Returns -1 if <p>number</p> is negative, 0 if it is 0, and 1 if <p>number</p> is positive.</description>
+		</command>
+		<command id="sqrt">
+			<canon>sqrt (number)</canon>
+			<shortname>sqrt</shortname>
+			<description>Returns the squareroot of a number, rounded to the nearest integer.</description>
 		</command>
 		<command id="equal">
 			<canon>number == number</canon>
