@@ -113,7 +113,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="L "
+constant COMPILER_SUB_VERSION="M "
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
