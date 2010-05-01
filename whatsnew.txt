@@ -39,12 +39,14 @@ WHAT IS NEW?
   * Stuff only Developers Will Notice
     * Test suite and benchmarks for RELOAD format [Mike]
 
-Mar ? 2010 [Ypsiliform+3]
+May ? 2010 [Ypsiliform+3]
 
   * Bugfixes
     * Bug 816: Freeze on attack instead-chaining on multi-stage chains
     * The "leader" command has never worked.
     * "set dead heroes gain experience" did nothing.
+    * Bug 829: Shrinking a map could cause garbage map layers to appear;
+      also, deleting map layers did not work
 
 Feb 8 2010 [Ypsiliform+2]
 
