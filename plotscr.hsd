@@ -310,7 +310,7 @@ define function, begin
 301,findmenuid,1,0            #find menu(menu ID) search open menus for menu ID and return menu handle
 302,menuisopen,1,0            #menu is open(menu handle) # return true as long as the handle is still valid
 303,menuitemslot,1,0          #menu item slot(menu item handle) returns a menu slot number
-304,outsidebattlecure,3,0,0,-1 #out of battle cure(attack ID, target, attacker)
+304,outsidebattlecure,3,0,0,-1 #backcompat only, should prefer "map cure"
 305,changetileset,2,-1,-1     #similar to loadtileset. (tileset,layer)
 306,layertileset,1,0          #layer tileset(layer) returns tileset number in use
 307,getformationsong,1,0      #returns the song associated with a given formation
@@ -474,6 +474,7 @@ define function, begin
 464,getslicelookup,1,0        #get a slice's lookup code
 465,setslicelookup,2,0,0      #change a slice's lookup code
 466,tracevalueinternal,-1     #tracevalue is translated to this
+467,mapcure,3,0,0,-1          #uses a cure attack on a hero
 end
 
 #--------------------------------------------------------------------------

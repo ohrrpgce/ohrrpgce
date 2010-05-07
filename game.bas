@@ -1685,6 +1685,8 @@ WITH scrat(nowscript)
      scriptret = mislot
     END IF
    CASE 304'--outside battle cure
+    'WARNING: This exists for backcompat, but "map cure" should be prefered.
+    'See bug 719
     IF bound_arg(retvals(0), 0, gen(genMaxAttack), "attack ID") THEN
      IF valid_hero_party(retvals(1)) THEN
       IF valid_hero_party(retvals(2), -1) THEN

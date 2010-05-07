@@ -1191,9 +1191,15 @@ end</example>
 			<description>Update a hero to make sure they know the spells they are supposed to have learned for their current level. The <p>who</p> is the hero's position in the battle party. You can optionally pass <ref>false</ref> as the <p>allowforget</p> argument if you want to make sure the hero will not forget any spells that they are not supposed to know yet. This spell is most useful for situations where you are manipulating the heros level, and for some reason do not want to use <ref>setherolevel</ref> which automatically handles learning. This command can also be handy when playtesting a game in progress, since it can be used to make sure that heroes loaded from a saved-game will learn spells that did not exist yet at the time when they got their last level-ups.</description>
 		</command>
 		<command id="outsidebattlecure">
-			<canon>outside battle cure (attack, target, attacker)</canon>
+			<alias>outsidebattlecure</alias>
 			<shortname>outside battle cure</shortname>
-			<description>Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <p>attack</p> is the ID number of the attack to use, or the name from your HSI file in the form atk:name. The second argument, <p>target</p> is the position in the party of the hero to cure (or harm). The third optional argument, <p>attacker</p> is the position in the party of the hero who is using the attack. If this argument is ommitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <ref>true</ref> if the cure/attack succeeded, and <ref>false</ref> if it did nothing.</description>
+		</command>
+		<command id="mapcure">
+			<canon>map cure (attack, target, attacker)</canon>
+			<shortname>map cure</shortname>
+			<description>Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <p>attack</p> is name of the attack from your HSI file in the form atk:name. The second argument, <p>target</p> is the position in the party of the hero to cure (or harm). The third optional argument, <p>attacker</p> is the position in the party of the hero who is using the attack. If this argument is ommitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <ref>true</ref> if the cure/attack succeeded, and <ref>false</ref> if it did nothing.
+			<note>The <p>map cure</p> command replaces the old command <p>outside battle cure</p> which had a bug which required you to use <p>atk:name -- 1</p></note>
+			</description>
 		</command>
 	</section>
 	<section title="Mouse Functions">

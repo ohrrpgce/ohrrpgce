@@ -33,6 +33,7 @@ WHAT IS NEW?
     * "get slice lookup", "set slice lookup" [James]
     * "trace value" [Ralph]
     * "abs", "sign", "sqrt" [Ralph]
+    * use "map cure" instead of deprecated "outside battle cure" [James]
 
   * Vikings of Midgard
 
