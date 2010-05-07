@@ -363,10 +363,10 @@ CONST AtkLimTagIf = 24
 max(AtkLimTagIf) = 4
 DIM AtkCapTagIf AS INTEGER = capindex
 addcaption caption(), capindex, "Never" '0
-addcaption caption(), capindex, "Use"   '1
-addcaption caption(), capindex, "Hit"   '2
-addcaption caption(), capindex, "Miss"  '3
-addcaption caption(), capindex, "Kill"  '4
+addcaption caption(), capindex, "On Use"   '1
+addcaption caption(), capindex, "On Hit"   '2
+addcaption caption(), capindex, "On Miss"  '3
+addcaption caption(), capindex, "On Kill"  '4
 
 CONST AtkLimTagAnd = 25
 max(AtkLimTag) = 1000
@@ -651,7 +651,7 @@ menuoff(AtkTag) = AtkDatTag
 menulimits(AtkTag) = AtkLimTag
 
 CONST AtkTagIf = 33
-menu(AtkTagIf) = "On"
+menu(AtkTagIf) = ""
 menutype(AtkTagIf) = 2000 + AtkCapTagIf
 menuoff(AtkTagIf) = AtkDatTagIf
 menulimits(AtkTagIf) = AtkLimTagIf
@@ -669,7 +669,7 @@ menuoff(AtkTag2) = AtkDatTag2
 menulimits(AtkTag2) = AtkLimTag
 
 CONST AtkTagIf2 = 36
-menu(AtkTagIf2) = "On"
+menu(AtkTagIf2) = ""
 menutype(AtkTagIf2) = 2000 + AtkCapTagIf
 menuoff(AtkTagIf2) = AtkDatTagIf2
 menulimits(AtkTagIf2) = AtkLimTagIf
@@ -1383,7 +1383,7 @@ SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGE
 '           19=ticks (with seconds estimate)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
-'           2000-2999=caption-only int (caption-start-offset=n-1000)
+'           2000-2999=caption-only int (caption-start-offset=n-2000)
 '                     (be careful about negatives!)
 '           3000-3999=Multi-state (0 and negatives are caption-only,
 '                                  positive is postcaptioned. Captions are
@@ -1484,6 +1484,7 @@ FOR i = 0 TO size
     nowmenu(i) = nowmenu(i) & " " & caption(capnum + ABS(dat))
    END IF
  END SELECT
+ IF menu(nowdat(i)) = "" THEN nowmenu(i) = LTRIM(nowmenu(i))
  IF mpointer = i THEN
    nowmenu(i) = RIGHT(nowmenu(i), 40)
  END IF

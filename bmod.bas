@@ -480,7 +480,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     END IF
    ELSE
     checkTagCond attack.tagset(0), 3
-    checkTagCond attack.tagset(0), 3
+    checkTagCond attack.tagset(1), 3
    END IF
    triggerfade targ, bslot()
    IF bslot(targ).stat.cur.hp > 0 THEN
