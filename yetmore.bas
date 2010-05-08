@@ -1229,6 +1229,7 @@ SELECT CASE AS CONST id
    scriptret = 1
   END IF
  CASE 208'--get attack name(str,atk)
+  'WARNING: backcompat only. new games should prefer read attack name
   IF valid_plotstr(retvals(0)) = NO OR retvals(1) < 0 OR retvals(1) > gen(genMaxAttack) THEN
    scriptret = 0
   ELSE
@@ -2409,6 +2410,12 @@ SELECT CASE AS CONST id
      scriptret = ABS(outside_battle_cure(retvals(0) - 1, retvals(1), retvals(2), stat(), 0))
     END IF
    END IF
+  END IF
+ CASE 468 '--read attack name
+  scriptret = 0
+  IF valid_plotstr(retvals(0)) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID") THEN
+   plotstr(retvals(0)).s = readattackname(retvals(1) - 1)
+   scriptret = 1
   END IF
 
 END SELECT

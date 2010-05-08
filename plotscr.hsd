@@ -214,7 +214,7 @@ define function, begin
 205,set hero name,2,0,0	    # (string, hero) - sets the name of hero(hero) to string(string)
 206,get item name,2,0,0	    # (string, item) - puts the name of item(item) in string(string)
 207,get map name,2,0,0	    # (string, map) - puts the name of map(map) in string(string)
-208,get attack name,2,0,0   # (string, attack) - puts the name of attack(attack) in string(string)
+208,getattackname,2,0,0     # deprecated. Use "read attack name" instead
 209,get global string,2,0,0 # (string, global) - puts the global string (global) in string(string)
 210,showstring,1,0            #shows string on the bottom(stringID)
 211,clearstring,1,0           #deletes the data from string(stringID)
@@ -475,6 +475,7 @@ define function, begin
 465,setslicelookup,2,0,0      #change a slice's lookup code
 466,tracevalueinternal,-1     #tracevalue is translated to this
 467,mapcure,3,0,0,-1          #uses a cure attack on a hero
+468,readattackname,2,0,0      #puts an attack name in a string
 end
 
 #--------------------------------------------------------------------------

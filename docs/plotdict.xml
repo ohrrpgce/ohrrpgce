@@ -1359,9 +1359,16 @@ get hero name (1,find hero(hero by rank(0)))
 			<description>This command will take the name of map #<p>map</p> and stick it in string #<p>ID</p>, overwriting its contents.</description>
 		</command>
 		<command id="getattackname">
-			<canon>get attack name (ID, attack)</canon>
+			<alias>readattackname</alias>
 			<shortname>get attack name</shortname>
-			<description>This command will take the name of attack #<p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents.</description>
+		</command>
+		<command id="readattackname">
+			<canon>read attack name (ID, attack)</canon>
+			<shortname>read attack name</shortname>
+			<description>This command will take the name of <p>attack</p> and stick it in string #<p>ID</p>, overwriting its contents. Use the <p>atk:name</p> constants from your HSI file.
+			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
+			<note>This command replaces the old <p>get attack name</p> which required you to use <p>atk:name -- 2</p> or the attack id number <p>-- 1</p></note>
+			</description>
 		</command>
 		<command id="getglobalstring">
 			<canon>get global string (ID, global)</canon>

@@ -547,8 +547,8 @@
 		<a href="#about-getambientmusic">get ambient music</a><br>
 		
 	
-		<a href="#about-getattackname">get attack name (ID, attack)</a><br>
 		
+		<a href="#about-readattackname">get attack name</a><br>
 	
 		<a href="#about-getbottompadding">get bottom padding (handle)</a><br>
 		
@@ -1256,6 +1256,9 @@
 		
 	
 		<a href="#about-rankincaterpillar">rank in caterpillar (who)</a><br>
+		
+	
+		<a href="#about-readattackname">read attack name (ID, attack)</a><br>
 		
 	
 		<a href="#about-readcolor">read color (index, element)</a><br>
@@ -4054,8 +4057,22 @@ get hero name (1,find hero(hero by rank(0)))
 		<a name="about-getattackname"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">get attack name (ID, attack)</font></b><br>
-			This command will take the name of attack #<span class="param">attack</span> and stick it in string #<span class="param">ID</span>, overwriting its contents.<br>
+		
+				<b><font color="yellow">get attack name</font></b><br>
+				See <a href="#about-readattackname">read attack name</a>
+			</tt></p>
+		<a name="about-readattackname"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">read attack name (ID, attack)</font></b><br>
+			This command will take the name of <span class="param">attack</span> and stick it in string #<span class="param">ID</span>, overwriting its contents. Use the <span class="param">atk:name</span> constants from your HSI file.
+			<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.<br clear="all">
+</div>
+			<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This command replaces the old <span class="param">get attack name</span> which required you to use <span class="param">atk:name -- 2</span> or the attack id number <span class="param">-- 1</span><br clear="all">
+</div>
+			<br>
 			
 			
 		</tt></p>
@@ -9702,7 +9719,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 690 commands in this file, of which 55 are only references to other commands.</p>
+	<p>Stats: There are 691 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
