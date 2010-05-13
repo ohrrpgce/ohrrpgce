@@ -293,7 +293,7 @@ startTest(loadFile)
 	if doc2 = null then fail
 endTest
 
-function comparenode(nod1 as nodeptr, nod2 as nodeptr) as integer
+function comparenode(byval nod1 as nodeptr, byval nod2 as nodeptr) as integer
 	if NodeName(nod1) <> NodeName(nod2) then
 		print "Names of nodes differ! " & NodeName(nod1) & " vs" & NodeName(nod2)
 		return 1

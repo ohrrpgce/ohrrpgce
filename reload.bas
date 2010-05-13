@@ -34,19 +34,19 @@ END SUB
 
 Namespace Reload
 
-Type hashFunction as Function(k as ZString ptr) as integer
+Type hashFunction as Function(byval k as ZString ptr) as integer
 
 Declare function ReadVLI(byval f as .FILE ptr) as longint
 declare Sub WriteVLI(byval f as .FILE ptr, byval v as Longint)
 
-Declare Function AddStringToTable (st as string, doc as DocPtr) as integer
-Declare Function FindStringInTable overload(st as string, doc as DocPtr) as integer
+Declare Function AddStringToTable (st as string, byval doc as DocPtr) as integer
+Declare Function FindStringInTable overload(st as string, byval doc as DocPtr) as integer
 
-Declare Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, b as integer = 65) as Hashptr
-Declare Sub DestroyHashTable(h as HashPtr)
-Declare Function FindItem(h as HashPtr, key as ZString ptr, num as integer = 1) as any ptr
-Declare Sub AddItem(h as HashPtr, key as ZString ptr, item as any ptr)
-Declare Sub RemoveKey(h as HashPtr, key as zstring ptr, num as integer = 1)
+Declare Function CreateHashTable(byval doc as Docptr, byval hashFunc as hashFunction, byval b as integer = 65) as Hashptr
+Declare Sub DestroyHashTable(byval h as HashPtr)
+Declare Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval num as integer = 1) as any ptr
+Declare Sub AddItem(byval h as HashPtr, byval key as ZString ptr, byval item as any ptr)
+Declare Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer = 1)
 
 function RHeapInit(byval doc as docptr) as integer
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
@@ -105,7 +105,7 @@ Sub RDeallocate(byval p as any ptr, byval doc as docptr)
 #endif
 End Sub
 
-Function HashZString(st as ZString ptr) as integer
+Function HashZString(byval st as ZString ptr) as integer
 	dim as integer ret = 0, i = 0
 	
 	do while st[i] <> 0
@@ -490,7 +490,7 @@ End Function
 
 'Internal function
 'Locates a string in the string table. If it's not there, returns -1
-Function FindStringInTable (st as string, doc as DocPtr) as integer
+Function FindStringInTable (st as string, byval doc as DocPtr) as integer
 	'if st = "" then return 0
 	'for i as integer = 0 to doc->numStrings - 1
 	'	if *doc->strings[i].str = st then return i
@@ -506,7 +506,7 @@ end function
 
 'Adds a string to the string table. If it already exists, return the index
 'If it doesn't already exist, add it, and return the new index
-Function AddStringToTable(st as string, doc as DocPtr) as integer
+Function AddStringToTable(st as string, byval doc as DocPtr) as integer
 	dim ret as integer
 	
 	ret = cint(FindStringInTable(st, doc))
@@ -1027,7 +1027,7 @@ Function GetFloat(byval node as nodeptr) as Double
 End Function
 
 'Sets the child node of name n to a null value. If n doesn't exist, it adds it
-Function SetChildNode(parent as NodePtr, n as string) as NodePtr
+Function SetChildNode(byval parent as NodePtr, n as string) as NodePtr
 	if parent = 0 then return 0
 	
 	'first, check to see if this node already exists
@@ -1045,7 +1045,7 @@ Function SetChildNode(parent as NodePtr, n as string) as NodePtr
 end Function
 
 'Sets the child node of name n to an integer value. If n doesn't exist, it adds it
-Function SetChildNode(parent as NodePtr, n as string, val as longint) as NodePtr
+Function SetChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
 	if parent = 0 then return 0
 	
 	'first, check to see if this node already exists
@@ -1063,7 +1063,7 @@ Function SetChildNode(parent as NodePtr, n as string, val as longint) as NodePtr
 end Function
 
 'Sets the child node of name n to a floating point value. If n doesn't exist, it adds it
-Function SetChildNode(parent as NodePtr, n as string, val as double) as NodePtr
+Function SetChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
 	if parent = 0 then return 0
 	
 	'first, check to see if this node already exists
@@ -1081,7 +1081,7 @@ Function SetChildNode(parent as NodePtr, n as string, val as double) as NodePtr
 end Function
 
 'Sets the child node of name n to a string value. If n doesn't exist, it adds it
-Function SetChildNode(parent as NodePtr, n as string, val as string) as NodePtr
+Function SetChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
 	if parent = 0 then return 0
 	
 	'first, check to see if this node already exists
@@ -1099,7 +1099,7 @@ Function SetChildNode(parent as NodePtr, n as string, val as string) as NodePtr
 end Function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeInt(parent as NodePtr, n as string, d as longint) as longint
+Function GetChildNodeInt(byval parent as NodePtr, n as string, byval d as longint) as longint
 	if parent = 0 then return d
 	
 	dim nod as NodePtr = GetChildByName(parent, n)
@@ -1109,7 +1109,7 @@ Function GetChildNodeInt(parent as NodePtr, n as string, d as longint) as longin
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeFloat(parent as NodePtr, n as string, d as double) as Double
+Function GetChildNodeFloat(byval parent as NodePtr, n as string, byval d as double) as Double
 	if parent = 0 then return d
 	
 	dim nod as NodePtr = GetChildByName(parent, n)
@@ -1120,7 +1120,7 @@ Function GetChildNodeFloat(parent as NodePtr, n as string, d as double) as Doubl
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeStr(parent as NodePtr, n as string, d as string) as string
+Function GetChildNodeStr(byval parent as NodePtr, n as string, d as string) as string
 	if parent = 0 then return d
 	
 	dim nod as NodePtr = GetChildByName(parent, n)
@@ -1131,7 +1131,7 @@ Function GetChildNodeStr(parent as NodePtr, n as string, d as string) as string
 end function
 
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
-Function GetChildNodeBool(parent as NodePtr, n as string, d as integer) as integer
+Function GetChildNodeBool(byval parent as NodePtr, n as string, byval d as integer) as integer
 	if parent = 0 then return d
 	
 	dim nod as NodePtr = GetChildByName(parent, n)
@@ -1142,7 +1142,7 @@ Function GetChildNodeBool(parent as NodePtr, n as string, d as integer) as integ
 end function
 
 'looks for a child node of the name n, and returns whether it finds it or not. For "flags", etc
-Function GetChildNodeExists(parent as NodePtr, n as string) as integer
+Function GetChildNodeExists(byval parent as NodePtr, n as string) as integer
 	if parent = 0 then return 0
 	
 	dim nod as NodePtr = GetChildByName(parent, n)
@@ -1340,7 +1340,7 @@ Type ReloadHash
 end Type
 
 
-Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, b as integer) as ReloadHash ptr
+Function CreateHashTable(byval doc as Docptr, byval hashFunc as hashFunction, byval b as integer) as ReloadHash ptr
 	dim ret as HashPtr = RAllocate(sizeof(ReloadHash), doc)
 	
 	with *ret
@@ -1354,7 +1354,7 @@ Function CreateHashTable(doc as Docptr, hashFunc as hashFunction, b as integer) 
 	return ret
 End Function
 
-Sub DestroyHashTable(h as HashPtr)
+Sub DestroyHashTable(byval h as HashPtr)
 	if h = 0 then return
 	
 	for i as integer = 0 to h->numBuckets - 1
@@ -1370,7 +1370,7 @@ Sub DestroyHashTable(h as HashPtr)
 	RDeallocate(h, h->doc)
 end sub
 
-Function FindItem(h as HashPtr, key as ZString ptr, num as integer) as any ptr
+Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval num as integer) as any ptr
 	dim b as ReloadHashItem ptr
 	
 	dim hash as integer = h->hashFunc(key)
@@ -1388,7 +1388,7 @@ Function FindItem(h as HashPtr, key as ZString ptr, num as integer) as any ptr
 	return 0
 End Function
 
-Sub AddItem(h as HashPtr, key as ZString ptr, item as any ptr)
+Sub AddItem(byval h as HashPtr, byval key as ZString ptr, byval item as any ptr)
 	dim hash as integer = h->hashFunc(key)
 	
 	dim as ReloadHashItem ptr b, newitem = RAllocate(sizeof(ReloadHashItem), h->doc)
@@ -1409,7 +1409,7 @@ Sub AddItem(h as HashPtr, key as ZString ptr, item as any ptr)
 	end if
 end Sub
 
-Sub RemoveKey(h as HashPtr, key as zstring ptr, num as integer)
+Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer)
 	dim as ReloadHashItem ptr b, prev
 	
 	dim hash as integer = h->hashFunc(key)
@@ -1442,7 +1442,7 @@ Sub RemoveKey(h as HashPtr, key as zstring ptr, num as integer)
 	loop
 end sub
 
-Function MemoryUsage(doc as DocPtr) as longint
+Function MemoryUsage(byval doc as DocPtr) as longint
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 	dim ret as longint = 0
 	if 0 = HeapLock(doc->heap) then return 0

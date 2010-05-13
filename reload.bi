@@ -130,21 +130,21 @@ Declare Function NodeType(byval nod as NodePtr) as NodeTypes
 Declare Function NodeName(byval nod as NodePtr) as String
 
 'Helper functions:
-Declare Function SetChildNode Overload (parent as NodePtr, n as string) as NodePtr
-Declare Function SetChildNode(parent as NodePtr, n as string, val as longint) as NodePtr
-Declare Function SetChildNode(parent as NodePtr, n as string, val as double) as NodePtr
-Declare Function SetChildNode(parent as NodePtr, n as string, val as string) as NodePtr
-Declare Function GetChildNodeInt(parent as NodePtr, n as string, d as longint = 0) as longint
-Declare Function GetChildNodeFloat(parent as NodePtr, n as string, d as double = 0.0) as Double
-Declare Function GetChildNodeStr(parent as NodePtr, n as string, d as string = "") as string
-Declare Function GetChildNodeBool(parent as NodePtr, n as string, d as integer = 0) as integer
-Declare Function GetChildNodeExists(parent as NodePtr, n as string) as integer
+Declare Function SetChildNode Overload (byval parent as NodePtr, n as string) as NodePtr
+Declare Function SetChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
+Declare Function SetChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
+Declare Function SetChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
+Declare Function GetChildNodeInt(byval parent as NodePtr, n as string, byval d as longint = 0) as longint
+Declare Function GetChildNodeFloat(byval parent as NodePtr, n as string, byval d as double = 0.0) as Double
+Declare Function GetChildNodeStr(byval parent as NodePtr, n as string, d as string = "") as string
+Declare Function GetChildNodeBool(byval parent as NodePtr, n as string, byval d as integer = 0) as integer
+Declare Function GetChildNodeExists(byval parent as NodePtr, n as string) as integer
 
 
 Declare function ReadVLI overload(byval f as integer) as longint
 declare Sub WriteVLI overload(byval f as integer, byval v as Longint)
 
-Declare Function MemoryUsage(doc as DocPtr) as LongInt
+Declare Function MemoryUsage(byval doc as DocPtr) as LongInt
 
 Declare Sub TestStringTables()
 
