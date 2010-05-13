@@ -15,6 +15,8 @@ WHAT IS NEW?
       to spells used outside of battle. [James]
     * Fixed a case where "add hero" could add more heroes than you
       are supposed to be able to have under certain conditions [James]
+    * Bug 833: Screen temporarily freezes right after canceling an
+      out-of-battle cure attack or item [James]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

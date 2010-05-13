@@ -1995,8 +1995,8 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
  page = compatpage
  DIM holdscreen AS INTEGER
  holdscreen = allocatepage
- copypage vpage, holdscreen
- copypage holdscreen, dpage
+ copypage page, holdscreen
+ copypage holdscreen, page
 
  DIM cater AS INTEGER
  DIM walk AS INTEGER
@@ -2101,10 +2101,10 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
      '--announce learn
      menusound gen(genItemLearnSFX)
      caption = names(targ) & " " & readglobalstring(124, "learned", 10) & " " & learn_attack.name
-     centerbox 160, 100, small(LEN(caption) * 8 + 16, 320), 24, 1, vpage
-     edgeprint caption, large(xstring(caption, 160), 0), 95, uilook(uiText), vpage
+     centerbox 160, 100, small(LEN(caption) * 8 + 16, 320), 24, 1, page
+     edgeprint caption, large(xstring(caption, 160), 0), 95, uilook(uiText), page
      IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
-     setvispage vpage
+     setvispage page
      waitforanykey
      menu_attack_targ_picker = YES
     ELSE
@@ -2123,18 +2123,18 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
   END IF '--done using attack
 
   '--draw the targ picker menu
-  centerbox 160 + x_offset, 47, 160, 88, 2, dpage
+  centerbox 160 + x_offset, 47, 160, 88, 2, page
   IF spread = 0 AND targ >= 0 THEN
-   rectangle 84 + x_offset, 8 + targ * 20, 152, 20, uilook(uiHighlight2), dpage
+   rectangle 84 + x_offset, 8 + targ * 20, 152, 20, uilook(uiHighlight2), page
   ELSEIF spread <> 0 THEN
-   rectangle 84 + x_offset, 8, 152, 80, uilook(uiHighlight2 * tog), dpage
+   rectangle 84 + x_offset, 8, 152, 80, uilook(uiHighlight2 * tog), page
   END IF
   cater = 0
   FOR i AS INTEGER = 0 TO 3
    IF hero(i) > 0 THEN
     walk = 0
     IF targ = i THEN walk = INT(wtogl / 2)
-    frame_draw herow(cater).sprite + (2 * 2) + walk, herow(cater).pal, 89 + x_offset, 8 + i * 20, 1, -1, dpage
+    frame_draw herow(cater).sprite + (2 * 2) + walk, herow(cater).pal, 89 + x_offset, 8 + i * 20, 1, -1, page
     col = uilook(uiMenuItem)
     IF i = targ THEN col = uilook(uiSelectedItem + tog)
     IF attack_id >= 0 THEN
@@ -2143,17 +2143,16 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
      ELSE
       caption = STR(stat(i, 0, atk.targ_stat)) & " " & statnames(atk.targ_stat)
      END IF
-     edgeprint caption, 119 + x_offset, 16 + i * 20, col, dpage
+     edgeprint caption, 119 + x_offset, 16 + i * 20, col, page
     ELSEIF learn_id >= 0 THEN
-     edgeprint names(cater), 119 + x_offset, 16 + i * 20, col, dpage
+     edgeprint names(cater), 119 + x_offset, 16 + i * 20, col, page
     END IF
     cater += 1
    END IF
   NEXT i
-  centerfuz 160 + x_offset, 100, LEN(use_caption) * 8 + 32, 16, 4, dpage
-  edgeprint use_caption, xstring(use_caption, 160 + x_offset), 95, uilook(uiText), dpage
+  centerfuz 160 + x_offset, 100, LEN(use_caption) * 8 + 32, 16, 4, page
+  edgeprint use_caption, xstring(use_caption, 160 + x_offset), 95, uilook(uiText), page
  
-  SWAP vpage, dpage
   setvispage vpage
   copypage holdscreen, dpage
   dowait
