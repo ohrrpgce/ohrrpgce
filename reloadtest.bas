@@ -390,6 +390,25 @@ startTest(compareDocuments)
 	if comparenode(DocumentRoot(doc), DocumentRoot(doc2)) then fail
 endTest
 
+startTest(bitsetArray)
+	dim nod2 as nodeptr = CreateNode(doc, "bitsettest")
+	
+	dim bs(100) as integer, bs2(100) as integer
+	
+	for i as integer = 0 to 99
+		bs(i) = int(rnd * 65535) 'add some random bits
+	next
+	
+	SaveBitsetArray(nod2, bs(), 100)
+	
+	LoadBitsetArray(nod2, bs2(), 100)
+	
+	for i as integer = 0 to 99
+		if bs(i) <> bs2(i) then fail
+	next
+	
+endTest
+
 startTest(freeDocument)
 	FreeDocument(doc)
 	doc = 0
