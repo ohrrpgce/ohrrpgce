@@ -37,6 +37,7 @@ WHAT IS NEW?
     * "abs", "sign", "sqrt" [Ralph]
     * "map cure" replaces deprecated "outside battle cure" [James]
     * "read attack name" replaces deprecated "get attack name" [James]
+    * "spells learned" replaces deprecated "spells learnt" [James]
 
   * Vikings of Midgard
 

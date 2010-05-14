@@ -192,7 +192,7 @@ define function, begin
 183,setherolevel,3,0,0,1    # change a hero's level
 184,giveexperience,2,-1,1   # (who, how much) gives a hero or the active party experience
 185,herolevelled,1,0        # number of levels gained last battle/giveexperience command.
-186,spellslearnt,2,0,0      # number spells and spell ids hero learnt at last battle/giveexperience command.
+186,spellslearnt,2,0,0      # deprecated, use "spells learned" instead.
 187,getmusicvolume,0        # music volume on a scale of 0-255 regardless of implementation
 188,setmusicvolume,1,128    # set music volume on a scale of 0-255
 #189,getformationsong,1,0	# returns the song associated with a given formation + 1   (obsoleted by opcode 307)
@@ -476,6 +476,7 @@ define function, begin
 466,tracevalueinternal,-1     #tracevalue is translated to this
 467,mapcure,3,0,0,-1          #uses a cure attack on a hero
 468,readattackname,2,0,0      #puts an attack name in a string
+469,spellslearned,2,0,0       #number spells and spell ids hero learnt at last battle/giveexperience command.
 end
 
 #--------------------------------------------------------------------------

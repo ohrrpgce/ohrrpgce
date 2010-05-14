@@ -341,6 +341,7 @@ SELECT CASE AS CONST id
  CASE 185'--hero levelled (who)
   scriptret = stat(bound(retvals(0), 0, 40), 1, 12)
  CASE 186'--spells learnt
+  'NOTE: this is deprecated but will remain for backcompat. New games should use "spells learned" 
   found = 0
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    FOR i = retvals(0) * 96 TO retvals(0) * 96 + 95
@@ -2416,6 +2417,20 @@ SELECT CASE AS CONST id
   IF valid_plotstr(retvals(0)) AND bound_arg(retvals(1), 1, gen(genMaxAttack)+1, "attack ID") THEN
    plotstr(retvals(0)).s = readattackname(retvals(1) - 1)
    scriptret = 1
+  END IF
+ CASE 469'--spells learned
+  found = 0
+  IF valid_hero_party(retvals(0)) THEN
+   FOR i = retvals(0) * 96 TO retvals(0) * 96 + 95
+    IF readbit(learnmask(), 0, i) THEN
+     IF retvals(1) = found THEN
+      scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24)
+      EXIT FOR
+     END IF
+     found = found + 1
+    END IF
+   NEXT
+   IF retvals(1) = -1 THEN scriptret = found  'getcount
   END IF
 
 END SELECT

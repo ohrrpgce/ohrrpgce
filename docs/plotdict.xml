@@ -1167,16 +1167,22 @@ end</example>
 			<description>Checks to see if a hero is capable of learning a spell from an item or from the teach spell command. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero can learn the spell, can learn spell will return <ref>true</ref>. If the hero cannot learn the spell (or learns it from levelups), it will return <ref>false</ref></description>
 		</command>
 		<command id="spellslearnt">
-			<canon>spells learnt (hero,number)</canon>
+			<alias>spellslearned</alias>
 			<shortname>spells learnt</shortname>
-			<description>Used to return the id numbers of spells the hero learnt from the last battle (for heroes in the active battle party) or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that involved this hero. If the second argument is <ref>getcount</ref> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:</description>
+		</command>
+		<command id="spellslearned">
+			<canon>spells learned (hero,number)</canon>
+			<shortname>spells learned</shortname>
+			<description>Returns the id numbers (+1) of spells the hero learned from the last battle (for heroes in the active battle party) or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that involved this hero. If the second argument is <ref>getcount</ref> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
+			</description>
 			<example># the following script uses strings 0, 1, 2 for its use (will be overwritten)
-plotscript, print learnt spells, who=0, begin
+plotscript, print learned spells, who=0, begin
   variable(i)
   get hero name (1, who) # construct the static part of the text in string 1
-  $1+" learnt spell "
-  for (i, 0, spells learnt (who, get count) -- 1) do (
-    get attack name (2, spells learnt (who, i))  # get the i-th spell learnt
+  $1+" learned spell "
+  for (i, 0, spells learned (who, get count) -- 1) do (
+    read attack name (2, spells learned (who, i))  # get the i-th spell learnt
     0 $= 1  # copy the static part to the displayed string
     0 $+ 2  # combine with the spell name
     show string at (0, 160, 100)

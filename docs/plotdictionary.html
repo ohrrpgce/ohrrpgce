@@ -1897,8 +1897,11 @@
 		
 		<a href="#about-tileconstants">south wall</a><br>
 	
-		<a href="#about-spellslearnt">spells learnt (hero,number)</a><br>
+		<a href="#about-spellslearned">spells learned (hero,number)</a><br>
 		
+	
+		
+		<a href="#about-spellslearned">spells learnt</a><br>
 	
 		<a href="#about-spellsmenu">spells menu (who)</a><br>
 		
@@ -3471,7 +3474,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">give experience (hero,amount)</font></b><br>
-			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearnt" class="ref">spells learnt</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling.<br>
+			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearned" class="ref">spells learnt</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling.<br>
 			
 			
 		</tt></p>
@@ -3769,15 +3772,26 @@ end</pre>
 		<a name="about-spellslearnt"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">spells learnt (hero,number)</font></b><br>
-			Used to return the id numbers of spells the hero learnt from the last battle (for heroes in the active battle party) or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that involved this hero. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learnt is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learnt:<br>
+		
+				<b><font color="yellow">spells learnt</font></b><br>
+				See <a href="#about-spellslearned">spells learned</a>
+			</tt></p>
+		<a name="about-spellslearned"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">spells learned (hero,number)</font></b><br>
+			Returns the id numbers (+1) of spells the hero learned from the last battle (for heroes in the active battle party) or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that involved this hero. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.<br clear="all">
+</div>
+			<br>
 			<pre># the following script uses strings 0, 1, 2 for its use (will be overwritten)
-plotscript, print learnt spells, who=0, begin
+plotscript, print learned spells, who=0, begin
   variable(i)
   get hero name (1, who) # construct the static part of the text in string 1
-  $1+" learnt spell "
-  for (i, 0, spells learnt (who, get count) -- 1) do (
-    get attack name (2, spells learnt (who, i))  # get the i-th spell learnt
+  $1+" learned spell "
+  for (i, 0, spells learned (who, get count) -- 1) do (
+    read attack name (2, spells learned (who, i))  # get the i-th spell learnt
     0 $= 1  # copy the static part to the displayed string
     0 $+ 2  # combine with the spell name
     show string at (0, 160, 100)
@@ -3806,7 +3820,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">map cure (attack, target, attacker)</font></b><br>
-			Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <span class="param">attack</span> is name of the attack from your HSI file in the form atk:name. The second argument, <span class="param">target</span> is the position in the party of the hero to cure (or harm). The third optional argument, <span class="param">attacker</span> is the position in the party of the hero who is using the attack. If this argument is ommitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <a href="#about-booleanconstants" class="ref">true</a> if the cure/attack succeeded, and <a href="#about-booleanconstants" class="ref">false</a> if it did nothing.
+			Uses an attack on a hero outside of battle as if you had used it from an item or cast it as a spell. In spite of the name, it works for both cure spells and damage spells. The first argument, <span class="param">attack</span> is name of the attack from your HSI file in the form atk:name. (You may also use the attack's ID number. This is the number you see in the attack editor + 1.) The second argument, <span class="param">target</span> is the position in the party of the hero to cure (or harm). The third optional argument, <span class="param">attacker</span> is the position in the party of the hero who is using the attack. If this argument is ommitted or set to -1, then the average stats of the active party will be used, just like when the attack is used from an item. The return value is <a href="#about-booleanconstants" class="ref">true</a> if the cure/attack succeeded, and <a href="#about-booleanconstants" class="ref">false</a> if it did nothing.
 			<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The <span class="param">map cure</span> command replaces the old command <span class="param">outside battle cure</span> which had a bug which required you to use <span class="param">atk:name -- 1</span><br clear="all">
 </div>
@@ -4396,7 +4410,7 @@ m := previous menu item(selected menu item)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">find menu item caption(menu handle, string ID, search after handle, visible only)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), and a string identified by <span class="param">string ID</span>, Search the menu for a menu item with a label that is the same as the string, and return a handle to the matching menu item. The optional third argument <span class="param">search after handle</span> is a menu item handle to start searching after instead of searching from the top of the menu. The optional fourth argument <span class="param">visible only</span> is a <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> value that determines whether or not to include hidden items. it defaults to <a href="#about-booleanconstants" class="ref">true</a>.<br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), and a string identified by <span class="param">string ID</span>, Search the menu for a menu item with a label that is the same as the string, and return a handle to the matching menu item. The optional third argument <span class="param">search after handle</span> is a menu item handle to start searching after instead of searching from the top of the menu. The optional fourth argument <span class="param">visible only</span> is a <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> value that determines whether or not to include hidden items. It defaults to <a href="#about-booleanconstants" class="ref">true</a>.<br>
 			<pre>variable(menu, mi)
 menu := open menu(menu:test menu)
 $0="Puppies"
@@ -8781,7 +8795,7 @@ end</pre>
 <li>
 <a href="#about-herolevelled" class="ref">hero levelled</a>, </li>
 <li>
-<a href="#about-spellslearnt" class="ref">spells learnt</a>, </li>
+<a href="#about-spellslearned" class="ref">spells learnt</a>, </li>
 <li><a href="#about-setexperience" class="ref">set experience</a></li>
 </ul>
 		</tt></p>
@@ -8798,7 +8812,7 @@ end</pre>
 <a href="#about-totalexperience" class="ref">total experience</a>, </li>
 <li>
 <a href="#about-herolevelled" class="ref">hero levelled</a>, </li>
-<li><a href="#about-spellslearnt" class="ref">spells learnt</a></li>
+<li><a href="#about-spellslearned" class="ref">spells learnt</a></li>
 </ul>
 		</tt></p>
 		<a name="about-getlevelmp"></a>
@@ -9538,7 +9552,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get count</font></b><br>
-			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, <a href="#about-npcatspot" class="ref">NPC at spot</a>, <a href="#about-sliceatpixel" class="ref">slice at pixel</a> or <a href="#childsliceatpixel" class="undef">childsliceatpixel</a> they return the number of NPCs or slices at that spot. With <a href="#about-spellslearnt" class="ref">spells learnt</a> returns the number of spells a hero learnt. With <a href="#about-findenemyinformation" class="ref">find enemy in formation</a>, returns the number of enemies, or the number of some kind of enemy in the formation.<br>
+			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, <a href="#about-npcatspot" class="ref">NPC at spot</a>, <a href="#about-sliceatpixel" class="ref">slice at pixel</a> or <a href="#childsliceatpixel" class="undef">childsliceatpixel</a> they return the number of NPCs or slices at that spot. With <a href="#about-spellslearned" class="ref">spells learnt</a> returns the number of spells a hero learnt. With <a href="#about-findenemyinformation" class="ref">find enemy in formation</a>, returns the number of enemies, or the number of some kind of enemy in the formation.<br>
 			
 			
 		</tt></p>
@@ -9719,7 +9733,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 691 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 692 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
