@@ -18,6 +18,7 @@
 #include "uiconst.bi"
 #include "loading.bi"
 #include "slices.bi"
+#include "savegame.bi"
 #include "yetmore.bi"
 #include "yetmore2.bi"
 #include "moresubs.bi"

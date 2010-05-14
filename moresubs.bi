@@ -16,8 +16,6 @@ DECLARE FUNCTION findhero (who as integer, f as integer, l as integer, d as inte
 DECLARE SUB heroswap (iAll as integer, stat() as integer)
 DECLARE FUNCTION istag (num as integer, zero as integer) as integer
 DECLARE SUB loaddoor (map as integer)
-DECLARE SUB loadgame (slot as integer, stat() as integer)
-DECLARE SUB loadglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB minimap (x as integer, y as integer)
 DECLARE FUNCTION teleporttool () as integer
 DECLARE FUNCTION movdivis (xygo as integer) as integer
@@ -30,8 +28,6 @@ DECLARE FUNCTION runscript (id as integer, index as integer, newcall as integer,
 DECLARE FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
 DECLARE SUB freescripts (mem as integer)
 DECLARE FUNCTION commandname (byval id as integer) as string
-DECLARE SUB savegame (slot as integer, stat() as integer)
-DECLARE SUB saveglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB scripterr (e as string, errorlevel as integer = 5)
 DECLARE FUNCTION settingstring (searchee as string, setting as string, result as string) as integer
 DECLARE SUB shop (id as integer, needf as integer, stat() as integer)

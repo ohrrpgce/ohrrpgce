@@ -15,6 +15,7 @@ DEFINT A-Z
 #include "uiconst.bi"
 #include "loading.bi"
 #include "hsinterpreter.bi"
+#include "savegame.bi"
 
 #include "game.bi"
 #include "yetmore.bi"
