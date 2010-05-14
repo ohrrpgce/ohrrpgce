@@ -1,10 +1,9 @@
 
 #include "reload.bi"
+#include "reloadext.bi"
 
 Using Reload
-
-DECLARE sub dumpDocument overload(doc as DocPtr)
-DECLARE sub dumpDocument(nod as NodePtr, ind as integer)
+Using Reload.Ext
 
 TYPE testPtr as function() as integer
 
@@ -12,7 +11,7 @@ dim shared pauseTime as double
 
 Randomize
 
-sub doTest(t as string, theTest as testPtr)
+sub doTest(t as string, byval theTest as testPtr)
 	static num as integer = 0
 	
 	num += 1
@@ -109,10 +108,28 @@ startTest(testStringTables)
 endTest
 #endif
 
-startTest(createDocument)
-	
+#if 0
+startTest(bitsetTest)
 	doc = CreateDocument()
+	if doc = null then fail
 	
+	dim nod as NodePtr = CreateNode(doc, "root")
+	if nod = null then fail
+	
+	SetRootNode(doc, nod)
+	
+	CreateBitset(nod)
+	
+	SerializeBin("test.rld", doc)
+	
+	FreeDocument(doc)
+	
+	doc = null
+endTest
+#endif
+
+startTest(createDocument)
+	doc = CreateDocument()
 	if doc = null then fail
 endTest
 
@@ -228,6 +245,29 @@ startTest(addString)
 	
 endTest
 
+startTest(addBitset)
+	dim nod2 as NodePtr = CreateNode(doc, "bitset")
+	
+	if nod2 = 0 then fail
+	
+	SetContent(nod2, " ") 'this is the brute force method...
+	
+	if GetBitset(nod2, 5) = 0 then fail
+	
+	CreateBitset(nod2)
+	
+	if GetBitset(nod2, 5) <> 0 then fail
+	
+	SetBitset(nod2, 10, 1)
+	
+	if GetBitset(nod2, 10) = 0 then fail
+	
+	AddChild(DocumentRoot(doc), nod2)
+	
+	if NumChildren(DocumentRoot(doc)) <> 7 then fail
+	
+endTest
+
 startTest(addEmpty)
 	dim nod2 as NodePtr = CreateNode(doc, "empty")
 	
@@ -237,7 +277,7 @@ startTest(addEmpty)
 	
 	AddChild(DocumentRoot(doc), nod2)
 	
-	if NumChildren(DocumentRoot(doc)) <> 7 then fail
+	if NumChildren(DocumentRoot(doc)) <> 8 then fail
 endTest
 
 startTest(addNested)
@@ -256,7 +296,7 @@ startTest(addNested)
 		nod = nod2
 	next
 	
-	if NumChildren(DocumentRoot(doc)) <> 8 then fail
+	if NumChildren(DocumentRoot(doc)) <> 9 then fail
 endTest
 
 startTest(helperFunctions)
@@ -349,7 +389,6 @@ end function
 startTest(compareDocuments)
 	if comparenode(DocumentRoot(doc), DocumentRoot(doc2)) then fail
 endTest
-
 
 startTest(freeDocument)
 	FreeDocument(doc)

@@ -48,6 +48,13 @@ Declare Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval nu
 Declare Sub AddItem(byval h as HashPtr, byval key as ZString ptr, byval item as any ptr)
 Declare Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer = 1)
 
+'===================================================================================================
+'= Private Heap abstraction
+'= On Windows, we can create a private heap to manage our memory. The advantage is that when the
+'= document is eventually freed, we can just nuke the private heap, rather than deallocating
+'= everything manually. This is abstracted away 
+'===================================================================================================
+
 function RHeapInit(byval doc as docptr) as integer
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 	doc->heap = HeapCreate(0, 0, 0)
@@ -262,7 +269,7 @@ sub FreeDocument(byval doc as DocPtr)
 end sub
 
 'Loads a node from a binary file, into a document
-Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
+Function LoadNode(byval f as .FILE ptr, byval doc as DocPtr) as NodePtr
 	dim ret as NodePtr
 	
 	ret = CreateNode(doc, "")
@@ -313,10 +320,9 @@ Function LoadNode(f as .FILE ptr, byval doc as DocPtr) as NodePtr
 			ret->nodeType = rltFloat
 		case rliString
 			dim mysize as integer
-			mysize = cint(ReadVLI(f))
-			'ret->str = string(mysize, " ")
-			ret->str = RAllocate(mysize + 1, doc)
-			fread(ret->str, 1, mysize, f)
+			ret->strSize = cint(ReadVLI(f))
+			ret->str = RAllocate(ret->strSize + 1, doc)
+			fread(ret->str, 1, ret->strSize, f)
 			ret->nodeType = rltString
 		case else
 			debug "unknown node type " & ret->nodeType
@@ -673,9 +679,8 @@ sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr
 		case rltString
 			ub = rliString
 			fputc(ub, f)
-			WriteVLI(f, len(*nod->str))
-			fputs(nod->str, f)
-			
+			WriteVLI(f, nod->strSize)
+			fwrite(nod->str, 1, nod->strSize, f)
 	end select
 	
 	WriteVLI(f, nod->numChildren) 'is this cast necessary?
@@ -730,6 +735,7 @@ sub SetContent (byval nod as NodePtr, dat as string)
 	end if
 	nod->nodeType = rltString
 	nod->str = RAllocate(len(dat) + 1, nod->doc)
+	nod->strSize = len(dat)
 	*nod->str = dat
 end sub
 
@@ -1025,6 +1031,56 @@ Function GetFloat(byval node as nodeptr) as Double
 			return 0.0
 	end select
 End Function
+
+'This returns a node's content in ZString form (i.e., a blob of data.) If the node
+'is not a string already, it will return null.
+Function GetZString(byval node as nodeptr) as ZString ptr
+	if node = null then return 0
+	
+	if node->nodeType <> rltString then
+		return 0
+	end if
+	
+	return node->str
+End Function
+
+Function GetZStringSize(byval node as nodeptr) as integer
+	if node = null then return 0
+	
+	if node->nodeType <> rltString then
+		return 0
+	end if
+	
+	return node->strSize
+End Function
+
+'This resizes a node's string blob thing. If the node is not a string, it will
+'return 0 and not do anything. Otherwise, it will resize it and return the new
+'memory location. If it fails, it will return 0.
+'If it succeeds, the old pointer is now invalid. Use the new pointer. (I.e., it follows
+'the same rules as realloc()!
+'Finally, the new memory block will be bigger than newsize by 1 byte. This is for the
+'null terminator, in case you're storing an actual string in here. Please try not
+'to overwrite it :)
+Function ResizeZString(byval node as nodeptr, byval newsize as integer) as ZString ptr
+	if node = null then return 0
+	
+	if node->nodeType <> rltString then
+		return 0
+	end if
+	
+	dim n as zstring ptr = node->str
+	
+	n = RReallocate(n, node->doc, newsize + 1)
+	
+	if n = 0 then return 0
+	
+	node->str = n
+	node->strSize = newsize
+	
+	return n
+	
+end function
 
 'Sets the child node of name n to a null value. If n doesn't exist, it adds it
 Function SetChildNode(byval parent as NodePtr, n as string) as NodePtr

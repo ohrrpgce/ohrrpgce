@@ -1,7 +1,7 @@
 #ifndef RELOAD_BI
 #define RELOAD_BI
 
-'OHRRPGCE COMMON - XML related functions
+'OHRRPGCE COMMON - RELOAD related functions
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
@@ -70,18 +70,19 @@ TYPE NodePtr as Node ptr
 		name as zstring ptr
 		namenum as short 'in the string table, used while loading
 		nodeType as ubyte
-		'str as string 'I'd throw this into the union too, but can't :(
 		Union 'this saves sizeof(Double) bytes per node!
 			num as LongInt
 			flo as Double
 			str as zstring ptr
 		end Union
+		strSize as integer
 		numChildren as integer
 		children as NodePtr
 		doc as DocPtr
 		parent as NodePtr
 		nextSib as NodePtr
 		prevSib as NodePtr
+		flags as integer
 	END TYPE
 #else
 	TYPE Doc
@@ -117,6 +118,9 @@ Declare sub SerializeBin overload (file as string, byval doc as DocPtr)
 Declare Function GetString(byval node as nodeptr) as string
 Declare Function GetInteger(byval node as nodeptr) as LongInt
 Declare Function GetFloat(byval node as nodeptr) as Double
+Declare Function GetZString(byval node as nodeptr) as ZString ptr
+Declare Function ResizeZString(byval node as nodeptr, byval newsize as integer) as ZString ptr
+Declare Function GetZStringSize(byval node as nodeptr) as integer
 
 Declare Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr 'NOT recursive
 Declare Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr 'recursive depth first search
