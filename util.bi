@@ -270,6 +270,7 @@ declare function zero_default(n as integer, zerocaption AS STRING="default", dis
 declare Function wordwrap(z as string, byval width as integer, sep as string = chr(10)) as string
 declare sub split(in as string, ret() as string, sep as string = chr(10))
 declare function textwidth(z as string) as integer
+declare sub flusharray (array() as integer, byval size as integer=-1, byval value as integer=0)
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
 declare function strhash overload (byval strp as zstring ptr, byval leng as integer) as unsigned integer
 declare function strhash overload (hstr as string) as unsigned integer

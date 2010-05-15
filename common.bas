@@ -22,11 +22,6 @@
 'Subs and functions only used here
 DECLARE SUB setup_sprite_sizes ()
 
-'keyv() is a global declared in common.bi
-'It is populated in keyboardsetup() which has
-'different implementations in custom and game
-REDIM keyv(55, 3)
-
 #IFDEF IS_GAME
 DECLARE SUB embedtext (text$, limit=0)
 DECLARE FUNCTION istag (num, zero) as integer
@@ -41,6 +36,14 @@ EXTERN curcmd as ScriptCommand ptr
 DECLARE FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
 #ENDIF
 
+
+''''' Global variables (anything else in common.bi missing here will be in game.bas or custom.bas)
+
+'keyv() is a global declared in common.bi
+'It is populated in keyboardsetup() which has
+'different implementations in custom and game
+REDIM keyv(55, 3)
+
 'Allocate sprite size table
 REDIM sprite_sizes(8) AS SpriteSize
 setup_sprite_sizes
@@ -53,6 +56,8 @@ DIM log_dir AS STRING
 
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir AS STRING
+
+''''' Module-local variables
 
 'a primitive system for printing messages that scroll
 TYPE ConsoleData
@@ -71,6 +76,8 @@ DIM SHARED box_border_cache(14) AS GraphicPair
 
 '.stt lump read into memory
 DIM SHARED global_strings_buffer AS STRING
+
+
 
 'fade in and out not actually used in custom
 SUB fadein ()
@@ -832,14 +839,6 @@ SUB guessdefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
  CASE ELSE
   debug "Unknown sprite type: " & fileset
  END SELECT
-END SUB
-
-SUB flusharray (array() AS INTEGER, BYVAL size AS INTEGER=-1, BYVAL value AS INTEGER=0)
- 'If size is -1, then flush the entire array
- IF size = -1 THEN size = UBOUND(array)
- FOR i AS INTEGER = 0 TO size
-  array(i) = value
- NEXT i
 END SUB
 
 FUNCTION defbinsize (id AS INTEGER) as integer

@@ -120,7 +120,6 @@ FUNCTION escape_string(s AS STRING, chars AS STRING) AS STRING
  RETURN result
 END FUNCTION
 
-
 FUNCTION exclude (s as string, x as string) as string
  DIM outf AS STRING = ""
  DIM ok AS INTEGER
@@ -276,6 +275,14 @@ function textwidth(z as string) as integer
  next
  return ret * 8
 end function
+
+SUB flusharray (array() AS INTEGER, BYVAL size AS INTEGER=-1, BYVAL value AS INTEGER=0)
+ 'If size is -1, then flush the entire array
+ IF size = -1 THEN size = UBOUND(array)
+ FOR i AS INTEGER = 0 TO size
+  array(i) = value
+ NEXT i
+END SUB
 
 SUB str_array_append (array() AS STRING, s AS STRING)
  REDIM PRESERVE array(UBOUND(array) + 1) AS STRING
