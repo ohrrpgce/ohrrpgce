@@ -40,8 +40,8 @@ DECLARE SUB reset_targetting (BYREF bat AS BattleState)
 DECLARE SUB reset_attack (BYREF bat AS BattleState)
 DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
 DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
-DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, bslot() AS BattleSprite)
-DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite, exstat() AS INTEGER)
+DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
+DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
 DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
 DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
@@ -51,7 +51,7 @@ DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
 
 REM $STATIC
-FUNCTION battle (form, fatal, exstat()) as integer
+FUNCTION battle (form, fatal) as integer
 
 REMEMBERSTATE
 
@@ -134,7 +134,7 @@ NEXT i
 
 '--init affliction registers
 '--it should be clear by the fact that BattleStats is a separate type that
-'--that bslot().stat inside battle is not the same as stat() outside battle
+'--that bslot().stat inside battle is not the same as gam.hero().stat outside battle
 FOR i = 0 TO 11
  WITH bslot(i).stat.cur
   .poison = 1000
@@ -161,7 +161,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 
-battle_loadall form, bat, bslot(), rew, vic, st(), exstat(), es(), formdata(), ctr(), lifemeter()
+battle_loadall form, bat, bslot(), rew, vic, st(), es(), formdata(), ctr(), lifemeter()
 
 copypage 2, dpage
 
@@ -217,7 +217,7 @@ DO
   END IF
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND vic.state = 0 THEN
-  generate_atkscript attack, bat, bslot(), icons(), exstat(), es()
+  generate_atkscript attack, bat, bslot(), icons(), es()
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND vic.state = 0 AND away = 0 THEN GOSUB action
  GOSUB animate
@@ -260,14 +260,14 @@ DO
  draw_battle_sprites bslot()
  GOSUB display
  IF vic.state = vicEXITDELAY THEN vic.state = vicEXIT
- IF vic.state > 0 THEN show_victory vic, rew, exstat(), bslot()
+ IF vic.state > 0 THEN show_victory vic, rew, bslot()
  IF show_info_mode = 1 THEN
   GOSUB seestuff
  ELSEIF show_info_mode = 2 THEN
   display_attack_queue bslot()
  END IF
  IF bat.death_mode = deathENEMIES AND vic.state = 0 THEN
-  IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory vic, rew, bslot(), exstat()
+  IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory vic, rew, bslot()
  END IF
  IF vic.state = vicEXIT THEN EXIT DO 'normal victory exit
  IF bat.death_mode = deathHEROES THEN
@@ -303,7 +303,7 @@ DO
  dowait
 LOOP
 donebattle:
-writestats exstat(), bslot()
+writestats bslot()
 IF fatal THEN battle = 0
 
 '--overflow checking for the battle stack
@@ -1129,7 +1129,7 @@ SUB draw_battle_sprites(bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), ctr(), lifemeter())
+SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, es(), formdata(), ctr(), lifemeter())
  DIM i AS INTEGER
 
  setpicstuf formdata(), 80, -1
@@ -1174,8 +1174,8 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
     .vis = 1
     'load hero sprites
     .sprite_num = 8
-    .sprites = frame_load(0, exstat(i, 0, 14))
-    .pal = palette16_load(exstat(i, 0, 15), 0, exstat(i, 0, 14))
+    .sprites = frame_load(0, gam.hero(i).stat.cur.pic)
+    .pal = palette16_load(gam.hero(i).stat.cur.pal, 0, gam.hero(i).stat.cur.pic)
     .frame = 0
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = .w / 2
@@ -1184,8 +1184,8 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
    
    '--copy hero's outside-battle stats to their inside-battle stats
    FOR o AS INTEGER = 0 TO 11
-    bslot(i).stat.cur.sta(o) = exstat(i, 0, o)
-    bslot(i).stat.max.sta(o) = exstat(i, 1, o)
+    bslot(i).stat.cur.sta(o) = gam.hero(i).stat.cur.sta(o)
+    bslot(i).stat.max.sta(o) = gam.hero(i).stat.max.sta(o)
    NEXT o
    
    herobattlebits bslot(i), i
@@ -1218,7 +1218,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
    FOR o AS INTEGER = i * 6 TO i * 6 + 5
     learnmask(o) = 0
    NEXT
-   exstat(i, 1, 12) = 0
+   gam.hero(i).stat.max.lev = 0
    
   ELSE
    '--blank empty hero slots
@@ -1302,7 +1302,7 @@ SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS Ba
  IF dead_heroes = 4 THEN bat.death_mode = deathHEROES
 END SUB
 
-SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite, exstat() AS INTEGER)
+SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
  DIM AS INTEGER i, numheroes
  '--Play the victory music
  IF gen(genVictMus) > 0 THEN wrappedsong gen(genVictMus) - 1
@@ -1318,14 +1318,14 @@ SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot(
  IF numheroes > 0 THEN rew.exper = rew.exper / numheroes
  '--Collect experience and apply levelups
  FOR i = 0 TO 3
-  IF readbit(gen(), genBits2, 3) <> 0 OR bslot(i).stat.cur.hp > 0 THEN giveheroexperience i, exstat(), rew.exper
-  updatestatslevelup i, exstat(), bslot(i).stat, 0
+  IF readbit(gen(), genBits2, 3) <> 0 OR bslot(i).stat.cur.hp > 0 THEN giveheroexperience i, rew.exper
+  updatestatslevelup i, bslot(i).stat, 0
  NEXT i
  '--Trigger the display of end-of-battle rewards
  vic.state = vicGOLDEXP
 END SUB
 
-SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, exstat() AS INTEGER, bslot() AS BattleSprite)
+SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
 DIM tempstr AS STRING
 DIM AS INTEGER i, o
 IF vic.box THEN centerfuz 160, 30, 280, 50, 1, dpage
@@ -1348,14 +1348,14 @@ SELECT CASE vic.state
   '--print levelups
   o = 0
   FOR i = 0 TO 3
-   IF o = 0 AND exstat(i, 1, 12) THEN centerfuz 160, 30, 280, 50, 1, dpage: vic.box = YES
-   SELECT CASE exstat(i, 1, 12)
+   IF o = 0 AND gam.hero(i).stat.max.lev THEN centerfuz 160, 30, 280, 50, 1, dpage: vic.box = YES
+   SELECT CASE gam.hero(i).stat.max.lev
     CASE 1
      tempstr = vic.level_up_caption & " " & bslot(i).name
     CASE IS > 1
-     tempstr = exstat(i, 1, 12) & " " & vic.levels_up_caption & " " & bslot(i).name
+     tempstr = gam.hero(i).stat.max.lev & " " & vic.levels_up_caption & " " & bslot(i).name
    END SELECT
-   IF exstat(i, 1, 12) > 0 THEN
+   IF gam.hero(i).stat.max.lev > 0 THEN
     edgeprint tempstr, xstring(tempstr, 160), 12 + i * 10, uilook(uiText), dpage
     o = 1
    END IF
@@ -2245,7 +2245,7 @@ SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() A
  END IF
 END SUB
 
-SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, exstat(), es())
+SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, es())
  DIM i AS INTEGER
 
  '--check for item consumption
@@ -2350,9 +2350,9 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   with bslot(24)
    .sprite_num = 2
    frame_unload @.sprites
-   .sprites = frame_load(5, exstat(bat.acting, 0, 13))
+   .sprites = frame_load(5, gam.hero(bat.acting).stat.cur.wep_picpal)
    palette16_unload @.pal
-   .pal = palette16_load(exstat(bat.acting, 1, 13), 5, exstat(bat.acting, 0, 13))
+   .pal = palette16_load(gam.hero(bat.acting).stat.max.wep_picpal, 5, gam.hero(bat.acting).stat.cur.wep_picpal)
    .frame = 0
   end with
  END IF

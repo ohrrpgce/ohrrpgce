@@ -41,7 +41,7 @@ DECLARE SUB spells_menu_control(sp AS SpellsMenuState)
 
 REM $STATIC
 
-SUB buystuff (id, shoptype, storebuf(), stat())
+SUB buystuff (id, shoptype, storebuf())
 DIM b(dimbinsize(binSTF) * 50), stuf(50) AS STRING, vmask(5), emask(5), buytype(5, 1) AS STRING, wbuf(100), walks(15), tradestf(3, 1)
 DIM is_equipable AS INTEGER
 DIM itembuf(99) AS INTEGER
@@ -75,9 +75,9 @@ eqprefix$ = readglobalstring$(99, "Equip:", 10)
 noroom$ = readglobalstring$(100, "No Room in Party", 20)
 
 FOR i = 0 TO 3
- herosprite(i) = frame_load(0, stat(i, 0, 14))
- IF herosprite(i) = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & stat(i,0,14)
- heropal(i) = palette16_load(stat(i, 0, 15), 0, stat(i, 0, 14))
+ herosprite(i) = frame_load(0, gam.hero(i).stat.cur.pic)
+ IF herosprite(i) = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & gam.hero(i).stat.cur.pic
+ heropal(i) = palette16_load(gam.hero(i).stat.cur.pal, 0, gam.hero(i).stat.cur.pic)
  IF heropal(i) = 0 THEN debug "Failed to load palette for hero (#" & i & ")"
 NEXT i
 
@@ -173,7 +173,7 @@ DO
     menusound gen(genHireSFX)
     slot = first_free_slot_in_active_party()
     IF slot >= 0 THEN
-     addhero b(pt * recordsize + 18) + 1, slot, stat(), b(pt * recordsize + 26)
+     addhero b(pt * recordsize + 18) + 1, slot, b(pt * recordsize + 26)
      acol = 4
      alert = 10
      alert$ = stuf(pt) + " " + joined$
@@ -181,7 +181,7 @@ DO
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
    'stuff changed
-   evalherotag stat()
+   evalherotag
    evalitemtag
   ELSE ' WHEN CANNOT AFFORD------------------------------------
    menusound gen(genCantBuySFX)
@@ -288,7 +288,7 @@ palette16_unload(@hirepal)
 freepage page
 freepage holdscreen
 menusound gen(genCancelSFX)
-vishero stat()
+vishero
 EXIT SUB
 
 stufmask:
@@ -387,7 +387,7 @@ IF b(pt * recordsize + 17) = 1 THEN
  dim her as herodef
  loadherodata @her, b(pt * recordsize + 18)
  loaditemdata wbuf(), her.def_weapon
- IF her.def_level < 0 THEN her.def_level = averagelev(stat())
+ IF her.def_level < 0 THEN her.def_level = averagelev
  eqinfo$ = (atlevel(her.def_level, her.lev0.hp, her.lev99.hp) + wbuf(54 + 0)) & " " & statnames(statHP)
  showhero = her.sprite
  
@@ -426,7 +426,7 @@ FOR i = 1 TO 3
 NEXT i
 END SUB
 
-FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS INTEGER
+FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER) AS INTEGER
 'true if valid, false if not valid
 'atk id can be -1 for when no attack is relevant
  IF target < 0 OR target > 40 THEN RETURN NO
@@ -434,7 +434,7 @@ FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS IN
  IF atk < -1 OR atk > gen(genMaxAttack) THEN RETURN NO
 
  DIM hp AS INTEGER
- hp = stat(target, 0, statHP)
+ hp = gam.hero(target).stat.cur.hp
 
  IF atk >= 0 THEN
   DIM attack AS AttackData
@@ -448,27 +448,29 @@ FUNCTION chkOOBtarg (target AS INTEGER, atk AS INTEGER, stat() AS INTEGER) AS IN
  RETURN YES
 END FUNCTION
 
-SUB doequip (toequip, who, where, defwep, stat())
+SUB doequip (toequip, who, where, defwep)
 
 '--load the item data for this equipment
 loaditemdata buffer(), toequip -1
 
 '--apply the stat bonuses
-FOR i = 0 TO 11
- 'stat bonuses
- stat(who, 1, i) = stat(who, 1, i) + buffer(54 + i)
- IF i > 1 THEN stat(who, 0, i) = stat(who, 1, i)
- stat(who, 0, i) = small(stat(who, 0, i), stat(who, 1, i))
- IF gen(genStatCap + i) > 0 THEN
- 	stat(who, 0, i) = small(stat(who, 0, i),gen(genStatCap + i))
- 	stat(who, 1, i) = small(stat(who, 1, i),gen(genStatCap + i))
- END IF
-NEXT i
+WITH gam.hero(who).stat
+ FOR i = 0 TO 11
+  'stat bonuses
+  .max.sta(i) += buffer(54 + i)
+  IF i > 1 THEN .cur.sta(i) = .max.sta(i)
+  .cur.sta(i) = small(.cur.sta(i), .max.sta(i))
+  IF gen(genStatCap + i) > 0 THEN
+   .cur.sta(i) = small(.cur.sta(i), gen(genStatCap + i))
+   .max.sta(i) = small(.max.sta(i), gen(genStatCap + i))
+  END IF
+ NEXT i
+END WITH
 
 '--special handling for weapons
 IF where = 0 THEN
- stat(who, 0, 13) = buffer(52) 'remember weapon pic
- stat(who, 1, 13) = buffer(53) 'remember weapon pal
+ gam.hero(who).stat.cur.wep_picpal = buffer(52) 'remember weapon pic
+ gam.hero(who).stat.max.wep_picpal = buffer(53) 'remember weapon pal
  bmenu(who, 0) = large(buffer(48), 1) 'put weapon attack in battle menu
 END IF
 
@@ -517,14 +519,14 @@ FOR i = 0 TO last_inv_slot()
 NEXT
 END SUB
 
-FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, stat() AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
+FUNCTION getOOBtarg (search_direction AS INTEGER, BYREF target AS INTEGER, atk AS INTEGER, recheck AS INTEGER=NO) AS INTEGER
  '--return true on success, false on failure
  '--atk id can be -1 for when no attack is relevant
  IF recheck THEN target -= 1 ' For a re-check, back the cursor up so if the current target is still valid, it won't change
  DIM safety AS INTEGER = 0
  DO
   target = loopvar(target, 0, 3, search_direction)
-  IF chkOOBtarg(target, atk, stat()) THEN RETURN YES
+  IF chkOOBtarg(target, atk) THEN RETURN YES
   safety += 1
   IF safety >= 4 THEN EXIT DO
  LOOP
@@ -556,7 +558,7 @@ ELSE
 END IF
 END SUB
 
-SUB oobcure (w, t, atk, spred, stat())
+SUB oobcure (w, t, atk, spred)
 '--outside-of-battle cure
 
 DIM st(13, 1)
@@ -568,8 +570,8 @@ IF w = -1 THEN
   IF hero(o) > 0 THEN
    j = j + 1
    FOR i = 0 TO 13
-    st(i, 0) = st(i, 0) + stat(o, 0, i)
-    st(i, 1) = st(i, 1) + stat(o, 1, i)
+    st(i, 0) = st(i, 0) + gam.hero(o).stat.cur.sta(i)
+    st(i, 1) = st(i, 1) + gam.hero(o).stat.max.sta(i)
    NEXT i
   END IF
  NEXT o
@@ -579,8 +581,8 @@ IF w = -1 THEN
  NEXT i
 ELSE
  FOR i = 0 TO 13
-  st(i, 0) = stat(w, 0, i)
-  st(i, 1) = stat(w, 1, i)
+  st(i, 0) = gam.hero(w).stat.cur.sta(i)
+  st(i, 1) = gam.hero(w).stat.max.sta(i)
  NEXT i
 END IF
 
@@ -606,15 +608,15 @@ IF w = -1 THEN '--use average stats
  NEXT i
 ELSE '--use actual stats
  FOR i AS INTEGER = 0 to 11
-  attacker.stat.cur.sta(i) = stat(w, 0, i)
-  attacker.stat.max.sta(i) = stat(w, 1, i)
+  attacker.stat.cur.sta(i) = gam.hero(w).stat.cur.sta(i)
+  attacker.stat.max.sta(i) = gam.hero(w).stat.max.sta(i)
  NEXT i
 END IF
 
 '--populate the target object
 FOR i AS INTEGER = 0 to 11
- target.stat.cur.sta(i) = stat(t, 0, i)
- target.stat.max.sta(i) = stat(t, 1, i)
+ target.stat.cur.sta(i) = gam.hero(t).stat.cur.sta(i)
+ target.stat.max.sta(i) = gam.hero(t).stat.max.sta(i)
 NEXT i
 herobattlebits target, t
 
@@ -625,14 +627,14 @@ inflict(0, 1, attacker, target, attack, spred)
 '--copy back stats that need copying back
 '--first copy HP and MP normally
 FOR i AS INTEGER = 0 to 1
- stat(t, 0, i) = target.stat.cur.sta(i)
- stat(t, 1, i) = target.stat.max.sta(i)
+ gam.hero(t).stat.cur.sta(i) = target.stat.cur.sta(i)
+ gam.hero(t).stat.max.sta(i) = target.stat.max.sta(i)
 NEXT i
 '--Then update just the max for the other stats
 '--this kinda sucks but it is consistent with the way outside of battle cure has always worked
 FOR i AS INTEGER = 2 to 11
- stat(t, 1, i) = target.stat.cur.sta(i)
- stat(t, 0, i) = stat(t, 1, i)
+ gam.hero(t).stat.max.sta(i) = target.stat.cur.sta(i)
+ gam.hero(t).stat.cur.sta(i) = gam.hero(t).stat.max.sta(i)
 NEXT i
 
 'Sound effect
@@ -972,7 +974,7 @@ RETRACE
 
 END FUNCTION
 
-SUB sellstuff (id, storebuf(), stat())
+SUB sellstuff (id, storebuf())
 DIM b(dimbinsize(binSTF) * 50), permask(15), price(200)
 recordsize = curbinsize(binSTF) / 2 ' get size in INTs
 
@@ -1162,7 +1164,7 @@ RETRACE
 
 END SUB
 
-SUB status (pt, stat())
+SUB status (pt)
 DIM mtype(5), hbits(3, 4), thishbits(4), elemtype(2) AS STRING, info(25) AS STRING
 DIM her AS HeroDef
 DIM portrait AS GraphicPair
@@ -1221,7 +1223,7 @@ DO
  END IF
 
  edgeprint names(pt), 142 - LEN(names(pt)) * 4, 20, uilook(uiText), page
- edgeprint level_caption & " " & stat(pt, 0, 12), 142 - LEN(level_caption & " " & stat(pt, 0, 12)) * 4, 30, uilook(uiText), page
+ edgeprint level_caption & " " & gam.hero(pt).stat.cur.lev, 142 - LEN(level_caption & " " & gam.hero(pt).stat.cur.lev) * 4, 30, uilook(uiText), page
  temp$ = (exlev(pt, 1) - exlev(pt, 0)) & " " & exper_caption & " " & readglobalstring$(47, "for next", 10) & " " & level_caption
  edgeprint temp$, 142 - LEN(temp$) * 4, 40, uilook(uiText), page
 
@@ -1230,20 +1232,20 @@ DO
    '--show stats
    FOR i = 0 TO 9
     edgeprint statnames(i + 2), 20, 62 + i * 10, uilook(uiText), page
-    temp$ = STR$(stat(pt, 0, i + 2))
+    temp$ = STR(gam.hero(pt).stat.cur.sta(i + 2))
     edgeprint temp$, 148 - LEN(temp$) * 8, 62 + i * 10, uilook(uiText), page
    NEXT i
 
    'current/max HP
    edgeprint statnames(statHP), 236 - LEN(statnames(statHP)) * 4, 65, uilook(uiText), page
-   temp$ = STR$(ABS(stat(pt, 0, statHP))) + "/" + STR$(ABS(stat(pt, 1, statHP)))
+   temp$ = STR$(ABS(gam.hero(pt).stat.cur.hp)) + "/" + STR$(ABS(gam.hero(pt).stat.max.hp))
    edgeprint temp$, 236 - LEN(temp$) * 4, 75, uilook(uiText), page
 
    '--MP and level MP
    FOR i = 0 TO 5
     IF mtype(i) = 0 THEN
      edgeprint statnames(statMP), 236 - LEN(statnames(statMP)) * 4, 95, uilook(uiText), page
-     temp$ = STR$(ABS(stat(pt, 0, statMP))) + "/" + STR$(ABS(stat(pt, 1, statMP)))
+     temp$ = STR$(ABS(gam.hero(pt).stat.cur.mp)) + "/" + STR$(ABS(gam.hero(pt).stat.max.mp))
      edgeprint temp$, 236 - LEN(temp$) * 4, 105, uilook(uiText), page
     END IF
     IF mtype(i) = 1 THEN
@@ -1371,7 +1373,7 @@ trylearn = result
 
 END FUNCTION
 
-SUB unequip (who, where, defwep, stat(), resetdw)
+SUB unequip (who, where, defwep, resetdw)
 
 '--exit if nothing is equiped
 IF eqstuf(who, where) = 0 THEN EXIT SUB
@@ -1380,13 +1382,15 @@ IF eqstuf(who, where) = 0 THEN EXIT SUB
 loaditemdata buffer(), eqstuf(who, where) - 1
 
 '--remove stat bonuses
-FOR i = 0 TO 11
- stat(who, 1, i) = stat(who, 1, i) - buffer(54 + i)
- '--for non HP non MP stats, reset current to max
- IF i > 1 THEN stat(who, 0, i) = stat(who, 1, i)
- '--prevent negatives
- stat(who, 0, i) = small(stat(who, 0, i), stat(who, 1, i))
-NEXT i
+WITH gam.hero(who).stat
+ FOR i = 0 TO 11
+  .max.sta(i) = .max.sta(i) - buffer(54 + i)
+  '--for non HP non MP stats, reset current to max
+  IF i > 1 THEN .cur.sta(i) = .max.sta(i)
+  '--prevent negatives
+  .cur.sta(i) = small(.cur.sta(i), .max.sta(i))
+ NEXT i
+END WITH
 
 '--return item to inventory (if not the default weapon)
 IF where = 0 AND eqstuf(who, where) = defwep THEN
@@ -1399,7 +1403,7 @@ eqstuf(who, where) = 0
 
 IF where = 0 AND resetdw THEN
  '--restore default weapon
- doequip defwep, who, where, defwep, stat()
+ doequip defwep, who, where, defwep
 END IF
 
 END SUB
@@ -1431,24 +1435,24 @@ FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
  RETURN n
 END FUNCTION
 
-FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, stat() AS INTEGER, spread AS INTEGER) AS INTEGER
+FUNCTION outside_battle_cure (atk AS INTEGER, target AS INTEGER, attacker AS INTEGER, spread AS INTEGER) AS INTEGER
  DIM i AS INTEGER
  DIM didcure AS INTEGER = NO
  IF spread = 0 THEN
-  IF chkOOBtarg(target, atk, stat()) THEN oobcure attacker, target, atk, spread, stat() : didcure = YES
+  IF chkOOBtarg(target, atk) THEN oobcure attacker, target, atk, spread : didcure = YES
  ELSE
   FOR i = 0 TO 3
-   IF chkOOBtarg(i, atk, stat()) THEN oobcure attacker, i, atk, spread, stat() : didcure = YES
+   IF chkOOBtarg(i, atk) THEN oobcure attacker, i, atk, spread : didcure = YES
   NEXT i
  END IF
  IF didcure THEN
   're-check validify of target
-  getOOBtarg 1, target, atk, stat(), YES
+  getOOBtarg 1, target, atk, YES
  END IF
  RETURN didcure
 END FUNCTION
 
-SUB equip (who, stat())
+SUB equip (who)
 
 '--dim stuff
 DIM m(4) AS STRING, menu(6) AS STRING
@@ -1537,7 +1541,7 @@ DO
     MenuSound gen(genCancelSFX)
     '--unequip all
     FOR i AS INTEGER = 0 TO 4
-     unequip st.who, i, st.default_weapon, stat(), 1
+     unequip st.who, i, st.default_weapon, 1
     NEXT i
     equip_menu_setup st, menu()
     'UPDATE ITEM POSESSION BITSETS
@@ -1567,7 +1571,7 @@ DO
   IF carray(ccUse) > 1 THEN
    IF st.eq_cursor.pt = st.eq(st.slot).count THEN
     '--unequip
-    unequip st.who, st.slot, st.default_weapon, stat(), 1
+    unequip st.who, st.slot, st.default_weapon, 1
     equip_menu_back_to_menu st, menu()
     MenuSound gen(genCancelSFX)
    ELSE
@@ -1594,9 +1598,9 @@ DO
   IF st.stat_bonus(i) < 0 THEN col = uilook(uiDisabledItem)
   IF st.stat_bonus(i) > 0 THEN col = uilook(uiSelectedItem + tog)
   IF gen(genStatCap + i) > 0 THEN
-   stat_caption = STR$(small(stat(st.who, 1, i) + st.stat_bonus(i), gen(genStatCap + i)))
+   stat_caption = STR$(small(gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i), gen(genStatCap + i)))
   ELSE
-   stat_caption = STR$(stat(st.who, 1, i) + st.stat_bonus(i))
+   stat_caption = STR$(gam.hero(st.who).stat.max.sta(i) + st.stat_bonus(i))
   END IF
   edgeprint stat_caption, 148 - LEN(stat_caption) * 8, 42 + i * 10, col, page
  NEXT i
@@ -1654,7 +1658,7 @@ evalitemtag
 END SUB
 
 SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
- st.default_weapon = stat(st.who, 0, 16)
+ st.default_weapon = gam.hero(st.who).stat.cur.def_wep
  st.default_weapon_name = rpad(readitemname(st.default_weapon - 1), " ", 11)
  IF LEN(TRIM(st.default_weapon_name)) = 0 THEN
   st.default_weapon_name = st.unequip_caption
@@ -1699,8 +1703,8 @@ SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
 END SUB
 
 SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYREF st AS EquipMenuState, menu$())
- unequip st.who, st.slot, st.default_weapon, stat(), 0
- doequip item, st.who, st.slot, st.default_weapon, stat()
+ unequip st.who, st.slot, st.default_weapon, 0
+ doequip item, st.who, st.slot, st.default_weapon
  equip_menu_back_to_menu st, menu$()
 END SUB
 
@@ -1754,7 +1758,7 @@ SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 
 END SUB
 
-FUNCTION items_menu (stat() as integer) as integer
+FUNCTION items_menu () as integer
  DIM istate AS ItemsMenuState
  WITH istate
   .trigger_box = -1
@@ -2021,10 +2025,10 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
  END IF
 
  '--make sure the default target is okay
- IF chkOOBtarg(targ, attack_id, stat()) = NO THEN
+ IF chkOOBtarg(targ, attack_id) = NO THEN
   targ = -1
   FOR i AS INTEGER = 0 TO 3
-   IF chkOOBtarg(i, attack_id, stat()) THEN
+   IF chkOOBtarg(i, attack_id) THEN
     targ = i
     EXIT FOR
    END IF
@@ -2036,7 +2040,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
    '--if a spread target was previously recorded, update it
    spread = 0
    FOR i AS INTEGER = 0 TO 3
-    IF chkOOBtarg(i, attack_id, stat()) THEN spread += 1
+    IF chkOOBtarg(i, attack_id) THEN spread += 1
    NEXT i
   END IF
  ELSE
@@ -2046,7 +2050,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
  IF must_spread THEN
   spread = 0
   FOR i AS INTEGER = 0 TO 3
-   IF chkOOBtarg(i, attack_id, stat()) THEN spread += 1
+   IF chkOOBtarg(i, attack_id) THEN spread += 1
   NEXT i
  END IF
 
@@ -2066,11 +2070,11 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
   END IF
   IF spread = 0 THEN
    IF carray(ccUp) > 1 THEN
-    getOOBtarg -1, targ, attack_id, stat()
+    getOOBtarg -1, targ, attack_id
     MenuSound gen(genCursorSFX)
    END IF
    IF carray(ccDown) > 1 THEN
-    getOOBtarg 1, targ, attack_id, stat()
+    getOOBtarg 1, targ, attack_id
     MenuSound gen(genCursorSFX)
    END IF
   END IF
@@ -2080,7 +2084,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
     MenuSound gen(genCursorSFX)
     IF spread = 0 THEN
      FOR i AS INTEGER = 0 TO 3
-      IF chkOOBtarg(i, attack_id, stat()) THEN spread += 1
+      IF chkOOBtarg(i, attack_id) THEN spread += 1
      NEXT i
     ELSE
      spread = 0
@@ -2114,7 +2118,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
    
    '--do attack outside of battle (cure)
    IF attack_id >= 0 THEN
-    IF outside_battle_cure(attack_id, targ, -1, stat(), spread) THEN
+    IF outside_battle_cure(attack_id, targ, -1, spread) THEN
      menu_attack_targ_picker = YES
     END IF
    END IF
@@ -2139,9 +2143,9 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
     IF i = targ THEN col = uilook(uiSelectedItem + tog)
     IF attack_id >= 0 THEN
      IF atk.targ_stat = 0 or atk.targ_stat = 1 THEN
-      caption = STR(stat(i, 0, atk.targ_stat)) & "/" & STR(stat(i, 1, atk.targ_stat)) & " " & statnames(atk.targ_stat)
+      caption = STR(gam.hero(i).stat.cur.sta(atk.targ_stat)) & "/" & STR(gam.hero(i).stat.max.sta(atk.targ_stat)) & " " & statnames(atk.targ_stat)
      ELSE
-      caption = STR(stat(i, 0, atk.targ_stat)) & " " & statnames(atk.targ_stat)
+      caption = STR(gam.hero(i).stat.cur.sta(atk.targ_stat)) & " " & statnames(atk.targ_stat)
      END IF
      edgeprint caption, 119 + x_offset, 16 + i * 20, col, page
     ELSEIF learn_id >= 0 THEN
@@ -2293,23 +2297,23 @@ SUB spells_menu_refresh_list(sp AS SpellsMenuState)
      .targt = atk.targ_set
      .tstat = atk.targ_stat
     END IF
-    cost = focuscost(atk.mp_cost, stat(sp.hero, 0, statFocus))
+    cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.foc)
     
     'FIXME: should use the same cost-checking sub that the battle spell menu uses
-    IF sp.lists(sp.listnum).magic_type = 0 AND stat(sp.hero, 0, statMP) < cost THEN
+    IF sp.lists(sp.listnum).magic_type = 0 AND gam.hero(sp.hero).stat.cur.mp < cost THEN
      .can_use = 0
     END IF
     IF sp.lists(sp.listnum).magic_type = 1 AND lmp(sp.hero, INT(i / 3)) = 0 THEN
      .can_use = 0
     END IF
-    IF stat(sp.hero, 0, statHP) = 0 THEN
+    IF gam.hero(sp.hero).stat.cur.hp = 0 THEN
      .can_use = 0
     END IF
     
     .name = atk.name
     .desc = atk.description
     IF sp.lists(sp.listnum).magic_type = 0 THEN
-     .cost = cost & " " & statnames(statMP) & " " & stat(sp.hero, 0, statMP) & "/" & stat(sp.hero, 1, statMP)
+     .cost = cost & " " & statnames(statMP) & " " & gam.hero(sp.hero).stat.cur.mp & "/" & gam.hero(sp.hero).stat.max.mp
     END IF
     IF sp.lists(sp.listnum).magic_type = 1 THEN
      .cost = readglobalstring(160, "Level MP", 20) & " " & (INT(i / 3) + 1) & ":  " & lmp(sp.hero, INT(i / 3))
@@ -2457,8 +2461,8 @@ SUB spells_menu_control(sp AS SpellsMenuState)
      'FIXME: outside-battle and inside-battle attack cost consumption should be unified
      '--deduct MP
      DIM cost AS INTEGER
-     cost = focuscost(atk.mp_cost, stat(sp.hero, 0, statFocus))
-     stat(sp.hero, 0, statMP) = small(large(stat(sp.hero, 0, statMP) - cost, 0), stat(sp.hero, 1, statMP))
+     cost = focuscost(atk.mp_cost, gam.hero(sp.hero).stat.cur.foc)
+     gam.hero(sp.hero).stat.cur.mp = small(large(gam.hero(sp.hero).stat.cur.mp - cost, 0), gam.hero(sp.hero).stat.max.mp)
      IF sp.lists(sp.listnum).magic_type = 1 THEN
       '--deduct LMP
       lmp(sp.hero, INT(sp.cursor / 3)) = lmp(sp.hero, INT(sp.cursor / 3)) - 1
@@ -2476,7 +2480,6 @@ SUB spells_menu_control(sp AS SpellsMenuState)
 END SUB
 
 SUB spells_menu (who AS INTEGER)
- 'stat() is global
 
  DIM sp AS SpellsMenuState
  sp.hero = who

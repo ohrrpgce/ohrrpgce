@@ -34,7 +34,7 @@ declare sub remove_menu (slot as integer)
 declare sub bring_menu_forward (slot as integer)
 declare function menus_allow_gameplay () as integer
 declare function menus_allow_player () as integer
-declare sub player_menu_keys (stat(), catx(), caty())
+declare sub player_menu_keys (catx(), caty())
 declare sub check_menu_tags ()
 declare function game_usemenu (state as menustate) as integer
 declare function find_menu_id (id as integer) as integer

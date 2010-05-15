@@ -8,7 +8,7 @@ DECLARE SUB drawnpcs
 DECLARE SUB forcedismount (catd() as integer)
 DECLARE FUNCTION framewalkabout (x as integer, y as integer, framex as integer, framey as integer, mapwide as integer, maphigh as integer, wrapmode as integer) as integer
 DECLARE SUB initgamedefaults
-DECLARE SUB innRestore (stat() as integer)
+DECLARE SUB innRestore ()
 DECLARE SUB setmapxy
 DECLARE SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
 DECLARE SUB showplotstrings
@@ -16,13 +16,13 @@ DECLARE FUNCTION strgrabber (s as string, maxl as integer) AS INTEGER
 DECLARE SUB makebackups
 DECLARE SUB correctbackdrop
 DECLARE SUB cleanuptemp
-DECLARE FUNCTION checkfordeath (stat() as integer) as integer
+DECLARE FUNCTION checkfordeath () as integer
 DECLARE SUB aheadxy (x as integer, y as integer, direction as integer, distance as integer)
 DECLARE SUB exitprogram (needfade as integer)
 DECLARE SUB keyboardsetup
 DECLARE SUB verquit
 DECLARE FUNCTION titlescr as integer
-DECLARE SUB reloadnpc (stat() as integer)
+DECLARE SUB reloadnpc ()
 DECLARE FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
 DECLARE SUB savemapstate_gmap(mapnum as integer, prefix as string)
 DECLARE SUB savemapstate_npcl(mapnum as integer, prefix as string)

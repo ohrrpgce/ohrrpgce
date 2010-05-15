@@ -1,13 +1,13 @@
 #ifndef YETMORE_BI
 #define YETMORE_BI
 
-DECLARE SUB add_rem_swap_lock_hero (box AS TextBox, stat() as integer)
+DECLARE SUB add_rem_swap_lock_hero (box AS TextBox)
 DECLARE FUNCTION checksaveslot (slot as integer) as integer
 DECLARE SUB erasesaveslot (slot as integer)
 DECLARE SUB doihavebits
 DECLARE SUB embedtext (text as string, limit as integer=0)
-DECLARE SUB scriptstat (id as integer, stat() as integer)
-DECLARE SUB forceparty (stat() as integer)
+DECLARE SUB scriptstat (id as integer)
+DECLARE SUB forceparty ()
 DECLARE FUNCTION gethighbyte (n as integer) as integer
 DECLARE FUNCTION getnpcref (seekid as integer, offset as integer) as integer
 DECLARE SUB greyscalepal
@@ -29,7 +29,7 @@ DECLARE SUB templockexplain
 DECLARE SUB tweakpalette
 DECLARE FUNCTION vehiclestuff () as integer
 DECLARE FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
-DECLARE SUB vishero (stat() as integer)
+DECLARE SUB vishero ()
 DECLARE SUB wrapaheadxy (x as integer, y as integer, direction as integer, distance as integer, unitsize as integer)
 DECLARE SUB cropposition (BYREF x as integer, BYREF y as integer, unitsize as integer)
 DECLARE FUNCTION wrappass (x as integer, y as integer, xgo as integer, ygo as integer, isveh as integer) as integer

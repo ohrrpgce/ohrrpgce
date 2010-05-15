@@ -80,7 +80,6 @@ DIM txt AS TextBoxState
 DIM gen(360)
 DIM tag(127)
 
-DIM stat(40, 1, 16)
 DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40), herobits(59, 3), itembits(maxMaxItems, 3), nativehbits(40, 4)
 DIM eqstuf(40, 4)
 DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3)
@@ -410,7 +409,7 @@ IF temp >= 0 THEN
 ELSE
  clearpage 0
  clearpage 1
- addhero 1, 0, stat()
+ addhero 1, 0
  IF gen(genNewGameScript) > 0 THEN
   runscript(gen(genNewGameScript), nowscript + 1, -1, "newgame", plottrigger)
  END IF
@@ -418,7 +417,7 @@ ELSE
 END IF
 
 doihavebits
-evalherotag stat()
+evalherotag
 needf = 1
 force_npc_check = YES
 
@@ -447,7 +446,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- player_menu_keys stat(), catx(), caty()
+ player_menu_keys catx(), caty()
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
  IF gmap(15) THEN onkeyscript gmap(15)
@@ -509,7 +508,7 @@ DO
   '--debugging keys
   'DEBUG debug "evaluate debugging keys"
   IF keyval(scF2) > 1 AND txt.showing = NO THEN
-   savegame 32, stat()
+   savegame 32
   END IF
   IF keyval(scF3) > 1 AND txt.showing = NO THEN
    wantloadgame = 33
@@ -583,7 +582,7 @@ DO
   'DEBUG debug "loading game slot " & (wantloadgame - 1)
   temp = wantloadgame - 1
   wantloadgame = 0
-  resetgame stat(), scriptout$
+  resetgame scriptout$
   initgamedefaults
   stopsong
   fadeout 0, 0, 0
@@ -603,7 +602,7 @@ DO
     IF batform >= 0 THEN 'and if the randomly selected battle is valid
      'trigger a normal random battle
      fatal = 0
-     gam.wonbattle = battle(batform, fatal, stat())
+     gam.wonbattle = battle(batform, fatal)
      dotimerafterbattle
      prepare_map YES
      needf = 2
@@ -637,7 +636,7 @@ DO
  END IF' end menus_allow_gameplay
  GOSUB displayall
  IF fatal = 1 OR abortg > 0 OR resetg THEN
-  resetgame stat(), scriptout$
+  resetgame scriptout$
   IF resetg THEN EXIT DO  'skip to new game
   'if skipping title and loadmenu, quit
   IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
@@ -689,7 +688,7 @@ RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 
 doloadgame:
-loadgame temp, stat()
+loadgame temp
 init_default_text_colors
 IF gen(genLoadGameScript) > 0 THEN
  rsr = runscript(gen(genLoadGameScript), nowscript + 1, -1, "loadgame", plottrigger)
@@ -864,13 +863,13 @@ FOR whoi = 0 TO 3
      WHILE hero(o) = 0 AND o < 4: o = o + 1: WEND
     NEXT i
     IF o < 4 THEN
-     stat(o, 0, statHP) = large(stat(o, 0, statHP) - gmap(9), 0)
+     gam.hero(o).stat.cur.hp = large(gam.hero(o).stat.cur.hp - gmap(9), 0)
      IF gmap(10) THEN
       harmtileflash = YES
      END IF
     END IF
     '--check for death
-    fatal = checkfordeath(stat())
+    fatal = checkfordeath
    END IF
   END IF
  END IF
@@ -1197,7 +1196,7 @@ IF wantdoor > 0 THEN
 END IF
 IF wantbattle > 0 THEN
  fatal = 0
- gam.wonbattle = battle(wantbattle - 1, fatal, stat())
+ gam.wonbattle = battle(wantbattle - 1, fatal)
  wantbattle = 0
  prepare_map YES
  gam.random_battle_countdown = range(100, 60)
@@ -1244,15 +1243,15 @@ WITH scrat(nowscript)
    CASE 23'--unequip
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
      i = retvals(0)
-     unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 1
+     unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).stat.cur.def_wep, 1
     END IF
     evalitemtag
    CASE 24'--force equip
     IF valid_hero_party(retvals(0)) THEN
      i = retvals(0)
      IF valid_item(retvals(2)) THEN
-      unequip i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat(), 0
-      doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), stat(i, 0, 16), stat()
+      unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).stat.cur.def_wep, 0
+      doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), gam.hero(i).stat.cur.def_wep
      END IF
     END IF
     evalitemtag
@@ -1273,12 +1272,12 @@ WITH scrat(nowscript)
     END IF
    CASE 37'--use shop
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxShop) THEN
-     shop retvals(0), needf, stat()
-     reloadnpc stat()
+     shop retvals(0), needf
+     reloadnpc
     END IF
    CASE 55'--get default weapon
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-     scriptret = stat(retvals(0), 0, 16) - 1
+     scriptret = gam.hero(retvals(0)).stat.cur.def_wep - 1
     ELSE
      scriptret = 0
     END IF
@@ -1288,19 +1287,19 @@ WITH scrat(nowscript)
       '--identify new default weapon
       DIM AS INTEGER newdfw = retvals(1) + 1
       '--remember old default weapon
-      DIM AS INTEGER olddfw = stat(retvals(0), 0, 16)
+      DIM AS INTEGER olddfw = gam.hero(retvals(0)).stat.cur.def_wep
       '--remeber currently equipped weapon
       DIM AS INTEGER cureqw = eqstuf(retvals(0), 0)
       '--change default
-      stat(retvals(0), 0, 16) = newdfw
+      gam.hero(retvals(0)).stat.cur.def_wep = newdfw
       '--blank weapon
-      unequip retvals(0), 0, olddfw, stat(), 0
+      unequip retvals(0), 0, olddfw, 0
       IF cureqw <> olddfw THEN
        '--if previously using a weapon, re-equip old weapon
-       doequip cureqw, retvals(0), 0, newdfw, stat()
+       doequip cureqw, retvals(0), 0, newdfw
       ELSE
        '--otherwize equip new default weapon
-       doequip newdfw, retvals(0), 0, newdfw, stat()
+       doequip newdfw, retvals(0), 0, newdfw
       END IF
      END IF
     END IF
@@ -1404,16 +1403,16 @@ WITH scrat(nowscript)
    CASE 151'--show mini map
     minimap catx(0), caty(0)
    CASE 153'--items menu
-    wantbox = items_menu(stat())
+    wantbox = items_menu
    CASE 155, 170'--save menu
     'ID 155 is a backcompat hack
     scriptret = picksave(0) + 1
     IF scriptret > 0 AND (retvals(0) OR cmdid = 155) THEN
-     savegame scriptret - 1, stat()
+     savegame scriptret - 1
     END IF
    CASE 166'--save in slot
     IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-     savegame retvals(0) - 1, stat()
+     savegame retvals(0) - 1
     END IF
    CASE 167'--last save slot
     scriptret = lastsaveslot
@@ -1691,7 +1690,7 @@ WITH scrat(nowscript)
     IF bound_arg(retvals(0), 0, gen(genMaxAttack), "attack ID") THEN
      IF valid_hero_party(retvals(1)) THEN
       IF valid_hero_party(retvals(2), -1) THEN
-       scriptret = ABS(outside_battle_cure(retvals(0), retvals(1), retvals(2), stat(), 0))
+       scriptret = ABS(outside_battle_cure(retvals(0), retvals(1), retvals(2), 0))
       END IF
      END IF
     END IF
@@ -1714,7 +1713,7 @@ WITH scrat(nowscript)
     scriptnpc cmdid
     scriptmisc cmdid
     scriptadvanced cmdid
-    scriptstat cmdid, stat()
+    scriptstat cmdid
     '---------
   END SELECT
 END WITH
@@ -1787,7 +1786,7 @@ SUB loadmap_npcd(mapnum)
  'Evaluate whether NPCs should appear or disappear based on tags
  npcplot
  'load NPC graphics
- reloadnpc stat()
+ reloadnpc
 END SUB
 
 SUB loadmap_tilemap(mapnum)
@@ -2025,7 +2024,7 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
-SUB player_menu_keys (stat(), catx(), caty())
+SUB player_menu_keys (catx(), caty())
  DIM i AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
@@ -2041,9 +2040,9 @@ SUB player_menu_keys (stat(), catx(), caty())
    setkeys ' Forget keypress that closed the menu
    remove_menu topmenu
    menusound gen(genCancelSFX)
-   fatal = checkfordeath(stat())
+   fatal = checkfordeath
    'update any change tags
-   evalherotag stat()
+   evalherotag
    evalitemtag
    npcplot
    EXIT SUB
@@ -2091,7 +2090,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
     CASE 1 ' Special
      SELECT CASE .sub_t
       CASE 0 ' item
-       menu_text_box = items_menu(stat())
+       menu_text_box = items_menu
        IF menu_text_box > 0 THEN
         remove_menu topmenu
         EXIT DO
@@ -2101,21 +2100,21 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
        IF slot >= 0 THEN spells_menu slot : updatetags = YES
       CASE 2 ' status
        slot = onwho(readglobalstring$(104, "Whose Status?", 20), 0)
-       IF slot >= 0 THEN status slot, stat() : updatetags = YES
+       IF slot >= 0 THEN status slot : updatetags = YES
       CASE 3 ' equip
        slot = onwho(readglobalstring$(108, "Equip Whom?", 20), 0)
-       IF slot >= 0 THEN equip slot, stat() : updatetags = YES
+       IF slot >= 0 THEN equip slot : updatetags = YES
       CASE 4 ' order
-       heroswap 0, stat() : updatetags = YES
+       heroswap 0 : updatetags = YES
       CASE 5 ' team
-       heroswap 1, stat() : updatetags = YES
+       heroswap 1 : updatetags = YES
       CASE 6 ' order/team
-       heroswap readbit(gen(), 101, 5), stat() : updatetags = YES
+       heroswap readbit(gen(), 101, 5) : updatetags = YES
       CASE 7,12 ' map
        minimap catx(0), caty(0)
       CASE 8,13 ' save
        slot = picksave(0)
-       IF slot >= 0 THEN savegame slot, stat()
+       IF slot >= 0 THEN savegame slot
       CASE 9 ' load
        slot = picksave(1)
        IF slot >= 0 THEN
@@ -2155,7 +2154,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
   EXIT DO
  LOOP
  IF updatetags THEN
-  evalherotag stat()
+  evalherotag
   evalitemtag
   npcplot
  END IF
@@ -2452,7 +2451,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  txt.sayer = -1
 
  'Why are these here? Seems like superstition
- evalherotag stat()
+ evalherotag
  evalitemtag
  DIM rsr AS INTEGER
  IF afterbat = NO THEN
@@ -2582,7 +2581,7 @@ SUB advance_text_box ()
  '---SPAWN BATTLE--------
  IF istag(txt.box.battle_tag, 0) THEN
   fatal = 0
-  gam.wonbattle = battle(txt.box.battle, fatal, stat())
+  gam.wonbattle = battle(txt.box.battle, fatal)
   prepare_map YES
   gam.random_battle_countdown = range(100, 60)
   needf = 1
@@ -2595,26 +2594,26 @@ SUB advance_text_box ()
  '---SHOP/INN/SAVE/ETC------------
  IF istag(txt.box.shop_tag, 0) THEN
   IF txt.box.shop > 0 THEN
-   shop txt.box.shop - 1, needf, stat()
-   reloadnpc stat()
+   shop txt.box.shop - 1, needf
+   reloadnpc
   END IF
   DIM inn AS INTEGER = 0
   IF txt.box.shop < 0 THEN
    DIM holdscreen = allocatepage
    '--Preserve background for display beneath the top-level shop menu
    copypage vpage, holdscreen
-   IF useinn(inn, -txt.box.shop, needf, stat(), holdscreen) THEN
+   IF useinn(inn, -txt.box.shop, needf, holdscreen) THEN
     fadeout 0, 0, 80
     needf = 1
    END IF
    freepage holdscreen
   END IF
   IF txt.box.shop <= 0 AND inn = 0 THEN
-   innRestore stat()
+   innRestore
   END IF
  END IF
  '---ADD/REMOVE/SWAP/LOCK HERO-----------------
- IF istag(txt.box.hero_tag, 0) THEN add_rem_swap_lock_hero txt.box, stat()
+ IF istag(txt.box.hero_tag, 0) THEN add_rem_swap_lock_hero txt.box
  '---FORCE DOOR------
  IF istag(txt.box.door_tag, 0) THEN
   opendoor txt.box.door + 1
@@ -2637,7 +2636,7 @@ SUB advance_text_box ()
  END IF
  evalitemtag
  '---DONE EVALUATING CONDITIONALS--------
- vishero stat()
+ vishero
  npcplot
  IF txt.sayer >= 0 AND txt.old_dir <> -1 THEN
   IF npc(txt.sayer).id > 0 THEN
@@ -2980,7 +2979,7 @@ SUB usething(BYVAL auto AS INTEGER, BYVAL ux AS INTEGER, BYVAL uy AS INTEGER)
    CASE IS > 0
     loadsay npcs(npc(txt.sayer).id - 1).textbox
   END SELECT
-  evalherotag stat()
+  evalherotag
   evalitemtag
   IF txt.id = -1 THEN
    npcplot

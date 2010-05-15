@@ -16,6 +16,41 @@ TYPE MapModeState
   doorlinks(199) AS doorlink
 END TYPE
 
+UNION HeroStatsSingle
+  'See also BattleStatsSingle '-- the two of these can probably be unified eventually
+  TYPE
+    hp AS INTEGER   '0
+    mp AS INTEGER   '1
+    str AS INTEGER  '2
+    acc AS INTEGER  '3
+    def AS INTEGER  '4
+    dog AS INTEGER  '5
+    mag AS INTEGER  '6
+    wil AS INTEGER  '7
+    spd AS INTEGER  '8
+    ctr AS INTEGER  '9
+    foc AS INTEGER  '10
+    hits AS INTEGER '11
+    '--not-stats... 'FIXME: move these to HeroState
+    lev AS INTEGER '.cur is current level, .max is level-gained counter
+    wep_picpal AS INTEGER '.cur is picture .max is palette
+    pic AS INTEGER '.cur is battle picture, .max is walkabout pic
+    pal AS INTEGER '.cur is battle palette, .max is walkabout pal
+    def_wep AS INTEGER 'only used in .cur
+  END TYPE
+  sta(16) AS INTEGER
+End UNION
+
+TYPE HeroStats
+  cur AS HeroStatsSingle
+  max AS HeroStatsSingle
+END TYPE
+
+TYPE HeroState
+ '--currently just contains stats, but will eventually contain all hero state
+ stat AS HeroStats
+END TYPE
+
 TYPE GameState
   map AS MapModeState
   wonbattle AS INTEGER 'Indicates the status of the last battle, 1 for victory 0 for running away
@@ -25,6 +60,7 @@ TYPE GameState
   foe_freq(254) AS INTEGER 'A cache of the fight frequency for each formation set
   walk_through_walls AS INTEGER 'used for F11 cheat mode
   mouse_enabled AS INTEGER 'initmouse called
+  hero(40) AS HeroState
 END TYPE
 
 TYPE TextBoxState

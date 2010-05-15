@@ -27,7 +27,7 @@ declare function getheropos(h as integer,f as integer,isy as integer) as integer
 declare sub anim_hero (who as integer, attack as AttackData, bslot() AS BattleSprite)
 declare function inflict (w as integer, t as integer, BYREF attacker AS BattleSprite, BYREF target AS BattleSprite, attack as AttackData, tcount as integer) as integer
 declare function liveherocount overload (bslot() AS BattleSprite) as integer
-declare function liveherocount (oobstat() AS integer) as integer
+declare function liveherocount () as integer
 declare sub loadfoe (slot as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)
 declare sub changefoe(slot as integer, new_id AS INTEGER, formdata() as integer, es() as integer, bslot() AS BattleSprite, hp_rule AS INTEGER, other_stats_rule AS INTEGER)
 declare function randomally (who as integer) as integer
@@ -43,12 +43,12 @@ declare function targetmaskcount (tmask() as integer) as integer
 declare sub traceshow (s as string)
 declare function trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, es() as integer) as integer
 declare function exptolevel (level as integer) as integer
-declare sub updatestatslevelup (i as integer, exstat() as integer, stats AS BattleStats, allowforget as integer)
-declare sub learn_spells_for_current_level(BYVAL who AS INTEGER, exstat() AS INTEGER, BYVAL allowforget AS INTEGER)
-declare sub giveheroexperience (i as integer, exstat() as integer, exper as integer)
-declare sub setheroexperience (byval who as integer, byval amount as integer, byval allowforget as integer, exstat() as integer, exlev() as integer)
+declare sub updatestatslevelup (i as integer, stats AS BattleStats, allowforget as integer)
+declare sub learn_spells_for_current_level(BYVAL who AS INTEGER, BYVAL allowforget AS INTEGER)
+declare sub giveheroexperience (i as integer, exper as integer)
+declare sub setheroexperience (byval who as integer, byval amount as integer, byval allowforget as integer, exlev() as integer)
 declare function visibleandalive (o as integer, bslot() as battlesprite) as integer
-declare sub writestats (exstat() as integer, bslot() AS BattleSprite)
+declare sub writestats (bslot() AS BattleSprite)
 
 declare sub get_valid_targs (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite)
 declare function attack_can_hit_dead(who as integer, attack as AttackData) as integer

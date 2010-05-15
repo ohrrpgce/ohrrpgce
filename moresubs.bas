@@ -35,7 +35,7 @@ DECLARE SUB teleporttooltend (BYREF mini AS Frame Ptr, maptilesX() AS TileMap, t
 
 REM $STATIC
 
-SUB addhero (who, slot, stat(), forcelevel=-1)
+SUB addhero (who, slot, forcelevel=-1)
 DIM wbuf(100), thishbits(4)
 
 dim her as herodef
@@ -50,7 +50,7 @@ loaditemdata wbuf(), her.def_weapon
 IF forcelevel >= 0 THEN her.def_level = forcelevel
 
 '--do average level enforcement
-IF her.def_level < 0 THEN her.def_level = averagelev(stat())
+IF her.def_level < 0 THEN her.def_level = averagelev
 
 '--formally add hero
 hero(slot) = who
@@ -62,14 +62,16 @@ FOR i = 0 TO 4
 NEXT i
 eqstuf(slot, 0) = her.def_weapon + 1
 
-'--fill in stats
-FOR i = 0 TO 11
- stat(slot, 0, i) = atlevel(her.def_level, her.Lev0.sta(i), her.Lev99.sta(i)) + wbuf(54 + i)
- stat(slot, 1, i) = stat(slot, 0, i)
-NEXT i
-'--weapon picture and palette
-stat(slot, 0, 13) = wbuf(52)
-stat(slot, 1, 13) = wbuf(53)
+WITH gam.hero(slot).stat
+ '--fill in stats
+ FOR i = 0 TO 11
+  .cur.sta(i) = atlevel(her.def_level, her.Lev0.sta(i), her.Lev99.sta(i)) + wbuf(54 + i)
+  .max.sta(i) = .cur.sta(i)
+ NEXT i
+ '--weapon picture and palette
+ .cur.wep_picpal = wbuf(52)
+ .max.wep_picpal = wbuf(53)
+END WITH
 
 '--weapon attack
 bmenu(slot, 0) = wep
@@ -106,8 +108,8 @@ NEXT i
 resetlmp slot, her.def_level
 
 '--setup experience
-stat(slot, 0, 12) = her.def_level
-stat(slot, 1, 12) = 0
+gam.hero(slot).stat.cur.lev = her.def_level
+gam.hero(slot).stat.max.lev = 0 'FIXME: Not sure if this is even used for anything
 exlev(slot, 0) = 0
 exlev(slot, 1) = exptolevel(her.def_level)
 
@@ -121,11 +123,13 @@ setbit hmask(), 0, who - 1, 0
 
 '--appearance settings
 ' udts are self documenting
-stat(slot, 0, 14) = her.sprite
-stat(slot, 0, 15) = her.sprite_pal
-stat(slot, 1, 14) = her.walk_sprite
-stat(slot, 1, 15) = her.walk_sprite_pal
-stat(slot, 0, 16) = her.def_weapon + 1'default weapon
+WITH gam.hero(slot).stat
+ .cur.pic = her.sprite
+ .cur.pal = her.sprite_pal
+ .max.pic = her.walk_sprite
+ .max.pal = her.walk_sprite_pal
+ .cur.def_wep = her.def_weapon + 1'default weapon
+END WITH
 
 '--read hero's name (doing this last for no real reason)
 names(slot) = her.name
@@ -147,11 +151,11 @@ atlevel = (.8 + now / 50) * now * ((a99 - a0) / 275.222) + a0 + .1
 
 END FUNCTION
 
-FUNCTION averagelev (stat() as integer) as integer
+FUNCTION averagelev () as integer
 average = 0
 count = 0
 FOR i = 0 TO 3
- IF hero(i) > 0 THEN average = average + stat(i, 0, 12): count = count + 1
+ IF hero(i) > 0 THEN average = average + gam.hero(i).stat.cur.lev: count = count + 1
 NEXT i
 IF count > 0 THEN average = average / count
 averagelev = average
@@ -293,7 +297,7 @@ FOR o = 0 TO last_inv_slot()
 NEXT o
 END SUB
 
-SUB doswap (s, d, stat())
+SUB doswap (s, d)
 
 '---swap hmask (bitsets which tell which heros are locked)
 a = readbit(hmask(), 0, d)
@@ -316,11 +320,10 @@ FOR i = 0 TO 3
 NEXT i
 
 '---hero stats
-FOR i = 0 TO 1
- FOR o = 0 TO 16
-  SWAP stat(s, i, o), stat(d, i, o)
- NEXT o
-NEXT i
+FOR o = 0 TO 16
+ SWAP gam.hero(s).stat.cur.sta(o), gam.hero(d).stat.cur.sta(o)
+ SWAP gam.hero(s).stat.max.sta(o), gam.hero(d).stat.max.sta(o)
+NEXT o
 
 '---Level-MP
 FOR i = 0 TO 7
@@ -351,9 +354,9 @@ FOR i = 0 TO 4
 NEXT i
 
 '---reload hero pictures and palettes
-vishero stat()
+vishero
 
-'hero(40), bmenu(40,5), spell(40,3,23), stat(40,1,13), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
+'hero(40), bmenu(40,5), spell(40,3,23), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
 END SUB
 
 SUB drawsay ()
@@ -400,7 +403,7 @@ IF txt.box.choice_enabled THEN
 END IF
 END SUB
 
-SUB evalherotag (stat())
+SUB evalherotag ()
 
 leader = -1
 FOR i = 3 TO 0 STEP -1
@@ -416,7 +419,7 @@ FOR i = 0 TO small(gen(genMaxHero), UBOUND(herobits, 1)) '--for each available h
  FOR j = 0 TO UBOUND(hero)
   IF hero(j) - 1 = i THEN
    IF herobits(i, 0) > 1 THEN setbit tag(), 0, herobits(i, 0), 1 '---HAVE HERO
-   IF herobits(i, 1) > 1 AND stat(j, 0, statHP) THEN setbit tag(), 0, herobits(i, 1), 1 '---IS ALIVE
+   IF herobits(i, 1) > 1 AND gam.hero(j).stat.cur.hp THEN setbit tag(), 0, herobits(i, 1), 1 '---IS ALIVE
    IF herobits(i, 2) > 1 AND i = leader THEN setbit tag(), 0, herobits(i, 2), 1 '---IS LEADER
    IF herobits(i, 3) > 1 AND j < 4 THEN setbit tag(), 0, herobits(i, 3), 1 '---IN PARTY
   END IF
@@ -470,7 +473,7 @@ NEXT i
 findhero = result
 END FUNCTION
 
-SUB heroswap (iAll, stat())
+SUB heroswap (iAll)
 '--Preserve background for display beneath the hero swapper
 DIM page AS INTEGER
 DIM holdscreen AS INTEGER
@@ -578,7 +581,7 @@ DO
     ELSE
      temp2 = swindex(swapme - 4)
     END IF
-    doswap temp, temp2, stat()
+    doswap temp, temp2
     swapme = -1
     GOSUB resetswap
     EXIT DO
@@ -1048,7 +1051,7 @@ END IF
 
 END SUB
 
-SUB resetgame (stat(), scriptout$)
+SUB resetgame (scriptout$)
 gam.map.id = 0
 catx(0) = 0
 caty(0) = 0
@@ -1066,11 +1069,10 @@ CleanNPCL npc(),300
 flusharray tag(), 126, 0
 flusharray hero(), 40, 0
 FOR i = 0 TO 40
- FOR o = 0 TO 1
-  FOR j = 0 TO 16
-   stat(i, o, j) = 0
-  NEXT j
- NEXT o
+ FOR j = 0 TO 16
+  gam.hero(i).stat.cur.sta(j) = 0
+  gam.hero(i).stat.max.sta(j) = 0
+ NEXT j
 NEXT i
 FOR i = 0 TO 40
  FOR o = 0 TO 5
@@ -1744,7 +1746,7 @@ END IF
 
 END FUNCTION
 
-SUB shop (id, needf, stat())
+SUB shop (id, needf)
 
 DIM storebuf(40), menu(10) AS STRING, menuid(10)
 DIM sn AS STRING
@@ -1791,35 +1793,35 @@ DO
  IF carray(ccUse) > 1 OR autopick THEN
   IF pt = last THEN menusound gen(genCancelSFX) : EXIT DO
   IF menuid(pt) = 0 THEN '--BUY
-   buystuff id, 0, storebuf(), stat()
+   buystuff id, 0, storebuf()
   END IF
   IF menuid(pt) = 1 THEN '--SELL
-   sellstuff id, storebuf(), stat()
+   sellstuff id, storebuf()
   END IF
   IF menuid(pt) = 2 THEN '--HIRE
-   buystuff id, 1, storebuf(), stat()
+   buystuff id, 1, storebuf()
   END IF
   IF menuid(pt) = 6 THEN '--MAP
    minimap catx(0), caty(0)
   END IF
   IF menuid(pt) = 7 THEN '--TEAM
-   heroswap 1, stat()
+   heroswap 1
   END IF
   IF menuid(pt) = 4 THEN '--EQUIP
    w = onwho(readglobalstring$(108, "Equip Who?", 20), 0)
    IF w >= 0 THEN
-    equip w, stat()
+    equip w
    END IF
   END IF
   IF menuid(pt) = 5 THEN '--SAVE
    temp = picksave(0)
-   IF temp >= 0 THEN savegame temp, stat()
+   IF temp >= 0 THEN savegame temp
   END IF
   IF menuid(pt) = 3 THEN '--INN
    inn = 0
-   IF useinn(inn, storebuf(18), needf, stat(), holdscreen) THEN
+   IF useinn(inn, storebuf(18), needf, holdscreen) THEN
     IF inn = 0 THEN
-     innRestore stat()
+     innRestore
     END IF
     IF storebuf(19) > 0 THEN
      '--Run animation for Inn
@@ -1871,7 +1873,7 @@ NEXT i
 RETRACE
 END SUB
 
-FUNCTION useinn (inn as integer, price as integer, needf as integer, stat() as integer, holdscreen as integer) as integer
+FUNCTION useinn (inn as integer, price as integer, needf as integer, holdscreen as integer) as integer
 DIM menu(1) AS STRING
 DIM AS INTEGER i, y
 
@@ -1915,7 +1917,7 @@ DO
   IF hero(i) > 0 THEN
    col = uilook(uiText)
    edgeprint names(i), 128 - LEN(names(i)) * 8, 5 + y * 10, col, dpage
-   edgeprint STR$(ABS(stat(i, 0, statHP))) + "/" + STR$(ABS(stat(i, 1, statHP))), 136, 5 + y * 10, col, dpage
+   edgeprint STR$(ABS(gam.hero(i).stat.cur.hp)) + "/" + STR$(ABS(gam.hero(i).stat.max.hp)), 136, 5 + y * 10, col, dpage
    y = y + 1
   END IF
  NEXT i

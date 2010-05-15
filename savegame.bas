@@ -19,9 +19,9 @@ DEFINT A-Z
 '--Local subs and functions
 
 '--old save/load support
-DECLARE SUB old_savegame (slot as integer, stat() as integer)
+DECLARE SUB old_savegame (slot as integer)
 DECLARE SUB old_saveglobalvars (slot as integer, first as integer, last as integer)
-DECLARE SUB old_loadgame (slot as integer, stat() as integer)
+DECLARE SUB old_loadgame (slot as integer)
 DECLARE SUB old_loadglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
@@ -32,16 +32,16 @@ OPTION EXPLICIT
 
 '-----------------------------------------------------------------------
 
-SUB savegame (slot, stat())
- old_savegame slot, stat()
+SUB savegame (slot)
+ old_savegame slot
 END SUB
 
 SUB saveglobalvars (slot, first, last)
  old_saveglobalvars slot, first, last
 END SUB
 
-SUB loadgame (slot, stat())
- old_loadgame slot, stat()
+SUB loadgame (slot)
+ old_loadgame slot
 END SUB
 
 SUB loadglobalvars (slot, first, last)
@@ -50,7 +50,7 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-SUB old_savegame (slot, stat())
+SUB old_savegame (slot)
 
 DIM gmaptmp(dimbinsize(binMAP))
 
@@ -103,11 +103,12 @@ FOR i = 0 TO 500
  buffer(z) = 0: z = z + 1
 NEXT i
 FOR i = 0 TO 40
- FOR o = 0 TO 1
-  FOR j = 0 TO 13
-   buffer(z) = stat(i, o, j): z = z + 1
-  NEXT j
- NEXT o
+ FOR j = 0 TO 13
+  buffer(z) = gam.hero(i).stat.cur.sta(j): z = z + 1
+ NEXT j
+ FOR j = 0 TO 13
+  buffer(z) = gam.hero(i).stat.max.sta(j): z = z + 1
+ NEXT j
 NEXT i
 FOR i = 0 TO 40
  FOR o = 0 TO 5
@@ -227,11 +228,12 @@ z += 22
 '--picture and palette
 buffer(z) = 4444: z = z + 1 'magic number
 FOR i = 0 TO 40
- FOR o = 0 TO 1
-  FOR j = 14 TO 16
-   buffer(z) = stat(i, o, j): z = z + 1
-  NEXT j
- NEXT o
+ FOR j = 14 TO 16
+  buffer(z) = gam.hero(i).stat.cur.sta(j): z = z + 1
+ NEXT j
+ FOR j = 14 TO 16
+  buffer(z) = gam.hero(i).stat.max.sta(j): z = z + 1
+ NEXT j
 NEXT i
 '--native hero bitsets
 buffer(z) = 4444: z = z + 1 'magic number
@@ -292,7 +294,7 @@ END IF
 CLOSE #fh
 END SUB
 
-SUB old_loadgame (slot, stat())
+SUB old_loadgame (slot)
 DIM gmaptmp(dimbinsize(binMAP))
 
 DIM AS INTEGER i, j, o, z
@@ -359,11 +361,12 @@ FOR i = 0 TO 500
 NEXT i
 show_load_index z, "stats"
 FOR i = 0 TO 40
- FOR o = 0 TO 1
-  FOR j = 0 TO 13
-   stat(i, o, j) = buffer(z): z = z + 1
-  NEXT j
- NEXT o
+ FOR j = 0 TO 13
+  gam.hero(i).stat.cur.sta(j) = buffer(z): z = z + 1
+ NEXT j
+ FOR j = 0 TO 13
+  gam.hero(i).stat.max.sta(j) = buffer(z): z = z + 1
+ NEXT j
 NEXT i
 show_load_index z, "bmenu"
 FOR i = 0 TO 40
@@ -501,12 +504,14 @@ show_load_index z, "picpal magic", 1
 DIM picpalmagicnum AS INTEGER = buffer(z): z = z + 1
 show_load_index z, "picpalwep", 1
 FOR i = 0 TO 40
- FOR o = 0 TO 1
-  FOR j = 14 TO 16
-   IF picpalmagicnum = 4444 THEN stat(i, o, j) = buffer(z)
-   z = z + 1
-  NEXT j
- NEXT o
+ FOR j = 14 TO 16
+  IF picpalmagicnum = 4444 THEN gam.hero(i).stat.cur.sta(j) = buffer(z)
+  z = z + 1
+ NEXT j
+ FOR j = 14 TO 16
+  IF picpalmagicnum = 4444 THEN gam.hero(i).stat.max.sta(j) = buffer(z)
+  z = z + 1
+ NEXT j
 NEXT i
 'native hero bitsets
 show_load_index z, "hbit magic", 1
@@ -550,11 +555,11 @@ IF picpalmagicnum <> 4444 THEN
  FOR i = 0 TO 40
   IF hero(i) > 0 THEN
    loadherodata @her, hero(i) - 1
-   stat(i, 0, 14) = her.sprite
-   stat(i, 0, 15) = her.sprite_pal
-   stat(i, 1, 14) = her.walk_sprite
-   stat(i, 1, 15) = her.walk_sprite_pal
-   stat(i, 0, 16) = her.def_weapon + 1'default weapon
+   gam.hero(i).stat.cur.pic = her.sprite
+   gam.hero(i).stat.cur.pal = her.sprite_pal
+   gam.hero(i).stat.max.pic = her.walk_sprite
+   gam.hero(i).stat.max.pal = her.walk_sprite_pal
+   gam.hero(i).stat.cur.def_wep = her.def_weapon + 1'default weapon
   END IF
  NEXT i
 END IF

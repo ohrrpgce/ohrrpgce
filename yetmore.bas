@@ -36,14 +36,14 @@ REDIM plotslices(1 TO 64)
 
 REM $STATIC
 
-SUB add_rem_swap_lock_hero (box AS TextBox, stat())
+SUB add_rem_swap_lock_hero (box AS TextBox)
 '---ADD/REMOVE/SWAP/LOCK
 '---ADD---
 IF box.hero_addrem > 0 THEN
  i = first_free_slot_in_party()
  IF i > -1 THEN
-  addhero box.hero_addrem, i, stat()
-  vishero stat()
+  addhero box.hero_addrem, i
+  vishero
  END IF
 END IF '---end if > 0
 '---REMOVE---
@@ -51,17 +51,17 @@ IF box.hero_addrem < 0 THEN
  IF herocount(40) > 1 THEN
   i = findhero(-box.hero_addrem, 0, 40, 1)
   IF i > -1 THEN hero(i) = 0
-  IF herocount(3) = 0 THEN forceparty stat()
+  IF herocount(3) = 0 THEN forceparty
  END IF
 END IF '---end if < 0
-vishero stat()
+vishero
 '---SWAP-IN---
 IF box.hero_swap > 0 THEN
  i = findhero(box.hero_swap, 40, 0, -1)
  IF i > -1 THEN
   FOR o = 0 TO 3
    IF hero(o) = 0 THEN
-    doswap i, o, stat()
+    doswap i, o
     EXIT FOR
    END IF
   NEXT o
@@ -73,8 +73,8 @@ IF box.hero_swap < 0 THEN
  IF i > -1 THEN
   FOR o = 40 TO 4 STEP -1
    IF hero(o) = 0 THEN
-    doswap i, o, stat()
-    IF herocount(3) = 0 THEN forceparty stat()
+    doswap i, o
+    IF herocount(3) = 0 THEN forceparty
     EXIT FOR
    END IF
   NEXT o
@@ -203,20 +203,27 @@ IF limit > 0 THEN
 END IF
 END SUB
 
-SUB scriptstat (id, stat())
+SUB scriptstat (id)
 'contains an assortment of scripting commands that
-'depend on access to the hero stat array stat()
+'used to depend on access to the hero stat array stat(), but that is irrelevant now,
+'because that is a global gam.hero().stat
 
 SELECT CASE AS CONST id
  CASE 64'--get hero stat
-  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(2), 0, 1), bound(retvals(1), 0, 13))
+  'FIXME: unfortunately this can also access hero level and hero default weapon
+  'which will suck when we want to add more stats
+  IF retvals(2) < 1 THEN
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.cur.sta(bound(retvals(1), 0, 13))
+  ELSE
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.max.sta(bound(retvals(1), 0, 13))
+  END IF
  CASE 66'--add hero
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
    slot = first_free_slot_in_party()
    IF slot >= 0 THEN
     'retvals(0) is the real hero id, addhero subtracts the 1 again
-    addhero retvals(0) + 1, slot, stat()
-    vishero stat()
+    addhero retvals(0) + 1, slot
+    vishero
    END IF
    scriptret = slot
   END IF
@@ -224,17 +231,17 @@ SELECT CASE AS CONST id
   IF herocount(40) > 1 THEN
    i = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
    IF i > -1 THEN hero(i) = 0
-   IF herocount(3) = 0 THEN forceparty stat()
-   vishero stat()
+   IF herocount(3) = 0 THEN forceparty
+   vishero
   END IF
  CASE 68'--swap out hero
   i = findhero(retvals(0) + 1, 0, 40, 1)
   IF i > -1 THEN
    FOR o = 40 TO 4 STEP -1
     IF hero(o) = 0 THEN
-     doswap i, o, stat()
-     IF herocount(3) = 0 THEN forceparty stat()
-     vishero stat()
+     doswap i, o
+     IF herocount(3) = 0 THEN forceparty
+     vishero
      EXIT FOR
     END IF
    NEXT o
@@ -244,44 +251,62 @@ SELECT CASE AS CONST id
   IF i > -1 THEN
    FOR o = 0 TO 3
     IF hero(o) = 0 THEN
-     doswap i, o, stat()
-     vishero stat()
+     doswap i, o
+     vishero
      EXIT FOR
     END IF
    NEXT o
   END IF
  CASE 83'--set hero stat
-  stat(bound(retvals(0), 0, 40), bound(retvals(3), 0, 1), bound(retvals(1), 0, 13)) = retvals(2)
+  'FIXME: this command can also set hero level (without updating stats) and
+  ' it can change hero default weapon, which sucks for when we want to add more stats.
+  IF retvals(3) < 1 THEN
+   gam.hero(bound(retvals(0), 0, 40)).stat.cur.sta(bound(retvals(1), 0, 13)) = retvals(2)
+  ELSE
+   gam.hero(bound(retvals(0), 0, 40)).stat.max.sta(bound(retvals(1), 0, 13)) = retvals(2)
+  END IF
  CASE 89'--swap by position
-  doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40), stat()
-  vishero stat()
+  doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
+  vishero
  CASE 110'--set hero picture
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = bound(retvals(0), 0, 40)
    retvals(2) = bound(retvals(2), 0, 1)
-   IF retvals(2) = 0 THEN stat(i, 0, 14) = bound(retvals(1), 0, gen(genMaxHeroPic))
-   IF retvals(2) = 1 THEN stat(i, 1, 14) = bound(retvals(1), 0, gen(genMaxNPCPic))
+   IF retvals(2) = 0 THEN gam.hero(i).stat.cur.pic = bound(retvals(1), 0, gen(genMaxHeroPic))
+   IF retvals(2) = 1 THEN gam.hero(i).stat.max.pic = bound(retvals(1), 0, gen(genMaxNPCPic))
    IF i < 4 THEN
-    vishero stat()
+    vishero
    END IF
   END IF
  CASE 111'--set hero palette
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = bound(retvals(0), 0, 40)
    j = bound(retvals(2), 0, 1)
-   stat(i, j, 15) = bound(retvals(1), -1, 32767)
+   IF j < 1 THEN
+    gam.hero(i).stat.cur.pal = bound(retvals(1), -1, 32767)
+   ELSE
+    gam.hero(i).stat.max.pal = bound(retvals(1), -1, 32767)
+   END IF
    IF i < 4 THEN
-    vishero stat()
+    vishero
    END IF
   END IF
  CASE 112'--get hero picture
-  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 14)
+  IF retvals(1) < 1 THEN
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.cur.pic
+  ELSE
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.max.pic
+  END IF
  CASE 113'--get hero palette
-  scriptret = stat(bound(retvals(0), 0, 40), bound(retvals(1), 0, 1), 15)
+  IF retvals(1) < 1 THEN
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.cur.pal
+  ELSE
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.max.pal
+  END IF
  CASE 150'--status screen
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF hero(retvals(0)) > 0 THEN
-    status retvals(0), stat()
+    status retvals(0)
    END IF
   END IF
  CASE 152'--spells menu
@@ -294,53 +319,53 @@ SELECT CASE AS CONST id
   'Can explicitly choose a hero to equip
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
    IF hero(retvals(0)) > 0 THEN
-    equip retvals(0), stat()
+    equip retvals(0)
    END IF
   END IF
   IF retvals(0) = -1 THEN
    'Or pass -1 to equip the first hero in the party
    FOR i = 0 TO 3
     IF hero(i) > 0 THEN
-     equip i, stat()
+     equip i
      EXIT FOR
     END IF
    NEXT i
   END IF
  CASE 157'--order menu
-  heroswap 0, stat()
+  heroswap 0
  CASE 158'--team menu
-  heroswap 1, stat()
+  heroswap 1
  CASE 183'--set hero level (who, what, allow forgetting spells)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
    DIM dummystats as BattleStats 'just need HP and MP
-   stat(retvals(0), 1, 12) = retvals(1) - stat(retvals(0), 0, 12)
-   stat(retvals(0), 0, 12) = retvals(1)
+   gam.hero(retvals(0)).stat.max.lev = retvals(1) - gam.hero(retvals(0)).stat.cur.lev
+   gam.hero(retvals(0)).stat.cur.lev = retvals(1)
    exlev(retvals(0), 1) = exptolevel(retvals(1))
    exlev(retvals(0), 0) = 0  'XP attained towards the next level
-   updatestatslevelup retvals(0), stat(), dummystats, retvals(2) 'updates stats and spells
+   updatestatslevelup retvals(0), dummystats, retvals(2) 'updates stats and spells
   END IF
  CASE 184'--give experience (who, how much)
   DIM dummystats as BattleStats 'just need HP and MP
   'who = -1 targets battle party
   IF retvals(0) <> -1 THEN
    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-    giveheroexperience retvals(0), stat(), retvals(1)
-    updatestatslevelup retvals(0), stat(), dummystats, 0
+    giveheroexperience retvals(0), retvals(1)
+    updatestatslevelup retvals(0), dummystats, 0
    END IF
   ELSE
    DIM numheroes as integer
-   numheroes = iif(readbit(gen(), genBits2, 3), herocount(), liveherocount(stat())) 'dead heroes get experience
+   numheroes = iif(readbit(gen(), genBits2, 3), herocount(), liveherocount) 'dead heroes get experience
    IF numheroes > 0 THEN retvals(1) /= numheroes
    FOR i = 0 TO 3
     'battle party: reset level-gained counter even if giveheroexperience is not called
-    stat(i, 1, 12) = 0
+    gam.hero(i).stat.max.lev = 0
     'give the XP to the hero only if it is alive when 'dead heroes get XP' not set
-    IF readbit(gen(), genBits2, 3) <> 0 OR stat(i, 0, statHP) > 0 THEN giveheroexperience i, stat(), retvals(1)
-    updatestatslevelup i, stat(), dummystats, 0
+    IF readbit(gen(), genBits2, 3) <> 0 OR gam.hero(i).stat.cur.hp > 0 THEN giveheroexperience i, retvals(1)
+    updatestatslevelup i, dummystats, 0
    NEXT i
   END IF
  CASE 185'--hero levelled (who)
-  scriptret = stat(bound(retvals(0), 0, 40), 1, 12)
+  scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.max.lev
  CASE 186'--spells learnt
   'NOTE: this is deprecated but will remain for backcompat. New games should use "spells learned" 
   found = 0
@@ -359,7 +384,7 @@ SELECT CASE AS CONST id
  CASE 269'--totalexperience
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    scriptret = 0
-   FOR i = 0 TO stat(retvals(0), 0, 12) - 1
+   FOR i = 0 TO gam.hero(retvals(0)).stat.cur.lev - 1
     scriptret += exptolevel(i)
    NEXT
    scriptret += exlev(retvals(0), 0)
@@ -375,11 +400,11 @@ SELECT CASE AS CONST id
   END IF
  CASE 272'--setexperience  (who, what, allowforget)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN
-   setheroexperience retvals(0), retvals(1), retvals(2), stat(), exlev()
+   setheroexperience retvals(0), retvals(1), retvals(2), exlev()
   END IF
  CASE 445'--update level up learning(who, allowforget)
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-   learn_spells_for_current_level retvals(0), stat(), (retvals(1)<>0)
+   learn_spells_for_current_level retvals(0), (retvals(1)<>0)
   END IF
  CASE 449'--reset hero picture
   i = retvals(0)
@@ -389,9 +414,9 @@ SELECT CASE AS CONST id
     IF bound_arg(j, 0, 1, "in or out of battle") THEN
      DIM her as herodef
      loadherodata @her, hero(i) - 1
-     IF j = 0 THEN stat(i, 0, 14) = her.sprite
-     IF j = 1 THEN stat(i, 1, 14) = her.walk_sprite
-     IF i < 4 THEN vishero stat()
+     IF j = 0 THEN gam.hero(i).stat.cur.pic = her.sprite
+     IF j = 1 THEN gam.hero(i).stat.max.pic = her.walk_sprite
+     IF i < 4 THEN vishero
     END IF
    END IF
   END IF
@@ -403,9 +428,9 @@ SELECT CASE AS CONST id
     IF bound_arg(j, 0, 1, "in or out of battle") THEN
      DIM her as herodef
      loadherodata @her, hero(i) - 1
-     IF j = 0 THEN stat(i, 0, 15) = her.sprite_pal
-     IF j = 1 THEN stat(i, 1, 15) = her.walk_sprite_pal
-     IF i < 4 THEN vishero stat()
+     IF j = 0 THEN gam.hero(i).stat.cur.pal = her.sprite_pal
+     IF j = 1 THEN gam.hero(i).stat.max.pal = her.walk_sprite_pal
+     IF i < 4 THEN vishero
     END IF
    END IF
   END IF
@@ -413,13 +438,13 @@ SELECT CASE AS CONST id
 END SELECT
 END SUB
 
-SUB forceparty (stat())
+SUB forceparty ()
 '---MAKE SURE YOU HAVE AN ACTIVE PARTY---
 fpi = findhero(-1, 0, 40, 1)
 IF fpi > -1 THEN
  FOR fpo = 0 TO 3
   IF hero(fpo) = 0 THEN
-   doswap fpi, fpo, stat()
+   doswap fpi, fpo
    EXIT FOR
   END IF
  NEXT fpo
@@ -2409,7 +2434,7 @@ SELECT CASE AS CONST id
   IF bound_arg(retvals(0), 1, gen(genMaxAttack)+1, "attack ID") THEN
    IF valid_hero_party(retvals(1)) THEN
     IF valid_hero_party(retvals(2), -1) THEN
-     scriptret = ABS(outside_battle_cure(retvals(0) - 1, retvals(1), retvals(2), stat(), 0))
+     scriptret = ABS(outside_battle_cure(retvals(0) - 1, retvals(1), retvals(2), 0))
     END IF
    END IF
   END IF
@@ -2857,7 +2882,7 @@ vehpass = v
 
 END FUNCTION
 
-SUB vishero (stat())
+SUB vishero ()
 FOR i = 0 TO UBOUND(herow)
  frame_unload @herow(i).sprite
  palette16_unload @herow(i).pal
@@ -2865,12 +2890,12 @@ NEXT
 o = 0
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
-  herow(o).sprite = frame_load(4, stat(i, 1, 14))
-  herow(o).pal = palette16_load(stat(i, 1, 15), 4, stat(i, 1, 14))
+  herow(o).sprite = frame_load(4, gam.hero(i).stat.max.pic)
+  herow(o).pal = palette16_load(gam.hero(i).stat.max.pal, 4, gam.hero(i).stat.max.pic)
   o = o + 1
  END IF
 NEXT i
-evalherotag stat()
+evalherotag
 END SUB
 
 SUB wrapaheadxy (x, y, direction, distance, unitsize)

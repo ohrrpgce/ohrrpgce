@@ -5,6 +5,7 @@
 'so as to prevent them from cluttering up the global udts.bi file
 
 UNION BattleStatsSingle
+  'See also HeroStatsSingle '-- the two of these can probably be unified eventually
   TYPE
     hp AS INTEGER   '0
     mp AS INTEGER   '1

@@ -204,17 +204,17 @@ NEXT i
 
 END SUB
 
-SUB innRestore (stat())
+SUB innRestore ()
 
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN '--hero exists
-  IF stat(i, 0, statHP) <= 0 AND readbit(gen(), 101, 4) THEN
+  IF gam.hero(i).stat.cur.hp <= 0 AND readbit(gen(), 101, 4) THEN
    '--hero is dead and inn-revive is disabled
   ELSE
    '--normal revive
-   stat(i, 0, statHP) = stat(i, 1, statHP)
-   stat(i, 0, statMP) = stat(i, 1, statMP)
-   resetlmp i, stat(i, 0, 12)
+   gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp
+   gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp
+   resetlmp i, gam.hero(i).stat.cur.lev
   END IF
  END IF
 NEXT i
@@ -373,14 +373,14 @@ SUB cleanuptemp
   KILL tmpdir + "filelist.tmp"
 END SUB
 
-FUNCTION checkfordeath (stat() as integer) as integer
+FUNCTION checkfordeath () as integer
 checkfordeath = 0' --default alive
 
 o = 0
 FOR i = 0 TO 3 '--for each slot
  IF hero(i) > 0 THEN '--if hero exists
   o = o + 1
-  IF stat(i, 0, statHP) <= 0 AND stat(i, 1, statHP) > 0 THEN o = o - 1
+  IF gam.hero(i).stat.cur.hp <= 0 AND gam.hero(i).stat.max.hp > 0 THEN o = o - 1
  END IF
 NEXT i
 IF o = 0 THEN checkfordeath = 1
@@ -533,8 +533,8 @@ DO
 LOOP
 END FUNCTION
 
-SUB reloadnpc (stat())
-vishero stat()
+SUB reloadnpc ()
+vishero
 FOR i = 0 TO max_npc_defs
  with npcs(i)
   if .sprite then frame_unload(@.sprite)
@@ -687,7 +687,7 @@ SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
  'Evaluate whether NPCs should appear or disappear based on tags
  npcplot
  'load NPC graphics
- reloadnpc stat()
+ reloadnpc
 END SUB
 
 SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)

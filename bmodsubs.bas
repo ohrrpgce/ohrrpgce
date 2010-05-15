@@ -573,10 +573,10 @@ NEXT o
 liveherocount = i
 END FUNCTION
 
-FUNCTION liveherocount (oobstat() AS integer) as integer
+FUNCTION liveherocount () as integer
 i = 0
 FOR o = 0 TO 3
- IF hero(o) > 0 AND oobstat(o, 0, statHP) > 0 THEN i = i + 1
+ IF hero(o) > 0 AND gam.hero(o).stat.cur.hp > 0 THEN i = i + 1
 NEXT o
 liveherocount = i
 END FUNCTION
@@ -742,7 +742,7 @@ FUNCTION exptolevel (level as integer) as integer
  return exper
 END FUNCTION
 
-SUB updatestatslevelup (i as integer, exstat() as integer, stats AS BattleStats, allowforget as integer)
+SUB updatestatslevelup (i as integer, stats AS BattleStats, allowforget as integer)
 ' i = who
 ' exstat = external stats
 ' stats = in-battle stats
@@ -757,7 +757,7 @@ FOR o = i * 6 TO i * 6 + 5
 NEXT
 
 'THIS PART UPDATES STATS FOR A LEVEL UP
-IF exstat(i, 1, 12) THEN
+IF gam.hero(i).stat.max.lev THEN
 
  dim her as herodef
  loadherodata @her, hero(i) - 1
@@ -766,49 +766,49 @@ IF exstat(i, 1, 12) THEN
  FOR o = 0 TO 11
   n0 = her.Lev0.sta(o)
   n99 = her.Lev99.sta(o)
-  exstat(i, 1, o) = exstat(i, 1, o) + (atlevel(exstat(i, 0, 12), n0, n99) - atlevel(exstat(i, 0, 12) - exstat(i, 1, 12), n0, n99))
+  gam.hero(i).stat.max.sta(o) += (atlevel(gam.hero(i).stat.cur.lev, n0, n99) - atlevel(gam.hero(i).stat.cur.lev - gam.hero(i).stat.max.lev, n0, n99))
 
   'simulate levelup bug
   IF readbit(gen(), 101, 9) = 1 THEN
    FOR j = 0 TO 4
     IF eqstuf(i, j) > 0 THEN
      loaditemdata buffer(), eqstuf(i, j) - 1
-     exstat(i, 1, o) = exstat(i, 1, o) + buffer(54 + o) * exstat(i, 1, 12)
+     gam.hero(i).stat.max.sta(o) += buffer(54 + o) * gam.hero(i).stat.max.lev
     END IF
    NEXT j
   END IF
 
   'do stat caps
-  IF gen(genStatCap + o) > 0 THEN exstat(i, 1, o) = small(exstat(i, 1, o),gen(genStatCap + o))
+  IF gen(genStatCap + o) > 0 THEN gam.hero(i).stat.max.sta(o) = small(gam.hero(i).stat.max.sta(o), gen(genStatCap + o))
  NEXT o
 
  'stat restoration
  IF readbit(gen(), 101, 2) = 0 THEN
   '--HP restoration ON
-  exstat(i, 0, statHP) = exstat(i, 1, statHP) 'set external cur to external max
-  stats.cur.hp = exstat(i, 1, statHP) 'set in-battle cur to external max
-  stats.max.hp = exstat(i, 1, statHP) 'set in-battle max to external max
+  gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp 'set external cur to external max
+  stats.cur.hp = gam.hero(i).stat.max.hp 'set in-battle cur to external max
+  stats.max.hp = gam.hero(i).stat.max.hp 'set in-battle max to external max
  END IF
  IF readbit(gen(), 101, 3) = 0 THEN
   '--MP restoration ON
-  exstat(i, 0, statMP) = exstat(i, 1, statMP) 'set external cur to external max
-  stats.cur.mp = exstat(i, 1, statMP) 'set in-battle cur to external max
-  stats.max.mp = exstat(i, 1, statMP) 'set in-battle max to external max
-  resetlmp i, exstat(i, 0, 12)
+  gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp 'set external cur to external max
+  stats.cur.mp = gam.hero(i).stat.max.mp 'set in-battle cur to external max
+  stats.max.mp = gam.hero(i).stat.max.mp 'set in-battle max to external max
+  resetlmp i, gam.hero(i).stat.cur.lev
  END IF
 
  'make current stats match max stats
  FOR o = 2 TO 11
-  exstat(i, 0, o) = exstat(i, 1, o)
+  gam.hero(i).stat.cur.sta(o) = gam.hero(i).stat.max.sta(o)
  NEXT o
 
- learn_spells_for_current_level(i, exstat(), allowforget)
+ learn_spells_for_current_level(i, allowforget)
 
 END IF
 
 END SUB
 
-SUB learn_spells_for_current_level(BYVAL who AS INTEGER, exstat() AS INTEGER, BYVAL allowforget AS INTEGER)
+SUB learn_spells_for_current_level(BYVAL who AS INTEGER, BYVAL allowforget AS INTEGER)
 
  'Teaches all spells that can be learned from level
  ' up to the hero's current level.
@@ -827,13 +827,13 @@ SUB learn_spells_for_current_level(BYVAL who AS INTEGER, exstat() AS INTEGER, BY
   FOR o AS INTEGER = 0 TO 23
    WITH her.spell_lists(j,o)
     '--if slot is empty and slot accepts a spell and learn-by-level condition is true
-    IF spell(who, j, o) = 0 AND .attack > 0 AND .learned - 1 <= exstat(who, 0, 12) AND .learned > 0 THEN
+    IF spell(who, j, o) = 0 AND .attack > 0 AND .learned - 1 <= gam.hero(who).stat.cur.lev AND .learned > 0 THEN
      spell(who, j, o) = .attack
      setbit learnmask(), 0, who * 96 + j * 24 + o, 1
     END IF
     IF allowforget THEN
      '--plotscripts may lower level, forget spells if drop below requirement and know the spell specified
-     IF spell(who, j, o) = .attack AND .learned - 1 > exstat(who, 0, 12) THEN
+     IF spell(who, j, o) = .attack AND .learned - 1 > gam.hero(who).stat.cur.lev THEN
       spell(who, j, o) = 0
      END IF
     END IF
@@ -843,33 +843,33 @@ SUB learn_spells_for_current_level(BYVAL who AS INTEGER, exstat() AS INTEGER, BY
  
 END SUB
 
-SUB giveheroexperience (i as integer, exstat() as integer, exper as integer)
+SUB giveheroexperience (i as integer, exper as integer)
  'reset levels gained
- exstat(i, 1, 12) = 0
- IF hero(i) > 0 AND exstat(i, 0, 12) < 99 THEN
+ gam.hero(i).stat.max.lev = 0
+ IF hero(i) > 0 AND gam.hero(i).stat.cur.lev < 99 THEN
   exlev(i, 0) = exlev(i, 0) + exper
   'levelups
-  WHILE exlev(i, 0) >= exlev(i, 1) AND exstat(i, 0, 12) < 99
+  WHILE exlev(i, 0) >= exlev(i, 1) AND gam.hero(i).stat.max.lev < 99
    exlev(i, 0) = exlev(i, 0) - exlev(i, 1)
-   exstat(i, 0, 12) = exstat(i, 0, 12) + 1 'current level
-   exstat(i, 1, 12) = exstat(i, 1, 12) + 1 'levelup flag
-   exlev(i, 1) = exptolevel(exstat(i, 0, 12))
+   gam.hero(i).stat.cur.lev = gam.hero(i).stat.cur.lev + 1 'current level
+   gam.hero(i).stat.max.lev = gam.hero(i).stat.max.lev + 1 'levelup counter
+   exlev(i, 1) = exptolevel(gam.hero(i).stat.cur.lev)
   WEND
  END IF
 END SUB
 
-SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allowforget as integer, exstat() as integer, exlev() as integer)
+SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allowforget as integer, exlev() as integer)
  'unlike giveheroexperience, this can cause delevelling
  DIM dummystats AS BattleStats
 
- temp = exstat(who, 0, 12)
+ temp = gam.hero(who).stat.cur.lev
  total = 0
- FOR i = 0 TO exstat(who, 0, 12) - 1
+ FOR i = 0 TO gam.hero(who).stat.cur.lev - 1
   total += exptolevel(i)
  NEXT
  IF total > amount THEN
   'losing levels; lvl up from level 0
-  exstat(who, 0, 12) = 0
+  gam.hero(who).stat.cur.lev = 0
   exlev(who, 1) = exptolevel(0)
   lostlevels = -1
  ELSE
@@ -879,9 +879,9 @@ SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allo
   lostlevels = 0
  END IF
  exlev(who, 0) = 0
- giveheroexperience who, exstat(), amount
- updatestatslevelup who, exstat(), dummystats, allowforget
- exstat(who, 1, 12) -= temp
+ giveheroexperience who, amount
+ updatestatslevelup who, dummystats, allowforget
+ gam.hero(who).stat.max.lev -= temp
  IF lostlevels THEN
   'didn't learn spells, wipe mask
   FOR i = who * 6 TO who * 6 + 5
@@ -894,13 +894,13 @@ FUNCTION visibleandalive (o as integer, bslot() AS BattleSprite) as integer
 visibleandalive = (bslot(o).vis = 1 AND bslot(o).stat.cur.hp > 0)
 END FUNCTION
 
-SUB writestats (exstat() as integer, bslot() AS BattleSprite)
+SUB writestats (bslot() AS BattleSprite)
 setpicstuf buffer(), 636, -1
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
   '--set out-of-battle HP and MP equal to in-battle HP and MP
-  exstat(i, 0, statHP) = bslot(i).stat.cur.hp
-  exstat(i, 0, statMP) = bslot(i).stat.cur.mp
+  gam.hero(i).stat.cur.hp = bslot(i).stat.cur.hp
+  gam.hero(i).stat.cur.mp = bslot(i).stat.cur.mp
  END IF
 NEXT i
 END SUB

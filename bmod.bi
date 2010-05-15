@@ -10,7 +10,7 @@
 #INCLUDE "udts.bi"
 #INCLUDE "battle_udts.bi"
 
-declare function battle (form as integer, fatal as integer, exstat() as integer) as integer
+declare function battle (form as integer, fatal as integer) as integer
 declare function checknorunbit (bslot() as battlesprite) as integer
 DECLARE SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
 declare function focuscost (cost as integer, focus as integer) as integer
@@ -42,9 +42,9 @@ DECLARE SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat 
 DECLARE SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER)
 DECLARE SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
 DECLARE SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS BattleSprite, conlmp())
-DECLARE SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, exstat(), es())
+DECLARE SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, es())
 DECLARE SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, vic AS VictoryState)
-DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, exstat(), es(), formdata(), ctr(), lifemeter())
+DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, es(), formdata(), ctr(), lifemeter())
 DECLARE SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, icons(), iuse())
 DECLARE FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
