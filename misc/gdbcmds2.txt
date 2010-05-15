@@ -1,6 +1,7 @@
 echo Dumping state\n
+p ((char**)&__fb_ctx)[5]
 p GFXBACKENDINFO
 p MUSICBACKENDINFO
 info threads
 bt full
-quit
+

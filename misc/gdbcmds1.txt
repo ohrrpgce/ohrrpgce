@@ -1,4 +1,4 @@
-break fb_ErrorThrowEx
+break fb_End if ((char**)&__fb_ctx)[5] != 0
 break abort
 echo                Running...\n
 run
