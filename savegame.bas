@@ -21,10 +21,13 @@ DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
 
 REM $STATIC
+OPTION EXPLICIT
 
 SUB savegame (slot, stat())
 
 DIM gmaptmp(dimbinsize(binMAP))
+
+DIM AS INTEGER i, j, o, z
 
 '--FLUSH BUFFER---
 FOR i = 0 TO 16000
@@ -42,10 +45,10 @@ buffer(6) = 0    'was leader
 buffer(7) = mapx
 buffer(8) = mapy
 
-temp$ = STR$(gold)
+DIM gold_str AS STRING = STR(gold)
 FOR i = 0 TO 24
- IF i < LEN(temp$) THEN
-  IF MID$(temp$, i + 1, 1) <> "" THEN buffer(i + 9) = ASC(MID$(temp$, i + 1, 1))
+ IF i < LEN(gold_str) THEN
+  IF MID$(gold_str, i + 1, 1) <> "" THEN buffer(i + 9) = ASC(MID$(gold_str, i + 1, 1))
  ELSE
   buffer(i + 9) = 0
  END IF
@@ -97,12 +100,13 @@ FOR i = 0 TO 40
   buffer(z) = lmp(i, o): z = z + 1
  NEXT o
 NEXT i
+DIM exp_str AS STRING
 FOR i = 0 TO 40
  FOR o = 0 TO 1
-  temp$ = STR$(exlev(i, o))
+  exp_str = STR$(exlev(i, o))
   FOR j = 0 TO 25
-   IF j < LEN(temp$) THEN
-    IF MID$(temp$, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(temp$, j + 1, 1))
+   IF j < LEN(exp_str) THEN
+    IF MID$(exp_str, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(exp_str, j + 1, 1))
    ELSE
     buffer(z) = 0
    END IF
@@ -111,10 +115,9 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 FOR i = 0 TO 40
- temp$ = names(i)
  FOR j = 0 TO 16
-  IF j < LEN(temp$) THEN
-   IF MID$(temp$, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(temp$, j + 1, 1))
+  IF j < LEN(names(i)) THEN
+   IF MID$(names(i), j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(names(i), j + 1, 1))
   END IF
   z = z + 1
  NEXT j
@@ -129,8 +132,8 @@ NEXT i
 'Store new 16-bit inventory (Only the first 100 elements fit into this buffer!)
 SaveInventory16Bit inventory(), z, buffer(), 0, 99
 setpicstuf buffer(), 30000, -1
-sg$ = savefile
-storeset sg$, slot * 2, 0
+DIM sg AS STRING = savefile
+storeset sg, slot * 2, 0
 
 '---RECORD 2
 
@@ -224,19 +227,20 @@ IF inventoryMax <> 599 THEN debug "Warning: inventoryMax=" & inventoryMax & ", d
 SaveInventory16Bit inventory(), z, buffer(), 100, 599
 
 setpicstuf buffer(), 30000, -1
-sg$ = savefile
-storeset sg$, slot * 2 + 1, 0
+sg = savefile
+storeset sg, slot * 2 + 1, 0
 
 'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
 END SUB
 
 SUB saveglobalvars (slot, first, last)
+DIM i AS INTEGER
 DIM buf((last - first + 1) * 2) = ANY
-fh = FREEFILE
+DIM fh AS INTEGER = FREEFILE
 OPEN savefile FOR BINARY AS #fh
 IF first <= 1024 THEN
  'output first-final
- final = small(1024, last)
+ DIM final AS INTEGER = small(1024, last)
  FOR i = 0 TO final - first
   buf(i) = global(first + i)
  NEXT
@@ -250,7 +254,7 @@ IF first <= 1024 THEN
 END IF
 IF last >= 1025 THEN
  'output start-last
- start = large(1025, first)
+ DIM start AS INTEGER = large(1025, first)
  FOR i = 0 TO last - start
   buf(i * 2) = global(start + i)
   buf(i * 2 + 1) = global(start + i) shr 16
@@ -264,14 +268,16 @@ END SUB
 SUB loadgame (slot, stat())
 DIM gmaptmp(dimbinsize(binMAP))
 
+DIM AS INTEGER i, j, o, z
+
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + game
 
-sg$ = savefile
+DIM sg AS STRING = savefile
 setpicstuf buffer(), 30000, -1
-loadset sg$, slot * 2, 0
+loadset sg, slot * 2, 0
 
-savver = buffer(0)
+DIM savver AS INTEGER = buffer(0)
 IF savver < 2 OR savver > 3 THEN EXIT SUB
 gam.map.id = buffer(1)
 loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) / 2, gam.map.id
@@ -283,12 +289,12 @@ gam.random_battle_countdown = buffer(5)
 mapx = buffer(7)
 mapy = buffer(8)
 
-temp$ = ""
+DIM gold_str AS STRING = ""
 FOR i = 0 TO 24
  IF buffer(i + 9) < 0 OR buffer(i + 9) > 255 THEN buffer(i + 9) = 0
- IF buffer(i + 9) > 0 THEN temp$ = temp$ + CHR$(buffer(i + 9))
+ IF buffer(i + 9) > 0 THEN gold_str &= CHR(buffer(i + 9))
 NEXT i
-gold = str2int(temp$)
+gold = str2int(gold_str)
 
 z = 34
 show_load_index z, "gen"
@@ -322,7 +328,7 @@ NEXT i
 show_load_index z, "unused a"
 FOR i = 0 TO 500
  '--used to be the useless a() buffer
- dummy = buffer(z): z = z + 1
+ z = z + 1
 NEXT i
 show_load_index z, "stats"
 FOR i = 0 TO 40
@@ -354,26 +360,26 @@ FOR i = 0 TO 40
  NEXT o
 NEXT i
 show_load_index z, "exlev"
+DIM exp_str AS STRING
 FOR i = 0 TO 40
  FOR o = 0 TO 1
-  temp$ = ""
+  exp_str = ""
   FOR j = 0 TO 25
    IF buffer(z) < 0 OR buffer(z) > 255 THEN buffer(z) = 0
-   IF buffer(z) > 0 THEN temp$ = temp$ + CHR$(buffer(z))
+   IF buffer(z) > 0 THEN exp_str &= CHR(buffer(z))
    z = z + 1
   NEXT j
-  exlev(i, o) = str2int(temp$)
+  exlev(i, o) = str2int(exp_str)
  NEXT o
 NEXT i
 show_load_index z, "names"
 FOR i = 0 TO 40
- temp$ = ""
+ names(i) = ""
  FOR j = 0 TO 16
   IF buffer(z) < 0 OR buffer(z) > 255 THEN buffer(z) = 0
-  IF buffer(z) > 0 THEN temp$ = temp$ + CHR$(buffer(z))
+  IF buffer(z) > 0 THEN names(i) &= CHR(buffer(z))
   z = z + 1
  NEXT j
- names(i) = temp$
 NEXT i
 
 show_load_index z, "inv_mode"
@@ -403,7 +409,7 @@ show_load_index z, "after inv 16bit"
 'RECORD 2
 
 setpicstuf buffer(), 30000, -1
-loadset sg$, slot * 2 + 1, 0
+loadset sg, slot * 2 + 1, 0
 
 z = 0
 
@@ -465,7 +471,7 @@ END WITH
 z += 22
 '--picture and palette
 show_load_index z, "picpal magic", 1
-picpalmagicnum = buffer(z): z = z + 1
+DIM picpalmagicnum AS INTEGER = buffer(z): z = z + 1
 show_load_index z, "picpalwep", 1
 FOR i = 0 TO 40
  FOR o = 0 TO 1
@@ -477,7 +483,7 @@ FOR i = 0 TO 40
 NEXT i
 'native hero bitsets
 show_load_index z, "hbit magic", 1
-nativebitmagicnum = buffer(z): z = z + 1
+DIM nativebitmagicnum AS INTEGER = buffer(z): z = z + 1
 show_load_index z, "hbits", 1
 FOR i = 0 TO 40
  FOR o = 0 TO 4
@@ -514,42 +520,43 @@ dim her as herodef
 
 IF picpalmagicnum <> 4444 THEN
  '--fix appearance settings
- FOR sl = 0 TO 40
-  IF hero(sl) > 0 THEN
-   loadherodata @her, hero(sl) - 1
-   stat(sl, 0, 14) = her.sprite
-   stat(sl, 0, 15) = her.sprite_pal
-   stat(sl, 1, 14) = her.walk_sprite
-   stat(sl, 1, 15) = her.walk_sprite_pal
-   stat(sl, 0, 16) = her.def_weapon + 1'default weapon
+ FOR i = 0 TO 40
+  IF hero(i) > 0 THEN
+   loadherodata @her, hero(i) - 1
+   stat(i, 0, 14) = her.sprite
+   stat(i, 0, 15) = her.sprite_pal
+   stat(i, 1, 14) = her.walk_sprite
+   stat(i, 1, 15) = her.walk_sprite_pal
+   stat(i, 0, 16) = her.def_weapon + 1'default weapon
   END IF
- NEXT sl
+ NEXT i
 END IF
 
 IF nativebitmagicnum <> 4444 THEN
  '--fix native hero bits
- FOR sl = 0 TO 40
-  IF hero(sl) > 0 THEN
-   loadherodata @her, hero(sl) - 1
+ FOR i = 0 TO 40
+  IF hero(i) > 0 THEN
+   loadherodata @her, hero(i) - 1
    FOR i = 0 TO 2 '??
-    nativehbits(sl, i) = her.bits(i)
+    nativehbits(i, i) = her.bits(i)
    NEXT i
   END IF
- NEXT sl
+ NEXT i
 END IF
 
 'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
 END SUB
 
 SUB loadglobalvars (slot, first, last)
+DIM i AS INTEGER
 DIM buf((last - first + 1) * 2) = ANY
 IF isfile(savefile) THEN
- fh = FREEFILE
+ DIM fh AS INTEGER = FREEFILE
  OPEN savefile FOR BINARY AS #fh
 
  IF first <= 1024 THEN
   'grab first-final
-  final = small(1024, last)
+  DIM final AS INTEGER = small(1024, last)
   SEEK #fh, 60000 * slot + 2 * first + 40027  '20013 * 2 + 1
   loadrecord buf(), fh, final - first + 1, -1
   FOR i = 0 TO final - first
@@ -563,7 +570,7 @@ IF isfile(savefile) THEN
  END IF
  IF last >= 1025 THEN
   'grab start-last
-  start = large(1025, first)
+  DIM start AS INTEGER = large(1025, first)
   SEEK #fh, 60000 * slot + 4 * (start - 1025) + 45077  '22538 * 2 + 1
   loadrecord buf(), fh, (last - start + 1) * 2, -1
   FOR i = 0 TO last - start
