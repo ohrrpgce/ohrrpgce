@@ -1669,7 +1669,7 @@ FUNCTION loadscript (n as unsigned integer) as ScriptData ptr
    IF .strtable THEN .strtable = (.strtable - skip) \ wordsize
   ELSEIF skip = 10 THEN
    GET #f, 9, temp
-   IF .strtable THEN .strtable = (temp - skip) \ wordsize
+   IF temp THEN .strtable = (temp - skip) \ wordsize
   ELSE
    .strtable = 0
   END IF

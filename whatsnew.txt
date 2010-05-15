@@ -8,6 +8,8 @@ May ? 2010 [Ypsiliform+3]
     * "set dead heroes gain experience" did nothing.
     * Bug 829: Shrinking a map could cause garbage map layers to appear;
       also, deleting map layers did not work
+    * Script string literals were broken when playing games made in
+      late 2006.
 
 Feb 8 2010 [Ypsiliform+2]
 
