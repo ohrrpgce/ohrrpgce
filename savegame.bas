@@ -17,13 +17,40 @@ DEFINT A-Z
 #include "menustuf.bi"
 
 '--Local subs and functions
+
+'--old save/load support
+DECLARE SUB old_savegame (slot as integer, stat() as integer)
+DECLARE SUB old_saveglobalvars (slot as integer, first as integer, last as integer)
+DECLARE SUB old_loadgame (slot as integer, stat() as integer)
+DECLARE SUB old_loadglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
+
 
 REM $STATIC
 OPTION EXPLICIT
 
+'-----------------------------------------------------------------------
+
 SUB savegame (slot, stat())
+ old_savegame slot, stat()
+END SUB
+
+SUB saveglobalvars (slot, first, last)
+ old_saveglobalvars slot, first, last
+END SUB
+
+SUB loadgame (slot, stat())
+ old_loadgame slot, stat()
+END SUB
+
+SUB loadglobalvars (slot, first, last)
+ old_loadglobalvars slot, first, last
+END SUB
+
+'-----------------------------------------------------------------------
+
+SUB old_savegame (slot, stat())
 
 DIM gmaptmp(dimbinsize(binMAP))
 
@@ -233,7 +260,7 @@ storeset sg, slot * 2 + 1, 0
 'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
 END SUB
 
-SUB saveglobalvars (slot, first, last)
+SUB old_saveglobalvars (slot, first, last)
 DIM i AS INTEGER
 DIM buf((last - first + 1) * 2) = ANY
 DIM fh AS INTEGER = FREEFILE
@@ -265,7 +292,7 @@ END IF
 CLOSE #fh
 END SUB
 
-SUB loadgame (slot, stat())
+SUB old_loadgame (slot, stat())
 DIM gmaptmp(dimbinsize(binMAP))
 
 DIM AS INTEGER i, j, o, z
@@ -547,7 +574,7 @@ END IF
 'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
 END SUB
 
-SUB loadglobalvars (slot, first, last)
+SUB old_loadglobalvars (slot, first, last)
 DIM i AS INTEGER
 DIM buf((last - first + 1) * 2) = ANY
 IF isfile(savefile) THEN
