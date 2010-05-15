@@ -11,7 +11,6 @@ option explicit
 
 'glup
 #include "compat.bi"
-#include "util.bi"
 #undef opaque
 
 'uncomment this to try allegro
@@ -64,6 +63,8 @@ option explicit
 #include once "common.bi"
 
 #include once "const.bi"
+
+#include once "util.bi"
 
 
 #DEFINE ESCAPE_SEQUENCE Goto endOfSong
