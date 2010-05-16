@@ -3718,12 +3718,12 @@ end
 		<command id="joystickbutton">
 		  <canon>joystick button (button,joystick)</canon>
 		  <shortname>joystick button</shortname>
-		  <description>Returns <ref>true</ref> or <ref>false</ref> depending on whether button #<p>button</p> on joystick #<p>joystick</p> is pressed. <p>button</p> can be from 1-16 (assuming the joystick has that many buttons), and <p>joystick</p> can be from 0-3. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
+		  <description>Returns <ref>true</ref> or <ref>false</ref> depending on whether button #<p>button</p> on joystick #<p>joystick</p> is pressed. <p>button</p> can be from 1-16 (assuming the joystick has that many buttons), and <p>joystick</p> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
 		</command>
 		<command id="joystickaxis">
 		  <canon>joystick axis (axis,multiplier,joystick)</canon>
 		  <shortname>joystick axis</shortname>
-		  <description>Returns the position of the joystick along the X or Y axis on joystick #<p>joystick</p>. <p>axis</p> can be one of the constants <ref>xaxis</ref> or <ref>yaxis</ref>. <p>multiplier</p> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <p>joystick</p> can be from 0-3. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
+		  <description>Returns the position of the joystick along the X or Y axis on joystick #<p>joystick</p>. <p>axis</p> can be one of the constants <ref>xaxis</ref> or <ref>yaxis</ref>. <p>multiplier</p> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <p>joystick</p> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
 		</command>
 		<command id="heropixelx">
 			<canon>hero pixel X (who)</canon>

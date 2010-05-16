@@ -1385,7 +1385,7 @@ SELECT CASE AS CONST id
    IF keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   CASE 128 TO 147 'joystick
    dim b as integer, xaxis as integer, yaxis as integer '0 >= x and y, >= 100
-   IF readjoy(bound(retvals(1),0,3),b,xaxis,yaxis) THEN
+   IF readjoy(bound(retvals(1),0,7),b,xaxis,yaxis) THEN
     IF retvals(0) >= 128 AND retvals(0) <= 143 THEN
      scriptret = (b SHR (retvals(0) - 128)) AND 1
     ELSEIF retvals(0) = 144 THEN 'x left
@@ -1452,9 +1452,8 @@ SELECT CASE AS CONST id
   END IF
  CASE 242'-- joystick button
   retvals(0) = bound(retvals(0)-1,0,15)
-  retvals(1) = bound(retvals(1),0,3)
-
-  b = 0
+  retvals(1) = bound(retvals(1),0,7)
+  DIM b as integer
   IF readjoy(retvals(1),b,0,0) THEN
    scriptret = (b SHR retvals(0)) AND 1
   ELSE
@@ -1462,15 +1461,13 @@ SELECT CASE AS CONST id
   END IF
  CASE 243'-- joystick axis
   retvals(0) = bound(retvals(0),0,1)
-  retvals(2) = bound(retvals(2),0,3)
-
-  xaxis = 0
-  yaxis = 0
-  IF readjoy(retvals(2),0,xaxis,yaxis) THEN
-   IF retvals(0) = 0 THEN'x axis
+  retvals(2) = bound(retvals(2),0,7)
+  DIM as integer xaxis, yaxis
+  IF readjoy(retvals(2), 0, xaxis, yaxis) THEN
+   IF retvals(0) = 0 THEN  'x axis
     'debug "x " & xaxis
     scriptret = int((xaxis / 100) * retvals(1)) 'normally, xaxis * 100
-   ELSEIF retvals(0) = 1 THEN 'y axis
+   ELSEIF retvals(0) = 1 THEN  'y axis
     'debug "y " & yaxis
     scriptret = int((yaxis / 100) * retvals(1)) 'normally, yaxis * 100
    END IF

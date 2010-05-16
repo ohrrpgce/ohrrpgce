@@ -42,7 +42,7 @@ DIM SHARED resizerequested AS INTEGER = NO
 DIM SHARED resizerequest AS XYPair
 DIM SHARED rememmvis AS INTEGER = 1
 DIM SHARED keystate AS Uint8 PTR = NULL
-DIM SHARED sdljoystick AS SDL_Joystick PTR = NULL
+DIM SHARED joystickhandles(7) AS SDL_Joystick PTR
 DIM SHARED sdlpalette(0 TO 255) AS SDL_Color
 DIM SHARED framesize AS XYPair
 DIM SHARED dest_rect AS SDL_Rect
@@ -214,6 +214,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
       *info_buffer = MID("Can't start SDL (video): " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
       RETURN 0
     END IF
+    *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks)"
   ELSEIF SDL_WasInit(SDL_INIT_VIDEO) = 0 THEN
     IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
       *info_buffer = MID("Can't start SDL video subsys: " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
@@ -251,7 +252,10 @@ END FUNCTION
 SUB gfx_sdl_close()
   IF SDL_WasInit(SDL_INIT_VIDEO) THEN
     IF screenbuffer <> NULL THEN SDL_FreeSurface(screenbuffer)
-    IF sdljoystick <> NULL THEN SDL_JoystickClose(sdljoystick)
+    FOR i as integer = 0 TO small(SDL_NumJoysticks(), 8) - 1
+      IF joystickhandles(i) <> NULL THEN SDL_JoystickClose(joystickhandles(i))
+      joystickhandles(i) = NULL
+    NEXT
     SDL_QuitSubSystem(SDL_INIT_VIDEO)
     IF SDL_WasInit(0) = 0 THEN
       SDL_Quit()
@@ -609,17 +613,22 @@ SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as
 END SUB
 
 FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
-  'FIXME: only bothers to support the first joystick
-  IF SDL_NumJoysticks() = 0 THEN RETURN 0
-  IF sdljoystick = NULL THEN
-    sdljoystick = SDL_JoystickOpen(0)
+  IF joynum < 0 OR SDL_NumJoysticks() < joynum + 1 THEN RETURN 0
+  IF joystickhandles(joynum) = NULL THEN
+    joystickhandles(joynum) = SDL_JoystickOpen(joynum)
+    IF joystickhandles(joynum) = NULL THEN
+      debug "Couldn't open joystick " & joynum & ": " & *SDL_GetError
+      RETURN 0
+    END IF
   END IF
   SDL_JoystickUpdate() 'should this be here? moved from io_sdl_readjoy
   button = 0
-  IF SDL_JoystickGetButton(sdljoystick, 0) THEN button = button OR 1
-  IF SDL_JoystickGetButton(sdljoystick, 1) THEN button = button OR 2
-  x = SDL_JoystickGetAxis(sdljoystick, 0)
-  y = SDL_JoystickGetAxis(sdljoystick, 1)
+  FOR i as integer = 0 TO SDL_JoystickNumButtons(joystickhandles(joynum)) - 1
+    IF SDL_JoystickGetButton(joystickhandles(joynum), i) THEN button = button OR (1 SHL i)
+  NEXT
+  'SDL_JoystickGetAxis returns a value from -32768 to 32767
+  x = SDL_JoystickGetAxis(joystickhandles(joynum), 0) / 32768.0 * 100
+  y = SDL_JoystickGetAxis(joystickhandles(joynum), 1) / 32768.0 * 100
   'debug "x=" & x & " y=" & y & " button=" & button
   RETURN 1
 END FUNCTION
