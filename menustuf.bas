@@ -75,9 +75,9 @@ eqprefix$ = readglobalstring$(99, "Equip:", 10)
 noroom$ = readglobalstring$(100, "No Room in Party", 20)
 
 FOR i = 0 TO 3
- herosprite(i) = frame_load(0, gam.hero(i).stat.cur.pic)
- IF herosprite(i) = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & gam.hero(i).stat.cur.pic
- heropal(i) = palette16_load(gam.hero(i).stat.cur.pal, 0, gam.hero(i).stat.cur.pic)
+ herosprite(i) = frame_load(0, gam.hero(i).battle_pic)
+ IF herosprite(i) = 0 THEN debug "Couldn't load hero sprite: " & game & ".pt0#" & gam.hero(i).battle_pic
+ heropal(i) = palette16_load(gam.hero(i).battle_pal, 0, gam.hero(i).battle_pic)
  IF heropal(i) = 0 THEN debug "Failed to load palette for hero (#" & i & ")"
 NEXT i
 

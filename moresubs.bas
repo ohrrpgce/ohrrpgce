@@ -123,13 +123,13 @@ setbit hmask(), 0, who - 1, 0
 
 '--appearance settings
 ' udts are self documenting
-WITH gam.hero(slot).stat
- .cur.pic = her.sprite
- .cur.pal = her.sprite_pal
- .max.pic = her.walk_sprite
- .max.pal = her.walk_sprite_pal
+WITH gam.hero(slot)
+ .battle_pic = her.sprite
+ .battle_pal = her.sprite_pal
+ .pic = her.walk_sprite
+ .pal = her.walk_sprite_pal
+ .def_wep = her.def_weapon + 1'default weapon
 END WITH
-gam.hero(slot).def_wep = her.def_weapon + 1'default weapon
 
 '--read hero's name (doing this last for no real reason)
 names(slot) = her.name
@@ -1066,10 +1066,14 @@ CleanNPCL npc(),300
 flusharray tag(), 126, 0
 flusharray hero(), 40, 0
 FOR i = 0 TO 40
- FOR j = 0 TO 15
+ FOR j = 0 TO 13
   gam.hero(i).stat.cur.sta(j) = 0
   gam.hero(i).stat.max.sta(j) = 0
  NEXT j
+ gam.hero(i).battle_pic = 0
+ gam.hero(i).battle_pal = 0
+ gam.hero(i).pic = 0
+ gam.hero(i).pal = 0
  gam.hero(i).def_wep = 0
 NEXT i
 FOR i = 0 TO 40

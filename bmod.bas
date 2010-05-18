@@ -1174,8 +1174,8 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
     .vis = 1
     'load hero sprites
     .sprite_num = 8
-    .sprites = frame_load(0, gam.hero(i).stat.cur.pic)
-    .pal = palette16_load(gam.hero(i).stat.cur.pal, 0, gam.hero(i).stat.cur.pic)
+    .sprites = frame_load(0, gam.hero(i).battle_pic)
+    .pal = palette16_load(gam.hero(i).battle_pal, 0, gam.hero(i).battle_pic)
     .frame = 0
     .death_sfx = -1 'No death sounds for heroes (for now)
     .cursorpos.x = .w / 2

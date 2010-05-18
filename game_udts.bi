@@ -34,10 +34,8 @@ UNION HeroStatsSingle
     '--not-stats... 'FIXME: move these to HeroState
     lev AS INTEGER '.cur is current level, .max is level-gained counter
     wep_picpal AS INTEGER '.cur is picture .max is palette
-    pic AS INTEGER '.cur is battle picture, .max is walkabout pic
-    pal AS INTEGER '.cur is battle palette, .max is walkabout pal
   END TYPE
-  sta(15) AS INTEGER
+  sta(13) AS INTEGER
 End UNION
 
 TYPE HeroStats
@@ -49,6 +47,10 @@ TYPE HeroState
  '--currently just contains stats, but will eventually contain all hero state
  stat AS HeroStats
  def_wep AS INTEGER '-default weapon
+ pic AS INTEGER
+ pal AS INTEGER
+ battle_pic AS INTEGER
+ battle_pal AS INTEGER
 END TYPE
 
 TYPE GameState

@@ -272,8 +272,8 @@ SELECT CASE AS CONST id
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = bound(retvals(0), 0, 40)
    retvals(2) = bound(retvals(2), 0, 1)
-   IF retvals(2) = 0 THEN gam.hero(i).stat.cur.pic = bound(retvals(1), 0, gen(genMaxHeroPic))
-   IF retvals(2) = 1 THEN gam.hero(i).stat.max.pic = bound(retvals(1), 0, gen(genMaxNPCPic))
+   IF retvals(2) = 0 THEN gam.hero(i).battle_pic = bound(retvals(1), 0, gen(genMaxHeroPic))
+   IF retvals(2) = 1 THEN gam.hero(i).pic = bound(retvals(1), 0, gen(genMaxNPCPic))
    IF i < 4 THEN
     vishero
    END IF
@@ -283,9 +283,9 @@ SELECT CASE AS CONST id
    i = bound(retvals(0), 0, 40)
    j = bound(retvals(2), 0, 1)
    IF j < 1 THEN
-    gam.hero(i).stat.cur.pal = bound(retvals(1), -1, 32767)
+    gam.hero(i).battle_pal = bound(retvals(1), -1, 32767)
    ELSE
-    gam.hero(i).stat.max.pal = bound(retvals(1), -1, 32767)
+    gam.hero(i).pal = bound(retvals(1), -1, 32767)
    END IF
    IF i < 4 THEN
     vishero
@@ -293,15 +293,15 @@ SELECT CASE AS CONST id
   END IF
  CASE 112'--get hero picture
   IF retvals(1) < 1 THEN
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.cur.pic
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pic
   ELSE
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.max.pic
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).pic
   END IF
  CASE 113'--get hero palette
   IF retvals(1) < 1 THEN
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.cur.pal
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).battle_pal
   ELSE
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.max.pal
+   scriptret = gam.hero(bound(retvals(0), 0, 40)).pal
   END IF
  CASE 150'--status screen
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -414,8 +414,8 @@ SELECT CASE AS CONST id
     IF bound_arg(j, 0, 1, "in or out of battle") THEN
      DIM her as herodef
      loadherodata @her, hero(i) - 1
-     IF j = 0 THEN gam.hero(i).stat.cur.pic = her.sprite
-     IF j = 1 THEN gam.hero(i).stat.max.pic = her.walk_sprite
+     IF j = 0 THEN gam.hero(i).battle_pic = her.sprite
+     IF j = 1 THEN gam.hero(i).pic = her.walk_sprite
      IF i < 4 THEN vishero
     END IF
    END IF
@@ -428,8 +428,8 @@ SELECT CASE AS CONST id
     IF bound_arg(j, 0, 1, "in or out of battle") THEN
      DIM her as herodef
      loadherodata @her, hero(i) - 1
-     IF j = 0 THEN gam.hero(i).stat.cur.pal = her.sprite_pal
-     IF j = 1 THEN gam.hero(i).stat.max.pal = her.walk_sprite_pal
+     IF j = 0 THEN gam.hero(i).battle_pal = her.sprite_pal
+     IF j = 1 THEN gam.hero(i).pal = her.walk_sprite_pal
      IF i < 4 THEN vishero
     END IF
    END IF
@@ -2887,8 +2887,8 @@ NEXT
 o = 0
 FOR i = 0 TO 3
  IF hero(i) > 0 THEN
-  herow(o).sprite = frame_load(4, gam.hero(i).stat.max.pic)
-  herow(o).pal = palette16_load(gam.hero(i).stat.max.pal, 4, gam.hero(i).stat.max.pic)
+  herow(o).sprite = frame_load(4, gam.hero(i).pic)
+  herow(o).pal = palette16_load(gam.hero(i).pal, 4, gam.hero(i).pic)
   o = o + 1
  END IF
 NEXT i
