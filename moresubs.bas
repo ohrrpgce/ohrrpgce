@@ -128,8 +128,8 @@ WITH gam.hero(slot).stat
  .cur.pal = her.sprite_pal
  .max.pic = her.walk_sprite
  .max.pal = her.walk_sprite_pal
- .cur.def_wep = her.def_weapon + 1'default weapon
 END WITH
+gam.hero(slot).def_wep = her.def_weapon + 1'default weapon
 
 '--read hero's name (doing this last for no real reason)
 names(slot) = her.name
@@ -319,11 +319,8 @@ FOR i = 0 TO 3
  NEXT o
 NEXT i
 
-'---hero stats
-FOR o = 0 TO 16
- SWAP gam.hero(s).stat.cur.sta(o), gam.hero(d).stat.cur.sta(o)
- SWAP gam.hero(s).stat.max.sta(o), gam.hero(d).stat.max.sta(o)
-NEXT o
+'---hero state and stats
+SWAP gam.hero(s), gam.hero(d)
 
 '---Level-MP
 FOR i = 0 TO 7
@@ -1069,10 +1066,11 @@ CleanNPCL npc(),300
 flusharray tag(), 126, 0
 flusharray hero(), 40, 0
 FOR i = 0 TO 40
- FOR j = 0 TO 16
+ FOR j = 0 TO 15
   gam.hero(i).stat.cur.sta(j) = 0
   gam.hero(i).stat.max.sta(j) = 0
  NEXT j
+ gam.hero(i).def_wep = 0
 NEXT i
 FOR i = 0 TO 40
  FOR o = 0 TO 5

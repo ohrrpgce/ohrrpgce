@@ -210,7 +210,7 @@ SUB scriptstat (id)
 
 SELECT CASE AS CONST id
  CASE 64'--get hero stat
-  'FIXME: unfortunately this can also access hero level and hero default weapon
+  'FIXME: unfortunately this can also access hero level
   'which will suck when we want to add more stats
   IF retvals(2) < 1 THEN
    scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.cur.sta(bound(retvals(1), 0, 13))
@@ -258,8 +258,8 @@ SELECT CASE AS CONST id
    NEXT o
   END IF
  CASE 83'--set hero stat
-  'FIXME: this command can also set hero level (without updating stats) and
-  ' it can change hero default weapon, which sucks for when we want to add more stats.
+  'FIXME: this command can also set hero level (without updating stats)
+  ' which sucks for when we want to add more stats.
   IF retvals(3) < 1 THEN
    gam.hero(bound(retvals(0), 0, 40)).stat.cur.sta(bound(retvals(1), 0, 13)) = retvals(2)
   ELSE

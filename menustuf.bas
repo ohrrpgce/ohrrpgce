@@ -1658,7 +1658,7 @@ evalitemtag
 END SUB
 
 SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
- st.default_weapon = gam.hero(st.who).stat.cur.def_wep
+ st.default_weapon = gam.hero(st.who).def_wep
  st.default_weapon_name = rpad(readitemname(st.default_weapon - 1), " ", 11)
  IF LEN(TRIM(st.default_weapon_name)) = 0 THEN
   st.default_weapon_name = st.unequip_caption

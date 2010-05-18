@@ -228,12 +228,14 @@ z += 22
 '--picture and palette
 buffer(z) = 4444: z = z + 1 'magic number
 FOR i = 0 TO 40
- FOR j = 14 TO 16
+ FOR j = 14 TO 15
   buffer(z) = gam.hero(i).stat.cur.sta(j): z = z + 1
  NEXT j
- FOR j = 14 TO 16
+ buffer(z) = gam.hero(i).def_wep: z = z + 1
+ FOR j = 14 TO 15
   buffer(z) = gam.hero(i).stat.max.sta(j): z = z + 1
  NEXT j
+ z = z + 1 'skip an int
 NEXT i
 '--native hero bitsets
 buffer(z) = 4444: z = z + 1 'magic number
@@ -504,14 +506,16 @@ show_load_index z, "picpal magic", 1
 DIM picpalmagicnum AS INTEGER = buffer(z): z = z + 1
 show_load_index z, "picpalwep", 1
 FOR i = 0 TO 40
- FOR j = 14 TO 16
+ FOR j = 14 TO 15
   IF picpalmagicnum = 4444 THEN gam.hero(i).stat.cur.sta(j) = buffer(z)
   z = z + 1
  NEXT j
- FOR j = 14 TO 16
+ gam.hero(i).def_wep = buffer(z) : z = z + 1
+ FOR j = 14 TO 15
   IF picpalmagicnum = 4444 THEN gam.hero(i).stat.max.sta(j) = buffer(z)
   z = z + 1
  NEXT j
+ z = z + 1 'skip an int
 NEXT i
 'native hero bitsets
 show_load_index z, "hbit magic", 1
@@ -559,7 +563,7 @@ IF picpalmagicnum <> 4444 THEN
    gam.hero(i).stat.cur.pal = her.sprite_pal
    gam.hero(i).stat.max.pic = her.walk_sprite
    gam.hero(i).stat.max.pal = her.walk_sprite_pal
-   gam.hero(i).stat.cur.def_wep = her.def_weapon + 1'default weapon
+   gam.hero(i).def_wep = her.def_weapon + 1'default weapon
   END IF
  NEXT i
 END IF

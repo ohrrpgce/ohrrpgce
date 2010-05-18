@@ -1243,15 +1243,15 @@ WITH scrat(nowscript)
    CASE 23'--unequip
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
      i = retvals(0)
-     unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).stat.cur.def_wep, 1
+     unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep, 1
     END IF
     evalitemtag
    CASE 24'--force equip
     IF valid_hero_party(retvals(0)) THEN
      i = retvals(0)
      IF valid_item(retvals(2)) THEN
-      unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).stat.cur.def_wep, 0
-      doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), gam.hero(i).stat.cur.def_wep
+      unequip i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep, 0
+      doequip retvals(2) + 1, i, bound(retvals(1) - 1, 0, 4), gam.hero(i).def_wep
      END IF
     END IF
     evalitemtag
@@ -1277,7 +1277,7 @@ WITH scrat(nowscript)
     END IF
    CASE 55'--get default weapon
     IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
-     scriptret = gam.hero(retvals(0)).stat.cur.def_wep - 1
+     scriptret = gam.hero(retvals(0)).def_wep - 1
     ELSE
      scriptret = 0
     END IF
@@ -1287,11 +1287,11 @@ WITH scrat(nowscript)
       '--identify new default weapon
       DIM AS INTEGER newdfw = retvals(1) + 1
       '--remember old default weapon
-      DIM AS INTEGER olddfw = gam.hero(retvals(0)).stat.cur.def_wep
+      DIM AS INTEGER olddfw = gam.hero(retvals(0)).def_wep
       '--remeber currently equipped weapon
       DIM AS INTEGER cureqw = eqstuf(retvals(0), 0)
       '--change default
-      gam.hero(retvals(0)).stat.cur.def_wep = newdfw
+      gam.hero(retvals(0)).def_wep = newdfw
       '--blank weapon
       unequip retvals(0), 0, olddfw, 0
       IF cureqw <> olddfw THEN

@@ -36,9 +36,8 @@ UNION HeroStatsSingle
     wep_picpal AS INTEGER '.cur is picture .max is palette
     pic AS INTEGER '.cur is battle picture, .max is walkabout pic
     pal AS INTEGER '.cur is battle palette, .max is walkabout pal
-    def_wep AS INTEGER 'only used in .cur
   END TYPE
-  sta(16) AS INTEGER
+  sta(15) AS INTEGER
 End UNION
 
 TYPE HeroStats
@@ -49,6 +48,7 @@ END TYPE
 TYPE HeroState
  '--currently just contains stats, but will eventually contain all hero state
  stat AS HeroStats
+ def_wep AS INTEGER '-default weapon
 END TYPE
 
 TYPE GameState
