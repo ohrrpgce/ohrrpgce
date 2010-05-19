@@ -2350,9 +2350,9 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   with bslot(24)
    .sprite_num = 2
    frame_unload @.sprites
-   .sprites = frame_load(5, gam.hero(bat.acting).stat.cur.wep_picpal)
+   .sprites = frame_load(5, gam.hero(bat.acting).wep_pic)
    palette16_unload @.pal
-   .pal = palette16_load(gam.hero(bat.acting).stat.max.wep_picpal, 5, gam.hero(bat.acting).stat.cur.wep_picpal)
+   .pal = palette16_load(gam.hero(bat.acting).wep_pal, 5, gam.hero(bat.acting).wep_pic)
    .frame = 0
   end with
  END IF

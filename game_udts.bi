@@ -33,9 +33,8 @@ UNION HeroStatsSingle
     hits AS INTEGER '11
     '--not-stats... 'FIXME: move these to HeroState
     lev AS INTEGER '.cur is current level, .max is level-gained counter
-    wep_picpal AS INTEGER '.cur is picture .max is palette
   END TYPE
-  sta(13) AS INTEGER
+  sta(12) AS INTEGER
 End UNION
 
 TYPE HeroStats
@@ -51,6 +50,8 @@ TYPE HeroState
  pal AS INTEGER
  battle_pic AS INTEGER
  battle_pal AS INTEGER
+ wep_pic AS INTEGER
+ wep_pal AS INTEGER
 END TYPE
 
 TYPE GameState

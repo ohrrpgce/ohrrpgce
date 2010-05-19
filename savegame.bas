@@ -103,12 +103,14 @@ FOR i = 0 TO 500
  buffer(z) = 0: z = z + 1
 NEXT i
 FOR i = 0 TO 40
- FOR j = 0 TO 13
+ FOR j = 0 TO 12
   buffer(z) = gam.hero(i).stat.cur.sta(j): z = z + 1
  NEXT j
- FOR j = 0 TO 13
+ buffer(z) = gam.hero(i).wep_pic: z = z + 1
+ FOR j = 0 TO 12
   buffer(z) = gam.hero(i).stat.max.sta(j): z = z + 1
  NEXT j
+ buffer(z) = gam.hero(i).wep_pal: z = z + 1
 NEXT i
 FOR i = 0 TO 40
  FOR o = 0 TO 5
@@ -361,12 +363,14 @@ FOR i = 0 TO 500
 NEXT i
 show_load_index z, "stats"
 FOR i = 0 TO 40
- FOR j = 0 TO 13
+ FOR j = 0 TO 12
   gam.hero(i).stat.cur.sta(j) = buffer(z): z = z + 1
  NEXT j
- FOR j = 0 TO 13
+ gam.hero(i).wep_pic = buffer(z): z = z + 1
+ FOR j = 0 TO 12
   gam.hero(i).stat.max.sta(j) = buffer(z): z = z + 1
  NEXT j
+ gam.hero(i).wep_pal = buffer(z): z = z + 1
 NEXT i
 show_load_index z, "bmenu"
 FOR i = 0 TO 40

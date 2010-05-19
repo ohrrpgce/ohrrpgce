@@ -212,10 +212,22 @@ SELECT CASE AS CONST id
  CASE 64'--get hero stat
   'FIXME: unfortunately this can also access hero level
   'which will suck when we want to add more stats
+  slot = bound(retvals(0), 0, 40)
+  i = bound(retvals(1), 0, 13)
   IF retvals(2) < 1 THEN
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.cur.sta(bound(retvals(1), 0, 13))
+   IF i = 13 THEN
+    'This is just backcompat for a very undocumented bugfeature
+    scriptret = gam.hero(slot).wep_pic
+   ELSE
+    scriptret = gam.hero(slot).stat.cur.sta(i)
+   END IF
   ELSE
-   scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.max.sta(bound(retvals(1), 0, 13))
+   IF i = 13 THEN
+    'This is just backcompat for a very undocumented bugfeature
+    scriptret = gam.hero(slot).wep_pal
+   ELSE
+    scriptret = gam.hero(slot).stat.max.sta(i)
+   END IF
   END IF
  CASE 66'--add hero
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxHero) THEN
@@ -260,10 +272,22 @@ SELECT CASE AS CONST id
  CASE 83'--set hero stat
   'FIXME: this command can also set hero level (without updating stats)
   ' which sucks for when we want to add more stats.
+  slot = bound(retvals(0), 0, 40)
+  i = bound(retvals(1), 0, 13)
   IF retvals(3) < 1 THEN
-   gam.hero(bound(retvals(0), 0, 40)).stat.cur.sta(bound(retvals(1), 0, 13)) = retvals(2)
+   IF i = 13 THEN
+    'This is just backcompat for a very undocumented bugfeature
+    gam.hero(slot).wep_pic = retvals(2)
+   ELSE
+    gam.hero(slot).stat.cur.sta(i) = retvals(2)
+   END IF
   ELSE
-   gam.hero(bound(retvals(0), 0, 40)).stat.max.sta(bound(retvals(1), 0, 13)) = retvals(2)
+   IF i = 13 THEN
+    'This is backcompat for a very undocumented bugfeature
+    gam.hero(slot).wep_pal = retvals(2)
+   ELSE
+    gam.hero(slot).stat.max.sta(i) = retvals(2)
+   END IF
   END IF
  CASE 89'--swap by position
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)

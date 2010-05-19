@@ -469,8 +469,8 @@ END WITH
 
 '--special handling for weapons
 IF where = 0 THEN
- gam.hero(who).stat.cur.wep_picpal = buffer(52) 'remember weapon pic
- gam.hero(who).stat.max.wep_picpal = buffer(53) 'remember weapon pal
+ gam.hero(who).wep_pic = buffer(52) 'remember weapon pic
+ gam.hero(who).wep_pal = buffer(53) 'remember weapon pal
  bmenu(who, 0) = large(buffer(48), 1) 'put weapon attack in battle menu
 END IF
 

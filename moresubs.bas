@@ -68,10 +68,10 @@ WITH gam.hero(slot).stat
   .cur.sta(i) = atlevel(her.def_level, her.Lev0.sta(i), her.Lev99.sta(i)) + wbuf(54 + i)
   .max.sta(i) = .cur.sta(i)
  NEXT i
- '--weapon picture and palette
- .cur.wep_picpal = wbuf(52)
- .max.wep_picpal = wbuf(53)
 END WITH
+'--weapon picture and palette
+gam.hero(slot).wep_pic = wbuf(52)
+gam.hero(slot).wep_pal = wbuf(53)
 
 '--weapon attack
 bmenu(slot, 0) = wep
@@ -1066,10 +1066,12 @@ CleanNPCL npc(),300
 flusharray tag(), 126, 0
 flusharray hero(), 40, 0
 FOR i = 0 TO 40
- FOR j = 0 TO 13
+ FOR j = 0 TO 12
   gam.hero(i).stat.cur.sta(j) = 0
   gam.hero(i).stat.max.sta(j) = 0
  NEXT j
+ gam.hero(i).wep_pic = 0
+ gam.hero(i).wep_pal = 0
  gam.hero(i).battle_pic = 0
  gam.hero(i).battle_pal = 0
  gam.hero(i).pic = 0
