@@ -569,18 +569,18 @@ IF w = -1 THEN
  FOR o = 0 TO 3
   IF hero(o) > 0 THEN
    j = j + 1
-   FOR i = 0 TO 13
+   FOR i = 0 TO 11
     st(i, 0) = st(i, 0) + gam.hero(o).stat.cur.sta(i)
     st(i, 1) = st(i, 1) + gam.hero(o).stat.max.sta(i)
    NEXT i
   END IF
  NEXT o
- FOR i = 0 TO 13
+ FOR i = 0 TO 11
   st(i, 0) = st(i, 0) / j
   st(i, 1) = st(i, 1) / j
  NEXT i
 ELSE
- FOR i = 0 TO 13
+ FOR i = 0 TO 11
   st(i, 0) = gam.hero(w).stat.cur.sta(i)
   st(i, 1) = gam.hero(w).stat.max.sta(i)
  NEXT i
