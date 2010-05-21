@@ -14,6 +14,7 @@ DEFINT A-Z
 #include "const.bi"
 #include "uiconst.bi"
 #include "game_udts.bi"
+#include "savegame.bi"
 
 #include "game.bi"
 #include "yetmore.bi"
@@ -742,62 +743,43 @@ IF loading < 2 THEN
 END IF
 'otherwise, holdscreen is black
 
+DIM pv AS SaveSlotPreview
 FOR i = 0 TO 3
- sg$ = savefile
- setpicstuf buffer(), 30000, -1
- loadset sg$, i * 2, 0
- IF buffer(0) = 3 THEN 'current version number
+ get_save_slot_preview i, pv
+ IF pv.valid THEN 'current version number
   full(i) = 1
   '--get map number
-  map = buffer(1)
+  map = pv.cur_map
   '--get stats
-  '--if the save format changes, so must this
-  z = 3305
   FOR i1 = 0 TO 3
-   FOR i2 = 0 TO 1
-    FOR i3 = 0 TO 13
-     tstat(i1, i2, i3) = buffer(z)
-     z = z + 1
-    NEXT i3
-   NEXT i2
+   FOR i3 = 0 TO 11
+    tstat(i1, 0, i3) = pv.hero(i1).stat.cur.sta(i3)
+    tstat(i1, 1, i3) = pv.hero(i1).stat.max.sta(i3)
+   NEXT i3
+   tstat(i1, 0, 12) = pv.hero(i1).lev
   NEXT i1
   '--get play time
-  '--if the save format changes, so must this
-  z = 34 + 51
-  svtime(i) = playtime$(buffer(z), buffer(z + 1), buffer(z + 2))
+  svtime(i) = pv.playtime
   '--hero ID
-  foundleader = 0
   FOR o = 0 TO 3
    '--load hero ID
-   id(i, o) = buffer(2763 + o)
+   id(i, o) = pv.hero_id(o)
    '--leader name and level
-   IF foundleader = 0 AND id(i, o) > 0 THEN
-    foundleader = 1
-    FOR j = 0 TO 15
-     k = buffer(11259 + (o * 17) + j)
-     IF k > 0 AND k < 255 THEN herosname(i) = herosname(i) + CHR$(k)
-    NEXT j
-    lev(i) = readglobalstring$(43, "Level", 10) & " " & tstat(o, 0, 12)
-   END IF
+   herosname(i) = pv.leader_name
+   lev(i) = readglobalstring(43, "Level", 10) & " " & pv.leader_lev
   NEXT o
-  '--load second record
-  loadset sg$, i * 2 + 1, 0
   '--get picture and palette info
-  z = 6060
-  picpalmagic = buffer(z): z = z + 1
-  FOR i1 = 0 TO 3
-   FOR i2 = 0 TO 1
-    FOR i3 = 14 TO 16
-     IF picpalmagic = 4444 THEN tstat(i1, i2, i3) = buffer(z)
-     z = z + 1
-    NEXT i3
-   NEXT i2
-  NEXT i1
+  IF pv.use_saved_pics THEN
+   FOR j = 0 TO 3
+    tstat(j, 0, 14) = pv.hero(j).battle_pic
+    tstat(j, 0, 15) = pv.hero(j).battle_pal
+   NEXT j
+  END IF
   '--get name and load pictures n stuff
   FOR o = 0 TO 3
    IF id(i, o) >= 0 THEN
     '--hero pic and palette
-    IF picpalmagic = 4444 THEN
+    IF pv.use_saved_pics THEN
      sprites(i, o).sprite = frame_load(0, tstat(o, 0, 14))
      sprites(i, o).pal = palette16_load(tstat(o, 0, 15), 0, tstat(o, 0, 14))
     ELSE
@@ -811,7 +793,7 @@ FOR i = 0 TO 3
   NEXT o
   mapname(i) = getmapname(map)
  END IF
-NEXT i 'buffer
+NEXT i
 
 IF loading THEN
  'check for no slots

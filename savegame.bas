@@ -13,8 +13,10 @@ DEFINT A-Z
 #include "gglobals.bi"
 #include "const.bi"
 #include "loading.bi"
+#include "savegame.bi"
 
 #include "menustuf.bi"
+#include "yetmore.bi"
 
 '--Local subs and functions
 
@@ -23,6 +25,8 @@ DECLARE SUB old_savegame (slot as integer)
 DECLARE SUB old_saveglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB old_loadgame (slot as integer)
 DECLARE SUB old_loadglobalvars (slot as integer, first as integer, last as integer)
+DECLARE SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
+
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
 
@@ -60,20 +64,24 @@ END FUNCTION
 
 '-----------------------------------------------------------------------
 
-SUB savegame (slot)
+SUB savegame (BYVAL slot AS INTEGER)
  old_savegame slot
 END SUB
 
-SUB saveglobalvars (slot, first, last)
+SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
  old_saveglobalvars slot, first, last
 END SUB
 
-SUB loadgame (slot)
+SUB loadgame (BYVAL slot AS INTEGER)
  old_loadgame slot
 END SUB
 
-SUB loadglobalvars (slot, first, last)
+SUB loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
  old_loadglobalvars slot, first, last
+END SUB
+
+SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
+ old_get_save_slot_preview slot, pv
 END SUB
 
 '-----------------------------------------------------------------------
@@ -664,4 +672,72 @@ SUB rebuild_inventory_captions (invent() AS InventSlot)
  FOR i = 0 TO inventoryMax
   update_inventory_caption i
  NEXT i
+END SUB
+
+SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
+
+ setpicstuf buffer(), 30000, -1
+ loadset savefile, slot * 2, 0
+ 
+ IF buffer(0) <> 3 THEN
+  '--currently only understands v3 binary sav format
+  pv.valid = NO
+  EXIT SUB
+ END IF
+ 
+ pv.valid = YES
+ pv.cur_map = buffer(1)
+
+ '-get stats
+ DIM z AS INTEGER = 3305
+ FOR i AS INTEGER = 0 TO 3
+  FOR j AS INTEGER = 0 TO 11
+   pv.hero(i).stat.cur.sta(j) = buffer(z): z += 1
+  NEXT j
+  pv.hero(i).lev = buffer(z): z += 1
+  z += 1 'skip weapon pic because we could care less right now
+  FOR j AS INTEGER = 0 TO 11
+   pv.hero(i).stat.max.sta(j) = buffer(z): z += 1
+  NEXT j
+ NEXT i
+
+ '--get play time
+ z = 34 + 51
+ pv.playtime = playtime(buffer(z), buffer(z + 1), buffer(z + 2))
+
+ '--leader data
+ DIM foundleader AS INTEGER = NO
+ pv.leader_name = ""
+ FOR o AS INTEGER = 0 TO 3
+  '--load hero ID
+  pv.hero_id(o) = buffer(2763 + o)
+  '--leader name and level
+  IF foundleader = NO AND pv.hero_id(o) > 0 THEN
+   foundleader = YES
+   FOR j AS INTEGER = 0 TO 15
+    DIM k AS INTEGER = buffer(11259 + (o * 17) + j)
+    IF k > 0 AND k < 255 THEN pv.leader_name &= CHR(k)
+   NEXT j
+   pv.leader_lev = pv.hero(o).lev
+  END IF
+ NEXT o
+
+ '--load second record
+ loadset savefile, slot * 2 + 1, 0
+
+ z = 6060
+ pv.use_saved_pics = NO
+ IF buffer(z) = 4444 THEN pv.use_saved_pics = YES
+ z += 1
+ IF pv.use_saved_pics THEN
+  FOR i AS INTEGER = 0 TO 3
+   pv.hero(i).battle_pic = buffer(z)
+   pv.hero(i).battle_pal = buffer(z+1)
+   pv.hero(i).def_wep = buffer(z+2)
+   pv.hero(i).pic = buffer(z+3)
+   pv.hero(i).pal = buffer(z+4)
+   z += 6
+  NEXT i
+ END IF
+
 END SUB

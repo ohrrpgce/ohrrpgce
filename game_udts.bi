@@ -41,17 +41,16 @@ TYPE HeroStats
 END TYPE
 
 TYPE HeroState
- '--currently just contains stats, but will eventually contain all hero state
  stat AS HeroStats
+ lev AS INTEGER
+ lev_gain AS INTEGER
+ wep_pic AS INTEGER
+ wep_pal AS INTEGER
+ battle_pic AS INTEGER
+ battle_pal AS INTEGER
  def_wep AS INTEGER '-default weapon
  pic AS INTEGER
  pal AS INTEGER
- battle_pic AS INTEGER
- battle_pal AS INTEGER
- wep_pic AS INTEGER
- wep_pal AS INTEGER
- lev AS INTEGER
- lev_gain AS INTEGER
 END TYPE
 
 TYPE GameState
