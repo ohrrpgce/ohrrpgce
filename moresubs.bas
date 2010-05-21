@@ -108,8 +108,8 @@ NEXT i
 resetlmp slot, her.def_level
 
 '--setup experience
-gam.hero(slot).stat.cur.lev = her.def_level
-gam.hero(slot).stat.max.lev = 0 'FIXME: Not sure if this is even used for anything
+gam.hero(slot).lev = her.def_level
+gam.hero(slot).lev_gain = 0
 exlev(slot, 0) = 0
 exlev(slot, 1) = exptolevel(her.def_level)
 
@@ -155,7 +155,7 @@ FUNCTION averagelev () as integer
 average = 0
 count = 0
 FOR i = 0 TO 3
- IF hero(i) > 0 THEN average = average + gam.hero(i).stat.cur.lev: count = count + 1
+ IF hero(i) > 0 THEN average += gam.hero(i).lev: count += 1
 NEXT i
 IF count > 0 THEN average = average / count
 averagelev = average
@@ -1066,10 +1066,12 @@ CleanNPCL npc(),300
 flusharray tag(), 126, 0
 flusharray hero(), 40, 0
 FOR i = 0 TO 40
- FOR j = 0 TO 12
+ FOR j = 0 TO 11
   gam.hero(i).stat.cur.sta(j) = 0
   gam.hero(i).stat.max.sta(j) = 0
  NEXT j
+ gam.hero(i).lev = 0
+ gam.hero(i).lev_gain = 0
  gam.hero(i).wep_pic = 0
  gam.hero(i).wep_pal = 0
  gam.hero(i).battle_pic = 0

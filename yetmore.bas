@@ -218,6 +218,9 @@ SELECT CASE AS CONST id
    IF i = 13 THEN
     'This is just backcompat for a very undocumented bugfeature
     scriptret = gam.hero(slot).wep_pic
+   ELSEIF i = 12 THEN
+    'This is backcompat for a somewhat documented feature
+    scriptret = gam.hero(slot).lev
    ELSE
     scriptret = gam.hero(slot).stat.cur.sta(i)
    END IF
@@ -225,6 +228,9 @@ SELECT CASE AS CONST id
    IF i = 13 THEN
     'This is just backcompat for a very undocumented bugfeature
     scriptret = gam.hero(slot).wep_pal
+   ELSEIF i = 12 THEN
+    'This is backcompat for a barely documented feature
+    scriptret = gam.hero(slot).lev_gain
    ELSE
     scriptret = gam.hero(slot).stat.max.sta(i)
    END IF
@@ -278,6 +284,9 @@ SELECT CASE AS CONST id
    IF i = 13 THEN
     'This is just backcompat for a very undocumented bugfeature
     gam.hero(slot).wep_pic = retvals(2)
+   ELSEIF i = 12 THEN
+    'This is backcompat for a mostly undocumented feature
+    gam.hero(slot).lev = retvals(2)
    ELSE
     gam.hero(slot).stat.cur.sta(i) = retvals(2)
    END IF
@@ -285,6 +294,9 @@ SELECT CASE AS CONST id
    IF i = 13 THEN
     'This is backcompat for a very undocumented bugfeature
     gam.hero(slot).wep_pal = retvals(2)
+   ELSEIF i = 12 THEN
+    'This is backcompat for an undocumented feature
+    gam.hero(slot).lev_gain = retvals(2)
    ELSE
     gam.hero(slot).stat.max.sta(i) = retvals(2)
    END IF
@@ -362,8 +374,8 @@ SELECT CASE AS CONST id
  CASE 183'--set hero level (who, what, allow forgetting spells)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
    DIM dummystats as BattleStats 'just need HP and MP
-   gam.hero(retvals(0)).stat.max.lev = retvals(1) - gam.hero(retvals(0)).stat.cur.lev
-   gam.hero(retvals(0)).stat.cur.lev = retvals(1)
+   gam.hero(retvals(0)).lev_gain = retvals(1) - gam.hero(retvals(0)).lev
+   gam.hero(retvals(0)).lev = retvals(1)
    exlev(retvals(0), 1) = exptolevel(retvals(1))
    exlev(retvals(0), 0) = 0  'XP attained towards the next level
    updatestatslevelup retvals(0), dummystats, retvals(2) 'updates stats and spells
@@ -382,14 +394,14 @@ SELECT CASE AS CONST id
    IF numheroes > 0 THEN retvals(1) /= numheroes
    FOR i = 0 TO 3
     'battle party: reset level-gained counter even if giveheroexperience is not called
-    gam.hero(i).stat.max.lev = 0
+    gam.hero(i).lev_gain = 0
     'give the XP to the hero only if it is alive when 'dead heroes get XP' not set
     IF readbit(gen(), genBits2, 3) <> 0 OR gam.hero(i).stat.cur.hp > 0 THEN giveheroexperience i, retvals(1)
     updatestatslevelup i, dummystats, 0
    NEXT i
   END IF
  CASE 185'--hero levelled (who)
-  scriptret = gam.hero(bound(retvals(0), 0, 40)).stat.max.lev
+  scriptret = gam.hero(bound(retvals(0), 0, 40)).lev_gain
  CASE 186'--spells learnt
   'NOTE: this is deprecated but will remain for backcompat. New games should use "spells learned" 
   found = 0
@@ -408,7 +420,7 @@ SELECT CASE AS CONST id
  CASE 269'--totalexperience
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    scriptret = 0
-   FOR i = 0 TO gam.hero(retvals(0)).stat.cur.lev - 1
+   FOR i = 0 TO gam.hero(retvals(0)).lev - 1
     scriptret += exptolevel(i)
    NEXT
    scriptret += exlev(retvals(0), 0)

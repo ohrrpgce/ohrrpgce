@@ -1218,7 +1218,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
    FOR o AS INTEGER = i * 6 TO i * 6 + 5
     learnmask(o) = 0
    NEXT
-   gam.hero(i).stat.max.lev = 0
+   gam.hero(i).lev_gain = 0
    
   ELSE
    '--blank empty hero slots
@@ -1348,14 +1348,14 @@ SELECT CASE vic.state
   '--print levelups
   o = 0
   FOR i = 0 TO 3
-   IF o = 0 AND gam.hero(i).stat.max.lev THEN centerfuz 160, 30, 280, 50, 1, dpage: vic.box = YES
-   SELECT CASE gam.hero(i).stat.max.lev
+   IF o = 0 AND gam.hero(i).lev_gain <> 0 THEN centerfuz 160, 30, 280, 50, 1, dpage: vic.box = YES
+   SELECT CASE gam.hero(i).lev_gain
     CASE 1
      tempstr = vic.level_up_caption & " " & bslot(i).name
     CASE IS > 1
-     tempstr = gam.hero(i).stat.max.lev & " " & vic.levels_up_caption & " " & bslot(i).name
+     tempstr = gam.hero(i).lev_gain & " " & vic.levels_up_caption & " " & bslot(i).name
    END SELECT
-   IF gam.hero(i).stat.max.lev > 0 THEN
+   IF gam.hero(i).lev_gain > 0 THEN
     edgeprint tempstr, xstring(tempstr, 160), 12 + i * 10, uilook(uiText), dpage
     o = 1
    END IF

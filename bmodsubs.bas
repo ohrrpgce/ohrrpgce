@@ -757,7 +757,7 @@ FOR o = i * 6 TO i * 6 + 5
 NEXT
 
 'THIS PART UPDATES STATS FOR A LEVEL UP
-IF gam.hero(i).stat.max.lev THEN
+IF gam.hero(i).lev_gain THEN
 
  dim her as herodef
  loadherodata @her, hero(i) - 1
@@ -766,14 +766,14 @@ IF gam.hero(i).stat.max.lev THEN
  FOR o = 0 TO 11
   n0 = her.Lev0.sta(o)
   n99 = her.Lev99.sta(o)
-  gam.hero(i).stat.max.sta(o) += (atlevel(gam.hero(i).stat.cur.lev, n0, n99) - atlevel(gam.hero(i).stat.cur.lev - gam.hero(i).stat.max.lev, n0, n99))
+  gam.hero(i).stat.max.sta(o) += (atlevel(gam.hero(i).lev, n0, n99) - atlevel(gam.hero(i).lev - gam.hero(i).lev_gain, n0, n99))
 
   'simulate levelup bug
   IF readbit(gen(), 101, 9) = 1 THEN
    FOR j = 0 TO 4
     IF eqstuf(i, j) > 0 THEN
      loaditemdata buffer(), eqstuf(i, j) - 1
-     gam.hero(i).stat.max.sta(o) += buffer(54 + o) * gam.hero(i).stat.max.lev
+     gam.hero(i).stat.max.sta(o) += buffer(54 + o) * gam.hero(i).lev_gain
     END IF
    NEXT j
   END IF
@@ -794,7 +794,7 @@ IF gam.hero(i).stat.max.lev THEN
   gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp 'set external cur to external max
   stats.cur.mp = gam.hero(i).stat.max.mp 'set in-battle cur to external max
   stats.max.mp = gam.hero(i).stat.max.mp 'set in-battle max to external max
-  resetlmp i, gam.hero(i).stat.cur.lev
+  resetlmp i, gam.hero(i).lev
  END IF
 
  'make current stats match max stats
@@ -827,13 +827,13 @@ SUB learn_spells_for_current_level(BYVAL who AS INTEGER, BYVAL allowforget AS IN
   FOR o AS INTEGER = 0 TO 23
    WITH her.spell_lists(j,o)
     '--if slot is empty and slot accepts a spell and learn-by-level condition is true
-    IF spell(who, j, o) = 0 AND .attack > 0 AND .learned - 1 <= gam.hero(who).stat.cur.lev AND .learned > 0 THEN
+    IF spell(who, j, o) = 0 AND .attack > 0 AND .learned - 1 <= gam.hero(who).lev AND .learned > 0 THEN
      spell(who, j, o) = .attack
      setbit learnmask(), 0, who * 96 + j * 24 + o, 1
     END IF
     IF allowforget THEN
      '--plotscripts may lower level, forget spells if drop below requirement and know the spell specified
-     IF spell(who, j, o) = .attack AND .learned - 1 > gam.hero(who).stat.cur.lev THEN
+     IF spell(who, j, o) = .attack AND .learned - 1 > gam.hero(who).lev THEN
       spell(who, j, o) = 0
      END IF
     END IF
@@ -845,15 +845,15 @@ END SUB
 
 SUB giveheroexperience (i as integer, exper as integer)
  'reset levels gained
- gam.hero(i).stat.max.lev = 0
- IF hero(i) > 0 AND gam.hero(i).stat.cur.lev < 99 THEN
+ gam.hero(i).lev_gain = 0
+ IF hero(i) > 0 AND gam.hero(i).lev < 99 THEN
   exlev(i, 0) = exlev(i, 0) + exper
   'levelups
-  WHILE exlev(i, 0) >= exlev(i, 1) AND gam.hero(i).stat.max.lev < 99
+  WHILE exlev(i, 0) >= exlev(i, 1) AND gam.hero(i).lev_gain < 99
    exlev(i, 0) = exlev(i, 0) - exlev(i, 1)
-   gam.hero(i).stat.cur.lev = gam.hero(i).stat.cur.lev + 1 'current level
-   gam.hero(i).stat.max.lev = gam.hero(i).stat.max.lev + 1 'levelup counter
-   exlev(i, 1) = exptolevel(gam.hero(i).stat.cur.lev)
+   gam.hero(i).lev += 1 'current level
+   gam.hero(i).lev_gain += 1 'levelup counter
+   exlev(i, 1) = exptolevel(gam.hero(i).lev)
   WEND
  END IF
 END SUB
@@ -862,14 +862,14 @@ SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allo
  'unlike giveheroexperience, this can cause delevelling
  DIM dummystats AS BattleStats
 
- temp = gam.hero(who).stat.cur.lev
+ temp = gam.hero(who).lev
  total = 0
- FOR i = 0 TO gam.hero(who).stat.cur.lev - 1
+ FOR i = 0 TO gam.hero(who).lev - 1
   total += exptolevel(i)
  NEXT
  IF total > amount THEN
   'losing levels; lvl up from level 0
-  gam.hero(who).stat.cur.lev = 0
+  gam.hero(who).lev = 0
   exlev(who, 1) = exptolevel(0)
   lostlevels = -1
  ELSE
@@ -881,7 +881,7 @@ SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allo
  exlev(who, 0) = 0
  giveheroexperience who, amount
  updatestatslevelup who, dummystats, allowforget
- gam.hero(who).stat.max.lev -= temp
+ gam.hero(who).lev_gain -= temp
  IF lostlevels THEN
   'didn't learn spells, wipe mask
   FOR i = who * 6 TO who * 6 + 5

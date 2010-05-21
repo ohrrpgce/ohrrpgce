@@ -1223,7 +1223,7 @@ DO
  END IF
 
  edgeprint names(pt), 142 - LEN(names(pt)) * 4, 20, uilook(uiText), page
- edgeprint level_caption & " " & gam.hero(pt).stat.cur.lev, 142 - LEN(level_caption & " " & gam.hero(pt).stat.cur.lev) * 4, 30, uilook(uiText), page
+ edgeprint level_caption & " " & gam.hero(pt).lev, 142 - LEN(level_caption & " " & gam.hero(pt).lev) * 4, 30, uilook(uiText), page
  temp$ = (exlev(pt, 1) - exlev(pt, 0)) & " " & exper_caption & " " & readglobalstring$(47, "for next", 10) & " " & level_caption
  edgeprint temp$, 142 - LEN(temp$) * 4, 40, uilook(uiText), page
 

@@ -214,7 +214,7 @@ FOR i = 0 TO 3
    '--normal revive
    gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp
    gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp
-   resetlmp i, gam.hero(i).stat.cur.lev
+   resetlmp i, gam.hero(i).lev
   END IF
  END IF
 NEXT i
