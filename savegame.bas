@@ -32,6 +32,34 @@ OPTION EXPLICIT
 
 '-----------------------------------------------------------------------
 
+SUB init_save_system()
+'--set up savegame file
+'savefile is a global
+savefile = trimextension(sourcerpg) + ".sav"
+#IFDEF __UNIX__
+IF NOT fileisreadable(savefile) THEN
+ 'for a systemwide linux install, save files go in the prefs dir
+ savefile = prefsdir + SLASH + trimpath$(savefile)
+END IF
+#ENDIF
+END SUB
+
+FUNCTION count_used_save_slots() AS INTEGER
+ DIM i AS INTEGER
+ DIM n AS INTEGER
+ DIM savver AS INTEGER
+ n = 0
+ setpicstuf buffer(), 30000, -1
+ FOR i = 0 TO 3
+  loadset savefile, i * 2, 0
+  savver = buffer(0)
+  IF savver = 3 THEN n += 1
+ NEXT i
+ RETURN n
+END FUNCTION
+
+'-----------------------------------------------------------------------
+
 SUB savegame (slot)
  old_savegame slot
 END SUB

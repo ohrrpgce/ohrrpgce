@@ -287,13 +287,7 @@ ELSE
  CHDIR homedir
 END IF
 
-'--set up savegame file
-savefile = trimextension$(sourcerpg) + ".sav"
-#IFDEF __UNIX__
-IF NOT fileisreadable(savefile) THEN
- savefile = prefsdir + SLASH + trimpath$(savefile)
-END IF
-#ENDIF
+init_save_system
 
 IF autorungame = 0 THEN
  edgeboxstyle 4, 3, 312, 14, 0, vpage
@@ -639,7 +633,7 @@ DO
   resetgame scriptout$
   IF resetg THEN EXIT DO  'skip to new game
   'if skipping title and loadmenu, quit
-  IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
+  IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_used_save_slots() = 0) THEN
    EXIT DO, DO ' To game select screen (quit the gameplay and RPG file loops, allowing the program loop to cycle)
   ELSE
    EXIT DO ' To title screen (quit the gameplay loop and allow the RPG file loop to cycle)
@@ -1937,20 +1931,6 @@ Sub dotimerafterbattle()
   next
 
 end sub
-
-FUNCTION count_sav(filename AS STRING) AS INTEGER
- DIM i AS INTEGER
- DIM n AS INTEGER
- DIM savver AS INTEGER
- n = 0
- setpicstuf buffer(), 30000, -1
- FOR i = 0 TO 3
-  loadset filename, i * 2, 0
-  savver = buffer(0)
-  IF savver = 3 THEN n += 1
- NEXT i
- RETURN n
-END FUNCTION
 
 FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
  IF record >= 0 AND allow_duplicate = NO THEN

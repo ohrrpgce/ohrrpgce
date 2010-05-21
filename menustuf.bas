@@ -811,7 +811,7 @@ FOR i = 0 TO 3
   NEXT o
   mapname(i) = getmapname(map)
  END IF
-NEXT i
+NEXT i 'buffer
 
 IF loading THEN
  'check for no slots
