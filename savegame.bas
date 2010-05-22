@@ -84,6 +84,26 @@ SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  old_get_save_slot_preview slot, pv
 END SUB
 
+FUNCTION save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
+ DIM AS SHORT saveversion
+ DIM savh AS INTEGER = FREEFILE
+ OPEN savefile FOR BINARY AS #savh
+ GET #savh, 1 + 60000 * slot, saveversion
+ CLOSE #savh
+ RETURN (saveversion = 3)
+END FUNCTION
+
+SUB erase_save_slot (BYVAL slot AS INTEGER)
+ DIM AS SHORT saveversion = 0
+ IF fileisreadable(savefile) = NO THEN EXIT SUB
+ DIM savh AS INTEGER = FREEFILE
+ OPEN savefile FOR BINARY AS #savh
+ IF LOF(savh) > 60000 * slot THEN
+  PUT #savh, 1 + 60000 * slot, saveversion
+ END IF
+ CLOSE #savh
+END SUB
+
 '-----------------------------------------------------------------------
 
 SUB old_savegame (slot)

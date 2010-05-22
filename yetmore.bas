@@ -92,28 +92,6 @@ IF box.hero_lock < 0 THEN
 END IF '---end if > 0
 END SUB
 
-FUNCTION checksaveslot (slot as integer) as integer
- DIM AS SHORT saveversion
- sg$ = savefile
- savh = FREEFILE
- OPEN sg$ FOR BINARY AS #savh
- GET #savh, 1 + 60000 * slot, saveversion
- CLOSE #savh
- checksaveslot = saveversion
-END FUNCTION
-
-SUB erasesaveslot (slot)
- DIM AS SHORT saveversion = 0
- sg$ = savefile
- IF fileisreadable(sg$) = 0 THEN EXIT SUB
- savh = FREEFILE
- OPEN sg$ FOR BINARY AS #savh
- IF LOF(savh) > 60000 * slot THEN
-  PUT #savh, 1 + 60000 * slot, saveversion
- END IF
- CLOSE #savh
-END SUB
-
 SUB doihavebits
 dim her as herodef
 FOR i = 0 TO small(gen(genMaxHero), 59)
@@ -1154,7 +1132,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 171'--saveslotused
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-   IF checksaveslot(retvals(0) - 1) = 3 THEN scriptret = 1 ELSE scriptret = 0
+   IF save_slot_used(retvals(0) - 1) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 172'--importglobals
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
@@ -1181,7 +1159,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 175'--deletesave
   IF retvals(0) >= 1 AND retvals(0) <= 32 THEN
-   erasesaveslot retvals(0) - 1
+   erase_save_slot retvals(0) - 1
   END IF
  CASE 176'--run script by id
   rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", plottrigger) 'possible to get ahold of triggers
