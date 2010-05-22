@@ -26,9 +26,11 @@ DECLARE SUB old_saveglobalvars (slot as integer, first as integer, last as integ
 DECLARE SUB old_loadgame (slot as integer)
 DECLARE SUB old_loadglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
-
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
+DECLARE FUNCTION old_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
+DECLARE SUB old_erase_save_slot (BYVAL slot AS INTEGER)
+DECLARE FUNCTION old_count_used_save_slots() AS INTEGER
 
 DIM SHARED old_savefile AS STRING
 
@@ -48,22 +50,6 @@ SUB init_save_system()
  END IF
  #ENDIF
 END SUB
-
-FUNCTION count_used_save_slots() AS INTEGER
- DIM i AS INTEGER
- DIM n AS INTEGER
- DIM savver AS INTEGER
- n = 0
- setpicstuf buffer(), 30000, -1
- FOR i = 0 TO 3
-  loadset old_savefile, i * 2, 0
-  savver = buffer(0)
-  IF savver = 3 THEN n += 1
- NEXT i
- RETURN n
-END FUNCTION
-
-'-----------------------------------------------------------------------
 
 SUB savegame (BYVAL slot AS INTEGER)
  old_savegame slot
@@ -86,24 +72,16 @@ SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
 END SUB
 
 FUNCTION save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
- DIM AS SHORT saveversion
- DIM savh AS INTEGER = FREEFILE
- OPEN old_savefile FOR BINARY AS #savh
- GET #savh, 1 + 60000 * slot, saveversion
- CLOSE #savh
- RETURN (saveversion = 3)
+ RETURN old_save_slot_used(slot)
 END FUNCTION
 
 SUB erase_save_slot (BYVAL slot AS INTEGER)
- DIM AS SHORT saveversion = 0
- IF fileisreadable(old_savefile) = NO THEN EXIT SUB
- DIM savh AS INTEGER = FREEFILE
- OPEN old_savefile FOR BINARY AS #savh
- IF LOF(savh) > 60000 * slot THEN
-  PUT #savh, 1 + 60000 * slot, saveversion
- END IF
- CLOSE #savh
+ old_erase_save_slot slot
 END SUB
+
+FUNCTION count_used_save_slots() AS INTEGER
+ RETURN old_count_used_save_slots()
+END FUNCTION
 
 '-----------------------------------------------------------------------
 
@@ -762,3 +740,37 @@ SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  END IF
 
 END SUB
+
+FUNCTION old_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
+ DIM AS SHORT saveversion
+ DIM savh AS INTEGER = FREEFILE
+ OPEN old_savefile FOR BINARY AS #savh
+ GET #savh, 1 + 60000 * slot, saveversion
+ CLOSE #savh
+ RETURN (saveversion = 3)
+END FUNCTION
+
+SUB old_erase_save_slot (BYVAL slot AS INTEGER)
+ DIM AS SHORT saveversion = 0
+ IF fileisreadable(old_savefile) = NO THEN EXIT SUB
+ DIM savh AS INTEGER = FREEFILE
+ OPEN old_savefile FOR BINARY AS #savh
+ IF LOF(savh) > 60000 * slot THEN
+  PUT #savh, 1 + 60000 * slot, saveversion
+ END IF
+ CLOSE #savh
+END SUB
+
+FUNCTION old_count_used_save_slots() AS INTEGER
+ DIM i AS INTEGER
+ DIM n AS INTEGER
+ DIM savver AS INTEGER
+ n = 0
+ setpicstuf buffer(), 30000, -1
+ FOR i = 0 TO 3
+  loadset old_savefile, i * 2, 0
+  savver = buffer(0)
+  IF savver = 3 THEN n += 1
+ NEXT i
+ RETURN n
+END FUNCTION
