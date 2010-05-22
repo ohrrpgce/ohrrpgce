@@ -30,6 +30,7 @@ DECLARE SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPrevi
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
 
+DIM SHARED old_savefile AS STRING
 
 REM $STATIC
 OPTION EXPLICIT
@@ -37,15 +38,15 @@ OPTION EXPLICIT
 '-----------------------------------------------------------------------
 
 SUB init_save_system()
-'--set up savegame file
-'savefile is a global
-savefile = trimextension(sourcerpg) + ".sav"
-#IFDEF __UNIX__
-IF NOT fileisreadable(savefile) THEN
- 'for a systemwide linux install, save files go in the prefs dir
- savefile = prefsdir + SLASH + trimpath$(savefile)
-END IF
-#ENDIF
+ '--set up savegame file
+ 'old_savefile is a global in this module
+ old_savefile = trimextension(sourcerpg) + ".sav"
+ #IFDEF __UNIX__
+ IF NOT fileisreadable(old_savefile) THEN
+  'for a systemwide linux install, save files go in the prefs dir
+  old_savefile = prefsdir & SLASH & trimpath(old_savefile)
+ END IF
+ #ENDIF
 END SUB
 
 FUNCTION count_used_save_slots() AS INTEGER
@@ -55,7 +56,7 @@ FUNCTION count_used_save_slots() AS INTEGER
  n = 0
  setpicstuf buffer(), 30000, -1
  FOR i = 0 TO 3
-  loadset savefile, i * 2, 0
+  loadset old_savefile, i * 2, 0
   savver = buffer(0)
   IF savver = 3 THEN n += 1
  NEXT i
@@ -87,7 +88,7 @@ END SUB
 FUNCTION save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
  DIM AS SHORT saveversion
  DIM savh AS INTEGER = FREEFILE
- OPEN savefile FOR BINARY AS #savh
+ OPEN old_savefile FOR BINARY AS #savh
  GET #savh, 1 + 60000 * slot, saveversion
  CLOSE #savh
  RETURN (saveversion = 3)
@@ -95,9 +96,9 @@ END FUNCTION
 
 SUB erase_save_slot (BYVAL slot AS INTEGER)
  DIM AS SHORT saveversion = 0
- IF fileisreadable(savefile) = NO THEN EXIT SUB
+ IF fileisreadable(old_savefile) = NO THEN EXIT SUB
  DIM savh AS INTEGER = FREEFILE
- OPEN savefile FOR BINARY AS #savh
+ OPEN old_savefile FOR BINARY AS #savh
  IF LOF(savh) > 60000 * slot THEN
   PUT #savh, 1 + 60000 * slot, saveversion
  END IF
@@ -220,7 +221,7 @@ NEXT i
 'Store new 16-bit inventory (Only the first 100 elements fit into this buffer!)
 SaveInventory16Bit inventory(), z, buffer(), 0, 99
 setpicstuf buffer(), 30000, -1
-DIM sg AS STRING = savefile
+DIM sg AS STRING = old_savefile
 storeset sg, slot * 2, 0
 
 '---RECORD 2
@@ -316,7 +317,7 @@ IF inventoryMax <> 599 THEN debug "Warning: inventoryMax=" & inventoryMax & ", d
 SaveInventory16Bit inventory(), z, buffer(), 100, 599
 
 setpicstuf buffer(), 30000, -1
-sg = savefile
+sg = old_savefile
 storeset sg, slot * 2 + 1, 0
 
 'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
@@ -326,7 +327,7 @@ SUB old_saveglobalvars (slot, first, last)
 DIM i AS INTEGER
 DIM buf((last - first + 1) * 2) = ANY
 DIM fh AS INTEGER = FREEFILE
-OPEN savefile FOR BINARY AS #fh
+OPEN old_savefile FOR BINARY AS #fh
 IF first <= 1024 THEN
  'output first-final
  DIM final AS INTEGER = small(1024, last)
@@ -362,7 +363,7 @@ DIM AS INTEGER i, j, o, z
 '--return gen to defaults
 xbload game + ".gen", gen(), "General data is missing from " + game
 
-DIM sg AS STRING = savefile
+DIM sg AS STRING = old_savefile
 setpicstuf buffer(), 30000, -1
 loadset sg, slot * 2, 0
 
@@ -646,9 +647,9 @@ END SUB
 SUB old_loadglobalvars (slot, first, last)
 DIM i AS INTEGER
 DIM buf((last - first + 1) * 2) = ANY
-IF isfile(savefile) THEN
+IF isfile(old_savefile) THEN
  DIM fh AS INTEGER = FREEFILE
- OPEN savefile FOR BINARY AS #fh
+ OPEN old_savefile FOR BINARY AS #fh
 
  IF first <= 1024 THEN
   'grab first-final
@@ -697,7 +698,7 @@ END SUB
 SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
 
  setpicstuf buffer(), 30000, -1
- loadset savefile, slot * 2, 0
+ loadset old_savefile, slot * 2, 0
  
  IF buffer(0) <> 3 THEN
   '--currently only understands v3 binary sav format
@@ -743,7 +744,7 @@ SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  NEXT o
 
  '--load second record
- loadset savefile, slot * 2 + 1, 0
+ loadset old_savefile, slot * 2 + 1, 0
 
  z = 6060
  pv.use_saved_pics = NO
