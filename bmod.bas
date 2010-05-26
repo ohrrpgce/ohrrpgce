@@ -46,6 +46,7 @@ DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot
 DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
+DECLARE FUNCTION battle_time_can_pass(bat AS BattleState, vic AS VictoryState) AS INTEGER
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -222,7 +223,7 @@ DO
  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND vic.state = 0 AND away = 0 THEN GOSUB action
  GOSUB animate
  na = loopvar(na, 0, 11, 1)
- IF bat.atk.id = -1 AND vic.state = 0 THEN
+ IF battle_time_can_pass(bat, vic) THEN
   GOSUB meters
   IF bslot(na).attack > 0 AND bslot(na).delay = 0 THEN
    '--next attacker has an attack selected and the delay is over
@@ -3012,3 +3013,10 @@ SUB display_attack_queue (bslot() AS BattleSprite)
   END WITH
  NEXT i
 END SUB
+
+FUNCTION battle_time_can_pass(bat AS BattleState, vic AS VictoryState) AS INTEGER
+ IF bat.atk.id <> -1 THEN RETURN NO 'an attack animation is going on right now
+ IF vic.state <> 0 THEN RETURN NO 'victory has already happened
+ IF readbit(gen(), genBits2, 5) <> 0 AND bat.caption_time > 0 THEN RETURN NO 'pause on captions
+ RETURN YES
+END FUNCTION
