@@ -95,8 +95,8 @@ define function, begin
 84,suspendboxadvance,0      # prevents user from advancing text boxes
 85,resumeboxadvance,0       # reverses suspendboxadvance
 86,advancetextbox,0         # as if the user had pressed a key
-87,setheroposition,3,0,0,0  # arbitraraly set x,y
-88,setNPCposition,3,0,0,0   # arbitraraly set x,y
+87,setheroposition,3,0,0,0  # arbitrarily set x,y
+88,setNPCposition,3,0,0,0   # arbitrarily set x,y
 89,swapbyposition,2,0,0     # swap two hero slots
 90,findhero,1,0             # locate hero slot by hero name
 91,checkequipment,2,0,1     # what is a hero equipped with? (who,where)
@@ -477,6 +477,8 @@ define function, begin
 467,mapcure,3,0,0,-1          #uses a cure attack on a hero
 468,readattackname,2,0,0      #puts an attack name in a string
 469,spellslearned,2,0,0       #number spells and spell ids hero learnt at last battle/giveexperience command.
+470,allocatetimers,1,16       #change the number of timers
+#471,unusedtimer,0             #find a timer id that's not in use, or allocate more
 end
 
 #--------------------------------------------------------------------------

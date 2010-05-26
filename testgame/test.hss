@@ -2,7 +2,6 @@ include, plotscr.hsd
 include, scancode.hsi
 include, test.hsi
 
-define script(1,testing,none)
 define script(2,doortest,none)
 define script(3,mapautorun,none)
 define script(4,makesuseofretvals,none)
@@ -38,6 +37,8 @@ global variable (1024,highval)
 global variable (5, mylayer)
 global variable (6, tileset)
 
+# strings 0-8 are used. 31 is for temporaries
+
 script,makesuseofretvals,begin
   show value (sum of some stuff)
 end
@@ -50,7 +51,7 @@ script,sum of some stuff,begin
   return(a+b+c)
 end
 
-script,testing,begin
+plotscript,killer timer,begin
   variable (timer)
   show text box (9) # Oh no! Its sinking!
   set hero picture(0,1)
@@ -58,27 +59,36 @@ script,testing,begin
   set variable(timer,15)
   set tag(6,ON)
 
-  while(timer>>0, and, check tag(6))
-  do, begin
-    show value (timer)
-    wait (18) # roughly 18 tics in a second
-    decrement(timer)
-  end
+  allocate timers (200)
+  show string at (4, 150, 180)
+  set timer (199, 12, 18, @dead time, 4, timerflag:critical + timerflag:menu + timerflag:battle)
+end
 
-  if (timer<=0)
-  then,begin
-    show text box(10)#ah! Its crumbling! we are dead!
-    wait for text box
-    game over
-  end
+#-----------------------------------------------------------------------
 
-  show no value
+script,dead time,begin
+  if (not (check tag(6))) then (
+    # no idea how you do this...
+    set hero picture(0,0)
+    set hero palette(0,0)
+    show text box(11)# yipee!
+    exit script
+  )
 
-  set hero picture(0,0)
-  set hero palette(0,0)
-  show text box(11)# yipee!
+  show text box(10)#ah! Its crumbling! we are dead!
+  wait for text box
 
-end #of script testing
+  #restart the other timer
+  set timer (199, 10)
+
+  wait(20)
+  #test that it is deleted
+  allocate timers (10)
+
+  #test the gameover flag
+  show string at (8, 150, 170)
+  set timer (9, 20, 1, timer:gameover, 8, timerflag:critical + timerflag:menu + timerflag:battle)
+end
 
 #-----------------------------------------------------------------------
 
@@ -375,44 +385,28 @@ end
 #not used anywhere
 script, map changer key listener, begin
   if (key is pressed(key:s)) then (
-    $15=" write map block"
-    trace(15)
-    write map block (hero x, hero y, read map block (hero x, hero y) xor, 3)
+    trace value (write map block (hero x, hero y, read map block (hero x, hero y) xor, 3))
   )
   if (key is pressed(key:a)) then (
-    $15=" save map state"
-    trace(15)
-    save map state
+    trace value (save map state)
   )
   if (key is pressed(key:g)) then (
-    $15=" save map state (mapstate:mapsettings)"
-    trace(15)
-    save map state (mapstate:mapsettings)
+    trace value (save map state (mapstate:mapsettings))
   )
   if (key is pressed(key:minus)) then (
-    $15=" save map state (mapstate:npcs, 3)"
-    trace(15)
-    save map state(mapstate:npcs, 3)
+    trace value (save map state(mapstate:npcs, 3))
   )
   if (key is pressed(key:plus)) then (
-    $15=" load map state(mapstate:all, 3)"
-    trace(15)
-    load map state(mapstate:all, 3)
+    trace value (load map state(mapstate:all, 3))
   )
   if (key is pressed(key:l)) then (
-    $15=" load map state"
-    trace(15)
-    load map state
+    trace value (load map state)
   )
   if (key is pressed(key:r)) then (
-    $15=" reset map state"
-    trace(15)
-    reset map state
+    trace value (reset map state)
   )
   if (key is pressed(key:d)) then (
-    $15=" reset map state (mapstate:all)"
-    trace(15)
-    reset map state (mapstate:all)
+    trace value (reset map state (mapstate:all))
   )
 
   if (key is pressed(key:numpad0)) then (mylayer := -1)
@@ -462,15 +456,15 @@ end
 plotscript, add hero test, begin
   variable(slot)
   slot := add hero(0)
-  $0="added hero at slot "
-  append number(0, slot)
-  trace(0)
+  $31="added hero at slot "
+  append number(31, slot)
+  trace(31)
   wait(2)
 end
 
 plotscript, delete hero test, begin
   delete hero(0)
-  $0="deleted a yorgo"
-  trace(0)
+  $31="deleted a yorgo"
+  trace(31)
   wait(2)
 end

@@ -113,7 +113,6 @@ DIM menus(0) AS MenuDef 'This is an array because it holds a stack of heirarchia
 DIM mstates(0) AS MenuState
 DIM topmenu AS INTEGER = -1
 
-DIM timers(15) as PlotTimer
 DIM fatal
 DIM lastformation
 

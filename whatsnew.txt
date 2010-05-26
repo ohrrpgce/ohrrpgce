@@ -39,6 +39,7 @@ WHAT IS NEW?
     * "map cure" replaces deprecated "outside battle cure" [James]
     * "read attack name" replaces deprecated "get attack name" [James]
     * "spells learned" replaces deprecated "spells learnt" [James]
+    * "allocate timers" (removes 16 timer limit) [Ralph, James]
 
   * Vikings of Midgard
 

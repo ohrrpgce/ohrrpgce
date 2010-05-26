@@ -28,11 +28,18 @@ DEFINT A-Z
 'Mike: why? it's already wrapped in gfx_*.bas
 #include "gfx.bi"
 
-'FIXME: Why does DIMing plotslices() in game.bas not work?
-DIM plotslices() AS Slice Ptr
-'Useing a lower bound of 1 because 0 is considered an invalid handle
+''''' Global variables
+
+'Script commands in this file need to REDIM plotslices() and timers(), but FB
+'doesn't let you REDIM a global array in a module other than where it is defined!
+
+'Using a lower bound of 1 because 0 is considered an invalid handle
 'The size of 64 is just so we won't have to reallocate for a little while
-REDIM plotslices(1 TO 64) 
+DIM plotslices(1 TO 64) AS Slice Ptr
+
+DIM timers(15) as PlotTimer
+
+
 
 REM $STATIC
 
@@ -1522,7 +1529,7 @@ SELECT CASE AS CONST id
  CASE 257'--resume map music
   setbit gen(), 44, suspendambientmusic, 0
  CASE 260'--settimer(id, count, speed, trigger, string, flags)
-  IF retvals(0) >= 0 AND retvals(0) <= ubound(timers) THEN
+  IF bound_arg(retvals(0), 0, UBOUND(timers), "timer ID") THEN
     WITH timers(retvals(0))
       IF retvals(1) > -1 THEN .count = retvals(1): .ticks = 0
       IF retvals(2) > -1 THEN
@@ -1532,19 +1539,21 @@ SELECT CASE AS CONST id
       END IF
       IF retvals(3) <> -1 THEN .trigger = retvals(3)
       IF retvals(4) <> -1 THEN
-       IF valid_plotstr(retvals(4)) THEN
-        .st = retvals(4) + 1
-        plotstr(retvals(4)).s = seconds2str(.count)
-       END IF
+       IF valid_plotstr(retvals(4)) THEN .st = retvals(4) + 1
       END IF
-      IF retvals(5)<> -1 THEN .flags = retvals(5)
+      IF .st > 0 THEN plotstr(.st - 1).s = seconds2str(.count)
+      IF retvals(5) <> -1 THEN .flags = retvals(5)
       IF .speed < -1 THEN .speed *= -1: .speed -= 1
     END WITH
   END IF
  CASE 261'--stoptimer
-  IF retvals(0) >= 0 AND retvals(0) <= ubound(timers) THEN timers(retvals(0)).speed = 0
+  IF bound_arg(retvals(0), 0, UBOUND(timers), "timer ID") THEN
+   timers(retvals(0)).speed = 0
+  END IF
  CASE 262'--readtimer
-  IF retvals(0) >= 0 AND retvals(0) <= ubound(timers) THEN scriptret = timers(retvals(0)).count
+  IF bound_arg(retvals(0), 0, UBOUND(timers), "timer ID") THEN
+   scriptret = timers(retvals(0)).count
+  END IF
  CASE 263'--getcolor
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
    scriptret = master(retvals(0)).col
@@ -2469,6 +2478,39 @@ SELECT CASE AS CONST id
    NEXT
    IF retvals(1) = -1 THEN scriptret = found  'getcount
   END IF
+ CASE 470'--allocate timers
+  IF bound_arg(retvals(0), 0, 100000, "number of timers") THEN
+   REDIM PRESERVE timers(large(0, retvals(0) - 1))
+   IF retvals(0) = 0 THEN
+    'Unfortunately, have to have at least one timer. Deactivate/blank it, in case the player
+    'wants "allocate timers(0)" to kill all timers.
+    REDIM timers(0)
+   END IF
+  END IF
+/'  Disabled until an alternative ("new timer") is decided upon
+ CASE 471'--unused timer
+  scriptret = -1
+  FOR i = 0 TO UBOUND(timers)
+   IF timers(i).speed <= 0 THEN
+    scriptret = i
+    WITH timers(scriptret)
+     .speed = 0
+     .ticks = 0
+     .count = 0
+     .st = 0
+     .trigger = 0
+     .flags = 0
+    END WITH
+    EXIT FOR
+   END IF
+  NEXT
+  IF scriptret = -1 THEN
+   scriptret = UBOUND(timers) + 1
+   IF scriptret < 100000 THEN
+    REDIM PRESERVE timers(scriptret)
+   END IF
+  END IF
+'/
 
 END SELECT
 
