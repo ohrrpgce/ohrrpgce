@@ -11,17 +11,17 @@
 					   (alias,shortname))>
 	<!ATTLIST command id ID #REQUIRED
 			          created CDATA #IMPLIED>
-  	<!ELEMENT canon      (#PCDATA)>
-  	<!ELEMENT shortname   (#PCDATA)>
-  	<!ELEMENT description ANY>
-  	<!ELEMENT example     (#PCDATA)>
-  	<!ATTLIST example c IDREF #IMPLIED>
-  	<!ELEMENT alias       (#PCDATA)>
-  	<!ELEMENT seealso (ref+)>
+	<!ELEMENT canon      (#PCDATA)>
+	<!ELEMENT shortname   (#PCDATA)>
+	<!ELEMENT description ANY>
+	<!ELEMENT example     (#PCDATA)>
+	<!ATTLIST example c IDREF #IMPLIED>
+	<!ELEMENT alias       (#PCDATA)>
+	<!ELEMENT seealso (ref+)>
 
-  	<!ELEMENT ref         (#PCDATA)>
-  	<!ELEMENT lb		  (#PCDATA)>
-  	<!ELEMENT param		  (#PCDATA)>
+	<!ELEMENT ref         (#PCDATA)>
+	<!ELEMENT lb		  (#PCDATA)>
+	<!ELEMENT param		  (#PCDATA)>
 ]>
 <!--
 
@@ -597,9 +597,9 @@ end</example>
 			<canon>set NPC frame (who, frame)</canon>
 			<shortname>set NPC frame</shortname>
 			<description>Sets the walking frame of the specified NPC to 0 or 1. You can use either an <ref>npcreference</ref> or the NPC&apos;s ID number to specify which NPC will change.</description>
-            <seealso>
-                <ref>npcframe</ref>
-            </seealso>
+			<seealso>
+				<ref>npcframe</ref>
+			</seealso>
 		</command>
 		<command id="setnpcposition">
 			<canon>set NPC position (who, X, Y)</canon>
@@ -852,8 +852,8 @@ wait for text box # wait until the player continues</example>
 			<canon>party money</canon>
 			<shortname>party money</shortname>
 			<description>Returns how much money your party has.</description>
-        </command>
-        <command id="getmoney">
+	</command>
+	<command id="getmoney">
 			<canon>get money (amount)</canon>
 			<shortname>get money</shortname>
 			<description>Adds the specified amount to your party&apos;s money</description>
@@ -862,7 +862,7 @@ wait for text box # wait until the player continues</example>
 			<canon>lose money (amount)</canon>
 			<shortname>lose money</shortname>
 			<description>Subtracts the specified amount from your party&apos;s money.</description>
-        </command>
+	</command>
 		<command id="setmoney">
 			<canon>set money (amount)</canon>
 			<shortname>set money</shortname>
@@ -1026,11 +1026,11 @@ end</example>
 			<canon>fade screen in</canon>
 			<shortname>fade screen in</shortname>
 			<description>Fades the screen back to normal after a <ref>fadescreenout</ref> command, or applies the changes made with other palette commands such as <ref>greyscalepalette</ref>, <ref>tweakpalette</ref>, <ref>resetpalette</ref>, and <ref>writecolor</ref>.</description>
-        </command>
+		</command>
 		<command id="loadpalette">
 			<canon>load palette (palette number)</canon>
 			<shortname>load palette</shortname>
-            <description>Loads a different master palette (one of the palettes on the "View Master Palettes..." menu), and the user interface colors for that palette. Use this if a backdrop or entire map was imported/drawn with a palette other than the default. Changes to the palette do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>, however the UI colors are changed immediately.</description>
+			<description>Loads a different master palette (one of the palettes on the "View Master Palettes..." menu), and the user interface colors for that palette. Use this if a backdrop or entire map was imported/drawn with a palette other than the default. Changes to the palette do not take effect until you call <ref>updatepalette</ref> or <ref>fadescreenin</ref>, however the UI colors are changed immediately.</description>
 		</command>
 		<command id="updatepalette">
 			<canon>update palette</canon>
@@ -1101,39 +1101,39 @@ end</example>
 			<description>Takes a 32-bit color value, and extracts the red, green or blue component, based on the <p>component</p> parameter. You may use the <ref>colorred</ref>, <ref>colorgreen</ref> and <ref>colorblue</ref> parameters to choose which one.</description>
 			<seealso><ref>rgb</ref></seealso>
 		</command>
-		  <command id="playsound">
-		    <canon>play sound (num,loop,preempt)</canon>
-		    <shortname>play sound</shortname>
-		    <description>Plays or resumes a sound effect. Pass <ref>true</ref> to <p>loop</p> if you want the sound effect to start over when it finishes instead of stopping. Pass <ref>true</ref> to <p>preempt</p> if you want to automatically stop the sound before playing it. If <p>preempt</p> is <ref>false</ref>, and the sound is already playing, this command will do nothing.</description>
-		    <seealso>
-		      <ref>stopsound</ref>
-		    </seealso>
-		  </command>
-	  <command id="stopsound">
-	    <canon>stop sound (num)</canon>
-	    <shortname>stop sound</shortname>
-	    <description>Stops a sound effect. If the sound is not playing, nothing will happen.</description>
-	    <seealso>
-	      <ref>playsound</ref>
-	    </seealso>
-	  </command>
-	  <command id="pausesound">
-	    <canon>pause sound (num)</canon>
-	    <shortname>pause sound</shortname>
-	    <description>Temporarily stops a sound effect. It can be resumed with <ref>playsound</ref>, wherein it will continue from whence it left off.</description>
-	    <seealso>
-	      <ref>playsound</ref>
-	    </seealso>
-	  </command>
-	  <command id="soundisplaying">
-	    <canon>sound is playing (num)</canon>
-	    <shortname>sound is playing</shortname>
-	    <description>Checks to see whether a sound effect is playing or not. Useful for synchronization, etc.</description>
-	    <seealso>
-	      <ref>playsound</ref>
-	      <ref>stopsound</ref>
-	    </seealso>
-	  </command>
+		<command id="playsound">
+			<canon>play sound (num,loop,preempt)</canon>
+			<shortname>play sound</shortname>
+			<description>Plays or resumes a sound effect. Pass <ref>true</ref> to <p>loop</p> if you want the sound effect to start over when it finishes instead of stopping. Pass <ref>true</ref> to <p>preempt</p> if you want to automatically stop the sound before playing it. If <p>preempt</p> is <ref>false</ref>, and the sound is already playing, this command will do nothing.</description>
+			<seealso>
+				<ref>stopsound</ref>
+			</seealso>
+		</command>
+		<command id="stopsound">
+			<canon>stop sound (num)</canon>
+			<shortname>stop sound</shortname>
+			<description>Stops a sound effect. If the sound is not playing, nothing will happen.</description>
+			<seealso>
+				<ref>playsound</ref>
+			</seealso>
+		</command>
+		<command id="pausesound">
+			<canon>pause sound (num)</canon>
+			<shortname>pause sound</shortname>
+			<description>Temporarily stops a sound effect. It can be resumed with <ref>playsound</ref>, wherein it will continue from whence it left off.</description>
+			<seealso>
+				<ref>playsound</ref>
+			</seealso>
+		</command>
+		<command id="soundisplaying">
+			<canon>sound is playing (num)</canon>
+			<shortname>sound is playing</shortname>
+			<description>Checks to see whether a sound effect is playing or not. Useful for synchronization, etc.</description>
+			<seealso>
+				<ref>playsound</ref>
+				<ref>stopsound</ref>
+			</seealso>
+		</command>
 	</section>
 	<section title="Hero&apos;s Spells">
 		<command id="teachspell">
@@ -1266,8 +1266,8 @@ end</example>
 			<seealso>
 				<ref>showvalue</ref>
 				<ref>shownovalue</ref>
-        <ref>showstringat</ref>
-        <ref>centerstringat</ref>
+				<ref>showstringat</ref>
+				<ref>centerstringat</ref>
 			</seealso>
 		</command>
 		<command id="clearstring">
@@ -1307,11 +1307,11 @@ end</example>
 			<canon>string length (ID)</canon>
 			<shortname>string length</shortname>
 			<description>Returns the length of string #<p>ID</p>.</description>
-        </command>
+		</command>
 		<command id="stringcompare">
 			<canon>string compare (ID1, ID2)</canon>
 			<shortname>string compare</shortname>
-            <description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case sensitive.</description>
+			<description>Returns true if the two strings #<p>ID1</p> and #<p>ID2</p> are identical, case sensitive.</description>
 		</command>
 		<command id="replacechar">
 			<canon>replace char (ID, position, char)</canon>
@@ -1322,7 +1322,7 @@ end</example>
 			<canon>delete char (ID, position)</canon>
 			<shortname>delete char</shortname>
 			<description>This deletes the character at <p>postion</p> in string #<p>ID</p>, causing all the following characters to move over a slot. The first position of the string is 1, and the last position of the string is the same as <ref>stringlength</ref>.</description>
-        </command>
+		</command>
 		<command id="asciifromstring">
 			<canon>ascii from string (ID, position)</canon>
 			<shortname>ascii from string</shortname>
@@ -1414,7 +1414,7 @@ get hero name (1,find hero(hero by rank(0)))
 		<command id="stringcolor">
 			<canon>string color (ID, foreground color, background color)</canon>
 			<shortname>string color</shortname>
-            <description>Changes the color of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you ommit <p>background color</p>, the background will be transparent.</description>
+			<description>Changes the color of a string previously displayed with <ref>showstringat</ref> or <ref>centerstringat</ref>. Foreground color is the colour of the text itself. Background color has no meaning for style:outline strings (the outline is always black). For style:flat strings, it is the color of the solid background if 1 to 255, or causes no background if 0. If you ommit <p>background color</p>, the background will be transparent.</description>
 		</command>
 		<command id="positionstring">
 			<canon>positionstring (ID, x, y)</canon>
@@ -1437,27 +1437,27 @@ get hero name (1,find hero(hero by rank(0)))
 			<description>Gets the name of song #<p>song</p> and puts it in string #<p>ID</p>.</description>
 		</command>
 		<command id="searchstring">
-		    <canon>search string (ID1, ID2, start)</canon>
-		    <shortname>search string</shortname>
-		    <description>Searches the string for a specified string, returns the position at which the string was found. <p>start</p> is the position at which you want to start looking, default is 1. <p>ID1</p> is the the string you want to search, <p>ID2</p> is the string expression you want to find. Returns <ref>false</ref> if the string wasn't found</description>
+			<canon>search string (ID1, ID2, start)</canon>
+			<shortname>search string</shortname>
+			<description>Searches the string for a specified string, returns the position at which the string was found. <p>start</p> is the position at which you want to start looking, default is 1. <p>ID1</p> is the the string you want to search, <p>ID2</p> is the string expression you want to find. Returns <ref>false</ref> if the string wasn't found</description>
 		</command>
 		<command id="trimstring">
-		    <canon>trim string (ID, start, length)</canon>
-		    <shortname>trim string</shortname>
-		    <description>Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <p>ID</p> is the string you want to be cut. If you wish to cut <p>ID</p> to a certain length, you must specify <p>start</p> and <p>length</p>. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <p>ID</p>.</description>
+			<canon>trim string (ID, start, length)</canon>
+			<shortname>trim string</shortname>
+			<description>Cuts the string to the specified length, OR removes blank space from the beginning and ends of the string. <p>ID</p> is the string you want to be cut. If you wish to cut <p>ID</p> to a certain length, you must specify <p>start</p> and <p>length</p>. <p>start</p> is the position at which you want to start cutting, anything to the left of this number will be deleted in a string. <p>length</p> is the size of the string you want to preserve, anything to the right of this number will be deleted in a string. If you leave these parameters blank, it will trim whitespace from the beginning and ends of <p>ID</p>.</description>
 		</command>
 		<command id="stringfromtextbox">
-		    <canon>string from textbox (ID, textbox, line, expand)</canon>
-		    <shortname>string from textbox</shortname>
-		    <description>Loads text from the <p>line</p> in a <p>textbox</p> into a string <p>ID</p>. The command automatically erases white spaces from the begining of the string and end of the string. Valid numbers for <p>line</p> are 0-7. If <p>expand</p> is true, then codes like ${H1} in the string will be substituted automatically.</description>
-		    <seealso>
-		      <ref>expandstring</ref>
-		    </seealso>
+			<canon>string from textbox (ID, textbox, line, expand)</canon>
+			<shortname>string from textbox</shortname>
+			<description>Loads text from the <p>line</p> in a <p>textbox</p> into a string <p>ID</p>. The command automatically erases white spaces from the begining of the string and end of the string. Valid numbers for <p>line</p> are 0-7. If <p>expand</p> is true, then codes like ${H1} in the string will be substituted automatically.</description>
+			<seealso>
+				<ref>expandstring</ref>
+			</seealso>
 		</command>
 		<command id="expandstring">
-		    <canon>expand string(ID)</canon>
-		    <shortname>expand string</shortname>
-		    <description>Expands codes in <p>ID</p> like ${H1}. This does the same thing that textboxes do automatically.</description>
+			<canon>expand string(ID)</canon>
+			<shortname>expand string</shortname>
+			<description>Expands codes in <p>ID</p> like ${H1}. This does the same thing that textboxes do automatically.</description>
 		</command>
 	</section>
 
@@ -1544,7 +1544,7 @@ end</example>
 			<shortname>selected menu item</shortname>
 			<description>Returns the handle for the selected menu item in the topmost menu, false if no menus are open, or, when given an optional <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>) returns the selected item in that menu.</description>
 		</command>
-		<command id="activatemenuitem">
+		<command id="usemenuitem">
 			<canon>use menu item(menu item handle)</canon>
 			<shortname>use menu item</shortname>
 			<description>Given a <p>menu item handle</p> (for example, the one returned by <ref>selectedmenuitem</ref>), activate the menu item. This will cause whatever actions (text box, menu, script, tag changes) that have been configured for this menu item to be triggered.</description>
@@ -3704,26 +3704,26 @@ end
 			<canon>keyval (scancode)</canon>
 			<shortname>keyval</shortname>
 			<description>Returns a bitmask for the state of the specified key. The argument is a scancode, see <ref>keyispressed</ref>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <lb/><lb/>0 = not pressed<lb/>1 = key held down since last tick, but is not a new press<lb/>2 = the player pressed the key and released it, all in the same tick<lb/>3 = new keypress (or typematic repeat)
-            <danger>Just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.</danger>
-            <note>The joystick scancodes described in <ref>keyispressed</ref> do not work in this command.</note></description>
-            <seealso>
-              <ref>keyispressed</ref>
-            </seealso>
-        </command>
+			<danger>Just like <ref>keyispressed</ref>, this command does not return real time data, but the situation at the beginning of the current game tick.</danger>
+			<note>The joystick scancodes described in <ref>keyispressed</ref> do not work in this command.</note></description>
+			<seealso>
+				<ref>keyispressed</ref>
+			</seealso>
+		</command>
 		<command id="lastascii">
 			<canon>last ascii</canon>
 			<shortname>last ascii</shortname>
 			<description>Returns the ascii code of any currently pressed key. If more than one key corresponding to an ascii character is being pressed, then only one can be returned.</description>
 		</command>
 		<command id="joystickbutton">
-		  <canon>joystick button (button,joystick)</canon>
-		  <shortname>joystick button</shortname>
-		  <description>Returns <ref>true</ref> or <ref>false</ref> depending on whether button #<p>button</p> on joystick #<p>joystick</p> is pressed. <p>button</p> can be from 1-16 (assuming the joystick has that many buttons), and <p>joystick</p> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
+			<canon>joystick button (button,joystick)</canon>
+			<shortname>joystick button</shortname>
+			<description>Returns <ref>true</ref> or <ref>false</ref> depending on whether button #<p>button</p> on joystick #<p>joystick</p> is pressed. <p>button</p> can be from 1-16 (assuming the joystick has that many buttons), and <p>joystick</p> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
 		</command>
 		<command id="joystickaxis">
-		  <canon>joystick axis (axis,multiplier,joystick)</canon>
-		  <shortname>joystick axis</shortname>
-		  <description>Returns the position of the joystick along the X or Y axis on joystick #<p>joystick</p>. <p>axis</p> can be one of the constants <ref>xaxis</ref> or <ref>yaxis</ref>. <p>multiplier</p> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <p>joystick</p> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
+			<canon>joystick axis (axis,multiplier,joystick)</canon>
+			<shortname>joystick axis</shortname>
+			<description>Returns the position of the joystick along the X or Y axis on joystick #<p>joystick</p>. <p>axis</p> can be one of the constants <ref>xaxis</ref> or <ref>yaxis</ref>. <p>multiplier</p> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <p>joystick</p> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <p>joystick</p> defaults to.</description>
 		</command>
 		<command id="heropixelx">
 			<canon>hero pixel X (who)</canon>
@@ -3815,30 +3815,30 @@ if (herolevelled (find hero (hero: Bob))) then (
 			<description>Returns the total experience required to reach a specified level from level 0.</description>
 		</command>
 		<command id="settimer">
-		  <canon>set timer (id, count, speed, trigger, string, flags)</canon>
-		  <shortname>set timer</shortname>
-		  <description>Changes the settings for a given timer, and starts it. <p>id</p> is the number of a timer -- by default, there are 16 timers, numbered 0 to 15, but you can change the number of available timers with <ref>allocatetimers</ref>. All other parameters are optional, or you can pass <ref>timer:default</ref> as any of them. This will leave the parameter unchanged (from the last time you set it or from the default initial value), it will NOT cause that timer setting to be reset to the default initial value. <p>Count</p> is the length of the timer. While it's running, the count will go down by one every <p>speed</p> game ticks (frames). I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second. Use a speed of 1 to count down in ticks. Changing the timer's <p>count</p> (as opposed to passing <p>timer:default</p> as the second argument) will cause the timer to restart from the new value.<lb/>
+			<canon>set timer (id, count, speed, trigger, string, flags)</canon>
+			<shortname>set timer</shortname>
+			<description>Changes the settings for a given timer, and starts it. <p>id</p> is the number of a timer -- by default, there are 16 timers, numbered 0 to 15, but you can change the number of available timers with <ref>allocatetimers</ref>. All other parameters are optional, or you can pass <ref>timer:default</ref> as any of them. This will leave the parameter unchanged (from the last time you set it or from the default initial value), it will NOT cause that timer setting to be reset to the default initial value. <p>Count</p> is the length of the timer. While it's running, the count will go down by one every <p>speed</p> game ticks (frames). I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second. Use a speed of 1 to count down in ticks. Changing the timer's <p>count</p> (as opposed to passing <p>timer:default</p> as the second argument) will cause the timer to restart from the new value.<lb/>
 <p>trigger</p> is what happens when the timer runs out. You can use the constant <ref>timer:gameover</ref> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one. If the timer runs out during a battle then the effect happens after the battle ends.<lb/>
 You can bind a timer to a string using the <p>string</p> parameter to create a countdown that shows up on screen. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<lb/>
 A timer also has a few other options in the form of <p>flags</p>. You can pass any combination of these flags (by <ref>or</ref>ing or <ref>add</ref>ing them together): <ul><li><ref>timerflag:battle</ref> to have it count down during battles (not including menus which pause the battle)</li><li><ref>timerflag:menu</ref> to have it count down even while the player is in a menu which pauses the game (e.g. the status menu), the in-battle pause button doesn't count</li><li><ref>timerflag:critical</ref> to have the timer end a battle or exit a menu if it runs out during it</li></ul><lb/><note>Timers start counting down not from the current game 'tick', but from next one. So if you want to trigger something next tick (eg. run a script every frame) you need to pass <p>count</p> as 0 and <p>speed</p> as 1. A timer count set to 1 would counter-intuitively trigger in 2 ticks time.</note><note>Timer settings are not saved in game saves.</note></description>
-		  <seealso>
-		    <ref>stoptimer</ref>
-		    <ref>readtimer</ref>
-		    <ref>systemsecond</ref>
-		    <ref>secondsofplay</ref>
-		    <ref>milliseconds</ref>
-		    <ref>runscriptbyid</ref>
-		  </seealso>
-		  <example>#this starts a 300 second (5 minute) timer that counts down once every 18 ticks (a second). If
+			<seealso>
+				<ref>stoptimer</ref>
+				<ref>readtimer</ref>
+				<ref>systemsecond</ref>
+				<ref>secondsofplay</ref>
+				<ref>milliseconds</ref>
+				<ref>runscriptbyid</ref>
+			</seealso>
+			<example>#this starts a 300 second (5 minute) timer that counts down once every 18 ticks (a second). If
 #it runs out during battle, the battle won't end but a game-over will happen afterwards.
 set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</example>
 		</command>
-	  <command id="stoptimer">
-	    <canon>stop timer (id)</canon>
-	    <shortname>stop timer</shortname>
-	    <description>Stops a timer by setting its speed to 0. All of its other settings remain the same.</description>
-	    <seealso><ref>settimer</ref></seealso>
-	  </command>
+		<command id="stoptimer">
+			<canon>stop timer (id)</canon>
+			<shortname>stop timer</shortname>
+			<description>Stops a timer by setting its speed to 0. All of its other settings remain the same.</description>
+			<seealso><ref>settimer</ref></seealso>
+		</command>
 <!--
 		<command id="unusedtimer">
 			<canon>unused timer</canon>
@@ -3854,12 +3854,12 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</example>
 			<shortname>allocate timers</shortname>
 			<description>Changes the number of available timers. The range of valid timer IDs becomes 0 to <p>number</p>-1. You can reduce the number of timers down to zero, and increase it up to 100000 (not recommended, each timer must be processed continuously). All existing timers that are not removed continue to run. The default number of timers is 16.</description>
 		</command>
-	  <command id="readtimer">
-	    <canon>read timer (id)</canon>
-	    <shortname>read timer</shortname>
-	    <description>Returns the count of a given timer.</description>
-	    <seealso><ref>settimer</ref></seealso>
-	  </command>
+		<command id="readtimer">
+			<canon>read timer (id)</canon>
+			<shortname>read timer</shortname>
+			<description>Returns the count of a given timer.</description>
+			<seealso><ref>settimer</ref></seealso>
+		</command>
 	</section>
 	<section title="Enemy and Formation Functions">
 		<command id="getenemystat">
@@ -3885,7 +3885,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</example>
 		<command id="getenemyname">
 			<canon>get enemy name (enemyid, stringid)</canon>
 			<shortname>get enemy name</shortname>
-			<description>Lets you use the enemy name in a string.  The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.</description>
+			<description>Lets you use the enemy name in a string. The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.</description>
 			<seealso>
 				<ref>setenemyname</ref>
 			</seealso>
@@ -4089,7 +4089,7 @@ end
 		<command id="readpassblock">
 			<canon>read pass block (x,y)</canon>
 			<shortname>read pass block</shortname>
-			<description>Returns the value of a passability (wallmap) tile on the current map at the specified X,Y position. The return value will be from 0 to 255 and consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16  = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>To check the value of a specific bit, use the <ref>and</ref> operator. For example:  </description>
+			<description>Returns the value of a passability (wallmap) tile on the current map at the specified X,Y position. The return value will be from 0 to 255 and consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16 = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>To check the value of a specific bit, use the <ref>and</ref> operator. For example:  </description>
 			<example>  variable (pass)
   pass := read pass block(hero X(me),hero Y(me))
   if (pass,and,harm tile) then begin
@@ -4100,7 +4100,7 @@ end
 		<command id="writepassblock">
 			<canon>write pass block (x,y,value)</canon>
 			<shortname>write pass block</shortname>
-			<description>Writes a new passability (wallmap) information to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16  = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>You can <ref>add</ref> the constants together. For example:</description>
+			<description>Writes a new passability (wallmap) information to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<lb/><lb/>bit 1 = <ref>northwall</ref><lb/>bit 2 = <ref>eastwall</ref><lb/>bit 4 = <ref>southwall</ref><lb/>bit 8 = <ref>westwall</ref><lb/>bit 16 = <ref>vehiclea</ref><lb/>bit 32 = <ref>vehicleb</ref><lb/>bit 64 = <ref>harmtile</ref><lb/>bit 128 = <ref>overheadtile</ref><lb/><lb/>You can <ref>add</ref> the constants together. For example:</description>
 			<example>variable (pass)
 pass := northwall+southwall+eastwall+westwall
 write pass block(15,3,pass)
@@ -4991,8 +4991,8 @@ end</example>
 		<command id="milliseconds">
 			<canon>milliseconds</canon>
 			<shortname>milliseconds</shortname>
-            <description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime or any random value).</description>
-        </command>
+			<description>Use to measure time intervals accurately. Subtract two values returned by milliseconds at different times to find the number of ms (1000ths of a second) elapsed in between. A single value is useless (the computer's uptime or any random value).</description>
+		</command>
 	</section>
 	<section title="Predefined Constants">
 		<command id="numericconstants">
@@ -5268,49 +5268,49 @@ end</example>
 			<description>Pass as first argument to <ref>giveexperience</ref> to divide the experience between all the live heroes in the battle (active) party.</description>
 		</command>
 		<command id="xaxis">
-		  <canon>x axis</canon>
-		  <shortname>x axis</shortname>
-		  <description>Pass to <ref>joystickaxis</ref> to specify the X axis (left and right).</description>
+			<canon>x axis</canon>
+			<shortname>x axis</shortname>
+			<description>Pass to <ref>joystickaxis</ref> to specify the X axis (left and right).</description>
 		</command>
 		<command id="yaxis">
-		  <canon>y axis</canon>
-		  <shortname>y axis</shortname>
-		  <description>Pass to <ref>joystickaxis</ref> to specify the Y axis (up and down).</description>
+			<canon>y axis</canon>
+			<shortname>y axis</shortname>
+			<description>Pass to <ref>joystickaxis</ref> to specify the Y axis (up and down).</description>
 		</command>
 		<command id="timer:default">
-		  <canon>timer: default</canon>
-		  <shortname>timer: default</shortname>
-		  <description>Pass to <ref>settimer</ref> to leave one of the parameters at its default setting. Valid for any parameter except <p>id</p></description>
+			<canon>timer: default</canon>
+			<shortname>timer: default</shortname>
+			<description>Pass to <ref>settimer</ref> to leave one of the parameters at its default setting. Valid for any parameter except <p>id</p></description>
 		</command>
 		<command id="timer:gameover">
-		  <canon>timer: game over</canon>
-		  <shortname>timer: game over</shortname>
-		  <description>Pass to <ref>settimer</ref> in the <p>trigger</p> field to have the game end when the timer runs out.</description>
+			<canon>timer: game over</canon>
+			<shortname>timer: game over</shortname>
+			<description>Pass to <ref>settimer</ref> in the <p>trigger</p> field to have the game end when the timer runs out.</description>
 		</command>
 		<command id="timerflag:critical">
-		  <canon>timer flag: critical</canon>
-		  <shortname>timer flag: critical</shortname>
-		  <description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that if the timer runs out during a battle, it should end the battle immediately.</description>
+			<canon>timer flag: critical</canon>
+			<shortname>timer flag: critical</shortname>
+			<description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that if the timer runs out during a battle, it should end the battle immediately.</description>
 		</command>
 		<command id="timerflag:battle">
-		  <canon>timer flag: battle</canon>
-		  <shortname>timer flag: battle</shortname>
-		  <description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that the timer should run during battle. Otherwise, the timer will be paused during battle.</description>
+			<canon>timer flag: battle</canon>
+			<shortname>timer flag: battle</shortname>
+			<description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that the timer should run during battle. Otherwise, the timer will be paused during battle.</description>
 		</command>
 		<command id="timerflag:menu">
-		  <canon>timer flag: menu</canon>
-		  <shortname>timer flag: menu</shortname>
-		  <description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that the timer should run while the player is in the menu. Otherwise, it will be paused while the player is in the main menu.</description>
+			<canon>timer flag: menu</canon>
+			<shortname>timer flag: menu</shortname>
+			<description>Pass to <ref>settimer</ref> in the <p>flags</p> field to indicate that the timer should run while the player is in the menu. Otherwise, it will be paused while the player is in the main menu.</description>
 		</command>
 		<command id="song:silence">
-		  <canon>song: silence</canon>
-		  <shortname>song: silence</shortname>
-		  <description>Used with <ref>setformationsong</ref> and <ref>getformationsong</ref> to indicate an enemy formation without music. Used by <ref>setambientmusic</ref> and <ref>getambientmusic</ref> for a silent map.</description>
+			<canon>song: silence</canon>
+			<shortname>song: silence</shortname>
+			<description>Used with <ref>setformationsong</ref> and <ref>getformationsong</ref> to indicate an enemy formation without music. Used by <ref>setambientmusic</ref> and <ref>getambientmusic</ref> for a silent map.</description>
 		</command>
 		<command id="song:sameaslastmap">
-		  <canon>song: same as last map</canon>
-		  <shortname>song: same as last map</shortname>
-		  <description>Used with <ref>setformationsong</ref> and <ref>getformationsong</ref> to indicate an enemy formation which uses the same music as the map. Used by <ref>setambientmusic</ref> and <ref>getambientmusic</ref> for a map that continues with the last map's music.</description>
+			<canon>song: same as last map</canon>
+			<shortname>song: same as last map</shortname>
+			<description>Used with <ref>setformationsong</ref> and <ref>getformationsong</ref> to indicate an enemy formation which uses the same music as the map. Used by <ref>setambientmusic</ref> and <ref>getambientmusic</ref> for a map that continues with the last map's music.</description>
 		</command>
 		<command id="song:sameasmap">
 			<alias>song:sameaslastmap</alias>
@@ -5318,5 +5318,3 @@ end</example>
 		</command>
 	</section>
 </plotscript>
-
-
