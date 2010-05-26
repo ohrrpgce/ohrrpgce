@@ -3601,13 +3601,15 @@ SUB set_homedir()
 END SUB
 
 FUNCTION get_help_dir() AS STRING
-'what happened to prefsdir?
+'what happened to prefsdir? [James: prefsdir only exists for game not custom right now]
+IF isfile(exepath & SLASH & "ohrhelp") THEN RETURN exepath & SLASH & "ohrhelp"
 IF isfile(homedir & SLASH & "ohrhelp") THEN RETURN homedir & SLASH & "ohrhelp"
 #IFDEF __UNIX__
 #IFDEF DATAFILES
  IF isfile(DATAFILES & SLASH & "ohrhelp") THEN RETURN DATAFILES & SLASH & "ohrhelp"
 #ENDIF
 #ENDIF
+ '-- if all else fails, use exepath even if invalid
  RETURN exepath & SLASH & "ohrhelp"
 END FUNCTION
 
