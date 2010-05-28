@@ -904,8 +904,6 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 		exit sub
 	end if
 	
-	if nod->nodeType <> rltNull and nod->numChildren <> 0 then print
-	
 	select case nod->nodeType
 		case rltInt
 			print "" & nod->num;
