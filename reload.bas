@@ -1073,6 +1073,10 @@ Function ResizeZString(byval node as nodeptr, byval newsize as integer) as ZStri
 	
 	if n = 0 then return 0
 	
+	for i as integer = node->strSize to newsize
+		n[i] = 0
+	next
+	
 	node->str = n
 	node->strSize = newsize
 	

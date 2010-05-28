@@ -90,7 +90,7 @@ sub SaveBitsetArray(byval node as NodePtr, bs() as integer, byval size as intege
 	
 	dim d as zstring ptr = GetZString(node)
 	
-	for i as integer = 0 to size
+	for i as integer = 0 to size - 1
 		d[i * 2] = bs(i) and &hff
 		d[i * 2 + 1] = int(bs(i) / 256) and &hff
 	next
