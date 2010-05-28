@@ -1785,3 +1785,12 @@ SUB load_string_list(array() AS STRING, filename AS STRING)
  REDIM PRESERVE array(i - 1) AS STRING
  
 END SUB
+
+FUNCTION load_map_pos_save_offset(BYVAL mapnum AS INTEGER) AS XYPair
+ DIM offset AS XYPair
+ DIM gmaptmp(dimbinsize(binMAP))
+ loadrecord gmaptmp(), game & ".map", getbinsize(binMAP) / 2, mapnum
+ offset.x = gmaptmp(20)
+ offset.y = gmaptmp(21)
+ RETURN offset
+END FUNCTION

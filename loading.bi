@@ -99,4 +99,6 @@ DECLARE SUB saveenemydata (array() as integer, index as integer, altfile as inte
 DECLARE SUB save_string_list(array() AS STRING, filename AS STRING)
 DECLARE SUB load_string_list(array() AS STRING, filename AS STRING)
 
+DECLARE FUNCTION load_map_pos_save_offset(BYVAL mapnum AS INTEGER) AS XYPair
+
 #ENDIF

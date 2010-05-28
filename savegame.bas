@@ -13,12 +13,31 @@ DEFINT A-Z
 #include "gglobals.bi"
 #include "const.bi"
 #include "loading.bi"
+#include "reload.bi"
+#include "reloadext.bi"
 #include "savegame.bi"
 
 #include "menustuf.bi"
 #include "yetmore.bi"
 
+USING Reload
+USING Reload.Ext
+
 '--Local subs and functions
+
+DECLARE SUB new_savegame (BYVAL slot AS INTEGER)
+DECLARE SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
+DECLARE SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_maps_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_tags_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_onetime_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_spelllist_to_reload(hero_slot AS INTEGER, spell_list AS INTEGER, BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_inventory_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_shops_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_vehicle_to_reload(BYVAL parent AS Reload.NodePtr)
 
 '--old save/load support
 DECLARE SUB old_savegame (slot as integer)
@@ -33,6 +52,7 @@ DECLARE SUB old_erase_save_slot (BYVAL slot AS INTEGER)
 DECLARE FUNCTION old_count_used_save_slots() AS INTEGER
 
 DIM SHARED old_savefile AS STRING
+DIM SHARED savedir AS STRING
 
 REM $STATIC
 OPTION EXPLICIT
@@ -41,7 +61,6 @@ OPTION EXPLICIT
 
 SUB init_save_system()
  '--set up savegame file
- 'old_savefile is a global in this module
  old_savefile = trimextension(sourcerpg) + ".sav"
  #IFDEF __UNIX__
  IF NOT fileisreadable(old_savefile) THEN
@@ -49,10 +68,13 @@ SUB init_save_system()
   old_savefile = prefsdir & SLASH & trimpath(old_savefile)
  END IF
  #ENDIF
+ savedir = prefsdir & SLASH & "saves"
+ IF NOT isdir(savedir) THEN MKDIR savedir
 END SUB
 
 SUB savegame (BYVAL slot AS INTEGER)
  old_savegame slot
+ new_savegame slot
 END SUB
 
 SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
@@ -82,6 +104,408 @@ END SUB
 FUNCTION count_used_save_slots() AS INTEGER
  RETURN old_count_used_save_slots()
 END FUNCTION
+
+'-----------------------------------------------------------------------
+
+SUB new_savegame (BYVAL slot AS INTEGER)
+ DIM doc AS DocPtr
+ doc = CreateDocument()
+ 
+ DIM node AS NodePtr
+ node = CreateNode(doc, "rsav")
+ SetRootNode(doc, node)
+ gamestate_to_reload node
+ 
+ DIM filename AS STRING
+ filename = savedir & SLASH & slot & ".rsav"
+ SerializeBin filename, doc
+ 
+ FreeDocument doc
+END SUB
+
+SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
+ 'increment this to produce a warning message when
+ 'loading a new rsav file in an old game player
+ SetChildNode(node, "ver", 0)
+ 
+ gamestate_state_to_reload node
+ gamestate_script_to_reload node
+ gamestate_maps_to_reload node
+ gamestate_tags_to_reload node
+ gamestate_onetime_to_reload node
+ gamestate_party_to_reload node
+ gamestate_inventory_to_reload node
+ gamestate_shops_to_reload node
+ gamestate_vehicle_to_reload node
+END SUB
+
+SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "state")
+ DIM ch AS NodePtr 'used for sub-containers
+ DIM n AS NodePtr 'used for numbered containers
+ 
+ SetChildNode(node, "current_map", gam.map.id)
+
+ DIM map_offset AS XYPair
+ map_offset = load_map_pos_save_offset(gam.map.id)
+
+ ch = SetChildNode(node, "caterpillar")
+ FOR i AS INTEGER = 0 TO 3
+  n = AppendChildNode(ch, "hero", i)
+  SetChildNode(n, "x", catx(i * 5) - map_offset.x * 20)
+  SetChildNode(n, "y", caty(i * 5) - map_offset.y * 20)
+  SetChildNode(n, "d", catd(i * 5))
+ NEXT i
+
+ SetChildNode(node, "random_battle_countdown", gam.random_battle_countdown)
+ 
+ ch = SetChildNode(node, "camera")
+ SetChildNode(ch, "x", mapx)
+ SetChildNode(ch, "y", mapy)
+ SetChildNode(ch, "mode", gen(genCamera))
+ FOR i AS INTEGER = 0 TO 3
+  SetChildNode(ch, "arg" & i+1, gen(genCamArg1 + i))
+ NEXT i
+ 
+ SetChildNode(node, "gold", gold)
+
+ ch = SetChildNode(node, "playtime")
+ SetChildNode(ch, "days", gen(genDays))
+ SetChildNode(ch, "hours", gen(genHours))
+ SetChildNode(ch, "minutes", gen(genMinutes))
+ SetChildNode(ch, "seconds", gen(genSeconds))
+
+ ch = SetChildNode(node, "textbox")
+ SetChildNode(ch, "backdrop", gen(genTextboxBackdrop))
+ 
+ ch = SetChildNode(node, "status_char")
+ SetChildNode(ch, "poison", gen(genPoison))
+ SetChildNode(ch, "stun", gen(genStun))
+ SetChildNode(ch, "mute", gen(genMute))
+
+ SetChildNode(node, "damage_cap", gen(genDamageCap))
+
+ ch = SetChildNode(node, "stats")
+ FOR i AS INTEGER = 0 TO 11
+  n = AppendChildNode(ch, "stat", i)
+  SetChildNode(n, "cap", gen(genStatCap + i))
+ NEXT i
+
+END SUB
+
+SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
+ 'FIXME: currently only stores a tiny bit of script state, but could store
+ 'a lot more in the future
+
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "script")
+ DIM ch AS NodePtr 'used for sub-containers
+ DIM n AS NodePtr 'used for numbered containers
+
+ ch = SetChildNode(node, "globals")
+ FOR i AS INTEGER = 0 TO 4095
+  IF global(i) <> 0 THEN
+   n = AppendChildNode(ch, "global", i)
+   SetChildNode(n, "int", global(i))
+  END IF
+ NEXT i
+
+ SetChildNode(node, "gameover_script", gen(genGameoverScript))
+ SetChildNode(node, "loadgame_script", gen(genLoadgameScript))
+ 
+ ch = SetChildNode(node, "suspend")
+ IF xreadbit(gen(), 0, genSuspendBits) THEN SetChildNode(ch, "npcs")
+ IF xreadbit(gen(), 1, genSuspendBits) THEN SetChildNode(ch, "player")
+ IF xreadbit(gen(), 2, genSuspendBits) THEN SetChildNode(ch, "obstruction")
+ IF xreadbit(gen(), 3, genSuspendBits) THEN SetChildNode(ch, "herowalls")
+ IF xreadbit(gen(), 4, genSuspendBits) THEN SetChildNode(ch, "npcwalls")
+ IF xreadbit(gen(), 5, genSuspendBits) THEN SetChildNode(ch, "caterpillar")
+ IF xreadbit(gen(), 6, genSuspendBits) THEN SetChildNode(ch, "randomenemies")
+ IF xreadbit(gen(), 7, genSuspendBits) THEN SetChildNode(ch, "boxadvance")
+ IF xreadbit(gen(), 8, genSuspendBits) THEN SetChildNode(ch, "overlay")
+ IF xreadbit(gen(), 9, genSuspendBits) THEN SetChildNode(ch, "ambientmusic")
+ 
+ SetChildNode(node, "backdrop", gen(genScrBackdrop))
+END SUB
+
+SUB gamestate_maps_to_reload(BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "maps")
+ DIM n AS NodePtr 'used for numbered containers
+ 
+ 'FIXME: currently only supports saving the current map
+ n = AppendChildNode(node, "map", gam.map.id)
+ gamestate_npcs_to_reload n
+ 
+END SUB
+
+SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "npcs")
+ DIM n AS NodePtr 'used for numbered containers
+
+ FOR i AS INTEGER = 0 TO 299
+  IF npc(i).id <> 0 THEN
+   n = AppendChildNode(node, "npc", i)
+   SetChildNode(n, "id", ABS(npc(i).id) - 1)
+   IF npc(i).id < 0 THEN SetChildNode(n, "hidden")
+   SetChildNode(n, "x", npc(i).x)
+   SetChildNode(n, "y", npc(i).y)
+   SetChildNode(n, "d", npc(i).dir)
+   SetChildNode(n, "fr", npc(i).frame)
+   IF npc(i).xgo THEN SetChildNode(n, "xgo", npc(i).xgo)
+   IF npc(i).ygo THEN SetChildNode(n, "ygo", npc(i).ygo)
+  END IF
+ NEXT i
+END SUB
+
+SUB gamestate_tags_to_reload(BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "tags")
+ 
+ DIM count AS INTEGER = 1000
+ SetChildNode(node, "count", count)
+ 
+ DIM buf(INT(count / 16)) AS INTEGER
+ FOR i AS INTEGER = 0 TO count - 1
+  setbit buf(), 0, i, readbit(tag(), 0, i)
+ NEXT i
+ 
+ DIM ch AS NodePtr
+ ch = SetChildNode(node, "data")
+ SaveBitsetArray(ch, buf(), UBOUND(buf))
+END SUB
+
+SUB gamestate_onetime_to_reload(BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "onetime")
+ 
+ DIM count AS INTEGER = 1032
+ SetChildNode(node, "count", count)
+ 
+ DIM buf(INT(count / 16)) AS INTEGER
+ FOR i AS INTEGER = 0 TO count - 1
+  setbit buf(), 0, i, readbit(tag(), 0, 1000 + i)
+ NEXT i
+ 
+ DIM ch AS NodePtr
+ ch = SetChildNode(node, "data")
+ SaveBitsetArray(ch, buf(), UBOUND(buf))
+END SUB
+
+SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "party")
+ DIM slot AS NodePtr
+ DIM ch AS NodePtr 'used for sub-containers
+ DIM n AS NodePtr 'used for numbered containers
+ 
+ FOR i AS INTEGER = 0 TO 40
+  slot = AppendChildNode(node, "slot", i)
+  
+  IF hero(i) > 0 THEN SetChildNode(slot, "id", hero(i) - 1)
+  SetChildNode(slot, "name", names(i))
+  
+  IF xreadbit(hmask(), i) THEN
+   SetChildNode(slot, "locked")
+  END IF
+  
+  ch = SetChildNode(slot, "stats")
+  FOR j AS INTEGER = 0 TO 11
+   WITH gam.hero(i).stat
+    IF .cur.sta(j) <> 0 OR .max.sta(j) <> 0 THEN
+     n = AppendChildNode(ch, "stat", j)
+     SetChildNode(n, "cur", .cur.sta(j))
+     SetChildNode(n, "max", .max.sta(j))
+    END IF
+   END WITH
+  NEXT j
+  
+  SetChildNode(slot, "lev", gam.hero(i).lev)
+  SetChildNode(slot, "lev_gain", gam.hero(i).lev_gain)
+  SetChildNode(slot, "exp", exlev(i, 0))
+  SetChildNode(slot, "exp_next", exlev(i, 1))
+  
+  
+  ch = SetChildNode(slot, "wep")
+  SetChildNode(ch, "pic", gam.hero(i).wep_pic)
+  SetChildNode(ch, "pal", gam.hero(i).wep_pal)
+  
+  ch = SetChildNode(slot, "in_battle")
+  SetChildNode(ch, "pic", gam.hero(i).battle_pic)
+  SetChildNode(ch, "pal", gam.hero(i).battle_pal)
+
+  ch = SetChildNode(slot, "walkabout")
+  SetChildNode(ch, "pic", gam.hero(i).pic)
+  SetChildNode(ch, "pal", gam.hero(i).pal)
+  
+  ch = SetChildNode(slot, "battle_menus")
+  FOR j AS INTEGER = 0 TO 5
+   n = AppendChildNode(ch, "menu", j)
+   SELECT CASE bmenu(i, j)
+    CASE IS > 0:
+     '--attack from weapon
+     SetChildNode(n, "attack", bmenu(i, j) - 1)
+    CASE -10:
+     '--items menu
+     SetChildNode(n, "items")
+    CASE -4 TO -1:
+     '--spell list
+     SetChildNode(n, "spells", ABS(bmenu(i, j)) - 1)
+   END SELECT
+  NEXT j
+  
+  ch = SetChildNode(slot, "spell_lists")
+  FOR j AS INTEGER = 0 TO 3
+   n = AppendChildNode(ch, "list", j)
+   gamestate_spelllist_to_reload(i, j, n)
+  NEXT j
+  
+  ch = SetChildNode(slot, "level_mp")
+  FOR j AS INTEGER = 0 TO 7
+   IF lmp(i, j) <> 0 THEN
+    n = AppendChildNode(ch, "lev", j)
+    SetChildNode(n, "val", lmp(i, j))
+   END IF
+  NEXT j
+
+  ch = SetChildNode(slot, "equipment")
+  FOR j AS INTEGER = 0 TO 4
+   IF eqstuf(i, j) > 0 THEN
+    n = AppendChildNode(ch, "equip", j)
+    SetChildNode(n, "item", eqstuf(i, j) - 1)
+   END IF
+  NEXT j
+  
+  DIM bitbuf(4) AS INTEGER
+  FOR j AS INTEGER = 0 TO 4
+   bitbuf(j) = nativehbits(i, j)
+  NEXT j
+  
+  ch = SetChildNode(slot, "elements")
+  FOR j AS INTEGER = 0 TO 7
+   IF xreadbit(bitbuf(), j) THEN AppendChildNode(ch, "weak", j)
+   IF xreadbit(bitbuf(), 8 + j) THEN AppendChildNode(ch, "strong", j)
+   IF xreadbit(bitbuf(), 16 + j) THEN AppendChildNode(ch, "absorb", j)
+  NEXT j
+  
+  IF xreadbit(bitbuf(), 24) THEN SetChildNode(slot, "rename_on_add")
+  IF xreadbit(bitbuf(), 25) THEN SetChildNode(slot, "rename_on_status")
+  IF xreadbit(bitbuf(), 26) THEN SetChildNode(slot, "hide_empty_lists")
+  
+ NEXT i
+END SUB
+
+SUB gamestate_spelllist_to_reload(hero_slot AS INTEGER, spell_list AS INTEGER, BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "spells", spell_list)
+ DIM n AS NodePtr 'used for numbered containers
+
+ DIM atk_id AS INTEGER
+ FOR i AS INTEGER = 0 TO 23
+  atk_id = spell(hero_slot, spell_list, i) - 1
+  IF atk_id >= 0 THEN
+   n = AppendChildNode(node, "spell", i)
+   SetChildNode(n, "attack", atk_id)
+  END IF
+ NEXT i
+ 
+END SUB
+
+SUB gamestate_inventory_to_reload(BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "inventory")
+ DIM ch AS NodePtr 'used for sub-containers
+ DIM n AS NodePtr 'used for numbered containers
+ 
+ SetChildNode(node, "size", gen(genMaxInventory))
+
+ ch = SetChildNode(node, "slots")
+ DIM last AS INTEGER
+ last = small(inventoryMax, UBOUND(inventory))
+ FOR i AS INTEGER = 0 TO last
+  WITH inventory(i)
+   IF .used THEN
+    n = AppendChildNode(ch, "slot", i)
+    SetChildNode(n, "item", .id)
+    SetChildNode(n, "num", .num)
+   END IF
+  END WITH
+ NEXT i
+END SUB
+
+SUB gamestate_shops_to_reload(BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "shops")
+ DIM ch AS NodePtr 'used for sub-containers
+ DIM n AS NodePtr 'used for numbered containers
+ DIM n2 AS NodePtr 'also used for numbered containers
+
+ DIM shoptmp(19) AS INTEGER
+ 
+ FOR i AS INTEGER = 0 TO gen(genMaxShop)
+  n = AppendChildNode(node, "shop", i)
+  loadrecord shoptmp(), game & ".sho", 20, i
+  ch = SetChildNode(n, "slots")
+  FOR j AS INTEGER = 0 TO shoptmp(16)
+   IF gam.stock(i, j) >= 0 THEN
+    n2 = AppendChildNode(ch, "slot", j)
+    SetChildNode(n2, "stock", gam.stock(i, j))
+   END IF
+  NEXT j
+ NEXT i
+ 
+END SUB
+
+SUB gamestate_vehicle_to_reload(BYVAL parent AS Reload.NodePtr)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "vehicle")
+ DIM ch AS NodePtr 'used for sub-containers
+ DIM n AS NodePtr 'used for numbered containers
+ 
+ WITH vstate
+ 
+  ch = SetChildNode(node, "state")
+  SetChildNode(ch, "active", .active)
+  SetChildNode(ch, "npc", .npc)
+  SetChildNode(ch, "old_speed", .old_speed)
+  IF .mounting        THEN SetChildNode(ch, "mounting")
+  IF .rising          THEN SetChildNode(ch, "rising")
+  IF .falling         THEN SetChildNode(ch, "falling")
+  IF .init_dismount   THEN SetChildNode(ch, "init_dismount")
+  IF .trigger_cleanup THEN SetChildNode(ch, "trigger_cleanup")
+  IF .ahead           THEN SetChildNode(ch, "ahead")
+
+  WITH .dat
+  
+   ch = SetChildNode(node, "def")
+   SetChildNode(ch, "speed", .speed)
+   IF .pass_walls                   THEN SetChildNode(ch, "pass_walls")
+   IF .pass_npcs                    THEN SetChildNode(ch, "pass_npcs")
+   IF .enable_npc_activation        THEN SetChildNode(ch, "enable_npc_activation")
+   IF .enable_door_use              THEN SetChildNode(ch, "enable_door_use")
+   IF .do_not_hide_leader           THEN SetChildNode(ch, "do_not_hide_leader")
+   IF .do_not_hide_party            THEN SetChildNode(ch, "do_not_hide_party")
+   IF .dismount_ahead               THEN SetChildNode(ch, "dismount_ahead")
+   IF .pass_walls_while_dismounting THEN SetChildNode(ch, "pass_walls_while_dismounting")
+   IF .disable_flying_shadow        THEN SetChildNode(ch, "disable_flying_shadow")
+
+   SetChildNode(ch, "random_battles", .random_battles)
+   SetChildNode(ch, "use_button",     .use_button)
+   SetChildNode(ch, "menu_button",    .menu_button)
+   SetChildNode(ch, "riding_tag",     .riding_tag)
+   SetChildNode(ch, "on_mount",       .on_mount)
+   SetChildNode(ch, "on_dismount",    .on_dismount)
+   SetChildNode(ch, "override_walls", .override_walls)
+   SetChildNode(ch, "blocked_by",     .blocked_by)
+   SetChildNode(ch, "mount_from",     .mount_from)
+   SetChildNode(ch, "dismount_to",    .dismount_to)
+   SetChildNode(ch, "elevation",      .elevation)
+  
+  END WITH
+ END WITH
+END SUB
 
 '-----------------------------------------------------------------------
 
