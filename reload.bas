@@ -1206,6 +1206,49 @@ Function GetChildNodeExists(byval parent as NodePtr, n as string) as integer
 	return nod <> 0
 end function
 
+'Appends a child node of name n with a null value.
+Function AppendChildNode(byval parent as NodePtr, n as string) as NodePtr
+	if parent = 0 then return 0
+	
+	dim ret as NodePtr
+	ret = CreateNode(parent->doc, n)
+	AddChild(parent, ret)
+	
+	SetContent(ret)
+	
+	return ret
+end Function
+
+'Appends a child node of name n to with integer value.
+Function AppendChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
+	if parent = 0 then return 0
+	
+	dim ret as NodePtr = AppendChildNode(parent, n)
+	SetContent(ret, val)
+	
+	return ret
+end Function
+
+'Appends a child node of name n with a floating point value.
+Function AppendChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
+	if parent = 0 then return 0
+	
+	dim ret as NodePtr = AppendChildNode(parent, n)
+	SetContent(ret, val)
+	
+	return ret
+end Function
+
+'Appends a child node of name n with a string value.
+Function AppendChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
+	if parent = 0 then return 0
+	
+	dim ret as NodePtr = AppendChildNode(parent, n)
+	SetContent(ret, val)
+	
+	return ret
+end Function
+
 Function DocumentRoot(byval doc as DocPtr) as NodePtr
 	return doc->root
 end Function

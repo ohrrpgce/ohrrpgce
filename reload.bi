@@ -143,7 +143,10 @@ Declare Function GetChildNodeFloat(byval parent as NodePtr, n as string, byval d
 Declare Function GetChildNodeStr(byval parent as NodePtr, n as string, d as string = "") as string
 Declare Function GetChildNodeBool(byval parent as NodePtr, n as string, byval d as integer = 0) as integer
 Declare Function GetChildNodeExists(byval parent as NodePtr, n as string) as integer
-
+Declare Function AppendChildNode Overload (byval parent as NodePtr, n as string) as NodePtr
+Declare Function AppendChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
+Declare Function AppendChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
+Declare Function AppendChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
 
 Declare function ReadVLI overload(byval f as integer) as longint
 declare Sub WriteVLI overload(byval f as integer, byval v as Longint)

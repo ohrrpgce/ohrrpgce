@@ -311,6 +311,11 @@ startTest(helperFunctions)
 	if GetChildNodeStr(nod, "string") <> "1 2 3 4 5 6 7 8 9 0" then fail
 	if not GetChildNodeExists(nod, "null") then fail
 	if not GetChildNodeBool(nod, "int") then fail
+	
+	AppendChildNode(nod, "appended", 54321)
+	AppendChildNode(nod, "appended", 43.21)
+	AppendChildNode(nod, "appended", "A B C D E F G H I J")
+	AppendChildNode(nod, "appended")
 endTest
 
 startTest(serializeXML)
