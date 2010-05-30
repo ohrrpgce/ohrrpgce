@@ -158,4 +158,24 @@ declare sub unlumpfile(lump as string, fmask as string, path as string)
 declare function islumpfile (lump as string, fmask as string) as integer
 
 
+'----------------------------------------------------------------------
+'                   Tail-buffered binary output file
+
+type BufferedFile
+	fh as uinteger       'FB file handle
+	pos as uinteger      '0-based write position; fh's position is NOT used
+	len as uinteger      'total length of the file
+	buf as ubyte ptr     'of size BF_BUFSIZE
+	bufStart as uinteger 'offset of the buffer in the file. The buffer always extends to the end
+end type
+
+#define BF_BUFSIZE   (64 * 1024)
+
+declare function Buffered_open(filename as string) as BufferedFile ptr
+declare sub Buffered_close(byval bfile as BufferedFile ptr)
+declare sub Buffered_seek(byval bfile as BufferedFile ptr, byval offset as unsigned integer)
+declare function Buffered_tell(byval bfile as BufferedFile ptr) as integer
+declare sub Buffered_write(byval bfile as BufferedFile ptr, byval databuf as any ptr, byval amount as integer)
+declare sub Buffered_putc(byval bfile as BufferedFile ptr, byval datum as ubyte)
+
 #endif

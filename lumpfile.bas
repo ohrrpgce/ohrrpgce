@@ -32,6 +32,11 @@ LMPVTAB(LT_LUMPED, LumpedLump_,  ULMP(Lump_,destruct), NULL,       NULL,        
 LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), QLMP(writetofile), NULL, QLMP(read))
 
 
+'grumble...
+#if defined(IS_GAME) = 0 AND defined(IS_CUSTOM) = 0
+ dim shared tmpdir as string
+#endif
+
 '----------------------------------------------------------------------
 '                          LumpIndex class
 
@@ -947,3 +952,126 @@ function matchmask(match as string, mask as string) as integer
 		matchmask = 1
 	end if
 end function
+
+
+'----------------------------------------------------------------------
+'                           BufferedFile
+'
+'This is (currently) just an output file which buffers writes to near the end of
+'the file. The purpose is to speed serialization of RELOAD documents, which
+'requires lots of seeking backwards in the file, but normally to positions near
+'the end. Unfortunately C's stdio buffered files flush when fseek is called, and
+'FreeBasic's files inherit this.
+'In future, likely to be integrated into LumpFile.
+
+
+function Buffered_open (filename as string) as BufferedFile ptr
+	dim bfile as BufferedFile ptr
+
+	bfile = callocate(sizeof(BufferedFile))
+
+	with *bfile
+		.fh = freefile
+		if open(filename for output as .fh) then
+			debug "BufferedFile: Could not open " & filename
+			deallocate bfile
+			return NULL
+		end if
+
+		.buf = allocate(BF_BUFSIZE)
+	end with
+
+	return bfile
+end function
+
+sub Buffered_close (byval bfile as BufferedFile ptr)
+	with *bfile
+		if .bufStart < .len then
+			fput .fh, .bufStart + 1, .buf, .len - .bufStart
+		end if
+		close .fh
+		deallocate(.buf)
+	end with
+	deallocate(bfile)
+end sub
+
+'offset is from 0 at start of file
+sub Buffered_seek (byval bfile as BufferedFile ptr, byval offset as unsigned integer)
+	with *bfile
+		if offset > .bufStart + BF_BUFSIZE then
+			'Flush and move buffer to end
+			fput .fh, .bufStart + 1, .buf, .len - .bufStart
+			.len = offset
+			.pos = offset
+			.bufStart = offset
+		elseif offset >= .bufStart then
+			.pos = offset
+		else
+			'seek fh, offset
+			.pos = offset
+		end if
+	end with
+end sub
+
+function Buffered_tell (byval bfile as BufferedFile ptr) as integer
+	return bfile->pos
+end function
+
+sub Buffered_write (byval bfile as BufferedFile ptr, byval databuf as any ptr, byval amount as integer)
+	with *bfile
+
+		if .pos < .bufStart then
+			if .pos + amount > .bufStart then
+				'Crap! Have to flush to prevent overlap from being written over
+				'when buf is next flushed
+				fput .fh, .bufStart + 1, .buf, .len - .bufStart
+				.bufStart = .len
+				if .pos + amount > .len then .bufStart = .pos + amount
+			end if
+			fput .fh, .pos + 1, databuf, amount
+		else
+			if .pos + amount > .bufStart + BF_BUFSIZE then
+				'Buffer can't take it. First we flush everything before the start of
+				'the new data (not the whole buffer) - everything past .pos is overwritten
+				fput .fh, .bufStart + 1, .buf, .pos - .bufStart
+				.bufStart = .pos
+
+				if amount >= BF_BUFSIZE then
+					'Oh, write anyway
+					fput .fh, , databuf, amount
+					.bufStart += amount
+				else
+					memcpy(.buf, databuf, amount)
+				end if
+			else
+				'We actually get to buffer it!
+				memcpy(.buf + (.pos - .bufStart), databuf, amount)
+			end if
+		end if
+		.pos += amount
+		if .pos > .len then .len = .pos
+	end with
+end sub
+
+'version of above optimised for a single byte
+sub Buffered_putc (byval bfile as BufferedFile ptr, byval datum as ubyte)
+	with *bfile
+		if .pos < .bufStart then
+			fput .fh, .pos + 1, @datum, 1
+		else
+			dim as integer bufindex = .pos - .bufStart
+			if bufindex = BF_BUFSIZE then
+				'Buffer is full
+				fput .fh, .bufStart + 1, .buf, BF_BUFSIZE
+				.bufStart = .pos
+
+				.buf[0] = datum
+			else
+				'We actually get to buffer it!
+				.buf[bufindex] = datum
+			end if
+		end if
+		.pos += 1
+		if .pos > .len then .len = .pos
+	end with
+end sub
