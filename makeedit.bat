@@ -50,5 +50,5 @@ if "%OHRMUSIC%"=="native2" set MUSIC_XTRA=music_native2.bas -l audwrap -l audier
 echo Now compiling CUSTOM with %GFX_MODULES% graphics modules, and %OHRMUSIC% music module
 call fbc -lang deprecated verprint.bas
 verprint %GFX_MODULES% %OHRMUSIC%
-call fbc -lang deprecated -s gui -mt -m custom custom.bas customsubs.bas drawing.bas subs.bas subs2.bas mapsubs.bas flexmenu.bas menus.bas allmodex.bas backends.bas lumpfile.bas compat.bas bam2mid.bas slices.bas sliceedit.bas reload.bas %GFX_XTRAS% -l ohrblit %MUSIC_XTRA% loading.bas common.bas browse.bas util.bas cicon.rc -d IS_CUSTOM  %1 %2 %3 %4 %5 %6 %7 %8 %9
+call fbc -lang deprecated -s gui -mt -m custom custom.bas customsubs.bas drawing.bas subs.bas subs2.bas mapsubs.bas flexmenu.bas menus.bas allmodex.bas backends.bas lumpfile.bas compat.bas bam2mid.bas slices.bas sliceedit.bas reload.bas reloadext.bas %GFX_XTRAS% -l ohrblit %MUSIC_XTRA% loading.bas common.bas browse.bas util.bas cicon.rc -d IS_CUSTOM  %1 %2 %3 %4 %5 %6 %7 %8 %9
 echo.

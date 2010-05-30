@@ -23,7 +23,7 @@ Sub SetBitset(byval node as Nodeptr, byval bit as integer, byval v as integer)
 	
 	dim as integer byt, b
 	
-	byt = int(bit / 8)
+	byt = bit \ 8
 	b = bit mod 8
 	
 	if byt >= GetZStringSize(node) then
@@ -47,7 +47,7 @@ Function GetBitset(byval node as Nodeptr, byval bit as integer) as integer
 	
 	dim as integer byt, b
 	
-	byt = int(bit / 8)
+	byt = bit \ 8
 	b = bit mod 8
 	
 	if byt >= GetZStringSize(node) then
@@ -70,12 +70,12 @@ sub LoadBitsetArray(byval node as NodePtr, bs() as integer, byval size as intege
 	
 	for i as integer = 0 to size * 2 step 2
 		if i < GetZStringSize(node) then
-			bs(int(i / 2)) = d[i]
+			bs(i \ 2) = d[i]
 			if i + 1 < GetZStringSize(node) then
-				bs(int(i / 2)) or= d[i + 1] * 256
+				bs(i \ 2) or= d[i + 1] * 256
 			end if
 		else
-			bs(int(i / 2)) = 0
+			bs(i \ 2) = 0
 		end if
 	next
 end sub
@@ -92,7 +92,7 @@ sub SaveBitsetArray(byval node as NodePtr, bs() as integer, byval size as intege
 	
 	for i as integer = 0 to size - 1
 		d[i * 2] = bs(i) and &hff
-		d[i * 2 + 1] = int(bs(i) / 256) and &hff
+		d[i * 2 + 1] = (bs(i) \ 256) and &hff
 	next
 end sub
 
