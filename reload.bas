@@ -891,15 +891,15 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 end sub
 
 'Serializes a document as XML to a file
-sub SerializeXML (byval doc as DocPtr, byval fh as integer)
+sub SerializeXML (byval doc as DocPtr, byval fh as integer, byval debugging as integer = NO)
 	if doc = null then exit sub
 	
-	serializeXML(doc->root, fh)
+	SerializeXML(doc->root, fh, debugging)
 end sub
 
 'serializes a node as XML to standard out.
 'It pretty-prints it by adding indentation.
-sub serializeXML (byval nod as NodePtr, byval fh as integer, byval ind as integer = 0)
+sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as integer, byval ind as integer = 0)
 	if nod = null then exit sub
 
 	dim closetag as integer = YES
@@ -910,7 +910,7 @@ sub serializeXML (byval nod as NodePtr, byval fh as integer, byval ind as intege
 	elseif nod->nodeType = rltNull and nod->numChildren = 0 then
 		print #fh, "<" & *nod->name & " />"
 		exit sub
-	elseif nod->nodeType <> rltNull andalso nod->numChildren = 0 andalso *nod->name = "" then
+	elseif debugging = NO andalso nod->nodeType <> rltNull andalso nod->numChildren = 0 andalso *nod->name = "" then
 		'A no-name node like this is typically created when translating from xml;
 		'so hide the tags
 		ind -= 1
@@ -950,13 +950,13 @@ sub serializeXML (byval nod as NodePtr, byval fh as integer, byval ind as intege
 		do while n <> null
 			'we've already printed attributes, above
 			if n->name[0] <> asc("@") then
-				serializeXML(n, fh, ind + 1)
+				SerializeXML(n, fh, debugging, ind + 1)
 			end if
 			n = n->nextSib
 		loop
 	else
 		for i as integer = 0 to nod->numChildren - 1
-			serializeXML(n + i, fh, ind + 1)
+			SerializeXML(n + i, fh, debugging, ind + 1)
 		next
 	end if
 	
