@@ -16,8 +16,13 @@ CONST STACK_SIZE_INC = 512 ' in integers
 OPTION EXPLICIT
 #endif
 
-'DECLARE SUB debug (str$)
-
+#if defined(IS_GAME) OR defined(IS_CUSTOM)
+ DECLARE SUB debug (s as string)
+#else
+ PRIVATE SUB debug (s as string)
+  PRINT s
+ END SUB
+#endif
 
  '------------- Other -------------
 

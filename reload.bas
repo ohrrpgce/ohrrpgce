@@ -17,6 +17,7 @@
 
 #include "reload.bi"
 #include "util.bi"
+#include "lumpfile.bi"
 #include "crt/stdio.bi"
 
 extern "c"
@@ -36,8 +37,10 @@ Namespace Reload
 
 Type hashFunction as Function(byval k as ZString ptr) as integer
 
-Declare function ReadVLI(byval f as .FILE ptr) as longint
-declare Sub WriteVLI(byval f as .FILE ptr, byval v as Longint)
+'These are in addition to the 'f as integer' overloads in reload.bi
+Declare Function ReadVLI(byval f as .FILE ptr) as longint
+'Can add the FILE* overload back when you actually need it...
+Declare Sub WriteVLI(byval f as BufferedFile ptr, byval v as Longint)
 
 Declare Function AddStringToTable (st as string, byval doc as DocPtr) as integer
 Declare Function FindStringInTable overload(st as string, byval doc as DocPtr) as integer
@@ -559,13 +562,13 @@ Function AddStringToTable(st as string, byval doc as DocPtr) as integer
 	return doc->numStrings - 1
 end function
 
-Declare sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr)
+Declare sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as DocPtr)
 
 'This serializes a document as a binary file. This is where the magic happens :)
 sub SerializeBin(file as string, byval doc as DocPtr)
 	if doc = null then exit sub
 	
-	dim f as .FILE ptr
+	dim f as BufferedFile ptr
 	
 	'BuildStringTable(doc->root, doc)
 	
@@ -574,36 +577,36 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 		kill file & ".tmp"
 	end if
 	
-	f = fopen(file & ".tmp", "wb")
+	f = Buffered_open(file & ".tmp")
 	
-	if f = 0 then
+	if f = NULL then
 		debug "Unable to open file"
 		exit sub
 	end if
 	
 	dim i as uinteger, b as ubyte
 	
-	fputs("RELD", f) 'magic signature
+	Buffered_write(f, @"RELD", 4) 'magic signature
 	
-	fputc(1, f)'version
+	Buffered_putc(f, 1) 'version
 	
 	i = 13 'the size of the header (i.e., offset to the data)
-	fwrite(@i, 4, 1, f)
+	Buffered_write(f, @i, 4)
 	
 	i = 0 'we're going to fill this in later. it is the string table post relative to the beginning of the file.
-	fwrite(@i, 4, 1, f) 
+	Buffered_write(f, @i, 4)
 	
 	'write out the body
 	serializeBin(doc->root, f, doc)
 	
 	'this is the location of the string table (immediately after the data)
-	i = ftell(f)
+	i = Buffered_tell(f)
 	
-	fseek(f, 9, 0) 
-	fwrite(@i, 4, 1, f) 'filling in the string table position
+	Buffered_seek(f, 9)
+	Buffered_write(f, @i, 4) 'filling in the string table position
 	
 	'jump back to the string table
-	fseek(f, i, 0)
+	Buffered_seek(f, i)
 	
 	'first comes the number of strings
 	writeVLI(f, doc->numStrings - 1)
@@ -611,17 +614,18 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	'then, write out each string, size then body
 	for i = 1 to doc->numStrings - 1
 		dim zs as zstring ptr = doc->strings[i].str
-		writeVLI(f, len(*zs))
-		fputs(zs, f)
+		dim zslen as integer = len(*zs)
+		writeVLI(f, zslen)
+		Buffered_write(f, zs, zslen)
 	next
-	fclose(f)
+	Buffered_close(f)
 	
 	kill file
 	rename file & ".tmp", file
 	kill file & ".tmp"
 end sub
 
-sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr)
+sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as DocPtr)
 	if nod = 0 then
 		debug "serializeBin null node ptr"
 		exit sub
@@ -630,12 +634,12 @@ sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr
 	
 	dim as integer siz, here = 0, here2, dif
 	'siz = seek(f)
-	siz = ftell(f)
+	siz = Buffered_tell(f)
 	'put #f, , here 'will fill this in later, this is node content size
-	fwrite(@here, 4, 1, f)
+	Buffered_write(f, @here, 4)
 	
 	'here = seek(f)
-	here = ftell(f)
+	here = Buffered_tell(f)
 	
 	'strno = FindStringInTable(nod->name, doc)
 	strno = nod->namenum
@@ -651,37 +655,37 @@ sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr
 			'Nulls have no data, but convey information by existing or not existing.
 			'They can also have children.
 			ub = rliNull
-			fputc(ub, f)
+			Buffered_putc(f, ub)
 		case rltInt 'this is good enough, don't need VLI for this
 			if nod->num > 2147483647 or nod->num < -2147483648 then
 				ub = rliLong
-				fputc(ub, f)
-				fwrite(@(nod->num), 8, 1, f)
+				Buffered_putc(f, ub)
+				Buffered_write(f, @(nod->num), 8)
 			elseif nod->num > 32767 or nod->num < -32768 then
 				ub = rliInt
-				fputc(ub, f)
+				Buffered_putc(f, ub)
 				i = nod->num
-				fwrite(@i, 4, 1, f)
+				Buffered_write(f, @i, 4)
 			elseif nod->num > 127 or nod->num < -128 then
 				ub = rliShort
-				fputc(ub, f)
+				Buffered_putc(f, ub)
 				dim s as short = nod->num
-				fwrite(@s, 2, 1, f)
+				Buffered_write(f, @s, 2)
 			else
 				ub = rliByte
-				fputc(ub, f)
+				Buffered_putc(f, ub)
 				dim b as byte = nod->num
-				fputc(b, f)
+				Buffered_putc(f, b)
 			end if
 		case rltFloat
 			ub = rliFloat
-			fputc(ub, f)
-			fwrite(@(nod->flo), 8, 1, f)
+			Buffered_putc(f, ub)
+			Buffered_write(f, @(nod->flo), 8)
 		case rltString
 			ub = rliString
-			fputc(ub, f)
+			Buffered_putc(f, ub)
 			WriteVLI(f, nod->strSize)
-			fwrite(nod->str, 1, nod->strSize, f)
+			Buffered_write(f, nod->str, nod->strSize)
 	end select
 	
 	WriteVLI(f, nod->numChildren) 'is this cast necessary?
@@ -693,11 +697,11 @@ sub serializeBin(byval nod as NodePtr, byval f as .FILE ptr, byval doc as DocPtr
 		n = n->nextSib
 	loop
 	
-	here2 = ftell(f)
+	here2 = Buffered_tell(f)
 	dif = here2 - here
-	fseek(f, siz, 0)
-	fwrite(@dif, 4, 1, f)
-	fseek(f, here2, 0)
+	Buffered_seek(f, siz)
+	Buffered_write(f, @dif, 4)
+	Buffered_seek(f, here2)
 end sub
 
 'this checks to see if a node is part of a tree, for example before adding to a new parent
@@ -1338,7 +1342,7 @@ Sub WriteVLI(byval f as integer, byval v as Longint)
 
 end sub
 
-Sub WriteVLI(byval f as .FILE ptr, byval v as Longint)
+Sub WriteVLI(byval f as BufferedFile ptr, byval v as Longint)
 	dim o as ubyte
 	dim neg as integer = 0
 	
@@ -1354,8 +1358,7 @@ Sub WriteVLI(byval f as .FILE ptr, byval v as Longint)
 	
 	if v > 0 then o OR= &b10000000 'bit 7 is the "omg there's more data" bit
 	
-	fputc(o, f)
-	'put #f, , o
+	Buffered_putc(f, o)
 	
 	do while v > 0
 		o = v and &b1111111 'extract the next 7 bits
@@ -1363,8 +1366,7 @@ Sub WriteVLI(byval f as .FILE ptr, byval v as Longint)
 		
 		if v > 0 then o OR= &b10000000
 		
-		'put #f, , o
-		fputc(o, f)
+		Buffered_putc(f, o)
 	loop
 
 end sub
@@ -1461,8 +1463,8 @@ End Type
 
 Type ReloadHash
 	bucket as ReloadHashItem ptr ptr
-	numBuckets as integer
-	numItems as integer
+	numBuckets as uinteger
+	numItems as uinteger
 	doc as DocPtr
 	hashFunc as hashFunction
 end Type
