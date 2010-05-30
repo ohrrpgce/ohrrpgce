@@ -20,10 +20,6 @@
 #include "lumpfile.bi"
 #include "crt/stdio.bi"
 
-extern "c"
-declare function raise cdecl(byval signum as integer) as integer
-end extern
-
 #if defined(IS_GAME) or defined(IS_CUSTOM)
 DECLARE SUB debug (s AS STRING)
 #else
@@ -83,10 +79,6 @@ Function RAllocate(byval s as integer, byval doc as docptr) as any ptr
 	dim ret as any ptr
 	
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
-	if 0 = HeapValidate(doc->heap, 0, 0) then
-		print "HEAP VALIDATION FAILURE"
-		.raise(6)
-	end if
 	ret = HeapAlloc(doc->heap, HEAP_ZERO_MEMORY, s)
 #else
 	ret = CAllocate(s)
@@ -1434,24 +1426,6 @@ function ReadVLI(byval f as .FILE ptr) as longint
 	
 end function
 
-
-Sub TestStringTables()
-	dim d as docptr = CreateDocument()
-	dim s as string
-	
-	for i as integer = 0 to 1200 step 3
-		s = str(i)
-		
-		if i = 2925 then
-			dim q as integer = 0
-		end if
-		
-		print s & " - " & AddStringToTable(s, d)
-	next
-	
-	FreeDocument(d)
-	
-end sub
 
 'I am aware of the hash table implementation in util.bas. However, this is tuned
 'for this purpose. Plus, I want everything contained on the private heap (if applicable)
