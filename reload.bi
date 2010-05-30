@@ -31,7 +31,7 @@ ENUM NodeTypes
 	rltInt
 	rltFloat
 	rltString
-	rltArray
+	rltArray	'never actually appears; who knows whether it works?
 END ENUM
 
 ENUM LoadOptions
@@ -42,7 +42,7 @@ END ENUM
 TYPE DocPtr as Doc ptr
 TYPE NodePtr as Node ptr
 
-#if defined(RELOADINTERNAL)
+#if defined(RELOADINTERNAL) or __FB_DEBUG__
 #if defined(__FB_WIN32__)
 #include "windows.bi"
 #endif
@@ -68,7 +68,7 @@ TYPE NodePtr as Node ptr
 	TYPE Node
 		'name as string
 		name as zstring ptr
-		namenum as short 'in the string table, used while loading
+		namenum as short   'in the string table, used while loading
 		nodeType as ubyte
 		Union 'this saves sizeof(Double) bytes per node!
 			num as LongInt
@@ -77,7 +77,8 @@ TYPE NodePtr as Node ptr
 		end Union
 		strSize as integer
 		numChildren as integer
-		children as NodePtr
+		children as NodePtr   'aka firstChild
+		lastChild as NodePtr
 		doc as DocPtr
 		parent as NodePtr
 		nextSib as NodePtr

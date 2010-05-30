@@ -178,6 +178,7 @@ Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	ret->nodeType = rltNull
 	ret->numChildren = 0
 	ret->children = null
+	ret->lastChild = null
 	
 	return ret
 End function
@@ -212,6 +213,9 @@ sub FreeNode(byval nod as NodePtr, byval options as integer)
 		
 		if par->children = nod then
 			par->children = nod->nextSib
+		end if
+		if par->lastChild = nod then
+			par->lastChild = nod->prevSib
 		end if
 		
 		par->numChildren -= 1
@@ -286,13 +290,9 @@ Function LoadNode(byval f as .FILE ptr, byval doc as DocPtr) as NodePtr
 	if ret->namenum < 0 or ret->namenum > doc->numStrings then
 		debug "Node has invalid name: #" & ret->namenum
 		ret->namenum = 0
-	end if
-	
-	if ret->namenum <= doc->numStrings then
+	else
 		ret->name = doc->strings[ret->namenum].str
 		doc->strings[ret->namenum].uses += 1
-	else
-		
 	end if
 	
 	ret->nodetype = fgetc(f)
@@ -368,6 +368,7 @@ Function LoadNode(byval f as .FILE ptr, byval doc as DocPtr) as NodePtr
 			debug "child " & i & " node load failed"
 			return null
 		end if
+		'Whoa! If you were to actually use rtlArray, it would probably explode right about here:
 		ret->numChildren -= 1
 		AddChild(ret, nod)
 	next
@@ -437,7 +438,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	
 	if magic <> "RELD" then
 		fclose(f)
-		debug "No RELD magic"
+		debug "Failed to load " & fil & ": No magic RELD signature"
 		return null
 	end if
 	
@@ -448,7 +449,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 			fread(@headSize, 4, 1, f)
 			if headSize <> 13 then 'uh oh, the header is the wrong size
 				fclose(f)
-				debug "Reload header is " & headSize & "instead of 13"
+				debug "Failed to load " & fil & ": Reload header is " & headSize & "instead of 13"
 				return null
 			end if
 			
@@ -456,7 +457,7 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 			
 		case else ' dunno. Let's quit.
 			fclose(f)
-			debug "Reload version " & ver & " not supported"
+			debug "Failed to load " & fil & ": Reload version " & ver & " not supported"
 			return null
 	end select
 	
@@ -710,6 +711,7 @@ Function verifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as int
 end function
 
 'this checks to see whether a node is part of a given family or not
+'FIXME: this looks like a slow debug routine to me, why is it used?
 Function verifyNodeSiblings(byval sl as NodePtr, byval family as NodePtr) as integer
 	dim s as NodePtr
 	if sl = 0 then return no
@@ -779,6 +781,10 @@ Sub RemoveParent(byval nod as NodePtr)
 		if nod->parent->children = nod then
 			nod->parent->children = nod->nextSib
 		end if
+		'also again, special case!
+		if nod->parent->lastChild = nod then
+			nod->parent->lastChild = nod->prevSib
+		end if
 		
 		'disown our parent
 		nod->parent->numChildren -= 1
@@ -815,21 +821,17 @@ function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
 		if par->children = null then
 			par->children = nod
 		else
-			dim s as NodePtr
-			s = par->children
-			do while s->NextSib <> 0
-				s = s->NextSib
-			loop
+			dim s as NodePtr = par->lastChild
 			s->NextSib = nod
 			nod->prevSib = s
-			
 		end if
+		par->lastChild = nod
 	end if
 	
 	return nod
 end function
 
-'This adds the given node as a sibling *after* another node.
+'This adds nod as a sibling *after* another node, sib.
 function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	
 	if verifyNodeSiblings(nod, sib) = NO then return nod
@@ -839,7 +841,11 @@ function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	nod->prevSib = sib
 	nod->nextSib = sib->nextSib
 	sib->nextSib = nod
-	if nod->nextSib then nod->nextSib->prevSib = nod
+	if nod->nextSib then
+		nod->nextSib->prevSib = nod
+	else
+		sib->parent->lastChild = nod
+	end if
 	
 	nod->parent = sib->parent
 	sib->parent->numChildren += 1
@@ -847,7 +853,7 @@ function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	return nod
 end function
 
-'This adds the given node as a sibling *before* another node.
+'This adds nod as a sibling *before* another node, sib.
 function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	
 	if verifyNodeSiblings(nod, sib) = NO then return nod
@@ -857,7 +863,11 @@ function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	nod->nextSib = sib
 	nod->prevSib = sib->prevSib
 	sib->prevSib = nod
-	if nod->prevSib then nod->prevSib->nextSib = nod
+	if nod->prevSib then
+		nod->prevSib->nextSib = nod
+	else
+		sib->parent->children = nod
+	end if
 	
 	nod->parent = sib->parent
 	sib->parent->numChildren += 1
