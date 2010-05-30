@@ -897,20 +897,6 @@ sub SerializeXML (byval doc as DocPtr)
 	serializeXML(doc->root)
 end sub
 
-'Worker routine for serializeXML
-sub printNodeContent (byval nod as NodePtr)
-	select case nod->nodeType
-		case rltInt
-			print "" & nod->num;
-		case rltFloat
-			print "" & nod->flo;
-		case rltString
-			print "" & *nod->str;
-		'case rltNull
-		'	print ;
-	end select
-end sub
-
 'serializes a node as XML to standard out.
 'It pretty-prints it by adding indentation.
 sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
@@ -934,7 +920,7 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 
 		if nod->nodeType <> rltNull and nod->numChildren <> 0 then
 			print " =""";
-			printNodeContent(nod)
+			print GetString(nod);
 			print """";
 		end if
 
@@ -943,7 +929,7 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 		do while n <> null
 			if n->name[0] = asc("@") then
 				print " " & *(n->name + 1) & "=""";
-				printNodeContent(n)
+				print GetString(n);
 				print """";
 			end if
 			n = n->nextSib
@@ -953,7 +939,7 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	end if
 
 	if nod->numChildren = 0 then
-		printNodeContent(nod)
+		print GetString(nod);
 	else
 		print
 	end if
