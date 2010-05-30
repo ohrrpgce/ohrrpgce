@@ -325,7 +325,10 @@ endTest
 startTest(serializeXML)
 	print
 	
-	serializeXML(doc)
+	dim fh as integer
+	open cons for output as fh
+	serializeXML(doc, fh)
+	close fh
 	
 	'if 0 = ask("Did this render correctly?") then fail
 endTest

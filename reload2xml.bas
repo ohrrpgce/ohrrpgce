@@ -1,17 +1,44 @@
 #include "reload.bi"
 
-DIM filename AS STRING
-filename = COMMAND(1)
+dim as string filename, outfile
+filename = command(1)
+outfile = command(2)
 
-IF NOT isfile(filename) THEN
- PRINT "Convert a RELOAD file into XML and dump it to the standard output."
- PRINT ""
- PRINT "Usage: reload2xml reloadfilename"
- PRINT "       reload2xml reloadfilename > filename.xml"
- SYSTEM
-END IF
+if isfile(filename) = 0 or outfile = "" then
+	print "Convert a RELOAD file into XML. Specify - as outfile to print to console"
+	print ""
+	print "Usage: reload2xml reloadfilename filename.xml"
+	print "   or: reload2xml reloadfilename - > filename.xml"
+	end
+end if
 
-DIM doc AS Reload.DocPtr
+dim as double startTime = timer, realStart = timer
+
+dim outstream as integer
+outstream = freefile
+if outfile = "-" then
+	open cons for output as outstream
+else
+	if open(outfile for output as outstream) then
+		print "Could not open " & outfile
+		end
+	end if
+end if
+
+dim doc as Reload.DocPtr
 doc = Reload.LoadDocument(filename)
-Reload.SerializeXML(doc)
+
+if outfile <> "-" then print "Loaded RELOAD document in " & int((timer - starttime) * 1000) & " ms"
+starttime = timer
+
+Reload.SerializeXML(doc, outstream)
+
+if outfile <> "-" then print "Serialized XML document in " & int((timer - starttime) * 1000) & " ms"
+starttime = timer
+
 Reload.FreeDocument(doc)
+
+if outfile <> "-" then
+	print "Tore down memory in " & int((timer - starttime) * 1000) & " ms"
+	print "Finished in " & int((timer - realStart) * 1000) & " ms"
+end if

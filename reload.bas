@@ -890,25 +890,25 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	
 end sub
 
-'Serializes a document as XML to standard out
-sub SerializeXML (byval doc as DocPtr)
+'Serializes a document as XML to a file
+sub SerializeXML (byval doc as DocPtr, byval fh as integer)
 	if doc = null then exit sub
 	
-	serializeXML(doc->root)
+	serializeXML(doc->root, fh)
 end sub
 
 'serializes a node as XML to standard out.
 'It pretty-prints it by adding indentation.
-sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
+sub serializeXML (byval nod as NodePtr, byval fh as integer, byval ind as integer = 0)
 	if nod = null then exit sub
 
 	dim closetag as integer = YES
 
-	print string(ind, "	");
+	print #fh, string(ind, "	");
 	if nod->nodeType = rltArray then
-		print "<" & *nod->name & "reload:array=""array"">"
+		print #fh, "<" & *nod->name & "reload:array=""array"">"
 	elseif nod->nodeType = rltNull and nod->numChildren = 0 then
-		print "<" & *nod->name & " />"
+		print #fh, "<" & *nod->name & " />"
 		exit sub
 	elseif nod->nodeType <> rltNull andalso nod->numChildren = 0 andalso *nod->name = "" then
 		'A no-name node like this is typically created when translating from xml;
@@ -916,32 +916,32 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 		ind -= 1
 		closetag = NO
 	else
-		print "<" & *nod->name;
+		print #fh, "<" & *nod->name;
 
 		if nod->nodeType <> rltNull and nod->numChildren <> 0 then
-			print " =""";
-			print GetString(nod);
-			print """";
+			print #fh, " =""";
+			print #fh, GetString(nod);
+			print #fh, """";
 		end if
 
 		'find the attribute children and print them
 		dim n as NodePtr = nod->children
 		do while n <> null
 			if n->name[0] = asc("@") then
-				print " " & *(n->name + 1) & "=""";
-				print GetString(n);
-				print """";
+				print #fh, " " & *(n->name + 1) & "=""";
+				print #fh, GetString(n);
+				print #fh, """";
 			end if
 			n = n->nextSib
 		loop
 
-		print ">";
+		print #fh, ">";
 	end if
 
 	if nod->numChildren = 0 then
-		print GetString(nod);
+		print #fh, GetString(nod);
 	else
-		print
+		print #fh,
 	end if
 	
 	dim n as NodePtr = nod->children
@@ -950,22 +950,22 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 		do while n <> null
 			'we've already printed attributes, above
 			if n->name[0] <> asc("@") then
-				serializeXML(n, ind + 1)
+				serializeXML(n, fh, ind + 1)
 			end if
 			n = n->nextSib
 		loop
 	else
 		for i as integer = 0 to nod->numChildren - 1
-			serializeXML(n + i, ind + 1)
+			serializeXML(n + i, fh, ind + 1)
 		next
 	end if
 	
-	if nod->numChildren <> 0 then print string(ind, "	");
+	if nod->numChildren <> 0 then print #fh, string(ind, "	");
 	
 	if closetag then
-		print "</" & *nod->name & ">"
+		print #fh, "</" & *nod->name & ">"
 	else
-		print
+		print #fh,
 	end if
 end sub
 
