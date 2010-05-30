@@ -887,23 +887,8 @@ sub SerializeXML (byval doc as DocPtr)
 	serializeXML(doc->root)
 end sub
 
-'serializes a node as XML to standard out.
-'It pretty-prints it by adding indentation.
-sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
-	if nod = null then exit sub
-	
-	print string(ind, "	");
-	if nod->nodeType = rltArray then
-		print "<" & *nod->name & "reload:array=""array"">"
-	elseif nod->nodeType <> rltNull or nod->numChildren <> 0 then
-		if *nod->name <> "" then
-			print "<" & *nod->name & ">";
-		end if
-	elseif nod->nodeType = rltNull and nod->numChildren = 0 then
-		print "<" & *nod->name & " />"
-		exit sub
-	end if
-	
+'Worker routine for serializeXML
+sub printNodeContent (byval nod as NodePtr)
 	select case nod->nodeType
 		case rltInt
 			print "" & nod->num;
@@ -914,14 +899,63 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 		'case rltNull
 		'	print ;
 	end select
-	
-	if nod->numChildren <> 0 then print
+end sub
+
+'serializes a node as XML to standard out.
+'It pretty-prints it by adding indentation.
+sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
+	if nod = null then exit sub
+
+	dim closetag as integer = YES
+
+	print string(ind, "	");
+	if nod->nodeType = rltArray then
+		print "<" & *nod->name & "reload:array=""array"">"
+	elseif nod->nodeType = rltNull and nod->numChildren = 0 then
+		print "<" & *nod->name & " />"
+		exit sub
+	elseif nod->nodeType <> rltNull andalso nod->numChildren = 0 andalso *nod->name = "" then
+		'A no-name node like this is typically created when translating from xml;
+		'so hide the tags
+		ind -= 1
+		closetag = NO
+	else
+		print "<" & *nod->name;
+
+		if nod->nodeType <> rltNull and nod->numChildren <> 0 then
+			print " =""";
+			printNodeContent(nod)
+			print """";
+		end if
+
+		'find the attribute children and print them
+		dim n as NodePtr = nod->children
+		do while n <> null
+			if n->name[0] = asc("@") then
+				print " " & *(n->name + 1) & "=""";
+				printNodeContent(n)
+				print """";
+			end if
+			n = n->nextSib
+		loop
+
+		print ">";
+	end if
+
+	if nod->numChildren = 0 then
+		printNodeContent(nod)
+	else
+		print
+	end if
 	
 	dim n as NodePtr = nod->children
 	
 	if nod->nodeType <> rltArray then
 		do while n <> null
-			serializeXML(n, ind + 1)
+			'we've already printed attributes, above
+			if n->name[0] <> asc("@") then
+				serializeXML(n, ind + 1)
+			end if
 			n = n->nextSib
 		loop
 	else
@@ -932,14 +966,11 @@ sub serializeXML (byval nod as NodePtr, byval ind as integer = 0)
 	
 	if nod->numChildren <> 0 then print string(ind, "	");
 	
-	if nod->nodeType <> rltNull or nod->numChildren <> 0 then
-		if nod->name then
-			print "</" & *nod->name & ">"
-		else
-			print
-		end if
+	if closetag then
+		print "</" & *nod->name & ">"
+	else
+		print
 	end if
-	
 end sub
 
 Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr

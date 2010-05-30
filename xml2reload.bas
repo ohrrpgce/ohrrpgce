@@ -5,7 +5,7 @@
 
 using Reload
 
-declare function chug(as xmlNodeptr, as DocPtr, as integer = 0) as NodePtr
+declare function chug(as xmlNodeptr, as DocPtr) as NodePtr
 declare sub optimize(node as nodePtr)
 
 
@@ -73,22 +73,62 @@ print "Tore down memory in " & int((timer - starttime) * 1000) & " ms"
 
 print "Finished in " & int((timer - realStart) * 1000) & " ms"
 
+
+''''     libxml-tree mini-documentation
+'
+'The following xml:
+'
+'  <foo attr="42">bar <spam>more spam</spam></foo>
+'
+'is parsed by libxml to the following tree:
+'
+'  ELEMENT:<name = "foo", properties = {
+'    ATTRIBUTE:<name = "attr", children = {
+'      TEXT:<content = "42">
+'    }>
+'  }, children = {
+'    TEXT:<content = "bar ">,
+'    ELEMENT:<name = "spam", children = {
+'      TEXT:<content = "more spam">
+'    }>
+'  }>
+'
+'where FOO:<a = b, c = {d}> means an xmlNode of type XML_FOO_NODE where the value of a is b, and
+'c points to a doubly linked list. content & name are "" if not specified, and children and
+'properties are NULL if not specified.
+
+
 ' This function takes an XML node and creates a RELOAD node based on it.
-function chug(node as xmlNodeptr, dc as DocPtr, ind as integer = 0) as NodePtr
-	
+function chug(node as xmlNodeptr, dc as DocPtr) as NodePtr
+
 	dim this as nodeptr
-	
+
 	select case node->type
-		case XML_ELEMENT_NODE 'this is something like "<foo>...</foo>"
-			
+		case XML_ELEMENT_NODE, XML_ATTRIBUTE_NODE 'this is container: either a <tag> or a <tag attribute="...">
 			'create the RELOAD node
-			this = CreateNode(dc, *node->name)
+			if node->type = XML_ATTRIBUTE_NODE then
+				'this is an attribute: <foo bar="1" />
+				'Except, RELOAD doesn't do attributes. So, we reserve @ for those
+				this = CreateNode(dc, "@" & *node->name)
+			else
+				this = CreateNode(dc, *node->name)
+			end if
 			
-			'take a look at the children
-			dim cur_node as xmlNodePtr = node->children
+			'take a look at the attributes
+			dim cur_node as xmlNodePtr = cast(xmlNodePtr, node->properties)
+			do while cur_node <> null
+				dim ch as nodeptr = chug(cur_node, dc)
+				
+				'add the new child to the document tree
+				AddChild(this, ch)
+				cur_node = cur_node->next
+			loop
+
+			'and the children
+			cur_node = node->children
 			do while cur_node <> null
 				'recurse to parse the children
-				dim ch as nodeptr = chug(cur_node, dc, ind + 1)
+				dim ch as nodeptr = chug(cur_node, dc)
 				
 				'add the new child to the document tree
 				AddChild(this, ch)
@@ -104,11 +144,6 @@ function chug(node as xmlNodeptr, dc as DocPtr, ind as integer = 0) as NodePtr
 				'and, set the content to the value of this node, less any padding of spaces, tabs or new lines
 				SetContent(this, trim(*node->content, any !" \t\n\r"))
 			end if
-		case XML_ATTRIBUTE_NODE 'this is an attribute: <foo bar="1" />
-			'Except, RELOAD doesn't do attributes. So, we reserve @ for those
-			print "@" & *node->name
-			this = CreateNode(dc, "@" & *node->name)
-			SetContent(this, *node->content)
 		case XML_PI_NODE 'we don't support these.
 		case else
 			'Let's see, comments, CDATA sections, <?tags?> etc
@@ -134,7 +169,7 @@ sub optimize(node as nodePtr)
 		end if
 	end if
 	
-	if NumChildren(node) = 1 AND NodeName(FirstChild(node)) = "" then 'this is the <>text</> wrapper
+	if NumChildren(node) = 1 ANDALSO NodeName(FirstChild(node)) = "" then 'this is the <>text</> wrapper
 		dim c as nodeptr = FirstChild(node)
 		select case NodeType(c) 'figure out what kind of wrapper it is, and make it so
 			case rltInt 'hoist the number up a level

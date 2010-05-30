@@ -253,7 +253,7 @@ startTest(addBitset)
 	SetContent(nod2, " ") 'this is the brute force method...
 	
 	if GetBitset(nod2, 5) = 0 then fail
-	
+
 	CreateBitset(nod2)
 	
 	if GetBitset(nod2, 5) <> 0 then fail
@@ -291,6 +291,7 @@ startTest(addNested)
 	
 	for i as integer = 0 to int(Rnd * 7) + 3
 		nod2 = CreateNode(doc, "level" & i)
+		SetContent(nod2, 42 + i)
 		if nod2 = 0 then fail
 		AddChild(nod, nod2)
 		nod = nod2
@@ -301,6 +302,8 @@ endTest
 
 startTest(helperFunctions)
 	dim nod as nodeptr = SetChildNode(DocumentRoot(doc), "helper")
+	SetContent(nod, 1)
+
 	SetChildNode(nod, "int", 12345)
 	SetChildNode(nod, "float", 1234.5678)
 	SetChildNode(nod, "string", "1 2 3 4 5 6 7 8 9 0")
@@ -314,6 +317,7 @@ startTest(helperFunctions)
 	
 	AppendChildNode(nod, "appended", 54321)
 	AppendChildNode(nod, "appended", 43.21)
+	AppendChildNode(nod, "@attr1", "fish")
 	AppendChildNode(nod, "appended", "A B C D E F G H I J")
 	AppendChildNode(nod, "appended")
 endTest
