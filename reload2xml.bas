@@ -8,9 +8,9 @@ while command(i) <> ""
 		debugging = YES
 	elseif filename = "" then
 		filename = command(i)
+		validargs = YES
 	elseif outfile = "" then
 		outfile = command(i)
-		validargs = YES
 	else
 		validargs = NO
 	end if
@@ -25,6 +25,8 @@ if isfile(filename) = 0 or validargs = NO then
 	print "   or: reload2xml [--debug] reloadfilename - > filename.xml"
 	end
 end if
+
+if outfile = "" then outfile = "-"
 
 dim as double startTime = timer, realStart = timer
 
