@@ -44,6 +44,8 @@ starttime = timer
 dim rldDoc as Docptr
 rldDoc = CreateDocument()
 
+print "Memory usage: " & MemoryUsage(rldDoc)
+
 dim xmlRoot as xmlNodeptr
 xmlRoot = xmlDocGetRootElement(xmlDoc)
 
@@ -51,11 +53,23 @@ dim rldRoot as NodePtr
 rldRoot = chug(xmlRoot, rldDoc)
 
 print "Parsed XML document in " & int((timer - starttime) * 1000) & " ms"
+
+print "Memory usage: " & MemoryUsage(rldDoc)
+
+starttime = timer
+
+xmlFreeDoc(xmlDoc)
+
+print "Freed XML document in " & int((timer - starttime) * 1000) & " ms"
+
 starttime = timer
 
 optimize(rldRoot)
 
 print "Optimised document in " & int((timer - starttime) * 1000) & " ms"
+
+print "Memory usage: " & MemoryUsage(rldDoc)
+
 starttime = timer
 
 SetRootNode(rldDoc, rldRoot)
@@ -66,8 +80,6 @@ print "Serialized document in " & int((timer - starttime) * 1000) & " ms"
 starttime = timer
 
 FreeDocument(rldDoc)
-
-xmlFreeDoc(xmlDoc)
 
 print "Tore down memory in " & int((timer - starttime) * 1000) & " ms"
 

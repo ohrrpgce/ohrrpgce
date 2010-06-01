@@ -44,6 +44,8 @@ TYPE NodePtr as Node ptr
 #if defined(__FB_WIN32__)
 #include "windows.bi"
 #endif
+#include "crt/stdio.bi"
+	
 	TYPE Hashptr as ReloadHash ptr
 	
 	Type StringTableEntry
@@ -61,8 +63,14 @@ TYPE NodePtr as Node ptr
 		heap as HANDLE
 #endif
 		stringHash as HashPtr
+		delayLoading as integer
+		fileHandle as FILE ptr
 	END TYPE
-
+	
+	ENUM NodeFlags
+		nfNotLoaded = 1
+	END ENUM
+	
 	TYPE Node
 		'name as string
 		name as zstring ptr
@@ -82,6 +90,7 @@ TYPE NodePtr as Node ptr
 		nextSib as NodePtr
 		prevSib as NodePtr
 		flags as integer
+		fileLoc as integer
 	END TYPE
 #else
 	TYPE Doc

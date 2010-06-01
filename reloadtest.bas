@@ -322,6 +322,25 @@ startTest(helperFunctions)
 	AppendChildNode(nod, "appended")
 endTest
 
+startTest(bitsetArray)
+	dim nod2 as nodeptr = CreateNode(doc, "bitsettest")
+	
+	dim bs(100) as integer, bs2(100) as integer
+	
+	for i as integer = 0 to 99
+		bs(i) = int(rnd * 65535) 'add some random bits
+	next
+	
+	SaveBitsetArray(nod2, bs(), 100)
+	
+	LoadBitsetArray(nod2, bs2(), 100)
+	
+	for i as integer = 0 to 99
+		if bs(i) <> bs2(i) then fail
+	next
+	
+endTest
+
 startTest(serializeXML)
 	print
 	
@@ -339,20 +358,14 @@ startTest(writeFile)
 	if dir("unittest.rld") = "" then fail
 endTest
 
-startTest(loadFile)
-	doc2 = LoadDocument("unittest.rld")
-	
-	if doc2 = null then fail
-endTest
-
 function comparenode(byval nod1 as nodeptr, byval nod2 as nodeptr) as integer
 	if NodeName(nod1) <> NodeName(nod2) then
-		print "Names of nodes differ! " & NodeName(nod1) & " vs" & NodeName(nod2)
+		print "Names of nodes differ! " & NodeName(nod1) & " vs " & NodeName(nod2)
 		return 1
 	end if
 	
 	if NodeType(nod1) <> NodeType(nod2) then
-		print "Types of node " & NodeName(nod1) & " differ! " & NodeType(nod1) & " vs" & NodeType(nod2)
+		print "Types of node " & NodeName(nod1) & " differ! " & NodeType(nod1) & " vs " & NodeType(nod2)
 		return 1
 	end if
 	
@@ -398,33 +411,36 @@ function comparenode(byval nod1 as nodeptr, byval nod2 as nodeptr) as integer
 	return 0
 end function
 
-startTest(compareDocuments)
+startTest(compareDocumentsNoDelay)
+	doc2 = LoadDocument("unittest.rld", optNoDelay)
+	
+	if doc2 = null then fail
+	
 	if comparenode(DocumentRoot(doc), DocumentRoot(doc2)) then fail
 endTest
 
-startTest(bitsetArray)
-	dim nod2 as nodeptr = CreateNode(doc, "bitsettest")
-	
-	dim bs(100) as integer, bs2(100) as integer
-	
-	for i as integer = 0 to 99
-		bs(i) = int(rnd * 65535) 'add some random bits
-	next
-	
-	SaveBitsetArray(nod2, bs(), 100)
-	
-	LoadBitsetArray(nod2, bs2(), 100)
-	
-	for i as integer = 0 to 99
-		if bs(i) <> bs2(i) then fail
-	next
-	
-endTest
-
-startTest(freeDocument)
-	FreeDocument(doc)
-	doc = 0
+startTest(freeDocumentNoDelay)
 	FreeDocument(doc2)
 	doc2 = 0
+	pass
+endTest
+
+startTest(compareDocumentsDelay)
+	doc2 = LoadDocument("unittest.rld")
+	
+	if doc2 = null then fail
+	
+	if comparenode(DocumentRoot(doc), DocumentRoot(doc2)) then fail
+endTest
+
+startTest(freeDocumentDelay)
+	FreeDocument(doc2)
+	doc2 = 0
+	pass
+endTest
+
+startTest(cleanup)
+	FreeDocument(doc)
+	doc = 0
 	pass
 endTest

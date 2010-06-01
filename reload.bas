@@ -11,14 +11,10 @@
 
 '#define RELOAD_NOPRIVATEHEAP
 
-'This causes RELOAD to spit out a bunch of debugging stuff when loading documents.
-
-'#define RELOAD_TRACE
-
 #include "reload.bi"
 #include "util.bi"
 #include "lumpfile.bi"
-#include "crt/stdio.bi"
+
 
 #if defined(IS_GAME) or defined(IS_CUSTOM)
 DECLARE SUB debug (s AS STRING)
@@ -34,7 +30,7 @@ Namespace Reload
 Type hashFunction as Function(byval k as ZString ptr) as integer
 
 'These are in addition to the 'f as integer' overloads in reload.bi
-Declare Function ReadVLI(byval f as .FILE ptr) as longint
+Declare Function ReadVLI(byval f as FILE ptr) as longint
 'Can add the FILE* overload back when you actually need it...
 Declare Sub WriteVLI(byval f as BufferedFile ptr, byval v as Longint)
 
@@ -46,6 +42,9 @@ Declare Sub DestroyHashTable(byval h as HashPtr)
 Declare Function FindItem(byval h as HashPtr, byval key as ZString ptr, byval num as integer = 1) as any ptr
 Declare Sub AddItem(byval h as HashPtr, byval key as ZString ptr, byval item as any ptr)
 Declare Sub RemoveKey(byval h as HashPtr, byval key as zstring ptr, byval num as integer = 1)
+
+Declare Function LoadNode overload(byval ret as nodeptr) as integer
+
 
 '===================================================================================================
 '= Private Heap abstraction
@@ -146,6 +145,7 @@ Function CreateDocument() as DocPtr
 		ret->numStrings = 1
 		ret->numAllocStrings = 1
 		ret->stringHash = CreateHashTable(ret, @HashZString)
+		ret->delayLoading = no
 		
 		'add the blank string to the hash
 		AddItem(ret->stringHash, ret->strings[0].str, cast(any ptr, 0))
@@ -174,6 +174,7 @@ Function CreateNode(byval doc as DocPtr, nam as string) as NodePtr
 	ret->numChildren = 0
 	ret->children = null
 	ret->lastChild = null
+	ret->flags = 0
 	
 	return ret
 End function
@@ -191,9 +192,11 @@ sub FreeNode(byval nod as NodePtr, byval options as integer)
 	end if
 	
 	dim tmp as NodePtr
-	do while nod->children <> 0
-		FreeNode(nod->children)
-	loop
+	if 0 = (nod->flags and nfNotLoaded) then
+		do while nod->children <> 0
+			FreeNode(nod->children)
+		loop
+	end if
 	
 	'If this node has a parent, we should remove this node from
 	'its list of children
@@ -218,8 +221,6 @@ sub FreeNode(byval nod as NodePtr, byval options as integer)
 		end if
 	end if
 	if (options and 1) = 0 then
-		'we don't want to free this, all names are interned in the string table!
-		'if nod->name <> 0 then RDeallocate(nod->name, nod->doc)
 		if nod->nodeType = rltString and nod->str <> 0 then RDeallocate(nod->str, nod->doc)
 		RDeallocate(nod, nod->doc)
 	end if
@@ -234,6 +235,8 @@ end sub
 #endif
 sub FreeDocument(byval doc as DocPtr)
 	if doc = null then return
+	
+	if doc->fileHandle then fclose(doc->fileHandle)
 	
 	if RHeapDestroy(doc) then
 		if doc->root then
@@ -262,10 +265,8 @@ sub FreeDocument(byval doc as DocPtr)
 end sub
 
 'Loads a node from a binary file, into a document
-Function LoadNode(byval f as .FILE ptr, byval doc as DocPtr) as NodePtr
+Function LoadNode(byval f as FILE ptr, byval doc as DocPtr) as NodePtr
 	dim ret as NodePtr
-	
-	ret = CreateNode(doc, "")
 	
 	dim size as integer
 	
@@ -274,12 +275,15 @@ Function LoadNode(byval f as .FILE ptr, byval doc as DocPtr) as NodePtr
 	
 	here = ftell(f)
 	
+	ret = CreateNode(doc, "")
+	
 	ret->namenum = cshort(ReadVLI(f))
 	
 	if ret->namenum < 0 or ret->namenum > doc->numStrings then
 		debug "Node has invalid name: #" & ret->namenum
 		ret->namenum = 0
 	else
+		'debug "Node has valid name: #" & ret->namenum & " " & *doc->strings[ret->namenum].str
 		ret->name = doc->strings[ret->namenum].str
 		doc->strings[ret->namenum].uses += 1
 	end if
@@ -323,62 +327,59 @@ Function LoadNode(byval f as .FILE ptr, byval doc as DocPtr) as NodePtr
 	
 	ret->numChildren = ReadVLI(f)
 	
-#if defined(RELOAD_TRACE)
-	static tablevel as integer
-	dim debugs as string = string(tablevel, "  ") & "<" & *ret->name
-	if ret->numChildren > 0 or ret->nodeType <> rltNull then
-		debugs &= ">"
+	if doc->delayLoading then
+		ret->fileLoc = ftell(f)
+		ret->flags OR= nfNotLoaded
 		
-		select case ret->nodeType
-			case rltInt
-				debugs &= GetInteger(ret)
-			case rltFloat
-				debugs &= GetFloat(ret)
-			case rltString
-				debugs &= GetString(ret)
-		end select
+		fseek(f, size + here, 0)
 	else
-		debugs &= " />"
-	end if
-	
-	if ret->numChildren = 0 and ret->nodeType <> rltNull then
-		debugs &= "</" & *ret->name & ">"
-	end if
-	
-	debug debugs
-	
-	tablevel += 1
-#endif
-	
-	for i as integer = 0 to ret->numChildren - 1
-		nod = LoadNode(f, doc)
-		if nod = null then
+		for i as integer = 0 to ret->numChildren - 1
+			nod = LoadNode(f, doc)
+			if nod = null then
+				FreeNode(ret)
+				debug "child " & i & " node load failed"
+				return null
+			end if
+			ret->numChildren -= 1
+			AddChild(ret, nod)
+		next
+		
+		if ftell(f) - here <> size then
 			FreeNode(ret)
-			debug "child " & i & " node load failed"
+			debug "GOSH-diddly-DARN-it! Why did we read " & (ftell(f) - here) & " bytes instead of " & size & "!?"
 			return null
 		end if
-		ret->numChildren -= 1
-		AddChild(ret, nod)
-	next
-	
-#if defined(RELOAD_TRACE)
-	tablevel -= 1
-	if ret->numChildren > 0 then
-		debug string(tablevel, "  ") & "</" & *ret->name & ">"
-	end if
-#endif
-	
-	if ftell(f) - here <> size then
-		FreeNode(ret)
-		debug "GOSH-diddly-DARN-it! Why did we read " & (ftell(f) - here) & " bytes instead of " & size & "!?"
-		return null
 	end if
 	
 	return ret
 End Function
 
+'this loads a node's children
+Function LoadNode(byval ret as nodeptr) as integer
+	if ret = null then return no
+	if (ret->flags AND nfNotLoaded) = 0 then return yes
+	
+	dim f as FILE ptr = ret->doc->fileHandle
+	
+	fseek(f, ret->fileLoc, 0)
+	
+	for i as integer = 0 to ret->numChildren - 1
+		dim nod as nodeptr = LoadNode(f, ret->doc)
+		if nod = null then
+			debug "child " & i & " node load failed"
+			return no
+		end if
+		ret->numChildren -= 1
+		AddChild(ret, nod)
+	next
+	
+	ret->flags AND= NOT nfNotLoaded
+	
+	return yes
+End Function
+
 'This loads the string table from a binary document (as if the name didn't clue you in)
-Sub LoadStringTable(byval f as .FILE ptr, byval doc as docptr)
+Sub LoadStringTable(byval f as FILE ptr, byval doc as docptr)
 	dim as uinteger count, size
 	
 	count = cint(ReadVLI(f))
@@ -408,7 +409,7 @@ end sub
 
 Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	dim ret as DocPtr
-	dim f as .FILE ptr
+	dim f as FILE ptr
 	
 	f = fopen(fil, "rb")
 	if f = 0 then
@@ -454,6 +455,13 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	ret = CreateDocument()
 	ret->version = ver
 	
+	if options and optNoDelay then
+		ret->delayLoading = no
+	else
+		ret->delayLoading = yes
+		ret->fileHandle = f
+	end if
+	
 	'We'll load the string table first, to assist in debugging.
 	
 	fseek(f, datSize, 0)
@@ -478,8 +486,9 @@ Function LoadDocument(fil as string, byval options as LoadOptions) as DocPtr
 	
 	'String table: already applied long ago
 	
-	fclose(f)
-	
+	if options and optNoDelay then
+		fclose(f)
+	end if
 	return ret
 End Function
 
@@ -617,6 +626,11 @@ sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as
 	end if
 	dim i as integer, strno as longint, ub as ubyte
 	
+	'first, if a node isn't loaded, we need to do so.
+	if nod->flags AND nfNotLoaded then
+		LoadNode(nod)
+	end if
+	
 	dim as integer siz, here = 0, here2, dif
 	'siz = seek(f)
 	siz = Buffered_tell(f)
@@ -751,7 +765,8 @@ sub SetContent(byval nod as NodePtr, byval dat as double)
 	nod->flo = dat
 end sub
 
-'This marks a node as a null node. It leaves the old data (but it's no longer accessible)
+'This marks a node as a null node. It leaves the old data (but it's no longer accessible*)
+'addendum: * - unless it was a string, in which case it's gone.
 sub SetContent(byval nod as NodePtr)
 	if nod = null then exit sub
 	if nod->nodeType = rltString then
@@ -803,6 +818,7 @@ function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr
 	
 	'next, add us to our new parent
 	if par then
+		
 		nod->parent = par
 		par->numChildren += 1
 		
@@ -891,9 +907,13 @@ end sub
 'It pretty-prints it by adding indentation.
 sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as integer, byval ind as integer = 0)
 	if nod = null then exit sub
-
+	
+	if nod->flags AND nfNotLoaded then
+		LoadNode(nod)
+	end if
+	
 	dim closetag as integer = YES
-
+	
 	print #fh, string(ind, INDENTTAB);
 	if nod->nodeType = rltNull and nod->numChildren = 0 then
 		print #fh, "<" & *nod->name & " />"
@@ -955,6 +975,9 @@ Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr
 	'can also find self
 	if nod = null then return null
 	if *nod->name = nam then return nod
+	
+	if nod->flags AND nfNotLoaded then LoadNode(nod)
+	
 	dim child as NodePtr
 	dim ret as NodePtr
 	child = nod->children
@@ -970,6 +993,9 @@ Function GetChildByName(byval nod as NodePtr, nam as string) as NodePtr
 	'Not recursive!
 	'does not find self.
 	if nod = null then return null
+	
+	if nod->flags AND nfNotLoaded then LoadNode(nod)
+	
 	dim child as NodePtr
 	dim ret as NodePtr
 	child = nod->children
@@ -1096,6 +1122,8 @@ end function
 Function SetChildNode(byval parent as NodePtr, n as string) as NodePtr
 	if parent = 0 then return 0
 	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
+	
 	'first, check to see if this node already exists
 	dim ret as NodePtr = GetChildByName(parent, n)
 	
@@ -1113,6 +1141,8 @@ end Function
 'Sets the child node of name n to an integer value. If n doesn't exist, it adds it
 Function SetChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
 	if parent = 0 then return 0
+	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
 	
 	'first, check to see if this node already exists
 	dim ret as NodePtr = GetChildByName(parent, n)
@@ -1132,6 +1162,8 @@ end Function
 Function SetChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
 	if parent = 0 then return 0
 	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
+	
 	'first, check to see if this node already exists
 	dim ret as NodePtr = GetChildByName(parent, n)
 	
@@ -1149,6 +1181,8 @@ end Function
 'Sets the child node of name n to a string value. If n doesn't exist, it adds it
 Function SetChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
 	if parent = 0 then return 0
+	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
 	
 	'first, check to see if this node already exists
 	dim ret as NodePtr = GetChildByName(parent, n)
@@ -1168,6 +1202,8 @@ end Function
 Function GetChildNodeInt(byval parent as NodePtr, n as string, byval d as longint) as longint
 	if parent = 0 then return d
 	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
+	
 	dim nod as NodePtr = GetChildByName(parent, n)
 	
 	if nod = 0 then return d
@@ -1177,6 +1213,8 @@ end function
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
 Function GetChildNodeFloat(byval parent as NodePtr, n as string, byval d as double) as Double
 	if parent = 0 then return d
+	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
 	
 	dim nod as NodePtr = GetChildByName(parent, n)
 	
@@ -1189,6 +1227,8 @@ end function
 Function GetChildNodeStr(byval parent as NodePtr, n as string, d as string) as string
 	if parent = 0 then return d
 	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
+	
 	dim nod as NodePtr = GetChildByName(parent, n)
 	
 	if nod = 0 then return d
@@ -1199,6 +1239,8 @@ end function
 'looks for a child node of the name n, and retrieves its value. d is the default, if n doesn't exist
 Function GetChildNodeBool(byval parent as NodePtr, n as string, byval d as integer) as integer
 	if parent = 0 then return d
+	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
 	
 	dim nod as NodePtr = GetChildByName(parent, n)
 	
@@ -1211,6 +1253,8 @@ end function
 Function GetChildNodeExists(byval parent as NodePtr, n as string) as integer
 	if parent = 0 then return 0
 	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
+	
 	dim nod as NodePtr = GetChildByName(parent, n)
 	
 	return nod <> 0
@@ -1219,6 +1263,8 @@ end function
 'Appends a child node of name n with a null value.
 Function AppendChildNode(byval parent as NodePtr, n as string) as NodePtr
 	if parent = 0 then return 0
+	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
 	
 	dim ret as NodePtr
 	ret = CreateNode(parent->doc, n)
@@ -1233,6 +1279,8 @@ end Function
 Function AppendChildNode(byval parent as NodePtr, n as string, byval val as longint) as NodePtr
 	if parent = 0 then return 0
 	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
+	
 	dim ret as NodePtr = AppendChildNode(parent, n)
 	SetContent(ret, val)
 	
@@ -1243,6 +1291,8 @@ end Function
 Function AppendChildNode(byval parent as NodePtr, n as string, byval val as double) as NodePtr
 	if parent = 0 then return 0
 	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
+	
 	dim ret as NodePtr = AppendChildNode(parent, n)
 	SetContent(ret, val)
 	
@@ -1252,6 +1302,8 @@ end Function
 'Appends a child node of name n with a string value.
 Function AppendChildNode(byval parent as NodePtr, n as string, val as string) as NodePtr
 	if parent = 0 then return 0
+	
+	if parent->flags AND nfNotLoaded then LoadNode(parent)
 	
 	dim ret as NodePtr = AppendChildNode(parent, n)
 	SetContent(ret, val)
@@ -1264,10 +1316,12 @@ Function DocumentRoot(byval doc as DocPtr) as NodePtr
 end Function
 
 Function NumChildren(byval nod as NodePtr) as Integer
+	if nod->flags AND nfNotLoaded then LoadNode(nod) 'odds are, they're about to ask about the kids
 	return nod->numChildren
 end Function
 
 Function FirstChild(byval nod as NodePtr) as NodePtr
+	if nod->flags AND nfNotLoaded then LoadNode(nod)
 	return nod->children
 end Function
 
@@ -1375,7 +1429,7 @@ function ReadVLI(byval f as integer) as longint
 	
 end function
 
-function ReadVLI(byval f as .FILE ptr) as longint
+function ReadVLI(byval f as FILE ptr) as longint
 	dim tmp as integer
 	dim o as ubyte
 	dim ret as longint = 0

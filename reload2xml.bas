@@ -42,7 +42,7 @@ else
 end if
 
 dim doc as Reload.DocPtr
-doc = Reload.LoadDocument(filename)
+doc = Reload.LoadDocument(filename, Reload.optNoDelay)
 
 if outfile <> "-" then print "Loaded RELOAD document in " & int((timer - starttime) * 1000) & " ms"
 starttime = timer
