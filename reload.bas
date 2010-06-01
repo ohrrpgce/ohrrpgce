@@ -9,7 +9,7 @@
 'somehow fscked up the private heap implementation. Or, someone else touched something without
 'understanding how it works...
 
-#define RELOAD_NOPRIVATEHEAP
+'#define RELOAD_NOPRIVATEHEAP
 
 'This causes RELOAD to spit out a bunch of debugging stuff when loading documents.
 
@@ -191,15 +191,9 @@ sub FreeNode(byval nod as NodePtr, byval options as integer)
 	end if
 	
 	dim tmp as NodePtr
-	if nod->nodeType <> rltArray then
-		do while nod->children <> 0
-			FreeNode(nod->children)
-		loop
-	else
-		for i as integer = 0 to nod->numChildren - 1
-			FreeNode(nod->children + i, 1)
-		next
-	end if
+	do while nod->children <> 0
+		FreeNode(nod->children)
+	loop
 	
 	'If this node has a parent, we should remove this node from
 	'its list of children
@@ -363,7 +357,6 @@ Function LoadNode(byval f as .FILE ptr, byval doc as DocPtr) as NodePtr
 			debug "child " & i & " node load failed"
 			return null
 		end if
-		'Whoa! If you were to actually use rtlArray, it would probably explode right about here:
 		ret->numChildren -= 1
 		AddChild(ret, nod)
 	next
@@ -680,8 +673,7 @@ sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as
 			Buffered_write(f, nod->str, nod->strSize)
 	end select
 	
-	WriteVLI(f, nod->numChildren) 'is this cast necessary?
-	
+	WriteVLI(f, nod->numChildren)
 	dim n as NodePtr
 	n = nod->children
 	do while n <> null
@@ -886,6 +878,8 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	
 end sub
 
+#define INDENTTAB !"\t"
+
 'Serializes a document as XML to a file
 sub SerializeXML (byval doc as DocPtr, byval fh as integer, byval debugging as integer = NO)
 	if doc = null then exit sub
@@ -900,10 +894,8 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 
 	dim closetag as integer = YES
 
-	print #fh, string(ind, "	");
-	if nod->nodeType = rltArray then
-		print #fh, "<" & *nod->name & "reload:array=""array"">"
-	elseif nod->nodeType = rltNull and nod->numChildren = 0 then
+	print #fh, string(ind, INDENTTAB);
+	if nod->nodeType = rltNull and nod->numChildren = 0 then
 		print #fh, "<" & *nod->name & " />"
 		exit sub
 	elseif debugging = NO andalso nod->nodeType <> rltNull andalso nod->numChildren = 0 andalso *nod->name = "" then
@@ -913,13 +905,7 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 		closetag = NO
 	else
 		print #fh, "<" & *nod->name;
-
-		if nod->nodeType <> rltNull and nod->numChildren <> 0 then
-			print #fh, " =""";
-			print #fh, GetString(nod);
-			print #fh, """";
-		end if
-
+		
 		'find the attribute children and print them
 		dim n as NodePtr = nod->children
 		do while n <> null
@@ -934,29 +920,28 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 		print #fh, ">";
 	end if
 
-	if nod->numChildren = 0 then
-		print #fh, GetString(nod);
+	if nod->nodeType <> rltNull then
+		if nod->numChildren = 0 then
+			print #fh, GetString(nod);
+		else
+			print #fh,
+			print #fh, string(ind + 1, INDENTTAB) & GetString(nod)
+		end if
 	else
 		print #fh,
 	end if
 	
 	dim n as NodePtr = nod->children
 	
-	if nod->nodeType <> rltArray then
-		do while n <> null
-			'we've already printed attributes, above
-			if n->name[0] <> asc("@") then
-				SerializeXML(n, fh, debugging, ind + 1)
-			end if
-			n = n->nextSib
-		loop
-	else
-		for i as integer = 0 to nod->numChildren - 1
-			SerializeXML(n + i, fh, debugging, ind + 1)
-		next
-	end if
+	do while n <> null
+		'we've already printed attributes, above
+		if n->name[0] <> asc("@") then
+			SerializeXML(n, fh, debugging, ind + 1)
+		end if
+		n = n->nextSib
+	loop
 	
-	if nod->numChildren <> 0 then print #fh, string(ind, "	");
+	if nod->numChildren <> 0 then print #fh, string(ind, INDENTTAB);
 	
 	if closetag then
 		print #fh, "</" & *nod->name & ">"

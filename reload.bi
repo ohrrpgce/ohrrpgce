@@ -23,7 +23,6 @@ ENUM NodeInTypes
 	rliLong = 4
 	rliFloat = 5
 	rliString = 6
-	rliArray = 7
 END ENUM
 
 ENUM NodeTypes
@@ -31,7 +30,6 @@ ENUM NodeTypes
 	rltInt
 	rltFloat
 	rltString
-	rltArray	'never actually appears; who knows whether it works?
 END ENUM
 
 ENUM LoadOptions
