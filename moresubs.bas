@@ -1116,7 +1116,7 @@ NEXT i
 
 FOR i = 0 TO 99
  FOR o = 0 TO 49
-  gam.stock(i, o) = 0
+  gam.stock(i, o) = -1 'default of -1 means no limit
  NEXT o
 NEXT i
 flusharray hmask(), 3, 0
