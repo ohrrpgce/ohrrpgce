@@ -29,6 +29,7 @@ DECLARE SUB new_savegame (BYVAL slot AS INTEGER)
 DECLARE SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
 DECLARE SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_maps_to_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
 DECLARE SUB gamestate_tags_to_reload(BYVAL parent AS Reload.NodePtr)
@@ -43,6 +44,7 @@ DECLARE SUB new_loadgame(BYVAL slot AS INTEGER)
 DECLARE SUB gamestate_from_reload(BYVAL node AS Reload.NodePtr)
 DECLARE SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_maps_from_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
 DECLARE SUB gamestate_tags_from_reload(BYVAL parent AS Reload.NodePtr)
@@ -294,25 +296,8 @@ SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
  DIM node AS NodePtr
  node = GetChildByName(parent, "script")
  DIM ch AS NodePtr 'used for sub-containers
- DIM n AS NodePtr 'used for numbered containers
- DIM i AS INTEGER
 
- ch = GetChildByName(node, "globals")
- n = FirstChild(ch)
- DO WHILE n
-  IF NodeName(n) = "global" THEN
-   i = GetInteger(n)
-   SELECT CASE i
-    CASE 0 TO 4095
-     global(i) = GetChildNodeInt(n, "int")
-    CASE ELSE
-     rsav_warn "invalid global id " & i
-   END SELECT
-  ELSE
-   rsav_warn_wrong "global", n
-  END IF
-  n = NextSibling(n)
- LOOP
+ gamestate_globals_from_reload node
 
  IF readbit(gen(), genBits2, 2) = 0 THEN
   gen(genGameoverScript) = GetChildNodeInt(node, "gameover_script")
@@ -333,6 +318,30 @@ SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
  setbit gen(), genSuspendBits, 9, GetChildNodeExists(ch, "ambientmusic")
  
  gen(genScrBackdrop) = GetChildNodeInt(node, "backdrop")
+END SUB
+
+SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr)
+
+ DIM node AS NodePtr
+ node = GetChildByName(parent, "globals")
+ DIM n AS NodePtr 'used for numbered containers
+ DIM i AS INTEGER
+
+ n = FirstChild(node)
+ DO WHILE n
+  IF NodeName(n) = "global" THEN
+   i = GetInteger(n)
+   SELECT CASE i
+    CASE 0 TO 4095
+     global(i) = GetChildNodeInt(n, "int")
+    CASE ELSE
+     rsav_warn "invalid global id " & i
+   END SELECT
+  ELSE
+   rsav_warn_wrong "global", n
+  END IF
+  n = NextSibling(n)
+ LOOP
 END SUB
 
 SUB gamestate_maps_from_reload(BYVAL parent AS Reload.NodePtr)
@@ -864,13 +873,7 @@ SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
  DIM ch AS NodePtr 'used for sub-containers
  DIM n AS NodePtr 'used for numbered containers
 
- ch = SetChildNode(node, "globals")
- FOR i AS INTEGER = 0 TO 4095
-  IF global(i) <> 0 THEN
-   n = AppendChildNode(ch, "global", i)
-   SetChildNode(n, "int", global(i))
-  END IF
- NEXT i
+ gamestate_globals_to_reload node
 
  SetChildNode(node, "gameover_script", gen(genGameoverScript))
  SetChildNode(node, "loadgame_script", gen(genLoadgameScript))
@@ -888,6 +891,20 @@ SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
  IF xreadbit(gen(), 9, genSuspendBits) THEN SetChildNode(ch, "ambientmusic")
  
  SetChildNode(node, "backdrop", gen(genScrBackdrop))
+END SUB
+
+SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr)
+
+ DIM node AS NodePtr
+ node = SetChildNode(parent, "globals")
+ DIM n AS NodePtr 'used for numbered containers
+
+ FOR i AS INTEGER = 0 TO 4095
+  IF global(i) <> 0 THEN
+   n = AppendChildNode(node, "global", i)
+   SetChildNode(n, "int", global(i))
+  END IF
+ NEXT i
 END SUB
 
 SUB gamestate_maps_to_reload(BYVAL parent AS Reload.NodePtr)
