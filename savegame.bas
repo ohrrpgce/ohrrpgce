@@ -61,6 +61,10 @@ DECLARE SUB rsav_warn_wrong (expected AS STRING, BYVAL n AS Reload.NodePtr)
 DECLARE SUB new_saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
 DECLARE SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
 
+DECLARE SUB new_erase_save_slot (BYVAL slot AS INTEGER)
+DECLARE FUNCTION new_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
+DECLARE FUNCTION new_count_used_save_slots() AS INTEGER
+
 '--old save/load support
 DECLARE SUB old_savegame (slot as integer)
 DECLARE SUB old_saveglobalvars (slot as integer, first as integer, last as integer)
@@ -142,14 +146,22 @@ SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
 END SUB
 
 FUNCTION save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
+ IF new_save_slot_used(slot) THEN
+  RETURN YES
+ END IF
  RETURN old_save_slot_used(slot)
 END FUNCTION
 
 SUB erase_save_slot (BYVAL slot AS INTEGER)
  old_erase_save_slot slot
+ new_erase_save_slot slot
 END SUB
 
 FUNCTION count_used_save_slots() AS INTEGER
+ DIM count AS INTEGER = new_count_used_save_slots()
+ IF count > 0 THEN
+  RETURN count
+ END IF
  RETURN old_count_used_save_slots()
 END FUNCTION
 
@@ -1297,6 +1309,46 @@ SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL las
  current_save_slot = -1
 END SUB
 
+'-----------------------------------------------------------------------
+
+SUB new_erase_save_slot (BYVAL slot AS INTEGER)
+ DIM filename AS STRING
+ filename = savedir & SLASH & slot & ".rsav"
+ safekill filename
+END SUB
+
+FUNCTION new_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
+ DIM result AS INTEGER = NO
+
+ DIM filename AS STRING
+ filename = savedir & SLASH & slot & ".rsav"
+ 
+ IF isfile(filename) THEN
+  DIM doc AS DocPtr
+  doc = LoadDocument(filename)
+  DIM node AS NodePtr
+  node = DocumentRoot(doc)
+  IF GetChildNodeInt(node, "ver", -1) >= 0 THEN
+   result = YES
+  END IF
+  FreeDocument doc
+ END IF
+ 
+ RETURN result
+END FUNCTION
+
+FUNCTION new_count_used_save_slots() AS INTEGER
+ DIM count AS INTEGER = 0
+ 
+ FOR slot AS INTEGER = 0 TO 32
+  IF new_save_slot_used(slot) THEN count += 1
+ NEXT slot
+ 
+ RETURN count
+END FUNCTION
+
+'-----------------------------------------------------------------------
+'=======================================================================
 '-----------------------------------------------------------------------
 
 SUB old_savegame (slot)
