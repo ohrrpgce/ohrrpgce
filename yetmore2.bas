@@ -104,8 +104,8 @@ SUB drawnpcs
    IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawnpcX, drawnpcY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
     IF vstate.active AND vstate.npc = i THEN z = catz(0) '--special vehicle magic
     IF z AND vstate.dat.disable_flying_shadow = NO THEN '--shadow
-     rectangle npc(i).x - mapx + 6, npc(i).y - mapy + gmap(11) + 13, 8, 5, uilook(uiShadow), dpage
-     rectangle npc(i).x - mapx + 5, npc(i).y - mapy + gmap(11) + 14, 10, 3, uilook(uiShadow), dpage
+     rectangle drawnpcX + 6, drawnpcY + 13, 8, 5, uilook(uiShadow), dpage
+     rectangle drawnpcX + 5, drawnpcY + 14, 10, 3, uilook(uiShadow), dpage
     END IF
     frame_draw npcs(o).sprite + (2 * npc(i).dir) + npc(i).frame \ 2, npcs(o).pal, drawnpcX, drawnpcY - z, 1, -1, dpage
    END IF
