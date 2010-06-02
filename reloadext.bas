@@ -5,6 +5,9 @@
 '
 
 #include "reload.bi"
+#include "reloadext.bi"
+
+DECLARE SUB debug (s AS STRING)
 
 Namespace Reload.Ext
 
@@ -95,5 +98,79 @@ sub SaveBitsetArray(byval node as NodePtr, bs() as integer, byval size as intege
 		d[i * 2 + 1] = (bs(i) \ 256) and &hff
 	next
 end sub
+
+Function NodeByPath(byval doc AS DocPtr, path as string) as NodePtr
+	Return NodeByPath(DocumentRoot(doc), path)
+End Function
+
+Function NodeByPath(byval node AS NodePtr, path as string) as NodePtr
+	if node = null then return null
+	if path = "" then return null
+	if mid(path, 1, 1) <> "/" then
+		debug "malformed path segment " & path
+		return null
+	end if
+	
+	dim remainder as string = ""
+	dim segment as string
+	segment = mid(path, 2)
+	dim sep_pos as integer
+	sep_pos = instr(segment, "/")
+	if sep_pos then
+		segment = mid(segment, 1, sep_pos - 1)
+		remainder = mid(path, len(segment) + 2)
+	end if
+
+	dim index as integer = 0
+	dim use_index as integer = 0
+	dim index_str as string
+
+	sep_pos = instr(segment, "[")
+	if sep_pos then
+	
+		dim end_pos as integer
+		end_pos = instr(segment, "]")
+		if end_pos = 0 then
+			debug "malformed path index " & segment
+			return null
+		end if
+  
+		index_str = mid(segment, sep_pos + 1, len(segment) - (end_pos - 1) )
+		index = valint(index_str)
+		if str(index) <> index_str then
+			debug "malformed path index" & segment
+			return null
+		end if
+		
+		segment = mid(segment, 1, sep_pos - 1)
+		
+		use_index = -1
+	end if
+
+	dim child as NodePtr
+	
+	if use_index then
+		child = FirstChild(node)
+		do while child
+			if NodeName(child) = segment then
+				'found a name match
+				if GetInteger(child) = index then
+					exit do
+				end if
+			end if
+			child = NextSibling(child)
+		loop
+		if child = null then return null
+	else
+		child = GetChildByName(node, segment)
+	end if
+ 
+	if remainder <> "" then
+		return NodeByPath(child, remainder)
+	else
+		return child
+	end if
+
+End Function
 
 End Namespace

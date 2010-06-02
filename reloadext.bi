@@ -15,6 +15,8 @@ Declare Sub SetBitset(byval node as Nodeptr, byval bit as integer, byval v as in
 Declare Function GetBitset(byval node as Nodeptr, byval bit as integer) as integer
 Declare sub LoadBitsetArray(byval node as NodePtr, bs() as integer, byval size as integer)
 Declare sub SaveBitsetArray(byval node as NodePtr, bs() as integer, byval size as integer)
+Declare Function NodeByPath Overload (byval doc AS DocPtr, path as string) as NodePtr
+Declare Function NodeByPath(byval node AS NodePtr, path as string) as NodePtr
 
 End Namespace
 

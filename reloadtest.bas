@@ -341,6 +341,26 @@ startTest(bitsetArray)
 	
 endTest
 
+startTest(testNodeByPath)
+	dim nod1 as NodePtr
+	dim nod2 as NodePtr
+	nod1 = SetChildNode(DocumentRoot(doc), "party")
+	AppendChildNode(nod1, "slot", 0)
+	AppendChildNode(nod1, "slot", 0)
+	AppendChildNode(nod1, "slot", 0)
+	nod1 = AppendChildNode(nod1, "slot", 3)
+	nod1 = SetChildNode(nod1, "stats")
+	nod2 = AppendChildNode(nod1, "stat", 0)
+	AppendChildNode(nod1, "stat", 1)
+	SetChildNode(nod2, "max", 100)
+	SetChildNode(nod2, "cur", 95)
+	
+	nod1 = NodeByPath(doc, "/party/slot[3]/stats/stat[0]/max")
+	if nod1 = null then fail
+	if NodeName(nod1) <> "max" then fail
+	if GetInteger(nod1) <> 100 then fail
+endTest
+
 startTest(serializeXML)
 	print
 	
