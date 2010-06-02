@@ -29,7 +29,7 @@ DECLARE SUB new_savegame (BYVAL slot AS INTEGER)
 DECLARE SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
 DECLARE SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
 DECLARE SUB gamestate_maps_to_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
 DECLARE SUB gamestate_tags_to_reload(BYVAL parent AS Reload.NodePtr)
@@ -44,7 +44,7 @@ DECLARE SUB new_loadgame(BYVAL slot AS INTEGER)
 DECLARE SUB gamestate_from_reload(BYVAL node AS Reload.NodePtr)
 DECLARE SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
-DECLARE SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
 DECLARE SUB gamestate_maps_from_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
 DECLARE SUB gamestate_tags_from_reload(BYVAL parent AS Reload.NodePtr)
@@ -57,6 +57,9 @@ DECLARE SUB gamestate_vehicle_from_reload(BYVAL parent AS Reload.NodePtr)
 
 DECLARE SUB rsav_warn (s AS STRING)
 DECLARE SUB rsav_warn_wrong (expected AS STRING, BYVAL n AS Reload.NodePtr)
+
+DECLARE SUB new_saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+DECLARE SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
 
 '--old save/load support
 DECLARE SUB old_savegame (slot as integer)
@@ -100,7 +103,7 @@ END SUB
 
 SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
  old_saveglobalvars slot, first, last
- 'new_saveglobalvars slot, first, last
+ new_saveglobalvars slot, first, last
 END SUB
 
 SUB loadgame (BYVAL slot AS INTEGER)
@@ -120,6 +123,17 @@ SUB loadgame (BYVAL slot AS INTEGER)
 END SUB
 
 SUB loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+ IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+  'test new loading if shift is held down when you load
+  DIM filename AS STRING
+  filename = savedir & SLASH & slot & ".rsav"
+  IF isfile(filename) THEN
+   debug "testing awesome new loadglobalvars from " & filename
+   new_loadglobalvars slot, first, last
+   EXIT SUB
+  END IF
+ END IF
+ debug "loadglobalvars from slot " & slot & " of boring old " & old_savefile
  old_loadglobalvars slot, first, last
 END SUB
 
@@ -320,7 +334,7 @@ SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
  gen(genScrBackdrop) = GetChildNodeInt(node, "backdrop")
 END SUB
 
-SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr)
+SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
 
  DIM node AS NodePtr
  node = GetChildByName(parent, "globals")
@@ -332,10 +346,14 @@ SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr)
   IF NodeName(n) = "global" THEN
    i = GetInteger(n)
    SELECT CASE i
-    CASE 0 TO 4095
+    CASE first TO last
      global(i) = GetChildNodeInt(n, "int")
     CASE ELSE
-     rsav_warn "invalid global id " & i
+     SELECT CASE i
+      CASE 0 TO 4095
+      CASE ELSE
+       rsav_warn "invalid global id " & i
+     END SELECT
    END SELECT
   ELSE
    rsav_warn_wrong "global", n
@@ -893,13 +911,13 @@ SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
  SetChildNode(node, "backdrop", gen(genScrBackdrop))
 END SUB
 
-SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr)
+SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
 
  DIM node AS NodePtr
  node = SetChildNode(parent, "globals")
  DIM n AS NodePtr 'used for numbered containers
 
- FOR i AS INTEGER = 0 TO 4095
+ FOR i AS INTEGER = first TO last
   IF global(i) <> 0 THEN
    n = AppendChildNode(node, "global", i)
    SetChildNode(n, "int", global(i))
@@ -1186,6 +1204,97 @@ SUB gamestate_vehicle_to_reload(BYVAL parent AS Reload.NodePtr)
   
   END WITH
  END WITH
+END SUB
+
+'-----------------------------------------------------------------------
+
+SUB new_saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+ current_save_slot = slot
+ 
+ DIM filename AS STRING
+ filename = savedir & SLASH & slot & ".rsav"
+
+ DIM doc AS DocPtr
+ DIM rsav_node AS NodePtr
+ DIM script_node AS NodePtr
+ DIM globals_node AS NodePtr
+
+ IF NOT isfile(filename) THEN
+  debug "Save file missing: " & filename
+  debug "generating a globals-only file"
+  doc = CreateDocument()
+  rsav_node = CreateNode(doc, "rsav")
+  SetRootNode(doc, rsav_node)
+  script_node = SetChildNode(rsav_node, "script")
+  globals_node = SetChildNode(script_node, "globals")
+ ELSE
+  '--save already exists
+  doc = LoadDocument(filename)
+ END IF
+  
+ '--get the old globals node
+ rsav_node = DocumentRoot(doc)
+ script_node = GetChildByName(rsav_node, "script")
+ globals_node = GetChildByName(script_node, "globals")
+ 
+ DIM n AS NodePtr
+ DIM i AS INTEGER
+ 
+ '--delete any old global nodes in the range
+ n = FirstChild(globals_node)
+ DO WHILE n
+  IF NodeName(n) = "global" THEN
+   i = GetInteger(n)
+   SELECT CASE i
+    CASE first TO last
+     FreeNode(n)
+   END SELECT
+  ELSE
+   rsav_warn_wrong "global", n
+  END IF
+  n = NextSibling(n)
+ LOOP
+
+ '--add nodes for the globals in the range
+ gamestate_globals_to_reload script_node, first, last
+
+ '--re-save with the changed globals
+ SerializeBin filename, doc
+ 
+ FreeDocument doc
+ current_save_slot = -1
+END SUB
+
+SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+ current_save_slot = slot
+ 
+ DIM filename AS STRING
+ filename = savedir & SLASH & slot & ".rsav"
+
+ IF NOT isfile(filename) THEN
+  debug "Save file missing: " & filename
+  EXIT SUB
+ END IF
+
+ DIM doc AS DocPtr
+ doc = LoadDocument(filename)
+ 
+ DIM node AS NodePtr
+ 
+ '--get the script node
+ node = DocumentRoot(doc)
+ node = GetChildByName(node, "script")
+
+ '--wipe out the range of globals first
+ FOR i AS INTEGER = first TO last
+  global(i) = 0
+ NEXT i
+
+ '--load the globals in the range
+ gamestate_globals_from_reload node, first, last
+ 
+ FreeDocument doc
+ current_save_slot = -1
 END SUB
 
 '-----------------------------------------------------------------------
