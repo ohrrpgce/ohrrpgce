@@ -64,6 +64,7 @@ DECLARE SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, B
 DECLARE SUB new_erase_save_slot (BYVAL slot AS INTEGER)
 DECLARE FUNCTION new_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
 DECLARE FUNCTION new_count_used_save_slots() AS INTEGER
+DECLARE SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
 
 '--old save/load support
 DECLARE SUB old_savegame (slot as integer)
@@ -142,7 +143,13 @@ SUB loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS
 END SUB
 
 SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
- old_get_save_slot_preview slot, pv
+ IF new_save_slot_used(slot) THEN
+  debug "test nifty new save slot preview for slot " & slot
+  new_get_save_slot_preview slot, pv
+ ELSE
+  debug "fall back to boring old save slot preview for " & slot
+  old_get_save_slot_preview slot, pv
+ END IF
 END SUB
 
 FUNCTION save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
@@ -194,6 +201,7 @@ SUB new_loadgame(BYVAL slot AS INTEGER)
 
  IF NOT isfile(filename) THEN
   debug "Save file missing: " & filename
+  current_save_slot = -1
   EXIT SUB
  END IF
 
@@ -534,6 +542,7 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
       .lev_gain = GetChildNodeInt(slot, "lev_gain")
       exlev(i, 0) = GetChildNodeInt(slot, "exp")
       exlev(i, 1) = GetChildNodeInt(slot, "exp_next")
+      .def_wep = GetChildNodeInt(slot, "def_wep")
 
       ch = GetChildByName(slot, "wep")
       .wep_pic = GetChildNodeInt(ch, "pic")
@@ -1037,7 +1046,7 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
   SetChildNode(slot, "lev_gain", gam.hero(i).lev_gain)
   SetChildNode(slot, "exp", exlev(i, 0))
   SetChildNode(slot, "exp_next", exlev(i, 1))
-  
+  SetChildNode(slot, "def_wep", gam.hero(i).def_wep)
   
   ch = SetChildNode(slot, "wep")
   SetChildNode(ch, "pic", gam.hero(i).wep_pic)
@@ -1285,6 +1294,7 @@ SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL las
 
  IF NOT isfile(filename) THEN
   debug "Save file missing: " & filename
+  current_save_slot = -1
   EXIT SUB
  END IF
 
@@ -1346,6 +1356,84 @@ FUNCTION new_count_used_save_slots() AS INTEGER
  
  RETURN count
 END FUNCTION
+
+'-----------------------------------------------------------------------
+
+SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
+ current_save_slot = slot
+
+ pv.valid = NO
+
+ DIM filename AS STRING
+ filename = savedir & SLASH & slot & ".rsav"
+
+ IF NOT isfile(filename) THEN
+  current_save_slot = -1
+  EXIT SUB
+ END IF
+
+ DIM doc AS DocPtr
+ doc = LoadDocument(filename)
+ 
+ DIM parent AS NodePtr
+ parent = DocumentRoot(doc)
+
+ '--if there is no version data, don't continue
+ ' (this could happen if export globals was used into an empty slot)
+ IF GetChildNodeInt(parent, "ver", -1) < 0 THEN
+  current_save_slot = -1
+  EXIT SUB
+ END IF
+
+ '--Loaded data okay! populate the SaveSlotPreview object
+ pv.valid = YES
+
+ DIM ch AS NodePtr
+ 
+ ch = NodeByPath(parent, "/state/current_map")
+ pv.cur_map = GetInteger(ch) 
+ pv.use_saved_pics = YES
+
+ DIM h AS NodePtr
+ DIM stat AS NodePtr
+ DIM picpal AS NodePtr
+ DIM foundleader AS INTEGER = NO
+ FOR i AS INTEGER = 0 TO 3
+  h = NodeByPath(parent, "/party/slot[" & i & "]")
+  IF h THEN
+   IF GetChildNodeExists(h, "id") THEN
+    pv.hero_id(i) = GetChildNodeInt(h, "id") + 1
+    IF foundleader = NO THEN
+     pv.leader_name = GetChildNodeStr(h, "name")
+     pv.leader_lev = GetChildNodeInt(h, "lev")
+     foundleader= YES
+    END IF
+    WITH pv.hero(i)
+     .lev = GetChildNodeInt(h, "lev")
+     FOR j AS INTEGER = 0 TO 11
+      stat = NodeByPath(h, "/stats/stat[" & j & "]")
+      IF stat THEN
+       .stat.cur.sta(j) = GetChildNodeInt(stat, "cur")
+       .stat.max.sta(j) = GetChildNodeInt(stat, "max")
+      END IF
+     NEXT j
+     .def_wep = GetChildNodeInt(h, "def_wep")
+     picpal = GetChildByName(h, "in_battle")
+     .battle_pic = GetChildNodeInt(picpal, "pic")
+     .battle_pal = GetChildNodeInt(picpal, "pal")
+     picpal = GetChildByName(h, "walkabout")
+     .pic = GetChildNodeInt(picpal, "pic")
+     .pal = GetChildNodeInt(picpal, "pal")
+    END WITH
+   END IF
+  END IF
+ NEXT i
+  
+ ch = NodeByPath(parent, "/state/playtime")
+ pv.playtime = playtime(GetChildNodeInt(ch, "days"), GetChildNodeInt(ch, "hours"), GetChildNodeInt(ch, "minutes"))
+ 
+ current_save_slot = -1
+END SUB
 
 '-----------------------------------------------------------------------
 '=======================================================================
