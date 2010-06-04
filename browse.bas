@@ -407,6 +407,8 @@ ELSE
   IF br.special = 7 THEN ' Special handling in RPG mode
    IF justextension$(tree(br.treesize).filename) = "rpgdir" THEN br.treesize = br.treesize - 1
   END IF
+  '--hide any .saves folders when browsing
+  IF justextension$(tree(br.treesize).filename) = "saves" THEN br.treesize = br.treesize - 1
   draw_browse_meter br
  LOOP
  CLOSE #fh
