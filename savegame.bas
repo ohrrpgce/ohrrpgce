@@ -89,7 +89,8 @@ OPTION EXPLICIT
 '-----------------------------------------------------------------------
 
 SUB init_save_system()
- '--set up savegame file
+
+ '--set up old savegame file
  old_savefile = trimextension(sourcerpg) + ".sav"
  #IFDEF __UNIX__
  IF NOT fileisreadable(old_savefile) THEN
@@ -97,8 +98,19 @@ SUB init_save_system()
   old_savefile = prefsdir & SLASH & trimpath(old_savefile)
  END IF
  #ENDIF
- savedir = prefsdir & SLASH & "saves"
+ 
+ '--set up new rsav folder
+ 
+ DIM rpg_folder AS STRING = trimfilename(sourcerpg)
+ IF diriswriteable(rpg_folder) THEN
+  '--default location is same as the RPG file (if possible)
+  savedir = trimextension(sourcerpg) & ".saves"
+ ELSE
+  '--fallback location is prefsdir
+  savedir = prefsdir & SLASH & "saves"
+ END IF
  IF NOT isdir(savedir) THEN MKDIR savedir
+
 END SUB
 
 SUB savegame (BYVAL slot AS INTEGER)
