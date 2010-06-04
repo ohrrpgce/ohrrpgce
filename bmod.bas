@@ -423,7 +423,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    'set tag, if there is one
    checkTagCond attack.tagset(0), 1
    checkTagCond attack.tagset(1), 1
-   IF inflict(bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount) THEN
+   IF inflict(bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
     '--attack succeeded
     IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
      changefoe targ - 4, attack.transmog_enemy, formdata(), es(), bslot(), attack.transmog_hp, attack.transmog_stats
@@ -550,7 +550,9 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    FOR i = 0 TO 3
     IF bslot(i).stat.cur.hp = 0 THEN o = o + 1
    NEXT i
-   IF o = 4 THEN bat.atk.id = -1
+   IF o = 4 THEN
+    bat.atk.id = -1
+   END IF
    o = 0
    FOR i = 4 TO 11
     IF bslot(i).stat.cur.hp = 0 THEN o = o + 1
@@ -2308,7 +2310,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  'CANNOT HIT INVISIBLE FOES
  FOR i = 0 TO 11
   IF bslot(bat.acting).t(i) > -1 THEN
-   IF bslot(bslot(bat.acting).t(i)).vis = 0 AND (attack.targ_class <> 4 AND attack.targ_class <> 10) THEN
+   IF bslot(bslot(bat.acting).t(i)).vis = 0 AND attack_can_hit_dead(bslot(bat.acting).t(i), attack, bslot(bat.acting).stored_targs_can_be_dead) = NO THEN
     bslot(bat.acting).t(i) = -1
    END IF
   END IF
@@ -2787,7 +2789,7 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
  loadattackdata attack, bslot(bat.hero_turn).attack - 1
 
  get_valid_targs bat.targ.mask(), bat.hero_turn, attack, bslot()
- bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, attack)
+ bat.targ.hit_dead = attack_can_hit_dead(bat.hero_turn, attack, bslot(bat.hero_turn).stored_targs_can_be_dead)
 
  '--attacks that can target all should default to the first enemy
  IF attack.targ_class = 3 THEN

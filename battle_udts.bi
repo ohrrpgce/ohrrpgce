@@ -98,6 +98,7 @@ TYPE BattleSprite
   last_targs(11)      AS INTEGER 'YES for each target previously hit by this hero/enemy, otherwise NO
   stored_targs(11)    AS INTEGER 'YES for each stored target for ths hero/enemy, otherwise NO
   keep_dead_targs(11) AS INTEGER 'YES to mark targets of attacks that can target the dead (used in sorting of .t)
+  stored_targs_can_be_dead AS INTEGER
   '--Bitsets
   weak(7)        AS INTEGER 'YES/NO for weakness to each element
   strong(7)      AS INTEGER 'YES/NO for strength to each element

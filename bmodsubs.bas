@@ -282,7 +282,7 @@ Function GetHeroPos(h as integer,f as integer,isY as integer) as integer'or x?
  CLOSE #FH
 End Function
 
-FUNCTION inflict (w as integer, t as integer, BYREF attacker AS BattleSprite, BYREF target AS BattleSprite, attack as AttackData, tcount as integer) as integer
+FUNCTION inflict (w as integer, t as integer, BYREF attacker AS BattleSprite, BYREF target AS BattleSprite, attack as AttackData, tcount as integer, byval hit_dead as integer=NO) as integer
 
 DIM h = 0
 
@@ -294,10 +294,14 @@ attacker.attack_succeeded = 0
 attacker.last_targs(t) = YES
 
 'stored targs
-IF attack.store_targ THEN attacker.stored_targs(t) = YES
+IF attack.store_targ THEN
+ attacker.stored_targs(t) = YES
+ attacker.stored_targs_can_be_dead = hit_dead
+END IF
 IF attack.delete_stored_targ THEN
  FOR i = 0 TO 11
   attacker.stored_targs(i) = NO
+  attacker.stored_targs_can_be_dead = NO
  NEXT i
 END IF
 
@@ -974,7 +978,7 @@ SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSpri
 
  CASE 9 'stored
   FOR i = 0 TO 11
-   IF bslot(who).stored_targs(i) = YES AND bslot(i).vis <> 0 THEN
+   IF bslot(who).stored_targs(i) = YES AND (bslot(i).vis <> 0 OR bslot(who).stored_targs_can_be_dead) THEN
     tmask(i) = 1
    END IF
   NEXT i
@@ -1201,11 +1205,15 @@ SUB anim_retreat (who as integer, attack as AttackData, bslot() AS BattleSprite)
  END IF
 END SUB
 
-FUNCTION attack_can_hit_dead(who as integer, attack as AttackData) as integer
+FUNCTION attack_can_hit_dead(who as integer, attack as AttackData, stored_targs_can_be_dead as integer=NO) as integer
 
  SELECT CASE attack.targ_class
   CASE 4 'ally-including-dead (hero only)
    IF is_hero(who) THEN RETURN YES
+  CASE 9 'stored target
+   IF is_hero(who) THEN
+    IF stored_targs_can_be_dead THEN RETURN YES
+   END IF
   CASE 10 'dead-ally (hero only)
    IF is_hero(who) THEN RETURN YES
  END SELECT

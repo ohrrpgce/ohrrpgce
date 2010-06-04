@@ -25,7 +25,7 @@ declare sub anim_enemy (who as integer, attack as AttackData, bslot() AS BattleS
 declare function getweaponpos(w as integer,f as integer,isy as integer) as integer'or x?
 declare function getheropos(h as integer,f as integer,isy as integer) as integer'or x?
 declare sub anim_hero (who as integer, attack as AttackData, bslot() AS BattleSprite)
-declare function inflict (w as integer, t as integer, BYREF attacker AS BattleSprite, BYREF target AS BattleSprite, attack as AttackData, tcount as integer) as integer
+declare function inflict (w as integer, t as integer, BYREF attacker AS BattleSprite, BYREF target AS BattleSprite, attack as AttackData, tcount as integer, byval hit_dead as integer=NO) as integer
 declare function liveherocount overload (bslot() AS BattleSprite) as integer
 declare function liveherocount () as integer
 declare sub loadfoe (slot as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)
@@ -51,7 +51,7 @@ declare function visibleandalive (o as integer, bslot() as battlesprite) as inte
 declare sub writestats (bslot() AS BattleSprite)
 
 declare sub get_valid_targs (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite)
-declare function attack_can_hit_dead(who as integer, attack as AttackData) as integer
+declare function attack_can_hit_dead(who as integer, attack as AttackData, stored_targs_can_be_dead as integer=NO) as integer
 declare sub autotarget (who as integer, atk as AttackData, bslot() AS BattleSprite)
 declare function find_preferred_target (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite) as integer
 
