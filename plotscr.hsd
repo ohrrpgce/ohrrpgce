@@ -1061,7 +1061,7 @@ script, get menu border, hsd:menuhandle=0, begin
 end
 
 script, set menu border, hsd:menuhandle=0, hsd:n=0, begin
-  write menu int(hsd:menuhandle, 24, hsd:n)
+  write menu int(hsd:menuhandle, 23, hsd:n)
 end
 
 script, get menu bit, hsd:handle, hsd:bit, begin
