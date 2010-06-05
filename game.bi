@@ -30,7 +30,7 @@ declare function dotimermenu() as integer
 declare sub dotimerafterbattle()
 declare function count_sav(filename as string) as integer
 declare function add_menu (record as integer, allow_duplicate as integer=no) as integer
-declare sub remove_menu (slot as integer)
+declare sub remove_menu (slot as integer, byval run_on_close as integer=YES)
 declare sub bring_menu_forward (slot as integer)
 declare function menus_allow_gameplay () as integer
 declare function menus_allow_player () as integer

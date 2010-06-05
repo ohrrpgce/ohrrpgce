@@ -1064,6 +1064,14 @@ script, set menu border, hsd:menuhandle=0, hsd:n=0, begin
   write menu int(hsd:menuhandle, 23, hsd:n)
 end
 
+script, get menu on close script, hsd:menuhandle=0, begin
+  exit returning(read menu int(hsd:menuhandle, 24))
+end
+
+script, set menu on close script, hsd:menuhandle=0, hsd:n=0, begin
+  write menu int(hsd:menuhandle, 24, hsd:n)
+end
+
 script, get menu bit, hsd:handle, hsd:bit, begin
   variable(hsd:n)
   hsd:n := read menu int(hsd:handle, 15)

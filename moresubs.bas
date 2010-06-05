@@ -1139,7 +1139,7 @@ FOR i = 0 TO 31
 NEXT i
 
 FOR i = topmenu TO 0 STEP -1
- remove_menu i
+ remove_menu i, NO
 NEXT i
 
 'delete temp files that are part of the game state

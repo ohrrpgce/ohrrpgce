@@ -152,6 +152,7 @@ TYPE MenuDef
   min_chars AS INTEGER
   max_chars AS INTEGER
   bordersize AS INTEGER
+  on_close  AS INTEGER 'script trigger
 END TYPE
 
 TYPE MenuState

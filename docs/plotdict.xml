@@ -1884,6 +1884,33 @@ end</example>
 				<ref>getmenuborder</ref>
 			</seealso>
 		</command>
+		<command id="getmenuonclosescript">
+			<canon>get menu on close script(menu handle)</canon>
+			<shortname>get menu on close script</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Return a script id for the script that will be run when the menu is closed, or <p>false</p> if there is none. This command is only useful with scripts that have the <p>allow gameplay and scripts</p> bitset turned on.</description>
+			<example>variable(m, s)
+m := open menu(5)
+s := get menu on close script(m)
+run script by id(s)
+			</example>
+			<seealso>
+				<ref>runscriptbyid</ref>
+				<ref>setmenuonclosescript</ref>
+			</seealso>
+		</command>
+		<command id="setmenuonclosescript">
+			<canon>set menu on close script(menu handle, script id)</canon>
+			<shortname>set menu on close script</shortname>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>openmenu</ref>), Assign script id that will be run when the menu is closed, or <p>false</p> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <p>allow gameplay and scripts</p> bitset turned on.</description>
+			<example>variable(m, s)
+m := open menu(5)
+set menu on close script(m, @my menu exit handler)
+			</example>
+			<seealso>
+				<ref>runscriptbyid</ref>
+				<ref>setmenuonclosescript</ref>
+			</seealso>
+		</command>
 
 	</section>
 	

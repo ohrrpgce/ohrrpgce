@@ -1521,7 +1521,7 @@ WITH scrat(nowscript)
    CASE 280'--close menu
     menuslot = find_menu_handle(retvals(0))
     IF valid_menuslot(menuslot) THEN
-     remove_menu menuslot
+     remove_menu menuslot, NO
     END IF
    CASE 281'--top menu
     IF topmenu >= 0 THEN
@@ -1962,7 +1962,7 @@ FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
  RETURN assign_menu_handles(menus(topmenu))
 END FUNCTION
 
-SUB remove_menu (slot AS INTEGER)
+SUB remove_menu (slot AS INTEGER, BYVAL run_on_close AS INTEGER=YES)
  IF slot < 0 OR slot > UBOUND(menus) THEN scripterr "remove_menu: invalid slot " & slot, 4 : EXIT SUB
  bring_menu_forward slot
  IF txt.fully_shown = YES AND menus(topmenu).advance_textbox = YES THEN
@@ -1972,6 +1972,10 @@ SUB remove_menu (slot AS INTEGER)
   advance_text_box
   slot = find_menu_handle(remember_handle)
   bring_menu_forward slot
+ END IF
+ IF menus(topmenu).on_close <> 0 AND run_on_close THEN
+  DIM rsr AS INTEGER
+  rsr = runscript(menus(topmenu).on_close, nowscript + 1, -1, "menu on-close", plottrigger)
  END IF
  ClearMenuData menus(topmenu)
  topmenu = topmenu - 1

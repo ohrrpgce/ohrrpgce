@@ -794,6 +794,7 @@ SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_
   .min_chars = ReadShort(f)
   .max_chars = ReadShort(f)
   .bordersize = ReadShort(f)
+  .on_close = ReadShort(f)
   IF .items THEN
    DeleteMenuItems dat
   ELSE
@@ -895,6 +896,7 @@ SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
   WriteShort(f, -1, .min_chars)
   WriteShort(f, -1, .max_chars)
   WriteShort(f, -1, .bordersize)
+  WriteShort(f, -1, .on_close)
  END WITH
  CLOSE #f
  SaveMenuItems menu_set, dat, record

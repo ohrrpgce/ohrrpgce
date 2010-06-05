@@ -157,9 +157,6 @@
 		<a href="#about-abs">abs (number)</a><br>
 		
 	
-		<a href="#about-activatemenuitem">use menu item(menu item handle)</a><br>
-		
-	
 		<a href="#about-add">number + number</a><br>
 		
 	
@@ -173,6 +170,9 @@
 		
 	
 		<a href="#about-advancetextbox">advance text box</a><br>
+		
+	
+		<a href="#about-allocatetimers">allocate timers (number)</a><br>
 		
 	
 		<a href="#about-allowminimap">allow minimap (setting)</a><br>
@@ -704,6 +704,9 @@
 		
 	
 		<a href="#about-getmenuoffsety">get menu offset y(menu handle)</a><br>
+		
+	
+		<a href="#about-getmenuonclosescript">get menu on close script(menu handle)</a><br>
 		
 	
 		<a href="#about-getmenutextalign">get menu text align(menu handle)</a><br>
@@ -1624,6 +1627,9 @@
 		<a href="#about-setmenuoffsety">set menu offset y(menu handle, new y)</a><br>
 		
 	
+		<a href="#about-setmenuonclosescript">set menu on close script(menu handle, script id)</a><br>
+		
+	
 		<a href="#about-setmenutextalign">set menu text align(menu handle, new align)</a><br>
 		
 	
@@ -2121,6 +2127,9 @@
 	
 		
 		<a href="#about-keyconstants">use key</a><br>
+	
+		<a href="#about-usemenuitem">use menu item(menu item handle)</a><br>
+		
 	
 		<a href="#about-usenpc">Use NPC (who)</a><br>
 		
@@ -4351,7 +4360,7 @@ end</pre>
 			
 			
 		</tt></p>
-		<a name="about-activatemenuitem"></a>
+		<a name="about-usemenuitem"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">use menu item(menu item handle)</font></b><br>
@@ -4818,6 +4827,37 @@ end</pre>
 			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Change the border thickness of the menu in pixels. Positive numbers will result in a thicker border. Negative numbers will result in a thinner border.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getmenuborder" class="ref">get menu border</a></li></ul>
+		</tt></p>
+		<a name="about-getmenuonclosescript"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get menu on close script(menu handle)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Return a script id for the script that will be run when the menu is closed, or <span class="param">false</span> if there is none. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.<br>
+			<pre>variable(m, s)
+m := open menu(5)
+s := get menu on close script(m)
+run script by id(s)
+			</pre>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-runscriptbyid" class="ref">run script by ID</a>, </li>
+<li><a href="#about-setmenuonclosescript" class="ref">set menu on close script</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setmenuonclosescript"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set menu on close script(menu handle, script id)</font></b><br>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-openmenu" class="ref">open menu</a>), Assign script id that will be run when the menu is closed, or <span class="param">false</span> to disable any on-close script that has already been set. The script trigger only takes effect the next time you close the menu. If you re-open the menu again, you will need to re-set the on-close script again. This command is only useful with scripts that have the <span class="param">allow gameplay and scripts</span> bitset turned on.<br>
+			<pre>variable(m, s)
+m := open menu(5)
+set menu on close script(m, @my menu exit handler)
+			</pre>
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-runscriptbyid" class="ref">run script by ID</a>, </li>
+<li><a href="#about-setmenuonclosescript" class="ref">set menu on close script</a></li>
+</ul>
 		</tt></p>
 
 		<hr>
@@ -7364,10 +7404,10 @@ end
 		<tt>
 		<b><font color="yellow">keyval (scancode)</font></b><br>
 			Returns a bitmask for the state of the specified key. The argument is a scancode, see <a href="#about-keyispressed" class="ref">key is pressed</a>. The first (least significant) bit is whether the key was depressed at the beginning of the current tick. The second bit is whether the key was pushed down by the player since the start of the previous tick (or when the key starts to repeatedly trigger after being held down for a while). It can therefore return 0, 1, 2 or 3: <br><br>0 = not pressed<br>1 = key held down since last tick, but is not a new press<br>2 = the player pressed the key and released it, all in the same tick<br>3 = new keypress (or typematic repeat)
-            <div style="background-color:#FEE;" class="note">
+			<div style="background-color:#FEE;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/a/ab/Plotdanger.png" alt="[Danger]" class="icon">Just like <a href="#about-keyispressed" class="ref">key is pressed</a>, this command does not return real time data, but the situation at the beginning of the current game tick.<br clear="all">
 </div>
-            <div style="background-color:#EFF;" class="note">
+			<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The joystick scancodes described in <a href="#about-keyispressed" class="ref">key is pressed</a> do not work in this command.<br clear="all">
 </div>
 <br>
@@ -7386,7 +7426,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">joystick button (button,joystick)</font></b><br>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> depending on whether button #<span class="param">button</span> on joystick #<span class="param">joystick</span> is pressed. <span class="param">button</span> can be from 1-16 (assuming the joystick has that many buttons), and <span class="param">joystick</span> can be from 0-3. Most of the time, you will want to use joystick #0, so that is what <span class="param">joystick</span> defaults to.<br>
+			Returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> depending on whether button #<span class="param">button</span> on joystick #<span class="param">joystick</span> is pressed. <span class="param">button</span> can be from 1-16 (assuming the joystick has that many buttons), and <span class="param">joystick</span> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <span class="param">joystick</span> defaults to.<br>
 			
 			
 		</tt></p>
@@ -7394,7 +7434,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">joystick axis (axis,multiplier,joystick)</font></b><br>
-			Returns the position of the joystick along the X or Y axis on joystick #<span class="param">joystick</span>. <span class="param">axis</span> can be one of the constants <a href="#about-xaxis" class="ref">x axis</a> or <a href="#about-yaxis" class="ref">y axis</a>. <span class="param">multiplier</span> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <span class="param">joystick</span> can be from 0-3. Most of the time, you will want to use joystick #0, so that is what <span class="param">joystick</span> defaults to.<br>
+			Returns the position of the joystick along the X or Y axis on joystick #<span class="param">joystick</span>. <span class="param">axis</span> can be one of the constants <a href="#about-xaxis" class="ref">x axis</a> or <a href="#about-yaxis" class="ref">y axis</a>. <span class="param">multiplier</span> is slightly complicated: The position of the joystick is actually a decimal between -1 and 1. Since plotscripting can't handle decimals, this position must be multiplied and rounded off until it is within plotscripting's capabilities. By default, it is 100 (so it will return -100 - 100). <span class="param">joystick</span> can be from 0-7. Most of the time, you will want to use joystick #0, so that is what <span class="param">joystick</span> defaults to.<br>
 			
 			
 		</tt></p>
@@ -7532,7 +7572,7 @@ if (herolevelled (find hero (hero: Bob))) then (
 		<p>
 		<tt>
 		<b><font color="yellow">set timer (id, count, speed, trigger, string, flags)</font></b><br>
-			Changes the settings for a given timer, and starts it. <span class="param">id</span> should be one of the 16 timers for you to use, numbered 0 to 15. All other parameters are optional, or you can pass <a href="#about-timer:default" class="ref">timer: default</a> as any of them. This will leave the parameter unchanged (from the last time you set it or from the default initial value), it will NOT cause that timer setting to be reset to the default initial value. <span class="param">Count</span> is the length of the timer. While it's running, the count will go down by one every <span class="param">speed</span> game ticks (frames). I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second. Use a speed of 1 to count down in ticks. Changing the timer's <span class="param">count</span> (as opposed to passing <span class="param">timer:default</span> as the second argument) will cause the timer to restart from the new value.<br>
+			Changes the settings for a given timer, and starts it. <span class="param">id</span> is the number of a timer -- by default, there are 16 timers, numbered 0 to 15, but you can change the number of available timers with <a href="#about-allocatetimers" class="ref">allocate timers</a>. All other parameters are optional, or you can pass <a href="#about-timer:default" class="ref">timer: default</a> as any of them. This will leave the parameter unchanged (from the last time you set it or from the default initial value), it will NOT cause that timer setting to be reset to the default initial value. <span class="param">Count</span> is the length of the timer. While it's running, the count will go down by one every <span class="param">speed</span> game ticks (frames). I.e., if you set speed to 18, it will count down once every 18 ticks, close to one second. Use a speed of 1 to count down in ticks. Changing the timer's <span class="param">count</span> (as opposed to passing <span class="param">timer:default</span> as the second argument) will cause the timer to restart from the new value.<br>
 <span class="param">trigger</span> is what happens when the timer runs out. You can use the constant <a href="#about-timer:gameover" class="ref">timer: game over</a> to indicate that the game should end, or specify a plotscript (in the form "@my script") to have that run. A plotscript will get passed the id of the timer that triggered it as its first argument, if it has one. If the timer runs out during a battle then the effect happens after the battle ends.<br>
 You can bind a timer to a string using the <span class="param">string</span> parameter to create a countdown that shows up on screen. Pass it the id of a string, and that string will be updated every time the timer counts down. You are responsible for displaying and positioning the string.<br>
 A timer also has a few other options in the form of <span class="param">flags</span>. You can pass any combination of these flags (by <a href="#about-or" class="ref">or</a>ing or <a href="#about-add" class="ref">add</a>ing them together): <ul>
@@ -7574,6 +7614,14 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 			Stops a timer by setting its speed to 0. All of its other settings remain the same.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-settimer" class="ref">set timer</a></li></ul>
+		</tt></p>
+		<a name="about-allocatetimers"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">allocate timers (number)</font></b><br>
+			Changes the number of available timers. The range of valid timer IDs becomes 0 to <span class="param">number</span>-1. You can reduce the number of timers down to zero, and increase it up to 100000 (not recommended, each timer must be processed continuously). All existing timers that are not removed continue to run. The default number of timers is 16.<br>
+			
+			
 		</tt></p>
 		<a name="about-readtimer"></a>
 		<p>
@@ -7626,7 +7674,7 @@ set timer (0, 300, 18, timer: game over, 0, timerflag: battle)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get enemy name (enemyid, stringid)</font></b><br>
-			Lets you use the enemy name in a string.  The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.<br>
+			Lets you use the enemy name in a string. The first argument is the number of the enemy you want to get the name from, second argument is the number of the string that you want to store the name of the enemy.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setenemyname" class="ref">set enemy name</a></li></ul>
 		</tt></p>
@@ -7886,7 +7934,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">read pass block (x,y)</font></b><br>
-			Returns the value of a passability (wallmap) tile on the current map at the specified X,Y position. The return value will be from 0 to 255 and consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16  = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>To check the value of a specific bit, use the <a href="#about-and" class="ref">and</a> operator. For example:  <br>
+			Returns the value of a passability (wallmap) tile on the current map at the specified X,Y position. The return value will be from 0 to 255 and consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16 = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>To check the value of a specific bit, use the <a href="#about-and" class="ref">and</a> operator. For example:  <br>
 			<pre>  variable (pass)
   pass := read pass block(hero X(me),hero Y(me))
   if (pass,and,harm tile) then begin
@@ -7899,7 +7947,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">write pass block (x,y,value)</font></b><br>
-			Writes a new passability (wallmap) information to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16  = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>You can <a href="#about-add" class="ref">add</a> the constants together. For example:<br>
+			Writes a new passability (wallmap) information to the specified X,Y position on the current map. This change will only persist until you leave the map or fight a battle. The value is a number from from 0 to 255 that consists of eight flag bits.<br><br>bit 1 = <a href="#about-tileconstants" class="ref">north wall</a><br>bit 2 = <a href="#about-tileconstants" class="ref">east wall</a><br>bit 4 = <a href="#about-tileconstants" class="ref">south wall</a><br>bit 8 = <a href="#about-tileconstants" class="ref">west wall</a><br>bit 16 = <a href="#about-tileconstants" class="ref">vehicle A</a><br>bit 32 = <a href="#about-tileconstants" class="ref">vehicle B</a><br>bit 64 = <a href="#about-tileconstants" class="ref">harm tile</a><br>bit 128 = <a href="#about-tileconstants" class="ref">overhead tile</a><br><br>You can <a href="#about-add" class="ref">add</a> the constants together. For example:<br>
 			<pre>variable (pass)
 pass := northwall+southwall+eastwall+westwall
 write pass block(15,3,pass)
@@ -9733,7 +9781,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 692 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 695 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

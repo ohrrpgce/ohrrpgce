@@ -42,6 +42,7 @@ WHAT IS NEW?
     * "read attack name" replaces deprecated "get attack name" [James]
     * "spells learned" replaces deprecated "spells learnt" [James]
     * "allocate timers" (removes 16 timer limit) [Ralph, James]
+    * New script trigger for when you close a menu. [James]
 
   * Vikings of Midgard
 
