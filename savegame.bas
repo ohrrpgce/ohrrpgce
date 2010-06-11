@@ -1,4 +1,5 @@
 'OHRRPGCE GAME - Saving and loading games
+'OHRRPGCE GAME - Saving and loading games
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
@@ -988,7 +989,7 @@ SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGE
  map_offset = load_map_pos_save_offset(map)
 
  FOR i AS INTEGER = 0 TO 299
-  IF npc(i).id <> 0 THEN
+  IF npc(i).id <> 0 ANDALSO NO THEN 'currently disabled for all NPCs
    n = AppendChildNode(node, "npc", i)
    SetChildNode(n, "id", ABS(npc(i).id) - 1)
    IF npc(i).id < 0 THEN SetChildNode(n, "hidden")
