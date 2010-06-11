@@ -29,6 +29,7 @@ DECLARE SUB new_savegame (BYVAL slot AS INTEGER)
 DECLARE SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
 DECLARE SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE FUNCTION script_trigger_from_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING) AS INTEGER
 DECLARE SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
 DECLARE SUB gamestate_maps_to_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
@@ -44,6 +45,7 @@ DECLARE SUB new_loadgame(BYVAL slot AS INTEGER)
 DECLARE SUB gamestate_from_reload(BYVAL node AS Reload.NodePtr)
 DECLARE SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
+DECLARE SUB script_trigger_to_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING, BYVAL script_id AS INTEGER)
 DECLARE SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
 DECLARE SUB gamestate_maps_from_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
@@ -346,8 +348,8 @@ SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
  gamestate_globals_from_reload node
 
  IF readbit(gen(), genBits2, 2) = 0 THEN
-  gen(genGameoverScript) = GetChildNodeInt(node, "gameover_script")
-  gen(genLoadgameScript) = GetChildNodeInt(node, "loadgame_script")
+  gen(genGameoverScript) = script_trigger_from_reload(node, "gameover_script")
+  gen(genLoadgameScript) = script_trigger_from_reload(node, "loadgame_script")
  END IF
  
  ch = GetChildByName(node, "suspend")
@@ -365,6 +367,22 @@ SUB gamestate_script_from_reload(BYVAL parent AS Reload.NodePtr)
  
  gen(genScrBackdrop) = GetChildNodeInt(node, "backdrop")
 END SUB
+
+FUNCTION script_trigger_from_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING) AS INTEGER
+ DIM node AS NodePtr
+ node = GetChildByName(node, node_name)
+ IF node = 0 THEN RETURN 0
+ IF GetChildNodeExists(node, "name") THEN
+  rsav_warn "still don't have code to lookup a script id by string!"
+  'FIXME: this doesn't work yet!
+  RETURN 0
+ END IF
+ IF GetChildNodeExists(node, "id") THEN
+  RETURN GetChildNodeInt(node, "id")
+ END IF
+ rsav_warn "neither 'id' nor 'name' found in script trigger node"
+ RETURN 0 
+END FUNCTION
 
 SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
 
@@ -926,8 +944,8 @@ SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
 
  gamestate_globals_to_reload node
 
- SetChildNode(node, "gameover_script", gen(genGameoverScript))
- SetChildNode(node, "loadgame_script", gen(genLoadgameScript))
+ script_trigger_to_reload(node, "gameover_script", gen(genGameoverScript))
+ script_trigger_to_reload(node, "loadgame_script", gen(genLoadgameScript))
  
  ch = SetChildNode(node, "suspend")
  IF xreadbit(gen(), 0, genSuspendBits) THEN SetChildNode(ch, "npcs")
@@ -942,6 +960,19 @@ SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
  IF xreadbit(gen(), 9, genSuspendBits) THEN SetChildNode(ch, "ambientmusic")
  
  SetChildNode(node, "backdrop", gen(genScrBackdrop))
+END SUB
+
+SUB script_trigger_to_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING, BYVAL script_id AS INTEGER)
+ DIM node AS NodePtr
+ node = SetChildNode(parent, node_name)
+ 'IF script_id <= 16383 THEN
+  '--old style
+  SetChildNode(node, "id", script_id)
+ 'ELSE
+ ' '--new style
+ ' 'FIXME: this isn't saved yet because we can't load it yet
+ ' SetChildNode(node, "name", scriptname(script_id))
+ 'END IF
 END SUB
 
 SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=4095)
