@@ -16,6 +16,11 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2010-06-11:
+New RSAV format for savegames is now used by default. When you save it still
+also save sin the old format. if you need to load from the old format for
+some reason, just hold SHIFT while you load.
+
 2010-04-29:
 "trace value" requires HSpeak 3L; download a nightly HSpeak build if desired
 
