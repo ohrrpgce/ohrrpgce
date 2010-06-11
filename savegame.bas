@@ -127,12 +127,12 @@ END SUB
 
 SUB loadgame (BYVAL slot AS INTEGER)
  '--Works under the assumption that resetgame has already been called.
- IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
-  'test new loading if shift is held down when you load
+ IF keyval(scLeftShift) = 0 AND keyval(scRightShift) = 0 THEN
+  'bypass new loading if shift is held down when you load
   DIM filename AS STRING
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
-   debug "testing awesome new loadgame from " & filename
+   debug "loading awesome new loadgame from " & filename
    new_loadgame slot
    EXIT SUB
   END IF
@@ -142,12 +142,12 @@ SUB loadgame (BYVAL slot AS INTEGER)
 END SUB
 
 SUB loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
- IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
-  'test new loading if shift is held down when you load
+ IF keyval(scLeftShift) = 0 AND keyval(scRightShift) = 0 THEN
+  'bypass new loading if shift is held down when you load
   DIM filename AS STRING
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
-   debug "testing awesome new loadglobalvars from " & filename
+   debug "loading awesome new loadglobalvars from " & filename
    new_loadglobalvars slot, first, last
    EXIT SUB
   END IF
@@ -158,7 +158,7 @@ END SUB
 
 SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  IF new_save_slot_used(slot) THEN
-  debug "test nifty new save slot preview for slot " & slot
+  debug "use nifty new save slot preview for slot " & slot
   new_get_save_slot_preview slot, pv
  ELSE
   debug "fall back to boring old save slot preview for " & slot
