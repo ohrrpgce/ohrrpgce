@@ -1052,6 +1052,7 @@ SUB resetgame (scriptout$)
 gam.map.id = 0
 catx(0) = 0
 caty(0) = 0
+catz(0) = 0
 catd(0) = 0
 gam.random_battle_countdown = 0
 'leader = 0
