@@ -818,45 +818,24 @@ SUB gamestate_vehicle_from_reload(BYVAL parent AS Reload.NodePtr)
  
  WITH vstate
  
-  ch = GetChildByName(node, "state")
-  .active    = GetChildNodeInt(ch, "active")
-  .npc       = GetChildNodeInt(ch, "npc")
-  .old_speed = GetChildNodeInt(ch, "old_speed")
-  IF GetChildNodeExists(ch, "mounting")        THEN .mounting = YES
-  IF GetChildNodeExists(ch, "rising")          THEN .rising = YES
-  IF GetChildNodeExists(ch, "falling")         THEN .falling = YES
-  IF GetChildNodeExists(ch, "init_dismount")   THEN .init_dismount = YES
-  IF GetChildNodeExists(ch, "trigger_cleanup") THEN .trigger_cleanup = YES
-  IF GetChildNodeExists(ch, "ahead")           THEN .ahead = YES
-
-  WITH .dat
+  IF GetChildNodeExists(node, "id") THEN
+   ch = GetChildByName(node, "state")
+   .active    = GetChildNodeInt(ch, "active")
+   .npc       = GetChildNodeInt(ch, "npc")
+   .old_speed = GetChildNodeInt(ch, "old_speed")
+   IF GetChildNodeExists(ch, "mounting")        THEN .mounting = YES
+   IF GetChildNodeExists(ch, "rising")          THEN .rising = YES
+   IF GetChildNodeExists(ch, "falling")         THEN .falling = YES
+   IF GetChildNodeExists(ch, "init_dismount")   THEN .init_dismount = YES
+   IF GetChildNodeExists(ch, "trigger_cleanup") THEN .trigger_cleanup = YES
+   IF GetChildNodeExists(ch, "ahead")           THEN .ahead = YES
+ 
+   .id = GetChildNodeInt(node, "id")
+   IF .id >= 0 THEN
+    LoadVehicle game & ".veh", .dat, .id
+   END IF
+  END IF
   
-   ch = GetChildByName(node, "def")
-   .speed = GetChildNodeInt(ch, "speed")
-
-   IF GetChildNodeExists(ch, "pass_walls")            THEN .pass_walls = YES
-   IF GetChildNodeExists(ch, "pass_npcs")             THEN .pass_npcs = YES
-   IF GetChildNodeExists(ch, "enable_npc_activation") THEN .enable_npc_activation = YES
-   IF GetChildNodeExists(ch, "enable_door_use")       THEN .enable_door_use = YES
-   IF GetChildNodeExists(ch, "do_not_hide_leader")    THEN .do_not_hide_leader = YES
-   IF GetChildNodeExists(ch, "do_not_hide_party")     THEN .do_not_hide_party = YES
-   IF GetChildNodeExists(ch, "dismount_ahead")        THEN .dismount_ahead = YES
-   IF GetChildNodeExists(ch, "pass_walls_while_dismounting") THEN .pass_walls_while_dismounting = YES
-   IF GetChildNodeExists(ch, "disable_flying_shadow") THEN .disable_flying_shadow = YES
-
-   .random_battles = GetChildNodeInt(ch, "random_battles")
-   .use_button     = GetChildNodeInt(ch, "use_button")
-   .menu_button    = GetChildNodeInt(ch, "menu_button")
-   .riding_tag     = GetChildNodeInt(ch, "riding_tag")
-   .on_mount       = GetChildNodeInt(ch, "on_mount")
-   .on_dismount    = GetChildNodeInt(ch, "on_dismount")
-   .override_walls = GetChildNodeInt(ch, "override_walls")
-   .blocked_by     = GetChildNodeInt(ch, "blocked_by")
-   .mount_from     = GetChildNodeInt(ch, "mount_from")
-   .dismount_to    = GetChildNodeInt(ch, "dismount_to")
-   .elevation      = GetChildNodeInt(ch, "elevation")
-  
-  END WITH
  END WITH
 END SUB
 
@@ -1228,45 +1207,20 @@ SUB gamestate_vehicle_to_reload(BYVAL parent AS Reload.NodePtr)
  DIM n AS NodePtr 'used for numbered containers
  
  WITH vstate
+  IF .id >= 0 THEN
+   SetChildNode(node, "id", .id)
  
-  ch = SetChildNode(node, "state")
-  SetChildNode(ch, "active", .active)
-  SetChildNode(ch, "npc", .npc)
-  SetChildNode(ch, "old_speed", .old_speed)
-  IF .mounting        THEN SetChildNode(ch, "mounting")
-  IF .rising          THEN SetChildNode(ch, "rising")
-  IF .falling         THEN SetChildNode(ch, "falling")
-  IF .init_dismount   THEN SetChildNode(ch, "init_dismount")
-  IF .trigger_cleanup THEN SetChildNode(ch, "trigger_cleanup")
-  IF .ahead           THEN SetChildNode(ch, "ahead")
-
-  WITH .dat
-  
-   ch = SetChildNode(node, "def")
-   SetChildNode(ch, "speed", .speed)
-   IF .pass_walls                   THEN SetChildNode(ch, "pass_walls")
-   IF .pass_npcs                    THEN SetChildNode(ch, "pass_npcs")
-   IF .enable_npc_activation        THEN SetChildNode(ch, "enable_npc_activation")
-   IF .enable_door_use              THEN SetChildNode(ch, "enable_door_use")
-   IF .do_not_hide_leader           THEN SetChildNode(ch, "do_not_hide_leader")
-   IF .do_not_hide_party            THEN SetChildNode(ch, "do_not_hide_party")
-   IF .dismount_ahead               THEN SetChildNode(ch, "dismount_ahead")
-   IF .pass_walls_while_dismounting THEN SetChildNode(ch, "pass_walls_while_dismounting")
-   IF .disable_flying_shadow        THEN SetChildNode(ch, "disable_flying_shadow")
-
-   SetChildNode(ch, "random_battles", .random_battles)
-   SetChildNode(ch, "use_button",     .use_button)
-   SetChildNode(ch, "menu_button",    .menu_button)
-   SetChildNode(ch, "riding_tag",     .riding_tag)
-   SetChildNode(ch, "on_mount",       .on_mount)
-   SetChildNode(ch, "on_dismount",    .on_dismount)
-   SetChildNode(ch, "override_walls", .override_walls)
-   SetChildNode(ch, "blocked_by",     .blocked_by)
-   SetChildNode(ch, "mount_from",     .mount_from)
-   SetChildNode(ch, "dismount_to",    .dismount_to)
-   SetChildNode(ch, "elevation",      .elevation)
-  
-  END WITH
+   ch = SetChildNode(node, "state")
+   SetChildNode(ch, "active", .active)
+   SetChildNode(ch, "npc", .npc)
+   SetChildNode(ch, "old_speed", .old_speed)
+   IF .mounting        THEN SetChildNode(ch, "mounting")
+   IF .rising          THEN SetChildNode(ch, "rising")
+   IF .falling         THEN SetChildNode(ch, "falling")
+   IF .init_dismount   THEN SetChildNode(ch, "init_dismount")
+   IF .trigger_cleanup THEN SetChildNode(ch, "trigger_cleanup")
+   IF .ahead           THEN SetChildNode(ch, "ahead")
+  END IF
  END WITH
 END SUB
 

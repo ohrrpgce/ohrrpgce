@@ -117,6 +117,7 @@ DIM fatal
 DIM lastformation
 
 DIM vstate AS VehicleState
+reset_vehicle vstate
 
 DIM csetup(12), carray(13)
 DIM mouse(3)
@@ -399,6 +400,9 @@ IF temp = -2 THEN EXIT DO 'resetg
 IF temp >= 0 THEN
  GOSUB doloadgame
  prepare_map NO, YES 'Special case if this is called right after GOSUB doloadgame
+ 'FIXME: setting vstate.id is only backcompat for loading from the old SAV format
+ ' and this line can go away when we fully switch to the RSAV format
+ vstate.id = npcs(vstate.npc).vehicle
 ELSE
  clearpage 0
  clearpage 1
@@ -584,6 +588,9 @@ DO
   game.map.lastmap = -1
   GOSUB doloadgame
   prepare_map NO, YES
+  'FIXME: setting vstate.id is only backcompat for loading from the old SAV format
+  ' and this line can go away when we fully switch to the RSAV format
+  vstate.id = npcs(vstate.npc).vehicle
  END IF
  'DEBUG debug "random enemies"
  IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
@@ -2846,6 +2853,7 @@ FUNCTION vehicle_is_animating() AS INTEGER
 END FUNCTION
 
 SUB reset_vehicle(v AS VehicleState)
+ v.id = -1
  v.npc = 0
  v.old_speed = 0
  v.active   = NO
@@ -2945,7 +2953,8 @@ SUB usething(BYVAL auto AS INTEGER, BYVAL ux AS INTEGER, BYVAL uy AS INTEGER)
   DIM vehuse AS INTEGER = npcs(npc(txt.sayer).id - 1).vehicle
   IF vehuse THEN '---activate a vehicle---
    reset_vehicle vstate
-   LoadVehicle game & ".veh", vstate.dat, vehuse - 1
+   vstate.id = vehuse - 1
+   LoadVehicle game & ".veh", vstate.dat, vstate.id
    '--check mounting permissions first
    IF vehpass(vstate.dat.mount_from, readblock(pass, catx(0) \ 20, caty(0) \ 20), -1) THEN
     vstate.active = YES
