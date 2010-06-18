@@ -242,13 +242,16 @@ IF autorungame = 0 THEN
   IF isfile(exepath + SLASH + exename + ".rpg") THEN
    sourcerpg = exepath + SLASH + exename + ".rpg"
    autorungame = 1
-  ELSEIF isdir(exepath + SLASH + exename + ".rpgdir") THEN
-   IF isfile(a$ + SLASH + "archinym.lmp") THEN
-    sourcerpg = exepath + SLASH + exename + ".rpgdir"
-    workingdir = sourcerpg
-    autorungame = 1
-    autorungame = 1
-    usepreunlump = 1
+  ELSE
+   a$ = exepath + SLASH + exename + ".rpgdir"
+   IF isdir(a$) THEN
+    IF isfile(a$ + SLASH + "archinym.lmp") THEN
+     sourcerpg = a$
+     workingdir = a$
+     autorungame = 1
+     autorungame = 1
+     usepreunlump = 1
+    END IF
    END IF
   END IF
  END IF
