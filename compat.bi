@@ -1,9 +1,5 @@
 '' Compatibility functions/definitions for OHRRPGCE
-' This file is specific to either FreeBasic or QuickBasic and
-' defines the necessary functions to maintain compatibility
-' between the two
-
-'' FreeBasic version
+'This file is included everywhere, and is a dumping ground for macros and other global declarations
 
 #IFNDEF COMPAT_BI
 #DEFINE COMPAT_BI
@@ -87,6 +83,7 @@ EXTERN as string gfxbackendinfo, musicbackendinfo
 #  undef getcommandline
 #  undef copyfile
 #  undef istag
+#  undef ignore
 # endif
 #endmacro
 

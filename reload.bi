@@ -7,7 +7,19 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 
+#include "compat.bi"
 #include "udts.bi"
+
+
+#if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
+#if defined(RELOADINTERNAL)
+        '#include "windows.bi"'
+        'Reduce namespace pollution (this macro is from compat.bi)
+        include_windows_bi()
+#elseif __FB_DEBUG__
+        type HANDLE as any ptr
+#endif
+#endif
 
 #ifndef null
 #define null 0
@@ -41,11 +53,6 @@ TYPE DocPtr as Doc ptr
 TYPE NodePtr as Node ptr
 
 #if defined(RELOADINTERNAL) or __FB_DEBUG__
-#if defined(__FB_WIN32__)
-#include "windows.bi"
-#endif
-#include "crt/stdio.bi"
-	
 	TYPE Hashptr as ReloadHash ptr
 	
 	Type StringTableEntry

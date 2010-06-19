@@ -1,7 +1,7 @@
+#include "reload.bi"
+
 #include "libxml/tree.bi"
 #include "libxml/parser.bi"
-
-#include "reload.bi"
 
 using Reload
 
