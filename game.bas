@@ -266,6 +266,8 @@ IF autorungame = 0 THEN
  END IF
 END IF
 
+end_debug 'delete unimportant messages generated before this point, or from previous game
+
 '-- set up prefs dir
 #IFDEF __UNIX__
 'This is important on unix in case you are playing an rpg file installed in /usr/share/games
@@ -306,7 +308,6 @@ IF usepreunlump = 0 THEN
  unlump sourcerpg, workingdir + SLASH
 END IF
 
-end_debug 'messages generated before this point, or previous game
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo 
