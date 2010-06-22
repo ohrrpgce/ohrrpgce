@@ -43,7 +43,9 @@ C Clone tool. This tool paints using
   tool. Color 0 is transparent.
   While the clone tool is active you
   can press + and - to rotate the
-  cloned area.
+  cloned area. Hold down ENTER or the
+  right mouse button to reposition   
+  the brush relative to the cursor.
 
 + and - Rotate the sprite. Use
   caution when rotating hero sprites,
