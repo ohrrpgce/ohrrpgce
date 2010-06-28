@@ -565,16 +565,14 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	dim f as BufferedFile ptr
 	
 	'BuildStringTable(doc->root, doc)
-	
+
 	'In case things go wrong, we serialize to a temporary file first
-	if dir(file & ".tmp") <> "" then
-		kill file & ".tmp"
-	end if
+	safekill file & ".tmp"
 	
 	f = Buffered_open(file & ".tmp")
 	
 	if f = NULL then
-		debug "Unable to open file"
+		debug "SerializeBin: Unable to open " & file & ".tmp"
 		exit sub
 	end if
 	
@@ -614,9 +612,11 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	next
 	Buffered_close(f)
 	
-	kill file
-	rename file & ".tmp", file
-	kill file & ".tmp"
+	safekill file
+	if rename(file & ".tmp", file) then
+		debug "SerializeBin: could not rename " & file & ".tmp (exists=" & isfile(file & ".tmp") & ") to " & file & " (exists=" & isfile(file) & ")"
+	end if
+	safekill file & ".tmp"
 end sub
 
 sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as DocPtr)

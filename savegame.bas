@@ -1379,6 +1379,7 @@ SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  '--if there is no version data, don't continue
  ' (this could happen if export globals was used into an empty slot)
  IF GetChildNodeInt(parent, "ver", -1) < 0 THEN
+  FreeDocument doc
   current_save_slot = -1
   EXIT SUB
  END IF
@@ -1430,6 +1431,7 @@ SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  ch = NodeByPath(parent, "/state/playtime")
  pv.playtime = playtime(GetChildNodeInt(ch, "days"), GetChildNodeInt(ch, "hours"), GetChildNodeInt(ch, "minutes"))
  
+ FreeDocument doc
  current_save_slot = -1
 END SUB
 
