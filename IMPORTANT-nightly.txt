@@ -1,20 +1,29 @@
-PLEASE ALWAYS READ THIS FILE AFTER YOU DOWNLOAD A NIGHTLY BUILD!
-We would like to be able to ASSUME that you do!
+*** PLEASE ALWAYS READ THIS FILE AFTER YOU DOWNLOAD A NIGHTLY BUILD! ***
+***         We would like to be able to ASSUME that you do!          ***
 
 This file holds important news that people who use unstable versions need to
 know. It'll probably be included with stable releases (for people upgrading
 from nightlies), so ignore it if you haven't used a nightly build. Entries
-for old versions archived at the bottom of the file.
+for old versions are archived at the bottom of the file.
 
-The developers will occasionally update it with information about new bugs;
-things that have changed in a non-compatible way; things you need to do or
-not do after upgrading; and unfinished features.
+The developers will occasionally update it with information about new bugs,
+things that have changed in a non-compatible way, things you need to do or
+not do after upgrading, and unfinished features.
 
 For more information ask on the mailing list:
 http://hamsterrepublic.com/ohrrpgce/index.php/Mailing_list.html
 and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
+
+2010-07-03:
+One of the bugs (now fixed) in the new save files wiped the gameover and
+loadgame script settings when loading a save. This means if you've saved a
+game, reloaded it and then saved again, your gameover and loadgame scripts will
+no longer be run, permanently. To fix an existing save you will have to turn on
+the "Don't save gameover/loadgame script IDs" general bitset, and then load and
+resave your saved games. It normally doesn't matter if you don't turn it off
+afterwards.
 
 2010-06-11:
 New RSAV format for savegames is now used by default. When you save it still

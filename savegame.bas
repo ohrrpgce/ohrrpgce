@@ -371,7 +371,7 @@ END SUB
 
 FUNCTION script_trigger_from_reload(BYVAL parent AS Reload.NodePtr, node_name AS STRING) AS INTEGER
  DIM node AS NodePtr
- node = GetChildByName(node, node_name)
+ node = GetChildByName(parent, node_name)
  IF node = 0 THEN RETURN 0
  IF GetChildNodeExists(node, "name") THEN
   rsav_warn "still don't have code to lookup a script id by string!"
