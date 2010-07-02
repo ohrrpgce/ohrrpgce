@@ -776,6 +776,11 @@ movement:
 FOR whoi = 0 TO 3
  thisherotilex = INT(catx(whoi * 5) / 20)
  thisherotiley = INT(caty(whoi * 5) / 20)
+ IF herospeed(whoi) = 0 THEN
+  '--cancel movement, or some of the follow code misbehaves
+  xgo(whoi) = 0
+  ygo(whoi) = 0
+ END IF
  '--if if aligned in at least one direction and passibility is enabled ... and some vehicle stuff ...
  IF want_to_check_for_walls(whoi) THEN
   IF readbit(gen(), 44, suspendherowalls) = 0 AND vehicle_is_animating() = NO THEN
