@@ -2,14 +2,14 @@
 #define SAVEGAME_BI
 
 TYPE SaveSlotPreview
- valid AS INTEGER
+ valid AS INTEGER    'Whether this slot is not empty
  cur_map AS INTEGER
  hero(3) AS HeroState
- hero_id(3) AS INTEGER
+ hero_id(3) AS INTEGER  'Hero ID numbers +1 (0 indicates empty slot)
  playtime AS STRING
  leader_name AS STRING
  leader_lev AS INTEGER
- use_saved_pics AS INTEGER
+ use_saved_pics AS INTEGER  'Battle picture and battle are stored in the saved game
 END TYPE
 
 DECLARE SUB init_save_system()

@@ -1398,6 +1398,7 @@ SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  DIM picpal AS NodePtr
  DIM foundleader AS INTEGER = NO
  FOR i AS INTEGER = 0 TO 3
+  pv.hero_id(i) = 0
   h = NodeByPath(parent, "/party/slot[" & i & "]")
   IF h THEN
    IF GetChildNodeExists(h, "id") THEN
