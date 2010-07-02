@@ -1593,6 +1593,7 @@ WITH vstate
  setbit buffer(), z+6, 4, .trigger_cleanup
  setbit buffer(), z+6, 5, .ahead
  buffer(z+7) = .old_speed
+ '.id isn't saved; it's worked out when loading
  WITH .dat
   buffer(z+8) = .speed 
   setbit buffer(), z+9, 0, .pass_walls
@@ -1864,6 +1865,7 @@ show_load_index z, "vstate", 1
 WITH vstate
  .active = buffer(z+0) <> 0
  .npc    = buffer(z+5)
+ ' We set .id by looking at .npc's definition. But we can't do that here, npc() isn't loaded until preparemap
  .mounting        = xreadbit(buffer(), 0, z+6)
  .rising          = xreadbit(buffer(), 1, z+6)
  .falling         = xreadbit(buffer(), 2, z+6)

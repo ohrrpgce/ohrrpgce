@@ -566,7 +566,7 @@ TYPE VehicleData
 END TYPE
 
 TYPE VehicleState
-  id        AS INTEGER 'vehicle defintion id that is loaded into .dat
+  id        AS INTEGER 'vehicle defintion id that is loaded into .dat (-1 when not on one)
   dat       AS VehicleData
   npc       AS INTEGER 'npc reference number
   old_speed AS INTEGER 'hero speed before mount
