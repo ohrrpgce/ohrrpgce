@@ -646,7 +646,8 @@ SUB text_box_editor () 'textage
   ELSE
     menu(1) = "Text Box " & st.id
   END IF
-  menu(7) = "Text Search:" + st.search
+  menu(7) = "Text Search:"
+  IF state.pt = 7 THEN menu(7) &= st.search
  
   '--Draw box
   textbox_edit_preview box, st, 96
@@ -887,7 +888,6 @@ END SUB
 SUB textbox_edit_load (BYREF box AS TextBox, BYREF st AS TextboxEditState, menu() AS STRING)
  LoadTextBox box, st.id
  update_textbox_editor_main_menu box, menu()
- st.search = ""
  load_text_box_portrait box, st.portrait
 END SUB
 
