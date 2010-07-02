@@ -1391,7 +1391,6 @@ SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  
  ch = NodeByPath(parent, "/state/current_map")
  pv.cur_map = GetInteger(ch) 
- pv.use_saved_pics = YES
 
  DIM h AS NodePtr
  DIM stat AS NodePtr
@@ -1948,7 +1947,7 @@ rebuild_inventory_captions inventory()
 'fix doors...
 IF savver = 2 THEN gen(genVersion) = 3
 
-dim her as herodef
+DIM her AS HeroDef
 
 IF picpalmagicnum <> 4444 THEN
  '--fix appearance settings
@@ -2082,19 +2081,30 @@ SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  loadset old_savefile, slot * 2 + 1, 0
 
  z = 6060
- pv.use_saved_pics = NO
- IF buffer(z) = 4444 THEN pv.use_saved_pics = YES
+ DIM use_saved_pics AS INTEGER = NO
+ IF buffer(z) = 4444 THEN use_saved_pics = YES
  z += 1
- IF pv.use_saved_pics THEN
-  FOR i AS INTEGER = 0 TO 3
+ FOR i AS INTEGER = 0 TO 3
+  IF use_saved_pics THEN
    pv.hero(i).battle_pic = buffer(z)
    pv.hero(i).battle_pal = buffer(z+1)
    pv.hero(i).def_wep = buffer(z+2)
    pv.hero(i).pic = buffer(z+3)
    pv.hero(i).pal = buffer(z+4)
    z += 6
-  NEXT i
- END IF
+  ELSE
+   '--backcompat (for ancient SAV files)
+   IF pv.hero_id(i) > 0 THEN
+    DIM her AS HeroDef
+    loadherodata @her, pv.hero_id(i) - 1
+    pv.hero(i).battle_pic = her.sprite
+    pv.hero(i).battle_pal = her.sprite_pal
+    pv.hero(i).pic = her.walk_sprite
+    pv.hero(i).pal = her.walk_sprite_pal
+    pv.hero(i).def_wep = her.def_weapon + 1
+   END IF
+  END IF
+ NEXT i
 
 END SUB
 

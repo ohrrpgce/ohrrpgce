@@ -706,7 +706,7 @@ END SUB
 
 FUNCTION picksave (loading as integer) as integer
 
-DIM full(3), herosname(3) AS STRING, mapname(3) AS STRING, svtime(3) AS STRING, lev(3) AS STRING, id(3, 3), tstat(3, 1, 16), confirm(1) AS STRING, menu(1) AS STRING
+DIM mapname(3) AS STRING, lev(3) AS STRING, confirm(1) AS STRING, menu(1) AS STRING
 DIM sprites(3, 3) AS GraphicPair
 
 '--loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen. it fades the screen in
@@ -743,65 +743,30 @@ IF loading < 2 THEN
 END IF
 'otherwise, holdscreen is black
 
-DIM pv AS SaveSlotPreview
+DIM pv(3) AS SaveSlotPreview
 FOR i = 0 TO 3
- get_save_slot_preview i, pv
- IF pv.valid THEN 'current version number
-  full(i) = 1
-  '--get map number
-  map = pv.cur_map
-  '--get stats
-  FOR i1 = 0 TO 3
-   FOR i3 = 0 TO 11
-    tstat(i1, 0, i3) = pv.hero(i1).stat.cur.sta(i3)
-    tstat(i1, 1, i3) = pv.hero(i1).stat.max.sta(i3)
-   NEXT i3
-   tstat(i1, 0, 12) = pv.hero(i1).lev
-  NEXT i1
-  '--get play time
-  svtime(i) = pv.playtime
-  '--hero ID
+ get_save_slot_preview i, pv(i)
+ IF pv(i).valid THEN
+  mapname(i) = getmapname(pv(i).cur_map)
+  '--leader level
+  lev(i) = readglobalstring(43, "Level", 10) & " " & pv(i).leader_lev
   FOR o = 0 TO 3
-   '--load hero ID
-   id(i, o) = pv.hero_id(o)
-   '--leader name and level
-   herosname(i) = pv.leader_name
-   lev(i) = readglobalstring(43, "Level", 10) & " " & pv.leader_lev
-  NEXT o
-  '--get picture and palette info
-  IF pv.use_saved_pics THEN
-   FOR j = 0 TO 3
-    tstat(j, 0, 14) = pv.hero(j).battle_pic
-    tstat(j, 0, 15) = pv.hero(j).battle_pal
-   NEXT j
-  END IF
-  '--get name and load pictures n stuff
-  FOR o = 0 TO 3
-   IF id(i, o) >= 0 THEN
-    '--hero pic and palette
-    IF pv.use_saved_pics THEN
-     sprites(i, o).sprite = frame_load(0, tstat(o, 0, 14))
-     sprites(i, o).pal = palette16_load(tstat(o, 0, 15), 0, tstat(o, 0, 14))
-    ELSE
-     '--backcompat
-     dim her as herodef
-     loadherodata @her, id(i,o) - 1
-     sprites(i, o).sprite = frame_load(0, her.sprite)
-     sprites(i, o).pal = palette16_load(her.sprite_pal, 0, her.sprite)
-    END IF
+   '--hero pic and palette
+   IF pv(i).hero_id(o) > 0 THEN
+    sprites(i, o).sprite = frame_load(0, pv(i).hero(o).battle_pic)
+    sprites(i, o).pal = palette16_load(pv(i).hero(o).battle_pal, 0, pv(i).hero(o).battle_pic)
    END IF
   NEXT o
-  mapname(i) = getmapname(map)
  END IF
 NEXT i
 
 IF loading THEN
  'check for no slots
- nofull = 0
+ nofull = YES
  FOR i = 0 TO 3
-  IF full(i) = 1 THEN nofull = 1
+  IF pv(i).valid THEN nofull = NO
  NEXT i
- IF nofull = 0 THEN 
+ IF nofull = YES THEN
   picksave = -1
   GOTO freesprites
  END IF
@@ -845,10 +810,10 @@ DO
    allow = 1
    IF loading THEN
     '--normal load of an existing save
-    IF full(cursor) = 0 THEN allow = 0
+    IF pv(cursor).valid = 0 THEN allow = 0
    ELSE
     '--normal save in a slot
-    IF full(cursor) = 1 THEN GOSUB confirm
+    IF pv(cursor).valid THEN GOSUB confirm
    END IF
    IF allow = 1 THEN
     MenuSound gen(genAcceptSFX)
@@ -932,17 +897,17 @@ SELECT CASE cursor
   centerbox 160, 44 + cursor * 44, 312, 44, activec, page
 END SELECT
 FOR i = 0 TO 3
- IF full(i) = 1 THEN
+ IF pv(i).valid THEN
   FOR o = 0 TO 3
-   IF id(i, o) > 0 THEN
+   IF sprites(i, o).sprite THEN
     frame_draw sprites(i, o).sprite + iif(cursor = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, page
    END IF
   NEXT o
   col = uilook(uiMenuItem)
   IF cursor = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint herosname(i), 14, 25 + i * 44, col, page
+  edgeprint pv(i).leader_name, 14, 25 + i * 44, col, page
   edgeprint lev(i), 14, 34 + i * 44, col, page
-  edgeprint svtime(i), 14, 43 + i * 44, col, page
+  edgeprint pv(i).playtime, 14, 43 + i * 44, col, page
   edgeprint mapname(i), 14, 52 + i * 44, col, page
  END IF
 NEXT i

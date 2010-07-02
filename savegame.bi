@@ -9,7 +9,6 @@ TYPE SaveSlotPreview
  playtime AS STRING
  leader_name AS STRING
  leader_lev AS INTEGER
- use_saved_pics AS INTEGER  'Battle picture and battle are stored in the saved game
 END TYPE
 
 DECLARE SUB init_save_system()
