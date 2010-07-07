@@ -651,11 +651,12 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  state.top = -1
  state.pt = -1
 
+ 'lower and upper data limits
  unpc(0) = gen(genMaxNPCPic)
  unpc(1) = 32767
  unpc(2) = 8
  unpc(3) = 5
- unpc(4) = -1
+ unpc(4) = gen(genMaxTextbox)       'max text boxes
  unpc(5) = 2
  unpc(6) = gen(genMaxItem) + 1
  unpc(7) = 7
@@ -663,9 +664,10 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  unpc(9) = 999
  unpc(10) = 999
  unpc(11) = 1
- unpc(12) = 0
+ unpc(12) = gen(genMaxRegularScript)'max scripts
  unpc(13) = 32767
- unpc(14) = 0
+ unpc(14) = gen(genMaxVehicle) + 1  'max vehicles
+
  FOR i = 0 TO 14
   lnpc(i) = 0
  NEXT i
@@ -673,9 +675,6 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  lnpc(9) = -999
  lnpc(10) = -999
  lnpc(13) = -32767
- unpc(4) = gen(genMaxTextbox)       'max text boxes
- unpc(12) = gen(genMaxRegularScript)'max scripts
- unpc(14) = gen(genMaxVehicle) + 1  'max vehicles
 
  menucaption(0) = "Picture"
  menucaption(1) = "Palette"
@@ -2334,7 +2333,7 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
   IF gmaptmp(15) = id THEN str_array_append list(), "  map " & i & " on-keypress" 
   'loop through NPC's
   LoadNPCD maplumpname(i, "n"), npctmp()
-  FOR j = 0 TO max_npc_defs
+  FOR j = 0 TO UBOUND(npctmp)
    IF npctmp(j).script = id THEN str_array_append list(), "  map " & i & " NPC " & j
   NEXT j
   meter += 1

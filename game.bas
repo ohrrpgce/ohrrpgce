@@ -1334,18 +1334,18 @@ WITH scrat(nowscript)
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) < 0 AND retvals(0) >= -300 THEN retvals(0) = ABS(npc(ABS(retvals(0) + 1)).id) - 1
-     IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
+     IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
       DIM AS INTEGER writesafe = 1
       IF retvals(1) = 0 THEN
        IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
         writesafe = 0
        ELSE
-        if npcs(retvals(0)).sprite then frame_unload(@npcs(retvals(0)).sprite)
+        IF npcs(retvals(0)).sprite THEN frame_unload(@npcs(retvals(0)).sprite)
         npcs(retvals(0)).sprite = frame_load(4, retvals(2))
        END IF
       END IF
       IF retvals(1) = 1 THEN
-       if npcs(retvals(0)).pal then palette16_unload(@npcs(retvals(0)).pal)
+       IF npcs(retvals(0)).pal THEN palette16_unload(@npcs(retvals(0)).pal)
        npcs(retvals(0)).pal = palette16_load(retvals(2), 4, npcs(retvals(0)).picture)
       END IF
       IF writesafe THEN SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))

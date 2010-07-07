@@ -787,32 +787,25 @@ SUB guessdefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
    NEXT j
   NEXT i
  CASE 4 'Walkabouts
-  'REDIM buf(318)
-  REDIM npcbuf(1500)
+  DIM npcbuf(max_npc_defs) AS NPCType
   FOR i = 0 TO sets
-   found = 0
    FOR j = 0 TO gen(genMaxHero)
     loadherodata @her, j
     
     IF her.walk_sprite = i THEN
      poffset(i) = her.walk_sprite_pal
-     found = 1
-     EXIT FOR
+     CONTINUE FOR, FOR
     END IF
    NEXT j
-   IF found = 0 THEN
-    FOR mapi AS INTEGER = 0 TO gen(genMaxMap)
-     xbload maplumpname(mapi, "n"), npcbuf(), "npcstat lump " & mapi & " is missing"
-     FOR j = 0 to max_npc_defs
-      IF npcbuf(15 * j + 0) = i THEN
-       poffset(i) = npcbuf(15 * j + 1)
-       found = 1
-       EXIT FOR
-      END IF
-     NEXT j
-     IF found THEN EXIT FOR
-    NEXT mapi
-   END IF
+   FOR mapi AS INTEGER = 0 TO gen(genMaxMap)
+    LoadNPCD maplumpname(mapi, "n"), npcbuf()
+    FOR j = 0 to UBOUND(npcbuf)
+     IF npcbuf(j).picture = i THEN
+      poffset(i) = npcbuf(j).palette
+      CONTINUE FOR, FOR, FOR
+     END IF
+    NEXT j
+   NEXT mapi
   NEXT i
  CASE 5 'Weapons
   REDIM buf(99)

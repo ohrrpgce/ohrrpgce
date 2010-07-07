@@ -148,9 +148,9 @@ SUB mapmaker (font())
 DIM st AS MapEditState
 DIM mode(12) AS STRING, list(13) AS STRING, menu(-1 TO 20) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs)
 DIM her AS HeroDef
-DIM defaults(maplayerMax) as DefArray
+DIM defaults(maplayerMax) AS DefArray
 
-redim doors(99) as door, link(199) as doorlink
+REDIM doors(99) AS door, link(199) AS doorlink
 
 DIM as integer jiggle(maplayerMax \ 16)
 DIM as integer visible(maplayerMax \ 16) = {-1} 'used as bitsets: all layers visible
@@ -289,7 +289,7 @@ list(12) = "Re-load Default Passability"
 list(13) = "Map name:"
 
 '--load NPC graphics--
-FOR i = 0 TO max_npc_defs
+FOR i = 0 TO UBOUND(npc_img)
  'Load the picture and palette
  WITH npc_img(i)
   .sprite = frame_load(4, st.npc_def(i).picture)
@@ -785,7 +785,7 @@ DO
 
  '--npc display--
  IF editmode = 3 THEN
-  FOR i = 0 to max_npc_defs
+  FOR i = 0 TO UBOUND(npcnum)
    npcnum(i) = 0
   NEXT
   walk = walk + 1: IF walk > 3 THEN walk = 0
@@ -801,7 +801,7 @@ DO
      xtemp = STR$(npcnum(st.npc_inst(i).id - 1))
      printstr xtemp, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 12, dpage
     END IF
-    npcnum(st.npc_inst(i).id - 1) = npcnum(st.npc_inst(i).id - 1) + 1
+    npcnum(st.npc_inst(i).id - 1) += 1
    END IF
   NEXT
  END IF

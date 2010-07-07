@@ -4,7 +4,7 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate throug
 
 Use the Left and Right arrow keys to change which enemy you are editing.
 
-You can also hold the ALT key and type an enemy ID number.
+You can also hold the ALT key and press Left and Right or type an enemy ID number.
 
 In this menu you can type in a name for your enemy, or press ENTER or SPACE to access the various sub-menus.
 

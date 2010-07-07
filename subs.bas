@@ -1849,6 +1849,11 @@ RETRACE
 
 END SUB
 
+
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
+
 SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, BYREF box_preview AS STRING)
  menu(1) = "Name:" & item_name
  menu(2) = "Info:" & info_string
@@ -1880,7 +1885,7 @@ SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTE
   menu(16) = menu(16) & " N/A"
   menu(17) = menu(17) & " N/A"
  END IF
-END SUB'
+END SUB
 
 FUNCTION item_attack_name(n AS INTEGER) AS STRING
  IF n <= 0 THEN RETURN "NOTHING"
@@ -1896,14 +1901,13 @@ END SUB
 
 SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, pt)
 
-DIM boxpreview(max_npc_defs) AS STRING
+DIM boxpreview(UBOUND(npc)) AS STRING
+DIM AS INTEGER tog, i, top = 0, cur = 0
 
-clearpage 0: clearpage 1
-setvispage vpage
+clearpage 0
+clearpage 1
 
-csr = 0
-cur = 0: top = 0
-FOR i = 0 TO max_npc_defs
+FOR i = 0 TO UBOUND(npc)
  boxpreview(i) = textbox_preview_line(npc(i).textbox)
 NEXT i
 setkeys
@@ -1913,7 +1917,7 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
- usemenu cur, top, 0, max_npc_defs, 7
+ usemenu cur, top, 0, UBOUND(npc), 7
  IF enter_or_space() THEN
   edit_npc npc(cur)
   '--Having edited the NPC, we must re-load the picture and palette
@@ -1932,6 +1936,7 @@ DO
   IF cur = i THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr "" & i, 0, ((i - top) * 25) + 5, dpage
   WITH npc_img(i)
+   '--Down A frame
    frame_draw .sprite + 4, .pal, 32, (i - top) * 25, 1, -1, dpage
   END WITH
   textcolor uilook(uiMenuItem), uilook(uiHighlight)
@@ -1945,14 +1950,8 @@ DO
 LOOP
 clearpage 0
 clearpage 1
-clearpage 2
-EXIT SUB
 
 END SUB
-
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 '--Hero Editor stuff---------------------------------------------------
 
