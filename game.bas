@@ -1101,8 +1101,7 @@ WITH scrat(nowscript)
      NEXT i
      IF readbit(gen(), 44, suspendnpcs) = 1 THEN
       FOR i = 0 TO 299
-       IF npc(i).xgo <> 0 OR npc(i).ygo <> 0 THEN n = 1
-       EXIT FOR
+       IF npc(i).id > 0 ANDALSO (npc(i).xgo <> 0 OR npc(i).ygo <> 0) THEN n = 1: EXIT FOR
       NEXT i
      END IF
      IF gen(cameramode) = pancam OR gen(cameramode) = focuscam THEN n = 1
