@@ -406,7 +406,7 @@ IF temp >= 0 THEN
  prepare_map NO, YES 'Special case if this is called right after GOSUB doloadgame
  'FIXME: clean this up: setting vstate.id is only backcompat for loading from the old SAV format;
  ' ideally this would be in old_loadgame, but we need to load NPCs in prepare_map
- vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
+ IF vstate.active THEN vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
 ELSE
  clearpage 0
  clearpage 1
@@ -594,7 +594,7 @@ DO
   prepare_map NO, YES
   'FIXME: clean this up: setting vstate.id is only backcompat for loading from the old SAV format;
   ' ideally this would be in old_loadgame, but we need to load NPCs in prepare_map
-  vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
+  IF vstate.active THEN vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
  END IF
  'DEBUG debug "random enemies"
  IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
@@ -2876,7 +2876,7 @@ END SUB
 
 SUB dump_vehicle_state()
  WITH vstate
-  debug "active=" & .active & " npc=" & .npc & " mounting=" & .mounting & " rising=" & .rising & " falling=" & .falling & " dismount=" & .init_dismount & " cleanup=" & .trigger_cleanup & " ahead=" & .ahead
+  debug "active=" & .active & " npc=" & .npc & " id=" & .id & " mounting=" & .mounting & " rising=" & .rising & " falling=" & .falling & " dismount=" & .init_dismount & " cleanup=" & .trigger_cleanup & " ahead=" & .ahead
  END WITH
 END SUB
 

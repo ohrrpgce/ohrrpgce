@@ -818,7 +818,7 @@ SUB gamestate_vehicle_from_reload(BYVAL parent AS Reload.NodePtr)
  DIM n AS NodePtr 'used for numbered containers
  
  WITH vstate
- 
+
   IF GetChildNodeExists(node, "id") THEN
    ch = GetChildByName(node, "state")
    .active    = GetChildNodeInt(ch, "active")
@@ -830,7 +830,7 @@ SUB gamestate_vehicle_from_reload(BYVAL parent AS Reload.NodePtr)
    IF GetChildNodeExists(ch, "init_dismount")   THEN .init_dismount = YES
    IF GetChildNodeExists(ch, "trigger_cleanup") THEN .trigger_cleanup = YES
    IF GetChildNodeExists(ch, "ahead")           THEN .ahead = YES
- 
+
    .id = GetChildNodeInt(node, "id")
    IF .id >= 0 THEN
     LoadVehicle game & ".veh", .dat, .id
@@ -1865,6 +1865,7 @@ show_load_index z, "vstate", 1
 WITH vstate
  .active = buffer(z+0) <> 0
  .npc    = buffer(z+5)
+ .id     = -1
  ' We set .id by looking at .npc's definition. But we can't do that here, npc() isn't loaded until preparemap
  .mounting        = xreadbit(buffer(), 0, z+6)
  .rising          = xreadbit(buffer(), 1, z+6)

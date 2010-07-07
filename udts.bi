@@ -566,11 +566,11 @@ TYPE VehicleData
 END TYPE
 
 TYPE VehicleState
-  id        AS INTEGER 'vehicle defintion id that is loaded into .dat (-1 when not on one)
+  active    AS INTEGER 'Is mounting/in/dismounting. If this is false, the rest is garbage
+  id        AS INTEGER 'vehicle defintion id that is loaded into .dat
   dat       AS VehicleData
   npc       AS INTEGER 'npc reference number
   old_speed AS INTEGER 'hero speed before mount
-  active    AS INTEGER 'mounting/in/dismoutning
   mounting  AS INTEGER '0
   rising    AS INTEGER '1
   falling   AS INTEGER '2
