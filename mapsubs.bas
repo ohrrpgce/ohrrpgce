@@ -1112,7 +1112,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
    currentset = -2
    state.need_update = YES
   END IF
-  IF (keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1) ANDALSO UBOUND(map) > 0 ANDALSO layerno >= 0 _
+  IF (keyval(scDelete) > 1 OR keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1) ANDALSO UBOUND(map) > 0 ANDALSO layerno >= 0 _
      ANDALSO yesno("Really delete layer " & layerno & "?", NO) THEN
    IF layerno < gmap(31) THEN gmap(31) = large(gmap(31) - 1, 1)
    mapedit_delete_layer st, map(), visible(), gmap(), layerno
@@ -1193,7 +1193,6 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
 
   copypage 2, dpage
 
-  edgeprint "SHIFT+arrows to move layers, - to delete", 0, 190, uilook(uiText), dpage
   IF UBOUND(map) < maplayerMax THEN
    IF layerno > -1 THEN
     edgeprint "+ to add a new layer after this one", 0, 180, uilook(uiText), dpage
@@ -1201,6 +1200,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
     edgeprint "+ to add a new layer", 0, 180, uilook(uiText), dpage
    END IF
   END IF
+  edgeprint "SHIFT+arrows to move layers, - to delete", 0, 190, uilook(uiText), dpage
   
   FOR i AS INTEGER = state.top TO state.top + state.size
    IF i <= state.last THEN
