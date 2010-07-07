@@ -24,6 +24,7 @@ WHAT IS NEW?
     * Bug 486: Chained attacks fail on stored dead targets
       [James, msw188]
     * "wait for all" did not wait for NPCs when it was meant to [Ralph]
+    * "hero pixel x/y" always returned the leader's position [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

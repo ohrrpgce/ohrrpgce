@@ -598,7 +598,7 @@ DO
  END IF
  'DEBUG debug "random enemies"
  IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
-  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), foemaph)
+  temp = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
   IF vstate.active AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN
    batform = random_formation(temp - 1)
@@ -774,8 +774,8 @@ RETRACE
 movement:
 'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left 
 FOR whoi = 0 TO 3
- thisherotilex = INT(catx(whoi * 5) / 20)
- thisherotiley = INT(caty(whoi * 5) / 20)
+ thisherotilex = catx(whoi * 5) \ 20
+ thisherotiley = caty(whoi * 5) \ 20
  IF herospeed(whoi) = 0 THEN
   '--cancel movement, or some of the follow code misbehaves
   xgo(whoi) = 0
@@ -1196,7 +1196,7 @@ IF wantdoor > 0 THEN
  opendoor wantdoor
  wantdoor = 0
  IF needf = 0 THEN
-  temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), foemaph)
+  temp = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
   IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
  END IF
@@ -1314,10 +1314,8 @@ WITH scrat(nowscript)
    CASE 61'--teleport to map
     IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxMap) THEN
      gam.map.id = retvals(0)
-     FOR i = 0 TO 3
-      catx(i) = retvals(1) * 20
-      caty(i) = retvals(2) * 20
-     NEXT i
+     catx(0) = retvals(1) * 20
+     caty(0) = retvals(2) * 20
      wantteleport = 1
      .waitarg = 0
      .state = stwait
@@ -2617,7 +2615,7 @@ SUB advance_text_box ()
   opendoor txt.box.door + 1
   IF needf = 0 THEN
    DIM temp AS INTEGER
-   temp = readfoemap(INT(catx(0) / 20), INT(caty(0) / 20), foemaph)
+   temp = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
    IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
    IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
   END IF
@@ -2992,8 +2990,8 @@ FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
  IF gam.walk_through_walls = YES THEN RETURN NO
  IF vstate.dat.pass_walls = YES THEN RETURN NO
  IF vstate.active THEN
-  DIM thisherotilex AS INTEGER = INT(catx(who * 5) / 20)
-  DIM thisherotiley AS INTEGER = INT(caty(who * 5) / 20)
+  DIM thisherotilex AS INTEGER = catx(who * 5) \ 20
+  DIM thisherotiley AS INTEGER = caty(who * 5) \ 20
   IF vehpass(vstate.dat.override_walls, readblock(pass, thisherotilex, thisherotiley), 0) <> 0 THEN RETURN NO
  END IF
  RETURN YES

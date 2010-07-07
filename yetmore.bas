@@ -719,11 +719,11 @@ SELECT CASE AS CONST id
   limitcamera mapx, mapy
  CASE 138'--heropixelx
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   scriptret = catx(retvals(0))
+   scriptret = catx(retvals(0) * 5)
   END IF
  CASE 139'--heropixely
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   scriptret = caty(retvals(0))
+   scriptret = caty(retvals(0) * 5)
   END IF
  CASE 140'--npcpixelx
   npcref = getnpcref(retvals(0), 0)
@@ -2797,8 +2797,8 @@ IF vstate.falling THEN '--fall-------------------
 END IF
 IF vstate.init_dismount THEN '--dismount---------------
  vstate.init_dismount = NO
- DIM disx AS INTEGER = INT(catx(0) / 20)
- DIM disy AS INTEGER = INT(caty(0) / 20)
+ DIM disx AS INTEGER = catx(0) \ 20
+ DIM disy AS INTEGER = caty(0) \ 20
  IF vstate.dat.dismount_ahead AND vstate.dat.pass_walls_while_dismounting THEN
   '--dismount-ahead is true, dismount-passwalls is true
   aheadxy disx, disy, catd(0), 1
@@ -2849,7 +2849,7 @@ IF vstate.trigger_cleanup THEN '--clear
  npc(vstate.npc).ygo = 0
  '--clear vehicle
  reset_vehicle vstate
- FOR i = 0 TO 15
+ FOR i = 0 TO 15   'Why is this duplicated from dismounting?
   catx(i) = catx(0)
   caty(i) = caty(0)
   catd(i) = catd(0)
