@@ -1,6 +1,6 @@
 break exit if ((char**)&__fb_ctx)[5] != 0
 break abort
-source gdbscripts
+source misc/gdbscripts
 echo                Running...\n
 run
 if $_exitcode == 0
