@@ -3,21 +3,22 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-DECLARE FUNCTION get_date_tag () AS STRING
-DECLARE FUNCTION get_svn_rev () AS STRING
+DECLARE SUB query_svn(query_string AS STRING)
 DECLARE SUB split (z AS STRING, ret() AS STRING, sep AS STRING = CHR(10))
 DEFINT A-Z
 '$DYNAMIC
 
-datetag$ = get_date_tag()
-svnrev$ = get_svn_rev()
+DIM SHARED AS STRING svnrev, datetag
+
+query_svn("svn info")
+IF svnrev = "0" THEN query_svn("git svn info")
 
 OPEN "codename.txt" FOR INPUT AS #1
 INPUT #1, codename$
 CLOSE #1
 codename$ = LEFT$(codename$, 15)
 
-PRINT "Version ID " + datetag$
+PRINT "Version ID " + datetag + "." + svnrev
 PRINT "Codename " + codename$
 
 DIM gfxmods() AS STRING
@@ -49,6 +50,10 @@ a$ = "CONST version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + d
 PRINT #1, a$
 a$ = "CONST version_code as string = " + CHR$(34) + "OHRRPGCE Editor version " + codename$ + CHR$(34)
 PRINT #1, a$
+a$ = "CONST version_revision as integer = " + svnrev
+PRINT #1, a$
+a$ = "CONST version_branch as string = " + CHR$(34) + codename$ + CHR$(34)
+PRINT #1, a$
 a$ = "CONST version_build as string = " + CHR$(34) + datetag$ + " gfx_" + command(1) + " music_" + command(2) + CHR$(34)
 PRINT #1, a$
 PRINT #1, long_version$
@@ -67,6 +72,10 @@ a$ = "#DEFINE SUPPORTED_GFX """ + gfxstring + """"
 PRINT #1, a$
 PRINT #1, gfxchoices
 a$ = "CONST version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + CHR$(34)
+PRINT #1, a$
+a$ = "CONST version_revision as integer = " + svnrev
+PRINT #1, a$
+a$ = "CONST version_branch as string = " + CHR$(34) + codename$ + CHR$(34)
 PRINT #1, a$
 PRINT #1, long_version$
 CLOSE #1
@@ -92,45 +101,28 @@ PRINT #1, a$
 CLOSE #1
 
 REM $STATIC
-FUNCTION get_date_tag() AS STRING
+
+SUB query_svn(query_string AS STRING)
 DIM s AS STRING
 
 '-- use the current date as a fallback in case svn info fails
-get_date_tag = MID$(DATE$, 7, 4) & MID$(DATE$, 1, 2) & MID$(DATE$, 4, 2)
+datetag = MID$(DATE$, 7, 4) & MID$(DATE$, 1, 2) & MID$(DATE$, 4, 2)
+'-- default in case svn info fails
+svnrev = "0"
 
-KILL "svninfo.tmp"
-SHELL "svn info > svninfo.tmp"
 fh = FREEFILE
-OPEN "svninfo.tmp" FOR INPUT AS #fh
+OPEN PIPE query_string FOR INPUT AS #fh
 DO WHILE NOT EOF(fh)
  LINE INPUT #fh, s
  IF LEFT$(s, 19) = "Last Changed Date: " THEN
-   get_date_tag = MID$(s, 20, 4) & MID$(s, 25, 2) & MID$(s, 28, 2)
+   datetag = MID$(s, 20, 4) & MID$(s, 25, 2) & MID$(s, 28, 2)
  END IF
-LOOP
-CLOSE #fh
-KILL "svninfo.tmp"
-END FUNCTION
-
-FUNCTION get_svn_rev() AS STRING
-DIM s AS STRING
-
-'-- default in case svn info fails
-get_svn_rev = "0"
-
-KILL "svninfo.tmp"
-SHELL "svn info > svninfo.tmp"
-fh = FREEFILE
-OPEN "svninfo.tmp" FOR INPUT AS #fh
-DO WHILE NOT EOF(fh)
- LINE INPUT #fh, s
  IF LEFT$(s, 10) = "Revision: " THEN
-   get_svn_rev = MID$(s, 11)
+   svnrev = MID$(s, 11)
  END IF
 LOOP
 CLOSE #fh
-KILL "svninfo.tmp"
-END FUNCTION
+END SUB
 
 'copied from util.bas. Bad things might happen if it were used directly?
 SUB split(z as string, ret() as string, sep as string = chr(10))

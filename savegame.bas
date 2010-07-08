@@ -846,6 +846,12 @@ SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
  'increment this to produce a warning message when
  'loading a new rsav file in an old game player
  SetChildNode(node, "ver", 0)
+
+ DIM ch AS NodePtr
+ ch = SetChildNode(node, "game_client", "OHRRPGCE")
+ SetChildNode(ch, "branch_name", version_branch)
+ 'version_revision is 0 if verprint could not determine it
+ IF version_revision <> 0 THEN SetChildNode(ch, "revision", version_revision)
  
  gamestate_state_to_reload node
  gamestate_script_to_reload node
