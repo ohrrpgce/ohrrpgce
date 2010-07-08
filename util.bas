@@ -306,7 +306,7 @@ FUNCTION int_array_find (array() AS INTEGER, value AS INTEGER) AS INTEGER
  RETURN -1
 END FUNCTION
 
-'I've compared the speed of the following two. For random data, the quicksort is faster
+'I've compared the speed of the following two. For random integers, the quicksort is faster
 'for arrays over length about 80. For arrays which are 90% sorted appended with 10% random data,
 'the cut off is about 600 (insertion sort did ~5x better on nearly-sort data at the 600 mark)
 
@@ -336,30 +336,77 @@ SUB sort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVA
  NEXT
 END SUB
 
-'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
-/' Uncomment if you want to use (working fine)
-FUNCTION integer_compare CDECL (BYVAL a as integer ptr, BYVAL b as integer ptr) as integer
- IF *a < *b THEN RETURN -1
- IF *a > *b THEN RETURN 1
+TYPE FnQsortCompare as FUNCTION CDECL (BYVAL as any ptr, BYVAL as any ptr) as integer
+
+FUNCTION integer_compare CDECL (BYVAL a as integer ptr ptr, BYVAL b as integer ptr ptr) as integer
+ IF **a < **b THEN RETURN -1
+ IF **a > **b THEN RETURN 1
+ 'implicitly RETURN 0 (it's faster to omit the RETURN :-)
 END FUNCTION
 
-SUB qsort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer, BYVAL stride as integer)
+'a string ptr is a pointer to a FB string descriptor
+FUNCTION string_compare CDECL (BYVAL a as string ptr ptr, BYVAL b as string ptr ptr) as integer
+ 'This is equivalent, but the code below can be adapted for case insensitive compare (and is faster)
+ 'RETURN fb_StrCompare( **a, -1, **b, -1)
+
+ DIM as integer ret = 0, somenull = 0
+ 'Ah, brings back happy memories of C hacking, doesn'it?
+ IF @((**a)[0]) = 0 THEN ret -= 1: somenull = 1
+ IF @((**b)[0]) = 0 THEN ret += 1: somenull = 1
+ IF somenull THEN RETURN ret
+
+ DIM k AS INTEGER = 0
+ DIM chara as ubyte
+ DIM charb as ubyte
+ DO
+  chara = (**a)[k]
+  charb = (**b)[k]
+  IF chara < charb THEN
+   RETURN -1
+  ELSEIF chara > charb THEN
+   RETURN 1
+  END IF
+  k += 1
+ LOOP WHILE chara OR charb
+ RETURN 0
+END FUNCTION
+
+'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
+'See sort_integer_indices.
+PRIVATE SUB qsort_indices(indices() as integer, BYVAL start as any ptr, BYVAL number as integer, BYVAL stride as integer, BYVAL compare_fn as FnQsortCompare)
  IF number = 0 THEN number = UBOUND(indices) + 1
- DIM keys(number - 1, 1) as integer
- DIM as integer i
+
+ DIM keys(number - 1) as any ptr
+ DIM i as integer
  FOR i = 0 TO number - 1
-  keys(i,0) = *start
-  keys(i,1) = i
-  start = CAST(integer ptr, CAST(byte ptr, start) + stride)
+  keys(i) = start + stride * i
  NEXT
 
- qsort(@keys(0,0), number, 2*sizeof(integer), CAST(FUNCTION CDECL(BYVAL as any ptr, BYVAL as any ptr) as integer, @integer_compare))
+ qsort(@keys(0), number, sizeof(any ptr), compare_fn)
 
  FOR i = 0 TO number - 1
-  indices(i) = keys(i,1)
+  indices(i) = CAST(integer, keys(i) - start) \ stride
  NEXT
 END SUB
-'/
+
+SUB qsort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer, BYVAL stride as integer)
+ qsort_indices indices(), start, number, stride, CAST(FnQsortCompare, @integer_compare)
+END SUB
+
+SUB qsort_strings_indices(indices() as integer, BYVAL start as string ptr, BYVAL number as integer, BYVAL stride as integer)
+ qsort_indices indices(), start, number, stride, CAST(FnQsortCompare, @string_compare)
+END SUB
+
+'Invert a permutation such as that returned by sort_integers_indices;
+'indices() should contain the integers 0 to UBOUND(indices)
+SUB invert_permutation(indices() as integer)
+ DIM inverse(UBOUND(indices)) as integer
+ FOR i as integer = 0 TO UBOUND(indices)
+  inverse(indices(i)) = i
+ NEXT
+ 'Copy back
+ memcpy(@indices(0), @inverse(0), sizeof(integer) * (UBOUND(indices) + 1))
+END SUB
 
 'These cache functions store a 'resetter' string, which causes search_string_cache
 'to automatically empty the cache when its value changes (eg, different game).
