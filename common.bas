@@ -1516,8 +1516,10 @@ SUB show_message (s AS STRING)
 END SUB
 
 SUB append_message (s AS STRING)
+ DIM AS INTEGER display = YES
+ IF RIGHT(TRIM(s), 1) = "," THEN display = NO
  WITH console
-  IF .x > 0 AND LEN(s) * 8 + .x > vpages(vpage)->w THEN .x = 0 : .y += 8
+  IF .x > 0 AND LEN(s) * 8 + .x > vpages(vpage)->w THEN .x = 0 : .y += 8: display = YES
   IF .y >= .top + .h - 8 THEN
    'scroll page up 2 lines
    DIM as Frame ptr tempfr, copied
@@ -1531,7 +1533,7 @@ SUB append_message (s AS STRING)
   END IF
   printstr s, .x, .y, vpage
   .x += LEN(s) * 8
-  setvispage vpage
+  IF display THEN setvispage vpage
  END WITH
 END SUB
 

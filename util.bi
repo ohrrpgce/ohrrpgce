@@ -107,9 +107,14 @@
 '----------------------------------------------------------------------
 '                             Data types
 
+TYPE IntStrPair
+  i as integer
+  s as string
+END TYPE
 
 declare sub str_array_append (array() as string, s as string)
 declare sub int_array_append (array() as integer, k as integer)
+declare sub intstr_array_append (array() as IntStrPair, k as integer, s as string)
 declare function int_array_find (array() as integer, value as integer) as integer
 
 
@@ -132,11 +137,6 @@ declare sub checkoverflow (st as Stack, byval amount as integer = 1)
 
 
 '------------ String Cache ------------
-
-TYPE IntStrPair
-  i as integer
-  s as string
-END TYPE
 
 declare function search_string_cache (cache() as IntStrPair, byval key as integer, resetter as string = CHR(234)) as string
 declare sub add_string_cache (cache() as IntStrPair, byval key as integer, value as string)

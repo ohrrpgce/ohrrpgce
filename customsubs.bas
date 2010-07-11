@@ -1877,7 +1877,7 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
  DIM j AS INTEGER
 
  DIM tempstr AS STRING
-  tempstr = scriptname(trigger, triggertype)
+ tempstr = scriptname(trigger, triggertype)
  IF tempstr <> "[none]" AND LEFT$(tempstr, 1) = "[" THEN firstscript = 2 ELSE firstscript = 1
 
  IF triggertype = 1 THEN
@@ -2295,61 +2295,86 @@ SUB show_help(helpkey AS STRING)
  DeleteSlice @help_root
 END SUB
 
-SUB draw_gather_script_usage_meter (BYVAL meter AS INTEGER, BYVAL meter_times AS INTEGER=1) 
- DIM AS INTEGER max, size
- max = (8 + gen(genMaxTextBox) + gen(genMaxMap) + gen(genMaxVehicle) + gen(genMaxShop) + gen(genMaxMenu)) * meter_times
- size = 320 / max * meter
- edgebox 0, 188, size, 12, uilook(uiTimeBarFull), uilook(uiTimeBar), vpage
- edgeprint "searching for plotscript usage", 1, 189, uilook(uiText), vpage
- setvispage vpage
-END SUB
+'--For each script trigger datum in the game, call visitor (whether or not there
+'--is a script set there; however fields which specify either a script or
+'--something else, eg. either a script or a textbox, may be skipped)
+SUB visit_scripts(byval visitor as FnScriptVisitor)
+ DIM AS INTEGER i, j, idtmp, resave
 
-SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS INTEGER=0, BYREF meter AS INTEGER, BYVAL meter_times AS INTEGER=1, box_instead_cache() AS INTEGER, box_after_cache() AS INTEGER, box_preview_cache() AS STRING)
- '--Global scripts
- IF gen(genNewGameScript) = id THEN str_array_append list(), "  new game script"
- IF gen(genGameoverScript) = id THEN str_array_append list(), "  game over script"
- IF gen(genLoadGameScript) = id THEN str_array_append list(), "  load game script"
- meter += 3
- draw_gather_script_usage_meter meter, meter_times 
- DIM AS INTEGER i, j
+ '--global scripts
+ visitor(gen(genNewGameScript), "new game", "")
+ visitor(gen(genLoadGameScript), "load game", "")
+ visitor(gen(genGameoverScript), "game over", "")
 
  '--Text box scripts
- FOR i = 0 TO gen(genMaxTextbox)
-  IF box_instead_cache(i) = id THEN str_array_append list(), "  box " & i & " (instead) " & box_preview_cache(i)
-  IF box_after_cache(i) = id THEN str_array_append list(), "  box " & i & " (after) " & box_preview_cache(i)
-  meter += 1
-  IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
+ DIM box AS TextBox
+ FOR i AS INTEGER = 0 TO gen(genMaxTextbox)
+  LoadTextBox box, i
+  resave = NO
+  IF box.instead < 0 THEN
+   idtmp = -box.instead
+   resave OR= visitor(idtmp, "box " & i & " (instead)", textbox_preview_line(box))
+   box.instead = -idtmp
+  END IF
+  IF box.after < 0 THEN
+   idtmp = -box.after
+   resave OR= visitor(idtmp, "box " & i & " (after)", textbox_preview_line(box))
+   box.after = -idtmp
+  END IF
+  IF resave THEN
+   SaveTextBox box, i
+  END IF
  NEXT i
  
  '--Map scripts and NPC scripts
  DIM gmaptmp(dimbinsize(binMAP))
  DIM npctmp(max_npc_defs) AS NPCType
  FOR i = 0 TO gen(genMaxMap)
+  resave = NO
   loadrecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
-  IF gmaptmp(7) = id THEN str_array_append list(), "  map " & i & " autorun" 
-  IF gmaptmp(12) = id THEN str_array_append list(), "  map " & i & " after-battle" 
-  IF gmaptmp(13) = id THEN str_array_append list(), "  map " & i & " instead-of-battle" 
-  IF gmaptmp(14) = id THEN str_array_append list(), "  map " & i & " each-step" 
-  IF gmaptmp(15) = id THEN str_array_append list(), "  map " & i & " on-keypress" 
+  resave OR= visitor(gmaptmp(7), "map " & i & " autorun", "")
+  resave OR= visitor(gmaptmp(12), "map " & i & " after-battle", "")
+  resave OR= visitor(gmaptmp(13), "map " & i & " instead-of-battle", "")
+  resave OR= visitor(gmaptmp(14), "map " & i & " each-step", "")
+  resave OR= visitor(gmaptmp(15), "map " & i & " on-keypress", "")
+  IF resave THEN
+   storerecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
+  END IF
   'loop through NPC's
   LoadNPCD maplumpname(i, "n"), npctmp()
-  FOR j = 0 TO UBOUND(npctmp)
-   IF npctmp(j).script = id THEN str_array_append list(), "  map " & i & " NPC " & j
+  resave = NO
+  FOR j = 0 TO max_npc_defs
+   resave OR= visitor(npctmp(j).script, "map " & i & " NPC " & j, "")
   NEXT j
-  meter += 1
-  IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
+  IF resave THEN
+   SaveNPCD maplumpname(i, "n"), npctmp()
+  END IF
  NEXT i
  
  '--vehicle scripts
  DIM vehicle AS VehicleData
  FOR i = 0 TO gen(genMaxVehicle)
-  LoadVehicle  game & ".veh", vehicle, i
-  IF vehicle.use_button = id THEN str_array_append list(), "  use button vehicle " & i & " """ & vehicle.name & """"
-  IF vehicle.menu_button = id THEN str_array_append list(), "  menu button vehicle " & i & " """ & vehicle.name & """"
-  IF -(vehicle.on_mount) = id THEN str_array_append list(), "  on mount vehicle " & i & " """ & vehicle.name & """"
-  IF -(vehicle.on_dismount) = id THEN str_array_append list(), "  on dismount vehicle " & i & " """ & vehicle.name & """"
-  meter += 1
-  IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
+  resave = NO
+  LoadVehicle game & ".veh", vehicle, i
+  IF vehicle.use_button > 0 THEN
+   resave OR= visitor(vehicle.use_button, "use button veh " & i, """" & vehicle.name & """")
+  END IF
+  IF vehicle.menu_button > 0 THEN
+   resave OR= visitor(vehicle.menu_button, "menu button veh " & i, """" & vehicle.name & """")
+  END IF
+  IF vehicle.on_mount < 0 THEN
+   idtmp = -(vehicle.on_mount)
+   resave OR= visitor(idtmp, "mount vehicle " & i, """" & vehicle.name & """")
+   vehicle.on_mount = -idtmp
+  END IF
+  IF vehicle.on_dismount < 0 THEN
+   idtmp = -(vehicle.on_dismount)
+   resave OR= visitor(idtmp, "dismount vehicle " & i,  """" & vehicle.name & """")
+   vehicle.on_dismount = -idtmp
+  END IF
+  IF resave THEN
+   SaveVehicle game & ".veh", vehicle, i
+  END IF
  NEXT i
  
  '--shop scripts
@@ -2358,9 +2383,9 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
  FOR i = 0 TO gen(genMaxShop)
   loadrecord shoptmp(), game & ".sho", 20, i
   shopname = readbadbinstring(shoptmp(), 0, 15)
-  IF shoptmp(19) = id THEN str_array_append list(), "  shop inn " & i & " """ & shopname & """"
-  meter += 1
-  IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
+  IF visitor(shoptmp(19), "show inn " & i, """" & shopname & """") THEN
+   storerecord shoptmp(), game & ".sho", 20, i
+  END IF
  NEXT i
  
  '--menu scripts
@@ -2369,104 +2394,132 @@ SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS 
  menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
  DIM menutmp AS MenuDef
  FOR i = 0 TO gen(genMaxMenu)
+  resave = NO
   LoadMenuData menu_set, menutmp, i
   FOR j = 0 TO menutmp.numitems - 1
    WITH *menutmp.items[j]
     IF .t = 4 THEN
-     IF .sub_t = id THEN str_array_append list(), "  menu " & i & " item " & j & " """ & .caption & """"
+     resave OR= visitor(.sub_t, "menu " & i & " item " & j, """" & .caption & """")
     END IF
    END WITH
   NEXT j
-  meter += 1
-  IF meter MOD 64 = 0 THEN draw_gather_script_usage_meter meter, meter_times 
+  IF resave THEN
+   SaveMenuData menu_set, menutmp, i
+  END IF
  NEXT i
 
 END SUB
 
+'For script_usage_list and script_usage_visitor
+DIM SHARED plotscript_order() AS INTEGER
+DIM SHARED script_usage_menu() AS IntStrPair
+
+PRIVATE FUNCTION script_usage_visitor(byref trig as integer, description as string, caption as string) as integer
+ IF trig = 0 THEN RETURN NO
+ '--See script_usage_list about rank calculation
+ DIM rank AS INTEGER = trig
+ IF trig >= 16384 THEN rank = 100000 + plotscript_order(trig - 16384)
+ intstr_array_append script_usage_menu(), rank, "  " & description & " " & caption
+ RETURN NO  'trig not modified
+END FUNCTION
+
 SUB script_usage_list ()
- REDIM list(0) AS STRING
  DIM buf(20) AS INTEGER
  DIM id AS INTEGER
  DIM s AS STRING
  DIM fh AS INTEGER
- DIM meter AS INTEGER = 0
- DIM meter_times AS INTEGER = 0
+ DIM i AS INTEGER
+ 'DIM t AS DOUBLE = TIMER
 
- list(0) = "back to previous menu..."
+ 'Build script_usage_menu, which is an list of menu items, initially out of order.
+ 'The integer in each pair is used to sort the menu items into the right order:
+ 'items for old-style scripts have rank = id
+ 'all plotscripts are ordered by name and given rank = 100000 + alphabetic rank
+ 'Start by adding all the script names to script_usage_menu (so that they'll
+ 'appear first when we do a stable sort), then add script instances.
 
- 'Get script count for progress meter
- ' (yeah, I know we loop through the all the scripts twice.
- ' that is okay because gather_script_usage is the really slow part)
- fh = FREEFILE
- OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY ACCESS READ AS #fh
- FOR i AS INTEGER = 0 TO gen(genMaxPlotscript)
-  loadrecord buf(), fh, 20, i
-  id = buf(0)
-  IF id <= 16383 THEN
-   meter_times += 1
-  END IF
- NEXT i
- CLOSE #fh
- fh = FREEFILE
- OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY ACCESS READ AS #fh
- DIM plotscript_count AS INTEGER = (LOF(fh) \ 40) - 1
- FOR i AS INTEGER = 0 TO plotscript_count
-  loadrecord buf(), fh, 20, i
-  id = buf(0)
-  IF id <> 0 THEN
-   meter_times += 1
-  END IF
- NEXT i
- CLOSE #fh
-
- draw_gather_script_usage_meter meter, meter_times
-
- '--Pre-cache text box script triggers for performance purposes
- DIM box_instead_cache(gen(genMaxTextbox)) AS INTEGER
- DIM box_after_cache(gen(genMaxTextbox)) AS INTEGER
- DIM box_preview_cache(gen(genMaxTextbox)) AS STRING
- DIM box AS TextBox
- FOR i AS INTEGER = 0 TO gen(genMaxTextbox)
-  LoadTextBox box, i
-  box_instead_cache(i) = -box.instead
-  box_after_cache(i) = -box.after
-  IF box_instead_cache(i) > 0 OR box_after_cache(i) > 0 THEN
-   '--Don't bother loading the preview line unless there is a script trigger
-   box_preview_cache(i) = textbox_preview_line(box)
-  END IF
- NEXT i
+ REDIM script_usage_menu(0)
+ script_usage_menu(0).i = -1
+ script_usage_menu(0).s = "back to previous menu..."
 
  'Loop through old-style non-autonumbered scripts
  fh = FREEFILE
- OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY ACCESS READ AS #fh
- FOR i AS INTEGER = 0 TO gen(genMaxPlotscript)
+ OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY AS #fh
+ FOR i AS INTEGER = 0 TO gen(genMaxPlotscript) - 1
   loadrecord buf(), fh, 20, i
   id = buf(0)
   IF id <= 16383 THEN
    s = id & ":" & readbinstring(buf(), 1, 38)
-   str_array_append list(), s
-   gather_script_usage list(), id, 0, meter, meter_times, box_instead_cache(), box_after_cache(), box_preview_cache()
+   intstr_array_append script_usage_menu(), id, s
   END IF
  NEXT i
  CLOSE #fh
 
  'Loop through new-style plotscripts
+
+ 'First, a detour: determine the alphabetic rank of each plotscript
  fh = FREEFILE
- OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY ACCESS READ AS #fh
- FOR i AS INTEGER = 0 TO plotscript_count
-  loadrecord buf(), fh, 20, i
-  id = buf(0)
+ OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY AS #fh
+ REDIM plotscripts(0) AS STRING
+ WHILE loadrecord(buf(), fh, 20)
   s = readbinstring(buf(), 1, 38)
-  IF id <> 0 THEN
-   str_array_append list(), s
-   gather_script_usage list(), i + 16384, plottrigger, meter, meter_times, box_instead_cache(), box_after_cache(), box_preview_cache()
-  END IF
- NEXT i
+  str_array_append plotscripts(), s
+ WEND
+
+ 'Have to skip if no plotscripts
+ IF UBOUND(plotscripts) > 0 THEN
+  'We must skip plotscripts(0)
+  REDIM plotscript_order(UBOUND(plotscripts) - 1)
+  qsort_strings_indices plotscript_order(), @plotscripts(1), UBOUND(plotscripts), sizeof(string)
+  invert_permutation plotscript_order()
+
+  'OK, now that we can calculate ranks, we can add new-style scripts
+  SEEK #fh, 1
+  i = 0
+  WHILE loadrecord(buf(), fh, 20)
+   id = buf(0)
+   IF id <> 0 THEN
+    s = readbinstring(buf(), 1, 38)
+    intstr_array_append script_usage_menu(), 100000 + plotscript_order(i), s
+   END IF
+   i += 1
+  WEND 
+ END IF
  CLOSE #fh
+
+ 'add script instances to script_usage_menu
+ visit_scripts @script_usage_visitor
+
+ 'sort, and build menu() (for standardmenu)
+ DIM indices(UBOUND(script_usage_menu)) AS INTEGER
+ REDIM menu(UBOUND(script_usage_menu)) AS STRING
+ sort_integers_indices indices(), @script_usage_menu(0).i, UBOUND(script_usage_menu) + 1, sizeof(IntStrPair)
+
+ DIM currentscript AS INTEGER = -1
+ DIM j AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO UBOUND(script_usage_menu)
+  WITH script_usage_menu(indices(i))
+   IF MID(.s, 1, 1) = " " THEN
+    'script trigger
+    'Do not add triggers which are missing their scripts; those go in the other menu
+    IF .i <> currentscript THEN CONTINUE FOR
+   END IF
+   menu(j) = .s
+   j += 1
+   currentscript = .i
+  END WITH
+ NEXT
+ REDIM PRESERVE menu(j - 1)
+
+ 'Free memory
+ REDIM plotscript_order(0)
+ REDIM script_usage_menu(0)
+
+ 'debug "script usage in " & ((TIMER - t) * 1000) & "ms"
 
  DIM state AS MenuState
  state.size = 24
- state.last = UBOUND(list)
+ state.last = UBOUND(menu)
  
  setkeys
  DO
@@ -2480,14 +2533,13 @@ SUB script_usage_list ()
   usemenu state
 
   draw_fullscreen_scrollbar state, , dpage 
-  standardmenu list(), state, 0, 0, dpage
+  standardmenu menu(), state, 0, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage
   clearpage dpage
   dowait
- LOOP
- 
+ LOOP 
 END SUB
 
 '--A similar function exists in yetmore2.bas for game. it differs only in error-reporting
@@ -2507,115 +2559,58 @@ FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
  END IF
 END FUNCTION
 
-SUB check_broken_script_trigger(list() AS STRING, BYVAL trig AS INTEGER, description AS STRING, caption AS STRING = "")
- IF trig <= 0 THEN EXIT SUB ' No script trigger
+'--This could be used in more places; makes sense to load plotscr.lst into a global
+DIM SHARED script_ids_list() AS INTEGER
+
+SUB load_script_ids_list()
+ REDIM script_ids_list(large(0, gen(genMaxPlotScript) - 1))
+ DIM buf(19) AS INTEGER
+ DIM fh AS INTEGER
+ fh = FREEFILE
+ OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY AS #fh
+ FOR i AS INTEGER = 0 TO gen(genMaxPlotScript) - 1
+  loadrecord buf(), fh, 20, i
+  script_ids_list(i) = buf(0)
+ NEXT i
+ CLOSE #fh
+END SUB
+
+'--For script_broken_trigger_list and check_broken_script_trigger
+DIM SHARED missing_script_trigger_list() AS STRING
+
+PRIVATE FUNCTION check_broken_script_trigger(byref trig as integer, description as string, caption as string) as integer
+ IF trig <= 0 THEN RETURN NO ' No script trigger
  '--decode script trigger
  DIM id AS INTEGER
  id = decodetrigger(trig, plottrigger)
  '--Check for missing new-style script
  IF id = 0 THEN
-  str_array_append list(), description & " " & scriptname(trig, plottrigger) & " missing" & caption 
-  EXIT SUB
+  str_array_append missing_script_trigger_list(), description & " " & scriptname(trig, plottrigger) & " missing. " & caption 
+ ELSEIF id < 16384 THEN
+  '--now check for missing old-style scripts
+  IF int_array_find(script_ids_list(), id) <> -1 THEN RETURN NO 'Found okay
+
+  str_array_append missing_script_trigger_list(), description & " ID " & id & " missing. " & caption
  END IF
- '--now check for missing old-style scripts
- IF id < 16384 THEN
-  DIM buf(19)
-  DIM fh AS INTEGER = FREEFILE
-  OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY ACCESS READ AS #fh
-  DIM found AS INTEGER = NO
-  FOR i AS INTEGER = 0 TO gen(genMaxPlotScript)
-   loadrecord buf(), fh, 20, i
-   IF buf(0) = id THEN
-    found = YES
-    EXIT FOR '-- Found it okay!
-   END IF
-  NEXT i
-  CLOSE #fh
-  IF found = NO THEN
-   str_array_append list(), description & " ID " & id & " missing" & caption
-  END IF
- END IF
-END SUB
+ RETURN NO
+END FUNCTION
 
 SUB script_broken_trigger_list()
- REDIM list(0) AS STRING
+ 'Cache plotscr.lst
+ load_script_ids_list
 
- list(0) = "back to previous menu..."
+ REDIM missing_script_trigger_list(0) AS STRING
+ missing_script_trigger_list(0) = "back to previous menu..."
 
- '--global scripts
- check_broken_script_trigger list(), gen(genNewGameScript), "new game"
- check_broken_script_trigger list(), gen(genLoadGameScript), "load game"
- check_broken_script_trigger list(), gen(genGameoverScript), "game over"
+ visit_scripts @check_broken_script_trigger
 
- DIM AS INTEGER i, j
-
- '--Text box scripts
- DIM box AS TextBox
- FOR i AS INTEGER = 0 TO gen(genMaxTextbox)
-  LoadTextBox box, i
-  check_broken_script_trigger list(), -box.instead, "box " & i & " (instead)", ":" & textbox_preview_line(box)
-  check_broken_script_trigger list(), -box.after, "box " & i & " (after)", ":" & textbox_preview_line(box)
- NEXT i
- 
- '--Map scripts and NPC scripts
- DIM gmaptmp(dimbinsize(binMAP))
- DIM npctmp(max_npc_defs) AS NPCType
- FOR i = 0 TO gen(genMaxMap)
-  loadrecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
-  check_broken_script_trigger list(), gmaptmp(7), "map " & i & " autorun"
-  check_broken_script_trigger list(), gmaptmp(12), "map " & i & " after-battle"
-  check_broken_script_trigger list(), gmaptmp(13), "map " & i & " instead-of-battle"
-  check_broken_script_trigger list(), gmaptmp(14), "map " & i & " each-step"
-  check_broken_script_trigger list(), gmaptmp(15), "map " & i & " on-keypress"
-  'loop through NPC's
-  LoadNPCD maplumpname(i, "n"), npctmp()
-  FOR j = 0 TO max_npc_defs
-   check_broken_script_trigger list(), npctmp(j).script, "map " & i & " NPC " & j
-  NEXT j
- NEXT i
- 
- '--vehicle scripts
- DIM vehicle AS VehicleData
- FOR i = 0 TO gen(genMaxVehicle)
-  LoadVehicle game & ".veh", vehicle, i
-  check_broken_script_trigger list(), vehicle.use_button, "use button veh " & i, " """ & vehicle.name & """"
-  check_broken_script_trigger list(), vehicle.menu_button, "menu button veh " & i, " """ & vehicle.name & """"
-  check_broken_script_trigger list(), -(vehicle.on_mount), "mount vehicle " & i, " """ & vehicle.name & """"
-  check_broken_script_trigger list(), -(vehicle.on_dismount), "dismount vehicle " & i,  " """ & vehicle.name & """"
- NEXT i
- 
- '--shop scripts
- DIM shoptmp(19)
- DIM shopname AS STRING
- FOR i = 0 TO gen(genMaxShop)
-  loadrecord shoptmp(), game & ".sho", 20, i
-  shopname = readbadbinstring(shoptmp(), 0, 15)
-  check_broken_script_trigger list(), shoptmp(19), "show inn " & i, " """ & shopname & """"
- NEXT i
- 
- '--menu scripts
- DIM menu_set AS MenuSet
- menu_set.menufile = workingdir + SLASH + "menus.bin"
- menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
- DIM menutmp AS MenuDef
- FOR i = 0 TO gen(genMaxMenu)
-  LoadMenuData menu_set, menutmp, i
-  FOR j = 0 TO menutmp.numitems - 1
-   WITH *menutmp.items[j]
-    IF .t = 4 THEN
-     check_broken_script_trigger list(), .sub_t, "menu " & i & " item " & j & " """ & .caption & """"
-    END IF
-   END WITH
-  NEXT j
- NEXT i
-
- IF UBOUND(list) = 0 THEN
-  str_array_append list(), "No broken triggers found!"
+ IF UBOUND(missing_script_trigger_list) = 0 THEN
+  str_array_append missing_script_trigger_list(), "No broken triggers found!"
  END IF
 
  DIM state AS MenuState
  state.size = 24
- state.last = UBOUND(list)
+ state.last = UBOUND(missing_script_trigger_list)
 
  setkeys
  DO
@@ -2629,34 +2624,26 @@ SUB script_broken_trigger_list()
   usemenu state
 
   draw_fullscreen_scrollbar state, , dpage 
-  standardmenu list(), state, 0, 0, dpage
+  standardmenu missing_script_trigger_list(), state, 0, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage
   clearpage dpage
   dowait
- LOOP
- 
+ LOOP 
+ 'Free memory
+ REDIM missing_script_trigger_list(0)
 END SUB
 
-FUNCTION autofix_old_script(BYREF id AS INTEGER) AS INTEGER
+FUNCTION autofix_old_script_visitor(byref id as integer, description as string, caption as string) as integer
  '--returns true if a fix has occured
  IF id = 0 THEN RETURN NO ' not a trigger
  IF id >= 16384 THEN RETURN NO 'New-style script
+ IF int_array_find(script_ids_list(), id) <> -1 THEN RETURN NO 'Found okay
+
  DIM buf(19) AS INTEGER
  DIM fh AS INTEGER
- 
- fh = FREEFILE
- OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY ACCESS READ AS #fh
- FOR i AS INTEGER = 0 TO gen(genMaxPlotScript)
-  loadrecord buf(), fh, 20, i
-  IF buf(0) = id THEN
-   CLOSE #fh
-   RETURN NO 'Found okay
-  END IF
- NEXT i
- CLOSE #fh
- 
+  
  DIM found_name AS STRING = ""
  
  fh = FREEFILE
@@ -2673,7 +2660,7 @@ FUNCTION autofix_old_script(BYREF id AS INTEGER) AS INTEGER
  IF found_name = "" THEN RETURN NO '--broken but unfixable (no old name)
 
  fh = FREEFILE
- OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY ACCESS READ AS #fh
+ OPEN workingdir & SLASH & "lookup1.bin" FOR BINARY AS #fh
  FOR i AS INTEGER = 0 TO (LOF(fh) \ 40) - 1
   loadrecord buf(), fh, 20, i
   IF found_name = readbinstring(buf(), 1, 38) THEN '--Yay! found it in the new file!
@@ -2689,119 +2676,16 @@ FUNCTION autofix_old_script(BYREF id AS INTEGER) AS INTEGER
 END FUNCTION
 
 SUB autofix_broken_old_scripts()
-
  '--sanity test
  IF NOT isfile(tmpdir & "plotscr.lst.tmp") THEN
   debug "can't autofix broken old scripts, can't find: " & tmpdir & "plotscr.lst.tmp"
+  EXIT SUB
  END IF
 
- '--global scripts
- autofix_old_script gen(genNewGameScript)
- autofix_old_script gen(genLoadGameScript)
- autofix_old_script gen(genGameoverScript)
+ 'Cache plotscr.lst
+ load_script_ids_list()
 
- DIM AS INTEGER i, j, idtmp, resave
-
- '--Text box scripts
- DIM box AS TextBox
- FOR i AS INTEGER = 0 TO gen(genMaxTextbox)
-  LoadTextBox box, i
-  resave = NO
-  IF box.instead < 0 THEN
-   idtmp = -box.instead
-   IF autofix_old_script(idtmp) THEN resave = YES
-   box.instead = -idtmp
-  END IF
-  IF box.after < 0 THEN
-   idtmp = -box.after
-   IF autofix_old_script(idtmp) THEN resave = YES
-   box.after = -idtmp
-  END IF
-  IF resave THEN
-   SaveTextBox box, i
-  END IF
- NEXT i
- 
- '--Map scripts and NPC scripts
- DIM gmaptmp(dimbinsize(binMAP))
- DIM npctmp(max_npc_defs) AS NPCType
- FOR i = 0 TO gen(genMaxMap)
-  resave = NO
-  loadrecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
-  IF autofix_old_script(gmaptmp(7)) THEN resave = YES 'autorun
-  IF autofix_old_script(gmaptmp(12)) THEN resave = YES 'after-battle
-  IF autofix_old_script(gmaptmp(13)) THEN resave = YES 'instead-of-battle
-  IF autofix_old_script(gmaptmp(14)) THEN resave = YES 'each-step
-  IF autofix_old_script(gmaptmp(15)) THEN resave = YES 'on-keypress
-  IF resave THEN
-   storerecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
-  END IF
-  'loop through NPC's
-  LoadNPCD maplumpname(i, "n"), npctmp()
-  resave = NO
-  FOR j = 0 TO max_npc_defs
-   IF autofix_old_script(npctmp(j).script) THEN resave = YES
-  NEXT j
-  IF resave THEN
-   SaveNPCD maplumpname(i, "n"), npctmp()
-  END IF
- NEXT i
- 
- '--vehicle scripts
- DIM vehicle AS VehicleData
- FOR i = 0 TO gen(genMaxVehicle)
-  resave = NO
-  LoadVehicle game & ".veh", vehicle, i
-  IF vehicle.use_button > 0 THEN
-   IF autofix_old_script(vehicle.use_button) THEN resave = YES 'use button vehicle
-  END IF
-  IF vehicle.menu_button > 0 THEN
-   IF autofix_old_script(vehicle.menu_button) THEN resave = YES 'menu button vehicle
-  END IF
-  IF vehicle.on_mount < 0 THEN
-   idtmp = -(vehicle.on_mount)
-   IF autofix_old_script(idtmp) THEN resave = YES 'mount vehicle
-   vehicle.on_mount = -idtmp
-  END IF
-  IF vehicle.on_dismount < 0 THEN
-   idtmp = -(vehicle.on_dismount)
-   IF autofix_old_script(idtmp) THEN resave = YES 'dismount vehicle
-   vehicle.on_dismount = -idtmp
-  END IF
-  IF resave THEN
-   SaveVehicle game & ".veh", vehicle, i
-  END IF
- NEXT i
- 
- '--shop scripts
- DIM shoptmp(19)
- FOR i = 0 TO gen(genMaxShop)
-  loadrecord shoptmp(), game & ".sho", 20, i
-  IF autofix_old_script(shoptmp(19)) THEN
-   storerecord shoptmp(), game & ".sho", 20, i
-  END IF
- NEXT i
- 
- '--menu scripts
- DIM menu_set AS MenuSet
- menu_set.menufile = workingdir + SLASH + "menus.bin"
- menu_set.itemfile = workingdir + SLASH + "menuitem.bin"
- DIM menutmp AS MenuDef
- FOR i = 0 TO gen(genMaxMenu)
-  resave = NO
-  LoadMenuData menu_set, menutmp, i
-  FOR j = 0 TO menutmp.numitems - 1
-   WITH *menutmp.items[j]
-    IF .t = 4 THEN
-     IF autofix_old_script(.sub_t) THEN resave = YES
-    END IF
-   END WITH
-  NEXT j
-  IF resave THEN
-   SaveMenuData menu_set, menutmp, i
-  END IF
- NEXT i
-
+ visit_scripts @autofix_old_script_visitor
 END SUB
 
 FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=1, BYVAL wrapchars AS INTEGER=1) AS INTEGER

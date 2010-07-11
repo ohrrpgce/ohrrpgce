@@ -299,6 +299,12 @@ SUB int_array_append (array() AS INTEGER, k AS INTEGER)
  array(UBOUND(array)) = k
 END SUB
 
+SUB intstr_array_append (array() AS IntStrPair, k AS INTEGER, s AS STRING)
+ REDIM PRESERVE array(UBOUND(array) + 1)
+ array(UBOUND(array)).i = k
+ array(UBOUND(array)).s = s
+END SUB
+
 FUNCTION int_array_find (array() AS INTEGER, value AS INTEGER) AS INTEGER
  FOR i AS INTEGER = LBOUND(array) TO UBOUND(array)
   IF array(i) = value THEN RETURN i

@@ -10,6 +10,8 @@
 #include "slices.bi"
 #include "custom_udts.bi"
 
+TYPE FnScriptVisitor as function (byref trig as integer, description as string, caption as string) as integer
+
 DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
 DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
 DECLARE FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
@@ -54,6 +56,7 @@ DECLARE FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertyp
 DECLARE SUB scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING)
 DECLARE FUNCTION scrintgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77, BYVAL scriptside AS INTEGER, BYVAL triggertype AS INTEGER) AS INTEGER
 DECLARE SUB show_help(helpkey AS STRING)
+DECLARE SUB visit_scripts(BYVAL visit AS FnScriptVisitor)
 DECLARE SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS INTEGER=0, BYREF meter AS INTEGER, BYVAL meter_times AS INTEGER=1, box_instead_cache() AS INTEGER, box_after_cache() AS INTEGER, box_preview_cache() AS STRING)
 DECLARE SUB script_usage_list ()
 DECLARE SUB script_broken_trigger_list()
