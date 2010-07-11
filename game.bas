@@ -1264,7 +1264,7 @@ WITH scrat(nowscript)
     END IF
     evalitemtag
    CASE 32'--show backdrop
-    gen(genScrBackdrop) = bound(retvals(0) + 1, 0, gen(genMaxBackdrop))
+    gen(genScrBackdrop) = bound(retvals(0) + 1, 0, gen(genNumBackdrops))
     correctbackdrop
    CASE 33'--show map
     gen(genScrBackdrop) = 0

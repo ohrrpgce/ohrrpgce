@@ -2323,7 +2323,7 @@ FOR i = 0 TO 8
  fix_sprite_record_count i
 NEXT i
 fix_record_count gen(genMaxTile),     320 * 200, game & ".til", "Tilesets"
-fix_record_count gen(genMaxBackdrop), 320 * 200, game & ".mxs", "Backdrops", , -1
+fix_record_count gen(genNumBackdrops), 320 * 200, game & ".mxs", "Backdrops", , -1
 'FIXME: .dt0 lump is always padded up to 60 records
 'fix_record_count gen(genMaxHero),     636, game & ".dt0", "Heroes"
 'FIXME: Attack data is split over two lumps. Must handle mismatch

@@ -841,7 +841,7 @@ DO
   END IF 
   IF tmode = 2 THEN
    ts.cuttileset = NO
-   ts.cutfrom = small(ts.cutfrom, gen(genMaxBackdrop) - 1)
+   ts.cutfrom = small(ts.cutfrom, gen(genNumBackdrops) - 1)
    tilecut ts, mouse(), area()
   END IF 
   IF tmode = 3 THEN
@@ -1490,7 +1490,7 @@ DO
  END IF
  '---PICK BACKGROUND PAGE------
  oldcut = ts.cutfrom
- IF ts.cuttileset THEN maxset = gen(genMaxTile) ELSE maxset = gen(genMaxBackdrop) - 1
+ IF ts.cuttileset THEN maxset = gen(genMaxTile) ELSE maxset = gen(genNumBackdrops) - 1
  intgrabber ts.cutfrom, 0, maxset, 51, 52
  IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, -1)
  IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, 1)

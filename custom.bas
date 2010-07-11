@@ -311,7 +311,7 @@ DO:
      clear_box_border_cache
     END IF
     IF pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8, font()
-    IF pt = 11 THEN importbmp ".mxs", "screen", gen(genMaxBackdrop)
+    IF pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops)
     IF pt = 12 THEN
      gen(genMaxTile) = gen(genMaxTile) + 1
      importbmp ".til", "tileset", gen(genMaxTile)

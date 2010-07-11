@@ -273,7 +273,7 @@ SUB generalmusicsfxmenu ()
   CONST num as integer = 15
   CONST lastmusicitem as integer = 3
   DIM as string menu(num), disp(num)
-  DIM as integer index(1 to num) = {genTitleMus, genBatMus, genVictMus, genAcceptSFX, genCancelSFX, genCursorSFX, genTextboxLetter, genDefaultDeathSFX, genItemLearnSFX, genCantLearnSFX, genBuySFX, genHireSFX, genSellSFX, genCantBuySFX, genCantSellSFX}
+  DIM as integer index(1 to num) = {genTitleMus, genBatMus, genVictMus, genAcceptSFX, genCancelSFX, genCursorSFX, genTextboxLine, genDefaultDeathSFX, genItemLearnSFX, genCantLearnSFX, genBuySFX, genHireSFX, genSellSFX, genCantBuySFX, genCantSellSFX}
   DIM as integer menutop
 
   disp(0) = "Previous Menu" 'don't need menu(0)
@@ -948,7 +948,7 @@ DO
  IF keyval(scUp) > 1 AND gcsr = 1 THEN gcsr = 0
  IF keyval(scDown) > 1 AND gcsr = 0 THEN gcsr = 1
  IF gcsr = 1 THEN
-  IF intgrabber(gen(genTitle), 0, gen(genMaxBackdrop) - 1) THEN 
+  IF intgrabber(gen(genTitle), 0, gen(genNumBackdrops) - 1) THEN 
    loadmxs game + ".mxs", gen(genTitle), vpages(2)
   END IF
  END IF

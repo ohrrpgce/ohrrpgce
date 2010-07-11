@@ -181,7 +181,7 @@ DO
   bgspeed = loopvar(bgspeed, 0, formdata(35), 1)
   IF bgspeed = 0 THEN
    bat.curbg = loopvar(bat.curbg, formdata(32), formdata(32) + formdata(34), 1)
-   loadmxs game + ".mxs", bat.curbg MOD gen(genMaxBackdrop), vpages(2)
+   loadmxs game + ".mxs", bat.curbg MOD gen(genNumBackdrops), vpages(2)
   END IF
  END IF
 

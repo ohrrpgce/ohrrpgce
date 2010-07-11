@@ -1642,7 +1642,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 314'--set formation background (formation, background, animation frames, animation ticks)
-  IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxBackdrop) - 1 THEN 
+  IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genNumBackdrops) - 1 THEN 
    loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
    buffer(32) = retvals(1)
    buffer(34) = bound(retvals(2) - 1, 0, 49)

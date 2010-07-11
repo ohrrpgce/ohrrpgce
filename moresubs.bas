@@ -364,7 +364,7 @@ IF txt.show_lines < 7 THEN
  txt.show_lines = txt.show_lines + 1
  '--play sounds for non-blank lines
  IF txt.show_lines > 1 THEN
-  IF trim(txt.box.text(txt.show_lines)) <> "" THEN menusound gen(genTextboxLetter)
+  IF trim(txt.box.text(txt.show_lines)) <> "" THEN menusound gen(genTextboxLine)
  END IF
  '--note when the display of lines is done
  IF txt.show_lines >= 7 THEN

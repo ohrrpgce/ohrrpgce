@@ -1885,7 +1885,7 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
   fh = FREEFILE
   OPEN workingdir + SLASH + "plotscr.lst" FOR BINARY AS #fh
   'numberedlast = firstscript + LOF(fh) \ 40 - 1
-  numberedlast = firstscript + gen(genMaxPlotscript) - 1
+  numberedlast = firstscript + gen(genNumPlotscripts) - 1
 
   REDIM scriptnames(numberedlast) AS STRING, scriptids(numberedlast)
 
@@ -2138,7 +2138,7 @@ SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggerty
    IF plotids(temp) THEN
     screxists = -1
    ELSE
-    WHILE recordsloaded < gen(genMaxPlotscript)
+    WHILE recordsloaded < gen(genNumPlotscripts)
      loadrecord buf(), workingdir + SLASH + "plotscr.lst", 20, recordsloaded
      recordsloaded += 1
      IF buf(0) = temp THEN screxists = -1: EXIT WHILE
@@ -2445,7 +2445,7 @@ SUB script_usage_list ()
  'Loop through old-style non-autonumbered scripts
  fh = FREEFILE
  OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY AS #fh
- FOR i AS INTEGER = 0 TO gen(genMaxPlotscript) - 1
+ FOR i AS INTEGER = 0 TO gen(genNumPlotscripts) - 1
   loadrecord buf(), fh, 20, i
   id = buf(0)
   IF id <= 16383 THEN
@@ -2563,12 +2563,12 @@ END FUNCTION
 DIM SHARED script_ids_list() AS INTEGER
 
 SUB load_script_ids_list()
- REDIM script_ids_list(large(0, gen(genMaxPlotScript) - 1))
+ REDIM script_ids_list(large(0, gen(genNumPlotscripts) - 1))
  DIM buf(19) AS INTEGER
  DIM fh AS INTEGER
  fh = FREEFILE
  OPEN workingdir & SLASH & "plotscr.lst" FOR BINARY AS #fh
- FOR i AS INTEGER = 0 TO gen(genMaxPlotScript) - 1
+ FOR i AS INTEGER = 0 TO gen(genNumPlotscripts) - 1
   loadrecord buf(), fh, 20, i
   script_ids_list(i) = buf(0)
  NEXT i

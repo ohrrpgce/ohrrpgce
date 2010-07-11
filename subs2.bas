@@ -319,7 +319,7 @@ SUB importscripts (f$)
    filecopy workingdir & SLASH & "plotscr.lst", tmpdir & "plotscr.lst.tmp"
   END IF
 
-  gen(genMaxPlotscript) = 0
+  gen(genNumPlotscripts) = 0
   gen(genMaxRegularScript) = 0
   viscount = 0
   DIM names AS STRING = ""
@@ -347,8 +347,8 @@ SUB importscripts (f$)
    'save to plotscr.lst
    buffer(0) = id
    writebinstring names, buffer(), 1, 36
-   storerecord buffer(), workingdir + SLASH + "plotscr.lst", 20, gen(genMaxPlotscript)
-   gen(genMaxPlotscript) = gen(genMaxPlotscript) + 1
+   storerecord buffer(), workingdir + SLASH + "plotscr.lst", 20, gen(genNumPlotscripts)
+   gen(genNumPlotscripts) = gen(genNumPlotscripts) + 1
    IF buffer(0) > gen(genMaxRegularScript) AND buffer(0) < 16384 THEN gen(genMaxRegularScript) = buffer(0)
 
    'process trigger
@@ -1122,7 +1122,7 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
    CASE 3: state.need_update = intgrabber(box.textcolor, 0, 255)
    CASE 4: state.need_update = intgrabber(box.boxstyle, 0, 14)
    CASE 5:
-    IF zintgrabber(box.backdrop, -1, gen(genMaxBackdrop) - 1) THEN
+    IF zintgrabber(box.backdrop, -1, gen(genNumBackdrops) - 1) THEN
      state.need_update = YES
      clearpage holdscreen
      IF box.backdrop > 0 THEN

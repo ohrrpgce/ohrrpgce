@@ -903,7 +903,7 @@ RETRACE
 
 editform:
 '--???  well, you see..
-max(1) = gen(genMaxBackdrop) - 1   'genMaxBackdrop is number of backdrops, but is necessary
+max(1) = gen(genNumBackdrops) - 1   'genNumBackdrops is number of backdrops, but is necessary
 max(2) = 50
 max(3) = 1000
 max(4) = gen(genMaxSong) + 1   'genMaxSongs is number of last song, but is optional
@@ -1022,7 +1022,7 @@ DO
   bgwait = (bgwait + 1) MOD a(35)
   IF bgwait = 0 THEN
    bgctr = loopvar(bgctr, 0, a(34), 1)
-   loadmxs game + ".mxs", (bgctr + a(32)) MOD gen(genMaxBackdrop), vpages(2)
+   loadmxs game + ".mxs", (bgctr + a(32)) MOD gen(genNumBackdrops), vpages(2)
   END IF
  END IF
  copypage 2, dpage
