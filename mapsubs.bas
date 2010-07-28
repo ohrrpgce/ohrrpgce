@@ -12,7 +12,7 @@ DEFINT A-Z
 #include "custom_udts.bi"
 
 'external subs and functions
-DECLARE SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, pt%)
+DECLARE SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, BYREF num_npc_defs AS INTEGER, npc_insts() AS NPCInst)
 
 'local subs and functions
 DECLARE FUNCTION addmaphow () AS INTEGER
@@ -146,7 +146,7 @@ END FUNCTION
 
 SUB mapmaker (font())
 DIM st AS MapEditState
-DIM mode(12) AS STRING, list(13) AS STRING, menu(-1 TO 20) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs)
+DIM mode(12) AS STRING, list(13) AS STRING, menu(-1 TO 20) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs - 1)
 DIM her AS HeroDef
 DIM defaults(maplayerMax) AS DefArray
 
@@ -158,7 +158,8 @@ DIM as integer visible(maplayerMax \ 16) = {-1} 'used as bitsets: all layers vis
 'FIXME: heroimg is a hack and should be replaced with a GraphicPair object
 DIM heroimg(102), heropal(8)
 
-DIM npc_img(max_npc_defs) AS GraphicPair
+'npcdef assumes that npc_img is sized (0 TO max_npc_defs - 1), just like st.npc()
+DIM npc_img(max_npc_defs - 1) AS GraphicPair
 
 REDIM map(0) AS TileMap ' dummy empty map data, will be resized later
 DIM pass AS TileMap
@@ -289,7 +290,7 @@ list(12) = "Re-load Default Passability"
 list(13) = "Map name:"
 
 '--load NPC graphics--
-FOR i = 0 TO UBOUND(npc_img)
+FOR i = 0 TO st.num_npc_defs - 1
  'Load the picture and palette
  WITH npc_img(i)
   .sprite = frame_load(4, st.npc_def(i).picture)
@@ -323,7 +324,8 @@ DO
    mapedit_layers st, gmap(), visible(), defaults(), map()
   END IF
   IF csr = 4 THEN
-   npcdef st.npc_def(), npc_img(), pt
+   'This may change st.num_npc_defs, and delete NPC instances
+   npcdef st.npc_def(), npc_img(), st.num_npc_defs, st.npc_inst()
   END IF
   IF csr >= 5 AND csr <= 9 THEN editmode = csr - 5: GOSUB mapping
   IF csr = 10 THEN mapedit_linkdoors st, pt, map(), pass, emap, gmap(), doors(), link(), mapname$
@@ -359,10 +361,10 @@ DO
  dowait
 LOOP
 'Unload NPC graphics
-FOR i = 0 TO max_npc_defs
+FOR i = 0 TO UBOUND(npc_img)
  WITH npc_img(i)
-  if .sprite then frame_unload(@.sprite)
-  if .pal then palette16_unload(@.pal)
+  IF .sprite THEN frame_unload(@.sprite)
+  IF .pal THEN palette16_unload(@.pal)
  END WITH
 NEXT i
 RETRACE
@@ -449,9 +451,11 @@ DO
    writeblock emap, x, y, 0
    'delete NPC
    FOR i = 0 TO 299
-    IF st.npc_inst(i).id > 0 THEN
-     IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0
-    END IF
+    WITH st.npc_inst(i)
+     IF .id > 0 THEN
+      IF .x = x * 20 AND .y = y * 20 THEN .id = 0
+     END IF
+    END WITH
    NEXT i
    'delete door
    doorid = find_door_at_spot(x, y, doors())
@@ -601,9 +605,11 @@ DO
    IF keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
    IF keyval(scDelete) > 1 THEN
     FOR i = 0 TO 299
-     IF st.npc_inst(i).id > 0 THEN
-      IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0
-     END IF
+     WITH st.npc_inst(i)
+      IF .id > 0 THEN
+       IF .x = x * 20 AND .y = y * 20 THEN .id = 0
+      END IF
+     END WITH
     NEXT i
    END IF
    nd = -1
@@ -617,9 +623,11 @@ DO
     temp = 0
     IF nd = -1 THEN
      FOR i = 0 TO 299
-      IF st.npc_inst(i).id > 0 THEN
-       IF st.npc_inst(i).x = x * 20 AND st.npc_inst(i).y = y * 20 THEN st.npc_inst(i).id = 0: temp = 1
-      END IF
+      WITH st.npc_inst(i)
+       IF .id > 0 THEN
+        IF .x = x * 20 AND .y = y * 20 THEN .id = 0: temp = 1
+       END IF
+      END WITH
      NEXT i
     END IF
     IF nd = -1 THEN nd = 2
@@ -636,7 +644,7 @@ DO
      END IF
     END IF
    END IF
-   intgrabber(nptr, 0, max_npc_defs, 51, 52)
+   intgrabber(nptr, 0, st.num_npc_defs - 1, 51, 52)
    '---FOEMODE--------
   CASE 4
    IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
@@ -790,19 +798,18 @@ DO
   NEXT
   walk = walk + 1: IF walk > 3 THEN walk = 0
   FOR i = 0 TO 299
-   IF st.npc_inst(i).id > 0 THEN
-    IF st.npc_inst(i).x >= mapx AND st.npc_inst(i).x < mapx + 320 AND st.npc_inst(i).y >= mapy AND st.npc_inst(i).y < mapy + 200 THEN
-     WITH npc_img(st.npc_inst(i).id - 1)
-      frame_draw .sprite + (2 * st.npc_inst(i).dir) + walk \ 2, .pal, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy, 1, -1, dpage
-     END WITH
-     textcolor uilook(uiSelectedItem + tog), 0
-     xtemp = STR$(st.npc_inst(i).id - 1)
-     printstr xtemp, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 3, dpage
-     xtemp = STR$(npcnum(st.npc_inst(i).id - 1))
-     printstr xtemp, st.npc_inst(i).x - mapx, st.npc_inst(i).y + 20 - mapy + 12, dpage
+   WITH st.npc_inst(i)
+    IF .id > 0 THEN
+     IF .x >= mapx AND .x < mapx + 320 AND .y >= mapy AND .y < mapy + 200 THEN
+      DIM image AS GraphicPair = npc_img(.id - 1)
+      frame_draw image.sprite + (2 * .dir) + walk \ 2, image.pal, .x - mapx, .y + 20 - mapy, 1, -1, dpage
+      textcolor uilook(uiSelectedItem + tog), 0
+      printstr STR(.id - 1), .x - mapx, .y + 20 - mapy + 3, dpage
+      printstr STR(npcnum(.id - 1)), .x - mapx, .y + 20 - mapy + 12, dpage
+     END IF
+     npcnum(.id - 1) += 1
     END IF
-    npcnum(st.npc_inst(i).id - 1) += 1
-   END IF
+   END WITH
   NEXT
  END IF
  
@@ -1401,6 +1408,7 @@ SUB new_blank_map (BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, 
  flusharray gmap(), -1, 0
  CleanNPCL st.npc_inst()
  CleanNPCD st.npc_def()
+ st.num_npc_defs = 1
  cleandoors doors()
  cleandoorlinks link()
 END SUB
@@ -1418,7 +1426,7 @@ SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS 
  NEXT
  'rest of defaults does not need initialisation
  LoadNPCL maplumpname(mapnum, "l"), st.npc_inst()
- LoadNPCD maplumpname(mapnum, "n"), st.npc_def()
+ LoadNPCD_fixedlen maplumpname(mapnum, "n"), st.npc_def(), st.num_npc_defs
  deserdoors game & ".dox", doors(), mapnum
  deserdoorlinks maplumpname(mapnum, "d"), link()
  mapname = getmapname(mapnum)
@@ -1433,7 +1441,7 @@ SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileM
  savetilemap pass, maplumpname(mapnum, "p")
  savetilemap emap, maplumpname(mapnum, "e")
  SaveNPCL maplumpname(mapnum, "l"), st.npc_inst()
- SaveNPCD maplumpname(mapnum, "n"), st.npc_def()
+ SaveNPCD_fixedlen maplumpname(mapnum, "n"), st.npc_def(), st.num_npc_defs
  serdoors game & ".dox", doors(), mapnum
  serdoorlinks maplumpname(mapnum, "d"), link()
  '--save map name
@@ -1589,11 +1597,13 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  NEXT
  edgeprint "Aligning and truncating NPCs", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
  FOR i = 0 TO 299
-  st.npc_inst(i).x = st.npc_inst(i).x - rs.rect.x * 20
-  st.npc_inst(i).y = st.npc_inst(i).y - rs.rect.y * 20
-  IF st.npc_inst(i).x < 0 OR st.npc_inst(i).y < 0 OR st.npc_inst(i).x >= wide * 20 OR st.npc_inst(i).y >= high * 20 THEN
-   st.npc_inst(i).id = 0
-  END IF
+  WITH st.npc_inst(i)
+   .x -= rs.rect.x * 20
+   .y -= rs.rect.y * 20
+   IF .x < 0 OR .y < 0 OR .x >= wide * 20 OR .y >= high * 20 THEN
+    .id = 0
+   END IF
+  END WITH
  NEXT i
  verify_map_size mapnum, wide, high, map(), pass, emap, mapname
 END SUB

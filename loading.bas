@@ -17,48 +17,95 @@ DECLARE SUB LoadMenuItem(f AS INTEGER, items() AS MenuDefItem ptr, record AS INT
 DECLARE SUB SaveMenuItems(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
 DECLARE SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER, menunum AS INTEGER, itemnum AS INTEGER)
 
+'There are two versions of LoadNPCD:
+'LoadNPCD(file, dat()):
+'  (Normal version) dat is variable length (already initialised!!), redimmed to the correct length by LoadNPCD
+'LoadNPCD_fixedlen(file, dat(), arraylen):
+'  dat is a fixed length (0 TO max_npc_def), and the REAL length is returned in arraylen
+
+PRIVATE SUB LoadNPCD_internal (file as string, dat() as NPCType, byref arraylen as integer, byval resize as integer)
+  DIM as integer i, j, f
+
+  'It's still up to you to actually load the new sprites, but "do not pass
+  'arrays holding frame pointers" would be a tricky catch
+  FOR i = 0 TO UBOUND(dat)
+   WITH dat(i)
+    IF .sprite THEN frame_unload @.sprite
+    IF .pal THEN palette16_unload @.pal
+   END WITH
+  NEXT i
+
+  f = FREEFILE
+  OPEN file FOR BINARY ACCESS READ AS #f
+  SEEK #f, 8
+
+  arraylen = (LOF(f) - 7) \ getbinsize(binN)
+  IF resize THEN REDIM dat(arraylen - 1)
+  DIM as integer recordlen = getbinsize(binN) \ 2
+  DIM as integer buf(recordlen - 1)
+
+  FOR i = 0 TO arraylen - 1
+    loadrecord buf(), f, recordlen
+    FOR j = 0 TO recordlen - 1
+      SetNPCD(dat(i), j, buf(j))
+    NEXT
+    IF dat(i).speed = 3 THEN dat(i).speed = 10
+  NEXT
+
+  CLOSE #f
+END SUB
+
+SUB LoadNPCD_fixedlen(file as string, dat() as NPCType, byref arraylen as integer)
+  IF UBOUND(dat) <> max_npc_defs - 1 THEN
+    fatalerror "Programmer error! LoadNPCD: dat() length " & UBOUND(dat)
+  END IF
+  LoadNPCD_internal(file, dat(), arraylen, NO)
+END SUB
+
 SUB LoadNPCD(file as string, dat() as NPCType)
-  DIM i AS INTEGER, j AS INTEGER, f AS INTEGER
+  LoadNPCD_internal(file, dat(), 0, YES)  'dummy arraylen
+END SUB
+
+'As for LoadNPCD, there are two versions of SaveNPCD. See comment above
+
+SUB SaveNPCD_fixedlen(file as string, dat() as NPCType, byval arraylen as integer)
+  DIM AS INTEGER i, j, f
+
+  'We want to truncate the file to the right length
+  safekill file
+
   f = FREEFILE
   OPEN file FOR BINARY AS #f
   SEEK #f, 8
 
-  FOR i = 0 TO max_npc_defs
-    FOR j = 0 TO 14
-      SetNPCD(dat(i), j, ReadShort(f, -1))
+  DIM as integer recordlen = getbinsize(binN) \ 2
+  DIM as integer buf(recordlen - 1)
+
+  FOR i = 0 TO arraylen - 1
+    FOR j = 0 TO recordlen - 1
+      IF j = 3 AND dat(i).speed = 10 THEN
+        '--Special case for speed = 10 (gets stored as 3)
+        buf(j) = 3
+      ELSE
+        buf(j) = GetNPCD(dat(i), j)
+      END IF
     NEXT
+    storerecord buf(), f, recordlen
   NEXT
 
   CLOSE #f
-
-  FOR i = 0 TO max_npc_defs
-    IF dat(i).speed = 3 THEN dat(i).speed = 10
-  NEXT i
 END SUB
 
 SUB SaveNPCD(file as string, dat() as NPCType)
-  DIM i AS INTEGER, j AS INTEGER, f AS INTEGER
-  f = FREEFILE
-  OPEN file FOR BINARY AS #f
-  SEEK #f, 8
-
-  FOR i = 0 TO max_npc_defs
-    FOR j = 0 TO 14
-      IF j = 3 AND dat(i).speed = 10 THEN
-        '--Special case for speed = 10 (gets stored as 3)
-        WriteShort f, -1, 3
-      ELSE
-        WriteShort f, -1, read_npc_int(dat(i), j)
-      END IF
-    NEXT
-  NEXT
-
-  CLOSE #f
+  SaveNPCD_fixedlen(file, dat(), UBOUND(dat) + 1)
 END SUB
 
 'Prefer write_npc_int instead in the future, as it lacks pointer thoughtcrime
 SUB SetNPCD(npcd AS NPCType, offset AS INTEGER, value AS INTEGER)
-  IF offset >= 0 and offset <= 14 THEN
+  STATIC maxoffset AS INTEGER = -1
+  IF maxoffset = -1 THEN maxoffset = (curbinsize(binN) \ 2) - 1
+
+  IF offset >= 0 AND offset <= maxoffset THEN
     (@npcd.picture)[offset] = value
   ELSE
     debug "Attempt to write NPC data out-of-range. offset=" + STR$(offset) + " value=" + STR$(value)
@@ -67,21 +114,41 @@ END SUB
 
 'Prefer read_npc_int instead in the future, as it lacks pointer thoughtcrime
 FUNCTION GetNPCD(npcd AS NPCType, offset AS INTEGER) AS INTEGER
-  IF offset >= 0 and offset <= 14 THEN
+  STATIC maxoffset AS INTEGER = -1
+  IF maxoffset = -1 THEN maxoffset = (curbinsize(binN) \ 2) - 1
+
+  IF offset >= 0 AND offset <= maxoffset THEN
     RETURN (@npcd.picture)[offset]
   ELSE
-    debug "Attempt to read NPC data out-of-range. offset=" + STR$(offset)
+    debug "Attempt to read NPC data out-of-range. offset=" & offset
   END IF
 END FUNCTION
 
-SUB CleanNPCD(dat() as NPCType)
-  DIM i AS INTEGER, j AS INTEGER
+SUB CleanNPCDefinition(dat as NPCType)
+  WITH dat
+   .picture    = 0
+   .palette    = -1 'Default palette
+   .movetype   = 0
+   .speed      = 0
+   .textbox    = 0
+   .facetype   = 0
+   .item       = 0
+   .pushtype   = 0
+   .activation = 0
+   .tag1       = 0
+   .tag2       = 0
+   .usetag     = 0
+   .script     = 0
+   .scriptarg  = 0
+   .vehicle    = 0
+   IF .sprite THEN frame_unload @.sprite
+   IF .pal THEN palette16_unload @.pal
+  END WITH
+END SUB
 
-  FOR i = 0 TO max_npc_defs
-    FOR j = 0 TO 14
-      SetNPCD(dat(i), j, 0)
-    NEXT
-    dat(i).palette = -1 'Set cleared palette to default instead of zero
+SUB CleanNPCD(dat() as NPCType)
+  FOR i AS INTEGER = 0 TO UBOUND(dat)
+    CleanNPCDefinition dat(i)
   NEXT
 END SUB
 

@@ -1,7 +1,11 @@
 This is the NPC picker. Here you can select from the available NPCs for the current map. You will see a preview of each NPC's picture plus the first line of text from any text box that is attached to the NPC.
 
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the menu.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) or type in an ID to navigate the menu.
 
-Press ENTER or SPACE to choose an NPC to edit.
+Press ENTER or SPACE to choose an NPC definition to edit.
+
+Press DELETE to delete all the copies of an NPC that are on the map, and/or the NPC definition itself.
+
+Press + to quickly add a new NPC.
 
 Press ESC to go back to the previous menu.

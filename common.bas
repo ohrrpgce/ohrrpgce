@@ -787,7 +787,7 @@ SUB guessdefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
    NEXT j
   NEXT i
  CASE 4 'Walkabouts
-  DIM npcbuf(max_npc_defs) AS NPCType
+  REDIM npcbuf(0) AS NPCType
   FOR i = 0 TO sets
    FOR j = 0 TO gen(genMaxHero)
     loadherodata @her, j
@@ -845,6 +845,7 @@ FUNCTION defbinsize (id AS INTEGER) as integer
  IF id = 6 THEN RETURN 0  'menuitem.bin
  IF id = 7 THEN RETURN 0  'uicolors.bin
  IF id = 8 THEN RETURN 400 '.say
+ IF id = 9 THEN RETURN 30 '.n##
  RETURN 0
 END FUNCTION
 
@@ -859,6 +860,7 @@ FUNCTION curbinsize (id AS INTEGER) as integer
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 126 'uicolors.bin
  IF id = 8 THEN RETURN 412 '.say
+ IF id = 9 THEN RETURN 30 '.n##
  RETURN 0
 END FUNCTION
 
@@ -1651,7 +1653,11 @@ IF isfile(DATAFILES & SLASH & filename) THEN RETURN DATAFILES & SLASH & filename
 RETURN ""
 END FUNCTION
 
-SUB updaterecordlength (lumpf AS STRING, bindex AS INTEGER)
+SUB updaterecordlength (lumpf AS STRING, BYVAL bindex AS INTEGER, BYVAL headersize AS INTEGER = 0, BYVAL repeating AS INTEGER = NO)
+'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
+'Pass 'repeating' as true when more than one lump with this bindex exists.
+''headersize' is the number of bytes before the first record.
+
 IF curbinsize(bindex) MOD 2 <> 0 THEN
  'curbinsize is INSANE, scream bloody murder to prevent data corruption!
  fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " please complain to the devs, who may have just done something stupid!"
@@ -1670,29 +1676,38 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
 
  IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
 
-  DIM tempf AS STRING = tmpdir & "resize.tmp"
+  DIM tempf AS STRING = tmpdir & "resize" & bindex & ".tmp"
 
-  flusharray buffer(), newsize / 2, 0
+  IF rename(lumpf, tempf) THEN
+   fatalerror "Could not rename " & lumpf & " to " & tempf & " (exists=" & isfile(tempf) & ")"
+  END IF
 
-  DIM ff AS INTEGER = FREEFILE
-  OPEN lumpf FOR BINARY AS #ff
-  DIM records AS INTEGER = LOF(ff) / oldsize
-  CLOSE #ff
+  DIM inputf AS INTEGER = FREEFILE
+  OPEN tempf FOR BINARY AS inputf
+  DIM outputf AS INTEGER = FREEFILE
+  OPEN lumpf FOR BINARY AS outputf
 
-  filecopy lumpf, tempf
-  KILL lumpf
+  DIM records AS INTEGER = (LOF(inputf) - headersize) \ oldsize
 
+  IF headersize > 0 THEN
+   DIM headerbuf(headersize - 1) AS BYTE
+   GET #inputf, , headerbuf()
+   PUT #outputf, , headerbuf()
+  END IF
+
+  DIM buf(newsize \ 2 - 1) AS INTEGER
   FOR i AS INTEGER = 0 TO records - 1
-   setpicstuf buffer(), oldsize, -1
-   loadset tempf, i, 0
-   setpicstuf buffer(), newsize, -1
-   storeset lumpf, i, 0
+   loadrecord buf(), inputf, oldsize \ 2
+   storerecord buf(), outputf, newsize \ 2
   NEXT
 
+  CLOSE inputf
+  CLOSE outputf
   KILL tempf
  END IF
 
- setbinsize bindex, newsize
+ 'If we are repeating, we need to keep the old binsize intact
+ IF repeating = NO THEN setbinsize bindex, newsize
 
 END IF
 END SUB
@@ -1994,9 +2009,9 @@ IF NOT isfile(game + ".veh") THEN
  END IF
 END IF
 
-'--make sure binsize.bin is full. why are we doing this? as lumps are upgraded
-'--and binsize is extended, records in binsize which are meant to default
-'--because they don't exist take on the value 0 instead
+'--make sure binsize.bin is full. why are we doing this? Otherwise as lumps are upgraded
+'--and binsize.bin is extended, records in binsize which are meant to default
+'--because they don't exist would become undefined instead
 FOR i = 0 TO sizebinsize
  setbinsize i, getbinsize(i)
 NEXT
@@ -2045,7 +2060,7 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
  NEXT
 
  flusharray buffer(), curbinsize(binSONGDATA) / 2, 0
- setbinsize 2, curbinsize(binSONGDATA)
+ setbinsize binSONGDATA, curbinsize(binSONGDATA)
  setpicstuf buffer(), curbinsize(binSONGDATA), -1
  FOR i = 0 TO gen(genMaxSong)
   writebinstring song(i), buffer(), 0, 30
@@ -2092,6 +2107,9 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
 END IF
 updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 updaterecordlength game & ".say", binSAY
+FOR i = 0 TO gen(genMaxMap)
+ updaterecordlength maplumpname(i, "n"), binN, 7, YES
+NEXT
 
 '--give each palette a default ui color set
 DIM ff AS INTEGER = FREEFILE
@@ -2259,31 +2277,13 @@ END IF
 IF getfixbit(fixExtendedNPCs) = 0 THEN
  upgrade_message "Initialize extended NPC data..."
  setfixbit(fixExtendedNPCs, 1)
- DIM npctemp(99) AS NPCType
+ REDIM npctemp(0) AS NPCType 
  FOR i = 0 TO gen(genMaxMap)
+  ' These are the garbage data left over from somewhere in the late 90's when
+  ' James decided to make the .N lumps big enough to hold 100 NPC definitions
+  ' even though there was only enough memory available for 36 NPC sprites at a time
   LoadNPCD maplumpname(i, "n"), npctemp()
-  FOR j = 36 TO 99
-   ' These are the garbage data left over from somewhere in the late 90's when
-   ' James decided to make the .N lumps big enough to hold 100 NPC definitions
-   ' even though there was only enough memory available for 36 NPC sprites at a time
-   WITH npctemp(j)
-    .picture    = 0
-    .palette    = -1 'Default palette
-    .movetype   = 0
-    .speed      = 0
-    .textbox    = 0
-    .facetype   = 0
-    .item       = 0
-    .pushtype   = 0
-    .activation = 0
-    .tag1       = 0
-    .tag2       = 0
-    .usetag     = 0
-    .script     = 0
-    .scriptarg  = 0
-    .vehicle    = 0
-   END WITH
-  NEXT j
+  REDIM PRESERVE npctemp(35)
   SaveNPCD maplumpname(i, "n"), npctemp()
  NEXT i
 END IF

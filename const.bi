@@ -11,7 +11,7 @@
 CONST YES = -1
 CONST NO = 0
 
-CONST CURRENT_RPG_VERSION = 10
+CONST CURRENT_RPG_VERSION = 11
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
@@ -20,6 +20,7 @@ CONST CURRENT_RPG_VERSION = 10
 ' 8 - ypsiliform wip added extended chaining data (and many other features)
 ' 9 - ypsiliform wip added text box sound effects
 ' 10 - ypsiliform wip added attack-based enemy transmogrification
+' 11 - zenzizenzic wip added variable record size and record number .N## lumps
 
 '---DOS directory attributes
 CONST attribReadOnly = 1
@@ -144,14 +145,14 @@ CONST fixPushNPCBugCompat = 5    'Turned on the Simulate pushable NPC obstructio
 CONST fixDefaultMaxItem = 6      'Stored default max item id in GEN
 CONST fixBlankDoorLinks = 7      'Marked redundant blank doorlinks as unused
 CONST fixShopSounds = 8          'Set genItemLearnSFX..genCantSellSFX to defaults
-CONST fixExtendedNPCs = 9        'Initialized blank NPC data at the end of .N## lumps 
+CONST fixExtendedNPCs = 9        'Deleted or initialised garbage NPC data in IDs 36 to 99
 CONST fixHeroPortrait = 10       'Initialize hero portrait data
 CONST fixTextBoxPortrait = 11    'Initialize text box portrait data
 CONST fixNPCLocationFormat = 12  'FIXME: not implemented ... can't remember....
 CONST fixInitDamageDisplay = 13  'Initialize damage display time and distance
 
 '---Sizes (replaceable with variables when suitable)
-CONST max_npc_defs = 99
+CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
 CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 59 'This is the max value possible for gen(genMaxHero) 'FIXME: not used everywhere
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
@@ -176,8 +177,9 @@ CONST binMENUS = 5
 CONST binMENUITEM = 6
 CONST binUICOLORS = 7
 CONST binSAY = 8
+CONST binN = 9
 
-CONST sizebinsize = 8 ' Update this when adding binsize records
+CONST sizebinsize = 9 ' Update this when adding binsize records
 
 '--- Misc constants
 Enum constDirection

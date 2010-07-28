@@ -483,7 +483,7 @@ SELECT CASE seekid
   getnpcref = (seekid + 1) * -1
   EXIT FUNCTION
 
- CASE 0 TO max_npc_defs 'ID
+ CASE 0 TO UBOUND(npcs) 'ID
   found = 0
   FOR i = 0 TO 299
    IF npc(i).id - 1 = seekid THEN
@@ -551,8 +551,19 @@ NEXT o
 END SUB
 
 SUB npcplot
+'This SUB will be called when a map is incompletely loaded (NPC instances before definitions
+'or vice versa), and that's hard to avoid, because a script could load them with two separate loadmapstate
+'calls. So we must tolerate invalid NPC IDs and anything else. So here we mark all NPCs as hidden which
+'would otherwise cause problems
+
 FOR i = 0 TO 299
  curnpc = ABS(npc(i).id) - 1
+
+ IF curnpc > UBOUND(npcs) THEN
+  'Invalid ID number; hide. Probably a partially loaded map.
+  npc(i).id = -curnpc - 1
+  CONTINUE FOR
+ END IF
 
  IF npc(i).id < 0 THEN
   '--check reappearance tags for existing but hidden NPCs
@@ -804,7 +815,7 @@ SELECT CASE AS CONST id
    GOSUB setwaitstate
   END IF
  CASE 4'--wait for NPC
-  IF retvals(0) >= -300 AND retvals(0) <= max_npc_defs THEN
+  IF retvals(0) >= -300 AND retvals(0) <= UBOUND(npcs) THEN
    GOSUB setwaitstate
   END IF
  CASE 5'--suspend npcs
@@ -2587,7 +2598,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 120'--NPC reference
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
    found = 0
    FOR i = 0 TO 299
     IF npc(i).id - 1 = retvals(0) THEN
@@ -2625,7 +2636,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 123'--NPC copy count
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
    FOR i = 0 TO 299
     IF npc(i).id - 1 = retvals(0) THEN
      scriptret = scriptret + 1
@@ -2634,15 +2645,15 @@ SELECT CASE AS CONST id
   END IF
  CASE 124'--change NPC ID
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= max_npc_defs THEN npc(npcref).id = retvals(1) + 1
+  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(npcs) THEN npc(npcref).id = retvals(1) + 1
  CASE 125'--create NPC
   scriptret = 0
-  IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
+  IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
    FOR i = 299 TO 0 STEP -1
     IF npc(i).id = 0 THEN EXIT FOR
    NEXT
    'for backwards compatibility with games that max out the number of NPCs, try to overwrite tag-disabled NPCs
-   'delete this bit once we raise the NPC limit
+   'FIXME: delete this bit once we raise the NPC limit
    IF i = -1 THEN
     FOR i = 299 TO 0 STEP -1
      IF npc(i).id <= 0 THEN EXIT FOR
@@ -2688,7 +2699,7 @@ SELECT CASE AS CONST id
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC
   IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
-   IF retvals(0) >= 0 AND retvals(0) <= max_npc_defs THEN
+   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
     scriptret = GetNPCD(npcs(retvals(0)), retvals(1))
    ELSE
     npcref = getnpcref(retvals(0), 0)

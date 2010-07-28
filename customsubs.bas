@@ -2328,7 +2328,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  
  '--Map scripts and NPC scripts
  DIM gmaptmp(dimbinsize(binMAP))
- DIM npctmp(max_npc_defs) AS NPCType
+ REDIM npctmp(0) AS NPCType
  FOR i = 0 TO gen(genMaxMap)
   resave = NO
   loadrecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
@@ -2343,7 +2343,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
   'loop through NPC's
   LoadNPCD maplumpname(i, "n"), npctmp()
   resave = NO
-  FOR j = 0 TO max_npc_defs
+  FOR j = 0 TO UBOUND(npctmp)
    resave OR= visitor(npctmp(j).script, "map " & i & " NPC " & j, "")
   NEXT j
   IF resave THEN

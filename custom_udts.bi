@@ -119,7 +119,8 @@ TYPE TextboxConnectNode
 END TYPE
 
 TYPE MapEditState
-  npc_def(99) AS NPCType
+  npc_def(max_npc_defs - 1) AS NPCType
+  num_npc_defs AS INTEGER
   npc_inst(299) AS NPCInst
   tilepick AS XYPair
   layer AS INTEGER

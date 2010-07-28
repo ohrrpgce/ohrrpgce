@@ -535,7 +535,7 @@ END FUNCTION
 
 SUB reloadnpc ()
 vishero
-FOR i = 0 TO max_npc_defs
+FOR i = 0 TO UBOUND(npcs)
  with npcs(i)
   if .sprite then frame_unload(@.sprite)
   if .pal then palette16_unload(@.pal)
@@ -564,30 +564,7 @@ SUB savemapstate_npcl(mapnum, prefix$)
 END SUB
 
 SUB savemapstate_npcd(mapnum, prefix$)
- fh = FREEFILE
- OPEN mapstatetemp$(mapnum, prefix$) + "_n.tmp" FOR BINARY AS #fh
- 'PUT #fh, , npcs()
- dim i as integer
- for i = lbound(npcs) to ubound(npcs)
-  with npcs(i)
-   put #fh, ,.picture
-   put #fh, ,.palette
-   put #fh, ,.movetype
-   put #fh, ,.speed
-   put #fh, ,.textbox
-   put #fh, ,.facetype
-   put #fh, ,.item
-   put #fh, ,.pushtype
-   put #fh, ,.activation
-   put #fh, ,.tag1
-   put #fh, ,.tag2
-   put #fh, ,.usetag
-   put #fh, ,.script
-   put #fh, ,.scriptarg
-   put #fh, ,.vehicle
-  end with
- next
- CLOSE #fh
+ SaveNPCD mapstatetemp$(mapnum, prefix$), npcs()
 END SUB
 
 SUB savemapstate_tilemap(mapnum, prefix$)
@@ -656,33 +633,12 @@ SUB loadmapstate_npcl (mapnum, prefix$, dontfallback = 0)
 END SUB
 
 SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
- fh = FREEFILE
  filebase$ = mapstatetemp$(mapnum, prefix$)
  IF NOT isfile(filebase$ + "_n.tmp") THEN
   IF dontfallback = 0 THEN loadmap_npcd mapnum
   EXIT SUB
  END IF
- OPEN filebase$ + "_n.tmp" FOR BINARY AS #fh
- for i = lbound(npcs) to ubound(npcs)
-  with npcs(i)
-   get #fh, ,.picture
-   get #fh, ,.palette
-   get #fh, ,.movetype
-   get #fh, ,.speed
-   get #fh, ,.textbox
-   get #fh, ,.facetype
-   get #fh, ,.item
-   get #fh, ,.pushtype
-   get #fh, ,.activation
-   get #fh, ,.tag1
-   get #fh, ,.tag2
-   get #fh, ,.usetag
-   get #fh, ,.script
-   get #fh, ,.scriptarg
-   get #fh, ,.vehicle
-  end with
- next
- CLOSE #fh
+ LoadNPCD filebase$ + "_n.tmp", npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
  npcplot
@@ -802,7 +758,7 @@ END FUNCTION
 
 SUB debug_npcs ()
  debug "NPC types:"
- FOR i AS INTEGER = 0 TO max_npc_defs
+ FOR i AS INTEGER = 0 TO UBOUND(npcs)
   debug " ID " & i & ": pic=" & npcs(i).picture & " pal=" & npcs(i).palette
  NEXT
  debug "NPC instances:"
@@ -811,9 +767,9 @@ SUB debug_npcs ()
    IF .id <> 0 THEN
     DIM AS INTEGER drawX, drawY
     IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
-     debug " " & i & ": ID=" & SGN(.id) * (ABS(.id) - 1) & " x=" & .x & " y=" & .y & " screenx=" & drawX & " screeny=" & drawY
+     debug " " & i & ": ID=" & (ABS(.id) - 1) & iif_string(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y & " screenx=" & drawX & " screeny=" & drawY
     ELSE
-     debug " " & i & ": ID=" & SGN(.id) * (ABS(.id) - 1) & " x=" & .x & " y=" & .y
+     debug " " & i & ": ID=" & (ABS(.id) - 1) & iif_string(.id < 0, " (hidden)", "") & " x=" & .x & " y=" & .y
     END IF
    END IF
   END WITH
@@ -831,7 +787,7 @@ SUB npc_debug_display ()
     IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawX, drawY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
      textcolor uilook(uiText), 0
      'the numbers can overlap quite badly, try to squeeze them in
-     temp = STR$(SGN(.id) * (ABS(.id) - 1))
+     temp = iif_string(.id < 0, "-", "") & (ABS(.id) - 1)
      printstr MID$(temp, 1, 1), drawX, drawY + 4, dpage
      printstr MID$(temp, 2, 1), drawX + 7, drawY + 4, dpage
      printstr MID$(temp, 3, 1), drawX + 14, drawY + 4, dpage

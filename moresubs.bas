@@ -1147,7 +1147,7 @@ deletetemps
 'doesn't unload scripts: not needed
 killallscripts
 
-FOR i = 0 TO max_npc_defs
+FOR i = 0 TO UBOUND(npcs)
  WITH npcs(i)
   frame_unload(@.sprite)
   palette16_unload(@.pal)

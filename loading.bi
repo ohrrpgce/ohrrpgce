@@ -8,10 +8,13 @@
 #DEFINE LOADING_BI
 
 DECLARE SUB LoadNPCD(file as string, dat() as NPCType)
+DECLARE SUB LoadNPCD_fixedlen(file as string, dat() as NPCType, BYREF arraylen as integer)
 DECLARE SUB SaveNPCD(file as string, dat() as NPCType)
+DECLARE SUB SaveNPCD_fixedlen(file as string, dat() as NPCType, BYVAL arraylen as integer)
 declare sub setnpcd(npcd as npctype, offset as integer, value as integer)
 declare function getnpcd(npcd as npctype, offset as integer) as integer
-declare sub cleannpcd(dat() as npctype)
+declare sub CleanNPCDefinition(dat as NPCType)
+declare sub CleanNPCD(dat() as NPCType)
 declare sub loadnpcl(file as string, dat() as npcinst)
 declare sub savenpcl(file as string, dat() as npcinst)
 declare sub sernpcl(npc() as npcinst, z as integer, buffer() as integer, num as integer, xoffset as integer, yoffset as integer)

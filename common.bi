@@ -95,7 +95,7 @@ DECLARE SUB unloadmaptilesets (tilesets() AS TilesetData ptr)
 DECLARE SUB writescatter (s as string, lhold as integer, start as integer)
 DECLARE SUB readscatter (s as string, lhold as integer, start as integer)
 DECLARE FUNCTION finddatafile(filename as string) as string
-DECLARE SUB updaterecordlength (lumpf as string, bindex AS INTEGER)
+DECLARE SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
 DECLARE SUB writepassword (p as string)
 DECLARE FUNCTION readpassword () as string
 DECLARE SUB upgrade (font() as integer)

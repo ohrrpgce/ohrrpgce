@@ -99,7 +99,7 @@ DIM buffer(16384)
 DIM inventory(inventoryMax) as InventSlot
 DIM gold
 
-DIM npcs(max_npc_defs) as NPCType
+DIM npcs(0) as NPCType
 DIM npc(300) as NPCInst
 
 DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
@@ -1331,6 +1331,7 @@ WITH scrat(nowscript)
    CASE 78'--alter NPC
     IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
      IF retvals(0) < 0 AND retvals(0) >= -300 THEN retvals(0) = ABS(npc(ABS(retvals(0) + 1)).id) - 1
+     'Note that an NPC may be marked hidden because it has an invalid ID. What kind of error to throw?
      IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
       DIM AS INTEGER writesafe = 1
       IF retvals(1) = 0 THEN

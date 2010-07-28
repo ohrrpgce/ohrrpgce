@@ -173,6 +173,7 @@ TYPE SimpleMenu
  col AS INTEGER
 END TYPE
 
+'Warning: when editing NPCType, consider Get/SetNPCD and serialization disasters
 TYPE NPCType
   picture as integer     '+0
   palette as integer     '+1
@@ -198,9 +199,10 @@ TYPE NPCInst
   y as integer      'npcl+300
   xgo as integer    'npcl+1500   warning: positive to go LEFT, negative RIGHT
   ygo as integer    'npcl+1800   reversed as above
-  id as integer     'npcl+600
+  id as integer     'npcl+600    0 if unused, ID + 1 for normal NPCs, -ID - 1 for hidden NPCS,
+                    '  *including those with invalidly high ID numbers* (on incompletely loaded maps)
   dir as integer    'npcl+900
-  frame as integer  'npcl+1200
+  frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
   extra(2) as integer
 END TYPE
 

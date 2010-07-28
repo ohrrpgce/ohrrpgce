@@ -1899,15 +1899,52 @@ SUB load_item_names (item_strings() AS STRING)
  NEXT i
 END SUB
 
-SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, pt)
+SUB handle_npc_def_delete (npc() AS NPCType, BYVAL id AS INTEGER, BYREF num_npc_defs AS INTEGER, npc_insts() AS NPCInst)
 
-DIM boxpreview(UBOUND(npc)) AS STRING
-DIM AS INTEGER tog, i, top = 0, cur = 0
+ '--Count number of uses
+ DIM AS INTEGER uses = 0
+ FOR i as integer = 0 to 299
+  IF npc_insts(i).id = id + 1 THEN uses += 1
+ NEXT
+
+ IF uses > 0 THEN
+  IF yesno("There are " & uses & " copies of NPC ID " & id & " on the map. Are you sure you want to delete them?", NO, NO) = NO THEN EXIT SUB
+
+  '--Delete instances of this ID
+  FOR i as integer = 0 to 299
+   IF npc_insts(i).id = id + 1 THEN npc_insts(i).id = 0
+  NEXT
+ END IF
+
+ '--Wiping a definition clear, or completely deleting it?
+ DIM AS INTEGER deleting = NO
+ '--Can't delete ID 0; must always have at least one NPC
+ IF id > 0 AND id = num_npc_defs - 1 THEN deleting = YES
+
+ IF yesno(iif_string(uses, "Done. ", "") & "Really " & iif_string(deleting, "delete", "wipe clean") & " this NPC definition?", NO, NO) = NO THEN EXIT SUB
+
+ IF deleting THEN
+  num_npc_defs -= 1
+ ELSE
+  CleanNPCDefinition npc(id)
+ END IF
+
+END SUB
+
+SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, BYREF num_npc_defs AS INTEGER, npc_insts() AS NPCInst)
+'npc() and npc_img() should be of fixed size (0 TO max_npc_defs - 1), with the actual number passed in num_npc_defs
+
+DIM boxpreview(num_npc_defs - 1) AS STRING
+DIM AS INTEGER tog, i, top = 0, cur = 0, menumax, need_update_selected = NO
+
+'--If there's room for more, add "Add new NPC" option to end
+menumax = num_npc_defs - 1
+IF num_npc_defs < max_npc_defs THEN menumax += 1
 
 clearpage 0
 clearpage 1
 
-FOR i = 0 TO UBOUND(npc)
+FOR i = 0 TO num_npc_defs - 1
  boxpreview(i) = textbox_preview_line(npc(i).textbox)
 NEXT i
 setkeys
@@ -1917,10 +1954,41 @@ DO
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "pick_npc_to_edit"
- usemenu cur, top, 0, UBOUND(npc), 7
+ intgrabber cur, 0, menumax
+ usemenu cur, top, 0, menumax, 7
  IF enter_or_space() THEN
-  edit_npc npc(cur)
-  '--Having edited the NPC, we must re-load the picture and palette
+  IF cur = num_npc_defs THEN
+   '--Add new NPC option
+   num_npc_defs += 1
+   CleanNPCDefinition npc(num_npc_defs - 1)
+  ELSE
+   '--An NPC
+   edit_npc npc(cur)
+  END IF
+  need_update_selected = YES
+ END IF
+ IF keyval(scPlus) > 1 THEN
+  '--Fast add button (for people who really want ID 134 for a task)
+  num_npc_defs += 1
+  CleanNPCDefinition npc(num_npc_defs - 1)
+  cur = num_npc_defs - 1
+  need_update_selected = YES
+ END IF
+ IF keyval(scDelete) > 1 THEN
+  '--This updates num_npc_defs as needed, but not cur
+  handle_npc_def_delete npc(), cur, num_npc_defs, npc_insts()
+  IF cur > num_npc_defs - 1 THEN
+   '--Deleted last NPC def
+   frame_unload @npc_img(cur).sprite
+   palette16_unload @npc_img(cur).pal
+   cur = num_npc_defs - 1
+  END IF
+  need_update_selected = YES
+ END IF
+
+ IF need_update_selected THEN
+  '--Note not all, or even any, of these updates will be required in a given case
+  '--Re-load the picture and palette
   WITH npc_img(cur)
    IF .sprite THEN frame_unload(@.sprite)
    .sprite = frame_load(4, npc(cur).picture)
@@ -1928,20 +1996,34 @@ DO
    .pal = palette16_load(npc(cur).palette, 4, npc(cur).picture)
   END WITH
   '--Update box preview line
+  REDIM PRESERVE boxpreview(num_npc_defs - 1)
   boxpreview(cur) = textbox_preview_line(npc(cur).textbox)
+  '--Update menumax
+  menumax = num_npc_defs - 1
+  IF num_npc_defs < max_npc_defs THEN menumax += 1
+
+  need_update_selected = NO
  END IF
+
  FOR i = top TO top + 7
+  IF i > menumax THEN EXIT FOR
   IF cur = i THEN edgebox 0, (i - top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
   IF cur = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr "" & i, 0, ((i - top) * 25) + 5, dpage
-  WITH npc_img(i)
-   '--Down A frame
-   frame_draw .sprite + 4, .pal, 32, (i - top) * 25, 1, -1, dpage
-  END WITH
-  textcolor uilook(uiMenuItem), uilook(uiHighlight)
-  IF cur = i THEN textcolor uilook(uiText), uilook(uiHighlight)
-  printstr boxpreview(i), 56, ((i - top) * 25) + 5, dpage
+  IF i > num_npc_defs - 1 THEN
+   '--Add new NPC option
+   printstr "Add new NPC", 0, ((i - top) * 25) + 5, dpage
+  ELSE
+   '--An NPC
+   printstr "" & i, 0, ((i - top) * 25) + 5, dpage
+   WITH npc_img(i)
+    '--Down A frame
+    frame_draw .sprite + 4, .pal, 32, (i - top) * 25, 1, -1, dpage
+   END WITH
+   textcolor uilook(uiMenuItem), uilook(uiHighlight)
+   IF cur = i THEN textcolor uilook(uiText), uilook(uiHighlight)
+   printstr boxpreview(i), 56, ((i - top) * 25) + 5, dpage
+  END IF
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
