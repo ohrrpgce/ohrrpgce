@@ -2065,25 +2065,25 @@ EXIT SUB
 END SUB
 
 SUB resize_correct_width(BYREF st AS MapEditState, BYREF rs AS MapResizeState, map() AS TileMap)
- rs.rect.wide = bound(rs.rect.wide, 16, 32000)
+ rs.rect.wide = bound(rs.rect.wide, 16, mapTilesMax)
  rs.rect.x = bound(rs.rect.x, -rs.rect.wide + 1, rs.oldsize.x - 1)
- WHILE rs.rect.high * rs.rect.wide > 32000 AND rs.rect.high > 10
+ WHILE rs.rect.high * rs.rect.wide > mapTilesMax AND rs.rect.high > 10
   rs.rect.high -= 1
  WEND
  resize_dimchange st, rs, map()
 END SUB
 
 SUB resize_correct_height(BYREF st AS MapEditState, BYREF rs AS MapResizeState, map() AS TileMap)
- rs.rect.high = bound(rs.rect.high, 10, 32000)
+ rs.rect.high = bound(rs.rect.high, 10, mapTilesMax)
  rs.rect.y = bound(rs.rect.y, -rs.rect.high + 1, rs.oldsize.y - 1)
- WHILE rs.rect.high * rs.rect.wide > 32000 AND rs.rect.wide > 16
+ WHILE rs.rect.high * rs.rect.wide > mapTilesMax AND rs.rect.wide > 16
   rs.rect.wide -= 1
  WEND
  resize_dimchange st, rs, map()
 END SUB
 
 SUB resize_dimchange(BYREF st AS MapEditState, BYREF rs AS MapResizeState, map() AS TileMap)
- WHILE rs.rect.high * rs.rect.wide > 32000
+ WHILE rs.rect.high * rs.rect.wide > mapTilesMax
   rs.rect.high = large(rs.rect.high - 1, 10)
   rs.rect.wide = large(rs.rect.wide - 1, 16)
  WEND

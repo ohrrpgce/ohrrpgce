@@ -157,6 +157,7 @@ CONST maxMaxItems = 32000 'max number of items
 CONST maxMaxHero = 59 'This is the max value possible for gen(genMaxHero) 'FIXME: not used everywhere
 CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count the zero)
 CONST maplayerMax = 7 'The limit on the highest numbered map layer
+CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
 #IFDEF SCRIPTPROFILE
 CONST scriptmemMax = 10000000 'in 4-byte ints
 CONST scriptTableSize = 512  'hash table size, power of 2 please
