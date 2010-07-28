@@ -56,7 +56,7 @@ DECLARE SUB refresh_map_slice_tilesets()
 DECLARE FUNCTION vehicle_is_animating() AS INTEGER
 DECLARE SUB reset_vehicle(v AS vehicleState)
 DECLARE SUB dump_vehicle_state()
-DECLARE SUB usething(BYVAL auto AS INTEGER, BYVAL ux AS INTEGER, BYVAL uy AS INTEGER)
+DECLARE SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
 DECLARE SUB sfunctions (BYVAL cmdid AS INTEGER)
 DECLARE FUNCTION first_free_slot_in_party() AS INTEGER
 DECLARE FUNCTION first_free_slot_in_active_party() AS INTEGER

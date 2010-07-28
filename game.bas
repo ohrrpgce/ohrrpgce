@@ -38,7 +38,11 @@ DECLARE SUB opendoor (dforce AS INTEGER=0)
 DECLARE SUB thrudoor (door_id AS INTEGER)
 DECLARE SUB advance_text_box ()
 DECLARE FUNCTION want_to_check_for_walls(BYVAL who AS INTEGER) AS INTEGER
-DECLARE SUB hitwall (npci AS NPCInst, npcdata AS NPCType)
+DECLARE SUB update_npcs ()
+DECLARE SUB pick_npc_action(npci AS NPCInst, npcdata AS NPCType)
+DECLARE SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCType)
+DECLARE SUB npchitwall (npci AS NPCInst, npcdata AS NPCType)
+DECLARE FUNCTION find_useable_npc () AS INTEGER
 DECLARE SUB interpret ()
 
 REMEMBERSTATE
@@ -472,8 +476,7 @@ DO
     IF carray(ccLeft) > 0 THEN xgo(0) = 20: catd(0) = 3: EXIT DO
     IF carray(ccRight) > 0 THEN xgo(0) = -20: catd(0) = 1: EXIT DO
     IF carray(ccUse) > 1 AND vstate.active = NO THEN
-     txt.sayer = -1
-     usething 0, catx(0), caty(0)
+     usenpc 0, find_useable_npc()
     END IF
     EXIT DO
    LOOP
@@ -504,7 +507,7 @@ DO
  'DEBUG debug "hero movement"
  GOSUB movement
  'DEBUG debug "NPC movement"
- GOSUB movenpc
+ update_npcs
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debugging keys
   'DEBUG debug "evaluate debugging keys"
@@ -777,7 +780,7 @@ FOR whoi = 0 TO 3
  thisherotilex = catx(whoi * 5) \ 20
  thisherotiley = caty(whoi * 5) \ 20
  IF herospeed(whoi) = 0 THEN
-  '--cancel movement, or some of the follow code misbehaves
+  '--cancel movement, or some of the following code misbehaves
   xgo(whoi) = 0
   ygo(whoi) = 0
  END IF
@@ -791,39 +794,40 @@ FOR whoi = 0 TO 3
   IF readbit(gen(), 44, suspendobstruction) = 0 AND vehicle_is_animating() = NO THEN
    '--this only happens if obstruction is on
    FOR i = 0 TO 299
-    IF npc(i).id > 0 THEN '---NPC EXISTS---
-     IF npcs(npc(i).id - 1).activation < 2 THEN '---NPC IS AN OBSTRUCTION---
-      IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
-       xgo(whoi) = 0: ygo(whoi) = 0
-       id = (npc(i).id - 1)
-       '--push the NPC
-       pushtype = npcs(id).pushtype
-       IF pushtype > 0 AND npc(i).xgo = 0 AND npc(i).ygo = 0 THEN
-        IF catd(whoi) = 0 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 4) THEN npc(i).ygo = 20
-        IF catd(whoi) = 2 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 6) THEN npc(i).ygo = -20
-        IF catd(whoi) = 3 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 7) THEN npc(i).xgo = 20
-        IF catd(whoi) = 1 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 5) THEN npc(i).xgo = -20
-        IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
-         FOR o = 0 TO 299 ' check to make sure no other NPCs are blocking this one
-          IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
-          IF i = o THEN CONTINUE FOR
-          IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
-           npc(i).xgo = 0
-           npc(i).ygo = 0
-           EXIT FOR
-          END IF
-         NEXT o
+    WITH npc(i)
+     IF .id > 0 THEN '---NPC EXISTS---
+      id = (.id - 1)
+      IF npcs(id).activation <> 2 THEN '---NPC is not step-on
+       IF wrapcollision (.x, .y, .xgo, .ygo, catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
+        xgo(whoi) = 0: ygo(whoi) = 0
+        '--push the NPC
+        pushtype = npcs(id).pushtype
+        IF pushtype > 0 AND .xgo = 0 AND .ygo = 0 THEN
+         IF catd(whoi) = 0 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 4) THEN .ygo = 20
+         IF catd(whoi) = 2 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 6) THEN .ygo = -20
+         IF catd(whoi) = 3 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 7) THEN .xgo = 20
+         IF catd(whoi) = 1 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 5) THEN .xgo = -20
+         IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
+          FOR o = 0 TO 299 ' check to make sure no other NPCs are blocking this one
+           IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
+           IF i = o THEN CONTINUE FOR
+           IF wrapcollision (.x, .y, .xgo, .ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
+            .xgo = 0
+            .ygo = 0
+            EXIT FOR
+           END IF
+          NEXT o
+         END IF
         END IF
-       END IF
-       IF npcs(id).activation = 1 AND whoi = 0 THEN
-        IF wraptouch(npc(i).x, npc(i).y, catx(0), caty(0), 20) THEN
-         txt.sayer = i
-         usething 1, npc(i).x, npc(i).y
-        END IF
-       END IF '---autoactivate
-      END IF ' ---NPC IS IN THE WAY
-     END IF ' ---NPC IS AN OBSTRUCTION
-    END IF '---NPC EXISTS
+        IF npcs(id).activation = 1 AND whoi = 0 THEN '--NPC is touch-activated
+         IF wraptouch(.x, .y, catx(0), caty(0), 20) THEN
+          usenpc 1, i
+         END IF
+        END IF '---touch-activate
+       END IF ' ---NPC IS IN THE WAY
+      END IF ' ---NPC IS AN OBSTRUCTION
+     END IF '---NPC EXISTS
+    END WITH
    NEXT i
   END IF
  END IF'--this only gets run when starting a movement to a new tile
@@ -889,18 +893,19 @@ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_ch
  '--finished a step
  force_npc_check = NO
  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
-  '--this only happens if obstruction is on
+  '--check for step-on NPCS
   FOR i = 0 TO 299
-   IF npc(i).id > 0 THEN '---NPC EXISTS---
-    IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
-     IF npcs(npc(i).id - 1).activation = 2 THEN '---NPC IS PASSABLE---
-      IF npc(i).x = catx(0) AND npc(i).y = caty(0) THEN '---YOU ARE ON NPC---
-       txt.sayer = i
-       usething 1, npc(i).x, npc(i).y
-      END IF'---YOU ARE ON NPC---
-     END IF ' ---NPC IS PASSABLE---
-    END IF '--vehicle okay
-   END IF '---NPC EXISTS
+   WITH npc(i)
+    IF .id > 0 THEN '---NPC EXISTS---
+     IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
+      IF npcs(.id - 1).activation = 2 THEN '---NPC is step-on activated
+       IF .x = catx(0) AND .y = caty(0) THEN '---YOU ARE ON NPC---
+        usenpc 1, i
+       END IF '---YOU ARE ON NPC---
+      END IF '---NPC IS PASSABLE---
+     END IF '--vehicle okay
+    END IF '---NPC EXISTS
+   END WITH
   NEXT i
  END IF
  IF didgo(0) = 1 THEN 'only check doors if the hero really moved, not just if force_npc_check = YES
@@ -923,151 +928,166 @@ END IF
 setmapxy
 RETRACE
 
-movenpc:
-FOR o = 0 TO 299
- IF npc(o).id > 0 THEN
-  id = (npc(o).id - 1)
-  '--if this is the active vehicle
-  IF vstate.active = YES AND vstate.npc = o THEN
-   '-- if we are not scrambling clearing or aheading
-   IF vstate.mounting = NO AND vstate.trigger_cleanup = NO AND vstate.ahead = NO THEN
-    '--match vehicle to main hero
-    npc(o).x = catx(0)
-    npc(o).y = caty(0)
-    npc(o).dir = catd(0)
-    npc(o).frame = wtog(0)
-   END IF
-  ELSE
-   movetype = npcs(id).movetype
-   speedset = npcs(id).speed
-   IF movetype > 0 AND (speedset > 0 OR movetype = 8) AND txt.sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
-    IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
-     'RANDOM WANDER---
-     IF movetype = 1 THEN
-      rand = 25
-      IF wraptouch(npc(o).x, npc(o).y, catx(0), caty(0), 20) THEN rand = 5
-      IF INT(RND * 100) < rand THEN
-       temp = INT(RND * 4)
-       npc(o).dir = temp
-       IF temp = 0 THEN npc(o).ygo = 20
-       IF temp = 2 THEN npc(o).ygo = -20
-       IF temp = 3 THEN npc(o).xgo = 20
-       IF temp = 1 THEN npc(o).xgo = -20
-      END IF
-     END IF '---RANDOM WANDER
-     'ASSORTED PACING---
-     IF movetype > 1 AND movetype < 6 THEN
-      IF npc(o).dir = 0 THEN npc(o).ygo = 20
-      IF npc(o).dir = 2 THEN npc(o).ygo = -20
-      IF npc(o).dir = 3 THEN npc(o).xgo = 20
-      IF npc(o).dir = 1 THEN npc(o).xgo = -20
-     END IF '---ASSORTED PACING
-     'CHASE/FLEE---
-     IF movetype > 5 AND movetype < 8 THEN
-      rand = 100
-      IF INT(RND * 100) < rand THEN
-       IF INT(RND * 100) < 50 THEN
-        IF caty(0) < npc(o).y THEN temp = 0
-        IF caty(0) > npc(o).y THEN temp = 2
-        IF gmap(5) = 1 AND caty(0) - mapsizetiles.y * 10 > npc(o).y THEN temp = 0
-        IF gmap(5) = 1 AND caty(0) + mapsizetiles.y * 10 < npc(o).y THEN temp = 2
-        IF caty(0) = npc(o).y THEN temp = INT(RND * 4)
-       ELSE
-        IF catx(0) < npc(o).x THEN temp = 3
-        IF catx(0) > npc(o).x THEN temp = 1
-        IF gmap(5) = 1 AND catx(0) - mapsizetiles.x * 10 > npc(o).x THEN temp = 3
-        IF gmap(5) = 1 AND catx(0) + mapsizetiles.x * 10 < npc(o).x THEN temp = 1
-        IF catx(0) = npc(o).x THEN temp = INT(RND * 4)
-       END IF
-       IF movetype = 7 THEN temp = loopvar(temp, 0, 3, 2)
-       npc(o).dir = temp
-       IF temp = 0 THEN npc(o).ygo = 20
-       IF temp = 2 THEN npc(o).ygo = -20
-       IF temp = 3 THEN npc(o).xgo = 20
-       IF temp = 1 THEN npc(o).xgo = -20
-      END IF
-     END IF '---CHASE/FLEE
-     'WALK IN PLACE---
-     IF movetype = 8 THEN
-      npc(o).frame = loopvar(npc(o).frame, 0, 3, 1)
-     END IF '---WALK IN PLACE
-    END IF
-   END IF
-  END IF
-  IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN GOSUB movenpcgo
- END IF
-NEXT o
-RETRACE
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
 
-movenpcgo:
-npc(o).frame = loopvar(npc(o).frame, 0, 3, 1)
-IF movdivis(npc(o).xgo) OR movdivis(npc(o).ygo) THEN
- IF readbit(gen(), 44, suspendnpcwalls) = 0 THEN
-  '--this only happens if NPC walls on
-  IF wrappass(npc(o).x \ 20, npc(o).y \ 20, npc(o).xgo, npc(o).ygo, 0) THEN
-   npc(o).xgo = 0
-   npc(o).ygo = 0
-   hitwall(npc(o), npcs(id))
-   GOTO nogo
-  END IF
- END IF
- IF readbit(gen(), 44, suspendobstruction) = 0 THEN
-  '--this only happens if obstruction is on
-  FOR i = 0 TO 299
-   IF npc(i).id > 0 AND o <> i THEN
-    IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
-     npc(o).xgo = 0
-     npc(o).ygo = 0
-     hitwall(npc(o), npcs(id))
-     GOTO nogo
+'NPC movement
+'Note that NPC xgo and ygo can also be set from elsewhere, eg. being pushed
+SUB update_npcs ()
+ FOR o AS INTEGER = 0 TO 299
+  IF npc(o).id > 0 THEN
+   DIM AS INTEGER id = (npc(o).id - 1)
+
+   '--if this is the active vehicle
+   IF vstate.active = YES AND vstate.npc = o THEN
+    '--if we are not scrambling clearing or aheading
+    IF vstate.mounting = NO AND vstate.trigger_cleanup = NO AND vstate.ahead = NO THEN
+     '--match vehicle to main hero
+     npc(o).x = catx(0)
+     npc(o).y = caty(0)
+     npc(o).dir = catd(0)
+     npc(o).frame = wtog(0)
+    END IF
+   ELSE
+    '--Not the active vehicle
+    IF txt.sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
+     IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
+      pick_npc_action npc(o), npcs(id)
+     END IF
     END IF
    END IF
-  NEXT i
-  '---CHECK THAT NPC IS OBSTRUCTABLE-----
-  IF npc(o).id > 0 THEN
-   IF npcs(npc(o).id - 1).activation < 2 THEN
-    IF wrapcollision (npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo, catx(0), caty(0), xgo(0), ygo(0)) THEN
-     npc(o).xgo = 0
-     npc(o).ygo = 0
+
+   IF npc(o).xgo <> 0 OR npc(o).ygo <> 0 THEN perform_npc_move(o, npc(o), npcs(id))
+  END IF
+ NEXT o
+END SUB
+
+'A currently stationary NPC decides what to do.
+'Most move types are implemented here, but some are handled upon collision in perform_npc_move
+SUB pick_npc_action(npci AS NPCInst, npcdata AS NPCType)
+ DIM AS INTEGER movetype = npcdata.movetype
+ DIM AS INTEGER speedset = npcdata.speed
+ DIM AS INTEGER temp, rand
+ IF movetype > 0 AND (speedset > 0 OR movetype = 8) THEN
+  'RANDOM WANDER---
+  IF movetype = 1 THEN
+   rand = 25
+   IF wraptouch(npci.x, npci.y, catx(0), caty(0), 20) THEN rand = 5
+   IF INT(RND * 100) < rand THEN
+    temp = INT(RND * 4)
+    npci.dir = temp
+    IF temp = 0 THEN npci.ygo = 20
+    IF temp = 2 THEN npci.ygo = -20
+    IF temp = 3 THEN npci.xgo = 20
+    IF temp = 1 THEN npci.xgo = -20
+   END IF
+  END IF '---RANDOM WANDER
+  'ASSORTED PACING---
+  IF movetype >= 2 AND movetype <= 5 THEN
+   IF npci.dir = 0 THEN npci.ygo = 20
+   IF npci.dir = 2 THEN npci.ygo = -20
+   IF npci.dir = 3 THEN npci.xgo = 20
+   IF npci.dir = 1 THEN npci.xgo = -20
+  END IF '---ASSORTED PACING
+  'CHASE/FLEE---
+  IF movetype = 6 OR movetype = 7 THEN
+   rand = 100
+   IF INT(RND * 100) < rand THEN
+    IF INT(RND * 100) < 50 THEN
+     IF caty(0) < npci.y THEN temp = 0
+     IF caty(0) > npci.y THEN temp = 2
+     IF gmap(5) = 1 AND caty(0) - mapsizetiles.y * 10 > npci.y THEN temp = 0
+     IF gmap(5) = 1 AND caty(0) + mapsizetiles.y * 10 < npci.y THEN temp = 2
+     IF caty(0) = npci.y THEN temp = INT(RND * 4)
+    ELSE
+     IF catx(0) < npci.x THEN temp = 3
+     IF catx(0) > npci.x THEN temp = 1
+     IF gmap(5) = 1 AND catx(0) - mapsizetiles.x * 10 > npci.x THEN temp = 3
+     IF gmap(5) = 1 AND catx(0) + mapsizetiles.x * 10 < npci.x THEN temp = 1
+     IF catx(0) = npci.x THEN temp = INT(RND * 4)
+    END IF
+    IF movetype = 7 THEN temp = loopvar(temp, 0, 3, 2)  'Flee
+    npci.dir = temp
+    IF temp = 0 THEN npci.ygo = 20
+    IF temp = 2 THEN npci.ygo = -20
+    IF temp = 3 THEN npci.xgo = 20
+    IF temp = 1 THEN npci.xgo = -20
+   END IF
+  END IF '---CHASE/FLEE
+  'WALK IN PLACE---
+  IF movetype = 8 THEN
+   npci.frame = loopvar(npci.frame, 0, 3, 1)
+  END IF '---WALK IN PLACE
+ END IF
+END SUB
+
+SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCType)
+ '--npcnum is the npc() index of npci.
+ '--Here we attempt to actually update the coordinates for this NPC, checking obstructions
+ npci.frame = loopvar(npci.frame, 0, 3, 1)
+ IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
+  IF readbit(gen(), 44, suspendnpcwalls) = 0 THEN
+   '--this only happens if NPC walls on
+   IF wrappass(npci.x \ 20, npci.y \ 20, npci.xgo, npci.ygo, 0) THEN
+    npci.xgo = 0
+    npci.ygo = 0
+    npchitwall(npci, npcdata)
+    GOTO nogo
+   END IF
+  END IF
+  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
+   '--this only happens if obstruction is on
+   FOR i AS INTEGER = 0 TO 299
+    IF npc(i).id > 0 AND npcnum <> i THEN
+     IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, npci.xgo, npci.ygo) THEN
+      npci.xgo = 0
+      npci.ygo = 0
+      npchitwall(npci, npcdata)
+      GOTO nogo
+     END IF
+    END IF
+   NEXT i
+   '---Check for hero-NPC collision
+   IF npcdata.activation <> 2 THEN  'Not step-on activated
+    IF wrapcollision (npci.x, npci.y, npci.xgo, npci.ygo, catx(0), caty(0), xgo(0), ygo(0)) THEN
+     npci.xgo = 0
+     npci.ygo = 0
      '--a 0-3 tick delay before pacing enemies bounce off hero
-     IF npc(o).frame = 3 THEN
-      hitwall(npc(o), npcs(id))
+     IF npci.frame = 3 THEN
+      npchitwall(npci, npcdata)
       GOTO nogo
      END IF
     END IF
    END IF
   END IF
  END IF
-END IF
-IF npcs(id).speed THEN
- '--change x,y and decrement wantgo by speed
- IF npc(o).xgo > 0 THEN npc(o).xgo = npc(o).xgo - npcs(id).speed: npc(o).x = npc(o).x - npcs(id).speed
- IF npc(o).xgo < 0 THEN npc(o).xgo = npc(o).xgo + npcs(id).speed: npc(o).x = npc(o).x + npcs(id).speed
- IF npc(o).ygo > 0 THEN npc(o).ygo = npc(o).ygo - npcs(id).speed: npc(o).y = npc(o).y - npcs(id).speed
- IF npc(o).ygo < 0 THEN npc(o).ygo = npc(o).ygo + npcs(id).speed: npc(o).y = npc(o).y + npcs(id).speed
-ELSE
- '--no speed, kill wantgo
- npc(o).xgo = 0
- npc(o).ygo = 0
-END IF
-IF cropmovement(npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN hitwall(npc(o), npcs(id))
-nogo:
-IF npcs(id).activation = 1 AND txt.showing = NO THEN
- IF wraptouch(npc(o).x, npc(o).y, catx(0), caty(0), 20) THEN
-  txt.sayer = o
-  usething 1, npc(o).x, npc(o).y
+ IF npcdata.speed THEN
+  '--change x,y and decrement wantgo by speed
+  IF npci.xgo > 0 THEN npci.xgo = npci.xgo - npcdata.speed: npci.x = npci.x - npcdata.speed
+  IF npci.xgo < 0 THEN npci.xgo = npci.xgo + npcdata.speed: npci.x = npci.x + npcdata.speed
+  IF npci.ygo > 0 THEN npci.ygo = npci.ygo - npcdata.speed: npci.y = npci.y - npcdata.speed
+  IF npci.ygo < 0 THEN npci.ygo = npci.ygo + npcdata.speed: npci.y = npci.y + npcdata.speed
+ ELSE
+  '--no speed, kill wantgo
+  npci.xgo = 0
+  npci.ygo = 0
  END IF
-END IF
-RETRACE
+ IF cropmovement(npci.x, npci.y, npci.xgo, npci.ygo) THEN npchitwall(npci, npcdata)
 
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
+ nogo:
+ '--Check touch activation. I have no idea why this is here!
+ IF npcdata.activation = 1 AND txt.showing = NO THEN
+  IF wraptouch(npci.x, npci.y, catx(0), caty(0), 20) THEN
+   usenpc 1, npcnum
+  END IF
+ END IF
+END SUB
 
-SUB hitwall(npci AS NPCInst, npcdata AS NPCType)
- IF npcdata.movetype = 2 THEN npci.dir = loopvar(npci.dir, 0, 3, 2)
- IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)
- IF npcdata.movetype = 4 THEN npci.dir = loopvar(npci.dir, 0, 3, -1)
- IF npcdata.movetype = 5 THEN npci.dir = INT(RND * 4)
+SUB npchitwall(npci AS NPCInst, npcdata AS NPCType)
+ IF npcdata.movetype = 2 THEN npci.dir = loopvar(npci.dir, 0, 3, 2)  'Pace
+ IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)  'Right Turns
+ IF npcdata.movetype = 4 THEN npci.dir = loopvar(npci.dir, 0, 3, -1) 'Left Turns
+ IF npcdata.movetype = 5 THEN npci.dir = INT(RND * 4)                'Random Turns
 END SUB
 
 SUB interpret()
@@ -1217,9 +1237,8 @@ IF wantteleport > 0 THEN
  gam.random_battle_countdown = range(100, 60)
 END IF
 IF wantusenpc > 0 THEN
- txt.sayer = wantusenpc - 1
+ usenpc 2, wantusenpc - 1
  wantusenpc = 0
- usething 2, 0, 0
 END IF
 END SUB
 
@@ -2637,7 +2656,7 @@ SUB advance_text_box ()
  npcplot
  IF txt.sayer >= 0 AND txt.old_dir <> -1 THEN
   IF npc(txt.sayer).id > 0 THEN
-   IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN
+   IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN  '"Face Player"
     npc(txt.sayer).dir = txt.old_dir
    END IF
   END IF
@@ -2879,110 +2898,103 @@ SUB dump_vehicle_state()
  END WITH
 END SUB
 
-SUB usething(BYVAL auto AS INTEGER, BYVAL ux AS INTEGER, BYVAL uy AS INTEGER)
- 'auto = 0: normal use, txt.sayer = -1
- 'auto = 1: touch and step-on, txt.sayer set to +NPC reference
- 'auto = 2: scripted, txt.sayer set to +NPC reference
- IF auto = 0 THEN
-  ux = catx(0)
-  uy = caty(0)
-  wrapaheadxy ux, uy, catd(0), 20, 20
- END IF
- DIM nx AS INTEGER
- DIM ny AS INTEGER
- DIM nd AS INTEGER
- IF txt.sayer < 0 THEN
-  IF auto <> 2 THEN 'find the NPC to trigger the hard way
-   txt.sayer = -1
-   DIM j AS INTEGER = -1
-   DO
-    j += 1
-    IF j > 299 THEN EXIT SUB
-    IF npc(j).id > 0 AND (j <> vstate.npc OR vstate.active = NO) THEN
-     '--Step-on NPCs cannot be used
-     IF auto = 0 AND npcs(npc(j).id - 1).activation = 2 THEN CONTINUE DO
-     nx = npc(j).x
-     ny = npc(j).y
-     nd = npc(j).dir
-     IF (nx = ux AND ny = uy) THEN 'not moving NPCs
-      EXIT DO
-     ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
-      '--first check the tile the NPC is stepping into
-      nx -= npc(j).xgo
-      ny -= npc(j).ygo
-      cropposition nx, ny, 20
-      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
-      'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage
-      IF (nx = ux AND ny = uy) THEN 'check for activation
-       EXIT DO
-      END IF
-      '--also check the tile the NPC is leaving
-      nx = nx + SGN(npc(j).xgo) * 20
-      ny = ny + SGN(npc(j).ygo) * 20
-      '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
-      'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage
-      IF (nx = ux AND ny = uy) THEN 'check for activation
-       '--if activating an NPC that has just walked past us, cause it to back up
-       npc(j).xgo = SGN(npc(j).xgo * -1) * (20 - ABS(npc(j).xgo))
-       npc(j).ygo = SGN(npc(j).ygo * -1) * (20 - ABS(npc(j).ygo))
-       EXIT DO
-      END IF
+'--Look in front of the leader for an activatable NPC.
+'--WARNING: has side-effects: assumes result is passed to usenpc
+FUNCTION find_useable_npc() AS INTEGER
+ DIM ux AS INTEGER = catx(0)
+ DIM uy AS INTEGER = caty(0)
+ wrapaheadxy ux, uy, catd(0), 20, 20
+
+ FOR j AS INTEGER = 0 TO 299
+  WITH npc(j)
+   IF .id > 0 AND (j <> vstate.npc OR vstate.active = NO) THEN
+    '--Step-on NPCs cannot be used
+    IF npcs(.id - 1).activation = 2 THEN CONTINUE FOR
+    DIM nx AS INTEGER = .x
+    DIM ny AS INTEGER = .y
+    IF (nx = ux AND ny = uy) THEN 'not moving NPCs
+     RETURN j
+    ELSEIF nx MOD 20 <> 0 XOR ny mod 20 <> 0 THEN 'they're moving (i.e. misaligned)
+     '--first check the tile the NPC is stepping into
+     nx -= .xgo
+     ny -= .ygo
+     cropposition nx, ny, 20
+     '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
+     'rectangle nx - mapx, ny - mapy, 20,20, 1, vpage : setvispage vpage
+     IF (nx = ux AND ny = uy) THEN 'check for activation
+      RETURN j
+     END IF
+     '--also check the tile the NPC is leaving
+     nx = nx + SGN(.xgo) * 20
+     ny = ny + SGN(.ygo) * 20
+     '--uncommenting the line below provides a helpful rectangle that shows the activation tile of an NPC
+     'rectangle nx - mapx, ny - mapy, 20,20, 4, vpage : setvispage vpage
+     IF (nx = ux AND ny = uy) THEN 'check for activation
+      '--if activating an NPC that has just walked past us, cause it to back up
+      .xgo = SGN(.xgo * -1) * (20 - ABS(.xgo))
+      .ygo = SGN(.ygo * -1) * (20 - ABS(.ygo))
+      RETURN j
      END IF
     END IF
-   LOOP
-   txt.sayer = j
+   END IF
+  END WITH
+ NEXT
+ RETURN -1
+END FUNCTION
+
+'Activate npc(npcnum)
+SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
+ 'cause = 0: normal use key
+ 'cause = 1: touch and step-on
+ 'cause = 2: scripted
+ IF npcnum < 0 THEN EXIT SUB
+ DIM id AS INTEGER = npc(npcnum).id - 1
+
+ '---Item from NPC---
+ DIM getit AS INTEGER = npcs(id).item
+ IF getit THEN getitem getit, 1
+ '---DIRECTION CHANGING-----------------------
+ txt.old_dir = -1
+ IF cause <> 2 AND npcs(id).facetype <> 2 THEN  'not "Do not face player"
+  txt.old_dir = npc(npcnum).dir
+  npc(npcnum).dir = catd(0)
+  npc(npcnum).dir = loopvar(npc(npcnum).dir, 0, 3, 2)
+ END IF
+ IF npcs(id).usetag > 0 THEN
+  '--One-time-use tag
+  setbit tag(), 0, 1000 + npcs(id).usetag, 1
+ END IF
+ IF npcs(id).script > 0 THEN
+  '--summon a script directly from an NPC
+  DIM rsr AS INTEGER = runscript(npcs(id).script, nowscript + 1, -1, "NPC", plottrigger)
+  IF rsr = 1 THEN
+   setScriptArg 0, npcs(id).scriptarg
+   setScriptArg 1, (npcnum + 1) * -1 'reference
   END IF
  END IF
- '--if we have gotten this far, we must have a valid txt.sayer
- IF txt.sayer >= 0 THEN
-  '---Item from NPC---
-  DIM getit AS INTEGER = npcs(npc(txt.sayer).id - 1).item
-  IF getit THEN getitem getit, 1
-  '---DIRECTION CHANGING-----------------------
-  txt.old_dir = -1
-  IF auto <> 2 AND npcs(npc(txt.sayer).id - 1).facetype < 2 THEN
-   txt.old_dir = npc(txt.sayer).dir
-   npc(txt.sayer).dir = catd(0)
-   npc(txt.sayer).dir = loopvar(npc(txt.sayer).dir, 0, 3, 2)
+ DIM vehuse AS INTEGER = npcs(id).vehicle
+ IF vehuse THEN '---activate a vehicle---
+  reset_vehicle vstate
+  vstate.id = vehuse - 1
+  LoadVehicle game & ".veh", vstate.dat, vstate.id
+  '--check mounting permissions first
+  IF vehpass(vstate.dat.mount_from, readblock(pass, catx(0) \ 20, caty(0) \ 20), -1) THEN
+   vstate.active = YES
+   vstate.npc = npcnum
+   vstate.old_speed = herospeed(0)
+   herospeed(0) = 10
+   vstate.mounting = YES '--trigger mounting sequence
+   IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 1
   END IF
-  IF npcs(npc(txt.sayer).id - 1).usetag > 0 THEN
-   '--One-time-use tag
-   setbit tag(), 0, 1000 + npcs(npc(txt.sayer).id - 1).usetag, 1
-  END IF
-  IF npcs(npc(txt.sayer).id - 1).script > 0 THEN
-   '--summon a script directly from an NPC
-   DIM rsr AS INTEGER = runscript(npcs(npc(txt.sayer).id - 1).script, nowscript + 1, -1, "NPC", plottrigger)
-   IF rsr = 1 THEN
-    setScriptArg 0, npcs(npc(txt.sayer).id - 1).scriptarg
-    setScriptArg 1, (txt.sayer + 1) * -1 'reference
-   END IF
-  END IF
-  DIM vehuse AS INTEGER = npcs(npc(txt.sayer).id - 1).vehicle
-  IF vehuse THEN '---activate a vehicle---
-   reset_vehicle vstate
-   vstate.id = vehuse - 1
-   LoadVehicle game & ".veh", vstate.dat, vstate.id
-   '--check mounting permissions first
-   IF vehpass(vstate.dat.mount_from, readblock(pass, catx(0) \ 20, caty(0) \ 20), -1) THEN
-    vstate.active = YES
-    vstate.npc = txt.sayer
-    vstate.old_speed = herospeed(0)
-    herospeed(0) = 10
-    vstate.mounting = YES '--trigger mounting sequence
-    IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 1
-   END IF
-  END IF
-  SELECT CASE npcs(npc(txt.sayer).id - 1).textbox
-   CASE 0
-    txt.sayer = -1
-   CASE IS > 0
-    loadsay npcs(npc(txt.sayer).id - 1).textbox
-  END SELECT
-  evalherotag
-  evalitemtag
-  IF txt.id = -1 THEN
-   npcplot
-  END IF
+ END IF
+ IF npcs(id).textbox > 0 THEN
+  txt.sayer = npcnum
+  loadsay npcs(id).textbox
+ END IF
+ evalherotag
+ evalitemtag
+ IF txt.id = -1 THEN
+  npcplot
  END IF
 END SUB
 
