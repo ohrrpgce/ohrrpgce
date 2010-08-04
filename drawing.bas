@@ -812,7 +812,7 @@ DO
   IF slowkey(scDown, 2) THEN IF bnum < 144 THEN bnum = bnum + 16: IF ts.gotmouse THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
  END IF
  IF ts.gotmouse THEN
-  bnum = INT(mouse(1) / 20) * 16 + INT(mouse(0) / 20)
+  bnum = (mouse(1) \ 20) * 16 + mouse(0) \ 20
  END IF
  IF tmode = 3 THEN
   '--pass mode shortcuts

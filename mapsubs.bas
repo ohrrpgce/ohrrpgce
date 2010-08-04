@@ -146,7 +146,7 @@ END FUNCTION
 
 SUB mapmaker (font())
 DIM st AS MapEditState
-DIM mode(12) AS STRING, list(13) AS STRING, menu(-1 TO 20) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs - 1)
+DIM modenames(4) AS STRING, mapeditmenu(13) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs - 1)
 DIM her AS HeroDef
 DIM defaults(maplayerMax) AS DefArray
 
@@ -185,27 +185,22 @@ st.cursor.pal->col(2) = uilook(uiMenuItem)
 ' the colors here are actually offsets into the 16-color palette.
 ' see the st.cursor.pal construction above
 st.cursor.sprite = frame_new(20, 20, 2, YES)
-DIM cursorpage AS INTEGER
 
-cursorpage = registerpage(st.cursor.sprite)
-rectangle 0, 0, 20, 20, 1, cursorpage
-rectangle 1, 1, 18, 18, 0, cursorpage
-rectangle 2, 2, 16, 16, 2, cursorpage
-rectangle 3, 3, 14, 14, 0, cursorpage
-freepage cursorpage
+rectangle 0, 0, 20, 20, 1, st.cursor.sprite
+rectangle 1, 1, 18, 18, 0, st.cursor.sprite
+rectangle 2, 2, 16, 16, 2, st.cursor.sprite
+rectangle 3, 3, 14, 14, 0, st.cursor.sprite
 
-cursorpage = registerpage(st.cursor.sprite + 1)
-rectangle 0, 0, 20, 20, 1, cursorpage
-rectangle 1, 1, 18, 18, 0, cursorpage
-rectangle 3, 3, 14, 14, 2, cursorpage
-rectangle 4, 4, 12, 12, 0, cursorpage
-freepage cursorpage
+rectangle 0, 0, 20, 20, 1, st.cursor.sprite + 1
+rectangle 1, 1, 18, 18, 0, st.cursor.sprite + 1
+rectangle 3, 3, 14, 14, 2, st.cursor.sprite + 1
+rectangle 4, 4, 12, 12, 0, st.cursor.sprite + 1
 
-mode(0) = "Picture Mode"
-mode(1) = "Passability Mode"
-mode(2) = "Door Placement Mode"
-mode(3) = "NPC Placement Mode"
-mode(4) = "Foe Mapping Mode"
+modenames(0) = "Picture Mode"
+modenames(1) = "Passability Mode"
+modenames(2) = "Door Placement Mode"
+modenames(3) = "NPC Placement Mode"
+modenames(4) = "Foe Mapping Mode"
 
 cleantilemap st.menubar, 160, 1
 cleantilemap st.tilesetview, 16, 10
@@ -216,7 +211,6 @@ NEXT
 
 maptop = 0
 pt = 0
-csr = 0
 make_top_map_menu maptop, topmenu()
 setkeys
 DO
@@ -274,20 +268,24 @@ y = 0
 mapx = 0
 mapy = 0
 st.layer = 0
-list(0) = "Return to Map Menu"
-list(1) = "Edit General Map Data..."
-list(2) = "Resize Map..."
-list(3) = "Layers and Tilesets..."
-list(4) = "Edit NPCs..."
-list(5) = "Edit Tilemap..."
-list(6) = "Edit Wallmap..."
-list(7) = "Place Doors..."
-list(8) = "Place NPCs..."
-list(9) = "Edit Foemap..."
-list(10) = "Link Doors..."
-list(11) = "Erase Map Data"
-list(12) = "Re-load Default Passability"
-list(13) = "Map name:"
+mapeditmenu(0) = "Return to Map Menu"
+mapeditmenu(1) = "Edit General Map Data..."
+mapeditmenu(2) = "Resize Map..."
+mapeditmenu(3) = "Layers and Tilesets..."
+mapeditmenu(4) = "Edit NPCs..."
+mapeditmenu(5) = "Edit Tilemap..."
+mapeditmenu(6) = "Edit Wallmap..."
+mapeditmenu(7) = "Place Doors..."
+mapeditmenu(8) = "Place NPCs..."
+mapeditmenu(9) = "Edit Foemap..."
+mapeditmenu(10) = "Link Doors..."
+mapeditmenu(11) = "Erase Map Data"
+mapeditmenu(12) = "Re-load Default Passability"
+mapeditmenu(13) = "Map name:"
+
+st.menustate.size = 24
+st.menustate.last = UBOUND(mapeditmenu)
+'Don't reset st.menustate.pt, that's preserved (including from any other maps) on purpose
 
 '--load NPC graphics--
 FOR i = 0 TO st.num_npc_defs - 1
@@ -308,52 +306,50 @@ DO
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
- usemenu csr, 0, 0, 13, 24
+ usemenu st.menustate
  IF enter_or_space() THEN
-  IF csr = 0 THEN
-   mapedit_savemap st, pt, map(), pass, emap, gmap(), doors(), link(), mapname$
-   EXIT DO
-  END IF
-  IF csr = 1 THEN
-   mapedit_gmapdata st, gmap()
-  END IF
-  IF csr = 2 THEN
-   mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), mapname$
-  END IF
-  IF csr = 3 THEN
-   mapedit_layers st, gmap(), visible(), defaults(), map()
-  END IF
-  IF csr = 4 THEN
-   'This may change st.num_npc_defs, and delete NPC instances
-   npcdef st.npc_def(), npc_img(), st.num_npc_defs, st.npc_inst()
-  END IF
-  IF csr >= 5 AND csr <= 9 THEN editmode = csr - 5: GOSUB mapping
-  IF csr = 10 THEN mapedit_linkdoors st, pt, map(), pass, emap, gmap(), doors(), link(), mapname$
-  IF csr = 11 THEN
-   mapedit_delete st, pt, wide, high, x, y, mapx, mapy, map(), pass, emap, doors(), link()
-   IF pt > gen(genMaxMap) THEN
-    pt -= 1
+  SELECT CASE st.menustate.pt
+   CASE 0
+    mapedit_savemap st, pt, map(), pass, emap, gmap(), doors(), link(), mapname$
     EXIT DO
-   END IF
-  END IF
-  IF csr = 12 THEN
-   '--reload default passability
-   defpass_reload_confirm(0) = "No, Nevermind. No passability changes"
-   defpass_reload_confirm(1) = "Set default passability for whole map"
-   IF sublist(defpass_reload_confirm(), "defpass_reload_confirm") = 1 THEN
-    FOR tx = 0 TO wide - 1
-     FOR ty = 0 TO high - 1
-      calculatepassblock st, tx, ty, map(), pass, defaults()
-     NEXT ty
-    NEXT tx
-   END IF
-  END IF
+   CASE 1
+    mapedit_gmapdata st, gmap()
+   CASE 2
+    mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), mapname$
+   CASE 3
+    mapedit_layers st, gmap(), visible(), defaults(), map()
+   CASE 4
+    'This may change st.num_npc_defs, and delete NPC instances
+    npcdef st.npc_def(), npc_img(), st.num_npc_defs, st.npc_inst()
+   CASE 5 TO 9
+    editmode = st.menustate.pt - 5
+    GOSUB mapping
+   CASE 10
+    mapedit_linkdoors st, pt, map(), pass, emap, gmap(), doors(), link(), mapname$
+   CASE 11
+    mapedit_delete st, pt, wide, high, x, y, mapx, mapy, map(), pass, emap, doors(), link()
+    IF pt > gen(genMaxMap) THEN
+     pt -= 1
+     EXIT DO
+    END IF
+   CASE 12
+    '--reload default passability
+    defpass_reload_confirm(0) = "No, Nevermind. No passability changes"
+    defpass_reload_confirm(1) = "Set default passability for whole map"
+    IF sublist(defpass_reload_confirm(), "defpass_reload_confirm") = 1 THEN
+     FOR tx = 0 TO wide - 1
+      FOR ty = 0 TO high - 1
+       calculatepassblock st, tx, ty, map(), pass, defaults()
+      NEXT ty
+     NEXT tx
+    END IF
+  END SELECT
  END IF
- IF csr = 13 THEN strgrabber mapname$, 39
- list(13) = "Map name:" + mapname$
- IF LEN(list(13)) > 40 THEN list(13) = mapname$
+ IF st.menustate.pt = 13 THEN strgrabber mapname$, 39
+ mapeditmenu(13) = "Map name:" + mapname$
+ IF LEN(mapeditmenu(13)) > 40 THEN mapeditmenu(13) = mapname$
  
- standardmenu list(), 13, 13, csr, 0, 0, 0, dpage, 0
+ standardmenu mapeditmenu(), st.menustate, 0, 0, dpage
  
  SWAP vpage, dpage
  setvispage vpage
@@ -473,7 +469,7 @@ DO
   CASE 0
    IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
    IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+F Fill screen
-    FOR tx = 0 TO 14
+    FOR tx = 0 TO 15
      FOR ty = 0 TO 8
       writeblock map(st.layer), mapx \ 20 + tx, mapy \ 20 + ty, st.usetile(st.layer)
       IF defpass THEN calculatepassblock st, mapx \ 20 + tx, mapy \ 20 + ty, map(), pass, defaults()
@@ -656,9 +652,9 @@ DO
     writeblock emap, x, y, 0
    END IF
    IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN
-    FOR i = 0 TO 14
+    FOR i = 0 TO 15
      FOR o = 0 TO 8
-      writeblock emap, INT(mapx / 20) + i, INT(mapy / 20) + o, foe
+      writeblock emap, mapx \ 20 + i, mapy \ 20 + o, foe
      NEXT o
     NEXT i
    END IF
@@ -675,10 +671,10 @@ DO
   yrate = 1
  END IF
  IF keyval(scAlt) = 0 AND keyval(scCtrl) = 0 THEN
-  IF slowkey(scUp, 2) THEN y = large(y - yrate, 0): IF y < INT(mapy / 20) THEN mapy = y * 20
-  IF slowkey(scDown, 2) THEN y = small(y + yrate, high - 1): IF y > INT(mapy / 20) + 8 THEN mapy = y * 20 - 160
-  IF slowkey(scLeft, 2) THEN x = large(x - xrate, 0): IF x < INT(mapx / 20) THEN mapx = x * 20
-  IF slowkey(scRight, 2) THEN x = small(x + xrate, wide - 1): IF x > INT(mapx / 20) + 14 THEN mapx = x * 20 - 280
+  IF slowkey(scUp, 2) THEN y = large(y - yrate, 0): IF y < mapy \ 20 THEN mapy = y * 20
+  IF slowkey(scDown, 2) THEN y = small(y + yrate, high - 1): IF y > mapy \ 20 + 8 THEN mapy = y * 20 - 160
+  IF slowkey(scLeft, 2) THEN x = large(x - xrate, 0): IF x < mapx \ 20 THEN mapx = x * 20
+  IF slowkey(scRight, 2) THEN x = small(x + xrate, wide - 1): IF x > mapx \ 20 + 15 THEN mapx = x * 20 - 300
  END IF
  IF keyval(scAlt) > 0 AND keyval(scCtrl) = 0 THEN
   oldrelx = x - mapx / 20
@@ -686,14 +682,14 @@ DO
   IF slowkey(scUp, 2) THEN mapy = large(mapy - 20 * yrate, 0)
   IF slowkey(scDown, 2) THEN mapy = small(mapy + 20 * yrate, high * 20 - 180)
   IF slowkey(scLeft, 2) THEN mapx = large(mapx - 20 * xrate, 0)
-  IF slowkey(scRight, 2) THEN mapx = small(mapx + 20 * xrate, wide * 20 - 300)
+  IF slowkey(scRight, 2) THEN mapx = small(mapx + 20 * xrate, wide * 20 - 320)
   x = mapx / 20 + oldrelx
   y = mapy / 20 + oldrely
  END IF
  
  IF editmode = 0 THEN 'tilemode, uses layers
   IF keyval(scPageup) > 1 THEN
-   FOR i = st.layer+1 TO UBOUND(map)
+   FOR i = st.layer + 1 TO UBOUND(map)
     IF layerisenabled(gmap(), i) THEN
      st.layer = i
      setlayervisible(visible(), st.layer, 1)
@@ -704,7 +700,7 @@ DO
   END IF
 
   IF keyval(scPageDown) > 1 THEN
-   FOR i = st.layer-1 TO 0 STEP -1
+   FOR i = st.layer - 1 TO 0 STEP -1
     IF layerisenabled(gmap(), i) THEN
      st.layer = i
      setlayervisible(visible(), st.layer, 1)
@@ -720,7 +716,7 @@ DO
  
  '--draw menubar
  IF editmode = 0 THEN
-  setmapdata , 0, 20
+  setmapdata  , 0, 20
   drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, 0, st.tilesets(st.layer), dpage
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
@@ -757,7 +753,7 @@ DO
  '--show passmode overlay
  IF editmode = 1 THEN
   FOR o = 0 TO 8
-   FOR i = 0 TO 14
+   FOR i = 0 TO 15
     over = readblock(pass, (mapx \ 20) + i, (mapy \ 20) + o)
     IF (over AND 1) THEN rectangle i * 20, o * 20 + 20, 20, 3, uilook(uiMenuItem + tog), dpage
     IF (over AND 2) THEN rectangle i * 20 + 17, o * 20 + 20, 3, 20, uilook(uiMenuItem + tog), dpage
@@ -776,7 +772,7 @@ DO
  IF editmode = 2 THEN
   textcolor uilook(uiBackground), 0
   FOR i = 0 TO 99
-   IF doors(i).x >= INT(mapx / 20) AND doors(i).x < INT(mapx / 20) + 16 AND doors(i).y > INT(mapy / 20) AND doors(i).y <= INT(mapy / 20) + 9 AND readbit(doors(i).bits(),0,0) = 1 THEN
+   IF doors(i).x >= mapx \ 20 AND doors(i).x < mapx \ 20 + 16 AND doors(i).y > mapy \ 20 AND doors(i).y <= mapy \ 20 + 9 AND readbit(doors(i).bits(),0,0) = 1 THEN
     rectangle doors(i).x * 20 - mapx, doors(i).y * 20 - mapy, 20, 20, uilook(uiSelectedItem + tog), dpage
     printstr STR$(i), doors(i).x * 20 - mapx + 10 - (4 * LEN(STR$(i))), doors(i).y * 20 - mapy + 6, dpage
    END IF
@@ -785,7 +781,7 @@ DO
 
  '--hero start location display--
  IF gen(genStartMap) = pt THEN
-  IF gen(genStartX) >= INT(mapx / 20) AND gen(genStartX) < INT(mapx / 20) + 16 AND gen(genStartY) > INT(mapy / 20) AND gen(genStartY) <= INT(mapy / 20) + 9 THEN
+  IF gen(genStartX) >= mapx \ 20 AND gen(genStartX) < mapx \ 20 + 16 AND gen(genStartY) > mapy \ 20 AND gen(genStartY) <= mapy \ 20 + 9 THEN
    drawsprite heroimg(), 0, heropal(), 0, gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 20 - mapy, dpage
    printstr "Hero", gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 30 - mapy, dpage
   END IF
@@ -840,18 +836,18 @@ DO
  '--show foemap--
  IF editmode = 4 THEN
   textcolor uilook(uiSelectedItem + tog), 0
-  FOR i = 0 TO 14
+  FOR i = 0 TO 15
    FOR o = 0 TO 8
-    temp = readblock(emap, INT(mapx / 20) + i, INT(mapy / 20) + o)
+    temp = readblock(emap, mapx \ 20 + i, mapy \ 20 + o)
     IF temp > 0 THEN printstr STR$(temp), i * 20 - ((temp < 10) * 5), o * 20 + 26, dpage
    NEXT o
   NEXT i
  END IF
  
  textcolor uilook(uiSelectedItem + tog), 0
- if editmode = 0 then
- printstr "Layer " & st.layer, 0, 180, dpage
- end if
+ IF editmode = 0 THEN
+  printstr "Layer " & st.layer, 0, 180, dpage
+ END IF
  printstr "X " & x & "   Y " & y, 0, 192, dpage
  rectangle 0, 19, 320, 1, uilook(uiText), dpage
  IF editmode = 0 THEN
@@ -860,7 +856,7 @@ DO
   printstr status$, 124, 192, dpage
  END IF
  textcolor uilook(uiText), 0
- printstr mode(editmode), 0, 24, dpage
+ printstr modenames(editmode), 0, 24, dpage
  IF editmode = 4 THEN textcolor uilook(uiText), uilook(uiHighlight): printstr "Formation Set: " & foe, 0, 16, dpage
  SWAP vpage, dpage
  setvispage vpage

@@ -944,7 +944,7 @@ DO
         thing$ = load_item_name(b(18),1,1)
         loaditemdata item_tmp(), b(18)
         b(24) = item_tmp(46) ' default buy price
-        b(27) = INT(item_tmp(46) / 2) ' default sell price
+        b(27) = item_tmp(46) \ 2 ' default sell price
        CASE 1
         loadherodata @her, b(18)
         thing$ = her.name

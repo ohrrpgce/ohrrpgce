@@ -130,6 +130,7 @@ TYPE MapEditState
   tilesetview AS TileMap
   cursor AS GraphicPair
   tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
+  menustate AS MenuState
 END TYPE
 
 TYPE MapResizeState

@@ -308,7 +308,7 @@ SUB ui_color_editor(palnum AS INTEGER)
    CASE 5,6 ' selected disabled
     sample_state.pt = 2
    CASE 18 TO 47
-    sample_menu.boxstyle = INT((state.pt - 19) / 2)
+    sample_menu.boxstyle = (state.pt - 19) \ 2
    CASE 48 TO 62
     sample_menu.boxstyle = index - 48
   END SELECT
