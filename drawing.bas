@@ -805,14 +805,20 @@ DO
    show_help "picktiletoedit"
   END IF
  END IF
- IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
-  IF slowkey(scLeft, 2) THEN IF bnum > 0 THEN bnum = bnum - 1: IF ts.gotmouse THEN mouse(0) = mouse(0) - 20: movemouse mouse(0), mouse(1)
-  IF slowkey(scRight, 2) THEN IF bnum < 159 THEN bnum = bnum + 1: IF ts.gotmouse THEN mouse(0) = mouse(0) + 20: movemouse mouse(0), mouse(1)
-  IF slowkey(scUp, 2) THEN IF bnum > 15 THEN bnum = bnum - 16: IF ts.gotmouse THEN mouse(1) = mouse(1) - 20: movemouse mouse(0), mouse(1)
-  IF slowkey(scDown, 2) THEN IF bnum < 144 THEN bnum = bnum + 16: IF ts.gotmouse THEN mouse(1) = mouse(1) + 20: movemouse mouse(0), mouse(1)
- END IF
  IF ts.gotmouse THEN
   bnum = (mouse(1) \ 20) * 16 + mouse(0) \ 20
+ END IF
+ IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
+  movedcsr = NO
+  IF slowkey(scLeft, 2) THEN bnum = (bnum + 159) MOD 160: movedcsr = YES
+  IF slowkey(scRight, 2) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
+  IF slowkey(scUp, 2) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
+  IF slowkey(scDown, 2) THEN bnum = (bnum + 16) MOD 160: movedcsr = YES
+  IF movedcsr AND ts.gotmouse THEN
+   mouse(0) = (mouse(0) MOD 20) + (bnum MOD 16) * 20
+   mouse(1) = (mouse(1) MOD 20) + (bnum \ 16) * 20
+   movemouse mouse(0), mouse(1)
+  END IF
  END IF
  IF tmode = 3 THEN
   '--pass mode shortcuts
