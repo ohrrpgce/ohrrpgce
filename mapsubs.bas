@@ -15,10 +15,11 @@ DEFINT A-Z
 DECLARE SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, BYREF num_npc_defs AS INTEGER, npc_insts() AS NPCInst)
 
 'local subs and functions
+DECLARE SUB make_map_picker_menu (topmenu() AS STRING, state AS MenuState)
+DECLARE SUB mapeditor (BYVAL mapnum AS INTEGER)
 DECLARE FUNCTION addmaphow () AS INTEGER
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
 DECLARE SUB loadpasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
-DECLARE SUB mapmaker (font%())
 DECLARE SUB paint_map_area(st AS MapEditState, oldTile, x%, y%, map() AS TileMap, pass AS TileMap, defaults() AS DefArray, defpass%)
 
 TYPE LayerMenuItem
@@ -42,7 +43,6 @@ DECLARE SUB resizetiledata OVERLOAD (tmap AS TileMap, rs AS MapResizeState, BYRE
 DECLARE SUB resizetiledata OVERLOAD (tmaps() AS TileMap, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER)
 DECLARE SUB resizetiledata OVERLOAD (tmap AS TileMap, x_off AS INTEGER, y_off AS INTEGER, new_width AS INTEGER, new_height AS INTEGER, BYREF yout AS INTEGER, page AS INTEGER)
 
-DECLARE SUB make_top_map_menu(maptop, topmenu() AS STRING)
 DECLARE SUB update_tilepicker(BYREF st AS MapEditState)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, mapname AS STRING)
 DECLARE SUB add_more_layers(map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL numlayers AS INTEGER)
@@ -50,7 +50,7 @@ DECLARE SUB fix_tilemaps(map() as TileMap)
 DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
 DECLARE SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB new_blank_map (BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
-DECLARE SUB mapedit_addmap(BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
+DECLARE SUB mapedit_addmap()
 DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, doors() AS Door, link() AS DoorLink)
 DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER)
@@ -91,28 +91,28 @@ FUNCTION addmaphow () AS INTEGER
 '  -1  =New blank
 '  >=0 =Copy
 
-DIM temp(2) AS STRING
-DIM need_update AS INTEGER
+DIM menu(2) AS STRING
 DIM maptocopy AS INTEGER = 0
-DIM pt AS INTEGER = 0
+DIM state AS MenuState
+state.last = UBOUND(menu)
+state.size = 24
 
-need_update = YES
+state.need_update = YES
 setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
   '--return cancel
   RETURN -2
  END IF
  IF keyval(scF1) > 1 THEN show_help "add_map_how"
- IF usemenu(pt, 0, 0, 2, 22) THEN need_update = YES
- IF pt = 2 THEN
-  IF intgrabber(maptocopy, 0, gen(genMaxMap)) THEN need_update = YES
+ usemenu state
+ IF state.pt = 2 THEN
+  IF intgrabber(maptocopy, 0, gen(genMaxMap)) THEN state.need_update = YES
  END IF
  IF enter_or_space() THEN
-  SELECT CASE pt
+  SELECT CASE state.pt
    CASE 0 ' cancel
     RETURN -2
    CASE 1 ' blank
@@ -121,16 +121,15 @@ DO
     RETURN maptocopy
   END SELECT
  END IF
- IF need_update THEN
-  need_update = NO
-  temp(0) = "Cancel"
-  temp(1) = "New Blank Map"
-  temp(2) = "Copy of map " & maptocopy & " " & getmapname$(maptocopy)
+ IF state.need_update THEN
+  state.need_update = NO
+  menu(0) = "Cancel"
+  menu(1) = "New Blank Map"
+  menu(2) = "Copy of map " & maptocopy & " " & getmapname$(maptocopy)
  END IF
- standardmenu temp(), 2, 22, pt, 0, 0, 0, dpage, 0
- SWAP vpage, dpage
+ clearpage vpage
+ standardmenu menu(), state, 0, 0, vpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 END FUNCTION
@@ -144,9 +143,56 @@ IF pic >= 160 THEN pic = (pic - 160) + tastuf(0)
 animadjust = pic
 END FUNCTION
 
-SUB mapmaker (font())
+SUB make_map_picker_menu(topmenu() AS STRING, state AS MenuState)
+ REDIM topmenu(0)
+ topmenu(0) = "Return to Main Menu"
+ FOR i = 0 TO gen(genMaxMap)
+  str_array_append topmenu(), "Map " + filenum(i) + ": " + getmapname(i)
+ NEXT
+ str_array_append topmenu(), "Add a New Map"
+
+ state.size = 24
+ state.last = UBOUND(topmenu)
+END SUB
+
+SUB map_picker ()
+ DIM topmenu() AS STRING
+ DIM state AS MenuState
+ make_map_picker_menu topmenu(), state
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
+  usemenu state
+
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
+   IF state.pt > 0 AND state.pt <= gen(genMaxMap) + 1 THEN
+    mapeditor state.pt - 1
+    make_map_picker_menu topmenu(), state  'User could delete map
+   ELSEIF state.pt = gen(genMaxMap) + 2 THEN
+    mapedit_addmap
+    make_map_picker_menu topmenu(), state
+   END IF
+  END IF
+
+  clearpage vpage
+  standardmenu topmenu(), state, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ clearpage 0
+ clearpage 1
+END SUB
+
+SUB mapeditor (BYVAL mapnum AS INTEGER)
+STATIC remember_menu_pt AS INTEGER = 0
+
 DIM st AS MapEditState
-DIM modenames(4) AS STRING, mapeditmenu(13) AS STRING, topmenu(24) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs - 1)
+DIM modenames(4) AS STRING, mapeditmenu(13) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs - 1)
 DIM her AS HeroDef
 DIM defaults(maplayerMax) AS DefArray
 
@@ -209,60 +255,8 @@ FOR i = 0 TO 159
  writeblock st.tilesetview, i MOD 16, i \ 16, i
 NEXT
 
-maptop = 0
-pt = 0
-make_top_map_menu maptop, topmenu()
-setkeys
-DO
- setwait 55
- setkeys
- IF keyval(scESC) > 1 THEN EXIT DO
- IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
- oldtop = maptop
- usemenu pt, maptop, 0, 2 + gen(genMaxMap), 24
- IF oldtop <> maptop THEN make_top_map_menu maptop, topmenu()
- IF enter_or_space() THEN
-  IF pt = 0 THEN EXIT DO
-  IF pt > 0 AND pt <= gen(genMaxMap) + 1 THEN
-   '--silly backcompat pt adjustment
-   pt = pt - 1
-   mapedit_loadmap st, pt, wide, high, map(), pass, emap, gmap(), visible(), doors(), link(), defaults(), mapname$
-   GOSUB whattodo
-   pt = pt + 1
-   make_top_map_menu maptop, topmenu()
-  END IF
-  IF pt = gen(genMaxMap) + 2 THEN
-   'there's no real need to pass all this stuff to mapedit_addmap, it could use its own variables
-   mapedit_addmap st, map(), pass, emap, gmap(), doors(), link()
-   make_top_map_menu maptop, topmenu()
-  END IF
- END IF
- tog = tog XOR 1
- FOR i = 0 TO 24
-  textcolor uilook(uiMenuItem), 0
-  IF pt = maptop + i THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr topmenu(i), 0, i * 8, dpage
- NEXT i
- SWAP vpage, dpage
- setvispage vpage
- clearpage dpage
- dowait
-LOOP
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-unloadmaptilesets st.tilesets()
-unloadtilemap st.menubar
-unloadtilemap st.tilesetview
-unloadtilemaps map()
-unloadtilemap pass
-unloadtilemap emap
-frame_unload @(st.cursor.sprite)
-palette16_unload @(st.cursor.pal)
-EXIT SUB
+mapedit_loadmap st, mapnum, wide, high, map(), pass, emap, gmap(), visible(), doors(), link(), defaults(), mapname$
 
-whattodo:
 x = 0
 y = 0
 mapx = 0
@@ -285,7 +279,7 @@ mapeditmenu(13) = "Map name:"
 
 st.menustate.size = 24
 st.menustate.last = UBOUND(mapeditmenu)
-'Don't reset st.menustate.pt, that's preserved (including from any other maps) on purpose
+st.menustate.pt = remember_menu_pt  'preserved from any other maps for convenience
 
 '--load NPC graphics--
 FOR i = 0 TO st.num_npc_defs - 1
@@ -302,7 +296,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
-  mapedit_savemap st, pt, map(), pass, emap, gmap(), doors(), link(), mapname$
+  mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
@@ -310,12 +304,12 @@ DO
  IF enter_or_space() THEN
   SELECT CASE st.menustate.pt
    CASE 0
-    mapedit_savemap st, pt, map(), pass, emap, gmap(), doors(), link(), mapname$
+    mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
     EXIT DO
    CASE 1
     mapedit_gmapdata st, gmap()
    CASE 2
-    mapedit_resize st, pt, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), mapname$
+    mapedit_resize st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), mapname$
    CASE 3
     mapedit_layers st, gmap(), visible(), defaults(), map()
    CASE 4
@@ -325,11 +319,11 @@ DO
     editmode = st.menustate.pt - 5
     GOSUB mapping
    CASE 10
-    mapedit_linkdoors st, pt, map(), pass, emap, gmap(), doors(), link(), mapname$
+    mapedit_linkdoors st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
    CASE 11
-    mapedit_delete st, pt, wide, high, x, y, mapx, mapy, map(), pass, emap, doors(), link()
-    IF pt > gen(genMaxMap) THEN
-     pt -= 1
+    mapedit_delete st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, doors(), link()
+    IF mapnum > gen(genMaxMap) THEN
+     'This was the last map, and it was deleted instead of blanked
      EXIT DO
     END IF
    CASE 12
@@ -349,13 +343,13 @@ DO
  mapeditmenu(13) = "Map name:" + mapname$
  IF LEN(mapeditmenu(13)) > 40 THEN mapeditmenu(13) = mapname$
  
- standardmenu mapeditmenu(), st.menustate, 0, 0, dpage
- 
- SWAP vpage, dpage
+ clearpage vpage
+ standardmenu mapeditmenu(), st.menustate, 0, 0, vpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
+
+''''''''''' MAP EDITOR CLEANUP CODE
 'Unload NPC graphics
 FOR i = 0 TO UBOUND(npc_img)
  WITH npc_img(i)
@@ -363,7 +357,24 @@ FOR i = 0 TO UBOUND(npc_img)
   IF .pal THEN palette16_unload(@.pal)
  END WITH
 NEXT i
-RETRACE
+
+unloadmaptilesets st.tilesets()
+unloadtilemap st.menubar
+unloadtilemap st.tilesetview
+unloadtilemaps map()
+unloadtilemap pass
+unloadtilemap emap
+frame_unload @(st.cursor.sprite)
+palette16_unload @(st.cursor.pal)
+
+clearpage 0
+clearpage 1
+clearpage 2
+clearpage 3
+
+remember_menu_pt = st.menustate.pt  'preserve for other maps
+EXIT SUB
+
 
 mapping:
 clearpage 2
@@ -460,7 +471,7 @@ DO
    END IF
  END IF
  IF keyval(scCtrl) > 0 AND keyval(scH) > 1 THEN 'Ctrl+H for hero start position
-  gen(genStartMap) = pt
+  gen(genStartMap) = mapnum
   gen(genStartX) = x
   gen(genStartY) = y
  END IF
@@ -562,15 +573,15 @@ DO
     doorid = find_door_at_spot(x, y, doors())
     IF doorid >= 0 THEN
      'Save currently-worked-on map data
-     mapedit_savemap st, pt, map(), pass, emap, gmap(), doors(), link(), mapname$
+     mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
      doorlinkid = find_first_doorlink_by_door(doorid, link())
      IF doorlinkid >= 0 THEN
-      link_one_door st, pt, doorlinkid, link(), doors(), map(), pass, gmap()
+      link_one_door st, mapnum, doorlinkid, link(), doors(), map(), pass, gmap()
      ELSE
       doorlinkid = find_last_used_doorlink(link()) + 1
       IF doorlinkid >= 0 AND doorlinkid <= UBOUND(link) THEN
        link(doorlinkid).source = doorid
-       link_one_door st, pt, doorlinkid, link(), doors(), map(), pass, gmap()
+       link_one_door st, mapnum, doorlinkid, link(), doors(), map(), pass, gmap()
       END IF
      END IF
     END IF
@@ -780,7 +791,7 @@ DO
  END IF
 
  '--hero start location display--
- IF gen(genStartMap) = pt THEN
+ IF gen(genStartMap) = mapnum THEN
   IF gen(genStartX) >= mapx \ 20 AND gen(genStartX) < mapx \ 20 + 16 AND gen(genStartY) > mapy \ 20 AND gen(genStartY) <= mapy \ 20 + 9 THEN
    drawsprite heroimg(), 0, heropal(), 0, gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 20 - mapy, dpage
    printstr "Hero", gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 30 - mapy, dpage
@@ -945,6 +956,7 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
  DIM caption AS STRING
  
  setkeys
+ clearpage dpage
  DO
   setwait 55
   setkeys
@@ -1371,16 +1383,23 @@ FUNCTION find_first_doorlink_by_door(doornum AS INTEGER, link() AS DoorLink) AS 
  RETURN -1
 END FUNCTION
 
-SUB mapedit_addmap(BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
- DIM how AS INTEGER
- 
+'Adds a new map with ID gen(genMaxMap) + 1
+SUB mapedit_addmap()
  'Temporary buffers for making the copy
+ DIM st AS MapEditState
+ DIM gmap(dimbinsize(binMAP))
+ REDIM doors(99) AS door, link(199) AS doorlink
+ REDIM map(0) AS TileMap ' dummy empty map data, will be resized later
+ DIM pass AS TileMap
+ DIM emap AS TileMap
+
  DIM copyname AS STRING
  DIM copysize AS XYPair
  DIM visible(maplayerMax \ 16) AS INTEGER
  visible(0) = -1 'used as bitsets
  DIM defaults(maplayerMax) AS DefArray
  
+ DIM how AS INTEGER
  how = addmaphow()
  '-- -2  =Cancel
  '-- -1  =New blank
@@ -1605,7 +1624,6 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
 END SUB
 
 SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, doors() AS Door, link() AS DoorLink)
- setvispage vpage
  IF yesno("Delete this map?", NO) THEN
   printstr "Please Wait...", 0, 40, vpage
   setvispage vpage
@@ -2130,22 +2148,6 @@ SUB show_minimap(BYREF st AS MapEditState, map() AS TileMap)
  edgeprint "Press Any Key", 0, 180, uilook(uiText), vpage
  setvispage vpage
  waitforanykey
-END SUB
-
-SUB make_top_map_menu(maptop, topmenu() AS STRING)
-DIM i AS INTEGER
-FOR i = 0 TO 24
- SELECT CASE maptop + i
-  CASE 0
-   topmenu(i) = "Return to Main Menu"
-  CASE 1 TO gen(genMaxMap) + 1
-   topmenu(i) = "Map " + filenum((maptop + i) - 1) + ": " + getmapname((maptop + i) - 1)
-  CASE gen(genMaxMap) + 2
-   topmenu(i) = "Add a New Map"
-  CASE ELSE
-   topmenu(i) = ""
- END SELECT
-NEXT i
 END SUB
 
 SUB paint_map_add_node(BYREF tlayer AS TileMap, BYVAL oldTile, BYVAL x, BYVAL y, BYREF head, queue() AS XYPair)

@@ -16,7 +16,7 @@ DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
 DECLARE SUB scriptman ()
-DECLARE SUB mapmaker (font%())
+DECLARE SUB map_picker ()
 DECLARE SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
 DECLARE SUB shopdata ()
 DECLARE SUB importsong ()
@@ -274,7 +274,7 @@ DO:
   SELECT CASE menumode
    CASE 0'--normal mode
     IF pt = 0 THEN pt = 0: menumode = 1: GOSUB setgraphicmenu
-    IF pt = 1 THEN mapmaker font()
+    IF pt = 1 THEN map_picker
     IF pt = 2 THEN edit_global_text_strings
     IF pt = 3 THEN herodata
     IF pt = 4 THEN enemydata
