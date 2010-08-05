@@ -122,6 +122,7 @@ TYPE MenuDefItem
   extra(2)  AS INTEGER
   hide_if_disabled  AS INTEGER ' Bitset
   close_if_selected AS INTEGER ' Bitset
+  skip_close_script AS INTEGER ' Bitset
 END TYPE
 
 'MenuDef's must be initialised by ClearMenuData or LoadMenuData!

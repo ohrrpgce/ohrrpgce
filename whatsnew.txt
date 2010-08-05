@@ -14,6 +14,8 @@ WHAT IS NEW?
       scripts into numerical/alphabetical order [Ralph]
     * You may now have up to 500 NPC definitions per map [Ralph]
     * Maximum map size raised to 100,000 tiles [Ralph]
+    * New menu item bitset to suppress the on-load script if the
+      menu item closes the menu [James]
 
   * Bugfixes
     * Bug 749:  Attacks configured to do No Damage still do damage when

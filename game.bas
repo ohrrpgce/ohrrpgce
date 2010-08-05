@@ -2079,7 +2079,7 @@ SUB player_menu_keys (catx(), caty())
    IF mi.settag < -1 THEN setbit tag(), 0, ABS(mi.settag), NO
    IF mi.togtag > 1 THEN setbit tag(), 0, mi.togtag, (readbit(tag(), 0, mi.togtag) XOR 1)
    IF mi.close_if_selected THEN
-    remove_menu find_menu_handle(menu_handle)
+    remove_menu find_menu_handle(menu_handle), (mi.skip_close_script = NO)
     carray(ccUse) = 0
     setkeys '--Discard the  keypress that triggered the menu item that closed the menu
    END IF

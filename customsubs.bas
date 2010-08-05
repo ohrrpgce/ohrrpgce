@@ -1703,11 +1703,12 @@ SUB edit_menu_bits (menu AS MenuDef)
 END SUB
 
 SUB edit_menu_item_bits (mi AS MenuDefItem)
- DIM bitname(1) AS STRING
+ DIM bitname(2) AS STRING
  DIM bits(0) AS INTEGER
  
  bitname(0) = "Hide if disabled"
  bitname(1) = "Close menu if selected"
+ bitname(2) = "Don't run on-close script"
 
  MenuItemBitsToArray mi, bits()
  editbitset bits(), 0, UBOUND(bitname), bitname(), "menu_editor_item_bitsets"
