@@ -30,3 +30,5 @@ Border Size: Use this to enlarge or shrink the empty space around the margin on 
 or positive value.
 
 On-close script: This script is activated when the menu is closed. This script is only run when the user manually closes the menu. It is not used when you close a script using the "close menu" plotscripting command.
+
+Cancel button: allows you to choose whether the cancel button (ESC or ALT) will just close the current menu, or will close the current menu and open a different menu. This can be convenient when your menu structure has a main menu and several sub-menu, because it makes it easy to switch back to the main menu when a sub-menu closes.

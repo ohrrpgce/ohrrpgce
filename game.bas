@@ -2044,6 +2044,7 @@ SUB player_menu_keys (catx(), caty())
  DIM i AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
+ DIM esc_menu AS INTEGER
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
   IF mstates(topmenu).last = -1 THEN EXIT SUB
@@ -2054,6 +2055,7 @@ SUB player_menu_keys (catx(), caty())
   IF carray(ccMenu) > 1 AND menus(topmenu).no_close = NO THEN
    carray(ccMenu) = 0
    setkeys ' Forget keypress that closed the menu
+   esc_menu = menus(topmenu).esc_menu - 1
    remove_menu topmenu
    menusound gen(genCancelSFX)
    fatal = checkfordeath
@@ -2061,6 +2063,9 @@ SUB player_menu_keys (catx(), caty())
    evalherotag
    evalitemtag
    npcplot
+   IF esc_menu >= 0 THEN
+    add_menu esc_menu
+   END IF
    EXIT SUB
   END IF
   activated = NO
@@ -2108,7 +2113,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
       CASE 0 ' item
        menu_text_box = items_menu
        IF menu_text_box > 0 THEN
-        remove_menu topmenu
+        remove_menu topmenu, (mi.skip_close_script = NO)
         EXIT DO
        END IF
       CASE 1 ' spell
@@ -2136,7 +2141,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
        IF slot >= 0 THEN
         wantloadgame = slot + 1
         FOR i AS INTEGER = topmenu TO 0 STEP -1
-         remove_menu i
+         remove_menu i, (mi.skip_close_script = NO)
         NEXT i
         EXIT DO
        END IF

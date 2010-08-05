@@ -1471,6 +1471,7 @@ define constant, begin
 11,menuspecial:volume
 0,menuitembit:Hide when disabled
 1,menuitembit:Close menu when selected
+2,menuitembit:skip close script
 0,menubit:translucent box
 1,menubit:never show scrollbar
 2,menubit:allow gameplay

@@ -1692,7 +1692,7 @@ SUB edit_menu_bits (menu AS MenuDef)
  bitname(2) = "Allow gameplay & scripts"
  bitname(3) = "Suspend player even if gameplay allowed"
  bitname(4) = "No box"
- bitname(5) = "Cancel button doesn't close menu"
+ bitname(5) = "Disable cancel button"
  bitname(6) = "No player control of menu"
  bitname(7) = "Prevent main menu activation"
  bitname(8) = "Advance text box when menu closes"

@@ -14,10 +14,10 @@ Modifiy bitsets with Left, Right, SPACE and ENTER.
 
  *"No Box"
 
- *"Cancel button doesn't close menu" - Use this if the menu is an always-up display, or if you prefer to close it using the "close menu when selected" bitset on one of the items in the menu or the closemenu script command.
+ *"Disable cancel button" - Use this if the menu is an always-up display, or if you prefer to close it using the "close menu when selected" bitset on one of the items in the menu or the closemenu script command.
 
  *"No player control of menu" - This is useful for menus that are controlled by scripts.
 
  *"Prevent main menu activation" - Stops the player from opening the main menu as long as this menu is active. This is useful for sub-menus called from the main menu.
 
- *"Advance text box when menu closes"
+ *"Advance text box when menu closes"

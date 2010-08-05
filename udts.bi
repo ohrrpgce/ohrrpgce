@@ -154,6 +154,7 @@ TYPE MenuDef
   max_chars AS INTEGER
   bordersize AS INTEGER
   on_close  AS INTEGER 'script trigger
+  esc_menu  AS INTEGER
 END TYPE
 
 TYPE MenuState

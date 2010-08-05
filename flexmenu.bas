@@ -1670,6 +1670,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
   CASE 7
    IF enter_or_space() THEN
     edit_menu_bits menudata
+    state.need_update = YES
    END IF
   CASE 8
    IF enter_or_space() THEN
@@ -1687,12 +1688,14 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
    IF intgrabber(menudata.max_chars, 0, 38) THEN state.need_update = YES
   CASE 13 ' border size
    IF intgrabber(menudata.bordersize, -100, 100) THEN state.need_update = YES
-  CASE 14:
+  CASE 14: ' on-close script
    IF enter_or_space() THEN
     scriptbrowse menudata.on_close, plottrigger, "menu on-close plotscript"
     state.need_update = YES
    END IF
    IF scrintgrabber(menudata.on_close, 0, 0, 75, 77, 1, plottrigger) THEN state.need_update = YES
+  CASE 15: ' esc menu
+   IF zintgrabber(menudata.esc_menu, -1, gen(genMaxMenu)) THEN state.need_update = YES
  END SELECT
 END SUB
 
@@ -1856,6 +1859,13 @@ SUB update_menu_editor_menu(record, edmenu AS MenuDef, menu AS MenuDef)
  append_menu_item edmenu, "Maximum width: " & zero_default(menu.max_chars, "None")
  append_menu_item edmenu, "Border size: " & zero_default(menu.bordersize)
  append_menu_item edmenu, "On-close script: " & scriptname(menu.on_close, plottrigger)
+ IF menu.esc_menu = 0 THEN
+  cap = "just closes this menu"
+ ELSE
+  cap = "switch to menu " & menu.esc_menu - 1 & " " & getmenuname(menu.esc_menu - 1)
+ END IF
+ IF menu.no_close THEN cap = "disabled by bitset"
+ append_menu_item edmenu, "Cancel button: " & cap
 END SUB
 
 SUB update_detail_menu(detail AS MenuDef, mi AS MenuDefItem)
