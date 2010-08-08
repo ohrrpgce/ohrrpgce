@@ -1087,7 +1087,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
  REDIM itemsinfo(0) AS LayerMenuItem
  
  DIM layerno AS INTEGER
- DIM layering AS INTEGER
+ DIM fakelayerno AS INTEGER  'the selected layer, treating NPCs/Heroes as a layer
  DIM currentset AS INTEGER
  DIM resetpt AS INTEGER
  DIM col AS INTEGER
@@ -1107,21 +1107,19 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   state.tog = state.tog XOR 1
 
   layerno = itemsinfo(state.pt).layernum
-  layering = layerno
-  IF layering >= gmap(31) THEN layering += 1
+  fakelayerno = layerno
+  IF fakelayerno >= gmap(31) THEN fakelayerno += 1
 
   IF keyval(scESC) > 1 THEN clearkey(scESC): EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND UBOUND(map) < maplayerMax THEN
    IF layerno = -1 THEN
     add_more_layers map(), visible(), gmap(), UBOUND(map) + 1
-    st.layer = UBOUND(map)
     resetpt = YES
    ELSE
     'when gmap(31) is greater than actual number of layers we are "filling up" to old default of 2 under
     IF layerno < gmap(31) AND UBOUND(map) + 1 >= gmap(31) THEN gmap(31) += 1
     mapedit_insert_layer st, map(), visible(), gmap(), layerno + 1
-    st.layer = layerno + 1
     resetpt = YES
    END IF
    currentset = -2
@@ -1131,34 +1129,30 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
      ANDALSO yesno("Really delete layer " & layerno & "?", NO) THEN
    IF layerno < gmap(31) THEN gmap(31) = large(gmap(31) - 1, 1)
    mapedit_delete_layer st, map(), visible(), gmap(), layerno
-   st.layer = small(layerno, UBOUND(map))
+   st.layer = small(st.layer, UBOUND(map))
    resetpt = YES
    currentset = -2
    state.need_update = YES
   END IF
   IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
-   IF keyval(scUp) > 1 AND layering > 0 THEN
-    IF layering = gmap(31) + 1 THEN
+   IF keyval(scUp) > 1 AND fakelayerno > 0 THEN
+    IF fakelayerno = gmap(31) + 1 THEN
      'swapping with NPC/Hero layers
      gmap(31) += 1
-     st.layer = layerno
-   ELSE
+    ELSE
      mapedit_swap_layers st, map(), visible(), gmap(), layerno, layerno - 1
-     st.layer = layerno - 1
     END IF
     resetpt = YES
     state.need_update = YES
    END IF
    'can't move npcs/heroes below layer 0.
-   'UBOUND(map) + 1 is the maximum layering (can't adjust overhead tiles either)
-   IF keyval(scDown) > 1 AND (gmap(31) > 1 OR layerno > 0) AND layering < UBOUND(map) + 1 THEN
-    IF layering = gmap(31) - 1 THEN
+   'UBOUND(map) + 1 is the maximum fakelayerno (can't adjust overhead tiles either)
+   IF keyval(scDown) > 1 AND (gmap(31) > 1 OR layerno > 0) AND fakelayerno < UBOUND(map) + 1 THEN
+    IF fakelayerno = gmap(31) - 1 THEN
      'swapping with NPC/Hero layers
      gmap(31) -= 1
-     st.layer = layerno
     ELSE
      mapedit_swap_layers st, map(), visible(), gmap(), layerno, layerno + 1
-     st.layer = layerno + 1
     END IF
     resetpt = YES
     state.need_update = YES
@@ -1537,6 +1531,11 @@ SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() as int
  temp2 = layerisvisible(vis(), l2)
  setlayervisible(vis(), l2, temp1)
  setlayervisible(vis(), l1, temp2)
+ IF st.layer = l1 THEN
+  st.layer = l2
+ ELSEIF st.layer = l2 THEN
+  st.layer = l1
+ END IF
 END SUB
 
 SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() as integer, gmap() as integer, BYVAL where as integer)
