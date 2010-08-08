@@ -2787,7 +2787,7 @@ FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=
    END IF
    IF keyval(scEnd) > 1 THEN
     insert = INSTR(insert + 1, s, CHR(10))
-    IF insert = 0 THEN insert = LEN(s)
+    IF insert = 0 THEN insert = LEN(s) ELSE insert -= 1
    END IF
   END IF
   '--end of special keys that only work in multiline mode
