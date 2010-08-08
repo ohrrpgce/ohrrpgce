@@ -434,6 +434,11 @@ FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGE
 END FUNCTION
 
 FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
+ DIM choices(1) AS STRING = {strA, strB}
+ RETURN multichoice(capt, choices(), defaultval, escval, helpkey)
+END FUNCTION
+
+FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
  DIM state AS MenuState
  DIM menu AS MenuDef
  ClearMenuData menu
@@ -446,17 +451,21 @@ FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", de
   wide = large(wide, LEN(captlines(i)))
  NEXT
 
- append_menu_item menu, strA
- append_menu_item menu, strB
+ FOR i AS INTEGER = 0 TO UBOUND(choices)
+  append_menu_item menu, choices(i)
+ NEXT
 
  state.active = YES
  init_menu_state state, menu
  state.pt = defaultval
- menu.offset.Y = 5 * UBOUND(captlines)
+ menu.offset.Y = -20 + 5 * UBOUND(captlines)
+ menu.anchor.Y = -1
 
- 'Keep whatever was on the screen already as a background
- copypage vpage, dpage
- 
+ 'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
  setkeys
  DO
   setwait 55
@@ -480,19 +489,22 @@ FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", de
   
   usemenu state
 
-  centerbox 160, 70, 16 + wide * 8, 16 + 10 * UBOUND(captlines), 2, 0
+  copypage holdscreen, vpage
+  centerbox 160, 70, 16 + wide * 8, 16 + 10 * UBOUND(captlines), 2, vpage
   FOR i AS INTEGER = 0 TO UBOUND(captlines)
-   edgeprint captlines(i), xstring(captlines(i), 160), 65 - 5 * UBOUND(captlines) + i * 10, uilook(uiMenuItem), 0
+   edgeprint captlines(i), xstring(captlines(i), 160), 65 - 5 * UBOUND(captlines) + i * 10, uilook(uiMenuItem), vpage
   NEXT
-  draw_menu menu, state, 0
+  draw_menu menu, state, vpage
   IF LEN(helpkey) > 0 THEN
-   edgeprint "F1 Help", 0, 190, uilook(uiMenuItem), dpage
+   edgeprint "F1 Help", 0, 190, uilook(uiMenuItem), vpage
   END IF
-  setvispage 0
-  copypage 1, 0
+  setvispage vpage
   dowait
  LOOP
  setkeys
+ freepage holdscreen
+ clearpage 0
+ clearpage 1
 
  RETURN result
 END FUNCTION
@@ -2219,7 +2231,7 @@ SUB show_help(helpkey AS STRING)
   setkeys
   
   IF editing THEN  
-   cursor_line = stredit(dat->s, 32767, dat->line_limit, INT(help_text->Width / 8))
+   cursor_line = stredit(dat->s, 32767, dat->line_limit, help_text->Width \ 8)
    'The limit of 32767 chars is totally arbitrary and maybe not a good limit
    dat->insert = insert '--copy the global stredit() insert point
   END IF
@@ -2827,14 +2839,14 @@ FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=
  
 END FUNCTION
 
-FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
- clearpage 0
- clearpage 1
+FUNCTION sublist (s() AS STRING, helpkey AS STRING="", BYVAL x AS INTEGER=0, BYVAL y AS INTEGER=0, BYVAL page AS INTEGER=-1) AS INTEGER
  DIM state AS MenuState
  state.pt = 0
  state.last = UBOUND(s)
  state.size = 22
  
+ DIM drawpage AS INTEGER = allocatepage
+
  setkeys
  DO
   setwait 55
@@ -2849,14 +2861,18 @@ FUNCTION sublist (s() AS STRING, helpkey AS STRING="") AS INTEGER
    sublist = state.pt
    EXIT DO
   END IF
-  standardmenu s(), state, 0, 0, dpage
-  SWAP dpage, vpage
-  setvispage vpage
-  clearpage dpage
+  IF page = -1 THEN
+   clearpage drawpage
+  ELSE
+   copypage page, drawpage
+  END IF
+  standardmenu s(), state, x, y, drawpage
+  setvispage drawpage
   dowait
  LOOP
- clearpage 0
- clearpage 1
+ 'clearpage 0
+ 'clearpage 1
+ freepage drawpage
 END FUNCTION
 
 SUB edit_global_text_strings()
