@@ -2227,7 +2227,11 @@ SUB show_help(helpkey AS STRING)
  '--Now loop displaying help
  setkeys
  DO
-  setwait 17, 70
+  IF editing THEN
+   setwait 30
+  ELSE
+   setwait 17
+  END IF
   setkeys
   
   IF editing THEN  
@@ -2237,7 +2241,18 @@ SUB show_help(helpkey AS STRING)
   END IF
 
   IF deadkeys = 0 THEN 
-   IF keyval(scESC) > 1 THEN EXIT DO
+   IF keyval(scESC) > 1 THEN
+    '--If there are any changes to the help screen, offer to save them
+    IF help_str = dat->s THEN
+     EXIT DO
+    ELSE
+     DIM choice AS INTEGER = twochoice("Save changes to help for """ & helpkey & """?", "Yes", "No", 0, -1)
+     IF choice <> -1 THEN
+      IF choice = 0 THEN save_help_file helpkey, dat->s
+      EXIT DO
+     END IF
+    END IF
+   END IF
    IF keyval(scE) > 1 THEN
     IF fileiswriteable(get_help_dir() & SLASH & helpkey & ".txt") THEN
      editing = YES
@@ -2270,37 +2285,29 @@ SUB show_help(helpkey AS STRING)
   'Animate the arrival of the help screen
   animate->Y = large(animate->Y - 20, 0)
 
-  DrawSlice help_root, dpage
+  copypage holdscreen, vpage
+
+  DrawSlice help_root, vpage
   
   WITH scrollbar_state
    .top = dat->first_line
    .last = dat->line_count - 1
   END WITH
-  draw_fullscreen_scrollbar scrollbar_state, , dpage
+  draw_fullscreen_scrollbar scrollbar_state, , vpage
 
-  SWAP vpage, dpage
   setvispage vpage
-  copypage holdscreen, dpage
   dowait
  LOOP
-
- '--If there are any changes to the help screen, offer to save them
- IF help_str <> dat->s THEN
-  IF yesno("Save changes to help for """ & helpkey & """?", YES, YES) THEN
-   save_help_file helpkey, dat->s
-  END IF
- END IF
 
  '--Animate the removal of the help screen
  DO
   setkeys
-  setwait 17, 70
+  setwait 17
   animate->Y = animate->Y + 20
   IF animate->Y > 200 THEN EXIT DO
-  DrawSlice help_root, dpage
-  SWAP vpage, dpage
+  copypage holdscreen, vpage
+  DrawSlice help_root, vpage
   setvispage vpage
-  copypage holdscreen, dpage
   dowait
  LOOP
   
@@ -3157,7 +3164,7 @@ FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS
  '--Now loop while editing string
  setkeys
  DO
-  setwait 17, 70
+  setwait 17
   setkeys
   
   IF keyval(scESC) > 1 THEN
