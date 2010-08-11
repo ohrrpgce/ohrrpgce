@@ -1789,6 +1789,78 @@ SUB loadenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
  loadrecord array(), filename, 160, index
 END SUB
 
+SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
+ DIM buf(159) AS INTEGER
+ loadenemydata buf(), index, altfile
+ WITH enemy
+  .name = readbadbinstring(buf(), 0, 16)
+  .steal.thievability = buf(17)
+  .steal.item = buf(18)
+  .steal.item_rate = buf(19)
+  .steal.rare_item = buf(20)
+  .steal.rare_item_rate = buf(21)
+  .dissolve = buf(22)
+  .dissolve_length = buf(23)
+  .death_sound = buf(24)
+  .cursor_offset.x = buf(25)
+  .cursor_offset.y = buf(26)
+  .pic = buf(53)
+  .pal = buf(54)
+  .size = buf(55)
+  .reward.gold = buf(56)
+  .reward.exper = buf(57)
+  .reward.item = buf(58)
+  .reward.item_rate = buf(59)
+  .reward.rare_item = buf(60)
+  .reward.rare_item_rate = buf(61)
+  FOR i AS INTEGER = 0 TO UBOUND(.stat.sta)
+   .stat.sta(i) = buf(62 + i)
+  NEXT i
+  
+  '--bitsets
+  FOR i AS INTEGER = 0 TO 7
+   .weak(i) = xreadbit(buf(), 0 + i, 74)
+   .strong(i) = xreadbit(buf(), 8 + i, 74)
+   .absorb(i) = xreadbit(buf(), 16 + i, 74)
+   .enemytype(i) = xreadbit(buf(), 24 + i, 74)
+  NEXT i
+  .harmed_by_cure      = xreadbit(buf(), 54, 74)
+  .mp_idiot            = xreadbit(buf(), 55, 74)
+  .is_boss             = xreadbit(buf(), 56, 74)
+  .unescapable         = xreadbit(buf(), 57, 74)
+  .die_without_boss    = xreadbit(buf(), 58, 74)
+  .flee_instead_of_die = xreadbit(buf(), 59, 74)
+  .enemy_untargetable  = xreadbit(buf(), 60, 74)
+  .hero_untargetable   = xreadbit(buf(), 61, 74)
+  .death_unneeded      = xreadbit(buf(), 62, 74)
+  .never_flinch        = xreadbit(buf(), 63, 74)
+  .ignore_for_alone    = xreadbit(buf(), 64, 74)
+  
+  '--spawning
+  .spawn.on_death = buf(79)
+  .spawn.non_elemental_death = buf(80)
+  .spawn.when_alone = buf(81)
+  .spawn.non_elemental_hit = buf(82)
+  FOR i AS INTEGER = 0 TO 7
+   .spawn.elemental_hit(i) = buf(83 + i)
+  NEXT i
+  .spawn.how_many = buf(91)
+  
+  '--attacks
+  FOR i AS INTEGER = 0 TO 5
+   .regular_ai(i) = buf(92 + i)
+   .desperation_ai(i) = buf(97 + i)
+   .alone_ai(i) = buf(102 + i)
+  NEXT i
+  
+  '--not used!
+  FOR i AS INTEGER = 0 TO 7
+   .counter_attack(i) = buf(107 + i)
+  NEXT i
+  
+ END WITH
+END SUB
+
 SUB saveenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
  DIM filename AS STRING
  IF altfile THEN
@@ -1797,6 +1869,82 @@ SUB saveenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
   filename = game & ".dt1"
  END IF
  storerecord array(), filename, 160, index
+END SUB
+
+SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
+ DIM buf(159) AS INTEGER
+ WITH enemy
+  buf(0) = LEN(.name)
+  FOR i AS INTEGER = 1 TO LEN(.name)
+   buf(i) = ASC(MID(.name, i, 1))
+  NEXT i
+  buf(17) = .steal.thievability
+  buf(18) = .steal.item
+  buf(19) = .steal.item_rate
+  buf(20) = .steal.rare_item
+  buf(21) = .steal.rare_item_rate
+  buf(22) = .dissolve
+  buf(23) = .dissolve_length
+  buf(24) = .death_sound
+  buf(25) = .cursor_offset.x
+  buf(26) = .cursor_offset.y
+  buf(53) = .pic
+  buf(54) = .pal
+  buf(55) = .size
+  buf(56) = .reward.gold
+  buf(57) = .reward.exper
+  buf(58) = .reward.item
+  buf(59) = .reward.item_rate
+  buf(60) = .reward.rare_item
+  buf(61) = .reward.rare_item_rate
+  FOR i AS INTEGER = 0 TO UBOUND(.stat.sta)
+   buf(62 + i) = .stat.sta(i)
+  NEXT i
+  
+  '--bitsets
+  FOR i AS INTEGER = 0 TO 7
+   setbit buf(), 74, 0 + i, .weak(i)
+   setbit buf(), 74, 8 + i, .strong(i)
+   setbit buf(), 74, 16 + i, .absorb(i)
+   setbit buf(), 74, 24 + i, .enemytype(i)
+  NEXT i
+  setbit buf(), 74, 54, .harmed_by_cure
+  setbit buf(), 74, 55, .mp_idiot
+  setbit buf(), 74, 56, .is_boss
+  setbit buf(), 74, 57, .unescapable
+  setbit buf(), 74, 58, .die_without_boss
+  setbit buf(), 74, 59, .flee_instead_of_die
+  setbit buf(), 74, 60, .enemy_untargetable
+  setbit buf(), 74, 61, .hero_untargetable
+  setbit buf(), 74, 62, .death_unneeded
+  setbit buf(), 74, 63, .never_flinch
+  setbit buf(), 74, 64, .ignore_for_alone
+  
+  '--spawning
+  buf(79) = .spawn.on_death
+  buf(80) = .spawn.non_elemental_death
+  buf(81) = .spawn.when_alone
+  buf(82) = .spawn.non_elemental_hit
+  FOR i AS INTEGER = 0 TO 7
+   buf(83 + i) = .spawn.elemental_hit(i)
+  NEXT i
+  buf(91) = .spawn.how_many
+  
+  '--attacks
+  FOR i AS INTEGER = 0 TO 5
+   buf(92 + i) = .regular_ai(i)
+   buf(97 + i) = .desperation_ai(i)
+   buf(102 + i) = .alone_ai(i)
+  NEXT i
+  
+  '--not used!
+  FOR i AS INTEGER = 0 TO 7
+   buf(107 + i) = .counter_attack(i)
+  NEXT i
+  
+ END WITH
+
+ saveenemydata buf(), index, altfile
 END SUB
 
 SUB loadherodata (hero as herodef ptr, index as integer)

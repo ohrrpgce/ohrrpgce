@@ -497,6 +497,67 @@ Type HeroDef
 	hand_b_y as integer
 End Type
 
+TYPE EnemyStealDef
+  thievability as integer
+  item as integer
+  item_rate as integer
+  rare_item as integer
+  rare_item_rate as integer
+END TYPE
+
+TYPE EnemyRewardDef
+  gold as long
+  exper as long
+  item as integer
+  item_rate as integer
+  rare_item as integer
+  rare_item_rate as integer
+END TYPE
+
+TYPE EnemySpawnDef
+  how_many as integer
+  on_death as integer 'id+1, 0=none
+  non_elemental_death as integer 'id+1, 0=none
+  when_alone as integer 'id+1, 0=none
+  non_elemental_hit as integer 'id+1, 0=none
+  elemental_hit(7) as integer 'id+1, 0=none
+END TYPE
+
+TYPE EnemyDef
+  name as string
+  steal as EnemyStealDef
+  reward as EnemyRewardDef
+  dissolve as integer
+  dissolve_length as integer
+  death_sound as integer ' id+1, 0=default, -1=none
+  cursor_offset as XYPair
+  pic as integer
+  pal as integer
+  size as integer
+  stat as stats
+  spawn as EnemySpawnDef
+  regular_ai(4) as integer 'id+1, 0=none
+  desperation_ai(4) as integer 'id+1, 0=none
+  alone_ai(4) as integer 'id+1, 0=none
+  counter_attack(7) as integer 'id+1, 0=none NOT USED
+  '--bitsets
+  weak(7)        AS INTEGER 'YES/NO for weakness to each element
+  strong(7)      AS INTEGER 'YES/NO for strength to each element
+  absorb(7)      AS INTEGER 'YES/NO to absorb each element
+  enemytype(7)   AS INTEGER 'YES/NO for membership in each enemy type
+  harmed_by_cure AS INTEGER 'YES/NO
+  mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
+  is_boss        AS INTEGER 'YES/NO
+  unescapable    AS INTEGER 'YES/NO
+  die_without_boss    AS INTEGER 'YES/NO
+  flee_instead_of_die AS INTEGER 'YES/NO
+  enemy_untargetable  AS INTEGER 'YES/NO
+  hero_untargetable   AS INTEGER 'YES/NO
+  death_unneeded AS INTEGER 'YES/NO
+  never_flinch   AS INTEGER 'YES/NO
+  ignore_for_alone    AS INTEGER 'YES/NO
+END TYPE
+
 TYPE TextBox
   text(7) AS STRING
   instead_tag AS INTEGER

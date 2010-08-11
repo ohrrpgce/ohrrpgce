@@ -96,8 +96,12 @@ DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integ
 
 DECLARE SUB loaditemdata (array() as integer, index as integer)
 DECLARE SUB saveitemdata (array() as integer, index as integer)
-DECLARE SUB loadenemydata (array() as integer, index as integer, altfile as integer = 0)
-DECLARE SUB saveenemydata (array() as integer, index as integer, altfile as integer = 0)
+
+DECLARE SUB loadenemydata OVERLOAD (array() as integer, index as integer, altfile as integer = 0)
+DECLARE SUB loadenemydata OVERLOAD (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
+
+DECLARE SUB saveenemydata OVERLOAD (array() as integer, index as integer, altfile as integer = 0)
+DECLARE SUB saveenemydata OVERLOAD (enemy AS EnemyDef, index as integer, altfile as integer = 0)
 
 DECLARE SUB save_string_list(array() AS STRING, filename AS STRING)
 DECLARE SUB load_string_list(array() AS STRING, filename AS STRING)
