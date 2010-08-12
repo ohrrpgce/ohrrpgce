@@ -115,6 +115,8 @@ TYPE BattleSprite
   death_unneeded AS INTEGER 'YES/NO
   never_flinch   AS INTEGER 'YES/NO
   ignore_for_alone    AS INTEGER 'YES/NO
+  '--
+  enemy AS EnemyDef '--only populated if this slot holds an enemy
 END TYPE
 
 'This type stores the state of the currently animating attack

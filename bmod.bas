@@ -31,9 +31,9 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
-DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, BYREF rew AS RewardsState)
+DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, formdata(), bslot() AS BattleSprite, BYREF rew AS RewardsState)
 DECLARE SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, es(), formdata())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, formdata())
 DECLARE SUB checkitemusability(iuse() AS INTEGER, bslot() AS BattleSprite, who AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
@@ -42,7 +42,7 @@ DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
 DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
 DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
 DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
-DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
+DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, formdata() AS INTEGER)
 DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
@@ -66,7 +66,8 @@ DIM formdata(40)
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
 DIM autotarg_attack AS AttackData
-DIM st(3) as herodef, es(7, 160), ctr(11)
+DIM st(3) as herodef
+DIM ctr(11)
 DIM menubits(2), spelname(23) AS STRING, speld(23) AS STRING, spel(23), cost(23) AS STRING, walk(3)
 DIM conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
@@ -162,7 +163,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 
-battle_loadall form, bat, bslot(), rew, vic, st(), es(), formdata(), ctr(), lifemeter()
+battle_loadall form, bat, bslot(), rew, vic, st(), formdata(), ctr(), lifemeter()
 
 copypage 2, dpage
 
@@ -218,7 +219,7 @@ DO
   END IF
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND vic.state = 0 THEN
-  generate_atkscript attack, bat, bslot(), icons(), es()
+  generate_atkscript attack, bat, bslot(), icons()
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND vic.state = 0 AND away = 0 THEN GOSUB action
  GOSUB animate
@@ -247,7 +248,7 @@ DO
   IF bslot(bat.next_enemy).ready = YES AND bslot(bat.next_enemy).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
  END IF
  IF vic.state = 0 THEN
-  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), es(), formdata(), rew, ctr()
+  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata(), rew, ctr()
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
    IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, inv_scroll, bslot(), icons(), iuse()
    IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bslot(), conlmp()
@@ -426,7 +427,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    IF inflict(bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
     '--attack succeeded
     IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
-     changefoe targ - 4, attack.transmog_enemy, formdata(), es(), bslot(), attack.transmog_hp, attack.transmog_stats
+     changefoe targ - 4, attack.transmog_enemy, formdata(), bslot(), attack.transmog_hp, attack.transmog_stats
     END IF
     IF attack.cancel_targets_attack THEN
      '--try to cancel target's attack
@@ -452,12 +453,14 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
       bslot(targ).attack = 0 'This might seem redundant to the above, but it is okay. Needed for stun
      END IF
     END IF
-    IF attack.erase_rewards = YES THEN
-     es(targ - 4, 56) = 0
-     es(targ - 4, 57) = 0
-     es(targ - 4, 59) = 0
-     es(targ - 4, 61) = 0
-    END IF
+    WITH bslot(targ).enemy.reward
+     IF attack.erase_rewards = YES THEN
+      .gold = 0
+      .exper = 0
+      .item_rate = 0
+      .rare_item_rate = 0
+     END IF
+    END WITH
     IF attack.force_run = YES THEN
     'force heroes to run away
      IF checkNoRunBit(bslot()) THEN
@@ -474,7 +477,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
      checkTagCond attack.tagset(1), 4
     END IF
 
-    IF trytheft(bat, bat.acting, targ, attack, es()) THEN
+    IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
      IF bat.hero_turn >= 0 THEN
       checkitemusability iuse(), bslot(), bat.hero_turn
      END IF
@@ -638,8 +641,8 @@ IF bat.atk.id = -1 THEN
  '--clean up stack
  'DEBUG debug "discarding " & (stackpos - bstackstart) \ 2 & " from stack"
  WHILE stackpos > bstackstart: dummy = popw: WEND
- IF spawn_chained_attack(attack.chain, attack, bat, bslot(), es()) = NO THEN
-  spawn_chained_attack(attack.elsechain, attack, bat, bslot(), es())
+ IF spawn_chained_attack(attack.chain, attack, bat, bslot()) = NO THEN
+  spawn_chained_attack(attack.elsechain, attack, bat, bslot())
  END IF
 END IF
 RETRACE
@@ -651,7 +654,7 @@ IF attack.caption_time = 0 THEN
  bat.caption_time = 0
  bat.caption_delay = 0
 END IF
-fulldeathcheck bat.atk.was_id, bat, bslot(), rew, es(), formdata()
+fulldeathcheck bat.atk.was_id, bat, bslot(), rew, formdata()
 bat.atk.was_id = -1
 RETRACE
 
@@ -661,18 +664,34 @@ atktype(0) = bat.atk.non_elemental
 FOR i = 0 TO 7
  atktype(i + 1) = bat.atk.elemental(i)
 NEXT i
-FOR i = 0 TO 8
- IF es(targ - 4, 82 + i) > 0 AND atktype(i) = YES THEN
-  FOR j = 1 TO es(targ - 4, 91)
-   slot = find_empty_enemy_slot(formdata())
-   IF slot > -1 THEN
-    formdata(slot * 4) = es(targ - 4, 82 + i)
-    loadfoe slot, formdata(), es(), bat, bslot(), rew
+DO '--just for breaking
+ WITH bslot(targ)
+  '--non-elemental hit
+  IF .enemy.spawn.non_elemental_hit > 0 AND atktype(0) = YES THEN
+   FOR j = 1 TO .enemy.spawn.how_many
+    slot = find_empty_enemy_slot(formdata())
+    IF slot > -1 THEN
+     formdata(slot * 4) = .enemy.spawn.non_elemental_hit
+     loadfoe slot, formdata(),  bat, bslot(), rew
+    END IF
+   NEXT j
+   EXIT DO '--skip further checks
+  END IF
+  FOR i = 0 TO 7
+   IF .enemy.spawn.elemental_hit(i) > 0 AND atktype(i + 1) = YES THEN
+    FOR j = 1 TO .enemy.spawn.how_many
+     slot = find_empty_enemy_slot(formdata())
+     IF slot > -1 THEN
+      formdata(slot * 4) = .enemy.spawn.elemental_hit(i)
+      loadfoe slot, formdata(), bat, bslot(), rew
+     END IF
+    NEXT j
+    EXIT FOR
    END IF
-  NEXT j
-  EXIT FOR
- END IF
-NEXT i
+  NEXT i
+ END WITH
+ EXIT DO '--never really loop
+LOOP
 RETRACE
 
 picktarg: '-----------------------------------------------------------
@@ -928,7 +947,7 @@ FOR i = 0 TO 11
     harm = range(harm, 20)
     quickinflict harm, i, bslot()
     triggerfade i, bslot()
-    fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
+    fulldeathcheck -1, bat, bslot(), rew, formdata()
    END IF
   END IF
  END WITH
@@ -944,7 +963,7 @@ FOR i = 0 TO 11
     heal = range(heal, 20)
     quickinflict heal, i, bslot()
     triggerfade i, bslot()
-    fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
+    fulldeathcheck -1, bat, bslot(), rew, formdata()
    END IF
   END IF
  END WITH
@@ -1028,7 +1047,6 @@ FOR i = 0 TO 11
  c = uilook(uiSelectedDisabled)
  IF is_hero(i) THEN c = uilook(uiSelectedItem)
  rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
- IF is_enemy(i) THEN edgeprint STR(es(i - 4, 82)), 0, 80 + i * 10, c, dpage
  info$ = "v=" & bslot(i).vis & " dly=" & bslot(i).delay & " tm=" & bat.targ.mask(i) & " hp=" & bslot(i).stat.cur.hp & " dis=" & bslot(i).dissolve
  IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
  edgeprint info$, 20, 80 + i * 10, c, dpage
@@ -1132,7 +1150,7 @@ SUB draw_battle_sprites(bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, es(), formdata(), ctr(), lifemeter())
+SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, formdata(), ctr(), lifemeter())
  DIM i AS INTEGER
 
  setpicstuf formdata(), 80, -1
@@ -1231,7 +1249,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  
  '--load monsters
  FOR i = 0 TO 7
-  loadfoe i, formdata(), es(), bat, bslot(), rew, YES
+  loadfoe i, formdata(), bat, bslot(), rew, YES
  NEXT i
  
  FOR i = 0 TO 11
@@ -1273,10 +1291,10 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
    triggerfade i, bslot()
   END IF
  NEXT i
- fulldeathcheck -1, bat, bslot(), rew, es(), formdata()
+ fulldeathcheck -1, bat, bslot(), rew, formdata()
 END SUB
 
-SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, es() AS INTEGER, formdata() AS INTEGER)
+SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, formdata() AS INTEGER)
  '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
  'killing_attack is the attack ID that was just used, or -1 for none
  DIM deadguy AS INTEGER
@@ -1291,7 +1309,7 @@ SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS Ba
   END IF
  NEXT
  FOR deadguy = 0 TO 11
-  check_death deadguy, killing_attack, bat, rew, bslot(), es(), formdata()
+  check_death deadguy, killing_attack, bat, rew, bslot(), formdata()
  NEXT
  dead_enemies = 0
  FOR deadguy = 4 TO 11
@@ -1754,7 +1772,7 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, es(), formdata(), bslot() AS BattleSprite, BYREF rew AS RewardsState)
+SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, formdata(), bslot() AS BattleSprite, BYREF rew AS RewardsState)
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
  DIM attack AS AttackData
  DIM slot AS INTEGER
@@ -1768,26 +1786,28 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
    EXIT SUB
   END IF
  END IF
- IF es(deadguy - 4, 80) > 0 AND bat.atk.non_elemental = YES THEN ' spawn on non-elemental death
-  FOR i = 1 TO es(deadguy - 4, 91)
-   slot = find_empty_enemy_slot(formdata())
-   IF slot > -1 THEN
-    formdata(slot * 4) = es(deadguy - 4, 80)
-    loadfoe(slot, formdata(), es(), bat, bslot(), rew)
-   END IF
-  NEXT i
-  es(deadguy - 4, 80) = 0
- END IF
- IF es(deadguy - 4, 79) > 0 THEN ' spawn on death
-  FOR i = 1 TO es(deadguy - 4, 91)
-   slot = find_empty_enemy_slot(formdata())
-   IF slot > -1 THEN
-    formdata(slot * 4) = es(deadguy - 4, 79)
-    loadfoe(slot, formdata(), es(), bat, bslot(), rew)
-   END IF
-  NEXT i
-  es(deadguy - 4, 79) = 0
- END IF
+ WITH bslot(deadguy)
+  IF .enemy.spawn.non_elemental_death > 0 AND bat.atk.non_elemental = YES THEN ' spawn on non-elemental death
+   FOR i = 1 TO .enemy.spawn.how_many
+    slot = find_empty_enemy_slot(formdata())
+    IF slot > -1 THEN
+     formdata(slot * 4) = .enemy.spawn.non_elemental_death
+     loadfoe(slot, formdata(), bat, bslot(), rew)
+    END IF
+   NEXT i
+   .enemy.spawn.non_elemental_death = 0
+  END IF
+  IF .enemy.spawn.on_death > 0 THEN ' spawn on death
+   FOR i = 1 TO .enemy.spawn.how_many
+    slot = find_empty_enemy_slot(formdata())
+    IF slot > -1 THEN
+     formdata(slot * 4) = .enemy.spawn.on_death
+     loadfoe(slot, formdata(), bat, bslot(), rew)
+    END IF
+   NEXT i
+   .enemy.spawn.on_death = 0
+  END IF
+ END WITH
 END SUB
 
 FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
@@ -1840,7 +1860,7 @@ SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, es(), formdata())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, formdata())
 'FIXME: killing_attack is not used yet, but will contain attack id or -1 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
  DIM attack AS AttackData
@@ -1879,7 +1899,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  dead_enemy deadguy, killing_attack, bat, rew, bslot(), es(), formdata()
+  dead_enemy deadguy, killing_attack, bat, rew, bslot(), formdata()
  END IF'------------END PLUNDER-------------------
  IF bat.targ.hit_dead = NO THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   FOR j = 0 TO 11
@@ -1906,36 +1926,38 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
 END SUB
 
-SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, es(), formdata())
+SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, formdata())
  '--give rewards, spawn enemies, clear formdata slot, but NO other cleanup!
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
  DIM AS INTEGER j
  DIM enemynum AS INTEGER = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
- spawn_on_death deadguy, killing_attack, bat, es(), formdata(), bslot(), rew
+ spawn_on_death deadguy, killing_attack, bat, formdata(), bslot(), rew
  IF formdata(enemynum * 4) > 0 THEN
-  rew.plunder = rew.plunder + es(enemynum, 56)
-  rew.exper = rew.exper + es(enemynum, 57)
-  IF rew.exper > 1000000 THEN rew.exper = 1000000
-  IF INT(RND * 100) < es(enemynum, 59) THEN '---GET ITEMS FROM FOES-----
-   FOR j = 0 TO 16
-    IF rew.found(j).num = 0 THEN rew.found(j).id = es(enemynum, 58): rew.found(j).num = 1: EXIT FOR
-    IF rew.found(j).id = es(enemynum, 58) THEN rew.found(j).num = rew.found(j).num + 1: EXIT FOR
-   NEXT j
-  ELSE '------END NORMAL ITEM---------------
-   IF INT(RND * 100) < es(enemynum, 61) THEN
+  WITH bslot(deadguy)
+   rew.plunder += .enemy.reward.gold
+   rew.exper += .enemy.reward.exper
+   IF rew.exper > 1000000 THEN rew.exper = 1000000 '--this one million limit is totally arbitrary
+   IF INT(RND * 100) < .enemy.reward.item_rate THEN '---GET ITEMS FROM FOES-----
     FOR j = 0 TO 16
-     IF rew.found(j).num = 0 THEN rew.found(j).id = es(enemynum, 60): rew.found(j).num = 1: EXIT FOR
-     IF rew.found(j).id = es(enemynum, 60) THEN rew.found(j).num = rew.found(j).num + 1: EXIT FOR
+     IF rew.found(j).num = 0 THEN rew.found(j).id = .enemy.reward.item: rew.found(j).num = 1: EXIT FOR
+     IF rew.found(j).id = .enemy.reward.item THEN rew.found(j).num = rew.found(j).num + 1: EXIT FOR
     NEXT j
-   END IF '---END RARE ITEM-------------
-  END IF '----END GET ITEMS----------------
+   ELSE '------END NORMAL ITEM---------------
+    IF INT(RND * 100) < .enemy.reward.rare_item_rate THEN
+     FOR j = 0 TO 16
+      IF rew.found(j).num = 0 THEN rew.found(j).id = .enemy.reward.rare_item: rew.found(j).num = 1: EXIT FOR
+      IF rew.found(j).id = .enemy.reward.rare_item THEN rew.found(j).num = rew.found(j).num + 1: EXIT FOR
+     NEXT j
+    END IF '---END RARE ITEM-------------
+   END IF '----END GET ITEMS----------------
+  END WITH
  END IF
  ' remove dead enemy from formation
  formdata(enemynum * 4) = 0
 END SUB
 
-SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER)
+SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER)
  DIM ai AS INTEGER = 0
 
  'if HP is less than 20% go into desperation mode
@@ -1946,34 +1968,42 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER
 
  DIM slot AS INTEGER = 0
  'spawn allies when alone
- IF ai = 2 AND es(bat.enemy_turn - 4, 81) THEN
-  FOR j AS INTEGER = 1 TO es(bat.enemy_turn - 4, 91)
-   slot = find_empty_enemy_slot(formdata())
-   IF slot > -1 THEN
-    formdata(slot * 4) = es(bat.enemy_turn - 4, 81)
-    loadfoe slot, formdata(), es(), bat, bslot(), rew
-   END IF
-  NEXT j
- END IF
+ WITH bslot(bat.enemy_turn)
+  IF ai = 2 AND .enemy.spawn.when_alone > 0 THEN
+   FOR j AS INTEGER = 1 TO .enemy.spawn.how_many
+    slot = find_empty_enemy_slot(formdata())
+    IF slot > -1 THEN
+     formdata(slot * 4) = .enemy.spawn.when_alone
+     loadfoe slot, formdata(), bat, bslot(), rew
+    END IF
+   NEXT j
+  END IF
+ END WITH
 
  'make sure that the current ai set is valid
  'otherwise fall back on another
- IF countai(ai, bat.enemy_turn, es()) = 0 THEN
+ IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN
   ai = 0
   IF bslot(bat.enemy_turn).stat.cur.hp < bslot(bat.enemy_turn).stat.max.hp / 5 THEN
    ai = 1
-   IF countai(ai, bat.enemy_turn, es()) = 0 THEN ai = 0
+   IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN ai = 0
   END IF
  END IF
 
  'if no valid ai set is available, the enemy loses its turn
- IF countai(ai, bat.enemy_turn, es()) = 0 THEN bat.enemy_turn = -1 : EXIT SUB
+ IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN bat.enemy_turn = -1 : EXIT SUB
 
  'pick a random attack
  DIM atk AS AttackData
  DIM safety AS INTEGER = 0
  DO
-  bslot(bat.enemy_turn).attack = es(bat.enemy_turn - 4, 92 + (ai * 5) + INT(RND * 5))
+  WITH bslot(bat.enemy_turn)
+   SELECT CASE ai
+    CASE 0: .attack = .enemy.regular_ai(INT(RND * 5))
+    CASE 1: .attack = .enemy.desperation_ai(INT(RND * 5))
+    CASE 2: .attack = .enemy.alone_ai(INT(RND * 5))
+   END SELECT
+  END WITH
   IF bslot(bat.enemy_turn).attack > 0 THEN
    'load the data for this attack
    loadattackdata atk, bslot(bat.enemy_turn).attack - 1
@@ -2248,7 +2278,7 @@ SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() A
  END IF
 END SUB
 
-SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, es())
+SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER)
  DIM i AS INTEGER
 
  '--check for item consumption
@@ -2264,7 +2294,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  loadattackdata attack, bat.atk.id
 
  DIM safety AS INTEGER = 0
- DO WHILE spawn_chained_attack(attack.instead, attack, bat, bslot(), es())
+ DO WHILE spawn_chained_attack(attack.instead, attack, bat, bslot())
   IF bslot(bat.acting).delay > 0 THEN EXIT SUB
   loadattackdata attack, bat.atk.id
   safety += 1
@@ -2829,13 +2859,13 @@ FUNCTION valid_statnum(statnum AS INTEGER, context AS STRING) AS INTEGER
  RETURN bound_arg(statnum, 0, 15, "stat number", context, NO)
 END FUNCTION
 
-FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
+FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
  'Returns YES if the chain may proceed, or NO if it fails
  
  IF INT(RND * 100) >= ch.rate THEN RETURN NO '--random percentage failed
  
  IF ch.must_know = YES THEN
-  IF knows_attack(bat.acting, ch.atk_id - 1, bslot(), es()) = NO THEN RETURN NO
+  IF knows_attack(bat.acting, ch.atk_id - 1, bslot()) = NO THEN RETURN NO
  END IF
  
  SELECT CASE ch.mode
@@ -2873,7 +2903,7 @@ FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() A
  RETURN NO
 END FUNCTION
 
-FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
+FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
  IF ch.atk_id <= 0 THEN RETURN NO '--no chain defined
  IF bslot(bat.acting).stat.cur.hp <= 0 THEN RETURN NO '--attacker is dead
  IF attack.no_chain_on_failure = YES AND bslot(bat.acting).attack_succeeded = 0 THEN
@@ -2881,7 +2911,7 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
   RETURN NO
  END IF
   
- IF check_attack_chain(ch, bat, bslot(), es()) THEN
+ IF check_attack_chain(ch, bat, bslot()) THEN
   '--The conditions for this chain are passed
   
   bat.wait_frames = 0
@@ -2920,11 +2950,10 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
  RETURN NO '--chained attack failed
 END FUNCTION
 
-FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
+FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite) AS INTEGER
  'who is bslot index
  'atk is attack id
  'bslot() hero and enemy data
- 'es() is the dang 'ol enemy stat array which I really need to factor out
  'spell() is a global array
 
  '--different handling for heroes and monsters
@@ -2943,8 +2972,11 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
  END IF
  
  IF is_enemy(who) THEN
-  FOR i AS INTEGER = 0 TO 15
-   IF es(who - 4, 92 + i) - 1 = atk THEN RETURN YES 'knows this attack for one of the three ai sets
+  FOR i AS INTEGER = 0 TO 4
+   'check if enemy knows this attack for one of the three ai sets
+   IF bslot(who).enemy.regular_ai(i) - 1 = atk THEN RETURN YES
+   IF bslot(who).enemy.desperation_ai(i) - 1 = atk THEN RETURN YES
+   IF bslot(who).enemy.alone_ai(i) - 1 = atk THEN RETURN YES
   NEXT i
  END IF
  

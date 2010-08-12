@@ -32,9 +32,9 @@ DECLARE SUB confirm_auto_first (who as integer, tmask() as integer, bslot() AS B
 DECLARE FUNCTION quick_battle_distance(who1 as integer, who2 as integer, bslot() AS BattleSprite)
 DECLARE FUNCTION battle_distance(who1 as integer, who2 as integer, bslot() AS BattleSprite)
 
-DECLARE SUB transfer_enemy_bits(slot AS INTEGER, es() AS INTEGER, bslot() AS BattleSprite)
-DECLARE SUB setup_non_volitile_enemy_state(slot AS INTEGER, es() AS INTEGER, bslot() AS BattleSprite)
-DECLARE SUB setup_enemy_sprite_and_name(slot AS INTEGER, es() AS INTEGER, bslot() AS BattleSprite)
+DECLARE SUB transfer_enemy_bits(slot AS INTEGER, bslot() AS BattleSprite)
+DECLARE SUB setup_non_volitile_enemy_state(slot AS INTEGER, bslot() AS BattleSprite)
+DECLARE SUB setup_enemy_sprite_and_name(slot AS INTEGER, bslot() AS BattleSprite)
 DECLARE SUB change_foe_stat(BYREF bspr AS BattleSprite, stat_num AS INTEGER, new_max AS INTEGER, stat_rule AS INTEGER)
 
 REM $STATIC
@@ -244,11 +244,17 @@ RETRACE
 
 END SUB
 
-FUNCTION countai (ai as integer, them as integer, es() as integer) as integer
+FUNCTION countai (ai as integer, them as integer, bslot() as BattleSprite) as integer
 o = 0
-FOR i = 0 TO 4
- IF es(them - 4, 92 + (ai * 5) + i) > 0 THEN o = o + 1
-NEXT i
+WITH bslot(them).enemy
+ FOR i = 0 TO 4
+  SELECT CASE ai
+   CASE 0: IF .regular_ai(i) > 0 THEN o = o + 1
+   CASE 1: IF .desperation_ai(i) > 0 THEN o = o + 1
+   CASE 2: IF .alone_ai(i) > 0 THEN o = o + 1
+  END SELECT
+ NEXT i
+END WITH
 countai = o
 END FUNCTION
 
@@ -705,31 +711,33 @@ printstr s$, 0, 191, 0
 printstr s$, 0, 191, 1
 END SUB
 
-FUNCTION trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, es() as integer) as integer
+FUNCTION trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, bslot() AS BattleSprite) as integer
 trytheft = 0'--return false by default
 IF is_hero(who) AND is_enemy(targ) THEN
  '--a hero is attacking an enemy
  IF attack.can_steal_item THEN
   '--steal bitset is on for this attack
-  IF es(targ - 4, 17) >= 0 THEN
-   '--enemy is theftable
-   stole = checktheftchance(es(targ - 4, 18), es(targ - 4, 19), es(targ - 4, 20), es(targ - 4, 21))
-   IF stole THEN
-    '--success!
-    IF es(targ - 4, 17) = 0 THEN
-     '--only one theft permitted
-     es(targ - 4, 17) = -1
+  WITH bslot(targ).enemy.steal
+   IF .thievability >= 0 THEN
+    '--enemy is theftable
+    stole = checktheftchance(.item, .item_rate, .rare_item, .rare_item_rate)
+    IF stole THEN
+     '--success!
+     IF .thievability = 0 THEN
+      '--only one theft permitted
+      thievability = -1
+     END IF
+     setbatcap bat, readglobalstring$(117, "Stole", 40) + " " + readitemname$(stole - 1), 40, 0
+     trytheft = -1'--return success
+    ELSE
+     '--steal failed
+     setbatcap bat, readglobalstring$(114, "Cannot Steal", 40) + " ", 40, 0
     END IF
-    setbatcap bat, readglobalstring$(117, "Stole", 40) + " " + readitemname$(stole - 1), 40, 0
-    trytheft = -1'--return success
    ELSE
-    '--steal failed
-    setbatcap bat, readglobalstring$(114, "Cannot Steal", 40) + " ", 40, 0
+    '--has nothing to steal / steal disabled
+    setbatcap bat, readglobalstring$(111, "Has Nothing", 30), 40, 0
    END IF
-  ELSE
-   '--has nothing to steal / steal disabled
-   setbatcap bat, readglobalstring$(111, "Has Nothing", 30), 40, 0
-  END IF
+  END WITH
  END IF
 END IF
 END FUNCTION
@@ -1464,33 +1472,28 @@ FUNCTION targenemycount (bslot() AS BattleSprite, for_alone_ai as integer=0) as 
  RETURN count
 END FUNCTION
 
-SUB loadfoe (slot as integer, formdata() as integer, es() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)
+SUB loadfoe (slot as integer, formdata() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)
  '--slot is the enemy formation slot
 
  DIM i AS INTEGER
  
  IF formdata(slot * 4) > 0 THEN '-- if this slot is occupied
  
-  '--load enemy data into a buffer
-  
-  DIM enemy_buf(159) AS INTEGER
-  loadenemydata enemy_buf(), formdata(slot * 4) - 1, -1
-  FOR i = 0 TO 159
-   es(slot, i) = enemy_buf(i)
-  NEXT i
+  '--load enemy data
+  loadenemydata bslot(4 + slot).enemy, formdata(slot * 4) - 1, -1
 
-  transfer_enemy_bits slot, es(), bslot()
+  transfer_enemy_bits slot, bslot()
 
   '--Special handling for spawning already-dead enemies
  
   IF allow_dead = NO THEN
    'enemies which spawn already-dead should be killed off immediately
    'die without boss or 0 hp?
-   IF dieWOboss(4 + slot, bslot()) OR es(slot, 62) <= 0 THEN
+   IF dieWOboss(4 + slot, bslot()) OR bslot(4 + slot).enemy.stat.hp <= 0 THEN
     'rewards and spawn enemies on death
     'enemy is only partially constructed, but already have everything needed.
     DIM atktype(8) 'regular "spawn on death"
-    dead_enemy 4 + slot, -1, bat, rew, bslot(), es(), formdata()
+    dead_enemy 4 + slot, -1, bat, rew, bslot(), formdata()
     EXIT SUB
    END IF
   END IF
@@ -1498,8 +1501,8 @@ SUB loadfoe (slot as integer, formdata() as integer, es() as integer, BYREF bat 
   '--set up battle state
   WITH bslot(4 + slot)
    '--Size and position
-   .w = sprite_sizes(1 + es(slot, 55)).size.x
-   .h = sprite_sizes(1 + es(slot, 55)).size.y
+   .w = sprite_sizes(1 + .enemy.size).size.x
+   .h = sprite_sizes(1 + .enemy.size).size.y
    .basex = formdata(slot * 4 + 1)
    .basey = formdata(slot * 4 + 2)
    .x = .basex
@@ -1514,20 +1517,22 @@ SUB loadfoe (slot as integer, formdata() as integer, es() as integer, BYREF bat 
     .thankvengemask(i) = NO
    NEXT i
   END WITH
-  setup_non_volitile_enemy_state slot, es(), bslot()
+  setup_non_volitile_enemy_state slot, bslot()
   
  END IF 'this slot is occupied
  
  '--if the enemy in this slot is visible
  IF bslot(4 + slot).vis = 1 THEN
 
-  setup_enemy_sprite_and_name slot, es(), bslot()
+  setup_enemy_sprite_and_name slot, bslot()
 
   '--update stats
-  FOR i = 0 TO 11
-   bslot(4 + slot).stat.cur.sta(i) = es(slot, 62 + i)
-   bslot(4 + slot).stat.max.sta(i) = es(slot, 62 + i)
-  NEXT i
+  WITH bslot(4 + slot)
+   FOR i = 0 TO 11
+    .stat.cur.sta(i) = .enemy.stat.sta(i)
+    .stat.max.sta(i) = .enemy.stat.sta(i)
+   NEXT i
+  END WITH
     
  ELSE
   '--if the enemy in this slot is not visible, mark its sprite count as 0
@@ -1536,73 +1541,62 @@ SUB loadfoe (slot as integer, formdata() as integer, es() as integer, BYREF bat 
 
 END SUB
 
-SUB transfer_enemy_bits(slot AS INTEGER, es() AS INTEGER, bslot() AS BattleSprite)
-  '--Copy elemental bits and other bits from es() to bslot()
-  
-  DIM tempbits(4) AS INTEGER ' This is a hack because readbit doesn't work on double-index arrays
-
-  FOR i AS INTEGER = 0 TO 4
-   tempbits(i) = es(slot, 74 + i)
-  NEXT i
+SUB transfer_enemy_bits(slot AS INTEGER, bslot() AS BattleSprite)
+  '--Copy elemental bits and other bits from bslot().enemy to bslot()
   
   WITH bslot(4 + slot)
-   .harmed_by_cure = xreadbit(tempbits(), 54)
-   .mp_idiot = xreadbit(tempbits(), 55)
-   .is_boss = xreadbit(tempbits(), 56)
-   .unescapable = xreadbit(tempbits(), 57)
-   .die_without_boss = xreadbit(tempbits(), 58)
-   .flee_instead_of_die = xreadbit(tempbits(), 59)
-   .enemy_untargetable = xreadbit(tempbits(), 60)
-   .hero_untargetable = xreadbit(tempbits(), 61)
-   .death_unneeded = xreadbit(tempbits(), 62)
-   .never_flinch = xreadbit(tempbits(), 63)
-   .ignore_for_alone = xreadbit(tempbits(), 64)
+   .harmed_by_cure = .enemy.harmed_by_cure
+   .mp_idiot = .enemy.mp_idiot
+   .is_boss = .enemy.is_boss
+   .unescapable = .enemy.unescapable
+   .die_without_boss = .enemy.die_without_boss
+   .flee_instead_of_die = .enemy.flee_instead_of_die
+   .enemy_untargetable = .enemy.enemy_untargetable
+   .hero_untargetable = .enemy.hero_untargetable
+   .death_unneeded = .enemy.death_unneeded
+   .never_flinch = .enemy.never_flinch
+   .ignore_for_alone = .enemy.ignore_for_alone
    FOR i AS INTEGER = 0 TO 7
-    .weak(i)      = xreadbit(tempbits(), i)
-    .strong(i)    = xreadbit(tempbits(), 8 + i)
-    .absorb(i)    = xreadbit(tempbits(), 16 + i)
-    .enemytype(i) = xreadbit(tempbits(), 24 + i)
+    .weak(i)      = .enemy.weak(i)
+    .strong(i)    = .enemy.strong(i)
+    .absorb(i)    = .enemy.absorb(i)
+    .enemytype(i) = .enemy.enemytype(i)
    NEXT i
   END WITH
 
 END SUB
 
-SUB setup_non_volitile_enemy_state(slot AS INTEGER, es() AS INTEGER, bslot() AS BattleSprite)
+SUB setup_non_volitile_enemy_state(slot AS INTEGER, bslot() AS BattleSprite)
  WITH bslot(slot + 4)
   .vis = 1
   .d = 0
   .dissolve = 0
   .flee = 0
-  .deathtype = es(slot, 22) - 1
+  .deathtype = .enemy.dissolve - 1
   IF .deathtype = -1 THEN .deathtype = gen(genEnemyDissolve)
-  .deathtime = es(slot, 23)
+  .deathtime = .enemy.dissolve_length
   IF .deathtime = 0 THEN
    .deathtime = .w / 2
    'squash, vapourise, phase out
    IF .deathtype = 4 or .deathtype = 6 or .deathtype = 7 THEN .deathtime = .w / 5
   END IF
-  .cursorpos.x = .w / 2 - es(slot, 25) '--X offset is subtracted instead of added because enemies are always h-flipped
-  .cursorpos.y = es(slot, 26)
-  .death_sfx = es(slot, 24)
+  .cursorpos.x = .w / 2 - .enemy.cursor_offset.x '--X offset is subtracted instead of added because enemies are always h-flipped
+  .cursorpos.y = .enemy.cursor_offset.y
+  .death_sfx = .enemy.death_sound
  END WITH
 END SUB
 
-SUB setup_enemy_sprite_and_name(slot AS INTEGER, es() AS INTEGER, bslot() AS BattleSprite)
+SUB setup_enemy_sprite_and_name(slot AS INTEGER, bslot() AS BattleSprite)
  '--Update sprite
  with bslot(4 + slot)
   .sprite_num = 1
-  .sprites = frame_load(1 + es(slot, 55), es(slot, 53))
-  .pal = palette16_load(es(slot, 54), 1 + es(slot, 55), es(slot, 53))
+  .sprites = frame_load(1 + .enemy.size, .enemy.pic)
+  .pal = palette16_load(.enemy.pal, 1 + .enemy.size, .enemy.pic)
+  .name = .enemy.name
  end with
-
- 'can't use readbadbinstring because es is 2D
- bslot(4 + slot).name = ""
- FOR i AS INTEGER = 1 TO es(slot, 0)
-  bslot(4 + slot).name = bslot(4 + slot).name & CHR(es(slot, i))
- NEXT i
 END SUB
 
-SUB changefoe(slot as integer, new_id AS INTEGER, formdata() as integer, es() as integer, bslot() AS BattleSprite, hp_rule AS INTEGER, other_stats_rule AS INTEGER)
+SUB changefoe(slot as integer, new_id AS INTEGER, formdata() as integer, bslot() AS BattleSprite, hp_rule AS INTEGER, other_stats_rule AS INTEGER)
  IF formdata(slot * 4) = 0 THEN
   debug "changefoe doesn't work on empty slot " & slot & " " & new_id
   EXIT SUB
@@ -1610,36 +1604,33 @@ SUB changefoe(slot as integer, new_id AS INTEGER, formdata() as integer, es() as
  
  formdata(slot * 4) = new_id
 
- '--load enemy data into a buffer
-  
- DIM enemy_buf(159) AS INTEGER
- loadenemydata enemy_buf(), formdata(slot * 4) - 1, -1
- FOR i AS INTEGER = 0 TO 159
-  es(slot, i) = enemy_buf(i)
- NEXT i
+ '--load enemy data
+ loadenemydata bslot(4 + slot).enemy, formdata(slot * 4) - 1, -1
 
- transfer_enemy_bits slot, es(), bslot()
+ transfer_enemy_bits slot, bslot()
 
  '--update battle state
  WITH bslot(4 + slot)
   DIM old_w AS INTEGER = .w
   DIM old_h AS INTEGER = .h
-  .w = sprite_sizes(1 + es(slot, 55)).size.x
-  .h = sprite_sizes(1 + es(slot, 55)).size.y
+  .w = sprite_sizes(1 + .enemy.size).size.x
+  .h = sprite_sizes(1 + .enemy.size).size.y
   .basex = .basex + old_w / 2 - .w / 2
   .basey = .basey + old_h - .h
   .x = .x + old_w / 2 - .w / 2
   .y = .y + old_h - .h
  END WITH
- setup_non_volitile_enemy_state slot, es(), bslot()
+ setup_non_volitile_enemy_state slot, bslot()
 
- setup_enemy_sprite_and_name slot, es(), bslot()
+ setup_enemy_sprite_and_name slot, bslot()
 
  '--update stats
- change_foe_stat bslot(4 + slot), 0, es(slot, 62), hp_rule
- FOR i AS INTEGER = 1 TO 11
-  change_foe_stat bslot(4 + slot), i, es(slot, 62 + i), other_stats_rule
- NEXT i
+ WITH bslot(4 + slot)
+  change_foe_stat bslot(4 + slot), 0, .enemy.stat.hp, hp_rule
+  FOR i AS INTEGER = 1 TO 11
+   change_foe_stat bslot(4 + slot), i, .enemy.stat.sta(i), other_stats_rule
+  NEXT i
+ END WITH
  
 END SUB
 

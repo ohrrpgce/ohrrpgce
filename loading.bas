@@ -1847,7 +1847,7 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   .spawn.how_many = buf(91)
   
   '--attacks
-  FOR i AS INTEGER = 0 TO 5
+  FOR i AS INTEGER = 0 TO 4
    .regular_ai(i) = buf(92 + i)
    .desperation_ai(i) = buf(97 + i)
    .alone_ai(i) = buf(102 + i)

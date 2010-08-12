@@ -38,19 +38,19 @@ DECLARE SUB anim_align2(who as integer, target as integer, edgex as integer, edg
 DECLARE SUB anim_relmove(who as integer, tox as integer, toy as integer, xspeed as integer, yspeed as integer)
 DECLARE SUB anim_setdir(who as integer, d as integer)
 DECLARE FUNCTION dieWOboss(BYVAL who as integer, bslot() AS BattleSprite) as integer
-DECLARE SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, es() as integer, formdata() as integer)
-DECLARE SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER)
+DECLARE SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, formdata() as integer)
+DECLARE SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER)
 DECLARE SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, spel$(), speld$(), cost$(), spel(), spelmask(), iuse(), st() as herodef)
 DECLARE SUB spellmenu (BYREF bat AS BattleState, spel(), st() as HeroDef, bslot() AS BattleSprite, conlmp())
-DECLARE SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER, es())
+DECLARE SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER)
 DECLARE SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, vic AS VictoryState)
-DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, es(), formdata(), ctr(), lifemeter())
+DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, formdata(), ctr(), lifemeter())
 DECLARE SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB itemmenu (BYREF bat AS BattleState, BYREF inv_scroll AS MenuState, bslot() AS BattleSprite, icons(), iuse())
-DECLARE FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
-DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
+DECLARE FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
+DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION valid_statnum(statnum AS INTEGER, context AS STRING) AS INTEGER
-DECLARE FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite, es() AS INTEGER) AS INTEGER
+DECLARE FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite) AS INTEGER
 
 DECLARE SUB queue_attack OVERLOAD (bslot() AS BattleSprite, who AS INTEGER)
 DECLARE SUB queue_attack OVERLOAD (attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
