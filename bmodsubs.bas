@@ -712,7 +712,6 @@ printstr s$, 0, 191, 1
 END SUB
 
 FUNCTION trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, bslot() AS BattleSprite) as integer
-trytheft = 0'--return false by default
 IF is_hero(who) AND is_enemy(targ) THEN
  '--a hero is attacking an enemy
  IF attack.can_steal_item THEN
@@ -725,13 +724,13 @@ IF is_hero(who) AND is_enemy(targ) THEN
      '--success!
      IF .thievability = 0 THEN
       '--only one theft permitted
-      thievability = -1
+      .thievability = -1
      END IF
      setbatcap bat, readglobalstring$(117, "Stole", 40) + " " + readitemname$(stole - 1), 40, 0
-     trytheft = -1'--return success
+     RETURN YES '--success
     ELSE
      '--steal failed
-     setbatcap bat, readglobalstring$(114, "Cannot Steal", 40) + " ", 40, 0
+     setbatcap bat, readglobalstring$(114, "Cannot Steal", 40), 40, 0
     END IF
    ELSE
     '--has nothing to steal / steal disabled
@@ -740,6 +739,7 @@ IF is_hero(who) AND is_enemy(targ) THEN
   END WITH
  END IF
 END IF
+RETURN NO '--return false by default
 END FUNCTION
 
 FUNCTION exptolevel (level as integer) as integer
