@@ -776,12 +776,12 @@ SUB guessdefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
    NEXT
   NEXT
  CASE 1 TO 3 'Enemies
-  REDIM buf(160)
+  DIM enemy AS EnemyDef
   FOR i = 0 TO sets
    FOR j = 0 TO gen(genMaxEnemy)
-    loadenemydata buf(), j
-    IF buf(53) = i AND buf(55) + 1 = fileset THEN
-     poffset(i) = buf(54)
+    loadenemydata enemy, j
+    IF enemy.pic = i AND enemy.size + 1 = fileset THEN
+     poffset(i) = enemy.pal
      EXIT FOR
     END IF
    NEXT j
