@@ -33,6 +33,9 @@ WHAT IS NEW?
       [James, msw188]
     * "wait for all" did not wait for NPCs when it was meant to [Ralph]
     * "hero pixel x/y" always returned the leader's position [Ralph]
+    * Using an item that triggers a text box could cause a menu
+      double-close warning if the menu item that opened the items menu
+      was set to always close the menu [James]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

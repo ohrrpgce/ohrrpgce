@@ -2113,7 +2113,9 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
       CASE 0 ' item
        menu_text_box = items_menu
        IF menu_text_box > 0 THEN
-        remove_menu topmenu, (mi.skip_close_script = NO)
+        IF mi.close_if_selected = NO THEN
+         remove_menu topmenu, (mi.skip_close_script = NO)
+        END IF
         EXIT DO
        END IF
       CASE 1 ' spell
