@@ -18,6 +18,7 @@ WHAT IS NEW?
       menu item closes the menu [James]
     * New menu feature to automatically open another menu when you
       close the current menu with ESC [James]
+    * Prompt for confirmation before deleting a sound effect [James]
 
   * Bugfixes
     * Bug 749:  Attacks configured to do No Damage still do damage when

@@ -632,9 +632,11 @@ DO
   CASE 4
     IF sfxfile$ <> "" THEN GOSUB exportsfx
   CASE 5
-    IF sfxfile$ <> "" THEN  'delete sfx
-      safekill sfxfile$
-      GOSUB getsfxinfo
+    IF yesno("Really delete this sound?", NO, NO) THEN
+      IF sfxfile$ <> "" THEN  'delete sfx
+        safekill sfxfile$
+        GOSUB getsfxinfo
+      END IF
     END IF
   CASE 1, 6
     IF sfxfile$ <> "" THEN 'play sfx
