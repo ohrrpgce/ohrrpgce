@@ -37,6 +37,8 @@ WHAT IS NEW?
     * Using an item that triggers a text box could cause a menu
       double-close warning if the menu item that opened the items menu
       was set to always close the menu [James]
+    * Bug 845: upgrading old games that contain no shop stuff lump
+      always produced a confusing warning [James]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

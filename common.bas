@@ -2087,6 +2087,9 @@ END IF
 'back to the .MAS lump, to give old graphics utilities some chance of working
 unconvertpalette()
 
+'--If no stf lump exists, create an empty one.
+IF NOT isfile(game + ".stf") THEN touchfile game + ".stf"
+
 '--check variable record size lumps and reoutput them if records have been extended
 '--all of the files below should exist, be non zero length and have non zero record size by this point
 updaterecordlength workingdir + SLASH + "attack.bin", binATTACK
