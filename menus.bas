@@ -831,7 +831,7 @@ DO
  NEXT
  IF csr = 3 OR csr = 4 OR csr = 5 THEN
   FOR i = 0 TO uiColors
-   drawbox 33 + (uilook(i) MOD 16) * 16, 77 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + tog), dpage
+   drawbox 33 + (uilook(i) MOD 16) * 16, 77 + (uilook(i) \ 16) * 7, 14, 7, uilook(uiHighlight + tog), 1, dpage
   NEXT
  END IF
 

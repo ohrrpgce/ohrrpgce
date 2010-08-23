@@ -1674,7 +1674,7 @@ SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS IN
   IF keyval(scDown) > 0  THEN y += 1
 
   clearpage dpage
-  emptybox 160 - wide, 100 - high, wide * 2, high * 2, uilook(uiSelectedDisabled), 1, dpage
+  drawbox 160 - wide, 100 - high, wide * 2, high * 2, uilook(uiSelectedDisabled), 1, dpage
   frame_draw spr.sprite + frame, spr.pal, 160 - wide, 100 - high, 2,, dpage
   col = uilook(uiBackground)
   IF tog = 0 THEN col = uilook(uiSelectedItem)

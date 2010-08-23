@@ -1310,12 +1310,12 @@ Sub DrawGridSlice(byval sl as slice ptr, byval p as integer)
 
  
  if dat->show then
-  emptybox sl->screenx, sl->screeny, sl->width, sl->height, uilook(uiText), 1, p
+  drawbox sl->screenx, sl->screeny, sl->width, sl->height, uilook(uiText), 1, p
   dim w as integer = sl->width \ large(1, dat->cols)
   dim h as integer = sl->height \ large(1, dat->rows)
   for row as integer = 0 to dat->rows - 1
    for col as integer = 0 to dat->cols - 1
-    'emptybox sl->screenx + col * w, sl->screeny + row * h, w, h, uilook(uiText), 1, p
+    'drawbox sl->screenx + col * w, sl->screeny + row * h, w, h, uilook(uiText), 1, p
     rectangle sl->screenx + col * w, sl->screeny + row * h, w, 1, uilook(uiText), p
     rectangle sl->screenx + col * w, sl->screeny + row * h, 1, h, uilook(uiText), p
    next col

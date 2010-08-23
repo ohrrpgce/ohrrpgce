@@ -1138,7 +1138,7 @@ DO
     radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y)) * 9
     ellipse vpages(dpage), 65 + ts.hox * 10, 4 + ts.hoy * 8, radius, ts.curcolor
    CASE mark_tool
-    IF tog = 0 THEN emptybox 60 + small(ts.x, ts.hox) * 10, small(ts.y, ts.hoy) * 8, (ABS(ts.x - ts.hox) + 1) * 10, (ABS(ts.y - ts.hoy) + 1) * 8, INT(RND * 10), 10, dpage
+    IF tog = 0 THEN drawbox 60 + small(ts.x, ts.hox) * 10, small(ts.y, ts.hoy) * 8, (ABS(ts.x - ts.hox) + 1) * 10, (ABS(ts.y - ts.hoy) + 1) * 8, INT(RND * 10), 10, dpage
   END SELECT
  END IF
  textcolor uilook(uiText), uilook(uiHighlight)
@@ -1469,12 +1469,12 @@ DO
    'preview 59 pixels of tileset at bottom of screen
    frame_draw preview, , 0, 141, , NO, dpage
    rectangle 0, 139, 320, 2, uilook(uiSelectedItem + tog), dpage
-   drawbox ts.tilex * 20, 141 + ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), dpage
+   drawbox ts.tilex * 20, 141 + ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), 1, dpage
   ELSE
    'tileset preview at top of screen
    frame_draw preview, , 0, 0, , NO, dpage
    rectangle 0, 59, 320, 2, uilook(uiSelectedItem + tog), dpage
-   drawbox ts.tilex * 20, ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), dpage
+   drawbox ts.tilex * 20, ts.tiley * 20 - previewy, 20, 20, uilook(uiSelectedItem + tog), 1, dpage
   END IF
   frame_unload @preview
   previewticks -= 1
@@ -1482,7 +1482,7 @@ DO
   copypage 2, dpage
  END IF
 
- drawbox ts.x, ts.y, 20, 20, iif(tog, uilook(uiText), uilook(uiDescription)), dpage
+ drawbox ts.x, ts.y, 20, 20, iif(tog, uilook(uiText), uilook(uiDescription)), 1, dpage
  textcolor uilook(uiMenuItem + tog), 1
  IF ts.zone = 11 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
  printstr "Prev", 8, 190, dpage
@@ -1849,8 +1849,8 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
  END IF
  IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
   ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
-  emptybox 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, ss.zoom, dpage
-  emptybox ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
+  drawbox 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, ss.zoom, dpage
+  drawbox ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, 1, dpage
  END IF
  DIM temppos AS XYPair
  IF ss.tool = clone_tool AND ss_save.clonemarked = YES AND state.tog = 0 THEN

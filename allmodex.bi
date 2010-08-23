@@ -44,12 +44,12 @@ DECLARE SUB setanim (BYVAL cycle1 as integer, BYVAL cycle2 as integer)
 DECLARE SUB setoutside (BYVAL defaulttile as integer)
 
 '--box drawing
-DECLARE SUB drawbox OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-DECLARE SUB drawbox OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr AS Frame Ptr)
+DECLARE SUB drawbox OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL col as integer, BYVAL thick as integer = 1, BYVAL p as integer)
+DECLARE SUB drawbox OVERLOAD (BYVAL dest as Frame ptr, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL col as integer, BYVAL thick as integer = 1)
 DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
+DECLARE SUB rectangle OVERLOAD (BYVAL fr as Frame Ptr, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer)
 DECLARE SUB fuzzyrect OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer, BYVAL fuzzfactor as integer = 50)
-DECLARE SUB fuzzyrect OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr, BYVAL fuzzfactor as integer = 50)
+DECLARE SUB fuzzyrect OVERLOAD (BYVAL fr as Frame Ptr, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fuzzfactor as integer = 50)
 
 'NOTE: clipping values are global.
 DECLARE SUB setclip OVERLOAD (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL fr as Frame ptr = 0)
@@ -64,9 +64,9 @@ DECLARE SUB loadsprite (pic() as integer, BYVAL picoff as integer, BYVAL x as in
 DECLARE SUB bigsprite  (pic() as integer, pal() as integer, BYVAL p as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
 DECLARE SUB hugesprite (pic() as integer, pal() as integer, BYVAL p as integer, BYVAL x as integer, BYVAL y as integer, BYVAL page as integer, BYVAL trans as integer = -1)
 DECLARE SUB putpixel OVERLOAD (BYVAL spr as Frame ptr, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer)
-DECLARE SUB putpixel (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE SUB putpixel OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE FUNCTION readpixel OVERLOAD (BYVAL spr as Frame ptr, BYVAL x as integer, BYVAL y as integer) as integer
-DECLARE FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
+DECLARE FUNCTION readpixel OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) as integer
 DECLARE SUB drawline OVERLOAD (BYVAL dest as Frame ptr, BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer)
 DECLARE SUB drawline OVERLOAD (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE SUB paintat (BYVAL dest as Frame ptr, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer)
@@ -171,6 +171,7 @@ declare sub sprite_debug_cache()
 declare function frame_describe(byval p as frame ptr) as string
 
 declare function palette16_new() as palette16 ptr
+declare function palette16_new_from_buffer(pal() as integer, BYVAL po as integer) as Palette16 ptr
 declare function palette16_load overload (byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 declare function palette16_load(fil as string, byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
 declare sub palette16_unload(byval p as palette16 ptr ptr)

@@ -225,15 +225,15 @@ st.cursor.pal->col(2) = uilook(uiMenuItem)
 ' see the st.cursor.pal construction above
 st.cursor.sprite = frame_new(20, 20, 2, YES)
 
-rectangle 0, 0, 20, 20, 1, st.cursor.sprite
-rectangle 1, 1, 18, 18, 0, st.cursor.sprite
-rectangle 2, 2, 16, 16, 2, st.cursor.sprite
-rectangle 3, 3, 14, 14, 0, st.cursor.sprite
+rectangle st.cursor.sprite, 0, 0, 20, 20, 1
+rectangle st.cursor.sprite, 1, 1, 18, 18, 0
+rectangle st.cursor.sprite, 2, 2, 16, 16, 2
+rectangle st.cursor.sprite, 3, 3, 14, 14, 0
 
-rectangle 0, 0, 20, 20, 1, st.cursor.sprite + 1
-rectangle 1, 1, 18, 18, 0, st.cursor.sprite + 1
-rectangle 3, 3, 14, 14, 2, st.cursor.sprite + 1
-rectangle 4, 4, 12, 12, 0, st.cursor.sprite + 1
+rectangle st.cursor.sprite + 1, 0, 0, 20, 20, 1
+rectangle st.cursor.sprite + 1, 1, 1, 18, 18, 0
+rectangle st.cursor.sprite + 1, 3, 3, 14, 14, 2
+rectangle st.cursor.sprite + 1, 4, 4, 12, 12, 0
 
 '--load hero graphics--
 loadherodata @her, 0
@@ -2096,7 +2096,7 @@ SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapRe
   drawoff.y = large(0, -rs.rect.y * rs.zoom)
   frame_draw rs.minimap, NULL, drawoff.x, drawoff.y, 1, NO, dpage
   draw_menu rs.menu, state, dpage
-  drawbox drawoff.x + rs.zoom * rs.rect.x, drawoff.y + rs.zoom * rs.rect.y, rs.zoom * rs.rect.wide, rs.zoom * rs.rect.high, 14 + state.tog, dpage
+  drawbox drawoff.x + rs.zoom * rs.rect.x, drawoff.y + rs.zoom * rs.rect.y, rs.zoom * rs.rect.wide, rs.zoom * rs.rect.high, 14 + state.tog, 1, dpage
 
   SWAP dpage, vpage
   setvispage vpage

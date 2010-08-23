@@ -866,24 +866,24 @@ SUB DrawSliceAnts (BYVAL sl AS Slice Ptr, dpage AS INTEGER)
  IF sl = 0 THEN EXIT SUB
  DIM col AS INTEGER
  '--Draw verticals
- FOR i AS INTEGER = 0 TO large(ABS(sl->Height) - 1, 2)
+ FOR i AS INTEGER = small(0, sl->Height + 1) TO large(sl->Height - 1, 0)
   SELECT CASE (i + ant) MOD 3
    CASE 0: CONTINUE FOR
    CASE 1: col = uiLook(uiText)
    CASE 2: col = uiLook(uiBackground)
   END SELECT
   putpixel sl->ScreenX, sl->ScreenY + i, col, dpage
-  putpixel sl->ScreenX + sl->Width - 1, sl->ScreenY + i, col, dpage
+  putpixel sl->ScreenX + sl->Width + iif(sl->Width > 0, -1, 1), sl->ScreenY + i, col, dpage
  NEXT i
  '--Draw horizontals
- FOR i AS INTEGER = 0 TO large(ABS(sl->Width) - 1, 2)
+ FOR i AS INTEGER = small(0, sl->Width + 1) TO large(sl->Width - 1, 0)
   SELECT CASE (i + ant) MOD 3
    CASE 0: CONTINUE FOR
    CASE 1: col = uiLook(uiText)
    CASE 2: col = uiLook(uiBackground)
   END SELECT
   putpixel sl->ScreenX + i, sl->ScreenY, col, dpage
-  putpixel sl->ScreenX + i, sl->ScreenY + sl->Height - 1, col, dpage
+  putpixel sl->ScreenX + i, sl->ScreenY + sl->Height + iif(sl->Height > 0, -1, 1), col, dpage
  NEXT i
  '--Draw gridlines if this is a grid
  IF sl->SliceType = slGrid THEN

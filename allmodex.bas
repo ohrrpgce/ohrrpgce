@@ -1121,52 +1121,34 @@ FUNCTION readpixel (BYVAL x as integer, BYVAL y as integer, BYVAL p as integer) 
 	return PAGEPIXEL(x, y, p)
 end FUNCTION
 
-SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	drawbox x, y, w, h, c, vpages(p)
+SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL col as integer, BYVAL thick as integer = 1, BYVAL p as integer)
+	drawbox vpages(p), x, y, w, h, col, thick
 END SUB
 
-SUB drawbox (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr AS Frame Ptr)
-	if clippedframe <> fr then
-		setclip , , , , fr
-	end if
-
-	if fr = 0 then debug "drawbox null ptr": exit sub
-
+'Draw a hollow box, with given edge thickness
+SUB drawbox (BYVAL dest as Frame ptr, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL col as integer, BYVAL thick as integer = 1)
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
 
-	'clip
-	dim as integer notop, nobottom, noleft, noright
-	if x + w > clipr + 1 then w = (clipr - x) + 1 : noright = YES
-	if y + h > clipb + 1 then h = (clipb - y) + 1 : nobottom = YES
-	if x < clipl then w -= (clipl - x) : x = clipl : noleft = YES
-	if y < clipt then h -= (clipt - y) : y = clipt : notop = YES
+	if w = 0 or h = 0 then exit sub
 
-	if w <= 0 or h <= 0 then exit sub
+        dim as integer thickx = small(thick, w), thicky = small(thick, h)
 
-	dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
-	'draw the top
-	if notop = NO then
-		memset(sptr, c, w)
-	end if
-	'draw the sides
-	for i as integer = h - 1 to 0 step -1
-		if noleft = NO then sptr[0] = c
-		if noright = NO then sptr[w - 1] = c
-		sptr += fr->pitch
-	next
-	'draw the bottom
-	if h >= 2 and nobottom = NO then
-		sptr = fr->image + ((y + h - 1) * fr->pitch) + x
-		memset(sptr, c, w)
-	end if
+	rectangle dest, x, y, w, thicky, col
+	IF h > thicky THEN
+		rectangle dest, x, y + h - thicky, w, thicky, col
+	END IF
+	rectangle dest, x, y, thickx, h, col
+	IF w > thickx THEN
+		rectangle dest, x + w - thickx, y, thickx, h, col
+	END IF
 END SUB
 
 SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	rectangle x, y, w, h, c, vpages(p)
+	rectangle vpages(p), x, y, w, h, c
 END SUB
 
-SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
+SUB rectangle (BYVAL fr as Frame Ptr, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer)
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
@@ -1193,10 +1175,10 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 END SUB
 
 SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer, BYVAL fuzzfactor as integer = 50)
-	fuzzyrect x, y, w, h, c, vpages(p), fuzzfactor
+	fuzzyrect vpages(p), x, y, w, h, c, fuzzfactor
 END SUB
 
-SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr, BYVAL fuzzfactor as integer = 50)
+SUB fuzzyrect (BYVAL fr as Frame Ptr, BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fuzzfactor as integer = 50)
 	'How many magic constants could you wish for?
 	'These were half generated via magic formulas, and half hand picked (with magic criteria)
 	static grain_table(50) as integer = {_

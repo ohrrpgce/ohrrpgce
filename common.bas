@@ -431,17 +431,6 @@ SUB centerbox (x, y, w, h, c, p)
  center_edgeboxstyle x, y, w, h, c - 1, p
 END SUB
 
-SUB emptybox (x, y, w, h, col, thick, p)
- rectangle x, y, w, thick, col, p
- IF h > 0 THEN
-  rectangle x, y + h - thick, w, thick, col, p
- END IF
- rectangle x, y, thick, h, col, p
- IF w > 0 THEN
-  rectangle x + w - thick, y, thick, h, col, p
- END IF
-END SUB
-
 SUB center_edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
  edgeboxstyle x - w / 2, y - h / 2, w, h, boxstyle, p, fuzzy, supress_borders
 END SUB
@@ -467,16 +456,16 @@ END SUB
 SUB edgebox (x, y, w, h, col, bordercol, BYVAL fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, border=-1, fuzzfactor=50)
 '--border: -2 is none, -1 is simple line, 0+ is styled box edge
 IF trans = transFuzzy THEN
- fuzzyrect x, y, w, h, col, fr, fuzzfactor
+ fuzzyrect fr, x, y, w, h, col, fuzzfactor
 ELSEIF trans = transOpaque THEN
- rectangle x, y, w, h, col, fr
+ rectangle fr, x, y, w, h, col
 END IF
 IF border = -1 THEN
  '--Simple line border
- drawbox x, y, w, h, bordercol, fr
+ drawbox fr, x, y, w, h, bordercol
 ELSEIF border >= 0 AND border <= 14 THEN
  '--Normal Border
- IF trans <> transHollow THEN drawbox x, y, w, h, bordercol, fr
+ IF trans <> transHollow THEN drawbox fr, x, y, w, h, bordercol
  DIM AS INTEGER i, borderindex
  DIM border_gfx AS GraphicPair
  borderindex = uilook(uiTextBoxFrame + border) - 1
