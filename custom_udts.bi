@@ -119,18 +119,23 @@ TYPE TextboxConnectNode
 END TYPE
 
 TYPE MapEditState
+  'This NPC stuff shouldn't be here; this is the Editor state, not a map TYPE
   npc_def(max_npc_defs - 1) AS NPCType
   num_npc_defs AS INTEGER
   npc_inst(299) AS NPCInst
-  tilepick AS XYPair
+
+  tilepick AS XYPair  'Coordinates (in tiles) of the selected tile on the tile picker screen
   layer AS INTEGER
-  usetile(0 to maplayerMax) AS INTEGER
+  defpass AS INTEGER  'Default passability ON/OFF
+  cur_foe AS INTEGER  'Formation set selected for placement
+  cur_npc AS INTEGER  'NPC ID selected for placement
+  usetile(0 to maplayerMax) AS INTEGER  'Tile selected for each layer
   menubarstart(0 to maplayerMax) AS INTEGER
   menubar AS TileMap
   tilesetview AS TileMap
   cursor AS GraphicPair
-  tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
-  menustate AS MenuState
+  tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
+  menustate AS MenuState  'The top-level menu state
 END TYPE
 
 TYPE MapResizeState

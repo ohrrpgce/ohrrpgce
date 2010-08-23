@@ -20,7 +20,7 @@ DECLARE SUB mapeditor (BYVAL mapnum AS INTEGER)
 DECLARE FUNCTION addmaphow () AS INTEGER
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
 DECLARE SUB loadpasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
-DECLARE SUB paint_map_area(st AS MapEditState, oldTile, x%, y%, map() AS TileMap, pass AS TileMap, defaults() AS DefArray, defpass%)
+DECLARE SUB paint_map_area(st AS MapEditState, oldTile, x%, y%, map() AS TileMap, pass AS TileMap, defaults() AS DefArray)
 
 TYPE LayerMenuItem
  layernum AS INTEGER '-1 if not a layer
@@ -55,7 +55,7 @@ DECLARE SUB mapedit_addmap()
 DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, npc_img() AS GraphicPair, mapname AS STRING)
 DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER)
-DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray, map() AS TileMap)
 DECLARE SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER)
 DECLARE SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL where AS INTEGER)
@@ -210,15 +210,11 @@ REDIM map(0) AS TileMap ' dummy empty map data, will be resized later
 DIM pass AS TileMap
 DIM emap AS TileMap
 
-DIM foe AS INTEGER = 0 ' Formation number for foemapping mode
-
 DIM defpass_reload_confirm(1) AS STRING
 
-textcolor uilook(uiText), 0
-
-wide = 0: high = 0: nptr = 0
+wide = 0: high = 0
 mapname$ = ""
-DIM xtemp AS STRING, temp AS INTEGER
+DIM AS INTEGER temp, doorid, doorlinkid  'all temp
 
 '--create a palette for the cursor
 st.cursor.pal = palette16_new()
@@ -311,7 +307,8 @@ DO
     editmode = st.menustate.pt - 5
     GOSUB mapping
    CASE 10
-    mapedit_linkdoors st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
+    mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
+    mapedit_linkdoors st, mapnum, map(), pass, gmap(), doors(), link()
    CASE 11
     mapedit_delete st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), npc_img(), mapname$
     IF mapnum > gen(genMaxMap) THEN
@@ -371,15 +368,14 @@ loadherodata @her, 0
 loadrecord heroimg(), game + ".pt4", 100, her.walk_sprite * 8 + 4
 fixspriterecord heroimg(), 20, 20
 getpal16 heropal(), 0, her.walk_sprite_pal, 4, her.walk_sprite
-defpass = 1
-IF readbit(gen(), genBits, 15) THEN defpass = 0 ' option to default the defaults to OFF
-doorid = 0
-doorlinkid = 0
+st.defpass = YES
+IF readbit(gen(), genBits, 15) THEN st.defpass = NO ' option to default the defaults to OFF
 
 setkeys
 DO
  setwait 55
  setkeys
+ tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
  if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
   IF keyval(scF2) > 1 THEN
@@ -470,7 +466,7 @@ DO
     FOR tx = 0 TO 15
      FOR ty = 0 TO 8
       writeblock map(st.layer), mapx \ 20 + tx, mapy \ 20 + ty, st.usetile(st.layer)
-      IF defpass THEN calculatepassblock st, mapx \ 20 + tx, mapy \ 20 + ty, map(), pass, defaults()
+      IF st.defpass THEN calculatepassblock st, mapx \ 20 + tx, mapy \ 20 + ty, map(), pass, defaults()
      NEXT ty
     NEXT tx
    END IF
@@ -484,7 +480,7 @@ DO
    END IF
    IF keyval(scP) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+P to paint a continuous section of maptiles
     old = readblock(map(st.layer), x, y)
-    paint_map_area st, old, x, y, map(), pass, defaults(), defpass
+    paint_map_area st, old, x, y, map(), pass, defaults()
    END IF
    IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
      setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
@@ -493,7 +489,7 @@ DO
    IF keyval(scEnter) > 1 THEN mapedit_pickblock st
    IF keyval(scSpace) > 0 THEN
     writeblock map(st.layer), x, y, st.usetile(st.layer)
-    IF defpass THEN calculatepassblock st, x, y, map(), pass, defaults()
+    IF st.defpass THEN calculatepassblock st, x, y, map(), pass, defaults()
    END IF
    IF keyval(scDelete) > 1 THEN 'delete
     writeblock map(st.layer), x, y, 0
@@ -502,7 +498,7 @@ DO
     st.usetile(st.layer) = animadjust(readblock(map(st.layer), x, y), st.tilesets(st.layer)->tastuf())
     update_tilepicker st
    END IF
-   IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN defpass = defpass XOR 1   
+   IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR 1   
    FOR i = 0 TO 1 
     IF keyval(sc1 + i) > 1 THEN 'animate tile
      newtile = -1
@@ -633,18 +629,18 @@ DO
      IF temp >= 0 THEN
       st.npc_inst(temp).x = x * 20
       st.npc_inst(temp).y = y * 20
-      st.npc_inst(temp).id = nptr + 1
+      st.npc_inst(temp).id = st.cur_npc + 1
       st.npc_inst(temp).dir = nd
      END IF
     END IF
    END IF
-   intgrabber(nptr, 0, st.num_npc_defs - 1, 51, 52)
+   intgrabber(st.cur_npc, 0, st.num_npc_defs - 1, 51, 52)
    '---FOEMODE--------
   CASE 4
    IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
-   intgrabber(foe, 0, 255, 51, 52)
+   intgrabber(st.cur_foe, 0, 255, 51, 52)
    IF keyval(scSpace) > 0 THEN
-    writeblock emap, x, y, foe
+    writeblock emap, x, y, st.cur_foe
    END IF
    IF keyval(scDelete) > 1 THEN
     writeblock emap, x, y, 0
@@ -652,11 +648,11 @@ DO
    IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN
     FOR i = 0 TO 15
      FOR o = 0 TO 8
-      writeblock emap, mapx \ 20 + i, mapy \ 20 + o, foe
+      writeblock emap, mapx \ 20 + i, mapy \ 20 + o, st.cur_foe
      NEXT o
     NEXT i
    END IF
-   IF keyval(scCapslock) > 1 THEN foe = readblock(emap, x, y)
+   IF keyval(scCapslock) > 1 THEN st.cur_foe = readblock(emap, x, y)
    '--done input-modes-------
  END SELECT
  
@@ -709,8 +705,7 @@ DO
   END IF
  END IF
  
- tog = tog XOR 1
- flash = loopvar(flash, 0, 3, 1)
+ '--Draw Screen
  
  '--draw menubar
  IF editmode = 0 THEN
@@ -719,6 +714,7 @@ DO
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
  END IF
+ rectangle 0, 19, 320, 1, uilook(uiText), dpage
  
  '--draw map
  setmapdata @pass, 20
@@ -747,7 +743,15 @@ DO
 		drawmap map(0), mapx, mapy, 2, st.tilesets(0), dpage, 0
 	end if
  end if
- 
+
+ '--hero start location display--
+ IF gen(genStartMap) = mapnum THEN
+  IF gen(genStartX) >= mapx \ 20 AND gen(genStartX) < mapx \ 20 + 16 AND gen(genStartY) > mapy \ 20 AND gen(genStartY) <= mapy \ 20 + 9 THEN
+   drawsprite heroimg(), 0, heropal(), 0, gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 20 - mapy, dpage
+   printstr "Hero", gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 30 - mapy, dpage
+  END IF
+ END IF
+
  '--show passmode overlay
  IF editmode = 1 THEN
   FOR o = 0 TO 8
@@ -777,14 +781,6 @@ DO
   NEXT
  END IF
 
- '--hero start location display--
- IF gen(genStartMap) = mapnum THEN
-  IF gen(genStartX) >= mapx \ 20 AND gen(genStartX) < mapx \ 20 + 16 AND gen(genStartY) > mapy \ 20 AND gen(genStartY) <= mapy \ 20 + 9 THEN
-   drawsprite heroimg(), 0, heropal(), 0, gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 20 - mapy, dpage
-   printstr "Hero", gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 30 - mapy, dpage
-  END IF
- END IF
-
  '--npc display--
  IF editmode = 3 THEN
   FOR i = 0 TO UBOUND(npcnum)
@@ -806,6 +802,17 @@ DO
    END WITH
   NEXT
  END IF
+
+ '--show foemap--
+ IF editmode = 4 THEN
+  textcolor uilook(uiSelectedItem + tog), 0
+  FOR i = 0 TO 15
+   FOR o = 0 TO 8
+    temp = readblock(emap, mapx / 20 + i, mapy / 20 + o)
+    IF temp > 0 THEN printstr STR(temp), i * 20 - ((temp < 10) * 5), o * 20 + 26, dpage
+   NEXT o
+  NEXT i
+ END IF
  
  '--position finder--
  IF tiny = 1 THEN
@@ -823,39 +830,31 @@ DO
  
  '--npc placement cursor--
  IF editmode = 3 THEN
-  WITH npc_img(nptr)
+  WITH npc_img(st.cur_npc)
    frame_draw .sprite + (2 * walk), .pal, x * 20 - mapx, y * 20 - mapy + 20, 1, -1, dpage
   END WITH
   textcolor uilook(uiSelectedItem + tog), 0
-  xtemp = STR(nptr)
-  printstr xtemp, (x * 20) - mapx, (y * 20) - mapy + 28, dpage
+  printstr STR(st.cur_npc), (x * 20) - mapx, (y * 20) - mapy + 28, dpage
  END IF
  
- '--show foemap--
- IF editmode = 4 THEN
-  textcolor uilook(uiSelectedItem + tog), 0
-  FOR i = 0 TO 15
-   FOR o = 0 TO 8
-    temp = readblock(emap, mapx \ 20 + i, mapy \ 20 + o)
-    IF temp > 0 THEN printstr STR$(temp), i * 20 - ((temp < 10) * 5), o * 20 + 26, dpage
-   NEXT o
-  NEXT i
- END IF
- 
- textcolor uilook(uiSelectedItem + tog), 0
- IF editmode = 0 THEN
-  printstr "Layer " & st.layer, 0, 180, dpage
- END IF
+ textcolor uilook(uiSelectedItem + tog), 0 
  printstr "X " & x & "   Y " & y, 0, 192, dpage
- rectangle 0, 19, 320, 1, uilook(uiText), dpage
- IF editmode = 0 THEN
-  status$ = "Default Passability "
-  IF defpass THEN status$ = status$ + "On" ELSE status$ = status$ + "Off"
-  printstr status$, 124, 192, dpage
- END IF
  textcolor uilook(uiText), 0
  printstr modenames(editmode), 0, 24, dpage
- IF editmode = 4 THEN textcolor uilook(uiText), uilook(uiHighlight): printstr "Formation Set: " & foe, 0, 16, dpage
+
+ IF editmode = 0 THEN
+  textcolor uilook(uiSelectedItem + tog), 0
+  printstr "Layer " & st.layer, 0, 180, dpage
+  status$ = "Default Passability "
+  IF st.defpass THEN status$ = status$ + "On" ELSE status$ = status$ + "Off"
+  printstr status$, 124, 192, dpage
+ END IF
+
+ IF editmode = 4 THEN
+  textcolor uilook(uiText), uilook(uiHighlight)
+  printstr "Formation Set: " & st.cur_foe, 0, 16, dpage
+ END IF
+
  SWAP vpage, dpage
  setvispage vpage
  dowait
@@ -1512,6 +1511,7 @@ SUB add_more_layers(map() as TileMap, vis() as integer, gmap() as integer, BYVAL
 END SUB
 
 SUB fix_tilemaps(map() as TileMap)
+ 'Each tilemap in map() needs to know its index number in map(). This SUB updates that.
  FOR i as integer = 0 TO UBOUND(map)
   map(i).layernum = i
  NEXT
@@ -1690,8 +1690,8 @@ SUB update_tilepicker(BYREF st AS MapEditState)
  st.tilepick.x = st.usetile(st.layer) - (st.tilepick.y * 16)
 END SUB
 
-SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
- mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname
+SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
+ 'Warning: map data should be saved before this SUB is called, as some of it's reloaded from file
  
  DIM state AS MenuState
  state.top = 0
@@ -2190,7 +2190,7 @@ END SUB
 
 'tile fill tool: iterate through all contiguous maptiles, changing if the area continues, and stopping if it is blocked by a different kind of maptile
 'do a breadth first search instead of using the stack; that's prone to overflow
-SUB paint_map_area(st AS MapEditState, oldTile, x, y, map() AS TileMap, pass AS TileMap, defaults() AS DefArray, defpass)
+SUB paint_map_area(st AS MapEditState, oldTile, x, y, map() AS TileMap, pass AS TileMap, defaults() AS DefArray)
  IF oldTile = st.usetile(st.layer) THEN EXIT SUB
  REDIM queue(250) AS XYPair 'a circular buffer. We don't use the last element
  DIM AS INTEGER head, tail, i, oldend
@@ -2211,7 +2211,7 @@ SUB paint_map_area(st AS MapEditState, oldTile, x, y, map() AS TileMap, pass AS 
   WITH queue(tail)
    IF readblock(map(st.layer), .x, .y) = oldTile THEN
     writeblock map(st.layer), .x, .y, st.usetile(st.layer)
-    IF defpass THEN calculatepassblock st, .x, .y, map(), pass, defaults()
+    IF st.defpass THEN calculatepassblock st, .x, .y, map(), pass, defaults()
     paint_map_add_node map(st.layer), oldTile, .x + 1, .y, head, queue()
     paint_map_add_node map(st.layer), oldTile, .x - 1, .y, head, queue()
     paint_map_add_node map(st.layer), oldTile, .x, .y + 1, head, queue()
