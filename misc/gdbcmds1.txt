@@ -1,3 +1,4 @@
+break fb_End if ((char**)&__fb_ctx)[5] != 0
 break exit if ((char**)&__fb_ctx)[5] != 0
 break abort
 source misc/gdbscripts
