@@ -23,6 +23,7 @@ option explicit
 #define NULL 0
 
 'Note: While non-refcounted frames work (at last check), it's not used anywhere, and you most probably do not need it
+'NOREFC is also used to indicate uncached Palette16's. Note Palette16's are NOT refcounted in the way as frames
 const NOREFC = -1234
 const FREEDREFC = -4321
 
@@ -4254,6 +4255,7 @@ redim shared palcache(50) as Palette16Cache
 sub Palette16_delete(byval f as Palette16 ptr ptr)
 	if f = 0 then exit sub
 	if *f = 0 then exit sub
+	(*f)->refcount = FREEDREFC  'help detect double frees
 	deallocate(*f)
 	*f = 0
 end sub
@@ -4285,6 +4287,12 @@ end function
 
 sub Palette16_add_cache(s as string, byval p as Palette16 ptr, byval fr as integer = 0)
 	if p = 0 then exit sub
+	if p->refcount = NOREFC then
+		'sanity check
+		debug "Tried to add a non-refcounted Palette16 to the palette cache!"
+		exit sub
+	end if
+
 	dim as integer i, sec = -1
 	for i = fr to ubound(palcache)
 		with palcache(i)
@@ -4314,9 +4322,12 @@ sub Palette16_add_cache(s as string, byval p as Palette16 ptr, byval fr as integ
 end sub
 
 function palette16_new() as palette16 ptr
-  dim ret as palette16 ptr
-  '--create a new palette which is not connected to any data file
-  return callocate(sizeof(palette16))
+	dim ret as palette16 ptr
+	'--create a new palette which is not connected to any data file
+	ret = callocate(sizeof(palette16))
+	'--noncached palettes should be deleted when they are unloaded
+	ret->refcount = NOREFC
+	return ret
 end function
 
 function palette16_load(byval num as integer, byval autotype as integer = 0, byval spr as integer = 0) as palette16 ptr
@@ -4409,8 +4420,13 @@ end function
 sub palette16_unload(byval p as palette16 ptr ptr)
 	if p = 0 then exit sub
 	if *p = 0 then exit sub
-	(*p)->refcount -= 1
-	'debug "unloading palette (" & ((*p)->refcount) & " more copies!)"
+	if (*p)->refcount = NOREFC then
+		'--noncached palettes should be deleted when they are unloaded
+		Palette16_delete(p)
+	else
+		(*p)->refcount -= 1
+		'debug "unloading palette (" & ((*p)->refcount) & " more copies!)"
+	end if
 	*p = 0
 end sub
 
