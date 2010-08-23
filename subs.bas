@@ -239,7 +239,7 @@ menuoff(EnMenuName) = EnDatName
 menulimits(EnMenuName) = EnLimStr16
 
 CONST EnMenuAppearAct = 3
-menu(EnMenuAppearAct) = "Appearance..."
+menu(EnMenuAppearAct) = "Appearance & Sounds..."
 menutype(EnMenuAppearAct) = 1
 
 CONST EnMenuRewardAct = 4
@@ -651,6 +651,9 @@ DO
    CASE EnMenuPal
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic))
     GOSUB EnUpdateMenu
+   CASE EnMenuDeathSFX
+    IF recbuf(EnDatDeathSFX) >= 1 THEN playsfx recbuf(EnDatDeathSFX) - 1
+    IF recbuf(EnDatDeathSFX) = 0 THEN playsfx gen(genDefaultDeathSFX) - 1
    CASE EnMenuBitsetAct
     editbitset recbuf(), EnDatBitset, UBOUND(ebit), ebit(), "enemy_bitsets"
    CASE EnMenuDissolve, EnMenuDissolveTime
@@ -719,6 +722,7 @@ LOOP
 '--save what we were last working on
 saveenemydata recbuf(), recindex
 
+resetsfx
 clearallpages
 DeleteSlice @preview_box
 frame_unload @preview_sprite
@@ -740,6 +744,8 @@ enforceflexbounds menuoff(), menutype(), menulimits(), recbuf(), min(), max()
 
 updateflexmenu state.pt, dispmenu(), workmenu(), state.last, menu(), menutype(), menuoff(), menulimits(), recbuf(), caption(), max(), recindex
 
+'--stop sounds
+resetsfx
 '--update the picture and palette preview
 frame_unload @preview_sprite
 preview_sprite = frame_load(1 + recbuf(EnDatPicSize), recbuf(EnDatPic))
@@ -929,18 +935,21 @@ DO
  IF csr3 = 0 THEN
   '--menu mode
   IF keyval(scESC) > 1 THEN
-   saveform(a(),pt)
-   RETRACE
+   EXIT DO
   END IF
   IF keyval(scF1) > 1 THEN show_help "formation_editor"
   IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxFormation), 0, game + ".for", 80
   usemenu csr2, -6, -6, 7, 25
   IF enter_or_space() THEN
    IF csr2 = -6 THEN
-    saveform(a(),pt)
-    RETRACE
+    EXIT DO
    END IF
-   IF csr2 >= 0 THEN IF a(csr2 * 4 + 0) > 0 THEN csr3 = 1
+   IF csr2 = -1 THEN 'formation music
+    IF a(33) > 0 THEN playsongnum a(33) - 1
+   END IF
+   IF csr2 >= 0 THEN 'an enemy
+    IF a(csr2 * 4 + 0) > 0 THEN csr3 = 1
+   END IF
   END IF
   IF csr2 = -4 THEN 'background
    IF intgrabber(a(32), 0, max(csr2 + 5)) THEN
@@ -963,7 +972,9 @@ DO
    END IF
   END IF
   IF csr2 = -1 THEN 'formation music
-   zintgrabber(a(33), -2, max(csr2 + 5))
+   IF zintgrabber(a(33), -2, max(csr2 + 5)) THEN
+    pausesong
+   END IF
   END IF
   IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
    dim as integer remptr = pt
@@ -1053,6 +1064,9 @@ DO
  setvispage vpage
  dowait
 LOOP
+saveform(a(),pt)
+pausesong
+RETRACE
 
 clearformation:
 FOR i = 0 TO 40

@@ -296,7 +296,7 @@ SUB generalmusicsfxmenu ()
   FOR i = 1 to num
     IF gen(index(i)) > 0 THEN
       IF i <= lastmusicitem THEN
-        disp(i) = menu(i) & (gen(index(i)) - 1) & " " & getsongname(gen(index(i)) - 1, -1)
+        disp(i) = menu(i) & getsongname(gen(index(i)) - 1, -1)  'prefixes number
       ELSE
         disp(i) = menu(i) & (gen(index(i)) - 1) & " " & getsfxname(gen(index(i)) - 1)
       END IF
@@ -315,19 +315,30 @@ SUB generalmusicsfxmenu ()
     IF keyval(scF1) > 1 THEN show_help "general_music_sfx"
     usemenu pt, 0, 0, menusize, 24
 
+    IF enter_or_space() THEN
+      SELECT CASE AS CONST pt
+      CASE 0
+        EXIT DO
+      CASE 1 TO lastmusicitem
+        IF gen(index(pt)) > 0 THEN playsongnum gen(index(pt)) - 1
+      CASE lastmusicitem + 1 TO num
+        IF gen(index(pt)) > 0 THEN playsfx gen(index(pt)) - 1
+      END SELECT
+    END IF
+
     SELECT CASE AS CONST pt
-    CASE 0
-      IF enter_or_space() THEN EXIT DO
     CASE 1 TO lastmusicitem
       IF zintgrabber(gen(index(pt)), -1, gen(genMaxSong)) THEN
+        pausesong
         IF gen(index(pt)) > 0 THEN
-          disp(pt) = menu(pt) & (gen(index(pt))-1) & " " & getsongname(gen(index(pt)) - 1, -1)
+          disp(pt) = menu(pt) & getsongname(gen(index(pt)) - 1, -1)  'prefixes number
         ELSE
           disp(pt) = menu(pt) & "None"
         END IF
       END IF
     CASE lastmusicitem + 1 TO num
       IF zintgrabber(gen(index(pt)), -1, gen(genMaxSFX)) THEN
+        resetsfx
         IF gen(index(pt)) > 0 THEN
           disp(pt) = menu(pt) & (gen(index(pt))-1) & " " & getsfxname(gen(index(pt)) - 1)
         ELSE
@@ -343,6 +354,8 @@ SUB generalmusicsfxmenu ()
     setvispage vpage
     dowait
   LOOP
+  pausesong
+  resetsfx
 END SUB
 
 SUB importsong ()

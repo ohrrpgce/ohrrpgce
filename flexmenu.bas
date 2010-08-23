@@ -1220,6 +1220,7 @@ LOOP
 '--save what we were last working on
 saveattackdata recbuf(), recindex
 
+resetsfx
 clearallpages
 DeleteSlice @preview_box
 
@@ -1313,7 +1314,8 @@ SELECT CASE menutype(nowindex)
 END SELECT
 
 '--preview sound effects
-IF (changed OR enter_or_space()) AND menutype(nowindex) = 11 THEN
+IF menutype(nowindex) = 11 AND changed THEN resetsfx
+IF menutype(nowindex) = 11 AND enter_or_space() THEN
  DIM sfx AS INTEGER = datablock(menuoff(nowindex))
  IF sfx > 0 AND sfx <= gen(genMaxSFX) + 1 THEN
   playsfx sfx - 1
