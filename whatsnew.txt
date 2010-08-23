@@ -20,6 +20,9 @@ WHAT IS NEW?
       close the current menu with ESC [James]
     * Prompt for confirmation before deleting a sound effect [James]
     * Expanded (and fixed) Erase Map Data menu [Ralph]
+    * The line and oval tools are now pleasant to use instead of
+      teeth-gnashingly awful, and the pixels in the tile editor are
+      no longer stretched [Ralph]
 
   * Bugfixes
     * Bug 749:  Attacks configured to do No Damage still do damage when

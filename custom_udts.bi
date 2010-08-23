@@ -45,7 +45,7 @@ TYPE SpriteEditState
   mist AS INTEGER
   hold AS INTEGER
   holdpos AS XYPair
-  radius AS INTEGER
+  radius AS DOUBLE
   ellip_minoraxis AS DOUBLE '--For non-circular elipses. Not implemented yet
   ellip_angle AS DOUBLE
   undodepth AS INTEGER
@@ -68,6 +68,7 @@ TYPE TileCloneBuffer
 END TYPE
 
 TYPE TileEditState
+  drawframe AS Frame Ptr  '--Don't write to this! It's for display only
   x AS INTEGER
   y AS INTEGER
   tilex AS INTEGER
@@ -77,6 +78,7 @@ TYPE TileEditState
   tool AS INTEGER
   curcolor AS INTEGER
   hidemouse AS INTEGER
+  radius AS DOUBLE
   airsize AS INTEGER
   mist AS INTEGER
   undo AS INTEGER

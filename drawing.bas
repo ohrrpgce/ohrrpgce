@@ -73,10 +73,9 @@ SUB airbrush (x, y, d, m, c, p)
 FOR count = 1 TO RND * m
  x2 = RND * d
  y2 = RND * d
- r = d \ 2
- x3 = x - r
- y3 = y - r
- IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 < r ^ 2 THEN
+ x3 = x - d / 2
+ y3 = y - d / 2
+ IF ABS((x3 + x2) - x) ^ 2 + ABS((y3 + y2) - y) ^ 2 <= d ^ 2 / 4 THEN
   putpixel x3 + x2, y3 + y2, c, p
  END IF
 NEXT
@@ -648,6 +647,7 @@ END SUB
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
 DIM ts AS TileEditState, mover(12), mouse(4), area(22) AS MouseArea
+ts.drawframe = frame_new(20, 20, , YES)
 DIM tog AS integer
 ts.gotmouse = havemouse()
 hidemousecursor
@@ -655,9 +655,9 @@ ts.canpaste = oldpaste
 ts.drawcursor = 1
 ts.airsize = 5
 ts.mist = 4
-area(0).x = 60
+area(0).x = 80   'Tile at 8x zoom
 area(0).y = 0
-area(0).w = 200
+area(0).w = 160
 area(0).h = 160
 area(0).hidecursor = YES
 area(1).x = 0
@@ -842,17 +842,13 @@ IF tmode = 3 THEN
  savepasdefaults defaults(), pagenum
 END IF
 oldpaste = ts.canpaste
+frame_unload @ts.drawframe
 unhidemousecursor
 END SUB
 
 SUB refreshtileedit (mover(), state AS TileEditState)
 copymapblock mover(), state.tilex * 20, state.tiley * 20, 3, 280, 10 + (state.undo * 21), 2
-rectangle 59, 0, 202, 161, uilook(uiText), 2
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  rectangle 60 + i * 10, j * 8, 10, 8, readpixel(state.tilex * 20 + i, state.tiley * 20 + j, 3), 2
- NEXT j
-NEXT i
+frame_draw vpages(3), NULL, -state.tilex * 20, -state.tiley * 20, , NO, state.drawframe  'Blit the tile onto state.drawframe
 END SUB
 
 SUB writeundoblock (mover(), state AS TileEditState)
@@ -936,35 +932,44 @@ WITH toolinfo(7)
  .areanum = 22
 END WITH
 
+DIM overlay AS Frame ptr
+overlay = frame_new(20, 20, , YES)
+DIM overlaypal AS Palette16 ptr
+overlaypal = palette16_new()
+
 tog = 0
 tick = 0
 ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
 ts.delay = 10
-zox = ts.x * 10 + 5
+zox = ts.x * 8 + 4
 zoy = ts.y * 8 + 4
 mouse(0) = area(0).x + zox
 mouse(1) = area(0).y + zoy
 movemouse mouse(0), mouse(1)
 clearpage 2
+'--Undo boxes
 FOR i = 0 TO 5
  edgebox 279, 9 + (i * 21), 22, 22, uilook(uiBackground), uilook(uiMenuItem), 2
 NEXT i
 refreshtileedit mover(), ts
 textcolor uilook(uiMenuItem), 0
 printstr ">", 270, 16 + (ts.undo * 21), 2
+'--Draw master palette
 FOR j = 0 TO 7
  FOR i = 0 TO 15
   rectangle i * 10, j * 4 + 160, 10, 4, j * 16 + i, 2
   rectangle i * 10 + 160, j * 4 + 160, 10, 4, j * 16 + i + 128, 2
  NEXT i
 NEXT j
+'--frame around the drawing area
+rectangle 79, 0, 162, 160, uilook(uiText), 2
 '---EDIT BLOCK---
 setkeyrepeat 25, 5
 setkeys
 DO
- setwait 17, 70
+ setwait 17, 110
  setkeys
  IF ts.gotmouse THEN
   readmouse mouse()
@@ -989,7 +994,7 @@ DO
   IF slowkey(scUp, 6) THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
   IF slowkey(scDown, 6) THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
   IF ts.fixmouse AND ts.zone = 1 THEN
-   zox = ts.x * 10 + 5
+   zox = ts.x * 8 + 4
    zoy = ts.y * 8 + 4
    mouse(0) = area(0).x + zox
    mouse(1) = area(0).y + zoy
@@ -1025,8 +1030,8 @@ DO
  IF keyval(scCapslock) > 0 THEN scrolltile mover(), ts
  SELECT CASE ts.zone   
  CASE 1
-  ts.x = INT(zox / 10)
-  ts.y = INT(zoy / 8)
+  ts.x = zox \ 8
+  ts.y = zoy \ 8
   IF ts.tool = clone_tool THEN
    ' For clone brush tool, enter/right-click moves the handle point
    IF ts.readjust THEN
@@ -1103,16 +1108,26 @@ DO
  cy = (ts.curcolor \ 16) MOD 8
  cx = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
 
- '--Draw screen start... I think
+ '--Draw screen (Some of the editor is predrawn to page 2)
  copypage 2, dpage
- rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
- rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), dpage
- rectangle ts.x * 10 + 64, ts.y * 8 + 3, 3, 2, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
+ frame_draw ts.drawframe, NULL, 80, 0, 8, NO, dpage  'Draw the tile, at 8x zoom
+ frame_clear overlay
+ overlay_use_palette = YES  'OK, this is a bit of a hack
+ overlaypal->col(1) = ts.curcolor
+
+ rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage  'Selected colour marker
+ 'rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), dpage  '??? Looks redundant
+ 'rectangle ts.x * 10 + 64, ts.y * 8 + 3, 3, 2, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage  'Selecter pixel marker
+ rectangle ts.x * 8 + 83, ts.y * 8 + 3, 3, 2, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage  'Selected pixel marker
  IF ts.tool = airbrush_tool THEN
-  ellipse vpages(dpage), 64 + ts.x * 10, 3 + ts.y * 8, (ts.airsize * 9) / 2, ts.curcolor
+  IF tog THEN
+   ellipse overlay, ts.x, ts.y, ts.airsize / 2 - 0.5, 1
+   'paintat overlay, ts.x, ts.y, 1
+  END IF
  END IF
  IF ts.tool = clone_tool AND tog = 0 THEN
   IF clone.exists = YES THEN
+   overlay_use_palette = NO  'Don't use the palette, so colour 0 is drawn transparently
    FOR i = 0 TO clone.size.y - 1
     FOR j = 0 TO clone.size.x - 1
      spot.x = ts.x - ts.hox + j
@@ -1121,9 +1136,7 @@ DO
       spot.x -= (ts.x - ts.adjustpos.x)
       spot.y -= (ts.y - ts.adjustpos.y)
      END IF
-     IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
-      rectangle 60 + spot.x * 10, 0 + spot.y * 8, 10, 8, clone.buf(j, i), dpage
-     END IF
+     putpixel overlay, spot.x, spot.y, clone.buf(j, i)
     NEXT j
    NEXT i
   END IF
@@ -1131,16 +1144,23 @@ DO
  IF ts.hold = YES THEN
   SELECT CASE ts.tool
    CASE box_tool
-    rectangle 60 + small(ts.x, ts.hox) * 10, small(ts.y, ts.hoy) * 8, (ABS(ts.x - ts.hox) + 1) * 10, (ABS(ts.y - ts.hoy) + 1) * 8, ts.curcolor, dpage
+    rectangle overlay, small(ts.x, ts.hox), small(ts.y, ts.hoy), ABS(ts.x - ts.hox) + 1, ABS(ts.y - ts.hoy) + 1, 1
    CASE line_tool
-    drawline 65 + ts.x * 10, 4 + ts.y * 8, 65 + ts.hox * 10, 4 + ts.hoy * 8, ts.curcolor, dpage
+    drawline overlay, ts.x, ts.y, ts.hox, ts.hoy, 1
    CASE oval_tool
-    radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y)) * 9
-    ellipse vpages(dpage), 65 + ts.hox * 10, 4 + ts.hoy * 8, radius, ts.curcolor
+    ts.radius = SQR((ts.hox - ts.x)^2 + (ts.hoy - ts.y)^2)
+    IF ts.zone = 1 THEN
+     'Use mouse pointer instead of draw cursor for finer grain control of radius
+     ts.radius = SQR( (ts.hox - (mouse(0) - area(0).x - 4) / 8)^2 + (ts.hoy - (mouse(1) - area(0).y - 4) / 8)^2 )
+    END IF
+    ellipse overlay, ts.hox, ts.hoy, ts.radius, 1
    CASE mark_tool
-    IF tog = 0 THEN drawbox 60 + small(ts.x, ts.hox) * 10, small(ts.y, ts.hoy) * 8, (ABS(ts.x - ts.hox) + 1) * 10, (ABS(ts.y - ts.hoy) + 1) * 8, INT(RND * 10), 10, dpage
+    IF tog = 0 THEN drawbox overlay, small(ts.x, ts.hox), small(ts.y, ts.hoy), ABS(ts.x - ts.hox) + 1, ABS(ts.y - ts.hoy) + 1, 15, 1
+    overlaypal->col(15) = INT(RND * 10)
   END SELECT
  END IF
+ frame_draw overlay, iif(overlay_use_palette, overlaypal, NULL), 80, 0, 8, YES, dpage  'Draw tool overlay, at 8x zoom
+
  textcolor uilook(uiText), uilook(uiHighlight)
  printstr toolinfo(ts.tool).name, 8, 8, dpage
  printstr "Tool", 8, 16, dpage
@@ -1192,6 +1212,8 @@ LOOP
 IF ts.gotmouse THEN
  movemouse ts.tilex * 20 + 10, ts.tiley * 20 + 10
 END IF
+frame_unload @overlay
+palette16_unload @overlaypal
 END SUB
 
 SUB clicktile (mover(), ts AS TileEditState, mouseclick, BYREF clone AS TileCloneBuffer)
@@ -1204,7 +1226,7 @@ SELECT CASE ts.tool
   ts.justpainted = 3
   putpixel 280 + ts.x, 10 + (ts.undo * 21) + ts.y, ts.curcolor, 2
   rectangle ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 1, 1, ts.curcolor, 3
-  rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, ts.curcolor, 2
+  refreshtileedit mover(), ts
  CASE box_tool
   IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
    IF ts.hold = YES THEN
@@ -1253,14 +1275,13 @@ SELECT CASE ts.tool
   IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
-    radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y))
     rectangle 0, 0, 22, 22, uilook(uiText), dpage
     FOR i = 0 TO 19
      FOR j = 0 TO 19
       putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
      NEXT j
     NEXT i
-    ellipse vpages(dpage), 1 + ts.hox, 1 + ts.hoy, radius, ts.curcolor
+    ellipse vpages(dpage), 1 + ts.hox, 1 + ts.hoy, ts.radius, ts.curcolor
     FOR i = 0 TO 19
      FOR j = 0 TO 19
       putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
@@ -1829,24 +1850,37 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
   rectangle 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, dpage
   rectangle 4 + ss.holdpos.x * ss.zoom, 1 + ss.holdpos.y * ss.zoom, ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  END IF
- rectangle 4 + (ss.x * ss.zoom), 1 + (ss.y * ss.zoom), ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  drawsprite placer(), 0, workpal(), (state.pt - state.top) * 16, ss.previewpos.x, ss.previewpos.y, dpage, 0
+
+ DIM overlay AS Frame ptr
+ overlay = frame_new(ss.wide, ss.high, , YES)
+ 'hack: We don't draw real palette colours to overlay, otherwise we couldn't draw colour 0
+ DIM pal16 AS Palette16 ptr
+ pal16 = palette16_new()
+ pal16->col(1) = ss.curcolor
+
  IF ss.hold = YES AND ss.tool = box_tool THEN
   rectangle ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, ss.curcolor, dpage
   putpixel ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, state.tog * 15, dpage
  END IF
  IF ss.hold = YES AND ss.tool = line_tool THEN
   drawline ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.curcolor, dpage
-  drawline 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), 5 + (ss.holdpos.x * ss.zoom), 2 + (ss.holdpos.y * ss.zoom), ss.curcolor, dpage
+  drawline overlay, ss.x, ss.y, ss.holdpos.x, ss.holdpos.y, 1
  END IF
  IF ss.hold = YES AND ss.tool = oval_tool THEN
   ellipse vpages(dpage), ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.curcolor, ss.ellip_minoraxis, ss.ellip_angle
-  ellipse vpages(dpage), 5 + (ss.holdpos.x * ss.zoom), 2 + (ss.holdpos.y * ss.zoom), ss.radius * ss.zoom, ss.curcolor, ss.ellip_minoraxis, ss.ellip_angle
+  ellipse overlay, ss.holdpos.x, ss.holdpos.y, ss.radius, 1, ss.ellip_minoraxis, ss.ellip_angle
  END IF
  IF ss.tool = airbrush_tool THEN
   ellipse vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize / 2, ss.curcolor
   ellipse vpages(dpage), 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), (ss.airsize / 2) * ss.zoom, ss.curcolor
  END IF
+
+ frame_draw overlay, pal16, 4, 1, ss.zoom, YES, dpage
+ frame_unload @overlay
+ palette16_unload @pal16
+
+ rectangle 4 + (ss.x * ss.zoom), 1 + (ss.y * ss.zoom), ss.zoom, ss.zoom, IIF(state.tog, uilook(uiBackground), uilook(uiText)), dpage
  IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
   ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
   drawbox 4 + small(ss.x, ss.holdpos.x) * ss.zoom, 1 + small(ss.y, ss.holdpos.y) * ss.zoom, (ABS(ss.x - ss.holdpos.x) + 1) * ss.zoom, (ABS(ss.y - ss.holdpos.y) + 1) * ss.zoom, ss.curcolor, ss.zoom, dpage
@@ -2614,7 +2648,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
      ss.holdpos.y = ss.y
      ss.ellip_angle = 0.0
      ss.ellip_minoraxis = 0.0
-     ss.radius = 0
+     ss.radius = 0.0
      ss.hold = YES
     ELSE
      GOSUB drawoval
@@ -2660,7 +2694,11 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
  END SELECT
 END IF
 IF ss.hold = YES AND ss.tool = oval_tool THEN
- ss.radius = large(ABS(ss.x - ss.holdpos.x), ABS(ss.y - ss.holdpos.y))
+ ss.radius = SQR((ss.x - ss.holdpos.x)^2 + (ss.y - ss.holdpos.y)^2)
+ IF ss.zonenum = 1 THEN
+  'Use mouse pointer instead of draw cursor for finer grain control of radius
+  ss.radius = SQR( (ss.holdpos.x + 0.5 - ss.zone.x / ss.zoom)^2 + (ss.holdpos.y + 0.5 - ss.zone.y / ss.zoom)^2 )
+ END IF
 END IF
 FOR i AS INTEGER = 0 TO 7
  IF (mouse(3) > 0 AND ss.zonenum = toolinfo(i).areanum + 1) OR keyval(toolinfo(i).shortcut) > 1 THEN
