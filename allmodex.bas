@@ -450,27 +450,28 @@ SUB writeblock (map as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL v 
 	map.data[x + y * map.wide] = v
 END SUB
 
-SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, BYVAL ystart as integer = 0, BYVAL yheight as integer = -1)
+SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, BYVAL pmapptr as TileMap ptr = NULL, BYVAL ystart as integer = 0, BYVAL yheight as integer = -1)
 	'overrides setanim
 	anim1 = tileset->tastuf(0) + tileset->anim(0).cycle
 	anim2 = tileset->tastuf(20) + tileset->anim(1).cycle
 	drawmap tmap, x, y, tileset->spr, p, trans, overheadmode, pmapptr, ystart, yheight
 END SUB
 
-SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, BYVAL ystart as integer = 0, BYVAL yheight as integer = -1)
+SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, BYVAL pmapptr as TileMap ptr = NULL, BYVAL ystart as integer = 0, BYVAL yheight as integer = -1, BYVAL largetileset as integer = NO)
 'ystart is the distance from the top to start drawing, yheight the number of lines. yheight=-1 indicates extend to bottom of screen
 'There are no options in the X direction because they've never been used, and I don't forsee them being (can use Frames or slices instead)
 	dim mapview as Frame ptr
 	mapview = frame_new_view(vpages(p), 0, ystart, vpages(p)->w, iif(yheight = -1, vpages(p)->h, yheight))
-	drawmap tmap, x, y, tilesetsprite, mapview, trans, overheadmode, pmapptr
+	drawmap tmap, x, y, tilesetsprite, mapview, trans, overheadmode, pmapptr, largetileset
 	frame_unload @mapview
 END SUB
 
-SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tilesetsprite as Frame ptr, BYVAL dest as Frame ptr, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, pmapptr as TileMap ptr = NULL)
+SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tilesetsprite as Frame ptr, BYVAL dest as Frame ptr, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, BYVAL pmapptr as TileMap ptr = NULL, BYVAL largetileset as integer = NO)
 'This version of drawmap paints over the entire dest Frame given to it
 'overheadmode = 0 : draw all tiles normally
 'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
 'overheadmode = 2 : draw overhead tiles only
+'largetileset : A hack which disables tile animation, instead using tilesets with 256 tiles
 
 	dim sptr as ubyte ptr
 	dim plane as integer
@@ -516,7 +517,7 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tile
 		xpos = xstart
 		while tx < dest->w
 			todraw = calcblock(tmap, xpos, ypos, overheadmode, pmapptr)
-			if (todraw >= 160) then
+			if (largetileset = NO ANDALSO todraw >= 160) then
 				if (todraw > 207) then
 					todraw = (todraw - 48 + anim2) MOD 160
 				else
@@ -1219,6 +1220,10 @@ SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 end SUB
 
 SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
+	drawline vpages(p), x1, y1, x2, y2, c
+END SUB
+
+SUB drawline (BYVAL dest as Frame ptr, BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer)
 'uses Bresenham's run-length slice algorithm
   	dim as integer xdiff,ydiff
   	dim as integer xdirection 	'direction of X travel from top to bottom point (1 or -1)
@@ -1242,8 +1247,8 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 'Macro to simplify code
 #define DRAW_SLICE(a) for i=0 to a-1: *sptr = c: sptr += instep: next
 
-	if clippedframe <> vpages(p) then
-		setclip , , , , p
+	if clippedframe <> dest then
+		setclip , , , , dest
 	end if
 
 	if POINT_CLIPPED(x1, y1) orelse POINT_CLIPPED(x2, y2) then
@@ -1258,7 +1263,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 	end if
 
 	'point to start
-	sptr = vpages(p)->image + (y1 * vpages(p)->pitch) + x1
+	sptr = dest->image + (y1 * dest->pitch) + x1
 
   	xdiff = x2 - x1
   	ydiff = y2 - y1
@@ -1273,7 +1278,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 
 	'special case for vertical
   	if xdiff = 0 then
-  		instep = vpages(p)->pitch
+  		instep = dest->pitch
   		DRAW_SLICE(ydiff+1)
 		exit sub
   	end if
@@ -1287,7 +1292,7 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 
   	'and also for pure diagonals
   	if xdiff = ydiff then
-  		instep = vpages(p)->pitch + xdirection
+  		instep = dest->pitch + xdirection
   		DRAW_SLICE(ydiff+1)
 		exit sub
   	end if
@@ -1298,13 +1303,13 @@ SUB drawline (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYV
 		shortaxis = ydiff
 
 		instep = xdirection
-		outstep = vpages(p)->pitch
+		outstep = dest->pitch
   	else
 		'other way round, draw vertical slices
 		longaxis = ydiff
 		shortaxis = xdiff
 
-		instep = vpages(p)->pitch
+		instep = dest->pitch
 		outstep = xdirection
 	end if
 
