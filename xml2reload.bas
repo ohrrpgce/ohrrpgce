@@ -1,11 +1,12 @@
 #include "reload.bi"
+#include "cutil.bi"
 
 #include "libxml/tree.bi"
 #include "libxml/parser.bi"
 
 using Reload
 
-declare function chug(as xmlNodeptr, as DocPtr) as NodePtr
+declare function chug(node as xmlNodeptr, dc as DocPtr, base64_encoded as integer = 0) as NodePtr
 declare sub optimize(node as nodePtr)
 
 
@@ -86,6 +87,26 @@ print "Tore down memory in " & int((timer - starttime) * 1000) & " ms"
 print "Finished in " & int((timer - realStart) * 1000) & " ms"
 
 
+'This sub sets a node's content to binary data, calling the Base64 decoder which is in base64.c
+sub SetContent_base64(byval this as nodeptr, byval encoded as zstring ptr)
+	'This does not compute the exact length (may overestimate), find that out later
+	dim outlen as integer = 3 * (len(*encoded) \ 4) + 2
+
+	'Change to a string, then reserve enough space
+	SetContent(this, NULL, outlen)  'An uninitialised binary blob
+
+	if base64_decode(encoded, len(*encoded), GetZString(this), @outlen) = 0 then
+		print "Malformed Base64 string, decode failure after " & outlen & " bytes!"
+		end
+	end if
+
+	'Now we set the length correctly
+	ResizeZString(this, outlen)
+
+	'optimize will still try to process this node, but w/e. This is the only decently fast code in this file
+end sub
+
+
 ''''     libxml-tree mini-documentation
 '
 'The following xml:
@@ -109,14 +130,18 @@ print "Finished in " & int((timer - realStart) * 1000) & " ms"
 'c points to a doubly linked list. content & name are "" if not specified, and children and
 'properties are NULL if not specified.
 
+function in_reload_ns(node as xmlNodeptr) as integer
+	'If you're picky, you could instead check *node->ns->href = "http://hamsterrepublic.com/ohrrpgce/RELOAD"
+	return node->ns andalso *node->ns->prefix = "reload"
+end function
 
 ' This function takes an XML node and creates a RELOAD node based on it.
-function chug(node as xmlNodeptr, dc as DocPtr) as NodePtr
+function chug(node as xmlNodeptr, dc as DocPtr, base64_encoded as integer = 0) as NodePtr
 
 	dim this as nodeptr
 
 	select case node->type
-		case XML_ELEMENT_NODE, XML_ATTRIBUTE_NODE 'this is container: either a <tag> or a <tag attribute="...">
+		case XML_ELEMENT_NODE, XML_ATTRIBUTE_NODE 'this is container: either a '<tag>' or an 'attribute="..."'
 			'create the RELOAD node
 			if node->type = XML_ATTRIBUTE_NODE then
 				'this is an attribute: <foo bar="1" />
@@ -127,12 +152,26 @@ function chug(node as xmlNodeptr, dc as DocPtr) as NodePtr
 			end if
 			
 			'take a look at the attributes
+			dim is_base64_node as integer = 0
 			dim cur_node as xmlNodePtr = cast(xmlNodePtr, node->properties)
 			do while cur_node <> null
-				dim ch as nodeptr = chug(cur_node, dc)
-				
-				'add the new child to the document tree
-				AddChild(this, ch)
+				dim ch as nodeptr
+				if *cur_node->name = "encoding" andalso in_reload_ns(cur_node) then
+					'How terribly bothersome. Get the (TEXT) value of this attribute
+					ch = chug(cur_node->children, dc)
+					if GetString(ch) = "base64" then
+						is_base64_node = -1
+						FreeNode(ch)
+					else
+						print "Unknown encoding '" & GetString(ch) & "'"
+						end
+					end if
+				else
+					ch = chug(cur_node, dc)
+					
+					'add the new child to the document tree
+					AddChild(this, ch)
+				end if
 				cur_node = cur_node->next
 			loop
 
@@ -140,7 +179,7 @@ function chug(node as xmlNodeptr, dc as DocPtr) as NodePtr
 			cur_node = node->children
 			do while cur_node <> null
 				'recurse to parse the children
-				dim ch as nodeptr = chug(cur_node, dc)
+				dim ch as nodeptr = chug(cur_node, dc, is_base64_node)
 				
 				'add the new child to the document tree
 				AddChild(this, ch)
@@ -153,8 +192,14 @@ function chug(node as xmlNodeptr, dc as DocPtr) as NodePtr
 			if xmlIsBlankNode(node) = 0 then
 				'otherwise, create a node with a null name
 				this = CreateNode(dc, "")
-				'and, set the content to the value of this node, less any padding of spaces, tabs or new lines
-				SetContent(this, trim(*node->content, any !" \t\n\r"))
+
+				if base64_encoded then
+					'Trim whitespace, which the decode library doesn't like
+					SetContent_base64(this, trim(*node->content, any !" \t\n\r"))
+				else
+					'and, set the content to the value of this node, less any padding of spaces, tabs or new lines
+					SetContent(this, trim(*node->content, any !" \t\n\r"))
+				end if
 			end if
 		case XML_PI_NODE 'we don't support these.
 		case else
@@ -192,8 +237,8 @@ sub optimize(node as nodePtr)
 				SetContent(node, GetFloat(c))
 				FreeNode(c)
 				optimize(node)
-			case rltString 'raise the string
-				SetContent(node, GetString(c))
+			case rltString 'raise the (underlying z)string
+				SetContent(node, GetZString(c), GetZStringSize(c))
 				FreeNode(c)
 				optimize(node)
 			case rltNull 'uh... remove all content.

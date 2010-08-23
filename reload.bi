@@ -114,10 +114,12 @@ Declare Function CreateNode overload(byval doc as DocPtr, nam as string) as Node
 Declare Function CreateNode(byval nod as NodePtr, nam as string) as NodePtr
 Declare sub FreeNode(byval nod as NodePtr, byval options as integer = 0) 'don't use options.
 Declare sub FreeDocument(byval doc as DocPtr)
+Declare sub RenameNode(byval nod as NodePtr, newname as string)
 Declare sub SetContent Overload (byval nod as NodePtr, dat as string)
+Declare sub SetContent(byval nod as NodePtr, byval zstr as zstring ptr, byval size as integer)
 Declare sub SetContent(byval nod as NodePtr, byval dat as longint)
-Declare sub setContent(byval nod as NodePtr, byval dat as double)
-Declare sub setContent(byval nod as NodePtr)
+Declare sub SetContent(byval nod as NodePtr, byval dat as double)
+Declare sub SetContent(byval nod as NodePtr)
 Declare Function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 Declare Function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 Declare Function AddChild(byval par as NodePtr, byval nod as NodePtr) as NodePtr

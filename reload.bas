@@ -13,6 +13,7 @@
 
 #include "reload.bi"
 #include "util.bi"
+#include "cutil.bi"
 #include "lumpfile.bi"
 
 
@@ -183,8 +184,17 @@ Function CreateNode(byval nod as NodePtr, nam as string) as NodePtr
 	return CreateNode(nod->doc, nam)
 end function
 
+'FIXME: the old name is never freed
+sub RenameNode(byval nod as NodePtr, newname as string)
+	nod->namenum = AddStringToTable(newname, nod->doc)
+	
+	nod->name = nod->doc->strings[nod->namenum].str
+	nod->doc->strings[nod->namenum].uses += 1
+end sub
+
 'destroys a node and any children still attached to it.
 'if it's still attached to another node, it will be removed from it
+'FIXME: the old name is never freed
 sub FreeNode(byval nod as NodePtr, byval options as integer)
 	if nod = null then
 		debug "FreeNode ptr already null"
@@ -744,6 +754,21 @@ sub SetContent (byval nod as NodePtr, dat as string)
 	*nod->str = dat
 end sub
 
+'This marks a node as a string type and sets its data to the provided binary blob
+'Passing zstr = NULL is valid, and result in uninitialised data
+sub SetContent(byval nod as NodePtr, byval zstr as zstring ptr, byval size as integer)
+	if nod = null then exit sub
+	if nod->nodeType = rltString then
+		if nod->str then RDeallocate(nod->str, nod->doc)
+		nod->str = 0
+	end if
+	nod->nodeType = rltString
+	nod->str = RAllocate(size + 1, nod->doc)
+	nod->str[size] = 0
+	nod->strSize = size
+	if zstr <> NULL andalso size <> 0 then memcpy(nod->str, zstr, size)
+end sub
+
 'This marks a node as an integer, and sets its data to the provided integer
 sub SetContent(byval nod as NodePtr, byval dat as longint)
 	if nod = null then exit sub
@@ -895,16 +920,52 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	
 end sub
 
+'Check whether a node's content is a zstring that needs base64 encoding
+private function NodeNeedsEncoding(byval node as nodeptr) as integer
+	if node = null then return 0
+
+	if node->nodeType <> rltString then
+		return 0
+	end if
+
+	dim dat as ubyte ptr = node->str
+	for i as integer = 0 to node->strSize - 1
+		if dat[i] < 32 then
+			if dat[i] <> asc(!"\n") and dat[i] <> asc(!"\r") then return -1
+		end if
+	next
+
+	return 0
+end function
+
+'Returns a Base64 encoded string, for XML serialization
+private function GetBase64EncodedString(byval node as nodeptr) as string
+	if node = null orelse node->nodeType <> rltString then return ""
+
+	dim outbuf as byte ptr
+	dim outlen as integer
+	outlen = base64_encode_alloc(node->str, node->strSize, @outbuf)
+	if outbuf = NULL then
+		debug "XML serialization: base64 encoding failure!"
+		return ""
+	end if
+	
+	dim ret as string = *outbuf  'This step is inefficient, but so is everything else about going to/from XML
+	deallocate outbuf
+	return ret
+end function
+
 #define INDENTTAB !"\t"
 
 'Serializes a document as XML to a file
 sub SerializeXML (byval doc as DocPtr, byval fh as integer, byval debugging as integer = NO)
 	if doc = null then exit sub
 	
+        print #fh, "<?xml version=""1.0"" encoding=""iso-8859-1"" ?>"
 	SerializeXML(doc->root, fh, debugging)
 end sub
 
-'serializes a node as XML to standard out.
+'serializes a node as XML to a file.
 'It pretty-prints it by adding indentation.
 sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as integer, byval ind as integer = 0)
 	if nod = null then exit sub
@@ -914,6 +975,8 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	end if
 	
 	dim closetag as integer = YES
+
+	dim needsencoding as integer = NodeNeedsEncoding(nod)
 	
 	print #fh, string(ind, INDENTTAB);
 	if nod->nodeType = rltNull and nod->numChildren = 0 then
@@ -938,15 +1001,32 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 			n = n->nextSib
 		loop
 
+		if ind = 0 then
+			'This is the root node. Tell the world about the RELOAD namespace
+			print #fh, " xmlns:reload=""http://hamsterrepublic.com/ohrrpgce/RELOAD""";
+		end if
+
+		if needsencoding then
+			'It makes me sick
+			print #fh, " reload:encoding=""base64""";
+		end if
+
 		print #fh, ">";
 	end if
 
 	if nod->nodeType <> rltNull then
+		dim outstr as string
+		if needsencoding then
+			outstr = GetBase64EncodedString(nod)
+		else
+			outstr = GetString(nod)
+		end if
 		if nod->numChildren = 0 then
-			print #fh, GetString(nod);
+			print #fh, outstr;
 		else
 			print #fh,
-			print #fh, string(ind + 1, INDENTTAB) & GetString(nod)
+			print #fh, string(ind + 1, INDENTTAB),
+			print #fh, outstr
 		end if
 	else
 		print #fh,
