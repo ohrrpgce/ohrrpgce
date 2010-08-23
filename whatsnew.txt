@@ -18,7 +18,8 @@ WHAT IS NEW?
       menu item closes the menu [James]
     * New menu feature to automatically open another menu when you
       close the current menu with ESC [James]
-    * Prompt for confirmation before deleting a sound effect [James]
+    * Prompt for confirmation before deleting a sound effect or
+      song [James]
     * Expanded (and fixed) Erase Map Data menu [Ralph]
     * The line and oval tools are now pleasant to use instead of
       teeth-gnashingly awful, and the pixels in the tile editor are

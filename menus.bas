@@ -412,14 +412,18 @@ DO
   IF csr = 3 THEN GOSUB importsongfile
   IF csr = 4 AND songfile$ <> "" THEN GOSUB exportsong
   IF csr = 5 AND songfile$ <> "" THEN  'delete song
-   safekill songfile$
-   safekill bamfile$
-   GOSUB getsonginfo
+   IF yesno("Really delete this song?", NO, NO) THEN
+    safekill songfile$
+    safekill bamfile$
+    GOSUB getsonginfo
+   END IF
   END IF
   IF csr = 6 THEN  'delete BAM fallback
-   safekill bamfile$
-   GOSUB getsonginfo
-   csr = 0
+   IF yesno("Really delete this BAM song?", NO, NO) THEN
+    safekill bamfile$
+    GOSUB getsonginfo
+    csr = 0
+   END IF
   END IF
  END IF
 
@@ -633,8 +637,8 @@ DO
   CASE 4
     IF sfxfile$ <> "" THEN GOSUB exportsfx
   CASE 5
-    IF yesno("Really delete this sound?", NO, NO) THEN
-      IF sfxfile$ <> "" THEN  'delete sfx
+    IF sfxfile$ <> "" THEN  'delete sfx
+      IF yesno("Really delete this sound?", NO, NO) THEN
         safekill sfxfile$
         GOSUB getsfxinfo
       END IF
