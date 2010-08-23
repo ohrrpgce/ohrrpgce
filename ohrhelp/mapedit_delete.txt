@@ -1,0 +1,10 @@
+"Erase all map data" deletes and replaces the map with a new map, just like creating a 'New Blank Map'.
+
+"Erase tile data + doors + NPC instances" deletes the map layers, wallmap, foemap, doors, and NPC instances. It leaves the NPC definitions and General Map Data intact. This is useful when used on copied maps.
+
+"Erase NPC instances" deletes all NPCs placed on the map, but not any NPC definitions.
+Notice that you can delete all copies of a specific NPC by pressing DELETE while in the "Edit NPCs" menu.
+
+Other options are self-explanatory.
+
+If this map is the last map, an additional option appears, "Delete map entirely".

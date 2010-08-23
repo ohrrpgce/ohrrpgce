@@ -43,6 +43,7 @@ DECLARE SUB resizetiledata OVERLOAD (tmap AS TileMap, rs AS MapResizeState, BYRE
 DECLARE SUB resizetiledata OVERLOAD (tmaps() AS TileMap, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER)
 DECLARE SUB resizetiledata OVERLOAD (tmap AS TileMap, x_off AS INTEGER, y_off AS INTEGER, new_width AS INTEGER, new_height AS INTEGER, BYREF yout AS INTEGER, page AS INTEGER)
 
+DECLARE SUB update_npc_graphics(st AS MapEditState, npc_img() AS GraphicPair)
 DECLARE SUB update_tilepicker(BYREF st AS MapEditState)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, mapname AS STRING)
 DECLARE SUB add_more_layers(map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL numlayers AS INTEGER)
@@ -52,7 +53,7 @@ DECLARE SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() 
 DECLARE SUB new_blank_map (BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB mapedit_addmap()
 DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
-DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, doors() AS Door, link() AS DoorLink)
+DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, npc_img() AS GraphicPair, mapname AS STRING)
 DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER)
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray, map() AS TileMap)
@@ -257,6 +258,8 @@ NEXT
 
 mapedit_loadmap st, mapnum, wide, high, map(), pass, emap, gmap(), visible(), doors(), link(), defaults(), mapname$
 
+update_npc_graphics st, npc_img()
+
 x = 0
 y = 0
 mapx = 0
@@ -280,15 +283,6 @@ mapeditmenu(13) = "Map name:"
 st.menustate.size = 24
 st.menustate.last = UBOUND(mapeditmenu)
 st.menustate.pt = remember_menu_pt  'preserved from any other maps for convenience
-
-'--load NPC graphics--
-FOR i = 0 TO st.num_npc_defs - 1
- 'Load the picture and palette
- WITH npc_img(i)
-  .sprite = frame_load(4, st.npc_def(i).picture)
-  .pal    = palette16_load(st.npc_def(i).palette, 4, st.npc_def(i).picture)
- END WITH
-NEXT i
 
 setkeys
 DO
@@ -321,7 +315,7 @@ DO
    CASE 10
     mapedit_linkdoors st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
    CASE 11
-    mapedit_delete st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, doors(), link()
+    mapedit_delete st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), npc_img(), mapname$
     IF mapnum > gen(genMaxMap) THEN
      'This was the last map, and it was deleted instead of blanked
      EXIT DO
@@ -879,6 +873,21 @@ END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
+ ' npc_img() may be sized larger than the number of NPC defs (st.num_npc_defs),
+ ' if so, the extra graphics if any are freed
+ FOR i as integer = 0 TO UBOUND(npc_img)
+  WITH npc_img(i)
+   IF .sprite THEN frame_unload @.sprite
+   IF .pal THEN palette16_unload @.pal
+   IF i <= st.num_npc_defs - 1 THEN
+    .sprite = frame_load(4, st.npc_def(i).picture)
+    .pal    = palette16_load(st.npc_def(i).palette, 4, st.npc_def(i).picture)
+   END IF
+  END WITH
+ NEXT i
+END SUB
 
 SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
  DIM gdmenu(0 TO 18) AS STRING
@@ -1622,39 +1631,64 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  verify_map_size mapnum, wide, high, map(), pass, emap, mapname
 END SUB
 
-SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, doors() AS Door, link() AS DoorLink)
- IF yesno("Delete this map?", NO) THEN
-  printstr "Please Wait...", 0, 40, vpage
-  setvispage vpage
+SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, npc_img() AS GraphicPair, mapname AS STRING)
+ REDIM options(6) AS STRING
+ options(0) = "Cancel!"
+ options(1) = "Erase all map data"
+ options(2) = "Erase tile data + doors + NPC instances"
+ options(3) = "Erase NPC instances"
+ options(4) = "Erase NPC instances + definitions"
+ options(5) = "Erase doors"
+ options(6) = "Erase doorlinks"
+ IF mapnum = gen(genMaxMap) AND mapnum >= 1 THEN
+  '--if this is the last map, then we can actually remove it entirely, rather than just blanking it
+  str_array_append options(), "Delete map entirely"
+ END IF
+ DIM choice AS INTEGER = multichoice("Delete which map data?", options(), 0, 0, "mapedit_delete")
+ IF choice >= 1 AND choice <= 6 THEN
+  IF choice = 1 THEN  '--everything
+   new_blank_map st, map(), pass, emap, gmap(), doors(), link()
+   mapname = ""
+   update_npc_graphics st, npc_img()
+  ELSEIF choice = 2 THEN  '--just tile related data
+   CleanTilemaps map(), wide, high, 1
+   CleanTilemap pass, wide, high
+   CleanTilemap emap, wide, high
+   CleanNPCL st.npc_inst()
+   CleanDoors doors()
+  ELSEIF choice = 3 THEN
+   CleanNPCL st.npc_inst()
+  ELSEIF choice = 4 THEN
+   CleanNPCL st.npc_inst()
+   CleanNPCD st.npc_def()
+   st.num_npc_defs = 1
+   update_npc_graphics st, npc_img()
+  ELSEIF choice = 5 THEN
+   CleanDoors doors()
+  ELSEIF choice = 6 THEN
+   CleanDoorlinks link()
+  END IF
 
-  cleantilemaps map(), wide, high, 1
-  cleantilemap pass, wide, high
-  cleantilemap emap, wide, high
-  CleanNPCL st.npc_inst()
-  cleandoorlinks link()
-  cleandoors doors()
-
-  savetilemaps map(), maplumpname$(mapnum, "t")
-  savetilemap pass, maplumpname$(mapnum, "p")
-  savetilemap emap, maplumpname$(mapnum, "e")
-  SaveNPCL maplumpname(mapnum, "l"), st.npc_inst()
-  serdoorlinks maplumpname$(mapnum, "d"), link()
-  serdoors game + ".dox", doors(), mapnum
   '--reset scroll position
   x = 0
   y = 0
   mapx = 0
   mapy = 0
   st.layer = 0
-  '--if this is the last map, then actually remove it entirely, rather than just blanking it
-  IF mapnum = gen(genMaxMap) THEN
-   gen(genMaxMap) -= 1
-   safekill maplumpname$(mapnum, "t")
-   safekill maplumpname$(mapnum, "p")
-   safekill maplumpname$(mapnum, "e")
-   safekill maplumpname$(mapnum, "l")
-   safekill maplumpname$(mapnum, "d")
-  END IF
+
+  mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname
+ END IF
+
+ IF choice = 7 THEN
+  gen(genMaxMap) -= 1
+  safekill maplumpname$(mapnum, "t")
+  safekill maplumpname$(mapnum, "p")
+  safekill maplumpname$(mapnum, "e")
+  safekill maplumpname$(mapnum, "l")
+  safekill maplumpname$(mapnum, "n")
+  safekill maplumpname$(mapnum, "d")
+  'Note .MAP and .MN are not truncated
+  'Afterwards, the map editor exits
  END IF
 END SUB
 

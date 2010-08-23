@@ -2340,6 +2340,7 @@ fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names", -84 'Note
 'fix_record_count gen(genMaxMenu),      getbinsize(binMENUS), workingdir & SLASH & "menus.bin", "Menus"
 'fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menus.bin", "Menu Items"
 fix_record_count gen(genMaxItem), 200, game & ".itm", "Items"
+'Warning: don't deduce number of map from length of .MAP or .MN: may be appended with garbage
 
 IF gen(genErrorLevel) = 0 THEN
  #IFDEF IS_GAME
