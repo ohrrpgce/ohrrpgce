@@ -106,6 +106,31 @@ sub SetContent_base64(byval this as nodeptr, byval encoded as zstring ptr)
 	'optimize will still try to process this node, but w/e. This is the only decently fast code in this file
 end sub
 
+'reload2xml slaps a iso-8859-1 (aka Latin 1) header on things, but libxml will parse it into unicode and feed us UTF8.
+'Go back to Latin 1 to undo that mess (in the process, foil any attempts to create unicode RELOAD documents if the file
+'was something other than iso-8859-1)
+sub SetContent_utf8_garbage(byval this as nodeptr, byval garbled as zstring ptr)
+	'Change to a string, then reserve enough space - length of the decoded string is less than or
+	'equal to the length of the source string, so use that as estimation
+	SetContent(this, NULL, len(*garbled))  'An uninitialised binary blob
+
+	dim outlen as integer = this->strSize
+	dim inlen as integer = len(*garbled)  'what's the point of passing this by pointer?
+
+	outlen = UTF8Toisolat1(this->str, @outlen, garbled, @inlen)
+
+	if outlen = -2 then
+		print "Warning: this XML contains unicode not expressible in the Latin-1 encoding. Importing a string as raw UTF8"
+		*this->str = *garbled
+	elseif outlen = -1 then
+		print "UTF8Toisolat1 unspecified failure!"
+		end
+	end if
+
+	'Now we set the length correctly
+	ResizeZString(this, outlen)
+end sub
+
 
 ''''     libxml-tree mini-documentation
 '
@@ -203,7 +228,7 @@ function chug(node as xmlNodeptr, dc as DocPtr, base64_encoded as integer = 0) a
 					SetContent_base64(this, trim(*node->content, any !" \t\n\r"))
 				else
 					'and, set the content to the value of this node, less any padding of spaces, tabs or new lines
-					SetContent(this, trim(*node->content, any !" \t\n\r"))
+					SetContent_utf8_garbage(this, trim(*node->content, any !" \t\n\r"))
 				end if
 			end if
 		case XML_PI_NODE 'we don't support these.
@@ -219,6 +244,7 @@ end function
 
 'since all XML nodes are strings, this function figures out which can be represented by simpler data types
 'it also fixes the <foo><>content</></foo> thing
+'and the null-name node thing
 sub optimize(node as nodePtr)
 	if NodeType(node) = rltString then
 		'Basically, if the string can be parsed as a number, it will be. We need to back off a little bit
