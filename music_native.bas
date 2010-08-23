@@ -58,6 +58,7 @@ option explicit
 #undef min
 #undef opaque
 #undef transparent
+#undef ellipse
 #include once "allmodex.bi"
 
 #include once "common.bi"

@@ -147,7 +147,7 @@ void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *p
 	unsigned char *sptr;
 	unsigned char *mptr;
 	int tx, ty;
-	int sx, sy, pix, spix;
+	int pix, spix;
 
 	sptr = destspr->image;
 
@@ -201,7 +201,7 @@ void smoothzoomblit_8_to_8bit(unsigned char *rptr, unsigned char *dptr, int w, i
 	unsigned char *sptr;
 	unsigned int mult = 1;
 	int i, j;
-	int fx, fy, p0, p1, p2, p3, p4, pstep;  //for 2x/3x filtering
+	int fx, fy, pstep;  //for 2x/3x filtering
 	int wide = w * zoom, high = h * zoom;
 
 	sptr = dptr;
@@ -284,7 +284,7 @@ void smoothzoomblit_8_to_32bit(unsigned char *rptr, unsigned char *dptr, int w, 
 	unsigned int *sptr;
 	int pixel;
 	int i, j;
-	int fx, fy, p0, p1, p2, p3, p4, pstep;  //for 2x/3x filtering
+	int fx, fy, pstep;  //for 2x/3x filtering
 	int wide = w * zoom, high = h * zoom;
 
 	sptr = (int*)dptr;

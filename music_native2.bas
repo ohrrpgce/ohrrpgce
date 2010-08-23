@@ -34,6 +34,7 @@ dim shared tag(2000), global(1025)
 
 #undef rectangle
 #undef opaque
+#undef ellipse
 #include once "allmodex.bi"
 
 #include once "common.bi"

@@ -35,7 +35,6 @@ if [ "${MUSIC}" = "native" ] ; then
   cd audwrap
   make
   cd ..
-  #./libaudwrap.a is built for windows!
   EXTRA="${EXTRA} -Wl audwrap/libaudwrap.a -l audiere -l vorbisfile -l vorbis -l ogg"
 fi
 

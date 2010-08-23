@@ -44,11 +44,11 @@ shift
 
 set MUSIC_XTRA=music_%OHRMUSIC%.bas
 if "%OHRMUSIC%"=="sdl" set MUSIC_XTRA=music_sdl.bas sdl_lumprwops.bas
-if "%OHRMUSIC%"=="native" set MUSIC_XTRA=music_native.bas -l audwrap -l audiere
-if "%OHRMUSIC%"=="native2" set MUSIC_XTRA=music_native2.bas -l audwrap -l audiere
+if "%OHRMUSIC%"=="native" set MUSIC_XTRA=music_native.bas win32\audwrap.o -l audiere
+if "%OHRMUSIC%"=="native2" set MUSIC_XTRA=music_native2.bas win32\audwrap.o -l audiere
 
 echo Now compiling GAME with %GFX_MODULES% graphics modules, and %OHRMUSIC% music module
 call fbc -lang deprecated verprint.bas
 verprint %GFX_MODULES% %OHRMUSIC%
-call fbc -lang deprecated -s gui -mt -m game game.bas hsinterpreter.bas bmod.bas bmodsubs.bas allmodex.bas backends.bas lumpfile.bas menustuf.bas moresubs.bas yetmore.bas yetmore2.bas savegame.bas compat.bas bam2mid.bas %GFX_XTRAS% -l ohrblit %MUSIC_XTRA% loading.bas common.bas browse.bas util.bas slices.bas reload.bas reloadext.bas gicon.rc -d IS_GAME  %1 %2 %3 %4 %5 %6 %7 %8 %9
+call fbc -lang deprecated -s gui -mt -m game game.bas hsinterpreter.bas bmod.bas bmodsubs.bas allmodex.bas backends.bas lumpfile.bas menustuf.bas moresubs.bas yetmore.bas yetmore2.bas savegame.bas compat.bas bam2mid.bas %GFX_XTRAS% win32\blit.o %MUSIC_XTRA% loading.bas common.bas browse.bas util.bas slices.bas reload.bas reloadext.bas gicon.rc -d IS_GAME  %1 %2 %3 %4 %5 %6 %7 %8 %9
 echo.
