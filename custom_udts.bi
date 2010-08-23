@@ -46,7 +46,8 @@ TYPE SpriteEditState
   hold AS INTEGER
   holdpos AS XYPair
   radius AS INTEGER
-  squish AS XYPair '--For non-round elipses. Not implemented yet
+  ellip_minoraxis AS DOUBLE '--For non-circular elipses. Not implemented yet
+  ellip_angle AS DOUBLE
   undodepth AS INTEGER
   undoslot AS INTEGER
   undomax AS INTEGER

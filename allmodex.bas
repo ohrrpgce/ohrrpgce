@@ -488,7 +488,9 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tile
 	dim todraw as integer
 	dim tileframe as frame
 
-	setclip , , , , dest
+	if clippedframe <> dest then
+		setclip , , , , dest
+	end if
 
 	'copied from the asm
 	ypos = y \ 20
@@ -1465,6 +1467,94 @@ SUB paintat (BYVAL dest as Frame ptr, BYVAL x as integer, BYVAL y as integer, BY
 	'should only exit when queue has caught up with tail
 
 end SUB
+
+SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL radius as double, BYVAL col as integer, BYVAL semiminor as double = 0.0, BYVAL angle as double = 0.0)
+'radius is the semimajor axis if the ellipse is not a circle
+'angle is the angle of the semimajor axis to the x axis, in radians counter-clockwise
+
+	if clippedframe <> fr then
+		setclip , , , , fr
+	end if
+
+	'x,y is the pixel to centre the ellipse at - that is, the centre of that pixel, so add half a pixel to
+	'radius to put the perimeter halfway between two pixels
+	x += 0.5
+	y += 0.5
+	radius += 0.5
+	if semiminor = 0.0 then semiminor = radius
+
+	dim as double ypart
+	ypart = fmod(y, 1.0) - 0.5  'Here we add in the fact that we test for intercepts with a line offset 0.5 pixels
+
+	dim as double sin_2, cos_2, sincos
+	sin_2 = sin(-angle) ^ 2
+	cos_2 = cos(-angle) ^ 2
+	sincos = sin(-angle) * cos(-angle)
+
+	'Coefficients of the general conic quadratic equation Ax^2 + Bxy + Cy^2 + Dx + Ey + F = 0  (D,E = 0)
+	'Aprime, Cprime are of the unrotated version
+	dim as double Aprime, Cprime
+	Aprime = 1.0 / radius ^ 2
+	Cprime = 1.0 / semiminor ^ 2
+
+	dim as double A, B, C, F
+	A = Aprime * cos_2 + Cprime * sin_2
+	B = 2 * (Cprime - Aprime) * sincos
+	C = Aprime * sin_2 + Cprime * cos_2
+	F = -1.0
+
+	dim as integer xstart = 999999, xend = -999999, lastxstart = 999999, lastxend = -999999, xs, yi, ys, maxr = radius + 1
+
+	for yi = maxr to -maxr step -1
+		'Draw the circle as two semi-circles, so that we can approach the from
+		'Note yi is cartesian coordinates, with the centre of the ellipsis at the origin, NOT screen coordinates!
+		'xs, ys are in screen coordinates
+		ys = int(y) - yi
+
+		'Fix y (scanline) and solve for x using quadratic formula (coefficients:)
+		dim as double qf_a, qf_b, qf_c
+		qf_a = A
+		qf_b = B * (yi + ypart)
+		qf_c = C * (yi + ypart) ^ 2 + F
+
+		dim as double discrim
+		discrim = qf_b^2 - 4.0 * qf_a * qf_c
+		if discrim >= 0.0 then
+			discrim = sqr(discrim)
+
+                        'This algorithm is very sensitive to which way XXX.5 is rounded (normally towards even)...
+                        xstart = -int(-(x + (-qf_b - discrim) / (2.0 * qf_a) - 0.5))  'ceil(x-0.5), ie. round 0.5 down
+			xend = int(x + (-qf_b + discrim) / (2.0 * qf_a) - 0.5)  'floor(x-0.5), ie. round 0.5 up, and subtract 1
+
+			if xstart > xend then  'No pixel centres on this scanline lie inside the ellipse
+				if lastxstart <> 999999 then
+					xend = xstart  'We've already started drawing, so must draw at least one pixel
+				end if
+			end if
+		end if
+
+		'Reconsider the previous scanline
+		for xs = lastxstart to xstart - 1
+			putpixel(fr, xs, ys - 1, col)
+		next
+		for xs = xend + 1 to lastxend
+			putpixel(fr, xs, ys - 1, col)
+		next
+
+		dim canskip as integer = YES
+		for xs = xstart to xend
+			putpixel(fr, xs, ys, col)
+			if canskip andalso xs >= lastxstart - 1 then
+				'Draw the bare minimum number of pixels (some of these might be needed, but won't know until next scanline)
+				xs = small(xend - 1, lastxend)
+				canskip = NO  'Skipping more than once causes infinite loops
+			end if
+		next
+		lastxstart = xstart
+		lastxend = xend
+		if discrim >= 0 then xend = xstart - 1  'To draw the last scanline, in the next loop
+	next
+END SUB
 
 SUB storemxs (fil as string, BYVAL record as integer, BYVAL fr as Frame ptr)
 'saves a screen page to a file. Doesn't support non-320x200 pages
