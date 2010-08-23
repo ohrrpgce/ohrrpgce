@@ -1538,6 +1538,33 @@ SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL 
 	next
 END SUB
 
+'Replaces one colour with another within a rectangular region.
+'Specifying the region is optional
+SUB replacecolor (BYVAL fr as Frame ptr, BYVAL c_old as integer, BYVAL c_new as integer, BYVAL x as integer = -1, BYVAL y as integer = -1, BYVAL w as integer = -1, BYVAL h as integer = -1)
+	if clippedframe <> fr then
+		setclip , , , , fr
+	end if
+
+	if w < 0 then x = x + w + 1: w = -w
+	if h < 0 then y = y + h + 1: h = -h
+
+	'clip
+	if x + w > clipr then w = (clipr - x) + 1
+	if y + h > clipb then h = (clipb - y) + 1
+	if x < clipl then w -= (clipl - x) : x = clipl
+	if y < clipt then h -= (clipt - y) : y = clipt
+
+	if w <= 0 or h <= 0 then exit sub
+
+	dim as integer xi, yi
+	for yi = y to y + h - 1
+		dim sptr as ubyte ptr = fr->image + (yi * fr->pitch)
+		for xi = x to x + w - 1
+			if sptr[xi] = c_old then sptr[xi] = c_new
+		next
+	next
+END SUB
+
 SUB storemxs (fil as string, BYVAL record as integer, BYVAL fr as Frame ptr)
 'saves a screen page to a file. Doesn't support non-320x200 pages
 	dim f as integer
