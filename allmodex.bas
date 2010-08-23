@@ -45,6 +45,8 @@ declare sub snapshot_check
 
 declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval t as integer) as integer
 
+declare sub font_unload(byval font as Font ptr)
+
 'slight hackery to get more versatile read function
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
@@ -194,6 +196,9 @@ sub restoremode()
 	'clear up software gfx
 	for i as integer = 0 to ubound(vpages)
 		frame_unload(@vpages(i))
+	next
+	for i as integer = 0 to ubound(fonts)
+		font_unload(@fonts(i))
 	next
 
 	hash_destruct(sprcache)
@@ -1597,7 +1602,7 @@ SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as i
 	fontpal.col(1) = c
 	fontpal.col(2) = uilook(uiOutline)
 
-	'preserve the old behaviour
+	'preserve the old behaviour (edgeprint used to call textcolor)
 	textfg = c
 	textbg = 0
 
@@ -1610,6 +1615,7 @@ SUB textcolor (BYVAL f as integer, BYVAL b as integer)
 end SUB
 
 'TODO/FIXME: need to use frame_* functions PROPERLY to handle Frame stuff
+'In fact, this SUB is basically broken and does not work
 SUB font_unload (byval font as Font ptr)
 	if font = null then exit sub
 
@@ -1630,7 +1636,7 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	end if
 
 	if font = null then exit sub
-		'font = callocate(sizeof(Font))
+	'font = callocate(sizeof(Font))
 	font_unload font
 
 	font->sprite(0) = callocate(sizeof(FontLayer))
@@ -1663,8 +1669,8 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 		.w = size  'garbage
 		.h = 1
 		.pitch = size 'more garbage, not sure whether there's a sensible value
-		.refcount = 2  '1  'NOREFC  '?????
-		.arrayelem = 1 ' ??????
+		.refcount = 1  'NOREFC  '?????
+		'.arrayelem = 1 ' ??????
 		.mask = null
 		.image = callocate(size)
 	end with
