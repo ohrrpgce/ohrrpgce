@@ -26,6 +26,12 @@ OPTION EXPLICIT
 
  '------------- Other -------------
 
+FUNCTION bitcount (BYVAL v as unsigned integer) as integer
+  'From the "Software Optimization Guide for AMD Athlon 64 and Opteron Processors". Thanks, AMD!
+  v = v - ((v SHR 1) AND &h55555555)
+  v = (v AND &h33333333) + ((v SHR 2) AND &h33333333)
+  RETURN ((v + (v SHR 4) AND &hF0F0F0F) * &h1010101) SHR 24
+END FUNCTION
 
 FUNCTION bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
 bound = n
