@@ -6,9 +6,16 @@
 
 using Reload
 
-declare function chug(node as xmlNodeptr, dc as DocPtr, base64_encoded as integer = 0) as NodePtr
+Enum encoding_t
+	encNone
+	encWS
+	encBase64
+end enum
+
+declare function chug(node as xmlNodeptr, dc as DocPtr, encoded as encoding_t) as NodePtr
 declare sub optimize(node as nodePtr)
 
+dim shared reloadns as xmlNsPtr
 
 dim as string infile, outfile
 
@@ -50,8 +57,10 @@ print "Memory usage: " & MemoryUsage(rldDoc)
 dim xmlRoot as xmlNodeptr
 xmlRoot = xmlDocGetRootElement(xmlDoc)
 
+reloadns = xmlSearchNsByHref(xmlDoc, xmlRoot, @"http://hamsterrepublic.com/ohrrpgce/RELOAD")
+
 dim rldRoot as NodePtr
-rldRoot = chug(xmlRoot, rldDoc)
+rldRoot = chug(xmlRoot, rldDoc, encNone)
 
 print "Parsed XML document in " & int((timer - starttime) * 1000) & " ms"
 
@@ -155,61 +164,60 @@ end sub
 'c points to a doubly linked list. content & name are "" if not specified, and children and
 'properties are NULL if not specified.
 
-function in_reload_ns(node as xmlNodeptr) as integer
-	'If you're picky, you could instead check *node->ns->href = "http://hamsterrepublic.com/ohrrpgce/RELOAD"
-	return node->ns andalso *node->ns->prefix = "reload"
-end function
 
 ' This function takes an XML node and creates a RELOAD node based on it.
-function chug(node as xmlNodeptr, dc as DocPtr, base64_encoded as integer = 0) as NodePtr
+function chug(node as xmlNodeptr, dc as DocPtr, encoded as encoding_t) as NodePtr
 
 	dim this as nodeptr
 
 	select case node->type
 		case XML_ELEMENT_NODE, XML_ATTRIBUTE_NODE 'this is container: either a '<tag>' or an 'attribute="..."'
+			dim child_enc as encoding_t = encNone
+
 			'create the RELOAD node
 			if node->type = XML_ATTRIBUTE_NODE then
 				'this is an attribute: <foo bar="1" />
 				'Except, RELOAD doesn't do attributes. So, we reserve @ for those
 				this = CreateNode(dc, "@" & *node->name)
 			else
-				if *node->name = "_" andalso in_reload_ns(node) then  'work around RELOAD supporting no-name nodes
-					'work around some more problems with libxml2 inserting no-name wrapper nodes
-					this = CreateNode(dc, "$")  'this is not a valid XML node name, so we can recognise it later in optimize
+				if node->ns = reloadns andalso *node->name = "_" then  'work around RELOAD supporting no-name nodes
+					this = CreateNode(dc, "")
+				elseif node->ns = reloadns andalso *node->name = "ws" then  'work around clobbering of whitespace
+					this = CreateNode(dc, "$")  'this node will be squashed later
+					child_enc = encWS
 				else
 					this = CreateNode(dc, *node->name)
 				end if
-			end if
-			
-			'take a look at the attributes
-			dim is_base64_node as integer = 0
-			dim cur_node as xmlNodePtr = cast(xmlNodePtr, node->properties)
-			do while cur_node <> null
-				dim ch as nodeptr
-				if *cur_node->name = "encoding" andalso in_reload_ns(cur_node) then
-					'How terribly bothersome. Get the (TEXT) value of this attribute
-					ch = chug(cur_node->children, dc)
-					if GetString(ch) = "base64" then
-						is_base64_node = -1
-						FreeNode(ch)
+
+				'take a look at the attributes
+				dim cur_attr as xmlAttrPtr = node->properties
+				do while cur_attr <> null
+					dim ch as nodeptr
+					if *cur_attr->name = "encoding" andalso cur_attr->ns = reloadns then
+						'How terribly bothersome. Get the (TEXT) value of this attribute
+						ch = chug(cur_attr->children, dc, encNone)
+						if GetString(ch) = "base64" then
+							child_enc = encBase64
+							FreeNode(ch)
+						else
+							print "Unknown encoding '" & GetString(ch) & "'"
+							end
+						end if
 					else
-						print "Unknown encoding '" & GetString(ch) & "'"
-						end
+						ch = chug(cast(xmlNodePtr, cur_attr), dc, encNone)
+						
+						'add the new child to the document tree
+						AddChild(this, ch)
 					end if
-				else
-					ch = chug(cur_node, dc)
-					
-					'add the new child to the document tree
-					AddChild(this, ch)
-				end if
-				cur_node = cur_node->next
-			loop
+					cur_attr = cur_attr->next
+				loop
+			end if
 
 			'and the children
-			cur_node = node->children
+			dim cur_node as xmlNodePtr = node->children
 			do while cur_node <> null
 				'recurse to parse the children
-				dim ch as nodeptr = chug(cur_node, dc, is_base64_node)
+				dim ch as nodeptr = chug(cur_node, dc, child_enc)
 				
 				'add the new child to the document tree
 				AddChild(this, ch)
@@ -217,17 +225,27 @@ function chug(node as xmlNodeptr, dc as DocPtr, base64_encoded as integer = 0) a
 				'move to the next child
 				cur_node = cur_node->next
 			loop
-		case XML_TEXT_NODE 'this is any text data - aka, the content of "<foo>...</foo>"
-			'if the text node is blank, we don't care about it
-			if xmlIsBlankNode(node) = 0 then
-				'otherwise, create a node with a null name
-				this = CreateNode(dc, "")
 
-				if base64_encoded then
+			'This is a hack to support SerializeXML debugging option: <r:ws></r:ws> results
+			'in no child being appended
+			if child_enc = encWS and this->numChildren = 0 then
+				AppendChildNode(this, "$", "")
+			end if
+		case XML_TEXT_NODE 'this is any text data - aka, the content of "<foo>...</foo>"
+			'if the text node is blank, we don't care about it unless we're inside <ws></ws>
+			if xmlIsBlankNode(node) = 0 orelse encoded = encWS then
+				if encoded = encBase64 then
+				'create a node with a special name
+					this = CreateNode(dc, "$")  'to be squashed
 					'Trim whitespace, which the decode library doesn't like
 					SetContent_base64(this, trim(*node->content, any !" \t\n\r"))
-				else
+				elseif encoded = encWS then
+					'Preserve whitespace and string status
+					this = CreateNode(dc, "$$")  'to be squashed
+					SetContent_utf8_garbage(this, *node->content)
+				elseif encoded = encNone then
 					'and, set the content to the value of this node, less any padding of spaces, tabs or new lines
+					this = CreateNode(dc, "$")  'to be squashed
 					SetContent_utf8_garbage(this, trim(*node->content, any !" \t\n\r"))
 				end if
 			end if
@@ -237,16 +255,13 @@ function chug(node as xmlNodeptr, dc as DocPtr, base64_encoded as integer = 0) a
 			print "??? " & node->type
 	end select
 	
-	
-	
 	return this
 end function
 
 'since all XML nodes are strings, this function figures out which can be represented by simpler data types
-'it also fixes the <foo><>content</></foo> thing
-'and the null-name node thing
+'it also squashes <foo><>content</></foo> wrappers
 sub optimize(node as nodePtr)
-	if NodeType(node) = rltString then
+	if NodeName(node) <> "$$" and NodeType(node) = rltString then  'preserve <r:ws> contents as strings
 		'Basically, if the string can be parsed as a number, it will be. We need to back off a little bit
 		'Eg, FB will parse "1234 dots on the door!" as 1234
 		'I will parse it as a string
@@ -257,37 +272,30 @@ sub optimize(node as nodePtr)
 		end if
 	end if
 
-	'This is meant to be a genuine no-name RELOAD node
-	if NodeName(node) = "$" then RenameNode(node, "")
+	dim as nodeptr c, nextc
+	c = FirstChild(node)
+	do while c <> null
+		nextc = NextSibling(c)
 
-	if NumChildren(node) >= 1 ANDALSO NodeName(FirstChild(node)) = "" then  'this is the <>text</> wrapper (notice must be first child!)
-		dim c as nodeptr = FirstChild(node)
-		select case NodeType(c) 'figure out what kind of wrapper it is, and make it so
-			case rltInt 'hoist the number up a level
-				SetContent(node, GetInteger(c))
-				FreeNode(c)
-				optimize(node)
-			case rltFloat 'lift the double
-				SetContent(node, GetFloat(c))
-				FreeNode(c)
-				optimize(node)
-			case rltString 'raise the (underlying z)string
-				SetContent(node, GetZString(c), GetZStringSize(c))
-				FreeNode(c)
-				optimize(node)
-			case rltNull 'uh... remove all content.
-				SetContent(node)
-				FreeNode(c)
-				optimize(node)
-		end select
-	else 'whelp, nothing we can do here.
-		dim tmp as nodeptr
-		tmp = FirstChild(node)
-		do while tmp <> null
-			'print tmp
-			'we do want to optimize the children, though.
-			optimize(tmp)
-			tmp = NextSibling(tmp)
-		loop
-	end if
+		optimize(c)
+
+		if NodeName(c) = "$" or NodeName(c) = "$$" then  'this is a <>text</> or <r:ws>text</r:ws> wrapper
+			select case NodeType(c) 'figure out what kind of wrapper it is, and make it so
+				case rltInt 'hoist the number up a level
+					SetContent(node, GetInteger(c))
+					FreeNode(c)
+				case rltFloat 'lift the double
+					SetContent(node, GetFloat(c))
+					FreeNode(c)
+				case rltString 'raise the string
+					SetContent(node, GetString(c))
+					FreeNode(c)
+				case rltNull 'uh... remove all content.
+					SetContent(node)
+					FreeNode(c)
+			end select
+		end if
+
+		c = nextc
+	loop
 end sub

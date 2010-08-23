@@ -929,8 +929,21 @@ sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	
 end sub
 
-'Check whether a node's content is a zstring that needs base64 encoding
-private function NodeNeedsEncoding(byval node as nodeptr) as integer
+'This is from xml2reload: is a node representable as a longint?
+private function NodeCompressible(byval node as nodeptr) as integer
+	if (ValLng(GetString(node)) <> 0 AND ValLng(GetString(node) & "1") <> ValLng(GetString(node))) or GetString(node) = "0" then
+		return 1
+	elseif (Val(GetString(node)) <> 0 AND Val(GetString(node) & "1") <> Val(GetString(node))) or GetString(node) = "0" then
+		return 1
+	end if
+	return 0
+end function
+
+'Check whether a node's content can be represented faithfully in XML. Return value:
+' 0 - No encoding needed
+' 1 - Lead/trailing whitespace, and if debugging = YES whether type will be lost, eg "" -> null
+' 2 - Binary
+private function NodeNeedsEncoding(byval node as nodeptr, byval debugging as integer) as integer
 	if node = null then return 0
 
 	if node->nodeType <> rltString then
@@ -940,11 +953,37 @@ private function NodeNeedsEncoding(byval node as nodeptr) as integer
 	dim dat as ubyte ptr = node->str
 	for i as integer = 0 to node->strSize - 1
 		if dat[i] < 32 then
-			if dat[i] <> asc(!"\n") and dat[i] <> asc(!"\r") and dat[i] <> asc(!"\t") then return -1
+			if dat[i] <> asc(!"\n") and dat[i] <> asc(!"\r") and dat[i] <> asc(!"\t") then return 2
 		end if
 	next
 
+	dim repr as string = GetString(node)
+	if repr <> trim(repr, any !" \t\n\r") then return 1
+
+	if debugging then
+		if node->strSize = 0 orelse NodeCompressible(node) then return 1
+	end if
+
+	'Will UNIX/DOS newline differences cause problems?
+
 	return 0
+end function
+
+'Escape < and & characters in a string
+private function EscapeXMLString(s as string) as string
+	dim ret as string
+
+	for i as integer = 0 to len(s) - 1
+		if s[i] = asc("&") then
+			ret += "&amp;"
+		elseif s[i] = asc("<") then
+			ret += "&lt;"
+		else
+			ret += chr(s[i])
+		end if
+	next
+
+	return ret
 end function
 
 'Returns a Base64 encoded string, for XML serialization
@@ -976,6 +1015,7 @@ end sub
 
 'serializes a node as XML to a file.
 'It pretty-prints it by adding indentation.
+'If debugging is true, then strings are printed so that they will not be optimized when reloaded
 sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as integer, byval ind as integer = 0)
 	if nod = null then exit sub
 	
@@ -985,12 +1025,12 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	
 	dim closetag as integer = YES
 
-	dim needsencoding as integer = NodeNeedsEncoding(nod)
+	dim needsencoding as integer = NodeNeedsEncoding(nod, debugging)
 
 	'no-name nodes aren't valid xml
 	dim xmlname as string
 	if len(*nod->name) = 0 then
-		xmlname = "reload:_"
+		xmlname = "r:_"
 	else
 		xmlname = *nod->name
 	end if
@@ -999,11 +1039,14 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	if nod->nodeType = rltNull and nod->numChildren = 0 then
 		print #fh, "<" & xmlname & " />"
 		exit sub
+
+/'  Currently these no-name nodes are eaten by xml2reload (and all but the last are lost), so we never see these
 	elseif debugging = NO andalso nod->nodeType <> rltNull andalso nod->numChildren = 0 andalso *nod->name = "" then
 		'A no-name node like this is typically created when translating from xml;
 		'so hide the tags
 		ind -= 1
 		closetag = NO
+'/
 	else
 		print #fh, "<" & xmlname;
 		
@@ -1020,12 +1063,11 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 
 		if ind = 0 then
 			'This is the root node. Tell the world about the RELOAD namespace
-			print #fh, " xmlns:reload=""http://hamsterrepublic.com/ohrrpgce/RELOAD""";
+			print #fh, " xmlns:r=""http://hamsterrepublic.com/ohrrpgce/RELOAD""";
 		end if
 
-		if needsencoding then
-			'It makes me sick
-			print #fh, " reload:encoding=""base64""";
+		if needsencoding = 2 then
+			print #fh, " r:encoding=""base64""";
 		end if
 
 		print #fh, ">";
@@ -1033,10 +1075,13 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 
 	if nod->nodeType <> rltNull then
 		dim outstr as string
-		if needsencoding then
+		if needsencoding = 1 then
+			'It makes me sick
+			outstr = "<r:ws>" & EscapeXMLString(GetString(nod)) & "</r:ws>"
+		elseif needsencoding = 2 then
 			outstr = GetBase64EncodedString(nod)
 		else
-			outstr = GetString(nod)
+			outstr = EscapeXMLString(GetString(nod))
 		end if
 		if nod->numChildren = 0 then
 			print #fh, outstr;
@@ -1426,6 +1471,10 @@ end Function
 Function NumChildren(byval nod as NodePtr) as Integer
 	if nod->flags AND nfNotLoaded then LoadNode(nod) 'odds are, they're about to ask about the kids
 	return nod->numChildren
+end Function
+
+Function NodeParent(byval nod as NodePtr) as NodePtr
+	return nod->parent
 end Function
 
 Function FirstChild(byval nod as NodePtr) as NodePtr

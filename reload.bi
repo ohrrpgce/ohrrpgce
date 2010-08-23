@@ -144,6 +144,7 @@ Declare Function FindChildByName(byval nod as NodePtr, nam as string) as NodePtr
 
 Declare Function DocumentRoot(byval doc as DocPtr) as NodePtr
 Declare Function NumChildren(byval nod as NodePtr) as Integer
+Declare Function NodeParent(byval nod as NodePtr) as NodePtr
 Declare Function FirstChild(byval nod as NodePtr) as NodePtr
 Declare Function NextSibling(byval nod as NodePtr) as NodePtr
 Declare Function PrevSibling(byval nod as NodePtr) as NodePtr

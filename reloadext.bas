@@ -101,10 +101,10 @@ end sub
 
 Function GetNodePath(byval node AS NodePtr) as string
 	dim prefix as string
-	if node->parent then
-		prefix = GetNodePath(node->parent)
+	if NodeParent(node) then
+		prefix = GetNodePath(NodeParent(node))
 	end if
-	return prefix & "/" & *node->name
+	return prefix & "/" & NodeName(node)
 End Function
 
 Function NodeByPath(byval doc AS DocPtr, path as string) as NodePtr

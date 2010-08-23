@@ -304,6 +304,7 @@ startTest(helperFunctions)
 	dim nod as nodeptr = SetChildNode(DocumentRoot(doc), "helper")
 	SetContent(nod, 1)
 
+	AppendChildNode(nod, "@attr1", "fish")
 	SetChildNode(nod, "int", 12345)
 	SetChildNode(nod, "float", 1234.5678)
 	SetChildNode(nod, "string", "1 2 3 4 5 6 7 8 9 0")
@@ -317,7 +318,6 @@ startTest(helperFunctions)
 	
 	AppendChildNode(nod, "appended", 54321)
 	AppendChildNode(nod, "appended", 43.21)
-	AppendChildNode(nod, "@attr1", "fish")
 	AppendChildNode(nod, "appended", "A B C D E F G H I J")
 	AppendChildNode(nod, "appended")
 	AppendChildNode(nod, "")
@@ -326,7 +326,9 @@ startTest(helperFunctions)
 	AppendChildNode(nod, "empty_str", "")
 	AppendChildNode(nod, "", "")
 	AppendChildNode(nod, "", 1)
+	AppendChildNode(nod, "like_an_int", "1")
 	AppendChildNode(nod, "binary", "123" + CHR(0) + CHR(0) + "#123")
+	AppendChildNode(nod, "eatXML", "<dummy>&")
 endTest
 
 startTest(bitsetArray)
@@ -413,11 +415,12 @@ startTest(freeDocumentDelay)
 	pass
 endTest
 
-startTest(loadFromXML)
+
+sub toXMLAndBack(byval debugging as integer)
 	dim fh as integer
 	fh = freefile
 	open "unittest.xml" for output as fh
-	serializeXML(doc, fh)
+	serializeXML(doc, fh, debugging)
 	close fh
 
 	safekill "unittest.rld"
@@ -425,6 +428,11 @@ startTest(loadFromXML)
 	print
 	shell "xml2reload unittest.xml unittest.rld"
 	print
+end sub
+
+
+startTest(loadFromXML)
+	toXMLAndBack(NO)
 
 	doc2 = LoadDocument("unittest.rld", optNoDelay)
 	if doc2 = null then fail
@@ -433,6 +441,18 @@ endTest
 startTest(compareWithXML)
 	'non-pedantic
 	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), NO) then fail
+endTest
+
+'This test is not very important; type-accurate import/export would probably only be useful for chasing
+'bugs in RELOAD internals
+startTest(pedanticCompareWithXML)
+	toXMLAndBack(YES)
+
+	doc2 = LoadDocument("unittest.rld", optNoDelay)
+	if doc2 = null then fail
+
+	'pedantic
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
 endTest
 
 startTest(cleanup)
