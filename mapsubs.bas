@@ -707,15 +707,13 @@ DO
  
  '--draw menubar
  IF editmode = 0 THEN
-  setmapdata  , 0, 20
-  drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, 0, st.tilesets(st.layer), dpage
+  drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, , , , 0, 20
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
  END IF
  rectangle 0, 19, 320, 1, uilook(uiText), dpage
  
  '--draw map
- setmapdata @pass, 20
  animatetilesets st.tilesets()
  rectangle 0, 20, 320, 180, uilook(uiBackground), dpage
  for i = 0 to ubound(map)
@@ -731,14 +729,14 @@ DO
 			jigx *= i \ 8 + 1
 			jigy *= i \ 8 + 1
 		end if
-		drawmap map(i), mapx + jigx, mapy + jigy, iif(i = 0, 1, 0), st.tilesets(i), dpage, iif(i = 0, 0, 1)
+		drawmap map(i), mapx + jigx, mapy + jigy, st.tilesets(i), dpage, iif(i = 0, 0, 1), iif(i = 0, 1, 0), @pass, 20
 	end if
  next
  if layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
 	if readbit(jiggle(), 0, 0) and tog then
-		drawmap map(0), mapx, mapy - 1, 2, st.tilesets(0), dpage, 0
+		drawmap map(0), mapx, mapy - 1, st.tilesets(0), dpage, 0, 2, @pass, 20
 	else
-		drawmap map(0), mapx, mapy, 2, st.tilesets(0), dpage, 0
+		drawmap map(0), mapx, mapy, st.tilesets(0), dpage, 0, 2, @pass, 20
 	end if
  end if
 
@@ -811,6 +809,8 @@ DO
    NEXT o
   NEXT i
  END IF
+
+
  
  '--position finder--
  IF tiny = 1 THEN
@@ -1068,8 +1068,7 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
   IF gmap(5) = 2 THEN
    '--show default edge tile
    writeblock sampmap, 0, 0, gmap(6)
-   setmapdata  , 180, 20
-   drawmap sampmap, 0, 0, 0, st.tilesets(0), dpage
+   drawmap sampmap, 0, 0, st.tilesets(0), dpage, , , , 180, 20
    rectangle 20, 180, 300, 20, uilook(uiBackground), dpage 'that's hacky
   END IF
  
@@ -1831,7 +1830,7 @@ SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGE
   END IF
   '--Draw screen
   copypage 2, dpage
-  rectangle 0, 100, 320, 2, uilook(uiSelectedDisabled + state.tog), dpage
+  rectangle 0, 99, 320, 2, uilook(uiSelectedDisabled + state.tog), dpage
   FOR i AS INTEGER = -1 TO 4
    menu_temp = ""
    SELECT CASE i
@@ -1918,14 +1917,13 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
   dmy = doors(link(cur).source).y * 20 - 65
   dmx = small(large(dmx, 0), map(0).wide * 20 - 320)
   dmy = small(large(dmy, 0), map(0).high * 20 - 100)
-  setmapdata @pass, 0, 99
   FOR i = 0 TO UBOUND(map)
    IF LayerIsEnabled(gmap(), i) THEN
-     drawmap map(i), dmx, dmy, 0, st.tilesets(i), 2, i <> 0
+    drawmap map(i), dmx, dmy, st.tilesets(i), 2, i <> 0, , , 0, 99
    END IF
   NEXT i
   IF LayerIsEnabled(gmap(), 0) THEN
-   drawmap map(0), dmx, dmy, 2, st.tilesets(0), 2, 0
+   drawmap map(0), dmx, dmy, st.tilesets(0), 2, 0, 2, @pass, 0, 99
   END IF
   edgebox doors(link(cur).source).x * 20 - dmx, doors(link(cur).source).y * 20 - dmy - 20, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
   textcolor uilook(uiBackground), 0
@@ -1945,14 +1943,13 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
   dmy = destdoor(link(cur).dest).y * 20 - 65
   dmx = small(large(dmx, 0), map2(0).wide * 20 - 320)
   dmy = small(large(dmy, 0), map2(0).high * 20 - 100)
-  setmapdata @pass2, 101, 
   FOR i = 0 TO UBOUND(map2)
    IF LayerIsEnabled(gmap2(), i) THEN
-     drawmap map2(i), dmx, dmy, 0, tilesets2(i), 2, i <> 0
+     drawmap map2(i), dmx, dmy, tilesets2(i), 2, i <> 0, , , 101
    END IF
   NEXT i
   IF LayerIsEnabled(gmap2(), 0) THEN
-   drawmap map2(0), dmx, dmy, 2, tilesets2(0), 2, 0
+   drawmap map2(0), dmx, dmy, tilesets2(0), 2, 0, 2, @pass, 101
   END IF
   edgebox destdoor(link(cur).dest).x * 20 - dmx, destdoor(link(cur).dest).y * 20 - dmy + 80, 20, 20, uilook(uiMenuItem), uilook(uiBackground), 2
   textcolor uilook(uiBackground), 0
@@ -2262,8 +2259,7 @@ SUB mapedit_pickblock(BYREF st AS MapEditState)
    IF st.tilepick.x > 15 THEN st.tilepick.x = 0: st.tilepick.y += 1
   END IF
   tog = tog XOR 1
-  setmapdata , 0
-  drawmap st.tilesetview, 0, 0, 0, st.tilesets(st.layer), vpage
+  drawmap st.tilesetview, 0, 0, st.tilesets(st.layer), vpage
   frame_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , vpage
   setvispage vpage
   dowait

@@ -35,10 +35,11 @@ DECLARE FUNCTION tileset_load(BYVAL num as integer) as Frame ptr
 
 DECLARE FUNCTION readblock (map as TileMap, BYVAL x as integer, BYVAL y as integer) as integer
 DECLARE SUB writeblock (map as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL v as integer)
-DECLARE SUB drawmap overload (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, byval trans as integer = 0)
-DECLARE SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
-DECLARE SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL dest as Frame ptr, byval trans as integer = 0)
-DECLARE SUB setmapdata (pas as TileMap ptr = NULL, BYVAL t as integer = 0, BYVAL h as integer = -1)
+
+DECLARE SUB drawmap OVERLOAD (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, BYVAL ystart as integer = 0, BYVAL yheight as integer = -1)
+DECLARE SUB drawmap OVERLOAD (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, BYVAL ystart as integer = 0, BYVAL yheight as integer = -1)
+DECLARE SUB drawmap OVERLOAD (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tilesetsprite as Frame ptr, BYVAL dest as Frame ptr, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, pmapptr as TileMap ptr = NULL)
+
 DECLARE SUB setanim (BYVAL cycle1 as integer, BYVAL cycle2 as integer)
 DECLARE SUB setoutside (BYVAL defaulttile as integer)
 

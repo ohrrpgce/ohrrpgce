@@ -43,7 +43,7 @@ declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
 
 declare sub snapshot_check
 
-declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval t as integer) as integer
+declare function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 
 declare sub font_unload(byval font as Font ptr)
 
@@ -73,9 +73,6 @@ dim shared bsize as integer
 dim shared bpage as integer
 
 dim shared bordertile as integer
-dim shared pmapptr as TileMap ptr	' pass map ptr
-dim shared maptop as integer
-dim shared maplines as integer
 
 dim shared anim1 as integer
 dim shared anim2 as integer
@@ -437,13 +434,6 @@ end SUB
 #define PAGEPIXEL(x, y, p) vpages(p)->image[vpages(p)->pitch * (y) + (x)]
 #define FRAMEPIXEL(x, y, fr) fr->image[fr->pitch * (y) + (x)]
 
-SUB setmapdata (pas as TileMap ptr = NULL, BYVAL t as integer = 0, BYVAL h as integer = -1)
-'t and h are top and height. h=-1 indicates extend to bottom on screen
-	pmapptr = pas
-	maptop = t
-	maplines = h
-end SUB
-
 FUNCTION readblock (map as TileMap, BYVAL x as integer, BYVAL y as integer) as integer
 	if x < 0 OR x >= map.wide OR y < 0 OR y >= map.high then
 		debug "illegal readblock call " & x & " " & y
@@ -460,21 +450,28 @@ SUB writeblock (map as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL v 
 	map.data[x + y * map.wide] = v
 END SUB
 
-SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, byval trans as integer = 0)
+SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tileset as TilesetData ptr, BYVAL p as integer, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, BYVAL ystart as integer = 0, BYVAL yheight as integer = -1)
 	'overrides setanim
 	anim1 = tileset->tastuf(0) + tileset->anim(0).cycle
 	anim2 = tileset->tastuf(20) + tileset->anim(1).cycle
-	drawmap tmap, x, y, t, tileset->spr, p, trans
+	drawmap tmap, x, y, tileset->spr, p, trans, overheadmode, pmapptr, ystart, yheight
 END SUB
 
-SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, byval trans as integer = 0)
+SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tilesetsprite as Frame ptr, BYVAL p as integer, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, pmapptr as TileMap ptr = NULL, BYVAL ystart as integer = 0, BYVAL yheight as integer = -1)
+'ystart is the distance from the top to start drawing, yheight the number of lines. yheight=-1 indicates extend to bottom of screen
+'There are no options in the X direction because they've never been used, and I don't forsee them being (can use Frames or slices instead)
 	dim mapview as Frame ptr
-	mapview = frame_new_view(vpages(p), 0, maptop, vpages(p)->w, iif(maplines = -1, vpages(p)->h, maplines))
-	drawmap tmap, x, y, t, tilesetsprite, mapview, trans
+	mapview = frame_new_view(vpages(p), 0, ystart, vpages(p)->w, iif(yheight = -1, vpages(p)->h, yheight))
+	drawmap tmap, x, y, tilesetsprite, mapview, trans, overheadmode, pmapptr
 	frame_unload @mapview
 END SUB
 
-SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as integer, BYVAL tilesetsprite as Frame ptr, BYVAL dest as Frame ptr, byval trans as integer = 0)
+SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL tilesetsprite as Frame ptr, BYVAL dest as Frame ptr, BYVAL trans as integer = 0, BYVAL overheadmode as integer = 0, pmapptr as TileMap ptr = NULL)
+'This version of drawmap paints over the entire dest Frame given to it
+'overheadmode = 0 : draw all tiles normally
+'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
+'overheadmode = 2 : draw overhead tiles only
+
 	dim sptr as ubyte ptr
 	dim plane as integer
 
@@ -518,7 +515,7 @@ SUB drawmap (tmap as TileMap, BYVAL x as integer, BYVAL y as integer, BYVAL t as
 		tx = xoff
 		xpos = xstart
 		while tx < dest->w
-			todraw = calcblock(tmap, xpos, ypos, t)
+			todraw = calcblock(tmap, xpos, ypos, overheadmode, pmapptr)
 			if (todraw >= 160) then
 				if (todraw > 207) then
 					todraw = (todraw - 48 + anim2) MOD 160
@@ -2450,10 +2447,10 @@ FUNCTION readstackdw (BYVAL off as integer) as integer
 	end if
 END FUNCTION
 
-function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval t as integer) as integer
+function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 'returns -1 to draw no tile
-'t = 1 : draw non overhead tiles only (to avoid double draw)
-'t = 2 : draw overhead tiles only
+'overheadmode = 1 : draw non overhead tiles only (to avoid double draw)
+'overheadmode = 2 : draw overhead tiles only
 	dim block as integer
 
 	'check bounds
@@ -2473,7 +2470,7 @@ function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byva
 		wend
 	else
 		if (y < 0) or (y >= tmap.high) or (x < 0) or (x >= tmap.wide) then
-			if tmap.layernum = 0 and t <= 1 then
+			if tmap.layernum = 0 and overheadmode <= 1 then
 				'only draw the border tile once!
 				return bordertile
 			else
@@ -2484,14 +2481,14 @@ function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byva
 
 	block = readblock(tmap, x, y)
 
-	if block = 0 and tmap.layernum > 0 then
+	if block = 0 and tmap.layernum > 0 then  'This could be an argument, maybe we could get rid of layernum
 		return -1
 	end if
 
-	if t > 0 then
+	if overheadmode > 0 then
 		if x >= pmapptr->wide or y >= pmapptr->high or pmapptr = NULL then
-			if t = 2 then block = -1
-		elseif ((readblock(*pmapptr, x, y) and 128) <> 0) xor (t = 2) then
+			if overheadmode = 2 then block = -1
+		elseif ((readblock(*pmapptr, x, y) and 128) <> 0) xor (overheadmode = 2) then
 			block = -1
 		end if
 	end if

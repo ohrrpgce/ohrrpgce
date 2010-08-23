@@ -182,6 +182,7 @@ Type MapSliceData
  overlay AS INTEGER 'For backcompat with layers that observe the old overlay feature.
  tileset as TilesetData ptr 'NOTE: ptr to the same memory pointed to by the ptrs in the tilesets() array in game.bas (Not owned!)
  tiles as TileMap ptr 'NOTE: ptr to one of maptiles() in game.bas (Not owned!)
+ pass as TileMap ptr 'NOTE: ptr to pass in game.bas (Not owned!) May be NULL for non-overhead layers
 End Type
 
 Type MenuSliceData
@@ -282,6 +283,7 @@ DECLARE Function NewMapSlice(byval parent as Slice ptr, byref dat as MapSliceDat
 DECLARE Sub ChangeMapSliceTileset (byval sl as slice ptr, byval tileset as TilesetData ptr)
 DECLARE Sub ChangeMapSlice (byval sl as slice ptr,_
                    byval tiles as TileMap ptr=cast(TileMap ptr, 1),_
+                   byval pass as TileMap ptr=cast(TileMap ptr, 1),_
                    byval transparent as integer=-2,_
                    byval overlay as integer=-1) ' All arguments default to no change (explaining weird tiles default)
 

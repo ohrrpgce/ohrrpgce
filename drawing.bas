@@ -655,13 +655,11 @@ DO
  IF keyval(scRight) > 1 THEN csr = loopvar(csr, 0, 47, 1): GOSUB setupsample
  '--draw available animating tiles--
  clearpage dpage
- setmapdata , 10, 60
- drawmap tilesetview, 0, 0, 0, tileset, dpage
+ drawmap tilesetview, 0, 0, tileset, dpage, , , , 10, 60
  '--draw sample--
- setmapdata , 100, 60
  setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
  cycletile tanim_state(), tastuf()
- drawmap sample, -130, 0, 0, tileset, dpage
+ drawmap sample, -130, 0, tileset, dpage, , , , 100, 60
  '--Draw cursor--
  y = INT(csr / 16)
  x = csr - y * 16

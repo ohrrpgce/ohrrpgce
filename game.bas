@@ -723,9 +723,8 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   .X = mapx * -1
   .Y = mapy * -1
  END WITH
- setmapdata @pass
  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
- ChangeMapSlice SliceTable.MapLayer(0), , , overlay
+ ChangeMapSlice SliceTable.MapLayer(0), , , , overlay
  DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  FOR i = 1 TO gmap(31) - 1
   IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
@@ -743,7 +742,7 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  NEXT
  'DEBUG debug "drawoverhead"
  IF readbit(gen(), 44, suspendoverlay) = 0 THEN
-  ChangeMapSlice SliceTable.MapLayer(0), , , 2
+  ChangeMapSlice SliceTable.MapLayer(0), , , , 2
   DrawSlice SliceTable.MapLayer(0), dpage
  END IF
  DrawSlice SliceTable.scriptsprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
@@ -2864,14 +2863,14 @@ SUB refresh_map_slice()
  END WITH
  FOR i AS INTEGER = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
-  ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), (i > 0), 0
+  ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass, (i > 0), 0
   WITH *(SliceTable.MapLayer(i))
    .Fill = YES
   END WITH
  NEXT i
  FOR i AS INTEGER = UBOUND(maptiles) + 1 TO maplayerMax
   '--this map layer slices thing isn't quite polished...
-  ChangeMapSlice SliceTable.MapLayer(i), NULL, (i > 0), 0
+  ChangeMapSlice SliceTable.MapLayer(i), NULL, NULL, (i > 0), 0
  NEXT i
 END SUB
 

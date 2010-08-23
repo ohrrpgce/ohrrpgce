@@ -1199,7 +1199,7 @@ Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)
   if .tiles = 0 then exit sub 'tilemap ptr null if the layer doesn't exist. This slice probably shouldn't either.
   if .tileset = 0 then exit sub 'quit silently on a null tileset ptr
   '2nd, 3rd arguments to drawmap are "camera position" of upper left of the screen.
-  drawmap *.tiles, sl->ScreenX * -1, sl->ScreenY * -1, .overlay, .tileset, p, .transparent
+  drawmap *.tiles, sl->ScreenX * -1, sl->ScreenY * -1, .tileset, p, .transparent, .overlay, .pass
  end with
 end sub
 
@@ -1254,6 +1254,7 @@ end sub
 
 Sub ChangeMapSlice(byval sl as slice ptr,_
                    byval tiles as TileMap ptr=cast(TileMap ptr, 1),_
+                   byval pass as TileMap ptr=cast(TileMap ptr, 1),_
                    byval transparent as integer=-2,_
                    byval overlay as integer=-1)
  if sl = 0 then debug "ChangeMapSlice null ptr" : exit sub
@@ -1269,6 +1270,10 @@ Sub ChangeMapSlice(byval sl as slice ptr,_
     sl->Width = tiles->wide * 20
     sl->Height = tiles->high * 20
    end if
+  end if
+  if tiles <> 1 then
+   '--passmap. If this slice doesn't draw overhead tiles, can set this to NULL
+   .pass = pass
   end if
   if transparent >= -1 then
    .transparent = (transparent <> 0) 'boolean
