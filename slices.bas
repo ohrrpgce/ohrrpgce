@@ -691,7 +691,7 @@ Sub DrawRectangleSlice(byval sl as slice ptr, byval p as integer)
   UpdateRectangleSliceStyle dat
  end if
 
- edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol, dat->fgcol, p, dat->translucent, dat->border
+ edgebox sl->screenx, sl->screeny, sl->width, sl->height, dat->bgcol, dat->fgcol, p, dat->translucent, dat->border, dat->fuzzfactor
 end sub
 
 Sub CloneRectangleSlice(byval sl as slice ptr, byval cl as slice ptr)
@@ -706,6 +706,7 @@ Sub CloneRectangleSlice(byval sl as slice ptr, byval cl as slice ptr)
   .bgcol       = dat->bgcol
   .translucent = dat->translucent
   .border      = dat->border
+  .fuzzfactor  = dat->fuzzfactor
  end with
 end sub
 
@@ -718,6 +719,7 @@ Sub SaveRectangleSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  SaveProp node, "bg", dat->bgcol
  SaveProp node, "trans", dat->translucent
  SaveProp node, "border", dat->border
+ SaveProp node, "fuzzfactor", dat->fuzzfactor
 End Sub
 
 Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
@@ -729,6 +731,7 @@ Sub LoadRectangleSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->bgcol = LoadProp(node, "bg")
  dat->translucent = LoadProp(node, "trans")
  dat->border = LoadProp(node, "border", -1)
+ dat->fuzzfactor = LoadProp(node, "fuzzfactor", 50)
 End Sub
 
 Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSliceData) as slice ptr
@@ -744,6 +747,7 @@ Function NewRectangleSlice(byval parent as Slice ptr, byref dat as RectangleSlic
  '--Set non-zero defaults here
  d->border = -1
  d->style = -1
+ d->fuzzfactor = 50
  
  ret->SliceType = slRectangle
  ret->SliceData = d
@@ -767,7 +771,8 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval bgcol as integer=-1,_
                       byval fgcol as integer=-1,_
                       byval border as integer=-3,_
-                      byval translucent as RectTransTypes=transUndef)
+                      byval translucent as RectTransTypes=transUndef,_
+                      byval fuzzfactor as integer=0)
  if sl = 0 then debug "ChangeRectangleSlice null ptr" : exit sub
  if sl->SliceType <> slRectangle then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a rectangle", 5 : exit sub
  dim dat as RectangleSliceData Ptr = sl->SliceData
@@ -792,6 +797,9 @@ Sub ChangeRectangleSlice(byval sl as slice ptr,_
    .style_loaded = NO
   end if
   if translucent <> transUndef then .translucent = translucent
+  if fuzzfactor > 0 then
+   .fuzzfactor = fuzzfactor
+  end if
  end with
  if dat->style >= 0 and dat->style_loaded = NO then
   UpdateRectangleSliceStyle dat

@@ -54,8 +54,8 @@ DECLARE SUB centerfuz (x as integer, y as integer, w as integer, h as integer, c
 DECLARE SUB centerbox (x as integer, y as integer, w as integer, h as integer, c as integer, p as integer)
 DECLARE SUB edgeboxstyle (x as integer, y as integer, w as integer, h as integer, boxstyle as integer, p as integer, fuzzy as integer=NO, supress_borders as integer=NO)
 DECLARE SUB center_edgeboxstyle (x as integer, y as integer, w as integer, h as integer, boxstyle as integer, p as integer, fuzzy as integer=NO, supress_borders as integer=NO)
-DECLARE SUB edgebox OVERLOAD (x as integer, y as integer, w as integer, h as integer, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1)
-DECLARE SUB edgebox OVERLOAD (x, y, w, h, col, bordercol, BYVAL fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, border=-1)
+DECLARE SUB edgebox OVERLOAD (x as integer, y as integer, w as integer, h as integer, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50)
+DECLARE SUB edgebox OVERLOAD (x, y, w, h, col, bordercol, BYVAL fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, border=-1, fuzzfactor as integer=50)
 DECLARE SUB emptybox (x as integer, y as integer, w as integer, h as integer, col as integer, thick as integer, p as integer)
 DECLARE FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
 DECLARE FUNCTION scriptname (num as integer, trigger as integer = 0) as string

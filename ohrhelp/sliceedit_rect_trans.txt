@@ -1,1 +1,5 @@
-Marking a rectangle as translucent hides the background color, and causes only the border to be drawn.
+Controls the display of the body of a rectangle.
+
+Marking a rectangle as Hollow hides the background color, and causes only the border to be drawn.
+
+Choosing "fuzzy" makes the rectangle partially transparent, and lets you set the transparency and texture with "fuzziness".

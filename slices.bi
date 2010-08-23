@@ -136,10 +136,11 @@ TYPE RectangleSliceData
  fgcol as integer
  border as integer 'Should default to -1
  translucent as RectTransTypes
+ fuzzfactor as integer 'Should default to 50
  bgcol as integer
  'if style is changed then set style_loaded = NO
  style as integer 'Should default to -1
- style_loaded as integer 'Used internally flag whether a change of style has been applied to fgcol and bgcol
+ style_loaded as integer 'Used internally flag whether a change of style has been applied to fgcol, bgcol, or border
  'Declare constructor (byval style as integer = -1, byval bgcol as integer=0, byval translucent as integer = NO, byval fgcol as integer = -1, byval border as integer = -1)
 END TYPE
 
@@ -249,8 +250,8 @@ DECLARE Sub ChangeRectangleSlice(byval sl as slice ptr,_
                       byval bgcol as integer=-1,_
                       byval fgcol as integer=-1,_
                       byval border as integer=-3,_
-                      byval translucent as RectTransTypes=transUndef)
-
+                      byval translucent as RectTransTypes=transUndef,_
+                      byval fuzzfactor as integer=0)
 
 DECLARE Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as slice ptr
 DECLARE Function NewMenuSlice(byval parent as Slice ptr, byref dat as MenuSliceData) as slice ptr

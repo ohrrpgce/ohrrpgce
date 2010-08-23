@@ -629,6 +629,10 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule rules(), "rect_border", erIntgrabber, @(dat->border), -2, 14, slgrUPDATERECTCOL 
     str_array_append menu(), "Translucency: " & TransCaptions(dat->translucent)
     sliceed_rule rules(), "rect_trans", erIntgrabber, @(dat->translucent), 0, 2
+    IF dat->translucent = 1 THEN
+     str_array_append menu(), "Fuzziness: " & dat->fuzzfactor & "%"
+     sliceed_rule rules(), "rect_fuzzfact", erIntgrabber, @(dat->fuzzfactor), 0, 99
+    END IF
    CASE slText
     DIM dat AS TextSliceData Ptr
     dat = .SliceData

@@ -460,15 +460,14 @@ SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
  edgebox x, y, w, h, textcol, bordercol, p, trans, borders
 END SUB
 
-
-SUB edgebox (x, y, w, h, col, bordercol, p, trans AS RectTransTypes=transOpaque, border=-1)
- edgebox x, y, w, h, col, bordercol, vpages(p), trans, border
+SUB edgebox (x, y, w, h, col, bordercol, p, trans AS RectTransTypes=transOpaque, border=-1, fuzzfactor=50)
+ edgebox x, y, w, h, col, bordercol, vpages(p), trans, border, fuzzfactor
 END SUB
 
-SUB edgebox (x, y, w, h, col, bordercol, BYVAL fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, border=-1)
+SUB edgebox (x, y, w, h, col, bordercol, BYVAL fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, border=-1, fuzzfactor=50)
 '--border: -2 is none, -1 is simple line, 0+ is styled box edge
 IF trans = transFuzzy THEN
- fuzzyrect x, y, w, h, col, fr
+ fuzzyrect x, y, w, h, col, fr, fuzzfactor
 ELSEIF trans = transOpaque THEN
  rectangle x, y, w, h, col, fr
 END IF
@@ -891,7 +890,7 @@ centerbox 160, 100, 310, 180, 3, 0
 ypos = 20
 DO WHILE LEN(e) > 38
  edgeprint LEFT(e, 38), 8, ypos, uilook(uiText), 0
- e = MID(e, 38)
+ e = MID(e, 39)
  ypos += 10
 LOOP
 edgeprint e, 8, ypos, uilook(uiText), 0
