@@ -70,10 +70,6 @@ DIM SHARED upgrademessages AS INTEGER
 'don't delete the debug file at end of play
 DIM SHARED importantdebug AS INTEGER = 0
 
-'Allocate the Box Border Cache
-DIM SHARED box_border_cache_loaded AS INTEGER = NO
-DIM SHARED box_border_cache(14) AS GraphicPair
-
 '.stt lump read into memory
 DIM SHARED global_strings_buffer AS STRING
 
@@ -446,34 +442,6 @@ SUB emptybox (x, y, w, h, col, thick, p)
  END IF
 END SUB
 
-SUB load_box_border_cache()
- DIM i AS INTEGER
- DIM index AS INTEGER
- FOR i = 0 TO 14
-  WITH box_border_cache(i)
-   IF .sprite THEN frame_unload(@.sprite)
-   IF .pal THEN palette16_unload(@.pal)
-   index = uilook(uiTextBoxFrame + i) - 1
-   IF index >= 0 THEN
-    .sprite = frame_load(7, index)
-    .pal = palette16_load(-1, 7, index)
-   END IF
-  END WITH
- NEXT i
- box_border_cache_loaded = YES
-END SUB
-
-SUB clear_box_border_cache()
- DIM i AS INTEGER
- FOR i = 0 TO 14
-  WITH box_border_cache(i)
-   IF .sprite THEN frame_unload(@.sprite)
-   IF .pal THEN palette16_unload(@.pal)
-  END WITH
- NEXT i
- box_border_cache_loaded = NO
-END SUB
-
 SUB center_edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
  edgeboxstyle x - w / 2, y - h / 2, w, h, boxstyle, p, fuzzy, supress_borders
 END SUB
@@ -510,9 +478,13 @@ IF border = -1 THEN
 ELSEIF border >= 0 AND border <= 14 THEN
  '--Normal Border
  IF trans <> transHollow THEN drawbox x, y, w, h, bordercol, fr
- IF box_border_cache_loaded = NO THEN load_box_border_cache
- DIM i AS INTEGER
- WITH box_border_cache(border)
+ DIM AS INTEGER i, borderindex
+ DIM border_gfx AS GraphicPair
+ borderindex = uilook(uiTextBoxFrame + border) - 1
+ IF borderindex >= 0 THEN
+  load_sprite_and_pal border_gfx, 7, borderindex
+ END IF
+ WITH border_gfx
   IF .sprite THEN ' Only proceed if a sprite is actually selected
    'Draw edges
    'ensure we are clipping the correct page (there are many ways of doing this)
@@ -579,6 +551,7 @@ ELSEIF border >= 0 AND border <= 14 THEN
    setclip
   END IF
  END WITH
+ unload_sprite_and_pal border_gfx
 END IF
 END SUB
 
@@ -3349,7 +3322,7 @@ SUB setup_sprite_sizes ()
  END WITH
 END SUB
 
-SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
+SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
  unload_sprite_and_pal img
  img.sprite = frame_load(spritetype, index)
  img.pal    = palette16_load(palnum, spritetype, index)

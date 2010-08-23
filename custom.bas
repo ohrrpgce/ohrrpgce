@@ -223,8 +223,6 @@ load_default_master_palette master()
 setpal master()
 'get default ui colours
 LoadUIColors uilook()
-'reset box border cache which might have been populated by the file browser
-clear_box_border_cache
 
 'upgrade obsolete RPG files
 upgrade font()
@@ -308,7 +306,6 @@ DO:
     IF pt = 8 THEN sprite 24, 24, gen(genMaxWeaponPic), 2, 2, weapon_frame_captions(), 4, 5, font()
     IF pt = 9 THEN
      sprite 16, 16, gen(genMaxBoxBorder), 16, 7, box_border_captions(), 4, 7, font()
-     clear_box_border_cache
     END IF
     IF pt = 10 THEN sprite 50, 50, gen(genMaxPortrait), 1, 4, portrait_captions(), 2, 8, font()
     IF pt = 11 THEN importbmp ".mxs", "screen", gen(genNumBackdrops)
@@ -603,7 +600,6 @@ SYSTEM
 
 finis:
 closemusic
-clear_box_border_cache
 'catch sprite leaks
 sprite_empty_cache
 palette16_empty_cache

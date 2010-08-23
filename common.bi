@@ -179,9 +179,6 @@ DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, boxst
 DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, menu AS MenuDef, page AS INTEGER)
 DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0, page AS INTEGER)
 
-DECLARE SUB load_box_border_cache()
-DECLARE SUB clear_box_border_cache()
-
 DECLARE SUB notification (show_msg AS STRING)
 
 DECLARE FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER

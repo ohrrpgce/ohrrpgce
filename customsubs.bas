@@ -287,7 +287,6 @@ SUB ui_color_editor(palnum AS INTEGER)
    CASE 48 TO 62
     IF zintgrabber(uilook(index), -1, gen(genMaxBoxBorder)) THEN
      make_ui_color_editor_menu color_menu(), uilook()
-     clear_box_border_cache
     END IF
   END SELECT
 

@@ -1160,8 +1160,6 @@ FOR i = 0 TO UBOUND(herow)
  END WITH
 NEXT
 
-clear_box_border_cache
-
 FOR i = 0 TO ubound(timers)
  WITH timers(i)
   .count = 0

@@ -1811,7 +1811,6 @@ LOOP
 changepal poffset(state.pt), 0, workpal(), state.pt - state.top
 spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
 savedefaultpals ss.fileset, poffset(), sets
-clear_box_border_cache
 sprite_empty_cache
 clearpage 0
 clearpage 1
