@@ -133,12 +133,12 @@ SUB loadgame (BYVAL slot AS INTEGER)
   DIM filename AS STRING
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
-   debug "loading awesome new loadgame from " & filename
+   debuginfo "loading awesome new loadgame from " & filename
    new_loadgame slot
    EXIT SUB
   END IF
  END IF
- debug "loading from slot " & slot & " of boring old " & old_savefile
+ debuginfo "loading from slot " & slot & " of boring old " & old_savefile
  old_loadgame slot
 END SUB
 
@@ -148,21 +148,21 @@ SUB loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS
   DIM filename AS STRING
   filename = savedir & SLASH & slot & ".rsav"
   IF isfile(filename) THEN
-   debug "loading awesome new loadglobalvars from " & filename
+   debuginfo "loading awesome new loadglobalvars from " & filename
    new_loadglobalvars slot, first, last
    EXIT SUB
   END IF
  END IF
- debug "loadglobalvars from slot " & slot & " of boring old " & old_savefile
+ debuginfo "loadglobalvars from slot " & slot & " of boring old " & old_savefile
  old_loadglobalvars slot, first, last
 END SUB
 
 SUB get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
  IF new_save_slot_used(slot) THEN
-  debug "use nifty new save slot preview for slot " & slot
+  debuginfo "use nifty new save slot preview for slot " & slot
   new_get_save_slot_preview slot, pv
  ELSE
-  debug "fall back to boring old save slot preview for " & slot
+  debuginfo "fall back to boring old save slot preview for " & slot
   old_get_save_slot_preview slot, pv
  END IF
 END SUB
@@ -1245,8 +1245,8 @@ SUB new_saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL las
  DIM globals_node AS NodePtr
 
  IF NOT isfile(filename) THEN
-  debug "Save file missing: " & filename
-  debug "generating a globals-only file"
+  debuginfo "Save file missing: " & filename
+  debuginfo "generating a globals-only file"
   doc = CreateDocument()
   rsav_node = CreateNode(doc, "rsav")
   SetRootNode(doc, rsav_node)
