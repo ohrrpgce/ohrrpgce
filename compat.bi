@@ -199,6 +199,10 @@ DECLARE FUNCTION ReadByte(fh as integer,p as long=-1) as ubyte
 DECLARE SUB WriteByteStr(fh as integer, le as integer, s as string)
 DECLARE FUNCTION ReadByteStr(fh as integer, le as integer) as string
 
+EXTERN "C"
+DECLARE FUNCTION get_sys_err_string() as zstring ptr
+END EXTERN
+
 'not really a global: just an empty string, since you can't specify zstring ptr default arguments directly
 EXTERN nulzstr as zstring ptr
 

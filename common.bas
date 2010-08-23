@@ -1649,10 +1649,12 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
 
  IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
 
-  DIM tempf AS STRING = tmpdir & "resize" & bindex & ".tmp"
+  DIM tempf AS STRING = lumpf & ".resize.tmp"
 
+  'This tends to break (it's a C/unix system call), hence all the paranoia
   IF rename(lumpf, tempf) THEN
-   fatalerror "Could not rename " & lumpf & " to " & tempf & " (exists=" & isfile(tempf) & ")"
+   DIM err_string AS STRING = *get_sys_err_string()  'errno would get overwritten while building the error message
+   fatalerror "Could not rename " & lumpf & " to " & tempf & " (exists=" & isfile(tempf) & " errno=" & err_string & ")"
   END IF
 
   DIM inputf AS INTEGER = FREEFILE

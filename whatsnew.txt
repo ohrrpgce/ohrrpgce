@@ -34,12 +34,15 @@ WHAT IS NEW?
     * Bug 486: Chained attacks fail on stored dead targets
       [James, msw188]
     * "wait for all" did not wait for NPCs when it was meant to [Ralph]
-    * "hero pixel x/y" always returned the leader's position [Ralph]
+    * "hero pixel x/y" only worked correctly on the leader [Ralph]
     * Using an item that triggers a text box could cause a menu
       double-close warning if the menu item that opened the items menu
       was set to always close the menu [James]
     * Bug 845: upgrading old games that contain no shop stuff lump
       always produced a confusing warning [James]
+    * Under Unix you usually couldn't play unlumped .rpgdir games which
+      were on a mounted filesystem other than the one containing your
+      home directory [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

@@ -615,6 +615,7 @@ sub SerializeBin(file as string, byval doc as DocPtr)
 	safekill file
 	if rename(file & ".tmp", file) then
 		debug "SerializeBin: could not rename " & file & ".tmp (exists=" & isfile(file & ".tmp") & ") to " & file & " (exists=" & isfile(file) & ")"
+		exit sub  'don't delete the data
 	end if
 	safekill file & ".tmp"
 end sub
