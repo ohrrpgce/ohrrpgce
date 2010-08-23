@@ -21,16 +21,20 @@ F Fill tool: This tool does a flood
   fill. It is like the paint bucket
   in other drawing programs.
 
+R Replace tool: This tool replaces
+  all occurrences of one palette
+  colour with the selected one.
+
 O Circle tool. This tool draws
   circles. Click once to choose the
   center, and again to choose the
-  size
+  size.
 
 A Airbrush tool: This tool scatters
   pixels. While it is active you can
   press + and - to change the area
   and CTRL+ or CTRL- to change the
-  "flow", which is the number of
+  "mist", which is the number of
   pixels scattered with each click.
 
 M Mark tool. This tool selects a

@@ -646,7 +646,7 @@ END SUB
 
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
-DIM ts AS TileEditState, mover(12), mouse(4), area(22) AS MouseArea
+DIM ts AS TileEditState, mover(12), mouse(4), area(23) AS MouseArea
 ts.drawframe = frame_new(20, 20, , YES)
 DIM tog AS integer
 ts.gotmouse = havemouse()
@@ -664,7 +664,7 @@ area(1).x = 0
 area(1).y = 160
 area(1).w = 320
 area(1).h = 32
-'TOOLS (more at 21,22)
+'TOOLS (more at 21,22,23)
 FOR i = 0 TO 5
  area(2 + i).x = 4 + i * 9
  area(2 + i).y = 32
@@ -715,6 +715,10 @@ FOR i = 0 TO 1
  area(21 + i).w = 8
  area(21 + i).h = 8
 NEXT i
+area(23).x = 58  'airbrush
+area(23).y = 32
+area(23).w = 8
+area(23).h = 8
 DIM pastogkey(7), defaults(160), bitmenu(10) AS STRING
 IF tmode = 3 THEN
  pastogkey(0) = 72
@@ -874,62 +878,69 @@ SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea)
 STATIC clone AS TileCloneBuffer
 DIM spot AS XYPair
 
-DIM toolinfo(7) AS ToolInfoType
+DIM toolinfo(8) AS ToolInfoType
 WITH toolinfo(0)
  .name = "Draw"
  .icon = CHR(3)
- .shortcut = 32
+ .shortcut = scD
  .cursor = 0
  .areanum = 2
 END WITH
 WITH toolinfo(1)
  .name = "Box"
  .icon = CHR(4)
- .shortcut = 48
+ .shortcut = scB
  .cursor = 1
  .areanum = 3
 END WITH
 WITH toolinfo(2)
  .name = "Line"
  .icon = CHR(5)
- .shortcut = 38
+ .shortcut = scL
  .cursor = 2
  .areanum = 4
 END WITH
 WITH toolinfo(3)
  .name = "Fill"
  .icon = "F"
- .shortcut = 33
+ .shortcut = scF
  .cursor = 3
  .areanum = 5
 END WITH
 WITH toolinfo(4)
  .name = "Oval"
  .icon = "O"
- .shortcut = 24
+ .shortcut = scO
  .cursor = 2
- .areanum = 6
+ .areanum = 7
 END WITH
 WITH toolinfo(5)
  .name = "Air"
  .icon = "A"
- .shortcut = 30
+ .shortcut = scA
  .cursor = 3
- .areanum = 7
+ .areanum = 23
 END WITH
 WITH toolinfo(6)
  .name = "Mark"
  .icon = "M"
- .shortcut = 50
+ .shortcut = scM
  .cursor = 3
  .areanum = 21
 END WITH
 WITH toolinfo(7)
  .name = "Clone"
  .icon = "C"
- .shortcut = 46
+ .shortcut = scC
  .cursor = 3
  .areanum = 22
+END WITH
+WITH toolinfo(8)
+ .name = "Replace"
+ .icon = "R"
+ .shortcut = scR
+ .cursor = 3
+ .areanum = 6
 END WITH
 
 DIM overlay AS Frame ptr
@@ -1002,7 +1013,7 @@ DO
   END IF
  END IF 
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
- FOR i = 0 TO 7
+ FOR i = 0 TO UBOUND(toolinfo)
   IF keyval(toolinfo(i).shortcut) > 1 THEN
    ts.tool = i
    ts.hold = NO
@@ -1063,7 +1074,7 @@ DO
  CASE 13 TO 16
   IF mouse(3) = 1 THEN fliptile mover(), ts
  END SELECT
- FOR i = 0 TO 7
+ FOR i = 0 TO UBOUND(toolinfo)
   IF toolinfo(i).areanum = ts.zone - 1 THEN
    IF mouse(3) = 1 THEN
     ts.tool = i
@@ -1165,7 +1176,7 @@ DO
  printstr toolinfo(ts.tool).name, 8, 8, dpage
  printstr "Tool", 8, 16, dpage
  printstr "Undo", 274, 1, dpage
- FOR i = 0 TO 7
+ FOR i = 0 TO UBOUND(toolinfo)
   fgcol = uilook(uiMenuItem): bgcol = uilook(uiDisabledItem)
   IF ts.tool = i THEN fgcol = uilook(uiText): bgcol = uilook(uiMenuItem)
   IF ts.zone - 1 = toolinfo(i).areanum THEN bgcol = uilook(uiSelectedDisabled)
@@ -1270,6 +1281,12 @@ SELECT CASE ts.tool
    NEXT i
    refreshtileedit mover(), ts
    rectangle 0, 0, 22, 22, uilook(uiBackground), dpage
+  END IF
+ CASE replace_tool
+  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
+   writeundoblock mover(), ts
+   replacecolor vpages(3), readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), ts.curcolor, ts.tilex * 20, ts.tiley * 20, 20, 20
+   refreshtileedit mover(), ts
   END IF
  CASE oval_tool
   IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
@@ -1899,12 +1916,12 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
  END IF
  putpixel ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, state.tog * 15, dpage
  textcolor uilook(uiMenuItem), 0
- printstr "x=" & ss.x & " y=" & ss.y, 0, 174, dpage
- printstr info$(ss.framenum), 0, 182, dpage
- printstr "Tool:" & toolinfo(ss.tool).name, 0, 190, dpage
+ printstr "x=" & ss.x & " y=" & ss.y, 0, 190, dpage
+ printstr "Tool:" & toolinfo(ss.tool).name, 0, 182, dpage
+ printstr info$(ss.framenum), 0, 174, dpage
  DIM bgcol AS INTEGER
  DIM fgcol AS INTEGER
- FOR i = 0 TO 7
+ FOR i = 0 TO UBOUND(toolinfo)
   fgcol = uilook(uiMenuItem)
   bgcol = uilook(uiDisabledItem)
   IF ss.tool = i THEN
@@ -2007,7 +2024,7 @@ SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
  area(5).w = 8
  area(5).h = 8
  area(5).hidecursor = NO
- 'TOOL BUTTONS (more below at 21,22)
+ 'TOOL BUTTONS (more below at 21,22,24)
  FOR i = 0 TO 5
   area(6 + i).x = 80 + i * 10
   area(6 + i).y = 190
@@ -2061,6 +2078,7 @@ SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
  area(19).w = 32
  area(19).h = 8
  area(19).hidecursor = NO
+ 'MORE TOOLS
  FOR i = 0 TO 1
   area(21 + i).x = 140 + i * 10
   area(21 + i).y = 190
@@ -2074,6 +2092,13 @@ SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
  area(23).w = 8
  area(23).h = 10
  area(23).hidecursor = NO
+ 'ANOTHER TOOL
+ area(24).x = 160
+ area(24).y = 190
+ area(24).w = 8
+ area(24).h = 10
+ area(24).hidecursor = NO
+
 END SUB
 
 SUB spriteedit_save_all_you_see(top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
@@ -2333,65 +2358,72 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
 
  DIM pclip(8) AS INTEGER
 
- DIM area(23) AS MouseArea
+ DIM area(24) AS MouseArea
  init_sprite_zones area(), ss
 
- DIM toolinfo(7) AS ToolInfoType
+ DIM toolinfo(8) AS ToolInfoType
  WITH toolinfo(0)
   .name = "Draw"
   .icon = CHR(3)
-  .shortcut = 32
+  .shortcut = scD
   .cursor = 0
   .areanum = 6
  END WITH
  WITH toolinfo(1)
   .name = "Box"
   .icon = CHR(4)
-  .shortcut = 48
+  .shortcut = scB
   .cursor = 1
   .areanum = 7
  END WITH
  WITH toolinfo(2)
   .name = "Line"
   .icon = CHR(5)
-  .shortcut = 38
+  .shortcut = scL
   .cursor = 2
   .areanum = 8
  END WITH
  WITH toolinfo(3)
   .name = "Fill"
   .icon = "F"
-  .shortcut = 33
+  .shortcut = scF
   .cursor = 3
   .areanum = 9
  END WITH
  WITH toolinfo(4)
   .name = "Oval"
   .icon = "O"
-  .shortcut = 24
+  .shortcut = scO
   .cursor = 2
-  .areanum = 10
+  .areanum = 11
  END WITH
  WITH toolinfo(5)
   .name = "Air"
   .icon = "A"
-  .shortcut = 30
+  .shortcut = scA
   .cursor = 3
-  .areanum = 11
+  .areanum = 21
  END WITH
  WITH toolinfo(6)
   .name = "Mark"
   .icon = "M"
-  .shortcut = 50
+  .shortcut = scM
   .cursor = 2
-  .areanum = 21
+  .areanum = 22
  END WITH
  WITH toolinfo(7)
   .name = "Clone"
   .icon = "C"
-  .shortcut = 46
+  .shortcut = scC
   .cursor = 3
-  .areanum = 22
+  .areanum = 24
+ END WITH
+ WITH toolinfo(8)
+  .name = "Replace"
+  .icon = "R"
+  .shortcut = scR
+  .cursor = 3
+  .areanum = 10
  END WITH
 
  DIM AS INTEGER tick = 0
@@ -2640,6 +2672,10 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
    IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
     GOSUB floodfill
    END IF
+  CASE replace_tool
+   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
+    GOSUB replacecol
+   END IF
   CASE oval_tool
    IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold = NO THEN
@@ -2700,7 +2736,7 @@ IF ss.hold = YES AND ss.tool = oval_tool THEN
   ss.radius = SQR( (ss.holdpos.x + 0.5 - ss.zone.x / ss.zoom)^2 + (ss.holdpos.y + 0.5 - ss.zone.y / ss.zoom)^2 )
  END IF
 END IF
-FOR i AS INTEGER = 0 TO 7
+FOR i AS INTEGER = 0 TO UBOUND(toolinfo)
  IF (mouse(3) > 0 AND ss.zonenum = toolinfo(i).areanum + 1) OR keyval(toolinfo(i).shortcut) > 1 THEN
   ss.tool = i
   GOSUB resettool
@@ -2809,6 +2845,14 @@ rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, ui
 rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
 drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 paintat vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex
+getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+RETRACE
+
+replacecol:
+writeundospr placer(), ss
+rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
+drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
+replacecolor vpages(dpage), readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage), ss.palindex, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 

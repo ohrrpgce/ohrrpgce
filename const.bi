@@ -190,17 +190,6 @@ Enum constDirection
 	dirLeft
 End Enum
 
-ENUM PixelTool
-	draw_tool
-	box_tool
-	line_tool
-	fill_tool
-	oval_tool
-	airbrush_tool
-	mark_tool
-	clone_tool
-END ENUM
-
 '--- Constants for carray() 
 CONST ccUp = 0
 CONST ccDown = 1

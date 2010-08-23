@@ -6,6 +6,18 @@
 
 #include "slices.bi"
 
+ENUM PixelTool
+  draw_tool
+  box_tool
+  line_tool
+  fill_tool
+  oval_tool
+  airbrush_tool
+  mark_tool
+  clone_tool
+  replace_tool
+END ENUM
+
 TYPE SpriteEditStatic
   clonemarked AS INTEGER
   clonebuf(2561) AS INTEGER 'Needs to be big enough for 2+w*h*sets/4 for the largest possible sprite set

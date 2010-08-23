@@ -22,6 +22,9 @@ F Fill tool. Use this to flood-fill
   paint an area. Like the paint
   bucket in photoshop.
 
+R Replace tool. Use this to replace
+  one colour with another.
+
 O Circle tool. Use this to draw non-
   filled circles. The first click
   defines the center of the circle.
@@ -31,7 +34,7 @@ A Airbrush tool. Use this to scatter
   is active, you can press + and -
   to change the scatter area, and
   CTRL+ and CTRL- to change the
-  "flow", which is the number of
+  "mist", which is the number of
   pixels scattered with each click.
 
 M Mark tool. Marks a rectangular
