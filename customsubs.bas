@@ -2415,6 +2415,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
     END IF
    END WITH
   NEXT j
+  resave OR= visitor(menutmp.on_close, "menu " & i & " on-close", """" & menutmp.name & """")
   IF resave THEN
    SaveMenuData menu_set, menutmp, i
   END IF
