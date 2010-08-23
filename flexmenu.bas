@@ -1199,6 +1199,8 @@ DO
   '--done updating
   state.need_update = NO
  END IF
+
+ clearpage dpage
  atk_edit_preview recbuf(AtkDatAnimPattern), preview
  DrawSlice preview_box, dpage
 
@@ -1212,7 +1214,6 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
  dowait
 LOOP
 
@@ -1588,6 +1589,7 @@ DO
   END WITH
  END IF
  
+ clearpage dpage
  IF NOT mstate.active THEN draw_menu menudata, mstate, dpage
  IF NOT mstate.active AND NOT dstate.active THEN draw_menu edmenu, state, dpage
  IF mstate.active THEN
@@ -1606,7 +1608,6 @@ DO
  
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 SaveMenuData menu_set, menudata, record

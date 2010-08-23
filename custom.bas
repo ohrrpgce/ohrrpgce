@@ -324,6 +324,7 @@ DO:
   xbsave game + ".gen", gen(), 1000
  END IF
 
+ clearpage dpage
  standardmenu menu(), mainmax, 22, pt, 0, 0, 0, dpage, 0
 
  textcolor uilook(uiSelectedDisabled), 0
@@ -334,7 +335,6 @@ DO:
 
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -411,11 +411,11 @@ DO
   END IF
  END IF
 
+ clearpage dpage
  standardmenu chooserpg_menu(), last, 22, csr, top, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 RETRACE
@@ -564,8 +564,6 @@ END IF
 IF rpas$ = "" THEN RETRACE
 '-----get inputed password-----
 pas$ = ""
-clearpage 0
-clearpage 1
 setkeys
 DO
  setwait 55
@@ -580,6 +578,7 @@ DO
   END IF
  END IF
  strgrabber pas$, 17
+ clearpage dpage
  textcolor uilook(uiText), 0
  printstr "This game requires a password to edit", 0, 0, dpage
  printstr " Type it in and press ENTER", 0, 9, dpage
@@ -587,7 +586,6 @@ DO
  printstr STRING$(LEN(pas$), "*"), 0, 20, dpage
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -741,10 +739,6 @@ stf(5) = "Increment Inventory"
 stf(6) = "Refuse to Buy"
 stf(7) = "In Stock: Infinite"
 stf(8) = "In Stock: None"
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 
 GOSUB lshopset
 GOSUB menugen
@@ -809,6 +803,7 @@ DO
  IF csr = 6 THEN
   IF scrintgrabber(a(19), 0, 0, 75, 77, 1, plottrigger) THEN GOSUB menuup
  END IF
+ clearpage dpage
  FOR i = 0 TO li
   c = uilook(uiMenuItem): IF i = csr THEN c = uilook(uiSelectedItem + tog)
   IF i = 3 AND havestuf = 0 THEN
@@ -819,14 +814,9 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 GOSUB sshopset
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 EXIT SUB
 
 menugen:
@@ -960,11 +950,11 @@ DO
  GOSUB othertype
  GOSUB stufmenu
 
+ clearpage dpage
  standardmenu smenu(), last, 22, tcsr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -1146,5 +1136,5 @@ SUB move_unwritable_rpg(BYREF filetolump$)
 END SUB
 
 '=======================================================================
-'FIXME: move this up as code gets cleaned up!
+'FIXME: move this up as code gets cleaned up!  (Hah!)
 OPTION EXPLICIT

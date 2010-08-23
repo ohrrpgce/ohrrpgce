@@ -779,8 +779,6 @@ END SUB
 
 SUB formation
 
-clearallpages
-
 DIM a(40), c(24), menu(10) AS STRING, max(10), min(10), bmenu(22) as string
 dim as integer col, csr, bcsr, csr2, csr3, tog, pt, gptr, i, o, movpix, thiswidth
 DIM as GraphicPair egraphics(7)
@@ -801,22 +799,18 @@ DO
   IF csr = 0 THEN EXIT DO
   IF csr = 1 THEN GOSUB editform
   IF csr = 2 THEN GOSUB formsets
-  clearpage dpage
  END IF
 
+ clearpage dpage
  standardmenu menu(), 2, 22, csr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 FOR i = 0 TO 7
  unload_sprite_and_pal egraphics(i)
 NEXT
-clearpage 0
-clearpage 1
-clearpage 2
 EXIT SUB
 
 formsets:
@@ -1132,10 +1126,6 @@ END WITH
 hmax = 32
 leftkey = 0: rightkey = 0
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 elemtype(0) = readglobalstring$(127, "Weak to", 10)
 elemtype(1) = readglobalstring$(128, "Strong to", 10)
 elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
@@ -1212,20 +1202,16 @@ DO
   menu(2) = "Name:" + nam$
  END IF
 
+ clearpage dpage
  standardmenu menu(), 9, 22, csr, 0, 0, 0, dpage, 0
 
  draw_hero_preview st, her
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 GOSUB lasthero
 clear_hero_preview_pics st
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 EXIT SUB
 
 heromenu:
@@ -1247,11 +1233,11 @@ DO
  bmenu(3) = "Spell List 3:" + hmenu(2)
  bmenu(4) = "Spell List 4:" + hmenu(3)
 
+ clearpage dpage
  standardmenu bmenu(), 4, 22, bctr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -1281,6 +1267,7 @@ DO
    bctr = listnum
   END IF
  END IF
+ clearpage dpage
  textcolor uilook(uiMenuItem), 0: IF bctr = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
  FOR i = 0 TO 3
@@ -1289,7 +1276,6 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -1323,6 +1309,7 @@ DO
   END IF
   IF changed THEN GOSUB smi
  END IF
+ clearpage dpage
  textcolor uilook(uiMenuItem), 0
  IF 0 = bctr THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr bmenu(0), 8, 0, dpage
@@ -1345,7 +1332,6 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -1402,6 +1388,8 @@ DO
    GOSUB setsticky
   END IF
  END IF
+ '--Draw screen
+ clearpage dpage
  textcolor uilook(uiDescription), 0: printstr UCASE$(opt(her.list_type(listnum))), 300 - LEN(opt(her.list_type(listnum))) * 8, 0, dpage
  textcolor uilook(uiMenuItem), 0: IF bctr = 0 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
@@ -1423,7 +1411,6 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -1529,6 +1516,8 @@ DO
   CASE 4
    tag_grabber .active_tag, 0
  END SELECT
+
+ clearpage dpage
  FOR i = 0 TO 4
   textcolor uilook(uiMenuItem), 0
   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
@@ -1557,7 +1546,6 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 END WITH
@@ -1572,10 +1560,6 @@ DIM wep_img AS GraphicPair 'This is only used in edititem
 DIM box_preview AS STRING = "" 'This is only used in edititem
 imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 elemtype(0) = readglobalstring$(127, "Weak to", 10)
 elemtype(1) = readglobalstring$(128, "Strong to", 10)
 elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
@@ -1627,6 +1611,8 @@ DO
    i = csr: GOSUB sitemname
   END IF
  END IF
+
+ clearpage dpage
  FOR i = top TO top + 23
   IF i <= gen(genMaxItem) + 1 THEN
    textcolor uilook(uiMenuItem), 0
@@ -1650,13 +1636,8 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 EXIT SUB
 
 edititem:
@@ -1768,6 +1749,8 @@ DO
   wep_img.sprite = frame_load(5, a(52))
   wep_img.pal    = palette16_load(a(53), 5, a(52))
  END IF
+
+ clearpage dpage
  FOR i = 0 TO 20
   textcolor uilook(uiMenuItem), 0
   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
@@ -1788,7 +1771,6 @@ DO
  edgeprint box_preview, 0, 191, uilook(uiText), dpage
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 IF wep_img.sprite THEN frame_unload @wep_img.sprite
@@ -1811,6 +1793,8 @@ DO
  IF ptr2 >= 0 THEN
   intgrabber a(54 + ptr2), sbmax(ptr2) * -1, sbmax(ptr2)
  END IF
+
+ clearpage dpage
  textcolor uilook(uiMenuItem), 0
  IF ptr2 = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
@@ -1821,7 +1805,6 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -1941,9 +1924,6 @@ DIM AS INTEGER tog, i, top = 0, cur = 0, menumax, need_update_selected = NO
 menumax = num_npc_defs - 1
 IF num_npc_defs < max_npc_defs THEN menumax += 1
 
-clearpage 0
-clearpage 1
-
 FOR i = 0 TO num_npc_defs - 1
  boxpreview(i) = textbox_preview_line(npc(i).textbox)
 NEXT i
@@ -2005,6 +1985,7 @@ DO
   need_update_selected = NO
  END IF
 
+ clearpage dpage
  FOR i = top TO top + 7
   IF i > menumax THEN EXIT FOR
   IF cur = i THEN edgebox 0, (i - top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
@@ -2027,11 +2008,8 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
-clearpage 0
-clearpage 1
 
 END SUB
 
@@ -2220,11 +2198,12 @@ SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
   END IF
 
   IF st.changed THEN update_hero_appearance_menu st, menu(), her
+
+  clearpage dpage
   standardmenu menu(), state, 8, 0, dpage
   draw_hero_preview st, her
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
  st.previewframe = -1
@@ -2258,10 +2237,10 @@ SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS HeroDef)
     hero_editor_equipbits hero_id, state.pt
    END IF
   END IF
+  clearpage dpage
   standardmenu menu(), state, 0, 0, dpage
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB

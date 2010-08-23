@@ -84,7 +84,6 @@ menu_set.itemfile = workingdir & SLASH & "menuitem.bin"
 outf$ = trimextension$(trimpath$(sourcerpg)) + ".hsi"
 
 clearpage 0
-clearpage 1
 setvispage 0
 textcolor uilook(uiText), 0
 pl = 0
@@ -92,7 +91,7 @@ printstr "exporting HamsterSpeak Definitions to:", 0, pl * 8, 0: pl = pl + 1
 printstr RIGHT$(outf$, 40), 0, pl * 8, 0: pl = pl + 1
 'Need to call this quite a lot to refresh the screen for FB. Bit of a
 'compromise between showing the process and slowing things down, since
-'it will copy the page data every time.
+'it will refresh the window every time.
 setvispage 0
 
 fh = FREEFILE
@@ -650,6 +649,7 @@ SUB text_box_editor () 'textage
   IF state.pt = 7 THEN menu(7) &= st.search
  
   '--Draw box
+  clearpage dpage
   textbox_edit_preview box, st, 96
 
   textcolor uilook(uiText), uilook(uiHighlight)
@@ -660,13 +660,8 @@ SUB text_box_editor () 'textage
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
- clearpage 0
- clearpage 1
- clearpage 2 '--is this needed?
- clearpage 3 '--is this needed?
  SaveTextBox box, st.id
  WITH st.portrait
   IF .sprite THEN frame_unload @.sprite
@@ -771,6 +766,8 @@ SUB textbox_conditionals(BYREF box AS TextBox)
     textbox_update_conditional_menu box, menu()
    END IF
   END IF
+
+  clearpage dpage
   FOR i AS INTEGER = state.top TO state.top + state.size
    textcolor uilook(uiMenuItem), 0
    IF grey(i) = YES THEN
@@ -791,7 +788,6 @@ SUB textbox_conditionals(BYREF box AS TextBox)
   draw_fullscreen_scrollbar state, , dpage
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB
@@ -1148,6 +1144,8 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
    state.need_update = NO
    update_textbox_appearance_editor_menu menu(), box, st
   END IF
+
+  copypage holdscreen, dpage
   textbox_edit_preview box, st
   FOR i = 0 TO UBOUND(menu)
    col = uilook(uimenuItem)
@@ -1156,7 +1154,6 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
-  copypage holdscreen, dpage
   dowait
  LOOP
  freepage holdscreen
@@ -1308,7 +1305,9 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   IF state.pt <= state.last AND state.pt >= state.first THEN
    stredit box.text(state.pt), 38
   END IF
+
   'Display the box
+  clearpage dpage
   textbox_edit_preview box, st, 4, YES
   'Display the lines in the box
   FOR i AS INTEGER = state.first TO state.last
@@ -1334,7 +1333,6 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   printstr "CTRL+SPACE: choose an extended character", 0, 176, dpage
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB
@@ -1377,11 +1375,11 @@ SUB textbox_choice_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
    END IF
   NEXT i
  
+  clearpage dpage
   standardmenu menu(), state, 0, 8, dpage
  
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB
@@ -1534,7 +1532,9 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu
      END IF
     END IF
   END SELECT
+
   '--Draw box preview
+  clearpage dpage
   textbox_edit_preview box, st, 96
   '--Draw previous
   IF state.last >= 0 THEN
@@ -1559,7 +1559,6 @@ SUB textbox_connections(BYREF box AS TextBox, BYREF st AS TextboxEditState, menu
   END IF
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB

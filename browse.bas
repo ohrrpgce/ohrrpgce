@@ -189,6 +189,8 @@ DO
   GOSUB context
   changed = 1
  END IF
+ '--Draw screen
+ clearpage dpage
  edgeboxstyle 4, 3, 312, 14, 0, dpage, NO, YES
  edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
  edgeboxstyle 4, 31 + br.viewsize * 9, 312, 14, 0, dpage, NO, YES
@@ -208,7 +210,6 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  IF needf = 1 THEN fadein: setkeys
  IF needf THEN needf = needf - 1
  dowait

@@ -240,6 +240,7 @@ DO
     EXIT DO
    END IF
  END SELECT
+ clearpage dpage
  centerbox 160, 100, 100, 80, 1, dpage
  centerbox 160, 100, 20, 20, 3, dpage
  IF state > 0 THEN
@@ -254,7 +255,6 @@ DO
  edgeprint jpos$, 160 - 4 * LEN(jpos$), 184, uilook(uiSelectedItem + tog), dpage
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 

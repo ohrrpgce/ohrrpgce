@@ -53,9 +53,6 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
   menu(i - 1) = "Tag " & i & ":" & load_tag_name(i)
  NEXT i
 
- clearpage 0
- clearpage 1
-
  DIM tagsign AS INTEGER
  tagsign = SGN(starttag)
  IF tagsign = 0 THEN tagsign = 1
@@ -103,12 +100,12 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
    END IF
   END IF
 
+  clearpage dpage
   draw_fullscreen_scrollbar state, ,dpage
   standardmenu menu(), state, 0, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 
@@ -204,6 +201,7 @@ DO
 
  IF enter_or_space() THEN RETURN CHR(f(pt))
 
+ clearpage dpage
  FOR i = 0 TO last
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
   IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
@@ -221,7 +219,6 @@ DO
 
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -313,6 +310,8 @@ SUB ui_color_editor(palnum AS INTEGER)
     sample_menu.boxstyle = index - 48
   END SELECT
 
+  '--draw screen
+  clearpage dpage
   draw_menu sample_menu, sample_state, dpage
   standardmenu color_menu(), state, 10, 0, dpage
   FOR i = state.top TO state.top + state.size
@@ -324,7 +323,6 @@ SUB ui_color_editor(palnum AS INTEGER)
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
  SaveUIColors uilook(), palnum
@@ -369,6 +367,7 @@ FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
   IF keyval(scLeft) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, -1)
   IF keyval(scRight) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, 1)
 
+  clearpage dpage
   FOR i = 0 TO 255
    spot = xy_from_int(i, 16, 16)
    IF spot.x = cursor.x AND spot.y = cursor.y THEN
@@ -380,7 +379,6 @@ FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END FUNCTION
@@ -399,8 +397,6 @@ END FUNCTION
 FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
  STATIC q AS INTEGER = 4
  DIM i AS INTEGER
- clearpage dpage
- clearpage vpage
  setkeys
  DO
   setwait 55
@@ -409,6 +405,7 @@ FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
   IF keyval(scF1) > 1 THEN show_help "pick_ogg_quality"
   IF enter_or_space() THEN EXIT DO
   intgrabber (q, -1, 10)
+  clearpage dpage
   centerbox 160, 100, 300, 40, 4, dpage
   edgeprint "Pick Ogg quality level (" & q & ")", 64, 86, uilook(uiText), dpage
   FOR i = 0 TO q + 1
@@ -503,8 +500,6 @@ FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS INTEGER=
  LOOP
  setkeys
  freepage holdscreen
- clearpage 0
- clearpage 1
 
  RETURN result
 END FUNCTION
@@ -810,6 +805,8 @@ SUB edit_npc (BYREF npcdata AS NPCType)
    CASE -1' previous menu
     IF enter_or_space() THEN EXIT DO
   END SELECT
+  '--Draw screen
+  clearpage dpage
   textcolor uilook(uiMenuItem), 0
   IF state.pt = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr "Previous Menu", 0, 0, dpage
@@ -873,7 +870,6 @@ SUB edit_npc (BYREF npcdata AS NPCType)
   printstr boxpreview, 0, 170, dpage
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 
@@ -964,7 +960,6 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
  state.pt = bound(curpal, 0, state.last)
  state.top = bound(state.top, state.first, large(state.last - state.size, state.first))
 
- clearpage dpage
  'reset repeat rate, needed because called from sprite editor (argh), the caller resets its own repeatrate
  setkeyrepeat
  setkeys
@@ -990,6 +985,8 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
    NEXT i
   END IF
 
+  '--Draw screen
+  clearpage dpage
   FOR i = 0 TO 9
    textcolor uilook(uiMenuItem), 0
    IF state.top + i = state.pt THEN textcolor uilook(uiSelectedItem + state.tog), 0
@@ -1033,7 +1030,6 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
  
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 
@@ -1144,6 +1140,7 @@ FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, hel
     END IF
    END IF
   END IF
+  clearpage dpage
   textcolor uilook(uiText), 0
   printstr query, 160 - LEN(query) * 4, 20, dpage
   printstr "Output directory: ", 160 - 18 * 4, 35, dpage
@@ -1154,7 +1151,6 @@ FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, hel
   printstr ext, 160 + (LEN(filename) - LEN(ext)) * 4 , 60, dpage
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END FUNCTION
@@ -1183,6 +1179,7 @@ FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS 
    IF metadata(state.pt) = NO THEN metadata(state.pt) = YES ELSE metadata(state.pt) = NO
   END IF
   
+  clearpage dpage
   textcolor uilook(uiText), 0
   printstr "Choose what metadata to include:", 4, 4, dpage
   
@@ -1199,7 +1196,6 @@ FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS 
   
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END FUNCTION
@@ -1641,6 +1637,7 @@ SUB xy_position_on_slice (sl AS Slice Ptr, BYREF x AS INTEGER, BYREF y AS INTEGE
   IF keyval(scUp) > 0    THEN y -= 1
   IF keyval(scDown) > 0  THEN y += 1
 
+  clearpage dpage
   DrawSlice sl, dpage
   col = uilook(uiBackground)
   IF tog = 0 THEN col = uilook(uiSelectedItem)
@@ -1654,7 +1651,6 @@ SUB xy_position_on_slice (sl AS Slice Ptr, BYREF x AS INTEGER, BYREF y AS INTEGE
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB
@@ -1676,6 +1672,7 @@ SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS IN
   IF keyval(scUp) > 0    THEN y -= 1
   IF keyval(scDown) > 0  THEN y += 1
 
+  clearpage dpage
   emptybox 160 - wide, 100 - high, wide * 2, high * 2, uilook(uiSelectedDisabled), 1, dpage
   frame_draw spr.sprite + frame, spr.pal, 160 - wide, 100 - high, 2,, dpage
   col = uilook(uiBackground)
@@ -1690,7 +1687,6 @@ SUB xy_position_on_sprite (spr AS GraphicPair, BYREF x AS INTEGER, BYREF y AS IN
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB
@@ -1746,13 +1742,13 @@ SUB reposition_menu (menu AS MenuDef, mstate AS MenuState)
    IF keyval(scRight) > 1 THEN .x += 1 + 9 * shift
   END WITH
  
+  clearpage dpage
   draw_menu menu, mstate, dpage
   edgeprint "Offset=" & menu.offset.x & "," & menu.offset.y, 0, 0, uilook(uiDisabledItem), dpage
   edgeprint "Arrows to re-position, ESC to exit", 0, 191, uilook(uiDisabledItem), dpage
   
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB
@@ -1777,6 +1773,7 @@ SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
    IF keyval(scRight) > 1 THEN .x = bound(.x + 1, -1, 1)
   END WITH
  
+  clearpage dpage
   draw_menu menu, mstate, dpage
   WITH menu
    x = .rect.x - 2 + anchor_point(.anchor.x, .rect.wide)
@@ -1787,7 +1784,6 @@ SUB reposition_anchor (menu AS MenuDef, mstate AS MenuState)
   
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB
@@ -1850,6 +1846,7 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
   ELSE
    IF enter_or_space() THEN EXIT DO
   END IF
+  clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
   FOR i AS INTEGER = state.top TO small(state.top + state.size, state.last)
    IF i >= 0 THEN
@@ -1864,7 +1861,6 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB
@@ -1994,8 +1990,6 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
  state.top = large(0, small(state.pt - 10, scriptmax - 21))
  DIM id AS INTEGER = scriptids(state.pt)
  DIM iddisplay AS INTEGER = 0
- clearpage 0
- clearpage 1
  setkeys
  DO
   setwait 55
@@ -2034,6 +2028,7 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
    END IF
   NEXT i
 
+  clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
   textcolor uilook(uiText), 0
   printstr "Pick a " + scrtype$, 0, 0, dpage
@@ -2045,11 +2040,8 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
 
   SWAP dpage, vpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
- clearpage 0
- clearpage 1
 
  trigger = scriptids(state.pt)
  IF scriptids(state.pt) < 16384 THEN
@@ -2552,12 +2544,12 @@ SUB script_usage_list ()
   END IF
   usemenu state
 
+  clearpage dpage
   draw_fullscreen_scrollbar state, , dpage 
   standardmenu menu(), state, 0, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP 
 END SUB
@@ -2643,12 +2635,12 @@ SUB script_broken_trigger_list()
   END IF
   usemenu state
 
+  clearpage dpage
   draw_fullscreen_scrollbar state, , dpage 
   standardmenu missing_script_trigger_list(), state, 0, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP 
  'Free memory
@@ -2851,8 +2843,14 @@ FUNCTION sublist (s() AS STRING, helpkey AS STRING="", BYVAL x AS INTEGER=0, BYV
  state.pt = 0
  state.last = UBOUND(s)
  state.size = 22
- 
- DIM drawpage AS INTEGER = allocatepage
+
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ IF page > -1 THEN
+  copypage page, holdscreen
+ ELSE
+  clearpage holdscreen
+ END IF
 
  setkeys
  DO
@@ -2868,18 +2866,11 @@ FUNCTION sublist (s() AS STRING, helpkey AS STRING="", BYVAL x AS INTEGER=0, BYV
    sublist = state.pt
    EXIT DO
   END IF
-  IF page = -1 THEN
-   clearpage drawpage
-  ELSE
-   copypage page, drawpage
-  END IF
-  standardmenu s(), state, x, y, drawpage
-  setvispage drawpage
+  copypage holdscreen, vpage
+  standardmenu s(), state, x, y, vpage
+  setvispage vpage
   dowait
  LOOP
- 'clearpage 0
- 'clearpage 1
- freepage drawpage
 END FUNCTION
 
 SUB edit_global_text_strings()
@@ -2893,9 +2884,6 @@ SUB edit_global_text_strings()
  DIM rect AS RectType
  rect.wide = 320
  rect.high = 192
-
- clearpage 0
- clearpage 1
 
  FOR i AS INTEGER = 0 TO max
   SELECT CASE i
@@ -3070,6 +3058,7 @@ SUB edit_global_text_strings()
    strgrabber text(state.pt), maxlen(state.pt)
   END IF
  
+  clearpage dpage
   standardmenu names(), state, 0, 0, dpage
   standardmenu text(), state, 232, 0, dpage
   draw_scrollbar state, rect, , dpage
@@ -3080,7 +3069,6 @@ SUB edit_global_text_strings()
   END IF
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
  DIM j AS INTEGER = 0
@@ -3089,8 +3077,6 @@ SUB edit_global_text_strings()
   j = j + 1 + (maxlen(i) \ 11)
  NEXT i
  getstatnames statnames()
- clearpage 0
- clearpage 1
 END SUB
 
 SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
@@ -3164,7 +3150,7 @@ FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS
  '--Now loop while editing string
  setkeys
  DO
-  setwait 17
+  setwait 40
   setkeys
   
   IF keyval(scESC) > 1 THEN
@@ -3178,11 +3164,11 @@ FUNCTION prompt_for_string (BYREF s AS STRING, caption AS STRING, BYVAL limit AS
   END IF
   strgrabber dat->s, limit
 
+  copypage holdscreen, dpage
   DrawSlice root, dpage
 
   SWAP vpage, dpage
   setvispage vpage
-  copypage holdscreen, dpage
   dowait
  LOOP
  
@@ -3327,11 +3313,11 @@ FUNCTION attack_chain_browser (BYVAL start_attack AS INTEGER) AS INTEGER
     state.lbox->Y = state.before.top * -56
    END IF
  
+   clearpage dpage
    DrawSlice state.root, dpage
  
    SWAP vpage, dpage
    setvispage vpage
-   clearpage dpage
    dowait
   LOOP
   
@@ -3573,6 +3559,9 @@ SUB fontedit (font() AS INTEGER)
    END IF
   END IF
 
+  '--Draw screen
+  clearpage dpage
+
   IF mode = -1 THEN
    standardmenu menu(), state, 0, 0, dpage
   END IF
@@ -3629,7 +3618,6 @@ SUB fontedit (font() AS INTEGER)
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
  

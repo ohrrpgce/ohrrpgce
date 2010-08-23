@@ -649,9 +649,6 @@ SUB patcharray (array(), n$)
 
 DIM num(2) as string, hexk(15)
 
-clearpage dpage
-clearpage vpage
-
 hexk(0) = 11
 FOR i = 1 TO 9
  hexk(i) = i + 1
@@ -689,16 +686,16 @@ DO
    num(2) = num(2) + "0"
   END IF
  NEXT i
+ clearpage dpage
  edgeprint "DEBUG MODE", 120, 50, uilook(uiText), dpage
  centerbox 160, 100, 140, 60, 1, dpage
  FOR i = 0 TO 2
-  c = uilook(uiMenuItem): IF i = csr THEN c = uilook(uiSelectedItem + tog)
+  IF i = csr THEN c = uilook(uiSelectedItem + tog) ELSE c = uilook(uiMenuItem)
   edgeprint num(i), 160 - LEN(num(i)) * 4, 80 + i * 10, c, dpage
  NEXT i
  edgeprint "0123456789ABCDEF", 96, 110, uilook(uiSelectedDisabled), dpage
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 

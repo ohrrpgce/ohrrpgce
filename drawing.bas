@@ -169,10 +169,6 @@ submenu(2) = "Do not remap colours"
 pt = 0 'backdrop number
 
 IF count = 0 THEN count = 1
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 loadpalette pmask(), activepalette
 loadmxs game + f, pt, vpages(2)
 
@@ -218,18 +214,15 @@ DO
    IF outfile$ <> "" THEN frame_export_bmp8 outfile$ & ".bmp", vpages(2), master()
   END IF
  END IF
+ copypage 2, dpage
  IF mstate.pt <> 6 THEN
   standardmenu menu(), mstate, 0, 0, dpage, -1
  END IF
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
-clearpage 0
-clearpage 1
 clearpage 2
-clearpage 3
 EXIT SUB
 
 disable:
@@ -258,6 +251,7 @@ DO
    setpal pmask()
   END IF
  END IF
+ copypage 2, dpage
  textcolor uilook(uiMenuItem), 0: IF csr2 = 0 THEN textcolor uilook(uiSelectedItem + tog), 0
  printstr "Previous Menu", 0, 0, dpage
  IF csr2 = 1 THEN rectangle 0 + cx * 10, 8 + cy * 10, 10, 10, uilook(uiSelectedItem + tog), dpage
@@ -268,7 +262,6 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
 
@@ -318,6 +311,7 @@ pagenum = -1
 top = -1
 taptr = 0
 
+clearpage 3
 setkeys
 DO
  setwait 55
@@ -341,6 +335,8 @@ DO
  END IF
  IF enter_or_space() AND pagenum = -1 THEN EXIT DO
  IF enter_or_space() AND pagenum > -1 THEN GOSUB tilemode
+
+ copypage 3, dpage
  FOR i = top TO small(top + 20, gen(genMaxTile))
   c = uilook(uiMenuItem)
   IF pagenum = i THEN c = uilook(uiSelectedItem + tog)
@@ -352,7 +348,6 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
  dowait
 LOOP
 clearpage 3
@@ -385,6 +380,7 @@ DO
     RETRACE
   END SELECT
  END IF
+ copypage 3, dpage
  FOR i = 0 TO 5
   c = uilook(uiMenuItem)
   IF tmode = i THEN c = uilook(uiSelectedItem + tog)
@@ -392,9 +388,9 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
  dowait
 LOOP
+
 tilemodemenu:
 menu(0) = "Draw Tiles"
 menu(1) = "Cut Tiles from Tilesets"
@@ -431,8 +427,8 @@ DO
   IF taptr = 2 THEN GOSUB setanimrange
   IF taptr = 3 THEN setanimpattern tastuf(), taset
   IF taptr = 5 THEN testanimpattern tastuf(), taset
-  
  END IF
+ clearpage dpage
  FOR i = 0 TO 5
   textcolor uilook(uiMenuItem), uilook(uiOutline)
   IF taptr = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiOutline)
@@ -440,7 +436,6 @@ DO
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 
@@ -461,10 +456,10 @@ DO
  IF keyval(scDown) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 16, 112)
  IF keyval(scLeft) > 1 THEN tastuf(0 + 20 * taset) = large(tastuf(0 + 20 * taset) - 1, 0)
  IF keyval(scRight) > 1 THEN tastuf(0 + 20 * taset) = small(tastuf(0 + 20 * taset) + 1, 112)
+ copypage 3, dpage
  GOSUB drawanimrange
  SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
  dowait
 LOOP
 
@@ -561,6 +556,8 @@ DO
     END IF
    END IF
  END SELECT
+ '--Draw screen
+ clearpage dpage
  FOR i = 0 TO 9
   textcolor uilook(uiMenuItem), 0
   IF i = pt THEN
@@ -581,7 +578,6 @@ DO
  END IF 'pt > 1
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 GOSUB forcebounds
@@ -634,9 +630,6 @@ DIM tilesetview as TileMap
 DIM tanim_state(1) AS TileAnimState
 DIM tileset as Frame ptr = NULL
 
-clearpage vpage
-clearpage dpage
-
 tileset = frame_to_tileset(vpages(3))
 
 cleantilemap tilesetview, 16, 3
@@ -660,9 +653,8 @@ DO
  IF keyval(scDown) > 1 THEN csr = loopvar(csr, 0, 47, 16): GOSUB setupsample
  IF keyval(scLeft) > 1 THEN csr = loopvar(csr, 0, 47, -1): GOSUB setupsample
  IF keyval(scRight) > 1 THEN csr = loopvar(csr, 0, 47, 1): GOSUB setupsample
- SWAP vpage, dpage
- setvispage vpage
  '--draw available animating tiles--
+ clearpage dpage
  setmapdata , 10, 60
  drawmap tilesetview, 0, 0, 0, tileset, dpage
  '--draw sample--
@@ -678,6 +670,8 @@ DO
  rectangle 20 * x, 29 + 20 * y, 20, 1, uilook(uiSelectedItem + tog), dpage
  rectangle 20 * x + 19, 10 + 20 * y, 1, 20, uilook(uiSelectedItem + tog), dpage
  
+ SWAP vpage, dpage
+ setvispage vpage
  dowait
 LOOP
 frame_unload @tileset
@@ -793,7 +787,6 @@ setkeys
 DO
  setwait 55
  setkeys
- copypage 3, dpage
  IF ts.gotmouse THEN
   readmouse mouse()
  END IF
@@ -855,6 +848,8 @@ DO
   END IF
  END IF
  tog = tog XOR 1
+
+ copypage 3, dpage
  IF tmode = 3 THEN
   FOR o = 0 TO 9
    FOR i = 0 TO 15
@@ -2230,7 +2225,7 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
  impsprite = frame_import_bmp_raw(srcbmp)
  'holdscreen = registerpage(impsprite)
  holdscreen = allocatepage
- frame_draw impsprite, 0, 0, 0, 1, 0,  holdscreen
+ frame_draw impsprite, 0, 0, 0, 1, 0, holdscreen
 
  'Temporaraly update the palette. This will be done again after the transparent color is chosen
  DIM temppal(7)

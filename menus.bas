@@ -140,10 +140,10 @@ DO
     GOSUB vehmenu
    END IF
  END SELECT
+ clearpage dpage
  standardmenu menu(), 15, 15, csr, top, 0, 0, dpage, 0
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 SaveVehicle game + ".veh", veh(), vehname, pt
@@ -258,13 +258,13 @@ DO
    scrname(pt) = ": " + scriptname$(gen(scriptgenoff(pt)), plottrigger)
   END IF
  END IF
+ clearpage dpage
  FOR i = 0 TO menusize
   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0 ELSE textcolor uilook(uiMenuItem), 0
   printstr menu(i) + scrname(i), 0, i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 END SUB
@@ -336,11 +336,11 @@ SUB generalmusicsfxmenu ()
       END IF
     END SELECT
 
+    clearpage dpage
     standardmenu disp(), num, 22, pt, menutop, 0, 0, dpage, 0
 
     SWAP vpage, dpage
     setvispage vpage
-    clearpage dpage
     dowait
   LOOP
 END SUB
@@ -348,10 +348,6 @@ END SUB
 SUB importsong ()
 STATIC default AS STRING
 DIM oggtemp AS STRING
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 DIM menu(10) AS STRING, submenu(2) AS STRING
 menu(0) = "Previous Menu"
 menu(3) = "Import Song..."
@@ -414,18 +410,14 @@ DO
   END IF
  END IF
 
+ clearpage dpage
  standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
 GOSUB ssongdata
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 pausesong
 EXIT SUB
 
@@ -572,10 +564,6 @@ SUB importsfx ()
 STATIC default AS STRING
 DIM oggtemp AS STRING
 
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 DIM menu(11) AS STRING, submenu(2) AS STRING, optionsbottom
 optionsbottom = 7
 menu(0) = "Previous Menu"
@@ -645,22 +633,16 @@ DO
   CASE 7
 
   END SELECT
-
-
  END IF
 
+ clearpage dpage
  standardmenu menu(), 10, 22, csr, 0, 0, 0, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
 GOSUB ssfxdata
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 
 EXIT SUB
 
@@ -863,8 +845,6 @@ IF activepalette <> palnum THEN
  setpal master()
  LoadUIColors uilook(), activepalette
 END IF
-clearpage dpage
-clearpage vpage
 
 EXIT SUB
 
@@ -957,13 +937,14 @@ DO
  IF enter_or_space() THEN
   IF gcsr = 0 THEN EXIT DO
  END IF
- col = uilook(uiMenuItem): IF gcsr = 0 THEN col = uilook(uiSelectedItem + tog)
+
+ copypage 2, dpage
+ IF gcsr = 0 THEN col = uilook(uiSelectedItem + tog) ELSE col = uilook(uiMenuItem)
  edgeprint "Go Back", 1, 1, col, dpage
- col = uilook(uiMenuItem): IF gcsr = 1 THEN col = uilook(uiSelectedItem + tog)
+ IF gcsr = 1 THEN col = uilook(uiSelectedItem + tog) ELSE col = uilook(uiMenuItem)
  edgeprint CHR$(27) + "Browse" + CHR$(26), 1, 11, col, dpage
  SWAP vpage, dpage
  setvispage vpage
- copypage 2, dpage
  dowait
 LOOP
 END SUB
@@ -1012,6 +993,7 @@ DO
  IF keyval(scESC) > 1 OR keyval(scENTER) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "input_password"
  strgrabber pas$, 17
+ clearpage dpage
  textcolor uilook(uiMenuItem), 0
  printstr "You can require a password for this", 0, 0, dpage
  printstr "game to be opened in " + CUSTOMEXE, 0, 8, dpage
@@ -1026,7 +1008,6 @@ DO
  END IF
  SWAP vpage, dpage
  setvispage vpage
- clearpage dpage
  dowait
 LOOP
 END SUB
@@ -1098,7 +1079,6 @@ SUB statcapsmenu
   setvispage vpage
   dowait
  LOOP
- clearpage vpage
 END SUB
 
 SUB startingdatamenu
@@ -1155,7 +1135,6 @@ SUB startingdatamenu
   setvispage vpage
   dowait
  LOOP
- clearpage vpage
 END SUB
 
 SUB generate_gen_menu(m$(), longname$, aboutline$)
@@ -1332,12 +1311,12 @@ SUB gendata ()
    IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
   END IF
 
+  clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
   standardmenu m(), state, 0, 0, dpage, 0, , 40
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
  
@@ -1354,9 +1333,4 @@ SUB gendata ()
  writebinstring longname, tempbuf(), 0, 38
  writebinstring aboutline, tempbuf(), 20, 38
  storerecord tempbuf(), workingdir + SLASH + "browse.txt", 40
- 
- clearpage 0
- clearpage 1
- clearpage 2
- clearpage 3
 END SUB

@@ -185,8 +185,6 @@ SUB map_picker ()
   setvispage vpage
   dowait
  LOOP
- clearpage 0
- clearpage 1
 END SUB
 
 SUB mapeditor (BYVAL mapnum AS INTEGER)
@@ -360,11 +358,6 @@ unloadtilemap pass
 unloadtilemap emap
 frame_unload @(st.cursor.sprite)
 palette16_unload @(st.cursor.pal)
-
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
 
 remember_menu_pt = st.menustate.pt  'preserve for other maps
 EXIT SUB
@@ -965,7 +958,6 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
  DIM caption AS STRING
  
  setkeys
- clearpage dpage
  DO
   setwait 55
   setkeys
@@ -994,6 +986,8 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
     intgrabber gmap(state.pt), gdmin(state.pt), gdmax(state.pt)
   END SELECT
   scri = 0
+  '--Draw screen
+  clearpage dpage
   FOR i AS INTEGER = 0 TO UBOUND(gdmenu)
    caption = ""
    SELECT CASE i
@@ -1084,7 +1078,6 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
  
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
  unloadtilemap sampmap
@@ -1232,7 +1225,6 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   setvispage vpage
   dowait
  LOOP
- clearpage dpage
  loadmaptilesets st.tilesets(), gmap()
  FOR i AS INTEGER = 0 TO UBOUND(map)
   loadpasdefaults defaults(i).a(), st.tilesets(i)->num
@@ -1734,6 +1726,9 @@ SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS Til
    state.need_update = NO
    DrawDoorPair st, mapnum, state.pt, map(), pass, doors(), link(), gmap()
   END IF
+
+  '--Draw screen
+  copypage 2, dpage
   FOR i AS INTEGER = state.top TO small(state.top + state.size, state.last)
    col = uilook(uiMenuItem)
    IF state.pt = i THEN
@@ -1768,7 +1763,6 @@ SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS Til
   NEXT i
   SWAP vpage, dpage
   setvispage vpage
-  copypage 2, dpage
   dowait
  LOOP
 END SUB
@@ -1837,6 +1831,8 @@ SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGE
   ELSE
    IF enter_or_space() THEN EXIT DO
   END IF
+  '--Draw screen
+  copypage 2, dpage
   rectangle 0, 100, 320, 2, uilook(uiSelectedDisabled + state.tog), dpage
   FOR i AS INTEGER = -1 TO 4
    menu_temp = ""
@@ -1865,7 +1861,6 @@ SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGE
   edgeprint outmap, 0, 190, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
-  copypage 2, dpage
   dowait
  LOOP
 END SUB
@@ -2270,10 +2265,9 @@ SUB mapedit_pickblock(BYREF st AS MapEditState)
   END IF
   tog = tog XOR 1
   setmapdata , 0
-  drawmap st.tilesetview, 0, 0, 0, st.tilesets(st.layer), dpage
-  frame_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , dpage
-  ' copypage dpage, vpage
-  setvispage dpage
+  drawmap st.tilesetview, 0, 0, 0, st.tilesets(st.layer), vpage
+  frame_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , vpage
+  setvispage vpage
   dowait
  LOOP
  update_tilepicker st

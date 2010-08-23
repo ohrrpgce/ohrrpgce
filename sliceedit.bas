@@ -340,6 +340,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
    usemenu state
   END IF
 
+  clearpage dpage
   DrawSlice edslice, dpage
   IF state.pt > 0 THEN
    DrawSliceAnts menu(state.pt).handle, dpage
@@ -349,7 +350,6 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
 
   updatepagesize dpage
@@ -433,13 +433,13 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS ST
   IF state.pt = 0 AND enter_or_space() THEN EXIT DO
   slice_edit_detail_keys state, sl, rootsl, rules(), slicelookup()
   
+  clearpage dpage
   DrawSlice rootsl, dpage
   DrawSliceAnts sl, dpage
   standardmenu menu(), state, 0, 0, dpage, YES, , , YES
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
 
   updatepagesize dpage
@@ -566,12 +566,12 @@ SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Sl
   IF keyval(scRight) > 0 THEN x += 1 + 9 * ABS(shift)
   IF keyval(scDown)  > 0 THEN y += 1 + 9 * ABS(shift)
   IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * ABS(shift)
+  clearpage dpage
   DrawSlice rootsl, dpage
   DrawSliceAnts focussl, dpage
   edgeprint "Arrow keys to edit, SHIFT for speed", 0, 190, uilook(uiText), dpage
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
 END SUB
@@ -726,11 +726,11 @@ FUNCTION slice_edit_detail_browse_slicetype(BYREF slice_type AS SliceTypes) AS S
    RETURN YES
   END IF
   
+  clearpage dpage
   standardmenu menu(), state, 0, 0, dpage
  
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
  RETURN NO 
@@ -982,12 +982,12 @@ FUNCTION edit_slice_lookup_codes(slicelookup() AS STRING, BYVAL start_at_code AS
    state.last = UBOUND(slicelookup)
   END IF
 
+  clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
   standardmenu slicelookup(), state, 0, 0, dpage, , , , YES
 
   SWAP vpage, dpage
   setvispage vpage
-  clearpage dpage
   dowait
  LOOP
  
