@@ -23,6 +23,7 @@ TYPE RectType
   high AS INTEGER
 END TYPE
 
+'WARNING: don't add strings to this
 TYPE Palette16
 	col(15) as ubyte 'indices into the master palette
 	refcount as integer 'private
@@ -33,6 +34,7 @@ TYPE SpriteSetFwd as SpriteSet
 
 'sprites use this
 'don't forget to update definition in blit.c when changing this!!
+'WARNING: don't add strings to this
 type Frame
 	w as integer
 	h as integer
@@ -83,6 +85,7 @@ END TYPE
 
 'A REAL sprite; This is basically a SpriteSet object with state
 'Not refcounted. I don't currently see a reason that it should be (each the state of a single object)
+'WARNING: don't add strings to this
 TYPE SpriteState
 	set as SpriteSet ptr
 	curframe as Frame ptr  'convenience ptr to set->frames[.frame_id]
@@ -236,6 +239,7 @@ TYPE Plotstring
   bits as integer
 END TYPE
 
+'WARNING: don't add strings to this
 TYPE ScriptData
   id as integer         'id number of script  (set to 0 to mark as unused slot)
   refcount as integer   'number of ScriptInst pointing to this data
@@ -318,6 +322,7 @@ End Type
 
 'spr has a refcount, which we use
 'Pretend I inherited from Frame here
+'WARNING: don't add strings to this
 Type FontLayer
 	spr as Frame
 	chdata(255) as FontChar

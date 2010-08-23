@@ -2947,8 +2947,7 @@ END FUNCTION
 FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0) as integer
  DIM i AS INTEGER
  DIM item AS MenuDefItem ptr
- 'item = NEW MenuDefItem
- item = CALLOCATE(SIZEOF(MenuDefItem))
+ item = NEW MenuDefItem
  WITH *item
   .caption = caption
   .t = t
@@ -3043,7 +3042,8 @@ SUB lockstep_tile_animation (tilesets() AS TilesetData ptr, layer AS INTEGER)
  'Called after changing a layer's tileset to make sure its tile animation is in phase with other layers of the same tileset
  FOR i AS INTEGER = 0 TO UBOUND(tilesets)
   IF i <> layer ANDALSO tilesets(i) ANDALSO tilesets(i)->num = tilesets(layer)->num THEN
-   memcpy(@tilesets(layer)->anim(0), @tilesets(i)->anim(0), sizeof(tilesets(i)->anim))
+   tilesets(layer)->anim(0) = tilesets(i)->anim(0)
+   tilesets(layer)->anim(1) = tilesets(i)->anim(1)
    EXIT SUB
   END IF
  NEXT
@@ -3053,7 +3053,7 @@ SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
  IF tileset <> NULL THEN
   'debug "unloading tileset " & tileset->num
   frame_unload @tileset->spr
-  Deallocate(tileset)
+  DELETE tileset
   tileset = NULL
  END IF
 END SUB
@@ -3075,7 +3075,7 @@ SUB loadtilesetdata (tilesets() AS TilesetData ptr, BYVAL layer AS INTEGER, BYVA
 
  IF tilesets(layer) = NULL ORELSE tilesets(layer)->num <> tilesetnum THEN
   unloadtilesetdata tilesets(layer)
-  tilesets(layer) = Callocate(sizeof(TilesetData))
+  tilesets(layer) = NEW TilesetData
 
   WITH *tilesets(layer)
    .num = tilesetnum

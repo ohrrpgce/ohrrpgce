@@ -11,10 +11,14 @@ DEFINT A-Z
 
 'Types
 
-TYPE triggerset
+TYPE TriggerData
+ name AS STRING
+ id AS INTEGER
+END TYPE
+
+TYPE TriggerSet
  size AS INTEGER
- tnames AS STRING PTR
- ids AS INTEGER PTR
+ trigs AS TriggerData PTR
  usedbits AS UNSIGNED INTEGER PTR
 END TYPE
 
@@ -204,16 +208,16 @@ END SUB
 SUB addtrigger (scrname$, id, triggers AS TRIGGERSET)
  WITH triggers
   FOR i = 0 TO .size - 1
-   IF .tnames[i] = scrname$ THEN
-    .ids[i] = id
+   IF .trigs[i].name = scrname$ THEN
+    .trigs[i].id = id
     .usedbits[i \ 32] = BITSET(.usedbits[i \ 32], i MOD 32)
     EXIT SUB
    END IF
   NEXT
 
   'add to the end
-  .tnames[.size] = scrname$
-  .ids[.size] = id
+  .trigs[.size].name = scrname$
+  .trigs[.size].id = id
   .usedbits[.size \ 32] = BITSET(.usedbits[.size \ 32], .size MOD 32)
 
   'expand
@@ -221,14 +225,12 @@ SUB addtrigger (scrname$, id, triggers AS TRIGGERSET)
   IF .size MOD 32 = 0 THEN
    allocnum = .size + 32
    .usedbits = REALLOCATE(.usedbits, allocnum \ 8)  'bits/byte
-   .ids = REALLOCATE(.ids, allocnum * SIZEOF(INTEGER))
-   .tnames = REALLOCATE(.tnames, allocnum * SIZEOF(STRING))
+   .trigs = REALLOCATE(.trigs, allocnum * SIZEOF(TriggerData))
 
-   IF .usedbits = 0 OR .ids = 0 OR .tnames = 0 THEN fatalerror "Could not allocate memory for script importation"
+   IF .usedbits = 0 OR .trigs = 0 THEN fatalerror "Could not allocate memory for script importation"
 
    FOR i = .size TO allocnum - 1
-    .ids[i] = 0
-    .tnames[i] = ""
+    DIM dummy AS TriggerData ptr = NEW (@.trigs[i]) TriggerData  'placement new, initialise those strings
    NEXT
    .usedbits[.size \ 32] = 0
   END IF
@@ -295,18 +297,16 @@ SUB importscripts (f$)
 
     'number of triggers rounded to next multiple of 32 (as triggers get added, allocate space for 32 at a time)
     allocnum = (.size \ 32) * 32 + 32
-    .ids = CALLOCATE(allocnum, SIZEOF(INTEGER))
-    .tnames = CALLOCATE(allocnum, SIZEOF(STRING))
+    .trigs = CALLOCATE(allocnum, SIZEOF(TriggerData))
     .usedbits = CALLOCATE(allocnum \ 8)
 
-    IF .usedbits = 0 OR .ids = 0 OR .tnames = 0 THEN fatalerror "Could not allocate memory for script importation"
-    FOR j = 0 TO allocnum - 1: .tnames[j] = "": NEXT
+    IF .usedbits = 0 OR .trigs = 0 THEN fatalerror "Could not allocate memory for script importation"
    
     IF fh THEN
      FOR j = 0 TO .size - 1
       loadrecord buffer(), fh, 20, j
-      .ids[j] = buffer(0)
-      .tnames[j] = readbinstring$(buffer(), 1, 36)
+      .trigs[j].id = buffer(0)
+      .trigs[j].name = readbinstring$(buffer(), 1, 36)
      NEXT
      CLOSE fh
     END IF
@@ -367,14 +367,14 @@ SUB importscripts (f$)
   FOR i = 1 TO 15
    WITH triggers(i)
     FOR j = 0 TO .size - 1
-     IF BIT(.usedbits[j \ 32], j MOD 32) = 0 THEN .ids[j] = 0
-     buffer(0) = .ids[j]
-     writebinstring .tnames[j], buffer(), 1, 36
+     IF BIT(.usedbits[j \ 32], j MOD 32) = 0 THEN .trigs[j].id = 0
+     buffer(0) = .trigs[j].id
+     writebinstring .trigs[j].name, buffer(), 1, 36
      storerecord buffer(), workingdir + SLASH + "lookup" + STR$(i) + ".bin", 20, j
+     .trigs[j].DESTRUCTOR()
     NEXT
 
-    DEALLOCATE(.ids)
-    DEALLOCATE(.tnames)
+    DEALLOCATE(.trigs)
     DEALLOCATE(.usedbits)
    END WITH
   NEXT

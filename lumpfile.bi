@@ -161,6 +161,7 @@ declare function islumpfile (lump as string, fmask as string) as integer
 '----------------------------------------------------------------------
 '                   Tail-buffered binary output file
 
+'WARNING: don't add strings to this
 type BufferedFile
 	fh as uinteger       'FB file handle
 	pos as uinteger      '0-based write position; fh's position is NOT used

@@ -19,6 +19,7 @@ option explicit
 declare function matchmask(match as string, mask as string) as integer
 
 declare sub Lump_destruct(byref this as Lump)
+declare sub LumpedLump_destruct (byref this as LumpedLump)
 declare sub LumpedLump_writetofile(byref this as LumpedLump, byval fileno as integer, byval position as integer)
 declare function LumpedLump_read(byref this as LumpedLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 declare sub FileLump_destruct (byref this as FileLump)
@@ -28,7 +29,7 @@ declare sub FileLump_writetofile(byref this as FileLump, byval fileno as integer
 declare function FileLump_read(byref this as FileLump, byval position as integer, byval bufr as any ptr, byval size as integer) as integer
 
 dim shared lumpvtable(LT_NUM - 1) as LumpVTable_t
-LMPVTAB(LT_LUMPED, LumpedLump_,  ULMP(Lump_,destruct), NULL,       NULL,        QLMP(writetofile), NULL, QLMP(read))
+LMPVTAB(LT_LUMPED, LumpedLump_,  QLMP(destruct),       NULL,       NULL,        QLMP(writetofile), NULL, QLMP(read))
 LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), QLMP(writetofile), NULL, QLMP(read))
 
 
@@ -42,6 +43,7 @@ LMPVTAB(LT_FILE,   FileLump_,    QLMP(destruct),       QLMP(open), QLMP(close), 
 
 
 sub construct_LumpIndex(byref this as LumpIndex)
+	'Could call constructor too, but zeroed memory doesn't need it
 	'this.numlumps = 0
 	this.tablesize = 512
 	'this.first = NULL
@@ -67,6 +69,8 @@ sub destruct_LumpIndex(byref this as LumpIndex)
 	wend
 
 	deallocate(this.table)
+
+	this.Destructor()  'for strings
 end sub
 
 sub LumpIndex_addlump(byref this as LumpIndex, byval lump as Lump ptr)
@@ -85,6 +89,7 @@ sub LumpIndex_addlump(byref this as LumpIndex, byval lump as Lump ptr)
 	dlist_append(this.lumps.generic, lump)
 end sub
 
+/' FIXME: looks totally broke. Where's the destructor call?
 sub LumpIndex_dellump(byref this as LumpIndex, byval lump as Lump ptr)
 	dim hash as unsigned integer
 	dim lmpp as Lump ptr ptr
@@ -103,6 +108,7 @@ sub LumpIndex_dellump(byref this as LumpIndex, byval lump as Lump ptr)
 	dlist_remove(this.lumps.generic, lump)
 	lump->index = NULL	
 end sub
+'/
 
 'case sensitive
 function LumpIndex_findlump(byref this as LumpIndex, lumpname as string) as Lump ptr
@@ -175,12 +181,14 @@ end sub
 
 
 'Not intended to be called on a Lump ptr, instead is used as default destructor of subclasses
+'FIXME: broken, destructor not called!
+'FIXME: this isn't used, and shouldn't be, I think
 private sub Lump_destruct(byref this as Lump)
 	if this.opencount then
 		debug this.lumpname + " at destruction had nonzero opencount " & this.opencount
 	end if
 	if this.index then
-		LumpIndex_dellump(*this.index, @this)  'FIXME: best idea?
+		'LumpIndex_dellump(*this.index, @this)  'FIXME: best idea?
 	end if
 end sub
 
@@ -383,6 +391,7 @@ sub FileLump_destruct (byref this as FileLump)
 			debug "FileLump without explicit filename marked temp"
 		end if
 	end if
+	this.Destructor()  'for strings
 end sub
 
 sub FileLump_open(byref this as FileLump)
@@ -461,6 +470,17 @@ end function
 
 '----------------------------------------------------------------------
 '                           LumpedLump class
+
+'Not intended to be called on a Lump ptr, instead is used as default destructor of subclasses
+'FIXME: broken, destructor not called!
+private sub LumpedLump_destruct(byref this as LumpedLump)
+	if this.opencount then
+		debug this.lumpname + " at destruction had nonzero opencount " & this.opencount
+	end if
+	if this.index then
+		'LumpIndex_dellump(*this.index, @this)  'FIXME: best idea?
+	end if
+end sub
 
 
 sub LumpedLump_writetofile(byref this as LumpedLump, byval fileno as integer, byval position as integer)

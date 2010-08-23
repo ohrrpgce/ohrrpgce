@@ -116,6 +116,7 @@ dim shared showfps as integer = 0
 
 MAKETYPE_DoubleList(SpriteCacheEntry)
 MAKETYPE_DListItem(SpriteCacheEntry)
+'WARNING: don't add strings to this
 type SpriteCacheEntry
 	'cachelist used only if object is a member of sprcacheB
 	cacheB as DListItem(SpriteCacheEntry)
@@ -1624,6 +1625,8 @@ SUB font_unload (byval font as Font ptr)
 	'look! polymorphism! definitely not hackery! yeah... look it up sometime.
 	frame_unload cast(Frame ptr ptr, @font->sprite(0))
 	frame_unload cast(Frame ptr ptr, @font->sprite(1))
+
+	'delete font
 end SUB
 
 'TODO/FIXME: need to use frame_* functions to handle Frame stuff
@@ -1638,7 +1641,7 @@ SUB font_create_edged (byval font as Font ptr, byval basefont as Font ptr)
 	end if
 
 	if font = null then exit sub
-	'font = callocate(sizeof(Font))
+	'font = new Font
 	font_unload font
 
 	font->sprite(0) = callocate(sizeof(FontLayer))
@@ -4445,7 +4448,7 @@ function spriteset_load_from_pt(byval ptno as integer, byval rec as integer) as 
 
 	if frameset->sprset = NULL then
 		'this Frame array was previously loaded using frame_load; add SpriteSet data
-		frameset->sprset = allocate(sizeof(SpriteSet))
+		frameset->sprset = new SpriteSet
 		with *frameset->sprset
 			.numframes = sprite_sizes(ptno).frames
 			.frames = frameset
@@ -4463,7 +4466,7 @@ private sub spriteset_freemem(byval sprset as SpriteSet ptr)
 		frame_freemem sprset->frames
 	end if
 	deallocate sprset->animations
-	deallocate sprset
+	delete sprset
 end sub
 
 sub spriteset_unload(byref ss as SpriteSet ptr)

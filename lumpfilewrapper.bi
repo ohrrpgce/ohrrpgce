@@ -10,6 +10,7 @@
 'Here is a C stdio-style wrapper around a Lump plus file position, since
 'all of FB_FILE, SDL_RWops and Audiere's File need such a wrapper
 
+'WARNING: don't add strings to this
 type FileWrapper
 	lump as Lump ptr
 	'index as LumpIndex ptr

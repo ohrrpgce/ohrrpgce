@@ -155,6 +155,7 @@ TEMPLATE_GENERIC(DoubleList, T)
 ENDGENERIC
 
 'doubly linked list item
+'WARNING: don't add strings to this
 TEMPLATE_GENERIC(DListItem, T)
   next as T ptr
   prev as T ptr
@@ -190,6 +191,7 @@ declare function dlist_walk (byref this as DoubleList(Any), byval startitem as a
 
 '------------- Hash Table -------------
 
+'WARNING: don't add strings to this
 TYPE HashedItem
   hash as unsigned integer
   'these are internal
