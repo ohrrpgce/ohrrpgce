@@ -193,15 +193,13 @@ STATIC remember_menu_pt AS INTEGER = 0
 DIM st AS MapEditState
 DIM modenames(4) AS STRING, mapeditmenu(13) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs - 1)
 DIM her AS HeroDef
+DIM hero_gfx AS GraphicPair
 DIM defaults(maplayerMax) AS DefArray
 
 REDIM doors(99) AS door, link(199) AS doorlink
 
 DIM as integer jiggle(maplayerMax \ 16)
 DIM as integer visible(maplayerMax \ 16) = {-1} 'used as bitsets: all layers visible
-
-'FIXME: heroimg is a hack and should be replaced with a GraphicPair object
-DIM heroimg(102), heropal(8)
 
 'npcdef assumes that npc_img is sized (0 TO max_npc_defs - 1), just like st.npc_def()
 DIM npc_img(max_npc_defs - 1) AS GraphicPair
@@ -236,6 +234,11 @@ rectangle 0, 0, 20, 20, 1, st.cursor.sprite + 1
 rectangle 1, 1, 18, 18, 0, st.cursor.sprite + 1
 rectangle 3, 3, 14, 14, 2, st.cursor.sprite + 1
 rectangle 4, 4, 12, 12, 0, st.cursor.sprite + 1
+
+'--load hero graphics--
+loadherodata @her, 0
+load_sprite_and_pal hero_gfx, 4, her.walk_sprite, her.walk_sprite_pal
+
 
 modenames(0) = "Picture Mode"
 modenames(1) = "Passability Mode"
@@ -353,8 +356,8 @@ unloadtilemap st.tilesetview
 unloadtilemaps map()
 unloadtilemap pass
 unloadtilemap emap
-frame_unload @(st.cursor.sprite)
-palette16_unload @(st.cursor.pal)
+unload_sprite_and_pal st.cursor
+unload_sprite_and_pal hero_gfx
 
 remember_menu_pt = st.menustate.pt  'preserve for other maps
 EXIT SUB
@@ -362,12 +365,7 @@ EXIT SUB
 
 mapping:
 clearpage 2
-'--load hero graphics--
-'FIXME this is a hack. heroimg() should be replaced with a Frame object
-loadherodata @her, 0
-loadrecord heroimg(), game + ".pt4", 100, her.walk_sprite * 8 + 4
-fixspriterecord heroimg(), 20, 20
-getpal16 heropal(), 0, her.walk_sprite_pal, 4, her.walk_sprite
+
 st.defpass = YES
 IF readbit(gen(), genBits, 15) THEN st.defpass = NO ' option to default the defaults to OFF
 
@@ -746,8 +744,8 @@ DO
 
  '--hero start location display--
  IF gen(genStartMap) = mapnum THEN
-  IF gen(genStartX) >= mapx \ 20 AND gen(genStartX) < mapx \ 20 + 16 AND gen(genStartY) > mapy \ 20 AND gen(genStartY) <= mapy \ 20 + 9 THEN
-   drawsprite heroimg(), 0, heropal(), 0, gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 20 - mapy, dpage
+  IF gen(genStartX) >= mapx \ 20 AND gen(genStartX) < mapx \ 20 + 16 AND gen(genStartY) >= mapy \ 20 AND gen(genStartY) < mapy \ 20 + 9 THEN
+   frame_draw hero_gfx.sprite + 4, hero_gfx.pal, gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 20 - mapy, , , dpage
    printstr "Hero", gen(genStartX) * 20 - mapx, gen(genStartY) * 20 + 30 - mapy, dpage
   END IF
  END IF

@@ -82,7 +82,6 @@ DECLARE FUNCTION readbit (b() as integer, BYVAL w as integer, BYVAL b as integer
 DECLARE SUB storeset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB loadset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
-DECLARE SUB fixspriterecord (buf() as integer, w as integer, h as integer)
 DECLARE FUNCTION drivelist (d() as string) as integer
 DECLARE FUNCTION drivelabel (drive as string) as string
 DECLARE FUNCTION isremovable (drive as string) as integer

@@ -2058,36 +2058,6 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 	bpage = p
 end SUB
 
-SUB fixspriterecord (buf() as integer, w as integer, h as integer)
- ' Fix a sprite record that was loaded with loadrecord so that it can be drawn with drawsprite
- DIM AS INTEGER i, j, n, size
- DIM nibble(3) AS INTEGER
- 
- 'calculate array size
- size = w * h \ 4
- DIM tmpbuf(size)
- 
- 'move data to a temporary buffer
- FOR i = 0 TO size - 1
-  tmpbuf(i) = buf(i)
- NEXT i
- 
- 'store witdth and height
- buf(0) = w
- buf(1) = h
-
- 'copy data back to array, compensating for mode-x planes
- FOR i = 0 TO size - 1
-  n = tmpbuf(i)
-  FOR j = 0 TO 3
-   nibble(j) = (n \ 2 ^ (j * 4)) AND 15
-  NEXT j
-  n = nibble(1) * 4096 + nibble(0) * 256 + nibble(3) * 16 + nibble(2)
-  buf(2 + i) = n
- NEXT i
- 
-END SUB
-
 FUNCTION drivelist (drives() as string) as integer
 #ifdef __UNIX__
 	' on Unix there is only one drive, the root /
