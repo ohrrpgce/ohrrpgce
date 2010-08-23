@@ -10,6 +10,7 @@
 #include "compat.bi"
 #include "const.bi"
 #include "allmodex.bi"
+#include "cutil.bi"
 
 #include "udts.bi"
 #include "scrconst.bi"
