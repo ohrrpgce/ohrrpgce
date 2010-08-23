@@ -31,7 +31,7 @@ DECLARE SUB tiletranspaste (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB copymapblock (buf%(), sx%, sy%, sp%, dx%, dy%, dp%)
 DECLARE SUB changepal (palval%, palchange%, workpal%(), aindex%)
 DECLARE SUB airbrush (x%, y%, d%, m%, c%, p%)
-DECLARE SUB ellipse (x%, y%, radius%, c%, p%, squish1%, squish2%)
+DECLARE SUB ellipse (dest AS Frame ptr, x%, y%, radius%, c%, squish1%, squish2%)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB setanimpattern (tastuf%(), taset%)
 DECLARE FUNCTION mouseover% (mouse%(), BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea)
@@ -103,7 +103,7 @@ NEXT i
 
 END SUB
 
-SUB ellipse (x, y, radius, c, p, squish1, squish2)
+SUB ellipse (dest AS Frame ptr, x, y, radius, c, squish1, squish2)
 'ellipse thanks to Ironhoof (Russel Hamrick)
 
 'works mostly like the normal QB circle but with
@@ -132,11 +132,11 @@ DO
  x2# = x - xi# * r / b
  y2# = y - yi# * r / b2
  IF x2# < 0 THEN x2# = 0
- IF x2# > 319 THEN x2# = 319
+ IF x2# >= dest->w THEN x2# = dest->w - 1
  IF y2# < 0 THEN y2# = 0
- IF y2# > 199 THEN y2# = 199
+ IF y2# >= dest->h THEN y2# = dest->h - 1
  IF lx# = 0 AND ly# = 0 THEN lx# = x2#: ly# = y2#
- drawline x2#, y2#, lx#, ly#, c, p
+ drawline dest, x2#, y2#, lx#, ly#, c
  lx# = x2#
  ly# = y2#
  t = t + 4:
@@ -1152,7 +1152,7 @@ DO
  rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), dpage
  rectangle ts.x * 10 + 64, ts.y * 8 + 3, 3, 2, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
  IF ts.tool = airbrush_tool THEN
-  ellipse 64 + ts.x * 10, 3 + ts.y * 8, (ts.airsize * 9) / 2, ts.curcolor, dpage, 0, 0
+  ellipse vpages(dpage), 64 + ts.x * 10, 3 + ts.y * 8, (ts.airsize * 9) / 2, ts.curcolor, 0, 0
  END IF
  IF ts.tool = clone_tool AND tog = 0 THEN
   IF clone.exists = YES THEN
@@ -1179,7 +1179,7 @@ DO
     drawline 65 + ts.x * 10, 4 + ts.y * 8, 65 + ts.hox * 10, 4 + ts.hoy * 8, ts.curcolor, dpage
    CASE oval_tool
     radius = large(ABS(ts.hox - ts.x), ABS(ts.hoy - ts.y)) * 9
-    ellipse 65 + ts.hox * 10, 4 + ts.hoy * 8, radius, ts.curcolor, dpage, 0, 0
+    ellipse vpages(dpage), 65 + ts.hox * 10, 4 + ts.hoy * 8, radius, ts.curcolor, 0, 0
    CASE mark_tool
     IF tog = 0 THEN emptybox 60 + small(ts.x, ts.hox) * 10, small(ts.y, ts.hoy) * 8, (ABS(ts.x - ts.hox) + 1) * 10, (ABS(ts.y - ts.hoy) + 1) * 8, INT(RND * 10), 10, dpage
   END SELECT
@@ -1283,7 +1283,7 @@ SELECT CASE ts.tool
      putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
     NEXT j
    NEXT i
-   paintat 1 + ts.x, 1 + ts.y, ts.curcolor, dpage
+   paintat vpages(dpage), 1 + ts.x, 1 + ts.y, ts.curcolor
    FOR i = 0 TO 19
     FOR j = 0 TO 19
      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
@@ -1303,7 +1303,7 @@ SELECT CASE ts.tool
       putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
      NEXT j
     NEXT i
-    ellipse 1 + ts.hox, 1 + ts.hoy, radius, ts.curcolor, dpage, 0, 0
+    ellipse vpages(dpage), 1 + ts.hox, 1 + ts.hoy, radius, ts.curcolor, 0, 0
     FOR i = 0 TO 19
      FOR j = 0 TO 19
       putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
@@ -1883,12 +1883,12 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
   drawline 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), 5 + (ss.holdpos.x * ss.zoom), 2 + (ss.holdpos.y * ss.zoom), ss.curcolor, dpage
  END IF
  IF ss.hold = YES AND ss.tool = oval_tool THEN
-  ellipse ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.curcolor, dpage, ss.squish.x, ss.squish.y
-  ellipse 5 + (ss.holdpos.x * ss.zoom), 2 + (ss.holdpos.y * ss.zoom), ss.radius * ss.zoom, ss.curcolor, dpage, ss.squish.x, ss.squish.y
+  ellipse vpages(dpage), ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.curcolor, ss.squish.x, ss.squish.y
+  ellipse vpages(dpage), 5 + (ss.holdpos.x * ss.zoom), 2 + (ss.holdpos.y * ss.zoom), ss.radius * ss.zoom, ss.curcolor, ss.squish.x, ss.squish.y
  END IF
  IF ss.tool = airbrush_tool THEN
-  ellipse ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize / 2, ss.curcolor, dpage, 0, 0
-  ellipse 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), (ss.airsize / 2) * ss.zoom, ss.curcolor, dpage, 0, 0
+  ellipse vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize / 2, ss.curcolor, 0, 0
+  ellipse vpages(dpage), 5 + (ss.x * ss.zoom), 2 + (ss.y * ss.zoom), (ss.airsize / 2) * ss.zoom, ss.curcolor, 0, 0
  END IF
  IF ss.hold = YES AND ss.tool = mark_tool AND state.tog = 0 THEN
   ss.curcolor = INT(RND * 255) ' Random color when marking a clone region
@@ -2813,7 +2813,7 @@ writeundospr placer(), ss
 rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiHighlight), dpage
 rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
 drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-paintat ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex, dpage
+paintat vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 
@@ -2850,7 +2850,7 @@ RETRACE
 drawoval:
 writeundospr placer(), ss
 drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-ellipse ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.palindex, dpage, ss.squish.x, ss.squish.y
+ellipse vpages(dpage), ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.palindex, ss.squish.x, ss.squish.y
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 

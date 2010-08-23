@@ -1388,7 +1388,7 @@ SUB drawline (BYVAL dest as Frame ptr, BYVAL x1 as integer, BYVAL y1 as integer,
 	DRAW_SLICE(endlength)
 end SUB
 
-SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL page as integer)
+SUB paintat (BYVAL dest as Frame ptr, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer)
 'a floodfill.
 	dim tcol as integer
 	dim queue as node ptr = null
@@ -1397,13 +1397,13 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 	dim i as integer
 	dim tnode as node ptr = null
 
-	if clippedframe <> vpages(page) then
-		setclip , , , , page
+	if clippedframe <> dest then
+		setclip , , , , dest
 	end if
 
 	if POINT_CLIPPED(x, y) then exit sub
 
-	tcol = readpixel(x, y, page)	'get target colour
+	tcol = readpixel(dest, x, y)	'get target colour
 
 	'prevent infinite loop if you fill with the same colour
 	if tcol = c then exit sub
@@ -1417,25 +1417,25 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 	'we only let coordinates within the clip bounds get onto the queue, so there's no need to check them
 
 	do
-		if PAGEPIXEL(queue->x, queue->y, page) = tcol then
-			PAGEPIXEL(queue->x, queue->y, page) = c
+		if FRAMEPIXEL(queue->x, queue->y, dest) = tcol then
+			FRAMEPIXEL(queue->x, queue->y, dest) = c
 			w = queue->x
 			e = queue->x
 			'find western limit
-			while w > clipl and PAGEPIXEL(w-1, queue->y, page) = tcol
+			while w > clipl and FRAMEPIXEL(w-1, queue->y, dest) = tcol
 				w -= 1
-				PAGEPIXEL(w, queue->y, page) = c
+				FRAMEPIXEL(w, queue->y, dest) = c
 			wend
 			'find eastern limit
-			while e < clipr and PAGEPIXEL(e+1, queue->y, page) = tcol
+			while e < clipr and FRAMEPIXEL(e+1, queue->y, dest) = tcol
 				e += 1
-				PAGEPIXEL(e, queue->y, page) = c
+				FRAMEPIXEL(e, queue->y, dest) = c
 			wend
 			'add bordering nodes
 			for i = w to e
 				if queue->y > clipt then
 					'north
-					if PAGEPIXEL(i, queue->y-1, page) = tcol then
+					if FRAMEPIXEL(i, queue->y-1, dest) = tcol then
 						tail->nextnode = callocate(sizeof(node))
 						tail = tail->nextnode
 						tail->x = i
@@ -1445,7 +1445,7 @@ SUB paintat (BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p
 				end if
 				if queue->y < clipb then
 					'south
-					if PAGEPIXEL(i, queue->y+1, page) = tcol then
+					if FRAMEPIXEL(i, queue->y+1, dest) = tcol then
 						tail->nextnode = callocate(sizeof(node))
 						tail = tail->nextnode
 						tail->x = i
