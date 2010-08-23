@@ -30,7 +30,7 @@ done
 EXTRA="${EXTRA} music_${MUSIC}.bas"
 
 gcc -c -g -O3 blit.c
-gcc -c -g -O3 base64.c
+gcc -c -g -O3 base64.c --std=c99
 
 if [ "${MUSIC}" = "native" ] ; then
   cd audwrap

@@ -9,7 +9,7 @@ blit.o: ../blit.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 base64.o: ../base64.c
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS) --std=c99
 
 #utf8toisolat1.o: utf8toisolat1.c
 #	$(CC) -c -o $@ $< $(CFLAGS)
