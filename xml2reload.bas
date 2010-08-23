@@ -148,7 +148,12 @@ function chug(node as xmlNodeptr, dc as DocPtr, base64_encoded as integer = 0) a
 				'Except, RELOAD doesn't do attributes. So, we reserve @ for those
 				this = CreateNode(dc, "@" & *node->name)
 			else
-				this = CreateNode(dc, *node->name)
+				if *node->name = "_" andalso in_reload_ns(node) then  'work around RELOAD supporting no-name nodes
+					'work around some more problems with libxml2 inserting no-name wrapper nodes
+					this = CreateNode(dc, "$")  'this is not a valid XML node name, so we can recognise it later in optimize
+				else
+					this = CreateNode(dc, *node->name)
+				end if
 			end if
 			
 			'take a look at the attributes
@@ -225,8 +230,11 @@ sub optimize(node as nodePtr)
 			SetContent(node, Val(GetString(node)))
 		end if
 	end if
-	
-	if NumChildren(node) = 1 ANDALSO NodeName(FirstChild(node)) = "" then 'this is the <>text</> wrapper
+
+	'This is meant to be a genuine no-name RELOAD node
+	if NodeName(node) = "$" then RenameNode(node, "")
+
+	if NumChildren(node) >= 1 ANDALSO NodeName(FirstChild(node)) = "" then  'this is the <>text</> wrapper (notice must be first child!)
 		dim c as nodeptr = FirstChild(node)
 		select case NodeType(c) 'figure out what kind of wrapper it is, and make it so
 			case rltInt 'hoist the number up a level

@@ -1,11 +1,13 @@
 #include "reload.bi"
 
 dim as string filename, outfile
-dim as integer validargs = NO, debugging = NO, i = 1
+dim as integer validargs = NO, debugging = YES, i = 1
 
 while command(i) <> ""
 	if command(i) = "--debug" then
 		debugging = YES
+	elseif command(i) = "--nodebug" then
+		debugging = NO
 	elseif filename = "" then
 		filename = command(i)
 		validargs = YES
@@ -19,10 +21,10 @@ wend
 
 if isfile(filename) = 0 or validargs = NO then
 	print "Convert a RELOAD file into XML. Specify - as outfile to print to console."
-	print "Specify --debug to do less prettification, showing real RELOAD structure."
+	print "Specify --nodebug to do prettification, but not showing real RELOAD structure."
 	print ""
-	print "Usage: reload2xml [--debug] reloadfilename filename.xml"
-	print "   or: reload2xml [--debug] reloadfilename - > filename.xml"
+	print "Usage: reload2xml [--nodebug] reloadfilename filename.xml"
+	print "   or: reload2xml [--nodebug] reloadfilename - > filename.xml"
 	end
 end if
 

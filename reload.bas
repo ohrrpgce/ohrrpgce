@@ -977,10 +977,18 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	dim closetag as integer = YES
 
 	dim needsencoding as integer = NodeNeedsEncoding(nod)
+
+	'no-name nodes aren't valid xml
+	dim xmlname as string
+	if len(*nod->name) = 0 then
+		xmlname = "reload:_"
+	else
+		xmlname = *nod->name
+	end if
 	
 	print #fh, string(ind, INDENTTAB);
 	if nod->nodeType = rltNull and nod->numChildren = 0 then
-		print #fh, "<" & *nod->name & " />"
+		print #fh, "<" & xmlname & " />"
 		exit sub
 	elseif debugging = NO andalso nod->nodeType <> rltNull andalso nod->numChildren = 0 andalso *nod->name = "" then
 		'A no-name node like this is typically created when translating from xml;
@@ -988,7 +996,7 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 		ind -= 1
 		closetag = NO
 	else
-		print #fh, "<" & *nod->name;
+		print #fh, "<" & xmlname;
 		
 		'find the attribute children and print them
 		dim n as NodePtr = nod->children
@@ -1045,7 +1053,7 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 	if nod->numChildren <> 0 then print #fh, string(ind, INDENTTAB);
 	
 	if closetag then
-		print #fh, "</" & *nod->name & ">"
+		print #fh, "</" & xmlname & ">"
 	else
 		print #fh,
 	end if
