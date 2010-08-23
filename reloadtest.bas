@@ -320,6 +320,13 @@ startTest(helperFunctions)
 	AppendChildNode(nod, "@attr1", "fish")
 	AppendChildNode(nod, "appended", "A B C D E F G H I J")
 	AppendChildNode(nod, "appended")
+	AppendChildNode(nod, "")
+	AppendChildNode(nod, "whitespace", !"   white \n space ")
+	AppendChildNode(nod, "worse_whitespace", !"   \n\n  ")
+	AppendChildNode(nod, "empty_str", "")
+	AppendChildNode(nod, "", "")
+	AppendChildNode(nod, "", 1)
+	AppendChildNode(nod, "binary", "123" + CHR(0) + CHR(0) + "#123")
 endTest
 
 startTest(bitsetArray)
@@ -383,7 +390,7 @@ startTest(compareDocumentsNoDelay)
 	
 	if doc2 = null then fail
 	
-	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2)) then fail
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
 endTest
 
 startTest(freeDocumentNoDelay)
@@ -397,7 +404,7 @@ startTest(compareDocumentsDelay)
 	
 	if doc2 = null then fail
 	
-	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2)) then fail
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), YES) then fail
 endTest
 
 startTest(freeDocumentDelay)
@@ -406,8 +413,32 @@ startTest(freeDocumentDelay)
 	pass
 endTest
 
+startTest(loadFromXML)
+	dim fh as integer
+	fh = freefile
+	open "unittest.xml" for output as fh
+	serializeXML(doc, fh)
+	close fh
+
+	safekill "unittest.rld"
+	print
+	print
+	shell "xml2reload unittest.xml unittest.rld"
+	print
+
+	doc2 = LoadDocument("unittest.rld", optNoDelay)
+	if doc2 = null then fail
+endTest
+
+startTest(compareWithXML)
+	'non-pedantic
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2), NO) then fail
+endTest
+
 startTest(cleanup)
 	FreeDocument(doc)
 	doc = 0
+	FreeDocument(doc2)
+	doc2 = 0
 	pass
 endTest

@@ -25,6 +25,12 @@ SUB debug (s AS STRING)
 END SUB
 #endif
 
+Type FBSTRING as string
+'Resize a FB string
+Declare Function fb_hStrRealloc Alias "fb_hStrRealloc" (byval s as FBSTRING ptr, byval size as integer, byval preserve as integer) as FBSTRING ptr
+'Resize a FB string or allocate a new one, and mark it temporary (equals SPEED)
+Declare Function fb_hStrAllocTemp Alias "fb_hStrAllocTemp" (byval s as FBSTRING ptr, byval size as integer) as FBSTRING ptr
+
 
 Namespace Reload
 
@@ -934,7 +940,7 @@ private function NodeNeedsEncoding(byval node as nodeptr) as integer
 	dim dat as ubyte ptr = node->str
 	for i as integer = 0 to node->strSize - 1
 		if dat[i] < 32 then
-			if dat[i] <> asc(!"\n") and dat[i] <> asc(!"\r") then return -1
+			if dat[i] <> asc(!"\n") and dat[i] <> asc(!"\r") and dat[i] <> asc(!"\t") then return -1
 		end if
 	next
 
@@ -1035,8 +1041,8 @@ sub SerializeXML (byval nod as NodePtr, byval fh as integer, byval debugging as 
 		if nod->numChildren = 0 then
 			print #fh, outstr;
 		else
-			print #fh,
-			print #fh, string(ind + 1, INDENTTAB),
+			'print #fh,
+			'print #fh, string(ind + 1, INDENTTAB);
 			print #fh, outstr
 		end if
 	else
@@ -1110,7 +1116,17 @@ Function GetString(byval node as nodeptr) as string
 		case rltNull
 			return ""
 		case rltString
-			return *node->str
+			'return *node->str
+			'FB's string assignment will always do a strlen on zstring arguments, (even if you call fb_StrAssign
+			'manually with the right length!) so we need to manually copy the data into a string, in case it
+			'is a binary blob containing null bytes
+			dim ret as string
+			'Consider this a testcase for "Can you trust TMC to implement a FreeBASIC compiler?"
+			'OK, OK, you could just do ret = space(node->strSize), but this is faster
+			fb_hStrAllocTemp(@ret, node->strSize)
+			memcpy(@ret[0], node->str, node->strSize)
+			ret[node->strSize] = 0
+			return ret
 		case else
 			return "Unknown value: " & node->nodeType
 	end select

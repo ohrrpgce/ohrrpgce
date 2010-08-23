@@ -40,11 +40,14 @@ end function
 
 
 dim as string filename1, filename2
+dim pedantic as integer = NO
 
 dim i as integer = 1
 
 while command(i) <> ""
-	if filename1 = "" then
+	if command(i) = "--pedantic" then
+		pedantic = YES
+	elseif filename1 = "" then
 		filename1 = command(i)
 	elseif filename2 = "" then
 		filename2 = command(i)
@@ -57,7 +60,8 @@ wend
 if filename1 = "" then
 	print "Usage:"
 	print "Time RELOAD loadtime:  " & command(0) & " filename.rld"
-	print "Compare two documents: " & command(0) & " filename1.rld filename2.rld"
+	print "Compare two documents: " & command(0) & " [--pedantic] filename1.rld filename2.rld"
+	print "Use --pedantic to count 8 and ""8"" or Null and """" as inequal."
 	end
 end if
 
@@ -68,8 +72,8 @@ doc1 = verboseload(filename1)
 if filename2 <> "" then
 	doc2 = verboseload(filename2)
 
-	if Reload.Ext.CompareNodes(doc1->root, doc2->root) = 0 then
-		print "* Documents compare equal. *"
+	if Reload.Ext.CompareNodes(doc1->root, doc2->root, pedantic) = 0 then
+		print "* Documents compare " & iif_string(pedantic, "exactly ", "effectively ") & "equal. *"
 	end if
 end if
 

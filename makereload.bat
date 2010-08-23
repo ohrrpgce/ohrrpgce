@@ -7,3 +7,4 @@ call fbc -g -profile -lang deprecated xml2reload.bas reload.o reloadext.o lumpfi
 call fbc -g -profile -lang deprecated reload2xml.bas reload.o lumpfile.o util.o win32\base64.o
 call fbc -g -profile -lang deprecated reloadutil.bas reload.o reloadext.o lumpfile.o util.o win32\base64.o
 :end
+del reload.o reloadext.o lumpfile.o util.o

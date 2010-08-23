@@ -18,7 +18,7 @@ Declare sub SaveBitsetArray(byval node as NodePtr, bs() as integer, byval size a
 Declare Function GetNodePath(byval node AS NodePtr) as string
 Declare Function NodeByPath Overload (byval doc AS DocPtr, path as string) as NodePtr
 Declare Function NodeByPath(byval node AS NodePtr, path as string) as NodePtr
-Declare Function CompareNodes(byval nod1 as nodeptr, byval nod2 as nodeptr) as integer
+Declare Function CompareNodes(byval nod1 as nodeptr, byval nod2 as nodeptr, byval pedantic as integer) as integer
 
 End Namespace
 
