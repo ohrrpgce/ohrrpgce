@@ -57,7 +57,7 @@ DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wi
 DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER)
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray, map() AS TileMap)
-DECLARE SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER)
+DECLARE SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER, BYVAL selectedlayer AS INTEGER = 0)
 DECLARE SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL where AS INTEGER)
 DECLARE SUB mapedit_delete_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL which AS INTEGER)
 DECLARE SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL l1 AS INTEGER, BYVAL l2 AS INTEGER)
@@ -1097,7 +1097,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
  clearpage 2
  currentset = -1
 
- mapedit_makelayermenu st, menu(), state, gmap(), currentset, visible(), map(), itemsinfo(), YES
+ mapedit_makelayermenu st, menu(), state, gmap(), currentset, visible(), map(), itemsinfo(), YES, st.layer
 
  DO 
   setwait 55
@@ -1113,11 +1113,13 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND UBOUND(map) < maplayerMax THEN
    IF layerno = -1 THEN
     add_more_layers map(), visible(), gmap(), UBOUND(map) + 1
+    layerno = UBOUND(map)
     resetpt = YES
    ELSE
     'when gmap(31) is greater than actual number of layers we are "filling up" to old default of 2 under
     IF layerno < gmap(31) AND UBOUND(map) + 1 >= gmap(31) THEN gmap(31) += 1
     mapedit_insert_layer st, map(), visible(), gmap(), layerno + 1
+    layerno += 1
     resetpt = YES
    END IF
    currentset = -2
@@ -1128,6 +1130,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
    IF layerno < gmap(31) THEN gmap(31) = large(gmap(31) - 1, 1)
    mapedit_delete_layer st, map(), visible(), gmap(), layerno
    st.layer = small(st.layer, UBOUND(map))
+   layerno -= 1
    resetpt = YES
    currentset = -2
    state.need_update = YES
@@ -1139,6 +1142,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
      gmap(31) += 1
     ELSE
      mapedit_swap_layers st, map(), visible(), gmap(), layerno, layerno - 1
+     layerno -= 1
     END IF
     resetpt = YES
     state.need_update = YES
@@ -1151,6 +1155,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
      gmap(31) -= 1
     ELSE
      mapedit_swap_layers st, map(), visible(), gmap(), layerno, layerno + 1
+     layerno += 1
     END IF
     resetpt = YES
     state.need_update = YES
@@ -1194,7 +1199,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
 
   IF state.need_update THEN
    state.need_update = NO
-   mapedit_makelayermenu st, menu(), state, gmap(), currentset, visible(), map(), itemsinfo(), resetpt
+   mapedit_makelayermenu st, menu(), state, gmap(), currentset, visible(), map(), itemsinfo(), resetpt, layerno
    resetpt = NO
   END IF
 
@@ -1264,7 +1269,7 @@ SUB mapedit_makelayermenu_layer(BYREF st AS MapEditState, menu() AS SimpleMenu, 
  slot += 1
 END SUB
 
-SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER)
+SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER, BYVAL selectedlayer AS INTEGER = 0)
  REDIM menu(1 + 3 * (UBOUND(map) + 1) + 3)
  REDIM itemsinfo(1 + 3 * (UBOUND(map) + 1) + 3)
  state.last = UBOUND(menu)
@@ -1281,7 +1286,7 @@ SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state 
  
  DIM slot AS INTEGER = 2
  FOR i AS INTEGER = 0 TO small(UBOUND(map), gmap(31) - 1)
-  IF st.layer = i AND resetpt THEN state.pt = slot + 1
+  IF selectedlayer = i AND resetpt THEN state.pt = slot + 1
   mapedit_makelayermenu_layer st, menu(), gmap(), visible(), itemsinfo(), slot, i, needdefault
  NEXT
 
@@ -1300,7 +1305,7 @@ SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state 
  END IF   
 
  FOR i AS INTEGER = gmap(31) TO UBOUND(map)
-  IF st.layer = i AND resetpt THEN state.pt = slot + 1
+  IF selectedlayer = i AND resetpt THEN state.pt = slot + 1
   mapedit_makelayermenu_layer st, menu(), gmap(), visible(), itemsinfo(), slot, i, needdefault
  NEXT
 
