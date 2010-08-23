@@ -12,7 +12,7 @@ DEFINT A-Z
 #include "custom_udts.bi"
 
 'external subs and functions
-DECLARE SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, BYREF num_npc_defs AS INTEGER, npc_insts() AS NPCInst)
+DECLARE SUB npcdef (st AS MapEditState, npc_img() AS GraphicPair)
 
 'local subs and functions
 DECLARE SUB make_map_picker_menu (topmenu() AS STRING, state AS MenuState)
@@ -203,7 +203,7 @@ DIM as integer visible(maplayerMax \ 16) = {-1} 'used as bitsets: all layers vis
 'FIXME: heroimg is a hack and should be replaced with a GraphicPair object
 DIM heroimg(102), heropal(8)
 
-'npcdef assumes that npc_img is sized (0 TO max_npc_defs - 1), just like st.npc()
+'npcdef assumes that npc_img is sized (0 TO max_npc_defs - 1), just like st.npc_def()
 DIM npc_img(max_npc_defs - 1) AS GraphicPair
 
 REDIM map(0) AS TileMap ' dummy empty map data, will be resized later
@@ -306,7 +306,7 @@ DO
     mapedit_layers st, gmap(), visible(), defaults(), map()
    CASE 4
     'This may change st.num_npc_defs, and delete NPC instances
-    npcdef st.npc_def(), npc_img(), st.num_npc_defs, st.npc_inst()
+    npcdef st, npc_img()
    CASE 5 TO 9
     editmode = st.menustate.pt - 5
     GOSUB mapping

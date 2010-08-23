@@ -1894,7 +1894,7 @@ SUB handle_npc_def_delete (npc() AS NPCType, BYVAL id AS INTEGER, BYREF num_npc_
   IF yesno("There are " & uses & " copies of NPC ID " & id & " on the map. Are you sure you want to delete them?", NO, NO) = NO THEN EXIT SUB
 
   '--Delete instances of this ID
-  FOR i as integer = 0 to 299
+  FOR i as integer = 0 to UBOUND(npc_insts)
    IF npc_insts(i).id = id + 1 THEN npc_insts(i).id = 0
   NEXT
  END IF
@@ -1914,18 +1914,18 @@ SUB handle_npc_def_delete (npc() AS NPCType, BYVAL id AS INTEGER, BYREF num_npc_
 
 END SUB
 
-SUB npcdef (npc() AS NPCType, npc_img() AS GraphicPair, BYREF num_npc_defs AS INTEGER, npc_insts() AS NPCInst)
-'npc() and npc_img() should be of fixed size (0 TO max_npc_defs - 1), with the actual number passed in num_npc_defs
+SUB npcdef (st AS MapEditState, npc_img() AS GraphicPair)
+'npc_img() should be of fixed size (0 TO max_npc_defs - 1), like st.npc_def(), with the actual number passed in st.num_npc_defs
 
-DIM boxpreview(num_npc_defs - 1) AS STRING
+DIM boxpreview(st.num_npc_defs - 1) AS STRING
 DIM AS INTEGER tog, i, top = 0, cur = 0, menumax, need_update_selected = NO
 
 '--If there's room for more, add "Add new NPC" option to end
-menumax = num_npc_defs - 1
-IF num_npc_defs < max_npc_defs THEN menumax += 1
+menumax = st.num_npc_defs - 1
+IF st.num_npc_defs < max_npc_defs THEN menumax += 1
 
-FOR i = 0 TO num_npc_defs - 1
- boxpreview(i) = textbox_preview_line(npc(i).textbox)
+FOR i = 0 TO st.num_npc_defs - 1
+ boxpreview(i) = textbox_preview_line(st.npc_def(i).textbox)
 NEXT i
 setkeys
 DO
@@ -1937,31 +1937,31 @@ DO
  intgrabber cur, 0, menumax
  usemenu cur, top, 0, menumax, 7
  IF enter_or_space() THEN
-  IF cur = num_npc_defs THEN
+  IF cur = st.num_npc_defs THEN
    '--Add new NPC option
-   num_npc_defs += 1
-   CleanNPCDefinition npc(num_npc_defs - 1)
+   st.num_npc_defs += 1
+   CleanNPCDefinition st.npc_def(st.num_npc_defs - 1)
   ELSE
    '--An NPC
-   edit_npc npc(cur)
+   edit_npc st.npc_def(cur)
   END IF
   need_update_selected = YES
  END IF
  IF keyval(scPlus) > 1 THEN
   '--Fast add button (for people who really want ID 134 for a task)
-  num_npc_defs += 1
-  CleanNPCDefinition npc(num_npc_defs - 1)
-  cur = num_npc_defs - 1
+  st.num_npc_defs += 1
+  CleanNPCDefinition st.npc_def(st.num_npc_defs - 1)
+  cur = st.num_npc_defs - 1
   need_update_selected = YES
  END IF
  IF keyval(scDelete) > 1 THEN
-  '--This updates num_npc_defs as needed, but not cur
-  handle_npc_def_delete npc(), cur, num_npc_defs, npc_insts()
-  IF cur > num_npc_defs - 1 THEN
+  '--This updates st.num_npc_defs as needed, but not cur
+  handle_npc_def_delete st.npc_def(), cur, st.num_npc_defs, st.npc_inst()
+  IF cur > st.num_npc_defs - 1 THEN
    '--Deleted last NPC def
    frame_unload @npc_img(cur).sprite
    palette16_unload @npc_img(cur).pal
-   cur = num_npc_defs - 1
+   cur = st.num_npc_defs - 1
   END IF
   need_update_selected = YES
  END IF
@@ -1971,16 +1971,16 @@ DO
   '--Re-load the picture and palette
   WITH npc_img(cur)
    IF .sprite THEN frame_unload(@.sprite)
-   .sprite = frame_load(4, npc(cur).picture)
+   .sprite = frame_load(4, st.npc_def(cur).picture)
    IF .pal THEN palette16_unload(@.pal)
-   .pal = palette16_load(npc(cur).palette, 4, npc(cur).picture)
+   .pal = palette16_load(st.npc_def(cur).palette, 4, st.npc_def(cur).picture)
   END WITH
   '--Update box preview line
-  REDIM PRESERVE boxpreview(num_npc_defs - 1)
-  boxpreview(cur) = textbox_preview_line(npc(cur).textbox)
+  REDIM PRESERVE boxpreview(st.num_npc_defs - 1)
+  boxpreview(cur) = textbox_preview_line(st.npc_def(cur).textbox)
   '--Update menumax
-  menumax = num_npc_defs - 1
-  IF num_npc_defs < max_npc_defs THEN menumax += 1
+  menumax = st.num_npc_defs - 1
+  IF st.num_npc_defs < max_npc_defs THEN menumax += 1
 
   need_update_selected = NO
  END IF
@@ -1991,7 +1991,7 @@ DO
   IF cur = i THEN edgebox 0, (i - top) * 25, 320, 22, uilook(uiDisabledItem), uilook(uiMenuItem), dpage
   textcolor uilook(uiMenuItem), 0
   IF cur = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  IF i > num_npc_defs - 1 THEN
+  IF i > st.num_npc_defs - 1 THEN
    '--Add new NPC option
    printstr "Add new NPC", 0, ((i - top) * 25) + 5, dpage
   ELSE
