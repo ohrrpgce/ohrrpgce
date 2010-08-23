@@ -1190,14 +1190,31 @@ SUB rectangle (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 	wend
 END SUB
 
-SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-	fuzzyrect x, y, w, h, c, vpages(p)
+SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer, BYVAL fuzzfactor as integer = 50)
+	fuzzyrect x, y, w, h, c, vpages(p), fuzzfactor
 END SUB
 
-SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
+SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr, BYVAL fuzzfactor as integer = 50)
+	'How many magic constants could you wish for?
+	'These were half generated via magic formulas, and half hand picked (with magic criteria)
+	static grain_table(50) as integer = {_
+	                    50, 46, 42, 38, 38, 40, 41, 39, 26, 38, 30, 36, _
+	                    42, 31, 39, 38, 41, 26, 27, 28, 40, 35, 35, 31, _
+	                    39, 50, 41, 30, 29, 28, 45, 37, 24, 43, 23, 42, _
+	                    21, 28, 11, 16, 20, 22, 18, 17, 19, 32, 17, 16, _
+	                    15, 14, 50}
+
 	if clippedframe <> fr then
 		setclip , , , , fr
 	end if
+
+        if fuzzfactor <= 0 then fuzzfactor = 1
+        dim grain as integer
+        dim r as integer = 0
+	dim startr as integer = 0
+
+	if fuzzfactor <= 50 then grain = grain_table(fuzzfactor) else grain = grain_table(100 - fuzzfactor)
+	'if w = 99 then grain = h mod 100  'for hand picking
 
 	if w < 0 then x = x + w + 1: w = -w
 	if h < 0 then y = y + h + 1: h = -h
@@ -1205,15 +1222,29 @@ SUB fuzzyrect (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL
 	'clip
 	if x + w > clipr then w = (clipr - x) + 1
 	if y + h > clipb then h = (clipb - y) + 1
-	if x < clipl then w -= (clipl - x) : x = clipl
-	if y < clipt then h -= (clipt - y) : y = clipt
+	if x < clipl then
+		startr += (clipl - x) * fuzzfactor
+		w -= (clipl - x)
+		x = clipl
+	end if
+	if y < clipt then
+		startr += (clipt - y) * grain
+		h -= (clipt - y)
+		y = clipt
+	end if
 
 	if w <= 0 or h <= 0 then exit sub
 
 	dim sptr as ubyte ptr = fr->image + (y * fr->pitch) + x
 	while h > 0
-		for i as integer = h mod 2 to w-1 step 2
-			sptr[i] = c
+		startr = (startr + grain) mod 100
+		r = startr
+                for i as integer = 0 to w-1
+			r += fuzzfactor
+			if r >= 100 then
+				sptr[i] = c
+				r -= 100
+			end if
 		next
 		h -= 1
 		sptr += fr->pitch

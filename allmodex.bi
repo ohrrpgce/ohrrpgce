@@ -48,8 +48,8 @@ DECLARE SUB drawbox OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as
 DECLARE SUB drawbox OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr AS Frame Ptr)
 DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE SUB rectangle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
-DECLARE SUB fuzzyrect OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer)
-DECLARE SUB fuzzyrect OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr)
+DECLARE SUB fuzzyrect OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL p as integer, BYVAL fuzzfactor as integer = 50)
+DECLARE SUB fuzzyrect OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL c as integer, BYVAL fr as Frame Ptr, BYVAL fuzzfactor as integer = 50)
 
 'NOTE: clipping values are global.
 DECLARE SUB setclip OVERLOAD (BYVAL l as integer = 0, BYVAL t as integer = 0, BYVAL r as integer = 9999, BYVAL b as integer = 9999, BYVAL fr as Frame ptr = 0)
