@@ -1830,6 +1830,7 @@ SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER,
  DIM col AS INTEGER
 
  '---MAIN LOOP---
+ setkeyrepeat  'Parent menu may have changed the default repeat rate
  setkeys
  DO
   setwait 55
@@ -2216,6 +2217,7 @@ SUB show_help(helpkey AS STRING)
  scrollbar_state.size = 17
 
  '--Now loop displaying help
+ setkeyrepeat  'reset repeat rate
  setkeys
  DO
   IF editing THEN

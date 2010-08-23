@@ -691,6 +691,7 @@ END SUB
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
 DIM ts AS TileEditState, mover(12), mouse(4), area(22) AS MouseArea
+DIM tog AS integer
 ts.gotmouse = havemouse()
 hidemousecursor
 ts.canpaste = oldpaste
@@ -781,9 +782,10 @@ END IF
 loadmxs mapfile$, pagenum, vpages(3)
 'pick block to draw/import/default
 bnum = 0
+setkeyrepeat 25, 5
 setkeys
 DO
- setwait 55
+ setwait 17, 70
  setkeys
  IF ts.gotmouse THEN
   readmouse mouse()
@@ -795,16 +797,17 @@ DO
   ELSE
    show_help "picktiletoedit"
   END IF
+  setkeyrepeat 25, 5  'yuck
  END IF
  IF ts.gotmouse THEN
   bnum = (mouse(1) \ 20) * 16 + mouse(0) \ 20
  END IF
  IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
   movedcsr = NO
-  IF slowkey(scLeft, 2) THEN bnum = (bnum + 159) MOD 160: movedcsr = YES
-  IF slowkey(scRight, 2) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
-  IF slowkey(scUp, 2) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
-  IF slowkey(scDown, 2) THEN bnum = (bnum + 16) MOD 160: movedcsr = YES
+  IF slowkey(scLeft, 6) THEN bnum = (bnum + 159) MOD 160: movedcsr = YES
+  IF slowkey(scRight, 6) THEN bnum = (bnum + 1) MOD 160: movedcsr = YES
+  IF slowkey(scUp, 6) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
+  IF slowkey(scDown, 6) THEN bnum = (bnum + 16) MOD 160: movedcsr = YES
   IF movedcsr AND ts.gotmouse THEN
    mouse(0) = (mouse(0) MOD 20) + (bnum MOD 16) * 20
    mouse(1) = (mouse(1) MOD 20) + (bnum \ 16) * 20
@@ -843,9 +846,9 @@ DO
   END IF 
   IF tmode = 3 THEN
    editbitset defaults(), bnum, 7, bitmenu()
+   setkeyrepeat 25, 5  'editbitset resets the repeat rate
   END IF
  END IF
- tog = tog XOR 1
 
  copypage 3, dpage
  IF tmode = 3 THEN
@@ -874,8 +877,9 @@ DO
  END IF
  SWAP dpage, vpage
  setvispage vpage
- dowait
+ IF dowait THEN tog = tog XOR 1
 LOOP
+setkeyrepeat
 storemxs mapfile$, pagenum, vpages(3)
 IF tmode = 3 THEN
  savepasdefaults defaults(), pagenum
@@ -980,7 +984,7 @@ tick = 0
 ts.justpainted = 0
 ts.undo = 0
 ts.allowundo = 0
-ts.delay = 3
+ts.delay = 10
 zox = ts.x * 10 + 5
 zoy = ts.y * 8 + 4
 mouse(0) = area(0).x + zox
@@ -1020,7 +1024,7 @@ DO
    EXIT DO
   END IF
  END IF
- IF keyval(scF1) > 1 THEN show_help "editmaptile"
+ IF keyval(scF1) > 1 THEN show_help "editmaptile": setkeyrepeat 25, 5  'yuck
  IF keyval(scAlt) = 0 THEN
   ts.fixmouse = NO
   IF slowkey(scLeft, 6) THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
@@ -1141,6 +1145,9 @@ DO
  IF keyval(scBackspace) > 1 OR keyval(scLeftBracket) > 1 OR keyval(scRightBracket) > 1 THEN fliptile mover(), ts
  cy = (ts.curcolor \ 16) MOD 8
  cx = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
+
+ '--Draw screen start... I think
+ copypage 2, dpage
  rectangle cx * 10 + 4, cy * 4 + 162, 3, 1, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
  rectangle 60 + ts.x * 10, ts.y * 8, 10, 8, readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), dpage
  rectangle ts.x * 10 + 64, ts.y * 8 + 3, 3, 2, IIF(tog, uilook(uiBackground), uilook(uiText)), dpage
@@ -1222,11 +1229,9 @@ DO
  END IF
  SWAP dpage, vpage
  setvispage vpage
- copypage 2, dpage
  tick = 0
  IF dowait THEN tick = 1: tog = tog XOR 1
 LOOP
-setkeyrepeat
 IF ts.gotmouse THEN
  movemouse ts.tilex * 20 + 10, ts.tiley * 20 + 10
 END IF
@@ -2429,7 +2434,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
     EXIT DO
    END IF
   END IF
-  IF keyval(scF1) > 1 THEN show_help "sprite_editor"
+  IF keyval(scF1) > 1 THEN show_help "sprite_editor":  setkeyrepeat 25, 5  'yuck
   IF ss.delay = 0 THEN
    GOSUB sprctrl
   END IF
