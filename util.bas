@@ -294,18 +294,18 @@ SUB str_array_append (array() AS STRING, s AS STRING)
  array(UBOUND(array)) = s
 END SUB
 
-SUB int_array_append (array() AS INTEGER, k AS INTEGER)
+SUB int_array_append (array() AS INTEGER, BYVAL k AS INTEGER)
  REDIM PRESERVE array(UBOUND(array) + 1) AS INTEGER
  array(UBOUND(array)) = k
 END SUB
 
-SUB intstr_array_append (array() AS IntStrPair, k AS INTEGER, s AS STRING)
+SUB intstr_array_append (array() AS IntStrPair, BYVAL k AS INTEGER, s AS STRING)
  REDIM PRESERVE array(UBOUND(array) + 1)
  array(UBOUND(array)).i = k
  array(UBOUND(array)).s = s
 END SUB
 
-FUNCTION int_array_find (array() AS INTEGER, value AS INTEGER) AS INTEGER
+FUNCTION int_array_find (array() AS INTEGER, BYVAL value AS INTEGER) AS INTEGER
  FOR i AS INTEGER = LBOUND(array) TO UBOUND(array)
   IF array(i) = value THEN RETURN i
  NEXT

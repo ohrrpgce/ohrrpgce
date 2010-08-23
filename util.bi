@@ -113,9 +113,9 @@ TYPE IntStrPair
 END TYPE
 
 declare sub str_array_append (array() as string, s as string)
-declare sub int_array_append (array() as integer, k as integer)
-declare sub intstr_array_append (array() as IntStrPair, k as integer, s as string)
-declare function int_array_find (array() as integer, value as integer) as integer
+declare sub int_array_append (array() as integer, byval k as integer)
+declare sub intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
+declare function int_array_find (array() as integer, byval value as integer) as integer
 
 
 '--------------- Stack ----------------
