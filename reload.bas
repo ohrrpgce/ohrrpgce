@@ -907,10 +907,13 @@ end function
 
 'This promotes a node to Root Node status (which, really, isn't that big a deal.)
 'NOTE: It automatically frees the old root node (unless it's the same as the new root node)
+'NOTE: the node must not have a parent
 sub SetRootNode(byval doc as DocPtr, byval nod as NodePtr)
 	if doc = null then return
 	
 	if doc->root = nod then return
+
+	if nod->parent then return
 	
 	if verifyNodeLineage(nod, doc->root) = YES and verifyNodeLineage(doc->root, nod) = YES then
 		FreeNode(doc->root)

@@ -378,65 +378,12 @@ startTest(writeFile)
 	if dir("unittest.rld") = "" then fail
 endTest
 
-function comparenode(byval nod1 as nodeptr, byval nod2 as nodeptr) as integer
-	if NodeName(nod1) <> NodeName(nod2) then
-		print "Names of nodes differ! " & NodeName(nod1) & " vs " & NodeName(nod2)
-		return 1
-	end if
-	
-	if NodeType(nod1) <> NodeType(nod2) then
-		print "Types of node " & NodeName(nod1) & " differ! " & NodeType(nod1) & " vs " & NodeType(nod2)
-		return 1
-	end if
-	
-	select case NodeType(nod1)
-		case rltNull
-		case rltInt
-			if GetInteger(nod1) <> GetInteger(nod2) then
-				print "Value of node " & NodeName(nod1) & " differ! " & GetInteger(nod1) & " vs " & GetInteger(nod2)
-				return 1
-			end if
-		case rltFloat
-			if GetFloat(nod1) <> GetFloat(nod2) then
-				print "Value of node " & NodeName(nod1) & " differ! " & GetFloat(nod1) & " vs " & GetFloat(nod2)
-				return 1
-			end if
-		case rltString
-			if GetString(nod1) <> GetString(nod2) then
-				print "Value of node " & NodeName(nod1) & " differ! " & GetString(nod1) & " vs " & GetString(nod2)
-				return 1
-			end if
-	end select
-	
-	if NumChildren(nod1) <> NumChildren(nod2) then
-		print "Number of children on node " & NodeName(nod1) & " differ! " & NumChildren(nod1) & " vs " & NumChildren(nod2)
-		return 1
-	end if
-	
-	dim numkids as integer = NumChildren(nod1)
-	
-	nod1 = FirstChild(nod1)
-	nod2 = FirstChild(nod2)
-	for i as integer = 0 to numkids - 1
-		if comparenode(nod1, nod2) then
-			print "Comparison of children failed"
-			return 1
-		end if
-		
-		nod1 = NextSibling(nod1)
-		nod2 = NextSibling(nod2)
-	next
-	
-	'I GUESS they're the same...
-	return 0
-end function
-
 startTest(compareDocumentsNoDelay)
 	doc2 = LoadDocument("unittest.rld", optNoDelay)
 	
 	if doc2 = null then fail
 	
-	if comparenode(DocumentRoot(doc), DocumentRoot(doc2)) then fail
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2)) then fail
 endTest
 
 startTest(freeDocumentNoDelay)
@@ -450,7 +397,7 @@ startTest(compareDocumentsDelay)
 	
 	if doc2 = null then fail
 	
-	if comparenode(DocumentRoot(doc), DocumentRoot(doc2)) then fail
+	if CompareNodes(DocumentRoot(doc), DocumentRoot(doc2)) then fail
 endTest
 
 startTest(freeDocumentDelay)
