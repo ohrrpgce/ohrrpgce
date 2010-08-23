@@ -2082,6 +2082,7 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
  DIM menu AS MenuDef
  create_default_menu menu
  SaveMenuData menu_set, menu, 0
+ ClearMenuData menu
 END IF
 updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 updaterecordlength game & ".say", binSAY
@@ -3165,6 +3166,7 @@ FUNCTION getmenuname(record AS INTEGER) AS STRING
  DIM menu AS MenuDef
  LoadMenuData menu_set, menu, record, YES
  ret = menu.name
+ ClearMenuData menu
 
 #IFDEF IS_GAME
  add_string_cache cache(), record, ret

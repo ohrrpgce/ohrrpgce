@@ -1730,6 +1730,7 @@ SUB scripterr (e AS STRING, errorlevel as integer = 5)
   setvispage vpage
   dowait
  LOOP
+ ClearMenuData menu
  setkeys
  recursivecall -= 1
 END SUB

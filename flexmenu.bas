@@ -1611,6 +1611,9 @@ DO
  dowait
 LOOP
 SaveMenuData menu_set, menudata, record
+ClearMenuData edmenu
+ClearMenuData menudata
+ClearMenuData detail
 
 END SUB
 

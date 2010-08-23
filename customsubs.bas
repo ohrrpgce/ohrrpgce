@@ -325,6 +325,7 @@ SUB ui_color_editor(palnum AS INTEGER)
   dowait
  LOOP
  SaveUIColors uilook(), palnum
+ ClearMenuData sample_menu
 END SUB
 
 SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
@@ -499,6 +500,7 @@ FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS INTEGER=
  LOOP
  setkeys
  freepage holdscreen
+ ClearMenuData menu
 
  RETURN result
 END FUNCTION
@@ -2420,6 +2422,7 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
   IF resave THEN
    SaveMenuData menu_set, menutmp, i
   END IF
+  ClearMenuData menutmp
  NEXT i
 
 END SUB

@@ -1575,6 +1575,7 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  rs.rect.high = 0
  rs.rect.x = 0
  rs.rect.y = 0
+ 'resizemapmenu both inits and deletes rs.menu
  resizemapmenu st, map(), rs
  IF rs.rect.wide = -1 THEN EXIT SUB
 
@@ -2102,7 +2103,7 @@ SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapRe
   dowait
  LOOP
  frame_unload @(rs.minimap)
-EXIT SUB
+ ClearMenuData rs.menu
 
 END SUB
 
