@@ -2183,12 +2183,12 @@ END IF
 IF getfixbit(fixDefaultDissolveEnemy) = 0 THEN
  upgrade_message "Initializing default enemy fade (per enemy)..."
  setfixbit(fixDefaultDissolveEnemy, 1)
- REDIM dat(160)
+ DIM enemy AS EnemyDef
  FOR i = 0 to gen(genMaxEnemy)
-  loadenemydata dat(), i
-  dat(22) = 0
-  dat(23) = 0
-  saveenemydata dat(), i
+  loadenemydata enemy, i
+  enemy.dissolve = 0
+  enemy.dissolve_length = 0
+  saveenemydata enemy, i
  NEXT
 END IF
 

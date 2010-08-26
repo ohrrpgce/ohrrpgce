@@ -1931,7 +1931,7 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   buf(91) = .spawn.how_many
   
   '--attacks
-  FOR i AS INTEGER = 0 TO 5
+  FOR i AS INTEGER = 0 TO 4
    buf(92 + i) = .regular_ai(i)
    buf(97 + i) = .desperation_ai(i)
    buf(102 + i) = .alone_ai(i)
