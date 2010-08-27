@@ -67,11 +67,12 @@ TYPE BattleSprite
   stat AS BattleStats
   '--misc
   dissolve AS INTEGER
-  flee AS INTEGER
+  flee AS INTEGER ' used to indicate when a sprite animates running away (not to be confused with BattleState.flee)
   attack_succeeded AS INTEGER
   sprites as Frame ptr 'the graphic set
   sprite_num AS INTEGER 'how many frames
   frame AS INTEGER 'the current frame
+  walk AS INTEGER 'used by heroes when animating walking
   anim_pattern AS INTEGER 'used by attack sprites
   anim_index AS INTEGER 'used by attack sprites
   pal as palette16 ptr 'yeah
@@ -86,6 +87,7 @@ TYPE BattleSprite
   menu_size AS INTEGER 'actually the index of the last used element in .menu()
   harm AS HarmText
   '--Turn-taking
+  ready_meter AS INTEGER '0-1000, fills based on speed. When 1000, set .ready=YES
   ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
   attack AS INTEGER  ' ID number +1 of the attack that this hero or enemy is going to do next
   delay AS INTEGER   ' Number of ticks before prepared attack animates (counts down)
@@ -185,7 +187,13 @@ TYPE BattleState
  curbg AS INTEGER      'Current background
  wait_frames AS INTEGER 'used by the attack animation
  level_mp_caption AS STRING
+ cannot_run_caption AS STRING
+ flee AS INTEGER 'used by the crappy running system, not to be confused with BattleSprite.flee
+ away AS INTEGER 'used by the crappy running system.
+ alert_ticks AS INTEGER
+ alert AS STRING
 END TYPE
+
 CONST batMENUHERO = 0
 CONST batMENUSPELL = 1
 CONST batMENUITEM = 2

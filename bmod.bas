@@ -47,6 +47,7 @@ DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS 
 DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
 DECLARE FUNCTION battle_time_can_pass(bat AS BattleState, vic AS VictoryState) AS INTEGER
+DECLARE SUB battle_tryrun(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -67,8 +68,7 @@ DIM attack AS AttackData
 DIM targets_attack AS AttackData
 DIM autotarg_attack AS AttackData
 DIM st(3) as herodef
-DIM ctr(11)
-DIM menubits(2), spelname(23) AS STRING, speld(23) AS STRING, spel(23), cost(23) AS STRING, walk(3)
+DIM menubits(2), spelname(23) AS STRING, speld(23) AS STRING, spel(23), cost(23) AS STRING
 DIM conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
 DIM laststun AS DOUBLE
@@ -105,14 +105,14 @@ timingb = 0
 
 cancelspell$ = readglobalstring$(51, "(CANCEL)", 10)
 pause$ = readglobalstring$(54, "PAUSE", 10)
-cannotrun$ = readglobalstring$(147, "CANNOT RUN!", 20)
+bat.cannot_run_caption = readglobalstring$(147, "CANNOT RUN!", 20)
 
 bat.caption_time = 0
 bat.caption_delay = 0
 bat.caption = ""
 
-alert = 0
-alert$ = ""
+bat.alert_ticks = 0
+bat.alert = ""
 
 fadeout 240, 240, 240
 needf = 1: fiptr = 0
@@ -163,7 +163,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 
-battle_loadall form, bat, bslot(), rew, vic, st(), formdata(), ctr(), lifemeter()
+battle_loadall form, bat, bslot(), rew, vic, st(), formdata(), lifemeter()
 
 copypage 2, dpage
 
@@ -188,17 +188,17 @@ DO
 
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debug keys
-  IF keyval(scF4) > 1 THEN away = 11 ' Instant-cheater-running
+  IF keyval(scF4) > 1 THEN bat.away = 11 ' Instant-cheater-running
   IF keyval(scF5) > 1 THEN rew.exper = 1000000  'Million experience!
   IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
  END IF
  IF keyval(scNumlock) > 1 THEN GOSUB pgame '--PAUSE
  '--running away
  IF carray(ccMenu) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
-  flee = flee + 1
+  bat.flee = bat.flee + 1
  END IF
- GOSUB tryrun
- IF away > 0 THEN
+ battle_tryrun bat, bslot()
+ IF bat.away > 0 THEN
   FOR i = 0 TO 3
    '--if alive, animate running away
    IF bslot(i).stat.cur.hp > 0 THEN
@@ -206,14 +206,14 @@ DO
      IF .vis THEN
       .xmov = 10
       .xspeed = 6
-      walk(i) = 1
+      bslot(i).walk = 1
       .d = 1
      END IF
     END WITH
    END IF
   NEXT i
-  away = away + 1
-  IF away > 10 THEN
+  bat.away += 1
+  IF bat.away > 10 THEN
    battle = 0
    EXIT DO
   END IF
@@ -221,7 +221,7 @@ DO
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND vic.state = 0 THEN
   generate_atkscript attack, bat, bslot(), icons()
  END IF
- IF bat.atk.id >= 0 AND bat.anim_ready = YES AND vic.state = 0 AND away = 0 THEN GOSUB action
+ IF bat.atk.id >= 0 AND bat.anim_ready = YES AND vic.state = 0 AND bat.away = 0 THEN GOSUB action
  GOSUB animate
  na = loopvar(na, 0, 11, 1)
  IF battle_time_can_pass(bat, vic) THEN
@@ -248,7 +248,7 @@ DO
   IF bslot(bat.next_enemy).ready = YES AND bslot(bat.next_enemy).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
  END IF
  IF vic.state = 0 THEN
-  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata(), rew, ctr()
+  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata(), rew
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
    IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, inv_scroll, bslot(), icons(), iuse()
    IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bslot(), conlmp()
@@ -276,10 +276,10 @@ DO
   fatal = 1
   EXIT DO
  END IF
- IF alert > 0 THEN
-  alert = alert - 1
+ IF bat.alert_ticks > 0 THEN
+  bat.alert_ticks -= 1
   centerfuz 160, 190, 100, 16, 3, dpage
-  edgeprint alert$, 160 - LEN(alert$) * 4, 185, uilook(uiSelectedItem + tog), dpage
+  edgeprint bat.alert, 160 - LEN(bat.alert) * 4, 185, uilook(uiSelectedItem + tog), dpage
  END IF
 
  if dotimerbattle then
@@ -405,7 +405,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
    ww = popw
    fr = popw
    bslot(ww).frame = fr
-   IF is_hero(ww) THEN walk(ww) = 0
+   IF is_hero(ww) THEN bslot(ww).walk = 0
   CASE 8 'absmove(who,n,n,n,n)
    ww = popw
    tmp1 = popw
@@ -464,10 +464,10 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     IF attack.force_run = YES THEN
     'force heroes to run away
      IF checkNoRunBit(bslot()) THEN
-      alert$ = cannotrun$
-      alert = 10
+      bat.alert = bat.cannot_run_caption
+      bat.alert_ticks = 10
      ELSE
-      away = 1
+      bat.away = 1
      END IF
     END IF
     checkTagCond attack.tagset(0), 2
@@ -576,7 +576,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
   CASE 14 'walktoggle(who)
    ww = popw
    bslot(ww).frame = 0
-   IF is_hero(ww) THEN walk(ww) = walk(ww) XOR 1
+   IF is_hero(ww) THEN bslot(ww).walk XOR= 1
   CASE 15 'zmove(who,zm,zstep)
    ww = popw
    bslot(ww).zmov = popw
@@ -711,7 +711,7 @@ IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
 IF bat.targ.mode = targAUTO THEN
  loadattackdata autotarg_attack, bslot(bat.hero_turn).attack - 1
  autotarget bat.hero_turn, autotarg_attack, bslot()
- ctr(bat.hero_turn) = 0
+ bslot(bat.hero_turn).ready_meter = 0
  bslot(bat.hero_turn).ready = NO
  bat.hero_turn = -1
  bat.targ.mode = targNONE
@@ -774,7 +774,7 @@ FOR i = 0 TO 11
  END IF
 NEXT i
 queue_attack bslot(), bat.hero_turn
-ctr(bat.hero_turn) = 0
+bslot(bat.hero_turn).ready_meter = 0
 bslot(bat.hero_turn).ready = NO
 bat.hero_turn = -1
 bat.targ.mode = targNONE
@@ -787,10 +787,11 @@ IF vic.state = 0 THEN 'only display interface till you win
   IF hero(i) > 0 THEN
    IF readbit(gen(), 101, 6) = 0 THEN
     '--speed meter--
-    col = uilook(uiTimeBar): IF bslot(i).ready = YES THEN col = uilook(uiTimeBarFull)
+    col = uilook(uiTimeBar)
+    IF bslot(i).ready = YES THEN col = uilook(uiTimeBarFull)
     edgeboxstyle 1, 4 + i * 10, 132, 11, 0, dpage, YES, YES
     IF bslot(i).stat.cur.hp > 0 THEN
-     j = ctr(i) / 7.7
+     j = bslot(i).ready_meter / 7.7
      IF bslot(i).delay > 0 OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
       col = uilook(uiTimeBar)
       j = 130
@@ -919,7 +920,7 @@ END IF'--end if vic.state = 0
 RETRACE
 
 meters:
-IF away = 1 THEN RETRACE
+IF bat.away = 1 THEN RETRACE
 '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
 isdeepmenu = (bat.menu_mode > 0 AND readbit(gen(), genBits, 0))
 isbattlemenu = (bat.menu_mode >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13))
@@ -971,8 +972,8 @@ FOR i = 0 TO 11
  '--if not doing anything, not dying, not ready, and not stunned
  IF bslot(i).attack = 0 AND bslot(i).dissolve = 0 AND bslot(i).ready = NO AND bslot(i).stat.cur.stun = bslot(i).stat.max.stun THEN
   '--increment ctr by speed
-  ctr(i) = small(1000, ctr(i) + bslot(i).stat.cur.spd)
-  IF ctr(i) = 1000 AND bat.wait_frames = 0 THEN bslot(i).ready = YES
+  bslot(i).ready_meter = small(1000, bslot(i).ready_meter + bslot(i).stat.cur.spd)
+  IF bslot(i).ready_meter = 1000 AND bat.wait_frames = 0 THEN bslot(i).ready = YES
  END IF
 
 NEXT i
@@ -996,7 +997,7 @@ RETRACE
 
 animate:
 FOR i = 0 TO 3
- IF walk(i) = 1 THEN bslot(i).frame = bslot(i).frame xor tog
+ IF bslot(i).walk = 1 THEN bslot(i).frame = bslot(i).frame xor tog
  IF bat.acting <> i THEN enforce_weak_picture i, bslot(), vic
  IF vic.state > 0 AND bslot(i).stat.cur.hp > 0 AND tog = 0 THEN
   if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
@@ -1046,52 +1047,67 @@ seestuff:
 FOR i = 0 TO 11
  c = uilook(uiSelectedDisabled)
  IF is_hero(i) THEN c = uilook(uiSelectedItem)
- rectangle 0, 80 + (i * 10), ctr(i) / 10, 4, c, dpage
+ rectangle 0, 80 + (i * 10), bslot(i).ready_meter / 10, 4, c, dpage
  info$ = "v=" & bslot(i).vis & " dly=" & bslot(i).delay & " tm=" & bat.targ.mask(i) & " hp=" & bslot(i).stat.cur.hp & " dis=" & bslot(i).dissolve
  IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
  edgeprint info$, 20, 80 + i * 10, c, dpage
 NEXT i
 RETRACE
 
-tryrun:
-IF flee > 0 AND flee < 4 THEN
- IF carray(ccRun) = 0 THEN
-  flee = 0
-  FOR i = 0 TO 3
-   bslot(i).d = 0
-   walk(i) = 0
-  NEXT i
- END IF
-END IF
-IF flee = 4 THEN
- IF checkNoRunBit(bslot()) THEN
-  flee = 0
-  alert$ = cannotrun$
-  alert = 10
- END IF
-END IF
-IF flee > 4 THEN
- FOR i = 0 TO 3
-  '--if alive turn around
-  IF bslot(i).stat.cur.hp THEN bslot(i).d = 1
-  walk(i) = 1
-  bslot(i).attack = 0
-  bslot(i).ready = NO
-  ctr(i) = large(0, ctr(i) - bslot(i).stat.cur.spd * 2)
- NEXT i
- IF carray(ccRun) = 0 THEN flee = 0: FOR i = 0 TO 3: bslot(i).d = 0: walk(i) = 0: NEXT i
- temp = 400
- FOR i = 4 TO 11
-  temp = temp + bslot(i).stat.cur.spd
- NEXT i
- IF RND * temp < flee THEN away = 1: flee = 2: FOR i = 0 TO 3: ctr(i) = 0: bslot(i).ready = NO: NEXT i
-END IF
-RETRACE
-
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB battle_tryrun(BYREF bat AS BattleState, bslot() AS BattleSprite)
+ '--Current running system sucks about as bad as a running system conceivably CAN suck
+ DIM i AS INTEGER
+ IF bat.flee > 0 AND bat.flee < 4 THEN
+  IF carray(ccRun) = 0 THEN
+   bat.flee = 0
+   FOR i = 0 TO 3
+    bslot(i).d = 0
+    bslot(i).walk = 0
+   NEXT i
+  END IF
+ END IF
+ IF bat.flee = 4 THEN
+  IF checkNoRunBit(bslot()) THEN
+   bat.flee = 0
+   bat.alert = bat.cannot_run_caption
+   bat.alert_ticks = 10
+  END IF
+ END IF
+ IF bat.flee > 4 THEN
+  FOR i = 0 TO 3
+   '--if alive turn around
+   IF bslot(i).stat.cur.hp THEN bslot(i).d = 1
+   bslot(i).walk = 1
+   bslot(i).attack = 0
+   bslot(i).ready = NO
+   bslot(i).ready_meter = large(0, bslot(i).ready_meter - bslot(i).stat.cur.spd * 2)
+  NEXT i
+  IF carray(ccRun) = 0 THEN
+   bat.flee = 0
+   FOR i = 0 TO 3
+    bslot(i).d = 0
+    bslot(i).walk = 0
+   NEXT i
+  END IF
+  DIM stupid_run_threshold AS INTEGER = 400
+  FOR i = 4 TO 11
+   stupid_run_threshold += bslot(i).stat.cur.spd
+  NEXT i
+  IF RND * stupid_run_threshold < bat.flee THEN
+   bat.away = 1
+   bat.flee = 2
+   FOR i = 0 TO 3
+    bslot(i).ready_meter = 0
+    bslot(i).ready = NO
+   NEXT i
+  END IF
+ END IF
+END SUB
 
 SUB draw_battle_sprites(bslot() AS BattleSprite)
  DIM zbuf(24) AS INTEGER
@@ -1150,7 +1166,7 @@ SUB draw_battle_sprites(bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, formdata(), ctr(), lifemeter())
+SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, formdata(), lifemeter())
  DIM i AS INTEGER
 
  setpicstuf formdata(), 80, -1
@@ -1253,7 +1269,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  NEXT i
  
  FOR i = 0 TO 11
-  ctr(i) = INT(RND * 500) '--randomize ready-meter
+  bslot(i).ready_meter = INT(RND * 500) '--randomize ready-meter
   bslot(i).t(12) = -1 '-- .t(12) is used when sorting dead enemies... for some silly reason...?
  NEXT i
  
@@ -1957,7 +1973,7 @@ SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS Battl
  formdata(enemynum * 4) = 0
 END SUB
 
-SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, BYREF rew AS RewardsState, ctr() AS INTEGER)
+SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, BYREF rew AS RewardsState)
  DIM ai AS INTEGER = 0
 
  'if HP is less than 20% go into desperation mode
@@ -2019,7 +2035,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
      'MP-idiot loses its turn
      IF bslot(bat.enemy_turn).mp_idiot = YES THEN
        bslot(bat.enemy_turn).ready = NO
-       ctr(bat.enemy_turn) = 0
+       bslot(bat.enemy_turn).ready_meter = 0
        bat.enemy_turn = -1
        EXIT SUB
      END IF
@@ -2043,7 +2059,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
 
  'ready for next attack
  bslot(bat.enemy_turn).ready = NO
- ctr(bat.enemy_turn) = 0
+ bslot(bat.enemy_turn).ready_meter = 0
  bat.enemy_turn = -1
 
 END SUB
