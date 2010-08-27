@@ -48,6 +48,7 @@ DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS A
 DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
 DECLARE FUNCTION battle_time_can_pass(bat AS BattleState, vic AS VictoryState) AS INTEGER
 DECLARE SUB battle_tryrun(BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -264,7 +265,7 @@ DO
  IF vic.state = vicEXITDELAY THEN vic.state = vicEXIT
  IF vic.state > 0 THEN show_victory vic, rew, bslot()
  IF show_info_mode = 1 THEN
-  GOSUB seestuff
+  show_enemy_meters bat, bslot(), formdata()
  ELSEIF show_info_mode = 2 THEN
   display_attack_queue bslot()
  END IF
@@ -1043,21 +1044,24 @@ FOR i = 0 TO 11
 NEXT i
 RETRACE
 
-seestuff:
-FOR i = 0 TO 11
- c = uilook(uiSelectedDisabled)
- IF is_hero(i) THEN c = uilook(uiSelectedItem)
- rectangle 0, 80 + (i * 10), bslot(i).ready_meter / 10, 4, c, dpage
- info$ = "v=" & bslot(i).vis & " dly=" & bslot(i).delay & " tm=" & bat.targ.mask(i) & " hp=" & bslot(i).stat.cur.hp & " dis=" & bslot(i).dissolve
- IF is_enemy(i) THEN  info$ = info$ & " fm=" & formdata((i-4)*4) 
- edgeprint info$, 20, 80 + i * 10, c, dpage
-NEXT i
-RETRACE
-
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+ 'This shows meters and extra debug info info when you press F10 the first time
+ DIM c AS INTEGER
+ DIM info AS STRING
+ FOR i AS INTEGER = 0 TO 11
+  c = uilook(uiSelectedDisabled)
+  IF is_hero(i) THEN c = uilook(uiSelectedItem)
+  rectangle 0, 80 + (i * 10), bslot(i).ready_meter / 10, 4, c, dpage
+  info = "v=" & bslot(i).vis & " dly=" & bslot(i).delay & " tm=" & bat.targ.mask(i) & " hp=" & bslot(i).stat.cur.hp & " dis=" & bslot(i).dissolve
+  IF is_enemy(i) THEN info &= " fm=" & formdata((i-4)*4) 
+  edgeprint info, 20, 80 + i * 10, c, dpage
+ NEXT i
+END SUB
 
 SUB battle_tryrun(BYREF bat AS BattleState, bslot() AS BattleSprite)
  '--Current running system sucks about as bad as a running system conceivably CAN suck
