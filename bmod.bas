@@ -1269,7 +1269,9 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  NEXT i
  
  FOR i = 0 TO 11
-  bslot(i).ready_meter = INT(RND * 500) '--randomize ready-meter
+  IF readbit(gen(), genBits2, 6) = 0 THEN
+   bslot(i).ready_meter = INT(RND * 500) '--randomize ready-meter
+  END IF
   bslot(i).t(12) = -1 '-- .t(12) is used when sorting dead enemies... for some silly reason...?
  NEXT i
  
