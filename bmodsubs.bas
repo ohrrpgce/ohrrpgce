@@ -1472,7 +1472,7 @@ FUNCTION targenemycount (bslot() AS BattleSprite, for_alone_ai as integer=0) as 
  RETURN count
 END FUNCTION
 
-SUB loadfoe (slot as integer, formdata() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, allow_dead as integer = NO)
+SUB loadfoe (slot as integer, formdata() as integer, BYREF bat AS BattleState, bslot() AS BattleSprite, allow_dead as integer = NO)
  '--slot is the enemy formation slot
 
  DIM i AS INTEGER
@@ -1493,7 +1493,7 @@ SUB loadfoe (slot as integer, formdata() as integer, BYREF bat AS BattleState, b
     'rewards and spawn enemies on death
     'enemy is only partially constructed, but already have everything needed.
     DIM atktype(8) 'regular "spawn on death"
-    dead_enemy 4 + slot, -1, bat, rew, bslot(), formdata()
+    dead_enemy 4 + slot, -1, bat, bslot(), formdata()
     EXIT SUB
    END IF
   END IF

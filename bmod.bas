@@ -31,24 +31,26 @@ DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTE
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION find_empty_enemy_slot(formdata() AS INTEGER) AS INTEGER
-DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, formdata(), bslot() AS BattleSprite, BYREF rew AS RewardsState)
+DECLARE SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, formdata(), bslot() AS BattleSprite)
 DECLARE SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
-DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, formdata())
+DECLARE SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
 DECLARE SUB checkitemusability(iuse() AS INTEGER, bslot() AS BattleSprite, who AS INTEGER)
 DECLARE SUB reset_battle_state (BYREF bat AS BattleState)
 DECLARE SUB reset_targetting (BYREF bat AS BattleState)
 DECLARE SUB reset_attack (BYREF bat AS BattleState)
 DECLARE SUB reset_victory_state (BYREF vic AS VictoryState)
 DECLARE SUB reset_rewards_state (BYREF rew AS RewardsState)
-DECLARE SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
-DECLARE SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
-DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, formdata() AS INTEGER)
+DECLARE SUB show_victory (BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB trigger_victory(BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
-DECLARE FUNCTION battle_time_can_pass(bat AS BattleState, vic AS VictoryState) AS INTEGER
+DECLARE FUNCTION battle_time_can_pass(bat AS BattleState) AS INTEGER
 DECLARE SUB battle_tryrun(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+DECLARE SUB battle_animate(bat AS BattleState, bslot() AS BattleSprite)
+
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -77,9 +79,7 @@ DIM bat AS BattleState
 REDIM atkq(15) AS AttackQueue
 clear_attack_queue()
 DIM bslot(24) AS BattleSprite
-DIM vic AS VictoryState
 DIM as double timinga, timingb
-DIM rew AS RewardsState
 DIM tcount AS INTEGER 'FIXME: This is used locally in action GOSUB block. Move DIMs there when that are SUBified
 DIM atktype(8) AS INTEGER 'FIXME: this used locally in sponhit: move the DIM there when SUBifiying it
 DIM inv_height AS INTEGER 'FIXME: this is only used in display:
@@ -118,8 +118,6 @@ bat.alert = ""
 fadeout 240, 240, 240
 needf = 1: fiptr = 0
 reset_battle_state bat
-reset_victory_state vic
-reset_rewards_state rew
 bat.anim_ready = NO
 bat.wait_frames = 0
 
@@ -164,7 +162,7 @@ clearpage 1
 clearpage 2
 clearpage 3
 
-battle_loadall form, bat, bslot(), rew, vic, st(), formdata(), lifemeter()
+battle_loadall form, bat, bslot(), st(), formdata(), lifemeter()
 
 copypage 2, dpage
 
@@ -173,7 +171,7 @@ setkeys
 DO
  setwait speedcontrol
  setkeys
- tog = tog XOR 1
+ bat.tog XOR= 1
  playtimer
  control
  flash = loopvar(flash, 0, 14, 1)
@@ -190,7 +188,7 @@ DO
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debug keys
   IF keyval(scF4) > 1 THEN bat.away = 11 ' Instant-cheater-running
-  IF keyval(scF5) > 1 THEN rew.exper = 1000000  'Million experience!
+  IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
   IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
  END IF
  IF keyval(scNumlock) > 1 THEN GOSUB pgame '--PAUSE
@@ -219,13 +217,13 @@ DO
    EXIT DO
   END IF
  END IF
- IF bat.atk.id >= 0 AND bat.anim_ready = NO AND vic.state = 0 THEN
+ IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
   generate_atkscript attack, bat, bslot(), icons()
  END IF
- IF bat.atk.id >= 0 AND bat.anim_ready = YES AND vic.state = 0 AND bat.away = 0 THEN GOSUB action
- GOSUB animate
+ IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN GOSUB action
+ battle_animate bat, bslot()
  na = loopvar(na, 0, 11, 1)
- IF battle_time_can_pass(bat, vic) THEN
+ IF battle_time_can_pass(bat) THEN
   GOSUB meters
   IF bslot(na).attack > 0 AND bslot(na).delay = 0 THEN
    '--next attacker has an attack selected and the delay is over
@@ -248,8 +246,8 @@ DO
  IF bat.enemy_turn = -1 THEN
   IF bslot(bat.next_enemy).ready = YES AND bslot(bat.next_enemy).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
  END IF
- IF vic.state = 0 THEN
-  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata(), rew
+ IF bat.vic.state = 0 THEN
+  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata()
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
    IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, inv_scroll, bslot(), icons(), iuse()
    IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, spel(), st(), bslot(), conlmp()
@@ -262,17 +260,17 @@ DO
  copypage 2, dpage
  draw_battle_sprites bslot()
  GOSUB display
- IF vic.state = vicEXITDELAY THEN vic.state = vicEXIT
- IF vic.state > 0 THEN show_victory vic, rew, bslot()
+ IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
+ IF bat.vic.state > 0 THEN show_victory bat, bslot()
  IF show_info_mode = 1 THEN
   show_enemy_meters bat, bslot(), formdata()
  ELSEIF show_info_mode = 2 THEN
   display_attack_queue bslot()
  END IF
- IF bat.death_mode = deathENEMIES AND vic.state = 0 THEN
-  IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory vic, rew, bslot()
+ IF bat.death_mode = deathENEMIES AND bat.vic.state = 0 THEN
+  IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory bat, bslot()
  END IF
- IF vic.state = vicEXIT THEN EXIT DO 'normal victory exit
+ IF bat.vic.state = vicEXIT THEN EXIT DO 'normal victory exit
  IF bat.death_mode = deathHEROES THEN
   fatal = 1
   EXIT DO
@@ -280,7 +278,7 @@ DO
  IF bat.alert_ticks > 0 THEN
   bat.alert_ticks -= 1
   centerfuz 160, 190, 100, 16, 3, dpage
-  edgeprint bat.alert, 160 - LEN(bat.alert) * 4, 185, uilook(uiSelectedItem + tog), dpage
+  edgeprint bat.alert, 160 - LEN(bat.alert) * 4, 185, uilook(uiSelectedItem + bat.tog), dpage
  END IF
 
  if dotimerbattle then
@@ -365,7 +363,7 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
  SELECT CASE act
   CASE 0 '--end()
    FOR i = 0 TO 3
-    enforce_weak_picture i, bslot(), vic
+    enforce_weak_picture i, bslot(), bat
     '--re-enforce party's X/Y positions...
     bslot(i).x = bslot(i).basex
     bslot(i).y = bslot(i).basey
@@ -655,7 +653,7 @@ IF attack.caption_time = 0 THEN
  bat.caption_time = 0
  bat.caption_delay = 0
 END IF
-fulldeathcheck bat.atk.was_id, bat, bslot(), rew, formdata()
+fulldeathcheck bat.atk.was_id, bat, bslot(), formdata()
 bat.atk.was_id = -1
 RETRACE
 
@@ -673,7 +671,7 @@ DO '--just for breaking
     slot = find_empty_enemy_slot(formdata())
     IF slot > -1 THEN
      formdata(slot * 4) = .enemy.spawn.non_elemental_hit
-     loadfoe slot, formdata(),  bat, bslot(), rew
+     loadfoe slot, formdata(), bat, bslot()
     END IF
    NEXT j
    EXIT DO '--skip further checks
@@ -684,7 +682,7 @@ DO '--just for breaking
      slot = find_empty_enemy_slot(formdata())
      IF slot > -1 THEN
       formdata(slot * 4) = .enemy.spawn.elemental_hit(i)
-      loadfoe slot, formdata(), bat, bslot(), rew
+      loadfoe slot, formdata(), bat, bslot()
      END IF
     NEXT j
     EXIT FOR
@@ -783,7 +781,7 @@ bat.targ.hit_dead = NO
 RETRACE
 
 display:
-IF vic.state = 0 THEN 'only display interface till you win
+IF bat.vic.state = 0 THEN 'only display interface till you win
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    IF readbit(gen(), 101, 6) = 0 THEN
@@ -807,13 +805,13 @@ IF vic.state = 0 THEN 'only display interface till you win
     IF lifemeter(i) > INT((87 / large(bslot(i).stat.max.hp, 1)) * bslot(i).stat.cur.hp) THEN lifemeter(i) = lifemeter(i) - 1
     IF lifemeter(i) > 87 THEN
      lifemeter(i) = 87
-     col = uiLook(uiHealthBar + tog)
+     col = uiLook(uiHealthBar + bat.tog)
     END IF
     edgeboxstyle 136, 4 + i * 10, 89, 11, 0, dpage, YES, YES
     rectangle 137, 5 + i * 10, lifemeter(i), 9, col, dpage
    END IF
    '--name--
-   col = uilook(uiMenuItem): IF i = bat.hero_turn THEN col = uilook(uiSelectedItem + tog)
+   col = uilook(uiMenuItem): IF i = bat.hero_turn THEN col = uilook(uiSelectedItem + bat.tog)
    edgeprint bslot(i).name, 128 - LEN(bslot(i).name) * 8, 5 + i * 10, col, dpage
    '--hp--
    edgeprint STR$(bslot(i).stat.cur.hp) + "/" + STR$(bslot(i).stat.max.hp), 136, 5 + i * 10, col, dpage
@@ -851,18 +849,18 @@ IF vic.state = 0 THEN 'only display interface till you win
    bg = 0
    fg = uilook(uiMenuItem)
    IF bat.pt = i THEN
-     fg = uilook(uiSelectedItem + tog)
+     fg = uilook(uiSelectedItem + bat.tog)
      bg = uilook(uiHighlight)
    END IF
    IF readbit(menubits(), 0, bat.hero_turn * 4 + i) THEN
      fg = uilook(uiDisabledItem)
-     IF bat.pt = i THEN fg = uilook(uiSelectedDisabled + tog)
+     IF bat.pt = i THEN fg = uilook(uiSelectedDisabled + bat.tog)
    END IF
    textcolor fg, bg
    printstr bslot(bat.hero_turn).menu(i).caption, 228, 9 + i * 8, dpage
   NEXT i
   IF bat.targ.mode = targNONE AND readbit(gen(), genBits, 14) = 0 THEN
-   edgeprint CHR$(24), bslot(bat.hero_turn).x + (bslot(bat.hero_turn).w / 2) - 4, bslot(bat.hero_turn).y - 5 + (tog * 2), uilook(uiSelectedItem + tog), dpage
+   edgeprint CHR$(24), bslot(bat.hero_turn).x + (bslot(bat.hero_turn).w / 2) - 4, bslot(bat.hero_turn).y - 5 + (bat.tog * 2), uilook(uiSelectedItem + bat.tog), dpage
   END IF
   IF bat.menu_mode = batMENUSPELL THEN '--draw spell menu
    centerbox 160, 53, 310, 95, 1, dpage
@@ -872,11 +870,11 @@ IF vic.state = 0 THEN 'only display interface till you win
    rectangle 5, 87, 310, 1, uilook(uiTextBox + 1), dpage
    FOR i = 0 TO 23
     textcolor uilook(uiDisabledItem - readbit(spelmask(), 0, i)), 0
-    IF bat.sptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(spelmask(), 0, i)) + tog), uilook(uiHighlight)
+    IF bat.sptr = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(spelmask(), 0, i)) + bat.tog), uilook(uiHighlight)
     printstr spelname(i), 16 + (i MOD 3) * 104, 8 + (i \ 3) * 8, dpage
    NEXT i
    textcolor uilook(uiMenuItem), 0
-   IF bat.sptr = 24 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
+   IF bat.sptr = 24 THEN textcolor uilook(uiSelectedItem + bat.tog), uilook(uiHighlight)
    printstr cancelspell$, 9, 90, dpage
    textcolor uilook(uiDescription), 0
    IF bat.sptr < 24 THEN
@@ -901,7 +899,7 @@ IF vic.state = 0 THEN 'only display interface till you win
    FOR i = bat.item.top TO small(bat.item.top + 26, last_inv_slot())
     if i < lbound(inventory) or i > ubound(inventory) then continue for
     textcolor uilook(uiDisabledItem - readbit(iuse(), 0, i)), 0
-    IF bat.item.pt = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(iuse(), 0, i)) + tog), uilook(uiHighlight)
+    IF bat.item.pt = i THEN textcolor uilook(uiSelectedDisabled - (2 * readbit(iuse(), 0, i)) + bat.tog), uilook(uiHighlight)
     printstr inventory(i).text, 20 + 96 * (i MOD 3), 8 + 8 * ((i - bat.item.top) \ 3), dpage
    NEXT i
    edgeboxstyle 8, 4 + inv_height, 304, 16, 0, dpage
@@ -911,13 +909,13 @@ IF vic.state = 0 THEN 'only display interface till you win
   IF bat.targ.mode > targNONE THEN
    FOR i = 0 TO 11
     IF bat.targ.selected(i) = 1 OR bat.targ.pointer = i THEN
-     edgeprint CHR$(24), bslot(i).x + bslot(i).cursorpos.x - 4, bslot(i).y + bslot(i).cursorpos.y - 6, uilook(uiSelectedItem + tog), dpage
-     edgeprint bslot(i).name, xstring(bslot(i).name, bslot(i).x + bslot(i).cursorpos.x), bslot(i).y + bslot(i).cursorpos.y - 16, uilook(uiSelectedItem + tog), dpage
+     edgeprint CHR$(24), bslot(i).x + bslot(i).cursorpos.x - 4, bslot(i).y + bslot(i).cursorpos.y - 6, uilook(uiSelectedItem + bat.tog), dpage
+     edgeprint bslot(i).name, xstring(bslot(i).name, bslot(i).x + bslot(i).cursorpos.x), bslot(i).y + bslot(i).cursorpos.y - 16, uilook(uiSelectedItem + bat.tog), dpage
     END IF
    NEXT i
   END IF
  END IF
-END IF'--end if vic.state = 0
+END IF'--end if bat.vic.state = 0
 RETRACE
 
 meters:
@@ -949,7 +947,7 @@ FOR i = 0 TO 11
     harm = range(harm, 20)
     quickinflict harm, i, bslot()
     triggerfade i, bslot()
-    fulldeathcheck -1, bat, bslot(), rew, formdata()
+    fulldeathcheck -1, bat, bslot(), formdata()
    END IF
   END IF
  END WITH
@@ -965,7 +963,7 @@ FOR i = 0 TO 11
     heal = range(heal, 20)
     quickinflict heal, i, bslot()
     triggerfade i, bslot()
-    fulldeathcheck -1, bat, bslot(), rew, formdata()
+    fulldeathcheck -1, bat, bslot(), formdata()
    END IF
   END IF
  END WITH
@@ -996,58 +994,65 @@ END IF
 
 RETRACE
 
-animate:
-FOR i = 0 TO 3
- IF bslot(i).walk = 1 THEN bslot(i).frame = bslot(i).frame xor tog
- IF bat.acting <> i THEN enforce_weak_picture i, bslot(), vic
- IF vic.state > 0 AND bslot(i).stat.cur.hp > 0 AND tog = 0 THEN
-  if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
- END IF
-NEXT i
-FOR i = 0 TO 23
- WITH bslot(i)
-  IF .xmov <> 0 THEN .x = .x + (.xspeed * SGN(.xmov)): .xmov = .xmov - SGN(.xmov)
-  IF .ymov <> 0 THEN .y = .y + (.yspeed * SGN(.ymov)): .ymov = .ymov - SGN(.ymov)
-  IF .zmov <> 0 THEN .z = .z + (.zspeed * SGN(.zmov)): .zmov = .zmov - SGN(.zmov)
- END WITH
-NEXT i
-FOR i = 12 TO 23 '--for each attack sprite
- IF bslot(i).vis = 1 THEN
-  WITH bslot(i)
-   .anim_index += 1
-   '--each pattern ends with a -1. If we have found it, loop around
-   IF bat.animpat(.anim_pattern).frame(.anim_index) = -1 THEN .anim_index = 0
-   .frame = bat.animpat(.anim_pattern).frame(.anim_index)
-   IF .frame = -1 THEN
-    '--if the frame get set to -1 that indicates an empty pattern, so randomize instead
-    .frame = INT(RND * 3)
-   END IF
-  END WITH
- END IF
-NEXT i
-FOR i = 0 TO 11
- IF bslot(i).dissolve > 0 THEN
-  'ENEMIES DEATH THROES
-  IF is_enemy(i) THEN
-   IF bslot(i).flee THEN
-    'running away
-    bslot(i).x = bslot(i).x - 10: bslot(i).d = 1
-   END IF
-   bslot(i).dissolve -= 1
-   IF bslot(i).dissolve = 0 THEN
-    'make dead enemy invisible (the check_death code will actually do the final removal, which might happen before the enemy has finished dissolving)
-    bslot(i).vis = 0
-   END IF
-  END IF
-  IF is_hero(i) THEN bslot(i).frame = 7
- END IF
-NEXT i
-RETRACE
-
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB battle_animate(bat AS BattleState, bslot() AS BattleSprite)
+ 'This sub is intended to apply animation effects triggered elsewhere.
+ 'FIXME: due to messy code, some stuff animation stuff might still happen elsewhere
+ DIM i AS INTEGER
+ '--First, things that only heroes can do
+ FOR i = 0 TO 3
+  IF bslot(i).walk = 1 THEN bslot(i).frame = bslot(i).frame XOR bat.tog
+  IF bat.acting <> i THEN enforce_weak_picture i, bslot(), bat
+  IF bat.vic.state > 0 AND bslot(i).stat.cur.hp > 0 AND bat.tog = 0 THEN
+   if bslot(i).frame = 0 then bslot(i).frame = 2 else bslot(i).frame = 0
+  END IF
+ NEXT i
+ '--Then apply movement forces for all things, heroes, enemies, attacks, weapons
+ FOR i = 0 TO 23
+  WITH bslot(i)
+   IF .xmov <> 0 THEN .x = .x + (.xspeed * SGN(.xmov)): .xmov = .xmov - SGN(.xmov)
+   IF .ymov <> 0 THEN .y = .y + (.yspeed * SGN(.ymov)): .ymov = .ymov - SGN(.ymov)
+   IF .zmov <> 0 THEN .z = .z + (.zspeed * SGN(.zmov)): .zmov = .zmov - SGN(.zmov)
+  END WITH
+ NEXT i
+ '--then, stuff that only attacks can do
+ FOR i = 12 TO 23 '--for each attack sprite
+  IF bslot(i).vis = 1 THEN
+   WITH bslot(i)
+    .anim_index += 1
+    '--each pattern ends with a -1. If we have found it, loop around
+    IF bat.animpat(.anim_pattern).frame(.anim_index) = -1 THEN .anim_index = 0
+    .frame = bat.animpat(.anim_pattern).frame(.anim_index)
+    IF .frame = -1 THEN
+     '--if the frame get set to -1 that indicates an empty pattern, so randomize instead
+     .frame = INT(RND * 3)
+    END IF
+   END WITH
+  END IF
+ NEXT i
+ '--Then death animations
+ FOR i = 0 TO 11
+  IF bslot(i).dissolve > 0 THEN
+   'ENEMIES DEATH THROES
+   IF is_enemy(i) THEN
+    IF bslot(i).flee THEN
+     'running away
+     bslot(i).x = bslot(i).x - 10: bslot(i).d = 1
+    END IF
+    bslot(i).dissolve -= 1
+    IF bslot(i).dissolve = 0 THEN
+     'make dead enemy invisible (the check_death code will actually do the final removal, which might happen before the enemy has finished dissolving)
+     bslot(i).vis = 0
+    END IF
+   END IF
+   IF is_hero(i) THEN bslot(i).frame = 7
+  END IF
+ NEXT i
+END SUB
 
 SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  'This shows meters and extra debug info info when you press F10 the first time
@@ -1170,7 +1175,7 @@ SUB draw_battle_sprites(bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF rew AS RewardsState, BYREF vic AS VictoryState, st() AS HeroDef, formdata(), lifemeter())
+SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, st() AS HeroDef, formdata(), lifemeter())
  DIM i AS INTEGER
 
  setpicstuf formdata(), 80, -1
@@ -1269,7 +1274,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  
  '--load monsters
  FOR i = 0 TO 7
-  loadfoe i, formdata(), bat, bslot(), rew, YES
+  loadfoe i, formdata(), bat, bslot(), YES
  NEXT i
  
  FOR i = 0 TO 11
@@ -1291,7 +1296,7 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
  '--This checks weak/dead status for heroes
  '-- who are already weak/dead at the beginning of battle
  FOR i = 0 TO 3
-  enforce_weak_picture i, bslot(), vic
+  enforce_weak_picture i, bslot(), bat
   IF hero(i) > 0 AND bslot(i).stat.cur.hp = 0 THEN
    '--hero starts the battle dead
    bslot(i).dissolve = 1 'Keeps the dead hero from vanishing
@@ -1313,10 +1318,10 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
    triggerfade i, bslot()
   END IF
  NEXT i
- fulldeathcheck -1, bat, bslot(), rew, formdata()
+ fulldeathcheck -1, bat, bslot(), formdata()
 END SUB
 
-SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, rew AS RewardsState, formdata() AS INTEGER)
+SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  '--Runs check_death on all enemies, checks all heroes for death, and sets bat.death_mode if necessary
  'killing_attack is the attack ID that was just used, or -1 for none
  DIM deadguy AS INTEGER
@@ -1331,7 +1336,7 @@ SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS Ba
   END IF
  NEXT
  FOR deadguy = 0 TO 11
-  check_death deadguy, killing_attack, bat, rew, bslot(), formdata()
+  check_death deadguy, killing_attack, bat, bslot(), formdata()
  NEXT
  dead_enemies = 0
  FOR deadguy = 4 TO 11
@@ -1345,12 +1350,12 @@ SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS Ba
  IF dead_heroes = 4 THEN bat.death_mode = deathHEROES
 END SUB
 
-SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
+SUB trigger_victory(BYREF bat AS BattleState, bslot() AS BattleSprite)
  DIM AS INTEGER i, numheroes
  '--Play the victory music
  IF gen(genVictMus) > 0 THEN wrappedsong gen(genVictMus) - 1
  '--Collect gold (which is capped at 2 billion max)
- gold = gold + rew.plunder
+ gold = gold + bat.rew.plunder
  IF gold < 0 OR gold > 2000000000 THEN gold = 2000000000
  '--Divide experience by heroes
  IF readbit(gen(), genBits2, 3) THEN 'dead heroes get experience
@@ -1358,45 +1363,45 @@ SUB trigger_victory(BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot(
  ELSE
   numheroes = liveherocount(bslot())
  END IF
- IF numheroes > 0 THEN rew.exper = rew.exper / numheroes
+ IF numheroes > 0 THEN bat.rew.exper = bat.rew.exper / numheroes
  '--Collect experience and apply levelups
  FOR i = 0 TO 3
-  IF readbit(gen(), genBits2, 3) <> 0 OR bslot(i).stat.cur.hp > 0 THEN giveheroexperience i, rew.exper
+  IF readbit(gen(), genBits2, 3) <> 0 OR bslot(i).stat.cur.hp > 0 THEN giveheroexperience i, bat.rew.exper
   updatestatslevelup i, bslot(i).stat, 0
  NEXT i
  '--Trigger the display of end-of-battle rewards
- vic.state = vicGOLDEXP
+ bat.vic.state = vicGOLDEXP
 END SUB
 
-SUB show_victory (BYREF vic AS VictoryState, BYREF rew AS RewardsState, bslot() AS BattleSprite)
+SUB show_victory (BYREF bat AS BattleState, bslot() AS BattleSprite)
 DIM tempstr AS STRING
 DIM AS INTEGER i, o
-IF vic.box THEN centerfuz 160, 30, 280, 50, 1, dpage
-SELECT CASE vic.state
+IF bat.vic.box THEN centerfuz 160, 30, 280, 50, 1, dpage
+SELECT CASE bat.vic.state
  CASE vicGOLDEXP
   '--print acquired gold and experience
-  IF rew.plunder > 0 OR rew.exper > 0 THEN vic.box = YES: centerfuz 160, 30, 280, 50, 1, dpage
-  IF rew.plunder > 0 THEN
-   tempstr = vic.gold_caption & " " & rew.plunder & " " & vic.gold_name & "!"
+  IF bat.rew.plunder > 0 OR bat.rew.exper > 0 THEN bat.vic.box = YES: centerfuz 160, 30, 280, 50, 1, dpage
+  IF bat.rew.plunder > 0 THEN
+   tempstr = bat.vic.gold_caption & " " & bat.rew.plunder & " " & bat.vic.gold_name & "!"
    edgeprint tempstr, xstring(tempstr, 160), 16, uilook(uiText), dpage
   END IF
-  IF rew.exper > 0 THEN
-   tempstr = vic.exp_caption & " " & rew.exper & " " & vic.exp_name & "!"
+  IF bat.rew.exper > 0 THEN
+   tempstr = bat.vic.exp_caption & " " & bat.rew.exper & " " & bat.vic.exp_name & "!"
    edgeprint tempstr, xstring(tempstr, 160), 28, uilook(uiText), dpage
   END IF
-  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 OR (rew.plunder = 0 AND rew.exper = 0) THEN
-   vic.state = vicLEVELUP
+  IF carray(ccUse) > 1 OR carray(ccMenu) > 1 OR (bat.rew.plunder = 0 AND bat.rew.exper = 0) THEN
+   bat.vic.state = vicLEVELUP
   END IF
  CASE vicLEVELUP
   '--print levelups
   o = 0
   FOR i = 0 TO 3
-   IF o = 0 AND gam.hero(i).lev_gain <> 0 THEN centerfuz 160, 30, 280, 50, 1, dpage: vic.box = YES
+   IF o = 0 AND gam.hero(i).lev_gain <> 0 THEN centerfuz 160, 30, 280, 50, 1, dpage: bat.vic.box = YES
    SELECT CASE gam.hero(i).lev_gain
     CASE 1
-     tempstr = vic.level_up_caption & " " & bslot(i).name
+     tempstr = bat.vic.level_up_caption & " " & bslot(i).name
     CASE IS > 1
-     tempstr = gam.hero(i).lev_gain & " " & vic.levels_up_caption & " " & bslot(i).name
+     tempstr = gam.hero(i).lev_gain & " " & bat.vic.levels_up_caption & " " & bslot(i).name
    END SELECT
    IF gam.hero(i).lev_gain > 0 THEN
     edgeprint tempstr, xstring(tempstr, 160), 12 + i * 10, uilook(uiText), dpage
@@ -1404,71 +1409,71 @@ SELECT CASE vic.state
    END IF
   NEXT i
   IF o = 0 OR (carray(ccUse) > 1 OR carray(ccMenu) > 1) THEN
-   vic.state = vicSPELLS
-   vic.showlearn = NO
-   vic.learnwho = 0
-   vic.learnlist = 0
-   vic.learnslot = -1
+   bat.vic.state = vicSPELLS
+   bat.vic.showlearn = NO
+   bat.vic.learnwho = 0
+   bat.vic.learnlist = 0
+   bat.vic.learnslot = -1
   END IF
  CASE vicSPELLS
   '--print learned spells, one at a time
-  IF vic.showlearn = NO THEN '--Not showing a spell yet. find the next one
+  IF bat.vic.showlearn = NO THEN '--Not showing a spell yet. find the next one
    DO
-    vic.learnslot = vic.learnslot + 1
-    IF vic.learnslot > 23 THEN vic.learnslot = 0: vic.learnlist = vic.learnlist + 1
-    IF vic.learnlist > 3 THEN vic.learnlist = 0: vic.learnwho = vic.learnwho + 1
-    IF vic.learnwho > 3 THEN ' We have iterated through all spell lists for all heroes, time to move on
-     vic.state = vicITEMS
-     vic.item_name = ""
-     vic.found_index = 0
-     vic.box = NO
+    bat.vic.learnslot += 1
+    IF bat.vic.learnslot > 23 THEN bat.vic.learnslot = 0: bat.vic.learnlist = bat.vic.learnlist + 1
+    IF bat.vic.learnlist > 3 THEN bat.vic.learnlist = 0: bat.vic.learnwho = bat.vic.learnwho + 1
+    IF bat.vic.learnwho > 3 THEN ' We have iterated through all spell lists for all heroes, time to move on
+     bat.vic.state = vicITEMS
+     bat.vic.item_name = ""
+     bat.vic.found_index = 0
+     bat.vic.box = NO
      EXIT DO
     END IF
-    IF readbit(learnmask(), 0, vic.learnwho * 96 + vic.learnlist * 24 + vic.learnslot) THEN
+    IF readbit(learnmask(), 0, bat.vic.learnwho * 96 + bat.vic.learnlist * 24 + bat.vic.learnslot) THEN
      'found a learned spell
      DIM learn_attack AS AttackData
-     loadattackdata learn_attack, spell(vic.learnwho, vic.learnlist, vic.learnslot) - 1
-     vic.item_name = bslot(vic.learnwho).name + vic.learned_caption
-     vic.item_name = vic.item_name & learn_attack.name
-     vic.showlearn = YES
-     vic.box = YES
+     loadattackdata learn_attack, spell(bat.vic.learnwho, bat.vic.learnlist, bat.vic.learnslot) - 1
+     bat.vic.item_name = bslot(bat.vic.learnwho).name + bat.vic.learned_caption
+     bat.vic.item_name = bat.vic.item_name & learn_attack.name
+     bat.vic.showlearn = YES
+     bat.vic.box = YES
      IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1
      EXIT DO
     END IF
    LOOP
   ELSE' Found a learned spell to display, show it until a keypress
    IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN
-    vic.showlearn = NO ' hide the display (which causes us to search for the next learned spell)
+    bat.vic.showlearn = NO ' hide the display (which causes us to search for the next learned spell)
    END IF
-   edgeprint vic.item_name, xstring(vic.item_name, 160), 22, uilook(uiText), dpage
+   edgeprint bat.vic.item_name, xstring(bat.vic.item_name, 160), 22, uilook(uiText), dpage
   END IF
  CASE vicITEMS
   '--print found items, one at a time
   '--check to see if we are currently displaying a gotten item
-  IF vic.item_name = "" THEN
+  IF bat.vic.item_name = "" THEN
    '--if not, check to see if there are any more gotten items to display
-   IF rew.found(vic.found_index).num = 0 THEN vic.state = vicEXITDELAY: EXIT SUB
+   IF bat.rew.found(bat.vic.found_index).num = 0 THEN bat.vic.state = vicEXITDELAY: EXIT SUB
    '--get the item name
-   vic.item_name = readitemname$(rew.found(vic.found_index).id)
+   bat.vic.item_name = readitemname$(bat.rew.found(bat.vic.found_index).id)
    '--actually aquire the item
-   getitem rew.found(vic.found_index).id + 1, rew.found(vic.found_index).num
+   getitem bat.rew.found(bat.vic.found_index).id + 1, bat.rew.found(bat.vic.found_index).num
   END IF
   '--if the present item is gotten, show the caption
-  IF rew.found(vic.found_index).num = 1 THEN
-   tempstr = vic.item_caption & " " & vic.item_name
+  IF bat.rew.found(bat.vic.found_index).num = 1 THEN
+   tempstr = bat.vic.item_caption & " " & bat.vic.item_name
   ELSE
-   tempstr = vic.plural_item_caption & " " & rew.found(vic.found_index).num & " " & vic.item_name
+   tempstr = bat.vic.plural_item_caption & " " & bat.rew.found(bat.vic.found_index).num & " " & bat.vic.item_name
   END IF
   IF LEN(tempstr) THEN centerfuz 160, 30, 280, 50, 1, dpage
   edgeprint tempstr, xstring(tempstr, 160), 22, uilook(uiText), dpage
   '--check for a keypress
   IF carray(ccUse) > 1 OR carray(ccMenu) > 1 THEN
-   IF rew.found(vic.found_index).num = 0 THEN
+   IF bat.rew.found(bat.vic.found_index).num = 0 THEN
     '--if there are no further items, exit
-    vic.state = -1
+    bat.vic.state = -1
    ELSE
     '--otherwize, increment the findpointer and reset the caption
-    vic.found_index = vic.found_index + 1: vic.item_name = ""
+    bat.vic.found_index = bat.vic.found_index + 1: bat.vic.item_name = ""
    END IF
   END IF
 END SELECT
@@ -1486,6 +1491,8 @@ SUB reset_battle_state (BYREF bat AS BattleState)
  END WITH
  reset_targetting bat
  reset_attack bat
+ reset_victory_state bat.vic
+ reset_rewards_state bat.rew
 END SUB
 
 SUB reset_targetting (BYREF bat AS BattleState)
@@ -1794,7 +1801,7 @@ FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
  RETURN count
 END FUNCTION
 
-SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, formdata(), bslot() AS BattleSprite, BYREF rew AS RewardsState)
+SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, formdata(), bslot() AS BattleSprite)
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
  DIM attack AS AttackData
  DIM slot AS INTEGER
@@ -1814,7 +1821,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
     slot = find_empty_enemy_slot(formdata())
     IF slot > -1 THEN
      formdata(slot * 4) = .enemy.spawn.non_elemental_death
-     loadfoe(slot, formdata(), bat, bslot(), rew)
+     loadfoe(slot, formdata(), bat, bslot())
     END IF
    NEXT i
    .enemy.spawn.non_elemental_death = 0
@@ -1824,7 +1831,7 @@ SUB spawn_on_death(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS B
     slot = find_empty_enemy_slot(formdata())
     IF slot > -1 THEN
      formdata(slot * 4) = .enemy.spawn.on_death
-     loadfoe(slot, formdata(), bat, bslot(), rew)
+     loadfoe(slot, formdata(), bat, bslot())
     END IF
    NEXT i
    .enemy.spawn.on_death = 0
@@ -1882,7 +1889,7 @@ SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
  END IF
 END SUB
 
-SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, formdata())
+SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
 'FIXME: killing_attack is not used yet, but will contain attack id or -1 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
  DIM attack AS AttackData
@@ -1921,7 +1928,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   ELSEIF bslot(deadguy).death_sfx > 0 THEN
    playsfx bslot(deadguy).death_sfx - 1
   END IF
-  dead_enemy deadguy, killing_attack, bat, rew, bslot(), formdata()
+  dead_enemy deadguy, killing_attack, bat, bslot(), formdata()
  END IF'------------END PLUNDER-------------------
  IF bat.targ.hit_dead = NO THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
   FOR j = 0 TO 11
@@ -1948,28 +1955,28 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
  END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
 END SUB
 
-SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, BYREF rew AS RewardsState, bslot() AS BattleSprite, formdata())
+SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
  '--give rewards, spawn enemies, clear formdata slot, but NO other cleanup!
  'killing_attack is the id of the attack that killed the target or -1 if the target died without a specific attack
  DIM AS INTEGER j
  DIM enemynum AS INTEGER = deadguy - 4
  '--spawn enemies before freeing the formdata slot to avoid infinite loops. however this might need to be changed to fix morphing enemies?
- spawn_on_death deadguy, killing_attack, bat, formdata(), bslot(), rew
+ spawn_on_death deadguy, killing_attack, bat, formdata(), bslot()
  IF formdata(enemynum * 4) > 0 THEN
   WITH bslot(deadguy)
-   rew.plunder += .enemy.reward.gold
-   rew.exper += .enemy.reward.exper
-   IF rew.exper > 1000000 THEN rew.exper = 1000000 '--this one million limit is totally arbitrary
+   bat.rew.plunder += .enemy.reward.gold
+   bat.rew.exper += .enemy.reward.exper
+   IF bat.rew.exper > 1000000 THEN bat.rew.exper = 1000000 '--this one million limit is totally arbitrary
    IF INT(RND * 100) < .enemy.reward.item_rate THEN '---GET ITEMS FROM FOES-----
     FOR j = 0 TO 16
-     IF rew.found(j).num = 0 THEN rew.found(j).id = .enemy.reward.item: rew.found(j).num = 1: EXIT FOR
-     IF rew.found(j).id = .enemy.reward.item THEN rew.found(j).num = rew.found(j).num + 1: EXIT FOR
+     IF bat.rew.found(j).num = 0 THEN bat.rew.found(j).id = .enemy.reward.item: bat.rew.found(j).num = 1: EXIT FOR
+     IF bat.rew.found(j).id = .enemy.reward.item THEN bat.rew.found(j).num = bat.rew.found(j).num + 1: EXIT FOR
     NEXT j
    ELSE '------END NORMAL ITEM---------------
     IF INT(RND * 100) < .enemy.reward.rare_item_rate THEN
      FOR j = 0 TO 16
-      IF rew.found(j).num = 0 THEN rew.found(j).id = .enemy.reward.rare_item: rew.found(j).num = 1: EXIT FOR
-      IF rew.found(j).id = .enemy.reward.rare_item THEN rew.found(j).num = rew.found(j).num + 1: EXIT FOR
+      IF bat.rew.found(j).num = 0 THEN bat.rew.found(j).id = .enemy.reward.rare_item: bat.rew.found(j).num = 1: EXIT FOR
+      IF bat.rew.found(j).id = .enemy.reward.rare_item THEN bat.rew.found(j).num = bat.rew.found(j).num + 1: EXIT FOR
      NEXT j
     END IF '---END RARE ITEM-------------
    END IF '----END GET ITEMS----------------
@@ -1979,7 +1986,7 @@ SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS Battl
  formdata(enemynum * 4) = 0
 END SUB
 
-SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, BYREF rew AS RewardsState)
+SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  DIM ai AS INTEGER = 0
 
  'if HP is less than 20% go into desperation mode
@@ -1996,7 +2003,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
     slot = find_empty_enemy_slot(formdata())
     IF slot > -1 THEN
      formdata(slot * 4) = .enemy.spawn.when_alone
-     loadfoe slot, formdata(), bat, bslot(), rew
+     loadfoe slot, formdata(), bat, bslot()
     END IF
    NEXT j
   END IF
@@ -2808,11 +2815,11 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  bat.anim_ready = YES
 END SUB
 
-SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, vic AS VictoryState)
+SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, bat AS BattleState)
  '--Heroes only, since enemies don't currently have a weak frame
  IF is_hero(who) THEN
   '--enforce weak picture
-  IF bslot(who).stat.cur.hp < bslot(who).stat.max.hp / 5 AND vic.state = 0 THEN bslot(who).frame = 6
+  IF bslot(who).stat.cur.hp < bslot(who).stat.max.hp / 5 AND bat.vic.state = 0 THEN bslot(who).frame = 6
  END IF
 END SUB
 
@@ -3070,9 +3077,9 @@ SUB display_attack_queue (bslot() AS BattleSprite)
  NEXT i
 END SUB
 
-FUNCTION battle_time_can_pass(bat AS BattleState, vic AS VictoryState) AS INTEGER
+FUNCTION battle_time_can_pass(bat AS BattleState) AS INTEGER
  IF bat.atk.id <> -1 THEN RETURN NO 'an attack animation is going on right now
- IF vic.state <> 0 THEN RETURN NO 'victory has already happened
+ IF bat.vic.state <> 0 THEN RETURN NO 'victory has already happened
  IF readbit(gen(), genBits2, 5) <> 0 AND bat.caption_time > 0 THEN RETURN NO 'pause on captions
  RETURN YES
 END FUNCTION

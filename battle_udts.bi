@@ -153,55 +153,6 @@ CONST targSETUP  = 1 'means targetting needs set-up
 CONST targMANUAL = 2 'means normal manual targetting
 CONST targAUTO   = 3 'means autotargeting
 
-'--These patterns are used for attack animation frame oscillation
-TYPE AttackAnimationPattern
- frame(10) AS INTEGER
-END TYPE
-
-'This type stores the state of the battle engine, for example,
-'who's turn it is, what each character is doing, and targetting information
-TYPE BattleState
- acting AS INTEGER     'Hero or enemy who is currently taking their turn to act
- hero_turn AS INTEGER  'Hero currently selecting an attack
- enemy_turn AS INTEGER 'Enemy currently selecting an attack
- next_hero AS INTEGER  'counter that controls which ready hero will get their turn next
- next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
- menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
- death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
- targ AS TargettingState
- atk AS AttackState
- pt AS INTEGER         'menu cursor for hero menu
- listslot AS INTEGER   'currently active hero spell list slot
- sptr AS INTEGER       'menu cursor for hero spell list menu
- item AS MenuState     'menu cursor for items menu
- item_desc AS STRING   'description of currently selected item in item menu
- caption AS STRING     'currently displaying caption
- caption_time AS INTEGER 'time for the currently displaying caption
- caption_delay AS INTEGER 'delay before current caption displays
- anim_ready AS INTEGER 'YES or NO indicating whether the current animation has bene generated
- animpat(3) AS AttackAnimationPattern = _
-        { ({0,0,1,1,2,2,-1}), _
-          ({2,2,1,1,0,0,-1}), _
-          ({0,0,1,1,2,2,1,1,0,0,-1}), _
-          ({-1,-1}) }
- curbg AS INTEGER      'Current background
- wait_frames AS INTEGER 'used by the attack animation
- level_mp_caption AS STRING
- cannot_run_caption AS STRING
- flee AS INTEGER 'used by the crappy running system, not to be confused with BattleSprite.flee
- away AS INTEGER 'used by the crappy running system.
- alert_ticks AS INTEGER
- alert AS STRING
-END TYPE
-
-CONST batMENUHERO = 0
-CONST batMENUSPELL = 1
-CONST batMENUITEM = 2
-'--Used by the .deathmode member
-CONST deathNOBODY  = 0
-CONST deathENEMIES = 1
-CONST deathHEROES  = 2
-
 'This type stores the visual state of the victory display
 TYPE VictoryState
  state AS INTEGER 'vicSTATENAME or 0 for none
@@ -242,6 +193,58 @@ TYPE RewardsState
  exper AS INTEGER
  found(16) AS RewardsStateItem
 END TYPE
+
+'--These patterns are used for attack animation frame oscillation
+TYPE AttackAnimationPattern
+ frame(10) AS INTEGER
+END TYPE
+
+'This type stores the state of the battle engine, for example,
+'who's turn it is, what each character is doing, and targetting information
+TYPE BattleState
+ acting AS INTEGER     'Hero or enemy who is currently taking their turn to act
+ hero_turn AS INTEGER  'Hero currently selecting an attack
+ enemy_turn AS INTEGER 'Enemy currently selecting an attack
+ next_hero AS INTEGER  'counter that controls which ready hero will get their turn next
+ next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
+ menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
+ death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
+ targ AS TargettingState
+ atk AS AttackState
+ pt AS INTEGER         'menu cursor for hero menu
+ listslot AS INTEGER   'currently active hero spell list slot
+ sptr AS INTEGER       'menu cursor for hero spell list menu
+ item AS MenuState     'menu cursor for items menu
+ item_desc AS STRING   'description of currently selected item in item menu
+ caption AS STRING     'currently displaying caption
+ caption_time AS INTEGER 'time for the currently displaying caption
+ caption_delay AS INTEGER 'delay before current caption displays
+ anim_ready AS INTEGER 'YES or NO indicating whether the current animation has bene generated
+ animpat(3) AS AttackAnimationPattern = _
+        { ({0,0,1,1,2,2,-1}), _
+          ({2,2,1,1,0,0,-1}), _
+          ({0,0,1,1,2,2,1,1,0,0,-1}), _
+          ({-1,-1}) }
+ curbg AS INTEGER      'Current background
+ wait_frames AS INTEGER 'used by the attack animation
+ level_mp_caption AS STRING
+ cannot_run_caption AS STRING
+ flee AS INTEGER 'used by the crappy running system, not to be confused with BattleSprite.flee
+ away AS INTEGER 'used by the crappy running system.
+ alert_ticks AS INTEGER
+ alert AS STRING
+ tog AS INTEGER 'alternates 0,1,0,1 tick by tick
+ vic AS VictoryState
+ rew AS RewardsState
+END TYPE
+
+CONST batMENUHERO = 0
+CONST batMENUSPELL = 1
+CONST batMENUITEM = 2
+'--Used by the .deathmode member
+CONST deathNOBODY  = 0
+CONST deathENEMIES = 1
+CONST deathHEROES  = 2
 
 TYPE AttackQueue
  used     AS INTEGER 'YES when used, NO when recycleable
