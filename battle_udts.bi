@@ -86,6 +86,9 @@ TYPE BattleSprite
   menu(5)   AS BattleHeroMenu 'Only applies to heroes. blank for enemies
   menu_size AS INTEGER 'actually the index of the last used element in .menu()
   harm AS HarmText
+  '--affliction state
+  poison_repeat AS INTEGER
+  regen_repeat AS INTEGER
   '--Turn-taking
   ready_meter AS INTEGER '0-1000, fills based on speed. When 1000, set .ready=YES
   ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
@@ -234,6 +237,7 @@ TYPE BattleState
  alert_ticks AS INTEGER
  alert AS STRING
  tog AS INTEGER 'alternates 0,1,0,1 tick by tick
+ laststun AS DOUBLE
  vic AS VictoryState
  rew AS RewardsState
 END TYPE

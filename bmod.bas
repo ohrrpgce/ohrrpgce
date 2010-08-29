@@ -50,7 +50,7 @@ DECLARE FUNCTION battle_time_can_pass(bat AS BattleState) AS INTEGER
 DECLARE SUB battle_tryrun(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_animate(bat AS BattleState, bslot() AS BattleSprite)
-
+DECLARE SUB battle_meters (bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -72,9 +72,8 @@ DIM targets_attack AS AttackData
 DIM autotarg_attack AS AttackData
 DIM st(3) as herodef
 DIM menubits(2), spelname(23) AS STRING, speld(23) AS STRING, spel(23), cost(23) AS STRING
-DIM conlmp(11), icons(11), lifemeter(3), prtimer(11,1), spelmask(1)
+DIM conlmp(11), icons(11), lifemeter(3), spelmask(1)
 DIM iuse(inventoryMax / 16) AS INTEGER
-DIM laststun AS DOUBLE
 DIM bat AS BattleState
 REDIM atkq(15) AS AttackQueue
 clear_attack_queue()
@@ -149,10 +148,10 @@ FOR i = 0 TO 11
   .stun   = 1000
   .mute   = 1000
  END WITH
- prtimer(i, 0) = INT(RND * 2000)
- prtimer(i, 1) = INT(RND * 2000)
+ bslot(i).poison_repeat = INT(RND * 2000)
+ bslot(i).regen_repeat = INT(RND * 2000)
 NEXT i
-laststun = TIMER
+bat.laststun = TIMER
 IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
 IF gen(genStun) <= 0 THEN gen(genStun) = 159
 IF gen(genMute) <= 0 THEN gen(genMute) = 163
@@ -224,7 +223,7 @@ DO
  battle_animate bat, bslot()
  na = loopvar(na, 0, 11, 1)
  IF battle_time_can_pass(bat) THEN
-  GOSUB meters
+  battle_meters bat, bslot(), formdata()
   IF bslot(na).attack > 0 AND bslot(na).delay = 0 THEN
    '--next attacker has an attack selected and the delay is over
    bat.atk.id = bslot(na).attack - 1
@@ -918,86 +917,89 @@ IF bat.vic.state = 0 THEN 'only display interface till you win
 END IF'--end if bat.vic.state = 0
 RETRACE
 
-meters:
-IF bat.away = 1 THEN RETRACE
-'--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
-isdeepmenu = (bat.menu_mode > 0 AND readbit(gen(), genBits, 0))
-isbattlemenu = (bat.menu_mode >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13))
-isenemytargs = (targenemycount(bslot()) > 0)
-IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN RETRACE
-
-FOR i = 0 TO 11
-
- 'delays for attacks already selected
- IF bat.hero_turn <> i THEN
-  IF bslot(i).stat.cur.stun < bslot(i).stat.max.stun THEN
-   '--delay does not count when stunned
-  ELSE
-   bslot(i).delay = large(bslot(i).delay - 1, 0)
-  END IF
- END IF
-
- '--poison
- WITH bslot(i).stat
-  IF .cur.poison < .max.poison THEN
-   prtimer(i, 0) = prtimer(i, 0) + large(.cur.spd, 7)
-   IF prtimer(i, 0) >= 1500 THEN
-    prtimer(i, 0) = 0
-    harm = .max.poison - .cur.poison
-    harm = range(harm, 20)
-    quickinflict harm, i, bslot()
-    triggerfade i, bslot()
-    fulldeathcheck -1, bat, bslot(), formdata()
-   END IF
-  END IF
- END WITH
- 
- '--regen
- WITH bslot(i).stat
-  IF .cur.regen < .max.regen THEN
-   prtimer(i, 1) = prtimer(i, 1) + large(.cur.spd, 7)
-   IF prtimer(i, 1) >= 1500 THEN
-    prtimer(i, 1) = 0
-    heal = .max.regen - .cur.regen
-    heal = heal * -1
-    heal = range(heal, 20)
-    quickinflict heal, i, bslot()
-    triggerfade i, bslot()
-    fulldeathcheck -1, bat, bslot(), formdata()
-   END IF
-  END IF
- END WITH
-
- '--if not doing anything, not dying, not ready, and not stunned
- IF bslot(i).attack = 0 AND bslot(i).dissolve = 0 AND bslot(i).ready = NO AND bslot(i).stat.cur.stun = bslot(i).stat.max.stun THEN
-  '--increment ctr by speed
-  bslot(i).ready_meter = small(1000, bslot(i).ready_meter + bslot(i).stat.cur.spd)
-  IF bslot(i).ready_meter = 1000 AND bat.wait_frames = 0 THEN bslot(i).ready = YES
- END IF
-
-NEXT i
-
-'--decrement stun and mute
-
-IF TIMER > laststun + 1 THEN
- FOR i = 0 TO 11
-  bslot(i).stat.cur.mute = small(bslot(i).stat.cur.mute + 1, bslot(i).stat.max.mute)
-  bslot(i).stat.cur.stun = small(bslot(i).stat.cur.stun + 1, bslot(i).stat.max.stun)
-  IF bslot(i).stat.cur.stun < bslot(i).stat.max.stun THEN
-   bslot(i).ready = NO
-   IF bat.hero_turn = i THEN bat.hero_turn = -1
-   IF bat.enemy_turn = i THEN bat.enemy_turn = -1
-  END IF
- NEXT i
- laststun = TIMER
-END IF
-
-RETRACE
-
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB battle_meters (bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+ IF bat.away = 1 THEN EXIT SUB '--skip all this if the heroes have already run away
+ 
+ '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
+ DIM isdeepmenu AS INTEGER = (bat.menu_mode > 0 AND readbit(gen(), genBits, 0) <> 0)
+ DIM isbattlemenu AS INTEGER = (bat.menu_mode >= 0 AND bat.hero_turn >= 0 AND readbit(gen(), genBits, 13) <> 0)
+ DIM isenemytargs AS INTEGER = (targenemycount(bslot()) > 0)
+ IF (isdeepmenu OR isbattlemenu) AND isenemytargs THEN EXIT SUB
+
+ DIM i AS INTEGER
+
+ FOR i = 0 TO 11
+ 
+  'delays for attacks already selected
+  IF bat.hero_turn <> i THEN
+   IF bslot(i).stat.cur.stun < bslot(i).stat.max.stun THEN
+    '--delay does not count when stunned
+   ELSE
+    bslot(i).delay = large(bslot(i).delay - 1, 0)
+   END IF
+  END IF
+
+  '--poison
+  WITH bslot(i).stat
+   IF .cur.poison < .max.poison THEN
+    bslot(i).poison_repeat += large(.cur.spd, 7)
+    IF bslot(i).poison_repeat >= 1500 THEN
+     bslot(i).poison_repeat = 0
+     DIM harm AS INTEGER = .max.poison - .cur.poison
+     harm = range(harm, 20)
+     quickinflict harm, i, bslot()
+     triggerfade i, bslot()
+     fulldeathcheck -1, bat, bslot(), formdata()
+    END IF
+   END IF
+  END WITH
+ 
+  '--regen
+  WITH bslot(i).stat
+   IF .cur.regen < .max.regen THEN
+    bslot(i).regen_repeat += large(.cur.spd, 7)
+    IF bslot(i).regen_repeat >= 1500 THEN
+     bslot(i).regen_repeat = 0
+     DIM heal AS INTEGER = .max.regen - .cur.regen
+     heal = heal * -1
+     heal = range(heal, 20)
+     quickinflict heal, i, bslot()
+     triggerfade i, bslot()
+     fulldeathcheck -1, bat, bslot(), formdata()
+    END IF
+   END IF
+  END WITH
+
+  '--if not doing anything, not dying, not ready, and not stunned
+  IF bslot(i).attack = 0 AND bslot(i).dissolve = 0 AND bslot(i).ready = NO AND bslot(i).stat.cur.stun = bslot(i).stat.max.stun THEN
+   '--increment ctr by speed
+   bslot(i).ready_meter = small(1000, bslot(i).ready_meter + bslot(i).stat.cur.spd)
+   IF bslot(i).ready_meter = 1000 AND bat.wait_frames = 0 THEN bslot(i).ready = YES
+  END IF
+
+ NEXT i
+
+ '--decrement stun and mute
+
+ IF TIMER > bat.laststun + 1 THEN
+  FOR i = 0 TO 11
+   bslot(i).stat.cur.mute = small(bslot(i).stat.cur.mute + 1, bslot(i).stat.max.mute)
+   bslot(i).stat.cur.stun = small(bslot(i).stat.cur.stun + 1, bslot(i).stat.max.stun)
+   IF bslot(i).stat.cur.stun < bslot(i).stat.max.stun THEN
+    bslot(i).ready = NO
+    IF bat.hero_turn = i THEN bat.hero_turn = -1
+    IF bat.enemy_turn = i THEN bat.enemy_turn = -1
+   END IF
+  NEXT i
+  bat.laststun = TIMER
+ END IF
+
+END SUB
 
 SUB battle_animate(bat AS BattleState, bslot() AS BattleSprite)
  'This sub is intended to apply animation effects triggered elsewhere.
