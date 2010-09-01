@@ -122,6 +122,9 @@ TYPE BattleSprite
   ignore_for_alone    AS INTEGER 'YES/NO
   '--
   enemy AS EnemyDef '--only populated if this slot holds an enemy
+  '--
+  lifemeter AS INTEGER 'FIXME: this can be replaced by the width property of the lifemeter slice
+                       'when lifemeters have been converted to slices
 END TYPE
 
 'This type stores the state of the currently animating attack
@@ -197,6 +200,18 @@ TYPE RewardsState
  found(16) AS RewardsStateItem
 END TYPE
 
+'These handle the state of the currently displaying spell menu
+TYPE SpellMenuItem
+ name AS STRING
+ desc AS STRING
+ cost AS STRING
+ atk_id AS INTEGER
+ enable AS INTEGER 'YES or NO
+END TYPE
+TYPE SpellMenuState
+ slot(23) AS SpellMenuItem
+END TYPE
+
 '--These patterns are used for attack animation frame oscillation
 TYPE AttackAnimationPattern
  frame(10) AS INTEGER
@@ -232,6 +247,7 @@ TYPE BattleState
  wait_frames AS INTEGER 'used by the attack animation
  level_mp_caption AS STRING
  cannot_run_caption AS STRING
+ cancel_spell_caption AS STRING
  flee AS INTEGER 'used by the crappy running system, not to be confused with BattleSprite.flee
  away AS INTEGER 'used by the crappy running system.
  alert_ticks AS INTEGER
@@ -240,6 +256,10 @@ TYPE BattleState
  laststun AS DOUBLE
  vic AS VictoryState
  rew AS RewardsState
+ spell AS SpellMenuState
+ inv_scroll AS MenuState
+ inv_scroll_rect AS RectType
+ iuse(inventoryMax / 16) AS INTEGER 'bitsets for whether items can be used by the current hero
 END TYPE
 
 CONST batMENUHERO = 0
