@@ -63,7 +63,7 @@ DECLARE SUB script_usage_list ()
 DECLARE SUB script_broken_trigger_list()
 DECLARE FUNCTION decodetrigger (trigger as integer, trigtype as integer) as integer
 DECLARE SUB autofix_broken_old_scripts()
-DECLARE FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=1, BYVAL wrapchars AS INTEGER=1) AS INTEGER
+DECLARE FUNCTION stredit (s AS STRING, BYREF insert AS INTEGER, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=1, BYVAL wrapchars AS INTEGER=1) AS INTEGER
 DECLARE FUNCTION sublist (s() AS STRING, helpkey AS STRING="", BYVAL x AS INTEGER=0, BYVAL y AS INTEGER=0, BYVAL page AS INTEGER=-1) AS INTEGER
 DECLARE SUB edit_global_text_strings()
 DECLARE SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)

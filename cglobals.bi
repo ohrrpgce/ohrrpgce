@@ -4,5 +4,4 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 EXTERN timing() as integer
-EXTERN insert as integer
 EXTERN activepalette as integer

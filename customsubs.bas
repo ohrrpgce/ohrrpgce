@@ -2211,6 +2211,7 @@ SUB show_help(helpkey AS STRING)
  DIM dat AS TextSliceData Ptr
  dat = help_text->SliceData
  dat->line_limit = 18
+ dat->insert = 0
 
  DIM editing AS INTEGER = NO
  DIM deadkeys AS INTEGER = 25
@@ -2230,9 +2231,8 @@ SUB show_help(helpkey AS STRING)
   setkeys
   
   IF editing THEN  
-   cursor_line = stredit(dat->s, 32767, dat->line_limit, help_text->Width \ 8)
+   cursor_line = stredit(dat->s, dat->insert, 32767, dat->line_limit, help_text->Width \ 8)
    'The limit of 32767 chars is totally arbitrary and maybe not a good limit
-   dat->insert = insert '--copy the global stredit() insert point
   END IF
 
   IF deadkeys = 0 THEN 
@@ -2252,7 +2252,6 @@ SUB show_help(helpkey AS STRING)
     IF fileiswriteable(get_help_dir() & SLASH & helpkey & ".txt") THEN
      editing = YES
      dat->show_insert = YES
-     dat->insert = insert '--copy the global stredit() insert point
      ChangeRectangleSlice help_box, , uilook(uiBackground), , 0
     ELSE
      pop_warning "Your """ & get_help_dir() & """ folder is not writeable. Try making a copy of it at """ & homedir & SLASH & "ohrhelp"""
@@ -2705,11 +2704,10 @@ SUB autofix_broken_old_scripts()
  visit_scripts @autofix_old_script_visitor
 END SUB
 
-FUNCTION stredit (s AS STRING, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=1, BYVAL wrapchars AS INTEGER=1) AS INTEGER
+FUNCTION stredit (s AS STRING, BYREF insert AS INTEGER, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=1, BYVAL wrapchars AS INTEGER=1) AS INTEGER
  'Return value is the line that the cursor is on, or 0 if numlines=1
+ 'insert is the position of the cursor (range 0..LEN(s)-1), and is modified BYREF. Set to -1 to move automatically to end of string
  stredit = 0
- 
- 'insert is declared EXTERN in cglobals.bi and DIMed in custom.bas
  
  STATIC clip AS STRING
 

@@ -1303,7 +1303,7 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   state.size = 22
   state.last = UBOUND(box.text)
  END WITH
- insert = -1
+ DIM insertpt AS INTEGER = -1
  setkeys
  DO
   setwait 55
@@ -1312,9 +1312,9 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "textbox_line_editor"
   IF keyval(scEnter) > 1 AND state.pt < state.last THEN state.pt += 1
-  IF usemenu(state) THEN insert = -1
+  IF usemenu(state) THEN insertpt = -1
   IF state.pt <= state.last AND state.pt >= state.first THEN
-   stredit box.text(state.pt), 38
+   stredit box.text(state.pt), insertpt, 38
   END IF
 
   'Display the box
@@ -1326,7 +1326,7 @@ SUB textbox_line_editor (BYREF box AS TextBox, BYREF st AS TextboxEditState)
    IF box.textcolor > 0 THEN textcolor box.textcolor, 0
    IF state.pt = i THEN
     textcolor uilook(uiText), uilook(uiHighlight + state.tog)
-    printstr " ", 8 + insert * 8, 8 + i * 10, dpage
+    printstr " ", 8 + insertpt * 8, 8 + i * 10, dpage
     textcolor uilook(uiSelectedItem + state.tog), 0
    END IF
    printstr box.text(i), 8, 8 + i * 10, dpage

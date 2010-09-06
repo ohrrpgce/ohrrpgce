@@ -94,7 +94,7 @@ DIM cleanup_menu(2) AS STRING
 DIM quit_menu(3) AS STRING
 DIM quit_confirm(1) AS STRING
 'more global variables
-DIM game as string, sourcerpg as string, insert, activepalette
+DIM game as string, sourcerpg as string, activepalette
 DIM vpage, dpage, fadestate
 DIM fmvol
 
