@@ -137,11 +137,9 @@ dim shared remember_mouse_grab(3) as integer = {-1, -1, -1, -1}
 
 dim shared remember_title as string
 
+sub modex_init()
+	'initialise software gfx library
 
-sub setmodex()
-	dim i as integer
-
-	'initialise software gfx
 	redim vpages(3)
 	vpagesp = @vpages(0)
 	for i as integer = 0 to 3
@@ -149,16 +147,23 @@ sub setmodex()
 	next
 	'other vpages slots are for temporary pages
 
-	gfx_backend_init(@post_terminate_signal, "FB_PROGRAM_ICON")
 	setclip , , , , 0
 
 	hash_construct(sprcache, offsetof(SpriteCacheEntry, hashed))
 	dlist_construct(sprcacheB.generic, offsetof(SpriteCacheEntry, cacheB))
 	sprcacheB_used = 0
+end sub
+
+sub setmodex()
+	modex_init()
+
+	'initialise graphics and io
+
+	gfx_backend_init(@post_terminate_signal, "FB_PROGRAM_ICON")
 
 	'init vars
 	stacksize = -1
-	for i = 0 to 127
+	for i as integer = 0 to 127
 		keybd(i) = 0
 		keybdstate(i) = 0
  		keysteps(i) = 0
@@ -180,18 +185,9 @@ sub setmodex()
 	fpsstring = ""
 end sub
 
-sub restoremode()
-	'clean up io stuff
-	if keybdthread then
-		endpollthread = 1
-		threadwait keybdthread
-		keybdthread = 0
-	end if
-	mutexdestroy keybdmutex
+sub modex_quit()
+	'clean up software gfx library
 
-	gfx_close()
-
-	'clear up software gfx
 	for i as integer = 0 to ubound(vpages)
 		frame_unload(@vpages(i))
 	next
@@ -203,6 +199,20 @@ sub restoremode()
 	'debug "cachehit = " & cachehit & " mis == " & cachemiss
 
 	releasestack
+end sub
+
+sub restoremode()
+	'clean up io stuff
+	if keybdthread then
+		endpollthread = 1
+		threadwait keybdthread
+		keybdthread = 0
+	end if
+	mutexdestroy keybdmutex
+
+	gfx_close()
+
+        modex_quit
 end sub
 
 SUB settemporarywindowtitle (title as string)

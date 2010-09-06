@@ -13,7 +13,9 @@
 #include "lumpfile.bi"
 
 'Library routines
+DECLARE SUB modex_init ()
 DECLARE SUB setmodex ()
+DECLARE SUB modex_quit ()
 DECLARE SUB restoremode ()
 DECLARE SUB setwindowtitle (title as string)
 DECLARE FUNCTION allocatepage(BYVAL w as integer = 320, BYVAL h as integer = 200) as integer
