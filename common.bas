@@ -2881,14 +2881,14 @@ FOR i = top TO top + vis
     col = uilook(uiSelectedItem + tog)
     text = RIGHT(text, wide)
    END IF
-   edgeprint text, x + 0, y + (i - top) * 8, col, page
+   edgeprint text, x + 0, y + (i - top) * 8, col, page, YES
   ELSE
    textcolor uilook(uiMenuItem), 0
    IF pt = i THEN
     textcolor uilook(uiSelectedItem + tog), 0
     text = RIGHT(text, wide)
    END IF
-   printstr text, x + 0, y + (i - top) * 8, page
+   printstr text, x + 0, y + (i - top) * 8, page, YES
   END IF
  END IF
 NEXT i

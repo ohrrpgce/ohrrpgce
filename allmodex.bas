@@ -1688,13 +1688,13 @@ FUNCTION dowait () as integer
 end FUNCTION
 
 'FIXME: sprite pitch and so on!
-SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f as Font, BYREF pal as Palette16, BYVAL p as integer)
-	if clippedframe <> vpages(p) then
-		setclip , , , , p
+SUB printstr (BYVAL dest as Frame ptr, s as string, BYVAL startx as integer, BYVAL y as integer, BYVAL startfont as Font ptr, BYVAL pal as Palette16 ptr, BYVAL withtags as integer)
+	if clippedframe <> dest then
+		setclip , , , , dest
 	end if
 
-	startx += f.offset.x
-	y += f.offset.y
+	startx += startfont->offset.x
+	y += startfont->offset.y
 
 	'check bounds skipped because this is now quite hard to tell (checked in drawohr)
 
@@ -1703,50 +1703,82 @@ SUB printstr (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f 
 
 	'decide whether to draw a solid background or not
 	dim as integer trans_type = -1
-	if pal.col(0) > 0  then
+	if pal->col(0) > 0  then
 		trans_type = 0
 	end if
 
-	dim x as integer
-
+	'We have to process both layers, even if this font has only one layer, incase it switches to a font that has two!
 	for layer as integer = 0 to 1
-		if f.sprite(layer) = NULL then continue for
+		'Make a local copy of the palette, for modifications
+		dim localpal as Palette16 = *pal
 
-		x = startx
+		dim thefont as Font ptr = startfont
 
-		'charframe.w = f.sprite(layer)->w
-		'charframe.h = f.sprite(layer)->h \ 256
+		dim x as integer = startx
+		'dim y as integer = starty
+
 		for ch as integer = 0 to len(s) - 1
-			with f.sprite(layer)->chdata(s[ch])
-				charframe.image = f.sprite(layer)->spr.image + .offset
-				charframe.w = .w
-				charframe.h = .h
-				charframe.pitch = .w
-				drawohr(@charframe, vpages(p), @pal, x + .offx, y + .offy, trans_type)
+			if withtags ANDALSO memcmp(@s[ch], @"${", 2) = 0 then
+				dim closebrace as integer = instr(ch + 1 + 4, s, "}")
+				if closebrace then
+					dim action as byte = toupper(s[ch + 2])
+					dim arg as string = mid(s, ch + 1 + 3, closebrace - (ch + 1) - 3)
+					dim intarg as integer = str2int(arg)
 
-				'print one character past the end of the line
-				'(I think this is a reasonable approximation)
-				if x > clipr then
-					continue for, for
+					if action = asc("K") then
+						if intarg = -1 then intarg = pal->col(1)
+						localpal.col(1) = intarg
+					elseif action = asc("F") then
+						'Let's preserve the position offset when changing fonts. That way, plain text in
+						'the middle of edgetext is also offset +1,+1, so that it lines up visually with it
+						'x += fonts(intarg).offset.x - thefont->offset.x
+						'y += fonts(intarg).offset.y - thefont->offset.y
+						if intarg = -1 then
+							thefont = startfont
+						else
+							thefont = @fonts(intarg)
+						end if
+					else
+						goto badaction
+					end if
+					ch = closebrace - 1
+					continue for
 				end if
-				'note: do not use .w, that's just the width of the sprite
-				x += f.w(s[ch])
-			end with
+			end if
+			badaction:
+
+			if thefont->sprite(layer) <> NULL then
+				with thefont->sprite(layer)->chdata(s[ch])
+					charframe.image = thefont->sprite(layer)->spr.image + .offset
+					charframe.w = .w
+					charframe.h = .h
+					charframe.pitch = .w
+					drawohr(@charframe, dest, @localpal, x + .offx, y + .offy, trans_type)
+				end with
+			end if
+
+			'print one character past the end of the line
+			'(I think this is a reasonable approximation)
+			if x > clipr then
+				continue for, for
+			end if
+			'note: do not use charframe.w, that's just the width of the sprite
+			x += thefont->w(s[ch])
 		next
 	next
 end SUB
 
 'the old printstr
-SUB printstr (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
+SUB printstr (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer, BYVAL withtags as integer = NO)
 	dim fontpal as Palette16
 
 	fontpal.col(0) = textbg
 	fontpal.col(1) = textfg
 
-	printstr (s, x, y, fonts(0), fontpal, p)
+	printstr (vpages(p), s, x, y, @fonts(0), @fontpal, withtags)
 end SUB
 
-SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
+SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer, BYVAL withtags as integer = NO)
 	static fontpal as Palette16
 
 	fontpal.col(0) = 0
@@ -1757,7 +1789,7 @@ SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as i
 	textfg = c
 	textbg = 0
 
-	printstr (s, x, y, fonts(1), fontpal, p)
+	printstr (vpages(p), s, x, y, @fonts(1), @fontpal, withtags)
 END SUB
 
 SUB textcolor (BYVAL f as integer, BYVAL b as integer)

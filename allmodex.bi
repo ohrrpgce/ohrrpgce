@@ -78,9 +78,9 @@ DECLARE SUB storemxs (fil as string, BYVAL record as integer, BYVAL fr as Frame 
 DECLARE FUNCTION loadmxs (fil as string, BYVAL record as integer, BYVAL dest as Frame ptr = 0) as Frame ptr
 DECLARE SUB setwait (BYVAL t as integer, BYVAL flagt as integer = 0)
 DECLARE FUNCTION dowait () as integer
-DECLARE SUB printstr OVERLOAD (s as string, BYVAL startx as integer, BYVAL y as integer, BYREF f as Font, BYREF pal as Palette16, BYVAL p as integer)
-DECLARE SUB printstr (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer)
-DECLARE SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer)
+DECLARE SUB printstr OVERLOAD (BYVAL dest as Frame ptr, s as string, BYVAL startx as integer, BYVAL y as integer, BYVAL startfont as Font ptr, BYVAL pal as Palette16 ptr, BYVAL withtags as integer)
+DECLARE SUB printstr OVERLOAD (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer, BYVAL withtags as integer = NO)
+DECLARE SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer, BYVAL withtags as integer = NO)
 DECLARE SUB textcolor (BYVAL f as integer, BYVAL b as integer)
 DECLARE SUB setfont (f() as integer)
 DECLARE SUB setbit (b() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
