@@ -396,13 +396,13 @@ IF RIGHT$(tmp$, 1) <> SLASH THEN tmp$ = tmp$ & SLASH
 tmp$ = tmp$ & "ohrrpgce"
 #ELSE
 'Unix only behavior
-#IFDEF IS_CUSTOM
-RETURN "" 'Custom doesn't use this sub anyway...
-#ELSE
+#IFDEF IS_GAME
 tmp$ = environ$("HOME")
 tmp$ = tmp$ & SLASH & ".ohrrpgce"
 IF NOT isdir(tmp$) THEN makedir(tmp$)
 tmp$ = tmp$ & SLASH
+#ELSE
+RETURN "" 'Custom doesn't use this sub anyway...
 #ENDIF
 #ENDIF
 d$ = DATE
@@ -2779,14 +2779,14 @@ fix_record_count gen(genMaxItem), 200, game & ".itm", "Items"
 'Warning: don't deduce number of map from length of .MAP or .MN: may be appended with garbage
 
 IF gen(genErrorLevel) = 0 THEN
- #IFDEF IS_GAME
-  gen(genErrorLevel) = 5
- #ELSE
+ #IFDEF IS_CUSTOM
   IF twochoice("Set script error reporting level to new default, showing all warnings and error messages?", "Yes (Best)", "No (Safest)", 1, 1, "script_error_new_default") = 0 THEN
    gen(genErrorLevel) = 2
   ELSE
    gen(genErrorLevel) = 5
   END IF
+ #ELSE
+  gen(genErrorLevel) = 5
  #ENDIF
 END IF
 
@@ -3288,15 +3288,15 @@ END FUNCTION
 
 SUB reporterr(msg AS STRING, errlvl AS INTEGER = 5)
  'this is a placeholder for some more detailing replacement of debug, so scripterrs can be thrown from slices.bas
-#IFDEF IS_CUSTOM
- debug msg
-#ELSE
+#IFDEF IS_GAME
  IF insideinterpreter THEN
   IF curcmd->kind = tyfunct THEN msg = commandname(curcmd->value) + ": " + msg
   scripterr msg, errlvl
  ELSE
   debug msg
  END IF
+#ELSE
+ debug msg
 #ENDIF
 END SUB
 

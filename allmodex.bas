@@ -963,7 +963,7 @@ SUB setkeys ()
 
 #ifdef IS_CUSTOM
 	if keybd(-1) then keybd(scEsc) = 7
-#else
+#elseif defined(IS_GAME)
 	'Quick abort (could probably do better, just moving this here for now)
 	IF keyval(-1) THEN
 		'uncomment for slice debugging

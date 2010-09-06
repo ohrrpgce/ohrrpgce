@@ -17,11 +17,11 @@
 #include "lumpfile.bi"
 
 
-#if defined(IS_GAME) or defined(IS_CUSTOM)
+#if defined(IS_GAME) or defined(IS_CUSTOM) or defined(LINKING_COMMON_BAS)
 DECLARE SUB debug (s AS STRING)
 #else
 SUB debug (s AS STRING)
- print "debug: " & s
+ print s
 END SUB
 #endif
 
