@@ -797,7 +797,7 @@ DO
   IF intgrabber(a(18), 0, 32767) THEN GOSUB menuup
  END IF
  IF csr = 6 THEN
-  IF scrintgrabber(a(19), 0, 0, 75, 77, 1, plottrigger) THEN GOSUB menuup
+  IF scrintgrabber(a(19), 0, 0, scLeft, scRight, 1, plottrigger) THEN GOSUB menuup
  END IF
  clearpage dpage
  FOR i = 0 TO li

@@ -127,7 +127,7 @@ DO
     veh(offset(csr)) = large(0, veh(offset(csr)))
     scriptbrowse veh(offset(csr)), plottrigger, "vehicle plotscript"
     GOSUB vehmenu
-   ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77, 1, plottrigger) THEN
+   ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), scLeft, scRight, 1, plottrigger) THEN
     GOSUB vehmenu
    END IF
   CASE 13, 14
@@ -136,7 +136,7 @@ DO
     scriptbrowse temptrig, plottrigger, "vehicle plotscript"
     veh(offset(csr)) = -temptrig
     GOSUB vehmenu
-   ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), 75, 77, -1, plottrigger) THEN
+   ELSEIF scrintgrabber(veh(offset(csr)), min(csr), max(csr), scLeft, scRight, -1, plottrigger) THEN
     GOSUB vehmenu
    END IF
  END SELECT
@@ -254,7 +254,7 @@ DO
  ELSE
   IF enter_or_space() THEN
    scrname(pt) = ": " & scriptbrowse_string(gen(scriptgenoff(pt)), plottrigger, menu(pt))
-  ELSEIF scrintgrabber(gen(scriptgenoff(pt)), 0, 0, 75, 77, 1, plottrigger) THEN
+  ELSEIF scrintgrabber(gen(scriptgenoff(pt)), 0, 0, scLeft, scRight, 1, plottrigger) THEN
    scrname(pt) = ": " + scriptname$(gen(scriptgenoff(pt)), plottrigger)
   END IF
  END IF
@@ -390,7 +390,7 @@ DO
  ELSE
   '-- check for switching song
   newsong = snum
-  IF intgrabber(newsong, 0, gen(genMaxSong), 51, 52) THEN
+  IF intgrabber(newsong, 0, gen(genMaxSong), scLeftCaret, scRightCaret) THEN
    GOSUB ssongdata
    snum = newsong
    GOSUB getsonginfo
@@ -611,7 +611,7 @@ DO
  ELSE
   '-- check for switching sfx
   newsfx = snum
-  IF intgrabber(newsfx, 0, gen(genMaxSFX), 51, 52) THEN
+  IF intgrabber(newsfx, 0, gen(genMaxSFX), scLeftCaret, scRightCaret) THEN
    GOSUB ssfxdata
    snum = newsfx
    GOSUB getsfxinfo

@@ -1699,7 +1699,7 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
     scriptbrowse menudata.on_close, plottrigger, "menu on-close plotscript"
     state.need_update = YES
    END IF
-   IF scrintgrabber(menudata.on_close, 0, 0, 75, 77, 1, plottrigger) THEN state.need_update = YES
+   IF scrintgrabber(menudata.on_close, 0, 0, scLeft, scRight, 1, plottrigger) THEN state.need_update = YES
   CASE 15: ' esc menu
    IF zintgrabber(menudata.esc_menu, -1, gen(genMaxMenu)) THEN state.need_update = YES
  END SELECT
@@ -1816,7 +1816,7 @@ SUB menu_editor_detail_keys(dstate AS MenuState, mstate AS MenuState, detail AS 
      max = gen(genMaxTextBox)
    END SELECT
    IF mi.t = 4 THEN '--script
-    IF scrintgrabber(mi.sub_t, 0, 0, 75, 77, 1, plottrigger) THEN dstate.need_update = YES
+    IF scrintgrabber(mi.sub_t, 0, 0, scLeft, scRight, 1, plottrigger) THEN dstate.need_update = YES
     IF enter_or_space() THEN
      scriptbrowse mi.sub_t, plottrigger, "Menu Item Script"
      dstate.need_update = YES

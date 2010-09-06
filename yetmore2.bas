@@ -82,7 +82,7 @@ FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as intege
 END FUNCTION
 
 SUB defaultc
- DIM cconst(12) = {72,80,75,77,57,28,29,1,56,1,15,36,51}
+ DIM cconst(12) = {scUp,scDown,scLeft,scRight,scSpace,scEnter,scCtrl,scEsc,scAlt,scEsc,scTab,scJ,scComma}
  DIM joyconst(3) = {150,650,150,650}
 
  FOR i = 0 TO 12

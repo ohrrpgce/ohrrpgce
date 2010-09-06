@@ -978,7 +978,7 @@ DO
   END IF
   IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
    dim as integer remptr = pt
-   IF intgrabber(pt, 0, gen(genMaxFormation), 51, 52) THEN
+   IF intgrabber(pt, 0, gen(genMaxFormation), scLeftCaret, scRightCaret) THEN
     saveform(a(),remptr)
     loadform(a(),pt)
     formpics(ename(), a(), egraphics())
@@ -1193,7 +1193,7 @@ DO
  END IF
  IF csr = 1 THEN
   remptr = pt
-  IF intgrabber(pt, 0, gen(genMaxHero), 51, 52) THEN
+  IF intgrabber(pt, 0, gen(genMaxHero), scLeftCaret, scRightCaret) THEN
    SWAP pt, remptr
    GOSUB lasthero
    SWAP pt, remptr
@@ -1317,9 +1317,9 @@ DO
  IF bctr > 0 THEN
   changed = 0
   IF (bctr AND 1) = 1 THEN ' odd numbers are level 0
-   IF intgrabber(her.Lev0.sta((bctr - 1) \ 2), min(bctr), max(bctr), 51, 52) THEN changed = -1
+   IF intgrabber(her.Lev0.sta((bctr - 1) \ 2), min(bctr), max(bctr), scLeftCaret, scRightCaret) THEN changed = -1
   ELSE' even numbers are level 99
-   IF intgrabber(her.Lev99.sta((bctr - 2) \ 2), min(bctr), max(bctr), 51, 52) THEN changed = -1
+   IF intgrabber(her.Lev99.sta((bctr - 2) \ 2), min(bctr), max(bctr), scLeftCaret, scRightCaret) THEN changed = -1
   END IF
   IF changed THEN GOSUB smi
  END IF
@@ -1430,11 +1430,11 @@ LOOP
 
 setsticky:
 IF sticky THEN
- leftkey = 75
- rightkey = 77
+ leftkey = scLeft
+ rightkey = scRight
 ELSE
- leftkey = 51
- rightkey = 52
+ leftkey = scLeftCaret
+ rightkey = scRightCaret
 END IF
 RETRACE
 

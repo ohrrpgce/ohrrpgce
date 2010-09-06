@@ -608,7 +608,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
    CASE 12'--script
     IF enter_or_space() THEN
      scrname = scriptbrowse_string(npcdata.script, plottrigger, "NPC use plotscript")
-    ELSEIF scrintgrabber(npcdata.script, 0, 0, 75, 77, 1, plottrigger) THEN
+    ELSEIF scrintgrabber(npcdata.script, 0, 0, scLeft, scRight, 1, plottrigger) THEN
      scrname = scriptname$(npcdata.script, plottrigger)
     END IF
    CASE 13

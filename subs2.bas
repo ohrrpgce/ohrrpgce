@@ -521,7 +521,7 @@ SUB text_box_editor () 'textage
    CASE 7'textsearch
     strgrabber st.search, 36
    CASE 6'quickchainer
-    IF scrintgrabber(box.after, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger) THEN
+    IF scrintgrabber(box.after, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger) THEN
      update_textbox_editor_main_menu box, menu()
     END IF'--modify next
    CASE ELSE '--not using the quick textbox chainer nor the search
@@ -756,7 +756,7 @@ SUB textbox_conditionals(BYREF box AS TextBox)
     CASE condITEM
      xintgrabber num, 0, gen(genMaxItem), 0, -gen(genMaxItem)
     CASE condBOX
-     scrintgrabber num, 0, gen(genMaxTextbox), 75, 77, -1, plottrigger
+     scrintgrabber num, 0, gen(genMaxTextbox), scLeft, scRight, -1, plottrigger
     CASE condMENU
      intgrabber num, 0, gen(genMaxMenu)
    END SELECT

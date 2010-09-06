@@ -634,11 +634,11 @@ DO
      END IF
     END IF
    END IF
-   intgrabber(st.cur_npc, 0, st.num_npc_defs - 1, 51, 52)
+   intgrabber(st.cur_npc, 0, st.num_npc_defs - 1, scLeftCaret, scRightCaret)
    '---FOEMODE--------
   CASE foe_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
-   intgrabber(st.cur_foe, 0, 255, 51, 52)
+   intgrabber(st.cur_foe, 0, 255, scLeftCaret, scRightCaret)
    IF keyval(scSpace) > 0 THEN
     writeblock emap, x, y, st.cur_foe
    END IF

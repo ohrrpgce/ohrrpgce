@@ -721,14 +721,14 @@ area(23).w = 8
 area(23).h = 8
 DIM pastogkey(7), defaults(160), bitmenu(10) AS STRING
 IF tmode = 3 THEN
- pastogkey(0) = 72
- pastogkey(1) = 77
- pastogkey(2) = 80
- pastogkey(3) = 75
- pastogkey(4) = 30
- pastogkey(5) = 48
- pastogkey(6) = 35
- pastogkey(7) = 24
+ pastogkey(0) = scUp
+ pastogkey(1) = scRight
+ pastogkey(2) = scDown
+ pastogkey(3) = scLeft
+ pastogkey(4) = scA
+ pastogkey(5) = scB
+ pastogkey(6) = scH
+ pastogkey(7) = scO
  loadpasdefaults defaults(), pagenum
  bitmenu(0) = "Impassable to the North"
  bitmenu(1) = "Impassable to the East"
@@ -1490,7 +1490,7 @@ DO
  '---PICK BACKGROUND PAGE------
  oldcut = ts.cutfrom
  IF ts.cuttileset THEN maxset = gen(genMaxTile) ELSE maxset = gen(genNumBackdrops) - 1
- intgrabber ts.cutfrom, 0, maxset, 51, 52
+ intgrabber ts.cutfrom, 0, maxset, scLeftCaret, scRightCaret
  IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, -1)
  IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, 1)
  IF oldcut <> ts.cutfrom THEN
