@@ -133,6 +133,14 @@ TYPE TextboxConnectNode
   add AS INTEGER 'NO normally. YES if this is for adding a new box
 END TYPE
 
+ENUM MapEditMode
+  tile_mode
+  pass_mode
+  door_mode
+  npc_mode
+  foe_mode
+END ENUM
+
 TYPE MapEditState
   'This NPC stuff shouldn't be here; this is the Editor state, not a map TYPE
   npc_def(max_npc_defs - 1) AS NPCType

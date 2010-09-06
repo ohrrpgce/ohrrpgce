@@ -126,7 +126,7 @@ DO
   state.need_update = NO
   menu(0) = "Cancel"
   menu(1) = "New Blank Map"
-  menu(2) = "Copy of map " & maptocopy & " " & getmapname$(maptocopy)
+  menu(2) = "Copy of map " & maptocopy & " " & getmapname(maptocopy)
  END IF
  clearpage vpage
  standardmenu menu(), state, 0, 0, vpage
@@ -211,7 +211,7 @@ DIM emap AS TileMap
 DIM defpass_reload_confirm(1) AS STRING
 
 wide = 0: high = 0
-mapname$ = ""
+DIM mapname AS STRING
 DIM AS INTEGER temp, doorid, doorlinkid  'all temp
 
 '--create a palette for the cursor
@@ -253,7 +253,7 @@ FOR i = 0 TO 159
  writeblock st.tilesetview, i MOD 16, i \ 16, i
 NEXT
 
-mapedit_loadmap st, mapnum, wide, high, map(), pass, emap, gmap(), visible(), doors(), link(), defaults(), mapname$
+mapedit_loadmap st, mapnum, wide, high, map(), pass, emap, gmap(), visible(), doors(), link(), defaults(), mapname
 
 update_npc_graphics st, npc_img()
 
@@ -287,7 +287,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN
-  mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
+  mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname
   EXIT DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "mapedit_menu"
@@ -295,12 +295,12 @@ DO
  IF enter_or_space() THEN
   SELECT CASE st.menustate.pt
    CASE 0
-    mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
+    mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname
     EXIT DO
    CASE 1
     mapedit_gmapdata st, gmap()
    CASE 2
-    mapedit_resize st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), mapname$
+    mapedit_resize st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), mapname
    CASE 3
     mapedit_layers st, gmap(), visible(), defaults(), map()
    CASE 4
@@ -310,10 +310,10 @@ DO
     editmode = st.menustate.pt - 5
     GOSUB mapping
    CASE 10
-    mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
+    mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname
     mapedit_linkdoors st, mapnum, map(), pass, gmap(), doors(), link()
    CASE 11
-    mapedit_delete st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), npc_img(), mapname$
+    mapedit_delete st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, gmap(), doors(), link(), npc_img(), mapname
     IF mapnum > gen(genMaxMap) THEN
      'This was the last map, and it was deleted instead of blanked
      EXIT DO
@@ -331,9 +331,9 @@ DO
     END IF
   END SELECT
  END IF
- IF st.menustate.pt = 13 THEN strgrabber mapname$, 39
- mapeditmenu(13) = "Map name:" + mapname$
- IF LEN(mapeditmenu(13)) > 40 THEN mapeditmenu(13) = mapname$
+ IF st.menustate.pt = 13 THEN strgrabber mapname, 39
+ mapeditmenu(13) = "Map name:" + mapname
+ IF LEN(mapeditmenu(13)) > 40 THEN mapeditmenu(13) = mapname
  
  clearpage vpage
  standardmenu mapeditmenu(), st.menustate, 0, 0, vpage
@@ -375,56 +375,58 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(scESC) > 1 THEN EXIT DO
- if keyval(scCtrl) = 0 AND keyval(scAlt) = 0 then
+ IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
   IF keyval(scF2) > 1 THEN
-   editmode = 0
+   editmode = tile_mode
   END IF
   IF keyval(scF3) > 1 THEN
-   editmode = 1
+   editmode = pass_mode
   END IF
   IF keyval(scF4) > 1 THEN
-   editmode = 2
+   editmode = door_mode
   END IF
   IF keyval(scF5) > 1 THEN
-   editmode = 3
+   editmode = npc_mode
   END IF
   IF keyval(scF6) > 1 THEN
-   editmode = 4
+   editmode = foe_mode
   END IF
- else
-  for i = 1 to maplayerMax
-   if keyval(scAlt) > 0 AND keyval(sc1 + (i - 1)) > 1 then
+ ELSE
+  FOR i = 1 TO maplayerMax
+   IF keyval(scalt) > 0 and keyval(sc1 + (i - 1)) > 1 THEN
     clearkey(sc1 + i)
     togglelayerenabled(gmap(), i)
-    if layerisenabled(gmap(), i) then
-     if i > ubound(map) then
+    IF layerisenabled(gmap(), i) THEN
+     IF i > UBOUND(map) THEN
       temp = i - ubound(map)
-      if yesno("Create " & iif_string(temp = 1, "a new map layer?", temp & " new map layers?")) then
+      IF yesno("Create " & iif_string(temp = 1, "a new map layer?", temp & " new map layers?")) THEN
        add_more_layers map(), visible(), gmap(), i
-      end if
-     end if
-    else
-     if st.layer = i then
-      do until layerisenabled(gmap(), st.layer): st.layer -= 1: loop
-     end if
-    end if
-   end if
-  next
+      END IF
+     END IF
+    ELSE
+     IF st.layer = i THEN
+      DO UNTIL layerisenabled(gmap(), st.layer)
+       st.layer -= 1
+      LOOP
+     END IF
+    END IF
+   END IF
+  NEXT
   #IFNDEF __UNIX__
   'common WM keys
-  for i = 0 to ubound(map)
-   if keyval(scCtrl) > 0 AND keyval(scF1 + i) > 1 then
+  FOR i = 0 TO UBOUND(map)
+   IF keyval(scCtrl) > 0 AND keyval(scF1 + i) > 1 THEN
     clearkey(scF1 + i)
-    if layerisenabled(gmap(), i) then togglelayervisible(visible(), i)
-   end if
+    IF layerisenabled(gmap(), i) THEN togglelayervisible(visible(), i)
+   END IF
   next
   #ENDIF
   
-  if keyval(scTilde) > 1 then
+  IF keyval(scTilde) > 1 THEN
    togglelayervisible(visible(), st.layer)
    clearkey(scTilde)
-  end if
- end if
+  END IF
+ END IF
  
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), defaults(), map()  'ctrl-L
  IF keyval(scTab) > 1 THEN tiny = tiny XOR 1
@@ -458,7 +460,7 @@ DO
  END IF
  SELECT CASE editmode
   '---TILEMODE------
-  CASE 0
+  CASE tile_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
    IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+F Fill screen
     FOR tx = 0 TO 15
@@ -528,7 +530,7 @@ DO
     update_tilepicker st
    END IF
    '---PASSMODE-------
-  CASE 1
+  CASE pass_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
    over = readblock(pass, x, y)
    IF keyval(scSpace) > 1 AND (over AND 15) = 0 THEN writeblock pass, x, y, 15
@@ -548,13 +550,13 @@ DO
    IF keyval(scH) > 1 THEN writeblock pass, x, y, (over XOR 64) 'harm tile
    IF keyval(scO) > 1 THEN writeblock pass, x, y, (over XOR 128)'overhead
    '---DOORMODE-----
-  CASE 2
+  CASE door_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
    IF keyval(scEnter) > 1 THEN ' enter to link a door
     doorid = find_door_at_spot(x, y, doors())
     IF doorid >= 0 THEN
      'Save currently-worked-on map data
-     mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname$
+     mapedit_savemap st, mapnum, map(), pass, emap, gmap(), doors(), link(), mapname
      doorlinkid = find_first_doorlink_by_door(doorid, link())
      IF doorlinkid >= 0 THEN
       link_one_door st, mapnum, doorlinkid, link(), doors(), map(), pass, gmap()
@@ -589,7 +591,7 @@ DO
     END IF
    END IF
    '---NPCMODE------
-  CASE 3
+  CASE npc_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_npc_placement"
    IF keyval(scDelete) > 1 THEN
     FOR i = 0 TO 299
@@ -634,7 +636,7 @@ DO
    END IF
    intgrabber(st.cur_npc, 0, st.num_npc_defs - 1, 51, 52)
    '---FOEMODE--------
-  CASE 4
+  CASE foe_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
    intgrabber(st.cur_foe, 0, 255, 51, 52)
    IF keyval(scSpace) > 0 THEN
@@ -679,7 +681,7 @@ DO
   y = mapy / 20 + oldrely
  END IF
  
- IF editmode = 0 THEN 'tilemode, uses layers
+ IF editmode = tile_mode THEN 'uses layers
   IF keyval(scPageup) > 1 THEN
    FOR i = st.layer + 1 TO UBOUND(map)
     IF layerisenabled(gmap(), i) THEN
@@ -706,7 +708,7 @@ DO
  '--Draw Screen
  
  '--draw menubar
- IF editmode = 0 THEN
+ IF editmode = tile_mode THEN
   drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, , , , 0, 20
  ELSE
   rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
@@ -716,29 +718,30 @@ DO
  '--draw map
  animatetilesets st.tilesets()
  rectangle 0, 20, 320, 180, uilook(uiBackground), dpage
- for i = 0 to ubound(map)
- 	if layerisvisible(visible(), i) AND layerisenabled(gmap(), i) then
-		jigx = 0: jigy = 0
-		if readbit(jiggle(), 0, i) and tog then
-			jigx = 0
-			if (i mod 8) >= 1 AND (i mod 8) <= 3 then jigx = 1
-			if (i mod 8) >= 5 then jigx = -1
-			jigy = 0
-			if (i mod 8) <= 1 OR (i mod 8) = 7 then jigy = -1
-			if (i mod 8) >= 3 AND (i mod 8) <= 5 then jigy = 1
-			jigx *= i \ 8 + 1
-			jigy *= i \ 8 + 1
-		end if
-		drawmap map(i), mapx + jigx, mapy + jigy, st.tilesets(i), dpage, iif(i = 0, 0, 1), iif(i = 0, 1, 0), @pass, 20
-	end if
- next
- if layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) then
-	if readbit(jiggle(), 0, 0) and tog then
-		drawmap map(0), mapx, mapy - 1, st.tilesets(0), dpage, 0, 2, @pass, 20
-	else
-		drawmap map(0), mapx, mapy, st.tilesets(0), dpage, 0, 2, @pass, 20
-	end if
- end if
+ FOR i = 0 TO UBOUND(map)
+  IF layerisvisible(visible(), i) AND layerisenabled(gmap(), i) THEN
+   jigx = 0
+   jigy = 0
+   IF readbit(jiggle(), 0, i) AND tog THEN
+    jigx = 0
+    IF (i mod 8) >= 1 AND (i mod 8) <= 3 THEN jigx = 1
+    IF (i mod 8) >= 5 THEN jigx = -1
+    jigy = 0
+    IF (i mod 8) <= 1 OR (I mod 8) = 7 THEN jigy = -1
+    IF (i mod 8) >= 3 AND (i mod 8) <= 5 THEN jigy = 1
+    jigx *= i \ 8 + 1
+    jigy *= i \ 8 + 1
+   END IF
+   drawmap map(i), mapx + jigx, mapy + jigy, st.tilesets(i), dpage, iif(i = 0, 0, 1), iif(i = 0, 1, 0), @pass, 20
+  END IF
+ NEXT
+ IF layerisvisible(visible(), 0) AND layerisenabled(gmap(), 0) THEN
+  IF readbit(jiggle(), 0, 0) AND tog THEN
+   drawmap map(0), mapx, mapy - 1, st.tilesets(0), dpage, 0, 2, @pass, 20
+  ELSE
+   drawmap map(0), mapx, mapy, st.tilesets(0), dpage, 0, 2, @pass, 20
+  END IF
+ END IF
 
  '--hero start location display--
  IF gen(genStartMap) = mapnum THEN
@@ -749,7 +752,7 @@ DO
  END IF
 
  '--show passmode overlay
- IF editmode = 1 THEN
+ IF editmode = pass_mode THEN
   FOR o = 0 TO 8
    FOR i = 0 TO 15
     over = readblock(pass, (mapx \ 20) + i, (mapy \ 20) + o)
@@ -767,7 +770,7 @@ DO
  END IF
  
  '--door display--
- IF editmode = 2 THEN
+ IF editmode = door_mode THEN
   textcolor uilook(uiBackground), 0
   FOR i = 0 TO 99
    IF doors(i).x >= mapx \ 20 AND doors(i).x < mapx \ 20 + 16 AND doors(i).y > mapy \ 20 AND doors(i).y <= mapy \ 20 + 9 AND readbit(doors(i).bits(),0,0) = 1 THEN
@@ -778,11 +781,11 @@ DO
  END IF
 
  '--npc display--
- IF editmode = 3 THEN
+ IF editmode = npc_mode THEN
   FOR i = 0 TO UBOUND(npcnum)
    npcnum(i) = 0
   NEXT
-  walk = walk + 1: IF walk > 3 THEN walk = 0
+  walk = (walk + 1) MOD 4
   FOR i = 0 TO 299
    WITH st.npc_inst(i)
     IF .id > 0 THEN
@@ -800,7 +803,7 @@ DO
  END IF
 
  '--show foemap--
- IF editmode = 4 THEN
+ IF editmode = foe_mode THEN
   textcolor uilook(uiSelectedItem + tog), 0
   FOR i = 0 TO 15
    FOR o = 0 TO 8
@@ -819,15 +822,15 @@ DO
  END IF
  
  '--normal cursor--
- IF editmode <> 3 THEN
+ IF editmode <> npc_mode THEN
   frame_draw st.cursor.sprite + tog, st.cursor.pal, (x * 20) - mapx, (y * 20) - mapy + 20, , , dpage
-  IF editmode = 0 THEN
+  IF editmode = tile_mode THEN
    frame_draw st.cursor.sprite + tog, st.cursor.pal, ((st.usetile(st.layer) - st.menubarstart(st.layer)) * 20), 0, , , dpage
   END IF
  END IF
  
  '--npc placement cursor--
- IF editmode = 3 THEN
+ IF editmode = npc_mode THEN
   WITH npc_img(st.cur_npc)
    frame_draw .sprite + (2 * walk), .pal, x * 20 - mapx, y * 20 - mapy + 20, 1, -1, dpage
   END WITH
@@ -840,7 +843,7 @@ DO
  textcolor uilook(uiText), 0
  printstr modenames(editmode), 0, 24, dpage
 
- IF editmode = 0 THEN
+ IF editmode = tile_mode THEN
   textcolor uilook(uiSelectedItem + tog), 0
   printstr "Layer " & st.layer, 0, 180, dpage
   status$ = "Default Passability "
@@ -848,7 +851,7 @@ DO
   printstr status$, 124, 192, dpage
  END IF
 
- IF editmode = 4 THEN
+ IF editmode = foe_mode THEN
   textcolor uilook(uiText), uilook(uiHighlight)
   printstr "Formation Set: " & st.cur_foe, 0, 16, dpage
  END IF
