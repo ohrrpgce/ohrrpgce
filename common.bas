@@ -109,13 +109,13 @@ FUNCTION filesize (file as string) as string
  END IF
 END FUNCTION
 
-FUNCTION usemenu (state AS MenuState) as integer
+FUNCTION usemenu (state AS MenuState, deckey = scUp, inckey = scDown) as integer
  WITH state
-  RETURN usemenu(.pt, .top, .first, .last, .size)
+  RETURN usemenu(.pt, .top, .first, .last, .size, deckey, inckey)
  END WITH
 END FUNCTION
 
-FUNCTION usemenu (pt, top, first, last, size) as integer
+FUNCTION usemenu (pt, top, first, last, size, deckey = scUp, inckey = scDown) as integer
 
 oldptr = pt
 oldtop = top
@@ -137,7 +137,7 @@ END IF
 
 END FUNCTION
 
-FUNCTION usemenu (state AS MenuState, menudata() AS SimpleMenu) as integer
+FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 'a version for menus with unselectable items, skip items for which menudata().enabled = 0
 
 WITH state
@@ -146,8 +146,8 @@ WITH state
  d = 0
  moved_d = 0
 
- IF keyval(scUp) > 1 THEN d = -1
- IF keyval(scDown) > 1 THEN d = 1
+ IF keyval(deckey) > 1 THEN d = -1
+ IF keyval(inckey) > 1 THEN d = 1
  IF keyval(scPageup) > 1 THEN
   .pt = large(.pt - .size, .first)
   WHILE menudata(.pt).enabled = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
@@ -190,7 +190,7 @@ WITH state
 END WITH
 END FUNCTION
 
-FUNCTION usemenu (state AS MenuState, enabled() AS INTEGER) as integer
+FUNCTION usemenu (state as MenuState, enabled() as INTEGER, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 'a version for menus with unselectable items, skip items for which enabled = 0
 
 WITH state
@@ -199,8 +199,8 @@ WITH state
  d = 0
  moved_d = 0
 
- IF keyval(scUp) > 1 THEN d = -1
- IF keyval(scDown) > 1 THEN d = 1
+ IF keyval(deckey) > 1 THEN d = -1
+ IF keyval(inckey) > 1 THEN d = 1
  IF keyval(scPageup) > 1 THEN
   .pt = large(.pt - .size, .first)
   WHILE enabled(.pt) = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
