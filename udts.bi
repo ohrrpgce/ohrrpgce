@@ -171,11 +171,12 @@ TYPE MenuState
   tog       AS INTEGER ' For flashing cursor
 END TYPE
 
-'For when a string array is to crude, but a MenuDef is overkill
+'For when a string array is too crude, but a MenuDef is overkill
 TYPE SimpleMenu
- text AS STRING
- enabled AS INTEGER
- col AS INTEGER
+  text AS STRING
+  enabled AS INTEGER
+  col AS INTEGER
+  dat AS INTEGER  'For your own use
 END TYPE
 
 'Warning: when editing NPCType, consider Get/SetNPCD and serialization disasters

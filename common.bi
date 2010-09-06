@@ -144,7 +144,8 @@ DECLARE FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval A
 
 DECLARE SUB position_menu (menu AS MenuDef, page AS INTEGER)
 DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
-DECLARE SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
+DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu AS MenuDef)
+DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu() AS SimpleMenu)
 DECLARE FUNCTION count_menu_items (menu AS MenuDef) as integer
 DECLARE FUNCTION find_empty_menu_item (menu AS MenuDef) as integer
 DECLARE FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
@@ -160,6 +161,7 @@ DECLARE FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS
 DECLARE SUB remove_menu_item OVERLOAD(BYREF menu AS MenuDef, BYVAL mi AS MenuDefItem ptr)
 DECLARE SUB remove_menu_item OVERLOAD(BYREF menu AS MenuDef, BYVAL mislot AS INTEGER)
 DECLARE SUB swap_menu_items(BYREF menu1 AS MenuDef, BYVAL mislot1 AS INTEGER, BYREF menu2 AS MenuDef, BYVAL mislot2 AS INTEGER)
+DECLARE SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, BYVAL enabled as integer = YES, BYVAL col as integer = -1, BYVAL dat as integer = 0, BYVAL where as integer = -1)
 
 DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTRING PTR, context AS ZSTRING PTR=nulzstr, fromscript AS INTEGER=YES) AS INTEGER
 DECLARE SUB reporterr(msg AS STRING, errlvl AS INTEGER = 5)

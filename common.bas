@@ -141,6 +141,9 @@ FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as 
 'a version for menus with unselectable items, skip items for which menudata().enabled = 0
 
 WITH state
+ '.pt = -1 when the menu has no selectable items
+ IF .pt = -1 THEN RETURN 0
+
  oldptr = .pt
  oldtop = .top
  d = 0
@@ -194,6 +197,9 @@ FUNCTION usemenu (state as MenuState, enabled() as INTEGER, BYVAL deckey as inte
 'a version for menus with unselectable items, skip items for which enabled = 0
 
 WITH state
+ '.pt = -1 when the menu has no selectable items
+ IF .pt = -1 THEN RETURN 0
+
  oldptr = .pt
  oldtop = .top
  d = 0
@@ -3043,6 +3049,7 @@ FUNCTION anchor_point(anchor AS INTEGER, size AS INTEGER) AS INTEGER
  END SELECT
 END FUNCTION
 
+'(Re-)initialise menu state, preserving .pt if valid
 SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
  state.first = 0
  state.last = count_menu_items(menu) - 1
@@ -3050,6 +3057,22 @@ SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
  IF state.size = -1 THEN state.size = 17
  state.pt = small(large(state.pt, state.first), state.last)  'explicitly -1 when empty
  state.top = bound(state.top, 0, large(state.last - state.size, 0))
+END SUB
+
+'(Re-)initialise menu state, preserving .pt if valid
+SUB init_menu_state (BYREF state AS MenuState, menu() AS SimpleMenu)
+ WITH state
+  .first = 0
+  .last = UBOUND(menu)
+  IF .size <= 0 THEN .size = 20
+  .top = 0
+  IF .pt < .first ORELSE .pt > .last ORELSE menu(.pt).enabled = NO THEN
+   .pt = -1  'explicitly -1 when nothing selectable
+   FOR i AS INTEGER = 0 TO UBOUND(menu)
+    IF menu(i).enabled THEN .pt = i: EXIT FOR
+   NEXT
+  END IF
+ END WITH
 END SUB
 
 FUNCTION count_menu_items (menu AS MenuDef) as integer
@@ -3404,6 +3427,21 @@ END SUB
 FUNCTION enter_or_space () AS INTEGER
  RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1
 END FUNCTION
+
+'Simple... and yet, more options than a regular menu item
+SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, BYVAL enabled as integer = YES, BYVAL col as integer = -1, BYVAL dat as integer = 0, BYVAL where as integer = -1)
+ IF col = -1 THEN col = uilook(uiText)
+ IF where = -1 THEN
+  REDIM PRESERVE menu(0 TO UBOUND(menu) + 1)
+  where = UBOUND(menu)
+ END IF
+ WITH menu(where)
+  .text = caption
+  .enabled = enabled
+  .col = col
+  .dat = dat
+ END WITH
+END SUB
 
 FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0) as integer
  DIM i AS INTEGER

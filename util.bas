@@ -308,23 +308,23 @@ end function
 SUB flusharray (array() AS INTEGER, BYVAL size AS INTEGER=-1, BYVAL value AS INTEGER=0)
  'If size is -1, then flush the entire array
  IF size = -1 THEN size = UBOUND(array)
- FOR i AS INTEGER = 0 TO size
+ FOR i AS INTEGER = LBOUND(array) TO size
   array(i) = value
  NEXT i
 END SUB
 
 SUB str_array_append (array() AS STRING, s AS STRING)
- REDIM PRESERVE array(UBOUND(array) + 1) AS STRING
+ REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) AS STRING
  array(UBOUND(array)) = s
 END SUB
 
 SUB int_array_append (array() AS INTEGER, BYVAL k AS INTEGER)
- REDIM PRESERVE array(UBOUND(array) + 1) AS INTEGER
+ REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) AS INTEGER
  array(UBOUND(array)) = k
 END SUB
 
 SUB intstr_array_append (array() AS IntStrPair, BYVAL k AS INTEGER, s AS STRING)
- REDIM PRESERVE array(UBOUND(array) + 1)
+ REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1)
  array(UBOUND(array)).i = k
  array(UBOUND(array)).s = s
 END SUB
@@ -335,6 +335,21 @@ FUNCTION int_array_find (array() AS INTEGER, BYVAL value AS INTEGER) AS INTEGER
  NEXT
  RETURN -1
 END FUNCTION
+
+'Resize a dynamic int array, removing all occurrences of k
+SUB int_array_remove (array() as integer, byval k as integer)
+ DIM i AS INTEGER = LBOUND(array)
+ WHILE i <= UBOUND(array)
+  IF array(i) = k THEN
+   'Shuffle down
+   FOR j AS INTEGER = i TO UBOUND(array) - 1
+    array(j) = array(j + 1)
+   NEXT
+   IF UBOUND(array) > LBOUND(array) THEN REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) - 1)
+  END IF
+  i += 1
+ WEND
+END SUB
 
 'I've compared the speed of the following two. For random integers, the quicksort is faster
 'for arrays over length about 80. For arrays which are 90% sorted appended with 10% random data,
