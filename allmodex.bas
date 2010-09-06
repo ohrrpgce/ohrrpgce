@@ -1555,14 +1555,22 @@ SUB replacecolor (BYVAL fr as Frame ptr, BYVAL c_old as integer, BYVAL c_new as 
 		setclip , , , , fr
 	end if
 
-	if w < 0 then x = x + w + 1: w = -w
-	if h < 0 then y = y + h + 1: h = -h
+	if (x and y and w and h) = -1 then
+		'Default to whole clipped region
+		x = clipl
+		y = clipt
+		w = clipr - clipl + 1
+		h = clipb - clipt + 1
+	else
+		if w < 0 then x = x + w + 1: w = -w
+		if h < 0 then y = y + h + 1: h = -h
 
-	'clip
-	if x + w > clipr then w = (clipr - x) + 1
-	if y + h > clipb then h = (clipb - y) + 1
-	if x < clipl then w -= (clipl - x) : x = clipl
-	if y < clipt then h -= (clipt - y) : y = clipt
+		'clip
+		if x + w > clipr then w = (clipr - x) + 1
+		if y + h > clipb then h = (clipb - y) + 1
+		if x < clipl then w -= (clipl - x) : x = clipl
+		if y < clipt then h -= (clipt - y) : y = clipt
+	end if
 
 	if w <= 0 or h <= 0 then exit sub
 

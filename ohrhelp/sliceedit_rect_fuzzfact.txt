@@ -1,0 +1,1 @@
+This is the transparency of 'Fuzzy' rectangles as a percentage. In addition, each value causes a different texture on the rectangle.
