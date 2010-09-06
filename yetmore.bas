@@ -2409,9 +2409,14 @@ SELECT CASE AS CONST id
   END IF
  CASE 461 '--load slice collection
   DIM sl AS Slice Ptr
-  sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
-  SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld"
-  scriptret = create_plotslice_handle(sl)
+  IF isfile(workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld") THEN
+   sl = NewSliceOfType(slContainer, SliceTable.scriptsprite)
+   SliceLoadFromFile sl, workingdir & SLASH & "slicetree_0_" & retvals(0) & ".reld"
+   scriptret = create_plotslice_handle(sl)
+  ELSE
+   scripterr commandname(curcmd->value) & ": invalid slice collection id " & retvals(0), 5
+   scriptret = 0
+  END IF
  CASE 462 '--set slice edge x
   IF valid_plotslice(retvals(0)) THEN
    IF bound_arg(retvals(1), 0, 2, "edge") THEN
