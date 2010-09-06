@@ -75,6 +75,24 @@ FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
  RETURN result
 END FUNCTION
 
+'Like INSTR, but return the n-th match
+'Returns 0 if not found
+FUNCTION Instr_nth (BYVAL start AS INTEGER, s AS STRING, substring AS STRING, BYVAL nth AS INTEGER = 1) AS INTEGER
+ DIM temp AS INTEGER = start - 1
+ IF nth < 1 THEN RETURN 0
+ FOR n AS INTEGER = 1 TO nth
+  temp = INSTR(temp + 1, s, substring)
+  IF temp = 0 THEN RETURN 0
+ NEXT
+ RETURN temp
+END FUNCTION
+
+'Like INSTR without start point, but return the n-th match
+'Returns 0 if not found
+FUNCTION Instr_nth (s AS STRING, substring AS STRING, BYVAL nth AS INTEGER = 1) AS INTEGER
+ RETURN Instr_nth(1, s, substring, nth)
+END FUNCTION
+
 FUNCTION is_int (s AS STRING) AS INTEGER
  'Even stricter than str2int (doesn't accept "00")
  DIM n AS INTEGER = VALINT(s)

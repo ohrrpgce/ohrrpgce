@@ -261,6 +261,8 @@ declare function loopvar (byval var AS INTEGER, byval min AS INTEGER, byval max 
 declare function small (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER
 declare function range (number as integer, percent as integer) as integer
 declare function rpad (s as string, pad_char as string, size as integer) as string
+declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
+declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer
 declare function is_int(s as string) as integer
 declare function str2int (stri as string, default as integer=0) as integer
 declare function rotascii (s as string, o as integer) as string
