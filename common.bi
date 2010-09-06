@@ -137,6 +137,11 @@ DECLARE SUB reset_console (top AS INTEGER = 0, h AS INTEGER = 200, c AS INTEGER 
 DECLARE SUB show_message (s AS STRING)
 DECLARE SUB append_message (s AS STRING)
 
+DECLARE SUB pop_warning(s AS STRING)
+DECLARE FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
+DECLARE FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
+DECLARE FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+
 DECLARE SUB position_menu (menu AS MenuDef, page AS INTEGER)
 DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
 DECLARE SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
@@ -190,6 +195,8 @@ DECLARE SUB set_homedir()
 DECLARE FUNCTION get_help_dir() AS STRING
 DECLARE FUNCTION load_help_file(helpkey AS STRING) AS STRING
 DECLARE SUB save_help_file(helpkey AS STRING, text AS STRING)
+
+DECLARE SUB show_help(helpkey AS STRING)
 
 'These were added from other, less-appropriate places
 DECLARE FUNCTION filenum(n AS INTEGER) AS STRING

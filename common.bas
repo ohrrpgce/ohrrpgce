@@ -16,6 +16,7 @@
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "common.bi"
+#include "slices.bi"
 
 #include "music.bi"
 #include "loading.bi"
@@ -33,8 +34,7 @@ EXTERN curcmd as ScriptCommand ptr
 #ENDIF
 
 #IFDEF IS_CUSTOM
-'This only exists here to support the choice popup in upgrade that only happens for custom...
-DECLARE FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
+DECLARE FUNCTION charpicker() AS STRING
 #ENDIF
 
 
@@ -1330,6 +1330,477 @@ ELSE
  xintgrabber = 1
 END IF
 
+END FUNCTION
+
+FUNCTION stredit (s AS STRING, BYREF insert AS INTEGER, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=1, BYVAL wrapchars AS INTEGER=1) AS INTEGER
+ 'Return value is the line that the cursor is on, or 0 if numlines=1
+ 'insert is the position of the cursor (range 0..LEN(s)-1), and is modified BYREF. Set to -1 to move automatically to end of string
+ stredit = 0
+ 
+ STATIC clip AS STRING
+
+ '--copy support
+ IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN clip = s
+
+ '--paste support
+ IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN s = LEFT(clip, maxl)
+
+ '--insert cursor movement
+ IF keyval(scCtrl) = 0 THEN 'not CTRL
+  IF keyval(scLeft) > 1 THEN insert = large(0, insert - 1)
+  IF keyval(scRight) > 1 THEN insert = small(LEN(s), insert + 1)
+ ELSE 'CTRL
+  IF keyval(scLeft) > 1 THEN 'move by word
+   IF insert > 0 THEN 'searching from position -1 searches from the end
+    insert = INSTRREV(s, ANY !" \n", insert - 1)  'different argument order: the FB devs, they are so funny
+   END IF
+  END IF
+  IF keyval(scRight) > 1 THEN
+   insert = INSTR(insert + 1, s, ANY !" \n")
+   IF insert = 0 THEN insert = LEN(s)
+  END IF
+  IF keyval(scHome) > 1 THEN insert = 0
+  IF keyval(scEnd) > 1 THEN insert = LEN(s)
+ END IF
+
+ '--up and down arrow keys
+ IF numlines > 1 THEN
+  DIM wrapped AS STRING
+  wrapped = wordwrap(s, large(1, wrapchars))
+  DIM lines() AS STRING
+  split(wrapped, lines())
+  DIM count AS INTEGER = 0
+  DIM found_insert AS INTEGER = -1
+  DIM line_chars AS INTEGER
+  DIM move_lines AS INTEGER = 0
+  FOR i AS INTEGER = 0 TO UBOUND(lines)
+   IF count + LEN(lines(i)) >= insert THEN
+    found_insert = i
+    line_chars = insert - count
+    EXIT FOR
+   END IF
+   count += LEN(lines(i)) + 1
+  NEXT i
+  IF found_insert >= 0 THEN
+   '--set return value
+   stredit = found_insert
+   IF keyval(scUp) > 1 THEN move_lines = -1
+   IF keyval(scDown) > 1 THEN move_lines = 1
+   IF keyval(scPageUp) > 1 THEN move_lines = -(numlines - 2)
+   IF keyval(scPageDown) > 1 THEN move_lines = numlines - 2
+   IF move_lines THEN
+    found_insert = bound(found_insert + move_lines, 0, UBOUND(lines) - 1)
+    insert = 0
+    FOR i AS INTEGER = 0 TO found_insert - 1
+     insert += LEN(lines(i)) + 1
+    NEXT i
+    insert += small(line_chars, LEN(lines(found_insert)))
+    '--set return value
+    stredit = found_insert
+   END IF
+   '--end of special handling for up and down motion
+  END IF
+  '--Home and end keys: go to previous/next newline,
+  '--unless Ctrl is pressed, which is handled above
+  IF keyval(scCtrl) = 0 THEN
+   IF keyval(scHome) > 1 THEN
+    IF insert > 0 THEN 'searching from position -1 searches from the end
+     insert = INSTRREV(s, CHR(10), insert - 1)
+    END IF
+   END IF
+   IF keyval(scEnd) > 1 THEN
+    insert = INSTR(insert + 1, s, CHR(10))
+    IF insert = 0 THEN insert = LEN(s) ELSE insert -= 1
+   END IF
+  END IF
+  '--end of special keys that only work in multiline mode
+ END IF
+
+ IF insert < 0 THEN insert = LEN(s)
+ insert = bound(insert, 0, LEN(s))
+
+ DIM pre AS STRING = LEFT(s, insert)
+ DIM post AS STRING = RIGHT(s, LEN(s) - insert)
+
+ '--BACKSPACE support
+ IF keyval(scBackspace) > 1 AND LEN(pre) > 0 THEN
+  pre = LEFT(pre, LEN(pre) - 1)
+  insert = large(0, insert - 1)
+ END IF
+
+ '--DEL support
+ IF keyval(scDelete) > 1 AND LEN(post) > 0 THEN post = RIGHT(post, LEN(post) - 1)
+
+ '--SHIFT support
+ DIM shift AS INTEGER = 0
+ IF keyval(scRightShift) > 0 OR keyval(scLeftShift) > 0 THEN shift = 1
+
+ '--ALT support
+ IF keyval(scAlt) THEN shift += 2
+
+ '--adding chars
+ IF LEN(pre) + LEN(post) < maxl THEN
+  DIM L AS INTEGER = LEN(pre)
+  IF keyval(scSpace) > 1 THEN
+   IF keyval(scCTRL) = 0 THEN
+    '--SPACE support
+    pre = pre & " "
+   ELSE
+#IFDEF IS_CUSTOM
+    '--charlist support
+    pre = pre & charpicker()
+#ENDIF
+   END IF
+  ELSEIF numlines > 1 AND keyval(scEnter) > 1 THEN
+   pre = pre & CHR(10)
+  ELSE
+   IF keyval(scCtrl) = 0 THEN
+    '--all other keys
+    FOR i AS INTEGER = 2 TO 53
+     IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
+      pre = pre & CHR(keyv(i, shift))
+      EXIT FOR
+     END IF
+    NEXT i
+   END IF
+  END IF
+  IF LEN(pre) > L THEN insert += 1
+ END IF
+
+ s = pre & post
+ 
+END FUNCTION
+
+SUB pop_warning(s AS STRING)
+ 
+ '--Construct the warning UI (This will be hella easier later when the Slice Editor can save/load)
+ DIM root AS Slice Ptr
+ root = NewSliceOfType(slRoot)
+ WITH *root
+  .Y = 200
+  .Fill = NO
+ END WITH
+ DIM outer_box AS Slice Ptr
+ outer_box = NewSliceOfType(slContainer, root)
+ WITH *outer_box
+  .paddingTop = 20
+  .paddingBottom = 20
+  .paddingLeft = 20
+  .paddingRight = 20
+  .Fill = Yes
+ END WITH
+ DIM inner_box AS Slice Ptr
+ inner_box = NewSliceOfType(slRectangle, outer_box)
+ WITH *inner_box
+  .paddingTop = 8
+  .paddingBottom = 8
+  .paddingLeft = 8
+  .paddingRight = 8
+  .Fill = YES
+  ChangeRectangleSlice inner_box, 2
+ END WITH
+ DIM text_area AS Slice Ptr
+ text_area = NewSliceOfType(slText, inner_box)
+ WITH *text_area
+  .Fill = YES
+  ChangeTextSlice text_area, s, , , YES
+ END WITH
+ DIM animate AS Slice Ptr
+ animate = root
+
+ '--Preserve whatever screen was already showing as a background
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+ copypage vpage, dpage
+
+ DIM dat AS TextSliceData Ptr
+ dat = text_area->SliceData
+ dat->line_limit = 15
+
+ DIM deadkeys AS INTEGER = 25
+ DIM cursor_line AS INTEGER = 0
+ DIM scrollbar_state AS MenuState
+ scrollbar_state.size = 16
+
+ '--Now loop displaying text
+ setkeys
+ DO
+  setwait 17, 70
+  setkeys
+  
+  IF deadkeys = 0 THEN 
+   IF keyval(scESC) > 1 OR enter_or_space() THEN EXIT DO
+   IF keyval(scUp) > 1 THEN dat->first_line -= 1
+   IF keyval(scDown) > 1 THEN dat->first_line += 1
+   dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
+  END IF
+  deadkeys = large(deadkeys -1, 0)
+
+  'Animate the arrival of the pop-up
+  animate->Y = large(animate->Y - 20, 0)
+
+  DrawSlice root, dpage
+  
+  WITH scrollbar_state
+   .top = dat->first_line
+   .last = dat->line_count - 1
+  END WITH
+  draw_fullscreen_scrollbar scrollbar_state, , dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+
+ '--Animate the removal of the help screen
+ DO
+  setkeys
+  setwait 17, 70
+  animate->Y = animate->Y + 20
+  IF animate->Y > 200 THEN EXIT DO
+  DrawSlice root, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  copypage holdscreen, dpage
+  dowait
+ LOOP
+  
+ freepage holdscreen
+ DeleteSlice @root
+END SUB
+
+SUB show_help(helpkey AS STRING)
+ DIM help_str AS STRING
+ help_str = load_help_file(helpkey)
+ 
+ '--Construct the help UI (This will be hella easier later when the Slice Editor can save/load)
+ DIM help_root AS Slice Ptr
+ help_root = NewSliceOfType(slRoot)
+ WITH *help_root
+  .Y = 200
+  .Fill = NO
+ END WITH
+ DIM help_outer_box AS Slice Ptr
+ help_outer_box = NewSliceOfType(slContainer, help_root)
+ WITH *help_outer_box
+  .paddingTop = 4
+  .paddingBottom = 4
+  .paddingLeft = 4
+  .paddingRight = 4
+  .Fill = Yes
+ END WITH
+ DIM help_box AS Slice Ptr
+ help_box = NewSliceOfType(slRectangle, help_outer_box)
+ WITH *help_box
+  .paddingTop = 8
+  .paddingBottom = 8
+  .paddingLeft = 8
+  .paddingRight = 8
+  .Fill = YES
+  ChangeRectangleSlice help_box, 1
+ END WITH
+ DIM help_text AS Slice Ptr
+ help_text = NewSliceOfType(slText, help_box)
+ WITH *help_text
+  .Fill = YES
+  ChangeTextSlice help_text, help_str, , , YES
+ END WITH
+ DIM animate AS Slice Ptr
+ animate = help_root
+
+ '--Preserve whatever screen was already showing as a background
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+ copypage vpage, dpage
+
+ DIM dat AS TextSliceData Ptr
+ dat = help_text->SliceData
+ dat->line_limit = 18
+ dat->insert = 0
+
+ DIM editing AS INTEGER = NO
+ DIM deadkeys AS INTEGER = 25
+ DIM cursor_line AS INTEGER = 0
+ DIM scrollbar_state AS MenuState
+ scrollbar_state.size = 17
+
+ '--Now loop displaying help
+ setkeyrepeat  'reset repeat rate
+ setkeys
+ DO
+  IF editing THEN
+   setwait 30
+  ELSE
+   setwait 17
+  END IF
+  setkeys
+  
+  IF editing THEN  
+   cursor_line = stredit(dat->s, dat->insert, 32767, dat->line_limit, help_text->Width \ 8)
+   'The limit of 32767 chars is totally arbitrary and maybe not a good limit
+  END IF
+
+  IF deadkeys = 0 THEN 
+   IF keyval(scESC) > 1 THEN
+    '--If there are any changes to the help screen, offer to save them
+    IF help_str = dat->s THEN
+     EXIT DO
+    ELSE
+     DIM choice AS INTEGER = twochoice("Save changes to help for """ & helpkey & """?", "Yes", "No", 0, -1)
+     IF choice <> -1 THEN
+      IF choice = 0 THEN save_help_file helpkey, dat->s
+      EXIT DO
+     END IF
+    END IF
+   END IF
+   IF keyval(scE) > 1 THEN
+    IF fileiswriteable(get_help_dir() & SLASH & helpkey & ".txt") THEN
+     editing = YES
+     dat->show_insert = YES
+     ChangeRectangleSlice help_box, , uilook(uiBackground), , 0
+    ELSE
+     pop_warning "Your """ & get_help_dir() & """ folder is not writeable. Try making a copy of it at """ & homedir & SLASH & "ohrhelp"""
+    END IF
+   END IF
+   IF keyval(scF1) and helpkey <> "helphelp" THEN
+    show_help "helphelp"
+   END IF
+   IF editing THEN
+    dat->first_line = small(dat->first_line, cursor_line - 1)
+    dat->first_line = large(dat->first_line, cursor_line - (dat->line_limit - 2))
+   ELSE
+    '--not editing, just browsing
+    IF keyval(scUp) > 1 THEN dat->first_line -= 1
+    IF keyval(scDown) > 1 THEN dat->first_line += 1
+    IF keyval(scPageUp) > 1 THEN dat->first_line -= dat->line_limit - 1
+    IF keyval(scPageDown) > 1 THEN dat->first_line += dat->line_limit - 1
+    IF keyval(scHome) > 1 THEN dat->first_line = 0
+    IF keyval(scEnd) > 1 THEN dat->first_line = dat->line_count
+   END IF
+   dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
+  END IF
+  deadkeys = large(deadkeys -1, 0)
+
+  'Animate the arrival of the help screen
+  animate->Y = large(animate->Y - 20, 0)
+
+  copypage holdscreen, vpage
+
+  DrawSlice help_root, vpage
+  
+  WITH scrollbar_state
+   .top = dat->first_line
+   .last = dat->line_count - 1
+  END WITH
+  draw_fullscreen_scrollbar scrollbar_state, , vpage
+
+  setvispage vpage
+  dowait
+ LOOP
+
+ '--Animate the removal of the help screen
+ DO
+  setkeys
+  setwait 17
+  animate->Y = animate->Y + 20
+  IF animate->Y > 200 THEN EXIT DO
+  copypage holdscreen, vpage
+  DrawSlice help_root, vpage
+  setvispage vpage
+  dowait
+ LOOP
+  
+ freepage holdscreen
+ DeleteSlice @help_root
+END SUB
+
+FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
+ DIM state AS MenuState
+ DIM menu AS MenuDef
+ ClearMenuData menu
+ DIM result AS INTEGER
+ DIM captlines() AS STRING
+ DIM wide AS INTEGER
+
+ split(wordwrap(capt, 37), captlines())
+ FOR i AS INTEGER = 0 TO UBOUND(captlines)
+  wide = large(wide, LEN(captlines(i)))
+ NEXT
+
+ FOR i AS INTEGER = 0 TO UBOUND(choices)
+  append_menu_item menu, choices(i)
+ NEXT
+
+ state.active = YES
+ init_menu_state state, menu
+ state.pt = defaultval
+ menu.offset.Y = -20 + 5 * UBOUND(captlines)
+ menu.anchor.Y = -1
+
+ 'Keep whatever was on the screen already as a background (NOTE: this doesn't always work (not necessarily vpage))
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scEsc) > 1 THEN
+   result = escval
+   state.active = NO
+  END IF
+
+  IF keyval(scF1) > 1 ANDALSO LEN(helpkey) > 0 THEN
+   show_help helpkey
+  END IF
+
+  IF enter_or_space() THEN
+   result = state.pt
+   state.active = NO
+  END IF
+
+  IF state.active = NO THEN EXIT DO
+  
+  usemenu state
+
+  copypage holdscreen, vpage
+  centerbox 160, 70, 16 + wide * 8, 16 + 10 * UBOUND(captlines), 2, vpage
+  FOR i AS INTEGER = 0 TO UBOUND(captlines)
+   edgeprint captlines(i), xstring(captlines(i), 160), 65 - 5 * UBOUND(captlines) + i * 10, uilook(uiMenuItem), vpage
+  NEXT
+  draw_menu menu, state, vpage
+  IF LEN(helpkey) > 0 THEN
+   edgeprint "F1 Help", 0, 190, uilook(uiMenuItem), vpage
+  END IF
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+ freepage holdscreen
+ ClearMenuData menu
+
+ RETURN result
+END FUNCTION
+
+FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
+ DIM choices(1) AS STRING = {strA, strB}
+ RETURN multichoice(capt, choices(), defaultval, escval, helpkey)
+END FUNCTION
+
+'Asks a yes-or-no pop-up question.
+'(Not to be confused with yesorno(), which returns a yes/no string)
+FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
+ IF defaultval THEN defaultval = 0 ELSE defaultval = 1
+ IF escval THEN escval = 0 ELSE escval = 1
+ DIM result AS INTEGER
+ result = twochoice(capt, "Yes", "No", defaultval, escval)
+ IF result = 0 THEN RETURN YES
+ IF result = 1 THEN RETURN NO
 END FUNCTION
 
 SUB playsongnum (songnum%)

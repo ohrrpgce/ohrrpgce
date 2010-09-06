@@ -21,10 +21,6 @@ DECLARE SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
 DECLARE FUNCTION int_from_xy(pos AS XYPair, wide AS INTEGER, high AS INTEGER) AS INTEGER
 DECLARE FUNCTION xy_from_int(n AS INTEGER, wide AS INTEGER, high AS INTEGER) AS XYPair
 DECLARE FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
-DECLARE FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
-DECLARE FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
-DECLARE FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
-DECLARE SUB pop_warning(s AS STRING)
 DECLARE FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
 DECLARE FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING) AS INTEGER
 DECLARE SUB keyboardsetup ()
@@ -56,7 +52,6 @@ DECLARE SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS 
 DECLARE FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING) AS STRING
 DECLARE SUB scriptbrowse (BYREF trigger AS INTEGER, BYVAL triggertype AS INTEGER, scrtype AS STRING)
 DECLARE FUNCTION scrintgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77, BYVAL scriptside AS INTEGER, BYVAL triggertype AS INTEGER) AS INTEGER
-DECLARE SUB show_help(helpkey AS STRING)
 DECLARE SUB visit_scripts(BYVAL visit AS FnScriptVisitor)
 DECLARE SUB gather_script_usage(list() AS STRING, BYVAL id AS INTEGER, BYVAL trigger AS INTEGER=0, BYREF meter AS INTEGER, BYVAL meter_times AS INTEGER=1, box_instead_cache() AS INTEGER, box_after_cache() AS INTEGER, box_preview_cache() AS STRING)
 DECLARE SUB script_usage_list ()
