@@ -41,7 +41,7 @@ DECLARE FUNCTION dieWOboss(BYVAL who as integer, bslot() AS BattleSprite) as int
 DECLARE SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() as integer)
 DECLARE SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() as herodef)
-DECLARE SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprite, conlmp())
+DECLARE SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprite)
 DECLARE SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER)
 DECLARE SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, bat AS BattleState)
 DECLARE SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, st() AS HeroDef, formdata())

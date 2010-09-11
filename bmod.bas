@@ -53,6 +53,7 @@ DECLARE SUB battle_animate(bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_meters (bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_display (bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
 DECLARE SUB battle_confirm_target(bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB battle_targetting(bat AS BattleState, bslot() AS BattleSprite)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -71,10 +72,9 @@ battle = 1
 DIM formdata(40)
 DIM attack AS AttackData
 DIM targets_attack AS AttackData
-DIM autotarg_attack AS AttackData
 DIM st(3) as herodef
 DIM menubits(2)
-DIM conlmp(11), icons(11)
+DIM icons(11)
 DIM bat AS BattleState
 REDIM atkq(15) AS AttackQueue
 clear_attack_queue()
@@ -249,10 +249,10 @@ DO
   IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata()
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
    IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot(), icons()
-   IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot(), conlmp()
+   IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
    IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), st()
   END IF
-  IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN GOSUB picktarg
+  IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN battle_targetting bat, bslot()
  END IF
 
  '--Begin display 
@@ -539,7 +539,10 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     '--set the flag to prevent re-consuming MP
     bat.atk.has_consumed_costs = YES
    END IF
-   IF conlmp(bat.acting) > 0 THEN lmp(bat.acting, conlmp(bat.acting) - 1) = lmp(bat.acting, conlmp(bat.acting) - 1) - 1: conlmp(bat.acting) = 0
+   IF bslot(bat.acting).consume_lmp > 0 THEN
+    lmp(bat.acting, bslot(bat.acting).consume_lmp - 1) -= 1
+    bslot(bat.acting).consume_lmp = 0
+   END IF
    IF icons(bat.acting) >= 0 THEN
     IF consumeitem(icons(bat.acting)) THEN
      setbit bat.iuse(), 0, icons(bat.acting), 0
@@ -692,81 +695,91 @@ DO '--just for breaking
 LOOP
 RETRACE
 
-picktarg: '-----------------------------------------------------------
-
-'cancel
-IF carray(ccMenu) > 1 THEN
- bslot(bat.hero_turn).attack = 0
- conlmp(bat.hero_turn) = 0
- bat.targ.mode = targNONE
- flusharray carray(), 7, 0
- RETRACE
-END IF
-
-IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
-
-'autotarget
-IF bat.targ.mode = targAUTO THEN
- loadattackdata autotarg_attack, bslot(bat.hero_turn).attack - 1
- autotarget bat.hero_turn, autotarg_attack, bslot()
- bslot(bat.hero_turn).ready_meter = 0
- bslot(bat.hero_turn).ready = NO
- bat.hero_turn = -1
- bat.targ.mode = targNONE
- RETRACE
-END IF
-
-IF targetmaskcount(bat.targ.mask()) = 0 THEN
- RETRACE
-END IF
-
-'random target
-IF bat.targ.roulette THEN
- FOR i = 0 TO INT(RND * 2)
-  bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
-  WHILE bat.targ.mask(bat.targ.pointer) = 0
-   bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
-  WEND
- NEXT i
-END IF
-
-'first target
-IF bat.targ.force_first THEN
- bat.targ.pointer = 0
- WHILE bat.targ.mask(bat.targ.pointer) = 0
-  bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
- WEND
-END IF
-
-IF bat.targ.opt_spread = 2 AND (carray(ccLeft) > 1 OR carray(ccRight) > 1) AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
- FOR i = 0 TO 11
-  bat.targ.selected(i) = 0
- NEXT i
- bat.targ.opt_spread = 1
- flusharray carray(), 7, 0
-END IF
-IF bat.targ.interactive = YES AND bat.targ.opt_spread < 2 AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
- IF carray(ccUp) > 1 THEN
-  smartarrows -1, 1, bslot(), bat.targ, NO
- END IF
- IF carray(ccDown) > 1 THEN
-  smartarrows 1, 1, bslot(), bat.targ, NO
- END IF
- IF carray(ccLeft) > 1 THEN
-  smartarrows -1, 0, bslot(), bat.targ, YES
- END IF
- IF carray(ccRight) > 1 THEN
-  smartarrows 1, 0, bslot(), bat.targ, YES
- END IF
-END IF
-IF carray(ccUse) > 1 THEN battle_confirm_target bat, bslot()
-RETRACE
-
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
 
+SUB battle_targetting(bat AS BattleState, bslot() AS BattleSprite)
+
+ DIM i AS INTEGER
+
+ 'cancel
+ IF carray(ccMenu) > 1 THEN
+  bslot(bat.hero_turn).attack = 0
+  bslot(bat.hero_turn).consume_lmp = 0
+  bat.targ.mode = targNONE
+  flusharray carray(), 7, 0
+  EXIT SUB
+ END IF
+
+ IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
+
+ 'autotarget
+ IF bat.targ.mode = targAUTO THEN
+  DIM autotarg_attack AS AttackData
+  loadattackdata autotarg_attack, bslot(bat.hero_turn).attack - 1
+  autotarget bat.hero_turn, autotarg_attack, bslot()
+  bslot(bat.hero_turn).ready_meter = 0
+  bslot(bat.hero_turn).ready = NO
+  bat.hero_turn = -1
+  bat.targ.mode = targNONE
+  EXIT SUB
+ END IF
+
+ 'no valid targs available
+ IF targetmaskcount(bat.targ.mask()) = 0 THEN
+  EXIT SUB
+ END IF
+
+ 'random target
+ IF bat.targ.roulette THEN
+  FOR i = 0 TO INT(RND * 2)
+   bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
+   WHILE bat.targ.mask(bat.targ.pointer) = 0
+    bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
+   WEND
+  NEXT i
+ END IF
+
+ 'first target
+ IF bat.targ.force_first THEN
+  bat.targ.pointer = 0
+  WHILE bat.targ.mask(bat.targ.pointer) = 0
+   bat.targ.pointer = loopvar(bat.targ.pointer, 0, 11, 1)
+  WEND
+ END IF
+
+ 'optional spread targetting
+ IF bat.targ.opt_spread = 2 AND (carray(ccLeft) > 1 OR carray(ccRight) > 1) AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
+  FOR i = 0 TO 11
+   bat.targ.selected(i) = 0
+  NEXT i
+  bat.targ.opt_spread = 1
+  flusharray carray(), 7, 0
+ END IF
+ 
+ 'arrow keys to select
+ IF bat.targ.interactive = YES AND bat.targ.opt_spread < 2 AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
+  IF carray(ccUp) > 1 THEN
+   smartarrows -1, 1, bslot(), bat.targ, NO
+  END IF
+  IF carray(ccDown) > 1 THEN
+   smartarrows 1, 1, bslot(), bat.targ, NO
+  END IF
+  IF carray(ccLeft) > 1 THEN
+   smartarrows -1, 0, bslot(), bat.targ, YES
+  END IF
+  IF carray(ccRight) > 1 THEN
+   smartarrows 1, 0, bslot(), bat.targ, YES
+  END IF
+ END IF
+ 
+ 'confirm
+ IF carray(ccUse) > 1 THEN battle_confirm_target bat, bslot()
+ 
+END SUB
+ 
 SUB battle_confirm_target(bat AS BattleState, bslot() AS BattleSprite)
  bat.targ.selected(bat.targ.pointer) = 1
  '--copy currently selected target(s) into the attacker's .t() array
@@ -2218,7 +2231,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
  END IF
 END SUB
 
-SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprite, conlmp())
+SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprite)
  IF carray(ccMenu) > 1 THEN '--cancel
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
@@ -2257,7 +2270,7 @@ SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprit
    IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(bat.sptr / 3), bslot()) THEN
     '--attack is allowed
     '--if lmp then set lmp consume flag
-    IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN conlmp(bat.hero_turn) = INT(bat.sptr / 3) + 1
+    IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN bslot(bat.hero_turn).consume_lmp = INT(bat.sptr / 3) + 1
     '--queue attack
     bslot(bat.hero_turn).attack = bat.spell.slot(bat.sptr).atk_id + 1
     bslot(bat.hero_turn).delay = large(atk.attack_delay, 1)

@@ -65,6 +65,9 @@ TYPE BattleSprite
   vis AS INTEGER
   '--stats
   stat AS BattleStats
+  '--level-mp
+  consume_lmp AS INTEGER '0 for no LMP consumption, >= 1 to indicate which level of MP should be deducted
+                         'FIXME: consume_lmp would probably be better as a member of the AttackState or AttackQueue later on.
   '--misc
   dissolve AS INTEGER
   flee AS INTEGER ' used to indicate when a sprite animates running away (not to be confused with BattleState.flee)
