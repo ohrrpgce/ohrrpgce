@@ -410,7 +410,18 @@ IF temp >= 0 THEN
  prepare_map NO, YES 'Special case if this is called right after GOSUB doloadgame
  'FIXME: clean this up: setting vstate.id is only backcompat for loading from the old SAV format;
  ' ideally this would be in old_loadgame, but we need to load NPCs in prepare_map
- IF vstate.active THEN vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
+ IF vstate.active THEN
+  SELECT CASE npc(vstate.npc).id
+   CASE 0:
+    debug "Vehicle NPC ref " & vstate.npc - 1 & " in save state does not exist in game anymore"
+    vehicle_graceful_dismount
+   CASE IS < 0:
+    debug "Vehicle NPC ref " & vstate.npc - 1 & " in save state is now disabled by tags"
+    vehicle_graceful_dismount
+   CASE ELSE
+    vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
+  END SELECT
+ END IF
 ELSE
  clearpage 0
  clearpage 1

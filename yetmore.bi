@@ -29,6 +29,7 @@ DECLARE SUB templockexplain
 DECLARE SUB tweakpalette
 DECLARE FUNCTION vehiclestuff () as integer
 DECLARE FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
+DECLARE SUB vehicle_graceful_dismount ()
 DECLARE SUB vishero ()
 DECLARE SUB wrapaheadxy (x as integer, y as integer, direction as integer, distance as integer, unitsize as integer)
 DECLARE SUB cropposition (BYREF x as integer, BYREF y as integer, unitsize as integer)

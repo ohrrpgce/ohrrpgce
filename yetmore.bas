@@ -2889,13 +2889,7 @@ IF vstate.active = YES AND vehicle_is_animating() = NO THEN
       result = 1
      CASE 0
       '--dismount
-      xgo(0) = 0
-      ygo(0) = 0
-      IF vstate.dat.elevation > 0 THEN
-       vstate.falling = YES
-      ELSE
-       vstate.init_dismount = YES
-      END IF
+      vehicle_graceful_dismount
      CASE IS > 0
       result = button(i) * -1
     END SELECT
@@ -2907,6 +2901,16 @@ END IF'--normal
 RETURN result
 
 END FUNCTION
+
+SUB vehicle_graceful_dismount ()
+ xgo(0) = 0
+ ygo(0) = 0
+ IF vstate.dat.elevation > 0 THEN
+  vstate.falling = YES
+ ELSE
+  vstate.init_dismount = YES
+ END IF
+END SUB
 
 FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
 
