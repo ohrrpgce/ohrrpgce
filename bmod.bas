@@ -56,6 +56,7 @@ DECLARE SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSpr
 DECLARE SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_spawn_on_hit(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+DECLARE SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, icons())
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -73,7 +74,6 @@ bstackstart = stackpos
 battle = 1
 DIM formdata(40)
 DIM attack AS AttackData
-DIM targets_attack AS AttackData
 DIM st(3) as herodef
 DIM menubits(2)
 DIM icons(11)
@@ -82,7 +82,6 @@ REDIM atkq(15) AS AttackQueue
 clear_attack_queue()
 DIM bslot(24) AS BattleSprite
 DIM as double timinga, timingb
-DIM tcount AS INTEGER 'FIXME: This is used locally in action GOSUB block. Move DIMs there when that are SUBified
 DIM show_info_mode AS INTEGER = 0
 
 'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
@@ -220,7 +219,9 @@ DO
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
   generate_atkscript attack, bat, bslot(), icons()
  END IF
- IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN GOSUB action
+ IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN
+  battle_attack_anim_playback attack, bat, bslot(), formdata(), icons()
+ END IF
  battle_animate bat, bslot()
  na = loopvar(na, 0, 11, 1)
  IF battle_time_can_pass(bat) THEN
@@ -346,308 +347,318 @@ setvispage vpage
 wk = getkey
 RETRACE
 
-action:
-tcount = 0 'This should be dimmed locally when this is SUBified
-IF bat.wait_frames > 0 THEN bat.wait_frames -= 1: IF bat.wait_frames > 0 THEN RETRACE
-IF bat.wait_frames = -1 THEN
- bat.wait_frames = 0
- FOR i = 0 TO 23
-  IF bslot(i).xmov <> 0 OR bslot(i).ymov <> 0 OR bslot(i).zmov <> 0 THEN bat.wait_frames = -1
- NEXT i
- IF bat.wait_frames = -1 THEN RETRACE
-END IF
-bat.wait_frames = 0
-
-DO: 'INTERPRET THE ANIMATION SCRIPT
- act = popw
- SELECT CASE act
-  CASE 0 '--end()
-   FOR i = 0 TO 3
-    enforce_weak_picture i, bslot(), bat
-    '--re-enforce party's X/Y positions...
-    bslot(i).x = bslot(i).basex
-    bslot(i).y = bslot(i).basey
-   NEXT i
-   FOR i = 0 TO 7
-    IF bslot(4 + i).flee = 0 THEN
-     bslot(4 + i).x = bslot(4 + i).basex
-     bslot(4 + i).y = bslot(4 + i).basey
-    END IF
-   NEXT i
-   bat.atk.id = -1
-  CASE 1 '???()
-   FOR i = 0 TO 3
-    formdata(i * 4 + 1) = bslot(4 + i).x
-    formdata(i * 4 + 2) = bslot(4 + i).y
-   NEXT i
-   bat.atk.id = -1
-  CASE 2 'setmove(who,xm,ym,xstep,ystep)
-   ww = popw
-   bslot(ww).xmov = popw
-   bslot(ww).ymov = popw
-   bslot(ww).xspeed = popw
-   bslot(ww).yspeed = popw
-  CASE 3 'setpos(who,x,y,d)
-   ww = popw
-   bslot(ww).x = popw
-   bslot(ww).y = popw
-   bslot(ww).d = popw
-  CASE 4 '???()
-   '--undefined
-  CASE 5 'appear(who)
-   ww = popw
-   bslot(ww).vis = 1
-  CASE 6 'disappear(who)
-   ww = popw
-   bslot(ww).vis = 0
-  CASE 7 'setframe(who,frame)
-   ww = popw
-   fr = popw
-   bslot(ww).frame = fr
-   IF is_hero(ww) THEN bslot(ww).walk = 0
-  CASE 8 'absmove(who,n,n,n,n)
-   ww = popw
-   tmp1 = popw
-   tmp2 = popw
-   tmp3 = popw
-   tmp4 = popw
-   bslot(ww).xspeed = (tmp1 - bslot(ww).x) / tmp3
-   bslot(ww).yspeed = (tmp2 - bslot(ww).y) / tmp4
-   bslot(ww).xmov = tmp3
-   bslot(ww).ymov = tmp4
-  CASE 9 'waitforall()
-   bat.wait_frames = -1
-  CASE 10 'inflict(targ, target_count)
-   targ = popw
-   tcount = popw
-   'set tag, if there is one
-   checkTagCond attack.tagset(0), 1
-   checkTagCond attack.tagset(1), 1
-   IF inflict(bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
-    '--attack succeeded
-    IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
-     changefoe targ - 4, attack.transmog_enemy, formdata(), bslot(), attack.transmog_hp, attack.transmog_stats
-    END IF
-    IF attack.cancel_targets_attack THEN
-     '--try to cancel target's attack
-     IF bslot(targ).attack > 0 THEN
-      'Check if the attack is cancelable
-      loadattackdata targets_attack, bslot(targ).attack - 1
-      IF targets_attack.not_cancellable_by_attacks = NO THEN
-       'Okay to cancel target's attack
-       bslot(targ).attack = 0
-      END IF
-     ELSE
-      'just cancel the attack
-      bslot(targ).attack = 0
-     END IF
-    END IF
-    IF attack.cancel_targets_attack OR bslot(targ).stat.cur.stun < bslot(targ).stat.max.stun THEN
-     '--If the currently targeting hero is the one hit, stop targetting
-     '--note that stunning implies cancellation of untargetted attacks,
-     '--but does not imply cancellation of already-targeted attacks.
-     IF bat.hero_turn = targ THEN
-      bat.targ.mode = targNONE
-      bat.hero_turn = -1
-      bslot(targ).attack = 0 'This might seem redundant to the above, but it is okay. Needed for stun
-     END IF
-    END IF
-    WITH bslot(targ).enemy.reward
-     IF attack.erase_rewards = YES THEN
-      .gold = 0
-      .exper = 0
-      .item_rate = 0
-      .rare_item_rate = 0
-     END IF
-    END WITH
-    IF attack.force_run = YES THEN
-    'force heroes to run away
-     IF checkNoRunBit(bslot()) THEN
-      bat.alert = bat.cannot_run_caption
-      bat.alert_ticks = 10
-     ELSE
-      bat.away = 1
-     END IF
-    END IF
-    checkTagCond attack.tagset(0), 2
-    checkTagCond attack.tagset(1), 2
-    IF bslot(targ).stat.cur.hp = 0 THEN
-     checkTagCond attack.tagset(0), 4
-     checkTagCond attack.tagset(1), 4
-    END IF
-
-    IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
-     IF bat.hero_turn >= 0 THEN
-      checkitemusability bat.iuse(), bslot(), bat.hero_turn
-     END IF
-    END IF
-   ELSE
-    checkTagCond attack.tagset(0), 3
-    checkTagCond attack.tagset(1), 3
-   END IF
-   triggerfade targ, bslot()
-   IF bslot(targ).stat.cur.hp > 0 THEN
-    '---REVIVE---
-    bslot(targ).vis = 1
-    bslot(targ).dissolve = 0
-   END IF
-   IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata()
-   'FIXME: this would probably be the right place to trigger counterattacks
-   IF bat.atk.has_consumed_costs = NO THEN
-    '--if the attack costs MP, we want to actually consume MP
-    IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.foc), 0)
-
-    '--ditto for HP
-    IF attack.hp_cost > 0 THEN
-      WITH bslot(bat.acting)
-        .stat.cur.hp = large(.stat.cur.hp - attack.hp_cost, 0)
-        .harm.ticks = gen(genDamageDisplayTicks)
-        .harm.pos.x = .x + (.w * .5)
-        .harm.pos.y = .y + (.h * .5)
-        .harm.text = STR(attack.hp_cost)
-      END WITH
-    END IF
-
-    '--ditto for money
-    IF attack.money_cost <> 0 THEN
-      gold = large(gold - attack.money_cost, 0)
-      WITH bslot(bat.acting)
-        .harm.ticks = gen(genDamageDisplayTicks)
-        .harm.pos.x = .x + (.w * .5)
-        .harm.pos.y = .y + (.h * .5)
-        .harm.text = ABS(attack.money_cost) & "$"
-        IF attack.money_cost < 0 THEN .harm.text  += "+"
-      END WITH
-      IF gold > 2000000000 THEN gold = 2000000000
-      IF gold < 0 THEN gold = 0
-
-    END IF
-
-    '--if the attack consumes items, we want to consume those too
-    FOR i = 0 to 2
-     WITH attack.item(i)
-      IF .id > 0 THEN 'this slot is used
-       IF .number > 0 THEN 'remove items
-        delitem(.id, .number)
-       ELSEIF .number < 0 THEN 'add items
-        getitem(.id, abs(.number))
-       END IF
-       'Update tags when items have changed because it could affect chain conditionals
-       evalitemtag
-      END IF
-     END WITH
-    NEXT i
-
-    '--set the flag to prevent re-consuming MP
-    bat.atk.has_consumed_costs = YES
-   END IF
-   IF bslot(bat.acting).consume_lmp > 0 THEN
-    lmp(bat.acting, bslot(bat.acting).consume_lmp - 1) -= 1
-    bslot(bat.acting).consume_lmp = 0
-   END IF
-   IF icons(bat.acting) >= 0 THEN
-    IF consumeitem(icons(bat.acting)) THEN
-     setbit bat.iuse(), 0, icons(bat.acting), 0
-     evalitemtag
-    END IF
-    icons(bat.acting) = -1
-   END IF
-   o = 0
-   FOR i = 0 TO 3
-    IF bslot(i).stat.cur.hp = 0 THEN o = o + 1
-   NEXT i
-   IF o = 4 THEN
-    bat.atk.id = -1
-   END IF
-   o = 0
-   FOR i = 4 TO 11
-    IF bslot(i).stat.cur.hp = 0 THEN o = o + 1
-   NEXT i
-   IF bslot(targ).stat.cur.hp = 0 AND o < 8 AND bat.atk.id > -1 THEN'
-    '--if the target is already dead, auto-pick a new target
-    '--FIXME: why are we doing this after the attack? Does this even do anything?
-    '--       it was passing garbage attack data at least some of the time until r2104
-    autotarget bat.acting, attack, bslot()
-   END IF
-  CASE 11 'setz(who,z)
-   ww = popw
-   bslot(ww).z = popw
-  CASE 12 '???(n,n,n,n,n)
-   'unimplemented
-  CASE 13 'wait(ticks)
-   bat.wait_frames = popw
-  CASE 14 'walktoggle(who)
-   ww = popw
-   bslot(ww).frame = 0
-   IF is_hero(ww) THEN bslot(ww).walk XOR= 1
-  CASE 15 'zmove(who,zm,zstep)
-   ww = popw
-   bslot(ww).zmov = popw
-   bslot(ww).zspeed = popw
-  CASE 16 'sound(which)
-   playsfx(popw)
-  CASE 17 'align(who, target, edge, offset)
-   w1 = popw
-   w2 = popw
-   select case popw 'which edge?
-   case dirUp
-   	bslot(w1).y = bslot(w2).y + popw
-   case dirDown
-   	bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
-   case dirLeft
-   	bslot(w1).x = bslot(w2).x + popw
-   case dirRight
-   	bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popw
-   end select
-  CASE 18 'setcenter(who, target, offx, offy)
-   w1 = popw
-   w2 = popw
-   bslot(w1).x = (bslot(w2).w - bslot(w1).w) / 2 + bslot(w2).x + popw
-   bslot(w1).y = (bslot(w2).h - bslot(w1).h) / 2 + bslot(w2).y + popw
-	CASE 19 'align2(who, target, edgex, edgey, offx, offy)
-	 w1 = popw
-	 w2 = popw
-	 xd = popw
-	 yd = popw
-	 if xd then
-   	bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popw
-	 else
-	 	bslot(w1).x = bslot(w2).x + popw
-	 end if
-	 if yd then
-		bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
-	 else
-		bslot(w1).y = bslot(w2).y + popw
-	end if
-	CASE 20 'relmove(who, x, y, sx, sy)
-		ww = popw  'who
-		tmp1 = popw'x
-		tmp2 = popw'y
-		tmp3 = popw'sx
-		tmp4 = popw'sy
-		with bslot(ww)
-			if tmp2 <> 0 then .xspeed = tmp1 / tmp3
-			if tmp4 <> 0 then .yspeed = tmp2 / tmp4
-			.xmov = tmp1' .x + tmp3
-			.ymov = tmp2' .y + tmp4
-		end with
-	CASE 21 'setdir(who, d)
-	 ww = popw
-	 tmp1 = popw
-	 'debug "blsot(" & ww & ").d = " & tmp1
-	 bslot(ww).d = tmp1
- END SELECT
-LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
-
-IF bat.atk.id = -1 THEN
- battle_attack_anim_cleanup attack, bat, bslot(), formdata()
-END IF
-RETRACE
-
 END FUNCTION
+
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, icons())
+ '--this plays back the animation sequence built when the attack starts.
+
+ DIM i AS INTEGER
+
+ '--decrement the animation wait ticks, and don't proceed until they are zero
+ IF bat.wait_frames > 0 THEN bat.wait_frames -= 1: IF bat.wait_frames > 0 THEN EXIT SUB
+ 
+ '--special handling when we are waiting for all motion to stop
+ IF bat.wait_frames = -1 THEN
+  bat.wait_frames = 0
+  FOR i = 0 TO 23
+   IF bslot(i).xmov <> 0 OR bslot(i).ymov <> 0 OR bslot(i).zmov <> 0 THEN bat.wait_frames = -1
+  NEXT i
+  IF bat.wait_frames = -1 THEN EXIT SUB
+ END IF
+ bat.wait_frames = 0
+
+ DIM act AS INTEGER
+ 
+ '--these are used to temporarily store "who" arguments
+ DIM ww AS INTEGER
+ DIM w1 AS INTEGER
+ DIM w2 AS INTEGER
+ 
+ DO: 'INTERPRET THE ANIMATION SCRIPT
+  act = popw
+  SELECT CASE act
+   CASE 0 '--end()
+    FOR i = 0 TO 3
+     enforce_weak_picture i, bslot(), bat
+     '--re-enforce party's X/Y positions...
+     bslot(i).x = bslot(i).basex
+     bslot(i).y = bslot(i).basey
+    NEXT i
+    FOR i = 0 TO 7
+     IF bslot(4 + i).flee = 0 THEN
+      bslot(4 + i).x = bslot(4 + i).basex
+      bslot(4 + i).y = bslot(4 + i).basey
+     END IF
+    NEXT i
+    bat.atk.id = -1
+   CASE 1 '???()
+    FOR i = 0 TO 3
+     formdata(i * 4 + 1) = bslot(4 + i).x
+     formdata(i * 4 + 2) = bslot(4 + i).y
+    NEXT i
+    bat.atk.id = -1
+   CASE 2 'setmove(who,xm,ym,xstep,ystep)
+    ww = popw
+    bslot(ww).xmov = popw
+    bslot(ww).ymov = popw
+    bslot(ww).xspeed = popw
+    bslot(ww).yspeed = popw
+   CASE 3 'setpos(who,x,y,d)
+    ww = popw
+    bslot(ww).x = popw
+    bslot(ww).y = popw
+    bslot(ww).d = popw
+   CASE 4 '???()
+    '--undefined
+   CASE 5 'appear(who)
+    ww = popw
+    bslot(ww).vis = 1
+   CASE 6 'disappear(who)
+    ww = popw
+    bslot(ww).vis = 0
+   CASE 7 'setframe(who,frame)
+    ww = popw
+    DIM fr AS INTEGER = popw
+    bslot(ww).frame = fr
+    IF is_hero(ww) THEN bslot(ww).walk = 0
+   CASE 8 'absmove(who,n,n,n,n)
+    ww = popw
+    DIM destpos AS XYPair
+    destpos.x = popw
+    destpos.y = popw
+    DIM movestep AS XYPair
+    movestep.x = popw
+    movestep.y = popw
+    bslot(ww).xspeed = (destpos.x - bslot(ww).x) / movestep.x
+    bslot(ww).yspeed = (destpos.y - bslot(ww).y) / movestep.y
+    bslot(ww).xmov = movestep.x
+    bslot(ww).ymov = movestep.y
+   CASE 9 'waitforall()
+    bat.wait_frames = -1
+   CASE 10 'inflict(targ, target_count)
+    DIM targ AS INTEGER = popw
+    DIM tcount AS INTEGER = popw
+    'set tag, if there is one
+    checkTagCond attack.tagset(0), 1
+    checkTagCond attack.tagset(1), 1
+    IF inflict(bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
+     '--attack succeeded
+     IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
+      changefoe targ - 4, attack.transmog_enemy, formdata(), bslot(), attack.transmog_hp, attack.transmog_stats
+     END IF
+     IF attack.cancel_targets_attack THEN
+      '--try to cancel target's attack
+      IF bslot(targ).attack > 0 THEN
+       'Check if the attack is cancelable
+       DIM targets_attack AS AttackData
+       loadattackdata targets_attack, bslot(targ).attack - 1
+       IF targets_attack.not_cancellable_by_attacks = NO THEN
+        'Okay to cancel target's attack
+        bslot(targ).attack = 0
+       END IF
+      ELSE
+       'just cancel the attack
+       bslot(targ).attack = 0
+      END IF
+     END IF
+     IF attack.cancel_targets_attack OR bslot(targ).stat.cur.stun < bslot(targ).stat.max.stun THEN
+      '--If the currently targeting hero is the one hit, stop targetting
+      '--note that stunning implies cancellation of untargetted attacks,
+      '--but does not imply cancellation of already-targeted attacks.
+      IF bat.hero_turn = targ THEN
+       bat.targ.mode = targNONE
+       bat.hero_turn = -1
+       bslot(targ).attack = 0 'This might seem redundant to the above, but it is okay. Needed for stun
+      END IF
+     END IF
+     WITH bslot(targ).enemy.reward
+      IF attack.erase_rewards = YES THEN
+       .gold = 0
+       .exper = 0
+       .item_rate = 0
+       .rare_item_rate = 0
+      END IF
+     END WITH
+     IF attack.force_run = YES THEN
+     'force heroes to run away
+      IF checkNoRunBit(bslot()) THEN
+       bat.alert = bat.cannot_run_caption
+       bat.alert_ticks = 10
+      ELSE
+       bat.away = 1
+      END IF
+     END IF
+     checkTagCond attack.tagset(0), 2
+     checkTagCond attack.tagset(1), 2
+     IF bslot(targ).stat.cur.hp = 0 THEN
+      checkTagCond attack.tagset(0), 4
+      checkTagCond attack.tagset(1), 4
+     END IF
+  
+     IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
+      IF bat.hero_turn >= 0 THEN
+       checkitemusability bat.iuse(), bslot(), bat.hero_turn
+      END IF
+     END IF
+    ELSE
+     checkTagCond attack.tagset(0), 3
+     checkTagCond attack.tagset(1), 3
+    END IF
+    triggerfade targ, bslot()
+    IF bslot(targ).stat.cur.hp > 0 THEN
+     '---REVIVE---
+     bslot(targ).vis = 1
+     bslot(targ).dissolve = 0
+    END IF
+    IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata()
+    'FIXME: this would probably be the right place to trigger counterattacks
+    IF bat.atk.has_consumed_costs = NO THEN
+     '--if the attack costs MP, we want to actually consume MP
+     IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.foc), 0)
+ 
+     '--ditto for HP
+     IF attack.hp_cost > 0 THEN
+       WITH bslot(bat.acting)
+         .stat.cur.hp = large(.stat.cur.hp - attack.hp_cost, 0)
+         .harm.ticks = gen(genDamageDisplayTicks)
+         .harm.pos.x = .x + (.w * .5)
+         .harm.pos.y = .y + (.h * .5)
+         .harm.text = STR(attack.hp_cost)
+       END WITH
+     END IF
+ 
+     '--ditto for money
+     IF attack.money_cost <> 0 THEN
+       gold = large(gold - attack.money_cost, 0)
+       WITH bslot(bat.acting)
+         .harm.ticks = gen(genDamageDisplayTicks)
+         .harm.pos.x = .x + (.w * .5)
+         .harm.pos.y = .y + (.h * .5)
+         .harm.text = ABS(attack.money_cost) & "$"
+         IF attack.money_cost < 0 THEN .harm.text  += "+"
+       END WITH
+       IF gold > 2000000000 THEN gold = 2000000000
+       IF gold < 0 THEN gold = 0
+ 
+     END IF
+ 
+     '--if the attack consumes items, we want to consume those too
+     FOR i = 0 to 2
+      WITH attack.item(i)
+       IF .id > 0 THEN 'this slot is used
+        IF .number > 0 THEN 'remove items
+         delitem(.id, .number)
+        ELSEIF .number < 0 THEN 'add items
+         getitem(.id, abs(.number))
+        END IF
+        'Update tags when items have changed because it could affect chain conditionals
+        evalitemtag
+       END IF
+      END WITH
+     NEXT i
+ 
+     '--set the flag to prevent re-consuming MP
+     bat.atk.has_consumed_costs = YES
+    END IF
+    IF bslot(bat.acting).consume_lmp > 0 THEN
+     lmp(bat.acting, bslot(bat.acting).consume_lmp - 1) -= 1
+     bslot(bat.acting).consume_lmp = 0
+    END IF
+    IF icons(bat.acting) >= 0 THEN
+     IF consumeitem(icons(bat.acting)) THEN
+      setbit bat.iuse(), 0, icons(bat.acting), 0
+      evalitemtag
+     END IF
+     icons(bat.acting) = -1
+    END IF
+    
+    IF liveherocount(bslot()) = 0 THEN bat.atk.id = -1
+    
+    IF bslot(targ).stat.cur.hp = 0 AND enemycount(bslot()) > 0 AND bat.atk.id > -1 THEN'
+     '--if the target is already dead, and there are still more enemies, auto-pick a new target
+     '--FIXME: why are we doing this after the attack? Does this even do anything?
+     '--       it was passing garbage attack data at least some of the time until r2104
+     autotarget bat.acting, attack, bslot()
+    END IF
+   CASE 11 'setz(who,z)
+    ww = popw
+    bslot(ww).z = popw
+   CASE 12 '???(n,n,n,n,n)
+    'unimplemented
+   CASE 13 'wait(ticks)
+    bat.wait_frames = popw
+   CASE 14 'walktoggle(who)
+    ww = popw
+    bslot(ww).frame = 0
+    IF is_hero(ww) THEN bslot(ww).walk XOR= 1
+   CASE 15 'zmove(who,zm,zstep)
+    ww = popw
+    bslot(ww).zmov = popw
+    bslot(ww).zspeed = popw
+   CASE 16 'sound(which)
+    playsfx(popw)
+   CASE 17 'align(who, target, edge, offset)
+    w1 = popw
+    w2 = popw
+    select case popw 'which edge?
+    case dirUp
+     bslot(w1).y = bslot(w2).y + popw
+    case dirDown
+     bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
+    case dirLeft
+     bslot(w1).x = bslot(w2).x + popw
+    case dirRight
+     bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popw
+    end select
+   CASE 18 'setcenter(who, target, offx, offy)
+    w1 = popw
+    w2 = popw
+    bslot(w1).x = (bslot(w2).w - bslot(w1).w) / 2 + bslot(w2).x + popw
+    bslot(w1).y = (bslot(w2).h - bslot(w1).h) / 2 + bslot(w2).y + popw
+  CASE 19 'align2(who, target, edgex, edgey, offx, offy)
+   w1 = popw
+   w2 = popw
+   DIM xd AS INTEGER = popw
+   DIM yd AS INTEGER = popw
+   if xd then
+    bslot(w1).x = bslot(w2).x + bslot(w2).w - bslot(w1).w + popw
+   else
+    bslot(w1).x = bslot(w2).x + popw
+   end if
+   if yd then
+    bslot(w1).y = bslot(w2).y + bslot(w2).h - bslot(w1).h + popw
+   else
+    bslot(w1).y = bslot(w2).y + popw
+   end if
+  CASE 20 'relmove(who, x, y, sx, sy)
+   ww = popw  'who
+   DIM movedist AS XYPair
+   movedist.x = popw
+   movedist.y = popw
+   DIM movestep AS XYPair
+   movestep.x = popw
+   movestep.y = popw
+   with bslot(ww)
+    if movestep.x <> 0 then .xspeed = movedist.x / movestep.x
+    if movestep.y <> 0 then .yspeed = movedist.y / movestep.y
+    .xmov = movedist.x
+    .ymov = movedist.y
+   end with
+  CASE 21 'setdir(who, d)
+   ww = popw
+   DIM newdir AS INTEGER = popw
+   bslot(ww).d = newdir
+  END SELECT
+ LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
+
+ IF bat.atk.id = -1 THEN
+  battle_attack_anim_cleanup attack, bat, bslot(), formdata()
+ END IF
+END SUB
 
 SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  

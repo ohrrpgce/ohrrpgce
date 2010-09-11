@@ -576,6 +576,7 @@ attacker.attack_succeeded = 1
 END FUNCTION
 
 FUNCTION liveherocount (bslot() AS BattleSprite) as integer
+'--with bslot() counts heros in-battle HP state
 i = 0
 FOR o = 0 TO 3
  IF hero(o) > 0 AND bslot(o).stat.cur.hp > 0 THEN i = i + 1
@@ -584,6 +585,7 @@ liveherocount = i
 END FUNCTION
 
 FUNCTION liveherocount () as integer
+'--with no argument, counts heros outside-of-battle HP state
 i = 0
 FOR o = 0 TO 3
  IF hero(o) > 0 AND gam.hero(o).stat.cur.hp > 0 THEN i = i + 1
