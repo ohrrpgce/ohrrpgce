@@ -55,6 +55,7 @@ DECLARE SUB battle_display (bat AS BattleState, bslot() AS BattleSprite, menubit
 DECLARE SUB battle_confirm_target(bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_targetting(bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_spawn_on_hit(targ as INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+DECLARE SUB battle_attack_anim_cleanup (attack AS AttackData, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -639,31 +640,41 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
 LOOP UNTIL bat.wait_frames <> 0 OR bat.atk.id = -1
 
 IF bat.atk.id = -1 THEN
- GOSUB afterdone
- '--clean up stack
- 'DEBUG debug "discarding " & (stackpos - bstackstart) \ 2 & " from stack"
- WHILE stackpos > bstackstart: dummy = popw: WEND
- IF spawn_chained_attack(attack.chain, attack, bat, bslot()) = NO THEN
-  spawn_chained_attack(attack.elsechain, attack, bat, bslot())
- END IF
+ battle_attack_anim_cleanup attack, bat, bslot(), formdata()
 END IF
-RETRACE
-
-afterdone:
-'--hide the caption when the animation is done
-IF attack.caption_time = 0 THEN
- '--clear duration-timed caption
- bat.caption_time = 0
- bat.caption_delay = 0
-END IF
-fulldeathcheck bat.atk.was_id, bat, bslot(), formdata()
-bat.atk.was_id = -1
 RETRACE
 
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB battle_attack_anim_cleanup (attack AS AttackData, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+ 
+ '--hide the caption when the animation is done
+ IF attack.caption_time = 0 THEN
+  '--clear duration-timed caption
+  bat.caption_time = 0
+  bat.caption_delay = 0
+ END IF
+ 
+ '--check to see if anybody is dead
+ fulldeathcheck bat.atk.was_id, bat, bslot(), formdata()
+ 
+ '--FIXME: further cleanup to remove was_id entirely?
+ bat.atk.was_id = -1
+
+ '--clean up animation stack
+ 'DEBUG debug "discarding " & (stackpos - bstackstart) \ 2 & " from stack"
+ DIM dummy AS INTEGER
+ WHILE stackpos > bstackstart: dummy = popw: WEND
+ 
+ '--spawn the next after-chained attack (if any)
+ IF spawn_chained_attack(attack.chain, attack, bat, bslot()) = NO THEN
+  spawn_chained_attack(attack.elsechain, attack, bat, bslot())
+ END IF
+
+END SUB
 
 SUB battle_spawn_on_hit(targ AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  DIM i AS INTEGER
