@@ -54,6 +54,7 @@ DECLARE SUB battle_meters (bat AS BattleState, bslot() AS BattleSprite, formdata
 DECLARE SUB battle_display (bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
 DECLARE SUB battle_confirm_target(bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_targetting(bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB battle_spawn_on_hit(targ as INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -81,7 +82,6 @@ clear_attack_queue()
 DIM bslot(24) AS BattleSprite
 DIM as double timinga, timingb
 DIM tcount AS INTEGER 'FIXME: This is used locally in action GOSUB block. Move DIMs there when that are SUBified
-DIM atktype(8) AS INTEGER 'FIXME: this used locally in sponhit: move the DIM there when SUBifiying it
 DIM show_info_mode AS INTEGER = 0
 
 'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
@@ -490,7 +490,8 @@ DO: 'INTERPRET THE ANIMATION SCRIPT
     bslot(targ).vis = 1
     bslot(targ).dissolve = 0
    END IF
-   IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN GOSUB sponhit
+   IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata()
+   'FIXME: this would probably be the right place to trigger counterattacks
    IF bat.atk.has_consumed_costs = NO THEN
     '--if the attack costs MP, we want to actually consume MP
     IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.foc), 0)
@@ -659,13 +660,23 @@ fulldeathcheck bat.atk.was_id, bat, bslot(), formdata()
 bat.atk.was_id = -1
 RETRACE
 
-sponhit:
-'atktype should be DIMed locally here when this is SUBified
-atktype(0) = bat.atk.non_elemental
-FOR i = 0 TO 7
- atktype(i + 1) = bat.atk.elemental(i)
-NEXT i
-DO '--just for breaking
+END FUNCTION
+
+'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
+OPTION EXPLICIT
+
+SUB battle_spawn_on_hit(targ AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+ DIM i AS INTEGER
+ DIM j AS INTEGER
+ DIM slot AS INTEGER
+ 
+ '--atktype holds the elementality of the currently animating attack
+ DIM atktype(8) AS INTEGER
+ atktype(0) = bat.atk.non_elemental
+ FOR i = 0 TO 7
+  atktype(i + 1) = bat.atk.elemental(i)
+ NEXT i
+ 
  WITH bslot(targ)
   '--non-elemental hit
   IF .enemy.spawn.non_elemental_hit > 0 AND atktype(0) = YES THEN
@@ -676,7 +687,7 @@ DO '--just for breaking
      loadfoe slot, formdata(), bat, bslot()
     END IF
    NEXT j
-   EXIT DO '--skip further checks
+   EXIT SUB '--skip further checks
   END IF
   FOR i = 0 TO 7
    IF .enemy.spawn.elemental_hit(i) > 0 AND atktype(i + 1) = YES THEN
@@ -691,14 +702,7 @@ DO '--just for breaking
    END IF
   NEXT i
  END WITH
- EXIT DO '--never really loop
-LOOP
-RETRACE
-
-END FUNCTION
-
-'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
-OPTION EXPLICIT
+END SUB
 
 SUB battle_targetting(bat AS BattleState, bslot() AS BattleSprite)
 
