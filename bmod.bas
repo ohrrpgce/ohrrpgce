@@ -52,6 +52,7 @@ DECLARE SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formd
 DECLARE SUB battle_animate(bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_meters (bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_display (bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
+DECLARE SUB battle_confirm_target(bat AS BattleState, bslot() AS BattleSprite)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -758,30 +759,34 @@ IF bat.targ.interactive = YES AND bat.targ.opt_spread < 2 AND bat.targ.roulette 
   smartarrows 1, 0, bslot(), bat.targ, YES
  END IF
 END IF
-IF carray(ccUse) > 1 THEN GOSUB gottarg
-RETRACE
-
-gottarg: '-----------------------------------------------------------------
-bat.targ.selected(bat.targ.pointer) = 1
-o = 0
-FOR i = 0 TO 11
- IF bat.targ.selected(i) = 1 THEN
-  bslot(bat.hero_turn).t(o) = i: o = o + 1
-  IF bat.targ.hit_dead THEN bslot(bat.hero_turn).keep_dead_targs(i) = YES
- END IF
-NEXT i
-queue_attack bslot(), bat.hero_turn
-bslot(bat.hero_turn).ready_meter = 0
-bslot(bat.hero_turn).ready = NO
-bat.hero_turn = -1
-bat.targ.mode = targNONE
-bat.targ.hit_dead = NO
+IF carray(ccUse) > 1 THEN battle_confirm_target bat, bslot()
 RETRACE
 
 END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB battle_confirm_target(bat AS BattleState, bslot() AS BattleSprite)
+ bat.targ.selected(bat.targ.pointer) = 1
+ '--copy currently selected target(s) into the attacker's .t() array
+ DIM o AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO 11
+  IF bat.targ.selected(i) = 1 THEN
+   bslot(bat.hero_turn).t(o) = i
+   o = o + 1
+   IF bat.targ.hit_dead THEN bslot(bat.hero_turn).keep_dead_targs(i) = YES
+  END IF
+ NEXT i
+ '--FIXME: queued attacks don't matter for anything yet
+ queue_attack bslot(), bat.hero_turn
+ 
+ bslot(bat.hero_turn).ready_meter = 0
+ bslot(bat.hero_turn).ready = NO
+ bat.hero_turn = -1
+ bat.targ.mode = targNONE
+ bat.targ.hit_dead = NO
+END SUB
 
 SUB battle_display (bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
  'display:
