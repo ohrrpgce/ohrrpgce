@@ -49,13 +49,13 @@ DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
 DECLARE FUNCTION battle_time_can_pass(bat AS BattleState) AS INTEGER
 DECLARE SUB battle_tryrun(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB battle_animate(bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB battle_meters (bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB battle_display (bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
-DECLARE SUB battle_confirm_target(bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB battle_targetting(bat AS BattleState, bslot() AS BattleSprite)
-DECLARE SUB battle_spawn_on_hit(targ as INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB battle_attack_anim_cleanup (attack AS AttackData, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+DECLARE SUB battle_animate(BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+DECLARE SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
+DECLARE SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB battle_spawn_on_hit(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+DECLARE SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -649,7 +649,7 @@ END FUNCTION
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
 
-SUB battle_attack_anim_cleanup (attack AS AttackData, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  
  '--hide the caption when the animation is done
  IF attack.caption_time = 0 THEN
@@ -676,7 +676,7 @@ SUB battle_attack_anim_cleanup (attack AS AttackData, bat AS BattleState, bslot(
 
 END SUB
 
-SUB battle_spawn_on_hit(targ AS INTEGER, bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+SUB battle_spawn_on_hit(targ AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  DIM i AS INTEGER
  DIM j AS INTEGER
  DIM slot AS INTEGER
@@ -715,7 +715,7 @@ SUB battle_spawn_on_hit(targ AS INTEGER, bat AS BattleState, bslot() AS BattleSp
  END WITH
 END SUB
 
-SUB battle_targetting(bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
  DIM i AS INTEGER
 
@@ -795,7 +795,7 @@ SUB battle_targetting(bat AS BattleState, bslot() AS BattleSprite)
  
 END SUB
  
-SUB battle_confirm_target(bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
  bat.targ.selected(bat.targ.pointer) = 1
  '--copy currently selected target(s) into the attacker's .t() array
  DIM o AS INTEGER = 0
@@ -816,7 +816,7 @@ SUB battle_confirm_target(bat AS BattleState, bslot() AS BattleSprite)
  bat.targ.hit_dead = NO
 END SUB
 
-SUB battle_display (bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
+SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS INTEGER, st() AS HeroDef)
  'display:
  '--this sub currently draws the user-interface. In the future it will update
  '--user interface slices
@@ -965,7 +965,7 @@ SUB battle_display (bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
 END SUB
 
 
-SUB battle_meters (bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  IF bat.away = 1 THEN EXIT SUB '--skip all this if the heroes have already run away
  
  '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
@@ -1044,7 +1044,7 @@ SUB battle_meters (bat AS BattleState, bslot() AS BattleSprite, formdata() AS IN
 
 END SUB
 
-SUB battle_animate(bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_animate(BYREF bat AS BattleState, bslot() AS BattleSprite)
  'This sub is intended to apply animation effects triggered elsewhere.
  'FIXME: due to messy code, some stuff animation stuff might still happen elsewhere
  DIM i AS INTEGER
