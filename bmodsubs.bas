@@ -756,70 +756,73 @@ FUNCTION exptolevel (level as integer) as integer
  return exper
 END FUNCTION
 
+OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
+
 SUB updatestatslevelup (i as integer, stats AS BattleStats, allowforget as integer)
-' i = who
-' exstat = external stats
-' stats = in-battle stats
-' allowforget = forget spells if level dropped below requirement
+ ' i = who
+ ' exstat = external stats
+ ' stats = in-battle stats
+ ' allowforget = forget spells if level dropped below requirement
 
-'wipe learnmask for this hero
-'note that this gets wiped again later, but that is okay.
-'this makes sure that learnmask gets cleared for this battle
-'even if the hero *doesn't* get a level-up.
-FOR o = i * 6 TO i * 6 + 5
- learnmask(o) = 0
-NEXT
+ 'wipe learnmask for this hero
+ 'note that this gets wiped again later, but that is okay.
+ 'this makes sure that learnmask gets cleared for this battle
+ 'even if the hero *doesn't* get a level-up.
+ FOR o AS INTEGER = i * 6 TO i * 6 + 5
+  learnmask(o) = 0
+ NEXT
 
-'THIS PART UPDATES STATS FOR A LEVEL UP
-IF gam.hero(i).lev_gain THEN
+ 'THIS PART UPDATES STATS FOR A LEVEL UP
+ IF gam.hero(i).lev_gain THEN
 
- dim her as herodef
- loadherodata @her, hero(i) - 1
+  dim her as herodef
+  loadherodata @her, hero(i) - 1
 
- 'update stats
- FOR o = 0 TO 11
-  n0 = her.Lev0.sta(o)
-  n99 = her.Lev99.sta(o)
-  gam.hero(i).stat.max.sta(o) += (atlevel(gam.hero(i).lev, n0, n99) - atlevel(gam.hero(i).lev - gam.hero(i).lev_gain, n0, n99))
-
-  'simulate levelup bug
-  IF readbit(gen(), 101, 9) = 1 THEN
-   FOR j = 0 TO 4
-    IF eqstuf(i, j) > 0 THEN
-     loaditemdata buffer(), eqstuf(i, j) - 1
-     gam.hero(i).stat.max.sta(o) += buffer(54 + o) * gam.hero(i).lev_gain
-    END IF
-   NEXT j
+  'update stats
+  DIM n0 AS INTEGER
+  DIM n99 AS INTEGER
+  FOR o AS INTEGER = 0 TO 11
+   n0 = her.Lev0.sta(o)
+   n99 = her.Lev99.sta(o)
+   gam.hero(i).stat.max.sta(o) += (atlevel(gam.hero(i).lev, n0, n99) - atlevel(gam.hero(i).lev - gam.hero(i).lev_gain, n0, n99))
+ 
+   'simulate ancient levelup bug
+   IF readbit(gen(), 101, 9) = 1 THEN
+    FOR j AS INTEGER = 0 TO 4
+     IF eqstuf(i, j) > 0 THEN
+      loaditemdata buffer(), eqstuf(i, j) - 1
+      gam.hero(i).stat.max.sta(o) += buffer(54 + o) * gam.hero(i).lev_gain
+     END IF
+    NEXT j
+   END IF
+ 
+   'do stat caps
+   IF gen(genStatCap + o) > 0 THEN gam.hero(i).stat.max.sta(o) = small(gam.hero(i).stat.max.sta(o), gen(genStatCap + o))
+  NEXT o
+ 
+  'stat restoration
+  IF readbit(gen(), 101, 2) = 0 THEN
+   '--HP restoration ON
+   gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp 'set external cur to external max
+   stats.cur.hp = gam.hero(i).stat.max.hp 'set in-battle cur to external max
+   stats.max.hp = gam.hero(i).stat.max.hp 'set in-battle max to external max
   END IF
-
-  'do stat caps
-  IF gen(genStatCap + o) > 0 THEN gam.hero(i).stat.max.sta(o) = small(gam.hero(i).stat.max.sta(o), gen(genStatCap + o))
- NEXT o
-
- 'stat restoration
- IF readbit(gen(), 101, 2) = 0 THEN
-  '--HP restoration ON
-  gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp 'set external cur to external max
-  stats.cur.hp = gam.hero(i).stat.max.hp 'set in-battle cur to external max
-  stats.max.hp = gam.hero(i).stat.max.hp 'set in-battle max to external max
+  IF readbit(gen(), 101, 3) = 0 THEN
+   '--MP restoration ON
+   gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp 'set external cur to external max
+   stats.cur.mp = gam.hero(i).stat.max.mp 'set in-battle cur to external max
+   stats.max.mp = gam.hero(i).stat.max.mp 'set in-battle max to external max
+   resetlmp i, gam.hero(i).lev
+  END IF
+ 
+  'make current stats match max stats
+  FOR o AS INTEGER = 2 TO 11
+   gam.hero(i).stat.cur.sta(o) = gam.hero(i).stat.max.sta(o)
+  NEXT o
+ 
+  learn_spells_for_current_level(i, allowforget)
+ 
  END IF
- IF readbit(gen(), 101, 3) = 0 THEN
-  '--MP restoration ON
-  gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp 'set external cur to external max
-  stats.cur.mp = gam.hero(i).stat.max.mp 'set in-battle cur to external max
-  stats.max.mp = gam.hero(i).stat.max.mp 'set in-battle max to external max
-  resetlmp i, gam.hero(i).lev
- END IF
-
- 'make current stats match max stats
- FOR o = 2 TO 11
-  gam.hero(i).stat.cur.sta(o) = gam.hero(i).stat.max.sta(o)
- NEXT o
-
- learn_spells_for_current_level(i, allowforget)
-
-END IF
-
 END SUB
 
 SUB learn_spells_for_current_level(BYVAL who AS INTEGER, BYVAL allowforget AS INTEGER)
@@ -871,8 +874,6 @@ SUB giveheroexperience (i as integer, exper as integer)
   WEND
  END IF
 END SUB
-
-OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allowforget AS INTEGER, exlev() AS INTEGER)
  'unlike giveheroexperience, this can cause delevelling
