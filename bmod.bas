@@ -57,6 +57,7 @@ DECLARE SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_spawn_on_hit(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, icons())
+DECLARE SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata(), icons())
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -442,148 +443,7 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
    CASE 10 'inflict(targ, target_count)
     DIM targ AS INTEGER = popw
     DIM tcount AS INTEGER = popw
-    'set tag, if there is one
-    checkTagCond attack.tagset(0), 1
-    checkTagCond attack.tagset(1), 1
-    IF inflict(bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
-     '--attack succeeded
-     IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
-      changefoe targ - 4, attack.transmog_enemy, formdata(), bslot(), attack.transmog_hp, attack.transmog_stats
-     END IF
-     IF attack.cancel_targets_attack THEN
-      '--try to cancel target's attack
-      IF bslot(targ).attack > 0 THEN
-       'Check if the attack is cancelable
-       DIM targets_attack AS AttackData
-       loadattackdata targets_attack, bslot(targ).attack - 1
-       IF targets_attack.not_cancellable_by_attacks = NO THEN
-        'Okay to cancel target's attack
-        bslot(targ).attack = 0
-       END IF
-      ELSE
-       'just cancel the attack
-       bslot(targ).attack = 0
-      END IF
-     END IF
-     IF attack.cancel_targets_attack OR bslot(targ).stat.cur.stun < bslot(targ).stat.max.stun THEN
-      '--If the currently targeting hero is the one hit, stop targetting
-      '--note that stunning implies cancellation of untargetted attacks,
-      '--but does not imply cancellation of already-targeted attacks.
-      IF bat.hero_turn = targ THEN
-       bat.targ.mode = targNONE
-       bat.hero_turn = -1
-       bslot(targ).attack = 0 'This might seem redundant to the above, but it is okay. Needed for stun
-      END IF
-     END IF
-     WITH bslot(targ).enemy.reward
-      IF attack.erase_rewards = YES THEN
-       .gold = 0
-       .exper = 0
-       .item_rate = 0
-       .rare_item_rate = 0
-      END IF
-     END WITH
-     IF attack.force_run = YES THEN
-     'force heroes to run away
-      IF checkNoRunBit(bslot()) THEN
-       bat.alert = bat.cannot_run_caption
-       bat.alert_ticks = 10
-      ELSE
-       bat.away = 1
-      END IF
-     END IF
-     checkTagCond attack.tagset(0), 2
-     checkTagCond attack.tagset(1), 2
-     IF bslot(targ).stat.cur.hp = 0 THEN
-      checkTagCond attack.tagset(0), 4
-      checkTagCond attack.tagset(1), 4
-     END IF
-  
-     IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
-      IF bat.hero_turn >= 0 THEN
-       checkitemusability bat.iuse(), bslot(), bat.hero_turn
-      END IF
-     END IF
-    ELSE
-     checkTagCond attack.tagset(0), 3
-     checkTagCond attack.tagset(1), 3
-    END IF
-    triggerfade targ, bslot()
-    IF bslot(targ).stat.cur.hp > 0 THEN
-     '---REVIVE---
-     bslot(targ).vis = 1
-     bslot(targ).dissolve = 0
-    END IF
-    IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata()
-    'FIXME: this would probably be the right place to trigger counterattacks
-    IF bat.atk.has_consumed_costs = NO THEN
-     '--if the attack costs MP, we want to actually consume MP
-     IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.foc), 0)
- 
-     '--ditto for HP
-     IF attack.hp_cost > 0 THEN
-       WITH bslot(bat.acting)
-         .stat.cur.hp = large(.stat.cur.hp - attack.hp_cost, 0)
-         .harm.ticks = gen(genDamageDisplayTicks)
-         .harm.pos.x = .x + (.w * .5)
-         .harm.pos.y = .y + (.h * .5)
-         .harm.text = STR(attack.hp_cost)
-       END WITH
-     END IF
- 
-     '--ditto for money
-     IF attack.money_cost <> 0 THEN
-       gold = large(gold - attack.money_cost, 0)
-       WITH bslot(bat.acting)
-         .harm.ticks = gen(genDamageDisplayTicks)
-         .harm.pos.x = .x + (.w * .5)
-         .harm.pos.y = .y + (.h * .5)
-         .harm.text = ABS(attack.money_cost) & "$"
-         IF attack.money_cost < 0 THEN .harm.text  += "+"
-       END WITH
-       IF gold > 2000000000 THEN gold = 2000000000
-       IF gold < 0 THEN gold = 0
- 
-     END IF
- 
-     '--if the attack consumes items, we want to consume those too
-     FOR i = 0 to 2
-      WITH attack.item(i)
-       IF .id > 0 THEN 'this slot is used
-        IF .number > 0 THEN 'remove items
-         delitem(.id, .number)
-        ELSEIF .number < 0 THEN 'add items
-         getitem(.id, abs(.number))
-        END IF
-        'Update tags when items have changed because it could affect chain conditionals
-        evalitemtag
-       END IF
-      END WITH
-     NEXT i
- 
-     '--set the flag to prevent re-consuming MP
-     bat.atk.has_consumed_costs = YES
-    END IF
-    IF bslot(bat.acting).consume_lmp > 0 THEN
-     lmp(bat.acting, bslot(bat.acting).consume_lmp - 1) -= 1
-     bslot(bat.acting).consume_lmp = 0
-    END IF
-    IF icons(bat.acting) >= 0 THEN
-     IF consumeitem(icons(bat.acting)) THEN
-      setbit bat.iuse(), 0, icons(bat.acting), 0
-      evalitemtag
-     END IF
-     icons(bat.acting) = -1
-    END IF
-    
-    IF liveherocount(bslot()) = 0 THEN bat.atk.id = -1
-    
-    IF bslot(targ).stat.cur.hp = 0 AND enemycount(bslot()) > 0 AND bat.atk.id > -1 THEN'
-     '--if the target is already dead, and there are still more enemies, auto-pick a new target
-     '--FIXME: why are we doing this after the attack? Does this even do anything?
-     '--       it was passing garbage attack data at least some of the time until r2104
-     autotarget bat.acting, attack, bslot()
-    END IF
+    battle_attack_do_inflict targ, tcount, attack, bat, bslot(), formdata(), icons()
    CASE 11 'setz(who,z)
     ww = popw
     bslot(ww).z = popw
@@ -657,6 +517,157 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
 
  IF bat.atk.id = -1 THEN
   battle_attack_anim_cleanup attack, bat, bslot(), formdata()
+ END IF
+END SUB
+
+SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata(), icons())
+ 'targ is the target slot number
+ 'tcount is the total number of targets (used only for dividing spread damage)
+
+ DIM i AS INTEGER
+ 'set tag, if there is one
+ checkTagCond attack.tagset(0), 1
+ checkTagCond attack.tagset(1), 1
+ 
+ '--attempt inflict the damage to the target
+ IF inflict(bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
+  '--attack succeeded
+  IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
+   changefoe targ - 4, attack.transmog_enemy, formdata(), bslot(), attack.transmog_hp, attack.transmog_stats
+  END IF
+  IF attack.cancel_targets_attack THEN
+   '--try to cancel target's attack
+   IF bslot(targ).attack > 0 THEN
+    'Check if the attack is cancelable
+    DIM targets_attack AS AttackData
+    loadattackdata targets_attack, bslot(targ).attack - 1
+    IF targets_attack.not_cancellable_by_attacks = NO THEN
+     'Okay to cancel target's attack
+     bslot(targ).attack = 0
+    END IF
+   ELSE
+    'just cancel the attack
+    bslot(targ).attack = 0
+   END IF
+  END IF
+  IF attack.cancel_targets_attack OR bslot(targ).stat.cur.stun < bslot(targ).stat.max.stun THEN
+   '--If the currently targeting hero is the one hit, stop targetting
+   '--note that stunning implies cancellation of untargetted attacks,
+   '--but does not imply cancellation of already-targeted attacks.
+   IF bat.hero_turn = targ THEN
+    bat.targ.mode = targNONE
+    bat.hero_turn = -1
+    bslot(targ).attack = 0 'This might seem redundant to the above, but it is okay. Needed for stun
+   END IF
+  END IF
+  WITH bslot(targ).enemy.reward
+   IF attack.erase_rewards = YES THEN
+    .gold = 0
+    .exper = 0
+    .item_rate = 0
+    .rare_item_rate = 0
+   END IF
+  END WITH
+  IF attack.force_run = YES THEN
+  'force heroes to run away
+   IF checkNoRunBit(bslot()) THEN
+    bat.alert = bat.cannot_run_caption
+    bat.alert_ticks = 10
+   ELSE
+    bat.away = 1
+   END IF
+  END IF
+  checkTagCond attack.tagset(0), 2
+  checkTagCond attack.tagset(1), 2
+  IF bslot(targ).stat.cur.hp = 0 THEN
+   checkTagCond attack.tagset(0), 4
+   checkTagCond attack.tagset(1), 4
+  END IF
+
+  IF trytheft(bat, bat.acting, targ, attack, bslot()) THEN
+   IF bat.hero_turn >= 0 THEN
+    checkitemusability bat.iuse(), bslot(), bat.hero_turn
+   END IF
+  END IF
+ ELSE
+  checkTagCond attack.tagset(0), 3
+  checkTagCond attack.tagset(1), 3
+ END IF
+ triggerfade targ, bslot()
+ IF bslot(targ).stat.cur.hp > 0 THEN
+  '---REVIVE---
+  bslot(targ).vis = 1
+  bslot(targ).dissolve = 0
+ END IF
+ IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata()
+ 'FIXME: this would probably be the right place to trigger counterattacks
+ IF bat.atk.has_consumed_costs = NO THEN
+  '--if the attack costs MP, we want to actually consume MP
+  IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.foc), 0)
+ 
+  '--ditto for HP
+  IF attack.hp_cost > 0 THEN
+    WITH bslot(bat.acting)
+      .stat.cur.hp = large(.stat.cur.hp - attack.hp_cost, 0)
+      .harm.ticks = gen(genDamageDisplayTicks)
+      .harm.pos.x = .x + (.w * .5)
+      .harm.pos.y = .y + (.h * .5)
+      .harm.text = STR(attack.hp_cost)
+    END WITH
+  END IF
+ 
+  '--ditto for money
+  IF attack.money_cost <> 0 THEN
+    gold = large(gold - attack.money_cost, 0)
+    WITH bslot(bat.acting)
+      .harm.ticks = gen(genDamageDisplayTicks)
+      .harm.pos.x = .x + (.w * .5)
+      .harm.pos.y = .y + (.h * .5)
+      .harm.text = ABS(attack.money_cost) & "$"
+      IF attack.money_cost < 0 THEN .harm.text  += "+"
+    END WITH
+    IF gold > 2000000000 THEN gold = 2000000000
+    IF gold < 0 THEN gold = 0
+ 
+  END IF
+ 
+  '--if the attack consumes items, we want to consume those too
+  FOR i = 0 to 2
+   WITH attack.item(i)
+    IF .id > 0 THEN 'this slot is used
+     IF .number > 0 THEN 'remove items
+      delitem(.id, .number)
+     ELSEIF .number < 0 THEN 'add items
+      getitem(.id, abs(.number))
+     END IF
+     'Update tags when items have changed because it could affect chain conditionals
+     evalitemtag
+    END IF
+   END WITH
+  NEXT i
+ 
+  '--set the flag to prevent re-consuming MP
+  bat.atk.has_consumed_costs = YES
+ END IF
+ IF bslot(bat.acting).consume_lmp > 0 THEN
+  lmp(bat.acting, bslot(bat.acting).consume_lmp - 1) -= 1
+  bslot(bat.acting).consume_lmp = 0
+ END IF
+ IF icons(bat.acting) >= 0 THEN
+  IF consumeitem(icons(bat.acting)) THEN
+   setbit bat.iuse(), 0, icons(bat.acting), 0
+   evalitemtag
+  END IF
+  icons(bat.acting) = -1
+ END IF
+ 
+ IF liveherocount(bslot()) = 0 THEN bat.atk.id = -1
+ 
+ IF bslot(targ).stat.cur.hp = 0 AND enemycount(bslot()) > 0 AND bat.atk.id > -1 THEN'
+  '--if the target is already dead, and there are still more enemies, auto-pick a new target
+  '--FIXME: why are we doing this after the attack? Does this even do anything?
+  '--       it was passing garbage attack data at least some of the time until r2104
+  autotarget bat.acting, attack, bslot()
  END IF
 END SUB
 
