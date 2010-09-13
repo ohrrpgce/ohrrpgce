@@ -231,6 +231,8 @@ TYPE BattleState
  enemy_turn AS INTEGER 'Enemy currently selecting an attack
  next_hero AS INTEGER  'counter that controls which ready hero will get their turn next
  next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
+ next_attacker AS INTEGER 'used to see which hero will be checked next to see if it is their turn to attack
+                       'NOTE: .next_attacker is dumb, and only needs to be this way for backcompat
  menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
  death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
  targ AS TargettingState
@@ -250,6 +252,7 @@ TYPE BattleState
           ({0,0,1,1,2,2,1,1,0,0,-1}), _
           ({-1,-1}) }
  curbg AS INTEGER      'Current background
+ bgspeed AS INTEGER    'used by background animation
  wait_frames AS INTEGER 'used by the attack animation
  level_mp_caption AS STRING
  cannot_run_caption AS STRING

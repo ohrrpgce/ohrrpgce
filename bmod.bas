@@ -63,192 +63,186 @@ DECLARE SUB battle_cleanup(bslot() AS BattleSprite)
 DECLARE SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
 'these are the battle global variables
-dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
+DIM bstackstart AS INTEGER
+DIM learnmask(245) AS INTEGER '6 shorts of bits per hero
 
 REM $STATIC
 
+OPTION EXPLICIT
 
 FUNCTION battle (form, fatal) as integer
 
-battle = 1 'default return value
+ battle = 1 'default return value
 
-DIM formdata(40)
-DIM attack AS AttackData
-DIM st(3) as herodef
-DIM menubits(2)
-DIM bat AS BattleState
-REDIM atkq(15) AS AttackQueue
-clear_attack_queue()
-DIM bslot(24) AS BattleSprite
-DIM show_info_mode AS INTEGER = 0
+ DIM formdata(40)
+ DIM attack AS AttackData
+ DIM st(3) as HeroDef
+ DIM menubits(2)
+ DIM bat AS BattleState
+ REDIM atkq(15) AS AttackQueue
+ clear_attack_queue()
+ DIM bslot(24) AS BattleSprite
+ DIM show_info_mode AS INTEGER = 0
 
-'--lastformation is a global
-lastformation = form
+ '--lastformation is a global
+ lastformation = form
 
-battle_init bat, bslot()
+ battle_init bat, bslot()
 
-'fade to near white
-fadeout 240, 240, 240
-needf = 1
+ 'fade to near white
+ fadeout 240, 240, 240
+ DIM needf AS INTEGER = YES
  
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
+ clearpage 0
+ clearpage 1
+ clearpage 2
+ clearpage 3
 
-battle_loadall form, bat, bslot(), st(), formdata()
+ battle_loadall form, bat, bslot(), st(), formdata()
 
-copypage 2, dpage
+ copypage 2, dpage
 
-'--main battle loop----------------------------------------------------------
-setkeys
-DO
- setwait speedcontrol
+ '--main battle loop
  setkeys
- bat.tog XOR= 1
- playtimer
- control
- flash = loopvar(flash, 0, 14, 1)
+ DO
+  setwait speedcontrol
+  setkeys
+  bat.tog XOR= 1
+  playtimer
+  control
 
- '--background animation hack
- IF formdata(34) > 0 and gen(genVersion) >= 6 THEN
-  bgspeed = loopvar(bgspeed, 0, formdata(35), 1)
-  IF bgspeed = 0 THEN
-   bat.curbg = loopvar(bat.curbg, formdata(32), formdata(32) + formdata(34), 1)
-   loadmxs game + ".mxs", bat.curbg MOD gen(genNumBackdrops), vpages(2)
-  END IF
- END IF
-
- IF readbit(gen(), 101, 8) = 0 THEN
-  '--debug keys
-  IF keyval(scF4) > 1 THEN bat.away = 11 ' Instant-cheater-running
-  IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
-  IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
- END IF
- IF keyval(scNumlock) > 1 THEN battle_pause
- '--running away
- IF carray(ccMenu) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
-  bat.flee = bat.flee + 1
- END IF
- battle_tryrun bat, bslot()
- IF bat.away > 0 THEN
-  FOR i = 0 TO 3
-   '--if alive, animate running away
-   IF bslot(i).stat.cur.hp > 0 THEN
-    WITH bslot(i)
-     IF .vis THEN
-      .xmov = 10
-      .xspeed = 6
-      bslot(i).walk = 1
-      .d = 1
-     END IF
-    END WITH
+  '--background animation hack
+  IF formdata(34) > 0 and gen(genVersion) >= 6 THEN
+   bat.bgspeed = loopvar(bat.bgspeed, 0, formdata(35), 1)
+   IF bat.bgspeed = 0 THEN
+    bat.curbg = loopvar(bat.curbg, formdata(32), formdata(32) + formdata(34), 1)
+    loadmxs game + ".mxs", bat.curbg MOD gen(genNumBackdrops), vpages(2)
    END IF
-  NEXT i
-  bat.away += 1
-  IF bat.away > 10 THEN
-   battle = 0
+  END IF
+
+  IF readbit(gen(), 101, 8) = 0 THEN
+   '--debug keys
+   IF keyval(scF4) > 1 THEN bat.away = 11 ' Instant-cheater-running
+   IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
+   IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
+  END IF
+  IF keyval(scNumlock) > 1 THEN battle_pause
+  '--running away
+  IF carray(ccMenu) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
+   bat.flee = bat.flee + 1
+  END IF
+  battle_tryrun bat, bslot()
+  IF bat.away > 0 THEN
+   FOR i AS INTEGER = 0 TO 3
+    '--if alive, animate running away
+    IF bslot(i).stat.cur.hp > 0 THEN
+     WITH bslot(i)
+      IF .vis THEN
+       .xmov = 10
+       .xspeed = 6
+       bslot(i).walk = 1
+       .d = 1
+      END IF
+     END WITH
+    END IF
+   NEXT i
+   bat.away += 1
+   IF bat.away > 10 THEN
+    battle = 0
+    EXIT DO
+   END IF
+  END IF
+  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
+   generate_atkscript attack, bat, bslot()
+  END IF
+  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN
+   battle_attack_anim_playback attack, bat, bslot(), formdata()
+  END IF
+  battle_animate bat, bslot()
+  bat.next_attacker = loopvar(bat.next_attacker, 0, 11, 1)
+  IF battle_time_can_pass(bat) THEN
+   battle_meters bat, bslot(), formdata()
+   IF bslot(bat.next_attacker).attack > 0 AND bslot(bat.next_attacker).delay = 0 THEN
+    '--next attacker has an attack selected and the delay is over
+    bat.atk.id = bslot(bat.next_attacker).attack - 1
+    bat.acting = bat.next_attacker
+    bat.anim_ready = NO
+    bslot(bat.next_attacker).attack = 0
+   END IF
+  END IF
+  bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
+  IF bat.hero_turn = -1 THEN
+   '--if it is no heros turn, check to see if anyone is alive and ready
+   IF bslot(bat.next_hero).ready = YES AND bslot(bat.next_hero).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
+    bat.hero_turn = bat.next_hero
+    bat.pt = 0
+    bat.menu_mode = batMENUHERO
+   END IF
+  END IF
+  bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
+  IF bat.enemy_turn = -1 THEN
+   IF bslot(bat.next_enemy).ready = YES AND bslot(bat.next_enemy).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
+  END IF
+  IF bat.vic.state = 0 THEN
+   IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata()
+   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
+    IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
+    IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
+    IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), st()
+   END IF
+   IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN battle_targetting bat, bslot()
+  END IF
+ 
+  '--Begin display 
+  copypage 2, dpage
+  draw_battle_sprites bslot()
+  battle_display bat, bslot(), menubits(), st()
+  IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
+  IF bat.vic.state > 0 THEN show_victory bat, bslot()
+  IF show_info_mode = 1 THEN
+   show_enemy_meters bat, bslot(), formdata()
+  ELSEIF show_info_mode = 2 THEN
+   display_attack_queue bslot()
+  END IF
+  IF bat.death_mode = deathENEMIES AND bat.vic.state = 0 THEN
+   IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory bat, bslot()
+  END IF
+  IF bat.vic.state = vicEXIT THEN EXIT DO 'normal victory exit
+  IF bat.death_mode = deathHEROES THEN
+   fatal = 1
    EXIT DO
   END IF
- END IF
- IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
-  generate_atkscript attack, bat, bslot()
- END IF
- IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN
-  battle_attack_anim_playback attack, bat, bslot(), formdata()
- END IF
- battle_animate bat, bslot()
- na = loopvar(na, 0, 11, 1)
- IF battle_time_can_pass(bat) THEN
-  battle_meters bat, bslot(), formdata()
-  IF bslot(na).attack > 0 AND bslot(na).delay = 0 THEN
-   '--next attacker has an attack selected and the delay is over
-   bat.atk.id = bslot(na).attack - 1
-   bat.acting = na
-   bat.anim_ready = NO
-   bslot(na).attack = 0
+  IF bat.alert_ticks > 0 THEN
+   bat.alert_ticks -= 1
+   centerfuz 160, 190, 100, 16, 3, dpage
+   edgeprint bat.alert, 160 - LEN(bat.alert) * 4, 185, uilook(uiSelectedItem + bat.tog), dpage
   END IF
- END IF
- bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
- IF bat.hero_turn = -1 THEN
-  '--if it is no heros turn, check to see if anyone is alive and ready
-  IF bslot(bat.next_hero).ready = YES AND bslot(bat.next_hero).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
-   bat.hero_turn = bat.next_hero
-   bat.pt = 0
-   bat.menu_mode = batMENUHERO
+ 
+  if dotimerbattle then
+   fatal = 0
+   exit do
+  end if
+ 
+  '--show the timer
+  FOR i AS INTEGER = 0 to UBOUND(timers)
+   IF timers(i).speed > 0 AND timers(i).st > -1 AND timers(i).flags AND 2 = 2 THEN
+    edgeprint plotstr(timers(i).st-1).s, 320 - LEN(plotstr(timers(i).st-1).s) * 10, 185, uilook(uiText), dpage
+    EXIT FOR
+   END IF
+  NEXT
+
+  SWAP vpage, dpage
+  setvispage vpage
+  IF needf THEN
+   needf = NO
+   fadein
+   setkeys
   END IF
- END IF
- bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
- IF bat.enemy_turn = -1 THEN
-  IF bslot(bat.next_enemy).ready = YES AND bslot(bat.next_enemy).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
- END IF
- IF bat.vic.state = 0 THEN
-  IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata()
-  IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
-   IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
-   IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
-   IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), st()
-  END IF
-  IF bat.hero_turn >= 0 AND bat.targ.mode > targNONE THEN battle_targetting bat, bslot()
- END IF
-
- '--Begin display 
- copypage 2, dpage
- draw_battle_sprites bslot()
- battle_display bat, bslot(), menubits(), st()
- IF bat.vic.state = vicEXITDELAY THEN bat.vic.state = vicEXIT
- IF bat.vic.state > 0 THEN show_victory bat, bslot()
- IF show_info_mode = 1 THEN
-  show_enemy_meters bat, bslot(), formdata()
- ELSEIF show_info_mode = 2 THEN
-  display_attack_queue bslot()
- END IF
- IF bat.death_mode = deathENEMIES AND bat.vic.state = 0 THEN
-  IF count_dissolving_enemies(bslot()) = 0 THEN trigger_victory bat, bslot()
- END IF
- IF bat.vic.state = vicEXIT THEN EXIT DO 'normal victory exit
- IF bat.death_mode = deathHEROES THEN
-  fatal = 1
-  EXIT DO
- END IF
- IF bat.alert_ticks > 0 THEN
-  bat.alert_ticks -= 1
-  centerfuz 160, 190, 100, 16, 3, dpage
-  edgeprint bat.alert, 160 - LEN(bat.alert) * 4, 185, uilook(uiSelectedItem + bat.tog), dpage
- END IF
-
- if dotimerbattle then
-  fatal = 0
-  exit do
- end if
-
- '--show the timer
- FOR i = 0 to UBOUND(timers)
-   if timers(i).speed > 0 and timers(i).st > -1 and timers(i).flags and 2 = 2 then
-     edgeprint plotstr(timers(i).st-1).s, 320 - len(plotstr(timers(i).st-1).s) * 10, 185, uilook(uiText), dpage
-     exit for
-   end if
- NEXT
-
- SWAP vpage, dpage
- setvispage vpage
- IF needf = 1 THEN
-  needf = 0
-  fadein
-  setkeys
- END IF
- dowait
-LOOP
-IF fatal THEN battle = 0
-battle_cleanup bslot()
-
-EXIT FUNCTION '---------------------------------------------------------------
-
+  dowait
+ LOOP
+ IF fatal THEN battle = 0
+ battle_cleanup bslot()
 END FUNCTION
-
-
-'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
-OPTION EXPLICIT
 
 SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
