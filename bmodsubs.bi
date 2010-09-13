@@ -38,7 +38,6 @@ declare function safemultiply (number as integer, by as single) as integer
 declare sub setbatcap (BYREF bat AS BattleState, cap as string, captime as integer, capdelay as integer)
 declare sub smartarrowmask (inrange() as integer, d as integer, axis as integer, bslot() as battlesprite, targ AS TargettingState)
 declare sub smartarrows (d as integer, axis as integer, bslot() as battlesprite, BYREF targ AS TargettingState, allow_spread as integer=0)
-declare function targetable (attacker as integer, target as integer, bslot() as battlesprite) as integer
 declare function targetmaskcount (tmask() as integer) as integer
 declare sub traceshow (s as string)
 declare function trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, bslot() as BattleSprite) as integer

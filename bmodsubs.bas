@@ -681,23 +681,6 @@ ELSE
 END IF
 END SUB
 
-FUNCTION targetable (attacker as integer, target as integer, bslot() AS BattleSprite) as integer
-'this function is orphaned and probably too inaccurate to be useful
-targetable = 0
-IF is_hero(target) THEN
- 'target is hero
- targetable = 1
-ELSE
- 'target is enemy
- IF is_hero(attacker) THEN
-  IF bslot(target).hero_untargetable = NO THEN targetable = 1
- END IF
- IF is_enemy(attacker) THEN
-  IF bslot(target).enemy_untargetable = NO THEN targetable = 1
- END IF
-END IF
-END FUNCTION
-
 OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 FUNCTION targetmaskcount (tmask() as integer) as integer
