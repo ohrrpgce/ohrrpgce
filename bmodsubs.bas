@@ -698,65 +698,66 @@ ELSE
 END IF
 END FUNCTION
 
+OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
+
 FUNCTION targetmaskcount (tmask() as integer) as integer
-n = 0
-FOR i = 0 TO 11
- IF tmask(i) THEN n = n + 1
-NEXT i
-targetmaskcount = n
+ DIM n AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO 11
+  IF tmask(i) THEN n += 1
+ NEXT i
+ RETURN n
 END FUNCTION
 
 SUB traceshow (s as string)
-textcolor uilook(uiText), uilook(uiOutline)
-s$ = s$ + STRING$(40 - LEN(s$), " ")
-printstr s$, 0, 191, 0
-printstr s$, 0, 191, 1
+ textcolor uilook(uiText), uilook(uiOutline)
+ s += STRING(40 - LEN(s), " ")
+ printstr s, 0, 191, 0
+ printstr s, 0, 191, 1
 END SUB
 
 FUNCTION trytheft (BYREF bat AS BattleState, who as integer, targ as integer, attack as AttackData, bslot() AS BattleSprite) as integer
-IF is_hero(who) AND is_enemy(targ) THEN
- '--a hero is attacking an enemy
- IF attack.can_steal_item THEN
-  '--steal bitset is on for this attack
-  WITH bslot(targ).enemy.steal
-   IF .thievability >= 0 THEN
-    '--enemy is theftable
-    stole = checktheftchance(.item, .item_rate, .rare_item, .rare_item_rate)
-    IF stole THEN
-     '--success!
-     IF .thievability = 0 THEN
-      '--only one theft permitted
-      .thievability = -1
+ IF is_hero(who) AND is_enemy(targ) THEN
+  '--a hero is attacking an enemy
+  IF attack.can_steal_item THEN
+   '--steal bitset is on for this attack
+   WITH bslot(targ).enemy.steal
+    IF .thievability >= 0 THEN
+     '--enemy is theftable
+     DIM stole AS INTEGER = checktheftchance(.item, .item_rate, .rare_item, .rare_item_rate)
+     IF stole THEN
+      '--success!
+      IF .thievability = 0 THEN
+       '--only one theft permitted
+       .thievability = -1
+      END IF
+      setbatcap bat, readglobalstring$(117, "Stole", 40) + " " + readitemname$(stole - 1), 40, 0
+      RETURN YES '--success
+     ELSE
+      '--steal failed
+      setbatcap bat, readglobalstring$(114, "Cannot Steal", 40), 40, 0
      END IF
-     setbatcap bat, readglobalstring$(117, "Stole", 40) + " " + readitemname$(stole - 1), 40, 0
-     RETURN YES '--success
     ELSE
-     '--steal failed
-     setbatcap bat, readglobalstring$(114, "Cannot Steal", 40), 40, 0
+     '--has nothing to steal / steal disabled
+     setbatcap bat, readglobalstring$(111, "Has Nothing", 30), 40, 0
     END IF
-   ELSE
-    '--has nothing to steal / steal disabled
-    setbatcap bat, readglobalstring$(111, "Has Nothing", 30), 40, 0
-   END IF
-  END WITH
+   END WITH
+  END IF
  END IF
-END IF
-RETURN NO '--return false by default
+ RETURN NO '--return false by default
 END FUNCTION
 
 FUNCTION exptolevel (level as integer) as integer
 ' cp needed to level: calling with level 0 returns xp to lvl 1
 ' HINT: Customisation goes here :)
 
- dim exper as integer = 30
+ DIM exper as integer = 30
  FOR o as integer = 1 TO level
   exper = exper * 1.2 + 5
+  'FIXME: arbitrary experience cap should be removable
   IF exper > 1000000 THEN exper = 1000000
  NEXT
- return exper
+ RETURN exper
 END FUNCTION
-
-OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 SUB updatestatslevelup (i as integer, stats AS BattleStats, allowforget as integer)
  ' i = who
