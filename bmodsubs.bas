@@ -575,48 +575,50 @@ attacker.attack_succeeded = 1
 
 END FUNCTION
 
+OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
+
 FUNCTION liveherocount (bslot() AS BattleSprite) as integer
-'--with bslot() counts heros in-battle HP state
-i = 0
-FOR o = 0 TO 3
- IF hero(o) > 0 AND bslot(o).stat.cur.hp > 0 THEN i = i + 1
-NEXT o
-liveherocount = i
+ '--with bslot() counts heros in-battle HP state
+ DIM i AS INTEGER = 0
+ FOR o AS INTEGER = 0 TO 3
+  IF hero(o) > 0 AND bslot(o).stat.cur.hp > 0 THEN i = i + 1
+ NEXT o
+ RETURN i
 END FUNCTION
 
 FUNCTION liveherocount () as integer
-'--with no argument, counts heros outside-of-battle HP state
-i = 0
-FOR o = 0 TO 3
- IF hero(o) > 0 AND gam.hero(o).stat.cur.hp > 0 THEN i = i + 1
-NEXT o
-liveherocount = i
+ '--with no argument, counts heros outside-of-battle HP state
+ DIM i AS INTEGER = 0
+ FOR o AS INTEGER = 0 TO 3
+  IF hero(o) > 0 AND gam.hero(o).stat.cur.hp > 0 THEN i += 1
+ NEXT o
+ RETURN i
 END FUNCTION
 
 FUNCTION randomally (who as integer) as integer
-IF is_hero(who) THEN
- randomally = INT(RND * 4)
-ELSE
- randomally = 4 + INT(RND * 8)
-END IF
+ IF is_hero(who) THEN
+  RETURN INT(RND * 4)
+ ELSE
+  RETURN 4 + INT(RND * 8)
+ END IF
 END FUNCTION
 
 FUNCTION randomfoe (who as integer) as integer
-IF is_enemy(who) THEN
- randomfoe = INT(RND * 4)
-ELSE
- randomfoe = 4 + INT(RND * 8)
-END IF
+ IF is_enemy(who) THEN
+  RETURN INT(RND * 4)
+ ELSE
+  RETURN 4 + INT(RND * 8)
+ END IF
 END FUNCTION
 
 FUNCTION safesubtract (number as integer, minus as integer) as integer
-longnumber& = number
-longminus& = minus
-longresult& = longnumber& - longminus&
-IF longresult& > 32767 THEN longresult& = 32767
-IF longresult& < -32768 THEN longresult& = -32768
-result = longresult&
-safesubtract = result
+ DIM longnumber AS DOUBLE = number
+ DIM longminus AS DOUBLE = minus
+ DIM longresult AS DOUBLE = longnumber - longminus
+ IF longresult > 32767 THEN longresult = 32767
+ IF longresult < -32768 THEN longresult = -32768
+ DIM result AS INTEGER = longresult
+ RETURN result
 END FUNCTION
 
 FUNCTION safemultiply (number as integer, by as single) as integer
@@ -625,7 +627,7 @@ FUNCTION safemultiply (number as integer, by as single) as integer
  dim as integer longresult = longnumber * longby
  IF longresult > 32767 THEN longresult = 32767
  IF longresult < -32768 THEN longresult = -32768
- result = longresult
+ dim result as integer = longresult
  return result
 END FUNCTION
 
@@ -634,8 +636,6 @@ SUB setbatcap (BYREF bat AS BattleState, cap as string, captime as integer, capd
  bat.caption_time = captime
  bat.caption_delay = capdelay
 END SUB
-
-OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 SUB battle_target_arrows_mask (inrange() as integer, d as integer, axis as integer, bslot() AS BattleSprite, targ AS TargettingState)
  DIM distance AS INTEGER
