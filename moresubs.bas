@@ -262,6 +262,7 @@ END SUB
 
 FUNCTION consumeitem (index as integer) as integer
 '--subtracts one of an item at a location. If the item is depleted, returns true. If there are some of the item left, it returns false
+'--argument is the inventory slot index, not the item ID
 consumeitem = 0
 inventory(index).num -= 1
 IF inventory(index).num <= 0 THEN

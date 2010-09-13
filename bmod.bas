@@ -56,8 +56,8 @@ DECLARE SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSpr
 DECLARE SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_spawn_on_hit(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
-DECLARE SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, icons())
-DECLARE SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata(), icons())
+DECLARE SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
+DECLARE SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -77,7 +77,6 @@ DIM formdata(40)
 DIM attack AS AttackData
 DIM st(3) as herodef
 DIM menubits(2)
-DIM icons(11)
 DIM bat AS BattleState
 REDIM atkq(15) AS AttackQueue
 clear_attack_queue()
@@ -124,7 +123,7 @@ bat.wait_frames = 0
 bat.level_mp_caption = readglobalstring(160, "Level MP", 20)
 
 FOR i = 0 TO 11
- icons(i) = -1
+ bslot(i).consume_item = -1
  bslot(i).revenge = -1
  bslot(i).thankvenge = -1
 NEXT i
@@ -218,10 +217,10 @@ DO
   END IF
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
-  generate_atkscript attack, bat, bslot(), icons()
+  generate_atkscript attack, bat, bslot()
  END IF
  IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN
-  battle_attack_anim_playback attack, bat, bslot(), formdata(), icons()
+  battle_attack_anim_playback attack, bat, bslot(), formdata()
  END IF
  battle_animate bat, bslot()
  na = loopvar(na, 0, 11, 1)
@@ -251,7 +250,7 @@ DO
  IF bat.vic.state = 0 THEN
   IF bat.enemy_turn >= 0 THEN enemy_ai bat, bslot(), formdata()
   IF bat.hero_turn >= 0 AND bat.targ.mode = targNONE THEN
-   IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot(), icons()
+   IF bat.menu_mode = batMENUITEM  THEN itemmenu bat, bslot()
    IF bat.menu_mode = batMENUSPELL THEN spellmenu bat, st(), bslot()
    IF bat.menu_mode = batMENUHERO  THEN heromenu bat, bslot(), menubits(), st()
   END IF
@@ -354,7 +353,7 @@ END FUNCTION
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
 
-SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER, icons())
+SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  '--this plays back the animation sequence built when the attack starts.
 
  DIM i AS INTEGER
@@ -443,7 +442,7 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
    CASE 10 'inflict(targ, target_count)
     DIM targ AS INTEGER = popw
     DIM tcount AS INTEGER = popw
-    battle_attack_do_inflict targ, tcount, attack, bat, bslot(), formdata(), icons()
+    battle_attack_do_inflict targ, tcount, attack, bat, bslot(), formdata()
    CASE 11 'setz(who,z)
     ww = popw
     bslot(ww).z = popw
@@ -520,7 +519,7 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
  END IF
 END SUB
 
-SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata(), icons())
+SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
  'targ is the target slot number
  'tcount is the total number of targets (used only for dividing spread damage)
 
@@ -653,12 +652,12 @@ SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS
   lmp(bat.acting, bslot(bat.acting).consume_lmp - 1) -= 1
   bslot(bat.acting).consume_lmp = 0
  END IF
- IF icons(bat.acting) >= 0 THEN
-  IF consumeitem(icons(bat.acting)) THEN
-   setbit bat.iuse(), 0, icons(bat.acting), 0
+ IF bslot(bat.acting).consume_item >= 0 THEN
+  IF consumeitem(bslot(bat.acting).consume_item) THEN
+   setbit bat.iuse(), 0, bslot(bat.acting).consume_item, 0
    evalitemtag
   END IF
-  icons(bat.acting) = -1
+  bslot(bat.acting).consume_item = -1
  END IF
  
  IF liveherocount(bslot()) = 0 THEN bat.atk.id = -1
@@ -2320,11 +2319,11 @@ SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprit
  END IF
 END SUB
 
-SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite, icons())
+SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
  IF carray(ccMenu) > 1 THEN
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
-  icons(bat.hero_turn) = -1 '-- -1 in the icons() array indicates that this hero will not consume any item
+  bslot(bat.hero_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
  END IF
 
  DIM remember_pt AS INTEGER = bat.item.pt
@@ -2362,8 +2361,8 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite, icons())
  IF carray(ccUse) > 1 THEN
   IF readbit(bat.iuse(), 0, bat.item.pt) = 1 THEN
    loaditemdata itembuf(), inventory(bat.item.pt).id
-   icons(bat.hero_turn) = -1
-   IF itembuf(73) = 1 THEN icons(bat.hero_turn) = bat.item.pt
+   bslot(bat.hero_turn).consume_item = -1
+   IF itembuf(73) = 1 THEN bslot(bat.hero_turn).consume_item = bat.item.pt
    
    DIM attack AS AttackData
    loadattackdata attack, itembuf(47) - 1
@@ -2376,12 +2375,12 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite, icons())
  END IF
 END SUB
 
-SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, icons() AS INTEGER)
+SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite)
  DIM i AS INTEGER
 
  '--check for item consumption
- IF icons(bat.acting) >= 0 THEN
-  IF inventory(icons(bat.acting)).used = 0 THEN
+ IF bslot(bat.acting).consume_item >= 0 THEN
+  IF inventory(bslot(bat.acting).consume_item).used = 0 THEN
    '--abort if item is gone
    bat.atk.id = -1
    EXIT SUB
