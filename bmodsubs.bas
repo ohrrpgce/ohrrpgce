@@ -872,13 +872,16 @@ SUB giveheroexperience (i as integer, exper as integer)
  END IF
 END SUB
 
-SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allowforget as integer, exlev() as integer)
+OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
+
+SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allowforget AS INTEGER, exlev() AS INTEGER)
  'unlike giveheroexperience, this can cause delevelling
  DIM dummystats AS BattleStats
-
- temp = gam.hero(who).lev
- total = 0
- FOR i = 0 TO gam.hero(who).lev - 1
+ DIM orig_lev AS INTEGER = gam.hero(who).lev
+ DIM total AS INTEGER = 0
+ DIM lostlevels AS INTEGER = 0
+ 
+ FOR i AS INTEGER = 0 TO gam.hero(who).lev - 1
   total += exptolevel(i)
  NEXT
  IF total > amount THEN
@@ -889,26 +892,24 @@ SUB setheroexperience (BYVAL who as integer, BYVAL amount as integer, BYVAL allo
  ELSE
   'set spell learnt bits correctly
   amount -= total
-  temp = 0
+  orig_lev = 0
   lostlevels = 0
  END IF
  exlev(who, 0) = 0
  giveheroexperience who, amount
  updatestatslevelup who, dummystats, allowforget
- gam.hero(who).lev_gain -= temp
+ gam.hero(who).lev_gain -= orig_lev
  IF lostlevels THEN
   'didn't learn spells, wipe mask
-  FOR i = who * 6 TO who * 6 + 5
+  FOR i AS INTEGER = who * 6 TO who * 6 + 5
    learnmask(i) = 0
   NEXT
  END IF
 END SUB
 
-FUNCTION visibleandalive (o as integer, bslot() AS BattleSprite) as integer
-visibleandalive = (bslot(o).vis = 1 AND bslot(o).stat.cur.hp > 0)
+FUNCTION visibleandalive (o as integer, bslot() AS BattleSprite) AS INTEGER
+ RETURN (bslot(o).vis = 1 AND bslot(o).stat.cur.hp > 0)
 END FUNCTION
-
-OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 SUB writestats (bslot() AS BattleSprite)
  FOR i AS INTEGER = 0 TO 3
