@@ -60,21 +60,20 @@ DECLARE SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat A
 DECLARE SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
 DECLARE SUB battle_pause ()
 DECLARE SUB battle_cleanup(bslot() AS BattleSprite)
+DECLARE SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
 
 REM $STATIC
+
+
 FUNCTION battle (form, fatal) as integer
 
 REMEMBERSTATE
 
-lastformation = form
+battle = 1 'default return value
 
-'--prepare stack
-bstackstart = stackpos
-
-battle = 1
 DIM formdata(40)
 DIM attack AS AttackData
 DIM st(3) as herodef
@@ -83,80 +82,17 @@ DIM bat AS BattleState
 REDIM atkq(15) AS AttackQueue
 clear_attack_queue()
 DIM bslot(24) AS BattleSprite
-DIM as double timinga, timingb
 DIM show_info_mode AS INTEGER = 0
 
-'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
-gam.remembermusic = presentsong
+'--lastformation is a global
+lastformation = form
 
-timinga = 0
-timingb = 0
+battle_init bat, bslot()
 
-'FIXME: much init of bat members could go in BattleState constructor someday
-WITH bat.inv_scroll
- .first = 0
- .last = INT(last_inv_slot() / 3)
- .size = 8
-END WITH
-WITH bat.inv_scroll_rect
- .x = 20
- .y = 8
- .wide = 292
- '.high set later
-END WITH
-
-bat.cancel_spell_caption = readglobalstring(51, "(CANCEL)", 10)
-bat.cannot_run_caption = readglobalstring(147, "CANNOT RUN!", 20)
-
-bat.caption_time = 0
-bat.caption_delay = 0
-bat.caption = ""
-
-bat.alert_ticks = 0
-bat.alert = ""
-
+'fade to near white
 fadeout 240, 240, 240
-needf = 1: fiptr = 0
-reset_battle_state bat
-bat.anim_ready = NO
-bat.wait_frames = 0
-
-bat.level_mp_caption = readglobalstring(160, "Level MP", 20)
-
-FOR i = 0 TO 11
- bslot(i).consume_item = -1
- bslot(i).revenge = -1
- bslot(i).thankvenge = -1
-NEXT i
-
-FOR i = 0 TO 11
- bslot(i).harm.col = uilook(uiText)
-NEXT i
-
-'--init affliction registers
-'--it should be clear by the fact that BattleStats is a separate type that
-'--that bslot().stat inside battle is not the same as gam.hero().stat outside battle
-FOR i = 0 TO 11
- WITH bslot(i).stat.cur
-  .poison = 1000
-  .regen  = 1000
-  .stun   = 1000
-  .mute   = 1000
- END WITH
- WITH bslot(i).stat.max
-  .poison = 1000
-  .regen  = 1000
-  .stun   = 1000
-  .mute   = 1000
- END WITH
- bslot(i).poison_repeat = INT(RND * 2000)
- bslot(i).regen_repeat = INT(RND * 2000)
-NEXT i
-bat.laststun = TIMER
-IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
-IF gen(genStun) <= 0 THEN gen(genStun) = 159
-IF gen(genMute) <= 0 THEN gen(genMute) = 163
-
+needf = 1
+ 
 clearpage 0
 clearpage 1
 clearpage 2
@@ -316,6 +252,47 @@ END FUNCTION
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
+
+ '--prepare stack
+ bstackstart = stackpos
+
+ 'Remember the music that was playing on the map so that the prepare_map() sub can restart it later
+ gam.remembermusic = presentsong
+
+ reset_battle_state bat
+
+ '--Init BattleState
+ FOR i AS INTEGER = 0 TO 11
+  bslot(i).consume_item = -1
+  bslot(i).revenge = -1
+  bslot(i).thankvenge = -1
+  bslot(i).harm.col = uilook(uiText)
+  '--init affliction registers
+  '--it should be clear by the fact that BattleStats is a separate type that
+  '--that bslot().stat inside battle is not the same as gam.hero().stat outside battle
+  WITH bslot(i).stat.cur
+   .poison = 1000
+   .regen  = 1000
+   .stun   = 1000
+   .mute   = 1000
+  END WITH
+  WITH bslot(i).stat.max
+   .poison = 1000
+   .regen  = 1000
+   .stun   = 1000
+   .mute   = 1000
+  END WITH
+  bslot(i).poison_repeat = INT(RND * 2000)
+  bslot(i).regen_repeat = INT(RND * 2000)
+ NEXT i
+
+ '--sanity-check afliction indicators and set defaults for old games that don't have them yet. 
+ IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
+ IF gen(genStun) <= 0 THEN gen(genStun) = 159
+ IF gen(genMute) <= 0 THEN gen(genMute) = 163
+END SUB
 
 SUB battle_cleanup(bslot() AS BattleSprite)
  writestats bslot()
@@ -1552,14 +1529,46 @@ END SUB
 
 SUB reset_battle_state (BYREF bat AS BattleState)
  'This could become a constructor for BattleState when we support the -lang fb dialect
+
  WITH bat
+
+  WITH .inv_scroll
+   .first = 0
+   .last = INT(last_inv_slot() / 3)
+   .size = 8
+  END WITH
+  WITH .inv_scroll_rect
+   .x = 20
+   .y = 8
+   .wide = 292
+   '.high set later
+  END WITH
+
+  .anim_ready = NO
+  .wait_frames = 0
+
+  .level_mp_caption = readglobalstring(160, "Level MP", 20)
+  .cancel_spell_caption = readglobalstring(51, "(CANCEL)", 10)
+  .cannot_run_caption = readglobalstring(147, "CANNOT RUN!", 20)
+
+  .caption_time = 0
+  .caption_delay = 0
+  .caption = ""
+
+  .alert_ticks = 0
+  .alert = ""
+
   .acting = 0
   .hero_turn = -1
   .enemy_turn = -1
   .next_hero = 0
   .next_enemy = 0
   .menu_mode = batMENUHERO
+
+  .laststun = TIMER
+
  END WITH
+ 
  reset_targetting bat
  reset_attack bat
  reset_victory_state bat.vic
