@@ -70,8 +70,6 @@ REM $STATIC
 
 FUNCTION battle (form, fatal) as integer
 
-REMEMBERSTATE
-
 battle = 1 'default return value
 
 DIM formdata(40)
@@ -244,7 +242,6 @@ LOOP
 IF fatal THEN battle = 0
 battle_cleanup bslot()
 
-RETRIEVESTATE
 EXIT FUNCTION '---------------------------------------------------------------
 
 END FUNCTION
