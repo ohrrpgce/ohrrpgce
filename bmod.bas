@@ -771,16 +771,16 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
  'arrow keys to select
  IF bat.targ.interactive = YES AND bat.targ.opt_spread < 2 AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
   IF carray(ccUp) > 1 THEN
-   smartarrows -1, 1, bslot(), bat.targ, NO
+   battle_target_arrows -1, 1, bslot(), bat.targ, NO
   END IF
   IF carray(ccDown) > 1 THEN
-   smartarrows 1, 1, bslot(), bat.targ, NO
+   battle_target_arrows 1, 1, bslot(), bat.targ, NO
   END IF
   IF carray(ccLeft) > 1 THEN
-   smartarrows -1, 0, bslot(), bat.targ, YES
+   battle_target_arrows -1, 0, bslot(), bat.targ, YES
   END IF
   IF carray(ccRight) > 1 THEN
-   smartarrows 1, 0, bslot(), bat.targ, YES
+   battle_target_arrows 1, 0, bslot(), bat.targ, YES
   END IF
  END IF
  

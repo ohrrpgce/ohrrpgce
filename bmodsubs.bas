@@ -635,53 +635,55 @@ SUB setbatcap (BYREF bat AS BattleState, cap as string, captime as integer, capd
  bat.caption_delay = capdelay
 END SUB
 
-SUB smartarrowmask (inrange() as integer, d as integer, axis as integer, bslot() AS BattleSprite, targ AS TargettingState)
-FOR i = 0 TO 11
- IF targ.mask(i) THEN
-  IF axis THEN
-   distance = (bslot(i).y - bslot(targ.pointer).y) * d
-  ELSE
-   distance = (bslot(i).x - bslot(targ.pointer).x) * d
-  END IF
-  IF distance > 0 THEN
-   setbit inrange(), 0, i, 1
-  END IF
- END IF
-NEXT i
-END SUB
+OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
-SUB smartarrows (d as integer, axis as integer, bslot() AS BattleSprite, BYREF targ AS TargettingState, allow_spread as integer=0)
-DIM inrange(0)
-inrange(0) = 0
-smartarrowmask inrange(), d, axis, bslot(), targ
-IF inrange(0) THEN
- best = 999
- newptr = targ.pointer
- FOR i = 0 TO 11
-  IF readbit(inrange(), 0, i) THEN
+SUB battle_target_arrows_mask (inrange() as integer, d as integer, axis as integer, bslot() AS BattleSprite, targ AS TargettingState)
+ DIM distance AS INTEGER
+ FOR i AS INTEGER = 0 TO 11
+  IF targ.mask(i) THEN
    IF axis THEN
     distance = (bslot(i).y - bslot(targ.pointer).y) * d
    ELSE
-    distance = (bslot(i).x - bslot(targ.pointer).y) * d
+    distance = (bslot(i).x - bslot(targ.pointer).x) * d
    END IF
-   IF distance < best THEN
-    best = distance
-    newptr = i
+   IF distance > 0 THEN
+    setbit inrange(), 0, i, 1
    END IF
   END IF
  NEXT i
- targ.pointer = newptr
-ELSE
- IF allow_spread = YES AND targ.opt_spread = 1 THEN
-  FOR i = 0 TO 11
-   targ.selected(i) = targ.mask(i)
-  NEXT i
-  targ.opt_spread = 2
- END IF
-END IF
 END SUB
 
-OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
+SUB battle_target_arrows (d as integer, axis as integer, bslot() AS BattleSprite, BYREF targ AS TargettingState, allow_spread as integer=0)
+ DIM inrange(0)
+ inrange(0) = 0
+ battle_target_arrows_mask inrange(), d, axis, bslot(), targ
+ IF inrange(0) THEN
+  DIM best AS INTEGER = 999
+  DIM newptr AS INTEGER = targ.pointer
+  DIM distance AS INTEGER
+  FOR i AS INTEGER = 0 TO 11
+   IF readbit(inrange(), 0, i) THEN
+    IF axis THEN
+     distance = (bslot(i).y - bslot(targ.pointer).y) * d
+    ELSE
+     distance = (bslot(i).x - bslot(targ.pointer).y) * d
+    END IF
+    IF distance < best THEN
+     best = distance
+     newptr = i
+    END IF
+   END IF
+  NEXT i
+  targ.pointer = newptr
+ ELSE
+  IF allow_spread = YES AND targ.opt_spread = 1 THEN
+   FOR i AS INTEGER = 0 TO 11
+    targ.selected(i) = targ.mask(i)
+   NEXT i
+   targ.opt_spread = 2
+  END IF
+ END IF
+END SUB
 
 FUNCTION targetmaskcount (tmask() as integer) as integer
  DIM n AS INTEGER = 0
