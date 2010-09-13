@@ -908,15 +908,16 @@ FUNCTION visibleandalive (o as integer, bslot() AS BattleSprite) as integer
 visibleandalive = (bslot(o).vis = 1 AND bslot(o).stat.cur.hp > 0)
 END FUNCTION
 
+OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
+
 SUB writestats (bslot() AS BattleSprite)
-setpicstuf buffer(), 636, -1
-FOR i = 0 TO 3
- IF hero(i) > 0 THEN
-  '--set out-of-battle HP and MP equal to in-battle HP and MP
-  gam.hero(i).stat.cur.hp = bslot(i).stat.cur.hp
-  gam.hero(i).stat.cur.mp = bslot(i).stat.cur.mp
- END IF
-NEXT i
+ FOR i AS INTEGER = 0 TO 3
+  IF hero(i) > 0 THEN
+   '--set out-of-battle HP and MP equal to in-battle HP and MP
+   gam.hero(i).stat.cur.hp = bslot(i).stat.cur.hp
+   gam.hero(i).stat.cur.mp = bslot(i).stat.cur.mp
+  END IF
+ NEXT i
 END SUB
 
 SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSprite)
@@ -1037,8 +1038,6 @@ SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSpri
  END IF
 
 END SUB
-
-OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 SUB anim_advance (who as integer, attack as AttackData, bslot() AS BattleSprite)
 
