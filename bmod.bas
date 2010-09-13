@@ -59,6 +59,7 @@ DECLARE SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS
 DECLARE SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
 DECLARE SUB battle_pause ()
+DECLARE SUB battle_cleanup(bslot() AS BattleSprite)
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -304,37 +305,8 @@ DO
  END IF
  dowait
 LOOP
-donebattle:
-writestats bslot()
 IF fatal THEN battle = 0
-
-'--overflow checking for the battle stack
-IF (stackpos - bstackstart) \ 2 > 0 THEN
- '--an overflow is not unusual. This happens if the battle terminates
- '--while an attack is still going on
- WHILE stackpos > bstackstart: dummy = popw: WEND
-END IF
-
-'--underflow checking
-IF (stackpos - bstackstart) \ 2 < 0 THEN
- '--and underflow is bad. it means that whatever script was on
- '--the top of the stack has been corrupted.
- fatalerror "bstack underflow " & stackpos & " " & bstackstart
-END IF
-
-fadeout 0, 0, 0
-
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-
-
-for i = lbound(bslot) to ubound(bslot)
-	frame_unload(@bslot(i).sprites)
-	palette16_unload(@bslot(i).pal)
-next
-
+battle_cleanup bslot()
 
 RETRIEVESTATE
 EXIT FUNCTION '---------------------------------------------------------------
@@ -345,8 +317,39 @@ END FUNCTION
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
 
+SUB battle_cleanup(bslot() AS BattleSprite)
+ writestats bslot()
+
+ '--overflow checking for the battle stack
+ IF (stackpos - bstackstart) \ 2 > 0 THEN
+  '--an overflow is not unusual. This happens if the battle terminates
+  '--while an attack is still going on
+  DIM dummy AS INTEGER
+  WHILE stackpos > bstackstart: dummy = popw: WEND
+ END IF
+
+ '--underflow checking
+ IF (stackpos - bstackstart) \ 2 < 0 THEN
+  '--an underflow is bad. It used to mean that whatever script was on
+  '--the top of the stack has been corrupted, but now scripts don't use this stack
+  '--but and underflow is still bad in principal.
+  fatalerror "bstack underflow " & stackpos & " " & bstackstart
+ END IF
+
+ fadeout 0, 0, 0
+ clearpage 0
+ clearpage 1
+ clearpage 2
+ clearpage 3
+
+ FOR i AS INTEGER = LBOUND(bslot) TO UBOUND(bslot)
+  frame_unload(@bslot(i).sprites)
+  palette16_unload(@bslot(i).pal)
+ NEXT i
+
+END SUB
+
 SUB battle_pause ()
- 'pgame:
  DIM pause AS STRING = readglobalstring(54, "PAUSE", 10)
  fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
  edgeprint pause, xstring(pause, 160), 95, uilook(uiText), vpage
