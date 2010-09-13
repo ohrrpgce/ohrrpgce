@@ -58,6 +58,7 @@ DECLARE SUB battle_spawn_on_hit(targ as INTEGER, BYREF bat AS BattleState, bslot
 DECLARE SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
+DECLARE SUB battle_pause ()
 
 'these are the battle global variables
 dim as integer bstackstart, learnmask(245) '6 shorts of bits per hero
@@ -104,7 +105,6 @@ WITH bat.inv_scroll_rect
 END WITH
 
 bat.cancel_spell_caption = readglobalstring(51, "(CANCEL)", 10)
-pause$ = readglobalstring(54, "PAUSE", 10)
 bat.cannot_run_caption = readglobalstring(147, "CANNOT RUN!", 20)
 
 bat.caption_time = 0
@@ -190,7 +190,7 @@ DO
   IF keyval(scF5) > 1 THEN bat.rew.exper = 1000000  'Million experience!
   IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
  END IF
- IF keyval(scNumlock) > 1 THEN GOSUB pgame '--PAUSE
+ IF keyval(scNumlock) > 1 THEN battle_pause
  '--running away
  IF carray(ccMenu) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
   bat.flee = bat.flee + 1
@@ -339,19 +339,21 @@ next
 RETRIEVESTATE
 EXIT FUNCTION '---------------------------------------------------------------
 
-pgame:
-fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
-edgeprint pause$, xstring(pause$, 160), 95, uilook(uiText), vpage
-setvispage vpage
-'--wait for a key
-wk = getkey
-RETRACE
-
 END FUNCTION
 
 
 'FIXME: This affects the rest of the file. Move it up as above functions are cleaned up
 OPTION EXPLICIT
+
+SUB battle_pause ()
+ 'pgame:
+ DIM pause AS STRING = readglobalstring(54, "PAUSE", 10)
+ fuzzyrect 0, 0, 320, 200, uilook(uiTextBox), vpage
+ edgeprint pause, xstring(pause, 160), 95, uilook(uiText), vpage
+ setvispage vpage
+ '--wait for a key
+ DIM wk AS INTEGER = getkey
+END SUB
 
 SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  '--this plays back the animation sequence built when the attack starts.
