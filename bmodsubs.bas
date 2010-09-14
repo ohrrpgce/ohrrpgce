@@ -288,294 +288,296 @@ Function GetHeroPos(h as integer,f as integer,isY as integer) as integer'or x?
  CLOSE #FH
 End Function
 
+OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
+
 FUNCTION inflict (w as integer, t as integer, BYREF attacker AS BattleSprite, BYREF target AS BattleSprite, attack as AttackData, tcount as integer, byval hit_dead as integer=NO) as integer
 
-DIM h = 0
-
-'failure by default
-inflict = 0
-attacker.attack_succeeded = 0
-
-'remember this target
-attacker.last_targs(t) = YES
-
-'stored targs
-IF attack.store_targ THEN
- attacker.stored_targs(t) = YES
- attacker.stored_targs_can_be_dead = hit_dead
-END IF
-IF attack.delete_stored_targ THEN
- FOR i = 0 TO 11
-  attacker.stored_targs(i) = NO
-  attacker.stored_targs_can_be_dead = NO
- NEXT i
-END IF
-
-'no damage
-IF attack.damage_math <> 4 THEN
-
- 'init
- cure = 0
- WITH target
-  .harm.text = ""
-  .harm.ticks = gen(genDamageDisplayTicks)
-  .harm.pos.x = .x + (.w * .5)
-  .harm.pos.y = .y + (.h * .5)
+ DIM h AS INTEGER = 0
+ DIM cure AS INTEGER
+ DIM targstat AS INTEGER
+ 
+ attacker.attack_succeeded = 0
+ 
+ 'remember this target
+ attacker.last_targs(t) = YES
+ 
+ 'stored targs
+ IF attack.store_targ THEN
+  attacker.stored_targs(t) = YES
+  attacker.stored_targs_can_be_dead = hit_dead
+ END IF
+ IF attack.delete_stored_targ THEN
+  FOR i AS INTEGER = 0 TO 11
+   attacker.stored_targs(i) = NO
+   attacker.stored_targs_can_be_dead = NO
+  NEXT i
+ END IF
+ 
+ 'no damage
+ IF attack.damage_math <> 4 THEN
+ 
+  'init
+  cure = 0
+  WITH target
+   .harm.text = ""
+   .harm.ticks = gen(genDamageDisplayTicks)
+   .harm.pos.x = .x + (.w * .5)
+   .harm.pos.y = .y + (.h * .5)
   
-  targstat = bound(attack.targ_stat, 0, UBOUND(.stat.cur.sta))
- END WITH
-
- 'accuracy
- a = attacker.stat.cur.acc
- d = target.stat.cur.dog
- dm! = .25
- IF attack.aim_math = 1 THEN dm! = .5
- IF attack.aim_math = 2 THEN dm! = 1
- IF attack.aim_math = 4 THEN dm! = 1.25
- IF attack.aim_math = 4 OR attack.aim_math = 7 OR attack.aim_math = 8 THEN
-  a = attacker.stat.cur.mag
-  d = target.stat.cur.wil
- END IF
-
- attackhit = range(a, 75) >= range(d * dm!, 75)
- IF attack.aim_math = 3 THEN attackhit = 1
- IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = RND * 100 < (a * (100 - d)) / 100 
- IF attack.aim_math = 6 OR attack.aim_math = 8 THEN attackhit = RND * 100 < a
- IF attackhit = 0 THEN
-  target.harm.text = readglobalstring$(120, "miss", 20)
-  EXIT FUNCTION
- END IF
-
- WITH target
-  IF attack.fail_if_targ_poison = YES AND .stat.cur.poison < .stat.max.poison THEN
-   .harm.text = readglobalstring$(122, "fail", 20)
-   EXIT FUNCTION
+   targstat = bound(attack.targ_stat, 0, UBOUND(.stat.cur.sta))
+  END WITH
+ 
+  'accuracy
+  DIM acc AS INTEGER = attacker.stat.cur.acc
+  DIM dog AS INTEGER = target.stat.cur.dog
+  DIM dogm AS SINGLE = .25 'dodge modifier
+  IF attack.aim_math = 1 THEN dogm = 0.5
+  IF attack.aim_math = 2 THEN dogm = 1.0
+  IF attack.aim_math = 4 THEN dogm = 1.25
+  IF attack.aim_math = 4 OR attack.aim_math = 7 OR attack.aim_math = 8 THEN
+   acc = attacker.stat.cur.mag
+   dog = target.stat.cur.wil
   END IF
-  IF attack.fail_if_targ_regen = YES AND .stat.cur.regen < .stat.max.regen THEN
-   .harm.text = readglobalstring$(122, "fail", 20)
-   EXIT FUNCTION
+ 
+  DIM attackhit AS INTEGER
+  attackhit = range(acc, 75) >= range(dog * dogm, 75)
+  IF attack.aim_math = 3 THEN attackhit = YES
+  IF attack.aim_math = 5 OR attack.aim_math = 7 THEN attackhit = RND * 100 < (acc * (100 - dog)) / 100 
+  IF attack.aim_math = 6 OR attack.aim_math = 8 THEN attackhit = RND * 100 < acc
+  IF attackhit = NO THEN
+   target.harm.text = readglobalstring$(120, "miss", 20)
+   RETURN NO
   END IF
-  IF attack.fail_if_targ_stun = YES AND .stat.cur.stun <> .stat.max.stun THEN
-   .harm.text = readglobalstring$(122, "fail", 20)
-   EXIT FUNCTION
-  END IF
-  IF attack.fail_if_targ_mute = YES AND .stat.cur.mute <> .stat.max.mute THEN
-   .harm.text = readglobalstring$(122, "fail", 20)
-   EXIT FUNCTION
-  END IF
- END WITH
-
- 'attack and defense base
- a = attacker.stat.cur.str
- d = target.stat.cur.def
- SELECT CASE attack.base_atk_stat
-  CASE 1
-   a = attacker.stat.cur.mag
-   d = target.stat.cur.wil
-  CASE 2
-   a = attacker.stat.cur.hp
-  CASE 3
-   a = attacker.stat.max.hp - attacker.stat.cur.hp
-  CASE 4
-   a = INT(RND * 999)
-  CASE 5
-   a = 100
-  CASE 6 TO 17
-   a = attacker.stat.cur.sta(attack.base_atk_stat - 6)
-  CASE 18
-   a = attacker.repeatharm
-  CASE 19
-   a = attacker.revengeharm
-  CASE 20
-   a = target.revengeharm
-  CASE 21
-   a = attacker.thankvengecure
-  CASE 22
-   a = target.thankvengecure
- END SELECT
-
- '--defense base
- IF attack.base_def_stat > 0 AND attack.base_def_stat <= UBOUND(target.stat.cur.sta) + 1 THEN d = target.stat.cur.sta(attack.base_def_stat - 1)
-
- 'calc defense
- am! = 1: dm! = .5                    'atk-def*.5
- IF attack.damage_math = 1 THEN am! = .8: dm! = .1 'atk*.8-def*.5
- IF attack.damage_math = 2 THEN am! = 1.3: dm! = 1 'atk-1.3-def
- IF attack.damage_math = 3 THEN am! = 1: dm! = 0   'atk
-
- 'resetting
- IF attack.reset_targ_stat_before_hit = YES THEN
-  target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
- END IF
-
- 'calc harm
- h = (a * am!) - (d * dm!)
-
- 'elementals
- FOR i = 0 TO 7
-  IF attack.elemental_damage(i) = YES THEN
-   IF target.weak(i) = YES THEN h = h * 2   'weakness
-   IF target.strong(i) = YES THEN h = h * .12 'resistance
-   IF target.absorb(i) = YES THEN cure = 1    'absorb
-  END IF
-  IF attack.monster_type_bonus(i) = YES THEN
-   IF is_enemy(t) AND target.enemytype(i) = YES THEN h = h * 1.8
-  END IF
-  IF attack.fail_vs_elemental(i) = YES THEN
-   IF target.strong(i) = YES THEN
-    target.harm.text = readglobalstring$(122, "fail", 20)
-    EXIT FUNCTION
+ 
+  WITH target
+   IF attack.fail_if_targ_poison = YES AND .stat.cur.poison < .stat.max.poison THEN
+    .harm.text = readglobalstring$(122, "fail", 20)
+    RETURN NO
    END IF
-  END IF
-  IF attack.fail_vs_monster_type(i) = YES THEN
-   IF is_enemy(t) AND target.enemytype(i) = YES THEN
-    target.harm.text = readglobalstring$(122, "fail", 20)
-    EXIT FUNCTION
+   IF attack.fail_if_targ_regen = YES AND .stat.cur.regen < .stat.max.regen THEN
+    .harm.text = readglobalstring$(122, "fail", 20)
+    RETURN NO
    END IF
-  END IF
- NEXT i
-
- 'extra damage
- h = h + (h / 100) * attack.extra_damage
-
- 'randomize
- IF attack.do_not_randomize = NO THEN h = range(h,20)
-
- 'spread damage
- IF attack.divide_spread_damage = YES THEN h = h / (tcount + 1)
-
- 'cap under
- IF h <= 0 THEN
-  IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
- END IF
-
- 'backcompat MP-targstat
- IF attack.obsolete_damage_mp THEN
-  IF targstat = 0 THEN targstat = 1
- END IF
-
- 'remember target stat
- remtargstat = target.stat.cur.sta(targstat)
- rematkrstat = attacker.stat.cur.sta(targstat)
-
- 'pre-calculate percentage damage for display
- chp = target.stat.cur.sta(targstat)
- mhp = target.stat.max.sta(targstat)
- IF attack.percent_damage_not_set = YES THEN
-  'percentage attacks do damage
-  'FIXME: see bug 134 about moving this block up the function. This should be base damage?
-  SELECT CASE attack.damage_math
-   CASE 5'% of max
-    h = mhp + (attack.extra_damage * mhp / 100)
-    cure = 0
-   CASE 6'% of cur
-    h = chp + (attack.extra_damage * chp / 100)
-    cure = 0
+   IF attack.fail_if_targ_stun = YES AND .stat.cur.stun <> .stat.max.stun THEN
+    .harm.text = readglobalstring$(122, "fail", 20)
+    RETURN NO
+   END IF
+   IF attack.fail_if_targ_mute = YES AND .stat.cur.mute <> .stat.max.mute THEN
+    .harm.text = readglobalstring$(122, "fail", 20)
+    RETURN NO
+   END IF
+  END WITH
+ 
+  'attack power and defense power
+  DIM ap AS INTEGER = attacker.stat.cur.str
+  DIM dp AS INTEGER = target.stat.cur.def
+  SELECT CASE attack.base_atk_stat
+   CASE 1
+    ap = attacker.stat.cur.mag
+    dp = target.stat.cur.wil
+   CASE 2
+    ap = attacker.stat.cur.hp
+   CASE 3
+    ap = attacker.stat.max.hp - attacker.stat.cur.hp
+   CASE 4
+    ap = INT(RND * 999)
+   CASE 5
+    ap = 100
+   CASE 6 TO 17
+    ap = attacker.stat.cur.sta(attack.base_atk_stat - 6)
+   CASE 18
+    ap = attacker.repeatharm
+   CASE 19
+    ap = attacker.revengeharm
+   CASE 20
+    ap = target.revengeharm
+   CASE 21
+    ap = attacker.thankvengecure
+   CASE 22
+    ap = target.thankvengecure
   END SELECT
- END IF
-
- IF attack.cure_instead_of_harm = YES THEN h = ABS(h) * -1 'cure bit
- IF target.harmed_by_cure = YES THEN h = ABS(h)  'zombie
- IF cure = 1 THEN h = ABS(h) * -1                  'elemental absorb
-
- IF attack.do_not_exceed_targ_stat THEN
-  IF h > 0 THEN 'damage
-   h = small(h, target.stat.cur.sta(targstat))
-  ELSEIF h < 0 THEN ' cure
-   DIM diff AS INTEGER = target.stat.max.sta(targstat) - target.stat.cur.sta(targstat)
-   IF diff >= 0 THEN
-    h = large(h, diff * -1)
+ 
+  '--defense base
+  IF attack.base_def_stat > 0 AND attack.base_def_stat <= UBOUND(target.stat.cur.sta) + 1 THEN dp = target.stat.cur.sta(attack.base_def_stat - 1)
+ 
+  'calc defense
+  DIM am AS SINGLE = 1.0
+  DIM dm AS SINGLE = 0.5                    'atk-def*.5
+  IF attack.damage_math = 1 THEN am = 0.8  : dm = 0.1 'atk*.8-def*.5
+  IF attack.damage_math = 2 THEN am = 1.3 : dm = 1.0  'atk-1.3-def
+  IF attack.damage_math = 3 THEN am = 1.0 : dm = 0.0  'atk
+ 
+  'resetting
+  IF attack.reset_targ_stat_before_hit = YES THEN
+   target.stat.cur.sta(targstat) = target.stat.max.sta(targstat)
+  END IF
+ 
+  'calc harm
+  h = (ap * am) - (dp * dm)
+ 
+  'elementals
+  FOR i AS INTEGER = 0 TO 7
+   IF attack.elemental_damage(i) = YES THEN
+    IF target.weak(i) = YES THEN h = h * 2     'weakness
+    IF target.strong(i) = YES THEN h = h * .12 'resistance
+    IF target.absorb(i) = YES THEN cure = 1    'absorb
    END IF
-  END IF
- END IF
-
- IF attack.percent_damage_not_set = NO THEN
-  'percentage attacks set stat
-  'and by set, we really mean set, ignore nearly all attack settings,
-  'that's my interpretation of intent anyway - TMC
-  '...And mine to. - James
-  SELECT CASE attack.damage_math
-   CASE 5'% of max
-    h = chp - (mhp + (attack.extra_damage * mhp / 100))
-   CASE 6'% of cur
-    h = chp - (chp + (attack.extra_damage * chp / 100))
-  END SELECT
- END IF
-
- 'inflict
- IF attack.show_damage_without_inflicting = NO THEN
-  IF gen(genDamageCap) > 0 THEN
-   IF h > gen(genDamageCap) THEN h = gen(genDamageCap)
-   IF h < -gen(genDamageCap) THEN h = -gen(genDamageCap)
-  END IF
-
-  target.stat.cur.sta(targstat) = safesubtract(target.stat.cur.sta(targstat), h)
-  IF attack.absorb_damage THEN
-   WITH attacker
-    '--drain
-    IF attack.do_not_display_damage = NO THEN
-     .harm.text = STR(ABS(h))
-     IF h > 0 THEN .harm.text = "+" + .harm.text
+   IF attack.monster_type_bonus(i) = YES THEN
+    IF is_enemy(t) AND target.enemytype(i) = YES THEN h = h * 1.8
+   END IF
+   IF attack.fail_vs_elemental(i) = YES THEN
+    IF target.strong(i) = YES THEN
+     target.harm.text = readglobalstring$(122, "fail", 20)
+     RETURN NO
     END IF
-    .harm.ticks = gen(genDamageDisplayTicks)
-    .harm.col = 12 'FIXME: pink
-    .harm.pos.x = .x + (.w * .5)
-    .harm.pos.y = .y + (.h * .5)
-    .stat.cur.sta(targstat) += h
-   END WITH
+   END IF
+   IF attack.fail_vs_monster_type(i) = YES THEN
+    IF is_enemy(t) AND target.enemytype(i) = YES THEN
+     target.harm.text = readglobalstring$(122, "fail", 20)
+     RETURN NO
+    END IF
+   END IF
+  NEXT i
+ 
+  'extra damage
+  h = h + (h / 100) * attack.extra_damage
+ 
+  'randomize
+  IF attack.do_not_randomize = NO THEN h = range(h,20)
+ 
+  'spread damage
+  IF attack.divide_spread_damage = YES THEN h = h / (tcount + 1)
+ 
+  'cap under
+  IF h <= 0 THEN
+   IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
   END IF
+ 
+  'backcompat MP-targstat
+  IF attack.obsolete_damage_mp THEN
+   IF targstat = 0 THEN targstat = 1
+  END IF
+ 
+  'remember target stat
+  DIM remtargstat AS INTEGER = target.stat.cur.sta(targstat)
+  DIM rematkrstat AS INTEGER = attacker.stat.cur.sta(targstat)
+ 
+  'pre-calculate percentage damage for display
+  DIM chp AS INTEGER = target.stat.cur.sta(targstat)
+  DIM mhp AS INTEGER = target.stat.max.sta(targstat)
+  IF attack.percent_damage_not_set = YES THEN
+   'percentage attacks do damage
+   'FIXME: see bug 134 about moving this block up the function. This should be base damage?
+   SELECT CASE attack.damage_math
+    CASE 5'% of max
+     h = mhp + (attack.extra_damage * mhp / 100)
+     cure = 0
+    CASE 6'% of cur
+     h = chp + (attack.extra_damage * chp / 100)
+     cure = 0
+   END SELECT
+  END IF
+ 
+  IF attack.cure_instead_of_harm = YES THEN h = ABS(h) * -1 'cure bit
+  IF target.harmed_by_cure = YES THEN h = ABS(h)  'zombie
+  IF cure = 1 THEN h = ABS(h) * -1                  'elemental absorb
+ 
+  IF attack.do_not_exceed_targ_stat THEN
+   IF h > 0 THEN 'damage
+    h = small(h, target.stat.cur.sta(targstat))
+   ELSEIF h < 0 THEN ' cure
+    DIM diff AS INTEGER = target.stat.max.sta(targstat) - target.stat.cur.sta(targstat)
+    IF diff >= 0 THEN
+     h = large(h, diff * -1)
+    END IF
+   END IF
+  END IF
+ 
+  IF attack.percent_damage_not_set = NO THEN
+   'percentage attacks set stat
+   'and by set, we really mean set, ignore nearly all attack settings,
+   'that's my interpretation of intent anyway - TMC
+   '...And mine to. - James
+   SELECT CASE attack.damage_math
+    CASE 5'% of max
+     h = chp - (mhp + (attack.extra_damage * mhp / 100))
+    CASE 6'% of cur
+     h = chp - (chp + (attack.extra_damage * chp / 100))
+   END SELECT
+  END IF
+ 
+  'inflict
+  IF attack.show_damage_without_inflicting = NO THEN
+   IF gen(genDamageCap) > 0 THEN
+    IF h > gen(genDamageCap) THEN h = gen(genDamageCap)
+    IF h < -gen(genDamageCap) THEN h = -gen(genDamageCap)
+   END IF
+ 
+   target.stat.cur.sta(targstat) = safesubtract(target.stat.cur.sta(targstat), h)
+   IF attack.absorb_damage THEN
+    WITH attacker
+     '--drain
+     IF attack.do_not_display_damage = NO THEN
+      .harm.text = STR(ABS(h))
+      IF h > 0 THEN .harm.text = "+" + .harm.text
+     END IF
+     .harm.ticks = gen(genDamageDisplayTicks)
+     .harm.col = 12 'FIXME: pink
+     .harm.pos.x = .x + (.w * .5)
+     .harm.pos.y = .y + (.h * .5)
+     .stat.cur.sta(targstat) += h
+    END WITH
+   END IF
+  END IF
+ 
+  'enforce bounds
+  target.stat.cur.sta(targstat) = large(target.stat.cur.sta(targstat), 0)
+  attacker.stat.cur.sta(targstat) = large(attacker.stat.cur.sta(targstat), 0)
+  IF attack.allow_cure_to_exceed_maximum = NO THEN
+   target.stat.cur.sta(targstat) = small(target.stat.cur.sta(targstat), large(target.stat.max.sta(targstat), remtargstat))
+   attacker.stat.cur.sta(targstat) = small(attacker.stat.cur.sta(targstat), large(attacker.stat.max.sta(targstat), rematkrstat))
+  END IF
+ 
+  'set damage display
+  IF attack.do_not_display_damage = NO THEN
+   target.harm.text = STR(ABS(h))
+   '--if cure, show + sign
+   IF h < 0 THEN target.harm.text = "+" + target.harm.text
+  END IF
+ 
+  'remember revenge data
+  IF remtargstat > target.stat.cur.sta(targstat) THEN
+   target.revengemask(w) = YES
+   target.revenge = w
+   target.revengeharm = remtargstat - target.stat.cur.sta(targstat)
+   attacker.repeatharm = remtargstat - target.stat.cur.sta(targstat)
+  END IF
+ 
+  'remember thankvenge data
+  IF remtargstat < target.stat.cur.sta(targstat) THEN
+   target.thankvengemask(w) = YES
+   target.thankvenge = w
+   target.thankvengecure = ABS(remtargstat - target.stat.cur.sta(targstat))
+  END IF
+ 
+ END IF 'skips to here if no damage
+ 
+ IF attack.show_name = YES THEN
+  IF LEN(target.harm.text) > 0 THEN target.harm.text += " "
+  target.harm.text += attack.name
  END IF
-
- 'enforce bounds
- target.stat.cur.sta(targstat) = large(target.stat.cur.sta(targstat), 0)
- attacker.stat.cur.sta(targstat) = large(attacker.stat.cur.sta(targstat), 0)
- IF attack.allow_cure_to_exceed_maximum = NO THEN
-  target.stat.cur.sta(targstat) = small(target.stat.cur.sta(targstat), large(target.stat.max.sta(targstat), remtargstat))
-  attacker.stat.cur.sta(targstat) = small(attacker.stat.cur.sta(targstat), large(attacker.stat.max.sta(targstat), rematkrstat))
- END IF
-
- 'set damage display
- IF attack.do_not_display_damage = NO THEN
-  target.harm.text = STR(ABS(h))
-  '--if cure, show + sign
-  IF h < 0 THEN target.harm.text = "+" + target.harm.text
- END IF
-
- 'remember revenge data
- IF remtargstat > target.stat.cur.sta(targstat) THEN
-  target.revengemask(w) = YES
-  target.revenge = w
-  target.revengeharm = remtargstat - target.stat.cur.sta(targstat)
-  attacker.repeatharm = remtargstat - target.stat.cur.sta(targstat)
- END IF
-
- 'remember thankvenge data
- IF remtargstat < target.stat.cur.sta(targstat) THEN
-  target.thankvengemask(w) = YES
-  target.thankvenge = w
-  target.thankvengecure = ABS(remtargstat - target.stat.cur.sta(targstat))
- END IF
-
-END IF 'skips to here if no damage
-
-IF attack.show_name = YES THEN
- IF LEN(target.harm.text) > 0 THEN target.harm.text += " "
- target.harm.text += attack.name
-END IF
-
-'reset registers as per convenience bits
-IF attack.reset_poison = YES THEN target.stat.cur.poison = target.stat.max.poison
-IF attack.reset_regen = YES  THEN target.stat.cur.regen  = target.stat.max.regen
-IF attack.reset_stun = YES   THEN target.stat.cur.stun   = target.stat.max.stun
-IF attack.reset_mute = YES   THEN target.stat.cur.mute   = target.stat.max.mute
-
-'--success!
-inflict = 1
-attacker.attack_succeeded = 1
+ 
+ 'reset registers as per convenience bits
+ IF attack.reset_poison = YES THEN target.stat.cur.poison = target.stat.max.poison
+ IF attack.reset_regen = YES  THEN target.stat.cur.regen  = target.stat.max.regen
+ IF attack.reset_stun = YES   THEN target.stat.cur.stun   = target.stat.max.stun
+ IF attack.reset_mute = YES   THEN target.stat.cur.mute   = target.stat.max.mute
+ 
+ '--success!
+ attacker.attack_succeeded = 1
+ RETURN YES
 
 END FUNCTION
-
-OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 FUNCTION liveherocount (bslot() AS BattleSprite) as integer
  '--with bslot() counts heros in-battle HP state
