@@ -1,0 +1,61 @@
+; --------------------------------------------------------
+; Tile Studio Definition file for OHRRPGCE maps
+; Supports Tile Studio 3.0 only (2.55 does not support binary files)
+; See http://tilestudio.sourceforge.net/
+;
+; Place this .tsd file either in your project directory, or in the
+; Tile Studio directory.
+;
+; You can only create maps with a single tileset. A TS map is exported
+; as a 3 layer OHR map (delete any layers you don't want after import).
+; Tile rotations, 'Map Codes', and wallmaps/"bounds" are ignored, and tile
+; animations are not supported.
+; Making multiple maps with the same tileset doesn't seem to always work.
+; You should be able to make multiple maps with different tilesets, though.
+;
+; Tile Studio has bugs and limitations, to avoid having to scrub your map
+; of garbage files after importing it, follow these instructions carefully
+; if you want to use more than one layer:
+; - tile 0 of your tileset should be completely filled with colour zero
+;   (which is normally black)
+; - While importing your tileset into TS, click on a patch of colour zero
+;   to make that the transparent colour
+; - Create a new map, select the Block Fill tool, and set the back, mid,
+;   and front tiles to tile 0, then fill the map with it (you won't see
+;   any difference). Otherwise "empty" tiles will be filled with garbage
+;   when exported.
+;
+; Importing your .tmap file:
+; BACK UP YOUR GAME FIRST.
+; Currently you have to do this manually, by renaming the file and placing
+; it in your .rpgdir directory, or working.tmp while editing the game,
+; overwriting the exiting file. The tilemap for map 17 will normally be
+; "ohrrpgce.t17", or "<gamename>.t17" for older games.
+; Just make sure to resize the map to the same dimensions and 3 layers
+; before replacing the original .t## file with the generated file.
+; Also, completely leave the map menu before replacing the file.
+; --------------------------------------------------------
+
+#tileset
+#map ""
+#binfile <ProjectName>_<MapIdentifier>.tmap 8
+
+<0><0><0><0><0><0><0>
+<MapWidth:"16">
+<MapHeight:"16">
+
+#mapdata
+<TSBackTile>
+#end mapdata
+
+#mapdata
+<TSMidTile>
+#end mapdata
+
+#mapdata
+<TSFrontTile>
+#end mapdata
+
+#end binfile
+#end map
+#end tileset
