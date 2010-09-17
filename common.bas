@@ -3051,12 +3051,15 @@ END FUNCTION
 
 '(Re-)initialise menu state, preserving .pt if valid
 SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
- state.first = 0
- state.last = count_menu_items(menu) - 1
- state.size = menu.maxrows - 1
- IF state.size = -1 THEN state.size = 17
- state.pt = small(large(state.pt, state.first), state.last)  'explicitly -1 when empty
- state.top = bound(state.top, 0, large(state.last - state.size, 0))
+ WITH state
+  .first = 0
+  .last = count_menu_items(menu) - 1
+  .size = menu.maxrows - 1
+  IF .size = -1 THEN .size = 17
+  .pt = small(large(.pt, .first), .last)  'explicitly -1 when empty
+  IF .pt <> -1 THEN .top = bound(.top, .pt - .size, .pt)
+  .top = bound(.top, 0, large(.last - .size, 0))
+ END WITH
 END SUB
 
 '(Re-)initialise menu state, preserving .pt if valid
@@ -3065,13 +3068,17 @@ SUB init_menu_state (BYREF state AS MenuState, menu() AS SimpleMenu)
   .first = 0
   .last = UBOUND(menu)
   IF .size <= 0 THEN .size = 20
-  .top = 0
-  IF .pt < .first ORELSE .pt > .last ORELSE menu(.pt).enabled = NO THEN
+  .pt = bound(.pt, .first, .last)  '.first <= .last
+  IF menu(.pt).enabled = NO THEN
    .pt = -1  'explicitly -1 when nothing selectable
    FOR i AS INTEGER = 0 TO UBOUND(menu)
     IF menu(i).enabled THEN .pt = i: EXIT FOR
    NEXT
   END IF
+  'Menus with unselectable items have lookahead, which these +1,-1
+  'attempt to simulate. Not perfect, but prevents some flickering
+  IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
+  .top = bound(.top, 0, large(.last - .size, 0))
  END WITH
 END SUB
 
