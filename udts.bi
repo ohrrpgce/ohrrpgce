@@ -128,7 +128,7 @@ TYPE MenuDefItem
   skip_close_script AS INTEGER ' Bitset
 END TYPE
 
-'MenuDef's must be initialised by ClearMenuData or LoadMenuData!
+'*** Requires construction (with ClearMenuData or LoadMenuData) + destruction (with DeleteMenuItems) ***
 TYPE MenuDef
   record    AS INTEGER
   handle    AS INTEGER
@@ -306,6 +306,7 @@ Type TilesetData
   tastuf(40) as integer
 End Type
 
+'*** Requires construction + destruction ***
 Type TileMap
   wide as integer
   high as integer
@@ -328,7 +329,8 @@ Type ZoneInfo
 End Type
 
 'A set of zones
-'See loading.bas for documentation
+'See loading.bas for documentation.
+'*** Requires construction + destruction ***
 Type ZoneMap
   numzones as integer
   zones as ZoneInfo ptr

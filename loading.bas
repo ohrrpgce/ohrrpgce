@@ -1,4 +1,4 @@
-'OHRRPGCE GAME&CUSTOM - Fundamental routines for major data structures, especially loading & saving them
+'OHRRPGCE GAME&CUSTOM - Some fundamental routines for major data structures, especially loading & saving them
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
@@ -21,6 +21,13 @@ DECLARE SUB LoadMenuItems(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER
 DECLARE SUB LoadMenuItem(f AS INTEGER, items() AS MenuDefItem ptr, record AS INTEGER)
 DECLARE SUB SaveMenuItems(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
 DECLARE SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER, menunum AS INTEGER, itemnum AS INTEGER)
+
+
+
+'==========================================================================================
+'                                      NPC Definitions
+'==========================================================================================
+
 
 'There are two versions of LoadNPCD:
 'LoadNPCD(file, dat()):
@@ -157,6 +164,12 @@ SUB CleanNPCD(dat() as NPCType)
   NEXT
 END SUB
 
+
+'==========================================================================================
+'                                       NPC Instances
+'==========================================================================================
+
+
 SUB LoadNPCL(file as string, dat() as NPCInst)
   DIM i AS INTEGER
   DIM f AS INTEGER
@@ -279,6 +292,12 @@ SUB CleanNPCL(dat() as NPCInst, byval num as integer=-1)
   NEXT
 END SUB
 
+
+'==========================================================================================
+'                                        Inventories
+'==========================================================================================
+
+
 SUB SerInventory8Bit(invent() as InventSlot, z, buf())
   DIM i as integer, j as integer
   buf(z) = 1 'Instruct new versions of game to ignore all this junk and use the 16-bit data instead
@@ -374,6 +393,12 @@ SUB LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTE
     z += 2
   NEXT i
 END SUB
+
+
+'==========================================================================================
+'                                         Tilemaps
+'==========================================================================================
+
 
 SUB UnloadTilemap(map as TileMap)
   DEALLOCATE map.data
@@ -489,8 +514,9 @@ SUB CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as inte
 END SUB
 
 
-'----------------------------------------------------------------------
-'                               Zone maps
+'==========================================================================================
+'                                        Zone maps
+'==========================================================================================
 
 
 'Implementation:
@@ -971,8 +997,9 @@ SUB LoadZoneMap(zmap as ZoneMap, filename as string)
 END SUB
 
 
-'----------------------------------------------------------------------
-'                                Doors
+'==========================================================================================
+'                                    Doors & Doorlinks
+'==========================================================================================
 
 
 SUB DeserDoorLinks(filename as string, array() as doorlink)
@@ -1113,6 +1140,12 @@ Sub CleanDoors(array() as door)
 	next
 end sub
 
+
+'==========================================================================================
+'                                         Heroes
+'==========================================================================================
+
+
 'loads a standard block of stats from a file handle.
 Sub LoadStats(fh as integer, sta as stats ptr)
 	dim i as integer
@@ -1172,13 +1205,13 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	
 	'begin (this makes the baby jesus cry :'( )
 	with *hero
-		.name							= readvstr(f, 16)
-		.sprite						= readshort(f)
-		.sprite_pal				= readshort(f)
-		.walk_sprite			= readshort(f)
-		.walk_sprite_pal	= readshort(f)
-		.def_level				= readshort(f)
-		.def_weapon				= readshort(f)
+		.name              = readvstr(f, 16)
+		.sprite            = readshort(f)
+		.sprite_pal        = readshort(f)
+		.walk_sprite       = readshort(f)
+		.walk_sprite_pal   = readshort(f)
+		.def_level         = readshort(f)
+		.def_weapon        = readshort(f)
 		LoadStats2(f, @.Lev0, @.Lev99)
 		'get #f,, .spell_lists()
 		for i = 0 to 3
@@ -1266,6 +1299,20 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	
 	close #f
 end sub
+
+SUB loadherodata (hero as herodef ptr, index as integer)
+ deserherodef game & ".dt0", hero, index
+END SUB
+
+SUB saveherodata (hero as herodef ptr, index as integer)
+ serherodef game & ".dt0", hero, index
+END SUB
+
+
+'==========================================================================================
+'                                          Menus
+'==========================================================================================
+
 
 'This initialises a menu if it has not been already
 SUB ClearMenuData(dat AS MenuDef)
@@ -1602,6 +1649,12 @@ SUB SortMenuItems(menu AS MenuDef)
  WEND
 END SUB
 
+
+'==========================================================================================
+'                                         Vehicles
+'==========================================================================================
+
+
 SUB LoadVehicle (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
   DIM buf(39)
   LoadVehicle file, buf(), vehicle.name, record
@@ -1696,6 +1749,12 @@ SUB ClearVehicle (vehicle AS VehicleData)
   END WITH
 END SUB
 
+
+'==========================================================================================
+'                                        UI Colors
+'==========================================================================================
+
+
 SUB OldDefaultUIColors (colarray() AS INTEGER)
  'Default UI for Classic OHR master palette
  'for upgrading old games that lak an uilook.bin file
@@ -1784,6 +1843,12 @@ SUB SaveUIColors (colarray() AS INTEGER, palnum AS INTEGER)
  NEXT i
  CLOSE f
 END SUB
+
+
+'==========================================================================================
+'                                        Textboxes
+'==========================================================================================
+
 
 SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
  DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
@@ -2008,6 +2073,12 @@ SUB ClearTextBox (BYREF box AS TextBox)
  END WITH
 END SUB
 
+
+'==========================================================================================
+'                                         Attacks
+'==========================================================================================
+
+
 SUB loadoldattackdata (array(), index)
  loadrecord array(), game & ".dt6", 40, index
 END SUB
@@ -2175,6 +2246,12 @@ SUB saveattackdata (array(), index)
  END IF
 END SUB
 
+
+'==========================================================================================
+'                                  Tile animation patterns
+'==========================================================================================
+
+
 SUB loadtanim (n AS INTEGER, tastuf() AS INTEGER)
  setpicstuf tastuf(), 80, -1
  loadset game & ".tap", n, 0
@@ -2184,6 +2261,12 @@ SUB savetanim (n AS INTEGER, tastuf() AS INTEGER)
  setpicstuf tastuf(), 80, -1
  storeset game & ".tap", n, 0
 END SUB
+
+
+'==========================================================================================
+'                                     16-color palettes
+'==========================================================================================
+
 
 SUB getpal16 (array() AS INTEGER, aoffset AS INTEGER, foffset AS INTEGER, autotype AS INTEGER=-1, sprite AS INTEGER=0)
 DIM buf(8) AS INTEGER
@@ -2261,6 +2344,12 @@ END IF
 Palette16_update_cache f, foffset
 END SUB
 
+
+'==========================================================================================
+'                                          Items
+'==========================================================================================
+
+
 SUB loaditemdata (array() AS INTEGER, index AS INTEGER)
  flusharray array(), 99, 0
  IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
@@ -2270,6 +2359,12 @@ END SUB
 SUB saveitemdata (array() AS INTEGER, index AS INTEGER)
  storerecord array(), game & ".itm", 100, index
 END SUB
+
+
+'==========================================================================================
+'                                         Enemies
+'==========================================================================================
+
 
 SUB loadenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
  DIM filename AS STRING
@@ -2439,13 +2534,11 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
  saveenemydata buf(), index, altfile
 END SUB
 
-SUB loadherodata (hero as herodef ptr, index as integer)
- deserherodef game & ".dt0", hero, index
-END SUB
 
-SUB saveherodata (hero as herodef ptr, index as integer)
- serherodef game & ".dt0", hero, index
-END SUB
+'==========================================================================================
+'                                           Misc
+'==========================================================================================
+
 
 SUB save_string_list(array() AS STRING, filename AS STRING)
 
