@@ -313,6 +313,34 @@ Type TileMap
   layernum as integer
 End Type
 
+'WARNING: don't add strings to this
+Type ZoneHashedSegment
+  IDmap(14) as ushort
+  hashed as HashedItem
+End Type
+
+'Data associated with an individual zone, other than the tiles themselves
+Type ZoneInfo
+  id as integer
+  name as string
+  hidden as integer  'used in the map editor only, not saved
+  numtiles as integer  'number of set tiles
+End Type
+
+'A set of zones
+'See loading.bas for documentation
+Type ZoneMap
+  numzones as integer
+  zones as ZoneInfo ptr
+  wide as integer  'width in tiles
+  high as integer  'height in tiles
+  wide_segments as integer  'width in 4x4 tile segments
+  high_segments as integer  'height in 4x4 tile segments
+  bitmap as ushort ptr      'array dimensions are [high][wide]
+  zoneIDmap as ushort ptr   'array dimensions are [high_segments][wide_segments][16]
+  extraID_hash as HashTable 'table of ZoneHashedSegments for overcrowded tiles, indexed by (x SHL 16) + y
+End Type
+
 Type FontChar
 	offset as integer  'offset into spr.image
 	offx as byte   'pixel offsets

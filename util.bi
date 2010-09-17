@@ -224,7 +224,7 @@ declare sub hash_add(byref this as HashTable, byval item as any ptr)
 declare sub hash_remove(byref this as HashTable, byval item as any ptr)
 declare function hash_find(byref this as HashTable, byval hash as integer, byval key as any ptr = NULL) as any ptr
 
-'to iterate over a hash table, dim an integer = 0 and object pointer = NULL and
+'to iterate over a hash table, dim state as integer = 0 and object pointer = NULL and
 'pass to hash_iter until item = NULL. Returns item.
 declare function hash_iter(byref this as HashTable, byref state as integer, byref item as any ptr) as any ptr
 

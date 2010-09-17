@@ -1,4 +1,4 @@
-'OHRRPGCE GAME&CUSTOM - Routines for loading data
+'OHRRPGCE GAME&CUSTOM - Fundamental routines for major data structures, especially loading & saving them
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
@@ -9,6 +9,11 @@
 #include "common.bi"
 #include "loading.bi"
 #include "allmodex.bi"
+#include "reload.bi"
+#include "reloadext.bi"
+
+USING RELOAD
+USING RELOAD.EXT
 
 option explicit
 
@@ -482,6 +487,493 @@ SUB CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as inte
     END WITH
   NEXT
 END SUB
+
+
+'----------------------------------------------------------------------
+'                               Zone maps
+
+
+'Implementation:
+'In .bitmap (which is an array of [high][wide] ushorts) each tile has a ushort (array of 16
+'bits) and an associated 'IDmap', an array of 15 distinct or zero (empty) zone ids (stored
+'as an array of 16 ushorts, the 16th is unused). The lower 15 bits indicate whether the tile
+'is in each of the zones given in the IDmap (if a bit is set, then that entry in the IDmap 
+'will be nonzero). The 16th bit tells where to get the IDmap. If 0 (the default), it is the
+'IDmap for the tile's segment in .zoneIDmap:
+'  The map is split into 4x4 "segments", and each gets an IDmap in .zoneIDmap, which is a
+'  pointer to a ushort array of dimension [high_segments][wide_segments][16].
+'  Segments along the right and bottom map edges may be less than 4x4.
+'If 1, the tile is "crowded" because weren't enough empty "slots" in the default IDmap, so
+'the tile gets its own IDmap, which is retrieved by indexing .extraID_hash with key
+'(x SHL 16) + y. Private IDmaps contain exactly those zone IDs which that tile is in.
+'
+'Zone IDs and empty slots within each IDmap are completely unordered.
+'
+'There's therefore a limit of 15 zones per tile, which could be overcome by replacing
+'extra IDmaps with arbitrary length lists of zone IDs, but that's a lot of added complexity
+'(and things are complex enough already, aren't they?)
+'And the limit on number of zones is really 65535, not 9999; that's just a rounder number.
+'Maybe we'll find some use for an extra couple bits per ID?
+
+
+'Used both to blank out an existing ZoneMap, or initialise it from zeroed-out memory
+SUB CleanZoneMap(zmap as ZoneMap, BYVAL wide as integer, BYVAL high as integer)
+  WITH zmap
+    IF .bitmap THEN DeleteZoneMap(zmap)
+    .wide = wide
+    .high = high
+    .numzones = 0
+    .zones = NULL
+    .bitmap = CALLOCATE(2 * wide * high)
+    .wide_segments = (wide + 3) \ 4
+    .high_segments = (high + 3) \ 4
+    .zoneIDmap = CALLOCATE(2 * 16 * .wide_segments * .high_segments)
+    hash_construct(.extraID_hash, offsetof(ZoneHashedSegment, hashed))
+  END WITH
+END SUB
+
+'ZoneMaps must be destructed
+SUB DeleteZoneMap(zmap as ZoneMap)
+  WITH zmap
+    FOR i as integer = 0 TO .numzones - 1
+      (@.zones[i])->Destructor()  'all TYPEs have destructors, proof that -lang deprecated limitations are artificial
+    NEXT
+    .numzones = 0
+    DEALLOCATE(.zones)
+    .zones = NULL
+    hash_destruct(.extraID_hash)
+    DEALLOCATE(.bitmap)
+    .bitmap = NULL
+    DEALLOCATE(.zoneIDmap)
+    .zoneIDmap = NULL
+  END WITH
+END SUB
+
+
+'Fills zones() with the IDs of all the zones which this tile is a part of.
+'zones() should be a dynamic array, it's filled with unsorted ID numbers in zones(0) onwards
+'zones() is REDIMed to start at -1, for fake zero-length arrays
+SUB GetZonesAtTile(zmap as ZoneMap, zones() as integer, BYVAL x as integer, BYVAL y as integer)
+  WITH zmap
+    DIM bitvector as ushort = .bitmap[x + y * .wide]
+    DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
+    IF bitvector AND (1 SHL 15) THEN
+      'This 4x4 segment is overcrowded, fall back to looking up the tile
+      IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+    END IF
+    REDIM zones(-1 TO 15)
+    DIM nextindex as integer = 0
+    FOR slot as integer = 0 TO 14
+      IF bitvector AND (1 SHL slot) THEN
+        zones(nextindex) = IDmap[slot]
+        nextindex += 1
+      END IF
+    NEXT
+    REDIM PRESERVE zones(-1 TO nextindex - 1)
+  END WITH
+END SUB
+
+'Is a tile in a zone?
+FUNCTION CheckZoneAtTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer) as integer
+  'Could call CheckZoneAtTile, but this is more efficient
+  WITH zmap
+    DIM bitvector as ushort = .bitmap[x + y * .wide]
+    DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
+    IF bitvector AND (1 SHL 15) THEN
+      'This 4x4 segment is overcrowded, fall back to looking up the tile
+      IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+    END IF
+    FOR slot as integer = 0 TO 14
+      IF IDmap[slot] = id THEN
+        RETURN iif(bitvector AND (1 SHL slot), YES, NO)
+      END IF
+    NEXT
+  END WITH
+  RETURN NO
+END FUNCTION
+
+'Print ZoneMap debug info, including data about a specific tile if specified
+SUB DebugZoneMap(zmap as ZoneMap, BYVAL x as integer = -1, BYVAL y as integer = -1)
+  WITH zmap
+    DIM memusage as integer
+    memusage = .wide * .high * 2 + .wide_segments * .high_segments * 32 + .extraID_hash.numitems * SIZEOF(ZoneHashedSegment) + .extraID_hash.tablesize * SIZEOF(any ptr)
+    debug "ZoneMap dump: " & .wide & "*" & .high & ", " & .numzones & " zones, " & .extraID_hash.numitems & " crowded tiles, " & memusage & "B memory used"
+    IF x <> -1 AND y <> -1 THEN
+      DIM bitvector as ushort = .bitmap[x + y * .wide]
+      debug " tile " & x & "," & y & ": " & BIN(bitvector)
+      DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
+      IF bitvector AND (1 SHL 15) THEN
+        'This 4x4 segment is overcrowded, fall back to looking up the tile
+        IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+        debug " (crowded tile)"
+      END IF
+      DIM temp as string
+      FOR i as integer = 0 TO 14
+        temp &= " " & i & ":" & IDmap[i]
+      NEXT
+      debug temp
+    END IF
+  END WITH
+END SUB
+
+PRIVATE FUNCTION ZoneMapAddZoneInfo(zmap as ZoneMap) as ZoneInfo ptr
+  'ZoneInfo contains a FB string, so have to use this function to properly zero out new records
+  DIM info as ZoneInfo ptr
+  WITH zmap
+    .numzones += 1
+    .zones = REALLOCATE(.zones, SIZEOF(ZoneInfo) * .numzones)
+    info = @.zones[.numzones - 1]
+    'memset(info, 0, SIZEOF(ZoneInfo))
+    info = NEW (info) ZoneInfo  'placement new, proof that FB is actually a wrapper around C++
+  END WITH
+  RETURN info
+END FUNCTION
+
+'Return ptr to the ZoneInfo for a certain zone, creating it if it doesn't yet exist.
+'(It doesn't matter if we create a lot of extra ZoneInfo's, they won't be saved)
+FUNCTION GetZoneInfo(zmap as ZoneMap, BYVAL id as integer) as ZoneInfo ptr
+  WITH zmap
+    FOR i as integer = 0 TO .numzones - 1
+      IF .zones[i].id = id THEN RETURN @.zones[i]
+    NEXT
+    DIM info as ZoneInfo ptr = ZoneMapAddZoneInfo(zmap)
+    info->id = id
+    RETURN info
+  END WITH
+END FUNCTION
+
+PRIVATE SUB ZoneInfoBookkeeping(zmap as ZoneMap, BYVAL id as integer, BYVAL delta as integer = 0)
+  DIM info as ZoneInfo ptr
+  info = GetZoneInfo(zmap, id)
+  info->numtiles += delta
+END SUB
+
+PRIVATE FUNCTION ZoneMapAddExtraSegment(zmap as ZoneMap, BYVAL x as integer, BYVAL y as integer) as ZoneHashedSegment ptr
+  DIM tiledescriptor as ZoneHashedSegment ptr = CALLOCATE(SIZEOF(ZoneHashedSegment))
+  tiledescriptor->hashed.hash = (x SHL 16) OR y
+  hash_add(zmap.extraID_hash, tiledescriptor)
+  RETURN tiledescriptor
+END FUNCTION
+
+'Add tile to zone.
+'Returns success, or 0 if there are already too many overlapping zones there
+FUNCTION SetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer) as integer
+  IF CheckZoneAtTile(zmap, id, x, y) THEN RETURN YES
+  ZoneInfoBookkeeping zmap, id, 1
+  WITH zmap
+    DIM bitvector as ushort ptr = @.bitmap[x + y * .wide]
+    DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
+    IF *bitvector AND (1 SHL 15) THEN
+      'This 4x4 segment is overcrowded, fall back to looking up the tile
+      IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+    END IF
+    IF (*bitvector AND &h7fff) = &h7fff THEN debug "SetZoneTile: tile too full": RETURN NO
+  tryagain:
+    FOR i as integer = 0 TO 14
+      IF IDmap[i] = id THEN
+        *bitvector OR= 1 SHL i
+        RETURN YES
+      END IF
+    NEXT
+'debug "SetZoneTile: ID " & id & " not yet in IDmap"
+    FOR i as integer = 0 TO 14
+      IF IDmap[i] = 0 THEN
+        *bitvector OR= 1 SHL i
+        IDmap[i] = id
+        RETURN YES
+      END IF
+    NEXT
+'debug "SetZoneTile: IDmap full"
+    'Segment ID array is full, add a new ID array
+    *bitvector OR= 1 SHL 15
+    DIM IDmapnew as ushort ptr = cast(ushort ptr, ZoneMapAddExtraSegment(zmap, x, y))
+    FOR i as integer = 0 TO 14
+      IF *bitvector AND (1 SHL i) THEN
+        IDmapnew[i] = IDmap[i]
+      END IF
+    NEXT
+    IDmap = IDmapnew
+    'This GOTO will be reached at most once
+    GOTO tryagain
+  END WITH 
+END FUNCTION
+
+'Remove tile from zone.
+SUB UnsetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer)
+  WITH zmap
+    DIM bitvector as ushort ptr = @.bitmap[x + y * .wide]
+    DIM IDmap as ushort ptr = @.zoneIDmap[(x \ 4 + (y \ 4) * .wide_segments) * 16]
+    IF *bitvector AND (1 SHL 15) THEN
+      'This 4x4 segment is overcrowded, fall back to looking up the tile
+      IDmap = cast(ushort ptr, hash_find(.extraID_hash, (x SHL 16) OR y))
+    END IF
+    DIM slot as integer = -1
+    FOR i as integer = 0 TO 14
+      IF IDmap[i] = id THEN slot = i
+    NEXT
+    IF slot = -1 ORELSE (*bitvector AND (1 SHL slot)) = 0 THEN EXIT SUB  'This tile is not even part of this zone!
+    ZoneInfoBookkeeping zmap, id, -1
+    DIM usecount as integer = 0
+    IF *bitvector AND (1 SHL 15) THEN
+      'overcrowded tiles recieve their own ID maps
+      'FIXME: there's no way for an overcrowded tile to revert to nonovercrowded
+      usecount = 1
+    ELSE
+      FOR x2 as integer = (x AND NOT 3) TO small(x OR 3, .wide - 1)
+        FOR y2 as integer = (y AND NOT 3) TO small(y OR 3, .high - 1)
+          IF .bitmap[x2 + y2 * .wide] AND (1 SHL slot) THEN usecount += 1
+        NEXT
+      NEXT
+    END IF
+    IF usecount = 1 THEN IDmap[slot] = 0
+    *bitvector -= 1 SHL slot
+  END WITH 
+END SUB
+
+PRIVATE FUNCTION ZoneBitmaskFromIDMap(BYVAL IDmap as ushort ptr, BYVAL id as integer) as uinteger
+  FOR i as integer = 0 TO 14
+    IF IDmap[i] = id THEN RETURN 1 SHL i
+  NEXT
+  RETURN 0
+END FUNCTION
+
+'Sets a certain bit in each tile to 1 or 0 depending on whether that tile is in a certain zone
+SUB ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, BYVAL id as integer, BYVAL bitnum as integer)
+'static accum as double=0.0, samples as integer = 0
+  DIM t as double = timer
+  WITH zmap
+    IF tmap.data = NULL THEN CleanTilemap tmap, .wide, .high
+    DIM as integer segmentx, segmenty, x, y, bitmask, tilemask
+    tilemask = 1 SHL bitnum
+    FOR segmenty = 0 TO .high_segments - 1
+      FOR segmentx = 0 TO .wide_segments - 1
+        bitmask = ZoneBitmaskFromIDMap(@.zoneIDmap[(segmentx + segmenty * .wide_segments) * 16], id)
+        FOR y = segmenty * 4 TO small(.high, segmenty * 4 + 4) - 1
+          DIM bitvectors as ushort ptr = @.bitmap[y * .wide]
+          DIM tileptr as ubyte ptr = @tmap.data[y * .wide]
+          FOR x = segmentx * 4 TO small(.wide, segmentx * 4 + 4) - 1
+            IF bitvectors[x] AND (1 SHL 15) THEN
+              DIM IDmap as ushort ptr = hash_find(.extraID_hash, (x SHL 16) OR y)
+              IF bitvectors[x] AND ZoneBitmaskFromIDMap(IDmap, id) THEN
+                tileptr[x] OR= (1 SHL bitnum)
+              ELSE
+                tileptr[x] AND= NOT (1 SHL bitnum)
+	      END IF
+            ELSE
+              IF bitvectors[x] AND bitmask THEN
+                tileptr[x] OR= (1 SHL bitnum)
+              ELSE
+                tileptr[x] AND= NOT (1 SHL bitnum)
+	      END IF
+            END IF
+          NEXT
+        NEXT
+      NEXT
+    NEXT
+  END WITH
+'accum += (timer - t)
+'samples += 1
+  'debug "ZoneToTileMap in " & (timer - t) * 1000 & "ms, average=" & (accum * 1000 / samples)
+END SUB
+
+'Adds nodes to a .Z## reload node for a zone describing the tile data and returns true,
+'or returns false and does nothing if this zone has no tiles set at all.
+'This is much slower than deserialization as I used ZoneToTileMap to simplify things
+PRIVATE FUNCTION SerializeZoneTiles(zmap as ZoneMap, BYVAL id as integer, BYVAL node as NodePtr) as integer
+  DIM t as double = TIMER
+  DIM tmap as TileMap
+  ZoneToTileMap zmap, tmap, id, 0
+  WITH tmap
+    DIM as integer x, y, xmin = 999999, xmax = -1, ymin = -1, ymax = -1
+
+    DIM tileptr as ubyte ptr = .data
+    FOR y = 0 TO .high - 1
+      FOR x = 0 TO .wide - 1
+        IF *tileptr THEN
+          ymax = y
+          IF ymin = -1 THEN ymin = y
+          IF x < xmin THEN xmin = x
+          IF x > xmax THEN xmax = x
+        END IF
+        tileptr += 1
+      NEXT
+    NEXT
+
+    IF xmin > xmax THEN
+      'No tiles, we don't have to add anything to this RELOAD node
+      UnloadTilemap tmap
+      RETURN NO
+    END IF
+
+    DIM bits as string = string(((xmax - xmin + 1) * (ymax - ymin + 1) + 7) \ 8 , 0)
+
+    DIM bitmask as ushort = 1
+    DIM accum as integer = 0
+    DIM bitsptr as ushort ptr = cast(ushort ptr, @bits[0])  'ushorts are safe to use
+    FOR y = ymin TO ymax
+      tileptr = .data + y * .wide + xmin
+      FOR x = xmin TO xmax
+        IF *tileptr THEN accum OR= bitmask
+        tileptr += 1
+        bitmask = bitmask SHL 1
+        IF bitmask = 0 THEN
+          *bitsptr = accum
+          bitmask = 1
+          accum = 0
+          bitsptr += 1
+        END IF
+      NEXT
+    NEXT
+    IF bitmask <> 1 THEN
+     *bitsptr = accum
+     IF bitsptr >= cast(ushort ptr, @bits[LEN(bits)]) THEN debug "Bug: SerializeZoneTiles overrun!"
+    END IF
+
+    DIM datanode as NodePtr
+    datanode = AppendChildNode(node, "tiles")
+    AppendChildNode datanode, "w", (xmax - xmin + 1)
+    AppendChildNode datanode, "h", (ymax - ymin + 1)
+    AppendChildNode datanode, "offx", xmin
+    AppendChildNode datanode, "offy", ymin
+    DIM bitsnode as NodePtr
+    bitsnode = AppendChildNode(datanode, "bits", bits)
+
+    UnloadTilemap tmap
+
+    'debug "SerializeZoneTiles in " & (timer - t) * 1000 & "ms, " & (xmax-xmin+1) & "*" & (ymax-ymin+1) & " of " & .wide & "*" & .high
+
+    RETURN YES
+  END WITH
+END FUNCTION
+
+PRIVATE SUB DeserializeZoneTiles(zmap as ZoneMap, byval id as integer, BYVAL node as NodePtr)
+  DIM datanode as NodePtr
+  datanode = GetChildByName(node, "tiles")
+  IF datanode = NULL THEN EXIT SUB  'valid if no tiles in this zone
+  DIM as integer w, h, offx, offy
+  w = GetChildNodeInt(datanode, "w")
+  h = GetChildNodeInt(datanode, "h")
+  offx = GetChildNodeInt(datanode, "offx")
+  offy = GetChildNodeInt(datanode, "offy")
+  DIM bitsnode as NodePtr
+  bitsnode = GetChildByName(datanode, "bits")
+  IF bitsnode = NULL THEN
+    debug "DeserializeZoneTiles: expected 'bits' node, zone " & id
+    EXIT SUB
+  END IF
+  DIM bitmap as ushort ptr = cast(ushort ptr, GetZString(bitsnode))  'safe to use ushorts, due to 
+  IF bitmap = NULL ORELSE w * h = 0 ORELSE GetZStringSize(bitsnode) < (w * h + 7) \ 8 THEN
+    debug "DeserializeZoneTiles: bad 'bits' node or size, zone " & id
+    EXIT SUB
+  END IF
+  'debug "deser zone " & id & " w=" & w & " h=" & h & " len=" & GetZStringSize(bitsnode)
+  DIM as integer x, y
+  DIM as ushort mask = 0, sixteenbits
+  FOR y = offy TO offy + h - 1
+    FOR x = offx TO offx + w - 1
+      IF mask = 0 THEN
+        mask = 1
+        sixteenbits = *bitmap
+        'debug " sixteenbits = " & hex(sixteenbits)
+        bitmap += 1
+      END IF
+      IF sixteenbits AND mask THEN
+        'debug "tile " & x & " " & y
+        IF SetZoneTile(zmap, id, x, y) = 0 THEN
+          debug "DeserializeZoneTiles: Too much overlapping at " & x & " " & y
+        END IF
+      END IF
+      mask = mask SHL 1
+    NEXT   
+  NEXT
+END SUB
+
+SUB SaveZoneMap(zmap as ZoneMap, filename as string)
+  DIM as double t = TIMER, ts
+
+  DIM doc as DocPtr
+  DIM as NodePtr root, node
+  doc = CreateDocument()
+  root = CreateNode(doc, "zonemap")
+  SetRootNode doc, root
+  WITH zmap
+    AppendChildNode root, "w", .wide
+    AppendChildNode root, "h", .high
+    FOR i as integer = 0 TO .numzones - 1
+      DIM nontrivial as integer = NO
+      node = AppendChildNode(root, "zone")
+      WITH .zones[i]
+        AppendChildNode node, "id", .id
+        'Add subnodes to node describing the zone
+	ts -= TIMER
+        nontrivial OR= SerializeZoneTiles(zmap, .id, node)
+	ts += TIMER
+        IF .name <> "" THEN
+          AppendChildNode node, "name", .name
+          nontrivial = YES
+        END IF
+        IF nontrivial = NO THEN
+          'There's no point actually saving this, user was probably just scrolling through zone IDs
+	  'debug "SaveZoneMap: Did not save zone " & .id
+          FreeNode node          
+        END IF
+      END WITH
+    NEXT
+  END WITH
+
+  SerializeBin filename, doc
+  FreeDocument doc
+
+  'debug "SaveZoneMap " & trimpath(filename) & " in " & (TIMER - t) * 1000 & "ms, " & zmap.numzones & " zones serialised in " & ts * 1000 & "ms"
+END SUB
+
+SUB LoadZoneMap(zmap as ZoneMap, filename as string)
+  DIM as double t = TIMER, ts
+
+  DIM as DocPtr doc
+  DIM as NodePtr root, node
+  DIM as integer w, h
+  doc = LoadDocument(filename)
+  IF doc = NULL THEN EXIT SUB
+
+  root = DocumentRoot(doc)
+  IF NodeName(root) <> "zonemap" THEN
+    debug filename & " does not appear to be a zonemap: root is named " & NodeName(root)
+    GOTO end_func
+  END IF
+  w = GetChildNodeInt(root, "w")
+  h = GetChildNodeInt(root, "h")
+  IF w <= 0 OR h <= 0 THEN debug "LoadZoneMap: " & filename & " - bad size " & w & "*" & h: GOTO end_func
+  CleanZoneMap zmap, w, h
+  WITH zmap
+    .numzones = 0
+    node = FirstChild(root)
+    WHILE node
+      IF NodeName(node) = "zone" THEN
+        DIM info as ZoneInfo ptr = ZoneMapAddZoneInfo(zmap)
+        WITH *info
+          .id = GetChildNodeInt(node, "id")
+          IF .id <= 0 THEN debug "LoadZoneMap: " & filename & " - bad zone id": GOTO end_func
+          .name = GetChildNodeStr(node, "name")
+	  ts -= TIMER
+          DeserializeZoneTiles zmap, .id, node
+	  ts += TIMER
+        END WITH
+      END IF
+      node = NextSibling(node)
+    WEND
+
+    'debug "LoadZoneMap " & trimpath(filename) & " in " & (TIMER - t) * 1000 & "ms, " & .numzones & " zones deserialised in " & ts * 1000 & "ms"
+  END WITH
+
+ end_func:
+  FreeDocument doc
+END SUB
+
+
+'----------------------------------------------------------------------
+'                                Doors
+
 
 SUB DeserDoorLinks(filename as string, array() as doorlink)
 	dim as integer hasheader = -1, f, i

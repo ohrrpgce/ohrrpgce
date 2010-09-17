@@ -909,6 +909,8 @@ END SUB
 SUB hash_destruct(byref this as HashTable)
   deallocate(this.table)
   this.table = NULL
+  this.numitems = 0
+  this.tablesize = 0
 END SUB
 
 SUB hash_add(byref this as HashTable, byval item as any ptr)

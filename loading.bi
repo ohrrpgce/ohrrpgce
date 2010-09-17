@@ -34,7 +34,19 @@ declare sub LoadTilemaps(layers() as TileMap, filename as string)
 declare sub SaveTilemap(tmap as TileMap, filename as string)
 declare sub SaveTilemaps(tmaps() as TileMap, filename as string)
 declare sub CleanTilemap(map as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL layernum as integer = 0)
-declare SUB CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL numlayers as integer)
+declare sub CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL numlayers as integer)
+
+declare sub CleanZoneMap(zmap as ZoneMap, BYVAL wide as integer, BYVAL high as integer)
+declare sub DeleteZoneMap(zmap as ZoneMap)
+declare function SetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer) as integer
+declare sub UnsetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer)
+declare function CheckZoneAtTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, BYVAL y as integer) as integer
+declare sub GetZonesAtTile(zmap as ZoneMap, zones() as integer, BYVAL x as integer, BYVAL y as integer)
+declare function GetZoneInfo(zmap as ZoneMap, BYVAL id as integer) as ZoneInfo ptr
+declare sub DebugZoneMap(zmap as ZoneMap, BYVAL x as integer = -1, BYVAL y as integer = -1)
+declare sub ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, BYVAL id as integer, BYVAL bitnum as integer)
+declare sub SaveZoneMap(zmap as ZoneMap, filename as string)
+declare sub LoadZoneMap(zmap as ZoneMap, filename as string)
 
 declare SUB DeserDoorLinks(filename as string, array() as doorlink)
 declare Sub SerDoorLinks(filename as string, array() as doorlink, withhead as integer = 1)
