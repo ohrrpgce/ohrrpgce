@@ -1194,6 +1194,8 @@ NEXT i
 END SUB
 
 FUNCTION runscript (id as integer, index as integer, newcall as integer, er as string, trigger as integer) as integer
+'newcall: whether his script is triggered rather than called from a script, and
+'therefore whether "no double-triggering" should take effect.
 
 IF trigger <> 0 THEN n = decodetrigger(id, trigger) ELSE n = id
 
@@ -1952,6 +1954,7 @@ IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
  '--minus
  IF keyval(scCtrl) > 0 THEN
   setbit tag(), 0, pt, 0
+  npcplot
  ELSE
   pt = large(pt - 1, 0)
  END IF
@@ -1960,6 +1963,7 @@ IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN
  '--plus
  IF keyval(scCtrl) > 0 THEN
   setbit tag(), 0, pt, 1
+  npcplot
  ELSE
   pt = small(pt + 1, 1999)
  END IF

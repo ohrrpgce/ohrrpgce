@@ -53,6 +53,10 @@ WHAT IS NEW?
       home directory [Ralph]
     * Sound effects did not stop when quitting to the title screen or
       loading a game [Ralph]
+    * 'Set tag', 'Toggle tag' and 'Close menu' options were ignored
+      when menu items were triggered via "use menu item" [Ralph]
+    * NPCs appearance was not updated according to tags set from a
+      menu item or from the tag debug menu [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

@@ -582,8 +582,14 @@ DO
     END IF
    END IF
    IF showtags = 0 THEN
-    IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN speedcontrol = large(speedcontrol - 1, 10): scriptout$ = STR(speedcontrol) 'CTRL + +
-    IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN speedcontrol = small(speedcontrol + 1, 160): scriptout$ = STR(speedcontrol)'CTRL + -
+    IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN  'CTRL +
+     speedcontrol = large(speedcontrol - 1, 10)
+     scriptout$ = STR(speedcontrol)
+    END IF
+    IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN  'CTRL -
+     speedcontrol = small(speedcontrol + 1, 160)
+     scriptout$ = STR(speedcontrol)
+    END IF
    END IF
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
@@ -1743,7 +1749,7 @@ WITH scrat(nowscript)
    CASE 432 '--use menu item
     mislot = find_menu_item_handle(retvals(0), menuslot)
     IF valid_menuslot_and_mislot(menuslot, mislot) THEN
-     activate_menu_item(*menus(menuslot).items[mislot], NO)
+     activate_menu_item(*menus(menuslot).items[mislot], menuslot, NO)
     END IF
    CASE 438 '--reset game
     resetg = YES
@@ -2082,30 +2088,20 @@ SUB player_menu_keys (catx(), caty())
    EXIT SUB
   END IF
   activated = NO
-  DIM mi AS MenuDefItem '--use a copy of the menu item here because activate_menu_item() can deallocate it
+  DIM mi AS MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
   mi = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
-  IF carray(ccUse) > 1 THEN
-   activated = activate_menu_item(*menus(topmenu).items[mstates(topmenu).pt])
-  END IF
   IF mi.t = 1 AND mi.sub_t = 11 THEN '--volume
    IF carray(ccLeft) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
    IF carray(ccRight) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
   END IF
-  IF activated THEN
-   IF mi.settag > 1 THEN setbit tag(), 0, mi.settag, YES
-   IF mi.settag < -1 THEN setbit tag(), 0, ABS(mi.settag), NO
-   IF mi.togtag > 1 THEN setbit tag(), 0, mi.togtag, (readbit(tag(), 0, mi.togtag) XOR 1)
-   IF mi.close_if_selected THEN
-    remove_menu find_menu_handle(menu_handle), (mi.skip_close_script = NO)
-    carray(ccUse) = 0
-    setkeys '--Discard the  keypress that triggered the menu item that closed the menu
-   END IF
+  IF carray(ccUse) > 1 THEN
+   activate_menu_item mi, find_menu_handle(menu_handle)
   END IF
  END IF
 END SUB
 
-FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGER
+FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL newcall AS INTEGER=YES) AS INTEGER
  DIM open_other_menu AS INTEGER = -1
  DIM menu_text_box AS INTEGER = 0
  DIM updatetags AS INTEGER = NO
@@ -2156,7 +2152,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
        IF slot >= 0 THEN
         wantloadgame = slot + 1
         FOR i AS INTEGER = topmenu TO 0 STEP -1
-         remove_menu i, (mi.skip_close_script = NO)
+         remove_menu i, NO
         NEXT i
         EXIT DO
        END IF
@@ -2189,6 +2185,21 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, newcall AS INTEGER=YES) AS INTEGE
    END WITH
   EXIT DO
  LOOP
+ IF activated THEN
+  IF mi.settag > 1 THEN setbit tag(), 0, mi.settag, YES : updatetags = YES
+  IF mi.settag < -1 THEN setbit tag(), 0, ABS(mi.settag), NO : updatetags = YES
+  IF mi.togtag > 1 THEN setbit tag(), 0, mi.togtag, (readbit(tag(), 0, mi.togtag) XOR 1) : updatetags = YES
+  IF mi.close_if_selected THEN
+   remove_menu menuslot, (mi.skip_close_script = NO)
+
+   'WARNING: below this point, mi is invalid
+
+   IF newcall THEN '--Not inside a script
+    carray(ccUse) = 0
+    setkeys '--Discard the keypress that triggered the menu item that closed the menu
+   END IF
+  END IF
+ END IF
  IF updatetags THEN
   evalherotag
   evalitemtag
