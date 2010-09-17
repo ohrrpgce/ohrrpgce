@@ -54,7 +54,6 @@ DECLARE SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs 
 DECLARE SUB resizetiledata OVERLOAD (tmap AS TileMap, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER)
 DECLARE SUB resizetiledata OVERLOAD (tmaps() AS TileMap, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER)
 DECLARE SUB resizetiledata OVERLOAD (tmap AS TileMap, x_off AS INTEGER, y_off AS INTEGER, new_width AS INTEGER, new_height AS INTEGER, BYREF yout AS INTEGER, page AS INTEGER)
-DECLARE SUB resizezonedata (zmap AS ZoneMap, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER)
 
 DECLARE SUB update_npc_graphics(st AS MapEditState, npc_img() AS GraphicPair)
 DECLARE SUB update_tilepicker(BYREF st AS MapEditState)
@@ -2707,7 +2706,7 @@ SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapRe
   END IF
   IF keyval(scF1) > 1 THEN show_help "resize_map"
   usemenu state
-  IF keyval(scAlt) > 0 THEN incval = 8 ELSE incval = 1
+  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN incval = 8 ELSE incval = 1
   SELECT CASE state.pt
    CASE 0
     IF keyval(scEnter) > 1 THEN
