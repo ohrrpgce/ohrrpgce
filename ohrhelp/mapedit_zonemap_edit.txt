@@ -1,0 +1,29 @@
+The map editor is in Zone mapping mode, single zone editing submode.
+
+F2 switch to picture mode
+F3 switch to passability mode
+F4 switch to door placement mode
+F5 switch to NPC placement mode
+F6 switch to foemap mode
+F7 switch to zonemap mode
+
+M switch to zone viewing submode
+
+Use the arrow keys to move around the map.
+
+Use SHIFT+arrow keys to move around the map faster.
+
+Press < and > to change the current zone number, or type in an ID number. There's no need to use sequential ID numbers.
+
+Press E to edit to go to the zone info editor, where you can edit the triggers attached to this zone.
+
+Press SPACE to add or remove the selected tile to the current zone. You can hold down space and move the cursor. Each tile can be in up to 15 different zones.
+
+Pressing DELETE removes the selected tile from the zone.
+
+Pressing TAB toggles a minimap that shows the selected zone, and what part of the map you are currently looking at.
+
+(** Debugging keys **)
+
+Q: print debug info to c_debug.txt
+Ctrl+Q: paint tiles in the zone randomly all over the map

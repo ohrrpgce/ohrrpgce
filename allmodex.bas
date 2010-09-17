@@ -1089,6 +1089,7 @@ sub post_terminate_signal cdecl ()
 	closerequest = 1
 end sub
 
+'No clipping!!
 SUB putpixel (byval spr as Frame ptr, byval x as integer, byval y as integer, byval c as integer)
 	if x < 0 orelse x >= spr->w orelse y < 0 orelse y >= spr->h then
 		exit sub

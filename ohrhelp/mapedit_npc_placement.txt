@@ -5,10 +5,13 @@ F3 switch to passability mode
 F4 switch to door placement mode
 F5 switch to NPC placement mode
 F6 switch to foemap mode
+F7 switch to zonemap mode
 
 Use the arrow keys to move around the map.
 
 Use SHIFT+arrow keys to move around the map faster.
+
+Use ALT+arrow keys to move the view of the map.
 
 Press < and > to choose which NPC you want to place. You can also type in an NPC ID number.
 

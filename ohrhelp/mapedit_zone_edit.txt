@@ -1,0 +1,3 @@
+This is zone triggers editor. Here you can change what a zone actually does.
+
+As you can see, zones can't do anything.

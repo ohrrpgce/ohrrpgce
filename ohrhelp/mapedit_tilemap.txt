@@ -5,10 +5,13 @@ F3 switch to passability mode
 F4 switch to door placement mode
 F5 switch to NPC placement mode
 F6 switch to foemap mode
+F7 switch to zonemap mode
 
 Use the arrow keys to move around the map.
 
 Use SHIFT+arrow keys to move around the map faster.
+
+Use ALT+arrow keys to move the view of the map.
 
 Along the top of the screen you will see a row of maptiles, with your currently selected maptile highlighted. You can press < and > to change your selected maptile, or press ENTER to bring up a full-screen maptile picker.
 
@@ -30,7 +33,7 @@ CTRL+H moves the hero's starting location to this location on this map. Remember
 
 Press 1 or 2 to make the tile under the cursor animate using animation pattern 0 or 1.
 
-Hold CTRL and press 1 or 2 to make all tiles on the map like the one under the cursor animate using animation pattern 0 or 1.
+Hold CTRL and press 1 or 2 to make all tiles on the current layer like the one under the cursor animate using animation pattern 0 or 1.
 
 CTRL+D toggles whether default tile passability will be used for any new tiles that you place.
 
@@ -40,4 +43,10 @@ PageUp and PageDown change which layer you are working on. Remember that layer 0
 
 CTRL+J makes the current layer jiggle. This can be useful to visually distinguish a layer you are working on from another layer that covers it up. Press CTRL+J again to stop the jiggling.
 
+ALT+~ toggles visibility of the current map layer.
+
 ALT+a number disables or enables that layer (you can't disable layer 0). Disabled layers aren't drawn while editing or playing.
+
+CTRL+a function key toggles visibility of a layer: F1 is layer 0, and so on.
+
+CTRL+BACKSPACE deletes everything placed at a tile: tiles in all layers, walls, doors, and NPCs.

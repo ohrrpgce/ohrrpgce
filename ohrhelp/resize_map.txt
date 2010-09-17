@@ -2,6 +2,8 @@ This is the Resize Map tool. Here you can change the size of an existing map. Do
 
 Use the up and down arrow keys to navigate the menu. Use the left and right arrow keys to change the numbers.
 
+Hold down ALT to change the dimensions faster.
+
 The "Area" and zoom-size will be automatically updated for you as the map size changes.
 
 Press ENTER to confirm the changes, or ESC to cancel.

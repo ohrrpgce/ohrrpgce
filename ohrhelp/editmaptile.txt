@@ -12,7 +12,7 @@ On the left is a panel of tool buttons. Each of them can also be triggered with 
 D Draw tool. Use this for single
   pixels or free-hand lines.
 
-R Rectangle tool. Use this to draw
+B Box tool. Use this to draw
   filled rectangles.
 
 L Line tool. Use this to draw
@@ -20,7 +20,7 @@ L Line tool. Use this to draw
 
 F Fill tool. Use this to flood-fill
   paint an area. Like the paint
-  bucket in photoshop.
+  bucket in Photoshop.
 
 R Replace tool. Use this to replace
   one colour with another.

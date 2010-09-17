@@ -139,6 +139,7 @@ ENUM MapEditMode
   door_mode
   npc_mode
   foe_mode
+  zone_mode
 END ENUM
 
 TYPE MapEditState
@@ -159,6 +160,18 @@ TYPE MapEditState
   cursor AS GraphicPair
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
   menustate AS MenuState  'The top-level menu state
+
+  'Zone stuff
+  zonesubmode AS INTEGER
+  cur_zone AS INTEGER        'Zone ID selected for placement
+  cur_zinfo AS ZoneInfo ptr  '== GetZoneInfo(zonemaps, cur_zone)
+  zoneviewmap AS TileMap     'Each bit indicates one of 8 currently displayed zones
+  zoneoverlaymap AS TileMap  'For other overlays drawn by zonemode
+  zoneminimap AS Frame ptr   '1/20x zoomed view of cur_zone
+  zoneviewtileset AS INTEGER 'Which of zonetileset() to use to draw zoneviewmap
+  autoshow_zones AS INTEGER  'Zones at current tile become visible ("Autoshow zones")
+  showzonehints AS INTEGER   'Display 'hints' where nonvisible zones are ("Show other")
+  zonecolours(7) AS INTEGER  'The zone assigned to each colour, or 0. Includes "memories" of zones not currently displayed
 END TYPE
 
 TYPE MapResizeState

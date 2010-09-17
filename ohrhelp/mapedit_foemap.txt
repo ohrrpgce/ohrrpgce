@@ -5,10 +5,13 @@ F3 switch to passability mode
 F4 switch to door placement mode
 F5 switch to NPC placement mode
 F6 switch to foemap mode
+F7 switch to zonemap mode
 
 Use the arrow keys to move around the map.
 
 Use SHIFT+arrow keys to move around the map faster.
+
+Use ALT+arrow keys to move the view of the map.
 
 Foe mapping allows you to specify where random battles can happen. Whenever the hero walks on a tile with a foe map number, the player has a chance of encountering a random battle.
 
