@@ -575,7 +575,6 @@ SUB DeleteZoneMap(zmap as ZoneMap)
   END WITH
 END SUB
 
-
 'Fills zones() with the IDs of all the zones which this tile is a part of.
 'zones() should be a dynamic array, it's filled with unsorted ID numbers in zones(0) onwards
 'zones() is REDIMed to start at -1, for fake zero-length arrays
@@ -701,7 +700,7 @@ FUNCTION SetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, B
         RETURN YES
       END IF
     NEXT
-'debug "SetZoneTile: ID " & id & " not yet in IDmap"
+    'debug "SetZoneTile: ID " & id & " not yet in IDmap"
     FOR i as integer = 0 TO 14
       IF IDmap[i] = 0 THEN
         *bitvector OR= 1 SHL i
@@ -709,7 +708,7 @@ FUNCTION SetZoneTile(zmap as ZoneMap, BYVAL id as integer, BYVAL x as integer, B
         RETURN YES
       END IF
     NEXT
-'debug "SetZoneTile: IDmap full"
+    'debug "SetZoneTile: IDmap full"
     'Segment ID array is full, add a new ID array
     *bitvector OR= 1 SHL 15
     DIM IDmapnew as ushort ptr = cast(ushort ptr, ZoneMapAddExtraSegment(zmap, x, y))
@@ -802,138 +801,132 @@ SUB ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, BYVAL id as integer, BYVAL b
   'debug "ZoneToTileMap in " & (timer - t) * 1000 & "ms, average=" & (accum * 1000 / samples)
 END SUB
 
-'Adds nodes to a .Z## reload node for a zone describing the tile data and returns true,
-'or returns false and does nothing if this zone has no tiles set at all.
-'This is much slower than deserialization as I used ZoneToTileMap to simplify things
-PRIVATE FUNCTION SerializeZoneTiles(zmap as ZoneMap, BYVAL id as integer, BYVAL node as NodePtr) as integer
+'Adds 'rows' node to a .Z## root RELOAD node describing the tile data.
+'rect.x/y give an offset, and rect.w/h a size to trim to; used for resizing a map.
+PRIVATE SUB SerializeZoneTiles(zmap as ZoneMap, BYVAL root as NodePtr, rect as RectType)
   DIM t as double = TIMER
-  DIM tmap as TileMap
-  ZoneToTileMap zmap, tmap, id, 0
-  WITH tmap
-    DIM as integer x, y, xmin = 999999, xmax = -1, ymin = -1, ymax = -1
 
-    DIM tileptr as ubyte ptr = .data
+  DIM as NodePtr rowsnode, rownode, idnode, spannode
+  rowsnode = AppendChildNode(root, "rows")
+
+  DIM as integer x, xstart, y, i, id, spanlen, spanoff
+  DIM as ubyte ptr spanbuf
+  WITH zmap
+    spanbuf = ALLOCATE(sizeof(ubyte) * (.wide + 4))
+
     FOR y = 0 TO .high - 1
-      FOR x = 0 TO .wide - 1
-        IF *tileptr THEN
-          ymax = y
-          IF ymin = -1 THEN ymin = y
-          IF x < xmin THEN xmin = x
-          IF x > xmax THEN xmax = x
-        END IF
-        tileptr += 1
+      IF y < rect.y OR y >= rect.y + rect.high THEN CONTINUE FOR
+      rownode = AppendChildNode(rowsnode, "y", y - rect.y)
+
+      REDIM seen_this_line(0) as integer
+      REDIM zoneshere() as integer
+
+      FOR xstart = large(0, rect.x) TO small(.wide - 1, rect.x + rect.wide - 1)
+        'Go along each row, looking for new zones that we haven't seen yet this row
+        GetZonesAtTile zmap, zoneshere(), xstart, y
+        FOR i = 0 TO UBOUND(zoneshere)
+          id = zoneshere(i)
+          IF int_array_find(seen_this_line(), id) <> -1 THEN CONTINUE FOR
+          int_array_append seen_this_line(), id
+
+          DIM as integer spantype = NO  'NO: currently in a stretch of unset tiles
+          spanoff = 0
+          spanlen = large(xstart - rect.x, 0)
+          FOR x = large(xstart, rect.x) TO small(.wide - 1, rect.x + rect.wide - 1)
+            WHILE spanlen >= 256
+              'span too long, break in two
+              spanbuf[spanoff] = 255
+              spanbuf[spanoff + 1] = 0
+              spanoff += 2
+              spanlen -= 255
+            WEND
+            IF CheckZoneAtTile(zmap, id, x, y) = spantype THEN
+              spanlen += 1
+            ELSE
+              spantype = spantype XOR YES
+              spanbuf[spanoff] = spanlen
+              spanoff += 1
+              spanlen = 1
+            END IF
+          NEXT
+
+          IF spanlen <> 0 THEN
+            spanbuf[spanoff] = spanlen
+            spanoff += 1
+          END IF
+
+          'Write it out
+          idnode = AppendChildNode(rownode, "zone", id)
+          spannode = AppendChildNode(idnode, "spans")
+          SetContent(spannode, cast(zstring ptr, spanbuf), spanoff)
+        NEXT
       NEXT
     NEXT
-
-    IF xmin > xmax THEN
-      'No tiles, we don't have to add anything to this RELOAD node
-      UnloadTilemap tmap
-      RETURN NO
-    END IF
-
-    DIM bits as string = string(((xmax - xmin + 1) * (ymax - ymin + 1) + 7) \ 8 , 0)
-
-    DIM bitmask as ushort = 1
-    DIM accum as integer = 0
-    DIM bitsptr as ushort ptr = cast(ushort ptr, @bits[0])  'ushorts are safe to use
-    FOR y = ymin TO ymax
-      tileptr = .data + y * .wide + xmin
-      FOR x = xmin TO xmax
-        IF *tileptr THEN accum OR= bitmask
-        tileptr += 1
-        bitmask = bitmask SHL 1
-        IF bitmask = 0 THEN
-          *bitsptr = accum
-          bitmask = 1
-          accum = 0
-          bitsptr += 1
-        END IF
-      NEXT
-    NEXT
-    IF bitmask <> 1 THEN
-     *bitsptr = accum
-     IF bitsptr >= cast(ushort ptr, @bits[LEN(bits)]) THEN debug "Bug: SerializeZoneTiles overrun!"
-    END IF
-
-    DIM datanode as NodePtr
-    datanode = AppendChildNode(node, "tiles")
-    AppendChildNode datanode, "w", (xmax - xmin + 1)
-    AppendChildNode datanode, "h", (ymax - ymin + 1)
-    AppendChildNode datanode, "offx", xmin
-    AppendChildNode datanode, "offy", ymin
-    DIM bitsnode as NodePtr
-    bitsnode = AppendChildNode(datanode, "bits", bits)
-
-    UnloadTilemap tmap
-
-    'debug "SerializeZoneTiles in " & (timer - t) * 1000 & "ms, " & (xmax-xmin+1) & "*" & (ymax-ymin+1) & " of " & .wide & "*" & .high
-
-    RETURN YES
   END WITH
-END FUNCTION
-
-PRIVATE SUB DeserializeZoneTiles(zmap as ZoneMap, byval id as integer, BYVAL node as NodePtr)
-  DIM datanode as NodePtr
-  datanode = GetChildByName(node, "tiles")
-  IF datanode = NULL THEN EXIT SUB  'valid if no tiles in this zone
-  DIM as integer w, h, offx, offy
-  w = GetChildNodeInt(datanode, "w")
-  h = GetChildNodeInt(datanode, "h")
-  offx = GetChildNodeInt(datanode, "offx")
-  offy = GetChildNodeInt(datanode, "offy")
-  DIM bitsnode as NodePtr
-  bitsnode = GetChildByName(datanode, "bits")
-  IF bitsnode = NULL THEN
-    debug "DeserializeZoneTiles: expected 'bits' node, zone " & id
-    EXIT SUB
-  END IF
-  DIM bitmap as ushort ptr = cast(ushort ptr, GetZString(bitsnode))  'safe to use ushorts, due to 
-  IF bitmap = NULL ORELSE w * h = 0 ORELSE GetZStringSize(bitsnode) < (w * h + 7) \ 8 THEN
-    debug "DeserializeZoneTiles: bad 'bits' node or size, zone " & id
-    EXIT SUB
-  END IF
-  'debug "deser zone " & id & " w=" & w & " h=" & h & " len=" & GetZStringSize(bitsnode)
-  DIM as integer x, y
-  DIM as ushort mask = 0, sixteenbits
-  FOR y = offy TO offy + h - 1
-    FOR x = offx TO offx + w - 1
-      IF mask = 0 THEN
-        mask = 1
-        sixteenbits = *bitmap
-        'debug " sixteenbits = " & hex(sixteenbits)
-        bitmap += 1
-      END IF
-      IF sixteenbits AND mask THEN
-        'debug "tile " & x & " " & y
-        IF SetZoneTile(zmap, id, x, y) = 0 THEN
-          debug "DeserializeZoneTiles: Too much overlapping at " & x & " " & y
-        END IF
-      END IF
-      mask = mask SHL 1
-    NEXT   
-  NEXT
+  DEALLOCATE(spanbuf)
+  'debug "SerializeZoneTiles in " & (timer - t) * 1000 & "ms"
 END SUB
 
-SUB SaveZoneMap(zmap as ZoneMap, filename as string)
-  DIM as double t = TIMER, ts
+'Set zone tiles according to a .Z document ('rows' node)
+PRIVATE SUB DeserializeZoneTiles(zmap as ZoneMap, BYVAL root as NodePtr)
+  DIM as NodePtr rowsnode, rownode, idnode
+  rowsnode = GetChildByName(root, "rows")
+  IF rowsnode = NULL THEN
+    debug "DeserializeZoneTiles: No 'rows' node!"
+    EXIT SUB
+  END IF
+  rownode = FirstChild(rowsnode)
+  WHILE rownode
+    IF NodeName(rownode) = "y" THEN
+      DIM as integer id, y, x, i, j
+      y = GetInteger(rownode)
+      idnode = FirstChild(rownode)
+      WHILE idnode
+       IF NodeName(idnode) = "zone" THEN
+          id = GetInteger(idnode)
+          IF id <= 0 THEN
+            debug "DeserializeZoneTiles: bad zone id " & id
+          ELSE
+
+            'Everything else is RELOAD parsing, here's the actual spans decoding (see lump documentation)
+            DIM spans as string = GetChildNodeStr(idnode, "spans")
+            x = 0
+            FOR i = 0 TO (LEN(spans) \ 2) * 2 - 1 STEP 2
+              x += spans[i]
+              FOR j = 0 TO spans[i + 1] - 1
+                IF SetZoneTile(zmap, id, x + j, y) = 0 THEN
+                  debug "DeserializeZoneTiles: Too much overlapping at " & (x + j) & " " & y
+                END IF
+              NEXT
+              x += spans[i + 1]
+            NEXT
+
+          END IF
+        END IF
+        idnode = NextSibling(idnode)
+      WEND
+    END IF
+    rownode = NextSibling(rownode)
+  WEND
+END SUB
+
+SUB SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NULL)
+  DIM as double t = TIMER
 
   DIM doc as DocPtr
-  DIM as NodePtr root, node
+  DIM as NodePtr root, zonesnode, node
   doc = CreateDocument()
   root = CreateNode(doc, "zonemap")
   SetRootNode doc, root
   WITH zmap
-    AppendChildNode root, "w", .wide
-    AppendChildNode root, "h", .high
+    AppendChildNode root, "w", iif(rsrect, rsrect->wide, .wide)
+    AppendChildNode root, "h", iif(rsrect, rsrect->high, .high)
+    zonesnode = AppendChildNode(root, "zones")
     FOR i as integer = 0 TO .numzones - 1
       DIM nontrivial as integer = NO
-      node = AppendChildNode(root, "zone")
       WITH .zones[i]
-        AppendChildNode node, "id", .id
-        'Add subnodes to node describing the zone
-	ts -= TIMER
-        nontrivial OR= SerializeZoneTiles(zmap, .id, node)
-	ts += TIMER
+        node = AppendChildNode(zonesnode, "zone", .id)
+        IF .numtiles > 0 THEN nontrivial = YES
         IF .name <> "" THEN
           AppendChildNode node, "name", .name
           nontrivial = YES
@@ -945,19 +938,24 @@ SUB SaveZoneMap(zmap as ZoneMap, filename as string)
         END IF
       END WITH
     NEXT
+
+    'Add 'rows' node
+    DIM as RectType rect = Type(0, 0, .wide, .high)
+    IF rsrect THEN rect = *rsrect
+    SerializeZoneTiles zmap, root, rect
+
+    SerializeBin filename, doc
+    FreeDocument doc
   END WITH
 
-  SerializeBin filename, doc
-  FreeDocument doc
-
-  'debug "SaveZoneMap " & trimpath(filename) & " in " & (TIMER - t) * 1000 & "ms, " & zmap.numzones & " zones serialised in " & ts * 1000 & "ms"
+  'debug "SaveZoneMap " & trimpath(filename) & " in " & (TIMER - t) * 1000 & "ms, " & zmap.numzones & " zones"
 END SUB
 
 SUB LoadZoneMap(zmap as ZoneMap, filename as string)
-  DIM as double t = TIMER, ts
+  DIM as double t = TIMER
 
   DIM as DocPtr doc
-  DIM as NodePtr root, node
+  DIM as NodePtr root, zonesnode, node
   DIM as integer w, h
   doc = LoadDocument(filename)
   IF doc = NULL THEN EXIT SUB
@@ -969,27 +967,28 @@ SUB LoadZoneMap(zmap as ZoneMap, filename as string)
   END IF
   w = GetChildNodeInt(root, "w")
   h = GetChildNodeInt(root, "h")
-  IF w <= 0 OR h <= 0 THEN debug "LoadZoneMap: " & filename & " - bad size " & w & "*" & h: GOTO end_func
+  IF w <= 0 OR h <= 0 THEN debug "LoadZoneMap: " & filename & " - bad size " & w & "*" & h : GOTO end_func
+  zonesnode = GetChildByName(root, "zones")
+  IF zonesnode = 0 THEN debug "LoadZoneMap: 'zones' missing" : GOTO end_func
   CleanZoneMap zmap, w, h
   WITH zmap
     .numzones = 0
-    node = FirstChild(root)
+    node = FirstChild(zonesnode)
     WHILE node
       IF NodeName(node) = "zone" THEN
         DIM info as ZoneInfo ptr = ZoneMapAddZoneInfo(zmap)
         WITH *info
-          .id = GetChildNodeInt(node, "id")
-          IF .id <= 0 THEN debug "LoadZoneMap: " & filename & " - bad zone id": GOTO end_func
+          .id = GetInteger(node)
+          IF .id <= 0 THEN debug "LoadZoneMap: " & filename & " - bad zone id" : GOTO end_func
           .name = GetChildNodeStr(node, "name")
-	  ts -= TIMER
-          DeserializeZoneTiles zmap, .id, node
-	  ts += TIMER
         END WITH
       END IF
       node = NextSibling(node)
     WEND
 
-    'debug "LoadZoneMap " & trimpath(filename) & " in " & (TIMER - t) * 1000 & "ms, " & .numzones & " zones deserialised in " & ts * 1000 & "ms"
+    DeserializeZoneTiles zmap, root
+
+    'debug "LoadZoneMap " & trimpath(filename) & " in " & (TIMER - t) * 1000 & "ms, " & .numzones & " zones"
   END WITH
 
  end_func:

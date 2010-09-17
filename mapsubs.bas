@@ -775,7 +775,7 @@ DO
     END IF
    ELSE
     '--Multizone view
-    usemenu zonemenustate, zonemenu(), scMinus, scPlus
+    usemenu zonemenustate, zonemenu(), scLeftCaret, scRightCaret
     IF zonemenustate.pt > -1 THEN
      st.cur_zone = zonemenu(zonemenustate.pt).dat
      st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
@@ -2228,7 +2228,8 @@ SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS IN
  edgeprint "FOEMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
  resizetiledata emap, rs, yout, vpage
  edgeprint "ZONEMAP", 0, yout * 10, uilook(uiText), vpage: setvispage vpage: yout += 1
- resizezonedata zmap, rs, yout, vpage
+ SaveZoneMap zmap, tmpdir & "zresize.tmp", @rs.rect
+ LoadZoneMap zmap, tmpdir & "zresize.tmp"
  ' update SAV x/y offset in MAP lump
  gmap(20) += rs.rect.x * -1
  gmap(21) += rs.rect.y * -1
@@ -2650,9 +2651,6 @@ SUB resizetiledata (tmap AS TileMap, x_off AS INTEGER, y_off AS INTEGER, new_wid
  unloadtilemap tmap
  memcpy(@tmap, @tmp, sizeof(TileMap))
  'obviously don't free tmp
-END SUB
-
-SUB resizezonedata (zmap AS ZoneMap, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER)
 END SUB
 
 SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapResizeState)

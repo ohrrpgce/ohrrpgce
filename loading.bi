@@ -56,7 +56,7 @@ declare sub GetZonesAtTile(zmap as ZoneMap, zones() as integer, BYVAL x as integ
 declare function GetZoneInfo(zmap as ZoneMap, BYVAL id as integer) as ZoneInfo ptr
 declare sub DebugZoneMap(zmap as ZoneMap, BYVAL x as integer = -1, BYVAL y as integer = -1)
 declare sub ZoneToTileMap(zmap as ZoneMap, tmap as TileMap, BYVAL id as integer, BYVAL bitnum as integer)
-declare sub SaveZoneMap(zmap as ZoneMap, filename as string)
+declare sub SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NULL)
 declare sub LoadZoneMap(zmap as ZoneMap, filename as string)
 
 declare SUB DeserDoorLinks(filename as string, array() as doorlink)
