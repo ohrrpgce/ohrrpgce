@@ -45,10 +45,10 @@ if music == '':
 env = Environment (FBFLAGS  = env.get ('FBFLAGS',[]),
                    FBLIBS = [],
                    CFLAGS = ['-c','-g','-O3','--std=c99'],
-                   ENV = {'PATH' : os.environ['PATH']},
                    FBC = fbc +' -lang deprecated',
-                   CXXFLAGS = ['-mt','-c','-g','-O3'],
+                   CXXFLAGS = ['-c','-g','-O3'],
                    BUILDERS = {'BASEXE':basexe,'BASO':baso})
+env['ENV']['PATH'] = os.environ['PATH']
 
 if CC:
     env.Replace (CC = CC)
@@ -86,8 +86,8 @@ used_music = []
 gfx_map = {'fb': {'common_modules': 'gfx_fb.bas'},
            'alleg' : {'common_modules': 'gfx_alleg.bas', 'libraries': 'alleg'},
            'sdl' : {'common_modules': 'gfx_sdl.bas', 'libraries': 'SDL'},
-           'directx' : {}, # nothing needed?
-           'sdlpp': {}     # nothing needed?
+           'directx' : {}, # nothing needed
+           'sdlpp': {}     # nothing needed
            }
 
 music_map = {'native':

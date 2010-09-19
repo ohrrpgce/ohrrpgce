@@ -89,7 +89,7 @@ def verprint (used_gfx, used_music, svn, git, fbc):
             results.append ('#DEFINE GFX_%s_BACKEND' % g.upper())
             supported_gfx.append (g)
     for m in used_music:
-        if m.upper() in ('NATIVE','SDL','NATIVE2'):
+        if m.upper() in ('NATIVE','SDL','NATIVE2','SILENCE'):
             results.append ('#DEFINE MUSIC_%s_BACKEND' % m.upper())
             results.append ('#DEFINE MUSIC_BACKEND "%s"' % m)
     results.append ('#DEFINE SUPPORTED_GFX "%s "' % ' '.join (supported_gfx))
