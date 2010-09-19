@@ -5,16 +5,17 @@ import re
 import fnmatch
 import sys
 
-from ohrbuild import basfile_scan, verprint
-
-scanner = Scanner (function = basfile_scan,
-                   skeys = ['.bas'])
-
 win32 = False
 unix = True
 exe_suffix = ''
 CC = None
 CXX = None
+
+from ohrbuild import basfile_scan, verprint
+
+scanner = Scanner (function = basfile_scan,
+                   skeys = ['.bas'])
+
 if platform.system() == 'Windows':
     win32 = True
     unix = False
@@ -190,11 +191,6 @@ main['FBLIBS'] += libpaths + libraries
 # always do verprinting, before anything else.
 verprint(used_gfx, used_music, svn, git, fbc)
 
-# add rules to ensure semicommon mods rebuild when gfx/music opts change.
-#for v in semicommon_modules:
-    #Depends (v.replace('.bas','.o'),'cver.txt')
-    #Depends (v.replace('.bas','.o'),'cver.txt')
-#print (os.path.exists (os.path.join ('cver.txt')))
 semicommon_modules.pop ()
 semicommon_modules.pop ()
 
@@ -227,9 +223,10 @@ for v in tmp:
         edittmp.append (b)
         Depends (a,'gver.txt')
         Depends (b,'cver.txt')
-    else:
-        gametmp.append(v.replace ('.c','.o'))
-        edittmp.append(v.replace ('.c','.o'))
+    #else:
+
+        #gametmp.append(v.replace ('.c','.o'))
+     #   edittmp.append(v.replace ('.c','.o'))
 
 bam2mid = env.BASEXE ('bam2mid')
 Default (bam2mid)
@@ -247,8 +244,8 @@ editsrc = [editenv.BASO (target = v + '.o',
 mainflags = ['-v'] + env['FBFLAGS']
 gamename = 'ohrrpgce-game'
 editname = 'ohrrpgce-custom'
-gameflags = mainflags #+ ['-m','game']
-editflags = mainflags #+ ['-m','custom']
+gameflags = list (mainflags)
+editflags = list (mainflags)
 
 if win32:
     gamename = 'game'
@@ -258,7 +255,7 @@ if win32:
 else:
     gameflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
     editflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
-    #game = gameenv.Command ('ohrrpgce-game', gamesrc,'$FBC -p . libcommon-game.a -x $TARGET $SOURCES $FBFLAGS')
+
 game = gameenv.BASEXE (gamename, FBFLAGS = gameflags, source = gametmp + gamesrc)
 custom = editenv.BASEXE (editname, FBFLAGS = editflags, source = edittmp + editsrc)
 
@@ -268,8 +265,8 @@ audwrap =extra_env.Command (os.path.join ('audwrap', 'audwrap.o'),
 Depends (audwrap,'cver.txt')
 audwrap = extra_env.Library (os.path.join ('audwrap','audwrap'),
           source = audwrap)
-
-Default (audwrap)
+if 'native' in used_music or 'native2' in used_music:
+    Default (audwrap)
 Default (game)
 Default (custom)
 
