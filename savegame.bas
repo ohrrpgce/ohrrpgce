@@ -444,8 +444,8 @@ END SUB
 SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
  DIM node AS NodePtr
  node = GetChildByName(parent, "npcs")
- DIM n AS NodePtr 'used for numbered containers
- DIM i AS INTEGER
+ DIM AS NodePtr n, n2 'used for numbered containers
+ DIM AS INTEGER i, extraid
 
  DIM map_offset AS XYPair
  map_offset = load_map_pos_save_offset(map)
@@ -465,6 +465,16 @@ SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTE
       npc(i).frame = GetChildNodeInt(n, "fr")
       npc(i).xgo = GetChildNodeInt(n, "xgo")
       npc(i).ygo = GetChildNodeInt(n, "ygo")
+      n2 = FirstChild(n, "extra")
+      WHILE n2
+       extraid = GetInteger(n2)
+       IF extraid >= 0 AND extraid <= 2 THEN
+        npc(i).extra(extraid) = GetChildNodeInt(n, "int")
+       ELSE
+        rsav_warn "bad npc extra " & extraid
+       END IF
+       n2 = NextSibling(n2, "extra")
+      WEND
      END IF
     CASE ELSE
      rsav_warn "invalid npc instance " & i
@@ -989,7 +999,7 @@ END SUB
 SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
  DIM node AS NodePtr
  node = SetChildNode(parent, "npcs")
- DIM n AS NodePtr 'used for numbered containers
+ DIM AS NodePtr n, n2 'used for numbered containers
 
  DIM map_offset AS XYPair
  map_offset = load_map_pos_save_offset(map)
@@ -1005,6 +1015,12 @@ SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGE
    SetChildNode(n, "fr", npc(i).frame)
    IF npc(i).xgo THEN SetChildNode(n, "xgo", npc(i).xgo)
    IF npc(i).ygo THEN SetChildNode(n, "ygo", npc(i).ygo)
+   FOR j AS INTEGER = 0 TO 2
+    IF npc(i).extra(j) THEN
+     n2 = SetChildNode(n, "extra", j)
+     SetChildNode(n2, "int", npc(i).extra(j))
+    END IF
+   NEXT
   END IF
  NEXT i
 END SUB
