@@ -57,6 +57,7 @@ WHAT IS NEW?
       when menu items were triggered via "use menu item" [Ralph]
     * NPCs appearance was not updated according to tags set from a
       menu item or from the tag debug menu [Ralph]
+    * "create NPC" could create NPCs with garbage 'extra data' [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

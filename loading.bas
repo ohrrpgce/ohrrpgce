@@ -170,12 +170,14 @@ END SUB
 '==========================================================================================
 
 
+'Legacy (used for .L); not kept up to date with changes to NPCInst
 SUB LoadNPCL(file as string, dat() as NPCInst)
   DIM i AS INTEGER
   DIM f AS INTEGER
   f = FREEFILE
   OPEN file FOR BINARY AS #f
-  SEEK #f,8
+  SEEK #f, 8
+  CleanNPCL dat()
   FOR i = 0 to 299
     dat(i).x = ReadShort(f,-1) * 20
   NEXT
@@ -191,13 +193,10 @@ SUB LoadNPCL(file as string, dat() as NPCInst)
   FOR i = 0 to 299
     dat(i).frame = ReadShort(f,-1)
   NEXT
-  FOR i = 0 TO 299
-    dat(i).xgo = 0
-    dat(i).ygo = 0
-  NEXT
   CLOSE #f
 END SUB
 
+'Legacy (used for .L); not kept up to date with changes to NPCInst
 SUB SaveNPCL(file as string, dat() as NPCInst)
   DIM i AS INTEGER
   DIM f AS INTEGER
@@ -222,6 +221,8 @@ SUB SaveNPCL(file as string, dat() as NPCInst)
   CLOSE #f
 END SUB
 
+'Legacy (used in .SAV); not kept up to date with changes to NPCInst
+'num is always 300.
 SUB SerNPCL(npc() as NPCInst, z, buffer(), num as integer, xoffset as integer, yoffset as integer)
   DIM i as integer
   FOR i = 0 to num - 1
@@ -247,8 +248,11 @@ SUB SerNPCL(npc() as NPCInst, z, buffer(), num as integer, xoffset as integer, y
   NEXT
 END SUB
 
+'Legacy (used in .SAV); not kept up to date with changes to NPCInst
+'num is always 300.
 SUB DeserNPCL(npc() as NPCInst, z, buffer(), num as integer, xoffset as integer, yoffset as integer)
   DIM i as integer
+  CleanNPCL npc()
   FOR i = 0 to num - 1
     npc(i).x = buffer(z) + xoffset: z = z + 1
   NEXT
@@ -272,23 +276,27 @@ SUB DeserNPCL(npc() as NPCInst, z, buffer(), num as integer, xoffset as integer,
   NEXT
 END SUB
 
+SUB CleanNPCInst(inst as NPCInst)
+  WITH inst
+   .x = 0
+   .y = 0
+   .id = 0
+   .dir = 0
+   .frame = 0
+   .xgo = 0
+   .ygo = 0
+   .extra(0) = 0
+   .extra(1) = 0
+   .extra(2) = 0
+  END WITH
+END SUB
+
 SUB CleanNPCL(dat() as NPCInst, byval num as integer=-1)
   'Num is the count of elements to erase, or -1 to autodetect the size of the array
   DIM i as integer
   IF num = -1 THEN num = UBOUND(dat) + 1
   FOR i = 0 to num - 1
-   WITH dat(i)
-    .x = 0
-    .y = 0
-    .id = 0
-    .dir = 0
-    .frame = 0
-    .xgo = 0
-    .ygo = 0
-    .extra(0) = 0
-    .extra(1) = 0
-    .extra(2) = 0
-   END WITH
+   CleanNPCInst dat(i)
   NEXT
 END SUB
 

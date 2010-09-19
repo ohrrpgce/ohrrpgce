@@ -24,11 +24,12 @@ declare function getnpcd(npcd as npctype, offset as integer) as integer
 declare sub CleanNPCDefinition(dat as NPCType)
 declare sub CleanNPCD(dat() as NPCType)
 
-declare sub loadnpcl(file as string, dat() as npcinst)
-declare sub savenpcl(file as string, dat() as npcinst)
-declare sub sernpcl(npc() as npcinst, z as integer, buffer() as integer, num as integer, xoffset as integer, yoffset as integer)
-declare sub desernpcl(npc() as npcinst, z as integer, buffer() as integer, num as integer, xoffset as integer, yoffset as integer)
-declare sub cleannpcl(dat() as npcinst, byval num as integer=-1)
+declare sub LoadNPCL(file as string, dat() as npcinst)
+declare sub SaveNPCL(file as string, dat() as npcinst)
+declare sub SerNPCL(npc() as npcinst, z as integer, buffer() as integer, num as integer, xoffset as integer, yoffset as integer)
+declare sub DeserNPCL(npc() as npcinst, z as integer, buffer() as integer, num as integer, xoffset as integer, yoffset as integer)
+declare sub CleanNPCInst(inst as NPCInst)
+declare sub CleanNPCL(dat() as npcinst, byval num as integer=-1)
 
 declare Sub SaveInventory16bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)
 declare Sub LoadInventory16Bit(invent() AS InventSlot, BYREF z AS INTEGER, buf() AS INTEGER, BYVAL first AS INTEGER=0, BYVAL last AS INTEGER=-1)

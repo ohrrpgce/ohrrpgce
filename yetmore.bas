@@ -2663,21 +2663,20 @@ SELECT CASE AS CONST id
      IF npc(i).id <= 0 THEN EXIT FOR
     NEXT
     'I don't want to raise a scripterr here, again because it probably happens in routine in games like SoJ
-    scripterr "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20, 1
+    DIM msgtemp as string = "create NPC: trying to create NPC id " & retvals(0) & " at " & retvals(1)*20 & "," & retvals(2)*20
     IF i = -1 THEN 
-     scripterr "create NPC error: couldn't create NPC: too many NPCs exist", 4
+     scripterr msgtemp & "; failed: too many NPCs exist", 4
     ELSE
-     scripterr "create NPC warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", 4
+     scripterr msgtemp & "; warning: had to overwrite tag-disabled NPC id " & ABS(npc(i).id)-1 & " at " & npc(i).x & "," & npc(i).y & ": too many NPCs exist", 4
     END IF
    END IF
    IF i > -1 THEN
+    CleanNPCInst npc(i)
     npc(i).id = retvals(0) + 1
     cropposition retvals(1), retvals(2), 1
     npc(i).x = retvals(1) * 20
     npc(i).y = retvals(2) * 20
     npc(i).dir = ABS(retvals(3)) MOD 4
-    npc(i).xgo = 0
-    npc(i).ygo = 0
     scriptret = (i + 1) * -1
    END IF
   END IF

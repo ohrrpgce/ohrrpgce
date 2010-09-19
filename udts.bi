@@ -200,13 +200,15 @@ TYPE NPCType
   pal as palette16 ptr
 END TYPE
 
+'Don't forget to update CleanNPCL and savegame.bas when adding to this
 TYPE NPCInst
   x as integer      'npcl+0
   y as integer      'npcl+300
   xgo as integer    'npcl+1500   warning: positive to go LEFT, negative RIGHT
   ygo as integer    'npcl+1800   reversed as above
-  id as integer     'npcl+600    0 if unused, ID + 1 for normal NPCs, -ID - 1 for hidden NPCS,
-                    '  *including those with invalidly high ID numbers* (on incompletely loaded maps)
+  id as integer     'npcl+600    0 if unused, ID + 1 for normal NPCs, -ID - 1 for hidden NPCs
+                    '  NOTE: NPCs with invalidly high ID numbers (on incompletely loaded maps)
+                    '        are automatically hidden (and obviously unsafe to unhide)
   dir as integer    'npcl+900
   frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
   extra(2) as integer
