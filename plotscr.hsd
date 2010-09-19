@@ -199,8 +199,8 @@ define function, begin
 190,setformationsong,2,0,0	# sets the song associated with a given formation
 191,heroframe,1,0           # get hero walkabout frame
 192,npcframe,1,0            # get npc walkabout frame
-193,npcextra,2,0,1          # get npc extra data (ref, 1 or 2)
-194,setnpcextra,3,0,1,0     # set npc extra data (ref, 1 or 2,what)
+193,npcextra,2,0,1          # get npc extra data (ref, 0 - 2)
+194,setnpcextra,3,0,1,0     # set npc extra data (ref, 0 - 2, value)
 #195,loadsound,2,0,0         # loads a sound into a slot(slot, sfx) #DO NOT USE
 #196,freesound,1,1           # frees an sfx slot(slot) #DO NOT USE
 197,playsound,3,1,0,0       # plays an sfx (num, loop?, preempt?)
@@ -269,10 +269,10 @@ define function, begin
 260,settimer,6,0,-1,-1,-1,-1,-1#start (or modify) a timer(id, count, speed, trigger, string, flags)
 261,stoptimer,1,0             #convenience for settimer(id,-1,0)
 262,readtimer,1,0             #returns the count of a timer(id)
-263,getcolor,1,0			  #returns a 32-bit color from the master palette(index)
-264,setcolor,2,0,0			  #writes a 32-bit color to the master palette(index,val)
-265,rgb,3,0,0,0				  #mixes red, green and blue into a 32-bit color(r, g, b)
-266,extractcolor,2,0,0		  #extracts an RGB component from a 32-bit color(color, component)
+263,getcolor,1,0              #returns a 32-bit color from the master palette(index)
+264,setcolor,2,0,0            #writes a 32-bit color to the master palette(index,val)
+265,rgb,3,0,0,0               #mixes red, green and blue into a 32-bit color(r, g, b)
+266,extractcolor,2,0,0        #extracts an RGB component from a 32-bit color(color, component)
 267,mainmenu,0                #opens the main menu
 268,loadpalette,1,0           #load master palette
 269,totalexperience,1,0       #experience gained by a hero
@@ -479,6 +479,14 @@ define function, begin
 469,spellslearned,2,0,0       #number spells and spell ids hero learnt at last battle/giveexperience command.
 470,allocatetimers,1,16       #change the number of timers
 #471,unusedtimer,0             #find a timer id that's not in use, or allocate more
+472,setnpcignoreswalls,2,0,1  #set whether an npc can pass walls (npcref, bool)
+473,getnpcignoreswalls,1,0    #get whether an npc can pass walls (npcref)
+474,setnpcobstructs,2,0,1     #set whether an npc obstructs (npcref, bool)
+475,getnpcobstructs,1,0       #get whether an npc obstructs (npcref)
+476,setnpcusable,2,0,1        #set whether an npc can be used (npcref, bool)
+477,getnpcusable,1,0          #get whether an npc can be used (npcref)
+478,setnpcmoves,2,0,1         #set whether an npc's movetype used (npcref, bool)
+479,getnpcmoves,1,0           #get whether an npc's movetype used (npcref)
 end
 
 #--------------------------------------------------------------------------
@@ -1383,7 +1391,7 @@ define constant, begin
   0,NPCwhenactivated:changedirection
   1,NPCwhenactivated:faceplayer
   2,NPCwhenactivated:donotfaceplayer
-6,NPCstat:giveitem
+6,NPCstat:giveitem    # Note: item num + 1
 7,NPCstat:pushability
   0,NPCpush:off
   1,NPCpush:full

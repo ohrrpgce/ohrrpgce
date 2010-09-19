@@ -475,6 +475,10 @@ SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTE
        END IF
        n2 = NextSibling(n2, "extra")
       WEND
+      npc(i).ignore_walls = GetChildNodeExists(n, "ignore_walls")
+      npc(i).not_obstruction = GetChildNodeExists(n, "not_obstruction")
+      npc(i).suspend_use = GetChildNodeExists(n, "suspend_use")
+      npc(i).suspend_ai = GetChildNodeExists(n, "suspend_move")
      END IF
     CASE ELSE
      rsav_warn "invalid npc instance " & i
@@ -1021,6 +1025,10 @@ SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGE
      SetChildNode(n2, "int", npc(i).extra(j))
     END IF
    NEXT
+   IF npc(i).ignore_walls THEN SetChildNode(n, "ignore_walls")
+   IF npc(i).not_obstruction THEN SetChildNode(n, "not_obstruction")
+   IF npc(i).suspend_use THEN SetChildNode(n, "suspend_use")
+   IF npc(i).suspend_ai THEN SetChildNode(n, "suspend_move")
   END IF
  NEXT i
 END SUB

@@ -147,6 +147,30 @@ end
 #-----------------------------------------------------------------------
 
 script,key trigger,begin
+  if (key is pressed(key:a)) then (
+    # test NPC bits
+    tracevalue (1)
+    trace value(getnpcignoreswalls(99),getnpcobstructs(99),getnpcusable(99),getnpcmoves(99))
+    set npc usable(99, false)
+    suspend npcs
+    wait for scancode(key:a)
+    resume npcs
+    wait for scancode(key:a)
+    set npc moves(99, false)
+    wait for scancode(key:a)
+    set npc moves(99, true)
+    set npc obstructs(99, false)
+    wait for scancode(key:a)
+    set npc ignores walls(99, true)
+    wait for scancode(key:a)
+    set npc moves(99, false)
+    wait for scancode(key:a)
+    set npc moves(99, true)
+    show value (100000)
+    tracevalue (2)
+    trace value(getnpcignoreswalls(99),getnpcobstructs(99),getnpcusable(99),getnpcmoves(99))
+    exit script
+  )
   if (key is pressed(key:S))
      then (suspend overlay,show text box(14))
   if (key is pressed(key:R))

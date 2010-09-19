@@ -212,6 +212,10 @@ TYPE NPCInst
   dir as integer    'npcl+900
   frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
   extra(2) as integer
+  ignore_walls as integer  'ignore passmap
+  not_obstruction as integer 'can walk through npcs+heroes and vice-versa
+  suspend_use as integer   'not activatable 
+  suspend_ai as integer    'ignore movetype (effectively 'stand still')
 END TYPE
 
 TYPE InventSlot

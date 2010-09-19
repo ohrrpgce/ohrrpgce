@@ -476,6 +476,7 @@ FUNCTION gethighbyte (n) as integer
 RETURN n SHL 8
 END FUNCTION
 
+'Deprecated; Use get_valid_npc for all new NPC commands
 FUNCTION getnpcref (seekid as integer, offset as integer) as integer
 SELECT CASE seekid
 
@@ -499,6 +500,27 @@ END SELECT
 
 '--failure
 getnpcref = -1
+END FUNCTION
+
+'Replacement for getnpcref.
+'Given NPC ref or NPC ID, return npc() index, or throw a scripterr and return -1
+'Note this is stricter than getnpcref: invalid npc refs are not alright!
+'References to Hidden/Disabled NPCs are alright.
+FUNCTION get_valid_npc (BYVAL seekid as integer, BYVAL errlvl as integer = 5) as integer
+ IF seekid < 0 THEN
+  DIM npcidx as integer = (seekid + 1) * -1
+  IF npcidx > 299 ORELSE npc(npcidx).id = 0 THEN
+   scripterr commandname(curcmd->value) & ": invalid npc reference " & seekid & " (maybe the NPC was deleted?)", errlvl
+   RETURN -1
+  END IF
+  RETURN npcidx
+ ELSE
+  FOR i as integer = 0 TO 299
+   IF npc(i).id - 1 = seekid THEN RETURN i
+  NEXT
+  scripterr commandname(curcmd->value) & ": invalid npc reference; no NPCs of ID " & seekid & " exist", errlvl
+  RETURN -1
+ END IF
 END FUNCTION
 
 SUB greyscalepal
@@ -2728,15 +2750,47 @@ SELECT CASE AS CONST id
     npc(npcref).extra(retvals(1)) = retvals(2)
    END IF
   END IF
-'  CASE ???'--get NPC raw
-'   npcref = getnpcref(retvals(0), 0)
-'   s = bound(retvals(1),0,8)
-'   'scriptret = npc(npcref).rawdat(s)
-'   scriptret = CPtr(integer ptr,@npc(npcref))[s]
-'  CASE ???'--set NPC raw
-'   npcref = getnpcref(retvals(0), 0)
-'   s = bound(retvals(1),0,8)
-'   CPtr(integer ptr,@npc(npcref))[s] = retvals(2)
+ CASE 472'--set NPC ignores walls (npc, value)
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   npc(npcref).ignore_walls = (retvals(1) <> 0)
+  END IF
+ CASE 473'--get NPC ignores walls (npc)
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   scriptret = iif(npc(npcref).ignore_walls, 1, 0)
+  END IF
+ CASE 474'--set NPC obstructs (npc, value)
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   npc(npcref).not_obstruction = (retvals(1) = 0)
+  END IF
+ CASE 475'--get NPC obstructs (npc)
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   scriptret = iif(npc(npcref).not_obstruction, 0, 1)
+  END IF
+ CASE 476'--set NPC usable (npc, value)
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   npc(npcref).suspend_use = (retvals(1) = 0)
+  END IF
+ CASE 477'--get NPC usable (npc)
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   scriptret = iif(npc(npcref).suspend_use, 0, 1)
+  END IF
+ CASE 478'--set NPC moves (npc, value)
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   npc(npcref).suspend_ai = (retvals(1) = 0)
+  END IF
+ CASE 479'--get NPC moves (npc)
+  npcref = get_valid_npc(retvals(0))
+  IF npcref >= 0 THEN
+   scriptret = iif(npc(npcref).suspend_ai, 0, 1)
+  END IF
+
 END SELECT
 
 END SUB

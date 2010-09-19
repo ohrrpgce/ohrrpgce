@@ -81,13 +81,16 @@ WHAT IS NEW?
     * "spells learned" replaces deprecated "spells learnt" [James]
     * "allocate timers" (removes 16 timer limit) [Ralph, James]
     * New script trigger for when you close a menu. [James]
+    * "set npc ignores walls", "get npc ignores walls",
+      "set npc obstructs", "get npc obstructs", "set npc usable",
+      "get npc usable", "set npc moves", "get npc moves" [Ralph]
 
   * Vikings of Midgard
 
   * Stuff only Developers Will Notice
     * Test suite and benchmarks for RELOAD format [Mike]
 
-May ? 2010 [Ypsiliform+3]
+(Unreleased) [Ypsiliform+3]
 
   * Bugfixes
     * Bug 816: Freeze on attack instead-chaining on multi-stage chains

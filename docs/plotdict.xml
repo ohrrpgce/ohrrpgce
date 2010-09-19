@@ -232,7 +232,7 @@ wait for scancode(key:P)</example>
 		<command id="waitfornpc">
 			<canon>wait for NPC (who)</canon>
 			<shortname>wait for NPC</shortname>
-			<description>Waits for the specified NPC to stop walking. The argument is the number of the NPC, 0 to 35. If more than one copy of the NPC exists on the map, it only checks the first one.</description>
+			<description>Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one).</description>
 			<example>walk NPC (2,up,3) # make the NPC go up three spaces
 wait for NPC (2) # wait until he&apos;s done</example>
 		</command>
@@ -269,21 +269,26 @@ resume player</example>
 		<command id="suspendnpcs">
 			<canon>suspend NPCs</canon>
 			<shortname>suspend NPCs</shortname>
-			<description>Stops NPCs from walking around automatically. When suspend NPCs is run, all NPCs stop in their tracks, ready for you to control them with the <ref>walknpc</ref> command</description>
+			<description>Stops NPCs from walking around automatically. When suspend NPCs is run, all NPCs stop in their tracks once they've finished their current move, ready for you to control them with the <ref>walknpc</ref> command. You can use <ref>waitforall</ref> to wait for all NPCs to stop moving. Use <ref>setnpcmoves</ref>(who, false) instead to prevent a single NPC from moving.</description>
 			<example>suspend NPCs
 # do stuff
 resume NPCs</example>
+			<seealso>
+				<ref>waitfornpc</ref>
+				<ref>waitforall</ref>
+				<ref>setnpcmoves</ref>
+			</seealso>
 		</command>
 		<command id="resumenpcs">
 			<canon>resume NPCs</canon>
 			<shortname>resume NPCs</shortname>
-			<description>Restores automatic NPC movement after a <ref>suspendnpcs</ref> command</description>
+			<description>Restores automatic NPC movement after a <ref>suspendnpcs</ref> command. This does not resume NPCs suspended with <ref>setnpcmoves</ref>.</description>
 			<example c="suspendnpcs" />
 		</command>
 		<command id="suspendobstruction">
 			<canon>suspend obstruction</canon>
 			<shortname>suspend obstruction</shortname>
-			<description>Allows heroes to walk through NPCs, allows NPCs to walk through heroes, and allows NPCs to walk through each other. Use <ref>resumeobstruction</ref> to restore normal obstruction behavior.</description>
+			<description>Allows heroes to walk through NPCs, allows NPCs to walk through heroes, and allows NPCs to walk through each other. Use <ref>resumeobstruction</ref> to restore normal obstruction behavior. Use <ref>setnpcobstructs</ref>(who, false) instead to allow a single NPC to move through heroes and NPCs, and vice-versa.</description>
 			<example>suspend obstruction
 # walk through things
 resume obstruction</example>
@@ -291,7 +296,7 @@ resume obstruction</example>
 		<command id="resumeobstruction">
 			<canon>resume obstruction</canon>
 			<shortname>resume obstruction</shortname>
-			<description>Restores normal obstruction after a <ref>suspendobstruction</ref> command</description>
+			<description>Restores normal obstruction after a <ref>suspendobstruction</ref> command. This doesn't undo the effect of <ref>setnpcobstructs</ref>.</description>
 			<example c="suspendobstruction" />
 		</command>
 		<command id="suspendherowalls">
@@ -311,7 +316,7 @@ resume hero walls # back to mortality...</example>
 		<command id="suspendnpcwalls">
 			<canon>suspend NPC walls</canon>
 			<shortname>suspend NPC walls</shortname>
-			<description>Allows NPCs to walk through walls. Use <ref>resumenpcwalls</ref> to restore normal wall behavior.</description>
+			<description>Allows NPCs to walk through walls. Use <ref>resumenpcwalls</ref> to restore normal wall behavior. Use <ref>setnpcignoreswalls</ref>(who, true) instead to allow a single NPC to walk through walls.</description>
 			<example>suspend NPC walls # npc is now a ghost
 # walk through things
 resume NPC walls # back to mortality...</example>
@@ -319,7 +324,7 @@ resume NPC walls # back to mortality...</example>
 		<command id="resumenpcwalls">
 			<canon>resume NPC walls</canon>
 			<shortname>resume NPC walls</shortname>
-			<description>Restores normal wall behavior after a <ref>suspendnpcwalls</ref> command.</description>
+			<description>Restores normal wall behavior after a <ref>suspendnpcwalls</ref> command. This doesn't undo the effect of <ref>setnpcignoreswalls</ref>.</description>
 			<example c="suspendnpcwalls" />
 		</command>
 		<command id="suspendcaterpillar">
@@ -619,7 +624,7 @@ end</example>
 		<command id="checknpcwall">
 			<canon>check NPC wall (who, direction)</canon>
 			<shortname>check NPC wall</shortname>
-			<description>Returns true if there is a wall blocking the NPC from moving in the specified direction. No actual movement takes place.</description>
+			<description>Returns true if there is a wall blocking the NPC from moving in the specified direction. No actual movement takes place. It does not matter whether the NPC is set to ignore walls.</description>
 		</command>
 		<command id="setnpcspeed">
 			<canon>set NPC speed (who, speed)</canon>
@@ -745,8 +750,8 @@ wait for text box # wait until the player continues</example>
 			</seealso>
 		</command>
 		<command id="usenpc">
-			<canon>Use NPC (who)</canon>
-			<shortname>Use NPC</shortname>
+			<canon>use NPC (who)</canon>
+			<shortname>use NPC</shortname>
 			<description>Remotely trigger an NPC. You can use either an <ref>npcreference</ref> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever. (This command implies a one-tick <ref>wait</ref>)</description>
 		</command>
 		<command id="gameover">
@@ -1688,12 +1693,12 @@ end</example>
 		<command id="getmenubit">
 			<canon>get menu bit(menu handle, bit)</canon>
 			<shortname>get menu bit</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, Return <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF. For the <p>bit</p> bit number you should use one of the constants: <ul><li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li></ul></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, returns <ref>true</ref> if the bitset is ON, and <ref>false</ref> if the bitset is OFF. For the <p>bit</p> bit number you should use one of the constants: <ul><li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li></ul></description>
 		</command>
 		<command id="setmenubit">
 			<canon>set menu bit(menu handle, bit, value)</canon>
 			<shortname>set menu bit</shortname>
-			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, Set the bitset is ON or OFF depending on <p>value</p>. For the <p>bit</p> bit number you should use one of the constants: <ul><li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li></ul></description>
+			<description>Given a <p>menu handle</p> (for example, the one returned by <ref>topmenu</ref>), and bit number <p>bit</p>, sets the bitset is ON or OFF depending on <p>value</p>. For the <p>bit</p> bit number you should use one of the constants: <ul><li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li></ul></description>
 		</command>
 		<command id="parentmenu">
 			<canon>parent menu(menu item handle)</canon>
@@ -4558,8 +4563,8 @@ Besides readability, there is one other important difference between these two e
 		<command id="alternpc">
 			<canon>alter NPC (who,NPCstat,value)</canon>
 			<shortname>alter NPC</shortname>
-			<description>Changes the stats of an NPC. Constants for this command have been included in PLOTSCR.HSD. Alter NPC can be used for many purposes.<lb/>
-<ul><li>Alter NPC (who,NPCstat:picture,picture number)</li><li>Alter NPC (who,NPCstat:palette,palette number)</li><li>Alter NPC (who,NPCstat:move type,move type code)<lb/>Available move types<ul><li>NPCmovetype:standstill</li><li>NPCmovetype:wander</li><li>NPCmovetype:pace</li><li>NPCmovetype:rightturns</li><li>NPCmovetype:leftturns</li><li>NPCmovetype:randomturns</li><li>NPCmovetype:chaseyou</li><li>NPCmovetype:avoidyou</li></ul></li><li>Alter NPC (who,NPCstat:move speed,speed)</li><li>Alter NPC (who,NPCstat:display text,text box number)</li><li>Alter NPC (who,NPCstat:when activated,when activated code)<lb/>Available when activated codes<ul><li>NPCwhenactivated:changedirection</li><li>NPCwhenactivated:faceplayer</li><li>NPCwhenactivated:donotfaceplayer</li></ul></li><li>Alter NPC (who,NPCstat:give item,item number + 1) ... Note that the item number is offset + 1. A zero means no item.</li><li>Alter NPC (who,NPCstat:pushability,pushability code)<lb/>Available pushability codes<ul><li>NPCpush:off</li><li>NPCpush:full</li><li>NPCpush:horizontal</li><li>NPCpush:vertical</li><li>NPCpush:uponly</li><li>NPCpush:rightonly</li><li>NPCpush:downonly</li><li>NPCpush:leftonly</li></ul></li><li>Alter NPC (who,NPCstat:activation,activation code)<lb/>Available activation codes<ul><li>NPCactivation:use</li><li>NPCactivation:touch</li><li>NPCactivation:stepon</li></ul></li><li>Alter NPC (who,NPCstat:script,script ID)</li><li>Alter NPC (who,NPCstat:script argument,number)</li><li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li></ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<lb/>A good way to make use of Alter NPC is to wrap it in your own script. For example:
+			<description>Changes the stats of an NPC type. Constants for this command have been included in PLOTSCR.HSD. Alter NPC can be used for many purposes.<lb/>
+<ul><li>Alter NPC (who,NPCstat:picture,picture number)</li><li>Alter NPC (who,NPCstat:palette,palette number)</li><li>Alter NPC (who,NPCstat:move type,move type code)<lb/>Available move types<ul><li>NPCmovetype:standstill</li><li>NPCmovetype:wander</li><li>NPCmovetype:pace</li><li>NPCmovetype:rightturns</li><li>NPCmovetype:leftturns</li><li>NPCmovetype:randomturns</li><li>NPCmovetype:chaseyou</li><li>NPCmovetype:avoidyou</li><li>NPCmovetype:walkinplace</li></ul></li><li>Alter NPC (who,NPCstat:move speed,speed)</li><li>Alter NPC (who,NPCstat:display text,text box number)</li><li>Alter NPC (who,NPCstat:when activated,when activated code)<lb/>Available when activated codes<ul><li>NPCwhenactivated:changedirection</li><li>NPCwhenactivated:faceplayer</li><li>NPCwhenactivated:donotfaceplayer</li></ul></li><li>Alter NPC (who,NPCstat:give item,item number + 1) ... Note that the item number is offset + 1. A zero means no item.</li><li>Alter NPC (who,NPCstat:pushability,pushability code)<lb/>Available pushability codes<ul><li>NPCpush:off</li><li>NPCpush:full</li><li>NPCpush:horizontal</li><li>NPCpush:vertical</li><li>NPCpush:uponly</li><li>NPCpush:rightonly</li><li>NPCpush:downonly</li><li>NPCpush:leftonly</li></ul></li><li>Alter NPC (who,NPCstat:activation,activation code)<lb/>Available activation codes<ul><li>NPCactivation:use</li><li>NPCactivation:touch</li><li>NPCactivation:stepon</li></ul></li><li>Alter NPC (who,NPCstat:script,script ID)</li><li>Alter NPC (who,NPCstat:script argument,number)</li><li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li></ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <ref>npcreference</ref> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<lb/>A good way to make use of Alter NPC is to wrap it in your own script. For example:
 		<example># Example AlterNPC wrapper for changing NPC appearance
 
 plotscript,change NPC,who=0,picture=0,palette=0,begin
@@ -4568,11 +4573,89 @@ plotscript,change NPC,who=0,picture=0,palette=0,begin
 end</example>
 				<note>If you want to change an NPC's palette back to the default, you can use <p>Alter NPC(who, NPCstat:palette, -1)</p></note>
 			</description>
+			<seealso>
+				<ref>setnpcusable</ref>
+				<ref>setnpcmoves</ref>
+				<ref>setnpcignoreswalls</ref>
+				<ref>setnpcobstructs</ref>
+			</seealso>
 		</command>
 		<command id="readnpc">
 			<canon>read NPC (who,NPCstat)</canon>
 			<shortname>read NPC</shortname>
 			<description>Returns data such as picture, palette, walking speed, text box, etc. for an NPC. Use the same constants as <ref>alternpc</ref>. <note>If you use this command to read the give item number, the result is offset + 1. A zero means no item.</note></description>
+			<seealso>
+				<ref>alternpc</ref>
+			</seealso>
+		</command>
+		<command id="setnpcignoreswalls">
+			<canon>set NPC ignores walls (who, value)</canon>
+			<shortname>set NPC ignores walls</shortname>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC can walk through walls. <p>value</p> should be true or false.</description>
+			<seealso>
+				<ref>getnpcignoreswalls</ref>
+			</seealso>
+		</command>
+		<command id="getnpcignoreswalls">
+			<canon>get NPC ignores walls (who)</canon>
+			<shortname>get NPC ignores walls</shortname>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns whether that NPC can walk through walls.</description>
+			<seealso>
+				<ref>setnpcignoreswalls</ref>
+			</seealso>
+		</command>
+		<command id="setnpcmoves">
+			<canon>set NPC moves (who, value)</canon>
+			<shortname>set NPC moves</shortname>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC moves according to its move-type, or whether it stands still. <p>value</p> should be true or false.</description>
+			<seealso>
+				<ref>getnpcmoves</ref>
+				<ref>suspendnpcs</ref>
+				<ref>alternpc</ref>
+			</seealso>
+		</command>
+		<command id="getnpcmoves">
+			<canon>get NPC moves (who)</canon>
+			<shortname>get NPC moves</shortname>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns <ref>true</ref> or <ref>false</ref> indicating whether that NPC moves according to its move-type, or whether it is suspended. This is always true, even for "Stand Still" NPCs unless <ref>setnpcmoves</ref> has been used.</description>
+			<seealso>
+				<ref>setnpcmoves</ref>
+				<ref>readnpc</ref>
+			</seealso>
+		</command>
+		<command id="setnpcobstructs">
+			<canon>set NPC obstructs (who, value)</canon>
+			<shortname>set NPC obstructs</shortname>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether the NPC should be an obstruction to heroes and other NPCS. If set to false, the NPC can move through heroes and other NPCs and vice-versa. Heroes can always pass through Step-on NPCs. <p>value</p> should be true or false.</description>
+			<seealso>
+				<ref>getnpcobstructs</ref>
+				<ref>suspendobstruction</ref>
+			</seealso>
+		</command>
+		<command id="getnpcobstructs">
+			<canon>get NPC obstructs (who)</canon>
+			<shortname>get NPC obstructs</shortname>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if that NPC's obstruction has been suspended with <ref>setnpcobstructs</ref> (and is always true otherwise).</description>
+			<seealso>
+				<ref>setnpcobstructs</ref>
+			</seealso>
+		</command>
+		<command id="setnpcusable">
+			<canon>set NPC usable (who, value)</canon>
+			<shortname>set NPC usable</shortname>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether the NPC can be activated by the player as normal (as defined in the NPC ID data). <ref>usenpc</ref> will still work on the NPC. <p>value</p> should be true or false.</description>
+			<seealso>
+				<ref>getnpcusable</ref>
+				<ref>alternpc</ref>
+			</seealso>
+		</command>
+		<command id="getnpcusable">
+			<canon>get NPC usable (who)</canon>
+			<shortname>get NPC usable</shortname>
+			<description>Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <ref>setnpcusable</ref>. This is always true otherwise, even for NPC types which are not activateable.</description>
+			<seealso>
+				<ref>setnpcusable</ref>
+			</seealso>
 		</command>
 		<command id="setdeathscript">
 			<canon>set death script (id)</canon>
@@ -4939,16 +5022,16 @@ end</example>
 			<example>variable (i)
 i := random (1, 1000)
 $1 = "i = "
-append number (1, i) #"i = 1"
-trace (1) # writes "TRACE: i = XYZ" to g_debug.txt</example>
+append number (1, i) # string 1 is "i = ????"
+trace (1) # writes "TRACE: i = ????" to g_debug.txt</example>
 		</command>
 		<command id="tracevalue">
 			<canon>trace value (expression, ...)</canon>
 			<shortname>trace value</shortname>
-			<description>Prints one or more expressions and their values to "g_debug.txt". The number of arguments to this command is variable; each is printed in original textual along with its value. You can't print strings with this command; use <ref>trace</ref> instead.</description>
+			<description>Prints one or more expressions and their values to "g_debug.txt". The number of arguments to this command is variable; each is printed as source text along with its value. You can't print strings with this command; use <ref>trace</ref> instead.</description>
 			<example>variable(i)
 i := random (1, 1000)
-trace value (i)  # writes "TRACE: i = XYZ" to g_debug.txt
+trace value (i)  # writes "TRACE: i = ????" to g_debug.txt
 
 # This writes something like "TRACE: hero X (me) = 14, hero Y (me) = 53" to g_debug.txt
 trace value (hero X (me), hero Y (me))</example>

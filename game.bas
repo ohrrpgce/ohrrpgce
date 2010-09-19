@@ -818,24 +818,27 @@ FOR whoi = 0 TO 3
       id = (.id - 1)
       IF npcs(id).activation <> 2 THEN '---NPC is not step-on
        IF wrapcollision (.x, .y, .xgo, .ygo, catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
-        xgo(whoi) = 0: ygo(whoi) = 0
-        '--push the NPC
-        pushtype = npcs(id).pushtype
-        IF pushtype > 0 AND .xgo = 0 AND .ygo = 0 THEN
-         IF catd(whoi) = 0 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 4) THEN .ygo = 20
-         IF catd(whoi) = 2 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 6) THEN .ygo = -20
-         IF catd(whoi) = 3 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 7) THEN .xgo = 20
-         IF catd(whoi) = 1 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 5) THEN .xgo = -20
-         IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
-          FOR o = 0 TO 299 ' check to make sure no other NPCs are blocking this one
-           IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
-           IF i = o THEN CONTINUE FOR
-           IF wrapcollision (.x, .y, .xgo, .ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
-            .xgo = 0
-            .ygo = 0
-            EXIT FOR
-           END IF
-          NEXT o
+        IF .not_obstruction = 0 THEN
+         xgo(whoi) = 0: ygo(whoi) = 0
+         '--push the NPC
+         pushtype = npcs(id).pushtype
+         IF pushtype > 0 AND .xgo = 0 AND .ygo = 0 THEN
+          IF catd(whoi) = 0 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 4) THEN .ygo = 20
+          IF catd(whoi) = 2 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 6) THEN .ygo = -20
+          IF catd(whoi) = 3 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 7) THEN .xgo = 20
+          IF catd(whoi) = 1 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 5) THEN .xgo = -20
+          IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
+           FOR o = 0 TO 299 ' check to make sure no other NPCs are blocking this one
+            IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
+            IF i = o THEN CONTINUE FOR
+            IF npc(o).not_obstruction THEN CONTINUE FOR
+            IF wrapcollision (.x, .y, .xgo, .ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
+             .xgo = 0
+             .ygo = 0
+             EXIT FOR
+            END IF
+           NEXT o
+          END IF
          END IF
         END IF
         IF npcs(id).activation = 1 AND whoi = 0 THEN '--NPC is touch-activated
@@ -844,7 +847,7 @@ FOR whoi = 0 TO 3
          END IF
         END IF '---touch-activate
        END IF ' ---NPC IS IN THE WAY
-      END IF ' ---NPC IS AN OBSTRUCTION
+      END IF ' ---NPC is not step-on
      END IF '---NPC EXISTS
     END WITH
    NEXT i
@@ -969,7 +972,7 @@ SUB update_npcs ()
     END IF
    ELSE
     '--Not the active vehicle
-    IF txt.sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 THEN
+    IF txt.sayer <> o AND readbit(gen(), 44, suspendnpcs) = 0 AND npc(o).suspend_ai = 0 THEN
      IF npc(o).xgo = 0 AND npc(o).ygo = 0 THEN
       pick_npc_action npc(o), npcs(id)
      END IF
@@ -1045,7 +1048,7 @@ SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCTyp
  '--Here we attempt to actually update the coordinates for this NPC, checking obstructions
  npci.frame = loopvar(npci.frame, 0, 3, 1)
  IF movdivis(npci.xgo) OR movdivis(npci.ygo) THEN
-  IF readbit(gen(), 44, suspendnpcwalls) = 0 THEN
+  IF readbit(gen(), 44, suspendnpcwalls) = 0 AND npci.ignore_walls = 0 THEN
    '--this only happens if NPC walls on
    IF wrappass(npci.x \ 20, npci.y \ 20, npci.xgo, npci.ygo, 0) THEN
     npci.xgo = 0
@@ -1054,10 +1057,10 @@ SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCTyp
     GOTO nogo
    END IF
   END IF
-  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
+  IF readbit(gen(), 44, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
    '--this only happens if obstruction is on
    FOR i AS INTEGER = 0 TO 299
-    IF npc(i).id > 0 AND npcnum <> i THEN
+    IF npc(i).id > 0 AND npcnum <> i AND npc(i).not_obstruction = 0 THEN
      IF wrapcollision (npc(i).x, npc(i).y, npc(i).xgo, npc(i).ygo, npci.x, npci.y, npci.xgo, npci.ygo) THEN
       npci.xgo = 0
       npci.ygo = 0
@@ -1103,10 +1106,12 @@ SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCTyp
 END SUB
 
 SUB npchitwall(npci AS NPCInst, npcdata AS NPCType)
- IF npcdata.movetype = 2 THEN npci.dir = loopvar(npci.dir, 0, 3, 2)  'Pace
- IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)  'Right Turns
- IF npcdata.movetype = 4 THEN npci.dir = loopvar(npci.dir, 0, 3, -1) 'Left Turns
- IF npcdata.movetype = 5 THEN npci.dir = INT(RND * 4)                'Random Turns
+ IF npci.suspend_ai = 0 THEN
+  IF npcdata.movetype = 2 THEN npci.dir = loopvar(npci.dir, 0, 3, 2)  'Pace
+  IF npcdata.movetype = 3 THEN npci.dir = loopvar(npci.dir, 0, 3, 1)  'Right Turns
+  IF npcdata.movetype = 4 THEN npci.dir = loopvar(npci.dir, 0, 3, -1) 'Left Turns
+  IF npcdata.movetype = 5 THEN npci.dir = INT(RND * 4)                'Random Turns
+ END IF
 END SUB
 
 SUB interpret()
@@ -2403,6 +2408,7 @@ FUNCTION random_formation (BYVAL set AS INTEGER) AS INTEGER
 
  'surprisingly, this is actually slightly effective at reducing the rate of the
  'same slot being picked consecutively, so I'll leave it be for now
+ 'FIXME: When this was written, I confused the meaning of range; should improve this
  FOR i = 0 TO INT(RND * range(19, 27))
   DO 
    foenext = loopvar(foenext, 0, 19, 1)
@@ -2941,6 +2947,7 @@ FUNCTION find_useable_npc() AS INTEGER
    IF .id > 0 AND (j <> vstate.npc OR vstate.active = NO) THEN
     '--Step-on NPCs cannot be used
     IF npcs(.id - 1).activation = 2 THEN CONTINUE FOR
+    IF .suspend_use THEN CONTINUE FOR
     DIM nx AS INTEGER = .x
     DIM ny AS INTEGER = .y
     IF (nx = ux AND ny = uy) THEN 'not moving NPCs
@@ -2979,6 +2986,7 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
  'cause = 1: touch and step-on
  'cause = 2: scripted
  IF npcnum < 0 THEN EXIT SUB
+ IF npc(npcnum).suspend_use ANDALSO cause <> 2 THEN EXIT SUB
  DIM id AS INTEGER = npc(npcnum).id - 1
 
  '---Item from NPC---
