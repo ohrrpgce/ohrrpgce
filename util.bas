@@ -45,6 +45,10 @@ IF n < lowest THEN bound = lowest
 IF n > highest THEN bound = highest
 END FUNCTION
 
+FUNCTION in_bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
+ RETURN (n >= lowest) AND (n <= highest)
+END FUNCTION
+
 FUNCTION large (BYVAL n1 as integer, BYVAL n2 as integer) as integer
 large = n1
 IF n2 > n1 THEN large = n2

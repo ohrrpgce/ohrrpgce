@@ -257,6 +257,7 @@ declare function isdir (sdir as string) as integer
 declare function bitcount (byval v as unsigned integer) as integer
 declare function bound overload (byval n AS INTEGER, byval lowest AS INTEGER, byval highest AS INTEGER) AS INTEGER
 declare function bound overload (byval n as double, byval lowest as double, byval highest as double) as double
+declare function in_bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
 declare function large (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER
 declare function loopvar (byval var AS INTEGER, byval min AS INTEGER, byval max AS INTEGER, byval inc AS INTEGER) AS INTEGER
 declare function small (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER

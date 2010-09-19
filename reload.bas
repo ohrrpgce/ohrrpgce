@@ -1477,17 +1477,37 @@ Function NodeParent(byval nod as NodePtr) as NodePtr
 	return nod->parent
 end Function
 
-Function FirstChild(byval nod as NodePtr) as NodePtr
+Function FirstChild(byval nod as NodePtr, byval withname as zstring ptr = null) as NodePtr
 	if nod->flags AND nfNotLoaded then LoadNode(nod)
-	return nod->children
+	dim ret as NodePtr = nod->children
+	if withname then
+		'Could search in the string table for withname first, but you normally
+		'expect ret already has the right name
+		while *ret->name <> *withname
+			ret = ret->nextSib
+		wend
+	end if
+	return ret
 end Function
 
-Function NextSibling(byval nod as NodePtr) as NodePtr
-	return nod->nextSib
+Function NextSibling(byval nod as NodePtr, byval withname as zstring ptr = null) as NodePtr
+	dim ret as NodePtr = nod->nextSib
+	if withname then
+		while *ret->name <> *withname
+			ret = ret->nextSib
+		wend
+	end if
+	return ret
 End Function
 
-Function PrevSibling(byval nod as NodePtr) as NodePtr
-	return nod->prevSib
+Function PrevSibling(byval nod as NodePtr, byval withname as zstring ptr = null) as NodePtr
+	dim ret as NodePtr = nod->prevSib
+	if withname then
+		while *ret->name <> *withname
+			ret = ret->prevSib
+		wend
+	end if
+	return ret
 End Function
 
 Function NodeType(byval nod as NodePtr) as NodeTypes
