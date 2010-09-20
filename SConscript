@@ -1,22 +1,21 @@
 #!/usr/bin/env python
+"""Main scons build script for OHRRPGCE
+
+cf. SConstruct, ohrbuild.py
+"""
 import os
 import platform
-import re
-import fnmatch
-import sys
+from ohrbuild import basfile_scan, verprint
 
 win32 = False
 unix = True
 exe_suffix = ''
 CC = None
 CXX = None
-
+CXXFLAGS = '-O2 -g -Wall -Wno-non-virtual-dtor'.split ()
 from ohrbuild import basfile_scan, verprint
 
-scanner = Scanner (function = basfile_scan,
-                   skeys = ['.bas'])
-
-if platform.system() == 'Windows':
+if platform.system () == 'Windows':
     win32 = True
     unix = False
     exe_suffix = '.exe'
@@ -25,44 +24,45 @@ if platform.system() == 'Windows':
 else:
     unix = True
 
-baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS', suffix = '.o',
-                src_suffix = '.bas')
-basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES', suffix = exe_suffix,
-                src_suffix = '.bas')
+baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
+                suffix = '.o', src_suffix = '.bas')
+basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
+                  suffix = exe_suffix, src_suffix = '.bas')
 
 env = os.environ
 svn = ARGUMENTS.get ('svn','svn')
 fbc = ARGUMENTS.get ('fbc','fbc')
 git = ARGUMENTS.get ('git','git')
-
-gfx = ARGUMENTS.get ('gfx', env.get ('OHRGFX','sdl+fb')) # eg. pass gfx=sdl+fb for the default behaviour.
-print (gfx)
+# eg. pass gfx=sdl+fb for the default behaviour.
+gfx = ARGUMENTS.get ('gfx', env.get ('OHRGFX','sdl+fb'))
 music = ARGUMENTS.get ('music', env.get ('OHRMUSIC','sdl'))
-# handle OHRMUSIC/GFX which is blank (ie is set to '', rather than not existing.)
+# handle OHRMUSIC/GFX which is blank
+# (ie is set to '', rather than not existing.)
 if gfx == '':
     gfx = 'sdl+fb'
 if music == '':
     music = 'sdl'
-env = Environment (FBFLAGS  = env.get ('FBFLAGS',[]),
+env = Environment (FBFLAGS  = env.get ('FBFLAGS', []),
                    FBLIBS = [],
                    CFLAGS = ['-c','-g','-O3','--std=c99'],
                    ENV = os.environ,
                    FBC = fbc +' -lang deprecated',
-                   CXXFLAGS = ['-c','-g','-O3'],
+                   CXXFLAGS = CXXFLAGS,
                    BUILDERS = {'BASEXE':basexe,'BASO':baso})
-env['ENV']['PATH'] = os.environ['PATH']
 
 if CC:
+    env['ENV']['CC'] = CC
     env.Replace (CC = CC)
 
 if CXX:
+    env['ENV']['CXX'] = CXX
     env.Replace (CXX = CXX)
 
+scanner = Scanner (function = basfile_scan,
+                   skeys = ['.bas'])
 
 env.Append (SCANNERS = scanner)
 
-
-#CC = 'gcc'
 for f in ('-mt', '-g','-exx'):
     env['FBFLAGS'].append (f)
 
@@ -78,7 +78,7 @@ if win32:
     env['FBFLAGS'] += ['-s', 'gui']
 elif unix:
     common_modules += ['blit.c', 'base64.c']
-    libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split(' ')
+    libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
 
 used_gfx = []
 used_music = []
@@ -109,22 +109,22 @@ music_map = {'native':
                  {'common_modules': 'music_silence.bas'}
             }
 
-tmp = globals()
+tmp = globals ()
 gfx = gfx.split ("+")
 for k in gfx:
     if k not in used_gfx:
         used_gfx.append (k)
-        for k2, v2 in gfx_map[k].items():
-            tmp[k2] += v2.split(' ')
+        for k2, v2 in gfx_map[k].items ():
+            tmp[k2] += v2.split (' ')
 
-for k, v in music_map.items():
+for k, v in music_map.items ():
     if k == music:
         if k not in used_music:
             used_music.append (k)
-        for k2, v2 in v.items():
-            tmp[k2] += v2.split(' ')
+        for k2, v2 in v.items ():
+            tmp[k2] += v2.split (' ')
 
-common_modules += [v+'.bas' for v in Split("""allmodex
+common_modules += [v + '.bas' for v in Split ("""allmodex
                    backends
                    lumpfile
                    compat
@@ -148,7 +148,7 @@ edit_modules = ['custom',
                 'menus',
                 'sliceedit']
 
-edit_modules.reverse()
+edit_modules.reverse ()
 
 game_modules = ['game',
                 'bmod',
@@ -160,7 +160,7 @@ game_modules = ['game',
                 'savegame',
                 'hsinterpreter']
 
-game_modules.reverse()
+game_modules.reverse ()
 
 semicommon_modules = ['backends.bas',
                       'browse.bas',
@@ -175,15 +175,15 @@ _libraries = libraries
 libraries = []
 _libpaths = libpaths
 libpaths = []
-for v2 in [['-l',v] for v in _libraries]:
+for v2 in [['-l', v] for v in _libraries]:
     libraries.extend (v2)
-for v2 in [['-p',v] for v in _libpaths]:
+for v2 in [['-p', v] for v in _libpaths]:
     libpaths.extend (v2)
 
 
 # Make an environment suitable for building the main stuff..
 
-main = env.Clone()
+main = env.Clone ()
 
 main['FBLIBS'] += libpaths + libraries
 
@@ -191,18 +191,15 @@ main['FBLIBS'] += libpaths + libraries
 # first, make sure the version is saved.
 
 # always do verprinting, before anything else.
-verprint(used_gfx, used_music, svn, git, fbc)
+verprint (used_gfx, used_music, svn, git, fbc)
 
 semicommon_modules.pop ()
 semicommon_modules.pop ()
 
-gameenv = main.Clone(FBFLAGS = env['FBFLAGS'] + ['-d','IS_GAME', '-m','game'])
-editenv = main.Clone(FBFLAGS = env['FBFLAGS'] + ['-d','IS_CUSTOM', '-m','custom'])
-CXXFLAGS = '-O2 -g -Wall -Wno-non-virtual-dtor'.split()
-extra_env = Environment (ENV = os.environ,
-                         CXX = CXX,
-                         CXXFLAGS = CXXFLAGS, CFLAGS =['-O2','-g','-wall'])
-
+gameenv = main.Clone (FBFLAGS = env['FBFLAGS'] + \
+                      ['-d','IS_GAME', '-m','game'])
+editenv = main.Clone (FBFLAGS = env['FBFLAGS'] + \
+                      ['-d','IS_CUSTOM', '-m','custom'])
 
 gametmp = []
 edittmp = []
@@ -212,37 +209,43 @@ for v in semicommon_modules:
         tmp.append (v)
 for v in tmp:
     if v.endswith ('.c'):
-        tmp = main.Command (v.replace('.c','.o'),
+        tmp = main.Command (v.replace ('.c','.o'),
          v,
          '$CC $CFLAGS -c $SOURCE -o $TARGET')
         if v == 'base64.c':
             Depends (tmp, 'base64.h')
         gametmp.append (tmp)
         edittmp.append (tmp)
-    elif v.endswith('.bas'):
-        a = gameenv.BASO (target = 'game-'+v[:-4], source = v,)
-        b = editenv.BASO (target = 'edit-'+v[:-4], source = v,)
+    elif v.endswith ('.bas'):
+        a = gameenv.BASO (target = 'game-'+ v[:-4], source = v,)
+        b = editenv.BASO (target = 'edit-'+ v[:-4], source = v,)
         gametmp.append (a)
         edittmp.append (b)
         Depends (a,'gver.txt')
         Depends (b,'cver.txt')
     #else:
 
-        #gametmp.append(v.replace ('.c','.o'))
-     #   edittmp.append(v.replace ('.c','.o'))
+        #gametmp.append (v.replace ('.c','.o'))
+     #   edittmp.append (v.replace ('.c','.o'))
 
-bam2mid = env.BASEXE (os.path.join ('..','bam2mid'))
-Default (bam2mid)
+BAM2MID = env.BASEXE (os.path.join ('..','bam2mid'))
+Default (BAM2MID)
 
 #now... GAME and CUSTOM
 #
 
-gamesrc = [gameenv.BASO (target = v + '.o',
-                         source = v + '.bas') for v in game_modules]
+gamesrc = []
+editsrc = []
 
-editsrc = [editenv.BASO (target = v + '.o',
-                         source = v + '.bas') for v in edit_modules]
+for item in game_modules:
+    a = gameenv.BASO (target = item + '.o', source = item + '.bas')
+    Depends (a,'gver.txt')
+    gamesrc.append (a)
 
+for item in edit_modules:
+    b = editenv.BASO (target = item + '.o', source = item + '.bas')
+    Depends (b,'cver.txt')
+    editsrc.append (b)
 
 mainflags = ['-v'] + env['FBFLAGS']
 gamename = 'ohrrpgce-game'
@@ -259,20 +262,29 @@ else:
     gameflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
     editflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
 
-gamename = os.path.join ('..',gamename)
-editname = os.path.join ('..',editname)
+gamename = os.path.join ('..', gamename)
+editname = os.path.join ('..', editname)
 
-game = gameenv.BASEXE (gamename, FBFLAGS = gameflags, source = gametmp + gamesrc)
-custom = editenv.BASEXE (editname, FBFLAGS = editflags, source = edittmp + editsrc)
+GAME = gameenv.BASEXE   (gamename,
+                         FBFLAGS = gameflags,
+                         source = gametmp + gamesrc)
+CUSTOM = editenv.BASEXE (editname,
+                         FBFLAGS = editflags,
+                         source = edittmp + editsrc)
+BAM2MID = env.BASEXE (os.path.join ('..','bam2mid'))
 
-audwrap =extra_env.Command (os.path.join ('audwrap', 'audwrap.o'),
-         os.path.join('audwrap', 'audwrap.cpp'),
-         '$CXX -c $SOURCE -o $TARGET $CXXFLAGS')
-Depends (audwrap,'cver.txt')
-audwrap = extra_env.Library (os.path.join ('audwrap','audwrap'),
+audwrap = env.Command (os.path.join ('audwrap', 'audwrap.o'),
+                       os.path.join ('audwrap', 'audwrap.cpp'),
+                       '$CXX -c $SOURCE -o $TARGET $CXXFLAGS')
+Depends (audwrap, 'gver.txt')
+Depends (audwrap, 'cver.txt')
+Depends (audwrap, os.path.join ('audwrap', 'audwrap.h'))
+AUDWRAP = env.Library (os.path.join ('audwrap','audwrap'),
           source = audwrap)
+# XXX fix verprint build to happen in correct place??
 if 'native' in used_music or 'native2' in used_music:
-    Default (audwrap)
-Default (game)
-Default (custom)
+    Default (AUDWRAP)
+Default (GAME)
+Default (CUSTOM)
+Default (BAM2MID)
 
