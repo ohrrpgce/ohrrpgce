@@ -36,6 +36,7 @@ fbc = ARGUMENTS.get ('fbc','fbc')
 git = ARGUMENTS.get ('git','git')
 
 gfx = ARGUMENTS.get ('gfx', env.get ('OHRGFX','sdl+fb')) # eg. pass gfx=sdl+fb for the default behaviour.
+print (gfx)
 music = ARGUMENTS.get ('music', env.get ('OHRMUSIC','sdl'))
 # handle OHRMUSIC/GFX which is blank (ie is set to '', rather than not existing.)
 if gfx == '':
@@ -45,6 +46,7 @@ if music == '':
 env = Environment (FBFLAGS  = env.get ('FBFLAGS',[]),
                    FBLIBS = [],
                    CFLAGS = ['-c','-g','-O3','--std=c99'],
+                   ENV = os.environ,
                    FBC = fbc +' -lang deprecated',
                    CXXFLAGS = ['-c','-g','-O3'],
                    BUILDERS = {'BASEXE':basexe,'BASO':baso})
@@ -197,7 +199,8 @@ semicommon_modules.pop ()
 gameenv = main.Clone(FBFLAGS = env['FBFLAGS'] + ['-d','IS_GAME', '-m','game'])
 editenv = main.Clone(FBFLAGS = env['FBFLAGS'] + ['-d','IS_CUSTOM', '-m','custom'])
 CXXFLAGS = '-O2 -g -Wall -Wno-non-virtual-dtor'.split()
-extra_env = Environment (ENV = {'PATH': os.environ['PATH']},
+extra_env = Environment (ENV = os.environ,
+                         CXX = CXX,
                          CXXFLAGS = CXXFLAGS, CFLAGS =['-O2','-g','-wall'])
 
 
@@ -228,7 +231,7 @@ for v in tmp:
         #gametmp.append(v.replace ('.c','.o'))
      #   edittmp.append(v.replace ('.c','.o'))
 
-bam2mid = env.BASEXE ('bam2mid')
+bam2mid = env.BASEXE (os.path.join ('..','bam2mid'))
 Default (bam2mid)
 
 #now... GAME and CUSTOM
@@ -255,6 +258,9 @@ if win32:
 else:
     gameflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
     editflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
+
+gamename = os.path.join ('..',gamename)
+editname = os.path.join ('..',editname)
 
 game = gameenv.BASEXE (gamename, FBFLAGS = gameflags, source = gametmp + gamesrc)
 custom = editenv.BASEXE (editname, FBFLAGS = editflags, source = edittmp + editsrc)
