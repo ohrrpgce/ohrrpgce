@@ -45,7 +45,7 @@ shift
 set MUSIC_XTRA=music_%OHRMUSIC%.bas
 if "%OHRMUSIC%"=="sdl" set MUSIC_XTRA=music_sdl.bas sdl_lumprwops.bas
 if "%OHRMUSIC%"=="native" set MUSIC_XTRA=music_native.bas win32\audwrap.o -l audiere
-if "%OHRMUSIC%"=="native2" set MUSIC_XTRA=music_native2.bas -l win32\audwrap.o -l audiere
+if "%OHRMUSIC%"=="native2" set MUSIC_XTRA=music_native2.bas win32\audwrap.o -l audiere
 
 echo Now compiling CUSTOM with %GFX_MODULES% graphics modules, and %OHRMUSIC% music module
 call fbc -lang deprecated verprint.bas
