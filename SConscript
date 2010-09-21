@@ -45,11 +45,11 @@ if music == '':
 env = Environment (FBFLAGS  = env.get ('FBFLAGS', []),
                    FBLIBS = [],
                    CFLAGS = ['-c','-g','-O3','--std=c99'],
-                   ENV = os.environ,
                    FBC = fbc +' -lang deprecated',
                    CXXFLAGS = CXXFLAGS,
                    BUILDERS = {'BASEXE':basexe,'BASO':baso})
 
+env['ENV']['PATH'] = os.environ['PATH']
 if CC:
     env['ENV']['CC'] = CC
     env.Replace (CC = CC)
