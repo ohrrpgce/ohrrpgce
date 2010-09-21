@@ -21,7 +21,7 @@ ECHO Building executables...
 del game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
 ECHO   Windows executables...
-CALL make.bat > NUL
+CALL makeboth.bat > NUL
 IF NOT EXIST game.exe GOTO NOEXE
 IF NOT EXIST custom.exe GOTO NOEXE
 

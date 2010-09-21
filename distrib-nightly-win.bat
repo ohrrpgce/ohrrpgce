@@ -14,77 +14,77 @@ pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-win-installer-%OHRVERDATE%
 
 del game*.exe
 del custom*.exe
-call make.bat directx sdl fb ~ sdl
+call makeboth.bat directx sdl fb ~ sdl
 call nightly-gfx-music directx sdl ~ gfx_directx.dll SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat directx fb ~ native
+call makeboth.bat directx fb ~ native
 call nightly-gfx-music directx native ~ gfx_directx.dll audiere.dll
 
 del game*.exe
 del custom*.exe
-call make.bat fb directx sdl ~ sdl
+call makeboth.bat fb directx sdl ~ sdl
 call nightly-gfx-music fb sdl ~ SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat fb directx ~ native
+call makeboth.bat fb directx ~ native
 call nightly-gfx-music fb native ~ audiere.dll
 
 del game*.exe
 del custom*.exe
-call make.bat fb directx ~ native2
+call makeboth.bat fb directx ~ native2
 call nightly-gfx-music fb native2 ~ audiere.dll
 
 del game*.exe
 del custom*.exe
-call make.bat alleg directx fb ~ native
+call makeboth.bat alleg directx fb ~ native
 call nightly-gfx-music alleg native ~ alleg40.dll audiere.dll
 
 del game*.exe
 del custom*.exe
-call make.bat alleg directx fb sdl ~ sdl
+call makeboth.bat alleg directx fb sdl ~ sdl
 call nightly-gfx-music alleg sdl ~ alleg40.dll SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat alleg directx fb ~ native2
+call makeboth.bat alleg directx fb ~ native2
 call nightly-gfx-music alleg native2 ~ alleg40.dll audiere.dll
 
 del game*.exe
 del custom*.exe
-call make.bat sdl directx fb ~ sdl
+call makeboth.bat sdl directx fb ~ sdl
 call nightly-gfx-music sdl sdl ~ SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat sdl directx fb ~ native
+call makeboth.bat sdl directx fb ~ native
 call nightly-gfx-music sdl native ~ audiere.dll SDL.dll
 
 del game*.exe
 del custom*.exe
-call make.bat sdl directx fb ~ native2
+call makeboth.bat sdl directx fb ~ native2
 call nightly-gfx-music sdl native2 ~ audiere.dll SDL.dll
 
 del game*.exe
 del custom*.exe
-call make.bat sdl directx fb ~ silence
+call makeboth.bat sdl directx fb ~ silence
 call nightly-gfx-music sdl silence ~ SDL.dll
 
 del game*.exe
 del custom*.exe
-call make.bat sdl directx fb ~ sdl -g
+call makeboth.bat sdl directx fb ~ sdl -g
 call nightly-gfx-music sdl sdl -debug SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat sdl directx fb ~ sdl -g -exx -s console
+call makeboth.bat sdl directx fb ~ sdl -g -exx -s console
 call nightly-gfx-music sdl sdl -debug-exx SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call make.bat sdl directx fb ~ sdl -g -d SCRIPTPROFILE
+call makeboth.bat sdl directx fb ~ sdl -g -d SCRIPTPROFILE
 call nightly-gfx-music sdl sdl -scriptprofile SDL.dll SDL_mixer.dll 
 
 Echo upload plotdict.xml
