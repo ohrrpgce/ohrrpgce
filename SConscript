@@ -259,8 +259,8 @@ else:
     gameflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
     editflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
 
-gamename = os.path.join ('..', gamename)
-editname = os.path.join ('..', editname)
+gamename = os.path.join (gamename)
+editname = os.path.join (editname)
 
 GAME = gameenv.BASEXE   (gamename,
                          FBFLAGS = gameflags,
