@@ -228,9 +228,6 @@ for v in tmp:
         #gametmp.append (v.replace ('.c','.o'))
      #   edittmp.append (v.replace ('.c','.o'))
 
-BAM2MID = env.BASEXE (os.path.join ('..','bam2mid'))
-Default (BAM2MID)
-
 #now... GAME and CUSTOM
 #
 
@@ -271,7 +268,7 @@ GAME = gameenv.BASEXE   (gamename,
 CUSTOM = editenv.BASEXE (editname,
                          FBFLAGS = editflags,
                          source = edittmp + editsrc)
-BAM2MID = env.BASEXE (os.path.join ('..','bam2mid'))
+BAM2MID = env.BASEXE ('bam2mid')
 
 audwrap = env.Command (os.path.join ('audwrap', 'audwrap.o'),
                        os.path.join ('audwrap', 'audwrap.cpp'),
@@ -279,6 +276,7 @@ audwrap = env.Command (os.path.join ('audwrap', 'audwrap.o'),
 Depends (audwrap, 'gver.txt')
 Depends (audwrap, 'cver.txt')
 Depends (audwrap, os.path.join ('audwrap', 'audwrap.h'))
+Depends (audwrap, os.path.join ('audwrap', 'audiere.h'))
 AUDWRAP = env.Library (os.path.join ('audwrap','audwrap'),
           source = audwrap)
 # XXX fix verprint build to happen in correct place??

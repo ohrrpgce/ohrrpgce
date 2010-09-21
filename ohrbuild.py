@@ -28,11 +28,11 @@ def verprint (used_gfx, used_music, svn, git, fbc):
     # generate iver.txt (Install-info)
     # generate distver.bat (?)
     def openw (filename):
-        return open (os.path.join (filename), 'wb')
+        return open (filename, 'wb')
     import datetime
     results = []
     supported_gfx = []
-    f = open ('../codename.txt','rb')
+    f = open ('codename.txt','rb')
     codename = f.readline().rstrip()
     f.close()
     # now automagically determine branch and svn
