@@ -61,6 +61,7 @@ DECLARE SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF a
 DECLARE SUB battle_pause ()
 DECLARE SUB battle_cleanup(bslot() AS BattleSprite)
 DECLARE SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB battle_background_anim(BYREF bat AS BattleState, formdata() AS INTEGER)
 
 'these are the battle global variables
 DIM bstackstart AS INTEGER
@@ -112,13 +113,7 @@ FUNCTION battle (form, fatal) as integer
   control
 
   '--background animation hack
-  IF formdata(34) > 0 and gen(genVersion) >= 6 THEN
-   bat.bgspeed = loopvar(bat.bgspeed, 0, formdata(35), 1)
-   IF bat.bgspeed = 0 THEN
-    bat.curbg = loopvar(bat.curbg, formdata(32), formdata(32) + formdata(34), 1)
-    loadmxs game + ".mxs", bat.curbg MOD gen(genNumBackdrops), vpages(2)
-   END IF
-  END IF
+  battle_background_anim bat, formdata()
 
   IF readbit(gen(), 101, 8) = 0 THEN
    '--debug keys
@@ -3156,3 +3151,13 @@ FUNCTION battle_time_can_pass(bat AS BattleState) AS INTEGER
  IF readbit(gen(), genBits2, 5) <> 0 AND bat.caption_time > 0 THEN RETURN NO 'pause on captions
  RETURN YES
 END FUNCTION
+
+SUB battle_background_anim(BYREF bat AS BattleState, formdata() AS INTEGER)
+ IF formdata(34) > 0 and gen(genVersion) >= 6 THEN
+  bat.bgspeed = loopvar(bat.bgspeed, 0, formdata(35), 1)
+  IF bat.bgspeed = 0 THEN
+   bat.curbg = loopvar(bat.curbg, formdata(32), formdata(32) + formdata(34), 1)
+   loadmxs game + ".mxs", bat.curbg MOD gen(genNumBackdrops), vpages(2)
+  END IF
+ END IF
+END SUB
