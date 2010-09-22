@@ -47,7 +47,7 @@ DECLARE SUB anim_flinchstart(who AS INTEGER, bslot() AS BattleSprite, attack AS 
 DECLARE SUB anim_flinchdone(who AS INTEGER, bslot() AS BattleSprite, attack AS AttackData)
 DECLARE SUB draw_battle_sprites(bslot() AS BattleSprite)
 DECLARE FUNCTION battle_time_can_pass(bat AS BattleState) AS INTEGER
-DECLARE SUB battle_tryrun(BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB battle_crappy_run_handler(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_animate(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
@@ -62,6 +62,8 @@ DECLARE SUB battle_pause ()
 DECLARE SUB battle_cleanup(bslot() AS BattleSprite)
 DECLARE SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_background_anim(BYREF bat AS BattleState, formdata() AS INTEGER)
+DECLARE FUNCTION battle_run_away(BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
+DECLARE SUB battle_animate_running_away (bslot() AS BattleSprite)
 
 'these are the battle global variables
 DIM bstackstart AS INTEGER
@@ -122,30 +124,9 @@ FUNCTION battle (form, fatal) as integer
    IF keyval(scF11) > 1 THEN show_info_mode = loopvar(show_info_mode, 0, 2, 1)  'Draw debug info
   END IF
   IF keyval(scNumlock) > 1 THEN battle_pause
-  '--running away
-  IF carray(ccMenu) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
-   bat.flee = bat.flee + 1
-  END IF
-  battle_tryrun bat, bslot()
-  IF bat.away > 0 THEN
-   FOR i AS INTEGER = 0 TO 3
-    '--if alive, animate running away
-    IF bslot(i).stat.cur.hp > 0 THEN
-     WITH bslot(i)
-      IF .vis THEN
-       .xmov = 10
-       .xspeed = 6
-       bslot(i).walk = 1
-       .d = 1
-      END IF
-     END WITH
-    END IF
-   NEXT i
-   bat.away += 1
-   IF bat.away > 10 THEN
-    battle = 0
-    EXIT DO
-   END IF
+  IF battle_run_away(bat, bslot()) THEN
+   battle = 0
+   EXIT DO
   END IF
   IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
    generate_atkscript attack, bat, bslot()
@@ -955,7 +936,7 @@ END SUB
 
 
 SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
- IF bat.away = 1 THEN EXIT SUB '--skip all this if the heroes have already run away
+ IF bat.away > 0 THEN EXIT SUB '--skip all this if the heroes have already run away
  
  '--if a menu is up, and pause-on-menus is ON then no time passes (as long as at least one visible targetable enemy is alive)
  DIM isdeepmenu AS INTEGER = (bat.menu_mode > 0 AND readbit(gen(), genBits, 0) <> 0)
@@ -1102,8 +1083,11 @@ SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS
  NEXT i
 END SUB
 
-SUB battle_tryrun(BYREF bat AS BattleState, bslot() AS BattleSprite)
+SUB battle_crappy_run_handler(BYREF bat AS BattleState, bslot() AS BattleSprite)
  '--Current running system sucks about as bad as a running system conceivably CAN suck
+ IF carray(ccMenu) > 1 AND readbit(gen(), genBits2, 1) = 0 THEN
+  bat.flee = bat.flee + 1
+ END IF
  DIM i AS INTEGER
  IF bat.flee > 0 AND bat.flee < 4 THEN
   IF carray(ccRun) = 0 THEN
@@ -3160,4 +3144,38 @@ SUB battle_background_anim(BYREF bat AS BattleState, formdata() AS INTEGER)
    loadmxs game + ".mxs", bat.curbg MOD gen(genNumBackdrops), vpages(2)
   END IF
  END IF
+END SUB
+
+FUNCTION battle_run_away(BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
+ '--this function is called every tick of battle. It returns YES if
+ '-- a successful run has completed, thus ending battle.
+ 
+ battle_crappy_run_handler bat, bslot()
+ 
+ '--bat.away will be set to a positive number if running has succeeded
+ IF bat.away > 0 THEN
+  battle_animate_running_away bslot()
+  bat.away += 1
+  IF bat.away > 10 THEN
+   RETURN YES
+  END IF
+ END IF
+ 
+ RETURN NO
+END FUNCTION
+
+SUB battle_animate_running_away (bslot() AS BattleSprite)
+ FOR i AS INTEGER = 0 TO 3
+  '--if alive, animate running away
+  IF bslot(i).stat.cur.hp > 0 THEN
+   WITH bslot(i)
+    IF .vis THEN
+     .xmov = 10
+     .xspeed = 6
+     bslot(i).walk = 1
+     .d = 1
+    END IF
+   END WITH
+  END IF
+ NEXT i
 END SUB
