@@ -1,11 +1,12 @@
 #!/bin/sh
 
-# *WARNING* Do not schedule this script as a nightly cron job from the same copy of the
-# sources that it updates. That would be equivalent to giving any developer with write
-# access to the repository full control of the user-account which this script is run as.
-# Instead, configure cron to execute a manually updated copy of this script, and pay
-# attention to changes to it.
+# Scheduling this script to run automatically is equivalent to giving the other devs
+# write access to your automatric build machine. Don't do it unless you trust them all.
+# (which James fortunately does, and the build machine is reasonably sandboxed, so!)
 
+UPLOAD_SERVER="james_paige@motherhamster.org"
+UPLOAD_FOLDER="HamsterRepublic.com"
+UPLOAD_DEST="$UPLOAD_SERVER:$UPLOAD_FOLDER"
 TODAY=`date "+%Y-%m-%d"`
 
 cd ~/src/nightly
@@ -35,11 +36,11 @@ zip -q -r ohrrpgce-source-nightly.zip wip
 ls -l ohrrpgce-source-nightly.zip
 
 echo uploading new nightly snapshot
-scp -p ohrrpgce-source-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+scp -p ohrrpgce-source-nightly.zip $UPLOAD_DEST/ohrrpgce/nightly/
 
 echo uploading plotscripting docs
-scp -p wip/docs/plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
-scp -p wip/docs/htmlplot.xsl james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
+scp -p wip/docs/plotdict.xml $UPLOAD_DEST/ohrrpgce/docs/
+scp -p wip/docs/htmlplot.xsl $UPLOAD_DEST/ohrrpgce/docs/
 
 echo Now we go to build the linux nightlies
 
@@ -60,9 +61,9 @@ cd wip
 ./distrib.sh
 
 mv distrib/ohrrpgce-linux-*-wip.tar.bz2 distrib/ohrrpgce-linux-wip.tar.bz2
-scp -p distrib/ohrrpgce-linux-wip.tar.bz2 james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+scp -p distrib/ohrrpgce-linux-wip.tar.bz2 $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce-linux-wip.tar.bz2
 
-ssh james_paige@motherhamster.org rm "HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce_*.deb"
-scp -p distrib/ohrrpgce_*.wip-*_i386.deb james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+ssh $UPLOAD_SERVER rm "$UPLOAD_FOLDER/ohrrpgce/nightly/ohrrpgce_*.deb"
+scp -p distrib/ohrrpgce_*.wip-*_i386.deb $UPLOAD_DEST/ohrrpgce/nightly/
 rm distrib/ohrrpgce_*.deb
