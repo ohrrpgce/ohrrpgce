@@ -12,16 +12,29 @@ standard_bi = ['crt.bi', 'fbgfx.bi', 'crt/limits.bi',
 
 def basfile_scan(node, env, path):
     contents = node.get_text_contents()
-    tmp = include_re.findall(contents)
-    if tmp:
+    included = include_re.findall(contents)
+    if included:
         for v in standard_bi:
-            while v in tmp:
-                tmp.remove (v)
-            for v2 in list (tmp):
+            while v in included:
+                included.remove (v)
+            for v2 in list (included):
                 if 'SDL' in v2:
-                    tmp.remove (v2)
-    return tmp
+                    included.remove (v2)
+    # recursively re-check each include for other includes
+    for bi in included:
+        basfile_recurse_scan(bi, included)
+    return included
 
+def basfile_recurse_scan(filename, included):
+    f = open(filename)
+    text = f.read()
+    f.close()
+    deeper = include_re.findall(text)
+    for v in deeper:
+        if v not in included:
+            included.append(v)
+            basfile_recurse_scan(v, included)
+    
 
 def verprint (used_gfx, used_music, svn, git, fbc):
     # generate cver.txt, gver.txt (gver is just a cver with removed bits)
