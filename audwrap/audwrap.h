@@ -42,9 +42,9 @@ class LumpFile : public audiere::RefImplementation<audiere::File> {
 public:
     LumpFile(Lump *lump);
     ~LumpFile();
-    int read(void *buffer, int size);
-    bool seek(int position, SeekMode mode);
-    int tell();
+    int ADR_CALL read(void *buffer, int size);
+    bool ADR_CALL seek(int position, SeekMode mode);
+    int ADR_CALL tell();
 
 private:
     FileWrapper *wrapper;
