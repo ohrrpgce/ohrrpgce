@@ -64,6 +64,10 @@ DECLARE SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_background_anim(BYREF bat AS BattleState, formdata() AS INTEGER)
 DECLARE FUNCTION battle_run_away(BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
 DECLARE SUB battle_animate_running_away (bslot() AS BattleSprite)
+DECLARE SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE FUNCTION battle_check_a_delay(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER) AS INTEGER
+DECLARE SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
 
 'these are the battle global variables
 DIM bstackstart AS INTEGER
@@ -135,26 +139,13 @@ FUNCTION battle (form, fatal) as integer
    battle_attack_anim_playback attack, bat, bslot(), formdata()
   END IF
   battle_animate bat, bslot()
+  
   bat.next_attacker = loopvar(bat.next_attacker, 0, 11, 1)
   IF battle_time_can_pass(bat) THEN
    battle_meters bat, bslot(), formdata()
-   IF bslot(bat.next_attacker).attack > 0 AND bslot(bat.next_attacker).delay = 0 THEN
-    '--next attacker has an attack selected and the delay is over
-    bat.atk.id = bslot(bat.next_attacker).attack - 1
-    bat.acting = bat.next_attacker
-    bat.anim_ready = NO
-    bslot(bat.next_attacker).attack = 0
-   END IF
+   battle_check_delays bat, bslot()
   END IF
-  bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
-  IF bat.hero_turn = -1 THEN
-   '--if it is no heros turn, check to see if anyone is alive and ready
-   IF bslot(bat.next_hero).ready = YES AND bslot(bat.next_hero).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
-    bat.hero_turn = bat.next_hero
-    bat.pt = 0
-    bat.menu_mode = batMENUHERO
-   END IF
-  END IF
+  battle_check_for_hero_turns bat, bslot()
   bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
   IF bat.enemy_turn = -1 THEN
    IF bslot(bat.next_enemy).ready = YES AND bslot(bat.next_enemy).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN bat.enemy_turn = bat.next_enemy
@@ -1531,6 +1522,7 @@ SUB reset_battle_state (BYREF bat AS BattleState)
   .acting = 0
   .hero_turn = -1
   .enemy_turn = -1
+  .next_attacker = 0
   .next_hero = 0
   .next_enemy = 0
   .menu_mode = batMENUHERO
@@ -3179,3 +3171,83 @@ SUB battle_animate_running_away (bslot() AS BattleSprite)
   END IF
  NEXT i
 END SUB
+
+SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
+
+ IF xreadbit(gen(), 7, genBits2) THEN
+ 
+  '--use correct turn timing
+  DIM triggered AS INTEGER = NO
+  FOR i AS INTEGER = bat.next_attacker TO 11
+   IF battle_check_a_delay(bat, bslot(), i) THEN
+    triggered = YES
+    EXIT FOR
+   END IF
+  NEXT i
+  IF triggered = NO THEN
+   FOR i AS INTEGER = 0 TO bat.next_attacker - 1
+    IF battle_check_a_delay(bat, bslot(), i) THEN
+     EXIT FOR
+    END IF
+   NEXT i
+  END IF
+  
+ ELSE
+ 
+  '--use old wonky timing with unpredictable 0-11 tick delays
+  battle_check_a_delay bat, bslot(), bat.next_attacker
+  
+ END IF
+ 
+END SUB
+
+FUNCTION battle_check_a_delay(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER) AS INTEGER
+ IF bslot(index).attack > 0 AND bslot(index).delay = 0 THEN
+  '--next attacker has an attack selected and the delay is over
+  bat.atk.id = bslot(index).attack - 1
+  bat.acting = index
+  bat.anim_ready = NO
+  bslot(index).attack = 0
+  RETURN YES' an attack was triggered
+ END IF
+ RETURN NO
+END FUNCTION
+
+SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
+ bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
+ IF bat.hero_turn = -1 THEN
+  '--if it is not currently any hero's turn, check to see if anyone is alive and ready
+
+  IF xreadbit(gen(), 7, genBits2) THEN
+   '--use correct menu timing
+   DIM turn_started AS INTEGER = NO
+   FOR i AS INTEGER = bat.next_hero TO 3
+    IF battle_check_a_hero_turn(bat, bslot(), i) THEN
+     turn_started = YES
+     EXIT FOR
+    END IF
+   NEXT i
+   IF turn_started = NO THEN
+    FOR i AS INTEGER = 0 TO bat.next_hero - 1
+     IF battle_check_a_hero_turn(bat, bslot(), i) THEN
+      EXIT FOR
+     END IF
+    NEXT i
+   END IF
+  ELSE
+   '--use old wonky menu timing with unpredictable 0-3 tick delays
+   battle_check_a_hero_turn bat, bslot(), bat.next_hero
+  END IF
+
+ END IF
+END SUB
+
+FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
+ IF bslot(index).ready = YES AND bslot(index).stat.cur.hp > 0 AND bat.death_mode = deathNOBODY THEN
+  bat.hero_turn = index
+  bat.pt = 0
+  bat.menu_mode = batMENUHERO
+  RETURN YES
+ END IF
+ RETURN NO
+END FUNCTION
