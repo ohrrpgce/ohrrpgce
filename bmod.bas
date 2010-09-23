@@ -3172,32 +3172,20 @@ SUB battle_animate_running_away (bslot() AS BattleSprite)
 END SUB
 
 SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
-
- IF xreadbit(gen(), 7, genBits2) THEN
- 
-  '--use correct turn timing
-  DIM triggered AS INTEGER = NO
-  FOR i AS INTEGER = bat.next_attacker TO 11
+ DIM triggered AS INTEGER = NO
+ FOR i AS INTEGER = bat.next_attacker TO 11
+  IF battle_check_a_delay(bat, bslot(), i) THEN
+   triggered = YES
+   EXIT FOR
+  END IF
+ NEXT i
+ IF triggered = NO THEN
+  FOR i AS INTEGER = 0 TO bat.next_attacker - 1
    IF battle_check_a_delay(bat, bslot(), i) THEN
-    triggered = YES
     EXIT FOR
    END IF
   NEXT i
-  IF triggered = NO THEN
-   FOR i AS INTEGER = 0 TO bat.next_attacker - 1
-    IF battle_check_a_delay(bat, bslot(), i) THEN
-     EXIT FOR
-    END IF
-   NEXT i
-  END IF
-  
- ELSE
- 
-  '--use old wonky timing with unpredictable 0-11 tick delays
-  battle_check_a_delay bat, bslot(), bat.next_attacker
-  
  END IF
- 
 END SUB
 
 FUNCTION battle_check_a_delay(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER) AS INTEGER
@@ -3217,25 +3205,19 @@ SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS BattleSprit
  IF bat.hero_turn = -1 THEN
   '--if it is not currently any hero's turn, check to see if anyone is alive and ready
 
-  IF xreadbit(gen(), 7, genBits2) THEN
-   '--use correct hero turn timing
-   DIM turn_started AS INTEGER = NO
-   FOR i AS INTEGER = bat.next_hero TO 3
+  DIM turn_started AS INTEGER = NO
+  FOR i AS INTEGER = bat.next_hero TO 3
+   IF battle_check_a_hero_turn(bat, bslot(), i) THEN
+    turn_started = YES
+    EXIT FOR
+   END IF
+  NEXT i
+  IF turn_started = NO THEN
+   FOR i AS INTEGER = 0 TO bat.next_hero - 1
     IF battle_check_a_hero_turn(bat, bslot(), i) THEN
-     turn_started = YES
      EXIT FOR
     END IF
    NEXT i
-   IF turn_started = NO THEN
-    FOR i AS INTEGER = 0 TO bat.next_hero - 1
-     IF battle_check_a_hero_turn(bat, bslot(), i) THEN
-      EXIT FOR
-     END IF
-    NEXT i
-   END IF
-  ELSE
-   '--use old wonky hero turn timing with unpredictable 0-3 tick delays
-   battle_check_a_hero_turn bat, bslot(), bat.next_hero
   END IF
 
  END IF
@@ -3252,32 +3234,26 @@ FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS BattleSpr
 END FUNCTION
 
 SUB battle_check_for_enemy_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
-  bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
-  IF bat.enemy_turn = -1 THEN
-   '--if no enemy is currently taking their turn, check to find an enemy who is ready
+ bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
+ IF bat.enemy_turn = -1 THEN
+  '--if no enemy is currently taking their turn, check to find an enemy who is ready
 
-  IF xreadbit(gen(), 7, genBits2) THEN
-   '--use correct enemy turn timing
-   DIM turn_started AS INTEGER = NO
-   FOR i AS INTEGER = bat.next_enemy TO 11
+  DIM turn_started AS INTEGER = NO
+  FOR i AS INTEGER = bat.next_enemy TO 11
+   IF battle_check_an_enemy_turn(bat, bslot(), i) THEN
+    turn_started = YES
+    EXIT FOR
+   END IF
+  NEXT i
+  IF turn_started = NO THEN
+   FOR i AS INTEGER = 4 TO bat.next_enemy - 1
     IF battle_check_an_enemy_turn(bat, bslot(), i) THEN
-     turn_started = YES
      EXIT FOR
     END IF
    NEXT i
-   IF turn_started = NO THEN
-    FOR i AS INTEGER = 4 TO bat.next_enemy - 1
-     IF battle_check_an_enemy_turn(bat, bslot(), i) THEN
-      EXIT FOR
-     END IF
-    NEXT i
-   END IF
-  ELSE
-   '--use old wonky enemy turn timing with unpredictable 0-7 tick delays
-   battle_check_an_enemy_turn bat, bslot(), bat.next_enemy
   END IF
 
-  END IF
+ END IF
 END SUB
 
 FUNCTION battle_check_an_enemy_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
