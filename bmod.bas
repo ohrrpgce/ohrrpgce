@@ -3202,25 +3202,32 @@ END FUNCTION
 
 SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
  bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
- IF bat.hero_turn = -1 THEN
-  '--if it is not currently any hero's turn, check to see if anyone is alive and ready
+ IF bat.hero_turn > -1 THEN
+  '--somebody is already taking their turn
+  EXIT SUB
+ END IF
 
-  DIM turn_started AS INTEGER = NO
-  FOR i AS INTEGER = bat.next_hero TO 3
+ IF xreadbit(gen(), 7, genBits2) AND bat.atk.id > -1 THEN
+  '--an attack is currently animating, and the bitset tells us we must wait for it
+  EXIT SUB
+ END IF
+
+ '--if it is not currently any hero's turn, check to see if anyone is alive and ready
+ DIM turn_started AS INTEGER = NO
+ FOR i AS INTEGER = bat.next_hero TO 3
+  IF battle_check_a_hero_turn(bat, bslot(), i) THEN
+   turn_started = YES
+   EXIT FOR
+  END IF
+ NEXT i
+ IF turn_started = NO THEN
+  FOR i AS INTEGER = 0 TO bat.next_hero - 1
    IF battle_check_a_hero_turn(bat, bslot(), i) THEN
-    turn_started = YES
     EXIT FOR
    END IF
   NEXT i
-  IF turn_started = NO THEN
-   FOR i AS INTEGER = 0 TO bat.next_hero - 1
-    IF battle_check_a_hero_turn(bat, bslot(), i) THEN
-     EXIT FOR
-    END IF
-   NEXT i
-  END IF
-
  END IF
+ 
 END SUB
 
 FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
