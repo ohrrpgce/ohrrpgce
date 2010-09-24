@@ -2134,6 +2134,7 @@ SUB loadattackdata (BYREF atkdat AS AttackData, BYVAL index AS INTEGER)
  DIM buf(40 + dimbinsize(binATTACK)) AS INTEGER
  loadattackdata buf(), index
  convertattackdata buf(), atkdat
+ atkdat.id = index
 END SUB
 
 SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)

@@ -423,6 +423,7 @@ Type AttackDataChain
 End Type
 
 Type AttackData
+	id as integer 'should only be set when loaded!
 	name as string
 	description as string
 	picture as integer
