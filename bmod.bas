@@ -1930,7 +1930,7 @@ SUB triggerfade(BYVAL who, bslot() AS BattleSprite)
 END SUB
 
 SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
-'FIXME: killing_attack is not used yet, but will contain attack id or -1 when no attack is relevant.
+'killing_attack contains attack id or -1 when no attack is relevant.
  DIM AS INTEGER j,k 'for loop counters
  DIM attack AS AttackData
 
