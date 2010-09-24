@@ -1002,6 +1002,16 @@ SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata()
   bat.laststun = TIMER
  END IF
 
+ '--decrement attack queue delays
+
+ FOR i = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used THEN
+    .delay = large(0, .delay - 1)
+   END IF
+  END WITH
+ NEXT i
+
 END SUB
 
 SUB battle_animate(BYREF bat AS BattleState, bslot() AS BattleSprite)
