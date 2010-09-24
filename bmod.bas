@@ -3060,6 +3060,11 @@ SUB queue_attack(bslot() AS BattleSprite, who AS INTEGER)
 END SUB
 
 SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
+ 'DIM targstr AS STRING = ""
+ 'FOR i AS INTEGER = 0 TO UBOUND(targs)
+ ' IF targs(i) > -1 THEN targstr &= "t" & targs(i)
+ 'NEXT i
+ 'debug "queue_attack " & attack & ", " & who & ", " & targstr
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   IF atkq(i).used = NO THEN
    'Recycle a queue slot
@@ -3108,10 +3113,18 @@ END SUB
 
 SUB display_attack_queue (bslot() AS BattleSprite)
  DIM s AS STRING
+ DIM targstr AS STRING
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    s = i & " " & bslot(.attacker).name & "(" & .attacker & ") " & readattackname(.attack) & "(" & .attack & ") " & yesorno(.blocking, "B", "Q")
+    s = i & " " & bslot(.attacker).name & "(" & .attacker & ") " & readattackname(.attack) & "(" & .attack & ") "
+    targstr = ""
+    FOR j AS INTEGER = 0 TO UBOUND(.t)
+     IF .t(j) > -1 THEN
+      targstr &= CHR(24) & .t(j)
+     END IF
+    NEXT j
+    s & = targstr & " " & yesorno(.blocking, "B", "Q")
    ELSE
     s = STR(i)
    END IF

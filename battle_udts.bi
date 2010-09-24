@@ -283,7 +283,7 @@ TYPE AttackQueue
  attack   AS INTEGER 'attack ID number
  attacker AS INTEGER 'slot number of attacker
  t(12)    AS INTEGER 'Targeted slots, -1 for empty, or slot number.
- blocking AS INTEGER 'YES for normal, NO for nonblocking
+ blocking AS INTEGER 'YES to block attacker from acting, NO for nonblocking
 END TYPE
 
 #ENDIF
