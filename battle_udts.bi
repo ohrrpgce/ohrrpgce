@@ -101,7 +101,7 @@ TYPE BattleSprite
   attack AS INTEGER  ' ID number +1 of the attack that this hero or enemy is going to do next
   delay AS INTEGER   ' Number of ticks before prepared attack animates (counts down)
   '--Targetting
-  t(12)               AS INTEGER 'Currently selected target slots. -1 means no target. Targets must be sorted to the beginning if the list changes 
+  t(11)               AS INTEGER 'Currently selected target slots. -1 means no target. Targets must be sorted to the beginning if the list changes
   revenge             AS INTEGER 'ID of last hero or enemy who damaged this hero or enemy, or -1 for none
   thankvenge          AS INTEGER 'ID of last hero or enemy who cured this hero or enemy, or -1 for none
   revengemask(11)     AS INTEGER 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
@@ -282,7 +282,7 @@ TYPE AttackQueue
  used     AS INTEGER 'YES when used, NO when recycleable
  attack   AS INTEGER 'attack ID number
  attacker AS INTEGER 'slot number of attacker
- t(12)    AS INTEGER 'Targeted slots, -1 for empty, or slot number.
+ t(11)    AS INTEGER 'Targeted slots, -1 for empty, or slot number.
  blocking AS INTEGER 'YES to block attacker from acting, NO for nonblocking
  delay    AS INTEGER 'Number of ticks that should pass before this attack happens
 END TYPE

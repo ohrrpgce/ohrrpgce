@@ -1289,7 +1289,6 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
   IF readbit(gen(), genBits2, 6) = 0 THEN
    bslot(i).ready_meter = INT(RND * 500) '--randomize ready-meter
   END IF
-  bslot(i).t(12) = -1 '-- .t(12) is used when sorting dead enemies... for some silly reason...?
  NEXT i
  
  '--size attack sprites
@@ -1975,11 +1974,13 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   FOR j = 0 TO 11
    '--Search through each hero and enemy to see if any of them are targetting the
    '--guy who just died
-   bslot(j).t(12) = -1
-   FOR k = 0 TO 11
-    '--sort dead target away
-    IF bslot(j).t(k) = deadguy AND bslot(j).keep_dead_targs(deadguy) = NO THEN SWAP bslot(j).t(k), bslot(j).t(k + 1)
-   NEXT k
+   IF bslot(j).keep_dead_targs(deadguy) = NO THEN
+    FOR k = 0 TO UBOUND(bslot(j).t) - 1
+     '--crappy bogo-sort dead target away
+     IF bslot(j).t(k) = deadguy THEN SWAP bslot(j).t(k), bslot(j).t(k + 1)
+    NEXT k
+    bslot(j).t(UBOUND(bslot(j).t)) = -1
+   END IF
    IF bslot(j).t(0) = -1 AND bat.acting <> j AND bslot(j).attack > 0 THEN
     'if no targets left, auto-re-target
     loadattackdata attack, bslot(j).attack - 1
@@ -2418,7 +2419,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   END IF
  NEXT i
  'MOVE EMPTY TARGET SLOTS TO THE BACK
- FOR o AS INTEGER = 0 TO 10
+ FOR o AS INTEGER = 0 TO UBOUND(bslot(bat.acting).t) - 1
   FOR i = 0 TO 10
    IF bslot(bat.acting).t(i) = -1 THEN SWAP bslot(bat.acting).t(i), bslot(bat.acting).t(i + 1)
   NEXT i
@@ -3062,7 +3063,7 @@ END SUB
 SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
  'DIM targstr AS STRING = ""
  'FOR i AS INTEGER = 0 TO UBOUND(targs)
- ' IF targs(i) > -1 THEN targstr &= "t" & targs(i)
+ ' IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)
  'NEXT i
  'debug "queue_attack " & attack & ", " & who & ", " & targstr
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
