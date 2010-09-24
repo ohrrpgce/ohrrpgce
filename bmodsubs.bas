@@ -1257,7 +1257,7 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite)
  END SELECT
 
  '--Now copy the target into the queue
- queue_attack atk.id, who, bslot(who).t()
+ queue_attack atk.id, who, bslot(who).delay, bslot(who).t()
 
 END SUB
 

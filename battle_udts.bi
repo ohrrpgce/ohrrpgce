@@ -284,6 +284,7 @@ TYPE AttackQueue
  attacker AS INTEGER 'slot number of attacker
  t(12)    AS INTEGER 'Targeted slots, -1 for empty, or slot number.
  blocking AS INTEGER 'YES to block attacker from acting, NO for nonblocking
+ delay    AS INTEGER 'Number of ticks that should pass before this attack happens
 END TYPE
 
 #ENDIF

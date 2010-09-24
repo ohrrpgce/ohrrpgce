@@ -3012,7 +3012,7 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'also retarget if the chained attack's preferred target is explicitly set
    autotarget bat.acting, chained_attack, bslot()
   ELSEIF bslot(bat.acting).attack > 0 THEN
-   'if the old target info is reused, and this is not an immediate chain, copy it to the queue
+   'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
    queue_attack bslot(), bat.acting
   END IF
 
@@ -3056,10 +3056,10 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
 END FUNCTION
 
 SUB queue_attack(bslot() AS BattleSprite, who AS INTEGER)
- queue_attack bslot(who).attack - 1, who, bslot(who).t()
+ queue_attack bslot(who).attack - 1, who, bslot(who).delay, bslot(who).t()
 END SUB
 
-SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
+SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
  'DIM targstr AS STRING = ""
  'FOR i AS INTEGER = 0 TO UBOUND(targs)
  ' IF targs(i) > -1 THEN targstr &= "t" & targs(i)
@@ -3068,7 +3068,7 @@ SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   IF atkq(i).used = NO THEN
    'Recycle a queue slot
-   set_attack_queue_slot i, attack, who, targs(), blocking
+   set_attack_queue_slot i, attack, who, delay, targs(), blocking
    EXIT SUB
   END IF
  NEXT i
@@ -3078,14 +3078,15 @@ SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking
  FOR i AS INTEGER = oldbound + 2 TO UBOUND(atkq)
   clear_attack_queue_slot i
  NEXT i
- set_attack_queue_slot oldbound + 1, attack, who, targs(), blocking
+ set_attack_queue_slot oldbound + 1, attack, who, delay, targs(), blocking
 END SUB
 
-SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
+SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
  WITH atkq(slot)
   .used = YES
   .attack = attack
   .attacker = who
+  .delay = delay
   FOR i AS INTEGER = 0 TO UBOUND(.t)
    .t(i) = targs(i)
   NEXT i
@@ -3117,7 +3118,7 @@ SUB display_attack_queue (bslot() AS BattleSprite)
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    s = i & " " & bslot(.attacker).name & "(" & .attacker & ") " & readattackname(.attack) & "(" & .attack & ") "
+    s = .delay & " " & bslot(.attacker).name & "(" & .attacker & ") " & readattackname(.attack) & "(" & .attack & ") "
     targstr = ""
     FOR j AS INTEGER = 0 TO UBOUND(.t)
      IF .t(j) > -1 THEN
@@ -3126,7 +3127,7 @@ SUB display_attack_queue (bslot() AS BattleSprite)
     NEXT j
     s & = targstr & " " & yesorno(.blocking, "B", "Q")
    ELSE
-    s = STR(i)
+    s = "-"
    END IF
    edgeprint s, 0, i * 10, uilook(uiText), dpage
   END WITH
