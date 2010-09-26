@@ -80,7 +80,6 @@ REM $STATIC
 OPTION EXPLICIT
 
 FUNCTION battle (form, fatal) as integer
-
  battle = 1 'default return value
 
  DIM formdata(40)
@@ -601,12 +600,6 @@ SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS
  
  IF liveherocount(bslot()) = 0 THEN bat.atk.id = -1
  
- IF bslot(targ).stat.cur.hp = 0 AND enemycount(bslot()) > 0 AND bat.atk.id > -1 THEN'
-  '--if the target is already dead, and there are still more enemies, auto-pick a new target
-  '--FIXME: why are we doing this after the attack? Does this even do anything?
-  '--       it was passing garbage attack data at least some of the time until r2104
-  autotarget bat.acting, attack, bslot()
- END IF
 END SUB
 
 SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
@@ -1074,12 +1067,14 @@ SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS
  DIM c AS INTEGER
  DIM info AS STRING
  FOR i AS INTEGER = 0 TO 11
-  c = uilook(uiSelectedDisabled)
-  IF is_hero(i) THEN c = uilook(uiSelectedItem)
-  rectangle 0, 80 + (i * 10), bslot(i).ready_meter / 10, 4, c, dpage
-  info = "v=" & bslot(i).vis & " dly=" & bslot(i).delay & " tm=" & bat.targ.mask(i) & " hp=" & bslot(i).stat.cur.hp & " dis=" & bslot(i).dissolve
-  IF is_enemy(i) THEN info &= " fm=" & formdata((i-4)*4) 
-  edgeprint info, 20, 80 + i * 10, c, dpage
+  WITH bslot(i)
+   c = uilook(uiSelectedDisabled)
+   IF is_hero(i) THEN c = uilook(uiSelectedItem)
+   rectangle 0, 80 + (i * 10), .ready_meter / 10, 4, c, dpage
+   info = "v=" & .vis & " dly=" & .delay & " tm=" & bat.targ.mask(i) & " hp=" & .stat.cur.hp & " dz=" & .dissolve & " a=" & .attack 
+   IF is_enemy(i) THEN info &= " fm=" & formdata((i-4)*4) 
+   edgeprint info, 20, 80 + i * 10, c, dpage
+  END WITH
  NEXT i
 END SUB
 
@@ -1962,6 +1957,14 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   .cur.stun   = .max.stun
   .cur.mute   = .max.mute
  END WITH
+ '-- remove any attack queue entries
+ FOR i AS INTEGER = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used ANDALSO .attacker = deadguy THEN
+    clear_attack_queue_slot i
+   END IF
+  END WITH
+ NEXT i
  '-- if it is a dead hero's turn, cancel menu
  IF bat.hero_turn = deadguy THEN
   bat.hero_turn = -1
@@ -3021,7 +3024,7 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'if the chained attack has a different target class/type then re-target
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
-   autotarget bat.acting, chained_attack, bslot()
+   autotarget bat.acting, chained_attack, bslot(), NO
   ELSEIF bslot(bat.acting).attack > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
    queue_attack bslot(), bat.acting
@@ -3075,7 +3078,8 @@ SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS
  'FOR i AS INTEGER = 0 TO UBOUND(targs)
  ' IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)
  'NEXT i
- 'debug "queue_attack " & attack & ", " & who & ", " & targstr
+ 'debug "queue_attack " & readattackname(attack) & ", " & who & ", " & targstr
+ 
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   IF atkq(i).used = NO THEN
    'Recycle a queue slot
@@ -3197,20 +3201,41 @@ SUB battle_animate_running_away (bslot() AS BattleSprite)
 END SUB
 
 SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
- DIM triggered AS INTEGER = NO
- FOR i AS INTEGER = bat.next_attacker TO 11
-  IF battle_check_a_delay(bat, bslot(), i) THEN
-   triggered = YES
-   EXIT FOR
-  END IF
- NEXT i
- IF triggered = NO THEN
-  FOR i AS INTEGER = 0 TO bat.next_attacker - 1
-   IF battle_check_a_delay(bat, bslot(), i) THEN
-    EXIT FOR
+ ''--check classic bslot() based delays
+ 'DIM triggered AS INTEGER = NO
+ 'FOR i AS INTEGER = bat.next_attacker TO 11
+ ' IF battle_check_a_delay(bat, bslot(), i) THEN
+ '  triggered = YES
+ '  EXIT FOR
+ ' END IF
+ 'NEXT i
+ 'IF triggered = NO THEN
+ ' FOR i AS INTEGER = 0 TO bat.next_attacker - 1
+ '  IF battle_check_a_delay(bat, bslot(), i) THEN
+ '   EXIT FOR
+ '  END IF
+ ' NEXT i
+ 'END IF
+ 
+ '--check the attack queue delays
+ FOR i AS INTEGER = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used THEN
+    IF .delay <= 0 THEN
+     'debug "queue trigger! " & bslot(.attacker).name & .attacker & ":" & readattackname(.attack)
+     bat.atk.id = .attack
+     bat.acting = .attacker
+     FOR j AS INTEGER = 0 TO UBOUND(.t)
+      bslot(.attacker).t(j) = .t(j)
+     NEXT j
+     bat.anim_ready = NO
+     bslot(.attacker).attack = 0
+     clear_attack_queue_slot i
+     EXIT FOR
+    END IF
    END IF
-  NEXT i
- END IF
+  END WITH
+ NEXT i
 END SUB
 
 FUNCTION battle_check_a_delay(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER) AS INTEGER
