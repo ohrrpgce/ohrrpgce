@@ -11,7 +11,7 @@
 #include "smartptr.h"
 #include <string>
 #include <tchar.h>
-#include "gfx_common\\_tstring.h"
+#include "Tstring.h"
 
 #include "gfx_directx_TESTAPPconst.h"
 #include "gfx_directx_cls_window.h"
@@ -94,7 +94,7 @@ namespace gfx
 		} m_image;
 		DirectX_ErrorCode m_lastErrorCode; //last error code
 		TCHAR m_lastErrorMessage[256]; //last error message
-		tstring m_szModuleName;
+		Tstring m_szModuleName;
 
 		DirectX_ErrorCode Report(DirectX_ErrorCode error); //generates error message and stores error code
 		RECT CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight);

@@ -1,4 +1,24 @@
 --------------------------------------------------
+9/26/10
+v1.8
+(Somehow information on v1.7 was lost in the development...)
+
+Added Features:
+
+-Mouse and keyboard are now through window's messages, no longer through DirectInput.
+
+-DirectInput is not required for usage--meaning smaller backend dll and greater support.
+
+-Mouse is positioned in the window according to where the window mouse really is.
+
+-Mouse is restricted to window if a button is being held down, but not otherwise.
+
+-Fixed problem where system cursor could show up while not capturing mouse input and in fullscreen.
+
+
+
+
+--------------------------------------------------
 12/31/09
 v1.6
 

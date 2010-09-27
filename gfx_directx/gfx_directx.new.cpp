@@ -4,12 +4,11 @@
 #include "gfx_msg.h"
 #include "gfx_directx_cls_window.h"
 #include "gfx_directx_cls.h"
-#include "gfx_directx_cls_dinput.h"
-#include "gfx_directx_cls_osmouse.h"
+#include "gfx_directx_cls_keyboard.h"
+#include "gfx_directx_cls_mouse.h"
 #include "gfx_directx_version.h"
 using namespace gfx;
 
-#include "di2fb_scancodes.h"
 #include "resource.h"
 
 //use common controls available on different windows OS'
@@ -26,19 +25,19 @@ using namespace gfx;
 Window g_Window;
 HWND g_hWndDlg;
 DirectX g_DirectX;
-DirectInput g_DirectInput;
-OSMouse g_OSMouse;
+Keyboard g_Keyboard;
+Mouse g_Mouse;
 
 struct gfx_BackendState
 {
-	tstring szWindowTitle;
-	tstring szWindowIcon;
+	Tstring szWindowTitle;
+	Tstring szWindowIcon;
 	void (__cdecl *PostTerminateSignal)(void);
 	void (__cdecl *OnCriticalError)(const char* szError);
 	void (__cdecl *SendDebugString)(const char* szMessage);
 	int (__cdecl *DefGfxMessageProc)(unsigned int msg, unsigned int dwParam, void* pvParam);
 	bool bClosing; //flagged when shutting down
-	bool bBlockOhrMouseInput; //toggles ohr mouse control
+	bool bOhrMouseRequest; //true whenever the ohr needs mouse input
 } g_State;
 
 LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -52,7 +51,7 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 		return FALSE;
 
 	TCHAR buffer[256] = TEXT("");
-	g_State.szWindowIcon = CharToTchar(buffer, 256, pCreationData->szWindowIcon, 0);
+	g_State.szWindowIcon = StringToString(buffer, 256, pCreationData->szWindowIcon);//CharToTchar(buffer, 256, pCreationData->szWindowIcon, 0);
 	g_State.PostTerminateSignal = pCreationData->PostTerminateSignal;
 	g_State.OnCriticalError = pCreationData->OnCriticalError;
 	g_State.SendDebugString = pCreationData->SendDebugString;
@@ -83,33 +82,10 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 
 	g_State.SendDebugString("gfx_directx: D3D Initialized!");
 
-	if(DI_OK != g_DirectInput.Initialize(&g_Window))
-	{
-		g_DirectX.Shutdown();
-		g_Window.Shutdown();
-		gfx_PumpMessages();
-		g_State.SendDebugString("gfx_directx: Failed at dinput initialization! Fallback...");
-		return FALSE;
-	}
-
-	g_State.SendDebugString("gfx_directx: DInput Initialized!");
-
-	if(S_OK != g_OSMouse.Initialize(g_Window.GetWindowHandle()))
-	{
-		g_DirectInput.Shutdown();
-		g_DirectX.Shutdown();
-		g_Window.Shutdown();
-		gfx_PumpMessages();
-		g_State.SendDebugString("gfx_directx: Failed at os mouse initialization! Fallback...");
-		return FALSE;
-	}
-
-	g_State.SendDebugString("gfx_directx: OSMouse Initialized!");
 	gfx_SetWindowTitle(pCreationData->szInitWindowTitle);
 
 	g_Window.SetClientSize(640, 400);
 	g_Window.CenterWindow();
-	g_DirectInput.ClipMouseMovement(0,0,319,199);
 
 	g_State.SendDebugString("gfx_directx: Initialization success!");
 	return TRUE;
@@ -118,7 +94,6 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 void gfx_Close()
 {
 	g_State.SendDebugString("gfx_directx: Closing backend...");
-	g_DirectInput.Shutdown();
 	g_DirectX.Shutdown();
 	g_Window.Shutdown();
 	gfx_PumpMessages();
@@ -239,9 +214,6 @@ void gfx_PumpMessages()
 			::DispatchMessage(&msg);
 		}
 	}
-	g_DirectInput.PollKeyboard();
-	if(!g_State.bBlockOhrMouseInput)
-		g_DirectInput.PollMouse();
 }
 
 void gfx_Present(unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
@@ -258,7 +230,7 @@ int gfx_ScreenShot(const char *szFileName)
 	if(szFileName == NULL)
 		return FALSE;
 	TCHAR buffer[256] = TEXT("");
-	CharToTchar(buffer, 256, szFileName, 0);
+	StringToString(buffer, 256, szFileName);
 	switch(g_DirectX.GetImageFileFormat())
 	{
 	case D3DXIFF_JPG:
@@ -283,17 +255,17 @@ int gfx_ScreenShot(const char *szFileName)
 
 void gfx_SetWindowTitle(const char *szTitle)
 {
+	TCHAR buffer[256] = TEXT("");
 	if(szTitle == NULL)
 		g_State.szWindowTitle = TEXT("");
 	else
 	{
-		TCHAR buffer[256] = TEXT("");
-		g_State.szWindowTitle = CharToTchar(buffer, 256, szTitle, 0);
+		g_State.szWindowTitle = StringToString(buffer, 256, szTitle);
 	}
-	tstring szTemp = g_State.szWindowTitle;
-	if(!g_State.bBlockOhrMouseInput && g_OSMouse.IsOHRMouseActive())
+	Tstring szTemp = g_State.szWindowTitle;
+	if(g_State.bOhrMouseRequest && g_Mouse.IsInputLive())
 		szTemp += TEXT(" Press 'Scroll Lock' to free mouse");
-	else if(g_State.bBlockOhrMouseInput && g_OSMouse.IsOHRMouseActive())
+	else if(g_State.bOhrMouseRequest && !g_Mouse.IsInputLive())
 		szTemp += TEXT(" Press 'Scroll Lock' to lock mouse");
 	g_Window.SetWindowTitle(szTemp.c_str());
 }
@@ -301,7 +273,7 @@ void gfx_SetWindowTitle(const char *szTitle)
 const char* gfx_GetWindowTitle()
 {
 	char buffer[256] = "";
-	return TcharToChar(buffer, 256, g_State.szWindowTitle.c_str(), 0);
+	return StringToString(buffer, 256, g_State.szWindowTitle.c_str());
 }
 
 int gfx_AcquireKeyboard(int bEnable)
@@ -311,9 +283,10 @@ int gfx_AcquireKeyboard(int bEnable)
 
 int gfx_AcquireMouse(int bEnable)
 {
-	g_OSMouse.OHRMouseActive(FALSE != bEnable);
+	g_State.bOhrMouseRequest = bEnable ? true : false;
+	g_Mouse.SetInputState(bEnable ? gfx::Mouse::IS_LIVE : gfx::Mouse::IS_DEAD);
 	char buffer[256] = "";
-	gfx_SetWindowTitle(TcharToChar(buffer, 256, g_State.szWindowTitle.c_str(), 0));
+	gfx_SetWindowTitle( StringToString(buffer, 256, g_State.szWindowTitle.c_str()) );
 	return TRUE;
 }
 
@@ -326,43 +299,37 @@ int gfx_GetKeyboard(int *pKeyboard)
 {
 	if(pKeyboard == NULL)
 		return FALSE;
-	BYTE *pKeys = g_DirectInput.GetKeyboardState();
-	if(pKeys == NULL)
-		return FALSE;
-	for(UINT  i = 0; i < 256; i++)
-		if(pKeys[i] & 0x80)
-			pKeyboard[di2fb(i)] |= 8; //di2fb() converts di scancode to fb
+	g_Keyboard.GetOHRScans(pKeyboard);
 	return TRUE;
 }
 
 int gfx_GetMouseMovement(int& dx, int& dy, int& dWheel, int& buttons)
 {
-	dx = g_DirectInput.GetMouseXChange();
-	dy = g_DirectInput.GetMouseYChange();
-	dWheel = g_DirectInput.GetMouseWheelChange();
-	buttons = 0;
-	buttons |= (g_DirectInput.IsMouseLButtonDown() ? 0x1 : 0);
-	buttons |= (g_DirectInput.IsMouseRButtonDown() ? 0x2 : 0);
-	buttons |= (g_DirectInput.IsMouseMButtonDown() ? 0x4 : 0);
-	return TRUE;
+	return FALSE;
 }
 
 int gfx_GetMousePosition(int& x, int& y, int& wheel, int& buttons)
 {
-	x = g_DirectInput.GetMouseX();
-	y = g_DirectInput.GetMouseY();
-	wheel = g_DirectInput.GetMouseWheel();
-	buttons = 0;
-	buttons |= (g_DirectInput.IsMouseLButtonDown() ? 0x1 : 0);
-	buttons |= (g_DirectInput.IsMouseRButtonDown() ? 0x2 : 0);
-	buttons |= (g_DirectInput.IsMouseMButtonDown() ? 0x4 : 0);
+	x = g_Mouse.GetCursorPos().x;
+	y = g_Mouse.GetCursorPos().y;
+	wheel = g_Mouse.GetWheel();
+	buttons = g_Mouse.GetButtonState().GetData();
 	return TRUE;
 }
 
 int gfx_SetMousePosition(int x, int y)
 {
-	g_DirectInput.SetMouseX(x);
-	g_DirectInput.SetMouseY(y);
+	DWORD xPos, yPos;
+	RECT rClient;
+	GetClientRect(g_Window.GetWindowHandle(), &rClient);
+	POINT pos = {rClient.right * x/320.0f, rClient.bottom * y/200.0f};
+	::ClientToScreen(g_Window.GetWindowHandle(), &pos);
+	GetClientRect(GetDesktopWindow(), &rClient);
+	xPos = (DWORD)((float)(rClient.right - pos.x) / (float)rClient.right * 65535.0f);
+	yPos = (DWORD)((float)(rClient.bottom - pos.y) / (float)rClient.bottom * 65535.0f);
+
+	mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, xPos, yPos, 0, NULL);
+
 	return TRUE;
 }
 
@@ -423,6 +390,11 @@ bool IsNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth, UINT 
 LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	const UINT_PTR ID_MENU_OPTIONS = 101;
+	
+	if(g_Mouse.ProcessMessage(hWnd, msg, wParam, lParam))
+		return 0;
+	g_Keyboard.ProcessMessage(hWnd, msg, wParam, lParam);
+
 	switch(msg)
 	{
 	case WM_KEYDOWN:
@@ -433,13 +405,15 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					if(!(lParam & 0x40000000)) //key was not pressed before
 					{
-						g_State.bBlockOhrMouseInput = !g_State.bBlockOhrMouseInput;
-						if(g_State.bBlockOhrMouseInput)
-							g_OSMouse.Push_State();
+						if(g_Mouse.IsInputLive())
+						{
+							g_Mouse.PushState();
+							g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+						}
 						else
-							g_OSMouse.Pop_State();
+							g_Mouse.PopState();
 						char buffer[256] = "";
-						gfx_SetWindowTitle(TcharToChar(buffer, 256, g_State.szWindowTitle.c_str(), 0));
+						gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
 					}
 				} break;
 			default:
@@ -476,7 +450,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if(!(lParam & 0x40000000)) //key was not pressed before
 					{
 						g_DirectX.SetView(g_DirectX.IsViewFullscreen());
-						g_OSMouse.Fullscreen(g_DirectX.IsViewFullscreen());
+						g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse::VM_FULLSCREEN : gfx::Mouse::VM_WINDOWED);
 					}
 				} break;
 			default:
@@ -486,9 +460,13 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_ACTIVATE:
 		{
 			if(LOWORD(wParam) == WA_INACTIVE)
-				g_OSMouse.Push_State();
+			{
+				g_Mouse.PushState();
+				g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+				g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
+			}
 			else
-				g_OSMouse.Pop_State();
+				g_Mouse.PopState();
 			return ::DefWindowProc(hWnd, msg, wParam, lParam);
 		} break;
 	case WM_SIZE:
@@ -496,12 +474,14 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			::DefWindowProc(hWnd, msg, wParam, lParam);
 			if(wParam == SIZE_MINIMIZED)
 			{
-				g_OSMouse.Push_State();
+				g_Mouse.PushState();
+				g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+				g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
 			}
 			else
 			{
 				g_DirectX.SetResolution(LOWORD(lParam), HIWORD(lParam));
-				g_OSMouse.Pop_State();
+				g_Mouse.PopState();
 			}
 		} break;
 	case WM_SIZING:
@@ -572,9 +552,11 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if(g_State.bClosing)
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
-			g_OSMouse.Push_State();
+			g_Mouse.PushState();
+			g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+			g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
 			g_State.PostTerminateSignal();
-			g_OSMouse.Pop_State();
+			g_Mouse.PopState();
 		} break;
 	case WM_CREATE:
 		{
@@ -645,7 +627,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 						g_DirectX.SetImageFileFormat(D3DXIFF_DDS);
 					else
 						g_DirectX.SetImageFileFormat(D3DXIFF_FORCE_DWORD);
-					g_OSMouse.Pop_State();
+					g_Mouse.PopState();
 					::DestroyWindow(hWndDlg);
 					g_hWndDlg = NULL;
 				} break;
@@ -654,7 +636,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 					g_DirectX.SetVSync(bVsyncEnabled == TRUE);
 					g_DirectX.SetSmooth(bSmoothEnabled == TRUE);
 					g_DirectX.SetAspectRatioPreservation(bARPEnabled == TRUE);
-					g_OSMouse.Pop_State();
+					g_Mouse.PopState();
 					::DestroyWindow(hWndDlg);
 					g_hWndDlg = NULL;
 				} break;
@@ -664,7 +646,9 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 		} break;
 	case WM_INITDIALOG:
 		{
-			g_OSMouse.Push_State();
+			g_Mouse.PushState();
+			g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
+			g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
 
 			bVsyncEnabled = g_DirectX.IsVsyncEnabled() ? TRUE : FALSE;
 			bSmoothEnabled = g_DirectX.IsSmooth() ? TRUE : FALSE;

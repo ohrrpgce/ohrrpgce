@@ -1,8 +1,8 @@
 gfx_directx backend help.txt
-updated 12/29/09
+updated 9/26/10
 
 General:
-gfx_directx.dll is a windows-only graphics backend. It will not run on other operating systems. It is also dependent on d3d9.dll, and dinput8.dll. If any of those libraries are missing, the backend will fail. The backend also depends on d3dx9_24.dll, though if absent will only result in not being able to take backend-specific screenshots.
+gfx_directx.dll is a windows-only graphics backend. It will not run on other operating systems. It is also dependent on d3d9.dll. If that library is missing, the backend will fail. The backend also depends on d3dx9_24.dll, though if absent will only result in not being able to take backend-specific screenshots.
 
 The backend is built for directx 9.0, but has ability to run on 8.1 hardware (possibly earlier).
 
@@ -18,7 +18,7 @@ Main window:
 
 -To go fullscreen, press Alt-Enter. To return, press Alt-Enter.
 
--If the mouse is acquired for input by the ohr engine, the operating system's mouse cursor will disappear. If you leave the window (ie. Alt-Tab) it will reappear. A message also posts to the top of the window: "Press Scroll Lock to lock/free the mouse". If Scroll Lock is pressed, the mouse will be freed from control of the ohr. The ohr will not continue receiving input from the mouse until Scroll Lock is pressed again.
+-If the mouse is acquired for input by the ohr engine, the operating system's mouse cursor will disappear while over the window, and the ohr cursor will appear. A message also posts to the top of the window: "Press Scroll Lock to capture/free the mouse". If Scroll Lock is pressed, the mouse will be freed from control of the ohr. The ohr will not continue receiving input from the mouse until Scroll Lock is pressed again. If a mouse button is pressed, but not released, the mouse will be restricted to the rectangle of the window until the button is released.
 
 
 

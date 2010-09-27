@@ -192,7 +192,7 @@ DirectX_ErrorCode DirectX::Initialize(gfx::Window *pWin, const TCHAR* szModuleNa
 	m_d3d.Attach(Direct3DCreate9_call(D3D_SDK_VERSION));
 	if(m_d3d == NULL)
 		return Report(DX_Create_D3D);
-	m_d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_pWindow->GetWindowHandle(), D3DCREATE_HARDWARE_VERTEXPROCESSING, &m_d3dpp, &m_d3ddev);
+	m_d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_pWindow->GetWindowHandle(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &m_d3dpp, &m_d3ddev);
 	if(m_d3ddev == NULL)
 		return Report(DX_Create_D3DDevice);
 	if(S_OK != m_surface.Initialize(m_d3ddev, 320, 200))
@@ -231,7 +231,7 @@ DirectX_ErrorCode DirectX::ShowPage(unsigned char *pRawPage, UINT width, UINT he
 	{
 		if(IDYES == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
 			return Shutdown();
-		tstring szModule = m_szModuleName;
+		Tstring szModule = m_szModuleName;
 		Shutdown();
 		return Initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str())/*, false*/);
 	}
