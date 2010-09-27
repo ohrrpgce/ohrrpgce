@@ -76,6 +76,9 @@ cp -p docs/plotdict.xml tmp/docs
 cp -p docs/htmlplot.xsl tmp/docs
 cp -p docs/more-docs.txt tmp/docs
 
+echo "  Including help files"
+cp -pr ohrhelp tmp
+
 echo "tarring and bzip2ing distribution"
 mv tmp ohrrpgce
 tar -jcf distrib/ohrrpgce-linux-x86.tar.bz2 ./ohrrpgce --exclude .svn
