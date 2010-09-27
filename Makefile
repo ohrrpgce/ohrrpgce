@@ -22,7 +22,6 @@ endif
 #don't use the built in compiler rules, they don't apply to FB
 .SUFFIXES:
 
-#libfbgfx always needed, because of display_help_string!
 libraries=fbgfx
 libpaths=
 
@@ -31,6 +30,8 @@ FBFLAGS+=-g -exx
 
 ifdef win32
 	FBFLAGS+=-s gui
+#libfbgfx always needed, because of display_help_string!
+	libraries=fbgfx
 #libraries+= gdi32 winmm msvcrt kernel32 user32
 	common_objects+=win32\blit.o win32\base64.o
 	game_exe:=game.exe
@@ -53,6 +54,7 @@ endif
 
 ifeq ($(findstring fb,$(OHRGFX)), fb)
 	common_modules+= gfx_fb
+	libraries+= fbgfx
 endif
 
 ifeq ($(findstring alleg,$(OHRGFX)), alleg)

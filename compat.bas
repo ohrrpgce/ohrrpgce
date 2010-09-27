@@ -212,10 +212,13 @@ end sub
 
 sub display_help_string(help as string)
 	dim k as string
-	print help    ' display to text console (only works on some linux)
+	print help    ' display to text console (doesn't work under Windows unless compiled without -s gui)
+#ifdef __FB_WIN32__
+	'Don't do this under Unix, it's annoying and adds fbgfx as a dependency
 	screen 11     ' create a graphical fake text console
 	print help    ' display the help on the graphical console
 	k = input(1)  ' use FreeBasic-style keypress checking because our keyhandler isn't set up yet
+#endif
 	SYSTEM        ' terminate the program
 end sub
 

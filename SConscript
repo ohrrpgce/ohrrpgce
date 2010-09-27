@@ -70,11 +70,12 @@ EXE_SUFFIX = ''
 common_objects = []
 common_modules = []
 
-libraries = ['fbgfx']
+libraries = []
 libpaths = []
 
 if win32:
     common_modules += ['blit.c','base64.c']
+    libraries += ['fbgfx']
     env['FBFLAGS'] += ['-s', 'gui']
 elif unix:
     common_modules += ['blit.c', 'base64.c']
@@ -85,7 +86,7 @@ used_music = []
 
 ### Add various modules to build, conditional on OHRGFX and OHRMUSIC
 
-gfx_map = {'fb': {'common_modules': 'gfx_fb.bas'},
+gfx_map = {'fb': {'common_modules': 'gfx_fb.bas', 'libraries': 'fbgfx'},
            'alleg' : {'common_modules': 'gfx_alleg.bas', 'libraries': 'alleg'},
            'sdl' : {'common_modules': 'gfx_sdl.bas', 'libraries': 'SDL'},
            'directx' : {}, # nothing needed
