@@ -930,15 +930,6 @@ SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata()
 
  FOR i = 0 TO 11
  
-  'delays for attacks already selected
-  IF bat.hero_turn <> i THEN
-   IF bslot(i).stat.cur.stun < bslot(i).stat.max.stun THEN
-    '--delay does not count when stunned
-   ELSE
-    bslot(i).delay = large(bslot(i).delay - 1, 0)
-   END IF
-  END IF
-
   '--poison
   WITH bslot(i).stat
    IF .cur.poison < .max.poison THEN

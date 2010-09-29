@@ -99,7 +99,6 @@ TYPE BattleSprite
   ready_meter AS INTEGER '0-1000, fills based on speed. When 1000, set .ready=YES
   ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
   attack AS INTEGER  ' ID number +1 of the attack that this hero or enemy is going to do next
-  delay AS INTEGER   ' Number of ticks before prepared attack animates (counts down)
   '--Targetting
   t(11)               AS INTEGER 'Currently selected target slots. -1 means no target. Targets must be sorted to the beginning if the list changes
   revenge             AS INTEGER 'ID of last hero or enemy who damaged this hero or enemy, or -1 for none
