@@ -759,7 +759,6 @@ SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
    IF bat.targ.hit_dead THEN bslot(bat.hero_turn).keep_dead_targs(i) = YES
   END IF
  NEXT i
- '--FIXME: queued attacks don't matter for anything yet
  queue_attack bslot(), bat.hero_turn
  
  bslot(bat.hero_turn).ready_meter = 0
@@ -786,7 +785,7 @@ SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits(
      edgeboxstyle 1, 4 + i * 10, 132, 11, 0, dpage, YES, YES
      IF bslot(i).stat.cur.hp > 0 THEN
       DIM j AS INTEGER = bslot(i).ready_meter / 7.7
-      IF bslot(i).delay > 0 OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
+      IF blocked_by_attack(i) OR bslot(i).attack > 0 OR (bat.atk.id >= 0 AND bat.acting = i) THEN
        col = uilook(uiTimeBar)
        j = 130
       END IF
@@ -1000,7 +999,9 @@ SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata()
  FOR i = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    .delay = large(0, .delay - 1)
+    IF bslot(.attacker).stat.cur.stun >= bslot(.attacker).stat.max.stun THEN   
+     .delay = large(0, .delay - 1)
+    END IF
    END IF
   END WITH
  NEXT i
@@ -1071,7 +1072,7 @@ SUB show_enemy_meters(bat AS BattleState, bslot() AS BattleSprite, formdata() AS
    c = uilook(uiSelectedDisabled)
    IF is_hero(i) THEN c = uilook(uiSelectedItem)
    rectangle 0, 80 + (i * 10), .ready_meter / 10, 4, c, dpage
-   info = "v=" & .vis & " dly=" & .delay & " tm=" & bat.targ.mask(i) & " hp=" & .stat.cur.hp & " dz=" & .dissolve & " a=" & .attack 
+   info = "v=" & .vis & " tm=" & bat.targ.mask(i) & " hp=" & .stat.cur.hp & " dz=" & .dissolve & " a=" & .attack 
    IF is_enemy(i) THEN info &= " fm=" & formdata((i-4)*4) 
    edgeprint info, 20, 80 + i * 10, c, dpage
   END WITH
@@ -2120,9 +2121,6 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
   END IF
  LOOP
 
- 'get the delay to wait for this attack
- bslot(bat.enemy_turn).delay = atk.attack_delay
-
  autotarget bat.enemy_turn, atk, bslot()
 
  'ready for next attack
@@ -2173,8 +2171,6 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
   IF bslot(bat.hero_turn).menu(bat.pt).atk >= 0 THEN 'simple attack
    IF readbit(menubits(), 0, bat.hero_turn * 4 + bat.pt) = 0 THEN
     bslot(bat.hero_turn).attack = bslot(bat.hero_turn).menu(bat.pt).atk + 1
-    loadattackdata atk, bslot(bat.hero_turn).attack - 1
-    bslot(bat.hero_turn).delay = large(atk.attack_delay, 1)
     bat.targ.mode = targSETUP
     flusharray carray(), 7, 0
     EXIT SUB
@@ -2236,8 +2232,6 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
       LOOP UNTIL bat.spell.slot(rptr).atk_id > -1 OR safety > 999 '--loop until we have found a spell (or give up after 999 tries)
      NEXT i
      bslot(bat.hero_turn).attack = bat.spell.slot(rptr).atk_id + 1
-     loadattackdata atk, bslot(bat.hero_turn).attack - 1
-     bslot(bat.hero_turn).delay = large(atk.attack_delay, 1)
      bat.targ.mode = targSETUP
      flusharray carray(), 7, 0
     END IF
@@ -2298,7 +2292,6 @@ SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprit
     IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN bslot(bat.hero_turn).consume_lmp = INT(bat.sptr / 3) + 1
     '--queue attack
     bslot(bat.hero_turn).attack = bat.spell.slot(bat.sptr).atk_id + 1
-    bslot(bat.hero_turn).delay = large(atk.attack_delay, 1)
     '--exit spell menu
     bat.targ.mode = targSETUP
     bat.menu_mode = batMENUHERO
@@ -2353,10 +2346,7 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
    bslot(bat.hero_turn).consume_item = -1
    IF itembuf(73) = 1 THEN bslot(bat.hero_turn).consume_item = bat.item.pt
    
-   DIM attack AS AttackData
-   loadattackdata attack, itembuf(47) - 1
    bslot(bat.hero_turn).attack = itembuf(47)
-   bslot(bat.hero_turn).delay = large(attack.attack_delay, 1)
    bat.targ.mode = targSETUP
    bat.menu_mode = batMENUHERO
    flusharray carray(), 7, 0
@@ -2381,7 +2371,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
 
  DIM safety AS INTEGER = 0
  DO WHILE spawn_chained_attack(attack.instead, attack, bat, bslot())
-  IF bslot(bat.acting).delay > 0 THEN EXIT SUB
+  IF blocked_by_attack(bat.acting) THEN EXIT SUB
   loadattackdata attack, bat.atk.id
   safety += 1
   IF safety > 100 THEN
@@ -3010,7 +3000,6 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    '--chain is delayed, queue the attack
    bat.atk.id = -1 '--terminate the attack that lead to this chain
    bslot(bat.acting).attack = ch.atk_id
-   bslot(bat.acting).delay = chained_attack.attack_delay
   ELSE
    '--chain is immediate, prep it now!
    bat.atk.id = ch.atk_id - 1
@@ -3024,7 +3013,8 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'if the chained attack has a different target class/type then re-target
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
-   autotarget bat.acting, chained_attack, bslot(), NO
+   autotarget bat.acting, chained_attack, bslot()
+   bat.atk.id = -1
   ELSEIF bslot(bat.acting).attack > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
    queue_attack bslot(), bat.acting
@@ -3070,7 +3060,13 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
 END FUNCTION
 
 SUB queue_attack(bslot() AS BattleSprite, who AS INTEGER)
- queue_attack bslot(who).attack - 1, who, bslot(who).delay, bslot(who).t()
+ IF bslot(who).attack = 0 THEN
+  debuginfo "attempted queue_attack without attack for attacker slot " & who
+  EXIT SUB
+ END IF
+ DIM atk AS AttackData
+ loadattackdata atk, bslot(who).attack - 1
+ queue_attack bslot(who).attack - 1, who, atk.attack_delay, bslot(who).t(), (atk.nonblocking = NO)
 END SUB
 
 SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
@@ -3201,22 +3197,6 @@ SUB battle_animate_running_away (bslot() AS BattleSprite)
 END SUB
 
 SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
- ''--check classic bslot() based delays
- 'DIM triggered AS INTEGER = NO
- 'FOR i AS INTEGER = bat.next_attacker TO 11
- ' IF battle_check_a_delay(bat, bslot(), i) THEN
- '  triggered = YES
- '  EXIT FOR
- ' END IF
- 'NEXT i
- 'IF triggered = NO THEN
- ' FOR i AS INTEGER = 0 TO bat.next_attacker - 1
- '  IF battle_check_a_delay(bat, bslot(), i) THEN
- '   EXIT FOR
- '  END IF
- ' NEXT i
- 'END IF
- 
  '--check the attack queue delays
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   WITH atkq(i)
@@ -3237,18 +3217,6 @@ SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
   END WITH
  NEXT i
 END SUB
-
-FUNCTION battle_check_a_delay(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER) AS INTEGER
- IF bslot(index).attack > 0 AND bslot(index).delay = 0 THEN
-  '--next attacker has an attack selected and the delay is over
-  bat.atk.id = bslot(index).attack - 1
-  bat.acting = index
-  bat.anim_ready = NO
-  bslot(index).attack = 0
-  RETURN YES' an attack was triggered
- END IF
- RETURN NO
-END FUNCTION
 
 SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
  bat.next_hero = loopvar(bat.next_hero, 0, 3, 1)
@@ -3318,5 +3286,14 @@ FUNCTION battle_check_an_enemy_turn(BYREF bat AS BattleState, bslot() AS BattleS
   bat.enemy_turn = index
   RETURN YES
  END IF
+ RETURN NO
+END FUNCTION
+
+FUNCTION blocked_by_attack (who AS INTEGER) AS INTEGER
+ FOR i AS INTEGER = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used ANDALSO .attacker = who ANDALSO .delay > 0 ANDALSO .blocking THEN RETURN YES
+  END WITH
+ NEXT i
  RETURN NO
 END FUNCTION

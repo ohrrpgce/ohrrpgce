@@ -506,6 +506,7 @@ Type AttackData
 	recheck_costs_after_delay as integer
 	targ_does_not_flinch as integer
 	do_not_exceed_targ_stat as integer
+	nonblocking as integer
 End Type
 
 Type SpellList
