@@ -51,7 +51,9 @@ declare sub writestats (bslot() AS BattleSprite)
 
 declare sub get_valid_targs (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite)
 declare function attack_can_hit_dead(who as integer, attack as AttackData, stored_targs_can_be_dead as integer=NO) as integer
-declare sub autotarget (who as integer, atk as AttackData, bslot() AS BattleSprite, queue as integer=YES)
+declare sub autotarget OVERLOAD (who AS INTEGER, atk_id AS INTEGER, bslot() AS BattleSprite)
+declare sub autotarget OVERLOAD (who, atk AS AttackData, bslot() AS BattleSprite)
+
 declare function find_preferred_target (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite) as integer
 
 #ENDIF

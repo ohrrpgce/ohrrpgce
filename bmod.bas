@@ -71,6 +71,8 @@ DECLARE FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS B
 DECLARE SUB battle_check_for_enemy_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE FUNCTION battle_check_an_enemy_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
 DECLARE SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF attack AS AttackData)
+DECLARE SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite)
+DECLARE SUB battle_sort_away_dead_t_target(deadguy AS INTEGER, t() AS INTEGER)
 
 'these are the battle global variables
 DIM bstackstart AS INTEGER
@@ -662,9 +664,7 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
  'autotarget
  IF bat.targ.mode = targAUTO THEN
-  DIM autotarg_attack AS AttackData
-  loadattackdata autotarg_attack, bslot(bat.hero_turn).attack - 1
-  autotarget bat.hero_turn, autotarg_attack, bslot()
+  autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot()
   bslot(bat.hero_turn).ready_meter = 0
   bslot(bat.hero_turn).ready = NO
   bat.hero_turn = -1
@@ -1905,8 +1905,6 @@ END SUB
 
 SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
 'killing_attack contains attack id or -1 when no attack is relevant.
- DIM AS INTEGER j,k 'for loop counters
- DIM attack AS AttackData
 
  IF is_enemy(deadguy) THEN
   IF formdata((deadguy - 4) * 4) = 0 THEN EXIT SUB
@@ -1952,31 +1950,7 @@ SUB check_death(deadguy AS INTEGER, BYVAL killing_attack AS INTEGER, BYREF bat A
   END IF
   dead_enemy deadguy, killing_attack, bat, bslot(), formdata()
  END IF'------------END PLUNDER-------------------
- IF bat.targ.hit_dead = NO THEN '---THIS IS NOT DONE FOR ALLY+DEAD------
-  FOR j = 0 TO 11
-   '--Search through each hero and enemy to see if any of them are targetting the
-   '--guy who just died
-   IF bslot(j).keep_dead_targs(deadguy) = NO THEN
-    FOR k = 0 TO UBOUND(bslot(j).t) - 1
-     '--crappy bogo-sort dead target away
-     IF bslot(j).t(k) = deadguy THEN SWAP bslot(j).t(k), bslot(j).t(k + 1)
-    NEXT k
-    bslot(j).t(UBOUND(bslot(j).t)) = -1
-   END IF
-   IF bslot(j).t(0) = -1 AND bat.acting <> j AND bslot(j).attack > 0 THEN
-    'if no targets left, auto-re-target
-    loadattackdata attack, bslot(j).attack - 1
-    autotarget j, attack, bslot()
-   END IF
-   IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
-   IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
-  NEXT j
-  IF bat.targ.pointer = deadguy THEN
-   WHILE bat.targ.mask(bat.targ.pointer) = 0
-    bat.targ.pointer = bat.targ.pointer + 1: IF bat.targ.pointer > 11 THEN bat.targ.mode = targNONE: EXIT SUB
-   WEND
-  END IF
- END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
+ battle_reevaluate_dead_targets deadguy, bat, bslot()
 END SUB
 
 SUB dead_enemy(deadguy AS INTEGER, killing_attack AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
@@ -3286,7 +3260,6 @@ SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState
    WITH atkq(i)
     IF .used ANDALSO .attacker = targ THEN
      loadattackdata targets_attack, .attack
-     debug "check cancellation for " & targets_attack.name & " " & targets_attack.not_cancellable_by_attacks
      IF targets_attack.not_cancellable_by_attacks = NO THEN
       'Okay to cancel target's attack
       clear_attack_queue_slot i
@@ -3306,4 +3279,66 @@ SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState
                           'FIXME: is this still needed?
   END IF
  END IF
+END SUB
+
+SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite)
+ '--check for queued attacks that target the dead target
+ FOR i AS INTEGER = 0 TO UBOUND(atkq)
+  WITH atkq(i)
+   IF .used THEN
+    'FIXME: .keep_dead_targs() definitely needs to be moved from bslot() to atkq()
+    IF bslot(.attacker).keep_dead_targs(deadguy) = NO THEN
+     battle_sort_away_dead_t_target deadguy, .t()
+    END IF
+    IF .t(0) = -1 THEN
+     'if no targets left, auto-re-target
+     autotarget i, .attack, bslot()
+    END IF
+   END IF
+  END WITH
+ NEXT i
+ 
+ '--cancel current interactive targetting that points to the dead target (unless the attack is allowed to target dead)
+ '--FIXME: bslot().t() should be eventually removed, since atkq().t() can do its job
+ IF bat.targ.hit_dead = NO THEN
+  FOR i AS INTEGER = 0 TO 11
+   WITH bslot(i)
+    '--Search through each hero and enemy to see if any of them are currently
+    '--targetting the guy who just died
+    'FIXME: .keep_dead_targs() definitely needs to be moved from bslot() to atkq()
+    IF bslot(i).keep_dead_targs(deadguy) = NO THEN
+     battle_sort_away_dead_t_target deadguy, .t()
+    END IF
+    IF .t(0) = -1 AND bat.acting <> i AND .attack > 0 THEN
+     'if no targets left, auto-re-target
+     autotarget i, .attack - 1, bslot()
+    END IF
+    '--clear the dead target from any current interactive targeting.
+    IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
+    IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
+   END WITH
+  NEXT i
+  '--if current interactive targeting points to the dead target, find a new target
+  WITH bat.targ
+   IF .pointer = deadguy THEN
+    .pointer = 0
+    WHILE .mask(.pointer) = 0
+     .pointer += 1
+     IF .pointer > 11 THEN
+      .mode = targNONE
+      EXIT WHILE
+     END IF
+    WEND
+   END IF
+  END WITH
+ END IF  '----END ONLY WHEN bat.targ.hit_dead = NO
+END SUB
+
+SUB battle_sort_away_dead_t_target(deadguy AS INTEGER, t() AS INTEGER)
+ '--FIXME: la la la! James loves Bogo-sorts!
+ FOR i AS INTEGER = 0 TO UBOUND(t) - 1
+  '--crappy bogo-sort dead target away
+  IF t(i) = deadguy THEN SWAP t(i), .t(i + 1)
+ NEXT i
+ IF t(UBOUND(t)) = deadguy THEN t(UBOUND(t)) = -1
 END SUB
