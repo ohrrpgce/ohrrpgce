@@ -1226,13 +1226,13 @@ FUNCTION attack_can_hit_dead(who as integer, attack as AttackData, stored_targs_
  RETURN NO
 END FUNCTION
 
-SUB autotarget (who AS INTEGER, atk_id AS INTEGER, bslot() AS BattleSprite)
+SUB autotarget (who AS INTEGER, atk_id AS INTEGER, bslot() AS BattleSprite, queue AS INTEGER=YES)
  DIM attack AS AttackData
  loadattackdata attack, atk_id
- autotarget who, attack, bslot()
+ autotarget who, attack, bslot(), queue
 END SUB
 
-SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite)
+SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, queue AS INTEGER=YES)
 
  DIM tmask(11) ' A list of true/false values indicating
                ' which targets are valid for the currently targetting attack
@@ -1269,6 +1269,7 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite)
  END SELECT
 
  '--Now copy the target into the queue
+ debug "q from autotarget"
  queue_attack atk.id, who, atk.attack_delay, bslot(who).t()
 
 END SUB

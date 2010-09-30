@@ -664,6 +664,7 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
  'autotarget
  IF bat.targ.mode = targAUTO THEN
+  debug "a from battle_targetting"
   autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot()
   bslot(bat.hero_turn).ready_meter = 0
   bslot(bat.hero_turn).ready = NO
@@ -735,6 +736,7 @@ SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
    o = o + 1
   END IF
  NEXT i
+ debug "q from battle_confrim_target"
  queue_attack bslot(), bat.hero_turn
  
  bslot(bat.hero_turn).ready_meter = 0
@@ -2062,6 +2064,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
   END IF
  LOOP
 
+debug "a from enemy_ai"
  autotarget bat.enemy_turn, atk, bslot()
 
  'ready for next attack
@@ -2948,10 +2951,12 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'if the chained attack has a different target class/type then re-target
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
+   debug "a from spawned_chained_attack"
    autotarget bat.acting, chained_attack, bslot()
    bat.atk.id = -1
   ELSEIF bslot(bat.acting).attack > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
+   debug "q from spawned_chained_attack"
    queue_attack bslot(), bat.acting
   END IF
 
@@ -2995,10 +3000,20 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
 END FUNCTION
 
 SUB queue_attack(bslot() AS BattleSprite, who AS INTEGER)
+
  IF bslot(who).attack = 0 THEN
   debuginfo "attempted queue_attack without attack for attacker slot " & who
   EXIT SUB
  END IF
+
+ IF bslot(who).t(0) = -1 THEN
+  debuginfo "queuing attack " & readattackname(bslot(who).attack - 1) & " with no targets for attacker slot " & who
+ END IF
+
+ IF bslot(who).t(0) > -1 ANDALSO bslot(bslot(who).t(0)).stat.cur.hp <= 0 THEN
+  debuginfo "queuing attack " & readattackname(bslot(who).attack - 1) & " for attacker slot " & who & " with dead targ " & bslot(bslot(who).t(0)).name & bslot(who).t(0)
+ END IF
+ 
  DIM atk AS AttackData
  loadattackdata atk, bslot(who).attack - 1
  queue_attack bslot(who).attack - 1, who, atk.attack_delay, bslot(who).t(), (atk.nonblocking = NO)
@@ -3286,7 +3301,7 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
     s = attack.name & " of " & bslot(.attacker).name
     dim showdebug as integer=NO
     for j as integer = 0 to ubound(.t)
-     if deadguy = .t(j) then s &= " was targeting " & bslot(deadguy).name & " who died": showdebug=YES
+     if deadguy = .t(j) then s &= " was targeting " & bslot(deadguy).name & deadguy & " who died": showdebug=YES
     next j
     if showdebug then debug s
     
@@ -3295,7 +3310,9 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
     END IF
     IF .t(0) = -1 THEN
      'if no targets left, auto-re-target
-     autotarget i, .attack, bslot()
+     debug "a from battle_reevaluate_dead_targets"
+     autotarget .attacker, .attack, bslot()
+     clear_attack_queue_slot i
     END IF
    END IF
   END WITH
@@ -3304,21 +3321,6 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
  '--cancel current interactive targetting that points to the dead target (unless the attack is allowed to target dead)
  '--FIXME: bslot().t() should be eventually removed, since atkq().t() can do its job
  IF bat.targ.hit_dead = NO THEN
-  FOR i AS INTEGER = 0 TO 11
-   WITH bslot(i)
-    '--Search through each hero and enemy to see if any of them are currently
-    '--targetting the guy who just died
-    'FIXME: I disabled this because I think we don't want it... hope that is okay!
-    'IF bat.targ.hit_dead = NO THEN
-    ' battle_sort_away_dead_t_target deadguy, .t()
-    'END IF
-    'IF .t(0) = -1 AND bat.acting <> i AND .attack > 0 THEN
-    ' 'if no targets left, auto-re-target
-    ' autotarget i, .attack - 1, bslot()
-    'END IF
-    '--clear the dead target from any current interactive targeting.
-   END WITH
-  NEXT i
   IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
   IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
   '--if current interactive targeting points to the dead target, find a new target
