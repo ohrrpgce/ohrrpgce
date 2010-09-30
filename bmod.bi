@@ -59,5 +59,6 @@ DECLARE SUB clear_attack_queue()
 DECLARE SUB clear_attack_queue_slot(slot AS INTEGER)
 DECLARE SUB display_attack_queue (bslot() AS BattleSprite)
 DECLARE FUNCTION blocked_by_attack (who AS INTEGER) AS INTEGER
+DECLARE FUNCTION ready_meter_may_grow (bslot() AS BattleSprite, who AS INTEGER) AS INTEGER
 
 #ENDIF

@@ -962,7 +962,7 @@ SUB battle_meters (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata()
   END WITH
 
   '--if not doing anything, not dying, not ready, and not stunned
-  IF bslot(i).attack = 0 AND bslot(i).dissolve = 0 AND bslot(i).ready = NO AND bslot(i).stat.cur.stun = bslot(i).stat.max.stun THEN
+  IF ready_meter_may_grow(bslot(), i) THEN
    '--increment ctr by speed
    bslot(i).ready_meter = small(1000, bslot(i).ready_meter + bslot(i).stat.cur.spd)
    IF bslot(i).ready_meter = 1000 AND bat.wait_frames = 0 THEN bslot(i).ready = YES
@@ -3058,6 +3058,7 @@ SUB queue_attack(bslot() AS BattleSprite, who AS INTEGER)
  DIM atk AS AttackData
  loadattackdata atk, bslot(who).attack - 1
  queue_attack bslot(who).attack - 1, who, atk.attack_delay, bslot(who).t(), (atk.nonblocking = NO)
+ bslot(who).attack = 0
 END SUB
 
 SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
@@ -3287,4 +3288,15 @@ FUNCTION blocked_by_attack (who AS INTEGER) AS INTEGER
   END WITH
  NEXT i
  RETURN NO
+END FUNCTION
+
+FUNCTION ready_meter_may_grow (bslot() AS BattleSprite, who AS INTEGER) AS INTEGER
+ WITH bslot(who)
+  IF .attack <> 0 THEN RETURN NO
+  IF .dissolve <> 0 THEN RETURN NO
+  IF .stat.cur.stun < .stat.max.stun THEN RETURN NO
+  IF .ready = YES THEN RETURN NO
+ END WITH
+ IF blocked_by_attack(who) THEN RETURN NO
+ RETURN YES
 END FUNCTION
