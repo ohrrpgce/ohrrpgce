@@ -1029,7 +1029,7 @@ SUB get_valid_targs(tmask(), who, BYREF atk AS AttackData, bslot() AS BattleSpri
 
 END SUB
 
-SUB anim_advance (who as integer, attack as AttackData, bslot() AS BattleSprite)
+SUB anim_advance (who as integer, attack as AttackData, bslot() AS BattleSprite, t() AS INTEGER)
 
  DIM d AS INTEGER
  d = 1 ' Hero faces left
@@ -1045,19 +1045,19 @@ SUB anim_advance (who as integer, attack as AttackData, bslot() AS BattleSprite)
  
  IF attack.attacker_anim = 2 THEN ' Dash in
   DIM yt AS INTEGER
-  yt = (bslot(bslot(who).t(0)).h - bslot(who).h) + 2
+  yt = (bslot(t(0)).h - bslot(who).h) + 2
   anim_walktoggle who
-  anim_absmove who, bslot(bslot(who).t(0)).x + bslot(bslot(who).t(0)).w * d, bslot(bslot(who).t(0)).y + yt, 6, 6
+  anim_absmove who, bslot(t(0)).x + bslot(t(0)).w * d, bslot(t(0)).y + yt, 6, 6
   anim_waitforall
  END IF
  
  IF attack.attacker_anim = 8 THEN ' Teleport
-  anim_setpos who, bslot(bslot(who).t(0)).x + bslot(bslot(who).t(0)).w * d, bslot(bslot(who).t(0)).y + (bslot(bslot(who).t(0)).h - (bslot(who).h)), 0
+  anim_setpos who, bslot(t(0)).x + bslot(t(0)).w * d, bslot(t(0)).y + (bslot(t(0)).h - (bslot(who).h)), 0
  END IF
 
 END SUB
 
-SUB anim_hero (who as integer, attack as AttackData, bslot() AS BattleSprite)
+SUB anim_hero (who as integer, attack as AttackData, bslot() AS BattleSprite, t() AS INTEGER)
  DIM hx AS INTEGER = 0
  DIM hy AS INTEGER = 0
  DIM wx AS INTEGER = 0
@@ -1134,8 +1134,8 @@ SUB anim_hero (who as integer, attack as AttackData, bslot() AS BattleSprite)
   anim_setz who, 200
   anim_setframe who, 2
   anim_appear who
-  anim_setcenter who, bslot(who).t(0), 0, 0
-  anim_align who, bslot(who).t(0), dirDown, 0
+  anim_setcenter who, t(0), 0, 0
+  anim_align who, t(0), dirDown, 0
   anim_zmove who, -10, 20
   anim_waitforall
   anim_setframe who, 5
@@ -1143,7 +1143,7 @@ SUB anim_hero (who as integer, attack as AttackData, bslot() AS BattleSprite)
 
 END SUB
 
-SUB anim_enemy (who as integer, attack as AttackData, bslot() AS BattleSprite)
+SUB anim_enemy (who as integer, attack as AttackData, bslot() AS BattleSprite, t() AS INTEGER)
 
  IF attack.attacker_anim < 2 THEN' twitch
   anim_setz who, 2
@@ -1167,7 +1167,7 @@ SUB anim_enemy (who as integer, attack as AttackData, bslot() AS BattleSprite)
  IF attack.attacker_anim = 5 THEN' drop
   anim_setz who, 200
   anim_appear who
-  anim_setpos who, bslot(bslot(who).t(0)).x, bslot(bslot(who).t(0)).y, 0
+  anim_setpos who, bslot(t(0)).x, bslot(t(0)).y, 0
   anim_zmove who, -10, 20
   anim_waitforall
  END IF
