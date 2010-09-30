@@ -70,6 +70,7 @@ DECLARE SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS Bat
 DECLARE FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
 DECLARE SUB battle_check_for_enemy_turns(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE FUNCTION battle_check_an_enemy_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
+DECLARE SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF attack AS AttackData)
 
 'these are the battle global variables
 DIM bstackstart AS INTEGER
@@ -472,31 +473,7 @@ SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS
   IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
    changefoe targ - 4, attack.transmog_enemy, formdata(), bslot(), attack.transmog_hp, attack.transmog_stats
   END IF
-  IF attack.cancel_targets_attack THEN
-   '--try to cancel target's attack
-   IF bslot(targ).attack > 0 THEN
-    'Check if the attack is cancelable
-    DIM targets_attack AS AttackData
-    loadattackdata targets_attack, bslot(targ).attack - 1
-    IF targets_attack.not_cancellable_by_attacks = NO THEN
-     'Okay to cancel target's attack
-     bslot(targ).attack = 0
-    END IF
-   ELSE
-    'just cancel the attack
-    bslot(targ).attack = 0
-   END IF
-  END IF
-  IF attack.cancel_targets_attack OR bslot(targ).stat.cur.stun < bslot(targ).stat.max.stun THEN
-   '--If the currently targeting hero is the one hit, stop targetting
-   '--note that stunning implies cancellation of untargetted attacks,
-   '--but does not imply cancellation of already-targeted attacks.
-   IF bat.hero_turn = targ THEN
-    bat.targ.mode = targNONE
-    bat.hero_turn = -1
-    bslot(targ).attack = 0 'This might seem redundant to the above, but it is okay. Needed for stun
-   END IF
-  END IF
+  battle_attack_cancel_target_attack targ, bat, bslot(), attack
   WITH bslot(targ).enemy.reward
    IF attack.erase_rewards = YES THEN
     .gold = 0
@@ -3300,3 +3277,33 @@ FUNCTION ready_meter_may_grow (bslot() AS BattleSprite, who AS INTEGER) AS INTEG
  IF blocked_by_attack(who) THEN RETURN NO
  RETURN YES
 END FUNCTION
+
+SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF attack AS AttackData)
+ IF attack.cancel_targets_attack THEN
+  '--try to cancel target's attack
+  DIM targets_attack AS AttackData
+  FOR i AS INTEGER = 0 TO UBOUND(atkq)
+   WITH atkq(i)
+    IF .used ANDALSO .attacker = targ THEN
+     loadattackdata targets_attack, .attack
+     debug "check cancellation for " & targets_attack.name & " " & targets_attack.not_cancellable_by_attacks
+     IF targets_attack.not_cancellable_by_attacks = NO THEN
+      'Okay to cancel target's attack
+      clear_attack_queue_slot i
+     END IF
+    END IF
+   END WITH
+  NEXT i
+ END IF
+ IF attack.cancel_targets_attack OR bslot(targ).stat.cur.stun < bslot(targ).stat.max.stun THEN
+  '--If the currently targeting hero is the one hit, stop targetting
+  '--note that stunning implies cancellation of untargetted attacks,
+  '--but does not imply cancellation of already-targeted attacks.
+  IF bat.hero_turn = targ THEN
+   bat.targ.mode = targNONE
+   bat.hero_turn = -1
+   bslot(targ).attack = 0 'This might seem redundant to the above, but it is okay. Needed for stun
+                          'FIXME: is this still needed?
+  END IF
+ END IF
+END SUB
