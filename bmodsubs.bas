@@ -1204,6 +1204,12 @@ SUB anim_retreat (who as integer, attack as AttackData, bslot() AS BattleSprite)
  END IF
 END SUB
 
+FUNCTION attack_can_hit_dead(who as integer, atk_id as integer, stored_targs_can_be_dead as integer=NO) as integer
+ DIM attack AS AttackData
+ loadattackdata attack, atk_id
+ RETURN attack_can_hit_dead(who, attack, stored_targs_can_be_dead)
+END FUNCTION
+
 FUNCTION attack_can_hit_dead(who as integer, attack as AttackData, stored_targs_can_be_dead as integer=NO) as integer
 
  SELECT CASE attack.targ_class

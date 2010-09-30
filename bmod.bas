@@ -733,7 +733,6 @@ SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
   IF bat.targ.selected(i) = 1 THEN
    bslot(bat.hero_turn).t(o) = i
    o = o + 1
-   IF bat.targ.hit_dead THEN bslot(bat.hero_turn).keep_dead_targs(i) = YES
   END IF
  NEXT i
  queue_attack bslot(), bat.hero_turn
@@ -2352,9 +2351,6 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  bat.atk.has_consumed_costs = NO
  IF is_enemy(bat.acting) THEN pdir = 1
  
- FOR i = 0 TO 11
-  bslot(bat.acting).keep_dead_targs(i) = NO
- NEXT i
  'CANNOT HIT INVISIBLE FOES
  FOR i = 0 TO 11
   IF bslot(bat.acting).t(i) > -1 THEN
@@ -2828,9 +2824,6 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
  NEXT i
 
  bat.targ.hit_dead = NO
- FOR i = 0 to 11
-  bslot(bat.hero_turn).keep_dead_targs(i) = NO
- NEXT i
 
  DIM attack AS AttackData
  'load attack
@@ -3286,8 +3279,18 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    'FIXME: .keep_dead_targs() definitely needs to be moved from bslot() to atkq()
-    IF bslot(.attacker).keep_dead_targs(deadguy) = NO THEN
+    DIM attack AS AttackData
+    loadattackdata attack, .attack
+    
+    DIM s AS STRING
+    s = attack.name & " of " & bslot(.attacker).name
+    dim showdebug as integer=NO
+    for j as integer = 0 to ubound(.t)
+     if deadguy = .t(j) then s &= " was targeting " & bslot(deadguy).name & " who died": showdebug=YES
+    next j
+    if showdebug then debug s
+    
+    IF NOT attack_can_hit_dead(.attacker, .attack, bslot(.attacker).stored_targs_can_be_dead) THEN
      battle_sort_away_dead_t_target deadguy, .t()
     END IF
     IF .t(0) = -1 THEN
@@ -3305,19 +3308,19 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
    WITH bslot(i)
     '--Search through each hero and enemy to see if any of them are currently
     '--targetting the guy who just died
-    'FIXME: .keep_dead_targs() definitely needs to be moved from bslot() to atkq()
-    IF bslot(i).keep_dead_targs(deadguy) = NO THEN
-     battle_sort_away_dead_t_target deadguy, .t()
-    END IF
-    IF .t(0) = -1 AND bat.acting <> i AND .attack > 0 THEN
-     'if no targets left, auto-re-target
-     autotarget i, .attack - 1, bslot()
-    END IF
+    'FIXME: I disabled this because I think we don't want it... hope that is okay!
+    'IF bat.targ.hit_dead = NO THEN
+    ' battle_sort_away_dead_t_target deadguy, .t()
+    'END IF
+    'IF .t(0) = -1 AND bat.acting <> i AND .attack > 0 THEN
+    ' 'if no targets left, auto-re-target
+    ' autotarget i, .attack - 1, bslot()
+    'END IF
     '--clear the dead target from any current interactive targeting.
-    IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
-    IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
    END WITH
   NEXT i
+  IF bat.targ.mask(deadguy) = 1 THEN bat.targ.mask(deadguy) = 0
+  IF bat.targ.selected(deadguy) = 1 THEN bat.targ.selected(deadguy) = 0
   '--if current interactive targeting points to the dead target, find a new target
   WITH bat.targ
    IF .pointer = deadguy THEN

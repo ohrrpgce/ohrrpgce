@@ -50,7 +50,8 @@ declare function visibleandalive (o as integer, bslot() as battlesprite) as inte
 declare sub writestats (bslot() AS BattleSprite)
 
 declare sub get_valid_targs (tmask() as integer, who as integer, atk as AttackData, bslot() AS BattleSprite)
-declare function attack_can_hit_dead(who as integer, attack as AttackData, stored_targs_can_be_dead as integer=NO) as integer
+declare function attack_can_hit_dead OVERLOAD (who as integer, atk_id as integer, stored_targs_can_be_dead as integer=NO) as integer
+declare function attack_can_hit_dead OVERLOAD (who as integer, attack as AttackData, stored_targs_can_be_dead as integer=NO) as integer
 declare sub autotarget OVERLOAD (who AS INTEGER, atk_id AS INTEGER, bslot() AS BattleSprite)
 declare sub autotarget OVERLOAD (who, atk AS AttackData, bslot() AS BattleSprite)
 
