@@ -1241,12 +1241,10 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER,
 
  get_valid_targs tmask(), who, atk, bslot()
 
- 'flush the targeting space for this attacker
+ 'flush the targeting space
  FOR i = 0 TO 11
   t(i) = -1
  NEXT i
-
- DIM targetptr AS INTEGER = 0
 
  SELECT CASE atk.targ_set
 
@@ -1269,8 +1267,10 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER,
  END SELECT
 
  '--Now copy the target into the queue
- debug "q from autotarget"
- queue_attack atk.id, who, atk.attack_delay, t()
+ IF queue THEN
+  debug "q from autotarget"
+  queue_attack atk.id, who, atk.attack_delay, t()
+ END IF
 
 END SUB
 

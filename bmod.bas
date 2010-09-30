@@ -735,7 +735,7 @@ SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
    o = o + 1
   END IF
  NEXT i
- debug "q from battle_confrim_target"
+ debug "q from battle_confirm_target"
  queue_attack bslot(), bat.hero_turn
  
  bslot(bat.hero_turn).ready_meter = 0
@@ -3011,6 +3011,7 @@ SUB queue_attack(bslot() AS BattleSprite, who AS INTEGER)
 
  IF bslot(who).t(0) > -1 ANDALSO bslot(bslot(who).t(0)).stat.cur.hp <= 0 THEN
   debuginfo "queuing attack " & readattackname(bslot(who).attack - 1) & " for attacker slot " & who & " with dead targ " & bslot(bslot(who).t(0)).name & bslot(who).t(0)
+  autotarget who, bslot(who).attack - 1, bslot(), bslot(who).t(), NO
  END IF
  
  DIM atk AS AttackData
@@ -3310,8 +3311,7 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
     IF .t(0) = -1 THEN
      'if no targets left, auto-re-target
      debug "a from battle_reevaluate_dead_targets"
-     autotarget .attacker, .attack, bslot(), bslot(.attacker).t()
-     clear_attack_queue_slot(i)
+     autotarget .attacker, .attack, bslot(), .t(), NO
     END IF
    END IF
   END WITH
