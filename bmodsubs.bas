@@ -25,9 +25,9 @@ DECLARE SUB getitem (getit%, num%)
 #include "battle_udts.bi"
 #include "moresubs.bi"
 
-DECLARE SUB confirm_auto_spread (who as integer, tmask() as integer, bslot() AS BattleSprite)
-DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atk as AttackData, bslot() AS BattleSprite)
-DECLARE SUB confirm_auto_first (who as integer, tmask() as integer, bslot() AS BattleSprite)
+DECLARE SUB confirm_auto_spread (who as integer, tmask() as integer, bslot() AS BattleSprite, t() AS INTEGER)
+DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atk as AttackData, bslot() AS BattleSprite, t() AS INTEGER)
+DECLARE SUB confirm_auto_first (who as integer, tmask() as integer, bslot() AS BattleSprite, t() AS INTEGER)
 
 DECLARE FUNCTION quick_battle_distance(who1 as integer, who2 as integer, bslot() AS BattleSprite)
 DECLARE FUNCTION battle_distance(who1 as integer, who2 as integer, bslot() AS BattleSprite)
@@ -1226,13 +1226,13 @@ FUNCTION attack_can_hit_dead(who as integer, attack as AttackData, stored_targs_
  RETURN NO
 END FUNCTION
 
-SUB autotarget (who AS INTEGER, atk_id AS INTEGER, bslot() AS BattleSprite, queue AS INTEGER=YES)
+SUB autotarget (who AS INTEGER, atk_id AS INTEGER, bslot() AS BattleSprite, t() AS INTEGER, queue AS INTEGER=YES)
  DIM attack AS AttackData
  loadattackdata attack, atk_id
- autotarget who, attack, bslot(), queue
+ autotarget who, attack, bslot(), t(), queue
 END SUB
 
-SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, queue AS INTEGER=YES)
+SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER, queue AS INTEGER=YES)
 
  DIM tmask(11) ' A list of true/false values indicating
                ' which targets are valid for the currently targetting attack
@@ -1243,7 +1243,7 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, queue AS INTEGE
 
  'flush the targeting space for this attacker
  FOR i = 0 TO 11
-  bslot(who).t(i) = -1
+  t(i) = -1
  NEXT i
 
  DIM targetptr AS INTEGER = 0
@@ -1251,49 +1251,49 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, queue AS INTEGE
  SELECT CASE atk.targ_set
 
   CASE 0, 3: '--focus and random roulette
-   confirm_auto_focus who, tmask(), atk, bslot()
+   confirm_auto_focus who, tmask(), atk, bslot(), t()
 
   CASE 1: '--spread attack
-   confirm_auto_spread who, tmask(), bslot()
+   confirm_auto_spread who, tmask(), bslot(), t()
 
   CASE 2: '-- optional spread
    IF INT(RND * 100) < 33 THEN
-    confirm_auto_spread who, tmask(), bslot()
+    confirm_auto_spread who, tmask(), bslot(), t()
    ELSE
-    confirm_auto_focus who, tmask(), atk, bslot()
+    confirm_auto_focus who, tmask(), atk, bslot(), t()
    END IF
 
   CASE 4: '--first target
-   confirm_auto_first who, tmask(), bslot()
+   confirm_auto_first who, tmask(), bslot(), t()
 
  END SELECT
 
  '--Now copy the target into the queue
  debug "q from autotarget"
- queue_attack atk.id, who, atk.attack_delay, bslot(who).t()
+ queue_attack atk.id, who, atk.attack_delay, t()
 
 END SUB
 
-SUB confirm_auto_spread (who, tmask(), bslot() AS BattleSprite)
+SUB confirm_auto_spread (who, tmask(), bslot() AS BattleSprite, t() AS INTEGER)
  DIM i AS INTEGER
  DIM targetptr AS INTEGER = 0
  FOR i = 0 TO 11
   IF tmask(i) <> 0 THEN
-   bslot(who).t(targetptr) = i
+   t(targetptr) = i
    targetptr = targetptr + 1
   END IF
  NEXT i
 END SUB
 
-SUB confirm_auto_focus (who, tmask(), atk AS AttackData, bslot() AS BattleSprite)
- bslot(who).t(0) = find_preferred_target(tmask(), who, atk, bslot())
+SUB confirm_auto_focus (who, tmask(), atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER)
+ t(0) = find_preferred_target(tmask(), who, atk, bslot())
 END SUB
 
-SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite)
+SUB confirm_auto_first (who, tmask(), bslot() AS BattleSprite, t() AS INTEGER)
  DIM i AS INTEGER
  FOR i = 0 TO 11
   IF tmask(i) <> 0 THEN
-   bslot(who).t(0) = i
+   t(0) = i
    EXIT SUB
   END IF
  NEXT i

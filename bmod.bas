@@ -662,10 +662,9 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
  IF bat.targ.mode = targSETUP THEN setup_targetting bat, bslot()
 
- 'autotarget
  IF bat.targ.mode = targAUTO THEN
   debug "a from battle_targetting"
-  autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot()
+  autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot(), bslot(bat.hero_turn).t()
   bslot(bat.hero_turn).ready_meter = 0
   bslot(bat.hero_turn).ready = NO
   bat.hero_turn = -1
@@ -2065,7 +2064,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
  LOOP
 
 debug "a from enemy_ai"
- autotarget bat.enemy_turn, atk, bslot()
+ autotarget bat.enemy_turn, atk, bslot(), bslot(bat.enemy_turn).t()
 
  'ready for next attack
  bslot(bat.enemy_turn).ready = NO
@@ -2952,7 +2951,7 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
    debug "a from spawned_chained_attack"
-   autotarget bat.acting, chained_attack, bslot()
+   autotarget bat.acting, chained_attack, bslot(), bslot(bat.acting).t()
    bat.atk.id = -1
   ELSEIF bslot(bat.acting).attack > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
@@ -3311,8 +3310,8 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
     IF .t(0) = -1 THEN
      'if no targets left, auto-re-target
      debug "a from battle_reevaluate_dead_targets"
-     autotarget .attacker, .attack, bslot()
-     clear_attack_queue_slot i
+     autotarget .attacker, .attack, bslot(), bslot(.attacker).t()
+     clear_attack_queue_slot(i)
     END IF
    END IF
   END WITH
