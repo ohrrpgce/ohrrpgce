@@ -1265,7 +1265,6 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER,
 
  '--Now copy the target into the queue
  IF queue THEN
-  debug "q from autotarget"
   queue_attack atk.id, who, atk.attack_delay, t()
  END IF
 
