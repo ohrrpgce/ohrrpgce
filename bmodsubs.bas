@@ -291,10 +291,15 @@ End Function
 OPTION EXPLICIT 'FIXME: move this up as code gets cleaned up
 
 FUNCTION inflict (w as integer, t as integer, BYREF attacker AS BattleSprite, BYREF target AS BattleSprite, attack as AttackData, tcount as integer, byval hit_dead as integer=NO) as integer
-
+ 'This overload is for when you want the luxury of not caring which stat was damaged, or by how much.
  DIM h AS INTEGER = 0
+ DIM targstat AS INTEGER = 0
+ RETURN inflict(h, targstat, w, t, attacker, target, attack, tcount, hit_dead)
+END FUNCTION
+
+FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t as integer, BYREF attacker AS BattleSprite, BYREF target AS BattleSprite, attack as AttackData, tcount as integer, byval hit_dead as integer=NO) as integer
+
  DIM cure AS INTEGER
- DIM targstat AS INTEGER
  
  attacker.attack_succeeded = 0
  
@@ -1483,6 +1488,16 @@ SUB loadfoe (slot as integer, formdata() as integer, BYREF bat AS BattleState, b
   loadenemydata bslot(4 + slot).enemy, formdata(slot * 4) - 1, -1
 
   transfer_enemy_bits slot, bslot()
+  
+  '--transfer counterattacks
+  WITH bslot(4 + slot)
+   FOR j AS INTEGER = 0 TO 7
+    .elem_counter_attack(j) = .enemy.elem_counter_attack(j)
+   NEXT j
+   FOR j AS INTEGER = 0 TO 11
+    .stat_counter_attack(j) = .enemy.stat_counter_attack(j)
+   NEXT j
+  END WITH
 
   '--Special handling for spawning already-dead enemies
  

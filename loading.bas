@@ -2450,9 +2450,12 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
    .alone_ai(i) = buf(102 + i)
   NEXT i
   
-  '--not used!
+  '--counter-attacks
   FOR i AS INTEGER = 0 TO 7
-   .counter_attack(i) = buf(107 + i)
+   .elem_counter_attack(i) = buf(107 + i)
+  NEXT i
+  FOR i AS INTEGER = 0 TO 11
+   .stat_counter_attack(i) = buf(115 + i)
   NEXT i
   
  END WITH
@@ -2534,9 +2537,12 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
    buf(102 + i) = .alone_ai(i)
   NEXT i
   
-  '--not used!
+  '--counter attacks
   FOR i AS INTEGER = 0 TO 7
-   buf(107 + i) = .counter_attack(i)
+   buf(107 + i) = .elem_counter_attack(i)
+  NEXT i
+  FOR i AS INTEGER = 0 TO 11
+   buf(115 + i) = .stat_counter_attack(i)
   NEXT i
   
  END WITH

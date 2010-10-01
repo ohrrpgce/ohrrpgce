@@ -123,6 +123,9 @@ TYPE BattleSprite
   death_unneeded AS INTEGER 'YES/NO
   never_flinch   AS INTEGER 'YES/NO
   ignore_for_alone    AS INTEGER 'YES/NO
+  '--counterattacking
+  elem_counter_attack(7) AS INTEGER
+  stat_counter_attack(11) AS INTEGER
   '--
   enemy AS EnemyDef '--only populated if this slot holds an enemy
   '--

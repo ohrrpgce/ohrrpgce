@@ -584,7 +584,8 @@ TYPE EnemyDef
   regular_ai(4) as integer 'id+1, 0=none
   desperation_ai(4) as integer 'id+1, 0=none
   alone_ai(4) as integer 'id+1, 0=none
-  counter_attack(7) as integer 'id+1, 0=none NOT USED
+  elem_counter_attack(7) as integer 'id+1, 0=none
+  stat_counter_attack(11) as integer 'id+1, 0=none
   '--bitsets
   weak(7)        AS INTEGER 'YES/NO for weakness to each element
   strong(7)      AS INTEGER 'YES/NO for strength to each element

@@ -142,8 +142,9 @@ CONST EnDatSpawnNum = 91
 CONST EnDatAtkNormal = 92' to 96
 CONST EnDatAtkDesp = 97'   to 101
 CONST EnDatAtkAlone = 102' to 106
-'107 to 114 unimplemented elemental triggers
-'115 to 158 unused
+CONST EnDatElemCtr = 107' to 114
+CONST EnDatStatCtr = 115' to 126
+'127 to 158 unused
 
 '-------------------------------------------------------------------------
 
@@ -222,7 +223,7 @@ max(EnLimDeathSFX) = gen(genMaxSFX) + 1
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu(67) AS STRING, menutype(67), menuoff(67), menulimits(67)
+DIM menu(86) AS STRING, menutype(86), menuoff(86), menulimits(86)
 
 CONST EnMenuBackAct = 0
 menu(EnMenuBackAct) = "Previous Menu"
@@ -438,11 +439,28 @@ menulimits(EnMenuDeathSFX) = EnLimDeathSFX
 CONST EnMenuCursorOffset = 66
 menu(EnMenuCursorOffset) = "Cursor Offset..."
 menutype(EnMenuCursorOffset) = 1
+
+CONST EnMenuElemCtr = 67' to 74
+FOR i = 0 TO 7
+ menu(EnMenuElemCtr + i) = "Counter element " & readglobalstring(17 + i, "Element" & i+1) & ":"
+ menutype(EnMenuElemCtr + i) = 7
+ menuoff(EnMenuElemCtr + i) = EnDatElemCtr + i
+ menulimits(EnMenuElemCtr + i) = EnLimAtk
+NEXT i
+
+CONST EnMenuStatCtr = 75' to 86
+FOR i = 0 TO 11
+ menu(EnMenuStatCtr + i) = "Counter damage to " & readglobalstring(nof(i), "Stat" & i) & ":"
+ menutype(EnMenuStatCtr + i) = 7
+ menuoff(EnMenuStatCtr + i) = EnDatStatCtr + i
+ menulimits(EnMenuStatCtr + i) = EnLimAtk
+NEXT i
+
 '-------------------------------------------------------------------------
 '--menu structure
-DIM workmenu(15), dispmenu(15) AS STRING
+DIM workmenu(35), dispmenu(35) AS STRING
 DIM state AS MenuState
-state.size = 22
+state.size = 24
 
 DIM mainMenu(8)
 mainMenu(0) = EnMenuBackAct
@@ -496,12 +514,18 @@ FOR i = 0 TO 7
  spawnMenu(6 + i) = EnMenuSpawnElement + i
 NEXT i
 
-DIM atkMenu(15)
+DIM atkMenu(35)
 atkMenu(0) = EnMenuBackAct
 FOR i = 0 TO 4
  atkMenu(1 + i) = EnMenuAtkNormal + i
  atkMenu(6 + i) = EnMenuAtkDesp + i
  atkMenu(11 + i) = EnMenuAtkAlone + i
+NEXT i
+FOR i = 0 TO 7
+ atkMenu(16 + i) = EnMenuElemCtr + i
+NEXT i
+FOR i = 0 TO 11
+ atkMenu(24 + i) = EnMenuStatCtr + i
 NEXT i
 
 DIM helpkey AS STRING = "enemy"
@@ -706,6 +730,7 @@ DO
  DrawSlice preview_box, dpage
 
  standardmenu dispmenu(), state, 0, 0, dpage
+ draw_fullscreen_scrollbar state, , dpage
  IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just pressed TAB
   show_name = large(0, show_name - 1)
   tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) & " " & recindex

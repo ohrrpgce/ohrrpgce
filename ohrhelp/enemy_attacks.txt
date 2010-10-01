@@ -11,3 +11,7 @@ There are 5 slots for "Normal" attacks. Normally the enemy will choose a random 
 There are 5 slots for "Desperation" attacks. The enemy will randomly choose from these attacks if its HP is less that 20%. If there are no desperation attacks, it will use normal attacks instead.
 
 There are 5 slots for "Alone" attacks. The enemy will randomly choose from these attacks if it is the last enemy alive in the battle formation. If there are no alone attacks, the enemy will use normal or desperation attacks instead.
+
+You can specify counterattacks that will be triggered when this enemy is hit by attacks of certain elemental types. An attack can only trigger one counterattack, so if multiple elementals apply, only the first one will be counterattacked.
+
+You can specify counterattacks that will be triggered when this enemy is hit by attacks that damage certain stats. Stat counterattacks only happen when no elemental counterattacks have happened.

@@ -73,6 +73,7 @@ DECLARE FUNCTION battle_check_an_enemy_turn(BYREF bat AS BattleState, bslot() AS
 DECLARE SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite, BYREF attack AS AttackData)
 DECLARE SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_sort_away_dead_t_target(deadguy AS INTEGER, t() AS INTEGER)
+DECLARE SUB battle_counterattacks(BYVAL h AS INTEGER, BYVAL targstat AS INTEGER, who AS INTEGER, attack AS AttackData, bslot() AS BattleSprite)
 
 'these are the battle global variables
 DIM bstackstart AS INTEGER
@@ -470,7 +471,9 @@ SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS
  checkTagCond attack.tagset(1), 1
  
  '--attempt inflict the damage to the target
- IF inflict(bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
+ DIM h AS INTEGER = 0 '--set inside inflict
+ DIM targstat AS INTEGER = 0 '--set inside inflict
+ IF inflict(h, targstat, bat.acting, targ, bslot(bat.acting), bslot(targ), attack, tcount, attack_can_hit_dead(bat.acting, attack)) THEN
   '--attack succeeded
   IF attack.transmog_enemy > 0 ANDALSO is_enemy(targ) THEN
    changefoe targ - 4, attack.transmog_enemy, formdata(), bslot(), attack.transmog_hp, attack.transmog_stats
@@ -516,7 +519,7 @@ SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS
   bslot(targ).dissolve = 0
  END IF
  IF is_enemy(targ) AND attack.no_spawn_on_attack = NO THEN battle_spawn_on_hit targ, bat, bslot(), formdata()
- 'FIXME: this would probably be the right place to trigger counterattacks
+ battle_counterattacks h, targstat, targ, attack, bslot()
  IF bat.atk.has_consumed_costs = NO THEN
   '--if the attack costs MP, we want to actually consume MP
   IF attack.mp_cost > 0 THEN bslot(bat.acting).stat.cur.mp = large(bslot(bat.acting).stat.cur.mp - focuscost(attack.mp_cost, bslot(bat.acting).stat.cur.foc), 0)
@@ -3348,4 +3351,28 @@ SUB battle_sort_away_dead_t_target(deadguy AS INTEGER, t() AS INTEGER)
   IF t(i) = deadguy THEN SWAP t(i), t(i + 1)
  NEXT i
  IF t(UBOUND(t)) = deadguy THEN t(UBOUND(t)) = -1
+END SUB
+
+SUB battle_counterattacks(BYVAL h AS INTEGER, BYVAL targstat AS INTEGER, who AS INTEGER, attack AS AttackData, bslot() AS BattleSprite)
+ DIM t(11) AS INTEGER
+ '--first elementals
+ FOR i AS INTEGER = 0 TO 7
+  IF attack.elemental_damage(i) THEN
+   IF bslot(who).elem_counter_attack(i) > 0 THEN
+    'counterattacks are forced non-blocking
+    autotarget who, bslot(who).elem_counter_attack(i) - 1, bslot(), t(), YES, NO
+    EXIT SUB '-- only one counterattack per trigger attack
+   END IF
+  END IF
+ NEXT i
+ '-then stat damage 
+ FOR i AS INTEGER = 0 TO 11
+  IF h > 0 AND targstat = i THEN
+   IF bslot(who).stat_counter_attack(i) > 0 THEN
+    'counterattacks are forced non-blocking
+    autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), t(), YES, NO
+    EXIT SUB '-- only one counterattack per trigger attack
+   END IF
+  END IF
+ NEXT i
 END SUB
