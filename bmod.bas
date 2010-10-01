@@ -2950,6 +2950,8 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
   IF bat.anim_blocking_delay = NO THEN
    '--chains from non-blocking attacks are always non-blocking
    blocking = NO
+  ELSEIF ch.nonblocking THEN
+   blocking = NO
   ELSE
    blocking = NOT chained_attack.nonblocking
   END IF

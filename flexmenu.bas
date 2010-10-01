@@ -105,9 +105,10 @@ atkbit(84) = "Delay doesn't block further actions"
 '--191 attack bits allowed in menu.
 '--Data is split, See AtkDatBits and AtkDatBits2 for offsets
 
-DIM atk_chain_bitset_names(1) AS STRING
+DIM atk_chain_bitset_names(2) AS STRING
 atk_chain_bitset_names(0) = "Attacker must know chained attack"
 atk_chain_bitset_names(1) = "Ignore chained attack's delay"
+atk_chain_bitset_names(2) = "Delay doesn't block further actions"
 
 '----------------------------------------------------------
 DIM recbuf(40 + curbinsize(binATTACK) / 2) AS INTEGER '--stores the combined attack data from both .DT6 and ATTACK.BIN

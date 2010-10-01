@@ -2126,8 +2126,9 @@ SUB loadattackchain (BYREF ch AS AttackDataChain, buf() AS INTEGER, BYVAL id_off
  ch.mode = buf(mode_offset)
  ch.val1 = buf(val1_offset)
  ch.val2 = buf(val2_offset)
- ch.must_know  = xreadbit(buf(), 0, bits_offset)
- ch.no_delay   = xreadbit(buf(), 1, bits_offset)
+ ch.must_know   = xreadbit(buf(), 0, bits_offset)
+ ch.no_delay    = xreadbit(buf(), 1, bits_offset)
+ ch.nonblocking = xreadbit(buf(), 2, bits_offset)
 END SUB
 
 SUB loadattackdata (BYREF atkdat AS AttackData, BYVAL index AS INTEGER)

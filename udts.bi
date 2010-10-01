@@ -420,6 +420,7 @@ Type AttackDataChain
 	'--bitsets
 	must_know as integer
 	no_delay as integer
+	nonblocking as integer
 End Type
 
 Type AttackData
