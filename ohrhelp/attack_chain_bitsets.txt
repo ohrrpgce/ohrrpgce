@@ -7,3 +7,6 @@ Modifiy bitsets with Left, Right, SPACE and ENTER.
 * "Attacker must know chained attack" causes the chain to fail if the attacker does not have the chained attack in their spell lists or weapon attack.
 
 * "Ignore chained attack's delay" causes the chained attack to happen immediately, even if it has a delay when used normally.
+
+* "Doesn't block further actions"
+causes the chained attack to be non-blocking, even if it would not normally be. Non-blocking attacks allow the attacker to continue to act while the attack delay counts down.

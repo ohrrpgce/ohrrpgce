@@ -141,3 +141,6 @@ Normally the target of an attack flinches. For heroes this is their "Hurt" frame
 
 * Don't allow damage to exceed target stat
 This bitset prevents the attack from doing any more damage than the target's target stat. For example, if an attack is capable of doing 100 damage, but the target only has 25 HP left, this bitset would limit the damage to 25. This also works for curing attacks. For example, if a cure spell can restore 100 HP, but the target is only 25 HP below max, this bitset will limit the cure to 25 HP. (This bitset also works for other target stats besides HP)
+
+* Delay doesn't block further actions
+This bitset means the attacker will start their next turn immediately without waiting for the attack delay to run out. These non-blocking attacks don't interfere with the attacker's ready-meter. (non-blocking is a automatically inherited by attacks that chain from a non-blocking attack)
