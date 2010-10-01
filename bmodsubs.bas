@@ -1226,13 +1226,13 @@ FUNCTION attack_can_hit_dead(who as integer, attack as AttackData, stored_targs_
  RETURN NO
 END FUNCTION
 
-SUB autotarget (who AS INTEGER, atk_id AS INTEGER, bslot() AS BattleSprite, t() AS INTEGER, queue AS INTEGER=YES)
+SUB autotarget (who AS INTEGER, atk_id AS INTEGER, bslot() AS BattleSprite, t() AS INTEGER, queue AS INTEGER=YES, override_blocking AS INTEGER=-2)
  DIM attack AS AttackData
  loadattackdata attack, atk_id
- autotarget who, attack, bslot(), t(), queue
+ autotarget who, attack, bslot(), t(), queue, override_blocking
 END SUB
 
-SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER, queue AS INTEGER=YES)
+SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER, queue AS INTEGER=YES, override_blocking AS INTEGER=-2)
 
  DIM tmask(11) ' A list of true/false values indicating
                ' which targets are valid for the currently targetting attack
@@ -1265,7 +1265,7 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER,
 
  '--Now copy the target into the queue
  IF queue THEN
-  queue_attack atk.id, who, atk.attack_delay, t()
+  queue_attack atk.id, who, t(), override_blocking
  END IF
 
 END SUB 'bslot(

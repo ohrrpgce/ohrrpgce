@@ -137,7 +137,7 @@ FUNCTION battle (form, fatal) as integer
    EXIT DO
   END IF
   IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
-   generate_atkscript attack, bat, bslot(), bat.animating_t()
+   generate_atkscript attack, bat, bslot(), bat.anim_t()
   END IF
   IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN
    battle_attack_anim_playback attack, bat, bslot(), formdata()
@@ -2934,7 +2934,7 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
   
   DIM chained_attack AS AttackData
   loadattackdata chained_attack, ch.atk_id - 1
-  
+
   DIM delayed_attack_id AS INTEGER = 0
   IF chained_attack.attack_delay > 0 AND ch.no_delay = NO THEN
    '--chain is delayed, queue the attack
@@ -2946,6 +2946,14 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    bat.anim_ready = NO
   END IF
   
+  DIM blocking AS INTEGER
+  IF bat.anim_blocking_delay = NO THEN
+   '--chains from non-blocking attacks are always non-blocking
+   blocking = NO
+  ELSE
+   blocking = NOT chained_attack.nonblocking
+  END IF
+  
   IF chained_attack.targ_set <> attack.targ_set OR _
      chained_attack.targ_class <> attack.targ_class OR _
      chained_attack.targ_set = 3 OR chained_attack.prefer_targ > 0 THEN
@@ -2953,11 +2961,11 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
    DIM t(11) AS INTEGER
-   autotarget bat.acting, chained_attack, bslot(), t()
+   autotarget bat.acting, chained_attack, bslot(), t(), ,blocking
    bat.atk.id = -1
   ELSEIF delayed_attack_id > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
-   queue_attack delayed_attack_id - 1, bat.acting, bat.animating_t()
+   queue_attack delayed_attack_id - 1, bat.acting, bat.anim_t(), blocking
   END IF
 
   RETURN YES '--chained attack okay
@@ -2999,10 +3007,12 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
  RETURN NO
 END FUNCTION
 
-SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER)
+SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, override_blocking AS INTEGER=-2)
  DIM atk AS AttackData
  loadattackdata atk, attack
- queue_attack attack, who, atk.attack_delay, targs(), (atk.nonblocking = NO)
+ DIM blocking AS INTEGER = (atk.nonblocking = NO)
+ IF override_blocking > -2 THEN blocking = override_blocking
+ queue_attack attack, who, atk.attack_delay, targs(), blocking
 END SUB
 
 SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
@@ -3151,8 +3161,9 @@ SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
      bat.atk.id = .attack
      bat.acting = .attacker
      FOR j AS INTEGER = 0 TO UBOUND(.t)
-      bat.animating_t(j) = .t(j)
+      bat.anim_t(j) = .t(j)
      NEXT j
+     bat.anim_blocking_delay = .blocking
      bat.anim_ready = NO
      clear_attack_queue_slot i
      EXIT FOR

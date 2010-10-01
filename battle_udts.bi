@@ -231,7 +231,6 @@ TYPE BattleState
  next_attacker AS INTEGER 'used when checking delayed hero attacks. Prevents low-numbered heroes form always winning when two delays end on the same tick
  menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
  death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
- animating_t(11) AS INTEGER 'targets for currently animating attack
  targ AS TargettingState
  atk AS AttackState
  pt AS INTEGER         'menu cursor for hero menu
@@ -242,7 +241,9 @@ TYPE BattleState
  caption AS STRING     'currently displaying caption
  caption_time AS INTEGER 'time for the currently displaying caption
  caption_delay AS INTEGER 'delay before current caption displays
- anim_ready AS INTEGER 'YES or NO indicating whether the current animation has bene generated
+ anim_ready AS INTEGER 'YES or NO indicating whether the current animation has ben generated
+ anim_t(11) AS INTEGER 'targets for currently animating attack
+ anim_blocking_delay AS INTEGER 'whether the currently animating attack had a blocking delay (to make chains inherit non-blocking)
  animpat(3) AS AttackAnimationPattern = _
         { ({0,0,1,1,2,2,-1}), _
           ({2,2,1,1,0,0,-1}), _
