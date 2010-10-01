@@ -2025,26 +2025,27 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
  IF countai(ai, bat.enemy_turn, bslot()) = 0 THEN bat.enemy_turn = -1 : EXIT SUB
 
  'pick a random attack
+ DIM atk_id AS INTEGER
  DIM atk AS AttackData
  DIM safety AS INTEGER = 0
  DO
   WITH bslot(bat.enemy_turn)
    SELECT CASE ai
-    CASE 0: .attack = .enemy.regular_ai(INT(RND * 5))
-    CASE 1: .attack = .enemy.desperation_ai(INT(RND * 5))
-    CASE 2: .attack = .enemy.alone_ai(INT(RND * 5))
+    CASE 0: atk_id = .enemy.regular_ai(INT(RND * 5))
+    CASE 1: atk_id = .enemy.desperation_ai(INT(RND * 5))
+    CASE 2: atk_id = .enemy.alone_ai(INT(RND * 5))
    END SELECT
   END WITH
-  IF bslot(bat.enemy_turn).attack > 0 THEN
+  IF atk_id > 0 THEN
    'load the data for this attack
-   loadattackdata atk, bslot(bat.enemy_turn).attack - 1
+   loadattackdata atk, atk_id - 1
   
    IF atkallowed(atk, bat.enemy_turn, 0, 0, bslot()) THEN
     'this attack is good, continue on to target selection
     EXIT DO
    ELSE
     'this attack is unusable
-    bslot(bat.enemy_turn).attack = 0
+    atk_id = 0
     IF bslot(bat.enemy_turn).stat.cur.mp - atk.mp_cost < 0 THEN
      'inadequate MP was the reason for the failure
      'MP-idiot loses its turn
@@ -2954,13 +2955,13 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'if the chained attack has a different target class/type then re-target
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
-   debug "a from spawned_chained_attack"
+   debug "a from spawn_chained_attack"
    DIM t(11) AS INTEGER
    autotarget bat.acting, chained_attack, bslot(), t()
    bat.atk.id = -1
   ELSEIF delayed_attack_id > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
-   debug "q from spawned_chained_attack"
+   debug "q from spawn_chained_attack"
    queue_attack delayed_attack_id - 1, bat.acting, bat.animating_t()
   END IF
 
@@ -3143,6 +3144,15 @@ SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
    IF .used THEN
     IF .delay <= 0 THEN
      debug "queue trigger! " & bslot(.attacker).name & .attacker & ":" & readattackname(.attack)
+     IF .t(0) = -1 THEN
+      debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has null target."
+      clear_attack_queue_slot i
+      CONTINUE FOR
+     END IF
+     IF bslot(.t(0)).stat.cur.hp <= 0 AND NOT attack_can_hit_dead(.attacker, .attack, bslot(.attacker).stored_targs_can_be_dead) THEN
+      debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, retargetting."
+      autotarget .attacker, .attack, bslot(), .t(), NO
+     END IF
      bat.atk.id = .attack
      bat.acting = .attacker
      FOR j AS INTEGER = 0 TO UBOUND(.t)
