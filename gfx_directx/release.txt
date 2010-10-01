@@ -5,6 +5,8 @@ v1.8
 
 Added Features:
 
+-No longer see the resizing of the window upon initialization.
+
 -Mouse and keyboard are now through window's messages, no longer through DirectInput.
 
 -DirectInput is not required for usage--meaning smaller backend dll and greater support.
