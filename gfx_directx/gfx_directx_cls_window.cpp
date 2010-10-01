@@ -63,9 +63,9 @@ int Window::Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC
 		return -1;
 	m_bRunning = true;
 
-	::ShowWindow(m_hWnd, 1);
-	CenterWindow();
-	::UpdateWindow(m_hWnd);
+	//::ShowWindow(m_hWnd, 1);
+	//CenterWindow();
+	//::UpdateWindow(m_hWnd);
 	return 0;
 }
 
@@ -127,6 +127,16 @@ void Window::CenterWindow()
 	left = ((rScreen.right - rScreen.left) / 2) - ((m_rWindow.right - m_rWindow.left) / 2);
 	top = ((rScreen.bottom - rScreen.top) / 2) - ((m_rWindow.bottom - m_rWindow.top) / 2);
 	SetWindowPosition(left, top);
+}
+
+void Window::ShowWindow()
+{
+	::ShowWindow(m_hWnd, SW_SHOW);
+}
+
+void Window::HideWindow()
+{
+	::ShowWindow(m_hWnd, SW_HIDE);
 }
 
 HINSTANCE Window::GetAppHandle()

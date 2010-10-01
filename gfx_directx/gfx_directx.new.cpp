@@ -51,7 +51,7 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 		return FALSE;
 
 	TCHAR buffer[256] = TEXT("");
-	g_State.szWindowIcon = StringToString(buffer, 256, pCreationData->szWindowIcon);//CharToTchar(buffer, 256, pCreationData->szWindowIcon, 0);
+	g_State.szWindowIcon = StringToString(buffer, 256, pCreationData->szWindowIcon);
 	g_State.PostTerminateSignal = pCreationData->PostTerminateSignal;
 	g_State.OnCriticalError = pCreationData->OnCriticalError;
 	g_State.SendDebugString = pCreationData->SendDebugString;
@@ -86,6 +86,7 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 
 	g_Window.SetClientSize(640, 400);
 	g_Window.CenterWindow();
+	g_Window.ShowWindow();
 
 	g_State.SendDebugString("gfx_directx: Initialization success!");
 	return TRUE;

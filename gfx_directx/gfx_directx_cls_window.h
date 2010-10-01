@@ -32,6 +32,8 @@ namespace gfx
 		void SetWindowSize(int width, int height); //does not call AdjustWindowRect()
 		void SetWindowPosition(int left, int top);
 		void CenterWindow(); //centers window on the screen
+		void ShowWindow(); //shows the window
+		void HideWindow(); //hides the window
 
 		HINSTANCE GetAppHandle();
 		HWND GetWindowHandle();
