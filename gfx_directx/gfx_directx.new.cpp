@@ -321,13 +321,15 @@ int gfx_GetMousePosition(int& x, int& y, int& wheel, int& buttons)
 int gfx_SetMousePosition(int x, int y)
 {
 	DWORD xPos, yPos;
-	RECT rClient;
+	RECT rClient, rDesktop;
 	GetClientRect(g_Window.GetWindowHandle(), &rClient);
 	POINT pos = {rClient.right * x/320.0f, rClient.bottom * y/200.0f};
-	::ClientToScreen(g_Window.GetWindowHandle(), &pos);
-	GetClientRect(GetDesktopWindow(), &rClient);
-	xPos = (DWORD)((float)(rClient.right - pos.x) / (float)rClient.right * 65535.0f);
-	yPos = (DWORD)((float)(rClient.bottom - pos.y) / (float)rClient.bottom * 65535.0f);
+	
+	ClientToScreen(g_Window.GetWindowHandle(), &pos);
+	GetWindowRect(GetDesktopWindow(), &rDesktop);
+	
+	xPos = 1 + (DWORD)((float)pos.x / (float)rDesktop.right * 65535.0f);
+	yPos = 1 + (DWORD)((float)pos.y / (float)rDesktop.bottom * 65535.0f);
 
 	mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, xPos, yPos, 0, NULL);
 
