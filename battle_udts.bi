@@ -100,7 +100,6 @@ TYPE BattleSprite
   ready  AS INTEGER  ' YES if the hero or enemy can have a turn, NO if they are not ready yet
   attack AS INTEGER  ' ID number +1 of the attack that this hero or enemy is going to do next
   '--Targetting
-  t(11)               AS INTEGER 'Currently selected target slots. -1 means no target. Targets must be sorted to the beginning if the list changes
   revenge             AS INTEGER 'ID of last hero or enemy who damaged this hero or enemy, or -1 for none
   thankvenge          AS INTEGER 'ID of last hero or enemy who cured this hero or enemy, or -1 for none
   revengemask(11)     AS INTEGER 'YES for each hero or enemy who has damaged this hero/enemy at least once, otherwise NO
@@ -232,6 +231,7 @@ TYPE BattleState
  next_attacker AS INTEGER 'used when checking delayed hero attacks. Prevents low-numbered heroes form always winning when two delays end on the same tick
  menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
  death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
+ animating_t(11) AS INTEGER 'targets for currently animating attack
  targ AS TargettingState
  atk AS AttackState
  pt AS INTEGER         'menu cursor for hero menu

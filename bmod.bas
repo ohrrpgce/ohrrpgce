@@ -137,7 +137,7 @@ FUNCTION battle (form, fatal) as integer
    EXIT DO
   END IF
   IF bat.atk.id >= 0 AND bat.anim_ready = NO AND bat.vic.state = 0 THEN
-   generate_atkscript attack, bat, bslot(), bslot(bat.acting).t()
+   generate_atkscript attack, bat, bslot(), bat.animating_t()
   END IF
   IF bat.atk.id >= 0 AND bat.anim_ready = YES AND bat.vic.state = 0 AND bat.away = 0 THEN
    battle_attack_anim_playback attack, bat, bslot(), formdata()
@@ -664,7 +664,8 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
  IF bat.targ.mode = targAUTO THEN
   debug "a from battle_targetting"
-  autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot(), bslot(bat.hero_turn).t()
+  DIM t(11) AS INTEGER
+  autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot(), t()
   bslot(bat.hero_turn).ready_meter = 0
   bslot(bat.hero_turn).ready = NO
   bat.hero_turn = -1
@@ -727,16 +728,19 @@ END SUB
  
 SUB battle_confirm_target(BYREF bat AS BattleState, bslot() AS BattleSprite)
  bat.targ.selected(bat.targ.pointer) = 1
- '--copy currently selected target(s) into the attacker's .t() array
+
+ DIM t(11) AS INTEGER
+ flusharray t(), 11, -1
  DIM o AS INTEGER = 0
  FOR i AS INTEGER = 0 TO 11
   IF bat.targ.selected(i) = 1 THEN
-   bslot(bat.hero_turn).t(o) = i
+   t(o) = i
    o = o + 1
   END IF
  NEXT i
  debug "q from battle_confirm_target"
- queue_attack bslot(), bat.hero_turn
+ queue_attack bslot(bat.hero_turn).attack - 1, bat.hero_turn, t()
+ bslot(bat.hero_turn).attack = 0
  
  bslot(bat.hero_turn).ready_meter = 0
  bslot(bat.hero_turn).ready = NO
@@ -2063,8 +2067,9 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
   END IF
  LOOP
 
-debug "a from enemy_ai"
- autotarget bat.enemy_turn, atk, bslot(), bslot(bat.enemy_turn).t()
+ debug "a from enemy_ai"
+ DIM t(11) AS INTEGER
+ autotarget bat.enemy_turn, atk, bslot(), t()
 
  'ready for next attack
  bslot(bat.enemy_turn).ready = NO
@@ -2362,7 +2367,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
   END IF
  NEXT i
  'MOVE EMPTY TARGET SLOTS TO THE BACK
- FOR o AS INTEGER = 0 TO UBOUND(bslot(bat.acting).t) - 1
+ FOR o AS INTEGER = 0 TO UBOUND(t) - 1
   FOR i = 0 TO 10
    IF t(i) = -1 THEN SWAP t(i), t(i + 1)
   NEXT i
@@ -2822,7 +2827,6 @@ SUB setup_targetting (BYREF bat AS BattleState, bslot() AS BattleSprite)
  bat.targ.pointer = 0
  FOR i = 0 TO 11
   bat.targ.selected(i) = 0 ' clear list of selected targets
-  bslot(bat.hero_turn).t(i) = -1 'clear list of confirmed targets
  NEXT i
 
  bat.targ.hit_dead = NO
@@ -2933,15 +2937,15 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
   DIM chained_attack AS AttackData
   loadattackdata chained_attack, ch.atk_id - 1
   
+  DIM delayed_attack_id AS INTEGER = 0
   IF chained_attack.attack_delay > 0 AND ch.no_delay = NO THEN
    '--chain is delayed, queue the attack
    bat.atk.id = -1 '--terminate the attack that lead to this chain
-   bslot(bat.acting).attack = ch.atk_id
+   delayed_attack_id = ch.atk_id
   ELSE
    '--chain is immediate, prep it now!
    bat.atk.id = ch.atk_id - 1
    bat.anim_ready = NO
-   bslot(bat.acting).attack = 0
   END IF
   
   IF chained_attack.targ_set <> attack.targ_set OR _
@@ -2951,19 +2955,20 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
    debug "a from spawned_chained_attack"
-   autotarget bat.acting, chained_attack, bslot(), bslot(bat.acting).t()
+   DIM t(11) AS INTEGER
+   autotarget bat.acting, chained_attack, bslot(), t()
    bat.atk.id = -1
-  ELSEIF bslot(bat.acting).attack > 0 THEN
+  ELSEIF delayed_attack_id > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
    debug "q from spawned_chained_attack"
-   queue_attack bslot(), bat.acting
+   queue_attack delayed_attack_id - 1, bat.acting, bat.animating_t()
   END IF
 
   RETURN YES '--chained attack okay
  END IF
 
  RETURN NO '--chained attack failed
-END FUNCTION
+END FUNCTION '.attack
 
 FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite) AS INTEGER
  'who is bslot index
@@ -2998,34 +3003,18 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
  RETURN NO
 END FUNCTION
 
-SUB queue_attack(bslot() AS BattleSprite, who AS INTEGER)
-
- IF bslot(who).attack = 0 THEN
-  debuginfo "attempted queue_attack without attack for attacker slot " & who
-  EXIT SUB
- END IF
-
- IF bslot(who).t(0) = -1 THEN
-  debuginfo "queuing attack " & readattackname(bslot(who).attack - 1) & " with no targets for attacker slot " & who
- END IF
-
- IF bslot(who).t(0) > -1 ANDALSO bslot(bslot(who).t(0)).stat.cur.hp <= 0 THEN
-  debuginfo "queuing attack " & readattackname(bslot(who).attack - 1) & " for attacker slot " & who & " with dead targ " & bslot(bslot(who).t(0)).name & bslot(who).t(0)
-  autotarget who, bslot(who).attack - 1, bslot(), bslot(who).t(), NO
- END IF
- 
+SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER)
  DIM atk AS AttackData
- loadattackdata atk, bslot(who).attack - 1
- queue_attack bslot(who).attack - 1, who, atk.attack_delay, bslot(who).t(), (atk.nonblocking = NO)
- bslot(who).attack = 0
+ loadattackdata atk, attack
+ queue_attack attack, who, atk.attack_delay, targs(), (atk.nonblocking = NO)
 END SUB
 
 SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
- 'DIM targstr AS STRING = ""
- 'FOR i AS INTEGER = 0 TO UBOUND(targs)
- ' IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)
- 'NEXT i
- 'debug "queue_attack " & readattackname(attack) & ", " & who & ", " & targstr
+ DIM targstr AS STRING = ""
+ FOR i AS INTEGER = 0 TO UBOUND(targs)
+  IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)
+ NEXT i
+ debug "queue_attack " & readattackname(attack) & ", " & who & ", " & targstr
  
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   IF atkq(i).used = NO THEN
@@ -3153,14 +3142,13 @@ SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
   WITH atkq(i)
    IF .used THEN
     IF .delay <= 0 THEN
-     'debug "queue trigger! " & bslot(.attacker).name & .attacker & ":" & readattackname(.attack)
+     debug "queue trigger! " & bslot(.attacker).name & .attacker & ":" & readattackname(.attack)
      bat.atk.id = .attack
      bat.acting = .attacker
      FOR j AS INTEGER = 0 TO UBOUND(.t)
-      bslot(.attacker).t(j) = .t(j)
+      bat.animating_t(j) = .t(j)
      NEXT j
      bat.anim_ready = NO
-     bslot(.attacker).attack = 0
      clear_attack_queue_slot i
      EXIT FOR
     END IF
@@ -3283,8 +3271,7 @@ SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS BattleState
   IF bat.hero_turn = targ THEN
    bat.targ.mode = targNONE
    bat.hero_turn = -1
-   bslot(targ).attack = 0 'This might seem redundant to the above, but it is okay. Needed for stun
-                          'FIXME: is this still needed?
+   bslot(targ).attack = 0
   END IF
  END IF
 END SUB
@@ -3324,10 +3311,12 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
   '--if current interactive targeting points to the dead target, find a new target
   WITH bat.targ
    IF .pointer = deadguy THEN
+    debug "interactive cursor points to dead " & bslot(deadguy).name & deadguy
     .pointer = 0
     WHILE .mask(.pointer) = 0
      .pointer += 1
      IF .pointer > 11 THEN
+      debug "failed to get new valid interactive target"
       .mode = targNONE
       EXIT WHILE
      END IF

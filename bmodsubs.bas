@@ -1241,10 +1241,7 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER,
 
  get_valid_targs tmask(), who, atk, bslot()
 
- 'flush the targeting space
- FOR i = 0 TO 11
-  t(i) = -1
- NEXT i
+ flusharray t(), 11, -1
 
  SELECT CASE atk.targ_set
 
@@ -1272,7 +1269,7 @@ SUB autotarget (who, atk AS AttackData, bslot() AS BattleSprite, t() AS INTEGER,
   queue_attack atk.id, who, atk.attack_delay, t()
  END IF
 
-END SUB
+END SUB 'bslot(
 
 SUB confirm_auto_spread (who, tmask(), bslot() AS BattleSprite, t() AS INTEGER)
  DIM i AS INTEGER

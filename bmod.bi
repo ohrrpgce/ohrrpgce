@@ -52,7 +52,7 @@ DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, b
 DECLARE FUNCTION valid_statnum(statnum AS INTEGER, context AS STRING) AS INTEGER
 DECLARE FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite) AS INTEGER
 
-DECLARE SUB queue_attack OVERLOAD (bslot() AS BattleSprite, who AS INTEGER)
+DECLARE SUB queue_attack OVERLOAD (attack AS INTEGER, who AS INTEGER, targs() AS INTEGER)
 DECLARE SUB queue_attack OVERLOAD (attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
 DECLARE SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
 DECLARE SUB clear_attack_queue()
