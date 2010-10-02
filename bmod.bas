@@ -3155,7 +3155,7 @@ SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
     IF .delay <= 0 THEN
      'debug "queue trigger! " & bslot(.attacker).name & .attacker & ":" & readattackname(.attack)
      IF .t(0) = -1 THEN
-      debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has null target."
+      'debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has null target."
       clear_attack_queue_slot i
       CONTINUE FOR
      END IF
