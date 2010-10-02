@@ -33,6 +33,7 @@ DECLARE FUNCTION quick_battle_distance(who1 as integer, who2 as integer, bslot()
 DECLARE FUNCTION battle_distance(who1 as integer, who2 as integer, bslot() AS BattleSprite)
 
 DECLARE SUB transfer_enemy_bits(slot AS INTEGER, bslot() AS BattleSprite)
+DECLARE SUB transfer_enemy_counterattacks (slot AS INTEGER, bslot() AS BattleSprite)
 DECLARE SUB setup_non_volitile_enemy_state(slot AS INTEGER, bslot() AS BattleSprite)
 DECLARE SUB setup_enemy_sprite_and_name(slot AS INTEGER, bslot() AS BattleSprite)
 DECLARE SUB change_foe_stat(BYREF bspr AS BattleSprite, stat_num AS INTEGER, new_max AS INTEGER, stat_rule AS INTEGER)
@@ -1488,16 +1489,7 @@ SUB loadfoe (slot as integer, formdata() as integer, BYREF bat AS BattleState, b
   loadenemydata bslot(4 + slot).enemy, formdata(slot * 4) - 1, -1
 
   transfer_enemy_bits slot, bslot()
-  
-  '--transfer counterattacks
-  WITH bslot(4 + slot)
-   FOR j AS INTEGER = 0 TO 7
-    .elem_counter_attack(j) = .enemy.elem_counter_attack(j)
-   NEXT j
-   FOR j AS INTEGER = 0 TO 11
-    .stat_counter_attack(j) = .enemy.stat_counter_attack(j)
-   NEXT j
-  END WITH
+  transfer_enemy_counterattacks slot, bslot()
 
   '--Special handling for spawning already-dead enemies
  
@@ -1581,6 +1573,18 @@ SUB transfer_enemy_bits(slot AS INTEGER, bslot() AS BattleSprite)
 
 END SUB
 
+SUB transfer_enemy_counterattacks (slot AS INTEGER, bslot() AS BattleSprite)
+ '--transfer counterattacks
+ WITH bslot(4 + slot)
+  FOR j AS INTEGER = 0 TO 7
+   .elem_counter_attack(j) = .enemy.elem_counter_attack(j)
+  NEXT j
+  FOR j AS INTEGER = 0 TO 11
+   .stat_counter_attack(j) = .enemy.stat_counter_attack(j)
+  NEXT j
+ END WITH
+END SUB
+
 SUB setup_non_volitile_enemy_state(slot AS INTEGER, bslot() AS BattleSprite)
  WITH bslot(slot + 4)
   .vis = 1
@@ -1623,6 +1627,7 @@ SUB changefoe(slot as integer, new_id AS INTEGER, formdata() as integer, bslot()
  loadenemydata bslot(4 + slot).enemy, formdata(slot * 4) - 1, -1
 
  transfer_enemy_bits slot, bslot()
+ transfer_enemy_counterattacks slot, bslot()
 
  '--update battle state
  WITH bslot(4 + slot)
