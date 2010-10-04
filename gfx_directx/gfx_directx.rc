@@ -72,7 +72,7 @@ BEGIN
     CONTROL         "DDS (.dds)",IDC_OPTIONS_ScrnShotFormats_DDS,"Button",BS_AUTORADIOBUTTON,85,129,51,10
     CONTROL         "OHR (.bmp)",IDC_OPTIONS_ScrnShotFormats_OHR,"Button",BS_AUTORADIOBUTTON,85,141,54,10
     PUSHBUTTON      "Set Defaults",IDC_OPTIONS_SetDefaults,184,156,50,14
-    EDITTEXT        IDC_OPTIONS_Status,185,86,155,57,ES_MULTILINE | ES_READONLY
+    EDITTEXT        IDC_OPTIONS_Status,185,86,155,57,ES_MULTILINE | ES_READONLY | WS_VSCROLL
 END
 
 
@@ -103,6 +103,13 @@ END
 //
 
 OHRRPGCEBMP             BITMAP                  "Ohrrpgce.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RCDATA
+//
+
+HELPFILE                RCDATA                  "help.txt"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -5,6 +5,10 @@ v1.8
 
 Added Features:
 
+-Help file added to options menu.
+
+-Fixed problem where frame would show garbage initially.
+
 -No longer see the resizing of the window upon initialization.
 
 -Mouse and keyboard are now through window's messages, no longer through DirectInput.

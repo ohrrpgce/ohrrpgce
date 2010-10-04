@@ -198,6 +198,7 @@ DirectX_ErrorCode DirectX::Initialize(gfx::Window *pWin, const TCHAR* szModuleNa
 	if(S_OK != m_surface.Initialize(m_d3ddev, 320, 200))
 		return Report(DX_Create_Texture);
 	m_bInitialized = true;
+	m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
 	return Report(DX_OK);
 }
 

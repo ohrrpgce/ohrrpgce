@@ -38,6 +38,7 @@ struct gfx_BackendState
 	int (__cdecl *DefGfxMessageProc)(unsigned int msg, unsigned int dwParam, void* pvParam);
 	bool bClosing; //flagged when shutting down
 	bool bOhrMouseRequest; //true whenever the ohr needs mouse input
+	Tstring szHelpText;
 } g_State;
 
 LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -45,10 +46,24 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 SIZE CalculateNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth = 320, UINT targetHeight = 200);
 bool IsNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth = 320, UINT targetHeight = 200);
 
+void LoadHelpText()
+{
+	HMODULE hMod = GetModuleHandle(MODULENAME);
+	if(hMod == NULL) return;
+	HRSRC hRsrc = FindResource(hMod, TEXT("HelpFile"), RT_RCDATA);
+	if(hRsrc == NULL) return;
+	HGLOBAL hData = LoadResource(hMod, hRsrc);
+	if(hData == NULL) return;
+	char* pText = (char*)LockResource(hData);
+	if(pText == NULL) return;
+	g_State.szHelpText = pText;
+}
+
 int gfx_Initialize(const GFX_INIT *pCreationData)
 {
 	if(pCreationData == NULL)
 		return FALSE;
+	LoadHelpText();
 
 	TCHAR buffer[256] = TEXT("");
 	g_State.szWindowIcon = StringToString(buffer, 256, pCreationData->szWindowIcon);
@@ -264,10 +279,10 @@ void gfx_SetWindowTitle(const char *szTitle)
 		g_State.szWindowTitle = StringToString(buffer, 256, szTitle);
 	}
 	Tstring szTemp = g_State.szWindowTitle;
-	if(g_State.bOhrMouseRequest && g_Mouse.IsInputLive())
-		szTemp += TEXT(" Press 'Scroll Lock' to free mouse");
-	else if(g_State.bOhrMouseRequest && !g_Mouse.IsInputLive())
-		szTemp += TEXT(" Press 'Scroll Lock' to lock mouse");
+	//if(g_State.bOhrMouseRequest && g_Mouse.IsInputLive())
+	//	szTemp += TEXT(" Press 'Scroll Lock' to free mouse");
+	//else if(g_State.bOhrMouseRequest && !g_Mouse.IsInputLive())
+	//	szTemp += TEXT(" Press 'Scroll Lock' to lock mouse");
 	g_Window.SetWindowTitle(szTemp.c_str());
 }
 
@@ -660,7 +675,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, (g_DirectX.IsVsyncEnabled() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, (g_DirectX.IsSmooth() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, (g_DirectX.IsAspectRatioPreserved() ? BST_CHECKED : BST_UNCHECKED));
-			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Status, WM_SETTEXT, 0, (LPARAM)g_DirectX.GetLastErrorMessage());
+			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Status, WM_SETTEXT, 0, (LPARAM)g_State.szHelpText.c_str()/*g_DirectX.GetLastErrorMessage()*/);
 			TCHAR strInfoBuffer[128] = TEXT("");
 			::_stprintf_s<128>(strInfoBuffer, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Info, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
