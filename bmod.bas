@@ -2966,11 +2966,11 @@ FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackData, BYREF
    'also retarget if the chained attack has target setting "random roulette"
    'also retarget if the chained attack's preferred target is explicitly set
    DIM t(11) AS INTEGER
-   autotarget bat.acting, chained_attack, bslot(), t(), ,blocking
+   autotarget bat.acting, chained_attack, bslot(), t(), , blocking, ch.dont_retarget
    bat.atk.id = -1
   ELSEIF delayed_attack_id > 0 THEN
    'if the old target info is reused, and this is not an immediate chain, copy it to the queue right away
-   queue_attack delayed_attack_id - 1, bat.acting, bat.anim_t(), blocking
+   queue_attack delayed_attack_id - 1, bat.acting, bat.anim_t(), blocking, ch.dont_retarget
   END IF
 
   RETURN YES '--chained attack okay
@@ -3012,15 +3012,15 @@ FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS Bat
  RETURN NO
 END FUNCTION
 
-SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, override_blocking AS INTEGER=-2)
+SUB queue_attack(attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, override_blocking AS INTEGER=-2, dont_retarget AS INTEGER = NO)
  DIM atk AS AttackData
  loadattackdata atk, attack
  DIM blocking AS INTEGER = (atk.nonblocking = NO)
  IF override_blocking > -2 THEN blocking = override_blocking
- queue_attack attack, who, atk.attack_delay, targs(), blocking
+ queue_attack attack, who, atk.attack_delay, targs(), blocking, dont_retarget
 END SUB
 
-SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
+SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES, dont_retarget AS INTEGER = NO)
  'DIM targstr AS STRING = ""
  'FOR i AS INTEGER = 0 TO UBOUND(targs)
  ' IF targs(i) > -1 THEN targstr &= " " & i & "=" & targs(i)
@@ -3030,7 +3030,7 @@ SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   IF atkq(i).used = NO THEN
    'Recycle a queue slot
-   set_attack_queue_slot i, attack, who, delay, targs(), blocking
+   set_attack_queue_slot i, attack, who, delay, targs(), blocking, dont_retarget
    EXIT SUB
   END IF
  NEXT i
@@ -3043,7 +3043,7 @@ SUB queue_attack(attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS
  set_attack_queue_slot oldbound + 1, attack, who, delay, targs(), blocking
 END SUB
 
-SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES)
+SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES, dont_retarget AS INTEGER = NO)
  WITH atkq(slot)
   .used = YES
   .attack = attack
@@ -3053,6 +3053,7 @@ SUB set_attack_queue_slot(slot AS INTEGER, attack AS INTEGER, who AS INTEGER, de
    .t(i) = targs(i)
   NEXT i
   .blocking = blocking
+  .dont_retarget = dont_retarget
  END WITH
 END SUB
 
@@ -3067,10 +3068,12 @@ SUB clear_attack_queue_slot(slot AS INTEGER)
   .used = NO
   .attack = -1
   .attacker = -1
+  .delay = 0
   FOR i AS INTEGER = 0 TO UBOUND(.t)
    .t(i) = -1
   NEXT i
   .blocking = YES
+  .dont_retarget = NO
  END WITH
 END SUB
 
@@ -3080,14 +3083,14 @@ SUB display_attack_queue (bslot() AS BattleSprite)
  FOR i AS INTEGER = 0 TO UBOUND(atkq)
   WITH atkq(i)
    IF .used THEN
-    s = .delay & " " & bslot(.attacker).name & "(" & .attacker & ") " & readattackname(.attack) & "(" & .attack & ") "
+    s = .delay & " " & bslot(.attacker).name & ":" & .attacker & " " & readattackname(.attack) & ":" & .attack & " "
     targstr = ""
     FOR j AS INTEGER = 0 TO UBOUND(.t)
      IF .t(j) > -1 THEN
       targstr &= CHR(24) & .t(j)
      END IF
     NEXT j
-    s & = targstr & " " & yesorno(.blocking, "B", "Q")
+    s & = targstr & " " & yesorno(.blocking, "B", "N") & yesorno(.dont_retarget, "d", "")
    ELSE
     s = "-"
    END IF
@@ -3160,8 +3163,13 @@ SUB battle_check_delays(BYREF bat AS BattleState, bslot() AS BattleSprite)
       CONTINUE FOR
      END IF
      IF bslot(.t(0)).stat.cur.hp <= 0 AND NOT attack_can_hit_dead(.attacker, .attack, bslot(.attacker).stored_targs_can_be_dead) THEN
-      'debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, retargetting."
-      autotarget .attacker, .attack, bslot(), .t(), NO
+      IF .dont_retarget THEN
+       debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, and should not retarget, clearing."
+       clear_attack_queue_slot i
+      ELSE
+       debuginfo "queued attack " & readattackname(.attack) & " for " & bslot(.attacker).name & .attacker & " in slot " & i & " has dead target, retargetting."
+       autotarget .attacker, .attack, bslot(), .t(), NO
+      END IF
      END IF
      bat.atk.id = .attack
      bat.acting = .attacker
@@ -3318,7 +3326,12 @@ SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState
     END IF
     IF .t(0) = -1 THEN
      'if no targets left, auto-re-target
-     autotarget .attacker, .attack, bslot(), .t(), NO
+     IF .dont_retarget THEN
+      debuginfo "queued " & readattackname(.attack) & " for " & bslot(.attacker).name & " - last targ died and should not retarget"
+      clear_attack_queue_slot i
+     ELSE
+      autotarget .attacker, .attack, bslot(), .t(), NO
+     END IF
     END IF
    END IF
   END WITH

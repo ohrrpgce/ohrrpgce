@@ -287,6 +287,7 @@ TYPE AttackQueue
  t(11)    AS INTEGER 'Targeted slots, -1 for empty, or slot number.
  blocking AS INTEGER 'YES to block attacker from acting, NO for nonblocking
  delay    AS INTEGER 'Number of ticks that should pass before this attack happens
+ dont_retarget AS INTEGER
 END TYPE
 
 #ENDIF

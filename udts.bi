@@ -421,6 +421,7 @@ Type AttackDataChain
 	must_know as integer
 	no_delay as integer
 	nonblocking as integer
+	dont_retarget as integer
 End Type
 
 Type AttackData
