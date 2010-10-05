@@ -6,6 +6,7 @@
 #include "gfx_directx_cls.h"
 #include "gfx_directx_cls_keyboard.h"
 #include "gfx_directx_cls_mouse.h"
+#include "gfx_directx_cls_joystick.h"
 #include "gfx_directx_version.h"
 using namespace gfx;
 
@@ -27,6 +28,7 @@ HWND g_hWndDlg;
 DirectX g_DirectX;
 Keyboard g_Keyboard;
 Mouse g_Mouse;
+Joystick g_Joystick;
 
 struct gfx_BackendState
 {
@@ -96,6 +98,11 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 	}
 
 	g_State.SendDebugString("gfx_directx: D3D Initialized!");
+
+	if(FAILED(g_Joystick.Initialize( g_Window.GetAppHandle(), g_Window.GetWindowHandle() )))
+		g_State.SendDebugString("gfx_directx: Failed to support joysticks!");
+	else
+		g_State.SendDebugString("gfx_directx: Joysticks supported!");
 
 	gfx_SetWindowTitle(pCreationData->szInitWindowTitle);
 
@@ -230,6 +237,7 @@ void gfx_PumpMessages()
 			::DispatchMessage(&msg);
 		}
 	}
+	g_Joystick.Poll();
 }
 
 void gfx_Present(unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
@@ -308,7 +316,8 @@ int gfx_AcquireMouse(int bEnable)
 
 int gfx_AcquireJoystick(int bEnable, int nDevice)
 {
-	return FALSE; //no joystick support yet
+	int b, x, y; //junk test variables; this will be fixed later
+	return g_Joystick.GetState(nDevice, b, x, y); //tests whether the device is hooked up
 }
 
 int gfx_GetKeyboard(int *pKeyboard)
@@ -358,7 +367,7 @@ int gfx_GetJoystickMovement(int nDevice, int& dx, int& dy, int& buttons)
 
 int gfx_GetJoystickPosition(int nDevice, int& x, int& y, int& buttons)
 {
-	return FALSE; //no support
+	return g_Joystick.GetState(nDevice, buttons, x, y);
 }
 
 int gfx_SetJoystickPosition(int nDevice, int x, int y)
