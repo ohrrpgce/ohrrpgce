@@ -108,6 +108,10 @@ edit_modules:=custom customsubs drawing subs subs2 mapsubs flexmenu menus slicee
 edit_objects:=$(addsuffix .o,$(edit_modules))
 edit_sources:=$(addsuffix .bas,$(edit_modules))
 
+main_modules:=game.o custom.o reload2xml.o xml2reload.o reloadtest.o reloadutil.o
+
+reload_objects:=reload.o reloadext.o lumpfile.o util.o base64.o
+
 #Sadly, we make every source file depend on every include
 includes:=${shell echo *.bi}
 
@@ -150,6 +154,17 @@ bam2mid: bam2mid.bas
 	@echo Compiling Bam2Midi...
 	$(FBC) bam2mid.bas $(FBFLAGS)
 
+
+#reload2xml xml2reload reloadtest reloadutil
+
+#-exx causes fbc to throw an error on OPEN CONS, even though it works without error checking!
+reload: FBFLAGS:=-g
+reload: gver.txt reload_compiled_objs $(reload_objects) reload2xml.o xml2reload.o reloadtest.o reloadutil.o
+	$(FBC) $(FBFLAGS) reloadtest.o $(reload_objects) $(libpaths) $(libraries)
+	$(FBC) $(FBFLAGS) reloadutil.o $(reload_objects) $(libpaths) $(libraries)
+	$(FBC) $(FBFLAGS) reload2xml.o $(reload_objects) $(libpaths) $(libraries)
+	$(FBC) $(FBFLAGS) xml2reload.o $(reload_objects) $(libpaths) $(libraries) -l xml2
+
 clean:
 	@echo Removing compilation files...
 	@rm -f *.o
@@ -165,25 +180,30 @@ gver.txt cver.txt: $(verprint_exe)
 	./$(verprint_exe) $(OHRGFX) $(OHRMUSIC)
 
 $(verprint_exe): verprint.bas
-	$(FBC) verprint.bas
-
-%.o: %.bas $(includes)
-	$(FBC) -c $< $(FBFLAGS)
+	$(FBC) -m verprint verprint.bas -g
 
 game_compiled_objs:
 	@if [ -e custom_compiled_objs ] ; then rm -f custom_compiled_objs $(semicommon_objects); fi
+	@if [ -e reload_compiled_objs ] ; then rm -f reload_compiled_objs $(common_objects); fi
 	@echo . > game_compiled_objs
 
 custom_compiled_objs:
 	@if [ -e game_compiled_objs ] ; then rm -f game_compiled_objs $(semicommon_objects); fi
+	@if [ -e reload_compiled_objs ] ; then rm -f reload_compiled_objs $(common_objects); fi
 	@echo . > custom_compiled_objs
 
-#these need the program specific -m flag
-game.o: game.bas
-	$(FBC) -c $< -m game $(FBFLAGS)
+reload_compiled_objs:
+	@if [ -e custom_compiled_objs ] ; then rm -f custom_compiled_objs $(common_objects); fi
+	@if [ -e game_compiled_objs ] ; then rm -f game_compiled_objs $(common_objects); fi
+	@echo . > reload_compiled_objs
 
-custom.o: custom.bas
-	$(FBC) -c $< -m custom $(FBFLAGS)
+#these need the program specific -m flag
+$(main_modules): %.o: %.bas $(includes)
+	$(FBC) -c $< -m $* $(FBFLAGS)
+
+%.o: %.bas $(includes)
+	$(FBC) -c $< $(FBFLAGS)
+
 
 #I am being way too clever
 $(semicommon_objects) game.o custom.o: config.mak codename.txt
