@@ -7,6 +7,7 @@ WARNING="!!! This Makefile is not the recommended way to build the OHRRPGCE, and
 include config.mak
 
 FBC=fbc -lang deprecated
+
 #a C compiler is not required under windows
 CC=gcc
 MAKE=make
@@ -17,13 +18,18 @@ ifeq ($(HOST_PLATFORM), mingw32)
 	win32=1
 else
 	unix=1
+ifeq (darwin,$(findstring darwin,$(HOST_PLATFORM)))
+	mac=1
+endif
 endif
 
 #don't use the built in compiler rules, they don't apply to FB
 .SUFFIXES:
 
-libraries=fbgfx
-libpaths=
+#Mac-only
+FRAMEWORKS_PATH:=$(HOME)/Library/Frameworks/
+
+libpaths=/usr/lib/
 
 FBFLAGS+=-mt
 FBFLAGS+=-g -exx
@@ -43,11 +49,16 @@ endif
 
 ifdef unix
 	common_objects+=blit.o base64.o
+ifndef mac
 	libraries+= X11 Xext Xpm Xrandr Xrender pthread
+else
+#	libraries+= objc gcc_s.10.5 crt1.10.5.o
+endif
 	game_exe:=ohrrpgce-game
 	edit_exe:=ohrrpgce-custom
 	verprint_exe:=verprint
 endif
+
 
 #Note: all these libraries are specified so that things will link even if fbc is compiled without objinfo,
 #which stops #inclib directives from working
@@ -64,7 +75,8 @@ endif
 
 ifeq ($(findstring sdl,$(OHRGFX)), sdl)
 	common_modules+= gfx_sdl
-	libraries+= SDL
+	linksdl=1
+#	libraries+= SDL SDLmain
 endif
 
 ifeq ($(findstring directx,$(OHRGFX)), directx)
@@ -90,7 +102,11 @@ ifeq "$(OHRMUSIC)" "native2"
 else
 ifeq "$(OHRMUSIC)" "sdl"
 	common_modules+= music_sdl sdl_lumprwops
-	libraries+= SDL SDL_mixer
+	linksdl=1
+#	libraries+= SDL_mixer
+endif
+ifeq "$(OHRMUSIC)" "silence"
+	common_modules+= music_silence
 endif
 endif
 endif
@@ -129,6 +145,22 @@ semicommon_sources+=$(addsuffix .bas,$(semicommon_modules))
 
 libraries:=$(addprefix -l , $(libraries))
 libpaths :=$(addprefix -p , $(libpaths))
+
+ifdef linksdl
+#actually includes lib path
+#	libraries+=${shell sdl-config --libs}
+#	libraries:=$(patsubst -Wl,-Wl ,$(libraries))
+ifdef mac
+	libraries+= -Wl -framework,SDL_mixer -l SDLmain -Wl -framework,SDL -Wl -framework,Cocoa -Wl -F$(FRAMEWORKS_PATH)
+	FBFLAGS+= -entry SDL_main
+endif
+
+endif
+
+ifdef mac
+	FBFLAGS+= -Wl -macosx_version_min,10.4
+endif
+
 
 all: game edit bam2mid
 

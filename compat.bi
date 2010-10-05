@@ -36,14 +36,14 @@
  #DEFINE _PSTR & " OpenBSD"
  #DEFINE __UNIX__
 #ELSEIF defined(__FB_DARWIN__)
- #DEFINE _PSTR & " Darwin"
+ #DEFINE _PSTR & " Mac OS X/Darwin"
  #DEFINE __UNIX__
 #ELSEIF defined(__FB_WIN32__)
  #DEFINE _PSTR & " Win32"
 #ELSEIF defined(__FB_DOS__)
  #DEFINE _PSTR & " DOS"
 #ELSE
- #DEFINE _PSTR & " Other"
+ #DEFINE _PSTR & " Unknown Platform"
 #ENDIF
 #IFDEF SCRIPTPROFILE
  #DEFINE _SSTR & " script_profiling"
@@ -51,6 +51,13 @@
  #DEFINE _SSTR
 #ENDIF
 CONST build_info as string = "" _GSTR _ESTR _SSTR _PSTR
+
+'__FB_UNIX__ only defined in FB 0.21 on (I think)
+#IFDEF __FB_UNIX__
+ #IFNDEF __UNIX__
+  #DEFINE __UNIX__
+ #ENDIF
+#ENDIF
 
 #IFDEF __UNIX__
  'FB's headers check for __FB_LINUX__
