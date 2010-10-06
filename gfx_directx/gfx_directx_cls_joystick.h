@@ -9,34 +9,36 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include "smartptr.h"
-#include <vector>
+#include <list>
 
 namespace gfx
 {
 	class Joystick
 	{
 	protected:
-		struct DECLSPEC_UUID("{25E609E4-B259-11CF-BFC7-444553540000}") diClsid;
-#ifdef _UNICODE
-		struct DECLSPEC_UUID("{BF798031-483A-4DA2-AA99-5D64ED369700}") diIid;
-#else
-		struct DECLSPEC_UUID("{BF798030-483A-4DA2-AA99-5D64ED369700}") diIid;
-#endif
 		struct Device
 		{ //need to add other pertinent data
-			Device() : nButtons(0), xPos(0), yPos(0) {}
+			Device() : nButtons(0), xPos(0), yPos(0), bNewDevice(true) {}
 			~Device() {pDevice = NULL;}
 			SmartPtr<IDirectInputDevice8> pDevice;
+			DIDEVICEINSTANCE info;
 			int nButtons;
 			int xPos;
 			int yPos;
+			bool bNewDevice;
 		};
+
+		static BOOL EnumDevices(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef);
+		static BOOL EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
 	protected:
 		HMODULE m_hLibrary;
 		HWND m_hWnd;
 
 		SmartPtr<IDirectInput8> m_dinput;
-		std::vector<Device> m_devices;
+		std::list<Device> m_devices;
+
+		void FilterAttachedDevices(); //cleans list so only attached devices are in list
+		void ConfigNewDevices(); //sets data format, and initial button mappings for new devices
 	public:
 		Joystick();
 		~Joystick();
