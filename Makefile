@@ -33,6 +33,7 @@ libpaths=/usr/lib/
 
 FBFLAGS+=-mt
 FBFLAGS+=-g -exx
+CFLAGS+=-O2
 
 ifdef win32
 	FBFLAGS+=-s gui
@@ -151,8 +152,10 @@ ifdef linksdl
 #	libraries+=${shell sdl-config --libs}
 #	libraries:=$(patsubst -Wl,-Wl ,$(libraries))
 ifdef mac
-	libraries+= -Wl -framework,SDL_mixer -l SDLmain -Wl -framework,SDL -Wl -framework,Cocoa -Wl -F$(FRAMEWORKS_PATH)
+	libraries+= -Wl -framework,SDL_mixer -Wl -framework,SDL -Wl -framework,Cocoa -Wl -F$(FRAMEWORKS_PATH)
+	common_objects+= mac/SDLMain.o
 	FBFLAGS+= -entry SDL_main
+	CFLAGS+=${shell if [ `which sdl-confijg` ] ; then sdl-config --cflags; else echo -I$(FRAMEWORKS_PATH)/SDL.framework/Headers; fi}
 endif
 
 endif
@@ -162,7 +165,7 @@ ifdef mac
 endif
 
 
-all: game edit bam2mid
+all: game edit
 
 game:
 	@$(MAKE) $(game_exe) --no-print-directory || echo $(WARNING)
@@ -182,6 +185,7 @@ $(edit_exe): cver.txt custom_compiled_objs $(common_objects) $(edit_objects)
 	$(FBC) -x $(edit_exe) -m custom $(FBFLAGS) $(edit_flags) $(edit_objects) $(common_objects) $(libpaths) $(libraries)
 
 
+bam2mid: FBFLAGS:=
 bam2mid: bam2mid.bas
 	@echo Compiling Bam2Midi...
 	$(FBC) bam2mid.bas $(FBFLAGS)
@@ -236,6 +240,8 @@ $(main_modules): %.o: %.bas $(includes)
 %.o: %.bas $(includes)
 	$(FBC) -c $< $(FBFLAGS)
 
+%.o: mac/%.m
+	$(CC) -c $< -o $@ $(CFLAGS)
 
 #I am being way too clever
 $(semicommon_objects) game.o custom.o: config.mak codename.txt
