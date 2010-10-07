@@ -25,8 +25,22 @@ BOOL Joystick::EnumDevices(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 }
 
 BOOL Joystick::EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
-{//--placeholder--
-	return DIENUM_STOP;
+{
+	IDirectInputDevice8* pJoystick = (IDirectInputDevice8*)pvRef;
+	if(lpddoi->dwType & DIDFT_AXIS)
+	{
+		DIPROPRANGE range;
+		range.diph.dwHeaderSize = sizeof(range.diph);
+		range.diph.dwHow = DIPH_BYID;
+		range.diph.dwObj = lpddoi->dwType;
+		range.diph.dwSize = sizeof(range);
+		range.lMin = -1000;
+		range.lMax = +1000;
+
+		if(FAILED( pJoystick->SetProperty(DIPROP_RANGE, &range.diph) ))
+			return DIENUM_STOP;
+	}
+	return DIENUM_CONTINUE;
 }
 
 Joystick::Joystick() : m_hLibrary(NULL), m_hWnd(NULL)
@@ -47,21 +61,29 @@ void Joystick::FilterAttachedDevices()
 {
 	HRESULT hr = S_OK;
 	DIJOYSTATE js;
-	for(std::list<Device>::iterator iter = m_devices.begin(); iter != m_devices.end(); iter++)
+	if(m_devices.size() == 0)
+		return;
+	std::list<Device>::iterator iter = m_devices.begin(), iterNext;
+	while( iter != m_devices.end() )
 	{
+		iterNext = iter;
+		iterNext++;
 		hr = iter->pDevice->GetDeviceState(sizeof(js), (void*)&js);
 		if(FAILED(hr))
 			if(hr == DIERR_INPUTLOST)
 				m_devices.erase(iter);
+		iter = iterNext;
 	}
 }
 
 void Joystick::ConfigNewDevices()
 {//needs review
 	HRESULT hr = S_OK;
-	std::list<Device>::iterator iter = m_devices.begin();
+	std::list<Device>::iterator iter = m_devices.begin(), iterNext;
 	while(iter != m_devices.end())
 	{
+		iterNext = iter;
+		iterNext++;
 		if(iter->bNewDevice)
 		{
 			iter->bNewDevice = false;
@@ -74,11 +96,11 @@ void Joystick::ConfigNewDevices()
 			hr = iter->pDevice->SetDataFormat(&c_dfDIJoystick);
 			if(FAILED(hr))
 				m_devices.erase(iter);
-			hr = iter->pDevice->EnumObjects((LPDIENUMDEVICEOBJECTSCALLBACK)EnumDeviceObjects, NULL, DIDFT_PSHBUTTON | DIDFT_ABSAXIS);
+			hr = iter->pDevice->EnumObjects((LPDIENUMDEVICEOBJECTSCALLBACK)EnumDeviceObjects, (void*)iter->pDevice, DIDFT_PSHBUTTON | DIDFT_ABSAXIS);
 			if(FAILED(hr))
 				m_devices.erase(iter);
 		}
-		iter++;
+		iter = iterNext;
 	}
 }
 
@@ -122,7 +144,7 @@ BOOL Joystick::GetState(int &nDevice, int &buttons, int &xPos, int &yPos)
 {
 	if(m_dinput == NULL)
 		return FALSE;
-	if(nDevice > m_devices.size() || nDevice < 0)
+	if(nDevice >= m_devices.size() || nDevice < 0)
 		return FALSE;
 
 	std::list<Device>::iterator iter = m_devices.begin();
@@ -157,7 +179,9 @@ void Joystick::Poll()
 			hr = iter->pDevice->GetDeviceState(sizeof(js), (void*)&js);
 			if(FAILED(hr))
 				break;
-			iter->nButtons = js.rgbButtons[0]; //need information on storing button state
+			iter->nButtons = 0x0;
+			for(UINT i = 0; i < 32; i++)
+				iter->nButtons |= (js.rgbButtons[i] & 0x80) ? (0x1 << i) : 0x0;
 			iter->xPos = js.lX;
 			iter->yPos = js.lY;
 		}

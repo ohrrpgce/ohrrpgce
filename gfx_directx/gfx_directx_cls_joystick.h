@@ -28,8 +28,8 @@ namespace gfx
 			bool bNewDevice;
 		};
 
-		static BOOL EnumDevices(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef);
-		static BOOL EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
+		static BOOL __stdcall EnumDevices(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef);
+		static BOOL __stdcall EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
 	protected:
 		HMODULE m_hLibrary;
 		HWND m_hWnd;

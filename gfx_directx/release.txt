@@ -15,7 +15,7 @@ Added Features:
 
 -Mouse and keyboard are now through window's messages, no longer through DirectInput.
 
--DirectInput is not required for usage--meaning smaller backend dll and greater support.
+-DirectInput is not required for usage--however, if present, an infinite set of joysticks can be used with the ohr engine.
 
 -Mouse is positioned in the window according to where the window mouse really is.
 

@@ -38,6 +38,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 					TEXT("TestApp Message"), MB_OK);
 
 	UINT j = 0;
+	int x,y,buttons;
 	while(!g_bQuit)
 	{
 		for(UINT i = 0; i < 320 * 200; i++)
@@ -49,9 +50,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 		//io_waitprocessing();
 		::ZeroMemory(g_keys, sizeof(g_keys));
 		io_updatekeys(g_keys);
-		if(g_keys[SC_LEFT])
+		buttons = 0; x = 0; y = 0;
+		io_readjoysane(0, buttons, x, y);
+		if(g_keys[SC_LEFT] || buttons & 0x1)
 			j++;
-		if(g_keys[SC_RIGHT])
+		j += x / 100;
+		j -= y / 100;
+		if(g_keys[SC_RIGHT] || buttons & 0x2)
 			j--;
 		if(g_keys[SC_ESCAPE])
 			g_bQuit = true;

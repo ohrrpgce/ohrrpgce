@@ -65,6 +65,7 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 {
 	if(pCreationData == NULL)
 		return FALSE;
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 	LoadHelpText();
 
 	TCHAR buffer[256] = TEXT("");
@@ -117,10 +118,12 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 void gfx_Close()
 {
 	g_State.SendDebugString("gfx_directx: Closing backend...");
+	g_Joystick.Shutdown();
 	g_DirectX.Shutdown();
 	g_Window.Shutdown();
 	gfx_PumpMessages();
 	g_State.SendDebugString("gfx_directx: Close complete!");
+	CoUninitialize();
 }
 
 int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void *pvParam)
