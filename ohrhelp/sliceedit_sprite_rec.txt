@@ -1,0 +1,1 @@
+The sprite number is the number of the sprite in the currently selected sprite type. This is the same as the "Set" number in the sprite editor.

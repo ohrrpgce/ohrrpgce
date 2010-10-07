@@ -1,0 +1,5 @@
+This is the type of sprite, such as Hero or Walkabout or Enemy.
+
+The sprite types correspond to the different sprite editors in the Edit Graphics menu.
+
+Each type of sprite has its own size and number of frames.

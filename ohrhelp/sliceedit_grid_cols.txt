@@ -1,0 +1,1 @@
+A grid slice can be divided into one or more columns.

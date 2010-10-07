@@ -1,0 +1,1 @@
+This is the frame number within the current sprite set. Different sprite types have a different numbers of available frames, and some sprite types only allow a single frame.

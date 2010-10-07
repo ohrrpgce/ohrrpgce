@@ -1,0 +1,1 @@
+When text outline is turned off, you can choose a background color that will be drawn behind the text. Press ENTER or SPACE to browse for a color.

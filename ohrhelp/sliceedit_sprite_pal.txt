@@ -1,0 +1,1 @@
+This is the 16 color palette that the sprite will use. If you set it to "default" then the default palette for this sprite will be used. Pretty easy, eh?

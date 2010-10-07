@@ -1,0 +1,3 @@
+If text is NOT set to wrap, it will all be on one line. non-wrapping text slices will be automatically sized to match the size of the text.
+
+If text IS set to wrap, the text can flow over multiple lines automatically. You can customize the width and height of the slice to control how the text wraps.

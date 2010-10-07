@@ -1,0 +1,5 @@
+Lookup codes are names that you can give to slices to make it possible to easily find a slice in a plotscript.
+
+Press Enter to browse and edit the list of available slice lookup codes.
+
+For more information, check out the plotscripting documentation for the "lookup slice" command.
