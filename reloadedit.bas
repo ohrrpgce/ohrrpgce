@@ -76,6 +76,7 @@ SUB reload_editor()
   END IF
   
   IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help("reload_editor")
   IF keyval(scTAB) > 1 THEN mode = mode XOR 1
   IF keyval(scCTRL) > 0 THEN
    IF keyval(scR) > 1 THEN 

@@ -1,0 +1,8 @@
+Oh! You found a secret advanced tool!
+This is the RELOAD Editor. It is for editing raw data files in RELOAD format. If you aren't an OHRRPGCE developer and don't know what RELOAD is, then you probably don't want to do that (but if you are curious, check the wiki)
+
+Press CTRL+R to read in a .reld file.
+
+Press TAB to switch editing mode.
+
+Only node name editing mode works right now. And you can't save anything yet. Be patient ;)
