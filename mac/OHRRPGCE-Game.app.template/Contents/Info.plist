@@ -7,7 +7,7 @@
 	<key>CFBundleName</key>
 	<string>OHRRPGCE Game</string>
 	<key>CFBundleShortVersionString</key>
-	<string>version 2010-09-24</string>
+	<string>#VERSION#</string>
 	<key>CFBundleIconFile</key>
 	<string>game.icns</string>
 </dict>
