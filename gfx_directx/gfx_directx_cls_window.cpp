@@ -34,8 +34,8 @@ int Window::Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC
 	wc.hCursor			= ::LoadCursor(0, IDC_ARROW);
 	if(szIconResource != NULL)
 	{
-		wc.hIcon		= ::LoadIcon(hInstance, szIconResource);
-		wc.hIconSm		= ::LoadIcon(hInstance, szIconResource);
+		wc.hIcon		= ::LoadIcon(::GetModuleHandle(NULL), szIconResource);
+		wc.hIconSm		= ::LoadIcon(::GetModuleHandle(NULL), szIconResource);
 	}
 	else
 	{

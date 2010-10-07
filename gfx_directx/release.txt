@@ -5,6 +5,8 @@ v1.8
 
 Added Features:
 
+-Fixed window icon to appear as the custom or game icon.
+
 -Help file added to options menu.
 
 -Fixed problem where frame would show garbage initially.
