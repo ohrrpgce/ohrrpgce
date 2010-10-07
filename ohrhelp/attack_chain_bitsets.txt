@@ -10,3 +10,6 @@ Modifiy bitsets with Left, Right, SPACE and ENTER.
 
 * "Doesn't block further actions"
 causes the chained attack to be non-blocking, even if it would not normally be. Non-blocking attacks allow the attacker to continue to act while the attack delay counts down.
+
+* "Don't retarget if target is lost"
+Prevents a new target from being chosen if the target dies before the attack animates.

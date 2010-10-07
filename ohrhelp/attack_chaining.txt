@@ -14,7 +14,7 @@ There are three types of chaining.
 
 [NOTE: If the default chain's evaluation succeeds, but the ensuing attack itself fails, whether for aiming or any other reasons, the Else-Chain is not evaluated]
 
-* Instead-Chain - [Not implemented yet] - This attack will be used instead of the current attack. In other words, it will replace the current attack. If an attack gets replaced by its instead-chain, then the only thing about the original attack that will matter is its targetting data.
+* Instead-Chain - This attack will be used instead of the current attack. In other words, it will replace the current attack. If an attack gets replaced by its instead-chain, then the only thing about the original attack that will matter is its targetting data.
 
 For each chain, there are several different options.
 
