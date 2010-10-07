@@ -379,6 +379,17 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
  *s = 0
 End Sub
 
+'Deletes a slice's, children but not itself
+Sub DeleteSliceChildren(Byval sl as Slice ptr)
+ if sl = 0 then debug "DeleteSliceChildren null ptr": exit sub
+ dim ch as slice ptr
+ ch = sl->FirstChild
+ do while ch
+  DeleteSlice @ch
+  ch = sl->FirstChild
+ loop
+End Sub
+
 Sub OrphanSlice(byval sl as slice ptr)
  '-- Remove a slice from its current parent cleanly,
  '-- adjusting siblings, and leaving itself parentless.

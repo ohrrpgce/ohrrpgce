@@ -147,7 +147,8 @@ edit_modules = ['custom',
                 'mapsubs',
                 'flexmenu',
                 'menus',
-                'sliceedit']
+                'sliceedit',
+                'reloadedit']
 
 edit_modules.reverse ()
 

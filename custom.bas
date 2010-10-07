@@ -45,6 +45,7 @@ DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
 #include "uiconst.bi"
 #include "scrconst.bi"
 #include "sliceedit.bi"
+#include "reloadedit.bi"
 
 DIM exename as string
 exename = trimextension$(trimpath$(COMMAND$(0)))
@@ -266,6 +267,9 @@ DO:
    CASE 1'--normal mode
     show_help "gfxmain"
   END SELECT
+ END IF
+ IF keyval(scF2) > 1 THEN
+  reload_editor
  END IF
  usemenu pt, 0, 0, mainmax, 24
  IF enter_or_space() THEN

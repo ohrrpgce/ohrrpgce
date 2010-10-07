@@ -126,6 +126,7 @@ TYPE MenuDefItem
   hide_if_disabled  AS INTEGER ' Bitset
   close_if_selected AS INTEGER ' Bitset
   skip_close_script AS INTEGER ' Bitset
+  dataptr   AS ANY PTR 'Use this with caution!
 END TYPE
 
 '*** Requires construction (with ClearMenuData or LoadMenuData) + destruction (with DeleteMenuItems) ***
