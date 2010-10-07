@@ -142,24 +142,26 @@ FUNCTION reload_editor_edit_node_value(node AS Reload.Nodeptr) AS INTEGER
  IF node = 0 THEN debug "reload_editor_edit_node_name: null node": RETURN NO
 
  SELECT CASE Reload.NodeType(node)
-  CASE Reload.rliNull:
+  CASE Reload.rltNull:
    RETURN NO
-  CASE Reload.rliFloat:
+  CASE Reload.rltFloat:
    debug "no floatgrabber exists yet"
-  CASE Reload.rliString:
+  CASE Reload.rltString:
    DIM s AS STRING
    s = Reload.GetString(node)
    IF strgrabber(s, 40) THEN
     Reload.SetContent(node, s)
     RETURN YES
    END IF
-  CASE ELSE ' everything else is an int
+  CASE Reload.rltInt:
    DIM n AS INTEGER
    n = Reload.GetInteger(node)
    IF intgrabber(n, -32767, 32767) THEN
     Reload.SetContent(node, n)
     RETURN YES
    END IF
+  CASE ELSE
+   debug "invalid reload node type " & Reload.NodeType(node)
  END SELECT
  RETURN NO
 END FUNCTION
@@ -194,13 +196,10 @@ FUNCTION reload_editor_node_string(node AS Reload.Nodeptr) AS STRING
  DIM s AS STRING = ""
  s &= Reload.NodeName(node)
  SELECT CASE Reload.NodeType(node)
-  CASE Reload.rliNull:   s &= "()"
-  CASE Reload.rliByte:   s &= "(byte) "   & Reload.GetInteger(node)
-  CASE Reload.rliShort:  s &= "(short) "  & Reload.GetInteger(node)
-  CASE Reload.rliInt:    s &= "(int) "    & Reload.GetInteger(node)
-  CASE Reload.rliLong:   s &= "(long) "   & Reload.GetInteger(node)
-  CASE Reload.rliFloat:  s &= "(float) "  & Reload.GetFloat(node)
-  CASE Reload.rliString: s &= "(string) " & Reload.GetString(node)
+  CASE Reload.rltNull:   s &= "()"
+  CASE Reload.rltInt:    s &= "(int) "    & Reload.GetInteger(node)
+  CASE Reload.rltFloat:  s &= "(float) "  & Reload.GetFloat(node)
+  CASE Reload.rltString: s &= "(string) " & Reload.GetString(node)
  END SELECT
  RETURN s
 END FUNCTION
