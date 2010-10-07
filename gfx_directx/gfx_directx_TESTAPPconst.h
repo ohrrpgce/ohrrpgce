@@ -1,6 +1,10 @@
 //TESTAPP determines whether the test app is running (TRUE/FALSE)
 #ifndef TESTAPP
+#ifdef _DEBUG
+#define TESTAPP 1
+#else
 #define TESTAPP 0
+#endif
 
 //included libraries for TESTAPP
 #if TESTAPP

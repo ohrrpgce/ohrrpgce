@@ -34,8 +34,8 @@ BOOL Joystick::EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
 		range.diph.dwHow = DIPH_BYID;
 		range.diph.dwObj = lpddoi->dwType;
 		range.diph.dwSize = sizeof(range);
-		range.lMin = -1000;
-		range.lMax = +1000;
+		range.lMin = -100;
+		range.lMax = +100;
 
 		if(FAILED( pJoystick->SetProperty(DIPROP_RANGE, &range.diph) ))
 			return DIENUM_STOP;
