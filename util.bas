@@ -606,6 +606,26 @@ FUNCTION is_absolute_path (sDir as string) as integer
   return 0
 END FUNCTION
 
+'Go up a number of directories.
+'pathname is interpreted as a directory even if missing the final slash!
+'Warning, don't actually rely on . and .. being properly handled
+FUNCTION parentdir (pathname as string, BYVAL upamount as integer = 1) as string
+  DIM as integer temp, retlen = LEN(pathname)
+  WHILE upamount > 0
+    WHILE retlen > 0 ANDALSO pathname[retlen - 1] = ASC(SLASH) : retlen -= 1 : WEND
+    temp = INSTRREV(pathname, SLASH, retlen)
+    IF temp = 0 THEN EXIT WHILE
+    retlen = temp
+    IF MID(pathname, retlen + 1, 3) = ".." + SLASH THEN
+      upamount += 1
+    ELSEIF MID(pathname, retlen + 1, 2) = "." + SLASH THEN
+    ELSE
+      upamount -= 1
+    END IF
+  WEND
+  RETURN MID(pathname, 1, retlen)
+END FUNCTION
+
 FUNCTION anycase (filename as string) as string
   'make a filename case-insensitive
 #IFDEF __FB_WIN32__

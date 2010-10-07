@@ -238,6 +238,7 @@ declare function trimfilename (filename as string) as string
 declare function trimextension (filename as string) as string
 declare function justextension (filename as string) as string
 declare function is_absolute_path (sDir as string) as integer
+declare function parentdir (pathname as string, BYVAL upamount as integer = 1) as string
 declare function anycase (filename as string) as string
 declare sub touchfile (filename as string)
 declare sub findfiles (fmask as string, BYVAL attrib as integer, outfile as string)
