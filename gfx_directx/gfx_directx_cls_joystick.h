@@ -18,7 +18,7 @@ namespace gfx
 	protected:
 		struct Device
 		{ //need to add other pertinent data
-			Device() : nButtons(0), xPos(0), yPos(0), bNewDevice(true) {}
+			Device() : nButtons(0), xPos(0), yPos(0), bNewDevice(true), bRefreshed(true) {}
 			~Device() {pDevice = NULL;}
 			SmartPtr<IDirectInputDevice8> pDevice;
 			DIDEVICEINSTANCE info;
@@ -26,6 +26,7 @@ namespace gfx
 			int xPos;
 			int yPos;
 			bool bNewDevice;
+			bool bRefreshed;
 		};
 
 		static BOOL __stdcall EnumDevices(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef);
@@ -47,6 +48,7 @@ namespace gfx
 		void Shutdown();
 
 		void RefreshEnumeration(); //refreshes the device list
+		UINT GetJoystickCount();
 		BOOL GetState(int& nDevice, int& buttons, int& xPos, int& yPos);
 		void Poll();
 	};

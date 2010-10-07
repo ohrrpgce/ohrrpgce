@@ -30,6 +30,8 @@ Keyboard g_Keyboard;
 Mouse g_Mouse;
 Joystick g_Joystick;
 
+void DebugString(const char* szMessage) { MessageBoxA(NULL, szMessage, "Debug Message", MB_OK); }
+
 struct gfx_BackendState
 {
 	Tstring szWindowTitle;
@@ -37,7 +39,6 @@ struct gfx_BackendState
 	void (__cdecl *PostTerminateSignal)(void);
 	void (__cdecl *OnCriticalError)(const char* szError);
 	void (__cdecl *SendDebugString)(const char* szMessage);
-	int (__cdecl *DefGfxMessageProc)(unsigned int msg, unsigned int dwParam, void* pvParam);
 	bool bClosing; //flagged when shutting down
 	bool bOhrMouseRequest; //true whenever the ohr needs mouse input
 	Tstring szHelpText;
@@ -72,10 +73,9 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 	g_State.szWindowIcon = StringToString(buffer, 256, pCreationData->szWindowIcon);
 	g_State.PostTerminateSignal = pCreationData->PostTerminateSignal;
 	g_State.OnCriticalError = pCreationData->OnCriticalError;
-	g_State.SendDebugString = pCreationData->SendDebugString;
-	g_State.DefGfxMessageProc = pCreationData->DefGfxMessageProc;
+	g_State.SendDebugString = /*DebugString;*/pCreationData->SendDebugString;
 
-	if(g_State.PostTerminateSignal == NULL || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL || g_State.DefGfxMessageProc == NULL)
+	if(g_State.PostTerminateSignal == NULL || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL)
 		return FALSE;
 
 	g_State.SendDebugString("gfx_directx: Initializing...");
@@ -115,7 +115,7 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 	return TRUE;
 }
 
-void gfx_Close()
+void gfx_Shutdown()
 {
 	g_State.SendDebugString("gfx_directx: Closing backend...");
 	g_Joystick.Shutdown();
@@ -219,7 +219,7 @@ int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void *pvParam)
 			return 0;
 		}
 	default:
-		return g_State.DefGfxMessageProc(msg, dwParam, pvParam);
+		return FALSE;
 	}
 	return TRUE;
 }
@@ -227,20 +227,6 @@ int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void *pvParam)
 int gfx_GetVersion()
 {
 	return DX_VERSION_MAJOR;
-}
-
-void gfx_PumpMessages()
-{
-	static MSG msg;
-	while(::PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-	{
-		if(!::IsWindow(g_hWndDlg) || !::IsDialogMessage(g_hWndDlg, &msg))
-		{
-			::TranslateMessage(&msg);
-			::DispatchMessage(&msg);
-		}
-	}
-	g_Joystick.Poll();
 }
 
 void gfx_Present(unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
@@ -261,16 +247,16 @@ int gfx_ScreenShot(const char *szFileName)
 	switch(g_DirectX.GetImageFileFormat())
 	{
 	case D3DXIFF_JPG:
-		::_tcscat_s<256>(buffer, TEXT(".jpg"));
+		::_tcscat(buffer, TEXT(".jpg"));
 		break;
 	case D3DXIFF_BMP:
-		::_tcscat_s<256>(buffer, TEXT(".bmp"));
+		::_tcscat(buffer, TEXT(".bmp"));
 		break;
 	case D3DXIFF_PNG:
-		::_tcscat_s<256>(buffer, TEXT(".png"));
+		::_tcscat(buffer, TEXT(".png"));
 		break;
 	case D3DXIFF_DDS:
-		::_tcscat_s<256>(buffer, TEXT(".dds"));
+		::_tcscat(buffer, TEXT(".dds"));
 		break;
 	default:
 		return FALSE;
@@ -278,6 +264,20 @@ int gfx_ScreenShot(const char *szFileName)
 	if(DX_OK != g_DirectX.ScreenShot(buffer))
 		return FALSE;
 	return TRUE;
+}
+
+void gfx_PumpMessages()
+{
+	static MSG msg;
+	while(::PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+	{
+		if(!::IsWindow(g_hWndDlg) || !::IsDialogMessage(g_hWndDlg, &msg))
+		{
+			::TranslateMessage(&msg);
+			::DispatchMessage(&msg);
+		}
+	}
+	g_Joystick.Poll();
 }
 
 void gfx_SetWindowTitle(const char *szTitle)
@@ -303,24 +303,20 @@ const char* gfx_GetWindowTitle()
 	return StringToString(buffer, 256, g_State.szWindowTitle.c_str());
 }
 
-int gfx_AcquireKeyboard(int bEnable)
+void gfx_ShowCursor()
 {
-	return TRUE; //acquired by default
+	g_State.bOhrMouseRequest = false;
+	g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
 }
 
-int gfx_AcquireMouse(int bEnable)
+void gfx_HideCursor()
 {
-	g_State.bOhrMouseRequest = bEnable ? true : false;
-	g_Mouse.SetInputState(bEnable ? gfx::Mouse::IS_LIVE : gfx::Mouse::IS_DEAD);
-	char buffer[256] = "";
-	gfx_SetWindowTitle( StringToString(buffer, 256, g_State.szWindowTitle.c_str()) );
-	return TRUE;
+	g_State.bOhrMouseRequest = true;
+	g_Mouse.SetInputState(gfx::Mouse::IS_LIVE);
 }
 
-int gfx_AcquireJoystick(int bEnable, int nDevice)
-{
-	int b, x, y; //junk test variables; this will be fixed later
-	return g_Joystick.GetState(nDevice, b, x, y); //tests whether the device is hooked up
+void gfx_ClipCursor(int left, int top, int right, int bottom)
+{//--placeholder--
 }
 
 int gfx_GetKeyboard(int *pKeyboard)
@@ -331,12 +327,7 @@ int gfx_GetKeyboard(int *pKeyboard)
 	return TRUE;
 }
 
-int gfx_GetMouseMovement(int& dx, int& dy, int& dWheel, int& buttons)
-{
-	return FALSE;
-}
-
-int gfx_GetMousePosition(int& x, int& y, int& wheel, int& buttons)
+int gfx_GetMouse(int& x, int& y, int& wheel, int& buttons)
 {
 	x = g_Mouse.GetCursorPos().x;
 	y = g_Mouse.GetCursorPos().y;
@@ -345,7 +336,7 @@ int gfx_GetMousePosition(int& x, int& y, int& wheel, int& buttons)
 	return TRUE;
 }
 
-int gfx_SetMousePosition(int x, int y)
+int gfx_SetMouse(int x, int y)
 {
 	DWORD xPos, yPos;
 	RECT rClient, rDesktop;
@@ -363,19 +354,19 @@ int gfx_SetMousePosition(int x, int y)
 	return TRUE;
 }
 
-int gfx_GetJoystickMovement(int nDevice, int& dx, int& dy, int& buttons)
-{
-	return FALSE; //no support
-}
-
-int gfx_GetJoystickPosition(int nDevice, int& x, int& y, int& buttons)
+int gfx_GetJoystick(int nDevice, int& x, int& y, int& buttons)
 {
 	return g_Joystick.GetState(nDevice, buttons, x, y);
 }
 
-int gfx_SetJoystickPosition(int nDevice, int x, int y)
+int gfx_SetJoystick(int nDevice, int x, int y)
 {
 	return FALSE; //no support
+}
+
+int gfx_GetJoystickCount()
+{
+	return g_Joystick.GetJoystickCount();
 }
 
 SIZE CalculateNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth, UINT targetHeight)
@@ -442,8 +433,8 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 						else
 							g_Mouse.PopState();
-						char buffer[256] = "";
-						gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
+						//char buffer[256] = "";
+						//gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
 					}
 				} break;
 			default:
@@ -642,6 +633,13 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 					}
 					return TRUE;
 				} break;
+			case IDC_OPTIONS_RefreshJoysticks:
+				{
+					g_Joystick.RefreshEnumeration();
+					TCHAR strInfoBuffer[128] = TEXT("");
+					::_stprintf(strInfoBuffer, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.GetJoystickCount());
+					::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_RefreshJoysticks, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
+				} break;
 			case IDOK:
 				{//apply all changes and return
 					g_DirectX.SetVSync(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
@@ -689,8 +687,10 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, (g_DirectX.IsAspectRatioPreserved() ? BST_CHECKED : BST_UNCHECKED));
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Status, WM_SETTEXT, 0, (LPARAM)g_State.szHelpText.c_str()/*g_DirectX.GetLastErrorMessage()*/);
 			TCHAR strInfoBuffer[128] = TEXT("");
-			::_stprintf_s<128>(strInfoBuffer, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
+			::_stprintf(strInfoBuffer, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Info, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
+			::_stprintf(strInfoBuffer, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.GetJoystickCount());
+			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_RefreshJoysticks, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
 			if(g_DirectX.IsScreenShotsActive())
 			{
 				switch(g_DirectX.GetImageFileFormat())

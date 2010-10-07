@@ -6,17 +6,16 @@
 
 void OnCriticalError(const char* szError) {}
 void SendDebugString(const char* szMessage) {}
-int DefMsgProc(unsigned int msg, unsigned int dwParam, void *pvParam) {return 0;}
 
 int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
 {
-	GFX_INIT gfxInit = {"DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString, DefMsgProc};
+	GFX_INIT gfxInit = {"DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString};
 	return gfx_Initialize(&gfxInit);
 }
 
 void gfx_close()
 {
-	gfx_Close();
+	gfx_Shutdown();
 }
 
 int gfx_getversion()
@@ -140,24 +139,29 @@ void io_updatekeys(int *keybd)
 
 int io_setmousevisibility(int visible)
 {
-	return gfx_AcquireMouse(visible == 0 ? 1 : 0);
+	if(visible == 0)
+		gfx_HideCursor();
+	else
+		gfx_ShowCursor();
+	return 1;
 }
 
 void io_getmouse(int& mx, int& my, int& mwheel, int& mbuttons)
 {
-	gfx_GetMousePosition(mx, my, mwheel, mbuttons);
+	gfx_GetMouse(mx, my, mwheel, mbuttons);
 }
 
 void io_setmouse(int x, int y)
 {
-	gfx_SetMousePosition(x, y);
+	gfx_SetMouse(x, y);
 }
 
 void io_mouserect(int xmin, int xmax, int ymin, int ymax)
-{//there isn't an equivalent message in the new backend
+{
+	gfx_ClipCursor(xmin, ymin, xmax, ymax);
 }
 
 int io_readjoysane(int joynum, int& button, int& x, int& y)
 {
-	return gfx_GetJoystickPosition(joynum, x, y, button);
+	return gfx_GetJoystick(joynum, x, y, button);
 }

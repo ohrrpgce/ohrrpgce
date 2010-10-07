@@ -1,4 +1,17 @@
 --------------------------------------------------
+10/7/10
+v1.9
+
+Added Features:
+
+-Updated backend control functions (programming side) to new proposed interfaces.
+
+-Added a "Refresh Joysticks - Count: x" button in the Options dialog. If a joystick is unplugged or plugged in while running, pressing the refresh will update the state. It also reports how many joysticks are plugged in.
+
+
+
+
+--------------------------------------------------
 9/26/10
 v1.8
 (Somehow information on v1.7 was lost in the development...)

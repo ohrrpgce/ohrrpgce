@@ -16,7 +16,10 @@ BOOL Joystick::EnumDevices(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 	while(iter != dev.end())
 	{
 		if(IsEqualGUID(newDev.info.guidInstance, iter->info.guidInstance))
+		{
+			iter->bRefreshed = true;
 			return DIENUM_CONTINUE;
+		}
 		iter++;
 	}
 
@@ -59,8 +62,6 @@ Joystick::~Joystick()
 
 void Joystick::FilterAttachedDevices()
 {
-	HRESULT hr = S_OK;
-	DIJOYSTATE js;
 	if(m_devices.size() == 0)
 		return;
 	std::list<Device>::iterator iter = m_devices.begin(), iterNext;
@@ -68,16 +69,16 @@ void Joystick::FilterAttachedDevices()
 	{
 		iterNext = iter;
 		iterNext++;
-		hr = iter->pDevice->GetDeviceState(sizeof(js), (void*)&js);
-		if(FAILED(hr))
-			if(hr == DIERR_INPUTLOST)
-				m_devices.erase(iter);
+		if(iter->bRefreshed == false)
+			m_devices.erase(iter);
+		else
+			iter->bRefreshed = false;
 		iter = iterNext;
 	}
 }
 
 void Joystick::ConfigNewDevices()
-{//needs review
+{
 	HRESULT hr = S_OK;
 	std::list<Device>::iterator iter = m_devices.begin(), iterNext;
 	while(iter != m_devices.end())
@@ -134,10 +135,14 @@ void Joystick::RefreshEnumeration()
 {
 	if(m_dinput == NULL)
 		return;
-	FilterAttachedDevices();
 	m_dinput->EnumDevices( DI8DEVCLASS_GAMECTRL, (LPDIENUMDEVICESCALLBACK)EnumDevices, (void*)&m_devices, DIEDFL_ATTACHEDONLY );
 	ConfigNewDevices();
 	FilterAttachedDevices();
+}
+
+UINT Joystick::GetJoystickCount()
+{
+	return m_devices.size();
 }
 
 BOOL Joystick::GetState(int &nDevice, int &buttons, int &xPos, int &yPos)
