@@ -29,6 +29,7 @@ DECLARE FUNCTION reload_editor_browse(BYREF doc AS Reload.Docptr, BYREF node AS 
 DECLARE FUNCTION reload_editor_load(filename AS STRING, BYREF doc AS Reload.Docptr, BYREF node AS Reload.NodePtr) AS INTEGER
 DECLARE SUB reload_editor_edit_node(mode AS INTEGER, mi AS MenuDefItem Ptr)
 DECLARE FUNCTION reload_editor_edit_node_name(node AS Reload.Nodeptr) AS INTEGER
+DECLARE FUNCTION reload_editor_edit_node_value(node AS Reload.Nodeptr) AS INTEGER
 
 '-----------------------------------------------------------------------
 
@@ -42,7 +43,7 @@ SUB reload_editor()
  DIM node AS Reload.Nodeptr
  Reload.SetRootNode(doc, node)
 
- DIM mode AS INTEGER = 0
+ DIM mode AS INTEGER = 1
  DIM mode_name(1) AS STRING
  mode_name(0) = "node names"
  mode_name(1) = "node values"
@@ -111,14 +112,19 @@ SUB reload_editor_edit_node(mode AS INTEGER, mi AS MenuDefItem Ptr)
  DIM node AS Reload.NodePtr
  node = mi->dataptr
  IF node = 0 THEN debug "reload_editor_edit_node: mi has null node": EXIT SUB
- 
+
+ DIM changed AS INTEGER = NO
+  
  SELECT CASE mode
   CASE 0:
-   IF reload_editor_edit_node_name(node) THEN
-    mi->caption = STRING(mi->extra(0), " ") & reload_editor_node_string(node)
-   END IF
+   IF reload_editor_edit_node_name(node) THEN changed = YES
   CASE 1:
+   IF reload_editor_edit_node_value(node) THEN changed = YES
  END SELECT
+
+ IF changed THEN
+  mi->caption = STRING(mi->extra(0), " ") & reload_editor_node_string(node)
+ END IF
 END SUB
 
 FUNCTION reload_editor_edit_node_name(node AS Reload.Nodeptr) AS INTEGER
@@ -132,12 +138,37 @@ FUNCTION reload_editor_edit_node_name(node AS Reload.Nodeptr) AS INTEGER
  RETURN NO
 END FUNCTION
 
+FUNCTION reload_editor_edit_node_value(node AS Reload.Nodeptr) AS INTEGER
+ IF node = 0 THEN debug "reload_editor_edit_node_name: null node": RETURN NO
+
+ SELECT CASE Reload.NodeType(node)
+  CASE Reload.rliNull:
+   RETURN NO
+  CASE Reload.rliFloat:
+   debug "no floatgrabber exists yet"
+  CASE Reload.rliString:
+   DIM s AS STRING
+   s = Reload.GetString(node)
+   IF strgrabber(s, 40) THEN
+    Reload.SetContent(node, s)
+    RETURN YES
+   END IF
+  CASE ELSE ' everything else is an int
+   DIM n AS INTEGER
+   n = Reload.GetInteger(node)
+   IF intgrabber(n, -32767, 32767) THEN
+    Reload.SetContent(node, n)
+    RETURN YES
+   END IF
+ END SELECT
+ RETURN NO
+END FUNCTION
+
 SUB reload_editor_refresh (node AS Reload.Nodeptr, BYREF Menu AS MenuDef)
  IF node = 0 THEN debug "reload_editor_refresh: null node" : EXIT SUB
 
  DIM s AS STRING
  s = STRING(indent, " ") & reload_editor_node_string(node)
- debug s
  
  DIM index AS INTEGER
  index = append_menu_item(menu, s)
