@@ -55,6 +55,15 @@ DIM homedir as string
 'why do we use different temp dirs in game and custom?
 set_homedir
 
+#IFDEF __FB_DARWIN__
+ 'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
+ IF RIGHT(exepath, 19) = ".app/Contents/MacOS" THEN
+  data_dir = parentdir(exepath, 1) + "Resources"
+ END IF
+#ENDIF
+
+orig_dir = CURDIR()
+
 'temporarily set current directory, will be changed to game directory later if writable
 IF fileiswriteable(exepath$ + SLASH + "writetest.tmp") THEN
  'When CUSTOM is installed read-write, work in CUSTOM's folder
@@ -66,11 +75,11 @@ ELSE
 END IF
 
 #IFDEF __UNIX__
-tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH
-IF NOT isdir(tmpdir) THEN makedir tmpdir
+ tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH
+ IF NOT isdir(tmpdir) THEN makedir tmpdir
 #ELSE
-'Custom on Windows works in the current dir
-tmpdir = CURDIR + SLASH
+ 'Custom on Windows works in the current dir
+ tmpdir = CURDIR + SLASH
 #ENDIF
 
 start_new_debug
@@ -80,7 +89,6 @@ debuginfo DATE & " " & TIME
 dim workingdir as string
 workingdir = tmpdir & "working.tmp"
 
-orig_dir = CURDIR()
 processcommandline
 
 REDIM gen(360)

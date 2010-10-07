@@ -47,6 +47,13 @@ DECLARE SUB interpret ()
 
 REMEMBERSTATE
 
+#IFDEF __FB_DARWIN__
+ 'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
+ IF RIGHT(exepath, 19) = ".app/Contents/MacOS" THEN
+  data_dir = parentdir(exepath, 1) + "Resources"
+ END IF
+#ENDIF
+
 start_new_debug
 debuginfo long_version & build_info
 debuginfo DATE & " " & TIME

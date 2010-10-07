@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>ohrrpgce-game</string>
+	<key>CFBundleName</key>
+	<string>OHRRPGCE Game</string>
+	<key>CFBundleShortVersionString</key>
+	<string>version 2010-09-24</string>
+	<key>CFBundleIconFile</key>
+	<string>game.icns</string>
+</dict>
+</plist>

@@ -410,6 +410,9 @@ ELSE
   END IF
   '--hide any .saves folders when browsing
   IF justextension$(tree(br.treesize).filename) = "saves" THEN br.treesize = br.treesize - 1
+#IFDEF __FB_DARWIN__
+  IF justextension$(tree(br.treesize).filename) = "app" THEN br.treesize = br.treesize - 1
+#ENDIF
   draw_browse_meter br
  LOOP
  CLOSE #fh

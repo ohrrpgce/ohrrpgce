@@ -58,6 +58,9 @@ DIM log_dir AS STRING
 'It is very important for this to be populated _before_ any calls to CHDIR
 DIM orig_dir AS STRING
 
+'Used on Mac to point to the app bundle Resources directory
+DIM data_dir AS STRING
+
 ''''' Module-local variables
 
 'a primitive system for printing messages that scroll
@@ -2080,6 +2083,8 @@ END SUB
 FUNCTION finddatafile(filename AS STRING) AS STRING
 'Current dir
 IF isfile(filename) THEN RETURN filename
+'platform-specific relative data files path (Mac OS X bundles)
+IF isfile(data_dir & SLASH & filename) THEN RETURN data_dir & SLASH & filename
 'same folder as executable
 IF isfile(exepath & SLASH & filename) THEN RETURN exepath & SLASH & filename
 #IFDEF __UNIX__
@@ -4089,6 +4094,8 @@ FUNCTION get_help_dir() AS STRING
 'what happened to prefsdir? [James: prefsdir only exists for game not custom right now]
 IF isfile(exepath & SLASH & "ohrhelp") THEN RETURN exepath & SLASH & "ohrhelp"
 IF isfile(homedir & SLASH & "ohrhelp") THEN RETURN homedir & SLASH & "ohrhelp"
+'platform-specific relative data files path (Mac OS X bundles)
+IF isfile(data_dir & SLASH & "ohrhelp") THEN RETURN data_dir & SLASH & "ohrhelp"
 #IFDEF __UNIX__
 #IFDEF DATAFILES
  IF isfile(DATAFILES & SLASH & "ohrhelp") THEN RETURN DATAFILES & SLASH & "ohrhelp"
