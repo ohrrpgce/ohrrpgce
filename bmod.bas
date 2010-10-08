@@ -1441,7 +1441,7 @@ SELECT CASE bat.vic.state
    IF bat.rew.found(bat.vic.found_index).num = 0 THEN bat.vic.state = vicEXITDELAY: EXIT SUB
    '--get the item name
    bat.vic.item_name = readitemname$(bat.rew.found(bat.vic.found_index).id)
-   '--actually aquire the item
+   '--actually acquire the item
    getitem bat.rew.found(bat.vic.found_index).id + 1, bat.rew.found(bat.vic.found_index).num
   END IF
   '--if the present item is gotten, show the caption

@@ -392,7 +392,7 @@ SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
  storeset f, 0, 0
 END SUB
 
-FUNCTION aquiretempdir () as string
+FUNCTION acquiretempdir () as string
 #IFDEF __FB_WIN32__
 'Windows only behavior
 tmp$ = environ$("TEMP")

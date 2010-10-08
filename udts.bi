@@ -409,7 +409,7 @@ End Type
 
 Type AttackDataItem
 	id as integer 'ID + 1
-	number as integer 'positive to consume, negative to aquire
+	number as integer 'positive to consume, negative to acquire
 End Type
 
 Type AttackDataChain

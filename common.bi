@@ -31,7 +31,7 @@ DECLARE FUNCTION soundfile (sfxnum as integer) as string
 DECLARE FUNCTION filesize (file as string) as string
 DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
-DECLARE FUNCTION aquiretempdir () as string
+DECLARE FUNCTION acquiretempdir () as string
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as integer, offset as integer, maxlen as integer)
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as short, offset as integer, maxlen as integer)
 DECLARE SUB writebadbinstring (savestr as string, array() as integer, offset as integer, maxlen as integer, skipword as integer=0)

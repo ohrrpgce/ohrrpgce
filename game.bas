@@ -66,7 +66,7 @@ processcommandline
 
 '---get temp dir---
 set_homedir
-tmpdir = aquiretempdir$
+tmpdir = acquiretempdir$
 
 'DEBUG debug "set mode-X"
 setmodex

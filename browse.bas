@@ -29,6 +29,7 @@ Type BrowseMenuState
 	ranalready as integer
 	meter as integer
 	drivesshown as integer  'number of drive entries (plus 1 for refresh)
+	alert as string
 End Type
 
 'Subs and functions only used locally
@@ -106,9 +107,10 @@ br.drivesshown = 0
 getdrivenames = 0  'whether to fetch names of all drives, on if hit F5
 
 br.ranalready = 0
-GOSUB context
+GOSUB build_listing
 
-changed = 1
+changed = 0
+IF br.alert = "" THEN changed = 1
 
 setkeys
 DO
@@ -120,12 +122,12 @@ DO
  IF keyval(scF1) > 1 THEN show_help helpkey
 #ENDIF
  IF usemenu(treeptr, treetop, 0, br.treesize, br.viewsize) OR changed THEN
-  alert$ = ""
+  br.alert = ""
   changed = 0
   GOSUB hover
  END IF
  IF enter_or_space() THEN
-  alert$ = ""
+  br.alert = ""
   changed = 1
   IF br.special = 1 OR br.special = 5 THEN pausesong
   SELECT CASE tree(treeptr).kind
@@ -136,9 +138,9 @@ DO
     setvispage vpage
     IF hasmedia(tree(treeptr).filename) THEN
      br.nowdir = tree(treeptr).filename
-     GOSUB context
+     GOSUB build_listing
     ELSE
-     alert$ = "No media"
+     br.alert = "No media"
      changed = 0
     END IF
    CASE 1, 4
@@ -146,10 +148,10 @@ DO
     FOR i = br.drivesshown TO treeptr
      br.nowdir = br.nowdir + tree(i).filename
     NEXT i
-    GOSUB context
+    GOSUB build_listing
    CASE 2
     br.nowdir = br.nowdir + tree(treeptr).filename + SLASH
-    GOSUB context
+    GOSUB build_listing
    CASE 3
     browse = br.nowdir + tree(treeptr).filename
     EXIT DO
@@ -159,7 +161,7 @@ DO
   'Ctrl + H for hidden
   IF keyval(scH) > 1 THEN
    showHidden = showHidden XOR attribHidden
-   GOSUB context
+   GOSUB build_listing
   END IF
  ELSE
   'find by letter
@@ -178,7 +180,7 @@ DO
   'refresh
   br.drivesshown = 0
   getdrivenames = 1
-  GOSUB context
+  GOSUB build_listing
   changed = 1
  END IF
  IF keyval(scBackspace) > 1 THEN 'backspace
@@ -186,7 +188,7 @@ DO
   FOR i = LEN(br.nowdir) - 1 TO 1 STEP -1
    IF br.nowdir[i - 1] = ASC(SLASH) THEN br.nowdir = LEFT$(br.nowdir, i) : EXIT FOR
   NEXT
-  GOSUB context
+  GOSUB build_listing
   changed = 1
  END IF
  '--Draw screen
@@ -194,7 +196,7 @@ DO
  edgeboxstyle 4, 3, 312, 14, 0, dpage, NO, YES
  edgeprint br.nowdir, 8, 6, uilook(uiText), dpage
  edgeboxstyle 4, 31 + br.viewsize * 9, 312, 14, 0, dpage, NO, YES
- edgeprint alert$, 8, 34 + br.viewsize * 9, uilook(uiText), dpage
+ edgeprint br.alert, 8, 34 + br.viewsize * 9, uilook(uiText), dpage
  IF br.special = 7 THEN
   rectangle 0, 190, 320, 10, uilook(uiDisabledItem), dpage
   edgeprint version$ + " " + gfxbackend + "/" + musicbackend, 8, 190, uilook(uiMenuItem), dpage
@@ -230,12 +232,12 @@ SELECT CASE br.special
    IF validmusicfile(br.nowdir + tree(treeptr).filename, FORMAT_BAM) THEN
     loadsong br.nowdir + tree(treeptr).filename
    ELSE
-    alert$ = tree(treeptr).filename + " is not a valid BAM file"
+    br.alert = tree(treeptr).filename + " is not a valid BAM file"
    END IF
   END IF
  CASE 2, 3
   IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd) THEN
-   alert$ = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
+   br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
   END IF
  CASE 4
   IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
@@ -247,33 +249,33 @@ SELECT CASE br.special
     CLOSE #masfh
     SELECT CASE a$
      CASE mashead$
-      alert$ = "MAS format"
+      br.alert = "MAS format"
      CASE paledithead$
-      alert$ = "MAS format (PalEdit)"
+      br.alert = "MAS format (PalEdit)"
      CASE ELSE
-     alert$ = "Not a valid MAS file"
+     br.alert = "Not a valid MAS file"
     END SELECT
    ELSE
     '.bmp file
     IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd) THEN
      IF bmpd.biBitCount = 24 THEN
-      alert$ = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
+      br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
      ELSE
-      alert$ = bmpd.biBitCount & "-bit color BMP"
+      br.alert = bmpd.biBitCount & "-bit color BMP"
      END IF
     END IF
    END IF
   END IF
  CASE 5
   pausesong
-  alert$ = tree(treeptr).about
+  br.alert = tree(treeptr).about
   IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
    loadsong br.nowdir + tree(treeptr).filename
   ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
-   alert$ = show_mp3_info()
+   br.alert = show_mp3_info()
   END IF
  CASE 6
-  alert$ = tree(treeptr).about
+  br.alert = tree(treeptr).about
   IF f > -1 THEN
    sound_stop(f,-1)
    UnloadSound(f)
@@ -285,19 +287,19 @@ SELECT CASE br.special
     f = LoadSound(br.nowdir + tree(treeptr).filename)
     sound_play(f, 0, -1)
    ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
-    alert$ = show_mp3_info()
+    br.alert = show_mp3_info()
    END IF
   END IF
  CASE 7
-  alert$ = tree(treeptr).about
+  br.alert = tree(treeptr).about
 END SELECT
-IF tree(treeptr).kind = 0 THEN alert$ = "Drive"
-IF tree(treeptr).kind = 1 THEN alert$ = "Directory"
-IF tree(treeptr).kind = 2 THEN alert$ = "Subdirectory"
-IF tree(treeptr).kind = 4 THEN alert$ = "Root"
+IF tree(treeptr).kind = 0 THEN br.alert = "Drive"
+IF tree(treeptr).kind = 1 THEN br.alert = "Directory"
+IF tree(treeptr).kind = 2 THEN br.alert = "Subdirectory"
+IF tree(treeptr).kind = 4 THEN br.alert = "Root"
 RETRACE
 
-context:
+build_listing:
 'for progress meter
 IF br.ranalready THEN rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
 br.meter = 0
@@ -355,7 +357,7 @@ ELSE
  IF hasmedia(b$) = 0 THEN
   'Somebody pulled out the disk
   changed = 0
-  alert$ = "Disk not readable"
+  br.alert = "Disk not readable"
   br.treesize -= 1
   treeptr = 0
   treetop = 0
@@ -498,7 +500,8 @@ FOR i = br.drivesshown TO br.treesize
  'final preference is current (bottommost) directory
  IF tree(i).kind = 1 OR tree(i).kind = 4 THEN treeptr = i
 NEXT i
-treetop = bound(treetop, treeptr - (br.viewsize + 2), treeptr)
+treetop = small(treeptr - 2, br.treesize - br.viewsize)
+treetop = large(treetop, 0)
 
 '--don't display progress bar overtop of previous menu
 br.ranalready = 1
