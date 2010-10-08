@@ -53,7 +53,8 @@
 CONST build_info as string = "" _GSTR _ESTR _SSTR _PSTR
 
 '__FB_UNIX__ only defined in FB 0.21 on (I think)
-#IFDEF __FB_UNIX__
+'Note: it's always defined, either to 0 or -1. HATE
+#IF __FB_UNIX__
  #IFNDEF __UNIX__
   #DEFINE __UNIX__
  #ENDIF
