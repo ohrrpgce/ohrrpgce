@@ -44,11 +44,13 @@ DECLARE FUNCTION reload_editor_browse(BYREF st AS ReloadEditorState) AS INTEGER
 DECLARE FUNCTION reload_editor_load(filename AS STRING, BYREF st AS ReloadEditorState) AS INTEGER
 DECLARE SUB reload_editor_edit_node(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
 DECLARE FUNCTION reload_editor_edit_node_name(BYVAL node AS Reload.Nodeptr) AS INTEGER
-DECLARE FUNCTION reload_editor_edit_node_value(BYVAL node AS Reload.Nodeptr) AS INTEGER
+DECLARE FUNCTION reload_editor_edit_node_value(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr) AS INTEGER
 DECLARE FUNCTION reload_editor_edit_node_type(BYVAL node AS Reload.Nodeptr) AS INTEGER
 DECLARE SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
 DECLARE SUB reload_editor_swap_node_up(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_swap_node_down(BYVAL node AS Reload.Nodeptr)
+DECLARE SUB reload_editor_swap_node_left(BYVAL node AS Reload.Nodeptr)
+DECLARE SUB reload_editor_swap_node_right(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_focus_node(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr)
 
 '-----------------------------------------------------------------------
@@ -142,6 +144,16 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
    st.seeknode = node
    st.state.need_update = YES
   END IF
+  IF keyval(scLEFT) > 1 THEN
+   reload_editor_swap_node_left node
+   st.seeknode = node
+   st.state.need_update = YES
+  END IF
+  IF keyval(scRIGHT) > 1 THEN
+   reload_editor_swap_node_right node
+   st.seeknode = node
+   st.state.need_update = YES
+  END IF
  END IF
 END SUB
 
@@ -161,6 +173,22 @@ SUB reload_editor_swap_node_down(BYVAL node AS Reload.Nodeptr)
  Reload.SwapSiblingNodes(node, sib)
 END SUB
 
+SUB reload_editor_swap_node_left(BYVAL node AS Reload.Nodeptr)
+ IF node = 0 THEN EXIT SUB
+ DIM parent AS Reload.NodePtr
+ parent = Reload.NodeParent(node)
+ IF parent = 0 THEN EXIT SUB
+ Reload.AddSiblingAfter(parent, node)
+END SUB
+
+SUB reload_editor_swap_node_right(BYVAL node AS Reload.Nodeptr)
+ IF node = 0 THEN EXIT SUB
+ DIM sib AS Reload.NodePtr
+ sib = Reload.PrevSibling(node)
+ IF sib = 0 THEN EXIT SUB
+ Reload.AddChild(sib, node)
+END SUB
+
 SUB reload_editor_edit_node(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
  IF mi = 0 THEN debug "reload_editor_edit_node: null mi": EXIT SUB
  DIM node AS Reload.NodePtr
@@ -171,7 +199,7 @@ SUB reload_editor_edit_node(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
   
  SELECT CASE st.mode
   CASE 0:
-   IF reload_editor_edit_node_value(node) THEN changed = YES
+   IF reload_editor_edit_node_value(st, node) THEN changed = YES
   CASE 1:
    IF reload_editor_edit_node_name(node) THEN changed = YES
  END SELECT
@@ -194,7 +222,7 @@ FUNCTION reload_editor_edit_node_name(BYVAL node AS Reload.Nodeptr) AS INTEGER
  RETURN NO
 END FUNCTION
 
-FUNCTION reload_editor_edit_node_value(BYVAL node AS Reload.Nodeptr) AS INTEGER
+FUNCTION reload_editor_edit_node_value(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr) AS INTEGER
  IF node = 0 THEN debug "reload_editor_edit_node_name: null node": RETURN NO
 
  SELECT CASE Reload.NodeType(node)
@@ -210,11 +238,13 @@ FUNCTION reload_editor_edit_node_value(BYVAL node AS Reload.Nodeptr) AS INTEGER
     RETURN YES
    END IF
   CASE Reload.rltInt:
-   DIM n AS INTEGER
-   n = Reload.GetInteger(node)
-   IF intgrabber(n, -2147483648, 2147483647) THEN
-    Reload.SetContent(node, n)
-    RETURN YES
+   IF NOT st.shift THEN
+    DIM n AS INTEGER
+    n = Reload.GetInteger(node)
+    IF intgrabber(n, -2147483648, 2147483647) THEN
+     Reload.SetContent(node, n)
+     RETURN YES
+    END IF
    END IF
   CASE ELSE
    debug "invalid reload node type " & Reload.NodeType(node)

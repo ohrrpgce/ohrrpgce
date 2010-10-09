@@ -17,4 +17,8 @@ Press CTRL+N to turn the current node into a Null node with no data.
 
 Hold SHIFT and press the up and down arrow keys to re-order nodes.
 
+Press SHIFT+Left arrow to move the selected node to be a sibling of its parent.
+
+Press Shift+Right arrow to move the selected node to be a child of its previous sibling.
+
 This editor isn't done yet! Be patient ;)
