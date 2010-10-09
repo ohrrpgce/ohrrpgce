@@ -1518,6 +1518,46 @@ Function NodeName(byval nod as NodePtr) as String
 	return *nod->name
 End Function
 
+Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
+	if nod1 = 0 or nod2 = 0 then debug "SwapSiblingNodes: null node": exit sub
+	if nod1 = nod2 then debug "SwapSiblingNodes: don't swap with self": exit sub
+	if NodeParent(nod1) <> NodeParent(nod2) then debug "SwapSiblingNodes: can't swap non-siblings": exit sub
+	
+	dim par as NodePtr
+	par = NodeParent(nod1)
+	if par = 0 then debug "SwapSiblingNodes: null parent" : exit sub
+	
+	'debug "swap " & NodeName(nod1) & " with sibling " & NodeName(nod2)
+	
+	dim holder(par->numChildren - 1) as Nodeptr
+	dim index as integer = 0
+	dim p1 as integer = -1
+	dim p2 as integer = -1
+	dim ch as NodePtr
+	ch = par->children
+	while ch
+		holder(index) = ch
+		if ch = nod1 then p1 = index
+		if ch = nod2 then p2 = index
+		index += 1
+		ch = NextSibling(ch)
+	wend
+	if p1 = -1 or p2 = -1 then debug "SwapSiblingNodes: sanity fail, siblings not found in parent's children": exit sub
+	swap holder(p1), holder(p2)
+	
+	for i as integer = 0 to ubound(holder) - 1
+		holder(i)->nextSib = holder(i + 1)
+	next i
+	holder(ubound(holder))->nextSib = 0
+	
+	for i as integer = 1 to ubound(holder)
+		holder(i)->prevSib = holder(i - 1)
+	next i
+	holder(0)->prevSib = 0
+	
+	par->children = holder(0)
+	par->lastChild = holder(ubound(holder))
+End Sub
 
 'This writes an integer out in such a fashion as to minimize the number of bytes used. Eg, 36 will
 'be stored in one byte, while 365 will be stored in two, 10000 in three bytes, etc

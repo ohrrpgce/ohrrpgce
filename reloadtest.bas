@@ -370,6 +370,35 @@ startTest(testNodeByPath)
 	if GetInteger(nod1) <> 100 then fail
 endTest
 
+startTest(testSwapNodes)
+	dim swapdoc as Docptr
+	swapdoc = CreateDocument()
+	if swapdoc = null then fail
+	dim node as NodePtr = CreateNode(swapdoc, "root")
+	if node = null then fail
+	SetRootNode(swapdoc, node)
+	
+	AppendChildNode(node, "foo")
+	AppendChildNode(node, "bar")
+	node = NodeByPath(swapdoc, "/bar")
+	AppendChildNode(node, "baz", 100)
+	node = NodeByPath(swapdoc, "/foo")
+	AppendChildNode(node, "cute")
+	node = NodeByPath(swapdoc, "/foo/cute")
+	AppendChildNode(node, "A", "kittens")
+	AppendChildNode(node, "B", "puppies")
+	
+	dim nod1 as NodePtr
+	dim nod2 as NodePtr
+	nod1 = NodeByPath(swapdoc, "/foo")
+	nod2 = NodeByPath(swapdoc, "/bar")
+	
+	SwapSiblingNodes(nod1, nod2)
+	if FirstChild(DocumentRoot(swapdoc)) <> NodeByPath(swapdoc, "/bar")  then fail
+	SwapSiblingNodes(nod1, nod2)
+	if FirstChild(FirstChild(DocumentRoot(swapdoc))) <> NodeByPath(swapdoc, "/foo/cute")  then fail
+endTest
+
 startTest(serializeXML)
 	print
 	

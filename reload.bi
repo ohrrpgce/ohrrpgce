@@ -150,6 +150,7 @@ Declare Function NextSibling(byval nod as NodePtr, byval name as zstring ptr = n
 Declare Function PrevSibling(byval nod as NodePtr, byval name as zstring ptr = null) as NodePtr
 Declare Function NodeType(byval nod as NodePtr) as NodeTypes
 Declare Function NodeName(byval nod as NodePtr) as String
+Declare Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 
 'Helper functions:
 Declare Function SetChildNode Overload (byval parent as NodePtr, n as string) as NodePtr
