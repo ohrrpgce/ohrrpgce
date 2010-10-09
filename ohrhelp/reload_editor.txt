@@ -15,4 +15,6 @@ Press CTRL+S to turn the current node into a String of text.
 
 Press CTRL+N to turn the current node into a Null node with no data.
 
+Hold SHIFT and press the up and down arrow keys to re-order nodes.
+
 This editor isn't done yet! Be patient ;)

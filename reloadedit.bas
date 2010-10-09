@@ -21,92 +21,147 @@
 #include "reload.bi"
 
 #include "reloadedit.bi"
-'-----------------------------------------------------------------------
-
-DECLARE SUB reload_editor_refresh (node AS Reload.Nodeptr, BYREF Menu AS MenuDef)
-DECLARE FUNCTION reload_editor_node_string(node AS Reload.Nodeptr) AS STRING
-DECLARE FUNCTION reload_editor_browse(BYREF doc AS Reload.Docptr, BYREF node AS Reload.NodePtr) AS INTEGER
-DECLARE FUNCTION reload_editor_load(filename AS STRING, BYREF doc AS Reload.Docptr, BYREF node AS Reload.NodePtr) AS INTEGER
-DECLARE SUB reload_editor_edit_node(mode AS INTEGER, mi AS MenuDefItem Ptr)
-DECLARE FUNCTION reload_editor_edit_node_name(node AS Reload.Nodeptr) AS INTEGER
-DECLARE FUNCTION reload_editor_edit_node_value(node AS Reload.Nodeptr) AS INTEGER
-DECLARE FUNCTION reload_editor_edit_node_type(node AS Reload.Nodeptr) AS INTEGER
 
 '-----------------------------------------------------------------------
 
-DIM SHARED indent AS INTEGER
+TYPE ReloadEditorState
+ indent AS INTEGER
+ doc AS Reload.Docptr
+ root AS Reload.Nodeptr
+ mode AS INTEGER
+ mode_name(1) AS STRING
+ menu AS MenuDef
+ state AS MenuState
+ shift AS INTEGER
+ seeknode AS Reload.Nodeptr
+END TYPE
+
+'-----------------------------------------------------------------------
+
+DECLARE SUB reload_editor_refresh (BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr)
+DECLARE FUNCTION reload_editor_node_string(BYVAL node AS Reload.Nodeptr) AS STRING
+DECLARE FUNCTION reload_editor_browse(BYREF st AS ReloadEditorState) AS INTEGER
+DECLARE FUNCTION reload_editor_load(filename AS STRING, BYREF st AS ReloadEditorState) AS INTEGER
+DECLARE SUB reload_editor_edit_node(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
+DECLARE FUNCTION reload_editor_edit_node_name(BYVAL node AS Reload.Nodeptr) AS INTEGER
+DECLARE FUNCTION reload_editor_edit_node_value(BYVAL node AS Reload.Nodeptr) AS INTEGER
+DECLARE FUNCTION reload_editor_edit_node_type(BYVAL node AS Reload.Nodeptr) AS INTEGER
+DECLARE SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
+DECLARE SUB reload_editor_swap_node_up(BYVAL node AS Reload.Nodeptr)
+DECLARE SUB reload_editor_swap_node_down(BYVAL node AS Reload.Nodeptr)
+DECLARE SUB reload_editor_focus_node(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr)
+
+'-----------------------------------------------------------------------
 
 SUB reload_editor()
- indent = 0
+ DIM st AS ReloadEditorState
  
- DIM doc AS Reload.Docptr
- doc = Reload.CreateDocument()
- DIM node AS Reload.Nodeptr
- Reload.SetRootNode(doc, node)
+ st.doc = Reload.CreateDocument()
+ Reload.SetRootNode(st.doc, st.root)
 
- DIM mode AS INTEGER = 1
- DIM mode_name(1) AS STRING
- mode_name(0) = "node names"
- mode_name(1) = "node values"
+ st.mode_name(0) = "node values"
+ st.mode_name(1) = "node names"
 
- DIM state AS MenuState
- state.pt = 0
- state.need_update = YES
- state.active = YES
- 
- DIM menu AS MenuDef
- ClearMenuData menu
- menu.anchor.x = -1
- menu.anchor.y = -1
- menu.offset.x = -160
- menu.offset.y = -100
- menu.bordersize = -4
- menu.align = -1
- menu.maxrows = 18
+ st.state.pt = 0
+ st.state.need_update = YES
+ st.state.active = YES
+
+ ClearMenuData st.menu
+ WITH st.menu
+  .anchor.x = -1
+  .anchor.y = -1
+  .offset.x = -160
+  .offset.y = -100
+  .bordersize = -4
+  .align = -1
+  .maxrows = 18
+ END WITH
  
  setkeys
  DO
   setwait 55
   setkeys
 
-  IF state.need_update THEN
-   DeleteMenuItems menu
-   indent = 0
-   reload_editor_refresh node, menu
-   init_menu_state state, menu
-   state.need_update = NO
+  IF st.state.need_update THEN
+   DeleteMenuItems st.menu
+   st.indent = 0
+   reload_editor_refresh st, st.root
+   init_menu_state st.state, st.menu
+   IF st.seeknode THEN
+    reload_editor_focus_node st, st.seeknode
+    st.seeknode = 0
+   END IF
+   st.state.need_update = NO
   END IF
   
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help("reload_editor")
-  IF keyval(scTAB) > 1 THEN mode = mode XOR 1
+  IF keyval(scTAB) > 1 THEN st.mode = st.mode XOR 1
   IF keyval(scF3) > 1 THEN 
-   IF reload_editor_browse(doc, node) THEN
-    state.need_update = YES
+   IF reload_editor_browse(st) THEN
+    st.state.need_update = YES
    END IF
   END IF
+
+  st.shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
   
-  IF state.pt >= 0 AND state.pt <= menu.numitems - 1 THEN
-   reload_editor_edit_node (mode, menu.items[state.pt])
+  IF st.state.pt >= 0 AND st.state.pt <= st.menu.numitems - 1 THEN
+   reload_editor_edit_node st, st.menu.items[st.state.pt]
+   reload_editor_rearrange st, st.menu.items[st.state.pt]
   END IF
   
-  usemenu state
+  IF NOT st.shift THEN
+   usemenu st.state
+  END IF
   
   clearpage dpage
-  draw_menu menu, state, dpage
-  edgeprint "F1=Help TAB=Mode (" & mode_name(mode) & ")", 0, 190, uilook(uiText), dpage
+  draw_menu st.menu, st.state, dpage
+  edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ")", 0, 190, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
   dowait
  LOOP
 
- DeleteMenuItems menu
- Reload.FreeDocument(doc)
+ DeleteMenuItems st.menu
+ Reload.FreeDocument(st.doc)
  
 END SUB
 
-SUB reload_editor_edit_node(mode AS INTEGER, mi AS MenuDefItem Ptr)
+SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
+ IF st.shift THEN
+  DIM node AS Reload.Nodeptr
+  node = mi->dataptr
+  IF keyval(scUP) > 1 THEN
+   reload_editor_swap_node_up node
+   st.seeknode = node
+   st.state.need_update = YES
+  END IF
+  IF keyval(scDOWN) > 1 THEN
+   reload_editor_swap_node_down node
+   st.seeknode = node
+   st.state.need_update = YES
+  END IF
+ END IF
+END SUB
+
+SUB reload_editor_swap_node_up(BYVAL node AS Reload.Nodeptr)
+ IF node = 0 THEN EXIT SUB
+ DIM sib AS Reload.NodePtr
+ sib = Reload.PrevSibling(node)
+ IF sib = 0 THEN EXIT SUB
+ Reload.SwapSiblingNodes(node, sib)
+END SUB
+
+SUB reload_editor_swap_node_down(BYVAL node AS Reload.Nodeptr)
+ IF node = 0 THEN EXIT SUB
+ DIM sib AS Reload.NodePtr
+ sib = Reload.NextSibling(node)
+ IF sib = 0 THEN EXIT SUB
+ Reload.SwapSiblingNodes(node, sib)
+END SUB
+
+SUB reload_editor_edit_node(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
  IF mi = 0 THEN debug "reload_editor_edit_node: null mi": EXIT SUB
  DIM node AS Reload.NodePtr
  node = mi->dataptr
@@ -114,20 +169,21 @@ SUB reload_editor_edit_node(mode AS INTEGER, mi AS MenuDefItem Ptr)
 
  DIM changed AS INTEGER = NO
   
- SELECT CASE mode
+ SELECT CASE st.mode
   CASE 0:
-   IF reload_editor_edit_node_name(node) THEN changed = YES
-  CASE 1:
    IF reload_editor_edit_node_value(node) THEN changed = YES
+  CASE 1:
+   IF reload_editor_edit_node_name(node) THEN changed = YES
  END SELECT
  IF reload_editor_edit_node_type(node) THEN changed = YES
 
  IF changed THEN
   mi->caption = STRING(mi->extra(0), " ") & reload_editor_node_string(node)
  END IF
+
 END SUB
 
-FUNCTION reload_editor_edit_node_name(node AS Reload.Nodeptr) AS INTEGER
+FUNCTION reload_editor_edit_node_name(BYVAL node AS Reload.Nodeptr) AS INTEGER
  IF node = 0 THEN debug "reload_editor_edit_node_name: null node": RETURN NO
  DIM s AS STRING
  s = Reload.NodeName(node)
@@ -138,7 +194,7 @@ FUNCTION reload_editor_edit_node_name(node AS Reload.Nodeptr) AS INTEGER
  RETURN NO
 END FUNCTION
 
-FUNCTION reload_editor_edit_node_value(node AS Reload.Nodeptr) AS INTEGER
+FUNCTION reload_editor_edit_node_value(BYVAL node AS Reload.Nodeptr) AS INTEGER
  IF node = 0 THEN debug "reload_editor_edit_node_name: null node": RETURN NO
 
  SELECT CASE Reload.NodeType(node)
@@ -166,7 +222,7 @@ FUNCTION reload_editor_edit_node_value(node AS Reload.Nodeptr) AS INTEGER
  RETURN NO
 END FUNCTION
 
-FUNCTION reload_editor_edit_node_type(node AS Reload.Nodeptr) AS INTEGER
+FUNCTION reload_editor_edit_node_type(BYVAL node AS Reload.Nodeptr) AS INTEGER
  IF node = 0 THEN debug "reload_editor_edit_node_type: null node" : RETURN NO
  IF keyval(scCTRL) > 0 THEN
   IF keyval(scI) > 1 THEN Reload.SetContent(node, Reload.GetInteger(node)) : RETURN YES
@@ -177,32 +233,32 @@ FUNCTION reload_editor_edit_node_type(node AS Reload.Nodeptr) AS INTEGER
  RETURN NO
 END FUNCTION
 
-SUB reload_editor_refresh (node AS Reload.Nodeptr, BYREF Menu AS MenuDef)
- IF node = 0 THEN debug "reload_editor_refresh: null node" : EXIT SUB
+SUB reload_editor_refresh (BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr)
+ IF node = 0 THEN EXIT SUB
 
  DIM s AS STRING
- s = STRING(indent, " ") & reload_editor_node_string(node)
+ s = STRING(st.indent, " ") & reload_editor_node_string(node)
  
  DIM index AS INTEGER
- index = append_menu_item(menu, s)
+ index = append_menu_item(st.menu, s)
  
  DIM mi AS MenuDefItem Ptr
- mi = menu.items[index]
+ mi = st.menu.items[index]
 
  mi->dataptr = node
- mi->extra(0) = indent
+ mi->extra(0) = st.indent
 
- indent += 1 
+ st.indent += 1 
  DIM chnode AS Reload.Nodeptr
  chnode = Reload.FirstChild(node)
  DO WHILE chnode
-  reload_editor_refresh chnode, menu
+  reload_editor_refresh st, chnode
   chnode = Reload.NextSibling(chnode)
  LOOP
- indent -= 1
+ st.indent -= 1
 END SUB
 
-FUNCTION reload_editor_node_string(node AS Reload.Nodeptr) AS STRING
+FUNCTION reload_editor_node_string(BYVAL node AS Reload.Nodeptr) AS STRING
  IF node = 0 THEN debug "reload_editor_node_str: null node" : RETURN "<null ptr>"
  DIM s AS STRING = ""
  s &= Reload.NodeName(node)
@@ -215,17 +271,35 @@ FUNCTION reload_editor_node_string(node AS Reload.Nodeptr) AS STRING
  RETURN s
 END FUNCTION
 
-FUNCTION reload_editor_browse(BYREF doc AS Reload.Docptr, BYREF node AS Reload.NodePtr) AS INTEGER
+SUB reload_editor_focus_node(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr)
+ DIM mi AS MenuDefItem Ptr
+ DIM n AS Reload.Nodeptr
+ FOR i AS INTEGER = 0 TO st.menu.numitems - 1
+  mi = st.menu.items[i]
+  n = mi->dataptr
+  IF n = node THEN
+   st.state.pt = i
+   EXIT FOR
+  END IF
+ NEXT i
+ WITH st.state
+  .pt = small(.pt, .last)
+  .top = bound(.top, .pt - .size, .pt)
+ END WITH
+END SUB
+
+FUNCTION reload_editor_browse(BYREF st AS ReloadEditorState) AS INTEGER
  DIM filename AS STRING
  filename = browse(0, "", "*.reld", "",, "browse_import_reload")
- RETURN reload_editor_load(filename, doc, node)
+ RETURN reload_editor_load(filename, st)
 END FUNCTION
 
-FUNCTION reload_editor_load(filename AS STRING, BYREF doc AS Reload.Docptr, BYREF node AS Reload.NodePtr) AS INTEGER
- Reload.FreeDocument doc
- doc = Reload.LoadDocument(filename)
- IF doc = 0 THEN debug "load '" & filename & "' failed: null doc": RETURN NO
- node = Reload.DocumentRoot(doc)
- IF node = 0 THEN debug "load '" & filename & "' failed: null root node": RETURN NO
+FUNCTION reload_editor_load(filename AS STRING, BYREF st AS ReloadEditorState) AS INTEGER
+ Reload.FreeDocument st.doc
+ st.doc = Reload.LoadDocument(filename)
+ IF st.doc = 0 THEN debug "load '" & filename & "' failed: null doc": RETURN NO
+ st.root = Reload.DocumentRoot(st.doc)
+ IF st.root = 0 THEN debug "load '" & filename & "' failed: null root node": RETURN NO
  RETURN YES
 END FUNCTION
+
