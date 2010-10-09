@@ -59,6 +59,7 @@ SUB reload_editor()
  DIM st AS ReloadEditorState
  
  st.doc = Reload.CreateDocument()
+ st.root = Reload.CreateNode(st.doc, "")
  Reload.SetRootNode(st.doc, st.root)
 
  st.mode_name(0) = "node values"
@@ -104,6 +105,9 @@ SUB reload_editor()
     st.state.need_update = YES
    END IF
   END IF
+  'IF keyval(scF2) > 1 THEN
+  ' reload_editor_export st
+  'END IF
 
   st.shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
   
@@ -131,9 +135,24 @@ SUB reload_editor()
 END SUB
 
 SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
+ DIM node AS Reload.Nodeptr
+ node = mi->dataptr
+ IF keyval(scInsert) > 1 THEN
+  DIM s AS STRING
+  IF prompt_for_string(s, "name of new node") THEN
+   DIM newnode AS Reload.Nodeptr
+   newnode = Reload.CreateNode(st.doc, s)
+   IF node = Reload.DocumentRoot(st.doc) THEN
+    'root node can't have siblings!
+    Reload.AddChild node, newnode
+   ELSE
+    Reload.AddSiblingBefore node, newnode
+   END IF
+   st.seeknode = newnode
+   st.state.need_update = YES
+  END IF
+ END IF
  IF st.shift THEN
-  DIM node AS Reload.Nodeptr
-  node = mi->dataptr
   IF keyval(scUP) > 1 THEN
    reload_editor_swap_node_up node
    st.seeknode = node
@@ -318,6 +337,14 @@ SUB reload_editor_focus_node(BYREF st AS ReloadEditorState, BYVAL node AS Reload
  END WITH
 END SUB
 
+'SUB reload_editor_export(BYREF st AS ReloadEditorState)
+' DIM outfile AS STRING
+' outfile = inputfilename("Export RELOAD document", ".reld", "", "input_file_export_reload", st.filename)
+' IF outfile <> "" THEN
+'  
+' END IF
+'END SUB
+
 FUNCTION reload_editor_browse(BYREF st AS ReloadEditorState) AS INTEGER
  DIM filename AS STRING
  filename = browse(0, "", "*.reld", "",, "browse_import_reload")
@@ -332,4 +359,3 @@ FUNCTION reload_editor_load(filename AS STRING, BYREF st AS ReloadEditorState) A
  IF st.root = 0 THEN debug "load '" & filename & "' failed: null root node": RETURN NO
  RETURN YES
 END FUNCTION
-
