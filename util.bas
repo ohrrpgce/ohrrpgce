@@ -546,64 +546,70 @@ END FUNCTION
 
 '------------- File Functions -------------
 
+
 FUNCTION trimpath(filename as string) as string
-  'return the file/directory name without path
-  dim i as integer
-  for i = 0 to len(filename) - 1 
-    if filename[i] = asc("\") or filename[i] = asc("/") then filename[i] = asc(SLASH)
-  next
-  IF filename <> "" ANDALSO filename[LEN(filename) - 1] = asc(SLASH) THEN
-    filename = MID(filename, 1, LEN(filename) - 1)
+  'Return the file/directory name without path, and without trailing slash
+  'Eg. "a/b/c/" -> "c"
+  DIM i as integer
+  DIM retend as integer = LEN(filename)
+  DIM ch as byte
+  IF retend > 0 THEN
+    ch = filename[retend - 1]
+    IF ch = asc("/") OR ch = asc("\") THEN retend -= 1
   END IF
-  IF INSTR(filename,SLASH) = 0 THEN RETURN filename
-  FOR i = LEN(filename) TO 1 STEP -1
-    IF MID(filename, i, 1) = SLASH THEN i += 1 : EXIT FOR
+  FOR i = retend TO 1 STEP -1
+    IF filename[i - 1] = asc("\") OR filename[i - 1] = asc("/") THEN
+      RETURN MID(filename, i + 1, retend - (i + 1) + 1)
+    END IF
   NEXT
-  RETURN MID(filename, i)
+  RETURN MID(filename, 1, retend)
 END FUNCTION
 
 FUNCTION trimfilename (filename as string) as string
-  'return the path without the filename
-  dim i as integer
-  for i = 0 to len(filename) -1 
-    if filename[i] = asc("\") or filename[i] = asc("/") then filename[i] = asc(SLASH)
-  next
-  IF INSTR(filename,SLASH) = 0 THEN RETURN ""
-  FOR i = LEN(filename) TO 1 STEP -1
-    IF MID(filename, i, 1) = SLASH THEN i -= 1 : EXIT FOR
+  'Return the path without the filename, and without trailing slash
+  'NOT the complement to trimpath:
+  'Eg. "a/b/c/" -> "a/b/c"
+  DIM i as integer
+  DIM ret as string = filename
+  FOR i = 0 TO LEN(ret) - 1 
+    IF (ret[i] = asc("\")) OR (ret[i] = asc("/")) THEN ret[i] = asc(SLASH)
   NEXT
-  RETURN MID(filename, 1, i)
+  RETURN MID(ret, 1, large(0, INSTRREV(ret, SLASH) - 1))
 END FUNCTION
 
 FUNCTION trimextension (filename as string) as string
-  'return the filename without extension
-  dim as integer i
-  IF INSTR(filename,".") = 0 THEN RETURN filename
-  FOR i = LEN(filename) TO 1 STEP -1
-    IF MID(filename, i, 1) = "." THEN i -= 1 : EXIT FOR
-  NEXT
-  RETURN MID(filename, 1, i)
+  'Return the filename (including path) without extension
+  'Periods at the beginning of file/folder names are not counted as beginning an extension
+  DIM at as integer = INSTRREV(filename, ".")
+  DIM at2 as integer = large(INSTRREV(filename, "\"), INSTRREV(filename, "/"))
+  IF at >= at2 + 2 THEN
+    RETURN MID(filename, 1, at - 1)
+  ELSE
+    RETURN filename
+  END IF
 END FUNCTION
 
 FUNCTION justextension (filename as string) as string
-  'return only the extension (everything after the *last* period)
-  FOR i as integer = LEN(filename) TO 1 STEP -1
-    dim as string char = MID(filename, i, 1)
-    IF char = "." THEN RETURN RIGHT(filename, LEN(filename) - i)
-    IF char = SLASH THEN RETURN ""
-  NEXT
-  RETURN ""
+  'Return only the extension (everything after the *last* period)
+  'Periods at the beginning of file/folder names are not counted as beginning an extension
+  DIM at as integer = INSTRREV(filename, ".")
+  DIM at2 as integer = large(INSTRREV(filename, "\"), INSTRREV(filename, "/"))
+  IF at >= at2 + 2 THEN
+    RETURN MID(filename, at + 1)
+  ELSE
+    RETURN ""
+  END IF
 END FUNCTION
 
 FUNCTION is_absolute_path (sDir as string) as integer
 #IFDEF __UNIX__
-  if left(sDir, 1) = "/" then return -1
+  IF left(sDir, 1) = "/" THEN RETURN -1
 #ELSE
-  dim first as string = lcase(left(sDir, 1))
-  if first = "\" then return -1
-  if first >= "a" andalso first <= "z" andalso mid(sDir, 2, 2) = ":\" then return -1
+  DIM first as string = LCASE(LEFT(sDir, 1))
+  IF first = "\" THEN RETURN -1
+  IF first >= "a" andalso first <= "z" andalso MID(sDir, 2, 2) = ":\" THEN RETURN -1
 #ENDIF
-  return 0
+  RETURN 0
 END FUNCTION
 
 'Go up a number of directories.
@@ -627,7 +633,7 @@ FUNCTION parentdir (pathname as string, BYVAL upamount as integer = 1) as string
 END FUNCTION
 
 FUNCTION anycase (filename as string) as string
-  'make a filename case-insensitive
+  'create a case-insensitive regex from a filename
 #IFDEF __FB_WIN32__
   'Windows filenames are always case-insenstitive
   RETURN filename
@@ -654,8 +660,9 @@ SUB touchfile (filename as string)
   CLOSE #fh
 END SUB
 
-SUB findfiles (fmask AS STRING, BYVAL attrib AS INTEGER, outfile AS STRING)
+SUB findfiles (namemask AS STRING, BYVAL attrib AS INTEGER, outfile AS STRING)
   ' attrib 0: all files 'cept folders, attrib 16: folders only
+  DIM AS STRING fmask = namemask
 #ifdef __UNIX__
   'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR
   DIM AS STRING grep, shellout
@@ -751,30 +758,30 @@ SUB killdir(directory as string)
   END IF
 END SUB
 
-SUB safekill (f as string)
-  IF isfile(f) THEN KILL f
+SUB safekill (filename as string)
+  IF isfile(filename) THEN KILL filename
 END SUB
 
-FUNCTION fileisreadable(f as string) as integer
+FUNCTION fileisreadable(filename as string) as integer
   dim fh as integer, err_code as integer
   fh = freefile
-  err_code = open(f for binary access read as #fh)
+  err_code = open(filename for binary access read as #fh)
   if err_code = 2 then
     ''debug f & " unreadable (ignored)"
     return 0
   elseif err_code <> 0 then
-    'debug "Error " & err_code & " reading " & f   
+    'debug "Error " & err_code & " reading " & filename
     return 0
   end if
   close #fh
   return -1
 END FUNCTION
 
-FUNCTION fileiswriteable(f as string) as integer
+FUNCTION fileiswriteable(filename as string) as integer
   dim fh as integer
   fh = freefile
-  if open (f for binary access read write as #fh) = 2 then
-    ''debug f & " unreadable (ignored)"
+  if open (filename for binary access read write as #fh) = 2 then
+    ''debug filename & " unreadable (ignored)"
     return 0 
   end if
   close #fh
@@ -790,11 +797,11 @@ FUNCTION diriswriteable(d as string) as integer
   return 0
 END FUNCTION
 
-FUNCTION isfile (n as string) as integer
+FUNCTION isfile (filename as string) as integer
   ' directories don't count as files
   ' this is a simple wrapper for fileisreadable
-  if n = "" then return 0
-  return fileisreadable(n)
+  if filename = "" then return 0
+  return fileisreadable(filename)
 END FUNCTION
 
 FUNCTION isdir (sDir as string) as integer
