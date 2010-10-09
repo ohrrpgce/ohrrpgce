@@ -30,6 +30,7 @@ DECLARE FUNCTION reload_editor_load(filename AS STRING, BYREF doc AS Reload.Docp
 DECLARE SUB reload_editor_edit_node(mode AS INTEGER, mi AS MenuDefItem Ptr)
 DECLARE FUNCTION reload_editor_edit_node_name(node AS Reload.Nodeptr) AS INTEGER
 DECLARE FUNCTION reload_editor_edit_node_value(node AS Reload.Nodeptr) AS INTEGER
+DECLARE FUNCTION reload_editor_edit_node_type(node AS Reload.Nodeptr) AS INTEGER
 
 '-----------------------------------------------------------------------
 
@@ -79,11 +80,9 @@ SUB reload_editor()
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help("reload_editor")
   IF keyval(scTAB) > 1 THEN mode = mode XOR 1
-  IF keyval(scCTRL) > 0 THEN
-   IF keyval(scR) > 1 THEN 
-    IF reload_editor_browse(doc, node) THEN
-     state.need_update = YES
-    END IF
+  IF keyval(scF3) > 1 THEN 
+   IF reload_editor_browse(doc, node) THEN
+    state.need_update = YES
    END IF
   END IF
   
@@ -121,6 +120,7 @@ SUB reload_editor_edit_node(mode AS INTEGER, mi AS MenuDefItem Ptr)
   CASE 1:
    IF reload_editor_edit_node_value(node) THEN changed = YES
  END SELECT
+ IF reload_editor_edit_node_type(node) THEN changed = YES
 
  IF changed THEN
   mi->caption = STRING(mi->extra(0), " ") & reload_editor_node_string(node)
@@ -145,7 +145,7 @@ FUNCTION reload_editor_edit_node_value(node AS Reload.Nodeptr) AS INTEGER
   CASE Reload.rltNull:
    RETURN NO
   CASE Reload.rltFloat:
-   debug "no floatgrabber exists yet"
+   'debug "no floatgrabber exists yet"
   CASE Reload.rltString:
    DIM s AS STRING
    s = Reload.GetString(node)
@@ -156,13 +156,24 @@ FUNCTION reload_editor_edit_node_value(node AS Reload.Nodeptr) AS INTEGER
   CASE Reload.rltInt:
    DIM n AS INTEGER
    n = Reload.GetInteger(node)
-   IF intgrabber(n, -32767, 32767) THEN
+   IF intgrabber(n, -2147483648, 2147483647) THEN
     Reload.SetContent(node, n)
     RETURN YES
    END IF
   CASE ELSE
    debug "invalid reload node type " & Reload.NodeType(node)
  END SELECT
+ RETURN NO
+END FUNCTION
+
+FUNCTION reload_editor_edit_node_type(node AS Reload.Nodeptr) AS INTEGER
+ IF node = 0 THEN debug "reload_editor_edit_node_type: null node" : RETURN NO
+ IF keyval(scCTRL) > 0 THEN
+  IF keyval(scI) > 1 THEN Reload.SetContent(node, Reload.GetInteger(node)) : RETURN YES
+  IF keyval(scS) > 1 THEN Reload.SetContent(node, Reload.GetString(node)) : RETURN YES
+  IF keyval(scF) > 1 THEN Reload.SetContent(node, Reload.GetFloat(node)) : RETURN YES
+  IF keyval(scN) > 1 THEN Reload.SetContent(node) : RETURN YES
+ END IF
  RETURN NO
 END FUNCTION
 

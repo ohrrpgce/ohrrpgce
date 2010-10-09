@@ -276,7 +276,7 @@ DO:
     show_help "gfxmain"
   END SELECT
  END IF
- IF keyval(scF2) > 1 THEN
+ IF keyval(scCTRL) > 0 AND keyval(scR) > 1 THEN
   reload_editor
  END IF
  usemenu pt, 0, 0, mainmax, 24
