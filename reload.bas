@@ -731,6 +731,7 @@ end function
 
 'this checks to see whether a node is part of a given family or not
 'FIXME: this looks like a slow debug routine to me, why is it used?
+'JAMES: sanity checking pointers to prevent horrible crashes is always a good idea, even if slow (PS, I didn't write this function)
 Function verifyNodeSiblings(byval sl as NodePtr, byval family as NodePtr) as integer
 	dim s as NodePtr
 	if sl = 0 then return no
@@ -828,14 +829,16 @@ Sub RemoveParent(byval nod as NodePtr)
 		'update our brethren
 		if nod->nextSib then
 			nod->nextSib->prevSib = nod->prevSib
-			nod->nextSib = null
 		end if
 		
 		'them too
 		if nod->prevSib then
 			nod->prevSib->nextSib = nod->nextSib
-			nod->prevSib = null
 		end if
+		
+		'disown out siblings only after we have connected them to each other
+		nod->nextSib = null
+		nod->prevSib = null
 	end if
 end sub
 
@@ -870,9 +873,14 @@ end function
 'This adds nod as a sibling *after* another node, sib.
 function AddSiblingAfter(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	
+	if sib = DocumentRoot(sib->doc) then return nod 'no siblings for root!
+	
 	if verifyNodeSiblings(nod, sib) = NO then return nod
 	
 	if sib = 0 then return nod
+	
+	'first, remove us from our old parent
+	RemoveParent(nod)
 	
 	nod->prevSib = sib
 	nod->nextSib = sib->nextSib
@@ -892,9 +900,14 @@ end function
 'This adds nod as a sibling *before* another node, sib.
 function AddSiblingBefore(byval sib as NodePtr, byval nod as NodePtr) as NodePtr
 	
+	if sib = DocumentRoot(sib->doc) then return nod 'no siblings for root!
+	
 	if verifyNodeSiblings(nod, sib) = NO then return nod
 	
 	if sib = 0 then return nod
+	
+	'first, remove us from our old parent
+	RemoveParent(nod)
 	
 	nod->nextSib = sib
 	nod->prevSib = sib->prevSib
