@@ -1572,6 +1572,27 @@ Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 	par->lastChild = holder(ubound(holder))
 End Sub
 
+'This clones a node and all its children and returns the cloned (paretnless) node
+Function CloneNodeTree(byval nod as NodePtr) as NodePtr
+	dim n as NodePtr
+	n = CreateNode(nod, NodeName(nod))
+	select case NodeType(nod)
+		case rltInt:
+			SetContent(n, GetInteger(nod))
+		case rltFloat:
+			SetContent(n, GetFloat(nod))
+		case rltString:
+			SetContent(n, GetString(nod))
+	end select
+	dim ch as NodePtr
+	ch = FirstChild(nod)
+	while ch
+		AddChild(n, CloneNodeTree(ch))
+		ch = NextSibling(ch)
+	wend
+	return n
+End Function
+
 'This writes an integer out in such a fashion as to minimize the number of bytes used. Eg, 36 will
 'be stored in one byte, while 365 will be stored in two, 10000 in three bytes, etc
 Sub WriteVLI(byval f as integer, byval v as Longint)
