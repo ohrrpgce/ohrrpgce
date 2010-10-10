@@ -26,4 +26,8 @@ Press SHIFT+Left arrow to move the selected node to be a sibling of its parent.
 
 Press Shift+Right arrow to move the selected node to be a child of its previous sibling.
 
-This editor isn't done yet! Be patient ;)
+Press CTRL+C to copy a name or a value and CTRL+V to paste a name or a value.
+
+Press CTRL+SHIFT+C to copy a node and all of its children. Press CTRL+SHIFT+V to paste a previously copied node and its children.
+
+The nodes currently in the clipboard will be prefixed with a * symbol.

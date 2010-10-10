@@ -35,12 +35,14 @@ TYPE ReloadEditorState
  shift AS INTEGER
  seeknode AS Reload.Nodeptr
  filename AS STRING
+ clipboard AS Reload.NodePtr
+ clipboard_is AS Reload.NodePtr 'only used for visual display of what you copied last
 END TYPE
 
 '-----------------------------------------------------------------------
 
 DECLARE SUB reload_editor_refresh (BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr)
-DECLARE FUNCTION reload_editor_node_string(BYVAL node AS Reload.Nodeptr) AS STRING
+DECLARE FUNCTION reload_editor_node_string(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr) AS STRING
 DECLARE FUNCTION reload_editor_browse(BYREF st AS ReloadEditorState) AS INTEGER
 DECLARE SUB reload_editor_export(BYREF st AS ReloadEditorState)
 DECLARE FUNCTION reload_editor_load(filename AS STRING, BYREF st AS ReloadEditorState) AS INTEGER
@@ -133,6 +135,7 @@ SUB reload_editor()
  LOOP
 
  DeleteMenuItems st.menu
+ IF st.clipboard <> 0 THEN Reload.FreeNode(st.clipboard)
  Reload.FreeDocument(st.doc)
  
 END SUB
@@ -154,6 +157,24 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
    END IF
    st.seeknode = newnode
    st.state.need_update = YES
+  END IF
+ END IF
+ 
+ IF keyval(scCTRL) > 0 AND st.shift THEN
+  IF keyval(scC) > 1 THEN
+   '--copy this node
+   IF st.clipboard <> 0 THEN Reload.FreeNode(st.clipboard)
+   st.clipboard = Reload.CloneNodeTree(node)
+   st.clipboard_is = node
+   st.state.need_update = YES
+  END IF
+  IF keyval(scV) > 1 THEN
+   '--paste this node
+   IF st.clipboard <> 0 THEN
+    Reload.AddSiblingBefore(node, Reload.CloneNodeTree(st.clipboard))
+    IF Reload.NodeHasAncestor(node, st.clipboard_is) THEN st.clipboard_is = 0 'cosmetic importance only
+    st.state.need_update = YES
+   END IF
   END IF
  END IF
  
@@ -182,7 +203,7 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
  
  IF keyval(scDelete) > 1 THEN
   IF node <> Reload.DocumentRoot(st.doc) THEN
-   IF yesno("Delete this node?" & CHR(10) & reload_editor_node_string(node)) THEN
+   IF yesno("Delete this node?" & CHR(10) & reload_editor_node_string(st, node)) THEN
     Reload.FreeNode(node)
     st.state.need_update = YES
    END IF
@@ -229,6 +250,8 @@ SUB reload_editor_edit_node(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
  IF node = 0 THEN debug "reload_editor_edit_node: mi has null node": EXIT SUB
 
  DIM changed AS INTEGER = NO
+
+ IF keyval(scCTRL) > 0 AND st.shift THEN EXIT SUB 'no typing while holding ctrl+shift!
   
  SELECT CASE st.mode
   CASE 0:
@@ -239,7 +262,7 @@ SUB reload_editor_edit_node(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
  IF reload_editor_edit_node_type(node) THEN changed = YES
 
  IF changed THEN
-  mi->caption = STRING(mi->extra(0), " ") & reload_editor_node_string(node)
+  mi->caption = STRING(mi->extra(0), " ") & reload_editor_node_string(st, node)
  END IF
 
 END SUB
@@ -256,7 +279,7 @@ FUNCTION reload_editor_edit_node_name(BYVAL node AS Reload.Nodeptr) AS INTEGER
 END FUNCTION
 
 FUNCTION reload_editor_edit_node_value(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr) AS INTEGER
- IF node = 0 THEN debug "reload_editor_edit_node_name: null node": RETURN NO
+ IF node = 0 THEN debug "reload_editor_edit_node_value: null node": RETURN NO
 
  SELECT CASE Reload.NodeType(node)
   CASE Reload.rltNull:
@@ -300,7 +323,7 @@ SUB reload_editor_refresh (BYREF st AS ReloadEditorState, BYVAL node AS Reload.N
  IF node = 0 THEN EXIT SUB
 
  DIM s AS STRING
- s = STRING(st.indent, " ") & reload_editor_node_string(node)
+ s = STRING(st.indent, " ") & reload_editor_node_string(st, node)
  
  DIM index AS INTEGER
  index = append_menu_item(st.menu, s)
@@ -321,9 +344,10 @@ SUB reload_editor_refresh (BYREF st AS ReloadEditorState, BYVAL node AS Reload.N
  st.indent -= 1
 END SUB
 
-FUNCTION reload_editor_node_string(BYVAL node AS Reload.Nodeptr) AS STRING
+FUNCTION reload_editor_node_string(BYREF st AS ReloadEditorState ,BYVAL node AS Reload.Nodeptr) AS STRING
  IF node = 0 THEN debug "reload_editor_node_str: null node" : RETURN "<null ptr>"
  DIM s AS STRING = ""
+ if node = st.clipboard_is OR Reload.NodeHasAncestor(node, st.clipboard_is) then s &= "*"
  s &= Reload.NodeName(node)
  SELECT CASE Reload.NodeType(node)
   CASE Reload.rltNull:   s &= "()"
