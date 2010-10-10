@@ -1,0 +1,3 @@
+Browse for a reload document to open. Press ENTER to confirm the file or to change into a different directory.
+
+Press ESC to cancel.
