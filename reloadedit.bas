@@ -137,6 +137,7 @@ END SUB
 SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr)
  DIM node AS Reload.Nodeptr
  node = mi->dataptr
+ 
  IF keyval(scInsert) > 1 THEN
   DIM s AS STRING
   IF prompt_for_string(s, "name of new node") THEN
@@ -152,6 +153,7 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
    st.state.need_update = YES
   END IF
  END IF
+ 
  IF st.shift THEN
   IF keyval(scUP) > 1 THEN
    reload_editor_swap_node_up node
@@ -172,6 +174,15 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
    reload_editor_swap_node_right node
    st.seeknode = node
    st.state.need_update = YES
+  END IF
+ END IF
+ 
+ IF keyval(scDelete) > 1 THEN
+  IF node <> Reload.DocumentRoot(st.doc) THEN
+   IF yesno("Delete this node?" & CHR(10) & reload_editor_node_string(node)) THEN
+    Reload.FreeNode(node)
+    st.state.need_update = YES
+   END IF
   END IF
  END IF
 END SUB
