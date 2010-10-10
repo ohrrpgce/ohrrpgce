@@ -719,7 +719,7 @@ sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as
 	Buffered_seek(f, here2)
 end sub
 
-'this checks to see if a node is part of a tree, for example before adding to a new parent
+'this private function checks to see if a node is part of a tree, for example before adding to a new parent
 Function verifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as integer
 	if nod = null then return no
 	do while parent <> null
@@ -727,6 +727,18 @@ Function verifyNodeLineage(byval nod as NodePtr, byval parent as NodePtr) as int
 		parent = parent->parent
 	loop
 	return yes
+end function
+
+'this public function tells if a node has a particular ancestor
+Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as integer
+	if nod = null then return no
+	if possible_parent = null then return no
+	dim parent as NodePtr = NodeParent(nod)
+	do while parent <> null
+		if parent = possible_parent then return yes
+		parent = NodeParent(parent)
+	loop
+	return no
 end function
 
 'this checks to see whether a node is part of a given family or not

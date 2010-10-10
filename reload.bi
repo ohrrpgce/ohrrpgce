@@ -152,6 +152,7 @@ Declare Function NodeType(byval nod as NodePtr) as NodeTypes
 Declare Function NodeName(byval nod as NodePtr) as String
 Declare Sub SwapSiblingNodes(byval nod1 as NodePtr, byval nod2 as NodePtr)
 Declare Function CloneNodeTree(byval nod as NodePtr) as NodePtr
+Declare Function NodeHasAncestor(byval nod as NodePtr, byval possible_parent as NodePtr) as integer
 
 'Helper functions:
 Declare Function SetChildNode Overload (byval parent as NodePtr, n as string) as NodePtr
