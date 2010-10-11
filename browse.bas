@@ -76,7 +76,7 @@ br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
 
 REDIM tree(255) AS BrowseMenuEntry
-DIM drive(26) as string, catfg(6) as integer, catbg(6) as integer
+DIM catfg(6) as integer, catbg(6) as integer
 
 'tree().kind contains the type of each object in the menu
 '0 = Drive (Windows only)
@@ -526,14 +526,15 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
   'tree(br.treesize).caption = "Refresh drives list"
   'tree(br.treesize).kind = 5
 
-  drivetotal = drivelist(drive())
+  DIM drive(26) AS STRING
+  DIM drivetotal AS INTEGER = drivelist(drive())
   FOR i AS INTEGER = 0 TO drivetotal - 1
    br.treesize += 1
    tree(br.treesize).filename = drive(i)
    tree(br.treesize).caption = drive(i)
    tree(br.treesize).kind = 0
    IF br.getdrivenames THEN
-     tree(br.treesize).caption += " " + drivelabel$(drive(i))
+    tree(br.treesize).caption += " " + drivelabel(drive(i))
    END IF
    draw_browse_meter br
 
@@ -567,8 +568,8 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
   END IF
   FOR i AS INTEGER = 0 TO br.drivesshown - 1
    IF tree(i).filename = b THEN
-    tmpname$ = drivelabel$(b)
-    IF LEN(tmpname$) THEN tree(i).caption = b + " " + tmpname$
+    DIM tmpname AS STRING = drivelabel(b)
+    IF LEN(tmpname) THEN tree(i).caption = b + " " + tmpname
     tree(br.treesize).caption = tree(i).caption
     EXIT FOR
    END IF
