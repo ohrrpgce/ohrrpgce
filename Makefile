@@ -151,7 +151,7 @@ edit_sources:=$(addsuffix .bas,$(edit_modules))
 
 main_modules:=game.o custom.o reload2xml.o xml2reload.o reloadtest.o reloadutil.o
 
-reload_objects:=reload.o reloadext.o lumpfile.o util.o base64.o
+reload_objects:=reload.o reloadext.o lumpfile.o util.o base64.o blit.o
 
 #Sadly, we make every source file depend on every include
 includes:=${shell echo *.bi}
