@@ -1,8 +1,8 @@
 Oh! You found a secret advanced tool!
 This is the RELOAD Editor. It is for editing raw data files in RELOAD format. If you aren't an OHRRPGCE developer and don't know what RELOAD is, then you probably don't want to do that (but if you are curious, check the wiki)
 
-Press F3 to open a .reld file.
-Press F2 to save a .reld file.
+Press F3 to open a RELOAD file.
+Press F2 to save a RELOAD file.
 
 Press TAB to switch editing mode.
 

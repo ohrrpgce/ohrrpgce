@@ -7,6 +7,7 @@
 #include "const.bi"
 #include "allmodex.bi"
 #include "common.bi"
+#include "reload.bi"
 
 #IFDEF IS_CUSTOM
 'this is used for showing help
@@ -50,6 +51,7 @@ DECLARE SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 DECLARE FUNCTION show_mp3_info() AS STRING
+DECLARE FUNCTION browse_sanity_check_reload(filename AS STRING, info AS STRING) AS INTEGER
 
 FUNCTION browse (special, default$, fmask AS STRING, tmp$, needf, helpkey as string) as string
 STATIC remember as string
@@ -69,6 +71,7 @@ br.snd = -1
 'special=5   any supported music (currently *.bam, *.mid, *.ogg, *.mp3, *.mod, *.xm, *.it, *.s3m formats)  (fmask is ignored)
 'special=6   any supported SFX (currently *.ogg, *.wav, *.mp3) (fmask is ignored)
 'special=7   RPG files
+'special=8   RELOAD files
 br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
 
@@ -242,7 +245,7 @@ END FUNCTION
 SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
  DIM bmpd as BitmapInfoHeader
  SELECT CASE br.special
-  CASE 1
+  CASE 1 'music bam only (is this still used?)
    pausesong
    IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
     IF validmusicfile(br.nowdir + tree(br.treeptr).filename, FORMAT_BAM) THEN
@@ -251,11 +254,11 @@ SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
      br.alert = tree(br.treeptr).filename + " is not a valid BAM file"
     END IF
    END IF
-  CASE 2, 3
+  CASE 2, 3 'bitmaps
    IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
     br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
    END IF
-  CASE 4
+  CASE 4 'palettes
    IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
     DIM masfh AS INTEGER = FREEFILE
     OPEN br.nowdir + tree(br.treeptr).filename FOR BINARY AS #masfh
@@ -282,7 +285,7 @@ SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
      END IF
     END IF
    END IF
-  CASE 5
+  CASE 5 'music
    pausesong
    br.alert = tree(br.treeptr).about
    IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
@@ -290,7 +293,7 @@ SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
     br.alert = show_mp3_info()
    END IF
-  CASE 6
+  CASE 6 'sfx
    br.alert = tree(br.treeptr).about
    IF br.snd > -1 THEN
     sound_stop(br.snd,-1)
@@ -306,7 +309,9 @@ SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
      br.alert = show_mp3_info()
     END IF
    END IF
-  CASE 7
+  CASE 7 'rpg
+   br.alert = tree(br.treeptr).about
+  CASE 8 'reload
    br.alert = tree(br.treeptr).about
  END SELECT
  IF tree(br.treeptr).kind = 0 THEN br.alert = "Drive"
@@ -400,12 +405,47 @@ DO UNTIL EOF(fh)
    tree(br.treesize).caption = tree(br.treesize).filename
   END IF
  END IF
+ '--RELOAD files
+ IF br.special = 8 THEN
+  IF browse_sanity_check_reload(f, tree(br.treesize).about) = NO THEN
+   tree(br.treesize).kind = 6 'grey out bad ones
+  END IF
+ END IF
  draw_browse_meter br
 LOOP
 CLOSE #fh
 safekill filelist
 
 END SUB
+
+FUNCTION browse_sanity_check_reload(filename AS STRING, info AS STRING) AS INTEGER
+ 'info argument will be modified
+ DIM header AS STRING = "    "
+ DIM fh AS INTEGER = FREEFILE
+ OPEN filename FOR BINARY ACCESS READ AS #fh
+  GET #fh, 1, header
+ CLOSE #fh
+ IF header <> "RELD" THEN info = "Has no RELOAD file header." : RETURN NO
+ DIM doc AS Reload.Docptr
+ doc = Reload.LoadDocument(filename)
+ IF doc = 0 THEN info = "Reload document not loadable." : RETURN NO
+ DIM node AS Reload.Nodeptr
+ node = Reload.DocumentRoot(doc)
+ IF node = 0 THEN info = "Reload document has broken root node" : RETURN NO
+ SELECT CASE Reload.NodeName(node)
+  CASE "rsav": info = "OHRRPGCE Save-game"
+  CASE "editor": info = "OHRRPGCE editor definition file"
+  CASE "":
+   IF RIGHT(filename, 6) = ".slice" ORELSE LEFT(trimpath(filename), 10) = "slicetree_" THEN
+    info = "Saved slice collection"
+   ELSE
+    info = "RELOAD document"
+   END IF
+  CASE ELSE
+   info = "RELOAD document (" & Reload.NodeName(node) & ")"
+ END SELECT
+ RETURN YES
+END FUNCTION
 
 SUB draw_browse_meter(br AS BrowseMenuState)
 IF br.treesize AND 15 THEN EXIT SUB
@@ -571,8 +611,10 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    IF br.special = 7 THEN ' Special handling in RPG mode
     IF justextension$(tree(br.treesize).filename) = "rpgdir" THEN br.treesize = br.treesize - 1
    END IF
-   '--hide any .saves folders when browsing
-   IF justextension$(tree(br.treesize).filename) = "saves" THEN br.treesize = br.treesize - 1
+   IF br.special <> 8 THEN
+    '--hide any .saves folders when browsing (except in RELOAD special mode)
+    IF justextension$(tree(br.treesize).filename) = "saves" THEN br.treesize = br.treesize - 1
+   END IF
 #IFDEF __FB_DARWIN__
    IF justextension$(tree(br.treesize).filename) = "app" THEN br.treesize = br.treesize - 1
 #ENDIF
@@ -604,6 +646,11 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    'Call once for RPG files once for rpgdirs
    browse_add_files br.fmask, attrib, br, tree()
    browse_add_files "*.rpgdir", 16, br, tree()
+  ELSEIF br.special = 8 THEN
+   browse_add_files "*.reld", attrib, br, tree()
+   browse_add_files "*.reload", attrib, br, tree()
+   browse_add_files "*.slice", attrib, br, tree()
+   browse_add_files "*.rsav", attrib, br, tree()
   ELSE
    browse_add_files br.fmask, attrib, br, tree()
   END IF

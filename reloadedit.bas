@@ -377,15 +377,16 @@ END SUB
 
 SUB reload_editor_export(BYREF st AS ReloadEditorState)
  DIM outfile AS STRING
- outfile = inputfilename("Export RELOAD document", ".reld", "", "input_file_export_reload", trimextension(st.filename))
+ outfile = inputfilename("Export RELOAD document", "", "", "input_file_export_reload", st.filename)
  IF outfile <> "" THEN
-  reload_editor_save outfile & ".reld", st
+  IF INSTR(outfile, ".") = 0 THEN outfile &= ".reld"
+  reload_editor_save outfile, st
  END IF
 END SUB
 
 FUNCTION reload_editor_browse(BYREF st AS ReloadEditorState) AS INTEGER
  DIM filename AS STRING
- filename = browse(0, "", "*.reld", "",, "browse_import_reload")
+ filename = browse(8, "", "", "",, "browse_import_reload")
  IF filename = "" THEN RETURN NO
  RETURN reload_editor_load(filename, st)
 END FUNCTION

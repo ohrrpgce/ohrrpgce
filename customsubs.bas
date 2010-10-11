@@ -921,7 +921,7 @@ FUNCTION fixfilename (s AS STRING) AS STRING
   ch = MID(s, i, 1)
   ascii = ASC(ch)
   SELECT CASE ascii
-   CASE 32, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45  '[ 0-9A-Za-z_~-]
+   CASE 32, 46, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45  '[ 0-9A-Za-z_~-]
     result = result & ch
   END SELECT
  NEXT i
