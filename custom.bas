@@ -163,7 +163,6 @@ IF game = "" THEN
  GOSUB chooserpg
 END IF
 
-end_debug
 
 #IFDEF __FB_WIN32__
  IF MID$(sourcerpg, 2, 1) <> ":" THEN sourcerpg = curdir$ + SLASH + sourcerpg
@@ -176,6 +175,8 @@ IF a$ <> "" ANDALSO fileiswriteable(a$ + SLASH + "writetest.tmp") THEN
  CHDIR a$
 END IF
 'otherwise, keep current directory as it was, net effect: it is the same as in Game
+
+end_debug
 
 start_new_debug
 debuginfo long_version & build_info

@@ -71,8 +71,12 @@ DIM SHARED console AS ConsoleData
 
 'don't black out the screen to show upgrade messages if there aren't any
 DIM SHARED upgrademessages AS INTEGER
+
 'don't delete the debug file at end of play
 DIM SHARED importantdebug AS INTEGER = 0
+
+'When restarting the log, the previous path if significant
+DIM SHARED lastlogfile AS STRING
 
 '.stt lump read into memory
 DIM SHARED global_strings_buffer AS STRING
@@ -279,6 +283,8 @@ SUB start_new_debug
    logfile = log_dir & "c_debug.txt"
    oldfile = log_dir & "c_debug_archive.txt"
  #ENDIF
+ 'If we just closed a debug file, don't archive it, or we'll never notice it
+ IF lastlogfile = logfile THEN EXIT SUB
  IF NOT isfile(logfile) THEN EXIT SUB
 
  dlog = FREEFILE
@@ -330,7 +336,12 @@ SUB end_debug
  #ELSE
    filename = "c_debug.txt"
  #ENDIF
- IF NOT importantdebug THEN safekill log_dir & filename
+ IF NOT importantdebug THEN
+   safekill log_dir & filename
+ ELSE
+   'Remember not to archive the log if we restart the log in the same directory
+   lastlogfile = log_dir & filename
+ END IF
  importantdebug = 0
 END SUB
 

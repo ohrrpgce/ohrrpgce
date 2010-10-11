@@ -277,8 +277,6 @@ IF autorungame = 0 THEN
  END IF
 END IF
 
-end_debug 'delete unimportant messages generated before this point, or from previous game
-
 '-- set up prefs dir
 #IFDEF __UNIX__
 'This is important on unix in case you are playing an rpg file installed in /usr/share/games
@@ -288,6 +286,8 @@ IF NOT isdir(prefsdir) THEN makedir prefsdir
 'This is not used anywhere yet in the Windows version
 prefsdir = ENVIRON$("APPDATA") + SLASH + "OHRRPGCE" + SLASH + trimextension$(trimpath$(sourcerpg))
 #ENDIF
+
+end_debug 'delete unimportant messages generated before this point, or from previous game
 
 '-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to homedir
 a$ = trimfilename(sourcerpg)
@@ -302,6 +302,8 @@ ELSE
  'should prefsdir be used instead?
  CHDIR homedir
 END IF
+
+start_new_debug
 
 init_save_system
 
@@ -319,7 +321,6 @@ IF usepreunlump = 0 THEN
  unlump sourcerpg, workingdir + SLASH
 END IF
 
-start_new_debug
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo  & "  " & systeminfo
 debuginfo "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
