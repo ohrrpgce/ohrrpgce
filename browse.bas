@@ -651,6 +651,7 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    browse_add_files "*.reload", attrib, br, tree()
    browse_add_files "*.slice", attrib, br, tree()
    browse_add_files "*.rsav", attrib, br, tree()
+   browse_add_files "*.editor", attrib, br, tree()
   ELSE
    browse_add_files br.fmask, attrib, br, tree()
   END IF
