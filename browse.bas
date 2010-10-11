@@ -432,7 +432,11 @@ FUNCTION browse_sanity_check_reload(filename AS STRING, info AS STRING) AS INTEG
  IF doc = 0 THEN info = "Reload document not loadable." : RETURN NO
  DIM node AS Reload.Nodeptr
  node = Reload.DocumentRoot(doc)
- IF node = 0 THEN info = "Reload document has broken root node" : RETURN NO
+ IF node = 0 THEN
+  Reload.FreeDocument(doc)
+  info = "Reload document has broken root node"
+  RETURN NO
+ END IF
  SELECT CASE Reload.NodeName(node)
   CASE "rsav": info = "OHRRPGCE Save-game"
   CASE "editor": info = "OHRRPGCE editor definition file"
@@ -445,6 +449,7 @@ FUNCTION browse_sanity_check_reload(filename AS STRING, info AS STRING) AS INTEG
   CASE ELSE
    info = "RELOAD document (" & Reload.NodeName(node) & ")"
  END SELECT
+ Reload.FreeDocument(doc)
  RETURN YES
 END FUNCTION
 
