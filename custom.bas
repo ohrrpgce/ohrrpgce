@@ -179,7 +179,7 @@ END IF
 
 start_new_debug
 debuginfo long_version & build_info
-debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo 
+debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 debuginfo "Editing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 setwindowtitle "OHRRPGCE - " + sourcerpg

@@ -104,6 +104,7 @@ dim shared queue_error as string  'queue up errors until it's possible to actual
 dim wantpollingthread as integer
 dim as string gfxbackend, musicbackend
 dim as string gfxbackendinfo, musicbackendinfo
+dim as string systeminfo
 
 function gfx_dummy_getresize(byref ret as XYPair) as integer : return NO : end function
 sub gfx_dummy_setresizable(byval able as integer) : end sub
@@ -378,3 +379,20 @@ end extern
 'might not be called until Import Music menu
 musicbackend = MUSIC_BACKEND
 musicbackendinfo = "music_" + MUSIC_BACKEND
+
+#ifdef __FB_DARWIN__
+type OSType as integer
+extern "C"
+ 'From CoreServices (Gestalt.h)
+ declare function Gestalt (byval selector as OSType, byval reponse as integer ptr) as integer
+end extern
+
+dim as integer response
+'Note that we have to give the OSTypes backwards because we're little-endian
+Gestalt(*cast(integer ptr, @"1sys"), @response)  'gestaltSystemVersionMajor
+systeminfo = "Mac OS " & response & "."
+Gestalt(*cast(integer ptr, @"2sys"), @response)  'gestaltSystemVersionMinor
+systeminfo &= response & "."
+Gestalt(*cast(integer ptr, @"3sys"), @response)  'gestaltSystemVersionBugFix
+systeminfo &= response
+#endif

@@ -321,7 +321,7 @@ END IF
 
 start_new_debug
 debuginfo long_version & build_info
-debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo 
+debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo  & "  " & systeminfo
 debuginfo "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
