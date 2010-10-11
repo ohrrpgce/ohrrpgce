@@ -5,7 +5,9 @@
 
 extern "C"
 
-'type integer as size_t
+#ifndef size_t
+type size_t as integer
+#endif
 type bool as integer
 
 

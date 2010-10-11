@@ -946,18 +946,7 @@ IF w = scEsc THEN
  PRINT "fatal error:"
  PRINT e
 
- 'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir, ALLFILES, fileTypeFile, NO, "filelist.tmp"
- DIM fh AS INTEGER = FREEFILE
- DIM filename AS STRING
- OPEN "filelist.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  LINE INPUT #fh, filename
-  KILL workingdir & SLASH & filename
- LOOP
- CLOSE #fh
- KILL "filelist.tmp"
- RMDIR workingdir
+ killdir workingdir
  'no need for end_debug
  SYSTEM
 END IF

@@ -11,6 +11,7 @@ CONST STACK_SIZE_INC = 512 ' in integers
 
 #include "compat.bi"
 #include "util.bi"
+#include "cutil.bi"
 
 #if __FB_LANG__ <> "fb"
 OPTION EXPLICIT
@@ -18,8 +19,12 @@ OPTION EXPLICIT
 
 #if defined(IS_GAME) OR defined(IS_CUSTOM)
  DECLARE SUB debug (s as string)
+ DECLARE SUB debuginfo (s as string)
 #else
  PRIVATE SUB debug (s as string)
+  PRINT s
+ END SUB
+ PRIVATE SUB debuginfo (s as string)
   PRINT s
  END SUB
 #endif
@@ -766,10 +771,32 @@ SUB killdir(directory as string)
   LOOP
   CLOSE #fh
   KILL "filelist.tmp"
-  RMDIR directory
-  IF isdir(directory) THEN
-    'debug "Failed to delete directory " & directory
+  IF RMDIR(directory) THEN
+    'errno would get overwritten while building the error message
+    DIM err_string AS STRING = *get_sys_err_string()
+    debug "Could not rmdir(" & directory & "): " & err_string
   END IF
+'  IF isdir(directory) THEN
+'    debug "Failed to delete directory " & directory
+'  END IF
+END SUB
+
+SUB makedir (directory as string)
+  IF isdir(directory) THEN
+    debuginfo "makedir: " & directory & " already exists"
+    EXIT SUB
+  END IF
+  IF MKDIR(directory) THEN
+    'errno would get overwritten while building the error message
+    DIM err_string AS STRING = *get_sys_err_string()
+    debug "Could not mkdir(" & directory & "): " & err_string
+    EXIT SUB
+  END IF
+#ifdef __FB_LINUX__
+  ' work around broken file permissions in dirs created by linux version
+  ' MKDIR creates with mode 644, should create with mode 755
+  SHELL "chmod +x """ + directory + """"
+#endif
 END SUB
 
 SUB safekill (filename as string)

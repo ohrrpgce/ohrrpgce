@@ -195,7 +195,6 @@ DECLARE SUB crashexplain ()
 DECLARE function with_orig_path(dir_name as string, add_slash as integer=0) as string
 declare sub processcommandline()
 DECLARE SUB romfontchar (font() as integer, char as integer)
-DECLARE SUB makedir (dirname as string)
 DECLARE FUNCTION ReadShort overload (fh as integer,p as long=-1) as short
 DECLARE FUNCTION ReadShort overload (filename as string, p as integer) as short
 DECLARE Sub WriteShort overload (fh as integer,p as long, v as integer)

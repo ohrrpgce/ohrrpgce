@@ -227,15 +227,6 @@ SUB romfontchar (font(), char)
 'i suppose
 END SUB
 
-SUB makedir (dirname$)
-MKDIR dirname$
-#ifdef __UNIX__
- ' work around broken file permissions in dirs created by linux version
- ' MKDIR creates with mode 644, should create with mode 755
- SHELL "chmod +x """ + dirname$ + """"
-#endif
-END SUB
-
 FUNCTION ReadShort(fh as integer,p as long=-1) as short
 	DIM ret as short
 	IF p = -1 THEN
