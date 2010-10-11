@@ -232,6 +232,9 @@ declare function hash_iter(byref this as HashTable, byref state as integer, byre
 '----------------------------------------------------------------------
 '                          File Functions
 
+'Constants for findfiles
+CONST fileTypeDirectory = 0
+CONST fileTypeFile = 1
 
 declare function trimpath (filename as string) as string
 declare function trimfilename (filename as string) as string
@@ -241,7 +244,7 @@ declare function is_absolute_path (sDir as string) as integer
 declare function parentdir (pathname as string, BYVAL upamount as integer = 1) as string
 declare function anycase (filename as string) as string
 declare sub touchfile (filename as string)
-declare sub findfiles (fmask as string, BYVAL attrib as integer, outfile as string)
+declare sub findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, outfile AS STRING)
 declare sub killdir (directory as string)
 declare sub safekill (f as string)
 declare function fileisreadable(f as string) as integer

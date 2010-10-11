@@ -338,7 +338,7 @@ END IF
 END SUB
 
 SUB cleanuptemp
- findfiles workingdir + SLASH + ALLFILES, 0, tmpdir + "filelist.tmp"
+ findfiles workingdir, ALLFILES, fileTypeFile, NO, tmpdir + "filelist.tmp"
  fh = FREEFILE
   OPEN tmpdir + "filelist.tmp" FOR INPUT AS #fh
   DO UNTIL EOF(fh)
@@ -358,7 +358,7 @@ SUB cleanuptemp
 
   KILL tmpdir + "filelist.tmp"
 
-  findfiles tmpdir + ALLFILES, 0, tmpdir + "filelist.tmp"
+  findfiles tmpdir, ALLFILES, fileTypeFile, NO, tmpdir + "filelist.tmp"
   fh = FREEFILE
   OPEN tmpdir + "filelist.tmp" FOR INPUT AS #fh
   DO UNTIL EOF(fh)
@@ -725,7 +725,7 @@ END SUB
 SUB deletetemps
 'deletes game-state temporary files when exiting back to the titlescreen
 
- findfiles tmpdir + ALLFILES, 0, tmpdir + "filelist.tmp"
+ findfiles tmpdir, ALLFILES, fileTypeFile, YES, tmpdir + "filelist.tmp"
  fh = FREEFILE
  OPEN tmpdir + "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)

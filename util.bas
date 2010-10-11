@@ -660,25 +660,27 @@ SUB touchfile (filename as string)
   CLOSE #fh
 END SUB
 
-SUB findfiles (namemask AS STRING, BYVAL attrib AS INTEGER, outfile AS STRING)
-  ' attrib 0: all files 'cept folders, attrib 16: folders only
-  DIM AS STRING fmask = namemask
+'Finds files in a directory, writing them one to a line in outfile
+'By default, find all files in directory, otherwise it is a case-insensitive filename mask
+'filetype is one of fileTypeFile, fileTypeDirectory
+SUB findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, outfile AS STRING)
+  DIM AS STRING fmask = directory
+  IF RIGHT(fmask, 1) <> SLASH THEN fmask += SLASH
+
 #ifdef __UNIX__
-  'this is pretty hacky, but works around the lack of DOS-style attributes, and the apparent uselessness of DIR
-  DIM AS STRING grep, shellout
+  'this is super hacky, but works around the apparent uselessness of DIR
+  DIM AS STRING grep, shellout, realmask
   shellout = "/tmp/ohrrpgce-findfiles-" + STR(RND * 10000) + ".tmp"
   grep = "-v '/$'"
-  IF attrib AND 16 THEN grep = "'/$'"
-  DIM i AS INTEGER
-  FOR i = LEN(fmask) TO 1 STEP -1
-    IF MID(fmask, i, 1) = CHR(34) THEN fmask = LEFT(fmask, i - 1) + "\" + CHR(34) + RIGHT(fmask, LEN(fmask) - i)
-  NEXT i
-  i = INSTR(fmask, "*")
-  IF i THEN
-    fmask = CHR(34) + LEFT(fmask, i - 1) + CHR(34) + RIGHT(fmask, LEN(fmask) - i + 1)
+  IF filetype = fileTypeDirectory THEN grep = "'/$'"
+  realmask = anycase(namemask)
+  fmask = """" + escape_string(fmask, """`\$") + """"
+  IF findhidden THEN
+    fmask = fmask + realmask + " " + fmask + "." + realmask
   ELSE
-    fmask = CHR(34) + fmask + CHR(34)
+    fmask = fmask + realmask
   END IF
+
   SHELL "ls -d1p " + fmask + " 2>/dev/null |grep "+ grep + ">" + shellout + " 2>&1"
   DIM AS INTEGER f1, f2
   f1 = FreeFile
@@ -688,7 +690,8 @@ SUB findfiles (namemask AS STRING, BYVAL attrib AS INTEGER, outfile AS STRING)
   DIM s AS STRING
   DO UNTIL EOF(f1)
     LINE INPUT #f1, s
-    IF s = "/dev/" OR s = "/proc/" OR s = "/sys/" THEN CONTINUE DO
+    IF RIGHT(s, 3) = "/./" ORELSE RIGHT(s, 4) = "/../" _
+         ORELSE s = "/dev/" ORELSE s = "/proc/" ORELSE s = "/sys/" THEN CONTINUE DO
     IF RIGHT(s, 1) = "/" THEN s = LEFT(s, LEN(s) - 1)
     DO WHILE INSTR(s, "/")
       s = RIGHT(s, LEN(s) - INSTR(s, "/"))
@@ -698,41 +701,52 @@ SUB findfiles (namemask AS STRING, BYVAL attrib AS INTEGER, outfile AS STRING)
   CLOSE #f1
   CLOSE #f2
   KILL shellout
-#else
-  DIM a AS STRING, i AS INTEGER, folder AS STRING
-  if attrib = 0 then attrib = 255 xor 16
-  if attrib = 16 then attrib = 55 '*sigh*
-  FOR i = LEN(fmask) TO 1 STEP -1
-    IF MID(fmask, i, 1) = "\" THEN folder = MID(fmask, 1, i): EXIT FOR
-  NEXT
 
+#else
+  DIM foundfile AS STRING
+  DIM attrib AS INTEGER
   DIM AS INTEGER tempf, realf
+  /'---DOS directory attributes
+  CONST attribReadOnly = 1
+  CONST attribHidden = 2
+  CONST attribSystem = 4
+  CONST attribDirectory = 16
+  CONST attribArchive = 32
+  CONST attribReserved = 192 '64 OR 128
+  CONST attribAlmostAll = 237 ' All except directory and hidden
+  '/
+  IF filetype = fileTypeDirectory THEN
+    attrib = 53
+  ELSE
+    attrib = (253 XOR 16)
+  END IF
+  IF findhidden THEN attrib += 2
   tempf = FreeFile
-  a = DIR(fmask, attrib)
-  if a = "" then
+  foundfile = DIR(fmask + namemask, attrib)
+  if foundfile = "" then
     'create an empty file
     OPEN outfile FOR OUTPUT AS #tempf
     close #tempf
     exit sub
   end if
   OPEN outfile + ".tmp" FOR OUTPUT AS #tempf
-  DO UNTIL a = ""
-    PRINT #tempf, a
-    a = DIR '("", attrib)
+  DO UNTIL foundfile = ""
+    PRINT #tempf, foundfile
+    foundfile = DIR '("", attrib)
   LOOP
   CLOSE #tempf
   OPEN outfile + ".tmp" FOR INPUT AS #tempf
   realf = FREEFILE
   OPEN outfile FOR OUTPUT AS #realf
   DO UNTIL EOF(tempf)
-  LINE INPUT #tempf, a
-  IF attrib = 55 THEN
-    'alright, we want directories, but DIR is too broken to give them to us
-    'files with attribute 0 appear in the list, so single those out
-    IF DIR(folder + a, 55) <> "" AND DIR(folder + a, 39) = "" THEN PRINT #realf, a
-  ELSE
-    PRINT #realf, a
-  END IF
+    LINE INPUT #tempf, foundfile
+    IF filetype = fileTypeDirectory THEN
+      'alright, we want directories, but DIR is too broken to give them to us
+      'files with attribute 0 appear in the list, so single those out
+      IF DIR(fmask + foundfile, 55) <> "" AND DIR(fmask + foundfile, 39) = "" THEN PRINT #realf, foundfile
+    ELSE
+      PRINT #realf, foundfile
+    END IF
   LOOP
   CLOSE #tempf
   CLOSE #realf
@@ -743,7 +757,7 @@ END SUB
 SUB killdir(directory as string)
   dim fh as integer
   dim filename as string
-  findfiles directory + SLASH + ALLFILES, 0, "filelist.tmp"
+  findfiles directory, ALLFILES, fileTypeFile, -1, "filelist.tmp"
   fh = FREEFILE
   OPEN "filelist.tmp" FOR INPUT AS #fh
   DO UNTIL EOF(fh)

@@ -449,7 +449,7 @@ function indexunlumpeddir (whichdir as string) as LumpIndex ptr
 	index->unlumpeddir = whichdir
 
 	'ideally findfiles would have an overload to return files in an array, but that's a nontrivial project
-	findfiles whichdir + ALLFILES, 0, "filelist.tmp"
+	findfiles whichdir, ALLFILES, fileTypeFile, NO, tmpdir + "filelist.tmp"
 	fh = freefile
 	open "filelist.tmp" for input as #fh
 	do until eof(fh)

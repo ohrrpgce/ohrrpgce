@@ -22,15 +22,6 @@ CONST CURRENT_RPG_VERSION = 11
 ' 10 - ypsiliform wip added attack-based enemy transmogrification
 ' 11 - zenzizenzic wip added variable record size and record number .N## lumps
 
-'---DOS directory attributes
-CONST attribReadOnly = 1
-CONST attribHidden = 2
-CONST attribSystem = 4
-CONST attribDirectory = 16
-CONST attribArchive = 32
-CONST attribReserved = 192 '64 OR 128
-CONST attribAlmostAll = 237 ' All except directory and hidden
-
 '---GENERAL GAME DATA (.GEN) constants---
 CONST genMaxMap = 0             'max map ID
 CONST genTitle = 1              'title screen backdrop

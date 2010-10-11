@@ -194,8 +194,8 @@ setvispage vpage
 touchfile workingdir + SLASH + "__danger.tmp"
 
 IF isdir(sourcerpg) THEN
- 'work on an unlumped RPG file
- findfiles sourcerpg + SLASH + ALLFILES, 0, "filelist.tmp"
+ 'work on an unlumped RPG file. Don't take hidden files
+ findfiles sourcerpg, ALLFILES, fileTypeFile, NO, "filelist.tmp"
  fh = FREEFILE
  OPEN "filelist.tmp" FOR INPUT AS #fh
  DO UNTIL EOF(fh)
@@ -1087,8 +1087,8 @@ FUNCTION newRPGfile (templatefile$, newrpg$)
 END FUNCTION
 
 SUB dolumpfiles (filetolump$)
-'--build the list of files to lump
-findfiles workingdir + SLASH + ALLFILES, 0, "temp.lst"
+'--build the list of files to lump. We don't need hidden files
+findfiles workingdir, ALLFILES, fileTypeFile, NO, "temp.lst"
 fixorder "temp.lst"
 IF isdir(filetolump$) THEN
  '---copy changed files back to source rpgdir---

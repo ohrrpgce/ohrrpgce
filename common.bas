@@ -947,7 +947,7 @@ IF w = scEsc THEN
  PRINT e
 
  'borrowed this code from game.bas cos wildcard didn't work in FB
- findfiles workingdir & SLASH & ALLFILES, 0, "filelist.tmp"
+ findfiles workingdir, ALLFILES, fileTypeFile, NO, "filelist.tmp"
  DIM fh AS INTEGER = FREEFILE
  DIM filename AS STRING
  OPEN "filelist.tmp" FOR INPUT AS #fh

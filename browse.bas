@@ -48,7 +48,7 @@ End Type
 DECLARE SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
 DECLARE SUB draw_browse_meter(br AS BrowseMenuState)
 DECLARE SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
-DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
+DECLARE SUB browse_add_files(wildcard$, BYVAL filetype AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 DECLARE FUNCTION show_mp3_info() AS STRING
 DECLARE FUNCTION browse_sanity_check_reload(filename AS STRING, info AS STRING) AS INTEGER
@@ -176,7 +176,7 @@ DO
  IF keyval(scCtrl) THEN
   'Ctrl + H for hidden
   IF keyval(scH) > 1 THEN
-   br.showHidden = br.showHidden XOR attribHidden
+   br.showHidden XOR= YES
    build_listing tree(), br
   END IF
  ELSE
@@ -320,14 +320,15 @@ SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
  IF tree(br.treeptr).kind = 4 THEN br.alert = "Root"
 END SUB
 
-SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
+SUB browse_add_files(wildcard$, BYVAL filetype AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DIM bmpd AS BitmapInfoHeader
 DIM tempbuf(79)
 DIM f AS STRING
 
 DIM filelist AS STRING
 filelist = br.tmp + "hrbrowse.tmp"
-findfiles br.nowdir + anycase$(wildcard$), attrib, filelist
+findfiles br.nowdir, wildcard$, filetype, br.showhidden, filelist
+
 
 DIM fh AS INTEGER = FREEFILE
 OPEN filelist FOR INPUT AS #fh
@@ -600,7 +601,7 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    END IF
   LOOP
   '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
-  findfiles br.nowdir + ALLFILES, 16, br.tmp + "hrbrowse.tmp"
+  findfiles br.nowdir, ALLFILES, fileTypeDirectory, br.showhidden, br.tmp + "hrbrowse.tmp"
   DIM fh AS INTEGER = FREEFILE
   OPEN br.tmp + "hrbrowse.tmp" FOR INPUT AS #fh
   DO UNTIL EOF(fh)
@@ -624,37 +625,37 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
   CLOSE #fh
   safekill br.tmp + "hrbrowse.tmp"
   '---FIND ALL FILES IN FILEMASK---
-  DIM attrib AS INTEGER = attribAlmostAll OR br.showHidden
+  DIM filetype AS INTEGER = fileTypeFile
   IF br.special = 4 THEN
-   browse_add_files "*.mas", attrib, br, tree()
-   browse_add_files "*.bmp", attrib, br, tree()
+   browse_add_files "*.mas", filetype, br, tree()
+   browse_add_files "*.bmp", filetype, br, tree()
   ELSEIF br.special = 5 THEN' background music
    '--disregard fmask. one call per extension
-   browse_add_files "*.bam", attrib, br, tree()
-   browse_add_files "*.mid", attrib, br, tree()
-   browse_add_files "*.xm", attrib, br, tree()
-   browse_add_files "*.it", attrib, br, tree()
-   browse_add_files "*.mod", attrib, br, tree()
-   browse_add_files "*.s3m", attrib, br, tree()
-   browse_add_files "*.ogg", attrib, br, tree()
-   browse_add_files "*.mp3", attrib, br, tree()
+   browse_add_files "*.bam", filetype, br, tree()
+   browse_add_files "*.mid", filetype, br, tree()
+   browse_add_files "*.xm", filetype, br, tree()
+   browse_add_files "*.it", filetype, br, tree()
+   browse_add_files "*.mod", filetype, br, tree()
+   browse_add_files "*.s3m", filetype, br, tree()
+   browse_add_files "*.ogg", filetype, br, tree()
+   browse_add_files "*.mp3", filetype, br, tree()
   ELSEIF br.special = 6 THEN ' sound effects
    '--disregard fmask. one call per extension
-   browse_add_files "*.wav", attrib, br, tree()
-   browse_add_files "*.ogg", attrib, br, tree()
-   browse_add_files "*.mp3", attrib, br, tree()
+   browse_add_files "*.wav", filetype, br, tree()
+   browse_add_files "*.ogg", filetype, br, tree()
+   browse_add_files "*.mp3", filetype, br, tree()
   ELSEIF br.special = 7 THEN
    'Call once for RPG files once for rpgdirs
-   browse_add_files br.fmask, attrib, br, tree()
-   browse_add_files "*.rpgdir", 16, br, tree()
+   browse_add_files br.fmask, filetype, br, tree()
+   browse_add_files "*.rpgdir", fileTypeDirectory, br, tree()
   ELSEIF br.special = 8 THEN
-   browse_add_files "*.reld", attrib, br, tree()
-   browse_add_files "*.reload", attrib, br, tree()
-   browse_add_files "*.slice", attrib, br, tree()
-   browse_add_files "*.rsav", attrib, br, tree()
-   browse_add_files "*.editor", attrib, br, tree()
+   browse_add_files "*.reld", filetype, br, tree()
+   browse_add_files "*.reload", filetype, br, tree()
+   browse_add_files "*.slice", filetype, br, tree()
+   browse_add_files "*.rsav", filetype, br, tree()
+   browse_add_files "*.editor", filetype, br, tree()
   ELSE
-   browse_add_files br.fmask, attrib, br, tree()
+   browse_add_files br.fmask, filetype, br, tree()
   END IF
  END IF
 
