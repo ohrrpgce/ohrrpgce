@@ -3,13 +3,17 @@ WARNING="!!! This Makefile is not the recommended way to build the OHRRPGCE, and
 
 # See also makehspeak.bat, makeutil.bat/sh, makereload.bat/sh; this Makefile doesn't build those utilities
 
-# You can change backends by editting config.mak
-include config.mak
+# Example use:
+#  make game
+#  make OHRGFX=sdl+alleg OHRMUSIC=native2 edit
+# Append as many graphics backends as you want together with +. Specify at most one music backend.
+# make clean before changing backends
+
 
 FBC=fbc -lang deprecated
 
 #a C compiler is not required under windows
-CC=gcc
+CC=gcc -m32
 MAKE=make
 
 #msys doesn't include uname
@@ -60,6 +64,17 @@ endif
 	verprint_exe:=verprint
 endif
 
+ifndef OHRMUSIC
+	OHRMUSIC:=sdl
+endif
+
+ifndef OHRGFX
+ifdef mac
+	OHRGFX:=sdl
+else
+	OHRGFX:=sdl+fb
+endif
+endif
 
 #Note: all these libraries are specified so that things will link even if fbc is compiled without objinfo,
 #which stops #inclib directives from working
@@ -67,11 +82,17 @@ endif
 ifeq ($(findstring fb,$(OHRGFX)), fb)
 	common_modules+= gfx_fb
 	libraries+= fbgfx
+ifdef mac
+$(error gfx_fb not supported on Mac)
+endif
 endif
 
 ifeq ($(findstring alleg,$(OHRGFX)), alleg)
 	common_modules+= gfx_alleg
 	libraries+= alleg
+ifdef mac
+$(error gfx_alleg not supported on Mac)
+endif
 endif
 
 ifeq ($(findstring sdl,$(OHRGFX)), sdl)
@@ -82,6 +103,9 @@ endif
 
 ifeq ($(findstring directx,$(OHRGFX)), directx)
 #nothing needed
+ifdef unix
+$(error gfx_directx only supported on Windows)
+endif
 endif
 
 ifeq ($(findstring sdlpp,$(OHRGFX)), sdlpp)
@@ -153,7 +177,7 @@ ifdef linksdl
 #	libraries:=$(patsubst -Wl,-Wl ,$(libraries))
 ifdef mac
 	libraries+= -Wl -framework,SDL_mixer -Wl -framework,SDL -Wl -framework,Cocoa -Wl -F$(FRAMEWORKS_PATH)
-	common_objects+= mac/SDLMain.o
+	common_objects+= SDLMain.o
 	FBFLAGS+= -entry SDL_main
 	CFLAGS+=${shell if [ `which sdl-confijg` ] ; then sdl-config --cflags; else echo -I$(FRAMEWORKS_PATH)/SDL.framework/Headers; fi}
 endif
@@ -243,8 +267,7 @@ $(main_modules): %.o: %.bas $(includes)
 %.o: mac/%.m
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-#I am being way too clever
-$(semicommon_objects) game.o custom.o: config.mak codename.txt
+$(semicommon_objects) game.o custom.o: codename.txt
 
 #unix only; run make in win32/ on windows
 blit.o: blit.c
