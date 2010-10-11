@@ -40,11 +40,13 @@ Type BrowseMenuState
 	getdrivenames as integer
 	changed as integer
 	fmask as string
+	snd as integer
 End Type
 
 'Subs and functions only used locally
 DECLARE SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
 DECLARE SUB draw_browse_meter(br AS BrowseMenuState)
+DECLARE SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 DECLARE FUNCTION show_mp3_info() AS STRING
@@ -57,6 +59,7 @@ DIM br AS BrowseMenuState
 br.tmp = tmp$
 br.special = special
 br.fmask = fmask
+br.snd = -1
 
 'special=0   no preview
 'special=1   just BAM
@@ -70,8 +73,7 @@ br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
 
 REDIM tree(255) AS BrowseMenuEntry
-DIM drive(26) as string, catfg(6) as integer, catbg(6) as integer, f as integer = -1
-DIM bmpd as BitmapInfoHeader
+DIM drive(26) as string, catfg(6) as integer, catbg(6) as integer
 
 'tree().kind contains the type of each object in the menu
 '0 = Drive (Windows only)
@@ -135,7 +137,7 @@ DO
  IF usemenu(br.treeptr, br.treetop, 0, br.treesize, br.viewsize) OR br.changed THEN
   br.alert = ""
   br.changed = 0
-  GOSUB hover
+  browse_hover tree(), br
  END IF
  IF enter_or_space() THEN
   br.alert = ""
@@ -233,85 +235,85 @@ IF default$ = "" THEN
 ELSE
  default$ = br.nowdir
 END IF
-pausesong:if f >= 0 then sound_stop(f, -1): UnloadSound(f)
-EXIT FUNCTION
+pausesong:if br.snd >= 0 then sound_stop(br.snd, -1): UnloadSound(br.snd)
 
-hover:
-SELECT CASE br.special
- CASE 1
-  pausesong
-  IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
-   IF validmusicfile(br.nowdir + tree(br.treeptr).filename, FORMAT_BAM) THEN
-    loadsong br.nowdir + tree(br.treeptr).filename
-   ELSE
-    br.alert = tree(br.treeptr).filename + " is not a valid BAM file"
+END FUNCTION
+
+SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
+ DIM bmpd as BitmapInfoHeader
+ SELECT CASE br.special
+  CASE 1
+   pausesong
+   IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
+    IF validmusicfile(br.nowdir + tree(br.treeptr).filename, FORMAT_BAM) THEN
+     loadsong br.nowdir + tree(br.treeptr).filename
+    ELSE
+     br.alert = tree(br.treeptr).filename + " is not a valid BAM file"
+    END IF
    END IF
-  END IF
- CASE 2, 3
-  IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
-   br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
-  END IF
- CASE 4
-  IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
-   DIM masfh AS INTEGER = FREEFILE
-   OPEN br.nowdir + tree(br.treeptr).filename FOR BINARY AS #masfh
-   IF LCASE$(justextension$(tree(br.treeptr).filename)) = "mas" THEN
-    DIM a AS STRING = "       "
-    GET #masfh, 1, a
-    CLOSE #masfh
-    SELECT CASE a
-     CASE br.mashead
-      br.alert = "MAS format"
-     CASE br.paledithead
-      br.alert = "MAS format (PalEdit)"
-     CASE ELSE
-     br.alert = "Not a valid MAS file"
-    END SELECT
-   ELSE
-    '.bmp file
-    IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
-     IF bmpd.biBitCount = 24 THEN
-      br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
-     ELSE
-      br.alert = bmpd.biBitCount & "-bit color BMP"
+  CASE 2, 3
+   IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
+    br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
+   END IF
+  CASE 4
+   IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
+    DIM masfh AS INTEGER = FREEFILE
+    OPEN br.nowdir + tree(br.treeptr).filename FOR BINARY AS #masfh
+    IF LCASE$(justextension$(tree(br.treeptr).filename)) = "mas" THEN
+     DIM a AS STRING = "       "
+     GET #masfh, 1, a
+     CLOSE #masfh
+     SELECT CASE a
+      CASE br.mashead
+       br.alert = "MAS format"
+      CASE br.paledithead
+       br.alert = "MAS format (PalEdit)"
+      CASE ELSE
+      br.alert = "Not a valid MAS file"
+     END SELECT
+    ELSE
+     '.bmp file
+     IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
+      IF bmpd.biBitCount = 24 THEN
+       br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
+      ELSE
+       br.alert = bmpd.biBitCount & "-bit color BMP"
+      END IF
      END IF
     END IF
    END IF
-  END IF
- CASE 5
-  pausesong
-  br.alert = tree(br.treeptr).about
-  IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
-   loadsong br.nowdir + tree(br.treeptr).filename
-  ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
-   br.alert = show_mp3_info()
-  END IF
- CASE 6
-  br.alert = tree(br.treeptr).about
-  IF f > -1 THEN
-   sound_stop(f,-1)
-   UnloadSound(f)
-   f = -1
-  END IF
-  IF tree(br.treeptr).kind <> 6 THEN
-   'not disabled because of size
-   IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
-    f = LoadSound(br.nowdir + tree(br.treeptr).filename)
-    sound_play(f, 0, -1)
+  CASE 5
+   pausesong
+   br.alert = tree(br.treeptr).about
+   IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
+    loadsong br.nowdir + tree(br.treeptr).filename
    ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
     br.alert = show_mp3_info()
    END IF
-  END IF
- CASE 7
-  br.alert = tree(br.treeptr).about
-END SELECT
-IF tree(br.treeptr).kind = 0 THEN br.alert = "Drive"
-IF tree(br.treeptr).kind = 1 THEN br.alert = "Directory"
-IF tree(br.treeptr).kind = 2 THEN br.alert = "Subdirectory"
-IF tree(br.treeptr).kind = 4 THEN br.alert = "Root"
-RETRACE
-
-END FUNCTION
+  CASE 6
+   br.alert = tree(br.treeptr).about
+   IF br.snd > -1 THEN
+    sound_stop(br.snd,-1)
+    UnloadSound(br.snd)
+    br.snd = -1
+   END IF
+   IF tree(br.treeptr).kind <> 6 THEN
+    'not disabled because of size
+    IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
+     br.snd = LoadSound(br.nowdir + tree(br.treeptr).filename)
+     sound_play(br.snd, 0, -1)
+    ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
+     br.alert = show_mp3_info()
+    END IF
+   END IF
+  CASE 7
+   br.alert = tree(br.treeptr).about
+ END SELECT
+ IF tree(br.treeptr).kind = 0 THEN br.alert = "Drive"
+ IF tree(br.treeptr).kind = 1 THEN br.alert = "Directory"
+ IF tree(br.treeptr).kind = 2 THEN br.alert = "Subdirectory"
+ IF tree(br.treeptr).kind = 4 THEN br.alert = "Root"
+END SUB
 
 SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DIM bmpd AS BitmapInfoHeader
@@ -521,7 +523,7 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    br.treeptr = 0
    br.treetop = 0
    br.nowdir = ""
-   RETRACE
+   EXIT SUB
   END IF
   FOR i AS INTEGER = 0 TO br.drivesshown - 1
    IF tree(i).filename = b THEN
