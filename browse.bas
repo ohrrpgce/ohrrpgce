@@ -13,6 +13,8 @@
 #include "customsubs.bi"
 #ENDIF
 
+OPTION EXPLICIT
+
 Type BrowseMenuEntry
 	kind as integer
 	filename as string
@@ -23,6 +25,8 @@ End type
 Type BrowseMenuState
 	nowdir as string
 	tmp as string
+	treeptr as integer
+	treetop as integer
 	treesize as integer   'last entry
 	viewsize as integer
 	special as integer
@@ -30,32 +34,40 @@ Type BrowseMenuState
 	meter as integer
 	drivesshown as integer  'number of drive entries (plus 1 for refresh)
 	alert as string
+	mashead as string
+	paledithead as string
+	showHidden as integer
+	getdrivenames as integer
+	changed as integer
+	fmask as string
 End Type
 
 'Subs and functions only used locally
+DECLARE SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
 DECLARE SUB draw_browse_meter(br AS BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
 DECLARE FUNCTION show_mp3_info() AS STRING
 
-FUNCTION browse (special, default$, fmask$, tmp$, needf, helpkey as string) as string
+FUNCTION browse (special, default$, fmask AS STRING, tmp$, needf, helpkey as string) as string
 STATIC remember as string
 browse = ""
 
 DIM br AS BrowseMenuState
 br.tmp = tmp$
 br.special = special
+br.fmask = fmask
 
 'special=0   no preview
 'special=1   just BAM
 'special=2   16 color BMP
 'special=3   background
-'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24 bit *.bmp) (fmask$ is ignored)
-'special=5   any supported music (currently *.bam, *.mid, *.ogg, *.mp3, *.mod, *.xm, *.it, *.s3m formats)  (fmask$ is ignored)
-'special=6   any supported SFX (currently *.ogg, *.wav, *.mp3) (fmask$ is ignored)
+'special=4   master palette (*.mas, 8 bit *.bmp, 16x16 24 bit *.bmp) (fmask is ignored)
+'special=5   any supported music (currently *.bam, *.mid, *.ogg, *.mp3, *.mod, *.xm, *.it, *.s3m formats)  (fmask is ignored)
+'special=6   any supported SFX (currently *.ogg, *.wav, *.mp3) (fmask is ignored)
 'special=7   RPG files
-mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
-paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
+br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
+br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
 
 REDIM tree(255) AS BrowseMenuEntry
 DIM drive(26) as string, catfg(6) as integer, catbg(6) as integer, f as integer = -1
@@ -70,7 +82,7 @@ DIM bmpd as BitmapInfoHeader
 '5 = Special (not used)
 '6 = Unselectable item
 
-showHidden = 0
+br.showHidden = 0
 
 'FIXME: do we need another uilook() constant for these "blue" directories instead of uilook(uiTextbox + 1)?
 catfg(0) = uilook(uiMenuItem)   : catbg(0) = uilook(uiHighlight)    'selectable drives (none on unix systems)
@@ -83,7 +95,7 @@ catfg(6) = uilook(uiDisabledItem): catbg(6) = uilook(uiBackground)  'disabled
 
 IF needf = 1 THEN
  DIM temppal(255) as RGBcolor
- FOR i = 0 TO 255
+ FOR i AS INTEGER = 0 TO 255
   temppal(i).r = 0
   temppal(i).g = 0
   temppal(i).b = 0
@@ -100,77 +112,77 @@ END IF
 
 IF br.special = 7 THEN br.viewsize = 16 ELSE br.viewsize = 17
 
-treeptr = 0
-treetop = 0
+br.treeptr = 0
+br.treetop = 0
 br.treesize = 0
 br.drivesshown = 0
-getdrivenames = 0  'whether to fetch names of all drives, on if hit F5
+br.getdrivenames = 0  'whether to fetch names of all drives, on if hit F5
 
 br.ranalready = 0
-GOSUB build_listing
+build_listing tree(), br
 
-changed = 0
-IF br.alert = "" THEN changed = 1
+br.changed = 0
+IF br.alert = "" THEN br.changed = 1
 
 setkeys
 DO
  setwait 55
  setkeys
- tog = tog XOR 1
  IF keyval(scEsc) > 1 THEN EXIT DO
 #IFDEF IS_CUSTOM
  IF keyval(scF1) > 1 THEN show_help helpkey
 #ENDIF
- IF usemenu(treeptr, treetop, 0, br.treesize, br.viewsize) OR changed THEN
+ IF usemenu(br.treeptr, br.treetop, 0, br.treesize, br.viewsize) OR br.changed THEN
   br.alert = ""
-  changed = 0
+  br.changed = 0
   GOSUB hover
  END IF
  IF enter_or_space() THEN
   br.alert = ""
-  changed = 1
+  br.changed = 1
   IF br.special = 1 OR br.special = 5 THEN pausesong
-  SELECT CASE tree(treeptr).kind
+  SELECT CASE tree(br.treeptr).kind
    CASE 0
     'this could take a while...
     rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
     edgeprint "Reading...", 8, 34 + br.viewsize * 9, uilook(uiText), vpage
     setvispage vpage
-    IF hasmedia(tree(treeptr).filename) THEN
-     br.nowdir = tree(treeptr).filename
-     GOSUB build_listing
+    IF hasmedia(tree(br.treeptr).filename) THEN
+     br.nowdir = tree(br.treeptr).filename
+     build_listing tree(), br
     ELSE
      br.alert = "No media"
-     changed = 0
+     br.changed = 0
     END IF
    CASE 1, 4
     br.nowdir = ""
-    FOR i = br.drivesshown TO treeptr
+    FOR i AS INTEGER = br.drivesshown TO br.treeptr
      br.nowdir = br.nowdir + tree(i).filename
     NEXT i
-    GOSUB build_listing
+    build_listing tree(), br
    CASE 2
-    br.nowdir = br.nowdir + tree(treeptr).filename + SLASH
-    GOSUB build_listing
+    br.nowdir = br.nowdir + tree(br.treeptr).filename + SLASH
+    build_listing tree(), br
    CASE 3
-    browse = br.nowdir + tree(treeptr).filename
+    browse = br.nowdir + tree(br.treeptr).filename
     EXIT DO
   END SELECT
  END IF
  IF keyval(scCtrl) THEN
   'Ctrl + H for hidden
   IF keyval(scH) > 1 THEN
-   showHidden = showHidden XOR attribHidden
-   GOSUB build_listing
+   br.showHidden = br.showHidden XOR attribHidden
+   build_listing tree(), br
   END IF
  ELSE
   'find by letter
-  FOR i = 2 TO 53
+  FOR i AS INTEGER = 2 TO 53
    IF keyval(i) > 1 AND keyv(i, 0) > 0 THEN
-    FOR j = 1 TO br.treesize
-     mappedj = (j + treeptr) MOD (br.treesize + 1)
-     tempstr$ = LCASE$(tree(mappedj).caption)
-     IF (tree(mappedj).kind = 1 OR tree(mappedj).kind = 2 OR tree(mappedj).kind = 3) AND tempstr$[0] = keyv(i, 0) THEN treeptr = mappedj: EXIT FOR
+    FOR j AS INTEGER = 1 TO br.treesize
+     DIM mappedj AS INTEGER
+     mappedj = (j + br.treeptr) MOD (br.treesize + 1)
+     DIM tempstr AS STRING = LCASE(tree(mappedj).caption)
+     IF (tree(mappedj).kind = 1 OR tree(mappedj).kind = 2 OR tree(mappedj).kind = 3) AND tempstr[0] = keyv(i, 0) THEN br.treeptr = mappedj: EXIT FOR
     NEXT
     EXIT FOR
    END IF
@@ -179,17 +191,17 @@ DO
  IF keyval(scF5) > 1 THEN  'F5
   'refresh
   br.drivesshown = 0
-  getdrivenames = 1
-  GOSUB build_listing
-  changed = 1
+  br.getdrivenames = 1
+  build_listing tree(), br
+  br.changed = 1
  END IF
  IF keyval(scBackspace) > 1 THEN 'backspace
   'go up a directory
-  FOR i = LEN(br.nowdir) - 1 TO 1 STEP -1
+  FOR i AS INTEGER = LEN(br.nowdir) - 1 TO 1 STEP -1
    IF br.nowdir[i - 1] = ASC(SLASH) THEN br.nowdir = LEFT$(br.nowdir, i) : EXIT FOR
   NEXT
-  GOSUB build_listing
-  changed = 1
+  build_listing tree(), br
+  br.changed = 1
  END IF
  '--Draw screen
  clearpage dpage
@@ -203,12 +215,12 @@ DO
   textcolor uilook(uiText), 0
  END IF
  textcolor uilook(uiText), 0
- printstr ">", 0, 20 + (treeptr - treetop) * 9, dpage
- FOR i = treetop TO small(treetop + br.viewsize, br.treesize)
+ printstr ">", 0, 20 + (br.treeptr - br.treetop) * 9, dpage
+ FOR i AS INTEGER = br.treetop TO small(br.treetop + br.viewsize, br.treesize)
   textcolor catfg(tree(i).kind), catbg(tree(i).kind)
-  a$ = tree(i).caption
-  IF LEN(a$) < 38 AND catbg(tree(i).kind) > 0 THEN a$ = a$ + STRING$(38 - LEN(a$), " ")
-  printstr a$, 10, 20 + (i - treetop) * 9, dpage
+  DIM a AS STRING = tree(i).caption
+  IF LEN(a) < 38 AND catbg(tree(i).kind) > 0 THEN a = a + STRING(38 - LEN(a), " ")
+  printstr a, 10, 20 + (i - br.treetop) * 9, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage
@@ -228,36 +240,36 @@ hover:
 SELECT CASE br.special
  CASE 1
   pausesong
-  IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
-   IF validmusicfile(br.nowdir + tree(treeptr).filename, FORMAT_BAM) THEN
-    loadsong br.nowdir + tree(treeptr).filename
+  IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
+   IF validmusicfile(br.nowdir + tree(br.treeptr).filename, FORMAT_BAM) THEN
+    loadsong br.nowdir + tree(br.treeptr).filename
    ELSE
-    br.alert = tree(treeptr).filename + " is not a valid BAM file"
+    br.alert = tree(br.treeptr).filename + " is not a valid BAM file"
    END IF
   END IF
  CASE 2, 3
-  IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd) THEN
+  IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
    br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
   END IF
  CASE 4
-  IF tree(treeptr).kind = 3 OR tree(treeptr).kind = 6 THEN
-   masfh = FREEFILE
-   OPEN br.nowdir + tree(treeptr).filename FOR BINARY AS #masfh
-   IF LCASE$(justextension$(tree(treeptr).filename)) = "mas" THEN
-    a$ = "       "
-    GET #masfh, 1, a$
+  IF tree(br.treeptr).kind = 3 OR tree(br.treeptr).kind = 6 THEN
+   DIM masfh AS INTEGER = FREEFILE
+   OPEN br.nowdir + tree(br.treeptr).filename FOR BINARY AS #masfh
+   IF LCASE$(justextension$(tree(br.treeptr).filename)) = "mas" THEN
+    DIM a AS STRING = "       "
+    GET #masfh, 1, a
     CLOSE #masfh
-    SELECT CASE a$
-     CASE mashead$
+    SELECT CASE a
+     CASE br.mashead
       br.alert = "MAS format"
-     CASE paledithead$
+     CASE br.paledithead
       br.alert = "MAS format (PalEdit)"
      CASE ELSE
      br.alert = "Not a valid MAS file"
     END SELECT
    ELSE
     '.bmp file
-    IF bmpinfo(br.nowdir + tree(treeptr).filename, bmpd) THEN
+    IF bmpinfo(br.nowdir + tree(br.treeptr).filename, bmpd) THEN
      IF bmpd.biBitCount = 24 THEN
       br.alert = bmpd.biWidth & "*" & bmpd.biHeight & " pixels, " & bmpd.biBitCount & "-bit color"
      ELSE
@@ -268,244 +280,35 @@ SELECT CASE br.special
   END IF
  CASE 5
   pausesong
-  br.alert = tree(treeptr).about
-  IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
-   loadsong br.nowdir + tree(treeptr).filename
-  ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
+  br.alert = tree(br.treeptr).about
+  IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
+   loadsong br.nowdir + tree(br.treeptr).filename
+  ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
    br.alert = show_mp3_info()
   END IF
  CASE 6
-  br.alert = tree(treeptr).about
+  br.alert = tree(br.treeptr).about
   IF f > -1 THEN
    sound_stop(f,-1)
    UnloadSound(f)
    f = -1
   END IF
-  IF tree(treeptr).kind <> 6 THEN
+  IF tree(br.treeptr).kind <> 6 THEN
    'not disabled because of size
-   IF validmusicfile(br.nowdir + tree(treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
-    f = LoadSound(br.nowdir + tree(treeptr).filename)
+   IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_FX_FORMAT) THEN
+    f = LoadSound(br.nowdir + tree(br.treeptr).filename)
     sound_play(f, 0, -1)
-   ELSEIF getmusictype(br.nowdir + tree(treeptr).filename) = FORMAT_MP3 THEN
+   ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
     br.alert = show_mp3_info()
    END IF
   END IF
  CASE 7
-  br.alert = tree(treeptr).about
+  br.alert = tree(br.treeptr).about
 END SELECT
-IF tree(treeptr).kind = 0 THEN br.alert = "Drive"
-IF tree(treeptr).kind = 1 THEN br.alert = "Directory"
-IF tree(treeptr).kind = 2 THEN br.alert = "Subdirectory"
-IF tree(treeptr).kind = 4 THEN br.alert = "Root"
-RETRACE
-
-build_listing:
-'for progress meter
-IF br.ranalready THEN rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
-br.meter = 0
-
-'erase old list
-IF getdrivenames THEN br.treesize = -1 ELSE br.treesize = br.drivesshown - 1
-FOR i = br.treesize + 1 TO UBOUND(tree)
- tree(i).filename = ""
- tree(i).caption = ""
- tree(i).about = ""
- tree(i).kind = 0
-NEXT i
-
-#IFDEF __FB_WIN32__
- '--Drive list
- IF br.drivesshown = 0 THEN
-  '--Refresh drives option
-  'br.treesize += 1
-  'tree(br.treesize).filename = ""
-  'tree(br.treesize).caption = "Refresh drives list"
-  'tree(br.treesize).kind = 5
-
-  drivetotal = drivelist(drive())
-  FOR i = 0 TO drivetotal - 1
-   br.treesize += 1
-   tree(br.treesize).filename = drive(i)
-   tree(br.treesize).caption = drive(i)
-   tree(br.treesize).kind = 0
-   IF getdrivenames THEN
-'    IF isremovable(drive(i)) THEN
-'     tree(br.treesize).caption += " (removable)"
-'    ELSE
-     tree(br.treesize).caption += " " + drivelabel$(drive(i))
-'    END IF
-   END IF
-   draw_browse_meter br
-
-  NEXT i
-  'could add My Documents to drives list here
- END IF
-#ENDIF
-br.drivesshown = br.treesize + 1
-getdrivenames = 0
-
-IF br.nowdir = "" THEN
-ELSE
- a$ = br.nowdir
-
- '--Current drive
- br.treesize += 1
- b$ = MID$(a$, 1, INSTR(a$, SLASH))
- tree(br.treesize).filename = b$
- tree(br.treesize).kind = 4
-#IFDEF __FB_WIN32__
- IF hasmedia(b$) = 0 THEN
-  'Somebody pulled out the disk
-  changed = 0
-  br.alert = "Disk not readable"
-  br.treesize -= 1
-  treeptr = 0
-  treetop = 0
-  br.nowdir = ""
-  RETRACE
- END IF
- FOR i = 0 TO br.drivesshown - 1
-  IF tree(i).filename = b$ THEN
-   tmpname$ = drivelabel$(b$)
-   IF LEN(tmpname$) THEN tree(i).caption = b$ + " " + tmpname$
-   tree(br.treesize).caption = tree(i).caption
-   EXIT FOR
-  END IF
- NEXT
-#ENDIF
- a$ = MID$(a$, INSTR$(a$, SLASH) + 1)
- '--Directories
- b$ = ""
- DO UNTIL a$ = ""
-  b$ = b$ + LEFT$(a$, 1)
-  a$ = RIGHT$(a$, LEN(a$) - 1)
-  IF RIGHT$(b$, 1) = SLASH THEN
-#IFDEF __FB_WIN32__
-   'Special handling of My Documents in Windows
-   IF b$ = "My Documents\" OR b$ = "MYDOCU~1\" THEN
-    FOR i = br.treesize TO br.drivesshown STEP -1
-     b$ = tree(i).filename + b$
-    NEXT i
-    br.treesize = br.drivesshown - 1
-    tree(br.treesize + 1).caption = "My Documents\"
-   END IF
-#ENDIF
-   br.treesize = br.treesize + 1
-   IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
-   tree(br.treesize).filename = b$
-   tree(br.treesize).kind = 1
-   b$ = ""
-  END IF
- LOOP
- '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
- findfiles br.nowdir + ALLFILES, 16, br.tmp + "hrbrowse.tmp"
- fh = FREEFILE
- OPEN br.tmp + "hrbrowse.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  br.treesize = br.treesize + 1
-  IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
-  tree(br.treesize).kind = 2
-  LINE INPUT #fh, tree(br.treesize).filename
-  IF tree(br.treesize).filename = "." OR tree(br.treesize).filename = ".." OR RIGHT$(tree(br.treesize).filename, 4) = ".tmp" THEN br.treesize = br.treesize - 1
-  IF br.special = 7 THEN ' Special handling in RPG mode
-   IF justextension$(tree(br.treesize).filename) = "rpgdir" THEN br.treesize = br.treesize - 1
-  END IF
-  '--hide any .saves folders when browsing
-  IF justextension$(tree(br.treesize).filename) = "saves" THEN br.treesize = br.treesize - 1
-#IFDEF __FB_DARWIN__
-  IF justextension$(tree(br.treesize).filename) = "app" THEN br.treesize = br.treesize - 1
-#ENDIF
-  draw_browse_meter br
- LOOP
- CLOSE #fh
- safekill br.tmp + "hrbrowse.tmp"
- '---FIND ALL FILES IN FILEMASK---
- attrib = attribAlmostAll OR showHidden
- IF br.special = 4 THEN
-  browse_add_files "*.mas", attrib, br, tree()
-  browse_add_files "*.bmp", attrib, br, tree()
- ELSEIF br.special = 5 THEN' background music
-  '--disregard fmask$. one call per extension
-  browse_add_files "*.bam", attrib, br, tree()
-  browse_add_files "*.mid", attrib, br, tree()
-  browse_add_files "*.xm", attrib, br, tree()
-  browse_add_files "*.it", attrib, br, tree()
-  browse_add_files "*.mod", attrib, br, tree()
-  browse_add_files "*.s3m", attrib, br, tree()
-  browse_add_files "*.ogg", attrib, br, tree()
-  browse_add_files "*.mp3", attrib, br, tree()
- ELSEIF br.special = 6 THEN ' sound effects
-  '--disregard fmask$. one call per extension
-  browse_add_files "*.wav", attrib, br, tree()
-  browse_add_files "*.ogg", attrib, br, tree()
-  browse_add_files "*.mp3", attrib, br, tree()
- ELSEIF br.special = 7 THEN
-  'Call once for RPG files once for rpgdirs
-  browse_add_files fmask$, attrib, br, tree()
-  browse_add_files "*.rpgdir", 16, br, tree()
- ELSE
-  browse_add_files fmask$, attrib, br, tree()
- END IF
-END IF
-
-'--set display
-FOR i = 0 TO br.treesize
- IF LEN(tree(i).caption) = 0 THEN
-  tree(i).caption = tree(i).filename
- END IF
-NEXT
-
-sortstart = br.treesize
-FOR k = 0 TO br.treesize
- WITH tree(k)
-  IF .kind = 2 OR .kind = 3 OR .kind = 6 THEN sortstart = k: EXIT FOR
- END WITH
-NEXT
-
-'--alphabetize
-FOR i = sortstart TO br.treesize - 1
- FOR j = br.treesize TO i + 1 STEP -1
-  k = 0
-  DO
-   chara = tolower(tree(i).caption[k])
-   charb = tolower(tree(j).caption[k])
-   IF chara < charb THEN
-    EXIT DO
-   ELSEIF chara > charb THEN
-    SWAP tree(i), tree(j)
-    EXIT DO
-   END IF
-   k += 1
-  LOOP WHILE chara OR charb
- NEXT
-NEXT
-
-'--sort by type
-FOR o = br.treesize TO sortstart + 1 STEP -1
- FOR i = sortstart + 1 TO o
-  IF tree(i).kind < tree(i - 1).kind THEN
-   SWAP tree(i), tree(i - 1)
-  END IF
- NEXT
-NEXT
-
-'--set cursor
-treeptr = 0
-treetop = 0
-FOR i = br.drivesshown TO br.treesize
- 'look for first selectable item
- IF tree(i).kind = 3 THEN treeptr = i: EXIT FOR
- 'second preference is first subdirectory
- IF tree(i).kind = 2 AND tree(treeptr).kind <> 2 THEN treeptr = i
- 'final preference is current (bottommost) directory
- IF tree(i).kind = 1 OR tree(i).kind = 4 THEN treeptr = i
-NEXT i
-treetop = small(treeptr - 2, br.treesize - br.viewsize)
-treetop = large(treetop, 0)
-
-'--don't display progress bar overtop of previous menu
-br.ranalready = 1
-
+IF tree(br.treeptr).kind = 0 THEN br.alert = "Drive"
+IF tree(br.treeptr).kind = 1 THEN br.alert = "Directory"
+IF tree(br.treeptr).kind = 2 THEN br.alert = "Subdirectory"
+IF tree(br.treeptr).kind = 4 THEN br.alert = "Root"
 RETRACE
 
 END FUNCTION
@@ -514,14 +317,12 @@ SUB browse_add_files(wildcard$, attrib AS INTEGER, BYREF br AS BrowseMenuState, 
 DIM bmpd AS BitmapInfoHeader
 DIM tempbuf(79)
 DIM f AS STRING
-mashead$ = CHR$(253) + CHR$(13) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(0) + CHR$(6)
-paledithead$ = CHR$(253) + CHR$(217) + CHR$(158) + CHR$(0) + CHR$(0) + CHR$(7) + CHR$(6)
 
 DIM filelist AS STRING
 filelist = br.tmp + "hrbrowse.tmp"
 findfiles br.nowdir + anycase$(wildcard$), attrib, filelist
 
-fh = FREEFILE
+DIM fh AS INTEGER = FREEFILE
 OPEN filelist FOR INPUT AS #fh
 DO UNTIL EOF(fh)
  br.treesize = br.treesize + 1
@@ -568,12 +369,12 @@ DO UNTIL EOF(fh)
  '--master palettes  (why isn't this up there?)
  IF br.special = 4 THEN
   IF LCASE$(justextension$(tree(br.treesize).filename)) = "mas" THEN
-   masfh = FREEFILE
+   DIM masfh AS INTEGER = FREEFILE
    OPEN f FOR BINARY AS #masfh
-   a$ = "       "
-   GET #masfh, 1, a$
+   DIM a AS STRING = "       "
+   GET #masfh, 1, a
    CLOSE #masfh
-   IF a$ <> mashead$ AND a$ <> paledithead$ THEN
+   IF a <> br.mashead AND a <> br.paledithead THEN
     tree(br.treesize).kind = 6
    END IF
   ELSE
@@ -659,3 +460,211 @@ FUNCTION show_mp3_info() AS STRING
   RETURN "madplay & oggenc required. See README"
  END IF
 END FUNCTION
+
+SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
+ 'for progress meter
+ IF br.ranalready THEN rectangle 5, 32 + br.viewsize * 9, 310, 12, uilook(uiTextbox + 0), vpage
+ br.meter = 0
+
+ 'erase old list
+ IF br.getdrivenames THEN br.treesize = -1 ELSE br.treesize = br.drivesshown - 1
+ FOR i AS INTEGER = br.treesize + 1 TO UBOUND(tree)
+  tree(i).filename = ""
+  tree(i).caption = ""
+  tree(i).about = ""
+  tree(i).kind = 0
+ NEXT i
+ 
+#IFDEF __FB_WIN32__
+ '--Drive list
+ IF br.drivesshown = 0 THEN
+  '--Refresh drives option
+  'br.treesize += 1
+  'tree(br.treesize).filename = ""
+  'tree(br.treesize).caption = "Refresh drives list"
+  'tree(br.treesize).kind = 5
+
+  drivetotal = drivelist(drive())
+  FOR i AS INTEGER = 0 TO drivetotal - 1
+   br.treesize += 1
+   tree(br.treesize).filename = drive(i)
+   tree(br.treesize).caption = drive(i)
+   tree(br.treesize).kind = 0
+   IF br.getdrivenames THEN
+     tree(br.treesize).caption += " " + drivelabel$(drive(i))
+   END IF
+   draw_browse_meter br
+
+  NEXT i
+  'could add My Documents to drives list here
+ END IF
+#ENDIF
+ br.drivesshown = br.treesize + 1
+ br.getdrivenames = 0
+
+ IF br.nowdir = "" THEN
+ ELSE
+  DIM a AS STRING = br.nowdir
+  DIM b AS STRING
+
+  '--Current drive
+  br.treesize += 1
+  b = MID(a, 1, INSTR(a, SLASH))
+  tree(br.treesize).filename = b
+  tree(br.treesize).kind = 4
+#IFDEF __FB_WIN32__
+  IF hasmedia(b) = 0 THEN
+   'Somebody pulled out the disk
+   br.changed = 0
+   br.alert = "Disk not readable"
+   br.treesize -= 1
+   br.treeptr = 0
+   br.treetop = 0
+   br.nowdir = ""
+   RETRACE
+  END IF
+  FOR i AS INTEGER = 0 TO br.drivesshown - 1
+   IF tree(i).filename = b THEN
+    tmpname$ = drivelabel$(b)
+    IF LEN(tmpname$) THEN tree(i).caption = b + " " + tmpname$
+    tree(br.treesize).caption = tree(i).caption
+    EXIT FOR
+   END IF
+  NEXT
+#ENDIF
+  a = MID$(a, INSTR$(a, SLASH) + 1)
+  '--Directories
+  b = ""
+  DO UNTIL a = ""
+   b = b + LEFT$(a, 1)
+   a = RIGHT$(a, LEN(a) - 1)
+   IF RIGHT$(b, 1) = SLASH THEN
+#IFDEF __FB_WIN32__
+    'Special handling of My Documents in Windows
+    IF b = "My Documents\" OR b = "MYDOCU~1\" THEN
+     FOR i AS INTEGER = br.treesize TO br.drivesshown STEP -1
+      b = tree(i).filename + b
+     NEXT i
+     br.treesize = br.drivesshown - 1
+     tree(br.treesize + 1).caption = "My Documents\"
+    END IF
+#ENDIF
+    br.treesize = br.treesize + 1
+    IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
+    tree(br.treesize).filename = b
+    tree(br.treesize).kind = 1
+    b = ""
+   END IF
+  LOOP
+  '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
+  findfiles br.nowdir + ALLFILES, 16, br.tmp + "hrbrowse.tmp"
+  DIM fh AS INTEGER = FREEFILE
+  OPEN br.tmp + "hrbrowse.tmp" FOR INPUT AS #fh
+  DO UNTIL EOF(fh)
+   br.treesize = br.treesize + 1
+   IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
+   tree(br.treesize).kind = 2
+   LINE INPUT #fh, tree(br.treesize).filename
+   IF tree(br.treesize).filename = "." OR tree(br.treesize).filename = ".." OR RIGHT$(tree(br.treesize).filename, 4) = ".tmp" THEN br.treesize = br.treesize - 1
+   IF br.special = 7 THEN ' Special handling in RPG mode
+    IF justextension$(tree(br.treesize).filename) = "rpgdir" THEN br.treesize = br.treesize - 1
+   END IF
+   '--hide any .saves folders when browsing
+   IF justextension$(tree(br.treesize).filename) = "saves" THEN br.treesize = br.treesize - 1
+#IFDEF __FB_DARWIN__
+   IF justextension$(tree(br.treesize).filename) = "app" THEN br.treesize = br.treesize - 1
+#ENDIF
+   draw_browse_meter br
+  LOOP
+  CLOSE #fh
+  safekill br.tmp + "hrbrowse.tmp"
+  '---FIND ALL FILES IN FILEMASK---
+  DIM attrib AS INTEGER = attribAlmostAll OR br.showHidden
+  IF br.special = 4 THEN
+   browse_add_files "*.mas", attrib, br, tree()
+   browse_add_files "*.bmp", attrib, br, tree()
+  ELSEIF br.special = 5 THEN' background music
+   '--disregard fmask. one call per extension
+   browse_add_files "*.bam", attrib, br, tree()
+   browse_add_files "*.mid", attrib, br, tree()
+   browse_add_files "*.xm", attrib, br, tree()
+   browse_add_files "*.it", attrib, br, tree()
+   browse_add_files "*.mod", attrib, br, tree()
+   browse_add_files "*.s3m", attrib, br, tree()
+   browse_add_files "*.ogg", attrib, br, tree()
+   browse_add_files "*.mp3", attrib, br, tree()
+  ELSEIF br.special = 6 THEN ' sound effects
+   '--disregard fmask. one call per extension
+   browse_add_files "*.wav", attrib, br, tree()
+   browse_add_files "*.ogg", attrib, br, tree()
+   browse_add_files "*.mp3", attrib, br, tree()
+  ELSEIF br.special = 7 THEN
+   'Call once for RPG files once for rpgdirs
+   browse_add_files br.fmask, attrib, br, tree()
+   browse_add_files "*.rpgdir", 16, br, tree()
+  ELSE
+   browse_add_files br.fmask, attrib, br, tree()
+  END IF
+ END IF
+
+ '--set display
+ FOR i AS INTEGER = 0 TO br.treesize
+  IF LEN(tree(i).caption) = 0 THEN
+   tree(i).caption = tree(i).filename
+  END IF
+ NEXT
+
+ DIM sortstart AS INTEGER = br.treesize
+ FOR k AS INTEGER = 0 TO br.treesize
+  WITH tree(k)
+   IF .kind = 2 OR .kind = 3 OR .kind = 6 THEN sortstart = k: EXIT FOR
+  END WITH
+ NEXT
+
+ '--alphabetize
+ FOR i AS INTEGER = sortstart TO br.treesize - 1
+  FOR j AS INTEGER = br.treesize TO i + 1 STEP -1
+   DIM k AS INTEGER = 0
+   DIM chara AS INTEGER
+   DIM charb AS INTEGER
+   DO
+    chara = tolower(tree(i).caption[k])
+    charb = tolower(tree(j).caption[k])
+    IF chara < charb THEN
+     EXIT DO
+    ELSEIF chara > charb THEN
+     SWAP tree(i), tree(j)
+     EXIT DO
+    END IF
+    k += 1
+   LOOP WHILE chara OR charb
+  NEXT
+ NEXT
+
+ '--sort by type
+ FOR o AS INTEGER = br.treesize TO sortstart + 1 STEP -1
+  FOR i AS INTEGER = sortstart + 1 TO o
+   IF tree(i).kind < tree(i - 1).kind THEN
+    SWAP tree(i), tree(i - 1)
+   END IF
+  NEXT
+ NEXT
+
+ '--set cursor
+ br.treeptr = 0
+ br.treetop = 0
+ FOR i AS INTEGER = br.drivesshown TO br.treesize
+  'look for first selectable item
+  IF tree(i).kind = 3 THEN br.treeptr = i: EXIT FOR
+  'second preference is first subdirectory
+  IF tree(i).kind = 2 AND tree(br.treeptr).kind <> 2 THEN br.treeptr = i
+  'final preference is current (bottommost) directory
+  IF tree(i).kind = 1 OR tree(i).kind = 4 THEN br.treeptr = i
+ NEXT i
+ br.treetop = small(br.treeptr - 2, br.treesize - br.viewsize)
+ br.treetop = large(br.treetop, 0)
+
+ '--don't display progress bar overtop of previous menu
+ br.ranalready = 1
+
+END SUB
