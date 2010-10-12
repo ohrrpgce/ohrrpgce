@@ -10,7 +10,8 @@ Keyboard::Keyboard()
 
 bool Keyboard::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	BYTE state = 0x8;
+	const BYTE state = 0x8;
+	const BYTE vkState = 0x80;
 
 	switch(msg)
 	{
@@ -19,24 +20,41 @@ bool Keyboard::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if(wParam == VK_NUMLOCK || wParam == VK_SCROLL || wParam == VK_CAPITAL)
 				break;
-			m_virtualKeys[wParam] = state;
-			m_scancodes[ c_vk2fb[wParam] ] = state;
+			else if(wParam == VK_SHIFT)
+			{//to distinguish between left and right
+				m_virtualKeys[VK_LSHIFT] = GetAsyncKeyState(VK_LSHIFT) & vkState ? vkState : 0x0;
+				m_virtualKeys[VK_RSHIFT] = GetAsyncKeyState(VK_RSHIFT) & vkState ? vkState : 0x0;
+				m_scancodes[ c_vk2fb[VK_LSHIFT] ] = m_virtualKeys[VK_LSHIFT] & vkState ? state : 0x0;
+				m_scancodes[ c_vk2fb[VK_RSHIFT] ] = m_virtualKeys[VK_RSHIFT] & vkState ? state : 0x0;
+			}
+			else
+			{
+				m_virtualKeys[wParam] = vkState;
+				m_scancodes[ c_vk2fb[wParam] ] = state;
+			}
 		} break;
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 		{
 			if(wParam == VK_NUMLOCK || wParam == VK_SCROLL || wParam == VK_CAPITAL)
 			{
-				if(m_virtualKeys[wParam] == state)
+				if(m_virtualKeys[wParam] == vkState)
 				{
 					m_virtualKeys[wParam] = 0x0;
 					m_scancodes[ c_vk2fb[wParam] ] = 0x0;
 				}
 				else
 				{
-					m_virtualKeys[wParam] = state;
+					m_virtualKeys[wParam] = vkState;
 					m_scancodes[ c_vk2fb[wParam] ] = state;
 				}
+			}
+			else if(wParam == VK_SHIFT)
+			{//to distinguish between left and right
+				m_virtualKeys[VK_LSHIFT] = GetAsyncKeyState(VK_LSHIFT) & vkState ? vkState : 0x0;
+				m_virtualKeys[VK_RSHIFT] = GetAsyncKeyState(VK_RSHIFT) & vkState ? vkState : 0x0;
+				m_scancodes[ c_vk2fb[VK_LSHIFT] ] = m_virtualKeys[VK_LSHIFT] & vkState ? state : 0x0;
+				m_scancodes[ c_vk2fb[VK_RSHIFT] ] = m_virtualKeys[VK_RSHIFT] & vkState ? state : 0x0;
 			}
 			else
 			{
@@ -54,7 +72,7 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 	0,
-	0, //control break process
+	SC_NUMLOCK, //control break process
 	0,
 	0,
 	0,
@@ -68,10 +86,10 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 
-	0, //generic shift key--what to do?
-	SC_CONTROL, //generic control key--what to do?
-	SC_ALT, //generic alt key--what to do?
-	0, //pause key
+	0, //generic shift key--what to do? Nothing: left and right are accounted for as special cases
+	SC_CONTROL, //generic control key--what to do? fb doesn't distinguish between the left and right, so pass it along
+	SC_ALT, //generic alt key--what to do? fb doesn't distinguish between the left and right, so pass it along
+	SC_NUMLOCK, //pause key
 	SC_CAPSLOCK,
 	0,
 	0,

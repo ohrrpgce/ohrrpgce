@@ -30,7 +30,7 @@ int Window::Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC
 	m_hInst = hInstance;
 	WNDCLASSEX wc = {0};
 	wc.cbSize			= sizeof(wc);
-	wc.hbrBackground	= (HBRUSH)COLOR_WINDOW;
+	wc.hbrBackground	= (HBRUSH)COLOR_BACKGROUND;
 	wc.hCursor			= ::LoadCursor(0, IDC_ARROW);
 	if(szIconResource != NULL)
 	{
@@ -72,6 +72,7 @@ int Window::Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC
 void Window::Shutdown()
 {
 	::DestroyWindow(m_hWnd);
+	::UnregisterClass(TEXT("gfx_directx_cls_window class"), m_hInst);
 }
 
 int Window::PumpMessages()

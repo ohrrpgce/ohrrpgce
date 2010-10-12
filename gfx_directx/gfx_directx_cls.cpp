@@ -3,7 +3,7 @@ using namespace gfx;
 
 DirectX::DirectX() 
 : m_pWindow(NULL), m_bInitialized(false), m_bVSync(true), m_bSmoothDraw(false),
-  m_bPreserveAspectRatio(true), m_saveFormat(D3DXIFF_JPG),
+  m_bPreserveAspectRatio(true), m_saveFormat(D3DXIFF_PNG),
   m_hD3d9(NULL), m_hD3dx9(NULL), m_bLibrariesLoaded(false)
 {
 	::ZeroMemory(&m_d3dpp, sizeof(m_d3dpp));

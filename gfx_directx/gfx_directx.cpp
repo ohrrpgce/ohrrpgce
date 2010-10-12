@@ -10,7 +10,13 @@ void SendDebugString(const char* szMessage) {}
 int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
 {
 	GFX_INIT gfxInit = {"DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString};
-	return gfx_Initialize(&gfxInit);
+	if(gfx_Initialize(&gfxInit) == 0)
+	{
+		strcpy(info_buffer, "Backend failed!");
+		return 0;
+	}
+	strcpy(info_buffer, "Backend success!");
+	return 1;
 }
 
 void gfx_close()
@@ -118,7 +124,7 @@ const char* gfx_describe_options()
 		"-v -vsync [0 | 1*]  toggles vsync\n" \
 		"-a -aspect [0 | 1*]  toggles aspect ratio preservation\n" \
 		"-s -smooth [0* | 1]  toggles smooth linear interpolation of display\n" \
-		"-ss -screenshot [jpg* | bmp | png | dds | ohr]\n" \
+		"-ss -screenshot [jpg | bmp | png* | dds | ohr]\n" \
 		"     the above sets the screen shot format";
 }
 

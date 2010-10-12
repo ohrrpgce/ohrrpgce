@@ -8,6 +8,14 @@ Added Features:
 
 -Added a "Refresh Joysticks - Count: x" button in the Options dialog. If a joystick is unplugged or plugged in while running, pressing the refresh will update the state. It also reports how many joysticks are plugged in.
 
+-Fixed left and right shift keypress registration
+
+-Changed window background color to black on startup
+
+-Default screenshot format is png.
+
+-Mapped the "Break/Pause" button to NumLock. One can now pause the game using "Break/Pause" or NumLock.
+
 
 
 
