@@ -251,3 +251,87 @@ void Mouse::PopState()
 			SetVideoMode(VM_WINDOWED);
 	}
 }
+
+//////////////////////////////
+//rewrite of Mouse
+
+Mouse2::Mouse2() : m_wheel(0)
+{
+	ZeroMemory(&m_cursorPos, sizeof(m_cursorPos));
+	LiveState ns;
+	ns.buttonClipped = CS_OFF;
+	ZeroMemory(&ns.rButtonClippedArea, sizeof(ns.rButtonClippedArea));
+	ZeroMemory(&ns.rClippedArea, sizeof(ns.rClippedArea));
+	ns.clipped = CS_OFF;
+	ns.visibility = CV_SHOW;
+	ns.mode = VM_WINDOWED;
+	ns.state = IS_DEAD;
+	m_liveState.push(ns);
+}
+
+bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{//needs work
+}
+
+void Mouse2::SetInputState(InputState state)
+{//needs work
+}
+
+void Mouse2::SetVideoMode(VideoMode mode)
+{//needs finishing
+	if(m_liveState.top().mode == mode)
+		return;
+	LiveState &ls = m_liveState.top();
+}
+
+void Mouse2::SetCursorVisibility(CursorVisibility visibility)
+{
+	if(m_liveState.top().visibility == visibility)
+		return;
+	LiveState &ls = m_liveState.top();
+	ls.visibility = visibility;
+	if(ls.visibility == CV_SHOW)
+		if(ls.mode == VM_FULLSCREEN)
+			return;
+		else
+			ShowCursor(TRUE);
+	else
+		if(ls.mode == VM_FULLSCREEN)
+			return;
+		else
+			ShowCursor(FALSE);
+}
+
+void Mouse2::SetClipState(ClipState state)
+{
+	if(m_liveState.top().clipped == state)
+		return;
+	LiveState &ls = m_liveState.top();
+	ls.clipped = state;
+	if(ls.clipped == CS_OFF)
+		if(ls.buttonClipped == CS_OFF)
+			ClipCursor(NULL);
+		else
+			ClipCursor(&ls.rButtonClippedArea);
+	else
+		ClipCursor(&ls.rClippedArea);
+}
+
+void Mouse2::SetClippingRect(RECT *pRect)
+{
+	if(pRect == NULL)
+		return;
+	m_liveState.top().rClippedArea = *pRect;
+	if(m_liveState.top().clipped == CS_ON)
+		ClipCursor(&m_liveState.top().rClippedArea);
+}
+
+void Mouse2::PushState()
+{//needs review
+	LiveState ns(m_liveState.top());
+	m_liveState.push(ns);
+}
+
+void Mouse2::PopState()
+{//needs work
+}
