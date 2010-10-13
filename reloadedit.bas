@@ -57,6 +57,7 @@ DECLARE SUB reload_editor_swap_node_down(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_swap_node_left(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_swap_node_right(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_focus_node(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr)
+DECLARE FUNCTION reload_editor_numeric_input_check() AS INTEGER
 
 '-----------------------------------------------------------------------
 
@@ -281,36 +282,47 @@ END FUNCTION
 FUNCTION reload_editor_edit_node_value(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr) AS INTEGER
  IF node = 0 THEN debug "reload_editor_edit_node_value: null node": RETURN NO
 
- SELECT CASE Reload.NodeType(node)
-  CASE Reload.rltNull:
-   RETURN NO
-  CASE Reload.rltFloat:
-   'debug "no floatgrabber exists yet"
-  CASE Reload.rltString:
-   DIM s AS STRING
-   s = Reload.GetString(node)
-   IF keyval(scENTER) > 1 THEN
-    s = multiline_string_editor(s, "reload_editor_multiline")
+ DIM nt AS Reload.NodeTypes = Reload.NodeType(node)
+  
+ IF nt = Reload.rltFloat THEN
+  'debug "no floatgrabber exists yet"
+ ELSEIF nt = Reload.rltInt ORELSE (nt = Reload.rltNull ANDALSO reload_editor_numeric_input_check()) THEN
+  IF NOT st.shift THEN
+   DIM n AS INTEGER
+   n = Reload.GetInteger(node)
+   IF intgrabber(n, -2147483648, 2147483647) THEN
+    Reload.SetContent(node, n)
+    RETURN YES
+   END IF
+  END IF
+  IF keyval(scBackspace) > 1 THEN
+   IF Reload.GetInteger(node) = 0 THEN
+    Reload.SetContent(node)
+    RETURN YES
+   END IF
+  END IF
+ ELSEIF nt = Reload.rltString ORELSE nt = Reload.rltNull THEN
+  DIM s AS STRING
+  s = Reload.GetString(node)
+  IF nt <> Reload.rltNull AND keyval(scENTER) > 1 THEN
+   s = multiline_string_editor(s, "reload_editor_multiline")
+   Reload.SetContent(node, s)
+   RETURN YES
+  ELSE
+   IF strgrabber(s, 40) THEN
     Reload.SetContent(node, s)
     RETURN YES
-   ELSE
-    IF strgrabber(s, 40) THEN
-     Reload.SetContent(node, s)
-     RETURN YES
-    END IF
    END IF
-  CASE Reload.rltInt:
-   IF NOT st.shift THEN
-    DIM n AS INTEGER
-    n = Reload.GetInteger(node)
-    IF intgrabber(n, -2147483648, 2147483647) THEN
-     Reload.SetContent(node, n)
-     RETURN YES
-    END IF
+  END IF
+  IF keyval(scBackspace) > 1 THEN
+   IF Reload.GetString(node) = "" THEN
+    Reload.SetContent(node)
+    RETURN YES
    END IF
-  CASE ELSE
-   debug "invalid reload node type " & Reload.NodeType(node)
- END SELECT
+  END IF
+ ELSEIF nt <> Reload.rltNull THEN
+  debug "invalid reload node type " & nt
+ END IF
  RETURN NO
 END FUNCTION
 
@@ -359,7 +371,7 @@ FUNCTION reload_editor_node_string(BYREF st AS ReloadEditorState ,BYVAL node AS 
   CASE Reload.rltNull:   s &= "()"
   CASE Reload.rltInt:    s &= "(int) "    & Reload.GetInteger(node)
   CASE Reload.rltFloat:  s &= "(float) "  & Reload.GetFloat(node)
-  CASE Reload.rltString: s &= "(string) " & Reload.GetString(node)
+  CASE Reload.rltString: s &= "(str) " & Reload.GetString(node)
  END SELECT
  RETURN s
 END FUNCTION
@@ -415,4 +427,13 @@ SUB reload_editor_save(filename AS STRING, BYREF st AS ReloadEditorState)
  Reload.SerializeBin(filename, st.doc)
  st.filename = trimpath(filename)
 END SUB
+
+FUNCTION reload_editor_numeric_input_check() AS INTEGER
+ IF keyval(scLeftShift) > 0 ORELSE keyval(scRightShift) > 0 THEN RETURN NO
+ FOR i AS INTEGER = sc1 TO sc0
+  IF keyval(i) > 1 THEN RETURN YES
+ NEXT i
+ IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN RETURN YES
+ RETURN NO
+END FUNCTION
 
