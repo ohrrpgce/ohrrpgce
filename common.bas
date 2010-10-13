@@ -1726,6 +1726,127 @@ SUB show_help(helpkey AS STRING)
  DeleteSlice @help_root
 END SUB
 
+FUNCTION multiline_string_editor(s AS STRING, helpkey AS STRING="") AS STRING
+ 'probably contains more code duplication than is apropriate when comared to the help_editor
+ 
+ '--Construct the UI (loading a slice collection might be better here? but not from the RPG file!)
+ DIM root AS Slice Ptr
+ root = NewSliceOfType(slRoot)
+ WITH *root
+  .Y = 200
+  .Fill = NO
+ END WITH
+ DIM outer_box AS Slice Ptr
+ outer_box = NewSliceOfType(slContainer, root)
+ WITH *outer_box
+  .paddingTop = 4
+  .paddingBottom = 4
+  .paddingLeft = 4
+  .paddingRight = 4
+  .Fill = Yes
+ END WITH
+ DIM box AS Slice Ptr
+ box = NewSliceOfType(slRectangle, outer_box)
+ WITH *box
+  .paddingTop = 8
+  .paddingBottom = 8
+  .paddingLeft = 8
+  .paddingRight = 8
+  .Fill = YES
+  ChangeRectangleSlice box, , uilook(uiBackground), , 0
+ END WITH
+ DIM text AS Slice Ptr
+ text = NewSliceOfType(slText, box)
+ WITH *text
+  .Fill = YES
+  ChangeTextSlice text, s, , , YES
+ END WITH
+ DIM animate AS Slice Ptr
+ animate = root
+
+ '--Preserve whatever screen was already showing as a background
+ DIM holdscreen AS INTEGER
+ holdscreen = allocatepage
+ copypage vpage, holdscreen
+ copypage vpage, dpage
+
+ DIM dat AS TextSliceData Ptr
+ dat = text->SliceData
+ dat->line_limit = 18
+ dat->insert = 0
+ dat->show_insert = YES
+
+ DIM deadkeys AS INTEGER = 25
+ DIM cursor_line AS INTEGER = 0
+ DIM scrollbar_state AS MenuState
+ scrollbar_state.size = 17
+
+ '--Now loop displaying help
+ setkeyrepeat  'reset repeat rate
+ setkeys
+ DO
+  setwait 30
+  setkeys
+  
+  cursor_line = stredit(dat->s, dat->insert, 32767, dat->line_limit, text->Width \ 8)
+  'The limit of 32767 chars is totally arbitrary and maybe not a good limit
+
+  IF deadkeys = 0 THEN 
+   IF keyval(scESC) > 1 THEN
+    '--If there are any changes to the help screen, offer to save them
+    IF s = dat->s THEN
+     EXIT DO
+    ELSE
+     DIM choice AS INTEGER = twochoice("Keep changes to this text?", "Yes", "No", 0, -1)
+     IF choice = 1 THEN dat->s = s '--don't use changes!
+     IF choice >= 0 THEN EXIT DO
+    END IF
+   END IF
+   IF keyval(scF1) AND helpkey <> "" THEN show_help helpkey
+   dat->first_line = small(dat->first_line, cursor_line - 1)
+   dat->first_line = large(dat->first_line, cursor_line - (dat->line_limit - 2))
+   dat->first_line = bound(dat->first_line, 0, large(0, dat->line_count - dat->line_limit))
+  END IF
+  deadkeys = large(deadkeys -1, 0)
+
+  'Animate the arrival of the help screen
+  animate->Y = large(animate->Y - 20, 0)
+
+  copypage holdscreen, vpage
+
+  DrawSlice root, vpage
+  
+  WITH scrollbar_state
+   .top = dat->first_line
+   .last = dat->line_count - 1
+  END WITH
+  draw_fullscreen_scrollbar scrollbar_state, , vpage
+
+  setvispage vpage
+  dowait
+ LOOP
+
+ '--Animate the removal of the multiline text editor
+ DO
+  setkeys
+  setwait 17
+  animate->Y = animate->Y + 20
+  IF animate->Y > 200 THEN EXIT DO
+  copypage holdscreen, vpage
+  DrawSlice root, vpage
+  setvispage vpage
+  dowait
+ LOOP
+
+ DIM result AS STRING
+ result = dat->s
+ 
+ freepage holdscreen
+ DeleteSlice @root
+ 
+ RETURN result
+END FUNCTION
+
 FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
  DIM state AS MenuState
  DIM menu AS MenuDef

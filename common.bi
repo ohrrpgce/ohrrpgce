@@ -199,6 +199,7 @@ DECLARE FUNCTION load_help_file(helpkey AS STRING) AS STRING
 DECLARE SUB save_help_file(helpkey AS STRING, text AS STRING)
 
 DECLARE SUB show_help(helpkey AS STRING)
+DECLARE FUNCTION multiline_string_editor(s AS STRING, helpkey AS STRING="") AS STRING
 
 'These were added from other, less-appropriate places
 DECLARE FUNCTION filenum(n AS INTEGER) AS STRING

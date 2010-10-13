@@ -289,9 +289,15 @@ FUNCTION reload_editor_edit_node_value(BYREF st AS ReloadEditorState, BYVAL node
   CASE Reload.rltString:
    DIM s AS STRING
    s = Reload.GetString(node)
-   IF strgrabber(s, 40) THEN
+   IF keyval(scENTER) > 1 THEN
+    s = multiline_string_editor(s, "reload_editor_multiline")
     Reload.SetContent(node, s)
     RETURN YES
+   ELSE
+    IF strgrabber(s, 40) THEN
+     Reload.SetContent(node, s)
+     RETURN YES
+    END IF
    END IF
   CASE Reload.rltInt:
    IF NOT st.shift THEN

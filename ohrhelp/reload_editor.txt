@@ -16,6 +16,8 @@ Press CTRL+S to turn the current node into a String of text.
 
 Press CTRL+N to turn the current node into a Null node with no data.
 
+To edit a long text string node, press ENTER and you will be taken to a full-screen multiline text editor.
+
 Press Insert to add a new node.
 
 Press Delete to remove the selected node.
