@@ -47,10 +47,14 @@ DECLARE SUB interpret ()
 
 REMEMBERSTATE
 
+'FIXME: too many directory variables! Clean this nonsense up
+DIM app_dir as string = exepath
+
 #IFDEF __FB_DARWIN__
  'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
  IF RIGHT(exepath, 19) = ".app/Contents/MacOS" THEN
   data_dir = parentdir(exepath, 1) + "Resources"
+  app_dir = parentdir(exepath, 3)
  END IF
 #ENDIF
 
@@ -295,9 +299,9 @@ IF a$ <> "" ANDALSO fileiswriteable(a$ + SLASH + "writetest.tmp") THEN
  'first choice is game directory
  safekill a$ + SLASH + "writetest.tmp"
  CHDIR a$
-ELSEIF fileiswriteable(exepath + SLASH + "writetest.tmp") THEN
- safekill exepath + SLASH + "writetest.tmp"
- CHDIR exepath
+ELSEIF fileiswriteable(app_dir + SLASH + "writetest.tmp") THEN
+ safekill app_dir + SLASH + "writetest.tmp"
+ CHDIR app_dir
 ELSE
  'should prefsdir be used instead?
  CHDIR homedir

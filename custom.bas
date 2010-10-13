@@ -55,20 +55,24 @@ DIM homedir as string
 'why do we use different temp dirs in game and custom?
 set_homedir
 
+'FIXME: too many directory variables! Clean this nonsense up
+DIM app_dir as string = exepath  'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename
+
 #IFDEF __FB_DARWIN__
  'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
  IF RIGHT(exepath, 19) = ".app/Contents/MacOS" THEN
   data_dir = parentdir(exepath, 1) + "Resources"
+  app_dir = parentdir(exepath, 3)
  END IF
 #ENDIF
 
 orig_dir = CURDIR()
 
 'temporarily set current directory, will be changed to game directory later if writable
-IF fileiswriteable(exepath$ + SLASH + "writetest.tmp") THEN
+IF fileiswriteable(app_dir + SLASH + "writetest.tmp") THEN
  'When CUSTOM is installed read-write, work in CUSTOM's folder
- safekill exepath$ + SLASH + "writetest.tmp"
- CHDIR exepath$ 'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename
+ safekill app_dir + SLASH + "writetest.tmp"
+ CHDIR app_dir
 ELSE
  'If CUSTOM is installed read-only, use your home dir as the default
  CHDIR homedir
