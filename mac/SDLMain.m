@@ -76,6 +76,24 @@ static NSString *getApplicationName(void)
     event.type = SDL_QUIT;
     SDL_PushEvent(&event);
 }
+/* Invoked from the Help menu item (only if you click on it; it doesn't actually send Cmd-Shift-?) */
+- (void)sendF1:(id)sender
+{
+    /* Post F1 keydown+keyup events... */
+    SDL_KeyboardEvent event;
+    event.type = SDL_KEYDOWN;
+    event.which = 0; //?
+    event.state = SDL_PRESSED;
+    event.keysym.scancode = 0;
+    event.keysym.sym = SDLK_F1;
+    event.keysym.mod = 0; // don't care
+    event.keysym.unicode = 0;
+    SDL_PushEvent((SDL_Event*)&event);
+    event.type = SDL_KEYUP;
+    event.which = 0; //?
+    event.state = SDL_RELEASED;
+    SDL_PushEvent((SDL_Event*)&event);
+}
 @end
 
 /* The main class of the application, the application's delegate */
@@ -167,6 +185,20 @@ static void setApplicationMenu(void)
     [menuItem release];
 }
 
+/* Wrapper functions for C/FB */
+void sdlCocoaHide() {
+  [NSApp hide:nil];
+}
+
+void sdlCocoaHideOthers() {
+  [NSApp hideOtherApplications:nil];
+}
+
+void sdlCocoaMinimise() {
+  [[NSApp mainWindow] performMiniaturize:nil];
+}
+
+
 /* Create a window menu */
 static void setupWindowMenu(void)
 {
@@ -194,6 +226,30 @@ static void setupWindowMenu(void)
     [windowMenuItem release];
 }
 
+/* Create the help menu */
+static void setupHelpMenu(void)
+{
+    NSMenu      *helpMenu;
+    NSMenuItem  *helpMenuItem;
+    NSMenuItem  *menuItem;
+
+    helpMenu = [[NSMenu alloc] initWithTitle:@"Help"];
+    
+    /* Help item. Specifying the key combination apparently does nothing. */
+    menuItem = [[NSMenuItem alloc] initWithTitle:@"Help: Press fn+F1 or Cmd-Shift-?" action:@selector(sendF1:) keyEquivalent:@"?"];
+    [helpMenu addItem:menuItem];
+    [menuItem release];
+    
+    /* Put menu into the menubar */
+    helpMenuItem = [[NSMenuItem alloc] initWithTitle:@"Help" action:nil keyEquivalent:@""];
+    [helpMenuItem setSubmenu:helpMenu];
+    [[NSApp mainMenu] addItem:helpMenuItem];
+    
+    /* Finally give up our references to the objects */
+    [helpMenu release];
+    [helpMenuItem release];
+}
+
 /* Replacement for NSApplicationMain */
 static void CustomApplicationMain (int argc, char **argv)
 {
@@ -218,6 +274,7 @@ static void CustomApplicationMain (int argc, char **argv)
     [NSApp setMainMenu:[[NSMenu alloc] init]];
     setApplicationMenu();
     setupWindowMenu();
+    setupHelpMenu();
 
     /* Create SDLMain and make it the app delegate */
     sdlMain = [[SDLMain alloc] init];

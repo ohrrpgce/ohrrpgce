@@ -127,5 +127,12 @@ CONST scF12 = 88
 CONST scLeftWinLogo = 91
 CONST scRightWinLogo = 92
 CONST scContext = 93
+'CONST scF13 = 94
+'CONST scF14 = 95
+'CONST scF15 = 96
+
+'Mac-only keys
+CONST scLeftCommand = 97  'aka left Meta
+CONST scRightCommand = 98  'aka right Meta
 
 #ENDIF

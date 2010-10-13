@@ -10,6 +10,7 @@ option explicit
 #include "crt.bi"
 #include "gfx.bi"
 #include "common.bi"
+#include "scancodes.bi"
 '#define NEED_SDL_GETENV
 #include "SDL\SDL.bi"
 /'
@@ -31,6 +32,16 @@ DECLARE FUNCTION gfx_sdl_set_screen_mode() as integer
 DECLARE SUB gfx_sdl_update_screen()
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
+
+#IFDEF __FB_DARWIN__
+
+'--These wrapper functions in mac/SDLMain.m call various Cocoa methods
+DECLARE SUB sdlCocoaHide()
+DECLARE SUB sdlCocoaHideOthers()
+DECLARE SUB sdlCocoaMinimise()
+
+#ENDIF
+
 
 DIM SHARED zoom AS INTEGER = 2
 DIM SHARED smooth AS INTEGER = 0
@@ -177,8 +188,8 @@ scantrans(SDLK_RCTRL) = 29
 scantrans(SDLK_LCTRL) = 29
 scantrans(SDLK_RALT) = 56
 scantrans(SDLK_LALT) = 56
-scantrans(SDLK_RMETA) = 0
-scantrans(SDLK_LMETA) = 0
+scantrans(SDLK_RMETA) = scRightCommand
+scantrans(SDLK_LMETA) = scLeftCommand
 scantrans(SDLK_LSUPER) = 0
 scantrans(SDLK_RSUPER) = 0
 scantrans(SDLK_MODE) = 0
@@ -403,6 +414,44 @@ SUB io_sdl_init
   'nothing needed at the moment...
 END SUB
 
+SUB keycombos_logic(evnt as SDL_Event)
+  'Check for platform-dependent key combinations
+
+  IF evnt.key.keysym.mod_ AND KMOD_ALT THEN
+    IF evnt.key.keysym.sym = SDLK_RETURN THEN  'alt-enter (not processed normally when using SDL)
+      gfx_sdl_setwindowed(windowedmode XOR -1)
+    END IF
+    IF evnt.key.keysym.sym = SDLK_F4 THEN  'alt-F4
+      post_terminate_signal
+    END IF
+  END IF
+
+#IFDEF __FB_DARWIN__
+  'We have to handle menu item key combinations here: SDLMain.m only handles the case that you actually click on them
+
+  IF evnt.key.keysym.mod_ AND KMOD_META THEN  'Command key
+    IF evnt.key.keysym.sym = SDLK_m THEN
+      sdlCocoaMinimise()
+    END IF
+    IF evnt.key.keysym.sym = SDLK_h THEN
+      IF evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
+        sdlCocoaHideOthers()  'Cmd-Shift-H
+      ELSE
+        sdlCocoaHide()  'Cmd-H
+      END IF
+    END IF
+    IF evnt.key.keysym.sym = SDLK_q THEN
+      post_terminate_signal
+    END IF
+    'SDL doesn't actually seem to send SDLK_QUESTION...
+    IF evnt.key.keysym.sym = SDLK_SLASH AND evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
+      keybdstate(scF1) = 6
+    END IF
+  END IF
+#ENDIF
+
+END SUB
+
 SUB gfx_sdl_process_events()
 'The SDL event queue only holds 128 events, after which SDL_QuitEvents will be lost
 'Of course, we might actually like to do something with some of the other events
@@ -413,14 +462,7 @@ SUB gfx_sdl_process_events()
       CASE SDL_EXIT
         post_terminate_signal
       CASE SDL_KEYDOWN
-        IF evnt.key.keysym.mod_ AND KMOD_ALT THEN
-          IF evnt.key.keysym.sym = SDLK_RETURN THEN  'alt-enter (not processed normally when using SDL)
-            gfx_sdl_setwindowed(windowedmode XOR -1)
-          END IF
-          IF evnt.key.keysym.sym = SDLK_F4 THEN  'alt-F4
-            post_terminate_signal
-          END IF
-        END IF
+        keycombos_logic(evnt)
         DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
         'lowest bit is now set in io_keybits, from SDL_GetKeyState
         'IF key THEN keybdstate(key) = 7
