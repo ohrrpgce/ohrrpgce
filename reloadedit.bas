@@ -153,7 +153,7 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
     'root node can't have siblings!
     Reload.AddChild node, newnode
    ELSE
-    Reload.AddSiblingBefore node, newnode
+    Reload.AddSiblingAfter node, newnode
    END IF
    st.seeknode = newnode
    st.state.need_update = YES
@@ -171,7 +171,7 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
   IF keyval(scV) > 1 THEN
    '--paste this node
    IF st.clipboard <> 0 THEN
-    Reload.AddSiblingBefore(node, Reload.CloneNodeTree(st.clipboard))
+    Reload.AddSiblingAfter(node, Reload.CloneNodeTree(st.clipboard))
     IF Reload.NodeHasAncestor(node, st.clipboard_is) THEN st.clipboard_is = 0 'cosmetic importance only
     st.state.need_update = YES
    END IF
