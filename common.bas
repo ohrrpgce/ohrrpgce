@@ -1791,17 +1791,17 @@ FUNCTION multiline_string_editor(s AS STRING, helpkey AS STRING="") AS STRING
   cursor_line = stredit(dat->s, dat->insert, 32767, dat->line_limit, text->Width \ 8)
   'The limit of 32767 chars is totally arbitrary and maybe not a good limit
 
-  IF deadkeys = 0 THEN 
-   IF keyval(scESC) > 1 THEN
-    '--If there are any changes to the help screen, offer to save them
-    IF s = dat->s THEN
-     EXIT DO
-    ELSE
-     DIM choice AS INTEGER = twochoice("Keep changes to this text?", "Yes", "No", 0, -1)
-     IF choice = 1 THEN dat->s = s '--don't use changes!
-     IF choice >= 0 THEN EXIT DO
-    END IF
+  IF keyval(scESC) > 1 THEN
+   '--If there are any changes to the help screen, offer to save them
+   IF s = dat->s THEN
+    EXIT DO
+   ELSE
+    DIM choice AS INTEGER = twochoice("Keep changes to this text?", "Yes", "No", 0, -1)
+    IF choice = 1 THEN dat->s = s '--don't use changes!
+    IF choice >= 0 THEN EXIT DO
    END IF
+  END IF
+  IF deadkeys = 0 THEN 
    IF keyval(scF1) AND helpkey <> "" THEN show_help helpkey
    dat->first_line = small(dat->first_line, cursor_line - 1)
    dat->first_line = large(dat->first_line, cursor_line - (dat->line_limit - 2))
