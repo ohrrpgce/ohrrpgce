@@ -421,9 +421,6 @@ FUNCTION reload_editor_load(filename AS STRING, BYREF st AS ReloadEditorState) A
 END FUNCTION
 
 SUB reload_editor_save(filename AS STRING, BYREF st AS ReloadEditorState)
- IF isfile(filename) THEN
-  IF yesno("File already exists. Okay to overwrite?" & CHR(10) & filename) = NO THEN EXIT SUB
- END IF
  Reload.SerializeBin(filename, st.doc)
  st.filename = trimpath(filename)
 END SUB
