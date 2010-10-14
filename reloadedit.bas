@@ -37,6 +37,7 @@ TYPE ReloadEditorState
  filename AS STRING
  clipboard AS Reload.NodePtr
  clipboard_is AS Reload.NodePtr 'only used for visual display of what you copied last
+ changed AS INTEGER 'track whether or not changes that you might want to save have been made
 END TYPE
 
 '-----------------------------------------------------------------------
@@ -58,12 +59,14 @@ DECLARE SUB reload_editor_swap_node_left(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_swap_node_right(BYVAL node AS Reload.Nodeptr)
 DECLARE SUB reload_editor_focus_node(BYREF st AS ReloadEditorState, BYVAL node AS Reload.Nodeptr)
 DECLARE FUNCTION reload_editor_numeric_input_check() AS INTEGER
+DECLARE FUNCTION reload_editor_okay_to_unload(BYREF st AS ReloadEditorState) AS INTEGER
 
 '-----------------------------------------------------------------------
 
 SUB reload_editor()
  DIM st AS ReloadEditorState
  
+ st.changed = NO
  st.doc = Reload.CreateDocument()
  st.root = Reload.CreateNode(st.doc, "")
  Reload.SetRootNode(st.doc, st.root)
@@ -103,12 +106,17 @@ SUB reload_editor()
    st.state.need_update = NO
   END IF
   
-  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scESC) > 1 THEN
+   IF reload_editor_okay_to_unload(st) THEN EXIT DO 
+  END IF
   IF keyval(scF1) > 1 THEN show_help("reload_editor")
   IF keyval(scTAB) > 1 THEN st.mode = st.mode XOR 1
-  IF keyval(scF3) > 1 THEN 
-   IF reload_editor_browse(st) THEN
-    st.state.need_update = YES
+  IF keyval(scF3) > 1 THEN
+   IF reload_editor_okay_to_unload(st) THEN
+    IF reload_editor_browse(st) THEN
+     setkeys
+     st.state.need_update = YES
+    END IF
    END IF
   END IF
   IF keyval(scF2) > 1 THEN
@@ -125,10 +133,10 @@ SUB reload_editor()
   IF NOT st.shift THEN
    usemenu st.state
   END IF
-  
+
   clearpage dpage
   draw_menu st.menu, st.state, dpage
-  edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ")", 0, 190, uilook(uiText), dpage
+  edgeprint "F1=Help TAB=Mode (" & st.mode_name(st.mode) & ") ", 0, 190, uilook(uiText), dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -145,6 +153,8 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
  DIM node AS Reload.Nodeptr
  node = mi->dataptr
  
+ DIM changed AS INTEGER = NO
+ 
  IF keyval(scInsert) > 1 THEN
   DIM s AS STRING
   IF prompt_for_string(s, "name of new node") THEN
@@ -157,7 +167,7 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
     Reload.AddSiblingAfter node, newnode
    END IF
    st.seeknode = newnode
-   st.state.need_update = YES
+   changed = YES
   END IF
  END IF
  
@@ -167,14 +177,14 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
    IF st.clipboard <> 0 THEN Reload.FreeNode(st.clipboard)
    st.clipboard = Reload.CloneNodeTree(node)
    st.clipboard_is = node
-   st.state.need_update = YES
+   changed = YES
   END IF
   IF keyval(scV) > 1 THEN
    '--paste this node
    IF st.clipboard <> 0 THEN
     Reload.AddSiblingAfter(node, Reload.CloneNodeTree(st.clipboard))
     IF Reload.NodeHasAncestor(node, st.clipboard_is) THEN st.clipboard_is = 0 'cosmetic importance only
-    st.state.need_update = YES
+    changed = YES
    END IF
   END IF
  END IF
@@ -183,22 +193,22 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
   IF keyval(scUP) > 1 THEN
    reload_editor_swap_node_up node
    st.seeknode = node
-   st.state.need_update = YES
+   changed = YES
   END IF
   IF keyval(scDOWN) > 1 THEN
    reload_editor_swap_node_down node
    st.seeknode = node
-   st.state.need_update = YES
+   changed = YES
   END IF
   IF keyval(scLEFT) > 1 THEN
    reload_editor_swap_node_left node
    st.seeknode = node
-   st.state.need_update = YES
+   changed = YES
   END IF
   IF keyval(scRIGHT) > 1 THEN
    reload_editor_swap_node_right node
    st.seeknode = node
-   st.state.need_update = YES
+   changed = YES
   END IF
  END IF
  
@@ -206,9 +216,14 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
   IF node <> Reload.DocumentRoot(st.doc) THEN
    IF yesno("Delete this node?" & CHR(10) & reload_editor_node_string(st, node)) THEN
     Reload.FreeNode(node)
-    st.state.need_update = YES
+    changed = YES
    END IF
   END IF
+ END IF
+ 
+ IF changed THEN
+  st.state.need_update = YES
+  st.changed = YES
  END IF
 END SUB
 
@@ -264,6 +279,7 @@ SUB reload_editor_edit_node(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
 
  IF changed THEN
   mi->caption = STRING(mi->extra(0), " ") & reload_editor_node_string(st, node)
+  st.changed = YES
  END IF
 
 END SUB
@@ -417,12 +433,14 @@ FUNCTION reload_editor_load(filename AS STRING, BYREF st AS ReloadEditorState) A
  st.root = Reload.DocumentRoot(st.doc)
  IF st.root = 0 THEN debug "load '" & filename & "' failed: null root node": RETURN NO
  st.filename = trimpath(filename)
+ st.changed = NO
  RETURN YES
 END FUNCTION
 
 SUB reload_editor_save(filename AS STRING, BYREF st AS ReloadEditorState)
  Reload.SerializeBin(filename, st.doc)
  st.filename = trimpath(filename)
+ st.changed = NO
 END SUB
 
 FUNCTION reload_editor_numeric_input_check() AS INTEGER
@@ -434,3 +452,20 @@ FUNCTION reload_editor_numeric_input_check() AS INTEGER
  RETURN NO
 END FUNCTION
 
+FUNCTION reload_editor_okay_to_unload(BYREF st AS ReloadEditorState) AS INTEGER
+ IF st.changed = NO THEN RETURN YES
+ DIM choice AS INTEGER
+ choice = twochoice("Save your changes before exiting?", "Yes, save", "No, discard")
+ SELECT CASE choice
+  CASE -1: 'cancelled
+   RETURN NO
+  CASE 0: 'yes, save!
+   reload_editor_export st
+   'but only actually allow unload if the save was confirmed
+   IF st.changed = NO THEN RETURN YES
+   RETURN NO
+  CASE 1: 'no discard!
+   RETURN YES
+ END SELECT
+ RETURN NO
+END FUNCTION
