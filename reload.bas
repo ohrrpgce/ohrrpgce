@@ -1503,12 +1503,14 @@ Function NodeParent(byval nod as NodePtr) as NodePtr
 end Function
 
 Function FirstChild(byval nod as NodePtr, byval withname as zstring ptr = null) as NodePtr
+	if nod = null then return null
 	if nod->flags AND nfNotLoaded then LoadNode(nod)
 	dim ret as NodePtr = nod->children
+	if ret = null then return null
 	if withname then
 		'Could search in the string table for withname first, but you normally
 		'expect ret already has the right name
-		while *ret->name <> *withname
+		while ret andalso *ret->name <> *withname
 			ret = ret->nextSib
 		wend
 	end if
@@ -1516,9 +1518,11 @@ Function FirstChild(byval nod as NodePtr, byval withname as zstring ptr = null) 
 end Function
 
 Function NextSibling(byval nod as NodePtr, byval withname as zstring ptr = null) as NodePtr
+	if nod = null then return null
 	dim ret as NodePtr = nod->nextSib
+	if ret = null then return null
 	if withname then
-		while *ret->name <> *withname
+		while ret andalso *ret->name <> *withname
 			ret = ret->nextSib
 		wend
 	end if
@@ -1526,9 +1530,11 @@ Function NextSibling(byval nod as NodePtr, byval withname as zstring ptr = null)
 End Function
 
 Function PrevSibling(byval nod as NodePtr, byval withname as zstring ptr = null) as NodePtr
+	if nod = null then return null
 	dim ret as NodePtr = nod->prevSib
+	if ret = null then return null
 	if withname then
-		while *ret->name <> *withname
+		while ret andalso *ret->name <> *withname
 			ret = ret->prevSib
 		wend
 	end if

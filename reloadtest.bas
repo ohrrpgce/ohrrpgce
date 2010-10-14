@@ -370,6 +370,51 @@ startTest(testNodeByPath)
 	if GetInteger(nod1) <> 100 then fail
 endTest
 
+startTest(testNodesIteration)
+	dim iterdoc as Docptr
+	iterdoc = CreateDocument()
+	if iterdoc = null then fail
+	
+	dim node as NodePtr = CreateNode(iterdoc, "root")
+	if node = null then fail
+	SetRootNode(iterdoc, node)
+	
+	AppendChildNode(node, "vlad")
+	AppendChildNode(node, "bob")
+	AppendChildNode(node, "bob")
+	AppendChildNode(node, "bob")
+	AppendChildNode(node, "waldo")
+	AppendChildNode(node, "bob")
+	
+	dim find as NodePtr
+	
+	find = FirstChild(node)
+	if find = 0 then fail
+	if NodeName(find) <> "vlad" then fail
+	
+	find = FirstChild(node, "waldo")
+	if find = 0 then fail
+	if NodeName(find) <> "waldo" then fail
+	
+	find = FirstChild(node, "bob")
+	if find = 0 then fail
+	while find
+		if NodeName(find) <> "bob" then fail
+		find = NextSibling(find, "bob")
+	wend
+	
+	find = FirstChild(node, "waldo")
+	if find = 0 then fail
+	find = PrevSibling(find, "bob")
+	if find = 0 then fail
+	while find
+		if NodeName(find) <> "bob" then fail
+		find = PrevSibling(find, "bob")
+	wend
+	
+	FreeDocument(iterdoc)
+endTest
+
 startTest(testSwapNodes)
 	dim swapdoc as Docptr
 	swapdoc = CreateDocument()
@@ -397,6 +442,7 @@ startTest(testSwapNodes)
 	if FirstChild(DocumentRoot(swapdoc)) <> NodeByPath(swapdoc, "/bar")  then fail
 	SwapSiblingNodes(nod1, nod2)
 	if FirstChild(FirstChild(DocumentRoot(swapdoc))) <> NodeByPath(swapdoc, "/foo/cute")  then fail
+	FreeDocument(swapdoc)
 endTest
 
 startTest(serializeXML)
