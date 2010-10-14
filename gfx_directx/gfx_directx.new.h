@@ -14,6 +14,7 @@ extern "C"
 
 struct GFX_INIT
 {
+	int nSize;
 	const char* szInitWindowTitle;
 	const char* szWindowIcon;
 	void (__cdecl *PostTerminateSignal)(void);

@@ -9,13 +9,15 @@ void SendDebugString(const char* szMessage) {}
 
 int gfx_init(void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
 {
-	GFX_INIT gfxInit = {"DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString};
+	GFX_INIT gfxInit = {sizeof(GFX_INIT), "DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString};
 	if(gfx_Initialize(&gfxInit) == 0)
 	{
-		strcpy(info_buffer, "Backend failed!");
+		if(info_buffer != NULL && info_buffer_size > 16)
+			strcpy(info_buffer, "Backend failed!");
 		return 0;
 	}
-	strcpy(info_buffer, "Backend success!");
+	if(info_buffer != NULL && info_buffer_size > 18)
+		strcpy(info_buffer, "Backend success!");
 	return 1;
 }
 

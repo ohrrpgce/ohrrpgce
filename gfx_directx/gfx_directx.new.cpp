@@ -40,7 +40,6 @@ struct gfx_BackendState
 	void (__cdecl *OnCriticalError)(const char* szError);
 	void (__cdecl *SendDebugString)(const char* szMessage);
 	bool bClosing; //flagged when shutting down
-	//bool bOhrMouseRequest; //true whenever the ohr needs mouse input
 	Tstring szHelpText;
 } g_State;
 
@@ -66,6 +65,9 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 {
 	if(pCreationData == NULL)
 		return FALSE;
+	if(pCreationData->nSize < sizeof(GFX_INIT))
+		return FALSE;
+
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 	LoadHelpText();
 
@@ -290,10 +292,10 @@ void gfx_SetWindowTitle(const char *szTitle)
 		g_State.szWindowTitle = StringToString(buffer, 256, szTitle);
 	}
 	Tstring szTemp = g_State.szWindowTitle;
-	//if(g_State.bOhrMouseRequest && g_Mouse.IsInputLive())
-	//	szTemp += TEXT(" Press 'Scroll Lock' to free mouse");
-	//else if(g_State.bOhrMouseRequest && !g_Mouse.IsInputLive())
-	//	szTemp += TEXT(" Press 'Scroll Lock' to lock mouse");
+	if(g_Mouse.IsClippedCursor() && g_Mouse.IsInputLive())
+		szTemp += TEXT(" Press 'Scroll Lock' to free mouse");
+	else if(g_Mouse.IsClippedCursor() && !g_Mouse.IsInputLive())
+		szTemp += TEXT(" Press 'Scroll Lock' to lock mouse");
 	g_Window.SetWindowTitle(szTemp.c_str());
 }
 
@@ -443,9 +445,11 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
 						}
 						else
+						{
 							g_Mouse.PopState();
-						//char buffer[256] = "";
-						//gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
+							char buffer[256] = "";
+							gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
+						}
 					}
 				} break;
 			default:

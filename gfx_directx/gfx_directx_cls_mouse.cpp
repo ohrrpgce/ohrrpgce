@@ -318,9 +318,48 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	if(m_inputState.top() == IS_DEAD)
 		return false;
 
+	static bool bWasOverClient = true, bWasHidingCursor = true;
 	switch(msg)
 	{
+	case WM_NCHITTEST:
+		{
+			if(HTCLIENT == DefWindowProc(hWnd, msg, wParam, lParam))
+			{
+				if(!bWasOverClient)
+				{
+					bWasOverClient = true;
+					if(m_state.mode == VM_WINDOWED && m_state.visibility == CV_HIDE)
+					{
+						if(m_inputState.top() == IS_LIVE && !bWasHidingCursor)
+						{
+							bWasHidingCursor = true;
+							ShowCursor(FALSE);
+						}
+					}
+				}
+			}
+			else
+			{
+				if(bWasOverClient)
+				{
+					bWasOverClient = false;
+					if(m_state.mode == VM_WINDOWED)
+					{
+						if(bWasHidingCursor)
+						{
+							bWasHidingCursor = false;
+							ShowCursor(TRUE);
+						}
+					}
+				}
+			}
+			return false;
+		}
 	case WM_NCMOUSEMOVE:
+		{
+			if(m_state.mode == VM_WINDOWED)
+				return false;
+		}
 	case WM_MOUSEMOVE:
 		{
 			::GetCursorPos(&m_cursorPos);
@@ -333,10 +372,16 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if(m_cursorPos.y < rClientRect.top) m_cursorPos.y = 0;
 			else if(m_cursorPos.y > rClientRect.bottom) m_cursorPos.y = rClientRect.bottom;
 
-			m_cursorPos.x = (LONG)(319.0f * (float)m_cursorPos.x / (float)rClientRect.right);
-			m_cursorPos.y = (LONG)(199.0f * (float)m_cursorPos.y / (float)rClientRect.bottom);
+			m_cursorPos.x = (LONG)(320.0f * (float)m_cursorPos.x / (float)rClientRect.right);
+			m_cursorPos.y = (LONG)(200.0f * (float)m_cursorPos.y / (float)rClientRect.bottom);
+			m_cursorPos.x = (m_cursorPos.x > 319) ? 319 : m_cursorPos.x;
+			m_cursorPos.y = (m_cursorPos.y > 199) ? 199 : m_cursorPos.y;
 		} break;
 	case WM_NCLBUTTONDOWN:
+		{
+			if(m_state.mode == VM_WINDOWED)
+				return false;
+		}
 	case WM_LBUTTONDOWN:
 		{
 			if(!m_buttons.IsLeftDown())
@@ -350,6 +395,10 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 		} break;
 	case WM_NCLBUTTONUP:
+		{
+			if(m_state.mode == VM_WINDOWED)
+				return false;
+		}
 	case WM_LBUTTONUP:
 		{
 			if(m_buttons.IsLeftDown())
@@ -363,6 +412,10 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 		} break;
 	case WM_NCRBUTTONDOWN:
+		{
+			if(m_state.mode == VM_WINDOWED)
+				return false;
+		}
 	case WM_RBUTTONDOWN:
 		{
 			if(!m_buttons.IsRightDown())
@@ -376,6 +429,10 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 		} break;
 	case WM_NCRBUTTONUP:
+		{
+			if(m_state.mode == VM_WINDOWED)
+				return false;
+		}
 	case WM_RBUTTONUP:
 		{
 			if(m_buttons.IsRightDown())
@@ -389,6 +446,10 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 		} break;
 	case WM_NCMBUTTONDOWN:
+		{
+			if(m_state.mode == VM_WINDOWED)
+				return false;
+		}
 	case WM_MBUTTONDOWN:
 		{
 			if(!m_buttons.IsMiddleDown())
@@ -402,6 +463,10 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 		} break;
 	case WM_NCMBUTTONUP:
+		{
+			if(m_state.mode == VM_WINDOWED)
+				return false;
+		}
 	case WM_MBUTTONUP:
 		{
 			if(m_buttons.IsMiddleDown())

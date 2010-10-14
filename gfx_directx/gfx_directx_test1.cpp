@@ -40,6 +40,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 
 	UINT j = 0;
 	int x,y,buttons;
+	io_setmousevisibility(FALSE);
 	while(!g_bQuit)
 	{
 		for(UINT i = 0; i < 320 * 200; i++)

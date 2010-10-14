@@ -24,6 +24,14 @@ Added Features:
 
 -Added support for io_mouserect(), or gfx_ClipCursor(). Games that used this functionality are now supported.
 
+-While in windowed mode, if the mouse moves to the non-client area of the window (ie. close button, options menu), the cursor position is not updated in the engine, but the user can resize, select options, minimize, maximize, and close.
+
+-When the cursor is being clipped to the window (restricted movement to the window), the user may press ScrollLock to free the mouse. This is pretty much the same functionality as before, except the user need not use ScrollLock to select options, etc. any longer.
+
+-The ohr cursor position appears much closer to the actual location of the mouse messages it expects. (1 pixel artifact in both x and y!)
+
+-Fixed potential crash issues.
+
 
 
 
