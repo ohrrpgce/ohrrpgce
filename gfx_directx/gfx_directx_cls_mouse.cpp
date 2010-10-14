@@ -255,30 +255,56 @@ void Mouse::PopState()
 //////////////////////////////
 //rewrite of Mouse
 
-//scales rect from range inside (0,0,319,199) to the window rect
-RECT ScaleRect(HWND hWnd, const RECT& rSrc)
+//scales rect from range inside (0,0,319,199) to the window's client rect
+RECT ScaleRectClient(HWND hWnd, const RECT& rSrc)
 {
 	RECT rWin;
 	GetWindowRect(hWnd, &rWin);
+	POINT pnt1 = {0,0}, pnt2 = {rWin.right,rWin.bottom};
+	ClientToScreen(hWnd, &pnt1);
+	ScreenToClient(hWnd, &pnt2);
+
 	FLOAT l,t,r,b;
-	l = (FLOAT)rSrc.left / 319.0f * (FLOAT)rWin.left;
-	t = (FLOAT)rSrc.top / 199.0f * (FLOAT)rWin.top;
-	r = (FLOAT)rSrc.right / 319.0f * (FLOAT)rWin.right;
-	b = (FLOAT)rSrc.bottom / 199.0f * (FLOAT)rWin.bottom;
+	l = (FLOAT)rSrc.left / 319.0f * (FLOAT)pnt2.x + (FLOAT)pnt1.x;
+	t = (FLOAT)rSrc.top / 199.0f * (FLOAT)pnt2.y + (FLOAT)pnt1.y;
+	r = (FLOAT)rSrc.right / 319.0f * (FLOAT)pnt2.x + (FLOAT)pnt1.x;
+	b = (FLOAT)rSrc.bottom / 199.0f * (FLOAT)pnt2.y + (FLOAT)pnt1.y;
+
 	rWin.left = (LONG)l;
 	rWin.top = (LONG)t;
 	rWin.right = (LONG)r;
 	rWin.bottom = (LONG)b;
 	return rWin;
 }
+//scales rect from range inside (0,0,319,199) to the window rect
+RECT ScaleRectWindow(HWND hWnd, const RECT& rSrc)
+{
+	return ScaleRectClient(hWnd, rSrc); //this is better anyways
+
+	//RECT rWin;
+	//GetWindowRect(hWnd, &rWin);
+	//FLOAT l,t,r,b;
+
+	//l = (FLOAT)rSrc.left / 319.0f * (FLOAT)rWin.left;
+	//t = (FLOAT)rSrc.top / 199.0f * (FLOAT)rWin.top;
+	//r = (FLOAT)rSrc.right / 319.0f * (FLOAT)rWin.right;
+	//b = (FLOAT)rSrc.bottom / 199.0f * (FLOAT)rWin.bottom;
+	//
+	//rWin.left = (LONG)l;
+	//rWin.top = (LONG)t;
+	//rWin.right = (LONG)r;
+	//rWin.bottom = (LONG)b;
+	//return rWin;
+}
 
 Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL)
 {
 	ZeroMemory(&m_cursorPos, sizeof(m_cursorPos));
 	State ns;
+	RECT r = {0,0,319,199};
+	ns.rButtonClippedArea = r;
+	ns.rClippedArea = r;
 	ns.buttonClipped = CS_OFF;
-	ZeroMemory(&ns.rButtonClippedArea, sizeof(ns.rButtonClippedArea));
-	ZeroMemory(&ns.rClippedArea, sizeof(ns.rClippedArea));
 	ns.clipped = CS_OFF;
 	ns.visibility = CV_SHOW;
 	ns.mode = VM_WINDOWED;
@@ -287,7 +313,7 @@ Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL)
 }
 
 bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{//needs review; if m_state.clipped == CS_ON, mouse clicks do not engage the m_state.buttonClipped
+{//if m_state.clipped == CS_ON, mouse clicks do not engage the m_state.buttonClipped
 	m_hWnd = hWnd;
 	if(m_inputState.top() == IS_DEAD)
 		return false;
@@ -319,8 +345,7 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
 				{
 					m_state.buttonClipped = CS_ON;
-					GetWindowRect(hWnd, &m_state.rButtonClippedArea);
-					ClipCursor(&m_state.rButtonClippedArea);
+					ClipCursor(&ScaleRectWindow(hWnd, m_state.rButtonClippedArea));
 				}
 			}
 		} break;
@@ -346,8 +371,7 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
 				{
 					m_state.buttonClipped = CS_ON;
-					GetWindowRect(hWnd, &m_state.rButtonClippedArea);
-					ClipCursor(&m_state.rButtonClippedArea);
+					ClipCursor(&ScaleRectWindow(hWnd, m_state.rButtonClippedArea));
 				}
 			}
 		} break;
@@ -373,8 +397,7 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
 				{
 					m_state.buttonClipped = CS_ON;
-					GetWindowRect(hWnd, &m_state.rButtonClippedArea);
-					ClipCursor(&m_state.rButtonClippedArea);
+					ClipCursor(&ScaleRectWindow(hWnd, m_state.rButtonClippedArea));
 				}
 			}
 		} break;
@@ -403,55 +426,87 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 void Mouse2::SetInputState(InputState state)
-{//needs review; this should be the ultimate adjuster!
+{//this should be the ultimate adjuster!
 	if(m_inputState.top() == state)
 		return;
 	m_inputState.top() = state;
 	if(state == IS_LIVE)
 	{
-		if(m_state.clipped == CS_ON)
-			ClipCursor(&ScaleRect(m_hWnd, m_state.rClippedArea));
-		if(m_state.mode == VM_WINDOWED)
+		if(m_state.mode == VM_FULLSCREEN)
+		{
+			if(m_state.clipped == CS_ON)
+				ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+			else
+			{
+				RECT r = {0,0,319,199};
+				ClipCursor(&ScaleRectClient(m_hWnd, r));
+			}
+		}
+		else
+		{
+			if(m_state.clipped == CS_ON)
+				ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
 			if(m_state.visibility == CV_HIDE)
 				ShowCursor(FALSE);
+		}
 	}
 	else
 	{
-		if(m_state.clipped == CS_ON || m_state.buttonClipped == CS_ON)
+		if(m_state.mode == VM_FULLSCREEN)
+		{
+			RECT r = {0,0,319,199};
+			ClipCursor(&ScaleRectClient(m_hWnd, r));
+		}
+		else
+		{
 			ClipCursor(NULL);
-		if(m_state.mode == VM_WINDOWED)
 			if(m_state.visibility == CV_HIDE)
 				ShowCursor(TRUE);
+		}
 	}
 }
 
 void Mouse2::SetVideoMode(VideoMode mode)
-{//needs review; VideoMode has precedence over InputState for the cursor visibility
+{//VideoMode has precedence over InputState for the cursor visibility and certain clipping
 	if(m_state.mode == mode)
 		return;
 	m_state.mode = mode;
 	if(m_state.mode == VM_FULLSCREEN)
 	{
 		if(m_inputState.top() == IS_DEAD)
+		{
 			ShowCursor(FALSE);
+			RECT r = {0,0,319,199};
+			ClipCursor(&ScaleRectClient(m_hWnd, r));
+		}
 		else
 		{
 			if(m_state.visibility == CV_SHOW)
 				ShowCursor(FALSE);
 			if(m_state.clipped == CS_ON)
-				ClipCursor(&ScaleRect(m_hWnd, m_state.rClippedArea));
+				ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+			else
+			{
+				RECT r = {0,0,319,199};
+				ClipCursor(&ScaleRectClient(m_hWnd, r));
+			}
 		}
 	}
 	else
 	{
 		if(m_inputState.top() == IS_DEAD)
+		{
 			ShowCursor(TRUE);
+			ClipCursor(NULL);
+		}
 		else
 		{
 			if(m_state.visibility == CV_SHOW)
 				ShowCursor(TRUE);
 			if(m_state.clipped == CS_ON)
-				ClipCursor(&ScaleRect(m_hWnd, m_state.rClippedArea));
+				ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
+			else
+				ClipCursor(NULL);
 		}
 	}
 }
@@ -482,15 +537,29 @@ void Mouse2::SetClipState(ClipState state)
 	m_state.clipped = state;
 	if(m_inputState.top() == IS_DEAD)
 		return;
-	if(m_state.clipped == CS_OFF)
+	if(m_state.mode == VM_FULLSCREEN)
 	{
-		if(m_state.buttonClipped == CS_OFF)
-			ClipCursor(NULL);
+		if(m_state.clipped == CS_ON)
+		{
+			ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+		}
 		else
-			ClipCursor(&m_state.rButtonClippedArea);
+		{
+			RECT r = {0,0,319,199};
+			ClipCursor(&ScaleRectClient(m_hWnd, r));
+		}
 	}
 	else
-		ClipCursor(&ScaleRect(m_hWnd, m_state.rClippedArea));
+	{
+		if(m_state.clipped == CS_ON)
+		{
+			ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
+		}
+		else
+		{
+			ClipCursor(NULL);
+		}
+	}
 }
 
 void Mouse2::SetClippingRect(RECT *pRect)
@@ -500,8 +569,49 @@ void Mouse2::SetClippingRect(RECT *pRect)
 	m_state.rClippedArea = *pRect;
 	if(m_inputState.top() == IS_DEAD)
 		return;
-	if(m_state.clipped == CS_ON)
-		ClipCursor(&ScaleRect(m_hWnd, m_state.rClippedArea));
+	if(m_state.mode == VM_FULLSCREEN)
+	{
+		if(m_state.clipped == CS_ON)
+			ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+		else
+		{
+			RECT r = {0,0,319,199};
+			ClipCursor(&ScaleRectClient(m_hWnd, r));
+		}
+	}
+	else
+	{
+		if(m_state.clipped == CS_ON)
+			ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
+	}
+}
+
+void Mouse2::UpdateClippingRect()
+{
+	if(m_state.mode == VM_FULLSCREEN)
+	{
+		if(m_inputState.top() == IS_LIVE)
+		{
+			if(m_state.clipped == CS_ON)
+				ClipCursor(&ScaleRectClient(m_hWnd, m_state.rClippedArea));
+			else
+			{
+				RECT r = {0,0,319,199};
+				ClipCursor(&ScaleRectClient(m_hWnd, r));
+			}
+		}
+		else
+		{
+			RECT r = {0,0,319,199};
+			ClipCursor(&ScaleRectClient(m_hWnd, r));
+		}
+	}
+	else
+	{
+		if(m_inputState.top() == IS_LIVE)
+			if(m_state.clipped == CS_ON)
+				ClipCursor(&ScaleRectWindow(m_hWnd, m_state.rClippedArea));
+	}
 }
 
 void Mouse2::PushState(InputState state)

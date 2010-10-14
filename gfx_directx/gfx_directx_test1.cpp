@@ -27,7 +27,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	g_paletteTest[0xee] = 0xffff0000;
 	g_paletteTest[0xdd] = 0xff0000ff;
 
-	gfx_init(RequestQuit, 0, NULL, NULL);
+	char szInfoBuffer[256] = "";
+	gfx_init(RequestQuit, 0, szInfoBuffer, sizeof(szInfoBuffer));
 	gfx_windowtitle("DirectX Backend Test App");
 	gfx_setpal(g_paletteTest);
 	io_init();

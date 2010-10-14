@@ -155,6 +155,7 @@ namespace gfx
 		void SetCursorVisibility(CursorVisibility visibility);
 		void SetClipState(ClipState state);
 		void SetClippingRect(RECT* pRect);
+		void UpdateClippingRect(); //call whenever the window size changes
 		void PushState(InputState state);
 		void PopState();
 	};

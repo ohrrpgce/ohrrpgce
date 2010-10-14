@@ -16,6 +16,14 @@ Added Features:
 
 -Mapped the "Break/Pause" button to NumLock. One can now pause the game using "Break/Pause" or NumLock.
 
+-Fixed ScrollLock-then-fullscreen bug.
+
+-Fixed other mouse issues while in fullscreen and windowed, including clipping and cursor visibility handling.
+
+-Fixed bug from entering fullscreen while window was maximized.
+
+-Added support for io_mouserect(), or gfx_ClipCursor(). Games that used this functionality are now supported.
+
 
 
 

@@ -27,7 +27,7 @@ Window g_Window;
 HWND g_hWndDlg;
 DirectX g_DirectX;
 Keyboard g_Keyboard;
-Mouse g_Mouse;
+Mouse2 g_Mouse;
 Joystick g_Joystick;
 
 void DebugString(const char* szMessage) { MessageBoxA(NULL, szMessage, "Debug Message", MB_OK); }
@@ -40,7 +40,7 @@ struct gfx_BackendState
 	void (__cdecl *OnCriticalError)(const char* szError);
 	void (__cdecl *SendDebugString)(const char* szMessage);
 	bool bClosing; //flagged when shutting down
-	bool bOhrMouseRequest; //true whenever the ohr needs mouse input
+	//bool bOhrMouseRequest; //true whenever the ohr needs mouse input
 	Tstring szHelpText;
 } g_State;
 
@@ -305,18 +305,28 @@ const char* gfx_GetWindowTitle()
 
 void gfx_ShowCursor()
 {
-	g_State.bOhrMouseRequest = false;
-	g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+	//g_State.bOhrMouseRequest = false;
+	g_Mouse.SetCursorVisibility(gfx::Mouse2::CV_SHOW);
+	g_Mouse.SetInputState(gfx::Mouse2::IS_DEAD);
 }
 
 void gfx_HideCursor()
 {
-	g_State.bOhrMouseRequest = true;
-	g_Mouse.SetInputState(gfx::Mouse::IS_LIVE);
+	//g_State.bOhrMouseRequest = true;
+	g_Mouse.SetCursorVisibility(gfx::Mouse2::CV_HIDE);
+	g_Mouse.SetInputState(gfx::Mouse2::IS_LIVE);
 }
 
 void gfx_ClipCursor(int left, int top, int right, int bottom)
-{//--placeholder--
+{
+	if(left == -1 && top == -1 && right == -1 && bottom == -1)
+		g_Mouse.SetClipState(gfx::Mouse2::CS_OFF);
+	else
+	{
+		RECT r = {left, top, right, bottom};
+		g_Mouse.SetClippingRect(&r);
+		g_Mouse.SetClipState(gfx::Mouse2::CS_ON);
+	}
 }
 
 int gfx_GetKeyboard(int *pKeyboard)
@@ -428,8 +438,9 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						if(g_Mouse.IsInputLive())
 						{
-							g_Mouse.PushState();
-							g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+							//g_Mouse.PushState();
+							//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+							g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
 						}
 						else
 							g_Mouse.PopState();
@@ -470,8 +481,10 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					if(!(lParam & 0x40000000)) //key was not pressed before
 					{
+						while(IsZoomed(hWnd) || IsIconic(hWnd)) //if maximized or minimized
+							ShowWindow(hWnd, SW_RESTORE);
 						g_DirectX.SetView(g_DirectX.IsViewFullscreen());
-						g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse::VM_FULLSCREEN : gfx::Mouse::VM_WINDOWED);
+						g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 					}
 				} break;
 			default:
@@ -482,26 +495,39 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if(LOWORD(wParam) == WA_INACTIVE)
 			{
-				g_Mouse.PushState();
-				g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
-				g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
+				//g_Mouse.PushState();
+				//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+				//g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
+				g_Mouse.SetVideoMode(gfx::Mouse2::VM_WINDOWED);
+				g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
 			}
 			else
+			{
+				g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 				g_Mouse.PopState();
+			}
 			return ::DefWindowProc(hWnd, msg, wParam, lParam);
+		} break;
+	case WM_MOVE:
+		{
+			g_Mouse.UpdateClippingRect();
 		} break;
 	case WM_SIZE:
 		{
 			::DefWindowProc(hWnd, msg, wParam, lParam);
 			if(wParam == SIZE_MINIMIZED)
 			{
-				g_Mouse.PushState();
-				g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
-				g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
+				//g_Mouse.PushState();
+				//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+				//g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
+				g_Mouse.SetVideoMode(gfx::Mouse2::VM_WINDOWED);
+				g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
 			}
 			else
 			{
 				g_DirectX.SetResolution(LOWORD(lParam), HIWORD(lParam));
+				g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+				g_Mouse.UpdateClippingRect();
 				g_Mouse.PopState();
 			}
 		} break;
@@ -509,16 +535,12 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if(!g_DirectX.IsViewFullscreen())
 			{
-				static RECT rWindowTest = {0,0,400,400};
-				static BOOL bRunOnce = FALSE;
-				static SIZE sPadding = {0,0};
-				if(bRunOnce == FALSE)
-				{
-					bRunOnce = TRUE;
-					::AdjustWindowRectEx(&rWindowTest, WS_OVERLAPPEDWINDOW, FALSE, 0);
-					sPadding.cx = rWindowTest.right - rWindowTest.left - 400;
-					sPadding.cy = rWindowTest.bottom - rWindowTest.top - 400;
-				}
+				RECT rWindowTest = {0,0,400,400};
+				SIZE sPadding = {0,0};
+				::AdjustWindowRectEx(&rWindowTest, WS_OVERLAPPEDWINDOW, FALSE, 0);
+				sPadding.cx = rWindowTest.right - rWindowTest.left - 400;
+				sPadding.cy = rWindowTest.bottom - rWindowTest.top - 400;
+
 				switch(wParam)
 				{
 				case WMSZ_BOTTOMLEFT:
@@ -573,10 +595,13 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if(g_State.bClosing)
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
-			g_Mouse.PushState();
-			g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
-			g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
+			//g_Mouse.PushState();
+			//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+			//g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
+			g_Mouse.SetVideoMode(gfx::Mouse2::VM_WINDOWED);
+			g_Mouse.SetInputState(gfx::Mouse2::IS_DEAD);
 			g_State.PostTerminateSignal();
+			g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 			g_Mouse.PopState();
 		} break;
 	case WM_CREATE:
@@ -674,9 +699,10 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 		} break;
 	case WM_INITDIALOG:
 		{
-			g_Mouse.PushState();
-			g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
-			g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+			//g_Mouse.PushState();
+			//g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
+			//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
+			g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
 
 			bVsyncEnabled = g_DirectX.IsVsyncEnabled() ? TRUE : FALSE;
 			bSmoothEnabled = g_DirectX.IsSmooth() ? TRUE : FALSE;
