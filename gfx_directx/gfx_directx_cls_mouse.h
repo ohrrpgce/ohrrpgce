@@ -121,10 +121,9 @@ namespace gfx
 		};
 
 	protected:
-		struct LiveState
+		struct State
 		{
 			VideoMode mode;
-			InputState state;
 			CursorVisibility visibility;
 			ClipState clipped;
 			RECT rClippedArea;
@@ -133,20 +132,22 @@ namespace gfx
 		};
 
 	protected:
+		HWND m_hWnd;
 		POINT m_cursorPos;
 		long m_wheel;
 		Buttons m_buttons;
-		std::stack<LiveState> m_liveState;
+		std::stack<InputState> m_inputState;
+		State m_state;
 	public:
 		Mouse2();
 
 		const POINT& GetCursorPos() const {return m_cursorPos;}
 		long GetWheel() const {return m_wheel;}
 		Buttons GetButtonState() const {return m_buttons;}
-		bool IsInputLive() const {return m_liveState.top().state == IS_LIVE;}
-		bool IsVideoFullscreen() const {return m_liveState.top().mode == VM_FULLSCREEN;}
-		bool IsCursorVisible() const {return m_liveState.top().visibility == CV_SHOW;}
-		bool IsClippedCursor() const {return m_liveState.top().clipped == CS_ON;}
+		bool IsInputLive() const {return m_inputState.top() == IS_LIVE;}
+		bool IsVideoFullscreen() const {return m_state.mode == VM_FULLSCREEN;}
+		bool IsCursorVisible() const {return m_state.visibility == CV_SHOW;}
+		bool IsClippedCursor() const {return m_state.clipped == CS_ON;}
 
 		bool ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		void SetInputState(InputState state);
@@ -154,7 +155,7 @@ namespace gfx
 		void SetCursorVisibility(CursorVisibility visibility);
 		void SetClipState(ClipState state);
 		void SetClippingRect(RECT* pRect);
-		void PushState();
+		void PushState(InputState state);
 		void PopState();
 	};
 }
