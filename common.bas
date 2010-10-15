@@ -1865,6 +1865,7 @@ FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS INTEGER=
  NEXT
 
  state.active = YES
+ menu.maxrows = 10
  init_menu_state state, menu
  state.pt = defaultval
  menu.offset.Y = -20 + 5 * UBOUND(captlines)
