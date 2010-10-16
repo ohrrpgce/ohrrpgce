@@ -787,23 +787,24 @@ END SUB
 'filelist() must be resizeable; it'll be resized so that LBOUND = -1, with files, if any, in filelist(0) up
 'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask
 'filetype is one of fileTypeFile, fileTypeDirectory
-SUB findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, filelist() AS STRING)
+SUB findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, filelist() AS STRING)
   DIM AS STRING searchdir = directory
   IF RIGHT(searchdir, 1) <> SLASH THEN searchdir += SLASH
+  DIM AS STRING nmask = anycase(namemask)
+  IF LEN(nmask) = 0 THEN nmask = ALLFILES
   REDIM filelist(-1 TO -1)
 
 #ifdef __UNIX__
   'this is super hacky, but works around the apparent uselessness of DIR
-  DIM AS STRING grep, shellout, realmask
+  DIM AS STRING grep, shellout
   shellout = "/tmp/ohrrpgce-findfiles-" + STR(RND * 10000) + ".tmp"
   grep = "-v '/$'"
   IF filetype = fileTypeDirectory THEN grep = "'/$'"
-  realmask = anycase(namemask)
   searchdir = """" + escape_string(searchdir, """`\$") + """"
   IF findhidden THEN
-    searchdir = searchdir + realmask + " " + searchdir + "." + realmask
+    searchdir = searchdir + nmask + " " + searchdir + "." + nmask
   ELSE
-    searchdir = searchdir + realmask
+    searchdir = searchdir + nmask
   END IF
 
   SHELL "ls -d1p " + searchdir + " 2>/dev/null |grep "+ grep + ">" + shellout + " 2>&1"
@@ -838,7 +839,7 @@ SUB findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetyp
     attrib = (253 XOR 16)
   END IF
   IF findhidden THEN attrib += 2
-  foundfile = DIR(searchdir + namemask, attrib)
+  foundfile = DIR(searchdir + nmask, attrib)
   IF foundfile = "" THEN EXIT SUB
   REDIM tempfilelist(-1 TO -1) AS STRING
   DO UNTIL foundfile = ""
