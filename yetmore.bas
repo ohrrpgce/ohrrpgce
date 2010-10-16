@@ -782,7 +782,6 @@ SELECT CASE AS CONST id
  CASE 159'--init mouse
   IF havemouse() THEN scriptret = 1 ELSE scriptret = 0
   hidemousecursor
-  mouserect 0, 319, 0, 199
   readmouse mouse()
   gam.mouse_enabled = YES
  CASE 160'--get mouse x
@@ -796,11 +795,15 @@ SELECT CASE AS CONST id
  CASE 163'--put mouse
   movemouse bound(retvals(0), 0, 319), bound(retvals(1), 0, 199)
   readmouse mouse()
- CASE 164'--mouse region
-  IF retvals(0) = -1 THEN
+ CASE 164'--mouse region(xmin, xmax, ymin, ymax)
+  IF retvals(0) = -1 AND retvals(1) = -1 AND retvals(2) = -1 AND retvals(3) = -1 THEN
    mouserect -1, -1, -1, -1
   ELSE
-   mouserect bound(retvals(0), 0, 319), bound(retvals(1), 0, 319), bound(retvals(2), 0, 199), bound(retvals(3), 0, 199)
+   retvals(0) = bound(retvals(0), 0, 319)
+   retvals(1) = bound(retvals(1), retvals(0), 319)
+   retvals(2) = bound(retvals(2), 0, 199)
+   retvals(3) = bound(retvals(3), retvals(2), 199)
+   mouserect retvals(0), retvals(1), retvals(2), retvals(3)
   END IF
   readmouse mouse()
  CASE 178'--readgmap

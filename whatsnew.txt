@@ -87,6 +87,7 @@ WHAT IS NEW?
     * "set npc ignores walls", "get npc ignores walls",
       "set npc obstructs", "get npc obstructs", "set npc usable",
       "get npc usable", "set npc moves", "get npc moves" [Ralph]
+    * "init mouse" no longer locks the mouse to the window
 
   * Vikings of Midgard
 

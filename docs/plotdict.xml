@@ -1217,7 +1217,7 @@ end</example>
 		<command id="initmouse">
 			<canon>init mouse</canon>
 			<shortname>init mouse</shortname>
-			<description>Initializes the mouse, returning <ref>true</ref> if one is present. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, prevents the mouse cursor from leaving the window, and causes mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/><note>Running this command does not draw a cursor on screen - your script must do this itself by placing a slice or npc at the appropriate location.</note> Here is an example:</description>
+			<description>Initializes the mouse, returning <ref>true</ref> if one is present. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<lb/><note>Running this command does not draw a cursor on screen - your script must do this itself by placing a slice or npc at the appropriate location.</note> Here is an example:</description>
 			<example>include,plotscr.hsd
 
 #Mouse cursor example
@@ -1259,7 +1259,7 @@ end</example>
 		<command id="mouseregion">
 			<canon>mouse region (x min, x max, y min, y max)</canon>
 			<shortname>mouse region</shortname>
-			<description>Sets the edges of the rectangle to which the mouse is constricted. Use if you want to force the mouse into some region, like a choice selection box. The maximum values are inclusive. Without arguments, resets the rectangle to the whole window. You can unrestrict the mouse and let it leave the window by calling <p>mouse region (-1, -1, -1, -1)</p>. <ref>initmouse</ref> should be called before this command is used.</description>
+			<description>Constricts the mouse to a rectangular part of the window/screen, such as a choice selection box. It is recommend you do not use this command, as it is very annoying in windowed mode. The maximum values are inclusive. Call without arguments to free the mouse to leave the window. <ref>initmouse</ref> should be called before this command is used.</description>
 		</command>
 	</section>
 	<section title="String Functions">
