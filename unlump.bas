@@ -16,13 +16,10 @@ DECLARE FUNCTION rightafter$ (s$, d$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 'DECLARE FUNCTION readpassword$ ()
 
-DECLARE SUB unlump (lump$, ulpath$)
-DECLARE SUB unlumpfile (lump$, fmask$, path$)
-DECLARE FUNCTION islumpfile (lump$, fmask$)
-
 #include "compat.bi"
 #include "util.bi"
 #include "const.bi"
+#include "lumpfile.bi"
 
 DIM SHARED createddir = 0, dest$, olddir$
 
@@ -38,7 +35,7 @@ IF COMMAND$ = "" THEN
  PRINT "unlump filename.rpg directory"
  PRINT ""
  PRINT "A utility to extract the contents of an RPG file or other lumped"
- PRINT "to a directory so that advanced users can hack the delicious"
+ PRINT "file to a directory so that advanced users can hack the delicious"
  PRINT "morsels inside."
  PRINT "If a password is required, you will be prompted to enter it."
  PRINT ""
@@ -50,52 +47,50 @@ IF COMMAND$ = "" THEN
  fatalerror ""
 END IF
 
-lump$ = COMMAND$(1)
+lumped$ = COMMAND$(1)
 dest$ = COMMAND$(2)
 
 'check whether it is an RPG file (assume all RPG files contain BROWSE.TXT)
-isrpg = islumpfile(lump$, "browse.txt")
+isrpg = islumpfile(lumped$, "browse.txt")
 
 IF dest$ = "" THEN
- IF LEN(rightafter(lump$, ".")) = LEN(lump$) - 1 THEN fatalerror "please specify an output directory"
+ IF LEN(rightafter(lumped$, ".")) = LEN(lumped$) - 1 THEN fatalerror "please specify an output directory"
  IF isrpg THEN
-  dest$ = trimextension$(lump$) + ".rpgdir"
+  dest$ = trimextension$(lumped$) + ".rpgdir"
  ELSE
-  dest$ = trimextension$(lump$) + ".unlmp"
+  dest$ = trimextension$(lumped$) + ".unlmp"
  END IF
 END IF
 
-IF NOT isfile(lump$) THEN fatalerror "lump file `" + lump$ + "' was not found"
+IF NOT isfile(lumped$) THEN fatalerror "lump file `" + lumped$ + "' was not found"
 
-PRINT "From " + lump$ + " to " + dest$
+PRINT "From " + lumped$ + " to " + dest$
 
 '--Get old-style game (only matters for ancient RPG files that are missing the archinym.lmp)
 dim game as string
-game = rightafter(lump$, SLASH)
-IF game = "" THEN game = lump$
-IF INSTR(game, ".") THEN game = trimextension$(game)
+game = trimextension(trimpath(lumped$))
 
 IF isfile(dest$) THEN fatalerror "destination directory `" + dest$ + "' already exists as a file"
 
 IF isdir(dest$) THEN
- PRINT "destination directory `" + dest$ + "' already exists. use it anyway? (y/n)"
+ PRINT "Destination directory `" + dest$ + "' already exists. Delete it? (y/n)"
  w$ = readkey
  IF w$ <> "Y" AND w$ <> "y" THEN SYSTEM
  killdir dest$
 END IF
-MKDIR dest$
+makedir dest$
 createddir = -1
 
 IF NOT isdir(dest$) THEN fatalerror "unable to create destination directory `" + dest$ + "'"
 
 IF NOT isrpg THEN
- unlump lump$, dest$ + SLASH
+ unlump lumped$, dest$ + SLASH
  CHDIR olddir$
  PRINT "Done."
  SYSTEM
 END IF
  
-unlumpfile lump$, "archinym.lmp", dest$ + SLASH
+unlumpfile lumped$, "archinym.lmp", dest$ + SLASH
 
 '--set game according to the archinym
 IF isfile(dest$ + SLASH + "archinym.lmp") THEN
@@ -109,7 +104,7 @@ IF isfile(dest$ + SLASH + "archinym.lmp") THEN
  KILL dest$ + SLASH + "archinym.lmp"
 END IF
 
-unlumpfile lump$, game + ".gen", dest$ + SLASH
+unlumpfile lumped$, game + ".gen", dest$ + SLASH
 DIM gen(360)
 xbload dest$ + SLASH + LCASE(game) + ".gen", gen(), "unable to open general data"
 
@@ -146,7 +141,7 @@ IF gen(genPW2Length) > -1 THEN
 END IF
 
 IF passokay THEN
- unlump lump$, dest$ + SLASH
+ unlump lumped$, dest$ + SLASH
 END IF
 
 CHDIR olddir$
@@ -184,14 +179,20 @@ editstr$ = pre$ + post$
 END FUNCTION
 
 SUB fatalerror (e$)
+ IF e$ <> "" THEN PRINT "ERROR: " + e$
 
-IF e$ <> "" THEN PRINT "ERROR: " + e$
+ 'RMDIR does not work unless isdir$ is called first. If I tried to figure out why, my brain would explode
+ isdir$(dest$)
+ IF createddir THEN killdir dest$
+ SYSTEM
+END SUB
 
-'RMDIR does not work unless isdir$ is called first. If I tried to figure out why, my brain would explode
-isdir$(dest$)
-IF createddir THEN RMDIR dest$
-SYSTEM
+SUB debug (e$)
+ PRINT e$
+END SUB
 
+SUB debuginfo (e$)
+ PRINT e$
 END SUB
 
 FUNCTION readkey$
@@ -232,279 +233,6 @@ FOR i = LEN(s$) TO 1 STEP -1
 NEXT i
 
 END FUNCTION
-
-function matchmask(match as string, mask as string) as integer
-	dim i as integer
-	dim m as integer
-	dim si as integer, sm as integer
-
-	'special cases
-	if mask = "" then
-		matchmask = 1
-		exit function
-	end if
-
-	i = 0
-	m = 0
-	while (i < len(match)) and (m < len(mask)) and (mask[m] <> asc("*"))
-		if (match[i] <> mask[m]) and (mask[m] <> asc("?")) then
-			matchmask = 0
-			exit function
-		end if
-		i = i+1
-		m = m+1
-	wend
-
-	if (m >= len(mask)) and (i < len(match)) then
-		matchmask = 0
-		exit function
-	end if
-
-	while i < len(match)
-		if m >= len(mask) then
-			'run out of mask with string left over, rewind
-			i = si + 1 ' si will always be set by now because of *
-			si = i
-			m = sm
-		else
-			if mask[m] = asc("*") then
-				m = m + 1
-				if m >= len(mask) then
-					'* eats the rest of the string
-					matchmask = 1
-					exit function
-				end if
-				i = i + 1
-				'store the positions in case we need to rewind
-				sm = m
-				si = i
-			else
-				if (mask[m] = match[i]) or (mask[m] = asc("?")) then
-					'ok, next
-					m = m + 1
-					i = i + 1
-				else
-					'mismatch, rewind to last * positions, inc i and try again
-					m = sm
-					i = si + 1
-					si = i
-				end if
-			end if
-		end if
-	wend
-
-  	while (m < len(mask)) and (mask[m] = asc("*"))
-  		m = m + 1
-  	wend
-
-  	if m < len(mask) then
-		matchmask = 0
-	else
-		matchmask = 1
-	end if
-
-end function
-
-SUB unlumpfile (lump$, fmask$, path$)
-	dim lf as integer
-	dim dat as ubyte
-	dim size as integer
-	dim maxsize as integer
-	dim lname as string
-	dim i as integer
-	dim bufr as ubyte ptr
-	dim nowildcards as integer = 0
-
-	lf = freefile
-	open lump$ for binary access read as #lf
-	if err > 0 then
-		'debug "Could not open file " + lump$
-		exit sub
-	end if
-	maxsize = LOF(lf)
-
-	bufr = allocate(16383)
-	if bufr = null then
-		close #lf
-		exit sub
-	end if
-
-	'should make browsing a bit faster
-	if len(fmask$) > 0 then
-		if instr(fmask$, "*") = 0 and instr(fmask$, "?") = 0 then
-			nowildcards = -1
-		end if
-	end if
-
-	get #lf, , dat	'read first byte
-	while not eof(lf)
-		'get lump name
-		lname = ""
-		i = 0
-		while not eof(lf) and dat <> 0 and i < 64
-			lname = lname + chr$(dat)
-			get #lf, , dat
-			i += 1
-		wend
-		if i > 50 then 'corrupt file, really if i > 12
-			'debug "corrupt lump file: lump name too long"
-			exit while
-		end if
-		'force to lower-case
-		lname = lcase(lname)
-		'debug "lump name " + lname
-
-		if instr(lname, "\") or instr(lname, "/") then
-			'debug "unsafe lump name " + str$(lname)
-			exit while
-		end if
-
-		if not eof(lf) then
-			'get lump size - byte order = 3,4,1,2 I think
-			get #lf, , dat
-			size = (dat shl 16)
-			get #lf, , dat
-			size = size or (dat shl 24)
-			get #lf, , dat
-			size = size or dat
-			get #lf, , dat
-			size = size or (dat shl 8)
-			if size > maxsize then
-				'debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
-				exit while
-			end if
-
-			'debug "lump size " + str$(size)
-
-			'do we want this file?
-			if matchmask(lname, lcase$(fmask$)) then
-				'write yon file
-				dim of as integer
-				dim csize as integer
-				dim osize as integer
-				
-				osize = size
-
-				of = freefile
-				open path$ + lname for binary access write as #of
-				if err > 0 then
-					'debug "Could not open file " + path$ + lname
-					exit while
-				end if
-
-				'copy the data
-				do while size > 0
-					if size > 16383 then
-						csize = 16383
-					else
-						csize = size
-					end if
-					'copy a chunk of file
-					get #lf, , *bufr, csize
-					put #of, , *bufr, csize
-					size -= csize
-					if size > osize then size = 0
-				loop
-
-				close #of
-
-				'early out if we're only looking for one file
-				if nowildcards then exit while
-			else
-				'skip to next name
-				i = seek(lf)
-				i = i + size
-				seek #lf, i
-			end if
-
-			if not eof(lf) then
-				get #lf, , dat
-			end if
-		end if
-	wend
-
-	deallocate bufr
-	close #lf
-
-end SUB
-
-SUB unlump (lump$, ulpath$)
-	unlumpfile(lump$, "", ulpath$)
-end SUB
-
-FUNCTION islumpfile (lump$, fmask$)
-	dim lf as integer
-	dim dat as ubyte
-	dim size as integer
-	dim maxsize as integer
-	dim lname as string
-	dim i as integer
-
-	islumpfile = 0
-
-	lf = freefile
-	open lump$ for binary access read as #lf
-	if err > 0 then
-		'debug "Could not open file " + lump$
-		exit function
-	end if
-	maxsize = LOF(lf)
-
-	get #lf, , dat	'read first byte
-	while not eof(lf)
-		'get lump name
-		lname = ""
-		i = 0
-		while not eof(lf) and dat <> 0 and i < 64
-			lname = lname + chr$(dat)
-			get #lf, , dat
-			i += 1
-		wend
-		if i > 50 then 'corrupt file, really if i > 12
-			'debug "corrupt lump file: lump name too long"
-			exit while
-		end if
-		'force to lower-case
-		lname = lcase(lname)
-		'debug "lump name " + lname
-
-		if instr(lname, "\") or instr(lname, "/") then
-			'debug "unsafe lump name " + str$(lname)
-			exit while
-		end if
-
-		if not eof(lf) then
-			'get lump size - byte order = 3,4,1,2 I think
-			get #lf, , dat
-			size = (dat shl 16)
-			get #lf, , dat
-			size = size or (dat shl 24)
-			get #lf, , dat
-			size = size or dat
-			get #lf, , dat
-			size = size or (dat shl 8)
-			if size > maxsize then
-				'debug "corrupt lump size" + str$(size) + " exceeds source size" + str$(maxsize)
-				exit while
-			end if
-
-			'do we want this file?
-			if matchmask(lname, lcase$(fmask$)) then
-                islumpfile = -1
-                exit function
-			else
-				'skip to next name
-				seek #lf, seek(lf) + size
-			end if
-
-			if not eof(lf) then
-				get #lf, , dat
-			end if
-		end if
-	wend
-
-	close #lf
-end FUNCTION
 
 'FUNCTION readpassword$
 '

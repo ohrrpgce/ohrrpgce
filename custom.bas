@@ -656,56 +656,6 @@ RETRACE
 
 REM $STATIC
 
-SUB fixorder (f$)
-
-filecopy f$, "fixorder.tmp"
-
-ofh = FREEFILE
-OPEN f$ FOR OUTPUT AS #ofh
-
-ifh = FREEFILE
-OPEN "fixorder.tmp" FOR INPUT AS #ifh
-
-'--first output the archinym.lmp and browse.txt files
-WHILE NOT EOF(ifh)
- LINE INPUT #ifh, a$
- b$ = LCASE$(a$)
- IF b$ = "archinym.lmp" OR b$ = "browse.txt" THEN
-  PRINT #ofh, a$
- END IF
-WEND
-
-'--close and re-open
-CLOSE #ifh
-OPEN "fixorder.tmp" FOR INPUT AS #ifh
-
-'--output the other files, excluding illegal files
-WHILE NOT EOF(ifh)
- LINE INPUT #ifh, a$
- b$ = LCASE$(a$)
- SELECT CASE b$
-  CASE "archinym.lmp", "browse.txt"
-   '--do nothing
-  CASE ELSE
-   '--check extenstion
-   c$ = RIGHT$(b$, 4)
-   SELECT CASE c$
-    CASE ".tmp"
-     '--do nothing
-    CASE ELSE
-     '--output all other names
-     PRINT #ofh, a$
-   END SELECT
- END SELECT
-WEND
-CLOSE #ifh
-
-CLOSE #ofh
-
-safekill "fixorder.tmp"
-
-END SUB
-
 SUB shopdata
 DIM a(20), b(curbinsize(binSTF) / 2), menu(24) AS STRING, smenu(24) AS STRING, max(24), min(24), sbit(-1 TO 10) AS STRING, stf(16) AS STRING, tradestf(3) AS STRING
 DIM her AS HeroDef' Used to get hero name for default stuff name
@@ -1096,7 +1046,7 @@ END FUNCTION
 SUB dolumpfiles (filetolump$)
 '--build the list of files to lump. We don't need hidden files
 findfiles workingdir, ALLFILES, fileTypeFile, NO, "temp.lst"
-fixorder "temp.lst"
+fixlumporder "temp.lst"
 IF isdir(filetolump$) THEN
  '---copy changed files back to source rpgdir---
  IF NOT fileiswriteable(filetolump$ & SLASH & "archinym.lmp") THEN

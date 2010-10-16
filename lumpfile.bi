@@ -156,6 +156,7 @@ declare sub lumpfiles (listf as string, lump as string, path as string)
 declare sub unlump(lump as string, ulpath as string)
 declare sub unlumpfile(lump as string, fmask as string, path as string)
 declare function islumpfile (lump as string, fmask as string) as integer
+declare sub fixlumporder (f as string)
 
 
 '----------------------------------------------------------------------

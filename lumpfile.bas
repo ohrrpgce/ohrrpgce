@@ -836,15 +836,13 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 	dim csize as integer
 
 	fl = freefile
-	open listf for input as #fl
-	if err <> 0 then
+	if open(listf for input as #fl) <> 0 then
 		exit sub
 	end if
 
 	lf = freefile
-	open lumpfile for binary access write as #lf
-	if err <> 0 then
-		'debug "Could not open file " + lumpfile
+	if open(lumpfile for binary access write as #lf) <> 0 then
+		debug "lumpfiles: Could not open file " + lumpfile
 		close #fl
 		exit sub
 	end if
@@ -864,7 +862,7 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 		tl = freefile
 		open path + lumpname for binary access read as #tl
 		if err <> 0 then
-			'debug "failed to open " + path + lname
+			debug "failed to open " + path + lname + " for lumping"
 			continue do
 		end if
 
@@ -973,6 +971,55 @@ function matchmask(match as string, mask as string) as integer
 	end if
 end function
 
+sub fixlumporder (f as string)
+	DIM AS INTEGER ofh, ifh
+        DIM AS STRING a, b, c
+	filecopy f$, "fixorder.tmp"
+	
+	ofh = FREEFILE
+	OPEN f$ FOR OUTPUT AS #ofh
+	
+	ifh = FREEFILE
+	OPEN "fixorder.tmp" FOR INPUT AS #ifh
+	
+	'--first output the archinym.lmp and browse.txt files
+	WHILE NOT EOF(ifh)
+		LINE INPUT #ifh, a$
+		b$ = LCASE$(a$)
+		IF b$ = "archinym.lmp" OR b$ = "browse.txt" THEN
+			PRINT #ofh, a$
+		END IF
+	WEND
+	
+	'--close and re-open
+	CLOSE #ifh
+	OPEN "fixorder.tmp" FOR INPUT AS #ifh
+	
+	'--output the other files, excluding illegal files
+	WHILE NOT EOF(ifh)
+		LINE INPUT #ifh, a$
+		b$ = LCASE$(a$)
+		SELECT CASE b$
+			CASE "archinym.lmp", "browse.txt"
+				'--do nothing
+			CASE ELSE
+				'--check extenstion
+				c$ = RIGHT$(b$, 4)
+				SELECT CASE c$
+					CASE ".tmp"
+						'--do nothing
+					CASE ELSE
+						'--output all other names
+						PRINT #ofh, a$
+				END SELECT
+		END SELECT
+	WEND
+	CLOSE #ifh
+	
+	CLOSE #ofh
+	
+	safekill "fixorder.tmp"
+END SUB
 
 '----------------------------------------------------------------------
 '                           BufferedFile
