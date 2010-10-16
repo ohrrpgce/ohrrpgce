@@ -338,39 +338,29 @@ END IF
 END SUB
 
 SUB cleanuptemp
- findfiles workingdir, ALLFILES, fileTypeFile, NO, tmpdir + "filelist.tmp"
- fh = FREEFILE
-  OPEN tmpdir + "filelist.tmp" FOR INPUT AS #fh
-  DO UNTIL EOF(fh)
-   LINE INPUT #fh, filename$
-   IF usepreunlump = 0 THEN
-    'normally delete everything
-    KILL workingdir + SLASH + filename$
-   ELSE
-    'but for preunlumped games only delete specific files
-    ext$ = justextension$(filename$)
-    IF ext$ = "tmp" OR ext$ = "bmd" THEN
-     KILL workingdir + SLASH + filename$
-    END IF
+ 'Delete contents of/clean up workingdir
+ DIM filelist() as string
+ findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  IF usepreunlump = 0 THEN
+   'normally delete everything
+   KILL workingdir + SLASH + filelist(i)
+  ELSE
+   'but for preunlumped games only delete specific files
+   DIM ext$ = justextension$(filelist(i))
+   IF ext$ = "tmp" OR ext$ = "bmd" THEN
+    KILL workingdir + SLASH + filelist(i)
    END IF
-  LOOP
-  CLOSE #fh
+  END IF
+ NEXT
 
-  KILL tmpdir + "filelist.tmp"
-
-  findfiles tmpdir, ALLFILES, fileTypeFile, NO, tmpdir + "filelist.tmp"
-  fh = FREEFILE
-  OPEN tmpdir + "filelist.tmp" FOR INPUT AS #fh
-  DO UNTIL EOF(fh)
-   LINE INPUT #fh, filename$
-   IF filename$ = "filelist.tmp" THEN CONTINUE DO ' skip this, deal with it later
-   IF NOT isdir(tmpdir & filename$) THEN
-    KILL tmpdir & filename$
-   END IF
-  LOOP
-  CLOSE #fh
-
-  KILL tmpdir + "filelist.tmp"
+ 'Delete contents of/clean up tmpdir
+ findfiles tmpdir, ALLFILES, fileTypeFile, NO, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  IF NOT isdir(tmpdir & filelist(i)) THEN
+   KILL tmpdir & filelist(i)
+  END IF
+ NEXT
 END SUB
 
 FUNCTION checkfordeath () as integer
@@ -723,21 +713,16 @@ IF killmask AND 16 THEN safekill filebase$ + "_p.tmp"
 END SUB
 
 SUB deletetemps
-'deletes game-state temporary files when exiting back to the titlescreen
+'deletes game-state temporary files from tmpdir when exiting back to the titlescreen
 
- findfiles tmpdir, ALLFILES, fileTypeFile, YES, tmpdir + "filelist.tmp"
- fh = FREEFILE
- OPEN tmpdir + "filelist.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  LINE INPUT #fh, filename$
-  filename$ = LCASE$(filename$)
+ DIM filelist() as string
+ findfiles tmpdir, ALLFILES, fileTypeFile, YES, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  filename$ = LCASE$(filelist(i))
   IF RIGHT$(filename$,4) = ".tmp" AND (LEFT$(filename$,3) = "map" OR LEFT$(filename$,5) = "state") THEN
-   KILL tmpdir + filename$
+   KILL tmpdir + filelist(i)
   END IF
- LOOP
- CLOSE #fh
-
- KILL tmpdir + "filelist.tmp"
+ NEXT
 END SUB
 
 '--A similar function exists in customsubs.bas for custom. it differs only in error-reporting

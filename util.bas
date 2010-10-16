@@ -431,6 +431,14 @@ SUB str_array_append (array() AS STRING, s AS STRING)
  array(UBOUND(array)) = s
 END SUB
 
+FUNCTION str_array_findcasei (array() AS STRING, value AS STRING) AS INTEGER
+ DIM valuei AS STRING = LCASE(value)
+ FOR i AS INTEGER = LBOUND(array) TO UBOUND(array)
+  IF LCASE(array(i)) = value THEN RETURN i
+ NEXT
+ RETURN -1
+END FUNCTION
+
 SUB int_array_append (array() AS INTEGER, BYVAL k AS INTEGER)
  REDIM PRESERVE array(LBOUND(array) TO UBOUND(array) + 1) AS INTEGER
  array(UBOUND(array)) = k
@@ -769,12 +777,14 @@ SUB touchfile (filename as string)
   CLOSE #fh
 END SUB
 
-'Finds files in a directory, writing them one to a line in outfile
-'By default, find all files in directory, otherwise it is a case-insensitive filename mask
+'Finds files in a directory, writing them into an array without their path
+'filelist() must be resizeable; it'll be resized so that LBOUND = -1, with files, if any, in filelist(0) up
+'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask
 'filetype is one of fileTypeFile, fileTypeDirectory
-SUB findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, outfile AS STRING)
-  DIM AS STRING fmask = directory
-  IF RIGHT(fmask, 1) <> SLASH THEN fmask += SLASH
+SUB findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, filelist() AS STRING)
+  DIM AS STRING searchdir = directory
+  IF RIGHT(searchdir, 1) <> SLASH THEN searchdir += SLASH
+  REDIM filelist(-1 TO -1)
 
 #ifdef __UNIX__
   'this is super hacky, but works around the apparent uselessness of DIR
@@ -783,38 +793,30 @@ SUB findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetyp
   grep = "-v '/$'"
   IF filetype = fileTypeDirectory THEN grep = "'/$'"
   realmask = anycase(namemask)
-  fmask = """" + escape_string(fmask, """`\$") + """"
+  searchdir = """" + escape_string(searchdir, """`\$") + """"
   IF findhidden THEN
-    fmask = fmask + realmask + " " + fmask + "." + realmask
+    searchdir = searchdir + realmask + " " + searchdir + "." + realmask
   ELSE
-    fmask = fmask + realmask
+    searchdir = searchdir + realmask
   END IF
 
-  SHELL "ls -d1p " + fmask + " 2>/dev/null |grep "+ grep + ">" + shellout + " 2>&1"
-  DIM AS INTEGER f1, f2
+  SHELL "ls -d1p " + searchdir + " 2>/dev/null |grep "+ grep + ">" + shellout + " 2>&1"
+  DIM AS INTEGER f1
   f1 = FreeFile
   OPEN shellout FOR INPUT AS #f1
-  f2 = FreeFile
-  OPEN outfile FOR OUTPUT AS #f2
-  DIM s AS STRING
+  DIM filename AS STRING
   DO UNTIL EOF(f1)
-    LINE INPUT #f1, s
-    IF RIGHT(s, 3) = "/./" ORELSE RIGHT(s, 4) = "/../" _
-         ORELSE s = "/dev/" ORELSE s = "/proc/" ORELSE s = "/sys/" THEN CONTINUE DO
-    IF RIGHT(s, 1) = "/" THEN s = LEFT(s, LEN(s) - 1)
-    DO WHILE INSTR(s, "/")
-      s = RIGHT(s, LEN(s) - INSTR(s, "/"))
-    LOOP
-    PRINT #f2, s
+    LINE INPUT #f1, filename
+    IF RIGHT(filename, 3) = "/./" ORELSE RIGHT(filename, 4) = "/../" _
+         ORELSE filename = "/dev/" ORELSE filename = "/proc/" ORELSE filename = "/sys/" THEN CONTINUE DO
+    str_array_append filelist(), trimpath(s)
   LOOP
   CLOSE #f1
-  CLOSE #f2
   KILL shellout
 
 #else
   DIM foundfile AS STRING
   DIM attrib AS INTEGER
-  DIM AS INTEGER tempf, realf
   /'---DOS directory attributes
   CONST attribReadOnly = 1
   CONST attribHidden = 2
@@ -830,51 +832,31 @@ SUB findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetyp
     attrib = (253 XOR 16)
   END IF
   IF findhidden THEN attrib += 2
-  tempf = FreeFile
-  foundfile = DIR(fmask + namemask, attrib)
-  if foundfile = "" then
-    'create an empty file
-    OPEN outfile FOR OUTPUT AS #tempf
-    close #tempf
-    exit sub
-  end if
-  OPEN outfile + ".tmp" FOR OUTPUT AS #tempf
+  foundfile = DIR(searchdir + namemask, attrib)
+  IF foundfile = "" THEN EXIT SUB
+  REDIM tempfilelist(-1 TO -1) AS STRING
   DO UNTIL foundfile = ""
-    PRINT #tempf, foundfile
+    str_array_append tempfilelist(), foundfile
     foundfile = DIR '("", attrib)
   LOOP
-  CLOSE #tempf
-  OPEN outfile + ".tmp" FOR INPUT AS #tempf
-  realf = FREEFILE
-  OPEN outfile FOR OUTPUT AS #realf
-  DO UNTIL EOF(tempf)
-    LINE INPUT #tempf, foundfile
+  FOR i AS INTEGER = 0 TO UBOUND(tempfilelist)
+    foundfile = tempfilelist(i)
     IF filetype = fileTypeDirectory THEN
       'alright, we want directories, but DIR is too broken to give them to us
       'files with attribute 0 appear in the list, so single those out
-      IF DIR(fmask + foundfile, 55) <> "" AND DIR(fmask + foundfile, 39) = "" THEN PRINT #realf, foundfile
-    ELSE
-      PRINT #realf, foundfile
+      IF DIR(searchdir + foundfile, 55) = "" OR DIR(searchdir + foundfile, 39) <> "" THEN CONTINUE FOR
     END IF
-  LOOP
-  CLOSE #tempf
-  CLOSE #realf
-  KILL outfile + ".tmp"
+    str_array_append filelist(), foundfile
+  NEXT
 #endif
 END SUB
 
 SUB killdir(directory as string)
-  dim fh as integer
-  dim filename as string
-  findfiles directory, ALLFILES, fileTypeFile, -1, "filelist.tmp"
-  fh = FREEFILE
-  OPEN "filelist.tmp" FOR INPUT AS #fh
-  DO UNTIL EOF(fh)
-    LINE INPUT #fh, filename
-    KILL directory + SLASH + filename
-  LOOP
-  CLOSE #fh
-  KILL "filelist.tmp"
+  DIM filelist() as string
+  findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
+  FOR i as integer = 0 TO UBOUND(filelist)
+    KILL directory + SLASH + filelist(i)
+  NEXT
   IF RMDIR(directory) THEN
     'errno would get overwritten while building the error message
     DIM err_string AS STRING = *get_sys_err_string()
@@ -893,7 +875,10 @@ SUB makedir (directory as string)
   IF MKDIR(directory) THEN
     'errno would get overwritten while building the error message
     DIM err_string AS STRING = *get_sys_err_string()
-    debug "Could not mkdir(" & directory & "): " & err_string
+    'The heck? On Windows at least, MKDIR throws this false error
+    IF err_string <> "File exists" THEN
+     debug "Could not mkdir(" & directory & "): " & err_string
+    END IF
     EXIT SUB
   END IF
 #ifdef __FB_LINUX__

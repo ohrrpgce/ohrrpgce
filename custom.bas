@@ -201,15 +201,11 @@ touchfile workingdir + SLASH + "__danger.tmp"
 
 IF isdir(sourcerpg) THEN
  'work on an unlumped RPG file. Don't take hidden files
- findfiles sourcerpg, ALLFILES, fileTypeFile, NO, "filelist.tmp"
- fh = FREEFILE
- OPEN "filelist.tmp" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  LINE INPUT #fh, filename$
-  filecopy sourcerpg + SLASH + filename$, workingdir + SLASH + filename$
- LOOP
- CLOSE #fh
- KILL "filelist.tmp"
+ DIM filelist() AS STRING
+ findfiles sourcerpg, ALLFILES, fileTypeFile, NO, filelist()
+ FOR i = 0 TO UBOUND(filelist)
+  filecopy sourcerpg + SLASH + filelist(i), workingdir + SLASH + filelist(i)
+ NEXT
 ELSE
  unlump sourcerpg, workingdir + SLASH
 END IF
@@ -1044,33 +1040,28 @@ FUNCTION newRPGfile (templatefile$, newrpg$)
 END FUNCTION
 
 SUB dolumpfiles (filetolump$)
-'--build the list of files to lump. We don't need hidden files
-findfiles workingdir, ALLFILES, fileTypeFile, NO, "temp.lst"
-fixlumporder "temp.lst"
-IF isdir(filetolump$) THEN
- '---copy changed files back to source rpgdir---
- IF NOT fileiswriteable(filetolump$ & SLASH & "archinym.lmp") THEN
-  move_unwritable_rpg filetolump$
-  makedir filetolump$
+ '--build the list of files to lump. We don't need hidden files
+ DIM filelist() AS STRING
+ findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
+ fixlumporder filelist()
+ IF isdir(filetolump$) THEN
+  '---copy changed files back to source rpgdir---
+  IF NOT fileiswriteable(filetolump$ & SLASH & "archinym.lmp") THEN
+   move_unwritable_rpg filetolump$
+   makedir filetolump$
+  END IF
+  FOR i AS INTEGER = 0 TO UBOUND(filelist)
+   safekill filetolump$ + SLASH + filelist(i)
+   filecopy workingdir + SLASH + filelist(i), filetolump$ + SLASH + filelist(i)
+   'FIXME: move file instead? (warning: can't move from different mounted filesystem)
+  NEXT
+ ELSE
+  '---relump data into lumpfile package---
+  IF NOT fileiswriteable(filetolump$) THEN
+   move_unwritable_rpg filetolump$
+  END IF
+  lumpfiles filelist(), filetolump$, workingdir + SLASH
  END IF
- fh = FREEFILE
- OPEN "temp.lst" FOR INPUT AS #fh
- DO UNTIL EOF(fh)
-  LINE INPUT #fh, filename$
-  safekill filetolump$ + SLASH + filename$
-  filecopy workingdir + SLASH + filename$, filetolump$ + SLASH + filename$
-  'FIXME: move file?
- LOOP
- CLOSE #fh
- safekill "temp.lst"
-ELSE
- '---relump data into lumpfile package---
- IF NOT fileiswriteable(filetolump$) THEN
-  move_unwritable_rpg filetolump$
- END IF
- lumpfiles "temp.lst", filetolump$, workingdir + SLASH
- safekill "temp.lst"
-END IF
 END SUB
 
 FUNCTION readarchinym$ ()

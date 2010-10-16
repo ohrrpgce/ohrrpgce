@@ -113,6 +113,7 @@ TYPE IntStrPair
 END TYPE
 
 declare sub str_array_append (array() as string, s as string)
+declare function str_array_findcasei (array() as string, value as string) as integer
 declare sub int_array_append (array() as integer, byval k as integer)
 declare sub intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
 declare function int_array_find (array() as integer, byval value as integer) as integer
@@ -256,7 +257,7 @@ declare function is_absolute_path (sDir as string) as integer
 declare function parentdir (pathname as string, BYVAL upamount as integer = 1) as string
 declare function anycase (filename as string) as string
 declare sub touchfile (filename as string)
-declare sub findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, outfile AS STRING)
+declare sub findfiles (directory AS STRING, namemask AS STRING = ALLFILES, BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, filelist() AS STRING)
 declare sub killdir (directory as string)
 declare sub makedir (directory as string)
 declare sub safekill (f as string)

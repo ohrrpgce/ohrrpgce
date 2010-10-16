@@ -323,40 +323,36 @@ END SUB
 SUB browse_add_files(wildcard$, BYVAL filetype AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
 DIM bmpd AS BitmapInfoHeader
 DIM tempbuf(79)
-DIM f AS STRING
+DIM filename AS STRING
 
-DIM filelist AS STRING
-filelist = br.tmp + "hrbrowse.tmp"
-findfiles br.nowdir, wildcard$, filetype, br.showhidden, filelist
+DIM filelist() AS STRING
+findfiles br.nowdir, wildcard$, filetype, br.showhidden, filelist()
 
-
-DIM fh AS INTEGER = FREEFILE
-OPEN filelist FOR INPUT AS #fh
-DO UNTIL EOF(fh)
+FOR i AS INTEGER = 0 TO UBOUND(filelist)
  br.treesize = br.treesize + 1
  IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
  tree(br.treesize).kind = 3
- LINE INPUT #fh, tree(br.treesize).filename
- f = br.nowdir & tree(br.treesize).filename
+ tree(br.treesize).filename = filelist(i)
+ filename = br.nowdir & tree(br.treesize).filename
  '---music files
  IF br.special = 1 OR br.special = 5 THEN
-  IF validmusicfile(f, VALID_MUSIC_FORMAT) = 0 THEN
+  IF validmusicfile(filename, VALID_MUSIC_FORMAT) = 0 THEN
    tree(br.treesize).kind = 6
    tree(br.treesize).about = "Not a valid music file"
   END IF
  END IF
  IF br.special = 6 THEN
-  IF validmusicfile(f, VALID_FX_FORMAT) = 0 THEN
+  IF validmusicfile(filename, VALID_FX_FORMAT) = 0 THEN
    tree(br.treesize).kind = 6
    tree(br.treesize).about = "Not a valid sound effect file"
-  ELSEIF FILELEN(f) > 500 * 1024 AND justextension(tree(br.treesize).filename) <> "wav" THEN
+  ELSEIF FILELEN(filename) > 500 * 1024 AND justextension(filename) <> "wav" THEN
    tree(br.treesize).kind = 6
    tree(br.treesize).about = "File is too large (limit 500kB)"
   END IF
  END IF
  '---4-bit BMP browsing
  IF br.special = 2 THEN
-  IF bmpinfo(f, bmpd) THEN
+  IF bmpinfo(filename, bmpd) THEN
    IF bmpd.biBitCount <> 4 OR bmpd.biWidth > 320 OR bmpd.biHeight > 200 THEN
     tree(br.treesize).kind = 6
    END IF
@@ -366,7 +362,7 @@ DO UNTIL EOF(fh)
  END IF
  '---320x200x24/8bit BMP files
  IF br.special = 3 THEN
-  IF bmpinfo(f, bmpd) THEN
+  IF bmpinfo(filename, bmpd) THEN
    IF (bmpd.biBitCount <> 24 AND bmpd.biBitCount <> 8) OR bmpd.biWidth <> 320 OR bmpd.biHeight <> 200 THEN
     tree(br.treesize).kind = 6
    END IF
@@ -376,17 +372,17 @@ DO UNTIL EOF(fh)
  END IF
  '--master palettes  (why isn't this up there?)
  IF br.special = 4 THEN
-  IF LCASE$(justextension$(tree(br.treesize).filename)) = "mas" THEN
+  IF LCASE$(justextension$(filename)) = "mas" THEN
    DIM masfh AS INTEGER = FREEFILE
-   OPEN f FOR BINARY AS #masfh
+   OPEN filename FOR BINARY AS #masfh
    DIM a AS STRING = "       "
    GET #masfh, 1, a
    CLOSE #masfh
    IF a <> br.mashead AND a <> br.paledithead THEN
     tree(br.treesize).kind = 6
    END IF
-  ELSE
-   IF bmpinfo(f, bmpd) THEN
+  ELSE  'BMP as a master palette
+   IF bmpinfo(filename, bmpd) THEN
     IF (bmpd.biBitCount = 8 OR bmpd.biBitCount = 24 AND (bmpd.biWidth = 16 AND bmpd.biHeight = 16)) = 0 THEN tree(br.treesize).kind = 6
    ELSE
     br.treesize = br.treesize - 1
@@ -395,7 +391,7 @@ DO UNTIL EOF(fh)
  END IF
  '--RPG files
  IF br.special = 7 THEN
-  copylump f, "browse.txt", br.tmp, -1
+  copylump filename, "browse.txt", br.tmp, -1
   IF loadrecord(tempbuf(), br.tmp + "browse.txt", 40, , NO) THEN
    tree(br.treesize).caption = readbinstring(tempbuf(), 0, 38)
    tree(br.treesize).about = readbinstring(tempbuf(), 20, 38)
@@ -408,14 +404,12 @@ DO UNTIL EOF(fh)
  END IF
  '--RELOAD files
  IF br.special = 8 THEN
-  IF browse_sanity_check_reload(f, tree(br.treesize).about) = NO THEN
+  IF browse_sanity_check_reload(filename, tree(br.treesize).about) = NO THEN
    tree(br.treesize).kind = 6 'grey out bad ones
   END IF
  END IF
  draw_browse_meter br
-LOOP
-CLOSE #fh
-safekill filelist
+NEXT
 
 END SUB
 
@@ -606,14 +600,13 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    END IF
   LOOP
   '---FIND ALL SUB-DIRECTORIES IN THE CURRENT DIRECTORY---
-  findfiles br.nowdir, ALLFILES, fileTypeDirectory, br.showhidden, br.tmp + "hrbrowse.tmp"
-  DIM fh AS INTEGER = FREEFILE
-  OPEN br.tmp + "hrbrowse.tmp" FOR INPUT AS #fh
-  DO UNTIL EOF(fh)
+  DIM filelist() AS STRING
+  findfiles br.nowdir, ALLFILES, fileTypeDirectory, br.showhidden, filelist()
+  FOR i AS INTEGER = 0 TO UBOUND(filelist)
    br.treesize = br.treesize + 1
    IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
    tree(br.treesize).kind = 2
-   LINE INPUT #fh, tree(br.treesize).filename
+   tree(br.treesize).filename = filelist(i)
    IF tree(br.treesize).filename = "." OR tree(br.treesize).filename = ".." OR RIGHT$(tree(br.treesize).filename, 4) = ".tmp" THEN br.treesize = br.treesize - 1
    IF br.special = 7 THEN ' Special handling in RPG mode
     IF justextension$(tree(br.treesize).filename) = "rpgdir" THEN br.treesize = br.treesize - 1
@@ -626,8 +619,7 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    IF justextension$(tree(br.treesize).filename) = "app" THEN br.treesize = br.treesize - 1
 #ENDIF
    draw_browse_meter br
-  LOOP
-  CLOSE #fh
+  NEXT
   safekill br.tmp + "hrbrowse.tmp"
   '---FIND ALL FILES IN FILEMASK---
   DIM filetype AS INTEGER = fileTypeFile

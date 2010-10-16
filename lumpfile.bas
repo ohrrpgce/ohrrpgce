@@ -441,28 +441,20 @@ end function
 
 function indexunlumpeddir (whichdir as string) as LumpIndex ptr
 	dim index as LumpIndex ptr
-	dim fh as integer
-	dim filename as string
 
 	index = callocate(sizeof(LumpIndex))
 	construct_LumpIndex(*index)
 	index->unlumpeddir = whichdir
 
-	'ideally findfiles would have an overload to return files in an array, but that's a nontrivial project
-	findfiles whichdir, ALLFILES, fileTypeFile, NO, tmpdir + "filelist.tmp"
-	fh = freefile
-	open "filelist.tmp" for input as #fh
-	do until eof(fh)
-		line input #fh, filename
-		
+	dim filelist() as string
+	findfiles whichdir, ALLFILES, fileTypeFile, NO, filelist()
+	for i as integer = 0 to ubound(filelist)
 		dim lmp as FileLump ptr
 		lmp = callocate(sizeof(FileLump))
 		lmp->type = LT_FILE
-		lmp->lumpname = filename
+		lmp->lumpname = filelist(i)
 		LumpIndex_addlump(*index, cast(Lump ptr, lmp))
-	loop
-	close fh
-	kill "filelist.tmp"
+	next
 
 	return index
 end function
@@ -825,45 +817,36 @@ function islumpfile (lumpfile as string, fmask as string) as integer
 	close #lf
 end function
 
-sub lumpfiles (listf as string, lumpfile as string, path as string)
-	dim as integer lf, fl, tl	'lumpfile, filelist, tolump
+sub lumpfiles (filelist() as string, lumpfile as string, path as string)
+	dim as integer lf, tl  'lumpfile, tolump
 
 	dim dat as ubyte
 	dim size as integer
-	dim lumpname as string 'name of the file to lump
 	dim lname as string 'name actually written
 	dim bufr as ubyte ptr
 	dim csize as integer
 
-	fl = freefile
-	if open(listf for input as #fl) <> 0 then
-		exit sub
-	end if
-
 	lf = freefile
 	if open(lumpfile for binary access write as #lf) <> 0 then
 		debug "lumpfiles: Could not open file " + lumpfile
-		close #fl
 		exit sub
 	end if
 
 	bufr = callocate(16384)
 
 	'get file to lump
-	do until eof(fl)
-		line input #fl, lumpname
-
-		lname = ucase(lumpname)
+	for i as integer = 0 to ubound(filelist)
+		lname = ucase(filelist(i))
 		if len(lname) > 50 orelse lname <> exclusive(lname, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.") then
 			debug "lumpfiles: bad lump name '" & lname & "'"
-			continue do
+			continue for
 		end if
 
 		tl = freefile
-		open path + lumpname for binary access read as #tl
+		open path + filelist(i) for binary access read as #tl
 		if err <> 0 then
 			debug "failed to open " + path + lname + " for lumping"
-			continue do
+			continue for
 		end if
 
 		'write lump name
@@ -892,10 +875,9 @@ sub lumpfiles (listf as string, lumpfile as string, path as string)
 		wend
 
 		close #tl
-	loop
+	next
 
 	close #lf
-	close #fl
 
 	deallocate bufr
 end sub
@@ -971,55 +953,26 @@ function matchmask(match as string, mask as string) as integer
 	end if
 end function
 
-sub fixlumporder (f as string)
-	DIM AS INTEGER ofh, ifh
-        DIM AS STRING a, b, c
-	filecopy f$, "fixorder.tmp"
-	
-	ofh = FREEFILE
-	OPEN f$ FOR OUTPUT AS #ofh
-	
-	ifh = FREEFILE
-	OPEN "fixorder.tmp" FOR INPUT AS #ifh
-	
-	'--first output the archinym.lmp and browse.txt files
-	WHILE NOT EOF(ifh)
-		LINE INPUT #ifh, a$
-		b$ = LCASE$(a$)
-		IF b$ = "archinym.lmp" OR b$ = "browse.txt" THEN
-			PRINT #ofh, a$
-		END IF
-	WEND
-	
-	'--close and re-open
-	CLOSE #ifh
-	OPEN "fixorder.tmp" FOR INPUT AS #ifh
-	
-	'--output the other files, excluding illegal files
-	WHILE NOT EOF(ifh)
-		LINE INPUT #ifh, a$
-		b$ = LCASE$(a$)
-		SELECT CASE b$
-			CASE "archinym.lmp", "browse.txt"
-				'--do nothing
-			CASE ELSE
-				'--check extenstion
-				c$ = RIGHT$(b$, 4)
-				SELECT CASE c$
-					CASE ".tmp"
-						'--do nothing
-					CASE ELSE
-						'--output all other names
-						PRINT #ofh, a$
-				END SELECT
-		END SELECT
-	WEND
-	CLOSE #ifh
-	
-	CLOSE #ofh
-	
-	safekill "fixorder.tmp"
-END SUB
+'Given a list of lumps reorder them to speed up RPG browsing, and exclude *.tmp files
+sub fixlumporder (filelist() as string)
+	dim as integer temp, readpos, writepos
+
+	'--move archinym.lmp and browse.txt to front
+	temp = str_array_findcasei(filelist(), "browse.txt")
+	if temp > -1 then swap filelist(0), filelist(temp)
+	temp = str_array_findcasei(filelist(), "archinym.lmp")
+	if temp > -1 then swap filelist(1), filelist(temp)
+
+	'--exclude illegal *.tmp files; shuffle them to the end of the array, then trimming them
+	writepos = 0
+	for readpos = 0 to ubound(filelist)
+		if lcase(right(filelist(readpos), 4)) <> ".tmp" then
+			swap readpos, writepos
+			writepos += 1
+		end if
+	next
+	redim preserve filelist(-1 to writepos - 1)
+end sub
 
 '----------------------------------------------------------------------
 '                           BufferedFile

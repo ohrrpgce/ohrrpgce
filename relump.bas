@@ -67,11 +67,11 @@ END IF
 IF isdir(dest$) THEN fatalerror "destination file " + dest$ + " already exists as a folder."
 
 '--build the list of files to lump
-findfiles src$, ALLFILES, fileTypefile, NO, "temp.lst"
-fixlumporder "temp.lst"
+DIM filelist() as string
+findfiles src$, ALLFILES, fileTypefile, NO, filelist()
+fixlumporder filelist()
 '---relump data into lumpfile package---
-lumpfiles "temp.lst", dest$, src$ + SLASH
-KILL "temp.lst"
+lumpfiles filelist(), dest$, src$ + SLASH
 
 SYSTEM
 

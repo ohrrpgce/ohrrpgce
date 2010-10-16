@@ -152,11 +152,11 @@ declare sub storerecord overload (buf() as integer, filename as string, recordsi
 
 declare function indexunlumpeddir (whichdir as string) as LumpIndex ptr
 declare function indexlumpfile (lumpfile as string, byval keepopen as integer = YES) as LumpIndex ptr
-declare sub lumpfiles (listf as string, lump as string, path as string)
+declare sub lumpfiles (filelist() as string, lump as string, path as string)
 declare sub unlump(lump as string, ulpath as string)
 declare sub unlumpfile(lump as string, fmask as string, path as string)
 declare function islumpfile (lump as string, fmask as string) as integer
-declare sub fixlumporder (f as string)
+declare sub fixlumporder (filelist() as string)
 
 
 '----------------------------------------------------------------------
