@@ -1330,7 +1330,7 @@ FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
        CASE "menu tag"
         box.menu_tag = VALINT(v)
        CASE "menu"
-        box.menu_tag = VALINT(v)
+        box.menu = VALINT(v)
        CASE "next tag"
         box.after_tag = VALINT(v)
        CASE "next box"
