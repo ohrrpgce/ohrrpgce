@@ -284,7 +284,7 @@ SUB start_new_debug
    oldfile = log_dir & "c_debug_archive.txt"
  #ENDIF
  'If we just closed a debug file, don't archive it, or we'll never notice it
- IF lastlogfile = logfile THEN EXIT SUB
+ IF lastlogfile = absolute_path(logfile) THEN EXIT SUB
  IF NOT isfile(logfile) THEN EXIT SUB
 
  dlog = FREEFILE
@@ -340,7 +340,7 @@ SUB end_debug
    safekill log_dir & filename
  ELSE
    'Remember not to archive the log if we restart the log in the same directory
-   lastlogfile = log_dir & filename
+   lastlogfile = absolute_path(log_dir & filename)
  END IF
  importantdebug = 0
 END SUB

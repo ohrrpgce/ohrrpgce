@@ -729,6 +729,12 @@ FUNCTION is_absolute_path (sDir as string) as integer
   RETURN 0
 END FUNCTION
 
+'Make a path absolute. See also with_orig_dir in compat.bas
+FUNCTION absolute_path(pathname as string) as string
+  IF NOT is_absolute_path(pathname) THEN RETURN CURDIR & SLASH & pathname
+  RETURN pathname
+END FUNCTION
+
 'Go up a number of directories.
 'pathname is interpreted as a directory even if missing the final slash!
 'Warning, don't actually rely on . and .. being properly handled
