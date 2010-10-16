@@ -96,10 +96,6 @@ dim shared keybdstate(127) as integer  '"real"time keyboard array
 dim shared mouseflags as integer
 dim shared mouselastflags as integer
 
-dim shared stackbottom as ubyte ptr
-dim shared stackptr as ubyte ptr
-dim shared stacksize as integer
-
 dim shared textfg as integer
 dim shared textbg as integer
 dim shared fonts(2) as Font
@@ -162,7 +158,6 @@ sub setmodex()
 	gfx_backend_init(@post_terminate_signal, "FB_PROGRAM_ICON")
 
 	'init vars
-	stacksize = -1
 	for i as integer = 0 to 127
 		keybd(i) = 0
 		keybdstate(i) = 0
@@ -2091,49 +2086,6 @@ SUB setfont (f() as integer)
 	fonts(1).h += 2
 end SUB
 
-SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
-	dim mask as uinteger
-	dim woff as integer
-	dim wb as integer
-
-	woff = w + (b \ 16)
-	wb = b mod 16
-
-	if woff > ubound(bb) then
-		debug "setbit overflow: ub " & ubound(bb) & ", w " & w & ", b " & b & ", v " & v
-		exit sub
-	end if
-
-	mask = 1 shl wb
-	if v then
-		bb(woff) = bb(woff) or mask
-	else
-		mask = not mask
-		bb(woff) = bb(woff) and mask
-	end if
-end SUB
-
-FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as integer
-	dim mask as uinteger
-	dim woff as integer
-	dim wb as integer
-
-	woff = w + (b \ 16)
-	if woff > ubound(bb) then
-		debug "readbit overflow: ub " & ubound(bb) & ", w " & w & ", b " & b
-		return 0
-	end if
-	wb = b mod 16
-
-	mask = 1 shl wb
-
-	if (bb(woff) and mask) then
-		readbit = 1
-	else
-		readbit = 0
-	end if
-end FUNCTION
-
 SUB storeset (fil as string, BYVAL i as integer, BYVAL l as integer)
 ' i = index, l = line (only if reading from screen buffer)
 	dim f as integer
@@ -2491,150 +2443,6 @@ end FUNCTION
 FUNCTION readjoy (byval joynum as integer, byref buttons as integer, byref x as integer, byref y as integer) as integer
 	return io_readjoysane(joynum, buttons, x, y)
 end FUNCTION
-
-SUB array2str (arr() AS integer, BYVAL o AS integer, s$)
-'String s$ is already filled out with spaces to the requisite size
-'o is the offset in bytes from the start of the buffer
-'the buffer will be packed 2 bytes to an int, for compatibility, even
-'though FB ints are 4 bytes long  ** leave like this? not really wise
-	DIM i AS Integer
-	dim bi as integer
-	dim bp as integer ptr
-	dim toggle as integer
-
-	bp = @arr(0)
-	bi = o \ 2 'offset is in bytes
-	toggle = o mod 2
-
-	for i = 0 to len(s$) - 1
-		if toggle = 0 then
-			s$[i] = bp[bi] and &hff
-			toggle = 1
-		else
-			s$[i] = (bp[bi] and &hff00) shr 8
-			toggle = 0
-			bi = bi + 1
-		end if
-	next
-
-END SUB
-
-SUB str2array (s$, arr() as integer, BYVAL o as integer)
-'strangely enough, this does the opposite of the above
-	DIM i AS Integer
-	dim bi as integer
-	dim bp as integer ptr
-	dim toggle as integer
-
-	bp = @arr(0)
-	bi = o \ 2 'offset is in bytes
-	toggle = o mod 2
-
-	'debug "String is " + str$(len(s$)) + " chars"
-	for i = 0 to len(s$) - 1
-		if toggle = 0 then
-			bp[bi] = s$[i] and &hff
-			toggle = 1
-		else
-			bp[bi] = (bp[bi] and &hff) or (s$[i] shl 8)
-			'check sign
-			if (bp[bi] and &h8000) > 0 then
-				bp[bi] = bp[bi] or &hffff0000 'make -ve
-			end if
-			toggle = 0
-			bi = bi + 1
-		end if
-	next
-end SUB
-
-SUB setupstack ()
-	stackbottom = callocate(32768)
-	if (stackbottom = 0) then
-		'oh dear
-		debug "Not enough memory for stack"
-		exit sub
-	end if
-	stackptr = stackbottom
-	stacksize = 32768
-end SUB
-
-SUB pushw (BYVAL word as integer)
-	if stackptr - stackbottom > stacksize - 2 then
-		dim newptr as ubyte ptr
-		newptr = reallocate(stackbottom, stacksize + 32768)
-		if newptr = 0 then
-			debug "stack: out of memory"
-			exit sub
-		end if
-		stacksize += 32768
-		stackptr += newptr - stackbottom
-		stackbottom = newptr
-	end if
-	*cast(short ptr, stackptr) = word
-	stackptr += 2
-end SUB
-
-FUNCTION popw () as integer
-	dim pw as short
-
-	if (stackptr >= stackbottom + 2) then
-		stackptr -= 2
-		pw = *cast(short ptr, stackptr)
-	else
-		pw = 0
-		debug "underflow"
-	end if
-
-	popw = pw
-end FUNCTION
-
-SUB pushdw (BYVAL dword as integer)
-	if stackptr - stackbottom > stacksize - 4 then
-		dim newptr as ubyte ptr
-		newptr = reallocate(stackbottom, stacksize + 32768)
-		if newptr = 0 then
-			debug "stack: out of memory"
-			exit sub
-		end if
-		stacksize += 32768
-		stackptr += newptr - stackbottom
-		stackbottom = newptr
-	end if
-	*cast(integer ptr, stackptr) = dword
-	stackptr += 4
-end SUB
-
-FUNCTION popdw () as integer
-	dim pdw as integer
-
-	if (stackptr >= stackbottom - 4) then
-		stackptr -= 4
-		pdw = *cast(integer ptr, stackptr)
-	else
-		pdw = 0
-		debug "underflow"
-	end if
-
-	popdw = pdw
-end FUNCTION
-
-SUB releasestack ()
-	if stacksize > 0 then
-		deallocate stackbottom
-		stacksize = -1
-	end if
-end SUB
-
-FUNCTION stackpos () as integer
-	stackpos = stackptr - stackbottom
-end FUNCTION
-
-'read an int from the stack relative to current position (eg -1 is last word pushed - off should be negative)
-FUNCTION readstackdw (BYVAL off as integer) as integer
-	if stackptr + off * 4 >= stackbottom then
-		readstackdw = *cptr(integer ptr, stackptr + off * 4)
-	end if
-END FUNCTION
 
 function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byval overheadmode as integer, pmapptr as TileMap ptr) as integer
 'returns -1 to draw no tile

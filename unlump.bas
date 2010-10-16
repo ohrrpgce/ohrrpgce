@@ -13,16 +13,12 @@ DECLARE FUNCTION readkey$ ()
 DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
-'DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 'DECLARE FUNCTION readpassword$ ()
 
-DECLARE SUB setbit (b(), BYVAL w, BYVAL b, BYVAL v)
-DECLARE FUNCTION readbit (b(), BYVAL w, BYVAL b)
 DECLARE SUB unlump (lump$, ulpath$)
 DECLARE SUB unlumpfile (lump$, fmask$, path$)
 DECLARE FUNCTION islumpfile (lump$, fmask$)
-DECLARE SUB array2str (arr(), BYVAL o, s$)
 
 #include "compat.bi"
 #include "util.bi"
@@ -236,103 +232,6 @@ FOR i = LEN(s$) TO 1 STEP -1
 NEXT i
 
 END FUNCTION
-
-SUB xbload (f$, array(), e$)
-
-	IF isfile(f$) THEN
-		DIM ff%, byt as UByte, seg AS Short, offset AS Short, length AS Short
-		dim ilength as integer
-		dim i as integer
-
-		ff = FreeFile
-		OPEN f$ FOR BINARY AS #ff
-		GET #ff,, byt 'Magic number, always 253
-		IF byt <> 253 THEN fatalerror e$
-		GET #ff,, seg 'Segment, no use anymore
-		GET #ff,, offset 'Offset into the array, not used now
-		GET #ff,, length 'Length
-		'length is in bytes, so divide by 2, and subtract 1 because 0-based
-		ilength = (length / 2) - 1
-		
-		dim buf(ilength) as short
-		
-		GET #ff,, buf()
-		CLOSE #ff
-
-		for i = 0 to small(ilength, ubound(array))
-			array(i) = buf(i)	
-		next i
-		
-		ELSE
-		fatalerror e$
-	END IF
-
-END SUB
-
-FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as integer
-	dim mask as uinteger
-	dim woff as integer
-	dim wb as integer
-
-	woff = w + (b \ 16)
-	wb = b mod 16
-
-	mask = 1 shl wb
-
-	if (bb(woff) and mask) then
-		readbit = 1
-	else
-		readbit = 0
-	end if
-end FUNCTION
-
-SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
-	dim mask as uinteger
-	dim woff as integer
-	dim wb as integer
-
-	woff = w + (b \ 16)
-	wb = b mod 16
-
-	if woff > ubound(bb) then
-		exit sub
-	end if
-
-	mask = 1 shl wb
-	if v = 1 then
-		bb(woff) = bb(woff) or mask
-	else
-		mask = not mask
-		bb(woff) = bb(woff) and mask
-	end if
-end SUB
-
-SUB array2str (arr() AS integer, BYVAL o AS integer, s$)
-'String s$ is already filled out with spaces to the requisite size
-'o is the offset in bytes from the start of the buffer
-'the buffer will be packed 2 bytes to an int, for compatibility, even
-'though FB ints are 4 bytes long  ** leave like this? not really wise
-	DIM i AS Integer
-	dim bi as integer
-	dim bp as integer ptr
-	dim toggle as integer
-
-	bp = @arr(0)
-	bi = o \ 2 'offset is in bytes
-	toggle = o mod 2
-
-	for i = 0 to len(s$) - 1
-		if toggle = 0 then
-			s$[i] = bp[bi] and &hff
-			toggle = 1
-		else
-			s$[i] = (bp[bi] and &hff00) shr 8
-			toggle = 0
-			bi = bi + 1
-		end if
-	next
-
-END SUB
 
 function matchmask(match as string, mask as string) as integer
 	dim i as integer

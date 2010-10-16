@@ -83,8 +83,6 @@ DECLARE SUB printstr OVERLOAD (s as string, BYVAL x as integer, BYVAL y as integ
 DECLARE SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer, BYVAL withtags as integer = NO)
 DECLARE SUB textcolor (BYVAL f as integer, BYVAL b as integer)
 DECLARE SUB setfont (f() as integer)
-DECLARE SUB setbit (b() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
-DECLARE FUNCTION readbit (b() as integer, BYVAL w as integer, BYVAL b as integer) as integer
 DECLARE SUB storeset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB loadset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
@@ -109,16 +107,6 @@ DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
 DECLARE SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, BYVAL o as integer)
 DECLARE FUNCTION nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapInfoHeader) as integer
-DECLARE SUB array2str (arr() as integer, BYVAL o as integer, s as string)
-DECLARE SUB str2array (s as string, arr() as integer, BYVAL o as integer)
-DECLARE SUB setupstack ()
-DECLARE SUB pushw (BYVAL word as integer)
-DECLARE FUNCTION popw () as integer
-DECLARE SUB pushdw (BYVAL word as integer)
-DECLARE FUNCTION popdw () as integer
-DECLARE SUB releasestack ()
-DECLARE FUNCTION stackpos () as integer
-DECLARE FUNCTION readstackdw (BYVAL off as integer) as integer
 DECLARE FUNCTION isawav(fi as string) as integer
 
 DECLARE FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as integer = 0) as integer

@@ -20,12 +20,17 @@ OPTION EXPLICIT
 #if defined(IS_GAME) OR defined(IS_CUSTOM)
  DECLARE SUB debug (s as string)
  DECLARE SUB debuginfo (s as string)
+ DECLARE SUB fatalerror (s as string)
 #else
  PRIVATE SUB debug (s as string)
   PRINT s
  END SUB
  PRIVATE SUB debuginfo (s as string)
   PRINT s
+ END SUB
+ PRIVATE SUB fatalerror (s as string)
+  PRINT s
+  SYSTEM
  END SUB
 #endif
 
@@ -184,6 +189,8 @@ FUNCTION exclusive (s as string, x as string) as string
  RETURN outf
 END FUNCTION
 
+'------------- Stack -------------
+
 SUB createstack (st as Stack)
   WITH st
     .size = STACK_SIZE_INC - 4
@@ -223,6 +230,103 @@ SUB checkoverflow (st as Stack, byval amount as integer = 1)
     END IF
   END WITH
 END SUB
+
+'------------- Old allmodex stack  -------------
+
+dim shared stackbottom as ubyte ptr
+dim shared stackptr as ubyte ptr
+dim shared stacksize as integer = -1
+
+SUB setupstack ()
+	stackbottom = callocate(32768)
+	if (stackbottom = 0) then
+		'oh dear
+		debug "Not enough memory for stack"
+		exit sub
+	end if
+	stackptr = stackbottom
+	stacksize = 32768
+end SUB
+
+SUB pushw (BYVAL word as integer)
+	if stackptr - stackbottom > stacksize - 2 then
+		dim newptr as ubyte ptr
+		newptr = reallocate(stackbottom, stacksize + 32768)
+		if newptr = 0 then
+			debug "stack: out of memory"
+			exit sub
+		end if
+		stacksize += 32768
+		stackptr += newptr - stackbottom
+		stackbottom = newptr
+	end if
+	*cast(short ptr, stackptr) = word
+	stackptr += 2
+end SUB
+
+FUNCTION popw () as integer
+	dim pw as short
+
+	if (stackptr >= stackbottom + 2) then
+		stackptr -= 2
+		pw = *cast(short ptr, stackptr)
+	else
+		pw = 0
+		debug "underflow"
+	end if
+
+	popw = pw
+end FUNCTION
+
+SUB pushdw (BYVAL dword as integer)
+	if stackptr - stackbottom > stacksize - 4 then
+		dim newptr as ubyte ptr
+		newptr = reallocate(stackbottom, stacksize + 32768)
+		if newptr = 0 then
+			debug "stack: out of memory"
+			exit sub
+		end if
+		stacksize += 32768
+		stackptr += newptr - stackbottom
+		stackbottom = newptr
+	end if
+	*cast(integer ptr, stackptr) = dword
+	stackptr += 4
+end SUB
+
+FUNCTION popdw () as integer
+	dim pdw as integer
+
+	if (stackptr >= stackbottom - 4) then
+		stackptr -= 4
+		pdw = *cast(integer ptr, stackptr)
+	else
+		pdw = 0
+		debug "underflow"
+	end if
+
+	popdw = pdw
+end FUNCTION
+
+SUB releasestack ()
+	if stacksize > 0 then
+		deallocate stackbottom
+		stacksize = -1
+	end if
+end SUB
+
+FUNCTION stackpos () as integer
+	stackpos = stackptr - stackbottom
+end FUNCTION
+
+'read an int from the stack relative to current position (eg -1 is last word pushed - off should be negative)
+FUNCTION readstackdw (BYVAL off as integer) as integer
+	if stackptr + off * 4 >= stackbottom then
+		readstackdw = *cptr(integer ptr, stackptr + off * 4)
+	end if
+END FUNCTION
+
+'------------- End allmodex stack -------------
 
 FUNCTION sign_string(n AS INTEGER, neg_str AS STRING, zero_str AS STRING, pos_str AS STRING) AS STRING
  IF n < 0 THEN RETURN neg_str
@@ -1050,3 +1154,172 @@ FUNCTION hash_iter(byref this as HashTable, byref state as integer, byref item a
   item = HTCASTUSERPTR(it)
   return item
 END FUNCTION
+
+
+'------------- Old allmodex stuff -------------
+
+SUB array2str (arr() as integer, byval o as integer, s as string)
+'String s$ is already filled out with spaces to the requisite size
+'o is the offset in bytes from the start of the buffer
+'the buffer will be packed 2 bytes to an int, for compatibility, even
+'though FB ints are 4 bytes long  ** leave like this? not really wise
+	dim i as integer
+	dim bi as integer
+	dim bp as integer ptr
+	dim toggle as integer
+
+	bp = @arr(0)
+	bi = o \ 2 'offset is in bytes
+	toggle = o mod 2
+
+	for i = 0 to len(s$) - 1
+		if toggle = 0 then
+			s$[i] = bp[bi] and &hff
+			toggle = 1
+		else
+			s$[i] = (bp[bi] and &hff00) shr 8
+			toggle = 0
+			bi = bi + 1
+		end if
+	next
+
+END SUB
+
+SUB str2array (s as string, arr() as integer, byval o as integer)
+'strangely enough, this does the opposite of the above
+	dim i as integer
+	dim bi as integer
+	dim bp as integer ptr
+	dim toggle as integer
+
+	bp = @arr(0)
+	bi = o \ 2 'offset is in bytes
+	toggle = o mod 2
+
+	'debug "String is " + str$(len(s$)) + " chars"
+	for i = 0 to len(s$) - 1
+		if toggle = 0 then
+			bp[bi] = s$[i] and &hff
+			toggle = 1
+		else
+			bp[bi] = (bp[bi] and &hff) or (s$[i] shl 8)
+			'check sign
+			if (bp[bi] and &h8000) > 0 then
+				bp[bi] = bp[bi] or &hffff0000 'make -ve
+			end if
+			toggle = 0
+			bi = bi + 1
+		end if
+	next
+end SUB
+
+SUB xbload (filename as string, array() as integer, e as string)
+	IF isfile(filename) THEN
+		dim ff as integer, byt as ubyte, seg as short, offset as short, length as short
+		dim ilength as integer
+		dim i as integer
+		
+		ff = FreeFile
+		OPEN filename FOR BINARY AS #ff
+		GET #ff,, byt 'Magic number, always 253
+		IF byt <> 253 THEN fatalerror e$
+		GET #ff,, seg 'Segment, no use anymore
+		GET #ff,, offset 'Offset into the array, not used now
+		GET #ff,, length 'Length
+		'length is in bytes, so divide by 2, and subtract 1 because 0-based
+		ilength = (length / 2) - 1
+
+		dim buf(ilength) as short
+
+		GET #ff,, buf()
+		CLOSE #ff
+
+		for i = 0 to small(ilength, ubound(array))
+			array(i) = buf(i)
+		next i
+
+	ELSE
+		fatalerror e$
+	END IF
+END SUB
+
+SUB xbsave (filename as string, array() as integer, bsize as integer)
+	dim ff as integer, byt as UByte, seg AS uShort, offset AS Short, length AS Short
+	dim ilength as integer
+	dim i as integer
+	dim needbyte as integer
+	
+	seg = &h9999
+	offset = 0
+	'Because we're working with a short array, but the data is in bytes
+	'we need to check if there's an odd size, and therefore a spare byte
+	'we'll need to add at the end.
+	ilength = (bsize \ 2) - 1	'will lose an odd byte in the division
+	needbyte = bsize mod 2		'write an extra byte at the end?
+	length = bsize	'bsize is in bytes
+	byt = 253
+
+	'copy array to shorts
+	DIM buf(ilength) as short
+	for i = 0 to small(ilength, ubound(array))
+		buf(i) = array(i)
+	next
+
+	ff = FreeFile
+	OPEN filename FOR BINARY ACCESS write AS #ff
+	PUT #ff, , byt				'Magic number
+	PUT #ff, , seg				'segment - obsolete
+	PUT #ff, , offset			'offset - obsolete
+	PUT #ff, , length			'size in bytes
+
+	PUT #ff,, buf()
+	if needbyte = 1 then
+		i = small(ilength + 1, ubound(array)) 'don't overflow
+		byt = array(i) and &hff
+		put #ff, , byt
+	end if
+	CLOSE #ff
+END SUB
+
+SUB setbit (bb() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
+	dim mask as uinteger
+	dim woff as integer
+	dim wb as integer
+
+	woff = w + (b \ 16)
+	wb = b mod 16
+
+	if woff > ubound(bb) then
+		debug "setbit overflow: ub " & ubound(bb) & ", w " & w & ", b " & b & ", v " & v
+		exit sub
+	end if
+
+	mask = 1 shl wb
+	if v then
+		bb(woff) = bb(woff) or mask
+	else
+		mask = not mask
+		bb(woff) = bb(woff) and mask
+	end if
+end SUB
+
+FUNCTION readbit (bb() as integer, BYVAL w as integer, BYVAL b as integer)  as integer
+	dim mask as uinteger
+	dim woff as integer
+	dim wb as integer
+
+	woff = w + (b \ 16)
+	if woff > ubound(bb) then
+		debug "readbit overflow: ub " & ubound(bb) & ", w " & w & ", b " & b
+		return 0
+	end if
+	wb = b mod 16
+
+	mask = 1 shl wb
+
+	if (bb(woff) and mask) then
+		readbit = 1
+	else
+		readbit = 0
+	end if
+end FUNCTION

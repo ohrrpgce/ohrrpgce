@@ -121,6 +121,8 @@ declare sub int_array_remove (array() as integer, byval k as integer)
 
 '--------------- Stack ----------------
 
+
+'New stack
 TYPE Stack
   pos as integer ptr
   bottom as integer ptr
@@ -135,6 +137,16 @@ declare sub checkoverflow (st as Stack, byval amount as integer = 1)
 'read from a stack offset from the last push (eg. 0 is last int pushed, -1 is previous)
 #define reads(stack, off) stack.pos[(off) - 1]
 #define checkunderflow(stack, amount) ((stack).pos - (amount) < (stack).bottom)
+
+'Old allmodex stack (FIXME: get rid of this)
+declare sub setupstack ()
+declare sub pushw (BYVAL word as integer)
+declare function popw () as integer
+declare sub pushdw (BYVAL word as integer)
+declare function popdw () as integer
+declare sub releasestack ()
+declare function stackpos () as integer
+declare function readstackdw (BYVAL off as integer) as integer
 
 
 '------------ String Cache ------------
@@ -292,5 +304,18 @@ declare function strhash overload (hstr as string) as unsigned integer
 
 'Euclidean modulo (always positive)
 #DEFINE POSMOD(dividend, divisor) ((((dividend) MOD (divisor)) + (divisor)) MOD (divisor))
+
+
+'----------------------------------------------------------------------
+'                        Old allmodex functions
+
+
+DECLARE SUB xbload (f as string, array() as integer, e as string)
+DECLARE SUB xbsave (f as string, array() as integer, bsize as integer)
+DECLARE SUB setbit (b() as integer, BYVAL w as integer, BYVAL b as integer, BYVAL v as integer)
+DECLARE FUNCTION readbit (b() as integer, BYVAL w as integer, BYVAL b as integer) as integer
+DECLARE SUB array2str (arr() as integer, BYVAL o as integer, s as string)
+DECLARE SUB str2array (s as string, arr() as integer, BYVAL o as integer)
+
 
 #ENDIF

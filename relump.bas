@@ -14,7 +14,6 @@ DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
 DECLARE FUNCTION getcurdir$ ()
-'DECLARE SUB xbload (f$, array%(), e$)
 DECLARE SUB fixorder (f$)
 DECLARE SUB lumpfiles (listf$, lump$, path$)
 
@@ -123,38 +122,6 @@ FOR i = LEN(s$) TO 1 STEP -1
 NEXT i
 
 END FUNCTION
-
-SUB xbload (f$, array(), e$)
-
-	IF isfile(f$) THEN
-		DIM ff%, byt as UByte, seg AS Short, offset AS Short, length AS Short
-		dim ilength as integer
-		dim i as integer
-
-		ff = FreeFile
-		OPEN f$ FOR BINARY AS #ff
-		GET #ff,, byt 'Magic number, always 253
-		IF byt <> 253 THEN fatalerror e$
-		GET #ff,, seg 'Segment, no use anymore
-		GET #ff,, offset 'Offset into the array, not used now
-		GET #ff,, length 'Length
-		'length is in bytes, so divide by 2, and subtract 1 because 0-based
-		ilength = (length / 2) - 1
-		
-		dim buf(ilength) as short
-		
-		GET #ff,, buf()
-		CLOSE #ff
-
-		for i = 0 to small(ilength, ubound(array))
-			array(i) = buf(i)	
-		next i
-		
-		ELSE
-		fatalerror e$
-	END IF
-
-END SUB
 
 function matchmask(match as string, mask as string) as integer
 	dim i as integer
