@@ -360,6 +360,7 @@ SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 	end if
 
 	for i = 1 to 32
+		setwait 22 ' aim to complete fade in 700ms
 		for j = 0 to 255
 			'red
 			diff = intpal(j).r - red
@@ -386,10 +387,13 @@ SUB fadeto (BYVAL red as integer, BYVAL green as integer, BYVAL blue as integer)
 		mutexlock keybdmutex
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
-		sleep 15 'how long?
+		dowait
 	next
-
 	'Make sure the palette gets set on the final pass
+
+	'This function was probably called in the middle of timed loop, call
+	'setwait to avoid "dowait without setwait" warnings
+	setwait 0
 end SUB
 
 SUB fadetopal (pal() as RGBcolor)
@@ -405,6 +409,7 @@ SUB fadetopal (pal() as RGBcolor)
 	end if
 
 	for i = 1 to 32
+		setwait 22 ' aim to complete fade in 700ms
 		for j = 0 to 255
 			'red
 			diff = intpal(j).r - pal(j).r
@@ -431,8 +436,12 @@ SUB fadetopal (pal() as RGBcolor)
 		mutexlock keybdmutex
 		gfx_setpal(@intpal(0))
 		mutexunlock keybdmutex
-	sleep 15 'how long?
+		dowait
 	next
+
+	'This function was probably called in the middle of timed loop, call
+	'setwait to avoid "dowait without setwait" warnings
+	setwait 0
 end SUB
 
 #define POINT_CLIPPED(x, y) ((x) < clipl orelse (x) > clipr orelse (y) < clipt orelse (y) > clipb)
