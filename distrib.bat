@@ -71,6 +71,7 @@ support\cp IMPORTANT-nightly.txt tmpdist
 support\cp LICENSE-binary.txt tmpdist
 support\cp SDL.dll tmpdist
 support\cp SDL_mixer.dll tmpdist
+support\cp gfx_directx.dll tmpdist
 mkdir tmpdist\support
 support\cp support\madplay.exe tmpdist\support
 support\cp support\LICENSE-madplay.txt tmpdist\support

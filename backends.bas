@@ -361,8 +361,10 @@ sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windo
 					queue_error = info_buffer
 					debug queue_error
 				else
-					gfxbackendinfo += info_buffer
-					debuginfo gfxbackendinfo
+					if len(info_buffer) then
+						gfxbackendinfo += " """ + info_buffer + """"
+						debuginfo gfxbackendinfo
+					end if
 					exit sub
 				end if
 			end if

@@ -72,7 +72,11 @@ ifndef OHRGFX
 ifdef mac
 	OHRGFX:=sdl
 else
+ifdef unix
 	OHRGFX:=sdl+fb
+else
+	OHRGFX:=directx+sdl+fb
+endif
 endif
 endif
 
@@ -109,7 +113,7 @@ endif
 endif
 
 ifeq ($(findstring sdlpp,$(OHRGFX)), sdlpp)
-#nothing needed?
+#nothing needed
 endif
 
 

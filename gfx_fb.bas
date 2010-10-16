@@ -57,7 +57,7 @@ function gfx_fb_init(byval terminate_signal_handler as sub cdecl (), byval windo
 		dim bpp as integer 'bits, not bytes. see, bits is b, bytes is B
 		dim driver as string
 		screeninfo , , bpp, , , , driver
-		*info_buffer = MID(", " & bpp & "bpp, " & driver & " driver", 1, info_buffer_size)
+		*info_buffer = MID(bpp & "bpp, " & driver & " driver", 1, info_buffer_size)
 	end if
 	return 1
 end function

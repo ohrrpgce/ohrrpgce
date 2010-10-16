@@ -30,7 +30,7 @@ goto trygfx
 :endgfxbackends
 if not "%GFX_MODULES%"=="" goto nogfxgiven
 set GFX_XTRAS=gfx_fb.bas gfx_sdl.bas
-set GFX_MODULES=sdl+directx+fb
+set GFX_MODULES=directx+sdl+fb
 :nogfxgiven
 if "%1"=="~" shift
 

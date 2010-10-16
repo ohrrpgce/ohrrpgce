@@ -121,6 +121,7 @@ getdefaultfont font()
 
 setmodex
 setpal master()
+setwindowtitle "O.H.R.RPG.C.E"
 setfont font()
 textcolor uilook(uiText), 0
 
@@ -188,7 +189,7 @@ debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 debuginfo "Editing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
-setwindowtitle "OHRRPGCE - " + sourcerpg
+setwindowtitle "O.H.R.RPG.C.E - " + sourcerpg
 
 GOSUB checkpass
 

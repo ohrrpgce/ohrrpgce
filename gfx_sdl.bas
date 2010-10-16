@@ -220,7 +220,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
 
   IF SDL_WasInit(0) = 0 THEN
     DIM ver as SDL_version ptr = SDL_Linked_Version()
-    *info_buffer = MID(", SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
+    *info_buffer = MID("SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
     IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK) THEN
       *info_buffer = MID("Can't start SDL (video): " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
       RETURN 0

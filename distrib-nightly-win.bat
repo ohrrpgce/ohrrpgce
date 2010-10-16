@@ -12,6 +12,7 @@ CALL distrib.bat nightly
 CALL distver.bat
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-wip-win-installer.exe
 
+REM This build is a copy of the default
 del game*.exe
 del custom*.exe
 call makeboth.bat directx sdl fb ~ sdl
@@ -21,6 +22,11 @@ del game*.exe
 del custom*.exe
 call makeboth.bat directx fb ~ native
 call nightly-gfx-music directx native ~ gfx_directx.dll audiere.dll
+
+del game*.exe
+del custom*.exe
+call makeboth.bat directx fb ~ native2
+call nightly-gfx-music directx native2 ~ gfx_directx.dll audiere.dll
 
 del game*.exe
 del custom*.exe
@@ -39,13 +45,13 @@ call nightly-gfx-music fb native2 ~ audiere.dll
 
 del game*.exe
 del custom*.exe
-call makeboth.bat alleg directx fb ~ native
-call nightly-gfx-music alleg native ~ alleg40.dll audiere.dll
+call makeboth.bat alleg directx fb sdl ~ sdl
+call nightly-gfx-music alleg sdl ~ alleg40.dll SDL.dll SDL_mixer.dll 
 
 del game*.exe
 del custom*.exe
-call makeboth.bat alleg directx fb sdl ~ sdl
-call nightly-gfx-music alleg sdl ~ alleg40.dll SDL.dll SDL_mixer.dll 
+call makeboth.bat alleg directx fb ~ native
+call nightly-gfx-music alleg native ~ alleg40.dll audiere.dll
 
 del game*.exe
 del custom*.exe
@@ -69,23 +75,23 @@ call nightly-gfx-music sdl native2 ~ audiere.dll SDL.dll
 
 del game*.exe
 del custom*.exe
-call makeboth.bat sdl directx fb ~ silence
-call nightly-gfx-music sdl silence ~ SDL.dll
+call makeboth.bas directx sdl fb ~ silence
+call nightly-gfx-music directx silence ~ SDL.dll gfx_directx.dll
 
 del game*.exe
 del custom*.exe
-call makeboth.bat sdl directx fb ~ sdl -g
-call nightly-gfx-music sdl sdl -debug SDL.dll SDL_mixer.dll 
+call makeboth.bat directx sdl fb ~ sdl -g
+call nightly-gfx-music directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll
 
 del game*.exe
 del custom*.exe
-call makeboth.bat sdl directx fb ~ sdl -g -exx -s console
-call nightly-gfx-music sdl sdl -debug-exx SDL.dll SDL_mixer.dll 
+call makeboth.bat directx sdl fb ~ sdl -g -exx -s console
+call nightly-gfx-music directx sdl -debug-exx SDL.dll SDL_mixer.dll gfx_directx.dll
 
 del game*.exe
 del custom*.exe
-call makeboth.bat sdl directx fb ~ sdl -g -d SCRIPTPROFILE
-call nightly-gfx-music sdl sdl -scriptprofile SDL.dll SDL_mixer.dll 
+call makeboth.bat directx sdl fb ~ sdl -g -d SCRIPTPROFILE
+call nightly-gfx-music directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
 
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/

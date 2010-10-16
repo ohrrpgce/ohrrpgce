@@ -34,7 +34,10 @@ svn = ARGUMENTS.get ('svn','svn')
 fbc = ARGUMENTS.get ('fbc','fbc')
 git = ARGUMENTS.get ('git','git')
 # eg. pass gfx=sdl+fb for the default behaviour.
-gfx = ARGUMENTS.get ('gfx', env.get ('OHRGFX','sdl+fb'))
+if unix:
+    gfx = ARGUMENTS.get ('gfx', env.get ('OHRGFX','sdl+fb'))
+else:
+    gfx = ARGUMENTS.get ('gfx', env.get ('OHRGFX','directx+sdl+fb'))
 music = ARGUMENTS.get ('music', env.get ('OHRMUSIC','sdl'))
 # handle OHRMUSIC/GFX which is blank
 # (ie is set to '', rather than not existing.)
