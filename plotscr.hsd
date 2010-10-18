@@ -774,52 +774,52 @@ end
 
 script,set battle wait mode,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=1)
-  write general(101,(read general(101),and,32766)+hsd:bit)
+  write general(101,(read general(101),and,-2)+hsd:bit)
 end
 
 script,set caterpillar mode,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=2)
-  write general(101,(read general(101),and,32765)+hsd:bit)
+  write general(101,(read general(101),and,-3)+hsd:bit)
 end
 
 script,set no HP level up restore,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=4)
-  write general(101,(read general(101),and,32763)+hsd:bit)
+  write general(101,(read general(101),and,-5)+hsd:bit)
 end
 
 script,set no MP level up restore,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=8)
-  write general(101,(read general(101),and,32759)+hsd:bit)
+  write general(101,(read general(101),and,-9)+hsd:bit)
 end
 
 script,set inn no revive mode,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=16)
-  write general(101,(read general(101),and,32751)+hsd:bit)
+  write general(101,(read general(101),and,-17)+hsd:bit)
 end
 
 script,set full hero swap mode,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=32)
-  write general(101,(read general(101),and,32735)+hsd:bit)
+  write general(101,(read general(101),and,-33)+hsd:bit)
 end
 
 script,hide battle ready meter,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=64)
-  write general(101,(read general(101),and,32703)+hsd:bit)
+  write general(101,(read general(101),and,-65)+hsd:bit)
 end
 
 script,hide battle health meter,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=128)
-  write general(101,(read general(101),and,32639)+hsd:bit)
+  write general(101,(read general(101),and,-129)+hsd:bit)
 end
 
 script,set debug keys disable,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=256)
-  write general(101,(read general(101),and,32511)+hsd:bit)
+  write general(101,(read general(101),and,-257)+hsd:bit)
 end
 
 script,set dead heroes gain experience,hsd:bit=1,begin
   if(hsd:bit) then(hsd:bit:=8)
-  write general(177,(read general(177),and,32759)+hsd:bit)
+  write general(177,(read general(177),and,-9)+hsd:bit)
 end
 
 script, get hero stat cap, hsd:stat, begin
