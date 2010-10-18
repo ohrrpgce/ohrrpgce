@@ -816,7 +816,7 @@ SUB findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS I
     LINE INPUT #f1, filename
     IF RIGHT(filename, 3) = "/./" ORELSE RIGHT(filename, 4) = "/../" _
          ORELSE filename = "/dev/" ORELSE filename = "/proc/" ORELSE filename = "/sys/" THEN CONTINUE DO
-    str_array_append filelist(), trimpath(s)
+    str_array_append filelist(), trimpath(filename)
   LOOP
   CLOSE #f1
   KILL shellout
