@@ -3423,16 +3423,16 @@ SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
  END WITH
 END SUB
 
-FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTRING PTR, context AS ZSTRING PTR=nulzstr, fromscript AS INTEGER=YES) AS INTEGER
+FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTRING PTR, context AS ZSTRING PTR=nulzstr, fromscript AS INTEGER=YES, errlvl AS INTEGER = 4) AS INTEGER
  'This function takes zstring ptr arguments because passing strings is actually really expensive
  '(it performs an allocation, copy, delete), and would be easily noticeable by scripts.
  IF n < min OR n > max THEN
 #IFDEF IS_GAME
   IF fromscript THEN
    IF *context = "" ANDALSO curcmd->kind = tyfunct THEN
-    scripterr commandname(curcmd->value) + ": invalid " & *argname & " " & n, 4
+    scripterr commandname(curcmd->value) + ": invalid " & *argname & " " & n, errlvl
    ELSE
-    scripterr *context & ": invalid " & *argname & " " & n, 4
+    scripterr *context & ": invalid " & *argname & " " & n, errlvl
    END IF
    RETURN NO
   END IF

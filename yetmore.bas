@@ -2519,7 +2519,7 @@ SELECT CASE AS CONST id
    IF retvals(1) = -1 THEN scriptret = found  'getcount
   END IF
  CASE 470'--allocate timers
-  IF bound_arg(retvals(0), 0, 100000, "number of timers") THEN
+  IF bound_arg(retvals(0), 0, 100000, "number of timers", , , 5) THEN
    REDIM PRESERVE timers(large(0, retvals(0) - 1))
    IF retvals(0) = 0 THEN
     'Unfortunately, have to have at least one timer. Deactivate/blank it, in case the player
@@ -2551,6 +2551,54 @@ SELECT CASE AS CONST id
    END IF
   END IF
 '/
+ CASE 480'--read zone (id, x, y)
+  IF valid_zone(retvals(0)) THEN
+   IF valid_tile_pos(retvals(1), retvals(2)) THEN
+    scriptret = IIF(CheckZoneAtTile(zmap, retvals(0), retvals(1), retvals(2)), 1, 0)
+   END IF
+  END IF
+ CASE 481'--write zone (id, x, y, value)
+  IF valid_zone(retvals(0)) THEN
+   IF valid_tile_pos(retvals(1), retvals(2)) THEN
+    IF retvals(3) THEN
+     IF SetZoneTile(zmap, retvals(0), retvals(1), retvals(2)) = 0 THEN
+      scriptret = 1
+      'Is error level 2 the best for commands which fail? Do we need another?
+      scripterr "writezone: the maximum number of zones, 15, already overlap at " & retvals(1) & "," & retvals(2) & "; attempt to add another failed", 2
+     END IF
+    ELSE
+     UnsetZoneTile(zmap, retvals(0), retvals(1), retvals(2))
+    END IF
+   END IF
+  END IF
+ CASE 482'--zone at spot (x, y, count)
+  IF valid_tile_pos(retvals(0), retvals(1)) THEN
+   DIM zoneshere() as integer
+   GetZonesAtTile(zmap, zoneshere(), retvals(0), retvals(1))
+   IF retvals(2) = -1 THEN  'getcount
+    scriptret = UBOUND(zoneshere)
+   ELSEIF retvals(2) < -1 THEN
+    scripterr "zone at spot: bad 'count' argument " & retvals(2), 5
+   ELSE
+    IF retvals(2) <= UBOUND(zoneshere) THEN scriptret = zoneshere(retvals(2))
+   END IF
+  END IF
+ CASE 483'--zone number of tiles (id)
+  IF valid_zone(retvals(0)) THEN
+   scriptret = GetZoneInfo(zmap, retvals(0))->numtiles
+  END IF
+/' Unimplemented
+ CASE 484'--draw with zone (id, layer)
+  IF valid_zone(retvals(0)) THEN
+  END IF
+ CASE 485'--zone next tile x (id, x, y)
+  IF valid_zone(retvals(0)) THEN
+  END IF
+ CASE 486'--zone next tile y (id, x, y)
+  IF valid_zone(retvals(0)) THEN
+  END IF
+'/
+
 
 END SELECT
 

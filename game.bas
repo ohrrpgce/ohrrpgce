@@ -1821,6 +1821,18 @@ FUNCTION valid_formation_slot(form AS INTEGER, slot AS INTEGER) AS INTEGER
  RETURN NO
 END FUNCTION
 
+FUNCTION valid_zone(id AS INTEGER) AS INTEGER
+ RETURN bound_arg(id, 1, 9999, "zone ID", , , 5)
+END FUNCTION
+
+FUNCTION valid_tile_pos(x AS INTEGER, y AS INTEGER) AS INTEGER
+ IF x < 0 OR y < 0 OR x >= mapsizetiles.x OR y >= mapsizetiles.y THEN
+  scripterr commandname(curcmd->value) + ": invalid map position " & x & "," & y & " -- map is " & mapsizetiles.x & "*" & mapsizetiles.y & " tiles", 5
+  RETURN NO
+ END IF
+ RETURN YES
+END FUNCTION
+
 SUB loadmap_gmap(mapnum)
  loadrecord gmap(), game + ".map", getbinsize(binMAP) / 2, mapnum
  IF gmap(31) = 0 THEN gmap(31) = 2

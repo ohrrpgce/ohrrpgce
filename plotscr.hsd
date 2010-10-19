@@ -239,7 +239,7 @@ define function, begin
 230,readenemydata,2,0,0       #reads enemy data(enemy,dataposition)
 231,writeenemydata,3,0,0,0    #writes enemy data(enemy,dataposition,value)
 232,trace,1,0                 #writes the provided string to G_DEBUG.txt
-233,getsongname,2,0,0         #get song name and store in string
+233,getsongname,2,0,0         #get song name and store in string (string id, song)
 234,loadmenu,1,-1             #show loadmenu (really load/quit?)
 235,keyispressed,2,0,0        #check key by scancode, returns a bool
 236,soundisplaying,1,0        #checks to see if a sound is playing (soundID)
@@ -475,7 +475,7 @@ define function, begin
 465,setslicelookup,2,0,0      #change a slice's lookup code
 466,tracevalueinternal,-1     #tracevalue is translated to this
 467,mapcure,3,0,0,-1          #uses a cure attack on a hero
-468,readattackname,2,0,0      #puts an attack name in a string
+468,readattackname,2,0,0      #puts an attack name in a string (string id, attack id+1 / attack .hsi constant)
 469,spellslearned,2,0,0       #number spells and spell ids hero learnt at last battle/giveexperience command.
 470,allocatetimers,1,16       #change the number of timers
 #471,unusedtimer,0             #find a timer id that's not in use, or allocate more
@@ -487,6 +487,13 @@ define function, begin
 477,getnpcusable,1,0          #get whether an npc can be used (npcref)
 478,setnpcmoves,2,0,1         #set whether an npc's movetype used (npcref, bool)
 479,getnpcmoves,1,0           #get whether an npc's movetype used (npcref)
+480,readzone,3,0,0,0          #test whether a tile is in a zone (zone id, x, y)
+481,writezone,4,0,0,0,1       #set whether a tile is in a zone (zone id, x, y, true/false)
+482,zoneatspot,3,0,0,0        #get the nth zone set at a tile (x, y, n)
+483,zonenumberoftiles,1,0     #get the number of tiles in this zone (zone id)
+#484,drawwithzone,3,0,0,0      #write to map layer (zone id, layer num, tile)  (unimplemented)
+#485,zonenexttilex,3,0,-1,-1   #x coordinate of next tile in zone (zone id, current x, current y)  (unimplemented)
+#486,zonenexttiley,3,0,-1,-1   #y coordinate of next tile in zone (zone id, current x, current y)  (unimplemented)
 end
 
 #--------------------------------------------------------------------------

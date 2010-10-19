@@ -17,6 +17,8 @@ declare function valid_menuslot_and_mislot(menuslot as integer, mislot as intege
 declare function valid_plotstr(n as integer) as integer
 declare function valid_formation(form as integer) as integer
 declare function valid_formation_slot(form as integer, slot as integer) as integer
+declare function valid_zone(id as integer) as integer
+declare function valid_tile_pos(x as integer, y as integer) as integer
 declare sub loadmap_gmap(mapnum)
 declare sub loadmap_npcl(mapnum)
 declare sub loadmap_npcd(mapnum)
