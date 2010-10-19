@@ -537,7 +537,7 @@ resume player</example>
 		<command id="npcreference">
 			<canon>NPC reference (ID, copy)</canon>
 			<shortname>NPC reference</shortname>
-			<description>What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero; you can see the copy number of NPCs in the Map Editor if you placed them in Custom.<lb/> If you plan on using the same NPC reference many times in a script you can store it in a <ref>variable</ref>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <ref>false</ref>.</description>
+			<description>What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you don't specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero. You can see the copy number of NPCs in the Map Editor if you placed them in Custom. If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <ref>false</ref>.<lb/> If you plan on using the same NPC reference many times in a script you can store it in a <ref>variable</ref>.<note>NPCs hidden due to tag conditions are never returned by this command.</note></description>
 			<example>include,plotscr.hsd
 
 #---NPC reference example---
@@ -575,7 +575,7 @@ end</example>
 		<command id="npcatspot">
 			<canon>NPC at spot (x, y, number)</canon>
 			<shortname>NPC at spot</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile. <note>An NPC's tile is the tile its top left corner is on.</note></description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large. You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile. <note>An NPC's tile is the tile its top left corner is on.</note></description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -583,7 +583,7 @@ end</example>
 		<command id="npcatpixel">
 			<canon>NPC at pixel (x, y, number)</canon>
 			<shortname>NPC at pixel</shortname>
-			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile.</description>
+			<description>This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <ref>false</ref> is returned if there is no NPC there, or <p>number</p> is too large. You can also pass the constant <ref>getcount</ref> for the third argument to return the total number of npcs on that tile.</description>
 			<seealso>
 				<ref>npcreference</ref>
 			</seealso>
@@ -644,7 +644,7 @@ end</example>
 		<command id="npccopycount">
 			<canon>NPC copy count (ID)</canon>
 			<shortname>NPC copy count</shortname>
-			<description>This command tells you how many copys of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map.</description>
+			<description>This command tells you how many copys of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map. However if the NPCs with t</description>
 			<example>include,plotscr.hsd
 
 #---NPC copy count example---
@@ -690,7 +690,7 @@ end</example>
 		<command id="putnpc">
 			<canon>put npc (who,x,y)</canon>
 			<shortname>put npc</shortname>
-			<description>Moves an NPC to a precise location on the map. The first argument is and <ref>npcreference</ref> or an NPC ID number. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your NPC with the tile-grid, preventing it from walking normally. To position the NPC by tile, use the <ref>setnpcposition</ref> command.</description>
+			<description>Moves an NPC to a location on the map in pixels. The first argument is and <ref>npcreference</ref> or an NPC ID number. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your NPC with the tile-grid, preventing it from walking normally. To position the NPC by tile, use the <ref>setnpcposition</ref> command.</description>
 		</command>
 	</section>
 	<section title="Moving the Camera">
@@ -3805,7 +3805,7 @@ end
 		<command id="lastsaveslot">
 			<canon>last save slot</canon>
 			<shortname>last save slot</shortname>
-			<description>Returns the last save slot saved in, or <ref>false</ref> if the game has not been saved yet. Save slots are numbered starting at 1.</description>
+			<description>Returns the last save slot saved to using the save menu, or the save slot the game was loaded from, or <ref>false</ref> if the game has not been saved yet. Save slots are numbered starting at 1. <ref>saveinslot</ref> does not change the value returned! If you need it to, you need to track it with a global variable.</description>
 			<seealso>
 				<ref>saveinslot</ref>
 				<ref>savemenu</ref>
@@ -4932,7 +4932,7 @@ end</example>
 		<command id="autosave">
 			<canon>autosave</canon>
 			<shortname>autosave</shortname>
-			<description>Transparently saves the game to the last save slot used, or if the game has not been saved yet, calls <ref>savemenu</ref>. Returns the number of the last save slot, or if the user cancelled the save menu, returns false</description>
+			<description>Transparently saves the game to the last save slot saved to in the save menu, or if the game has not been saved yet, calls <ref>savemenu</ref>. Returns the number of the last save slot, or if the user cancelled the save menu, returns false.</description>
 			<seealso>
 				<ref>lastsaveslot</ref>
 			</seealso>
