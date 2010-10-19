@@ -46,7 +46,7 @@ cp -p unlump tmp
 cp -p relump tmp
 
 echo "  Including hspeak"
-cp -p mac/hspeak tmp
+tar -xf mac/utilities.tar.gz -C tmp hspeak
 
 echo "  Including support files"
 cp -p plotscr.hsd tmp
@@ -61,13 +61,13 @@ cp -p LICENSE-binary.txt tmp
 cp -p whatsnew.txt tmp
 
 echo "  Including Vikings of Midgard"
-cp -p vikings.rpg tmp
+cp -p vikings/vikings.rpg tmp
 cp -pR "vikings/Vikings script files" tmp
 cp -p "vikings/README-vikings.txt" tmp
 
 echo "  Including import"
 mkdir tmp/import
-cp -pR ../wip/import/* tmp/import
+cp -pR import/* tmp/import
 
 echo "  Including docs"
 mkdir tmp/docs
