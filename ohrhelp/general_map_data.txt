@@ -34,7 +34,7 @@ On-Keypress Script: A plotscript that will be run each time the user presses any
 
 Walkabout Layering: Can be "Heroes over NPCs" or "NPCs over Heroes". This determines which will be drawn on top if heroes and NPCs overlap each other.
 
-"NPC Data" and "Tile data" affect how changes to NPCs and maptiles are handled when you leave the map (fighting a battle counts as leaving the map!) and come back again later:
+"NPC Data" and "Tile data" affect how changes to NPCs (definitions and instances) and maptiles (tilemap, passmap, and zones) are handled when you leave the map (fighting a battle counts as leaving the map!) and come back again later:
 
 *"Don't save state when leaving" means that the map will be reset when you come back later. All NPCs will be back in their starting places, and any maptiles altered with plotscripting will be reset.
 

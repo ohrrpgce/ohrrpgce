@@ -57,6 +57,7 @@ EXTERN nativehbits() as integer
 EXTERN gmap() as integer
 EXTERN maptiles() as TileMap
 EXTERN pass as TileMap
+EXTERN zmap as ZoneMap
 EXTERN mapsizetiles as XYPair
 EXTERN as integer mapx, mapy  'camera pos
 EXTERN framex as integer

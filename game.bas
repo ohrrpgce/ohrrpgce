@@ -102,6 +102,7 @@ DIM herow(3) as GraphicPair
 DIM statnames() as string
 
 DIM maptiles(0) as TileMap, pass as TileMap
+DIM zmap as ZoneMap
 DIM tilesets(maplayerMax) as TilesetData ptr  'tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
 DIM mapsizetiles as XYPair  'for convienence
 
@@ -708,6 +709,7 @@ unloadmaptilesets tilesets()
 refresh_map_slice_tilesets '--zeroes them out
 unloadtilemaps maptiles()
 unloadtilemap pass
+DeleteZonemap zmap
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()
@@ -1865,6 +1867,15 @@ SUB loadmap_passmap(mapnum)
  LoadTileMap pass, maplumpname$(mapnum, "p")
 END SUB
 
+SUB loadmap_zonemap(mapnum)
+ '.Z is the only one of the map lumps that has been added in about the last decade
+ IF isfile(maplumpname(mapnum, "z")) THEN
+  LoadZoneMap zmap, maplumpname(mapnum, "z")
+ ELSE
+  CleanZoneMap zmap, mapsizetiles.x, mapsizetiles.y
+ END IF
+END SUB
+
 SUB loadmaplumps (mapnum, loadmask)
  'loads some, but not all the lumps needed for each map
  IF loadmask AND 1 THEN
@@ -1881,6 +1892,9 @@ SUB loadmaplumps (mapnum, loadmask)
  END IF
  IF loadmask AND 16 THEN
   loadmap_passmap mapnum
+ END IF
+ IF loadmask AND 32 THEN
+  loadmap_zonemap mapnum
  END IF
 END SUB
 
@@ -2441,6 +2455,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
   IF gmap(18) = 1 THEN
    savemapstate_tilemap gam.map.lastmap, "map"
    savemapstate_passmap gam.map.lastmap, "map"
+   savemapstate_zonemap gam.map.lastmap, "map"
   END IF
  END IF
  gam.map.lastmap = gam.map.id
@@ -2464,9 +2479,11 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  IF gmap(18) < 2 THEN
   loadmapstate_tilemap gam.map.id, "map"
   loadmapstate_passmap gam.map.id, "map"
+  loadmapstate_zonemap gam.map.id, "map"
  ELSE
   loadmap_tilemap gam.map.id
   loadmap_passmap gam.map.id
+  loadmap_zonemap gam.map.id
  END IF
 
  IF afterbat = NO THEN

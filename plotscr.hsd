@@ -1450,9 +1450,10 @@ define constant, begin
 4,mapstate:npcdefinitions
 8,mapstate:tilemap
 16,mapstate:passmap
-#32,mapstate:foemap
+32,mapstate:zonemap
+#64,mapstate:foemap
 6,mapstate:npcs
-24,mapstate:tiles
+56,mapstate:tiles
 255,mapstate:all
 0,timer:stop #use in speed
 -1,timer:default #use in any

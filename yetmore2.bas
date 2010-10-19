@@ -565,6 +565,10 @@ SUB savemapstate_passmap(mapnum, prefix$)
  savetilemap pass, mapstatetemp$(mapnum, prefix$) + "_p.tmp"
 END SUB
 
+SUB savemapstate_zonemap(mapnum, prefix$)
+ SaveZoneMap zmap, mapstatetemp$(mapnum, prefix$) + "_z.tmp"
+END SUB
+
 SUB savemapstate (mapnum, savemask = 255, prefix$)
 fh = FREEFILE
 IF savemask AND 1 THEN
@@ -581,6 +585,9 @@ IF savemask AND 8 THEN
 END IF
 IF savemask AND 16 THEN
  savemapstate_passmap mapnum, prefix$
+END IF
+IF savemask AND 32 THEN
+ savemapstate_zonemap mapnum, prefix$
 END IF
 END SUB
 
@@ -689,6 +696,32 @@ SUB loadmapstate_passmap (mapnum, prefix as string, dontfallback = 0)
  END IF
 END SUB
 
+SUB loadmapstate_zonemap (mapnum, prefix as string, dontfallback = 0)
+ DIM filebase as string = mapstatetemp(mapnum, prefix)
+ IF NOT isfile(filebase + "_z.tmp") THEN
+  IF dontfallback = 0 THEN loadmap_zonemap mapnum
+ ELSE
+  'Unlike tile- and passmap loading, this doesn't leave the zonemap intact if the
+  'saved state is the wrong size; instead the zonemap is blanked
+
+  LoadZoneMap zmap, filebase + "_z.tmp"
+  IF zmap.wide <> mapsizetiles.x OR zmap.high <> mapsizetiles.y THEN
+   DIM errmsg as string = "tried to load saved zonemap state which is size " & zmap.wide & "*" & zmap.high & ", while the map is size " & mapsizetiles.x & "*" & mapsizetiles.y
+   IF insideinterpreter THEN
+    scripterr commandname(curcmd->value) + errmsg, 4
+   ELSE
+    debug "loadmapstate_zonemap(" + filebase + "_z.tmp): " + errmsg
+   END IF
+   IF dontfallback THEN
+    'Get rid of badly sized zonemap
+    CleanZoneMap zmap, mapsizetiles.x, mapsizetiles.y
+   ELSE
+    loadmap_zonemap mapnum
+   END IF
+  END IF
+ END IF
+END SUB
+
 SUB loadmapstate (mapnum, loadmask, prefix$, dontfallback = 0)
 IF loadmask AND 1 THEN
  loadmapstate_gmap mapnum, prefix$, dontfallback
@@ -705,6 +738,9 @@ END IF
 IF loadmask AND 16 THEN
  loadmapstate_passmap mapnum, prefix$, dontfallback
 END IF
+IF loadmask AND 32 THEN
+ loadmapstate_zonemap mapnum, prefix$, dontfallback
+END IF
 END SUB
 
 SUB deletemapstate (mapnum, killmask, prefix$)
@@ -714,6 +750,7 @@ IF killmask AND 2 THEN safekill filebase$ + "_l.tmp"
 IF killmask AND 4 THEN safekill filebase$ + "_n.tmp"
 IF killmask AND 8 THEN safekill filebase$ + "_t.tmp"
 IF killmask AND 16 THEN safekill filebase$ + "_p.tmp"
+IF killmask AND 32 THEN safekill filebase$ + "_z.tmp"
 END SUB
 
 SUB deletetemps
