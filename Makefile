@@ -132,7 +132,9 @@ else
 ifeq "$(OHRMUSIC)" "sdl"
 	common_modules+= music_sdl sdl_lumprwops
 	linksdl=1
-#	libraries+= SDL_mixer
+ifndef mac
+	libraries+= SDL_mixer
+endif
 endif
 ifeq "$(OHRMUSIC)" "silence"
 	common_modules+= music_silence
@@ -184,6 +186,8 @@ ifdef mac
 	common_objects+= SDLMain.o
 	FBFLAGS+= -entry SDL_main
 	CFLAGS+=${shell if [ `which sdl-confijg` ] ; then sdl-config --cflags; else echo -I$(FRAMEWORKS_PATH)/SDL.framework/Headers; fi}
+else
+	libraries+= -l SDL -l SDLmain
 endif
 
 endif
