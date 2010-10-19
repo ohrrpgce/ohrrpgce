@@ -420,6 +420,28 @@ SUB UnloadTilemaps(layers() as TileMap)
   NEXT
 END SUB
 
+'Get size of a tilemap file; returns false if badly formed
+FUNCTION GetTilemapInfo(filename as string, info as TilemapInfo) as integer
+  DIM as integer fh = FREEFILE
+  IF OPEN(filename FOR BINARY AS #fh) <> 0 THEN RETURN NO
+  WITH info
+    .wide = readshort(fh, 8)  'skip over BSAVE header
+    .high = readshort(fh, 10)
+    IF in_bound(.wide, 16, 32678) = NO ORELSE in_bound(.high, 10, 32678) = NO THEN CLOSE #fh: RETURN NO
+    .layers = (LOF(fh) - 11) \ (.wide * .high)
+    'Because of bug 829 (.T not truncated when map resized), and old 32000 byte tilemaps,
+    'tilemaps with bad lengths are common; only do a simple length check
+    IF .layers = 0 THEN
+      debug "tilemap " & filename & " (" & .wide & "x" & .high & ") bad length or size; " & LOF(fh) & " bytes"
+      CLOSE #fh
+      RETURN NO
+    END IF
+    .layers = small(.layers, maplayerMax + 1)
+  END WITH
+  CLOSE #fh
+  RETURN YES
+END FUNCTION
+
 SUB LoadTilemap(map as TileMap, filename as string)
   IF map.data THEN DEALLOCATE map.data
 
@@ -431,7 +453,7 @@ SUB LoadTilemap(map as TileMap, filename as string)
   map.layernum = 0
   IF map.wide * map.high + 11 <> LOF(fh) THEN
     'PROBLEM: early versions always saved 32000 bytes of tile data (ie, 32011 total)!
-    'Because of bug 829, tilemaps with bad lengths are common; better not to spam this message
+    'Because of bug 829 (.T not truncated when map resized), tilemaps with bad lengths are common; better not to spam this message
     'debug "tilemap " & filename & " (" & map.wide & "x" & map.high & ") bad length or size; " & LOF(fh) & " bytes"
     'show the user their garbled mess, always interesting
   END IF
@@ -454,7 +476,7 @@ SUB LoadTilemaps(layers() as TileMap, filename as string)
   high = bound(readshort(fh, 10), 10, 32678)
   numlayers = (LOF(fh) - 11) \ (wide * high)
   IF numlayers > maplayerMax + 1 OR numlayers * wide * high + 11 <> LOF(fh) THEN
-    'Because of bug 829, tilemaps with bad lengths are common; better not to spam this message
+    'Because of bug 829 (.T not truncated when map resized), tilemaps with bad lengths are common; better not to spam this message
     'debug "tilemap " & filename & " (" & wide & "x" & high & ") bad length or size; " & LOF(fh) & " bytes"
     'show the user their garbled mess, always interesting
     numlayers = bound(numlayers, 1, maplayerMax + 1)

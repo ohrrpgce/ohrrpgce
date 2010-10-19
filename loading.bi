@@ -46,6 +46,7 @@ declare sub SaveTilemap(tmap as TileMap, filename as string)
 declare sub SaveTilemaps(tmaps() as TileMap, filename as string)
 declare sub CleanTilemap(map as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL layernum as integer = 0)
 declare sub CleanTilemaps(layers() as TileMap, BYVAL wide as integer, BYVAL high as integer, BYVAL numlayers as integer)
+declare function GetTilemapInfo(filename as string, info as TilemapInfo) as integer
 
 '*** Requires construction + destruction ***
 declare sub CleanZoneMap(zmap as ZoneMap, BYVAL wide as integer, BYVAL high as integer)

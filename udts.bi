@@ -321,6 +321,12 @@ Type TileMap
   layernum as integer
 End Type
 
+TYPE TilemapInfo
+  wide as integer
+  high as integer
+  layers as integer
+END TYPE
+
 'WARNING: don't add strings to this
 Type ZoneHashedSegment
   IDmap(14) as ushort

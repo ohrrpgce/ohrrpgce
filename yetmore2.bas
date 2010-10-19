@@ -636,21 +636,17 @@ SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
  reloadnpc
 END SUB
 
-SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
- filebase$ = mapstatetemp$(mapnum, prefix$)
- IF NOT isfile(filebase$ + "_t.tmp") THEN
+SUB loadmapstate_tilemap (mapnum, prefix as string, dontfallback = 0)
+ DIM filebase as string = mapstatetemp(mapnum, prefix)
+ IF NOT isfile(filebase + "_t.tmp") THEN
   IF dontfallback = 0 THEN loadmap_tilemap mapnum
  ELSE
-  DIM AS SHORT mapsize(1), propersize(1)
-  fh = FREEFILE
-  OPEN maplumpname$(mapnum, "t") FOR BINARY AS #fh
-  GET #fh, 8, propersize()
-  CLOSE #fh
-  OPEN filebase$ + "_t.tmp" FOR BINARY AS #fh
-  GET #fh, 8, mapsize()
-  CLOSE #fh
-  IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
-   loadtilemaps maptiles(), filebase$ + "_t.tmp"
+  DIM as TilemapInfo statesize, propersize
+  GetTilemapInfo maplumpname(mapnum, "t"), propersize
+  GetTilemapInfo filebase + "_t.tmp", statesize
+
+  IF statesize.wide = propersize.wide AND statesize.high = propersize.high THEN
+   loadtilemaps maptiles(), filebase + "_t.tmp"
    mapsizetiles.x = maptiles(0).wide
    mapsizetiles.y = maptiles(0).high
    refresh_map_slice
@@ -659,27 +655,35 @@ SUB loadmapstate_tilemap (mapnum, prefix$, dontfallback = 0)
    cropposition catx(0), caty(0), 20
 
   ELSE
+   DIM errmsg as string = "tried to load saved tilemap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high
+   IF insideinterpreter THEN
+    scripterr commandname(curcmd->value) + errmsg, 4
+   ELSE
+    debug "loadmapstate_tilemap(" + filebase + "_t.tmp): " + errmsg
+   END IF
    IF dontfallback = 0 THEN loadmap_tilemap mapnum
   END IF
  END IF
 END SUB
 
-SUB loadmapstate_passmap (mapnum, prefix$, dontfallback = 0)
- filebase$ = mapstatetemp$(mapnum, prefix$)
- IF NOT isfile(filebase$ + "_p.tmp") THEN
+SUB loadmapstate_passmap (mapnum, prefix as string, dontfallback = 0)
+ DIM filebase as string = mapstatetemp(mapnum, prefix)
+ IF NOT isfile(filebase + "_p.tmp") THEN
   IF dontfallback = 0 THEN loadmap_passmap mapnum
  ELSE
-  DIM AS SHORT mapsize(1), propersize(1)
-  fh = FREEFILE
-  OPEN maplumpname$(mapnum, "p") FOR BINARY AS #fh
-  GET #fh, 8, propersize()
-  CLOSE #fh
-  OPEN filebase$ + "_p.tmp" FOR BINARY AS #fh
-  GET #fh, 8, mapsize()
-  CLOSE #fh
-  IF mapsize(0) = propersize(0) AND mapsize(1) = propersize(1) THEN
-   loadtilemap pass, filebase$ + "_p.tmp"
+  DIM as TilemapInfo statesize, propersize
+  GetTilemapInfo maplumpname(mapnum, "p"), propersize
+  GetTilemapInfo filebase + "_p.tmp", statesize
+
+  IF statesize.wide = propersize.wide AND statesize.high = propersize.high THEN
+   loadtilemap pass, filebase + "_p.tmp"
   ELSE
+   DIM errmsg as string = "tried to load saved passmap state which is size " & statesize.wide & "*" & statesize.high & ", while the map is size " & propersize.wide & "*" & propersize.high
+   IF insideinterpreter THEN
+    scripterr commandname(curcmd->value) + errmsg, 4
+   ELSE
+    debug "loadmapstate_passmap(" + filebase + "_p.tmp): " + errmsg
+   END IF
    IF dontfallback = 0 THEN loadmap_passmap mapnum
   END IF
  END IF

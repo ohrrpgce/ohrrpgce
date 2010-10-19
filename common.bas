@@ -3444,11 +3444,12 @@ FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTR
 END FUNCTION
 
 SUB reporterr(msg AS STRING, errlvl AS INTEGER = 5)
- 'this is a placeholder for some more detailing replacement of debug, so scripterrs can be thrown from slices.bas
+ 'this is a placeholder for some more detailed replacement of debug, so scripterrs can be thrown from slices.bas
 #IFDEF IS_GAME
  IF insideinterpreter THEN
-  IF curcmd->kind = tyfunct THEN msg = commandname(curcmd->value) + ": " + msg
-  scripterr msg, errlvl
+  DIM msg2 AS STRING = msg  'Don't modify passed-in strings
+  IF curcmd->kind = tyfunct THEN msg2 = commandname(curcmd->value) + ": " + msg2
+  scripterr msg2, errlvl
  ELSE
   debug msg
  END IF
