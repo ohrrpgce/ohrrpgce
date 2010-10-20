@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3Ma 2010-10-21 Correctly strip \r to fix newlines ... again.
 --3M  2010-05-02 abs, sign, sqrt; fix error reporting
 --3L  2010-04-29 tracevalue support, involving a few internal changes
 --3Ke 2010-04-18 Add -t commandline option
@@ -113,7 +114,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="M "
+constant COMPILER_SUB_VERSION="Ma"
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -845,8 +846,8 @@ procedure load_source(sequence filename,sequence reading_how,srcpos pos)
     line_extents={}
     line=gets(fh)
     while sequence(line) do
-      line_extents=append(line_extents,{length(file_text)+1,length(file_text)+length(line)})
       line=exclude(line,"\n\r")
+      line_extents=append(line_extents,{length(file_text)+1,length(file_text)+length(line)})
       file_text&=line
       file_text&='\n'
       line=gets(fh)
