@@ -75,7 +75,7 @@ call nightly-gfx-music sdl native2 ~ audiere.dll SDL.dll
 
 del game*.exe
 del custom*.exe
-call makeboth.bas directx sdl fb ~ silence
+call makeboth.bat directx sdl fb ~ silence
 call nightly-gfx-music directx silence ~ SDL.dll gfx_directx.dll
 
 del game*.exe
