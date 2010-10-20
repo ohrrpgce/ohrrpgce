@@ -153,6 +153,7 @@ SUB CleanNPCDefinition(dat as NPCType)
    .script     = 0
    .scriptarg  = 0
    .vehicle    = 0
+   .defaultzone= 0
    IF .sprite THEN frame_unload @.sprite
    IF .pal THEN palette16_unload @.pal
   END WITH

@@ -35,6 +35,7 @@ DECLARE SUB vishero ()
 DECLARE SUB wrapaheadxy (x as integer, y as integer, direction as integer, distance as integer, unitsize as integer)
 DECLARE SUB cropposition (BYREF x as integer, BYREF y as integer, unitsize as integer)
 DECLARE FUNCTION wrappass (x as integer, y as integer, xgo as integer, ygo as integer, isveh as integer) as integer
+DECLARE FUNCTION wrapzonetest (BYVAL zone as integer, BYVAL x as integer, BYVAL y as integer, BYVAL xgo as integer, BYVAL ygo as integer) as integer
 DECLARE FUNCTION wrapcollision (xa as integer, ya as integer, xgoa as integer, ygoa as integer, xb as integer, yb as integer, xgob as integer, ygob as integer) as integer
 DECLARE FUNCTION wraptouch (x1 as integer, y1 as integer, x2 as integer, y2 as integer, distance as integer) as integer
 DECLARE SUB wrappedsong (songnumber as integer)

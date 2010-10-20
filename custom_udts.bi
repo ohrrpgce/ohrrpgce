@@ -161,7 +161,7 @@ TYPE MapEditState
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
   menustate AS MenuState  'The top-level menu state
 
-  'Zone stuff
+  'Zone stuff (zone_mode)
   zonesubmode AS INTEGER
   cur_zone AS INTEGER        'Zone ID selected for placement
   cur_zinfo AS ZoneInfo ptr  '== GetZoneInfo(zonemaps, cur_zone)
@@ -172,6 +172,9 @@ TYPE MapEditState
   autoshow_zones AS INTEGER  'Zones at current tile become visible ("Autoshow zones")
   showzonehints AS INTEGER   'Display 'hints' where nonvisible zones are ("Show other")
   zonecolours(7) AS INTEGER  'The zone assigned to each colour, or 0. Includes "memories" of zones not currently displayed
+  'Zone stuff (npc_mode)
+  cur_npc_zone AS INTEGER    'Movement zone for currently selected NPC in NPC placer
+
 END TYPE
 
 TYPE MapResizeState

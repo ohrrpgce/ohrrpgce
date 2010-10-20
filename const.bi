@@ -11,7 +11,7 @@
 CONST YES = -1
 CONST NO = 0
 
-CONST CURRENT_RPG_VERSION = 11
+CONST CURRENT_RPG_VERSION = 12
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
@@ -21,6 +21,7 @@ CONST CURRENT_RPG_VERSION = 11
 ' 9 - ypsiliform wip added text box sound effects
 ' 10 - ypsiliform wip added attack-based enemy transmogrification
 ' 11 - zenzizenzic wip added variable record size and record number .N## lumps
+' 12 - zenzizenzic wip increased .N## record size
 
 '---GENERAL GAME DATA (.GEN) constants---
 CONST genMaxMap = 0             'max map ID

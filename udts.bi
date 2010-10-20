@@ -197,6 +197,7 @@ TYPE NPCType
   script as integer      '+12
   scriptarg as integer   '+13
   vehicle as integer     '+14
+  defaultzone as integer '+15
   sprite as frame ptr
   pal as palette16 ptr
 END TYPE

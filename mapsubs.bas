@@ -12,7 +12,7 @@ DEFINT A-Z
 #include "custom_udts.bi"
 
 'external subs and functions
-DECLARE SUB npcdef (st AS MapEditState, npc_img() AS GraphicPair)
+DECLARE SUB npcdef (st AS MapEditState, npc_img() AS GraphicPair, zmap AS ZoneMap)
 
 'local subs and functions
 DECLARE SUB make_map_picker_menu (topmenu() AS STRING, state AS MenuState)
@@ -221,6 +221,8 @@ REDIM zonemenu(0) AS SimpleMenu
 DIM zonemenustate AS MenuState
 DIM zone_delete_tool as integer  'Whether Space should add or remove tiles
 
+DIM npczone_needupdate as integer
+
 DIM as integer jiggle(maplayerMax \ 16)
 DIM as integer visible(maplayerMax \ 16) = {-1} 'used as bitsets: all layers visible
 
@@ -363,7 +365,7 @@ DO
     mapedit_layers st, gmap(), visible(), defaults(), map()
    CASE 4
     'This may change st.num_npc_defs, and delete NPC instances
-    npcdef st, npc_img()
+    npcdef st, npc_img(), zmap
    CASE 5 TO 10
     editmode = st.menustate.pt - 5
     GOSUB mapping
@@ -438,6 +440,7 @@ st.autoshow_zones = YES
 st.showzonehints = YES
 zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones
 zones_needupdate = YES
+npczone_needupdate = YES
 
 setkeys
 DO
@@ -458,6 +461,7 @@ DO
   END IF
   IF keyval(scF5) > 1 THEN
    editmode = npc_mode
+   npczone_needupdate = YES
   END IF
   IF keyval(scF6) > 1 THEN
    editmode = foe_mode
@@ -964,6 +968,31 @@ DO
 
  '--npc display--
  IF editmode = npc_mode THEN
+  '--Determine restriction zone to display
+  oldzone = st.cur_npc_zone
+  st.cur_npc_zone = 0
+  FOR i = 0 TO 299
+   WITH st.npc_inst(i)
+    IF .id > 0 AND .id <= st.num_npc_defs THEN
+     IF st.npc_def(.id - 1).defaultzone > 0 THEN
+      IF .x = x * 20 AND .y = y * 20 THEN st.cur_npc_zone = st.npc_def(.id - 1).defaultzone
+     END IF
+    END IF
+   END WITH
+  NEXT i
+  IF oldzone <> st.cur_npc_zone OR npczone_needupdate THEN
+   CleanTilemap st.zoneoverlaymap, wide, high
+   IF st.cur_npc_zone > 0 THEN
+    ZoneToTilemap zmap, st.zoneoverlaymap, st.cur_npc_zone, 0
+   END IF
+   npczone_needupdate = NO
+   'We're reusing st.zoneoverlaymap
+   zones_needupdate = YES
+  END IF
+  '--Draw restriction zone
+  drawmap st.zoneoverlaymap, mapx, mapy, overlaytileset, dpage, YES, , , 20
+
+  '--Draw npcs
   FOR i = 0 TO UBOUND(npcnum)
    npcnum(i) = 0
   NEXT

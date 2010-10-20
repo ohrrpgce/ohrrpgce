@@ -842,7 +842,7 @@ FUNCTION curbinsize (id AS INTEGER) as integer
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 126 'uicolors.bin
  IF id = 8 THEN RETURN 412 '.say
- IF id = 9 THEN RETURN 30 '.n##
+ IF id = 9 THEN RETURN 32 '.n##
  RETURN 0
 END FUNCTION
 
@@ -2679,9 +2679,11 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
 END IF
 updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 updaterecordlength game & ".say", binSAY
+'Don't update .N binsize until all records have been stretched
 FOR i = 0 TO gen(genMaxMap)
  updaterecordlength maplumpname(i, "n"), binN, 7, YES
 NEXT
+setbinsize binN, curbinsize(binN)
 
 '--give each palette a default ui color set
 DIM ff AS INTEGER = FREEFILE
@@ -3640,6 +3642,7 @@ SUB write_npc_int (npcdata AS NPCType, intoffset AS INTEGER, n AS INTEGER)
    CASE 12: .script = n
    CASE 13: .scriptarg = n
    CASE 14: .vehicle = n
+   CASE 15: .defaultzone = n
    CASE ELSE
     debug "write_npc_int: " & intoffset & " is an invalid integer offset"
   END SELECT
@@ -3665,6 +3668,7 @@ FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER
    CASE 12: RETURN .script
    CASE 13: RETURN .scriptarg
    CASE 14: RETURN .vehicle
+   CASE 15: RETURN .defaultzone
    CASE ELSE
     debug "read_npc_int: " & intoffset & " is an invalid integer offset"
   END SELECT

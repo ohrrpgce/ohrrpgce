@@ -3123,6 +3123,15 @@ IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh A
 
 END FUNCTION
 
+FUNCTION wrapzonetest (BYVAL zone as integer, BYVAL x as integer, BYVAL y as integer, BYVAL xgo as integer, BYVAL ygo as integer) as integer
+ 'x, y in pixels
+ 'Warning: always wraps! But that isn't a problem on non-wrapping maps.
+
+ x -= xgo
+ y -= ygo
+ wrapxy (x, y, mapsizetiles.x * 20, mapsizetiles.y * 20)
+ RETURN (CheckZoneAtTile(zmap, zone, x \ 20, y \ 20) = 0)
+END FUNCTION
 
 FUNCTION wrapcollision (xa as integer, ya as integer, xgoa as integer, ygoa as integer, xb as integer, yb as integer, xgob as integer, ygob as integer) as integer
  x1 = (xa - bound(xgoa, -20, 20)) \ 20

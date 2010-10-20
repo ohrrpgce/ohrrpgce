@@ -450,7 +450,7 @@ SUB keyboardsetup ()
  keyv(40, 1) = 34
 END SUB
 
-SUB edit_npc (BYREF npcdata AS NPCType)
+SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
  DIM i AS INTEGER
 
  DIM itemname AS STRING
@@ -469,7 +469,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  DIM state AS MenuState
  state.size = 24
  state.first = -1
- state.last = 14
+ state.last = UBOUND(menucaption)
  state.top = -1
  state.pt = -1
 
@@ -489,8 +489,9 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  unpc(12) = gen(genMaxRegularScript)'max scripts
  unpc(13) = 32767
  unpc(14) = gen(genMaxVehicle) + 1  'max vehicles
+ unpc(15) = 9999  'zones
 
- FOR i = 0 TO 14
+ FOR i = 0 TO UBOUND(lnpc)
   lnpc(i) = 0
  NEXT i
  lnpc(1) = -1
@@ -513,6 +514,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
  menucaption(12) = "Run Script: "
  menucaption(13) = "Script Argument"
  menucaption(14) = "Vehicle: "
+ menucaption(15) = "Movement Zone:"
  DIM movetype(8) AS STRING
  movetype(0) = "Stand Still"
  movetype(1) = "Wander"
@@ -617,6 +619,8 @@ SUB edit_npc (BYREF npcdata AS NPCType)
     IF intgrabber(npcdata.vehicle, lnpc(state.pt), unpc(state.pt)) THEN
      vehiclename = load_vehicle_name(npcdata.vehicle - 1)
     END IF
+   CASE 15
+    intgrabber(npcdata.defaultzone, lnpc(state.pt), unpc(state.pt))
    CASE -1' previous menu
     IF enter_or_space() THEN EXIT DO
   END SELECT
@@ -625,7 +629,7 @@ SUB edit_npc (BYREF npcdata AS NPCType)
   textcolor uilook(uiMenuItem), 0
   IF state.pt = -1 THEN textcolor uilook(uiSelectedItem + tog), 0
   printstr "Previous Menu", 0, 0, dpage
-  FOR i = 0 TO 14
+  FOR i = 0 TO UBOUND(menucaption)
    textcolor uilook(uiMenuItem), 0
    IF state.pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
    caption = " " & read_npc_int(npcdata, i)
@@ -669,6 +673,12 @@ SUB edit_npc (BYREF npcdata AS NPCType)
       caption = "No"
      ELSE
       caption = vehiclename
+     END IF
+    CASE 15 'zone
+     IF npcdata.defaultzone = 0 THEN
+      caption = " None"
+     ELSE
+      caption += " " & GetZoneInfo(zmap, npcdata.defaultzone)->name
      END IF
    END SELECT
    printstr menucaption(i) + caption, 0, 8 + (8 * i), dpage

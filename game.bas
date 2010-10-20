@@ -1070,6 +1070,14 @@ SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata AS NPCTyp
     npchitwall(npci, npcdata)
     GOTO nogo
    END IF
+   '--Check for movement zones (treat the edges as walls)
+   DIM zone AS INTEGER = npcdata.defaultzone
+   IF zone > 0 ANDALSO wrapzonetest(zone, npci.x, npci.y, npci.xgo, npci.ygo) THEN
+    npci.xgo = 0
+    npci.ygo = 0
+    npchitwall(npci, npcdata)
+    GOTO nogo
+   END IF
   END IF
   IF readbit(gen(), 44, suspendobstruction) = 0 AND npci.not_obstruction = 0 THEN
    '--this only happens if obstruction is on

@@ -1953,7 +1953,7 @@ SUB handle_npc_def_delete (npc() AS NPCType, BYVAL id AS INTEGER, BYREF num_npc_
 
 END SUB
 
-SUB npcdef (st AS MapEditState, npc_img() AS GraphicPair)
+SUB npcdef (st AS MapEditState, npc_img() AS GraphicPair, zmap AS ZoneMap)
 'npc_img() should be of fixed size (0 TO max_npc_defs - 1), like st.npc_def(), with the actual number passed in st.num_npc_defs
 
 DIM boxpreview(st.num_npc_defs - 1) AS STRING
@@ -1982,7 +1982,7 @@ DO
    CleanNPCDefinition st.npc_def(st.num_npc_defs - 1)
   ELSE
    '--An NPC
-   edit_npc st.npc_def(cur)
+   edit_npc st.npc_def(cur), zmap
   END IF
   need_update_selected = YES
  END IF
