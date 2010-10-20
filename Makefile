@@ -187,7 +187,8 @@ ifdef mac
 	FBFLAGS+= -entry SDL_main
 	CFLAGS+=${shell if [ `which sdl-confijg` ] ; then sdl-config --cflags; else echo -I$(FRAMEWORKS_PATH)/SDL.framework/Headers; fi}
 else
-	libraries+= -l SDL -l SDLmain
+#It's really bad of us, but we don't link with SDLmain except on Mac
+	libraries+= -l SDL
 endif
 
 endif
