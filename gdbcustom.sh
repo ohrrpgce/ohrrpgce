@@ -1,2 +1,2 @@
 #!/bin/sh
-gdb -x=misc/gdbcmds1.txt -x=misc/gdbcmds2.txt --args ./ohrrpgce-custom -log . ${*}
+gdb -x=misc/gdbcmds1.txt -x=misc/gdbcmds2.txt --args ./ohrrpgce-custom -log . "${@}"
