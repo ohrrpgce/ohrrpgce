@@ -70,6 +70,8 @@ WHAT IS NEW?
     * "create NPC" could create NPCs with garbage 'extra data' [Ralph]
     * gfx_directx: fixed garbage and window resizing at startup [Jay]
     * gfx_directx: fixed slow screen fades and framerate [Jay]
+    * Bug 824: Back-compat issue with Curse of Vampire (affected other
+      games) [James]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

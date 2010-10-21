@@ -42,7 +42,7 @@ DECLARE SUB wrappedsong (songnumber as integer)
 DECLARE SUB stopsong
 DECLARE SUB wrapxy (x as integer, y as integer, wide as integer, high as integer)
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER) as integer
-DECLARE SUB loadsay (box_id as integer)
+DECLARE SUB loadsay (byval box_id as integer)
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 DECLARE FUNCTION valid_plotslice(byval handle as integer, errlev as integer=5) as integer
 DECLARE FUNCTION valid_plotsprite(byval handle as integer) as integer
