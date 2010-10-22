@@ -33,7 +33,7 @@ DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
 DECLARE SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER)
+DECLARE SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER)
 DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0) AS INTEGER
 DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB spells_menu_refresh_list(sp AS SpellsMenuState)
@@ -1880,28 +1880,47 @@ SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
  END IF
 END SUB
 
-SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER)
- 'FIXME: If you were hoping to call this sub anywhere other than from
- 'the inventory menu, you are out of luck... at least until this
- 'code has been cleaned up enough that it does not require istate
+SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER)
  IF inventory(slot).used = NO THEN EXIT SUB
+
+ DIM consumed AS INTEGER = NO
+
+ IF use_item_in_slot(slot, istate.trigger_box, consumed) THEN
+  IF consumed THEN setbit iuse(), 0, 3 + slot, 0
+  IF istate.trigger_box > 0 THEN EXIT SUB
+  istate.re_use = YES
+  istate.refresh = YES
+ END IF
+END SUB
+
+FUNCTION use_item_in_slot(BYVAL slot AS INTEGER, BYREF trigger_box AS INTEGER, BYREF consumed AS INTEGER) AS INTEGER
+ '--slot is the index in your inventory
+ 
+ '--trigger_box is used to communicate when an item has triggered a text box.
+
+ '--consumed communicates whether the item was actually consumed
+ 
+ '--return value is YES when an item is used, and NO when it is not used.
+
+ consumed = NO
+ IF inventory(slot).used = NO THEN RETURN NO
 
  '--the ONLY reason we load itemdata at this point is to get should_consume
  DIM itemdata(100) AS INTEGER
  loaditemdata itemdata(), inventory(slot).id
  DIM should_consume AS INTEGER = (itemdata(73) = 1)
 
- IF use_item_by_id(inventory(slot).id, istate.trigger_box, inventory(slot).text) THEN
-  IF istate.trigger_box > 0 THEN EXIT SUB
-  istate.re_use = YES
+ IF use_item_by_id(inventory(slot).id, trigger_box, inventory(slot).text) THEN
   IF should_consume THEN
    IF consumeitem(slot) THEN
-    setbit iuse(), 0, 3 + slot, 0
+    consumed = YES
    END IF
   END IF
-  istate.refresh = YES
+  RETURN YES
  END IF
-END SUB
+ 
+ RETURN NO
+END FUNCTION
 
 FUNCTION use_item_by_id(BYVAL item_id AS INTEGER, BYREF trigger_box AS INTEGER, name_override AS STRING="") AS INTEGER
  '--item_id is the actual ID number, not offset.
@@ -1916,8 +1935,8 @@ FUNCTION use_item_by_id(BYVAL item_id AS INTEGER, BYREF trigger_box AS INTEGER, 
  '   how many items are in the slot you are currently using)
  '   if name_override is left blank, you will just see the item name
 
- '--return value is YES if the item use was confirmed bu the user
- '  or NO if it was cancelled or otherwize failed.
+ '--return value is YES if the item use was confirmed by the user
+ '  or NO if it was cancelled or otherwise failed.
 
  '--This sub does not care if you actually own the item in question,
  '   nor will it consume items from your inventory even if the item is a consuming item.
@@ -2146,7 +2165,7 @@ SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() A
  istate.refresh = NO
  IF istate.re_use THEN
   istate.re_use = NO
-  use_item_in_slot istate.cursor, istate, iuse()
+  item_menu_use_item istate.cursor, istate, iuse()
   EXIT SUB
  END IF
  IF carray(ccMenu) > 1 THEN
@@ -2191,7 +2210,7 @@ SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() A
     istate.sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
     IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN EXIT SUB
-    use_item_in_slot istate.cursor, istate, iuse()
+    item_menu_use_item istate.cursor, istate, iuse()
     EXIT SUB
    END IF
   END IF
