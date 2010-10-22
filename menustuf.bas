@@ -39,6 +39,7 @@ DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, per
 DECLARE SUB spells_menu_refresh_list(sp AS SpellsMenuState)
 DECLARE SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
 DECLARE SUB spells_menu_control(sp AS SpellsMenuState)
+DECLARE SUB spells_menu_paint (BYREF sp AS SpellsMenuState)
 
 REM $STATIC
 
@@ -2449,6 +2450,9 @@ SUB spells_menu_control(sp AS SpellsMenuState)
     '--NOTE: atkallowed isn't needed here because the check is done elswehere...
     '--still, it would be nice if we could use it anyway...
     'IF atkallowed(atk, sp.hero, sp.lists(sp.listnum).magic_type, INT(sp.cursor / 3), )
+    
+    '--repaint the screen so it will show up under the menu attack targ picker
+    spells_menu_paint sp
     IF menu_attack_targ_picker(sp.spell(sp.cursor).id, -1, TRIM(sp.spell(sp.cursor).name), 36) THEN
      '--attack was actually used
      'FIXME: outside-battle and inside-battle attack cost consumption should be unified
@@ -2478,69 +2482,30 @@ SUB spells_menu (who AS INTEGER)
  sp.hero = who
  sp.listnum = 0
 
- DIM cancelmenu AS STRING = readglobalstring(51, "(CANCEL)", 10)
- DIM hasnone AS STRING = readglobalstring(133, "has no spells", 20)
+ sp.cancel_menu_caption = readglobalstring(51, "(CANCEL)", 10)
+ sp.has_none_caption = readglobalstring(133, "has no spells", 20)
 
  spells_menu_refresh_hero sp
  '--Preserve background for display beneath the spells menu
- DIM page AS INTEGER
- page = compatpage
+ sp.page = compatpage
  DIM holdscreen AS INTEGER = allocatepage
- copypage page, holdscreen
+ copypage sp.page, holdscreen
 
  menusound gen(genAcceptSFX)
- DIM tog AS INTEGER = 0
  DIM wtogl AS INTEGER = 0
  setkeys
  DO
   setwait speedcontrol
   setkeys
-  tog = tog XOR 1
+  sp.tog = sp.tog XOR 1
   wtogl = loopvar(wtogl, 0, 3, 1)
   playtimer
   control
   spells_menu_control sp
   IF sp.quit THEN EXIT DO
-  centerfuz 160, 100, 312, 184, 1, page 'outer box
-  centerbox 206, 36, 200, 17, 2, page   'name box
-  centerbox 56, 50, 84, 60, 2, page     'menu box
-  centerbox 160, 134, 308, 96, 2, page  'spell list
-  rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), page 'divider 2
-  FOR i AS INTEGER = 0 TO sp.last
-   IF sp.lists(i).menu_index >= 0 AND sp.listnum = i THEN
-    FOR o AS INTEGER = 0 TO 23
-    'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
-     textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
-     IF sp.cursor = o AND sp.mset = 1 THEN
-      IF sp.spell(o).can_use > 0 THEN 
-       textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight) 
-      ELSE 
-       textcolor uilook(uiMenuItem), uilook(uiHighlight)
-      END IF
-     END IF
-     printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, page 'spells
-    NEXT o
-    textcolor uilook(uiMenuItem), 0
-    IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
-    printstr cancelmenu, 16, 171, page 'cancel
-    IF sp.mset = 1 THEN
-     IF sp.spell(sp.cursor).desc <> "" THEN
-      rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), page  'description divider
-     END IF
-     textcolor uilook(uiDescription), 0
-     printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, page 'cost
-     printstr sp.spell(sp.cursor).desc, 9, 158, page 'description
-    END IF
-   END IF
-   textcolor uilook(uiMenuItem), 0
-   IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2): IF sp.mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-   printstr sp.lists(i).name, 16, 25 + i * 10, page 'spell menu
-  NEXT i
-  IF sp.last = 0 THEN edgeprint names(sp.hero) & " " & hasnone, xstring(names(sp.hero) & " " & hasnone, 160), 120, uilook(uiText), page
-  edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), page
-
+  spells_menu_paint sp
   setvispage vpage
-  copypage holdscreen, page
+  copypage holdscreen, sp.page
   IF sp.re_use = NO THEN
    dowait
   END IF
@@ -2549,7 +2514,47 @@ SUB spells_menu (who AS INTEGER)
  menusound gen(genCancelSFX)
  setkeys
  flusharray carray(), 7
- freepage page
+ freepage sp.page
  freepage holdscreen
 
+END SUB
+
+SUB spells_menu_paint (BYREF sp AS SpellsMenuState)
+ centerfuz 160, 100, 312, 184, 1, sp.page 'outer box
+ centerbox 206, 36, 200, 17, 2, sp.page   'name box
+ centerbox 56, 50, 84, 60, 2, sp.page     'menu box
+ centerbox 160, 134, 308, 96, 2, sp.page  'spell list
+ rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), sp.page 'divider 2
+ FOR i AS INTEGER = 0 TO sp.last
+  IF sp.lists(i).menu_index >= 0 AND sp.listnum = i THEN
+   FOR o AS INTEGER = 0 TO 23
+   'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
+    textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
+    IF sp.cursor = o AND sp.mset = 1 THEN
+     IF sp.spell(o).can_use > 0 THEN 
+      textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight) 
+     ELSE 
+      textcolor uilook(uiMenuItem), uilook(uiHighlight)
+     END IF
+    END IF
+    printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, sp.page 'spells
+   NEXT o
+   textcolor uilook(uiMenuItem), 0
+   IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight)
+   printstr sp.cancel_menu_caption, 16, 171, sp.page 'cancel
+   IF sp.mset = 1 THEN
+    IF sp.spell(sp.cursor).desc <> "" THEN
+     rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), sp.page  'description divider
+    END IF
+    textcolor uilook(uiDescription), 0
+    printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, sp.page 'cost
+    printstr sp.spell(sp.cursor).desc, 9, 158, sp.page 'description
+   END IF
+  END IF
+  textcolor uilook(uiMenuItem), 0
+  IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight2): IF sp.mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
+  printstr sp.lists(i).name, 16, 25 + i * 10, sp.page 'spell menu
+ NEXT i
+ IF sp.last = 0 THEN edgeprint names(sp.hero) & " " & sp.has_none_caption, xstring(names(sp.hero) & " " & sp.has_none_caption, 160), 120, uilook(uiText), sp.page
+ edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), sp.page
 END SUB

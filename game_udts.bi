@@ -134,6 +134,10 @@ TYPE SpellsMenuState
   cursor    AS INTEGER
   mset      AS INTEGER
   re_use    AS INTEGER
+  page      AS INTEGER
+  tog       AS INTEGER
+  cancel_menu_caption AS STRING
+  has_none_caption AS STRING
 END TYPE
 
 #ENDIF
