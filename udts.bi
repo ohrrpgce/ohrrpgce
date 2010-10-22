@@ -224,7 +224,7 @@ TYPE InventSlot
   used as integer	'use this to check if empty, not num!
 
   'following fields should not be used if used = 0
-  id as integer		'absolute, not +1!!
+  id as integer		'read ID number starting at 0, not +1!!
   num as integer
   text as string	'text field which shows up in inventory, blank if empty
 END TYPE

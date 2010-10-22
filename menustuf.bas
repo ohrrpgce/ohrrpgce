@@ -33,7 +33,7 @@ DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
 DECLARE SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
+DECLARE SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER)
 DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0) AS INTEGER
 DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB spells_menu_refresh_list(sp AS SpellsMenuState)
@@ -1880,53 +1880,83 @@ SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
  END IF
 END SUB
 
-SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
+SUB use_item_in_slot(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER)
  'FIXME: If you were hoping to call this sub anywhere other than from
  'the inventory menu, you are out of luck... at least until this
  'code has been cleaned up enough that it does not require istate
  IF inventory(slot).used = NO THEN EXIT SUB
- 
+
+ '--the ONLY reason we load itemdata at this point is to get should_consume
  DIM itemdata(100) AS INTEGER
  loaditemdata itemdata(), inventory(slot).id
  DIM should_consume AS INTEGER = (itemdata(73) = 1)
 
+ IF use_item_by_id(inventory(slot).id, istate.trigger_box, inventory(slot).text) THEN
+  IF istate.trigger_box > 0 THEN EXIT SUB
+  istate.re_use = YES
+  IF should_consume THEN
+   IF consumeitem(slot) THEN
+    setbit iuse(), 0, 3 + slot, 0
+   END IF
+  END IF
+  istate.refresh = YES
+ END IF
+END SUB
+
+FUNCTION use_item_by_id(BYVAL item_id AS INTEGER, BYREF trigger_box AS INTEGER, name_override AS STRING="") AS INTEGER
+ '--item_id is the actual ID number, not offset.
+
+ '--trigger_box communicates the box id if this item triggerd a text box.
+ '  this will remain unchanged (zero) if there is no box. The caller is
+ '  responsible for loading the box. (FIXME: if it makes sense to
+ '  actually load the box from here later, that would be awesome!)
+ 
+ '--name_override is used so the inventory slot text can be used to replace
+ '   the item name (which we would want because inventory slot text shows
+ '   how many items are in the slot you are currently using)
+ '   if name_override is left blank, you will just see the item name
+
+ '--return value is YES if the item use was confirmed bu the user
+ '  or NO if it was cancelled or otherwize failed.
+
+ '--This sub does not care if you actually own the item in question,
+ '   nor will it consume items from your inventory even if the item is a consuming item.
+ 
+ DIM itemdata(100) AS INTEGER
+ loaditemdata itemdata(), item_id
+
+ DIM caption AS STRING
+ IF name_override <> "" THEN
+  caption = name_override
+ ELSE
+  caption = readbadbinstring(itemdata(), 0, 8, 0)
+ END IF
+
  IF itemdata(50) > 0 THEN '--learn a spell
   '--target the first non-dead hero
   MenuSound gen(genAcceptSFX)
-  IF menu_attack_targ_picker(-1, itemdata(50)-1, inventory(slot).text) THEN
-   istate.re_use = YES
-   IF should_consume THEN
-    '--true if we learned from the item and must consume it
-    IF consumeitem(slot) THEN
-     setbit iuse(), 0, 3 + slot, 0
-    END IF
-    istate.refresh = YES
-   END IF
+  IF menu_attack_targ_picker(-1, itemdata(50)-1, caption) THEN
+   '--successfully learned
+   RETURN YES
   END IF
-  EXIT SUB
+  RETURN NO
  END IF
  
  IF itemdata(51) > 0 THEN '--attack/oobcure
   MenuSound gen(genAcceptSFX)
-  IF menu_attack_targ_picker(itemdata(51)-1, -1, inventory(slot).text) THEN
-   istate.re_use = YES
-   IF should_consume THEN
-    '--if true, we used an item and must consume it
-    IF consumeitem(slot) THEN
-     setbit iuse(), 0, 3 + slot, 0
-    END IF
-   END IF
+  IF menu_attack_targ_picker(itemdata(51)-1, -1, caption) THEN
+   RETURN YES
   END IF
-  istate.refresh = YES
-  EXIT SUB
+  RETURN NO
  END IF
+ 
  IF itemdata(51) < 0 THEN '--trigger a text box
-  IF itemdata(73) = 1 THEN consumeitem slot
-  istate.trigger_box = itemdata(51) * -1
-  MenuSound gen(genAcceptSFX)
-  EXIT SUB
+  trigger_box = itemdata(51) * -1
+  RETURN YES
  END IF
-END SUB
+ 
+ RETURN NO
+END FUNCTION
 
 FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0) AS INTEGER
  'Returns true if the attack/spell was actually used/learned
@@ -2116,7 +2146,7 @@ SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() A
  istate.refresh = NO
  IF istate.re_use THEN
   istate.re_use = NO
-  use_item_in_slot istate.cursor, istate, iuse(), permask()
+  use_item_in_slot istate.cursor, istate, iuse()
   EXIT SUB
  END IF
  IF carray(ccMenu) > 1 THEN
@@ -2161,7 +2191,7 @@ SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() A
     istate.sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
     IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN EXIT SUB
-    use_item_in_slot istate.cursor, istate, iuse(), permask()
+    use_item_in_slot istate.cursor, istate, iuse()
     EXIT SUB
    END IF
   END IF
