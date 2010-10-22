@@ -31,9 +31,10 @@ DECLARE SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_do_equip(BYVAL item AS INTEGER, BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_back_to_menu(BYREF st AS EquipMenuState, menu$())
 DECLARE SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
+DECLARE SUB items_menu_paint (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
 DECLARE SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER)
+DECLARE SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0) AS INTEGER
 DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB spells_menu_refresh_list(sp AS SpellsMenuState)
@@ -1717,18 +1718,16 @@ FUNCTION items_menu () as integer
  DIM itemtemp(100) AS INTEGER
  DIM iuse((inventoryMax + 3) / 16) AS INTEGER 'bit 0 of iuse, permask, correspond to item -3
  DIM permask((inventoryMax + 3) / 16) AS INTEGER
- DIM special(-3 TO 0) AS STRING  'upper bound should be -1, had to change due to FB bug #2898546 
 
- special(-3) = rpad(readglobalstring(35, "DONE", 10), " ", 11)
- special(-2) = rpad(readglobalstring(36, "AUTOSORT", 10), " ", 11)
- special(-1) = rpad(readglobalstring(37, "TRASH", 10), " ", 11)
+ istate.special(-3) = rpad(readglobalstring(35, "DONE", 10), " ", 11)
+ istate.special(-2) = rpad(readglobalstring(36, "AUTOSORT", 10), " ", 11)
+ istate.special(-1) = rpad(readglobalstring(37, "TRASH", 10), " ", 11)
 
  '--Preserve background for display beneath the item menu
- DIM page AS INTEGER
  DIM holdscreen AS INTEGER
- page = compatpage
+ istate.page = compatpage
  holdscreen = allocatepage
- copypage page, holdscreen
+ copypage istate.page, holdscreen
 
  DIM i AS INTEGER
  
@@ -1749,15 +1748,13 @@ FUNCTION items_menu () as integer
   END IF
  NEXT i
 
- DIM rect AS RectType
- WITH rect
+ WITH istate.rect
   .x = 8
   .y = 5
   .wide = 304
   .high = small(180, 12 + (INT((last_inv_slot() + 1) / 3) + 1) * 8)
  END WITH
- DIM scrollrect AS RectType
- WITH scrollrect
+ WITH istate.scrollrect
   .x = 20
   .y = 12
   .wide = 287
@@ -1771,8 +1768,6 @@ FUNCTION items_menu () as integer
 
  items_menu_infostr istate, permask()
  
- DIM display AS STRING
- DIM tog AS INTEGER = 0
  DIM wtogl AS INTEGER = 0
  menusound gen(genAcceptSFX)
 
@@ -1780,7 +1775,7 @@ FUNCTION items_menu () as integer
  DO
   setwait speedcontrol
   setkeys
-  tog = tog XOR 1
+  istate.tog = istate.tog XOR 1
   wtogl = loopvar(wtogl, 0, 3, 1)
   playtimer
  
@@ -1798,46 +1793,52 @@ FUNCTION items_menu () as integer
   IF istate.refresh THEN
    items_menu_infostr istate, permask()
   END IF
- 
-  edgeboxstyle rect.x, rect.y, rect.wide, rect.high, 0, page
-  FOR i = istate.top TO small(istate.top + 62, last_inv_slot())
-   textcolor uilook(uiDisabledItem), 0
-   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
-   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
-   IF istate.cursor = i THEN
-    textcolor uilook(uiMenuItem), uilook(uiHighlight2)
-    IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
-    IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
-   END IF
-   IF istate.sel = i THEN
-    textcolor uilook(uiMenuItem), uilook(uiHighlight + tog)
-    IF istate.cursor = i THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight + tog)
-   END IF
-   IF i >= 0 THEN
-    display = inventory(i).text
-   ELSE
-    display = special(i)
-   END IF
-   printstr display, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - istate.top) \ 3), page
-  NEXT i
-  centerfuz 160, 192, 312, 16, 4, page
-  edgeprint istate.info, xstring(istate.info, 160), 187, uilook(uiText), page
-  WITH istate.scroll
-   .top = INT(istate.top / 3)
-   .pt = INT(istate.cursor / 3)
-  END WITH
-  draw_scrollbar istate.scroll, scrollrect, , page
+  
+  items_menu_paint istate, iuse(), permask()
+  
   setvispage vpage
-  copypage holdscreen, page
+  copypage holdscreen, istate.page
   IF istate.re_use = NO THEN
    dowait
   END IF
  LOOP
  carray(ccUse) = 0
  carray(ccMenu) = 0
- freepage page
+ freepage istate.page
  freepage holdscreen
 END FUNCTION
+
+SUB items_menu_paint (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
+ edgeboxstyle istate.rect.x, istate.rect.y, istate.rect.wide, istate.rect.high, 0, istate.page
+ DIM display AS STRING
+ FOR i AS INTEGER = istate.top TO small(istate.top + 62, last_inv_slot())
+  textcolor uilook(uiDisabledItem), 0
+  IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiMenuItem), 0
+  IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiSelectedDisabled), 0
+  IF istate.cursor = i THEN
+   textcolor uilook(uiMenuItem), uilook(uiHighlight2)
+   IF readbit(iuse(), 0, 3 + i) = 1 THEN textcolor uilook(uiText), uilook(uiHighlight2)
+   IF readbit(permask(), 0, 3 + i) THEN textcolor uilook(uiGold), uilook(uiHighlight2)
+  END IF
+  IF istate.sel = i THEN
+   textcolor uilook(uiMenuItem), uilook(uiHighlight + istate.tog)
+   IF istate.cursor = i THEN textcolor uilook(uiSelectedItem + istate.tog), uilook(uiHighlight + istate.tog)
+  END IF
+  IF i >= 0 THEN
+   display = inventory(i).text
+  ELSE
+   display = istate.special(i)
+  END IF
+  printstr display, 20 + 96 * ((i + 3) MOD 3), 12 + 8 * ((i - istate.top) \ 3), istate.page
+ NEXT i
+ centerfuz 160, 192, 312, 16, 4, istate.page
+ edgeprint istate.info, xstring(istate.info, 160), 187, uilook(uiText), istate.page
+ WITH istate.scroll
+  .top = INT(istate.top / 3)
+  .pt = INT(istate.cursor / 3)
+ END WITH
+ draw_scrollbar istate.scroll, istate.scrollrect, , istate.page
+END SUB
 
 SUB items_menu_infostr(istate AS ItemsMenuState, permask() AS INTEGER)
  istate.info = ""
@@ -1881,11 +1882,14 @@ SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
  END IF
 END SUB
 
-SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER)
+SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
  IF inventory(slot).used = NO THEN EXIT SUB
 
  DIM consumed AS INTEGER = NO
 
+ '--repaint the item menu so it can be the background for the menu_attack_targ_picker
+ items_menu_paint istate, iuse(), permask()
+ 
  IF use_item_in_slot(slot, istate.trigger_box, consumed) THEN
   IF consumed THEN setbit iuse(), 0, 3 + slot, 0
   IF istate.trigger_box > 0 THEN EXIT SUB
@@ -1918,8 +1922,7 @@ FUNCTION use_item_in_slot(BYVAL slot AS INTEGER, BYREF trigger_box AS INTEGER, B
    END IF
   END IF
   RETURN YES
- END IF
- 
+ END IF 
  RETURN NO
 END FUNCTION
 
@@ -2166,7 +2169,7 @@ SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() A
  istate.refresh = NO
  IF istate.re_use THEN
   istate.re_use = NO
-  item_menu_use_item istate.cursor, istate, iuse()
+  item_menu_use_item istate.cursor, istate, iuse(), permask()
   EXIT SUB
  END IF
  IF carray(ccMenu) > 1 THEN
@@ -2211,7 +2214,7 @@ SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() A
     istate.sel = -4
     '--if the usability bit is off, or you dont have any of the item, exit
     IF readbit(iuse(), 0, 3 + istate.cursor) = 0 OR inventory(istate.cursor).used = 0 THEN EXIT SUB
-    item_menu_use_item istate.cursor, istate, iuse()
+    item_menu_use_item istate.cursor, istate, iuse(), permask()
     EXIT SUB
    END IF
   END IF

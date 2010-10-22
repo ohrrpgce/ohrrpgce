@@ -105,7 +105,12 @@ TYPE ItemsMenuState
   trigger_box AS INTEGER
   quit   AS INTEGER
   scroll AS MenuState
+  scrollrect AS RectType
   refresh AS INTEGER
+  page AS INTEGER
+  rect AS RectType
+  tog AS INTEGER
+  special(-3 TO 0) AS STRING 'upper bound should be -1, had to change due to FB bug #2898546
 END TYPE
 
 TYPE SpellsMenuSlot
