@@ -35,7 +35,7 @@ DECLARE SUB items_menu_paint (istate AS ItemsMenuState, iuse() AS INTEGER, perma
 DECLARE SUB items_menu_infostr(state AS ItemsMenuState, permask() AS INTEGER)
 DECLARE SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB item_menu_use_item(BYVAL slot AS INTEGER, istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
-DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0) AS INTEGER
+DECLARE FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0, BYVAL really_use_attack AS INTEGER=YES) AS INTEGER
 DECLARE SUB items_menu_control (istate AS ItemsMenuState, iuse() AS INTEGER, permask() AS INTEGER)
 DECLARE SUB spells_menu_refresh_list(sp AS SpellsMenuState)
 DECLARE SUB spells_menu_refresh_hero(sp AS SpellsMenuState)
@@ -1910,14 +1910,21 @@ FUNCTION use_item_in_slot(BYVAL slot AS INTEGER, BYREF trigger_box AS INTEGER, B
  consumed = NO
  IF inventory(slot).used = NO THEN RETURN NO
 
- '--the ONLY reason we load itemdata at this point is to get should_consume
  DIM itemdata(100) AS INTEGER
  loaditemdata itemdata(), inventory(slot).id
+ DIM attack_name AS STRING = readbadbinstring(itemdata(), 0, 8, 0)
  DIM should_consume AS INTEGER = (itemdata(73) = 1)
+ DIM attack_id AS INTEGER = itemdata(51) - 1
+ DIM is_attack_item AS INTEGER = ( itemdata(51) > 0 ANDALSO NOT itemdata(50) > 0 )
 
  IF use_item_by_id(inventory(slot).id, trigger_box, inventory(slot).text) THEN
   IF should_consume THEN
    IF consumeitem(slot) THEN
+    IF is_attack_item ANDALSO inventory(slot).used = NO THEN
+     '--used the last attack item (potion) in a consumable stack
+     menu_attack_targ_picker attack_id, -1, rpad(attack_name, " ", 8) & "x 0", , NO
+     menusound gen(genCancelSFX)
+    END IF
     consumed = YES
    END IF
   END IF
@@ -1981,7 +1988,7 @@ FUNCTION use_item_by_id(BYVAL item_id AS INTEGER, BYREF trigger_box AS INTEGER, 
  RETURN NO
 END FUNCTION
 
-FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0) AS INTEGER
+FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS INTEGER, use_caption AS STRING, BYVAL x_offset AS INTEGER=0, BYVAL really_use_attack AS INTEGER=YES) AS INTEGER
  'Returns true if the attack/spell was actually used/learned
  
  'FIXME: x_offset should probably go away in favor of a slice template at some point in the future
@@ -2114,7 +2121,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
    END IF
    
    '--do attack outside of battle (cure)
-   IF attack_id >= 0 THEN
+   IF attack_id >= 0 ANDALSO really_use_attack THEN
     IF outside_battle_cure(attack_id, targ, -1, spread) THEN
      menu_attack_targ_picker = YES
     END IF

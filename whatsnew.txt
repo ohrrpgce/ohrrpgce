@@ -38,6 +38,8 @@ WHAT IS NEW?
     * gfx_directx input rewrite: adds joystick support, normal mouse
       speed/acceleration, removes forced mouse clipping and adds
       "mouse region" support [Jay]
+    * When using an item in the item menu, there is now visual feedback
+      when you use the last item in a stack. [James]
 
   * Bugfixes
     * Bug 749:  Attacks configured to do No Damage still do damage when
@@ -72,6 +74,8 @@ WHAT IS NEW?
     * gfx_directx: fixed slow screen fades and framerate [Jay]
     * Bug 824: Back-compat issue with Curse of Vampire (affected other
       games) [James]
+    * Your MP (and the rest of the spell menu) is no longer hidden
+      while you target a spell outside of battle. [James]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
