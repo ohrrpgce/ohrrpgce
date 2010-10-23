@@ -21,6 +21,7 @@ namespace gfx
 		void GetOHRScans(int* pScancodes) const {for(UINT i = 0; i < 128; i++) pScancodes[i] |= m_scancodes[i];}
 		void GetVirtualKeys(BYTE* pVirtualKeys) const {memcpy((void*)pVirtualKeys, (void*)m_virtualKeys, sizeof(m_virtualKeys));}
 
+		void Poll();
 		bool ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	};
 }

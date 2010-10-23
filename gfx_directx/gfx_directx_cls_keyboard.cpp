@@ -8,59 +8,69 @@ Keyboard::Keyboard()
 	ZeroMemory(m_virtualKeys, sizeof(m_virtualKeys));
 }
 
+void Keyboard::Poll()
+{
+	::GetKeyboardState(m_virtualKeys);
+	for(UINT i = 0; i < 256; i++)
+		m_scancodes[ c_vk2fb[i] ] = (m_virtualKeys[i] & 0x80) ? 0x8 : 0x0;
+	m_scancodes[ c_vk2fb[VK_CAPITAL] ] = (m_virtualKeys[VK_CAPITAL] & 0x1) ? 0x8 : 0x0;
+	m_scancodes[ c_vk2fb[VK_NUMLOCK] ] = (m_virtualKeys[VK_NUMLOCK] & 0x1) ? 0x8 : 0x0;
+	m_scancodes[ c_vk2fb[VK_SCROLL] ] = (m_virtualKeys[VK_SCROLL] & 0x1) ? 0x8 : 0x0;
+}
+
 bool Keyboard::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	const BYTE state = 0x8;
-	const BYTE vkState = 0x80;
+	//const BYTE state = 0x8;
+	//const BYTE vkState = 0x80;
 
 	switch(msg)
 	{
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 		{
-			if(wParam == VK_NUMLOCK || wParam == VK_SCROLL || wParam == VK_CAPITAL)
-				break;
-			else if(wParam == VK_SHIFT)
-			{//to distinguish between left and right
-				m_virtualKeys[VK_LSHIFT] = GetAsyncKeyState(VK_LSHIFT) & vkState ? vkState : 0x0;
-				m_virtualKeys[VK_RSHIFT] = GetAsyncKeyState(VK_RSHIFT) & vkState ? vkState : 0x0;
-				m_scancodes[ c_vk2fb[VK_LSHIFT] ] = m_virtualKeys[VK_LSHIFT] & vkState ? state : 0x0;
-				m_scancodes[ c_vk2fb[VK_RSHIFT] ] = m_virtualKeys[VK_RSHIFT] & vkState ? state : 0x0;
-			}
-			else
-			{
-				m_virtualKeys[wParam] = vkState;
-				m_scancodes[ c_vk2fb[wParam] ] = state;
-			}
+			//if(wParam == VK_NUMLOCK || wParam == VK_SCROLL || wParam == VK_CAPITAL)
+			//	break;
+			//else if(wParam == VK_SHIFT)
+			//{//to distinguish between left and right
+			//	m_virtualKeys[VK_LSHIFT] = GetAsyncKeyState(VK_LSHIFT) & vkState ? vkState : 0x0;
+			//	m_virtualKeys[VK_RSHIFT] = GetAsyncKeyState(VK_RSHIFT) & vkState ? vkState : 0x0;
+			//	m_scancodes[ c_vk2fb[VK_LSHIFT] ] = m_virtualKeys[VK_LSHIFT] & vkState ? state : 0x0;
+			//	m_scancodes[ c_vk2fb[VK_RSHIFT] ] = m_virtualKeys[VK_RSHIFT] & vkState ? state : 0x0;
+			//}
+			//else
+			//{
+			//	m_virtualKeys[wParam] = vkState;
+			//	m_scancodes[ c_vk2fb[wParam] ] = state;
+			//}
 		} break;
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 		{
-			if(wParam == VK_NUMLOCK || wParam == VK_SCROLL || wParam == VK_CAPITAL)
-			{
-				if(m_virtualKeys[wParam] == vkState)
-				{
-					m_virtualKeys[wParam] = 0x0;
-					m_scancodes[ c_vk2fb[wParam] ] = 0x0;
-				}
-				else
-				{
-					m_virtualKeys[wParam] = vkState;
-					m_scancodes[ c_vk2fb[wParam] ] = state;
-				}
-			}
-			else if(wParam == VK_SHIFT)
-			{//to distinguish between left and right
-				m_virtualKeys[VK_LSHIFT] = GetAsyncKeyState(VK_LSHIFT) & vkState ? vkState : 0x0;
-				m_virtualKeys[VK_RSHIFT] = GetAsyncKeyState(VK_RSHIFT) & vkState ? vkState : 0x0;
-				m_scancodes[ c_vk2fb[VK_LSHIFT] ] = m_virtualKeys[VK_LSHIFT] & vkState ? state : 0x0;
-				m_scancodes[ c_vk2fb[VK_RSHIFT] ] = m_virtualKeys[VK_RSHIFT] & vkState ? state : 0x0;
-			}
-			else
-			{
-				m_virtualKeys[wParam] = 0x0;
-				m_scancodes[ c_vk2fb[wParam] ] = 0x0;
-			}
+			//if(wParam == VK_NUMLOCK || wParam == VK_SCROLL || wParam == VK_CAPITAL)
+			//{
+			//	if(m_virtualKeys[wParam] == vkState)
+			//	{
+			//		m_virtualKeys[wParam] = 0x0;
+			//		m_scancodes[ c_vk2fb[wParam] ] = 0x0;
+			//	}
+			//	else
+			//	{
+			//		m_virtualKeys[wParam] = vkState;
+			//		m_scancodes[ c_vk2fb[wParam] ] = state;
+			//	}
+			//}
+			//else if(wParam == VK_SHIFT)
+			//{//to distinguish between left and right
+			//	m_virtualKeys[VK_LSHIFT] = GetAsyncKeyState(VK_LSHIFT) & vkState ? vkState : 0x0;
+			//	m_virtualKeys[VK_RSHIFT] = GetAsyncKeyState(VK_RSHIFT) & vkState ? vkState : 0x0;
+			//	m_scancodes[ c_vk2fb[VK_LSHIFT] ] = m_virtualKeys[VK_LSHIFT] & vkState ? state : 0x0;
+			//	m_scancodes[ c_vk2fb[VK_RSHIFT] ] = m_virtualKeys[VK_RSHIFT] & vkState ? state : 0x0;
+			//}
+			//else
+			//{
+			//	m_virtualKeys[wParam] = 0x0;
+			//	m_scancodes[ c_vk2fb[wParam] ] = 0x0;
+			//}
 		} break;
 	default:
 		return false;

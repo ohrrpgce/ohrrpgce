@@ -280,6 +280,7 @@ void gfx_PumpMessages()
 		}
 	}
 	g_Joystick.Poll();
+	g_Keyboard.Poll();
 }
 
 void gfx_SetWindowTitle(const char *szTitle)
@@ -329,6 +330,8 @@ void gfx_ClipCursor(int left, int top, int right, int bottom)
 		g_Mouse.SetClippingRect(&r);
 		g_Mouse.SetClipState(gfx::Mouse2::CS_ON);
 	}
+	char buffer[256] = "";
+	gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
 }
 
 int gfx_GetKeyboard(int *pKeyboard)
@@ -426,7 +429,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	
 	if(g_Mouse.ProcessMessage(hWnd, msg, wParam, lParam))
 		return 0;
-	g_Keyboard.ProcessMessage(hWnd, msg, wParam, lParam);
+	//g_Keyboard.ProcessMessage(hWnd, msg, wParam, lParam);
 
 	switch(msg)
 	{

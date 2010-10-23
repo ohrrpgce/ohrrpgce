@@ -56,10 +56,16 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 		io_readjoysane(0, buttons, x, y);
 		if(g_keys[SC_LEFT] || buttons & 0x1)
 			j++;
-		j += x / 10;
-		j -= y / 10;
 		if(g_keys[SC_RIGHT] || buttons & 0x2)
 			j--;
+		j += x / 10;
+		j -= y / 10;
+		if(g_keys[SC_CAPSLOCK])
+			j++;
+		if(g_keys[SC_NUMLOCK])
+			j++;
+		if(g_keys[SC_SCROLLLOCK])
+			j++;
 		if(g_keys[SC_ESCAPE])
 			g_bQuit = true;
 		if(g_keys[SC_S])
