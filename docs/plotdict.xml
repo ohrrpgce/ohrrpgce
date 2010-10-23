@@ -934,6 +934,11 @@ end</example>
 			<shortname>delete item</shortname>
 			<description>Removes the specified number of the specified item from your inventory. If you do not specify a number, only one will be removed. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
 		</command>
+		<command id="useitem">
+			<canon>use item (item)</canon>
+			<shortname>use item</shortname>
+			<description>Attemts to use an item as if you had selected it in the items menu. The argument is the item's ID number, or one of the <p>item:name</p> constants in your .hsi file. This command will only work if the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. This command does not care if you actually have any of the item in your inventory, and if it is a consumable item, you will not lose any. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.</description>
+		</command>
 		<command id="unequip">
 			<canon>unequip (hero,slot)</canon>
 			<shortname>unequip</shortname>

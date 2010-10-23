@@ -1781,6 +1781,13 @@ WITH scrat(nowscript)
    CASE 438 '--reset game
     resetg = YES
     .state = stwait
+   CASE 490'--use item (id)
+    scriptret = 0
+    IF valid_item(retvals(0)) THEN
+     IF use_item_by_id(retvals(0), wantbox) THEN
+      scriptret = 1
+     END IF
+    END IF
    CASE ELSE '--try all the scripts implemented in subs (insanity!)
     scriptnpc cmdid
     scriptmisc cmdid

@@ -494,6 +494,8 @@ define function, begin
 #484,drawwithzone,3,0,0,0      #write to map layer (zone id, layer num, tile)  (unimplemented)
 #485,zonenexttilex,3,0,-1,-1   #x coordinate of next tile in zone (zone id, current x, current y)  (unimplemented)
 #486,zonenexttiley,3,0,-1,-1   #y coordinate of next tile in zone (zone id, current x, current y)  (unimplemented)
+#
+490,useitem,1,0               # use an item as if you had used it from the item menu
 end
 
 #--------------------------------------------------------------------------
