@@ -105,7 +105,7 @@ WHAT IS NEW?
     * "init mouse" no longer locks the mouse to the window
     * "read zone", "write zone", "zone at spot",
       "zone number of tiles" [Ralph]
-    * "use item" [James]
+    * "use item", "use item in slot" [James]
 
   * Vikings of Midgard
 

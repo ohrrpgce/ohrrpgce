@@ -1788,6 +1788,15 @@ WITH scrat(nowscript)
       scriptret = 1
      END IF
     END IF
+   CASE 491'--use item in slot (slot)
+    scriptret = 0
+    IF valid_item_slot(retvals(0)) THEN
+     DIM consumed AS INTEGER '--throwaway, this is not used for anything in this context. use_item_in_slot() just needs it.
+     IF use_item_in_slot(retvals(0), wantbox, consumed) THEN
+      scriptret = 1
+     END IF
+    END IF
+    
    CASE ELSE '--try all the scripts implemented in subs (insanity!)
     scriptnpc cmdid
     scriptmisc cmdid
@@ -1799,7 +1808,7 @@ END WITH
 END SUB
 
 FUNCTION valid_item_slot(item_slot AS INTEGER) AS INTEGER
- RETURN bound_arg(item_slot, 0, gen(genMaxInventory), "item slot")
+ RETURN bound_arg(item_slot, 0, last_inv_slot(), "item slot")
 END FUNCTION
 
 FUNCTION valid_item(itemID AS INTEGER) AS INTEGER

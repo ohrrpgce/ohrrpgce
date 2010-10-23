@@ -496,6 +496,7 @@ define function, begin
 #486,zonenexttiley,3,0,-1,-1   #y coordinate of next tile in zone (zone id, current x, current y)  (unimplemented)
 #
 490,useitem,1,0               # use an item as if you had used it from the item menu
+491,useiteminslot,1,0         # use item in a given inventory slot
 end
 
 #--------------------------------------------------------------------------

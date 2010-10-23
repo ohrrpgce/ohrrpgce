@@ -924,6 +924,13 @@ end</example>
 			<shortname>swap by position</shortname>
 			<description>Swaps two heroes in your party based on their positions in the party</description>
 		</command>
+		<command id="giveexperience">
+			<canon>give experience (hero,amount)</canon>
+			<shortname>give experience</shortname>
+			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling.</description>
+		</command>
+	</section>
+	<section title="Items">
 		<command id="getitem">
 			<canon>get item (item,number)</canon>
 			<shortname>get item</shortname>
@@ -937,7 +944,10 @@ end</example>
 		<command id="useitem">
 			<canon>use item (item)</canon>
 			<shortname>use item</shortname>
-			<description>Attemts to use an item as if you had selected it in the items menu. The argument is the item's ID number, or one of the <p>item:name</p> constants in your .hsi file. This command will only work if the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. This command does not care if you actually have any of the item in your inventory, and if it is a consumable item, you will not lose any. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.</description>
+			<description>Attempts to use an item as if you had selected it in the items menu. The argument is the item's ID number, or one of the <p>item:name</p> constants in your .hsi file. This command will only work if the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. This command does not care if you actually have any of the item in your inventory, and if it is a consumable item, you will not lose any. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.</description>
+			<seealso>
+				<ref>useiteminslot</ref>
+			</seealso>
 		</command>
 		<command id="unequip">
 			<canon>unequip (hero,slot)</canon>
@@ -969,10 +979,72 @@ end</example>
 			<shortname>set default weapon</shortname>
 			<description>Changes the item that the specified hero uses as a default weapon when no other weapon is equipped. The first argument is the position of the hero in your party, 0-3 for the active party, 4-40 for the reserve. (use <ref>findhero</ref> if you want to refer to the hero by name). The second argument is the item to use as the new default weapon. you can use the item&apos;s number or the item:name constants from your .HSI file.</description>
 		</command>
-		<command id="giveexperience">
-			<canon>give experience (hero,amount)</canon>
-			<shortname>give experience</shortname>
-			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling.</description>
+		<command id="iteminslot">
+			<canon>item in slot (slot)</canon>
+			<shortname>item in slot</shortname>
+			<description>Return a the item ID number at a specific slot in your inventory. If the inventory slot is empty, it will return -1. Slots are numbered from 0 to <ref>getinventorysize</ref>-1.</description>
+			<seealso>
+				<ref>setiteminslot</ref>
+				<ref>itemcountinslot</ref>
+				<ref>setitemcountinslot</ref>
+				<ref>getinventorysize</ref>
+			</seealso>
+		</command>
+		<command id="setiteminslot">
+			<canon>set item in slot (slot, item)</canon>
+			<shortname>set item in slot</shortname>
+			<description>Change the item ID number at a specific slot in your inventory. The <p>slot</p> argument is the position in your inventory screen, and the <p>item</p> argument is the item ID number, or one of the <p>item:name</p> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID</description>
+			<seealso>
+				<ref>iteminslot</ref>
+				<ref>itemcountinslot</ref>
+				<ref>setitemcountinslot</ref>
+				<ref>getinventorysize</ref>
+			</seealso>
+		</command>
+		<command id="itemcountinslot">
+			<canon>item count in slot (slot)</canon>
+			<shortname>item count in slot</shortname>
+			<description>Return a the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <ref>getinventorysize</ref>-1.</description>
+			<seealso>
+				<ref>iteminslot</ref>
+				<ref>setiteminslot</ref>
+				<ref>setitemcountinslot</ref>
+				<ref>getinventorysize</ref>
+			</seealso>
+		</command>
+		<command id="setitemcountinslot">
+			<canon>set item count in slot (slot, count)</canon>
+			<shortname>set item count in slot</shortname>
+			<description>Change the count of items at a specific slot in your inventory. The <p>count</p> argument is the new number of items from 1 to 99, or 0 if you want to delete any items currently in the slot. If the slot is empty, this command will fail.</description>
+			<seealso>
+				<ref>iteminslot</ref>
+				<ref>setiteminslot</ref>
+				<ref>setitemcountinslot</ref>
+				<ref>getinventorysize</ref>
+			</seealso>
+		</command>
+		<command id="useiteminslot">
+			<canon>use item in slot(slot)</canon>
+			<shortname>use item in slot</shortname>
+			<description>Attempts to use whatever item is in a given inventory slot as if you had selected it in the items menu. The argument is the inventory slot number. This command will only work if there is actually an itme in the slot, and the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.</description>
+			<seealso>
+				<ref>useitem</ref>
+			</seealso>
+		</command>
+		<command id="inventory">
+			<canon>inventory (item)</canon>
+			<shortname>inventory</shortname>
+			<description>Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <ref>zero</ref> or <ref>false</ref>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
+		</command>
+		<command id="getinventorysize">
+			<canon>get inventory size</canon>
+			<shortname>get inventory size</shortname>
+			<description>Returns the number of inventory slots.</description>
+		</command>
+		<command id="setinventorysize">
+			<canon>set inventory size (new size)</canon>
+			<shortname>set inventory size</shortname>
+			<description>Changes the number of inventory slots that are available. Use the constant <p>inv:max</p> to restore the maximum value. The number you give will be rounded up to the nearest multiple of 3.</description>
 		</command>
 	</section>
 	<section title="Effects">
@@ -3517,65 +3589,6 @@ end
 			<seealso>
 				<ref>random</ref>
 			</seealso>
-		</command>
-		<command id="iteminslot">
-			<canon>item in slot (slot)</canon>
-			<shortname>item in slot</shortname>
-			<description>Return a the item ID number at a specific slot in your inventory. If the inventory slot is empty, it will return -1. Slots are numbered from 0 to <ref>getinventorysize</ref>-1.</description>
-			<seealso>
-				<ref>setiteminslot</ref>
-				<ref>itemcountinslot</ref>
-				<ref>setitemcountinslot</ref>
-				<ref>getinventorysize</ref>
-			</seealso>
-		</command>
-		<command id="setiteminslot">
-			<canon>set item in slot (slot, item)</canon>
-			<shortname>set item in slot</shortname>
-			<description>Change the item ID number at a specific slot in your inventory. The <p>slot</p> argument is the position in your inventory screen, and the <p>item</p> argument is the item ID number, or one of the <p>item:name</p> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID</description>
-			<seealso>
-				<ref>iteminslot</ref>
-				<ref>itemcountinslot</ref>
-				<ref>setitemcountinslot</ref>
-				<ref>getinventorysize</ref>
-			</seealso>
-		</command>
-		<command id="itemcountinslot">
-			<canon>item count in slot (slot)</canon>
-			<shortname>item count in slot</shortname>
-			<description>Return a the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <ref>getinventorysize</ref>-1.</description>
-			<seealso>
-				<ref>iteminslot</ref>
-				<ref>setiteminslot</ref>
-				<ref>setitemcountinslot</ref>
-				<ref>getinventorysize</ref>
-			</seealso>
-		</command>
-		<command id="setitemcountinslot">
-			<canon>set item count in slot (slot, count)</canon>
-			<shortname>set item count in slot</shortname>
-			<description>Change the count of items at a specific slot in your inventory. The <p>count</p> argument is the new number of items from 1 to 99, or 0 if you want to delete any items currently in the slot. If the slot is empty, this command will fail.</description>
-			<seealso>
-				<ref>iteminslot</ref>
-				<ref>setiteminslot</ref>
-				<ref>setitemcountinslot</ref>
-				<ref>getinventorysize</ref>
-			</seealso>
-		</command>
-		<command id="inventory">
-			<canon>inventory (item)</canon>
-			<shortname>inventory</shortname>
-			<description>Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <ref>zero</ref> or <ref>false</ref>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name</description>
-		</command>
-		<command id="getinventorysize">
-			<canon>get inventory size</canon>
-			<shortname>get inventory size</shortname>
-			<description>Returns the number of inventory slots.</description>
-		</command>
-		<command id="setinventorysize">
-			<canon>set inventory size (new size)</canon>
-			<shortname>set inventory size</shortname>
-			<description>Changes the number of inventory slots that are available. Use the constant <p>inv:max</p> to restore the maximum value. The number you give will be rounded up to the nearest multiple of 3.</description>
 		</command>
 		<command id="leader">
 			<canon>leader</canon>

@@ -119,6 +119,8 @@
 	
 		<a href="#Adding%20and%20Removing">Adding and Removing</a><br>
 	
+		<a href="#Items">Items</a><br>
+	
 		<a href="#Effects">Effects</a><br>
 	
 		<a href="#Hero's%20Spells">Hero's Spells</a><br>
@@ -132,6 +134,8 @@
 		<a href="#Sprite%20Functions">Sprite Functions</a><br>
 	
 		<a href="#Slice%20Functions">Slice Functions</a><br>
+	
+		<a href="#Zone%20Functions">Zone Functions</a><br>
 	
 		<a href="#Misc%20Functions">Misc Functions</a><br>
 	
@@ -724,6 +728,18 @@
 		<a href="#about-getnpcid">get NPC ID (reference)</a><br>
 		
 	
+		<a href="#about-getnpcignoreswalls">get NPC ignores walls (who)</a><br>
+		
+	
+		<a href="#about-getnpcmoves">get NPC moves (who)</a><br>
+		
+	
+		<a href="#about-getnpcobstructs">get NPC obstructs (who)</a><br>
+		
+	
+		<a href="#about-getnpcusable">get NPC usable (who)</a><br>
+		
+	
 		<a href="#about-getonkeypressscript">get on keypress script</a><br>
 		
 	
@@ -1288,6 +1304,9 @@
 		<a href="#about-readtimer">read timer (id)</a><br>
 		
 	
+		<a href="#about-readzone">read zone (zone id, x, y)</a><br>
+		
+	
 		<a href="#about-realignslice">realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)</a><br>
 		
 	
@@ -1660,10 +1679,22 @@
 		<a href="#about-setnpcframe">set NPC frame (who, frame)</a><br>
 		
 	
+		<a href="#about-setnpcignoreswalls">set NPC ignores walls (who, value)</a><br>
+		
+	
+		<a href="#about-setnpcmoves">set NPC moves (who, value)</a><br>
+		
+	
+		<a href="#about-setnpcobstructs">set NPC obstructs (who, value)</a><br>
+		
+	
 		<a href="#about-setnpcposition">set NPC position (who, X, Y)</a><br>
 		
 	
 		<a href="#about-setnpcspeed">set NPC speed (who, speed)</a><br>
+		
+	
+		<a href="#about-setnpcusable">set NPC usable (who, value)</a><br>
 		
 	
 		<a href="#about-setonkeypressscript">set on keypress script (id)</a><br>
@@ -2125,13 +2156,19 @@
 		<a href="#about-usedoor">use door (number)</a><br>
 		
 	
+		<a href="#about-useitem">use item (item)</a><br>
+		
+	
+		<a href="#about-useiteminslot">use item in slot(slot)</a><br>
+		
+	
 		
 		<a href="#about-keyconstants">use key</a><br>
 	
 		<a href="#about-usemenuitem">use menu item(menu item handle)</a><br>
 		
 	
-		<a href="#about-usenpc">Use NPC (who)</a><br>
+		<a href="#about-usenpc">use NPC (who)</a><br>
 		
 	
 		<a href="#about-useshop">use shop (shop)</a><br>
@@ -2224,6 +2261,9 @@
 		<a href="#about-writespell">write spell (hero,list,slot,attack)</a><br>
 		
 	
+		<a href="#about-writezone">write zone (zone id, x, y, value)</a><br>
+		
+	
 		<a href="#about-xaxis">x axis</a><br>
 		
 	
@@ -2238,6 +2278,12 @@
 	
 		
 		<a href="#about-numericconstants">zero</a><br>
+	
+		<a href="#about-zoneatspot">zone at spot (x, y, count)</a><br>
+		
+	
+		<a href="#about-zonenumberoftiles">zone number of tiles (zone id)</a><br>
+		
 	</p>
 <hr>
 		<a name="Declarations"></a>
@@ -2398,7 +2444,7 @@ wait for scancode(key:P)</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">wait for NPC (who)</font></b><br>
-			Waits for the specified NPC to stop walking. The argument is the number of the NPC, 0 to 35. If more than one copy of the NPC exists on the map, it only checks the first one.<br>
+			Waits for the specified NPC to stop walking. The argument is either an NPC reference, or an NPC ID (if more than one copy of that NPC exists on the map, it only waits for the first one).<br>
 			<pre>walk NPC (2,up,3) # make the NPC go up three spaces
 wait for NPC (2) # wait until he's done</pre>
 			
@@ -2453,17 +2499,23 @@ resume player</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend NPCs</font></b><br>
-			Stops NPCs from walking around automatically. When suspend NPCs is run, all NPCs stop in their tracks, ready for you to control them with the <a href="#about-walknpc" class="ref">walk NPC</a> command<br>
+			Stops NPCs from walking around automatically. When suspend NPCs is run, all NPCs stop in their tracks once they've finished their current move, ready for you to control them with the <a href="#about-walknpc" class="ref">walk NPC</a> command. You can use <a href="#about-waitforall" class="ref">wait for all</a> to wait for all NPCs to stop moving. Use <a href="#about-setnpcmoves" class="ref">set NPC moves</a>(who, false) instead to prevent a single NPC from moving.<br>
 			<pre>suspend NPCs
 # do stuff
 resume NPCs</pre>
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-waitfornpc" class="ref">wait for NPC</a>, </li>
+<li>
+<a href="#about-waitforall" class="ref">wait for all</a>, </li>
+<li><a href="#about-setnpcmoves" class="ref">set NPC moves</a></li>
+</ul>
 		</tt></p>
 		<a name="about-resumenpcs"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">resume NPCs</font></b><br>
-			Restores automatic NPC movement after a <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> command<br>
+			Restores automatic NPC movement after a <a href="#about-suspendnpcs" class="ref">suspend NPCs</a> command. This does not resume NPCs suspended with <a href="#about-setnpcmoves" class="ref">set NPC moves</a>.<br>
 			<pre>suspend NPCs
 # do stuff
 resume NPCs</pre>
@@ -2473,7 +2525,7 @@ resume NPCs</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend obstruction</font></b><br>
-			Allows heroes to walk through NPCs, allows NPCs to walk through heroes, and allows NPCs to walk through each other. Use <a href="#about-resumeobstruction" class="ref">resume obstruction</a> to restore normal obstruction behavior.<br>
+			Allows heroes to walk through NPCs, allows NPCs to walk through heroes, and allows NPCs to walk through each other. Use <a href="#about-resumeobstruction" class="ref">resume obstruction</a> to restore normal obstruction behavior. Use <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a>(who, false) instead to allow a single NPC to move through heroes and NPCs, and vice-versa.<br>
 			<pre>suspend obstruction
 # walk through things
 resume obstruction</pre>
@@ -2483,7 +2535,7 @@ resume obstruction</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">resume obstruction</font></b><br>
-			Restores normal obstruction after a <a href="#about-suspendobstruction" class="ref">suspend obstruction</a> command<br>
+			Restores normal obstruction after a <a href="#about-suspendobstruction" class="ref">suspend obstruction</a> command. This doesn't undo the effect of <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a>.<br>
 			<pre>suspend obstruction
 # walk through things
 resume obstruction</pre>
@@ -2513,7 +2565,7 @@ resume hero walls # back to mortality...</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">suspend NPC walls</font></b><br>
-			Allows NPCs to walk through walls. Use <a href="#about-resumenpcwalls" class="ref">resume NPC walls</a> to restore normal wall behavior.<br>
+			Allows NPCs to walk through walls. Use <a href="#about-resumenpcwalls" class="ref">resume NPC walls</a> to restore normal wall behavior. Use <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>(who, true) instead to allow a single NPC to walk through walls.<br>
 			<pre>suspend NPC walls # npc is now a ghost
 # walk through things
 resume NPC walls # back to mortality...</pre>
@@ -2523,7 +2575,7 @@ resume NPC walls # back to mortality...</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">resume NPC walls</font></b><br>
-			Restores normal wall behavior after a <a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a> command.<br>
+			Restores normal wall behavior after a <a href="#about-suspendnpcwalls" class="ref">suspend NPC walls</a> command. This doesn't undo the effect of <a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>.<br>
 			<pre>suspend NPC walls # npc is now a ghost
 # walk through things
 resume NPC walls # back to mortality...</pre>
@@ -2833,7 +2885,10 @@ resume player</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC reference (ID, copy)</font></b><br>
-			What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you dont specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero; you can see the copy number of NPCs in the Map Editor if you placed them in Custom.<br> If you plan on using the same NPC reference many times in a script you can store it in a <a href="#about-variable" class="ref">variable</a>. If the NPC with the ID you asked for (or the NPC copy you asked for with ID you asked for) is not found on the map then NPC reference will return <a href="#about-booleanconstants" class="ref">false</a>.<br>
+			What is an NPC reference? A reference is a number that uniquely identifies an NPC on a map. You can use an NPC reference to specify which NPC you are controlling in most NPC-related commands. The first argument to NPC reference is the ID number of the NPC you want to work with. The ID is the same number that appears in CUSTOM.EXE when you are editing NPCs or placing NPCs on the map. The second argument is optional. It specifies which copy of the NPC you want, in case there are more than one on the map. If you don't specify which copy you want, you will just get a reference to the first NPC on the map with the right ID. Copies are counted starting from zero. You can see the copy number of NPCs in the Map Editor if you placed them in Custom. If the NPC ID/copy which you asked for is not found on the map then NPC reference will return <a href="#about-booleanconstants" class="ref">false</a>.<br> If you plan on using the same NPC reference many times in a script you can store it in a <a href="#about-variable" class="ref">variable</a>.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">NPCs hidden due to tag conditions are never returned by this command.<br clear="all">
+</div>
+<br>
 			<pre>include,plotscr.hsd
 
 #---NPC reference example---
@@ -2875,7 +2930,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC at spot (x, y, number)</font></b><br>
-			This command returns a reference to the NPC at the given X and Y coordinate on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom most NPC, which is number 0). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile. <div style="background-color:#EFF;" class="note">
+			This command returns a reference to the NPC at the given X and Y coordinate, in tiles, on the map. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large. You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile. <div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An NPC's tile is the tile its top left corner is on.<br clear="all">
 </div>
 <br>
@@ -2886,7 +2941,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC at pixel (x, y, number)</font></b><br>
-			This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile.<br>
+			This command returns a reference to the NPC at the given X and Y coordinate in pixels. That is, any npc whose 20x20 sprite (including transparent sections) is over that pixel. The optional third argument lets you choose which NPC to reference in case there is more than one NPC standing on that same spot (starting from the bottom-most NPC, which is number 0). <a href="#about-booleanconstants" class="ref">false</a> is returned if there is no NPC there, or <span class="param">number</span> is too large. You can also pass the constant <a href="#about-getcount" class="ref">get count</a> for the third argument to return the total number of npcs on that tile.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-npcreference" class="ref">NPC reference</a></li></ul>
 		</tt></p>
@@ -2942,7 +2997,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">check NPC wall (who, direction)</font></b><br>
-			Returns true if there is a wall blocking the NPC from moving in the specified direction. No actual movement takes place.<br>
+			Returns true if there is a wall blocking the NPC from moving in the specified direction. No actual movement takes place. It does not matter whether the NPC is set to ignore walls.<br>
 			
 			
 		</tt></p>
@@ -2977,7 +3032,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">NPC copy count (ID)</font></b><br>
-			This command tells you how many copys of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map.<br>
+			This command tells you how many copys of a particular NPC ID exist on the map. This can be very useful if you want apply the same action to each copy of an NPC on the map. However if the NPCs with t<br>
 			<pre>include,plotscr.hsd
 
 #---NPC copy count example---
@@ -3037,7 +3092,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">put npc (who,x,y)</font></b><br>
-			Moves an NPC to a precise location on the map. The first argument is and <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your NPC with the tile-grid, preventing it from walking normally. To position the NPC by tile, use the <a href="#about-setnpcposition" class="ref">set NPC position</a> command.<br>
+			Moves an NPC to a location on the map in pixels. The first argument is and <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. The second and third arguments are the X,Y pixel position relative to the top left corner of the map. Be aware that using this command can mis-align your NPC with the tile-grid, preventing it from walking normally. To position the NPC by tile, use the <a href="#about-setnpcposition" class="ref">set NPC position</a> command.<br>
 			
 			
 		</tt></p>
@@ -3145,7 +3200,7 @@ resume box advance # go back to normal</pre>
 		<a name="about-usenpc"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">Use NPC (who)</font></b><br>
+		<b><font color="yellow">use NPC (who)</font></b><br>
 			Remotely trigger an NPC. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever. (This command implies a one-tick <a href="#about-wait" class="ref">wait</a>)<br>
 			
 			
@@ -3415,6 +3470,22 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-giveexperience"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">give experience (hero,amount)</font></b><br>
+			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearned" class="ref">spells learnt</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling.<br>
+			
+			
+		</tt></p>
+
+		<hr>
+	
+		<a name="Items"></a>
+
+		<font color="#f06060" size="4">Items</font>
+		<p></p>
+		
 		<a name="about-getitem"></a>
 		<p>
 		<tt>
@@ -3430,6 +3501,14 @@ end</pre>
 			Removes the specified number of the specified item from your inventory. If you do not specify a number, only one will be removed. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name<br>
 			
 			
+		</tt></p>
+		<a name="about-useitem"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">use item (item)</font></b><br>
+			Attempts to use an item as if you had selected it in the items menu. The argument is the item's ID number, or one of the <span class="param">item:name</span> constants in your .hsi file. This command will only work if the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. This command does not care if you actually have any of the item in your inventory, and if it is a consumable item, you will not lose any. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-useiteminslot" class="ref">use item in slot</a></li></ul>
 		</tt></p>
 		<a name="about-unequip"></a>
 		<p>
@@ -3479,11 +3558,99 @@ end</pre>
 			
 			
 		</tt></p>
-		<a name="about-giveexperience"></a>
+		<a name="about-iteminslot"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">give experience (hero,amount)</font></b><br>
-			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearned" class="ref">spells learnt</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling.<br>
+		<b><font color="yellow">item in slot (slot)</font></b><br>
+			Return a the item ID number at a specific slot in your inventory. If the inventory slot is empty, it will return -1. Slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
+<li>
+<a href="#about-itemcountinslot" class="ref">item count in slot</a>, </li>
+<li>
+<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
+<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setiteminslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set item in slot (slot, item)</font></b><br>
+			Change the item ID number at a specific slot in your inventory. The <span class="param">slot</span> argument is the position in your inventory screen, and the <span class="param">item</span> argument is the item ID number, or one of the <span class="param">item:name</span> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-iteminslot" class="ref">item in slot</a>, </li>
+<li>
+<a href="#about-itemcountinslot" class="ref">item count in slot</a>, </li>
+<li>
+<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
+<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+</ul>
+		</tt></p>
+		<a name="about-itemcountinslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">item count in slot (slot)</font></b><br>
+			Return a the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-iteminslot" class="ref">item in slot</a>, </li>
+<li>
+<a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
+<li>
+<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
+<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setitemcountinslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set item count in slot (slot, count)</font></b><br>
+			Change the count of items at a specific slot in your inventory. The <span class="param">count</span> argument is the new number of items from 1 to 99, or 0 if you want to delete any items currently in the slot. If the slot is empty, this command will fail.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-iteminslot" class="ref">item in slot</a>, </li>
+<li>
+<a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
+<li>
+<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
+<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
+</ul>
+		</tt></p>
+		<a name="about-useiteminslot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">use item in slot(slot)</font></b><br>
+			Attempts to use whatever item is in a given inventory slot as if you had selected it in the items menu. The argument is the inventory slot number. This command will only work if there is actually an itme in the slot, and the item can be used outside of battle, either as a cure attack, or to teach a hero a spell, or to trigger a text box. The return value is true if you successfully used the item, or false if the item was unusable or the user cancelled.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-useitem" class="ref">use item</a></li></ul>
+		</tt></p>
+		<a name="about-inventory"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">inventory (item)</font></b><br>
+			Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <a href="#about-numericconstants" class="ref">zero</a> or <a href="#about-booleanconstants" class="ref">false</a>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name<br>
+			
+			
+		</tt></p>
+		<a name="about-getinventorysize"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get inventory size</font></b><br>
+			Returns the number of inventory slots.<br>
+			
+			
+		</tt></p>
+		<a name="about-setinventorysize"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set inventory size (new size)</font></b><br>
+			Changes the number of inventory slots that are available. Use the constant <span class="param">inv:max</span> to restore the maximum value. The number you give will be rounded up to the nearest multiple of 3.<br>
 			
 			
 		</tt></p>
@@ -3555,8 +3722,8 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set music volume (volume)</font></b><br>
-			Sets the volume at which music is played, volume being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. By default volume is not maximum, so you should not hardcode fades to begin at volume 255. <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. Currently vanilla OHR uses only 0-15 internally, so 240-255 all translate to the same volume.<br clear="all">
+			Sets the volume at which music is played, <span class="param">volume</span> being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. Currently vanilla OHR uses only 0-15 internally, so 240-255 all translate to the same volume, etc.<br clear="all">
 </div>
 <br>
 			
@@ -3566,7 +3733,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get music volume</font></b><br>
-			Returns the volume at which music is played, on a scale of 0 to 15, 0 being silent, 255 loudest.<br>
+			Returns the volume at which music is played, on a scale of 0 to 255, 0 being silent, 255 loudest.<br>
 			
 			
 		</tt></p>
@@ -3849,7 +4016,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">init mouse</font></b><br>
-			Initializes the mouse, returning <a href="#about-booleanconstants" class="ref">true</a> if one is present. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, prevents the mouse cursor from leaving the window, and causes mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
+			Initializes the mouse, returning <a href="#about-booleanconstants" class="ref">true</a> if one is present. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor on screen - your script must do this itself by placing a slice or npc at the appropriate location.<br clear="all">
 </div> Here is an example:<br>
 			<pre>include,plotscr.hsd
@@ -3907,7 +4074,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">mouse region (x min, x max, y min, y max)</font></b><br>
-			Sets the edges of the rectangle to which the mouse is constricted. Use if you want to force the mouse into some region, like a choice selection box. The maximum values are inclusive. Without arguments, resets the rectangle to the whole window. You can unrestrict the mouse and let it leave the window by calling <span class="param">mouse region (-1, -1, -1, -1)</span>. <a href="#about-initmouse" class="ref">init mouse</a> should be called before this command is used.<br>
+			Constricts the mouse to a rectangular part of the window/screen, such as a choice selection box. It is recommend you do not use this command, as it is very annoying in windowed mode. The maximum values are inclusive. Call without arguments to free the mouse to leave the window. <a href="#about-initmouse" class="ref">init mouse</a> should be called before this command is used.<br>
 			
 			
 		</tt></p>
@@ -4562,7 +4729,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get menu bit(menu handle, bit)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, Return <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. For the <span class="param">bit</span> bit number you should use one of the constants: <ul>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, returns <a href="#about-booleanconstants" class="ref">true</a> if the bitset is ON, and <a href="#about-booleanconstants" class="ref">false</a> if the bitset is OFF. For the <span class="param">bit</span> bit number you should use one of the constants: <ul>
 <li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li>
 </ul>
 <br>
@@ -4573,7 +4740,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set menu bit(menu handle, bit, value)</font></b><br>
-			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, Set the bitset is ON or OFF depending on <span class="param">value</span>. For the <span class="param">bit</span> bit number you should use one of the constants: <ul>
+			Given a <span class="param">menu handle</span> (for example, the one returned by <a href="#about-topmenu" class="ref">top menu</a>), and bit number <span class="param">bit</span>, sets the bitset is ON or OFF depending on <span class="param">value</span>. For the <span class="param">bit</span> bit number you should use one of the constants: <ul>
 <li>menubit:translucent box</li> <li>menubit:never show scrollbar</li> <li>menubit:allow gameplay</li> <li>menubit:suspend player even if gameplay allowed</li> <li>menubit:no box</li> <li>menubit:no close</li> <li>menubit:no controls</li> <li>menubit:prevent main menu</li>
 </ul>
 <br>
@@ -6907,6 +7074,56 @@ end
 
 		<hr>
 	
+		<a name="Zone%20Functions"></a>
+
+		<font color="#f06060" size="4">Zone Functions</font>
+		<p></p>
+		
+		<a name="about-writezone"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">write zone (zone id, x, y, value)</font></b><br>
+			Sets whether the tile at (<span class="param">x,y</span>) is part of the specified zone. <span class="param">zone id</span> is an ID number from 1 to 9999, and <span class="param">value</span> is intrepreted as either <span class="param">true</span> (non-zero) or <span class="param">false</span> (zero).<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Only up to 15 zones may overlap at each tile. If you try to place 16 zones at one tile, write zone will fail, returning <a href="#about-booleanconstants" class="ref">false</a>. Normally it returns <a href="#about-booleanconstants" class="ref">true</a>. If you choose to "Show all warnings" in General Game Settings in Custom, you will also get a warning message.<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-readzone" class="ref">read zone</a></li></ul>
+		</tt></p>
+		<a name="about-readzone"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">read zone (zone id, x, y)</font></b><br>
+			Returns <a href="#about-booleanconstants" class="ref">true</a> if the tile at (<span class="param">x,y</span>) is part of the specified zone. <span class="param">zone id</span> is an ID number from 1 to 9999.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-writezone" class="ref">write zone</a>, </li>
+<li><a href="#about-zoneatspot" class="ref">zone at spot</a></li>
+</ul>
+		</tt></p>
+		<a name="about-zoneatspot"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">zone at spot (x, y, count)</font></b><br>
+			Used to get the set of all IDs of zones that contain the tile at (<span class="param">x,y</span>). Since zones may overlap, <span class="param">count</span> is used to specify which zone ID to return: 0 is the first, 1 the second, and so on. <span class="param">count</span> may also be the constant <a href="#about-getcount" class="ref">get count</a>, in which case the total number of zones which overlap there is returned. If <span class="param">count</span> is too large, 0 (<a href="#about-booleanconstants" class="ref">false</a>) is returned. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The order in which the ID numbers are returned is completely arbitrary.<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-readzone" class="ref">read zone</a></li></ul>
+		</tt></p>
+		<a name="about-zonenumberoftiles"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">zone number of tiles (zone id)</font></b><br>
+			Given a <span class="param">zone id</span> (from 1 to 9999), returns the number of tiles that the zone contains.<br>
+			
+			
+		</tt></p>
+
+		<hr>
+	
 		<a name="Misc%20Functions"></a>
 
 		<font color="#f06060" size="4">Misc Functions</font>
@@ -6927,94 +7144,6 @@ end
 			Reseeds the random number generator. If called with no argument, this will reseed the random number generator to a new random sequence. If you pass in a number (other than 0), the random number generator will be seeded with that number, allowing for repeatable random sequences.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-random" class="ref">random</a></li></ul>
-		</tt></p>
-		<a name="about-iteminslot"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">item in slot (slot)</font></b><br>
-			Return a the item ID number at a specific slot in your inventory. If the inventory slot is empty, it will return -1. Slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1.<br>
-			
-			<br>See also: <ul class="seealso">
-<li>
-<a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
-<li>
-<a href="#about-itemcountinslot" class="ref">item count in slot</a>, </li>
-<li>
-<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
-<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
-</ul>
-		</tt></p>
-		<a name="about-setiteminslot"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">set item in slot (slot, item)</font></b><br>
-			Change the item ID number at a specific slot in your inventory. The <span class="param">slot</span> argument is the position in your inventory screen, and the <span class="param">item</span> argument is the item ID number, or one of the <span class="param">item:name</span> constants defined in your .hsi file. If you want to erase and item slot, use -1 as the item ID<br>
-			
-			<br>See also: <ul class="seealso">
-<li>
-<a href="#about-iteminslot" class="ref">item in slot</a>, </li>
-<li>
-<a href="#about-itemcountinslot" class="ref">item count in slot</a>, </li>
-<li>
-<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
-<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
-</ul>
-		</tt></p>
-		<a name="about-itemcountinslot"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">item count in slot (slot)</font></b><br>
-			Return a the count of items at a specific slot in your inventory, or 0 if that slot is empty. Slots are numbered from 0 to <a href="#about-getinventorysize" class="ref">get inventory size</a>-1.<br>
-			
-			<br>See also: <ul class="seealso">
-<li>
-<a href="#about-iteminslot" class="ref">item in slot</a>, </li>
-<li>
-<a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
-<li>
-<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
-<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
-</ul>
-		</tt></p>
-		<a name="about-setitemcountinslot"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">set item count in slot (slot, count)</font></b><br>
-			Change the count of items at a specific slot in your inventory. The <span class="param">count</span> argument is the new number of items from 1 to 99, or 0 if you want to delete any items currently in the slot. If the slot is empty, this command will fail.<br>
-			
-			<br>See also: <ul class="seealso">
-<li>
-<a href="#about-iteminslot" class="ref">item in slot</a>, </li>
-<li>
-<a href="#about-setiteminslot" class="ref">set item in slot</a>, </li>
-<li>
-<a href="#about-setitemcountinslot" class="ref">set item count in slot</a>, </li>
-<li><a href="#about-getinventorysize" class="ref">get inventory size</a></li>
-</ul>
-		</tt></p>
-		<a name="about-inventory"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">inventory (item)</font></b><br>
-			Returns a count of how many of the specified item are in your inventory. If you do not have the item, it returns <a href="#about-numericconstants" class="ref">zero</a> or <a href="#about-booleanconstants" class="ref">false</a>. You can refer to the item by number, or you can use the constants defined in your HSI file, which are in the form of item:name<br>
-			
-			
-		</tt></p>
-		<a name="about-getinventorysize"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">get inventory size</font></b><br>
-			Returns the number of inventory slots.<br>
-			
-			
-		</tt></p>
-		<a name="about-setinventorysize"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">set inventory size (new size)</font></b><br>
-			Changes the number of inventory slots that are available. Use the constant <span class="param">inv:max</span> to restore the maximum value. The number you give will be rounded up to the nearest multiple of 3.<br>
-			
-			
 		</tt></p>
 		<a name="about-leader"></a>
 		<p>
@@ -7514,7 +7643,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">last save slot</font></b><br>
-			Returns the last save slot saved in, or <a href="#about-booleanconstants" class="ref">false</a> if the game has not been saved yet. Save slots are numbered starting at 1.<br>
+			Returns the last save slot saved to using the save menu, or the save slot the game was loaded from, or <a href="#about-booleanconstants" class="ref">false</a> if the game has not been saved yet. Save slots are numbered starting at 1. <a href="#about-saveinslot" class="ref">save in slot</a> does not change the value returned! If you need it to, you need to track it with a global variable.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -8534,7 +8663,7 @@ Besides readability, there is one other important difference between these two e
 		<p>
 		<tt>
 		<b><font color="yellow">alter NPC (who,NPCstat,value)</font></b><br>
-			Changes the stats of an NPC. Constants for this command have been included in PLOTSCR.HSD. Alter NPC can be used for many purposes.<br>
+			Changes the stats of an NPC type. Constants for this command have been included in PLOTSCR.HSD. Alter NPC can be used for many purposes.<br>
 <ul>
 <li>Alter NPC (who,NPCstat:picture,picture number)</li>
 <li>Alter NPC (who,NPCstat:palette,palette number)</li>
@@ -8547,6 +8676,7 @@ Besides readability, there is one other important difference between these two e
 <li>NPCmovetype:randomturns</li>
 <li>NPCmovetype:chaseyou</li>
 <li>NPCmovetype:avoidyou</li>
+<li>NPCmovetype:walkinplace</li>
 </ul>
 </li>
 <li>Alter NPC (who,NPCstat:move speed,speed)</li>
@@ -8590,7 +8720,15 @@ end</pre>
 </div>
 			<br>
 			
-			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setnpcusable" class="ref">set NPC usable</a>, </li>
+<li>
+<a href="#about-setnpcmoves" class="ref">set NPC moves</a>, </li>
+<li>
+<a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a>, </li>
+<li><a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a></li>
+</ul>
 		</tt></p>
 		<a name="about-readnpc"></a>
 		<p>
@@ -8601,7 +8739,89 @@ end</pre>
 </div>
 <br>
 			
+			<br>See also: <ul class="seealso"><li><a href="#about-alternpc" class="ref">alter NPC</a></li></ul>
+		</tt></p>
+		<a name="about-setnpcignoreswalls"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set NPC ignores walls (who, value)</font></b><br>
+			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC can walk through walls. <span class="param">value</span> should be true or false.<br>
 			
+			<br>See also: <ul class="seealso"><li><a href="#about-getnpcignoreswalls" class="ref">get NPC ignores walls</a></li></ul>
+		</tt></p>
+		<a name="about-getnpcignoreswalls"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get NPC ignores walls (who)</font></b><br>
+			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns whether that NPC can walk through walls.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setnpcignoreswalls" class="ref">set NPC ignores walls</a></li></ul>
+		</tt></p>
+		<a name="about-setnpcmoves"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set NPC moves (who, value)</font></b><br>
+			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether that NPC moves according to its move-type, or whether it stands still. <span class="param">value</span> should be true or false.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getnpcmoves" class="ref">get NPC moves</a>, </li>
+<li>
+<a href="#about-suspendnpcs" class="ref">suspend NPCs</a>, </li>
+<li><a href="#about-alternpc" class="ref">alter NPC</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getnpcmoves"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get NPC moves (who)</font></b><br>
+			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns <a href="#about-booleanconstants" class="ref">true</a> or <a href="#about-booleanconstants" class="ref">false</a> indicating whether that NPC moves according to its move-type, or whether it is suspended. This is always true, even for "Stand Still" NPCs unless <a href="#about-setnpcmoves" class="ref">set NPC moves</a> has been used.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setnpcmoves" class="ref">set NPC moves</a>, </li>
+<li><a href="#about-readnpc" class="ref">read NPC</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setnpcobstructs"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set NPC obstructs (who, value)</font></b><br>
+			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether the NPC should be an obstruction to heroes and other NPCS. If set to false, the NPC can move through heroes and other NPCs and vice-versa. Heroes can always pass through Step-on NPCs. <span class="param">value</span> should be true or false.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getnpcobstructs" class="ref">get NPC obstructs</a>, </li>
+<li><a href="#about-suspendobstruction" class="ref">suspend obstruction</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getnpcobstructs"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get NPC obstructs (who)</font></b><br>
+			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if that NPC's obstruction has been suspended with <a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a> (and is always true otherwise).<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setnpcobstructs" class="ref">set NPC obstructs</a></li></ul>
+		</tt></p>
+		<a name="about-setnpcusable"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set NPC usable (who, value)</font></b><br>
+			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), set whether the NPC can be activated by the player as normal (as defined in the NPC ID data). <a href="#about-usenpc" class="ref">use NPC</a> will still work on the NPC. <span class="param">value</span> should be true or false.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-getnpcusable" class="ref">get NPC usable</a>, </li>
+<li><a href="#about-alternpc" class="ref">alter NPC</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getnpcusable"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get NPC usable (who)</font></b><br>
+			Given an NPC reference or NPC ID (in which case the first NPC with that ID is used), returns false if normal activation of that NPC has been suspended with <a href="#about-setnpcusable" class="ref">set NPC usable</a>. This is always true otherwise, even for NPC types which are not activateable.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setnpcusable" class="ref">set NPC usable</a></li></ul>
 		</tt></p>
 		<a name="about-setdeathscript"></a>
 		<p>
@@ -8995,7 +9215,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">autosave</font></b><br>
-			Transparently saves the game to the last save slot used, or if the game has not been saved yet, calls <a href="#about-savemenu" class="ref">save menu</a>. Returns the number of the last save slot, or if the user cancelled the save menu, returns false<br>
+			Transparently saves the game to the last save slot saved to in the save menu, or if the game has not been saved yet, calls <a href="#about-savemenu" class="ref">save menu</a>. Returns the number of the last save slot, or if the user cancelled the save menu, returns false.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-lastsaveslot" class="ref">last save slot</a></li></ul>
 		</tt></p>
@@ -9113,18 +9333,18 @@ end</pre>
 			<pre>variable (i)
 i := random (1, 1000)
 $1 = "i = "
-append number (1, i) #"i = 1"
-trace (1) # writes "TRACE: i = XYZ" to g_debug.txt</pre>
+append number (1, i) # string 1 is "i = ????"
+trace (1) # writes "TRACE: i = ????" to g_debug.txt</pre>
 			
 		</tt></p>
 		<a name="about-tracevalue"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">trace value (expression, ...)</font></b><br>
-			Prints one or more expressions and their values to "g_debug.txt". The number of arguments to this command is variable; each is printed in original textual along with its value. You can't print strings with this command; use <a href="#about-trace" class="ref">trace</a> instead.<br>
+			Prints one or more expressions and their values to "g_debug.txt". The number of arguments to this command is variable; each is printed as source text along with its value. You can't print strings with this command; use <a href="#about-trace" class="ref">trace</a> instead.<br>
 			<pre>variable(i)
 i := random (1, 1000)
-trace value (i)  # writes "TRACE: i = XYZ" to g_debug.txt
+trace value (i)  # writes "TRACE: i = ????" to g_debug.txt
 
 # This writes something like "TRACE: hero X (me) = 14, hero Y (me) = 53" to g_debug.txt
 trace value (hero X (me), hero Y (me))</pre>
@@ -9137,13 +9357,14 @@ trace value (hero X (me), hero Y (me))</pre>
 			Saves the state of the current map to a temporary file which will be loaded (unless the map is set to ignore that particular data) when you reenter the current map, in the same way as a map set to save (remember) NPC or tile data: the saved state will be used instead of the map data in the RPG file. Both arguments are optional and are only for advanced uses.<br> Map state is not saved in saved games, and the temporary files will be deleted when you load or start a new a game!<br><span class="param">whichdata</span> is an <a href="#about-or" class="ref">or</a>'d combination of the following constants, which specify exactly what you want to save:<br><ul>
 <li>mapstate:all = mapstate:mapsettings, or, mapstate:npcs, or, mapstate:tiles</li>
 <li>mapstate:npcs = mapstate:npclocations, or, mapstate:npcdefinitions</li>
-<li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap</li>
+<li>mapstate:tiles = mapstate:tilemap, or, mapstate:passmap, or, mapstate:zonemap</li>
 <li>mapstate:mapsettings</li>
 <li>mapstate:npclocations</li>
 <li>mapstate:npcdefinitions</li>
 <li>mapstate:tilemap</li>
 <li>mapstate:passmap</li>
-</ul>The default is mapstate:all. <br>If <span class="param">customid</span> is passed, it is used to save the state in a separate state file with an id number of <span class="param">customid</span> which can only be loaded with <a href="#about-loadmapstate" class="ref">load map state</a>. There are 32 available slots for use: 0 - 31.<br>Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it, it will always be loaded when the map is loaded regardless of settings. It saves all the settings found in the General Map Settings menu like the tileset, ambient music, footoffset, map trigger scripts, and so forth.<br>
+<li>mapstate:zonemap</li>
+</ul>The default is mapstate:all. <br>If <span class="param">customid</span> is passed, it is used to save the state in a separate state file with an id number of <span class="param">customid</span> which can only be loaded with <a href="#about-loadmapstate" class="ref">load map state</a>. There are 32 available slots for use: 0 - 31.<br>Note that mapstate:mapsettings (also saved by mapstate:all) is special in that if you save it, it will always be loaded when the map is loaded regardless of settings. It saves all the settings found in the General Map Settings menu like the ambient music, footoffset, map trigger scripts, and so forth, and also the tileset for each layer.<br>
 			<pre>plotscript, generic menu screen, begin
   variable (remember map, remember x, remember y)
   remember map := current map
@@ -9600,7 +9821,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get count</font></b><br>
-			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, <a href="#about-npcatspot" class="ref">NPC at spot</a>, <a href="#about-sliceatpixel" class="ref">slice at pixel</a> or <a href="#childsliceatpixel" class="undef">childsliceatpixel</a> they return the number of NPCs or slices at that spot. With <a href="#about-spellslearned" class="ref">spells learnt</a> returns the number of spells a hero learnt. With <a href="#about-findenemyinformation" class="ref">find enemy in formation</a>, returns the number of enemies, or the number of some kind of enemy in the formation.<br>
+			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, <a href="#about-npcatspot" class="ref">NPC at spot</a>, <a href="#about-sliceatpixel" class="ref">slice at pixel</a>, <a href="#about-findcollidingslice" class="ref">find colliding slice</a> or <a href="#about-zoneatspot" class="ref">zone at spot</a> they return the number of NPCs, slices or zones at that spot. With <a href="#about-spellslearned" class="ref">spells learnt</a> returns the number of spells a hero learnt. With <a href="#about-findenemyinformation" class="ref">find enemy in formation</a>, returns the number of enemies, or the number of some kind of enemy in the formation.<br>
 			
 			
 		</tt></p>
@@ -9781,7 +10002,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 695 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 709 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

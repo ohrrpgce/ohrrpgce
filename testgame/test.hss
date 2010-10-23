@@ -480,6 +480,10 @@ script, map changer key listener, begin
       $zone watch string = "Wrote zone 17"
     )
   )
+  if(keyval(key:i) >> 1) then(
+    # use the top right item in the inventory screen
+    show value(use item in slot(2))
+  )
 end
 
 #-----------------------------------------------------------------------
