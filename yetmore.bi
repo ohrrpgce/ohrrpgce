@@ -51,7 +51,7 @@ DECLARE FUNCTION localvariablename (value as integer, scriptargs as integer) as 
 DECLARE FUNCTION mathvariablename (value as integer, scriptargs as integer) as string
 DECLARE FUNCTION scriptstate (targetscript as integer, recurse as integer = -1) as string
 DECLARE FUNCTION backcompat_sound_id (id AS INTEGER) as integer
-DECLARE SUB loadsay (box_id as integer)
+DECLARE SUB loadsay (byval box_id as integer)
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 DECLARE FUNCTION valid_plotslice(byval handle as integer, errlev as integer=5) as integer
 DECLARE FUNCTION valid_plotsprite(byval handle as integer) as integer

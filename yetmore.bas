@@ -3772,7 +3772,7 @@ SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYV
  END IF
 END SUB
 
-SUB loadsay (box_id)
+SUB loadsay (BYVAL box_id AS INTEGER)
 DIM j AS INTEGER
 DIM rsr AS INTEGER
 

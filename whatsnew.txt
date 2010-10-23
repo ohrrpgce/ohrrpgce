@@ -10,6 +10,8 @@ May ? 2010 [Ypsiliform+3]
       also, deleting map layers did not work
     * Script string literals were broken when playing games made in
       late 2006.
+    * Bug 824: Back-compat issue with Curse of Vampire (affected other
+      games) [James]
 
 Feb 8 2010 [Ypsiliform+2]
 
