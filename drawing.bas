@@ -1038,7 +1038,7 @@ DO
  END IF
  IF keyval(scSpace) > 0 THEN clicktile mover(), ts, mouse(3), clone
  IF keyval(scEnter) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
- IF keyval(scCapslock) > 0 THEN scrolltile mover(), ts
+ IF keyval(scLeftShift) > 0 ORELSE keyval(scRightShift) > 0 THEN scrolltile mover(), ts
  SELECT CASE ts.zone   
  CASE 1
   ts.x = zox \ 8
@@ -2785,7 +2785,7 @@ ELSE
  END IF
 END IF
 IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage: getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
-IF keyval(scCapslock) > 0 THEN
+IF keyval(scLeftShift) > 0 ORELSE keyval(scRightShift) > 0 THEN
  IF slowkey(scUp, 6) THEN
   rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
   drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y - 1, dpage

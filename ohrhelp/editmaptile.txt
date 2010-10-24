@@ -58,3 +58,5 @@ CTRL+Backspace flips the tile
 
 ] Rotates the tile 90 degrees
   clockwise.
+
+Hold SHIFT and press the arrow keys to move the entire maptile. Pixels will wrap around the edges when you do this.

@@ -76,6 +76,9 @@ WHAT IS NEW?
       games) [James]
     * Your MP (and the rest of the spell menu) is no longer hidden
       while you target a spell outside of battle. [James]
+    * Recentering a sprite or a maptile is now done with arrow keys
+      while you hold down the SHIFT key (instead of the CAPSLOCK key,
+      which we can all agree was confusing!) [James]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
