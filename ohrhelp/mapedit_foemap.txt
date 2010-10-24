@@ -25,6 +25,6 @@ To remove random battles from a tile, press DELETE (or change the formation set 
 
 Press CTRL+F to fill the screen with the currently selected formation set number.
 
-Press CAPSLOCK to change the selected formation set to the one under the cursor (eyedropper tool).
+Press G to get the selected formation set to the one under the cursor (eyedropper tool).
 
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.

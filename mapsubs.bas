@@ -538,7 +538,7 @@ DO
    IF keyval(scDelete) > 1 THEN 'delete
     writeblock map(st.layer), x, y, 0
    END IF
-   IF keyval(scCapslock) > 1 THEN 'grab tile
+   IF keyval(scG) > 1 THEN 'grab tile
     st.usetile(st.layer) = animadjust(readblock(map(st.layer), x, y), st.tilesets(st.layer)->tastuf())
     update_tilepicker st
    END IF
@@ -732,7 +732,7 @@ DO
      NEXT o
     NEXT i
    END IF
-   IF keyval(scCapslock) > 1 THEN st.cur_foe = readblock(emap, x, y)
+   IF keyval(scG) > 1 THEN st.cur_foe = readblock(emap, x, y)
    '---ZONEMODE--------
   CASE zone_mode
    IF keyval(scF1) > 1 THEN

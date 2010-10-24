@@ -17,7 +17,7 @@ Along the top of the screen you will see a row of maptiles, with your currently 
 
 Press the SPACE bar to place a maptile on the map.
 
-Press CAPSLOCK if you want to choose the tile under the cursor as the current tile to place.
+Press G if you want to get the tile under the cursor as the current tile to place.
 
 CTRL+F fills the screen with the current tile.
 

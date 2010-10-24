@@ -79,6 +79,9 @@ WHAT IS NEW?
     * Recentering a sprite or a maptile is now done with arrow keys
       while you hold down the SHIFT key (instead of the CAPSLOCK key,
       which we can all agree was confusing!) [James]
+    * Getting the maptile under the cursor is now done with the G key
+      (instead of the CAPSLOCK key, which we can all agree was
+      confusing!) [James]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
