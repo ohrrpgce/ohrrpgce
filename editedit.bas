@@ -39,6 +39,13 @@ TYPE EEState
  changed AS INTEGER
 END TYPE
 
+TYPE WEState
+ state AS MenuState
+ menu AS MenuDef
+ shift AS INTEGER
+ changed AS INTEGER
+END TYPE
+
 '-----------------------------------------------------------------------
 
 DECLARE SUB ee_refresh OVERLOAD (BYREF st AS EEState)
@@ -55,9 +62,17 @@ DECLARE SUB ee_swap_widget_up(BYVAL widget AS Reload.Nodeptr)
 DECLARE SUB ee_swap_widget_down(BYVAL widget AS Reload.Nodeptr)
 DECLARE SUB ee_swap_widget_left(BYVAL widget AS Reload.Nodeptr)
 DECLARE SUB ee_swap_widget_right(BYVAL widget AS Reload.Nodeptr)
-DECLARE FUNCTION ee_container_check(BYVAL cont AS Reload.NodePtr, BYVAL widget AS Reload.NodePtr) AS INTEGER
 DECLARE SUB ee_edit_menu_item(BYREF st AS EEState, mi AS MenuDefItem Ptr)
-DECLARE SUB ee_edit_widget(BYREF st AS EEState, BYVAL widget AS Reload.NodePtr)
+DECLARE FUNCTION ee_edit_widget(BYREF st AS EEState, BYVAL widget AS Reload.NodePtr) AS INTEGER
+
+DECLARE FUNCTION ee_prompt_for_widget_kind() AS STRING
+DECLARE FUNCTION ee_create_widget(BYREF st AS EEState, kind AS STRING) AS Reload.NodePtr
+DECLARE FUNCTION ee_container_check(BYVAL cont AS Reload.NodePtr, BYVAL widget AS Reload.NodePtr) AS INTEGER
+DECLARE FUNCTION ee_widget_has_caption(BYVAL widget AS Reload.NodePtr) AS INTEGER
+DECLARE FUNCTION ee_edit_widget_details(BYVAL widget AS Reload.NodePtr) AS INTEGER
+
+DECLARE FUNCTION widget_editor(BYVAL widget AS Reload.NodePtr) AS INTEGER
+DECLARE SUB widget_editor_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
 
 '-----------------------------------------------------------------------
 
@@ -150,11 +165,40 @@ SUB ee_edit_menu_item(BYREF st AS EEState, mi AS MenuDefItem Ptr)
  DIM widget AS Reload.NodePtr
  widget = mi->dataptr
  IF widget = 0 THEN debug "ee_edit_menu_item: mi has null widget node": EXIT SUB
+
+ IF ee_edit_widget(st, widget) THEN
+  mi->caption = STRING(mi->extra(0), " ") & ee_widget_string(st, widget)
+  st.changed = YES
+ END IF
+
 END SUB
 
-SUB ee_edit_widget(BYREF st AS EEState, BYVAL widget AS Reload.NodePtr)
+FUNCTION ee_edit_widget(BYREF st AS EEState, BYVAL widget AS Reload.NodePtr) AS INTEGER
+ IF widget = 0 THEN debug "ee_edit_widget: null widget" : RETURN NO
+
+ DIM changed AS INTEGER = NO
+
+ IF ee_widget_has_caption(widget) THEN
+  DIM cap AS STRING
+  cap = Reload.GetChildNodeStr(widget, "caption")
+  IF strgrabber(cap, 40) THEN
+   IF cap = "" THEN
+    Reload.SetChildNode(widget, "caption")
+   ELSE
+    Reload.SetChildNode(widget, "caption", cap)
+   END IF
+   changed = YES
+  END IF
+ END IF
  
-END SUB
+ IF keyval(scEnter) > 1 THEN
+  IF ee_edit_widget_details(widget) THEN
+   changed = YES
+  END IF
+ END IF
+ 
+ RETURN changed
+END FUNCTION
 
 SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
  DIM widget AS Reload.Nodeptr
@@ -163,14 +207,15 @@ SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
  DIM changed AS INTEGER = NO
  
  IF keyval(scInsert) > 1 THEN
-  DIM newnode AS Reload.Nodeptr
-  newnode = Reload.CreateNode(st.doc, "widget")
-  DIM s AS STRING
-  s = "int"
-  Reload.SetContent(newnode, s)
-  Reload.AddSiblingAfter widget, newnode
-  st.seek_widget = newnode
-  changed = YES
+  DIM kind AS STRING
+  kind = ee_prompt_for_widget_kind()
+  IF kind <> "" THEN
+   DIM newnode AS Reload.Nodeptr
+   newnode = ee_create_widget(st, kind)
+   Reload.AddSiblingAfter widget, newnode
+   st.seek_widget = newnode
+   changed = YES
+  END IF
  END IF
  
  IF keyval(scCTRL) > 0 AND st.shift THEN
@@ -259,18 +304,6 @@ SUB ee_swap_widget_right(BYVAL widget AS Reload.Nodeptr)
  IF ee_container_check(sib, widget) = NO THEN EXIT SUB
  Reload.AddChild(sib, widget)
 END SUB
-
-FUNCTION ee_container_check(BYVAL cont AS Reload.NodePtr, BYVAL widget AS Reload.NodePtr) AS INTEGER
- IF cont = 0 THEN RETURN NO
- IF widget = 0 THEN RETURN NO
- 'FIXME: when I have a callback system in place here it would be better to ask the widget if it is a container
- SELECT CASE Reload.GetString(cont)
-  CASE "submenu": RETURN YES
-  CASE "array": RETURN YES
-  CASE "maybe": RETURN YES
- END SELECT
- RETURN NO
-END FUNCTION
 
 SUB ee_refresh (BYREF st AS EEState)
  DIM widgets_container AS Reload.NodePtr
@@ -389,3 +422,184 @@ FUNCTION ee_okay_to_unload(BYREF st AS EEState) AS INTEGER
  END SELECT
  RETURN NO
 END FUNCTION
+
+'-----------------------------------------------------------------------
+'an object oriented callback system might be better than these functions
+'...maybe... maybe not worth it... Why bend over backwards to make FB
+'act like something it isn't... haven't decided for sure yet.
+'
+'It is sort of a balancing act. Do I want to upate each of the subs and
+'functions below each time I add a widget type? Or do I want to update
+'a set of fake-object-oriented callbacks like the ones in slices.bas
+'with their associated boilerplate? Which is more work?
+
+FUNCTION ee_prompt_for_widget_kind() AS STRING
+ DIM w(11) AS STRING
+ w(0) = "int"
+ w(1) = "string"
+ w(2) = "label"
+ w(3) = "bit"
+ w(4) = "submenu"
+ w(5) = "picture"
+ w(6) = "item"
+ w(7) = "attack"
+ w(8) = "tag"
+ w(9) = "tagcheck"
+ w(10) = "array"
+ w(11) = "maybe"
+ DIM choice AS INTEGER
+ choice = multichoice("Inset which kind of widget?", w(), , , "ee_prompt_for_widget_kind")
+ IF choice = -1 THEN RETURN ""
+ RETURN w(choice)
+END FUNCTION
+
+FUNCTION ee_create_widget(BYREF st AS EEState, kind AS STRING) AS Reload.NodePtr
+ DIM widget AS Reload.NodePtr
+ widget = Reload.CreateNode(st.doc, "widget")
+ Reload.SetContent(widget, kind)
+ '--If any widget kind had any strictly mandatory sub-nodes, we could add them here...
+ '  ...but I am not sure we will actually have any of those.
+ SELECT CASE kind
+  CASE "int":
+  CASE "string":
+  CASE "label":
+  CASE "bit":
+  CASE "submenu":
+  CASE "picture":
+  CASE "item":
+  CASE "attack":
+  CASE "tag":
+  CASE "tagcheck":
+  CASE "array":
+  CASE "maybe":
+  CASE ELSE
+   debug "Oops! Created a widget of kind """ & kind & """, but we have no idea what that is!"
+ END SELECT
+ RETURN widget
+END FUNCTION
+
+FUNCTION ee_container_check(BYVAL cont AS Reload.NodePtr, BYVAL widget AS Reload.NodePtr) AS INTEGER
+ IF cont = 0 THEN RETURN NO
+ IF widget = 0 THEN RETURN NO
+ SELECT CASE Reload.GetString(cont)
+  CASE "submenu": RETURN YES
+  CASE "array": RETURN YES
+  CASE "maybe": RETURN YES
+ END SELECT
+ RETURN NO
+END FUNCTION
+
+FUNCTION ee_widget_has_caption(BYVAL widget AS Reload.NodePtr) AS INTEGER
+ 'True for widgets that use a caption node.
+ IF widget = 0 THEN RETURN NO
+ SELECT CASE Reload.GetString(widget)
+  CASE "array": RETURN NO
+  CASE "maybe": RETURN NO
+ END SELECT
+ RETURN YES
+END FUNCTION
+
+FUNCTION ee_widget_has_data(BYVAL widget AS Reload.NodePtr) AS INTEGER
+ 'True for widgets that use a data node
+ IF widget = 0 THEN RETURN NO
+ SELECT CASE Reload.GetString(widget)
+  CASE "label": RETURN NO
+  CASE "submenu": RETURN NO
+  CASE "maybe": RETURN NO
+ END SELECT
+ RETURN YES
+END FUNCTION
+
+FUNCTION ee_edit_widget_details(BYVAL widget AS Reload.NodePtr) AS INTEGER
+ IF widget = 0 THEN RETURN NO
+ DIM kind AS STRING
+ kind = Reload.GetString(widget)
+ SELECT CASE kind
+  CASE "int":    debug kind & " editor"
+  CASE "string": debug kind & " editor"
+  CASE "label":  debug kind & " editor"
+  CASE "bit":    debug kind & " editor"
+  CASE "picture":  debug kind & " editor"
+  CASE "item":     debug kind & " editor"
+  CASE "attack":   debug kind & " editor"
+  CASE "tagcheck": debug kind & " editor"
+  CASE "tag":      debug kind & " editor"
+  CASE "array": debug kind & " editor"
+  CASE "maybe": debug kind & " editor"
+ END SELECT
+ 
+ IF widget_editor(widget) THEN RETURN YES
+ 
+ RETURN NO
+END FUNCTION
+
+'-----------------------------------------------------------------------
+
+FUNCTION widget_editor(BYVAL widget AS Reload.NodePtr) AS INTEGER
+
+ DIM st AS WEState
+ 
+ st.changed = NO
+
+ st.state.pt = 0
+ st.state.need_update = YES
+ st.state.active = YES
+
+ ClearMenuData st.menu
+ WITH st.menu
+  .anchor.x = 0
+  .anchor.y = 0
+  .offset.x = 0
+  .offset.y = 0
+  .bordersize = -4
+  .align = -1
+  .maxrows = 18
+ END WITH
+ 
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF st.state.need_update THEN
+   DeleteMenuItems st.menu
+   widget_editor_refresh st, widget
+   init_menu_state st.state, st.menu
+   st.state.need_update = NO
+  END IF
+  
+  IF keyval(scESC) > 1 THEN
+   EXIT DO 
+  END IF
+  IF keyval(scF1) > 1 THEN show_help("widget_editor")
+
+  st.shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
+  
+  IF st.state.pt >= 0 AND st.state.pt <= st.menu.numitems - 1 THEN
+   'ee_edit_menu_item st, st.menu.items[st.state.pt]
+  END IF
+  
+  IF NOT st.shift THEN
+   usemenu st.state
+  END IF
+
+  clearpage dpage
+  draw_menu st.menu, st.state, dpage
+  edgeprint "F1=Help", 0, 190, uilook(uiText), dpage
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+
+ DeleteMenuItems st.menu
+
+ RETURN NO 
+END FUNCTION
+
+SUB widget_editor_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+ DIM index AS INTEGER
+ index = append_menu_item(st.menu, "Done Editing this Widget...")
+ index = append_menu_item(st.menu, "Caption:" & Reload.GetChildNodeStr(widget, "caption"))
+ index = append_menu_item(st.menu, "Data Node:" & Reload.GetChildNodeStr(widget, "data"))
+END SUB
