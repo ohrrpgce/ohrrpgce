@@ -984,7 +984,7 @@ DO
    END IF
   END IF
   IF csr2 = -3 THEN 'backdrop frames
-   IF xintgrabber(a(34), 2, max(csr2 + 5), 0, 0) THEN
+   IF xintgrabber(a(34), 2, max(csr2 + 5)) THEN
     IF bgctr > a(34) THEN
      bgctr = 0
      loadmxs game + ".mxs", a(32), vpages(2)

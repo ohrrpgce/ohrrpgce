@@ -1260,85 +1260,92 @@ END IF
 
 END FUNCTION
 
-FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS INTEGER, nmax AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
-'--a little bit of documentation required:
-'--like zintgrabber, but for cases where positive values mean one thing, negatives
-'--another, and 0 means none.
+FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS INTEGER=1, nmax AS INTEGER=1, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
+ '--quite a bit of documentation required:
+ '--like zintgrabber, but for cases where positive values mean one thing, negatives
+ '--another, and 0 means none.
 
-'nmin and nmax should be negative or 0. nmax should be less than nmin
-'nmax can be 0 for no negative range
-'nmin - nmax is the range of negative values
-'eg. nmin = -1 nmax = -100: negatives indicate a number between 1 and 100
-'pmin - pmax is position range, eg. 2 - 50
+ 'Requirements:  nmax <= nmin <= 0 <= pmin <= pmax
+ 'Omit nmax and nmin for no negative range
+ 'nmin to nmax is the visible range of negative values
+ 'eg. nmin = -1 nmax = -100: negatives indicate a number between 1 and 100
+ 'pmin to pmax is positive range
+ 'eg. 2 - 50 means n==1 is '2', n==49 is '50', and 0 - 1 means n==1 is '0' and n==2 is '1'
 
-DIM old AS INTEGER = n
-DIM temp AS INTEGER = n
+ DIM old AS INTEGER = n
 
-'depending on n, align sequence to match displayed
+ 'calculate the range of n
+ DIM AS INTEGER valmin, valmax
+ IF nmin <> 1 THEN
+  valmin = -1 + (nmax - nmin)
+ END IF
+ valmax = 1 + (pmax - pmin)
 
-IF old > 0 THEN
- temp = temp + pmin - 1
-END IF
-
-IF old < 0 THEN
- temp = temp + nmin + 1
-END IF
-
-'IF old = 0 THEN
-'END IF
-
-
-intgrabber temp, nmax, pmax, less, more
-
-DIM negated AS INTEGER = 0
-IF keyval(scMinus) > 1 OR keyval(scPlus) > 1 OR keyval(scNumpadMinus) > 1 OR keyval(scNumpadPlus) > 1 THEN negated = 1
-
-IF old > 0 THEN
- IF temp >= pmin AND temp <= pmax THEN
-  temp = temp - pmin + 1
+ 'calculate the visible value
+ DIM AS INTEGER visval, oldvisval
+ IF n > 0 THEN
+  visval = n + pmin - 1
+ ELSEIF n < 0 THEN
+  visval = n + nmin + 1
  ELSE
-  IF (temp >= 0 AND temp < pmin) OR (temp = -1 AND negated = 0) THEN
-   'you've hit backspace or left or something
-   temp = 0
+  visval = 0
+ END IF
+ oldvisval = visval
+
+ IF more <> 0 ANDALSO keyval(more) > 1 THEN
+  'easy case
+  n = loopvar(n, valmin, valmax, 1)
+ ELSEIF less <> 0 ANDALSO keyval(less) > 1 THEN
+  'easy case
+  n = loopvar(n, valmin, valmax, -1)
+
+/'--Why on earth do we want to support negation anyway?
+ ELSEIF nmin < 0 AND pmax > 0 AND _
+        (keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 OR _
+        ((keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND s < 0)) THEN
+  'nasty case: negate n based on *displayed* value
+  visval = bound(-visval, nmax, pmax)
+  n = ...
+'/
+
+ ELSE
+  'horrible case: change n based on *displayed* value
+  visval = ABS(visval)
+
+  IF keyval(scBackspace) > 1 THEN
+   visval \= 10
+
+   'Special case for when backspace changes to None. Isolate this case to allow
+   'some sanity in the rest of the logic
+   IF (oldvisval = 0) OR (n > 0 AND visval < pmin) OR (n < 0 AND -visval > nmin) THEN
+    n = 0
+    RETURN YES
+   END IF
+
   ELSE
-   'you've hit minus or went off the far boundary
-   temp = temp - nmin - 1
-   'check the inverted value is in the other set
-   IF temp > 0 THEN temp = 0
+   FOR i AS INTEGER = 1 TO 9
+    IF keyval(i - 1 + sc1) > 1 THEN visval = visval * 10 + i
+   NEXT i
+   IF keyval(sc0) > 1 THEN visval *= 10
+  END IF
+
+  'convert absolute visval back to n
+  'None can become positive, but positive remains positive and negative remains negative
+  IF old = 0 THEN
+   IF visval <> oldvisval THEN
+    visval = bound(visval, pmin, pmax)
+    n = visval - pmin + 1
+   END IF
+  ELSEIF old > 0 THEN
+   visval = bound(visval, pmin, pmax)
+   n = visval - pmin + 1
+  ELSE
+   visval = bound(-visval, nmax, nmin)
+   n = visval - nmin - 1
   END IF
  END IF
-END IF
 
-IF old < 0 THEN
- IF temp >= nmax AND temp <= nmin THEN
-  temp = temp - nmin - 1
- ELSE
-  IF (temp <= 0 AND temp > nmin) OR (temp = 1 AND negated = 0) THEN
-   temp = 0
-  ELSE
-   temp = temp - pmin + 1
-   IF temp < 0 THEN temp = 0
-  END IF
- END IF
-END IF
-
-IF old = 0 THEN
- IF temp < 0 THEN temp = -1 'must have pressed left
- IF temp > 0 THEN
-  IF temp < pmin OR keyval(more) > 1 THEN temp = 1 ELSE temp = temp - pmin + 1
- END IF
-END IF
-
-'backspace? goto none
-IF temp = SGN(temp) AND keyval(scBackspace) > 1 THEN temp = 0
-
-n = temp
-IF old = n THEN
- xintgrabber = 0
-ELSE
- xintgrabber = 1
-END IF
-
+ RETURN (old <> n)
 END FUNCTION
 
 FUNCTION stredit (s AS STRING, BYREF insert AS INTEGER, BYVAL maxl AS INTEGER, BYVAL numlines AS INTEGER=1, BYVAL wrapchars AS INTEGER=1) AS INTEGER
