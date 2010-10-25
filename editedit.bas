@@ -39,11 +39,19 @@ TYPE EEState
  changed AS INTEGER
 END TYPE
 
+TYPE WEStateF AS WEState
+TYPE WidgetRefreshSub AS SUB(BYREF st AS WEStateF, BYVAL widget AS Reload.Nodeptr)
+
+TYPE WidgetCode
+ refresh_callback AS WidgetRefreshSub
+END TYPE
+
 TYPE WEState
  state AS MenuState
  menu AS MenuDef
  shift AS INTEGER
  changed AS INTEGER
+ code AS WidgetCode
 END TYPE
 
 '-----------------------------------------------------------------------
@@ -69,10 +77,11 @@ DECLARE FUNCTION ee_prompt_for_widget_kind() AS STRING
 DECLARE FUNCTION ee_create_widget(BYREF st AS EEState, kind AS STRING) AS Reload.NodePtr
 DECLARE FUNCTION ee_container_check(BYVAL cont AS Reload.NodePtr, BYVAL widget AS Reload.NodePtr) AS INTEGER
 DECLARE FUNCTION ee_widget_has_caption(BYVAL widget AS Reload.NodePtr) AS INTEGER
-DECLARE FUNCTION ee_edit_widget_details(BYVAL widget AS Reload.NodePtr) AS INTEGER
 
 DECLARE FUNCTION widget_editor(BYVAL widget AS Reload.NodePtr) AS INTEGER
 DECLARE SUB widget_editor_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+
+DECLARE SUB ee_get_widget_code(BYREF code AS WidgetCode, BYVAL widget AS Reload.NodePtr)
 
 '-----------------------------------------------------------------------
 
@@ -192,7 +201,7 @@ FUNCTION ee_edit_widget(BYREF st AS EEState, BYVAL widget AS Reload.NodePtr) AS 
  END IF
  
  IF keyval(scEnter) > 1 THEN
-  IF ee_edit_widget_details(widget) THEN
+  IF widget_editor(widget) THEN
    changed = YES
   END IF
  END IF
@@ -428,10 +437,12 @@ END FUNCTION
 '...maybe... maybe not worth it... Why bend over backwards to make FB
 'act like something it isn't... haven't decided for sure yet.
 '
-'It is sort of a balancing act. Do I want to upate each of the subs and
+'It is sort of a balancing act. Do I want to update each of the subs and
 'functions below each time I add a widget type? Or do I want to update
 'a set of fake-object-oriented callbacks like the ones in slices.bas
 'with their associated boilerplate? Which is more work?
+'
+'Maybe the hybrid approach?
 
 FUNCTION ee_prompt_for_widget_kind() AS STRING
  DIM w(11) AS STRING
@@ -510,29 +521,6 @@ FUNCTION ee_widget_has_data(BYVAL widget AS Reload.NodePtr) AS INTEGER
  RETURN YES
 END FUNCTION
 
-FUNCTION ee_edit_widget_details(BYVAL widget AS Reload.NodePtr) AS INTEGER
- IF widget = 0 THEN RETURN NO
- DIM kind AS STRING
- kind = Reload.GetString(widget)
- SELECT CASE kind
-  CASE "int":    debug kind & " editor"
-  CASE "string": debug kind & " editor"
-  CASE "label":  debug kind & " editor"
-  CASE "bit":    debug kind & " editor"
-  CASE "picture":  debug kind & " editor"
-  CASE "item":     debug kind & " editor"
-  CASE "attack":   debug kind & " editor"
-  CASE "tagcheck": debug kind & " editor"
-  CASE "tag":      debug kind & " editor"
-  CASE "array": debug kind & " editor"
-  CASE "maybe": debug kind & " editor"
- END SELECT
- 
- IF widget_editor(widget) THEN RETURN YES
- 
- RETURN NO
-END FUNCTION
-
 '-----------------------------------------------------------------------
 
 FUNCTION widget_editor(BYVAL widget AS Reload.NodePtr) AS INTEGER
@@ -541,7 +529,7 @@ FUNCTION widget_editor(BYVAL widget AS Reload.NodePtr) AS INTEGER
  
  st.changed = NO
 
- st.state.pt = 0
+ st.state.pt = 1
  st.state.need_update = YES
  st.state.active = YES
 
@@ -555,6 +543,8 @@ FUNCTION widget_editor(BYVAL widget AS Reload.NodePtr) AS INTEGER
   .align = -1
   .maxrows = 18
  END WITH
+ 
+ ee_get_widget_code(st.code, widget)
  
  setkeys
  DO
@@ -599,7 +589,80 @@ END FUNCTION
 
 SUB widget_editor_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
  DIM index AS INTEGER
- index = append_menu_item(st.menu, "Done Editing this Widget...")
- index = append_menu_item(st.menu, "Caption:" & Reload.GetChildNodeStr(widget, "caption"))
- index = append_menu_item(st.menu, "Data Node:" & Reload.GetChildNodeStr(widget, "data"))
+ append_menu_item(st.menu, "Done Editing this Widget...")
+ IF ee_widget_has_caption(widget) THEN
+  append_menu_item(st.menu, "Caption:" & Reload.GetChildNodeStr(widget, "caption"))
+ END IF
+ IF ee_widget_has_data(widget) THEN
+  append_menu_item(st.menu, "Data Node:" & Reload.GetChildNodeStr(widget, "data"))
+ END IF
+ st.code.refresh_callback(st, widget)
+END SUB
+
+'#######################################################################
+
+SUB null_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+ 'for widgets that don't have any extra properties.
+END SUB
+
+SUB int_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+ append_menu_item(st.menu, "Max:" & zero_default(Reload.GetChildNodeInt(widget, "max")))
+ append_menu_item(st.menu, "Min:" & zero_default(Reload.GetChildNodeInt(widget, "min")))
+ append_menu_item(st.menu, "Enum:" & Reload.GetChildNodeStr(widget, "enum"))
+ append_menu_item(st.menu, "Optional:" & yesorno(Reload.GetChildNodeBool(widget, "optional")))
+ append_menu_item(st.menu, "Zero Default:" & yesorno(Reload.GetChildNodeBool(widget, "zerodefault")))
+ append_menu_item(st.menu, "-1 Default:" & yesorno(Reload.GetChildNodeBool(widget, "neg1default")))
+END SUB
+
+SUB picture_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+ append_menu_item(st.menu, "Size Group:" & Reload.GetChildNodeInt(widget, "sizegroup"))
+ append_menu_item(st.menu, "Save Size:" & yesorno(Reload.GetChildNodeBool(widget, "savesize")))
+END SUB
+
+SUB tagcheck_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+ append_menu_item(st.menu, "Default Description:" & Reload.GetChildNodeStr(widget, "default"))
+END SUB
+
+SUB array_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+ append_menu_item(st.menu, "Count:" & zero_default(Reload.GetChildNodeInt(widget, "count"), "variable length"))
+ append_menu_item(st.menu, "Key:" & Reload.GetChildNodeStr(widget, "key"))
+ append_menu_item(st.menu, "Enum:" & Reload.GetChildNodeStr(widget, "enum"))
+END SUB
+
+SUB maybe_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+ append_menu_item(st.menu, "Hide:" & yesorno(Reload.GetChildNodeBool(widget, "hide")))
+END SUB
+
+'-----------------------------------------------------------------------
+'#######################################################################
+
+'--this is at the end of the file because I want to be lazy and not bother
+'  with separate declares for each of the callbacks above.
+SUB ee_get_widget_code(BYREF code AS WidgetCode, BYVAL widget AS Reload.NodePtr)
+ WITH code
+  .refresh_callback = @null_widget_refresh
+
+  IF widget = 0 THEN EXIT SUB
+  DIM kind AS STRING
+  kind = Reload.GetString(widget)
+  
+  SELECT CASE kind
+   CASE "int":
+    .refresh_callback = @int_widget_refresh
+   CASE "string":
+   CASE "label":
+   CASE "bit":
+   CASE "picture":
+    .refresh_callback = @picture_widget_refresh
+   CASE "item":
+   CASE "attack":
+   CASE "tagcheck":
+    .refresh_callback = @tagcheck_widget_refresh
+   CASE "tag":
+   CASE "array":
+    .refresh_callback = @array_widget_refresh
+   CASE "maybe":
+    .refresh_callback = @maybe_widget_refresh
+  END SELECT
+ END WITH
 END SUB
