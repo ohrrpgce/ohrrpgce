@@ -2042,7 +2042,12 @@ SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
  app = find_madplay()
  IF app = "" THEN debug "mp3_to_wav: failed to find madplay" : EXIT SUB
  args = " -o wave:""" & out_file & """ """ & in_file & """"
+#IFDEF __FB_WIN32__
+ 'Bizarre quoting rules for cmd.exe (system()) arguments
+ SHELL """""" & app & """" & args & """"
+#ELSE
  SHELL app & args
+#ENDIF
  IF NOT isfile(out_file) THEN debug "mp3_to_wav: failed to create " & out_file : EXIT SUB
 END SUB
 
@@ -2052,7 +2057,12 @@ SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
  app = find_oggenc()
  IF app = "" THEN debug "wav_to_mp3: failed to find oggenc" : EXIT SUB
  args = " -q " & quality & " -o """ & out_file & """ """ & in_file & """"
+#IFDEF __FB_WIN32__
+ 'Bizarre quoting rules for cmd.exe (system()) arguments
+ SHELL """""" & app & """" & args & """"
+#ELSE
  SHELL app & args
+#ENDIF
  IF NOT isfile(out_file) THEN debug "wav_to_ogg: " & out_file & " does not exist" : EXIT SUB
 END SUB
 
