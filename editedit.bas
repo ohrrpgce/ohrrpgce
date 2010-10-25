@@ -23,6 +23,9 @@
 
 #include "editedit.bi"
 
+USING Reload
+USING Reload.Ext
+
 '-----------------------------------------------------------------------
 
 TYPE EEState
@@ -30,17 +33,17 @@ TYPE EEState
  menu AS MenuDef
  indent AS INTEGER
  shift AS INTEGER
- doc AS Reload.DocPtr
- root AS Reload.NodePtr
- seek_widget AS Reload.NodePtr
- clipboard AS Reload.NodePtr
- clipboard_is AS Reload.NodePtr
+ doc AS DocPtr
+ root AS NodePtr
+ seek_widget AS NodePtr
+ clipboard AS NodePtr
+ clipboard_is AS NodePtr
  filename AS STRING
  changed AS INTEGER
 END TYPE
 
 TYPE WEStateF AS WEState
-TYPE WidgetRefreshSub AS SUB(BYREF st AS WEStateF, BYVAL widget AS Reload.Nodeptr)
+TYPE WidgetRefreshSub AS SUB(BYREF st AS WEStateF, BYVAL widget AS Nodeptr)
 
 TYPE WidgetCode
  refresh_callback AS WidgetRefreshSub
@@ -57,31 +60,31 @@ END TYPE
 '-----------------------------------------------------------------------
 
 DECLARE SUB ee_refresh OVERLOAD (BYREF st AS EEState)
-DECLARE SUB ee_refresh OVERLOAD (BYREF st AS EEState, BYVAL widget AS Reload.NodePtr)
-DECLARE FUNCTION ee_widget_string(BYREF st AS EEState, BYVAL widget AS Reload.Nodeptr) AS STRING
-DECLARE SUB ee_focus_widget(BYREF st AS EEState, BYVAL widget AS Reload.Nodeptr)
+DECLARE SUB ee_refresh OVERLOAD (BYREF st AS EEState, BYVAL widget AS NodePtr)
+DECLARE FUNCTION ee_widget_string(BYREF st AS EEState, BYVAL widget AS Nodeptr) AS STRING
+DECLARE SUB ee_focus_widget(BYREF st AS EEState, BYVAL widget AS Nodeptr)
 DECLARE SUB ee_export(BYREF st AS EEState)
 DECLARE FUNCTION ee_browse(BYREF st AS EEState) AS INTEGER
 DECLARE FUNCTION ee_load(filename AS STRING, BYREF st AS EEState) AS INTEGER
 DECLARE SUB ee_save(filename AS STRING, BYREF st AS EEState)
 DECLARE FUNCTION ee_okay_to_unload(BYREF st AS EEState) AS INTEGER
 DECLARE SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
-DECLARE SUB ee_swap_widget_up(BYVAL widget AS Reload.Nodeptr)
-DECLARE SUB ee_swap_widget_down(BYVAL widget AS Reload.Nodeptr)
-DECLARE SUB ee_swap_widget_left(BYVAL widget AS Reload.Nodeptr)
-DECLARE SUB ee_swap_widget_right(BYVAL widget AS Reload.Nodeptr)
+DECLARE SUB ee_swap_widget_up(BYVAL widget AS Nodeptr)
+DECLARE SUB ee_swap_widget_down(BYVAL widget AS Nodeptr)
+DECLARE SUB ee_swap_widget_left(BYVAL widget AS Nodeptr)
+DECLARE SUB ee_swap_widget_right(BYVAL widget AS Nodeptr)
 DECLARE SUB ee_edit_menu_item(BYREF st AS EEState, mi AS MenuDefItem Ptr)
-DECLARE FUNCTION ee_edit_widget(BYREF st AS EEState, BYVAL widget AS Reload.NodePtr) AS INTEGER
+DECLARE FUNCTION ee_edit_widget(BYREF st AS EEState, BYVAL widget AS NodePtr) AS INTEGER
 
 DECLARE FUNCTION ee_prompt_for_widget_kind() AS STRING
-DECLARE FUNCTION ee_create_widget(BYREF st AS EEState, kind AS STRING) AS Reload.NodePtr
-DECLARE FUNCTION ee_container_check(BYVAL cont AS Reload.NodePtr, BYVAL widget AS Reload.NodePtr) AS INTEGER
-DECLARE FUNCTION ee_widget_has_caption(BYVAL widget AS Reload.NodePtr) AS INTEGER
+DECLARE FUNCTION ee_create_widget(BYREF st AS EEState, kind AS STRING) AS NodePtr
+DECLARE FUNCTION ee_container_check(BYVAL cont AS NodePtr, BYVAL widget AS NodePtr) AS INTEGER
+DECLARE FUNCTION ee_widget_has_caption(BYVAL widget AS NodePtr) AS INTEGER
 
-DECLARE FUNCTION widget_editor(BYVAL widget AS Reload.NodePtr) AS INTEGER
-DECLARE SUB widget_editor_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+DECLARE FUNCTION widget_editor(BYVAL widget AS NodePtr) AS INTEGER
+DECLARE SUB widget_editor_refresh(BYREF st AS WEState, BYVAL widget AS NodePtr)
 
-DECLARE SUB ee_get_widget_code(BYREF code AS WidgetCode, BYVAL widget AS Reload.NodePtr)
+DECLARE SUB ee_get_widget_code(BYREF code AS WidgetCode, BYVAL widget AS NodePtr)
 
 '-----------------------------------------------------------------------
 
@@ -89,9 +92,9 @@ SUB editor_editor()
  DIM st AS EEState
  
  st.changed = NO
- st.doc = Reload.CreateDocument()
- st.root = Reload.CreateNode(st.doc, "")
- Reload.SetRootNode(st.doc, st.root)
+ st.doc = CreateDocument()
+ st.root = CreateNode(st.doc, "")
+ SetRootNode(st.doc, st.root)
 
  st.state.pt = 0
  st.state.need_update = YES
@@ -162,8 +165,8 @@ SUB editor_editor()
  LOOP
 
  DeleteMenuItems st.menu
- IF st.clipboard <> 0 THEN Reload.FreeNode(st.clipboard)
- Reload.FreeDocument(st.doc)
+ IF st.clipboard <> 0 THEN FreeNode(st.clipboard)
+ FreeDocument(st.doc)
  
 END SUB
 
@@ -171,7 +174,7 @@ END SUB
 
 SUB ee_edit_menu_item(BYREF st AS EEState, mi AS MenuDefItem Ptr)
  IF mi = 0 THEN debug "ee_edit_menu_item: null mi": EXIT SUB
- DIM widget AS Reload.NodePtr
+ DIM widget AS NodePtr
  widget = mi->dataptr
  IF widget = 0 THEN debug "ee_edit_menu_item: mi has null widget node": EXIT SUB
 
@@ -182,19 +185,19 @@ SUB ee_edit_menu_item(BYREF st AS EEState, mi AS MenuDefItem Ptr)
 
 END SUB
 
-FUNCTION ee_edit_widget(BYREF st AS EEState, BYVAL widget AS Reload.NodePtr) AS INTEGER
+FUNCTION ee_edit_widget(BYREF st AS EEState, BYVAL widget AS NodePtr) AS INTEGER
  IF widget = 0 THEN debug "ee_edit_widget: null widget" : RETURN NO
 
  DIM changed AS INTEGER = NO
 
  IF ee_widget_has_caption(widget) THEN
   DIM cap AS STRING
-  cap = Reload.GetChildNodeStr(widget, "caption")
+  cap = GetChildNodeStr(widget, "caption")
   IF strgrabber(cap, 40) THEN
    IF cap = "" THEN
-    Reload.SetChildNode(widget, "caption")
+    SetChildNode(widget, "caption")
    ELSE
-    Reload.SetChildNode(widget, "caption", cap)
+    SetChildNode(widget, "caption", cap)
    END IF
    changed = YES
   END IF
@@ -210,7 +213,7 @@ FUNCTION ee_edit_widget(BYREF st AS EEState, BYVAL widget AS Reload.NodePtr) AS 
 END FUNCTION
 
 SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
- DIM widget AS Reload.Nodeptr
+ DIM widget AS Nodeptr
  widget = mi->dataptr
  
  DIM changed AS INTEGER = NO
@@ -219,9 +222,9 @@ SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
   DIM kind AS STRING
   kind = ee_prompt_for_widget_kind()
   IF kind <> "" THEN
-   DIM newnode AS Reload.Nodeptr
+   DIM newnode AS Nodeptr
    newnode = ee_create_widget(st, kind)
-   Reload.AddSiblingAfter widget, newnode
+   AddSiblingAfter widget, newnode
    st.seek_widget = newnode
    changed = YES
   END IF
@@ -230,16 +233,16 @@ SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
  IF keyval(scCTRL) > 0 AND st.shift THEN
   IF keyval(scC) > 1 THEN
    '--copy this widget
-   IF st.clipboard <> 0 THEN Reload.FreeNode(st.clipboard)
-   st.clipboard = Reload.CloneNodeTree(widget)
+   IF st.clipboard <> 0 THEN FreeNode(st.clipboard)
+   st.clipboard = CloneNodeTree(widget)
    st.clipboard_is = widget
    changed = YES
   END IF
   IF keyval(scV) > 1 THEN
    '--paste this widget
    IF st.clipboard <> 0 THEN
-    Reload.AddSiblingAfter(widget, Reload.CloneNodeTree(st.clipboard))
-    IF Reload.NodeHasAncestor(widget, st.clipboard_is) THEN st.clipboard_is = 0 'cosmetic importance only
+    AddSiblingAfter(widget, CloneNodeTree(st.clipboard))
+    IF NodeHasAncestor(widget, st.clipboard_is) THEN st.clipboard_is = 0 'cosmetic importance only
     changed = YES
    END IF
   END IF
@@ -270,7 +273,7 @@ SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
  
  IF keyval(scDelete) > 1 THEN
   IF yesno("Delete this widget?" & CHR(10) & ee_widget_string(st, widget)) THEN
-   Reload.FreeNode(widget)
+   FreeNode(widget)
    changed = YES
   END IF
  END IF
@@ -281,52 +284,52 @@ SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
  END IF
 END SUB
 
-SUB ee_swap_widget_up(BYVAL widget AS Reload.Nodeptr)
+SUB ee_swap_widget_up(BYVAL widget AS Nodeptr)
  IF widget = 0 THEN EXIT SUB
- DIM sib AS Reload.NodePtr
- sib = Reload.PrevSibling(widget, "widget")
+ DIM sib AS NodePtr
+ sib = PrevSibling(widget, "widget")
  IF sib = 0 THEN EXIT SUB
- Reload.SwapSiblingNodes(widget, sib)
+ SwapSiblingNodes(widget, sib)
 END SUB
 
-SUB ee_swap_widget_down(BYVAL widget AS Reload.Nodeptr)
+SUB ee_swap_widget_down(BYVAL widget AS Nodeptr)
  IF widget = 0 THEN EXIT SUB
- DIM sib AS Reload.NodePtr
- sib = Reload.NextSibling(widget, "widget")
+ DIM sib AS NodePtr
+ sib = NextSibling(widget, "widget")
  IF sib = 0 THEN EXIT SUB
- Reload.SwapSiblingNodes(widget, sib)
+ SwapSiblingNodes(widget, sib)
 END SUB
 
-SUB ee_swap_widget_left(BYVAL widget AS Reload.Nodeptr)
+SUB ee_swap_widget_left(BYVAL widget AS Nodeptr)
  IF widget = 0 THEN EXIT SUB
- DIM parent AS Reload.NodePtr
- parent = Reload.NodeParent(widget)
+ DIM parent AS NodePtr
+ parent = NodeParent(widget)
  IF parent = 0 THEN EXIT SUB
- Reload.AddSiblingAfter(parent, widget)
+ AddSiblingAfter(parent, widget)
 END SUB
 
-SUB ee_swap_widget_right(BYVAL widget AS Reload.Nodeptr)
+SUB ee_swap_widget_right(BYVAL widget AS Nodeptr)
  IF widget = 0 THEN EXIT SUB
- DIM sib AS Reload.NodePtr
- sib = Reload.PrevSibling(widget, "widget")
+ DIM sib AS NodePtr
+ sib = PrevSibling(widget, "widget")
  IF sib = 0 THEN EXIT SUB
  IF ee_container_check(sib, widget) = NO THEN EXIT SUB
- Reload.AddChild(sib, widget)
+ AddChild(sib, widget)
 END SUB
 
 SUB ee_refresh (BYREF st AS EEState)
- DIM widgets_container AS Reload.NodePtr
- widgets_container = Reload.Ext.NodeByPath(st.doc, "/widgets")
+ DIM widgets_container AS NodePtr
+ widgets_container = NodeByPath(st.doc, "/widgets")
  IF widgets_container = 0 THEN EXIT SUB
- DIM widget AS Reload.NodePtr
- widget = Reload.FirstChild(widgets_container, "widget")
+ DIM widget AS NodePtr
+ widget = FirstChild(widgets_container, "widget")
  DO WHILE widget
   ee_refresh st, widget
-  widget = Reload.NextSibling(widget, "widget")
+  widget = NextSibling(widget, "widget")
  LOOP
 END SUB
 
-SUB ee_refresh (BYREF st AS EEState, BYVAL widget AS Reload.NodePtr)
+SUB ee_refresh (BYREF st AS EEState, BYVAL widget AS NodePtr)
  IF widget = 0 THEN EXIT SUB
 
  IF widget = 0 THEN
@@ -346,26 +349,26 @@ SUB ee_refresh (BYREF st AS EEState, BYVAL widget AS Reload.NodePtr)
  mi->extra(0) = st.indent
 
  st.indent += 1 
- DIM chnode AS Reload.Nodeptr
- chnode = Reload.FirstChild(widget, "widget")
+ DIM chnode AS Nodeptr
+ chnode = FirstChild(widget, "widget")
  DO WHILE chnode
   ee_refresh st, chnode
-  chnode = Reload.NextSibling(chnode, "widget")
+  chnode = NextSibling(chnode, "widget")
  LOOP
  st.indent -= 1
 END SUB
 
-FUNCTION ee_widget_string(BYREF st AS EEState, BYVAL widget AS Reload.Nodeptr) AS STRING
+FUNCTION ee_widget_string(BYREF st AS EEState, BYVAL widget AS Nodeptr) AS STRING
  IF widget = 0 THEN debug "ee_widget_string: null node" : RETURN "<null ptr>"
  DIM s AS STRING = ""
- IF widget = st.clipboard_is OR Reload.NodeHasAncestor(widget, st.clipboard_is) then s &= "*"
- s &= "<" & Reload.GetString(widget) & ">" & Reload.GetChildNodeStr(widget, "caption", "")
+ IF widget = st.clipboard_is OR NodeHasAncestor(widget, st.clipboard_is) then s &= "*"
+ s &= "<" & GetString(widget) & ">" & GetChildNodeStr(widget, "caption", "")
  RETURN s
 END FUNCTION
 
-SUB ee_focus_widget(BYREF st AS EEState, BYVAL widget AS Reload.Nodeptr)
+SUB ee_focus_widget(BYREF st AS EEState, BYVAL widget AS Nodeptr)
  DIM mi AS MenuDefItem Ptr
- DIM n AS Reload.Nodeptr
+ DIM n AS Nodeptr
  FOR i AS INTEGER = 0 TO st.menu.numitems - 1
   mi = st.menu.items[i]
   n = mi->dataptr
@@ -398,10 +401,10 @@ END FUNCTION
 
 FUNCTION ee_load(filename AS STRING, BYREF st AS EEState) AS INTEGER
  st.filename = ""
- Reload.FreeDocument st.doc
- st.doc = Reload.LoadDocument(filename)
+ FreeDocument st.doc
+ st.doc = LoadDocument(filename)
  IF st.doc = 0 THEN debug "load '" & filename & "' failed: null doc": RETURN NO
- st.root = Reload.DocumentRoot(st.doc)
+ st.root = DocumentRoot(st.doc)
  IF st.root = 0 THEN debug "load '" & filename & "' failed: null root node": RETURN NO
  st.filename = trimpath(filename)
  st.changed = NO
@@ -409,7 +412,7 @@ FUNCTION ee_load(filename AS STRING, BYREF st AS EEState) AS INTEGER
 END FUNCTION
 
 SUB ee_save(filename AS STRING, BYREF st AS EEState)
- Reload.SerializeBin(filename, st.doc)
+ SerializeBin(filename, st.doc)
  st.filename = trimpath(filename)
  st.changed = NO
 END SUB
@@ -464,10 +467,10 @@ FUNCTION ee_prompt_for_widget_kind() AS STRING
  RETURN w(choice)
 END FUNCTION
 
-FUNCTION ee_create_widget(BYREF st AS EEState, kind AS STRING) AS Reload.NodePtr
- DIM widget AS Reload.NodePtr
- widget = Reload.CreateNode(st.doc, "widget")
- Reload.SetContent(widget, kind)
+FUNCTION ee_create_widget(BYREF st AS EEState, kind AS STRING) AS NodePtr
+ DIM widget AS NodePtr
+ widget = CreateNode(st.doc, "widget")
+ SetContent(widget, kind)
  '--If any widget kind had any strictly mandatory sub-nodes, we could add them here...
  '  ...but I am not sure we will actually have any of those.
  SELECT CASE kind
@@ -489,10 +492,10 @@ FUNCTION ee_create_widget(BYREF st AS EEState, kind AS STRING) AS Reload.NodePtr
  RETURN widget
 END FUNCTION
 
-FUNCTION ee_container_check(BYVAL cont AS Reload.NodePtr, BYVAL widget AS Reload.NodePtr) AS INTEGER
+FUNCTION ee_container_check(BYVAL cont AS NodePtr, BYVAL widget AS NodePtr) AS INTEGER
  IF cont = 0 THEN RETURN NO
  IF widget = 0 THEN RETURN NO
- SELECT CASE Reload.GetString(cont)
+ SELECT CASE GetString(cont)
   CASE "submenu": RETURN YES
   CASE "array": RETURN YES
   CASE "maybe": RETURN YES
@@ -500,20 +503,20 @@ FUNCTION ee_container_check(BYVAL cont AS Reload.NodePtr, BYVAL widget AS Reload
  RETURN NO
 END FUNCTION
 
-FUNCTION ee_widget_has_caption(BYVAL widget AS Reload.NodePtr) AS INTEGER
+FUNCTION ee_widget_has_caption(BYVAL widget AS NodePtr) AS INTEGER
  'True for widgets that use a caption node.
  IF widget = 0 THEN RETURN NO
- SELECT CASE Reload.GetString(widget)
+ SELECT CASE GetString(widget)
   CASE "array": RETURN NO
   CASE "maybe": RETURN NO
  END SELECT
  RETURN YES
 END FUNCTION
 
-FUNCTION ee_widget_has_data(BYVAL widget AS Reload.NodePtr) AS INTEGER
+FUNCTION ee_widget_has_data(BYVAL widget AS NodePtr) AS INTEGER
  'True for widgets that use a data node
  IF widget = 0 THEN RETURN NO
- SELECT CASE Reload.GetString(widget)
+ SELECT CASE GetString(widget)
   CASE "label": RETURN NO
   CASE "submenu": RETURN NO
   CASE "maybe": RETURN NO
@@ -523,7 +526,7 @@ END FUNCTION
 
 '-----------------------------------------------------------------------
 
-FUNCTION widget_editor(BYVAL widget AS Reload.NodePtr) AS INTEGER
+FUNCTION widget_editor(BYVAL widget AS NodePtr) AS INTEGER
 
  DIM st AS WEState
  
@@ -587,50 +590,50 @@ FUNCTION widget_editor(BYVAL widget AS Reload.NodePtr) AS INTEGER
  RETURN NO 
 END FUNCTION
 
-SUB widget_editor_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+SUB widget_editor_refresh(BYREF st AS WEState, BYVAL widget AS NodePtr)
  DIM index AS INTEGER
  append_menu_item(st.menu, "Done Editing this Widget...")
  IF ee_widget_has_caption(widget) THEN
-  append_menu_item(st.menu, "Caption:" & Reload.GetChildNodeStr(widget, "caption"))
+  append_menu_item(st.menu, "Caption:" & GetChildNodeStr(widget, "caption"))
  END IF
  IF ee_widget_has_data(widget) THEN
-  append_menu_item(st.menu, "Data Node:" & Reload.GetChildNodeStr(widget, "data"))
+  append_menu_item(st.menu, "Data Node:" & GetChildNodeStr(widget, "data"))
  END IF
  st.code.refresh_callback(st, widget)
 END SUB
 
 '#######################################################################
 
-SUB null_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
+SUB null_widget_refresh(BYREF st AS WEState, BYVAL widget AS NodePtr)
  'for widgets that don't have any extra properties.
 END SUB
 
-SUB int_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
- append_menu_item(st.menu, "Max:" & zero_default(Reload.GetChildNodeInt(widget, "max")))
- append_menu_item(st.menu, "Min:" & zero_default(Reload.GetChildNodeInt(widget, "min")))
- append_menu_item(st.menu, "Enum:" & Reload.GetChildNodeStr(widget, "enum"))
- append_menu_item(st.menu, "Optional:" & yesorno(Reload.GetChildNodeBool(widget, "optional")))
- append_menu_item(st.menu, "Zero Default:" & yesorno(Reload.GetChildNodeBool(widget, "zerodefault")))
- append_menu_item(st.menu, "-1 Default:" & yesorno(Reload.GetChildNodeBool(widget, "neg1default")))
+SUB int_widget_refresh(BYREF st AS WEState, BYVAL widget AS NodePtr)
+ append_menu_item(st.menu, "Max:" & zero_default(GetChildNodeInt(widget, "max")))
+ append_menu_item(st.menu, "Min:" & zero_default(GetChildNodeInt(widget, "min")))
+ append_menu_item(st.menu, "Enum:" & GetChildNodeStr(widget, "enum"))
+ append_menu_item(st.menu, "Optional:" & yesorno(GetChildNodeBool(widget, "optional")))
+ append_menu_item(st.menu, "Zero Default:" & yesorno(GetChildNodeBool(widget, "zerodefault")))
+ append_menu_item(st.menu, "-1 Default:" & yesorno(GetChildNodeBool(widget, "neg1default")))
 END SUB
 
-SUB picture_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
- append_menu_item(st.menu, "Size Group:" & Reload.GetChildNodeInt(widget, "sizegroup"))
- append_menu_item(st.menu, "Save Size:" & yesorno(Reload.GetChildNodeBool(widget, "savesize")))
+SUB picture_widget_refresh(BYREF st AS WEState, BYVAL widget AS NodePtr)
+ append_menu_item(st.menu, "Size Group:" & GetChildNodeInt(widget, "sizegroup"))
+ append_menu_item(st.menu, "Save Size:" & yesorno(GetChildNodeBool(widget, "savesize")))
 END SUB
 
-SUB tagcheck_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
- append_menu_item(st.menu, "Default Description:" & Reload.GetChildNodeStr(widget, "default"))
+SUB tagcheck_widget_refresh(BYREF st AS WEState, BYVAL widget AS NodePtr)
+ append_menu_item(st.menu, "Default Description:" & GetChildNodeStr(widget, "default"))
 END SUB
 
-SUB array_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
- append_menu_item(st.menu, "Count:" & zero_default(Reload.GetChildNodeInt(widget, "count"), "variable length"))
- append_menu_item(st.menu, "Key:" & Reload.GetChildNodeStr(widget, "key"))
- append_menu_item(st.menu, "Enum:" & Reload.GetChildNodeStr(widget, "enum"))
+SUB array_widget_refresh(BYREF st AS WEState, BYVAL widget AS NodePtr)
+ append_menu_item(st.menu, "Count:" & zero_default(GetChildNodeInt(widget, "count"), "variable length"))
+ append_menu_item(st.menu, "Key:" & GetChildNodeStr(widget, "key"))
+ append_menu_item(st.menu, "Enum:" & GetChildNodeStr(widget, "enum"))
 END SUB
 
-SUB maybe_widget_refresh(BYREF st AS WEState, BYVAL widget AS Reload.NodePtr)
- append_menu_item(st.menu, "Hide:" & yesorno(Reload.GetChildNodeBool(widget, "hide")))
+SUB maybe_widget_refresh(BYREF st AS WEState, BYVAL widget AS NodePtr)
+ append_menu_item(st.menu, "Hide:" & yesorno(GetChildNodeBool(widget, "hide")))
 END SUB
 
 '-----------------------------------------------------------------------
@@ -638,13 +641,13 @@ END SUB
 
 '--this is at the end of the file because I want to be lazy and not bother
 '  with separate declares for each of the callbacks above.
-SUB ee_get_widget_code(BYREF code AS WidgetCode, BYVAL widget AS Reload.NodePtr)
+SUB ee_get_widget_code(BYREF code AS WidgetCode, BYVAL widget AS NodePtr)
  WITH code
   .refresh_callback = @null_widget_refresh
 
   IF widget = 0 THEN EXIT SUB
   DIM kind AS STRING
-  kind = Reload.GetString(widget)
+  kind = GetString(widget)
   
   SELECT CASE kind
    CASE "int":
