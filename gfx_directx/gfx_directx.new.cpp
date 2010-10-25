@@ -280,7 +280,7 @@ void gfx_PumpMessages()
 		}
 	}
 	g_Joystick.Poll();
-	g_Keyboard.Poll();
+	//g_Keyboard.Poll();
 }
 
 void gfx_SetWindowTitle(const char *szTitle)
@@ -429,7 +429,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	
 	if(g_Mouse.ProcessMessage(hWnd, msg, wParam, lParam))
 		return 0;
-	//g_Keyboard.ProcessMessage(hWnd, msg, wParam, lParam);
+	g_Keyboard.ProcessMessage(hWnd, msg, wParam, lParam);
 
 	switch(msg)
 	{

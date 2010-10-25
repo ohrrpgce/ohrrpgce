@@ -15,13 +15,14 @@ namespace gfx
 		static const int c_vk2fb[256];
 		int m_scancodes[128];
 		BYTE m_virtualKeys[256];
+		UINT m_scLShift;
 	public:
 		Keyboard();
 
 		void GetOHRScans(int* pScancodes) const {for(UINT i = 0; i < 128; i++) pScancodes[i] |= m_scancodes[i];}
 		void GetVirtualKeys(BYTE* pVirtualKeys) const {memcpy((void*)pVirtualKeys, (void*)m_virtualKeys, sizeof(m_virtualKeys));}
 
-		void Poll();
+		//void Poll();
 		bool ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	};
 }
