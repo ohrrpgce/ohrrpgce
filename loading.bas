@@ -2064,6 +2064,8 @@ SUB ClearTextBox (BYREF box AS TextBox)
   .shop        = 0
   .hero_tag    = 0
   .hero_addrem = 0
+  .hero_swap   = 0
+  .hero_lock   = 0
   .after_tag   = 0
   .after       = 0
   .money_tag   = 0
@@ -2072,8 +2074,6 @@ SUB ClearTextBox (BYREF box AS TextBox)
   .door        = 0
   .item_tag    = 0
   .item        = 0
-  .hero_swap   = 0
-  .hero_lock   = 0
   .menu_tag    = 0
   .menu        = 0
   '--Clear box bitsets
@@ -2081,7 +2081,6 @@ SUB ClearTextBox (BYREF box AS TextBox)
   .no_box         = NO
   .opaque         = NO
   .restore_music  = NO
-  .portrait_box   = NO
   '--Clear choicebox data
   FOR i = 0 TO 1
    .choice(i) = ""
@@ -2095,11 +2094,15 @@ SUB ClearTextBox (BYREF box AS TextBox)
   .backdrop        = 0
   .music           = 0
   '--Clear character portrait
+  .portrait_box = NO
   .portrait_type = 0
   .portrait_id = 0
   .portrait_pal = -1
   .portrait_pos.x = 0
   .portrait_pos.y = 0
+  '--Clear sound effect
+  .sound_effect = 0
+  .stop_sound_after = NO
  END WITH
 END SUB
 

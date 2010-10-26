@@ -1291,8 +1291,9 @@ SUB textbox_copy_style_from_box (BYVAL template_box_id AS INTEGER=0, BYREF box A
   .portrait_type   = boxcopier.portrait_type
   .portrait_id     = boxcopier.portrait_id
   .portrait_pal    = boxcopier.portrait_pal
-  .portrait_pos.x  = boxcopier.portrait_pos.x
-  .portrait_pos.y  = boxcopier.portrait_pos.y
+  .portrait_pos    = boxcopier.portrait_pos
+  .sound_effect    = boxcopier.sound_effect
+  .stop_sound_after= boxcopier.stop_sound_after
  END WITH
  SaveTextBox box, st.id
 END SUB
