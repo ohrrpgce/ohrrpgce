@@ -2001,9 +2001,13 @@ SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapRe
   setwait 55
   setkeys
   IF keyval(scESC) > 1 THEN
-   rs.rect.wide = -1
-   rs.rect.high = -1
-   EXIT DO
+   'Unlike every other menu, hitting ESC cancels changes, so confirm if changes were made
+   IF (rs.rect.x = 0 AND rs.rect.y = 0 AND rs.rect.wide = rs.oldsize.x AND rs.rect.high = rs.oldsize.y) _
+      ORELSE yesno("Cancel resize?") THEN
+    rs.rect.wide = -1
+    rs.rect.high = -1
+    EXIT DO
+   END IF
   END IF
   IF keyval(scF1) > 1 THEN show_help "resize_map"
   usemenu state
