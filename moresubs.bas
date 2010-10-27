@@ -1123,10 +1123,8 @@ FUNCTION teleporttool () as integer
    IF carray(ccUse) > 1 THEN 'confirm and teleport
     IF gam.map.id <> destmap THEN teleporttool = -1
     gam.map.id = destmap
-    FOR i = 0 TO 15
-     catx(i) = dest.x * 20
-     caty(i) = dest.y * 20
-    NEXT
+    catx(0) = dest.x * 20
+    caty(0) = dest.y * 20
     EXIT DO
    END IF
    IF carray(ccMenu) > 1 THEN pickpoint = NO
