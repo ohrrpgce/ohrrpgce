@@ -1,4 +1,21 @@
 --------------------------------------------------
+10/27/10
+v1.10
+
+Added Features:
+
+-Fixed cursor clipping (specifically, right and bottom sides of client window).
+
+-Changed window background color to black (for real this time) on startup.
+
+-Fixed "Set Defaults" button in Options dialog to set the default screenshot format to png.
+
+-Fixed an issue where, upon opening a game that restricts mouse movement, then pressing Scroll Lock to release the mouse, resizing the window would cause the window to shrink or expand dramatically.
+
+
+
+
+--------------------------------------------------
 10/7/10
 v1.9
 

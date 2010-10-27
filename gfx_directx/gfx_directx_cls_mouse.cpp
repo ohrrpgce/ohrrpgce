@@ -259,10 +259,11 @@ using namespace gfx;
 RECT ScaleRectClient(HWND hWnd, const RECT& rSrc)
 {
 	RECT rWin;
-	GetWindowRect(hWnd, &rWin);
-	POINT pnt1 = {0,0}, pnt2 = {rWin.right,rWin.bottom};
+	//GetWindowRect(hWnd, &rWin);
+	GetClientRect(hWnd, &rWin);
+	POINT pnt1 = {1,1}, pnt2 = {rWin.right-1,rWin.bottom-1};
 	ClientToScreen(hWnd, &pnt1);
-	ScreenToClient(hWnd, &pnt2);
+	//ScreenToClient(hWnd, &pnt2);
 
 	FLOAT l,t,r,b;
 	l = (FLOAT)rSrc.left / 319.0f * (FLOAT)pnt2.x + (FLOAT)pnt1.x;

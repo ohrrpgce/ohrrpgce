@@ -29,8 +29,10 @@ int Window::Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC
 {
 	m_hInst = hInstance;
 	WNDCLASSEX wc = {0};
+	LOGBRUSH lb = {BS_SOLID, RGB(0,0,0)};
+
 	wc.cbSize			= sizeof(wc);
-	wc.hbrBackground	= (HBRUSH)COLOR_BACKGROUND;
+	wc.hbrBackground	= ::CreateBrushIndirect(&lb);//(HBRUSH)COLOR_BACKGROUND;
 	wc.hCursor			= ::LoadCursor(0, IDC_ARROW);
 	if(szIconResource != NULL)
 	{
