@@ -12,6 +12,9 @@ May ? 2010 [Ypsiliform+3]
       late 2006.
     * Bug 824: Back-compat issue with Curse of Vampire (affected other
       games) [James]
+    * Cancel hero movement if hero speed is zero. Prevents a situation
+      where walking a zero-speed hero could get stuck in an infinite
+      battle loop [Ralph]
 
 Feb 8 2010 [Ypsiliform+2]
 
