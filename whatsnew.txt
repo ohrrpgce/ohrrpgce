@@ -22,6 +22,9 @@ May ? 2010 [Ypsiliform+3]
       Custom by hitting Enter [Ralph]
     * Prompt for confirmation before deleting a song or sound effect
       [James]
+    * Under Unix you usually couldn't play unlumped .rpgdir games which
+      were on a mounted filesystem other than the one containing your
+      home directory [Ralph]
 
 Feb 8 2010 [Ypsiliform+2]
 

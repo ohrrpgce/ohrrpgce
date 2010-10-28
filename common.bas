@@ -1666,7 +1666,7 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
 
  IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
 
-  DIM tempf AS STRING = tmpdir & "resize.tmp"
+  DIM tempf AS STRING = lumpf & ".resize.tmp"
 
   flusharray buffer(), newsize / 2, 0
 
