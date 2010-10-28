@@ -1083,6 +1083,7 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
    SELECT CASE state.pt
     CASE 0: EXIT DO ' Exit the appearance menu
     CASE 3: box.textcolor = color_browser_256(box.textcolor)
+    CASE 6: IF box.music > -1 THEN playsongnum box.music - 1
     CASE 7: box.no_box = (NOT box.no_box)
     CASE 8: box.opaque = (NOT box.opaque)
     CASE 9: box.restore_music = (NOT box.restore_music)
@@ -1120,7 +1121,11 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
       loadmxs game & ".mxs", box.backdrop - 1, vpages(holdscreen)
      END IF
     END IF
-   CASE 6: state.need_update = zintgrabber(box.music, -1, gen(genMaxSong))
+   CASE 6:
+    IF zintgrabber(box.music, -1, gen(genMaxSong)) THEN
+     state.need_update = YES
+     pausesong
+    END IF
    CASE 10:
     state.need_update = intgrabber(box.portrait_type, 0, 3)
    CASE 11:
@@ -1133,7 +1138,11 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
     IF box.portrait_type = 1 THEN
      state.need_update = intgrabber(box.portrait_pal, -1, gen(genMaxPal))
     END IF
-   CASE 15: state.need_update = zintgrabber(box.sound_effect, -1, gen(genMaxSFX))
+   CASE 15:
+    IF zintgrabber(box.sound_effect, -1, gen(genMaxSFX)) THEN
+     state.need_update = YES
+     resetsfx
+    END IF
   END SELECT
   IF state.need_update THEN
    state.need_update = NO
@@ -1151,6 +1160,8 @@ SUB textbox_appearance_editor (BYREF box AS TextBox, BYREF st AS TextboxEditStat
   dowait
  LOOP
  freepage holdscreen
+ resetsfx
+ pausesong
 END SUB
 
 SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBox, BYREF st AS TextboxEditState)
@@ -1186,7 +1197,7 @@ SUB update_textbox_appearance_editor_menu (menu() AS STRING, BYREF box AS TextBo
    CASE 3: menutemp = "" & box.textcolor
    CASE 4: menutemp = "" & box.boxstyle
    CASE 5: IF box.backdrop THEN menutemp = "" & box.backdrop - 1 ELSE menutemp = "NONE"
-   CASE 6: IF box.music THEN menutemp = getsongname$(box.music - 1) ELSE menutemp = "NONE"
+   CASE 6: IF box.music THEN menutemp = (box.music - 1) & " " & getsongname$(box.music - 1) ELSE menutemp = "NONE"
    CASE 7: menutemp = yesorno(NOT box.no_box)
    CASE 8: menutemp = yesorno(NOT box.opaque)
    CASE 9: menutemp = yesorno(box.restore_music)

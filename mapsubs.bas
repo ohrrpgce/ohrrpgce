@@ -953,7 +953,12 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
    CASE 0
     IF enter_or_space() THEN EXIT DO
    CASE 1 'music
-    zintgrabber(gmap(state.pt), gdmin(state.pt) - 1, gdmax(state.pt) - 1) 'song is optional
+    IF zintgrabber(gmap(state.pt), gdmin(state.pt) - 1, gdmax(state.pt) - 1) THEN 'song is optional
+     pausesong
+    END IF
+    IF enter_or_space() THEN
+     IF gmap(state.pt) > 0 THEN playsongnum gmap(state.pt) - 1
+    END IF
    CASE 7, 12 TO 15 'scripts
     IF state.pt = 7 THEN idx = 0 ELSE idx = state.pt - 11
     IF enter_or_space() THEN
@@ -1063,6 +1068,7 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
   clearpage dpage
   dowait
  LOOP
+ pausesong
  unloadtilemap sampmap
 END SUB
 
