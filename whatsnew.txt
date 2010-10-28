@@ -17,6 +17,7 @@ May ? 2010 [Ypsiliform+3]
       battle loop [Ralph]
     * "wait for all" did not wait for NPCs when it was meant to [Ralph]
     * "hero pixel x/y" always returned the leader's position [Ralph]
+    * Fix display of the airbrush options in the tile editor. [Ralph]
 
 Feb 8 2010 [Ypsiliform+2]
 

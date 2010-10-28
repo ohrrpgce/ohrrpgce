@@ -1196,9 +1196,9 @@ DO
  IF ts.tool = airbrush_tool THEN
   textcolor uilook(uiMenuItem), 0
   printstr "SIZE", 12, 52, dpage
-  printstr STR(ts.airsize), 12, 60, dpage
+  printstr STR(ts.airsize), 20, 60, dpage
   printstr "MIST", 12, 68, dpage
-  printstr STR(ts.mist), 12, 76, dpage
+  printstr STR(ts.mist), 20, 76, dpage
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 17 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
   printstr CHR$(27), 12, 60, dpage
   textcolor uilook(uiMenuItem), uilook(uiDisabledItem): IF ts.zone = 18 THEN textcolor uilook(uiText), uilook(uiSelectedDisabled)
