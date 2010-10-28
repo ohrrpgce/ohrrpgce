@@ -25,6 +25,8 @@ May ? 2010 [Ypsiliform+3]
     * Under Unix you usually couldn't play unlumped .rpgdir games which
       were on a mounted filesystem other than the one containing your
       home directory [Ralph]
+    * Sound effects did not stop when quitting to the title screen or
+      loading a game [Ralph]
 
 Feb 8 2010 [Ypsiliform+2]
 

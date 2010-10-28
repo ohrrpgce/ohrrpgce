@@ -580,6 +580,7 @@ DO
   resetgame stat(), scriptout$
   initgamedefaults
   stopsong
+  resetsfx
   fadeout 0, 0, 0
   needf = 1
   force_npc_check = YES
@@ -632,6 +633,8 @@ DO
  GOSUB displayall
  IF fatal = 1 OR abortg > 0 OR resetg THEN
   resetgame stat(), scriptout$
+  'Stop sounds but not music; the title screen might not have any music set, or be set to the same music
+  resetsfx
   IF resetg THEN EXIT DO  'skip to new game
   'if skipping title and loadmenu, quit
   IF (readbit(gen(), genBits, 11)) AND (readbit(gen(), genBits, 12) OR abortg = 2 OR count_sav(savefile) = 0) THEN
@@ -667,17 +670,17 @@ unloadtilemap pass
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()
-resetsfx()
+DestroyGameSlices
+SliceDebugDump YES
 IF autorungame THEN exitprogram (NOT abortg)
 cleanuptemp
 fadeout 0, 0, 0
 stopsong
+resetsfx
 clearpage 0
 clearpage 1
 clearpage 2
 clearpage 3
-DestroyGameSlices
-SliceDebugDump YES
 sourcerpg = ""
 RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
