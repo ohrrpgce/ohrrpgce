@@ -20,6 +20,8 @@ May ? 2010 [Ypsiliform+3]
     * Fix display of the airbrush options in the tile editor. [Ralph]
     * Music and sound effects can be previewed everywhere in
       Custom by hitting Enter [Ralph]
+    * Prompt for confirmation before deleting a song or sound effect
+      [James]
 
 Feb 8 2010 [Ypsiliform+2]
 
