@@ -26,7 +26,6 @@ USING Reload.Ext
 
 '--Local subs and functions
 
-DECLARE SUB new_savegame (BYVAL slot AS INTEGER)
 DECLARE SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
 DECLARE SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB gamestate_script_to_reload(BYVAL parent AS Reload.NodePtr)
@@ -61,24 +60,19 @@ DECLARE SUB gamestate_vehicle_from_reload(BYVAL parent AS Reload.NodePtr)
 DECLARE SUB rsav_warn (s AS STRING)
 DECLARE SUB rsav_warn_wrong (expected AS STRING, BYVAL n AS Reload.NodePtr)
 
-DECLARE SUB new_saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
 DECLARE SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
 
-DECLARE SUB new_erase_save_slot (BYVAL slot AS INTEGER)
 DECLARE FUNCTION new_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
 DECLARE FUNCTION new_count_used_save_slots() AS INTEGER
 DECLARE SUB new_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
 
 '--old save/load support
-DECLARE SUB old_savegame (slot as integer)
-DECLARE SUB old_saveglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB old_loadgame (slot as integer)
 DECLARE SUB old_loadglobalvars (slot as integer, first as integer, last as integer)
 DECLARE SUB old_get_save_slot_preview(BYVAL slot AS INTEGER, pv AS SaveSlotPreview)
 DECLARE SUB show_load_index(z AS INTEGER, caption AS STRING, slot AS INTEGER=0)
 DECLARE SUB rebuild_inventory_captions (invent() AS InventSlot)
 DECLARE FUNCTION old_save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
-DECLARE SUB old_erase_save_slot (BYVAL slot AS INTEGER)
 DECLARE FUNCTION old_count_used_save_slots() AS INTEGER
 
 DIM SHARED old_savefile AS STRING
@@ -114,16 +108,6 @@ SUB init_save_system()
  END IF
  IF NOT isdir(savedir) THEN MKDIR savedir
 
-END SUB
-
-SUB savegame (BYVAL slot AS INTEGER)
- old_savegame slot
- new_savegame slot
-END SUB
-
-SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
- old_saveglobalvars slot, first, last
- new_saveglobalvars slot, first, last
 END SUB
 
 SUB loadgame (BYVAL slot AS INTEGER)
@@ -174,11 +158,6 @@ FUNCTION save_slot_used (BYVAL slot AS INTEGER) AS INTEGER
  RETURN old_save_slot_used(slot)
 END FUNCTION
 
-SUB erase_save_slot (BYVAL slot AS INTEGER)
- old_erase_save_slot slot
- new_erase_save_slot slot
-END SUB
-
 FUNCTION count_used_save_slots() AS INTEGER
  DIM count AS INTEGER = new_count_used_save_slots()
  IF count > 0 THEN
@@ -189,7 +168,7 @@ END FUNCTION
 
 '-----------------------------------------------------------------------
 
-SUB new_savegame (BYVAL slot AS INTEGER)
+SUB savegame (BYVAL slot AS INTEGER)
  current_save_slot = slot
  
  DIM doc AS DocPtr
@@ -1257,7 +1236,7 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-SUB new_saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
+SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
  current_save_slot = slot
  
  DIM filename AS STRING
@@ -1349,7 +1328,7 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-SUB new_erase_save_slot (BYVAL slot AS INTEGER)
+SUB erase_save_slot (BYVAL slot AS INTEGER)
  DIM filename AS STRING
  filename = savedir & SLASH & slot & ".rsav"
  safekill filename
@@ -1468,255 +1447,6 @@ END SUB
 '-----------------------------------------------------------------------
 '=======================================================================
 '-----------------------------------------------------------------------
-
-SUB old_savegame (slot)
-
-DIM gmaptmp(dimbinsize(binMAP))
-
-DIM AS INTEGER i, j, o, z
-
-'--FLUSH BUFFER---
-FOR i = 0 TO 16000
- buffer(i) = 0
-NEXT i
-
-buffer(0) = 3        'SAVEGAME VERSION NUMBER
-buffer(1) = gam.map.id
-loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) / 2, gam.map.id
-buffer(2) = catx(0) - gmaptmp(20) * 20
-buffer(3) = caty(0) - gmaptmp(21) * 20
-buffer(4) = catd(0)
-buffer(5) = gam.random_battle_countdown
-buffer(6) = 0    'was leader
-buffer(7) = mapx
-buffer(8) = mapy
-
-DIM gold_str AS STRING = STR(gold)
-FOR i = 0 TO 24
- IF i < LEN(gold_str) THEN
-  IF MID$(gold_str, i + 1, 1) <> "" THEN buffer(i + 9) = ASC(MID$(gold_str, i + 1, 1))
- ELSE
-  buffer(i + 9) = 0
- END IF
-NEXT i
-
-z = 34
-FOR i = 0 TO 500
- IF i <= 104 THEN
-  buffer(z) = gen(i)
- ELSE
-  buffer(z) = 0
- END IF
- z = z + 1
-NEXT i
-SerNPCL npc(), z, buffer(), 300, gmaptmp(20), gmaptmp(21)
-z=z+1 'fix an old bug
-FOR i = 0 TO 126
- buffer(z) = tag(i): z = z + 1
-NEXT i
-FOR i = 0 TO 40
- buffer(z) = hero(i): z = z + 1
-NEXT i
-FOR i = 0 TO 500
- '--placeholder for old useless a() buffer
- buffer(z) = 0: z = z + 1
-NEXT i
-FOR i = 0 TO 40
- FOR j = 0 TO 11
-  buffer(z) = gam.hero(i).stat.cur.sta(j): z = z + 1
- NEXT j
- buffer(z) = gam.hero(i).lev: z = z + 1
- buffer(z) = gam.hero(i).wep_pic: z = z + 1
- FOR j = 0 TO 11
-  buffer(z) = gam.hero(i).stat.max.sta(j): z = z + 1
- NEXT j
- buffer(z) = gam.hero(i).lev_gain: z = z + 1
- buffer(z) = gam.hero(i).wep_pal: z = z + 1
-NEXT i
-FOR i = 0 TO 40
- FOR o = 0 TO 5
-  buffer(z) = bmenu(i, o): z = z + 1
- NEXT o
-NEXT i
-FOR i = 0 TO 40
- FOR o = 0 TO 3
-  FOR j = 0 TO 23
-   buffer(z) = spell(i, o, j): z = z + 1
-  NEXT j
-  z = z + 1
- NEXT o
-NEXT i
-FOR i = 0 TO 40
- FOR o = 0 TO 7
-  buffer(z) = lmp(i, o): z = z + 1
- NEXT o
-NEXT i
-DIM exp_str AS STRING
-FOR i = 0 TO 40
- FOR o = 0 TO 1
-  exp_str = STR$(exlev(i, o))
-  FOR j = 0 TO 25
-   IF j < LEN(exp_str) THEN
-    IF MID$(exp_str, j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(exp_str, j + 1, 1))
-   ELSE
-    buffer(z) = 0
-   END IF
-   z = z + 1
-  NEXT j
- NEXT o
-NEXT i
-FOR i = 0 TO 40
- FOR j = 0 TO 16
-  IF j < LEN(names(i)) THEN
-   IF MID$(names(i), j + 1, 1) <> "" THEN buffer(z) = ASC(MID$(names(i), j + 1, 1))
-  END IF
-  z = z + 1
- NEXT j
-NEXT i
-'Store old-style 8-bit inventory (provides a little compatability for new SAV files with old game versions)
-SerInventory8bit inventory(), z, buffer()
-FOR i = 0 TO 40
- FOR o = 0 TO 4
-  buffer(z) = eqstuf(i, o): z = z + 1
- NEXT o
-NEXT i
-'Store new 16-bit inventory (Only the first 100 elements fit into this buffer!)
-SaveInventory16Bit inventory(), z, buffer(), 0, 99
-setpicstuf buffer(), 30000, -1
-DIM sg AS STRING = old_savefile
-storeset sg, slot * 2, 0
-
-'---RECORD 2
-
-'--FLUSH BUFFER---
-FOR i = 0 TO 16000
- buffer(i) = 0
-NEXT i
-
-z = 0
-
-FOR i = 0 TO 99
- FOR o = 0 TO 49
-  buffer(z) = gam.stock(i, o): z = z + 1
- NEXT o
-NEXT i
-FOR i = 0 TO 3
- buffer(z) = hmask(i): z = z + 1
-NEXT i
-FOR i = 1 TO 3
- buffer(z) = catx(i * 5) - gmaptmp(20) * 20: z = z + 1
- buffer(z) = caty(i * 5) - gmaptmp(21) * 20: z = z + 1
- buffer(z) = catd(i * 5): z = z + 1
-NEXT i
-'--bottom 16 bits of each global variable in 5013 - 6037
-FOR i = 0 TO 1024
- buffer(z) = global(i): z = z + 1
-NEXT i
-'--vehicle data
-WITH vstate
- buffer(z+0) = .active
- buffer(z+5) = .npc
- setbit buffer(), z+6, 0, .mounting
- setbit buffer(), z+6, 1, .rising
- setbit buffer(), z+6, 2, .falling
- setbit buffer(), z+6, 3, .init_dismount
- setbit buffer(), z+6, 4, .trigger_cleanup
- setbit buffer(), z+6, 5, .ahead
- buffer(z+7) = .old_speed
- '.id isn't saved; it's worked out when loading
- WITH .dat
-  buffer(z+8) = .speed 
-  setbit buffer(), z+9, 0, .pass_walls
-  setbit buffer(), z+9, 1, .pass_npcs
-  setbit buffer(), z+9, 2, .enable_npc_activation
-  setbit buffer(), z+9, 3, .enable_door_use
-  setbit buffer(), z+9, 4, .do_not_hide_leader
-  setbit buffer(), z+9, 5, .do_not_hide_party
-  setbit buffer(), z+9, 6, .dismount_ahead
-  setbit buffer(), z+9, 7, .pass_walls_while_dismounting
-  setbit buffer(), z+9, 8, .disable_flying_shadow
-  buffer(z+11) = .random_battles
-  buffer(z+12) = .use_button
-  buffer(z+13) = .menu_button
-  buffer(z+14) = .riding_tag
-  buffer(z+15) = .on_mount
-  buffer(z+16) = .on_dismount
-  buffer(z+17) = .override_walls
-  buffer(z+18) = .blocked_by
-  buffer(z+19) = .mount_from
-  buffer(z+20) = .dismount_to
-  buffer(z+21) = .elevation
- END WITH
-END WITH
-z += 22
-'--picture and palette
-buffer(z) = 4444: z = z + 1 'magic number
-FOR i = 0 TO 40
- buffer(z) = gam.hero(i).battle_pic: z = z + 1
- buffer(z) = gam.hero(i).battle_pal: z = z + 1
- buffer(z) = gam.hero(i).def_wep: z = z + 1
- buffer(z) = gam.hero(i).pic: z = z + 1
- buffer(z) = gam.hero(i).pal: z = z + 1
- z = z + 1 'skip an int
-NEXT i
-'--native hero bitsets
-buffer(z) = 4444: z = z + 1 'magic number
-FOR i = 0 TO 40
- FOR o = 0 TO 4
-  buffer(z) = nativehbits(i, o): z = z + 1
- NEXT o
-NEXT i
-'--top 16 bits of each global variable in 6513 - 7537
-FOR i = 0 TO 1024
- buffer(z) = global(i) shr 16: z = z + 1
-NEXT
-'--3071 more globals in 7538 - 13679
-FOR i = 1025 TO 4095
- buffer(z) = global(i): z = z + 1
- buffer(z) = global(i) shr 16: z = z + 1
-NEXT i
-'Store the rest of 16-bit inventory
-IF inventoryMax <> 599 THEN debug "Warning: inventoryMax=" & inventoryMax & ", does not fit in old SAV format"
-SaveInventory16Bit inventory(), z, buffer(), 100, 599
-
-setpicstuf buffer(), 30000, -1
-sg = old_savefile
-storeset sg, slot * 2 + 1, 0
-
-'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
-END SUB
-
-SUB old_saveglobalvars (slot, first, last)
-DIM i AS INTEGER
-DIM buf((last - first + 1) * 2) = ANY
-DIM fh AS INTEGER = FREEFILE
-OPEN old_savefile FOR BINARY AS #fh
-IF first <= 1024 THEN
- 'output first-final
- DIM final AS INTEGER = small(1024, last)
- FOR i = 0 TO final - first
-  buf(i) = global(first + i)
- NEXT
- SEEK #fh, 60000 * slot + 2 * first + 40027  '20013 * 2 + 1
- storerecord buf(), fh, final - first + 1, -1
- FOR i = 0 TO final - first
-  buf(i) = global(first + i) shr 16
- NEXT
- SEEK #fh, 60000 * slot + 2 * first + 43027  '21513 * 2 + 1
- storerecord buf(), fh, final - first + 1, -1
-END IF
-IF last >= 1025 THEN
- 'output start-last
- DIM start AS INTEGER = large(1025, first)
- FOR i = 0 TO last - start
-  buf(i * 2) = global(start + i)
-  buf(i * 2 + 1) = global(start + i) shr 16
- NEXT
- SEEK #fh, 60000 * slot + 4 * (start - 1025) + 45077  '22538 * 2 + 1
- storerecord buf(), fh, (last - start + 1) * 2, -1
-END IF
-CLOSE #fh
-END SUB
 
 SUB old_loadgame (slot)
 DIM gmaptmp(dimbinsize(binMAP))
