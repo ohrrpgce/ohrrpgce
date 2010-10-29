@@ -18,15 +18,11 @@ WHAT IS NEW?
       menu item closes the menu [James]
     * New menu feature to automatically open another menu when you
       close the current menu with ESC [James]
-    * Prompt for confirmation before deleting a sound effect or
-      song [James]
     * Expanded (and fixed) Erase Map Data menu [Ralph]
     * The line and oval tools are now pleasant to use instead of
       teeth-gnashingly awful, and the pixels in the tile editor are
       no longer stretched [Ralph]
     * Added Replace colour tool to tile and sprite editors [Ralph]
-    * Music and sound effects can be previewed everywhere in
-      Custom by hitting Enter [Ralph]
     * New general bitset "Don't randomize battle ready meters" [James]
     * New attack bitset "Delay doesn't block further actions" allows
       attacks to be queued without blocking the attacker from taking
@@ -53,18 +49,11 @@ WHAT IS NEW?
       out-of-battle cure attack or item [James]
     * Bug 486: Chained attacks fail on stored dead targets
       [James, msw188]
-    * "wait for all" did not wait for NPCs when it was meant to [Ralph]
-    * "hero pixel x/y" only worked correctly on the leader [Ralph]
     * Using an item that triggers a text box could cause a menu
       double-close warning if the menu item that opened the items menu
       was set to always close the menu [James]
     * Bug 845: upgrading old games that contain no shop stuff lump
       always produced a confusing warning [James]
-    * Under Unix you usually couldn't play unlumped .rpgdir games which
-      were on a mounted filesystem other than the one containing your
-      home directory [Ralph]
-    * Sound effects did not stop when quitting to the title screen or
-      loading a game [Ralph]
     * 'Set tag', 'Toggle tag' and 'Close menu' options were ignored
       when menu items were triggered via "use menu item" [Ralph]
     * NPCs appearance was not updated according to tags set from a
@@ -72,8 +61,6 @@ WHAT IS NEW?
     * "create NPC" could create NPCs with garbage 'extra data' [Ralph]
     * gfx_directx: fixed garbage and window resizing at startup [Jay]
     * gfx_directx: fixed slow screen fades and framerate [Jay]
-    * Bug 824: Back-compat issue with Curse of Vampire (affected other
-      games) [James]
     * Your MP (and the rest of the spell menu) is no longer hidden
       while you target a spell outside of battle. [James]
     * Recentering a sprite or a maptile is now done with arrow keys
@@ -118,7 +105,7 @@ WHAT IS NEW?
   * Stuff only Developers Will Notice
     * Test suite and benchmarks for RELOAD format [Mike]
 
-(Unreleased) [Ypsiliform+3]
+Oct X 2010 [Ypsiliform+3]
 
   * Bugfixes
     * Bug 816: Freeze on attack instead-chaining on multi-stage chains
@@ -130,6 +117,21 @@ WHAT IS NEW?
       late 2006.
     * Bug 824: Back-compat issue with Curse of Vampire (affected other
       games) [James]
+    * Cancel hero movement if hero speed is zero. Prevents a situation
+      where walking a zero-speed hero could get stuck in an infinite
+      battle loop [Ralph]
+    * "wait for all" did not wait for NPCs when it was meant to [Ralph]
+    * "hero pixel x/y" always returned the leader's position [Ralph]
+    * Fix display of the airbrush options in the tile editor. [Ralph]
+    * Music and sound effects can be previewed everywhere in
+      Custom by hitting Enter [Ralph]
+    * Prompt for confirmation before deleting a song or sound effect
+      [James]
+    * Under Unix you usually couldn't play unlumped .rpgdir games which
+      were on a mounted filesystem other than the one containing your
+      home directory [Ralph]
+    * Sound effects did not stop when quitting to the title screen or
+      loading a game [Ralph]
 
 Feb 8 2010 [Ypsiliform+2]
 
