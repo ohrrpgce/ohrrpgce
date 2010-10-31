@@ -59,6 +59,7 @@ END TYPE
 
 '-----------------------------------------------------------------------
 
+DECLARE SUB ee_create_new_editor_file(BYREF st AS EEState)
 DECLARE SUB ee_refresh OVERLOAD (BYREF st AS EEState)
 DECLARE SUB ee_refresh OVERLOAD (BYREF st AS EEState, BYVAL widget AS NodePtr)
 DECLARE FUNCTION ee_widget_string(BYREF st AS EEState, BYVAL widget AS Nodeptr) AS STRING
@@ -68,6 +69,7 @@ DECLARE FUNCTION ee_browse(BYREF st AS EEState) AS INTEGER
 DECLARE FUNCTION ee_load(filename AS STRING, BYREF st AS EEState) AS INTEGER
 DECLARE SUB ee_save(filename AS STRING, BYREF st AS EEState)
 DECLARE FUNCTION ee_okay_to_unload(BYREF st AS EEState) AS INTEGER
+DECLARE SUB ee_insertion(BYREF st AS EEState, BYVAL widget AS Nodeptr)
 DECLARE SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
 DECLARE SUB ee_swap_widget_up(BYVAL widget AS Nodeptr)
 DECLARE SUB ee_swap_widget_down(BYVAL widget AS Nodeptr)
@@ -95,7 +97,8 @@ SUB editor_editor()
  st.doc = CreateDocument()
  st.root = CreateNode(st.doc, "")
  SetRootNode(st.doc, st.root)
-
+ ee_create_new_editor_file st
+  
  st.state.pt = 0
  st.state.need_update = YES
  st.state.active = YES
@@ -149,7 +152,10 @@ SUB editor_editor()
   IF st.state.pt >= 0 AND st.state.pt <= st.menu.numitems - 1 THEN
    ee_edit_menu_item st, st.menu.items[st.state.pt]
    ee_rearrange st, st.menu.items[st.state.pt]
+  ELSE
+   ee_insertion st, 0
   END IF
+
   
   IF NOT st.shift THEN
    usemenu st.state
@@ -171,6 +177,14 @@ SUB editor_editor()
 END SUB
 
 '-----------------------------------------------------------------------
+
+SUB ee_create_new_editor_file(BYREF st AS EEState)
+ RenameNode st.root, "editor"
+ AppendChildNode st.root, "datafile"
+ AppendChildNode st.root, "recordnode"
+ AppendChildNode st.root, "enums"
+ AppendChildNode st.root, "widgets"
+END SUB
 
 SUB ee_edit_menu_item(BYREF st AS EEState, mi AS MenuDefItem Ptr)
  IF mi = 0 THEN debug "ee_edit_menu_item: null mi": EXIT SUB
@@ -212,24 +226,39 @@ FUNCTION ee_edit_widget(BYREF st AS EEState, BYVAL widget AS NodePtr) AS INTEGER
  RETURN changed
 END FUNCTION
 
+SUB ee_insertion(BYREF st AS EEState, BYVAL widget AS Nodeptr)
+ IF keyval(scInsert) > 1 THEN
+ DIM kind AS STRING
+  kind = ee_prompt_for_widget_kind()
+  IF kind <> "" THEN
+   DIM newnode AS Nodeptr
+   newnode = ee_create_widget(st, kind)
+   IF widget THEN
+    AddSiblingAfter widget, newnode
+   ELSE
+    DIM node AS Nodeptr
+    node = NodeByPath(st.root, "/widgets")
+    IF node = 0 THEN
+     debuginfo "unable to find /widgets container node!"
+     EXIT SUB
+    END IF
+    AddChild node, newnode
+   END IF
+   st.seek_widget = newnode
+   st.changed = YES
+   st.state.need_update = YES
+  END IF
+ END IF
+END SUB
+
 SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
  DIM widget AS Nodeptr
  widget = mi->dataptr
  
  DIM changed AS INTEGER = NO
- 
- IF keyval(scInsert) > 1 THEN
-  DIM kind AS STRING
-  kind = ee_prompt_for_widget_kind()
-  IF kind <> "" THEN
-   DIM newnode AS Nodeptr
-   newnode = ee_create_widget(st, kind)
-   AddSiblingAfter widget, newnode
-   st.seek_widget = newnode
-   changed = YES
-  END IF
- END IF
- 
+
+ ee_insertion st, widget
+
  IF keyval(scCTRL) > 0 AND st.shift THEN
   IF keyval(scC) > 1 THEN
    '--copy this widget

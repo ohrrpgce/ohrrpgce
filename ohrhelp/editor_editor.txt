@@ -1,0 +1,21 @@
+This is the Editor Editor. It is for editing editor definition files.
+
+Use the up and down arrow keys to navigate the list of widgets.
+
+Press ESC to exit the editor editor.
+
+Press F2 to save the editor definition file.
+
+Press F3 to load an editor definition file.
+
+Press Insert to create a new widget.
+
+Press Delete to remove a widget.
+
+Hold SHIFT and press the up and down arrow keys to reorder widgets.
+
+Hold SHIFT and press the right arrow key to put a widget into a container. This only works if the widget right above the one you are selecting is a container-type widget.
+
+Hold SHIFT and press the left arrow key to take a widget out of a container.
+
+You can tell which widgets are in containers by how they are indented.
