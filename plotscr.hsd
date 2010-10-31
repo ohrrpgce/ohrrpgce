@@ -170,7 +170,7 @@ define function, begin
 161,mousepixely,0           # returns mouse y coordinate on the screen
 162,mousebutton,1,0         # returns true if the specified button is pressed
 163,putmouse,2,160,100      # places the mouse at a point on the screen
-164,mouseregion,4,0,319,0,199 # define the rectangle in which the mouse can move (xmin, xmax, ymin, ymax)
+164,mouseregion,4,-1,-1,-1,-1 # define the rectangle in which the mouse can move (xmin, xmax, ymin, ymax)
 165,npcatpixel,3,0,0,0      # returns NPC at pixel x,y, third arg is which npc (on -1 returns number of npcs at pixel)
 166,saveinslot,1,0	    # save game in slot
 167,lastsaveslot,0	    # returns the last save slot the game was saved in, false if unsaved
