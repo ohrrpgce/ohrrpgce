@@ -186,8 +186,8 @@ define function, begin
 177,NPCiswalking,1,0        # (who) returns true if walking (for real, unlike the old implementation)
 178,readgmap,1,0            # read from general map data array
 179,writegmap,2,0,0         # write a gmap data item
-180,mapwidth,0              # returns map height in tiles
-181,mapheight,0             # returns map width in tiles
+180,mapwidth,1,-1           # returns map height in tiles (map id)
+181,mapheight,1,-1          # returns map width in tiles (map id)
 182,readNPC,2,0,0           # reads information about an NPC on the current map (corresponds to alterNPC)
 183,setherolevel,3,0,0,1    # change a hero's level
 184,giveexperience,2,-1,1   # (who, how much) gives a hero or the active party experience

@@ -3676,14 +3676,14 @@ end
 			<description>Returns the number of the current map.</description>
 		</command>
 		<command id="mapwidth">
-			<canon>map width</canon>
+			<canon>map width (map)</canon>
 			<shortname>map width</shortname>
-			<description>Returns the width of the map in tiles.</description>
+			<description>Returns the width of a map in tiles. <p>map</p> is optional; the width of the current map is returned if it is not specified.</description>
 		</command>
 		<command id="mapheight">
-			<canon>map height</canon>
+			<canon>map height (map)</canon>
 			<shortname>map height</shortname>
-			<description>Returns the height of the map in tiles.</description>
+			<description>Returns the height of a map in tiles. <p>map</p> is optional; the height of the current map is returned if it is not specified.</description>
 		</command>
 		<command id="getmaptileset">
 			<canon>get map tileset</canon>

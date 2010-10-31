@@ -99,6 +99,8 @@ WHAT IS NEW?
     * "read zone", "write zone", "zone at spot",
       "zone number of tiles" [Ralph]
     * "use item", "use item in slot" [James]
+    * "map width" and "map height" now take an optional argument,
+      the map number [Ralph]
 
   * Vikings of Midgard
 

@@ -1215,10 +1215,28 @@ SELECT CASE AS CONST id
    scripterr "run script by id failed loading " & retvals(0), 6
    scriptret = -1
   END IF
- CASE 180'--mapwidth
-  scriptret = mapsizetiles.x
- CASE 181'--mapheight
-  scriptret = mapsizetiles.y
+ CASE 180'--mapwidth([map])
+  'map width did not originally have an argument
+  IF curcmd->argc = 0 ORELSE retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
+   scriptret = mapsizetiles.x
+  ELSE
+   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , , 5) THEN
+    DIM as TilemapInfo mapsize
+    GetTilemapInfo maplumpname(retvals(0), "t"), mapsize
+    scriptret = mapsize.wide
+   END IF
+  END IF
+ CASE 181'--mapheight([map])
+  'map height did not originally have an argument
+  IF curcmd->argc = 0 ORELSE retvals(0) = -1 ORELSE retvals(0) = gam.map.id THEN
+   scriptret = mapsizetiles.y
+  ELSE
+   IF bound_arg(retvals(0), 0, gen(genMaxMap), "map number", , , 5) THEN
+    DIM as TilemapInfo mapsize
+    GetTilemapInfo maplumpname(retvals(0), "t"), mapsize
+    scriptret = mapsize.high
+   END IF
+  END IF
  CASE 187'--getmusicvolume
   scriptret = fmvol * 17
  CASE 188'--setmusicvolume
