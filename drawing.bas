@@ -23,7 +23,7 @@ DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
 DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
 DECLARE SUB readundoblock (mover%(), state AS TileEditState)
 DECLARE SUB fliptile (mover%(), ts AS TileEditState)
-DECLARE SUB scrolltile (mover%(), ts AS TileEditState)
+DECLARE SUB scrolltile (mover(), ts AS TileEditState, BYVAL shiftx AS INTEGER, BYVAL shifty AS INTEGER)
 DECLARE SUB clicktile (mover(), ts AS TileEditState, mouseclick, BYREF clone AS TileCloneBuffer)
 DECLARE SUB tilecopy (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tilepaste (cutnpaste%(), ts AS TileEditState)
@@ -33,8 +33,9 @@ DECLARE SUB changepal (palval%, palchange%, workpal%(), aindex%)
 DECLARE SUB airbrush (x%, y%, d%, m%, c%, p%)
 DECLARE SUB testanimpattern (tastuf%(), taset%)
 DECLARE SUB setanimpattern (tastuf%(), taset%)
-DECLARE FUNCTION mouseover% (mouse%(), BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea)
+DECLARE FUNCTION mouseover (BYVAL mousex AS INTEGER, BYVAL mousey AS INTEGER, BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea) AS INTEGER
 DECLARE SUB maptile (font())
+DECLARE SUB tileedit_set_tool (ts AS TileEditState, toolinfo() AS ToolInfoType, BYVAL toolnum AS INTEGER)
 
 DECLARE SUB spriteedit_load_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
 DECLARE SUB spriteedit_save_what_you_see(j, top, sets, ss AS SpriteEditState, soff, placer(), workpal(), poffset())
@@ -431,14 +432,14 @@ RETRACE
 
 END SUB
 
-FUNCTION mouseover (mouse(), BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea)
+FUNCTION mouseover (BYVAL mousex AS INTEGER, BYVAL mousey AS INTEGER, BYREF zox, BYREF zoy, BYREF zcsr, area() AS MouseArea) AS INTEGER
 
 FOR i = UBOUND(area) TO 0 STEP -1
  IF area(i).w <> 0 AND area(i).h <> 0 THEN
-  IF mouse(0) >= area(i).x AND mouse(0) < area(i).x + area(i).w THEN
-   IF mouse(1) >= area(i).y AND mouse(1) < area(i).y + area(i).h THEN
-    zox = mouse(0) - area(i).x
-    zoy = mouse(1) - area(i).y
+  IF mousex >= area(i).x AND mousex < area(i).x + area(i).w THEN
+   IF mousey >= area(i).y AND mousey < area(i).y + area(i).h THEN
+    zox = mousex - area(i).x
+    zoy = mousey - area(i).y
     zcsr = area(i).hidecursor
     mouseover = i + 1
     EXIT FUNCTION
@@ -646,7 +647,7 @@ END SUB
 
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
-DIM ts AS TileEditState, mover(12), mouse(4), area(23) AS MouseArea
+DIM ts AS TileEditState, mover(12), mouse(4), area(24) AS MouseArea
 ts.drawframe = frame_new(20, 20, , YES)
 DIM tog AS integer
 ts.gotmouse = havemouse()
@@ -664,7 +665,7 @@ area(1).x = 0
 area(1).y = 160
 area(1).w = 320
 area(1).h = 32
-'TOOLS (more at 21,22,23)
+'TOOLS (more at 21+)
 FOR i = 0 TO 5
  area(2 + i).x = 4 + i * 9
  area(2 + i).y = 32
@@ -709,8 +710,8 @@ area(19).y = 76
 area(19).w = 8
 area(19).h = 8
 area(19).hidecursor = NO
-FOR i = 0 TO 1
- area(21 + i).x = 40 + i * 9
+FOR i = 0 TO 1  'mark and clone
+ area(21 + i).x = 49 + i * 9
  area(21 + i).y = 42
  area(21 + i).w = 8
  area(21 + i).h = 8
@@ -719,6 +720,11 @@ area(23).x = 58  'airbrush
 area(23).y = 32
 area(23).w = 8
 area(23).h = 8
+area(24).x = 40  'scroll tool
+area(24).y = 42
+area(24).w = 8
+area(24).h = 8
+
 DIM pastogkey(7), defaults(160), bitmenu(10) AS STRING
 IF tmode = 3 THEN
  pastogkey(0) = scUp
@@ -878,7 +884,7 @@ SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea)
 STATIC clone AS TileCloneBuffer
 DIM spot AS XYPair
 
-DIM toolinfo(8) AS ToolInfoType
+DIM toolinfo(9) AS ToolInfoType
 WITH toolinfo(0)
  .name = "Draw"
  .icon = CHR(3)
@@ -942,6 +948,13 @@ WITH toolinfo(8)
  .cursor = 3
  .areanum = 6
 END WITH
+WITH toolinfo(9)
+ .name = "Scroll"
+ .icon = "S"
+ .shortcut = scS
+ .cursor = 3
+ .areanum = 24
+END WITH
 
 DIM overlay AS Frame ptr
 overlay = frame_new(20, 20, , YES)
@@ -950,7 +963,10 @@ overlaypal = palette16_new()
 
 tog = 0
 tick = 0
+ts.dragging = NO
+ts.lastpos = TYPE(ts.x, ts.y)
 ts.justpainted = 0
+ts.didscroll = NO
 ts.undo = 0
 ts.allowundo = 0
 ts.delay = 10
@@ -985,7 +1001,15 @@ DO
  IF ts.gotmouse THEN
   readmouse mouse()
   zcsr = 0
-  ts.zone = mouseover(mouse(), zox, zoy, zcsr, area())
+  ts.zone = mouseover(mouse(0), mouse(1), zox, zoy, zcsr, area())
+  ts.dragging = NO
+  IF mouse(3) AND 1 THEN
+   'Do not flag as dragging until the second tick
+   ts.dragstart = TYPE(mouse(0), mouse(1))
+  ELSEIF mouse(2) AND 1 THEN
+   'left mouse button down, but no new click this tick
+   ts.dragging = YES
+  END IF
  END IF
 
  ts.delay = large(ts.delay - 1, 0)
@@ -999,12 +1023,24 @@ DO
  END IF
  IF keyval(scF1) > 1 THEN show_help "editmaptile": setkeyrepeat 25, 5  'yuck
  IF keyval(scAlt) = 0 THEN
-  ts.fixmouse = NO
-  IF slowkey(scLeft, 6) THEN ts.x = large(ts.x - 1, 0): ts.fixmouse = YES
-  IF slowkey(scRight, 6) THEN ts.x = small(ts.x + 1, 19): ts.fixmouse = YES
-  IF slowkey(scUp, 6) THEN ts.y = large(ts.y - 1, 0): ts.fixmouse = YES
-  IF slowkey(scDown, 6) THEN ts.y = small(ts.y + 1, 19): ts.fixmouse = YES
-  IF ts.fixmouse AND ts.zone = 1 THEN
+  DIM fixmouse AS INTEGER = NO
+  IF ts.tool <> scroll_tool THEN
+   IF slowkey(scLeft, 6) THEN ts.x = large(ts.x - 1, 0): fixmouse = YES
+   IF slowkey(scRight, 6) THEN ts.x = small(ts.x + 1, 19): fixmouse = YES
+   IF slowkey(scUp, 6) THEN ts.y = large(ts.y - 1, 0): fixmouse = YES
+   IF slowkey(scDown, 6) THEN ts.y = small(ts.y + 1, 19): fixmouse = YES
+  ELSE
+   DIM scrolloff AS XYPair
+   IF slowkey(scLeft, 6) THEN scrolloff.x = -1
+   IF slowkey(scRight, 6) THEN scrolloff.x = 1
+   IF slowkey(scUp, 6) THEN scrolloff.y = -1
+   IF slowkey(scDown, 6) THEN scrolloff.y = 1
+   scrolltile mover(), ts, scrolloff.x, scrolloff.y
+   IF scrolloff.x OR scrolloff.y THEN fixmouse = YES
+   ts.x = (ts.x + scrolloff.x + 20) MOD 20
+   ts.y = (ts.y + scrolloff.y + 20) MOD 20
+  END IF
+  IF fixmouse AND ts.zone = 1 THEN
    zox = ts.x * 8 + 4
    zoy = ts.y * 8 + 4
    mouse(0) = area(0).x + zox
@@ -1015,9 +1051,7 @@ DO
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
  FOR i = 0 TO UBOUND(toolinfo)
   IF keyval(toolinfo(i).shortcut) > 1 THEN
-   ts.tool = i
-   ts.hold = NO
-   ts.drawcursor = toolinfo(i).cursor + 1
+   tileedit_set_tool ts, toolinfo(), i
   END IF
  NEXT i
  '----------
@@ -1035,11 +1069,11 @@ DO
  IF keyval(scCtrl) > 0 AND keyval(scZ) > 1 AND ts.allowundo THEN
   ts.undo = loopvar(ts.undo, 0, 5, -1)
   readundoblock mover(), ts
+  ts.didscroll = NO  'save a new undo block upon scrolling
  END IF
  IF keyval(scSpace) > 0 THEN clicktile mover(), ts, mouse(3), clone
  IF keyval(scEnter) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
- IF keyval(scLeftShift) > 0 ORELSE keyval(scRightShift) > 0 THEN scrolltile mover(), ts
- SELECT CASE ts.zone   
+ SELECT CASE ts.zone
  CASE 1
   ts.x = zox \ 8
   ts.y = zoy \ 8
@@ -1060,6 +1094,12 @@ DO
      ts.adjustpos.y = ts.y
     END IF
    END IF
+  ELSEIF ts.tool = scroll_tool THEN
+   'Handle scrolling by dragging the mouse
+   'Did this drag start inside the sprite box? If not, ignore
+   IF ts.dragging ANDALSO mouseover(ts.dragstart.x, ts.dragstart.y, zox, zoy, zcsr, area()) = 1 THEN
+    scrolltile mover(), ts, ts.x - ts.lastpos.x, ts.y - ts.lastpos.y
+   END IF
   ELSE
    'for all other tools, pick a color
    IF mouse(2) = 2 THEN
@@ -1077,8 +1117,7 @@ DO
  FOR i = 0 TO UBOUND(toolinfo)
   IF toolinfo(i).areanum = ts.zone - 1 THEN
    IF mouse(3) = 1 THEN
-    ts.tool = i
-    ts.drawcursor = toolinfo(ts.tool).cursor + 1
+    tileedit_set_tool ts, toolinfo(), i
    END IF
   END IF
  NEXT i
@@ -1118,6 +1157,7 @@ DO
  IF keyval(scBackspace) > 1 OR keyval(scLeftBracket) > 1 OR keyval(scRightBracket) > 1 THEN fliptile mover(), ts
  cy = (ts.curcolor \ 16) MOD 8
  cx = (ts.curcolor AND 15) + (ts.curcolor \ 128) * 16
+ ts.lastpos = TYPE<XYPair>(ts.x, ts.y)
 
  '--Draw screen (Some of the editor is predrawn to page 2)
  copypage 2, dpage
@@ -1225,6 +1265,13 @@ IF ts.gotmouse THEN
 END IF
 frame_unload @overlay
 palette16_unload @overlaypal
+END SUB
+
+SUB tileedit_set_tool (ts AS TileEditState, toolinfo() AS ToolInfoType, BYVAL toolnum AS INTEGER)
+ IF ts.tool <> toolnum AND toolnum = scroll_tool THEN ts.didscroll = NO
+ ts.tool = toolnum
+ ts.hold = NO
+ ts.drawcursor = toolinfo(ts.tool).cursor + 1
 END SUB
 
 SUB clicktile (mover(), ts AS TileEditState, mouseclick, BYREF clone AS TileCloneBuffer)
@@ -1355,52 +1402,52 @@ SELECT CASE ts.tool
    END IF
   END IF
  CASE clone_tool
- IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
-  IF ts.justpainted = 0 THEN writeundoblock mover(), ts
-  ts.justpainted = 3
-  IF clone.exists = YES THEN
-   FOR i = 0 TO clone.size.y - 1
-    FOR j = 0 TO clone.size.x - 1
-     spot.x = ts.x - ts.hox + j + ts.adjustpos.x
-     spot.y = ts.y - ts.hoy + i + ts.adjustpos.y
-     IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
-      putpixel ts.tilex * 20 + spot.x, ts.tiley * 20 + spot.y, clone.buf(j, i), 3
-     END IF
-    NEXT j
-   NEXT i
-   refreshtileedit mover(), ts
-  ELSE
-   'if no clone buffer, switch to mark tool
-   ts.tool = mark_tool
-   ts.hold = YES
-   ts.hox = ts.x
-   ts.hoy = ts.y
+  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
+   IF ts.justpainted = 0 THEN writeundoblock mover(), ts
+   ts.justpainted = 3
+   IF clone.exists = YES THEN
+    FOR i = 0 TO clone.size.y - 1
+     FOR j = 0 TO clone.size.x - 1
+      spot.x = ts.x - ts.hox + j + ts.adjustpos.x
+      spot.y = ts.y - ts.hoy + i + ts.adjustpos.y
+      IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
+       putpixel ts.tilex * 20 + spot.x, ts.tiley * 20 + spot.y, clone.buf(j, i), 3
+      END IF
+     NEXT j
+    NEXT i
+    refreshtileedit mover(), ts
+   ELSE
+    'if no clone buffer, switch to mark tool
+    ts.tool = mark_tool
+    ts.hold = YES
+    ts.hox = ts.x
+    ts.hoy = ts.y
+   END IF
   END IF
- END IF
 END SELECT
 END SUB
 
-SUB scrolltile (mover(), ts AS TileEditState)
-rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
-shiftx = 0: shifty = 0
-IF slowkey(scUp, 6) THEN shifty = -1
-IF slowkey(scDown, 6) THEN shifty = 1
-IF slowkey(scLeft, 6) THEN shiftx = -1
-IF slowkey(scRight, 6) THEN shiftx = 1
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  tempx = (i + shiftx + 20) MOD 20
-  tempy = (j + shifty + 20) MOD 20
-  putpixel tempx, tempy, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
- NEXT j
-NEXT i
-FOR i = 0 TO 19
- FOR j = 0 TO 19
-  putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
- NEXT j
-NEXT i
-refreshtileedit mover(), ts
-rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
+SUB scrolltile (mover(), ts AS TileEditState, BYVAL shiftx AS INTEGER, BYVAL shifty AS INTEGER)
+ 'Save an undo before the first of a consecutive scrolls
+ IF shiftx = 0 AND shifty = 0 THEN EXIT SUB
+ IF ts.didscroll = NO THEN writeundoblock mover(), ts
+ ts.didscroll = YES
+
+ rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
+ FOR i = 0 TO 19
+  FOR j = 0 TO 19
+   tempx = (i + shiftx + 20) MOD 20
+   tempy = (j + shifty + 20) MOD 20
+   putpixel tempx, tempy, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
+  NEXT j
+ NEXT i
+ FOR i = 0 TO 19
+  FOR j = 0 TO 19
+   putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(i, j, dpage), 3
+  NEXT j
+ NEXT i
+ refreshtileedit mover(), ts
+ rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
 SUB fliptile (mover(), ts AS TileEditState)
@@ -1446,7 +1493,7 @@ DO
  IF ts.gotmouse THEN
   readmouse mouse()
   zcsr = 0
-  ts.zone = mouseover(mouse(), 0, 0, zcsr, area())
+  ts.zone = mouseover(mouse(0), mouse(1), 0, 0, zcsr, area())
   IF keyval(scAlt) > 0 THEN
    ts.x = mouse(0) - mouse(0) MOD 20
    ts.y = mouse(1) - mouse(1) MOD 20
@@ -2445,7 +2492,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
   IF ss.gotmouse THEN
    readmouse mouse()
    ss.zonecursor = 0
-   ss.zonenum = mouseover(mouse(), ss.zone.x, ss.zone.y, ss.zonecursor, area())
+   ss.zonenum = mouseover(mouse(0), mouse(1), ss.zone.x, ss.zone.y, ss.zonecursor, area())
   END IF
   IF keyval(scESC) > 1 THEN
    IF ss.hold = YES THEN
@@ -2561,14 +2608,15 @@ IF mouse(3) = 1 AND ss.zonenum = 3 THEN
 END IF
 poke8bit workpal(), (state.pt - state.top) * 16 + ss.palindex, ss.curcolor
 IF keyval(scAlt) = 0 THEN
+ DIM fixmouse AS INTEGER = NO
  WITH ss
-  .fixmouse = NO
-  IF slowkey(scUp, 6) THEN .y = large(0, .y - 1):      .fixmouse = YES
-  IF slowkey(scDown, 6) THEN .y = small(ss.high - 1, .y + 1): .fixmouse = YES
-  IF slowkey(scLeft, 6) THEN .x = large(0, .x - 1):      .fixmouse = YES
-  IF slowkey(scRight, 6) THEN .x = small(ss.wide - 1, .x + 1): .fixmouse = YES
+  fixmouse = NO
+  IF slowkey(scUp, 6) THEN .y = large(0, .y - 1):      fixmouse = YES
+  IF slowkey(scDown, 6) THEN .y = small(ss.high - 1, .y + 1): fixmouse = YES
+  IF slowkey(scLeft, 6) THEN .x = large(0, .x - 1):      fixmouse = YES
+  IF slowkey(scRight, 6) THEN .x = small(ss.wide - 1, .x + 1): fixmouse = YES
  END WITH
- IF ss.fixmouse THEN
+ IF fixmouse THEN
   IF ss.zonenum = 1 THEN
    ss.zone.x = ss.x * ss.zoom + INT(ss.zoom / 2)
    ss.zone.y = ss.y * ss.zoom + INT(ss.zoom / 2)

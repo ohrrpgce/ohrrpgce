@@ -37,6 +37,12 @@ A Airbrush tool. Use this to scatter
   "mist", which is the number of
   pixels scattered with each click.
 
+S Scroll tool. While this is the
+  selected tool, you can click and
+  drag on the tile, or press arrow
+  keys, to move it around. Pixels
+  will wrap over the edges.
+
 M Mark tool. Marks a rectangular
   area of the tile to use with the
   clone tool.
@@ -58,5 +64,3 @@ CTRL+Backspace flips the tile
 
 ] Rotates the tile 90 degrees
   clockwise.
-
-Hold SHIFT and press the arrow keys to move the entire maptile. Pixels will wrap around the edges when you do this.

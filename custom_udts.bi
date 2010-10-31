@@ -16,6 +16,7 @@ ENUM PixelTool
   mark_tool
   clone_tool
   replace_tool
+  scroll_tool
 END ENUM
 
 TYPE SpriteEditStatic
@@ -64,7 +65,6 @@ TYPE SpriteEditState
   undoslot AS INTEGER
   undomax AS INTEGER
   delay AS INTEGER
-  fixmouse AS INTEGER
   movespeed AS INTEGER
   readjust AS INTEGER
   adjustpos AS XYPair
@@ -83,7 +83,8 @@ TYPE TileEditState
   drawframe AS Frame Ptr  '--Don't write to this! It's for display only
   x AS INTEGER
   y AS INTEGER
-  tilex AS INTEGER
+  lastpos AS XYPair  '.x/.y last tick
+  tilex AS INTEGER  'on the tileset (measured in tiles)
   tiley AS INTEGER
   gotmouse AS INTEGER
   drawcursor AS INTEGER
@@ -100,13 +101,15 @@ TYPE TileEditState
   hold AS INTEGER
   hox AS INTEGER
   hoy AS INTEGER
+  dragging AS INTEGER  'dragging the mouse (left button); only true on ticks after the first!
+  dragstart AS XYPair  'mouse position at start of drag (in screen coordinates!)
   cutfrom AS INTEGER
   cuttileset AS INTEGER
   canpaste AS INTEGER
   delay AS INTEGER
-  fixmouse AS INTEGER
   readjust AS INTEGER
   adjustpos AS XYPair
+  didscroll AS INTEGER  'have scrolled since selecting the scroll tool
 END TYPE
 
 TYPE HeroEditState

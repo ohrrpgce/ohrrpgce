@@ -2390,6 +2390,10 @@ SUB readmouse (mbuf() as integer)
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
 	'gfx_sdl: button state works offscreen. wheel state not implemented yet
 
+	'bit 0: left click
+	'bit 1: right click
+	'bit 2: middle click
+
 	mbuf(0) = mx
 	mbuf(1) = my
 	mbuf(2) = mb   'bitmask: current button state bits, OR new clicks since last call
