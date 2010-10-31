@@ -477,7 +477,8 @@ END FUNCTION
 'Maybe the hybrid approach?
 
 FUNCTION ee_prompt_for_widget_kind() AS STRING
- DIM w(11) AS STRING
+ STATIC last_kind AS INTEGER = 0
+ DIM w(13) AS STRING
  w(0) = "int"
  w(1) = "string"
  w(2) = "label"
@@ -486,13 +487,16 @@ FUNCTION ee_prompt_for_widget_kind() AS STRING
  w(5) = "picture"
  w(6) = "item"
  w(7) = "attack"
- w(8) = "tag"
- w(9) = "tagcheck"
- w(10) = "array"
- w(11) = "maybe"
+ w(8) = "textbox"
+ w(9) = "tag"
+ w(10) = "tagcheck"
+ w(11) = "array"
+ w(12) = "maybe"
+ w(13) = "exclusive"
  DIM choice AS INTEGER
- choice = multichoice("Inset which kind of widget?", w(), , , "ee_prompt_for_widget_kind")
+ choice = multichoice("Inset which kind of widget?", w(), last_kind, , "ee_prompt_for_widget_kind")
  IF choice = -1 THEN RETURN ""
+ last_kind = choice
  RETURN w(choice)
 END FUNCTION
 
@@ -511,10 +515,12 @@ FUNCTION ee_create_widget(BYREF st AS EEState, kind AS STRING) AS NodePtr
   CASE "picture":
   CASE "item":
   CASE "attack":
+  CASE "textbox":
   CASE "tag":
   CASE "tagcheck":
   CASE "array":
   CASE "maybe":
+  CASE "exclusive":
   CASE ELSE
    debug "Oops! Created a widget of kind """ & kind & """, but we have no idea what that is!"
  END SELECT
@@ -528,6 +534,7 @@ FUNCTION ee_container_check(BYVAL cont AS NodePtr, BYVAL widget AS NodePtr) AS I
   CASE "submenu": RETURN YES
   CASE "array": RETURN YES
   CASE "maybe": RETURN YES
+  CASE "exclusive": RETURN YES
  END SELECT
  RETURN NO
 END FUNCTION
@@ -538,6 +545,7 @@ FUNCTION ee_widget_has_caption(BYVAL widget AS NodePtr) AS INTEGER
  SELECT CASE GetString(widget)
   CASE "array": RETURN NO
   CASE "maybe": RETURN NO
+  CASE "exclusive": RETURN NO
  END SELECT
  RETURN YES
 END FUNCTION
@@ -549,6 +557,7 @@ FUNCTION ee_widget_has_data(BYVAL widget AS NodePtr) AS INTEGER
   CASE "label": RETURN NO
   CASE "submenu": RETURN NO
   CASE "maybe": RETURN NO
+  CASE "exclusive": RETURN NO
  END SELECT
  RETURN YES
 END FUNCTION
