@@ -151,6 +151,21 @@ IF LEN(s) < maxl THEN
   IF keyval(scCtrl) = 0 THEN
    '--all other keys
    FOR i = 2 TO 53
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'check for caps lock; I don't know how to do hexadecimal in basic anymore,
+'and I don't recall if the branch logic is set up correctly,
+'and I don't know how to do bitwise ANDing and ORing.
+'please review the next 9 lines, then delete this
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    IF keyval(scCapsLock) > 0 THEN
+     IF (i >= scQ AND i <= scP) OR (i >= scA AND i <= scL) OR (i >= scZ AND i <= scM) THEN
+      IF shift & 1 THEN 
+       shift &= HxFE
+      ELSE 
+       shift |= Hx1
+      ENDIF
+     ENDIF
+    ENDIF
     IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
      s = s + CHR(keyv(i, shift))
      EXIT FOR
