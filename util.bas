@@ -896,7 +896,17 @@ SUB makedir (directory as string)
 END SUB
 
 SUB safekill (filename as string)
-  IF isfile(filename) THEN KILL filename
+  IF isfile(filename) THEN
+   'KILL is a thin wrapper around C's remove(), however by calling it directly we can get a textual error message
+   IF remove(strptr(filename)) THEN
+    DIM err_string AS STRING = *get_sys_err_string()
+    debug "Could not remove(" & filename & "): " & err_string
+
+    'NOTE: on Windows, even if deletion fails because the file is open, the file will be marked
+    'to be deleted once everyone closes it. Also, it will no longer be possible to open it.
+    'On Unix, you can unlink a file even when someone else has it open.
+   END IF
+  END IF
 END SUB
 
 FUNCTION fileisreadable(filename as string) as integer
