@@ -69,9 +69,10 @@ WHAT IS NEW?
     * Getting the maptile under the cursor is now done with the G key
       (instead of the CAPSLOCK key, which we can all agree was
       confusing!) [James]
-    * Music/sound import fixes (bug 826):
+    * Windows music/sound import fixes (bug 826):
       * MP3/WAV import failed when Custom's path contained spaces
       * Sometimes MP3/WAV import went bonkers, looping over and over
+      * MP3/OGG music couldn't be deleted
       [Ralph]
 
   * New Plotscripting Stuff

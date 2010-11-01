@@ -413,6 +413,9 @@ DO
   IF csr = 4 AND songfile$ <> "" THEN GOSUB exportsong
   IF csr = 5 AND songfile$ <> "" THEN  'delete song
    IF yesno("Really delete this song?", NO, NO) THEN
+    music_stop
+    closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
+    setupmusic
     safekill songfile$
     safekill bamfile$
     GOSUB getsonginfo
@@ -639,6 +642,7 @@ DO
   CASE 5
     IF sfxfile$ <> "" THEN  'delete sfx
       IF yesno("Really delete this sound?", NO, NO) THEN
+        freesfx snum
         safekill sfxfile$
         GOSUB getsfxinfo
       END IF
