@@ -121,6 +121,7 @@ DECLARE FUNCTION getdisplayname (default as string) as string
 
 DECLARE SUB playsongnum (songnum as integer)
 
+DECLARE FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as integer
 DECLARE FUNCTION find_helper_app (appname AS STRING) AS STRING
 DECLARE FUNCTION find_madplay () AS STRING
 DECLARE FUNCTION find_oggenc () AS STRING

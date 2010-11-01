@@ -1971,6 +1971,61 @@ SUB playsongnum (songnum%)
   loadsong songfile
 END SUB
 
+FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as integer
+ 'On Windows:
+ 'Attempts to run a program asynchronously and wait for it to
+ 'finish, offering users the option to kill it
+ 'On Unix:
+ 'Just calls SHELL
+
+ 'It may be better to pass arguments in an array (the Unix way), so that
+ 'we can do all the necessary quoting required for Windows here.
+
+#IFNDEF __FB_WIN32__
+
+ 'allmodex process functions only currently implemented on Windows
+ SHELL app & " " & args
+ RETURN YES
+
+#ELSE
+
+ DIM handle AS ProcessHandle
+ handle = open_console_process(app, args)
+ IF handle = 0 THEN
+  visible_debug "Could not open " & app
+  RETURN NO
+ END IF
+
+ DIM dots AS INTEGER = 0
+ DIM exitcode AS INTEGER
+ setkeys
+ DO
+  setwait 100
+  setkeys
+  IF process_running(handle, @exitcode) = NO THEN
+   cleanup_process @handle
+   'Error, or the user might have killed the program some other way
+   RETURN (exitcode = 0)
+  END IF
+  IF keyval(scEsc) > 1 THEN
+   kill_process handle
+   cleanup_process @handle
+   setkeys
+   RETURN NO
+  END IF
+
+  dots = (dots + 1) MOD 5
+  centerbox 160, 100, 300, 36, 3, vpage
+  edgeprint "Please wait, running " & trimpath(app) & STRING(dots, "."), 15, 90, uilook(uiText), vpage
+  edgeprint "Press ESC to cancel", 15, 100, uilook(uiMenuItem), vpage
+  setvispage vpage
+
+  dowait
+ LOOP
+
+#ENDIF
+END FUNCTION
+
 FUNCTION find_madplay () AS STRING
  STATIC cached AS INTEGER = 0
  STATIC cached_app AS STRING
@@ -2042,12 +2097,11 @@ SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
  app = find_madplay()
  IF app = "" THEN debug "mp3_to_wav: failed to find madplay" : EXIT SUB
  args = " -o wave:""" & out_file & """ """ & in_file & """"
-#IFDEF __FB_WIN32__
- 'Bizarre quoting rules for cmd.exe (system()) arguments
- SHELL """""" & app & """" & args & """"
-#ELSE
- SHELL app & args
-#ENDIF
+
+ IF spawn_and_wait(app, args) = NO THEN
+  safekill out_file
+ END IF
+
  IF NOT isfile(out_file) THEN debug "mp3_to_wav: failed to create " & out_file : EXIT SUB
 END SUB
 
@@ -2057,12 +2111,11 @@ SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
  app = find_oggenc()
  IF app = "" THEN debug "wav_to_mp3: failed to find oggenc" : EXIT SUB
  args = " -q " & quality & " -o """ & out_file & """ """ & in_file & """"
-#IFDEF __FB_WIN32__
- 'Bizarre quoting rules for cmd.exe (system()) arguments
- SHELL """""" & app & """" & args & """"
-#ELSE
- SHELL app & args
-#ENDIF
+
+ IF spawn_and_wait(app, args) = NO THEN
+  safekill out_file
+ END IF
+
  IF NOT isfile(out_file) THEN debug "wav_to_ogg: " & out_file & " does not exist" : EXIT SUB
 END SUB
 
