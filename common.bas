@@ -1455,6 +1455,7 @@ FUNCTION stredit (s AS STRING, BYREF insert AS INTEGER, BYVAL maxl AS INTEGER, B
  IF keyval(scAlt) THEN shift += 2
 
  '--adding chars
+ DIM caps AS INTEGER = 0
  IF LEN(pre) + LEN(post) < maxl THEN
   DIM L AS INTEGER = LEN(pre)
   IF keyval(scSpace) > 1 THEN
@@ -1473,8 +1474,15 @@ FUNCTION stredit (s AS STRING, BYREF insert AS INTEGER, BYVAL maxl AS INTEGER, B
    IF keyval(scCtrl) = 0 THEN
     '--all other keys
     FOR i AS INTEGER = 2 TO 53
-     IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
-      pre = pre & CHR(keyv(i, shift))
+     caps = 0
+     IF shift = 0 ANDALSO keyval(scCapsLock) > 0 THEN
+      SELECT CASE i
+       CASE scQ TO scP, scA TO scL, scZ TO scM
+        caps = 1
+      END SELECT
+     END IF
+     IF keyval(i) > 1 AND keyv(i, shift + caps) > 0 THEN
+      pre = pre & CHR(keyv(i, shift + caps))
       EXIT FOR
      END IF
     NEXT i

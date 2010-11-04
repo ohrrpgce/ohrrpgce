@@ -115,6 +115,7 @@ END FUNCTION
 FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
 STATIC clip AS STRING
 DIM shift AS INTEGER
+DIM caps AS INTEGER
 DIM i AS INTEGER
 
 DIM old AS STRING
@@ -151,17 +152,15 @@ IF LEN(s) < maxl THEN
   IF keyval(scCtrl) = 0 THEN
    '--all other keys
    FOR i = 2 TO 53
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-'check for caps lock
-'please review the next 5 lines, then delete this
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    IF keyval(scCapsLock) > 0 THEN
-     IF (i >= scQ AND i <= scP) OR (i >= scA AND i <= scL) OR (i >= scZ AND i <= scM) THEN
-      shift = shift Xor 1
-     ENDIF
-    ENDIF
-    IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
-     s = s + CHR(keyv(i, shift))
+    caps = 0
+    IF shift = 0 ANDALSO keyval(scCapsLock) > 0 THEN
+     SELECT CASE i
+      CASE scQ TO scP, scA TO scL, scZ TO scM
+       caps = 1
+     END SELECT
+    END IF
+    IF keyval(i) > 1 AND keyv(i, shift + caps) > 0 THEN
+     s = s + CHR(keyv(i, shift + caps))
      EXIT FOR
     END IF
    NEXT i
