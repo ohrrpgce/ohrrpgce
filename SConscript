@@ -152,7 +152,8 @@ edit_modules = ['custom',
                 'menus',
                 'sliceedit',
                 'reloadedit',
-                'editedit']
+                'editedit',
+                'editrunner']
 
 edit_modules.reverse ()
 

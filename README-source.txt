@@ -6,7 +6,7 @@ code :)
 http://HamsterRepublic.com/ohrrpgce/source.php for more information 
 -----------------------------------------------------------------------------
 WINDOWS/LINUX:
-  Recommends FreeBasic version 0.20.0b
+  Recommends FreeBasic version 0.21.1b
   Requires minimum FreeBasic version 0.20.0b
   Download FreeBasic from http://freebasic.net/
   Building HSpeak requires any version Euphoria http://www.RapidEuphoria.com/
@@ -14,8 +14,13 @@ WINDOWS/LINUX:
 INSTRUCTIONS
   Unpack the source code to a new folder
   Install FreeBasic
-  Run makegame.bat to compile the game player
-  Run makeedit.bat to compile the game editor
+  (Alternative #1)
+    Run scons to compile
+  (Alternative #2)
+    Run make to compile
+  (Alternative #3)
+    Run makegame.bat to compile the game player
+    Run makeedit.bat to compile the game editor
 -----------------------------------------------------------------------------
 MAKING IMPROVEMENTS
   There are still lots of bugs that need to be fixed. For a list of known

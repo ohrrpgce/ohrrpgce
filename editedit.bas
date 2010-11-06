@@ -20,6 +20,7 @@
 #include "loading.bi"
 #include "reload.bi"
 #include "reloadext.bi"
+#include "editrunner.bi"
 
 #include "editedit.bi"
 
@@ -145,6 +146,9 @@ SUB editor_editor()
   END IF
   IF keyval(scF2) > 1 THEN
    ee_export st
+  END IF
+  IF keyval(scF5) > 1 THEN
+   editor_runner st.root
   END IF
 
   st.shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)

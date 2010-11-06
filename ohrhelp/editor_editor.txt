@@ -19,3 +19,5 @@ Hold SHIFT and press the right arrow key to put a widget into a container. This 
 Hold SHIFT and press the left arrow key to take a widget out of a container.
 
 You can tell which widgets are in containers by how they are indented.
+
+Press F5 to test the editor.
