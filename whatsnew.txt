@@ -106,6 +106,7 @@ WHAT IS NEW?
     * "use item", "use item in slot" [James]
     * "map width" and "map height" now take an optional argument,
       the map number [Ralph]
+    * "mouse click"; you can test the middle mouse button now [Ralph]
 
   * Vikings of Midgard
 

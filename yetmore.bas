@@ -789,7 +789,7 @@ SELECT CASE AS CONST id
  CASE 161'--get mouse y
   scriptret = mouse.y
  CASE 162'--mouse button
-  IF retvals(0) <= 1 THEN
+  IF retvals(0) <= 2 THEN
    IF mouse.buttons AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   END IF
  CASE 163'--put mouse
@@ -816,6 +816,11 @@ SELECT CASE AS CONST id
    IF retvals(0) = 5 THEN setoutside -1  'hint: always use the wrapper
    IF retvals(0) = 6 AND gmap(5) = 2 THEN setoutside retvals(1)
   END IF
+ CASE 492'--mouse click
+  IF retvals(0) <= 2 THEN
+   IF mouse.clicks AND (2 ^ retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+  END IF
+
 END SELECT
 
 END SUB

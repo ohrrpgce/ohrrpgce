@@ -31,12 +31,21 @@ end
 script, update mouse, begin
   set slice screen x(mouse, mouse pixel x)
   set slice screen y(mouse, mouse pixel y)
-  if(mouse button(left button)) then(
+  if(mouse click(left button) || mouse click(right button) || mouse click(middle button)) then(
     start dragging
-  )else(
+  )
+  if((mouse button(left button) || mouse button(right button) || mouse button(middle button)) == false) then(
     dragging := false
     y sort children(test layer)
   )
+  $3=""
+  if(mouse click(left button)) then ($3+" LEFT")
+  if(mouse button(left button)) then ($3+" left")
+  if(mouse click(middle button)) then ($3+" MID")
+  if(mouse button(middle button)) then ($3+" mid")
+  if(mouse click(right button)) then ($3+" RIGHT")
+  if(mouse button(right button)) then ($3+" right")
+  show string at(3, 212, 180)
 end
 
 script, start dragging, begin
@@ -57,24 +66,23 @@ script, start dragging, begin
 end
 
 script, update rects, begin
-  variable(sl, hit)
-  hit := false
+  variable(sl)
+  if(dragging) then(
+    $0="no collision with rect"
+  )else(
+    $0="no collision with mouse"
+  )
   sl := first child(test layer)
   #these do not look at descendants
   while(sl) do(
     if(dragging) then(
       if(sl <> dragging) then(
-        if(slice collide(sl, dragging)) then(hit := true)
+        if(slice collide(sl, dragging)) then($0="collision with rect")
       )
     )else(
-      if(slice collide point(sl, slice screen x(mouse), slice screen y(mouse))) then(hit := true)
+      if(slice collide point(sl, slice screen x(mouse), slice screen y(mouse))) then($0="collision with mouse")
     )
     sl := next sibling(sl)
-  )
-  if(hit) then(
-    $0="yes"
-  )else(
-    $0="no"
   )
 
   free slice children(info layer)
@@ -127,6 +135,7 @@ script, create test slices, begin
       ch := create rect(random(10, 40), random(10, 40), random(0, 14))
       set parent(ch, sl)
       set rect border(ch, -1)
+      set rect trans(ch, trans:fuzzy)
       set slice x(ch, random(-50,50))
       set slice y(ch, random(-50,50))
       realign slice(ch, edge:center, edge:center, edge:center, edge:center)

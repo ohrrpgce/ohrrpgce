@@ -497,6 +497,7 @@ define function, begin
 #
 490,useitem,1,0               # use an item as if you had used it from the item menu
 491,useiteminslot,1,0         # use item in a given inventory slot
+492,mouseclick,1,0            # returns true if the specified button is pressed (button)
 end
 
 #--------------------------------------------------------------------------
@@ -1423,6 +1424,7 @@ define constant, begin
 2,color:blue
 0,leftbutton
 1,rightbutton
+2,middlebutton
 -1,getcount
 0,string:outline
 1,string:flat
