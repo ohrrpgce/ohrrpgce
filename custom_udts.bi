@@ -51,8 +51,6 @@ TYPE SpriteEditState
   zone AS XYPair
   zonecursor AS INTEGER
   gotmouse AS INTEGER
-  dragging AS INTEGER  'dragging the mouse (left button); only true on ticks after the first!
-  dragstart AS XYPair  'mouse position at start of drag (in screen coordinates!)
   drawcursor AS INTEGER
   tool AS INTEGER
   curcolor AS INTEGER ' Index in master palette
@@ -106,8 +104,6 @@ TYPE TileEditState
   hold AS INTEGER
   hox AS INTEGER
   hoy AS INTEGER
-  dragging AS INTEGER  'dragging the mouse (left button); only true on ticks after the first!
-  dragstart AS XYPair  'mouse position at start of drag (in screen coordinates!)
   cutfrom AS INTEGER
   cuttileset AS INTEGER
   canpaste AS INTEGER

@@ -4,14 +4,6 @@
 #INCLUDE "const.bi"
 #INCLUDE "util.bi"
 
-TYPE MouseInfo
-  x AS INTEGER
-  y AS INTEGER
-  clicks AS INTEGER  'Button down event since last tick; MouseButton array
-  buttons AS INTEGER 'Buttons currently down OR clicked; MouseButton array
-  wheel AS INTEGER   'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
-END TYPE
-
 UNION XYPair
   TYPE
    x AS INTEGER
@@ -29,6 +21,20 @@ TYPE RectType
   y AS INTEGER
   wide AS INTEGER
   high AS INTEGER
+END TYPE
+
+TYPE MouseInfo
+  x AS INTEGER
+  y AS INTEGER
+  clicks AS INTEGER  'Button down event since last tick; MouseButton array (see scancodes.bi)
+  buttons AS INTEGER 'Buttons currently down OR clicked; MouseButton array
+  wheel AS INTEGER   'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
+  dragging AS INTEGER 'MouseButton array, but only one button at once can be dragged.
+                      'A dragged button is one held down for at least 2 ticks. 
+                      'So on the first tick, you see click=button=true, dragging=false
+                      'And on the subsequent ticks, you see dragging=button=true, click=false
+  clickstart AS XYPair 'Mouse position at start of click/drag (Note: no backend currently
+                       'supports reporting the position of click, so currently equal to .x/.y)
 END TYPE
 
 'WARNING: don't add strings to this

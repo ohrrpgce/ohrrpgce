@@ -966,7 +966,6 @@ overlaypal = palette16_new()
 
 tog = 0
 tick = 0
-ts.dragging = NO
 ts.lastcpos = TYPE(ts.x, ts.y)
 ts.justpainted = 0
 ts.didscroll = NO
@@ -1005,14 +1004,6 @@ DO
   mouse = readmouse
   zcsr = 0
   ts.zone = mouseover(mouse.x, mouse.y, zox, zoy, zcsr, area())
-  ts.dragging = NO
-  IF mouse.clicks AND mouseLeft THEN
-   'Do not flag as dragging until the second tick
-   ts.dragstart = TYPE(mouse.x, mouse.y)
-  ELSEIF mouse.buttons AND mouseLeft THEN
-   'left mouse button down, but no new click this tick
-   ts.dragging = YES
-  END IF
  END IF
 
  ts.delay = large(ts.delay - 1, 0)
@@ -1100,7 +1091,7 @@ DO
   ELSEIF ts.tool = scroll_tool THEN
    'Handle scrolling by dragging the mouse
    'Did this drag start inside the sprite box? If not, ignore
-   IF ts.dragging ANDALSO mouseover(ts.dragstart.x, ts.dragstart.y, 0, 0, 0, area()) = 1 THEN
+   IF mouse.dragging ANDALSO mouseover(mouse.clickstart.x, mouse.clickstart.y, 0, 0, 0, area()) = 1 THEN
     scrolltile mover(), ts, ts.x - ts.lastcpos.x, ts.y - ts.lastcpos.y
    END IF
   ELSE
@@ -1651,7 +1642,6 @@ WITH ss
  .zone.y = 0
  .hold = NO
  .gotmouse = havemouse()
- .dragging = NO
  .didscroll = NO
  .drawcursor = 1
  .tool = draw_tool
@@ -2489,14 +2479,6 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
    mouse = readmouse
    ss.zonecursor = 0
    ss.zonenum = mouseover(mouse.x, mouse.y, ss.zone.x, ss.zone.y, ss.zonecursor, area())
-   ss.dragging = NO
-   IF mouse.clicks AND mouseLeft THEN
-    'Do not flag as dragging until the second tick
-    ss.dragstart = TYPE(mouse.x, mouse.y)
-   ELSEIF mouse.buttons AND mouseLeft THEN
-    'left mouse button down, but no new click this tick
-    ss.dragging = YES
-   END IF
   END IF
   IF keyval(scESC) > 1 THEN
    IF ss.hold = YES THEN
@@ -2841,7 +2823,7 @@ IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND mouse.clicks > 0) THEN wardspr
 IF ss.tool = scroll_tool AND (ss.zonenum = 1 OR ss.zonenum = 14) THEN
  'Handle scrolling by dragging the mouse
  'Did this drag start inside the sprite box? If not, ignore
- IF ss.dragging ANDALSO mouseover(ss.dragstart.x, ss.dragstart.y, 0, 0, 0, area()) = ss.zonenum THEN
+ IF mouse.dragging ANDALSO mouseover(mouse.clickstart.x, mouse.clickstart.y, 0, 0, 0, area()) = ss.zonenum THEN
   spriteedit_scroll placer(), ss, ss.x - ss.lastcpos.x, ss.y - ss.lastcpos.y
  END IF
 END IF

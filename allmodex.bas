@@ -96,6 +96,10 @@ dim shared keybdstate(127) as integer  '"real"time keyboard array
 dim shared mouseflags as integer
 dim shared mouselastflags as integer
 
+'State saved from one readmouse call to the next
+dim shared mouse_clickstart as XYPair
+dim shared mouse_dragmask as integer
+
 dim shared textfg as integer
 dim shared textbg as integer
 dim shared fonts(2) as Font
@@ -2488,6 +2492,33 @@ FUNCTION readmouse () as MouseInfo
 	'        wheel scrolls offscreen are registered when you move back onscreen
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
 	'gfx_sdl: button state works offscreen. wheel state not implemented yet
+
+	if mouse_dragmask then
+		'Test whether drag ended
+		if (info.clicks and mouse_dragmask) orelse (info.buttons and mouse_dragmask) = 0 then
+			mouse_dragmask = 0
+			mouse_clickstart = TYPE<XYPair>(0, 0)
+		end if
+	end if
+
+	if mouse_dragmask = 0 then
+		'Dragging is only tracked for a single button at a time, and clickstart is not updated
+		'while dragging either. So we may now test for new drags or clicks.
+		for i as integer = 0 to 2
+			dim mask as integer = 2 ^ i
+			if info.clicks and mask then
+				'Do not flag as dragging until the second tick
+				mouse_clickstart = TYPE<XYPair>(info.x, info.y)
+			elseif info.buttons and mask then
+				'left mouse button down, but no new click this tick
+				mouse_dragmask = mask
+				exit for
+			end if
+		next
+	end if
+
+	info.dragging = mouse_dragmask
+	info.clickstart = mouse_clickstart
 
 	if info.clicks <> 0 then
 		if mouse_grab_requested andalso mouse_grab_overridden then
