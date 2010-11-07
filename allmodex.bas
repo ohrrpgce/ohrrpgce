@@ -2476,11 +2476,11 @@ SUB unhidemousecursor ()
 	io_mouserect(-1, -1, -1, -1)
 end SUB
 
-SUB readmouse (mbuf() as integer)
-	dim as integer mx, my, mw, mb, mc
+FUNCTION readmouse () as MouseInfo
+	dim info as MouseInfo
 
 	mutexlock keybdmutex   'is this necessary?
-	io_mousebits(mx, my, mw, mb, mc)
+	io_mousebits(info.x, info.y, info.wheel, info.buttons, info.clicks)
 	mutexunlock keybdmutex
 
 	'gfx_fb/sdl/alleg return last onscreen position when the mouse is offscreen
@@ -2489,21 +2489,14 @@ SUB readmouse (mbuf() as integer)
 	'gfx_alleg: button state continues to work offscreen but wheel scrolls are not registered
 	'gfx_sdl: button state works offscreen. wheel state not implemented yet
 
-	'bit 0: left click
-	'bit 1: right click
-	'bit 2: middle click
-
-	mbuf(0) = mx
-	mbuf(1) = my
-	mbuf(2) = mb   'bitmask: current button state bits, OR new clicks since last call
-	mbuf(3) = mc   'new clicks since last call
-
-	if mc <> 0 then
+	if info.clicks <> 0 then
 		if mouse_grab_requested andalso mouse_grab_overridden then
 			mouserect remember_mouse_grab(0), remember_mouse_grab(1), remember_mouse_grab(2), remember_mouse_grab(3)
 		end if
 	end if
-end SUB
+
+	return info
+end FUNCTION
 
 SUB movemouse (BYVAL x as integer, BYVAL y as integer)
 	io_setmouse(x, y)

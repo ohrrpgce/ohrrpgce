@@ -135,4 +135,9 @@ CONST scContext = 93
 CONST scLeftCommand = 97  'aka left Meta
 CONST scRightCommand = 98  'aka right Meta
 
+'Mouse buttons
+CONST mouseLeft = 1
+CONST mouseRight = 2
+CONST mouseMiddle = 4
+
 #ENDIF

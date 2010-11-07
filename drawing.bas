@@ -17,8 +17,8 @@ DECLARE SUB importmasterpal (f$, palnum%)
 
 'Local SUBs and FUNCTIONS
 DECLARE SUB picktiletoedit (tmode%, pagenum%, mapfile$)
-DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea)
-DECLARE SUB tilecut (ts AS TileEditState, mouse(), area() AS MouseArea)
+DECLARE SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea)
+DECLARE SUB tilecut (ts AS TileEditState, mouse AS MouseInfo, area() AS MouseArea)
 DECLARE SUB refreshtileedit (mover%(), state AS TileEditState)
 DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
 DECLARE SUB readundoblock (mover%(), state AS TileEditState)
@@ -44,8 +44,8 @@ DECLARE SUB spriteedit_load_all_you_see(top, sets, ss AS SpriteEditState, soff, 
 DECLARE SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, soff AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, BYVAL sets AS INTEGER)
 DECLARE SUB init_sprite_zones(area() AS MouseArea, ss AS SpriteEditState)
 DECLARE SUB spriteedit_draw_icon(ss AS SpriteEditState, icon as string, area() AS MouseArea, byval areanum as integer, byval highlight as integer = NO)
-DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
-DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+DECLARE SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse AS MouseInfo)
+DECLARE SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse AS MouseInfo)
 DECLARE SUB spriteedit_scroll (placer(), ss AS SpriteEditState, BYVAL shiftx AS INTEGER, BYVAL shifty AS INTEGER)
 DECLARE SUB spriteedit_rotate_sprite_buffer(sprbuf() AS INTEGER, nulpal() AS INTEGER, counterclockwise AS INTEGER=NO)
 DECLARE SUB spriteedit_rotate_sprite(sprbuf() AS INTEGER, ss AS SpriteEditState, counterclockwise AS INTEGER=NO)
@@ -649,7 +649,8 @@ END SUB
 
 SUB picktiletoedit (tmode, pagenum, mapfile$)
 STATIC cutnpaste(19, 19), oldpaste
-DIM ts AS TileEditState, mover(12), mouse(4), area(24) AS MouseArea
+DIM ts AS TileEditState, mover(12), area(24) AS MouseArea
+DIM mouse as MouseInfo
 ts.drawframe = frame_new(20, 20, , YES)
 DIM tog AS integer
 ts.gotmouse = havemouse()
@@ -757,7 +758,7 @@ DO
  setwait 17, 70
  setkeys
  IF ts.gotmouse THEN
-  readmouse mouse()
+  mouse = readmouse
  END IF
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN
@@ -769,7 +770,7 @@ DO
   setkeyrepeat 25, 5  'yuck
  END IF
  IF ts.gotmouse THEN
-  bnum = (mouse(1) \ 20) * 16 + mouse(0) \ 20
+  bnum = (mouse.y \ 20) * 16 + mouse.x \ 20
  END IF
  IF tmode <> 3 OR keyval(scCtrl) = 0 THEN
   movedcsr = NO
@@ -778,9 +779,9 @@ DO
   IF slowkey(scUp, 6) THEN bnum = (bnum + 144) MOD 160: movedcsr = YES
   IF slowkey(scDown, 6) THEN bnum = (bnum + 16) MOD 160: movedcsr = YES
   IF movedcsr AND ts.gotmouse THEN
-   mouse(0) = (mouse(0) MOD 20) + (bnum MOD 16) * 20
-   mouse(1) = (mouse(1) MOD 20) + (bnum \ 16) * 20
-   movemouse mouse(0), mouse(1)
+   mouse.x = (mouse.x MOD 20) + (bnum MOD 16) * 20
+   mouse.y = (mouse.y MOD 20) + (bnum \ 16) * 20
+   movemouse mouse.x, mouse.y
   END IF
  END IF
  IF tmode = 3 THEN
@@ -798,20 +799,20 @@ DO
  IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) THEN tiletranspaste cutnpaste(), ts
  ts.tilex = bnum AND 15
  ts.tiley = INT(bnum / 16)
- IF enter_or_space() OR mouse(3) > 0 THEN
+ IF enter_or_space() OR mouse.clicks > 0 THEN
   setkeys
   IF tmode = 0 THEN
-   editmaptile ts, mover(), mouse(), area()
+   editmaptile ts, mover(), mouse, area()
   END IF
   IF tmode = 1 THEN
    ts.cuttileset = YES
    ts.cutfrom = small(ts.cutfrom, gen(genMaxTile))
-   tilecut ts, mouse(), area()
+   tilecut ts, mouse, area()
   END IF 
   IF tmode = 2 THEN
    ts.cuttileset = NO
    ts.cutfrom = small(ts.cutfrom, gen(genNumBackdrops) - 1)
-   tilecut ts, mouse(), area()
+   tilecut ts, mouse, area()
   END IF 
   IF tmode = 3 THEN
    editbitset defaults(), bnum, 7, bitmenu()
@@ -842,7 +843,7 @@ DO
   ELSE
    textcolor uilook(uiDescription), 0
   END IF
-  printstr CHR$(2), mouse(0) - 2, mouse(1) - 2, dpage
+  printstr CHR$(2), mouse.x - 2, mouse.y - 2, dpage
  END IF
  SWAP dpage, vpage
  setvispage vpage
@@ -882,7 +883,7 @@ printstr ">", 270, 16 + (state.undo * 21), 2
 refreshtileedit mover(), state
 END SUB
 
-SUB editmaptile (ts AS TileEditState, mover(), mouse(), area() AS MouseArea)
+SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS MouseArea)
 STATIC clone AS TileCloneBuffer
 DIM spot AS XYPair
 
@@ -974,9 +975,9 @@ ts.allowundo = 0
 ts.delay = 10
 zox = ts.x * 8 + 4
 zoy = ts.y * 8 + 4
-mouse(0) = area(0).x + zox
-mouse(1) = area(0).y + zoy
-movemouse mouse(0), mouse(1)
+mouse.x = area(0).x + zox
+mouse.y = area(0).y + zoy
+movemouse mouse.x, mouse.y
 clearpage 2
 '--Undo boxes
 FOR i = 0 TO 5
@@ -1001,14 +1002,14 @@ DO
  setwait 17, 110
  setkeys
  IF ts.gotmouse THEN
-  readmouse mouse()
+  mouse = readmouse
   zcsr = 0
-  ts.zone = mouseover(mouse(0), mouse(1), zox, zoy, zcsr, area())
+  ts.zone = mouseover(mouse.x, mouse.y, zox, zoy, zcsr, area())
   ts.dragging = NO
-  IF mouse(3) AND 1 THEN
+  IF mouse.clicks AND mouseLeft THEN
    'Do not flag as dragging until the second tick
-   ts.dragstart = TYPE(mouse(0), mouse(1))
-  ELSEIF mouse(2) AND 1 THEN
+   ts.dragstart = TYPE(mouse.x, mouse.y)
+  ELSEIF mouse.buttons AND mouseLeft THEN
    'left mouse button down, but no new click this tick
    ts.dragging = YES
   END IF
@@ -1045,9 +1046,9 @@ DO
   IF fixmouse AND ts.zone = 1 THEN
    zox = ts.x * 8 + 4
    zoy = ts.y * 8 + 4
-   mouse(0) = area(0).x + zox
-   mouse(1) = area(0).y + zoy
-   movemouse mouse(0), mouse(1)
+   mouse.x = area(0).x + zox
+   mouse.y = area(0).y + zoy
+   movemouse mouse.x, mouse.y
   END IF
  END IF 
  '---KEYBOARD SHORTCUTS FOR TOOLS------------
@@ -1073,7 +1074,7 @@ DO
   readundoblock mover(), ts
   ts.didscroll = NO  'save a new undo block upon scrolling
  END IF
- IF keyval(scSpace) > 0 THEN clicktile mover(), ts, mouse(3), clone
+ IF keyval(scSpace) > 0 THEN clicktile mover(), ts, (mouse.clicks AND mouseLeft), clone
  IF keyval(scEnter) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
  SELECT CASE ts.zone
  CASE 1
@@ -1082,7 +1083,7 @@ DO
   IF ts.tool = clone_tool THEN
    ' For clone brush tool, enter/right-click moves the handle point
    IF ts.readjust THEN
-    IF keyval(scEnter) = 0 AND mouse(2) = 0 THEN ' click or key release
+    IF keyval(scEnter) = 0 AND mouse.buttons = 0 THEN ' click or key release
      ts.readjust = NO
      ts.hox += (ts.x - ts.adjustpos.x)
      ts.hoy += (ts.y - ts.adjustpos.y)
@@ -1090,7 +1091,7 @@ DO
      ts.adjustpos.y = 0
     END IF
    ELSE
-    IF (keyval(scEnter) AND 5) OR mouse(2) = 2 THEN
+    IF (keyval(scEnter) AND 5) ORELSE (mouse.buttons AND mouseRight) THEN
      ts.readjust = YES
      ts.adjustpos.x = ts.x
      ts.adjustpos.y = ts.y
@@ -1104,30 +1105,30 @@ DO
    END IF
   ELSE
    'for all other tools, pick a color
-   IF mouse(2) = 2 THEN
+   IF mouse.buttons AND mouseRight THEN
     ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
    END IF
   END IF
-  IF mouse(2) = 1 THEN clicktile mover(), ts, mouse(3), clone
+  IF mouse.clicks AND mouseLeft THEN clicktile mover(), ts, (mouse.clicks AND mouseLeft), clone
  CASE 2
-  IF mouse(2) > 0 AND mouse(3) = 1 THEN
+  IF mouse.clicks AND mouseLeft THEN
    ts.curcolor = ((zoy \ 4) * 16) + ((zox MOD 160) \ 10) + (zox \ 160) * 128
   END IF
  CASE 13 TO 16
-  IF mouse(3) = 1 THEN fliptile mover(), ts
+  IF mouse.clicks AND mouseLeft THEN fliptile mover(), ts
  END SELECT
  FOR i = 0 TO UBOUND(toolinfo)
   IF toolinfo(i).areanum = ts.zone - 1 THEN
-   IF mouse(3) = 1 THEN
+   IF mouse.clicks AND mouseLeft THEN
     tileedit_set_tool ts, toolinfo(), i
    END IF
   END IF
  NEXT i
  '--mouse over undo
- IF mouse(0) >= 280 AND mouse(0) < 300 THEN
+ IF mouse.x >= 280 AND mouse.x < 300 THEN
   FOR i = 0 TO 5
-   IF mouse(1) >= (10 + (i * 21)) AND mouse(1) < (30 + (i * 21)) THEN
-    IF mouse(3) = 1 AND ts.allowundo THEN
+   IF mouse.y >= (10 + (i * 21)) AND mouse.y < (30 + (i * 21)) THEN
+    IF (mouse.clicks AND mouseLeft) ANDALSO ts.allowundo THEN
      ts.undo = i
      readundoblock mover(), ts
     END IF
@@ -1135,7 +1136,7 @@ DO
   NEXT i
  END IF
  IF ts.tool = airbrush_tool THEN '--adjust airbrush
-  IF mouse(3) = 1 OR mouse(2) = 1 THEN
+  IF mouse.buttons AND mouseLeft THEN
    IF ts.zone = 17 THEN ts.airsize = large(ts.airsize - tick, 1)
    IF ts.zone = 19 THEN ts.airsize = small(ts.airsize + tick, 30)
    IF ts.zone = 18 THEN ts.mist = large(ts.mist - tick, 1)
@@ -1204,7 +1205,7 @@ DO
     ts.radius = SQR((ts.hox - ts.x)^2 + (ts.hoy - ts.y)^2)
     IF ts.zone = 1 THEN
      'Use mouse pointer instead of draw cursor for finer grain control of radius
-     ts.radius = SQR( (ts.hox - (mouse(0) - area(0).x - 4) / 8)^2 + (ts.hoy - (mouse(1) - area(0).y - 4) / 8)^2 )
+     ts.radius = SQR( (ts.hox - (mouse.x - area(0).x - 4) / 8)^2 + (ts.hoy - (mouse.y - area(0).y - 4) / 8)^2 )
     END IF
     ellipse overlay, ts.hox, ts.hoy, ts.radius, 1
    CASE mark_tool
@@ -1255,7 +1256,7 @@ DO
   ELSE
    textcolor uilook(uiDescription), 0
   END IF
-  printstr CHR$(2 + c), mouse(0) - 2, mouse(1) - 2, dpage
+  printstr CHR$(2 + c), mouse.x - 2, mouse.y - 2, dpage
  END IF
  SWAP dpage, vpage
  setvispage vpage
@@ -1475,7 +1476,7 @@ refreshtileedit mover(), ts
 rectangle 0, 0, 20, 20, uilook(uiBackground), dpage
 END SUB
 
-SUB tilecut (ts AS TileEditState, mouse(), area() AS MouseArea)
+SUB tilecut (ts AS TileEditState, mouse AS MouseInfo, area() AS MouseArea)
 IF ts.gotmouse THEN
  movemouse ts.x, ts.y
 END IF
@@ -1493,15 +1494,15 @@ DO
  tog = tog XOR 1
  ts.delay = large(ts.delay - 1, 0)
  IF ts.gotmouse THEN
-  readmouse mouse()
+  mouse = readmouse
   zcsr = 0
-  ts.zone = mouseover(mouse(0), mouse(1), 0, 0, zcsr, area())
+  ts.zone = mouseover(mouse.x, mouse.y, 0, 0, zcsr, area())
   IF keyval(scAlt) > 0 THEN
-   ts.x = mouse(0) - mouse(0) MOD 20
-   ts.y = mouse(1) - mouse(1) MOD 20
+   ts.x = mouse.x - mouse.x MOD 20
+   ts.y = mouse.y - mouse.y MOD 20
   ELSE
-   ts.x = small(mouse(0), 300)
-   ts.y = small(mouse(1), 180)
+   ts.x = small(mouse.x, 300)
+   ts.y = small(mouse.y, 180)
   END IF
  END IF
  IF keyval(scESC) > 1 THEN
@@ -1513,14 +1514,14 @@ DO
  IF keyval(scDown) AND 5 THEN ts.y = small(ts.y + inc, 180): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF keyval(scLeft) AND 5 THEN ts.x = large(ts.x - inc, 0): IF ts.gotmouse THEN movemouse ts.x, ts.y
  IF keyval(scRight) AND 5 THEN ts.x = small(ts.x + inc, 300): IF ts.gotmouse THEN movemouse ts.x, ts.y
- IF enter_or_space() OR (mouse(3) > 0 AND ts.zone < 11) THEN
+ IF enter_or_space() OR (mouse.clicks > 0 AND ts.zone < 11) THEN
   IF ts.delay = 0 THEN
    FOR i = 0 TO 19
     FOR j = 0 TO 19
      putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(ts.x + i, ts.y + j, 2), 3
     NEXT j
    NEXT i
-   IF keyval(scEnter) > 1 OR (mouse(3) AND 6) THEN 'enter or right or middle click
+   IF keyval(scEnter) > 1 OR (mouse.clicks AND (mouseRight OR mouseMiddle)) THEN
     ts.tiley = (ts.tiley + (ts.tilex + 1) \ 16) MOD 10
     ts.tilex = (ts.tilex + 1) AND 15
     ts.x += 20
@@ -1540,8 +1541,8 @@ DO
  oldcut = ts.cutfrom
  IF ts.cuttileset THEN maxset = gen(genMaxTile) ELSE maxset = gen(genNumBackdrops) - 1
  intgrabber ts.cutfrom, 0, maxset, scLeftCaret, scRightCaret
- IF ts.zone = 11 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, -1)
- IF ts.zone = 12 AND mouse(3) > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, 1)
+ IF ts.zone = 11 AND mouse.clicks > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, -1)
+ IF ts.zone = 12 AND mouse.clicks > 0 THEN ts.cutfrom = loopvar(ts.cutfrom, 0, maxset, 1)
  IF oldcut <> ts.cutfrom THEN
   IF ts.cuttileset THEN loadmxs game + ".til", ts.cutfrom, vpages(2) ELSE loadmxs game + ".mxs", ts.cutfrom, vpages(2)
  END IF
@@ -1585,7 +1586,7 @@ DO
   ELSE
    textcolor uilook(uiDescription), 0
   END IF
-  printstr CHR$(2), mouse(0) - 2, mouse(1) - 2, dpage
+  printstr CHR$(2), mouse.x - 2, mouse.y - 2, dpage
  END IF
  SWAP dpage, vpage
  setvispage vpage
@@ -1893,7 +1894,7 @@ SUB writeundospr (placer(), ss AS SpriteEditState, is_rotate AS INTEGER=NO)
  ss.undodepth = small(ss.undodepth + 1, ss.undomax + 1)
 END SUB
 
-SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, state AS MenuState, placer(), workpal(), poffset(), info$(), toolinfo() AS ToolInfoType, area() AS MouseArea, mouse AS MouseInfo)
  ss.curcolor = peek8bit(workpal(), ss.palindex + (state.pt - state.top) * 16)
  rectangle 247 + ((ss.curcolor - (INT(ss.curcolor / 16) * 16)) * 4), 0 + (INT(ss.curcolor / 16) * 6), 5, 7, uilook(uiText), dpage
  DIM AS INTEGER i, o
@@ -2009,7 +2010,7 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
   ELSE
    textcolor uilook(uiDescription), 0
   END IF
-  printstr CHR(2 + ss.zonecursor), mouse(0) - 2, mouse(1) - 2, dpage
+  printstr CHR(2 + ss.zonecursor), mouse.x - 2, mouse.y - 2, dpage
  END IF
 END SUB
 
@@ -2213,7 +2214,7 @@ SUB spriteedit_export(default_name AS STRING, img AS GraphicPair)
  END IF
 END SUB
 
-SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse())
+SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic, BYREF state AS MenuState, placer() AS INTEGER, workpal() AS INTEGER, poffset() AS INTEGER, info() AS STRING, toolinfo() AS ToolInfoType, area() AS MouseArea, mouse AS MouseInfo)
  DIM palstate AS MenuState 
  DIM coltemp AS INTEGER
  DIM srcbmp AS STRING
@@ -2254,7 +2255,7 @@ SUB spriteedit_import16(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEdit
    IF palstate.pt = 2 THEN EXIT SUB
    EXIT DO
   END IF
-  spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse()
+  spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse
   rectangle 4, 156, 208, 32, uilook(uiDisabledItem), dpage
   FOR i AS INTEGER = 0 TO 2
    coltemp = uilook(uiMenuItem): IF i = palstate.pt THEN coltemp = uilook(uiSelectedItem + palstate.tog)
@@ -2389,7 +2390,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
  'spriteage
 
  DIM placer(2 + (ss.wide * ss.high * ss.perset) \ 4)
- DIM mouse(4)
+ DIM mouse AS MouseInfo
 
  DIM pclip(8) AS INTEGER
 
@@ -2485,14 +2486,14 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
   setwait 17, 70
   setkeys
   IF ss.gotmouse THEN
-   readmouse mouse()
+   mouse = readmouse
    ss.zonecursor = 0
-   ss.zonenum = mouseover(mouse(0), mouse(1), ss.zone.x, ss.zone.y, ss.zonecursor, area())
+   ss.zonenum = mouseover(mouse.x, mouse.y, ss.zone.x, ss.zone.y, ss.zonecursor, area())
    ss.dragging = NO
-   IF mouse(3) AND 1 THEN
+   IF mouse.clicks AND mouseLeft THEN
     'Do not flag as dragging until the second tick
-    ss.dragstart = TYPE(mouse(0), mouse(1))
-   ELSEIF mouse(2) AND 1 THEN
+    ss.dragstart = TYPE(mouse.x, mouse.y)
+   ELSEIF mouse.buttons AND mouseLeft THEN
     'left mouse button down, but no new click this tick
     ss.dragging = YES
    END IF
@@ -2513,7 +2514,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
   END IF
   ss.delay = large(ss.delay - 1, 0)
   copypage 2, dpage  'moved this here to cover up residue on dpage (which was there before I got here!)
-  spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse()
+  spriteedit_display ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse
   SWAP vpage, dpage
   setvispage vpage
   'blank the sprite area
@@ -2528,7 +2529,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
 EXIT SUB
 
 sprctrl:
-IF mouse(2) = 0 AND keyval(scSpace) = 0 THEN
+IF mouse.buttons = 0 AND keyval(scSpace) = 0 THEN
  ss.lastpos.x = -1
  ss.lastpos.y = -1
 END IF
@@ -2537,15 +2538,15 @@ IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
 IF keyval(scComma) > 1 AND ss.palindex > 0 THEN ss.palindex -= 1
 IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN ss.palindex += 1
 IF ss.zonenum = 2 THEN
- IF mouse(3) > 0 THEN ss.palindex = small(INT(ss.zone.x / 4), 15)
+ IF mouse.clicks > 0 THEN ss.palindex = small(INT(ss.zone.x / 4), 15)
 END IF
-IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND mouse(3) > 0) THEN
+IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND mouse.clicks > 0) THEN
  changepal poffset(state.pt), -1, workpal(), state.pt - state.top
 END IF
-IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND mouse(3) > 0) THEN
+IF keyval(scRightBrace) > 1 OR (ss.zonenum = 6 AND mouse.clicks > 0) THEN
  changepal poffset(state.pt), 1, workpal(), state.pt - state.top
 END IF
-IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse(3) > 0) THEN '--call palette browser
+IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse.clicks > 0) THEN '--call palette browser
  '--write changes so far
  stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
  '--save current palette
@@ -2557,7 +2558,7 @@ IF keyval(scP) > 1 OR (ss.zonenum = 19 AND mouse(3) > 0) THEN '--call palette br
  getpal16 workpal(), state.pt - state.top, poffset(state.pt)
 END IF
 '--UNDO
-IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse(3) > 0) THEN GOSUB readundospr
+IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse.clicks > 0) THEN GOSUB readundospr
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
 IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN
  ss_save.clipsize.x = ss.wide
@@ -2604,7 +2605,7 @@ IF keyval(scAlt) > 0 THEN
  'If the palette has changed, update genMaxPal
  gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
 END IF
-IF mouse(3) = 1 AND ss.zonenum = 3 THEN
+IF (mouse.clicks AND mouseLeft) ANDALSO ss.zonenum = 3 THEN
  ss.curcolor = INT(INT(ss.zone.y / 6) * 16) + INT(ss.zone.x / 4)
  'If the palette has changed, update genMaxPal
  gen(genMaxPal) = large(gen(genMaxPal), poffset(state.pt))
@@ -2623,16 +2624,16 @@ IF keyval(scAlt) = 0 THEN
   IF ss.zonenum = 1 THEN
    ss.zone.x = ss.x * ss.zoom + INT(ss.zoom / 2)
    ss.zone.y = ss.y * ss.zoom + INT(ss.zoom / 2)
-   mouse(0) = area(0).x + ss.zone.x 
-   mouse(1) = area(0).y + ss.zone.y
-   movemouse mouse(0), mouse(1)
+   mouse.x = area(0).x + ss.zone.x 
+   mouse.y = area(0).y + ss.zone.y
+   movemouse mouse.x, mouse.y
   END IF 
   IF ss.zonenum = 14 THEN
    ss.zone.x = ss.x
    ss.zone.y = ss.y
-   mouse(0) = area(13).x + ss.zone.x 
-   mouse(1) = area(13).y + ss.zone.y
-   movemouse mouse(0), mouse(1)
+   mouse.x = area(13).x + ss.zone.x 
+   mouse.y = area(13).y + ss.zone.y
+   movemouse mouse.x, mouse.y
   END IF
  END IF
 END IF
@@ -2641,7 +2642,7 @@ IF ss.zonenum = 1 THEN
  ss.y = INT(ss.zone.y / ss.zoom)
 END IF
 IF ss.tool = airbrush_tool THEN '--adjust airbrush
- IF mouse(3) = 1 OR mouse(2) = 1 THEN
+ IF mouse.buttons AND mouseLeft THEN
   IF ss.zonenum = 15 THEN ss.airsize = large(ss.airsize - tick, 1)
   IF ss.zonenum = 17 THEN ss.airsize = small(ss.airsize + tick, 80)
   IF ss.zonenum = 16 THEN ss.mist = large(ss.mist - tick, 1)
@@ -2664,7 +2665,7 @@ IF ss.tool = airbrush_tool THEN '--adjust airbrush
 END IF
 IF ss.tool = clone_tool THEN
  '--When clone tool is active, rotate the clone buffer
- IF mouse(3) = 1 OR mouse(2) = 1 THEN
+ IF mouse.buttons AND mouseLeft THEN
   IF ss_save.clonemarked THEN
    IF ss.zonenum = 16 THEN
     spriteedit_rotate_sprite_buffer ss_save.clonebuf(), ss.nulpal(), YES
@@ -2679,7 +2680,7 @@ IF ss.tool = clone_tool THEN
 ELSEIF ss.tool <> airbrush_tool THEN
  '--when other tools are active, rotate the whole buffer
  '--except for the airbrush tool because it's buttons collide.
- IF mouse(3) = 1 OR mouse(2) = 1 THEN
+ IF mouse.buttons AND mouseLeft THEN
   IF ss.zonenum = 16 THEN
    spriteedit_rotate_sprite placer(), ss, YES
    ss.delay = 20
@@ -2694,12 +2695,12 @@ IF ss.zonenum = 14 THEN
  ss.x = ss.zone.x
  ss.y = ss.zone.y
 END IF
-IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR keyval(scSpace) > 0 THEN
+IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) OR keyval(scSpace) > 0 THEN
  SELECT CASE ss.tool
   CASE draw_tool
    GOSUB putdot
   CASE box_tool
-   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
+   IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold THEN
      ss.hold = NO: GOSUB drawsquare
     ELSE
@@ -2709,7 +2710,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
     END IF
    END IF
   CASE line_tool
-   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
+   IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold = YES THEN
      ss.hold = NO
      GOSUB straitline
@@ -2720,15 +2721,15 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
     END IF
    END IF
   CASE fill_tool
-   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
+   IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     GOSUB floodfill
    END IF
   CASE replace_tool
-   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
+   IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     GOSUB replacecol
    END IF
   CASE oval_tool
-   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
+   IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold = NO THEN
      '--start oval
      ss.holdpos.x = ss.x
@@ -2745,7 +2746,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
   CASE airbrush_tool
    GOSUB sprayspot
   CASE mark_tool
-   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
+   IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     IF ss.hold THEN
      ss.hold = NO
      drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
@@ -2761,7 +2762,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) AND (mouse(3) = 1 OR mouse(2) = 1)) OR k
     END IF
    END IF
   CASE clone_tool
-   IF mouse(3) > 0 OR keyval(scSpace) > 1 THEN
+   IF mouse.clicks > 0 OR keyval(scSpace) > 1 THEN
     IF ss_save.clonemarked THEN
      IF ss.lastpos.x = -1 AND ss.lastpos.y = -1 THEN
       writeundospr placer(), ss
@@ -2788,7 +2789,7 @@ IF ss.hold = YES AND ss.tool = oval_tool THEN
  END IF
 END IF
 FOR i AS INTEGER = 0 TO UBOUND(toolinfo)
- IF (mouse(3) > 0 AND ss.zonenum = toolinfo(i).areanum + 1) OR keyval(toolinfo(i).shortcut) > 1 THEN
+ IF (mouse.clicks > 0 AND ss.zonenum = toolinfo(i).areanum + 1) OR keyval(toolinfo(i).shortcut) > 1 THEN
   IF ss.tool <> i THEN ss.didscroll = NO
   ss.tool = i
   GOSUB resettool
@@ -2806,7 +2807,7 @@ END IF
 IF ss.tool = clone_tool THEN
  ' For clone brush tool, enter/right-click moves the handle point
  IF ss.readjust THEN
-  IF keyval(scEnter) = 0 AND mouse(2) = 0 THEN ' click or key release
+  IF keyval(scEnter) = 0 AND mouse.buttons = 0 THEN ' click or key release
    ss.readjust = NO
    ss.holdpos.x += (ss.x - ss.adjustpos.x)
    ss.holdpos.y += (ss.y - ss.adjustpos.y)
@@ -2814,7 +2815,7 @@ IF ss.tool = clone_tool THEN
    ss.adjustpos.y = 0
   END IF
  ELSE
-  IF (keyval(scEnter) AND 5) OR mouse(2) = 2 THEN
+  IF (keyval(scEnter) AND 5) OR mouse.buttons = mouseRight THEN
    ss.readjust = YES
    ss.adjustpos.x = ss.x
    ss.adjustpos.y = ss.y
@@ -2831,12 +2832,12 @@ IF ss.tool = clone_tool THEN
  END IF
 ELSE
  ' For all other tools, pick a color
- IF keyval(scEnter) > 1 OR (ss.zonenum = 1 AND mouse(2) = 2) THEN
+ IF keyval(scEnter) > 1 OR (ss.zonenum = 1 AND mouse.buttons = mouseRight) THEN
   drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
   ss.palindex = readpixel(ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, dpage)
  END IF
 END IF
-IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND mouse(3) > 0) THEN wardsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage: getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
+IF keyval(scBackspace) > 1 OR (ss.zonenum = 4 AND mouse.clicks > 0) THEN wardsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage: getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 IF ss.tool = scroll_tool AND (ss.zonenum = 1 OR ss.zonenum = 14) THEN
  'Handle scrolling by dragging the mouse
  'Did this drag start inside the sprite box? If not, ignore
@@ -2852,12 +2853,12 @@ IF ss.tool = scroll_tool AND keyval(scAlt) = 0 THEN
  IF slowkey(scDown, 6) THEN scrolloff.y = 1
  spriteedit_scroll placer(), ss, scrolloff.x, scrolloff.y
 END IF
-IF keyval(scI) > 1 OR (ss.zonenum = 13 AND mouse(3) > 0) THEN
- spriteedit_import16 ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse()
+IF keyval(scI) > 1 OR (ss.zonenum = 13 AND mouse.clicks > 0) THEN
+ spriteedit_import16 ss, ss_save, state, placer(), workpal(), poffset(), info(), toolinfo(), area(), mouse
  GOSUB spedbak
  setkeyrepeat 25, 5
 END IF
-IF keyval(scE) > 1 OR (ss.zonenum = 26 AND mouse(3) > 0) THEN
+IF keyval(scE) > 1 OR (ss.zonenum = 26 AND mouse.clicks > 0) THEN
  changepal poffset(state.pt), 0, workpal(), state.pt - state.top '--this saves the current palette in case it has changed
  spriteedit_export spriteedit_export_name(ss, state), placer(), ss.nulpal(), poffset(state.pt)
 END IF

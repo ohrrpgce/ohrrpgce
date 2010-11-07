@@ -136,7 +136,7 @@ DIM vstate AS VehicleState
 reset_vehicle vstate
 
 DIM csetup(12), carray(13)
-DIM mouse(3)
+DIM mouse AS MouseInfo
 DIM joy(14), gotj(2)
 
 DIM backcompat_sound_slot_mode
@@ -461,7 +461,7 @@ DO
  'DEBUG debug "top of master loop"
  setwait speedcontrol
  setkeys
- readmouse mouse()  'didn't bother to check havemouse()
+ mouse = readmouse  'didn't bother to check havemouse()
  tog = tog XOR 1
  'DEBUG debug "increment play timers"
  playtimer

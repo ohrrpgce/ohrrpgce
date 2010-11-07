@@ -12,6 +12,7 @@
 #include "file.bi"   'FB header
 #include "lumpfile.bi"
 
+
 'Library routines
 DECLARE SUB modex_init ()
 DECLARE SUB setmodex ()
@@ -118,7 +119,7 @@ DECLARE SUB clearkey (byval k as integer)
 DECLARE FUNCTION havemouse () as integer
 DECLARE SUB hidemousecursor ()
 DECLARE SUB unhidemousecursor ()
-DECLARE SUB readmouse (mbuf() as integer)
+DECLARE FUNCTION readmouse () as MouseInfo
 DECLARE SUB movemouse (BYVAL x as integer, BYVAL y as integer)
 DECLARE SUB mouserect (BYVAL xmin as integer, BYVAL xmax as integer, BYVAL ymin as integer, BYVAL ymax as integer)
 DECLARE FUNCTION readjoy OVERLOAD (joybuf() as integer, BYVAL jnum as integer) as integer

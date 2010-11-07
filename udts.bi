@@ -4,6 +4,14 @@
 #INCLUDE "const.bi"
 #INCLUDE "util.bi"
 
+TYPE MouseInfo
+  x AS INTEGER
+  y AS INTEGER
+  clicks AS INTEGER  'Button down event since last tick; MouseButton array
+  buttons AS INTEGER 'Buttons currently down OR clicked; MouseButton array
+  wheel AS INTEGER   'Wheel movement since last tick; NOT SUPPORTED ON ALL BACKENDS
+END TYPE
+
 UNION XYPair
   TYPE
    x AS INTEGER
