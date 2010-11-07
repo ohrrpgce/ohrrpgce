@@ -135,8 +135,6 @@ DIM attack_frame_captions(2) AS STRING = {"First Frame","Middle Frame","Last Fra
 DIM box_border_captions(15) AS STRING = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
 DIM portrait_captions(0) AS STRING = {"Character Portrait"}
 
-keyboardsetup
-
 dpage = 1: vpage = 0
 game = ""
 sourcerpg = ""

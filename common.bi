@@ -217,7 +217,6 @@ EXTERN as integer vpage, dpage
 EXTERN buffer() as integer
 EXTERN fadestate as integer
 EXTERN master() as RGBcolor
-EXTERN keyv() as integer
 EXTERN gen() as integer
 EXTERN fmvol as integer
 EXTERN sprite_sizes() AS SpriteSize

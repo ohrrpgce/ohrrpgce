@@ -40,11 +40,6 @@ DECLARE FUNCTION charpicker() AS STRING
 
 ''''' Global variables (anything else in common.bi missing here will be in game.bas or custom.bas)
 
-'keyv() is a global declared in common.bi
-'It is populated in keyboardsetup() which has
-'different implementations in custom and game
-REDIM keyv(55, 3)
-
 'Allocate sprite size table
 REDIM sprite_sizes(8) AS SpriteSize
 setup_sprite_sizes
@@ -1447,48 +1442,22 @@ FUNCTION stredit (s AS STRING, BYREF insert AS INTEGER, BYVAL maxl AS INTEGER, B
  '--DEL support
  IF keyval(scDelete) > 1 AND LEN(post) > 0 THEN post = RIGHT(post, LEN(post) - 1)
 
- '--SHIFT support
- DIM shift AS INTEGER = 0
- IF keyval(scRightShift) > 0 OR keyval(scLeftShift) > 0 THEN shift = 1
-
- '--ALT support
- IF keyval(scAlt) THEN shift += 2
-
  '--adding chars
- DIM caps AS INTEGER = 0
  IF LEN(pre) + LEN(post) < maxl THEN
-  DIM L AS INTEGER = LEN(pre)
-  IF keyval(scSpace) > 1 THEN
-   IF keyval(scCTRL) = 0 THEN
-    '--SPACE support
-    pre = pre & " "
-   ELSE
+  DIM oldlen AS INTEGER = LEN(pre)
+  IF keyval(scSpace) > 1 AND keyval(scCtrl) > 0 THEN
 #IFDEF IS_CUSTOM
-    '--charlist support
-    pre = pre & charpicker()
+   '--charlist support
+   pre = pre & charpicker()
 #ENDIF
+  ELSEIF keyval(scEnter) > 1 THEN
+   IF numlines > 1 THEN
+    pre = pre & CHR(10)
    END IF
-  ELSEIF numlines > 1 AND keyval(scEnter) > 1 THEN
-   pre = pre & CHR(10)
   ELSE
-   IF keyval(scCtrl) = 0 THEN
-    '--all other keys
-    FOR i AS INTEGER = 2 TO 53
-     caps = 0
-     IF shift = 0 ANDALSO keyval(scCapsLock) > 0 THEN
-      SELECT CASE i
-       CASE scQ TO scP, scA TO scL, scZ TO scM
-        caps = 1
-      END SELECT
-     END IF
-     IF keyval(i) > 1 AND keyv(i, shift + caps) > 0 THEN
-      pre = pre & CHR(keyv(i, shift + caps))
-      EXIT FOR
-     END IF
-    NEXT i
-   END IF
+   pre = LEFT(pre & getinputtext, maxl)
   END IF
-  IF LEN(pre) > L THEN insert += 1
+  insert += (LEN(pre) - oldlen)
  END IF
 
  s = pre & post

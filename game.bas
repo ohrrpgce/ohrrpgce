@@ -214,8 +214,6 @@ setwindowtitle "O.H.R.RPG.C.E"
 'DEBUG debug "apply font"
 setfont font()
 
-keyboardsetup
-
 'init mouse
 unhidemousecursor
 

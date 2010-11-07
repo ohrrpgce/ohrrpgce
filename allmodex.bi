@@ -112,6 +112,7 @@ DECLARE FUNCTION isawav(fi as string) as integer
 
 DECLARE FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as integer = 0) as integer
 DECLARE FUNCTION getkey () as integer
+DECLARE FUNCTION getinputtext () as string
 DECLARE FUNCTION waitforanykey (modkeys as integer = -1) as integer
 DECLARE SUB setkeyrepeat (rwait as integer = 8, rrate as integer = 1)
 DECLARE SUB setkeys ()
@@ -185,5 +186,6 @@ declare sub cleanup_process (byval process as ProcessHandle ptr)
 'globals
 extern vpages() as Frame ptr
 extern vpagesp as Frame ptr ptr
+extern key2text(3,53) as string*1
 
 #ENDIF

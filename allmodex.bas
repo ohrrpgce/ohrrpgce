@@ -58,6 +58,20 @@ declare sub pollingthread(byval as any ptr)
 dim vpages() as Frame ptr
 dim vpagesp as Frame ptr ptr  'points to vpages(0) for debugging: fbc outputs typeless debugging symbol
 
+'Convert scancodes to text; Enter does not insert newline!
+'This array is a global instead of an internal detail because it's used by charpicker and the font editor
+'to work out key mapping for the extended characters. Would be nice if it weren't needed.
+'key2text(0,*): no modifiers
+'key2text(1,*): shift
+'key2text(2,*): alt
+'key2text(3,*): alt+shift
+dim key2text(3,53) as string*1 => { _
+	{"", "", "1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/"}, _
+	{"", "", "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":","""","~","","|","Z","X","C","V","B","N","M","<",">","?"}, _
+	{"", "", !"\130",!"\131",!"\132",!"\133",!"\134",!"\135",!"\136",!"\137",!"\138",!"\139",!"\140",!"\141","","",!"\142",!"\143",!"\144",!"\145",!"\146",!"\147",!"\148",!"\149",!"\150",!"\151",!"\152",!"\153","","",!"\154",!"\155",!"\156",!"\157",!"\158",!"\159",!"\160",!"\161",!"\162",!"\163",!"\164",!"\165","",!"\166",!"\167",!"\168",!"\169",!"\170",!"\171",!"\172",!"\173",!"\174",!"\175",!"\176"}, _
+	{"", "", !"\177",!"\178",!"\179",!"\180",!"\181",!"\182",!"\183",!"\184",!"\185",!"\186",!"\187",!"\188","","",!"\189",!"\190",!"\191",!"\192",!"\193",!"\194",!"\195",!"\196",!"\197",!"\198",!"\199",!"\200","","",!"\201",!"\202",!"\203",!"\204",!"\205",!"\206",!"\207",!"\208",!"\209",!"\210",!"\211",!"\212","",!"\213",!"\214",!"\215",!"\216",!"\217",!"\218",!"\219",!"\220",!"\221",!"\222",!"\223"} _
+}
+
 'module shared
 dim shared wrkpage as integer  'used by some legacy modex functions. Usually points at clippedframe
 dim shared clippedframe as Frame ptr  'used to track which Frame the clips are set for
@@ -889,6 +903,36 @@ FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as 
 		END IF
 	END IF
 	RETURN result
+end FUNCTION
+
+FUNCTION getinputtext () as string
+	dim ret as string
+	dim shift as integer = 0
+
+	if keyval(scCtrl) > 0 then return ""
+
+	if keyval(scRightShift) > 0 or keyval(scLeftShift) > 0 then shift = 1
+
+	'ALT to enter extended characters (128 and up)
+	if keyval(scAlt) then shift += 2
+
+	for i as integer = 0 to 53
+		dim effective_shift as integer = shift
+		if shift <= 1 andalso keyval(scCapsLock) > 0 then
+			select case i
+				case scQ to scP, scA to scL, scZ to scM
+					effective_shift xor= 1
+			end select
+		end if
+		if keyval(i) > 1 then
+			ret &= key2text(effective_shift, i)
+		end if
+	next i
+
+	'Space missing from key2text
+	if keyval(scSpace) > 1 then ret &= " "
+
+	return ret
 end FUNCTION
 
 'one of waitforanykey and getkey must go

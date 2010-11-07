@@ -181,17 +181,16 @@ DO
   END IF
  ELSE
   'find by letter
-  FOR i AS INTEGER = 2 TO 53
-   IF keyval(i) > 1 AND keyv(i, 0) > 0 THEN
-    FOR j AS INTEGER = 1 TO br.treesize
-     DIM mappedj AS INTEGER
-     mappedj = (j + br.treeptr) MOD (br.treesize + 1)
-     DIM tempstr AS STRING = LCASE(tree(mappedj).caption)
-     IF (tree(mappedj).kind = 1 OR tree(mappedj).kind = 2 OR tree(mappedj).kind = 3) AND tempstr[0] = keyv(i, 0) THEN br.treeptr = mappedj: EXIT FOR
-    NEXT
-    EXIT FOR
-   END IF
-  NEXT i
+  DIM intext as string = LEFT(getinputtext, 1)
+  IF LEN(intext) > 0 THEN
+   FOR j AS INTEGER = 1 TO br.treesize
+    DIM mappedj AS INTEGER
+    mappedj = (j + br.treeptr) MOD (br.treesize + 1)
+    IF (tree(mappedj).kind = 1 OR tree(mappedj).kind = 2 OR tree(mappedj).kind = 3) THEN
+     IF LCASE(LEFT(tree(mappedj).caption, 1)) = intext THEN br.treeptr = mappedj: EXIT FOR
+    END IF
+   NEXT
+  END IF
  END IF
  IF keyval(scF5) > 1 THEN  'F5
   'refresh

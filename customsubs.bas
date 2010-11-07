@@ -130,43 +130,15 @@ IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR
 '--paste support
 IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN s = LEFT(clip, maxl)
 
-'--SHIFT support
-shift = 0
-IF keyval(scRightShift) > 0 OR keyval(scLeftShift) > 0 THEN shift = 1
-
-'--ALT support
-IF keyval(scAlt) THEN shift = shift + 2
-
 '--adding chars
 IF LEN(s) < maxl THEN
-
- IF keyval(scSpace) > 1 THEN
-  IF keyval(scCtrl) = 0 THEN
-   '--SPACE support
-   s = s + " "
-  ELSE
-   '--charlist support
-   s = s + charpicker
-  END IF
+ IF keyval(scSpace) > 1 AND keyval(scCtrl) > 0 THEN
+  '--charlist support
+  s = s + charpicker()
  ELSE
-  IF keyval(scCtrl) = 0 THEN
-   '--all other keys
-   FOR i = 2 TO 53
-    caps = 0
-    IF shift = 0 ANDALSO keyval(scCapsLock) > 0 THEN
-     SELECT CASE i
-      CASE scQ TO scP, scA TO scL, scZ TO scM
-       caps = 1
-     END SELECT
-    END IF
-    IF keyval(i) > 1 AND keyv(i, shift + caps) > 0 THEN
-     s = s + CHR(keyv(i, shift + caps))
-     EXIT FOR
-    END IF
-   NEXT i
-  END IF
+  'Note: never returns newlines; and we don't check either
+  s = LEFT(s + getinputtext, maxl)
  END IF
-
 END IF
 
 'Return true of the string has changed
@@ -220,8 +192,8 @@ DO
  textcolor uilook(uiMenuItem), 0
  printstr "ASCII " & f(pt), 78, 190, dpage
  FOR i = 2 TO 53
-  IF f(pt) = keyv(i, 2) THEN printstr "ALT+" + UCASE$(CHR$(keyv(i, 0))), 178, 190, dpage
-  IF f(pt) = keyv(i, 3) THEN printstr "ALT+SHIFT+" + UCASE$(CHR$(keyv(i, 0))), 178, 190, dpage
+  IF f(pt) = ASC(key2text(2, i)) THEN printstr "ALT+" + UCASE(key2text(0, i)), 178, 190, dpage
+  IF f(pt) = ASC(key2text(3, i)) THEN printstr "ALT+SHIFT+" + UCASE(key2text(0, i)), 178, 190, dpage
  NEXT i
  IF f(pt) = 32 THEN printstr "SPACE", 178, 190, dpage
 
@@ -437,26 +409,6 @@ FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING
  END IF
  RETURN NO
 END FUNCTION
-
-SUB keyboardsetup ()
- 'There is a different implementation of this in yetmore2 for GAME
- '
- 'WARNING!: if your text editor converts these to UTF, it will break the
- 'font editor and the ALT+letter ALT+SHIFT+letter feature of string entry!
- DIM keyconst(207) AS STRING = {"1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/", _
-  "!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?", _
-  !"\130",!"\131",!"\132",!"\133",!"\134",!"\135",!"\136",!"\137",!"\138",!"\139",!"\140",!"\141","","",!"\142",!"\143",!"\144",!"\145",!"\146",!"\147",!"\148",!"\149",!"\150",!"\151",!"\152",!"\153","","",!"\154",!"\155",!"\156",!"\157",!"\158",!"\159",!"\160",!"\161",!"\162",!"\163",!"\164",!"\165","",!"\166",!"\167",!"\168",!"\169",!"\170",!"\171",!"\172",!"\173",!"\174",!"\175",!"\176", _
-  !"\177",!"\178",!"\179",!"\180",!"\181",!"\182",!"\183",!"\184",!"\185",!"\186",!"\187",!"\188","","",!"\189",!"\190",!"\191",!"\192",!"\193",!"\194",!"\195",!"\196",!"\197",!"\198",!"\199",!"\200","","",!"\201",!"\202",!"\203",!"\204",!"\205",!"\206",!"\207",!"\208",!"\209",!"\210",!"\211",!"\212","",!"\213",!"\214",!"\215",!"\216",!"\217",!"\218",!"\219",!"\220",!"\221",!"\222",!"\223"}
- DIM temp AS STRING
- DIM AS INTEGER j, i
- FOR j = 0 TO 3
-  FOR i = 2 TO 53
-   temp = keyconst((i - 2) + j * 52)
-   IF temp <> "" THEN keyv(i, j) = ASC(temp) ELSE keyv(i, j) = 0
-  NEXT i
- NEXT j
- keyv(40, 1) = 34
-END SUB
 
 SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
  DIM i AS INTEGER
@@ -1849,18 +1801,16 @@ FUNCTION scriptbrowse_string (BYREF trigger AS INTEGER, BYVAL triggertype AS INT
     iddisplay = 0
    END IF
   END IF
-  FOR i = 12 TO 53
-   IF keyval(i) > 1 AND keyv(i, 0) > 0 THEN
-    j = state.pt + 1
-    FOR ctr AS INTEGER = numberedlast + 1 TO scriptmax
-     IF j > scriptmax THEN j = numberedlast + 1
-     tempstr$ = LCASE$(scriptnames(j))
-     IF tempstr$[0] = keyv(i, 0) THEN state.pt = j: EXIT FOR
-     j += 1
-    NEXT
-    EXIT FOR
-   END IF
-  NEXT i
+  DIM intext as string = LEFT(getinputtext, 1)
+  IF LEN(intext) > 0 THEN
+   DIM AS INTEGER j = state.pt + 1
+   FOR ctr AS INTEGER = numberedlast + 1 TO scriptmax
+    IF j > scriptmax THEN j = numberedlast + 1
+    tempstr$ = LCASE(LEFT(scriptnames(j), 1))
+    IF tempstr$ = intext THEN state.pt = j: EXIT FOR
+    j += 1
+   NEXT
+  END IF
 
   clearpage dpage
   draw_fullscreen_scrollbar state, , dpage
@@ -3160,8 +3110,8 @@ SUB fontedit (font() AS INTEGER)
      printstr "RESERVED", 120, 190, dpage
     ELSE
      FOR i = 2 TO 53
-      IF f(pt) = keyv(i, 2) THEN printstr "ALT+" + UCASE(CHR(keyv(i, 0))), 120, 190, dpage
-      IF f(pt) = keyv(i, 3) THEN printstr "ALT+SHIFT+" + UCASE(CHR(keyv(i, 0))), 120, 190, dpage
+      IF f(pt) = ASC(key2text(2, i)) THEN printstr "ALT+" + UCASE(key2text(0, i)), 120, 190, dpage
+      IF f(pt) = ASC(key2text(3, i)) THEN printstr "ALT+SHIFT+" + UCASE(key2text(0, i)), 120, 190, dpage
      NEXT i
      IF f(pt) = 32 THEN printstr "SPACE", 120, 190, dpage
     END IF

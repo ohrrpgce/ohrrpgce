@@ -275,38 +275,17 @@ NEXT i
 
 END SUB
 
-FUNCTION strgrabber (s$, maxl) AS INTEGER
-DIM old AS STRING
-old = s$
+'Returns whether the string has changed
+FUNCTION strgrabber (s as string, maxl) AS INTEGER
+ DIM old AS STRING = s
 
-'--BACKSPACE support
-IF keyval(scBackspace) > 1 AND LEN(s$) > 0 THEN s$ = LEFT$(s$, LEN(s$) - 1)
+ '--BACKSPACE support
+ IF keyval(scBackspace) > 1 AND LEN(s) > 0 THEN s = LEFT$(s, LEN(s) - 1)
 
-'--SHIFT support
-shift = 0
-IF keyval(scRightShift) > 0 OR keyval(scLeftShift) > 0 THEN shift = 1
+ '--adding chars
+ s = LEFT(s + getinputtext, maxl)
 
-'--adding chars
-IF LEN(s$) < maxl THEN
-
- '--SPACE support
- IF keyval(scSpace) > 1 THEN
-   s$ = s$ + " "
- ELSE
-  '--all other keys
-  FOR i = 2 TO 53
-   IF keyval(i) > 1 AND keyv(i, shift) > 0 THEN
-    s$ = s$ + CHR$(keyv(i, shift))
-    EXIT FOR
-   END IF
-  NEXT i
- END IF
-
-END IF
-
-'Return true of the string has changed
-RETURN (s$ <> old)
-
+ RETURN (s <> old)
 END FUNCTION
 
 SUB makebackups
@@ -420,21 +399,6 @@ restoremode
 'DEBUG debug "Terminate NOW (boom!)"
 end_debug
 END
-
-END SUB
-
-SUB keyboardsetup
-'There is a different implementation of this in customsubs for CUSTOM
-DIM keyconst(103) as string = {"1","2","3","4","5","6","7","8","9","0","-","=","","","q","w","e","r","t","y","u","i","o","p","[","]","","","a","s","d","f","g","h","j","k","l",";","'","`","","\","z","x","c","v","b","n","m",",",".","/", _
-"!","@","#","$","%","^","&","*","(",")","_","+","","","Q","W","E","R","T","Y","U","I","O","P","{","}","","","A","S","D","F","G","H","J","K","L",":"," ","~","","|","Z","X","C","V","B","N","M","<",">","?"}
-
-FOR o = 0 TO 1
- FOR i = 2 TO 53
-  temp$ = keyconst$((i - 2) + o * 52)
-  IF temp$ <> "" THEN keyv(i, o) = ASC(temp$) ELSE keyv(i, o) = 0
- NEXT i
-NEXT o
-keyv(40, 1) = 34
 
 END SUB
 
