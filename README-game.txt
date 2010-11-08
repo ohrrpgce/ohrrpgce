@@ -1,5 +1,5 @@
 ------------------------------------------------------------
- O.H.R.RPG.C.E Game Player   (February 8 2010 ypsiliform+2)
+ O.H.R.RPG.C.E Game Player   (November 8 2010 ypsiliform+3)
 ------------------------------------------------------------
 Official Hamster Republic RPG Construction Engine
 
