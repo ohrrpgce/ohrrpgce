@@ -670,6 +670,7 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
   autotarget bat.hero_turn, bslot(bat.hero_turn).attack - 1, bslot(), t()
   bslot(bat.hero_turn).ready_meter = 0
   bslot(bat.hero_turn).ready = NO
+  bslot(bat.hero_turn).attack = 0
   bat.hero_turn = -1
   bat.targ.mode = targNONE
   EXIT SUB
