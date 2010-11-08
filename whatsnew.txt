@@ -69,11 +69,6 @@ WHAT IS NEW?
     * Getting the maptile under the cursor is now done with the G key
       (instead of the CAPSLOCK key, which we can all agree was
       confusing!) [James]
-    * Windows music/sound import fixes (bug 826):
-      * MP3/WAV import failed when Custom's path contained spaces
-      * Sometimes MP3/WAV import went bonkers, looping over and over
-      * MP3/OGG music couldn't be deleted or replaced with other OGGs
-      [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
@@ -113,7 +108,7 @@ WHAT IS NEW?
   * Stuff only Developers Will Notice
     * Test suite and benchmarks for RELOAD format [Mike]
 
-Oct X 2010 [Ypsiliform+3]
+Nov 8 2010 [Ypsiliform+3]
 
   * Bugfixes
     * Bug 816: Freeze on attack instead-chaining on multi-stage chains
@@ -140,6 +135,11 @@ Oct X 2010 [Ypsiliform+3]
       home directory [Ralph]
     * Sound effects did not stop when quitting to the title screen or
       loading a game [Ralph]
+    * Windows music/sound import fixes (bug 826):
+      * MP3/WAV import failed when Custom's path contained spaces
+      * Sometimes MP3/WAV import went bonkers, looping over and over
+      * MP3/OGG music couldn't be deleted or replaced with other OGGs
+      [Ralph]
 
 Feb 8 2010 [Ypsiliform+2]
 
