@@ -8,11 +8,7 @@
 #include "allmodex.bi"
 #include "common.bi"
 #include "reload.bi"
-
-#IFDEF IS_CUSTOM
-'this is used for showing help
-#include "customsubs.bi"
-#ENDIF
+#include "os.bi"
 
 OPTION EXPLICIT
 
@@ -134,9 +130,7 @@ DO
  setwait 55
  setkeys
  IF keyval(scEsc) > 1 THEN EXIT DO
-#IFDEF IS_CUSTOM
  IF keyval(scF1) > 1 THEN show_help helpkey
-#ENDIF
  IF usemenu(br.treeptr, br.treetop, 0, br.treesize, br.viewsize) OR br.changed THEN
   br.alert = ""
   br.changed = 0

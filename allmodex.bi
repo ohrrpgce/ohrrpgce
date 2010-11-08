@@ -77,20 +77,20 @@ DECLARE SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double
 DECLARE SUB replacecolor (BYVAL fr as Frame ptr, BYVAL c_old as integer, BYVAL c_new as integer, BYVAL x as integer = -1, BYVAL y as integer = -1, BYVAL w as integer = -1, BYVAL h as integer = -1)
 DECLARE SUB storemxs (fil as string, BYVAL record as integer, BYVAL fr as Frame ptr)
 DECLARE FUNCTION loadmxs (fil as string, BYVAL record as integer, BYVAL dest as Frame ptr = 0) as Frame ptr
+
 DECLARE SUB setwait (BYVAL t as integer, BYVAL flagt as integer = 0)
 DECLARE FUNCTION dowait () as integer
+
 DECLARE SUB printstr OVERLOAD (BYVAL dest as Frame ptr, s as string, BYVAL startx as integer, BYVAL y as integer, BYVAL startfont as Font ptr, BYVAL pal as Palette16 ptr, BYVAL withtags as integer)
 DECLARE SUB printstr OVERLOAD (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer, BYVAL withtags as integer = NO)
 DECLARE SUB edgeprint (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer, BYVAL p as integer, BYVAL withtags as integer = NO)
 DECLARE SUB textcolor (BYVAL f as integer, BYVAL b as integer)
 DECLARE SUB setfont (f() as integer)
+
 DECLARE SUB storeset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB loadset (fil as string, BYVAL i as integer, BYVAL l as integer)
 DECLARE SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
-DECLARE FUNCTION drivelist (d() as string) as integer
-DECLARE FUNCTION drivelabel (drive as string) as string
-DECLARE FUNCTION isremovable (drive as string) as integer
-DECLARE FUNCTION hasmedia (drive as string) as integer
+
 DECLARE SUB setupmusic
 DECLARE SUB closemusic ()
 DECLARE SUB loadsong (f as string)
@@ -98,6 +98,7 @@ DECLARE SUB pausesong ()
 DECLARE SUB resumesong ()
 DECLARE FUNCTION getfmvol () as integer
 DECLARE SUB setfmvol (BYVAL vol as integer)
+
 DECLARE SUB screenshot (f as string)
 DECLARE SUB frame_export_bmp4 (f$, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)
 DECLARE SUB frame_export_bmp8 (f$, byval fr as Frame Ptr, maspal() as RGBcolor)
@@ -108,6 +109,7 @@ DECLARE FUNCTION loadbmppal (f as string, pal() as RGBcolor) as integer
 DECLARE SUB convertbmppal (f as string, mpal() as RGBcolor, pal() as integer, BYVAL o as integer)
 DECLARE FUNCTION nearcolor(pal() as RGBcolor, byval red as ubyte, byval green as ubyte, byval blue as ubyte) as ubyte
 DECLARE FUNCTION bmpinfo (f as string, byref dat as BitmapInfoHeader) as integer
+
 DECLARE FUNCTION isawav(fi as string) as integer
 
 DECLARE FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as integer = 0) as integer
@@ -117,15 +119,17 @@ DECLARE FUNCTION waitforanykey (modkeys as integer = -1) as integer
 DECLARE SUB setkeyrepeat (rwait as integer = 8, rrate as integer = 1)
 DECLARE SUB setkeys ()
 DECLARE SUB clearkey (byval k as integer)
+#DEFINE slowkey(key, fraction) (keyval((key), (fraction), (fraction)) > 1)
+
 DECLARE FUNCTION havemouse () as integer
 DECLARE SUB hidemousecursor ()
 DECLARE SUB unhidemousecursor ()
 DECLARE FUNCTION readmouse () as MouseInfo
 DECLARE SUB movemouse (BYVAL x as integer, BYVAL y as integer)
 DECLARE SUB mouserect (BYVAL xmin as integer, BYVAL xmax as integer, BYVAL ymin as integer, BYVAL ymax as integer)
+
 DECLARE FUNCTION readjoy OVERLOAD (joybuf() as integer, BYVAL jnum as integer) as integer
 DECLARE FUNCTION readjoy (BYVAL joynum as integer, BYREF buttons as integer, BYREF x as integer, BYREF y as integer) as integer
-#DEFINE slowkey(key, fraction) (keyval((key), (fraction), (fraction)) > 1)
 
 DECLARE SUB resetsfx ()
 DECLARE SUB playsfx (BYVAL num as integer, BYVAL l as integer=0) 'l is loop count. -1 for infinite loop
@@ -171,17 +175,6 @@ declare sub palette16_unload(byval p as palette16 ptr ptr)
 declare sub palette16_empty_cache()
 declare sub palette16_update_cache(fil as string, byval num as integer)
 
-#ifdef __FB_WIN32__
-type ProcessHandle as PROCESS_INFORMATION ptr
-#else
-'dummy type
-type ProcessHandle as integer
-#endif
-
-declare function open_console_process (program as string, args as string) as ProcessHandle
-declare function process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as integer
-declare sub kill_process (byval process as ProcessHandle)
-declare sub cleanup_process (byval process as ProcessHandle ptr)
 
 'globals
 extern vpages() as Frame ptr

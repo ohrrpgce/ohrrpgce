@@ -77,11 +77,11 @@ libraries = []
 libpaths = []
 
 if win32:
-    common_modules += ['blit.c','base64.c']
+    common_modules += ['os_windows.bas','blit.c','base64.c']
     libraries += ['fbgfx']
     env['FBFLAGS'] += ['-s', 'gui']
 elif unix:
-    common_modules += ['blit.c', 'base64.c']
+    common_modules += ['os_unix.bas','blit.c', 'base64.c']
     libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
 
 used_gfx = []

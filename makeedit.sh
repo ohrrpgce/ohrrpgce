@@ -55,6 +55,6 @@ fbc -lang deprecated -g -v -exx -mt -m custom -d IS_CUSTOM -d DATAFILES='"/usr/s
   custom.bas customsubs.bas drawing.bas subs.bas subs2.bas mapsubs.bas flexmenu.bas \
   menus.bas allmodex.bas compat.bas common.bas browse.bas util.bas bam2mid.bas loading.bas \
   lumpfile.bas slices.bas sliceedit.bas reload.bas reloadext.bas reloadedit.bas editedit.bas editrunner.bas backends.bas \
-  blit.o base64.o ${EXTRA} \
+  os_unix.bas blit.o base64.o ${EXTRA} \
 && mv custom ohrrpgce-custom
 

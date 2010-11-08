@@ -44,6 +44,7 @@ ifdef win32
 #libfbgfx always needed, because of display_help_string!
 	libraries=fbgfx
 #libraries+= gdi32 winmm msvcrt kernel32 user32
+	common_modules+= os_windows
 	common_objects+=win32\blit.o win32\base64.o
 	game_exe:=game.exe
 	edit_exe:=custom.exe
@@ -53,6 +54,7 @@ ifdef win32
 endif
 
 ifdef unix
+	common_modules+= os_unix
 	common_objects+=blit.o base64.o
 ifndef mac
 	libraries+= X11 Xext Xpm Xrandr Xrender pthread
