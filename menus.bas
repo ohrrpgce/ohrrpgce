@@ -513,7 +513,9 @@ END IF
 RETRACE
 
 importsongfile:
-pausesong
+music_stop
+closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
+setupmusic
 
 'browse for new song
 sourcesong$ = browse$(5, default, "", "",, "browse_import_song")

@@ -72,7 +72,7 @@ WHAT IS NEW?
     * Windows music/sound import fixes (bug 826):
       * MP3/WAV import failed when Custom's path contained spaces
       * Sometimes MP3/WAV import went bonkers, looping over and over
-      * MP3/OGG music couldn't be deleted
+      * MP3/OGG music couldn't be deleted or replaced with other OGGs
       [Ralph]
 
   * New Plotscripting Stuff
