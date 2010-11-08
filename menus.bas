@@ -417,6 +417,9 @@ DO
   IF csr = 4 AND songfile$ <> "" THEN GOSUB exportsong
   IF csr = 5 AND songfile$ <> "" THEN  'delete song
    IF yesno("Really delete this song?", NO, NO) THEN
+    music_stop
+    closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
+    setupmusic
     safekill songfile$
     safekill bamfile$
     GOSUB getsonginfo
@@ -518,7 +521,9 @@ END IF
 RETRACE
 
 importsongfile:
-pausesong
+music_stop
+closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
+setupmusic
 
 'browse for new song
 sourcesong$ = browse$(5, default, "", "",, "browse_import_song")
@@ -541,6 +546,10 @@ END IF
 
 'remove song file (except BAM, we can leave those as fallback for QB version)
 IF songfile$ <> bamfile$ THEN safekill songfile$
+
+if isfile(songfile$) then
+debug "deleting " & songfile$ & " failed"
+end if
 
 sname$ = a$
 
@@ -651,6 +660,7 @@ DO
   CASE 5
     IF sfxfile$ <> "" THEN  'delete sfx
      IF yesno("Really delete this sound?", NO, NO) THEN
+      freesfx snum
       safekill sfxfile$
       GOSUB getsfxinfo
      END IF

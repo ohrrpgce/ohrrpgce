@@ -167,6 +167,18 @@ declare sub palette16_unload(byval p as palette16 ptr ptr)
 declare sub palette16_empty_cache()
 declare sub palette16_update_cache(fil as string, byval num as integer)
 
+#ifdef __FB_WIN32__
+type ProcessHandle as PROCESS_INFORMATION ptr
+#else
+'dummy type
+type ProcessHandle as integer
+#endif
+
+declare function open_console_process (program as string, args as string) as ProcessHandle
+declare function process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as integer
+declare sub kill_process (byval process as ProcessHandle)
+declare sub cleanup_process (byval process as ProcessHandle ptr)
+
 'globals
 extern vpages(0 to 15) as Frame ptr
 

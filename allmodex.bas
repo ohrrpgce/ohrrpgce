@@ -2111,6 +2111,15 @@ FUNCTION is_absolute_path (sDir as string) as integer
 	return 0
 END FUNCTION
 
+#ifdef __FB_WIN32__
+FUNCTION get_windows_error () as string
+	dim errcode as integer = GetLastError()
+	dim strbuf as string * 256
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errcode, 0, strptr(strbuf), 255, NULL)
+	return strbuf
+end FUNCTION
+#endif
+
 FUNCTION drivelist (drives() as string) as integer
 #ifdef __FB_LINUX__
 	' on Linux there is only one drive, the root /
@@ -2161,6 +2170,96 @@ FUNCTION hasmedia (drive as string) as integer
 	hasmedia = 0
 #endif
 end FUNCTION
+
+'Returns 0 on failure.
+'If successful, you should call cleanup_process with the handle after you don't need it any longer.
+'This is currently designed for running console applications. Could be
+'generalised in future as needed.
+FUNCTION open_console_process (program as string, args as string) as ProcessHandle
+#ifdef __FB_WIN32__
+	dim argstemp as string = args
+	dim flags as integer = 0
+	dim sinfo as STARTUPINFO
+	sinfo.cb = sizeof(STARTUPINFO)
+	'The following console-specific stuff is what prevents bug 826 from occurring
+	sinfo.dwFlags = STARTF_USESHOWWINDOW OR STARTF_USEPOSITION
+	sinfo.wShowWindow = 4 'SW_SHOWNOACTIVATE  'Don't activate window, but do show (not defined, probably we excluded too much of windows.bi)
+	sinfo.dwX = 5  'Try to move the window out of the way so that it doesn't cover our window
+	sinfo.dwY = 5
+
+	dim pinfop as ProcessHandle = Callocate(sizeof(PROCESS_INFORMATION))
+	if CreateProcess(strptr(program), strptr(argstemp), NULL, NULL, 0, flags, NULL, NULL, @sinfo, pinfop) = 0 then
+		dim errstr as string = get_windows_error()
+		debug "CreateProcess(" & program & ", " & args & ") failed: " & errstr
+		Deallocate(pinfop)
+		return 0
+	else
+		return pinfop
+	end if
+#else
+	'Unimplemented and not yet used
+	return 0
+#endif
+end FUNCTION
+
+'If exitcode is nonnull and the process exited, the exit code will be placed in it
+FUNCTION process_running (byval process as ProcessHandle, byval exitcode as integer ptr = NULL) as integer
+#ifdef __FB_WIN32__
+	if process = NULL then return NO
+	dim waitret as integer = WaitForSingleObject(process->hProcess, 0)
+        if waitret = WAIT_FAILED then
+		dim errstr as string = get_windows_error()
+		debug "process_running failed: " & errstr
+		return NO
+	end if
+	if exitcode <> NULL and waitret = 0 then
+		if GetExitCodeProcess(process->hProcess, exitcode) = 0 then
+			debuginfo "GetExitCodeProcess failed: " & get_windows_error()
+		end if
+	end if
+	return (waitret = WAIT_TIMEOUT)
+#else
+	'Unimplemented and not yet used
+	return NO
+#endif
+end FUNCTION
+
+SUB kill_process (byval process as ProcessHandle)
+#ifdef __FB_WIN32__
+	if process = NULL then exit sub
+	'Isn't there some way to signal the process to quit? This kills it immediately.
+	if TerminateProcess(process->hProcess, 1) = 0 then
+		debug "TerminateProcess failed: " & get_windows_error()
+	end if
+
+	'And now we wait for the process to die: it might have files open that we want to delete.
+	'Amazingly, if we don't do this and instead just wait for a couple seconds when we try
+	'to delete files the process had open they're still open and we can't. However, waiting
+	'for the process to die takes just a millisecond or two! Something ain't right.
+
+	dim waitret as integer = WaitForSingleObject(process->hProcess, 500)  'wait up to 500ms
+        if waitret <> 0 then
+		dim errstr as string
+		if waitret = WAIT_FAILED then errstr = get_windows_error()
+		debug "couldn't wait for process to quit: " & waitret & " " & errstr
+	end if
+#else
+	'Unimplemented and not yet used
+#endif
+end SUB
+
+'Cleans up resources associated with a ProcessHandle
+SUB cleanup_process (byval process as ProcessHandle ptr)
+#ifdef __FB_WIN32__
+	if process = NULL orelse *process = NULL then exit sub
+	CloseHandle((*process)->hProcess)
+	CloseHandle((*process)->hThread)
+	Deallocate(*process)
+	*process = NULL
+#else
+	'Unimplemented and not yet used
+#endif
+end SUB
 
 SUB setupmusic
 	music_init
