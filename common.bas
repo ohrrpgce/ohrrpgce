@@ -1401,12 +1401,12 @@ FUNCTION stredit (s AS STRING, BYREF insert AS INTEGER, BYVAL maxl AS INTEGER, B
    IF keyval(scPageUp) > 1 THEN move_lines = -(numlines - 2)
    IF keyval(scPageDown) > 1 THEN move_lines = numlines - 2
    IF move_lines THEN
-    found_insert = bound(found_insert + move_lines, 0, UBOUND(lines) - 1)
+    found_insert = bound(found_insert + move_lines, 0, UBOUND(lines))
     insert = 0
     FOR i AS INTEGER = 0 TO found_insert - 1
      insert += LEN(lines(i)) + 1
     NEXT i
-    insert += small(line_chars, LEN(lines(found_insert)))
+    insert += small(line_chars, LEN(lines(large(found_insert, 0))))
     '--set return value
     stredit = found_insert
    END IF
