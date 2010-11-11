@@ -406,6 +406,8 @@ END SUB
 
 SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS STRING)
 
+ STATIC remember_pt AS INTEGER
+
  IF sl = 0 THEN EXIT SUB
 
  DIM menu(0) AS STRING
@@ -413,6 +415,7 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS ST
 
  DIM state AS MenuState
  WITH state
+  .pt = remember_pt
   .size = 22
   .need_update = YES
  END WITH
@@ -448,6 +451,9 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS ST
    .Height = vpages(dpage)->h
   END WITH
  LOOP
+ 
+ remember_pt = state.pt
+ 
 END SUB
 
 SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule, slicelookup() AS STRING)
