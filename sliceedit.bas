@@ -33,6 +33,7 @@ TYPE SliceEditState
  saved_pos AS XYPair
  saved_size AS XYPair
  clipboard AS Slice Ptr
+ hide_menu AS INTEGER
 END TYPE
 
 TYPE SliceEditMenuItem
@@ -98,7 +99,7 @@ DECLARE SUB slice_editor_refresh (BYREF ses AS SliceEditState, BYREF state AS Me
 DECLARE SUB slice_editor_refresh_delete (BYREF index AS INTEGER, menu() AS SliceEditMenuItem)
 DECLARE SUB slice_editor_refresh_append (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, caption AS STRING, sl AS Slice Ptr=0)
 DECLARE SUB slice_editor_refresh_recurse (BYREF index AS INTEGER, menu() AS SliceEditMenuItem, BYREF indent AS INTEGER, sl AS Slice Ptr, rootslice AS Slice Ptr, slicelookup() AS STRING)
-DECLARE SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS STRING)
+DECLARE SUB slice_edit_detail (sl AS Slice Ptr, BYREF ses AS SliceEditState, rootsl AS Slice Ptr, slicelookup() AS STRING)
 DECLARE SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS Slice Ptr, rules() AS EditRule, slicelookup() AS STRING)
 DECLARE SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS Slice Ptr, rules() AS EditRule, slicelookup() AS STRING)
 DECLARE SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Slice Ptr, BYVAL rootsl AS Slice Ptr)
@@ -220,6 +221,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "sliceedit"
+  IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
 
   IF state.need_update THEN
    slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
@@ -235,7 +237,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
    IF state.pt = 0 THEN
     EXIT DO
    ELSE
-    slice_edit_detail menu(state.pt).handle, edslice, slicelookup()
+    slice_edit_detail menu(state.pt).handle, ses, edslice, slicelookup()
     state.need_update = YES
    END IF 
   END IF
@@ -345,8 +347,10 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   IF state.pt > 0 THEN
    DrawSliceAnts menu(state.pt).handle, dpage
   END IF
-  standardmenu plainmenu(), state, 0, 0, dpage, YES, , , YES
-  edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, 190, uilook(uiText), dpage
+  IF ses.hide_menu = NO THEN
+   standardmenu plainmenu(), state, 0, 0, dpage, YES, , , YES
+   edgeprint "+ to add a slice. SHIFT+arrows to sort", 0, 190, uilook(uiText), dpage
+  END IF
 
   SWAP vpage, dpage
   setvispage vpage
@@ -404,7 +408,7 @@ SUB slice_editor_paste(BYREF ses AS SliceEditState, BYVAL slice AS Slice Ptr)
  END IF
 END SUB
 
-SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS STRING)
+SUB slice_edit_detail (sl AS Slice Ptr, BYREF ses AS SliceEditState, rootsl AS Slice Ptr, slicelookup() AS STRING)
 
  STATIC remember_pt AS INTEGER
 
@@ -426,6 +430,7 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS ST
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "sliceedit_" & rules(state.pt).helpkey
+  IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
 
   IF state.need_update THEN
    slice_edit_detail_refresh state, menu(), sl, rules(), slicelookup()
@@ -439,7 +444,9 @@ SUB slice_edit_detail (sl AS Slice Ptr, rootsl AS Slice Ptr, slicelookup() AS ST
   clearpage dpage
   DrawSlice rootsl, dpage
   DrawSliceAnts sl, dpage
-  standardmenu menu(), state, 0, 0, dpage, YES, , , YES
+  IF ses.hide_menu = NO THEN
+   standardmenu menu(), state, 0, 0, dpage, YES, , , YES
+  END IF
 
   SWAP vpage, dpage
   setvispage vpage
