@@ -1,0 +1,1 @@
+Slice extra data is solely for user-defined uses, and is accessed with the "get slice extra" script command.

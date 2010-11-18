@@ -708,6 +708,10 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingBottom, -9999, 9999
   str_array_append menu(), "Padding Left: " & .PaddingLeft
   sliceed_rule rules(), "padding", erIntgrabber, @.PaddingLeft, -9999, 9999
+  FOR i AS INTEGER = 0 TO 2
+   str_array_append menu(), "Extra Data " & i & ": " & .Extra(i)
+   sliceed_rule rules(), "extra", erIntgrabber, @.Extra(i), -2147483648, 2147483647
+  NEXT
  END WITH
   
  state.last = UBOUND(menu)

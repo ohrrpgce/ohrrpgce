@@ -1965,6 +1965,9 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  SaveProp node, "padr", sl->PaddingRight
  SaveProp node, "padb", sl->PaddingBottom
  SaveProp node, "fill", sl->Fill
+ SaveProp node, "extra0", sl->Extra(0)
+ SaveProp node, "extra1", sl->Extra(1)
+ SaveProp node, "extra2", sl->Extra(2)
  SaveProp node, "type", SliceTypeName(sl)
  '--Save properties specific to this slice type
  sl->Save(sl, node)
@@ -2047,6 +2050,9 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  sl->PaddingRight = LoadProp(node, "padr")
  sl->PaddingBottom = LoadProp(node, "padb")
  sl->Fill = LoadPropBool(node, "fill")
+ sl->Extra(0) = LoadProp(node, "extra0")
+ sl->Extra(1) = LoadProp(node, "extra1")
+ sl->Extra(2) = LoadProp(node, "extra2")
  'now update the type
  dim typestr as string = LoadPropStr(node, "type")
  if typestr = "" then
