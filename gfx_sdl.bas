@@ -471,7 +471,7 @@ SUB gfx_sdl_process_events()
         'lowest bit is now set in io_keybits, from SDL_GetKeyState
         'IF key THEN keybdstate(key) = 7
         IF key THEN keybdstate(key) = 6
-        debug "key down: " & evnt.key.keysym.sym & " -> " & key
+        'debug "key down: " & evnt.key.keysym.sym & " -> " & key
       CASE SDL_KEYUP
         DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
         IF key THEN keybdstate(key) AND= NOT 1

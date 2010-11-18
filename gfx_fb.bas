@@ -258,7 +258,7 @@ sub process_events()
 		end if
 		if e.type = EVENT_KEY_PRESS then
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
-			debug "key press scan=" & e.scancode & " ascii=" & e.ascii
+			'debug "key press scan=" & e.scancode & " ascii=" & e.ascii
 
 			if e.scancode >= scHome andalso e.scancode <= scDelete then
 				'If numlock is on, then when a numpad key is pressed the key will 
@@ -272,7 +272,7 @@ sub process_events()
 		end if
 		if e.type = EVENT_KEY_RELEASE then
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
-			debug "key release scan=" & e.scancode & " ascii=" & e.ascii
+			'debug "key release scan=" & e.scancode & " ascii=" & e.ascii
 
 			if e.scancode >= scHome andalso e.scancode <= scDelete then
 				'See above
