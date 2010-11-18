@@ -1194,66 +1194,63 @@ FUNCTION getsfxname (num AS INTEGER) as string
  RETURN readbinstring (sfxd(), 0, 30)
 END FUNCTION
 
-FUNCTION intgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
-STATIC clip
-DIM old AS INTEGER = n
+FUNCTION intgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77) AS INTEGER
+ DIM AS LONGINT temp = n
+ intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more)
+ n = temp
+END FUNCTION
 
-IF more <> 0 AND keyval(more) > 1 THEN
- n = loopvar(n, min, max, 1)
-ELSEIF less <> 0 AND keyval(less) > 1 THEN
- n = loopvar(n, min, max, -1)
-ELSE
- DIM s AS INTEGER = SGN(n)
- n = ABS(n)
- IF keyval(scBackspace) > 1 THEN n \= 10
- FOR i AS INTEGER = 1 TO 9
-  IF keyval(i + 1) > 1 THEN n = n * 10 + i
- NEXT i
- IF keyval(sc0) > 1 THEN n *= 10
- IF min < 0 AND max > 0 THEN
-  IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN s = s * -1
-  IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND s < 0 THEN s = s * -1
+FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONGINT, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77) AS INTEGER
+ STATIC clip AS LONGINT
+ DIM old AS LONGINT = n
+
+ IF more <> 0 AND keyval(more) > 1 THEN
+  n = loopvar(n, min, max, 1)
+ ELSEIF less <> 0 AND keyval(less) > 1 THEN
+  n = loopvar(n, min, max, -1)
+ ELSE
+  DIM sign AS INTEGER = SGN(n)
+  n = ABS(n)
+  IF keyval(scBackspace) > 1 THEN n \= 10
+
+  DIM intext AS STRING = getinputtext
+  FOR i AS INTEGER = 0 TO LEN(intext) - 1
+   IF isdigit(intext[i]) THEN n = n * 10 + (intext[i] - ASC("0"))
+  NEXT
+
+  IF min < 0 AND max > 0 THEN
+   IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN sign = sign * -1
+   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND sign < 0 THEN sign = sign * -1
+  END IF
+  IF min < 0 AND (sign < 0 OR max = 0) THEN n = -n
+  'CLIPBOARD
+  IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN clip = n
+  IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN n = clip
+  n = bound(n, min, max)
  END IF
- IF min < 0 AND (s < 0 OR max = 0) THEN n = -n
- 'CLIPBOARD
- IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN clip = n
- IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN n = clip
- n = large(min, n)
- n = small(max, n)
-END IF
 
-IF old = n THEN
- intgrabber = 0
-ELSE
- intgrabber = 1
-END IF
-
+ RETURN (old <> n)
 END FUNCTION
 
 FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
-'--adjust for entries that are offset by +1
-'--what a hack!
-'--all entries <= 0 are special options not meant to be enumerated
-'--supply the min & max as visible, not actual range for n
-'--eg a menu with 'A' = -2, 'B' = -1, 'C' = 0, 'item 0 - item 99' = 1 - 100 would have min = -3, max = 99
-DIM old AS INTEGER = n
-DIM temp AS INTEGER = n - 1
-'--must adjust to always be able to type in a number
-IF temp < 0 THEN
- FOR i AS INTEGER = 2 TO 11
-  IF keyval(i) > 1 THEN temp = 0
- NEXT i
-END IF
-intgrabber temp, min, max, less, more
-n = temp + 1
-IF old = 1 AND keyval(scBackspace) > 1 THEN n = 0
+ '--adjust for entries that are offset by +1
+ '--what a hack!
+ '--all entries <= 0 are special options not meant to be enumerated
+ '--supply the min & max as visible, not actual range for n
+ '--eg a menu with 'A' = -2, 'B' = -1, 'C' = 0, 'item 0 - item 99' = 1 - 100 would have min = -3, max = 99
+ DIM old AS INTEGER = n
+ DIM temp AS INTEGER = n - 1
+ '--must adjust to always be able to type in a number
+ IF temp < 0 THEN
+  FOR i AS INTEGER = 2 TO 11
+   IF keyval(i) > 1 THEN temp = 0
+  NEXT i
+ END IF
+ intgrabber temp, min, max, less, more
+ n = temp + 1
+ IF old = 1 AND keyval(scBackspace) > 1 THEN n = 0
 
-IF old = n THEN
- zintgrabber = 0
-ELSE
- zintgrabber = 1
-END IF
-
+ RETURN (old <> n)
 END FUNCTION
 
 FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS INTEGER=1, nmax AS INTEGER=1, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
