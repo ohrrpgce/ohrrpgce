@@ -43,6 +43,8 @@ dim shared smooth as integer = 0
 dim shared mouseclipped as integer = 0
 dim shared rememmvis as integer = 1
 dim shared as integer mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
+dim shared inputtext as string
+dim shared extrakeys(127) as integer
 
 'internal palette for 32-bit mode, with RGB colour components packed into a int
 dim shared truepal(255) as integer
@@ -254,8 +256,34 @@ sub process_events()
 				setmouse , , 0
 			end if
 		end if
-	wend
+		if e.type = EVENT_KEY_PRESS then
+			if e.ascii <> 0 then inputtext += chr(e.ascii)
+			debug "key press scan=" & e.scancode & " ascii=" & e.ascii
 
+			if e.scancode >= scHome andalso e.scancode <= scDelete then
+				'If numlock is on, then when a numpad key is pressed the key will 
+				'generate 0-9 or ., and can be differentiated from arrow and home, etc., keys.
+				if e.ascii then
+					extrakeys(e.scancode - scHome + scNumpad7) = 8
+				else
+					extrakeys(e.scancode) = 8
+				end if
+			end if
+		end if
+		if e.type = EVENT_KEY_RELEASE then
+			if e.ascii <> 0 then inputtext += chr(e.ascii)
+			debug "key release scan=" & e.scancode & " ascii=" & e.ascii
+
+			if e.scancode >= scHome andalso e.scancode <= scDelete then
+				'See above
+				if e.ascii then
+					extrakeys(e.scancode - scHome + scNumpad7) = 0
+				else
+					extrakeys(e.scancode) = 0
+				end if
+			end if
+		end if
+	wend
 
 	'the polling thread ought to ensure that these are caught timeously
 	'inkey does not seem to be threadsafe (bug 790)
@@ -295,11 +323,36 @@ end sub
 sub io_fb_updatekeys(byval keybd as integer ptr)
 	process_events()
 
-	for a as integer = 0 to &h7f
-		if multikey(a) then
-			keybd[a] = keybd[a] or 8
-		end if
+	for key as integer = 0 to 127
+		select case key
+			case 0 to scHome - 1, scDelete + 1 to scContext
+				if multikey(key) then
+					keybd[key] or= 8
+				end if
+
+			case scHome to scDelete, scNumpad7 to scNumpadPeriod
+				keybd[key] or= extrakeys(key)
+
+			'other keys are undetectable with fbgfx!
+		end select
 	next
+
+	'Not used yet, so flush this
+	inputtext = ""
+
+	'fbgfx reports separate shift keys, but combined alt and ctrl keys
+
+	keybd[scShift] or= (keybd[scLeftShift] or keybd[scRightShift]) and 8
+	keybd[scLeftAlt] or= keybd[scAlt] and 8
+	keybd[scRightAlt] or= keybd[scAlt] and 8
+	keybd[scLeftCtrl] or= keybd[scCtrl] and 8
+	keybd[scRightCtrl] or= keybd[scCtrl] and 8
+
+	'Some other keys are also indistinguishable, and are mirrored
+	keybd[scNumpadSlash] or= keybd[scSlash] and 8
+	keybd[scNumpadEnter] or= keybd[scEnter] and 8
+	keybd[scPrintScreen] or= keybd[scNumpadAsterix] and 8
+	keybd[scPause] or= keybd[scNumlock] and 8
 end sub
 
 sub io_fb_setmousevisibility(byval visible as integer)

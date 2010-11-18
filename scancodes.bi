@@ -1,7 +1,6 @@
-'OHRRPGCE scancode constants, generated from scancode.hsi, because I didn't 
-'like fbgfx.bi's ones
+'OHRRPGCE scancode constants. An extension of FreeBASIC's set.
 '
-'Please read LICENSE.txt for GPL License details and disclaimer of liability
+'Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 '
 
 #IFNDEF SCANCODES_BI
@@ -17,6 +16,7 @@ CONST scHash = 04
 CONST sc4 = 05
 CONST scDollarSign = 05
 CONST sc5 = 06
+CONST scPercent = 06
 CONST sc6 = 07
 CONST scCircumflex = 07
 CONST sc7 = 08
@@ -82,11 +82,10 @@ CONST scRightCaret = 52
 CONST scSlash = 53
 CONST scQuestionMark = 53
 CONST scRightShift = 54
-CONST scPrintScreen = 55
 CONST scNumpadAsterix = 55
 CONST scAlt = 56
 CONST scSpace = 57
-CONST scCapslock = 58
+CONST scCapsLock = 58
 CONST scF1 = 59
 CONST scF2 = 60
 CONST scF3 = 61
@@ -97,43 +96,60 @@ CONST scF7 = 65
 CONST scF8 = 66
 CONST scF9 = 67
 CONST scF10 = 68
-CONST scNumlock = 69
+CONST scNumLock = 69
 CONST scScrollLock = 70
 CONST scHome = 71
-CONST scNumpad7 = 71
 CONST scUp = 72
-CONST scNumpad8 = 72
-CONST scPageup = 73
-CONST scNumpad9 = 73
+CONST scPageUp = 73
 CONST scNumpadMinus = 74
 CONST scLeft = 75
-CONST scNumpad4 = 75
-CONST scNumpad5 = 76
 CONST scRight = 77
-CONST scNumpad6 = 77
 CONST scNumpadPlus = 78
 CONST scEnd = 79
-CONST scNumpad1 = 79
 CONST scDown = 80
-CONST scNumpad2 = 80
-CONST scPagedown = 81
-CONST scNumpad3 = 81
+CONST scPageDown = 81
 CONST scInsert = 82
-CONST scNumpad0 = 82
 CONST scDelete = 83
-CONST scNumpadPeriod = 83
 CONST scF11 = 87
 CONST scF12 = 88
 CONST scLeftWinLogo = 91
+CONST scLeftCommand = 91
+CONST scLeftMeta = 91
 CONST scRightWinLogo = 92
+CONST scRightCommand = 92
+CONST scRightMeta = 92
 CONST scContext = 93
-'CONST scF13 = 94
-'CONST scF14 = 95
-'CONST scF15 = 96
 
-'Mac-only keys
-CONST scLeftCommand = 97  'aka left Meta
-CONST scRightCommand = 98  'aka right Meta
+'The following scancodes deviate from QB/FB
+
+CONST scF13 = 94
+CONST scF14 = 95
+CONST scF15 = 96
+
+CONST scShift = 97
+CONST scLeftAlt = 98
+CONST scRightAlt = 99
+CONST scLeftCtrl = 100
+CONST scRightCtrl = 101
+
+CONST scNumpadSlash = 102
+CONST scNumpadEnter = 103
+
+CONST scNumpad7 = 104
+CONST scNumpad8 = 105
+CONST scNumpad9 = 106
+CONST scNumpad4 = 108
+CONST scNumpad5 = 109
+CONST scNumpad6 = 110
+CONST scNumpad1 = 112
+CONST scNumpad2 = 113
+CONST scNumpad3 = 114
+CONST scNumpad0 = 115
+CONST scNumpadPeriod = 116
+
+CONST scPrintScreen = 117
+CONST scPause = 118
+
 
 ENUM MouseButton
   mouseLeft = 1

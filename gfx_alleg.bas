@@ -33,10 +33,10 @@ dim shared scantrans(0 to 127) as integer => { _
 	scF10, scF11, scF12, scEsc, scTilde, scMinus, scEquals, scBackspace, _
 	scTab, scLeftBrace, scRightBrace, scEnter, scColon, scQuote, scBackslash, 0, _
 	scComma, scPeriod, scSlash, scSpace, scInsert, scDelete, scHome, scEnd, _
-	scPageup, scPagedown, scLeft, scRight, scUp, scDown, scSlash, scNumpadAsterix, _
-	scMinus, scPlus, scPeriod, scEnter, 0, 0, 0, 0, _
+	scPageup, scPagedown, scLeft, scRight, scUp, scDown, scNumpadSlash, scNumpadAsterix, _
+	scNumpadMinus, scNumpadPlus, scNumpadPeriod, scNumpadEnter, scPrintScreen, scPause, 0, 0, _
 	0, 0, 0, scAtSign, scCircumflex, 0, 0, scLeftShift, _
-	scRightShift, scCtrl, scCtrl, scAlt, scAlt, scLeftWinLogo, scRightWinLogo, scContext, _
+	scRightShift, scLeftCtrl, scRightCtrl, scLeftAlt, scRightAlt, scLeftWinLogo, scRightWinLogo, scContext, _
 	scScrollLock, scNumlock, scCapslock, 0, 0, 0, 0, 0, _
 	0, 0, 0, 0, 0, 0, 0, 0 _
 }
@@ -187,6 +187,11 @@ sub io_alleg_updatekeys(byval keybd as integer ptr)
 			keybd[scantrans(a)] = keybd[scantrans(a)] or 8
 		end if
 	next
+
+	keybd[scShift] or= (keybd[scLeftShift] or keybd[scRightShift]) and 8
+	keybd[scAlt] or= (keybd[scLeftAlt] or keybd[scRightAlt]) and 8
+	keybd[scCtrl] or= (keybd[scLeftCtrl] or keybd[scRightCtrl]) and 8
+
 
 	if key(KEY_ENTER) andalso (key_shifts and KB_ALT_FLAG) then
 		if windowed = 0 then

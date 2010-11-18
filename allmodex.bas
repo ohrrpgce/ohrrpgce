@@ -881,6 +881,10 @@ FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as 
 'bit 0: key was down at the last setkeys call
 'bit 1: keypress event (either new keypress, or key-repeat) during last setkey-setkey interval
 'bit 2: new keypress during last setkey-setkey interval
+'
+'Note: Alt/Ctrl keys may behave strangely with gfx_fb (and old gfx_directx):
+'You won't see Left/Right keypresses even when scAlt/scCtrl is pressed, so do not
+'check "keyval(scLeftAlt) > 0 OR keyval(scRightAlt) > 0" instead of "keyval(scAlt) > 0"
 
 	DIM result as integer = keybd(a)
 	IF a >= 0 THEN
@@ -892,7 +896,9 @@ FUNCTION keyval (BYVAL a as integer, BYVAL rwait as integer = 0, BYVAL rrate as 
 		IF a = scLeft OR a = scRight OR a = scUp OR a = scDown THEN arrowkey = -1
 		IF arrowkey AND diagonalhack <> -1 THEN RETURN (result AND 5) OR (diagonalhack AND keybd(a) > 0)
 		IF keysteps(a) >= rwait THEN
-			IF a <> scNumlock AND a <> scCapslock THEN 'workaround for special case in old versions of SDL
+			'Don't fire repeat presses for special toggle keys (note: these aren't actually
+			'toggle keys in all backends, eg. gfx_fb)
+			IF a <> scNumlock AND a <> scCapslock AND a <> scScrolllock THEN
 				IF ((keysteps(a) - rwait - 1) MOD rrate = 0) THEN result OR= 2
 			END IF
 			IF arrowkey THEN diagonalhack = result AND 2
@@ -999,6 +1005,14 @@ SUB setkeys ()
 	mutexlock keybdmutex
 	io_keybits(@keybd(0))
 	mutexunlock keybdmutex
+
+	'DELETEME: This is a temporary fix for gfx_directx not knowing about scShift
+	'(or any other of the new scancodes, but none of the rest matter much (maybe
+	'scPause) except in games that want to use them).
+	if (keybd(scLeftShift) or keybd(scRightShift)) <> keybd(scShift) then
+		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
+	end if
+
 	for a = 0 to &h7f
 		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then  'I am also confused
 			keysteps(a) = 0

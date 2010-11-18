@@ -614,6 +614,25 @@ FOR i = 0 TO 299
 NEXT i
 END SUB
 
+FUNCTION script_keyval (BYVAL key as integer) as integer
+ 'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
+
+ DIM ret as integer = 0
+ 'Prevent access to new scancodes, for now
+ IF key >= 0 AND key <= 93 THEN
+  ret = keyval(key)
+
+  'Mirror new scancodes onto old ones
+  IF key >= scHome AND key <= scInsert THEN
+   ret OR= keyval(key + scNumpad7 - scHome)
+  END IF
+  IF key = scSlash THEN ret OR= keyval(scNumpadSlash)
+  IF key = scEnter THEN ret OR= keyval(scNumpadEnter)
+  IF key = scNumlock THEN ret OR= keyval(scPause)
+ END IF
+ RETURN ret
+END FUNCTION
+
 SUB onkeyscript (scriptnum)
 doit = 0
 FOR i = 0 TO 5
@@ -622,6 +641,8 @@ NEXT i
 
 IF doit = 0 THEN
  FOR i = 1 TO 127
+  'We scan all keys, triggering a script even if its scancode is not one
+  'accessible via script commands so that custom "press any key" scripts work.
   IF keyval(i) THEN doit = 1: EXIT FOR
  NEXT i
 END IF
@@ -923,8 +944,11 @@ SELECT CASE AS CONST id
  CASE 29'--stop song
   stopsong
  CASE 30'--keyval
+  'This used to be keyispressed; which undocumentedly reported two bits
+  'instead of true/false.
   IF retvals(0) >= 0 AND retvals(0) < 127 THEN
-   scriptret = keyval(retvals(0)) AND 3
+   'keyval() reports a 3rd bit, but didn't at the time that this command was (re-)documented
+   scriptret = script_keyval(retvals(0)) AND 3
   ELSE
    scripterr "invalid scancode keyval(" & retvals(0) & ")", 4
   END IF
@@ -1461,10 +1485,10 @@ SELECT CASE AS CONST id
  CASE 235'--key is pressed
   SELECT CASE retvals(0)
   CASE 1 TO 127 'keyboard
-   IF keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
+   IF script_keyval(retvals(0)) THEN scriptret = 1 ELSE scriptret = 0
   CASE 128 TO 147 'joystick
    dim b as integer, xaxis as integer, yaxis as integer '0 >= x and y, >= 100
-   IF readjoy(bound(retvals(1),0,7),b,xaxis,yaxis) THEN
+   IF readjoy(bound(retvals(1), 0, 7), b, xaxis, yaxis) THEN
     IF retvals(0) >= 128 AND retvals(0) <= 143 THEN
      scriptret = (b SHR (retvals(0) - 128)) AND 1
     ELSEIF retvals(0) = 144 THEN 'x left
