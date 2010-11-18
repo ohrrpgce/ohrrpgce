@@ -206,7 +206,6 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
  DIM cursor_seek AS Slice Ptr = 0
 
  DIM slice_type AS SliceTypes
- DIM shift AS INTEGER
 
  DIM filename AS STRING
  
@@ -232,7 +231,6 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
    state.need_update = NO
   END IF
 
-  shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
   IF enter_or_space() THEN
    IF state.pt = 0 THEN
     EXIT DO
@@ -269,11 +267,6 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
     END IF
    END IF
   END IF
-  IF keyval(scF) > 1 THEN
-   IF state.pt > ses.last_non_slice THEN
-    slice_editor menu(state.pt).handle
-   END IF
-  END IF
   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
     IF state.pt > ses.last_non_slice THEN
@@ -284,14 +277,46 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
     state.need_update = YES
    END IF
   END IF
-  IF keyval(scDelete) > 1 THEN
-   IF yesno("Delete this " & SliceTypeName(slice_type) & " slice?", NO) THEN
-    slice_editor_refresh_delete state.pt, menu()
-    state.need_update = YES
+
+  IF menu(state.pt).handle THEN
+
+   IF keyval(scDelete) > 1 THEN
+    IF yesno("Delete this " & SliceTypeName(slice_type) & " slice?", NO) THEN
+     slice_editor_refresh_delete state.pt, menu()
+     state.need_update = YES
+    END IF
    END IF
-  END IF
-  IF state.pt > ses.last_non_slice THEN
-   IF keyval(scCtrl) > 0 THEN
+   IF keyval(scF) > 1 THEN
+    slice_editor menu(state.pt).handle
+   END IF
+
+   IF keyval(scShift) > 0 THEN
+
+    IF keyval(scUp) > 1 THEN
+     SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->PrevSibling
+     cursor_seek = menu(state.pt).handle
+     state.need_update = YES
+    END IF
+    IF keyval(scDown) > 1 AND state.pt < state.last THEN
+     SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->NextSibling
+     cursor_seek = menu(state.pt).handle
+     state.need_update = YES
+    END IF
+    IF keyval(scRight) > 1 THEN
+     SliceAdoptSister menu(state.pt).handle
+     cursor_seek = menu(state.pt).handle
+     state.need_update = YES
+    END IF
+    IF keyval(scLeft) > 1 THEN
+     IF (menu(state.pt).handle)->parent <> edslice THEN
+      SliceAdoptNiece menu(state.pt).handle
+      cursor_seek = menu(state.pt).handle
+      state.need_update = YES
+     END IF
+    END IF
+
+   ELSEIF keyval(scCtrl) > 0 THEN '--ctrl, not shift
+
     IF keyval(scC) > 1 THEN
      slice_editor_copy ses, menu(state.pt).handle
     END IF
@@ -299,44 +324,34 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
      slice_editor_paste ses, menu(state.pt).handle
      state.need_update = YES
     END IF
-   END IF
-  END IF
-  IF state.pt > 0 THEN
-   IF shift THEN
-    IF menu(state.pt).handle THEN
-     IF keyval(scUp) > 1 THEN
-      SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->PrevSibling
-      cursor_seek = menu(state.pt).handle
-      state.need_update = YES
-     END IF
-     IF keyval(scDown) > 1 AND state.pt < state.last THEN
-      SwapSiblingSlices menu(state.pt).handle, menu(state.pt).handle->NextSibling
-      cursor_seek = menu(state.pt).handle
-      state.need_update = YES
-     END IF
-     IF keyval(scRight) > 1 THEN
-      SliceAdoptSister menu(state.pt).handle
-      cursor_seek = menu(state.pt).handle
-      state.need_update = YES
-     END IF
-     IF keyval(scLeft) > 1 THEN
-      IF (menu(state.pt).handle)->parent <> edslice THEN
-       SliceAdoptNiece menu(state.pt).handle
-       cursor_seek = menu(state.pt).handle
-       state.need_update = YES
-      END IF
-     END IF
+    IF keyval(scUp) > 1 THEN
+     cursor_seek = menu(state.pt).handle->prevSibling
+     state.need_update = YES
     END IF
-   END IF
-  END IF
-  IF NOT shift THEN
-   IF keyval(scLeft) > 1 THEN
-    IF menu(state.pt).handle THEN
+    IF keyval(scDown) > 1 THEN
+     cursor_seek = menu(state.pt).handle->nextSibling
+     state.need_update = YES
+    END IF
+    IF keyval(scLeft) > 1 THEN
+     cursor_seek = menu(state.pt).handle->parent
+     state.need_update = YES
+    END IF
+    IF keyval(scRight) > 1 THEN
+     cursor_seek = menu(state.pt).handle->firstChild
+     state.need_update = YES
+    END IF
+
+   ELSE '--neither shift nor ctrl
+
+    IF keyval(scLeft) > 1 THEN
      cursor_seek = (menu(state.pt).handle)->parent
      state.need_update = YES
     END IF
+
    END IF
-  END IF
+
+  END IF '--end IF menu(state.pt).handle
+
   IF state.need_update = NO THEN
    'Only do normal cursor movement when no updates are needed
    usemenu state
@@ -574,11 +589,11 @@ SUB slice_editor_xy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL focussl AS Sl
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF enter_or_space() THEN EXIT DO
-  shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
-  IF keyval(scUp)    > 0 THEN y -= 1 + 9 * ABS(shift)
-  IF keyval(scRight) > 0 THEN x += 1 + 9 * ABS(shift)
-  IF keyval(scDown)  > 0 THEN y += 1 + 9 * ABS(shift)
-  IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * ABS(shift)
+  shift = ABS(keyval(scShift) > 0)
+  IF keyval(scUp)    > 0 THEN y -= 1 + 9 * shift
+  IF keyval(scRight) > 0 THEN x += 1 + 9 * shift
+  IF keyval(scDown)  > 0 THEN y += 1 + 9 * shift
+  IF keyval(scLeft)  > 0 THEN x -= 1 + 9 * shift
   clearpage dpage
   DrawSlice rootsl, dpage
   DrawSliceAnts focussl, dpage
