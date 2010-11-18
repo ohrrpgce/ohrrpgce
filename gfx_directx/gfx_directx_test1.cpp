@@ -5,7 +5,7 @@
 #include "gfx_directx.h"
 #include <windows.h>
 
-#include "fb_scancodes.h"
+#include "scancodes.h"
 
 BYTE g_frameTest[320 * 200];
 UINT g_paletteTest[256];

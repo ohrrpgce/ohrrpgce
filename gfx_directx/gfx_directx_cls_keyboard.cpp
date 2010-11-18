@@ -1,5 +1,5 @@
 #include "gfx_directx_cls_keyboard.h"
-#include "fb_scancodes.h"
+#include "scancodes.h"
 using namespace gfx;
 
 Keyboard::Keyboard() : m_scLShift(0)
@@ -109,7 +109,7 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 
 	0, //generic shift key--what to do? Nothing: left and right are accounted for as special cases
-	SC_CONTROL, //generic control key--what to do? fb doesn't distinguish between the left and right, so pass it along
+	SC_CTRL, //generic control key--what to do? fb doesn't distinguish between the left and right, so pass it along
 	SC_ALT, //generic alt key--what to do? fb doesn't distinguish between the left and right, so pass it along
 	SC_NUMLOCK, //pause key
 	SC_CAPSLOCK,
@@ -119,7 +119,7 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 	0,
-	SC_ESCAPE,
+	SC_ESC,
 	0,
 	0,
 	0,
@@ -187,9 +187,9 @@ const int Keyboard::c_vk2fb[256] = {
 	SC_X,
 	SC_Y,
 	SC_Z,
-	SC_LWIN,
-	SC_RWIN,
-	SC_MENU, //applications key
+	SC_LEFTWINLOGO,
+	SC_RIGHTWINLOGO,
+	SC_CONTEXT, //applications key
 	0,
 	0,
 
@@ -204,7 +204,7 @@ const int Keyboard::c_vk2fb[256] = {
 	SC_7,
 	SC_8,
 	SC_9,
-	SC_MULTIPLY,
+	SC_ASTERIX,
 	SC_PLUS,
 	0, //separator key?
 	SC_MINUS,
@@ -262,10 +262,10 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 
-	SC_LSHIFT,
-	SC_RSHIFT,
-	SC_CONTROL,
-	SC_CONTROL,
+	SC_LEFTSHIFT,
+	SC_RIGHTSHIFT,
+	SC_CTRL,
+	SC_CTRL,
 	SC_ALT,
 	SC_ALT,
 	0,
