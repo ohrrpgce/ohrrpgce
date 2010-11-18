@@ -44,15 +44,21 @@ FUNCTION bitcount (BYVAL v as unsigned integer) as integer
 END FUNCTION
 
 FUNCTION bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
-bound = n
-IF n < lowest THEN bound = lowest
-IF n > highest THEN bound = highest
+ bound = n
+ IF n < lowest THEN bound = lowest
+ IF n > highest THEN bound = highest
+END FUNCTION
+
+FUNCTION bound (BYVAL n as longint, BYVAL lowest as longint, BYVAL highest as longint) as longint
+ bound = n
+ IF n < lowest THEN bound = lowest
+ IF n > highest THEN bound = highest
 END FUNCTION
 
 FUNCTION bound (BYVAL n AS DOUBLE, BYVAL lowest AS DOUBLE, BYVAL highest AS DOUBLE) AS DOUBLE
-bound = n
-IF n < lowest THEN bound = lowest
-IF n > highest THEN bound = highest
+ bound = n
+ IF n < lowest THEN bound = lowest
+ IF n > highest THEN bound = highest
 END FUNCTION
 
 FUNCTION in_bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
@@ -60,20 +66,37 @@ FUNCTION in_bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as
 END FUNCTION
 
 FUNCTION large (BYVAL n1 as integer, BYVAL n2 as integer) as integer
-large = n1
-IF n2 > n1 THEN large = n2
+ large = n1
+ IF n2 > n1 THEN large = n2
+END FUNCTION
+
+FUNCTION large (BYVAL n1 as longint, BYVAL n2 as longint) as longint
+ large = n1
+ IF n2 > n1 THEN large = n2
 END FUNCTION
 
 FUNCTION loopvar (BYVAL value as integer, BYVAL min as integer, BYVAL max as integer, BYVAL inc as integer) as integer
-dim as integer a = value + inc
-IF a > max THEN loopvar = a - ((max - min) + 1): EXIT FUNCTION
-IF a < min THEN loopvar = a + ((max - min) + 1): EXIT FUNCTION
-loopvar = a
+ DIM as integer a = value + inc
+ IF a > max THEN RETURN a - ((max - min) + 1)
+ IF a < min THEN RETURN a + ((max - min) + 1)
+ RETURN a
+END FUNCTION
+
+FUNCTION loopvar (BYVAL value as longint, BYVAL min as longint, BYVAL max as longint, BYVAL inc as longint) as longint
+ DIM as longint a = value + inc
+ IF a > max THEN RETURN a - ((max - min) + 1)
+ IF a < min THEN RETURN a + ((max - min) + 1)
+ RETURN a
 END FUNCTION
 
 FUNCTION small (BYVAL n1 as integer, BYVAL n2 as integer) as integer
-small = n1
-IF n2 < n1 THEN small = n2
+ small = n1
+ IF n2 < n1 THEN small = n2
+END FUNCTION
+
+FUNCTION small (BYVAL n1 as longint, BYVAL n2 as longint) as longint
+ small = n1
+ IF n2 < n1 THEN small = n2
 END FUNCTION
 
 FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER

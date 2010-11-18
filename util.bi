@@ -274,12 +274,16 @@ declare function isdir (sdir as string) as integer
 
 
 declare function bitcount (byval v as unsigned integer) as integer
-declare function bound overload (byval n AS INTEGER, byval lowest AS INTEGER, byval highest AS INTEGER) AS INTEGER
+declare function bound overload (byval n as integer, byval lowest as integer, byval highest as integer) as integer
+declare function bound overload (byval n as longint, byval lowest as longint, byval highest as longint) as longint
 declare function bound overload (byval n as double, byval lowest as double, byval highest as double) as double
 declare function in_bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
-declare function large (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER
-declare function loopvar (byval var AS INTEGER, byval min AS INTEGER, byval max AS INTEGER, byval inc AS INTEGER) AS INTEGER
-declare function small (byval n1 AS INTEGER, byval n2 AS INTEGER) AS INTEGER
+declare function large overload (byval n1 as integer, byval n2 as integer) as integer
+declare function large overload (byval n1 as longint, byval n2 as longint) as longint
+declare function loopvar overload (byval var as integer, byval min as integer, byval max as integer, byval inc as integer) as integer
+declare function loopvar overload (byval value as longint, byval min as longint, byval max as longint, byval inc as longint) as longint
+declare function small overload (byval n1 as integer, byval n2 as integer) as integer
+declare function small overload (byval n1 as longint, byval n2 as longint) as longint
 declare function range (number as integer, percent as integer) as integer
 declare function rpad (s as string, pad_char as string, size as integer) as string
 declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
