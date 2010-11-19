@@ -218,7 +218,13 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
  DO
   setwait 55
   setkeys
-  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scEsc) > 1 THEN
+   IF ses.hide_menu THEN
+    ses.hide_menu = NO
+   ELSE
+    EXIT DO
+   END IF
+  END IF
   IF keyval(scF1) > 1 THEN show_help "sliceedit"
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
 
