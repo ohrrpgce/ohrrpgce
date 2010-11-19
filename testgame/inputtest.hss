@@ -1,0 +1,60 @@
+include, plotscr.hsd
+include, scancode.hsi
+
+#Removed from plotscr.hsd
+script, set extended scancodes enabled, hsd:bit=1, begin
+  if(hsd:bit) then (hsd:bit := 256)
+  write general(177,(read general(177),and,-257)+hsd:bit)
+end
+
+plotscript, main, begin
+  suspend player
+  load slice collection (0)
+  set slice lookups (sprite layer)
+
+  while (1) do, begin
+    if (keyval(key:ctrl)>>0 && keyval(key:e)>>1) then (
+      set extended scancodes enabled (extended scancodes enabled, xor, 1)
+    )
+    show scancode bit status
+    update keyboard
+    wait
+  end
+end
+
+script, show scancode bit status, begin
+  $0="Scancode backcompat: "
+  if (extended scancodes enabled) then (
+    $0+"OFF"
+  ) else (
+    $0+"ON"
+  )
+  show string at (0, 20, 20)
+  $1="(Ctrl+E toggle)"
+  show string at (1, 28, 30)
+end
+
+#Keyboard scancodes are stored in extra0, which we copy
+#into the lookup for convenience (and for testing)
+script, set slice lookups, sl, begin
+  if (get slice extra (sl, 0)) then (
+    set slice lookup (sl, get slice extra (sl, 0))
+  )
+
+  variable (child)
+  child := first child (sl)
+  while (child) do, begin
+    set slice lookups (child)
+    child := next sibling (child)
+  end
+end
+
+script, update keyboard, begin
+  variable (i, sl, st)
+  for (i, 0, 127) do, begin
+    sl := lookup slice (i)
+    if (sl == 0) then (continue)
+
+    set rect style(sl, keyval(i) + 1)
+  end
+end
