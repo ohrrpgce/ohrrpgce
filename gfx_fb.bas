@@ -245,8 +245,11 @@ end sub
 sub process_key_event(e as Event, byval value as integer)
 	'NOTE: numpad 5 seems to be broken on Windows, events for that key have scancode = 0 regardless of numlock state!
 
+	'On linux, Pause, PrintScreen, and WindowsKey keypresses send events with scancode 0, and multikey shows nothing.
+
 	select case e.scancode
 		case scHome to scPageUp, scLeft to scRight, scEnd to scDelete
+#ifdef __FB_WIN32__
 			'If numlock is on, then when a numerical/period numpad key is pressed the key will 
 			'generate 0-9 or ., and can be differentiated from arrow and home, etc., keys.
 			if e.ascii then
@@ -254,6 +257,15 @@ sub process_key_event(e as Event, byval value as integer)
 			else
 				extrakeys(e.scancode) = value
 			end if
+#else
+			'On Linux, Home, Left, etc send ascii >256 (or 127 in the case of Delete), and numpad keys
+			'send 0 if numlock is off, and the normal ascii if on
+			if e.ascii < 256 andalso e.ascii <> 127 then
+				extrakeys(e.scancode - scHome + scNumpad7) = value
+			else
+				extrakeys(e.scancode) = value
+			end if
+#endif
 	end select
 end sub
 
