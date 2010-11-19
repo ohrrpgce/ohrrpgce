@@ -5095,6 +5095,14 @@ end</example>
 			<shortname>set dead heroes gain experience</shortname>
 			<description>Sets whether or not dead heroes gain experience from battles. If the argument is <ref>off</ref> then only living heroes gain experience. If the argument is <ref>on</ref> then dead heroes get it too.</description>
 		</command>
+		<command id="extendedscancodesenabled">
+			<canon>extended scancodes enabled</canon>
+			<shortname>extended scancodes enabled</shortname>
+			<description>Returns the state of the "Enabled better scancodes" general bitset: whether or not numpad keys are distinguishable from Home, Up, etc. keys.</description>
+			<seealso>
+				<ref>keyispressed</ref>
+			</seealso>
+		</command>
 		<command id="allowminimap">
 			<canon>allow minimap (setting)</canon>
 			<shortname>allow minimap</shortname>

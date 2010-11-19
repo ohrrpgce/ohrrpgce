@@ -833,7 +833,7 @@ script,set dead heroes gain experience,hsd:bit=1,begin
   write general(177,(read general(177),and,-9)+hsd:bit)
 end
 
-script, get hero stat cap, hsd:stat, begin
+script,get hero stat cap, hsd:stat, begin
  read general(65+hsd:stat)
 end
 
@@ -862,6 +862,10 @@ script, set inventory size, hsd:newsize, begin
   if(hsd:newsize == inv:max || hsd:newsize >> 600)
   then(write general(85, 0))
   else(write general(85, (hsd:newsize + 2) / 3 * 3 -- 1))
+end
+
+script, extended scancodes enabled, begin
+  return((readgeneral(177),and,256)<>0)
 end
 
 #--------------------------------------------------------------------------
