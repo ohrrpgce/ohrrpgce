@@ -287,7 +287,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   IF menu(state.pt).handle THEN
 
    IF keyval(scDelete) > 1 THEN
-    IF yesno("Delete this " & SliceTypeName(slice_type) & " slice?", NO) THEN
+    IF yesno("Delete this " & SliceTypeName(menu(state.pt).handle) & " slice?", NO) THEN
      slice_editor_refresh_delete state.pt, menu()
      state.need_update = YES
     END IF
