@@ -579,10 +579,10 @@ DO
    END IF
   END IF
   IF keyval(scF7) > 1 THEN 'Toggle level-up bug
-   IF readbit(gen(), 101, 9) = 0 THEN
-    setbit gen(), 101, 9, 1
+   IF readbit(gen(), genBits, 9) = 0 THEN
+    setbit gen(), genBits, 9, 1
    ELSE
-    setbit gen(), 101, 9, 0
+    setbit gen(), genBits, 9, 0
    END IF
   END IF
   IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
@@ -898,7 +898,7 @@ FOR whoi = 0 TO 3
  IF readbit(gen(), 44, suspendcatapillar) = 0 THEN o = 0
 
  '--leader always checks harm tiles, allies only if caterpillar is enabled
- IF whoi = 0 OR readbit(gen(), 101, 1) = 1 THEN
+ IF whoi = 0 OR readbit(gen(), genBits, 1) = 1 THEN
   '--Stuff that should only happen when you finish moving
   IF didgo(o) = 1 AND xgo(o) = 0 AND ygo(o) = 0 THEN
    '---check for harm tile
@@ -2206,7 +2206,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
       CASE 5 ' team
        heroswap 1 : updatetags = YES
       CASE 6 ' order/team
-       heroswap readbit(gen(), 101, 5) : updatetags = YES
+       heroswap readbit(gen(), genBits, 5) : updatetags = YES
       CASE 7,12 ' map
        minimap catx(0), caty(0)
       CASE 8,13 ' save

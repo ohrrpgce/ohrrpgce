@@ -3777,12 +3777,139 @@ end
 		<command id="keyispressed">
 			<canon>key is pressed (scancode)</canon>
 			<shortname>key is pressed</shortname>
-			<description>Returns <ref>true</ref> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <ref>false</ref> if it is not. The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc used with <ref>waitforkey</ref>. I have provided an extra include file, SCANCODE.HSI that you can use to define friendly names for all the scancodes.<lb/>
+			<description>Returns <ref>true</ref> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <ref>false</ref> if it is not. The argument is a scancode, NOT the <ref>upkey</ref>, <ref>downkey</ref>, etc used with <ref>waitforkey</ref>. An extra include file, <p>scancode.hsi</p>, is provided which you should <ref>include</ref> in order to use the following scancode constants.<lb/>
+
+<note>Since Zenzizenic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the &quot;Enable better scancodes for scripts&quot; Preference Bitset in the General Game Settings menu.</note>
+<note>You can't rely on the behaviour of the caps-, scroll- and num-lock keys. They might report on/off state instead of pressed/not pressed, depending on the graphics backend, operating system, and engine version.</note>
+<note>You can NOT wait for the player to press a key by continually polling <p>key is pressed</p> unless you stick a <ref>wait</ref> in your <ref>while</ref> loop. That's because <p>key is pressed</p> does not return real time data, but the state of the keyboard at the beginning of the current game tick.</note>
 			    Keyboard scan codes:
-          <ul><li>00</li><li>01 ESC</li><li>02 1</li><li>03 2</li><li>04 3</li><li>05 4</li><li>06 5</li><li>07 6</li><li>08 7</li><li>09 8</li><li>10 9</li><li>11 0</li><li>12 - _</li><li>13 = +</li><li>14 BACKSPACE</li><li>15 TAB</li><li>16 Q</li><li>17 W</li><li>18 E</li><li>19 R</li><li>20 T</li><li>21 Y</li><li>22 U</li><li>23 I</li><li>24 O</li><li>25 P</li><li>26 [ {</li><li>27 ] }</li><li>28 ENTER</li><li>29 CTRL</li><li>30 A</li><li>31 S</li><li>32 D</li><li>33 F</li><li>34 G</li><li>35 H</li><li>36 J</li><li>37 K</li><li>38 L</li><li>39 ; :</li><li>40 &quot; &apos;</li><li>41 ` ~</li><li>42 LEFT SHIFT</li><li>43 \ |</li><li>44 Z</li><li>45 X</li><li>46 C</li><li>47 V</li><li>48 B</li><li>49 N</li><li>50 M</li><li>51 , &lt;</li><li>52 . ></li><li>53 / ?</li><li>54 RIGHT SHIFT</li><li>55 PRINT SCREEN *</li><li>56 ALT</li><li>57 SPACE</li><li>58 CAPSLOCK</li><li>59 F1</li><li>60 F2</li><li>61 F3</li><li>62 F4</li><li>63 F5</li><li>64 F6</li><li>65 F7</li><li>66 F8</li><li>67 F9</li><li>68 F10</li><li>69 NUMLOCK</li><li>70 SCROLL LOCK</li><li>71 HOME 7</li><li>72 UP 8</li><li>73 PAGEUP 9</li><li>74 KEYPAD -</li><li>75 LEFT 4</li><li>76 KEYPAD 5</li><li>77 RIGHT 6</li><li>78 KEYPAD +</li><li>79 END 1</li><li>80 DOWN 2</li><li>81 PAGEDOWN 3</li><li>82 INSERT 0</li><li>83 DEL .</li><li>84</li><li>85</li><li>86</li><li>87 F11</li><li>88 F12</li><li>89</li><li>90</li><li>91 L WIN LOGO</li><li>92 R WIN LOGO</li><li>93 CONTEXT</li></ul><lb/>
+<ul>
+<li>key:Esc</li>
+<li>key:F1</li>
+<li>key:F2</li>
+<li>key:F3</li>
+<li>...</li>
+<li>key:F15</li>
+</ul><ul>
+<li>key:Num Lock</li>
+<li>key:Scroll Lock</li>
+<li>key:Caps Lock</li>
+</ul><ul>
+<li>key:Print Screen</li>
+<li>key:Pause</li>
+</ul><ul>
+<li>key:1</li>
+<li>key:Exclamation</li>
+<li>key:2</li>
+<li>key:At Sign</li>
+<li>key:3</li>
+<li>key:Hash</li>
+<li>key:4</li>
+<li>key:Dollar Sign</li>
+<li>key:5</li>
+<li>key:6</li>
+<li>key:Circumflex</li>
+<li>key:7</li>
+<li>key:Ampersand</li>
+<li>key:8</li>
+<li>key:Asterix</li>
+<li>key:9</li>
+<li>key:Left Parenthesis</li>
+<li>key:0</li>
+<li>key:Right Parenthesis</li>
+<li>key:Minus</li>
+<li>key:Underscore</li>
+<li>key:Equals</li>
+<li>key:Plus</li>
+<li>key:Backspace</li>
+</ul><ul>
+<li>key:A</li>
+<li>key:B</li>
+<li>key:C</li>
+<li>...</li>
+<li>key:Z</li>
+</ul><ul>
+<li>key:Left Bracket     # [</li>
+<li>key:Left Brace       # {</li>
+<li>key:Right Bracket    # ]</li>
+<li>key:Right Brace      # }</li>
+<li>key:Semicolon        # ;</li>
+<li>key:Colon            # :</li>
+<li>key:Quote            # '</li>
+<li>key:Doublequote      # &quot;</li>
+<li>key:Apostrophe       # &apos;</li>
+<li>key:Backquote        # `</li>
+<li>key:Tilde            # ~</li>
+<li>key:Backslash        # \</li>
+<li>key:Pipe             # |</li>
+<li>key:Comma            # ,</li>
+<li>key:Left Caret       # &lt;</li>
+<li>key:Period           # .</li>
+<li>key:Right Caret      # ></li>
+<li>key:Slash            # /</li>
+<li>key:Question Mark    # ?</li>
+<li>key:Enter</li>
+<li>key:Space</li>
+<li>key:Tab</li>
+</ul><ul>
+<li>key:Home</li>
+<li>key:End</li>
+<li>key:Page Up</li>
+<li>key:Page Down</li>
+<li>key:Insert</li>
+<li>key:Delete</li>
+</ul><ul>
+<li>key:Up</li>
+<li>key:Left</li>
+<li>key:Right</li>
+<li>key:Down</li>
+</ul><ul>
+<li>key:Left Win Logo  # equal to key:Left Command</li></li>
+<li>key:Right Win Logo # equal to key:Right Command</li>
+<li>key:Context</li>
+<li>key:Left Command   # Macintosh, equal to key:Left Win Logo</li>
+<li>key:Right Command  # Macintosh, equal to key:Right Win Logo</li>
+</ul><ul>
+<li>key:Alt            # either Alt key pressed</li>
+<li>key:Left Alt</li>
+<li>key:Right Alt</li>
+<li>key:Ctrl           # either Ctrl key pressed</li>
+<li>key:Left Ctrl</li>
+<li>key:Right Ctrl</li>
+<li>key:Shift          # either Shift key pressed</li>
+<li>key:Left Shift</li>
+<li>key:Right Shift</li>
+</ul><ul>
+<li>key:Numpad 0</li>
+<li>key:Numpad 1</li>
+<li>key:Numpad 2</li>
+<li>key:Numpad 3</li>
+<li>key:Numpad 4</li>
+<li>key:Numpad 5</li>
+<li>key:Numpad 6</li>
+<li>key:Numpad 7</li>
+<li>key:Numpad 8</li>
+<li>key:Numpad 9</li>
+<li>key:Numpad Period</li>
+<li>key:Numpad Asterix</li>
+<li>key:Numpad Slash</li>
+<li>key:Numpad Plus</li>
+<li>key:Numpad Minus</li>
+<li>key:Numpad Enter</li>
+</ul>
           Joystick scan codes:
-          <ul><li>128 BUTTON 1</li><li>129 BUTTON 2</li><li>130-143 BUTTON 3-16</li><li>144 X LEFT</li><li>145 X RIGHT</li><li>146 Y UP</li><li>147 Y DOWN</li></ul>
-          <note>You can NOT wait for the player to press a key by continually polling <p>key is pressed</p> unless you stick a <ref>wait</ref> in your do loop. That's because <p>key is pressed</p> does not return real time data, but the state of the keyboard at the beginning of the current game tick.</note></description>
+<ul>
+<li>joy:button 1</li>
+<li>joy:button 2</li>
+<li>joy:button 3</li>
+<li>...</li>
+<li>joy:button 16</li>
+<li>joy:x left</li>
+<li>joy:x right</li>
+<li>joy:y up</li>
+<li>joy:y down</li>
+</ul>
+</description>
 			<seealso>
 				<ref>keyval</ref>
 			</seealso>

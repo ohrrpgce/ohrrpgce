@@ -23,3 +23,5 @@ The "Simulate __ bug" bitsets are for backwards compatibility with old games, an
 "Default passability disabled by default" changes the default Default Passability setting in the map tilemap editor; set to your preference, it doesn't affect the game.
 
 "Don't save gameover/loadgame script IDs" exists so that it's possible to change the gameover and loadgame scripts and have the change reflected in existing saved games. It makes the setloadscript command do nothing.
+
+"Enable better scancodes for scripts" enables keys which were previously indistinguishable to be told apart; see "key is pressed" in the dictionary.

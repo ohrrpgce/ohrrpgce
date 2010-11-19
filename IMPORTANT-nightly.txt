@@ -16,6 +16,10 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2010-11-11:
+Note that gfx_directx does not currently support the newly added scancodes;
+check back in a few days!
+
 2010-10-17:
 The default graphics backend on Windows is now gfx_directx instead of gfx_sdl
 so please, please report any problems -- even minor annoyances!

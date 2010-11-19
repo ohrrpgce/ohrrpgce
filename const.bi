@@ -101,6 +101,7 @@ CONST genCancelSFX = 174        ' "       "
 CONST genCursorSFX = 175        ' "       "
 CONST genTextboxLine = 176      'Text box 'click'
 CONST genBits2 = 177            'More general bitsets
+CONST genBits3 = 178            'More general bitsets
 CONST genItemLearnSFX = 179     'learn spell oob item
 CONST genCantLearnSFX = 180     'hero couldn't learn spell from item
 CONST genBuySFX = 181           'buy item from shop

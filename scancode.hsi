@@ -2,32 +2,33 @@
 # the "key is pressed" command. This is more complete than it needs to be :)
 
 define constant,begin
-01,key:ESC
+01,key:Esc
 02,key:1
-02,key:EXCLAMATION
+02,key:Exclamation
 03,key:2
-03,key:AT SIGN
+03,key:At Sign
 04,key:3
-04,key:HASH
+04,key:Hash
 05,key:4
-05,key:DOLLAR SIGN
+05,key:Dollar Sign
 06,key:5
+06,key:Percent
 07,key:6
-07,key:CIRCUMFLEX
+07,key:Circumflex
 08,key:7
-08,key:AMPERSAND
+08,key:Ampersand
 09,key:8
-09,key:ASTERIX
+09,key:Asterix
 10,key:9
-10,key:LEFT PARENTHESIS
+10,key:Left Parenthesis
 11,key:0
-11,key:RIGHT PARENTHESIS
-12,key:MINUS
-12,key:UNDERSCORE
-13,key:EQUALS
-13,key:PLUS
-14,key:BACKSPACE
-15,key:TAB
+11,key:Right Parenthesis
+12,key:Minus
+12,key:Underscore
+13,key:Equals
+13,key:Plus
+14,key:Backspace
+15,key:Tab
 16,key:Q
 17,key:W
 18,key:E
@@ -38,12 +39,12 @@ define constant,begin
 23,key:I
 24,key:O
 25,key:P
-26,key:LEFT BRACKET
-26,key:LEFT BRACE
-27,key:RIGHT BRACKET
-27,key:RIGHT BRACE
-28,key:ENTER
-29,key:CTRL
+26,key:Left Bracket
+26,key:Left Brace
+27,key:Right Bracket
+27,key:Right Brace
+28,key:Enter
+29,key:Ctrl
 30,key:A
 31,key:S
 32,key:D
@@ -53,16 +54,16 @@ define constant,begin
 36,key:J
 37,key:K
 38,key:L
-39,key:SEMICOLON
-39,key:COLON
-40,key:QUOTE
-40,key:DOUBLEQUOTE
-40,key:APOSTROPHE
-41,key:BACKQUOTE
-41,key:TILDE
-42,key:LEFT SHIFT
-43,key:BACKSLASH
-43,key:PIPE
+39,key:Semicolon
+39,key:Colon
+40,key:Quote
+40,key:Doublequote
+40,key:Apostrophe
+41,key:Backquote
+41,key:Tilde
+42,key:Left Shift
+43,key:Backslash
+43,key:Pipe
 44,key:Z
 45,key:X
 46,key:C
@@ -70,18 +71,17 @@ define constant,begin
 48,key:B
 49,key:N
 50,key:M
-51,key:COMMA
-51,key:LEFT CARET
-52,key:PERIOD
-52,key:RIGHT CARET
-53,key:SLASH
-53,key:QUESTION MARK
-54,key:RIGHT SHIFT
-55,key:PRINT SCREEN
-55,key:NUMPAD ASTERIX
-56,key:ALT
-57,key:SPACE
-58,key:CAPSLOCK
+51,key:Comma
+51,key:Left Caret
+52,key:Period
+52,key:Right Caret
+53,key:Slash
+53,key:Question Mark
+54,key:Right Shift
+55,key:Numpad Asterix
+56,key:Alt
+57,key:Space
+58,key:Capslock
 59,key:F1
 60,key:F2
 61,key:F3
@@ -92,36 +92,56 @@ define constant,begin
 66,key:F8
 67,key:F9
 68,key:F10
-69,key:NUMLOCK
-70,key:SCROLL LOCK
-71,key:HOME
-71,key:NUMPAD 7
-72,key:UP
-72,key:NUMPAD 8
-73,key:PAGEUP
-73,key:NUMPAD 9
-74,key:NUMPAD MINUS
-75,key:LEFT
-75,key:NUMPAD 4
-76,key:NUMPAD 5
-77,key:RIGHT
-77,key:NUMPAD 6
-78,key:NUMPAD PLUS
-79,key:END
-79,key:NUMPAD 1
-80,key:DOWN
-80,key:NUMPAD 2
-81,key:PAGEDOWN
-81,key:NUMPAD 3
-82,key:INSERT
-82,key:NUMPAD 0
-83,key:DELETE
-83,key:NUMPAD PERIOD
+69,key:Numlock
+70,key:Scroll Lock
+71,key:Home
+72,key:Up
+73,key:Page Up
+74,key:Numpad Minus
+75,key:Left
+77,key:Right
+78,key:Numpad Plus
+79,key:End
+80,key:Down
+81,key:Page Down
+82,key:Insert
+83,key:Delete
 87,key:F11
 88,key:F12
-91,key:LEFT WIN LOGO
-92,key:RIGHT WIN LOGO
-93,key:CONTEXT
+91,key:Left Win Logo
+91,key:Left Command   #Macintosh
+92,key:Right Win Logo
+92,key:Right Command  #Macintosh
+93,key:Context
+
+94,key:F13
+95,key:F14
+96,key:F15
+
+97,key:Shift
+98,key:Left Alt
+99,key:Right Alt
+100,key:Left Ctrl
+101,key:Right Ctrl
+
+102,key:Numpad Slash  # previously key:Slash
+103,key:Numpad Enter  # previously key:Enter
+
+104,key:Numpad 7  # previously key:Home
+105,key:Numpad 8  # previously key:Up
+106,key:Numpad 9  # previously key:Page Up
+108,key:Numpad 4  # previously key:Left
+109,key:Numpad 5
+110,key:Numpad 6  # previously key:Right
+112,key:Numpad 1  # previously key:End 
+113,key:Numpad 2  # previously key:Down
+114,key:Numpad 3  # previously key:Page Down
+115,key:Numpad 0  # previously key:Insert
+116,key:Numpad Period  # previously key:Delete
+
+117,key:Print Screen
+118,key:Pause     # previously key:Numlock
+
 
 #keys >= 128 are NOT scan codes, per se, but for other devices (mouse, joystick)
 # note that these only work for key is pressed, not for keyval

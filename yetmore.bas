@@ -618,18 +618,30 @@ FUNCTION script_keyval (BYVAL key as integer) as integer
  'Wrapper around keyval for use by scripts: performs scancode mapping for back-compat
 
  DIM ret as integer = 0
- 'Prevent access to new scancodes, for now
- IF key >= 0 AND key <= 93 THEN
-  ret = keyval(key)
 
-  'Mirror new scancodes onto old ones
-  IF key >= scHome AND key <= scInsert THEN
-   ret OR= keyval(key + scNumpad7 - scHome)
-  END IF
-  IF key = scSlash THEN ret OR= keyval(scNumpadSlash)
-  IF key = scEnter THEN ret OR= keyval(scNumpadEnter)
-  IF key = scNumlock THEN ret OR= keyval(scPause)
+ IF key >= 0 AND key <= 127 THEN
+  ret = keyval(key)
  END IF
+
+ IF readbit(gen(), genBits2, 8) = 0 THEN  'If improved scancodes not enabled
+  'The new scancodes separate some keys which previously had the same scancode.
+  'For backwards compatibility (whether or not you recompile your scripts with
+  'a new copy of scancodes.hsi) we make the newly separated scancodes behave
+  'as if they were indistinguishable.
+  SELECT CASE key
+   CASE scHome TO scDelete
+    ret OR= keyval(key + scNumpad7 - scHome)
+   CASE scNumpad7 TO scNumpad9, scNumpad4 TO scNumpad6, scNumpad1 TO scNumpadPeriod
+    ret OR= keyval(key - scNumpad7 + scHome)
+   CASE scSlash:       ret OR= keyval(scNumpadSlash)
+   CASE scEnter:       ret OR= keyval(scNumpadEnter)
+   CASE scNumlock:     ret OR= keyval(scPause)
+   CASE scNumpadSlash: ret OR= keyval(scSlash)
+   CASE scNumpadEnter: ret OR= keyval(scEnter)
+   CASE scPause:       ret OR= keyval(scNumlock)
+  END SELECT
+ END IF
+
  RETURN ret
 END FUNCTION
 
