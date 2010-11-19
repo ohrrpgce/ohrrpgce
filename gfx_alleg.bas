@@ -192,6 +192,7 @@ sub io_alleg_updatekeys(byval keybd as integer ptr)
 	keybd[scAlt] or= (keybd[scLeftAlt] or keybd[scRightAlt]) and 8
 	keybd[scCtrl] or= (keybd[scLeftCtrl] or keybd[scRightCtrl]) and 8
 
+	'Note: Pause reports NumLock for me, just like fbgfx
 
 	if key(KEY_ENTER) andalso (key_shifts and KB_ALT_FLAG) then
 		if windowed = 0 then

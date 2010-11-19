@@ -241,6 +241,22 @@ sub io_fb_init
 	'setmouse , , 0 'hide mouse
 end sub
 
+
+sub process_key_event(e as Event, byval value as integer)
+	'NOTE: numpad 5 seems to be broken on Windows, events for that key have scancode = 0 regardless of numlock state!
+
+	select case e.scancode
+		case scHome to scPageUp, scLeft to scRight, scEnd to scDelete
+			'If numlock is on, then when a numerical/period numpad key is pressed the key will 
+			'generate 0-9 or ., and can be differentiated from arrow and home, etc., keys.
+			if e.ascii then
+				extrakeys(e.scancode - scHome + scNumpad7) = value
+			else
+				extrakeys(e.scancode) = value
+			end if
+	end select
+end sub
+
 sub process_events()
 '	static last_enter_state as integer
 	dim e as Event
@@ -259,29 +275,12 @@ sub process_events()
 		if e.type = EVENT_KEY_PRESS then
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
 			'debug "key press scan=" & e.scancode & " ascii=" & e.ascii
-
-			if e.scancode >= scHome andalso e.scancode <= scDelete then
-				'If numlock is on, then when a numpad key is pressed the key will 
-				'generate 0-9 or ., and can be differentiated from arrow and home, etc., keys.
-				if e.ascii then
-					extrakeys(e.scancode - scHome + scNumpad7) = 8
-				else
-					extrakeys(e.scancode) = 8
-				end if
-			end if
+			process_key_event(e, 8)
 		end if
 		if e.type = EVENT_KEY_RELEASE then
 			if e.ascii <> 0 then inputtext += chr(e.ascii)
 			'debug "key release scan=" & e.scancode & " ascii=" & e.ascii
-
-			if e.scancode >= scHome andalso e.scancode <= scDelete then
-				'See above
-				if e.ascii then
-					extrakeys(e.scancode - scHome + scNumpad7) = 0
-				else
-					extrakeys(e.scancode) = 0
-				end if
-			end if
+			process_key_event(e, 0)
 		end if
 	wend
 
@@ -325,8 +324,14 @@ sub io_fb_updatekeys(byval keybd as integer ptr)
 
 	for key as integer = 0 to 127
 		select case key
-			case 0 to scHome - 1, scDelete + 1 to scContext
+			case 0 to scHome - 1, scNumpadMinus, scNumpadPlus, scDelete + 1 to scContext
 				if multikey(key) then
+					keybd[key] or= 8
+				end if
+
+			case scNumpad5
+				'Events for this key are broken on Windows, luckily can fall back to multikey
+				if multikey(76) then
 					keybd[key] or= 8
 				end if
 
