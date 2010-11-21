@@ -821,6 +821,10 @@ DO
  END IF
 
  copypage 3, dpage
+ IF tmode = 1 OR tmode = 2 THEN
+  'Show tile number
+  edgeprint "Tile " & bnum, 0, IIF(bnum < 112, 190, 0), uilook(uiText), dpage
+ END IF
  IF tmode = 3 THEN
   FOR o = 0 TO 9
    FOR i = 0 TO 15
