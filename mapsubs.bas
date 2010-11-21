@@ -2937,6 +2937,7 @@ SUB mapedit_pickblock(BYREF st AS MapEditState)
   END IF
   tog = tog XOR 1
   drawmap st.tilesetview, 0, 0, st.tilesets(st.layer), vpage
+  edgeprint "Tile " & st.usetile(st.layer), 0, IIF(st.usetile(st.layer) < 112, 190, 0), uilook(uiText), vpage
   frame_draw st.cursor.sprite + tog, st.cursor.pal, st.tilepick.x * 20, st.tilepick.y * 20, , , vpage
   setvispage vpage
   dowait
