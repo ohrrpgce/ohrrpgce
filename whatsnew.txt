@@ -40,6 +40,7 @@ WHAT IS NEW?
       tell apart Numpad 2 and the Down key. You have to turn on the
       general bitset "Enable better scancodes" for these to fully work,
       see "key is pressed" in the dictionary for more details. [Ralph]
+    * New dissolve animations Squeeze, Shrink and Flicker [Ralph]
 
   * Bugfixes
     * Bug 749:  Attacks configured to do No Damage still do damage when

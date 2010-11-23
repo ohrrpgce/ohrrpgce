@@ -3869,8 +3869,9 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 	'by default, sprites use colourkey transparency instead of masks.
 	'We could easily not use a mask here, but by using one, this function can be called on 8-bit graphics
 	'too; just in case you ever want to fade out a backdrop or something?
+	dim startblank as integer = (style = 8 or style = 9)
 	dim cpy as frame ptr
-	cpy = frame_duplicate(spr, 0, 1)
+	cpy = frame_duplicate(spr, startblank, 1)
 	if cpy = 0 then return 0
 	
 	dim as integer i, j, sx, sy, tog
@@ -4069,9 +4070,65 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 					poffset -= cpy->pitch
 				next
 			next
+		case 8 'squeeze (horizontal squash)
+			dim destx(spr->w - 1) as integer
+			for sx = 0 to spr->w - 1
+				destx(sx) = sx * (1 - t / tlength) + 0.5 * (spr->w - 1) * (t / tlength)
+			next
+			for sy = 0 to spr->h - 1
+				dim destimage as ubyte ptr = cpy->image + sy * cpy->pitch
+				dim destmask as ubyte ptr = cpy->mask + sy * cpy->pitch
+				dim srcmask as ubyte ptr = iif(spr->mask, spr->mask, spr->image)
+				dim poffset as integer = sy * cpy->pitch
+				for sx = 0 to spr->w - 1
+					destimage[destx(sx)] = spr->image[poffset]
+					destmask[destx(sx)] = srcmask[poffset]
+					poffset += 1
+				next
+			next
+		case 9 'shrink (horizontal+vertical squash)
+			dim destx(spr->w - 1) as integer
+			for sx = 0 to spr->w - 1
+				destx(sx) = sx * (1 - t / tlength) + 0.5 * (spr->w - 1) * (t / tlength)
+			next
+			for sy = 0 to spr->h - 1
+				dim desty as integer = sy * (1 - t / tlength) + (spr->h - 1) * (t / tlength)
+				dim destimage as ubyte ptr = cpy->image + desty * cpy->pitch
+				dim destmask as ubyte ptr = cpy->mask + desty * cpy->pitch
+				dim srcmask as ubyte ptr = iif(spr->mask, spr->mask, spr->image)
+				dim poffset as integer = sy * cpy->pitch
+				for sx = 0 to spr->w - 1
+					destimage[destx(sx)] = spr->image[poffset]
+					destmask[destx(sx)] = srcmask[poffset]
+					poffset += 1
+				next
+			next
+		case 10 'flicker
+			dim state as integer = 0
+			dim ctr as integer  'percent
+			for i = 0 to t
+				dim cutoff as integer = 60 * (1 - i / tlength) + 25 * (i / tlength)
+				dim inc as integer = 60 * i / tlength
+				ctr += inc
+				if ctr > cutoff then
+					i += ctr \ cutoff  'length of gaps increases
+					if i > t then state = 1
+					ctr = ctr mod 100
+				end if
+			next
+			if state then frame_clear(cpy)
 	end select
 
 	return cpy
+end function
+
+function default_dissolve_time(byval spr as frame ptr, byval style as integer) as integer
+	'squash, vapourise, phase out, squeeze
+	if style = 4 or style = 6 or style = 7 or style = 8 or style = 9 then
+		return spr->w / 5
+	else
+		return spr->w / 2
+	end if
 end function
 
 'Used by frame_flip_horiz and frame_flip_vert

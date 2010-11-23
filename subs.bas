@@ -149,7 +149,7 @@ CONST EnDatStatCtr = 115' to 126
 '-------------------------------------------------------------------------
 
 capindex = 0
-DIM caption(14) AS STRING
+DIM caption(17) AS STRING
 DIM max(26), min(26)
 'Limit 0 is not used
 
@@ -204,11 +204,11 @@ min(EnLimPal16) = -1
 
 CONST EnLimDissolve = 24
 min(EnLimDissolve) = 0
-max(EnLimDissolve) = 8
+max(EnLimDissolve) = dissolveTypeMax + 1
 EnCapDissolve = capindex
 addcaption caption(), capindex, "Global Default"
-FOR i = 1 TO 8
- addcaption caption(), capindex, dissolve_type_caption(i - 1)
+FOR i = 0 TO dissolveTypeMax
+ addcaption caption(), capindex, dissolve_type_caption(i)
 NEXT
 
 CONST EnLimDissolveTime = 25
@@ -683,11 +683,7 @@ DO
    CASE EnMenuDissolve, EnMenuDissolveTime
     IF recbuf(EnDatDissolve) THEN dissolve_type = recbuf(EnDatDissolve) - 1 ELSE dissolve_type = gen(genEnemyDissolve)
     dissolve_time = recbuf(EnDatDissolveTime) 
-    IF dissolve_time = 0 THEN
-     dissolve_time = (preview_sprite->w / 2)
-     'squash, vapourise, phase
-     IF dissolve_type = 4 or dissolve_type = 6 or dissolve_type = 7 THEN dissolve_time = (preview_sprite->w / 5)
-    END IF
+    IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(preview_sprite, dissolve_type)
     dissolve_ticks = 0
    CASE EnMenuCursorOffset
     '--temporarily move the preview image

@@ -1594,11 +1594,7 @@ SUB setup_non_volitile_enemy_state(slot AS INTEGER, bslot() AS BattleSprite)
   .deathtype = .enemy.dissolve - 1
   IF .deathtype = -1 THEN .deathtype = gen(genEnemyDissolve)
   .deathtime = .enemy.dissolve_length
-  IF .deathtime = 0 THEN
-   .deathtime = .w / 2
-   'squash, vapourise, phase out
-   IF .deathtype = 4 or .deathtype = 6 or .deathtype = 7 THEN .deathtime = .w / 5
-  END IF
+  IF .deathtime = 0 THEN .deathtime = default_dissolve_time(.sprites, .deathtype)
   .cursorpos.x = .w / 2 - .enemy.cursor_offset.x '--X offset is subtracted instead of added because enemies are always h-flipped
   .cursorpos.y = .enemy.cursor_offset.y
   .death_sfx = .enemy.death_sound

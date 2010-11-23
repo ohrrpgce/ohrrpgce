@@ -1045,6 +1045,9 @@ FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
   CASE 5: RETURN "Melt"
   CASE 6: RETURN "Vapourise"
   CASE 7: RETURN "Phase out"
+  CASE 8: RETURN "Sqeeze"
+  CASE 9: RETURN "Shrink"
+  CASE 10: RETURN "Flicker"
   CASE ELSE: RETURN n & " Invalid!"
  END SELECT
 END FUNCTION
@@ -1226,7 +1229,7 @@ SUB gendata ()
   max(i) = 255
  NEXT
  index(15) = genEnemyDissolve
- max(15) = 7
+ max(15) = dissolveTypeMax
  index(16) = genMaxInventory
  max(16) = (inventoryMax + 1) \ 3
  index(17) = genDamageDisplayTicks
