@@ -559,7 +559,7 @@ script,stringtoglobals,hsd:stringID,hsd:start,hsd:length,begin
   variable(hsd:temp,hsd:padding)
   if (hsd:stringID>=0,and,hsd:stringID<=31) then(
     if (hsd:length>=1) then(
-      if (hsd:length+hsd:start>>1025) then(hsd:length:=1025--hsd:start)
+      if (hsd:length+hsd:start>>4097) then(hsd:length:=4097--hsd:start)
       hsd:padding:=hsd:length--stringlength(hsd:stringID)
       hsd:length:=stringlength(hsd:stringID)
       for (hsd:temp,1,hsd:length) do(
@@ -579,7 +579,7 @@ script,globalstostring,hsd:stringID,hsd:start,hsd:length,begin
   if (hsd:stringID>=0,and,hsd:stringID<=31) then(
     clearstring(hsd:stringID)
     if (hsd:length>=1) then(
-      if (hsd:length+hsd:start>>1025) then(hsd:length:=1025--hsd:start)
+      if (hsd:length+hsd:start>>4097) then(hsd:length:=4097--hsd:start)
       for (hsd:temp,1,hsd:length) do(
         hsd:temp2:=readglobal(hsd:start+(hsd:temp--1))
         if (hsd:temp2>=0,and,hsd:temp2<=255) then(appendascii(hsd:stringID,hsd:temp2))

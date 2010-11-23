@@ -74,6 +74,8 @@ WHAT IS NEW?
     * Getting the maptile under the cursor is now done with the G key
       (instead of the CAPSLOCK key, which we can all agree was
       confusing!) [James]
+    * "string to globals" and "globals to string" weren't working
+      with global variable IDs > 1024 [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
