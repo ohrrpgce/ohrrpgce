@@ -30,7 +30,7 @@ WHAT IS NEW?
     * Jay Tennant's gfx_directx is now the default graphics backend
       under Windows (automatic fallback to gfx_sdl on old computers).
       Click the window icon to access gfx_directx's Options menu, and
-      drag the edges of the window to change zoom!
+      drag the corner of the window to change zoom!
     * gfx_directx input rewrite: adds joystick support, normal mouse
       speed/acceleration, removes forced mouse clipping and adds
       "mouse region" support [Jay]
@@ -50,7 +50,7 @@ WHAT IS NEW?
       to spells used outside of battle. [James]
     * Fixed a case where "add hero" could add more heroes than you
       are supposed to be able to have under certain conditions [James]
-    * Bug 833: Screen temporarily freezes right after canceling an
+    * Bug 833: Screen temporarily freezes right after cancelling an
       out-of-battle cure attack or item [James]
     * Bug 486: Chained attacks fail on stored dead targets
       [James, msw188]
@@ -76,6 +76,8 @@ WHAT IS NEW?
       confusing!) [James]
     * "string to globals" and "globals to string" weren't working
       with global variable IDs > 1024 [Ralph]
+    * Bug 863: "load tileset" and "change tileset" did not
+      (completely) work on map layers 3 and above [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

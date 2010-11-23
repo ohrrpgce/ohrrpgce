@@ -1442,9 +1442,9 @@ WITH scrat(nowscript)
        loadmaptilesets tilesets(), gmap(), NO
       ELSE
        'change default
-       IF gmap(22) = 0 THEN loadtilesetdata tilesets(), 0, retvals(0)
-       IF gmap(23) = 0 THEN loadtilesetdata tilesets(), 1, retvals(0)
-       IF gmap(24) = 0 THEN loadtilesetdata tilesets(), 2, retvals(0)
+       FOR i = 0 TO mapLayerMax
+        IF gmap(layer_tileset_index(i)) = 0 THEN loadtilesetdata tilesets(), i, retvals(0)
+       NEXT
       END IF
      ELSEIF retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) AND retvals(0) >= 0 THEN
       'load tileset for an individual layer. 
@@ -1465,7 +1465,7 @@ WITH scrat(nowscript)
       END IF
      ELSEIF retvals(1) >= 0 AND retvals(1) <= UBOUND(maptiles) THEN
       'load tileset for an individual layer
-      gmap(22 + retvals(1)) = large(0, retvals(0) + 1)
+      gmap(layer_tileset_index(retvals(1))) = large(0, retvals(0) + 1)
      END IF
      loadmaptilesets tilesets(), gmap(), NO
      refresh_map_slice_tilesets

@@ -3789,11 +3789,7 @@ SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL res
  DIM tileset AS INTEGER
 
  FOR i = 0 TO UBOUND(tilesets)
-  IF i <= 2 THEN
-   tileset = gmap(22 + i)
-  ELSE
-   tileset = gmap(23 + i)
-  END IF
+  tileset = gmap(layer_tileset_index(i))
   IF tileset <> 0 THEN
    tileset = tileset - 1
   ELSE
