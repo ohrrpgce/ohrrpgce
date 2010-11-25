@@ -155,7 +155,7 @@ declare sub frame_unload(byval p as frame ptr ptr)
 declare sub frame_draw overload (byval src as frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval page as integer)
 declare sub frame_draw(byval src as Frame ptr, Byval pal as Palette16 ptr = NULL, Byval x as integer, Byval y as integer, Byval scale as integer = 1, Byval trans as integer = -1, byval dest as Frame ptr)
 declare function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval t as integer, byval style as integer) as frame ptr
-declare function default_dissolve_time(byval spr as frame ptr, byval style as integer) as integer
+declare function default_dissolve_time(byval style as integer, byval w as integer, byval h as integer) as integer
 declare sub frame_flip_horiz(byval spr as frame ptr)
 declare sub frame_flip_vert(byval spr as frame ptr)
 declare function frame_rotated_90(byval spr as Frame ptr) as Frame ptr

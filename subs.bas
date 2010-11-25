@@ -683,7 +683,7 @@ DO
    CASE EnMenuDissolve, EnMenuDissolveTime
     IF recbuf(EnDatDissolve) THEN dissolve_type = recbuf(EnDatDissolve) - 1 ELSE dissolve_type = gen(genEnemyDissolve)
     dissolve_time = recbuf(EnDatDissolveTime) 
-    IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(preview_sprite, dissolve_type)
+    IF dissolve_time = 0 THEN dissolve_time = default_dissolve_time(dissolve_type, preview_sprite->w, preview_sprite->h)
     dissolve_ticks = 0
    CASE EnMenuCursorOffset
     '--temporarily move the preview image

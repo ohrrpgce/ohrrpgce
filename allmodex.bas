@@ -4122,12 +4122,12 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 	return cpy
 end function
 
-function default_dissolve_time(byval spr as frame ptr, byval style as integer) as integer
+function default_dissolve_time(byval style as integer, byval w as integer, byval h as integer) as integer
 	'squash, vapourise, phase out, squeeze
 	if style = 4 or style = 6 or style = 7 or style = 8 or style = 9 then
-		return spr->w / 5
+		return w / 5
 	else
-		return spr->w / 2
+		return w / 2
 	end if
 end function
 
