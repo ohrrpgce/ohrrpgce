@@ -243,7 +243,6 @@ sub music_stop()
 end sub
 
 sub music_setvolume(vol as single)
-	'Separate volume for XMs because they're annoying
 	music_vol = vol * 128
 	if music_on = 1 then
 		Mix_VolumeMusic(music_vol)
