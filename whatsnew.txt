@@ -78,6 +78,9 @@ WHAT IS NEW?
       with global variable IDs > 1024 [Ralph]
     * Bug 863: "load tileset" and "change tileset" did not
       (completely) work on map layers 3 and above [Ralph]
+    * music_sdl no longer secretly keeps seperate volume levels for
+      MIDIs and non-MIDIs, which confused people and broke fading
+      scripts. [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
