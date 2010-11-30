@@ -2524,7 +2524,7 @@ IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
 IF keyval(scComma) > 1 AND ss.palindex > 0 THEN ss.palindex -= 1
 IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN ss.palindex += 1
 IF ss.zonenum = 2 THEN
- IF mouse.clicks > 0 THEN ss.palindex = small(INT(ss.zone.x / 4), 15)
+ IF mouse.clicks > 0 THEN ss.palindex = small(CINT(ss.zone.x / 4), 15)
 END IF
 IF keyval(scLeftBrace) > 1 OR (ss.zonenum = 5 AND mouse.clicks > 0) THEN
  changepal poffset(state.pt), -1, workpal(), state.pt - state.top

@@ -75,6 +75,10 @@ FUNCTION large (BYVAL n1 as longint, BYVAL n2 as longint) as longint
  IF n2 > n1 THEN large = n2
 END FUNCTION
 
+FUNCTION large (BYVAL n1 as double, BYVAL n2 as double) as double
+ IF n2 > n1 THEN RETURN n2 ELSE RETURN n1
+END FUNCTION
+
 FUNCTION loopvar (BYVAL value as integer, BYVAL min as integer, BYVAL max as integer, BYVAL inc as integer) as integer
  DIM as integer a = value + inc
  IF a > max THEN RETURN a - ((max - min) + 1)
@@ -97,6 +101,10 @@ END FUNCTION
 FUNCTION small (BYVAL n1 as longint, BYVAL n2 as longint) as longint
  small = n1
  IF n2 < n1 THEN small = n2
+END FUNCTION
+
+FUNCTION small (BYVAL n1 as double, BYVAL n2 as double) as double
+ IF n2 < n1 THEN RETURN n2 ELSE RETURN n1
 END FUNCTION
 
 FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER

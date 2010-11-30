@@ -366,7 +366,7 @@ END FUNCTION
 FUNCTION xy_from_int(n AS INTEGER, wide AS INTEGER, high AS INTEGER) AS XYPair
  DIM pair AS XYPair
  pair.x = n MOD wide
- pair.y = small(INT(n / wide), high - 1)
+ pair.y = small(CINT(n / wide), high - 1)
  RETURN pair
 END FUNCTION
 

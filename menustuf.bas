@@ -1752,7 +1752,7 @@ FUNCTION items_menu () as integer
   .x = 8
   .y = 5
   .wide = 304
-  .high = small(180, 12 + (INT((last_inv_slot() + 1) / 3) + 1) * 8)
+  .high = small(180, 12 + (CINT((last_inv_slot() + 1) / 3) + 1) * 8)
  END WITH
  WITH istate.scrollrect
   .x = 20

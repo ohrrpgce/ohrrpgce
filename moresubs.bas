@@ -882,8 +882,8 @@ SUB teleporttooltend (BYREF mini AS Frame Ptr, maptilesX() AS TileMap, tilesets2
  mini = createminimap(maptilesX(), tilesets2(), zoom)
  mapsize.x = maptilesX(0).wide
  mapsize.y = maptilesX(0).high
- offset.x = large(160 - mini->w / 2, 0)
- offset.y = large(100 - mini->h / 2, 0)
+ offset.x = large(cint(160 - mini->w / 2), 0)
+ offset.y = large(cint(100 - mini->h / 2), 0)
  minisize.x = 320 - offset.x * 2
  minisize.y = 200 - offset.y * 2
 END SUB

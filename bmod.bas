@@ -866,7 +866,7 @@ SUB battle_display (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits(
    'if keyval(scS) > 1 then gen(genMaxInventory) += 3
    'if keyval(scA) > 1 then gen(genMaxInventory) -= 3
    IF bat.menu_mode = batMENUITEM THEN '--draw item menu
-    DIM inv_height AS INTEGER = small(78, 8 + INT((last_inv_slot() + 1) / 3) * 8)
+    DIM inv_height AS INTEGER = small(78, 8 + CINT((last_inv_slot() + 1) / 3) * 8)
     WITH bat.inv_scroll
      .top = INT(bat.item.top / 3)
      .pt = INT(bat.item.pt / 3)

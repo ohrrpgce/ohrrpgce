@@ -4017,7 +4017,7 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 		case 6 'vapourise
 			'vapoury is the bottommost vapourised row
 			dim vapoury as integer = (cpy->h - 1) * (t / tlength)
-			dim vspeed as integer = large(cpy->h / tlength, 1)
+			dim vspeed as integer = large(cint(cpy->h / tlength), 1)
 			for sx = 0 to cpy->w - 1
 				dim chunklength as integer = rnd * (vspeed + 5)
 				for i = -2 to 9999

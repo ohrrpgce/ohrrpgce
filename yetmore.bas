@@ -1694,7 +1694,7 @@ SELECT CASE AS CONST id
     IF szindex = 1 THEN size = 50
     IF szindex = 2 THEN size = 80
     buffer(temp * 4) = retvals(1) + 1
-    buffer(temp * 4 + 1) = large( (small(retvals(2), 230) - size / 2) , 0)  'approximately the 0 - 250 limit of the formation editor
+    buffer(temp * 4 + 1) = large( (small(retvals(2), 230) - size \ 2) , 0)  'approximately the 0 - 250 limit of the formation editor
     buffer(temp * 4 + 2) = large( (small(retvals(3), 199) - size) , 0)
    END IF
    storerecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
@@ -2946,7 +2946,7 @@ IF vstate.rising THEN '--rise----------------------
  tmp = 0
  FOR i = 0 TO 3
   IF catz(i * 5) < vstate.dat.elevation THEN
-   catz(i * 5) = catz(i * 5) + large(1, small(4, (vstate.dat.elevation - catz(i * 5)) / 2))
+   catz(i * 5) = catz(i * 5) + large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
   ELSE
    tmp = tmp + 1
   END IF
@@ -2959,7 +2959,7 @@ IF vstate.falling THEN '--fall-------------------
  tmp = 0
  FOR i = 0 TO 3
   IF catz(i * 5) > 0 THEN
-   catz(i * 5) = catz(i * 5) - large(1, small(4, (vstate.dat.elevation - catz(i * 5)) / 2))
+   catz(i * 5) = catz(i * 5) - large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
   ELSE
    tmp = tmp + 1
   END IF
