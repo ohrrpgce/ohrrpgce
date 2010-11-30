@@ -104,8 +104,7 @@ DECLARE Sub UpdateDelay(BYREF delay as double, tempo as integer)
 
 
 dim shared music_on as integer = 0
-dim shared music_vol as integer = 8
-dim shared music_vol_mod as single = .5
+dim shared music_vol as single = .5
 dim shared music_paused as integer
 dim shared music_playing as integer
 dim shared music_song as MIDI_EVENT ptr = NULL
@@ -160,15 +159,6 @@ function longMidi(dat as UByte ptr, l as integer) as integer
     #ENDIF
     return -1
 end function
-
-function getVolMidi() as integer
-	return music_vol
-end function
-
-sub setVolMidi(v as integer)
-  music_vol = v
-  music_vol_mod = v / 16
-end sub
 
 Sub BufferEvent(event as UByte, a as Byte = -1, b as Byte = -1) 'pass -1 to a and b to ignore them
 	shortMidi event, a, b
@@ -393,17 +383,18 @@ sub music_stop()
 	if sound_song >= 0 then sound_stop(sound_song, -1)
 end sub
 
-sub music_setvolume(vol as integer)
+sub music_setvolume(vol as single)
 	music_vol = vol
 	if music_on then
-		if music_song > 0 then setvolmidi vol
+		'Don't know what this is meant to do
+		'if music_song > 0 then music_vol = vol
 		'need sound setting...
 	end if
 end sub
 
-function music_getvolume() as integer
+function music_getvolume() as single
 'Note: this doesn't seem to work
-	music_getvolume = getvolmidi
+	music_getvolume = music_vol
 end function
 
 Sub dumpdata(m as MIDI_EVENT ptr)
@@ -465,9 +456,9 @@ do while music_playing
 				BufferEvent curevent->status,CByte(curevent->data(0)),CByte(curevent->data(1))
 			end if
 		case &H80 to &H8F, &H90 to &H9F 'note on/off
-			BufferEvent curevent->status,curevent->data(0),curevent->data(1) * music_vol_mod
+			BufferEvent curevent->status,curevent->data(0),curevent->data(1) * music_vol
 		case &HA0 to &HAF 'pressure
-			BufferEvent curevent->status,curevent->data(0),curevent->data(1) * music_vol_mod
+			BufferEvent curevent->status,curevent->data(0),curevent->data(1) * music_vol
 		case &HC0 to &HCF 'program change
 			BufferEvent curevent->status,curevent->data(0),-1
 		case &HD0 to &HDF 'channel pressure

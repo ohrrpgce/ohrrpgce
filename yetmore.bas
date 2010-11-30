@@ -1279,10 +1279,9 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 187'--getmusicvolume
-  scriptret = fmvol * 17
+  scriptret = get_music_volume * 255
  CASE 188'--setmusicvolume
-  fmvol = bound(retvals(0), 0, 255) \ 16
-  setfmvol fmvol
+  set_music_volume bound(retvals(0), 0, 255) / 255
  CASE 189, 307'--get formation song
   fh = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN

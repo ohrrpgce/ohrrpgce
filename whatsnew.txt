@@ -112,6 +112,7 @@ WHAT IS NEW?
       the map number [Ralph]
     * "mouse click"; you can test the middle mouse button now [Ralph]
     * "extended scancodes enabled" [Ralph]
+    * Resolution of "get/set music volume" increased [Ralph]
 
   * Vikings of Midgard
 

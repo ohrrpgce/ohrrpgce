@@ -96,8 +96,8 @@ DECLARE SUB closemusic ()
 DECLARE SUB loadsong (f as string)
 DECLARE SUB pausesong ()
 DECLARE SUB resumesong ()
-DECLARE FUNCTION getfmvol () as integer
-DECLARE SUB setfmvol (BYVAL vol as integer)
+DECLARE FUNCTION get_music_volume () as single
+DECLARE SUB set_music_volume (BYVAL vol as single)
 
 DECLARE SUB screenshot (f as string)
 DECLARE SUB frame_export_bmp4 (f$, byval fr as Frame Ptr, maspal() as RGBcolor, byval pal as Palette16 ptr)

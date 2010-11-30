@@ -3156,7 +3156,7 @@ SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
      cap = get_menu_item_caption(*menu.items[elem], menu)
      position_menu_item menu, cap, i, where
      IF .t = 1 AND .sub_t = 11 THEN ' volume meter
-      edgeboxstyle where.x, where.y, fmvol * 3, 10, menu.boxstyle, page, NO, YES
+      edgeboxstyle where.x, where.y, get_music_volume * 48, 10, menu.boxstyle, page, NO, YES
      END IF
      edgeprint cap, where.x, where.y, col, page
     END IF

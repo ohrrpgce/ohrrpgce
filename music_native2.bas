@@ -76,8 +76,7 @@ DECLARE function streamPosition as integer
 
 
 dim shared music_on as integer = 0
-dim shared music_vol as integer = 8
-dim shared music_vol_mod as single = .5
+dim shared music_vol as single = 0.5
 dim shared music_paused as integer
 dim shared music_playing as integer
 
@@ -533,7 +532,7 @@ orig = song_ptr
                 buffer_beat[i] = Type(.time - skip_ticks, 0, (MEVT_TEMPO SHL 24) OR tempo)
               end if
             case &H80 to &H8F, &H90 to &H9f
-                buffer_beat[i] = MAKEWINNOTE(.time - skip_ticks,.status, .data(0), .data(1) * music_vol / 16)
+                buffer_beat[i] = MAKEWINNOTE(.time - skip_ticks,.status, .data(0), .data(1) * music_vol)
             case &HC0 to &HCF
                 'debug "program change: " & .status & " - " & .data(0)
                 buffer_beat[i] = MAKEWINNOTE(.time - skip_ticks, .status, .data(0), 0)
@@ -865,28 +864,23 @@ sub music_stop()
 	if sound_song >= 0 then sound_stop(sound_song, -1)
 end sub
 
-sub music_setvolume(vol as integer)
+sub music_setvolume(vol as single)
 	music_vol = vol
 	if music_on then
 		'if music_song > 0 then setvolmidi vol
-		dim v as integer
-		'vol = vol AND &HF
-		'v = vol + vol SHL 4
-		'v += v SHR 8
-		'v += v SHR 16
-		'lazese for &hvvvvvvvv, which is equal volume on both left and right
+		'dim v as uinteger
+		'v = &HFFFF * vol
+		'v += v SHR 16  'equal volume on both left and right
     'midiOutSetVolume(device, v)
 	end if
 end sub
 
-function music_getvolume() as integer
+function music_getvolume() as single
 	'music_getvolume = getvolmidi
-	dim v as integer
+	'dim v as integer
   'midiOutGetVolume(device, @v)
 
-  'v = (v shr 12) AND &HF
-
-  'music_vol = v
+  'music_vol = (v AND &HFFFF) / &HFFFF
   return music_vol
 end function
 

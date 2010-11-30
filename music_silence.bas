@@ -22,10 +22,10 @@ sub music_resume() : end sub
 
 sub music_stop() : end sub
 
-sub music_setvolume(vol as integer) : end sub
+sub music_setvolume(vol as single) : end sub
 
-function music_getvolume() as integer
-	return 8
+function music_getvolume() as single
+	return 0.5
 end function
 
 sub sound_init() : end sub

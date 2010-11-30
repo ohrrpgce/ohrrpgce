@@ -2263,6 +2263,7 @@ SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 	bpage = p
 end SUB
 
+'--------------------- Audio routines ----------------------
 
 SUB setupmusic
 	music_init
@@ -2298,13 +2299,15 @@ SUB resumesong ()
 	music_resume
 end SUB
 
-FUNCTION getfmvol () as integer
-	getfmvol = music_getvolume
+FUNCTION get_music_volume () as single
+	return music_getvolume
 end FUNCTION
 
-SUB setfmvol (BYVAL vol as integer)
+SUB set_music_volume (BYVAL vol as single)
 	music_setvolume(vol)
 end SUB
+
+
 
 SUB screenshot (f$)
 	'try external first

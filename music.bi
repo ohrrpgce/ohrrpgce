@@ -39,8 +39,8 @@ declare sub music_pause()
 declare sub music_resume()
 declare sub music_stop()
 
-declare sub music_setvolume(vol as integer)
-declare function music_getvolume() as integer
+declare sub music_setvolume(vol as single)
+declare function music_getvolume() as single
 
 
 declare sub sound_init()

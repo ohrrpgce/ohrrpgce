@@ -384,7 +384,6 @@ destroystack(scrst)
 
 '--reset audio
 closemusic
-'DEBUG debug "Restore original FM volume"
 
 '--working files
 'DEBUG debug "Kill working files"

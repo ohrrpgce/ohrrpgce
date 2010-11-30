@@ -27,11 +27,11 @@ declare function next_free_slot() as integer
 declare function sfx_slot_info (slot as integer) as string
 
 dim shared music_on as integer = 0  '-1 indicates error, don't try again
-dim shared music_vol as integer
+dim shared midi_vol as integer      '0 to 128
 dim shared music_paused as integer
 dim shared music_song as Mix_Music ptr = NULL
 dim shared orig_vol as integer = -1
-dim shared nonmidi_vol as integer = MIX_MAX_VOLUME
+dim shared nonmidi_vol as integer = MIX_MAX_VOLUME  '0 to 128
 dim shared nonmidi_playing as integer = 0
 
 'The music module needs to manage a list of temporary files to
@@ -99,7 +99,7 @@ sub music_init()
 			'end if
 		end if
 		
-		music_vol = 8
+		midi_vol = 64
 		music_on = 1
 		music_paused = 0
 	end if
@@ -210,14 +210,13 @@ sub music_play(songname as string, fmt as integer)
 			orig_vol = Mix_VolumeMusic(-1)
 		end if
 					
-		if music_vol = 0 then
+		if midi_vol = 0 then
 			Mix_VolumeMusic(0)
 		else
 			if fmt <> FORMAT_MIDI then
 				Mix_VolumeMusic(nonmidi_vol)
 			else
-				'add a small adjustment because 15 doesn't go into 128
-				Mix_VolumeMusic((music_vol * 8) + 8)
+				Mix_VolumeMusic(midi_vol)
 			end if
 		end if
 		
@@ -252,31 +251,26 @@ sub music_stop()
 	end if
 end sub
 
-sub music_setvolume(vol as integer)
+sub music_setvolume(vol as single)
 	if nonmidi_playing then
 		'Separate volume for XMs because they're annoying
-		nonmidi_vol = iif(vol=0, 0, (vol * 8) + 8)
+		nonmidi_vol = vol * 128
 		if music_on = 1 then
 			Mix_VolumeMusic(nonmidi_vol)
 		end if
 	else
-		music_vol = vol
+		midi_vol = vol * 128
 		if music_on = 1 then
-			if music_vol = 0 then
-				Mix_VolumeMusic(0)
-			else
-				'add a small adjustment because 15 doesn't go into 128
-				Mix_VolumeMusic((music_vol * 8) + 8)
-			end if
+			Mix_VolumeMusic(midi_vol)
 		end if
 	end if
 end sub
 
-function music_getvolume() as integer
+function music_getvolume() as single
 	if nonmidi_playing then
-		music_getvolume = nonmidi_vol \ 8
+		music_getvolume = nonmidi_vol / 128
 	else
-		music_getvolume = music_vol
+		music_getvolume = midi_vol / 128
 	end if
 end function
 

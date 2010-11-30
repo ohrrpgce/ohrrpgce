@@ -110,7 +110,6 @@ DIM quit_confirm(1) AS STRING
 'more global variables
 DIM game as string, sourcerpg as string, activepalette
 DIM vpage, dpage, fadestate
-DIM fmvol
 
 RANDOMIZE TIMER, 3 ' mersenne twister
 
@@ -215,7 +214,6 @@ safekill workingdir + SLASH + "__danger.tmp"
 IF hsfile$ <> "" THEN GOTO hsimport
 
 setupmusic
-fmvol = getfmvol
 
 IF NOT isfile(game + ".mas") AND NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  debug "Warning: " & game & ".mas does not exist (which should never happen)"

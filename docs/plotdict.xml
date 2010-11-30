@@ -1092,7 +1092,7 @@ end</example>
 		<command id="setmusicvolume">
 			<canon>set music volume (volume)</canon>
 			<shortname>set music volume</shortname>
-			<description>Sets the volume at which music is played, <p>volume</p> being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255. <note>The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. Currently vanilla OHR uses only 0-15 internally, so 240-255 all translate to the same volume, etc.</note></description>
+			<description>Sets the volume at which music is played, <p>volume</p> being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255. <note>The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. For example, music_sdl only supports 128 different volume levels. So if you set the volume and then read it back, it might change slightly.</note></description>
 		</command>
 		<command id="getmusicvolume">
 			<canon>get music volume</canon>

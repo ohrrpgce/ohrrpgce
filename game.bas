@@ -77,7 +77,6 @@ setmodex
 
 'DEBUG debug "init sound"
 setupmusic
-fmvol = getfmvol
 
 'DEBUG debug "dim (almost) everything"
 
@@ -118,7 +117,7 @@ DIM gold
 DIM npcs(0) as NPCType
 DIM npc(300) as NPCInst
 
-DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, fmvol, speedcontrol, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
+DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, speedcontrol, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
 DIM err_suppress_lvl
 DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir, homedir
 DIM prefsdir as string
@@ -2157,8 +2156,8 @@ SUB player_menu_keys (catx(), caty())
   mi = *menus(topmenu).items[mstates(topmenu).pt]
   IF mi.disabled THEN EXIT SUB
   IF mi.t = 1 AND mi.sub_t = 11 THEN '--volume
-   IF carray(ccLeft) > 1 THEN fmvol = large(fmvol - 1, 0): setfmvol fmvol
-   IF carray(ccRight) > 1 THEN fmvol = small(fmvol + 1, 15): setfmvol fmvol
+   IF carray(ccLeft) > 1 THEN set_music_volume large(get_music_volume - 1/16, 0.0)
+   IF carray(ccRight) > 1 THEN set_music_volume small(get_music_volume + 1/16, 1.0)
   END IF
   IF carray(ccUse) > 1 THEN
    activate_menu_item mi, find_menu_handle(menu_handle)
