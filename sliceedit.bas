@@ -500,8 +500,13 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
    IF enter_or_space() THEN *n = NOT *n : state.need_update = YES
   CASE erStrgrabber
    DIM s AS STRING PTR = rule.dataptr
-   IF strgrabber(*s, 256) THEN 'FIXME: this is a bad max length. Should there be a max?
+   IF keyval(scENTER) > 1 THEN
+    *s = multiline_string_editor(*s, "sliceedit_text_multiline")
     state.need_update = YES
+   ELSE
+    IF strgrabber(*s, 32767) THEN 'FIXME: this limit is totally arbitrary.
+     state.need_update = YES
+    END IF
    END IF
  END SELECT
  DIM switchtype AS INTEGER = NO
