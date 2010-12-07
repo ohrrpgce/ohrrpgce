@@ -1946,44 +1946,39 @@ LOOP
 END FUNCTION
 
 SUB tagdisplay
-STATIC pt, top
+STATIC st AS menustate
+st.size = 6
+st.last = 1999
 
-pt = large(pt, 0)
-
-IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
- '--minus
- IF keyval(scCtrl) > 0 THEN
-  setbit tag(), 0, pt, 0
+IF keyval(scCtrl) > 0 THEN
+ IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
+  setbit tag(), 0, st.pt, 0
   npcplot
- ELSE
-  pt = large(pt - 1, 0)
  END IF
-END IF
-IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN
- '--plus
- IF keyval(scCtrl) > 0 THEN
-  setbit tag(), 0, pt, 1
+ IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN
+  setbit tag(), 0, st.pt, 1
   npcplot
- ELSE
-  pt = small(pt + 1, 1999)
+ END IF
+ELSE
+ IF usemenu(st, scMinus, scPlus) = 0 THEN
+  'little bit hacky...
+  usemenu(st, scNumpadMinus, scNumpadPlus)
  END IF
 END IF
 
-top = bound(top, pt - 4, pt)
-
-fuzzyrect 0, 0, 208, 50, uilook(uiOutline), dpage
-FOR i = top TO top + 4
- temp$ = i & "  "
+fuzzyrect 0, 0, 208, (st.size + 1) * 10, uilook(uiOutline), dpage
+FOR i = st.top TO st.top + st.size
+ DIM temp as string = i & "  "
  SELECT CASE i
   CASE 0, 1
-   temp$ = temp$ & "Reserved Tag"
+   temp += "Reserved Tag"
   CASE IS > 1
-   temp$ = temp$ & load_tag_name(i)
+   temp += load_tag_name(i)
  END SELECT
  c = uilook(uiDisabledItem)
  IF istag(i, 0) THEN c = uilook(uiHighlight) 'hmm
- edgeprint temp$, 16, (i - top) * 10, c, dpage
- IF i = pt THEN edgeprint "->", 0, (i - top) * 10, uilook(uiText), dpage
+ edgeprint temp, 16, (i - st.top) * 10, c, dpage
+ IF i = st.pt THEN edgeprint "->", 0, (i - st.top) * 10, uilook(uiText), dpage
 NEXT i
 END SUB
 
