@@ -123,8 +123,8 @@ FUNCTION usemenu (pt, top, first, last, size, deckey = scUp, inckey = scDown) as
 oldptr = pt
 oldtop = top
 
-IF keyval(scUp) > 1 THEN pt = loopvar(pt, first, last, -1)
-IF keyval(scDown) > 1 THEN pt = loopvar(pt, first, last, 1)
+IF keyval(deckey) > 1 THEN pt = loopvar(pt, first, last, -1)
+IF keyval(inckey) > 1 THEN pt = loopvar(pt, first, last, 1)
 IF keyval(scPageup) > 1 THEN pt = pt - size
 IF keyval(scPagedown) > 1 THEN pt = pt + size
 IF keyval(scHome) > 1 THEN pt = first
