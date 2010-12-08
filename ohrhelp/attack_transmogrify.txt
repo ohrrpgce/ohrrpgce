@@ -4,6 +4,6 @@ a different enemy.
 
 When "Enemy Becomes" is "None", no transmogrification will happen. If an enemy ID number is selected, the target will be changed into it. This has no effect if the attack is used on a hero.
 
-Health: Yu can choose whether to keep the old enemy's remaining health, or to restore the enemy's health to the max for the new enemy type, or to adjust the remaining health as a percentage of maximum.
+Health: You can choose whether to keep the old enemy's remaining health, or to restore the enemy's health to the max for the new enemy type, or to adjust the remaining health as a percentage of maximum.
 
 Other stats: You can choose whether to keep the old enemy's other stats, or to restore them to the new enemy type's maximum, or to adjust them as a percentage of maximum.
