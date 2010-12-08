@@ -25,6 +25,7 @@ DECLARE SUB clamp_menu_state (BYREF state AS MenuState)
 DECLARE SUB start_new_debug ()
 DECLARE SUB end_debug ()
 DECLARE SUB debug (s as string)
+DECLARE SUB debugc CDECL ALIAS "debugc" (BYVAL s as zstring ptr, BYVAL errorlevel as integer)
 DECLARE SUB debuginfo (s as string)
 DECLARE SUB visible_debug (s as string)
 DECLARE FUNCTION soundfile (sfxnum as integer) as string

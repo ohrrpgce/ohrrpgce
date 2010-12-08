@@ -346,6 +346,20 @@ SUB debug (s$)
  debuginfo s$
 END SUB
 
+SUB debugc CDECL (BYVAL s as zstring ptr, BYVAL errorlevel as integer)
+ 'Fine grained errorlevels unimplemented, but here's the current suggestion:
+ ' 1 current debuginfo
+ ' 2 current debug, mostly for debugging, including "trace"
+ ' 3 recovered error, log and ask the user (when they quit?) to send the debug log
+ ' 4 possibly recoverable error, ask the user whether they want to continue
+ ' 5 fatal error, tell the user to report, and then quit
+ ' 6 fatal error which prevents the display of a visible error message;
+ '   attempt to print a stacktrace and quit
+
+ IF errorlevel >= 2 THEN importantdebug = -1
+ debuginfo *s
+END SUB
+
 SUB debuginfo (s AS STRING)
  'use for throwaway messages like upgrading
  STATIC sizeerror = 0
