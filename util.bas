@@ -185,7 +185,7 @@ FUNCTION escape_string(s AS STRING, chars AS STRING) AS STRING
  DIM result AS STRING
  result = ""
  FOR i = 1 to LEN(s)
-  c = MID$(s, i, 1)
+  c = MID(s, i, 1)
   IF INSTR(chars, c) THEN
    result = result & "\"
   END IF
@@ -248,7 +248,7 @@ SUB checkoverflow (st as Stack, byval amount as integer = 1)
       .size += STACK_SIZE_INC
       IF .size > STACK_SIZE_INC * 4 THEN .size += STACK_SIZE_INC
       'debug "new stack size = " & .size & " * 4  pos = " & (.pos - .bottom) & " amount = " & amount
-      'debug "nowscript = " & nowscript & " " & scrat(nowscript).id & " " & scriptname$(scrat(nowscript).id) 
+      'debug "nowscript = " & nowscript & " " & scrat(nowscript).id & " " & scriptname(scrat(nowscript).id) 
 
       DIM newptr as integer ptr
       newptr = reallocate(.bottom, .size * sizeof(integer))
@@ -1191,8 +1191,8 @@ END FUNCTION
 
 '------------- Old allmodex stuff -------------
 
-SUB array2str (arr() as integer, byval o as integer, s as string)
-'String s$ is already filled out with spaces to the requisite size
+SUB array2str (arr() as integer, byval o as integer, dest as string)
+'String dest is already filled out with spaces to the requisite size
 'o is the offset in bytes from the start of the buffer
 'the buffer will be packed 2 bytes to an int, for compatibility, even
 'though FB ints are 4 bytes long  ** leave like this? not really wise
@@ -1205,12 +1205,12 @@ SUB array2str (arr() as integer, byval o as integer, s as string)
 	bi = o \ 2 'offset is in bytes
 	toggle = o mod 2
 
-	for i = 0 to len(s$) - 1
+	for i = 0 to len(dest) - 1
 		if toggle = 0 then
-			s$[i] = bp[bi] and &hff
+			dest[i] = bp[bi] and &hff
 			toggle = 1
 		else
-			s$[i] = (bp[bi] and &hff00) shr 8
+			dest[i] = (bp[bi] and &hff00) shr 8
 			toggle = 0
 			bi = bi + 1
 		end if
@@ -1218,7 +1218,7 @@ SUB array2str (arr() as integer, byval o as integer, s as string)
 
 END SUB
 
-SUB str2array (s as string, arr() as integer, byval o as integer)
+SUB str2array (src as string, arr() as integer, byval o as integer)
 'strangely enough, this does the opposite of the above
 	dim i as integer
 	dim bi as integer
@@ -1229,13 +1229,13 @@ SUB str2array (s as string, arr() as integer, byval o as integer)
 	bi = o \ 2 'offset is in bytes
 	toggle = o mod 2
 
-	'debug "String is " + str$(len(s$)) + " chars"
-	for i = 0 to len(s$) - 1
+	'debug "String is " + str(len(src)) + " chars"
+	for i = 0 to len(src) - 1
 		if toggle = 0 then
-			bp[bi] = s$[i] and &hff
+			bp[bi] = src[i] and &hff
 			toggle = 1
 		else
-			bp[bi] = (bp[bi] and &hff) or (s$[i] shl 8)
+			bp[bi] = (bp[bi] and &hff) or (src[i] shl 8)
 			'check sign
 			if (bp[bi] and &h8000) > 0 then
 				bp[bi] = bp[bi] or &hffff0000 'make -ve
@@ -1246,7 +1246,7 @@ SUB str2array (s as string, arr() as integer, byval o as integer)
 	next
 end SUB
 
-SUB xbload (filename as string, array() as integer, e as string)
+SUB xbload (filename as string, array() as integer, errmsg as string)
 	IF isfile(filename) THEN
 		dim ff as integer, byt as ubyte, seg as short, offset as short, length as short
 		dim ilength as integer
@@ -1255,7 +1255,7 @@ SUB xbload (filename as string, array() as integer, e as string)
 		ff = FreeFile
 		OPEN filename FOR BINARY AS #ff
 		GET #ff,, byt 'Magic number, always 253
-		IF byt <> 253 THEN fatalerror e$
+		IF byt <> 253 THEN fatalerror errmsg
 		GET #ff,, seg 'Segment, no use anymore
 		GET #ff,, offset 'Offset into the array, not used now
 		GET #ff,, length 'Length
@@ -1272,7 +1272,7 @@ SUB xbload (filename as string, array() as integer, e as string)
 		next i
 
 	ELSE
-		fatalerror e$
+		fatalerror errmsg
 	END IF
 END SUB
 
