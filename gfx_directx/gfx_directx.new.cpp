@@ -60,7 +60,7 @@ void LoadHelpText()
 	g_State.szHelpText = pText;
 }
 
-int gfx_Initialize(const GFX_INIT *pCreationData)
+DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 {
 	if(pCreationData == NULL)
 		return FALSE;
@@ -116,7 +116,7 @@ int gfx_Initialize(const GFX_INIT *pCreationData)
 	return TRUE;
 }
 
-void gfx_Shutdown()
+DFI_IMPLEMENT_CDECL(void, gfx_Shutdown)
 {
 	g_State.SendDebugString("gfx_directx: Closing backend...");
 	g_Joystick.Shutdown();
@@ -127,7 +127,7 @@ void gfx_Shutdown()
 	CoUninitialize();
 }
 
-int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void *pvParam)
+DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam, void *pvParam)
 {
 	switch(msg)
 	{
@@ -225,19 +225,19 @@ int gfx_SendMessage(unsigned int msg, unsigned int dwParam, void *pvParam)
 	return TRUE;
 }
 
-int gfx_GetVersion()
+DFI_IMPLEMENT_CDECL(int, gfx_GetVersion)
 {
 	return DX_VERSION_MAJOR;
 }
 
-void gfx_Present(unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
+DFI_IMPLEMENT_CDECL(void, gfx_Present, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
 {
 	if(pPalette)
 		g_DirectX.SetPalette(&Palette<UINT>(pPalette, 256));
 	g_DirectX.ShowPage(pSurface, nWidth, nHeight);
 }
 
-int gfx_ScreenShot(const char *szFileName)
+DFI_IMPLEMENT_CDECL(int, gfx_ScreenShot, const char *szFileName)
 {
 	if(!g_DirectX.IsScreenShotsActive())
 		return FALSE;
@@ -267,7 +267,7 @@ int gfx_ScreenShot(const char *szFileName)
 	return TRUE;
 }
 
-void gfx_PumpMessages()
+DFI_IMPLEMENT_CDECL(void, gfx_PumpMessages)
 {
 	static MSG msg;
 	while(::PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -282,7 +282,7 @@ void gfx_PumpMessages()
 	//g_Keyboard.Poll();
 }
 
-void gfx_SetWindowTitle(const char *szTitle)
+DFI_IMPLEMENT_CDECL(void, gfx_SetWindowTitle, const char *szTitle)
 {
 	TCHAR buffer[256] = TEXT("");
 	if(szTitle == NULL)
@@ -299,27 +299,27 @@ void gfx_SetWindowTitle(const char *szTitle)
 	g_Window.SetWindowTitle(szTemp.c_str());
 }
 
-const char* gfx_GetWindowTitle()
+DFI_IMPLEMENT_CDECL(const char*, gfx_GetWindowTitle)
 {
 	char buffer[256] = "";
 	return StringToString(buffer, 256, g_State.szWindowTitle.c_str());
 }
 
-void gfx_ShowCursor()
+DFI_IMPLEMENT_CDECL(void, gfx_ShowCursor)
 {
 	//g_State.bOhrMouseRequest = false;
 	g_Mouse.SetCursorVisibility(gfx::Mouse2::CV_SHOW);
 	g_Mouse.SetInputState(gfx::Mouse2::IS_DEAD);
 }
 
-void gfx_HideCursor()
+DFI_IMPLEMENT_CDECL(void, gfx_HideCursor)
 {
 	//g_State.bOhrMouseRequest = true;
 	g_Mouse.SetCursorVisibility(gfx::Mouse2::CV_HIDE);
 	g_Mouse.SetInputState(gfx::Mouse2::IS_LIVE);
 }
 
-void gfx_ClipCursor(int left, int top, int right, int bottom)
+DFI_IMPLEMENT_CDECL(void, gfx_ClipCursor, int left, int top, int right, int bottom)
 {
 	if(left == -1 && top == -1 && right == -1 && bottom == -1)
 		g_Mouse.SetClipState(gfx::Mouse2::CS_OFF);
@@ -333,7 +333,7 @@ void gfx_ClipCursor(int left, int top, int right, int bottom)
 	gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
 }
 
-int gfx_GetKeyboard(int *pKeyboard)
+DFI_IMPLEMENT_CDECL(int, gfx_GetKeyboard, int *pKeyboard)
 {
 	if(pKeyboard == NULL)
 		return FALSE;
@@ -341,7 +341,7 @@ int gfx_GetKeyboard(int *pKeyboard)
 	return TRUE;
 }
 
-int gfx_GetMouse(int& x, int& y, int& wheel, int& buttons)
+DFI_IMPLEMENT_CDECL(int, gfx_GetMouse, int& x, int& y, int& wheel, int& buttons)
 {
 	x = g_Mouse.GetCursorPos().x;
 	y = g_Mouse.GetCursorPos().y;
@@ -350,7 +350,7 @@ int gfx_GetMouse(int& x, int& y, int& wheel, int& buttons)
 	return TRUE;
 }
 
-int gfx_SetMouse(int x, int y)
+DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 {
 	DWORD xPos, yPos;
 	RECT rClient, rDesktop;
@@ -368,17 +368,17 @@ int gfx_SetMouse(int x, int y)
 	return TRUE;
 }
 
-int gfx_GetJoystick(int nDevice, int& x, int& y, int& buttons)
+DFI_IMPLEMENT_CDECL(int, gfx_GetJoystick, int nDevice, int& x, int& y, int& buttons)
 {
 	return g_Joystick.GetState(nDevice, buttons, x, y);
 }
 
-int gfx_SetJoystick(int nDevice, int x, int y)
+DFI_IMPLEMENT_CDECL(int, gfx_SetJoystick, int nDevice, int x, int y)
 {
 	return FALSE; //no support
 }
 
-int gfx_GetJoystickCount()
+DFI_IMPLEMENT_CDECL(int, gfx_GetJoystickCount)
 {
 	return g_Joystick.GetJoystickCount();
 }
