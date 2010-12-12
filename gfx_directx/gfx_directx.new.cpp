@@ -1,7 +1,6 @@
 #include "gfx_directx_TESTAPPconst.h"
 
-#include "gfx_directx.new.h"
-#include "gfx_msg.h"
+#include "gfx_directx.h"
 #include "gfx_directx_cls_window.h"
 #include "gfx_directx_cls.h"
 #include "gfx_directx_cls_keyboard.h"
@@ -604,6 +603,30 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 			}
 			::DefWindowProc(hWnd, msg, wParam, lParam);
+		} break;
+	case WM_POWERBROADCAST:
+		{
+			switch(wParam)
+			{
+			case PBT_APMRESUMESUSPEND:
+			case PBT_APMRESUMECRITICAL:
+			case PBT_APMRESUMEAUTOMATIC:
+				{
+					g_DirectX.Initialize(&g_Window, MODULENAME);
+					g_Joystick.Initialize(g_Window.GetAppHandle(), g_Window.GetWindowHandle());
+					g_Mouse.SetVideoMode(gfx::Mouse2::VM_WINDOWED);
+					g_Mouse.UpdateClippingRect();
+				} break;
+			case PBT_APMSUSPEND:
+				{
+					g_DirectX.SetView(TRUE);
+					g_DirectX.Shutdown();
+					g_Joystick.Shutdown();
+				} break;
+			default:
+				return ::DefWindowProc(hWnd, msg, wParam, lParam);
+			}
+			return TRUE;
 		} break;
 	case WM_CLOSE:
 		{

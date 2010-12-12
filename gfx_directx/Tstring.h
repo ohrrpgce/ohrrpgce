@@ -1,19 +1,14 @@
 //Tstring.h
-//by Jay Tennant 12/8/09; updated 1/26/10; updated 9/7/10
+//by Jay Tennant 12/8/09; updated 1/26/10; updated 9/7/10; updated 12/8/10
 //typedef's a string template of type TCHAR; thread safe
 
 #ifndef TSTRING_H
 #define TSTRING_H
 
 #include <string>
+#include <tchar.h>
 
-#ifdef _UNICODE
-typedef std::basic_string<wchar_t> _Tstring;
-#define JTEXT(quote) L##quote
-#else
-typedef std::basic_string<char> _Tstring;
-#define JTEXT(quote) quote
-#endif //_UNICODE
+typedef std::basic_string<TCHAR> _Tstring;
 
 template <class T_StrDest, class T_StrSrc>
 T_StrDest* StringToString(T_StrDest* szDest, unsigned int nDestSize, const T_StrSrc* szSrc)
