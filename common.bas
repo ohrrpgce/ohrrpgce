@@ -3625,10 +3625,11 @@ FUNCTION enter_or_space () AS INTEGER
 END FUNCTION
 
 'Simple... and yet, more options than a regular menu item
+'Can also insert instead of appending... bad name
 SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, BYVAL enabled as integer = YES, BYVAL col as integer = -1, BYVAL dat as integer = 0, BYVAL where as integer = -1)
  IF col = -1 THEN col = uilook(uiText)
  IF where = -1 THEN
-  REDIM PRESERVE menu(0 TO UBOUND(menu) + 1)
+  REDIM PRESERVE menu(LBOUND(menu) TO UBOUND(menu) + 1)
   where = UBOUND(menu)
  END IF
  WITH menu(where)

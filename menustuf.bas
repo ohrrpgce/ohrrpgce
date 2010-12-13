@@ -45,7 +45,7 @@ DECLARE SUB spells_menu_paint (BYREF sp AS SpellsMenuState)
 REM $STATIC
 
 SUB buystuff (id, shoptype, storebuf())
-DIM b(dimbinsize(binSTF) * 50), stuf(50) AS STRING, vmask(5), emask(5), buytype(5, 1) AS STRING, wbuf(100), walks(15), tradestf(3, 1)
+DIM b(dimbinsize(binSTF) * 50), buytype(5, 1) AS STRING, wbuf(100), walks(15), tradestf(3, 1)
 DIM is_equipable AS INTEGER
 DIM itembuf(99) AS INTEGER
 DIM hiresprite AS Frame PTR
@@ -55,6 +55,9 @@ DIM heropal(3) AS Palette16 PTR
 DIM heroframe AS INTEGER
 DIM heropos AS XYPair
 DIM room_to_hire AS INTEGER = NO
+DIM st AS MenuState
+REDIM stuff(-1 TO -1) AS SimpleMenu   ' .dat of each menu item is item index
+DIM itemno AS INTEGER   ' always equal to stuff(st.pt).dat
 recordsize = curbinsize(binSTF) / 2 ' get size in INTs
 
 '--Preserve background for display beneath the buy menu
@@ -93,27 +96,18 @@ walks(13) = 3
 walks(14) = 3
 
 loadshopstuf b(), id
-FOR o = 0 TO storebuf(16)
- stuf(o) = ""
- FOR i = 1 TO small(b(o * recordsize + 0), 16)
-  IF b(o * recordsize + i) >= 0 AND b(o * recordsize + i) < 256 THEN stuf(o) = stuf(o) + CHR$(b(o * recordsize + i))
- NEXT i
-NEXT o
 
-total = 0
 setshopstock id, recordsize, storebuf(), b()
-GOSUB stufmask
-IF total = 0 THEN GOTO cleanupquit
+st.pt = 0
+st.size = 15
+GOSUB buildmenu
+IF st.last = -1 THEN GOTO cleanupquit
 
 price$ = "": xtralines = 0: price2$ = ""
 info1$ = "": info2$ = ""
 eqinfo$ = ""
 showhero = 0
 tradingitems = 0
-pt = 0: top = 0
-DO UNTIL readbit(vmask(), 0, pt) = 0
- pt = pt + 1
-LOOP
 GOSUB curinfo
 
 menusound gen(genAcceptSFX)
@@ -125,39 +119,14 @@ DO
  IF tog THEN walk = loopvar(walk, 0, 15, 1)
  playtimer
  control
- IF carray(ccUp) > 1 THEN
-  menusound gen(genCursorSFX)
-  DO
-   pt = pt - 1
-   IF pt < 0 THEN
-    DO
-     pt = pt + 1
-    LOOP UNTIL readbit(vmask(), 0, pt) = 0 OR pt > storebuf(16)
-    EXIT DO
-   END IF
-  LOOP UNTIL readbit(vmask(), 0, pt) = 0
-  top = small(pt, top)
-  GOSUB curinfo
- END IF
- IF carray(ccDown) > 1 THEN
-  menusound gen(genCursorSFX)
-  DO
-   pt = pt + 1
-   IF pt > storebuf(16) THEN
-    DO
-     pt = pt - 1
-    LOOP UNTIL readbit(vmask(), 0, pt) = 0 OR pt < 0
-    EXIT DO
-   END IF
-  LOOP UNTIL readbit(vmask(), 0, pt) = 0
-  GOSUB curinfo
- END IF
+ usemenusounds
+ IF usemenu(st) THEN GOSUB curinfo
  IF carray(ccMenu) > 1 THEN EXIT DO
  IF carray(ccUse) > 1 THEN '---PRESS ENTER---------------------
-  IF readbit(emask(), 0, pt) = 0 THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
-   IF gam.stock(id, pt) > 1 THEN gam.stock(id, pt) = gam.stock(id, pt) - 1
-   IF b(pt * recordsize + 22) THEN setbit tag(), 0, ABS(b(pt * recordsize + 22)), SGN(SGN(b(pt * recordsize + 22)) + 1)
-   gold = gold - b(pt * recordsize + 24)
+  IF stuff(st.pt).enabled THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
+   IF gam.stock(id, itemno) > 1 THEN gam.stock(id, itemno) -= 1
+   IF b(itemno * recordsize + 22) THEN setbit tag(), 0, ABS(b(itemno * recordsize + 22)), SGN(SGN(b(itemno * recordsize + 22)) + 1)
+   gold = gold - b(itemno * recordsize + 24)
    IF tradingitems THEN '---TRADE IN ITEMS----------
     FOR i = 0 TO 3
      IF tradestf(i, 0) > -1 THEN
@@ -165,45 +134,35 @@ DO
      END IF
     NEXT
    END IF '-------END TRADE IN ITEM----------------------------
-   IF b(pt * recordsize + 17) = 0 THEN '---BUY ITEM-------------------
+   IF b(itemno * recordsize + 17) = 0 THEN '---BUY ITEM-------------------
     menusound gen(genBuySFX)
-    getitem b(pt * recordsize + 18) + 1, 1
+    getitem b(itemno * recordsize + 18) + 1, 1
     acol = 4
     alert = 10
-    alert$ = purchased$ + " " + stuf(pt)
+    alert$ = purchased$ + " " + stuff(st.pt).text
    END IF '-------END IF ITEM-------------------------------------
-   IF b(pt * recordsize + 17) = 1 THEN '---HIRE HERO------------------
+   IF b(itemno * recordsize + 17) = 1 THEN '---HIRE HERO------------------
     menusound gen(genHireSFX)
     slot = first_free_slot_in_active_party()
     IF slot >= 0 THEN
-     addhero b(pt * recordsize + 18) + 1, slot, b(pt * recordsize + 26)
+     addhero b(itemno * recordsize + 18) + 1, slot, b(itemno * recordsize + 26)
      acol = 4
      alert = 10
-     alert$ = stuf(pt) + " " + joined$
+     alert$ = stuff(st.pt).text + " " + joined$
     END IF
    END IF '-------END IF HERO-------------------------------------
    'the last thing to do is re-eval the item and hero tags in case
-   'stuff changed
+   'something changed
    evalherotag
    evalitemtag
   ELSE ' WHEN CANNOT AFFORD------------------------------------
    menusound gen(genCantBuySFX)
    acol = 3
    alert = 10
-   alert$ = buytype(1, shoptype) + stuf(pt)
+   alert$ = buytype(1, shoptype) + stuff(st.pt).text
   END IF '--------END BUY THING------------
-  GOSUB stufmask
-  DO WHILE readbit(vmask(), 0, pt) = 1
-   pt = pt - 1
-   IF pt < 0 THEN
-    pt = 0
-    DO WHILE readbit(vmask(), 0, pt) = 1
-     pt = pt + 1
-     IF pt > storebuf(16) THEN GOTO cleanupquit
-    LOOP
-    EXIT DO
-   END IF
-  LOOP
+  GOSUB buildmenu
+  IF st.last = -1 THEN GOTO cleanupquit
   GOSUB curinfo
  END IF '---------END TRY BUY THING--------
 
@@ -214,12 +173,12 @@ DO
  centerbox 240, 19, LEN(temp$) * 8 + 8, 14, 4, page
  edgeprint temp$, xstring(temp$, 240), 14, uilook(uiText), page
  o = 0
- edgeprint stuf(pt), xstring(stuf(pt), 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
+ edgeprint stuff(st.pt).text, xstring(stuff(st.pt).text, 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
  IF info1$ <> "" THEN edgeprint info1$, xstring(info1$, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
  IF info2$ <> "" THEN edgeprint info2$, xstring(info2$, 240), 30 + o * 10, uilook(uiDisabledItem), page: o = o + 1
  IF eqinfo$ <> "" THEN edgeprint eqinfo$, xstring(eqinfo$, 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
- IF gam.stock(id, pt) > 1 THEN
-  edgeprint (gam.stock(id, pt) - 1) & " " & instock$ & " ", xstring((gam.stock(id, pt) - 1) & " " & instock$ & " ", 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
+ IF gam.stock(id, itemno) > 1 THEN
+  edgeprint (gam.stock(id, itemno) - 1) & " " & instock$ & " ", xstring((gam.stock(id, itemno) - 1) & " " & instock$ & " ", 240), 30 + o * 10, uilook(uiMenuItem), page: o = o + 1
  END IF
  IF showhero > -1 THEN
   'This happens only if a hireable hero is selected
@@ -248,22 +207,10 @@ DO
   NEXT i
  END IF
  '-----LEFT PANEL-------------------------------------------
- o = 0
- FOR i = top TO storebuf(16)
-  IF readbit(vmask(), 0, i) = 0 THEN
-   c = uilook(uiMenuItem): IF pt = i THEN c = uilook(uiSelectedItem + tog)
-   IF readbit(emask(), 0, i) THEN c = uilook(uiDisabledItem): IF pt = i THEN c = uilook(uiMenuItem + tog)
-   edgeprint stuf(i), 10, 15 + o * 10, c, page
-   o = o + 1
-   IF o > 14 THEN
-    IF pt > i THEN
-     DO
-      top = top + 1
-     LOOP UNTIL readbit(vmask(), 0, top) = 0
-    END IF
-    EXIT FOR
-   END IF
-  END IF
+ FOR i = st.top TO small(st.top + st.size, UBOUND(stuff))
+  c = uilook(uiMenuItem): IF st.pt = i THEN c = uilook(uiSelectedItem + tog)
+  IF stuff(i).enabled = 0 THEN c = uilook(uiDisabledItem): IF st.pt = i THEN c = uilook(uiMenuItem + tog)
+  edgeprint stuff(i).text, 10, 15 + (i - st.top) * 10, c, page
  NEXT i
  IF price$ <> "" THEN
   centerbox 160, 187, LEN(price$) * 8 + 8, 14 + xtralines * 10, 1, page
@@ -294,35 +241,35 @@ menusound gen(genCancelSFX)
 vishero
 EXIT SUB
 
-stufmask:
+buildmenu:
 '--this figures out if it is okay to buy (or hire) particular stuff.
-total = 0
-FOR i = 0 TO 5
- vmask(i) = 0
- emask(i) = 0
-NEXT i
+REDIM stuff(-1 TO -1)
 room_to_hire = herocount(3) < 4 ANDALSO free_slots_in_party() > 0
 FOR i = 0 TO storebuf(16)
  '--for each shop-thing
- IF gam.stock(id, i) = 1 THEN setbit vmask(), 0, i, 1
- IF b(i * recordsize + 17) = (shoptype XOR 1) THEN setbit vmask(), 0, i, 1
- IF NOT istag(b(i * recordsize + 20), -1) THEN setbit vmask(), 0, i, 1
- IF b(i * recordsize + 24) > gold THEN setbit emask(), 0, i, 1
+ IF gam.stock(id, i) = 1 THEN CONTINUE FOR
+ IF b(i * recordsize + 17) = (shoptype XOR 1) THEN CONTINUE FOR
+ IF NOT istag(b(i * recordsize + 20), -1) THEN CONTINUE FOR
+
+ DIM itemname as string = readbadbinstring(b(), i * recordsize, 16)
+ append_simplemenu_item stuff(), itemname, , , i
+ IF b(i * recordsize + 24) > gold THEN stuff(UBOUND(stuff)).enabled = NO
  loadtrades i, tradestf(), b(), recordsize
  FOR j = 0 TO 3
   IF tradestf(j, 0) > -1 THEN
-   IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN setbit emask(), 0, i, 1
+   IF countitem(tradestf(j, 0) + 1) < tradestf(j, 1) THEN stuff(UBOUND(stuff)).enabled = NO
   END IF
  NEXT
  '---PREVENT PARTY OVERFLOW
  IF b(i * recordsize + 17) = 1 THEN
-  IF room_to_hire = NO THEN setbit emask(), 0, i, 1
+  IF room_to_hire = NO THEN stuff(UBOUND(stuff)).enabled = NO
  END IF
- IF readbit(vmask(), 0, i) = 0 THEN total = total + 1
 NEXT i
+init_menu_state st, stuff()
 RETRACE
 
 curinfo:
+itemno = stuff(st.pt).dat
 tradingitems = 0
 xtralines = 0
 showhero = -1
@@ -332,9 +279,9 @@ price2$ = ""
 eqinfo$ = ""
 info1$ = ""
 info2$ = ""
-IF b(pt * recordsize + 24) > 0 THEN price$ = b(pt * recordsize + 24) & " " & readglobalstring(32, "Money")
+IF b(itemno * recordsize + 24) > 0 THEN price$ = b(itemno * recordsize + 24) & " " & readglobalstring(32, "Money")
 '--load must trade in item types+amounts
-loadtrades pt, tradestf(), b(), recordsize
+loadtrades itemno, tradestf(), b(), recordsize
 FOR i = 0 TO 3
  IF tradestf(i, 0) > -1 THEN
   tradingitems = 1
@@ -362,9 +309,9 @@ IF LEN(price$) > 38 THEN
  price$ = LEFT$(price$, i - 1)
  xtralines = 1
 END IF
-IF b(pt * recordsize + 17) = 0 THEN
+IF b(itemno * recordsize + 17) = 0 THEN
  'This is an item
- loaditemdata itembuf(), b(pt * recordsize + 18)
+ loaditemdata itembuf(), b(itemno * recordsize + 18)
  'The itembuf remains and is used later to show equipability.
  IF itembuf(49) = 1 THEN eqinfo$ = eqprefix$ & " " & wepslot$
  IF itembuf(49) > 1 THEN eqinfo$ = eqprefix$ & " " & readglobalstring(23 + itembuf(49), "Armor" & itembuf(49)-1)
@@ -385,10 +332,10 @@ IF b(pt * recordsize + 17) = 0 THEN
   is_equipable = YES
  END IF
 END IF
-IF b(pt * recordsize + 17) = 1 THEN
+IF b(itemno * recordsize + 17) = 1 THEN
  'hire
  dim her as herodef
- loadherodata @her, b(pt * recordsize + 18)
+ loadherodata @her, b(itemno * recordsize + 18)
  loaditemdata wbuf(), her.def_weapon
  IF her.def_level < 0 THEN her.def_level = averagelev
  eqinfo$ = (atlevel(her.def_level, her.lev0.hp, her.lev99.hp) + wbuf(54 + 0)) & " " & statnames(statHP)
