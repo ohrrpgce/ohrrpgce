@@ -27,6 +27,7 @@ declare sub loadmap_passmap(mapnum)
 declare sub loadmap_zonemap(mapnum)
 declare sub loadmaplumps (mapnum, loadmask)
 declare sub menusound(byval s as integer)
+declare sub usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scDown)
 declare sub dotimer(byval l as integer)
 declare function dotimerbattle() as integer
 declare function dotimermenu() as integer

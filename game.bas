@@ -1931,9 +1931,19 @@ SUB loadmaplumps (mapnum, loadmask)
  END IF
 END SUB
 
-Sub MenuSound(byval s as integer)
-  if s then stopsfx s-1:playsfx s-1, 0
-End Sub
+SUB MenuSound(byval s as integer)
+  IF s THEN
+    stopsfx s-1
+    playsfx s-1, 0
+  END IF
+END SUB
+
+SUB usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scDown)
+  IF keyval(deckey) > 1 ORELSE keyval(inckey) > 1 ORELSE keyval(scPageup) > 1 _
+       ORELSE keyval(scPagedown) > 1 ORELSE keyval(scHome) > 1 ORELSE keyval(scEnd) > 1 THEN 
+    menusound gen(genCursorSFX)
+  END IF
+END SUB
 
 SUB LoadGen
   dim as integer genlen, ff
