@@ -2714,9 +2714,8 @@ SUB advance_text_box ()
   END IF
   DIM inn AS INTEGER = 0
   IF txt.box.shop < 0 THEN
-   DIM holdscreen = allocatepage
    '--Preserve background for display beneath the top-level shop menu
-   copypage vpage, holdscreen
+   DIM holdscreen = duplicatepage(vpage)
    IF useinn(inn, -txt.box.shop, needf, holdscreen) THEN
     fadeout 0, 0, 80
     needf = 1

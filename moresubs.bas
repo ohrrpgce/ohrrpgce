@@ -1013,9 +1013,10 @@ remember$ = names(who)
 rememberjoycal = gen(genJoy)
 gen(genJoy) = 1'--disable joystick calibration
 
-copypage dpage, vpage
-setvispage vpage
+DIM page as integer
+page = compatpage
 IF fadestate = 0 THEN
+ setvispage vpage
  fadein
  needfadeout = 1
 END IF
@@ -1026,15 +1027,15 @@ DO
  setkeys
  playtimer
  control
- centerbox 160, 100, 168, 32, 1, dpage
+ centerbox 160, 100, 168, 32, 1, page
  IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN EXIT DO
  IF carray(ccMenu) > 1 THEN names(who) = remember$
  strgrabber names(who), limit
- edgeprint prompt$, xstring(prompt$, 160), 90, uilook(uiText), dpage
+ edgeprint prompt$, xstring(prompt$, 160), 90, uilook(uiText), page
  textcolor uilook(uiHighlight), uiLook(uiHighlight)
- printstr spacer$, xstring(spacer$, 161), 101, dpage
- edgeprint names(who), xstring(names(who), 160), 100, uilook(uiMenuItem), dpage
- SWAP vpage, dpage
+ printstr spacer$, xstring(spacer$, 161), 101, page
+ edgeprint names(who), xstring(names(who), 160), 100, uilook(uiMenuItem), page
+
  setvispage vpage
  dowait
 LOOP
@@ -1044,6 +1045,7 @@ gen(genJoy) = rememberjoycal '-- restore joystick calibration setting
 IF needfadeout = 1 THEN
  fadeout 0, 0, 0
 END IF
+freepage page
 
 END SUB
 
@@ -1783,9 +1785,9 @@ last = last + 1: menu(last) = readglobalstring$(74, "Exit", 10)
 menusound gen(genAcceptSFX)
 
 '--Preserve background for display beneath top-level shop menu
+holdscreen = duplicatepage(vpage)
+
 page = compatpage
-holdscreen = allocatepage
-copypage page, holdscreen
 
 setkeys
 DO
@@ -1842,6 +1844,7 @@ DO
      needf = 1
     END IF
    END IF
+   copypage holdscreen, vpage
   END IF
   IF autopick THEN EXIT DO
  END IF
@@ -1854,7 +1857,7 @@ DO
   edgeprint menu(i), xstring(menu(i), 160), 109 + i * 10, c, page
  NEXT i
  setvispage vpage
- copypage holdscreen, page
+ copypage holdscreen, vpage
  IF needf = 1 THEN needf = 0: fadein: setkeys
  IF needf > 1 THEN needf = needf - 1
  dowait
@@ -1880,9 +1883,12 @@ NEXT i
 RETRACE
 END SUB
 
+'holdscreen is a copy of vpage (not a compatpage)
 FUNCTION useinn (inn as integer, price as integer, needf as integer, holdscreen as integer) as integer
 DIM menu(1) AS STRING
 DIM AS INTEGER i, y
+DIM page as integer
+page = compatpage
 
 useinn = 0
 
@@ -1918,31 +1924,34 @@ DO
   END IF
   IF inn = 1 THEN EXIT DO
  END IF
- edgeboxstyle 0, 3, 218, herocount() * 10 + 4, 0, dpage
+
+ 'Draw screen
+ copypage holdscreen, vpage
+ edgeboxstyle 0, 3, 218, herocount() * 10 + 4, 0, page
  y = 0
  FOR i = 0 TO 3
   IF hero(i) > 0 THEN
    col = uilook(uiText)
-   edgeprint names(i), 128 - LEN(names(i)) * 8, 5 + y * 10, col, dpage
-   edgeprint STR$(ABS(gam.hero(i).stat.cur.hp)) + "/" + STR$(ABS(gam.hero(i).stat.max.hp)), 136, 5 + y * 10, col, dpage
+   edgeprint names(i), 128 - LEN(names(i)) * 8, 5 + y * 10, col, page
+   edgeprint STR$(ABS(gam.hero(i).stat.cur.hp)) + "/" + STR$(ABS(gam.hero(i).stat.max.hp)), 136, 5 + y * 10, col, page
    y = y + 1
   END IF
  NEXT i
- centerfuz 160, 90, 200, 60, 1, dpage
- rectangle 130, 92, 60, 22, uilook(uiHighlight), dpage 'orig colour 20
- edgeprint inncost$ & " " & price & " " & readglobalstring(32, "Money"), 160 - LEN(inncost$ & price & " " & readglobalstring(32, "Money")) * 4, 70, uilook(uiText), dpage
- edgeprint youhave$ & " " & gold & " " & readglobalstring(32, "Money"), 160 - LEN(youhave$ & gold & " " & readglobalstring(32, "Money")) * 4, 80, uilook(uiText), dpage
+ centerfuz 160, 90, 200, 60, 1, page
+ rectangle 130, 92, 60, 22, uilook(uiHighlight), page 'orig colour 20
+ edgeprint inncost$ & " " & price & " " & readglobalstring(32, "Money"), 160 - LEN(inncost$ & price & " " & readglobalstring(32, "Money")) * 4, 70, uilook(uiText), page
+ edgeprint youhave$ & " " & gold & " " & readglobalstring(32, "Money"), 160 - LEN(youhave$ & gold & " " & readglobalstring(32, "Money")) * 4, 80, uilook(uiText), page
  FOR i = 0 TO 1
   col = uilook(uiMenuItem): IF inn = i THEN col = uilook(uiSelectedItem + tog)
-  edgeprint menu(i), 160 - LEN(menu(i)) * 4, 94 + i * 8, col, dpage
+  edgeprint menu(i), 160 - LEN(menu(i)) * 4, 94 + i * 8, col, page
  NEXT i
- SWAP vpage, dpage
+
  setvispage vpage
- copypage holdscreen, dpage
  IF needf = 1 THEN needf = 0: fadein: setkeys
  IF needf > 1 THEN needf = needf - 1
  dowait
 LOOP
+freepage page
 END FUNCTION
 
 SUB tagdisplay
