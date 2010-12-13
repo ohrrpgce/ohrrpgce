@@ -136,7 +136,7 @@ names(slot) = her.name
 '--if renaming is permitted, do it
 IF readbit(thishbits(), 0, 24) THEN
  '--add-hero rename is allowed
- renamehero slot
+ renamehero slot, NO
 END IF
 
 END SUB
@@ -999,7 +999,8 @@ END IF
 
 END SUB
 
-SUB renamehero (who)
+'If escapable is true, then ESC exits, otherwise it resets the entered name
+SUB renamehero (byval who as integer, byval escapable as integer)
 
 dim her as herodef
 loadherodata @her, hero(who) - 1
@@ -1029,7 +1030,10 @@ DO
  control
  centerbox 160, 100, 168, 32, 1, page
  IF carray(ccUse) > 1 AND keyval(scSpace) = 0 THEN EXIT DO
- IF carray(ccMenu) > 1 THEN names(who) = remember$
+ IF carray(ccMenu) > 1 THEN
+  names(who) = remember$
+  IF escapable THEN EXIT DO
+ END IF
  strgrabber names(who), limit
  edgeprint prompt$, xstring(prompt$, 160), 90, uilook(uiText), page
  textcolor uilook(uiHighlight), uiLook(uiHighlight)

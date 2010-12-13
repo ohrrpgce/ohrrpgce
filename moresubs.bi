@@ -21,7 +21,7 @@ DECLARE FUNCTION teleporttool () as integer
 DECLARE FUNCTION movdivis (xygo as integer) as integer
 DECLARE FUNCTION onwho (caption as string, alone as integer) as integer
 DECLARE SUB readjoysettings
-DECLARE SUB renamehero (who as integer)
+DECLARE SUB renamehero (byval who as integer, byval escapable as integer)
 DECLARE SUB resetgame (scriptout as string)
 DECLARE SUB resetlmp (slot as integer, lev as integer)
 DECLARE FUNCTION runscript (id as integer, index as integer, newcall as integer, er as string, trigger as integer) as integer

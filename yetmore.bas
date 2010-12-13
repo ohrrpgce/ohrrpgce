@@ -1210,7 +1210,7 @@ SELECT CASE AS CONST id
  CASE 146'--rename hero by slot
   IF valid_hero_party(retvals(0)) THEN
    IF hero(retvals(0)) > 0 THEN
-    renamehero retvals(0)
+    renamehero retvals(0), YES
    END IF
   END IF
  CASE 171'--saveslotused

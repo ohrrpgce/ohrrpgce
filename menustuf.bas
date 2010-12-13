@@ -1224,7 +1224,8 @@ DO
    '--tigger rename
    IF readbit(thishbits(), 0, 25) THEN
     '--status-screen rename is allowed
-    renamehero pt
+    renamehero pt, YES
+    IF carray(ccMenu) > 1 THEN EXIT DO
     mode = 0
    END IF
 
