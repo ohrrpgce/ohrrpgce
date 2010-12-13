@@ -20,6 +20,7 @@ DECLARE SUB modex_quit ()
 DECLARE SUB restoremode ()
 DECLARE SUB setwindowtitle (title as string)
 DECLARE FUNCTION allocatepage(BYVAL w as integer = 320, BYVAL h as integer = 200) as integer
+DECLARE FUNCTION duplicatepage (BYVAL page as integer) as integer
 DECLARE SUB freepage (BYVAL page as integer)
 DECLARE FUNCTION registerpage (BYVAL spr as Frame ptr) as integer
 DECLARE SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)

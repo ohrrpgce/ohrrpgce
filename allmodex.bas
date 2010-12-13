@@ -272,6 +272,14 @@ FUNCTION allocatepage(BYVAL w as integer = 320, BYVAL h as integer = 200) as int
 	return ret
 END FUNCTION
 
+'creates a copy of a page, registering it (must be freed)
+FUNCTION duplicatepage (BYVAL page as integer) as integer
+	dim fr as Frame ptr = frame_duplicate(vpages(page))
+	dim ret as integer = registerpage(fr)
+	frame_unload(@fr) 'we're not hanging onto it, vpages() is
+	return ret
+END FUNCTION
+
 'copy page1 to page2
 'should copying to a page of different size resize that page?
 SUB copypage (BYVAL page1 as integer, BYVAL page2 as integer)
