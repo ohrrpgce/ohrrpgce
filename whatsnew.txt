@@ -54,6 +54,8 @@ WHAT IS NEW?
       out-of-battle cure attack or item [James]
     * Bug 486: Chained attacks fail on stored dead targets
       [James, msw188]
+    * Bug 851: Instead-chains fail or cause other chains to fail under
+      certain conditions [James msw188]
     * Using an item that triggers a text box could cause a menu
       double-close warning if the menu item that opened the items menu
       was set to always close the menu [James]

@@ -2322,6 +2322,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  DIM safety AS INTEGER = 0
  DO WHILE spawn_chained_attack(attack.instead, attack, bat, bslot())
   IF blocked_by_attack(bat.acting) THEN EXIT SUB
+  IF bat.atk.id = -1 THEN EXIT SUB
   loadattackdata attack, bat.atk.id
   safety += 1
   IF safety > 100 THEN
