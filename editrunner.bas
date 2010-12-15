@@ -30,13 +30,22 @@ USING Reload.Ext
 
 TYPE EditorState
  root AS NodePtr
+ need_update AS INTEGER
+ root_sl AS Slice Ptr
+ scroller AS Slice Ptr
+ widget_state_doc AS DocPtr
+ widget_state AS NodePtr
 END TYPE
+
+'-----------------------------------------------------------------------
+
+DECLARE SUB edrun_update (BYREF es AS EditorState)
 
 '-----------------------------------------------------------------------
 
 SUB editor_runner(editor_definition_file AS STRING)
  IF NOT isfile(editor_definition_file) THEN
-  debuginfo "file not found: " & editor_definition_file
+  pop_warning "file not found: " & editor_definition_file
   EXIT SUB
  END IF
  
@@ -52,22 +61,30 @@ END SUB
 
 SUB editor_runner(BYVAL root AS NodePtr)
  IF root = 0 THEN
-  debuginfo "null root editor node"
+  pop_warning "null root editor node"
   EXIT SUB
  END IF
 
  IF NodeName(root) <> "editor" THEN
-  debuginfo "not an editor root node (" & NodeName(root) & ")"
+  pop_warning "not an editor root node (" & NodeName(root) & ")"
   EXIT SUB
  END IF
 
  DIM es AS EditorState
  es.root = root
+ es.need_update = YES
+ es.widget_state_doc = CreateDocument()
+ es.widget_state = DocumentRoot(es.widget_state_doc)
  
  setkeys
  DO
   setwait 55
   setkeys
+
+  IF es.need_update THEN
+   edrun_update es
+   es.need_update = NO
+  END IF
 
   IF keyval(scESC) > 1 THEN EXIT DO
 
@@ -76,6 +93,37 @@ SUB editor_runner(BYVAL root AS NodePtr)
   SWAP vpage, dpage
   setvispage vpage
   dowait
+ LOOP
+ 
+ FreeDocument es.widget_state_doc
+ 
+END SUB
+
+'-----------------------------------------------------------------------
+
+SUB edrun_update (BYREF es AS EditorState)
+ DeleteSlice @es.root_sl
+ es.scroller = 0
+ FreeNode es.widget_state
+ 
+ es.root_sl = NewSliceOfType(slContainer)
+ es.root_sl->Fill = YES
+ 
+ es.scroller = NewSliceOfType(slContainer, es.root_sl)
+ 
+ DIM widget_container AS NodePtr
+ widget_container = NodeByPath(es.root, "/widgets")
+ IF widget_container = 0 THEN
+  pop_warning("Editor definition has no widget container node")
+  EXIT SUB
+ END IF
+ 
+ DIM widget AS Nodeptr
+ widget = FirstChild(widget_container, "widget")
+ 
+ DO WHILE widget
+  debug NodeName(widget)
+  widget = NextSibling(widget, "widget")
  LOOP
  
 END SUB
