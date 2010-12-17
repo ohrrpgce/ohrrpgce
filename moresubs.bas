@@ -1763,9 +1763,10 @@ SUB shop (id, needf)
 
 DIM storebuf(40), menu(10) AS STRING, menuid(10)
 DIM sn AS STRING
-DIM AS INTEGER i, autopick, last, pt, w, temp, tog, inn, rsr, h, c, t, o
+DIM AS INTEGER i, autopick, w, temp, tog, inn, rsr, h, c, t, o
 DIM page AS INTEGER
 DIM holdscreen AS INTEGER
+DIM st as MenuState
 
 FOR i = 0 TO 7
  menuid(i) = i
@@ -1780,11 +1781,15 @@ menu(5) = readglobalstring$(66, "Save", 10)
 menu(6) = readglobalstring$(68, "Map", 10)
 menu(7) = readglobalstring$(65, "Team", 10)
 
-last = -1
+st.size = 22
+st.pt = 0
+st.last = -1
 GOSUB initshop
-IF last = -1 THEN EXIT SUB
-IF last = 0 THEN autopick = 1
-last = last + 1: menu(last) = readglobalstring$(74, "Exit", 10)
+IF st.last = -1 THEN EXIT SUB
+IF st.last = 0 THEN autopick = 1
+st.last += 1
+menu(st.last) = readglobalstring$(74, "Exit", 10)
+menuid(st.last) = 8
 
 menusound gen(genAcceptSFX)
 
@@ -1800,37 +1805,40 @@ DO
  tog = tog XOR 1
  playtimer
  control
- IF carray(ccUp) > 1 THEN pt = large(pt - 1, 0) : menusound gen(genCursorSFX)
- IF carray(ccDown) > 1 THEN pt = small(pt + 1, last) : menusound gen(genCursorSFX)
+ usemenu st
+ usemenusounds
  IF carray(ccMenu) > 1 THEN menusound gen(genCancelSFX) : EXIT DO
  IF carray(ccUse) > 1 OR autopick THEN
-  IF pt = last THEN menusound gen(genCancelSFX) : EXIT DO
-  IF menuid(pt) = 0 THEN '--BUY
+  IF menuid(st.pt) = 8 THEN '--EXIT
+   menusound gen(genCancelSFX)
+   EXIT DO
+  END IF
+  IF menuid(st.pt) = 0 THEN '--BUY
    buystuff id, 0, storebuf()
   END IF
-  IF menuid(pt) = 1 THEN '--SELL
+  IF menuid(st.pt) = 1 THEN '--SELL
    sellstuff id, storebuf()
   END IF
-  IF menuid(pt) = 2 THEN '--HIRE
+  IF menuid(st.pt) = 2 THEN '--HIRE
    buystuff id, 1, storebuf()
   END IF
-  IF menuid(pt) = 6 THEN '--MAP
+  IF menuid(st.pt) = 6 THEN '--MAP
    minimap catx(0), caty(0)
   END IF
-  IF menuid(pt) = 7 THEN '--TEAM
+  IF menuid(st.pt) = 7 THEN '--TEAM
    heroswap 1
   END IF
-  IF menuid(pt) = 4 THEN '--EQUIP
+  IF menuid(st.pt) = 4 THEN '--EQUIP
    w = onwho(readglobalstring$(108, "Equip Who?", 20), 0)
    IF w >= 0 THEN
     equip w
    END IF
   END IF
-  IF menuid(pt) = 5 THEN '--SAVE
+  IF menuid(st.pt) = 5 THEN '--SAVE
    temp = picksave(0)
    IF temp >= 0 THEN savegame temp
   END IF
-  IF menuid(pt) = 3 THEN '--INN
+  IF menuid(st.pt) = 3 THEN '--INN
    inn = 0
    IF useinn(inn, storebuf(18), needf, holdscreen) THEN
     IF inn = 0 THEN
@@ -1852,12 +1860,12 @@ DO
   END IF
   IF autopick THEN EXIT DO
  END IF
- h = (last + 2) * 10
+ h = (st.last + 2) * 10
  centerbox 160, 104 + (h * .5), 96, h, 1, page
  centerbox 160, 90, LEN(sn) * 8 + 8, 16, 1, page
  edgeprint sn, xstring(sn, 160), 85, uilook(uiText), page
- FOR i = 0 TO last
-  c = uilook(uiMenuItem): IF pt = i THEN c = uilook(uiSelectedItem + tog)
+ FOR i = 0 TO st.last
+  c = uilook(uiMenuItem): IF st.pt = i THEN c = uilook(uiSelectedItem + tog)
   edgeprint menu(i), xstring(menu(i), 160), 109 + i * 10, c, page
  NEXT i
  setvispage vpage
@@ -1880,7 +1888,7 @@ FOR i = 0 TO 7
  IF readbit(storebuf(), 17, i) THEN
   SWAP menu(i), menu(o)
   SWAP menuid(i), menuid(o)
-  last = o
+  st.last = o
   o = o + 1
  END IF
 NEXT i
@@ -1913,7 +1921,10 @@ DO
   menusound gen(genCancelSFX)
   EXIT DO
  END IF
- IF carray(ccUp) > 1 OR carray(ccDown) > 1 OR carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
+ usemenusounds
+ usemenu inn, 0, 0, 1, 2
+ 'alternatively
+ IF carray(ccLeft) > 1 OR carray(ccRight) > 1 THEN
   menusound gen(genCursorSFX)
   inn = inn XOR 1
  END IF

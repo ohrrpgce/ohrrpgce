@@ -522,8 +522,8 @@ DO
   END SELECT
  END IF
  IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
-  IF carray(ccUp) > 1 AND txt.choice_cursor = 1 THEN txt.choice_cursor = 0: MenuSound gen(genCursorSFX)
-  IF carray(ccDown) > 1 AND txt.choice_cursor = 0 THEN txt.choice_cursor = 1: MenuSound gen(genCursorSFX)
+  usemenusounds
+  usemenu txt.choice_cursor, 0, 0, 1, 2
  END IF
  'DEBUG debug "hero movement"
  GOSUB movement

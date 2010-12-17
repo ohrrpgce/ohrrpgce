@@ -2106,16 +2106,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
   bat.hero_turn = -1
   EXIT SUB
  END IF
- IF carray(ccUp) > 1 THEN
-  '--up
-  bat.pt -= 1
-  IF bat.pt < 0 THEN bat.pt = bslot(bat.hero_turn).menu_size
- END IF
- IF carray(ccDown) > 1 THEN
-  bat.pt += 1
-  IF bat.pt > bslot(bat.hero_turn).menu_size THEN bat.pt = 0
- END IF
- 
+ usemenu bat.pt, 0, 0, bslot(bat.hero_turn).menu_size, 22
  IF carray(ccUse) > 1 THEN
   '--use menu item
   IF bslot(bat.hero_turn).menu(bat.pt).atk >= 0 THEN 'simple attack
@@ -2214,11 +2205,19 @@ SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprit
   IF carray(ccDown) > 1 THEN
    IF .sptr < 24 THEN .sptr = small(.sptr + 3, 24) ELSE .sptr = 0
   END IF
-  IF carray(ccLeft) > 1 AND .sptr < 24 AND .sptr > 0 THEN
-   .sptr -= 1
-  END IF
-  IF carray(ccRight) > 1 AND .sptr < 24 THEN
-   .sptr += 1
+  IF .sptr < 24 THEN  'EXIT not selected
+   IF keyval(scPageUp) > 1 THEN
+    .sptr = .sptr MOD 3
+   END IF
+   IF keyval(scPageDown) > 1 THEN
+    .sptr = (.sptr MOD 3) + 21
+   END IF
+   IF carray(ccLeft) > 1 AND .sptr > 0 THEN
+    .sptr -= 1
+   END IF
+   IF carray(ccRight) > 1 THEN
+    .sptr += 1
+   END IF
   END IF
  END WITH
  

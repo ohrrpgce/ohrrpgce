@@ -654,6 +654,11 @@ FUNCTION picksave (loading as integer) as integer
 
 DIM mapname(3) AS STRING, lev(3) AS STRING, confirm(1) AS STRING, menu(1) AS STRING
 DIM sprites(3, 3) AS GraphicPair
+DIM st AS MenuState
+
+st.first = -1
+st.last = 3
+st.size = 4
 
 '--loading 0 is the save menu, 1 is load menu, and 2 is load with no titlescreen. it fades the screen in
 '--loading 0+1 use vpage as background, loading 2 uses none. pages 2 and 3 are preserved
@@ -667,11 +672,11 @@ END IF
 '--at the top of the screeen (only one appears when saving)
 
 IF loading THEN
- cursor = 0
+ st.pt = 0
  menu(0) = readglobalstring$(52, "New Game", 10)
  menu(1) = readglobalstring$(53, "Exit", 10)
 ELSE
- cursor = lastsaveslot - 1
+ st.pt = lastsaveslot - 1
  confirm(0) = readglobalstring$(44, "Yes", 10)
  confirm(1) = readglobalstring$(45, "No", 10)
  menu(0) = readglobalstring$(59, "CANCEL", 10)
@@ -732,39 +737,40 @@ DO
   IF loading THEN picksave = -2 ELSE picksave = -1
   EXIT DO
  END IF
- IF cursor = -2 THEN
-  IF carray(ccUp) > 1 THEN cursor = 3: MenuSound gen(genCursorSFX)
-  IF carray(ccDown) > 1 THEN cursor = 0: MenuSound gen(genCursorSFX)
- ELSE
-  IF carray(ccUp) > 1 THEN cursor = loopvar(cursor, -1, 3, -1): MenuSound gen(genCursorSFX)
-  IF carray(ccDown) > 1 THEN cursor = loopvar(cursor, -1, 3, 1): MenuSound gen(genCursorSFX)
+
+ 'Make menu position -2 appear as -1 to usemenu
+ DIM temppt as integer = iif(st.pt = -2, -1, st.pt)
+ usemenusounds
+ IF usemenu(temppt, st.top, st.first, st.last, st.size) THEN
+  st.pt = temppt
  END IF
- IF cursor < 0 AND loading THEN
-  IF carray(ccLeft) > 1 THEN cursor = -1: MenuSound gen(genCursorSFX)
-  IF carray(ccRight) > 1 THEN cursor = -2: MenuSound gen(genCursorSFX)
+ IF st.pt < 0 AND loading THEN
+  IF carray(ccLeft) > 1 THEN st.pt = -1: MenuSound gen(genCursorSFX)
+  IF carray(ccRight) > 1 THEN st.pt = -2: MenuSound gen(genCursorSFX)
  END IF
+
  IF carray(ccUse) > 1 THEN
-  IF cursor = -2 THEN
+  IF st.pt = -2 THEN
    MenuSound gen(genCancelSFX)
-   picksave = cursor
+   picksave = st.pt
    EXIT DO
-  ELSEIF cursor = -1 THEN
+  ELSEIF st.pt = -1 THEN
    MenuSound gen(genAcceptSFX)
-   picksave = cursor
+   picksave = st.pt
    EXIT DO
   ELSE
    allow = 1
    IF loading THEN
     '--normal load of an existing save
-    IF pv(cursor).valid = 0 THEN allow = 0
+    IF pv(st.pt).valid = 0 THEN allow = 0
    ELSE
     '--normal save in a slot
-    IF pv(cursor).valid THEN GOSUB confirm
+    IF pv(st.pt).valid THEN GOSUB confirm
    END IF
    IF allow = 1 THEN
     MenuSound gen(genAcceptSFX)
-    picksave = cursor
-    lastsaveslot = cursor + 1
+    picksave = st.pt
+    lastsaveslot = st.pt + 1
     EXIT DO
    ELSE
     MenuSound gen(genCancelSFX)
@@ -797,6 +803,7 @@ EXIT FUNCTION
 confirm:
 allow = 0
 MenuSound gen(genAcceptSFX)
+confirmboxY = 14 + (44 * st.pt)
 setkeys
 DO
  setwait speedcontrol
@@ -813,16 +820,17 @@ DO
   allow = allow XOR 1
   MenuSound gen(genCursorSFX)
  END IF
+
+ copypage holdscreen, page
  IF carray(ccUse) > 1 THEN RETRACE
  GOSUB drawmenugosub
- centerbox 160, 14 + (44 * cursor), 40 + (LEN(replacedat$) * 8) + menuwidth, 24, 3, page
- edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), 9 + (44 * cursor), uilook(uiText), page
+ centerbox 160, confirmboxY, 40 + (LEN(replacedat$) * 8) + menuwidth, 24, 3, page
+ edgeprint replacedat$, 200 - (LEN(replacedat$) * 8), confirmboxY - 5, uilook(uiText), page
  FOR i = 0 TO 1
- col = uilook(uiSelectedItem + tog): IF allow = i THEN col = uilook(uiMenuItem)
-  edgeprint confirm(i), 216, 5 + (i * 9) + (44 * cursor), col, page
+  col = uilook(uiSelectedItem + tog): IF allow = i THEN col = uilook(uiMenuItem)
+  edgeprint confirm(i), 216, confirmboxY - 9 + (i * 9), col, page
  NEXT i
  setvispage vpage
- copypage holdscreen, page
  dowait
 LOOP
 
@@ -834,33 +842,33 @@ FOR i = 0 TO 3
 NEXT i
 'load and save menus enjoy different colour schemes
 IF loading THEN activec = 2 ELSE activec = 1
-SELECT CASE cursor
+SELECT CASE st.pt
  CASE -2
   centerbox 270, 11, 82, 16, activec, page
  CASE -1
   centerbox 50, 11, 82, 16, activec, page
  CASE ELSE
-  centerbox 160, 44 + cursor * 44, 312, 44, activec, page
+  centerbox 160, 44 + st.pt * 44, 312, 44, activec, page
 END SELECT
 FOR i = 0 TO 3
  IF pv(i).valid THEN
   FOR o = 0 TO 3
    IF sprites(i, o).sprite THEN
-    frame_draw sprites(i, o).sprite + iif(cursor = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, page
+    frame_draw sprites(i, o).sprite + iif(st.pt = i, walk, 0), sprites(i, o).pal, 140 + (o * 42), 24 + i * 44, 1, -1, page
    END IF
   NEXT o
   col = uilook(uiMenuItem)
-  IF cursor = i THEN col = uilook(uiSelectedItem + tog)
+  IF st.pt = i THEN col = uilook(uiSelectedItem + tog)
   edgeprint pv(i).leader_name, 14, 25 + i * 44, col, page
   edgeprint lev(i), 14, 34 + i * 44, col, page
   edgeprint pv(i).playtime, 14, 43 + i * 44, col, page
   edgeprint mapname(i), 14, 52 + i * 44, col, page
  END IF
 NEXT i
-col = uilook(uiMenuItem): IF cursor = -1 THEN col = uilook(uiSelectedItem + tog)
+col = uilook(uiMenuItem): IF st.pt = -1 THEN col = uilook(uiSelectedItem + tog)
 edgeprint menu(0), xstring(menu(0), 50), 6, col, page
 IF loading THEN
- col = uilook(uiMenuItem): IF cursor = -2 THEN col = uilook(uiSelectedItem + tog)
+ col = uilook(uiMenuItem): IF st.pt = -2 THEN col = uilook(uiSelectedItem + tog)
  edgeprint menu(1), xstring(menu(1), 270), 6, col, page
 END IF
 RETRACE
@@ -1409,14 +1417,9 @@ DO
    equip_menu_setup st, menu()
    MenuSound gen(genCursorSFX)
   END IF
-  IF carray(ccUp) > 1 THEN 'Up: slot cursor up
-   st.slot = loopvar(st.slot, 0, 6, - 1)
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(ccDown) > 1 THEN 'Down slot cursor down
-   st.slot = loopvar(st.slot, 0, 6, 1)
-   MenuSound gen(genCursorSFX)
-  END IF
+  usemenusounds
+  usemenu st.slot, 0, 0, 6, 6
+
   IF carray(ccUse) > 1 THEN
    IF st.slot < 5 THEN
     '--change equipment
@@ -1425,10 +1428,11 @@ DO
      st.mode = 1
      st.eq_cursor.pt = 0
      st.eq_cursor.top = 0
+     st.eq_cursor.last = st.eq(st.slot).count - 1
      equip_menu_stat_bonus st
      MenuSound gen(genAcceptSFX)
     END IF
-    'UPDATE ITEM POSESION BITSETS
+    'UPDATE ITEM POSSESSION BITSETS
     evalitemtag
    END IF
    IF st.slot = 5 THEN
@@ -1438,7 +1442,7 @@ DO
      unequip st.who, i, st.default_weapon, 1
     NEXT i
     equip_menu_setup st, menu()
-    'UPDATE ITEM POSESSION BITSETS
+    'UPDATE ITEM POSSESSION BITSETS
     evalitemtag
    END IF
    IF st.slot = 6 THEN carray(ccUse) = 0: EXIT DO
@@ -1450,17 +1454,9 @@ DO
    flusharray st.stat_bonus()
    MenuSound gen(genCancelSFX)
   END IF
-  IF carray(ccUp) > 1 THEN
-   st.eq_cursor.pt = large(st.eq_cursor.pt - 1, 0)
-   IF st.eq_cursor.pt < st.eq_cursor.top THEN st.eq_cursor.top -= 1
+  usemenusounds
+  IF usemenu(st.eq_cursor) THEN
    equip_menu_stat_bonus st
-   MenuSound gen(genCursorSFX)
-  END IF
-  IF carray(ccDown) > 1 THEN
-   st.eq_cursor.pt = small(st.eq_cursor.pt + 1, st.eq(st.slot).count)
-   IF st.eq_cursor.pt > st.eq_cursor.top + st.eq_cursor.size THEN st.eq_cursor.top += 1
-   equip_menu_stat_bonus st
-   MenuSound gen(genCursorSFX)
   END IF
   IF carray(ccUse) > 1 THEN
    IF st.eq_cursor.pt = st.eq(st.slot).count THEN
@@ -2347,14 +2343,9 @@ SUB spells_menu_control(sp AS SpellsMenuState)
    menusound gen(genCursorSFX)
    spells_menu_refresh_hero sp
   END IF
-  IF carray(ccUp) > 1 THEN
-   sp.listnum = large(sp.listnum - 1, 0)
-   menusound gen(genCursorSFX)
-   spells_menu_refresh_list sp
-  END IF
-  IF carray(ccDown) > 1 THEN
-   sp.listnum = small(sp.listnum + 1, sp.last)
-   menusound gen(genCursorSFX)
+
+  usemenusounds
+  IF usemenu (sp.listnum, 0, 0, sp.last, 5) THEN
    spells_menu_refresh_list sp
   END IF
   IF carray(ccUse) > 1 THEN
@@ -2382,7 +2373,7 @@ SUB spells_menu_control(sp AS SpellsMenuState)
     END IF
     menusound gen(genCursorSFX)
    END IF
-   IF sp.cursor < 24 THEN
+   IF sp.cursor < 24 THEN   'EXIT not selected
     IF carray(ccLeft) > 1 THEN
      IF sp.cursor MOD 3 THEN
       sp.cursor = sp.cursor - 1
@@ -2392,8 +2383,16 @@ SUB spells_menu_control(sp AS SpellsMenuState)
      menusound gen(genCursorSFX)
     END IF
     IF carray(ccRight) > 1 THEN
-     menusound gen(genCursorSFX)
      IF sp.cursor MOD 3 = 2 THEN sp.cursor = sp.cursor - 2 ELSE sp.cursor += 1
+     menusound gen(genCursorSFX)
+    END IF
+    IF keyval(scPageUp) > 1 THEN
+     sp.cursor = sp.cursor MOD 3
+     menusound gen(genCursorSFX)
+    END IF
+    IF keyval(scPageDown) > 1 THEN
+     sp.cursor = (sp.cursor MOD 3) + 21
+     menusound gen(genCursorSFX)
     END IF
    END IF
   END IF
@@ -2480,39 +2479,43 @@ END SUB
 SUB spells_menu_paint (BYREF sp AS SpellsMenuState)
  centerfuz 160, 100, 312, 184, 1, sp.page 'outer box
  centerbox 206, 36, 200, 17, 2, sp.page   'name box
- centerbox 56, 50, 84, 60, 2, sp.page     'menu box
+ centerbox 56, 50, 84, 60, 2, sp.page     'spell lists menu box
  centerbox 160, 134, 308, 96, 2, sp.page  'spell list
  rectangle 6, 168, 308, 1, uilook(uiTextBox + 3), sp.page 'divider 2
+ 'top menu (spell lists)
  FOR i AS INTEGER = 0 TO sp.last
-  IF sp.lists(i).menu_index >= 0 AND sp.listnum = i THEN
-   FOR o AS INTEGER = 0 TO 23
-   'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
-    textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
-    IF sp.cursor = o AND sp.mset = 1 THEN
-     IF sp.spell(o).can_use > 0 THEN 
-      textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight) 
-     ELSE 
-      textcolor uilook(uiMenuItem), uilook(uiHighlight)
-     END IF
-    END IF
-    printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, sp.page 'spells
-   NEXT o
-   textcolor uilook(uiMenuItem), 0
-   IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight)
-   printstr sp.cancel_menu_caption, 16, 171, sp.page 'cancel
-   IF sp.mset = 1 THEN
-    IF sp.spell(sp.cursor).desc <> "" THEN
-     rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), sp.page  'description divider
-    END IF
-    textcolor uilook(uiDescription), 0
-    printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, sp.page 'cost
-    printstr sp.spell(sp.cursor).desc, 9, 158, sp.page 'description
-   END IF
-  END IF
   textcolor uilook(uiMenuItem), 0
   IF sp.listnum = i THEN textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight2): IF sp.mset = 1 THEN textcolor uilook(uiMenuItem), uilook(uiHighlight2)
   printstr sp.lists(i).name, 16, 25 + i * 10, sp.page 'spell menu
  NEXT i
+
+ 'bottom menu (spells in spell list)
+ IF sp.lists(sp.listnum).menu_index >= 0 THEN
+  FOR o AS INTEGER = 0 TO 23
+  'Note: this will give yellow when .can_use is -1 (is it ever?), orig would give blue
+   textcolor uilook(uiDisabledItem - SGN(sp.spell(o).can_use)), 0
+   IF sp.cursor = o AND sp.mset = 1 THEN
+    IF sp.spell(o).can_use > 0 THEN 
+     textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight) 
+    ELSE 
+     textcolor uilook(uiMenuItem), uilook(uiHighlight)
+    END IF
+   END IF
+   printstr sp.spell(o).name, 12 + (o MOD 3) * 104, 90 + (o \ 3) * 8, sp.page 'spells
+  NEXT o
+  textcolor uilook(uiMenuItem), 0
+  IF sp.cursor = 24 AND sp.mset = 1 THEN textcolor uilook(uiSelectedItem + sp.tog), uilook(uiHighlight)
+  printstr sp.cancel_menu_caption, 16, 171, sp.page 'cancel
+  IF sp.mset = 1 THEN
+   IF sp.spell(sp.cursor).desc <> "" THEN
+    rectangle 6, 155, 308, 1, uilook(uiTextBox + 3), sp.page  'description divider
+   END IF
+   textcolor uilook(uiDescription), 0
+   printstr sp.spell(sp.cursor).cost, 303 - LEN(sp.spell(sp.cursor).cost) * 8, 171, sp.page 'cost
+   printstr sp.spell(sp.cursor).desc, 9, 158, sp.page 'description
+  END IF
+ END IF
+
  IF sp.last = 0 THEN edgeprint names(sp.hero) & " " & sp.has_none_caption, xstring(names(sp.hero) & " " & sp.has_none_caption, 160), 120, uilook(uiText), sp.page
  edgeprint names(sp.hero), xstring(names(sp.hero), 206), 31, uilook(uiText), sp.page
 END SUB
