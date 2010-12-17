@@ -57,6 +57,23 @@ static NSString *getApplicationName(void)
     return appName;
 }
 
+static sendSDLKey(SDLKey key, SDLMod mod) {
+    /* Post keydown+keyup events... */
+    SDL_KeyboardEvent event;
+    event.type = SDL_KEYDOWN;
+    event.which = 0; //?
+    event.state = SDL_PRESSED;
+    event.keysym.scancode = 0;
+    event.keysym.sym = key;
+    event.keysym.mod = mod;
+    event.keysym.unicode = 0;
+    SDL_PushEvent((SDL_Event*)&event);
+    event.type = SDL_KEYUP;
+    event.which = 0; //?
+    event.state = SDL_RELEASED;
+    SDL_PushEvent((SDL_Event*)&event);
+}
+
 #if SDL_USE_NIB_FILE
 /* A helper category for NSString */
 @interface NSString (ReplaceSubString)
@@ -79,20 +96,17 @@ static NSString *getApplicationName(void)
 /* Invoked from the Help menu item (only if you click on it; it doesn't actually send Cmd-Shift-?) */
 - (void)sendF1:(id)sender
 {
-    /* Post F1 keydown+keyup events... */
-    SDL_KeyboardEvent event;
-    event.type = SDL_KEYDOWN;
-    event.which = 0; //?
-    event.state = SDL_PRESSED;
-    event.keysym.scancode = 0;
-    event.keysym.sym = SDLK_F1;
-    event.keysym.mod = 0; // don't care
-    event.keysym.unicode = 0;
-    SDL_PushEvent((SDL_Event*)&event);
-    event.type = SDL_KEYUP;
-    event.which = 0; //?
-    event.state = SDL_RELEASED;
-    SDL_PushEvent((SDL_Event*)&event);
+  sendSDLKey(SDLK_F1, KMOD_NONE);
+}
+/* Set the zoom level by sending Cmd+# */
+- (void)setZoom:(id)sender
+{
+  sendSDLKey(SDLK_0 + [sender tag], KMOD_META);
+}
+/* Full screen */
+- (void)fullScreen:(id)sender
+{
+  sendSDLKey(SDLK_f, KMOD_META);
 }
 @end
 
@@ -212,6 +226,23 @@ static void setupWindowMenu(void)
     menuItem = [[NSMenuItem alloc] initWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
     [windowMenu addItem:menuItem];
     [menuItem release];
+
+    /* Fullscreen item */
+    menuItem = [[NSMenuItem alloc] initWithTitle:@"Full screen" action:@selector(performFullscreen:) keyEquivalent:@"f"];
+    [windowMenu addItem:menuItem];
+    [menuItem release];
+
+    [windowMenu addItem:[NSMenuItem separatorItem]];
+
+    /* Zooms 1-4 */
+    int i;
+    for (i = 1; i <= 4; i++) {
+      menuItem = [[NSMenuItem alloc] initWithTitle:[NSString stringWithFormat: @"Zoom %dx", i] action:@selector(setZoom:) keyEquivalent:[NSString stringWithFormat:@"%d", i]];
+      [menuItem setTag:i];
+      [windowMenu addItem:menuItem];
+      [menuItem release];
+    }
+
     
     /* Put menu into the menubar */
     windowMenuItem = [[NSMenuItem alloc] initWithTitle:@"Window" action:nil keyEquivalent:@""];

@@ -29,6 +29,7 @@ DECLARE FUNCTION putenv (byval as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
 DECLARE FUNCTION gfx_sdl_set_screen_mode() as integer
+DECLARE SUB gfx_sdl_set_zoom(byval value as integer)
 DECLARE SUB gfx_sdl_update_screen()
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
@@ -256,6 +257,15 @@ FUNCTION gfx_sdl_set_screen_mode() as integer
     .w = framesize.w * zoom
     .h = framesize.h * zoom
   END WITH
+#IFDEF __FB_DARWIN__
+
+IF SDL_WasInit(SDL_INIT_VIDEO) THEN
+    SDL_QuitSubSystem(SDL_INIT_VIDEO)
+IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
+      debug "Can't start SDL video subsys (resize): " & *SDL_GetError
+END IF
+END IF
+#ENDIF
   screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, 0, flags)
   IF screensurface = NULL THEN
     debug "Failed to allocate display"
@@ -385,16 +395,20 @@ FUNCTION gfx_sdl_getresize(byref ret as XYPair) as integer
   RETURN NO
 END FUNCTION
 
+SUB gfx_sdl_set_zoom(byval value as integer)
+  IF value >= 1 AND value <= 4 AND value <> zoom THEN
+    zoom = value
+    IF SDL_WasInit(SDL_INIT_VIDEO) THEN
+      gfx_sdl_set_screen_mode()
+    END IF
+  END IF 
+END SUB
+
 FUNCTION gfx_sdl_setoption(byval opt as zstring ptr, byval arg as zstring ptr) as integer
   DIM ret as integer = 0
   DIM value as integer = str2int(*arg, -1)
   IF *opt = "zoom" or *opt = "z" THEN
-    IF value >= 1 AND value <= 4 THEN
-      zoom = value
-      IF SDL_WasInit(SDL_INIT_VIDEO) THEN
-        gfx_sdl_set_screen_mode()
-      END IF
-    END IF
+    gfx_sdl_set_zoom(value)
     ret = 1
   ELSEIF *opt = "smooth" OR *opt = "s" THEN
     IF value = 1 OR value = -1 THEN  'arg optional (-1)
@@ -447,10 +461,18 @@ SUB keycombos_logic(evnt as SDL_Event)
     IF evnt.key.keysym.sym = SDLK_q THEN
       post_terminate_signal
     END IF
+    IF evnt.key.keysym.sym = SDLK_f THEN
+      gfx_sdl_setwindowed(windowedmode XOR -1)
+    END IF
     'SDL doesn't actually seem to send SDLK_QUESTION...
     IF evnt.key.keysym.sym = SDLK_SLASH AND evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
       keybdstate(scF1) = 6
     END IF
+    FOR i as integer = 1 TO 4
+      IF evnt.key.keysym.sym = SDLK_0 + i THEN
+        gfx_sdl_set_zoom(i)
+      END IF
+    NEXT
   END IF
 #ENDIF
 
