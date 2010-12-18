@@ -85,6 +85,8 @@ WHAT IS NEW?
     * music_sdl no longer secretly keeps seperate volume levels for
       MIDIs and non-MIDIs, which confused people and broke fading
       scripts. [Ralph]
+    * Cursor, accept and cancel sound effects weren't used in battles
+      [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

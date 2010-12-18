@@ -656,6 +656,7 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
  'cancel
  IF carray(ccMenu) > 1 THEN
+  menusound gen(genCancelSFX)
   bslot(bat.hero_turn).attack = 0
   bslot(bat.hero_turn).consume_lmp = 0
   bat.targ.mode = targNONE
@@ -701,6 +702,7 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
 
  'optional spread targetting
  IF bat.targ.opt_spread = 2 AND (carray(ccLeft) > 1 OR carray(ccRight) > 1) AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
+  menusound gen(genCursorSFX)
   FOR i = 0 TO 11
    bat.targ.selected(i) = 0
   NEXT i
@@ -711,21 +713,28 @@ SUB battle_targetting(BYREF bat AS BattleState, bslot() AS BattleSprite)
  'arrow keys to select
  IF bat.targ.interactive = YES AND bat.targ.opt_spread < 2 AND bat.targ.roulette = NO AND bat.targ.force_first = NO THEN
   IF carray(ccUp) > 1 THEN
+   menusound gen(genCursorSFX)
    battle_target_arrows -1, 1, bslot(), bat.targ, NO
   END IF
   IF carray(ccDown) > 1 THEN
+   menusound gen(genCursorSFX)
    battle_target_arrows 1, 1, bslot(), bat.targ, NO
   END IF
   IF carray(ccLeft) > 1 THEN
+   menusound gen(genCursorSFX)
    battle_target_arrows -1, 0, bslot(), bat.targ, YES
   END IF
   IF carray(ccRight) > 1 THEN
+   menusound gen(genCursorSFX)
    battle_target_arrows 1, 0, bslot(), bat.targ, YES
   END IF
  END IF
  
  'confirm
- IF carray(ccUse) > 1 THEN battle_confirm_target bat, bslot()
+ IF carray(ccUse) > 1 THEN
+  menusound gen(genAcceptSFX)
+  battle_confirm_target bat, bslot()
+ END IF
  
 END SUB
  
@@ -2104,11 +2113,14 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
   '--skip turn
   bat.next_hero = bat.hero_turn
   bat.hero_turn = -1
+  menusound gen(genCancelSFX)
   EXIT SUB
  END IF
- usemenu bat.pt, 0, 0, bslot(bat.hero_turn).menu_size, 22
+ usemenusounds
+ usemenu bat.pt, 0, 0, bslot(bat.hero_turn).menu_size, 999
  IF carray(ccUse) > 1 THEN
   '--use menu item
+  menusound gen(genAcceptSFX)
   IF bslot(bat.hero_turn).menu(bat.pt).atk >= 0 THEN 'simple attack
    IF readbit(menubits(), 0, bat.hero_turn * 4 + bat.pt) = 0 THEN
     bslot(bat.hero_turn).attack = bslot(bat.hero_turn).menu(bat.pt).atk + 1
@@ -2195,28 +2207,38 @@ SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprit
  IF carray(ccMenu) > 1 THEN '--cancel
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
+  menusound gen(genCancelSFX)
   EXIT SUB
  END IF
  
  WITH bat
+  usemenusounds
   IF carray(ccUp) > 1 THEN
    IF .sptr > 2 THEN .sptr -= 3 ELSE .sptr = 24
   END IF
   IF carray(ccDown) > 1 THEN
    IF .sptr < 24 THEN .sptr = small(.sptr + 3, 24) ELSE .sptr = 0
   END IF
+  IF keyval(scHome) > 1 THEN
+   .sptr = 0
+  END IF
+  IF keyval(scEnd) > 1 THEN
+   .sptr = 24
+  END IF
+  IF keyval(scPageUp) > 1 THEN
+   .sptr = .sptr MOD 3
+  END IF
   IF .sptr < 24 THEN  'EXIT not selected
-   IF keyval(scPageUp) > 1 THEN
-    .sptr = .sptr MOD 3
-   END IF
    IF keyval(scPageDown) > 1 THEN
     .sptr = (.sptr MOD 3) + 21
    END IF
    IF carray(ccLeft) > 1 AND .sptr > 0 THEN
     .sptr -= 1
+    menusound gen(genCursorSFX)
    END IF
    IF carray(ccRight) > 1 THEN
     .sptr += 1
+    menusound gen(genCursorSFX)
    END IF
   END IF
  END WITH
@@ -2227,16 +2249,20 @@ SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprit
    '--used cancel
    bat.menu_mode = batMENUHERO
    flusharray carray(), 7, 0
+   menusound gen(genCancelSFX)
    EXIT SUB
   END IF
 
   DIM atk AS AttackData
   '--can-I-use-it? checking
-  IF bat.spell.slot(bat.sptr).atk_id > -1 THEN
-   '--list-entry is non-empty
+  IF bat.spell.slot(bat.sptr).atk_id = -1 THEN
+   '--list-entry is empty
+   menusound gen(genCancelSFX)
+  ELSE
    loadattackdata atk, bat.spell.slot(bat.sptr).atk_id
    IF atkallowed(atk, bat.hero_turn, st(bat.hero_turn).list_type(bat.listslot), INT(bat.sptr / 3), bslot()) THEN
     '--attack is allowed
+    menusound gen(genAcceptSFX)
     '--if lmp then set lmp consume flag
     IF st(bat.hero_turn).list_type(bat.listslot) = 1 THEN bslot(bat.hero_turn).consume_lmp = INT(bat.sptr / 3) + 1
     '--queue attack
@@ -2245,6 +2271,9 @@ SUB spellmenu (BYREF bat AS BattleState, st() as HeroDef, bslot() AS BattleSprit
     bat.targ.mode = targSETUP
     bat.menu_mode = batMENUHERO
     flusharray carray(), 7, 0
+   ELSE
+    '--not allowed
+    menusound gen(genCancelSFX)
    END IF
   END IF
  END IF
@@ -2255,9 +2284,12 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
   bat.menu_mode = batMENUHERO
   flusharray carray(), 7, 0
   bslot(bat.hero_turn).consume_item = -1 ' -1 here indicates that this hero will not consume any item
+  menusound gen(genCancelSFX)
+  EXIT SUB
  END IF
 
  DIM remember_pt AS INTEGER = bat.item.pt
+ usemenusounds
  IF carray(ccUp) > 1 AND bat.item.pt > 2 THEN bat.item.pt = bat.item.pt - 3
  IF carray(ccDown) > 1 AND bat.item.pt <= last_inv_slot() - 3 THEN bat.item.pt = bat.item.pt + 3
  IF keyval(scPageUp) > 1 THEN
@@ -2268,11 +2300,19 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
   bat.item.pt += (bat.inv_scroll.size+1) * 3
   WHILE bat.item.pt > last_inv_slot(): bat.item.pt -= 3: WEND
  END IF
+ IF keyval(scHome) > 1 THEN
+  bat.item.pt = 0
+ END IF
+ IF keyval(scEnd) > 1 THEN
+  bat.item.pt = last_inv_slot()
+ END IF
  IF carray(ccLeft) > 1 AND bat.item.pt > 0 THEN
   bat.item.pt = bat.item.pt - 1
+  menusound gen(genCursorSFX)
  END IF
  IF carray(ccRight) > 1 AND bat.item.pt < last_inv_slot() THEN
   bat.item.pt = bat.item.pt + 1
+  menusound gen(genCursorSFX)
  END IF
  '--scroll when past top or bottom
  WHILE bat.item.pt < bat.item.top : bat.item.top = bat.item.top - 3 : WEND
@@ -2291,6 +2331,8 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
 
  IF carray(ccUse) > 1 THEN
   IF readbit(bat.iuse(), 0, bat.item.pt) = 1 THEN
+   menusound gen(genAcceptSFX)
+
    loaditemdata itembuf(), inventory(bat.item.pt).id
    bslot(bat.hero_turn).consume_item = -1
    IF itembuf(73) = 1 THEN bslot(bat.hero_turn).consume_item = bat.item.pt
