@@ -2951,11 +2951,25 @@ END FUNCTION
 SUB attack_preview_slice_focus(BYVAL sl AS Slice Ptr)
  IF sl = 0 THEN EXIT SUB
  ChangeRectangleSlice sl, , , , 0
+ DIM ch AS Slice Ptr = sl->FirstChild
+ WHILE ch
+  IF ch->SliceType= slText THEN
+   ChangeTextSlice ch, , uilook(uiSelectedItem)
+  END IF
+  ch = ch->NextSibling
+ WEND
 END SUB
 
 SUB attack_preview_slice_defocus(BYVAL sl AS Slice Ptr)
  IF sl = 0 THEN EXIT SUB
  ChangeRectangleSlice sl, , , , -1
+ DIM ch AS Slice Ptr = sl->FirstChild
+ WHILE ch
+  IF ch->SliceType = slText THEN
+   ChangeTextSlice ch, , uilook(uiText)
+  END IF
+  ch = ch->NextSibling
+ WEND
 END SUB
 
 SUB fontedit (font() AS INTEGER)
