@@ -7,3 +7,5 @@ Blue lines mean that the action below the line will always be done. To turn a gr
 Brown lines check tags, and the action below the line will only take place depending on whether the tag is OFF or ON. You can press ENTER or SPACE to choose a tag from the tag browser.
 
 Press - to switch between requiring a tag to be OFF or ON, or to switch between gaining or losing things (money and items).
+
+Press Delete to zero out a tag check or action.

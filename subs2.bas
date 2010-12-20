@@ -737,6 +737,7 @@ SUB textbox_conditionals(BYREF box AS TextBox)
   usemenu state
   IF keyval(scDelete) > 1 THEN ' Pressed the delete key
    write_box_conditional_by_menu_index box, state.pt, 0
+   textbox_update_conditional_menu box, menu()
   END IF
   IF state.pt >= 0 THEN
    num = read_box_conditional_by_menu_index(box, state.pt)
@@ -912,11 +913,12 @@ SUB update_textbox_editor_main_menu (BYREF box AS TextBox, menu() AS STRING)
 END SUB
 
 FUNCTION textbox_condition_caption(tag AS INTEGER, prefix AS STRING = "") AS STRING
- IF LEN(prefix) > 0 THEN prefix = prefix & ": "
- IF tag = 0 THEN RETURN prefix & "Never do the following"
- IF tag = 1 THEN RETURN prefix & "If tag 1 = ON [Never]"
- IF tag = -1 THEN RETURN prefix & "Always do the following"
- RETURN prefix & "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
+ DIM prefix2 AS STRING
+ IF LEN(prefix) > 0 THEN prefix2 = prefix & ": "
+ IF tag = 0 THEN RETURN prefix2 & "Never do the following"
+ IF tag = 1 THEN RETURN prefix2 & "If tag 1 = ON [Never]"
+ IF tag = -1 THEN RETURN prefix2 & "Always do the following"
+ RETURN prefix2 & "If tag " & ABS(tag) & " = " + onoroff$(tag) & " (" & load_tag_name(tag) & ")"
 END FUNCTION
 
 FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
