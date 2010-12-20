@@ -455,16 +455,24 @@ END FUNCTION
 FUNCTION reload_editor_okay_to_unload(BYREF st AS ReloadEditorState) AS INTEGER
  IF st.changed = NO THEN RETURN YES
  DIM choice AS INTEGER
+ 'Prevent attempt to quit the program, stop and wait for response first
+ DIM quitting as integer = keyval(-1)
+ clearkey(-1)
  choice = twochoice("Save your changes before exiting?", "Yes, save", "No, discard")
+ IF keyval(-1) THEN choice = 1  'Second attempt to close the program: discard
  SELECT CASE choice
   CASE -1: 'cancelled
    RETURN NO
   CASE 0: 'yes, save!
    reload_editor_export st
    'but only actually allow unload if the save was confirmed
-   IF st.changed = NO THEN RETURN YES
+   IF st.changed = NO THEN
+    IF quitting THEN setquitflag
+    RETURN YES
+   END IF
    RETURN NO
   CASE 1: 'no discard!
+   IF quitting THEN setquitflag
    RETURN YES
  END SELECT
  RETURN NO

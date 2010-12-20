@@ -1654,8 +1654,13 @@ SUB show_help(helpkey AS STRING)
     IF help_str = dat->s THEN
      EXIT DO
     ELSE
+     'Prevent attempt to quit the program, stop and wait for response first
+     DIM quitting as integer = keyval(-1)
+     clearkey(-1)
      DIM choice AS INTEGER = twochoice("Save changes to help for """ & helpkey & """?", "Yes", "No", 0, -1)
+     IF keyval(-1) THEN choice = 1  'Second attempt to quit: discard
      IF choice <> -1 THEN
+      IF quitting THEN setquitflag
       IF choice = 0 THEN save_help_file helpkey, dat->s
       EXIT DO
      END IF

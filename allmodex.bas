@@ -1105,6 +1105,11 @@ SUB clearkey(byval k as integer)
 	end if
 end sub
 
+'Set keyval(-1) on. So ugly
+SUB setquitflag ()
+	keybd(-1) = 1
+END SUB
+
 'these are wrappers provided by the polling thread
 SUB io_amx_keybits cdecl (keybdarray as integer ptr)
 	for a as integer = 0 to &h7f
