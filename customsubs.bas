@@ -28,7 +28,7 @@ FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=99
  IF enter_or_space() THEN
   DIM browse_tag AS INTEGER
   browse_tag = tagnames(n, YES)
-  IF browse_tag >= 2 OR browse_tag <= 2 THEN
+  IF browse_tag >= 2 OR browse_tag <= -2 THEN
    n = browse_tag
    RETURN YES
   END IF
