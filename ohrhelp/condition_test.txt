@@ -1,0 +1,15 @@
+This is a menu for experimenting with combined tag/global variable conditions.
+
+The top two and bottom two conditions vary in the action of Enter/Space when the condition is a tag.
+
+In each pair, the conditions vary in whether they default to Always or Never.
+
+Condition controls:
+
+Type in or edit a condition any way you please, using numbers, <, >, =, Backspace, Left and Right.
+
+Typing ! inverts a condition. Also, typing - inverts a tag check.
+
+Hit Enter to enter an editor where you can choose the type of condition.
+
+Press Delete to remove a condition.

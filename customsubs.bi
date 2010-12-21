@@ -14,6 +14,8 @@ TYPE FnScriptVisitor as function (byref trig as integer, description as string, 
 
 DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
 DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
+DECLARE FUNCTION cond_grabber (cond AS Condition, BYVAL default AS INTEGER = 0, BYVAL alwaysedit AS INTEGER) AS INTEGER
+DECLARE FUNCTION condition_string (cond AS Condition, BYVAL selected AS INTEGER, default AS STRING = "Always", BYVAL wide AS INTEGER = 40) AS STRING
 DECLARE FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
 DECLARE FUNCTION charpicker() AS STRING
 DECLARE SUB ui_color_editor(palnum AS INTEGER)

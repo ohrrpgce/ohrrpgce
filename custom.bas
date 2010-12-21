@@ -9,10 +9,8 @@ DEFINT A-Z
 #include "udts.bi"
 #include "const.bi"
 
-'basic subs and functions
-DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
-
 'the below functions require cleaning
+DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
 DECLARE SUB vehicles ()
 DECLARE SUB verifyrpg ()
 DECLARE SUB scriptman ()
@@ -47,6 +45,10 @@ DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
 #include "sliceedit.bi"
 #include "reloadedit.bi"
 #include "editedit.bi"
+
+'Local function definitions (many of the above are local too)
+DECLARE SUB condition_test_menu ()
+
 
 DIM exename as string
 exename = trimextension$(trimpath$(COMMAND$(0)))
@@ -278,6 +280,7 @@ DO:
  IF keyval(scCTRL) > 0 THEN
   IF keyval(scR) > 1 THEN reload_editor
   IF keyval(scE) > 1 THEN editor_editor
+  IF keyval(scC) > 1 THEN condition_test_menu
  END IF
  usemenu pt, 0, 0, mainmax, 24
  IF enter_or_space() THEN
@@ -1091,3 +1094,47 @@ END SUB
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Hah!)
 OPTION EXPLICIT
+
+'This menu is for testing experimental Condition UI stuff
+SUB condition_test_menu ()
+ DIM as Condition cond1, cond2, cond3, cond4
+ DIM menu(6) as string
+ DIM st as MenuState
+ st.last = UBOUND(menu)
+ st.size = 22
+ DIM tmp as integer
+
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "condition_test"
+  tmp = 0
+  IF st.pt = 0 THEN
+   IF enter_or_space() THEN EXIT DO
+  ELSEIF st.pt = 2 THEN
+   tmp = cond_grabber(cond1, YES , NO)
+  ELSEIF st.pt = 3 THEN
+   tmp = cond_grabber(cond2, NO, NO)
+  ELSEIF st.pt = 5 THEN
+   tmp = cond_grabber(cond3, YES, YES)
+  ELSEIF st.pt = 6 THEN
+   tmp = cond_grabber(cond4, NO, YES)
+  END IF
+  usemenu st
+
+  clearpage vpage
+  menu(0) = "Previous menu"
+  menu(1) = "Enter goes to tag browser for tag conds:"
+  menu(2) = " If " & condition_string(cond1, (st.pt = 2), "Always", 45)
+  menu(3) = " If " & condition_string(cond2, (st.pt = 3), "Never", 45)
+  menu(4) = "Enter always goes to cond editor:"
+  menu(5) = " If " & condition_string(cond3, (st.pt = 5), "Always", 45)
+  menu(6) = " If " & condition_string(cond4, (st.pt = 6), "Never", 45)
+  standardmenu menu(), st, 0, 0, vpage
+  printstr STR(tmp), 0, 190, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+END SUB

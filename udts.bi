@@ -37,6 +37,33 @@ TYPE MouseInfo
                        'supports reporting the position of click, so currently equal to .x/.y)
 END TYPE
 
+ENUM CompType
+  compNone
+  compEq  ' =
+  compNe  ' <>
+  compLt  ' <
+  compLe  ' <=
+  compGt  ' >
+  compGe  ' >=
+  compTag ' 
+END ENUM
+
+'A check on the value of a tag or global variable. When type == compTag, then
+'.tag is positive to check that the tag is on, and negative to check it is off,
+'and .tag = 0 is equivalent to type == compNone.
+'The meaning of compNone is context specific: it might be either Always or Never.
+TYPE Condition
+  UNION
+    varnum as integer  ' global
+    tag as integer
+  END UNION
+  type as CompType
+  value as integer  'Not used when type == compTag
+  'The following only used only in Custom and never saved
+  editstate as ubyte
+  lastinput as ubyte
+END TYPE
+
 'WARNING: don't add strings to this
 TYPE Palette16
 	col(15) as ubyte 'indices into the master palette

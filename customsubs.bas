@@ -17,11 +17,26 @@
 
 #include "customsubs.bi"
 
+OPTION EXPLICIT
+
 'Subs and functions only used here
 DECLARE SUB import_textboxes_warn (BYREF warn AS STRING, s AS STRING)
 DECLARE SUB seekscript (BYREF temp AS INTEGER, BYVAL seekdir AS INTEGER, BYVAL triggertype AS INTEGER)
+DECLARE SUB cond_editor (cond as Condition, byval default as integer = 0)
 
-OPTION EXPLICIT
+'Module-local variables
+DIM SHARED comp_strings() as string
+REDIM comp_strings(7) as string 
+comp_strings(0) = ""
+comp_strings(1) = "="
+comp_strings(2) = "<>"
+comp_strings(3) = "<"
+comp_strings(4) = "<="
+comp_strings(5) = ">"
+comp_strings(6) = ">="
+comp_strings(7) = "tag"   'debugging use only
+
+
 
 FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
  IF intgrabber(n, min, max) THEN RETURN YES
@@ -110,6 +125,278 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
  LOOP
 
  RETURN remembertag
+END FUNCTION
+
+'default: meaning null condition (true: ALWAYS, false: NEVER)
+'alwaysedit: experimental parameter, changes behaviour of enter/space
+'Return value is currently very unreliable.
+FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval alwaysedit as integer) as integer
+
+ 'debug "cond_grabber: cond.type = " & comp_strings(cond.type) & " tag/var = " & cond.tag & " value = " & cond.value & " editst = " & cond.editstate & " lastchar = " & CHR(cond.lastinput) & "  default = " & default
+
+ DIM intxt as string = getinputtext
+
+ IF keyval(scDelete) > 1 THEN
+  cond.type = 0
+  RETURN YES
+ END IF
+
+ IF cond.type = compNone THEN
+  cond.tag = 0
+  IF intgrabber(cond.tag, -999, 999) THEN
+   cond.type = compTag
+   RETURN YES
+  END IF
+ ELSEIF cond.type = compTag THEN
+  IF cond.tag = 0 THEN cond.type = 0
+  IF intgrabber(cond.tag, -999, 999) THEN
+   RETURN YES
+  END IF
+  IF INSTR(intxt, "!") THEN
+   cond.tag = -cond.tag
+   RETURN YES
+  END IF
+  IF enter_or_space() AND alwaysedit = 0 THEN
+   DIM browse_tag AS INTEGER
+   browse_tag = tagnames(cond.tag, YES)
+   IF browse_tag >= 2 OR browse_tag <= -2 THEN
+    cond.tag = browse_tag
+    RETURN YES
+   END IF
+   'Return once enter/space processed
+   RETURN NO
+  END IF
+ END IF
+
+ 'I tend to hit space while typing an expression...
+ 'IF enter_or_space() THEN 
+ IF keyval(scEnter) > 1 THEN cond_editor(cond, default): RETURN YES
+
+ CONST compare_chars as string = "=<>!"
+ 'Use strings instead of integers for convenience -- have to decode to use
+ STATIC statetable(3, 7) as string * 2 => { _
+    /'Current comparison type:               '/ _
+    /'None  =    <>   <    <=   >    >=  Tag '/ _
+     {"=" ,"=" ,"=" ,"<=","=" ,">=","=" ,"=" },  /' = pressed  '/ _
+     {"<" ,"<=","<" ,"<" ,"<" ,"<>","<" ,"<" },  /' < pressed  '/ _
+     {">" ,">=",">" ,"<>",">" ,">" ,">" ,">" },  /' > pressed  '/ _
+     {"<>","<>","=" ,">=",">" ,"<=","<" ,"<>"}   /' ! pressed  '/ _
+ }
+
+ DIM entered_operator as integer = NO
+
+ FOR i as integer = 1 TO LEN(intxt)
+  DIM inchar as string = MID(intxt, i)
+  DIM charnum as integer = INSTR(compare_chars, inchar)
+
+  IF charnum THEN
+   entered_operator = YES
+   DIM newtype as integer = -1
+   DIM tempcomp as string
+
+   'First check whether in the middle of typing a comparison operator.
+   'This special check ensure that eg. typing >= causes the operator to
+   'change to >= regardless of initial state
+   IF cond.lastinput THEN
+    'Only checking input strings of len 2
+    tempcomp = CHR(cond.lastinput)
+    IF cond.editstate = 1 OR cond.editstate = 5 THEN tempcomp = ""
+    newtype = str_array_findcasei(comp_strings(), tempcomp + inchar)
+   END IF
+
+   IF newtype = -1 THEN
+    tempcomp = statetable(charnum - 1, cond.type)
+    newtype = str_array_findcasei(comp_strings(), tempcomp)
+   END IF
+
+   IF newtype > -1 THEN
+    IF cond.type = compTag THEN cond.varnum = ABS(cond.tag): cond.value = 0
+    cond.type = newtype
+   END IF
+  END IF
+
+  cond.lastinput = ASC(inchar)
+ NEXT
+
+ 'editstate is just a state id, defining the way the condition is edited and displayed
+ '(below, asterixes indicate highlighting)
+ '0: Global # .. #  (initial)
+ '1: Global *#*
+ '2: Global # *..*
+ '3: Global # .. *#*
+ '4: Global # *..* #
+ '5: Global # *?* #
+ SELECT CASE cond.editstate
+  CASE 0, 3
+   IF entered_operator THEN
+    cond.editstate = 4
+   ELSEIF keyval(scBackspace) > 1 AND cond.value = 0 THEN
+    cond.editstate = 2
+   ELSE
+    IF intgrabber(cond.value, -2147483648, 2147483647) THEN cond.editstate = 3
+   END IF   
+  CASE 1
+   IF entered_operator THEN
+    cond.editstate = 2
+   ELSEIF keyval(scBackspace) > 1 AND cond.varnum = 0 THEN
+    cond.editstate = 0
+    cond.type = compNone
+   ELSE
+    intgrabber(cond.varnum, 0, 4095)
+   END IF
+  CASE 2, 4, 5
+   IF cond.editstate = 5 AND entered_operator THEN
+    cond.editstate = 4
+   ELSEIF keyval(scBackspace) > 1 THEN
+    DIM newcomp as string = comp_strings(cond.type)
+    IF cond.editstate = 5 THEN  'state 5 simulates LEN(newcomp) = 0
+     cond.editstate = 1
+    ELSEIF LEN(newcomp) = 1 THEN
+     IF cond.editstate = 2 THEN
+      cond.editstate = 1
+     ELSEIF cond.editstate = 4 THEN
+      cond.editstate = 5
+     END IF
+    ELSE 'LEN = 2
+     cond.type = str_array_findcasei(comp_strings(), LEFT(newcomp, 1))
+    END IF
+   ELSE
+    DIM temp as integer = 0
+    IF intgrabber(temp, -2147483648, 2147483647) THEN
+     cond.value = temp
+     cond.editstate = 3
+    END IF
+   END IF
+ END SELECT
+
+END FUNCTION
+
+'default: meaning null condition (true: ALWAYS, false: NEVER)
+SUB cond_editor (cond as Condition, byval default as integer = NO)
+ DIM menu(10) as string
+ menu(0) = "Cancel"
+ menu(1) = "Always"
+ menu(2) = "Never"
+ menu(3) = "Tag # ON"
+ menu(4) = "Tag # OFF"
+ menu(5) = "Global # = #"
+ menu(6) = "Global # <> #"
+ menu(7) = "Global # < #"
+ menu(8) = "Global # <= #"
+ menu(9) = "Global # > #"
+ menu(10) = "Global # >= #"
+
+ DIM st as MenuState
+ st.last = UBOUND(menu)
+ st.size = 18
+ DIM starttag as integer = 1
+
+ IF cond.type = compTag AND cond.tag = 0 THEN cond.type = compNone
+ IF cond.type = compNone THEN
+  st.pt = iif(default, 1, 2)
+ ELSEIF cond.type = compTag THEN
+  starttag = ABS(cond.tag)
+  IF cond.tag = 1 THEN
+   st.pt = 2
+  ELSEIF cond.tag = -1 THEN
+   st.pt = 1
+  ELSEIF cond.tag >= 2 THEN
+   st.pt = 3
+  ELSE
+   st.pt = 4
+  END IF
+ ELSEIF cond.type >= compEq AND cond.type <= compGe THEN
+  st.pt = cond.type - compEq + 5
+ END IF
+
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "cond_editor"
+  IF enter_or_space() THEN
+   SELECT CASE st.pt
+    CASE 0:
+     EXIT DO
+    CASE 1:
+     IF default THEN
+      cond.type = compNone
+     ELSE
+      cond.type = compTag
+      cond.tag = -1
+     END IF
+    CASE 2:
+     IF default = 0 THEN
+      cond.type = compNone
+     ELSE
+      cond.type = compTag
+      cond.tag = 1
+     END IF
+    CASE 3:
+     cond.type = compTag
+     cond.tag = tagnames(starttag, YES)
+    CASE 4:
+     cond.type = compTag
+     cond.tag = tagnames(-1 * starttag, YES)
+    CASE ELSE:
+     'TODO: global variable browser
+     cond.type = (st.pt - 5) + compEq
+     cond.editstate = 0
+   END SELECT
+   EXIT DO
+  END IF
+  usemenu st
+
+  clearpage vpage
+  standardmenu menu(), st, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
+'Returns a printable representation of a Condition with lots of ${K} colours
+'default: the text displayed for a null Condition
+'selected: whether this menu item is selected
+'wide: max string length to return (not implemented yet)
+FUNCTION condition_string (cond as Condition, byval selected as integer, default as string = "Always", byval wide as integer = 40) as string
+ DIM ret as string = default
+ DIM hilite as string = "${K" & uilook(uiHighlight2) & "}"
+
+ IF selected = NO THEN cond.editstate = 0
+
+ IF cond.type = compNone THEN
+ ELSEIF cond.type = compTag THEN
+  IF cond.tag = 0 THEN
+  ELSE
+   ret = "Tag " & ABS(cond.tag) & iif_string(cond.tag >= 0, "=ON", "=OFF")
+   IF cond.tag = 1 THEN
+    ret += " [Never]"
+   ELSEIF cond.tag = -1 THEN
+    ret += " [Always]"
+   ELSE
+    ret += " (" & load_tag_name(ABS(cond.tag)) & ")"
+   END IF
+  END IF
+ ELSEIF cond.type >= compEq AND cond.type <= compGe THEN
+  SELECT CASE cond.editstate
+   CASE 0
+    ret = "Global #" & cond.varnum & " " & comp_strings(cond.type) & " " & cond.value
+   CASE 1
+    ret = "Global #" & hilite & cond.varnum
+   CASE 2
+    ret = "Global #" & cond.varnum & " " & hilite & comp_strings(cond.type)
+   CASE 3
+    ret = "Global #" & cond.varnum & " " & comp_strings(cond.type) & " " & hilite & cond.value
+   CASE 4
+    ret = "Global #" & cond.varnum & " " & hilite & comp_strings(cond.type) & "${K-1} " & cond.value
+   CASE 5
+    'FIXME: a tag for text background colour hasn't been implemented yet
+    ret = "Global #" & cond.varnum & hilite & " ?${K-1} " & cond.value
+  END SELECT
+ ELSE
+  ret = "[Corrupt condition data]"
+ END IF
+ RETURN ret
 END FUNCTION
 
 FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
