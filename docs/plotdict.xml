@@ -927,7 +927,7 @@ end</example>
 		<command id="giveexperience">
 			<canon>give experience (hero,amount)</canon>
 			<shortname>give experience</shortname>
-			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling.</description>
+			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporially raise the cap using <ref>setlevelcap</ref> to get around this.</description>
 		</command>
 	</section>
 	<section title="Items">
@@ -5000,7 +5000,7 @@ end</example>
 		<command id="setherolevel">
 			<canon>set hero level (who, level, forgetspells)</canon>
 			<shortname>set hero level</shortname>
-			<description>A command that sets a hero&apos;s current level. The first argument is the position of the hero you want to change in your party as as returned by <ref>findhero</ref>. You can specify any hero in the active or reserve party and any (non-negative) level. Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero&apos;s level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.</description>
+			<description>A command that sets a hero&apos;s current level. The first argument is the position of the hero you want to change in your party as as returned by <ref>findhero</ref>. You can specify any hero in the active or reserve party and any (non-negative) level (even above the level cap). Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero&apos;s level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.</description>
 			<seealso>
 				<ref>getherolevel</ref>
 				<ref>herolevelled</ref>
@@ -5011,7 +5011,7 @@ end</example>
 		<command id="setexperience">
 			<canon>set experience (who, experience, allowforget)</canon>
 			<shortname>set experience</shortname>
-			<description>Sets a hero&apos;s total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. To decrease a hero&apos;s level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument.</description>
+			<description>Sets a hero&apos;s total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. To decrease a hero&apos;s level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument. Heroes won't level beyond the level cap (which is 99 usually), though you can temporially raise the cap using <ref>setlevelcap</ref> to get around this.</description>
 			<seealso>
 				<ref>setherolevel</ref>
 				<ref>totalexperience</ref>
@@ -5198,12 +5198,22 @@ end</example>
 		<command id="getdamagecap">
 			<canon>get damage cap</canon>
 			<shortname>get damage cap</shortname>
-			<description>Returns the current damage cap, or 0 if none</description>
+			<description>Returns the current damage cap, or 0 if there is none.</description>
 		</command>
 		<command id="setdamagecap">
 			<canon>set damage cap (cap)</canon>
 			<shortname>set damage cap</shortname>
 			<description>Sets the current damage cap to <p>cap</p>. Use 0 for no cap.</description>
+		</command>
+		<command id="getlevelcap">
+			<canon>get level cap</canon>
+			<shortname>get level cap</shortname>
+			<description>Returns the current level cap.</description>
+		</command>
+		<command id="setlevelcap">
+			<canon>set level cap (cap)</canon>
+			<shortname>set level cap</shortname>
+			<description>Sets the level cap. <p>cap</p> must be a value from 0 to 99. Heroes with level equal to or greater than the level cap can't gain experience through battles, <ref>giveexperience</ref>, or <ref>setexperience</ref>, and the status screen doesn't show their experience to next level. You however can use <ref>setherolevel</ref> to set a hero's level above the level cap. The level cap does not change the amount of experience needed to gain a level, nor the stat increases at level-up.</description>
 		</command>
 		<command id="trace">
 			<canon>trace (string)</canon>

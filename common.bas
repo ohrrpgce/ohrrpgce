@@ -2956,6 +2956,12 @@ IF getfixbit(fixInitDamageDisplay) = 0 THEN
  gen(genDamageDisplayRise) = 14
 END IF
 
+IF getfixbit(fixDefaultLevelCap) = 0 THEN
+ upgrade_message "Set level cap to 99..."
+ setfixbit(fixDefaultLevelCap, 1)
+ gen(genLevelCap) = 99
+END IF
+
 'Update record-count for all fixed-length lumps.
 FOR i = 0 TO 8
  fix_sprite_record_count i

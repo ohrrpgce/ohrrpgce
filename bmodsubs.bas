@@ -740,7 +740,7 @@ FUNCTION trytheft (BYREF bat AS BattleState, who as integer, targ as integer, at
 END FUNCTION
 
 FUNCTION exptolevel (level as integer) as integer
-' cp needed to level: calling with level 0 returns xp to lvl 1
+' xp needed to level: calling with level 0 returns xp to lvl 1
 ' HINT: Customisation goes here :)
 
  DIM exper as integer = 30
@@ -857,14 +857,19 @@ END SUB
 SUB giveheroexperience (i as integer, exper as integer)
  'reset levels gained
  gam.hero(i).lev_gain = 0
- IF hero(i) > 0 AND gam.hero(i).lev < 99 THEN
-  exlev(i, 0) = exlev(i, 0) + exper
+ IF hero(i) > 0 AND gam.hero(i).lev < gen(genLevelCap) THEN
+  exlev(i, 0) += exper
   'levelups
-  WHILE exlev(i, 0) >= exlev(i, 1) AND gam.hero(i).lev_gain < 99
-   exlev(i, 0) = exlev(i, 0) - exlev(i, 1)
+  WHILE exlev(i, 0) >= exlev(i, 1)
+   exlev(i, 0) -= exlev(i, 1)
    gam.hero(i).lev += 1 'current level
    gam.hero(i).lev_gain += 1 'levelup counter
    exlev(i, 1) = exptolevel(gam.hero(i).lev)
+   IF gam.hero(i).lev >= gen(genLevelCap) THEN
+    'You can't gain experience once you've hit the level cap
+    exlev(i, 0) = 0
+    EXIT WHILE
+   END IF
   WEND
  END IF
 END SUB
@@ -874,7 +879,7 @@ SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allo
  DIM dummystats AS BattleStats
  DIM orig_lev AS INTEGER = gam.hero(who).lev
  DIM total AS INTEGER = 0
- DIM lostlevels AS INTEGER = 0
+ DIM lostlevels AS INTEGER = NO
  
  FOR i AS INTEGER = 0 TO gam.hero(who).lev - 1
   total += exptolevel(i)
@@ -883,12 +888,12 @@ SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allo
   'losing levels; lvl up from level 0
   gam.hero(who).lev = 0
   exlev(who, 1) = exptolevel(0)
-  lostlevels = -1
+  lostlevels = YES
  ELSE
   'set spell learnt bits correctly
   amount -= total
   orig_lev = 0
-  lostlevels = 0
+  lostlevels = NO
  END IF
  exlev(who, 0) = 0
  giveheroexperience who, amount

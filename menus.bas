@@ -1056,7 +1056,7 @@ END FUNCTION
 OPTION EXPLICIT
 
 SUB statcapsmenu
- CONST maxMenu = 13
+ CONST maxMenu = 14
  DIM m(maxMenu) AS STRING
  DIM max(maxMenu)
  DIM index(maxMenu)
@@ -1070,6 +1070,8 @@ SUB statcapsmenu
  FOR i = 2 TO 13
   index(i) = genStatCap + (i - 2)
  NEXT
+ index(14) = genLevelCap
+
  max(1) = 32767
  FOR i = 2 to 3 'shut up (~snicker~)
   max(i) = 9999 'HP + MP
@@ -1079,6 +1081,7 @@ SUB statcapsmenu
  NEXT
  max(12) = 100 'MP~
  max(13) = 20  'Extra Hits
+ max(14) = 99  'Level cap
  DO
   setwait 55
   setkeys
@@ -1098,6 +1101,7 @@ SUB statcapsmenu
     m(2 + i) = statnames(i) + " Cap: "
     IF gen(genStatCap + i) = 0 THEN m(2 + i) = m(2 + i) + "None" ELSE m(2 + i) = m(2 + i) & gen(genStatCap + i)
    NEXT
+   m(14) = "Level Cap: " & gen(genLevelCap)
   END IF
 
   clearpage vpage

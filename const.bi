@@ -70,7 +70,7 @@ CONST genPoison = 61            'poison status indicator char
 CONST genStun = 62              'Stun status indicator char
 CONST genDamageCap = 63         'Damage cap
 CONST genMute = 64              'Mute status indicator char
-CONST genStatCap = 65           'Stat caps (genStatCap + stat)
+CONST genStatCap = 65           'Stat caps (genStatCap + stat) (65-76)
 CONST genMaxSFX = 77            'last song number
 CONST genMasterPal = 78         'master palette number
 CONST genMaxMasterPal = 79      'max master palette number
@@ -81,9 +81,13 @@ CONST genMaxBoxBorder = 83      'max box border number in .PT7
 CONST genMaxPortrait = 84       'max portrait graphic number in .PT8
 CONST genMaxInventory = 85      'max available inventory slot (0 means use inventoryMax)
 CONST genErrorLevel = 86        'value to set err_suppress_lvl to, if nonzero
+CONST genLevelCap = 87          'Default maximum level (0 to 99)
+
+'Unused indices
+
 CONST genPW2Offset = 93         'old password offset
 CONST genPW2Length = 94         'old password length
-CONST genVersion = 95           'RPG file format version(6 is the latest)
+CONST genVersion = 95           'RPG file format version (see CURRENT_RPG_VERSION above for latest)
 CONST genStartMoney = 96        'starting money
 CONST genMaxShop = 97           'last shop in .SHO
 CONST genPW1Offset = 98         'old-old password offset
@@ -143,6 +147,7 @@ CONST fixHeroPortrait = 10       'Initialize hero portrait data
 CONST fixTextBoxPortrait = 11    'Initialize text box portrait data
 CONST fixNPCLocationFormat = 12  'FIXME: not implemented ... can't remember....
 CONST fixInitDamageDisplay = 13  'Initialize damage display time and distance
+CONST fixDefaultLevelCap = 14    'Set level cap to 99
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
