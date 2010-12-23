@@ -1208,42 +1208,64 @@ FUNCTION getsfxname (num AS INTEGER) as string
  RETURN readbinstring (sfxd(), 0, 30)
 END FUNCTION
 
-FUNCTION intgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77) AS INTEGER
+'Modify an integer according to key input (less and more are scancodes for decrementing and incrementing)
+'If returninput is true, returns whether the user tried to modify the int,
+'otherwise returns true only if the int actually changed.
+FUNCTION intgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO) AS INTEGER
  DIM AS LONGINT temp = n
- intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more)
+ intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput)
  n = temp
 END FUNCTION
 
-FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONGINT, BYVAL less AS INTEGER=75, BYVAL more AS INTEGER=77) AS INTEGER
+'See above for documentation
+FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONGINT, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO) AS INTEGER
  STATIC clip AS LONGINT
  DIM old AS LONGINT = n
+ DIM typed AS INTEGER = NO
 
  IF more <> 0 AND keyval(more) > 1 THEN
   n = loopvar(n, min, max, 1)
+  typed = YES
  ELSEIF less <> 0 AND keyval(less) > 1 THEN
   n = loopvar(n, min, max, -1)
+  typed = YES
  ELSE
   DIM sign AS INTEGER = SGN(n)
   n = ABS(n)
-  IF keyval(scBackspace) > 1 THEN n \= 10
+  IF keyval(scBackspace) > 1 THEN n \= 10: typed = YES
 
   DIM intext AS STRING = getinputtext
   FOR i AS INTEGER = 0 TO LEN(intext) - 1
-   IF isdigit(intext[i]) THEN n = n * 10 + (intext[i] - ASC("0"))
+   IF isdigit(intext[i]) THEN
+    n = n * 10 + (intext[i] - ASC("0"))
+    typed = YES
+   END IF
   NEXT
 
   IF min < 0 AND max > 0 THEN
-   IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN sign = sign * -1
-   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND sign < 0 THEN sign = sign * -1
+   IF keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1 THEN sign = sign * -1: typed = YES
+   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND sign < 0 THEN sign = sign * -1: typed = YES
   END IF
   IF min < 0 AND (sign < 0 OR max = 0) THEN n = -n
   'CLIPBOARD
-  IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN clip = n
-  IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN n = clip
+  IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR _
+     (keyval(scShift) > 0 AND keyval(scDelete) > 0) OR _
+     (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN
+   clip = n
+  END IF
+  IF (keyval(scShift) > 0 AND keyval(scInsert) > 1) OR _
+     (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN
+   n = clip
+   typed = YES
+  END IF
   n = bound(n, min, max)
  END IF
 
- RETURN (old <> n)
+ IF returninput THEN
+  RETURN typed
+ ELSE
+  RETURN (old <> n)
+ END IF
 END FUNCTION
 
 FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
@@ -1267,7 +1289,7 @@ FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTE
  RETURN (old <> n)
 END FUNCTION
 
-FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS INTEGER=1, nmax AS INTEGER=1, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
+FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS INTEGER=1, nmax AS INTEGER=1, less AS INTEGER=scLeft, more AS INTEGER=scRight) AS INTEGER
  '--quite a bit of documentation required:
  '--like zintgrabber, but for cases where positive values mean one thing, negatives
  '--another, and 0 means none.
