@@ -127,7 +127,7 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
  RETURN remembertag
 END FUNCTION
 
-'default: meaning null condition (true: ALWAYS, false: NEVER)
+'default: meaning of the null condition (true: ALWAYS, false: NEVER)
 'alwaysedit: experimental parameter, changes behaviour of enter/space
 'Return value is currently very unreliable.
 FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval alwaysedit as integer) as integer
@@ -184,6 +184,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
  }
 
  DIM entered_operator as integer = NO
+ DIM temp as integer
 
  FOR i as integer = 1 TO LEN(intxt)
   DIM inchar as string = MID(intxt, i)
@@ -226,25 +227,43 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
  '3: Global # .. *#*
  '4: Global # *..* #
  '5: Global # *?* #
+ '6: Global *#* ? #
  SELECT CASE cond.editstate
-  CASE 0, 3
-   IF entered_operator THEN
+  CASE 0
+   IF keyval(scBackspace) > 1 THEN
+    'Backspace works from the right...
+    intgrabber(cond.value, -2147483648, 2147483647)
+    cond.editstate = 3
+   ELSEIF entered_operator THEN
     cond.editstate = 4
-   ELSEIF keyval(scBackspace) > 1 AND cond.value = 0 THEN
-    cond.editstate = 2
    ELSE
-    IF intgrabber(cond.value, -2147483648, 2147483647) THEN cond.editstate = 3
-   END IF   
-  CASE 1
+    '...and numerals enter from the left
+    temp = 0
+    'Don't erase previous value when trying to inc/decrement it
+    IF keyval(scLeft) > 0 OR keyval(scRight) > 0 THEN temp = cond.varnum
+    IF intgrabber(temp, 0, 4095, , , YES) THEN
+     cond.varnum = temp
+     cond.editstate = 6
+    END IF
+   END IF
+  CASE 1, 6
    IF entered_operator THEN
-    cond.editstate = 2
+    IF cond.editstate = 1 THEN cond.editstate = 2 ELSE cond.editstate = 4
    ELSEIF keyval(scBackspace) > 1 AND cond.varnum = 0 THEN
     cond.editstate = 0
     cond.type = compNone
    ELSE
     intgrabber(cond.varnum, 0, 4095)
    END IF
-  CASE 2, 4, 5
+  CASE 3
+   IF entered_operator THEN
+    cond.editstate = 4
+   ELSEIF keyval(scBackspace) > 1 AND cond.value = 0 THEN
+    cond.editstate = 2
+   ELSE
+    intgrabber(cond.value, -2147483648, 2147483647)
+   END IF
+  CASE 2, 4, 5  'Operator editing
    IF cond.editstate = 5 AND entered_operator THEN
     cond.editstate = 4
    ELSEIF keyval(scBackspace) > 1 THEN
@@ -261,8 +280,11 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
      cond.type = str_array_findcasei(comp_strings(), LEFT(newcomp, 1))
     END IF
    ELSE
-    DIM temp as integer = 0
-    IF intgrabber(temp, -2147483648, 2147483647) THEN
+    temp = 0
+    'IF cond.editstate <> 2 THEN temp = cond.value
+    'Don't erase previous value when trying to inc/decrement it
+    IF keyval(scLeft) > 0 OR keyval(scRight) > 0 THEN temp = cond.value
+    IF intgrabber(temp, -2147483648, 2147483647, , , YES) THEN
      cond.value = temp
      cond.editstate = 3
     END IF
@@ -271,7 +293,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
 
 END FUNCTION
 
-'default: meaning null condition (true: ALWAYS, false: NEVER)
+'default: meaning of the null condition (true: ALWAYS, false: NEVER)
 SUB cond_editor (cond as Condition, byval default as integer = NO)
  DIM menu(10) as string
  menu(0) = "Cancel"
@@ -341,7 +363,7 @@ SUB cond_editor (cond as Condition, byval default as integer = NO)
     CASE ELSE:
      'TODO: global variable browser
      cond.type = (st.pt - 5) + compEq
-     cond.editstate = 0
+     cond.editstate = 6  'start by entering global variable number
    END SELECT
    EXIT DO
   END IF
@@ -362,7 +384,7 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
  DIM ret as string = default
  DIM hilite as string = "${K" & uilook(uiHighlight2) & "}"
 
- IF selected = NO THEN cond.editstate = 0
+ IF selected = NO THEN cond.editstate = 0: cond.lastinput = 0
 
  IF cond.type = compNone THEN
  ELSEIF cond.type = compTag THEN
@@ -392,6 +414,8 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
    CASE 5
     'FIXME: a tag for text background colour hasn't been implemented yet
     ret = "Global #" & cond.varnum & hilite & " ?${K-1} " & cond.value
+   CASE 6
+    ret = "Global #" & hilite & cond.varnum & "${K-1} " & comp_strings(cond.type) & " " & cond.value
   END SELECT
  ELSE
   ret = "[Corrupt condition data]"
