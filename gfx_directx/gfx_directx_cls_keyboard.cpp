@@ -1,5 +1,5 @@
 #include "gfx_directx_cls_keyboard.h"
-#include "scancodes.h"
+#include "..\\scancodes.h"
 using namespace gfx;
 
 Keyboard::Keyboard() : m_scLShift(0)
@@ -290,7 +290,7 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 	SC_SEMICOLON,
-	SC_PLUS,
+	SC_EQUALS,
 	SC_COMMA,
 	SC_MINUS,
 	SC_PERIOD,

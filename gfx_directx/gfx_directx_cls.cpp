@@ -1,135 +1,20 @@
+#define DFI_UNIQUE
 #include "gfx_directx_cls.h"
 using namespace gfx;
 
 DirectX::DirectX() 
-: m_pWindow(NULL), m_bInitialized(false), m_bVSync(true), m_bSmoothDraw(false),
-  m_bPreserveAspectRatio(true), m_saveFormat(D3DXIFF_PNG),
-  m_hD3d9(NULL), m_hD3dx9(NULL), m_bLibrariesLoaded(false)
+: m_pWindow(NULL), m_bInitialized(FALSE), m_bVSync(TRUE), m_bSmoothDraw(FALSE),
+  m_bPreserveAspectRatio(TRUE), m_saveFormat(D3DXIFF_PNG)
 {
 	::ZeroMemory(&m_d3dpp, sizeof(m_d3dpp));
-	Report(DX_NotInitialized);
-	Direct3DCreate9_call = NULL;
-	D3DXSaveSurfaceToFile_call = NULL;
 
-	m_hD3d9 = ::LoadLibrary(TEXT("d3d9.dll"));
-	if(m_hD3d9 == NULL)
-		return;
-	Direct3DCreate9_call = (D3D_CREATE_CALL)::GetProcAddress(m_hD3d9, "Direct3DCreate9");
-	if(Direct3DCreate9_call == NULL)
-	{
-		::MessageBox(0, TEXT("Failed to load d3d9.dll"), TEXT("Error"), MB_OK | MB_ICONEXCLAMATION);
-		return;
-	}
-
-	m_bLibrariesLoaded = true; //moved here because screenshots will always work, whether d3dx9_*.dll is found or not
-
-	m_hD3dx9 = ::LoadLibrary(TEXT("d3dx9_24.dll")); //d3dx9_24.dll is the earliest dx runtime released as a dll
-	if(m_hD3dx9 != NULL)
-	{
-#ifdef _UNICODE
-		D3DXSaveSurfaceToFile_call = (D3DX_SAVESURFACE_CALL)::GetProcAddress(m_hD3dx9, "D3DXSaveSurfaceToFileW");
-#else
-		D3DXSaveSurfaceToFile_call = (D3DX_SAVESURFACE_CALL)::GetProcAddress(m_hD3dx9, "D3DXSaveSurfaceToFileA");
-#endif
-	}
+	Init_Direct3DCreate9();
+	Init_D3DXSaveSurfaceToFileA();
 }
 
 DirectX::~DirectX()
 {
 	Shutdown();
-	if(m_hD3dx9)
-		::FreeLibrary(m_hD3dx9);
-	if(m_hD3d9)
-		::FreeLibrary(m_hD3d9);
-}
-
-DirectX_ErrorCode DirectX::Report(gfx::DirectX_ErrorCode error)
-{
-	m_lastErrorCode = error;
-	switch(m_lastErrorCode)
-	{
-	case DX_OK:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_OK: No Errors"));
-		} break;
-	case DX_LibrariesMissing:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_LibrariesMissing: Either d3d9.dll or d3dx9.dll is missing from the system. Update the directx runtime!"));
-		} break;
-	case DX_NotInitialized:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_NotInitialized: The gfx::DirectX object was not properly initialized."));
-		} break;
-	case DX_Create_ParamsNotValid:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_Create_ParamsNotValid: The parameters sent to gfx::DirectX::Initialize() were not valid."));
-		} break;
-	case DX_Create_D3D:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_Create_D3D: An error occurred in creating the Direct3D object."));
-		} break;
-	case DX_Create_D3DDevice:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_Create_D3DDevice: An error occurred in creating the Direct3D device."));
-		} break;
-	case DX_Create_Texture:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_Create_Texture: An error occurred in creating the texture that receives the ohr render."));
-		} break;
-	case DX_Palette_ParamNotValid:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_Palette_ParamNotValid: The parameter sent to gfx::DirectX::SetPalette() was not valid."));
-		} break;
-	case DX_ScreenShot_ParamNotValid:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ScreenShot_ParamNotValid: The parameter sent to gfx::DirectX::ScreenShot() was not valid."));
-		} break;
-	case DX_ScreenShot_Surface:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ScreenShot_Surface: An error occurred in allocating a surface to receive the front buffer's data."));
-		} break;
-	case DX_ScreenShot_GetFrontBuffer:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ScreenShot_GetFrontBuffer: An error occurred in copying the front buffer contents to a surface."));
-		} break;
-	case DX_ScreenShot_Save:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ScreenShot_Save: An error occurred in saving the screenshot."));
-		} break;
-	case DX_Resolution_Invalid:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_Resolution_Invalid: The resolution requested is invalid."));
-		} break;
-	case DX_ShowPage_Begin:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ShowPage_Begin: The scene failed to begin on the device."));
-		} break;
-	case DX_ShowPage_Clear:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ShowPage_Clear: The scene failed to clear on the device."));
-		} break;
-	case DX_ShowPage_GetBackBuffer:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ShowPage_GetBackBuffer: The device failed to retrieve the back buffer."));
-		} break;
-	case DX_ShowPage_StretchRect:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ShowPage_StretchRect: The device failed to stretch the image across the back buffer."));
-		} break;
-	case DX_ShowPage_End:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ShowPage_End: The scene failed to end on the device."));
-		} break;
-	case DX_ShowPage_Present:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("DX_ShowPage_Present: The device failed to present the backbuffer."));
-		} break;
-	default:
-		{
-			::_tcscpy_s<256>(m_lastErrorMessage, TEXT("Unknown error!"));
-		} break;
-	}
-	return m_lastErrorCode;
 }
 
 RECT DirectX::CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight)
@@ -158,18 +43,16 @@ RECT DirectX::CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth
 	return r;
 }
 
-DirectX_ErrorCode DirectX::Initialize(gfx::Window *pWin, const TCHAR* szModuleName/*, bool b*/)
+HRESULT DirectX::Initialize(gfx::Window *pWin, const TCHAR* szModuleName)
 {
-	if(!m_bLibrariesLoaded)
-		return Report(DX_LibrariesMissing);
+	HRESULT hr = S_OK;
 	if(!pWin)
-		return Report(DX_Create_ParamsNotValid);
+		return E_POINTER;
 	Shutdown();
 	if(szModuleName != NULL)
 		m_szModuleName = szModuleName;
 	else
 		m_szModuleName = TEXT("");
-	m_bInitialized = false;
 
 	m_pWindow = pWin;
 	m_rWindowedMode = m_pWindow->GetWindowSize();
@@ -187,46 +70,47 @@ DirectX_ErrorCode DirectX::Initialize(gfx::Window *pWin, const TCHAR* szModuleNa
 	if(!m_bVSync)
 		m_d3dpp.PresentationInterval= D3DPRESENT_INTERVAL_IMMEDIATE;
 	m_d3dpp.SwapEffect				= D3DSWAPEFFECT_DISCARD;
-	m_d3dpp.Windowed				= true;
+	m_d3dpp.Windowed				= TRUE;
 
-	m_d3d.Attach(Direct3DCreate9_call(D3D_SDK_VERSION));
+	if(Direct3DCreate9 == NULL)
+		return E_FAIL;
+	m_d3d.Attach(Direct3DCreate9(D3D_SDK_VERSION));
 	if(m_d3d == NULL)
-		return Report(DX_Create_D3D);
-	m_d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_pWindow->GetWindowHandle(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &m_d3dpp, &m_d3ddev);
-	if(m_d3ddev == NULL)
-		return Report(DX_Create_D3DDevice);
+		return E_FAIL;
+	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_pWindow->GetWindowHandle(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &m_d3dpp, &m_d3ddev);
+	if(FAILED(hr))
+		return hr;
 	if(S_OK != m_surface.Initialize(m_d3ddev, 320, 200))
-		return Report(DX_Create_Texture);
-	m_bInitialized = true;
-	m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
-	return Report(DX_OK);
+		return E_FAIL;
+	m_bInitialized = TRUE;
+	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
+	return hr;
 }
 
-DirectX_ErrorCode DirectX::Shutdown()
+HRESULT DirectX::Shutdown()
 {
-	Report(DX_NotInitialized);
-	m_bInitialized = false;
+	m_bInitialized = FALSE;
 	m_szModuleName.clear();
 	m_surface.Initialize(0,0,0);
 	m_d3ddev = NULL;
 	m_d3d = NULL;
-	return DX_OK;
+	return S_OK;
 }
 
-DirectX_ErrorCode DirectX::ShowPage(unsigned char *pRawPage, UINT width, UINT height)
+HRESULT DirectX::ShowPage(unsigned char *pRawPage, UINT width, UINT height)
 {
 	if(!m_bInitialized)
-		return DX_NotInitialized;
+		return E_FAIL;
 	HRESULT hrCoopLevel = m_d3ddev->TestCooperativeLevel();
 	if(hrCoopLevel == D3DERR_DEVICELOST)
 	{
 		OnLostDevice();
-		return DX_OK;
+		return S_OK;
 	}
 	else if(hrCoopLevel == D3DERR_DEVICENOTRESET)
 	{
 		OnResetDevice();
-		return DX_OK;
+		return S_OK;
 	}
 	else if(hrCoopLevel == D3DERR_DRIVERINTERNALERROR)
 	{
@@ -234,7 +118,7 @@ DirectX_ErrorCode DirectX::ShowPage(unsigned char *pRawPage, UINT width, UINT he
 			return Shutdown();
 		Tstring szModule = m_szModuleName;
 		Shutdown();
-		return Initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str())/*, false*/);
+		return Initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str()));
 	}
 	if(pRawPage != NULL)
 	{
@@ -246,53 +130,68 @@ DirectX_ErrorCode DirectX::ShowPage(unsigned char *pRawPage, UINT width, UINT he
 				m_image.pSurface[i] = pRawPage[i];
 		}
 	}
-	m_surface.CopySystemPage(m_image.pSurface/*pRawPage*/, m_image.width, m_image.height, &m_image.palette/*&m_palette*/);
+	m_surface.CopySystemPage(m_image.pSurface, m_image.width, m_image.height, &m_image.palette);
 
 	//Clear needs to happen outside of BeginScene()/EndScene() block
-	TEST_HR(m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0), DX_ShowPage_Clear);
+	HRESULT hr = S_OK;
+	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
+	if(FAILED(hr))
+		return hr;
 
 	RECT rAspectRatio = {0};
 	if(m_bPreserveAspectRatio)
 		rAspectRatio = CalculateAspectRatio(m_surface.GetDimensions().cx, m_surface.GetDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
 	SmartPtr<IDirect3DSurface9> pBackBuffer;
-	TEST_HR(m_d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer), DX_ShowPage_GetBackBuffer);
-	TEST_HR(m_d3ddev->StretchRect(m_surface.GetSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT)), DX_ShowPage_StretchRect);
+	hr = m_d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
+	if(FAILED(hr))
+		return hr;
+	hr = m_d3ddev->StretchRect(m_surface.GetSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
+	if(FAILED(hr))
+		return hr;
 
-	TEST_HR(m_d3ddev->Present(0,0,0,0), DX_ShowPage_Present);
-	return DX_OK;
+	hr = m_d3ddev->Present(0,0,0,0);
+	return hr;
 }
 
-DirectX_ErrorCode DirectX::SetPalette(gfx::Palette<UINT> *pPalette)
+HRESULT DirectX::SetPalette(gfx::Palette<UINT> *pPalette)
 {
 	if(pPalette == NULL)
-		return Report(DX_Palette_ParamNotValid);
+		return E_POINTER;
 	m_image.palette = *pPalette;
-	return DX_OK;
+	return S_OK;
 }
 
-DirectX_ErrorCode DirectX::ScreenShot(TCHAR *strName)
+HRESULT DirectX::ScreenShot(TCHAR *strName)
 {
 	if(!m_bInitialized)
-		return DX_NotInitialized;
-	if(D3DXSaveSurfaceToFile_call == NULL)
-		return DX_LibrariesMissing;
+		return E_FAIL;
+	if(D3DXSaveSurfaceToFileA == NULL)
+		return E_FAIL;
 	if(strName == NULL)
-		return Report(DX_ScreenShot_ParamNotValid);
+		return E_POINTER;
 	if(m_saveFormat == D3DXIFF_FORCE_DWORD)
-		return Report(DX_ScreenShot_Surface);
+		return E_FAIL;
+
+	HRESULT hr = S_OK;
 	SmartPtr<IDirect3DSurface9> pSurface;
 	if(m_d3dpp.Windowed)
 	{//have to use desktop size
 		HWND hDesktop = ::GetDesktopWindow();
 		RECT rDesktop;
 		::GetWindowRect(hDesktop, &rDesktop);
-		TEST_HR(m_d3ddev->CreateOffscreenPlainSurface(rDesktop.right, rDesktop.bottom, D3DFMT_A8R8G8B8, D3DPOOL_SCRATCH, &pSurface, 0), DX_ScreenShot_Surface);
+		hr = m_d3ddev->CreateOffscreenPlainSurface(rDesktop.right, rDesktop.bottom, D3DFMT_A8R8G8B8, D3DPOOL_SCRATCH, &pSurface, 0);
+		if(FAILED(hr))
+			return hr;
 	}
 	else
-		TEST_HR(m_d3ddev->CreateOffscreenPlainSurface(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight, D3DFMT_A8R8G8B8, D3DPOOL_SCRATCH, &pSurface, 0), DX_ScreenShot_Surface);
-	if(pSurface == NULL)
-		return Report(DX_ScreenShot_Surface);
-	TEST_HR(m_d3ddev->GetFrontBufferData(0, pSurface), DX_ScreenShot_GetFrontBuffer);
+	{
+		hr = m_d3ddev->CreateOffscreenPlainSurface(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight, D3DFMT_A8R8G8B8, D3DPOOL_SCRATCH, &pSurface, 0);
+		if(FAILED(hr))
+			return hr;
+	}
+	hr = m_d3ddev->GetFrontBufferData(0, pSurface);
+	if(FAILED(hr))
+		return hr;
 
 	RECT rImage = {0,0, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight};
 	if(m_bPreserveAspectRatio)
@@ -306,16 +205,35 @@ DirectX_ErrorCode DirectX::ScreenShot(TCHAR *strName)
 		rImage.top += rpTopLeft.y;
 		rImage.bottom += rpTopLeft.y;
 	}
-	if(D3D_OK != D3DXSaveSurfaceToFile_call(strName, m_saveFormat, pSurface, 0, &rImage))
-		return Report(DX_ScreenShot_Save);
-	return DX_OK;
+
+	CHAR szTmpName[MAX_PATH] = "";
+	hr = D3DXSaveSurfaceToFileA( StringToString(szTmpName, sizeof(szTmpName), strName), m_saveFormat, pSurface, 0, &rImage );
+	
+	return hr;
 }
 
-DirectX_ErrorCode DirectX::SetView(bool bWindowed)
+void DirectX::OnLostDevice()
 {
-	if(bWindowed == (TRUE == m_d3dpp.Windowed))
-		return DX_OK;
-	m_d3dpp.Windowed = bWindowed;
+	if(!m_bInitialized)
+		return;
+	m_surface.OnLostDevice();
+}
+
+void DirectX::OnResetDevice()
+{
+	if(!m_bInitialized)
+		return;
+	m_d3ddev->Reset(&m_d3dpp);
+	m_surface.OnResetDevice();
+}
+
+HRESULT DirectX::SetViewFullscreen(BOOL bFullscreen)
+{
+	if(bFullscreen != m_d3dpp.Windowed)
+		return S_OK;
+
+	m_d3dpp.Windowed = !bFullscreen;
+
 	if(m_d3dpp.Windowed)
 	{
 		m_d3dpp.BackBufferWidth		= m_rWindowedMode.right;
@@ -328,8 +246,10 @@ DirectX_ErrorCode DirectX::SetView(bool bWindowed)
 		m_pWindow->SetWindowSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
 		m_pWindow->SetWindowPosition(0,0);
 	}
+
 	if(!m_bInitialized)
-		return DX_NotInitialized;
+		return E_FAIL;
+
 	if(m_d3dpp.Windowed)
 	{
 		m_pWindow->SetClientSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
@@ -340,15 +260,18 @@ DirectX_ErrorCode DirectX::SetView(bool bWindowed)
 		OnLostDevice();
 		OnResetDevice();
 	}
-	return DX_OK;
+	return S_OK;
 }
 
-DirectX_ErrorCode DirectX::SetResolution(UINT width, UINT height)
+HRESULT DirectX::SetResolution(const RECT* pRect)
 {
-	if(m_d3dpp.Windowed == TRUE)
+	if(!pRect)
+		return E_POINTER;
+
+	if(m_d3dpp.Windowed)
 	{
-		m_rWindowedMode.right = width;
-		m_rWindowedMode.bottom = height;
+		m_rWindowedMode.right = pRect->right;
+		m_rWindowedMode.bottom = pRect->bottom;
 		m_d3dpp.BackBufferWidth		= m_rWindowedMode.right;
 		m_d3dpp.BackBufferHeight	= m_rWindowedMode.bottom;
 		//intentionally not setting these--otherwise will enter recursive pit of despair, abandon all hope!
@@ -357,14 +280,15 @@ DirectX_ErrorCode DirectX::SetResolution(UINT width, UINT height)
 		OnLostDevice();
 		OnResetDevice();
 	}
-	return DX_OK;
+	return S_OK;
 }
 
-void DirectX::SetVSync(bool bEnableVSync)
+HRESULT DirectX::SetVsyncEnabled(BOOL bVsync)
 {
-	if(bEnableVSync == m_bVSync)
-		return;
-	m_bVSync = bEnableVSync;
+	if(bVsync == m_bVSync)
+		return S_OK;
+	m_bVSync = bVsync;
+
 	if(m_bVSync)
 	{
 		m_d3dpp.PresentationInterval = 0;
@@ -373,17 +297,19 @@ void DirectX::SetVSync(bool bEnableVSync)
 	{
 		m_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 	}
+
 	OnLostDevice();
 	OnResetDevice();
+
+	return S_OK;
 }
 
-DirectX_ErrorCode DirectX::SetSmooth(bool bSmoothDraw)
+void DirectX::SetSmooth(BOOL bSmoothDraw)
 {
 	m_bSmoothDraw = bSmoothDraw;
-	return DX_OK;
 }
 
-void DirectX::SetAspectRatioPreservation(bool bPreserve)
+void DirectX::SetAspectRatioPreservation(BOOL bPreserve)
 {
 	m_bPreserveAspectRatio = bPreserve;
 }
@@ -405,57 +331,32 @@ Palette<UINT> DirectX::GetPalette()
 	return m_image.palette;
 }
 
-bool DirectX::IsVsyncEnabled()
+BOOL DirectX::IsVsyncEnabled()
 {
 	return m_bVSync;
 }
 
-bool DirectX::IsViewFullscreen()
+BOOL DirectX::IsViewFullscreen()
 {
 	return !m_d3dpp.Windowed;
 }
 
-bool DirectX::IsSmooth()
+BOOL DirectX::IsSmooth()
 {
 	return m_bSmoothDraw;
 }
 
-bool DirectX::IsAspectRatioPreserved()
+BOOL DirectX::IsAspectRatioPreserved()
 {
 	return m_bPreserveAspectRatio;
 }
 
-bool DirectX::IsScreenShotsActive()
+BOOL DirectX::IsScreenShotsActive()
 {
-	return (D3DXSaveSurfaceToFile_call != NULL);
+	return (D3DXSaveSurfaceToFileA != NULL);
 }
 
 D3DXIMAGE_FILEFORMAT DirectX::GetImageFileFormat()
 {
 	return m_saveFormat;
-}
-
-DirectX_ErrorCode DirectX::GetLastErrorCode()
-{
-	return m_lastErrorCode;
-}
-
-TCHAR* DirectX::GetLastErrorMessage()
-{
-	return m_lastErrorMessage;
-}
-
-void DirectX::OnLostDevice()
-{
-	if(!m_bInitialized)
-		return;
-	m_surface.OnLostDevice();
-}
-
-void DirectX::OnResetDevice()
-{
-	if(!m_bInitialized)
-		return;
-	m_d3ddev->Reset(&m_d3dpp);
-	m_surface.OnResetDevice();
 }

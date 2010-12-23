@@ -32,7 +32,6 @@ namespace gfx
 		static BOOL __stdcall EnumDevices(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef);
 		static BOOL __stdcall EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
 	protected:
-		HMODULE m_hLibrary;
 		HWND m_hWnd;
 
 		SmartPtr<IDirectInput8> m_dinput;

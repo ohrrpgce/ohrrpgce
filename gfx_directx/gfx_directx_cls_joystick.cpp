@@ -46,18 +46,18 @@ BOOL Joystick::EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
 	return DIENUM_CONTINUE;
 }
 
-Joystick::Joystick() : m_hLibrary(NULL), m_hWnd(NULL)
+Joystick::Joystick() : /*m_hLibrary(NULL), */m_hWnd(NULL)
 {
-	m_hLibrary = LoadLibrary(TEXT("dinput8.dll"));
+	//m_hLibrary = LoadLibrary(TEXT("dinput8.dll"));
 }
 
 Joystick::~Joystick()
 {
 	Shutdown();
 
-	if(m_hLibrary)
-		FreeLibrary(m_hLibrary);
-	m_hLibrary = NULL;
+	//if(m_hLibrary)
+	//	FreeLibrary(m_hLibrary);
+	//m_hLibrary = NULL;
 }
 
 void Joystick::FilterAttachedDevices()
@@ -149,7 +149,7 @@ BOOL Joystick::GetState(int &nDevice, int &buttons, int &xPos, int &yPos)
 {
 	if(m_dinput == NULL)
 		return FALSE;
-	if(nDevice >= m_devices.size() || nDevice < 0)
+	if((UINT)nDevice >= m_devices.size() || nDevice < 0)
 		return FALSE;
 
 	std::list<Device>::iterator iter = m_devices.begin();

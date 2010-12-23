@@ -13,49 +13,29 @@
 #include <tchar.h>
 #include "Tstring.h"
 
-#include "gfx_directx_TESTAPPconst.h"
 #include "gfx_directx_cls_window.h"
 #include "gfx_directx_cls_palette.h"
 #include "gfx_directx_cls_midsurface.h"
+#include "DllFunctionInterface.h"
+
 
 namespace gfx
 {
-	enum DirectX_ErrorCode
-	{
-		DX_OK = 0,
-		DX_LibrariesMissing,
-		DX_NotInitialized,
-		DX_Create_ParamsNotValid,
-		DX_Create_D3D,
-		DX_Create_D3DDevice,
-		DX_Create_Texture,
-		DX_Palette_ParamNotValid,
-		DX_ScreenShot_ParamNotValid,
-		DX_ScreenShot_Surface,
-		DX_ScreenShot_GetFrontBuffer,
-		DX_ScreenShot_Save,
-		DX_Resolution_Invalid,
-		DX_ShowPage_Begin,
-		DX_ShowPage_Clear,
-		DX_ShowPage_GetBackBuffer,
-		DX_ShowPage_StretchRect,
-		DX_ShowPage_End,
-		DX_ShowPage_Present,
-		DX_FORCE_DWORD = 0xffffffff, //not used, just forces 32bit compile
-	};
+	_DFI_IMPORT_CLASS_SHELL_BEGIN(DXCreate);
+	_DFI_IMPORT_CLASS_DECLARE(IDirect3D9*, __stdcall, Direct3DCreate9, UINT sdkVersion);
+	_DFI_IMPORT_CLASS_SHELL_END(DXCreate, TEXT("d3d9.dll"));
 
-	typedef IDirect3D9* (__stdcall *D3D_CREATE_CALL)(UINT d3d_sdk_version);
-	typedef HRESULT (__stdcall *D3DX_SAVESURFACE_CALL)(LPCTSTR pDestFile, D3DXIMAGE_FILEFORMAT DestFormat, LPDIRECT3DSURFACE9 pSrcSurface, 
-		CONST PALETTEENTRY * pSrcPalette, CONST RECT * pSrcRect);
+	_DFI_IMPORT_CLASS_SHELL_BEGIN(DXScreenShot);
+	_DFI_IMPORT_CLASS_DECLARE(HRESULT, __stdcall, D3DXSaveSurfaceToFileA, LPCSTR pDestFile, 
+																		  D3DXIMAGE_FILEFORMAT DestFormat, 
+																		  LPDIRECT3DSURFACE9 pSrcSurface, 
+																		  CONST PALETTEENTRY* pSrcPalette, 
+																		  CONST RECT* pSrcRect);
+	_DFI_IMPORT_CLASS_SHELL_END(DXScreenShot, TEXT("d3dx9_24.dll"));
 
-	class DirectX
+	class DirectX : protected DXCreate, protected DXScreenShot
 	{
 	protected:
-		HMODULE m_hD3d9;
-		HMODULE m_hD3dx9;
-		D3D_CREATE_CALL Direct3DCreate9_call;
-		D3DX_SAVESURFACE_CALL D3DXSaveSurfaceToFile_call;
-		bool m_bLibrariesLoaded;
 		SmartPtr<IDirect3D9> m_d3d;
 		SmartPtr<IDirect3DDevice9> m_d3ddev;
 		D3DPRESENT_PARAMETERS m_d3dpp;
@@ -64,10 +44,10 @@ namespace gfx
 		Window* m_pWindow;
 		RECT m_rWindowedMode; //position and dimensions in windowed mode
 		RECT m_rFullscreenMode; //position and dimensions in fullscreen mode
-		bool m_bInitialized;
-		bool m_bVSync;
-		bool m_bSmoothDraw; //determines whether texture has smooth linear interpolation
-		bool m_bPreserveAspectRatio; //determines whether the aspect ratio is preserved no matter the screen resolution
+		BOOL m_bInitialized;
+		BOOL m_bVSync;
+		BOOL m_bSmoothDraw; //determines whether texture has smooth linear interpolation
+		BOOL m_bPreserveAspectRatio; //determines whether the aspect ratio is preserved no matter the screen resolution
 		struct Image
 		{
 			Image() : pSurface(NULL), width(0), height(0){}
@@ -92,41 +72,38 @@ namespace gfx
 			UINT height;
 			Palette<UINT> palette;
 		} m_image;
-		DirectX_ErrorCode m_lastErrorCode; //last error code
-		TCHAR m_lastErrorMessage[256]; //last error message
 		Tstring m_szModuleName;
 
-		DirectX_ErrorCode Report(DirectX_ErrorCode error); //generates error message and stores error code
 		RECT CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight);
 	public:
 		DirectX();
 		virtual ~DirectX();
 
-		DirectX_ErrorCode Initialize(Window *pWin, const TCHAR* szModuleName/*, bool bEnableFpsDisplay = true*/); //starts up the engine
-		DirectX_ErrorCode Shutdown(); //shuts down the engine
-		DirectX_ErrorCode ShowPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
-		DirectX_ErrorCode SetPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying
-		DirectX_ErrorCode ScreenShot(TCHAR* strName); //gets a screenshot, appending the correct format image to the end of the name
-		DirectX_ErrorCode SetView(bool bWindowed); //sets view to either windowed or fullscreen
-		DirectX_ErrorCode SetResolution(UINT width, UINT height);
-		void SetVSync(bool bEnableVSync); //enables vsync, which is enabled by default
-		DirectX_ErrorCode SetSmooth(bool bSmoothDraw); //enables linear interpolation used on texture drawing
-		void SetAspectRatioPreservation(bool bPreserve); //enables aspect ratio preservation through all screen resolutions
-		void SetImageFileFormat(D3DXIMAGE_FILEFORMAT format); //sets the image file format of any screenshots
-
-		RECT GetResolution(); //returns active resolution
-		Palette<UINT> GetPalette(); //returns a reference of the palette, non-deletable
-		bool IsVsyncEnabled(); //returns true if vsync is enabled
-		bool IsViewFullscreen(); //returns true if view is fullscreen
-		bool IsSmooth(); //returns true if linear interpolation is used on the texture
-		bool IsAspectRatioPreserved(); //returns true if aspect ratio is preserved
-		bool IsScreenShotsActive(); //returns true if screen shot library was loaded
-		D3DXIMAGE_FILEFORMAT GetImageFileFormat(); //returns image file format of screenshots
-		DirectX_ErrorCode GetLastErrorCode(); //returns last error code
-		TCHAR* GetLastErrorMessage(); //gets last error message
-
+		HRESULT Initialize(Window *pWin, const TCHAR* szModuleName); //starts up the engine
+		HRESULT Shutdown(); //shuts down the engine
+		HRESULT ShowPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
+		HRESULT SetPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying
+		HRESULT ScreenShot(TCHAR* strName); //gets a screenshot, appending the correct format image to the end of the name
 		void OnLostDevice();
 		void OnResetDevice();
+
+		//option setting
+		HRESULT SetViewFullscreen(BOOL bFullscreen); //sets view to fullscreen if true
+		HRESULT SetResolution(const RECT* pRect); //sets the dimensions of the backbuffer
+		HRESULT SetVsyncEnabled(BOOL bVsync); //enables vsync if true
+		void SetSmooth(BOOL bSmoothDraw); //enables linear interpolation used on texture drawing
+		void SetAspectRatioPreservation(BOOL bPreserve); //enables aspect ratio preservation through all screen resolutions
+		void SetImageFileFormat(D3DXIMAGE_FILEFORMAT format); //sets the image file format of any screenshots
+
+		//info
+		RECT GetResolution(); //returns active resolution
+		Palette<UINT> GetPalette(); //returns a reference of the palette, non-deletable
+		BOOL IsVsyncEnabled(); //returns true if vsync is enabled
+		BOOL IsViewFullscreen(); //returns true if view is fullscreen
+		BOOL IsSmooth(); //returns true if linear interpolation is used on the texture
+		BOOL IsAspectRatioPreserved(); //returns true if aspect ratio is preserved
+		BOOL IsScreenShotsActive(); //returns true if screen shot library was loaded
+		D3DXIMAGE_FILEFORMAT GetImageFileFormat(); //returns image file format of screenshots
 	};
 }
 #endif

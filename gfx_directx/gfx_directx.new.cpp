@@ -1,5 +1,4 @@
-#include "gfx_directx_TESTAPPconst.h"
-
+#include "gfx_msg.h"
 #include "gfx_directx.h"
 #include "gfx_directx_cls_window.h"
 #include "gfx_directx_cls.h"
@@ -91,7 +90,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 
 	g_State.SendDebugString("gfx_directx: Window Intialized!");
 
-	if(DX_OK != g_DirectX.Initialize(&g_Window, MODULENAME))
+	if( FAILED(g_DirectX.Initialize(&g_Window, MODULENAME)) )
 	{
 		g_Window.Shutdown();
 		gfx_PumpMessages();
@@ -153,13 +152,13 @@ DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam
 		g_DirectX.SetAspectRatioPreservation(dwParam != FALSE);
 		break;
 	case OM_GFX_SETWINDOWED:
-		g_DirectX.SetView(dwParam != FALSE);
+		g_DirectX.SetViewFullscreen(dwParam == FALSE);
 		break;
 	case OM_GFX_SETSMOOTH:
 		g_DirectX.SetSmooth(dwParam != FALSE);
 		break;
 	case OM_GFX_SETVSYNC:
-		g_DirectX.SetVSync(dwParam != FALSE);
+		g_DirectX.SetVsyncEnabled(dwParam == FALSE);
 		break;
 	case OM_GFX_SETSSFORMAT:
 		switch(dwParam)
@@ -262,7 +261,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_ScreenShot, const char *szFileName)
 	default:
 		return FALSE;
 	}
-	if(DX_OK != g_DirectX.ScreenShot(buffer))
+	if(S_OK != g_DirectX.ScreenShot(buffer))
 		return FALSE;
 	return TRUE;
 }
@@ -490,7 +489,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						while(IsZoomed(hWnd) || IsIconic(hWnd)) //if maximized or minimized
 							ShowWindow(hWnd, SW_RESTORE);
-						g_DirectX.SetView(g_DirectX.IsViewFullscreen());
+						g_DirectX.SetViewFullscreen(!g_DirectX.IsViewFullscreen());
 						g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 					}
 				} break;
@@ -533,7 +532,8 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				g_DirectX.SetResolution(LOWORD(lParam), HIWORD(lParam));
+				RECT r = {0,0, LOWORD(lParam), HIWORD(lParam)};
+				g_DirectX.SetResolution(&r);
 				g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 				g_Mouse.UpdateClippingRect();
 				g_Mouse.PopState();
@@ -619,7 +619,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} break;
 			case PBT_APMSUSPEND:
 				{
-					g_DirectX.SetView(TRUE);
+					g_DirectX.SetViewFullscreen(FALSE);
 					g_DirectX.Shutdown();
 					g_Joystick.Shutdown();
 				} break;
@@ -665,7 +665,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 			{//control id
 			case IDC_OPTIONS_EnableVsync:
 				{
-					g_DirectX.SetVSync(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
+					g_DirectX.SetVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
 				} break;
 			case IDC_OPTIONS_EnableSmooth:
 				{
@@ -681,7 +681,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, BST_UNCHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, BST_CHECKED);
 
-					g_DirectX.SetVSync(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
+					g_DirectX.SetVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
 					g_DirectX.SetSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
 					g_DirectX.SetAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
 
@@ -704,7 +704,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 				} break;
 			case IDOK:
 				{//apply all changes and return
-					g_DirectX.SetVSync(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
+					g_DirectX.SetVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
 					g_DirectX.SetSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
 					g_DirectX.SetAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
 					if(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG))
@@ -723,9 +723,9 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 				} break;
 			case IDCANCEL:
 				{//revert all changes and return
-					g_DirectX.SetVSync(bVsyncEnabled == TRUE);
-					g_DirectX.SetSmooth(bSmoothEnabled == TRUE);
-					g_DirectX.SetAspectRatioPreservation(bARPEnabled == TRUE);
+					g_DirectX.SetVsyncEnabled(bVsyncEnabled);
+					g_DirectX.SetSmooth(bSmoothEnabled);
+					g_DirectX.SetAspectRatioPreservation(bARPEnabled);
 					g_Mouse.PopState();
 					::DestroyWindow(hWndDlg);
 					g_hWndDlg = NULL;
@@ -748,7 +748,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, (g_DirectX.IsVsyncEnabled() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, (g_DirectX.IsSmooth() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, (g_DirectX.IsAspectRatioPreserved() ? BST_CHECKED : BST_UNCHECKED));
-			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Status, WM_SETTEXT, 0, (LPARAM)g_State.szHelpText.c_str()/*g_DirectX.GetLastErrorMessage()*/);
+			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Status, WM_SETTEXT, 0, (LPARAM)g_State.szHelpText.c_str());
 			TCHAR strInfoBuffer[128] = TEXT("");
 			::_stprintf(strInfoBuffer, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Info, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);

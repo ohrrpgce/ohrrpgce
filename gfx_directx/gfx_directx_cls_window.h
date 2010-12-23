@@ -5,7 +5,6 @@
 #ifndef GFX_DIRECTX_CLS_WINDOW_H
 #define GFX_DIRECTX_CLS_WINDOW_H
 
-#include "gfx_directx_TESTAPPconst.h"
 #include <windows.h>
 
 namespace gfx

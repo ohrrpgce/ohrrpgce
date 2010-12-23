@@ -1,11 +1,11 @@
-#include "gfx_directx_TESTAPPconst.h"
-
-#if TESTAPP
+#define DFI_IMPORT
+#define DFI_UNIQUE
+#define DFI_CLASS
 
 #include "gfx_directx.h"
 #include <windows.h>
 
-#include "scancodes.h"
+#include "..\\scancodes.h"
 
 BYTE g_frameTest[320 * 200];
 UINT g_paletteTest[256];
@@ -19,6 +19,18 @@ void __cdecl RequestQuit()
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nShowCmd)
 {
+	DllBackend db;
+	db.Init_gfx_init();
+	db.Init_gfx_windowtitle();
+	db.Init_gfx_setpal();
+	db.Init_io_init();
+	db.Init_io_setmousevisibility();
+	db.Init_gfx_showpage();
+	db.Init_io_updatekeys();
+	db.Init_io_readjoysane();
+	db.Init_gfx_screenshot();
+	db.Init_gfx_close();
+
 	for(UINT i = 0; i < 320 * 200; i++)
 		g_frameTest[i] = i % 256;
 	for(UINT i = 0; i < 256; i++)
@@ -28,10 +40,10 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	g_paletteTest[0xdd] = 0xff0000ff;
 
 	char szInfoBuffer[256] = "";
-	gfx_init(RequestQuit, 0, szInfoBuffer, sizeof(szInfoBuffer));
-	gfx_windowtitle("DirectX Backend Test App");
-	gfx_setpal(g_paletteTest);
-	io_init();
+	db.gfx_init(RequestQuit, 0, szInfoBuffer, sizeof(szInfoBuffer));
+	db.gfx_windowtitle("DirectX Backend Test App");
+	db.gfx_setpal(g_paletteTest);
+	db.io_init();
 	::MessageBox(0, TEXT("Use left and right to change scroll speed.") \
 					TEXT("\r\nUse 'S' to take a screenshot.") \
 					TEXT("\r\nUse 'D' to get debug local d3d9 capabilities.") \
@@ -40,7 +52,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 
 	UINT j = 0;
 	int x,y,buttons;
-	io_setmousevisibility(FALSE);
+	db.io_setmousevisibility(FALSE);
 	while(!g_bQuit)
 	{
 		for(UINT i = 0; i < 320 * 200; i++)
@@ -48,12 +60,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 		j++;
 		j %= 256;
 
-		gfx_showpage(g_frameTest, 320, 200);
+		db.gfx_showpage(g_frameTest, 320, 200);
 		//io_waitprocessing();
 		::ZeroMemory(g_keys, sizeof(g_keys));
-		io_updatekeys(g_keys);
+		db.io_updatekeys(g_keys);
 		buttons = 0; x = 0; y = 0;
-		io_readjoysane(0, buttons, x, y);
+		db.io_readjoysane(0, buttons, x, y);
 		if(g_keys[SC_LEFT] || buttons & 0x1)
 			j++;
 		if(g_keys[SC_RIGHT] || buttons & 0x2)
@@ -66,14 +78,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 			j++;
 		if(g_keys[SC_SCROLLLOCK])
 			j++;
-		if(g_keys[SC_ESCAPE])
+		if(g_keys[SC_ESC])
 			g_bQuit = true;
 		if(g_keys[SC_S])
-			gfx_screenshot("testscreen2");
+			db.gfx_screenshot("testscreen2");
 	}
 
-	gfx_close();
+	db.gfx_close();
 	return 0;
 };
-
-#endif //TESTAPP

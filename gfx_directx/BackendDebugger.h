@@ -48,5 +48,5 @@ public:
 	}
 
 	//app interfacing
-	virtual HRESULT SendHook( AppHook* pHook );
+	virtual HRESULT SendHook( IAppHook* pHook );
 };

@@ -18,10 +18,10 @@
 #define SC_PERCENT		06
 #define SC_6			07
 #define SC_CIRCUMFLEX		07
-#define SC_7			08
-#define SC_AMPERSAND		08
-#define SC_8			09
-#define SC_ASTERIX		09
+#define SC_7			8	//c++ thinks 08 is octal notation (base 8)
+#define SC_AMPERSAND	8
+#define SC_8			9	//c++ thinks 09 is base 9
+#define SC_ASTERIX		9
 #define SC_9			10
 #define SC_LEFTPARENTHESIS     	10
 #define SC_0			11

@@ -5,10 +5,10 @@
 #ifndef GFX_DIRECTX_H
 #define GFX_DIRECTX_H
 
-#ifndef _DLL
-#define DFI_IMPORT
-#define DFI_CLASS
-#endif //_DLL
+//#ifndef _DLL
+//#define DFI_IMPORT
+//#define DFI_CLASS
+//#endif //_DLL
 
 #include "DllFunctionInterface.h"
 
