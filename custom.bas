@@ -72,9 +72,8 @@ DIM app_dir as string = exepath  'Note that exepath$ is a FreeBasic builtin, and
 orig_dir = CURDIR()
 
 'temporarily set current directory, will be changed to game directory later if writable
-IF fileiswriteable(app_dir + SLASH + "writetest.tmp") THEN
+IF diriswriteable(app_dir) THEN
  'When CUSTOM is installed read-write, work in CUSTOM's folder
- safekill app_dir + SLASH + "writetest.tmp"
  CHDIR app_dir
 ELSE
  'If CUSTOM is installed read-only, use your home dir as the default
@@ -175,8 +174,7 @@ END IF
  IF MID$(sourcerpg, 1, 1) <> SLASH THEN sourcerpg = curdir$ + SLASH + sourcerpg
 #ENDIF
 a$ = trimfilename(sourcerpg)
-IF a$ <> "" ANDALSO fileiswriteable(a$ + SLASH + "writetest.tmp") THEN
- safekill a$ + SLASH + "writetest.tmp"
+IF a$ <> "" ANDALSO diriswriteable(a$) THEN
  CHDIR a$
 END IF
 'otherwise, keep current directory as it was, net effect: it is the same as in Game

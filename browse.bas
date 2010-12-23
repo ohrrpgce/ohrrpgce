@@ -613,7 +613,6 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
 #ENDIF
    draw_browse_meter br
   NEXT
-  safekill br.tmp + "hrbrowse.tmp"
   '---FIND ALL FILES IN FILEMASK---
   DIM filetype AS INTEGER = fileTypeFile
   IF br.special = 4 THEN

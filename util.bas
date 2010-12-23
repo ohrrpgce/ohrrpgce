@@ -969,7 +969,7 @@ END FUNCTION
 FUNCTION diriswriteable(d as string) as integer
   dim testfile as string = d & SLASH & "__testwrite_" & INT(RND * 100000) & ".tmp"
   if fileiswriteable(testfile) then
-    kill testfile
+    safekill testfile
     return -1
   end if
   return 0

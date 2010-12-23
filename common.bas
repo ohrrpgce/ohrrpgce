@@ -417,11 +417,10 @@ FUNCTION acquiretempdir () as string
 #IFDEF __FB_WIN32__
 'Windows only behavior
 tmp$ = environ$("TEMP")
-IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN tmp$ = environ("TMP")
-IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN tmp$ = exepath$
-IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN tmp$ = ""
-IF NOT fileiswriteable(tmp$ & SLASH & "writetest.tmp") THEN debug "Unable to find any writable temp dir"
-safekill tmp$ & SLASH & "writetest.tmp"
+IF NOT diriswriteable(tmp$) THEN tmp$ = environ("TMP")
+IF NOT diriswriteable(tmp$) THEN tmp$ = exepath$
+IF NOT diriswriteable(tmp$) THEN tmp$ = ""
+IF NOT diriswriteable(tmp$) THEN debug "Unable to find any writable temp dir"
 IF RIGHT$(tmp$, 1) <> SLASH THEN tmp$ = tmp$ & SLASH
 tmp$ = tmp$ & "ohrrpgce"
 #ELSE
@@ -2421,12 +2420,11 @@ DIM pas AS STRING, rpas AS STRING
 
 upgrademessages = 0
 
-IF NOT fileiswriteable(workingdir + SLASH + "writetest.tmp") THEN
+IF NOT diriswriteable(workingdir) THEN
  upgrade_message workingdir & " not writable"
  upgrade_message "Making no attempt to upgrade"
  EXIT SUB
 END IF
-safekill workingdir + SLASH + "writetest.tmp"
 
 IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"

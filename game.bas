@@ -293,12 +293,10 @@ end_debug 'delete unimportant messages generated before this point, or from prev
 
 '-- change current directory, where g_debug will be put; mainly for drag-dropping onto Game in Windows which defaults to homedir
 a$ = trimfilename(sourcerpg)
-IF a$ <> "" ANDALSO fileiswriteable(a$ + SLASH + "writetest.tmp") THEN
+IF a$ <> "" ANDALSO diriswriteable(a$) THEN
  'first choice is game directory
- safekill a$ + SLASH + "writetest.tmp"
  CHDIR a$
-ELSEIF fileiswriteable(app_dir + SLASH + "writetest.tmp") THEN
- safekill app_dir + SLASH + "writetest.tmp"
+ELSEIF diriswriteable(app_dir) THEN
  CHDIR app_dir
 ELSE
  'should prefsdir be used instead?
