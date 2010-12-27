@@ -1,9 +1,9 @@
-//gfx_directx_cls.h
+//gfx_directx_cls_d3d.h
 //by Jay Tennant 10/29/09
 //does everything gfx_directx.h was to do, except in classes for easier management
 
-#ifndef GFX_DIRECTX_CLS_H
-#define GFX_DIRECTX_CLS_H
+#ifndef GFX_DIRECTX_CLS_D3D_H
+#define GFX_DIRECTX_CLS_D3D_H
 
 #include <windows.h>
 #include <d3d9.h>
@@ -21,19 +21,27 @@
 
 namespace gfx
 {
+	//d3d9.dll Direct3DCreate9() library manager class
 	_DFI_IMPORT_CLASS_SHELL_BEGIN(DXCreate);
 	_DFI_IMPORT_CLASS_DECLARE(IDirect3D9*, __stdcall, Direct3DCreate9, UINT sdkVersion);
 	_DFI_IMPORT_CLASS_SHELL_END(DXCreate, TEXT("d3d9.dll"));
 
+	//d3dx9_24.dll D3DXSaveSurfaceToFile() library manager class
 	_DFI_IMPORT_CLASS_SHELL_BEGIN(DXScreenShot);
 	_DFI_IMPORT_CLASS_DECLARE(HRESULT, __stdcall, D3DXSaveSurfaceToFileA, LPCSTR pDestFile, 
 																		  D3DXIMAGE_FILEFORMAT DestFormat, 
 																		  LPDIRECT3DSURFACE9 pSrcSurface, 
 																		  CONST PALETTEENTRY* pSrcPalette, 
 																		  CONST RECT* pSrcRect);
+	_DFI_IMPORT_CLASS_DECLARE(HRESULT, __stdcall, D3DXSaveSurfaceToFileW, LPCWSTR pDestFile, 
+																		  D3DXIMAGE_FILEFORMAT DestFormat, 
+																		  LPDIRECT3DSURFACE9 pSrcSurface, 
+																		  CONST PALETTEENTRY* pSrcPalette, 
+																		  CONST RECT* pSrcRect);
 	_DFI_IMPORT_CLASS_SHELL_END(DXScreenShot, TEXT("d3dx9_24.dll"));
 
-	class DirectX : protected DXCreate, protected DXScreenShot
+	//main class; the previous libraries are included in this class
+	class D3D : protected DXCreate, protected DXScreenShot
 	{
 	protected:
 		SmartPtr<IDirect3D9> m_d3d;
@@ -76,20 +84,21 @@ namespace gfx
 
 		RECT CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight);
 	public:
-		DirectX();
-		virtual ~DirectX();
+		D3D();
+		virtual ~D3D();
 
-		HRESULT Initialize(Window *pWin, const TCHAR* szModuleName); //starts up the engine
+		HRESULT Initialize(Window *pWin, LPCTSTR szModuleName); //starts up the engine
 		HRESULT Shutdown(); //shuts down the engine
-		HRESULT ShowPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
-		HRESULT SetPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying
-		HRESULT ScreenShot(TCHAR* strName); //gets a screenshot, appending the correct format image to the end of the name
+		//HRESULT ShowPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
+		//HRESULT SetPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying
+		HRESULT Present(unsigned char *pRawPage, UINT width, UINT height, Palette<UINT> *pPalette); //draws the raw page (array of indices into palette), and sets the palette; if pPalette is NULL, the page is presented with the previous palette; if pRawpage is NULL, the page is presented with the new palette; if both are NULL, the image is presented again
+		HRESULT ScreenShot(LPCTSTR strName); //gets a screenshot, appending the correct format image to the end of the name
 		void OnLostDevice();
 		void OnResetDevice();
 
 		//option setting
 		HRESULT SetViewFullscreen(BOOL bFullscreen); //sets view to fullscreen if true
-		HRESULT SetResolution(const RECT* pRect); //sets the dimensions of the backbuffer
+		HRESULT SetResolution(LPCRECT pRect); //sets the dimensions of the backbuffer
 		HRESULT SetVsyncEnabled(BOOL bVsync); //enables vsync if true
 		void SetSmooth(BOOL bSmoothDraw); //enables linear interpolation used on texture drawing
 		void SetAspectRatioPreservation(BOOL bPreserve); //enables aspect ratio preservation through all screen resolutions

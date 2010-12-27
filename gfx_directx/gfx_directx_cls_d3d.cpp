@@ -1,8 +1,8 @@
 #define DFI_UNIQUE
-#include "gfx_directx_cls.h"
+#include "gfx_directx_cls_d3d.h"
 using namespace gfx;
 
-DirectX::DirectX() 
+D3D::D3D() 
 : m_pWindow(NULL), m_bInitialized(FALSE), m_bVSync(TRUE), m_bSmoothDraw(FALSE),
   m_bPreserveAspectRatio(TRUE), m_saveFormat(D3DXIFF_PNG)
 {
@@ -10,14 +10,15 @@ DirectX::DirectX()
 
 	Init_Direct3DCreate9();
 	Init_D3DXSaveSurfaceToFileA();
+	Init_D3DXSaveSurfaceToFileW();
 }
 
-DirectX::~DirectX()
+D3D::~D3D()
 {
 	Shutdown();
 }
 
-RECT DirectX::CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight)
+RECT D3D::CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight)
 {
 	float destAspect = (float)destWidth / (float)destHeight;
 	float srcAspect = (float)srcWidth / (float)srcHeight;
@@ -43,7 +44,7 @@ RECT DirectX::CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth
 	return r;
 }
 
-HRESULT DirectX::Initialize(gfx::Window *pWin, const TCHAR* szModuleName)
+HRESULT D3D::Initialize(gfx::Window *pWin, LPCTSTR szModuleName)
 {
 	HRESULT hr = S_OK;
 	if(!pWin)
@@ -87,7 +88,7 @@ HRESULT DirectX::Initialize(gfx::Window *pWin, const TCHAR* szModuleName)
 	return hr;
 }
 
-HRESULT DirectX::Shutdown()
+HRESULT D3D::Shutdown()
 {
 	m_bInitialized = FALSE;
 	m_szModuleName.clear();
@@ -97,10 +98,93 @@ HRESULT DirectX::Shutdown()
 	return S_OK;
 }
 
-HRESULT DirectX::ShowPage(unsigned char *pRawPage, UINT width, UINT height)
+//HRESULT D3D::ShowPage(unsigned char *pRawPage, UINT width, UINT height)
+//{
+//	if(!m_bInitialized)
+//		return E_FAIL;
+//	HRESULT hrCoopLevel = m_d3ddev->TestCooperativeLevel();
+//	if(hrCoopLevel == D3DERR_DEVICELOST)
+//	{
+//		OnLostDevice();
+//		return S_OK;
+//	}
+//	else if(hrCoopLevel == D3DERR_DEVICENOTRESET)
+//	{
+//		OnResetDevice();
+//		return S_OK;
+//	}
+//	else if(hrCoopLevel == D3DERR_DRIVERINTERNALERROR)
+//	{
+//		if(IDYES == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
+//			return Shutdown();
+//		Tstring szModule = m_szModuleName;
+//		Shutdown();
+//		return Initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str()));
+//	}
+//	if(pRawPage != NULL)
+//	{
+//		if(m_image.pSurface == NULL)
+//			m_image.AllocateSurface(width, height);
+//		if(m_image.pSurface != NULL)
+//		{
+//			for(UINT i = 0; i < width * height; i++)
+//				m_image.pSurface[i] = pRawPage[i];
+//		}
+//	}
+//	m_surface.CopySystemPage(m_image.pSurface, m_image.width, m_image.height, &m_image.palette);
+//
+//	//Clear needs to happen outside of BeginScene()/EndScene() block
+//	HRESULT hr = S_OK;
+//	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
+//	if(FAILED(hr))
+//		return hr;
+//
+//	RECT rAspectRatio = {0};
+//	if(m_bPreserveAspectRatio)
+//		rAspectRatio = CalculateAspectRatio(m_surface.GetDimensions().cx, m_surface.GetDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
+//	SmartPtr<IDirect3DSurface9> pBackBuffer;
+//	hr = m_d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
+//	if(FAILED(hr))
+//		return hr;
+//	hr = m_d3ddev->StretchRect(m_surface.GetSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
+//	if(FAILED(hr))
+//		return hr;
+//
+//	hr = m_d3ddev->Present(0,0,0,0);
+//	return hr;
+//}
+//
+//HRESULT D3D::SetPalette(gfx::Palette<UINT> *pPalette)
+//{
+//	if(pPalette == NULL)
+//		return E_POINTER;
+//	m_image.palette = *pPalette;
+//	return S_OK;
+//}
+
+HRESULT D3D::Present(unsigned char *pRawPage, UINT width, UINT height, gfx::Palette<UINT> *pPalette)
 {
 	if(!m_bInitialized)
 		return E_FAIL;
+
+	//palette setting
+	if(pPalette != NULL)
+		m_image.palette = *pPalette;
+
+	//page copy
+	if(pRawPage != NULL)
+	{
+		if(m_image.pSurface == NULL)
+			m_image.AllocateSurface(width, height);
+		if(m_image.pSurface != NULL)
+		{
+			for(UINT i = 0; i < width * height; i++)
+				m_image.pSurface[i] = pRawPage[i];
+		}
+	}
+	m_surface.CopySystemPage(m_image.pSurface, m_image.width, m_image.height, &m_image.palette);
+
+	//coop-level test
 	HRESULT hrCoopLevel = m_d3ddev->TestCooperativeLevel();
 	if(hrCoopLevel == D3DERR_DEVICELOST)
 	{
@@ -120,19 +204,8 @@ HRESULT DirectX::ShowPage(unsigned char *pRawPage, UINT width, UINT height)
 		Shutdown();
 		return Initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str()));
 	}
-	if(pRawPage != NULL)
-	{
-		if(m_image.pSurface == NULL)
-			m_image.AllocateSurface(width, height);
-		if(m_image.pSurface != NULL)
-		{
-			for(UINT i = 0; i < width * height; i++)
-				m_image.pSurface[i] = pRawPage[i];
-		}
-	}
-	m_surface.CopySystemPage(m_image.pSurface, m_image.width, m_image.height, &m_image.palette);
 
-	//Clear needs to happen outside of BeginScene()/EndScene() block
+	//present
 	HRESULT hr = S_OK;
 	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
 	if(FAILED(hr))
@@ -153,19 +226,11 @@ HRESULT DirectX::ShowPage(unsigned char *pRawPage, UINT width, UINT height)
 	return hr;
 }
 
-HRESULT DirectX::SetPalette(gfx::Palette<UINT> *pPalette)
-{
-	if(pPalette == NULL)
-		return E_POINTER;
-	m_image.palette = *pPalette;
-	return S_OK;
-}
-
-HRESULT DirectX::ScreenShot(TCHAR *strName)
+HRESULT D3D::ScreenShot(LPCTSTR strName)
 {
 	if(!m_bInitialized)
 		return E_FAIL;
-	if(D3DXSaveSurfaceToFileA == NULL)
+	if(D3DXSaveSurfaceToFile == NULL)
 		return E_FAIL;
 	if(strName == NULL)
 		return E_POINTER;
@@ -206,20 +271,19 @@ HRESULT DirectX::ScreenShot(TCHAR *strName)
 		rImage.bottom += rpTopLeft.y;
 	}
 
-	CHAR szTmpName[MAX_PATH] = "";
-	hr = D3DXSaveSurfaceToFileA( StringToString(szTmpName, sizeof(szTmpName), strName), m_saveFormat, pSurface, 0, &rImage );
+	hr = D3DXSaveSurfaceToFile( strName, m_saveFormat, pSurface, 0, &rImage );
 	
 	return hr;
 }
 
-void DirectX::OnLostDevice()
+void D3D::OnLostDevice()
 {
 	if(!m_bInitialized)
 		return;
 	m_surface.OnLostDevice();
 }
 
-void DirectX::OnResetDevice()
+void D3D::OnResetDevice()
 {
 	if(!m_bInitialized)
 		return;
@@ -227,7 +291,7 @@ void DirectX::OnResetDevice()
 	m_surface.OnResetDevice();
 }
 
-HRESULT DirectX::SetViewFullscreen(BOOL bFullscreen)
+HRESULT D3D::SetViewFullscreen(BOOL bFullscreen)
 {
 	if(bFullscreen != m_d3dpp.Windowed)
 		return S_OK;
@@ -263,7 +327,7 @@ HRESULT DirectX::SetViewFullscreen(BOOL bFullscreen)
 	return S_OK;
 }
 
-HRESULT DirectX::SetResolution(const RECT* pRect)
+HRESULT D3D::SetResolution(LPCRECT pRect)
 {
 	if(!pRect)
 		return E_POINTER;
@@ -283,7 +347,7 @@ HRESULT DirectX::SetResolution(const RECT* pRect)
 	return S_OK;
 }
 
-HRESULT DirectX::SetVsyncEnabled(BOOL bVsync)
+HRESULT D3D::SetVsyncEnabled(BOOL bVsync)
 {
 	if(bVsync == m_bVSync)
 		return S_OK;
@@ -304,59 +368,59 @@ HRESULT DirectX::SetVsyncEnabled(BOOL bVsync)
 	return S_OK;
 }
 
-void DirectX::SetSmooth(BOOL bSmoothDraw)
+void D3D::SetSmooth(BOOL bSmoothDraw)
 {
 	m_bSmoothDraw = bSmoothDraw;
 }
 
-void DirectX::SetAspectRatioPreservation(BOOL bPreserve)
+void D3D::SetAspectRatioPreservation(BOOL bPreserve)
 {
 	m_bPreserveAspectRatio = bPreserve;
 }
 
-void DirectX::SetImageFileFormat(D3DXIMAGE_FILEFORMAT format)
+void D3D::SetImageFileFormat(D3DXIMAGE_FILEFORMAT format)
 {
 	m_saveFormat = format;
 }
 
-RECT DirectX::GetResolution()
+RECT D3D::GetResolution()
 {
 	if(m_d3dpp.Windowed)
 		return m_rWindowedMode;
 	return m_rFullscreenMode;
 }
 
-Palette<UINT> DirectX::GetPalette()
+Palette<UINT> D3D::GetPalette()
 {
 	return m_image.palette;
 }
 
-BOOL DirectX::IsVsyncEnabled()
+BOOL D3D::IsVsyncEnabled()
 {
 	return m_bVSync;
 }
 
-BOOL DirectX::IsViewFullscreen()
+BOOL D3D::IsViewFullscreen()
 {
 	return !m_d3dpp.Windowed;
 }
 
-BOOL DirectX::IsSmooth()
+BOOL D3D::IsSmooth()
 {
 	return m_bSmoothDraw;
 }
 
-BOOL DirectX::IsAspectRatioPreserved()
+BOOL D3D::IsAspectRatioPreserved()
 {
 	return m_bPreserveAspectRatio;
 }
 
-BOOL DirectX::IsScreenShotsActive()
+BOOL D3D::IsScreenShotsActive()
 {
-	return (D3DXSaveSurfaceToFileA != NULL);
+	return (D3DXSaveSurfaceToFile != NULL);
 }
 
-D3DXIMAGE_FILEFORMAT DirectX::GetImageFileFormat()
+D3DXIMAGE_FILEFORMAT D3D::GetImageFileFormat()
 {
 	return m_saveFormat;
 }

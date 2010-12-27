@@ -6,7 +6,7 @@
 
 #include <windows.h>
 #include "gfx_directx_cls_window.h"
-#include "gfx_directx_cls.h"
+#include "gfx_directx_cls_d3d.h"
 #include "gfx_directx_cls_keyboard.h"
 #include "gfx_directx_cls_mouse.h"
 #include "gfx_directx_cls_joystick.h"
