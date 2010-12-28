@@ -455,6 +455,9 @@
 		<a href="#about-exportglobals">export globals (slot, first, last)</a><br>
 		
 	
+		<a href="#about-extendedscancodesenabled">extended scancodes enabled</a><br>
+		
+	
 		<a href="#about-extractcolor">extract color(color, component)</a><br>
 		
 	
@@ -636,6 +639,9 @@
 		
 	
 		<a href="#about-getleftpadding">get left padding (handle)</a><br>
+		
+	
+		<a href="#about-getlevelcap">get level cap</a><br>
 		
 	
 		<a href="#about-getlevelmp">get level MP (who, mp level slot)</a><br>
@@ -1037,10 +1043,10 @@
 		<a href="#about-mapcure">map cure (attack, target, attacker)</a><br>
 		
 	
-		<a href="#about-mapheight">map height</a><br>
+		<a href="#about-mapheight">map height (map)</a><br>
 		
 	
-		<a href="#about-mapwidth">map width</a><br>
+		<a href="#about-mapwidth">map width (map)</a><br>
 		
 	
 		<a href="#about-maximumstat">maximum stat</a><br>
@@ -1071,6 +1077,9 @@
 		
 	
 		<a href="#about-mousebutton">mouse button (which)</a><br>
+		
+	
+		<a href="#about-mouseclick">mouse click (which)</a><br>
 		
 	
 		<a href="#about-mouseconstants">Mouse Constants</a><br>
@@ -1581,6 +1590,9 @@
 		
 	
 		<a href="#about-setleftpadding">set left padding (handle, pixels)</a><br>
+		
+	
+		<a href="#about-setlevelcap">set level cap (cap)</a><br>
 		
 	
 		<a href="#about-setlevelmp">set level MP (who, mp level slot, new value)</a><br>
@@ -2826,7 +2838,10 @@ resume player # ok, done</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">use door (number)</font></b><br>
-			Instantly uses the numbered door, just as if you had stepped into it. (This command implies a one-tick <a href="#about-wait" class="ref">wait</a>)<br>
+			Instantly uses the numbered door, just as if you had stepped into it. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.<br clear="all">
+</div>
+<br>
 			
 			
 		</tt></p>
@@ -2834,7 +2849,10 @@ resume player # ok, done</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">teleport to map (map, x, y)</font></b><br>
-			An alternative to <a href="#about-usedoor" class="ref">use door</a>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black. (This command implies a one-tick <a href="#about-wait" class="ref">wait</a>)<br>
+			An alternative to <a href="#about-usedoor" class="ref">use door</a>, teleport to map moves you to a given x,y position on the specified map without the need to create a door-link on the map. Teleport to map does not fade to black. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.<br clear="all">
+</div>
+<br>
 			
 			
 		</tt></p>
@@ -3193,7 +3211,10 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">fight formation (number)</font></b><br>
-			Starts a battle with the numbered enemy formation. This command returns <a href="#about-booleanconstants" class="ref">false</a> if you lost or ran from battle, or <a href="#about-booleanconstants" class="ref">true</a> if you won. However, if you lose the battle, the game will still end as normal unless you set a death script. (This command implies a one-tick <a href="#about-wait" class="ref">wait</a>)<br>
+			Starts a battle with the numbered enemy formation. This command returns <a href="#about-booleanconstants" class="ref">false</a> if you ran from battle, or <a href="#about-booleanconstants" class="ref">true</a> if you won. If you lose the battle, the game will still end as normal unless you set a death script. In that case, <a href="#about-booleanconstants" class="ref">false</a> is returned. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.<br clear="all">
+</div>
+<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-setdeathscript" class="ref">set death script</a></li></ul>
 		</tt></p>
@@ -3201,7 +3222,10 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">use NPC (who)</font></b><br>
-			Remotely trigger an NPC. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever. (This command implies a one-tick <a href="#about-wait" class="ref">wait</a>)<br>
+			Remotely trigger an NPC. You can use either an <a href="#about-npcreference" class="ref">NPC reference</a> or an NPC ID number. Whatever actions are associated with triggering that NPC will be taken, text box, script, vehicle, item, whatever. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">An automatic <a href="#about-wait" class="ref">wait</a>(1) occurs immediately after this command.<br clear="all">
+</div>
+<br>
 			
 			
 		</tt></p>
@@ -3217,7 +3241,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">reset game</font></b><br>
-			Resets and starts a new game, skipping both title and load game screens. It can be necessary to use this instead of <a href="#about-gameover" class="ref">game over</a> as it will not exit the program if the title screen and load screen have been disabled. It always resets the game back to the beginning.<br>
+			Resets and starts a new game, skipping both title and load game screens. It can be necessary to use this instead of <a href="#about-gameover" class="ref">game over</a> so that the program will not exit if the title screen and load screen have both been disabled. It always resets the game back to the beginning.<br>
 			
 			
 		</tt></p>
@@ -3225,7 +3249,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">show value (number)</font></b><br>
-			Displays the number in the bottom left corner of the screen. Useful for count-down timers, and for debugging complicated scripts.<br>
+			Displays the number in the bottom left corner of the screen. Useful for count-down timers, and for debugging complicated scripts. See <a href="#about-tracevalue" class="ref">trace value</a> for a more powerful debugging tool.<br>
 			
 			
 		</tt></p>
@@ -3233,7 +3257,7 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">show no value</font></b><br>
-			Gets rid of the number in the bottom left corner of the screen after a <a href="#about-showvalue" class="ref">show value</a> command.<br>
+			Gets rid of the number in the bottom left corner of the screen after a <a href="#about-showvalue" class="ref">show value</a> or <a href="#about-showstring" class="ref">show string</a> command.<br>
 			
 			
 		</tt></p>
@@ -3474,7 +3498,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">give experience (hero,amount)</font></b><br>
-			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearned" class="ref">spells learnt</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling.<br>
+			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearned" class="ref">spells learnt</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporially raise the cap using <a href="#about-setlevelcap" class="ref">set level cap</a> to get around this.<br>
 			
 			
 		</tt></p>
@@ -3723,7 +3747,7 @@ end</pre>
 		<tt>
 		<b><font color="yellow">set music volume (volume)</font></b><br>
 			Sets the volume at which music is played, <span class="param">volume</span> being a number on the scale of 0 to 255, 0 being silent, 255 loudest. If you want to manipulate the sound (e.g. fading out the music) you should take note of the original vulume that the player has set and return to this. The default volume is not the maximum 255, so you should not hardcode fades to begin at volume 255. <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. Currently vanilla OHR uses only 0-15 internally, so 240-255 all translate to the same volume, etc.<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">The actual resolution at which the volume is set is not necessarily 1/255th of full volume but depends on your implementation. For example, music_sdl only supports 128 different volume levels. So if you set the volume and then read it back, it might change slightly.<br clear="all">
 </div>
 <br>
 			
@@ -4016,8 +4040,8 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">init mouse</font></b><br>
-			Initializes the mouse, returning <a href="#about-booleanconstants" class="ref">true</a> if one is present. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor on screen - your script must do this itself by placing a slice or npc at the appropriate location.<br clear="all">
+			Informs the engine that you intend to use the mouse. This command should be run before any mouse functions are be used. It causes the normal mouse cursor to be hidden when over the game's window, and causes mouse clicks to trigger on-keypress scripts. Therefore, it is a good idea to place this command in the newgame and loadgame scripts if you are going to use the mouse.<br><div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Running this command does not draw a cursor onscreen - your script must do this itself by placing a slice or npc at the appropriate location.<br clear="all">
 </div> Here is an example:<br>
 			<pre>include,plotscr.hsd
 
@@ -4059,6 +4083,14 @@ end</pre>
 		<tt>
 		<b><font color="yellow">mouse button (which)</font></b><br>
 			Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button is pressed. You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.<br>
+			
+			
+		</tt></p>
+		<a name="about-mouseclick"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">mouse click (which)</font></b><br>
+			Returns <a href="#about-booleanconstants" class="ref">true</a> if the specified mouse button has been clicked in the last tick. You can use the constants <a href="#about-mouseconstants" class="ref">left button</a> and <a href="#about-mouseconstants" class="ref">right button</a> to specify the button.<br>
 			
 			
 		</tt></p>
@@ -7263,16 +7295,16 @@ end
 		<a name="about-mapwidth"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">map width</font></b><br>
-			Returns the width of the map in tiles.<br>
+		<b><font color="yellow">map width (map)</font></b><br>
+			Returns the width of a map in tiles. <span class="param">map</span> is optional; the width of the current map is returned if it is not specified.<br>
 			
 			
 		</tt></p>
 		<a name="about-mapheight"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">map height</font></b><br>
-			Returns the height of the map in tiles.<br>
+		<b><font color="yellow">map height (map)</font></b><br>
+			Returns the height of a map in tiles. <span class="param">map</span> is optional; the height of the current map is returned if it is not specified.<br>
 			
 			
 		</tt></p>
@@ -7412,118 +7444,154 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">key is pressed (scancode)</font></b><br>
-			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>. I have provided an extra include file, SCANCODE.HSI that you can use to define friendly names for all the scancodes.<br>
-			    Keyboard scan codes:
-          <ul>
-<li>00</li>
-<li>01 ESC</li>
-<li>02 1</li>
-<li>03 2</li>
-<li>04 3</li>
-<li>05 4</li>
-<li>06 5</li>
-<li>07 6</li>
-<li>08 7</li>
-<li>09 8</li>
-<li>10 9</li>
-<li>11 0</li>
-<li>12 - _</li>
-<li>13 = +</li>
-<li>14 BACKSPACE</li>
-<li>15 TAB</li>
-<li>16 Q</li>
-<li>17 W</li>
-<li>18 E</li>
-<li>19 R</li>
-<li>20 T</li>
-<li>21 Y</li>
-<li>22 U</li>
-<li>23 I</li>
-<li>24 O</li>
-<li>25 P</li>
-<li>26 [ {</li>
-<li>27 ] }</li>
-<li>28 ENTER</li>
-<li>29 CTRL</li>
-<li>30 A</li>
-<li>31 S</li>
-<li>32 D</li>
-<li>33 F</li>
-<li>34 G</li>
-<li>35 H</li>
-<li>36 J</li>
-<li>37 K</li>
-<li>38 L</li>
-<li>39 ; :</li>
-<li>40 " '</li>
-<li>41 ` ~</li>
-<li>42 LEFT SHIFT</li>
-<li>43 \ |</li>
-<li>44 Z</li>
-<li>45 X</li>
-<li>46 C</li>
-<li>47 V</li>
-<li>48 B</li>
-<li>49 N</li>
-<li>50 M</li>
-<li>51 , &lt;</li>
-<li>52 . &gt;</li>
-<li>53 / ?</li>
-<li>54 RIGHT SHIFT</li>
-<li>55 PRINT SCREEN *</li>
-<li>56 ALT</li>
-<li>57 SPACE</li>
-<li>58 CAPSLOCK</li>
-<li>59 F1</li>
-<li>60 F2</li>
-<li>61 F3</li>
-<li>62 F4</li>
-<li>63 F5</li>
-<li>64 F6</li>
-<li>65 F7</li>
-<li>66 F8</li>
-<li>67 F9</li>
-<li>68 F10</li>
-<li>69 NUMLOCK</li>
-<li>70 SCROLL LOCK</li>
-<li>71 HOME 7</li>
-<li>72 UP 8</li>
-<li>73 PAGEUP 9</li>
-<li>74 KEYPAD -</li>
-<li>75 LEFT 4</li>
-<li>76 KEYPAD 5</li>
-<li>77 RIGHT 6</li>
-<li>78 KEYPAD +</li>
-<li>79 END 1</li>
-<li>80 DOWN 2</li>
-<li>81 PAGEDOWN 3</li>
-<li>82 INSERT 0</li>
-<li>83 DEL .</li>
-<li>84</li>
-<li>85</li>
-<li>86</li>
-<li>87 F11</li>
-<li>88 F12</li>
-<li>89</li>
-<li>90</li>
-<li>91 L WIN LOGO</li>
-<li>92 R WIN LOGO</li>
-<li>93 CONTEXT</li>
-</ul>
-<br>
-          Joystick scan codes:
-          <ul>
-<li>128 BUTTON 1</li>
-<li>129 BUTTON 2</li>
-<li>130-143 BUTTON 3-16</li>
-<li>144 X LEFT</li>
-<li>145 X RIGHT</li>
-<li>146 Y UP</li>
-<li>147 Y DOWN</li>
-</ul>
-          <div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can NOT wait for the player to press a key by continually polling <span class="param">key is pressed</span> unless you stick a <a href="#about-wait" class="ref">wait</a> in your do loop. That's because <span class="param">key is pressed</span> does not return real time data, but the state of the keyboard at the beginning of the current game tick.<br clear="all">
+			Returns <a href="#about-booleanconstants" class="ref">true</a> if the keyboard key with the specified scancode is being pressed (either held down or pressed since last tick), or <a href="#about-booleanconstants" class="ref">false</a> if it is not. The argument is a scancode, NOT the <a href="#about-keyconstants" class="ref">up key</a>, <a href="#about-keyconstants" class="ref">down key</a>, etc used with <a href="#about-waitforkey" class="ref">wait for key</a>. An extra include file, <span class="param">scancode.hsi</span>, is provided which you should <a href="#about-include" class="ref">include</a> in order to use the following scancode constants.<br>
+
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Since Zenzizenic, keyboard support has been improved: some keys (such as key:down and key:numpad 2) which were previously the same scancode are now distinct (read scancode.hsi for the complete list). However for backwards compatibility, the old behaviour is emulated (so you won't be able to tell the two keys apart even if recompile and use the new, distinct scancodes) unless you turn on the "Enable better scancodes for scripts" Preference Bitset in the General Game Settings menu.<br clear="all">
 </div>
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can't rely on the behaviour of the caps-, scroll- and num-lock keys. They might report on/off state instead of pressed/not pressed, depending on the graphics backend, operating system, and engine version.<br clear="all">
+</div>
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You can NOT wait for the player to press a key by continually polling <span class="param">key is pressed</span> unless you stick a <a href="#about-wait" class="ref">wait</a> in your <a href="#about-while" class="ref">while</a> loop. That's because <span class="param">key is pressed</span> does not return real time data, but the state of the keyboard at the beginning of the current game tick.<br clear="all">
+</div>
+			    Keyboard scan codes:
+<ul>
+<li>key:Esc</li>
+<li>key:F1</li>
+<li>key:F2</li>
+<li>key:F3</li>
+<li>...</li>
+<li>key:F15</li>
+</ul>
+<ul>
+<li>key:Num Lock</li>
+<li>key:Scroll Lock</li>
+<li>key:Caps Lock</li>
+</ul>
+<ul>
+<li>key:Print Screen</li>
+<li>key:Pause</li>
+</ul>
+<ul>
+<li>key:1</li>
+<li>key:Exclamation</li>
+<li>key:2</li>
+<li>key:At Sign</li>
+<li>key:3</li>
+<li>key:Hash</li>
+<li>key:4</li>
+<li>key:Dollar Sign</li>
+<li>key:5</li>
+<li>key:6</li>
+<li>key:Circumflex</li>
+<li>key:7</li>
+<li>key:Ampersand</li>
+<li>key:8</li>
+<li>key:Asterix</li>
+<li>key:9</li>
+<li>key:Left Parenthesis</li>
+<li>key:0</li>
+<li>key:Right Parenthesis</li>
+<li>key:Minus</li>
+<li>key:Underscore</li>
+<li>key:Equals</li>
+<li>key:Plus</li>
+<li>key:Backspace</li>
+</ul>
+<ul>
+<li>key:A</li>
+<li>key:B</li>
+<li>key:C</li>
+<li>...</li>
+<li>key:Z</li>
+</ul>
+<ul>
+<li>key:Left Bracket     # [</li>
+<li>key:Left Brace       # {</li>
+<li>key:Right Bracket    # ]</li>
+<li>key:Right Brace      # }</li>
+<li>key:Semicolon        # ;</li>
+<li>key:Colon            # :</li>
+<li>key:Quote            # '</li>
+<li>key:Doublequote      # "</li>
+<li>key:Apostrophe       # '</li>
+<li>key:Backquote        # `</li>
+<li>key:Tilde            # ~</li>
+<li>key:Backslash        # \</li>
+<li>key:Pipe             # |</li>
+<li>key:Comma            # ,</li>
+<li>key:Left Caret       # &lt;</li>
+<li>key:Period           # .</li>
+<li>key:Right Caret      # &gt;</li>
+<li>key:Slash            # /</li>
+<li>key:Question Mark    # ?</li>
+<li>key:Enter</li>
+<li>key:Space</li>
+<li>key:Tab</li>
+</ul>
+<ul>
+<li>key:Home</li>
+<li>key:End</li>
+<li>key:Page Up</li>
+<li>key:Page Down</li>
+<li>key:Insert</li>
+<li>key:Delete</li>
+</ul>
+<ul>
+<li>key:Up</li>
+<li>key:Left</li>
+<li>key:Right</li>
+<li>key:Down</li>
+</ul>
+<ul>
+<li>key:Left Win Logo  # equal to key:Left Command</li>
+<li>key:Right Win Logo # equal to key:Right Command</li>
+<li>key:Context</li>
+<li>key:Left Command   # Macintosh, equal to key:Left Win Logo</li>
+<li>key:Right Command  # Macintosh, equal to key:Right Win Logo</li>
+</ul>
+<ul>
+<li>key:Alt            # either Alt key pressed</li>
+<li>key:Left Alt</li>
+<li>key:Right Alt</li>
+<li>key:Ctrl           # either Ctrl key pressed</li>
+<li>key:Left Ctrl</li>
+<li>key:Right Ctrl</li>
+<li>key:Shift          # either Shift key pressed</li>
+<li>key:Left Shift</li>
+<li>key:Right Shift</li>
+</ul>
+<ul>
+<li>key:Numpad 0</li>
+<li>key:Numpad 1</li>
+<li>key:Numpad 2</li>
+<li>key:Numpad 3</li>
+<li>key:Numpad 4</li>
+<li>key:Numpad 5</li>
+<li>key:Numpad 6</li>
+<li>key:Numpad 7</li>
+<li>key:Numpad 8</li>
+<li>key:Numpad 9</li>
+<li>key:Numpad Period</li>
+<li>key:Numpad Asterix</li>
+<li>key:Numpad Slash</li>
+<li>key:Numpad Plus</li>
+<li>key:Numpad Minus</li>
+<li>key:Numpad Enter</li>
+</ul>
+          Joystick scan codes:
+<ul>
+<li>joy:button 1</li>
+<li>joy:button 2</li>
+<li>joy:button 3</li>
+<li>...</li>
+<li>joy:button 16</li>
+<li>joy:x left</li>
+<li>joy:x right</li>
+<li>joy:y up</li>
+<li>joy:y down</li>
+</ul>
 <br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-keyval" class="ref">keyval</a></li></ul>
@@ -8569,6 +8637,9 @@ The <span class="param">exit returning</span> command works exactly the same as 
   case(10) do(
     do yet another thing
   )
+  else(
+    do something if none of the cases happen
+  )
 )</pre>
 The select command is an alternative to a big block of nested <a href="#about-if" class="ref">if</a>/then/else commands that all check the same value. Switch can be easier to read than a lot of if's. The example below shows how the same switch stattement would be written with if/then/else
 <pre>if(v == 0) then(
@@ -8585,12 +8656,14 @@ The select command is an alternative to a big block of nested <a href="#about-if
       )else(
         if(v == 10) then(
           do yet another thing
+        )else(
+          do something if none of the other ifs are true
         )
       )
     )
   )
 )</pre>
-Besides readability, there is one other important difference between these two examples. The switch command only checks the value of v once. the if/the/else method checks v repeatedly, so it could be slower, and could be suceptible to errors if you accidentally change the value of v somewhere in the middle.
+Besides readability, there is one other important difference between these two examples. The switch command only checks the value of v once. the if/the/else method checks v repeatedly, so it could be slower, and could be suceptible to errors if you accidentally change the value of v somewhere in the middle. The <span class="param">else</span> section is optional.
 		<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-case" class="ref">case</a></li></ul>
@@ -9055,7 +9128,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero level (who, level, forgetspells)</font></b><br>
-			A command that sets a hero's current level. The first argument is the position of the hero you want to change in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. You can specify any hero in the active or reserve party and any (non-negative) level. Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero's level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.<br>
+			A command that sets a hero's current level. The first argument is the position of the hero you want to change in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. You can specify any hero in the active or reserve party and any (non-negative) level (even above the level cap). Unlike old workarounds, this command teachs the hero any spells they would have learnt by that level and correctly sets the experience to next levelup (experience gained to the current next level is lost). You can also decrease the hero's level, which will cause spells to be forgotten, unless the optional 3rd argument (defaulting to true) is set as false.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -9071,7 +9144,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set experience (who, experience, allowforget)</font></b><br>
-			Sets a hero's total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. To decrease a hero's level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument.<br>
+			Sets a hero's total experience and updates their experience level, stats and spell list. The argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. To decrease a hero's level without forgetting spells which are learnt at a certain experience level, pass false as the optional third argument. Heroes won't level beyond the level cap (which is 99 usually), though you can temporially raise the cap using <a href="#about-setlevelcap" class="ref">set level cap</a> to get around this.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -9195,6 +9268,14 @@ end</pre>
 			
 			
 		</tt></p>
+		<a name="about-extendedscancodesenabled"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">extended scancodes enabled</font></b><br>
+			Returns the state of the "Enabled better scancodes" general bitset: whether or not numpad keys are distinguishable from Home, Up, etc. keys.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-keyispressed" class="ref">key is pressed</a></li></ul>
+		</tt></p>
 		<a name="about-allowminimap"></a>
 		<p>
 		<tt>
@@ -9313,7 +9394,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get damage cap</font></b><br>
-			Returns the current damage cap, or 0 if none<br>
+			Returns the current damage cap, or 0 if there is none.<br>
 			
 			
 		</tt></p>
@@ -9322,6 +9403,22 @@ end</pre>
 		<tt>
 		<b><font color="yellow">set damage cap (cap)</font></b><br>
 			Sets the current damage cap to <span class="param">cap</span>. Use 0 for no cap.<br>
+			
+			
+		</tt></p>
+		<a name="about-getlevelcap"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get level cap</font></b><br>
+			Returns the current level cap.<br>
+			
+			
+		</tt></p>
+		<a name="about-setlevelcap"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set level cap (cap)</font></b><br>
+			Sets the level cap. <span class="param">cap</span> must be a value from 0 to 99. Heroes with level equal to or greater than the level cap can't gain experience through battles, <a href="#about-giveexperience" class="ref">give experience</a>, or <a href="#about-setexperience" class="ref">set experience</a>, and the status screen doesn't show their experience to next level. You however can use <a href="#about-setherolevel" class="ref">set hero level</a> to set a hero's level above the level cap. The level cap does not change the amount of experience needed to gain a level, nor the stat increases at level-up.<br>
 			
 			
 		</tt></p>
@@ -10002,7 +10099,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 709 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 713 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
