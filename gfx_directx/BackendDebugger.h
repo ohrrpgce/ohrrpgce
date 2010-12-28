@@ -10,6 +10,7 @@
 #include "gfx_directx_cls_keyboard.h"
 #include "gfx_directx_cls_mouse.h"
 #include "gfx_directx_cls_joystick.h"
+#include "defptr.h"
 
 class IAppHook
 {
@@ -32,10 +33,10 @@ public:
 class IBackend
 {
 protected:
-	UINT m_nVersion;
+	DefPtr<IAppHook> m_hook;
 public:
 	//interface information
-	UINT GetVersion() const {return m_nVersion;} //returns the current version; any interface at or below this number may be successfully queried
+	virtual UINT GetVersion() const {return 1;} //returns the current version; any interface at or below this number may be successfully queried
 	virtual HRESULT QueryVersion(UINT version, void** pInterface) //queries for a version of the interface available
 	{
 		if(::IsBadWritePtr(pInterface, sizeof(void*)))
@@ -48,5 +49,9 @@ public:
 	}
 
 	//app interfacing
-	virtual HRESULT SendHook( IAppHook* pHook );
+	virtual HRESULT SendHook( IAppHook* pHook )
+	{
+		m_hook = pHook;
+		return S_OK;
+	}
 };

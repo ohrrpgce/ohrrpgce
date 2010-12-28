@@ -6,6 +6,9 @@
 #include "gfx_directx_cls_mouse.h"
 #include "gfx_directx_cls_joystick.h"
 #include "gfx_directx_version.h"
+#include "BackendDebugger.h"
+#include "CBackend.h"
+
 using namespace gfx;
 
 #include "resource.h"
@@ -21,6 +24,8 @@ using namespace gfx;
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 
+CBackend g_Debugger;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 1.0 interfaces
 
@@ -29,20 +34,27 @@ void SendDebugString(const char* szMessage) {}
 
 DFI_IMPLEMENT_CDECL(int, gfx_init, void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
 {
+	g_Debugger.m_hook->SendDebugString("gfx_init(): Starting Initialization...");
+
 	GFX_INIT gfxInit = {sizeof(GFX_INIT), "DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString};
 	if(gfx_Initialize(&gfxInit) == 0)
 	{
 		if(info_buffer != NULL && info_buffer_size > 16)
 			strcpy(info_buffer, "Backend failed!");
+		else
+			g_Debugger.m_hook->SendDebugString("gfx_init(): Backend initialization failed!");
 		return 0;
 	}
 	if(info_buffer != NULL && info_buffer_size > 18)
 		strcpy(info_buffer, "Backend success!");
+	else
+		g_Debugger.m_hook->SendDebugString("gfx_init(): Backend initialization success!");
 	return 1;
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_close)
 {
+	g_Debugger.m_hook->SendDebugString("gfx_close: Closing backend...");
 	gfx_Shutdown();
 }
 
@@ -65,6 +77,9 @@ DFI_IMPLEMENT_CDECL(void, gfx_setpal, unsigned int *pal)
 
 DFI_IMPLEMENT_CDECL(int, gfx_screenshot, const char* fname)
 {
+	char szTmp[MAX_PATH + 30] = "";
+	::sprintf(szTmp, "gfx_screenshot: Attempting %s...", fname);
+	g_Debugger.m_hook->SendDebugString(szTmp);
 	return gfx_ScreenShot(fname);
 }
 
@@ -75,6 +90,9 @@ DFI_IMPLEMENT_CDECL(void, gfx_setwindowed, int iswindow)
 
 DFI_IMPLEMENT_CDECL(void, gfx_windowtitle, const char* title)
 {
+	char szTmp[MAX_PATH + 30] = "";
+	::sprintf(szTmp, "gfx_windowtitle: %s...", title);
+	g_Debugger.m_hook->SendDebugString(szTmp);
 	gfx_SetWindowTitle(title);
 }
 
@@ -167,6 +185,10 @@ DFI_IMPLEMENT_CDECL(void, io_updatekeys, int *keybd)
 
 DFI_IMPLEMENT_CDECL(int, io_setmousevisibility, int visible)
 {
+	char szTmp[30 + 30] = "";
+	::sprintf(szTmp, "io_setmousevisility: Setting to %s cursor...", visible == 0 ? "Hide" : "Show");
+	g_Debugger.m_hook->SendDebugString(szTmp);
+
 	if(visible == 0)
 		gfx_HideCursor();
 	else
@@ -215,8 +237,8 @@ struct gfx_BackendState
 	Tstring szWindowTitle;
 	Tstring szWindowIcon;
 	void (__cdecl *PostTerminateSignal)(void);
-	void (__cdecl *OnCriticalError)(const char* szError);
-	void (__cdecl *SendDebugString)(const char* szMessage);
+	//void (__cdecl *OnCriticalError)(const char* szError);
+	//void (__cdecl *SendDebugString)(const char* szMessage);
 	bool bClosing; //flagged when shutting down
 	Tstring szHelpText;
 } g_State;
@@ -241,6 +263,8 @@ void LoadHelpText()
 
 DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 {
+	g_Debugger.m_hook->SendDebugString("gfx_Initialize: Initializing...)");
+
 	if(pCreationData == NULL)
 		return FALSE;
 	if(pCreationData->nSize < sizeof(GFX_INIT))
@@ -252,38 +276,38 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 	TCHAR buffer[256] = TEXT("");
 	g_State.szWindowIcon = StringToString(buffer, 256, pCreationData->szWindowIcon);
 	g_State.PostTerminateSignal = pCreationData->PostTerminateSignal;
-	g_State.OnCriticalError = pCreationData->OnCriticalError;
-	g_State.SendDebugString = /*DebugString;*/pCreationData->SendDebugString;
+	//g_State.OnCriticalError = pCreationData->OnCriticalError;
+	//g_State.SendDebugString = /*DebugString;*/pCreationData->SendDebugString;
 
-	if(g_State.PostTerminateSignal == NULL || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL)
+	if(g_State.PostTerminateSignal == NULL/* || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL*/)
 		return FALSE;
 
-	g_State.SendDebugString("gfx_directx: Initializing...");
+	//g_State.SendDebugString("gfx_directx: Initializing...");
 
 	if(S_OK != g_Window.Initialize(::GetModuleHandle(MODULENAME), 
 								   (pCreationData->szWindowIcon ? g_State.szWindowIcon.c_str() : NULL), 
 								   (WNDPROC)OHRWndProc))
 	{
-		g_State.SendDebugString("gfx_directx: Failed at window initialization! Fallback...");
+		//g_State.SendDebugString("gfx_directx: Failed at window initialization! Fallback...");
 		return FALSE;
 	}
 
-	g_State.SendDebugString("gfx_directx: Window Intialized!");
+	//g_State.SendDebugString("gfx_directx: Window Intialized!");
 
 	if( FAILED(g_DirectX.Initialize(&g_Window, MODULENAME)) )
 	{
 		g_Window.Shutdown();
 		gfx_PumpMessages();
-		g_State.SendDebugString("gfx_directx: Failed at d3d initialization! Fallback...");
+		//g_State.SendDebugString("gfx_directx: Failed at d3d initialization! Fallback...");
 		return FALSE;
 	}
 
-	g_State.SendDebugString("gfx_directx: D3D Initialized!");
+	//g_State.SendDebugString("gfx_directx: D3D Initialized!");
 
 	if(FAILED(g_Joystick.Initialize( g_Window.GetAppHandle(), g_Window.GetWindowHandle() )))
-		g_State.SendDebugString("gfx_directx: Failed to support joysticks!");
+		//g_State.SendDebugString("gfx_directx: Failed to support joysticks!");
 	else
-		g_State.SendDebugString("gfx_directx: Joysticks supported!");
+		//g_State.SendDebugString("gfx_directx: Joysticks supported!");
 
 	gfx_SetWindowTitle(pCreationData->szInitWindowTitle);
 
@@ -291,7 +315,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 	g_Window.CenterWindow();
 	g_Window.ShowWindow();
 
-	g_State.SendDebugString("gfx_directx: Initialization success!");
+	//g_State.SendDebugString("gfx_directx: Initialization success!");
 	return TRUE;
 }
 
@@ -308,6 +332,12 @@ DFI_IMPLEMENT_CDECL(void, gfx_Shutdown)
 
 DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam, void *pvParam)
 {
+	static UINT l_Msg = g_Debugger.m_hook->CreateStatusListener();
+
+	char szTmp[12] = "";
+	sprintf(szTmp, "0x%h", msg);
+	g_Debugger.m_hook->SendStatus(l_Msg, IAppHook::SC_OK, szTmp);
+
 	switch(msg)
 	{
 	case OM_GFX_SETWIDTH:
@@ -411,6 +441,12 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetVersion)
 
 DFI_IMPLEMENT_CDECL(void, gfx_Present, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
 {
+	static UINT l_present = g_Debugger.m_hook->CreateStatusListener();
+
+	if(pSurface)
+		g_Debugger.m_hook->SendStatus(l_present, IAppHook::SC_OK, "surface");
+	if(pPalette)
+		g_Debugger.m_hook->SendStatus(l_present, IAppHook::SC_OK, "palette");
 	//if(pPalette)
 	//	g_DirectX.SetPalette(&Palette<UINT>(pPalette, 256));
 	//g_DirectX.ShowPage(pSurface, nWidth, nHeight);
@@ -481,7 +517,7 @@ DFI_IMPLEMENT_CDECL(void, gfx_SetWindowTitle, const char *szTitle)
 
 DFI_IMPLEMENT_CDECL(const char*, gfx_GetWindowTitle)
 {
-	char buffer[256] = "";
+	static char buffer[256] = "";
 	return StringToString(buffer, 256, g_State.szWindowTitle.c_str());
 }
 
@@ -969,4 +1005,19 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 		return FALSE;
 	}
 	return TRUE;
+}
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Debug interfaces
+
+DFI_IMPLEMENT_CDECL( int, GetDebugInterface, IBackend** ppInterface )
+{
+	if(IsBadWritePtr((void*)ppInterface, sizeof(IBackend*)))
+		return E_POINTER;
+
+	*ppInterface = (IBackend*)&g_Debugger;
+	return S_OK;
 }

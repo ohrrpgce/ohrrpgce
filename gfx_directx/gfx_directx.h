@@ -5,11 +5,6 @@
 #ifndef GFX_DIRECTX_H
 #define GFX_DIRECTX_H
 
-//#ifndef _DLL
-//#define DFI_IMPORT
-//#define DFI_CLASS
-//#endif //_DLL
-
 #include "DllFunctionInterface.h"
 
 #include "BackendDebugger.h"
@@ -137,7 +132,7 @@ DFI_DECLARE_CDECL( int, gfx_GetJoystickCount ); //returns the number of joystick
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //gfx_directx.dll specific debugging interface
-DFI_DECLARE_CDECL( int, GetDebugInterface, IBackend* pInterface );
+DFI_DECLARE_CDECL( int, GetDebugInterface, IBackend** ppInterface );
 
 
 DFI_CLASS_END( DllBackend, TEXT("gfx_directx.dll") );
