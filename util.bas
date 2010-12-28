@@ -905,10 +905,11 @@ SUB killdir(directory as string)
 '  END IF
 END SUB
 
-SUB makedir (directory as string)
+'Returns zero on success
+FUNCTION makedir (directory as string) as integer
   IF isdir(directory) THEN
     debuginfo "makedir: " & directory & " already exists"
-    EXIT SUB
+    RETURN 0
   END IF
   IF MKDIR(directory) THEN
     'errno would get overwritten while building the error message
@@ -916,15 +917,16 @@ SUB makedir (directory as string)
     'The heck? On Windows at least, MKDIR throws this false error
     IF err_string <> "File exists" THEN
      debug "Could not mkdir(" & directory & "): " & err_string
+     RETURN 1
     END IF
-    EXIT SUB
   END IF
 #ifdef __FB_LINUX__
   ' work around broken file permissions in dirs created by linux version
   ' MKDIR creates with mode 644, should create with mode 755
   SHELL "chmod +x """ + directory + """"
 #endif
-END SUB
+  RETURN 0
+END FUNCTION
 
 SUB safekill (filename as string)
   IF isfile(filename) THEN
