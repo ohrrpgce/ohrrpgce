@@ -30,7 +30,8 @@ CONST genTitleMus = 2           'title music
 CONST genVictMus  = 3           'victory music
 CONST genBatMus = 4             'default battle music
 CONST genPassVersion = 5        'passcode format number
-CONST genPassRot = 6            'new(third style) passcode rotator
+CONST genPW3Rot = 6             'new (third style) passcode rotator
+'7-25: first style or third style encoded passcode
 CONST genMaxHeroPic = 26        'max hero graphic number in .PT0
 CONST genMaxEnemy1Pic = 27      'max small enemy graphic number in .PT1
 CONST genMaxEnemy2Pic = 28      'max medium enemy graphic number in .PT2

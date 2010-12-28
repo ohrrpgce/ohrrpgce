@@ -92,12 +92,10 @@ DECLARE SUB unloadtilesetdata (BYREF tileset AS TilesetData ptr)
 DECLARE FUNCTION layer_tileset_index(BYVAL layer AS INTEGER) AS INTEGER
 DECLARE SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL resetanimations as integer = YES)
 DECLARE SUB unloadmaptilesets (tilesets() AS TilesetData ptr)
-DECLARE SUB writescatter (s as string, lhold as integer, start as integer)
-DECLARE SUB readscatter (s as string, lhold as integer, start as integer)
 DECLARE FUNCTION finddatafile(filename as string) as string
 DECLARE SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
-DECLARE SUB writepassword (p as string)
-DECLARE FUNCTION readpassword () as string
+DECLARE SUB writepassword (pass as string)
+DECLARE FUNCTION checkpassword (pass as string) as integer
 DECLARE SUB upgrade (font() as integer)
 DECLARE SUB rpgversion (v as integer)
 DECLARE SUB fix_sprite_record_count(BYVAL pt_num AS INTEGER)

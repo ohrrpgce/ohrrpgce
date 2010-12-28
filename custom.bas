@@ -560,19 +560,11 @@ copylump sourcerpg, "archinym.lmp", workingdir, -1
 game = readarchinym()
 copylump sourcerpg, game + ".gen", workingdir
 xbload workingdir + SLASH + game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
-'----load password-----
-IF gen(genPassVersion) >= 256 THEN
- '--new format password
- rpas$ = readpassword$
-ELSE
- '--old scattertable format
- IF gen(genPW2Length) = -1 THEN RETRACE 'this is stupid
- readscatter rpas$, gen(genPW2Length), 200
- rpas$ = rotascii(rpas$, gen(genPW2Offset) * -1)
-END IF
-'--if password is unset, do not prompt
-IF rpas$ = "" THEN RETRACE
-'-----get inputed password-----
+
+'--Is a password set?
+IF checkpassword("") THEN RETRACE
+
+'--Input password
 pas$ = ""
 setkeys
 DO
@@ -580,8 +572,7 @@ DO
  setkeys
  tog = tog XOR 1
  IF keyval(scEnter) > 1 THEN
-  '--check password
-  IF pas$ = rpas$ THEN
+  IF checkpassword(pas$) THEN
    RETRACE
   ELSE
    GOTO finis

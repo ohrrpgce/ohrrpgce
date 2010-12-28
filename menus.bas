@@ -25,7 +25,7 @@ DECLARE FUNCTION importmasterpal (f$, palnum%)
 DECLARE SUB titlescreenbrowse ()
 DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
 DECLARE SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
-DECLARE SUB inputpasw(pas$)
+DECLARE SUB inputpasw ()
 DECLARE FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
 DECLARE SUB nearestui (mimicpal, newpal() as RGBcolor, newui())
 DECLARE SUB remappalette (oldmaster() as RGBcolor, oldpal(), newmaster() as RGBcolor, newpal())
@@ -1006,28 +1006,41 @@ SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
  wav = oggtemp
 END SUB
 
-SUB inputpasw(pas$)
+SUB inputpasw()
 DIM tog AS INTEGER = 0
+DIM oldpassword AS INTEGER = (checkpassword("") = 0)
+DIM pas AS STRING
 setkeys
 DO
  setwait 55
  setkeys
  tog = tog XOR 1
- IF keyval(scESC) > 1 OR keyval(scENTER) > 1 THEN EXIT DO
+ IF keyval(scEsc) > 1 THEN EXIT DO
+ IF keyval(scEnter) > 1 THEN
+'  IF oldpassword = NO THEN
+ writepassword pas
+  EXIT DO
+ END IF
  IF keyval(scF1) > 1 THEN show_help "input_password"
- strgrabber pas$, 17
+ strgrabber pas, 17
  clearpage dpage
  textcolor uilook(uiMenuItem), 0
  printstr "You can require a password for this", 0, 0, dpage
  printstr "game to be opened in " + CUSTOMEXE, 0, 8, dpage
  printstr "This does not encrypt your file, and", 0, 16, dpage
  printstr "should not be considered as any security", 0, 24, dpage
- printstr "PASSWORD", 30, 64, dpage
- IF LEN(pas$) THEN
-  textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
-  printstr pas$, 30, 74, dpage
+ IF oldpassword THEN
+  printstr "PASSWORD SET. NEW PASSWORD:", 30, 64, dpage
+  IF LEN(pas) = 0 THEN printstr "(Hit Enter to remove)", 30, 94, dpage
  ELSE
-  printstr "(NONE SET)", 30, 74, dpage
+  printstr "NO PASSWORD. NEW PASSWORD:", 30, 64, dpage
+ END IF
+ IF LEN(pas) THEN
+  textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight)
+  printstr pas, 30, 74, dpage
+ ELSE
+  textcolor uilook(uiMenuItem), uilook(uiHighlight)
+  printstr "(NONE)", 30, 74, dpage
  END IF
  SWAP vpage, dpage
  setvispage vpage
@@ -1245,19 +1258,10 @@ SUB gendata ()
  max(19) = 6
  min(19) = 2
 
- DIM pas AS STRING = ""
  DIM aboutline AS STRING = ""
  DIM longname AS STRING = ""
  DIM tempbuf(79)
 
- IF gen(genPassVersion) >= 256 THEN
-  '--new simple format
-  pas = readpassword$
- ELSE
-  '--old scattertable format
-  readscatter pas, gen(genPW2Length), 200
-  pas = rotascii(pas, gen(genPW2Offset) * -1)
- END IF
  IF loadrecord(tempbuf(), workingdir + SLASH + "browse.txt", 40) THEN
   longname = readbinstring(tempbuf(), 0, 38)
   aboutline = readbinstring(tempbuf(), 20, 38)
@@ -1320,7 +1324,7 @@ SUB gendata ()
    IF state.pt = 7 THEN masterpalettemenu
    IF state.pt = 8 THEN generalmusicsfxmenu
    IF state.pt = 9 THEN statcapsmenu
-   IF state.pt = 10 THEN inputpasw pas
+   IF state.pt = 10 THEN inputpasw
 
    IF state.pt >= 12 AND state.pt <= 14 THEN
     d = charpicker$
@@ -1354,15 +1358,6 @@ SUB gendata ()
   dowait
  LOOP
  
- DIM AS STRING newpas = pas
- writepassword newpas
-
- '--also write old scattertable format, for backwards
- '-- compatability with older versions of game.exe
- gen(genPW2Offset) = INT(RND * 250) + 1
- DIM AS STRING oldpas = rotascii(pas, gen(genPW2Offset))
- writescatter oldpas, gen(genPW2Length), 200
-
  '--write long name and about line
  writebinstring longname, tempbuf(), 0, 38
  writebinstring aboutline, tempbuf(), 20, 38

@@ -2250,43 +2250,6 @@ SUB cycletile (tanim_state() AS TileAnimState, tastuf() AS INTEGER)
  NEXT i
 END SUB
 
-'Write old password format (backcompat only)
-SUB writescatter (s AS STRING, lhold AS INTEGER, start AS INTEGER)
-DIM stray(10) AS INTEGER
-
-s = LEFT(s, 20)
-lhold = LEN(s) * 8 - 1
-str2array s, stray(), 0
-
-DIM trueb AS INTEGER
-DIM scatb AS INTEGER
-FOR i AS INTEGER = 0 TO lhold
- trueb = readbit(stray(), 0, i)
- DO
-  scatb = INT(RND * (16 + (i * 16)))
- LOOP UNTIL readbit(gen(), start - 1, scatb) = trueb
- gen(start + i) = scatb
-NEXT i
-
-FOR i AS INTEGER = lhold + 1 TO 159
- gen(start + i) = INT(RND * 4444)
-NEXT i
-END SUB
-
-'Read old password format (needed for backcompat upgrade)
-SUB readscatter (s AS STRING, lhold AS INTEGER, start AS INTEGER)
-DIM stray(10) AS INTEGER
-s = STRING(20, "!")
-
-FOR i AS INTEGER = 0 TO lhold
- setbit stray(), 0, i, readbit(gen(), start - 1, gen(start + i))
-NEXT i
-
-array2str stray(), 0, s
-s = LEFT(s, INT((lhold + 1) / 8))
-
-END SUB
-
 FUNCTION finddatafile(filename AS STRING) AS STRING
 'Current dir
 IF isfile(filename) THEN RETURN filename
@@ -2366,49 +2329,87 @@ END IF
 END SUB
 
 SUB writepassword (p AS STRING)
+ '-- set password version number (only if needed)
+ IF gen(genPassVersion) < 256 THEN gen(genPassVersion) = 256
 
-'-- set password version number (only if needed)
-IF gen(genPassVersion) < 256 THEN gen(genPassVersion) = 256
+ '--pad the password with some silly obfuscating low-ascii chars
+ FOR i AS INTEGER = 1 TO 17 - LEN(p)
+  IF INT(RND * 10) < 5 THEN
+   p = p + CHR(INT(RND * 30))
+  ELSE
+   p = CHR(INT(RND * 30)) + p
+  END IF
+ NEXT i
 
-'--pad the password with some silly obfuscating low-ascii chars
-FOR i AS INTEGER = 1 TO 17 - LEN(p)
- IF INT(RND * 10) < 5 THEN
-  p = p + CHR(INT(RND * 30))
- ELSE
-  p = CHR(INT(RND * 30)) + p
- END IF
-NEXT i
+ '--apply a new ascii rotation / weak obfuscation number
+ gen(genPassRot) = INT(RND * 253) + 1
+ p = rotascii(p, gen(genPassRot))
 
-'--apply a new ascii rotation / weak obfuscation number
-gen(genPassRot) = INT(RND * 253) + 1
-p = rotascii(p, gen(genPassRot))
+ '--write the password into GEN
+ str2array p, gen(), 14
 
-'--write the password into GEN
-str2array p, gen(), 14
-
+ '--We no longer do backcompat PW2 support
 END SUB
 
-FUNCTION readpassword () as string
+'Read old-old password (very similar to PW3)
+FUNCTION read_PW1_password () as string
+ DIM rpas as string
+ FOR i as integer = 1 TO gen(genPW1Length)
+  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas = rpas + CHR(loopvar(gen(4 + i), 0, 255, gen(genPW1Offset) * -1))
+ NEXT i
+ RETURN rpas
+END FUNCTION
 
-'--read a 17-byte string from GEN at word offset 7
-'--(Note that array2str uses the byte offset not the word offset)
-DIM s AS STRING
-s = STRING(17, 0)
-array2str gen(), 14, s
+'Read old scattertable password format
+FUNCTION read_PW2_password () as string
+ DIM stray(10) as integer
+ DIM pass as string = STRING(20, "!")
 
-'--reverse ascii rotation / weak obfuscation
-s = rotascii(s, gen(genPassRot) * -1)
+ FOR i AS INTEGER = 0 TO gen(genPW2Length)
+  setbit stray(), 0, i, readbit(gen(), 200 - 1, gen(200 + i))
+ NEXT i
 
-'-- discard ascii chars lower than 32
-DIM p AS STRING = ""
-DIM c AS STRING
-FOR i AS INTEGER = 1 TO 17
- c = MID(s, i, 1)
- IF ASC(c) >= 32 THEN p = p + c
-NEXT i
+ array2str stray(), 0, pass
+ pass = LEFT(pass, INT((gen(genPW2Length) + 1) / 8))
 
-return p
+ RETURN rotascii(pass, gen(genPW2Offset) * -1)
+END FUNCTION
 
+FUNCTION read_PW3_password () as string
+ '--read a 17-byte string from GEN at word offset 7
+ '--(Note that array2str uses the byte offset not the word offset)
+ DIM pass AS STRING
+ pass = STRING(17, 0)
+ array2str gen(), 14, pass
+
+ '--reverse ascii rotation / weak obfuscation
+ pass = rotascii(pass, gen(genPW3Rot) * -1)
+
+ '-- discard ascii chars lower than 32
+ DIM pass2 AS STRING = ""
+ FOR i AS INTEGER = 1 TO 17
+  DIM c AS STRING = MID(pass, i, 1)
+  IF ASC(c) >= 32 THEN pass2 += c
+ NEXT i
+
+ RETURN pass2
+END FUNCTION
+
+'Return true if it passes.
+'Supports all password formats, because this is called before upgrade
+FUNCTION checkpassword (pass as string) as integer
+ IF gen(genPassVersion) >= 256 THEN
+  '--new or future format password.
+  '--'>=' instead of '>' was probably a mistake, but it's a good idea:
+  '--future versions can write a blank PW3 password for unpassworded games
+  RETURN (pass = read_PW3_password)
+ ELSEIF gen(genVersion) >= 3 THEN
+  '--old scattertable format
+  RETURN (pass = read_PW2_password)
+ ELSE
+  '--ancient format
+  RETURN (pass = read_PW1_password)
+ END IF
 END FUNCTION
 
 SUB upgrade (font())
@@ -2519,27 +2520,8 @@ END IF
 IF gen(genVersion) = 2 THEN
  upgrade_message "July 8 1999 format (3)"
  gen(genVersion) = 3
- '-get old-old password
- rpas = ""
- FOR i = 1 TO gen(genPW1Length)
-  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas = rpas + CHR(loopvar(gen(4 + i), 0, 255, gen(genPW1Offset) * -1))
- NEXT i
+ writepassword read_PW1_password
 
- '-SET (obsolete) SCATTERTABLE BASE
- gen(genScatterTableHead) = INT(RND * 15) + 1
- '-WRITE PASSWORD INTO (obsolete) SCATTERTABLE
- gen(genPW2Offset) = INT(RND * 250) + 1
- rpas = rotascii(rpas, gen(genPW2Offset))
- '--write old password (will be upgraded again later in this same routine)
- writescatter rpas, gen(genPW2Length), 200
- '-REPLACE OLD-OLD PASSWORD
- pas = rotascii("ufxx|twi%|fx%rt{ji", -5)
- gen(genPW1Length) = LEN(pas)
- gen(genPW1Offset) = INT(RND * 250) + 1
- FOR i = 1 TO gen(genPW1Length)
-  temp = ASC(MID(pas, i, 1))
-  gen(4 + i) = loopvar(temp, 0, 255, gen(genPW1Offset))
- NEXT i
  upgrade_message "Put record count defaults in GEN..."
  gen(genMaxHeroPic)   = 40
  gen(genMaxEnemy1Pic) = 149
@@ -2783,18 +2765,9 @@ IF uirecords < gen(genMaxMasterPal) + 1 THEN
  NEXT
 END IF
 
-'--update to new (3rd) password format
 IF gen(genPassVersion) < 256 THEN
- gen(genPassVersion) = 256
- IF gen(genPW2Length) = -1 THEN
-  '--no password, write a blank one
-  pas = ""
- ELSE
-  '--read the old scattertable
-  readscatter pas, gen(genPW2Length), 200
-  pas = rotascii(pas, gen(genPW2Offset) * -1)
- END IF
- writepassword pas
+ '--at this point we know the password format is PW2, update it
+ writepassword read_PW2_password
 END IF
 
 'Zero out new attack item cost (ammunition) data
