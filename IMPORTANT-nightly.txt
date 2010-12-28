@@ -16,6 +16,16 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2010-12-28:
+The level cap wasn't being saved in save games, now it is.
+
+Also, note that the password format changed today; upon upgrading a passworded
+game you won't be able to open it with old versions of Custom or utilities
+anymore. The solution is of course to remove the password.
+
+Also, note that gfx_directx still does not support the new scancodes, and
+the fast-keypresses-missed is still unfixed.
+
 2010-11-11:
 Note that gfx_directx does not currently support the newly added scancodes;
 check back in a few days!

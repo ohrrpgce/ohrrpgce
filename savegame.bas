@@ -299,6 +299,7 @@ SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
  gen(genMute) = GetChildNodeInt(ch, "mute")
 
  gen(genDamageCap) = GetChildNodeInt(node, "damage_cap")
+ gen(genLevelCap) = GetChildNodeInt(node, "level_cap", 99)
 
  ch = GetChildByName(node, "stats")
  n = FirstChild(ch)
@@ -903,6 +904,7 @@ SUB gamestate_state_to_reload(BYVAL parent AS Reload.NodePtr)
  SetChildNode(ch, "mute", gen(genMute))
 
  SetChildNode(node, "damage_cap", gen(genDamageCap))
+ SetChildNode(node, "level_cap", gen(genLevelCap))
 
  ch = SetChildNode(node, "stats")
  FOR i AS INTEGER = 0 TO 11
