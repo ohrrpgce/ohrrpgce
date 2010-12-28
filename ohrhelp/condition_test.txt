@@ -8,6 +8,8 @@ Condition controls:
 
 Type in or edit a condition any way you please, using numbers, <, >, =, Backspace, Left and Right.
 
+Press Tab to switch between editing the global number and the value.
+
 Typing ! inverts a condition. Also, typing - inverts a tag check.
 
 Hit Enter to enter an editor where you can choose the type of condition.

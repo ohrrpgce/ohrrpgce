@@ -141,36 +141,27 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
   RETURN YES
  END IF
 
- IF cond.type = compNone THEN
-  cond.tag = 0
-  IF intgrabber(cond.tag, -999, 999) THEN
-   cond.type = compTag
-   RETURN YES
-  END IF
- ELSEIF cond.type = compTag THEN
-  IF cond.tag = 0 THEN cond.type = 0
-  IF intgrabber(cond.tag, -999, 999) THEN
-   RETURN YES
-  END IF
-  IF INSTR(intxt, "!") THEN
-   cond.tag = -cond.tag
-   RETURN YES
-  END IF
-  IF enter_or_space() AND alwaysedit = 0 THEN
+ 'Simplify
+ IF cond.type = compTag AND cond.tag = 0 THEN cond.type = 0
+
+ 'enter_or_space
+ IF cond.type = compTag AND alwaysedit = 0 THEN
+  IF enter_or_space() THEN
    DIM browse_tag AS INTEGER
    browse_tag = tagnames(cond.tag, YES)
    IF browse_tag >= 2 OR browse_tag <= -2 THEN
     cond.tag = browse_tag
     RETURN YES
+   ELSE
+    'Return once enter/space processed
+    RETURN NO
    END IF
-   'Return once enter/space processed
-   RETURN NO
   END IF
+ ELSE
+  'I tend to hit space while typing an expression...
+  'IF enter_or_space() THEN 
+  IF keyval(scEnter) > 1 THEN cond_editor(cond, default): RETURN YES
  END IF
-
- 'I tend to hit space while typing an expression...
- 'IF enter_or_space() THEN 
- IF keyval(scEnter) > 1 THEN cond_editor(cond, default): RETURN YES
 
  CONST compare_chars as string = "=<>!"
  'Use strings instead of integers for convenience -- have to decode to use
@@ -186,6 +177,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
  DIM entered_operator as integer = NO
  DIM temp as integer
 
+ 'Listen for comparison operator input
  FOR i as integer = 1 TO LEN(intxt)
   DIM inchar as string = MID(intxt, i)
   DIM charnum as integer = INSTR(compare_chars, inchar)
@@ -195,29 +187,53 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
    DIM newtype as integer = -1
    DIM tempcomp as string
 
-   'First check whether in the middle of typing a comparison operator.
-   'This special check ensure that eg. typing >= causes the operator to
-   'change to >= regardless of initial state
-   IF cond.lastinput THEN
-    'Only checking input strings of len 2
-    tempcomp = CHR(cond.lastinput)
-    IF cond.editstate = 1 OR cond.editstate = 5 THEN tempcomp = ""
-    newtype = str_array_findcasei(comp_strings(), tempcomp + inchar)
-   END IF
+   IF cond.type = compNone OR cond.type = compTag OR cond.editstate = 1 OR cond.editstate = 5 THEN
+    'Ignore the current operator; we're pretending there is none
+    newtype = str_array_findcasei(comp_strings(), inchar)
 
-   IF newtype = -1 THEN
-    tempcomp = statetable(charnum - 1, cond.type)
-    newtype = str_array_findcasei(comp_strings(), tempcomp)
+   ELSE
+    'First check whether in the middle of typing a comparison operator.
+    'This special check ensure that eg. typing >= causes the operator to
+    'change to >= regardless of initial state
+    IF cond.lastinput THEN
+     'Only checking input strings of len 2
+     newtype = str_array_findcasei(comp_strings(), CHR(cond.lastinput) + inchar)
+    END IF
+
+    IF newtype = -1 THEN
+     tempcomp = statetable(charnum - 1, cond.type)
+     newtype = str_array_findcasei(comp_strings(), tempcomp)
+    END IF
    END IF
 
    IF newtype > -1 THEN
-    IF cond.type = compTag THEN cond.varnum = ABS(cond.tag): cond.value = 0
+    IF cond.type = compNone OR cond.type = compTag THEN
+     cond.varnum = small(ABS(cond.tag), 4095)  'future proofing
+     cond.value = 0
+     cond.editstate = 2
+    END IF
     cond.type = newtype
    END IF
   END IF
 
   cond.lastinput = ASC(inchar)
  NEXT
+
+ 'Other input: a finite state machine
+ IF cond.type = compNone THEN
+  'No need to check for entered_operator: the type would have changed
+  cond.tag = 0
+  IF intgrabber(cond.tag, -999, 999) THEN
+   cond.type = compTag
+  END IF
+ ELSEIF cond.type = compTag THEN
+  'No need to check for entered_operator
+  IF INSTR(intxt, "!") THEN
+   cond.tag = -cond.tag
+  ELSE
+   intgrabber(cond.tag, -999, 999)
+  END IF
+ ELSE
 
  'editstate is just a state id, defining the way the condition is edited and displayed
  '(below, asterixes indicate highlighting)
@@ -227,10 +243,12 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
  '3: Global # .. *#*
  '4: Global # *..* #
  '5: Global # *?* #
- '6: Global *#* ? #
+ '6: Global *#* .. #
  SELECT CASE cond.editstate
   CASE 0
-   IF keyval(scBackspace) > 1 THEN
+   IF keyval(scTab) > 1 THEN
+    cond.editstate = 3
+   ELSEIF keyval(scBackspace) > 1 THEN
     'Backspace works from the right...
     intgrabber(cond.value, -2147483648, 2147483647)
     cond.editstate = 3
@@ -247,7 +265,9 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
     END IF
    END IF
   CASE 1, 6
-   IF entered_operator THEN
+   IF cond.editstate = 6 AND keyval(scTab) > 1 THEN
+    cond.editstate = 3
+   ELSEIF entered_operator THEN
     IF cond.editstate = 1 THEN cond.editstate = 2 ELSE cond.editstate = 4
    ELSEIF keyval(scBackspace) > 1 AND cond.varnum = 0 THEN
     cond.editstate = 0
@@ -256,7 +276,9 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
     intgrabber(cond.varnum, 0, 4095)
    END IF
   CASE 3
-   IF entered_operator THEN
+   IF keyval(scTab) > 1 THEN
+    cond.editstate = 6
+   ELSEIF entered_operator THEN
     cond.editstate = 4
    ELSEIF keyval(scBackspace) > 1 AND cond.value = 0 THEN
     cond.editstate = 2
@@ -264,7 +286,9 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
     intgrabber(cond.value, -2147483648, 2147483647)
    END IF
   CASE 2, 4, 5  'Operator editing
-   IF cond.editstate = 5 AND entered_operator THEN
+   IF keyval(scTab) > 1 THEN
+    cond.editstate = 3
+   ELSEIF cond.editstate = 5 AND entered_operator THEN
     cond.editstate = 4
    ELSEIF keyval(scBackspace) > 1 THEN
     DIM newcomp as string = comp_strings(cond.type)
@@ -290,6 +314,7 @@ FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval a
     END IF
    END IF
  END SELECT
+ END IF
 
 END FUNCTION
 
