@@ -3,8 +3,7 @@
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
-' To compile:
-'        fbc -lang deprecated unlump.bas util.bas
+' Compile with makeutil.sh or makeutil.bat
 '
 '$DYNAMIC
 DEFINT A-Z
@@ -13,8 +12,7 @@ DECLARE FUNCTION readkey$ ()
 DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
-DECLARE SUB readscatter (s$, lhold%, array%(), start%)
-'DECLARE FUNCTION readpassword$ ()
+DECLARE FUNCTION checkpassword (pass as string) as integer
 
 #include "compat.bi"
 #include "util.bi"
@@ -23,7 +21,6 @@ DECLARE SUB readscatter (s$, lhold%, array%(), start%)
 
 DIM SHARED createddir = 0, dest$, olddir$
 
-rpas$ = ""
 cur = 0
 
 olddir$ = curdir
@@ -105,23 +102,15 @@ IF isfile(dest$ + SLASH + "archinym.lmp") THEN
 END IF
 
 unlumpfile lumped$, game + ".gen", dest$ + SLASH
-DIM gen(360)
+DIM SHARED gen(360)
 xbload dest$ + SLASH + LCASE(game) + ".gen", gen(), "unable to open general data"
 
 KILL dest$ + SLASH + game + ".gen"
 
 passokay = -1
 
-IF gen(genPW2Length) > -1 THEN
+IF checkpassword("") = 0 THEN
  passokay = 0
- '----load password-----
- 'Note that this is still using the old 2nd-style password format, not the
- 'newer simpler 3rd-style password format. This is okay for now, since
- 'CUSTOM writes both 2nd and 3rd style passwords, but supporting 3rd-style
- 'here also would be desireable
- readscatter rpas$, gen(genPW2Length), gen(), 200
- rpas$ = rotascii(rpas$, gen(genPW2Offset) * -1)
- 'PRINT rpas$
  '-----get inputed password-----
  print "Password Required"
  pas$ = ""
@@ -129,7 +118,7 @@ IF gen(genPW2Length) > -1 THEN
   w$ = readkey$
   IF w$ = CHR$(13) THEN
    PRINT ""
-   IF pas$ <> rpas$ THEN fatalerror "password mismatch"
+   IF checkpassword(pas$) = 0 THEN fatalerror "password mismatch"
    passokay = -1
    EXIT DO
   END IF
@@ -206,19 +195,6 @@ readkey$ = w$
 
 END FUNCTION
 
-SUB readscatter (s$, lhold, array(), start)
-DIM stray(10)
-s$ = STRING$(20, "!")
-
-FOR i = 0 TO lhold
- setbit stray(), 0, i, readbit(array(), start - 1, array(start + i))
-NEXT i
-
-array2str stray(), 0, s$
-s$ = LEFT$(s$, INT((lhold + 1) / 8))
-
-END SUB
-
 FUNCTION rightafter$ (s$, d$)
 
 rightafter$ = ""
@@ -234,23 +210,77 @@ NEXT i
 
 END FUNCTION
 
-'FUNCTION readpassword$
-'
-''--read a 17-byte string from GEN at word offset 7
-''--(Note that array2str uses the byte offset not the word offset)
-'s$ = STRING$(17, 0)
-'array2str general(), 14, s$
-'
-''--reverse ascii rotation / weak obfuscation
-'s$ = rotascii(s$, general(6) * -1)
-'
-''-- discard ascii chars lower than 32
-'p$ = ""
-'FOR i = 1 TO 17
-' c$ = MID$(s$, i, 1)
-' IF ASC(c$) >= 32 THEN p$ = p$ + c$
-'NEXT i
-'
-'readpassword$ = p$
-'
-'END FUNCTION
+FUNCTION passwordhash (p as string) as ushort
+ 'Just a simple stupid 9-bit hash.
+ 'The idea is just to make the password unretrieveable, without using a cryptographic hash.
+ IF p = "" THEN RETURN 0
+ DIM hash as ushort
+ FOR i as integer = 0 TO LEN(p) - 1
+  hash = hash * 3 + p[i] * 31
+ NEXT
+ RETURN (hash AND 511) OR 512  'Never return 0
+END FUNCTION
+
+'Read old-old-old password (very similar to PW3)
+FUNCTION read_PW1_password () as string
+ DIM rpas as string
+ FOR i as integer = 1 TO gen(genPW1Length)
+  IF gen(4 + i) >= 0 AND gen(4 + i) <= 255 THEN rpas = rpas + CHR(loopvar(gen(4 + i), 0, 255, gen(genPW1Offset) * -1))
+ NEXT i
+ RETURN rpas
+END FUNCTION
+
+'Read old-old scattertable password format
+FUNCTION read_PW2_password () as string
+ DIM stray(10) as integer
+ DIM pass as string = STRING(20, "!")
+
+ FOR i AS INTEGER = 0 TO gen(genPW2Length)
+  setbit stray(), 0, i, readbit(gen(), 200 - 1, gen(200 + i))
+ NEXT i
+
+ array2str stray(), 0, pass
+ pass = LEFT(pass, INT((gen(genPW2Length) + 1) / 8))
+
+ RETURN rotascii(pass, gen(genPW2Offset) * -1)
+END FUNCTION
+
+FUNCTION read_PW3_password () as string
+ '--read a 17-byte string from GEN at word offset 7
+ '--(Note that array2str uses the byte offset not the word offset)
+ DIM pass AS STRING
+ pass = STRING(17, 0)
+ array2str gen(), 14, pass
+
+ '--reverse ascii rotation / weak obfuscation
+ pass = rotascii(pass, gen(genPW3Rot) * -1)
+
+ '-- discard ascii chars lower than 32
+ DIM pass2 AS STRING = ""
+ FOR i AS INTEGER = 1 TO 17
+  DIM c AS STRING = MID(pass, i, 1)
+  IF ASC(c) >= 32 THEN pass2 += c
+ NEXT i
+
+ RETURN pass2
+END FUNCTION
+
+'Return true if it passes.
+'Supports all password formats, because this is called before upgrade
+FUNCTION checkpassword (pass as string) as integer
+ IF gen(genPassVersion) > 257 THEN
+  'Please let this never happen
+  RETURN NO
+ ELSEIF gen(genPassVersion) = 257 THEN
+  RETURN (passwordhash(pass) = gen(genPW4Hash))
+ ELSEIF gen(genPassVersion) = 256 THEN
+  '--new format password
+  RETURN (pass = read_PW3_password)
+ ELSEIF gen(genVersion) >= 3 THEN
+  '--old scattertable format
+  RETURN (pass = read_PW2_password)
+ ELSE
+  '--ancient format
+  RETURN (pass = read_PW1_password)
+ END IF
+END FUNCTION
