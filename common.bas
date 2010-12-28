@@ -2370,6 +2370,19 @@ SUB writepassword (pass AS STRING)
  END IF
  gen(genPW3Rot) = 0
  str2array dummypw, gen(), 14
+ 
+ '--Provide limited back-compat support for PW2, prevents older builds of
+ '--unlump from extracting files that use a PW4 password
+ IF pass = "" THEN
+  '--indicate the lack of a password
+  gen(genPW2Length) = -1
+  gen(genPW2Offset) = 0
+ ELSE
+  '--indicate the existance of a password (but leave the scattertable blank)
+  gen(genPW2Length) = 10
+  gen(genPW2Offset) = 1
+ END IF
+ 
 END SUB
 
 'Read old-old-old password (very similar to PW3)
