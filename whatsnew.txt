@@ -44,9 +44,12 @@ WHAT IS NEW?
     * Page up/page down/home/end keys now work in most built-in
       in-game menus [Ralph]
     * You can set a cap on the maximum hero level, from 0 to 99 [Ralph]
+    * (Anti-feature) The internal password format has changed a 3rd
+      time. Old utilities and versions of Custom will not be able to
+      open passworded games; remove the password to use them. [Ralph]
 
   * Bugfixes
-    * Bug 749:  Attacks configured to do No Damage still do damage when
+    * Bug 749: Attacks configured to do No Damage still do damage when
       used outside battle [James]
     * Bug 819: %-based attacks don't heal outside of battle [James]
     * Bug 9: Elemental strength/weakness/absorbtion is not yet applied
@@ -127,7 +130,7 @@ WHAT IS NEW?
 
   * Vikings of Midgard
 
-  * Stuff only Developers Will Notice
+  * Stuff Only Developers Will Notice
     * Test suite and benchmarks for RELOAD format [Mike]
 
 Nov 8 2010 [Ypsiliform+3]

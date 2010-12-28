@@ -566,6 +566,9 @@ IF checkpassword("") THEN RETRACE
 
 '--Input password
 pas$ = ""
+randpas$ = ""
+'Uncomment to generate a new password
+'randpas$ = generatepassword(gen(genPW4Hash))
 setkeys
 DO
  setwait 55
@@ -585,6 +588,7 @@ DO
  printstr " Type it in and press ENTER", 0, 9, dpage
  textcolor uilook(uiSelectedItem + tog), 1
  printstr STRING$(LEN(pas$), "*"), 0, 20, dpage
+ IF randpas$ <> "" THEN printstr "Random password: " & randpas$, 0, 40, dpage
  SWAP vpage, dpage
  setvispage vpage
  dowait

@@ -96,6 +96,7 @@ DECLARE FUNCTION finddatafile(filename as string) as string
 DECLARE SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
 DECLARE SUB writepassword (pass as string)
 DECLARE FUNCTION checkpassword (pass as string) as integer
+DECLARE FUNCTION generatepassword (hash as integer) as string
 DECLARE SUB upgrade (font() as integer)
 DECLARE SUB rpgversion (v as integer)
 DECLARE SUB fix_sprite_record_count(BYVAL pt_num AS INTEGER)

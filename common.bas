@@ -2328,30 +2328,51 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
 END IF
 END SUB
 
-SUB writepassword (p AS STRING)
- '-- set password version number (only if needed)
- IF gen(genPassVersion) < 256 THEN gen(genPassVersion) = 256
+FUNCTION passwordhash (p as string) as ushort
+ 'Just a simple stupid 9-bit hash.
+ 'The idea is just to make the password unretrieveable, without using a cryptographic hash.
+ IF p = "" THEN RETURN 0
+ DIM hash as ushort
+ FOR i as integer = 0 TO LEN(p) - 1
+  hash = hash * 3 + p[i] * 31
+ NEXT
+ RETURN (hash AND 511) OR 512  'Never return 0
+END FUNCTION
 
- '--pad the password with some silly obfuscating low-ascii chars
- FOR i AS INTEGER = 1 TO 17 - LEN(p)
-  IF INT(RND * 10) < 5 THEN
-   p = p + CHR(INT(RND * 30))
-  ELSE
-   p = CHR(INT(RND * 30)) + p
-  END IF
- NEXT i
+'If someone forgets their password, call this function to generate a new one
+FUNCTION generatepassword(hash as integer) as string
+ IF hash = 0 THEN RETURN ""
+ IF hash - 512 < 0 OR hash - 512 > 511 THEN RETURN "<invalid password hash " & hash & ">"
+ DO
+  DIM p as string = ""
+  FOR i as integer = 0 TO 3
+   p += CHR(ASC("a") + RND * 25)
+  NEXT
+  IF passwordhash(p) = hash THEN RETURN p
+ LOOP
+END FUNCTION
 
- '--apply a new ascii rotation / weak obfuscation number
- gen(genPassRot) = INT(RND * 253) + 1
- p = rotascii(p, gen(genPassRot))
+SUB writepassword (pass AS STRING)
+ gen(genPassVersion) = 257
+ gen(genPW4Hash) = passwordhash(pass)
 
- '--write the password into GEN
- str2array p, gen(), 14
-
- '--We no longer do backcompat PW2 support
+ '--Provide limited back-compat for PW3 (not possible to open a passworded
+ '--file with an older version of Custom even if you know the password)
+ DIM dummypw as string
+ IF pass = "" THEN
+  '--Write empty 3rd-style password
+  dummypw = STRING(17, 0)
+ ELSE
+  '--Write unguessable garbage 3rd-style password
+  FOR i AS INTEGER = 1 TO 17
+   dummypw += CHR(CINT(RND * 254))
+  NEXT i
+ END IF
+ gen(genPW3Rot) = 0
+ str2array dummypw, gen(), 14
 END SUB
 
-'Read old-old password (very similar to PW3)
+'Read old-old-old password (very similar to PW3)
 FUNCTION read_PW1_password () as string
  DIM rpas as string
  FOR i as integer = 1 TO gen(genPW1Length)
@@ -2360,7 +2381,7 @@ FUNCTION read_PW1_password () as string
  RETURN rpas
 END FUNCTION
 
-'Read old scattertable password format
+'Read old-old scattertable password format
 FUNCTION read_PW2_password () as string
  DIM stray(10) as integer
  DIM pass as string = STRING(20, "!")
@@ -2398,10 +2419,13 @@ END FUNCTION
 'Return true if it passes.
 'Supports all password formats, because this is called before upgrade
 FUNCTION checkpassword (pass as string) as integer
- IF gen(genPassVersion) >= 256 THEN
-  '--new or future format password.
-  '--'>=' instead of '>' was probably a mistake, but it's a good idea:
-  '--future versions can write a blank PW3 password for unpassworded games
+ IF gen(genPassVersion) > 257 THEN
+  'Please let this never happen
+  RETURN NO
+ ELSEIF gen(genPassVersion) = 257 THEN
+  RETURN (passwordhash(pass) = gen(genPW4Hash))
+ ELSEIF gen(genPassVersion) = 256 THEN
+  '--new format password
   RETURN (pass = read_PW3_password)
  ELSEIF gen(genVersion) >= 3 THEN
   '--old scattertable format
@@ -2521,6 +2545,8 @@ IF gen(genVersion) = 2 THEN
  upgrade_message "July 8 1999 format (3)"
  gen(genVersion) = 3
  writepassword read_PW1_password
+ 'No need to remove the old password: we just overwrote it with
+ 'a back-compat PW3 blank/garbage password
 
  upgrade_message "Put record count defaults in GEN..."
  gen(genMaxHeroPic)   = 40
@@ -2765,9 +2791,17 @@ IF uirecords < gen(genMaxMasterPal) + 1 THEN
  NEXT
 END IF
 
-IF gen(genPassVersion) < 256 THEN
- '--at this point we know the password format is PW2, update it
+IF gen(genPassVersion) = 256 THEN
+ '--Update PW3 to PW4
+ writepassword read_PW3_password
+ELSEIF gen(genPassVersion) < 256 THEN
+ '--At this point we know the password format is PW2 (not PW1), scattertable
  writepassword read_PW2_password
+
+ '--Zero out PW2 scatter table
+ FOR i as integer = 199 TO 359
+  gen(i) = 0
+ NEXT
 END IF
 
 'Zero out new attack item cost (ammunition) data

@@ -30,7 +30,7 @@ CONST genTitleMus = 2           'title music
 CONST genVictMus  = 3           'victory music
 CONST genBatMus = 4             'default battle music
 CONST genPassVersion = 5        'passcode format number
-CONST genPW3Rot = 6             'new (third style) passcode rotator
+CONST genPW3Rot = 6             'old (third style) passcode rotator
 '7-25: first style or third style encoded passcode
 CONST genMaxHeroPic = 26        'max hero graphic number in .PT0
 CONST genMaxEnemy1Pic = 27      'max small enemy graphic number in .PT1
@@ -86,13 +86,14 @@ CONST genLevelCap = 87          'Default maximum level (0 to 99)
 
 'Unused indices
 
-CONST genPW2Offset = 93         'old password offset
-CONST genPW2Length = 94         'old password length
+CONST genPW4Hash = 92           'new (4th style) password hash
+CONST genPW2Offset = 93         'old-old password offset
+CONST genPW2Length = 94         'old-old password length
 CONST genVersion = 95           'RPG file format version (see CURRENT_RPG_VERSION above for latest)
 CONST genStartMoney = 96        'starting money
 CONST genMaxShop = 97           'last shop in .SHO
-CONST genPW1Offset = 98         'old-old password offset
-CONST genPW1Length = 99         'old-old password length
+CONST genPW1Offset = 98         'old-old-old password offset
+CONST genPW1Length = 99         'old-old-old password length
 CONST genNumBackdrops = 100     'number of screens in .MXS
 CONST genBits = 101             'general bitsets
 CONST genStartX = 102           'starting X
@@ -116,7 +117,9 @@ CONST genCantBuySFX = 184       'can't afford item/hire
 CONST genCantSellSFX = 185      'unsellable item
 CONST genDamageDisplayTicks = 186 'number of ticks that battle damage displays
 CONST genDamageDisplayRise = 187 'number of pixels that damage display rises
-CONST genScatterTableHead = 199 'old password scattertable head
+'188 to 198 unused
+'199 to 359 used to be the scattertable for PW2, now zeroed out
+'360 to 499 unused
 
 '---Built in stats
 CONST statHP = 0
