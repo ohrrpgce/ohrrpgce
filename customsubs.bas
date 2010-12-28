@@ -132,190 +132,190 @@ END FUNCTION
 'Return value is currently very unreliable.
 FUNCTION cond_grabber (cond as Condition, byval default as integer = NO, byval alwaysedit as integer) as integer
 
- 'debug "cond_grabber: cond.type = " & comp_strings(cond.type) & " tag/var = " & cond.tag & " value = " & cond.value & " editst = " & cond.editstate & " lastchar = " & CHR(cond.lastinput) & "  default = " & default
-
  DIM intxt as string = getinputtext
-
- IF keyval(scDelete) > 1 THEN
-  cond.type = 0
-  RETURN YES
- END IF
-
- 'Simplify
- IF cond.type = compTag AND cond.tag = 0 THEN cond.type = 0
-
- 'enter_or_space
- IF cond.type = compTag AND alwaysedit = 0 THEN
-  IF enter_or_space() THEN
-   DIM browse_tag AS INTEGER
-   browse_tag = tagnames(cond.tag, YES)
-   IF browse_tag >= 2 OR browse_tag <= -2 THEN
-    cond.tag = browse_tag
-    RETURN YES
-   ELSE
-    'Return once enter/space processed
-    RETURN NO
-   END IF
-  END IF
- ELSE
-  'I tend to hit space while typing an expression...
-  'IF enter_or_space() THEN 
-  IF keyval(scEnter) > 1 THEN cond_editor(cond, default): RETURN YES
- END IF
-
- CONST compare_chars as string = "=<>!"
- 'Use strings instead of integers for convenience -- have to decode to use
- STATIC statetable(3, 7) as string * 2 => { _
-    /'Current comparison type:               '/ _
-    /'None  =    <>   <    <=   >    >=  Tag '/ _
-     {"=" ,"=" ,"=" ,"<=","=" ,">=","=" ,"=" },  /' = pressed  '/ _
-     {"<" ,"<=","<" ,"<" ,"<" ,"<>","<" ,"<" },  /' < pressed  '/ _
-     {">" ,">=",">" ,"<>",">" ,">" ,">" ,">" },  /' > pressed  '/ _
-     {"<>","<>","=" ,">=",">" ,"<=","<" ,"<>"}   /' ! pressed  '/ _
- }
-
  DIM entered_operator as integer = NO
  DIM temp as integer
 
- 'Listen for comparison operator input
- FOR i as integer = 1 TO LEN(intxt)
-  DIM inchar as string = MID(intxt, i)
-  DIM charnum as integer = INSTR(compare_chars, inchar)
+ WITH cond
 
-  IF charnum THEN
-   entered_operator = YES
-   DIM newtype as integer = -1
-   DIM tempcomp as string
+  'debug "cond_grabber: .type = " & comp_strings(.type) & " tag/var = " & .tag & " value = " & .value & " editst = " & .editstate & " lastchar = " & CHR(.lastinput) & "  default = " & default
 
-   IF cond.type = compNone OR cond.type = compTag OR cond.editstate = 1 OR cond.editstate = 5 THEN
-    'Ignore the current operator; we're pretending there is none
-    newtype = str_array_findcasei(comp_strings(), inchar)
-
-   ELSE
-    'First check whether in the middle of typing a comparison operator.
-    'This special check ensure that eg. typing >= causes the operator to
-    'change to >= regardless of initial state
-    IF cond.lastinput THEN
-     'Only checking input strings of len 2
-     newtype = str_array_findcasei(comp_strings(), CHR(cond.lastinput) + inchar)
-    END IF
-
-    IF newtype = -1 THEN
-     tempcomp = statetable(charnum - 1, cond.type)
-     newtype = str_array_findcasei(comp_strings(), tempcomp)
-    END IF
-   END IF
-
-   IF newtype > -1 THEN
-    IF cond.type = compNone OR cond.type = compTag THEN
-     cond.varnum = small(ABS(cond.tag), 4095)  'future proofing
-     cond.value = 0
-     cond.editstate = 2
-    END IF
-    cond.type = newtype
-   END IF
+  IF keyval(scDelete) > 1 THEN
+   .type = 0
+   RETURN YES
   END IF
 
-  cond.lastinput = ASC(inchar)
- NEXT
+  'Simplify
+  IF .type = compTag AND .tag = 0 THEN .type = 0
 
- 'Other input: a finite state machine
- IF cond.type = compNone THEN
-  'No need to check for entered_operator: the type would have changed
-  cond.tag = 0
-  IF intgrabber(cond.tag, -999, 999) THEN
-   cond.type = compTag
-  END IF
- ELSEIF cond.type = compTag THEN
-  'No need to check for entered_operator
-  IF INSTR(intxt, "!") THEN
-   cond.tag = -cond.tag
+  'enter_or_space
+  IF .type = compTag AND alwaysedit = 0 THEN
+   IF enter_or_space() THEN
+    DIM browse_tag AS INTEGER
+    browse_tag = tagnames(.tag, YES)
+    IF browse_tag >= 2 OR browse_tag <= -2 THEN
+     .tag = browse_tag
+     RETURN YES
+    ELSE
+     'Return once enter/space processed
+     RETURN NO
+    END IF
+   END IF
   ELSE
-   intgrabber(cond.tag, -999, 999)
+   'I tend to hit space while typing an expression...
+   'IF enter_or_space() THEN 
+   IF keyval(scEnter) > 1 THEN cond_editor(cond, default): RETURN YES
   END IF
- ELSE
 
- 'editstate is just a state id, defining the way the condition is edited and displayed
- '(below, asterixes indicate highlighting)
- '0: Global # .. #  (initial)
- '1: Global *#*
- '2: Global # *..*
- '3: Global # .. *#*
- '4: Global # *..* #
- '5: Global # *?* #
- '6: Global *#* .. #
- SELECT CASE cond.editstate
-  CASE 0
-   IF keyval(scTab) > 1 THEN
-    cond.editstate = 3
-   ELSEIF keyval(scBackspace) > 1 THEN
-    'Backspace works from the right...
-    intgrabber(cond.value, -2147483648, 2147483647)
-    cond.editstate = 3
-   ELSEIF entered_operator THEN
-    cond.editstate = 4
-   ELSE
-    '...and numerals enter from the left
-    temp = 0
-    'Don't erase previous value when trying to inc/decrement it
-    IF keyval(scLeft) > 0 OR keyval(scRight) > 0 THEN temp = cond.varnum
-    IF intgrabber(temp, 0, 4095, , , YES) THEN
-     cond.varnum = temp
-     cond.editstate = 6
-    END IF
-   END IF
-  CASE 1, 6
-   IF cond.editstate = 6 AND keyval(scTab) > 1 THEN
-    cond.editstate = 3
-   ELSEIF entered_operator THEN
-    IF cond.editstate = 1 THEN cond.editstate = 2 ELSE cond.editstate = 4
-   ELSEIF keyval(scBackspace) > 1 AND cond.varnum = 0 THEN
-    cond.editstate = 0
-    cond.type = compNone
-   ELSE
-    intgrabber(cond.varnum, 0, 4095)
-   END IF
-  CASE 3
-   IF keyval(scTab) > 1 THEN
-    cond.editstate = 6
-   ELSEIF entered_operator THEN
-    cond.editstate = 4
-   ELSEIF keyval(scBackspace) > 1 AND cond.value = 0 THEN
-    cond.editstate = 2
-   ELSE
-    intgrabber(cond.value, -2147483648, 2147483647)
-   END IF
-  CASE 2, 4, 5  'Operator editing
-   IF keyval(scTab) > 1 THEN
-    cond.editstate = 3
-   ELSEIF cond.editstate = 5 AND entered_operator THEN
-    cond.editstate = 4
-   ELSEIF keyval(scBackspace) > 1 THEN
-    DIM newcomp as string = comp_strings(cond.type)
-    IF cond.editstate = 5 THEN  'state 5 simulates LEN(newcomp) = 0
-     cond.editstate = 1
-    ELSEIF LEN(newcomp) = 1 THEN
-     IF cond.editstate = 2 THEN
-      cond.editstate = 1
-     ELSEIF cond.editstate = 4 THEN
-      cond.editstate = 5
+  CONST compare_chars as string = "=<>!"
+  'Use strings instead of integers for convenience -- have to decode to use
+  STATIC statetable(3, 7) as string * 2 => { _
+     /'Current comparison type:               '/ _
+     /'None  =    <>   <    <=   >    >=  Tag '/ _
+      {"=" ,"=" ,"=" ,"<=","=" ,">=","=" ,"=" },  /' = pressed  '/ _
+      {"<" ,"<=","<" ,"<" ,"<" ,"<>","<" ,"<" },  /' < pressed  '/ _
+      {">" ,">=",">" ,"<>",">" ,">" ,">" ,">" },  /' > pressed  '/ _
+      {"<>","<>","=" ,">=",">" ,"<=","<" ,"<>"}   /' ! pressed  '/ _
+  }
+
+  'Listen for comparison operator input
+  FOR i as integer = 1 TO LEN(intxt)
+   DIM inchar as string = MID(intxt, i)
+   DIM charnum as integer = INSTR(compare_chars, inchar)
+
+   IF charnum THEN
+    entered_operator = YES
+    DIM newtype as integer = -1
+
+    IF .type = compNone OR .type = compTag OR .editstate = 1 OR .editstate = 5 THEN
+     'Ignore the current operator; we're pretending there is none
+     newtype = str_array_findcasei(comp_strings(), inchar)
+
+    ELSE
+     'First check whether in the middle of typing a comparison operator.
+     'This special check ensure that eg. typing >= causes the operator to
+     'change to >= regardless of initial state
+     IF .lastinput THEN
+      'Only checking input strings of len 2
+      newtype = str_array_findcasei(comp_strings(), CHR(.lastinput) + inchar)
      END IF
-    ELSE 'LEN = 2
-     cond.type = str_array_findcasei(comp_strings(), LEFT(newcomp, 1))
+
+     IF newtype = -1 THEN
+      DIM tempcomp as string = statetable(charnum - 1, .type)
+      newtype = str_array_findcasei(comp_strings(), tempcomp)
+     END IF
     END IF
-   ELSE
-    temp = 0
-    'IF cond.editstate <> 2 THEN temp = cond.value
-    'Don't erase previous value when trying to inc/decrement it
-    IF keyval(scLeft) > 0 OR keyval(scRight) > 0 THEN temp = cond.value
-    IF intgrabber(temp, -2147483648, 2147483647, , , YES) THEN
-     cond.value = temp
-     cond.editstate = 3
+
+    IF newtype > -1 THEN
+     IF .type = compNone OR .type = compTag THEN
+      .varnum = small(ABS(.tag), 4095)  'future proofing
+      .value = 0
+      .editstate = 2
+     END IF
+     .type = newtype
     END IF
    END IF
- END SELECT
- END IF
 
+   .lastinput = ASC(inchar)
+  NEXT
+
+  'Other input: a finite state machine
+  IF .type = compNone THEN
+   'No need to check for entered_operator: the type would have changed
+   .tag = 0
+   IF intgrabber(.tag, -999, 999) THEN
+    .type = compTag
+   END IF
+  ELSEIF .type = compTag THEN
+   'No need to check for entered_operator
+   IF INSTR(intxt, "!") THEN
+    .tag = -.tag
+   ELSE
+    intgrabber(.tag, -999, 999)
+   END IF
+  ELSE  'Globals
+   'editstate is just a state id, defining the way the condition is edited and displayed
+   '(below, asterixes indicate highlighting)
+   '0: Global # .. #  (initial)
+   '1: Global *#*
+   '2: Global # *..*
+   '3: Global # .. *#*
+   '4: Global # *..* #
+   '5: Global # *?* #
+   '6: Global *#* .. #
+   SELECT CASE .editstate
+    CASE 0
+     IF keyval(scTab) > 1 THEN
+      .editstate = 3
+     ELSEIF keyval(scBackspace) > 1 THEN
+      'Backspace works from the right...
+      intgrabber(.value, -2147483648, 2147483647)
+      .editstate = 3
+     ELSEIF entered_operator THEN
+      .editstate = 4
+     ELSE
+      '...and numerals enter from the left
+      temp = 0
+      'Don't erase previous value when trying to inc/decrement it
+      IF keyval(scLeft) > 0 OR keyval(scRight) > 0 THEN temp = .varnum
+      IF intgrabber(temp, 0, 4095, , , YES) THEN
+       .varnum = temp
+       .editstate = 6
+      END IF
+     END IF
+    CASE 1, 6
+     IF .editstate = 6 AND keyval(scTab) > 1 THEN
+      .editstate = 3
+     ELSEIF entered_operator THEN
+      IF .editstate = 1 THEN .editstate = 2 ELSE .editstate = 4
+     ELSEIF keyval(scBackspace) > 1 AND .varnum = 0 THEN
+      .editstate = 0
+      .type = compNone
+     ELSE
+      intgrabber(.varnum, 0, 4095)
+     END IF
+    CASE 3
+     IF keyval(scTab) > 1 THEN
+      .editstate = 6
+     ELSEIF entered_operator THEN
+      .editstate = 4
+     ELSEIF keyval(scBackspace) > 1 AND .value = 0 THEN
+      .editstate = 2
+     ELSE
+      intgrabber(.value, -2147483648, 2147483647)
+     END IF
+    CASE 2, 4, 5  'Operator editing
+     IF keyval(scTab) > 1 THEN
+      .editstate = 3
+     ELSEIF .editstate = 5 AND entered_operator THEN
+      .editstate = 4
+     ELSEIF keyval(scBackspace) > 1 THEN
+      DIM newcomp as string = comp_strings(.type)
+      IF .editstate = 5 THEN  'state 5 simulates LEN(newcomp) = 0
+       .editstate = 1
+      ELSEIF LEN(newcomp) = 1 THEN
+       IF .editstate = 2 THEN
+        .editstate = 1
+       ELSEIF .editstate = 4 THEN
+        .editstate = 5
+       END IF
+      ELSE 'LEN = 2
+       .type = str_array_findcasei(comp_strings(), LEFT(newcomp, 1))
+      END IF
+     ELSE
+      temp = 0
+      'IF .editstate <> 2 THEN temp = .value
+      'Don't erase previous value when trying to inc/decrement it
+      IF keyval(scLeft) > 0 OR keyval(scRight) > 0 THEN temp = .value
+      IF intgrabber(temp, -2147483648, 2147483647, , , YES) THEN
+       .value = temp
+       .editstate = 3
+      END IF
+     END IF
+   END SELECT
+  END IF
+
+ END WITH
 END FUNCTION
 
 'default: meaning of the null condition (true: ALWAYS, false: NEVER)
