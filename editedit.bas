@@ -33,7 +33,6 @@ TYPE EEState
  state AS MenuState
  menu AS MenuDef
  indent AS INTEGER
- shift AS INTEGER
  doc AS DocPtr
  root AS NodePtr
  seek_widget AS NodePtr
@@ -53,7 +52,6 @@ END TYPE
 TYPE WEState
  state AS MenuState
  menu AS MenuDef
- shift AS INTEGER
  changed AS INTEGER
  code AS WidgetCode
 END TYPE
@@ -151,8 +149,6 @@ SUB editor_editor()
    editor_runner st.root
   END IF
 
-  st.shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
-  
   IF st.state.pt >= 0 AND st.state.pt <= st.menu.numitems - 1 THEN
    ee_edit_menu_item st, st.menu.items[st.state.pt]
    ee_rearrange st, st.menu.items[st.state.pt]
@@ -160,8 +156,7 @@ SUB editor_editor()
    ee_insertion st, 0
   END IF
 
-  
-  IF NOT st.shift THEN
+  IF keyval(scShift) = 0 THEN
    usemenu st.state
   END IF
 
@@ -263,15 +258,15 @@ SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
 
  ee_insertion st, widget
 
- IF keyval(scCTRL) > 0 AND st.shift THEN
-  IF keyval(scC) > 1 THEN
+ IF keyval(scShift) > 0 THEN
+  IF copy_keychord() THEN
    '--copy this widget
    IF st.clipboard <> 0 THEN FreeNode(st.clipboard)
    st.clipboard = CloneNodeTree(widget)
    st.clipboard_is = widget
    changed = YES
   END IF
-  IF keyval(scV) > 1 THEN
+  IF paste_keychord() THEN
    '--paste this widget
    IF st.clipboard <> 0 THEN
     AddSiblingAfter(widget, CloneNodeTree(st.clipboard))
@@ -281,7 +276,7 @@ SUB ee_rearrange(BYREF st AS EEState, mi AS MenuDefItem Ptr)
   END IF
  END IF
  
- IF st.shift THEN
+ IF keyval(scShift) > 0 THEN
   IF keyval(scUP) > 1 THEN
    ee_swap_widget_up widget
    st.seek_widget = widget
@@ -616,13 +611,11 @@ FUNCTION widget_editor(BYVAL widget AS NodePtr) AS INTEGER
   END IF
   IF keyval(scF1) > 1 THEN show_help("widget_editor")
 
-  st.shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
-  
   IF st.state.pt >= 0 AND st.state.pt <= st.menu.numitems - 1 THEN
    'ee_edit_menu_item st, st.menu.items[st.state.pt]
   END IF
   
-  IF NOT st.shift THEN
+  IF keyval(scShift) = 0 THEN
    usemenu st.state
   END IF
 

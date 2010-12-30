@@ -794,8 +794,8 @@ DO
    END IF
   NEXT i
  END IF
- IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN tilecopy cutnpaste(), ts
- IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN tilepaste cutnpaste(), ts
+ IF copy_keychord() THEN tilecopy cutnpaste(), ts
+ IF paste_keychord() THEN tilepaste cutnpaste(), ts
  IF (keyval(scCtrl) > 0 AND keyval(scT) > 1) THEN tiletranspaste cutnpaste(), ts
  ts.tilex = bnum AND 15
  ts.tiley = INT(bnum / 16)
@@ -1775,7 +1775,7 @@ DO
   changepal poffset(state.pt), 1, workpal(), state.pt - state.top
  END IF
  '--copying
- IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN 
+ IF copy_keychord() THEN 
   loadsprite ss_save.spriteclip(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), ss.wide, ss.high, 3
   ss_save.paste = YES
   ss_save.clipsize.x = ss.wide
@@ -1783,7 +1783,7 @@ DO
  END IF
  '--pasting
  do_paste = 0
- IF (((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1)) AND ss_save.paste = YES THEN
+ IF paste_keychord() AND ss_save.paste = YES THEN
   do_paste = -1
   paste_transparent = 0
  END IF
@@ -2546,7 +2546,7 @@ END IF
 '--UNDO
 IF (keyval(scCtrl) > 0 AND keyval(scZ) > 1) OR (ss.zonenum = 20 AND mouse.clicks > 0) THEN GOSUB readundospr
 '--COPY (CTRL+INS,SHIFT+DEL,CTRL+C)
-IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN
+IF copy_keychord() THEN
  ss_save.clipsize.x = ss.wide
  ss_save.clipsize.y = ss.high
  stosprite placer(), 0, ss.framenum * ss.size, soff * (state.pt - state.top), 3
@@ -2554,7 +2554,7 @@ IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR
  ss_save.paste = YES
 END IF
 '--PASTE (SHIFT+INS,CTRL+V)
-IF (((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1)) AND ss_save.paste = YES THEN
+IF paste_keychord() AND ss_save.paste = YES THEN
  rectangle 0, 0, ss.wide, ss.high, 0, dpage
  drawsprite placer(), 0, ss.nulpal(), 0, 0, 0, dpage
  drawsprite ss_save.spriteclip(), 0, ss.nulpal(), 0, 0, 0, dpage, 0

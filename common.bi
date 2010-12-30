@@ -176,6 +176,8 @@ DECLARE FUNCTION onoroff (n AS INTEGER) AS STRING
 DECLARE FUNCTION yesorno (n AS INTEGER, yes_cap AS STRING="YES", no_cap AS STRING="NO") AS STRING
 
 DECLARE FUNCTION enter_or_space () AS INTEGER
+DECLARE FUNCTION copy_keychord () AS INTEGER
+DECLARE FUNCTION paste_keychord () AS INTEGER
 
 DECLARE SUB write_npc_int (npcdata AS NPCType, intoffset AS INTEGER, n AS INTEGER)
 DECLARE FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER

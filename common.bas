@@ -1247,13 +1247,8 @@ FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONG
   END IF
   IF min < 0 AND (sign < 0 OR max = 0) THEN n = -n
   'CLIPBOARD
-  IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR _
-     (keyval(scShift) > 0 AND keyval(scDelete) > 0) OR _
-     (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN
-   clip = n
-  END IF
-  IF (keyval(scShift) > 0 AND keyval(scInsert) > 1) OR _
-     (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN
+  IF copy_keychord() THEN clip = n
+  IF paste_keychord() THEN
    n = clip
    typed = YES
   END IF
@@ -1383,11 +1378,9 @@ FUNCTION stredit (s AS STRING, BYREF insert AS INTEGER, BYVAL maxl AS INTEGER, B
  
  STATIC clip AS STRING
 
- '--copy support
- IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN clip = s
-
- '--paste support
- IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN s = LEFT(clip, maxl)
+ '--copy+paste support
+ IF copy_keychord() THEN clip = s
+ IF paste_keychord() THEN s = LEFT(clip, maxl)
 
  '--insert cursor movement
  IF keyval(scCtrl) = 0 THEN 'not CTRL
@@ -3675,6 +3668,14 @@ END SUB
 
 FUNCTION enter_or_space () AS INTEGER
  RETURN keyval(scEnter) > 1 OR keyval(scSpace) > 1
+END FUNCTION
+
+FUNCTION copy_keychord () AS INTEGER
+ RETURN (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR (keyval(scShift) > 0 AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1)
+END FUNCTION
+
+FUNCTION paste_keychord () AS INTEGER
+ RETURN (keyval(scShift) > 0 AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1)
 END FUNCTION
 
 'Simple... and yet, more options than a regular menu item

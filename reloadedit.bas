@@ -32,7 +32,6 @@ TYPE ReloadEditorState
  mode_name(1) AS STRING
  menu AS MenuDef
  state AS MenuState
- shift AS INTEGER
  seeknode AS Reload.Nodeptr
  filename AS STRING
  clipboard AS Reload.NodePtr
@@ -123,14 +122,13 @@ SUB reload_editor()
    reload_editor_export st
   END IF
 
-  st.shift = (keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0)
   
   IF st.state.pt >= 0 AND st.state.pt <= st.menu.numitems - 1 THEN
    reload_editor_edit_node st, st.menu.items[st.state.pt]
    reload_editor_rearrange st, st.menu.items[st.state.pt]
   END IF
   
-  IF NOT st.shift THEN
+  IF keyval(scShift) = 0 THEN
    usemenu st.state
   END IF
 
@@ -171,15 +169,15 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
   END IF
  END IF
  
- IF keyval(scCTRL) > 0 AND st.shift THEN
-  IF keyval(scC) > 1 THEN
+ IF keyval(scShift) > 0 THEN
+  IF copy_keychord() THEN
    '--copy this node
    IF st.clipboard <> 0 THEN Reload.FreeNode(st.clipboard)
    st.clipboard = Reload.CloneNodeTree(node)
    st.clipboard_is = node
    changed = YES
   END IF
-  IF keyval(scV) > 1 THEN
+  IF paste_keychord() THEN
    '--paste this node
    IF st.clipboard <> 0 THEN
     Reload.AddSiblingAfter(node, Reload.CloneNodeTree(st.clipboard))
@@ -189,7 +187,7 @@ SUB reload_editor_rearrange(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
   END IF
  END IF
  
- IF st.shift THEN
+ IF keyval(scShift) > 0 THEN
   IF keyval(scUP) > 1 THEN
    reload_editor_swap_node_up node
    st.seeknode = node
@@ -267,7 +265,7 @@ SUB reload_editor_edit_node(BYREF st AS ReloadEditorState, mi AS MenuDefItem Ptr
 
  DIM changed AS INTEGER = NO
 
- IF keyval(scCTRL) > 0 AND st.shift THEN EXIT SUB 'no typing while holding ctrl+shift!
+ IF keyval(scCTRL) > 0 AND keyval(scShift) > 0 THEN EXIT SUB 'no typing while holding ctrl+shift!
   
  SELECT CASE st.mode
   CASE 0:
@@ -303,7 +301,7 @@ FUNCTION reload_editor_edit_node_value(BYREF st AS ReloadEditorState, BYVAL node
  IF nt = Reload.rltFloat THEN
   'debug "no floatgrabber exists yet"
  ELSEIF nt = Reload.rltInt ORELSE (nt = Reload.rltNull ANDALSO reload_editor_numeric_input_check()) THEN
-  IF NOT st.shift THEN
+  IF keyval(scShift) = 0 THEN
    DIM n AS INTEGER
    n = Reload.GetInteger(node)
    IF intgrabber(n, -2147483648, 2147483647) THEN
@@ -444,7 +442,7 @@ SUB reload_editor_save(filename AS STRING, BYREF st AS ReloadEditorState)
 END SUB
 
 FUNCTION reload_editor_numeric_input_check() AS INTEGER
- IF keyval(scLeftShift) > 0 ORELSE keyval(scRightShift) > 0 THEN RETURN NO
+ IF keyval(scShift) > 0 THEN RETURN NO
  FOR i AS INTEGER = sc1 TO sc0
   IF keyval(i) > 1 THEN RETURN YES
  NEXT i

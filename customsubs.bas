@@ -448,38 +448,30 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
  RETURN ret
 END FUNCTION
 
+'Returns true if the string has changed
 FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
-STATIC clip AS STRING
-DIM shift AS INTEGER
-DIM caps AS INTEGER
-DIM i AS INTEGER
+ STATIC clip AS STRING
+ DIM old AS STRING = s
 
-DIM old AS STRING
-old = s
+ '--BACKSPACE support
+ IF keyval(scBackspace) > 1 THEN s = LEFT(s, LEN(s) - 1)
 
-'--BACKSPACE support
-IF keyval(scBackspace) > 1 AND LEN(s) > 0 THEN s = LEFT(s, LEN(s) - 1)
+ '--copy+paste support
+ IF copy_keychord() THEN clip = s
+ IF paste_keychord() THEN s = LEFT(clip, maxl)
 
-'--copy support
-IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN clip = s
-
-'--paste support
-IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN s = LEFT(clip, maxl)
-
-'--adding chars
-IF LEN(s) < maxl THEN
- IF keyval(scSpace) > 1 AND keyval(scCtrl) > 0 THEN
-  '--charlist support
-  s = s + charpicker()
- ELSE
-  'Note: never returns newlines; and we don't check either
-  s = LEFT(s + getinputtext, maxl)
+ '--adding chars
+ IF LEN(s) < maxl THEN
+  IF keyval(scSpace) > 1 AND keyval(scCtrl) > 0 THEN
+   '--charlist support
+   s = s + charpicker()
+  ELSE
+   'Note: never returns newlines; and we don't check either
+   s = LEFT(s + getinputtext, maxl)
+  END IF
  END IF
-END IF
 
-'Return true of the string has changed
-RETURN (s <> old)
-
+ RETURN (s <> old)
 END FUNCTION
 
 FUNCTION charpicker() AS STRING
@@ -3398,12 +3390,12 @@ SUB fontedit (font() AS INTEGER)
   END SELECT
   IF mode >= 0 THEN
    '--copy and paste support
-   IF (keyval(scCtrl) > 0 AND keyval(scInsert) > 1) OR ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scDelete) > 0) OR (keyval(scCtrl) > 0 AND keyval(scC) > 1) THEN
+   IF copy_keychord() THEN
     FOR i = 0 TO 63
      setbit copybuf(), 0, i, readbit(font(), 0, f(pt) * 64 + i)
     NEXT i
    END IF
-   IF ((keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0) AND keyval(scInsert) > 1) OR (keyval(scCtrl) > 0 AND keyval(scV) > 1) THEN
+   IF paste_keychord() THEN
     FOR i = 0 TO 63
      setbit font(), 0, f(pt) * 64 + i, readbit(copybuf(), 0, i)
     NEXT i
