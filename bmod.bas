@@ -145,7 +145,6 @@ FUNCTION battle (form, fatal) as integer
   END IF
   battle_animate bat, bslot()
   
-  bat.next_attacker = loopvar(bat.next_attacker, 0, 11, 1)
   IF battle_time_can_pass(bat) THEN
    battle_meters bat, bslot(), formdata()
    battle_check_delays bat, bslot()
@@ -1509,7 +1508,6 @@ SUB reset_battle_state (BYREF bat AS BattleState)
   .acting = 0
   .hero_turn = -1
   .enemy_turn = -1
-  .next_attacker = 0
   .next_hero = 0
   .next_enemy = 0
   .menu_mode = batMENUHERO
@@ -3242,21 +3240,11 @@ SUB battle_check_for_hero_turns(BYREF bat AS BattleState, bslot() AS BattleSprit
  END IF
 
  '--if it is not currently any hero's turn, check to see if anyone is alive and ready
- DIM turn_started AS INTEGER = NO
- FOR i AS INTEGER = bat.next_hero TO 3
-  IF battle_check_a_hero_turn(bat, bslot(), i) THEN
-   turn_started = YES
+ FOR i AS INTEGER = 0 TO 3
+  IF battle_check_a_hero_turn(bat, bslot(), (i + bat.next_hero) MOD 4) THEN
    EXIT FOR
   END IF
  NEXT i
- IF turn_started = NO THEN
-  FOR i AS INTEGER = 0 TO bat.next_hero - 1
-   IF battle_check_a_hero_turn(bat, bslot(), i) THEN
-    EXIT FOR
-   END IF
-  NEXT i
- END IF
- 
 END SUB
 
 FUNCTION battle_check_a_hero_turn(BYREF bat AS BattleState, bslot() AS BattleSprite, index AS INTEGER)
@@ -3273,22 +3261,11 @@ SUB battle_check_for_enemy_turns(BYREF bat AS BattleState, bslot() AS BattleSpri
  bat.next_enemy = loopvar(bat.next_enemy, 4, 11, 1)
  IF bat.enemy_turn = -1 THEN
   '--if no enemy is currently taking their turn, check to find an enemy who is ready
-
-  DIM turn_started AS INTEGER = NO
-  FOR i AS INTEGER = bat.next_enemy TO 11
-   IF battle_check_an_enemy_turn(bat, bslot(), i) THEN
-    turn_started = YES
-    EXIT FOR
-   END IF
+  DIM slot AS INTEGER = bat.next_enemy
+  FOR i AS INTEGER = 4 TO 11
+   IF battle_check_an_enemy_turn(bat, bslot(), slot) THEN EXIT FOR
+   slot = loopvar(slot, 4, 11, 1)
   NEXT i
-  IF turn_started = NO THEN
-   FOR i AS INTEGER = 4 TO bat.next_enemy - 1
-    IF battle_check_an_enemy_turn(bat, bslot(), i) THEN
-     EXIT FOR
-    END IF
-   NEXT i
-  END IF
-
  END IF
 END SUB
 

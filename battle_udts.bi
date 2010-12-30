@@ -231,7 +231,6 @@ TYPE BattleState
  enemy_turn AS INTEGER 'Enemy currently selecting an attack
  next_hero AS INTEGER  'counter that controls which ready hero will get their turn next
  next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
- next_attacker AS INTEGER 'used when checking delayed hero attacks. Prevents low-numbered heroes form always winning when two delays end on the same tick
  menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
  death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
  targ AS TargettingState
