@@ -276,6 +276,11 @@ CUSTOM = editenv.BASEXE (editname,
                          FBFLAGS = editflags,
                          source = edittmp + editsrc)
 BAM2MID = env.BASEXE ('bam2mid')
+#fbc -lang deprecated -v unlump.bas util.bas lumpfile.bas blit.o
+lumptoolflags = ['-lang', 'deprecated', '-v']
+lumptoolsrc = ['util.bas', 'lumpfile.bas', 'blit.o']
+UNLUMP = env.BASEXE ('unlump', FBFLAGS=lumptoolflags, source = ['unlump.bas'] + lumptoolsrc)
+RELUMP = env.BASEXE ('relump', FBFLAGS=lumptoolflags, source = ['relump.bas'] + lumptoolsrc)
 
 audwrap = env.Command (os.path.join ('audwrap', 'audwrap.o'),
                        os.path.join ('audwrap', 'audwrap.cpp'),
@@ -292,4 +297,5 @@ if 'native' in used_music or 'native2' in used_music:
 Default (GAME)
 Default (CUSTOM)
 Default (BAM2MID)
-
+Default (UNLUMP)
+Default (RELUMP)
