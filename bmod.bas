@@ -1631,13 +1631,15 @@ END IF
 END FUNCTION
 
 SUB herobattlebits_raw (bitbuf(), who)
- 'This loads into a bit buffer. It is used both here and in the status menu
+ 'Calculate a hero's bits after taking equipment into account (just OR together the elemental bits)
+ 'bitbuf should be dim'ed 0 TO 2
+ 'This is used both here and in the status menu
  DIM i AS INTEGER
  DIM j AS INTEGER
 
  '--native bits
- FOR i = 0 TO 4
-  bitbuf(who, i) = nativehbits(who, i)
+ FOR i = 0 TO 2
+  bitbuf(i) = nativehbits(who, i)
  NEXT i
 
  DIM itembuf(99) AS INTEGER
@@ -1646,8 +1648,8 @@ SUB herobattlebits_raw (bitbuf(), who)
  FOR j = 0 TO 4
   IF eqstuf(who, j) > 0 THEN
    loaditemdata itembuf(), eqstuf(who, j) - 1
-   FOR i = 0 TO 4
-    bitbuf(who, i) = (bitbuf(who, i) OR itembuf(70 + i))
+   FOR i = 0 TO 2
+    bitbuf(i) = (bitbuf(i) OR itembuf(70 + i))
    NEXT i
   END IF
  NEXT j
@@ -1656,20 +1658,16 @@ END SUB
 
 SUB herobattlebits (bspr AS BattleSprite, who)
 DIM i AS INTEGER
-DIM bitbuf(11, 4) AS INTEGER ' Temporary buffer for getting bits. FIXME: remove this eventually
-DIM tempbits(1) AS INTEGER  ' Temporary buffer for reading bits
+DIM bitbuf(2) AS INTEGER
 
 herobattlebits_raw bitbuf(), who
 
-'--Copy elemental bits to bspr
-tempbits(0) = bitbuf(who, 0)
-tempbits(1) = bitbuf(who, 1)
 FOR i = 0 TO 7
  WITH bspr
-  .weak(i) = xreadbit(tempbits(), i)
-  .strong(i) = xreadbit(tempbits(), 8 + i)
-  .absorb(i) = xreadbit(tempbits(), 16 + i)
-  .enemytype(i) = xreadbit(tempbits(), 24 + i)
+  .weak(i) = xreadbit(bitbuf(), i)
+  .strong(i) = xreadbit(bitbuf(), 8 + i)
+  .absorb(i) = xreadbit(bitbuf(), 16 + i)
+  .enemytype(i) = xreadbit(bitbuf(), 24 + i)
  END WITH
 NEXT i
 

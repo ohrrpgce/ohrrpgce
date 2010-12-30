@@ -347,7 +347,7 @@ FOR i = 0 TO 4
 NEXT i
 
 '---elemental bitsets
-FOR i = 0 TO 4
+FOR i = 0 TO 2
  SWAP nativehbits(s, i), nativehbits(d, i)
 NEXT i
 

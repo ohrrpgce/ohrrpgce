@@ -657,7 +657,7 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
       n = NextSibling(n)
      LOOP 
 
-     DIM bitbuf(4) AS INTEGER
+     DIM bitbuf(2) AS INTEGER
 
      ch = GetChildByName(slot, "elements")
      n = FirstChild(ch)
@@ -677,7 +677,7 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
      IF GetChildNodeExists(slot, "rename_on_status") THEN setbit bitbuf(), 0, 25, YES
      IF GetChildNodeExists(slot, "hide_empty_lists") THEN setbit bitbuf(), 0, 26, YES
 
-     FOR j = 0 TO 4
+     FOR j = 0 TO 2
       nativehbits(i, j) = bitbuf(j)
      NEXT j
 
@@ -1132,8 +1132,8 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
    END IF
   NEXT j
   
-  DIM bitbuf(4) AS INTEGER
-  FOR j AS INTEGER = 0 TO 4
+  DIM bitbuf(2) AS INTEGER
+  FOR j AS INTEGER = 0 TO 2
    bitbuf(j) = nativehbits(i, j)
   NEXT j
   
@@ -1680,10 +1680,12 @@ show_load_index z, "hbit magic", 1
 DIM nativebitmagicnum AS INTEGER = buffer(z): z = z + 1
 show_load_index z, "hbits", 1
 FOR i = 0 TO 40
- FOR o = 0 TO 4
+ FOR o = 0 TO 2
   IF nativebitmagicnum = 4444 THEN nativehbits(i, o) = buffer(z)
   z = z + 1
  NEXT o
+ '2 INTs unused (room left for future bits, how forward thinking!)
+ z += 2
 NEXT i
 'top global variable bits
 show_load_index z, "global high", 1
@@ -1731,7 +1733,7 @@ IF nativebitmagicnum <> 4444 THEN
  FOR i = 0 TO 40
   IF hero(i) > 0 THEN
    loadherodata @her, hero(i) - 1
-   FOR i = 0 TO 2 '??
+   FOR i = 0 TO 2
     nativehbits(i, i) = her.bits(i)
    NEXT i
   END IF

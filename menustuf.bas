@@ -1066,7 +1066,7 @@ RETRACE
 END SUB
 
 SUB status (pt)
-DIM mtype(5), hbits(3, 4), thishbits(4), elemtype(2) AS STRING, info(25) AS STRING
+DIM mtype(5), thishbits(2), elemtype(2) AS STRING, info(25) AS STRING
 DIM her AS HeroDef
 DIM portrait AS GraphicPair
 DIM page AS INTEGER
@@ -1078,11 +1078,6 @@ DIM level_mp_caption AS STRING = readglobalstring(160, "Level MP", 20)
 elemtype(0) = readglobalstring(127, "Weak to", 10)
 elemtype(1) = readglobalstring(128, "Strong to", 10)
 elemtype(2) = readglobalstring(129, "Absorbs", 10)
-
-'--calculate bitsets with equipment
-FOR i = 0 TO 3
- herobattlebits_raw hbits(), i
-NEXT i
 
 mode = 0
 top = 0
@@ -1218,10 +1213,8 @@ FOR i = 0 TO 5
  END IF
 NEXT i
 
-'--get this heros bits
-FOR i = 0 TO 4
- thishbits(i) = hbits(pt, i)
-NEXT i
+'--get this hero's bits, with worn equipment
+herobattlebits_raw thishbits(), pt
 
 '--build elemental strings
 lastinfo = 0
