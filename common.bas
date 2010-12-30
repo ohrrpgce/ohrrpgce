@@ -2436,6 +2436,19 @@ FUNCTION checkpassword (pass as string) as integer
  END IF
 END FUNCTION
 
+'Used for forgotten password retrieval. Move along.
+FUNCTION getpassword () as string
+ IF gen(genPassVersion) = 257 THEN
+  RETURN "Random password: " & generatepassword(gen(genPW4Hash))
+ ELSEIF gen(genPassVersion) = 256 THEN
+  RETURN read_PW3_password
+ ELSEIF gen(genVersion) >= 3 THEN
+  RETURN read_PW2_password
+ ELSE
+  RETURN read_PW1_password
+ END IF 
+END FUNCTION
+
 SUB upgrade (font())
 DIM pal16(8)
 DIM AS INTEGER i, j, o, p, y
