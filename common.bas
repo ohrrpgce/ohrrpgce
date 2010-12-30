@@ -2806,9 +2806,11 @@ END IF
 
 IF gen(genPassVersion) = 256 THEN
  '--Update PW3 to PW4
+ upgrade_message "Updating PW3 password storage format"
  writepassword read_PW3_password
 ELSEIF gen(genPassVersion) < 256 THEN
  '--At this point we know the password format is PW2 (not PW1), scattertable
+ upgrade_message "Updating PW2 password storage format"
  writepassword read_PW2_password
 
  '--Zero out PW2 scatter table
