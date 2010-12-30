@@ -1667,7 +1667,6 @@ FOR i = 0 TO 7
   .weak(i) = xreadbit(bitbuf(), i)
   .strong(i) = xreadbit(bitbuf(), 8 + i)
   .absorb(i) = xreadbit(bitbuf(), 16 + i)
-  .enemytype(i) = xreadbit(bitbuf(), 24 + i)
  END WITH
 NEXT i
 
