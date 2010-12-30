@@ -47,6 +47,7 @@ DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
 #include "editedit.bi"
 
 'Local function definitions (many of the above are local too)
+DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 
 
@@ -139,6 +140,7 @@ dpage = 1: vpage = 0
 game = ""
 sourcerpg = ""
 hsfile$ = ""
+dim passphrase as string = ""
 
 GOSUB makeworkingdir
 FOR i = 1 TO UBOUND(cmdline_args)
@@ -275,11 +277,8 @@ DO:
     show_help "gfxmain"
   END SELECT
  END IF
- IF keyval(scCTRL) > 0 THEN
-  IF keyval(scR) > 1 THEN reload_editor
-  IF keyval(scE) > 1 THEN editor_editor
-  IF keyval(scC) > 1 THEN condition_test_menu
- END IF
+ passphrase = RIGHT(passphrase + getinputtext, 4)
+ IF LCASE(passphrase) = "spam" THEN passphrase = "" : secret_menu
  usemenu pt, 0, 0, mainmax, 24
  IF enter_or_space() THEN
   SELECT CASE menumode
@@ -568,7 +567,7 @@ IF checkpassword("") THEN RETRACE
 pas$ = ""
 passcomment$ = ""
 'Uncomment to display the/a password
-passcomment$ = getpassword
+'passcomment$ = getpassword
 setkeys
 DO
  setwait 55
@@ -1087,6 +1086,30 @@ END SUB
 '=======================================================================
 'FIXME: move this up as code gets cleaned up!  (Hah!)
 OPTION EXPLICIT
+
+SUB secret_menu ()
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Condition Test"}
+ DIM st as MenuState
+ st.size = 24
+ st.last = UBOUND(menu)
+
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF enter_or_space() THEN
+   IF st.pt = 0 THEN reload_editor
+   IF st.pt = 1 THEN editor_editor
+   IF st.pt = 2 THEN condition_test_menu
+  END IF
+  usemenu st
+  clearpage vpage
+  standardmenu menu(), st, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+END SUB
 
 'This menu is for testing experimental Condition UI stuff
 SUB condition_test_menu ()
