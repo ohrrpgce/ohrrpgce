@@ -422,20 +422,21 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
   h = (ap * am) - (dp * dm)
  
   'elementals
-  FOR i AS INTEGER = 0 TO 7
+  FOR i AS INTEGER = 0 TO numElements - 1
    IF attack.elemental_damage(i) = YES THEN
-    IF target.weak(i) = YES THEN h = h * 2     'weakness
-    IF target.strong(i) = YES THEN h = h * .12 'resistance
-    IF target.absorb(i) = YES THEN cure = 1    'absorb
-   END IF
-   IF attack.monster_type_bonus(i) = YES THEN
-    IF is_enemy(t) AND target.enemytype(i) = YES THEN h = h * 1.8
+    h *= ABS(target.elementaldmg(i))
+    IF target.elementaldmg(i) < 0.0 THEN cure = 1  'absorb
    END IF
    IF attack.fail_vs_elemental(i) = YES THEN
     IF target.strong(i) = YES THEN
      target.harm.text = readglobalstring$(122, "fail", 20)
      RETURN NO
     END IF
+   END IF
+  NEXT
+  FOR i AS INTEGER = 0 TO 7
+   IF attack.monster_type_bonus(i) = YES THEN
+    IF is_enemy(t) AND target.enemytype(i) = YES THEN h = h * 1.8
    END IF
    IF attack.fail_vs_monster_type(i) = YES THEN
     IF is_enemy(t) AND target.enemytype(i) = YES THEN
@@ -1568,10 +1569,11 @@ SUB transfer_enemy_bits(slot AS INTEGER, bslot() AS BattleSprite)
    .death_unneeded = .enemy.death_unneeded
    .never_flinch = .enemy.never_flinch
    .ignore_for_alone = .enemy.ignore_for_alone
-   FOR i AS INTEGER = 0 TO 7
+   FOR i AS INTEGER = 0 TO numElements - 1
     .weak(i)      = .enemy.weak(i)
     .strong(i)    = .enemy.strong(i)
     .absorb(i)    = .enemy.absorb(i)
+    .elementaldmg(i) = backcompat_element_dmg(.enemy.weak(i), .enemy.strong(i), .enemy.absorb(i))
     .enemytype(i) = .enemy.enemytype(i)
    NEXT i
   END WITH

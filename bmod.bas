@@ -615,16 +615,9 @@ SUB battle_spawn_on_hit(targ AS INTEGER, BYREF bat AS BattleState, bslot() AS Ba
  DIM j AS INTEGER
  DIM slot AS INTEGER
  
- '--atktype holds the elementality of the currently animating attack
- DIM atktype(8) AS INTEGER
- atktype(0) = bat.atk.non_elemental
- FOR i = 0 TO 7
-  atktype(i + 1) = bat.atk.elemental(i)
- NEXT i
- 
  WITH bslot(targ)
   '--non-elemental hit
-  IF .enemy.spawn.non_elemental_hit > 0 AND atktype(0) = YES THEN
+  IF .enemy.spawn.non_elemental_hit > 0 AND bat.atk.non_elemental THEN
    FOR j = 1 TO .enemy.spawn.how_many
     slot = find_empty_enemy_slot(formdata())
     IF slot > -1 THEN
@@ -634,8 +627,8 @@ SUB battle_spawn_on_hit(targ AS INTEGER, BYREF bat AS BattleState, bslot() AS Ba
    NEXT j
    EXIT SUB '--skip further checks
   END IF
-  FOR i = 0 TO 7
-   IF .enemy.spawn.elemental_hit(i) > 0 AND atktype(i + 1) = YES THEN
+  FOR i = 0 TO numElements - 1
+   IF .enemy.spawn.elemental_hit(i) > 0 AND bat.atk.elemental(i) THEN
     FOR j = 1 TO .enemy.spawn.how_many
      slot = find_empty_enemy_slot(formdata())
      IF slot > -1 THEN
@@ -1667,6 +1660,7 @@ FOR i = 0 TO 7
   .weak(i) = xreadbit(bitbuf(), i)
   .strong(i) = xreadbit(bitbuf(), 8 + i)
   .absorb(i) = xreadbit(bitbuf(), 16 + i)
+  .elementaldmg(i) = backcompat_element_dmg(.weak(i), .strong(i), .absorb(i))
  END WITH
 NEXT i
 
@@ -2417,7 +2411,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  NEXT i
  
  bat.atk.non_elemental = YES
- FOR i = 0 TO 7
+ FOR i = 0 TO numElements - 1
   bat.atk.elemental(i) = NO
   IF attack.elemental_damage(i) = YES THEN
    bat.atk.elemental(i) = YES
@@ -3386,7 +3380,7 @@ END SUB
 SUB battle_counterattacks(BYVAL h AS INTEGER, BYVAL targstat AS INTEGER, who AS INTEGER, attack AS AttackData, bslot() AS BattleSprite)
  DIM t(11) AS INTEGER
  '--first elementals
- FOR i AS INTEGER = 0 TO 7
+ FOR i AS INTEGER = 0 TO numElements - 1
   IF attack.elemental_damage(i) THEN
    IF bslot(who).elem_counter_attack(i) > 0 THEN
     'counterattacks are forced non-blocking

@@ -124,6 +124,7 @@ DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integ
 DECLARE SUB loaditemdata (array() as integer, index as integer)
 DECLARE SUB saveitemdata (array() as integer, index as integer)
 
+DECLARE FUNCTION backcompat_element_dmg (BYVAL weak as integer, BYVAL strong as integer, BYVAL absorb as integer) as double
 DECLARE SUB loadenemydata OVERLOAD (array() as integer, index as integer, altfile as integer = 0)
 DECLARE SUB loadenemydata OVERLOAD (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
 DECLARE SUB saveenemydata OVERLOAD (array() as integer, index as integer, altfile as integer = 0)

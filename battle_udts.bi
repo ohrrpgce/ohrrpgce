@@ -65,6 +65,7 @@ TYPE BattleSprite
   vis AS INTEGER
   '--stats
   stat AS BattleStats
+  elementaldmg(maxElements - 1) AS DOUBLE
   '--level-mp
   consume_lmp AS INTEGER '0 for no LMP consumption, >= 1 to indicate which level of MP should be deducted
                          'FIXME: consume_lmp would probably be better as a member of the AttackState or AttackQueue later on.
@@ -108,9 +109,9 @@ TYPE BattleSprite
   stored_targs(11)    AS INTEGER 'YES for each stored target for ths hero/enemy, otherwise NO
   stored_targs_can_be_dead AS INTEGER
   '--Bitsets
-  weak(7)        AS INTEGER 'YES/NO for weakness to each element
-  strong(7)      AS INTEGER 'YES/NO for strength to each element
-  absorb(7)      AS INTEGER 'YES/NO to absorb each element
+  weak(maxElements - 1)   AS INTEGER 'YES/NO for weakness to each element
+  strong(maxElements - 1) AS INTEGER 'YES/NO for strength to each element
+  absorb(maxElements - 1) AS INTEGER 'YES/NO to absorb each element
   enemytype(7)   AS INTEGER 'YES/NO for membership in each enemy type
   harmed_by_cure AS INTEGER 'YES/NO
   mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
@@ -124,7 +125,7 @@ TYPE BattleSprite
   never_flinch   AS INTEGER 'YES/NO
   ignore_for_alone    AS INTEGER 'YES/NO
   '--counterattacking
-  elem_counter_attack(7) AS INTEGER
+  elem_counter_attack(maxElements - 1) AS INTEGER
   stat_counter_attack(11) AS INTEGER
   '--
   enemy AS EnemyDef '--only populated if this slot holds an enemy
@@ -141,7 +142,7 @@ TYPE AttackState
  was_id AS INTEGER        'Attack ID of the animating attack. Cleared after fulldeathcheck is finished
  '--Elementals are stored in AttackState just for the benefit of elemental spawning
  non_elemental AS INTEGER 'YES or NO
- elemental(7) AS INTEGER  'YES or NO for each element
+ elemental(maxElements - 1) AS INTEGER  'YES or NO for each element
  has_consumed_costs AS INTEGER 'YES or NO, prevents multi-hit attacks from consuming MP more than once
 END TYPE
 

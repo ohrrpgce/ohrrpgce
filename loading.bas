@@ -2402,6 +2402,13 @@ END SUB
 '                                         Enemies
 '==========================================================================================
 
+FUNCTION backcompat_element_dmg(BYVAL weak AS INTEGER, BYVAL strong AS INTEGER, BYVAL absorb AS INTEGER) AS DOUBLE
+ DIM dmg AS DOUBLE = 1.0
+ IF weak THEN dmg *= 2
+ IF strong THEN dmg *= 0.12
+ IF absorb THEN dmg = -dmg
+ RETURN dmg
+END FUNCTION
 
 SUB loadenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
  DIM filename AS STRING
