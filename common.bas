@@ -3342,7 +3342,7 @@ END SUB
 
 FUNCTION readglobalstring (index AS INTEGER, default AS STRING, maxlen AS INTEGER=10) as string
 IF index * 11 + 2 > LEN(global_strings_buffer) THEN
- RETURN DEFAULT
+ RETURN default
 ELSE
  DIM namelen AS UBYTE = global_strings_buffer[index * 11]
  IF maxlen < namelen THEN namelen = maxlen

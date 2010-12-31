@@ -194,6 +194,24 @@ FUNCTION escape_string(s AS STRING, chars AS STRING) AS STRING
  RETURN result
 END FUNCTION
 
+'Replace occurrences of a substring. Modifies 'buffer'!
+'Returns the number of replacements done. Inserted text is not eligible for further replacements.
+'Optionally limit the number of times to do with replacement by passing maxtimes; no limit if < 0
+FUNCTION replacestr (buffer as string, replacewhat as string, withwhat as string, byval maxtimes as integer = -1) as integer
+ DIM pt as integer
+ DIM count as integer
+ DIM start as integer = 1
+
+ WHILE maxtimes < 0 OR count < maxtimes
+  pt = INSTR(start, buffer, replacewhat)
+  IF pt = 0 THEN RETURN count
+  buffer = MID(buffer, 1, pt - 1) + withwhat + MID(buffer, pt + LEN(replacewhat))
+  start = pt + LEN(withwhat)
+  count += 1
+ WEND
+ RETURN count
+END FUNCTION
+
 FUNCTION exclude (s as string, x as string) as string
  DIM outf AS STRING = ""
  DIM ok AS INTEGER
