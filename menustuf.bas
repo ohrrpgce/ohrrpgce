@@ -1179,7 +1179,7 @@ DO
 
   CASE 2
    '--tigger rename
-   IF readbit(thishbits(), 0, 25) THEN
+   IF gam.hero(pt).rename_on_status THEN
     '--status-screen rename is allowed
     renamehero pt, YES
     IF carray(ccMenu) > 1 THEN EXIT DO

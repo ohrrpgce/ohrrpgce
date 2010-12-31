@@ -51,7 +51,6 @@ EXTERN exlev() as integer
 EXTERN herobits() as integer
 EXTERN itembits() as integer
 EXTERN hmask() as integer
-EXTERN nativehbits() as integer
 
 'Map state globals
 EXTERN gmap() as integer

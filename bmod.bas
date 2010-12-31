@@ -1625,14 +1625,17 @@ END FUNCTION
 
 SUB herobattlebits_raw (bitbuf(), who)
  'Calculate a hero's bits after taking equipment into account (just OR together the elemental bits)
- 'bitbuf should be dim'ed 0 TO 2
- 'This is used both here and in the status menu
+ 'bitbuf should be dim'ed 0 TO 2, who is a hero() slot number
+ 'This is used both here and in the status menu.
  DIM i AS INTEGER
  DIM j AS INTEGER
 
+ DIM her AS HeroDef
+
  '--native bits
+ loadherodata @her, hero(who) - 1
  FOR i = 0 TO 2
-  bitbuf(i) = nativehbits(who, i)
+  bitbuf(i) = her.bits(i)
  NEXT i
 
  DIM itembuf(99) AS INTEGER

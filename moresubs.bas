@@ -36,9 +36,8 @@ DECLARE SUB teleporttooltend (BYREF mini AS Frame Ptr, maptilesX() AS TileMap, t
 REM $STATIC
 
 SUB addhero (who, slot, forcelevel=-1)
-DIM wbuf(100), thishbits(4)
-
-dim her as herodef
+DIM wbuf(100)
+DIM her AS HeroDef
 
 '--load hero's data
 loadherodata @her, who - 1
@@ -98,11 +97,8 @@ FOR i = 0 TO 3
  NEXT o
 NEXT i
 
-'--elemental bitsets
-FOR i = 0 TO 2
- thishbits(i) = her.bits(i)
- nativehbits(slot, i) = her.bits(i)
-NEXT i
+'--mutable hero bits (not actually mutable)
+gam.hero(slot).rename_on_status = readbit(her.bits(), 0, 25)
 
 '--reset levelmp
 resetlmp slot, her.def_level
@@ -134,7 +130,7 @@ END WITH
 '--read hero's name (doing this last for no real reason)
 names(slot) = her.name
 '--if renaming is permitted, do it
-IF readbit(thishbits(), 0, 24) THEN
+IF readbit(her.bits(), 0, 24) THEN
  '--add-hero rename is allowed
  renamehero slot, NO
 END IF
@@ -344,11 +340,6 @@ SWAP names(s), names(d)
 '---Equipment
 FOR i = 0 TO 4
  SWAP eqstuf(s, i), eqstuf(d, i)
-NEXT i
-
-'---elemental bitsets
-FOR i = 0 TO 2
- SWAP nativehbits(s, i), nativehbits(d, i)
 NEXT i
 
 '---reload hero pictures and palettes

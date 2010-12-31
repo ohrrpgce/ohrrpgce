@@ -657,29 +657,10 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
       n = NextSibling(n)
      LOOP 
 
-     DIM bitbuf(2) AS INTEGER
+     'elements/[weak|strong|absorb] are here, but we ignore them
+     'rename_on_add and hide_empty_lists are here, but have been abandoned
 
-     ch = GetChildByName(slot, "elements")
-     n = FirstChild(ch)
-     DO WHILE n
-      j = GetInteger(n)
-      SELECT CASE NodeName(n)
-       CASE "weak":   setbit bitbuf(), 0, j, YES
-       CASE "strong": setbit bitbuf(), 0, j + 8, YES
-       CASE "absorb": setbit bitbuf(), 0, j + 16, YES
-       CASE ELSE
-        rsav_warn_wrong "weak/strong/absorb", n
-      END SELECT
-      n = NextSibling(n)
-     LOOP 
-
-     IF GetChildNodeExists(slot, "rename_on_add") THEN setbit bitbuf(), 0, 24, YES
-     IF GetChildNodeExists(slot, "rename_on_status") THEN setbit bitbuf(), 0, 25, YES
-     IF GetChildNodeExists(slot, "hide_empty_lists") THEN setbit bitbuf(), 0, 26, YES
-
-     FOR j = 0 TO 2
-      nativehbits(i, j) = bitbuf(j)
-     NEXT j
+     gam.hero(i).rename_on_status = GetChildNodeExists(slot, "rename_on_status")
 
     CASE ELSE
      rsav_warn "invalid hero party slot " & i
@@ -1132,21 +1113,10 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
    END IF
   NEXT j
   
-  DIM bitbuf(2) AS INTEGER
-  FOR j AS INTEGER = 0 TO 2
-   bitbuf(j) = nativehbits(i, j)
-  NEXT j
-  
   ch = SetChildNode(slot, "elements")
-  FOR j AS INTEGER = 0 TO 7
-   IF xreadbit(bitbuf(), j) THEN AppendChildNode(ch, "weak", j)
-   IF xreadbit(bitbuf(), 8 + j) THEN AppendChildNode(ch, "strong", j)
-   IF xreadbit(bitbuf(), 16 + j) THEN AppendChildNode(ch, "absorb", j)
-  NEXT j
+  'FIXME: Add children for elemental damage, once implemented
   
-  IF xreadbit(bitbuf(), 24) THEN SetChildNode(slot, "rename_on_add")
-  IF xreadbit(bitbuf(), 25) THEN SetChildNode(slot, "rename_on_status")
-  IF xreadbit(bitbuf(), 26) THEN SetChildNode(slot, "hide_empty_lists")
+  IF gam.hero(i).rename_on_status THEN SetChildNode(slot, "rename_on_status")
   
  NEXT i
 END SUB
@@ -1679,14 +1649,9 @@ NEXT i
 show_load_index z, "hbit magic", 1
 DIM nativebitmagicnum AS INTEGER = buffer(z): z = z + 1
 show_load_index z, "hbits", 1
-FOR i = 0 TO 40
- FOR o = 0 TO 2
-  IF nativebitmagicnum = 4444 THEN nativehbits(i, o) = buffer(z)
-  z = z + 1
- NEXT o
- '2 INTs unused (room left for future bits, how forward thinking!)
- z += 2
-NEXT i
+'Just totally ignore all the hero bits, as none of them are/were modifiable anyway;
+'nativehbits() was removed
+z += 205
 'top global variable bits
 show_load_index z, "global high", 1
 FOR i = 0 TO 1024
@@ -1714,31 +1679,22 @@ IF savver = 2 THEN gen(genVersion) = 3
 
 DIM her AS HeroDef
 
-IF picpalmagicnum <> 4444 THEN
- '--fix appearance settings
- FOR i = 0 TO 40
-  IF hero(i) > 0 THEN
-   loadherodata @her, hero(i) - 1
+FOR i = 0 TO 40
+ IF hero(i) > 0 THEN
+  loadherodata @her, hero(i) - 1
+
+  gam.hero(i).rename_on_status = readbit(her.bits(), 0, 25)
+
+  '--fix appearance settings
+  IF picpalmagicnum <> 4444 THEN
    gam.hero(i).battle_pic = her.sprite
    gam.hero(i).battle_pal = her.sprite_pal
    gam.hero(i).pic = her.walk_sprite
    gam.hero(i).pal = her.walk_sprite_pal
    gam.hero(i).def_wep = her.def_weapon + 1'default weapon
   END IF
- NEXT i
-END IF
-
-IF nativebitmagicnum <> 4444 THEN
- '--fix native hero bits
- FOR i = 0 TO 40
-  IF hero(i) > 0 THEN
-   loadherodata @her, hero(i) - 1
-   FOR i = 0 TO 2
-    nativehbits(i, i) = her.bits(i)
-   NEXT i
-  END IF
- NEXT i
-END IF
+ END IF
+NEXT i
 
 'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
 END SUB

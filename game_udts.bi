@@ -51,6 +51,7 @@ TYPE HeroState
  def_wep AS INTEGER '-default weapon
  pic AS INTEGER
  pal AS INTEGER
+ rename_on_status AS INTEGER 'Renameable in status menu
 END TYPE
 
 TYPE GameState

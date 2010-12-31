@@ -94,7 +94,7 @@ DIM txt AS TextBoxState
 DIM gen(360)
 DIM tag(127)
 
-DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40), herobits(59, 3), itembits(maxMaxItems, 3), nativehbits(40, 2)
+DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40), herobits(59, 3), itembits(maxMaxItems, 3)
 DIM eqstuf(40, 4)
 DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3)
 DIM herow(3) as GraphicPair
