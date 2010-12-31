@@ -12,6 +12,7 @@
 #include "allmodex.bi"
 #include "os.bi"
 #include "cutil.bi"
+#include "string.bi"
 
 #include "udts.bi"
 #include "scrconst.bi"
@@ -3594,6 +3595,15 @@ END FUNCTION
 FUNCTION yesorno (n AS INTEGER, yes_cap AS STRING="YES", no_cap AS STRING="NO") AS STRING
  IF n THEN RETURN yes_cap
  RETURN no_cap
+END FUNCTION
+
+'This is mostly equivalent to '(float * 100) & "%"', however it doesn't show
+'exponentials, and it rounds to 5 decimal places
+FUNCTION format_percent(float as double) as string
+ DIM repr as string = FORMAT(float * 100, "0.#####")
+ 'Unlike STR, FORMAT will add a trailing point
+ IF repr[LEN(repr) - 1] = ASC(".") THEN repr = LEFT(repr, LEN(repr) - 1)
+ RETURN repr + "%"
 END FUNCTION
 
 FUNCTION load_tag_name (index AS INTEGER) AS STRING

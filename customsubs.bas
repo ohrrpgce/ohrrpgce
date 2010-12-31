@@ -532,6 +532,75 @@ LOOP
 
 END FUNCTION
 
+'Edit a floating point value and its string representation simultaneously (repr
+'effectively stores the editing state). Initialise repr with format_percent(float)
+'Returns true if the float changed (maybe it should tell when repr changes instead?)
+'decimalplaces limits the number of decimal places allowed
+'Note: min and max are not in percent: max=1 is 100%
+FUNCTION percent_grabber(BYREF float as double, repr as string, min as double, max as double, byval decimalplaces as integer = 5) as integer
+ STATIC clip as double
+ DIM old as double = float
+
+ 'Remove negative (because we trim leading 0's later) and percentage signs
+ repr = LEFT(repr, LEN(repr) - 1)
+ DIM sign as integer = 1
+ IF LEFT(repr, 1) = "-" THEN sign = -1: repr = MID(repr, 2)
+
+ '--Textual editing. The following is very similar to strgrabber
+ IF copy_keychord() THEN clip = float
+ IF paste_keychord() THEN float = clip
+ IF keyval(scBackspace) > 1 AND LEN(repr) > 0 THEN repr = LEFT(repr, LEN(repr) - 1)
+ repr += exclusive(getinputtext, "0123456789")
+
+ IF keyval(scPeriod) > 1 THEN repr = exclude(repr, ".") + "."
+
+ 'Enforce decimal places limit
+ DIM period as integer = INSTR(repr, ".")
+ IF period THEN repr = LEFT(repr, period + decimalplaces)
+
+ 'Trim leading 0's
+ repr = LTRIM(repr, "0")
+ IF LEN(repr) = 0 ORELSE repr[0] = ASC(".") THEN repr = "0" + repr
+
+ IF sign = -1 THEN repr = "-" + repr
+
+ '--Numerical editing.
+ float = VAL(repr) / 100
+ DIM increment as double = 0.01
+ period = INSTR(repr, ".")
+ IF period THEN
+  increment *= 0.1 ^ (LEN(repr) - period)
+ END IF
+
+ DIM changed as integer = NO  'Whether to replace repr
+ IF keyval(scLeft) > 1 THEN
+  float -= increment
+  changed = YES
+ END IF
+ IF keyval(scRight) > 1 THEN
+  float += increment
+  changed = YES
+ END IF
+ IF (keyval(scMinus) > 1 OR keyval(scNumpadMinus) > 1) AND min < 0.0 THEN
+  float = -float
+  changed = YES
+ END IF
+ IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND max > 0.0 THEN
+  float = ABS(float)
+  changed = YES
+ END IF
+
+ 'Cleanup
+ DIM temp as double = float
+ float = bound(float, min, max) 
+ IF changed OR float <> temp THEN
+  repr = format_percent(float)
+ ELSE
+  repr += "%"
+ END IF
+ RETURN (old <> float) 
+END FUNCTION
+
 SUB ui_color_editor(palnum AS INTEGER)
  DIM i AS INTEGER
  DIM index AS INTEGER

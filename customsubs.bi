@@ -18,6 +18,7 @@ DECLARE FUNCTION cond_grabber (cond AS Condition, BYVAL default AS INTEGER = 0, 
 DECLARE FUNCTION condition_string (cond AS Condition, BYVAL selected AS INTEGER, default AS STRING = "Always", BYVAL wide AS INTEGER = 40) AS STRING
 DECLARE FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
 DECLARE FUNCTION charpicker() AS STRING
+DECLARE FUNCTION percent_grabber(BYREF float AS DOUBLE, repr AS STRING, min AS DOUBLE, max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 5) AS INTEGER
 DECLARE SUB ui_color_editor(palnum AS INTEGER)
 DECLARE SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
 DECLARE FUNCTION int_from_xy(pos AS XYPair, wide AS INTEGER, high AS INTEGER) AS INTEGER

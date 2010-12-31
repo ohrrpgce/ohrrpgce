@@ -1114,7 +1114,9 @@ END SUB
 'This menu is for testing experimental Condition UI stuff
 SUB condition_test_menu ()
  DIM as Condition cond1, cond2, cond3, cond4
- DIM menu(6) as string
+ DIM float as double
+ DIM float_repr as string = "0%"
+ DIM menu(7) as string
  DIM st as MenuState
  st.last = UBOUND(menu)
  st.size = 22
@@ -1136,6 +1138,8 @@ SUB condition_test_menu ()
    tmp = cond_grabber(cond3, YES, YES)
   ELSEIF st.pt = 6 THEN
    tmp = cond_grabber(cond4, NO, YES)
+  ELSEIF st.pt = 7 THEN
+   tmp = percent_grabber(float, float_repr, -9.99, 9.99)
   END IF
   usemenu st
 
@@ -1147,6 +1151,7 @@ SUB condition_test_menu ()
   menu(4) = "Enter always goes to cond editor:"
   menu(5) = " If " & condition_string(cond3, (st.pt = 5), "Always", 45)
   menu(6) = " If " & condition_string(cond4, (st.pt = 6), "Never", 45)
+  menu(7) = "percent_grabber : " & float_repr
   standardmenu menu(), st, 0, 0, vpage
   printstr STR(tmp), 0, 190, vpage
   setvispage vpage
