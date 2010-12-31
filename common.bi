@@ -116,6 +116,7 @@ DECLARE FUNCTION getheroname (hero_id AS INTEGER) AS STRING
 DECLARE FUNCTION getmenuname(record AS INTEGER) AS STRING
 DECLARE FUNCTION getmapname (m as integer) as string
 DECLARE SUB getstatnames(statnames() AS STRING)
+DECLARE SUB getelementnames(elmtnames() AS STRING)
 
 DECLARE FUNCTION getdisplayname (default as string) as string
 

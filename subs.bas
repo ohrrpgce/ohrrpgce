@@ -58,6 +58,8 @@ END SUB
 
 SUB enemydata
 
+DIM elementnames() AS STRING
+getelementnames elementnames()
 '--stat names
 DIM nof(11), elemtype(2) AS STRING
 elemtype(0) = readglobalstring$(127, "Weak to", 10)
@@ -85,9 +87,9 @@ clearallpages
 DIM ebit(64) AS STRING
 
 FOR i = 0 TO 7
- ebit(0 + i) = elemtype(0) & " " & readglobalstring(17 + i, "Element" & i+1)
- ebit(8 + i) = elemtype(1) & " " & readglobalstring(17 + i, "Element" & i+1)
- ebit(16 + i) = elemtype(2) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ebit(0 + i) = elemtype(0) & " " & elementnames(i)
+ ebit(8 + i) = elemtype(1) & " " & elementnames(i)
+ ebit(16 + i) = elemtype(2) & " " & elementnames(i)
  ebit(24 + i) = "Is " & readglobalstring(9 + i, "EnemyType" & i+1)
 NEXT i
 FOR i = 32 TO 53
@@ -352,7 +354,7 @@ menulimits(EnMenuSpawnNEHit) = EnLimSpawn
 
 CONST EnMenuSpawnElement = 34' to 41
 FOR i = 0 TO 7
- menu(EnMenuSpawnElement + i) = "on " & readglobalstring(17 + i, "Element" & i+1) & " Hit:"
+ menu(EnMenuSpawnElement + i) = "on " & elementnames(i) & " Hit:"
  menutype(EnMenuSpawnElement + i) = 9
  menuoff(EnMenuSpawnElement + i) = EnDatSpawnElement + i
  menulimits(EnMenuSpawnElement + i) = EnLimSpawn
@@ -442,7 +444,7 @@ menutype(EnMenuCursorOffset) = 1
 
 CONST EnMenuElemCtr = 67' to 74
 FOR i = 0 TO 7
- menu(EnMenuElemCtr + i) = "Counter element " & readglobalstring(17 + i, "Element" & i+1) & ":"
+ menu(EnMenuElemCtr + i) = "Counter element " & elementnames(i) & ":"
  menutype(EnMenuElemCtr + i) = 7
  menuoff(EnMenuElemCtr + i) = EnDatElemCtr + i
  menulimits(EnMenuElemCtr + i) = EnLimAtk
@@ -1149,7 +1151,7 @@ SUB drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as in
 END SUB
 
 SUB herodata
-DIM menu(9) AS STRING, bmenu(40) AS STRING, max(40), min(40), nof(12), attack(24) AS STRING, opt(10) AS STRING, hbit(-1 TO 26) AS STRING, hmenu(4) AS STRING, elemtype(2) AS STRING
+DIM menu(9) AS STRING, bmenu(40) AS STRING, max(40), min(40), nof(12), attack(24) AS STRING, opt(10) AS STRING, hbit(-1 TO 26) AS STRING, hmenu(4) AS STRING
 DIM AS HeroDef her, blankhero
 DIM st AS HeroEditState
 WITH st
@@ -1161,17 +1163,20 @@ END WITH
 hmax = 32
 leftkey = 0: rightkey = 0
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
+DIM elemtype(2) AS STRING
 elemtype(0) = readglobalstring$(127, "Weak to", 10)
 elemtype(1) = readglobalstring$(128, "Strong to", 10)
 elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
+DIM elementnames() AS STRING
+getelementnames elementnames()
 st.previewframe = -1
 
 pt = 0
 csr = 1
 FOR i = 0 TO 7
- hbit(i) = elemtype(0) & " " & readglobalstring(17 + i, "Element" & i+1)
- hbit(i + 8) = elemtype(1) & " " & readglobalstring(17 + i, "Element" & i+1)
- hbit(i + 16) = elemtype(2) & " " & readglobalstring(17 + i, "Element" & i+1)
+ hbit(i) = elemtype(0) & " " & elementnames(i)
+ hbit(i + 8) = elemtype(1) & " " & elementnames(i)
+ hbit(i + 16) = elemtype(2) & " " & elementnames(i)
 NEXT i
 hbit(24) = "Rename when added to party"
 hbit(25) = "Permit renaming on status screen"
@@ -1589,15 +1594,18 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM a(99), menu(20) AS STRING, bmenu(40) AS STRING, nof(12), ibit(-1 TO 59) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), elemtype(2) AS STRING, frame
+DIM a(99), menu(20) AS STRING, bmenu(40) AS STRING, nof(12), ibit(-1 TO 59) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), frame
 DIM item(maxMaxItems) AS STRING
 DIM wep_img AS GraphicPair 'This is only used in edititem
 DIM box_preview AS STRING = "" 'This is only used in edititem
 imax = 32
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
+DIM elemtype(2) AS STRING
 elemtype(0) = readglobalstring$(127, "Weak to", 10)
 elemtype(1) = readglobalstring$(128, "Strong to", 10)
 elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
+DIM elementnames() AS STRING
+getelementnames elementnames()
 
 eqst(0) = "NEVER EQUIPPED"
 eqst(1) = "Weapon"
@@ -1858,9 +1866,9 @@ RETRACE
 
 ibitset:
 FOR i = 0 TO 7
- ibit(i) = elemtype(0) & " " & readglobalstring(17 + i, "Element" & i+1)
- ibit(i + 8) = elemtype(1) & " " & readglobalstring(17 + i, "Element" & i+1)
- ibit(i + 16) = elemtype(2) & " " & readglobalstring(17 + i, "Element" & i+1)
+ ibit(i) = elemtype(0) & " " & elementnames(i)
+ ibit(i + 8) = elemtype(1) & " " & elementnames(i)
+ ibit(i + 16) = elemtype(2) & " " & elementnames(i)
 NEXT i
 editbitset a(), 70, 23, ibit()
 RETRACE

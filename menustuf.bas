@@ -1078,6 +1078,8 @@ DIM level_mp_caption AS STRING = readglobalstring(160, "Level MP", 20)
 elemtype(0) = readglobalstring(127, "Weak to", 10)
 elemtype(1) = readglobalstring(128, "Strong to", 10)
 elemtype(2) = readglobalstring(129, "Absorbs", 10)
+DIM elementnames() AS STRING
+getelementnames elementnames()
 
 mode = 0
 top = 0
@@ -1221,7 +1223,7 @@ lastinfo = 0
 FOR o = 0 TO 2
  FOR i = 0 TO 7
   IF readbit(thishbits(), 0, i + o * 8) THEN
-   info(lastinfo) = elemtype(o) & " " & readglobalstring(17 + i, "Type" & i+1)
+   info(lastinfo) = elemtype(o) & " " & elementnames(i)
    lastinfo = lastinfo + 1
   END IF
  NEXT i

@@ -39,6 +39,9 @@ SUB attackdata
 clearallpages
 DIM i AS INTEGER
 
+DIM elementnames() AS STRING
+getelementnames elementnames()
+
 '--bitsets
 
 DIM atkbit(-1 TO 128) AS STRING
@@ -50,9 +53,9 @@ atkbit(3) = "Unreversable Picture"
 atkbit(4) = "Steal Item"
 
 FOR i = 0 TO 7
- atkbit(i + 5) = readglobalstring(17 + i, "Elemental" & i+1) & " Damage" '05-12
+ atkbit(i + 5) = elementnames(i) & " Damage" '05-12
  atkbit(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
- atkbit(i + 21) = "Fail vs " & readglobalstring(17 + i, "Elemental" & i+1) & " resistance" '21-28
+ atkbit(i + 21) = elementnames(i) & " resistance" '21-28
  atkbit(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
 NEXT i
 

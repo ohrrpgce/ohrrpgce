@@ -4226,6 +4226,13 @@ SUB getstatnames(statnames() AS STRING)
  statnames(11) = readglobalstring(4, "HitX")
 END SUB
 
+SUB getelementnames(elmtnames() AS STRING)
+ REDIM elmtnames(7)
+ FOR i as integer = 0 TO 7
+  elmtnames(i) = readglobalstring(17 + i, "Element" & i+1)
+ NEXT
+END SUB
+
 SUB writebinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER)
  DIM s AS STRING
 
