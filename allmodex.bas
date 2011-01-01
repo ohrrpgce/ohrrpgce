@@ -3588,6 +3588,11 @@ function frame_load(byval ptno as integer, byval rec as integer) as frame ptr
 	dim ret as Frame ptr
 	dim key as integer = ptno * 1000000 + rec
 
+	if ptno < 0 or rec < 0 then
+		debug "frame_load: invalid ptno=" & ptno & " and rec=" & rec
+		return 0
+	end if
+
 	ret = sprite_fetch_from_cache(key)
 	if ret then return ret
 

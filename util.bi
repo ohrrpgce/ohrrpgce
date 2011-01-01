@@ -219,7 +219,7 @@ TYPE CompareFn as function(byval as any ptr, byval as any ptr) as integer
 'if we had classes, then this would work well as a template, but it's pointless at the moment
 TYPE HashTable
   numitems as integer
-  tablesize as integer
+  tablesize as unsigned integer
   table as any ptr ptr
   'arguments to comparefunc are (byval as TypeContainingHashedItem ptr, byval as KeyType ptr)
   comparefunc as CompareFn
@@ -235,7 +235,7 @@ declare sub hash_destruct(byref this as HashTable)
 'Pass an object containing HashedItem member with .hash already set
 declare sub hash_add(byref this as HashTable, byval item as any ptr)
 declare sub hash_remove(byref this as HashTable, byval item as any ptr)
-declare function hash_find(byref this as HashTable, byval hash as integer, byval key as any ptr = NULL) as any ptr
+declare function hash_find(byref this as HashTable, byval hash as unsigned integer, byval key as any ptr = NULL) as any ptr
 
 'to iterate over a hash table, dim state as integer = 0 and object pointer = NULL and
 'pass to hash_iter until item = NULL. Returns item.

@@ -1201,7 +1201,7 @@ SUB hash_remove(byref this as HashTable, byval item as any ptr)
   this.numitems -= 1
 END SUB
 
-FUNCTION hash_find(byref this as HashTable, byval hash as integer, byval key as any ptr = NULL) as any ptr
+FUNCTION hash_find(byref this as HashTable, byval hash as unsigned integer, byval key as any ptr = NULL) as any ptr
   dim bucket as HashedItem ptr ptr
   dim it as HashedItem ptr
   
