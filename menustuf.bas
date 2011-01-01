@@ -570,8 +570,6 @@ FOR i AS INTEGER = 0 to 11
 NEXT i
 herobattlebits target, t
 
-'FIXME: populate elemental bits here
-
 inflict(0, 1, attacker, target, attack, spred)
 
 '--copy back stats that need copying back
@@ -1065,8 +1063,29 @@ RETRACE
 
 END SUB
 
+'Format one of the strings on the second Status menu screen
+FUNCTION hero_elemental_resist_msg (element AS STRING, damage AS DOUBLE) AS STRING
+ DIM raw AS STRING
+ IF damage < 0.0 THEN
+  raw = readglobalstring(171, "Absorbs $A damage from $E", 30)
+ ELSEIF damage = 0.0 THEN
+  raw = readglobalstring(168, "Immune to $E", 30)
+ ELSEIF damage < 1.0 THEN
+  raw = readglobalstring(165, "$D damage from $E", 30)
+ ELSEIF damage > 1.0 THEN
+  raw = readglobalstring(162, "$D damage from $E", 30)
+ END IF
+ 'No message for
+ replacestr raw, "$E", element
+ replacestr raw, "$D", format_percent(damage, 1)
+ replacestr raw, "$X", format_percent(damage - 1.0, 1)
+ replacestr raw, "$R", format_percent(1.0 - damage, 1)
+ replacestr raw, "$A", format_percent(-damage, 1)
+ RETURN raw
+END FUNCTION
+
 SUB status (pt)
-DIM mtype(5), thishbits(2), elemtype(2) AS STRING, info(25) AS STRING
+DIM mtype(5)
 DIM her AS HeroDef
 DIM portrait AS GraphicPair
 DIM page AS INTEGER
@@ -1075,17 +1094,17 @@ DIM holdscreen AS INTEGER
 DIM exper_caption AS STRING = readglobalstring(33, "Experience", 10)
 DIM level_caption AS STRING = readglobalstring(43, "Level", 10)
 DIM level_mp_caption AS STRING = readglobalstring(160, "Level MP", 20)
-elemtype(0) = readglobalstring(127, "Weak to", 10)
-elemtype(1) = readglobalstring(128, "Strong to", 10)
-elemtype(2) = readglobalstring(129, "Absorbs", 10)
+
+DIM elementalmenu() AS STRING
+DIM elementalmenu_st AS MenuState
 DIM elementnames() AS STRING
 getelementnames elementnames()
 
-mode = 0
-top = 0
-lastinfo = 0
+DIM elementaldmg() AS DOUBLE, thishbits(2) AS INTEGER
 
-GOSUB nextstat
+mode = 0
+
+GOSUB buildmenu
 '--Preserve background for display under status menu
 page = compatpage
 holdscreen = allocatepage
@@ -1101,10 +1120,8 @@ DO
  control
  IF carray(ccMenu) > 1 THEN EXIT DO
  IF carray(ccUse) > 1 THEN mode = loopvar(mode, 0, 2, 1): menusound gen(genCursorSFX)
- IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB nextstat
- IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB nextstat
- IF carray(ccUp) > 1 THEN top = large(top - 1, 0): menusound gen(genCursorSFX)
- IF carray(ccDown) > 1 THEN top = small(top + 1, large(0, lastinfo - 11)): menusound gen(genCursorSFX)
+ IF carray(ccLeft) > 1 THEN DO: pt = loopvar(pt, 0, 3, -1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB buildmenu
+ IF carray(ccRight) > 1 THEN DO: pt = loopvar(pt, 0, 3, 1): LOOP UNTIL hero(pt) > 0: menusound gen(genCursorSFX): GOSUB buildmenu
 
  centerfuz 160, 100, 304, 184, 1, page
  centerbox 160, 36, 292, 40, 4, page
@@ -1171,11 +1188,18 @@ DO
    '--gold
    edgeprint gold & " " & readglobalstring(32, "Money"), 236 - LEN(gold & " " & readglobalstring(32, "Money")) * 4, 167, uilook(uiGold), page
   CASE 1
-
    '--show elementals
-   FOR i = 0 TO 10
-    IF top + i <= 25 THEN edgeprint info(top + i), 20, 62 + i * 10, uilook(uiText), page
-   NEXT i
+
+   WITH elementalmenu_st
+    usemenusounds
+    scrollmenu elementalmenu_st
+
+    FOR i = 0 TO .size
+     IF .top + i <= .last THEN
+      edgeprint elementalmenu(.top + i), 20, 62 + i * 10, uilook(uiText), page
+     END IF
+    NEXT i
+   END WITH
 
   CASE 2
    '--tigger rename
@@ -1202,7 +1226,7 @@ FOR t = 4 TO 5
 NEXT t
 EXIT SUB
 
-nextstat: '--loads the hero who's ID is held in pt
+buildmenu: '--loads the hero whose slot is held in pt
 '--load the hero data lump only to get the spell list types
 'loadherodata buffer(), hero(pt) - 1
 loadherodata @her, hero(pt) - 1
@@ -1215,24 +1239,29 @@ FOR i = 0 TO 5
  END IF
 NEXT i
 
-'--get this hero's bits, with worn equipment
+'--get this hero's elemental resists, with worn equipment
 herobattlebits_raw thishbits(), pt
+'temporary glue code
+REDIM elementaldmg(numElements - 1)
+FOR i = 0 TO numElements - 1
+ elementaldmg(i) = backcompat_element_dmg(xreadbit(thishbits(), i), xreadbit(thishbits(), 8 + i), xreadbit(thishbits(), 16 + i))
+NEXT
 
 '--build elemental strings
-lastinfo = 0
-FOR o = 0 TO 2
- FOR i = 0 TO 7
-  IF readbit(thishbits(), 0, i + o * 8) THEN
-   info(lastinfo) = elemtype(o) & " " & elementnames(i)
-   lastinfo = lastinfo + 1
-  END IF
- NEXT i
-NEXT o
-IF lastinfo = 0 THEN info(lastinfo) = readglobalstring$(130, "No Elemental Effects", 30): lastinfo = lastinfo + 1
+REDIM elementalmenu(-1 TO -1)
+FOR i = 0 TO numElements - 1
+ DIM msg AS STRING = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
+ IF LEN(msg) THEN str_array_append elementalmenu(), msg
+NEXT
 
-FOR i = lastinfo TO 25
- info(i) = ""
-NEXT i
+'Well, if you set some blank global text strings, you could get this message
+'even if not everything is level, but that's a bonus.
+IF UBOUND(elementalmenu) = -1 THEN str_array_append elementalmenu(), readglobalstring$(130, "No Elemental Effects", 30)
+
+WITH elementalmenu_st
+ .last = UBOUND(elementalmenu)
+ .size = 10
+END WITH
 
 IF portrait.sprite THEN frame_unload @portrait.sprite
 IF portrait.pal    THEN palette16_unload @portrait.pal

@@ -2772,7 +2772,7 @@ FUNCTION sublist (s() AS STRING, helpkey AS STRING="", BYVAL x AS INTEGER=0, BYV
  LOOP
 END FUNCTION
 
-CONST GTSnumitems = 123
+CONST GTSnumitems = 124
 
 TYPE GlobalTextStringsMenu
  index(GTSnumitems) AS INTEGER
@@ -2790,7 +2790,7 @@ PRIVATE SUB GTS_add_to_menu (menu as GlobalTextStringsMenu, description as strin
   .description(.curitem) = description
   .text(.curitem) = readglobalstring(index, default, maxlen)
   .maxlen(.curitem) = maxlen
-  .help(.curitem) = helpfile
+  IF LEN(helpfile) THEN .help(.curitem) = "globalstring_" + helpfile
   .curitem += 1
  END WITH
 END SUB
@@ -2807,119 +2807,125 @@ SUB edit_global_text_strings()
 
  menu.description(-1) = "Back to Previous Menu"
 
- GTS_add_to_menu menu, "Health Points",            0, "HP", 10
- GTS_add_to_menu menu, "Spell Points",             1, "MP", 10
- GTS_add_to_menu menu, "Attack Power",             2, "Attack", 10
- GTS_add_to_menu menu, "Accuracy",                 3, "Accuracy", 10
- GTS_add_to_menu menu, "Extra Hits",               4, "Hits", 10
- GTS_add_to_menu menu, "Blocking Power",           5, "Blocking", 10
- GTS_add_to_menu menu, "Dodge Rate",               6, "Dodge", 10
- GTS_add_to_menu menu, "Counter Rate",             7, "Counter", 10
- GTS_add_to_menu menu, "Speed",                    8, "Speed", 10
+ GTS_add_to_menu menu, "Health Points",              0, "HP", 10
+ GTS_add_to_menu menu, "Spell Points",               1, "MP", 10
+ GTS_add_to_menu menu, "Attack Power",               2, "Attack", 10
+ GTS_add_to_menu menu, "Accuracy",                   3, "Accuracy", 10
+ GTS_add_to_menu menu, "Extra Hits",                 4, "Hits", 10
+ GTS_add_to_menu menu, "Blocking Power",             5, "Blocking", 10
+ GTS_add_to_menu menu, "Dodge Rate",                 6, "Dodge", 10
+ GTS_add_to_menu menu, "Counter Rate",               7, "Counter", 10
+ GTS_add_to_menu menu, "Speed",                      8, "Speed", 10
  FOR i AS INTEGER = 1 TO 4
-  GTS_add_to_menu menu, "Armor " & i,               24 + i, "Armor " & i, 10
+  GTS_add_to_menu menu, "Armor " & i,                 24 + i, "Armor " & i, 10
  NEXT i
- GTS_add_to_menu menu, "Spell Skill",              29, "SpellSkill", 10
- GTS_add_to_menu menu, "Spell Block",              30, "SpellBlock", 10
- GTS_add_to_menu menu, "Spell cost %",             31, "SpellCost%", 10
- GTS_add_to_menu menu, "Money",                    32, "Money", 10
- GTS_add_to_menu menu, "Experience",               33, "Experience", 10
- GTS_add_to_menu menu, "Battle Item Menu",         34, "Item", 10
- GTS_add_to_menu menu, "Exit Item Menu",           35, "DONE", 10
- GTS_add_to_menu menu, "Sort Item Menu",           36, "AUTOSORT", 10
- GTS_add_to_menu menu, "Drop Item",                37, "TRASH", 10
- GTS_add_to_menu menu, "Weapon",                   38, "Weapon", 10
- GTS_add_to_menu menu, "Unequip All",              39, "-REMOVE-", 8
- GTS_add_to_menu menu, "Exit Equip",               40, "-EXIT-", 8
- GTS_add_to_menu menu, "Drop Prompt",              41, "Discard", 10
- GTS_add_to_menu menu, "Negative Drop Prefix",     42, "Cannot", 10
- GTS_add_to_menu menu, "Level",                    43, "Level", 10
- GTS_add_to_menu menu, "Overwrite Save Yes",       44, "Yes", 10
- GTS_add_to_menu menu, "Overwrite Save No",        45, "No", 10
- GTS_add_to_menu menu, "Exit Spell List Menu",     46, "EXIT", 10
- GTS_add_to_menu menu, "(exp) for next (level)",   47, "for next", 10
- GTS_add_to_menu menu, "Remove Hero from Team",    48, "REMOVE", 10
- GTS_add_to_menu menu, "Pay at Inn",               49, "Pay", 10
- GTS_add_to_menu menu, "Cancel Inn",               50, "Cancel", 10
- GTS_add_to_menu menu, "Cancel Spell Menu",        51, "(CANCEL)", 10
- GTS_add_to_menu menu, "New Game",                 52, "NEW GAME", 10
- GTS_add_to_menu menu, "Exit Game",                53, "EXIT", 10
- GTS_add_to_menu menu, "Pause",                    54, "PAUSE", 10
- GTS_add_to_menu menu, "Quit Playing Prompt",      55, "Quit Playing?", 20
- GTS_add_to_menu menu, "Quit Playing Yes",         57, "Yes", 10
- GTS_add_to_menu menu, "Quit Playing No",          58, "No", 10
- GTS_add_to_menu menu, "Cancel Save",              59, "CANCEL", 10
- GTS_add_to_menu menu, "Menu: Items",              60, "Items", 10
- GTS_add_to_menu menu, "Menu: Spells",             61, "Spells", 10
- GTS_add_to_menu menu, "Menu: Status",             62, "Status", 10
- GTS_add_to_menu menu, "Menu: Equip",              63, "Equip", 10
- GTS_add_to_menu menu, "Menu: Order",              64, "Order", 10
- GTS_add_to_menu menu, "Menu: Team",               65, "Team", 10
- GTS_add_to_menu menu, "Menu: Save",               66, "Save", 10
- GTS_add_to_menu menu, "Menu: Quit",               67, "Quit", 10
- GTS_add_to_menu menu, "Menu: Minimap",            68, "Map", 10
- GTS_add_to_menu menu, "Volume Control",           69, "Volume", 10
- GTS_add_to_menu menu, "Shop Menu: Buy",           70, "Buy", 10
- GTS_add_to_menu menu, "Shop Menu: Sell",          71, "Sell", 10
- GTS_add_to_menu menu, "Shop Menu: Inn",           72, "Inn", 10
- GTS_add_to_menu menu, "Shop Menu: Hire",          73, "Hire", 10
- GTS_add_to_menu menu, "Shop Menu: Exit",          74, "Exit", 10
- GTS_add_to_menu menu, "Unsellable item warning",  75, "CANNOT SELL", 20
- GTS_add_to_menu menu, "Sell value prefix",        77, "Worth", 20
- GTS_add_to_menu menu, "Sell trade prefix",        79, "Trade for", 20
- GTS_add_to_menu menu, "($) and a (item)",         81, "and a", 10
- GTS_add_to_menu menu, "Worthless item warning",   82, "Worth Nothing", 20
- GTS_add_to_menu menu, "Sell alert",               84, "Sold", 10
- GTS_add_to_menu menu, "Buy trade prefix",         85, "Trade for", 20
- GTS_add_to_menu menu, "Hire price prefix",        87, "Joins for", 20
- GTS_add_to_menu menu, "Cannot buy prefix",        89, "Cannot Afford", 20
- GTS_add_to_menu menu, "Cannot hire prefix",       91, "Cannot Hire", 20
- GTS_add_to_menu menu, "Buy alert",                93, "Purchased", 20
- GTS_add_to_menu menu, "Hire alert (suffix)",      95, "Joined!", 20
- GTS_add_to_menu menu, "(#) in stock",             97, "in stock", 20
- GTS_add_to_menu menu, "Equipability prefix",      99, "Equip:", 10
- GTS_add_to_menu menu, "Party full warning",       100, "No Room In Party", 20
- GTS_add_to_menu menu, "Replace Save Prompt",      102, "Replace Old Data?", 20
- GTS_add_to_menu menu, "Status Prompt",            104, "Who's Status?", 20
- GTS_add_to_menu menu, "Spells Prompt",            106, "Who's Spells?", 20
- GTS_add_to_menu menu, "Equip Prompt",             108, "Equip Who?", 20
- GTS_add_to_menu menu, "Equip Nothing (unequip)",  110, "Nothing", 10
- GTS_add_to_menu menu, "Nothing to Steal",         111, "Has Nothing", 30
- GTS_add_to_menu menu, "Steal Failure",            114, "Cannot Steal", 30
- GTS_add_to_menu menu, "Stole (itemname)",         117, "Stole", 30
- GTS_add_to_menu menu, "When an Attack Misses",    120, "miss", 20
- GTS_add_to_menu menu, "When a Spell Fails",       122, "fail", 20
- GTS_add_to_menu menu, "(hero) learned (spell)",   124, "learned", 10
- GTS_add_to_menu menu, "Found (gold)",             125, "Found", 10
- GTS_add_to_menu menu, "Gained (experience)",      126, "Gained", 10
- GTS_add_to_menu menu, "Weak to (elemental)",      127, "Weak to", 10
- GTS_add_to_menu menu, "Strong to (elemental)",    128, "Strong to", 10
- GTS_add_to_menu menu, "Absorbs (elemental)",      129, "Absorbs", 10
- GTS_add_to_menu menu, "No Elemental Effects",     130, "No Elemental Effects", 30
- GTS_add_to_menu menu, "(hero) has no spells",     133, "has no spells", 20
- GTS_add_to_menu menu, "Plotscript: pick hero",    135, "Which Hero?", 20
- GTS_add_to_menu menu, "Hero name prompt",         137, "Name the Hero", 20
- GTS_add_to_menu menu, "Found a (item)",           139, "Found a", 20
- GTS_add_to_menu menu, "Found (number) (items)",   141, "Found", 20
- GTS_add_to_menu menu, "THE INN COSTS (# gold)",   143, "THE INN COSTS", 20
- GTS_add_to_menu menu, "You have (# gold)",        145, "You have", 20
- GTS_add_to_menu menu, "CANNOT RUN!",              147, "CANNOT RUN!", 20
- GTS_add_to_menu menu, "Level up for (hero)",      149, "Level up for", 20
- GTS_add_to_menu menu, "(#) levels for (hero)",    151, "levels for", 20
- GTS_add_to_menu menu, "($) and (number) (item)",  153, "and", 10
- GTS_add_to_menu menu, "day",                      154, "day", 10
- GTS_add_to_menu menu, "days",                     155, "days", 10
- GTS_add_to_menu menu, "hour",                     156, "hour", 10
- GTS_add_to_menu menu, "hours",                    157, "hours", 10
- GTS_add_to_menu menu, "minute",                   158, "minute", 10
- GTS_add_to_menu menu, "minutes",                  159, "minutes", 10
- GTS_add_to_menu menu, "Level MP",                 160, "Level MP", 20
+ GTS_add_to_menu menu, "Spell Skill",                29, "SpellSkill", 10
+ GTS_add_to_menu menu, "Spell Block",                30, "SpellBlock", 10
+ GTS_add_to_menu menu, "Spell cost %",               31, "SpellCost%", 10
+ GTS_add_to_menu menu, "Money",                      32, "Money", 10
+ GTS_add_to_menu menu, "Experience",                 33, "Experience", 10
+ GTS_add_to_menu menu, "Battle Item Menu",           34, "Item", 10
+ GTS_add_to_menu menu, "Exit Item Menu",             35, "DONE", 10
+ GTS_add_to_menu menu, "Sort Item Menu",             36, "AUTOSORT", 10
+ GTS_add_to_menu menu, "Drop Item",                  37, "TRASH", 10
+ GTS_add_to_menu menu, "Weapon",                     38, "Weapon", 10
+ GTS_add_to_menu menu, "Unequip All",                39, "-REMOVE-", 8
+ GTS_add_to_menu menu, "Exit Equip",                 40, "-EXIT-", 8
+ GTS_add_to_menu menu, "Drop Prompt",                41, "Discard", 10
+ GTS_add_to_menu menu, "Negative Drop Prefix",       42, "Cannot", 10
+ GTS_add_to_menu menu, "Level",                      43, "Level", 10
+ GTS_add_to_menu menu, "Overwrite Save Yes",         44, "Yes", 10
+ GTS_add_to_menu menu, "Overwrite Save No",          45, "No", 10
+ GTS_add_to_menu menu, "Exit Spell List Menu",       46, "EXIT", 10
+ GTS_add_to_menu menu, "(exp) for next (level)",     47, "for next", 10
+ GTS_add_to_menu menu, "Remove Hero from Team",      48, "REMOVE", 10
+ GTS_add_to_menu menu, "Pay at Inn",                 49, "Pay", 10
+ GTS_add_to_menu menu, "Cancel Inn",                 50, "Cancel", 10
+ GTS_add_to_menu menu, "Cancel Spell Menu",          51, "(CANCEL)", 10
+ GTS_add_to_menu menu, "New Game",                   52, "NEW GAME", 10
+ GTS_add_to_menu menu, "Exit Game",                  53, "EXIT", 10
+ GTS_add_to_menu menu, "Pause",                      54, "PAUSE", 10
+ GTS_add_to_menu menu, "Quit Playing Prompt",        55, "Quit Playing?", 20
+ GTS_add_to_menu menu, "Quit Playing Yes",           57, "Yes", 10
+ GTS_add_to_menu menu, "Quit Playing No",            58, "No", 10
+ GTS_add_to_menu menu, "Cancel Save",                59, "CANCEL", 10
+ GTS_add_to_menu menu, "Menu: Items",                60, "Items", 10
+ GTS_add_to_menu menu, "Menu: Spells",               61, "Spells", 10
+ GTS_add_to_menu menu, "Menu: Status",               62, "Status", 10
+ GTS_add_to_menu menu, "Menu: Equip",                63, "Equip", 10
+ GTS_add_to_menu menu, "Menu: Order",                64, "Order", 10
+ GTS_add_to_menu menu, "Menu: Team",                 65, "Team", 10
+ GTS_add_to_menu menu, "Menu: Save",                 66, "Save", 10
+ GTS_add_to_menu menu, "Menu: Quit",                 67, "Quit", 10
+ GTS_add_to_menu menu, "Menu: Minimap",              68, "Map", 10
+ GTS_add_to_menu menu, "Volume Control",             69, "Volume", 10
+ GTS_add_to_menu menu, "Shop Menu: Buy",             70, "Buy", 10
+ GTS_add_to_menu menu, "Shop Menu: Sell",            71, "Sell", 10
+ GTS_add_to_menu menu, "Shop Menu: Inn",             72, "Inn", 10
+ GTS_add_to_menu menu, "Shop Menu: Hire",            73, "Hire", 10
+ GTS_add_to_menu menu, "Shop Menu: Exit",            74, "Exit", 10
+ GTS_add_to_menu menu, "Unsellable item warning",    75, "CANNOT SELL", 20
+ GTS_add_to_menu menu, "Sell value prefix",          77, "Worth", 20
+ GTS_add_to_menu menu, "Sell trade prefix",          79, "Trade for", 20
+ GTS_add_to_menu menu, "($) and a (item)",           81, "and a", 10
+ GTS_add_to_menu menu, "Worthless item warning",     82, "Worth Nothing", 20
+ GTS_add_to_menu menu, "Sell alert",                 84, "Sold", 10
+ GTS_add_to_menu menu, "Buy trade prefix",           85, "Trade for", 20
+ GTS_add_to_menu menu, "Hire price prefix",          87, "Joins for", 20
+ GTS_add_to_menu menu, "Cannot buy prefix",          89, "Cannot Afford", 20
+ GTS_add_to_menu menu, "Cannot hire prefix",         91, "Cannot Hire", 20
+ GTS_add_to_menu menu, "Buy alert",                  93, "Purchased", 20
+ GTS_add_to_menu menu, "Hire alert (suffix)",        95, "Joined!", 20
+ GTS_add_to_menu menu, "(#) in stock",               97, "in stock", 20
+ GTS_add_to_menu menu, "Equipability prefix",        99, "Equip:", 10
+ GTS_add_to_menu menu, "Party full warning",         100, "No Room In Party", 20
+ GTS_add_to_menu menu, "Replace Save Prompt",        102, "Replace Old Data?", 20
+ GTS_add_to_menu menu, "Status Prompt",              104, "Who's Status?", 20
+ GTS_add_to_menu menu, "Spells Prompt",              106, "Who's Spells?", 20
+ GTS_add_to_menu menu, "Equip Prompt",               108, "Equip Who?", 20
+ GTS_add_to_menu menu, "Equip Nothing (unequip)",    110, "Nothing", 10
+ GTS_add_to_menu menu, "Nothing to Steal",           111, "Has Nothing", 30
+ GTS_add_to_menu menu, "Steal Failure",              114, "Cannot Steal", 30
+ GTS_add_to_menu menu, "Stole (itemname)",           117, "Stole", 30
+ GTS_add_to_menu menu, "When an Attack Misses",      120, "miss", 20
+ GTS_add_to_menu menu, "When a Spell Fails",         122, "fail", 20
+ GTS_add_to_menu menu, "(hero) learned (spell)",     124, "learned", 10
+ GTS_add_to_menu menu, "Found (gold)",               125, "Found", 10
+ GTS_add_to_menu menu, "Gained (experience)",        126, "Gained", 10
+ GTS_add_to_menu menu, "(hero) has no spells",       133, "has no spells", 20
+ GTS_add_to_menu menu, "Plotscript: pick hero",      135, "Which Hero?", 20
+ GTS_add_to_menu menu, "Hero name prompt",           137, "Name the Hero", 20
+ GTS_add_to_menu menu, "Found a (item)",             139, "Found a", 20
+ GTS_add_to_menu menu, "Found (number) (items)",     141, "Found", 20
+ GTS_add_to_menu menu, "THE INN COSTS (# gold)",     143, "THE INN COSTS", 20
+ GTS_add_to_menu menu, "You have (# gold)",          145, "You have", 20
+ GTS_add_to_menu menu, "CANNOT RUN!",                147, "CANNOT RUN!", 20
+ GTS_add_to_menu menu, "Level up for (hero)",        149, "Level up for", 20
+ GTS_add_to_menu menu, "(#) levels for (hero)",      151, "levels for", 20
+ GTS_add_to_menu menu, "($) and (number) (item)",    153, "and", 10
+ GTS_add_to_menu menu, "day",                        154, "day", 10
+ GTS_add_to_menu menu, "days",                       155, "days", 10
+ GTS_add_to_menu menu, "hour",                       156, "hour", 10
+ GTS_add_to_menu menu, "hours",                      157, "hours", 10
+ GTS_add_to_menu menu, "minute",                     158, "minute", 10
+ GTS_add_to_menu menu, "minutes",                    159, "minutes", 10
+ GTS_add_to_menu menu, "Level MP",                   160, "Level MP", 20
+' GTS_add_to_menu menu, "Weak to (elemental)",        127, "Weak to", 10
+' GTS_add_to_menu menu, "Strong to (elemental)",      128, "Strong to", 10
+' GTS_add_to_menu menu, "Absorbs (elemental)",        129, "Absorbs", 10
+ GTS_add_to_menu menu, "Takes > 100% element dmg",   162, "$D damage from $E", 25,          "elemental_resist"
+ GTS_add_to_menu menu, "Takes 0 to 100% element dmg",165, "$D damage from $E", 25,          "elemental_resist"
+ GTS_add_to_menu menu, "Takes 0% element dmg",       168, "Immune to $E", 25,               "elemental_resist"
+ GTS_add_to_menu menu, "Takes < 0% element dmg",     171, "Absorbs $A damage from $E", 25,  "elemental_resist"
+ GTS_add_to_menu menu, "No Elemental Effects",       130, "No Elemental Effects", 30
  FOR i AS INTEGER = 1 TO 8
-  GTS_add_to_menu menu, "Elemental " & i,           16 + i, "Elemental" & i, 10, "elspecial"
+  GTS_add_to_menu menu, "Elemental " & i,             16 + i, "Elemental" & i, 10
  NEXT i
  FOR i AS INTEGER = 1 TO 8
-  GTS_add_to_menu menu, "Enemy Type " & i,          8 + i, "EnemyType" & i, 10
+  GTS_add_to_menu menu, "Enemy Type " & i,            8 + i, "EnemyType" & i, 10
  NEXT i
+
+ '**** next unused index is 174
 
  IF menu.curitem <> GTSnumitems + 1 THEN fatalerror "GTSnumitems too large"
 

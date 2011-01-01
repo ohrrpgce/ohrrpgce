@@ -253,6 +253,21 @@ WITH state
 END WITH
 END FUNCTION
 
+'scrollmenu is like usemenu for menus where no menu item is selected:
+'you just want to scroll a menu up and down (modifies .top; .pt is ignored).
+FUNCTION scrollmenu (state AS MenuState, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
+ WITH state
+  DIM oldtop as integer = .top
+  DIM lasttop as integer = large(.first, .last - .size)
+  IF keyval(deckey) > 1 THEN .top = loopvar(.top, .first, lasttop, -1)
+  IF keyval(inckey) > 1 THEN .top = loopvar(.top, .first, lasttop, 1)
+  IF keyval(scPageup) > 1 THEN .top = large(.first, .top - .size)
+  IF keyval(scPagedown) > 1 THEN .top = small(lasttop, .top + .size)
+  IF keyval(scHome) > 1 THEN .top = .first
+  IF keyval(scEnd) > 1 THEN .top = lasttop
+  RETURN (.top <> oldtop)
+ END WITH
+END FUNCTION
 
 FUNCTION soundfile (sfxnum%) as string
  DIM as string sfxbase
@@ -3598,9 +3613,9 @@ FUNCTION yesorno (n AS INTEGER, yes_cap AS STRING="YES", no_cap AS STRING="NO") 
 END FUNCTION
 
 'This is mostly equivalent to '(float * 100) & "%"', however it doesn't show
-'exponentials, and it rounds to 5 decimal places
-FUNCTION format_percent(float as double) as string
- DIM repr as string = FORMAT(float * 100, "0.#####")
+'exponentials, and it rounds to some number of decimal places
+FUNCTION format_percent(float as double, byval deciplaces as integer = 5) as string
+ DIM repr as string = FORMAT(float * 100, "0." & STRING(deciplaces, "#"))
  'Unlike STR, FORMAT will add a trailing point
  IF repr[LEN(repr) - 1] = ASC(".") THEN repr = LEFT(repr, LEN(repr) - 1)
  RETURN repr + "%"

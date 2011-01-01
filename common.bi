@@ -19,6 +19,7 @@ DECLARE FUNCTION usemenu OVERLOAD (pt as integer, top as integer, first as integ
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, deckey as integer = scUp, inckey as integer = scDown) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, enabled() as integer, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
+DECLARE FUNCTION scrollmenu (state AS MenuState, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, x as integer, y as integer, page as integer, edge as integer=NO, hidecursor as integer=NO, wide AS INTEGER=999, highlight AS INTEGER=NO)
 DECLARE SUB standardmenu OVERLOAD (menu() as string, size as integer, vis as integer, pt as integer, top as integer, x as integer, y as integer, page as integer, edge as integer=NO, wide AS INTEGER=999, highlight AS INTEGER=NO)
 DECLARE SUB clamp_menu_state (BYREF state AS MenuState)
@@ -175,7 +176,7 @@ DECLARE FUNCTION tag_condition_caption(n AS INTEGER, prefix AS STRING="Tag", zer
 DECLARE FUNCTION tag_set_caption(n AS INTEGER, prefix AS STRING="Set Tag") AS STRING
 DECLARE FUNCTION onoroff (n AS INTEGER) AS STRING
 DECLARE FUNCTION yesorno (n AS INTEGER, yes_cap AS STRING="YES", no_cap AS STRING="NO") AS STRING
-DECLARE FUNCTION format_percent (float AS DOUBLE) AS STRING
+DECLARE FUNCTION format_percent (float AS DOUBLE, BYVAL deciplaces AS INTEGER = 5) AS STRING
 
 DECLARE FUNCTION enter_or_space () AS INTEGER
 DECLARE FUNCTION copy_keychord () AS INTEGER

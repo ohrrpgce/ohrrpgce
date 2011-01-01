@@ -1,0 +1,17 @@
+Unlike other global text strings, this one may contain tags which are replaced with other text in-game, similar to tags in textboxes.
+
+This string is used on the second screen of the Status menu, for each element from which a hero takes less or more damage than the normal 100%. The available tags are:
+
+$E - The name of the element.
+$D - The percentage of normal damage
+     taken from this element.
+$X - Equal to $D - 100%. That is, the
+     damage taken above normal.
+$R - Equal to 100% - $D. The amount
+     of reduction from normal damage.
+$A - Equal to -$D. The amount
+     absorbed.
+
+For example,
+'$E: $D $X $R $A' could become
+'Fire: -20% -120% 120% 20%'
