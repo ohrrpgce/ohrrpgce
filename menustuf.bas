@@ -1453,6 +1453,7 @@ DO
      st.eq_cursor.pt = 0
      st.eq_cursor.top = 0
      st.eq_cursor.last = st.eq(st.slot).count - 1
+     IF eqstuf(st.who, st.slot) > 0 THEN st.eq_cursor.last += 1
      equip_menu_stat_bonus st
      MenuSound gen(genAcceptSFX)
     END IF
@@ -1667,6 +1668,8 @@ SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
  END IF
 
  FOR i AS INTEGER = 0 to 11
+  'FIXME: This should take the current stats into account to decide
+  'what the stat cap caps the bonus to
   IF gen(genStatCap + i) > 0 THEN st.stat_bonus(i) = small(st.stat_bonus(i), gen(genStatCap + i))
  NEXT i
 
