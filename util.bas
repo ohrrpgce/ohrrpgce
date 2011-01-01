@@ -849,6 +849,19 @@ SUB touchfile (filename as string)
   CLOSE #fh
 END SUB
 
+'Increases (never decreases) the length of a file by appending NUL bytes as required.
+'Writing off the end of a file writes garbage between the new data and the end of the old file.
+'Use this function to extend the file first.
+SUB extendfile (BYVAL fh as integer, BYVAL length as integer)
+ DIM curlen as integer = LOF(fh)
+ IF curlen < length THEN
+  DIM oldpos as integer = SEEK(fh)
+  DIM buf(length - curlen - 1) as ubyte
+  PUT #fh, curlen + 1, buf()
+  SEEK #fh, oldpos
+ END IF
+END SUB
+
 'Finds files in a directory, writing them into an array without their path
 'filelist() must be resizeable; it'll be resized so that LBOUND = -1, with files, if any, in filelist(0) up
 'By default, find all files in directory, otherwise namemask is a case-insensitive filename mask

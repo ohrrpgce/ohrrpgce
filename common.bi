@@ -31,8 +31,8 @@ DECLARE SUB debuginfo (s as string)
 DECLARE SUB visible_debug (s as string)
 DECLARE FUNCTION soundfile (sfxnum as integer) as string
 DECLARE FUNCTION filesize (file as string) as string
-DECLARE FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
-DECLARE SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
+DECLARE FUNCTION getfixbit(BYVAL bitnum AS INTEGER) AS INTEGER
+DECLARE SUB setfixbit(BYVAL bitnum AS INTEGER, BYVAL bitval AS INTEGER)
 DECLARE FUNCTION acquiretempdir () as string
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as integer, offset as integer, maxlen as integer)
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as short, offset as integer, maxlen as integer)

@@ -407,26 +407,29 @@ SUB visible_debug (s$)
  w = getkey
 END SUB
 
-FUNCTION getfixbit(bitnum AS INTEGER) AS INTEGER
+FUNCTION getfixbit(BYVAL bitnum AS INTEGER) AS INTEGER
  DIM f AS STRING
  f = workingdir + SLASH + "fixbits.bin"
  IF NOT isfile(f) THEN RETURN 0
- DIM bits(1) as INTEGER
- setpicstuf bits(), 2, -1
- loadset f, 0, 0
- RETURN readbit(bits(), 0, bitnum)
+ DIM fh AS INTEGER = FREEFILE
+ IF OPEN(f FOR BINARY ACCESS READ AS fh) THEN debug "Could not read " & f : RETURN 0
+ DIM ub AS UBYTE
+ GET #fh, (bitnum \ 8) + 1, ub
+ CLOSE #fh
+ RETURN BIT(ub, bitnum MOD 8)  'BIT is a standard macro
 END FUNCTION
 
-SUB setfixbit(bitnum AS INTEGER, bitval AS INTEGER)
+SUB setfixbit(BYVAL bitnum AS INTEGER, BYVAL bitval AS INTEGER)
  DIM f AS STRING
  f = workingdir + SLASH + "fixbits.bin"
- DIM bits(1) as INTEGER
- setpicstuf bits(), 2, -1
- IF isfile(f) THEN
-  loadset f, 0, 0
- END IF
- setbit bits(), 0, bitnum, bitval
- storeset f, 0, 0
+ DIM fh AS INTEGER = FREEFILE
+ IF OPEN(f FOR BINARY AS fh) THEN fatalerror "Could not write " & f   'Really bad!
+ extendfile fh, (bitnum \ 8) + 1  'Prevent writing garbage
+ DIM ub AS UBYTE
+ GET #fh, (bitnum \ 8) + 1, ub
+ IF bitval THEN ub = BITSET(ub, bitnum MOD 8) ELSE ub = BITRESET(ub, bitnum MOD 8)
+ PUT #fh, (bitnum \ 8) + 1, ub
+ CLOSE #fh
 END SUB
 
 FUNCTION acquiretempdir () as string

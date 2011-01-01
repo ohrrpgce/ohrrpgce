@@ -258,6 +258,7 @@ declare function absolute_path (pathname as string) as string
 declare function parentdir (pathname as string, BYVAL upamount as integer = 1) as string
 declare function anycase (filename as string) as string
 declare sub touchfile (filename as string)
+declare sub extendfile (byval fh as integer, byval length as integer)
 declare sub findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS INTEGER = fileTypeFile, BYVAL findhidden AS INTEGER = 0, filelist() AS STRING)
 declare sub killdir (directory as string)
 declare function makedir (directory as string) as integer
