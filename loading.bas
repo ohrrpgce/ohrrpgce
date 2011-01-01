@@ -1230,8 +1230,8 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	dim as integer f = freefile, i, j
 	
 	open filename for binary as #f
-	
-	seek #f, record * 636 + 1
+	dim recordsize as integer = getbinsize(binDT0)  'in BYTES
+	seek #f, record * recordsize + 1
 	
 	'begin (this makes the baby jesus cry :'( )
 	with *hero
@@ -1270,8 +1270,11 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 		.hand_a_y = readshort(f)
 		.hand_b_x = readshort(f)
 		.hand_b_y = readshort(f)
-		'16 more unused bytes
-		
+
+		for i as integer = 0 to numElements - 1
+			get #f, , .elementals(i)
+		next
+		'WARNING: skip past rest of the elements if you add more to this file
 	end with
 	
 	close #f
@@ -1323,8 +1326,20 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 		writeshort(f,-1,.hand_a_y)
 		writeshort(f,-1,.hand_b_x)
 		writeshort(f,-1,.hand_b_y)
-		'16 more unused bytes
-		
+
+		if getfixbit(fixHeroElementals) = NO then
+			debug "possible corruption: tried to save hero data with fixHeroElementals=0"
+		end if
+
+		for i as integer = 0 to numElements - 1
+			put #f, , .elementals(i)
+		next
+		'always write 1.0 for all unused elements
+		dim default as single = 1.0
+		for i as integer = numElements to 63
+			put #f, , default
+		next
+
 	end with
 	
 	close #f

@@ -1,0 +1,5 @@
+This menu lets you define the amount of damage this hero takes from different elemental attacks. The actual in-game values also depend on the equipment which the hero is wearing.
+
+Set the values by typing them in. You can enter fractional values too, by typing a decimal point (Period).
+
+Press Minus to negate a value. If a hero takes negative damage from an element, then they will be healed.

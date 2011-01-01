@@ -284,8 +284,8 @@ Function GetHeroPos(h as integer,f as integer,isY as integer) as integer'or x?
  dim fh
  fh = FREEFILE
  OPEN game + ".dt0" FOR BINARY AS #fh
- 'debug "hero offset: " & (h * 636 + 595 + f * 4 + isY * 2)
- GetHeroPos = ReadShort(fh,h * 636 + 595 + f * 4 + iif(isY,1,0) * 2)
+ 'debug "hero offset: " & (h * getbinsize(binDT0) + 595 + f * 4 + isY * 2)
+ GetHeroPos = ReadShort(fh,h * getbinsize(binDT0) + 595 + f * 4 + iif(isY,1,0) * 2)
  CLOSE #FH
 End Function
 

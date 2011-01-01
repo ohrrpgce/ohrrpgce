@@ -159,6 +159,7 @@ CONST fixTextBoxPortrait = 11    'Initialize text box portrait data
 CONST fixNPCLocationFormat = 12  'FIXME: not implemented ... can't remember....
 CONST fixInitDamageDisplay = 13  'Initialize damage display time and distance
 CONST fixDefaultLevelCap = 14    'Set level cap to 99
+CONST fixHeroElementals = 15     'Set the hero elemental data from the old weak/strong/absorb bits
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
@@ -191,8 +192,9 @@ CONST binMENUITEM = 6
 CONST binUICOLORS = 7
 CONST binSAY = 8
 CONST binN = 9
+CONST binDT0 = 10
 
-CONST sizebinsize = 9 ' Update this when adding binsize records
+CONST sizebinsize = 10 ' *** Update this when adding binsize records ***
 
 '--- Misc constants
 Enum constDirection

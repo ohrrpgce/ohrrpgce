@@ -43,6 +43,7 @@ DECLARE SUB draw_hero_preview(st AS HeroEditState, her AS HeroDef)
 DECLARE SUB hero_appearance_editor(BYREF st AS HeroEditState, BYREF her AS HeroDef)
 DECLARE SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS HeroDef)
 DECLARE SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER)
+DECLARE SUB hero_editor_elementals(BYREF her AS HeroDef)
 DECLARE SUB item_editor_equipbits(itembuf())
 
 REM $STATIC
@@ -1151,7 +1152,7 @@ SUB drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as in
 END SUB
 
 SUB herodata
-DIM menu(9) AS STRING, bmenu(40) AS STRING, max(40), min(40), nof(12), attack(24) AS STRING, opt(10) AS STRING, hbit(-1 TO 26) AS STRING, hmenu(4) AS STRING
+DIM menu(10) AS STRING, bmenu(40) AS STRING, max(40), min(40), nof(12), attack(24) AS STRING, opt(10) AS STRING, hbit(-1 TO 26) AS STRING, hmenu(4) AS STRING
 DIM AS HeroDef her, blankhero
 DIM st AS HeroEditState
 WITH st
@@ -1163,21 +1164,12 @@ END WITH
 hmax = 32
 leftkey = 0: rightkey = 0
 nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
-DIM elemtype(2) AS STRING
-elemtype(0) = readglobalstring$(127, "Weak to", 10)
-elemtype(1) = readglobalstring$(128, "Strong to", 10)
-elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
 DIM elementnames() AS STRING
 getelementnames elementnames()
 st.previewframe = -1
 
 pt = 0
 csr = 1
-FOR i = 0 TO 7
- hbit(i) = elemtype(0) & " " & elementnames(i)
- hbit(i + 8) = elemtype(1) & " " & elementnames(i)
- hbit(i + 16) = elemtype(2) & " " & elementnames(i)
-NEXT i
 hbit(24) = "Rename when added to party"
 hbit(25) = "Permit renaming on status screen"
 hbit(26) = "Do not show spell lists if empty"
@@ -1190,8 +1182,9 @@ menu(4) = "Edit Stats..."
 menu(5) = "Edit Spell Lists..."
 menu(6) = "Name Spell Lists..."
 menu(7) = "Bitsets..."
-menu(8) = "Hero Tags..."
-menu(9) = "Equipment..."
+menu(8) = "Elemental Resistances..."
+menu(9) = "Hero Tags..."
+menu(10) = "Equipment..."
 nam$ = ""
 GOSUB thishero
 
@@ -1204,9 +1197,9 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "hero_editor"
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
-  cropafter pt, gen(genMaxHero), -1, game + ".dt0", 636
+  cropafter pt, gen(genMaxHero), -1, game + ".dt0", getbinsize(binDT0)
  END IF
- usemenu csr, 0, 0, 9, 24
+ usemenu csr, 0, 0, UBOUND(menu), 22
  IF enter_or_space() THEN
   IF csr = 0 THEN EXIT DO
   IF csr = 3 THEN hero_appearance_editor st, her
@@ -1214,8 +1207,9 @@ DO
   IF csr = 5 THEN GOSUB speltypes '--spell list contents
   IF csr = 6 THEN GOSUB heromenu '--spell list names
   IF csr = 7 THEN editbitset her.bits(), 0, 26, hbit()
-  IF csr = 8 THEN herotags her
-  IF csr = 9 THEN hero_editor_equipment_list pt, her
+  IF csr = 8 THEN hero_editor_elementals her
+  IF csr = 9 THEN herotags her
+  IF csr = 10 THEN hero_editor_equipment_list pt, her
  END IF
  IF csr = 1 THEN
   remptr = pt
@@ -1243,7 +1237,7 @@ DO
  END IF
 
  clearpage dpage
- standardmenu menu(), 9, 22, csr, 0, 0, 0, dpage, 0
+ standardmenu menu(), UBOUND(menu), 22, csr, 0, 0, 0, dpage, 0
 
  draw_hero_preview st, her
  SWAP vpage, dpage
@@ -2310,6 +2304,49 @@ SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER
   setbit itembuf(), 66, hero_id, readbit(tempbits(), 0, i)
   saveitemdata itembuf(), item_id(i)
  NEXT i
+END SUB
+
+SUB hero_editor_elementals(BYREF her as HeroDef)
+ DIM elementnames() AS STRING
+ getelementnames elementnames()
+ DIM float_reprs(numElements - 1) as string
+ DIM menu(1 + numElements - 1) as string
+ DIM st as MenuState
+ st.last = UBOUND(menu)
+ st.size = 22
+ st.need_update = YES
+
+ FOR i as integer = 0 TO numElements - 1
+  float_reprs(i) = format_percent(her.elementals(i))
+  elementnames(i) = rpad(elementnames(i), " ", 12)
+ NEXT
+
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "hero_elementals"
+  IF st.pt = 0 THEN
+   IF enter_or_space() THEN EXIT DO
+  ELSE
+   IF percent_grabber(her.elementals(st.pt - 1), float_reprs(st.pt - 1), -1000, 1000) THEN st.need_update = YES
+  END IF
+  usemenu st
+
+  IF st.need_update THEN
+   st.need_update = NO
+   menu(0) = "Previous Menu"
+   FOR i as integer = 0 TO numElements - 1
+    menu(i + 1) = "Damage from " + elementnames(i) + ":" + float_reprs(i)
+   NEXT
+  END IF
+
+  clearpage vpage
+  standardmenu menu(), st, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
 END SUB
 
 '--Item Editor stuff---------------------------------------------------

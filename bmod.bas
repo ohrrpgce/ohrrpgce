@@ -1676,7 +1676,7 @@ SUB calc_hero_elementals (elemental_resists() as double, byval who as integer)
  DIM her AS HeroDef
  loadherodata @her, hero(who) - 1
  FOR i as integer = 0 TO numElements - 1
-  elemental_resists(i) = backcompat_element_dmg(xreadbit(her.bits(), i), xreadbit(her.bits(), 8 + i), xreadbit(her.bits(), 16 + i))
+  elemental_resists(i) = her.elementals(i)
  NEXT
 
  REDIM itemelementals() as double

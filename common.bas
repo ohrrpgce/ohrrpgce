@@ -486,7 +486,7 @@ ELSE
 END IF
 END SUB
 
-'Backwards compatability wrapper
+'Backwards compatibility wrapper
 SUB centerbox (x, y, w, h, c, p)
  IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"
  center_edgeboxstyle x, y, w, h, c - 1, p
@@ -866,13 +866,14 @@ FUNCTION defbinsize (id AS INTEGER) as integer
  IF id = 5 THEN RETURN 0  'menus.bin
  IF id = 6 THEN RETURN 0  'menuitem.bin
  IF id = 7 THEN RETURN 0  'uicolors.bin
- IF id = 8 THEN RETURN 400 '.say
- IF id = 9 THEN RETURN 30 '.n##
+ IF id = 8 THEN RETURN 400  '.say
+ IF id = 9 THEN RETURN 30   '.n##
+ IF id = 10 THEN RETURN 636 '.dt0
  RETURN 0
 END FUNCTION
 
 FUNCTION curbinsize (id AS INTEGER) as integer
- 'returns the correct size in BYTES for of the records for the version you are running
+ 'returns the native size in BYTES of the records for the version you are running
  IF id = 0 THEN RETURN 162 'attack.bin
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
@@ -882,7 +883,8 @@ FUNCTION curbinsize (id AS INTEGER) as integer
  IF id = 6 THEN RETURN 64  'menuitem.bin
  IF id = 7 THEN RETURN 126 'uicolors.bin
  IF id = 8 THEN RETURN 412 '.say
- IF id = 9 THEN RETURN 32 '.n##
+ IF id = 9 THEN RETURN 32  '.n##
+ IF id = 10 THEN RETURN 858 '.dt0
  RETURN 0
 END FUNCTION
 
@@ -2824,6 +2826,7 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
 END IF
 updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 updaterecordlength game & ".say", binSAY
+updaterecordlength game & ".dt0", binDT0
 'Don't update .N binsize until all records have been stretched
 FOR i = 0 TO gen(genMaxMap)
  updaterecordlength maplumpname(i, "n"), binN, 7, YES
@@ -2879,11 +2882,12 @@ END IF
 
 IF getfixbit(fixWeapPoints) = 0 THEN
  upgrade_message "Reset hero hand points..."
+ DIM recsize as integer = getbinsize(binDT0)
  DO
   setfixbit(fixWeapPoints, 1)
   fh = freefile
   OPEN game + ".dt0" FOR BINARY AS #fh
-  REDIM dat(317) AS SHORT
+  REDIM dat(recsize \ 2 - 1) AS SHORT  'Don't use dimbinsize, due to off-by-one problem
   p = 1
   FOR i = 0 to gen(genMaxHero)
    GET #fh,,dat()
@@ -2894,11 +2898,11 @@ IF getfixbit(fixWeapPoints) = 0 THEN
   NEXT
   
   FOR i = 0 to gen(genMaxHero)
-   GET #fh,p,dat()
+   GET #fh, p, dat()
    dat(297) = 24
    dat(299) = -20
-   PUT #fh,p,dat()
-   p += 636
+   PUT #fh, p, dat()
+   p += recsize
   NEXT
   close #fh
   EXIT DO
@@ -3005,14 +3009,40 @@ IF getfixbit(fixExtendedNPCs) = 0 THEN
  NEXT i
 END IF
 
-IF getfixbit(fixHeroPortrait) = 0 THEN
- upgrade_message "Initialize hero portrait data..."
+IF getfixbit(fixHeroPortrait) = 0 OR getfixbit(fixHeroElementals) = 0 THEN
+ DIM as integer do_portraits = (getfixbit(fixHeroPortrait) = 0)
+ DIM as integer do_elements = (getfixbit(fixHeroElementals) = 0)
  setfixbit(fixHeroPortrait, 1)
+ setfixbit(fixHeroElementals, 1)
+
+ DIM as string msgtemp = "Initialize hero "
+ IF do_portraits THEN msgtemp += "portraits"
+ IF do_portraits AND do_elements THEN msgtemp += " and "
+ IF do_elements THEN msgtemp += "elemental resists"
+ upgrade_message msgtemp
+
  DIM her AS HeroDef
  FOR i = 0 TO gen(genMaxHero)
   loadherodata @her, i
-  her.portrait = -1 'Disable
-  her.portrait_pal = -1 'Default
+
+  WITH her
+   IF do_portraits THEN
+    .portrait = -1 'Disable
+    .portrait_pal = -1 'Default
+   END IF
+
+   IF do_elements THEN
+    '.elementals() not initialised, load from old bits
+    FOR i as integer = 0 TO small(7, numElements - 1)
+     .elementals(i) = backcompat_element_dmg(xreadbit(.bits(), i), xreadbit(.bits(), 8 + i), xreadbit(.bits(), 16 + i))
+    NEXT
+    'numElements will be more than 8 even in old games after enemytypes are converted to elements
+    FOR i as integer = 8 TO numElements - 1
+     .elementals(i) = 1
+    NEXT
+   END IF
+  END WITH
+
   saveherodata @her, i
  NEXT i
 END IF
@@ -3049,7 +3079,7 @@ NEXT i
 fix_record_count gen(genMaxTile),     320 * 200, game & ".til", "Tilesets"
 fix_record_count gen(genNumBackdrops), 320 * 200, game & ".mxs", "Backdrops", , -1
 'FIXME: .dt0 lump is always padded up to 60 records
-'fix_record_count gen(genMaxHero),     636, game & ".dt0", "Heroes"
+'fix_record_count gen(genMaxHero),     getbinsize(binDT0), game & ".dt0", "Heroes"
 'FIXME: Attack data is split over two lumps. Must handle mismatch
 fix_record_count gen(genMaxEnemy),     320, game & ".dt1", "Enemies"
 fix_record_count gen(genMaxFormation), 80, game & ".for", "Battle Formations"
@@ -3204,7 +3234,7 @@ SUB rpgversion (v)
   printstr "as intended.", 52, 106, 0
  END IF
  IF v > CURRENT_RPG_VERSION THEN
-  'Versions newer than current cannot support graceful forward compatability
+  'Versions newer than current cannot support graceful forward compatibility
   edgeprint "Unsupported RPG File", 52, 70, uilook(uiText), 0
   textcolor uilook(uiMenuItem), 0
   printstr "this game has features", 52, 82, 0
@@ -3647,8 +3677,10 @@ FUNCTION yesorno (n AS INTEGER, yes_cap AS STRING="YES", no_cap AS STRING="NO") 
 END FUNCTION
 
 'This is mostly equivalent to '(float * 100) & "%"', however it doesn't show
-'exponentials, and it rounds to some number of decimal places
-FUNCTION format_percent(float as double, byval deciplaces as integer = 5) as string
+'exponentials, and it rounds to some number of significant places
+FUNCTION format_percent(byval float as double, byval sigfigs as integer = 5) as string
+ DIM deciplaces as integer = sigfigs - (INT(LOG(ABS(float * 100)) / LOG(10)) + 1)
+ IF deciplaces > sigfigs THEN deciplaces = sigfigs
  DIM repr as string = FORMAT(float * 100, "0." & STRING(deciplaces, "#"))
  'Unlike STR, FORMAT will add a trailing point
  IF repr[LEN(repr) - 1] = ASC(".") THEN repr = LEFT(repr, LEN(repr) - 1)

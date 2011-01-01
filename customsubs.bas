@@ -534,12 +534,13 @@ END FUNCTION
 
 'Edit a floating point value and its string representation simultaneously (repr
 'effectively stores the editing state). Initialise repr with format_percent(float)
-'Returns true if the float changed (maybe it should tell when repr changes instead?)
-'decimalplaces limits the number of decimal places allowed
+'Returns true if float or repr changed
+'decimalplaces actually limits the number of sig. fig.s too, except in front of the decimal point.
 'Note: min and max are not in percent: max=1 is 100%
-FUNCTION percent_grabber(BYREF float as double, repr as string, min as double, max as double, byval decimalplaces as integer = 5) as integer
+FUNCTION percent_grabber(byref float as double, repr as string, byval min as double, byval max as double, byval decimalplaces as integer = 4) as integer
  STATIC clip as double
- DIM old as double = float
+ DIM oldfloat as double = float
+ DIM oldrepr as string = repr
 
  'Remove negative (because we trim leading 0's later) and percentage signs
  repr = LEFT(repr, LEN(repr) - 1)
@@ -554,9 +555,9 @@ FUNCTION percent_grabber(BYREF float as double, repr as string, min as double, m
 
  IF keyval(scPeriod) > 1 THEN repr = exclude(repr, ".") + "."
 
- 'Enforce decimal places limit
+ 'Enforce sig. figures limit (we don't care about numbers less than 1% here, because
  DIM period as integer = INSTR(repr, ".")
- IF period THEN repr = LEFT(repr, period + decimalplaces)
+ IF period THEN repr = LEFT(repr, large(period, decimalplaces + 1))
 
  'Trim leading 0's
  repr = LTRIM(repr, "0")
@@ -598,7 +599,14 @@ FUNCTION percent_grabber(BYREF float as double, repr as string, min as double, m
  ELSE
   repr += "%"
  END IF
- RETURN (old <> float) 
+ RETURN (oldfloat <> float) ORELSE (oldrepr <> repr)
+END FUNCTION
+
+FUNCTION percent_grabber(byref float as single, repr as string, byval min as double, byval max as double, byval decimalplaces as integer = 4) as integer
+ DIM temp as double = float
+ DIM ret as integer = percent_grabber(temp, repr, min, max, decimalplaces)
+ float = temp
+ RETURN ret
 END FUNCTION
 
 SUB ui_color_editor(palnum AS INTEGER)
@@ -1983,6 +1991,8 @@ FUNCTION tag_toggle_caption(n AS INTEGER, prefix AS STRING="Toggle tag") AS STRI
  RETURN s
 END FUNCTION
 
+'Edit array of bits. The bits don't have to be consecutive, but they do have to be in ascending order.
+'The bits corresponding to any blank entries in names() are skipped over.
 SUB editbitset (array() AS INTEGER, BYVAL wof AS INTEGER, BYVAL last AS INTEGER, names() AS STRING, helpkey AS STRING="editbitset")
 
  '---DIM AND INIT---

@@ -1075,12 +1075,12 @@ FUNCTION hero_elemental_resist_msg (element AS STRING, damage AS DOUBLE) AS STRI
  ELSEIF damage > 1.0 THEN
   raw = readglobalstring(162, "$D damage from $E", 30)
  END IF
- 'No message for
+ 'No message for 100% damage
  replacestr raw, "$E", element
- replacestr raw, "$D", format_percent(damage, 1)
- replacestr raw, "$X", format_percent(damage - 1.0, 1)
- replacestr raw, "$R", format_percent(1.0 - damage, 1)
- replacestr raw, "$A", format_percent(-damage, 1)
+ replacestr raw, "$D", format_percent(damage, 3)
+ replacestr raw, "$X", format_percent(damage - 1.0, 3)
+ replacestr raw, "$R", format_percent(1.0 - damage, 3)
+ replacestr raw, "$A", format_percent(-damage, 3)
  RETURN raw
 END FUNCTION
 

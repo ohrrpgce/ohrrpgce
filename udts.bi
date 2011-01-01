@@ -578,6 +578,7 @@ Type HeroDef
 	Lev0 as stats
 	Lev99 as stats
 	spell_lists(3,23) as SpellList
+        elementals(maxElements - 1) as single
 	bits(2) as integer
 	list_name(3) as string
 	list_type(3) as integer
