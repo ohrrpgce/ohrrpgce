@@ -14,8 +14,7 @@ declare function battle (form as integer, fatal as integer) as integer
 declare function checknorunbit (bslot() as battlesprite) as integer
 DECLARE SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
 declare function focuscost (cost as integer, focus as integer) as integer
-DECLARE SUB herobattlebits_raw (bitbuf() as integer, who as integer)
-DECLARE SUB herobattlebits (bspr AS BattleSprite, who)
+DECLARE SUB calc_hero_elementals (elemental_resists() as double, byval who as integer)
 declare sub invertstack
 declare sub quickinflict (harm as integer, targ as integer, bslot() as battlesprite)
 DECLARE SUB anim_end()

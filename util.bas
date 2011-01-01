@@ -113,6 +113,23 @@ FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
  RETURN number + INT(RND * (a * 2)) - a
 END FUNCTION
 
+'A fuzzy equivalent to 'iif(value >= low+high/2, 1.0, 0.0)'
+'Swap low,high to reverse the comparison
+FUNCTION fuzzythreshold (BYVAL value AS DOUBLE, BYVAL low AS DOUBLE, BYVAL high AS DOUBLE) AS DOUBLE
+ IF low > high THEN
+  low = -low
+  high = -high
+  value = -value
+ END IF
+ IF value <= low THEN
+  RETURN 0.0
+ ELSEIF value >= high THEN
+  RETURN 1.0
+ ELSE
+  RETURN (value - low) / (high - low)
+ END IF
+END FUNCTION
+
 FUNCTION rpad (s AS STRING, pad_char AS STRING, size AS INTEGER) AS STRING
  DIM result AS STRING
  result = LEFT(s, size)

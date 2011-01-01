@@ -1222,8 +1222,9 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
     bslot(i).stat.cur.sta(o) = gam.hero(i).stat.cur.sta(o)
     bslot(i).stat.max.sta(o) = gam.hero(i).stat.max.sta(o)
    NEXT o
-   
-   herobattlebits bslot(i), i
+
+   calc_hero_elementals bslot(i).elementaldmg(), i
+
    bslot(i).name = names(i)
    
    '--load hero menu captions
@@ -1623,49 +1624,74 @@ ELSE
 END IF
 END FUNCTION
 
-SUB herobattlebits_raw (bitbuf(), who)
- 'Calculate a hero's bits after taking equipment into account (just OR together the elemental bits)
- 'bitbuf should be dim'ed 0 TO 2, who is a hero() slot number
+'This is similar to fuzzythreshold. It interpolates between these values:
+' 0.12  0.24  1.00  2.00
+'  0     1     0     1
+FUNCTION fuzzy_strong_bit (value as double) as double
+ IF value <= 0.12 THEN
+  RETURN 0.0
+ ELSEIF value <= 0.24 THEN
+  RETURN (value - 0.12) / 0.12
+ ELSEIF value <= 1.0 THEN
+  RETURN (1.0 - value) / 0.76
+ ELSEIF value <= 2.0 THEN
+  RETURN value - 1.0
+ ELSE
+  RETURN 1.0
+ END IF
+END FUNCTION
+
+'Merge elemental resist values from one item into the hero's cumulative resists,
+'by simulating the old way of just ORing together all the bits. Uses linear
+'interpolation to generalise the required results on inputs of combinations of
+'0, 12, 24, 100, 200% to arbitrary values. The results can be pretty unexpected.
+FUNCTION awful_compatible_equip_elemental_merging (byval val1 as double, byval val2 as double) as double
+ DIM sign as integer = 1.0
+ IF val1 < 0 OR val2 < 0 THEN sign = -1.0
+ val1 = ABS(val1)
+ val2 = ABS(val2)
+ 'fuzzy logic! also known as, in the hands of madmen, The Abyss
+ DIM as double weak_bit_1, weak_bit_2
+ weak_bit_1 = fuzzythreshold(val1, 1.0, 0.24)
+ weak_bit_2 = fuzzythreshold(val2, 1.0, 0.24)
+ DIM as double strong_bit_1, strong_bit_2
+ strong_bit_1 = fuzzy_strong_bit(val1)
+ strong_bit_2 = fuzzy_strong_bit(val2)
+ IF weak_bit_2 > weak_bit_1 THEN weak_bit_1 = weak_bit_2  'values at most 1.0, so result tends to 0.24
+ IF strong_bit_2 > strong_bit_1 THEN strong_bit_1 = strong_bit_2
+ DIM as double weakmult, strongmult
+ weakmult = weak_bit_1 * 0.12 + (1.0 - weak_bit_1) * 1.0
+ strongmult = strong_bit_1 * 2.0 + (1.0 - strong_bit_1) * 1.0
+ 'These fuzzythresholds simulate an 'immune' bit, restoring just a shred of sanity to the results
+ val1 = weakmult * strongmult * fuzzythreshold(val1, 0, 0.12) * fuzzythreshold(val2, 0, 0.12)
+ RETURN val1 * sign
+END FUNCTION
+
+SUB calc_hero_elementals (elemental_resists() as double, byval who as integer)
+ 'Calculate a hero's elemental resists after taking equipment into account
+ 'elemental_resists should be sized up to maxElements - 1; who is a hero() slot number.
  'This is used both here and in the status menu.
- DIM i AS INTEGER
- DIM j AS INTEGER
 
+ '--get native hero resistances
  DIM her AS HeroDef
-
- '--native bits
  loadherodata @her, hero(who) - 1
- FOR i = 0 TO 2
-  bitbuf(i) = her.bits(i)
- NEXT i
+ FOR i as integer = 0 TO numElements - 1
+  elemental_resists(i) = backcompat_element_dmg(xreadbit(her.bits(), i), xreadbit(her.bits(), 8 + i), xreadbit(her.bits(), 16 + i))
+ NEXT
 
- DIM itembuf(99) AS INTEGER
+ REDIM itemelementals() as double
 
- '--merge equipment bits
- FOR j = 0 TO 4
+ '--merge equipment elemental resists
+ FOR j as integer = 0 TO 4
   IF eqstuf(who, j) > 0 THEN
-   loaditemdata itembuf(), eqstuf(who, j) - 1
-   FOR i = 0 TO 2
-    bitbuf(i) = (bitbuf(i) OR itembuf(70 + i))
-   NEXT i
+   LoadItemElementals eqstuf(who, j) - 1, itemelementals()
+
+   FOR i as integer = 0 TO numElements - 1
+    'FIXME: provide sane replacements
+    elemental_resists(i) = awful_compatible_equip_elemental_merging(elemental_resists(i), itemelementals(i))
+   NEXT
   END IF
  NEXT j
-
-END SUB
-
-SUB herobattlebits (bspr AS BattleSprite, who)
-DIM i AS INTEGER
-DIM bitbuf(2) AS INTEGER
-
-herobattlebits_raw bitbuf(), who
-
-FOR i = 0 TO 7
- WITH bspr
-  .weak(i) = xreadbit(bitbuf(), i)
-  .strong(i) = xreadbit(bitbuf(), 8 + i)
-  .absorb(i) = xreadbit(bitbuf(), 16 + i)
-  .elementaldmg(i) = backcompat_element_dmg(.weak(i), .strong(i), .absorb(i))
- END WITH
-NEXT i
 
 END SUB
 

@@ -568,7 +568,7 @@ FOR i AS INTEGER = 0 to 11
  target.stat.cur.sta(i) = gam.hero(t).stat.cur.sta(i)
  target.stat.max.sta(i) = gam.hero(t).stat.max.sta(i)
 NEXT i
-herobattlebits target, t
+calc_hero_elementals target.elementaldmg(), t
 
 inflict(0, 1, attacker, target, attack, spred)
 
@@ -1100,7 +1100,7 @@ DIM elementalmenu_st AS MenuState
 DIM elementnames() AS STRING
 getelementnames elementnames()
 
-DIM elementaldmg() AS DOUBLE, thishbits(2) AS INTEGER
+DIM elementaldmg(maxElements - 1) AS DOUBLE
 
 mode = 0
 
@@ -1240,12 +1240,7 @@ FOR i = 0 TO 5
 NEXT i
 
 '--get this hero's elemental resists, with worn equipment
-herobattlebits_raw thishbits(), pt
-'temporary glue code
-REDIM elementaldmg(numElements - 1)
-FOR i = 0 TO numElements - 1
- elementaldmg(i) = backcompat_element_dmg(xreadbit(thishbits(), i), xreadbit(thishbits(), 8 + i), xreadbit(thishbits(), 16 + i))
-NEXT
+calc_hero_elementals elementaldmg(), pt
 
 '--build elemental strings
 REDIM elementalmenu(-1 TO -1)

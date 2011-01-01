@@ -427,8 +427,8 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
     h *= ABS(target.elementaldmg(i))
     IF target.elementaldmg(i) < 0.0 THEN cure = 1  'absorb
    END IF
-   IF attack.fail_vs_elemental(i) = YES THEN
-    IF target.strong(i) = YES THEN
+   IF attack.fail_vs_elemental_resistance(i) = YES THEN
+    IF target.elementaldmg(i) < 0.99999 THEN
      target.harm.text = readglobalstring$(122, "fail", 20)
      RETURN NO
     END IF
@@ -1570,10 +1570,9 @@ SUB transfer_enemy_bits(slot AS INTEGER, bslot() AS BattleSprite)
    .never_flinch = .enemy.never_flinch
    .ignore_for_alone = .enemy.ignore_for_alone
    FOR i AS INTEGER = 0 TO numElements - 1
-    .weak(i)      = .enemy.weak(i)
-    .strong(i)    = .enemy.strong(i)
-    .absorb(i)    = .enemy.absorb(i)
     .elementaldmg(i) = backcompat_element_dmg(.enemy.weak(i), .enemy.strong(i), .enemy.absorb(i))
+   NEXT
+   FOR i AS INTEGER = 0 TO 7
     .enemytype(i) = .enemy.enemytype(i)
    NEXT i
   END WITH
@@ -1583,7 +1582,7 @@ END SUB
 SUB transfer_enemy_counterattacks (slot AS INTEGER, bslot() AS BattleSprite)
  '--transfer counterattacks
  WITH bslot(4 + slot)
-  FOR j AS INTEGER = 0 TO 7
+  FOR j AS INTEGER = 0 TO numElements - 1
    .elem_counter_attack(j) = .enemy.elem_counter_attack(j)
   NEXT j
   FOR j AS INTEGER = 0 TO 11

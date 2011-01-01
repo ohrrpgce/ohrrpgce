@@ -109,9 +109,6 @@ TYPE BattleSprite
   stored_targs(11)    AS INTEGER 'YES for each stored target for ths hero/enemy, otherwise NO
   stored_targs_can_be_dead AS INTEGER
   '--Bitsets
-  weak(maxElements - 1)   AS INTEGER 'YES/NO for weakness to each element
-  strong(maxElements - 1) AS INTEGER 'YES/NO for strength to each element
-  absorb(maxElements - 1) AS INTEGER 'YES/NO to absorb each element
   enemytype(7)   AS INTEGER 'YES/NO for membership in each enemy type
   harmed_by_cure AS INTEGER 'YES/NO
   mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out

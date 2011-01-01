@@ -287,6 +287,7 @@ declare function small overload (byval n1 as integer, byval n2 as integer) as in
 declare function small overload (byval n1 as longint, byval n2 as longint) as longint
 declare function small overload (byval n1 as double, byval n2 as double) as double
 declare function range (number as integer, percent as integer) as integer
+declare function fuzzythreshold (byval value as double, byval low as double, byval high as double) as double
 declare function rpad (s as string, pad_char as string, size as integer) as string
 declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
 declare function instr_nth overload (s as string, substring as string, byval nth as integer) as integer

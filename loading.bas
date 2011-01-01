@@ -2223,7 +2223,7 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   FOR i AS INTEGER = 0 TO 7
    .elemental_damage(i)           = xreadbit(buf(), 5+i, 20)
    .monster_type_bonus(i)         = xreadbit(buf(), 13+i, 20)
-   .fail_vs_elemental(i)          = xreadbit(buf(), 21+i, 20)
+   .fail_vs_elemental_resistance(i) = xreadbit(buf(), 21+i, 20)
    .fail_vs_monster_type(i)       = xreadbit(buf(), 29+i, 20)
   NEXT i
   FOR i AS INTEGER = 0 TO 7
@@ -2395,6 +2395,15 @@ END SUB
 
 SUB saveitemdata (array() AS INTEGER, index AS INTEGER)
  storerecord array(), game & ".itm", 100, index
+END SUB
+
+SUB LoadItemElementals (BYVAL index AS INTEGER, itemresists() AS DOUBLE)
+ DIM itembuf(99) AS INTEGER
+ loaditemdata itembuf(), index
+ REDIM itemresists(numElements - 1)
+ FOR i AS INTEGER = 0 TO numElements - 1
+  itemresists(i) = backcompat_element_dmg(readbit(itembuf(), 70, i), readbit(itembuf(), 70, 8 + i), readbit(itembuf(), 70, 16 + i))
+ NEXT
 END SUB
 
 
