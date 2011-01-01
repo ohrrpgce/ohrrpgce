@@ -224,9 +224,11 @@ END SUB
 SUB gamestate_from_reload(BYVAL node AS Reload.NodePtr)
  IF NodeName(node) <> "rsav" THEN rsav_warn "root node is not rsav"
 
- IF GetChildNodeInt(node, "ver") > 0 THEN
-  'FIXME: this should be a user-visible pop-up warning
+ IF GetChildNodeInt(node, "ver") > CURRENT_RSAV_VERSION THEN
   rsav_warn "new save file on old game player. Some data might get lost"
+  fadein
+  pop_warning "This save file was created with a more recent version of the OHRRPGCE, and some things will not load correctly. Download the latest version at http://HamsterRepublic.com"
+  fadeout 0, 0, 0
  END IF 
 
  gamestate_state_from_reload node
@@ -820,7 +822,7 @@ END SUB
 SUB gamestate_to_reload(BYVAL node AS Reload.NodePtr)
  'increment this to produce a warning message when
  'loading a new rsav file in an old game player
- SetChildNode(node, "ver", 0)
+ SetChildNode(node, "ver", CURRENT_RSAV_VERSION)
 
  DIM ch AS NodePtr
  ch = SetChildNode(node, "game_client", "OHRRPGCE")

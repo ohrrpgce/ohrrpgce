@@ -24,6 +24,12 @@ CONST CURRENT_RPG_VERSION = 13
 ' 12 - zenzizenzic wip increased .N## record size
 ' 13 - zenzizenzic wip changed password format to PW4, older versions have broken genPassVersion handling
 
+CONST CURRENT_RSAV_VERSION = 1
+' Increment this number any time that loading and resaving a game in either
+' new or old versions of Game leads to data-loss, or major new features are
+' added.
+' 1 - zenzizenzic wip removed nativehbits related nodes
+
 '---GENERAL GAME DATA (.GEN) constants---
 CONST genMaxMap = 0             'max map ID
 CONST genTitle = 1              'title screen backdrop
