@@ -2898,7 +2898,7 @@ IF getfixbit(fixWeapPoints) = 0 THEN
    dat(297) = 24
    dat(299) = -20
    PUT #fh,p,dat()
-   p+=318
+   p += 636
   NEXT
   close #fh
   EXIT DO
