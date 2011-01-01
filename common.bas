@@ -69,6 +69,12 @@ DIM SHARED console AS ConsoleData
 'don't black out the screen to show upgrade messages if there aren't any
 DIM SHARED upgrademessages AS INTEGER
 
+'upgrading timing stuff
+DIM SHARED time_rpg_upgrade AS INTEGER = NO  'Change to YES, or pass --time-upgrade
+DIM SHARED last_upgrade_time AS DOUBLE
+DIM SHARED upgrade_overhead_time AS DOUBLE
+DIM SHARED upgrade_start_time AS DOUBLE
+
 'don't delete the debug file at end of play
 DIM SHARED importantdebug AS INTEGER = 0
 
@@ -79,6 +85,12 @@ DIM SHARED lastlogfile AS STRING
 DIM SHARED global_strings_buffer AS STRING
 
 
+FUNCTION common_setoption(opt as string, arg as string) as integer
+ IF opt = "time-upgrade" THEN
+  time_rpg_upgrade = YES
+  RETURN 1  'arg not used
+ END IF
+END FUNCTION
 
 'fade in and out not actually used in custom
 SUB fadein ()
@@ -2150,10 +2162,23 @@ SUB upgrade_message (s AS STRING)
  IF NOT upgrademessages THEN
   upgrademessages = -1
   reset_console 20, vpages(vpage)->h - 20, uilook(uiBackground)
-  upgrade_message "Auto-Updating obsolete RPG file"
+  show_message("Auto-Updating obsolete RPG file")
+ END IF
+ DIM temptime AS DOUBLE
+ IF time_rpg_upgrade THEN
+  temptime = TIMER
+  upgrade_overhead_time -= temptime
+  IF last_upgrade_time <> 0.0 THEN
+   debuginfo "...done in " & FORMAT((temptime - last_upgrade_time) * 1000, ".#") & "ms"
+  END IF
  END IF
  debuginfo "rpgfix:" & s
  show_message(s)
+ IF time_rpg_upgrade THEN
+  temptime = TIMER
+  last_upgrade_time = temptime
+  upgrade_overhead_time += temptime
+ END IF
 END SUB
 
 'admittedly, these 'console' functions suck
@@ -2469,6 +2494,9 @@ DIM fh AS INTEGER
 DIM pas AS STRING, rpas AS STRING
 
 upgrademessages = 0
+last_upgrade_time = 0.0
+upgrade_start_time = TIMER
+upgrade_overhead_time = 0.0
 
 IF NOT diriswriteable(workingdir) THEN
  upgrade_message workingdir & " not writable"
@@ -2803,10 +2831,7 @@ NEXT
 setbinsize binN, curbinsize(binN)
 
 '--give each palette a default ui color set
-DIM ff AS INTEGER = FREEFILE
-OPEN workingdir + SLASH + "uicolors.bin" FOR BINARY AS #ff
-DIM uirecords AS INTEGER = LOF(ff) \ getbinsize(binUICOLORS)
-CLOSE #ff
+DIM uirecords AS INTEGER = FILELEN(workingdir + SLASH + "uicolors.bin") \ getbinsize(binUICOLORS)
 IF uirecords < gen(genMaxMasterPal) + 1 THEN
  upgrade_message "Adding default UI colors..."
  DIM defaultcols(uiColors)
@@ -3017,6 +3042,7 @@ IF getfixbit(fixDefaultLevelCap) = 0 THEN
 END IF
 
 'Update record-count for all fixed-length lumps.
+IF time_rpg_upgrade THEN upgrade_message "Updating record counts"
 FOR i = 0 TO 8
  fix_sprite_record_count i
 NEXT i
@@ -3036,6 +3062,11 @@ fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names", -84 'Note
 'fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menus.bin", "Menu Items"
 fix_record_count gen(genMaxItem), 200, game & ".itm", "Items"
 'Warning: don't deduce number of map from length of .MAP or .MN: may be appended with garbage
+
+IF time_rpg_upgrade THEN
+ upgrade_message "Upgrades complete."
+ debuginfo "Total upgrade time = " & FORMAT(TIMER - upgrade_start_time, ".###") & "s, time wasted on messages = " & FORMAT(upgrade_overhead_time, ".###") & "s"
+END IF
 
 IF gen(genErrorLevel) = 0 THEN
  #IFDEF IS_CUSTOM

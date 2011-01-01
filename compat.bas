@@ -120,6 +120,7 @@ sub processcommandline()
 			argsused = backends_setoption(opt, arg)  'this must be first, it loads the backend if needed
 			if argsused = 0 then argsused = gfx_setoption(opt, arg)
 			if argsused = 0 then argsused = usage_setoption(opt, arg)
+			if argsused = 0 then argsused = common_setoption(opt, arg)
 			#ifdef IS_GAME
 				if argsused = 0 then argsused = game_setoption(opt, arg)
 			#endif

@@ -13,6 +13,8 @@
 #include "browse.bi"
 #include "const.bi"
 
+DECLARE FUNCTION common_setoption(opt as string, arg as string) as integer
+
 DECLARE SUB fadein ()
 DECLARE SUB fadeout (red as integer, green as integer, blue as integer)
 DECLARE FUNCTION usemenu OVERLOAD (pt as integer, top as integer, first as integer, last as integer, size as integer, deckey as integer = scUp, inckey as integer = scDown) as integer
