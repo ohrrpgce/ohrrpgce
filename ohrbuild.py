@@ -8,7 +8,7 @@ import sys
 include_re = re.compile(r'^#include\s+"(\S+)"$', re.M)
 
 standard_bi = ['crt.bi', 'fbgfx.bi', 'crt/limits.bi',
-               'file.bi', 'allegro.bi']
+               'file.bi', 'allegro.bi', 'string.bi']
 
 def basfile_scan(node, env, path):
     contents = node.get_text_contents()
