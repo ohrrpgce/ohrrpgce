@@ -787,69 +787,49 @@ SUB guessdefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
  flusharray poffset(), sets, 0
  SELECT CASE fileset
  CASE 0 'Heroes
-  FOR j = 0 TO gen(genMaxHero) 'I reversed the loops, because it's more efficient  
-   FOR i = 0 TO sets           'to do the file I/O in the outer loop
-    loadherodata @her, j
-    IF her.sprite = i THEN
-     poffset(i) = her.sprite_pal
-     EXIT FOR
-    END IF
-   NEXT
+  FOR j = 0 TO gen(genMaxHero)
+   loadherodata @her, j
+   IF her.sprite >= 0 AND her.sprite <= sets THEN poffset(her.sprite) = her.sprite_pal
   NEXT
  CASE 1 TO 3 'Enemies
+  'Inefficient
   DIM enemy AS EnemyDef
-  FOR i = 0 TO sets
-   FOR j = 0 TO gen(genMaxEnemy)
-    loadenemydata enemy, j
-    IF enemy.pic = i AND enemy.size + 1 = fileset THEN
-     poffset(i) = enemy.pal
-     EXIT FOR
-    END IF
-   NEXT j
-  NEXT i
+  FOR j = 0 TO gen(genMaxEnemy)
+   loadenemydata enemy, j
+   IF enemy.size + 1 = fileset THEN
+    IF enemy.pic >= 0 AND enemy.pic <= sets THEN poffset(enemy.pic) = enemy.pal
+   END IF
+  NEXT j
  CASE 4 'Walkabouts
+  FOR j = 0 TO gen(genMaxHero)
+   loadherodata @her, j
+   IF her.walk_sprite >= 0 AND her.walk_sprite <= sets THEN
+	poffset(her.walk_sprite) = her.walk_sprite_pal
+   END IF
+  NEXT j
   REDIM npcbuf(0) AS NPCType
-  FOR i = 0 TO sets
-   FOR j = 0 TO gen(genMaxHero)
-    loadherodata @her, j
-    
-    IF her.walk_sprite = i THEN
-     poffset(i) = her.walk_sprite_pal
-     CONTINUE FOR, FOR
-    END IF
+  FOR mapi AS INTEGER = 0 TO gen(genMaxMap)
+   LoadNPCD maplumpname(mapi, "n"), npcbuf()
+   FOR j = 0 to UBOUND(npcbuf)
+	IF npcbuf(j).picture >= 0 AND npcbuf(j).picture <= sets THEN
+	 poffset(npcbuf(j).picture) = npcbuf(j).palette
+	END IF
    NEXT j
-   FOR mapi AS INTEGER = 0 TO gen(genMaxMap)
-    LoadNPCD maplumpname(mapi, "n"), npcbuf()
-    FOR j = 0 to UBOUND(npcbuf)
-     IF npcbuf(j).picture = i THEN
-      poffset(i) = npcbuf(j).palette
-      CONTINUE FOR, FOR, FOR
-     END IF
-    NEXT j
-   NEXT mapi
-  NEXT i
+  NEXT mapi
  CASE 5 'Weapons
   REDIM buf(99)
-  FOR i = 0 TO sets
-   FOR j = 0 TO gen(genMaxItem)
-    loaditemdata buf(), j
-    IF buf(49) = 1 AND buf(52) = i THEN
-     poffset(i) = buf(53)
-     EXIT FOR
-    END IF
-   NEXT j
-  NEXT i
+  FOR j = 0 TO gen(genMaxItem)
+   loaditemdata buf(), j
+   IF buf(49) = 1 THEN
+    IF buf(52) >= 0 AND buf(52) <= sets THEN poffset(buf(52)) = buf(53)
+   END IF
+  NEXT
  CASE 6 'Attacks
   REDIM buf(40 + dimbinsize(binATTACK))
-  FOR i = 0 TO sets
-   FOR j = 0 TO gen(genMaxAttack)
-    loadattackdata buf(), j
-    IF buf(0) = i THEN
-     poffset(i) = buf(1)
-     EXIT FOR
-    END IF
-   NEXT j
-  NEXT i
+  FOR j = 0 TO gen(genMaxAttack)
+   loadattackdata buf(), j
+   IF buf(0) >= 0 AND buf(0) <= sets THEN poffset(buf(0)) = buf(1)
+  NEXT
  CASE ELSE
   debug "Unknown sprite type: " & fileset
  END SELECT
