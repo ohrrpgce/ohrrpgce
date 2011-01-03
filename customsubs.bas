@@ -551,12 +551,18 @@ FUNCTION percent_grabber(byref float as double, repr as string, byval min as dou
  IF copy_keychord() THEN clip = float
  IF paste_keychord() THEN float = clip
  IF keyval(scBackspace) > 1 AND LEN(repr) > 0 THEN repr = LEFT(repr, LEN(repr) - 1)
- repr += exclusive(getinputtext, "0123456789")
+ repr += exclusive(getinputtext, "0123456789.")
 
- IF keyval(scPeriod) > 1 THEN repr = exclude(repr, ".") + "."
+ 'Exclude all but last period
+ DIM period as integer = INSTRREV(repr, ".")
+ DO
+  DIM period2 as integer = INSTR(repr, ".")
+  IF period = period2 THEN EXIT DO
+  repr = MID(repr, 1, period2 - 1) + MID(repr, period2 + 1)
+  period -= 1
+ LOOP
 
- 'Enforce sig. figures limit (we don't care about numbers less than 1% here, because
- DIM period as integer = INSTR(repr, ".")
+ 'Enforce sig. fig.s/decimal places limit
  IF period THEN repr = LEFT(repr, large(period, decimalplaces + 1))
 
  'Trim leading 0's
@@ -567,6 +573,7 @@ FUNCTION percent_grabber(byref float as double, repr as string, byval min as dou
 
  '--Numerical editing.
  float = VAL(repr) / 100
+ IF float = 0.0 ANDALSO sign = -1 THEN repr = MID(repr, 2)  'Convert -0 to 0
  DIM increment as double = 0.01
  period = INSTR(repr, ".")
  IF period THEN
@@ -595,7 +602,7 @@ FUNCTION percent_grabber(byref float as double, repr as string, byval min as dou
  DIM temp as double = float
  float = bound(float, min, max) 
  IF changed OR float <> temp THEN
-  repr = format_percent(float)
+  repr = format_percent(float, decimalplaces)
  ELSE
   repr += "%"
  END IF
@@ -607,6 +614,62 @@ FUNCTION percent_grabber(byref float as single, repr as string, byval min as dou
  DIM ret as integer = percent_grabber(temp, repr, min, max, decimalplaces)
  float = temp
  RETURN ret
+END FUNCTION
+
+'Return initial representation string for percent_cond_grabber
+FUNCTION format_percent_cond(byref cond as AttackElementCondition, default as string, byval decimalplaces as integer = 4) as string
+ IF cond.type = compNone THEN
+  RETURN default
+ ELSE
+  RETURN " " + comp_strings(cond.type) + " " + format_percent(cond.value, decimalplaces)
+ END IF
+END FUNCTION
+
+'This will probably only be used for editing AttackElementConditions, but it more general than that
+FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, repr as string, default as string, byval min as double, byval max as double, byval decimalplaces as integer = 4) as integer
+ WITH cond
+  DIM intxt as string = getinputtext
+  DIM newtype as integer = .type
+
+  IF keyval(scDelete) > 1 THEN newtype = compNone
+
+  'Listen for comparison operator input
+  FOR i as integer = 1 TO LEN(intxt)
+   DIM inchar as string = MID(intxt, i)
+   IF inchar = "<" THEN newtype = compLt
+   IF inchar = ">" THEN newtype = compGt
+  NEXT
+
+  IF newtype <> .type THEN
+   IF .type = compNone THEN .value = 0
+   .type = newtype
+   repr = format_percent_cond(cond, default, decimalplaces)
+   RETURN YES
+  ELSEIF .type = compNone THEN
+   DIM temp as string = "0%"
+   .value = 0
+   IF percent_grabber(.value, temp, min, max, decimalplaces) THEN
+    repr = " < " + temp
+    .type = compLt
+    RETURN YES
+   END IF
+   RETURN NO
+  ELSE
+   'Trim comparison operator
+   repr = MID(repr, 4)
+   IF keyval(scBackspace) > 1 ANDALSO repr = "0%" THEN
+    repr = default
+    .type = compNone
+    RETURN YES
+   ELSE
+    DIM ret as integer = percent_grabber(.value, repr, min, max, decimalplaces)
+    'Add back operator
+    repr = " " + comp_strings(.type) + " " + repr
+    RETURN ret
+   END IF
+  END IF
+
+ END WITH
 END FUNCTION
 
 SUB ui_color_editor(palnum AS INTEGER)

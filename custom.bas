@@ -1088,7 +1088,7 @@ END SUB
 OPTION EXPLICIT
 
 SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Condition Test"}
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests"}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1114,9 +1114,11 @@ END SUB
 'This menu is for testing experimental Condition UI stuff
 SUB condition_test_menu ()
  DIM as Condition cond1, cond2, cond3, cond4
+ DIM as AttackElementCondition atkcond
  DIM float as double
  DIM float_repr as string = "0%"
- DIM menu(7) as string
+ DIM atkcond_repr as string = ": Never"
+ DIM menu(8) as string
  DIM st as MenuState
  st.last = UBOUND(menu)
  st.size = 22
@@ -1139,7 +1141,9 @@ SUB condition_test_menu ()
   ELSEIF st.pt = 6 THEN
    tmp = cond_grabber(cond4, NO, YES)
   ELSEIF st.pt = 7 THEN
-   tmp = percent_grabber(float, float_repr, -9.99, 9.99)
+   tmp = percent_cond_grabber(atkcond, atkcond_repr, ": Never", -9.99, 9.99, 5)
+  ELSEIF st.pt = 8 THEN
+   tmp = percent_grabber(float, float_repr, -9.99, 9.99, 5)
   END IF
   usemenu st
 
@@ -1151,7 +1155,8 @@ SUB condition_test_menu ()
   menu(4) = "Enter always goes to cond editor:"
   menu(5) = " If " & condition_string(cond3, (st.pt = 5), "Always", 45)
   menu(6) = " If " & condition_string(cond4, (st.pt = 6), "Never", 45)
-  menu(7) = "percent_grabber : " & float_repr
+  menu(7) = "Fail vs damage from <fire>" & atkcond_repr
+  menu(8) = "percent_grabber : " & float_repr
   standardmenu menu(), st, 0, 0, vpage
   printstr STR(tmp), 0, 190, vpage
   setvispage vpage

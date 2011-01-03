@@ -473,6 +473,11 @@ Type AttackDataChain
 	dont_retarget as integer
 End Type
 
+Type AttackElementCondition
+	type as CompType  'Only compNone, compLt, compGt supported!
+	value as single
+End Type
+
 Type AttackData
 	id as integer 'should only be set when loaded!
 	name as string
