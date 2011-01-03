@@ -18,10 +18,10 @@ http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 
 2011-01-04:
 Nightly builds of revisions 4072-4075 (check svninfo.txt) -- January 1-3 --
-contained a bug that corrupted some the data for all the heroes except the
+contained a bug that corrupted all of the data for all the heroes except the
 first! This would cause the hero editor to crash. The editor should hopefully
-no longer crash, and let you repair any corrupted data (please report any
-problems you have). Always keep backups!
+no longer crash, and let you repair any corrupted data if you need to (please
+report any problems you have). Always keep backups!
 
 2010-12-28:
 The level cap wasn't being saved in save games, now it is.
