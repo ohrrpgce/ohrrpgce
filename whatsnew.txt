@@ -91,6 +91,7 @@ WHAT IS NEW?
       scripts. [Ralph]
     * Cursor, accept and cancel sound effects weren't used in battles
       [Ralph]
+    * Could not exit from empty menus with Esc key [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

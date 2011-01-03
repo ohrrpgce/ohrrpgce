@@ -2138,11 +2138,9 @@ SUB player_menu_keys (catx(), caty())
  DIM esc_menu AS INTEGER
  IF topmenu >= 0 THEN
   IF menus(topmenu).no_controls = YES THEN EXIT SUB
-  IF mstates(topmenu).last = -1 THEN EXIT SUB
   menu_handle = menus(topmenu).handle 'store handle for later use
-  IF game_usemenu(mstates(topmenu)) THEN
-   menusound gen(genCursorSFX)
-  END IF
+  'Following controls useable on empty menus too
+
   IF carray(ccMenu) > 1 AND menus(topmenu).no_close = NO THEN
    carray(ccMenu) = 0
    setkeys ' Forget keypress that closed the menu
@@ -2158,6 +2156,13 @@ SUB player_menu_keys (catx(), caty())
     add_menu esc_menu
    END IF
    EXIT SUB
+  END IF
+
+  'Following controls are for non-empty menus only
+  IF mstates(topmenu).last = -1 THEN EXIT SUB
+
+  IF game_usemenu(mstates(topmenu)) THEN
+   menusound gen(genCursorSFX)
   END IF
   activated = NO
   DIM mi AS MenuDefItem '--using a copy of the menu item here is safer (in future) because activate_menu_item() can deallocate it
