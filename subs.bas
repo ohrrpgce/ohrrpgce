@@ -35,6 +35,7 @@ DECLARE sub formpics(ename() as string, a() as integer, egraphics() as GraphicPa
 DECLARE SUB load_item_names (item_strings() AS STRING)
 DECLARE FUNCTION item_attack_name(n AS INTEGER) AS STRING
 DECLARE SUB generate_item_edit_menu (menu() AS STRING, itembuf() AS INTEGER, csr AS INTEGER, pt AS INTEGER, item_name AS STRING, info_string AS STRING, equip_types() AS STRING, BYREF box_preview AS STRING)
+DECLARE SUB enforce_hero_data_limits(her AS HeroDef)
 DECLARE SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
 DECLARE SUB update_hero_preview_pics(BYREF st AS HeroEditState, her AS HeroDef)
 DECLARE SUB animate_hero_preview(BYREF st AS HeroEditState)
@@ -1185,7 +1186,6 @@ menu(7) = "Bitsets..."
 menu(8) = "Elemental Resistances..."
 menu(9) = "Hero Tags..."
 menu(10) = "Equipment..."
-nam$ = ""
 GOSUB thishero
 
 setkeys
@@ -1232,8 +1232,8 @@ DO
   END IF
  END IF
  IF csr = 2 THEN
-  strgrabber nam$, 16
-  menu(2) = "Name:" + nam$
+  strgrabber her.name, 16
+  menu(2) = "Name:" + her.name
  END IF
 
  clearpage dpage
@@ -1497,7 +1497,6 @@ saveherodata @blankhero, pt
 RETRACE
 
 lasthero:
-her.name = nam$
 FOR i = 0 TO 3
  her.list_name(i) = hmenu(i)
 NEXT i
@@ -1506,11 +1505,11 @@ RETRACE
 
 thishero:
 loadherodata @her, pt
-nam$ = her.name
+enforce_hero_data_limits her
 FOR i = 0 TO 3
  hmenu(i) = her.list_name(i)
 NEXT i
-menu(2) = "Name:" + nam$
+menu(2) = "Name:" + her.name
 menu(1) = CHR(27) + "Pick Hero " & pt & CHR(26)
 update_hero_preview_pics st, her
 RETRACE
@@ -2051,6 +2050,17 @@ LOOP
 END SUB
 
 '--Hero Editor stuff---------------------------------------------------
+
+'This is not complete; it exists just to prevent crashes due to data
+'corruption (eg. bug 871)
+SUB enforce_hero_data_limits(her AS HeroDef)
+ clamp_value her.sprite, 0, gen(genMaxHeroPic), "hero sprite"
+ clamp_value her.sprite_pal, -1, gen(genMaxPal), "hero sprite pal"
+ clamp_value her.walk_sprite, 0, gen(genMaxHeroPic), "hero walkabout sprite"
+ clamp_value her.walk_sprite_pal, -1, gen(genMaxPal), "hero walkabout sprite pal"
+ clamp_value her.portrait, 0, gen(genMaxPal), "hero portrait"
+ clamp_value her.portrait_pal, -1, gen(genMaxPal), "hero portrait pal"
+END SUB
 
 SUB update_hero_appearance_menu(BYREF st AS HeroEditState, menu() AS STRING, her AS HeroDef)
  menu(1) = "Battle Picture: " & her.sprite

@@ -787,7 +787,6 @@ SUB guessdefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
  flusharray poffset(), sets, 0
  SELECT CASE fileset
  CASE 0 'Heroes
-  'REDIM buf(318)
   FOR j = 0 TO gen(genMaxHero) 'I reversed the loops, because it's more efficient  
    FOR i = 0 TO sets           'to do the file I/O in the outer loop
     loadherodata @her, j
@@ -2365,6 +2364,14 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
  IF repeating = NO THEN setbinsize bindex, newsize
 
 END IF
+END SUB
+
+'Clamp a value to within a range with warning
+SUB clamp_value (BYREF value as integer, BYVAL min as integer, BYVAL max as integer, argname as string)
+ DIM oldval as integer = value
+ IF value < min THEN value = min
+ IF value > max THEN value = max
+ IF value <> oldval THEN debug "Clamped invalid " + argname + " value " & oldval & "  to " & value
 END SUB
 
 FUNCTION passwordhash (p as string) as ushort

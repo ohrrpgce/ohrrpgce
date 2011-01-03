@@ -1287,7 +1287,7 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 	
 	open filename for binary as #f
 	
-	seek #f, record * 636 + 1
+	seek #f, record * getbinsize(binDT0) + 1
 	
 	'begin (this makes the baby jesus cry :'( )
 	with *hero
