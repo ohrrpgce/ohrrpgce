@@ -257,7 +257,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
     END IF
    END IF
   END IF
-  IF keyval(scE) > 1 THEN
+  IF keyval(scF2) > 1 THEN
    filename = inputfilename("Export slice collection", ".slice", "", "input_filename_export_slices")
    IF filename <> "" THEN
     SliceSaveToFile edslice, filename & ".slice"
@@ -265,7 +265,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   END IF
   IF ses.use_index THEN
    '--import is only allowed when regular index editing mode is enabled...
-   IF keyval(scI) > 1 THEN
+   IF keyval(scF3) > 1 THEN
     filename = browse(0, "", "*.slice", "",, "browse_import_slices")
     IF filename <> "" THEN
      slice_editor_load edslice, filename

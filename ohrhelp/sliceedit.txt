@@ -24,9 +24,9 @@ Press Delete if you want to remove a slice.
 
 Press Ctrl+C to copy a slice and its children. Press Ctrl+V to paste a copied slice before the current one.
 
-Press E to export your slice collection to a file.
+Press F2 to export your slice collection to a file.
 
-Press I to import a slice collection (the collection you are currentlly working on will be replaced.)
+Press F3 to import a slice collection (the collection you are currentlly working on will be replaced.)
 
 Press CTRL+F to edit the children of the currently selected slice in full-screen.
 
