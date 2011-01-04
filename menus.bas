@@ -980,8 +980,14 @@ SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
  setvispage vpage
- mp3_to_ogg(mp3, oggtemp, ogg_quality)
+ DIM ret AS STRING = mp3_to_ogg(mp3, oggtemp, ogg_quality)
+ IF LEN(ret) THEN
+  visible_debug ret
+  mp3 = ""
+  EXIT SUB
+ END IF
  IF NOT isfile(oggtemp) THEN
+  'This branch ought to be unreachable...
   visible_debug "MP3 conversion failed."
   mp3 = ""
   EXIT SUB
@@ -997,8 +1003,14 @@ SUB import_convert_wav(BYREF wav AS STRING, BYREF oggtemp AS STRING)
  centerbox 160, 100, 300, 20, 4, vpage
  edgeprint "Please wait, converting to OGG...", 28, 96, uilook(uiText), vpage
  setvispage vpage
- wav_to_ogg(wav, oggtemp, ogg_quality)
+ DIM ret AS STRING = wav_to_ogg(wav, oggtemp, ogg_quality)
+ IF LEN(ret) THEN
+  visible_debug ret
+  wav = ""
+  EXIT SUB
+ END IF
  IF NOT isfile(oggtemp) THEN
+  'This branch ought to be unreachable...
   visible_debug "WAV conversion failed."
   wav = ""
   EXIT SUB

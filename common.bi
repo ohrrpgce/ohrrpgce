@@ -128,15 +128,15 @@ DECLARE FUNCTION getdisplayname (default as string) as string
 
 DECLARE SUB playsongnum (songnum as integer)
 
-DECLARE FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as integer
+DECLARE FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as string
 DECLARE FUNCTION find_helper_app (appname AS STRING) AS STRING
 DECLARE FUNCTION find_madplay () AS STRING
 DECLARE FUNCTION find_oggenc () AS STRING
 DECLARE FUNCTION can_convert_mp3 () AS INTEGER
 DECLARE FUNCTION can_convert_wav () AS INTEGER
-DECLARE SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
-DECLARE SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
-DECLARE SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5)
+DECLARE FUNCTION mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5) AS STRING
+DECLARE FUNCTION mp3_to_wav (in_file AS STRING, out_file AS STRING) AS STRING
+DECLARE FUNCTION wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 5) AS STRING
 
 DECLARE FUNCTION intgrabber OVERLOAD (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO) AS INTEGER
 DECLARE FUNCTION intgrabber OVERLOAD (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONGINT, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO) AS INTEGER

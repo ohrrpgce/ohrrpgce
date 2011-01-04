@@ -410,12 +410,17 @@ SUB debuginfo (s AS STRING)
  CLOSE #fh
 END SUB
 
-SUB visible_debug (s$)
- debuginfo s$
- centerbox 160, 100, 300, 36, 3, vpage
- edgeprint s$, 15, 90, uilook(uiText), vpage
- edgeprint "Press any key...", 15, 100, uilook(uiMenuItem), vpage
- setvispage vpage 'refresh
+SUB visible_debug (msg as string)
+ debuginfo msg
+' pop_warning msg
+ DIM captlines() AS STRING
+ split(wordwrap(msg, 36), captlines())
+ str_array_append captlines(), "Press any key..."
+ centerbox 160, 100, 310, 26 + 10 * UBOUND(captlines), 3, vpage
+ FOR i AS INTEGER = 0 TO UBOUND(captlines)
+  edgeprint captlines(i), 10, 95 - UBOUND(captlines) * 5 + i * 10, uilook(uiMenuItem), vpage
+ NEXT
+ setvispage vpage
  w = getkey
 END SUB
 
@@ -501,13 +506,13 @@ SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
   debug "edgeboxstyle: invalid boxstyle " & boxstyle
   EXIT SUB
  END IF
- DIM textcol   AS INTEGER = uilook(uiTextBox + 2 * boxstyle)
+ DIM col AS INTEGER = uilook(uiTextBox + 2 * boxstyle)
  DIM bordercol AS INTEGER = uilook(uiTextBox + 2 * boxstyle + 1)
  DIM borders AS INTEGER = boxstyle
  DIM trans AS RectTransTypes = transOpaque
  IF supress_borders THEN borders = -1
  IF fuzzy THEN trans = transFuzzy
- edgebox x, y, w, h, textcol, bordercol, p, trans, borders
+ edgebox x, y, w, h, col, bordercol, p, trans, borders
 END SUB
 
 SUB edgebox (x, y, w, h, col, bordercol, p, trans AS RectTransTypes=transOpaque, border=-1, fuzzfactor=50)
@@ -1559,7 +1564,7 @@ SUB pop_warning(s AS STRING)
  '--Now loop displaying text
  setkeys
  DO
-  setwait 17, 70
+  setwait 17
   setkeys
   
   IF deadkeys = 0 THEN 
@@ -1590,7 +1595,7 @@ SUB pop_warning(s AS STRING)
  '--Animate the removal of the help screen
  DO
   setkeys
-  setwait 17, 70
+  setwait 17
   animate->Y = animate->Y + 20
   IF animate->Y > 200 THEN EXIT DO
   DrawSlice root, dpage
@@ -1993,29 +1998,30 @@ SUB playsongnum (songnum%)
   loadsong songfile
 END SUB
 
-FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as integer
+FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as string
  'On Windows:
  'Attempts to run a program asynchronously and wait for it to
  'finish, offering users the option to kill it
  'On Unix:
  'Just calls SHELL
 
+ 'Returns an error message, or "" on success
+
  'It may be better to pass arguments in an array (the Unix way), so that
  'we can do all the necessary quoting required for Windows here.
 
 #IFNDEF __FB_WIN32__
 
- 'allmodex process functions only currently implemented on Windows
+ 'os_* process handling functions only currently implemented on Windows
  SHELL app & " " & args
- RETURN YES
+ RETURN ""
 
 #ELSE
 
  DIM handle AS ProcessHandle
  handle = open_console_process(app, args)
  IF handle = 0 THEN
-  visible_debug "Could not open " & app
-  RETURN NO
+  RETURN "Could not run " & app
  END IF
 
  DIM dots AS INTEGER = 0
@@ -2026,14 +2032,17 @@ FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as integer
   setkeys
   IF process_running(handle, @exitcode) = NO THEN
    cleanup_process @handle
-   'Error, or the user might have killed the program some other way
-   RETURN (exitcode = 0)
+   IF exitcode THEN
+    'Error, or the user might have killed the program some other way
+    RETURN trimpath(app) + " reported failure."
+   END IF
+   RETURN ""
   END IF
   IF keyval(scEsc) > 1 THEN
    kill_process handle
    cleanup_process @handle
    setkeys
-   RETURN NO
+   RETURN "User cancelled."
   END IF
 
   dots = (dots + 1) MOD 5
@@ -2095,51 +2104,88 @@ RETURN ""
 #ENDIF
 END FUNCTION
 
+'Not used
 FUNCTION can_convert_mp3 () AS INTEGER
  IF find_madplay() = "" THEN RETURN 0
  RETURN can_convert_wav()
 END FUNCTION
 
+'Not used
 FUNCTION can_convert_wav () AS INTEGER
  IF find_oggenc() = "" THEN RETURN 0
  RETURN -1 
 END FUNCTION
 
-SUB mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
+FUNCTION missing_helper_message (appname as string) as string
+ DIM ret as string
+ DIM mult as integer = INSTR(appname, " ")
+
+ ret = appname + iif_string(mult, " are both missing (only one required).", " is missing.")
+
+ #IFDEF __FB_WIN32__
+  ret += " Check that it is in the support folder."
+ #ELSEIF DEFINED(__FB_DARWIN__)
+  ret += " This ought to be included inside OHRRPGCE-Custom! Please report this."
+ #ELSE
+  ret += " You must install it on your system."
+ #ENDIF
+
+ 'Linux nightly builds are full distributions, while on Windows they are missing much.
+ #IF DEFINED(__FB_WIN32__)
+  IF version_branch = "wip" THEN
+   ret += CHR(10) + "You are using a nightly build. Did you unzip the nightly on top of a full install of a stable release, as you are meant to? Alternatively, download oggenc+madplay.zip from the nightly ""alternative backends"" folder."
+  END IF
+ #ENDIF
+ RETURN ret
+END FUNCTION
+
+'Returns error message, or "" on success
+FUNCTION mp3_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4) AS STRING
  DIM AS STRING tempwav
+ DIM AS STRING ret
  tempwav = tmpdir & "temp." & INT(RND * 100000) & ".wav"
- mp3_to_wav(in_file, tempwav)
- wav_to_ogg(tempwav, out_file, quality)
- KILL tempwav
-END SUB
+ ret = mp3_to_wav(in_file, tempwav)
+ IF LEN(ret) THEN RETURN ret
+ ret = wav_to_ogg(tempwav, out_file, quality)
+ safekill tempwav
+ RETURN ret
+END FUNCTION
 
-SUB mp3_to_wav (in_file AS STRING, out_file AS STRING)
- DIM AS STRING app, args
- IF NOT isfile(in_file) THEN debug "mp3_to_wav: " & in_file & " does not exist" : EXIT SUB
+'Returns error message, or "" on success
+FUNCTION mp3_to_wav (in_file AS STRING, out_file AS STRING) AS STRING
+ DIM AS STRING app, args, ret
+ IF NOT isfile(in_file) THEN RETURN "mp3 to wav conversion: " & in_file & " does not exist"
  app = find_madplay()
- IF app = "" THEN debug "mp3_to_wav: failed to find madplay" : EXIT SUB
+ IF app = "" THEN RETURN "Can not read MP3 files: " + missing_helper_message("madplay" + DOTEXE)
+
  args = " -o wave:""" & out_file & """ """ & in_file & """"
-
- IF spawn_and_wait(app, args) = NO THEN
+ ret = spawn_and_wait(app, args)
+ IF LEN(ret) THEN
   safekill out_file
+  RETURN ret
  END IF
 
- IF NOT isfile(out_file) THEN debug "mp3_to_wav: failed to create " & out_file : EXIT SUB
-END SUB
+ IF NOT isfile(out_file) THEN RETURN "Could not find " + out_file + ": " + app + " must have failed"
+ RETURN ""
+END FUNCTION
 
-SUB wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4)
- DIM AS STRING app, args
- IF NOT isfile(in_file) THEN debug "wav_to_ogg: " & in_file & " does not exist" : EXIT SUB
+'Returns error message, or "" on success
+FUNCTION wav_to_ogg (in_file AS STRING, out_file AS STRING, quality AS INTEGER = 4) AS STRING
+ DIM AS STRING app, args, ret
+ IF NOT isfile(in_file) THEN RETURN "wav to ogg conversion: " & in_file & " does not exist"
  app = find_oggenc()
- IF app = "" THEN debug "wav_to_mp3: failed to find oggenc" : EXIT SUB
- args = " -q " & quality & " -o """ & out_file & """ """ & in_file & """"
+ IF app = "" THEN RETURN "Can not convert to OGG: " + missing_helper_message("oggenc" DOTEXE " and oggenc2" DOTEXE)
 
- IF spawn_and_wait(app, args) = NO THEN
+ args = " -q " & quality & " -o """ & out_file & """ """ & in_file & """"
+ ret = spawn_and_wait(app, args)
+ IF LEN(ret) THEN
   safekill out_file
+  RETURN "wav to ogg conversion failed."
  END IF
 
- IF NOT isfile(out_file) THEN debug "wav_to_ogg: " & out_file & " does not exist" : EXIT SUB
-END SUB
+ IF NOT isfile(out_file) THEN RETURN "Could not find " + out_file + ": " + app + " must have failed"
+ RETURN ""
+END FUNCTION
 
 SUB upgrade_message (s AS STRING)
  IF NOT upgrademessages THEN

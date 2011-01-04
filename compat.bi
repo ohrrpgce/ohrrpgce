@@ -147,11 +147,13 @@ option nokeyword gosub
 #define SLASH "/"
 #define LINE_END !"\n"
 #define CUSTOMEXE "ohrrpgce-custom"
+#define DOTEXE ""
 #define ALLFILES "*"
 #else
 #define SLASH "\"
 #define LINE_END !"\r\n"
 #define CUSTOMEXE "CUSTOM.EXE"
+#define DOTEXE ".exe"
 #define ALLFILES "*.*"
 #endif
 

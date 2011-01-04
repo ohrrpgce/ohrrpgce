@@ -45,8 +45,7 @@ DECLARE SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState
 DECLARE SUB draw_browse_meter(br AS BrowseMenuState)
 DECLARE SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
 DECLARE SUB browse_add_files(wildcard$, BYVAL filetype AS INTEGER, BYREF br AS BrowseMenuState, tree() AS BrowseMenuEntry)
-DECLARE FUNCTION validmusicfile (file$, as integer = FORMAT_BAM AND FORMAT_MIDI)
-DECLARE FUNCTION show_mp3_info() AS STRING
+DECLARE FUNCTION validmusicfile (file$, BYVAL typemask as integer)
 DECLARE FUNCTION browse_sanity_check_reload(filename AS STRING, info AS STRING) AS INTEGER
 
 FUNCTION browse (special, default$, fmask AS STRING, tmp$, needf, helpkey as string) as string
@@ -284,7 +283,7 @@ SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    IF validmusicfile(br.nowdir + tree(br.treeptr).filename, PREVIEWABLE_MUSIC_FORMAT) THEN
     loadsong br.nowdir + tree(br.treeptr).filename
    ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
-    br.alert = show_mp3_info()
+    br.alert = "Cannot preview MP3, try importing"
    END IF
   CASE 6 'sfx
    br.alert = tree(br.treeptr).about
@@ -299,7 +298,7 @@ SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
      br.snd = LoadSound(br.nowdir + tree(br.treeptr).filename)
      sound_play(br.snd, 0, -1)
     ELSEIF getmusictype(br.nowdir + tree(br.treeptr).filename) = FORMAT_MP3 THEN
-     br.alert = show_mp3_info()
+     br.alert = "Cannot preview MP3, try importing"
     END IF
    END IF
   CASE 7 'rpg
@@ -451,49 +450,35 @@ WITH br
 END WITH
 END SUB
 
-FUNCTION validmusicfile (file AS STRING, types = FORMAT_BAM AND FORMAT_MIDI)
+FUNCTION validmusicfile (file AS STRING, BYVAL typemask AS INTEGER)
 '-- actually, doesn't need to be a music file, but only multi-filetype imported data right now
-	DIM AS STRING ext, a, realhd
-	DIM AS INTEGER musfh, v, chk
-	ext = lcase(justextension(file))
+	DIM AS STRING hdmask, realhd
+	DIM AS INTEGER musfh, chk
 	chk = getmusictype(file)
 
-	if (chk AND types) = 0 then return 0
+	if (chk AND typemask) = 0 then return 0
 
 	SELECT CASE chk
 	CASE FORMAT_BAM
-		a = "    "
+		hdmask = "    "
 		realhd = "CBMF"
-		v = 1
 	CASE FORMAT_MIDI
-		a = "    "
+		hdmask = "    "
 		realhd = "MThd"
-		v = 1
 	CASE FORMAT_XM
-		a =      "                 "
+		hdmask = "                 "
 		realhd = "Extended Module: "
-		v = 1
-	CASE FORMAT_MP3
-		return can_convert_mp3()
 	END SELECT
 
-	if v then
+	if LEN(hdmask) then
 		musfh = FREEFILE
 		OPEN file FOR BINARY AS #musfh
-		GET #musfh, 1, a
+		GET #musfh, 1, hdmask
 		CLOSE #musfh
-		IF a <> realhd THEN return 0
+		IF hdmask <> realhd THEN return 0
 	end if
 
 	return 1
-END FUNCTION
-
-FUNCTION show_mp3_info() AS STRING
- IF can_convert_mp3() THEN
-  RETURN "Cannot preview MP3, try importing"
- ELSE
-  RETURN "madplay & oggenc required. See README"
- END IF
 END FUNCTION
 
 SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
