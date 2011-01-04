@@ -830,8 +830,10 @@ SUB guessdefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
    loadattackdata buf(), j
    IF buf(0) >= 0 AND buf(0) <= sets THEN poffset(buf(0)) = buf(1)
   NEXT
- CASE ELSE
-  debug "Unknown sprite type: " & fileset
+ CASE ELSE 'Portraits and later
+  'Default palettes were implemented before portraits, so this can only be called
+  'the first time you ever open the portrait editor in an old game -- no point
+  'implementing this
  END SELECT
 END SUB
 
@@ -2351,7 +2353,7 @@ SUB clamp_value (BYREF value as integer, BYVAL min as integer, BYVAL max as inte
  DIM oldval as integer = value
  IF value < min THEN value = min
  IF value > max THEN value = max
- IF value <> oldval THEN debug "Clamped invalid " + argname + " value " & oldval & "  to " & value
+ IF value <> oldval THEN debug "Clamped invalid " + argname + " value " & oldval & " to " & value
 END SUB
 
 FUNCTION passwordhash (p as string) as ushort

@@ -16,6 +16,11 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2011-01-05:
+Yesterday's fix could overzealously clamp hero sprite and palette settings
+when you entered the hero editor. Flick through your heroes to check they're
+alright.
+
 2011-01-04:
 Nightly builds of revisions 4072-4075 (check svninfo.txt) -- January 1-3 --
 contained a bug that corrupted all of the data for all the heroes except the

@@ -2056,9 +2056,9 @@ END SUB
 SUB enforce_hero_data_limits(her AS HeroDef)
  clamp_value her.sprite, 0, gen(genMaxHeroPic), "hero sprite"
  clamp_value her.sprite_pal, -1, gen(genMaxPal), "hero sprite pal"
- clamp_value her.walk_sprite, 0, gen(genMaxHeroPic), "hero walkabout sprite"
+ clamp_value her.walk_sprite, 0, gen(genMaxNPCPic), "hero walkabout sprite"
  clamp_value her.walk_sprite_pal, -1, gen(genMaxPal), "hero walkabout sprite pal"
- clamp_value her.portrait, 0, gen(genMaxPal), "hero portrait"
+ clamp_value her.portrait, -1, gen(genMaxPortrait), "hero portrait"
  clamp_value her.portrait_pal, -1, gen(genMaxPal), "hero portrait pal"
 END SUB
 
