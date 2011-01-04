@@ -223,6 +223,8 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   'putenv("SDL_DISABLE_LOCK_KEYS=1") 'SDL 1.2.14
   'putenv("SDL_NO_LOCK_KEYS=1")      'SDL SVN between 1.2.13 and 1.2.14
 
+  putenv("SDL_VIDEO_CENTERED=1")
+
   IF SDL_WasInit(0) = 0 THEN
     DIM ver as SDL_version ptr = SDL_Linked_Version()
     *info_buffer = MID("SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
