@@ -26,12 +26,8 @@ DECLARE SUB clearallpages ()
 
 REM $STATIC
 SUB addcaption (caption() AS STRING, indexer, cap AS STRING)
-IF indexer > UBOUND(caption) THEN
- fatalerror "caption(" + STR(indexer) + ") overflow on " + cap
-ELSE
- caption(indexer) = cap
- indexer = indexer + 1
-END IF
+ str_array_append caption(), cap
+ indexer = UBOUND(caption) + 1
 END SUB
 
 SUB attackdata
@@ -175,13 +171,14 @@ CONST AtkDatLearnSoundEffect = 117
 CONST AtkDatTransmogEnemy = 118
 CONST AtkDatTransmogHp = 119
 CONST AtkDatTransmogStats = 120
+CONST AtkDatElementalFail = 121 'to 312
 
 'anything past this requires expanding the data
 
 
 '----------------------------------------------------------
 DIM capindex AS INTEGER = 0
-DIM caption(155) AS STRING
+REDIM caption(-1 TO -1) AS STRING
 DIM max(39), min(39)
 
 'Limit(0) is not used
@@ -1274,6 +1271,7 @@ FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS 
 '           6=extra badly stored string(by word with gap)
 '           7=attack number (offset!)
 '           8=item number (not offset)
+'           9=enemy name (offset)
 '           10=item number (offset!)
 '           11=sound effect (offset)
 '           12=defaultable positive int >=0 is int, -1 is "default"
@@ -1368,7 +1366,8 @@ SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGE
 'nowmenu() contains the results. a menu ready to use with standardmenu
 'nowdat() is a list of the indexes of which menu elements are currently on display
 'size is the index of the last element in nowdat() and nowmenu()
-'menu() holds all the available captions
+'menu() holds all the available captions. They may contain $$ to indicate where
+'       the generated text should be inserted, otherwise it is appended.
 'menutype() holds the type of each menu element.
 '           0=int
 '           1=action (usually triggering a different menu)
@@ -1408,94 +1407,102 @@ DIM capnum AS INTEGER
 DIM dat AS INTEGER
 DIM i AS INTEGER
 FOR i = 0 TO size
+ DIM nospace AS INTEGER = NO
+ DIM datatext AS STRING
  dat = datablock(menuoff(nowdat(i)))
  nowmenu(i) = menu(nowdat(i))
  SELECT CASE menutype(nowdat(i))
   CASE 0 '--int
-   nowmenu(i) = nowmenu(i) & " " & dat
+   datatext = STR(dat)
   CASE 2 '--set tag
-   nowmenu(i) = nowmenu(i) & " " & tag_condition_caption(dat, "", "NONE", "Tag 1 cannot be changed", "Tag 1 cannot be changed")
+   datatext = tag_condition_caption(dat, "", "NONE", "Tag 1 cannot be changed", "Tag 1 cannot be changed")
   CASE 3 '--goodstring
    maxl = maxtable(menulimits(nowdat(i)))
-   nowmenu(i) = nowmenu(i) + readbinstring(datablock(), menuoff(nowdat(i)), maxl)
+   datatext = readbinstring(datablock(), menuoff(nowdat(i)), maxl)
+   nospace = YES
   CASE 4 '--badstring
    maxl = maxtable(menulimits(nowdat(i)))
-   nowmenu(i) = nowmenu(i) + readbadbinstring(datablock(), menuoff(nowdat(i)), maxl, 0)
+   datatext = readbadbinstring(datablock(), menuoff(nowdat(i)), maxl, 0)
+   nospace = YES
   CASE 5 '--record index
+   'Special, $$ text replacement not available
    nowmenu(i) = CHR(27) & nowmenu(i) & " " & recindex & CHR(26)
   CASE 6 '--extrabadstring
    maxl = maxtable(menulimits(nowdat(i)))
-   nowmenu(i) = nowmenu(i) + readbadbinstring(datablock(), menuoff(nowdat(i)), maxl, 1)
+   datatext = readbadbinstring(datablock(), menuoff(nowdat(i)), maxl, 1)
+   nospace = YES
   CASE 7 '--attack number
    IF dat <= 0 THEN
-    nowmenu(i) = nowmenu(i) + " None"
+    datatext = "None"
    ELSE
-    nowmenu(i) = nowmenu(i) & " " & (dat - 1)
-    nowmenu(i) = nowmenu(i) + " " + readattackname(dat - 1)
+    datatext = (dat - 1) & " " + readattackname(dat - 1)
    END IF
   CASE 8 '--item number
-   nowmenu(i) = nowmenu(i) + " " + load_item_name(dat, 0, 1)
+   datatext = load_item_name(dat, 0, 1)
   CASE 9 '--enemy number
    IF dat <= 0 THEN
-    nowmenu(i) = nowmenu(i) + " None"
+    datatext = "None"
    ELSE
-    nowmenu(i) = nowmenu(i) & " " & (dat - 1)
-    nowmenu(i) = nowmenu(i) + " " + readenemyname(dat - 1)
+    datatext = (dat - 1) & " " + readenemyname(dat - 1)
    END IF
   CASE 10 '--item number, offset
-    nowmenu(i) = nowmenu(i) + " " + load_item_name(dat, 0, 0)
+    datatext = load_item_name(dat, 0, 0)
   CASE 11 '--sound effect number, offset
     IF dat <= 0 THEN
-      nowmenu(i) = nowmenu(i) + " None"
+      datatext = "None"
     ELSE
-      nowmenu(i) = nowmenu(i) + str(dat - 1 ) + " (" + getsfxname(dat - 1) + ")"
+      datatext = (dat - 1) & " (" + getsfxname(dat - 1) + ")"
     END IF
   CASE 12 '--defaultable positive int
-    nowmenu(i) = nowmenu(i) & " " & defaultint(dat)
+    datatext = defaultint(dat)
   CASE 13 '--zero default int
-    nowmenu(i) = nowmenu(i) & " " & zero_default(dat)
+    datatext = zero_default(dat)
   CASE 14 '--sound effect number + 1 (0=default, -1=none)
     IF dat = 0 THEN
-      nowmenu(i) = nowmenu(i) + " Default"
+      datatext = "Default"
     ELSEIF dat < 0 THEN
-      nowmenu(i) = nowmenu(i) + " None"
+      datatext = "None"
     ELSE
-      nowmenu(i) = nowmenu(i) + str(dat - 1 ) + " (" + getsfxname(dat - 1) + ")"
+      datatext = (dat - 1) & " (" + getsfxname(dat - 1) + ")"
     END IF
   CASE 15 '--speed (shows battle turn time estimate)
-    nowmenu(i) = nowmenu(i) & " " & dat & " (1 turn each " & speed_estimate(dat) & ")"
+    datatext = dat & " (1 turn each " & speed_estimate(dat) & ")"
   CASE 16 '--stat
     SELECT CASE dat
      CASE 0 TO 11
-      nowmenu(i) = nowmenu(i) & " " & statnames(dat)
-     CASE 12: nowmenu(i) = nowmenu(i) & " posion register"
-     CASE 13: nowmenu(i) = nowmenu(i) & " regen register"
-     CASE 14: nowmenu(i) = nowmenu(i) & " stun register"
-     CASE 15: nowmenu(i) = nowmenu(i) & " mute register"
+      datatext = statnames(dat)
+     CASE 12: datatext = "posion register"
+     CASE 13: datatext = "regen register"
+     CASE 14: datatext = "stun register"
+     CASE 15: datatext = "mute register"
     END SELECT
   CASE 17 '--int%
-   nowmenu(i) = nowmenu(i) & " " & dat & "%"
+   datatext = dat & "%"
   CASE 18 '--skipper
    '--no change to caption
   CASE 19 '--ticks
-   nowmenu(i) = nowmenu(i) & " " & dat & " ticks (" & seconds_estimate(dat) & " sec)"
+   datatext = dat & " ticks (" & seconds_estimate(dat) & " sec)"
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
-   nowmenu(i) = nowmenu(i) & " " & dat & " " & caption(capnum + dat)
+   datatext = dat & " " & caption(capnum + dat)
   CASE 2000 TO 2999 '--caption-only int
    capnum = menutype(nowdat(i)) - 2000
-   nowmenu(i) = nowmenu(i) + " " + caption(capnum + dat)
+   datatext = caption(capnum + dat)
   CASE 3000 TO 3999 '--multistate
    capnum = menutype(nowdat(i)) - 3000
    IF dat > 0 THEN
-    nowmenu(i) = nowmenu(i) & " " & dat & " " & caption(capnum - 1)
+    datatext = dat & " " & caption(capnum - 1)
    ELSE
-    nowmenu(i) = nowmenu(i) & " " & caption(capnum + ABS(dat))
+    datatext = caption(capnum + ABS(dat))
    END IF
  END SELECT
- IF menu(nowdat(i)) = "" THEN nowmenu(i) = LTRIM(nowmenu(i))
+ IF replacestr(nowmenu(i), "$$", datatext) = 0 THEN
+  'No replacements made
+  IF nospace = NO AND nowmenu(i) <> "" THEN nowmenu(i) += " "
+  nowmenu(i) += datatext
+ END IF
  IF mpointer = i THEN
-   nowmenu(i) = RIGHT(nowmenu(i), 40)
+  nowmenu(i) = RIGHT(nowmenu(i), 40)
  END IF
 NEXT i
 END SUB
