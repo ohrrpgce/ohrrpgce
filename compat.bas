@@ -72,6 +72,9 @@ function usage_setoption(opt as string, arg as string) as integer
 		help = help & "-? -help            Display this help screen" & LINE_END
 		help = help & "-v -version         Show version and build info" & LINE_END
 		help = help & "-log foldername     Log debug messages to a specific folder" & LINE_END
+#IFDEF IS_GAME
+		help = help & "-full-upgrade       Upgrade game data completely, as Custom does" & LINE_END
+#ENDIF
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END

@@ -75,6 +75,13 @@ DIM SHARED last_upgrade_time AS DOUBLE
 DIM SHARED upgrade_overhead_time AS DOUBLE
 DIM SHARED upgrade_start_time AS DOUBLE
 
+'Upgrade all game data (required for writing), or only enough to allow reading?
+#IFDEF IS_CUSTOM
+DIM SHARED full_upgrade AS INTEGER = YES
+#ELSE
+DIM SHARED full_upgrade AS INTEGER = NO
+#ENDIF
+
 'don't delete the debug file at end of play
 DIM SHARED importantdebug AS INTEGER = 0
 
@@ -88,6 +95,9 @@ DIM SHARED global_strings_buffer AS STRING
 FUNCTION common_setoption(opt as string, arg as string) as integer
  IF opt = "time-upgrade" THEN
   time_rpg_upgrade = YES
+  RETURN 1  'arg not used
+ ELSEIF opt = "full-upgrade" THEN
+  full_upgrade = YES
   RETURN 1  'arg not used
  END IF
 END FUNCTION
@@ -2541,6 +2551,12 @@ IF NOT diriswriteable(workingdir) THEN
  EXIT SUB
 END IF
 
+IF full_upgrade THEN
+ debuginfo "Full game data upgrade..."
+ELSE
+ debuginfo "Partial game data upgrade..."
+END IF
+
 IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"
  gen(genVersion) = 1
@@ -3112,7 +3128,7 @@ IF getfixbit(fixOldElementalFailBit) = 0 THEN
  setbit gen(), genBits2, 9, 1
 END IF
 
-IF getfixbit(fixAttackElementFails) = 0 THEN
+IF full_upgrade ANDALSO getfixbit(fixAttackElementFails) = 0 THEN
  upgrade_message "Initialised attack elemental failure conditions..."
  setfixbit(fixAttackElementFails, 1)
  REDIM dat(40 + dimbinsize(binATTACK)) AS INTEGER
