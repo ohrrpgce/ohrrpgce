@@ -1,0 +1,4 @@
+Warning:
+The 'Simulate old fail vs. element resist bit' general bitset is on. It's recommended to turn it off (in the Peference Bitsets menu), as it exists only to support old games.
+
+This bit will cause elemental resist fail conditions to ignore absorption, so "< 50%" will actually mean "< 50% and > -50%", and "< 0%" will do nothing at all!

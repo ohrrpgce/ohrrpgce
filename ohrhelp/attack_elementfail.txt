@@ -1,0 +1,9 @@
+In this editor you can set conditions to cause the attack to fail depending on the target's resistance or weakness to each element.
+
+You can hold the ALT key and press the left and right arrow keys to change which attack you are editing, or while holding ALT you can type an attack ID number.
+
+With an element selected, type < or > to select the type of condition: fail either if the target takes less than or more than some percent of the normal attack damage when attacked by an element. These percentages can be set in the hero and enemy editors. For example, use "< 0%" to fail if the target absorbs damage from an element.
+
+Type in the value of a threshold. You can enter fractional percent values too, by typing a decimal point . and you can also press Left and Right to reduce or increase a threshold.
+
+Press Backspace repeatedly or Press Delete to remove a fail condition.
