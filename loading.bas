@@ -2153,9 +2153,9 @@ SUB loadattackdata (array() AS INTEGER, BYVAL index AS INTEGER)
  loadoldattackdata array(), index
  DIM size AS INTEGER = getbinsize(binATTACK) \ 2 'size of record in RPG file
  IF size > 0 THEN
-  DIM buf(size) AS INTEGER
+  DIM buf(size - 1) AS INTEGER
   loadnewattackdata buf(), index
-  FOR i AS INTEGER = 0 TO size
+  FOR i AS INTEGER = 0 TO size - 1
    array(40 + i) = buf(i)
   NEXT i
  END IF
@@ -2171,6 +2171,29 @@ SUB loadattackchain (BYREF ch AS AttackDataChain, buf() AS INTEGER, BYVAL id_off
  ch.no_delay    = xreadbit(buf(), 1, bits_offset)
  ch.nonblocking = xreadbit(buf(), 2, bits_offset)
  ch.dont_retarget = xreadbit(buf(), 3, bits_offset)
+END SUB
+
+SUB loadoldattackelementalfail (BYREF cond AS AttackElementCondition, buf() AS INTEGER, BYVAL element AS INTEGER)
+ WITH cond
+  IF element < 8 THEN
+   IF xreadbit(buf(), 21+element, 20) THEN  'atkdat.fail_vs_elemental_resistance(element)
+    .type = compLt  '< 100% damage
+    .value = 1.00
+   ELSE
+    .type = compNone     
+   END IF
+  ELSEIF element < 16 THEN
+   'These are not yet used, numElements = 8.
+   IF xreadbit(buf(), 21+element, 20) THEN  'atkdat.fail_vs_monster_type(element - 8)
+    .type = compGt  '> 100% damage from "enemytype#-killer"
+    .value = 1.00
+   ELSE
+    .type = compNone     
+   END IF
+  ELSE
+   .type = compNone
+  END IF
+ END WITH
 END SUB
 
 SUB loadattackdata (BYREF atkdat AS AttackData, BYVAL index AS INTEGER)
@@ -2220,6 +2243,9 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
     .number = buf(94 + i*2)
    END WITH
   NEXT i
+  FOR i AS INTEGER = 0 TO numElements - 1
+   loadoldattackelementalfail .elemental_fail_conds(i), buf(), i
+  NEXT
   .sound_effect = buf(99)
   .learn_sound_effect = buf(117)
   .transmog_enemy = buf(118)
@@ -2238,7 +2264,7 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   FOR i AS INTEGER = 0 TO 7
    .elemental_damage(i)           = xreadbit(buf(), 5+i, 20)
    .monster_type_bonus(i)         = xreadbit(buf(), 13+i, 20)
-   .fail_vs_elemental_resistance(i) = xreadbit(buf(), 21+i, 20)
+   '.fail_vs_elemental_resistance(i) = xreadbit(buf(), 21+i, 20)
    .fail_vs_monster_type(i)       = xreadbit(buf(), 29+i, 20)
   NEXT i
   FOR i AS INTEGER = 0 TO 7

@@ -427,12 +427,21 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
     h *= ABS(target.elementaldmg(i))
     IF target.elementaldmg(i) < 0.0 THEN cure = 1  'absorb
    END IF
-   IF attack.fail_vs_elemental_resistance(i) = YES THEN
-    IF target.elementaldmg(i) < 0.99999 THEN
+   WITH attack.elemental_fail_conds(i)
+    DIM fail as integer = NO
+    IF .type = compLt THEN
+     DIM effectiveval as single = target.elementaldmg(i)
+     'Simulate old fail vs element resist bit:
+     'The old bit checked only the target's Strong bits, ignoring their Absorb bits
+     IF readbit(gen(), genBits2, 9) = 1 THEN effectiveval = ABS(effectiveval)
+     fail = (effectiveval < .value - 0.0001)
+    END IF
+    IF .type = compGt THEN fail = (target.elementaldmg(i) > .value + 0.0001)
+    IF fail THEN
      target.harm.text = readglobalstring$(122, "fail", 20)
      RETURN NO
     END IF
-   END IF
+   END WITH
   NEXT
   FOR i AS INTEGER = 0 TO 7
    IF attack.monster_type_bonus(i) = YES THEN
@@ -782,7 +791,7 @@ SUB updatestatslevelup (i as integer, stats AS BattleStats, allowforget as integ
    gam.hero(i).stat.max.sta(o) += (atlevel(gam.hero(i).lev, n0, n99) - atlevel(gam.hero(i).lev - gam.hero(i).lev_gain, n0, n99))
  
    'simulate ancient levelup bug
-   IF readbit(gen(), 101, 9) = 1 THEN
+   IF readbit(gen(), genBits, 9) = 1 THEN
     FOR j AS INTEGER = 0 TO 4
      IF eqstuf(i, j) > 0 THEN
       loaditemdata buffer(), eqstuf(i, j) - 1
@@ -796,13 +805,13 @@ SUB updatestatslevelup (i as integer, stats AS BattleStats, allowforget as integ
   NEXT o
  
   'stat restoration
-  IF readbit(gen(), 101, 2) = 0 THEN
+  IF readbit(gen(), genBits, 2) = 0 THEN
    '--HP restoration ON
    gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp 'set external cur to external max
    stats.cur.hp = gam.hero(i).stat.max.hp 'set in-battle cur to external max
    stats.max.hp = gam.hero(i).stat.max.hp 'set in-battle max to external max
   END IF
-  IF readbit(gen(), 101, 3) = 0 THEN
+  IF readbit(gen(), genBits, 3) = 0 THEN
    '--MP restoration ON
    gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp 'set external cur to external max
    stats.cur.mp = gam.hero(i).stat.max.mp 'set in-battle cur to external max

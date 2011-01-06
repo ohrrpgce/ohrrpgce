@@ -2981,7 +2981,7 @@ IF getfixbit(fixDefaultDissolveEnemy) = 0 THEN
 END IF
 
 IF getfixbit(fixPushNPCBugCompat) = 0 THEN
- upgrade_message "Enabling Simulate pushable NPC bug bitset..."
+ upgrade_message "Enabling 'Simulate pushable NPC bug' bitset..."
  setfixbit(fixPushNPCBugCompat, 1)
  setbit gen(), genBits2, 0, 1 ' For backcompat
 END IF
@@ -3104,6 +3104,12 @@ IF getfixbit(fixDefaultLevelCap) = 0 THEN
  upgrade_message "Set level cap to 99..."
  setfixbit(fixDefaultLevelCap, 1)
  gen(genLevelCap) = 99
+END IF
+
+IF getfixbit(fixOldElementalFailBit) = 0 THEN
+ upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bitset"
+ setfixbit(fixOldElementalFailBit, 1)
+ setbit gen(), genBits2, 9, 1
 END IF
 
 'Update record-count for all fixed-length lumps.

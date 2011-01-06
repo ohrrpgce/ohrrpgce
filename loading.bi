@@ -106,6 +106,7 @@ declare Sub LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
 declare Sub SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
 declare Sub ClearTextBox (BYREF box AS TextBox)
 
+DECLARE SUB loadoldattackelementalfail (BYREF cond as AttackElementCondition, buf() as integer, BYVAL element as integer)
 DECLARE SUB loadoldattackdata (array() as integer, index as integer)
 DECLARE SUB saveoldattackdata (array() as integer, index as integer)
 DECLARE SUB loadnewattackdata (array() as integer, index as integer)

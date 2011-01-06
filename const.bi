@@ -161,6 +161,7 @@ CONST fixNPCLocationFormat = 12  'FIXME: not implemented ... can't remember....
 CONST fixInitDamageDisplay = 13  'Initialize damage display time and distance
 CONST fixDefaultLevelCap = 14    'Set level cap to 99
 CONST fixHeroElementals = 15     'Set the hero elemental data from the old weak/strong/absorb bits
+CONST fixOldElementalFailBit = 16'Turned on the 'Simulate old fail vs. element resist bit' bitset
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom

@@ -507,6 +507,7 @@ Type AttackData
 	caption_delay as integer
 	tagset(1) as AttackDataTag
 	item(2) as AttackDataItem
+	elemental_fail_conds(maxElements - 1) as AttackElementCondition
 	sound_effect as integer ' ID + 1
 	chain as AttackDataChain
 	elsechain as AttackDataChain
@@ -523,7 +524,6 @@ Type AttackData
 	can_steal_item as integer
 	elemental_damage(7) as integer
 	monster_type_bonus(7) as integer
-	fail_vs_elemental_resistance(7) as integer
 	fail_vs_monster_type(7) as integer
 	cannot_target_enemy_slot(7) as integer
 	cannot_target_hero_slot(3) as integer
