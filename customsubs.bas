@@ -2846,7 +2846,9 @@ FUNCTION sublist (s() AS STRING, helpkey AS STRING="", BYVAL x AS INTEGER=0, BYV
  LOOP
 END FUNCTION
 
-CONST GTSnumitems = 124
+'The maximum - 1 number of global text strings that can appear in the global
+'text strings menu (the actual number varies)
+CONST GTSnumitems = 172
 
 TYPE GlobalTextStringsMenu
  index(GTSnumitems) AS INTEGER
@@ -2879,6 +2881,10 @@ SUB edit_global_text_strings()
 
  '--load current names
 
+ 'getelementnames handles the double-defaulting of element names
+ DIM elementnames() AS STRING
+ getelementnames elementnames()
+
  menu.description(-1) = "Back to Previous Menu"
 
  GTS_add_to_menu menu, "Health Points",              0, "HP", 10
@@ -2890,6 +2896,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Dodge Rate",                 6, "Dodge", 10
  GTS_add_to_menu menu, "Counter Rate",               7, "Counter", 10
  GTS_add_to_menu menu, "Speed",                      8, "Speed", 10
+ 'indices 9-24 are obsolete
  FOR i AS INTEGER = 1 TO 4
   GTS_add_to_menu menu, "Armor " & i,                 24 + i, "Armor " & i, 10
  NEXT i
@@ -2966,6 +2973,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "(hero) learned (spell)",     124, "learned", 10
  GTS_add_to_menu menu, "Found (gold)",               125, "Found", 10
  GTS_add_to_menu menu, "Gained (experience)",        126, "Gained", 10
+ 'indices 127-129 are obsolete
  GTS_add_to_menu menu, "(hero) has no spells",       133, "has no spells", 20
  GTS_add_to_menu menu, "Plotscript: pick hero",      135, "Which Hero?", 20
  GTS_add_to_menu menu, "Hero name prompt",           137, "Name the Hero", 20
@@ -2984,24 +2992,17 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "minute",                     158, "minute", 10
  GTS_add_to_menu menu, "minutes",                    159, "minutes", 10
  GTS_add_to_menu menu, "Level MP",                   160, "Level MP", 20
-' GTS_add_to_menu menu, "Weak to (elemental)",        127, "Weak to", 10
-' GTS_add_to_menu menu, "Strong to (elemental)",      128, "Strong to", 10
-' GTS_add_to_menu menu, "Absorbs (elemental)",        129, "Absorbs", 10
  GTS_add_to_menu menu, "Takes > 100% element dmg",   162, "$D damage from $E", 25,          "elemental_resist"
  GTS_add_to_menu menu, "Takes 0 to 100% element dmg",165, "$D damage from $E", 25,          "elemental_resist"
  GTS_add_to_menu menu, "Takes 0% element dmg",       168, "Immune to $E", 25,               "elemental_resist"
  GTS_add_to_menu menu, "Takes < 0% element dmg",     171, "Absorbs $A damage from $E", 25,  "elemental_resist"
+ GTS_add_to_menu menu, "Elemental Effects Title",    302, "Elemental Effects:", 30
  GTS_add_to_menu menu, "No Elemental Effects",       130, "No Elemental Effects", 30
- FOR i AS INTEGER = 1 TO 8
-  GTS_add_to_menu menu, "Elemental " & i,             16 + i, "Elemental" & i, 10
- NEXT i
- FOR i AS INTEGER = 1 TO 8
-  GTS_add_to_menu menu, "Enemy Type " & i,            8 + i, "EnemyType" & i, 10
+ FOR i AS INTEGER = 0 TO numElements - 1
+  GTS_add_to_menu menu, "Elemental " & i,             174 + i*2, elementnames(i), 14
  NEXT i
 
- '**** next unused index is 174
-
- IF menu.curitem <> GTSnumitems + 1 THEN fatalerror "GTSnumitems too large"
+ '**** next unused index is 305
 
  'NOTE: if you add global strings here, be sure to update the limit-checking on
  'the implementation of the "get global string" plotscripting command
@@ -3009,7 +3010,7 @@ SUB edit_global_text_strings()
  state.top = -1
  state.pt = -1
  state.first = -1
- state.last = GTSnumitems
+ state.last = menu.curitem - 1
  state.size = 21
  setkeys
  DO
@@ -3061,10 +3062,15 @@ SUB edit_global_text_strings()
 
  'Note: it is safe to write the strings to file out of order as long as we write
  'all of them. Any gaps in the file will be filled with garbage: do not leave
- 'unused global string indices!
+ 'unused global string indices, or you won't be able to use them later!
  FOR i AS INTEGER = 0 TO GTSnumitems
   writeglobalstring menu.index(i), menu.text(i), menu.maxlen(i)
  NEXT i
+ 'Write defaults for all elements that don't appear in the menu
+ FOR i AS INTEGER = numElements TO 63
+  writeglobalstring 174 + i*2, "Element" & i+1, 14
+ NEXT i
+
  getstatnames statnames()
 END SUB
 

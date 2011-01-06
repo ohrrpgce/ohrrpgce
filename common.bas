@@ -4096,7 +4096,7 @@ END SUB
 'count being the number of (visible) menu items
 SUB draw_scrollbar(state AS MenuState, rect AS RectType, count AS INTEGER, boxstyle AS INTEGER=0, page AS INTEGER)
  'recall state.size is off-by-1
- IF (state.top > state.first OR count > (state.size + 1)) AND count > 0 THEN
+ IF state.top > state.first OR count > (state.size + 1) THEN
   IF count > 0 THEN
    DIM sbar AS RectType
    DIM slider AS RectType
@@ -4380,10 +4380,19 @@ SUB getstatnames(statnames() AS STRING)
 END SUB
 
 SUB getelementnames(elmtnames() AS STRING)
- REDIM elmtnames(7)
- FOR i as integer = 0 TO 7
-  elmtnames(i) = readglobalstring(17 + i, "Element" & i+1)
- NEXT
+ REDIM elmtnames(numElements - 1)
+ FOR i AS INTEGER = 0 TO numElements - 1
+  DIM default AS STRING
+  default = "Element" & i+1
+  IF i < 8 THEN
+   'Original indices changed so maxlen could be expanded
+   default = readglobalstring(17 + i, default, 10)
+  ELSEIF i < 16 THEN
+   'Next 8 elements map to old enemytypes
+   default = LEFT(readglobalstring(1 + i, "EnemyType" & i, 10) + "-killer", 14)
+  END IF
+  elmtnames(i) = readglobalstring(174 + i*2, default, 14)
+ NEXT i
 END SUB
 
 SUB writebinstring (savestr AS STRING, array() AS INTEGER, offset AS INTEGER, maxlen AS INTEGER)

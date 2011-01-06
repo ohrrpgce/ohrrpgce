@@ -1097,6 +1097,14 @@ DIM level_mp_caption AS STRING = readglobalstring(160, "Level MP", 20)
 
 DIM elementalmenu() AS STRING
 DIM elementalmenu_st AS MenuState
+DIM elementalmenu_scrollrect AS RectType
+WITH elementalmenu_scrollrect
+ .x = 14
+ .y = 60
+ .wide = 292
+ .high = 120
+END WITH
+
 DIM elementnames() AS STRING
 getelementnames elementnames()
 
@@ -1194,9 +1202,10 @@ DO
     usemenusounds
     scrollmenu elementalmenu_st
 
+    draw_scrollbar elementalmenu_st, elementalmenu_scrollrect, , page
     FOR i = 0 TO .size
      IF .top + i <= .last THEN
-      edgeprint elementalmenu(.top + i), 20, 62 + i * 10, uilook(uiText), page
+      edgeprint elementalmenu(.top + i), 20, 64 + i * 10, uilook(uiText), page
      END IF
     NEXT i
    END WITH
@@ -1244,14 +1253,16 @@ calc_hero_elementals elementaldmg(), pt
 
 '--build elemental strings
 REDIM elementalmenu(-1 TO -1)
+DIM msg AS STRING = readglobalstring$(302, "Elemental Effects:", 30)
+IF LEN(msg) THEN str_array_append elementalmenu(), msg
 FOR i = 0 TO numElements - 1
- DIM msg AS STRING = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
+ msg = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
  IF LEN(msg) THEN str_array_append elementalmenu(), msg
 NEXT
 
 'Well, if you set some blank global text strings, you could get this message
 'even if not everything is level, but that's a bonus.
-IF UBOUND(elementalmenu) = -1 THEN str_array_append elementalmenu(), readglobalstring$(130, "No Elemental Effects", 30)
+IF UBOUND(elementalmenu) = 0 THEN elementalmenu(0) = readglobalstring$(130, "No Elemental Effects", 30)
 
 WITH elementalmenu_st
  .last = UBOUND(elementalmenu)

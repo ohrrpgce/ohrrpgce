@@ -2328,7 +2328,7 @@ SUB hero_editor_elementals(BYREF her as HeroDef)
 
  FOR i as integer = 0 TO numElements - 1
   float_reprs(i) = format_percent(her.elementals(i))
-  elementnames(i) = rpad(elementnames(i), " ", 12)
+  elementnames(i) = rpad(elementnames(i), " ", 15)
  NEXT
 
  DO
