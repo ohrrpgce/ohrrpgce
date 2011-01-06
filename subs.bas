@@ -153,7 +153,7 @@ CONST EnDatStatCtr = 115' to 126
 '-------------------------------------------------------------------------
 
 capindex = 0
-DIM caption(17) AS STRING
+REDIM caption(-1 TO -1) AS STRING
 DIM max(26), min(26)
 'Limit 0 is not used
 
@@ -707,7 +707,7 @@ DO
  END IF
 
  IF keyval(scAlt) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
-  IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+  IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), caption(), min(), max()) THEN
    GOSUB EnUpdateMenu
   END IF
  END IF

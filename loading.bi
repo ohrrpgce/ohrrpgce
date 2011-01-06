@@ -113,6 +113,8 @@ DECLARE SUB loadnewattackdata (array() as integer, index as integer)
 DECLARE SUB savenewattackdata (array() as integer, index as integer)
 DECLARE SUB loadattackdata OVERLOAD (array() as integer, BYVAL index as integer)
 DECLARE SUB loadattackdata OVERLOAD (BYREF atkdat as AttackData, BYVAL index as integer)
+DECLARE SUB SerAttackElementCond (cond as AttackElementCondition, buf() as integer, BYVAL index as integer)
+DECLARE SUB DeSerAttackElementCond (BYREF cond as AttackElementCondition, buf() as integer, BYVAL index as integer)
 DECLARE SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
 DECLARE SUB saveattackdata (array() as integer, index as integer)
 

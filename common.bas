@@ -860,7 +860,7 @@ END FUNCTION
 
 FUNCTION curbinsize (id AS INTEGER) as integer
  'returns the native size in BYTES of the records for the version you are running
- IF id = 0 THEN RETURN 162 'attack.bin
+ IF id = 0 THEN RETURN 546 'attack.bin
  IF id = 1 THEN RETURN 84  '.stf
  IF id = 2 THEN RETURN 32  'songdata.bin
  IF id = 3 THEN RETURN 34  'sfxdata.bin
@@ -3110,6 +3110,21 @@ IF getfixbit(fixOldElementalFailBit) = 0 THEN
  upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bitset"
  setfixbit(fixOldElementalFailBit, 1)
  setbit gen(), genBits2, 9, 1
+END IF
+
+IF getfixbit(fixAttackElementFails) = 0 THEN
+ upgrade_message "Initialised attack elemental failure conditions..."
+ setfixbit(fixAttackElementFails, 1)
+ REDIM dat(40 + dimbinsize(binATTACK)) AS INTEGER
+ DIM cond AS AttackElementCondition
+ FOR i = 0 TO gen(genMaxAttack)
+  loadattackdata dat(), i
+  FOR j = 0 TO 63
+   loadoldattackelementalfail cond, dat(), j
+   SerAttackElementCond cond, dat(), 121 + j * 3
+  NEXT
+  saveattackdata dat(), i
+ NEXT
 END IF
 
 'Update record-count for all fixed-length lumps.

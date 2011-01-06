@@ -2196,6 +2196,18 @@ SUB loadoldattackelementalfail (BYREF cond AS AttackElementCondition, buf() AS I
  END WITH
 END SUB
 
+SUB SerAttackElementCond (cond as AttackElementCondition, buf() as integer, BYVAL index as integer)
+ buf(index) = cond.type
+ buf(index + 1) = CAST(short ptr, @cond.value)[0]
+ buf(index + 2) = CAST(short ptr, @cond.value)[1]
+END SUB
+
+SUB DeSerAttackElementCond (cond as AttackElementCondition, buf() as integer, BYVAL index as integer)
+ cond.type = buf(index)
+ CAST(short ptr, @cond.value)[0] = buf(index + 1)
+ CAST(short ptr, @cond.value)[1] = buf(index + 2)
+END SUB
+
 SUB loadattackdata (BYREF atkdat AS AttackData, BYVAL index AS INTEGER)
  DIM buf(40 + dimbinsize(binATTACK)) AS INTEGER
  loadattackdata buf(), index
@@ -2243,9 +2255,15 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
     .number = buf(94 + i*2)
    END WITH
   NEXT i
-  FOR i AS INTEGER = 0 TO numElements - 1
-   loadoldattackelementalfail .elemental_fail_conds(i), buf(), i
-  NEXT
+  IF getfixbit(fixAttackElementFails) THEN
+   FOR i AS INTEGER = 0 TO numElements - 1
+    DeSerAttackElementCond .elemental_fail_conds(i), buf(), 121 + i * 3
+   NEXT
+  ELSE
+   FOR i AS INTEGER = 0 TO numElements - 1
+    loadoldattackelementalfail .elemental_fail_conds(i), buf(), i
+   NEXT
+  END IF
   .sound_effect = buf(99)
   .learn_sound_effect = buf(117)
   .transmog_enemy = buf(118)
@@ -2314,10 +2332,10 @@ END SUB
 
 SUB saveattackdata (array(), index)
  saveoldattackdata array(), index
- DIM size AS INTEGER = curbinsize(binATTACK) / 2 'size of record supported by engine
+ DIM size AS INTEGER = curbinsize(binATTACK) \ 2 'size of record supported by engine
  IF size > 0 THEN
-  DIM buf(size) AS INTEGER
-  FOR i AS INTEGER = 0 TO size
+  DIM buf(size - 1) AS INTEGER
+  FOR i AS INTEGER = 0 TO size - 1
    buf(i) = array(40 + i)
   NEXT i
   savenewattackdata buf(), index

@@ -23,6 +23,8 @@ DEFINT A-Z
 'This is in subs.bas:
 DECLARE SUB clearallpages ()
 
+'Local
+DECLARE SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
 
 REM $STATIC
 SUB addcaption (caption() AS STRING, indexer, cap AS STRING)
@@ -51,7 +53,7 @@ atkbit(4) = "Steal Item"
 FOR i = 0 TO 7
  atkbit(i + 5) = elementnames(i) & " Damage" '05-12
  atkbit(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
- atkbit(i + 21) = elementnames(i) & " resistance" '21-28
+ 'atkbit(i + 21) = "Fail vs " & elementnames(i) & " resistance" '21-28
  atkbit(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
 NEXT i
 
@@ -111,7 +113,7 @@ atk_chain_bitset_names(2) = "Delay doesn't block further actions"
 atk_chain_bitset_names(3) = "Don't retarget if target is lost"
 
 '----------------------------------------------------------
-DIM recbuf(40 + curbinsize(binATTACK) / 2) AS INTEGER '--stores the combined attack data from both .DT6 and ATTACK.BIN
+DIM recbuf(40 + curbinsize(binATTACK) \ 2 - 1) AS INTEGER '--stores the combined attack data from both .DT6 and ATTACK.BIN
 
 CONST AtkDatPic = 0
 CONST AtkDatPal = 1
@@ -464,11 +466,17 @@ CONST AtkLimTransmogEnemy = 39
 max(AtkLimTransmogEnemy) = gen(genMaxEnemy) + 1
 min(AtkLimTransmogEnemy) = 0
 
+DIM AtkCapFailConds AS INTEGER = capindex
+FOR i = 0 TO 63
+ addcaption caption(), capindex, ": [No Condition]"
+ addcaption caption(), capindex, "" '--updated by update_attack_editor_for_fail_conds()
+NEXT
+
 'next limit is 40 (remember to update the dim)
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 73
+CONST MnuItems = 139
 DIM menu(MnuItems) AS STRING, menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -881,7 +889,23 @@ menutype(AtkTransmogStats) = 2000 + AtkCapTransmogStats
 menuoff(AtkTransmogStats) = AtkDatTransmogStats
 menulimits(AtkTransmogStats) = AtkLimTransmogStats
 
-'Next menu item is 74 (remember to update the dims)
+CONST AtkElementFailAct = 74
+menu(AtkElementFailAct) = "Elemental failure..."
+menutype(AtkElementFailAct) = 1
+
+CONST AtkElementalFailHeader = 75
+menu(AtkElementalFailHeader) = "Fail when target's..."
+menutype(AtkElementalFailHeader) = 18  'skip
+
+CONST AtkElementalFails = 76
+FOR i = 0 TO small(63, numElements - 1)
+ menu(AtkElementalFails + i) = " damage from " + elementnames(i)
+ menutype(AtkElementalFails + i) = 4000 + AtkCapFailConds + i * 2  'percent_cond_grabber
+ menuoff(AtkElementalFails + i) = AtkDatElementalFail + i * 3
+NEXT
+
+
+'Next menu item is 140 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -889,7 +913,7 @@ DIM workmenu(22), dispmenu(22) AS STRING
 DIM state as MenuState
 state.size = 22
 
-DIM mainMenu(11)
+DIM mainMenu(12)
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
@@ -900,8 +924,9 @@ mainMenu(6) = AtkTargAct
 mainMenu(7) = AtkCostAct
 mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
-mainMenu(10) = AtkTagAct
-mainMenu(11) = AtkTransmogAct
+mainMenu(10) = AtkElementFailAct
+mainMenu(11) = AtkTagAct
+mainMenu(12) = AtkTransmogAct
 
 DIM appearMenu(10)
 appearMenu(0) = AtkBackAct
@@ -986,6 +1011,13 @@ transmogMenu(1) = AtkTransmogEnemy
 transmogMenu(2) = AtkTransmogHp
 transmogMenu(3) = AtkTransmogStats
 
+DIM elementFailMenu(numElements + 1)
+elementFailMenu(0) = AtkBackAct
+elementFailMenu(1) = AtkElementalFailHeader
+FOR i = 0 TO numElements - 1
+ elementFailMenu(2 + i) = AtkElementalFails + i
+NEXT
+
 '--Create the box that holds the preview
 DIM preview_box AS Slice Ptr
 preview_box = NewSliceOfType(slRectangle)
@@ -1026,9 +1058,11 @@ laststate.need_update = NO
 
 DIM rememberindex AS INTEGER = -1
 DIM show_name AS INTEGER = 0
+STATIC warned_old_fail_bit AS INTEGER = NO
 
 'load data here
 loadattackdata recbuf(), recindex
+update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
 state.need_update = YES
 
 DIM helpkey AS STRING = "attacks"
@@ -1079,13 +1113,15 @@ DO
    recindex = recindex + 1
    '--make sure we really have permission to increment
    IF needaddset(recindex, gen(genMaxAttack), "attack") THEN
-    flusharray recbuf(), 39 + curbinsize(binATTACK) / 2, 0
+    flusharray recbuf(), 39 + curbinsize(binATTACK) \ 2, 0
+    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
     state.need_update = YES
    END IF
   ELSE
    IF intgrabber(recindex, 0, gen(genMaxAttack)) THEN
     saveattackdata recbuf(), lastindex
     loadattackdata recbuf(), recindex
+    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
     state.need_update = YES
    END IF
   END IF
@@ -1098,6 +1134,7 @@ DO
    saveattackdata recbuf(), recindex
    SWAP rememberindex, recindex
    loadattackdata recbuf(), recindex
+   update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
    state.need_update = YES
    show_name = 23
   END IF
@@ -1132,6 +1169,15 @@ DO
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), chainMenu(), state
     helpkey = "attack_chaining"
+   CASE AtkElementFailAct
+    atk_edit_pushptr state, laststate, menudepth
+    setactivemenu workmenu(), elementFailMenu(), state
+    helpkey = "attack_elementfail"
+    IF readbit(gen(), genBits2, 9) ANDALSO warned_old_fail_bit = NO THEN
+     'Show warning about 'Simulate old fail vs. element resist bit'
+     show_help "attack_warn_old_fail_bit"
+     warned_old_fail_bit = YES
+    END IF
    CASE AtkTagAct
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), tagMenu(), state
@@ -1172,17 +1218,20 @@ DO
     saveattackdata recbuf(), recindex
     recindex = attack_chain_browser(recindex)
     loadattackdata recbuf(), recindex
+    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
     state.need_update = YES
   END SELECT
  END IF
 
  IF keyval(scAlt) = 0 or isStringField(menutype(workmenu(state.pt))) THEN 'not pressing ALT, or not allowed to
-  IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), min(), max()) THEN
+  IF editflexmenu(workmenu(state.pt), menutype(), menuoff(), menulimits(), recbuf(), caption(), min(), max()) THEN
    state.need_update = YES
   END IF
  END IF
 
  IF state.need_update THEN
+  'update_attack_editor_for_fail_conds should not be called here, but only when
+  'the record number changes! (Well, it could be called more often than that)
   '--in case new attacks have been added
   max(AtkLimChainTo) = gen(genMaxAttack) + 1
   '--in case chain mode has changed
@@ -1257,7 +1306,7 @@ SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl as Slice Ptr)
  ChangeSpriteSlice sl, , , ,ABS(anim1)
 END SUB
 
-FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, mintable() AS INTEGER, maxtable() AS INTEGER) AS INTEGER
+FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, mintable() AS INTEGER, maxtable() AS INTEGER) AS INTEGER
 '--returns true if data has changed, false it not
 
 'nowindex is the index into the menu data of the currently selected menuitem
@@ -1287,6 +1336,10 @@ FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS 
 '           2000-2999=caption-only int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           3000-3999=multi-state (uses caption index -1 too!)
+'           4000-4999=percent_cond_grabber, where caption(n-4000) holds
+'                     the default string (no condition), and caption(n-4000+1) is
+'                     the repr string needed by percent_cond_grabber.
+'                     (The condition is stored in 3 consecutive INTs.)
 'menuoff() is the offsets into the data block where each menu data is stored
 'menulimits() is the offsets into the mintable() and maxtable() arrays
 'datablock() holds the actual data
@@ -1315,6 +1368,14 @@ SELECT CASE menutype(nowindex)
   s = readbadbinstring$(datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1)
   IF strgrabber(s, maxtable(menulimits(nowindex))) THEN changed = 1
   writebadbinstring s, datablock(), menuoff(nowindex), maxtable(menulimits(nowindex)), 1
+ CASE 4000 TO 4999' elemental condition
+  DIM cond as AttackElementCondition
+  DIM capnum as integer = menutype(nowindex) - 4000
+  DeSerAttackElementCond cond, datablock(), menuoff(nowindex)
+  'modifies caption(capnum + 1)
+  changed = percent_cond_grabber(cond, caption(capnum + 1), caption(capnum), -1000.0, 1000.0)
+  'debug "cond_grab: ch=" & changed & " type = " & cond.type & " val = " & cond.value &  " off = " & menuoff(nowindex) & " cap = " & caption(capnum + 1)
+  SerAttackElementCond cond, datablock(), menuoff(nowindex)
 END SELECT
 
 '--preview sound effects
@@ -1396,6 +1457,10 @@ SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGE
 '           3000-3999=Multi-state (0 and negatives are caption-only,
 '                                  positive is postcaptioned. Captions are
 '                                  numbered bass-ackwards )
+'           4000-4999=percent_cond_grabber, where caption(n-4000) holds
+'                     the default string (no condition), and caption(n-4000+1) is
+'                     the repr string needed by percent_cond_grabber.
+'                     (The condition is stored in 3 consecutive INTs.)
 'menuoff() tells us what index to look for the data for this menu item
 'menulimits() is the offset to look in maxtable() for limits
 'datablock() the actual data the menu represents
@@ -1495,6 +1560,10 @@ FOR i = 0 TO size
    ELSE
     datatext = caption(capnum + ABS(dat))
    END IF
+  CASE 4000 TO 4999 '--percent_cond_grabber
+   capnum = menutype(nowdat(i)) - 4000
+   datatext = caption(capnum + 1)
+   nospace = YES
  END SELECT
  IF replacestr(nowmenu(i), "$$", datatext) = 0 THEN
   'No replacements made
@@ -1525,6 +1594,14 @@ SUB flexmenu_skipper (BYREF state AS MenuState, workmenu(), menutype())
    EXIT DO
   END IF
  LOOP
+END SUB
+
+SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string, byval AtkCapFailConds as integer)
+ DIM cond as AttackElementCondition
+ FOR i as integer = 0 TO 63
+  DeSerAttackElementCond cond, recbuf(), 121 + i * 3
+  caption(AtkCapFailConds + i * 2 + 1) = format_percent_cond(cond, ": [No Condition]")
+ NEXT
 END SUB
 
 '-----------------------------------------------------------------------

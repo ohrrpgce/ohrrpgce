@@ -22,7 +22,7 @@ DECLARE SUB atk_edit_preview(BYVAL pattern AS INTEGER, sl AS Slice Ptr)
 DECLARE SUB atk_edit_pushptr(state AS MenuState, laststate AS MenuState, BYREF menudepth AS INTEGER)
 DECLARE SUB atk_edit_backptr(workmenu() AS INTEGER, mainMenu() AS INTEGER, state AS MenuState, laststate AS menustate, BYREF menudepth AS INTEGER)
 
-DECLARE FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, mintable() AS INTEGER, maxtable() AS INTEGER) AS INTEGER
+DECLARE FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, mintable() AS INTEGER, maxtable() AS INTEGER) AS INTEGER
 DECLARE SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGER, size AS INTEGER, menu() AS STRING, menutype() AS INTEGER, menuoff() AS INTEGER, menulimits() AS INTEGER, datablock() AS INTEGER, caption() AS STRING, maxtable() AS INTEGER, recindex AS INTEGER)
 DECLARE SUB enforceflexbounds (menuoff() AS INTEGER, menutype() AS INTEGER, menulimits() AS INTEGER, recbuf() AS INTEGER, min() AS INTEGER, max() AS INTEGER)
 DECLARE SUB addcaption (caption() AS STRING, indexer AS INTEGER, cap AS STRING)

@@ -648,7 +648,8 @@ FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, repr as stri
   ELSEIF .type = compNone THEN
    DIM temp as string = "0%"
    .value = 0
-   IF percent_grabber(.value, temp, min, max, decimalplaces) THEN
+   'typing 0 doesn't change the value or repr, workaround
+   IF percent_grabber(.value, temp, min, max, decimalplaces) OR INSTR(intxt, "0") > 0 THEN
     repr = " < " + temp
     .type = compLt
     RETURN YES
