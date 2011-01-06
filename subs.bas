@@ -92,7 +92,9 @@ FOR i = 0 TO 7
  ebit(0 + i) = elemtype(0) & " " & elementnames(i)
  ebit(8 + i) = elemtype(1) & " " & elementnames(i)
  ebit(16 + i) = elemtype(2) & " " & elementnames(i)
- ebit(24 + i) = "Is " & readglobalstring(9 + i, "EnemyType" & i+1)
+NEXT
+FOR i = 0 TO 7
+ ebit(24 + i) = "180% damage from " & elementnames(8 + i)
 NEXT i
 FOR i = 32 TO 53
  ebit(i) = "" 'preferable to be blank, so we can hide it

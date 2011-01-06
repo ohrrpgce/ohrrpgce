@@ -2183,7 +2183,6 @@ SUB loadoldattackelementalfail (BYREF cond AS AttackElementCondition, buf() AS I
     .type = compNone     
    END IF
   ELSEIF element < 16 THEN
-   'These are not yet used, numElements = 8.
    IF xreadbit(buf(), 21+element, 20) THEN  'atkdat.fail_vs_monster_type(element - 8)
     .type = compGt  '> 100% damage from "enemytype#-killer"
     .value = 1.00
@@ -2279,12 +2278,14 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   .absorb_damage                  = xreadbit(buf(), 2, 20)
   .unreversable_picture           = xreadbit(buf(), 3, 20)
   .can_steal_item                 = xreadbit(buf(), 4, 20)
-  FOR i AS INTEGER = 0 TO 7
+  FOR i AS INTEGER = 0 TO numElements - 1
    .elemental_damage(i)           = xreadbit(buf(), 5+i, 20)
-   .monster_type_bonus(i)         = xreadbit(buf(), 13+i, 20)
-   '.fail_vs_elemental_resistance(i) = xreadbit(buf(), 21+i, 20)
-   .fail_vs_monster_type(i)       = xreadbit(buf(), 29+i, 20)
-  NEXT i
+  NEXT
+  'Obsolete:
+  'FOR i AS INTEGER = 0 TO 7
+  ' .fail_vs_elemental_resistance(i) = xreadbit(buf(), 21+i, 20)
+  ' .fail_vs_monster_type(i)       = xreadbit(buf(), 29+i, 20)
+  'NEXT i
   FOR i AS INTEGER = 0 TO 7
    .cannot_target_enemy_slot(i)   = xreadbit(buf(), 37+i, 20)
   NEXT i
@@ -2516,13 +2517,14 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
    .stat.sta(i) = buf(62 + i)
   NEXT i
   
-  '--bitsets
+  '--Obsolete bitsets
   FOR i AS INTEGER = 0 TO 7
    .weak(i) = xreadbit(buf(), 0 + i, 74)
    .strong(i) = xreadbit(buf(), 8 + i, 74)
    .absorb(i) = xreadbit(buf(), 16 + i, 74)
    .enemytype(i) = xreadbit(buf(), 24 + i, 74)
   NEXT i
+  '--bitsets
   .harmed_by_cure      = xreadbit(buf(), 54, 74)
   .mp_idiot            = xreadbit(buf(), 55, 74)
   .is_boss             = xreadbit(buf(), 56, 74)
@@ -2534,14 +2536,29 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   .death_unneeded      = xreadbit(buf(), 62, 74)
   .never_flinch        = xreadbit(buf(), 63, 74)
   .ignore_for_alone    = xreadbit(buf(), 64, 74)
+
+  '--elementals
+  FOR i AS INTEGER = 0 TO numElements - 1
+   IF i < 8 THEN
+    .elementals(i) = backcompat_element_dmg(.weak(i), .strong(i), .absorb(i))
+   ELSEIF i < 16 THEN
+    .elementals(i) = IIF(.enemytype(i - 8), 1.8, 1.0)
+   ELSE
+    .elementals(i) = 0.0
+   END IF
+  NEXT
   
   '--spawning
   .spawn.on_death = buf(79)
   .spawn.non_elemental_death = buf(80)
   .spawn.when_alone = buf(81)
   .spawn.non_elemental_hit = buf(82)
-  FOR i AS INTEGER = 0 TO 7
-   .spawn.elemental_hit(i) = buf(83 + i)
+  FOR i AS INTEGER = 0 TO numElements - 1
+   IF i <= 7 THEN
+    .spawn.elemental_hit(i) = buf(83 + i)
+   ELSE
+    .spawn.elemental_hit(i) = 0
+   END IF
   NEXT i
   .spawn.how_many = buf(91)
   
@@ -2553,8 +2570,12 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   NEXT i
   
   '--counter-attacks
-  FOR i AS INTEGER = 0 TO 7
-   .elem_counter_attack(i) = buf(107 + i)
+  FOR i AS INTEGER = 0 TO numElements - 1
+   IF i <= 7 THEN
+    .elem_counter_attack(i) = buf(107 + i)
+   ELSE
+    .elem_counter_attack(i) = 0
+   END IF
   NEXT i
   FOR i AS INTEGER = 0 TO 11
    .stat_counter_attack(i) = buf(115 + i)
@@ -2602,14 +2623,15 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   FOR i AS INTEGER = 0 TO UBOUND(.stat.sta)
    buf(62 + i) = .stat.sta(i)
   NEXT i
-  
-  '--bitsets
+
+  '--Obsolete bitsets  
   FOR i AS INTEGER = 0 TO 7
    setbit buf(), 74, 0 + i, .weak(i)
    setbit buf(), 74, 8 + i, .strong(i)
    setbit buf(), 74, 16 + i, .absorb(i)
    setbit buf(), 74, 24 + i, .enemytype(i)
   NEXT i
+  '--bitsets
   setbit buf(), 74, 54, .harmed_by_cure
   setbit buf(), 74, 55, .mp_idiot
   setbit buf(), 74, 56, .is_boss

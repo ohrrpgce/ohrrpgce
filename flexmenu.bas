@@ -894,12 +894,12 @@ menu(AtkElementFailAct) = "Elemental failure..."
 menutype(AtkElementFailAct) = 1
 
 CONST AtkElementalFailHeader = 75
-menu(AtkElementalFailHeader) = "Fail when target's..."
+menu(AtkElementalFailHeader) = "Fail when target's damage..."
 menutype(AtkElementalFailHeader) = 18  'skip
 
 CONST AtkElementalFails = 76
 FOR i = 0 TO small(63, numElements - 1)
- menu(AtkElementalFails + i) = " damage from " + elementnames(i)
+ menu(AtkElementalFails + i) = " from " + elementnames(i)
  menutype(AtkElementalFails + i) = 4000 + AtkCapFailConds + i * 2  'percent_cond_grabber
  menuoff(AtkElementalFails + i) = AtkDatElementalFail + i * 3
 NEXT

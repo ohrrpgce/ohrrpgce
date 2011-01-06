@@ -522,9 +522,7 @@ Type AttackData
 	absorb_damage as integer
 	unreversable_picture as integer
 	can_steal_item as integer
-	elemental_damage(7) as integer
-	monster_type_bonus(7) as integer
-	fail_vs_monster_type(7) as integer
+	elemental_damage(maxElements - 1) as integer
 	cannot_target_enemy_slot(7) as integer
 	cannot_target_hero_slot(3) as integer
 	ignore_extra_hits as integer
@@ -583,7 +581,7 @@ Type HeroDef
 	Lev0 as stats
 	Lev99 as stats
 	spell_lists(3,23) as SpellList
-        elementals(maxElements - 1) as single
+	elementals(maxElements - 1) as single
 	bits(2) as integer
 	list_name(3) as string
 	list_type(3) as integer
@@ -621,7 +619,7 @@ TYPE EnemySpawnDef
   non_elemental_death as integer 'id+1, 0=none
   when_alone as integer 'id+1, 0=none
   non_elemental_hit as integer 'id+1, 0=none
-  elemental_hit(7) as integer 'id+1, 0=none
+  elemental_hit(maxElements - 1) as integer 'id+1, 0=none
 END TYPE
 
 TYPE EnemyDef
@@ -636,17 +634,19 @@ TYPE EnemyDef
   pal as integer
   size as integer
   stat as stats
+  elementals(maxElements - 1) as single
   spawn as EnemySpawnDef
   regular_ai(4) as integer 'id+1, 0=none
   desperation_ai(4) as integer 'id+1, 0=none
   alone_ai(4) as integer 'id+1, 0=none
-  elem_counter_attack(7) as integer 'id+1, 0=none
+  elem_counter_attack(maxElements - 1) as integer 'id+1, 0=none
   stat_counter_attack(11) as integer 'id+1, 0=none
-  '--bitsets
+  '--Obsolete bits. These are not used, but are still loaded+saved
   weak(7)        AS INTEGER 'YES/NO for weakness to each element
   strong(7)      AS INTEGER 'YES/NO for strength to each element
   absorb(7)      AS INTEGER 'YES/NO to absorb each element
   enemytype(7)   AS INTEGER 'YES/NO for membership in each enemy type
+  '--bitsets
   harmed_by_cure AS INTEGER 'YES/NO
   mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out
   is_boss        AS INTEGER 'YES/NO

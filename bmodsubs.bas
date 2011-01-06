@@ -443,17 +443,6 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
     END IF
    END WITH
   NEXT
-  FOR i AS INTEGER = 0 TO 7
-   IF attack.monster_type_bonus(i) = YES THEN
-    IF is_enemy(t) AND target.enemytype(i) = YES THEN h = h * 1.8
-   END IF
-   IF attack.fail_vs_monster_type(i) = YES THEN
-    IF is_enemy(t) AND target.enemytype(i) = YES THEN
-     target.harm.text = readglobalstring$(122, "fail", 20)
-     RETURN NO
-    END IF
-   END IF
-  NEXT i
  
   'extra damage
   h = h + (h / 100) * attack.extra_damage
@@ -1579,11 +1568,8 @@ SUB transfer_enemy_bits(slot AS INTEGER, bslot() AS BattleSprite)
    .never_flinch = .enemy.never_flinch
    .ignore_for_alone = .enemy.ignore_for_alone
    FOR i AS INTEGER = 0 TO numElements - 1
-    .elementaldmg(i) = backcompat_element_dmg(.enemy.weak(i), .enemy.strong(i), .enemy.absorb(i))
+    .elementaldmg(i) = .enemy.elementals(i)
    NEXT
-   FOR i AS INTEGER = 0 TO 7
-    .enemytype(i) = .enemy.enemytype(i)
-   NEXT i
   END WITH
 
 END SUB
