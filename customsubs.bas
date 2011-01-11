@@ -2887,6 +2887,12 @@ SUB edit_global_text_strings()
 
  menu.description(-1) = "Back to Previous Menu"
 
+ FOR i AS INTEGER = 0 TO UBOUND(menu.index)
+  'initialize unused menu items to -1 because if you leave them at 0
+  'they collide with HP
+  menu.index(i) = -1
+ NEXT i
+
  GTS_add_to_menu menu, "Health Points",              0, "HP", 10
  GTS_add_to_menu menu, "Spell Points",               1, "MP", 10
  GTS_add_to_menu menu, "Attack Power",               2, "Attack", 10
@@ -3075,6 +3081,7 @@ SUB edit_global_text_strings()
 END SUB
 
 SUB writeglobalstring (index AS INTEGER, s AS STRING, maxlen AS INTEGER)
+ IF index < 0 THEN EXIT SUB
  DIM fh AS INTEGER = FREEFILE
  OPEN game & ".stt" FOR BINARY AS #fh
  DIM ch AS STRING
