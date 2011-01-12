@@ -201,11 +201,7 @@ touchfile workingdir + SLASH + "__danger.tmp"
 
 IF isdir(sourcerpg) THEN
  'work on an unlumped RPG file. Don't take hidden files
- DIM filelist() AS STRING
- findfiles sourcerpg, ALLFILES, fileTypeFile, NO, filelist()
- FOR i = 0 TO UBOUND(filelist)
-  filecopy sourcerpg + SLASH + filelist(i), workingdir + SLASH + filelist(i)
- NEXT
+ copyfiles sourcerpg, workingdir
 ELSE
  unlump sourcerpg, workingdir + SLASH
 END IF

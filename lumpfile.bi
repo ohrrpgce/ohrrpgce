@@ -155,6 +155,7 @@ declare function indexlumpfile (lumpfile as string, byval keepopen as integer = 
 declare sub lumpfiles (filelist() as string, lump as string, path as string)
 declare sub unlump(lump as string, ulpath as string)
 declare sub unlumpfile(lump as string, fmask as string, path as string)
+declare sub copylump(package as string, lump as string, dest as string, ignoremissing as integer = NO)
 declare function islumpfile (lump as string, fmask as string) as integer
 declare sub fixlumporder (filelist() as string)
 

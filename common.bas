@@ -501,20 +501,6 @@ tmp$ = tmp$ & SLASH
 RETURN tmp$
 END FUNCTION
 
-SUB copylump(package$, lump$, dest$, ignoremissing AS INTEGER = 0)
-if len(dest$) and right(dest$, 1) <> SLASH then dest$ = dest$ + SLASH
-IF isdir(package$) THEN
- 'unlumped folder
- IF ignoremissing THEN
-  IF NOT isfile(package$ + SLASH + lump$) THEN EXIT SUB
- END IF
- filecopy package$ + SLASH + lump$, dest$ + lump$
-ELSE
- 'lumpfile
- unlumpfile package$, lump$, dest$
-END IF
-END SUB
-
 'Backwards compatibility wrapper
 SUB centerbox (x, y, w, h, c, p)
  IF c < 0 OR c > 15 THEN debug "Warning: invalid box style " & c & " in centerbox"

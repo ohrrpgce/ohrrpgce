@@ -9,6 +9,7 @@
 
 CONST STACK_SIZE_INC = 512 ' in integers
 
+#include "file.bi"   'FB header
 #include "compat.bi"
 #include "util.bi"
 #include "cutil.bi"
@@ -935,6 +936,15 @@ SUB findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS I
     str_array_append filelist(), foundfile
   NEXT
 #endif
+END SUB
+
+'Copy files in one directory to another (ignores directories)
+SUB copyfiles(src as string, dest as string, byval copyhidden as integer = 0)
+ DIM filelist() as string
+ findfiles src, ALLFILES, fileTypeFile, copyhidden, filelist()
+ FOR i as integer = 0 TO UBOUND(filelist)
+  filecopy src + SLASH + filelist(i), dest + SLASH + filelist(i)
+ NEXT
 END SUB
 
 SUB killdir(directory as string)

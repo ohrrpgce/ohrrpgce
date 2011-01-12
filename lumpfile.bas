@@ -747,6 +747,20 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 	close #lf
 end sub
 
+sub copylump(package as string, lump as string, dest as string, ignoremissing as integer = NO)
+	if len(dest) and right(dest, 1) <> SLASH then dest = dest + SLASH
+	if isdir(package) then
+		'unlumped folder
+		if ignoremissing then
+			if not isfile(package + SLASH + lump) then exit sub
+		end if
+		filecopy package + SLASH + lump, dest + lump
+	else
+		'lumpfile
+		unlumpfile package, lump, dest
+	end if
+end sub
+
 function islumpfile (lumpfile as string, fmask as string) as integer
 	dim lf as integer
 	dim dat as ubyte

@@ -46,7 +46,6 @@ DECLARE FUNCTION readbadbinstring (array() as integer, offset as integer, maxlen
 DECLARE FUNCTION read32bitstring overload (array() as integer, offset as integer) as string
 DECLARE FUNCTION read32bitstring overload (strptr as integer ptr) as string
 DECLARE FUNCTION readbadgenericname (index as integer, filename as string, recsize as integer, offset as integer, size as integer, skip as integer) as string
-DECLARE SUB copylump(package as string, lump as string, dest as string, ignoremissing AS INTEGER = 0)
 
 ENUM RectTransTypes
  transUndef = -1
