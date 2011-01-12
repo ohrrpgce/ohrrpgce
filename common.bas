@@ -2369,15 +2369,6 @@ SUB updaterecordlength (lumpf AS STRING, BYVAL bindex AS INTEGER, BYVAL headersi
 'Pass 'repeating' as true when more than one lump with this bindex exists.
 ''headersize' is the number of bytes before the first record.
 
-IF curbinsize(bindex) MOD 2 <> 0 THEN
- 'curbinsize is INSANE, scream bloody murder to prevent data corruption!
- fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " please complain to the devs, who may have just done something stupid!"
-END IF
-
-IF getbinsize(bindex) > curbinsize(bindex) THEN
-  fatalerror "Oh noes! getbinsize(" & bindex & ") = " & getbinsize(bindex) & ", but new value " & curbinsize(bindex) & " is less than that! This probably means you are opening a new RPG file in an old version of the OHRRPGCE"
-END IF
-
 IF getbinsize(bindex) < curbinsize(bindex) THEN
 
  DIM oldsize AS INTEGER = getbinsize(bindex)
@@ -3314,15 +3305,16 @@ SUB future_rpg_warning ()
  IF sourcerpg = warned_sourcerpg THEN EXIT SUB
  warned_sourcerpg = sourcerpg
 
- debug "Unsupported RPG file! version = " & gen(genVersion)
+ debug "Unsupported RPG file!"
 
- DIM msg as string = "${K" & uilook(uiText) & "}Unsupported RPG File ${K-1}"
+ DIM hilite as string = "${K" & uilook(uiText) & "}"
+ DIM msg as string = hilite + "Unsupported RPG File ${K-1}"
  msg += !"\n\nThis game has features that are not supported in this version of the OHRRPGCE. Download the latest version at http://HamsterRepublic.com\n"
- msg += "Press any key to continue, but"
+ msg += "Press any key to continue, but "
  #IFDEF IS_GAME
-  msg += " be aware that some things might not work right..."
+  msg += "be aware that some things might not work right..."
  #ELSE
-  msg += " DO NOT SAVE the game, as this will lead to almost certain data corruption!!"
+  msg += hilite + "DO NOT SAVE the game${K-1}, as this will lead to almost certain data corruption!!"
  #ENDIF
  clearpage 0
  basic_textbox msg, uilook(uiMenuItem), 0
@@ -3334,18 +3326,47 @@ SUB future_rpg_warning ()
  #ENDIF
 END SUB
 
-'Check for corruption
+'Check for corruption and unsupported RPG features (maybe someone forgot to update CURRENT_RPG_VERSION)
 SUB rpg_sanity_checks
- 'FIXME: add checks for unsupported RPG features (maybe someone forgot to update CURRENT_RPG_VERSION)
+ DIM i as integer
 
- DIM i AS INTEGER
+ 'Check binsize.bin is not from future
+ DIM flen as integer = filelen(workingdir + SLASH + "binsize.bin")
+ IF flen > 2 * (sizebinsize + 1) THEN
+  debug "binsize.bin length " & flen
+  future_rpg_warning
+ ELSE
+  FOR bindex as integer = 0 TO sizebinsize
+   IF curbinsize(bindex) MOD 2 <> 0 THEN
+    'curbinsize is INSANE, scream bloody murder to prevent data corruption!
+    fatalerror "Oh noes! curbinsize(" & bindex & ")=" & curbinsize(bindex) & " please complain to the devs, who may have just done something stupid!"
+   END IF
+   DIM binsize as integer = getbinsize(bindex)
+   IF binsize > curbinsize(bindex) THEN
+    debug "getbinsize(" & bindex & ") = " & binsize & ", but curbinsize = " & curbinsize(bindex)
+    future_rpg_warning
+   END IF
+  NEXT
+ END IF
+
+ 'Check fixbits.bin is not from future
+ DIM maxbits as integer = filelen(workingdir + SLASH + "fixbits.bin") * 8
+ FOR i = sizefixbits + 1 TO maxbits - 1
+  IF getfixbit(i) THEN
+   debug "Unknown fixbit " & i & " set"
+   future_rpg_warning
+  END IF
+ NEXT
+
  FOR i = 0 TO gen(genMaxMap)
-  IF NOT isfile(maplumpname$(i, "t")) THEN fatalerror "map" + filenum(i) + " tilemap is missing!"
-  IF NOT isfile(maplumpname$(i, "p")) THEN fatalerror "map" + filenum(i) + " passmap is missing!"
-  IF NOT isfile(maplumpname$(i, "e")) THEN fatalerror "map" + filenum(i) + " foemap is missing!"
-  IF NOT isfile(maplumpname$(i, "l")) THEN fatalerror "map" + filenum(i) + " NPClocations are missing!"
-  IF NOT isfile(maplumpname$(i, "n")) THEN fatalerror "map" + filenum(i) + " NPCdefinitions are missing!"
-  IF NOT isfile(maplumpname$(i, "d")) THEN fatalerror "map" + filenum(i) + " doorlinks are missing!"
+  'Game actually runs just fine when anything except the foemap is missing; Custom
+  'has some (crappy) map lump fix code in the map editor
+  IF NOT isfile(maplumpname(i, "t")) THEN showerror "map" + filenum(i) + " tilemap is missing!"
+  IF NOT isfile(maplumpname(i, "p")) THEN showerror "map" + filenum(i) + " passmap is missing!"
+  IF NOT isfile(maplumpname(i, "e")) THEN showerror "map" + filenum(i) + " foemap is missing!"
+  IF NOT isfile(maplumpname(i, "l")) THEN showerror "map" + filenum(i) + " NPClocations are missing!"
+  IF NOT isfile(maplumpname(i, "n")) THEN showerror "map" + filenum(i) + " NPCdefinitions are missing!"
+  IF NOT isfile(maplumpname(i, "d")) THEN showerror "map" + filenum(i) + " doorlinks are missing!"
  NEXT
 END SUB
 

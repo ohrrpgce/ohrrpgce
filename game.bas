@@ -321,6 +321,7 @@ xbload tmpdir + archinym$ + ".gen", gen(), "general game data missing from " + s
 
 forcerpgcopy = NO
 IF gen(genVersion) > CURRENT_RPG_VERSION THEN
+ debug "genVersion = " & gen(genVersion)
  future_rpg_warning
  forcerpgcopy = YES  'If we upgraded an .rpgdir in-place, we would probably damage it
 END IF
@@ -352,6 +353,10 @@ dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file
 '--set game
 game = workingdir + SLASH + archinym$
 setwindowtitle getdisplayname(sourcerpg)
+
+'Perform additional checks for future rpg files or corruption
+'FIXME: if a problem was detected, we don't force copy of an .rpgdir
+rpg_sanity_checks
 
 xbload game + ".fnt", font(), "font missing from " + sourcerpg
 
