@@ -2396,7 +2396,7 @@ IF buf(0) = 4444 THEN '--check magic number
  NEXT i
 ELSE '--magic number not found, palette is still in BSAVE format
  DIM xbuf(100 * 8)
- xbload game + ".pal", xbuf(), "16-color palletes missing from " + game
+ xbload game + ".pal", xbuf(), "16-color palettes missing from " + sourcerpg
  FOR i = 0 TO 7
   array(aoffset * 8 + i) = xbuf(foffset * 8 + i)
  NEXT i
@@ -2411,7 +2411,8 @@ DIM f AS STRING = game & ".pal"
 loadrecord buf(), f, 8, 0
 
 IF buf(0) <> 4444 THEN
- fatalerror "16-color palette file may be corrupt"
+ showerror "Did not save 16-color palette: file appears corrupt"
+ EXIT SUB
 END IF
 
 DIM last AS INTEGER = buf(1)

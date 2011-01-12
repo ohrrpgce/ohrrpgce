@@ -227,7 +227,7 @@ SUB addtrigger (scrname$, id, triggers AS TRIGGERSET)
    .usedbits = REALLOCATE(.usedbits, allocnum \ 8)  'bits/byte
    .trigs = REALLOCATE(.trigs, allocnum * SIZEOF(TriggerData))
 
-   IF .usedbits = 0 OR .trigs = 0 THEN fatalerror "Could not allocate memory for script importation"
+   IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": EXIT SUB
 
    FOR i = .size TO allocnum - 1
     DIM dummy AS TriggerData ptr = NEW (@.trigs[i]) TriggerData  'placement new, initialise those strings
@@ -300,7 +300,7 @@ SUB importscripts (f$)
     .trigs = CALLOCATE(allocnum, SIZEOF(TriggerData))
     .usedbits = CALLOCATE(allocnum \ 8)
 
-    IF .usedbits = 0 OR .trigs = 0 THEN fatalerror "Could not allocate memory for script importation"
+    IF .usedbits = 0 OR .trigs = 0 THEN showerror "Could not allocate memory for script importation": EXIT SUB
    
     IF fh THEN
      FOR j = 0 TO .size - 1

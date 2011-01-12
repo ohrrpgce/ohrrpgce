@@ -92,6 +92,9 @@ WHAT IS NEW?
     * Cursor, accept and cancel sound effects weren't used in battles
       [Ralph]
     * Could not exit from empty menus with Esc key [Ralph]
+    * Fixes to fatal error reporting: no longer gives the option to
+      continue if it means corrupting the game, and Custom no longer
+      deletes working.tmp, so that you can recover your work [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

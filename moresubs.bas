@@ -1057,7 +1057,7 @@ mapy = 0
 gold = 0
 scriptout$ = ""
 '--return gen to defaults
-xbload game + ".gen", gen(), "General data is missing from " + game
+xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
 CleanNPCL npc(),300
 flusharray tag(), 126, 0

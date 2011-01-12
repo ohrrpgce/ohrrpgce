@@ -31,6 +31,7 @@ DECLARE SUB embedtext (text$, limit=0)
 DECLARE FUNCTION istag (num, zero) as integer
 DECLARE SUB scripterr (e as string, errorlevel as integer = 5)
 DECLARE FUNCTION commandname (byval id as integer) as string
+DECLARE SUB exitprogram (BYVAL needfade as integer, BYVAL errorout as integer = NO)
 EXTERN insideinterpreter as integer
 EXTERN curcmd as ScriptCommand ptr
 #ENDIF
@@ -57,6 +58,12 @@ DIM orig_dir AS STRING
 
 'Used on Mac to point to the app bundle Resources directory
 DIM data_dir AS STRING
+
+#IFDEF IS_CUSTOM
+ 'show/fatalerror option (Custom only): have we started editing?
+ 'If not, we should cleanup working.tmp instead of preserving it
+ DIM cleanup_on_error AS INTEGER = YES
+#ENDIF
 
 ''''' Module-local variables
 
@@ -420,16 +427,23 @@ SUB debuginfo (s AS STRING)
  CLOSE #fh
 END SUB
 
+'Draw a wrapped string in the middle of the page, in a box
+SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
+ WITH *vpages(page)
+  DIM captlines() AS STRING
+  split(wordwrap(msg, (.w - 20) \ 8), captlines())
+  centerbox .w \ 2, .h \ 2, .w - 10, 26 + 10 * UBOUND(captlines), 3, page
+  DIM y AS INTEGER = .h \ 2 - (UBOUND(captlines) + 1) * 5
+  FOR i AS INTEGER = 0 TO UBOUND(captlines)
+   edgeprint captlines(i), 10, y + i * 10, col, page, YES
+  NEXT
+ END WITH
+END SUB
+
 SUB visible_debug (msg as string)
  debuginfo msg
 ' pop_warning msg
- DIM captlines() AS STRING
- split(wordwrap(msg, 36), captlines())
- str_array_append captlines(), "Press any key..."
- centerbox 160, 100, 310, 26 + 10 * UBOUND(captlines), 3, vpage
- FOR i AS INTEGER = 0 TO UBOUND(captlines)
-  edgeprint captlines(i), 10, 95 - UBOUND(captlines) * 5 + i * 10, uilook(uiMenuItem), vpage
- NEXT
+ basic_textbox msg + !"\nPress any key...", uilook(uiMenuItem), vpage
  setvispage vpage
  w = getkey
 END SUB
@@ -450,7 +464,7 @@ SUB setfixbit(BYVAL bitnum AS INTEGER, BYVAL bitval AS INTEGER)
  DIM f AS STRING
  f = workingdir + SLASH + "fixbits.bin"
  DIM fh AS INTEGER = FREEFILE
- IF OPEN(f FOR BINARY AS fh) THEN fatalerror "Could not write " & f   'Really bad!
+ IF OPEN(f FOR BINARY AS fh) THEN fatalerror "Impossible to upgrade game: Could not write " & f  'Really bad!
  extendfile fh, (bitnum \ 8) + 1  'Prevent writing garbage
  DIM ub AS UBYTE
  GET #fh, (bitnum \ 8) + 1, ub
@@ -925,82 +939,73 @@ FUNCTION maplumpname (map AS INTEGER, oldext AS STRING) as string
  END IF
 END FUNCTION
 
-SUB fatalerror (e AS STRING)
-STATIC entered = 0  'don't allow reentry
-DIM ypos AS INTEGER
-IF entered THEN EXIT SUB
-entered = 1
-debug "fatal error:" & e
+SUB fatalerror (msg AS STRING)
+ showerror msg, YES
+END SUB
 
-#IFDEF IS_GAME
-setvispage 0
-centerbox 160, 100, 310, 180, 3, 0
-ypos = 20
-DO WHILE LEN(e) > 38
- edgeprint LEFT(e, 38), 8, ypos, uilook(uiText), 0
- e = MID(e, 39)
- ypos += 10
-LOOP
-edgeprint e, 8, ypos, uilook(uiText), 0
-ypos += 15
-edgeprint "Press ESC to cleanly close the program", 8, ypos, uilook(uiMenuItem), 0
-edgeprint "or any other key to ignore the", 8, ypos + 10, uilook(uiMenuItem), 0
-edgeprint "error and try to continue playing.", 8, ypos + 20, uilook(uiMenuItem), 0
+'cleanup: (Custom only) whether to delete working.tmp
+SUB showerror (msg AS STRING, BYVAL isfatal AS INTEGER = NO)
+ STATIC entered = 0  'don't allow reentry
+ IF entered THEN EXIT SUB
+ entered = 1
+ debug "error: " + msg
+ PRINT "error: " + msg
 
-'--Reset palette (in case the error happened in a fade-to-black)
-'--load the default in case loadpalette fails
-load_default_master_palette master()
-loadpalette master(), gen(genMasterPal)
-LoadUIColors uilook(), gen(genMasterPal)
-setpal master()
+ DIM quitmsg as string
+ quitmsg = !"\n\n"   '"${K" & uilook(uiMenuItem) & "}"
+ quitmsg += "An error has occurred."
+ IF isfatal THEN
+  quitmsg += " Press any key to cleanly close the program."
+ ELSE
+  quitmsg += " Press ESC to cleanly close the program or press any other key to ignore the error and try to continue."
+  #IFDEF IS_CUSTOM
+   quitmsg += " If you had unsaved changes to your game, it is recommended that you backup the old .RPG file before attempting to save, and that you don't continue to edit."
+  #ENDIF
+ END IF
+ #IFDEF IS_CUSTOM
+  IF cleanup_on_error = NO THEN
+   quitmsg += " The editing state of the game will be preserved"
+   IF isfatal = NO THEN quitmsg += " if you quit immediately"
+   quitmsg += "; run " + CUSTOMEXE + " again to save or delete it."
+  END IF
+ #ENDIF
+ quitmsg += !"\nIf the error is unexplained and keeps happening, send e-mail to ohrrpgce-crash@HamsterRepublic.com"
 
-setvispage 0 'refresh
-DIM w AS INTEGER = getkey
+ 'Reset palette (in case the error happened in a fade-to-black or due to
+ 'corrupt/missing palette or UI colours)
+ load_default_master_palette master()
+ DefaultUIColors uilook()
+ setpal master()
+ clearpage 0
+ basic_textbox msg + quitmsg, uilook(uiText), 0
+ setvispage 0
 
-IF w = scEsc THEN
- closemusic
- restoremode
- PRINT e
- 'no need for end_debug
- SYSTEM
-END IF
-#ENDIF
-#IFDEF IS_CUSTOM
-textcolor uilook(uiText), 0
-clearpage 0
+ setwait 200  'Give user a chance to let go of keys
+ dowait
+ DIM w AS INTEGER = getkey
+ IF isfatal ORELSE w = scEsc THEN
+ #IFDEF IS_CUSTOM
+  closemusic
+  restoremode
 
-ypos = 0
-DO WHILE LEN(e) > 38
- edgeprint LEFT(e, 38), 0, ypos, uilook(uiText), 0
- e = MID(e, 38)
- ypos += 8
-LOOP
-printstr e, 0, ypos, 0
-ypos += 16
-printstr "an error has occured. Press ESC to", 0, ypos, 0
-printstr "close " + CUSTOMEXE + " or press any other", 0, ypos + 8, 0
-printstr "key to try to continue. If the",             0, ypos + 16, 0
-printstr "error keeps happening, send e-mail to",      0, ypos + 24, 0
-printstr "ohrrpgce-crash@HamsterRepublic.com",         0, ypos + 32, 0
-setvispage 0 'refresh
+  IF cleanup_on_error THEN
+   touchfile workingdir & SLASH & "__danger.tmp"
+   killdir workingdir
+  END IF
 
-DIM w AS INTEGER = getkey
+  'no need for end_debug
+  SYSTEM
+ #ELSE
+  exitprogram 0, 1
+ #ENDIF
+ END IF
 
-IF w = scEsc THEN
- closemusic
- restoremode
+ 'Restore game's master palette (minus fades or palette changes...
+ 'but that's the least of your worries at this point)
+ loadpalette master(), gen(genMasterPal)
+ LoadUIColors uilook(), gen(genMasterPal)
 
- touchfile workingdir & SLASH & "__danger.tmp"
-
- PRINT "fatal error:"
- PRINT e
-
- killdir workingdir
- 'no need for end_debug
- SYSTEM
-END IF
-#ENDIF
-entered = 0
+ entered = 0
 END SUB
 
 FUNCTION xstring (s AS STRING, x AS INTEGER) as integer
@@ -1059,7 +1064,7 @@ END IF
 IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
  '.MAS fallback, palnum ignored because it doesn't matter
  DIM oldpalbuf(767)
- xbload game + ".mas", oldpalbuf(), "master palette missing from " + game
+ xbload game + ".mas", oldpalbuf(), "master palette missing from " + sourcerpg
  convertpalette oldpalbuf(), pal()
 ELSE
  DIM AS SHORT headsize, recsize
@@ -2371,7 +2376,7 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
   'This tends to break (it's a C/unix system call), hence all the paranoia
   IF rename(lumpf, tempf) THEN
    DIM err_string AS STRING = *get_sys_err_string()  'errno would get overwritten while building the error message
-   fatalerror "Could not rename " & lumpf & " to " & tempf & " (exists=" & isfile(tempf) & " errno=" & err_string & ")"
+   fatalerror "Impossible to upgrade game: Could not rename " & lumpf & " to " & tempf & " (exists=" & isfile(tempf) & ") Reason: " & err_string
   END IF
 
   DIM inputf AS INTEGER = FREEFILE
@@ -2698,7 +2703,7 @@ IF gen(genVersion) = 4 THEN
  gen(genVersion) = 5
  upgrade_message "Upgrading 16-color Palette Format..."
  setpicstuf pal16(), 16, -1
- xbload game + ".pal", buffer(), "16-color palletes missing from " + game
+ xbload game + ".pal", buffer(), "16-color palettes missing from " + sourcerpg
  KILL game + ".pal"
  '--find last used palette
  DIM last AS INTEGER = 99

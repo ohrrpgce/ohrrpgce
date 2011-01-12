@@ -5,12 +5,6 @@
 '
 '!$DYNAMIC
 DEFINT A-Z
-'basic subs and functions
-DECLARE SUB exitprogram (needfade%)
-DECLARE FUNCTION gethighbyte% (n%)
-DECLARE SUB wrappedsong (songnumber%)
-DECLARE SUB getitem (getit%, num%)
-
 
 #include "compat.bi"
 #include "bmod.bi"
@@ -24,6 +18,7 @@ DECLARE SUB getitem (getit%, num%)
 #include "udts.bi"
 #include "battle_udts.bi"
 #include "moresubs.bi"
+#include "menustuf.bi"
 
 DECLARE SUB confirm_auto_spread (who as integer, tmask() as integer, bslot() AS BattleSprite, t() AS INTEGER)
 DECLARE SUB confirm_auto_focus (who as integer, tmask() as integer, atk as AttackData, bslot() AS BattleSprite, t() AS INTEGER)

@@ -941,7 +941,7 @@ SUB killdir(directory as string)
   DIM filelist() as string
   findfiles directory, ALLFILES, fileTypeFile, -1, filelist()
   FOR i as integer = 0 TO UBOUND(filelist)
-    KILL directory + SLASH + filelist(i)
+    safekill directory + SLASH + filelist(i)
   NEXT
   IF RMDIR(directory) THEN
     'errno would get overwritten while building the error message

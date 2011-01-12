@@ -329,7 +329,7 @@ dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file
 
 initgame '--set game
 
-xbload game + ".fnt", font(), "font missing from " + game
+xbload game + ".fnt", font(), "font missing from " + sourcerpg
 LoadGEN
 '--upgrade obsolete RPG files (if possible)
 upgrade font()
@@ -1947,7 +1947,7 @@ SUB LoadGen
   dim as integer genlen, ff
   dim as short s
 
-  if not isfile(game + ".gen") then fatalerror("general data missing from " & game): exit sub
+  if not isfile(game + ".gen") then fatalerror("general data missing from " & sourcerpg)
 
   genlen = 0
   ff = freefile
@@ -2548,7 +2548,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
   foemaph = FREEFILE
   OPEN maplumpname$(gam.map.id, "e") FOR BINARY AS #foemaph
  ELSE
-  fatalerror "Oh no! Map " & gam.map.id & " foemap is missing"
+  showerror "Oh no! Map " & gam.map.id & " foemap is missing"
  END IF
  loaddoor gam.map.id
 

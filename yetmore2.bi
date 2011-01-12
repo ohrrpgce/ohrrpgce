@@ -18,7 +18,7 @@ DECLARE SUB correctbackdrop
 DECLARE SUB cleanuptemp
 DECLARE FUNCTION checkfordeath () as integer
 DECLARE SUB aheadxy (x as integer, y as integer, direction as integer, distance as integer)
-DECLARE SUB exitprogram (needfade as integer)
+DECLARE SUB exitprogram (BYVAL needfade as integer, BYVAL errorout as integer = NO)
 DECLARE SUB keyboardsetup
 DECLARE SUB verquit
 DECLARE FUNCTION titlescr as integer

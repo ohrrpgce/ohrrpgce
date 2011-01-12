@@ -49,14 +49,14 @@ IF readbit(gen(), 101, 1) = 1 AND (vstate.active = NO OR vstate.dat.do_not_hide_
  NEXT
  FOR i = 0 TO catlen - 1
   IF framewalkabout(catx(zsort(i) * 5), caty(zsort(i) * 5) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
-   IF herow(zsort(i)).sprite = NULL THEN fatalerror "cathero: hero sprite " & zsort(i) & " missing!"
+   IF herow(zsort(i)).sprite = NULL THEN showerror "cathero: hero sprite " & zsort(i) & " is missing!": EXIT SUB
    frame_draw herow(zsort(i)).sprite + catd(zsort(i) * 5) * 2 + (wtog(zsort(i)) \ 2), herow(zsort(i)).pal, framex, framey - catz(zsort(i) * 5), 1, -1, dpage
   END IF
  NEXT i
 ELSE
  '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
  IF framewalkabout(catx(0), caty(0) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
-  IF herow(0).sprite = NULL THEN fatalerror "cathero: hero sprite missing!"
+  IF herow(0).sprite = NULL THEN showerror "cathero: hero sprite missing!": EXIT SUB
   frame_draw herow(0).sprite + catd(0) * 2 + (wtog(0) \ 2), herow(0).pal, framex, framey - catz(0), 1, -1, dpage
  END IF
 END IF
@@ -323,12 +323,12 @@ SUB cleanuptemp
  FOR i as integer = 0 TO UBOUND(filelist)
   IF usepreunlump = 0 THEN
    'normally delete everything
-   KILL workingdir + SLASH + filelist(i)
+   safekill workingdir + SLASH + filelist(i)
   ELSE
    'but for preunlumped games only delete specific files
    DIM ext$ = justextension$(filelist(i))
    IF ext$ = "tmp" OR ext$ = "bmd" THEN
-    KILL workingdir + SLASH + filelist(i)
+    safekill workingdir + SLASH + filelist(i)
    END IF
   END IF
  NEXT
@@ -337,7 +337,7 @@ SUB cleanuptemp
  findfiles tmpdir, ALLFILES, fileTypeFile, NO, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
   IF NOT isdir(tmpdir & filelist(i)) THEN
-   KILL tmpdir & filelist(i)
+   safekill tmpdir & filelist(i)
   END IF
  NEXT
 END SUB
@@ -366,7 +366,7 @@ IF direction = 3 THEN x = x - distance
 
 END SUB
 
-SUB exitprogram (needfade)
+SUB exitprogram (BYVAL needfade as integer, BYVAL errorout as integer = NO)
 
 'DEBUG debug "Exiting Program"
 'DEBUG debug "fade screen"
@@ -388,16 +388,16 @@ closemusic
 '--working files
 'DEBUG debug "Kill working files"
 cleanuptemp
-RMDIR tmpdir + "playing.tmp"
-RMDIR tmpdir
+killdir tmpdir + "playing.tmp"
+killdir tmpdir
 'DEBUG debug "Remove working directory"
-IF usepreunlump = 0 THEN RMDIR workingdir
+IF usepreunlump = 0 THEN killdir workingdir
 
 'DEBUG debug "Restore Old Graphics Mode"
 restoremode
 'DEBUG debug "Terminate NOW (boom!)"
-end_debug
-END
+IF errorout = NO THEN end_debug
+END errorout
 
 END SUB
 

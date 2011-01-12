@@ -268,8 +268,8 @@ SUB battle_cleanup(bslot() AS BattleSprite)
  IF (stackpos - bstackstart) \ 2 < 0 THEN
   '--an underflow is bad. It used to mean that whatever script was on
   '--the top of the stack has been corrupted, but now scripts don't use this stack
-  '--but and underflow is still bad in principal.
-  fatalerror "bstack underflow " & stackpos & " " & bstackstart
+  '--but an underflow is still bad in principle.
+  showerror "bstack underflow " & stackpos & " " & bstackstart
  END IF
 
  fadeout 0, 0, 0

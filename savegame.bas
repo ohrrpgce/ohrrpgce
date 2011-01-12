@@ -1428,7 +1428,7 @@ DIM gmaptmp(dimbinsize(binMAP))
 DIM AS INTEGER i, j, o, z
 
 '--return gen to defaults
-xbload game + ".gen", gen(), "General data is missing from " + game
+xbload game + ".gen", gen(), "General data is missing from " + sourcerpg
 
 DIM sg AS STRING = old_savefile
 setpicstuf buffer(), 30000, -1

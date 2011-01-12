@@ -12,7 +12,7 @@
 #include "uiconst.bi"
 
 #ifdef IS_GAME
-declare sub exitprogram (needfade as integer)
+declare sub exitprogram (byval needfade as integer, byval errorout as integer = NO)
 #endif
 
 option explicit

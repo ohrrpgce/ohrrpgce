@@ -249,6 +249,9 @@ rpgversion gen(genVersion)
 loadglobalstrings
 getstatnames statnames()
 
+'From here on, preserve working.tmp if something goes wrong
+cleanup_on_error = NO
+
 menumode = 0
 pt = 0
 mainmax = 0

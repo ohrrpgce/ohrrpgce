@@ -30,6 +30,7 @@ DECLARE SUB end_debug ()
 DECLARE SUB debug (s as string)
 DECLARE SUB debugc CDECL ALIAS "debugc" (BYVAL s as zstring ptr, BYVAL errorlevel as integer)
 DECLARE SUB debuginfo (s as string)
+DECLARE SUB basic_textbox (msg as string, BYVAL col as integer, BYVAL page as integer)
 DECLARE SUB visible_debug (s as string)
 DECLARE FUNCTION soundfile (sfxnum as integer) as string
 DECLARE FUNCTION filesize (file as string) as string
@@ -75,7 +76,8 @@ DECLARE FUNCTION defbinsize (id as integer) as integer
 DECLARE FUNCTION getbinsize (id as integer) as integer
 DECLARE FUNCTION dimbinsize (id as integer) as integer
 DECLARE FUNCTION maplumpname (map as integer, oldext as string) as string
-DECLARE SUB fatalerror (e as string)
+DECLARE SUB showerror (msg as string, byval isfatal as integer = NO)
+DECLARE SUB fatalerror (msg as string)
 DECLARE FUNCTION xstring (s as string, x as integer) as integer
 DECLARE FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRING
 DECLARE FUNCTION caption_or_int (n AS INTEGER, captions() AS STRING) AS STRING
@@ -236,5 +238,8 @@ EXTERN cmdline_args() as string
 EXTERN log_dir as string
 EXTERN orig_dir as string
 EXTERN data_dir as string
+#ifdef IS_CUSTOM
+ EXTERN cleanup_on_error as integer
+#endif
 
-#ENDIF
+#endif
