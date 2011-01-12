@@ -11,6 +11,8 @@ declare function drivelabel (drive as string) as string
 declare function isremovable (drive as string) as integer
 declare function hasmedia (drive as string) as integer
 
+declare sub setwriteable (fname as string)
+
 #ifdef __FB_WIN32__
 type ProcessHandle as PROCESS_INFORMATION ptr
 #else

@@ -1013,7 +1013,7 @@ FUNCTION newRPGfile (templatefile$, newrpg$)
   w = getkey
   EXIT FUNCTION
  END IF
- filecopy templatefile$, newrpg$
+ writeablefilecopy templatefile$, newrpg$
  printstr "Unlumping", 0, 60, vpage
  setvispage vpage 'refresh
  unlump newrpg$, workingdir + SLASH

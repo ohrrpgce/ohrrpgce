@@ -2760,6 +2760,7 @@ IF NOT isfile(game + ".veh") THEN
  DIM templatefile AS STRING = finddatafile("ohrrpgce.new")
  IF templatefile <> "" THEN
   unlumpfile(templatefile, "ohrrpgce.veh", tmpdir)
+  'Recall it's best to avoid moving files across filesystems
   filecopy tmpdir & SLASH & "ohrrpgce.veh", game & ".veh"
   safekill tmpdir & SLASH & "ohrrpgce.veh"
   gen(genMaxVehicle) = 2

@@ -61,6 +61,20 @@ function hasmedia (drive as string) as integer
 	hasmedia = GetVolumeInformation(drive, NULL, 0, NULL, NULL, NULL, NULL, 0)
 end function
 
+sub setwriteable (fname as string)
+	dim attr as integer = GetFileAttributes(strptr(fname))
+	if attr = INVALID_FILE_ATTRIBUTES then
+		dim errstr as string = get_windows_error()
+		debug "GetFileAttributes(" & fname & ") failed: " & errstr
+		exit sub
+	end if
+	attr = attr and not FILE_ATTRIBUTE_READONLY
+	'attr = attr or FILE_ATTRIBUTE_TEMPORARY  'Try to avoid writing to harddisk
+	if SetFileAttributes(strptr(fname), attr) = 0 then
+		dim errstr as string = get_windows_error()
+		debug "SetFileAttributes(" & fname & ") failed: " & errstr
+	end if
+end sub
 
 '==========================================================================================
 '                                       Processes

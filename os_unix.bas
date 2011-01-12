@@ -34,6 +34,11 @@ function hasmedia (drive as string) as integer
 	hasmedia = 0
 end function
 
+sub setwriteable (fname as string)
+	'Not written because I don't know whether it's actually needed: does
+	'filecopy on Unix also copy file permissions?
+end sub
+
 
 '==========================================================================================
 '                                       Processes

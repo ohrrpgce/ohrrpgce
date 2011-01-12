@@ -251,7 +251,7 @@ SUB importscripts (f$)
  reset_console
  IF buffer(0) = 21320 AND buffer(1) = 0 THEN
 
-  filecopy f$, game + ".hsp"
+  writeablefilecopy f$, game + ".hsp"
   textcolor uilook(uiMenuItem), 0
   unlumpfile(game + ".hsp", "scripts.bin", tmpdir)
   IF isfile(tmpdir & "scripts.bin") THEN

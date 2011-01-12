@@ -292,9 +292,9 @@ SUB makebackups
  'what is this for? Since some lumps can be modified at run time, we need to keep a
  'backup copy, and then only edit the copy. The original is never used directly.
  'enemy data
- filecopy game + ".dt1", tmpdir & "dt1.tmp"
+ writeablefilecopy game + ".dt1", tmpdir & "dt1.tmp"
  'formation data
- filecopy game + ".for", tmpdir & "for.tmp"
+ writeablefilecopy game + ".for", tmpdir & "for.tmp"
  'if you add lump-modding commands, you better well add them here >:(
 END SUB
 

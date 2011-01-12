@@ -13,6 +13,7 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "compat.bi"
 #include "util.bi"
 #include "cutil.bi"
+#include "os.bi"
 
 #if __FB_LANG__ <> "fb"
 OPTION EXPLICIT
@@ -938,12 +939,17 @@ SUB findfiles (directory AS STRING, namemask AS STRING = "", BYVAL filetype AS I
 #endif
 END SUB
 
+SUB writeablefilecopy(src as string, dest as string)
+ filecopy src, dest
+ setwriteable dest
+END SUB
+
 'Copy files in one directory to another (ignores directories)
 SUB copyfiles(src as string, dest as string, byval copyhidden as integer = 0)
  DIM filelist() as string
  findfiles src, ALLFILES, fileTypeFile, copyhidden, filelist()
  FOR i as integer = 0 TO UBOUND(filelist)
-  filecopy src + SLASH + filelist(i), dest + SLASH + filelist(i)
+  writeablefilecopy src + SLASH + filelist(i), dest + SLASH + filelist(i)
  NEXT
 END SUB
 

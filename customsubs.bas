@@ -3660,7 +3660,7 @@ SUB fontedit_import_font(font() AS INTEGER)
  DIM newfont AS STRING = browse(0, default, "*.ohf", "", , "browse_font")
  
  IF newfont <> "" THEN
-  filecopy newfont, game & ".fnt"
+  writeablefilecopy newfont, game & ".fnt"
 
   DIM i AS INTEGER
   DIM font_tmp(1024) AS INTEGER
