@@ -1034,6 +1034,11 @@ FUNCTION fileiswriteable(filename as string) as integer
 END FUNCTION
 
 FUNCTION diriswriteable(d as string) as integer
+  if isfile(d + SLASH + "archinym.lmp") then
+   'Kludge to detect an rpgdir full of unwriteable files: on Windows you don't seem
+   'able to mark a folder read-only, instead it makes the contents read-only.
+    if fileiswriteable(d + SLASH + "archinym.lmp") = 0 then return 0
+  end if
   dim testfile as string = d & SLASH & "__testwrite_" & INT(RND * 100000) & ".tmp"
   if fileiswriteable(testfile) then
     safekill testfile
