@@ -30,7 +30,6 @@
 
 
 'local subs and functions
-DECLARE SUB LoadGen
 DECLARE SUB reset_game_state ()
 DECLARE SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
 DECLARE SUB reset_map_state (map AS MapModeState)
@@ -330,7 +329,7 @@ dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file
 initgame '--set game
 
 xbload game + ".fnt", font(), "font missing from " + sourcerpg
-LoadGEN
+xbload game + ".gen", gen(), "general game data missing from " + sourcerpg
 '--upgrade obsolete RPG files (if possible)
 upgrade font()
 
@@ -1941,26 +1940,6 @@ SUB usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scD
        ORELSE keyval(scPagedown) > 1 ORELSE keyval(scHome) > 1 ORELSE keyval(scEnd) > 1 THEN 
     menusound gen(genCursorSFX)
   END IF
-END SUB
-
-SUB LoadGen
-  dim as integer genlen, ff
-  dim as short s
-
-  if not isfile(game + ".gen") then fatalerror("general data missing from " & sourcerpg)
-
-  genlen = 0
-  ff = freefile
-
-  OPEN game + ".gen" FOR BINARY AS #ff
-  SEEK #ff, 8
-
-  DO UNTIL EOF(ff) OR genlen > UBOUND(gen)
-    get #ff, , s
-    gen(genlen) = s
-    genlen += 1
-  LOOP
-  genlen -= 1
 END SUB
 
 SUB dotimer(byval l as integer)
