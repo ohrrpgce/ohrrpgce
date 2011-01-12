@@ -390,8 +390,6 @@ closemusic
 cleanuptemp
 killdir tmpdir + "playing.tmp"
 killdir tmpdir
-'DEBUG debug "Remove working directory"
-IF usepreunlump = 0 THEN killdir workingdir
 
 'DEBUG debug "Restore Old Graphics Mode"
 restoremode

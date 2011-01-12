@@ -979,10 +979,11 @@ FUNCTION makedir (directory as string) as integer
     'errno would get overwritten while building the error message
     DIM err_string AS STRING = *get_sys_err_string()
     'The heck? On Windows at least, MKDIR throws this false error
-    IF err_string <> "File exists" THEN
-     debug "Could not mkdir(" & directory & "): " & err_string
-     RETURN 1
-    END IF
+#ifdef __FB_WIN32__
+    IF err_string = "File exists" THEN RETURN 0
+#endif
+    debug "Could not mkdir(" & directory & "): " & err_string
+    RETURN 1
   END IF
 #ifdef __FB_LINUX__
   ' work around broken file permissions in dirs created by linux version
@@ -1054,8 +1055,10 @@ FUNCTION isdir (sDir as string) as integer
   sDir = escape_string(sDir, """`\$")
   isdir = SHELL("[ -d """ + sDir + """ ]") = 0
 #ELSE
-  'Windows just uses dir
-  dim ret as integer = dir(sDir, 55) <> "" AND dir(sDir, 39) = ""
+  'Windows just uses dir (ugh)
+  'Have to remove trailing slash, otherwise dir always returns nothing
+  dim temp as string = rtrim(sdir, any "\/")
+  dim ret as integer = dir(temp, 55) <> "" AND dir(temp, 39) = ""
   return ret
 #ENDIF
 END FUNCTION
