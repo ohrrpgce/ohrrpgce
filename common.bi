@@ -106,7 +106,8 @@ DECLARE FUNCTION checkpassword (pass as string) as integer
 DECLARE FUNCTION getpassword () as string
 
 DECLARE SUB upgrade (font() as integer)
-DECLARE SUB rpgversion (v as integer)
+DECLARE SUB future_rpg_warning ()
+DECLARE SUB rpg_sanity_checks ()
 DECLARE SUB fix_sprite_record_count(BYVAL pt_num AS INTEGER)
 DECLARE SUB fix_record_count(BYREF last_rec_index AS INTEGER, BYREF record_byte_size AS INTEGER, lumpname AS STRING, info AS STRING, skip_header_bytes AS INTEGER=0, count_offset AS INTEGER=0)
 DECLARE SUB loadglobalstrings ()

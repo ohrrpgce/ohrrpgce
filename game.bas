@@ -201,8 +201,7 @@ presentsong = -1
 gen(genJoy) = 0'--leave joystick calibration enabled
 
 load_default_master_palette master()
-'get default ui colours
-LoadUIColors uilook()
+DefaultUIColors uilook()
 
 'DEBUG debug "load font"
 getdefaultfont font()
@@ -261,7 +260,6 @@ IF autorungame = 0 THEN
      sourcerpg = a$
      workingdir = a$
      autorungame = 1
-     autorungame = 1
      usepreunlump = 1
     END IF
    END IF
@@ -315,9 +313,34 @@ END IF
 edgeprint "Loading...", xstring("Loading...", 160), 6, uilook(uiText), vpage
 setvispage vpage 'refresh
 
+'--pre-extract .gen and load it
+copylump sourcerpg, "archinym.lmp", tmpdir, -1
+archinym$ = readarchinym(tmpdir, sourcerpg)
+copylump sourcerpg, archinym$ + ".gen", tmpdir, -1
+xbload tmpdir + archinym$ + ".gen", gen(), "general game data missing from " + sourcerpg
+
+forcerpgcopy = NO
+IF gen(genVersion) > CURRENT_RPG_VERSION THEN
+ future_rpg_warning
+ forcerpgcopy = YES  'If we upgraded an .rpgdir in-place, we would probably damage it
+END IF
+
 '---GAME SELECTED, PREPARING TO PLAY---
 IF usepreunlump = 0 THEN
- unlump sourcerpg, workingdir + SLASH
+ unlump sourcerpg, workingdir
+ELSE
+ IF NOT diriswriteable(workingdir) THEN
+  'We have to copy the game, otherwise we won't be able to upgrade it
+  '(it's too much trouble to properly check whether the game is already
+  'fully up to date, which is unlikely anyway): change workingdir!
+  debuginfo workingdir + " not writeable"
+  forcerpgcopy = YES
+ END IF
+ IF forcerpgcopy THEN
+  workingdir = tmpdir + "playing.tmp"
+  copyfiles sourcerpg, workingdir + SLASH
+  usepreunlump = 0
+ END IF
 END IF
 
 debuginfo long_version & build_info
@@ -327,11 +350,11 @@ debuginfo "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & "
 dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
 
 '--set game
-game = workingdir + SLASH + readarchinym(workingdir, sourcerpg)
+game = workingdir + SLASH + archinym$
 setwindowtitle getdisplayname(sourcerpg)
 
 xbload game + ".fnt", font(), "font missing from " + sourcerpg
-xbload game + ".gen", gen(), "general game data missing from " + sourcerpg
+
 '--upgrade obsolete RPG files (if possible)
 upgrade font()
 
@@ -339,8 +362,6 @@ if isfile(game + ".hsp") then unlump game + ".hsp", tmpdir
 
 fadeout 0, 0, 0
 needf = 1
-
-rpgversion gen(genVersion)
 
 setfont font()
 setpicstuf buffer(), 50, -1
@@ -706,6 +727,7 @@ refresh_map_slice_tilesets '--zeroes them out
 unloadtilemaps maptiles()
 unloadtilemap pass
 DeleteZonemap zmap
+IF foemaph THEN CLOSE #foemaph : foemaph = 0
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()

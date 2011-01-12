@@ -928,22 +928,6 @@ FUNCTION textbox_condition_short_caption(tag AS INTEGER) AS STRING
  RETURN "IF TAG " & ABS(tag) & "=" + UCASE(onoroff$(tag))
 END FUNCTION
 
-SUB verifyrpg
-
- DIM gentmp(360)
- xbload game + ".gen", gentmp(), "General data is missing!"
-
- DIM i AS INTEGER
- FOR i = 0 TO gentmp(genMaxMap)
-  IF NOT isfile(maplumpname$(i, "t")) THEN fatalerror "map" + filenum(i) + " tilemap is missing!"
-  IF NOT isfile(maplumpname$(i, "p")) THEN fatalerror "map" + filenum(i) + " passmap is missing!"
-  IF NOT isfile(maplumpname$(i, "e")) THEN fatalerror "map" + filenum(i) + " foemap is missing!"
-  IF NOT isfile(maplumpname$(i, "l")) THEN fatalerror "map" + filenum(i) + " NPClocations are missing!"
-  IF NOT isfile(maplumpname$(i, "n")) THEN fatalerror "map" + filenum(i) + " NPCdefinitions are missing!"
-  IF NOT isfile(maplumpname$(i, "d")) THEN fatalerror "map" + filenum(i) + " doorlinks are missing!"
- NEXT
-END SUB
-
 SUB writeconstant (filehandle AS INTEGER, num AS INTEGER, names AS STRING, unique() AS STRING, prefix AS STRING)
  'prints a hamsterspeak constant to already-open filehandle
  DIM s AS STRING

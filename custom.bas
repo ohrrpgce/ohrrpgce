@@ -8,36 +8,11 @@ DEFINT A-Z
 #include "compat.bi"
 #include "udts.bi"
 #include "const.bi"
-
-'the below functions require cleaning
-DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
-DECLARE SUB vehicles ()
-DECLARE SUB verifyrpg ()
-DECLARE SUB scriptman ()
-DECLARE SUB map_picker ()
-DECLARE SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
-DECLARE SUB shopdata ()
-DECLARE SUB importsong ()
-DECLARE SUB importsfx ()
-DECLARE SUB gendata ()
-DECLARE SUB itemdata ()
-DECLARE SUB formation ()
-DECLARE SUB enemydata ()
-DECLARE SUB herodata ()
-DECLARE SUB attackdata ()
-DECLARE SUB text_box_editor ()
-DECLARE SUB menu_editor ()
-DECLARE SUB maptile (font())
-DECLARE FUNCTION newRPGfile (templatefile$, newrpg$)
-DECLARE SUB dolumpfiles (filetolump$)
-DECLARE FUNCTION readarchinym$ ()
-DECLARE SUB importscripts (f$)
-DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
-
 #include "allmodex.bi"
 #include "common.bi"
 #include "loading.bi"
 #include "customsubs.bi"
+#include "flexmenu.bi"
 #include "slices.bi"
 #include "cglobals.bi"
 #include "uiconst.bi"
@@ -46,62 +21,48 @@ DECLARE SUB move_unwritable_rpg(BYREF filetolump$)
 #include "reloadedit.bi"
 #include "editedit.bi"
 
-'Local function definitions (many of the above are local too)
+'FIXME: add header files for these declarations
+DECLARE SUB importbmp (f AS STRING, cap AS STRING, count AS INTEGER)
+DECLARE SUB vehicles ()
+DECLARE SUB scriptman ()
+DECLARE SUB map_picker ()
+DECLARE SUB sprite (xw, yw, sets, perset, soff, info$(), zoom, fileset, font(), fullset AS INTEGER=NO, cursor_start AS INTEGER=0, cursor_top AS INTEGER=0)
+DECLARE SUB importsong ()
+DECLARE SUB importsfx ()
+DECLARE SUB gendata ()
+DECLARE SUB itemdata ()
+DECLARE SUB formation ()
+DECLARE SUB enemydata ()
+DECLARE SUB herodata ()
+DECLARE SUB text_box_editor ()
+DECLARE SUB maptile (font())
+DECLARE SUB importscripts (f$)
+
+'Local function declarations
+DECLARE FUNCTION newRPGfile (templatefile$, newrpg$)
+DECLARE SUB dolumpfiles (filetolump as string)
+DECLARE SUB move_unwriteable_rpg (filetolump as string)
+DECLARE SUB shopdata ()
 DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
 
-
-DIM exename as string
-exename = trimextension$(trimpath$(COMMAND$(0)))
-
-DIM tmpdir as string
-DIM homedir as string
-'why do we use different temp dirs in game and custom?
-set_homedir
-
-'FIXME: too many directory variables! Clean this nonsense up
-DIM app_dir as string = exepath  'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename
-
-#IFDEF __FB_DARWIN__
- 'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
- IF RIGHT(exepath, 19) = ".app/Contents/MacOS" THEN
-  data_dir = parentdir(exepath, 1) + "Resources"
-  app_dir = parentdir(exepath, 3)
- END IF
-#ENDIF
-
-orig_dir = CURDIR()
-
-'temporarily set current directory, will be changed to game directory later if writable
-IF diriswriteable(app_dir) THEN
- 'When CUSTOM is installed read-write, work in CUSTOM's folder
- CHDIR app_dir
-ELSE
- 'If CUSTOM is installed read-only, use your home dir as the default
- CHDIR homedir
-END IF
-
-#IFDEF __UNIX__
- tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH
- IF NOT isdir(tmpdir) THEN makedir tmpdir
-#ELSE
- 'Custom on Windows works in the current dir
- tmpdir = CURDIR + SLASH
-#ENDIF
-
-start_new_debug
-debuginfo long_version & build_info 
-debuginfo DATE & " " & TIME
-
-dim workingdir as string
-workingdir = tmpdir & "working.tmp"
-
-processcommandline
-
+'Global variables
 REDIM gen(360)
 REDIM buffer(16384)
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
+DIM vpage = 0, dpage = 1
+DIM activepalette, fadestate
+'FIXME: too many directory variables! Clean this nonsense up
+DIM game as string
+DIM sourcerpg as string
+DIM exename as string
+DIM tmpdir as string
+DIM homedir as string
+DIM workingdir as string
+DIM app_dir as string
+
+'Local variables
 DIM font(1024), joy(4)
 DIM statnames() AS STRING
 DIM menu(22) AS STRING
@@ -109,24 +70,10 @@ DIM chooserpg_menu(2) AS STRING
 DIM cleanup_menu(2) AS STRING
 DIM quit_menu(3) AS STRING
 DIM quit_confirm(1) AS STRING
-'more global variables
-DIM game as string, sourcerpg as string, activepalette
-DIM vpage, dpage, fadestate
+DIM hsfile AS STRING
+DIM passphrase AS STRING
+DIM archinym AS STRING
 
-RANDOMIZE TIMER, 3 ' mersenne twister
-
-load_default_master_palette master()
-LoadUIColors uilook()
-
-getdefaultfont font()
-
-setmodex
-setpal master()
-setwindowtitle "O.H.R.RPG.C.E"
-setfont font()
-textcolor uilook(uiText), 0
-
-'hinfo$(7), einfo$(0), ainfo$(2), xinfo$(1), winfo$(7)
 
 DIM walkabout_frame_captions(7) AS STRING = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
 DIM hero_frame_captions(7) AS STRING = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
@@ -136,13 +83,65 @@ DIM attack_frame_captions(2) AS STRING = {"First Frame","Middle Frame","Last Fra
 DIM box_border_captions(15) AS STRING = {"Top Left Corner","Top Edge Left","Top Edge","Top Edge Right","Top Right Corner","Left Edge Top","Right Edge Top","Left Edge","Right Edge","Left Edge Bottom","Right Edge Bottom","Bottom Left Corner","Bottom Edge Left","Bottom Edge","Bottom Edge Right","Bottom Right Corner"}
 DIM portrait_captions(0) AS STRING = {"Character Portrait"}
 
-dpage = 1: vpage = 0
-game = ""
-sourcerpg = ""
-hsfile$ = ""
-dim passphrase as string = ""
 
+'--Startup
+
+RANDOMIZE TIMER, 3 ' mersenne twister
+
+exename = trimextension$(trimpath$(COMMAND$(0)))
+
+'why do we use different temp dirs in game and custom?
+set_homedir
+
+app_dir = exepath  'Note that exepath$ is a FreeBasic builtin, and not derived from the above exename
+
+#IFDEF __FB_DARWIN__
+ 'Bundled apps have starting current directory equal to the location of the bundle, but exepath points inside
+ IF RIGHT(exepath, 19) = ".app/Contents/MacOS" THEN
+  data_dir = parentdir(exepath, 1) + "Resources"
+  app_dir = parentdir(exepath, 3)
+ END IF
+#ENDIF
+
+'temporarily set current directory, will be changed to game directory later if writable
+orig_dir = CURDIR()
+IF diriswriteable(app_dir) THEN
+ 'When CUSTOM is installed read-write, work in CUSTOM's folder
+ CHDIR app_dir
+ELSE
+ 'If CUSTOM is installed read-only, use your home dir as the default
+ CHDIR homedir
+END IF
+
+'Start debug file as soon as the directory is set
+start_new_debug
+debuginfo long_version & build_info 
+debuginfo DATE & " " & TIME
+
+#IFDEF __UNIX__
+ tmpdir = homedir + SLASH + ".ohrrpgce" + SLASH
+ IF NOT isdir(tmpdir) THEN makedir tmpdir
+#ELSE
+ 'Custom on Windows works in the current dir
+ tmpdir = CURDIR + SLASH
+#ENDIF
+
+processcommandline
+
+load_default_master_palette master()
+DefaultUIColors uilook()
+getdefaultfont font()
+
+setmodex
+setwindowtitle "O.H.R.RPG.C.E"
+setpal master()
+setfont font()
+textcolor uilook(uiText), 0
+
+'Cleanups up working.tmp if existing; requires graphics up and running
+workingdir = tmpdir & "working.tmp"
 GOSUB makeworkingdir
+
 FOR i = 1 TO UBOUND(cmdline_args)
  cmdline$ = cmdline_args(i)
 
@@ -155,7 +154,7 @@ FOR i = 1 TO UBOUND(cmdline_args)
   CONTINUE FOR
  END IF
  IF LCASE$(justextension$(cmdline$)) = "hs" AND isfile(cmdline$) THEN
-  hsfile$ = cmdline$
+  hsfile = cmdline$
   CONTINUE FOR
  END IF
 
@@ -165,10 +164,9 @@ FOR i = 1 TO UBOUND(cmdline_args)
  END IF
 NEXT
 IF game = "" THEN
- hsfile$ = ""
+ hsfile = ""
  GOSUB chooserpg
 END IF
-
 
 #IFDEF __FB_WIN32__
  IF MID$(sourcerpg, 2, 1) <> ":" THEN sourcerpg = curdir$ + SLASH + sourcerpg
@@ -181,14 +179,29 @@ IF a$ <> "" ANDALSO diriswriteable(a$) THEN
 END IF
 'otherwise, keep current directory as it was, net effect: it is the same as in Game
 
-end_debug
+'For getdisplayname
+copylump sourcerpg, "archinym.lmp", workingdir, -1
 
+end_debug
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
 debuginfo "Editing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 setwindowtitle "O.H.R.RPG.C.E - " + sourcerpg
+
+'--set game according to the archinym
+copylump sourcerpg, "archinym.lmp", workingdir, -1
+archinym = readarchinym(workingdir, sourcerpg)
+game = workingdir + SLASH + archinym
+
+copylump sourcerpg, archinym + ".gen", workingdir
+xbload game + ".gen", gen(), "general data is missing: RPG file appears to be corrupt"
+
+IF gen(genVersion) > CURRENT_RPG_VERSION THEN
+ debug "genVersion = " & gen(genVersion)
+ future_rpg_warning
+END IF
 
 GOSUB checkpass
 
@@ -198,52 +211,34 @@ printstr "UNLUMPING DATA: please wait.", 0, 0, vpage
 setvispage vpage
 
 touchfile workingdir + SLASH + "__danger.tmp"
-
 IF isdir(sourcerpg) THEN
  'work on an unlumped RPG file. Don't take hidden files
  copyfiles sourcerpg, workingdir
 ELSE
  unlump sourcerpg, workingdir + SLASH
 END IF
-game = workingdir + SLASH + game
-verifyrpg
 safekill workingdir + SLASH + "__danger.tmp"
 
-IF hsfile$ <> "" THEN GOTO hsimport
-
-setupmusic
-
-IF NOT isfile(game + ".mas") AND NOT isfile(workingdir + SLASH + "palettes.bin") THEN
- debug "Warning: " & game & ".mas does not exist (which should never happen)"
-END IF
-IF NOT isfile(game + ".fnt") THEN
- getdefaultfont font()
- xbsave game + ".fnt", font(), 2048
-END IF
-xbload game + ".fnt", font(), "Font not loaded"
-'--loadgen, upgrade, resave
-xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
-
-'Load palette and uicolors to display messages while upgrading
-load_default_master_palette master()
-setpal master()
-'get default ui colours
-LoadUIColors uilook()
+'Perform additional checks for future rpg files or corruption
+rpg_sanity_checks
 
 'upgrade obsolete RPG files
 upgrade font()
 
-'Load palette and uicolors again (because the upgrade routine may have changed them)
+'Load the game's palette, uicolors, font
 activepalette = gen(genMasterPal)
 loadpalette master(), activepalette
 setpal master()
 LoadUIColors uilook(), activepalette
-
+xbload game + ".fnt", font(), "Font not loaded"
 setfont font()
-rpgversion gen(genVersion)
+
+IF hsfile <> "" THEN GOTO hsimport
 
 loadglobalstrings
 getstatnames statnames()
+
+setupmusic
 
 'From here on, preserve working.tmp if something goes wrong
 cleanup_on_error = NO
@@ -546,19 +541,13 @@ setvispage 0
 textcolor uilook(uiText), 0
 printstr "LUMPING DATA: please wait.", 0, 0, 0
 setvispage 0 'refresh
-'--verify that maps are not corrupt--
-verifyrpg
+'--verify various stuff
+rpg_sanity_checks
 '--lump data to SAVE rpg file
 dolumpfiles sourcerpg
 RETRACE
 
 checkpass:
-copylump sourcerpg, "archinym.lmp", workingdir, -1
-'--set game according to the archinym
-game = readarchinym(workingdir, sourcerpg)
-copylump sourcerpg, game + ".gen", workingdir
-xbload workingdir + SLASH + game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
-
 '--Is a password set?
 IF checkpassword("") THEN RETRACE
 
@@ -593,10 +582,10 @@ DO
 LOOP
 
 hsimport:
-debuginfo "Importing scripts from " & hsfile$
+debuginfo "Importing scripts from " & hsfile
 xbload game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 upgrade font() 'needed because it has not already happened because we are doing command-line import
-importscripts with_orig_path(hsfile$)
+importscripts with_orig_path(hsfile)
 xbsave game + ".gen", gen(), 1000
 GOSUB dorelump
 GOSUB cleanupfiles
@@ -1030,46 +1019,43 @@ FUNCTION newRPGfile (templatefile$, newrpg$)
  newRPGfile = -1 'return true for success
 END FUNCTION
 
-SUB dolumpfiles (filetolump$)
+'=======================================================================
+'FIXME: move this up as code gets cleaned up!  (Hah!)
+OPTION EXPLICIT
+
+SUB dolumpfiles (filetolump as string)
  '--build the list of files to lump. We don't need hidden files
  DIM filelist() AS STRING
  findfiles workingdir, ALLFILES, fileTypeFile, NO, filelist()
  fixlumporder filelist()
- IF isdir(filetolump$) THEN
+ IF isdir(filetolump) THEN
   '---copy changed files back to source rpgdir---
-  IF NOT fileiswriteable(filetolump$ & SLASH & "archinym.lmp") THEN
-   move_unwritable_rpg filetolump$
-   makedir filetolump$
+  IF NOT fileiswriteable(filetolump & SLASH & "archinym.lmp") THEN
+   move_unwriteable_rpg filetolump
+   makedir filetolump
   END IF
   FOR i AS INTEGER = 0 TO UBOUND(filelist)
-   safekill filetolump$ + SLASH + filelist(i)
-   filecopy workingdir + SLASH + filelist(i), filetolump$ + SLASH + filelist(i)
+   safekill filetolump + SLASH + filelist(i)
+   filecopy workingdir + SLASH + filelist(i), filetolump + SLASH + filelist(i)
    'FIXME: move file instead? (warning: can't move from different mounted filesystem)
   NEXT
  ELSE
   '---relump data into lumpfile package---
-  IF NOT fileiswriteable(filetolump$) THEN
-   move_unwritable_rpg filetolump$
+  IF NOT fileiswriteable(filetolump) THEN
+   move_unwriteable_rpg filetolump
   END IF
-  lumpfiles filelist(), filetolump$, workingdir + SLASH
+  lumpfiles filelist(), filetolump, workingdir + SLASH
  END IF
 END SUB
 
-SUB move_unwritable_rpg(BYREF filetolump$)
+SUB move_unwriteable_rpg (filetolump as string)
  clearpage vpage
- centerbox 160, 100, 310, 50, 3, vpage
- edgeprint filetolump$, 10, 80, uilook(uiText), vpage
- edgeprint "is not writable. Saving to:", 10, 90, uilook(uiText), vpage
- filetolump$ = homedir & SLASH & trimpath$(filetolump$)
- edgeprint filetolump$, 10, 100, uilook(uiText), vpage
- edgeprint "[Press Any Key]", 10, 110, uilook(uiText), vpage
+ DIM newfile as string = homedir & SLASH & trimpath(filetolump)
+ basic_textbox filetolump + " is not writeable. Saving to " + newfile + !"\n[Press Any Key]", uilook(uiText), vpage
  setvispage vpage
- w = getkey
+ getkey
+ filetolump = newfile
 END SUB
-
-'=======================================================================
-'FIXME: move this up as code gets cleaned up!  (Hah!)
-OPTION EXPLICIT
 
 SUB secret_menu ()
  DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests"}

@@ -1100,13 +1100,17 @@ END IF
 END SUB
 
 SUB savepalette(pal() as RGBcolor, palnum)
-IF isfile(workingdir + SLASH + "palettes.bin") THEN
- DIM AS SHORT headsize, recsize
+ DIM AS SHORT headsize = 4, recsize = 768  'Defaults
 
  DIM fh AS INTEGER = FREEFILE
  OPEN workingdir + SLASH + "palettes.bin" FOR BINARY AS #fh
- GET #fh, , headsize
- GET #fh, , recsize
+ IF LOF(fh) >= 4 THEN
+  GET #fh, 1, headsize
+  GET #fh, 3, recsize
+ ELSE
+  PUT #fh, 1, headsize
+  PUT #fh, 3, recsize
+ END IF
 
  DIM palbuf(recsize - 1) as UBYTE
  FOR i AS INTEGER = 0 TO 255
@@ -1116,7 +1120,6 @@ IF isfile(workingdir + SLASH + "palettes.bin") THEN
  NEXT
  PUT #fh, recsize * palnum + headsize + 1, palbuf()
  CLOSE #fh
-END IF
 END SUB
 
 SUB convertpalette(oldpal() as integer, newpal() as RGBcolor)
@@ -2556,18 +2559,15 @@ DIM pal16(8)
 DIM AS INTEGER i, j, o, p, y
 DIM temp AS INTEGER
 DIM fh AS INTEGER
-DIM pas AS STRING, rpas AS STRING
 
 upgrademessages = 0
 last_upgrade_time = 0.0
 upgrade_start_time = TIMER
 upgrade_overhead_time = 0.0
 
-IF NOT diriswriteable(workingdir) THEN
- upgrade_message workingdir & " not writable"
- upgrade_message "Making no attempt to upgrade"
- EXIT SUB
-END IF
+'Custom and Game should both have provided a writeable workingdir. Double check.
+'(This is partially in vain, as we could crash if any of the lumps are unwriteable)
+IF NOT diriswriteable(workingdir) THEN fatalerror "Upgrade failure: " + workingdir + " not writeable"
 
 IF full_upgrade THEN
  debuginfo "Full game data upgrade..."
@@ -2625,7 +2625,6 @@ IF gen(genVersion) = 1 THEN
  upgrade_message "Enforcing default font"
  getdefaultfont font()
  xbsave game + ".fnt", font(), 2048
- setfont font()
  upgrade_message "rpgfix:Making AniMaptiles Backward Compatible"
  FOR i = 0 TO 39
   buffer(i) = 0
@@ -2781,6 +2780,13 @@ IF NOT isfile(workingdir + SLASH + "archinym.lmp") THEN
  CLOSE #fh
 END IF
 
+'This is corruption recovery, not upgrade, but Custom has always done this
+IF NOT isfile(game + ".fnt") THEN
+ debug game + ".fnt missing (which should never happen)"
+ getdefaultfont font()
+ xbsave game + ".fnt", font(), 2048
+END IF
+
 IF NOT isfile(game + ".veh") THEN
  upgrade_message "add vehicle data"
  '--make sure vehicle lump is present
@@ -2858,15 +2864,14 @@ END IF
 gen(genMasterPal) = large(0, gen(genMasterPal))
 
 IF NOT isfile(workingdir + SLASH + "palettes.bin") THEN
- DIM AS SHORT headsize = 4, recsize = 768
  upgrade_message "Upgrading Master Palette format..."
- loadpalette master(), 0
- fh = FREEFILE
- OPEN workingdir + SLASH + "palettes.bin" FOR BINARY AS #fh
- PUT #fh, , headsize
- PUT #fh, , recsize
- CLOSE #fh
- savepalette master(), 0
+ IF NOT isfile(game + ".mas") THEN
+  debug "Warning: " & game & ".mas does not exist (which should never happen)"
+  load_default_master_palette master()
+ ELSE
+  loadpalette master(), 0  'Loads from .mas
+ END IF
+ savepalette master(), 0  'Saves to palettes.bin
 END IF
 'This is not necessary in the slightest, but we copy the default master palette
 'back to the .MAS lump, to give old graphics utilities some chance of working
@@ -3300,55 +3305,48 @@ NEXT i
 
 END SUB
 
-SUB rpgversion (v)
- 'This sub provides backcompat warnings for read-only pre-unlumped rpgdirs,
- 'All other games will be updated to the latest version in the upgrade() sub
- '
- 'It also provides forward-compat warnings when a new RPG file is loaded in
+SUB future_rpg_warning ()
+ 'This sub displays forward-compat warnings when a new RPG file is loaded in
  'an old copy of game, or an old version of custom (ypsiliform or newer)
- '
- 'See also upgrade() sub
- 'CURRENT_RPG_VERSION is updated in const.bi
 
- IF v = CURRENT_RPG_VERSION THEN EXIT SUB
+ 'future_rpg_warning can get called multiple times per game
+ STATIC warned_sourcerpg as string
+ IF sourcerpg = warned_sourcerpg THEN EXIT SUB
+ warned_sourcerpg = sourcerpg
+
+ debug "Unsupported RPG file! version = " & gen(genVersion)
+
+ DIM msg as string = "${K" & uilook(uiText) & "}Unsupported RPG File ${K-1}"
+ msg += !"\n\nThis game has features that are not supported in this version of the OHRRPGCE. Download the latest version at http://HamsterRepublic.com\n"
+ msg += "Press any key to continue, but"
+ #IFDEF IS_GAME
+  msg += " be aware that some things might not work right..."
+ #ELSE
+  msg += " DO NOT SAVE the game, as this will lead to almost certain data corruption!!"
+ #ENDIF
  clearpage 0
- clearpage 1
+ basic_textbox msg, uilook(uiMenuItem), 0
  setvispage 0
- centerbox 160, 100, 240, 100, 3, 0
- IF v < 5 THEN
-  'This can only happen for a read-only rpgdir
-  edgeprint "Obsolete RPG File", 52, 70, uilook(uiSelectedItem), 0
-  textcolor uilook(uiMenuItem), 0
-  printstr "this game was created with", 52, 82, 0
-  printstr "an obsolete version of the", 52, 90, 0
-  printstr "OHRRPGCE. It may not run", 52, 98, 0
-  printstr "as intended.", 52, 106, 0
- END IF
- IF v > CURRENT_RPG_VERSION THEN
-  'Versions newer than current cannot support graceful forward compatibility
-  edgeprint "Unsupported RPG File", 52, 70, uilook(uiText), 0
-  textcolor uilook(uiMenuItem), 0
-  printstr "this game has features", 52, 82, 0
-  printstr "that are not supported in", 52, 90, 0
-  printstr "this version of the", 52, 98, 0
-  printstr "OHRRPGCE. Download the", 52, 106, 0
-  printstr "latest version at", 52, 114, 0
-  printstr "http://HamsterRepublic.com", 52, 122, 0
-  
-  printstr "Press any key to continue,", 10, 160, 0
-  printstr "but be aware that some", 10, 170, 0
-  #IFDEF IS_GAME
-   printstr "things might not work right...", 10, 180, 0
-  #ELSE
-   printstr "data could be lost if you save.", 10, 180, 0
-  #ENDIF
- END IF
  fadein
- setvispage 0
  waitforanykey
  #IFDEF IS_GAME
- fadeout 0, 0, 0
+'  fadeout 0, 0, 0
  #ENDIF
+END SUB
+
+'Check for corruption
+SUB rpg_sanity_checks
+ 'FIXME: add checks for unsupported RPG features (maybe someone forgot to update CURRENT_RPG_VERSION)
+
+ DIM i AS INTEGER
+ FOR i = 0 TO gen(genMaxMap)
+  IF NOT isfile(maplumpname$(i, "t")) THEN fatalerror "map" + filenum(i) + " tilemap is missing!"
+  IF NOT isfile(maplumpname$(i, "p")) THEN fatalerror "map" + filenum(i) + " passmap is missing!"
+  IF NOT isfile(maplumpname$(i, "e")) THEN fatalerror "map" + filenum(i) + " foemap is missing!"
+  IF NOT isfile(maplumpname$(i, "l")) THEN fatalerror "map" + filenum(i) + " NPClocations are missing!"
+  IF NOT isfile(maplumpname$(i, "n")) THEN fatalerror "map" + filenum(i) + " NPCdefinitions are missing!"
+  IF NOT isfile(maplumpname$(i, "d")) THEN fatalerror "map" + filenum(i) + " doorlinks are missing!"
+ NEXT
 END SUB
 
 SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
