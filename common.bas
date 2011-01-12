@@ -917,6 +917,33 @@ SUB setbinsize (id AS INTEGER, size AS INTEGER)
  CLOSE #fh
 END SUB
 
+'Normally gamedir will be workingdir, and sourcefile will be sourcerpg
+FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
+ DIM iname as string
+ DIM fh as integer
+ IF isfile(gamedir + SLASH + "archinym.lmp") THEN
+  fh = FREEFILE
+  OPEN gamedir + SLASH + "archinym.lmp" FOR INPUT AS #fh
+  LINE INPUT #fh, iname
+  CLOSE #fh
+  iname = LCASE(iname)
+  'IF isfile(gamedir + SLASH + iname + ".gen") THEN
+   RETURN iname
+  'ELSE
+  ' debug gamedir + SLASH + "archinym.lmp" + " invalid, ignored"
+  'END IF
+ ELSE
+  debuginfo gamedir + SLASH + "archinym.lmp" + " unreadable"
+ END IF
+
+ ' for backwards compatibility with ancient games that lack archinym.lmp
+ iname = LCASE(trimextension(trimpath(sourcefile)))
+ 'IF isfile(gamedir + SLASH + iname + ".gen") = 0 THEN
+ ' fatalerror "archinym.lmp unusable, and internal name could not be determined"
+ 'ENDIF
+ RETURN iname
+END FUNCTION
+
 FUNCTION maplumpname (map AS INTEGER, oldext AS STRING) as string
  IF map < 100 THEN
   return game & "." & oldext & RIGHT("0" & map, 2)

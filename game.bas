@@ -237,7 +237,7 @@ FOR i = 1 TO UBOUND(cmdline_args)
   autorungame = 1
   EXIT FOR
  ELSEIF isdir(a$) THEN 'perhaps it's an unlumped folder?
-  'check for essentials
+  'check for essentials (archinym.lmp was added long before .rpgdir support)
   IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
    autorungame = 1
    usepreunlump = 1
@@ -326,7 +326,9 @@ debuginfo "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & "
 
 dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
 
-initgame '--set game
+'--set game
+game = workingdir + SLASH + readarchinym(workingdir, sourcerpg)
+setwindowtitle getdisplayname(sourcerpg)
 
 xbload game + ".fnt", font(), "font missing from " + sourcerpg
 xbload game + ".gen", gen(), "general game data missing from " + sourcerpg

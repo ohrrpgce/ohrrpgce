@@ -544,22 +544,6 @@ END IF
 RETURN -1
 END FUNCTION
 
-SUB initgame
-'--back compat game
-game = workingdir + SLASH + LCASE(trimextension$(trimpath$(sourcerpg)))
-'--set game according to the archinym
-IF isfile(workingdir + SLASH + "archinym.lmp") THEN
- fh = FREEFILE
- OPEN workingdir + SLASH + "archinym.lmp" FOR INPUT AS #fh
- LINE INPUT #fh, a$
- CLOSE #fh
- a$ = LCASE$(a$)
- IF LEN(a$) <= 8 THEN game = workingdir + SLASH + a$
-END IF
-displayname$ = getdisplayname$(sourcerpg)
-setwindowtitle displayname$
-END SUB
-
 SUB interpolatecat
 'given the current positions of the caterpillar party, interpolate their inbetween frames
 FOR o = 0 TO 10 STEP 5

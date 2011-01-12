@@ -555,7 +555,7 @@ RETRACE
 checkpass:
 copylump sourcerpg, "archinym.lmp", workingdir, -1
 '--set game according to the archinym
-game = readarchinym()
+game = readarchinym(workingdir, sourcerpg)
 copylump sourcerpg, game + ".gen", workingdir
 xbload workingdir + SLASH + game + ".gen", gen(), "general data is missing, RPG file corruption is likely"
 
@@ -1054,21 +1054,6 @@ SUB dolumpfiles (filetolump$)
   lumpfiles filelist(), filetolump$, workingdir + SLASH
  END IF
 END SUB
-
-FUNCTION readarchinym$ ()
- IF isfile(workingdir + SLASH + "archinym.lmp") THEN
-  fh = FREEFILE
-  OPEN workingdir + SLASH + "archinym.lmp" FOR INPUT AS #fh
-  LINE INPUT #fh, a$
-  CLOSE #fh
-  a$ = LCASE$(a$)
-  readarchinym$ = a$
- ELSE
-  ' for backwards compatability with ancient games that lack archinym.lmp
-  debug workingdir + SLASH + "archinym.lmp" + " unreadable, using " + LCASE$(trimpath$(game)) + " instead"
-  readarchinym$ = LCASE$(trimpath$(game))
- END IF
-END FUNCTION
 
 SUB move_unwritable_rpg(BYREF filetolump$)
  clearpage vpage

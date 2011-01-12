@@ -13,7 +13,6 @@ DECLARE FUNCTION getnpcref (seekid as integer, offset as integer) as integer
 DECLARE FUNCTION get_valid_npc (BYVAL seekid as integer, BYVAL errlvl as integer = 5) as integer
 DECLARE SUB greyscalepal
 DECLARE FUNCTION herobyrank (slot as integer) as integer
-DECLARE SUB initgame
 DECLARE SUB interpolatecat
 DECLARE SUB npcplot
 DECLARE SUB onkeyscript (scriptnum as integer)

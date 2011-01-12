@@ -74,6 +74,7 @@ DECLARE FUNCTION curbinsize (id as integer) as integer
 DECLARE FUNCTION defbinsize (id as integer) as integer
 DECLARE FUNCTION getbinsize (id as integer) as integer
 DECLARE FUNCTION dimbinsize (id as integer) as integer
+DECLARE FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
 DECLARE FUNCTION maplumpname (map as integer, oldext as string) as string
 DECLARE SUB showerror (msg as string, byval isfatal as integer = NO)
 DECLARE SUB fatalerror (msg as string)
