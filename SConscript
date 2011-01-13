@@ -14,6 +14,8 @@ CC = None
 CXX = None
 CXXFLAGS = '-O2 -g -Wall -Wno-non-virtual-dtor'.split ()
 from ohrbuild import basfile_scan, verprint
+OS_MODULE = 'os_unix.bas'
+
 
 if platform.system () == 'Windows':
     win32 = True
@@ -77,10 +79,12 @@ libraries = []
 libpaths = []
 
 if win32:
+    OS_MODULE = 'os_windows.bas'
     common_modules += ['os_windows.bas','blit.c','base64.c']
     libraries += ['fbgfx']
     env['FBFLAGS'] += ['-s', 'gui']
 elif unix:
+    OS_MODULE = 'os_unix.bas'
     common_modules += ['os_unix.bas','blit.c', 'base64.c']
     libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
 
@@ -279,8 +283,8 @@ BAM2MID = env.BASEXE ('bam2mid')
 #fbc -lang deprecated -v unlump.bas util.bas lumpfile.bas blit.o
 lumptoolflags = ['-lang', 'deprecated', '-v']
 lumptoolsrc = ['util.bas', 'lumpfile.bas', 'blit.o']
-UNLUMP = env.BASEXE ('unlump', FBFLAGS=lumptoolflags, source = ['unlump.bas'] + lumptoolsrc)
-RELUMP = env.BASEXE ('relump', FBFLAGS=lumptoolflags, source = ['relump.bas'] + lumptoolsrc)
+UNLUMP = env.BASEXE ('unlump', FBFLAGS=lumptoolflags, source = ['unlump.bas', OS_MODULE] + lumptoolsrc)
+RELUMP = env.BASEXE ('relump', FBFLAGS=lumptoolflags, source = ['relump.bas', OS_MODULE] + lumptoolsrc)
 
 audwrap = env.Command (os.path.join ('audwrap', 'audwrap.o'),
                        os.path.join ('audwrap', 'audwrap.cpp'),
