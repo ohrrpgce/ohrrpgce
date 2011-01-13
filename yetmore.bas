@@ -1115,10 +1115,10 @@ SELECT CASE AS CONST id
   END IF
  CASE 116'--hero is walking
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
-   IF (xgo(retvals(0)) OR ygo(retvals(0))) THEN
-    scriptret = 1
-   ELSE
+   IF xgo(retvals(0)) = 0 AND ygo(retvals(0)) = 0 THEN
     scriptret = 0
+   ELSE
+    scriptret = 1
    END IF
   END IF
  CASE 127'--teach spell
