@@ -98,6 +98,7 @@ DECLARE FUNCTION layer_tileset_index(BYVAL layer AS INTEGER) AS INTEGER
 DECLARE SUB loadmaptilesets (tilesets() AS TilesetData ptr, gmap() AS INTEGER, BYVAL resetanimations as integer = YES)
 DECLARE SUB unloadmaptilesets (tilesets() AS TilesetData ptr)
 DECLARE FUNCTION finddatafile(filename as string) as string
+DECLARE FUNCTION finddatadir(dirname AS STRING) AS STRING
 DECLARE SUB updaterecordlength (lumpf as string, byval bindex as integer, byval headersize as integer = 0, byval repeating as integer = NO)
 DECLARE SUB clamp_value (BYREF value as integer, BYVAL min as integer, BYVAL max as integer, argname as string)
 

@@ -2364,6 +2364,23 @@ IF isfile(DATAFILES & SLASH & filename) THEN RETURN DATAFILES & SLASH & filename
 RETURN ""
 END FUNCTION
 
+FUNCTION finddatadir(dirname AS STRING) AS STRING
+'Current dir
+IF isdir(dirname) THEN RETURN dirname
+'platform-specific relative data files path (Mac OS X bundles)
+IF isdir(data_dir & SLASH & dirname) THEN RETURN data_dir & SLASH & dirname
+'same folder as executable
+IF isdir(exepath & SLASH & dirname) THEN RETURN exepath & SLASH & dirname
+#IFDEF __UNIX__
+'~/.ohrrpgce/
+IF isdir(tmpdir & SLASH & dirname) THEN RETURN tmpdir & SLASH & dirname
+#IFDEF DATAFILES
+IF isdir(DATAFILES & SLASH & dirname) THEN RETURN DATAFILES & SLASH & dirname
+#ENDIF
+#ENDIF
+RETURN ""
+END FUNCTION
+
 SUB updaterecordlength (lumpf AS STRING, BYVAL bindex AS INTEGER, BYVAL headersize AS INTEGER = 0, BYVAL repeating AS INTEGER = NO)
 'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
 'Pass 'repeating' as true when more than one lump with this bindex exists.
