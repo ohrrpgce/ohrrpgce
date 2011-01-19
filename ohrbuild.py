@@ -31,6 +31,8 @@ def basfile_recurse_scan(filename, included):
     f.close()
     deeper = include_re.findall(text)
     for v in deeper:
+        # get relative path to file
+        v = os.path.normpath (os.path.join (os.path.dirname (filename), v))
         if v not in included:
             included.append(v)
             basfile_recurse_scan(v, included)

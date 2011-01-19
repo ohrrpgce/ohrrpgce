@@ -10,8 +10,8 @@ from ohrbuild import basfile_scan, verprint
 win32 = False
 unix = True
 exe_suffix = ''
-CC = None
-CXX = None
+CC = 'gcc'
+CXX = 'g++'
 CXXFLAGS = '-O2 -g -Wall -Wno-non-virtual-dtor'.split ()
 from ohrbuild import basfile_scan, verprint
 OS_MODULE = 'os_unix.bas'
@@ -21,8 +21,6 @@ if platform.system () == 'Windows':
     win32 = True
     unix = False
     exe_suffix = '.exe'
-    CC = 'gcc'
-    CXX = 'g++'
 else:
     unix = True
 
@@ -74,6 +72,7 @@ for f in ('-mt', '-g','-exx'):
 EXE_SUFFIX = ''
 common_objects = []
 common_modules = []
+semicommon_modules = []
 
 libraries = []
 libpaths = []
@@ -101,15 +100,13 @@ gfx_map = {'fb': {'common_modules': 'gfx_fb.bas', 'libraries': 'fbgfx'},
            }
 
 music_map = {'native':
-                 {'common_modules': 'music_native.bas',
+                 {'semicommon_modules': 'music_native.bas',
                   'common_objects': os.path.join ('audwrap','audwrap.o'),
-                  'libraries': 'audiere',
-                  'libpaths': 'audwrap'},
+                  'libraries': 'audiere'},
              'native2':
-                 {'common_modules': 'music_native2.bas',
+                 {'semicommon_modules': 'music_native2.bas',
                   'common_objects': os.path.join ('audwrap','audwrap.o'),
-                  'libraries': 'audiere',
-                  'libpaths': 'audwrap'},
+                  'libraries': 'audiere'},
              'sdl':
                  {'common_modules': 'music_sdl.bas sdl_lumprwops.bas',
                   'libraries': 'SDL SDL_mixer'},
@@ -145,7 +142,6 @@ common_modules += [v + '.bas' for v in Split ("""allmodex
                    reloadext
                    slices""")]
 
-
 edit_modules = ['custom',
                 'customsubs',
                 'drawing',
@@ -173,14 +169,14 @@ game_modules = ['game',
 
 game_modules.reverse ()
 
-semicommon_modules = ['backends.bas',
+# This is a relic from Makefile: these are the modules which actually
+# need to be built twice, but we build everything twice.
+semicommon_modules += ['backends.bas',
                       'browse.bas',
                       'common.bas',
                       'allmodex.bas',
                       'slices.bas',
-                      'compat.bas',
-                      'music_native.bas',
-                      'music_native2.bas']
+                      'compat.bas']
 
 _libraries = libraries
 libraries = []
@@ -204,9 +200,6 @@ main['FBLIBS'] += libpaths + libraries
 # always do verprinting, before anything else.
 verprint (used_gfx, used_music, svn, git, fbc)
 
-semicommon_modules.pop ()
-semicommon_modules.pop ()
-
 gameenv = main.Clone (FBFLAGS = env['FBFLAGS'] + \
                       ['-d','IS_GAME', '-m','game'])
 editenv = main.Clone (FBFLAGS = env['FBFLAGS'] + \
@@ -227,6 +220,15 @@ for v in tmp:
             Depends (tmp, 'base64.h')
         gametmp.append (tmp)
         edittmp.append (tmp)
+    elif v.endswith ('.cpp'):
+        tmp = main.Command (v.replace ('.cpp','.o'),
+         v,
+         '$CXX $CXXFLAGS -c $SOURCE -o $TARGET')
+        if v == 'audwrap.cpp':
+            Depends (tmp, 'audwrap.h')
+            Depends (tmp, 'audiere.h')
+        gametmp.append (tmp)
+        edittmp.append (tmp)
     elif v.endswith ('.bas'):
         a = gameenv.BASO (target = 'game-'+ v[:-4], source = v,)
         b = editenv.BASO (target = 'edit-'+ v[:-4], source = v,)
@@ -234,10 +236,10 @@ for v in tmp:
         edittmp.append (b)
         Depends (a,'gver.txt')
         Depends (b,'cver.txt')
-    #else:
-
-        #gametmp.append (v.replace ('.c','.o'))
-     #   edittmp.append (v.replace ('.c','.o'))
+    else:
+        # object files and other
+        gametmp.append (v)
+        edittmp.append (v)
 
 #now... GAME and CUSTOM
 #
@@ -286,18 +288,7 @@ lumptoolsrc = ['util.bas', 'lumpfile.bas', 'blit.o']
 UNLUMP = env.BASEXE ('unlump', FBFLAGS=lumptoolflags, source = ['unlump.bas', OS_MODULE] + lumptoolsrc)
 RELUMP = env.BASEXE ('relump', FBFLAGS=lumptoolflags, source = ['relump.bas', OS_MODULE] + lumptoolsrc)
 
-audwrap = env.Command (os.path.join ('audwrap', 'audwrap.o'),
-                       os.path.join ('audwrap', 'audwrap.cpp'),
-                       '$CXX -c $SOURCE -o $TARGET $CXXFLAGS')
-Depends (audwrap, 'gver.txt')
-Depends (audwrap, 'cver.txt')
-Depends (audwrap, os.path.join ('audwrap', 'audwrap.h'))
-Depends (audwrap, os.path.join ('audwrap', 'audiere.h'))
-AUDWRAP = env.Library (os.path.join ('audwrap','audwrap'),
-          source = audwrap)
 # XXX fix verprint build to happen in correct place??
-if 'native' in used_music or 'native2' in used_music:
-    Default (AUDWRAP)
 Default (GAME)
 Default (CUSTOM)
 Default (BAM2MID)
