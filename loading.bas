@@ -2161,7 +2161,7 @@ SUB loadnewattackdata (array(), index)
 END SUB
 
 SUB savenewattackdata (array(), index)
- DIM size AS INTEGER = curbinsize(binATTACK) \ 2
+ DIM size AS INTEGER = getbinsize(binATTACK) \ 2
  IF size > 0 THEN
   storerecord array(), workingdir + SLASH + "attack.bin", size, index
  END IF
@@ -2351,14 +2351,12 @@ END SUB
 
 SUB saveattackdata (array(), index)
  saveoldattackdata array(), index
- DIM size AS INTEGER = curbinsize(binATTACK) \ 2 'size of record supported by engine
- IF size > 0 THEN
-  DIM buf(size - 1) AS INTEGER
-  FOR i AS INTEGER = 0 TO size - 1
-   buf(i) = array(40 + i)
-  NEXT i
-  savenewattackdata buf(), index
- END IF
+ DIM size AS INTEGER = curbinsize(binATTACK) \ 2
+ DIM buf(size - 1) AS INTEGER
+ FOR i AS INTEGER = 0 TO size - 1
+  buf(i) = array(40 + i)
+ NEXT i
+ savenewattackdata buf(), index
 END SUB
 
 
