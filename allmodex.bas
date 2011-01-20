@@ -78,9 +78,10 @@ dim shared variablerez as integer = NO
 dim shared minwinsize as XYPair
 dim shared forcevispageresize as integer = NO  'for mischief!
 
+'storeset/loadset stuff
 dim shared bptr as integer ptr	' buffer
-dim shared bsize as integer
-dim shared bpage as integer
+dim shared bsize as integer  'record size, in BYTES
+dim shared bpage as integer  'Ye Olde Garbage
 
 dim shared bordertile as integer
 
@@ -2264,6 +2265,7 @@ SUB loadset (fil as string, BYVAL i as integer, BYVAL l as integer)
 	close #f
 end SUB
 
+'b is in BYTES
 SUB setpicstuf (buf() as integer, BYVAL b as integer, BYVAL p as integer)
 	if p >= 0 then
 		if clippedframe <> vpages(p) then

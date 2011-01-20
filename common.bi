@@ -34,9 +34,9 @@ DECLARE SUB basic_textbox (msg as string, BYVAL col as integer, BYVAL page as in
 DECLARE SUB visible_debug (s as string)
 DECLARE FUNCTION soundfile (sfxnum as integer) as string
 DECLARE FUNCTION filesize (file as string) as string
-DECLARE FUNCTION getfixbit(BYVAL bitnum AS INTEGER) AS INTEGER
-DECLARE SUB setfixbit(BYVAL bitnum AS INTEGER, BYVAL bitval AS INTEGER)
+
 DECLARE FUNCTION acquiretempdir () as string
+
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as integer, offset as integer, maxlen as integer)
 DECLARE SUB writebinstring OVERLOAD (savestr as string, array() as short, offset as integer, maxlen as integer)
 DECLARE SUB writebadbinstring (savestr as string, array() as integer, offset as integer, maxlen as integer, skipword as integer=0)
@@ -45,7 +45,7 @@ DECLARE FUNCTION readbinstring OVERLOAD (array() as short, offset as integer, ma
 DECLARE FUNCTION readbadbinstring (array() as integer, offset as integer, maxlen as integer, skipword as integer=0) as string
 DECLARE FUNCTION read32bitstring overload (array() as integer, offset as integer) as string
 DECLARE FUNCTION read32bitstring overload (strptr as integer ptr) as string
-DECLARE FUNCTION readbadgenericname (index as integer, filename as string, recsize as integer, offset as integer, size as integer, skip as integer) as string
+DECLARE FUNCTION readbadgenericname (index as integer, filename as string, recsize as integer, offset as integer, size as integer, skip as integer = 0) as string
 
 ENUM RectTransTypes
  transUndef = -1
@@ -69,6 +69,8 @@ DECLARE SUB savedefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS I
 DECLARE SUB guessdefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE FUNCTION getdefaultpal(fileset as integer, index as integer) as integer
 
+DECLARE FUNCTION getfixbit(BYVAL bitnum AS INTEGER) AS INTEGER
+DECLARE SUB setfixbit(BYVAL bitnum AS INTEGER, BYVAL bitval AS INTEGER)
 DECLARE SUB setbinsize (id as integer, size as integer)
 DECLARE FUNCTION curbinsize (id as integer) as integer
 DECLARE FUNCTION defbinsize (id as integer) as integer

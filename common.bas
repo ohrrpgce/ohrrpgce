@@ -624,6 +624,9 @@ SUB centerfuz (x, y, w, h, c, p)
  center_edgeboxstyle x, y, w, h, c - 1, p, YES
 END SUB
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 FUNCTION read32bitstring (array(), offset) as string
 DIM as string result = SPACE(array(offset))
 memcpy(STRPTR(result), @array(offset + 1), array(offset))
@@ -636,25 +639,17 @@ memcpy(STRPTR(result), @stringptr[1], stringptr[0])
 return result
 END FUNCTION
 
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
-
-FUNCTION readbadgenericname (index AS INTEGER, filename AS STRING, recsize AS INTEGER, offset AS INTEGER, size AS INTEGER, skip AS INTEGER) as string
-
-'--clobbers buffer!
-'FIXME: need to re-write this to not use the shared buffer at all.
-'       It should not use setpicstuf either.
-'       there isn't even any good reason to load the whole record
-'       just to get the string field
-
-IF index >= 0 THEN
- setpicstuf buffer(), recsize, -1
- loadset filename, index, 0
- RETURN readbadbinstring(buffer(), offset, size, skip)
-END IF
-
-RETURN "" '--return an empty string on failure
-
+FUNCTION readbadgenericname (index AS INTEGER, filename AS STRING, recsize AS INTEGER, offset AS INTEGER, size AS INTEGER, skip AS INTEGER = 0) as string
+ 'recsize is in BYTES!
+ 'FIXME: there isn't any good reason to load the whole record
+ '       just to get the string field
+ IF index >= 0 THEN
+  DIM buf(recsize \ 2 - 1) as integer
+  IF loadrecord(buf(), filename, recsize \ 2, index) THEN
+   RETURN readbadbinstring(buf(), offset, size, skip)
+  END IF
+ END IF
+ RETURN ""  'failure
 END FUNCTION
 
 FUNCTION isbit (bb() as INTEGER, BYVAL w as INTEGER, BYVAL b as INTEGER) as INTEGER
@@ -904,10 +899,12 @@ END IF
 END FUNCTION
 
 'INTS, not bytes!
+'FIXME: this is off by one, but I think that some code somewhere actually
+'depends on that!
 FUNCTION dimbinsize (id AS INTEGER) as integer
  'curbinsize is size supported by current version of engine
  'getbinsize is size of data in RPG file
- dimbinsize = large(curbinsize(id), getbinsize(id)) / 2
+ dimbinsize = large(curbinsize(id), getbinsize(id)) \ 2
 END FUNCTION
 
 SUB setbinsize (id AS INTEGER, size AS INTEGER)
@@ -1219,22 +1216,18 @@ FUNCTION createminimap (layer AS TileMap, tileset AS TilesetData ptr, BYREF zoom
 END FUNCTION
 
 FUNCTION readattackname (index) as string
-'--clobbers buffer!!!
  RETURN readbadgenericname(index, game + ".dt6", 80, 24, 10, 1)
 END FUNCTION
 
 FUNCTION readenemyname (index) as string
- '--clobbers buffer!!!
  RETURN readbadgenericname(index, game + ".dt1", 320, 0, 16, 0)
 END FUNCTION
 
 FUNCTION readitemname (index) as string
- '--clobbers buffer!!!
  RETURN readbadgenericname(index, game + ".itm", 200, 0, 8, 0)
 END FUNCTION
 
 FUNCTION readshopname (shopnum) as string
- 'clobbers buffer!
  RETURN readbadgenericname(shopnum, game + ".sho", 40, 0, 15, 0)
 END FUNCTION
 
@@ -3818,10 +3811,7 @@ FUNCTION load_tag_name (index AS INTEGER) AS STRING
  IF index = 0 THEN RETURN ""
  IF index = 1 THEN RETURN "Never"
  IF index = -1 THEN RETURN "Always"
- DIM buf(20)
- setpicstuf buf(), 42, -1
- loadset game + ".tmn", ABS(index), 0
- RETURN readbadbinstring(buf(), 0, 20)
+ RETURN readbadgenericname(ABS(index), game + ".tmn", 42, 0, 20)
 END FUNCTION
 
 SUB save_tag_name (tagname AS STRING, index AS INTEGER)
