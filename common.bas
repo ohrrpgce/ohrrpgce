@@ -2588,6 +2588,7 @@ END IF
 
 IF getfixbit(fixNumElements) = 0 THEN
  setfixbit(fixNumElements, 1)
+ 'This has to be set before we start loading and saving things
  gen(genNumElements) = 16
 END IF
 
@@ -3421,6 +3422,12 @@ SUB rpg_sanity_checks
   IF NOT isfile(maplumpname(i, "n")) THEN showerror "map" + filenum(i) + " NPCdefinitions are missing!"
   IF NOT isfile(maplumpname(i, "d")) THEN showerror "map" + filenum(i) + " doorlinks are missing!"
  NEXT
+
+ IF gen(genNumElements) > 64 THEN
+  future_rpg_warning
+  'We would definitely crash if we didn't cap this
+  gen(genNumElements) = 64
+ END IF
 END SUB
 
 SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
