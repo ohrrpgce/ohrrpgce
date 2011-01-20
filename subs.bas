@@ -2328,7 +2328,7 @@ SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER
 END SUB
 
 'This elemental resistance editor is shared by the hero and item editors
-SUB common_elementals_editor(elementals() as single, helpfile as string)
+SUB common_elementals_editor(elementals() as single, helpfile as string, byval showsign as integer = 0)
  DIM elementnames() AS STRING
  getelementnames elementnames()
  DIM float_reprs(numElements - 1) as string
@@ -2359,7 +2359,12 @@ SUB common_elementals_editor(elementals() as single, helpfile as string)
    st.need_update = NO
    menu(0) = "Previous Menu"
    FOR i as integer = 0 TO numElements - 1
-    menu(i + 1) = "Damage from " + elementnames(i) + ":" + float_reprs(i)
+    menu(i + 1) = "Damage from " + elementnames(i) + ": "
+    IF showsign THEN
+     'positive values get explicit + prefix
+     IF LEFT(float_reprs(i), 1) <> "-" THEN menu(i + 1) += "+"
+    END IF
+    menu(i + 1) += float_reprs(i)
    NEXT
   END IF
 
@@ -2389,9 +2394,15 @@ SUB item_editor_elementals(itembuf() AS INTEGER)
  DIM elementals(numElements - 1) as single
  FOR i as integer = 0 TO numElements - 1
   elementals(i) = DeSerSingle(itembuf(), 82 + i * 2)
+  IF gen(genEquipMergeFormula) = 2 THEN  'additive merging
+   elementals(i) -= 1.0
+  END IF
  NEXT
- common_elementals_editor elementals(), "item_elementals"
+ common_elementals_editor elementals(), "item_elementals", (gen(genEquipMergeFormula) = 2)
  FOR i as integer = 0 TO numElements - 1
+  IF gen(genEquipMergeFormula) = 2 THEN  'additive merging
+   elementals(i) += 1.0
+  END IF
   SerSingle itembuf(), 82 + i * 2, elementals(i)
  NEXT
 END SUB

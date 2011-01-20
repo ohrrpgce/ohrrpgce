@@ -93,6 +93,7 @@ CONST genMaxPortrait = 84       'max portrait graphic number in .PT8
 CONST genMaxInventory = 85      'max available inventory slot (0 means use inventoryMax)
 CONST genErrorLevel = 86        'value to set err_suppress_lvl to, if nonzero
 CONST genLevelCap = 87          'Default maximum level (0 to 99)
+CONST genEquipMergeFormula = 88 'Formula to use to calculate effective hero elemental resists
 
 'Unused indices
 

@@ -23,6 +23,7 @@ DECLARE SUB generalmusicsfxmenu ()
 DECLARE SUB masterpalettemenu ()
 DECLARE SUB statcapsmenu ()
 DECLARE SUB battleoptionsmenu ()
+DECLARE SUB equipmergemenu ()
 DECLARE FUNCTION importmasterpal (f$, palnum%)
 DECLARE SUB titlescreenbrowse ()
 DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
@@ -1111,9 +1112,9 @@ SUB battleoptionsmenu ()
  
  menu(0) = "Previous Menu"
  menu(1) = "Stat Caps..."
+ menu(2) = "Hero Elemental Resistance Calculation..."
 
  flusharray enabled(), UBOUND(enabled), YES
- enabled(2) = NO
  enabled(3) = NO
  enabled(4) = NO
  index(5) = genPoison
@@ -1142,6 +1143,7 @@ SUB battleoptionsmenu ()
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
    IF state.pt = 1 THEN statcapsmenu
+   IF state.pt = 2 THEN equipmergemenu
 
    IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
     DIM d as string = charpicker
@@ -1219,6 +1221,200 @@ SUB statcapsmenu
 
   clearpage vpage
   standardmenu m(), state, 0, 0, vpage, 0
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
+'--FIXME: Link bmod.bas into Custom or something instead of duplicating these!
+
+'This is similar to fuzzythreshold. It interpolates between these values:
+' 0.12  0.24  1.00  2.00 ...  x
+'  0     1     0     1      x - 1 
+FUNCTION fuzzy_strong_amount (value as double) as double
+ IF value <= 0.12 THEN
+  RETURN 0.0
+ ELSEIF value <= 0.24 THEN
+  RETURN (value - 0.12) / 0.12
+ ELSEIF value <= 1.0 THEN
+  RETURN (1.0 - value) / 0.76
+ ELSE
+  RETURN value - 1.0
+ END IF
+END FUNCTION
+
+'Merge elemental resist values from one item into the hero's cumulative resists,
+'by simulating the old way of just ORing together all the bits. Uses linear
+'interpolation to generalise the required results on inputs of combinations of
+'0, 12, 24, 100, 200% to arbitrary values. The results can be pretty unexpected.
+FUNCTION awful_compatible_equip_elemental_merging (byval val1 as double, byval val2 as double) as double
+ DIM sign as integer = 1.0
+ IF val1 < 0 OR val2 < 0 THEN sign = -1.0
+ val1 = ABS(val1)
+ val2 = ABS(val2)
+ 'fuzzy logic! also known as, in the hands of madmen, The Abyss
+ DIM as double weak_bit_1, weak_bit_2
+ weak_bit_1 = fuzzythreshold(val1, 1.0, 0.24)
+ weak_bit_2 = fuzzythreshold(val2, 1.0, 0.24)
+ DIM as double strong_bit_1, strong_bit_2
+ strong_bit_1 = fuzzy_strong_amount(val1)
+ strong_bit_2 = fuzzy_strong_amount(val2)
+ IF weak_bit_2 > weak_bit_1 THEN weak_bit_1 = weak_bit_2  'values at most 1.0, so result tends to 0.24
+ IF strong_bit_2 > strong_bit_1 THEN strong_bit_1 = strong_bit_2
+ DIM as double weakmult, strongmult
+ weakmult = weak_bit_1 * 0.12 + (1.0 - weak_bit_1) * 1.0
+ strongmult = strong_bit_1 * 2.0 + (1.0 - strong_bit_1) * 1.0
+ 'These fuzzythresholds simulate an 'immune' bit, restoring just a shred of sanity to the results
+ val1 = weakmult * strongmult * fuzzythreshold(val1, 0, 0.12) * fuzzythreshold(val2, 0, 0.12)
+ RETURN val1 * sign
+END FUNCTION
+
+'Merge elemental resist values from one item into the hero's cumulative resists,
+'by multiplication (a sane version of the old way)
+FUNCTION multiplicative_equip_elemental_merging (byval val1 as double, byval val2 as double) as double
+ DIM sign as integer = 1.0
+ IF val1 < 0 OR val2 < 0 THEN sign = -1.0
+ val1 = ABS(val1)
+ val2 = ABS(val2)
+ val1 *= val2
+ RETURN val1 * sign
+END FUNCTION
+
+'Merge elemental resist values from one item into the hero's cumulative resists,
+'by adding together the differences from 1.0
+FUNCTION additive_equip_elemental_merging (byval val1 as double, byval val2 as double) as double
+ RETURN (val1 - 1.0) + (val2 - 1.0) + 1.0
+END FUNCTION
+
+FUNCTION equip_elemental_merge(byval val1 as double, byval val2 as double, byval formula as integer) as double
+ SELECT CASE formula
+  CASE 0:
+   RETURN awful_compatible_equip_elemental_merging(val1, val2)
+  CASE 1:
+   RETURN multiplicative_equip_elemental_merging(val1, val2)
+  CASE 2:
+   RETURN additive_equip_elemental_merging(val1, val2)
+ END SELECT
+END FUNCTION
+
+'--End duplicated code
+
+FUNCTION merge_elementals_example(byval exampleno as integer, example() as double, byval formula as integer) as string
+ DIM ret as string = "Ex" & exampleno
+ FOR i as integer = 0 TO 3
+  DIM temp as string
+  IF i >= 1 AND i <= 2 AND formula = 2 THEN  'Show equipment as additive changes
+   temp = format_percent(example(i) - 1.0, 3)
+   IF LEFT(temp, 1) <> "-" THEN temp = "+" + temp
+  ELSE
+   temp = format_percent(example(i), 3)
+  END IF
+  ret += RIGHT("       " + temp, 9)
+ NEXT
+ RETURN ret
+END FUNCTION
+
+FUNCTION merge_ex_elementals(values() as double, byval formula as integer) as double
+ DIM result as double
+ result = 1.0
+ FOR i as integer = 0 TO UBOUND(values) - 1
+  result = equip_elemental_merge(result, values(i), formula)
+ NEXT
+ RETURN result
+END FUNCTION
+
+SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, greyed_out() as integer)
+ FOR i as integer = 1 TO 3
+  greyed_out(i) = YES
+ NEXT
+ greyed_out(1 + gen(genEquipMergeFormula)) = NO
+ FOR i as integer = 4 TO 21
+  menu(i) = ""
+ NEXT
+
+ DIM ex1(3) as double = {1, 1, 3}
+ DIM ex2(3) as double = {1, 2, 2}
+ DIM ex3(3) as double = {0, 0, 1}
+ DIM ex4(3) as double = {-1, 1.5, 2}
+ DIM ex5(3) as double = {-1, -1, -1}
+ DIM ex6(3) as double = {0.5, 0.5, 2}
+ DIM ex7(3) as double = {2, 0.5, 0.5}
+ DIM ex8(3) as double = {RND, 3*RND-1.5, 1+RND}
+ IF formula = -1 THEN
+  menu(9) = "Select a formula to see examples"
+ ELSE
+  ex1(3) = merge_ex_elementals(ex1(), formula)
+  ex2(3) = merge_ex_elementals(ex2(), formula)
+  ex3(3) = merge_ex_elementals(ex3(), formula)
+  ex4(3) = merge_ex_elementals(ex4(), formula)
+  ex5(3) = merge_ex_elementals(ex5(), formula)
+  ex6(3) = merge_ex_elementals(ex6(), formula)
+  ex7(3) = merge_ex_elementals(ex7(), formula)
+  ex8(3) = merge_ex_elementals(ex8(), formula)
+
+  menu(9) = "Examples:"
+  menu(10) = "        Hero   Equip1   Equip2   Result"
+  menu(11) = merge_elementals_example(1, ex1(), formula)
+  menu(12) = merge_elementals_example(2, ex2(), formula)
+  menu(13) = merge_elementals_example(3, ex3(), formula)
+  menu(14) = merge_elementals_example(4, ex4(), formula)
+  menu(15) = merge_elementals_example(5, ex5(), formula)
+  menu(16) = merge_elementals_example(6, ex6(), formula)
+  menu(17) = merge_elementals_example(7, ex7(), formula)
+  menu(18) = merge_elementals_example(8, ex8(), formula)
+
+  IF formula = 2 THEN
+   menu(20) = "(Equipment values are displayed"
+   menu(21) = "differently when this is chosen)"
+  END IF
+ END IF
+END SUB
+
+SUB equipmergemenu
+ DIM menu(21) as string
+ DIM greyed_out(21) as integer 
+ DIM st as MenuState
+ st.size = 24
+ st.last = 3
+ st.need_update = YES
+ DIM tog as integer
+
+ menu(0) = "Previous Menu"
+ menu(1) = "Old awful formula (multiplication-like)"
+ menu(2) = "Combine resistances by multiplication"
+ menu(3) = "Combine resistances by addition"
+ DO
+  setwait 55
+  setkeys
+  tog XOR= 1
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "equip_elemental_formula"
+  IF enter_or_space() THEN
+   IF st.pt = 0 THEN
+    EXIT DO
+   ELSE
+    gen(genEquipMergeFormula) = st.pt - 1
+    st.need_update = YES
+   END IF
+  END IF
+  IF usemenu(st) THEN st.need_update = YES
+
+  IF st.need_update THEN
+   generate_equipmerge_preview st.pt - 1, menu(), greyed_out()
+   st.need_update = NO
+  END IF
+
+  clearpage vpage
+  FOR i as integer = 0 TO UBOUND(menu)
+   IF greyed_out(i) THEN
+    textcolor uilook(uiDisabledItem), 0
+    IF st.pt = i THEN textcolor uilook(uiSelectedDisabled + tog), 0
+   ELSE
+    textcolor uilook(uiMenuItem), 0
+    IF st.pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
+   END IF
+   printstr menu(i), 0, i * 8, vpage, YES
+  NEXT i
   setvispage vpage
   dowait
  LOOP

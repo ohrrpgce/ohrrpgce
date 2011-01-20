@@ -1,4 +1,4 @@
-This is the Battle System Options Editor, where you can edit various global options for the battle system.
+This is the Battle System Options Editor, where you can edit various global options for the battle and stat systems.
 
 Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
 

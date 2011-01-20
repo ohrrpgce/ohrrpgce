@@ -1,4 +1,4 @@
-Here you can add elemental effects to this piece of equipment, which modify the elemental resistances of a hero when equiped.
+Here you can add elemental effects to this piece of equipment, which modify the elemental resistances of a hero when equipped. See the General Game Data ->Battle System Options ->Elemental Resistance Calculation menu Help file for more information.
 
 100% damage means 'no change'. If a hero intrinsically takes 200% damage from Fire, and equips two pieces of equipment set to "100% from Fire" and "-12% from Fire", then their total damage from Fire will be -24%.
 

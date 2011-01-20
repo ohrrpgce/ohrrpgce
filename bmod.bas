@@ -1625,19 +1625,17 @@ END IF
 END FUNCTION
 
 'This is similar to fuzzythreshold. It interpolates between these values:
-' 0.12  0.24  1.00  2.00
-'  0     1     0     1
-FUNCTION fuzzy_strong_bit (value as double) as double
+' 0.12  0.24  1.00  2.00 ...  x
+'  0     1     0     1      x - 1 
+FUNCTION fuzzy_strong_amount (value as double) as double
  IF value <= 0.12 THEN
   RETURN 0.0
  ELSEIF value <= 0.24 THEN
   RETURN (value - 0.12) / 0.12
  ELSEIF value <= 1.0 THEN
   RETURN (1.0 - value) / 0.76
- ELSEIF value <= 2.0 THEN
-  RETURN value - 1.0
  ELSE
-  RETURN 1.0
+  RETURN value - 1.0
  END IF
 END FUNCTION
 
@@ -1655,8 +1653,8 @@ FUNCTION awful_compatible_equip_elemental_merging (byval val1 as double, byval v
  weak_bit_1 = fuzzythreshold(val1, 1.0, 0.24)
  weak_bit_2 = fuzzythreshold(val2, 1.0, 0.24)
  DIM as double strong_bit_1, strong_bit_2
- strong_bit_1 = fuzzy_strong_bit(val1)
- strong_bit_2 = fuzzy_strong_bit(val2)
+ strong_bit_1 = fuzzy_strong_amount(val1)
+ strong_bit_2 = fuzzy_strong_amount(val2)
  IF weak_bit_2 > weak_bit_1 THEN weak_bit_1 = weak_bit_2  'values at most 1.0, so result tends to 0.24
  IF strong_bit_2 > strong_bit_1 THEN strong_bit_1 = strong_bit_2
  DIM as double weakmult, strongmult
@@ -1665,6 +1663,34 @@ FUNCTION awful_compatible_equip_elemental_merging (byval val1 as double, byval v
  'These fuzzythresholds simulate an 'immune' bit, restoring just a shred of sanity to the results
  val1 = weakmult * strongmult * fuzzythreshold(val1, 0, 0.12) * fuzzythreshold(val2, 0, 0.12)
  RETURN val1 * sign
+END FUNCTION
+
+'Merge elemental resist values from one item into the hero's cumulative resists,
+'by multiplication (a sane version of the old way)
+FUNCTION multiplicative_equip_elemental_merging (byval val1 as double, byval val2 as double) as double
+ DIM sign as integer = 1.0
+ IF val1 < 0 OR val2 < 0 THEN sign = -1.0
+ val1 = ABS(val1)
+ val2 = ABS(val2)
+ val1 *= val2
+ RETURN val1 * sign
+END FUNCTION
+
+'Merge elemental resist values from one item into the hero's cumulative resists,
+'by adding together the differences from 1.0
+FUNCTION additive_equip_elemental_merging (byval val1 as double, byval val2 as double) as double
+ RETURN (val1 - 1.0) + (val2 - 1.0) + 1.0
+END FUNCTION
+
+FUNCTION equip_elemental_merge(byval val1 as double, byval val2 as double, byval formula as integer) as double
+ SELECT CASE formula
+  CASE 0:
+   RETURN awful_compatible_equip_elemental_merging(val1, val2)
+  CASE 1:
+   RETURN multiplicative_equip_elemental_merging(val1, val2)
+  CASE 2:
+   RETURN additive_equip_elemental_merging(val1, val2)
+ END SELECT
 END FUNCTION
 
 SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
@@ -1687,8 +1713,7 @@ SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
    LoadItemElementals eqstuf(who, j) - 1, itemelementals()
 
    FOR i as integer = 0 TO numElements - 1
-    'FIXME: provide sane replacements
-    elemental_resists(i) = awful_compatible_equip_elemental_merging(elemental_resists(i), itemelementals(i))
+    elemental_resists(i) = equip_elemental_merge(elemental_resists(i), itemelementals(i), gen(genEquipMergeFormula))
    NEXT
   END IF
  NEXT j

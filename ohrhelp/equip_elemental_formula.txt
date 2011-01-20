@@ -1,0 +1,12 @@
+Heroes and equipment all have elemental resistances, but a hero's intrinsic resistances and those of all the equipment they are wearing need to be combined into a single value per element. This menu lets you select from one of three different formulae to use for this.
+
+The currently selected formula is highlighted, while the others are darkened. Move to a formula with Up/Down and hit Enter to make it the selected one.
+
+* Old awful formula
+ This is the default for old games for compatibility reasons, but you should never use it if you have a choice, because it causes down-right stupid results in a number of ways!
+
+* Combine by multiplication
+ This multiplies together all input values, ignoring negatives. Then, if any of the input values were negative, the result is negated. This means that if anything was set to 0% damage, the result is always 0%, and otherwise, if anything was negative damage, then hero always absorbs damage from that element. Note that weaknesses (values greater than 100%) can stack to huge values!
+
+* Combine by addition
+ This adds together the differences from 100% of all the values. Equipment elemental damage is displayed differently when this is selected: 100% becomes +0%, 150% becomes +50%, etc., so that you can simply add together all the displayed values.

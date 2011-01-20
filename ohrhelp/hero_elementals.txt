@@ -1,4 +1,4 @@
-This menu lets you define the amount of damage this hero takes from different elemental attacks. The actual in-game values also depend on the equipment which the hero is wearing.
+This menu lets you define the amount of damage this hero takes from different elemental attacks. The actual in-game values also depend on the equipment which the hero is wearing. See the General Game Data ->Battle System Options ->Elemental Resistance Calculation menu Help file for more information.
 
 Set the values by typing them in. You can enter fractional values too, by typing a decimal point (Period).
 
