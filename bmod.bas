@@ -1667,7 +1667,7 @@ FUNCTION awful_compatible_equip_elemental_merging (byval val1 as double, byval v
  RETURN val1 * sign
 END FUNCTION
 
-SUB calc_hero_elementals (elemental_resists() as double, byval who as integer)
+SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
  'Calculate a hero's elemental resists after taking equipment into account
  'elemental_resists should be sized up to maxElements - 1; who is a hero() slot number.
  'This is used both here and in the status menu.
@@ -1679,7 +1679,7 @@ SUB calc_hero_elementals (elemental_resists() as double, byval who as integer)
   elemental_resists(i) = her.elementals(i)
  NEXT
 
- REDIM itemelementals() as double
+ REDIM itemelementals() as single
 
  '--merge equipment elemental resists
  FOR j as integer = 0 TO 4

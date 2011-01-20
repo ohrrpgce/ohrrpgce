@@ -1,0 +1,7 @@
+Here you can add elemental effects to this piece of equipment, which modify the elemental resistances of a hero when equiped.
+
+100% damage means 'no change'. If a hero intrinsically takes 200% damage from Fire, and equips two pieces of equipment set to "100% from Fire" and "-12% from Fire", then their total damage from Fire will be -24%.
+
+Set the values by typing them in. You can enter fractional percentages too, by typing a decimal point (Period).
+
+Press Minus to negate a value. If a hero takes negative damage from an element, then they will be healed.

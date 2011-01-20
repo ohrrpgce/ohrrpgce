@@ -2480,13 +2480,27 @@ SUB saveitemdata (array() AS INTEGER, index AS INTEGER)
  storerecord array(), game & ".itm", getbinsize(binITM) \ 2, index
 END SUB
 
-SUB LoadItemElementals (BYVAL index AS INTEGER, itemresists() AS DOUBLE)
+FUNCTION LoadOldItemElemental (itembuf() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE
+ IF element < 8 THEN
+  RETURN backcompat_element_dmg(readbit(itembuf(), 70, element), readbit(itembuf(), 70, 8 + element), readbit(itembuf(), 70, 16 + element))
+ ELSE
+  RETURN 1.0f
+ END IF
+END FUNCTION
+
+SUB LoadItemElementals (BYVAL index AS INTEGER, itemresists() AS SINGLE)
  DIM itembuf(dimbinsize(binITM)) AS INTEGER
  loaditemdata itembuf(), index
  REDIM itemresists(numElements - 1)
- FOR i AS INTEGER = 0 TO numElements - 1
-  itemresists(i) = backcompat_element_dmg(readbit(itembuf(), 70, i), readbit(itembuf(), 70, 8 + i), readbit(itembuf(), 70, 16 + i))
- NEXT
+ IF getfixbit(fixItemElementals) THEN
+  FOR i AS INTEGER = 0 TO numElements - 1
+   itemresists(i) = DeSerSingle(itembuf(), 82 + i * 2)
+  NEXT
+ ELSE
+  FOR i AS INTEGER = 0 TO numElements - 1
+   itemresists(i) = LoadOldItemElemental(itembuf(), i)
+  NEXT
+ END IF
 END SUB
 
 

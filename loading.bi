@@ -128,7 +128,8 @@ DECLARE SUB storepal16 (array() as integer, aoffset as integer, foffset as integ
 
 DECLARE SUB loaditemdata (array() as integer, index as integer)
 DECLARE SUB saveitemdata (array() as integer, index as integer)
-DECLARE SUB LoadItemElementals (BYVAL index as integer, itemresists() as double)
+DECLARE FUNCTION LoadOldItemElemental (itembuf() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE
+DECLARE SUB LoadItemElementals (BYVAL index as integer, itemresists() as single)
 
 DECLARE FUNCTION backcompat_element_dmg (BYVAL weak as integer, BYVAL strong as integer, BYVAL absorb as integer) as double
 DECLARE FUNCTION loadoldenemyresist (array() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE

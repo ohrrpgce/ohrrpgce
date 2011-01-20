@@ -1064,7 +1064,7 @@ RETRACE
 END SUB
 
 'Format one of the strings on the second Status menu screen
-FUNCTION hero_elemental_resist_msg (element AS STRING, damage AS DOUBLE) AS STRING
+FUNCTION hero_elemental_resist_msg (element AS STRING, damage AS SINGLE) AS STRING
  DIM raw AS STRING
  IF damage < 0.0 THEN
   raw = readglobalstring(171, "Absorbs $A damage from $E", 30)
@@ -1108,7 +1108,7 @@ END WITH
 DIM elementnames() AS STRING
 getelementnames elementnames()
 
-DIM elementaldmg(maxElements - 1) AS DOUBLE
+DIM elementaldmg(maxElements - 1) AS SINGLE
 
 mode = 0
 

@@ -46,6 +46,7 @@ DECLARE SUB hero_editor_equipment_list (BYVAL hero_id AS INTEGER, BYREF her AS H
 DECLARE SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER)
 DECLARE SUB hero_editor_elementals(BYREF her AS HeroDef)
 DECLARE SUB item_editor_equipbits(itembuf())
+DECLARE SUB item_editor_elementals(itembuf() AS INTEGER)
 
 REM $STATIC
 
@@ -1608,17 +1609,12 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM a(dimbinsize(binITM)), menu(20) AS STRING, bmenu(40) AS STRING, ibit(-1 TO 59) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), frame
+DIM a(dimbinsize(binITM)), menu(20) AS STRING, bmenu(40) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), frame
 DIM item(maxMaxItems) AS STRING
 DIM wep_img AS GraphicPair 'This is only used in edititem
 DIM box_preview AS STRING = "" 'This is only used in edititem
+'DIM ibitnames(-1 TO 59) AS STRING
 imax = 32
-DIM elemtype(2) AS STRING
-elemtype(0) = readglobalstring$(127, "Weak to", 10)
-elemtype(1) = readglobalstring$(128, "Strong to", 10)
-elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
-DIM elementnames() AS STRING
-getelementnames elementnames()
 
 eqst(0) = "NEVER EQUIPPED"
 eqst(1) = "Weapon"
@@ -1702,7 +1698,8 @@ info$ = readbadbinstring$(a(), 9, 35, 0)
 
 menu(0) = "Back to Item Menu"
 menu(18) = "Stat Bonuses..."
-menu(19) = "Equipment Bits..."
+menu(19) = "Elemental Resists..."
+'menu(19) = "Equipment Bits..."
 menu(20) = "Who Can Equip?..."
 max(3) = 32767
 max(4) = gen(genMaxAttack)
@@ -1756,9 +1753,12 @@ DO
     need_update = YES
    END IF
    IF pt = 19 THEN
-    GOSUB ibitset
-    need_update = YES
+    item_editor_elementals a()
    END IF
+   'IF pt = 19 THEN
+   ' editbitset a(), 70, 23, ibitnames()
+   ' need_update = YES
+   'END IF
    IF pt = 20 THEN
     item_editor_equipbits a()
     need_update = YES
@@ -1875,15 +1875,6 @@ FOR o = 10 TO 9 + a(9)
  a(o) = ASC(MID$(info$, o - 9, 1))
 NEXT o
 saveitemdata a(), i
-RETRACE
-
-ibitset:
-FOR i = 0 TO 7
- ibit(i) = elemtype(0) & " " & elementnames(i)
- ibit(i + 8) = elemtype(1) & " " & elementnames(i)
- ibit(i + 16) = elemtype(2) & " " & elementnames(i)
-NEXT i
-editbitset a(), 70, 23, ibit()
 RETRACE
 
 END SUB
@@ -2336,7 +2327,8 @@ SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER
  NEXT i
 END SUB
 
-SUB hero_editor_elementals(BYREF her as HeroDef)
+'This elemental resistance editor is shared by the hero and item editors
+SUB common_elementals_editor(elementals() as single, helpfile as string)
  DIM elementnames() AS STRING
  getelementnames elementnames()
  DIM float_reprs(numElements - 1) as string
@@ -2347,7 +2339,7 @@ SUB hero_editor_elementals(BYREF her as HeroDef)
  st.need_update = YES
 
  FOR i as integer = 0 TO numElements - 1
-  float_reprs(i) = format_percent(her.elementals(i))
+  float_reprs(i) = format_percent(elementals(i))
   elementnames(i) = rpad(elementnames(i), " ", 15)
  NEXT
 
@@ -2355,11 +2347,11 @@ SUB hero_editor_elementals(BYREF her as HeroDef)
   setwait 55
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
-  IF keyval(scF1) > 1 THEN show_help "hero_elementals"
+  IF keyval(scF1) > 1 THEN show_help helpfile
   IF st.pt = 0 THEN
    IF enter_or_space() THEN EXIT DO
   ELSE
-   IF percent_grabber(her.elementals(st.pt - 1), float_reprs(st.pt - 1), -1000, 1000) THEN st.need_update = YES
+   IF percent_grabber(elementals(st.pt - 1), float_reprs(st.pt - 1), -1000, 1000) THEN st.need_update = YES
   END IF
   usemenu st
 
@@ -2379,12 +2371,27 @@ SUB hero_editor_elementals(BYREF her as HeroDef)
  setkeys
 END SUB
 
+SUB hero_editor_elementals(BYREF her as HeroDef)
+ common_elementals_editor her.elementals(), "hero_elementals"
+END SUB
+
 '--Item Editor stuff---------------------------------------------------
 
-SUB item_editor_equipbits(itembuf())
+SUB item_editor_equipbits(itembuf() AS INTEGER)
  DIM ibit(-1 TO maxMaxHero) AS STRING
  FOR i AS INTEGER = 0 TO gen(genMaxHero)
   ibit(i) = "Equipable by " & getheroname(i)
  NEXT i
  editbitset itembuf(), 66, gen(genMaxHero), ibit()
+END SUB
+
+SUB item_editor_elementals(itembuf() AS INTEGER)
+ DIM elementals(numElements - 1) as single
+ FOR i as integer = 0 TO numElements - 1
+  elementals(i) = DeSerSingle(itembuf(), 82 + i * 2)
+ NEXT
+ common_elementals_editor elementals(), "item_elementals"
+ FOR i as integer = 0 TO numElements - 1
+  SerSingle itembuf(), 82 + i * 2, elementals(i)
+ NEXT
 END SUB

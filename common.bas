@@ -883,7 +883,7 @@ FUNCTION curbinsize (id AS INTEGER) as integer
  IF id = 9 THEN RETURN 32  '.n##
  IF id = 10 THEN RETURN 858 '.dt0
  IF id = 11 THEN RETURN 734 '.dt1
- IF id = 12 THEN RETURN 200 '.itm
+ IF id = 12 THEN RETURN 420 '.itm
  RETURN 0
 END FUNCTION
 
@@ -3190,6 +3190,19 @@ IF full_upgrade ANDALSO getfixbit(fixEnemyElementals) = 0 THEN
    SerSingle(dat(), 239 + j*2, loadoldenemyresist(dat(), j))
   NEXT
   saveenemydata dat(), i
+ NEXT
+END IF
+
+IF full_upgrade ANDALSO getfixbit(fixItemElementals) = 0 THEN
+ upgrade_message "Initialising equipment elemental resists..."
+ setfixbit(fixItemElementals, 1)
+ REDIM dat(dimbinsize(binITM)) AS INTEGER
+ FOR i = 0 TO gen(genMaxItem)
+  loaditemdata dat(), i
+  FOR j = 0 TO 63
+   SerSingle(dat(), 82 + j*2, LoadOldItemElemental(dat(), j))
+  NEXT
+  saveitemdata dat(), i
  NEXT
 END IF
 

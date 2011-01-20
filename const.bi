@@ -166,8 +166,9 @@ CONST fixHeroElementals = 15     'Set the hero elemental data from the old weak/
 CONST fixOldElementalFailBit = 16'Turned on the 'Simulate old fail vs. element resist bit' bitset
 CONST fixAttackElementFails = 17 'Initialized all 64 attack elemental fail conditions
 CONST fixEnemyElementals = 18    'Set enemy elemental resists from old weak/strong/absorb/enemytype bits
+CONST fixItemElementals = 19     'Set equipment elemental resists from old weak/strong/absorb bits
 
-CONST sizefixbits = 18 ' *** Update this when adding fix bits ***
+CONST sizefixbits = 19 ' *** Update this when adding fix bits ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
