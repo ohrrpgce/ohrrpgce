@@ -2845,7 +2845,7 @@ END FUNCTION
 
 'The maximum - 1 number of global text strings that can appear in the global
 'text strings menu (the actual number varies)
-CONST GTSnumitems = 172
+CONST GTSnumitems = 173
 
 TYPE GlobalTextStringsMenu
  index(GTSnumitems) AS INTEGER
