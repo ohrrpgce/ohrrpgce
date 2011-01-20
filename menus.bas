@@ -1118,7 +1118,7 @@ SUB battleoptionsmenu ()
  flusharray enabled(), UBOUND(enabled), YES
  enabled(3) = NO
  index(4) = genNumElements
- min(4) = 0
+ min(4) = 1
  max(4) = 64
  index(5) = genPoison
  index(6) = genStun

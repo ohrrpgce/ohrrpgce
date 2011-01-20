@@ -2592,6 +2592,11 @@ IF getfixbit(fixNumElements) = 0 THEN
  gen(genNumElements) = 16
 END IF
 
+IF gen(genNumElements) < 1 THEN
+ upgrade_message "genNumElements was " & gen(genNumElements) & ", fixing"
+ gen(genNumElements) = 1
+END IF
+
 IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"
  gen(genVersion) = 1
@@ -3423,6 +3428,7 @@ SUB rpg_sanity_checks
   IF NOT isfile(maplumpname(i, "d")) THEN showerror "map" + filenum(i) + " doorlinks are missing!"
  NEXT
 
+ 'Should this be in upgrade? I can't make up my mind!
  IF gen(genNumElements) > 64 THEN
   future_rpg_warning
   'We would definitely crash if we didn't cap this
