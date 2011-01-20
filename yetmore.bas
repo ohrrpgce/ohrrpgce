@@ -1460,15 +1460,22 @@ SELECT CASE AS CONST id
    scriptret = (plotstr(retvals(0)).s = plotstr(retvals(1)).s)
   END IF
  CASE 230'--read enemy data
-  f = FREEFILE
-  OPEN tmpdir & "dt1.tmp" FOR BINARY AS #f
-  scriptret = ReadShort(f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1)
-  CLOSE #f
+  'Boy, was this command a bad idea!
+  '106 was the largest used offset until very recently, so we'll limit it there to
+  'prevent further damage
+  'Note: elemental/enemytype bits no longer exist (should still be able to read them
+  'from old games, though)
+  IF in_bound(retvals(0), 0, gen(genMaxEnemy)) AND in_bound(retvals(1), 0, 106) THEN
+   scriptret = ReadShort(tmpdir & "dt1.tmp", retvals(0) * getbinsize(binDT1) + retvals(1) * 2 + 1)
+  END IF
  CASE 231'--write enemy data
-  f = FREEFILE
-  OPEN tmpdir & "dt1.tmp" FOR BINARY AS #f
-  Writeshort f, (CLNG(bound(retvals(0), 0, gen(genMaxEnemy))) * CLNG(320)) + (bound(retvals(1), 0, 159) * 2) + 1, retvals(2)
-  CLOSE #f
+  'Boy, was this command a bad idea!
+  '106 was the largest used offset until very recently, so we'll limit it there to
+  'prevent further damage
+  'Note: writing elemental/enemytype bits no longer works
+  IF in_bound(retvals(0), 0, gen(genMaxEnemy)) AND in_bound(retvals(1), 0, 106) THEN
+   WriteShort(tmpdir & "dt1.tmp", retvals(0) * getbinsize(binDT1) + retvals(1) * 2 + 1, retvals(2))
+  END IF
  CASE 232'--trace
   IF valid_plotstr(retvals(0)) THEN
    debug "TRACE: " + plotstr(retvals(0)).s
@@ -1672,7 +1679,7 @@ SELECT CASE AS CONST id
     IF buffer(retvals(4) * 4) = 0 THEN temp = retvals(4)
    END IF
    IF temp >= 0 THEN
-    szindex = ReadShort(tmpdir & "dt1.tmp", retvals(1) * 320 + 111) 'picture size
+    szindex = ReadShort(tmpdir & "dt1.tmp", retvals(1) * getbinsize(binDT1) + 111) 'picture size
     IF szindex = 0 THEN size = 34
     IF szindex = 1 THEN size = 50
     IF szindex = 2 THEN size = 80
@@ -1711,7 +1718,7 @@ SELECT CASE AS CONST id
    scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + (id - 311) * 2 + 1) 'x or y
    'now find the position of the bottom center of the enemy sprite
    IF temp THEN
-    temp = ReadShort(tmpdir & "dt1.tmp", (temp - 1) * 320 + 111) 'picture size
+    temp = ReadShort(tmpdir & "dt1.tmp", (temp - 1) * getbinsize(binDT1) + 111) 'picture size
     IF temp = 0 THEN size = 34
     IF temp = 1 THEN size = 50
     IF temp = 2 THEN size = 80

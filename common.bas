@@ -860,6 +860,7 @@ FUNCTION defbinsize (id AS INTEGER) as integer
  IF id = 8 THEN RETURN 400  '.say
  IF id = 9 THEN RETURN 30   '.n##
  IF id = 10 THEN RETURN 636 '.dt0
+ IF id = 11 THEN RETURN 320 '.dt1
  RETURN 0
 END FUNCTION
 
@@ -876,6 +877,7 @@ FUNCTION curbinsize (id AS INTEGER) as integer
  IF id = 8 THEN RETURN 412 '.say
  IF id = 9 THEN RETURN 32  '.n##
  IF id = 10 THEN RETURN 858 '.dt0
+ IF id = 11 THEN RETURN 734 '.dt1
  RETURN 0
 END FUNCTION
 
@@ -1220,7 +1222,7 @@ FUNCTION readattackname (index) as string
 END FUNCTION
 
 FUNCTION readenemyname (index) as string
- RETURN readbadgenericname(index, game + ".dt1", 320, 0, 16, 0)
+ RETURN readbadgenericname(index, game + ".dt1", getbinsize(binDT1), 0, 16, 0)
 END FUNCTION
 
 FUNCTION readitemname (index) as string
@@ -2903,6 +2905,7 @@ END IF
 updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 updaterecordlength game & ".say", binSAY
 updaterecordlength game & ".dt0", binDT0
+updaterecordlength game & ".dt1", binDT1
 'Don't update .N binsize until all records have been stretched
 FOR i = 0 TO gen(genMaxMap)
  updaterecordlength maplumpname(i, "n"), binN, 7, YES
@@ -3168,6 +3171,19 @@ IF full_upgrade ANDALSO getfixbit(fixAttackElementFails) = 0 THEN
  NEXT
 END IF
 
+IF full_upgrade ANDALSO getfixbit(fixEnemyElementals) = 0 THEN
+ upgrade_message "Initialising enemy elemental resists..."
+ setfixbit(fixEnemyElementals, 1)
+ REDIM dat(dimbinsize(binDT1)) AS INTEGER
+ FOR i = 0 TO gen(genMaxAttack)
+  loadenemydata dat(), i
+  FOR j = 0 TO 63
+   SerSingle(dat(), 239 + j*2, loadoldenemyresist(dat(), j))
+  NEXT
+  saveenemydata dat(), i
+ NEXT
+END IF
+
 'Update record-count for all fixed-length lumps.
 IF time_rpg_upgrade THEN upgrade_message "Updating record counts"
 FOR i = 0 TO 8
@@ -3178,7 +3194,7 @@ fix_record_count gen(genNumBackdrops), 320 * 200, game & ".mxs", "Backdrops", , 
 'FIXME: .dt0 lump is always padded up to 60 records
 'fix_record_count gen(genMaxHero),     getbinsize(binDT0), game & ".dt0", "Heroes"
 'FIXME: Attack data is split over two lumps. Must handle mismatch
-fix_record_count gen(genMaxEnemy),     320, game & ".dt1", "Enemies"
+fix_record_count gen(genMaxEnemy),     getbinsize(binDT1), game & ".dt1", "Enemies"
 fix_record_count gen(genMaxFormation), 80, game & ".for", "Battle Formations"
 fix_record_count gen(genMaxPal),       16, game & ".pal", "16-color Palettes", 16
 fix_record_count gen(genMaxTextbox),   getbinsize(binSAY), game & ".say", "Text Boxes"

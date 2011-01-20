@@ -4,16 +4,6 @@ Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the li
 
 Modifiy bitsets with Left, Right, SPACE and ENTER.
 
-Attack elemental damage effects stack: being weak to one element and strong to another multiples their modifiers.
-
-Enemies "Weak to" take double damage.
-
-"Strong to" causes 12% damage.
-
-If an enemy "Absorbs" any element, then the attack damage is negated: it heals instead of damages, and damages instead of healing if "Cure instead of harm" is set on the attack. Absorbing multiple elements does NOT stack.
-
-"Is <enemy type>" bits also effect damage, according to the "Bonus to" and "Fail against" bits on attacks. They are similar to elements, but less useful. Bonus against an enemy type does 180% damage.
-
 "MP Idiot" enemies lose a turn whenever they randomly select an attack they don't have enough MP for. Normally enemies only attempt attacks they can actually use.
 
 The "Boss" bit's only effect is on other enemies with the "Die Without Boss" bit set.

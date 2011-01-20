@@ -13,6 +13,8 @@
 'Clean*/Clear* SUBs can also blank out already-initialised data; for objects that don't require
 'initialisation that is all they do.
 
+declare sub SerSingle (buf() as integer, byval index as integer, byval sing as single)
+declare function DeSerSingle (buf() as integer, byval index as integer) as single
 
 'Sprites are not loaded by these functions; can use CleanNPCD to free them if you load them
 declare sub LoadNPCD(file as string, dat() as NPCType)
@@ -129,6 +131,9 @@ DECLARE SUB saveitemdata (array() as integer, index as integer)
 DECLARE SUB LoadItemElementals (BYVAL index as integer, itemresists() as double)
 
 DECLARE FUNCTION backcompat_element_dmg (BYVAL weak as integer, BYVAL strong as integer, BYVAL absorb as integer) as double
+DECLARE FUNCTION loadoldenemyresist (array() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE
+DECLARE SUB clearenemydata OVERLOAD (enemy AS EnemyDef)
+DECLARE SUB clearenemydata OVERLOAD (buf() AS INTEGER)
 DECLARE SUB loadenemydata OVERLOAD (array() as integer, index as integer, altfile as integer = 0)
 DECLARE SUB loadenemydata OVERLOAD (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
 DECLARE SUB saveenemydata OVERLOAD (array() as integer, index as integer, altfile as integer = 0)

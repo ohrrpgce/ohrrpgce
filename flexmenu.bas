@@ -909,7 +909,7 @@ NEXT
 
 '----------------------------------------------------------
 '--menu structure
-DIM workmenu(22), dispmenu(22) AS STRING
+DIM workmenu(65), dispmenu(65) AS STRING
 DIM state as MenuState
 state.size = 22
 
@@ -1339,7 +1339,12 @@ FUNCTION editflexmenu (nowindex AS INTEGER, menutype() AS INTEGER, menuoff() AS 
 '           4000-4999=percent_cond_grabber, where caption(n-4000) holds
 '                     the default string (no condition), and caption(n-4000+1) is
 '                     the repr string needed by percent_cond_grabber.
+'                     Limits not yet supported.
 '                     (The condition is stored in 3 consecutive INTs.)
+'           5000-5999=percent_grabber (SINGLE floats), where caption(n-4000) holds
+'                     the repr string needed by percent_grabber.
+'                     Limits not yet supported.
+'                     (The single is stored in 2 consecutive INTs.)
 'menuoff() is the offsets into the data block where each menu data is stored
 'menulimits() is the offsets into the mintable() and maxtable() arrays
 'datablock() holds the actual data
@@ -1376,6 +1381,13 @@ SELECT CASE menutype(nowindex)
   changed = percent_cond_grabber(cond, caption(capnum + 1), caption(capnum), -1000.0, 1000.0)
   'debug "cond_grab: ch=" & changed & " type = " & cond.type & " val = " & cond.value &  " off = " & menuoff(nowindex) & " cap = " & caption(capnum + 1)
   SerAttackElementCond cond, datablock(), menuoff(nowindex)
+ CASE 5000 TO 5999' SINGLE, as percent
+  DIM value as single
+  DIM capnum as integer = menutype(nowindex) - 5000
+  value = DeSerSingle(datablock(), menuoff(nowindex))
+  'modifies caption(capnum)
+  changed = percent_grabber(value, caption(capnum), -1000.0, 1000.0)
+  SerSingle(datablock(), menuoff(nowindex), value)
 END SELECT
 
 '--preview sound effects
@@ -1460,7 +1472,12 @@ SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGE
 '           4000-4999=percent_cond_grabber, where caption(n-4000) holds
 '                     the default string (no condition), and caption(n-4000+1) is
 '                     the repr string needed by percent_cond_grabber.
+'                     Limits not yet supported.
 '                     (The condition is stored in 3 consecutive INTs.)
+'           5000-5999=percent_grabber (SINGLE floats), where caption(n-4000) holds
+'                     the repr string needed by percent_grabber.
+'                     Limits not yet supported.
+'                     (The single is stored in 2 consecutive INTs.)
 'menuoff() tells us what index to look for the data for this menu item
 'menulimits() is the offset to look in maxtable() for limits
 'datablock() the actual data the menu represents
@@ -1564,6 +1581,9 @@ FOR i = 0 TO size
    capnum = menutype(nowdat(i)) - 4000
    datatext = caption(capnum + 1)
    nospace = YES
+  CASE 5000 TO 5999 '--percent_grabber
+   capnum = menutype(nowdat(i)) - 5000
+   datatext = caption(capnum)
  END SELECT
  IF replacestr(nowmenu(i), "$$", datatext) = 0 THEN
   'No replacements made

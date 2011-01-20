@@ -25,6 +25,24 @@ DECLARE SUB SaveMenuItem(f AS INTEGER, mi AS MenuDefItem, record AS INTEGER, men
 
 
 '==========================================================================================
+'                                      Helper Functions
+'==========================================================================================
+
+
+FUNCTION DeSerSingle (buf() as integer, BYVAL index as integer) as single
+  DIM ret as single
+  CAST(short ptr, @ret)[0] = buf(index)
+  CAST(short ptr, @ret)[1] = buf(index + 1)
+  RETURN ret
+END FUNCTION
+
+SUB SerSingle (buf() as integer, BYVAL index as integer, BYVAL sing as single)
+  buf(index) = CAST(short ptr, @sing)[0]
+  buf(index + 1) = CAST(short ptr, @sing)[1]
+END SUB
+
+
+'==========================================================================================
 '                                      NPC Definitions
 '==========================================================================================
 
@@ -2480,6 +2498,45 @@ FUNCTION backcompat_element_dmg(BYVAL weak AS INTEGER, BYVAL strong AS INTEGER, 
  RETURN dmg
 END FUNCTION
 
+FUNCTION loadoldenemyresist(array() AS INTEGER, BYVAL element AS INTEGER) AS SINGLE
+ IF element < 8 THEN
+  DIM as integer weak, strong, absorb
+  weak = xreadbit(array(), 0 + element, 74)
+  strong = xreadbit(array(), 8 + element, 74)
+  absorb = xreadbit(array(), 16 + element, 74)
+  RETURN backcompat_element_dmg(weak, strong, absorb)
+ ELSEIF element < 16 THEN
+  DIM as integer enemytype
+  enemytype = xreadbit(array(), 24 + (element - 8), 74)
+  RETURN IIF(enemytype, 1.8f, 1.0f)
+ ELSE
+  RETURN 1.0f
+ END IF
+END FUNCTION
+
+SUB clearenemydata (enemy AS EnemyDef)
+ memset @enemy, 0, sizeof(enemy)
+
+ enemy.pal = -1 'default palette
+ '--elemental resists
+ FOR i AS INTEGER = 0 TO 63
+  enemy.elementals(i) = 1.0f
+ NEXT    
+END SUB
+
+SUB clearenemydata (buf() AS INTEGER)
+ flusharray buf(), dimbinsize(binDT1)
+
+ buf(54) = -1 'default palette
+ '--elemental resists
+ FOR i AS INTEGER = 0 TO 63
+  SerSingle buf(), 239 + i*2, 1.0f
+ NEXT    
+END SUB
+
+'Note that this form of loadenemydata does not do fixEnemyElementals fixes!
+'Don't use this anywhere in Game where those need to be applied! (Of course,
+'you probably would never use this in Game)
 SUB loadenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
  DIM filename AS STRING
  IF altfile THEN
@@ -2487,11 +2544,11 @@ SUB loadenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
  ELSE
   filename = game & ".dt1"
  END IF
- loadrecord array(), filename, 160, index
+ loadrecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
 SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
- DIM buf(159) AS INTEGER
+ DIM buf(dimbinsize(binDT1)) AS INTEGER
  loadenemydata buf(), index, altfile
  WITH enemy
   .name = readbadbinstring(buf(), 0, 16)
@@ -2518,13 +2575,6 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
    .stat.sta(i) = buf(62 + i)
   NEXT i
   
-  '--Obsolete bitsets
-  FOR i AS INTEGER = 0 TO 7
-   .weak(i) = xreadbit(buf(), 0 + i, 74)
-   .strong(i) = xreadbit(buf(), 8 + i, 74)
-   .absorb(i) = xreadbit(buf(), 16 + i, 74)
-   .enemytype(i) = xreadbit(buf(), 24 + i, 74)
-  NEXT i
   '--bitsets
   .harmed_by_cure      = xreadbit(buf(), 54, 74)
   .mp_idiot            = xreadbit(buf(), 55, 74)
@@ -2539,15 +2589,15 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   .ignore_for_alone    = xreadbit(buf(), 64, 74)
 
   '--elementals
-  FOR i AS INTEGER = 0 TO numElements - 1
-   IF i < 8 THEN
-    .elementals(i) = backcompat_element_dmg(.weak(i), .strong(i), .absorb(i))
-   ELSEIF i < 16 THEN
-    .elementals(i) = IIF(.enemytype(i - 8), 1.8, 1.0)
-   ELSE
-    .elementals(i) = 0.0
-   END IF
-  NEXT
+  IF getfixbit(fixEnemyElementals) THEN
+   FOR i AS INTEGER = 0 TO numElements - 1
+    .elementals(i) = DeSerSingle(buf(), 239 + i*2)
+   NEXT
+  ELSE
+   FOR i AS INTEGER = 0 TO numElements - 1
+    .elementals(i) = loadoldenemyresist(buf(), i)
+   NEXT
+  END IF
   
   '--spawning
   .spawn.on_death = buf(79)
@@ -2558,7 +2608,7 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
    IF i <= 7 THEN
     .spawn.elemental_hit(i) = buf(83 + i)
    ELSE
-    .spawn.elemental_hit(i) = 0
+    .spawn.elemental_hit(i) = buf(183 + (i - 8))
    END IF
   NEXT i
   .spawn.how_many = buf(91)
@@ -2575,7 +2625,7 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
    IF i <= 7 THEN
     .elem_counter_attack(i) = buf(107 + i)
    ELSE
-    .elem_counter_attack(i) = 0
+    .elem_counter_attack(i) = buf(127 + (i - 8))
    END IF
   NEXT i
   FOR i AS INTEGER = 0 TO 11
@@ -2592,11 +2642,11 @@ SUB saveenemydata (array() AS INTEGER, index AS INTEGER, altfile AS INTEGER = 0)
  ELSE
   filename = game & ".dt1"
  END IF
- storerecord array(), filename, 160, index
+ storerecord array(), filename, getbinsize(binDT1) \ 2, index
 END SUB
 
 SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
- DIM buf(159) AS INTEGER
+ DIM buf(dimbinsize(binDT1)) AS INTEGER
  WITH enemy
   buf(0) = LEN(.name)
   FOR i AS INTEGER = 1 TO LEN(.name)
@@ -2625,13 +2675,6 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
    buf(62 + i) = .stat.sta(i)
   NEXT i
 
-  '--Obsolete bitsets  
-  FOR i AS INTEGER = 0 TO 7
-   setbit buf(), 74, 0 + i, .weak(i)
-   setbit buf(), 74, 8 + i, .strong(i)
-   setbit buf(), 74, 16 + i, .absorb(i)
-   setbit buf(), 74, 24 + i, .enemytype(i)
-  NEXT i
   '--bitsets
   setbit buf(), 74, 54, .harmed_by_cure
   setbit buf(), 74, 55, .mp_idiot
@@ -2650,9 +2693,18 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   buf(80) = .spawn.non_elemental_death
   buf(81) = .spawn.when_alone
   buf(82) = .spawn.non_elemental_hit
+  'Blank out unused spawns to be save: don't want to have to zero stuff out
+  'if numElements increases
+  FOR i AS INTEGER = numElements TO 63
+   .spawn.elemental_hit(i) = 0
+  NEXT
   FOR i AS INTEGER = 0 TO 7
    buf(83 + i) = .spawn.elemental_hit(i)
   NEXT i
+  FOR i AS INTEGER = 8 TO 63
+   buf(183 + (i - 8)) = .spawn.elemental_hit(i)
+  NEXT i
+
   buf(91) = .spawn.how_many
   
   '--attacks
@@ -2663,12 +2715,27 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   NEXT i
   
   '--counter attacks
+  FOR i AS INTEGER = numElements TO 63
+   .elem_counter_attack(i) = 0
+  NEXT
   FOR i AS INTEGER = 0 TO 7
    buf(107 + i) = .elem_counter_attack(i)
+  NEXT
+  FOR i AS INTEGER = 8 TO 63
+   buf(127 + (i - 8)) = .elem_counter_attack(i)
   NEXT i
   FOR i AS INTEGER = 0 TO 11
    buf(115 + i) = .stat_counter_attack(i)
   NEXT i
+
+  '--elemental resists
+  FOR i AS INTEGER = 0 TO 63
+   DIM outval as single = 1.0f
+   IF i < numElements THEN
+    outval = .elementals(i)
+   END IF
+   SerSingle buf(), 239 + i*2, outval
+  NEXT
   
  END WITH
 
@@ -2736,7 +2803,7 @@ END SUB
 FUNCTION load_map_pos_save_offset(BYVAL mapnum AS INTEGER) AS XYPair
  DIM offset AS XYPair
  DIM gmaptmp(dimbinsize(binMAP))
- loadrecord gmaptmp(), game & ".map", getbinsize(binMAP) / 2, mapnum
+ loadrecord gmaptmp(), game & ".map", getbinsize(binMAP) \ 2, mapnum
  offset.x = gmaptmp(20)
  offset.y = gmaptmp(21)
  RETURN offset

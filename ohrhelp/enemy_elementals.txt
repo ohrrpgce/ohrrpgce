@@ -1,0 +1,5 @@
+This menu lets you define the amount of damage this enemy takes from different elemental attacks.
+
+Set the values by typing them in. You can enter fractional values too, by typing a decimal point (Period).
+
+Press Minus to negate a value. If an enemy takes negative damage from an element, then it will be healed.

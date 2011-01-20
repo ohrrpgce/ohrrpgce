@@ -11,7 +11,7 @@
 CONST YES = -1
 CONST NO = 0
 
-CONST CURRENT_RPG_VERSION = 14
+CONST CURRENT_RPG_VERSION = 15
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
@@ -24,6 +24,7 @@ CONST CURRENT_RPG_VERSION = 14
 ' 12 - zenzizenzic wip increased .N## record size
 ' 13 - zenzizenzic wip changed password format to PW4, older versions have broken genPassVersion handling
 ' 14 - zenzizenzic wip made .DT0 binsize-sized
+' 15 - zenzizenzic wip made .DT1 binsize-sized, and added binsize.bin, fixbits.bit safeguards
 
 CONST CURRENT_RSAV_VERSION = 1
 ' Increment this number any time that loading and resaving a game in either
@@ -163,8 +164,9 @@ CONST fixDefaultLevelCap = 14    'Set level cap to 99
 CONST fixHeroElementals = 15     'Set the hero elemental data from the old weak/strong/absorb bits
 CONST fixOldElementalFailBit = 16'Turned on the 'Simulate old fail vs. element resist bit' bitset
 CONST fixAttackElementFails = 17 'Initialized all 64 attack elemental fail conditions
+CONST fixEnemyElementals = 18    'Set enemy elemental resists from old weak/strong/absorb/enemytype bits
 
-CONST sizefixbits = 17 ' *** Update this when adding fix bits ***
+CONST sizefixbits = 18 ' *** Update this when adding fix bits ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
@@ -198,8 +200,9 @@ CONST binUICOLORS = 7
 CONST binSAY = 8
 CONST binN = 9
 CONST binDT0 = 10
+CONST binDT1 = 11
 
-CONST sizebinsize = 10 ' *** Update this when adding binsize records ***
+CONST sizebinsize = 11 ' *** Update this when adding binsize records ***
 
 '--- Misc constants
 Enum constDirection

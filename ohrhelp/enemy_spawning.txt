@@ -16,4 +16,4 @@ Spawn When Alone: An enemy who will be spawned whenever the enemy is the last en
 
 Spawn on Non-elemental hit: An enemy who will be spawned each time the enemy is hit by an attack with no elemental bitsets turned on.
 
-Spawn on (Elemental) Attack: For each of the 8 elemental types, an enemy who will be spawned each time this enemy is hit with an attack that has the corresponding elemental bitset turned on.
+Spawn on (Elemental) Attack: For each of the elemental types, an enemy who will be spawned each time this enemy is hit with an attack that has the corresponding elemental bitset turned on.

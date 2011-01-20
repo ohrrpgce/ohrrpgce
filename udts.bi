@@ -641,11 +641,6 @@ TYPE EnemyDef
   alone_ai(4) as integer 'id+1, 0=none
   elem_counter_attack(maxElements - 1) as integer 'id+1, 0=none
   stat_counter_attack(11) as integer 'id+1, 0=none
-  '--Obsolete bits. These are not used, but are still loaded+saved
-  weak(7)        AS INTEGER 'YES/NO for weakness to each element
-  strong(7)      AS INTEGER 'YES/NO for strength to each element
-  absorb(7)      AS INTEGER 'YES/NO to absorb each element
-  enemytype(7)   AS INTEGER 'YES/NO for membership in each enemy type
   '--bitsets
   harmed_by_cure AS INTEGER 'YES/NO
   mp_idiot       AS INTEGER 'YES/NO for turn loss when using MP-consuming attacks after MP runs out

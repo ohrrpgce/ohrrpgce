@@ -58,16 +58,18 @@ clearpage 3 '~Mike
 
 END SUB
 
+SUB update_enemy_editor_for_elementals(recbuf() as integer, caption() as string, byval EnCapElemResist as integer)
+ FOR i as integer = 0 TO numElements - 1
+  caption(EnCapElemResist + i) = format_percent(DeSerSingle(recbuf(), 239 + i*2))
+ NEXT
+END SUB
+
 SUB enemydata
 
 DIM elementnames() AS STRING
 getelementnames elementnames()
-'--stat names
-DIM nof(11), elemtype(2) AS STRING
-elemtype(0) = readglobalstring$(127, "Weak to", 10)
-elemtype(1) = readglobalstring$(128, "Strong to", 10)
-elemtype(2) = readglobalstring$(129, "Absorbs ", 10)
-'--name offsets
+'--stat names (name offsets (ugh))
+DIM nof(11)
 nof(0) = 0
 nof(1) = 1
 nof(2) = 2
@@ -88,14 +90,6 @@ clearallpages
 '--bitsets
 DIM ebit(64) AS STRING
 
-FOR i = 0 TO 7
- ebit(0 + i) = elemtype(0) & " " & elementnames(i)
- ebit(8 + i) = elemtype(1) & " " & elementnames(i)
- ebit(16 + i) = elemtype(2) & " " & elementnames(i)
-NEXT
-FOR i = 0 TO 7
- ebit(24 + i) = "180% damage from " & elementnames(8 + i)
-NEXT i
 FOR i = 32 TO 53
  ebit(i) = "" 'preferable to be blank, so we can hide it
 NEXT i
@@ -114,7 +108,7 @@ ebit(64) = "Ignored for ""Alone"" AI"
 '-------------------------------------------------------------------------
 
 '--record buffer
-DIM recbuf(160)
+DIM recbuf(dimbinsize(binDT1))
 
 CONST EnDatName = 0' to 16
 CONST EnDatStealAvail = 17
@@ -150,7 +144,9 @@ CONST EnDatAtkDesp = 97'   to 101
 CONST EnDatAtkAlone = 102' to 106
 CONST EnDatElemCtr = 107' to 114
 CONST EnDatStatCtr = 115' to 126
-'127 to 158 unused
+CONST EnDatElemCtr2 = 127' to 182
+CONST EnDatSpawnElement2 = 183' to 238
+CONST EnDatElemResist = 239' to 366
 
 '-------------------------------------------------------------------------
 
@@ -225,11 +221,16 @@ CONST EnLimDeathSFX = 26
 min(EnLimDeathSFX) = -1
 max(EnLimDeathSFX) = gen(genMaxSFX) + 1
 
+EnCapElemResist = capindex
+FOR i = 0 TO numElements - 1
+ addcaption caption(), capindex, ""  '--updated in update_enemy_editor_for_elementals
+NEXT
+
 '--next limit 27, remeber to update dim!
 
 '-------------------------------------------------------------------------
 '--menu content
-DIM menu(86) AS STRING, menutype(86), menuoff(86), menulimits(86)
+DIM menu(259) AS STRING, menutype(259), menuoff(259), menulimits(259)
 
 CONST EnMenuBackAct = 0
 menu(EnMenuBackAct) = "Previous Menu"
@@ -356,21 +357,25 @@ menutype(EnMenuSpawnNEHit) = 9
 menuoff(EnMenuSpawnNEHit) = EnDatSpawnNEHit
 menulimits(EnMenuSpawnNEHit) = EnLimSpawn
 
-CONST EnMenuSpawnElement = 34' to 41
-FOR i = 0 TO 7
+CONST EnMenuSpawnElement = 34' to 93
+FOR i = 0 TO numElements - 1
  menu(EnMenuSpawnElement + i) = "on " & elementnames(i) & " Hit:"
  menutype(EnMenuSpawnElement + i) = 9
- menuoff(EnMenuSpawnElement + i) = EnDatSpawnElement + i
+ IF i < 8 THEN
+  menuoff(EnMenuSpawnElement + i) = EnDatSpawnElement + i
+ ELSE
+  menuoff(EnMenuSpawnElement + i) = EnDatSpawnElement2 + (i - 8)
+ END IF
  menulimits(EnMenuSpawnElement + i) = EnLimSpawn
 NEXT i
 
-CONST EnMenuSpawnNum = 42
+CONST EnMenuSpawnNum = 94
 menu(EnMenuSpawnNum) = "How Many to Spawn:"
 menutype(EnMenuSpawnNum) = 0
 menuoff(EnMenuSpawnNum) = EnDatSpawnNum
 menulimits(EnMenuSpawnNum) = EnLimSpawnNum
 
-CONST EnMenuAtkNormal = 43' to 47
+CONST EnMenuAtkNormal = 95' to 99
 FOR i = 0 TO 4
  menu(EnMenuAtkNormal + i) = "Normal:"
  menutype(EnMenuAtkNormal + i) = 7
@@ -378,7 +383,7 @@ FOR i = 0 TO 4
  menulimits(EnMenuAtkNormal + i) = EnLimAtk
 NEXT i
 
-CONST EnMenuAtkDesp = 48' to 52
+CONST EnMenuAtkDesp = 100' to 104
 FOR i = 0 TO 4
  menu(EnMenuAtkDesp + i) = "Desperation:"
  menutype(EnMenuAtkDesp + i) = 7
@@ -386,7 +391,7 @@ FOR i = 0 TO 4
  menulimits(EnMenuAtkDesp + i) = EnLimAtk
 NEXT i
 
-CONST EnMenuAtkAlone = 53' to 57
+CONST EnMenuAtkAlone = 105' to 109
 FOR i = 0 TO 4
  menu(EnMenuAtkAlone + i) = "Alone:"
  menutype(EnMenuAtkAlone + i) = 7
@@ -394,67 +399,71 @@ FOR i = 0 TO 4
  menulimits(EnMenuAtkAlone + i) = EnLimAtk
 NEXT i
 
-CONST EnMenuStealItem = 58
+CONST EnMenuStealItem = 110
 menu(EnMenuStealItem) = "Stealable Item:"
 menutype(EnMenuStealItem) = 8
 menuoff(EnMenuStealItem) = EnDatStealItem
 menulimits(EnMenuStealItem) = EnLimItem
 
-CONST EnMenuStealRItem = 59
+CONST EnMenuStealRItem = 111
 menu(EnMenuStealRItem) = "Rare Stealable Item:"
 menutype(EnMenuStealRItem) = 8
 menuoff(EnMenuStealRItem) = EnDatStealRItem
 menulimits(EnMenuStealRItem) = EnLimItem
 
-CONST EnMenuStealItemP = 60
+CONST EnMenuStealItemP = 112
 menu(EnMenuStealItemP) = "Steal Rate%:"
 menutype(EnMenuStealItemP) = 0
 menuoff(EnMenuStealItemP) = EnDatStealItemP
 menulimits(EnMenuStealItemP) = EnLimPercent
 
-CONST EnMenuStealRItemP = 61
+CONST EnMenuStealRItemP = 113
 menu(EnMenuStealRItemP) = "Rare Steal Rate%:"
 menutype(EnMenuStealRItemP) = 0
 menuoff(EnMenuStealRItemP) = EnDatStealRItemP
 menulimits(EnMenuStealRItemP) = EnLimPercent
 
-CONST EnMenuStealAvail = 62
+CONST EnMenuStealAvail = 114
 menu(EnMenuStealAvail) = "Steal Availability:"
 menutype(EnMenuStealAvail) = 2000 + EnCapStealAvail
 menuoff(EnMenuStealAvail) = EnDatStealAvail
 menulimits(EnMenuStealAvail) = EnLimStealAvail
 
-CONST EnMenuDissolve = 63
+CONST EnMenuDissolve = 115
 menu(EnMenuDissolve) = "Death Animation:"
 menutype(EnMenuDissolve) = 2000 + EnCapDissolve
 menuoff(EnMenuDissolve) = EnDatDissolve
 menulimits(EnMenuDissolve) = EnLimDissolve
 
-CONST EnMenuDissolveTime = 64
+CONST EnMenuDissolveTime = 116
 menu(EnMenuDissolveTime) = "Death Animation ticks:"
 menutype(EnMenuDissolveTime) = 13
 menuoff(EnMenuDissolveTime) = EnDatDissolveTime
 menulimits(EnMenuDissolveTime) = EnLimDissolveTime
 
-CONST EnMenuDeathSFX = 65
+CONST EnMenuDeathSFX = 117
 menu(EnMenuDeathSFX) = "Death Sound Effect:"
 menutype(EnMenuDeathSFX) = 14
 menuoff(EnMenuDeathSFX) = EnDatDeathSFX
 menulimits(EnMenuDeathSFX) = EnLimDeathSFX
 
-CONST EnMenuCursorOffset = 66
+CONST EnMenuCursorOffset = 118
 menu(EnMenuCursorOffset) = "Cursor Offset..."
 menutype(EnMenuCursorOffset) = 1
 
-CONST EnMenuElemCtr = 67' to 74
-FOR i = 0 TO 7
+CONST EnMenuElemCtr = 119' to 182
+FOR i = 0 TO numElements - 1
  menu(EnMenuElemCtr + i) = "Counter element " & elementnames(i) & ":"
  menutype(EnMenuElemCtr + i) = 7
- menuoff(EnMenuElemCtr + i) = EnDatElemCtr + i
+ IF i < 8 THEN
+  menuoff(EnMenuElemCtr + i) = EnDatElemCtr + i
+ ELSE
+  menuoff(EnMenuElemCtr + i) = EnDatElemCtr2 + (i - 8)
+ END IF
  menulimits(EnMenuElemCtr + i) = EnLimAtk
 NEXT i
 
-CONST EnMenuStatCtr = 75' to 86
+CONST EnMenuStatCtr = 183' to 194
 FOR i = 0 TO 11
  menu(EnMenuStatCtr + i) = "Counter damage to " & readglobalstring(nof(i), "Stat" & i) & ":"
  menutype(EnMenuStatCtr + i) = 7
@@ -462,13 +471,24 @@ FOR i = 0 TO 11
  menulimits(EnMenuStatCtr + i) = EnLimAtk
 NEXT i
 
+CONST EnMenuElementalsAct = 195
+menu(EnMenuElementalsAct) = "Elemental Resistances..."
+menutype(EnMenuElementalsAct) = 1
+
+CONST EnMenuElemDmg = 196' to 259
+FOR i = 0 TO numElements - 1
+ menu(EnMenuElemDmg + i) = "Damage from " + rpad(elementnames(i), " ", 15) + ":"
+ menutype(EnMenuElemDmg + i) = 5000 + EnCapElemResist + i  'percent_grabber
+ menuoff(EnMenuElemDmg + i) = 239 + i*2 
+NEXT
+
 '-------------------------------------------------------------------------
 '--menu structure
-DIM workmenu(35), dispmenu(35) AS STRING
+DIM workmenu(91), dispmenu(91) AS STRING
 DIM state AS MenuState
 state.size = 24
 
-DIM mainMenu(8)
+DIM mainMenu(9)
 mainMenu(0) = EnMenuBackAct
 mainMenu(1) = EnMenuChooseAct
 mainMenu(2) = EnMenuName
@@ -476,8 +496,9 @@ mainMenu(3) = EnMenuAppearAct
 mainMenu(4) = EnMenuRewardAct
 mainMenu(5) = EnMenuStatAct
 mainMenu(6) = EnMenuBitsetAct
-mainMenu(7) = EnMenuSpawnAct
-mainMenu(8) = EnMenuAtkAct
+mainMenu(7) = EnMenuElementalsAct
+mainMenu(8) = EnMenuSpawnAct
+mainMenu(9) = EnMenuAtkAct
 
 DIM appearMenu(7)
 appearMenu(0) = EnMenuBackAct
@@ -509,29 +530,35 @@ FOR i = 0 TO 11
  statMenu(1 + i) = EnMenuStat + i
 NEXT i
 
-DIM spawnMenu(13)
+DIM spawnMenu(5 + numElements)
 spawnMenu(0) = EnMenuBackAct
 spawnMenu(1) = EnMenuSpawnNum
 spawnMenu(2) = EnMenuSpawnDeath
 spawnMenu(3) = EnMenuSpawnNEDeath
 spawnMenu(4) = EnMenuSpawnAlone
 spawnMenu(5) = EnMenuSpawnNEHit
-FOR i = 0 TO 7
+FOR i = 0 TO numElements - 1
  spawnMenu(6 + i) = EnMenuSpawnElement + i
 NEXT i
 
-DIM atkMenu(35)
+DIM atkMenu(27 + numElements)
 atkMenu(0) = EnMenuBackAct
 FOR i = 0 TO 4
  atkMenu(1 + i) = EnMenuAtkNormal + i
  atkMenu(6 + i) = EnMenuAtkDesp + i
  atkMenu(11 + i) = EnMenuAtkAlone + i
 NEXT i
-FOR i = 0 TO 7
+FOR i = 0 TO numElements - 1
  atkMenu(16 + i) = EnMenuElemCtr + i
 NEXT i
 FOR i = 0 TO 11
- atkMenu(24 + i) = EnMenuStatCtr + i
+ atkMenu(16 + numElements + i) = EnMenuStatCtr + i
+NEXT i
+
+DIM elementalMenu(numElements)
+elementalMenu(0) = EnMenuBackAct
+FOR i = 0 TO numElements - 1
+ elementalMenu(1 + i) = EnMenuElemDmg + i
 NEXT i
 
 DIM helpkey AS STRING = "enemy"
@@ -604,7 +631,7 @@ DO
 
  '--CTRL+BACKSPACE
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN
-  cropafter recindex, gen(genMaxEnemy), 0, game + ".dt1", 320
+  cropafter recindex, gen(genMaxEnemy), 0, game + ".dt1", getbinsize(binDT1)
  END IF
 
  usemenu state
@@ -619,8 +646,8 @@ DO
    recindex = recindex + 1
    '--make sure we really have permission to increment
    IF needaddset(recindex, gen(genMaxEnemy), "enemy") THEN
-    flusharray recbuf(), 159, 0
-    recbuf(54) = -1 'default palette
+    clearenemydata recbuf()
+    update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
     GOSUB EnUpdateMenu
    END IF
   ELSE
@@ -677,6 +704,11 @@ DO
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), atkMenu(), state
     helpkey = "enemy_attacks"
+    GOSUB EnUpdateMenu
+   CASE EnMenuElementalsAct
+    GOSUB EnPushPtrSub
+    setactivemenu workmenu(), elementalMenu(), state
+    helpkey = "enemy_elementals"
     GOSUB EnUpdateMenu
    CASE EnMenuPal
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic))
@@ -804,6 +836,7 @@ RETRACE
 
 EnLoadSub:
 loadenemydata recbuf(), recindex
+update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
 GOSUB EnUpdateMenu
 RETRACE
 
@@ -1118,15 +1151,16 @@ sub saveform(a() as integer, pt as integer)
 end sub
 
 sub formpics(ename() as string, a() as integer, egraphics() as GraphicPair)
- DIM b(159) as integer
+ DIM enemy as EnemyDef
  FOR i as integer = 0 TO 7
   ename(i) = "-EMPTY-"
   unload_sprite_and_pal egraphics(i)
   IF a(i * 4 + 0) > 0 THEN
-   loadenemydata b(), a(i * 4 + 0) - 1
-   ename(i) = STR$(a(i * 4 + 0) - 1) + ":" + readbadbinstring(b(), 0, 16)
-   b(55) = bound(b(55), 0, 2)
-   load_sprite_and_pal egraphics(i), 1 + b(55), b(53), b(54)
+   loadenemydata enemy, a(i * 4 + 0) - 1
+   WITH enemy
+    ename(i) = (a(i * 4 + 0) - 1) & ":" & .name
+    load_sprite_and_pal egraphics(i), 1 + bound(.size, 0, 2), .pic, .pal
+   END WITH
   END IF
  NEXT i
 end sub
