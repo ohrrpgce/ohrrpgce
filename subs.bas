@@ -68,20 +68,6 @@ SUB enemydata
 
 DIM elementnames() AS STRING
 getelementnames elementnames()
-'--stat names (name offsets (ugh))
-DIM nof(11)
-nof(0) = 0
-nof(1) = 1
-nof(2) = 2
-nof(3) = 3
-nof(4) = 5
-nof(5) = 6
-nof(6) = 29
-nof(7) = 30
-nof(8) = 8
-nof(9) = 7
-nof(10) = 31
-nof(11) = 4
 
 clearallpages
 
@@ -326,7 +312,7 @@ menulimits(EnMenuRareItemP) = EnLimPercent
 
 CONST EnMenuStat = 18' to 29
 FOR i = 0 TO 11
- menu(EnMenuStat + i) = readglobalstring(nof(i), "Stat" & i) & ":"
+ menu(EnMenuStat + i) = statnames(i) + ":"
  menutype(EnMenuStat + i) = 0
  menuoff(EnMenuStat + i) = EnDatStat + i
  menulimits(EnMenuStat + i) = EnLimStat + i
@@ -465,7 +451,7 @@ NEXT i
 
 CONST EnMenuStatCtr = 183' to 194
 FOR i = 0 TO 11
- menu(EnMenuStatCtr + i) = "Counter damage to " & readglobalstring(nof(i), "Stat" & i) & ":"
+ menu(EnMenuStatCtr + i) = "Counter damage to " & statnames(i) & ":"
  menutype(EnMenuStatCtr + i) = 7
  menuoff(EnMenuStatCtr + i) = EnDatStatCtr + i
  menulimits(EnMenuStatCtr + i) = EnLimAtk
@@ -1189,7 +1175,7 @@ SUB drawformsprites(a() as integer, egraphics() as GraphicPair, byval csr2 as in
 END SUB
 
 SUB herodata
-DIM menu(10) AS STRING, bmenu(40) AS STRING, max(40), min(40), nof(12), attack(24) AS STRING, opt(10) AS STRING, hbit(-1 TO 26) AS STRING, hmenu(4) AS STRING
+DIM menu(10) AS STRING, bmenu(40) AS STRING, max(40), min(40), attack(24) AS STRING, opt(10) AS STRING, hbit(-1 TO 26) AS STRING, hmenu(4) AS STRING
 DIM AS HeroDef her, blankhero
 DIM st AS HeroEditState
 WITH st
@@ -1200,7 +1186,6 @@ WITH st
 END WITH
 hmax = 32
 leftkey = 0: rightkey = 0
-nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 DIM elementnames() AS STRING
 getelementnames elementnames()
 st.previewframe = -1
@@ -1507,7 +1492,7 @@ RETRACE
 graph:
 o = INT((bctr - 1) / 2)
 textcolor uilook(uiMenuItem), 0
-printstr readglobalstring(nof(o), "Stat" & o), 310 - LEN(readglobalstring(nof(o), "Stat" & o)) * 8, 180, dpage
+printstr statnames(o), 310 - LEN(statnames(o)) * 8, 180, dpage
 FOR i = 0 TO 99 STEP 4
  ii = (.8 * i / 50) * i
  n0 = her.Lev0.sta(o)
@@ -1521,8 +1506,8 @@ RETRACE
 
 smi:
 FOR i = 0 TO 11
- bmenu(i * 2 + 1) = readglobalstring(nof(i), "Stat" & i) & " " & her.Lev0.sta(i)
- bmenu(i * 2 + 2) = readglobalstring(nof(i), "Stat" & i) & " " & her.Lev99.sta(i)
+ bmenu(i * 2 + 1) = statnames(i) & " " & her.Lev0.sta(i)
+ bmenu(i * 2 + 2) = statnames(i) & " " & her.Lev99.sta(i)
 NEXT i
 RETRACE
 
@@ -1623,12 +1608,11 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM a(99), menu(20) AS STRING, bmenu(40) AS STRING, nof(12), ibit(-1 TO 59) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), frame
+DIM a(99), menu(20) AS STRING, bmenu(40) AS STRING, ibit(-1 TO 59) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), frame
 DIM item(maxMaxItems) AS STRING
 DIM wep_img AS GraphicPair 'This is only used in edititem
 DIM box_preview AS STRING = "" 'This is only used in edititem
 imax = 32
-nof(0) = 0: nof(1) = 1: nof(2) = 2: nof(3) = 3: nof(4) = 5: nof(5) = 6: nof(6) = 29: nof(7) = 30: nof(8) = 8: nof(9) = 7: nof(10) = 31: nof(11) = 4
 DIM elemtype(2) AS STRING
 elemtype(0) = readglobalstring$(127, "Weak to", 10)
 elemtype(1) = readglobalstring$(128, "Strong to", 10)
@@ -1873,7 +1857,7 @@ DO
  FOR i = 0 TO 11
   textcolor uilook(uiMenuItem), 0
   IF ptr2 = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr readglobalstring(nof(i), "Stat" & i) + " Bonus: " & a(54 + i), 0, 8 + i * 8, dpage
+  printstr statnames(i) + " Bonus: " & a(54 + i), 0, 8 + i * 8, dpage
  NEXT i
  SWAP vpage, dpage
  setvispage vpage

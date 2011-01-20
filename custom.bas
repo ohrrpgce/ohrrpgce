@@ -51,6 +51,7 @@ REDIM gen(360)
 REDIM buffer(16384)
 REDIM master(255) as RGBcolor
 REDIM uilook(uiColors)
+DIM statnames() AS STRING
 DIM vpage = 0, dpage = 1
 DIM activepalette, fadestate
 'FIXME: too many directory variables! Clean this nonsense up
@@ -64,7 +65,6 @@ DIM app_dir as string
 
 'Local variables
 DIM font(1024), joy(4)
-DIM statnames() AS STRING
 DIM menu(22) AS STRING
 DIM chooserpg_menu(2) AS STRING
 DIM cleanup_menu(2) AS STRING
