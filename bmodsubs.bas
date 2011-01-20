@@ -424,7 +424,7 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
     harmf *= ABS(target.elementaldmg(i))
     'What's a good cut off for immunity? When we switch to 32bit HP values, maybe
     'you'll want to be able to do 1/1000,000 normal damage without triggering immunity?
-    IF ABS(target.elementaldmg(i)) < 0.0001 THEN
+    IF ABS(target.elementaldmg(i)) < 0.000005 THEN
      immune = 1
     ELSEIF target.elementaldmg(i) < 0.0 THEN
      cure = 1  'absorb
@@ -437,9 +437,9 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
      'Simulate old fail vs element resist bit:
      'The old bit checked only the target's Strong bits, ignoring their Absorb bits
      IF readbit(gen(), genBits2, 9) = 1 THEN effectiveval = ABS(effectiveval)
-     fail = (effectiveval < .value - 0.0005)
+     fail = (effectiveval < .value - 0.000005)
     END IF
-    IF .type = compGt THEN fail = (target.elementaldmg(i) > .value + 0.0005)
+    IF .type = compGt THEN fail = (target.elementaldmg(i) > .value + 0.000005)
     IF fail THEN
      target.harm.text = readglobalstring$(122, "fail", 20)
      RETURN NO
