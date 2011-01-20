@@ -45,9 +45,9 @@ DECLARE SUB spells_menu_paint (BYREF sp AS SpellsMenuState)
 REM $STATIC
 
 SUB buystuff (id, shoptype, storebuf())
-DIM b(getbinsize(binSTF) \ 2 * 50), buytype(5, 1) AS STRING, wbuf(100), walks(15), tradestf(3, 1)
+DIM b((getbinsize(binSTF) \ 2) * 50 - 1), buytype(5, 1) AS STRING, wbuf(dimbinsize(binITM)), walks(15), tradestf(3, 1)
 DIM is_equipable AS INTEGER
-DIM itembuf(99) AS INTEGER
+DIM itembuf(dimbinsize(binITM)) AS INTEGER
 DIM hiresprite AS Frame PTR
 DIM hirepal AS Palette16 PTR
 DIM herosprite(3) AS Frame PTR
@@ -58,7 +58,7 @@ DIM room_to_hire AS INTEGER = NO
 DIM st AS MenuState
 REDIM stuff(-1 TO -1) AS SimpleMenu   ' .dat of each menu item is item index
 DIM itemno AS INTEGER   ' always equal to stuff(st.pt).dat
-recordsize = curbinsize(binSTF) / 2 ' get size in INTs
+recordsize = curbinsize(binSTF) \ 2 ' get size in INTs
 
 '--Preserve background for display beneath the buy menu
 DIM page AS INTEGER
@@ -874,7 +874,7 @@ RETRACE
 END FUNCTION
 
 SUB sellstuff (id, storebuf())
-DIM b(getbinsize(binSTF) \ 2 * 50), permask(15), price(200)
+DIM b((getbinsize(binSTF) \ 2) * 50 - 1), permask(15), price((inventoryMax + 1) \ 3)
 recordsize = curbinsize(binSTF) \ 2 ' get size in INTs
 
 '--preserve background for display under sell menu
@@ -1349,9 +1349,9 @@ END SUB
 OPTION EXPLICIT
 
 SUB loadshopstuf (array() AS INTEGER, BYVAL id AS INTEGER)
- DIM ol AS INTEGER = getbinsize(binSTF) / 2 'old size on disk
- DIM nw AS INTEGER = curbinsize(binSTF) / 2 'new size in memory
- flusharray array(), nw * 50, 0
+ DIM ol AS INTEGER = getbinsize(binSTF) \ 2 'old size on disk
+ DIM nw AS INTEGER = curbinsize(binSTF) \ 2 'new size in memory
+ flusharray array(), nw * 50 - 1, 0
  'load shop data from STF lump
  setpicstuf buffer(), ol * 2 * 50, -1
  loadset game + ".stf", id, 0
@@ -1590,7 +1590,6 @@ SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
   st.default_weapon_name = st.unequip_caption
  END IF
 
- setpicstuf buffer(), 200, -1
  FOR i AS INTEGER = 0 TO 4
   menu$(i) = "        "
   IF eqstuf(st.who, i) > 0 THEN
@@ -1606,7 +1605,7 @@ SUB equip_menu_setup (BYREF st AS EquipMenuState, menu$())
   st.eq(i).count = 0
  NEXT i
  
- DIM itembuf(99) AS INTEGER
+ DIM itembuf(dimbinsize(binITM)) AS INTEGER
  DIM eq_slot AS INTEGER = 0
  FOR i AS INTEGER = 0 TO last_inv_slot()
   IF inventory(i).used THEN
@@ -1660,7 +1659,7 @@ SUB equip_menu_stat_bonus(BYREF st AS EquipMenuState)
   item = inventory(st.eq(st.slot).offset(st.eq_cursor.pt)).id + 1
  END IF
 
- DIM itembuf(99)
+ DIM itembuf(dimbinsize(binITM))
  IF item = 0 THEN
   '--nothing to load!
   flusharray st.stat_bonus()
@@ -1697,7 +1696,7 @@ FUNCTION items_menu () as integer
   .re_use = NO
  END WITH
 
- DIM itemtemp(100) AS INTEGER
+ DIM itemtemp(dimbinsize(binITM)) AS INTEGER
  DIM iuse((inventoryMax + 3) / 16) AS INTEGER 'bit 0 of iuse, permask, correspond to item -3
  DIM permask((inventoryMax + 3) / 16) AS INTEGER
 
@@ -1832,9 +1831,7 @@ SUB items_menu_infostr(istate AS ItemsMenuState, permask() AS INTEGER)
  END IF
  IF istate.cursor < 0 THEN EXIT SUB
  IF inventory(istate.cursor).used = 0 THEN EXIT SUB
- DIM itemtemp(100) AS INTEGER
- loaditemdata itemtemp(), inventory(istate.cursor).id
- istate.info = readbadbinstring(itemtemp(), 9, 35, 0)
+ istate.info = readitemdescription(inventory(istate.cursor).id)
 END SUB
 
 SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
@@ -1892,7 +1889,7 @@ FUNCTION use_item_in_slot(BYVAL slot AS INTEGER, BYREF trigger_box AS INTEGER, B
  consumed = NO
  IF inventory(slot).used = NO THEN RETURN NO
 
- DIM itemdata(100) AS INTEGER
+ DIM itemdata(dimbinsize(binITM)) AS INTEGER
  loaditemdata itemdata(), inventory(slot).id
  DIM attack_name AS STRING = readbadbinstring(itemdata(), 0, 8, 0)
  DIM should_consume AS INTEGER = (itemdata(73) = 1)
@@ -1934,7 +1931,7 @@ FUNCTION use_item_by_id(BYVAL item_id AS INTEGER, BYREF trigger_box AS INTEGER, 
  '--This sub does not care if you actually own the item in question,
  '   nor will it consume items from your inventory even if the item is a consuming item.
  
- DIM itemdata(100) AS INTEGER
+ DIM itemdata(dimbinsize(binITM)) AS INTEGER
  loaditemdata itemdata(), item_id
 
  DIM caption AS STRING

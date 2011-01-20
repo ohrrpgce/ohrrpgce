@@ -108,7 +108,7 @@ FOR i = 0 TO small(gen(genMaxHero), 59)
  herobits(i, 2) = her.leader_tag  'is leader tag
  herobits(i, 3) = her.active_tag  'is in active party tag
 NEXT i
-DIM item_data(99) AS INTEGER
+DIM item_data(dimbinsize(binITM)) AS INTEGER
 FOR i = 0 TO gen(genMaxItem)
  loaditemdata item_data(), i
  itembits(i, 0) = item_data(74)   'when have tag

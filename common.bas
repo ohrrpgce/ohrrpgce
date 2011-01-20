@@ -831,7 +831,7 @@ SUB guessdefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
    NEXT j
   NEXT mapi
  CASE 5 'Weapons
-  REDIM buf(99)
+  REDIM buf(dimbinsize(binITM))
   FOR j = 0 TO gen(genMaxItem)
    loaditemdata buf(), j
    IF buf(49) = 1 THEN
@@ -865,6 +865,7 @@ FUNCTION defbinsize (id AS INTEGER) as integer
  IF id = 9 THEN RETURN 30   '.n##
  IF id = 10 THEN RETURN 636 '.dt0
  IF id = 11 THEN RETURN 320 '.dt1
+ IF id = 12 THEN RETURN 200 '.itm
  RETURN 0
 END FUNCTION
 
@@ -882,6 +883,7 @@ FUNCTION curbinsize (id AS INTEGER) as integer
  IF id = 9 THEN RETURN 32  '.n##
  IF id = 10 THEN RETURN 858 '.dt0
  IF id = 11 THEN RETURN 734 '.dt1
+ IF id = 12 THEN RETURN 200 '.itm
  RETURN 0
 END FUNCTION
 
@@ -1228,7 +1230,11 @@ FUNCTION readenemyname (index) as string
 END FUNCTION
 
 FUNCTION readitemname (index) as string
- RETURN readbadgenericname(index, game + ".itm", 200, 0, 8, 0)
+ RETURN readbadgenericname(index, game + ".itm", getbinsize(binITM), 0, 8, 0)
+END FUNCTION
+
+FUNCTION readitemdescription (byval index as integer) as string
+ RETURN readbadgenericname(index, game + ".itm", getbinsize(binITM), 9, 35, 0)
 END FUNCTION
 
 FUNCTION readshopname (shopnum) as string
@@ -2908,6 +2914,7 @@ updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 updaterecordlength game & ".say", binSAY
 updaterecordlength game & ".dt0", binDT0
 updaterecordlength game & ".dt1", binDT1
+updaterecordlength game & ".itm", binITM
 'Don't update .N binsize until all records have been stretched
 FOR i = 0 TO gen(genMaxMap)
  updaterecordlength maplumpname(i, "n"), binN, 7, YES
@@ -3205,7 +3212,7 @@ fix_record_count gen(genMaxTagname),   42, game & ".tmn", "Tag names", -84 'Note
 'FIXME: What is wrong with my menu record sizes?
 'fix_record_count gen(genMaxMenu),      getbinsize(binMENUS), workingdir & SLASH & "menus.bin", "Menus"
 'fix_record_count gen(genMaxMenuItem),  getbinsize(binMENUITEM), workingdir & SLASH & "menus.bin", "Menu Items"
-fix_record_count gen(genMaxItem), 200, game & ".itm", "Items"
+fix_record_count gen(genMaxItem), getbinsize(binITM), game & ".itm", "Items"
 'Warning: don't deduce number of map from length of .MAP or .MN: may be appended with garbage
 
 IF time_rpg_upgrade THEN

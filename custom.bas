@@ -633,9 +633,9 @@ RETRACE
 REM $STATIC
 
 SUB shopdata
-DIM a(20), b(curbinsize(binSTF) / 2), menu(24) AS STRING, smenu(24) AS STRING, max(24), min(24), sbit(-1 TO 10) AS STRING, stf(16) AS STRING, tradestf(3) AS STRING
+DIM a(20), b(curbinsize(binSTF) \ 2 - 1), menu(24) AS STRING, smenu(24) AS STRING, max(24), min(24), sbit(-1 TO 10) AS STRING, stf(16) AS STRING, tradestf(3) AS STRING
 DIM her AS HeroDef' Used to get hero name for default stuff name
-DIM item_tmp(99) ' This is only used for loading the default buy/sell price for items
+DIM item_tmp(dimbinsize(binITM)) ' This is only used for loading the default buy/sell price for items
 DIM sn AS STRING = "", trit AS STRING = ""
 
 

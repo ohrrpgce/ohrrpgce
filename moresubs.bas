@@ -36,7 +36,7 @@ DECLARE SUB teleporttooltend (BYREF mini AS Frame Ptr, maptilesX() AS TileMap, t
 REM $STATIC
 
 SUB addhero (who, slot, forcelevel=-1)
-DIM wbuf(100)
+DIM wbuf(dimbinsize(binITM))
 DIM her AS HeroDef
 
 '--load hero's data

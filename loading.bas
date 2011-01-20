@@ -2468,17 +2468,20 @@ END SUB
 
 
 SUB loaditemdata (array() AS INTEGER, index AS INTEGER)
- flusharray array(), 99, 0
+ flusharray array(), dimbinsize(binITM), 0
  IF index > gen(genMaxItem) THEN debug "loaditemdata:" & index & " out of range" : EXIT SUB
- IF loadrecord(array(), game & ".itm", 100, index) = 0 THEN debug "loaditemdata:" & index & " loadrecord failed" : EXIT SUB
+ IF loadrecord(array(), game & ".itm", getbinsize(binITM) \ 2, index) = 0 THEN
+  debug "loaditemdata:" & index & " loadrecord failed"
+  EXIT SUB
+ END IF
 END SUB
 
 SUB saveitemdata (array() AS INTEGER, index AS INTEGER)
- storerecord array(), game & ".itm", 100, index
+ storerecord array(), game & ".itm", getbinsize(binITM) \ 2, index
 END SUB
 
 SUB LoadItemElementals (BYVAL index AS INTEGER, itemresists() AS DOUBLE)
- DIM itembuf(99) AS INTEGER
+ DIM itembuf(dimbinsize(binITM)) AS INTEGER
  loaditemdata itembuf(), index
  REDIM itemresists(numElements - 1)
  FOR i AS INTEGER = 0 TO numElements - 1

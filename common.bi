@@ -118,6 +118,7 @@ DECLARE SUB dump_master_palette_as_hex (master_palette() AS RGBColor)
 DECLARE FUNCTION readattackname (index as integer) as string
 DECLARE FUNCTION readenemyname (index as integer) as string
 DECLARE FUNCTION readitemname (index as integer) as string
+DECLARE FUNCTION readitemdescription (byval index as integer) as string
 DECLARE FUNCTION readshopname (shopnum as integer) as string
 DECLARE FUNCTION getsongname (num AS INTEGER, prefixnum AS INTEGER = 0) as string
 DECLARE FUNCTION getsfxname (num AS INTEGER) as string

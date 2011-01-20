@@ -1145,10 +1145,7 @@ FUNCTION load_item_name (it AS INTEGER, hidden AS INTEGER, offbyone AS INTEGER) 
  IF it <= 0 AND offbyone = NO THEN RETURN "NONE"
  DIM itn AS INTEGER
  IF offbyone THEN itn = it ELSE itn = it - 1
- DIM buf(99) AS INTEGER
- loaditemdata buf(), itn
- DIM result AS STRING
- result = readbadbinstring$(buf(), 0, 8, 0)
+ DIM result AS STRING = readitemname(itn)
  IF hidden = 0 THEN result = itn & " " & result
  RETURN result
 END FUNCTION

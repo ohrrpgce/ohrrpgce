@@ -1574,7 +1574,7 @@ END SUB
 SUB checkitemusability(iuse() AS INTEGER, bslot() AS BattleSprite, who AS INTEGER)
  'Iterate through the iuse() bitfield and mark any items that are usable
  DIM i AS INTEGER
- DIM itembuf(99) AS INTEGER
+ DIM itembuf(dimbinsize(binITM)) AS INTEGER
  DIM attack AS AttackData
 
  FOR i = 0 TO inventoryMax
@@ -2214,8 +2214,7 @@ SUB heromenu (BYREF bat AS BattleState, bslot() AS BattleSprite, menubits() AS I
    checkitemusability bat.iuse(), bslot(), bat.hero_turn
    bat.item_desc = ""
    IF inventory(bat.item.pt).used THEN
-    loaditemdata buffer(), inventory(bat.item.pt).id
-    bat.item_desc = readbadbinstring$(buffer(), 9, 35, 0)
+    bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
    END IF
   END IF
  END IF
@@ -2336,12 +2335,11 @@ SUB itemmenu (BYREF bat AS BattleState, bslot() AS BattleSprite)
  WHILE bat.item.pt < bat.item.top : bat.item.top = bat.item.top - 3 : WEND
  WHILE bat.item.pt >= bat.item.top + (bat.inv_scroll.size+1) * 3 : bat.item.top = bat.item.top + 3 : WEND
 
- DIM itembuf(99) AS INTEGER
+ DIM itembuf(dimbinsize(binITM)) AS INTEGER
  
  IF remember_pt <> bat.item.pt THEN
   IF inventory(bat.item.pt).used THEN
-   loaditemdata itembuf(), inventory(bat.item.pt).id
-   bat.item_desc = readbadbinstring$(itembuf(), 9, 35, 0)
+   bat.item_desc = readitemdescription(inventory(bat.item.pt).id)
   ELSE
    bat.item_desc = ""
   END IF

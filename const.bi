@@ -11,7 +11,7 @@
 CONST YES = -1
 CONST NO = 0
 
-CONST CURRENT_RPG_VERSION = 15
+CONST CURRENT_RPG_VERSION = 16
 ' It is a good idea to increment this number each time a major feature
 ' has been added, if opening a new game in an old editor would cause data-loss
 ' Don't be afraid to increment this. Backcompat warnings are a good thing!
@@ -25,6 +25,7 @@ CONST CURRENT_RPG_VERSION = 15
 ' 13 - zenzizenzic wip changed password format to PW4, older versions have broken genPassVersion handling
 ' 14 - zenzizenzic wip made .DT0 binsize-sized
 ' 15 - zenzizenzic wip made .DT1 binsize-sized, and added binsize.bin, fixbits.bit safeguards
+' 16 - zenzizenzic wip made .ITM binsize-sized
 
 CONST CURRENT_RSAV_VERSION = 1
 ' Increment this number any time that loading and resaving a game in either
@@ -201,8 +202,9 @@ CONST binSAY = 8
 CONST binN = 9
 CONST binDT0 = 10
 CONST binDT1 = 11
+CONST binITM = 12
 
-CONST sizebinsize = 11 ' *** Update this when adding binsize records ***
+CONST sizebinsize = 12 ' *** Update this when adding binsize records ***
 
 '--- Misc constants
 Enum constDirection

@@ -1608,7 +1608,7 @@ EXIT SUB
 END SUB
 
 SUB itemdata
-DIM a(99), menu(20) AS STRING, bmenu(40) AS STRING, ibit(-1 TO 59) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), frame
+DIM a(dimbinsize(binITM)), menu(20) AS STRING, bmenu(40) AS STRING, ibit(-1 TO 59) AS STRING, eqst(5) AS STRING, max(18), min(18), sbmax(11), frame
 DIM item(maxMaxItems) AS STRING
 DIM wep_img AS GraphicPair 'This is only used in edititem
 DIM box_preview AS STRING = "" 'This is only used in edititem
@@ -1647,7 +1647,7 @@ DO
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scF1) > 1 THEN show_help "item_editor_pickitem"
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 AND csr >= 0 THEN
-  cropafter csr, gen(genMaxItem), 0, game + ".itm", 200
+  cropafter csr, gen(genMaxItem), 0, game + ".itm", getbinsize(binITM)
   load_item_names item()
  END IF
  usemenu csr, top, -1, gen(genMaxItem) + 1, 23
@@ -1657,7 +1657,7 @@ DO
   IF csr = gen(genMaxItem) + 1 THEN
    IF gen(genMaxItem) < maxMaxItems THEN
     gen(genMaxItem) += 1
-    flusharray a(), 99, 0
+    flusharray a(), dimbinsize(binITM), 0
     saveitemdata a(), csr
    END IF
   END IF
@@ -2317,7 +2317,7 @@ SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS INTEGER
  DIM tempbits(gen(genMaxItem) \ 16 + 1) AS INTEGER 
  DIM itemname(gen(genMaxItem)) AS STRING
  DIM item_id(gen(genMaxItem)) AS INTEGER
- DIM itembuf(99) AS INTEGER
+ DIM itembuf(dimbinsize(binITM)) AS INTEGER
  DIM nextbit AS INTEGER = 0
  FOR i AS INTEGER = 0 TO gen(genMaxItem)
   loaditemdata itembuf(), i
