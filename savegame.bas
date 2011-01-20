@@ -1437,7 +1437,7 @@ loadset sg, slot * 2, 0
 DIM savver AS INTEGER = buffer(0)
 IF savver < 2 OR savver > 3 THEN EXIT SUB
 gam.map.id = buffer(1)
-loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) / 2, gam.map.id
+loadrecord gmaptmp(), game + ".map", getbinsize(binMAP) \ 2, gam.map.id
 catx(0) = buffer(2) + gmaptmp(20) * 20
 caty(0) = buffer(3) + gmaptmp(21) * 20
 catd(0) = buffer(4)

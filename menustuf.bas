@@ -45,7 +45,7 @@ DECLARE SUB spells_menu_paint (BYREF sp AS SpellsMenuState)
 REM $STATIC
 
 SUB buystuff (id, shoptype, storebuf())
-DIM b(dimbinsize(binSTF) * 50), buytype(5, 1) AS STRING, wbuf(100), walks(15), tradestf(3, 1)
+DIM b(getbinsize(binSTF) \ 2 * 50), buytype(5, 1) AS STRING, wbuf(100), walks(15), tradestf(3, 1)
 DIM is_equipable AS INTEGER
 DIM itembuf(99) AS INTEGER
 DIM hiresprite AS Frame PTR
@@ -874,8 +874,8 @@ RETRACE
 END FUNCTION
 
 SUB sellstuff (id, storebuf())
-DIM b(dimbinsize(binSTF) * 50), permask(15), price(200)
-recordsize = curbinsize(binSTF) / 2 ' get size in INTs
+DIM b(getbinsize(binSTF) \ 2 * 50), permask(15), price(200)
+recordsize = curbinsize(binSTF) \ 2 ' get size in INTs
 
 '--preserve background for display under sell menu
 DIM page AS INTEGER

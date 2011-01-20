@@ -2079,7 +2079,7 @@ SUB new_blank_map (BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, 
 END SUB
 
 SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
- loadrecord gmap(), game & ".map", dimbinsize(binMAP), mapnum
+ loadrecord gmap(), game & ".map", getbinsize(binMAP) \ 2, mapnum
  IF gmap(31) = 0 THEN gmap(31) = 2
  visible(maplayerMax \ 16) = -1   'default all layers to visible, if they're enabled too, of course
  loadtilemaps map(), maplumpname(mapnum, "t")
@@ -2609,7 +2609,7 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
  END IF
  '-----------------EXIT DOOR
  destmap = link(cur).dest_map
- loadrecord gmap2(), game + ".map", dimbinsize(binMAP), destmap
+ loadrecord gmap2(), game + ".map", getbinsize(binMAP) \ 2, destmap
  deserdoors game + ".dox", destdoor(), destmap
  LoadTilemaps map2(), maplumpname$(destmap, "t")
  LoadTilemap pass2, maplumpname$(destmap, "p")

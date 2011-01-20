@@ -861,7 +861,7 @@ END FUNCTION
 SUB teleporttooltend (BYREF mini AS Frame Ptr, maptilesX() AS TileMap, tilesets2() AS TilesetData ptr, BYREF zoom, BYVAL map, BYREF mapsize AS XYPair, BYREF minisize AS XYPair, BYREF offset AS XYPair)
  IF map > -1 THEN
   DIM gmap2(dimbinsize(binMAP)) AS INTEGER
-  loadrecord gmap2(), game + ".map", dimbinsize(binMAP), map
+  loadrecord gmap2(), game + ".map", getbinsize(binMAP) \ 2, map
   loadtilemaps maptilesX(), maplumpname$(map, "t")
   loadmaptilesets tilesets2(), gmap2()
  ELSE

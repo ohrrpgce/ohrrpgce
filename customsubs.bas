@@ -2452,14 +2452,14 @@ SUB visit_scripts(byval visitor as FnScriptVisitor)
  REDIM npctmp(0) AS NPCType
  FOR i = 0 TO gen(genMaxMap)
   resave = NO
-  loadrecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
+  loadrecord gmaptmp(), game & ".map", getbinsize(binMAP) \ 2, i
   resave OR= visitor(gmaptmp(7), "map " & i & " autorun", "")
   resave OR= visitor(gmaptmp(12), "map " & i & " after-battle", "")
   resave OR= visitor(gmaptmp(13), "map " & i & " instead-of-battle", "")
   resave OR= visitor(gmaptmp(14), "map " & i & " each-step", "")
   resave OR= visitor(gmaptmp(15), "map " & i & " on-keypress", "")
   IF resave THEN
-   storerecord gmaptmp(), game & ".map", dimbinsize(binMAP), i
+   storerecord gmaptmp(), game & ".map", getbinsize(binMAP) \ 2, i
   END IF
   'loop through NPC's
   LoadNPCD maplumpname(i, "n"), npctmp()

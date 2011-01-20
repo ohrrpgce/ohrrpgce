@@ -1923,7 +1923,7 @@ SUB LoadTextBox (BYREF box AS TextBox, record AS INTEGER)
 
  DIM filename AS STRING
  filename = game & ".say"
- loadrecord boxbuf(), filename, getbinsize(binSAY) / 2, record
+ loadrecord boxbuf(), filename, getbinsize(binSAY) \ 2, record
 
  DIM i AS INTEGER
 
@@ -2074,7 +2074,7 @@ SUB SaveTextBox (BYREF box AS TextBox, record AS INTEGER)
   boxbuf(204) = .portrait_pos.y
  END WITH
 
- storerecord boxbuf(), filename, getbinsize(binSAY) / 2, record
+ storerecord boxbuf(), filename, getbinsize(binSAY) \ 2, record
 END SUB
 
 SUB ClearTextBox (BYREF box AS TextBox)

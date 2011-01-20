@@ -905,12 +905,10 @@ END IF
 END FUNCTION
 
 'INTS, not bytes!
-'FIXME: this is off by one, but I think that some code somewhere actually
-'depends on that!
 FUNCTION dimbinsize (id AS INTEGER) as integer
  'curbinsize is size supported by current version of engine
- 'getbinsize is size of data in RPG file
- dimbinsize = large(curbinsize(id), getbinsize(id)) \ 2
+ 'getbinsize is size of records in RPG file
+ dimbinsize = large(curbinsize(id), getbinsize(id)) \ 2 - 1
 END FUNCTION
 
 SUB setbinsize (id AS INTEGER, size AS INTEGER)
@@ -2965,13 +2963,11 @@ END IF
 
 IF getfixbit(fixWeapPoints) = 0 THEN
  upgrade_message "Reset hero hand points..."
- DIM recsize as integer = getbinsize(binDT0)
  DO
   setfixbit(fixWeapPoints, 1)
   fh = freefile
   OPEN game + ".dt0" FOR BINARY AS #fh
-  REDIM dat(recsize \ 2 - 1) AS SHORT  'Don't use dimbinsize, due to off-by-one problem
-  p = 1
+  REDIM dat(dimbinsize(binDT0)) AS SHORT
   FOR i = 0 to gen(genMaxHero)
    GET #fh,,dat()
    IF dat(297) <> 0 OR dat(298) <> 0 OR dat(299) <> 0 OR dat(300) <> 0 THEN
@@ -2980,6 +2976,8 @@ IF getfixbit(fixWeapPoints) = 0 THEN
    END IF
   NEXT
   
+  p = 1
+  DIM recsize as integer = getbinsize(binDT0)
   FOR i = 0 to gen(genMaxHero)
    GET #fh, p, dat()
    dat(297) = 24
