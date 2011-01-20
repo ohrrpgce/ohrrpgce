@@ -30,8 +30,6 @@ DECLARE SUB end_debug ()
 DECLARE SUB debug (s as string)
 DECLARE SUB debugc CDECL ALIAS "debugc" (BYVAL s as zstring ptr, BYVAL errorlevel as integer)
 DECLARE SUB debuginfo (s as string)
-DECLARE SUB basic_textbox (msg as string, BYVAL col as integer, BYVAL page as integer)
-DECLARE SUB visible_debug (s as string)
 DECLARE FUNCTION soundfile (sfxnum as integer) as string
 DECLARE FUNCTION filesize (file as string) as string
 
@@ -78,8 +76,7 @@ DECLARE FUNCTION getbinsize (id as integer) as integer
 DECLARE FUNCTION dimbinsize (id as integer) as integer
 DECLARE FUNCTION readarchinym (gamedir as string, sourcefile as string) as string
 DECLARE FUNCTION maplumpname (map as integer, oldext as string) as string
-DECLARE SUB showerror (msg as string, byval isfatal as integer = NO)
-DECLARE SUB fatalerror (msg as string)
+
 DECLARE FUNCTION xstring (s as string, x as integer) as integer
 DECLARE FUNCTION defaultint (n AS INTEGER, default_caption AS STRING="default") AS STRING
 DECLARE FUNCTION caption_or_int (n AS INTEGER, captions() AS STRING) AS STRING
@@ -148,10 +145,16 @@ DECLARE FUNCTION intgrabber OVERLOAD (BYREF n AS INTEGER, BYVAL min AS INTEGER, 
 DECLARE FUNCTION intgrabber OVERLOAD (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONGINT, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO) AS INTEGER
 DECLARE FUNCTION zintgrabber (n AS INTEGER, min AS INTEGER, max AS INTEGER, less AS INTEGER=75, more AS INTEGER=77) AS INTEGER
 DECLARE FUNCTION xintgrabber (n AS INTEGER, pmin AS INTEGER, pmax AS INTEGER, nmin AS INTEGER=1, nmax AS INTEGER=1, less AS INTEGER=scLeft, more AS INTEGER=scRight) AS INTEGER
+
 DECLARE SUB reset_console (top AS INTEGER = 0, h AS INTEGER = 200, c AS INTEGER = 0)
 DECLARE SUB show_message (s AS STRING)
 DECLARE SUB append_message (s AS STRING)
 
+DECLARE SUB basic_textbox (msg as string, BYVAL col as integer, BYVAL page as integer)
+DECLARE SUB notification (msg AS STRING)
+DECLARE SUB visible_debug (s as string)
+DECLARE SUB showerror (msg as string, byval isfatal as integer = NO)
+DECLARE SUB fatalerror (msg as string)
 DECLARE SUB pop_warning(s AS STRING)
 DECLARE FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
 DECLARE FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
@@ -202,8 +205,6 @@ DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, count
 DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, boxstyle AS INTEGER=0, page AS INTEGER)
 DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, menu AS MenuDef, page AS INTEGER)
 DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0, page AS INTEGER)
-
-DECLARE SUB notification (show_msg AS STRING)
 
 DECLARE FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER
 DECLARE FUNCTION last_inv_slot() AS INTEGER

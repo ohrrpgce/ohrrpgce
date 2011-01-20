@@ -440,12 +440,16 @@ SUB basic_textbox (msg as string, byval col as integer, byval page as integer)
  END WITH
 END SUB
 
+SUB notification (msg AS STRING)
+ basic_textbox msg, uilook(uiText), vpage
+ setvispage vpage
+ waitforanykey
+END SUB
+
 SUB visible_debug (msg as string)
  debuginfo msg
+ notification msg + !"\nPress any key..."
 ' pop_warning msg
- basic_textbox msg + !"\nPress any key...", uilook(uiMenuItem), vpage
- setvispage vpage
- w = getkey
 END SUB
 
 FUNCTION getfixbit(BYVAL bitnum AS INTEGER) AS INTEGER
@@ -4180,33 +4184,6 @@ SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0, page AS
  rect.wide = 320
  rect.high = 200
  draw_scrollbar state, rect, boxstyle, page
-END SUB
-
-SUB notification (show_msg AS STRING)
- DIM msg AS STRING = show_msg
- DIM ypos AS INTEGER
- DIM high AS INTEGER = 18
-
- 'Find the height
- DO WHILE LEN(msg) > 38
-  msg = MID(msg, 39)
-  high += 8
- LOOP
-
- msg = show_msg
- 
- edgeboxstyle 4, 100 - high \ 2, 312, high, 2, vpage
-
- ypos = 103 - high \ 2
- DO WHILE LEN(msg) > 38
-  edgeprint LEFT(msg, 38), 8, ypos, uilook(uiText), vpage
-  msg = MID(msg, 39)
-  ypos += 8
- LOOP
- edgeprint msg, 8, ypos, uilook(uiText), vpage
-
- setvispage vpage 'refresh
- waitforanykey
 END SUB
 
 FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER
