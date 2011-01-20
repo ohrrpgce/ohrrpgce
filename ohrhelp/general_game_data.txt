@@ -20,19 +20,11 @@ Master Palettes: Your game can have more than one master palette available. See 
 
 Global Music and Sound Effects: Set a wide range of default music and sounds for various aspects of your game.
 
-Stat Caps: See maximum values for battle stats and damage.
+Battle System Options: Another menu of global game options, for battles and stats.
 
 Password for Editing: Set a password to be required to open the game with custom.exe (people will still be able to play the game with game.exe, obviously).
 
-Status Indicators: Choose a special font character that will stand for a status affliction so that the player can see when his heroes are afflicted. There is currently no support for Status Indicators for enemies. Press ENTER to see all available font characters.
-
-Enemy Dissolve: Use the Left and Right arrow keys to choose a default animation for enemies to perform when they die. This can be overridden on a case-by-case basis in the Enemy Editor.
-
 Inventory Size: This is the number of rows available for the player's item inventory. Type in a number and the screen will show you how many actual item slots will result (there are three slots in a row).
-
-Damage Display Time: Type in the number of ticks for damage numbers to show onscreen during a battle.
-
-Damage Display Rises: Type in the number of pixels for damage numbers to rise when shown during a battle.
 
 Script Errors: Control which script errors will be shown at runtime.
 Note that future versions of the engine will raise many new types of warnings and errors, so it could be a bad idea to release with warnings enabled.

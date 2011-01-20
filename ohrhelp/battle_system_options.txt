@@ -1,0 +1,15 @@
+This is the Battle System Options Editor, where you can edit various global options for the battle system.
+
+Navigate with the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+
+Press ENTER or the SPACE bar to enter various submenus.
+
+Stat Caps: See maximum values for battle stats and damage.
+
+Status Indicators: Choose a special font character that will stand for a status affliction so that the player can see when his heroes are afflicted. There is currently no support for Status Indicators for enemies. Press ENTER to see all available font characters.
+
+Enemy Dissolve: Use the Left and Right arrow keys to choose a default animation for enemies to perform when they die. This can be overridden on a case-by-case basis in the Enemy Editor.
+
+Damage Display Time: Type in the number of ticks for damage numbers to show onscreen during a battle.
+
+Damage Display Rises: Type in the number of pixels for damage numbers to rise when shown during a battle.

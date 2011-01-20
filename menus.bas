@@ -21,6 +21,8 @@ DEFINT A-Z
 DECLARE SUB generalscriptsmenu ()
 DECLARE SUB generalmusicsfxmenu ()
 DECLARE SUB masterpalettemenu ()
+DECLARE SUB statcapsmenu ()
+DECLARE SUB battleoptionsmenu ()
 DECLARE FUNCTION importmasterpal (f$, palnum%)
 DECLARE SUB titlescreenbrowse ()
 DECLARE SUB import_convert_mp3(BYREF mp3 AS STRING, BYREF oggtemp AS STRING)
@@ -1080,6 +1082,92 @@ END FUNCTION
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
+SUB generate_battlesystem_menu(menu() as string)
+ menu(5) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
+ menu(6) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
+ menu(7) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
+ menu(8) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
+ menu(9) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
+ menu(10) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
+END SUB
+
+SUB battleoptionsmenu ()
+ CONST maxMenu = 10
+ DIM menu(maxMenu) AS STRING
+ DIM min(maxMenu), max(maxMenu)
+ DIM index(maxMenu)
+ DIM enabled(maxMenu)
+ DIM state AS MenuState
+ WITH state
+  .size = 24
+  .last = maxMenu
+  .need_update = YES
+ END WITH
+
+ 'I think these things are here (and not upgrade) because we don't want to force them on games
+ IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
+ IF gen(genStun) <= 0 THEN gen(genStun) = 159
+ IF gen(genMute) <= 0 THEN gen(genMute) = 163
+ 
+ menu(0) = "Previous Menu"
+ menu(1) = "Stat Caps..."
+
+ flusharray enabled(), UBOUND(enabled), YES
+ enabled(2) = NO
+ enabled(3) = NO
+ enabled(4) = NO
+ index(5) = genPoison
+ index(6) = genStun
+ index(7) = genMute
+ FOR i AS INTEGER = 5 TO 7
+  min(i) = 32
+  max(i) = 255
+ NEXT
+ index(8) = genEnemyDissolve
+ max(8) = dissolveTypeMax
+ index(9) = genDamageDisplayTicks
+ max(9) = 1000
+ index(10) = genDamageDisplayRise
+ max(10) = 1000
+ min(10) = -1000
+
+ setkeys
+ DO
+  setwait 55
+  setkeys
+
+  IF keyval(scESC) > 1 THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "battle_system_options"
+  usemenu state, enabled()
+  IF enter_or_space() THEN
+   IF state.pt = 0 THEN EXIT DO
+   IF state.pt = 1 THEN statcapsmenu
+
+   IF min(state.pt) = 32 AND max(state.pt) = 255 THEN  'Character field
+    DIM d as string = charpicker
+    IF d <> "" THEN
+     gen(index(state.pt)) = ASC(d)
+     state.need_update = YES
+    END IF
+   END IF
+  END IF
+  IF index(state.pt) THEN
+   IF intgrabber(gen(index(state.pt)), min(state.pt), max(state.pt)) THEN state.need_update = YES
+  END IF
+
+  IF state.need_update THEN
+   generate_battlesystem_menu menu()
+   state.need_update = NO
+  END IF
+
+  clearpage vpage
+  draw_fullscreen_scrollbar state, , vpage
+  standardmenu menu(), state, 0, 0, vpage, 0, , 40
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
 SUB statcapsmenu
  CONST maxMenu = 14
  DIM m(maxMenu) AS STRING
@@ -1193,36 +1281,29 @@ SUB startingdatamenu
 END SUB
 
 SUB generate_gen_menu(m$(), longname$, aboutline$)
-m$(1) = "Long Name:" + longname$
-m$(2) = "About Line:" + aboutline$
-m$(12) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
-m$(13) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
-m$(14) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
-m$(15) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
-IF gen(genMaxInventory) = 0 THEN
- m$(16) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
-ELSE
- m$(16) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
-END IF
-m$(17) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
-m$(18) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
-m$(19) = "Script errors: "
-SELECT CASE gen(genErrorLevel)
- CASE 2: m$(19) += "Show all warnings"
- CASE 3: m$(19) += "Hide nit-picking warnings"
- CASE 4: m$(19) += "Hide all warnings"
- CASE 5: m$(19) += "Hide errors not reported in old versions"
- CASE 6: m$(19) += "Hide all ignoreable errors"
-END SELECT
+ m$(1) = "Long Name:" + longname$
+ m$(2) = "About Line:" + aboutline$
+ IF gen(genMaxInventory) = 0 THEN
+  m$(12) = "Inventory size: Default (" & (last_inv_slot() \ 3) + 1 & " rows)"
+ ELSE
+  m$(12) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
+ END IF
+ m$(13) = "Script errors: "
+ SELECT CASE gen(genErrorLevel)
+  CASE 2: m$(13) += "Show all warnings"
+  CASE 3: m$(13) += "Hide nit-picking warnings"
+  CASE 4: m$(13) += "Hide all warnings"
+  CASE 5: m$(13) += "Hide errors not reported in old versions"
+  CASE 6: m$(13) += "Hide all ignoreable errors"
+ END SELECT
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 19
+ CONST maxMenu = 13
  DIM m(maxMenu) AS STRING
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
  DIM enabled(maxMenu)
- DIM d AS STRING
 
  DIM state AS MenuState
  WITH state
@@ -1231,10 +1312,6 @@ SUB gendata ()
   .need_update = YES
  END WITH
 
- 'I think these things are here (and not upgrade) because we don't want to force them on games
- IF gen(genPoison) <= 0 THEN gen(genPoison) = 161
- IF gen(genStun) <= 0 THEN gen(genStun) = 159
- IF gen(genMute) <= 0 THEN gen(genMute) = 163
  'make sure genMaxInventory is a valid value (possible in older versions)
  IF gen(genMaxInventory) THEN gen(genMaxInventory) = last_inv_slot()
  
@@ -1243,32 +1320,18 @@ SUB gendata ()
  m(4) = "Pick Title Screen..."
  m(5) = "New Game Settings..."
  m(6) = "Special Plotscripts..."
- m(7) = "Master Palettes..."
+ m(7) = "Battle System Options..."
  m(8) = "Global Music and Sound Effects..."
- m(9) = "Stat Caps..."
+ m(9) = "Master Palettes..."
  m(10) = "Password For Editing..."
 
  flusharray enabled(), UBOUND(enabled), YES
  enabled(11) = NO
- index(12) = genPoison
- index(13) = genStun
- index(14) = genMute
- FOR i AS INTEGER = 12 TO 14
-  min(i) = 32
-  max(i) = 255
- NEXT
- index(15) = genEnemyDissolve
- max(15) = dissolveTypeMax
- index(16) = genMaxInventory
- max(16) = (inventoryMax + 1) \ 3
- index(17) = genDamageDisplayTicks
- max(17) = 1000
- index(18) = genDamageDisplayRise
- max(18) = 1000
- min(18) = -1000
- index(19) = genErrorLevel
- max(19) = 6
- min(19) = 2
+ index(12) = genMaxInventory
+ max(12) = (inventoryMax + 1) \ 3
+ index(13) = genErrorLevel
+ max(13) = 6
+ min(13) = 2
 
  DIM aboutline AS STRING = ""
  DIM longname AS STRING = ""
@@ -1335,18 +1398,10 @@ SUB gendata ()
    IF state.pt = 4 THEN titlescreenbrowse
    IF state.pt = 5 THEN startingdatamenu
    IF state.pt = 6 THEN generalscriptsmenu
-   IF state.pt = 7 THEN masterpalettemenu
+   IF state.pt = 7 THEN battleoptionsmenu
    IF state.pt = 8 THEN generalmusicsfxmenu
-   IF state.pt = 9 THEN statcapsmenu
+   IF state.pt = 9 THEN masterpalettemenu
    IF state.pt = 10 THEN inputpasw
-
-   IF state.pt >= 12 AND state.pt <= 14 THEN
-    d = charpicker$
-    IF d <> "" THEN
-     gen(index(state.pt)) = ASC(d)
-     state.need_update = YES
-    END IF
-   END IF
   END IF
   IF state.pt = 1 THEN
    IF strgrabber(longname, 38) THEN state.need_update = YES
