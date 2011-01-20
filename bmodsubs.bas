@@ -451,11 +451,18 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
   harmf *= (1.0 + attack.extra_damage / 100)
  
   'convert to integer -- do this now as using an accurate floating point
-  'version of range causes up to 1 more average damage to be done 
-  h = harmf
+  'version of range causes up to 1 more average damage to be done
+  IF harmf > 2147483647 THEN
+   h = 2147483647
+  ELSEIF harmf < 0 THEN
+   'This check just prevents overflow; actual 0 damage cap is below.
+   h = 0
+  ELSE
+   h = harmf
 
-  'randomize +/- 20%
-  IF attack.do_not_randomize = NO THEN h = range(h, 20)
+   'randomize +/- 20%
+   IF attack.do_not_randomize = NO THEN h = range(h, 20)
+  END IF
  
   'spread damage
   IF attack.divide_spread_damage = YES THEN h = h / (tcount + 1)
