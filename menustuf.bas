@@ -1255,7 +1255,7 @@ calc_hero_elementals elementaldmg(), pt
 REDIM elementalmenu(-1 TO -1)
 DIM msg AS STRING = readglobalstring$(302, "Elemental Effects:", 30)
 IF LEN(msg) THEN str_array_append elementalmenu(), msg
-FOR i = 0 TO numElements - 1
+FOR i = 0 TO gen(genNumElements) - 1
  msg = hero_elemental_resist_msg(elementnames(i), elementaldmg(i))
  IF LEN(msg) THEN str_array_append elementalmenu(), msg
 NEXT

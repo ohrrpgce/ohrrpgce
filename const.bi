@@ -94,6 +94,7 @@ CONST genMaxInventory = 85      'max available inventory slot (0 means use inven
 CONST genErrorLevel = 86        'value to set err_suppress_lvl to, if nonzero
 CONST genLevelCap = 87          'Default maximum level (0 to 99)
 CONST genEquipMergeFormula = 88 'Formula to use to calculate effective hero elemental resists
+CONST genNumElements = 89       'Number of elements used
 
 'Unused indices
 
@@ -168,8 +169,9 @@ CONST fixOldElementalFailBit = 16'Turned on the 'Simulate old fail vs. element r
 CONST fixAttackElementFails = 17 'Initialized all 64 attack elemental fail conditions
 CONST fixEnemyElementals = 18    'Set enemy elemental resists from old weak/strong/absorb/enemytype bits
 CONST fixItemElementals = 19     'Set equipment elemental resists from old weak/strong/absorb bits
+CONST fixNumElements = 20        'Set genNumElements to 16
 
-CONST sizefixbits = 19 ' *** Update this when adding fix bits ***
+CONST sizefixbits = 20 ' *** Update this when adding fix bits ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
@@ -180,7 +182,6 @@ CONST maplayerMax = 7 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
 CONST dissolveTypeMax = 10 'Highest numbered frame dissolve effect
 CONST maxElements = 64 'Maximum selectable number of elements
-CONST numElements = 16 'Number of elements defined in this game (only a constant temporarily)
 #IFDEF SCRIPTPROFILE
 CONST scriptmemMax = 10000000 'in 4-byte ints
 CONST scriptTableSize = 512  'hash table size, power of 2 please

@@ -1289,7 +1289,7 @@ Sub DeSerHeroDef(filename as string, hero as herodef ptr, record as integer)
 		.hand_b_x = readshort(f)
 		.hand_b_y = readshort(f)
 
-		for i as integer = 0 to numElements - 1
+		for i as integer = 0 to gen(genNumElements) - 1
 			get #f, , .elementals(i)
 		next
 		'WARNING: skip past rest of the elements if you add more to this file
@@ -1349,12 +1349,12 @@ Sub SerHeroDef(filename as string, hero as herodef ptr, record as integer)
 			debug "possible corruption: tried to save hero data with fixHeroElementals=0"
 		end if
 
-		for i as integer = 0 to numElements - 1
+		for i as integer = 0 to gen(genNumElements) - 1
 			put #f, , .elementals(i)
 		next
 		'always write 1.0 for all unused elements
 		dim default as single = 1.0
-		for i as integer = numElements to 63
+		for i as integer = gen(genNumElements) to 63
 			put #f, , default
 		next
 
@@ -2273,11 +2273,11 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
    END WITH
   NEXT i
   IF getfixbit(fixAttackElementFails) THEN
-   FOR i AS INTEGER = 0 TO numElements - 1
+   FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
     DeSerAttackElementCond .elemental_fail_conds(i), buf(), 121 + i * 3
    NEXT
   ELSE
-   FOR i AS INTEGER = 0 TO numElements - 1
+   FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
     loadoldattackelementalfail .elemental_fail_conds(i), buf(), i
    NEXT
   END IF
@@ -2296,10 +2296,10 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   .absorb_damage                  = xreadbit(buf(), 2, 20)
   .unreversable_picture           = xreadbit(buf(), 3, 20)
   .can_steal_item                 = xreadbit(buf(), 4, 20)
-  FOR i AS INTEGER = 0 TO small(15, numElements - 1)
+  FOR i AS INTEGER = 0 TO small(15, gen(genNumElements) - 1)
    .elemental_damage(i)           = xreadbit(buf(), 5+i, 20)
   NEXT
-  FOR i AS INTEGER = 16 TO numElements - 1
+  FOR i AS INTEGER = 16 TO gen(genNumElements) - 1
    .elemental_damage(i)           = xreadbit(buf(), 80+(i-16), 65)
   NEXT
   'Obsolete:
@@ -2491,13 +2491,13 @@ END FUNCTION
 SUB LoadItemElementals (BYVAL index AS INTEGER, itemresists() AS SINGLE)
  DIM itembuf(dimbinsize(binITM)) AS INTEGER
  loaditemdata itembuf(), index
- REDIM itemresists(numElements - 1)
+ REDIM itemresists(gen(genNumElements) - 1)
  IF getfixbit(fixItemElementals) THEN
-  FOR i AS INTEGER = 0 TO numElements - 1
+  FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
    itemresists(i) = DeSerSingle(itembuf(), 82 + i * 2)
   NEXT
  ELSE
-  FOR i AS INTEGER = 0 TO numElements - 1
+  FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
    itemresists(i) = LoadOldItemElemental(itembuf(), i)
   NEXT
  END IF
@@ -2608,11 +2608,11 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
 
   '--elementals
   IF getfixbit(fixEnemyElementals) THEN
-   FOR i AS INTEGER = 0 TO numElements - 1
+   FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
     .elementals(i) = DeSerSingle(buf(), 239 + i*2)
    NEXT
   ELSE
-   FOR i AS INTEGER = 0 TO numElements - 1
+   FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
     .elementals(i) = loadoldenemyresist(buf(), i)
    NEXT
   END IF
@@ -2622,7 +2622,7 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   .spawn.non_elemental_death = buf(80)
   .spawn.when_alone = buf(81)
   .spawn.non_elemental_hit = buf(82)
-  FOR i AS INTEGER = 0 TO numElements - 1
+  FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
    IF i <= 7 THEN
     .spawn.elemental_hit(i) = buf(83 + i)
    ELSE
@@ -2639,7 +2639,7 @@ SUB loadenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   NEXT i
   
   '--counter-attacks
-  FOR i AS INTEGER = 0 TO numElements - 1
+  FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
    IF i <= 7 THEN
     .elem_counter_attack(i) = buf(107 + i)
    ELSE
@@ -2712,8 +2712,8 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   buf(81) = .spawn.when_alone
   buf(82) = .spawn.non_elemental_hit
   'Blank out unused spawns to be save: don't want to have to zero stuff out
-  'if numElements increases
-  FOR i AS INTEGER = numElements TO 63
+  'if gen(genNumElements) increases
+  FOR i AS INTEGER = gen(genNumElements) TO 63
    .spawn.elemental_hit(i) = 0
   NEXT
   FOR i AS INTEGER = 0 TO 7
@@ -2733,7 +2733,7 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   NEXT i
   
   '--counter attacks
-  FOR i AS INTEGER = numElements TO 63
+  FOR i AS INTEGER = gen(genNumElements) TO 63
    .elem_counter_attack(i) = 0
   NEXT
   FOR i AS INTEGER = 0 TO 7
@@ -2749,7 +2749,7 @@ SUB saveenemydata (enemy AS EnemyDef, index AS INTEGER, altfile AS INTEGER = 0)
   '--elemental resists
   FOR i AS INTEGER = 0 TO 63
    DIM outval as single = 1.0f
-   IF i < numElements THEN
+   IF i < gen(genNumElements) THEN
     outval = .elementals(i)
    END IF
    SerSingle buf(), 239 + i*2, outval

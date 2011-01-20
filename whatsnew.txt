@@ -47,6 +47,21 @@ WHAT IS NEW?
     * (Anti-feature) The internal password format has changed a 3rd
       time. Old utilities and versions of Custom will not be able to
       open passworded games; remove the password to use them. [Ralph]
+    * Lots of element related stuff:
+      * Enemy, hero, and equipment elemental strong/weak/absorb bits
+        have been replaced with percentage-based "Damage from <element>"
+        options. The second Status menu screen now shows percentages.
+      * Attack "Fail vs. <element> resistance" bits have been replaced
+        with percentage-based elemental resistance failure thresholds.
+      * The enemy types have been replaced by elements 9-16: "Is
+        <enemytype>", "Bonus to <enemytype>" and "Fail vs. <enemytype>"
+        have been translated to elemental equivalents.
+      * In Battle System Options you can select from three formulae
+        for combining equipment elemental resistances into the
+        effective elemental resistances for heroes.
+      * You can now have up to 64 elements (you have to set a
+        higher number of elements before they become available).
+      [Ralph]
 
   * Bugfixes
     * Bug 749: Attacks configured to do No Damage still do damage when

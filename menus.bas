@@ -1084,6 +1084,7 @@ END FUNCTION
 OPTION EXPLICIT
 
 SUB generate_battlesystem_menu(menu() as string)
+ menu(4) = "Number of Elements: " & gen(genNumElements)
  menu(5) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
  menu(6) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
  menu(7) = "Mute Indicator: " & gen(genMute) & " " & CHR$(gen(genMute))
@@ -1116,7 +1117,9 @@ SUB battleoptionsmenu ()
 
  flusharray enabled(), UBOUND(enabled), YES
  enabled(3) = NO
- enabled(4) = NO
+ index(4) = genNumElements
+ min(4) = 0
+ max(4) = 64
  index(5) = genPoison
  index(6) = genStun
  index(7) = genMute

@@ -3001,7 +3001,7 @@ SUB edit_global_text_strings()
  GTS_add_to_menu menu, "Takes < 0% element dmg",     171, "Absorbs $A damage from $E", 25,  "elemental_resist"
  GTS_add_to_menu menu, "Elemental Effects Title",    302, "Elemental Effects:", 30
  GTS_add_to_menu menu, "No Elemental Effects",       130, "No Elemental Effects", 30
- FOR i AS INTEGER = 0 TO numElements - 1
+ FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
   GTS_add_to_menu menu, "Elemental " & i,             174 + i*2, elementnames(i), 14
  NEXT i
 
@@ -3070,7 +3070,7 @@ SUB edit_global_text_strings()
   writeglobalstring menu.index(i), menu.text(i), menu.maxlen(i)
  NEXT i
  'Write defaults for all elements that don't appear in the menu
- FOR i AS INTEGER = numElements TO 63
+ FOR i AS INTEGER = gen(genNumElements) TO 63
   writeglobalstring 174 + i*2, "Element" & i+1, 14
  NEXT i
 

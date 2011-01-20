@@ -6,6 +6,10 @@ Press ENTER or the SPACE bar to enter various submenus.
 
 Stat Caps: See maximum values for battle stats and damage.
 
+Hero Elemental Resist Calculation: See the help screen for this menu.
+
+Number of Elements: Set the number of elements available for use throughout Custom. Decreasing this value will delete data for the removed elements. The limit is currently 64.
+
 Status Indicators: Choose a special font character that will stand for a status affliction so that the player can see when his heroes are afflicted. There is currently no support for Status Indicators for enemies. Press ENTER to see all available font characters.
 
 Enemy Dissolve: Use the Left and Right arrow keys to choose a default animation for enemies to perform when they die. This can be overridden on a case-by-case basis in the Enemy Editor.

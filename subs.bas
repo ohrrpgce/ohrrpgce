@@ -60,7 +60,7 @@ clearpage 3 '~Mike
 END SUB
 
 SUB update_enemy_editor_for_elementals(recbuf() as integer, caption() as string, byval EnCapElemResist as integer)
- FOR i as integer = 0 TO numElements - 1
+ FOR i as integer = 0 TO gen(genNumElements) - 1
   caption(EnCapElemResist + i) = format_percent(DeSerSingle(recbuf(), 239 + i*2))
  NEXT
 END SUB
@@ -209,7 +209,7 @@ min(EnLimDeathSFX) = -1
 max(EnLimDeathSFX) = gen(genMaxSFX) + 1
 
 EnCapElemResist = capindex
-FOR i = 0 TO numElements - 1
+FOR i = 0 TO gen(genNumElements) - 1
  addcaption caption(), capindex, ""  '--updated in update_enemy_editor_for_elementals
 NEXT
 
@@ -345,7 +345,7 @@ menuoff(EnMenuSpawnNEHit) = EnDatSpawnNEHit
 menulimits(EnMenuSpawnNEHit) = EnLimSpawn
 
 CONST EnMenuSpawnElement = 34' to 93
-FOR i = 0 TO numElements - 1
+FOR i = 0 TO gen(genNumElements) - 1
  menu(EnMenuSpawnElement + i) = "on " & elementnames(i) & " Hit:"
  menutype(EnMenuSpawnElement + i) = 9
  IF i < 8 THEN
@@ -439,7 +439,7 @@ menu(EnMenuCursorOffset) = "Cursor Offset..."
 menutype(EnMenuCursorOffset) = 1
 
 CONST EnMenuElemCtr = 119' to 182
-FOR i = 0 TO numElements - 1
+FOR i = 0 TO gen(genNumElements) - 1
  menu(EnMenuElemCtr + i) = "Counter element " & elementnames(i) & ":"
  menutype(EnMenuElemCtr + i) = 7
  IF i < 8 THEN
@@ -463,7 +463,7 @@ menu(EnMenuElementalsAct) = "Elemental Resistances..."
 menutype(EnMenuElementalsAct) = 1
 
 CONST EnMenuElemDmg = 196' to 259
-FOR i = 0 TO numElements - 1
+FOR i = 0 TO gen(genNumElements) - 1
  menu(EnMenuElemDmg + i) = "Damage from " + rpad(elementnames(i), " ", 15) + ":"
  menutype(EnMenuElemDmg + i) = 5000 + EnCapElemResist + i  'percent_grabber
  menuoff(EnMenuElemDmg + i) = 239 + i*2 
@@ -517,34 +517,34 @@ FOR i = 0 TO 11
  statMenu(1 + i) = EnMenuStat + i
 NEXT i
 
-DIM spawnMenu(5 + numElements)
+DIM spawnMenu(5 + gen(genNumElements))
 spawnMenu(0) = EnMenuBackAct
 spawnMenu(1) = EnMenuSpawnNum
 spawnMenu(2) = EnMenuSpawnDeath
 spawnMenu(3) = EnMenuSpawnNEDeath
 spawnMenu(4) = EnMenuSpawnAlone
 spawnMenu(5) = EnMenuSpawnNEHit
-FOR i = 0 TO numElements - 1
+FOR i = 0 TO gen(genNumElements) - 1
  spawnMenu(6 + i) = EnMenuSpawnElement + i
 NEXT i
 
-DIM atkMenu(27 + numElements)
+DIM atkMenu(27 + gen(genNumElements))
 atkMenu(0) = EnMenuBackAct
 FOR i = 0 TO 4
  atkMenu(1 + i) = EnMenuAtkNormal + i
  atkMenu(6 + i) = EnMenuAtkDesp + i
  atkMenu(11 + i) = EnMenuAtkAlone + i
 NEXT i
-FOR i = 0 TO numElements - 1
+FOR i = 0 TO gen(genNumElements) - 1
  atkMenu(16 + i) = EnMenuElemCtr + i
 NEXT i
 FOR i = 0 TO 11
- atkMenu(16 + numElements + i) = EnMenuStatCtr + i
+ atkMenu(16 + gen(genNumElements) + i) = EnMenuStatCtr + i
 NEXT i
 
-DIM elementalMenu(numElements)
+DIM elementalMenu(gen(genNumElements))
 elementalMenu(0) = EnMenuBackAct
-FOR i = 0 TO numElements - 1
+FOR i = 0 TO gen(genNumElements) - 1
  elementalMenu(1 + i) = EnMenuElemDmg + i
 NEXT i
 
@@ -2331,14 +2331,14 @@ END SUB
 SUB common_elementals_editor(elementals() as single, helpfile as string, byval showsign as integer = 0)
  DIM elementnames() AS STRING
  getelementnames elementnames()
- DIM float_reprs(numElements - 1) as string
- DIM menu(1 + numElements - 1) as string
+ DIM float_reprs(gen(genNumElements) - 1) as string
+ DIM menu(1 + gen(genNumElements) - 1) as string
  DIM st as MenuState
  st.last = UBOUND(menu)
  st.size = 22
  st.need_update = YES
 
- FOR i as integer = 0 TO numElements - 1
+ FOR i as integer = 0 TO gen(genNumElements) - 1
   float_reprs(i) = format_percent(elementals(i))
   elementnames(i) = rpad(elementnames(i), " ", 15)
  NEXT
@@ -2358,7 +2358,7 @@ SUB common_elementals_editor(elementals() as single, helpfile as string, byval s
   IF st.need_update THEN
    st.need_update = NO
    menu(0) = "Previous Menu"
-   FOR i as integer = 0 TO numElements - 1
+   FOR i as integer = 0 TO gen(genNumElements) - 1
     menu(i + 1) = "Damage from " + elementnames(i) + ": "
     IF showsign THEN
      'positive values get explicit + prefix
@@ -2391,15 +2391,15 @@ SUB item_editor_equipbits(itembuf() AS INTEGER)
 END SUB
 
 SUB item_editor_elementals(itembuf() AS INTEGER)
- DIM elementals(numElements - 1) as single
- FOR i as integer = 0 TO numElements - 1
+ DIM elementals(gen(genNumElements) - 1) as single
+ FOR i as integer = 0 TO gen(genNumElements) - 1
   elementals(i) = DeSerSingle(itembuf(), 82 + i * 2)
   IF gen(genEquipMergeFormula) = 2 THEN  'additive merging
    elementals(i) -= 1.0
   END IF
  NEXT
  common_elementals_editor elementals(), "item_elementals", (gen(genEquipMergeFormula) = 2)
- FOR i as integer = 0 TO numElements - 1
+ FOR i as integer = 0 TO gen(genNumElements) - 1
   IF gen(genEquipMergeFormula) = 2 THEN  'additive merging
    elementals(i) += 1.0
   END IF

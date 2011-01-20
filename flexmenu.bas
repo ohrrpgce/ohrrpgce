@@ -110,10 +110,10 @@ atkbit(84) = "Delay doesn't block further actions"
 'These bits are edited separately, because it would be a pain to linearise them somehow,
 'editbitset doesn't support it.
 DIM elementbit(-1 TO 79) AS STRING
-FOR i = 0 TO small(15, numElements - 1)
+FOR i = 0 TO small(15, gen(genNumElements) - 1)
  elementbit(i + 5) = elementnames(i) & " Damage"  'bits 5-20
 NEXT i
-FOR i = 16 TO numElements - 1
+FOR i = 16 TO gen(genNumElements) - 1
  elementbit((i - 16) + 32) = elementnames(i) & " Damage"  'bits 144-191 in the main bit array
 NEXT i
 
@@ -910,7 +910,7 @@ menu(AtkElementalFailHeader) = "Fail when target's damage..."
 menutype(AtkElementalFailHeader) = 18  'skip
 
 CONST AtkElementalFails = 76
-FOR i = 0 TO small(63, numElements - 1)
+FOR i = 0 TO small(63, gen(genNumElements) - 1)
  menu(AtkElementalFails + i) = " from " + elementnames(i)
  menutype(AtkElementalFails + i) = 4000 + AtkCapFailConds + i * 2  'percent_cond_grabber
  menuoff(AtkElementalFails + i) = AtkDatElementalFail + i * 3
@@ -1028,10 +1028,10 @@ transmogMenu(1) = AtkTransmogEnemy
 transmogMenu(2) = AtkTransmogHp
 transmogMenu(3) = AtkTransmogStats
 
-DIM elementFailMenu(numElements + 1)
+DIM elementFailMenu(gen(genNumElements) + 1)
 elementFailMenu(0) = AtkBackAct
 elementFailMenu(1) = AtkElementalFailHeader
-FOR i = 0 TO numElements - 1
+FOR i = 0 TO gen(genNumElements) - 1
  elementFailMenu(2 + i) = AtkElementalFails + i
 NEXT
 

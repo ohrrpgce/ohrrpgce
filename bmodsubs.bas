@@ -419,7 +419,7 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
   DIM immune AS INTEGER = NO
  
   'elementals
-  FOR i AS INTEGER = 0 TO numElements - 1
+  FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
    IF attack.elemental_damage(i) = YES THEN
     harmf *= ABS(target.elementaldmg(i))
     'What's a good cut off for immunity? When we switch to 32bit HP values, maybe
@@ -1577,7 +1577,7 @@ SUB transfer_enemy_bits(slot AS INTEGER, bslot() AS BattleSprite)
    .death_unneeded = .enemy.death_unneeded
    .never_flinch = .enemy.never_flinch
    .ignore_for_alone = .enemy.ignore_for_alone
-   FOR i AS INTEGER = 0 TO numElements - 1
+   FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
     .elementaldmg(i) = .enemy.elementals(i)
    NEXT
   END WITH
@@ -1587,7 +1587,7 @@ END SUB
 SUB transfer_enemy_counterattacks (slot AS INTEGER, bslot() AS BattleSprite)
  '--transfer counterattacks
  WITH bslot(4 + slot)
-  FOR j AS INTEGER = 0 TO numElements - 1
+  FOR j AS INTEGER = 0 TO gen(genNumElements) - 1
    .elem_counter_attack(j) = .enemy.elem_counter_attack(j)
   NEXT j
   FOR j AS INTEGER = 0 TO 11

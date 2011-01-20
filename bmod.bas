@@ -627,7 +627,7 @@ SUB battle_spawn_on_hit(targ AS INTEGER, BYREF bat AS BattleState, bslot() AS Ba
    NEXT j
    EXIT SUB '--skip further checks
   END IF
-  FOR i = 0 TO numElements - 1
+  FOR i = 0 TO gen(genNumElements) - 1
    IF .enemy.spawn.elemental_hit(i) > 0 AND bat.atk.elemental(i) THEN
     FOR j = 1 TO .enemy.spawn.how_many
      slot = find_empty_enemy_slot(formdata())
@@ -1701,7 +1701,7 @@ SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
  '--get native hero resistances
  DIM her AS HeroDef
  loadherodata @her, hero(who) - 1
- FOR i as integer = 0 TO numElements - 1
+ FOR i as integer = 0 TO gen(genNumElements) - 1
   elemental_resists(i) = her.elementals(i)
  NEXT
 
@@ -1712,7 +1712,7 @@ SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
   IF eqstuf(who, j) > 0 THEN
    LoadItemElementals eqstuf(who, j) - 1, itemelementals()
 
-   FOR i as integer = 0 TO numElements - 1
+   FOR i as integer = 0 TO gen(genNumElements) - 1
     elemental_resists(i) = equip_elemental_merge(elemental_resists(i), itemelementals(i), gen(genEquipMergeFormula))
    NEXT
   END IF
@@ -2463,7 +2463,7 @@ SUB generate_atkscript(BYREF attack AS AttackData, BYREF bat AS BattleState, bsl
  NEXT i
  
  bat.atk.non_elemental = YES
- FOR i = 0 TO numElements - 1
+ FOR i = 0 TO gen(genNumElements) - 1
   bat.atk.elemental(i) = NO
   IF attack.elemental_damage(i) = YES THEN
    bat.atk.elemental(i) = YES
@@ -3432,7 +3432,7 @@ END SUB
 SUB battle_counterattacks(BYVAL h AS INTEGER, BYVAL targstat AS INTEGER, who AS INTEGER, attack AS AttackData, bslot() AS BattleSprite)
  DIM t(11) AS INTEGER
  '--first elementals
- FOR i AS INTEGER = 0 TO numElements - 1
+ FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
   IF attack.elemental_damage(i) THEN
    IF bslot(who).elem_counter_attack(i) > 0 THEN
     'counterattacks are forced non-blocking

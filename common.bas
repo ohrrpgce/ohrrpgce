@@ -2586,6 +2586,11 @@ ELSE
  debuginfo "Partial game data upgrade..."
 END IF
 
+IF getfixbit(fixNumElements) = 0 THEN
+ setfixbit(fixNumElements, 1)
+ gen(genNumElements) = 16
+END IF
+
 IF gen(genVersion) = 0 THEN
  upgrade_message "Ancient Pre-1999 format (1)"
  gen(genVersion) = 1
@@ -3121,11 +3126,11 @@ IF getfixbit(fixHeroPortrait) = 0 OR getfixbit(fixHeroElementals) = 0 THEN
 
    IF do_elements THEN
     '.elementals() not initialised, load from old bits
-    FOR i as integer = 0 TO small(7, numElements - 1)
+    FOR i as integer = 0 TO small(7, gen(genNumElements) - 1)
      .elementals(i) = backcompat_element_dmg(xreadbit(.bits(), i), xreadbit(.bits(), 8 + i), xreadbit(.bits(), 16 + i))
     NEXT
-    'numElements will be more than 8 even in old games after enemytypes are converted to elements
-    FOR i as integer = 8 TO numElements - 1
+    'gen(genNumElements) will be more than 8 even in old games after enemytypes are converted to elements
+    FOR i as integer = 8 TO gen(genNumElements) - 1
      .elementals(i) = 1
     NEXT
    END IF
@@ -4436,8 +4441,8 @@ SUB getstatnames(statnames() AS STRING)
 END SUB
 
 SUB getelementnames(elmtnames() AS STRING)
- REDIM elmtnames(numElements - 1)
- FOR i AS INTEGER = 0 TO numElements - 1
+ REDIM elmtnames(gen(genNumElements) - 1)
+ FOR i AS INTEGER = 0 TO gen(genNumElements) - 1
   DIM default AS STRING
   default = "Element" & i+1
   IF i < 8 THEN
