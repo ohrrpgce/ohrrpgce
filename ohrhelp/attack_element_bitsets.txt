@@ -1,0 +1,11 @@
+This is a list of attack bitsets - simple OFF or ON settings. Bitsets that are turned ON are highlighted.
+
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+
+Modify bitsets with Left, Right, SPACE and ENTER.
+
+Turning on any of these bits causes the attack to do elemental damage, which may result in more or less damage depending on how much damage the target takes from that element; see the "Elemental Resistances" submenu in the Hero and Enemy editors.
+
+Multiple elemental bitsets can be combined: the damages are multiplied. For example if an attack is set to do 'Fire', 'Light', and 'Holy' damage, from which the target takes, respectively, 200%, -150% and -100% damage, then the attack will do 200% * 150% * 100% * -1 = -300% damage. That is, the target will be healed by triple the amount of damage which the attack would otherwise do.
+
+Elemental damage is also very useful for special effects: enemies may spawn or counter-attack in response to being hit by an elemental attack. If all the elemental bitsets are off, the attack counts as a "Physical" attack for spawning purposes.

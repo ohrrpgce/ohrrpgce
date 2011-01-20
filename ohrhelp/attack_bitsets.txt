@@ -19,18 +19,6 @@ Normally, an attack picture will be flipped to match the direction the attacker 
 * Steal Item
 Gives the attacker a chance to steal an item. (Only works for enemy targets. See the "Rewards" menu in the enemy editor.)
 
-* Elemental Damage
-Causes the attack to do elemental damage, which may result in more or less damage depending on the target's strengths and weaknesses. Multiple elemental bitsets can be combined. (If all the elemental bitsets are off, the attack counts as a "Physical" attack for spawning purposes.)
-
-* Bonus vs Enemy Type
-Causes the attack to do extra damage to any enemy that is a member of one of the enemy type groups. (See the enemy bitset editor)
-
-* Fail vs Elemental resistance
-Causes the attack to completely fail against any target who has a resistance to the given elementals.
-
-* Fail vs Enemy Type
-Causes the attack to completely fail against any enemy who is a member of one of the enemy type groups. (See the enemy bitset editor)
-
 * Cannot target enemy slot
 Prevents the attack from being targeted to enemies in certain slots.
 

@@ -50,12 +50,12 @@ atkbit(2) = "Absorb Damage"          'was bounceable!
 atkbit(3) = "Unreversable Picture"
 atkbit(4) = "Steal Item"
 
-FOR i = 0 TO 7
- atkbit(i + 5) = elementnames(i) & " Damage" '05-12
- atkbit(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
+'FOR i = 0 TO 7
+ 'atkbit(i + 5) = elementnames(i) & " Damage" '05-12
+ 'atkbit(i + 13) = "Bonus vs " & readglobalstring(9 + i, "EnemyType" & i+1) '13-20
  'atkbit(i + 21) = "Fail vs " & elementnames(i) & " resistance" '21-28
- atkbit(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
-NEXT i
+ 'atkbit(i + 29) = "Fail vs " & readglobalstring(9 + i, "EnemyType" & i+1) '29-36
+'NEXT i
 
 FOR i = 0 TO 7
  atkbit(i + 37) = "Cannot target enemy slot " & i
@@ -105,6 +105,18 @@ atkbit(84) = "Delay doesn't block further actions"
 
 '--191 attack bits allowed in menu.
 '--Data is split, See AtkDatBits and AtkDatBits2 for offsets
+
+
+'These bits are edited separately, because it would be a pain to linearise them somehow,
+'editbitset doesn't support it.
+DIM elementbit(-1 TO 79) AS STRING
+FOR i = 0 TO small(15, numElements - 1)
+ elementbit(i + 5) = elementnames(i) & " Damage"  'bits 5-20
+NEXT i
+FOR i = 16 TO numElements - 1
+ elementbit((i - 16) + 32) = elementnames(i) & " Damage"  'bits 144-191 in the main bit array
+NEXT i
+
 
 DIM atk_chain_bitset_names(3) AS STRING
 atk_chain_bitset_names(0) = "Attacker must know chained attack"
@@ -476,7 +488,7 @@ NEXT
 
 '----------------------------------------------------------------------
 '--menu content
-CONST MnuItems = 139
+CONST MnuItems = 140
 DIM menu(MnuItems) AS STRING, menutype(MnuItems), menuoff(MnuItems), menulimits(MnuItems)
 
 CONST AtkBackAct = 0
@@ -904,8 +916,12 @@ FOR i = 0 TO small(63, numElements - 1)
  menuoff(AtkElementalFails + i) = AtkDatElementalFail + i * 3
 NEXT
 
+CONST AtkElemBitAct = 140
+menu(AtkElemBitAct) = "Elemental bits..."
+menutype(AtkElemBitAct) = 1
 
-'Next menu item is 140 (remember to update the dims)
+
+'Next menu item is 141 (remember to update the dims)
 
 '----------------------------------------------------------
 '--menu structure
@@ -913,7 +929,7 @@ DIM workmenu(65), dispmenu(65) AS STRING
 DIM state as MenuState
 state.size = 22
 
-DIM mainMenu(12)
+DIM mainMenu(13)
 mainMenu(0) = AtkBackAct
 mainMenu(1) = AtkChooseAct
 mainMenu(2) = AtkName
@@ -924,9 +940,10 @@ mainMenu(6) = AtkTargAct
 mainMenu(7) = AtkCostAct
 mainMenu(8) = AtkChainAct
 mainMenu(9) = AtkBitAct
-mainMenu(10) = AtkElementFailAct
-mainMenu(11) = AtkTagAct
-mainMenu(12) = AtkTransmogAct
+mainMenu(10) = AtkElemBitAct
+mainMenu(11) = AtkElementFailAct
+mainMenu(12) = AtkTagAct
+mainMenu(13) = AtkTransmogAct
 
 DIM appearMenu(10)
 appearMenu(0) = AtkBackAct
@@ -1204,6 +1221,24 @@ DO
     NEXT i
     FOR i = 0 TO 7
      recbuf(AtkDatBitsets2 + i) = buffer(4 + i)
+    NEXT i
+   CASE AtkElemBitAct
+    'merge the two blocks of bitsets into the buffer
+    FOR i = 0 TO 1
+     'includes bits 5 - 20
+     buffer(i) = recbuf(AtkDatBitsets + i)
+    NEXT i
+    FOR i = 0 TO 2
+     'bits 80 - 127
+     buffer(2 + i) = recbuf(AtkDatBitsets2 + 5 + i)
+    NEXT i
+    editbitset buffer(), 0, UBOUND(elementbit), elementbit(), "attack_element_bitsets"
+    'split the buffer to the two bitset blocks
+    FOR i = 0 TO 1
+     recbuf(AtkDatBitsets + i) = buffer(i)
+    NEXT i
+    FOR i = 0 TO 2
+     recbuf(AtkDatBitsets2 + 5 + i) = buffer(2 + i)
     NEXT i
    CASE AtkChainBits
     editbitset recbuf(), AtkDatChainBits, UBOUND(atk_chain_bitset_names), atk_chain_bitset_names(), "attack_chain_bitsets"

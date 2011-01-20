@@ -176,7 +176,7 @@ CONST inventoryMax = 599 'last inventory slot num (divisible by 3 when you count
 CONST maplayerMax = 7 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
 CONST dissolveTypeMax = 10 'Highest numbered frame dissolve effect
-CONST maxElements = 16 'Maximum selectable number of elements
+CONST maxElements = 64 'Maximum selectable number of elements
 CONST numElements = 16 'Number of elements defined in this game (only a constant temporarily)
 #IFDEF SCRIPTPROFILE
 CONST scriptmemMax = 10000000 'in 4-byte ints

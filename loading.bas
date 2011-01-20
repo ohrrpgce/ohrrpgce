@@ -2296,8 +2296,11 @@ SUB convertattackdata(buf() AS INTEGER, BYREF atkdat AS AttackData)
   .absorb_damage                  = xreadbit(buf(), 2, 20)
   .unreversable_picture           = xreadbit(buf(), 3, 20)
   .can_steal_item                 = xreadbit(buf(), 4, 20)
-  FOR i AS INTEGER = 0 TO numElements - 1
+  FOR i AS INTEGER = 0 TO small(15, numElements - 1)
    .elemental_damage(i)           = xreadbit(buf(), 5+i, 20)
+  NEXT
+  FOR i AS INTEGER = 16 TO numElements - 1
+   .elemental_damage(i)           = xreadbit(buf(), 80+(i-16), 65)
   NEXT
   'Obsolete:
   'FOR i AS INTEGER = 0 TO 7

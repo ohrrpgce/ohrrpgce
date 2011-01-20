@@ -16,6 +16,13 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2011-01-17:
+The "Fail vs. enemy type #" attack bits have been removed from the attack
+editor. They haven't actually done anything since Jan 7th (revision 4087),
+when they were replaced with elemental failure conditions for elements 9-16,
+but we forgot to remove the old bits. So if you've used them in that time,
+you'll have to re-apply your changes (to the new conditions).
+
 2011-01-05:
 Yesterday's fix could overzealously clamp hero sprite and palette settings
 when you entered the hero editor. Flick through your heroes to check they're
