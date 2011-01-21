@@ -22,6 +22,7 @@ DECLARE FUNCTION percent_grabber OVERLOAD (BYREF float AS DOUBLE, repr AS STRING
 DECLARE FUNCTION percent_grabber OVERLOAD (BYREF float AS SINGLE, repr AS STRING, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4) AS INTEGER
 DECLARE FUNCTION format_percent_cond(BYREF cond AS AttackElementCondition, default AS STRING, BYVAL decimalplaces AS INTEGER = 4) AS STRING
 DECLARE FUNCTION percent_cond_grabber(BYREF cond AS AttackElementCondition, repr AS STRING, default AS STRING, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4) AS INTEGER
+DECLARE SUB percent_cond_editor (cond as AttackElementCondition, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4, do_what as string = "...", percent_of_what AS STRING = "")
 DECLARE SUB ui_color_editor(palnum AS INTEGER)
 DECLARE SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
 DECLARE FUNCTION int_from_xy(pos AS XYPair, wide AS INTEGER, high AS INTEGER) AS INTEGER

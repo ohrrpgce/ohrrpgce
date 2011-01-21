@@ -673,6 +673,47 @@ FUNCTION percent_cond_grabber(byref cond as AttackElementCondition, repr as stri
  END WITH
 END FUNCTION
 
+SUB percent_cond_editor (cond as AttackElementCondition, byval min as double, byval max as double, byval decimalplaces as integer = 4, do_what as string = "...", percent_of_what as string = "")
+ DIM cond_types(2) as integer = {compNone, compLt, compGt}
+ DIM type_num as integer
+ FOR i as integer = 0 TO 2
+  IF cond.type = cond_types(i) THEN type_num = i
+ NEXT
+
+ DIM menu(2) as string
+ menu(0) = "Previous Menu"
+ DIM st as MenuState
+ st.size = 18
+ st.pt = 1
+
+ DIM repr as string = format_percent(cond.value, decimalplaces)
+
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 OR enter_or_space() THEN EXIT DO
+  IF keyval(scF1) > 1 THEN show_help "percent_cond_editor"
+  SELECT CASE st.pt
+   CASE 1: IF intgrabber(type_num, 0, 2) THEN cond.type = cond_types(type_num)
+   CASE 2: percent_grabber(cond.value, repr, min, max, decimalplaces)
+  END SELECT
+
+  'Update
+  IF cond.type = compNone THEN menu(1) = "Condition: Never"
+  IF cond.type = compGt THEN menu(1) = "Condition: " + do_what + " when more than..."
+  IF cond.type = compLt THEN menu(1) = "Condition: " + do_what + " when less than..."
+  menu(2) = "Threshold: " + repr + percent_of_what
+  st.last = IIF(cond.type = compNone, 1, 2)
+
+  usemenu st
+
+  clearpage vpage
+  standardmenu menu(), st, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
+END SUB
+
 SUB ui_color_editor(palnum AS INTEGER)
  DIM i AS INTEGER
  DIM index AS INTEGER

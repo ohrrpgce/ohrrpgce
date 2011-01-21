@@ -902,7 +902,7 @@ menuoff(AtkTransmogStats) = AtkDatTransmogStats
 menulimits(AtkTransmogStats) = AtkLimTransmogStats
 
 CONST AtkElementFailAct = 74
-menu(AtkElementFailAct) = "Elemental failure..."
+menu(AtkElementFailAct) = "Elemental failure conditions..."
 menutype(AtkElementFailAct) = 1
 
 CONST AtkElementalFailHeader = 75
@@ -1257,6 +1257,13 @@ DO
     saveattackdata recbuf(), recindex
     recindex = attack_chain_browser(recindex)
     loadattackdata recbuf(), recindex
+    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
+    state.need_update = YES
+   CASE AtkElementalFails TO AtkElementalFails + 63
+    DIM cond as AttackElementCondition
+    DeSerAttackElementCond cond, recbuf(), menuoff(workmenu(state.pt))
+    percent_cond_editor cond, -1000.0, 1000.0, 4, "Fail", " damage" + menu(workmenu(state.pt))  'Fail when ... damage from <elem>
+    SerAttackElementCond cond, recbuf(), menuoff(workmenu(state.pt))
     update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
     state.need_update = YES
   END SELECT
