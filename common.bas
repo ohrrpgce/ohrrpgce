@@ -3195,7 +3195,7 @@ IF full_upgrade ANDALSO getfixbit(fixEnemyElementals) = 0 THEN
  upgrade_message "Initialising enemy elemental resists..."
  setfixbit(fixEnemyElementals, 1)
  REDIM dat(dimbinsize(binDT1)) AS INTEGER
- FOR i = 0 TO gen(genMaxAttack)
+ FOR i = 0 TO gen(genMaxEnemy)
   loadenemydata dat(), i
   FOR j = 0 TO 63
    SerSingle(dat(), 239 + j*2, loadoldenemyresist(dat(), j))

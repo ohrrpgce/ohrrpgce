@@ -23,8 +23,22 @@
 
 #include "editrunner.bi"
 
+'just for debugging
+#include "sliceedit.bi"
+
 USING Reload
 USING Reload.Ext
+
+'-----------------------------------------------------------------------
+
+'NOTE: these ought to be the same as the lookup codes defined
+'in the widgets/widgets.rpg file, but that is just a convenience file
+'and we don't currently enforce any such synchronization.
+CONST eeslCaption = 1
+CONST eeslValue = 2
+CONST eeslPreview = 3
+CONST eeslCondition = 4
+CONST eeslCheck = 5
 
 '-----------------------------------------------------------------------
 
@@ -39,7 +53,11 @@ END TYPE
 
 '-----------------------------------------------------------------------
 
+DECLARE SUB edrun_init_sl (BYREF es AS EditorState)
 DECLARE SUB edrun_update (BYREF es AS EditorState)
+DECLARE FUNCTION edrun_create_widget_slice(BYVAL widget AS NodePtr) AS Slice Ptr
+DECLARE SUB edrun_position_new_widget(BYREF es AS EditorState, BYVAL sl AS Slice Ptr)
+DECLARE SUB edrun_populate_new_widget(BYVAL widget AS NodePtr, BYVAL sl AS Slice Ptr)
 
 '-----------------------------------------------------------------------
 
@@ -76,6 +94,8 @@ SUB editor_runner(BYVAL root AS NodePtr)
  es.widget_state_doc = CreateDocument()
  es.widget_state = DocumentRoot(es.widget_state_doc)
  
+ edrun_init_sl es
+ 
  setkeys
  DO
   setwait 55
@@ -87,8 +107,12 @@ SUB editor_runner(BYVAL root AS NodePtr)
   END IF
 
   IF keyval(scESC) > 1 THEN EXIT DO
+  
+  IF keyval(scF6) THEN slice_editor es.root_sl
 
   clearpage dpage
+
+  DrawSlice es.root_sl, dpage
 
   SWAP vpage, dpage
   setvispage vpage
@@ -101,7 +125,7 @@ END SUB
 
 '-----------------------------------------------------------------------
 
-SUB edrun_update (BYREF es AS EditorState)
+SUB edrun_init_sl (BYREF es AS EditorState)
  DeleteSlice @es.root_sl
  es.scroller = 0
  FreeNode es.widget_state
@@ -110,22 +134,101 @@ SUB edrun_update (BYREF es AS EditorState)
  es.root_sl->Fill = YES
  
  es.scroller = NewSliceOfType(slContainer, es.root_sl)
- 
+END SUB
+
+SUB edrun_update (BYREF es AS EditorState)
+
  DIM widget_container AS NodePtr
  widget_container = NodeByPath(es.root, "/widgets")
  IF widget_container = 0 THEN
   pop_warning("Editor definition has no widget container node")
   EXIT SUB
  END IF
- 
+
  DIM widget AS Nodeptr
  widget = FirstChild(widget_container, "widget")
  
+ DIM sl AS Slice ptr
  DO WHILE widget
-  debug NodeName(widget)
+  sl = edrun_create_widget_slice(widget)
+  debug "WIDGET:" & GetString(widget) & " " & GetChildNodeStr(widget, "caption")
+  IF sl THEN
+   edrun_position_new_widget(es, sl)
+   edrun_populate_new_widget(widget, sl)
+  END IF
   widget = NextSibling(widget, "widget")
  LOOP
  
 END SUB
 
 '-----------------------------------------------------------------------
+
+FUNCTION edrun_create_widget_slice(BYVAL widget AS NodePtr) AS Slice Ptr
+ IF widget = 0 THEN
+  pop_warning("can't create slice for null widget!")
+  RETURN 0
+ END IF
+ DIM sl AS Slice Ptr
+ sl = NewSliceOfType(slSpecial)
+ DIM kind AS STRING
+ kind = GetString(widget)
+ DIM dirname AS STRING
+ dirname = finddatadir("widgets")
+ IF dirname = "" THEN
+  pop_warning("Can't find widget data dir!")
+  RETURN 0
+ END IF
+ DIM filename AS STRING
+ filename =  dirname & SLASH & kind & ".widget.slice"
+ IF isfile(filename) THEN
+  SliceLoadFromFile sl, filename
+  IF sl THEN
+  ELSE
+   debuginfo "edrun_create_widget_slice: slice load failed"
+  END IF
+ ELSE
+  debuginfo "edrun_create_widget_slice: no widget file for " & kind
+ END IF
+ RETURN sl
+END FUNCTION
+
+'-----------------------------------------------------------------------
+
+SUB edrun_position_new_widget(BYREF es AS EditorState, BYVAL sl AS Slice Ptr)
+ IF sl = 0 THEN pop_warning "edrun_position_new_widget: null sl": EXIT SUB
+
+ sl->Fill = NO
+ sl->Width = 0
+ sl->Height = 0
+
+ DIM after AS Slice Ptr
+ after = LastChild(es.scroller)
+ 
+ SetSliceParent sl, es.scroller
+ IF after = 0 THEN
+  'First widget, nothing to see here, move along folks!
+  EXIT SUB
+ END IF
+
+ DIM capsl AS Slice Ptr
+ capsl = LookupSlice(eeslCaption, after)
+ 
+ IF capsl = 0 THEN
+  debuginfo "edrun_position_new_widget: sanity fail. no caption slice found": EXIT SUB
+ END IF
+
+ sl->y = after->y + SliceEdgeY(capsl, 2)
+ debug "sl->y = " & sl->y
+ 
+
+END SUB
+
+SUB edrun_populate_new_widget(BYVAL widget AS NodePtr, BYVAL sl AS Slice Ptr)
+ DIM capsl AS Slice Ptr
+ capsl = LookupSlice(eeslCaption, sl)
+ DIM s AS STRING
+ s = GetChildNodeStr(widget, "caption")
+ debug "s=" & s
+ ChangeTextSlice capsl, s
+END SUB
+
