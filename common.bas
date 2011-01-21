@@ -3008,12 +3008,24 @@ IF getfixbit(fixWeapPoints) = 0 THEN
  LOOP
 END IF
 
-IF getfixbit(fixStunCancelTarg) = 0 THEN
- upgrade_message "Target disabling old stun attacks..."
- setfixbit(fixStunCancelTarg, 1)
+DIM fix_stun as integer = (getfixbit(fixStunCancelTarg) = 0)
+DIM fix_dam_mp as integer = (getfixbit(fixRemoveDamageMP) = 0) AND full_upgrade
+IF fix_stun OR fix_dam_mp THEN
+ IF fix_stun THEN
+  upgrade_message "Target disabling old stun attacks..."
+  setfixbit(fixStunCancelTarg, 1)
+ END IF
+ IF fix_dam_mp THEN
+  upgrade_message "Remove obsolete 'Damage MP' bit..."
+  setfixbit(fixRemoveDamageMP, 1)
+ END IF
  REDIM dat(40 + dimbinsize(binATTACK)) AS INTEGER
  FOR i = 0 to gen(genMaxAttack)
+  DIM saveattack as integer = NO
   loadattackdata dat(), i
+  DIM dam_mp as integer = readbit(dat(), 20, 60)
+  setbit dat(), 20, 60, NO
+  IF dam_mp THEN saveattack = YES
   IF dat(18) = 14 THEN '--Target stat is stun register
    IF readbit(dat(), 20, 0) THEN CONTINUE FOR '--cure instead of harm
    IF dat(5) = 5 OR dat(5) = 6 THEN '--set to percentage
@@ -3021,8 +3033,11 @@ IF getfixbit(fixStunCancelTarg) = 0 THEN
    END IF
    'Turn on the disable target attack bit
    setbit dat(), 65, 12, YES
-   saveattackdata dat(), i
+   saveattack = YES
+  ELSEIF dat(18) = statHP ANDALSO dam_mp THEN  '--targstat = HP and Damage MP
+   dat(18) = statMP
   END IF
+  IF saveattack THEN saveattackdata dat(), i
  NEXT
 END IF
 

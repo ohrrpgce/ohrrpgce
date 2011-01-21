@@ -170,8 +170,9 @@ CONST fixAttackElementFails = 17 'Initialized all 64 attack elemental fail condi
 CONST fixEnemyElementals = 18    'Set enemy elemental resists from old weak/strong/absorb/enemytype bits
 CONST fixItemElementals = 19     'Set equipment elemental resists from old weak/strong/absorb bits
 CONST fixNumElements = 20        'Set genNumElements to 16
+CONST fixRemoveDamageMP = 21      'Removed the obsolete Damage MP attack bit
 
-CONST sizefixbits = 20 ' *** Update this when adding fix bits ***
+CONST sizefixbits = 21 ' *** Update this when adding fix bits ***
 
 '---Sizes (replaceable with variables when suitable)
 CONST max_npc_defs = 500 'max number of NPC IDs definable in Custom
