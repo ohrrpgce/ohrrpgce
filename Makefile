@@ -145,7 +145,7 @@ endif
 endif
 
 
-common_modules+=allmodex backends lumpfile compat bam2mid common browse util loading reload reloadext slices
+common_modules+=allmodex backends lumpfile compat bam2mid common bcommon browse util loading reload reloadext slices
 common_objects+=$(addsuffix .o,$(common_modules))
 common_sources:=$(addsuffix .bas,$(common_modules))
 

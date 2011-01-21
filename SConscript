@@ -135,6 +135,7 @@ common_modules += [v + '.bas' for v in Split ("""allmodex
                    compat
                    bam2mid
                    common
+                   bcommon
                    browse
                    util
                    loading
