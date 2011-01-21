@@ -81,6 +81,10 @@ SUB debug (e$)
  PRINT e$
 END SUB
 
+SUB debuginfo (e$)
+ PRINT e$
+END SUB
+
 SUB fatalerror (e$)
  IF e$ <> "" THEN PRINT "ERROR: " + e$
  SYSTEM
