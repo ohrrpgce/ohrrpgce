@@ -3182,15 +3182,27 @@ IF getfixbit(fixHeroPortrait) = 0 OR getfixbit(fixHeroElementals) = 0 THEN
  NEXT i
 END IF
 
-IF getfixbit(fixTextBoxPortrait) = 0 THEN
+'This fixbit was introduced at the same time as textbox portraits,
+'so if it's not on, then the game doesn't use portraits, so it doesn't
+'need to be fixed for Game.
+IF full_upgrade AND getfixbit(fixTextBoxPortrait) = 0 THEN
  upgrade_message "Initialize text box portrait data..."
  setfixbit(fixTextBoxPortrait, 1)
- DIM box AS TextBox
+ 'DIM box AS TextBox
+ DIM boxbuf(dimbinsize(binSAY)) AS INTEGER
+ DIM recsize as integer = getbinsize(binSAY) \ 2
+ fh = FREEFILE
+ OPEN game & ".say" FOR BINARY ACCESS READ WRITE AS #fh
  FOR i = 0 TO gen(genMaxTextBox)
-  LoadTextBox box, i
-  box.portrait_pal = -1 'Default palette
-  SaveTextBox box, i
+  'This was stupefying slow, by far the slowest of all upgrades
+  'LoadTextBox box, i
+  'box.portrait_pal = -1 'Default palette
+  'SaveTextBox box, i
+  loadrecord boxbuf(), fh, recsize, i
+  boxbuf(202) = -1 'Default palette
+  storerecord boxbuf(), fh, recsize, i
  NEXT i
+ CLOSE #fh
 END IF
 
 IF getfixbit(fixInitDamageDisplay) = 0 THEN
