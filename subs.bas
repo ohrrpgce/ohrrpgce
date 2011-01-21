@@ -595,6 +595,7 @@ recindex = 0
 
 DIM rememberindex AS INTEGER = -1
 DIM show_name AS INTEGER = 0
+DIM drawpreview AS INTEGER = YES
 
 'load data here
 GOSUB EnLoadSub
@@ -611,6 +612,7 @@ DO
   IF menudepth = 1 THEN
    GOSUB EnBackSub
    helpkey = "enemy"
+   drawpreview = YES
   ELSE
    EXIT DO
   END IF
@@ -664,6 +666,7 @@ DO
     IF menudepth = 1 THEN
      GOSUB EnBackSub
      helpkey = "enemy"
+     drawpreview = YES
     ELSE
      EXIT DO
     END IF
@@ -686,16 +689,19 @@ DO
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), spawnMenu(), state
     helpkey = "enemy_spawning"
+   	drawpreview = NO
     GOSUB EnUpdateMenu
    CASE EnMenuAtkAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), atkMenu(), state
     helpkey = "enemy_attacks"
+   	drawpreview = NO
     GOSUB EnUpdateMenu
    CASE EnMenuElementalsAct
     GOSUB EnPushPtrSub
     setactivemenu workmenu(), elementalMenu(), state
     helpkey = "enemy_elementals"
+    drawpreview = NO
     GOSUB EnUpdateMenu
    CASE EnMenuPal
     recbuf(EnDatPal) = pal16browse(recbuf(EnDatPal), recbuf(EnDatPicSize) + 1, recbuf(EnDatPic))
@@ -747,21 +753,21 @@ DO
  'lag time after fading out, to give a more realistic preview
  preview->Visible = (dissolve_ticks <= dissolve_time)
 
- 
- DrawSlice preview_box, dpage
+ clearpage vpage
+ IF drawpreview THEN
+  DrawSlice preview_box, vpage
+ END IF
 
- standardmenu dispmenu(), state, 0, 0, dpage
- draw_fullscreen_scrollbar state, , dpage
+ standardmenu dispmenu(), state, 0, 0, vpage
+ draw_fullscreen_scrollbar state, , vpage
  IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just pressed TAB
   show_name = large(0, show_name - 1)
   tmp$ = readbadbinstring$(recbuf(), EnDatName, 15, 0) & " " & recindex
   textcolor uilook(uiText), uilook(uiHighlight)
-  printstr tmp$, 320 - LEN(tmp$) * 8, 0, dpage
+  printstr tmp$, 320 - LEN(tmp$) * 8, 0, vpage
  END IF
 
- SWAP vpage, dpage
  setvispage vpage
- copypage 3, dpage
  dowait
 LOOP
 

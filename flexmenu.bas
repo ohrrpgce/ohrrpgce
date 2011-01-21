@@ -480,7 +480,7 @@ min(AtkLimTransmogEnemy) = 0
 
 DIM AtkCapFailConds AS INTEGER = capindex
 FOR i = 0 TO 63
- addcaption caption(), capindex, ": [No Condition]"
+ addcaption caption(), capindex, " [No Condition]"
  addcaption caption(), capindex, "" '--updated by update_attack_editor_for_fail_conds()
 NEXT
 
@@ -911,7 +911,7 @@ menutype(AtkElementalFailHeader) = 18  'skip
 
 CONST AtkElementalFails = 76
 FOR i = 0 TO small(63, gen(genNumElements) - 1)
- menu(AtkElementalFails + i) = " from " + elementnames(i)
+ menu(AtkElementalFails + i) = " from " + rpad(elementnames(i), " ", 15)
  menutype(AtkElementalFails + i) = 4000 + AtkCapFailConds + i * 2  'percent_cond_grabber
  menuoff(AtkElementalFails + i) = AtkDatElementalFail + i * 3
 NEXT
@@ -1075,6 +1075,7 @@ laststate.need_update = NO
 
 DIM rememberindex AS INTEGER = -1
 DIM show_name AS INTEGER = 0
+DIM drawpreview AS INTEGER = YES
 STATIC warned_old_fail_bit AS INTEGER = NO
 
 'load data here
@@ -1097,6 +1098,7 @@ DO
   IF menudepth = 1 THEN
    atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth
    helpkey = "attacks"
+   drawpreview = YES
   ELSE
    EXIT DO
   END IF
@@ -1163,6 +1165,7 @@ DO
     IF menudepth = 1 THEN
      atk_edit_backptr workmenu(), mainMenu(), state, laststate, menudepth
      helpkey = "attacks"
+     drawpreview = YES
     ELSE
      EXIT DO
     END IF
@@ -1195,6 +1198,7 @@ DO
      show_help "attack_warn_old_fail_bit"
      warned_old_fail_bit = YES
     END IF
+    drawpreview = NO
    CASE AtkTagAct
     atk_edit_pushptr state, laststate, menudepth
     setactivemenu workmenu(), tagMenu(), state
@@ -1288,8 +1292,10 @@ DO
  END IF
 
  clearpage dpage
- atk_edit_preview recbuf(AtkDatAnimPattern), preview
- DrawSlice preview_box, dpage
+ IF drawpreview THEN
+  atk_edit_preview recbuf(AtkDatAnimPattern), preview
+  DrawSlice preview_box, dpage
+ END IF
 
  standardmenu dispmenu(), state, 0, 0, dpage
  IF keyval(scAlt) > 0 OR show_name > 0 THEN 'holding ALT or just tab-flipped, show ID and name
@@ -1655,7 +1661,7 @@ SUB update_attack_editor_for_fail_conds(recbuf() as integer, caption() as string
  DIM cond as AttackElementCondition
  FOR i as integer = 0 TO 63
   DeSerAttackElementCond cond, recbuf(), 121 + i * 3
-  caption(AtkCapFailConds + i * 2 + 1) = format_percent_cond(cond, ": [No Condition]")
+  caption(AtkCapFailConds + i * 2 + 1) = format_percent_cond(cond, " [No Condition]")
  NEXT
 END SUB
 
