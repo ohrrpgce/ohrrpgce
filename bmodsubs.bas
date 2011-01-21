@@ -324,6 +324,10 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
    .harm.pos.y = .y + (.h * .5)
   
    targstat = bound(attack.targ_stat, 0, UBOUND(.stat.cur.sta))
+   'backcompat MP-targstat
+   IF attack.obsolete_damage_mp THEN
+    IF targstat = statHP THEN targstat = statMP
+   END IF
   END WITH
  
   'accuracy
@@ -473,11 +477,6 @@ FUNCTION inflict (BYREF h AS INTEGER, BYREF targstat AS INTEGER, w as integer, t
    h = 0
   ELSEIF h <= 0 THEN
    IF attack.damage_can_be_zero = NO THEN h = 1 ELSE h = 0
-  END IF
- 
-  'backcompat MP-targstat
-  IF attack.obsolete_damage_mp THEN
-   IF targstat = 0 THEN targstat = 1
   END IF
  
   'remember target stat
