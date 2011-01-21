@@ -3023,19 +3023,23 @@ IF fix_stun OR fix_dam_mp THEN
  FOR i = 0 to gen(genMaxAttack)
   DIM saveattack as integer = NO
   loadattackdata dat(), i
-  DIM dam_mp as integer = readbit(dat(), 20, 60)
-  setbit dat(), 20, 60, NO
-  IF dam_mp THEN saveattack = YES
-  IF dat(18) = 14 THEN '--Target stat is stun register
-   IF readbit(dat(), 20, 0) THEN CONTINUE FOR '--cure instead of harm
+  IF fix_stun AND dat(18) = 14 THEN '--Target stat is stun register
+   IF readbit(dat(), 20, 0) THEN GOTO skipfix '--cure instead of harm
    IF dat(5) = 5 OR dat(5) = 6 THEN '--set to percentage
-    IF dat(11) >= 0 THEN CONTINUE FOR'-- set to >= 100%
+    IF dat(11) >= 0 THEN GOTO skipfix '-- set to >= 100%
    END IF
    'Turn on the disable target attack bit
    setbit dat(), 65, 12, YES
    saveattack = YES
-  ELSEIF dat(18) = statHP ANDALSO dam_mp THEN  '--targstat = HP and Damage MP
-   dat(18) = statMP
+  END IF
+  skipfix:
+
+  IF fix_dam_mp THEN
+   IF readbit(dat(), 20, 60) THEN '--Damage MP
+    setbit dat(), 20, 60, NO
+    saveattack = YES
+    IF dat(18) = statHP THEN dat(18) = statMP
+   END IF
   END IF
   IF saveattack THEN saveattackdata dat(), i
  NEXT
