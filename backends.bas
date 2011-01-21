@@ -46,7 +46,7 @@ dim gfx_describe_options as function () as zstring ptr
 dim io_init as sub ()
 dim io_pollkeyevents as sub ()
 dim io_waitprocessing as sub ()
-dim io_keybits as sub (keybdarray as integer ptr)
+dim io_keybits as sub (byval keybdarray as integer ptr)
 dim io_updatekeys as sub (byval keybd as integer ptr)
 dim io_mousebits as sub (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 dim io_setmousevisibility as sub (byval visible as integer)
@@ -110,7 +110,7 @@ function gfx_dummy_getresize(byref ret as XYPair) as integer : return NO : end f
 sub gfx_dummy_setresizable(byval able as integer) : end sub
 sub io_dummy_waitprocessing() : end sub
 sub io_dummy_pollkeyevents() : end sub
-sub io_dummy_keybits(keybdarray as integer ptr) : end sub
+sub io_dummy_keybits(byval keybdarray as integer ptr) : end sub
 sub io_dummy_updatekeys(byval keybd as integer ptr) : end sub
 sub io_dummy_mousebits(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer) : end sub
 sub io_dummy_getmouse(byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer) : end sub

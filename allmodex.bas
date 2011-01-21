@@ -1023,7 +1023,10 @@ SUB setkeys ()
 	end if
 
 	for a = 0 to &h7f
-		if (keybd(a) and 4) or (keybd(a) and 1) = 0 then  'I am also confused
+		'Duplicate bit 1 (key was triggered) to bit 2 (new keypress)
+		keybd(a) = (keybd(a) and 3) or ((keybd(a) and 2) shl 1)
+
+		if (keybd(a) and 2) or (keybd(a) and 1) = 0 then  'I am also confused
 			keysteps(a) = 0
 		end if
 		if keybd(a) and 1 then
@@ -1112,7 +1115,7 @@ SUB setquitflag ()
 END SUB
 
 'these are wrappers provided by the polling thread
-SUB io_amx_keybits cdecl (keybdarray as integer ptr)
+SUB io_amx_keybits cdecl (byval keybdarray as integer ptr)
 	for a as integer = 0 to &h7f
 		keybdarray[a] = keybdstate(a)
 		keybdstate(a) = keybdstate(a) and 1
@@ -1142,11 +1145,11 @@ sub pollingthread(byval unused as any ptr)
 				'decide whether to fire a new key event, otherwise the keystate is preserved
 				if (keybdstate(a) and 1) = 0 then
 					'this is a new keypress
-					keybdstate(a) = keybdstate(a) or 6 'key was triggered, new keypress
+					keybdstate(a) = keybdstate(a) or 2
 				end if
 			end if
 			'move the bit (clearing it) that io_updatekeys sets from 8 to 1
-			keybdstate(a) = (keybdstate(a) and 6) or ((keybdstate(a) shr 3) and 1)
+			keybdstate(a) = (keybdstate(a) and 2) or ((keybdstate(a) shr 3) and 1)
 		next
 
 		io_getmouse(dummy, dummy, dummy, buttons)

@@ -468,7 +468,7 @@ SUB keycombos_logic(evnt as SDL_Event)
     END IF
     'SDL doesn't actually seem to send SDLK_QUESTION...
     IF evnt.key.keysym.sym = SDLK_SLASH AND evnt.key.keysym.mod_ AND KMOD_SHIFT THEN
-      keybdstate(scF1) = 6
+      keybdstate(scF1) = 2
     END IF
     FOR i as integer = 1 TO 4
       IF evnt.key.keysym.sym = SDLK_0 + i THEN
@@ -493,8 +493,8 @@ SUB gfx_sdl_process_events()
         keycombos_logic(evnt)
         DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
         'lowest bit is now set in io_keybits, from SDL_GetKeyState
-        'IF key THEN keybdstate(key) = 7
-        IF key THEN keybdstate(key) = 6
+        'IF key THEN keybdstate(key) = 3
+        IF key THEN keybdstate(key) = 2
         'debug "key down: " & evnt.key.keysym.sym & " -> " & key
       CASE SDL_KEYUP
         DIM AS INTEGER key = scantrans(evnt.key.keysym.sym)
@@ -556,7 +556,7 @@ SUB io_sdl_waitprocessing()
   update_state()
 END SUB
 
-SUB io_sdl_keybits (keybdarray as integer ptr)
+SUB io_sdl_keybits (BYVAL keybdarray as integer ptr)
   FOR a as integer = 0 TO &h7f
     keybdarray[a] = keybdstate(a)
     keybdstate(a) = keybdstate(a) and 1

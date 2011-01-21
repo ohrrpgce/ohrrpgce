@@ -49,8 +49,8 @@ extern Io_waitprocessing as sub ()
 'one of io_keybits or io_updatekeys, and one of io_mousebits or io_getmouse is required.
 
 '(optional) Primary keyboard state function. Get keypress events (since last call) and keyboard state:
-'bit 0: key down, bit 1 and 2: keypress since last call
-extern Io_keybits as sub (keybdarray as integer ptr)
+'bit 0: key down, bit 1: keypress since last call
+extern Io_keybits as sub (byval keybdarray as integer ptr)
 
 '(optional, thread safe) Get current up/down state of each key. Only used by the polling thread, not needed otherwise
 'set bit 3 (8) on each key if current down
@@ -79,7 +79,7 @@ extern Io_readjoysane as function (byval as integer, byref as integer, byref as 
 'Allowed to be called from another thread.
 declare sub post_terminate_signal ()
 
-declare sub Io_amx_keybits (keybdarray as integer ptr)
+declare sub Io_amx_keybits (byval keybdarray as integer ptr)
 declare sub Io_amx_mousebits (byref mx as integer, byref my as integer, byref mwheel as integer, byref mbuttons as integer, byref mclicks as integer)
 
 ' functions in blit.c
