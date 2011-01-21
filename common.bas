@@ -3008,9 +3008,11 @@ IF getfixbit(fixWeapPoints) = 0 THEN
  LOOP
 END IF
 
+'Upgrade attack data
 DIM fix_stun as integer = (getfixbit(fixStunCancelTarg) = 0)
 DIM fix_dam_mp as integer = (getfixbit(fixRemoveDamageMP) = 0) AND full_upgrade
-IF fix_stun OR fix_dam_mp THEN
+DIM fix_elem_fails as integer = (getfixbit(fixAttackElementFails) = 0) AND full_upgrade
+IF fix_stun OR fix_dam_mp OR fix_elem_fails THEN
  IF fix_stun THEN
   upgrade_message "Target disabling old stun attacks..."
   setfixbit(fixStunCancelTarg, 1)
@@ -3019,10 +3021,16 @@ IF fix_stun OR fix_dam_mp THEN
   upgrade_message "Remove obsolete 'Damage MP' bit..."
   setfixbit(fixRemoveDamageMP, 1)
  END IF
+ IF fix_elem_fails THEN
+  upgrade_message "Initialised attack elemental failure conditions..."
+  setfixbit(fixAttackElementFails, 1)
+ END IF
  REDIM dat(40 + dimbinsize(binATTACK)) AS INTEGER
+ DIM cond AS AttackElementCondition
  FOR i = 0 to gen(genMaxAttack)
   DIM saveattack as integer = NO
   loadattackdata dat(), i
+
   IF fix_stun AND dat(18) = 14 THEN '--Target stat is stun register
    IF readbit(dat(), 20, 0) THEN GOTO skipfix '--cure instead of harm
    IF dat(5) = 5 OR dat(5) = 6 THEN '--set to percentage
@@ -3041,6 +3049,15 @@ IF fix_stun OR fix_dam_mp THEN
     IF dat(18) = statHP THEN dat(18) = statMP
    END IF
   END IF
+
+  IF fix_elem_fails THEN
+   FOR j = 0 TO 63
+    loadoldattackelementalfail cond, dat(), j
+    SerAttackElementCond cond, dat(), 121 + j * 3
+   NEXT
+   saveattack = YES
+  END IF
+
   IF saveattack THEN saveattackdata dat(), i
  NEXT
 END IF
@@ -3193,21 +3210,6 @@ IF getfixbit(fixOldElementalFailBit) = 0 THEN
  upgrade_message "Enabling 'Simulate old fail vs. element resist bit' bitset"
  setfixbit(fixOldElementalFailBit, 1)
  setbit gen(), genBits2, 9, 1
-END IF
-
-IF full_upgrade ANDALSO getfixbit(fixAttackElementFails) = 0 THEN
- upgrade_message "Initialised attack elemental failure conditions..."
- setfixbit(fixAttackElementFails, 1)
- REDIM dat(40 + dimbinsize(binATTACK)) AS INTEGER
- DIM cond AS AttackElementCondition
- FOR i = 0 TO gen(genMaxAttack)
-  loadattackdata dat(), i
-  FOR j = 0 TO 63
-   loadoldattackelementalfail cond, dat(), j
-   SerAttackElementCond cond, dat(), 121 + j * 3
-  NEXT
-  saveattackdata dat(), i
- NEXT
 END IF
 
 IF full_upgrade ANDALSO getfixbit(fixEnemyElementals) = 0 THEN
