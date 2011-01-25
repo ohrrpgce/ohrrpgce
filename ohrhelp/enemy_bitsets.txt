@@ -12,4 +12,4 @@ The "Boss" bit's only effect is on other enemies with the "Die Without Boss" bit
 
 "Win battle even if alive" enemies don't need to be killed for the player to win the battle.
 
-"Ignored for "Alone" AI" enemies aren't considered when another enemy is deciding which set of attacks to use.
+"Ignored for "Alone" AI" enemies with this bitset turned on aren't considered when enemies decide which set of attacks to use. Be aware that this also causes an enemy to ignore ITSELF when checking to see if it is alone.
