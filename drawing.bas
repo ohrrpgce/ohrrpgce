@@ -24,7 +24,7 @@ DECLARE SUB writeundoblock (mover%(), state AS TileEditState)
 DECLARE SUB readundoblock (mover%(), state AS TileEditState)
 DECLARE SUB fliptile (mover%(), ts AS TileEditState)
 DECLARE SUB scrolltile (mover(), ts AS TileEditState, BYVAL shiftx AS INTEGER, BYVAL shifty AS INTEGER)
-DECLARE SUB clicktile (mover(), ts AS TileEditState, mouseclick, BYREF clone AS TileCloneBuffer)
+DECLARE SUB clicktile (mover(), ts AS TileEditState, BYVAL newkeypress as integer, BYREF clone AS TileCloneBuffer)
 DECLARE SUB tilecopy (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tilepaste (cutnpaste%(), ts AS TileEditState)
 DECLARE SUB tiletranspaste (cutnpaste%(), ts AS TileEditState)
@@ -1069,7 +1069,7 @@ DO
   readundoblock mover(), ts
   ts.didscroll = NO  'save a new undo block upon scrolling
  END IF
- IF keyval(scSpace) > 0 THEN clicktile mover(), ts, (mouse.clicks AND mouseLeft), clone
+ IF keyval(scSpace) > 0 THEN clicktile mover(), ts, keyval(scSpace) AND 4, clone
  IF keyval(scEnter) > 1 THEN ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
  SELECT CASE ts.zone
  CASE 1
@@ -1104,7 +1104,7 @@ DO
     ts.curcolor = readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3)
    END IF
   END IF
-  IF mouse.clicks AND mouseLeft THEN clicktile mover(), ts, (mouse.clicks AND mouseLeft), clone
+  IF mouse.buttons AND mouseLeft THEN clicktile mover(), ts, (mouse.clicks AND mouseLeft), clone
  CASE 2
   IF mouse.clicks AND mouseLeft THEN
    ts.curcolor = ((zoy \ 4) * 16) + ((zox MOD 160) \ 10) + (zox \ 160) * 128
@@ -1272,7 +1272,7 @@ SUB tileedit_set_tool (ts AS TileEditState, toolinfo() AS ToolInfoType, BYVAL to
  ts.drawcursor = toolinfo(ts.tool).cursor + 1
 END SUB
 
-SUB clicktile (mover(), ts AS TileEditState, mouseclick, BYREF clone AS TileCloneBuffer)
+SUB clicktile (mover(), ts AS TileEditState, BYVAL newkeypress as integer, BYREF clone AS TileCloneBuffer)
 DIM spot AS XYPair
 
 IF ts.delay > 0 THEN EXIT SUB
@@ -1284,7 +1284,7 @@ SELECT CASE ts.tool
   rectangle ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 1, 1, ts.curcolor, 3
   refreshtileedit mover(), ts
  CASE box_tool
-  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
+  IF newkeypress THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
     rectangle small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.hox), small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.hoy), ABS(ts.x - ts.hox) + 1, ABS(ts.y - ts.hoy) + 1, ts.curcolor, 3
@@ -1297,7 +1297,7 @@ SELECT CASE ts.tool
    END IF
   END IF
  CASE line_tool
-  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
+  IF newkeypress THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
     drawline ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, ts.tilex * 20 + ts.hox, ts.tiley * 20 + ts.hoy, ts.curcolor, 3
@@ -1310,7 +1310,7 @@ SELECT CASE ts.tool
    END IF
   END IF
  CASE fill_tool
-  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
+  IF newkeypress THEN
    writeundoblock mover(), ts
    rectangle 0, 0, 22, 22, ts.curcolor, dpage
    FOR i = 0 TO 19
@@ -1328,13 +1328,13 @@ SELECT CASE ts.tool
    rectangle 0, 0, 22, 22, uilook(uiBackground), dpage
   END IF
  CASE replace_tool
-  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
+  IF newkeypress THEN
    writeundoblock mover(), ts
    replacecolor vpages(3), readpixel(ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, 3), ts.curcolor, ts.tilex * 20, ts.tiley * 20, 20, 20
    refreshtileedit mover(), ts
   END IF
  CASE oval_tool
-  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
+  IF newkeypress THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
     rectangle 0, 0, 22, 22, uilook(uiText), dpage
@@ -1375,7 +1375,7 @@ SELECT CASE ts.tool
   NEXT i
   refreshtileedit mover(), ts
  CASE mark_tool
-  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
+  IF newkeypress THEN
    IF ts.hold = YES THEN
     clone.size.x = ABS(ts.x - ts.hox) + 1
     clone.size.y = ABS(ts.y - ts.hoy) + 1
@@ -1400,7 +1400,7 @@ SELECT CASE ts.tool
    END IF
   END IF
  CASE clone_tool
-  IF mouseclick > 0 OR keyval(scSpace) > 1 THEN
+  IF newkeypress THEN
    IF ts.justpainted = 0 THEN writeundoblock mover(), ts
    ts.justpainted = 3
    IF clone.exists = YES THEN
