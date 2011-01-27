@@ -1463,8 +1463,8 @@ DO
      st.mode = 1
      st.eq_cursor.pt = 0
      st.eq_cursor.top = 0
-     st.eq_cursor.last = st.eq(st.slot).count - 1
-     IF eqstuf(st.who, st.slot) > 0 THEN st.eq_cursor.last += 1
+     'Number of options = num equippable things + nothing/unequip option
+     st.eq_cursor.last = (st.eq(st.slot).count + 1) - 1
      equip_menu_stat_bonus st
      MenuSound gen(genAcceptSFX)
     END IF
@@ -1556,20 +1556,18 @@ DO
   FOR i = st.eq_cursor.top TO st.eq_cursor.top + st.eq_cursor.size
    textcolor uilook(uiMenuItem), 0
    IF i = st.eq_cursor.pt THEN textcolor uilook(uiSelectedItem + tog), uilook(uiHighlight2)
-   IF i >= st.eq(st.slot).count THEN
-    IF i = st.eq(st.slot).count THEN
-     '--unequip option
-     IF st.slot = 0 THEN
-      printstr st.default_weapon_name, 192, 28 + (i - st.eq_cursor.top) * 8, page
-     ELSE
-      printstr st.unequip_caption, 192, 28 + (i - st.eq_cursor.top) * 8, page
-     END IF
+   IF i < st.eq(st.slot).count THEN
+    printstr inventory(st.eq(st.slot).offset(i)).text, 192, 28 + (i - st.eq_cursor.top) * 8, page
+   ELSEIF i = st.eq(st.slot).count THEN
+    '--unequip option
+    IF st.slot = 0 THEN
+     printstr st.default_weapon_name, 192, 28 + (i - st.eq_cursor.top) * 8, page
     ELSE
-     '--all done!
-     EXIT FOR
+     printstr st.unequip_caption, 192, 28 + (i - st.eq_cursor.top) * 8, page
     END IF
    ELSE
-    printstr inventory(st.eq(st.slot).offset(i)).text, 192, 28 + (i - st.eq_cursor.top) * 8, page
+    '--all done!
+    EXIT FOR
    END IF
   NEXT i
  END IF
