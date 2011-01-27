@@ -249,6 +249,7 @@ declare function hash_iter(byref this as HashTable, byref state as integer, byre
 CONST fileTypeDirectory = 0
 CONST fileTypeFile = 1
 
+declare function normalize_path (filename as string) as string
 declare function trimpath (filename as string) as string
 declare function trimfilename (filename as string) as string
 declare function trimextension (filename as string) as string

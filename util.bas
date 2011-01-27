@@ -732,6 +732,17 @@ END FUNCTION
 '------------- File Functions -------------
 
 
+'Change / to \ in paths on Windows
+FUNCTION normalize_path(filename as string) as string
+  DIM ret as string = filename
+#IFDEF __FB_WIN32
+  FOR i as integer = 0 TO LEN(ret) - 1 
+    IF ispathsep(ret[i]) THEN ret[i] = asc(SLASH)
+  NEXT
+#ENDIF
+  RETURN ret
+END FUNCTION
+
 FUNCTION trimpath(filename as string) as string
   'Return the file/directory name without path, and without trailing slash
   'Eg. "a/b/c/" -> "c"
@@ -740,10 +751,10 @@ FUNCTION trimpath(filename as string) as string
   DIM ch as byte
   IF retend > 0 THEN
     ch = filename[retend - 1]
-    IF ch = asc("/") OR ch = asc("\") THEN retend -= 1
+    IF ispathsep(ch) THEN retend -= 1
   END IF
   FOR i = retend TO 1 STEP -1
-    IF filename[i - 1] = asc("\") OR filename[i - 1] = asc("/") THEN
+    IF ispathsep(filename[i - 1]) THEN
       RETURN MID(filename, i + 1, retend - (i + 1) + 1)
     END IF
   NEXT
@@ -755,10 +766,7 @@ FUNCTION trimfilename (filename as string) as string
   'NOT the complement to trimpath:
   'Eg. "a/b/c/" -> "a/b/c"
   DIM i as integer
-  DIM ret as string = filename
-  FOR i = 0 TO LEN(ret) - 1 
-    IF (ret[i] = asc("\")) OR (ret[i] = asc("/")) THEN ret[i] = asc(SLASH)
-  NEXT
+  DIM ret as string = normalize_path(filename)
   RETURN MID(ret, 1, large(0, INSTRREV(ret, SLASH) - 1))
 END FUNCTION
 
@@ -766,7 +774,10 @@ FUNCTION trimextension (filename as string) as string
   'Return the filename (including path) without extension
   'Periods at the beginning of file/folder names are not counted as beginning an extension
   DIM at as integer = INSTRREV(filename, ".")
-  DIM at2 as integer = large(INSTRREV(filename, "\"), INSTRREV(filename, "/"))
+  DIM at2 as integer = INSTRREV(filename, "/")
+#IFDEF __FB_WIN32
+  at2 = large(at2, INSTRREV(filename, "\"))
+#ENDIF
   IF at >= at2 + 2 THEN
     RETURN MID(filename, 1, at - 1)
   ELSE
@@ -778,7 +789,10 @@ FUNCTION justextension (filename as string) as string
   'Return only the extension (everything after the *last* period)
   'Periods at the beginning of file/folder names are not counted as beginning an extension
   DIM at as integer = INSTRREV(filename, ".")
-  DIM at2 as integer = large(INSTRREV(filename, "\"), INSTRREV(filename, "/"))
+  DIM at2 as integer = INSTRREV(filename, "/")
+#IFDEF __FB_WIN32
+  at2 = large(at2, INSTRREV(filename, "\"))
+#ENDIF
   IF at >= at2 + 2 THEN
     RETURN MID(filename, at + 1)
   ELSE
@@ -806,7 +820,8 @@ END FUNCTION
 'Go up a number of directories.
 'pathname is interpreted as a directory even if missing the final slash!
 'Warning, don't actually rely on . and .. being properly handled
-FUNCTION parentdir (pathname as string, BYVAL upamount as integer = 1) as string
+FUNCTION parentdir (path as string, BYVAL upamount as integer = 1) as string
+  DIM pathname as string = normalize_path(path)
   DIM as integer temp, retlen = LEN(pathname)
   WHILE upamount > 0
     WHILE retlen > 0 ANDALSO pathname[retlen - 1] = ASC(SLASH) : retlen -= 1 : WEND
@@ -1057,8 +1072,8 @@ END FUNCTION
 FUNCTION isdir (sDir as string) as integer
 #IFDEF __UNIX__
   'Special hack for broken Linux dir() behavior
-  sDir = escape_string(sDir, """`\$")
-  isdir = SHELL("[ -d """ + sDir + """ ]") = 0
+  dim temp as string = escape_string(sDir, """`\$")
+  isdir = SHELL("[ -d """ + temp + """ ]") = 0
 #ELSE
   'Windows just uses dir (ugh)
   'Have to remove trailing slash, otherwise dir always returns nothing

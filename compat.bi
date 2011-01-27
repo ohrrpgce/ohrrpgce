@@ -145,12 +145,14 @@ option nokeyword gosub
 
 #ifdef __UNIX__
 #define SLASH "/"
+#define ispathsep(character) (character = ASC("/"))
 #define LINE_END !"\n"
 #define CUSTOMEXE "ohrrpgce-custom"
 #define DOTEXE ""
 #define ALLFILES "*"
 #else
 #define SLASH "\"
+#define ispathsep(character) (character = ASC("/") OR character = ASC("\"))
 #define LINE_END !"\r\n"
 #define CUSTOMEXE "CUSTOM.EXE"
 #define DOTEXE ".exe"
