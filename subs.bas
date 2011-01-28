@@ -47,6 +47,7 @@ DECLARE SUB hero_editor_equipbits (BYVAL hero_id AS INTEGER, BYVAL equip_type AS
 DECLARE SUB hero_editor_elementals(BYREF her AS HeroDef)
 DECLARE SUB item_editor_equipbits(itembuf())
 DECLARE SUB item_editor_elementals(itembuf() AS INTEGER)
+DECLARE SUB item_editor_init_new(itembuf() AS INTEGER)
 
 REM $STATIC
 
@@ -1659,7 +1660,7 @@ DO
   IF csr = gen(genMaxItem) + 1 THEN
    IF gen(genMaxItem) < maxMaxItems THEN
     gen(genMaxItem) += 1
-    flusharray a(), dimbinsize(binITM), 0
+    item_editor_init_new a()
     saveitemdata a(), csr
    END IF
   END IF
@@ -2411,4 +2412,11 @@ SUB item_editor_elementals(itembuf() AS INTEGER)
   END IF
   SerSingle itembuf(), 82 + i * 2, elementals(i)
  NEXT
+END SUB
+
+SUB item_editor_init_new(itembuf() AS INTEGER)
+ flusharray itembuf(), dimbinsize(binITM), 0
+ FOR i as integer = 0 TO gen(genNumElements) - 1
+  SerSingle itembuf(), 82 + i * 2, 1.0
+ NEXT i
 END SUB
