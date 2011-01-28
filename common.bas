@@ -4273,7 +4273,7 @@ FUNCTION last_inv_slot() AS INTEGER
  IF gen(genMaxInventory) = 0 THEN RETURN inventoryMax
  '--Otherwise round genMaxInventory up to the nearest
  '-- multiple of three (counting the zero-slot) and return it.
- RETURN INT((gen(genMaxInventory) + 3) / 3) * 3 - 1
+ RETURN ((gen(genMaxInventory) + 3) \ 3) * 3 - 1
 END FUNCTION
 
 SUB setup_sprite_sizes ()

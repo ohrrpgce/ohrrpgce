@@ -873,10 +873,11 @@ FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
  LOOP
 END FUNCTION
 
+'Supports negative n too
 FUNCTION xy_from_int(n AS INTEGER, wide AS INTEGER, high AS INTEGER) AS XYPair
  DIM pair AS XYPair
  pair.x = n MOD wide
- pair.y = small(CINT(n / wide), high - 1)
+ pair.y = small(CINT(INT(n / wide)), high - 1)
  RETURN pair
 END FUNCTION
 

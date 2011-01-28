@@ -1731,7 +1731,7 @@ FUNCTION items_menu () as integer
   .x = 8
   .y = 5
   .wide = 304
-  .high = small(180, 12 + (CINT((last_inv_slot() + 1) / 3) + 1) * 8)
+  .high = small(180, 12 + (((last_inv_slot() + 1) \ 3) + 1) * 8)
  END WITH
  WITH istate.scrollrect
   .x = 20
@@ -1741,7 +1741,7 @@ FUNCTION items_menu () as integer
  END WITH
  WITH istate.scroll
   .first = -1
-  .last = INT(last_inv_slot() / 3)
+  .last = last_inv_slot() \ 3
   .size = 20
  END WITH
 
