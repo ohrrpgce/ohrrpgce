@@ -2515,11 +2515,13 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
 EXIT SUB
 
 sprctrl:
+'Debug keys
+IF keyval(scCtrl) > 0 AND keyval(sc3) > 1 THEN setvispage 3: waitforanykey
+'Normal keys
 IF mouse.buttons = 0 AND keyval(scSpace) = 0 THEN
  ss.lastpos.x = -1
  ss.lastpos.y = -1
 END IF
-IF keyval(sc3) > 1 THEN setvispage 3: waitforanykey
 IF keyval(scTilde) > 1 THEN ss.hidemouse = ss.hidemouse XOR 1
 IF keyval(scComma) > 1 AND ss.palindex > 0 THEN ss.palindex -= 1
 IF keyval(scPeriod) > 1 AND ss.palindex < 15 THEN ss.palindex += 1
