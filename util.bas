@@ -115,6 +115,22 @@ FUNCTION range (number AS INTEGER, percent AS INTEGER) AS INTEGER
  RETURN number + INT(RND * (a * 2)) - a
 END FUNCTION
 
+FUNCTION isnan (BYVAL value AS DOUBLE) AS INTEGER
+ RETURN value <> value
+END FUNCTION
+
+FUNCTION isnan (BYVAL value AS SINGLE) AS INTEGER
+ RETURN value <> value
+END FUNCTION
+
+FUNCTION isfinite (BYVAL value AS DOUBLE) AS INTEGER
+ RETURN DBL_MAX >= value AND value >= -DBL_MAX
+END FUNCTION
+
+FUNCTION isfinite (BYVAL value AS SINGLE) AS INTEGER
+ RETURN FLT_MAX >= value AND value >= -FLT_MAX
+END FUNCTION
+
 'A fuzzy equivalent to 'iif(value >= low+high/2, 1.0, 0.0)'
 'Swap low,high to reverse the comparison
 FUNCTION fuzzythreshold (BYVAL value AS DOUBLE, BYVAL low AS DOUBLE, BYVAL high AS DOUBLE) AS DOUBLE

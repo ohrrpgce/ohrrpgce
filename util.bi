@@ -277,6 +277,16 @@ declare function isdir (sdir as string) as integer
 '                              Other
 
 
+'Why is crt/float.bi missing these?
+
+' Maximum double
+'FIXME: This is the true value, but produces an assembler error!
+'#define DBL_MAX 1.7976931348623157e+308
+#define DBL_MAX 1.7976931348623154e+308
+' Maximum single
+#define FLT_MAX 3.40282347e+38F
+
+
 declare function bitcount (byval v as unsigned integer) as integer
 declare function bound overload (byval n as integer, byval lowest as integer, byval highest as integer) as integer
 declare function bound overload (byval n as longint, byval lowest as longint, byval highest as longint) as longint
@@ -291,6 +301,10 @@ declare function small overload (byval n1 as integer, byval n2 as integer) as in
 declare function small overload (byval n1 as longint, byval n2 as longint) as longint
 declare function small overload (byval n1 as double, byval n2 as double) as double
 declare function range (number as integer, percent as integer) as integer
+declare function isnan overload (byval value as double) as integer
+declare function isnan overload (byval value as single) as integer
+declare function isfinite overload (byval value as double) as integer
+declare function isfinite overload (byval value as single) as integer
 declare function fuzzythreshold (byval value as double, byval low as double, byval high as double) as double
 declare function rpad (s as string, pad_char as string, size as integer) as string
 declare function instr_nth overload (byval start as integer, s as string, substring as string, byval nth as integer) as integer
