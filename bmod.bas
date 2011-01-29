@@ -1627,29 +1627,47 @@ END FUNCTION
 
 SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
  'Calculate a hero's elemental resists after taking equipment into account
- 'elemental_resists should be sized up to maxElements - 1; who is a hero() slot number.
+ 'elemental_resists should be sized up to at least gen(genNumElements) - 1; who is a hero() slot number.
  'This is used both here and in the status menu.
+
+ REDIM itemelementals() as single
+ DIM allelementals(5, gen(genNumElements) - 1) as single
+ DIM oneelement(5) as single
+
+ DIM _NaN as single = 0.0f
+ _NaN = 0.0f/_NaN
+
+ '--first load data into allelementals()
 
  '--get native hero resistances
  DIM her AS HeroDef
  loadherodata @her, hero(who) - 1
  FOR i as integer = 0 TO gen(genNumElements) - 1
-  elemental_resists(i) = her.elementals(i)
- NEXT
+  allelementals(0, i) = her.elementals(i)
+ NEXT i
 
- REDIM itemelementals() as single
-
- '--merge equipment elemental resists
+ '--data from all equipped items fill rest of matrix
  FOR j as integer = 0 TO 4
   IF eqstuf(who, j) > 0 THEN
    LoadItemElementals eqstuf(who, j) - 1, itemelementals()
 
    FOR i as integer = 0 TO gen(genNumElements) - 1
-    elemental_resists(i) = equip_elemental_merge(elemental_resists(i), itemelementals(i), gen(genEquipMergeFormula))
-   NEXT
+    allelementals(j + 1, i) = itemelementals(i)
+   NEXT i
+  ELSE
+   FOR i as integer = 0 TO gen(genNumElements) - 1
+    allelementals(j + 1, i) = _NaN
+   NEXT i
   END IF
  NEXT j
 
+ '--transpose the matrix (I wish), and merge equipment elemental resists
+ FOR i as integer = 0 TO gen(genNumElements) - 1
+  FOR j as integer = 0 TO 5
+   oneelement(j) = allelementals(j, i)
+  NEXT j
+  elemental_resists(i) = equip_elemental_merge(oneelement(), gen(genEquipMergeFormula))
+ NEXT i
 END SUB
 
 SUB invertstack

@@ -5,6 +5,6 @@
 #IFNDEF BCOMMON_BI
 #DEFINE BCOMMON_BI
 
-DECLARE FUNCTION equip_elemental_merge(byval val1 as double, byval val2 as double, byval formula as integer) as double
+DECLARE FUNCTION equip_elemental_merge(values() as single, byval formula as integer) as single
 
 #ENDIF

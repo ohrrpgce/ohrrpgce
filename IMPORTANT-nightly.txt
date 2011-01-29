@@ -16,6 +16,14 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2011-01-29:
+The "Old awful" equipment elemental resistances merge formula has changed
+so that the order of equipment no longer matters. However it now usually
+returns different results for inputs other than combinations of 12%, 24%,
+100%, 200% (where it acts backwardsly compatible). But surely this doesn't
+affect you, because you weren't relying on it, right? Unless you haven't
+bothered to change it yet (it's the default for existing games).
+
 2011-01-17:
 The "Fail vs. enemy type #" attack bits have been removed from the attack
 editor. They haven't actually done anything since Jan 7th (revision 4087),

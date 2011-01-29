@@ -1230,7 +1230,7 @@ SUB statcapsmenu
  LOOP
 END SUB
 
-FUNCTION merge_elementals_example(byval exampleno as integer, example() as double, byval formula as integer) as string
+FUNCTION merge_elementals_example(byval exampleno as integer, example() as single, byval formula as integer) as string
  DIM ret as string = "Ex" & exampleno
  FOR i as integer = 0 TO 3
   DIM temp as string
@@ -1245,15 +1245,6 @@ FUNCTION merge_elementals_example(byval exampleno as integer, example() as doubl
  RETURN ret
 END FUNCTION
 
-FUNCTION merge_ex_elementals(values() as double, byval formula as integer) as double
- DIM result as double
- result = 1.0
- FOR i as integer = 0 TO UBOUND(values) - 1
-  result = equip_elemental_merge(result, values(i), formula)
- NEXT
- RETURN result
-END FUNCTION
-
 SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, greyed_out() as integer)
  FOR i as integer = 1 TO 3
   greyed_out(i) = YES
@@ -1263,25 +1254,28 @@ SUB generate_equipmerge_preview(BYVAL formula as integer, menu() as string, grey
   menu(i) = ""
  NEXT
 
- DIM ex1(3) as double = {1, 1, 3}
- DIM ex2(3) as double = {1, 2, 2}
- DIM ex3(3) as double = {0, 0, 1}
- DIM ex4(3) as double = {-1, 1.5, 2}
- DIM ex5(3) as double = {-1, -1, -1}
- DIM ex6(3) as double = {0.5, 0.5, 2}
- DIM ex7(3) as double = {2, 0.5, 0.5}
- DIM ex8(3) as double = {RND, 3*RND-1.5, 1+RND}
+ DIM _NaN as single = 0.0f
+ _NaN = 0.0f/_NaN
+
+ DIM ex1(3) as single = {1, 1, 3, _NaN}
+ DIM ex2(3) as single = {1, 2, 2, _NaN}
+ DIM ex3(3) as single = {0, 0, 1, _NaN}
+ DIM ex4(3) as single = {0.5, 1, 2, _NaN}
+ DIM ex5(3) as single = {-1, 1.5, 2, _NaN}
+ DIM ex6(3) as single = {-1, -1, -1, _NaN}
+ DIM ex7(3) as single = {2, 0.5, 0.5, _NaN}
+ DIM ex8(3) as single = {RND, 3*RND-1.5, 1+RND, _NaN}
  IF formula = -1 THEN
   menu(9) = "Select a formula to see examples"
  ELSE
-  ex1(3) = merge_ex_elementals(ex1(), formula)
-  ex2(3) = merge_ex_elementals(ex2(), formula)
-  ex3(3) = merge_ex_elementals(ex3(), formula)
-  ex4(3) = merge_ex_elementals(ex4(), formula)
-  ex5(3) = merge_ex_elementals(ex5(), formula)
-  ex6(3) = merge_ex_elementals(ex6(), formula)
-  ex7(3) = merge_ex_elementals(ex7(), formula)
-  ex8(3) = merge_ex_elementals(ex8(), formula)
+  ex1(3) = equip_elemental_merge(ex1(), formula)
+  ex2(3) = equip_elemental_merge(ex2(), formula)
+  ex3(3) = equip_elemental_merge(ex3(), formula)
+  ex4(3) = equip_elemental_merge(ex4(), formula)
+  ex5(3) = equip_elemental_merge(ex5(), formula)
+  ex6(3) = equip_elemental_merge(ex6(), formula)
+  ex7(3) = equip_elemental_merge(ex7(), formula)
+  ex8(3) = equip_elemental_merge(ex8(), formula)
 
   menu(9) = "Examples:"
   menu(10) = "        Hero   Equip1   Equip2   Result"
