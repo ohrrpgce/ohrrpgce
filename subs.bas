@@ -1499,6 +1499,9 @@ RETRACE
 clearhero:
 blankhero.sprite_pal = -1      'default battle palette
 blankhero.walk_sprite_pal = -1 'default walkabout palette
+FOR i = 0 TO maxElements - 1
+ blankhero.elementals(i) = 1.0f
+NEXT
 saveherodata @blankhero, pt
 RETRACE
 
@@ -2393,7 +2396,7 @@ END SUB
 
 SUB item_editor_init_new(itembuf() AS INTEGER)
  flusharray itembuf(), dimbinsize(binITM), 0
- FOR i as integer = 0 TO gen(genNumElements) - 1
+ FOR i as integer = 0 TO maxElements - 1
   SerSingle itembuf(), 82 + i * 2, 1.0
  NEXT i
 END SUB
