@@ -121,3 +121,5 @@ pscp -i C:\progra~1\putty\id_rsa.ppk distrib\bam2mid.zip james_paige@motherhamst
 del distrib\madplay+oggenc.zip
 support\zip distrib\madplay+oggenc.zip support\madplay.exe support\oggenc.exe support\LICENSE-*.txt LICENSE.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\madplay+oggenc.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
+
+pscp -i C:\progra~1\putty\id_rsa.ppk svninfo.txt james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
