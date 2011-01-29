@@ -2872,8 +2872,8 @@ IF NOT isfile(workingdir + SLASH + "songdata.bin") THEN
   END IF
  NEXT
 
- flusharray buffer(), curbinsize(binSONGDATA) / 2, 0
  setbinsize binSONGDATA, curbinsize(binSONGDATA)
+ flusharray buffer(), dimbinsize(binSONGDATA), 0
  setpicstuf buffer(), curbinsize(binSONGDATA), -1
  FOR i = 0 TO gen(genMaxSong)
   writebinstring song(i), buffer(), 0, 30

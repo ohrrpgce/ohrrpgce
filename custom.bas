@@ -708,7 +708,7 @@ DO
      setpicstuf a(), 40, -1
      storeset game + ".sho", pt, 0
      '--create a new shop stuff record
-     flusharray b(), getbinsize(binSTF) / 2 - 1, 0
+     flusharray b(), dimbinsize(binSTF), 0
      setpicstuf b(), getbinsize(binSTF), -1
      b(19) = -1 ' When adding new stuff, default in-stock to infinite
      storeset game + ".stf", pt * 50 + 0, 0
@@ -826,7 +826,7 @@ DO
    GOSUB sstuf
    thing = thing + 1
    IF needaddset(thing, a(16), "Shop Thing") THEN
-    flusharray b(), getbinsize(binSTF) / 2 - 1, 0
+    flusharray b(), dimbinsize(binSTF), 0
     setpicstuf b(), getbinsize(binSTF), -1
     b(19) = -1 ' When adding new stuff, default in-stock to infinite
     storeset game + ".stf", pt * 50 + thing, 0
@@ -929,7 +929,7 @@ smenu(6) = tag_condition_caption(b(20), "Buy Require Tag", "No Tag Check")
 smenu(7) = tag_condition_caption(b(21), "Sell Require Tag", "No Tag Check")
 smenu(8) = tag_condition_caption(b(22), "Buy Set Tag", "No Tag Set", "Unalterable", "Unalterable")
 smenu(9) = tag_condition_caption(b(23), "Sell Set Tag", "No Tag Set", "Unalterable", "Unalterable")
-smenu(10) = readglobalstring(32, "Money") & " Price: " & b(24)
+smenu(10) = "Cost: " & b(24) & " " & readglobalstring(32, "Money")
 smenu(11) = "Must Trade in " & (b(30) + 1) & " of: " & tradestf(0)
 smenu(12) = " (Change Amount)"
 smenu(13) = "Must Trade in " & (b(32) + 1) & " of: " & tradestf(1)
@@ -940,8 +940,8 @@ smenu(17) = "Must Trade in " & (b(36) + 1) & " of: " & tradestf(3)
 smenu(18) = " (Change Amount)"
 IF b(17) = 0 THEN
  smenu(19) = "Sell type: " & stf(bound(b(26), 0, 3) + 3)
- smenu(20) = "Sell Price: " & b(27)
- smenu(21) = "Trade in for " & (b(29) + 1) & " of: " & trit$
+ smenu(20) = "Sell for: " & b(27) & " " & readglobalstring(32, "Money")
+ smenu(21) = "  and " & (b(29) + 1) & " of: " & trit$
  smenu(22) = " (Change Amount)"
 ELSE
  smenu(19) = "Experience Level: "
@@ -955,7 +955,7 @@ END IF
 RETRACE
 
 lstuf:
-flusharray b(), curbinsize(binSTF) / 2, 0
+flusharray b(), dimbinsize(binSTF), 0
 setpicstuf b(), getbinsize(binSTF), -1
 loadset game + ".stf", pt * 50 + thing, 0
 thing$ = readbadbinstring$(b(), 0, 16, 0)
@@ -964,7 +964,7 @@ IF b(17) < 0 OR b(17) > 2 THEN b(17) = 0
 IF b(19) < -1 THEN b(19) = 0
 IF (b(26) < 0 OR b(26) > 3) AND b(17) <> 1 THEN b(26) = 0
 '--WIP Serendipity custom builds didn't flush shop records when upgrading properly
-FOR i = 32 TO 42
+FOR i = 32 TO 41
  b(i) = large(b(i), 0)
 NEXT
 RETRACE

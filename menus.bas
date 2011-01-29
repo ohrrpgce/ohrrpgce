@@ -577,7 +577,7 @@ filecopy songfile$, outfile$ + ext$
 RETRACE
 
 ssongdata:
-flusharray buffer(), curbinsize(binSONGDATA) / 2, 0
+flusharray buffer(), dimbinsize(binSONGDATA), 0
 setpicstuf buffer(), curbinsize(binSONGDATA), -1
 writebinstring sname$, buffer(), 0, 30
 storeset workingdir + SLASH + "songdata.bin", snum, 0
