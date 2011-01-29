@@ -1,6 +1,6 @@
 Here you can choose which sprite you want to edit. Each row is a sprite set. Different types of sprites have different sizes and different numbers of frames in each sprite set.
 
-Use the arrow keys (or PgUp, PgDn, Home, and End) to navigate.
+Use the arrow keys (or PgUp, PgDn, Home, and End) to navigate. You can also type a sprite set number.
 
 Press ENTER or SPACE to start editing a sprite.
 

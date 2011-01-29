@@ -292,6 +292,11 @@ DO
  IF usemenu(pagenum, top, -1, gen(genMaxTile), 20) THEN
   IF pagenum = -1 THEN clearpage 3 ELSE loadmxs mapfile$, pagenum, vpages(3)
  END IF
+ tempnum = large(pagenum, 0)
+ IF intgrabber(tempnum, 0, gen(genMaxTile), , , YES) THEN
+  pagenum = tempnum
+  top = bound(top, pagenum - 20, pagenum)
+ END IF
  IF enter_or_space() AND pagenum = -1 THEN EXIT DO
  IF enter_or_space() AND pagenum > -1 THEN GOSUB tilemode
 
@@ -1670,6 +1675,7 @@ DIM state AS MenuState
 WITH state
  .pt = cursor_start
  .top = cursor_top
+ .size = ss.at_a_time
 END WITH
 
 FOR i = 0 TO 15
@@ -1713,41 +1719,10 @@ DO
    spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   END IF
  END IF
- IF keyval(scPageup) > 1 THEN
-  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
-  state.pt = large(state.pt - ss.at_a_time, 0)
-  state.top = state.pt
-  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
- END IF
- IF keyval(scPagedown) > 1 THEN
-  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
-  state.top = large(small(state.pt, sets - ss.at_a_time), 0)
-  state.pt = small(state.pt + ss.at_a_time, sets)
-  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
- END IF
- IF keyval(scHome) > 1 THEN
-  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
-  state.pt = 0
-  state.top = 0
-  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
- END IF
- IF keyval(scEnd) > 1 THEN
-  spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
-  state.pt = sets
-  state.top = large(small(state.pt, sets - ss.at_a_time), 0)
-  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
- END IF
- IF keyval(scUp) > 1 THEN
-  state.pt = large(state.pt - 1, 0)
-  IF state.pt < state.top THEN
-   spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
-   state.top = state.pt
-   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
-  END IF
- END IF
- IF keyval(scDown) > 1 AND state.pt < 32767 THEN
-  state.pt = state.pt + 1
-  IF needaddset(state.pt, sets, "graphics") THEN
+ DIM oldtop AS INTEGER = state.top
+ IF intgrabber_with_addset(state.pt, 0, sets, 32767, "graphics", scUp, scDown) THEN
+  IF state.pt > sets THEN
+   sets = state.pt
    '--Add a new blank sprite set
    setpicstuf buffer(), ss.setsize, -1
    FOR i = 0 TO ss.setsize / 2
@@ -1760,11 +1735,14 @@ DO
    poffset(state.pt) = 0
    spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
   END IF
-  IF state.pt > state.top + ss.at_a_time THEN
-   spriteedit_save_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
-   state.top = state.top + 1
-   spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
-  END IF
+  state.top = bound(state.top, state.pt - state.size, state.pt)
+ ELSE
+  state.last = sets
+  usemenu state
+ END IF
+ IF oldtop <> state.top THEN
+  spriteedit_save_all_you_see oldtop, sets, ss, soff, placer(), workpal(), poffset()
+  spriteedit_load_all_you_see state.top, sets, ss, soff, placer(), workpal(), poffset()
  END IF
  IF keyval(scLeft) > 1 THEN ss.framenum = large(ss.framenum - 1, 0)
  IF keyval(scRight) > 1 THEN ss.framenum = small(ss.framenum + 1, ss.perset - 1)

@@ -890,14 +890,10 @@ DO
   END IF
  END IF
  IF bcsr = 1 THEN
-  IF keyval(scLeft) > 1 THEN
+  newgptr = gptr
+  IF intgrabber(newgptr, 0, 255) THEN
    GOSUB savefset
-   gptr = large(gptr - 1, 0)
-   GOSUB loadfset
-  END IF
-  IF keyval(scRight) > 1 THEN
-   GOSUB savefset
-   gptr = small(gptr + 1, 255)
+   gptr = newgptr
    GOSUB loadfset
   END IF
  END IF

@@ -1,5 +1,5 @@
 The palette browser allows you to choose from the available 16-color palettes, and shows a preview of the current sprite in each palette.
 
-Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+Use the Up and Down arrow keys (or PgUp, PgDn, Home, and End) to navigate the list, or type a palette number.
 
 Press ENTER or SPACE to choose a palette.

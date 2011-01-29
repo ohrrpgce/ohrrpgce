@@ -1,6 +1,6 @@
 Choose a maptile set to edit. If you want to add a new maptile set, just press the down arrow at the bottom of the menu.
 
-Navigate using the Up and Down arrow keys (or PgUp, PgDn, Home, and End).
+Navigate using the Up and Down arrow keys (or PgUp, PgDn, Home, and End), or type a maptile set number.
 
 Press ENTER or SPACE to select a maptile set to edit.
 

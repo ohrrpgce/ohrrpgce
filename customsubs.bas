@@ -1279,6 +1279,12 @@ FUNCTION pal16browse (BYVAL curpal AS INTEGER, BYVAL picset AS INTEGER, BYVAL pi
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "pal16browse"
   IF usemenu(state) THEN state.need_update = YES
+  DIM temppt AS INTEGER = large(state.pt, 0)
+  IF intgrabber(temppt, 0, state.last, , , YES) THEN
+   state.pt = temppt
+   state.top = bound(state.top, state.pt - state.size, state.pt)
+   state.need_update = YES
+  END IF
   IF enter_or_space() THEN
    IF state.pt >= 0 THEN curpal = state.pt
    EXIT DO

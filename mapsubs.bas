@@ -181,6 +181,11 @@ SUB map_picker ()
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_choose_map"
   usemenu state
+  temppt = large(state.pt - 1, 0)
+  IF intgrabber(temppt, 0, gen(genMaxMap) + 1, , , YES) THEN
+   state.pt = temppt + 1
+   state.top = bound(state.top, state.pt - state.size, state.pt)
+  END IF
 
   IF enter_or_space() THEN
    IF state.pt = 0 THEN EXIT DO
