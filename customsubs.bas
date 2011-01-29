@@ -921,6 +921,22 @@ FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING
  RETURN NO
 END FUNCTION
 
+'This is intgrabber, and if the 'more' key is pressed when pt=max, asks whether to
+'add a new set. DOES NOT INCREMENT max. Check whether pt > max to see whether this
+'needs to be handled.
+'maxmax is max value of max, of course
+FUNCTION intgrabber_with_addset(BYREF pt AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL maxmax AS INTEGER=32767, what AS STRING, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight) AS INTEGER
+ IF keyval(more) > 1 AND pt = max AND max < maxmax THEN
+  IF yesno("Add new " & what & "?") THEN
+   pt += 1
+   RETURN YES
+  END IF
+  RETURN NO
+ ELSE
+  RETURN intgrabber(pt, min, max, less, more)
+ END IF
+END FUNCTION
+
 SUB edit_npc (npcdata AS NPCType, zmap AS ZoneMap)
  DIM i AS INTEGER
 

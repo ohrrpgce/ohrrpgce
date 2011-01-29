@@ -532,25 +532,14 @@ SUB text_box_editor () 'textage
       textbox_edit_load box, st, menu()
      END IF
     END IF
-    IF intgrabber(st.id, 0, gen(genMaxTextBox), scComma, scPeriod) THEN
-     SWAP st.id, remptr
-     SaveTextBox box, st.id
-     SWAP st.id, remptr
-     textbox_edit_load box, st, menu()
-    END IF
-    IF keyval(scLeft) > 1 AND st.id > 0 THEN
-     SaveTextBox box, st.id
-     st.id = st.id - 1
-     textbox_edit_load box, st, menu()
-    END IF
-    IF keyval(scRight) > 1 AND st.id < 32767 THEN
-     SaveTextBox box, st.id
-     st.id = st.id + 1
-     IF needaddset(st.id, gen(genMaxTextBox), "text box") THEN
+    IF intgrabber_with_addset(st.id, 0, gen(genMaxTextBox), 32767, "text box") THEN
+     SaveTextBox box, remptr
+     IF st.id > gen(genMaxTextBox) THEN
+      gen(genMaxTextBox) = st.id
       textbox_create_from_box 0, box, st
      END IF
      textbox_edit_load box, st, menu()
-    END IF'--next/add text box
+    END IF
     IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND gen(genMaxTextBox) < 32767 THEN
      SaveTextBox box, st.id
      IF yesno("Create a textbox like this one?") THEN
@@ -653,7 +642,7 @@ SUB text_box_editor () 'textage
   textbox_edit_preview box, st, 96
 
   textcolor uilook(uiText), uilook(uiHighlight)
-  printstr "+ to create", 232, 0, dpage
+  printstr "+ to copy", 248, 0, dpage
   printstr "ALT+C copy style", 192, 8, dpage
   IF style_clip > 0 THEN printstr "ALT+V paste style", 184, 16, dpage
   standardmenu menu(), state, 0, 0, dpage, YES

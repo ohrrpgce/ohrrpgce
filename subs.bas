@@ -628,21 +628,15 @@ DO
 
  IF workmenu(state.pt) = EnMenuChooseAct OR (keyval(scAlt) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
   lastindex = recindex
-  IF keyval(scRight) > 1 AND recindex = gen(genMaxEnemy) AND recindex < 32767 THEN
-   '--attempt to add a new set
-   '--save current
+  IF intgrabber_with_addset(recindex, 0, gen(genMaxEnemy), 32767, "enemy") THEN
    saveenemydata recbuf(), lastindex
-   '--increment
-   recindex = recindex + 1
-   '--make sure we really have permission to increment
-   IF needaddset(recindex, gen(genMaxEnemy), "enemy") THEN
+   IF recindex > gen(genMaxEnemy) THEN
+    '--adding a new set
+    gen(genMaxEnemy) = recindex
     clearenemydata recbuf()
     update_enemy_editor_for_elementals recbuf(), caption(), EnCapElemResist
     GOSUB EnUpdateMenu
-   END IF
-  ELSE
-   IF intgrabber(recindex, 0, gen(genMaxEnemy)) THEN
-    saveenemydata recbuf(), lastindex
+   ELSE
     GOSUB EnLoadSub
    END IF
   END IF
@@ -1032,26 +1026,13 @@ DO
   END IF
   IF csr2 = -5 THEN '---SELECT A DIFFERENT FORMATION
    dim as integer remptr = pt
-   IF intgrabber(pt, 0, gen(genMaxFormation), scLeftCaret, scRightCaret) THEN
-    saveform(a(),remptr)
-    loadform(a(),pt)
-    formpics(ename(), a(), egraphics())
-    bgwait = 0
-    bgctr = 0
-   END IF
-   IF keyval(scLeft) > 1 AND pt > 0 THEN
-    saveform(a(),pt)
-    pt = large(pt - 1, 0)
-    loadform(a(),pt)
-    formpics(ename(), a(), egraphics())
-    bgwait = 0
-    bgctr = 0
-   END IF
-   IF keyval(scRight) > 1 AND pt < 32767 THEN
-    saveform(a(),pt)
-    pt = pt + 1
-    IF needaddset(pt, gen(genMaxFormation), "formation") THEN GOSUB clearformation
-    loadform(a(),pt)
+   IF intgrabber_with_addset(pt, 0, gen(genMaxFormation), 32767, "formation") THEN
+    saveform(a(), remptr)
+    IF pt > gen(genMaxFormation) THEN
+     gen(genMaxFormation) = pt
+     GOSUB clearformation
+    END IF
+    loadform(a(), pt)
     formpics(ename(), a(), egraphics())
     bgwait = 0
     bgctr = 0

@@ -92,22 +92,16 @@ DO
     EXIT DO
    END IF
   CASE 1
-   IF pt = gen(genMaxVehicle) AND keyval(scRight) > 1 THEN
-    SaveVehicle game + ".veh", veh(), vehname, pt
-    pt = bound(pt + 1, 0, 32767)
-    IF needaddset(pt, gen(genMaxVehicle), "vehicle") THEN
-     FOR i = 0 TO 39
-      veh(i) = 0
-     NEXT i
+   savept = pt
+   IF intgrabber_with_addset(pt, 0, gen(genMaxVehicle), 32767, "vehicle") THEN
+    SaveVehicle game + ".veh", veh(), vehname, savept
+    IF pt > gen(genMaxVehicle) THEN  '--adding set
+     gen(genMaxVehicle) = pt
+     flusharray veh()
      vehname = ""
-     GOSUB vehmenu
+    ELSE
+     LoadVehicle game + ".veh", veh(), vehname, pt
     END IF
-   END IF
-   newptr = pt
-   IF intgrabber(newptr, 0, gen(genMaxVehicle)) THEN
-    SaveVehicle game + ".veh", veh(), vehname, pt
-    pt = newptr
-    LoadVehicle game + ".veh", veh(), vehname, pt
     GOSUB vehmenu
    END IF
   CASE 2

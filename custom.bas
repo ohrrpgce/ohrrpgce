@@ -695,31 +695,25 @@ DO
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 0 THEN cropafter pt, gen(genMaxShop), 0, game + ".sho", 40: GOSUB menugen
  usemenu csr, 0, 0, li, 24
  IF csr = 1 THEN
-  IF pt = gen(genMaxShop) AND keyval(scRight) > 1 THEN
-   GOSUB sshopset
-   pt = pt + 1
-   IF gen(genMaxShop) < 99 THEN
-    '--only allow adding shops up to 99
-    'FIXME: This is because of the limitation on remembering shop stock in the SAV format
-    '       when the SAV format has changed, this limit can easily be lifted.
-    IF needaddset(pt, gen(genMaxShop), "Shop") THEN
-     '--Create a new shop record
-     flusharray a(), 19, 0
-     setpicstuf a(), 40, -1
-     storeset game + ".sho", pt, 0
-     '--create a new shop stuff record
-     flusharray b(), dimbinsize(binSTF), 0
-     setpicstuf b(), getbinsize(binSTF), -1
-     b(19) = -1 ' When adding new stuff, default in-stock to infinite
-     storeset game + ".stf", pt * 50 + 0, 0
-    END IF
-    GOSUB lshopset
-   END IF
-  END IF
+  '--only allow adding shops up to 99
+  'FIXME: This is because of the limitation on remembering shop stock in the SAV format
+  '       when the SAV format has changed, this limit can easily be lifted.
   newpt = pt
-  IF intgrabber(newpt, 0, gen(genMaxShop)) THEN
+  IF intgrabber_with_addset(newpt, 0, gen(genMaxShop), 99, "Shop") THEN
    GOSUB sshopset
    pt = newpt
+   IF pt > gen(genMaxShop) THEN
+    gen(genMaxShop) = pt
+    '--Create a new shop record
+    flusharray a(), 19, 0
+    setpicstuf a(), 40, -1
+    storeset game + ".sho", pt, 0
+    '--create a new shop stuff record
+    flusharray b(), dimbinsize(binSTF), 0
+    setpicstuf b(), getbinsize(binSTF), -1
+    b(19) = -1 ' When adding new stuff, default in-stock to infinite
+    storeset game + ".stf", pt * 50 + 0, 0
+   END IF
    GOSUB lshopset
   END IF
  END IF
@@ -731,7 +725,7 @@ DO
   IF csr = 0 THEN EXIT DO
   IF csr = 3 AND havestuf THEN
    GOSUB shopstuf
-   GOSUB sstuf
+   GOSUB save_stf
   END IF
   IF csr = 4 THEN editbitset a(), 17, 7, sbit(): GOSUB menuup
   IF csr = 6 THEN
@@ -802,7 +796,7 @@ defaultthing$ = ""
 thing$ = ""
 tcsr = 0
 last = 2
-GOSUB lstuf
+GOSUB load_stf
 GOSUB othertype
 GOSUB itstrsh
 GOSUB stufmenu
@@ -816,22 +810,18 @@ DO
  IF tcsr = 0 THEN IF enter_or_space() THEN RETRACE
  usemenu tcsr, 0, 0, last, 24
  IF tcsr = 1 THEN
-  IF keyval(scLeft) > 1 AND thing > 0 THEN
-   GOSUB sstuf
-   thing = thing - 1
-   GOSUB lstuf
-   GOSUB itstrsh
-  END IF
-  IF keyval(scRight) > 1 AND thing < 49 THEN
-   GOSUB sstuf
-   thing = thing + 1
-   IF needaddset(thing, a(16), "Shop Thing") THEN
+  newthing = thing
+  IF intgrabber_with_addset(newthing, 0, a(16), 49, "Shop Thing") THEN
+   GOSUB save_stf
+   thing = newthing
+   IF thing > a(16) THEN
+    a(16) = thing
     flusharray b(), dimbinsize(binSTF), 0
     setpicstuf b(), getbinsize(binSTF), -1
     b(19) = -1 ' When adding new stuff, default in-stock to infinite
     storeset game + ".stf", pt * 50 + thing, 0
    END IF
-   GOSUB lstuf
+   GOSUB load_stf
    GOSUB itstrsh
   END IF
  END IF
@@ -954,7 +944,7 @@ END IF
 '--mutate menu for item/hero
 RETRACE
 
-lstuf:
+load_stf:
 flusharray b(), dimbinsize(binSTF), 0
 setpicstuf b(), getbinsize(binSTF), -1
 loadset game + ".stf", pt * 50 + thing, 0
@@ -969,7 +959,7 @@ FOR i = 32 TO 41
 NEXT
 RETRACE
 
-sstuf:
+save_stf:
 b(0) = LEN(thing$)
 FOR i = 1 TO small(b(0), 16)
  b(i) = ASC(MID$(thing$, i, 1))

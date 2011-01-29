@@ -1124,25 +1124,16 @@ DO
 
  IF workmenu(state.pt) = AtkChooseAct OR (keyval(scAlt) > 0 and NOT isStringField(menutype(workmenu(state.pt)))) THEN
   lastindex = recindex
-  IF keyval(scRight) > 1 AND recindex = gen(genMaxAttack) AND recindex < 32767 THEN
-   '--attempt to add a new set
-   '--save current
+  IF intgrabber_with_addset(recindex, 0, gen(genMaxAttack), 32767, "attack") THEN
    saveattackdata recbuf(), lastindex
-   '--increment
-   recindex = recindex + 1
-   '--make sure we really have permission to increment
-   IF needaddset(recindex, gen(genMaxAttack), "attack") THEN
+   IF recindex > gen(genMaxAttack) THEN
+    gen(genMaxAttack) = recindex
     flusharray recbuf(), 39 + curbinsize(binATTACK) \ 2, 0
-    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
-    state.need_update = YES
-   END IF
-  ELSE
-   IF intgrabber(recindex, 0, gen(genMaxAttack)) THEN
-    saveattackdata recbuf(), lastindex
+   ELSE
     loadattackdata recbuf(), recindex
-    update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
-    state.need_update = YES
    END IF
+   update_attack_editor_for_fail_conds recbuf(), caption(), AtkCapFailConds
+   state.need_update = YES
   END IF
  END IF
 
@@ -1778,8 +1769,6 @@ ClearMenuData detail
 END SUB
 
 SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuDef, record, menu_set AS MenuSet)
- DIM saverecord AS INTEGER
-
  IF keyval(scESC) > 1 THEN state.active = NO
  IF keyval(scF1) > 1 THEN show_help "menu_editor_main"
  
@@ -1791,25 +1780,12 @@ SUB menu_editor_keys (state AS MenuState, mstate AS MenuState, menudata AS MenuD
     state.active = NO
    END IF
   CASE 1
-   saverecord = record
-   IF keyval(scRight) > 1 AND record = gen(genMaxMenu) AND record < 32767 THEN
-    '--attempt to add a new set
-    '--save current
-    SaveMenuData menu_set, menudata, record
-    '--increment
-    record = record + 1
-    '--make sure we really have permission to increment
-    IF needaddset(record, gen(genMaxMenu), "menu") THEN
-     state.need_update = YES
-    END IF
-   ELSE
-    IF intgrabber(record, 0, gen(genMaxMenu)) THEN
-     state.need_update = YES
-    END IF
-   END IF
-   IF state.need_update THEN
+   DIM saverecord AS INTEGER = record
+   IF intgrabber_with_addset(record, 0, gen(genMaxMenu), 32767, "menu") THEN
+    IF record > gen(genMaxMenu) THEN gen(genMaxMenu) = record
     SaveMenuData menu_set, menudata, saverecord
     LoadMenuData menu_set, menudata, record
+    state.need_update = YES
     mstate.need_update = YES
    END IF
   CASE 2

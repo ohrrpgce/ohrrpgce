@@ -10,7 +10,7 @@ Press ENTER or SPACE to open the various sub-menus.
 
 To find a text box, you can type in the "Search" field and press ENTER.
 
-Press + to add a new text box based on a copy of the currently selected text box.
+Press + to add a new text box with the same style options as the currently selected text box.
 
 Press ALT+C to copy the style of a text box (color and other appearance data, but not text).
 
