@@ -477,32 +477,27 @@ SUB setfixbit(BYVAL bitnum AS INTEGER, BYVAL bitval AS INTEGER)
  CLOSE #fh
 END SUB
 
+'Note: Custom doesn't use this function
 FUNCTION acquiretempdir () as string
-#IFDEF __FB_WIN32__
-'Windows only behavior
-tmp$ = environ$("TEMP")
-IF NOT diriswriteable(tmp$) THEN tmp$ = environ("TMP")
-IF NOT diriswriteable(tmp$) THEN tmp$ = exepath$
-IF NOT diriswriteable(tmp$) THEN tmp$ = ""
-IF NOT diriswriteable(tmp$) THEN debug "Unable to find any writable temp dir"
-IF RIGHT$(tmp$, 1) <> SLASH THEN tmp$ = tmp$ & SLASH
-tmp$ = tmp$ & "ohrrpgce"
-#ELSE
-'Unix only behavior
-#IFDEF IS_GAME
-tmp$ = environ$("HOME")
-tmp$ = tmp$ & SLASH & ".ohrrpgce"
-IF NOT isdir(tmp$) THEN makedir(tmp$)
-tmp$ = tmp$ & SLASH
-#ELSE
-RETURN "" 'Custom doesn't use this sub anyway...
-#ENDIF
-#ENDIF
-d$ = DATE
-t$ = TIME
-tmp$ = tmp$ & MID$(d$,7,4) & MID$(d$,1,2) & MID$(d$,4,2) & MID$(t$,1,2) & MID$(t$,4,2) & MID$(t$,7,2) & "." & STR$(INT(RND * 1000)) & ".tmp"
-tmp$ = tmp$ & SLASH
-RETURN tmp$
+ DIM tmp as string
+ #IFDEF __FB_WIN32__
+  'Windows only behavior
+  tmp = environ("TEMP")
+  IF NOT diriswriteable(tmp) THEN tmp = environ("TMP")
+  IF NOT diriswriteable(tmp) THEN tmp = exepath$
+  IF NOT diriswriteable(tmp) THEN tmp = ""
+  IF NOT diriswriteable(tmp) THEN fatalerror "Unable to find any writable temp dir"
+  IF RIGHT$(tmp, 1) <> SLASH THEN tmp = tmp & SLASH
+  tmp = tmp & "ohrrpgce"
+ #ELSE
+  'Unix only behavior
+  tmp = environ("HOME") + SLASH + ".ohrrpgce"
+  IF NOT isdir(tmp) THEN makedir(tmp)
+  tmp = tmp & SLASH
+ #ENDIF
+ DIM as string d = DATE, t = TIME
+ tmp += MID(d,7,4) & MID(d,1,2) & MID(d,4,2) & MID(t,1,2) & MID(t,4,2) & MID(t,7,2) & "." & CINT(RND * 1000) & ".tmp" & SLASH
+ RETURN tmp
 END FUNCTION
 
 'Backwards compatibility wrapper
@@ -4671,22 +4666,21 @@ SUB save_help_file(helpkey AS STRING, text AS STRING)
  DIM help_dir AS STRING
  help_dir = get_help_dir()
  IF NOT isdir(help_dir) THEN
-  IF MKDIR(help_dir) THEN
-   debug """" & help_dir & """ does not exist and could not be created."
+  IF makedir(help_dir) THEN
+   visible_debug """" & help_dir & """ does not exist and could not be created."
    EXIT SUB
   END IF
  END IF
  DIM helpfile AS STRING
  helpfile = help_dir & SLASH & helpkey & ".txt"
- IF fileiswriteable(helpfile) THEN
-  DIM fh AS INTEGER = FREEFILE
-  OPEN helpfile FOR OUTPUT ACCESS READ WRITE AS #fh
+ DIM fh AS INTEGER = FREEFILE
+ IF OPEN(helpfile FOR OUTPUT ACCESS READ WRITE AS #fh) = 0 THEN
   DIM trimmed_text AS STRING
   trimmed_text = RTRIM(text, ANY " " & CHR(13) & CHR(10))
   PRINT #fh, trimmed_text
   CLOSE #fh
  ELSE
-  debug "help file """ & helpfile & """ is not writeable."
+  visible_debug "help file """ & helpfile & """ is not writeable."
  END IF
 END SUB
 

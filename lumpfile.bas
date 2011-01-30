@@ -648,7 +648,10 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 	dim bufr as ubyte ptr
 	dim nowildcards as integer = 0
 
-	if NOT fileisreadable(lumpfile) then exit sub
+	if NOT fileisreadable(lumpfile) then
+		debug "unlumpfile: " + lumpfile + " not readable"
+		exit sub
+	end if
 	lf = freefile
 	open lumpfile for binary access read as #lf
 	maxsize = LOF(lf)
@@ -713,7 +716,10 @@ sub unlumpfile (lumpfile as string, fmask as string, path as string)
 				dim of as integer
 				dim csize as integer
 
-				if NOT fileiswriteable(path + lname) then exit while
+				if NOT fileiswriteable(path + lname) then
+					debug "unlumpfile(" + lumpfile + "): " + path + lname + " not writeable"
+					exit while
+				end if
 				of = freefile
 				open path + lname for binary access write as #of
 
