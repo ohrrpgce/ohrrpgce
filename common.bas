@@ -1734,7 +1734,7 @@ SUB show_help(helpkey AS STRING)
      dat->show_insert = YES
      ChangeRectangleSlice help_box, , uilook(uiBackground), , 0
     ELSE
-     pop_warning "Your """ & get_help_dir() & """ folder is not writeable. Try making a copy of it at """ & homedir & SLASH & "ohrhelp"""
+     pop_warning "Your """ & get_help_dir() & """ folder is not writable. Try making a copy of it at """ & homedir & SLASH & "ohrhelp"""
     END IF
    END IF
    IF keyval(scF1) and helpkey <> "helphelp" THEN
@@ -4625,24 +4625,28 @@ SUB set_homedir()
 #ENDIF
 END SUB
 
-FUNCTION get_help_dir() AS STRING
-'what happened to prefsdir? [James: prefsdir only exists for game not custom right now]
-IF isfile(exepath & SLASH & "ohrhelp") THEN RETURN exepath & SLASH & "ohrhelp"
-IF isfile(homedir & SLASH & "ohrhelp") THEN RETURN homedir & SLASH & "ohrhelp"
-'platform-specific relative data files path (Mac OS X bundles)
-IF isfile(data_dir & SLASH & "ohrhelp") THEN RETURN data_dir & SLASH & "ohrhelp"
-#IFDEF __UNIX__
-#IFDEF DATAFILES
- IF isfile(DATAFILES & SLASH & "ohrhelp") THEN RETURN DATAFILES & SLASH & "ohrhelp"
-#ENDIF
-#ENDIF
+PRIVATE FUNCTION help_dir_helper(dirname AS STRING, fname AS STRING) AS INTEGER
+ IF LEN(fname) THEN RETURN isfile(dirname + SLASH + fname) ELSE RETURN isdir(dirname)
+END FUNCTION
+
+FUNCTION get_help_dir(helpfile AS STRING="") AS STRING
+ 'what happened to prefsdir? [James: prefsdir only exists for game not custom right now]
+ IF help_dir_helper(homedir & SLASH & "ohrhelp", helpfile) THEN RETURN homedir & SLASH & "ohrhelp"
+ IF help_dir_helper(exepath & SLASH & "ohrhelp", helpfile) THEN RETURN exepath & SLASH & "ohrhelp"
+ 'platform-specific relative data files path (Mac OS X bundles)
+ IF help_dir_helper(data_dir & SLASH & "ohrhelp", helpfile) THEN RETURN data_dir & SLASH & "ohrhelp"
+ #IFDEF __UNIX__
+ #IFDEF DATAFILES
+  IF help_dir_helper(DATAFILES & SLASH & "ohrhelp", helpfile) THEN RETURN DATAFILES & SLASH & "ohrhelp"
+ #ENDIF
+ #ENDIF
  '-- if all else fails, use exepath even if invalid
  RETURN exepath & SLASH & "ohrhelp"
 END FUNCTION
 
 FUNCTION load_help_file(helpkey AS STRING) AS STRING
  DIM help_dir AS STRING
- help_dir = get_help_dir()
+ help_dir = get_help_dir(helpkey & ".txt")
  IF isdir(help_dir) THEN
   DIM helpfile AS STRING
   helpfile = help_dir & SLASH & helpkey & ".txt"

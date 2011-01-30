@@ -215,7 +215,7 @@ DECLARE FUNCTION decode_backslash_codes(s AS STRING) AS STRING
 DECLARE FUNCTION escape_nonprintable_ascii(s AS STRING) AS STRING
 
 DECLARE SUB set_homedir()
-DECLARE FUNCTION get_help_dir() AS STRING
+DECLARE FUNCTION get_help_dir(helpfile AS STRING="") AS STRING
 DECLARE FUNCTION load_help_file(helpkey AS STRING) AS STRING
 DECLARE SUB save_help_file(helpkey AS STRING, text AS STRING)
 
