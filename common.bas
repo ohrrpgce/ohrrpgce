@@ -3341,46 +3341,63 @@ SUB fix_sprite_record_count(BYVAL pt_num AS INTEGER)
  END WITH
 END SUB
 
-SUB standardmenu (menu() AS STRING, state AS MenuState, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO, wide AS INTEGER=999, highlight AS INTEGER=NO)
+SUB standardmenu (menu() AS STRING, state AS MenuState, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO, wide AS INTEGER=999, highlight AS INTEGER=NO, toggle=YES)
  DIM p AS INTEGER
  WITH state
   p = .pt
   IF hidecursor THEN p = .first - 1
-  standardmenu menu(), .last, .size, p, .top, x, y, page, edge, wide, highlight
+  standardmenu menu(), .last, .size, p, .top, x, y, page, edge, wide, highlight, NULL, toggle
  END WITH
 END SUB
 
-SUB standardmenu (menu() AS STRING, size, vis, pt, top, x, y, page, edge=NO, wide=999, highlight=NO)
+'Version which allows items to be greyed out/disabled/shaded
+SUB standardmenu (menu() AS STRING, state AS MenuState, shaded() AS INTEGER, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO, wide AS INTEGER=999, highlight AS INTEGER=NO, toggle=YES)
+ DIM p AS INTEGER
+ IF LBOUND(shaded) > LBOUND(menu) OR UBOUND(shaded) < UBOUND(menu) THEN fatalerror "standardmenu: shaded() too small"
+ WITH state
+  p = .pt
+  IF hidecursor THEN p = .first - 1
+  standardmenu menu(), .last, .size, p, .top, x, y, page, edge, wide, highlight, @shaded(0), toggle
+ END WITH
+END SUB
+
+SUB standardmenu (menu() AS STRING, size, vis, pt, top, x, y, page, edge=NO, wide=999, highlight=NO, shaded AS INTEGER PTR=NULL, toggle=YES)
 'the default for wide is 999 until I know whether it'd break anything to set it to 40
-STATIC tog
+STATIC rememtog
+DIM tog AS INTEGER
 DIM i AS INTEGER
 DIM col AS INTEGER
 DIM text AS STRING
 
-tog = tog XOR 1
+IF toggle THEN
+ rememtog = rememtog XOR 1
+ tog = rememtog
+ELSE
+ 'This menu isn't the active one or we otherwise don't want it to animate
+ tog = 0
+END IF
 
 FOR i = top TO top + vis
  IF i <= size THEN
   text = menu(i)
+  IF pt = i THEN text = RIGHT(text, wide)
   IF pt = i AND highlight THEN
    DIM w AS INTEGER
    w = 8 * LEN(text)
    IF w = 0 THEN w = small(wide * 8, 320)
    rectangle x + 0, y + (i - top) * 8, w, 8, uilook(uiHighlight), page
   END IF
-  IF edge THEN
+  IF shaded ANDALSO shaded[i] THEN
+   col = uilook(uiDisabledItem)
+   IF pt = i THEN col = uilook(uiSelectedDisabled + tog)
+  ELSE
    col = uilook(uiMenuItem)
-   IF pt = i THEN
-    col = uilook(uiSelectedItem + tog)
-    text = RIGHT(text, wide)
-   END IF
+   IF pt = i THEN col = uilook(uiSelectedItem + tog)
+  END IF
+  IF edge THEN
    edgeprint text, x + 0, y + (i - top) * 8, col, page, YES
   ELSE
-   textcolor uilook(uiMenuItem), 0
-   IF pt = i THEN
-    textcolor uilook(uiSelectedItem + tog), 0
-    text = RIGHT(text, wide)
-   END IF
+   textcolor col, 0
    printstr text, x + 0, y + (i - top) * 8, page, YES
   END IF
  END IF
