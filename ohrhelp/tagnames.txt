@@ -1,4 +1,4 @@
-This is the tag browse screen. Here you can pick a tag from the list by name. Just use the arrow keys (or PgUp, PgDn, Home, and End) to navigate the list.
+This is the tag browse screen. Here you can pick a tag from the list by name. Just use the arrow keys (or PgUp, PgDn, Home, and End) to navigate the list. After pressing Alt you can browse by typing in a tag number. Press Alt again to stop. 
 
 You can type names for your tags here too! It is a very good idea to name all the tags that you use, that way you can easily keep track of what each tag means.
 

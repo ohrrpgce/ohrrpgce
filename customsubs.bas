@@ -37,6 +37,13 @@ comp_strings(6) = ">="
 comp_strings(7) = "tag"   'debugging use only
 
 
+FUNCTION safe_tag_name(BYVAL tagnum AS INTEGER) AS STRING 
+ IF tagnum >= 1 AND tagnum <= gen(genMaxTagName) THEN
+  RETURN load_tag_name(tagnum)
+ ELSE
+  RETURN ""
+ END IF
+END FUNCTION
 
 FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS INTEGER=999) AS INTEGER
  IF intgrabber(n, min, max) THEN RETURN YES
@@ -77,7 +84,12 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
 
  state.pt = 0
  IF ABS(starttag) >= 2 THEN state.pt = small(ABS(starttag) - 1, gen(genMaxTagName))
- IF state.pt >= 1 THEN thisname = load_tag_name(state.pt + 1)
+ thisname = safe_tag_name(state.pt + 1)
+
+ DIM int_browsing AS INTEGER = NO
+ DIM uninterrupted_alt_press AS INTEGER = NO
+ 'Usually equal to state.pt + 1, but can reach 0
+ DIM alt_pt AS INTEGER 
 
  DIM tog AS INTEGER = 0
  setkeys
@@ -88,23 +100,34 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
   IF keyval(scESC) > 1 THEN EXIT DO
   IF keyval(scF1) > 1 THEN show_help "tagnames"
   IF usemenu(state) THEN
-   IF state.pt >= 1 AND state.pt <= gen(genMaxTagName) THEN
-    thisname = load_tag_name(state.pt + 1)
-   ELSE
-    thisname = ""
+   thisname = safe_tag_name(state.pt + 1)
+   alt_pt = state.pt + 1
+  END IF
+  IF keyval(scAlt) AND 4 THEN uninterrupted_alt_press = YES
+  IF keyval(scAlt) = 0 AND uninterrupted_alt_press = YES THEN
+   uninterrupted_alt_press = NO
+   int_browsing XOR= YES
+   alt_pt = state.pt + 1
+  END IF
+  IF int_browsing THEN
+   IF intgrabber(alt_pt, 0, gen(genMaxTagName) + 1) THEN
+    state.pt = large(0, alt_pt - 1)
+    state.top = bound(state.top, state.pt - state.size, state.pt)
+    thisname = safe_tag_name(state.pt + 1)
    END IF
   END IF
   IF state.pt = 0 AND enter_or_space() THEN EXIT DO
-  IF state.pt > 0 AND state.pt <= gen(genMaxTagName) THEN
+  IF state.pt > 0 AND state.pt + 1 <= gen(genMaxTagName) + 1 THEN
    IF picktag THEN
     IF keyval(scEnter) > 1 THEN
      RETURN (state.pt + 1) * tagsign
     END IF
    END IF
-   IF strgrabber(thisname, 20) THEN
+   IF int_browsing = NO ANDALSO strgrabber(thisname, 20) THEN
+    uninterrupted_alt_press = NO
     save_tag_name thisname, state.pt + 1
     menu(state.pt) = "Tag " & state.pt + 1 & ":" & thisname
-    IF state.pt = gen(genMaxTagName) THEN
+    IF state.pt + 1 = gen(genMaxTagName) + 1 THEN
      IF gen(genMaxTagName) < 999 THEN
       gen(genMaxTagName) += 1
       REDIM PRESERVE menu(gen(genMaxTagName)) AS STRING
@@ -118,6 +141,15 @@ FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
   clearpage dpage
   draw_fullscreen_scrollbar state, ,dpage
   standardmenu menu(), state, 0, 0, dpage
+  DIM tmpstr AS STRING
+  IF int_browsing THEN
+   textcolor uilook(uiText), uilook(uiHighlight)
+   tmpstr = "Tag " & alt_pt
+  ELSE
+   textcolor uilook(uiDisabledItem), 0
+   tmpstr = "Alt:Tag #"
+  END IF
+  printstr tmpstr, 320 - LEN(tmpstr) * 8, 0, dpage
 
   SWAP vpage, dpage
   setvispage vpage
