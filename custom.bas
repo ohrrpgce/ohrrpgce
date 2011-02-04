@@ -63,17 +63,18 @@ DIM homedir as string
 DIM workingdir as string
 DIM app_dir as string
 
-'Local variables
+'Local variables (declaring these up here is often necessary due to gosubs)
 DIM font(1024), joy(4)
 DIM menu(22) AS STRING
+DIM menukeys(22) AS STRING
 DIM chooserpg_menu(2) AS STRING
 DIM cleanup_menu(2) AS STRING
 DIM quit_menu(3) AS STRING
 DIM quit_confirm(1) AS STRING
 DIM hsfile AS STRING
+DIM intext AS STRING
 DIM passphrase AS STRING
 DIM archinym AS STRING
-
 
 DIM walkabout_frame_captions(7) AS STRING = {"Up A","Up B","Right A","Right B","Down A","Down B","Left A","Left B"}
 DIM hero_frame_captions(7) AS STRING = {"Standing","Stepping","Attack A","Attack B","Cast/Use","Hurt","Weak","Dead"}
@@ -271,8 +272,13 @@ DO:
     show_help "gfxmain"
   END SELECT
  END IF
- passphrase = RIGHT(passphrase + getinputtext, 4)
- IF LCASE(passphrase) = "spam" THEN passphrase = "" : secret_menu
+ intext = LCASE(getinputtext)
+ passphrase = RIGHT(passphrase + intext, 4)
+ IF passphrase = "spam" THEN passphrase = "" : secret_menu
+ FOR i = 1 TO mainmax
+  DIM temp as integer = (pt + i) MOD (mainmax + 1)
+  IF INSTR(menukeys(temp), intext) THEN pt = temp : EXIT FOR
+ NEXT
  usemenu pt, 0, 0, mainmax, 24
  IF enter_or_space() THEN
   SELECT CASE menumode
@@ -363,6 +369,7 @@ menu(16) = "Edit General Game Data"
 menu(17) = "Script Management"
 menu(18) = "Edit Slice Collections"
 menu(19) = "Quit Editing"
+get_menu_hotkeys menu(), mainmax, menukeys(), "Edit"
 RETRACE
 
 setgraphicmenu:
@@ -381,6 +388,7 @@ menu(10) = "Draw Portrait Graphics"
 menu(11) = "Import/Export Screens"
 menu(12) = "Import/Export Full Maptile Sets"
 menu(13) = "Change User-Interface Colors"
+get_menu_hotkeys menu(), mainmax, menukeys()
 RETRACE
 
 chooserpg:

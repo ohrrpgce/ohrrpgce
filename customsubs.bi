@@ -85,5 +85,6 @@ DECLARE SUB fontedit_export_font(font() AS INTEGER)
 DECLARE SUB fontedit_import_font(font() AS INTEGER)
 DECLARE SUB cropafter (BYVAL index AS INTEGER, BYREF limit AS INTEGER, BYVAL flushafter AS INTEGER, lump AS STRING, BYVAL bytes AS INTEGER, BYVAL prompt AS INTEGER=YES)
 DECLARE FUNCTION numbertail (s AS STRING) AS STRING
+DECLARE SUB get_menu_hotkeys (menu() AS STRING, BYVAL menumax AS INTEGER, menukeys() AS STRING, excludewords AS STRING = "")
 
 #endif

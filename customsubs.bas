@@ -3870,3 +3870,34 @@ FUNCTION numbertail (s AS STRING) AS STRING
  NEXT
  RETURN s + "2"  
 END FUNCTION
+
+'Get a list of the first letters (lowercase) of every word in menu(), except
+'those words listed in excludewords. excludewords should be a space-separated
+'list (case matters).
+'menukeys() should be staticaly sized.
+SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as string, excludewords as string = "")
+ 'Easy exercise for the reader: Write this in three lines of Python
+ DIM excludes() as string
+ IF excludewords = "" THEN
+  REDIM excludes(-1 TO -1)
+ ELSE
+  split excludewords, excludes(), " "
+ END IF
+ FOR i as integer = 0 TO menumax
+  menukeys(i) = ""
+  DIM firstletter as integer = YES
+  FOR j as integer = 1 TO LEN(menu(i))
+   IF firstletter THEN
+    DIM excluded as integer = NO
+	FOR k as integer = 0 TO UBOUND(excludes)
+	 IF MID(menu(i), j, LEN(excludes(k))) = excludes(k) THEN excluded = YES : EXIT FOR
+	NEXT
+	IF excluded = NO THEN
+  	 menukeys(i) += LCASE(MID(menu(i), j, 1))
+    END IF
+   END IF
+   firstletter =  (isalpha(menu(i)[j - 1]) = 0)
+  NEXT
+  'debug "hotkeys from '" & menu(i) & "' -> '" & menukeys(i) & "'"
+ NEXT
+END SUB

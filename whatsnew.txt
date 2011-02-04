@@ -62,6 +62,8 @@ WHAT IS NEW?
       * You can now have up to 64 elements (you have to set a
         higher number of elements before they become available).
       [Ralph]
+    * You can select menu items on Custom's main menu and graphics menu
+      by hotkey (eg. I for Edit Items or Import Music) [Ralph]
 
   * Bugfixes
     * Bug 749: Attacks configured to do No Damage still do damage when
