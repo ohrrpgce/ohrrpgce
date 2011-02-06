@@ -60,7 +60,6 @@ End Enum
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
-Type SliceUpdate as Sub(Byval as SliceFwd ptr)
 Type SliceClone as Sub(Byval as SliceFwd ptr, byval as SliceFwd ptr)
 Type SliceSave as Sub(Byval as SliceFwd ptr, byval node as Reload.Nodeptr)
 Type SliceLoad as Sub(Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
@@ -105,7 +104,6 @@ TYPE Slice
   
   Draw as SliceDraw
   Dispose as SliceDispose
-  Update as SliceUpdate
   Clone as SliceClone
   Save as SliceSave
   Load as SliceLoad

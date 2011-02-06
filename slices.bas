@@ -70,7 +70,6 @@ Dim Shared GlobalCoordOffset AS XYPair
 'stub functions:
 Sub DrawNullSlice(byval s as slice ptr, byval p as integer) : end sub
 Sub DisposeNullSlice(byval s as slice ptr) : end sub
-Sub UpdateNullSlice(byval s as slice ptr) : end sub
 Sub CloneNullSlice(byval s as slice ptr, byval cl as slice ptr) : end sub
 Sub SaveNullSlice(byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
 Sub LoadNullSlice(Byval s as slice ptr, byval node as Reload.Nodeptr) : end sub
@@ -301,7 +300,6 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  
  ret->Draw = @DrawNullSlice
  ret->Dispose = @DisposeNullSlice
- ret->Update = @UpdateNullSlice
  ret->Clone = @CloneNullSlice
  ret->Save = @SaveNullSlice
  ret->Load = @LoadNullSlice
@@ -597,7 +595,6 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
   sl->SliceType = .SliceType
   sl->Draw      = .Draw
   sl->Dispose   = .Dispose
-  sl->Update    = .Update
   sl->Clone     = .Clone
   sl->Save      = .Save
   sl->Load      = .Load
@@ -967,7 +964,6 @@ Function NewTextSlice(byval parent as Slice ptr, byref dat as TextSliceData) as 
  ret->SliceData = d
  ret->Draw = @DrawTextSlice
  ret->Dispose = @DisposeTextSlice
- ret->Update = @UpdateTextSlice
  ret->Clone = @CloneTextSlice
  ret->Save = @SaveTextSlice
  ret->Load = @LoadTextSlice
