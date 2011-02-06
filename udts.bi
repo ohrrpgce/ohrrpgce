@@ -64,6 +64,13 @@ TYPE Condition
   lastinput as ubyte
 END TYPE
 
+TYPE ClipState
+	clipl as integer
+	clipr as integer
+	clipt as integer
+	clipb as integer
+END TYPE
+
 'WARNING: don't add strings to this
 TYPE Palette16
 	col(15) as ubyte 'indices into the master palette

@@ -3100,6 +3100,20 @@ sub shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as intege
 	end with
 end sub
 
+sub saveclip(byref buf as ClipState)
+	buf.clipr = clipr
+	buf.clipl = clipl
+	buf.clipt = clipt
+	buf.clipb = clipb
+end sub
+
+sub loadclip(byref buf as ClipState)
+	clipr = buf.clipr
+	clipl = buf.clipl
+	clipt = buf.clipt
+	clipb = buf.clipb
+end sub
+
 'trans: draw transparently, either using ->mask if available, or otherwise use colour 0 as transparent
 'warning! Make sure setclip has been called before calling this
 sub drawohr(byval src as Frame ptr, byval dest as Frame ptr, byval pal as Palette16 ptr = null, byval x as integer, byval y as integer, byval trans as integer = -1)
