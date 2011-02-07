@@ -228,7 +228,7 @@ static void setupWindowMenu(void)
     [menuItem release];
 
     /* Fullscreen item */
-    menuItem = [[NSMenuItem alloc] initWithTitle:@"Full screen" action:@selector(performFullscreen:) keyEquivalent:@"f"];
+    menuItem = [[NSMenuItem alloc] initWithTitle:@"Full screen" action:@selector(fullScreen:) keyEquivalent:@"f"];
     [windowMenu addItem:menuItem];
     [menuItem release];
 
