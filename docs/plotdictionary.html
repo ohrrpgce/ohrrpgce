@@ -362,9 +362,6 @@
 		<a href="#about-defineconstant">define constant (number,name)</a><br>
 		
 	
-		<a href="#about-definescript">define script (id,name,arguments)</a><br>
-		
-	
 		<a href="#about-deletechar">delete char (ID, position)</a><br>
 		
 	
@@ -2370,21 +2367,6 @@ variable+=1 # add one to it</pre>
 			The include command inserts another text file into your script. It is followed by a single filename that tells what file will be included. Windows long filenames are not supported. Every plotscript file should start with include, plotscr.hsd The PLOTSCR.HSD file contains definitions and constants for most of the other plotscripting commands.<br>
 			<pre>include, plotscr.hsd # Plotscripting definitions
 include, mygame.hsi # constants particular to my game</pre>
-			
-		</tt></p>
-		<a name="about-definescript"></a>
-		<p>
-		<tt>
-		<b><font color="yellow">define script (id,name,arguments)</font></b><br>
-			<div style="background-color:#EFF;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">This declaration is available for backwards compatability, but it is not required anymore. See <a href="#about-script" class="ref">script</a> and <a href="#about-plotscript" class="ref">plotscript</a> instead.<br clear="all">
-</div> The define script command names an old-style script, and associates it with an ID number. Old scripts used to require a unique ID number. The first argument is the <span class="param">ID number</span>. It is a number between 1 and 16383. If you try to give two individual scripts the same <span class="param">ID number</span>, your script file will not compile. The next argument is the <span class="param">name</span> of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts don't) then use <a href="#about-none" class="ref">none</a>. If there are arguments, you then follow the argument count with default values for each argument.<br>
-			<pre># example of a simple script definition
-define script (1,my first script,none)</pre>
-<pre># example of a script definition with arguments. this script
-# has three arguments, all of which default to zero if they
-# are not specified
-define script (2,my fancy script,3,0,0,0)</pre>
 			
 		</tt></p>
 
@@ -8231,7 +8213,7 @@ write pass block(15,3,pass)
 		<p>
 		<tt>
 		<b><font color="yellow">variable := value</font></b><br>
-			This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<br>You should normally set variables by writing <span class="param">variable := value</span> but for backwards compatability, you can also use the old form <span class="param">set variable(variable, value)</span><br>
+			This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<br>
 			
 			
 		</tt></p>
@@ -9068,7 +9050,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get hero stat (who,stat,type)</font></b><br>
-			A function that returns one of a hero's stats. The first argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the name of the stat that you want to check. The names of the stats are also define in your HSI file in the form stat:name. The third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
+			A function that returns one of a hero's stats. The first argument is the position of the hero you want to check in your party as as returned by <a href="#about-findhero" class="ref">find hero</a>. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -9082,7 +9064,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set hero stat (who,stat,value,type)</font></b><br>
-			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also define in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
+			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -9096,7 +9078,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set capped hero stat (who,stat,value,type)</font></b><br>
-			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also define in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed. Unlike <a href="#about-setherostat" class="ref">set hero stat</a>, this command is not allowed to exceed the stat caps.<br>
+			A command that changes one of a hero's stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <a href="#about-currentstat" class="ref">current stat</a> or <a href="#about-maximumstat" class="ref">maximum stat</a>. If you leave the last argument blank, <a href="#about-currentstat" class="ref">current stat</a> will be assumed. Unlike <a href="#about-setherostat" class="ref">set hero stat</a>, this command is not allowed to exceed the stat caps.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -9827,7 +9809,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">autonumber</font></b><br>
-			autonumber is a constant that is used as the ID number in old-style <a href="#about-definescript" class="ref">define script</a> commands. This is not needed anymore. Use <a href="#about-script" class="ref">script</a> instead.<br>
+			autonumber is a constant that is used as the ID number in old-style <a href="#definescript" class="undef">definescript</a> commands. This is not needed anymore. Use <a href="#about-script" class="ref">script</a> instead.<br>
 			
 			
 		</tt></p>
@@ -10099,7 +10081,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 713 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 712 commands in this file, of which 57 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

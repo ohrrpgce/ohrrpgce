@@ -173,18 +173,6 @@ variable+=1 # add one to it</example>
 			<example>include, plotscr.hsd # Plotscripting definitions
 include, mygame.hsi # constants particular to my game</example>
 		</command>
-		<command id="definescript">
-			<canon>define script (id,name,arguments)</canon>
-			<shortname>define script</shortname>
-			<deprecated>ubersetzung</deprecated>
-			<description><note>This declaration is available for backwards compatability, but it is not required anymore. See <ref>script</ref> and <ref>plotscript</ref> instead.</note> The define script command names an old-style script, and associates it with an ID number. Old scripts used to require a unique ID number. The first argument is the <p>ID number</p>. It is a number between 1 and 16383. If you try to give two individual scripts the same <p>ID number</p>, your script file will not compile. The next argument is the <p>name</p> of the script. this is the same name that will used later in your script command. The third argument is the number of arguments that the script can accept. If it doesnt need any arguments (most scripts don't) then use <ref>none</ref>. If there are arguments, you then follow the argument count with default values for each argument.</description>
-			<example># example of a simple script definition
-define script (1,my first script,none)</example>
-			<example># example of a script definition with arguments. this script
-# has three arguments, all of which default to zero if they
-# are not specified
-define script (2,my fancy script,3,0,0,0)</example>
-		</command>
 	</section>
 	<section title="Wait Commands">
 		<command id="wait">
@@ -4369,7 +4357,7 @@ write pass block(15,3,pass)
 		<command id="setvariable">
 			<canon>variable := value</canon>
 			<shortname>:=</shortname>
-			<description>This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.<lb/>You should normally set variables by writing <p>variable := value</p> but for backwards compatability, you can also use the old form <p>set variable(variable, value)</p></description>
+			<description>This command assigns a new value to a variable. If you do not specify the new value, the variable will be reset to zero. This command works exactly the same for global and local variables.</description>
 		</command>
 		<command id="increment">
 			<canon>increment (variable,amount)</canon>
@@ -4959,7 +4947,7 @@ end</example>
 		<command id="getherostat">
 			<canon>get hero stat (who,stat,type)</canon>
 			<shortname>get hero stat</shortname>
-			<description>A function that returns one of a hero&apos;s stats. The first argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The second argument is the name of the stat that you want to check. The names of the stats are also define in your HSI file in the form stat:name. The third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed.</description>
+			<description>A function that returns one of a hero&apos;s stats. The first argument is the position of the hero you want to check in your party as as returned by <ref>findhero</ref>. The second argument is the name of the stat that you want to check. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed.</description>
 			<seealso>
 				<ref>setherostat</ref>
 				<ref>setenemystat</ref>
@@ -4969,7 +4957,7 @@ end</example>
 		<command id="setherostat">
 			<canon>set hero stat (who,stat,value,type)</canon>
 			<shortname>set hero stat</shortname>
-			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also define in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed.</description>
+			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed.</description>
 			<seealso>
 				<ref>getherostat</ref>
 				<ref>setenemystat</ref>
@@ -4979,7 +4967,7 @@ end</example>
 		<command id="setcappedherostat">
 			<canon>set capped hero stat (who,stat,value,type)</canon>
 			<shortname>set capped hero stat</shortname>
-			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also define in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed. Unlike <ref>setherostat</ref>, this command is not allowed to exceed the stat caps.</description>
+			<description>A command that changes one of a hero&apos;s stats. The first argument is the position of the hero you want to change in your party as returned by find hero. The second argument is the name of the stat that you want to change. The names of the stats are also defined in your HSI file in the form stat:name. The third argument is the new value of the stat. The last argument is either <ref>currentstat</ref> or <ref>maximumstat</ref>. If you leave the last argument blank, <ref>currentstat</ref> will be assumed. Unlike <ref>setherostat</ref>, this command is not allowed to exceed the stat caps.</description>
 			<seealso>
 				<ref>setherostat</ref>
 				<ref>getherostatcap</ref>
