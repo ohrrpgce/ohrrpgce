@@ -965,7 +965,7 @@ FUNCTION intgrabber_with_addset(BYREF pt AS INTEGER, BYVAL min AS INTEGER, BYVAL
   END IF
   RETURN NO
  ELSE
-  RETURN intgrabber(pt, min, max, less, more)
+  RETURN intgrabber(pt, min, max, less, more, NO, NO)
  END IF
 END FUNCTION
 

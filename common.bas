@@ -1258,14 +1258,14 @@ END FUNCTION
 'Modify an integer according to key input (less and more are scancodes for decrementing and incrementing)
 'If returninput is true, returns whether the user tried to modify the int,
 'otherwise returns true only if the int actually changed.
-FUNCTION intgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO) AS INTEGER
+FUNCTION intgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO, BYVAL use_clipboard AS INTEGER=YES) AS INTEGER
  DIM AS LONGINT temp = n
  intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput)
  n = temp
 END FUNCTION
 
 'See above for documentation
-FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONGINT, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO) AS INTEGER
+FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONGINT, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO, BYVAL use_clipboard AS INTEGER=YES) AS INTEGER
  STATIC clip AS LONGINT
  DIM old AS LONGINT = n
  DIM typed AS INTEGER = NO
@@ -1295,10 +1295,12 @@ FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONG
   END IF
   IF min < 0 AND (sign < 0 OR max = 0) THEN n = -n
   'CLIPBOARD
-  IF copy_keychord() THEN clip = n
-  IF paste_keychord() THEN
-   n = clip
-   typed = YES
+  IF use_clipboard THEN
+   IF copy_keychord() THEN clip = n
+   IF paste_keychord() THEN
+    n = clip
+    typed = YES
+   END IF
   END IF
   n = bound(n, min, max)
  END IF
