@@ -1260,7 +1260,7 @@ END FUNCTION
 'otherwise returns true only if the int actually changed.
 FUNCTION intgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO, BYVAL use_clipboard AS INTEGER=YES) AS INTEGER
  DIM AS LONGINT temp = n
- intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput)
+ intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput, use_clipboard)
  n = temp
 END FUNCTION
 
