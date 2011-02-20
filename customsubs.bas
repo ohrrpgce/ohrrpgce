@@ -794,7 +794,7 @@ SUB ui_color_editor(palnum AS INTEGER)
   IF enter_or_space() THEN
    IF state.pt = 0 THEN
     EXIT DO
-   ELSEIF state.pt < uiTextBoxFrame THEN
+   ELSEIF index < uiTextBoxFrame THEN
     'Color browser
     uilook(index) = color_browser_256(uilook(index))
     make_ui_color_editor_menu color_menu(), uilook() 
