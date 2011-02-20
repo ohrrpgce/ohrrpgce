@@ -70,7 +70,8 @@ dim key2text(3,53) as string*1 => { _
 
 'module shared
 dim shared wrkpage as integer  'used by some legacy modex functions. Usually points at clippedframe
-dim shared clippedframe as Frame ptr  'used to track which Frame the clips are set for
+dim shared clippedframe as Frame ptr  'used to track which Frame the clips are set for.
+dim shared as integer clipl, clipt, clipr, clipb 'drawable area on clippedframe; right, bottom margins are excluded
 
 'temporary exploratory variable resolution stuff
 dim shared windowsize as XYPair = (320, 200)
@@ -114,8 +115,6 @@ dim shared mouse_dragmask as integer
 dim shared textfg as integer
 dim shared textbg as integer
 dim shared fonts(2) as Font
-
-dim shared as integer clipl, clipt, clipr, clipb 'these clip to the current wrkpage and must be reset whenever that changes
 
 dim shared intpal(0 to 255) as RGBcolor	'current palette
 dim shared updatepal as integer  'setpal called, load new palette at next setvispage
@@ -3072,14 +3071,14 @@ end function
 'that they are valid (the video page dimensions might differ).
 'Aside from tracking which page the clips are for, some legacy code actually uses wrkpage,
 'these should be removed.
-sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval page as integer)
+sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval page as integer)
 	wrkpage = page
 	setclip l, t, r, b, vpages(wrkpage)
 end sub
 
 'more modern version
 'would call this directly everywhere, but don't want to break that edge case that actually needs wrkpage set
-sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval fr as Frame ptr = 0)
+sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr = 0)
 	if fr <> 0 then clippedframe = fr
 	with *clippedframe
 		clipl = bound(l, 0, .w) '.w valid, prevents any drawing
@@ -3090,8 +3089,14 @@ sub setclip(byval l as integer = 0, byval t as integer = 0, byval r as integer =
 end sub
 
 'Shrinks clipping area, never grows it
-sub shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 9999, byval b as integer = 9999, byval fr as Frame ptr)
-	clippedframe = fr
+sub shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as integer = 999999, byval b as integer = 999999, byval fr as Frame ptr)
+	if clippedframe <> fr then
+		clippedframe = fr
+		clipl = 0
+		clipt = 0
+		clipr = 999999
+		clipb = 999999
+	end if
 	with *clippedframe
 		clipl = bound(large(clipl, l), 0, .w) '.w valid, prevents any drawing
 		clipt = bound(large(clipt, t), 0, .h)
@@ -3101,6 +3106,7 @@ sub shrinkclip(byval l as integer = 0, byval t as integer = 0, byval r as intege
 end sub
 
 sub saveclip(byref buf as ClipState)
+	buf.whichframe = clippedframe
 	buf.clipr = clipr
 	buf.clipl = clipl
 	buf.clipt = clipt
@@ -3108,6 +3114,7 @@ sub saveclip(byref buf as ClipState)
 end sub
 
 sub loadclip(byref buf as ClipState)
+	clippedframe = buf.whichframe
 	clipr = buf.clipr
 	clipl = buf.clipl
 	clipt = buf.clipt

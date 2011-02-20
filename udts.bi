@@ -64,13 +64,6 @@ TYPE Condition
   lastinput as ubyte
 END TYPE
 
-TYPE ClipState
-	clipl as integer
-	clipr as integer
-	clipt as integer
-	clipb as integer
-END TYPE
-
 'WARNING: don't add strings to this
 TYPE Palette16
 	col(15) as ubyte 'indices into the master palette
@@ -149,6 +142,14 @@ END TYPE
 TYPE GraphicPair
 	sprite as frame ptr
 	pal as palette16 ptr
+END TYPE
+
+TYPE ClipState
+	whichframe as Frame ptr
+	clipl as integer
+	clipr as integer
+	clipt as integer
+	clipb as integer
 END TYPE
 
 TYPE MenuSet
