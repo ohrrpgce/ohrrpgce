@@ -7,7 +7,7 @@
 DEFINT A-Z
 'basic subs and functions
 
-#include "compat.bi"
+#include "config.bi"
 #include "const.bi"
 #include "udts.bi"
 #include "custom_udts.bi"

@@ -7,7 +7,7 @@
 ' Code that is not OHRRPGCE-specific that would be of general use
 ' to any FreeBasic program belongs in util.bas instead
 
-#include "compat.bi"
+#include "config.bi"
 #include "const.bi"
 #include "allmodex.bi"
 #include "os.bi"

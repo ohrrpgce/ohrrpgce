@@ -7,14 +7,14 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 
-#include "compat.bi"
+#include "config.bi"
 #include "udts.bi"
 
 
 #if defined(__FB_WIN32__) and not defined(RELOAD_NOPRIVATEHEAP)
 #if defined(RELOADINTERNAL)
         '#include "windows.bi"'
-        'Reduce namespace pollution (this macro is from compat.bi)
+        'Reduce namespace pollution (this macro is from config.bi)
         include_windows_bi()
 #elseif __FB_DEBUG__
         type HANDLE as any ptr

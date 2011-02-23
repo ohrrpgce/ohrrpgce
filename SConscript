@@ -132,7 +132,7 @@ for k, v in music_map.items ():
 common_modules += [v + '.bas' for v in Split ("""allmodex
                    backends
                    lumpfile
-                   compat
+                   misc
                    bam2mid
                    common
                    bcommon
@@ -177,7 +177,7 @@ semicommon_modules += ['backends.bas',
                       'common.bas',
                       'allmodex.bas',
                       'slices.bas',
-                      'compat.bas']
+                      'misc.bas']
 
 _libraries = libraries
 libraries = []

@@ -6,7 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 
-#include "compat.bi"
+#include "config.bi"
 #include "const.bi"
 #include "udts.bi"
 #include "custom_udts.bi"

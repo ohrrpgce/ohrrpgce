@@ -7,7 +7,7 @@
 DEFINT A-Z
 
 'misc
-#include "compat.bi"
+#include "config.bi"
 #include "common.bi"
 #include "loading.bi"
 #INCLUDE "gglobals.bi"

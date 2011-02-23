@@ -7,8 +7,9 @@
 'scripterr, runscript, loadscript, freescripts, load/saveglobalvars, commandname, decodetrigger.
 'Probably runscript, loadscript, freescripts will eventually be moved here
 
-#include "compat.bi"
+#include "config.bi"
 #include "util.bi"
+#include "misc.bi"
 #include "udts.bi"
 #include "scrconst.bi"
 #include "gglobals.bi"

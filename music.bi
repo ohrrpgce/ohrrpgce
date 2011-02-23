@@ -1,7 +1,7 @@
 #IFNDEF __MUSIC_BI__
 #DEFINE __MUSIC_BI__
 
-#INCLUDE "compat.bi"
+#INCLUDE "config.bi"
 #INCLUDE "lumpfile.bi"
 
 '' External music functions

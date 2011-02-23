@@ -13,7 +13,7 @@ DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
 DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
 
-#include "compat.bi"
+#include "config.bi"
 #include "util.bi"
 #include "const.bi"
 #include "file.bi"

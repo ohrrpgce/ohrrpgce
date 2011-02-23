@@ -4,7 +4,7 @@
 
 #include "const.bi"
 #include "util.bi"
-#include "compat.bi"
+#include "config.bi"
 
 OPTION EXPLICIT
 

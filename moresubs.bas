@@ -6,8 +6,9 @@
 '$DYNAMIC
 DEFINT A-Z
 
-#include "compat.bi"
+#include "config.bi"
 #include "udts.bi"
+#include "misc.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "gglobals.bi"

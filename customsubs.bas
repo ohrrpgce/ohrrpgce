@@ -5,7 +5,7 @@
 '
 ' This file is for general purpose code use by CUSTOM but not by GAME.
 
-#include "compat.bi"
+#include "config.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "loading.bi"

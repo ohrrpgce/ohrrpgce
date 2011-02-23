@@ -12,6 +12,7 @@
 #include "music.bi"
 #include "browse.bi"
 #include "const.bi"
+#include "misc.bi"  'for nulzstr
 
 DECLARE FUNCTION common_setoption(opt as string, arg as string) as integer
 

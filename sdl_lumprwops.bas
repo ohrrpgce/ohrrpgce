@@ -4,7 +4,7 @@
 
 'Used by music_sdl, but could be used with other SDL libraries
 
-#include "compat.bi"
+#include "config.bi"
 #include "SDL/SDL.bi"
 #include "lumpfile.bi"
 #include "lumpfilewrapper.bi"

@@ -1,5 +1,4 @@
 'OHRRPGCE GAME - Saving and loading games
-'OHRRPGCE GAME - Saving and loading games
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
@@ -7,7 +6,7 @@
 '$DYNAMIC
 DEFINT A-Z
 
-#include "compat.bi"
+#include "config.bi"
 #include "udts.bi"
 #include "allmodex.bi"
 #include "common.bi"

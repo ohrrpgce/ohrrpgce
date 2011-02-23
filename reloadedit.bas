@@ -12,7 +12,7 @@
   #endif
 #endif
 
-#include "compat.bi"
+#include "config.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "slices.bi"

@@ -5,7 +5,7 @@
 '
 DEFINT A-Z
 
-#include "compat.bi"
+#include "config.bi"
 #include "udts.bi"
 #include "const.bi"
 #include "allmodex.bi"

@@ -1,11 +1,14 @@
-'OHRRPGCE GAME - Compatibility functions, FreeBasic version
+'OHRRPGCE Common - Odd header/module left over from the QuickBasic to FreeBASIC move
 '(C) Copyright 1997-2005 James Paige and Hamster Republic Productions
 'Please read LICENSE.txt for GPL License details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
+'FIXME: move this crud elsewhere
+
 option explicit
 
-#include "compat.bi"
+#include "config.bi"
+#include "misc.bi"
 #include "allmodex.bi"
 #include "fontdata.bi"
 #include "gfx.bi"
@@ -19,7 +22,7 @@ extern "C"
 DECLARE FUNCTION backends_setoption(opt as string, arg as string) as integer
 end extern
 
-dim nulzstr as zstring ptr  '(see compat.bi)
+dim nulzstr as zstring ptr  '(see misc.bi)
 
 'Gosub workaround
 option dynamic

@@ -14,7 +14,7 @@ DECLARE SUB fatalerror (e$)
 DECLARE FUNCTION rightafter$ (s$, d$)
 DECLARE FUNCTION checkpassword (pass as string) as integer
 
-#include "compat.bi"
+#include "config.bi"
 #include "util.bi"
 #include "const.bi"
 #include "lumpfile.bi"

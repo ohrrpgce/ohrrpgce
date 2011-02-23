@@ -4,7 +4,7 @@
 #DEFINE ALLMODEX_BI
 
 #include "udts.bi"
-#include "compat.bi"
+#include "config.bi"
 #IFNDEF BITMAP
  'windows.bi may have been included
  #include "bitmap.bi"

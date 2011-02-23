@@ -1,7 +1,7 @@
 'The OHRRPGCE graphics, audio and user input library!
 'Please read LICENSE.txt for GNU GPL license details and disclaimer of liability
 
-#include "compat.bi"
+#include "config.bi"
 #include "crt/limits.bi"
 #include "common.bi"
 #include "allmodex.bi"

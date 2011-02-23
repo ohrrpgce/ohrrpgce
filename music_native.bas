@@ -10,7 +10,7 @@ option explicit
 '#include "crt.bi"
 
 'glup
-#include "compat.bi"
+#include "config.bi"
 #undef opaque
 
 'uncomment this to try allegro

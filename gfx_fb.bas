@@ -7,7 +7,7 @@
 
 option explicit
 
-#include "compat.bi"
+#include "config.bi"
 #include "fbgfx.bi"
 #include "gfx.bi"
 #include "common.bi"

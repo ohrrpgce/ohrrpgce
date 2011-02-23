@@ -22,7 +22,7 @@ TYPE TriggerSet
  usedbits AS UNSIGNED INTEGER PTR
 END TYPE
 
-#include "compat.bi"
+#include "config.bi"
 #include "udts.bi"
 #include "custom_udts.bi"
 #include "const.bi"

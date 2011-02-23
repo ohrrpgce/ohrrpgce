@@ -145,7 +145,7 @@ endif
 endif
 
 
-common_modules+=allmodex backends lumpfile compat bam2mid common bcommon browse util loading reload reloadext slices
+common_modules+=allmodex backends lumpfile misc bam2mid common bcommon browse util loading reload reloadext slices
 common_objects+=$(addsuffix .o,$(common_modules))
 common_sources:=$(addsuffix .bas,$(common_modules))
 
@@ -166,7 +166,7 @@ includes:=${shell echo *.bi}
 
 #The following common modules need to be rebuilt for Game or Custom, because
 #they depend on IS_GAME/IS_EDIT or g/cver.txt:
-semicommon_modules:=backends browse common allmodex slices compat music_native music_native2
+semicommon_modules:=backends browse common allmodex slices misc music_native music_native2
 semicommon_objects+=$(addsuffix .o,$(semicommon_modules))
 semicommon_sources+=$(addsuffix .bas,$(semicommon_modules))
 

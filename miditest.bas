@@ -1,6 +1,6 @@
 option explicit
 
-#include "compat.bi"
+#include "config.bi"
 #include "crt.bi"
 #IFDEF __UNIX__
 'Open Sound System

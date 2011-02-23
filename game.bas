@@ -6,7 +6,7 @@
 '!$DYNAMIC
 'DEFINT A-Z
 
-#include "compat.bi"
+#include "config.bi"
 #include "udts.bi"
 #include "game_udts.bi"
 #include "slices.bi"

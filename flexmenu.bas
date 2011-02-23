@@ -7,7 +7,7 @@ OPTION EXPLICIT
 DEFINT A-Z
 '$DYNAMIC
 
-#include "compat.bi"
+#include "config.bi"
 #include "allmodex.bi"
 #include "common.bi"
 #include "customsubs.bi"

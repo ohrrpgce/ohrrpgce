@@ -2,7 +2,7 @@
 'Please read LICENSE.txt for GNU GPL License details and disclaimer of liability
 
 #include "os.bi"
-#include "compat.bi"
+#include "config.bi"
 #include "crt/limits.bi"
 #include "common.bi"
 #include "allmodex.bi"
