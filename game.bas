@@ -498,7 +498,7 @@ DO
    init_menu_state mstates(i), menus(i)
   END IF
  NEXT i
- player_menu_keys catx(), caty()
+ player_menu_keys()
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
  IF gmap(15) THEN onkeyscript gmap(15)
@@ -2140,7 +2140,7 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
-SUB player_menu_keys (catx(), caty())
+SUB player_menu_keys ()
  DIM i AS INTEGER
  DIM activated AS INTEGER
  DIM menu_handle AS INTEGER
