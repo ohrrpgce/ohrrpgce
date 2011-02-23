@@ -4,15 +4,6 @@
 #IFNDEF CONFIG_BI
 #DEFINE CONFIG_BI
 
-'version strings
-#IFDEF IS_GAME
-#INCLUDE "gver.txt"
-#ELSEIF DEFINED(IS_CUSTOM)
-#INCLUDE "cver.txt"
-#ELSE
-#INCLUDE "gver.txt"
-#ENDIF
-
 #IF __FB_DEBUG__
  #DEFINE _GSTR & " -g"
 #ELSE

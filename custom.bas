@@ -6,6 +6,7 @@
 DEFINT A-Z
 
 #include "config.bi"
+#include "ver.txt"
 #include "udts.bi"
 #include "const.bi"
 #include "allmodex.bi"

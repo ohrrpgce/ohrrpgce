@@ -8,6 +8,7 @@
 ' to any FreeBasic program belongs in util.bas instead
 
 #include "config.bi"
+#include "ver.txt"
 #include "const.bi"
 #include "allmodex.bi"
 #include "os.bi"

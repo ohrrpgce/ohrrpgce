@@ -8,6 +8,7 @@
 option explicit
 
 #include "config.bi"
+#include "ver.txt"
 #include "misc.bi"
 #include "allmodex.bi"
 #include "fontdata.bi"

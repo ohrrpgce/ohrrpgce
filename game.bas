@@ -7,6 +7,7 @@
 'DEFINT A-Z
 
 #include "config.bi"
+#include "ver.txt"
 #include "udts.bi"
 #include "game_udts.bi"
 #include "slices.bi"

@@ -4,6 +4,7 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
 #include "config.bi"
+#include "ver.txt"
 #include "const.bi"
 #include "allmodex.bi"
 #include "common.bi"

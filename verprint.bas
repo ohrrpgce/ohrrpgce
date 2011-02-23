@@ -34,7 +34,7 @@ NEXT
 
 long_version$ = "CONST long_version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + "." + svnrev$ + " gfx_" + command(1) + "/music_" + command(2) + " " + __FB_SIGNATURE__ + " (" + __FB_BUILD_DATE__ + ")" + CHR$(34)
 
-OPEN "cver.txt" FOR OUTPUT AS #1
+OPEN "ver.txt" FOR OUTPUT AS #1
 FOR i AS INTEGER = 0 TO UBOUND(gfxmods)
   a$ = "#DEFINE GFX_" + UCASE$(gfxmods(i)) + "_BACKEND"
   PRINT #1, a$
@@ -55,27 +55,6 @@ PRINT #1, a$
 a$ = "CONST version_branch as string = " + CHR$(34) + codename$ + CHR$(34)
 PRINT #1, a$
 a$ = "CONST version_build as string = " + CHR$(34) + datetag$ + " gfx_" + command(1) + " music_" + command(2) + CHR$(34)
-PRINT #1, a$
-PRINT #1, long_version$
-CLOSE #1
-
-OPEN "gver.txt" FOR OUTPUT AS #1
-FOR i AS INTEGER = 0 TO UBOUND(gfxmods)
-  a$ = "#DEFINE GFX_" + UCASE$(gfxmods(i)) + "_BACKEND"
-  PRINT #1, a$
-NEXT
-a$ = "#DEFINE MUSIC_" + UCASE$(command(2)) + "_BACKEND"
-PRINT #1, a$
-a$ = "#DEFINE MUSIC_BACKEND """ + LCASE$(command(2)) + """"
-PRINT #1, a$
-a$ = "#DEFINE SUPPORTED_GFX """ + gfxstring + """"
-PRINT #1, a$
-PRINT #1, gfxchoices
-a$ = "CONST version as string = " + CHR$(34) + "OHRRPGCE " + codename$ + " " + datetag$ + CHR$(34)
-PRINT #1, a$
-a$ = "CONST version_revision as integer = " + svnrev
-PRINT #1, a$
-a$ = "CONST version_branch as string = " + CHR$(34) + codename$ + CHR$(34)
 PRINT #1, a$
 PRINT #1, long_version$
 CLOSE #1

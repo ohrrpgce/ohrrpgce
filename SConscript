@@ -72,7 +72,6 @@ for f in ('-mt', '-g','-exx'):
 EXE_SUFFIX = ''
 common_objects = []
 common_modules = []
-semicommon_modules = []
 
 libraries = []
 libpaths = []
@@ -100,11 +99,11 @@ gfx_map = {'fb': {'common_modules': 'gfx_fb.bas', 'libraries': 'fbgfx'},
            }
 
 music_map = {'native':
-                 {'semicommon_modules': 'music_native.bas',
+                 {'common_modules': 'music_native.bas',
                   'common_objects': os.path.join ('audwrap','audwrap.o'),
                   'libraries': 'audiere'},
              'native2':
-                 {'semicommon_modules': 'music_native2.bas',
+                 {'common_modules': 'music_native2.bas',
                   'common_objects': os.path.join ('audwrap','audwrap.o'),
                   'libraries': 'audiere'},
              'sdl':
@@ -170,15 +169,6 @@ game_modules = ['game',
 
 game_modules.reverse ()
 
-# This is a relic from Makefile: these are the modules which actually
-# need to be built twice, but we build everything twice.
-semicommon_modules += ['backends.bas',
-                      'browse.bas',
-                      'common.bas',
-                      'allmodex.bas',
-                      'slices.bas',
-                      'misc.bas']
-
 _libraries = libraries
 libraries = []
 _libpaths = libpaths
@@ -209,9 +199,6 @@ editenv = main.Clone (FBFLAGS = env['FBFLAGS'] + \
 gametmp = []
 edittmp = []
 tmp = common_modules + common_objects
-for v in semicommon_modules:
-    if v not in tmp:
-        tmp.append (v)
 for v in tmp:
     if v.endswith ('.c'):
         tmp = main.Command (v.replace ('.c','.o'),
@@ -235,8 +222,6 @@ for v in tmp:
         b = editenv.BASO (target = 'edit-'+ v[:-4], source = v,)
         gametmp.append (a)
         edittmp.append (b)
-        Depends (a,'gver.txt')
-        Depends (b,'cver.txt')
     else:
         # object files and other
         gametmp.append (v)
@@ -250,12 +235,10 @@ editsrc = []
 
 for item in game_modules:
     a = gameenv.BASO (target = item + '.o', source = item + '.bas')
-    Depends (a,'gver.txt')
     gamesrc.append (a)
 
 for item in edit_modules:
     b = editenv.BASO (target = item + '.o', source = item + '.bas')
-    Depends (b,'cver.txt')
     editsrc.append (b)
 
 mainflags = ['-v'] + env['FBFLAGS']

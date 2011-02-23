@@ -39,7 +39,7 @@ def basfile_recurse_scan(filename, included):
     
 
 def verprint (used_gfx, used_music, svn, git, fbc):
-    # generate cver.txt, gver.txt (gver is just a cver with removed bits)
+    # generate ver.txt
     # generate iver.txt (Install-info)
     # generate distver.bat (?)
     def openw (filename):
@@ -126,15 +126,7 @@ def verprint (used_gfx, used_music, svn, git, fbc):
         'CONST version_build as string = "%(date)s %(gfx)s %(music)s"' % data,
         ('CONST long_version as string = "%(name)s '
         '%(codename)s %(date)s.%(rev)s %(gfx)s/%(music)s FreeBASIC %(fbver)s"') %  data])
-    #write to /tmp/ for now, ca le nu cipra
-    f = openw ('cver.txt')
-    f.write ('\n'.join (results))
-    f.write ('\n')
-    f.close()
-    for v in list (results):
-        if v.startswith('CONST version_code'):
-            results.remove(v)
-    f = openw ('gver.txt')
+    f = openw ('ver.txt')
     f.write ('\n'.join (results))
     f.write ('\n')
     f.close()

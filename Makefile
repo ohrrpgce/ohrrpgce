@@ -165,16 +165,16 @@ reload_objects:=reload.o reloadext.o lumpfile.o util.o base64.o blit.o
 includes:=${shell echo *.bi}
 
 #The following common modules need to be rebuilt for Game or Custom, because
-#they depend on IS_GAME/IS_EDIT or g/cver.txt:
-semicommon_modules:=backends browse common allmodex slices misc music_native music_native2
+#they depend on IS_GAME/IS_EDIT
+semicommon_modules:=backends common allmodex slices misc music_native music_native2
 semicommon_objects+=$(addsuffix .o,$(semicommon_modules))
 semicommon_sources+=$(addsuffix .bas,$(semicommon_modules))
 
 #semicommon_sources:=$(filter $(semicommon_sources),$(common_sources))
 #common_objects:=$(filter-out $(semicommon_objects),$(common_objects))
 
-#c/gver.txt are phony to force recreating them
-.PHONY: all game edit clean spotless gver.txt cver.txt bam2mid 
+#ver.txt is phony to force recreating it
+.PHONY: all game edit clean spotless ver.txt bam2mid 
 
 libraries:=$(addprefix -l , $(libraries))
 libpaths :=$(addprefix -p , $(libpaths))
@@ -209,13 +209,13 @@ edit:
 	@$(MAKE) $(edit_exe) --no-print-directory || echo $(WARNING)
 
 $(game_exe): FBFLAGS+=-d IS_GAME
-$(game_exe): gver.txt game_compiled_objs $(common_objects) $(game_objects)
+$(game_exe): ver.txt game_compiled_objs $(common_objects) $(game_objects)
 	@echo Linking Game...
 	$(FBC) -x $(game_exe) -m game $(FBFLAGS) $(game_flags) $(game_objects) $(common_objects) $(libpaths) $(libraries)
 
 
 $(edit_exe): FBFLAGS+=-d IS_CUSTOM
-$(edit_exe): cver.txt custom_compiled_objs $(common_objects) $(edit_objects)
+$(edit_exe): ver.txt custom_compiled_objs $(common_objects) $(edit_objects)
 	@echo Linking Custom...
 	$(FBC) -x $(edit_exe) -m custom $(FBFLAGS) $(edit_flags) $(edit_objects) $(common_objects) $(libpaths) $(libraries)
 
@@ -230,7 +230,7 @@ bam2mid: bam2mid.bas
 
 #-exx causes fbc to throw an error on OPEN CONS, even though it works without error checking!
 reload: FBFLAGS:=-g
-reload: gver.txt reload_compiled_objs $(reload_objects) reload2xml.o xml2reload.o reloadtest.o reloadutil.o
+reload: ver.txt reload_compiled_objs $(reload_objects) reload2xml.o xml2reload.o reloadtest.o reloadutil.o
 	$(FBC) $(FBFLAGS) reloadtest.o $(reload_objects) $(libpaths) $(libraries)
 	$(FBC) $(FBFLAGS) reloadutil.o $(reload_objects) $(libpaths) $(libraries)
 	$(FBC) $(FBFLAGS) reload2xml.o $(reload_objects) $(libpaths) $(libraries)
@@ -239,7 +239,7 @@ reload: gver.txt reload_compiled_objs $(reload_objects) reload2xml.o xml2reload.
 clean:
 	@echo Removing compilation files...
 	@rm -f *.o
-	@rm -f gver.txt cver.txt
+	@rm -f ver.txt
 	@rm -f $(verprint_exe)
 	@rm -f game_compiled_objs custom_compiled_objs
 
@@ -247,7 +247,7 @@ spotless: clean
 	@rm -f $(game_exe)
 	@rm -f $(edit_exe)
 
-gver.txt cver.txt: $(verprint_exe)
+ver.txt: $(verprint_exe)
 	./$(verprint_exe) $(OHRGFX) $(OHRMUSIC)
 
 $(verprint_exe): verprint.bas
