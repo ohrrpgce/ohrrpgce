@@ -1,6 +1,6 @@
 @ECHO OFF
-IF NOT EXIST %EUDIR%\bin\exw.exe GOTO NOEUPHORIA
-ECHO. | exwc %EUDIR%\source\bind.ex -w32 -con hspeak.exw
+IF NOT EXIST %EUDIR%\bin\euc.exe GOTO NOEUPHORIA
+euc -gcc hspeak.exw
 GOTO DONE
 
 :NOEUPHORIA
