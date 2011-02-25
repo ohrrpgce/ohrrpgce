@@ -913,14 +913,14 @@ end procedure
 --reads and processes the escape codes in a string and returns it enclosed in quote marks
 function lexer_read_string(sequence s,integer i,srcpos pos)
   sequence string
-  integer switch
-  switch=false
+  integer escaping
+  escaping=false
   string="\""
   while true do
     if i>length(s) then  --did not find a closing " so not a valid string
       src_error("Expected \" at end of line to end string (multi-line strings are not supported)",pos+length(s))
     end if
-    if switch then
+    if escaping then
       if s[i]='"' or s[i]='\\' then
         string&=s[i]
       else
@@ -928,12 +928,12 @@ function lexer_read_string(sequence s,integer i,srcpos pos)
         string&='\\'
         string&=s[i]
       end if
-      switch=false
+      escaping=false
     else
       if s[i]='"' then
         return({i,string&'"'})
       elsif s[i]='\\' then
-        switch=true
+        escaping=true
       else
         string&=s[i]
       end if
