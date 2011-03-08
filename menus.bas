@@ -540,10 +540,11 @@ IF songfile$ <> bamfile$ THEN safekill songfile$
 sname$ = a$
 
 'generate lump name
-IF LCASE$(RIGHT$(sourcesong$, 4)) = ".bam" AND snum <= 99 THEN
+extension$ = LCASE(justextension(sourcesong$))
+IF extension$ = ".bam" AND snum <= 99 THEN
  songfile$ = game + "." + STR$(snum)
 ELSE
- songfile$ = workingdir + SLASH + "song" + STR$(snum) + "." + justextension$(sourcesong$)
+ songfile$ = workingdir + SLASH + "song" + STR$(snum) + "." + extension$
 END IF
 
 'Copy in new lump
@@ -728,7 +729,7 @@ safekill sfxfile$
 sname$ = a$
 
 '-- calculate lump name
-sfxfile$ = workingdir + SLASH + "sfx" + STR$(snum) + "." + justextension$(sourcesfx$)
+sfxfile$ = workingdir + SLASH + "sfx" + STR$(snum) + "." + LCASE(justextension$(sourcesfx$))
 
 '--copy in the new lump
 filecopy sourcesfx$, sfxfile$

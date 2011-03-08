@@ -338,7 +338,7 @@ FOR i AS INTEGER = 0 TO UBOUND(filelist)
   IF validmusicfile(filename, VALID_FX_FORMAT) = 0 THEN
    tree(br.treesize).kind = 6
    tree(br.treesize).about = "Not a valid sound effect file"
-  ELSEIF FILELEN(filename) > 500 * 1024 AND justextension(filename) <> "wav" THEN
+  ELSEIF FILELEN(filename) > 500 * 1024 AND LCASE(justextension(filename)) <> "wav" THEN
    tree(br.treesize).kind = 6
    tree(br.treesize).about = "File is too large (limit 500kB)"
   END IF
@@ -586,16 +586,17 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    IF br.treesize = UBOUND(tree) THEN REDIM PRESERVE tree(UBOUND(tree) + 256)
    tree(br.treesize).kind = 2
    tree(br.treesize).filename = filelist(i)
+   DIM extension AS STRING = justextension(filelist(i))
    IF tree(br.treesize).filename = "." OR tree(br.treesize).filename = ".." OR RIGHT$(tree(br.treesize).filename, 4) = ".tmp" THEN br.treesize = br.treesize - 1
    IF br.special = 7 THEN ' Special handling in RPG mode
-    IF justextension$(tree(br.treesize).filename) = "rpgdir" THEN br.treesize = br.treesize - 1
+    IF LCASE(extension) = "rpgdir" THEN br.treesize = br.treesize - 1
    END IF
    IF br.special <> 8 THEN
     '--hide any .saves folders when browsing (except in RELOAD special mode)
-    IF justextension$(tree(br.treesize).filename) = "saves" THEN br.treesize = br.treesize - 1
+    IF LCASE(extension) = "saves" THEN br.treesize = br.treesize - 1
    END IF
 #IFDEF __FB_DARWIN__
-   IF justextension$(tree(br.treesize).filename) = "app" THEN br.treesize = br.treesize - 1
+   IF extension = "app" THEN br.treesize = br.treesize - 1
 #ENDIF
    draw_browse_meter br
   NEXT
