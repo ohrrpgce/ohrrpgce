@@ -25,7 +25,7 @@ fi
 if [ -d "import/Sound Effects" ] ; then
   rm -Rf "import/Sound Effects"
 fi
-wget -q http://gilgamesh.hamsterrepublic.com/ohrimport/import.zip
+wget -q http://rpg.hamsterrepublic.com/ohrimport/import.zip
 unzip -q -d import/ import.zip
 rm import.zip
 
