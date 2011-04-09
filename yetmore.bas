@@ -1785,7 +1785,7 @@ SELECT CASE AS CONST id
    ChangeSpriteSlice plotslices(retvals(0)), , ,retvals(1)
   END IF
  CASE 327 '--replace hero sprite
-  change_sprite_plotslice retvals(0), 0, retvals(1), retvals(2)
+  replace_sprite_plotslice retvals(0), 0, retvals(1), retvals(2)
  CASE 328 '--set sprite frame
   IF valid_plotslice(retvals(0)) THEN
    ChangeSpriteSlice plotslices(retvals(0)), , , , retvals(1)
@@ -1793,43 +1793,41 @@ SELECT CASE AS CONST id
  CASE 329'--load walkabout sprite
   scriptret = load_sprite_plotslice(4, retvals(0), retvals(1))
  CASE 330 '--replace walkabout sprite
-  change_sprite_plotslice retvals(0), 4, retvals(1), retvals(2)
+  replace_sprite_plotslice retvals(0), 4, retvals(1), retvals(2)
  CASE 331'--load weapon sprite
   scriptret = load_sprite_plotslice(5, retvals(0), retvals(1))
  CASE 332 '--replace weapon sprite
-  change_sprite_plotslice retvals(0), 5, retvals(1), retvals(2)
+  replace_sprite_plotslice retvals(0), 5, retvals(1), retvals(2)
  CASE 333'--load small enemy sprite
   scriptret = load_sprite_plotslice(1, retvals(0), retvals(1))
  CASE 334 '--replace small enemy sprite
-  change_sprite_plotslice retvals(0), 1, retvals(1), retvals(2)
+  replace_sprite_plotslice retvals(0), 1, retvals(1), retvals(2)
  CASE 335'--load medium enemy sprite
   scriptret = load_sprite_plotslice(2, retvals(0), retvals(1))
  CASE 336 '--replace medium enemy sprite
-  change_sprite_plotslice retvals(0), 2, retvals(1), retvals(2)
+  replace_sprite_plotslice retvals(0), 2, retvals(1), retvals(2)
  CASE 337'--load large enemy sprite
   scriptret = load_sprite_plotslice(3, retvals(0), retvals(1))
  CASE 338 '--replace large enemy sprite
-  change_sprite_plotslice retvals(0), 3, retvals(1), retvals(2)
+  replace_sprite_plotslice retvals(0), 3, retvals(1), retvals(2)
  CASE 339'--load attack sprite
   scriptret = load_sprite_plotslice(6, retvals(0), retvals(1))
  CASE 340 '--replace attack sprite
-  change_sprite_plotslice retvals(0), 6, retvals(1), retvals(2)
+  replace_sprite_plotslice retvals(0), 6, retvals(1), retvals(2)
  CASE 341'--load border sprite
   scriptret = load_sprite_plotslice(7, retvals(0), retvals(1))
  CASE 342 '--replace border sprite
-  change_sprite_plotslice retvals(0), 7, retvals(1), retvals(2)
+  replace_sprite_plotslice retvals(0), 7, retvals(1), retvals(2)
  CASE 343'--load portrait sprite
   scriptret = load_sprite_plotslice(8, retvals(0), retvals(1))
  CASE 344 '--replace portrait sprite
-  change_sprite_plotslice retvals(0), 8, retvals(1), retvals(2)
+  replace_sprite_plotslice retvals(0), 8, retvals(1), retvals(2)
  CASE 345 '--clone sprite
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   WITH *dat
-    scriptret = load_sprite_plotslice(.spritetype, .record, .pal)
-    change_sprite_plotslice scriptret, .spritetype, .record, .pal, .frame, .flipHoriz, .flipVert
-   END WITH
+   DIM sl AS Slice Ptr
+   sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
+   sl->Clone(plotslices(retvals(0)), sl)
+   scriptret = create_plotslice_handle(sl)
   END IF
  CASE 346 '--get sprite frame
   IF valid_plotsprite(retvals(0)) THEN
@@ -2054,15 +2052,11 @@ SELECT CASE AS CONST id
   END IF
  CASE 388 '--horiz flip sprite
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   change_sprite_plotslice retvals(0), dat->spritetype, dat->record, , , (retvals(1) <> 0)
+   ChangeSpriteSlice plotslices(retvals(0)), , , , , retvals(1)
   END IF
  CASE 389 '--vert flip sprite
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr
-   dat = plotslices(retvals(0))->SliceData
-   change_sprite_plotslice retvals(0), dat->spritetype, dat->record, , , , (retvals(1) <> 0)
+   ChangeSpriteSlice plotslices(retvals(0)), , , , , , retvals(1)
   END IF
  CASE 390 '--sprite is horiz flipped
   IF valid_plotsprite(retvals(0)) THEN
@@ -2654,7 +2648,7 @@ SELECT CASE AS CONST id
  CASE 493'--load backdrop sprite (record)
   scriptret = load_sprite_plotslice(sprTypeMXS, retvals(0))
  CASE 494 '--replace backdrop sprite (handle, record)
-  change_sprite_plotslice retvals(0), sprTypeMXS, retvals(1), -2   'see next commit
+  replace_sprite_plotslice retvals(0), sprTypeMXS, retvals(1)
  CASE 495 '--get sprite trans (handle)
   IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
@@ -2662,8 +2656,7 @@ SELECT CASE AS CONST id
   END IF 
  CASE 496 '--set sprite trans (handle, bool)
   IF valid_plotsprite(retvals(0)) THEN
-   DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
-   dat->trans = retvals(1)
+   ChangeSpriteSlice plotslices(retvals(0)), , , , , , , retvals(1)
   END IF 
 
 END SELECT
@@ -3580,11 +3573,12 @@ FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTE
  RETURN 0 'Failure, return zero handle
 END FUNCTION
 
-SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1, BYVAL frame AS INTEGER=-1, BYVAL fliph AS INTEGER=-2, BYVAL flipv AS INTEGER=-2, BYVAL trans AS INTEGER=-2)
+'By default, no palette change
+SUB replace_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-2)
  WITH sprite_sizes(spritetype)
   IF valid_plotsprite(handle) THEN
    IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite record number") THEN
-    ChangeSpriteSlice plotslices(handle), spritetype, record, pal, frame, fliph, flipv, trans
+    ChangeSpriteSlice plotslices(handle), spritetype, record, pal
    END IF
   END IF
  END WITH

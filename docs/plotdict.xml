@@ -1996,7 +1996,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadherosprite">
 			<canon>load hero sprite (num, palette)</canon>
 			<shortname>load hero sprite</shortname>
-			<description>Loads hero battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replaceherosprite</ref>!</warn></description>
+			<description>Loads hero battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replaceherosprite</ref>!</warn></description>
 			<seealso>
 				<ref>replaceherosprite</ref>
 				<ref>freesprite</ref>
@@ -2005,7 +2005,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replaceherosprite">
 			<canon>replace hero sprite (handle, num, palette)</canon>
 			<shortname>replace hero sprite</shortname>
-			<description>Loads hero battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadherosprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadherosprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to hero battle sprite #<p>num</p> with palette <p>palette</p>. As with <ref>loadherosprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadherosprite</ref>.</note></description>
 			<seealso>
 				<ref>loadherosprite</ref>
 				<ref>freesprite</ref>
@@ -2014,7 +2014,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadwalkaboutsprite">
 			<canon>load walkabout sprite (num, palette)</canon>
 			<shortname>load walkabout sprite</shortname>
-			<description>Loads walkabout sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replacewalkaboutsprite</ref>!</warn></description>
+			<description>Loads walkabout sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replacewalkaboutsprite</ref>!</warn></description>
 			<seealso>
 				<ref>replacewalkaboutsprite</ref>
 				<ref>freesprite</ref>
@@ -2023,7 +2023,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replacewalkaboutsprite">
 			<canon>replace walkabout sprite (handle, num, palette)</canon>
 			<shortname>replace walkabout sprite</shortname>
-			<description>Loads walkabout sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadwalkaboutsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadwalkaboutsprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to walkabout sprite #<p>num</p> with palette <p>palette</p>. As with <ref>loadwalkaboutsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadwalkaboutsprite</ref>.</note></description>
 			<seealso>
 				<ref>loadwalkaboutsprite</ref>
 				<ref>freesprite</ref>
@@ -2032,7 +2032,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadsmallenemysprite">
 			<canon>load small enemy sprite (num, palette)</canon>
 			<shortname>load small enemy sprite</shortname>
-			<description>Loads small enemy sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replacesmallenemysprite</ref>!</warn></description>
+			<description>Loads small enemy sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replacesmallenemysprite</ref>!</warn></description>
 			<seealso>
 				<ref>replacesmallenemysprite</ref>
 				<ref>freesprite</ref>
@@ -2041,7 +2041,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replacesmallenemysprite">
 			<canon>replace small enemy sprite (handle, num, palette)</canon>
 			<shortname>replace small enemy sprite</shortname>
-			<description>Loads small enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadsmallenemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadsmallenemysprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to small enemy sprite #<p>num</p> with palette <p>palette</p>. As with <ref>loadsmallenemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadsmallenemysprite</ref>.</note></description>
 			<seealso>
 				<ref>loadsmallenemysprite</ref>
 				<ref>freesprite</ref>
@@ -2050,7 +2050,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadmediumenemysprite">
 			<canon>load medium enemy sprite (num, palette)</canon>
 			<shortname>load medium enemy sprite</shortname>
-			<description>Loads medium enemy sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replacemediumenemysprite</ref>!</warn></description>
+			<description>Loads medium enemy sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replacemediumenemysprite</ref>!</warn></description>
 			<seealso>
 				<ref>replacemediumenemysprite</ref>
 				<ref>freesprite</ref>
@@ -2059,7 +2059,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replacemediumenemysprite">
 			<canon>replace medium enemy sprite (handle, num, palette)</canon>
 			<shortname>replace medium enemy sprite</shortname>
-			<description>Loads medium enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadmediumenemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadmediumenemysprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to medium enemy sprite #<p>num</p> with palette <p>palette</p>. As with <ref>loadmediumenemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadmediumenemysprite</ref>.</note></description>
 			<seealso>
 				<ref>loadmediumenemysprite</ref>
 				<ref>freesprite</ref>
@@ -2068,7 +2068,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadlargeenemysprite">
 			<canon>load large enemy sprite (num, palette)</canon>
 			<shortname>load large enemy sprite</shortname>
-			<description>Loads large enemy sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replacelargeenemysprite</ref>!</warn></description>
+			<description>Loads large enemy sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replacelargeenemysprite</ref>!</warn></description>
 			<seealso>
 				<ref>replacelargeenemysprite</ref>
 				<ref>freesprite</ref>
@@ -2077,7 +2077,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replacelargeenemysprite">
 			<canon>replace large enemy sprite (handle, num, palette)</canon>
 			<shortname>replace large enemy sprite</shortname>
-			<description>Loads large enemy sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadlargeenemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadlargeenemysprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to large enemy sprite #<p>num</p> with palette <p>palette</p>. As with <ref>loadlargeenemysprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadlargeenemysprite</ref>.</note></description>
 			<seealso>
 				<ref>loadlargeenemysprite</ref>
 				<ref>freesprite</ref>
@@ -2086,7 +2086,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadattacksprite">
 			<canon>load attack sprite (num, palette)</canon>
 			<shortname>load attack sprite</shortname>
-			<description>Loads attack battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replaceattacksprite</ref>!</warn></description>
+			<description>Loads attack battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replaceattacksprite</ref>!</warn></description>
 			<seealso>
 				<ref>replaceattacksprite</ref>
 				<ref>freesprite</ref>
@@ -2095,7 +2095,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replaceattacksprite">
 			<canon>replace attack sprite (handle, num, palette)</canon>
 			<shortname>replace attack sprite</shortname>
-			<description>Loads attack battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadattacksprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadattacksprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to attack battle sprite #<p>num</p> with palette <p>palette</p>. As with <ref>loadattacksprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadattacksprite</ref>.</note></description>
 			<seealso>
 				<ref>loadattacksprite</ref>
 				<ref>freesprite</ref>
@@ -2104,7 +2104,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadweaponsprite">
 			<canon>load weapon sprite (num, palette)</canon>
 			<shortname>load weapon sprite</shortname>
-			<description>Loads weapon battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replaceweaponsprite</ref>!</warn></description>
+			<description>Loads weapon battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replaceweaponsprite</ref>!</warn></description>
 			<seealso>
 				<ref>replaceweaponsprite</ref>
 				<ref>freesprite</ref>
@@ -2113,7 +2113,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replaceweaponsprite">
 			<canon>replace weapon sprite (handle, num, palette)</canon>
 			<shortname>replace weapon sprite</shortname>
-			<description>Loads weapon battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadweaponsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadweaponsprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to weapon battle sprite #<p>num</p> with palette <p>palette</p>. As with <ref>loadweaponsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadweaponsprite</ref>.</note></description>
 			<seealso>
 				<ref>loadweaponsprite</ref>
 				<ref>freesprite</ref>
@@ -2122,7 +2122,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadbordersprite">
 			<canon>load border sprite (num, palette)</canon>
 			<shortname>load border sprite</shortname>
-			<description>Loads border battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replacebordersprite</ref>!</warn></description>
+			<description>Loads border battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replacebordersprite</ref>!</warn></description>
 			<seealso>
 				<ref>replacebordersprite</ref>
 				<ref>freesprite</ref>
@@ -2131,7 +2131,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replacebordersprite">
 			<canon>replace border sprite (handle, num, palette)</canon>
 			<shortname>replace border sprite</shortname>
-			<description>Loads border battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadbordersprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadbordersprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to border battle sprite #<p>num</p> with palette <p>palette</p>. As with <ref>loadbordersprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadbordersprite</ref>.</note></description>
 			<seealso>
 				<ref>loadbordersprite</ref>
 				<ref>freesprite</ref>
@@ -2140,7 +2140,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadportraitsprite">
 			<canon>load portrait sprite (num, palette)</canon>
 			<shortname>load portrait sprite</shortname>
-			<description>Loads portrait battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replaceportraitsprite</ref>!</warn></description>
+			<description>Loads portrait battle sprite #<p>num</p> with palette <p>palette</p>, and returns a handle. You may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replaceportraitsprite</ref>!</warn></description>
 			<seealso>
 				<ref>replaceportraitsprite</ref>
 				<ref>freesprite</ref>
@@ -2149,7 +2149,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replaceportraitsprite">
 			<canon>replace portrait sprite (handle, num, palette)</canon>
 			<shortname>replace portrait sprite</shortname>
-			<description>Loads portrait battle sprite #<p>num</p> with palette <p>palette</p> into sprite <p>handle</p>. As with <ref>loadportraitsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadportraitsprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to portrait battle sprite #<p>num</p> with palette <p>palette</p>. As with <ref>loadportraitsprite</ref>, you may omit <p>palette</p>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadportraitsprite</ref>.</note></description>
 			<seealso>
 				<ref>loadportraitsprite</ref>
 				<ref>freesprite</ref>
@@ -2158,7 +2158,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="loadbackdropsprite">
 			<canon>load backdrop sprite (num)</canon>
 			<shortname>load backdrop sprite</shortname>
-			<description>Loads backdrop #<p>num</p> as a sprite, and returns a handle. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replacebackdropsprite</ref>!</warn></description>
+			<description>Loads backdrop #<p>num</p> as a sprite, and returns a handle. You must free it with <ref>freesprite</ref> when you are done.<warn>If you want to replace an existing sprite (or other slice) either use <ref>freesprite</ref> first, or use <ref>replacebackdropsprite</ref>!</warn></description>
 			<seealso>
 				<ref>showbackdrop</ref>
 				<ref>replacebackdropsprite</ref>
@@ -2168,7 +2168,7 @@ set menu on close script(m, @my menu exit handler)
 		<command id="replacebackdropsprite">
 			<canon>replace backdrop sprite (handle, num)</canon>
 			<shortname>replace backdrop sprite</shortname>
-			<description>Loads backdrop #<p>num</p> as a sprite, and returns a handle. You must free it with <ref>freesprite</ref> when you are done. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadbackdropsprite</ref>.</note></description>
+			<description>Given an existing sprite <p>handle</p>, changes it to backdrop #<p>num</p>. You must free it with <ref>freesprite</ref> when you are done. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadbackdropsprite</ref>.</note></description>
 			<seealso>
 				<ref>loadbackdropsprite</ref>
 				<ref>freesprite</ref>
@@ -2186,9 +2186,8 @@ set menu on close script(m, @my menu exit handler)
 		<command id="clonesprite">
 			<canon>clone sprite (handle)</canon>
 			<shortname>clone sprite</shortname>
-			<description>Returns a new handle to a duplicate of a sprite. If you clone a sprite, remember that you will need to call <ref>freesprite</ref> on both the original and the clone.</description>
+			<description>Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent is <ref>spritelayer</ref> and the new slice starts visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <ref>freesprite</ref> on both the original and the clone.</description>
 			<seealso>
-				<ref>loadherosprite</ref>
 				<ref>freesprite</ref>
 			</seealso>
 		</command>

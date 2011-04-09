@@ -112,6 +112,8 @@ WHAT IS NEW?
     * Fixes to fatal error reporting: no longer gives the option to
       continue if it means corrupting the game, and Custom no longer
       deletes working.tmp, so that you can recover your work [Ralph]
+    * "horiz flip sprite" and "vert flip sprite" reset the sprites'
+      palette to default [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
