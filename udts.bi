@@ -790,6 +790,7 @@ TYPE SpriteSize
  size AS XYPair
  frames AS INTEGER
  genmax AS INTEGER 'Offset in gen() where max record index is stored
+ genmax_offset AS INTEGER 'if gen() actually stores num instead of max, this is -1
 END TYPE
 
 #ENDIF

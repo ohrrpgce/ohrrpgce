@@ -159,16 +159,22 @@ Type TextSliceData
  line_count as integer 'automatically populated when the slice changes
 End Type
 
-'FIXME: This is limited to unmodified 4-bit sprites with flipping tacked on; generalise!
+CONST sprTypeMXS = 9   'can't change this
+CONST sprTypeLast = 9   'last sprite type selectable in slice editor
+CONST sprTypeFrame = 10  'free to change this later (never saved)
+
+'FIXME: Support for modifying sprites and flipping is pretty tacked on; generalise!
 Type SpriteSliceData
- spritetype AS INTEGER 'PT0 thru PT8
- record AS INTEGER
- pal AS INTEGER     'Set pal to -1 for the default
+ spritetype AS INTEGER 'PT0 thru PT8, 9=MXS, 10=loaded from Frame
+ record AS INTEGER     'meaningless if spritetype is sptTypeFrame
+ paletted AS INTEGER   'UNSAVED: YES: 4-bit, NO: 8-bit  (could remove this when 256-colour palettes added, or change meaning)
+ pal AS INTEGER     '(UNSAVED if unpaletted) Set pal to -1 for the default. Ignored for unpaletted
+ trans AS INTEGER   'Draw transparently?
  frame AS INTEGER   'Currently displaying frame
  flipHoriz AS INTEGER  'NO normal, YES horizontally flipped
  flipVert AS INTEGER   'NO normal, YES horizontally flipped
  loaded AS INTEGER  'UNSAVED: Set to NO to force a re-load on the next draw
- img AS GraphicPair 'UNSAVED: No need to manually populate this, done in draw
+ img AS GraphicPair 'UNSAVED: No need to manually populate this, done in draw (.pal = NULL for unpaletted)
 End Type
 
 'Shows the currently loaded map at the given slice pos
@@ -266,7 +272,7 @@ DECLARE Sub ChangeTextSlice(byval sl as slice ptr,_
 DECLARE Sub DisposeSpriteSlice(byval sl as slice ptr)
 DECLARE Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
 DECLARE Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
-DECLARE Sub SetSpriteFrame(byval sl as slice ptr, byval fr as Frame ptr)
+DECLARE Sub SetSpriteToFrame(byval sl as slice ptr, byval fr as Frame ptr, byval pal as integer)
 DECLARE Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
 DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval spritetype as integer=-1,_
@@ -274,7 +280,8 @@ DECLARE Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval pal as integer = -2,_
                       byval frame as integer = -1,_
                       byval fliph as integer = -2,_
-                      byval flipv as integer = -2) ' All arguments default to no change
+                      byval flipv as integer = -2,_
+                      byval trans as integer = -2)  ' All arguments default to no change
 
 DECLARE Sub DisposeMapSlice(byval sl as slice ptr)
 DECLARE Sub DrawMapSlice(byval sl as slice ptr, byval p as integer)

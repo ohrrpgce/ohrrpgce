@@ -1,5 +1,7 @@
 This is the type of sprite, such as Hero or Walkabout or Enemy.
 
-The sprite types correspond to the different sprite editors in the Edit Graphics menu.
+The sprite types correspond to the different sprite editors in the Edit Graphics menu, as well Backdrops.
 
 Each type of sprite has its own size and number of frames.
+
+Backdrops can not be paletted.

@@ -2185,7 +2185,11 @@ SELECT CASE AS CONST id
  CASE 414 '--get sprite palette
   IF valid_plotsprite(retvals(0)) THEN
    DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
-   scriptret = dat->pal
+   IF dat->paletted = NO THEN
+    scripterr "get sprite palette: this sprite is unpaletted", 2
+   ELSE
+    scriptret = dat->pal
+   END IF
   END IF 
  CASE 415 '--suspend timers
   FOR i = 0 TO ubound(timers)
@@ -3551,7 +3555,7 @@ END FUNCTION
 
 FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1) AS INTEGER
  WITH sprite_sizes(spritetype)
-  IF bound_arg(record, 0, gen(.genmax), "sprite number") THEN
+  IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite number") THEN
    DIM sl AS Slice Ptr
    sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
    ChangeSpriteSlice sl, spritetype, record, pal
@@ -3564,7 +3568,7 @@ END FUNCTION
 SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1, BYVAL frame AS INTEGER=-1, BYVAL fliph AS INTEGER=-2, BYVAL flipv AS INTEGER=-2)
  WITH sprite_sizes(spritetype)
   IF valid_plotslice(handle) THEN
-   IF bound_arg(record, 0, gen(.genmax), "sprite number") THEN
+   IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite number") THEN
     ChangeSpriteSlice plotslices(handle), spritetype, record, pal, frame, fliph, flipv
    END IF
   END IF

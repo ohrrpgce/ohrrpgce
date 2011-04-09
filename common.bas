@@ -45,7 +45,7 @@ DECLARE FUNCTION charpicker() AS STRING
 ''''' Global variables (anything else in common.bi missing here will be in game.bas or custom.bas)
 
 'Allocate sprite size table
-REDIM sprite_sizes(8) AS SpriteSize
+REDIM sprite_sizes(0 TO 10) AS SpriteSize
 setup_sprite_sizes
 
 'holds commandline args not recognised by the backends or anything else
@@ -4356,12 +4356,30 @@ SUB setup_sprite_sizes ()
   .frames = 1
   .genmax = genMaxPortrait
  END WITH
+ WITH sprite_sizes(sprTypeMXS)  '9
+  .name = "Backdrop"
+  .size.x = 320
+  .size.y = 200
+  .frames = 1
+  .genmax = genNumBackdrops
+  .genmax_offset = -1
+ END WITH
+ WITH sprite_sizes(sprTypeFrame)   '10
+  .name = "Pixel array"
+  .frames = 1
+ END WITH
 END SUB
 
 SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype AS INTEGER, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
  unload_sprite_and_pal img
- img.sprite = frame_load(spritetype, index)
- img.pal    = palette16_load(palnum, spritetype, index)
+ IF spritetype = sprTypeMXS THEN
+  img.sprite = loadmxs(game + ".mxs", index)
+ ELSEIF spritetype >= 0 AND spritetype <= 8 THEN
+  img.sprite = frame_load(spritetype, index)
+  img.pal    = palette16_load(palnum, spritetype, index)
+ ELSE
+  debug "load_sprite_and_pal: bad spritetype " & spritetype & " (index " & index & " pal " & palnum & ")"
+ END IF
 END SUB
 
 SUB unload_sprite_and_pal (BYREF img AS GraphicPair)

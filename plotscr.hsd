@@ -1539,6 +1539,7 @@ define constant, begin
 6,spritetype:attack
 7,spritetype:border
 8,spritetype:portrait
+9,spritetype:backdrop
 -1,border:line
 -2,border:none
 0,trans:solid

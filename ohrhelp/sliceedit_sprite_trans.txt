@@ -1,0 +1,1 @@
+By default, color 0 of each sprite is treated as transparent. You can disable that with this option.

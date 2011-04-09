@@ -1056,7 +1056,7 @@ Sub DrawSpriteSlice(byval sl as slice ptr, byval p as integer)
    frame_flip_vert(spr)
   end if
  
-  frame_draw spr, .img.pal, sl->screenX, sl->screenY, , , p
+  frame_draw spr, .img.pal, sl->screenX, sl->screenY, , .trans, p
   
   if have_copy then
    frame_unload(@spr)
@@ -1069,25 +1069,28 @@ Function GetSpriteSliceData(byval sl as slice ptr) as SpriteSliceData ptr
  return sl->SliceData
 End Function
 
-'Make no mistake, this is just an unproven hack
-'(and it only accepts 4 bit graphics, without palettes!!)
-Sub SetSpriteFrame(byval sl as slice ptr, byval fr as Frame ptr)
+'Make no mistake, this is just a hack currently
+'(and it only accepts 4 bit graphics). Default palettes not allowed.
+Sub SetSpriteToFrame(byval sl as slice ptr, byval fr as Frame ptr, byval pal as integer)
  if sl = 0 then debug "SetSpriteFrame null ptr": exit sub
  dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
 
+ if pal < 0 then showerror "SetSpriteToFrame: default palettes verboten!"
+
  with *dat
   'Should not matter whether the sprite is loaded; however if we set .loaded=YES, have to have a palette
-  '(since this is 4-bit). Where do we get the palette from? O:
+  'if this is 4-bit.
   frame_unload(@.img.sprite)
-  if .img.pal = 0 then palette16_load(.pal, .spritetype, .record)
   .img.sprite = fr  'frame_reference(fr)
+  palette16_unload(@.img.pal)
+  .img.pal = palette16_load(pal)
 
   sl->Width = fr->w
   sl->Height = fr->h
   .loaded = YES
 
-  .spritetype = 0
-  .record = -1
+  .spritetype = sprTypeFrame
+  .paletted = YES
  end with
 End Sub
 
@@ -1100,10 +1103,13 @@ Sub CloneSpriteSlice(byval sl as slice ptr, byval cl as slice ptr)
  with *clonedat
   .spritetype = dat->spritetype
   .record     = dat->record
+  .paletted   = dat->paletted
   .pal        = dat->pal
   .frame      = dat->frame
   .flipHoriz  = dat->flipHoriz
   .flipVert   = dat->flipVert
+  .trans      = dat->trans
+  '.img and .loaded remain NULLs, NO  (for no reason. FIXME: what about Frame sprites?)
  end with
 end sub
 
@@ -1111,12 +1117,16 @@ Sub SaveSpriteSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
  if sl = 0 or node = 0 then debug "SaveSpriteSlice null ptr": exit sub
  DIM dat AS SpriteSliceData Ptr
  dat = sl->SliceData
+ if dat->spritetype = sprTypeFrame then showerror "SaveSpriteSlice: tried to save Frame sprite": exit sub  'programmer error
  SaveProp node, "sprtype", dat->spritetype
  SaveProp node, "rec", dat->record
- SaveProp node, "pal", dat->pal
+ if dat->paletted then
+  SaveProp node, "pal", dat->pal
+ end if
  SaveProp node, "frame", dat->frame
  SaveProp node, "fliph", dat->flipHoriz
  SaveProp node, "flipv", dat->flipVert
+ SaveProp node, "trans", dat->trans
 end sub
 
 Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
@@ -1129,6 +1139,8 @@ Sub LoadSpriteSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
  dat->frame      = LoadProp(node, "frame")
  dat->flipHoriz  = LoadProp(node, "fliph")
  dat->flipVert   = LoadProp(node, "flipv")
+ dat->trans      = LoadProp(node, "trans", 1)
+ dat->paletted   = (dat->spritetype <> sprTypeMXS)
 End Sub
 
 Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData) as slice ptr
@@ -1144,6 +1156,8 @@ Function NewSpriteSlice(byval parent as Slice ptr, byref dat as SpriteSliceData)
 
  'Set non-zero defaults
  d->pal = -1
+ d->trans = YES
+ d->paletted = YES
  
  ret->SliceType = slSprite
  ret->SliceData = d
@@ -1163,13 +1177,15 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
                       byval pal as integer = -2,_
                       byval frame as integer = -1,_
                       byval fliph as integer = -2,_
-                      byval flipv as integer = -2)
+                      byval flipv as integer = -2,_
+                      byval trans as integer = -2)
  if sl = 0 then debug "ChangeSpriteSlice null ptr" : exit sub
  if sl->SliceType <> slSprite then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as a sprite", 5 : exit sub
  dim dat as SpriteSliceData Ptr = sl->SliceData
  with *dat
   if spritetype >= 0 then
    .spritetype = spritetype
+   .paletted = (spritetype <> sprTypeMXS)
    .loaded = NO
    sl->Width = sprite_sizes(.spritetype).size.x
    sl->Height = sprite_sizes(.spritetype).size.y
@@ -1179,18 +1195,23 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
    .loaded = NO
   end if
   if pal >= -1 then
-   .pal = pal
-   .loaded = NO
+   if .paletted = NO then
+    reporterr "Attempt to set a palette (" & pal & ") on an unpaletted " & sprite_sizes(.spritetype).name & " sprite slice"
+   else
+    .pal = pal
+    .loaded = NO
+   end if
   end if
   if frame >= 0 then
    if frame >= sprite_sizes(.spritetype).frames then
-    reporterr "Sprite frame " & frame & " is out of range for " & sprite_sizes(.spritetype).name & " sprites, valid range 0 to " & sprite_sizes(.spritetype).frames - 1, 5
+    reporterr "Sprite frame " & frame & " is out of range for " & sprite_sizes(.spritetype).name & " sprites; valid range 0 to " & sprite_sizes(.spritetype).frames - 1
    else
     .frame = frame
    end if
   end if
   if fliph > -2 then .flipHoriz = (fliph <> 0) : .loaded = NO
   if flipv > -2 then .flipVert = (flipv <> 0) : .loaded = NO
+  if trans > -2 then .flipVert = (trans <> 0)
  end with
 end sub
 

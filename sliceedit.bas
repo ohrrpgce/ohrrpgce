@@ -564,8 +564,11 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
    DIM dat AS SpriteSliceData Ptr
    dat = sl->SliceData
    dat->loaded = NO
-   dat->record = small(dat->record, gen(sprite_sizes(dat->spritetype).genmax))
-   dat->frame = small(dat->frame, sprite_sizes(dat->spritetype).frames - 1)
+   dat->paletted = (dat->spritetype <> sprTypeMXS)
+   WITH sprite_sizes(dat->spritetype)
+    dat->record = small(dat->record, gen(.genmax) + .genmax_offset)
+    dat->frame = small(dat->frame, .frames - 1)
+   END WITH
   END IF
  END IF
  IF rule.group AND slgrUPDATERECTCOL THEN
@@ -688,18 +691,24 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
    CASE slSprite
     DIM dat AS SpriteSliceData Ptr
     dat = .SliceData
-    str_array_append menu(), "Sprite Type: " & sprite_sizes(dat->spritetype).name
-    sliceed_rule rules(), "sprite_type", erIntgrabber, @(dat->spritetype), 0, 8, slgrUPDATESPRITE
+    DIM size AS SpriteSize Ptr
+    size = @sprite_sizes(dat->spritetype)
+    str_array_append menu(), "Sprite Type: " & size->name
+    sliceed_rule rules(), "sprite_type", erIntgrabber, @(dat->spritetype), 0, sprTypeLast, slgrUPDATESPRITE
     str_array_append menu(), "Sprite Number: " & dat->record
-    sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(sprite_sizes(dat->spritetype).genmax), slgrUPDATESPRITE
-    str_array_append menu(), "Sprite Palette: " & defaultint(dat->pal)
-    sliceed_rule rules(), "sprite_pal", erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
+    sliceed_rule rules(), "sprite_rec", erIntgrabber, @(dat->record), 0, gen(size->genmax) + size->genmax_offset, slgrUPDATESPRITE
+    IF dat->paletted THEN
+     str_array_append menu(), "Sprite Palette: " & defaultint(dat->pal)
+     sliceed_rule rules(), "sprite_pal", erIntgrabber, @(dat->pal), -1, gen(genMaxPal), slgrUPDATESPRITE
+    END IF
     str_array_append menu(), "Sprite Frame: " & dat->frame
-    sliceed_rule rules(), "sprite_frame", erIntgrabber, @(dat->frame), 0, sprite_sizes(dat->spritetype).frames - 1
+    sliceed_rule rules(), "sprite_frame", erIntgrabber, @(dat->frame), 0, size->frames - 1
     str_array_append menu(), "Flip horiz.: " & yesorno(dat->flipHoriz)
     sliceed_rule_tog rules(), "sprite_flip", @(dat->flipHoriz), slgrUPDATESPRITE
     str_array_append menu(), "Flip vert.: " & yesorno(dat->flipVert)
     sliceed_rule_tog rules(), "sprite_flip", @(dat->flipVert), slgrUPDATESPRITE
+    str_array_append menu(), "Transparent: " & yesorno(dat->trans)
+    sliceed_rule_tog rules(), "sprite_trans", @(dat->trans)
    CASE slGrid
     DIM dat AS GridSliceData Ptr
     dat = .SliceData
