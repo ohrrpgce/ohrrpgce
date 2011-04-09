@@ -3887,16 +3887,17 @@ SUB get_menu_hotkeys (menu() as string, byval menumax as integer, menukeys() as 
   menukeys(i) = ""
   DIM firstletter as integer = YES
   FOR j as integer = 1 TO LEN(menu(i))
-   IF firstletter THEN
+   DIM isalp as integer = isalpha(menu(i)[j - 1])
+   IF firstletter ANDALSO isalp THEN
     DIM excluded as integer = NO
-	FOR k as integer = 0 TO UBOUND(excludes)
-	 IF MID(menu(i), j, LEN(excludes(k))) = excludes(k) THEN excluded = YES : EXIT FOR
-	NEXT
-	IF excluded = NO THEN
-  	 menukeys(i) += LCASE(MID(menu(i), j, 1))
+    FOR k as integer = 0 TO UBOUND(excludes)
+     IF MID(menu(i), j, LEN(excludes(k))) = excludes(k) THEN excluded = YES : EXIT FOR
+    NEXT
+    IF excluded = NO THEN
+     menukeys(i) += LCASE(MID(menu(i), j, 1))
     END IF
    END IF
-   firstletter =  (isalpha(menu(i)[j - 1]) = 0)
+   firstletter = (isalp = 0)
   NEXT
   'debug "hotkeys from '" & menu(i) & "' -> '" & menukeys(i) & "'"
  NEXT
