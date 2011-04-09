@@ -2651,6 +2651,20 @@ SELECT CASE AS CONST id
   IF valid_zone(retvals(0)) THEN
   END IF
 '/
+ CASE 493'--load backdrop sprite (record)
+  scriptret = load_sprite_plotslice(sprTypeMXS, retvals(0))
+ CASE 494 '--replace backdrop sprite (handle, record)
+  change_sprite_plotslice retvals(0), sprTypeMXS, retvals(1), -2   'see next commit
+ CASE 495 '--get sprite trans (handle)
+  IF valid_plotsprite(retvals(0)) THEN
+   DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
+   scriptret = IIF(dat->trans, 1, 0)
+  END IF 
+ CASE 496 '--set sprite trans (handle, bool)
+  IF valid_plotsprite(retvals(0)) THEN
+   DIM dat AS SpriteSliceData Ptr = plotslices(retvals(0))->SliceData
+   dat->trans = retvals(1)
+  END IF 
 
 END SELECT
 
@@ -3553,9 +3567,10 @@ FUNCTION find_plotslice_handle(BYVAL sl AS Slice Ptr) AS INTEGER
  RETURN create_plotslice_handle(sl)
 END FUNCTION
 
-FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1) AS INTEGER
+'By default, no palette set
+FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-2) AS INTEGER
  WITH sprite_sizes(spritetype)
-  IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite number") THEN
+  IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite record number") THEN
    DIM sl AS Slice Ptr
    sl = NewSliceOfType(slSprite, SliceTable.scriptsprite)
    ChangeSpriteSlice sl, spritetype, record, pal
@@ -3565,11 +3580,11 @@ FUNCTION load_sprite_plotslice(BYVAL spritetype AS INTEGER, BYVAL record AS INTE
  RETURN 0 'Failure, return zero handle
 END FUNCTION
 
-SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1, BYVAL frame AS INTEGER=-1, BYVAL fliph AS INTEGER=-2, BYVAL flipv AS INTEGER=-2)
+SUB change_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype AS INTEGER, BYVAL record AS INTEGER, BYVAL pal AS INTEGER=-1, BYVAL frame AS INTEGER=-1, BYVAL fliph AS INTEGER=-2, BYVAL flipv AS INTEGER=-2, BYVAL trans AS INTEGER=-2)
  WITH sprite_sizes(spritetype)
-  IF valid_plotslice(handle) THEN
-   IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite number") THEN
-    ChangeSpriteSlice plotslices(handle), spritetype, record, pal, frame, fliph, flipv
+  IF valid_plotsprite(handle) THEN
+   IF bound_arg(record, 0, gen(.genmax) + .genmax_offset, "sprite record number") THEN
+    ChangeSpriteSlice plotslices(handle), spritetype, record, pal, frame, fliph, flipv, trans
    END IF
   END IF
  END WITH

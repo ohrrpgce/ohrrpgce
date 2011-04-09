@@ -28,6 +28,9 @@ plotscript, test, begin
     center slice(sl)
     wait(3)
   )
+  replace backdrop sprite(last child(cont), 1)
+  realign slice(last child(cont), 0, 0, 0, 0)
+  set sprite trans(slice child(cont, 2), false)
   
   wait(5)
   

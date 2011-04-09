@@ -498,6 +498,10 @@ define function, begin
 490,useitem,1,0               # use an item as if you had used it from the item menu
 491,useiteminslot,1,0         # use item in a given inventory slot
 492,mouseclick,1,0            # returns true if the specified button is pressed (button)
+493,loadbackdropsprite,1,0    # load backdrop sprite (number)
+494,replacebackdropsprite,2,0,-1 # replaces the sprite with a backdrop sprite (handle, number)
+495,getspritetrans,1,0        # whether the sprite is drawn transparently (handle)
+496,setspritetrans,2,0,1      # set whether the sprite is drawn transparently (handle, bool)
 end
 
 #--------------------------------------------------------------------------

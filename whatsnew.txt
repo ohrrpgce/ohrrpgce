@@ -148,6 +148,8 @@ WHAT IS NEW?
     * "extended scancodes enabled" [Ralph]
     * Resolution of "get/set music volume" increased [Ralph]
     * "get level cap", "set level cap" [Ralph]
+    * "load backdrop sprite", "replace backdrop sprite",
+      "set sprite trans", "get sprite trans" [Ralph]
 
   * Vikings of Midgard
 

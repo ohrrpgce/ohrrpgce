@@ -770,7 +770,10 @@ wait for text box # wait until the player continues</example>
 		<command id="showbackdrop">
 			<canon>show backdrop (number)</canon>
 			<shortname>show backdrop</shortname>
-			<description>displays the specified full screen backdrop on the screen. This allows you to show full screen pictures without attaching them to text boxes. You can also do some simple animation effects by calling show backdrop many times with <ref>wait</ref> commands in between.</description>
+			<description>Displays the specified full screen backdrop on the screen. This allows you to show full screen pictures without attaching them to text boxes. You can also do some simple animation effects by calling show backdrop many times with <ref>wait</ref> commands in between. <note>It's also possible to display backdrops as sprite slices.</note></description>
+			<seealso>
+				<ref>loadbackdropsprite</ref>
+			</seealso>
 		</command>
 		<command id="showmap">
 			<canon>show map</canon>
@@ -2152,6 +2155,25 @@ set menu on close script(m, @my menu exit handler)
 				<ref>freesprite</ref>
 			</seealso>
 		</command>
+		<command id="loadbackdropsprite">
+			<canon>load backdrop sprite (num)</canon>
+			<shortname>load backdrop sprite</shortname>
+			<description>Loads backdrop #<p>num</p> as a sprite, and returns a handle. You must free it with <ref>freesprite</ref> when you are done.<warn>Do not load a sprite onto another sprite that has not been freed. Either use <ref>freesprite</ref> first, or use <ref>replacebackdropsprite</ref>!</warn></description>
+			<seealso>
+				<ref>showbackdrop</ref>
+				<ref>replacebackdropsprite</ref>
+				<ref>freesprite</ref>
+			</seealso>
+		</command>
+		<command id="replacebackdropsprite">
+			<canon>replace backdrop sprite (handle, num)</canon>
+			<shortname>replace backdrop sprite</shortname>
+			<description>Loads backdrop #<p>num</p> as a sprite, and returns a handle. You must free it with <ref>freesprite</ref> when you are done. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <ref>freesprite</ref> when you are done.<note>You may use this on any sprite, not just ones loaded with <ref>loadbackdropsprite</ref>.</note></description>
+			<seealso>
+				<ref>loadbackdropsprite</ref>
+				<ref>freesprite</ref>
+			</seealso>
+		</command>
 		<command id="freesprite">
 			<canon>free sprite (handle)</canon>
 			<shortname>free sprite</shortname>
@@ -2288,6 +2310,22 @@ end
 			<seealso>
 				<ref>vertflipsprite</ref>
 				<ref>spriteishorizflipped</ref>
+			</seealso>
+		</command>
+		<command id="getspritetrans">
+			<canon>get sprite trans (handle)</canon>
+			<shortname>get sprite trans</shortname>
+			<description>Given a sprite slice <p>handle</p>, returns true if the sprite is drawn with transparency (that is, color 0 is transparent). All sprites default to transparent.</description>
+			<seealso>
+				<ref>setspritetrans</ref>
+			</seealso>
+		</command>
+		<command id="setspritetrans">
+			<canon>set sprite trans (handle, drawtransparent)</canon>
+			<shortname>set sprite trans</shortname>
+			<description>Given a sprite slice <p>handle</p>, sets whether it should be drawn with transparency (that is, color 0 is transparent). All sprites default to transparent, so you are unlikey to have any use for this command.</description>
+			<seealso>
+				<ref>getspritetrans</ref>
 			</seealso>
 		</command>
 	</section>
@@ -2635,8 +2673,9 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="centerslice">
 			<canon>center slice (handle)</canon>
 			<shortname>center slice</shortname>
-			<description>A quick way to center the alignment and the anchor of a slice with a single command.</description>
+			<description>A quick way to center the alignment and the anchor of a slice with a single command. Equivalent to <p>realign slice(handle, edge:center, edge:center, edge:middle, edge:middle)</p>.</description>
 			<seealso>
+				<ref>realignslice</ref>
 				<ref>sethorizalign</ref>
 				<ref>setvertalign</ref>
 				<ref>sethorizanchor</ref>

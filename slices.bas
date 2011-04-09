@@ -1211,7 +1211,7 @@ Sub ChangeSpriteSlice(byval sl as slice ptr,_
   end if
   if fliph > -2 then .flipHoriz = (fliph <> 0) : .loaded = NO
   if flipv > -2 then .flipVert = (flipv <> 0) : .loaded = NO
-  if trans > -2 then .flipVert = (trans <> 0)
+  if trans > -2 then .trans = (trans <> 0)
  end with
 end sub
 
