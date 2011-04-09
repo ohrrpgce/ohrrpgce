@@ -56,7 +56,8 @@ END ENUM
 
 DECLARE SUB centerfuz (x as integer, y as integer, w as integer, h as integer, c as integer, p as integer)
 DECLARE SUB centerbox (x as integer, y as integer, w as integer, h as integer, c as integer, p as integer)
-DECLARE SUB edgeboxstyle (x as integer, y as integer, w as integer, h as integer, boxstyle as integer, p as integer, fuzzy as integer=NO, supress_borders as integer=NO)
+DECLARE SUB edgeboxstyle OVERLOAD (rect as RectType, BYVAL boxstyle, BYVAL p, BYVAL fuzzy=NO, BYVAL supress_borders=NO)
+DECLARE SUB edgeboxstyle OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYVAL w as integer, BYVAL h as integer, BYVAL boxstyle as integer, BYVAL p as integer, BYVAL fuzzy as integer=NO, BYVAL supress_borders as integer=NO)
 DECLARE SUB center_edgeboxstyle (x as integer, y as integer, w as integer, h as integer, boxstyle as integer, p as integer, fuzzy as integer=NO, supress_borders as integer=NO)
 DECLARE SUB edgebox OVERLOAD (x as integer, y as integer, w as integer, h as integer, col as integer, bordercol as integer, p as integer, trans as RectTransTypes=transOpaque, border as integer=-1, fuzzfactor as integer=50)
 DECLARE SUB edgebox OVERLOAD (x, y, w, h, col, bordercol, BYVAL fr AS Frame Ptr, trans AS RectTransTypes=transOpaque, border=-1, fuzzfactor as integer=50)
@@ -166,7 +167,7 @@ DECLARE FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval A
 DECLARE SUB position_menu (menu AS MenuDef, page AS INTEGER)
 DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
 DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu AS MenuDef)
-DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu() AS SimpleMenu)
+DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu() AS SimpleMenu, BYVAL pickenabled AS INTEGER = YES)
 DECLARE FUNCTION count_menu_items (menu AS MenuDef) as integer
 DECLARE FUNCTION find_empty_menu_item (menu AS MenuDef) as integer
 DECLARE FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING

@@ -67,6 +67,9 @@ page = compatpage
 holdscreen = allocatepage
 copypage page, holdscreen
 
+DIM left_panel AS RectType = (5, 10, 150, 168)
+DIM right_panel AS RectType = (165, 10, 150, 168)
+
 buytype(0, 0) = readglobalstring$(85, "Trade for", 20) + " "
 buytype(0, 1) = readglobalstring$(87, "Joins for", 20) + " "
 buytype(1, 0) = readglobalstring$(89, "Cannot Afford", 20) + " "
@@ -166,8 +169,9 @@ DO
   GOSUB curinfo
  END IF '---------END TRY BUY THING--------
 
- centerbox 80, 94, 150, 168, 1, page
- centerbox 240, 94, 150, 168, 1, page
+ 'Draw the screen
+ edgeboxstyle left_panel, 0, page
+ edgeboxstyle right_panel, 0, page
  '-----RIGHT PANEL------------------------------------------
  temp$ = gold & " " & readglobalstring(32, "Money")
  centerbox 240, 19, LEN(temp$) * 8 + 8, 14, 4, page
@@ -212,6 +216,7 @@ DO
   IF stuff(i).enabled = 0 THEN c = uilook(uiDisabledItem): IF st.pt = i THEN c = uilook(uiMenuItem + tog)
   edgeprint stuff(i).text, 10, 15 + (i - st.top) * 10, c, page
  NEXT i
+ draw_scrollbar st, left_panel, , page
  IF price$ <> "" THEN
   centerbox 160, 187, LEN(price$) * 8 + 8, 14 + xtralines * 10, 1, page
   edgeprint price$, xstring(price$, 160), 182 - xtralines * 5, uilook(uiText), page
@@ -265,7 +270,7 @@ FOR i = 0 TO storebuf(16)
   IF room_to_hire = NO THEN stuff(UBOUND(stuff)).enabled = NO
  END IF
 NEXT i
-init_menu_state st, stuff()
+init_menu_state st, stuff(), NO
 RETRACE
 
 curinfo:

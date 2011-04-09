@@ -511,7 +511,11 @@ SUB center_edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
  edgeboxstyle x - w / 2, y - h / 2, w, h, boxstyle, p, fuzzy, supress_borders
 END SUB
 
-SUB edgeboxstyle (x, y, w, h, boxstyle, p, fuzzy=NO, supress_borders=NO)
+SUB edgeboxstyle (rect as RectType, BYVAL boxstyle, BYVAL p, BYVAL fuzzy=NO, BYVAL supress_borders=NO)
+ edgeboxstyle rect.x, rect.y, rect.wide, rect.high, boxstyle, p, fuzzy, supress_borders
+END SUB
+
+SUB edgeboxstyle (BYVAL x, BYVAL y, BYVAL w, BYVAL h, BYVAL boxstyle, BYVAL p, BYVAL fuzzy=NO, BYVAL supress_borders=NO)
  IF boxstyle < 0 OR boxstyle > 14 THEN
   debug "edgeboxstyle: invalid boxstyle " & boxstyle
   EXIT SUB
@@ -3601,21 +3605,25 @@ SUB init_menu_state (BYREF state AS MenuState, menu AS MenuDef)
 END SUB
 
 '(Re-)initialise menu state, preserving .pt if valid
-SUB init_menu_state (BYREF state AS MenuState, menu() AS SimpleMenu)
+'pickenabled: move .pt to an enabled menu item. (Note that .enabled may mean either "greyed out"
+'or "unselectable")
+SUB init_menu_state (BYREF state AS MenuState, menu() AS SimpleMenu, BYVAL pickenabled AS INTEGER = YES)
  WITH state
   .first = 0
   .last = UBOUND(menu)
   IF .size <= 0 THEN .size = 20
   .pt = bound(.pt, .first, .last)  '.first <= .last
-  IF menu(.pt).enabled = NO THEN
-   .pt = -1  'explicitly -1 when nothing selectable
-   FOR i AS INTEGER = 0 TO UBOUND(menu)
-    IF menu(i).enabled THEN .pt = i: EXIT FOR
-   NEXT
+  IF pickenabled THEN
+   IF menu(.pt).enabled = NO THEN
+    .pt = -1  'explicitly -1 when nothing selectable
+    FOR i AS INTEGER = 0 TO UBOUND(menu)
+     IF menu(i).enabled THEN .pt = i: EXIT FOR
+    NEXT
+   END IF
+   'Menus with unselectable items have lookahead, which these +1,-1
+   'attempt to simulate. Not perfect, but prevents some flickering
+   IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   END IF
-  'Menus with unselectable items have lookahead, which these +1,-1
-  'attempt to simulate. Not perfect, but prevents some flickering
-  IF .pt <> -1 THEN .top = bound(.top, .pt - .size + 1, .pt - 1)
   .top = bound(.top, 0, large(.last - .size, 0))
  END WITH
 END SUB
