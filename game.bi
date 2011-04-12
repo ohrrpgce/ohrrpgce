@@ -12,6 +12,7 @@
 declare function valid_item_slot(item_slot as integer) as integer
 declare function valid_item(itemid as integer) as integer
 declare function valid_hero_party(who as integer, minimum as integer=0) as integer
+declare function really_valid_hero_party(byval who as integer, byval minimum as integer=0) as integer
 declare function valid_menuslot(menuslot as integer) as integer
 declare function valid_menuslot_and_mislot(menuslot as integer, mislot as integer) as integer
 declare function valid_plotstr(n as integer) as integer

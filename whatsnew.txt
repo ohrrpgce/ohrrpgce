@@ -22,7 +22,7 @@ WHAT IS NEW?
     * The line and oval tools are now pleasant to use instead of
       teeth-gnashingly awful, and the pixels in the tile editor are
       no longer stretched [Ralph]
-    * Added Replace colour tool to tile and sprite editors [Ralph]
+    * Added Replace Colour tool to tile and sprite editors [Ralph]
     * New general bitset "Don't randomize battle ready meters" [James]
     * New attack bitset "Delay doesn't block further actions" allows
       attacks to be queued without blocking the attacker from taking
@@ -112,7 +112,7 @@ WHAT IS NEW?
     * Fixes to fatal error reporting: no longer gives the option to
       continue if it means corrupting the game, and Custom no longer
       deletes working.tmp, so that you can recover your work [Ralph]
-    * "horiz flip sprite" and "vert flip sprite" reset the sprites'
+    * "horiz flip sprite" and "vert flip sprite" reset the sprite's
       palette to default [Ralph]
 
   * New Plotscripting Stuff
@@ -152,6 +152,9 @@ WHAT IS NEW?
     * "get level cap", "set level cap" [Ralph]
     * "load backdrop sprite", "replace backdrop sprite",
       "set sprite trans", "get sprite trans" [Ralph]
+    * "hero base elemental resist as int",
+      "set hero base elemental resist",
+      "hero total elemental resist as int" [Ralph]
 
   * Vikings of Midgard
 

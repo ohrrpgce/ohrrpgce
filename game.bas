@@ -1839,8 +1839,17 @@ FUNCTION valid_item(itemID AS INTEGER) AS INTEGER
  RETURN bound_arg(itemID, 0, gen(genMaxItem), "item ID")
 END FUNCTION
 
-FUNCTION valid_hero_party(who AS INTEGER, minimum AS INTEGER) AS INTEGER
+FUNCTION valid_hero_party(who AS INTEGER, minimum AS INTEGER=0) AS INTEGER
  RETURN bound_arg(who, minimum, 40, "hero party slot")
+END FUNCTION
+
+FUNCTION really_valid_hero_party(BYVAL who AS INTEGER, BYVAL minimum AS INTEGER=0) AS INTEGER
+ IF bound_arg(who, minimum, 40, "hero party slot") = NO THEN RETURN NO
+ IF hero(who) = 0 THEN
+  scripterr commandname(curcmd->value) + ": Party hero slot " & who & " is empty"
+  RETURN NO
+ END IF
+ RETURN YES
 END FUNCTION
 
 FUNCTION valid_menuslot(menuslot AS INTEGER) AS INTEGER

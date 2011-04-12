@@ -147,7 +147,18 @@ end
 
 #-----------------------------------------------------------------------
 
+# onkeypress on 'nameless other map' and 'foolish wrapping map place'
 script,key trigger,begin
+  if (key is pressed(key:E)) then (
+    # test hero elemental commands
+    # element 2 is <lit>
+    trace value (hero by rank (0), hero base elemental resist as int (hero by rank (0), 2))
+    trace value (hero total elemental resist as int (hero by rank (0), 2))
+    $ 31 = "Setting element 2 to -37%..."
+    trace (31)
+    set hero base elemental resist(hero by rank (0), 2, -37)
+  )
+
   if (key is pressed(key:a)) then (
     # test NPC bits
     tracevalue (1)

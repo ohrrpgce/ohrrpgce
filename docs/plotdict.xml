@@ -5060,6 +5060,31 @@ end</example>
 			<shortname>get level MP</shortname>
 			<description>Changes a hero's level MP (FF1-style MP). The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>mp level slot</p> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The argument <p>new value</p> is the new number of level MP points. Each point represents one spell from that row.</description>
 		</command>
+		<command id="herobaseelementalresistasint">
+			<canon>hero base elemental resist as int (who, element)</canon>
+			<shortname>hero base elemental resist as int</shortname>
+			<description>Gets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>element</p> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.5% damage (1/40 normal), then the result will be 3.<note>When floating point support is added to HamsterSpeak, an alternative to this command will be added.</note></description>
+			<seealso>
+				<ref>setherobaseelementalresist</ref>
+				<ref>herototalelementalresistasint</ref>
+			</seealso>
+		</command>
+		<command id="setherobaseelementalresist">
+			<canon>set hero base elemental resist (who, element, percent)</canon>
+			<shortname>set hero base elemental resist</shortname>
+			<description>Sets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>element</p> is a number from 0 to whatever the highest enabled element is. The argument <p>percent</p> is the percentage (written without a percent sign). For example -50 means the hero is healed by 50% of the attack damage instead of being hurt.<note>Unlike the elemental resist editors in Custom, you can't use fractions of a percent here.</note></description>
+			<seealso>
+				<ref>herobaseelementalresistasint</ref>
+			</seealso>
+		</command>
+		<command id="herototalelementalresistasint">
+			<canon>hero total elemental resist as int (who, element)</canon>
+			<shortname>hero total elemental resist as int</shortname>
+			<description>Gets the amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. The argument <p>who</p> is the hero's position in the party, as returned by <ref>findhero</ref>. The argument <p>element</p> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.5% damage (1/40 normal), then the result will be 3. This is the value calculated from the hero's 'intrinsic' resistances combined with the equipment they are wearing.<note>When floating point support is added to HamsterSpeak, an alternative to this command will be added.</note></description>
+			<seealso>
+				<ref>herobaseelementalresistasint</ref>
+			</seealso>
+		</command>
 		<command id="readglobal">
 			<canon>read global (id)</canon>
 			<shortname>read global</shortname>
@@ -5129,7 +5154,7 @@ end</example>
 		<command id="extendedscancodesenabled">
 			<canon>extended scancodes enabled</canon>
 			<shortname>extended scancodes enabled</shortname>
-			<description>Returns the state of the "Enabled better scancodes" general bitset: whether or not numpad keys are distinguishable from Home, Up, etc. keys.</description>
+			<description>Returns the state of the "Enable better scancodes" general bitset: whether or not numpad keys are distinguishable from Home, Up, etc. keys.</description>
 			<seealso>
 				<ref>keyispressed</ref>
 			</seealso>

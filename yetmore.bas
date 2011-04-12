@@ -22,6 +22,7 @@ DEFINT A-Z
 #include "yetmore2.bi"
 #include "moresubs.bi"
 #include "menustuf.bi"
+#include "bmod.bi"
 #include "bmodsubs.bi"
 
 'FIXME: this should not be called directly here. needs wrapping in allmodex.bi
@@ -455,7 +456,26 @@ SELECT CASE AS CONST id
     END IF
    END IF
   END IF
-
+ CASE 497'--set hero base elemental resist (hero, element, percent)
+  IF really_valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
+    gam.hero(retvals(0)).elementals(retvals(1)) = 0.01 * retvals(2)
+   END IF
+  END IF
+ CASE 498'--hero base elemental resist as int (hero, element)
+  IF really_valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
+    scriptret = 100 * gam.hero(retvals(0)).elementals(retvals(1))  'rounds to nearest int
+   END IF
+  END IF
+ CASE 499'--hero total elemental resist as int (hero, element)
+  IF really_valid_hero_party(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, gen(genNumElements) - 1, "element number") THEN
+    DIM elementals(gen(genNumElements) - 1) AS SINGLE
+    calc_hero_elementals elementals(), retvals(0)
+    scriptret = 100 * elementals(retvals(1))  'rounds to nearest int
+   END IF
+  END IF
 END SELECT
 END SUB
 
