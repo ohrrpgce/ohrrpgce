@@ -52,6 +52,7 @@ TYPE HeroState
  pic AS INTEGER
  pal AS INTEGER
  rename_on_status AS INTEGER 'Renameable in status menu
+ elementals(maxElements - 1) AS SINGLE
 END TYPE
 
 TYPE GameState

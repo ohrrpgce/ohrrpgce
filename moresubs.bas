@@ -98,6 +98,11 @@ FOR i = 0 TO 3
  NEXT o
 NEXT i
 
+'--damage from elements
+FOR i = 0 TO gen(genNumElements) - 1
+ gam.hero(slot).elementals(i) = her.elementals(i)
+NEXT
+
 '--mutable hero bits (not actually mutable)
 gam.hero(slot).rename_on_status = readbit(her.bits(), 0, 25)
 
@@ -1077,6 +1082,10 @@ FOR i = 0 TO 40
  gam.hero(i).pic = 0
  gam.hero(i).pal = 0
  gam.hero(i).def_wep = 0
+ gam.hero(i).rename_on_status = 0
+ FOR j = 0 TO maxElements - 1
+  gam.hero(i).elementals(j) = 1.0f
+ NEXT
 NEXT i
 FOR i = 0 TO 40
  FOR o = 0 TO 5

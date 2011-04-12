@@ -1627,7 +1627,8 @@ END FUNCTION
 
 SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
  'Calculate a hero's elemental resists after taking equipment into account
- 'elemental_resists should be sized up to at least gen(genNumElements) - 1; who is a hero() slot number.
+ 'elemental_resists() (the destination) should be sized up to at least gen(genNumElements) - 1;
+ 'who is a hero() slot number.
  'This is used both here and in the status menu.
 
  REDIM itemelementals() as single
@@ -1640,10 +1641,8 @@ SUB calc_hero_elementals (elemental_resists() as single, byval who as integer)
  '--first load data into allelementals()
 
  '--get native hero resistances
- DIM her AS HeroDef
- loadherodata @her, hero(who) - 1
  FOR i as integer = 0 TO gen(genNumElements) - 1
-  allelementals(0, i) = her.elementals(i)
+  allelementals(0, i) = gam.hero(who).elementals(i)
  NEXT i
 
  '--data from all equipped items fill rest of matrix

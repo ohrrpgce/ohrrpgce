@@ -526,6 +526,7 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
  DIM ch AS NodePtr 'used for sub-containers
  DIM n AS NodePtr 'used for numbered containers
  DIM i AS INTEGER
+ DIM her AS HeroDef 'used to provide default values when missing
  
  slot = FirstChild(node)
  DO WHILE slot
@@ -536,6 +537,7 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
     
      IF GetChildNodeExists(slot, "id") THEN
       hero(i) = GetChildNodeInt(slot, "id") + 1
+      loadherodata @her, hero(i) - 1      
      END IF
      
      names(i) = GetChildNodeStr(slot, "name")
@@ -583,7 +585,32 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
       .pic = GetChildNodeInt(ch, "pic")
       .pal = GetChildNodeInt(ch, "pal")
 
-     END WITH
+
+      'elements/[weak|strong|absorb] are here, but we ignore them
+      'rename_on_add and hide_empty_lists are here, but have been abandoned
+
+      'Load defaults (for older saves which don't contain elemental data)
+      IF hero(i) THEN
+       FOR j = 0 TO gen(genNumElements) - 1
+        .elementals(j) = her.elementals(j)
+       NEXT
+      END IF
+
+      ch = GetChildByName(slot, "elements")
+      IF ch THEN
+       n = FirstChild(ch, "element")
+       DO WHILE n
+        DIM j AS INTEGER = GetInteger(n)
+        IF j < gen(genNumElements) THEN
+         .elementals(j) = GetChildNodeFloat(n, "damage", 1.0)
+        END IF
+        n = NextSibling(n, "element")
+       LOOP
+      END IF
+
+      .rename_on_status = GetChildNodeExists(slot, "rename_on_status")
+
+     END WITH 'gam.hero(i)
      
      ch = GetChildByName(slot, "battle_menus")
      n = FirstChild(ch)
@@ -658,11 +685,6 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
       END IF
       n = NextSibling(n)
      LOOP 
-
-     'elements/[weak|strong|absorb] are here, but we ignore them
-     'rename_on_add and hide_empty_lists are here, but have been abandoned
-
-     gam.hero(i).rename_on_status = GetChildNodeExists(slot, "rename_on_status")
 
     CASE ELSE
      rsav_warn "invalid hero party slot " & i
@@ -1114,11 +1136,19 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
     SetChildNode(n, "item", eqstuf(i, j) - 1)
    END IF
   NEXT j
-  
-  ch = SetChildNode(slot, "elements")
-  'FIXME: Add children for elemental damage, once implemented
-  
-  IF gam.hero(i).rename_on_status THEN SetChildNode(slot, "rename_on_status")
+
+  IF hero(i) THEN
+   'Unlike all the other hero commands, hero elemental commands aren't allowed
+   'to read/write empty hero slots, so don't need to save those
+
+   ch = SetChildNode(slot, "elements")
+   FOR j AS INTEGER = 0 TO gen(genNumElements) - 1
+    n = AppendChildNode(ch, "element", j)
+    SetChildNode(n, "damage", cast(double, gam.hero(i).elementals(j)))
+   NEXT j
+
+   IF gam.hero(i).rename_on_status THEN SetChildNode(slot, "rename_on_status")
+  END IF
   
  NEXT i
 END SUB
