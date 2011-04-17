@@ -73,8 +73,6 @@ WHAT IS NEW?
       to spells used outside of battle. [James]
     * Fixed a case where "add hero" could add more heroes than you
       are supposed to be able to have under certain conditions [James]
-    * Bug 833: Screen temporarily freezes right after cancelling an
-      out-of-battle cure attack or item [James]
     * Bug 486: Chained attacks fail on stored dead targets
       [James, msw188]
     * Bug 851: Instead-chains fail or cause other chains to fail under

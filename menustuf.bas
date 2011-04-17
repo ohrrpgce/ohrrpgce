@@ -1780,9 +1780,9 @@ FUNCTION items_menu () as integer
   
   items_menu_paint istate, iuse(), permask()
   
-  setvispage vpage
-  copypage holdscreen, istate.page
   IF istate.re_use = NO THEN
+   setvispage vpage
+   copypage holdscreen, istate.page
    dowait
   END IF
  LOOP
@@ -1986,12 +1986,11 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
  DIM holdscreen AS INTEGER
  holdscreen = allocatepage
  copypage page, holdscreen
- copypage holdscreen, page
 
  DIM cater AS INTEGER
  DIM walk AS INTEGER
  DIM wtogl AS INTEGER
- DIM tog
+ DIM tog AS INTEGER
  DIM col AS INTEGER
  DIM atk AS AttackData
  DIM learn_attack AS AttackData
@@ -2144,7 +2143,7 @@ FUNCTION menu_attack_targ_picker(BYVAL attack_id AS INTEGER, BYVAL learn_id AS I
   edgeprint use_caption, xstring(use_caption, 160 + x_offset), 95, uilook(uiText), page
  
   setvispage vpage
-  copypage holdscreen, dpage
+  copypage holdscreen, page
   dowait
  LOOP
  
