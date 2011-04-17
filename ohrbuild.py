@@ -7,11 +7,11 @@ import sys
 
 include_re = re.compile(r'^#include\s+"(\S+)"$', re.M)
 
-standard_bi = ['crt.bi', 'fbgfx.bi', 'crt/limits.bi', 'crt/string.bi',
+standard_bi = ['crt', 'SDL', 'libxml', 'fbgfx.bi', 
                'file.bi', 'allegro.bi', 'string.bi']
 
 def scrub_includes(includes):
-    return [v for v in includes if v not in standard_bi and 'SDL' not in v]
+    return [v for v in includes if not any([v.startswith(inc) for inc in standard_bi])]
 
 def basfile_scan(node, env, path):
     contents = node.get_text_contents()

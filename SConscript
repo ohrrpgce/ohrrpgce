@@ -109,11 +109,11 @@ gfx_map = {'fb': {'common_modules': 'gfx_fb.bas', 'libraries': 'fbgfx'},
 
 music_map = {'native':
                  {'common_modules': 'music_native.bas',
-                  'common_objects': os.path.join ('audwrap','audwrap.o'),
+                  'common_objects': os.path.join ('audwrap','audwrap.cpp'),
                   'libraries': 'audiere'},
              'native2':
                  {'common_modules': 'music_native2.bas',
-                  'common_objects': os.path.join ('audwrap','audwrap.o'),
+                  'common_objects': os.path.join ('audwrap','audwrap.cpp'),
                   'libraries': 'audiere'},
              'sdl':
                  {'common_modules': 'music_sdl.bas sdl_lumprwops.bas',
@@ -187,6 +187,7 @@ game_modules = ['game',
                 'hsinterpreter']
 
 base_objects = [env.Object(a) for a in base_objects]
+common_objects = [env.Object(a) for a in common_objects]
 
 gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = env['FBFLAGS'] + \
                       ['-d','IS_GAME', '-m','game'])
@@ -207,6 +208,9 @@ for item in edit_modules:
 for item in common_modules:
     editsrc.append (editenv.VARIANT_BASO (item))
 
+# For reload utilities
+reload_objects = base_objects + [env.BASO (item) for item in ['reload', 'reloadext', 'lumpfile']]
+
 gamename = 'ohrrpgce-game'
 editname = 'ohrrpgce-custom'
 gameflags = list (gameenv['FBFLAGS']) + ['-v']
@@ -220,9 +224,14 @@ if win32:
 
 GAME = gameenv.BASEXE   (gamename, source = gamesrc, FBFLAGS = gameflags)
 CUSTOM = editenv.BASEXE (editname, source = editsrc, FBFLAGS = editflags)
-BAM2MID = env.BASEXE ('bam2mid')
-UNLUMP = env.BASEXE ('unlump', source = ['unlump.bas', 'lumpfile.bas'] + base_objects)
-RELUMP = env.BASEXE ('relump', source = ['relump.bas', 'lumpfile.bas'] + base_objects)
+env.BASEXE ('bam2mid')
+env.BASEXE ('unlump', source = ['unlump.bas', 'lumpfile.bas'] + base_objects)
+env.BASEXE ('relump', source = ['relump.bas', 'lumpfile.bas'] + base_objects)
+env.Command ('hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc hspeak.exw')
+env.BASEXE ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
+env.BASEXE ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FB_FLAGS = ['-p','.', '-l','xml2'])
+env.BASEXE ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
+env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
 
 Default (GAME)
 Default (CUSTOM)

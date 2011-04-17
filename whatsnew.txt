@@ -160,6 +160,8 @@ WHAT IS NEW?
 
   * Stuff Only Developers Will Notice
     * Test suite and benchmarks for RELOAD format [Mike]
+    * Comprehensive SCons-based build system, to replace all the others
+      [David Gowers]
 
 Nov 8 2010 [Ypsiliform+3]
 
