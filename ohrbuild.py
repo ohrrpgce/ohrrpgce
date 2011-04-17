@@ -7,19 +7,15 @@ import sys
 
 include_re = re.compile(r'^#include\s+"(\S+)"$', re.M)
 
-standard_bi = ['crt.bi', 'fbgfx.bi', 'crt/limits.bi',
+standard_bi = ['crt.bi', 'fbgfx.bi', 'crt/limits.bi', 'crt/string.bi',
                'file.bi', 'allegro.bi', 'string.bi']
+
+def scrub_includes(includes):
+    return [v for v in includes if v not in standard_bi and 'SDL' not in v]
 
 def basfile_scan(node, env, path):
     contents = node.get_text_contents()
-    included = include_re.findall(contents)
-    if included:
-        for v in standard_bi:
-            while v in included:
-                included.remove (v)
-            for v2 in list (included):
-                if 'SDL' in v2:
-                    included.remove (v2)
+    included = scrub_includes (include_re.findall (contents))
     # recursively re-check each include for other includes
     for bi in included:
         basfile_recurse_scan(bi, included)
@@ -29,7 +25,7 @@ def basfile_recurse_scan(filename, included):
     f = open(filename)
     text = f.read()
     f.close()
-    deeper = include_re.findall(text)
+    deeper = scrub_includes (include_re.findall (text))
     for v in deeper:
         # get relative path to file
         v = os.path.normpath (os.path.join (os.path.dirname (filename), v))

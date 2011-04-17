@@ -14,8 +14,6 @@ CC = 'gcc'
 CXX = 'g++'
 CXXFLAGS = '-O2 -g -Wall -Wno-non-virtual-dtor'.split ()
 from ohrbuild import basfile_scan, verprint
-OS_MODULE = 'os_unix.bas'
-
 
 if platform.system () == 'Windows':
     win32 = True
@@ -24,33 +22,50 @@ if platform.system () == 'Windows':
 else:
     unix = True
 
-baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
-                suffix = '.o', src_suffix = '.bas')
-basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
-                  suffix = exe_suffix, src_suffix = '.bas')
 
-env = os.environ
+environ = os.environ
 svn = ARGUMENTS.get ('svn','svn')
 fbc = ARGUMENTS.get ('fbc','fbc')
 git = ARGUMENTS.get ('git','git')
 # eg. pass gfx=sdl+fb for the default behaviour.
 if unix:
-    gfx = ARGUMENTS.get ('gfx', env.get ('OHRGFX','sdl+fb'))
+    gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX','sdl+fb'))
 else:
-    gfx = ARGUMENTS.get ('gfx', env.get ('OHRGFX','directx+sdl+fb'))
-music = ARGUMENTS.get ('music', env.get ('OHRMUSIC','sdl'))
+    gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX','directx+sdl+fb'))
+music = ARGUMENTS.get ('music', environ.get ('OHRMUSIC','sdl'))
 # handle OHRMUSIC/GFX which is blank
 # (ie is set to '', rather than not existing.)
 if gfx == '':
     gfx = 'sdl+fb'
 if music == '':
     music = 'sdl'
-env = Environment (FBFLAGS  = env.get ('FBFLAGS', []),
+env = Environment (FBFLAGS = environ.get ('FBFLAGS', []) + ['-mt','-g','-exx'],
                    FBLIBS = [],
                    CFLAGS = ['-c','-g','-O3','--std=c99'],
-                   FBC = fbc +' -lang deprecated',
+                   FBC = fbc + ' -lang deprecated',
                    CXXFLAGS = CXXFLAGS,
-                   BUILDERS = {'BASEXE':basexe,'BASO':baso})
+                   VAR_PREFIX = '')
+
+
+def prefix_targets(target, source, env):
+    target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
+    return target, source
+
+variant_baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
+                suffix = '.o', src_suffix = '.bas', single_source = True, emitter = prefix_targets)
+baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
+                suffix = '.o', src_suffix = '.bas', single_source = True)
+basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
+                  suffix = exe_suffix, src_suffix = '.bas')
+
+scanner = Scanner (function = basfile_scan,
+                   skeys = ['.bas'])
+
+env['BUILDERS']['Object'].add_action('.bas', '$FBC -c $SOURCE -o $TARGET $FBFLAGS')
+
+env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'VARIANT_BASO':variant_baso},
+            SCANNERS = scanner)
+
 
 env['ENV']['PATH'] = os.environ['PATH']
 if CC:
@@ -61,30 +76,24 @@ if CXX:
     env['ENV']['CXX'] = CXX
     env.Replace (CXX = CXX)
 
-scanner = Scanner (function = basfile_scan,
-                   skeys = ['.bas'])
+# Make a base environment for Game and Custom (other utilities use env)
+commonenv = env.Clone ()
 
-env.Append (SCANNERS = scanner)
-
-for f in ('-mt', '-g','-exx'):
-    env['FBFLAGS'].append (f)
-
-EXE_SUFFIX = ''
+base_objects = []   # modules shared by all utilities (except bam2mid)
+common_modules = []  # modules, in addition to base_objects, shared by Game and Custom 
 common_objects = []
-common_modules = []
 
 libraries = []
 libpaths = []
 
 if win32:
-    OS_MODULE = 'os_windows.bas'
-    common_modules += ['os_windows.bas','blit.c','base64.c']
+    base_objects += ['os_windows.bas']
     libraries += ['fbgfx']
-    env['FBFLAGS'] += ['-s', 'gui']
+    commonenv['FBFLAGS'] += ['-s','gui']
 elif unix:
-    OS_MODULE = 'os_unix.bas'
-    common_modules += ['os_unix.bas','blit.c', 'base64.c']
+    base_objects += ['os_unix.bas']
     libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
+    commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
 
 used_gfx = []
 used_music = []
@@ -128,19 +137,31 @@ for k, v in music_map.items ():
         for k2, v2 in v.items ():
             tmp[k2] += v2.split (' ')
 
-common_modules += [v + '.bas' for v in Split ("""allmodex
-                   backends
-                   lumpfile
-                   misc
-                   bam2mid
-                   common
-                   bcommon
-                   browse
-                   util
-                   loading
-                   reload
-                   reloadext
-                   slices""")]
+libraries = Flatten ([['-l', v] for v in libraries])
+libpaths = Flatten ([['-p', v] for v in libpaths])
+
+commonenv['FBLIBS'] += libpaths + libraries
+
+# first, make sure the version is saved.
+
+# always do verprinting, before anything else.
+verprint (used_gfx, used_music, svn, git, fbc)
+
+
+base_objects += ['util.bas','blit.c','base64.c']
+
+common_modules += ['allmodex',
+                   'backends',
+                   'lumpfile',
+                   'misc',
+                   'bam2mid',
+                   'common',
+                   'bcommon',
+                   'browse',
+                   'loading',
+                   'reload',
+                   'reloadext',
+                   'slices']
 
 edit_modules = ['custom',
                 'customsubs',
@@ -155,8 +176,6 @@ edit_modules = ['custom',
                 'editedit',
                 'editrunner']
 
-edit_modules.reverse ()
-
 game_modules = ['game',
                 'bmod',
                 'bmodsubs',
@@ -167,114 +186,48 @@ game_modules = ['game',
                 'savegame',
                 'hsinterpreter']
 
-game_modules.reverse ()
+base_objects = [env.Object(a) for a in base_objects]
 
-_libraries = libraries
-libraries = []
-_libpaths = libpaths
-libpaths = []
-for v2 in [['-l', v] for v in _libraries]:
-    libraries.extend (v2)
-for v2 in [['-p', v] for v in _libpaths]:
-    libpaths.extend (v2)
-
-
-# Make an environment suitable for building the main stuff..
-
-main = env.Clone ()
-
-main['FBLIBS'] += libpaths + libraries
-
-
-# first, make sure the version is saved.
-
-# always do verprinting, before anything else.
-verprint (used_gfx, used_music, svn, git, fbc)
-
-gameenv = main.Clone (FBFLAGS = env['FBFLAGS'] + \
+gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = env['FBFLAGS'] + \
                       ['-d','IS_GAME', '-m','game'])
-editenv = main.Clone (FBFLAGS = env['FBFLAGS'] + \
+editenv = commonenv.Clone (VAR_PREFIX = 'edit-', FBFLAGS = env['FBFLAGS'] + \
                       ['-d','IS_CUSTOM', '-m','custom'])
 
-gametmp = []
-edittmp = []
-tmp = common_modules + common_objects
-for v in tmp:
-    if v.endswith ('.c'):
-        tmp = main.Command (v.replace ('.c','.o'),
-         v,
-         '$CC $CFLAGS -c $SOURCE -o $TARGET')
-        if v == 'base64.c':
-            Depends (tmp, 'base64.h')
-        gametmp.append (tmp)
-        edittmp.append (tmp)
-    elif v.endswith ('.cpp'):
-        tmp = main.Command (v.replace ('.cpp','.o'),
-         v,
-         '$CXX $CXXFLAGS -c $SOURCE -o $TARGET')
-        if v == 'audwrap.cpp':
-            Depends (tmp, 'audwrap.h')
-            Depends (tmp, 'audiere.h')
-        gametmp.append (tmp)
-        edittmp.append (tmp)
-    elif v.endswith ('.bas'):
-        a = gameenv.BASO (target = 'game-'+ v[:-4], source = v,)
-        b = editenv.BASO (target = 'edit-'+ v[:-4], source = v,)
-        gametmp.append (a)
-        edittmp.append (b)
-    else:
-        # object files and other
-        gametmp.append (v)
-        edittmp.append (v)
-
 #now... GAME and CUSTOM
-#
 
-gamesrc = []
-editsrc = []
-
+gamesrc = base_objects + common_objects
 for item in game_modules:
-    a = gameenv.BASO (target = item + '.o', source = item + '.bas')
-    gamesrc.append (a)
+    gamesrc.append (gameenv.BASO (item))
+for item in common_modules:
+    gamesrc.append (gameenv.VARIANT_BASO (item))
 
+editsrc = base_objects + common_objects
 for item in edit_modules:
-    b = editenv.BASO (target = item + '.o', source = item + '.bas')
-    editsrc.append (b)
+    editsrc.append (editenv.BASO (item))
+for item in common_modules:
+    editsrc.append (editenv.VARIANT_BASO (item))
 
-mainflags = ['-v'] + env['FBFLAGS']
 gamename = 'ohrrpgce-game'
 editname = 'ohrrpgce-custom'
-gameflags = list (mainflags)
-editflags = list (mainflags)
+gameflags = list (gameenv['FBFLAGS']) + ['-v']
+editflags = list (editenv['FBFLAGS']) + ['-v']
 
 if win32:
     gamename = 'game'
     editname = 'custom'
-    gameflags += ['gicon.rc']
-    editflags += ['cicon.rc']
-else:
-    gameflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
-    editflags += ['-d', 'DATAFILES="/usr/share/games/ohrrpgce"']
+    gamesrc += ['gicon.rc']
+    editsrc += ['cicon.rc']
 
-gamename = os.path.join (gamename)
-editname = os.path.join (editname)
-
-GAME = gameenv.BASEXE   (gamename,
-                         FBFLAGS = gameflags,
-                         source = gametmp + gamesrc)
-CUSTOM = editenv.BASEXE (editname,
-                         FBFLAGS = editflags,
-                         source = edittmp + editsrc)
+GAME = gameenv.BASEXE   (gamename, source = gamesrc, FBFLAGS = gameflags)
+CUSTOM = editenv.BASEXE (editname, source = editsrc, FBFLAGS = editflags)
 BAM2MID = env.BASEXE ('bam2mid')
-#fbc -lang deprecated -v unlump.bas util.bas lumpfile.bas blit.o
-lumptoolflags = ['-lang', 'deprecated', '-v']
-lumptoolsrc = ['util.bas', 'lumpfile.bas', 'blit.o']
-UNLUMP = env.BASEXE ('unlump', FBFLAGS=lumptoolflags, source = ['unlump.bas', OS_MODULE] + lumptoolsrc)
-RELUMP = env.BASEXE ('relump', FBFLAGS=lumptoolflags, source = ['relump.bas', OS_MODULE] + lumptoolsrc)
+UNLUMP = env.BASEXE ('unlump', source = ['unlump.bas', 'lumpfile.bas'] + base_objects)
+RELUMP = env.BASEXE ('relump', source = ['relump.bas', 'lumpfile.bas'] + base_objects)
 
-# XXX fix verprint build to happen in correct place??
 Default (GAME)
 Default (CUSTOM)
-Default (BAM2MID)
-Default (UNLUMP)
-Default (RELUMP)
+
+Alias ('game', GAME)
+Alias ('custom', CUSTOM)
+
+#print [str(a) for a in FindSourceFiles(GAME)]
