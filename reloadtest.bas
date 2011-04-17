@@ -448,7 +448,7 @@ endTest
 startTest(serializeXML)
 	print
 	
-	dim fh as integer
+	dim fh as integer = freefile
 	open cons for output as fh
 	serializeXML(doc, fh)
 	close fh
