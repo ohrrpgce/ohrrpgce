@@ -741,7 +741,8 @@ DO
    GOSUB EnUpdateMenu
   ELSE
    IF dissolve_ticks <= dissolve_time THEN
-    SetSpriteToFrame preview, frame_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type), recbuf(EnDatPal)
+    SetSpriteToFrame preview, frame_dissolved(preview_sprite, dissolve_time, dissolve_ticks, dissolve_type), _
+                     abs_pal_num(recbuf(EnDatPal), 1 + recbuf(EnDatPicSize), recbuf(EnDatPic))
    END IF
   END IF
  END IF

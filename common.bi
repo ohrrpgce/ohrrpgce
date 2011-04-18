@@ -69,6 +69,7 @@ DECLARE SUB loaddefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS I
 DECLARE SUB savedefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE SUB guessdefaultpals (fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
 DECLARE FUNCTION getdefaultpal(fileset as integer, index as integer) as integer
+DECLARE FUNCTION abs_pal_num(byval num as integer, byval sprtype as integer, byval spr as integer) as integer
 
 DECLARE FUNCTION getfixbit(BYVAL bitnum AS INTEGER) AS INTEGER
 DECLARE SUB setfixbit(BYVAL bitnum AS INTEGER, BYVAL bitval AS INTEGER)

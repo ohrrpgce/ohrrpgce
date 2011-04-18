@@ -764,6 +764,13 @@ FUNCTION getdefaultpal(fileset AS INTEGER, index AS INTEGER) as integer
  END IF
 END FUNCTION
 
+FUNCTION abs_pal_num(byval num as integer, byval sprtype as integer, byval spr as integer) as integer
+ IF num >= 0 THEN RETURN num
+ IF num = -1 THEN RETURN getdefaultpal(sprtype, spr)
+ debug "decode_default_pal: invalid palette " & num
+ RETURN 0
+END FUNCTION
+
 SUB loaddefaultpals(fileset AS INTEGER, poffset() AS INTEGER, sets AS INTEGER)
  DIM v AS SHORT
  DIM f AS STRING = workingdir & SLASH & "defpal" & fileset & ".bin"

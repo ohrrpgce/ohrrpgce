@@ -1072,7 +1072,7 @@ End Function
 'Make no mistake, this is just a hack currently
 '(and it only accepts 4 bit graphics). Default palettes not allowed.
 Sub SetSpriteToFrame(byval sl as slice ptr, byval fr as Frame ptr, byval pal as integer)
- if sl = 0 then debug "SetSpriteFrame null ptr": exit sub
+ if sl = 0 then debug "SetSpriteToFrame null ptr": exit sub
  dim dat as SpriteSliceData ptr = cptr(SpriteSliceData ptr, sl->SliceData)
 
  if pal < 0 then showerror "SetSpriteToFrame: default palettes verboten!"
