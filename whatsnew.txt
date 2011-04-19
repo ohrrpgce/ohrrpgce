@@ -792,7 +792,7 @@ Sept 21 2007 [ubersetzung]
 
        plotscript, introduction, begin
 
-      See http://hamsterrepublic.com/ohrrpgce/index.php/New_syntax.html
+      See http://rpg.hamsterrepublic.com/ohrrpgce/New_syntax
       for more information. [Ralph Versteegen]
     * Press enter/space on any field that accepts scripts to enter a script
       browser where you can enter an id or browse by starting letter [Ralph]
@@ -1115,8 +1115,8 @@ Feb 15 2006 [serendipity]
 
     * Music looping:
       * RPG Maker style (Midi event #111 (0x6F) at the loop point), or
-      * OHR Music Code style (http://gilgamesh.hamsterrepublic.com/wiki/
-      ohrrpgce/index.php/Music_Code for more details)
+      * OHR Music Code style (for more details see
+        http://rpg.hamsterrepublic.com/ohrrpgce/Music_Code )
       [Mike Caron]
 
     * Unlumped RPGs can now be played by Game (start game like this:

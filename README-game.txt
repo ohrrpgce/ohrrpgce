@@ -11,14 +11,14 @@ To learn how to use the OHRRPGCE, please visit
 http://HamsterRepublic.com/ohrrpgce/
 
 If you have questions, read the FAQ at
-http://HamsterRepublic.com/ohrrpgce/faq.php
+http://hamsterrepublic.com/ohrrpgce/F.A.Q.html
 
 ---
 DISTRIBUTION INFO
 
 GAME.EXE is a part of the OHRRPGCE, which is free software under the GPL
 License. See LICENSE.txt for details. If you want to get the source code,
-just visit: http://HamsterRepublic.com/ohrrpgce/source.php
+just visit: http://HamsterRepublic.com/ohrrpgce/Source.html
 
 ---
 WHERE TO FIND GAMES?

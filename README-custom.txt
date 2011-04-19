@@ -29,7 +29,7 @@ know where to get the source code. No other files are needed for
 people to play your RPG files
 
 If you have questions, read the FAQ at
-http://HamsterRepublic.com/ohrrpgce/faq.php
+http://hamsterrepublic.com/ohrrpgce/F.A.Q.html
 
 ---
 

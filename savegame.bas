@@ -1488,7 +1488,7 @@ show_load_index z, "gen"
 FOR i = 0 TO 500
  SELECT CASE i
   'Only certain gen() values should be read from the saved game.
-  'See http://HamsterRepublic.com/ohrrpgce/index.php/GEN.html
+  'See http://rpg.HamsterRepublic.com/ohrrpgce/GEN
   CASE 42, 57 'genGameoverScript and genLoadgameScript
    IF readbit(gen(), genBits2, 2) = 0 THEN
     gen(i) = buffer(z)
@@ -1728,7 +1728,7 @@ FOR i = 0 TO 40
  END IF
 NEXT i
 
-'See http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce/index.php/SAV for docs
+'See http://rpg.hamsterrepublic.com/ohrrpgce/SAV for docs
 END SUB
 
 SUB old_loadglobalvars (slot, first, last)

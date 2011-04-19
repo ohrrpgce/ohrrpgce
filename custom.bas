@@ -632,7 +632,7 @@ RETRACE
 'dowait
 'LOOP
 
-'---For documentation of general data see http://hamsterrepublic.com/ohrrpgce/index.php/GEN.html
+'---For documentation of general data see http://rpg.hamsterrepublic.com/ohrrpgce/GEN
 
 REM $STATIC
 
