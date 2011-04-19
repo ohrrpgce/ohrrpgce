@@ -237,8 +237,8 @@ struct gfx_BackendState
 	Tstring szWindowTitle;
 	Tstring szWindowIcon;
 	void (__cdecl *PostTerminateSignal)(void);
-	//void (__cdecl *OnCriticalError)(const char* szError);
-	//void (__cdecl *SendDebugString)(const char* szMessage);
+	void (__cdecl *OnCriticalError)(const char* szError);
+	void (__cdecl *SendDebugString)(const char* szMessage);
 	bool bClosing; //flagged when shutting down
 	Tstring szHelpText;
 } g_State;
@@ -276,10 +276,10 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 	TCHAR buffer[256] = TEXT("");
 	g_State.szWindowIcon = StringToString(buffer, 256, pCreationData->szWindowIcon);
 	g_State.PostTerminateSignal = pCreationData->PostTerminateSignal;
-	//g_State.OnCriticalError = pCreationData->OnCriticalError;
-	//g_State.SendDebugString = /*DebugString;*/pCreationData->SendDebugString;
+	g_State.OnCriticalError = pCreationData->OnCriticalError;
+	g_State.SendDebugString = /*DebugString;*/pCreationData->SendDebugString;
 
-	if(g_State.PostTerminateSignal == NULL/* || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL*/)
+	if(g_State.PostTerminateSignal == NULL || g_State.OnCriticalError == NULL || g_State.SendDebugString == NULL)
 		return FALSE;
 
 	//g_State.SendDebugString("gfx_directx: Initializing...");
@@ -306,7 +306,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 
 	if(FAILED(g_Joystick.Initialize( g_Window.GetAppHandle(), g_Window.GetWindowHandle() )))
 		//g_State.SendDebugString("gfx_directx: Failed to support joysticks!");
-	else
+	//else
 		//g_State.SendDebugString("gfx_directx: Joysticks supported!");
 
 	gfx_SetWindowTitle(pCreationData->szInitWindowTitle);
