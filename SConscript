@@ -10,8 +10,10 @@ from ohrbuild import basfile_scan, verprint
 win32 = False
 unix = True
 exe_suffix = ''
+FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt','-g','-exx']
 CC = 'gcc'
 CXX = 'g++'
+CFLAGS = ['-c','-g','-O3','--std=c99']
 CXXFLAGS = '-O2 -g -Wall -Wno-non-virtual-dtor'.split ()
 from ohrbuild import basfile_scan, verprint
 
@@ -27,6 +29,12 @@ environ = os.environ
 svn = ARGUMENTS.get ('svn','svn')
 fbc = ARGUMENTS.get ('fbc','fbc')
 git = ARGUMENTS.get ('git','git')
+valgrind = ARGUMENTS.get ('valgrind','')
+valgrind = valgrind != '' and valgrind != '0'
+if valgrind:
+    #-exx under valgrind is nearly redundant, and really slow
+    FBFLAGS.remove('-exx')
+    CFLAGS.append('-DVALGRIND_ARRAYS')
 # eg. pass gfx=sdl+fb for the default behaviour.
 if unix:
     gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX','sdl+fb'))
@@ -39,9 +47,9 @@ if gfx == '':
     gfx = 'sdl+fb'
 if music == '':
     music = 'sdl'
-env = Environment (FBFLAGS = environ.get ('FBFLAGS', []) + ['-mt','-g','-exx'],
+env = Environment (FBFLAGS = FBFLAGS,
                    FBLIBS = [],
-                   CFLAGS = ['-c','-g','-O3','--std=c99'],
+                   CFLAGS = CFLAGS,
                    FBC = fbc + ' -lang deprecated',
                    CXXFLAGS = CXXFLAGS,
                    VAR_PREFIX = '')
