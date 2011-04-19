@@ -178,7 +178,7 @@ DFI_IMPLEMENT_CDECL(void, io_pollkeyevents)
 	gfx_PumpMessages();
 }
 
-DFI_IMPLEMENT_CDECL(void, io_updatekeys, int *keybd)
+DFI_IMPLEMENT_CDECL(void, io_keybits, int *keybd)
 {
 	gfx_GetKeyboard(keybd);
 }

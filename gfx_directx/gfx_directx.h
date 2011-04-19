@@ -42,7 +42,7 @@ DFI_CLASS_BEGIN( DllBackend );
 #pragma comment(linker, "/export:gfx_describe_options=_gfx_describe_options@0")
 #pragma comment(linker, "/export:io_init=_io_init@0")
 #pragma comment(linker, "/export:io_pollkeyevents=_io_pollkeyevents@0")
-#pragma comment(linker, "/export:io_updatekeys=_io_updatekeys@4")
+#pragma comment(linker, "/export:io_keybits=_io_keybits@4")
 #pragma comment(linker, "/export:io_setmousevisibility=_io_setmousevisibility@4")
 #pragma comment(linker, "/export:io_getmouse=_io_getmouse@16")
 #pragma comment(linker, "/export:io_setmouse=_io_setmouse@8")
@@ -76,7 +76,7 @@ DFI_DECLARE_CDECL( void, io_pollkeyevents );
 //DFI_DECLARE_CDECL( void, io_waitprocessing );
 
 //DFI_DECLARE_CDECL( void, io_keybits, int* keybdarray );
-DFI_DECLARE_CDECL( void, io_updatekeys, int *keybd );
+DFI_DECLARE_CDECL( void, io_keybits, int *keybd );
 //DFI_DECLARE_CDECL( void, io_mousebits, int& mx, int& my, int& mwheel, int& mbuttons, int& mclicks );
 DFI_DECLARE_CDECL( int, io_setmousevisibility, int visible );
 DFI_DECLARE_CDECL( void, io_getmouse, int& mx, int& my, int& mwheel, int& mbuttons );

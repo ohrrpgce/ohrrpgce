@@ -35,18 +35,18 @@ bool Keyboard::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLShift == (HIWORD(lParam) & 0x7f))
 				{
 					m_virtualKeys[VK_LSHIFT] = 0x80;
-					m_scancodes[ c_vk2fb[VK_LSHIFT] ] = 0x8;
+					m_scancodes[ c_vk2fb[VK_LSHIFT] ] |= 0x3;
 				}
 				else
 				{
 					m_virtualKeys[VK_RSHIFT] = 0x80;
-					m_scancodes[ c_vk2fb[VK_RSHIFT] ] = 0x8;
+					m_scancodes[ c_vk2fb[VK_RSHIFT] ] |= 0x3;
 				}
 			}
 			else
 			{
 				m_virtualKeys[wParam] = 0x80;
-				m_scancodes[ c_vk2fb[wParam] ] = 0x8;
+				m_scancodes[ c_vk2fb[wParam] ] |= 0x3;
 			}
 		} break;
 	case WM_SYSKEYUP:
@@ -57,12 +57,12 @@ bool Keyboard::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_virtualKeys[wParam] == 0x80)
 				{
 					m_virtualKeys[wParam] = 0x0;
-					m_scancodes[ c_vk2fb[wParam] ] = 0x0;
+					m_scancodes[ c_vk2fb[wParam] ] &= 0x2;
 				}
 				else
 				{
 					m_virtualKeys[wParam] = 0x80;
-					m_scancodes[ c_vk2fb[wParam] ] = 0x8;
+					m_scancodes[ c_vk2fb[wParam] ] |= 0x3;
 				}
 			}
 			else if(wParam == VK_SHIFT)
@@ -70,18 +70,18 @@ bool Keyboard::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLShift == (HIWORD(lParam) & 0x7f))
 				{
 					m_virtualKeys[VK_LSHIFT] = 0x0;
-					m_scancodes[ c_vk2fb[VK_LSHIFT] ] = 0x0;
+					m_scancodes[ c_vk2fb[VK_LSHIFT] ] &= 0x2;
 				}
 				else
 				{
 					m_virtualKeys[VK_RSHIFT] = 0x0;
-					m_scancodes[ c_vk2fb[VK_RSHIFT] ] = 0x0;
+					m_scancodes[ c_vk2fb[VK_RSHIFT] ] &= 0x2;
 				}
 			}
 			else
 			{
 				m_virtualKeys[wParam] = 0x0;
-				m_scancodes[ c_vk2fb[wParam] ] = 0x0;
+				m_scancodes[ c_vk2fb[wParam] ] &= 0x2;
 			}
 		} break;
 	default:

@@ -19,7 +19,12 @@ namespace gfx
 	public:
 		Keyboard();
 
-		void GetOHRScans(int* pScancodes) const {for(UINT i = 0; i < 128; i++) pScancodes[i] |= m_scancodes[i];}
+		void GetOHRScans(int* pScancodes) {
+			for(UINT i = 0; i < 128; i++) {
+				pScancodes[i] |= m_scancodes[i];
+				m_scancodes[i] &= 0x1;
+			}
+		}
 		void GetVirtualKeys(BYTE* pVirtualKeys) const {memcpy((void*)pVirtualKeys, (void*)m_virtualKeys, sizeof(m_virtualKeys));}
 
 		//void Poll();

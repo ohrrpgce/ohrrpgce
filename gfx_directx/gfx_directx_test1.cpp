@@ -26,7 +26,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	db.Init_io_init();
 	db.Init_io_setmousevisibility();
 	db.Init_gfx_showpage();
-	db.Init_io_updatekeys();
+	db.Init_io_keybits();
 	db.Init_io_readjoysane();
 	db.Init_gfx_screenshot();
 	db.Init_gfx_close();
@@ -63,7 +63,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 		db.gfx_showpage(g_frameTest, 320, 200);
 		//io_waitprocessing();
 		::ZeroMemory(g_keys, sizeof(g_keys));
-		db.io_updatekeys(g_keys);
+		db.io_keybits(g_keys);
 		buttons = 0; x = 0; y = 0;
 		db.io_readjoysane(0, buttons, x, y);
 		if(g_keys[SC_LEFT] || buttons & 0x1)
