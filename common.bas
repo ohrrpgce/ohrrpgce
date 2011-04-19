@@ -976,23 +976,20 @@ SUB showerror (msg AS STRING, BYVAL isfatal AS INTEGER = NO)
 
  DIM quitmsg as string
  quitmsg = !"\n\n"   '"${K" & uilook(uiMenuItem) & "}"
- quitmsg += "An error has occurred."
+ quitmsg += "An error has occurred!"
  IF isfatal THEN
-  quitmsg += " Press any key to cleanly close the program."
+  quitmsg += " Press any key to quit."
  ELSE
-  quitmsg += " Press ESC to cleanly close the program or press any other key to ignore the error and try to continue."
-  #IFDEF IS_CUSTOM
-   quitmsg += " If you had unsaved changes to your game, it is recommended that you backup the old .RPG file before attempting to save, and that you don't continue to edit."
-  #ENDIF
+  quitmsg += " Press ESC to cleanly quit, or any other key to ignore the error and try to continue."
  END IF
  #IFDEF IS_CUSTOM
   IF cleanup_on_error = NO THEN
-   quitmsg += " The editing state of the game will be preserved"
+   quitmsg += !"\nThe editing state of the game will be preserved"
    IF isfatal = NO THEN quitmsg += " if you quit immediately"
-   quitmsg += "; run " + CUSTOMEXE + " again to save or delete it."
+   quitmsg += "; run " + CUSTOMEXE + " again and you will be asked whether you want to recover it."
   END IF
  #ENDIF
- quitmsg += !"\nIf the error is unexplained and keeps happening, send e-mail to ohrrpgce-crash@HamsterRepublic.com"
+ quitmsg += !"\nIf this error is unexpected, please send an e-mail to ohrrpgce-crash@HamsterRepublic.com"
 
  'Reset palette (in case the error happened in a fade-to-black or due to
  'corrupt/missing palette or UI colours)
@@ -1008,13 +1005,13 @@ SUB showerror (msg AS STRING, BYVAL isfatal AS INTEGER = NO)
  DIM w AS INTEGER = getkey
  IF isfatal ORELSE w = scEsc THEN
  #IFDEF IS_CUSTOM
-  closemusic
-  restoremode
-
   IF cleanup_on_error THEN
    touchfile workingdir & SLASH & "__danger.tmp"
    killdir workingdir
   END IF
+
+  closemusic
+  restoremode
 
   'no need for end_debug
   SYSTEM
@@ -1023,10 +1020,23 @@ SUB showerror (msg AS STRING, BYVAL isfatal AS INTEGER = NO)
  #ENDIF
  END IF
 
+ #IFDEF IS_CUSTOM
+  'Continuing to edit
+  setwait 200  'Give user a chance to let go of keys
+  dowait
+  clearpage 0
+  basic_textbox "Warning! If you had unsaved changes to your game you should backup the old .RPG file " _
+                "before attempting to save, because there is a chance that saving will produce a corrupt file.", _
+                uilook(uiText), 0
+  setvispage 0
+  getkey
+ #ENDIF
+
  'Restore game's master palette (minus fades or palette changes...
  'but that's the least of your worries at this point)
  loadpalette master(), gen(genMasterPal)
  LoadUIColors uilook(), gen(genMasterPal)
+ setpal master()
 
  entered = 0
 END SUB

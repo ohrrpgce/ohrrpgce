@@ -439,7 +439,7 @@ cleanup_menu(2) = "ERASE IT"
 clean_choice = 0
 a$ = "recovered"
 i = 0
-DO WHILE isfile("recovered" + STR$(i) + ".bak")
+DO WHILE isfile("recovered" & i & ".bak")
  i = i + 1
 LOOP
 a$ = a$ + STR$(i)
@@ -463,15 +463,12 @@ DO
     '--re-lump recovered files as BAK file
     dolumpfiles a$ + ".bak"
     clearpage vpage
-    printstr "the recovered data has been saved.", 0, 0, vpage
-    printstr "if " + CUSTOMEXE + " crashed last time you", 0, 8, vpage
-    printstr "ran it and you lost work, you may", 0, 16, vpage
-    printstr "be able to recover it. Make a backup", 0, 24, vpage
-    printstr "copy of your RPG and then rename", 0, 32, vpage
-    printstr a$ + ".bak to gamename.rpg", 0, 40, vpage
-    printstr "If you have questions, ask", 0, 56, vpage
-    printstr "ohrrpgce-crash@HamsterRepublic.com", 0, 64, vpage
-    setvispage vpage 'refresh
+    basic_textbox "The recovered data has been saved. If " + CUSTOMEXE + " crashed last time you " _
+                  "ran it and you lost work, you may be able to recover it. Make a backup " _
+                  "copy of your RPG and then rename " + a$ + !".bak to gamename.rpg\n" _
+                  "If you have questions, ask ohrrpgce-crash@HamsterRepublic.com", _
+                  uilook(uiText), vpage
+    setvispage vpage
     w = getkey
     RETRACE
    END IF '---END RELUMP
@@ -479,14 +476,12 @@ DO
   IF clean_choice = 2 THEN RETRACE
   IF clean_choice = 0 THEN nocleanup = 1: RETRACE
  END IF
- textcolor uilook(uiSelectedDisabled), 0
- printstr "A game was found unlumped", 0, 0, dpage
- printstr "This may mean that " + CUSTOMEXE + " crashed", 0, 40, dpage
- printstr "last time you used it, or it may mean", 0, 48, dpage
- printstr "that another copy of " + CUSTOMEXE + " is", 0, 56, dpage
- printstr "already running in the background.", 0, 64, dpage
 
- standardmenu cleanup_menu(), 2, 2, clean_choice, 0, 0, 8, dpage, 0
+ basic_textbox !"A game was found unlumped.\n" _
+                "This may mean that " + CUSTOMEXE + " crashed last time you used it, or it may mean " _
+                "that another copy of " + CUSTOMEXE + " is already running in the background.", _
+                uilook(uiText), dpage
+ standardmenu cleanup_menu(), 2, 2, clean_choice, 0, 16, 150, dpage, 0
 
  SWAP vpage, dpage
  setvispage vpage
