@@ -1764,6 +1764,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   layerno = itemsinfo(state.pt).layernum
   fakelayerno = layerno
   IF fakelayerno >= gmap(31) THEN fakelayerno += 1
+  'Warning: gen(31) (#layers below heroes/npcs) might be larger than the number of layers
 
   IF keyval(scESC) > 1 THEN clearkey(scESC): EXIT DO
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
@@ -1792,7 +1793,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
    currentset = -2
    state.need_update = YES
   END IF
-  IF keyval(scLeftShift) > 0 OR keyval(scRightShift) > 0 THEN
+  IF keyval(scShift) > 0 THEN
    IF keyval(scUp) > 1 AND fakelayerno > 0 THEN
     IF fakelayerno = gmap(31) + 1 THEN
      'swapping with NPC/Hero layers
@@ -1804,15 +1805,20 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
     resetpt = YES
     state.need_update = YES
    END IF
-   'can't move npcs/heroes below layer 0.
-   'UBOUND(map) + 1 is the maximum fakelayerno (can't adjust overhead tiles either)
-   IF keyval(scDown) > 1 AND (gmap(31) > 1 OR layerno > 0) AND fakelayerno < UBOUND(map) + 1 THEN
-    IF fakelayerno = gmap(31) - 1 THEN
-     'swapping with NPC/Hero layers
-     gmap(31) -= 1
-    ELSE
+   'UBOUND(map) or UBOUND(map) + 1 is the maximum fakelayerno (can't adjust overhead tiles either)
+   IF keyval(scDown) > 1 THEN
+    IF layerno = 0 AND UBOUND(map) > 0 THEN
+     'can't move npcs/heroes below layer 0, so swap with 2nd layer instead
      mapedit_swap_layers st, map(), visible(), gmap(), layerno, layerno + 1
-     layerno += 1
+     layerno += 1     
+    ELSEIF layerno > 0 THEN
+     IF layerno = small(gmap(31) - 1, UBOUND(map)) THEN  'gmap(31) may be larger
+      'swapping with NPC/Hero layers
+      gmap(31) = layerno
+     ELSEIF layerno < UBOUND(map) THEN
+      mapedit_swap_layers st, map(), visible(), gmap(), layerno, layerno + 1
+      layerno += 1
+     END IF
     END IF
     resetpt = YES
     state.need_update = YES

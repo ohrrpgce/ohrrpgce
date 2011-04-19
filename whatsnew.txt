@@ -112,6 +112,7 @@ WHAT IS NEW?
       deletes working.tmp, so that you can recover your work [Ralph]
     * "horiz flip sprite" and "vert flip sprite" reset the sprite's
       palette to default [Ralph]
+    * Trying to reorder map layers if there's only one crashed [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
