@@ -11,16 +11,20 @@ win32 = False
 unix = True
 exe_suffix = ''
 FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt','-g','-exx']
-CC = 'gcc'
-CXX = 'g++'
-CFLAGS = ['-c','-g','-O3','--std=c99']
+#CC and CXX are probably not needed anymore
+CC = ''
+CXX = ''
+CFLAGS = '-O3 -g --std=c99'.split ()
 CXXFLAGS = '-O2 -g -Wall -Wno-non-virtual-dtor'.split ()
+envextra = {}
 from ohrbuild import basfile_scan, verprint
 
 if platform.system () == 'Windows':
     win32 = True
     unix = False
     exe_suffix = '.exe'
+    # Force use of gcc instead of MSVC++, so compiler flags are understood
+    envextra = {'tools': ['mingw']}
 else:
     unix = True
 
@@ -52,8 +56,8 @@ env = Environment (FBFLAGS = FBFLAGS,
                    CFLAGS = CFLAGS,
                    FBC = fbc + ' -lang deprecated',
                    CXXFLAGS = CXXFLAGS,
-                   VAR_PREFIX = '')
-
+                   VAR_PREFIX = '',
+                   **envextra)
 
 def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
