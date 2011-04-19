@@ -5,22 +5,22 @@
 #ifndef SCANCODES_H
 #define SCANCODES_H
 
-#define SC_ESC			01
-#define SC_1			02
-#define SC_EXCLAMATION		02
-#define SC_2			03
-#define SC_ATSIGN		03
-#define SC_3			04
-#define SC_HASH			04
-#define SC_4			05
-#define SC_DOLLARSIGN		05
-#define SC_5			06
-#define SC_PERCENT		06
-#define SC_6			07
-#define SC_CIRCUMFLEX		07
-#define SC_7			8	//c++ thinks 08 is octal notation (base 8)
-#define SC_AMPERSAND	8
-#define SC_8			9	//c++ thinks 09 is base 9
+#define SC_ESC			1
+#define SC_1			2
+#define SC_EXCLAMATION		2
+#define SC_2			3
+#define SC_ATSIGN		3
+#define SC_3			4
+#define SC_HASH			4
+#define SC_4			5
+#define SC_DOLLARSIGN		5
+#define SC_5			6
+#define SC_PERCENT		6
+#define SC_6			7
+#define SC_CIRCUMFLEX		7
+#define SC_7			8
+#define SC_AMPERSAND		8
+#define SC_8			9
 #define SC_ASTERIX		9
 #define SC_9			10
 #define SC_LEFTPARENTHESIS     	10
@@ -133,5 +133,21 @@
 
 #define SC_NUMPADSLASH		102
 #define SC_NUMPADENTER		103
+
+#define SC_NUMPAD7		104
+#define SC_NUMPAD8		105
+#define SC_NUMPAD9		106
+#define SC_NUMPAD4		108
+#define SC_NUMPAD5		109
+#define SC_NUMPAD6		110
+#define SC_NUMPAD1		112
+#define SC_NUMPAD2		113
+#define SC_NUMPAD3		114
+#define SC_NUMPAD0		115
+#define SC_NUMPADPERIOD		116
+
+#define SC_PRINTSCREEN		117
+#define SC_PAUSE		118
+
 
 #endif

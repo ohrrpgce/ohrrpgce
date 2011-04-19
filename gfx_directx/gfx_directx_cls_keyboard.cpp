@@ -108,10 +108,10 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 
-	0, //generic shift key--what to do? Nothing: left and right are accounted for as special cases
+	SC_SHIFT, //generic shift key--what to do? Nothing: left and right are accounted for as special cases
 	SC_CTRL, //generic control key--what to do? fb doesn't distinguish between the left and right, so pass it along
 	SC_ALT, //generic alt key--what to do? fb doesn't distinguish between the left and right, so pass it along
-	SC_NUMLOCK, //pause key
+	SC_PAUSE,
 	SC_CAPSLOCK,
 	0,
 	0,
@@ -137,10 +137,10 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 	0,
-	0, //print screen
+	SC_PRINTSCREEN,
 	SC_INSERT,
 	SC_DELETE,
-	0,
+	SC_F1, //help key
 
 	SC_0,
 	SC_1,
@@ -194,22 +194,22 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 
 	//number pad keys
-	SC_0,
-	SC_1,
-	SC_2,
-	SC_3,
-	SC_4,
-	SC_5,
-	SC_6,
-	SC_7,
-	SC_8,
-	SC_9,
-	SC_ASTERIX,
-	SC_PLUS,
+	SC_NUMPAD0,
+	SC_NUMPAD1,
+	SC_NUMPAD2,
+	SC_NUMPAD3,
+	SC_NUMPAD4,
+	SC_NUMPAD5,
+	SC_NUMPAD6,
+	SC_NUMPAD7,
+	SC_NUMPAD8,
+	SC_NUMPAD9,
+	SC_NUMPADASTERIX,
+	SC_NUMPADPLUS,
 	0, //separator key?
-	SC_MINUS,
-	SC_PERIOD, //decimal--should it do nothing?
-	SC_SLASH,
+	SC_NUMPADMINUS,
+	SC_NUMPADPERIOD,
+	SC_NUMPADSLASH,
 
 	SC_F1,
 	SC_F2,
@@ -223,9 +223,9 @@ const int Keyboard::c_vk2fb[256] = {
 	SC_F10,
 	SC_F11,
 	SC_F12,
-	0,
-	0,
-	0,
+	SC_F13,
+	SC_F14,
+	SC_F15,
 	0,
 
 	0,
@@ -264,10 +264,10 @@ const int Keyboard::c_vk2fb[256] = {
 
 	SC_LEFTSHIFT,
 	SC_RIGHTSHIFT,
-	SC_CTRL,
-	SC_CTRL,
-	SC_ALT,
-	SC_ALT,
+	SC_LEFTCTRL,
+	SC_RIGHTCTRL,
+	SC_LEFTALT,
+	SC_RIGHTALT,
 	0,
 	0,
 	0,
@@ -332,7 +332,7 @@ const int Keyboard::c_vk2fb[256] = {
 
 	0,
 	0,
-	0, //angle bracket or backslash key
+	SC_BACKSLASH, //angle bracket or backslash key
 	0,
 	0,
 	0,

@@ -1014,7 +1014,7 @@ SUB setkeys ()
 	io_keybits(@keybd(0))
 	mutexunlock keybdmutex
 
-	'DELETEME: This is a temporary fix for gfx_directx not knowing about scShift
+	'DELETEME (after a lag period): This is a temporary fix for gfx_directx not knowing about scShift
 	'(or any other of the new scancodes, but none of the rest matter much (maybe
 	'scPause) since there are no games that use them).
 	if (keybd(scLeftShift) or keybd(scRightShift)) <> keybd(scShift) then
