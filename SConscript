@@ -10,12 +10,14 @@ from ohrbuild import basfile_scan, verprint
 win32 = False
 unix = True
 exe_suffix = ''
-FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt','-g','-exx']
+FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt','-g']
 #CC and CXX are probably not needed anymore
 CC = ''
 CXX = ''
-CFLAGS = '-O3 -g --std=c99'.split ()
-CXXFLAGS = '-O2 -g -Wall -Wno-non-virtual-dtor'.split ()
+CFLAGS = '-g --std=c99'.split ()
+CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
+C_opt = True    # compile with -O2?
+FB_exx = True   # compile with -exx?
 envextra = {}
 from ohrbuild import basfile_scan, verprint
 
@@ -23,6 +25,8 @@ if platform.system () == 'Windows':
     win32 = True
     unix = False
     exe_suffix = '.exe'
+    # Default to not using -exx, that's the old default
+    FB_exx = False
     # Force use of gcc instead of MSVC++, so compiler flags are understood
     envextra = {'tools': ['mingw']}
 else:
@@ -33,12 +37,18 @@ environ = os.environ
 svn = ARGUMENTS.get ('svn','svn')
 fbc = ARGUMENTS.get ('fbc','fbc')
 git = ARGUMENTS.get ('git','git')
-valgrind = ARGUMENTS.get ('valgrind','')
-valgrind = valgrind != '' and valgrind != '0'
-if valgrind:
+if 'debug' in ARGUMENTS:
+    C_opt = not int (ARGUMENTS['debug'])
+    FB_exx = int (ARGUMENTS['debug'])
+if ARGUMENTS.get ('valgrind', 0):
     #-exx under valgrind is nearly redundant, and really slow
-    FBFLAGS.remove('-exx')
-    CFLAGS.append('-DVALGRIND_ARRAYS')
+    FB_exx = False
+    CFLAGS.append ('-DVALGRIND_ARRAYS')
+if FB_exx:
+    FBFLAGS.append ('-exx')
+if C_opt:
+    CFLAGS.append ('-O2')
+    CXXFLAGS.append ('-O2')
 # eg. pass gfx=sdl+fb for the default behaviour.
 if unix:
     gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX','sdl+fb'))
@@ -242,15 +252,56 @@ env.BASEXE ('bam2mid')
 env.BASEXE ('unlump', source = ['unlump.bas', 'lumpfile.bas'] + base_objects)
 env.BASEXE ('relump', source = ['relump.bas', 'lumpfile.bas'] + base_objects)
 env.Command ('hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc hspeak.exw')
-env.BASEXE ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
-env.BASEXE ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FB_FLAGS = ['-p','.', '-l','xml2'])
-env.BASEXE ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
-env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
+RELOADTEST = env.BASEXE ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
+XML2RELOAD = env.BASEXE ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FB_FLAGS = ['-p','.', '-l','xml2'])
+RELOAD2XML = env.BASEXE ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
+RELOADUTIL = env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
 
 Default (GAME)
 Default (CUSTOM)
 
 Alias ('game', GAME)
 Alias ('custom', CUSTOM)
+Alias ('reload', [RELOADUTIL, RELOAD2XML, XML2RELOAD, RELOADTEST])
 
 #print [str(a) for a in FindSourceFiles(GAME)]
+
+Help ("""
+Usage:  scons [SCons options] [options] [targets]
+
+Options:
+  gfx=BACKENDS        Graphics backends, concatenated with +. Options:
+                        """ + " ".join (gfx_map.keys ()) + """
+                      At runtime, backends are tried in the order specified.
+                      Current (default) value: """ + "+".join (gfx) + """
+  music=BACKEND       Music backend. Options:
+                        """ + " ".join (music_map.keys ()) + """
+                      Current (default) value: """ + music + """
+  debug=0|1           Debugging build: with -exx and without optimisation.
+                      Set to 0 to force building without -exx.
+  valgrind=1          valgrinding build.
+  fbc=PATH            Override fbc.
+  svn=PATH            Override svn.
+  git=PATH            Override git.
+
+Targets:
+  """ + gamename + """ (or game)
+  """ + editname + """ (or custom)
+  unlump
+  relump
+  hspeak
+  reloadtest
+  xml2reload
+  reload2xml
+  reloadutil
+  bam2mid
+  reload              Compile all RELOAD utilities.
+  .                   Compile everything.
+
+With no targets specified, compiles game and custom.
+
+Examples:
+  scons
+  scons gfx=sdl+fb music=native game custom
+  scons -j 2 debug=1 .
+""")
