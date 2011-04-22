@@ -1,3 +1,5 @@
+#define ISOLATION_AWARE_ENABLED 1
+
 #include "gfx_msg.h"
 #include "gfx_directx.h"
 #include "window.h"
@@ -6,12 +8,12 @@
 #include "mouse.h"
 #include "joystick.h"
 #include "version.h"
-//#include "BackendDebugger.h"
-//#include "CBackend.h"
 
 using namespace gfx;
 
 #include "resource.h"
+
+#define MODULENAME TEXT("gfx_directx.dll")
 
 //use common controls available on different windows OS'
 #if defined _M_IX86
@@ -24,8 +26,6 @@ using namespace gfx;
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 
-//CBackend g_Debugger;
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 1.0 interfaces
 
@@ -34,27 +34,20 @@ void SendDebugString(const char* szMessage) {}
 
 DFI_IMPLEMENT_CDECL(int, gfx_init, void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
 {
-	//g_Debugger.m_hook->SendDebugString("gfx_init(): Starting Initialization...");
-
 	GFX_INIT gfxInit = {sizeof(GFX_INIT), "DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString};
 	if(gfx_Initialize(&gfxInit) == 0)
 	{
 		if(info_buffer != NULL && info_buffer_size > 16)
 			strcpy(info_buffer, "Backend failed!");
-		//else
-		//	g_Debugger.m_hook->SendDebugString("gfx_init(): Backend initialization failed!");
 		return 0;
 	}
 	if(info_buffer != NULL && info_buffer_size > 18)
 		strcpy(info_buffer, "Backend success!");
-	//else
-	//	g_Debugger.m_hook->SendDebugString("gfx_init(): Backend initialization success!");
 	return 1;
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_close)
 {
-	//g_Debugger.m_hook->SendDebugString("gfx_close: Closing backend...");
 	gfx_Shutdown();
 }
 
@@ -77,9 +70,6 @@ DFI_IMPLEMENT_CDECL(void, gfx_setpal, unsigned int *pal)
 
 DFI_IMPLEMENT_CDECL(int, gfx_screenshot, const char* fname)
 {
-	char szTmp[MAX_PATH + 30] = "";
-	::sprintf(szTmp, "gfx_screenshot: Attempting %s...", fname);
-	//g_Debugger.m_hook->SendDebugString(szTmp);
 	return gfx_ScreenShot(fname);
 }
 
@@ -90,9 +80,6 @@ DFI_IMPLEMENT_CDECL(void, gfx_setwindowed, int iswindow)
 
 DFI_IMPLEMENT_CDECL(void, gfx_windowtitle, const char* title)
 {
-	char szTmp[MAX_PATH + 30] = "";
-	::sprintf(szTmp, "gfx_windowtitle: %s...", title);
-	//g_Debugger.m_hook->SendDebugString(szTmp);
 	gfx_SetWindowTitle(title);
 }
 
@@ -185,10 +172,6 @@ DFI_IMPLEMENT_CDECL(void, io_keybits, int *keybd)
 
 DFI_IMPLEMENT_CDECL(int, io_setmousevisibility, int visible)
 {
-	char szTmp[30 + 30] = "";
-	::sprintf(szTmp, "io_setmousevisility: Setting to %s cursor...", visible == 0 ? "Hide" : "Show");
-	//g_Debugger.m_hook->SendDebugString(szTmp);
-
 	if(visible == 0)
 		gfx_HideCursor();
 	else
@@ -263,8 +246,6 @@ void LoadHelpText()
 
 DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 {
-	//g_Debugger.m_hook->SendDebugString("gfx_Initialize: Initializing...)");
-
 	if(pCreationData == NULL)
 		return FALSE;
 	if(pCreationData->nSize < sizeof(GFX_INIT))
@@ -284,9 +265,9 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 
 	//g_State.SendDebugString("gfx_directx: Initializing...");
 
-	if(S_OK != g_Window.Initialize(::GetModuleHandle(MODULENAME), 
+	if(FAILED(g_Window.initialize(::GetModuleHandle(MODULENAME), 
 								   (pCreationData->szWindowIcon ? g_State.szWindowIcon.c_str() : NULL), 
-								   (WNDPROC)OHRWndProc))
+								   (WNDPROC)OHRWndProc)))
 	{
 		//g_State.SendDebugString("gfx_directx: Failed at window initialization! Fallback...");
 		return FALSE;
@@ -294,9 +275,9 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 
 	//g_State.SendDebugString("gfx_directx: Window Intialized!");
 
-	if( FAILED(g_DirectX.Initialize(&g_Window, MODULENAME)) )
+	if( FAILED(g_DirectX.initialize(&g_Window, MODULENAME)) )
 	{
-		g_Window.Shutdown();
+		g_Window.shutdown();
 		gfx_PumpMessages();
 		//g_State.SendDebugString("gfx_directx: Failed at d3d initialization! Fallback...");
 		return FALSE;
@@ -304,16 +285,16 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 
 	//g_State.SendDebugString("gfx_directx: D3D Initialized!");
 
-	/*if(FAILED(*/g_Joystick.Initialize( g_Window.GetAppHandle(), g_Window.GetWindowHandle() );/*))*/
+	/*if(FAILED(*/g_Joystick.initialize( g_Window.getAppHandle(), g_Window.getWindowHandle() );/*))*/
 		//g_State.SendDebugString("gfx_directx: Failed to support joysticks!");
 	//else
 		//g_State.SendDebugString("gfx_directx: Joysticks supported!");
 
 	gfx_SetWindowTitle(pCreationData->szInitWindowTitle);
 
-	g_Window.SetClientSize(640, 400);
-	g_Window.CenterWindow();
-	g_Window.ShowWindow();
+	g_Window.setClientSize(640, 400);
+	g_Window.centerWindow();
+	g_Window.showWindow();
 
 	//g_State.SendDebugString("gfx_directx: Initialization success!");
 	return TRUE;
@@ -322,9 +303,9 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 DFI_IMPLEMENT_CDECL(void, gfx_Shutdown)
 {
 	//g_State.SendDebugString("gfx_directx: Closing backend...");
-	g_Joystick.Shutdown();
-	g_DirectX.Shutdown();
-	g_Window.Shutdown();
+	g_Joystick.shutdown();
+	g_DirectX.shutdown();
+	g_Window.shutdown();
 	gfx_PumpMessages();
 	//g_State.SendDebugString("gfx_directx: Close complete!");
 	CoUninitialize();
@@ -332,90 +313,84 @@ DFI_IMPLEMENT_CDECL(void, gfx_Shutdown)
 
 DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam, void *pvParam)
 {
-	//static UINT l_Msg = g_Debugger.m_hook->CreateStatusListener();
-
-	//char szTmp[12] = "";
-	//sprintf(szTmp, "0x%h", msg);
-	//g_Debugger.m_hook->SendStatus(l_Msg, IAppHook::SC_OK, szTmp);
-
 	switch(msg)
 	{
 	case OM_GFX_SETWIDTH:
-		g_Window.SetClientSize(dwParam, g_Window.GetClientSize().cy);
+		g_Window.setClientSize(dwParam, g_Window.getClientSize().cy);
 		break;
 	case OM_GFX_SETHEIGHT:
-		g_Window.SetClientSize(g_Window.GetClientSize().cx, dwParam);
+		g_Window.setClientSize(g_Window.getClientSize().cx, dwParam);
 		break;
 	case OM_GFX_SETCLIENTAREA:
-		g_Window.SetClientSize(dwParam, (int)pvParam);
+		g_Window.setClientSize(dwParam, (int)pvParam);
 		break;
 	case OM_GFX_SETLEFT:
-		g_Window.SetWindowPosition(dwParam, g_Window.GetWindowSize().top);
+		g_Window.setWindowPosition(dwParam, g_Window.getWindowSize().top);
 		break;
 	case OM_GFX_SETTOP:
-		g_Window.SetWindowPosition(g_Window.GetWindowSize().left, dwParam);
+		g_Window.setWindowPosition(g_Window.getWindowSize().left, dwParam);
 		break;
 	case OM_GFX_SETPOSITION:
-		g_Window.SetWindowPosition(dwParam, (int)pvParam);
+		g_Window.setWindowPosition(dwParam, (int)pvParam);
 		break;
 	case OM_GFX_SETARP:
-		g_DirectX.SetAspectRatioPreservation(dwParam != FALSE);
+		g_DirectX.setAspectRatioPreservation(dwParam != FALSE);
 		break;
 	case OM_GFX_SETWINDOWED:
-		g_DirectX.SetViewFullscreen(dwParam == FALSE);
+		g_DirectX.setViewFullscreen(dwParam == FALSE);
 		break;
 	case OM_GFX_SETSMOOTH:
-		g_DirectX.SetSmooth(dwParam != FALSE);
+		g_DirectX.setSmooth(dwParam != FALSE);
 		break;
 	case OM_GFX_SETVSYNC:
-		g_DirectX.SetVsyncEnabled(dwParam == FALSE);
+		g_DirectX.setVsyncEnabled(dwParam == FALSE);
 		break;
 	case OM_GFX_SETSSFORMAT:
 		switch(dwParam)
 		{
 		case 0:
-			g_DirectX.SetImageFileFormat(D3DXIFF_FORCE_DWORD);
+			g_DirectX.setImageFileFormat(D3DXIFF_FORCE_DWORD);
 			break;
 		case 1:
-			g_DirectX.SetImageFileFormat(D3DXIFF_JPG);
+			g_DirectX.setImageFileFormat(D3DXIFF_JPG);
 			break;
 		case 2:
-			g_DirectX.SetImageFileFormat(D3DXIFF_BMP);
+			g_DirectX.setImageFileFormat(D3DXIFF_BMP);
 			break;
 		case 3:
-			g_DirectX.SetImageFileFormat(D3DXIFF_PNG);
+			g_DirectX.setImageFileFormat(D3DXIFF_PNG);
 			break;
 		case 4:
-			g_DirectX.SetImageFileFormat(D3DXIFF_DDS);
+			g_DirectX.setImageFileFormat(D3DXIFF_DDS);
 			break;
 		default:
-			g_DirectX.SetImageFileFormat(D3DXIFF_FORCE_DWORD);
+			g_DirectX.setImageFileFormat(D3DXIFF_FORCE_DWORD);
 			break;
 		}
 		break;
 
 	case OM_GFX_GETWIDTH:
-		return g_Window.GetClientSize().cx;
+		return g_Window.getClientSize().cx;
 	case OM_GFX_GETHEIGHT:
-		return g_Window.GetClientSize().cy;
+		return g_Window.getClientSize().cy;
 	case OM_GFX_GETCLIENTAREA:
-		return (g_Window.GetClientSize().cx << 16) | g_Window.GetClientSize().cy;
+		return (g_Window.getClientSize().cx << 16) | g_Window.getClientSize().cy;
 	case OM_GFX_GETLEFT:
-		return g_Window.GetWindowSize().left;
+		return g_Window.getWindowSize().left;
 	case OM_GFX_GETTOP:
-		return g_Window.GetWindowSize().top;
+		return g_Window.getWindowSize().top;
 	case OM_GFX_GETPOSITION:
-		return (g_Window.GetWindowSize().left << 16) | g_Window.GetWindowSize().top;
+		return (g_Window.getWindowSize().left << 16) | g_Window.getWindowSize().top;
 	case OM_GFX_GETARP:
-		return g_DirectX.IsAspectRatioPreserved() ? TRUE : FALSE;
+		return g_DirectX.isAspectRatioPreserved() ? TRUE : FALSE;
 	case OM_GFX_GETWINDOWED:
-		return g_DirectX.IsViewFullscreen() ? FALSE : TRUE;
+		return g_DirectX.isViewFullscreen() ? FALSE : TRUE;
 	case OM_GFX_GETSMOOTH:
-		return g_DirectX.IsSmooth() ? TRUE : FALSE;
+		return g_DirectX.isSmooth() ? TRUE : FALSE;
 	case OM_GFX_GETVSYNC:
-		return g_DirectX.IsVsyncEnabled() ? TRUE : FALSE;
+		return g_DirectX.isVsyncEnabled() ? TRUE : FALSE;
 	case OM_GFX_GETSSFORMAT:
-		switch(g_DirectX.GetImageFileFormat())
+		switch(g_DirectX.getImageFileFormat())
 		{
 		case D3DXIFF_JPG:
 			return 1;
@@ -441,27 +416,21 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetVersion)
 
 DFI_IMPLEMENT_CDECL(void, gfx_Present, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
 {
-	//static UINT l_present = g_Debugger.m_hook->CreateStatusListener();
-
-	//if(pSurface)
-	//	g_Debugger.m_hook->SendStatus(l_present, IAppHook::SC_OK, "surface");
-	//if(pPalette)
-	//	g_Debugger.m_hook->SendStatus(l_present, IAppHook::SC_OK, "palette");
-	//if(pPalette)
-	//	g_DirectX.SetPalette(&Palette<UINT>(pPalette, 256));
-	//g_DirectX.ShowPage(pSurface, nWidth, nHeight);
-	g_DirectX.Present(pSurface, nWidth, nHeight, &Palette<UINT>(pPalette, 256));
+	if(pPalette)
+		g_DirectX.present(pSurface, nWidth, nHeight, &Palette<UINT>(pPalette, 256));
+	else
+		g_DirectX.present(pSurface, nWidth, nHeight, NULL);
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_ScreenShot, const char *szFileName)
 {
-	if(!g_DirectX.IsScreenShotsActive())
+	if(!g_DirectX.isScreenShotsActive())
 		return FALSE;
 	if(szFileName == NULL)
 		return FALSE;
 	TCHAR buffer[256] = TEXT("");
 	StringToString(buffer, 256, szFileName);
-	switch(g_DirectX.GetImageFileFormat())
+	switch(g_DirectX.getImageFileFormat())
 	{
 	case D3DXIFF_JPG:
 		::_tcscat(buffer, TEXT(".jpg"));
@@ -478,7 +447,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_ScreenShot, const char *szFileName)
 	default:
 		return FALSE;
 	}
-	if(S_OK != g_DirectX.ScreenShot(buffer))
+	if( FAILED(g_DirectX.screenShot(buffer)) )
 		return FALSE;
 	return TRUE;
 }
@@ -494,8 +463,8 @@ DFI_IMPLEMENT_CDECL(void, gfx_PumpMessages)
 			::DispatchMessage(&msg);
 		}
 	}
-	g_Joystick.Poll();
-	//g_Keyboard.Poll();
+	g_Joystick.poll();
+	//g_Keyboard.poll();
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_SetWindowTitle, const char *szTitle)
@@ -508,11 +477,11 @@ DFI_IMPLEMENT_CDECL(void, gfx_SetWindowTitle, const char *szTitle)
 		g_State.szWindowTitle = StringToString(buffer, 256, szTitle);
 	}
 	Tstring szTemp = g_State.szWindowTitle;
-	if(g_Mouse.IsClippedCursor() && g_Mouse.IsInputLive())
+	if(g_Mouse.isClippedCursor() && g_Mouse.isInputLive())
 		szTemp += TEXT(" Press 'Scroll Lock' to free mouse");
-	else if(g_Mouse.IsClippedCursor() && !g_Mouse.IsInputLive())
+	else if(g_Mouse.isClippedCursor() && !g_Mouse.isInputLive())
 		szTemp += TEXT(" Press 'Scroll Lock' to lock mouse");
-	g_Window.SetWindowTitle(szTemp.c_str());
+	g_Window.setWindowTitle(szTemp.c_str());
 }
 
 DFI_IMPLEMENT_CDECL(const char*, gfx_GetWindowTitle)
@@ -523,27 +492,25 @@ DFI_IMPLEMENT_CDECL(const char*, gfx_GetWindowTitle)
 
 DFI_IMPLEMENT_CDECL(void, gfx_ShowCursor)
 {
-	//g_State.bOhrMouseRequest = false;
-	g_Mouse.SetCursorVisibility(gfx::Mouse2::CV_SHOW);
-	g_Mouse.SetInputState(gfx::Mouse2::IS_DEAD);
+	g_Mouse.setCursorVisibility(gfx::Mouse2::CV_SHOW);
+	g_Mouse.setInputState(gfx::Mouse2::IS_DEAD);
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_HideCursor)
 {
-	//g_State.bOhrMouseRequest = true;
-	g_Mouse.SetCursorVisibility(gfx::Mouse2::CV_HIDE);
-	g_Mouse.SetInputState(gfx::Mouse2::IS_LIVE);
+	g_Mouse.setCursorVisibility(gfx::Mouse2::CV_HIDE);
+	g_Mouse.setInputState(gfx::Mouse2::IS_LIVE);
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_ClipCursor, int left, int top, int right, int bottom)
 {
 	if(left == -1 && top == -1 && right == -1 && bottom == -1)
-		g_Mouse.SetClipState(gfx::Mouse2::CS_OFF);
+		g_Mouse.setClipState(gfx::Mouse2::CS_OFF);
 	else
 	{
 		RECT r = {left, top, right, bottom};
-		g_Mouse.SetClippingRect(&r);
-		g_Mouse.SetClipState(gfx::Mouse2::CS_ON);
+		g_Mouse.setClippingRect(&r);
+		g_Mouse.setClipState(gfx::Mouse2::CS_ON);
 	}
 	char buffer[256] = "";
 	gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
@@ -553,16 +520,16 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetKeyboard, int *pKeyboard)
 {
 	if(pKeyboard == NULL)
 		return FALSE;
-	g_Keyboard.GetOHRScans(pKeyboard);
+	g_Keyboard.getOHRScans(pKeyboard);
 	return TRUE;
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_GetMouse, int& x, int& y, int& wheel, int& buttons)
 {
-	x = g_Mouse.GetCursorPos().x;
-	y = g_Mouse.GetCursorPos().y;
-	wheel = g_Mouse.GetWheel();
-	buttons = g_Mouse.GetButtonState().GetData();
+	x = g_Mouse.getCursorPos().x;
+	y = g_Mouse.getCursorPos().y;
+	wheel = g_Mouse.getWheel();
+	buttons = g_Mouse.getButtonState().getData();
 	return TRUE;
 }
 
@@ -570,10 +537,10 @@ DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 {
 	DWORD xPos, yPos;
 	RECT rClient, rDesktop;
-	GetClientRect(g_Window.GetWindowHandle(), &rClient);
+	GetClientRect(g_Window.getWindowHandle(), &rClient);
 	POINT pos = {rClient.right * x/320.0f, rClient.bottom * y/200.0f};
 	
-	ClientToScreen(g_Window.GetWindowHandle(), &pos);
+	ClientToScreen(g_Window.getWindowHandle(), &pos);
 	GetWindowRect(GetDesktopWindow(), &rDesktop);
 	
 	xPos = 1 + (DWORD)((float)pos.x / (float)rDesktop.right * 65535.0f);
@@ -586,7 +553,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 
 DFI_IMPLEMENT_CDECL(int, gfx_GetJoystick, int nDevice, int& x, int& y, int& buttons)
 {
-	return g_Joystick.GetState(nDevice, buttons, x, y);
+	return g_Joystick.getState(nDevice, buttons, x, y);
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_SetJoystick, int nDevice, int x, int y)
@@ -596,7 +563,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_SetJoystick, int nDevice, int x, int y)
 
 DFI_IMPLEMENT_CDECL(int, gfx_GetJoystickCount)
 {
-	return g_Joystick.GetJoystickCount();
+	return g_Joystick.getJoystickCount();
 }
 
 SIZE CalculateNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth, UINT targetHeight)
@@ -643,9 +610,9 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	const UINT_PTR ID_MENU_OPTIONS = 101;
 	static BOOL bSizing = FALSE;
 	
-	if(g_Mouse.ProcessMessage(hWnd, msg, wParam, lParam))
+	if(g_Mouse.processMessage(hWnd, msg, wParam, lParam))
 		return 0;
-	g_Keyboard.ProcessMessage(hWnd, msg, wParam, lParam);
+	g_Keyboard.processMessage(hWnd, msg, wParam, lParam);
 
 	switch(msg)
 	{
@@ -657,15 +624,13 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					if(!(lParam & 0x40000000)) //key was not pressed before
 					{
-						if(g_Mouse.IsInputLive())
+						if(g_Mouse.isInputLive())
 						{
-							//g_Mouse.PushState();
-							//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
-							g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
+							g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
 						}
 						else
 						{
-							g_Mouse.PopState();
+							g_Mouse.popState();
 							char buffer[256] = "";
 							gfx_SetWindowTitle(StringToString(buffer, 256, g_State.szWindowTitle.c_str()));
 						}
@@ -706,8 +671,8 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					{
 						while(IsZoomed(hWnd) || IsIconic(hWnd)) //if maximized or minimized
 							ShowWindow(hWnd, SW_RESTORE);
-						g_DirectX.SetViewFullscreen(!g_DirectX.IsViewFullscreen());
-						g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+						g_DirectX.setViewFullscreen(!g_DirectX.isViewFullscreen());
+						g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 					}
 				} break;
 			default:
@@ -718,22 +683,19 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if(LOWORD(wParam) == WA_INACTIVE)
 			{
-				//g_Mouse.PushState();
-				//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
-				//g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
-				g_Mouse.SetVideoMode(gfx::Mouse2::VM_WINDOWED);
-				g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
+				g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
+				g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
 			}
 			else
 			{
-				g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
-				g_Mouse.PopState();
+				g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+				g_Mouse.popState();
 			}
 			return ::DefWindowProc(hWnd, msg, wParam, lParam);
 		} break;
 	case WM_MOVE:
 		{
-			g_Mouse.UpdateClippingRect();
+			g_Mouse.updateClippingRect();
 		} break;
 	case WM_SIZE:
 		{
@@ -741,19 +703,16 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			::DefWindowProc(hWnd, msg, wParam, lParam);
 			if(wParam == SIZE_MINIMIZED)
 			{
-				//g_Mouse.PushState();
-				//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
-				//g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
-				g_Mouse.SetVideoMode(gfx::Mouse2::VM_WINDOWED);
-				g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
+				g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
+				g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
 			}
 			else
 			{
 				RECT r = {0,0, LOWORD(lParam), HIWORD(lParam)};
-				g_DirectX.SetResolution(&r);
-				g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
-				g_Mouse.UpdateClippingRect();
-				g_Mouse.PopState();
+				g_DirectX.setResolution(&r);
+				g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+				g_Mouse.updateClippingRect();
+				g_Mouse.popState();
 			}
 		} break;
 	case WM_SIZING:
@@ -761,9 +720,9 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if(!bSizing)
 			{
 				bSizing = TRUE;
-				g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
+				g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
 			}
-			if(!g_DirectX.IsViewFullscreen())
+			if(!g_DirectX.isViewFullscreen())
 			{
 				RECT rWindowTest = {0,0,400,400};
 				SIZE sPadding = {0,0};
@@ -829,16 +788,16 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			case PBT_APMRESUMECRITICAL:
 			case PBT_APMRESUMEAUTOMATIC:
 				{
-					g_DirectX.Initialize(&g_Window, MODULENAME);
-					g_Joystick.Initialize(g_Window.GetAppHandle(), g_Window.GetWindowHandle());
-					g_Mouse.SetVideoMode(gfx::Mouse2::VM_WINDOWED);
-					g_Mouse.UpdateClippingRect();
+					g_DirectX.initialize(&g_Window, MODULENAME);
+					g_Joystick.initialize(g_Window.getAppHandle(), g_Window.getWindowHandle());
+					g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
+					g_Mouse.updateClippingRect();
 				} break;
 			case PBT_APMSUSPEND:
 				{
-					g_DirectX.SetViewFullscreen(FALSE);
-					g_DirectX.Shutdown();
-					g_Joystick.Shutdown();
+					g_DirectX.setViewFullscreen(FALSE);
+					g_DirectX.shutdown();
+					g_Joystick.shutdown();
 				} break;
 			default:
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
@@ -849,14 +808,11 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if(g_State.bClosing)
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
-			//g_Mouse.PushState();
-			//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
-			//g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
-			g_Mouse.SetVideoMode(gfx::Mouse2::VM_WINDOWED);
-			g_Mouse.SetInputState(gfx::Mouse2::IS_DEAD);
+			g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
+			g_Mouse.setInputState(gfx::Mouse2::IS_DEAD);
 			g_State.PostTerminateSignal();
-			g_Mouse.SetVideoMode(g_DirectX.IsViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
-			g_Mouse.PopState();
+			g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+			g_Mouse.popState();
 		} break;
 	case WM_CREATE:
 		{
@@ -882,15 +838,15 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 			{//control id
 			case IDC_OPTIONS_EnableVsync:
 				{
-					g_DirectX.SetVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
+					g_DirectX.setVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
 				} break;
 			case IDC_OPTIONS_EnableSmooth:
 				{
-					g_DirectX.SetSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
+					g_DirectX.setSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
 				} break;
 			case IDC_OPTIONS_EnablePreserveAspectRatio:
 				{
-					g_DirectX.SetAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
+					g_DirectX.setAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
 				} break;
 			case IDC_OPTIONS_SetDefaults:
 				{//sets defaults
@@ -898,11 +854,11 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, BST_UNCHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, BST_CHECKED);
 
-					g_DirectX.SetVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
-					g_DirectX.SetSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
-					g_DirectX.SetAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
+					g_DirectX.setVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
+					g_DirectX.setSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
+					g_DirectX.setAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
 
-					if(g_DirectX.IsScreenShotsActive())
+					if(g_DirectX.isScreenShotsActive())
 					{
 						::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG, BST_UNCHECKED);
 						::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_BMP, BST_UNCHECKED);
@@ -914,36 +870,36 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 				} break;
 			case IDC_OPTIONS_RefreshJoysticks:
 				{
-					g_Joystick.RefreshEnumeration();
+					g_Joystick.refreshEnumeration();
 					TCHAR strInfoBuffer[128] = TEXT("");
-					::_stprintf(strInfoBuffer, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.GetJoystickCount());
+					::_stprintf(strInfoBuffer, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.getJoystickCount());
 					::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_RefreshJoysticks, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
 				} break;
 			case IDOK:
 				{//apply all changes and return
-					g_DirectX.SetVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
-					g_DirectX.SetSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
-					g_DirectX.SetAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
+					g_DirectX.setVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
+					g_DirectX.setSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
+					g_DirectX.setAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
 					if(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG))
-						g_DirectX.SetImageFileFormat(D3DXIFF_JPG);
+						g_DirectX.setImageFileFormat(D3DXIFF_JPG);
 					else if(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_ScrnShotFormats_BMP))
-						g_DirectX.SetImageFileFormat(D3DXIFF_BMP);
+						g_DirectX.setImageFileFormat(D3DXIFF_BMP);
 					else if(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_ScrnShotFormats_PNG))
-						g_DirectX.SetImageFileFormat(D3DXIFF_PNG);
+						g_DirectX.setImageFileFormat(D3DXIFF_PNG);
 					else if(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_ScrnShotFormats_DDS))
-						g_DirectX.SetImageFileFormat(D3DXIFF_DDS);
+						g_DirectX.setImageFileFormat(D3DXIFF_DDS);
 					else
-						g_DirectX.SetImageFileFormat(D3DXIFF_FORCE_DWORD);
-					g_Mouse.PopState();
+						g_DirectX.setImageFileFormat(D3DXIFF_FORCE_DWORD);
+					g_Mouse.popState();
 					::DestroyWindow(hWndDlg);
 					g_hWndDlg = NULL;
 				} break;
 			case IDCANCEL:
 				{//revert all changes and return
-					g_DirectX.SetVsyncEnabled(bVsyncEnabled);
-					g_DirectX.SetSmooth(bSmoothEnabled);
-					g_DirectX.SetAspectRatioPreservation(bARPEnabled);
-					g_Mouse.PopState();
+					g_DirectX.setVsyncEnabled(bVsyncEnabled);
+					g_DirectX.setSmooth(bSmoothEnabled);
+					g_DirectX.setAspectRatioPreservation(bARPEnabled);
+					g_Mouse.popState();
 					::DestroyWindow(hWndDlg);
 					g_hWndDlg = NULL;
 				} break;
@@ -953,27 +909,24 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 		} break;
 	case WM_INITDIALOG:
 		{
-			//g_Mouse.PushState();
-			//g_Mouse.SetVideoMode(gfx::Mouse::VM_WINDOWED);
-			//g_Mouse.SetInputState(gfx::Mouse::IS_DEAD);
-			g_Mouse.PushState(gfx::Mouse2::IS_DEAD);
+			g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
 
-			bVsyncEnabled = g_DirectX.IsVsyncEnabled() ? TRUE : FALSE;
-			bSmoothEnabled = g_DirectX.IsSmooth() ? TRUE : FALSE;
-			bARPEnabled = g_DirectX.IsAspectRatioPreserved() ? TRUE : FALSE;
+			bVsyncEnabled = g_DirectX.isVsyncEnabled() ? TRUE : FALSE;
+			bSmoothEnabled = g_DirectX.isSmooth() ? TRUE : FALSE;
+			bARPEnabled = g_DirectX.isAspectRatioPreserved() ? TRUE : FALSE;
 
-			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, (g_DirectX.IsVsyncEnabled() ? BST_CHECKED : BST_UNCHECKED));
-			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, (g_DirectX.IsSmooth() ? BST_CHECKED : BST_UNCHECKED));
-			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, (g_DirectX.IsAspectRatioPreserved() ? BST_CHECKED : BST_UNCHECKED));
+			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, (g_DirectX.isVsyncEnabled() ? BST_CHECKED : BST_UNCHECKED));
+			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, (g_DirectX.isSmooth() ? BST_CHECKED : BST_UNCHECKED));
+			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, (g_DirectX.isAspectRatioPreserved() ? BST_CHECKED : BST_UNCHECKED));
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Status, WM_SETTEXT, 0, (LPARAM)g_State.szHelpText.c_str());
 			TCHAR strInfoBuffer[128] = TEXT("");
 			::_stprintf(strInfoBuffer, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Info, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
-			::_stprintf(strInfoBuffer, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.GetJoystickCount());
+			::_stprintf(strInfoBuffer, TEXT("Refresh Joysticks - Count: %d"), g_Joystick.getJoystickCount());
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_RefreshJoysticks, WM_SETTEXT, 0, (LPARAM)strInfoBuffer);
-			if(g_DirectX.IsScreenShotsActive())
+			if(g_DirectX.isScreenShotsActive())
 			{
-				switch(g_DirectX.GetImageFileFormat())
+				switch(g_DirectX.getImageFileFormat())
 				{
 				case D3DXIFF_JPG:
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG, BST_CHECKED);
@@ -1006,18 +959,3 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 	}
 	return TRUE;
 }
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Debug interfaces
-
-//DFI_IMPLEMENT_CDECL( int, GetDebugInterface, IBackend** ppInterface )
-//{
-//	if(IsBadWritePtr((void*)ppInterface, sizeof(IBackend*)))
-//		return E_POINTER;
-//
-//	*ppInterface = (IBackend*)&g_Debugger;
-//	return S_OK;
-//}

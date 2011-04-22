@@ -2,8 +2,9 @@
 #define DFI_UNIQUE
 #define DFI_CLASS
 
-#include "gfx_directx.h"
 #include <windows.h>
+
+#include "gfx_directx.h"
 
 #include "..\\scancodes.h"
 
@@ -23,7 +24,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	db.Init_gfx_init();
 	db.Init_gfx_windowtitle();
 	db.Init_gfx_setpal();
-	db.Init_io_init();
+	//db.Init_io_init();
 	db.Init_io_setmousevisibility();
 	db.Init_gfx_showpage();
 	db.Init_io_keybits();
@@ -43,7 +44,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	db.gfx_init(RequestQuit, 0, szInfoBuffer, sizeof(szInfoBuffer));
 	db.gfx_windowtitle("DirectX Backend Test App");
 	db.gfx_setpal(g_paletteTest);
-	db.io_init();
+	//db.io_init();
 	::MessageBox(0, TEXT("Use left and right to change scroll speed.") \
 					TEXT("\r\nUse 'S' to take a screenshot.") \
 					TEXT("\r\nUse 'D' to get debug local d3d9 capabilities.") \
@@ -52,7 +53,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 
 	UINT j = 0;
 	int x,y,buttons;
-	db.io_setmousevisibility(FALSE);
+	//db.io_setmousevisibility(FALSE);
 	while(!g_bQuit)
 	{
 		for(UINT i = 0; i < 320 * 200; i++)

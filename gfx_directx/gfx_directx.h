@@ -2,12 +2,10 @@
 //started 10/22/09
 //provides directx 9.0c shader enabled graphics backend for the ohrrpgce
 
-#ifndef GFX_DIRECTX_H
-#define GFX_DIRECTX_H
+#pragma once
 
 #include "DllFunctionInterface.h"
 
-#include "BackendDebugger.h"
 struct WindowState
 {
 	int focused;
@@ -130,11 +128,4 @@ DFI_DECLARE_CDECL( int, gfx_SetJoystick, int nDevice, int x, int y ); //sets the
 DFI_DECLARE_CDECL( int, gfx_GetJoystickCount ); //returns the number of joysticks attached to the system
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-//gfx_directx.dll specific debugging interface
-DFI_DECLARE_CDECL( int, GetDebugInterface, IBackend** ppInterface );
-
-
 DFI_CLASS_END( DllBackend, TEXT("gfx_directx.dll") );
-
-#endif

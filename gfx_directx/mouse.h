@@ -83,7 +83,7 @@ namespace gfx
 			unsigned int btns;
 		public:
 			Buttons() : btns(0) {}
-			unsigned int GetData() const {return btns;}
+			unsigned int getData() const {return btns;}
 			bool isLeftDown() const {return (btns & 0x1) ? true : false;}
 			bool isRightDown() const {return (btns & 0x2) ? true : false;}
 			bool isMiddleDown() const {return (btns & 0x4) ? true : false;}
