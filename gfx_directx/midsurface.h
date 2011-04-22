@@ -5,13 +5,12 @@
 #ifndef GFX_DIRECTX_CLS_MIDTEXTURE_H
 #define GFX_DIRECTX_CLS_MIDTEXTURE_H
 
-#include "gfx_directx_TESTAPPconst.h"
 #include <windows.h>
 #include <d3d9.h>
 #include <d3dx9.h>
 #include "smartptr.h"
 
-#include "gfx_directx_cls_palette.h"
+#include "palette.h"
 
 namespace gfx
 {

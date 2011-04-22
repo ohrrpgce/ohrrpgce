@@ -1,4 +1,4 @@
-#include "gfx_directx_cls_joystick.h"
+#include "joystick.h"
 #pragma comment (lib, "dxguid.lib")
 using namespace gfx;
 

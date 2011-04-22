@@ -1,4 +1,4 @@
-#include "gfx_directx_cls_mouse.h"
+#include "mouse.h"
 using namespace gfx;
 
 //Mouse::Mouse() : m_wheel(0)

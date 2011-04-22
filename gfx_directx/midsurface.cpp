@@ -1,4 +1,4 @@
-#include "gfx_directx_cls_midsurface.h"
+#include "midsurface.h"
 using namespace gfx;
 
 MidSurface::MidSurface() : m_bInitialized(false), m_format(D3DFMT_A8R8G8B8)

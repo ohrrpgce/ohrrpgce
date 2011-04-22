@@ -13,9 +13,9 @@
 #include <tchar.h>
 #include "Tstring.h"
 
-#include "gfx_directx_cls_window.h"
-#include "gfx_directx_cls_palette.h"
-#include "gfx_directx_cls_midsurface.h"
+#include "window.h"
+#include "palette.h"
+#include "midsurface.h"
 #include "DllFunctionInterface.h"
 
 

@@ -1,5 +1,5 @@
 #define DFI_UNIQUE
-#include "gfx_directx_cls_d3d.h"
+#include "d3d.h"
 using namespace gfx;
 
 D3D::D3D() 

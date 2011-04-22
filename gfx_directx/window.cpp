@@ -1,4 +1,4 @@
-#include "gfx_directx_cls_window.h"
+#include "window.h"
 using namespace gfx;
 
 LRESULT CALLBACK gfx::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

@@ -1,4 +1,4 @@
-#include "gfx_directx_cls_keyboard.h"
+#include "keyboard.h"
 #include "..\\scancodes.h"
 using namespace gfx;
 
