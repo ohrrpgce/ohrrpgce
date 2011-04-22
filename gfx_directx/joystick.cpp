@@ -46,6 +46,7 @@ BOOL Joystick::EnumDeviceObjects(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
 	return DIENUM_CONTINUE;
 }
 
+//COM initialization is used instead of loading the library
 Joystick::Joystick() : /*m_hLibrary(NULL), */m_hWnd(NULL)
 {
 	//m_hLibrary = LoadLibrary(TEXT("dinput8.dll"));
@@ -53,14 +54,14 @@ Joystick::Joystick() : /*m_hLibrary(NULL), */m_hWnd(NULL)
 
 Joystick::~Joystick()
 {
-	Shutdown();
+	shutdown();
 
 	//if(m_hLibrary)
 	//	FreeLibrary(m_hLibrary);
 	//m_hLibrary = NULL;
 }
 
-void Joystick::FilterAttachedDevices()
+void Joystick::filterAttachedDevices()
 {
 	if(m_devices.size() == 0)
 		return;
@@ -77,7 +78,7 @@ void Joystick::FilterAttachedDevices()
 	}
 }
 
-void Joystick::ConfigNewDevices()
+void Joystick::configNewDevices()
 {
 	HRESULT hr = S_OK;
 	std::list<Device>::iterator iter = m_devices.begin(), iterNext;
@@ -105,9 +106,9 @@ void Joystick::ConfigNewDevices()
 	}
 }
 
-HRESULT Joystick::Initialize(HINSTANCE hInstance, HWND hWnd)
+HRESULT Joystick::initialize(HINSTANCE hInstance, HWND hWnd)
 {
-	Shutdown();
+	shutdown();
 
 	HRESULT hr = S_OK;
 	hr = CoCreateInstance( CLSID_DirectInput8, NULL, CLSCTX_INPROC_SERVER, IID_IDirectInput8, (void**)&m_dinput );
@@ -120,32 +121,32 @@ HRESULT Joystick::Initialize(HINSTANCE hInstance, HWND hWnd)
 
 	m_hWnd = hWnd;
 
-	RefreshEnumeration();
+	refreshEnumeration();
 	return hr;
 }
 
-void Joystick::Shutdown()
+void Joystick::shutdown()
 {
 	m_hWnd = NULL;
 	m_devices.clear();
 	m_dinput = NULL;
 }
 
-void Joystick::RefreshEnumeration()
+void Joystick::refreshEnumeration()
 {
 	if(m_dinput == NULL)
 		return;
 	m_dinput->EnumDevices( DI8DEVCLASS_GAMECTRL, (LPDIENUMDEVICESCALLBACK)EnumDevices, (void*)&m_devices, DIEDFL_ATTACHEDONLY );
-	ConfigNewDevices();
-	FilterAttachedDevices();
+	configNewDevices();
+	filterAttachedDevices();
 }
 
-UINT Joystick::GetJoystickCount()
+UINT Joystick::getJoystickCount()
 {
 	return m_devices.size();
 }
 
-BOOL Joystick::GetState(int &nDevice, int &buttons, int &xPos, int &yPos)
+BOOL Joystick::getState(int &nDevice, int &buttons, int &xPos, int &yPos)
 {
 	if(m_dinput == NULL)
 		return FALSE;
@@ -161,7 +162,7 @@ BOOL Joystick::GetState(int &nDevice, int &buttons, int &xPos, int &yPos)
 	return TRUE;
 }
 
-void Joystick::Poll()
+void Joystick::poll()
 {
 	if(m_dinput == NULL)
 		return;
@@ -178,7 +179,7 @@ void Joystick::Poll()
 			break;
 		case DIERR_NOTINITIALIZED:
 		case DIERR_INPUTLOST:
-			RefreshEnumeration();
+			refreshEnumeration();
 			return;
 		default:
 			hr = iter->pDevice->GetDeviceState(sizeof(js), (void*)&js);

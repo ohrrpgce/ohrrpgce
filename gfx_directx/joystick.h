@@ -1,9 +1,8 @@
-//gfx_directx_cls_joystick.h
-//by Jay Tennant 10/5/10
+//joystick.h
+//by Jay Tennant 10/5/10; updated 4/21/11
 //manages joystick input through directinput
 
-#ifndef GFX_DIRECTX_CLS_JOYSTICK_H
-#define GFX_DIRECTX_CLS_JOYSTICK_H
+#pragma once
 
 #include <windows.h>
 #define DIRECTINPUT_VERSION 0x0800
@@ -37,20 +36,18 @@ namespace gfx
 		SmartPtr<IDirectInput8> m_dinput;
 		std::list<Device> m_devices;
 
-		void FilterAttachedDevices(); //cleans list so only attached devices are in list
-		void ConfigNewDevices(); //sets data format, and initial button mappings for new devices
+		void filterAttachedDevices(); //cleans list so only attached devices are in list
+		void configNewDevices(); //sets data format, and initial button mappings for new devices
 	public:
 		Joystick();
 		~Joystick();
 
-		HRESULT Initialize(HINSTANCE hInstance, HWND hWnd);
-		void Shutdown();
+		HRESULT initialize(HINSTANCE hInstance, HWND hWnd);
+		void shutdown();
 
-		void RefreshEnumeration(); //refreshes the device list
-		UINT GetJoystickCount();
-		BOOL GetState(int& nDevice, int& buttons, int& xPos, int& yPos);
-		void Poll();
+		void refreshEnumeration(); //refreshes the device list
+		UINT getJoystickCount();
+		BOOL getState(int& nDevice, int& buttons, int& xPos, int& yPos);
+		void poll();
 	};
 }
-
-#endif

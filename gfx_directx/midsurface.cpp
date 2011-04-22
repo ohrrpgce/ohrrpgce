@@ -13,42 +13,36 @@ MidSurface::~MidSurface()
 	m_d3ddev = NULL;
 }
 
-int MidSurface::Initialize(IDirect3DDevice9* d3ddev, UINT width, UINT height, D3DFORMAT surfaceFormat)
+HRESULT MidSurface::initialize(IDirect3DDevice9* d3ddev, UINT width, UINT height, D3DFORMAT surfaceFormat)
 {
 	m_bInitialized = false;
 	m_surface = NULL;
 	m_d3ddev = NULL;
 
-	if(d3ddev == NULL || width == 0 || height == 0)
-		return -1;
+	if(d3ddev == NULL)
+		return E_POINTER;
+	if(width == 0 || height == 0)
+		return E_INVALIDARG;
+
 	m_d3ddev = d3ddev;
 	m_dimensions.cx = width;
 	m_dimensions.cy = height;
 	m_format = surfaceFormat;
-	m_d3ddev->CreateOffscreenPlainSurface(m_dimensions.cx, m_dimensions.cy, m_format, D3DPOOL_DEFAULT, &m_surface, 0);
-	if(m_surface == NULL)
-		return -1;
+
+	HRESULT hr = m_d3ddev->CreateOffscreenPlainSurface(m_dimensions.cx, m_dimensions.cy, m_format, D3DPOOL_DEFAULT, &m_surface, 0);
+	if(FAILED(hr))
+		return hr;
+
 	m_bInitialized = true;
-	return 0;
+	return hr;
 }
 
-void MidSurface::CopySystemPage(UCHAR *pRawPage, UINT width, UINT height, gfx::Palette<UINT> *pPalette)
+void MidSurface::copySystemPage(UCHAR *pRawPage, UINT width, UINT height, gfx::Palette<UINT> *pPalette)
 {//specific to ohr; can't be reused elsewhere much
 	if(!m_bInitialized)
 		return;
 	if(!pRawPage || !pPalette)
 		return;
-
-	TEST_ONLY_BLOCK(
-		static bool bRunOnce = false;
-		if(!bRunOnce)
-		{
-			TCHAR strInfoBuffer[128] = TEXT("");
-			::_stprintf_s<128>(strInfoBuffer, TEXT("Width: %d, Height: %d"), width, height);
-			::MessageBox(0, strInfoBuffer, TEXT("Run Once"), MB_OK);
-			bRunOnce = true;
-		}
-	);
 
 	D3DLOCKED_RECT lr;
 	HRESULT hr = m_surface->LockRect(&lr, 0, 0);
@@ -59,27 +53,27 @@ void MidSurface::CopySystemPage(UCHAR *pRawPage, UINT width, UINT height, gfx::P
 	hr = m_surface->UnlockRect();
 }
 
-D3DFORMAT MidSurface::GetFormat()
+D3DFORMAT MidSurface::getFormat()
 {
 	return m_format;
 }
 
-SIZE MidSurface::GetDimensions()
+SIZE MidSurface::getDimensions()
 {
 	return m_dimensions;
 }
 
-IDirect3DSurface9* MidSurface::GetSurface()
+IDirect3DSurface9* MidSurface::getSurface()
 {
 	return m_surface;
 }
 
-void MidSurface::OnLostDevice()
+void MidSurface::onLostDevice()
 {
 	m_surface = NULL;
 }
 
-void MidSurface::OnResetDevice()
+void MidSurface::onResetDevice()
 {
-	Initialize(m_d3ddev, m_dimensions.cx, m_dimensions.cy, m_format);
+	initialize(m_d3ddev, m_dimensions.cx, m_dimensions.cy, m_format);
 }

@@ -15,10 +15,10 @@ D3D::D3D()
 
 D3D::~D3D()
 {
-	Shutdown();
+	shutdown();
 }
 
-RECT D3D::CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight)
+RECT D3D::calculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight)
 {
 	float destAspect = (float)destWidth / (float)destHeight;
 	float srcAspect = (float)srcWidth / (float)srcHeight;
@@ -44,21 +44,21 @@ RECT D3D::CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UI
 	return r;
 }
 
-HRESULT D3D::Initialize(gfx::Window *pWin, LPCTSTR szModuleName)
+HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName)
 {
 	HRESULT hr = S_OK;
 	if(!pWin)
 		return E_POINTER;
-	Shutdown();
+	shutdown();
 	if(szModuleName != NULL)
 		m_szModuleName = szModuleName;
 	else
 		m_szModuleName = TEXT("");
 
 	m_pWindow = pWin;
-	m_rWindowedMode = m_pWindow->GetWindowSize();
-	m_rWindowedMode.right = m_pWindow->GetClientSize().cx;
-	m_rWindowedMode.bottom = m_pWindow->GetClientSize().cy;
+	m_rWindowedMode = m_pWindow->getWindowSize();
+	m_rWindowedMode.right = m_pWindow->getClientSize().cx;
+	m_rWindowedMode.bottom = m_pWindow->getClientSize().cy;
 	RECT rTmp;
 	::GetWindowRect(::GetDesktopWindow(), &rTmp);
 	m_rFullscreenMode = rTmp;
@@ -67,7 +67,7 @@ HRESULT D3D::Initialize(gfx::Window *pWin, LPCTSTR szModuleName)
 	m_d3dpp.BackBufferFormat		= D3DFMT_X8R8G8B8;
 	m_d3dpp.BackBufferWidth			= m_rWindowedMode.right;
 	m_d3dpp.BackBufferHeight		= m_rWindowedMode.bottom;
-	m_d3dpp.hDeviceWindow			= m_pWindow->GetWindowHandle();
+	m_d3dpp.hDeviceWindow			= m_pWindow->getWindowHandle();
 	if(!m_bVSync)
 		m_d3dpp.PresentationInterval= D3DPRESENT_INTERVAL_IMMEDIATE;
 	m_d3dpp.SwapEffect				= D3DSWAPEFFECT_DISCARD;
@@ -78,21 +78,21 @@ HRESULT D3D::Initialize(gfx::Window *pWin, LPCTSTR szModuleName)
 	m_d3d.Attach(Direct3DCreate9(D3D_SDK_VERSION));
 	if(m_d3d == NULL)
 		return E_FAIL;
-	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_pWindow->GetWindowHandle(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &m_d3dpp, &m_d3ddev);
+	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_pWindow->getWindowHandle(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &m_d3dpp, &m_d3ddev);
 	if(FAILED(hr))
 		return hr;
-	if(S_OK != m_surface.Initialize(m_d3ddev, 320, 200))
+	if(S_OK != m_surface.initialize(m_d3ddev, 320, 200))
 		return E_FAIL;
 	m_bInitialized = TRUE;
 	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
 	return hr;
 }
 
-HRESULT D3D::Shutdown()
+HRESULT D3D::shutdown()
 {
 	m_bInitialized = FALSE;
 	m_szModuleName.clear();
-	m_surface.Initialize(0,0,0);
+	m_surface.initialize(0,0,0);
 	m_d3ddev = NULL;
 	m_d3d = NULL;
 	return S_OK;
@@ -162,7 +162,7 @@ HRESULT D3D::Shutdown()
 //	return S_OK;
 //}
 
-HRESULT D3D::Present(unsigned char *pRawPage, UINT width, UINT height, gfx::Palette<UINT> *pPalette)
+HRESULT D3D::present(unsigned char *pRawPage, UINT width, UINT height, gfx::Palette<UINT> *pPalette)
 {
 	if(!m_bInitialized)
 		return E_FAIL;
@@ -175,34 +175,34 @@ HRESULT D3D::Present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 	if(pRawPage != NULL)
 	{
 		if(m_image.pSurface == NULL)
-			m_image.AllocateSurface(width, height);
+			m_image.allocateSurface(width, height);
 		if(m_image.pSurface != NULL)
 		{
 			for(UINT i = 0; i < width * height; i++)
 				m_image.pSurface[i] = pRawPage[i];
 		}
 	}
-	m_surface.CopySystemPage(m_image.pSurface, m_image.width, m_image.height, &m_image.palette);
+	m_surface.copySystemPage(m_image.pSurface, m_image.width, m_image.height, &m_image.palette);
 
 	//coop-level test
 	HRESULT hrCoopLevel = m_d3ddev->TestCooperativeLevel();
 	if(hrCoopLevel == D3DERR_DEVICELOST)
 	{
-		OnLostDevice();
+		onLostDevice();
 		return S_OK;
 	}
 	else if(hrCoopLevel == D3DERR_DEVICENOTRESET)
 	{
-		OnResetDevice();
+		onResetDevice();
 		return S_OK;
 	}
 	else if(hrCoopLevel == D3DERR_DRIVERINTERNALERROR)
 	{
-		if(IDYES == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
-			return Shutdown();
+		if(IDNO == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
+			return shutdown();
 		Tstring szModule = m_szModuleName;
-		Shutdown();
-		return Initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str()));
+		shutdown();
+		return initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str()));
 	}
 
 	//present
@@ -213,12 +213,12 @@ HRESULT D3D::Present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 
 	RECT rAspectRatio = {0};
 	if(m_bPreserveAspectRatio)
-		rAspectRatio = CalculateAspectRatio(m_surface.GetDimensions().cx, m_surface.GetDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
+		rAspectRatio = calculateAspectRatio(m_surface.getDimensions().cx, m_surface.getDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
 	SmartPtr<IDirect3DSurface9> pBackBuffer;
 	hr = m_d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
 	if(FAILED(hr))
 		return hr;
-	hr = m_d3ddev->StretchRect(m_surface.GetSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
+	hr = m_d3ddev->StretchRect(m_surface.getSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
 	if(FAILED(hr))
 		return hr;
 
@@ -226,7 +226,7 @@ HRESULT D3D::Present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 	return hr;
 }
 
-HRESULT D3D::ScreenShot(LPCTSTR strName)
+HRESULT D3D::screenShot(LPCTSTR strName)
 {
 	if(!m_bInitialized)
 		return E_FAIL;
@@ -260,11 +260,11 @@ HRESULT D3D::ScreenShot(LPCTSTR strName)
 
 	RECT rImage = {0,0, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight};
 	if(m_bPreserveAspectRatio)
-		rImage = CalculateAspectRatio(m_surface.GetDimensions().cx, m_surface.GetDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
+		rImage = calculateAspectRatio(m_surface.getDimensions().cx, m_surface.getDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
 	if(m_d3dpp.Windowed)
 	{
 		POINT rpTopLeft = {0,0};
-		::ClientToScreen(m_pWindow->GetWindowHandle(), &rpTopLeft);
+		::ClientToScreen(m_pWindow->getWindowHandle(), &rpTopLeft);
 		rImage.left += rpTopLeft.x;
 		rImage.right += rpTopLeft.x;
 		rImage.top += rpTopLeft.y;
@@ -276,22 +276,22 @@ HRESULT D3D::ScreenShot(LPCTSTR strName)
 	return hr;
 }
 
-void D3D::OnLostDevice()
+void D3D::onLostDevice()
 {
 	if(!m_bInitialized)
 		return;
-	m_surface.OnLostDevice();
+	m_surface.onLostDevice();
 }
 
-void D3D::OnResetDevice()
+void D3D::onResetDevice()
 {
 	if(!m_bInitialized)
 		return;
 	m_d3ddev->Reset(&m_d3dpp);
-	m_surface.OnResetDevice();
+	m_surface.onResetDevice();
 }
 
-HRESULT D3D::SetViewFullscreen(BOOL bFullscreen)
+HRESULT D3D::setViewFullscreen(BOOL bFullscreen)
 {
 	if(bFullscreen != m_d3dpp.Windowed)
 		return S_OK;
@@ -307,8 +307,8 @@ HRESULT D3D::SetViewFullscreen(BOOL bFullscreen)
 	{
 		m_d3dpp.BackBufferWidth		= m_rFullscreenMode.right;
 		m_d3dpp.BackBufferHeight	= m_rFullscreenMode.bottom;
-		m_pWindow->SetWindowSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
-		m_pWindow->SetWindowPosition(0,0);
+		m_pWindow->setWindowSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
+		m_pWindow->setWindowPosition(0,0);
 	}
 
 	if(!m_bInitialized)
@@ -316,18 +316,18 @@ HRESULT D3D::SetViewFullscreen(BOOL bFullscreen)
 
 	if(m_d3dpp.Windowed)
 	{
-		m_pWindow->SetClientSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
-		m_pWindow->CenterWindow();
+		m_pWindow->setClientSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
+		m_pWindow->centerWindow();
 	}
 	else
 	{
-		OnLostDevice();
-		OnResetDevice();
+		onLostDevice();
+		onResetDevice();
 	}
 	return S_OK;
 }
 
-HRESULT D3D::SetResolution(LPCRECT pRect)
+HRESULT D3D::setResolution(LPCRECT pRect)
 {
 	if(!pRect)
 		return E_POINTER;
@@ -341,13 +341,13 @@ HRESULT D3D::SetResolution(LPCRECT pRect)
 		//intentionally not setting these--otherwise will enter recursive pit of despair, abandon all hope!
 		//m_pWindow->SetClientSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
 		//m_pWindow->CenterWindow();
-		OnLostDevice();
-		OnResetDevice();
+		onLostDevice();
+		onResetDevice();
 	}
 	return S_OK;
 }
 
-HRESULT D3D::SetVsyncEnabled(BOOL bVsync)
+HRESULT D3D::setVsyncEnabled(BOOL bVsync)
 {
 	if(bVsync == m_bVSync)
 		return S_OK;
@@ -362,65 +362,65 @@ HRESULT D3D::SetVsyncEnabled(BOOL bVsync)
 		m_d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 	}
 
-	OnLostDevice();
-	OnResetDevice();
+	onLostDevice();
+	onResetDevice();
 
 	return S_OK;
 }
 
-void D3D::SetSmooth(BOOL bSmoothDraw)
+void D3D::setSmooth(BOOL bSmoothDraw)
 {
 	m_bSmoothDraw = bSmoothDraw;
 }
 
-void D3D::SetAspectRatioPreservation(BOOL bPreserve)
+void D3D::setAspectRatioPreservation(BOOL bPreserve)
 {
 	m_bPreserveAspectRatio = bPreserve;
 }
 
-void D3D::SetImageFileFormat(D3DXIMAGE_FILEFORMAT format)
+void D3D::setImageFileFormat(D3DXIMAGE_FILEFORMAT format)
 {
 	m_saveFormat = format;
 }
 
-RECT D3D::GetResolution()
+RECT D3D::getResolution()
 {
 	if(m_d3dpp.Windowed)
 		return m_rWindowedMode;
 	return m_rFullscreenMode;
 }
 
-Palette<UINT> D3D::GetPalette()
+Palette<UINT> D3D::getPalette()
 {
 	return m_image.palette;
 }
 
-BOOL D3D::IsVsyncEnabled()
+BOOL D3D::isVsyncEnabled()
 {
 	return m_bVSync;
 }
 
-BOOL D3D::IsViewFullscreen()
+BOOL D3D::isViewFullscreen()
 {
 	return !m_d3dpp.Windowed;
 }
 
-BOOL D3D::IsSmooth()
+BOOL D3D::isSmooth()
 {
 	return m_bSmoothDraw;
 }
 
-BOOL D3D::IsAspectRatioPreserved()
+BOOL D3D::isAspectRatioPreserved()
 {
 	return m_bPreserveAspectRatio;
 }
 
-BOOL D3D::IsScreenShotsActive()
+BOOL D3D::isScreenShotsActive()
 {
 	return (D3DXSaveSurfaceToFile != NULL);
 }
 
-D3DXIMAGE_FILEFORMAT D3D::GetImageFileFormat()
+D3DXIMAGE_FILEFORMAT D3D::getImageFileFormat()
 {
 	return m_saveFormat;
 }

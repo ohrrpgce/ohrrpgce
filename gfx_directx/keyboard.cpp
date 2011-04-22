@@ -19,7 +19,7 @@ Keyboard::Keyboard() : m_scLShift(0)
 //	m_scancodes[ c_vk2fb[VK_SCROLL] ] = (m_virtualKeys[VK_SCROLL] & 0x1) ? 0x8 : 0x0;
 //}
 
-bool Keyboard::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
 	{

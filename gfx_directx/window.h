@@ -1,9 +1,8 @@
-//gfx_directx_cls_window.h
-//by Jay Tennant 10/30/09
+//window.h
+//by Jay Tennant 10/30/09; updated 4/21/11
 //window wrapper
 
-#ifndef GFX_DIRECTX_CLS_WINDOW_H
-#define GFX_DIRECTX_CLS_WINDOW_H
+#pragma once
 
 #include <windows.h>
 
@@ -21,26 +20,24 @@ namespace gfx
 		bool m_bRunning;
 	public:
 		Window();
-		virtual ~Window();
+		~Window();
 
-		int Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc);
-		void Shutdown();
-		int PumpMessages();
-		void SetWindowTitle(const TCHAR* strTitle);
-		void SetClientSize(int width, int height);
-		void SetWindowSize(int width, int height); //does not call AdjustWindowRect()
-		void SetWindowPosition(int left, int top);
-		void CenterWindow(); //centers window on the screen
-		void ShowWindow(); //shows the window
-		void HideWindow(); //hides the window
+		HRESULT initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc);
+		void shutdown();
+		void pumpMessages();
+		void setWindowTitle(const TCHAR* strTitle);
+		void setClientSize(int width, int height);
+		void setWindowSize(int width, int height); //does not call AdjustWindowRect()
+		void setWindowPosition(int left, int top);
+		void centerWindow(); //centers window on the screen
+		void showWindow(); //shows the window
+		void hideWindow(); //hides the window
 
-		HINSTANCE GetAppHandle();
-		HWND GetWindowHandle();
-		RECT GetWindowSize();
-		SIZE GetClientSize();
-		int PostWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam); //non-blocking window message call
-		int SendWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam); //blocking window message call
+		HINSTANCE getAppHandle();
+		HWND getWindowHandle();
+		RECT getWindowSize();
+		SIZE getClientSize();
+		BOOL postWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam); //non-blocking window message call
+		BOOL sendWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam); //blocking window message call
 	};
 }
-
-#endif

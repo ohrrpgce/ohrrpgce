@@ -1,9 +1,8 @@
-//gfx_directx_cls_midsurface.h, formerly *_midtexture.h
-//by Jay Tennant 10/30/09
-//manages dynamic texture (not render target) for copying from system to video memory
+//midsurface.h
+//by Jay Tennant 10/30/09; updated 4/21/11
+//manages dynamic surface for copying from system to video memory
 
-#ifndef GFX_DIRECTX_CLS_MIDTEXTURE_H
-#define GFX_DIRECTX_CLS_MIDTEXTURE_H
+#pragma once
 
 #include <windows.h>
 #include <d3d9.h>
@@ -24,18 +23,16 @@ namespace gfx
 		D3DFORMAT m_format;
 	public:
 		MidSurface();
-		virtual ~MidSurface();
+		~MidSurface();
 
-		int Initialize(IDirect3DDevice9* d3ddev, UINT width, UINT height, D3DFORMAT surfaceFormat = D3DFMT_A8R8G8B8);
-		void CopySystemPage(UCHAR *pRawPage, UINT width, UINT height, Palette<UINT> *pPalette); //copies system page into texture converting using the palette
+		HRESULT initialize(IDirect3DDevice9* d3ddev, UINT width, UINT height, D3DFORMAT surfaceFormat = D3DFMT_A8R8G8B8);
+		void copySystemPage(UCHAR *pRawPage, UINT width, UINT height, Palette<UINT> *pPalette); //copies system page into texture converting using the palette
 
-		D3DFORMAT GetFormat();
-		SIZE GetDimensions();
-		IDirect3DSurface9* GetSurface();
+		D3DFORMAT getFormat();
+		SIZE getDimensions();
+		IDirect3DSurface9* getSurface();
 
-		void OnLostDevice();
-		void OnResetDevice();
+		void onLostDevice();
+		void onResetDevice();
 	};
 }
-
-#endif

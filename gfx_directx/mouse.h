@@ -1,9 +1,8 @@
-//gfx_directx_cls_mouse.h
-//by Jay Tennant 9/22/10
-//new manager for windows mouse
+//mouse.h
+//by Jay Tennant 9/22/10; updated 4/21/11
+//manages mouse input processing through window messages
 
-#ifndef GFX_DIRECTX_CLS_MOUSE_H
-#define GFX_DIRECTX_CLS_MOUSE_H
+#pragma once
 
 #include <windows.h>
 #include <stack>
@@ -85,18 +84,18 @@ namespace gfx
 		public:
 			Buttons() : btns(0) {}
 			unsigned int GetData() const {return btns;}
-			bool IsLeftDown() const {return (btns & 0x1) ? true : false;}
-			bool IsRightDown() const {return (btns & 0x2) ? true : false;}
-			bool IsMiddleDown() const {return (btns & 0x4) ? true : false;}
-			bool IsAnyDown() const {return (btns & 0x7) ? true : false;}
-			void SetLeftDown() {btns |= 0x1;}
-			void SetLeftUp() {btns &= 0xfffffffe;}
-			void SetRightDown() {btns |= 0x2;}
-			void SetRightUp() {btns &= 0xfffffffd;}
-			void SetMiddleDown() {btns |= 0x4;}
-			void SetMiddleUp() {btns &= 0xfffffffb;}
-			void SetAllDown() {btns |= 0x7;}
-			void SetAllUp() {btns = 0x0;}
+			bool isLeftDown() const {return (btns & 0x1) ? true : false;}
+			bool isRightDown() const {return (btns & 0x2) ? true : false;}
+			bool isMiddleDown() const {return (btns & 0x4) ? true : false;}
+			bool isAnyDown() const {return (btns & 0x7) ? true : false;}
+			void setLeftDown() {btns |= 0x1;}
+			void setLeftUp() {btns &= 0xfffffffe;}
+			void setRightDown() {btns |= 0x2;}
+			void setRightUp() {btns &= 0xfffffffd;}
+			void setMiddleDown() {btns |= 0x4;}
+			void setMiddleUp() {btns &= 0xfffffffb;}
+			void setAllDown() {btns |= 0x7;}
+			void setAllUp() {btns = 0x0;}
 		};
 
 		enum InputState
@@ -141,24 +140,22 @@ namespace gfx
 	public:
 		Mouse2();
 
-		const POINT& GetCursorPos() const {return m_cursorPos;}
-		long GetWheel() const {return m_wheel;}
-		Buttons GetButtonState() const {return m_buttons;}
-		bool IsInputLive() const {return m_inputState.top() == IS_LIVE;}
-		bool IsVideoFullscreen() const {return m_state.mode == VM_FULLSCREEN;}
-		bool IsCursorVisible() const {return m_state.visibility == CV_SHOW;}
-		bool IsClippedCursor() const {return m_state.clipped == CS_ON;}
+		const POINT& getCursorPos() const {return m_cursorPos;}
+		long getWheel() const {return m_wheel;}
+		Buttons getButtonState() const {return m_buttons;}
+		bool isInputLive() const {return m_inputState.top() == IS_LIVE;}
+		bool isVideoFullscreen() const {return m_state.mode == VM_FULLSCREEN;}
+		bool isCursorVisible() const {return m_state.visibility == CV_SHOW;}
+		bool isClippedCursor() const {return m_state.clipped == CS_ON;}
 
-		bool ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-		void SetInputState(InputState state);
-		void SetVideoMode(VideoMode mode);
-		void SetCursorVisibility(CursorVisibility visibility);
-		void SetClipState(ClipState state);
-		void SetClippingRect(RECT* pRect);
-		void UpdateClippingRect(); //call whenever the window size changes
-		void PushState(InputState state);
-		void PopState();
+		bool processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+		void setInputState(InputState state);
+		void setVideoMode(VideoMode mode);
+		void setCursorVisibility(CursorVisibility visibility);
+		void setClipState(ClipState state);
+		void setClippingRect(RECT* pRect);
+		void updateClippingRect(); //call whenever the window size changes
+		void pushState(InputState state);
+		void popState();
 	};
 }
-
-#endif

@@ -22,10 +22,10 @@ Window::Window() : m_hInst(NULL), m_hWnd(NULL), m_bRunning(false)
 
 Window::~Window()
 {
-	Shutdown();
+	shutdown();
 }
 
-int Window::Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc)
+HRESULT Window::initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC lpfnWndProc)
 {
 	m_hInst = hInstance;
 	WNDCLASSEX wc = {0};
@@ -49,38 +49,38 @@ int Window::Initialize(HINSTANCE hInstance, const TCHAR* szIconResource, WNDPROC
 		wc.lpfnWndProc	= (WNDPROC)gfx::WndProc;
 	else
 		wc.lpfnWndProc	= lpfnWndProc;
-	wc.lpszClassName	= TEXT("gfx_directx_cls_window class");
+	wc.lpszClassName	= TEXT("gfx_directx window class");
 	wc.style			= CS_HREDRAW | CS_VREDRAW;
 
 	if(!::RegisterClassEx(&wc))
-		return -1;
+		return HRESULT_FROM_WIN32(GetLastError());
 	m_rWindow.right = 800;
 	m_rWindow.bottom = 600;
 	::AdjustWindowRectEx(&m_rWindow, WS_OVERLAPPEDWINDOW, 0, 0);
-	m_hWnd = ::CreateWindowEx(0, TEXT("gfx_directx_cls_window class"), TEXT(""), WS_OVERLAPPEDWINDOW, 
+	m_hWnd = ::CreateWindowEx(0, TEXT("gfx_directx window class"), TEXT(""), WS_OVERLAPPEDWINDOW, 
 							  m_rWindow.left, m_rWindow.top, 
 							  m_rWindow.right - m_rWindow.left, m_rWindow.bottom - m_rWindow.top, 
 							  0, 0, m_hInst, 0);
 	if(m_hWnd == NULL)
-		return -1;
+		return HRESULT_FROM_WIN32(GetLastError());
 	m_bRunning = true;
 
 	//::ShowWindow(m_hWnd, 1);
 	//CenterWindow();
 	//::UpdateWindow(m_hWnd);
-	return 0;
+	return S_OK;
 }
 
-void Window::Shutdown()
+void Window::shutdown()
 {
 	::DestroyWindow(m_hWnd);
-	::UnregisterClass(TEXT("gfx_directx_cls_window class"), m_hInst);
+	::UnregisterClass(TEXT("gfx_directx window class"), m_hInst);
 }
 
-int Window::PumpMessages()
+void Window::pumpMessages()
 {
 	if(!m_bRunning)
-		return -1;
+		return;
 	if(::PeekMessage(&m_msg, 0, 0, 0, PM_REMOVE))
 	{
 		::TranslateMessage(&m_msg);
@@ -88,17 +88,16 @@ int Window::PumpMessages()
 		if(m_msg.message == WM_QUIT)
 			m_bRunning = false;
 	}
-	return 0;
 }
 
-void Window::SetWindowTitle(const TCHAR *strTitle)
+void Window::setWindowTitle(const TCHAR *strTitle)
 {
 	if(!strTitle)
 		return;
 	::SetWindowText(m_hWnd, strTitle);
 }
 
-void Window::SetClientSize(int width, int height)
+void Window::setClientSize(int width, int height)
 {
 	m_rWindow.right = m_rWindow.left + width;
 	m_rWindow.bottom = m_rWindow.top + height;
@@ -107,19 +106,19 @@ void Window::SetClientSize(int width, int height)
 	::GetWindowRect(m_hWnd, &m_rWindow);
 }
 
-void Window::SetWindowSize(int width, int height)
+void Window::setWindowSize(int width, int height)
 {
 	::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, width, height, SWP_NOMOVE);
 	::GetWindowRect(m_hWnd, &m_rWindow);
 }
 
-void Window::SetWindowPosition(int left, int top)
+void Window::setWindowPosition(int left, int top)
 {
 	::SetWindowPos(m_hWnd, HWND_NOTOPMOST, left, top, 0, 0, SWP_NOSIZE);
 	::GetWindowRect(m_hWnd, &m_rWindow);
 }
 
-void Window::CenterWindow()
+void Window::centerWindow()
 {
 	HWND hParent = ::GetParent(m_hWnd);
 	if(hParent == NULL)
@@ -129,35 +128,35 @@ void Window::CenterWindow()
 	LONG left, top;
 	left = ((rScreen.right - rScreen.left) / 2) - ((m_rWindow.right - m_rWindow.left) / 2);
 	top = ((rScreen.bottom - rScreen.top) / 2) - ((m_rWindow.bottom - m_rWindow.top) / 2);
-	SetWindowPosition(left, top);
+	setWindowPosition(left, top);
 }
 
-void Window::ShowWindow()
+void Window::showWindow()
 {
 	::ShowWindow(m_hWnd, SW_SHOW);
 }
 
-void Window::HideWindow()
+void Window::hideWindow()
 {
 	::ShowWindow(m_hWnd, SW_HIDE);
 }
 
-HINSTANCE Window::GetAppHandle()
+HINSTANCE Window::getAppHandle()
 {
 	return m_hInst;
 }
 
-HWND Window::GetWindowHandle()
+HWND Window::getWindowHandle()
 {
 	return m_hWnd;
 }
 
-RECT Window::GetWindowSize()
+RECT Window::getWindowSize()
 {
 	return m_rWindow;
 }
 
-SIZE Window::GetClientSize()
+SIZE Window::getClientSize()
 {
 	RECT rClient;
 	::GetClientRect(m_hWnd, &rClient);
@@ -165,12 +164,12 @@ SIZE Window::GetClientSize()
 	return ret;
 }
 
-int Window::PostWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL Window::postWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	return ::PostMessage(m_hWnd, msg, wParam, lParam);
 }
 
-int Window::SendWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL Window::sendWindowMessage(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	return ::SendMessage(m_hWnd, msg, wParam, lParam);
 }

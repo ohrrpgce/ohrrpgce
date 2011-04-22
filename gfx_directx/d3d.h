@@ -1,9 +1,8 @@
-//gfx_directx_cls_d3d.h
-//by Jay Tennant 10/29/09
-//does everything gfx_directx.h was to do, except in classes for easier management
+//d3d.h
+//by Jay Tennant 10/29/09; updated 4/21/11
+//manages the directx object and presentation
 
-#ifndef GFX_DIRECTX_CLS_D3D_H
-#define GFX_DIRECTX_CLS_D3D_H
+#pragma once
 
 #include <windows.h>
 #include <d3d9.h>
@@ -59,17 +58,17 @@ namespace gfx
 		struct Image
 		{
 			Image() : pSurface(NULL), width(0), height(0){}
-			~Image() {Free(); palette.Free();}
-			void AllocateSurface(UINT nWidth, UINT nHeight)
+			~Image() {free(); palette.free();}
+			void allocateSurface(UINT nWidth, UINT nHeight)
 			{
-				Free();
+				free();
 				if(nWidth == 0 || nHeight == 0)
 					return;
 				width = nWidth;
 				height = nHeight;
 				pSurface = new BYTE[width * height];
 			}
-			void Free()
+			void free()
 			{
 				if(pSurface != NULL) 
 					delete [] pSurface; 
@@ -82,37 +81,36 @@ namespace gfx
 		} m_image;
 		Tstring m_szModuleName;
 
-		RECT CalculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight);
+		RECT calculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UINT destHeight);
 	public:
 		D3D();
 		virtual ~D3D();
 
-		HRESULT Initialize(Window *pWin, LPCTSTR szModuleName); //starts up the engine
-		HRESULT Shutdown(); //shuts down the engine
-		//HRESULT ShowPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
-		//HRESULT SetPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying
-		HRESULT Present(unsigned char *pRawPage, UINT width, UINT height, Palette<UINT> *pPalette); //draws the raw page (array of indices into palette), and sets the palette; if pPalette is NULL, the page is presented with the previous palette; if pRawpage is NULL, the page is presented with the new palette; if both are NULL, the image is presented again
-		HRESULT ScreenShot(LPCTSTR strName); //gets a screenshot, appending the correct format image to the end of the name
-		void OnLostDevice();
-		void OnResetDevice();
+		HRESULT initialize(Window *pWin, LPCTSTR szModuleName); //starts up the engine
+		HRESULT shutdown(); //shuts down the engine
+		//HRESULT showPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
+		//HRESULT setPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying
+		HRESULT present(unsigned char *pRawPage, UINT width, UINT height, Palette<UINT> *pPalette); //draws the raw page (array of indices into palette), and sets the palette; if pPalette is NULL, the page is presented with the previous palette; if pRawpage is NULL, the page is presented with the new palette; if both are NULL, the image is presented again
+		HRESULT screenShot(LPCTSTR strName); //gets a screenshot, appending the correct format image to the end of the name
+		void onLostDevice();
+		void onResetDevice();
 
 		//option setting
-		HRESULT SetViewFullscreen(BOOL bFullscreen); //sets view to fullscreen if true
-		HRESULT SetResolution(LPCRECT pRect); //sets the dimensions of the backbuffer
-		HRESULT SetVsyncEnabled(BOOL bVsync); //enables vsync if true
-		void SetSmooth(BOOL bSmoothDraw); //enables linear interpolation used on texture drawing
-		void SetAspectRatioPreservation(BOOL bPreserve); //enables aspect ratio preservation through all screen resolutions
-		void SetImageFileFormat(D3DXIMAGE_FILEFORMAT format); //sets the image file format of any screenshots
+		HRESULT setViewFullscreen(BOOL bFullscreen); //sets view to fullscreen if true
+		HRESULT setResolution(LPCRECT pRect); //sets the dimensions of the backbuffer
+		HRESULT setVsyncEnabled(BOOL bVsync); //enables vsync if true
+		void setSmooth(BOOL bSmoothDraw); //enables linear interpolation used on texture drawing
+		void setAspectRatioPreservation(BOOL bPreserve); //enables aspect ratio preservation through all screen resolutions
+		void setImageFileFormat(D3DXIMAGE_FILEFORMAT format); //sets the image file format of any screenshots
 
 		//info
-		RECT GetResolution(); //returns active resolution
-		Palette<UINT> GetPalette(); //returns a reference of the palette, non-deletable
-		BOOL IsVsyncEnabled(); //returns true if vsync is enabled
-		BOOL IsViewFullscreen(); //returns true if view is fullscreen
-		BOOL IsSmooth(); //returns true if linear interpolation is used on the texture
-		BOOL IsAspectRatioPreserved(); //returns true if aspect ratio is preserved
-		BOOL IsScreenShotsActive(); //returns true if screen shot library was loaded
-		D3DXIMAGE_FILEFORMAT GetImageFileFormat(); //returns image file format of screenshots
+		RECT getResolution(); //returns active resolution
+		Palette<UINT> getPalette(); //returns a reference of the palette, non-deletable
+		BOOL isVsyncEnabled(); //returns true if vsync is enabled
+		BOOL isViewFullscreen(); //returns true if view is fullscreen
+		BOOL isSmooth(); //returns true if linear interpolation is used on the texture
+		BOOL isAspectRatioPreserved(); //returns true if aspect ratio is preserved
+		BOOL isScreenShotsActive(); //returns true if screen shot library was loaded
+		D3DXIMAGE_FILEFORMAT getImageFileFormat(); //returns image file format of screenshots
 	};
 }
-#endif

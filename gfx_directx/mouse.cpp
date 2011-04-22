@@ -313,7 +313,7 @@ Mouse2::Mouse2() : m_wheel(0), m_hWnd(NULL)
 	m_inputState.push(IS_DEAD);
 }
 
-bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+bool Mouse2::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {//if m_state.clipped == CS_ON, mouse clicks do not engage the m_state.buttonClipped
 	m_hWnd = hWnd;
 	if(m_inputState.top() == IS_DEAD)
@@ -404,9 +404,9 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_LBUTTONDOWN:
 		{
-			if(!m_buttons.IsLeftDown())
+			if(!m_buttons.isLeftDown())
 			{
-				m_buttons.SetLeftDown();
+				m_buttons.setLeftDown();
 				if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
 				{
 					m_state.buttonClipped = CS_ON;
@@ -429,10 +429,10 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_LBUTTONUP:
 		{
-			if(m_buttons.IsLeftDown())
+			if(m_buttons.isLeftDown())
 			{
-				m_buttons.SetLeftUp();
-				if(!m_buttons.IsAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
+				m_buttons.setLeftUp();
+				if(!m_buttons.isAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
 				{
 					m_state.buttonClipped = CS_OFF;
 					ClipCursor(NULL);
@@ -454,9 +454,9 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_RBUTTONDOWN:
 		{
-			if(!m_buttons.IsRightDown())
+			if(!m_buttons.isRightDown())
 			{
-				m_buttons.SetRightDown();
+				m_buttons.setRightDown();
 				if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
 				{
 					m_state.buttonClipped = CS_ON;
@@ -479,10 +479,10 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_RBUTTONUP:
 		{
-			if(m_buttons.IsRightDown())
+			if(m_buttons.isRightDown())
 			{
-				m_buttons.SetRightUp();
-				if(!m_buttons.IsAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
+				m_buttons.setRightUp();
+				if(!m_buttons.isAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
 				{
 					m_state.buttonClipped = CS_OFF;
 					ClipCursor(NULL);
@@ -504,9 +504,9 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_MBUTTONDOWN:
 		{
-			if(!m_buttons.IsMiddleDown())
+			if(!m_buttons.isMiddleDown())
 			{
-				m_buttons.SetMiddleDown();
+				m_buttons.setMiddleDown();
 				if(m_state.mode == VM_WINDOWED && m_state.clipped == CS_OFF)
 				{
 					m_state.buttonClipped = CS_ON;
@@ -529,10 +529,10 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	case WM_MBUTTONUP:
 		{
-			if(m_buttons.IsMiddleDown())
+			if(m_buttons.isMiddleDown())
 			{
-				m_buttons.SetMiddleUp();
-				if(!m_buttons.IsAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
+				m_buttons.setMiddleUp();
+				if(!m_buttons.isAnyDown() && m_state.clipped == CS_OFF && m_state.buttonClipped == CS_ON)
 				{
 					m_state.buttonClipped = CS_OFF;
 					ClipCursor(NULL);
@@ -550,7 +550,7 @@ bool Mouse2::ProcessMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return true;
 }
 
-void Mouse2::SetInputState(InputState state)
+void Mouse2::setInputState(InputState state)
 {//this should be the ultimate adjuster!
 	if(m_inputState.top() == state)
 		return;
@@ -591,7 +591,7 @@ void Mouse2::SetInputState(InputState state)
 	}
 }
 
-void Mouse2::SetVideoMode(VideoMode mode)
+void Mouse2::setVideoMode(VideoMode mode)
 {//VideoMode has precedence over InputState for the cursor visibility and certain clipping
 	if(m_state.mode == mode)
 		return;
@@ -636,7 +636,7 @@ void Mouse2::SetVideoMode(VideoMode mode)
 	}
 }
 
-void Mouse2::SetCursorVisibility(CursorVisibility visibility)
+void Mouse2::setCursorVisibility(CursorVisibility visibility)
 {
 	if(m_state.visibility == visibility)
 		return;
@@ -655,7 +655,7 @@ void Mouse2::SetCursorVisibility(CursorVisibility visibility)
 	}
 }
 
-void Mouse2::SetClipState(ClipState state)
+void Mouse2::setClipState(ClipState state)
 {
 	if(m_state.clipped == state)
 		return;
@@ -687,7 +687,7 @@ void Mouse2::SetClipState(ClipState state)
 	}
 }
 
-void Mouse2::SetClippingRect(RECT *pRect)
+void Mouse2::setClippingRect(RECT *pRect)
 {
 	if(pRect == NULL)
 		return;
@@ -715,7 +715,7 @@ void Mouse2::SetClippingRect(RECT *pRect)
 	}
 }
 
-void Mouse2::UpdateClippingRect()
+void Mouse2::updateClippingRect()
 {
 	if(m_state.mode == VM_FULLSCREEN)
 	{
@@ -743,7 +743,7 @@ void Mouse2::UpdateClippingRect()
 	}
 }
 
-void Mouse2::PushState(InputState state)
+void Mouse2::pushState(InputState state)
 {
 	InputState prevState = m_inputState.top();
 	m_inputState.push(state);
@@ -752,17 +752,17 @@ void Mouse2::PushState(InputState state)
 		if(state == IS_DEAD)
 		{
 			m_inputState.top() = IS_LIVE;
-			SetInputState(IS_DEAD);
+			setInputState(IS_DEAD);
 		}
 		else
 		{
 			m_inputState.top() = IS_DEAD;
-			SetInputState(IS_LIVE);
+			setInputState(IS_LIVE);
 		}
 	}
 }
 
-void Mouse2::PopState()
+void Mouse2::popState()
 {
 	if(m_inputState.size() == 1)
 		return;
@@ -773,12 +773,12 @@ void Mouse2::PopState()
 		if(m_inputState.top() == IS_DEAD)
 		{
 			m_inputState.top() = IS_LIVE;
-			SetInputState(IS_DEAD);
+			setInputState(IS_DEAD);
 		}
 		else
 		{
 			m_inputState.top() = IS_DEAD;
-			SetInputState(IS_LIVE);
+			setInputState(IS_LIVE);
 		}
 	}
 }
