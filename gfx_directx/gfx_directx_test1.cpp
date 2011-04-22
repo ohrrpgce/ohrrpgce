@@ -5,6 +5,7 @@
 #include <windows.h>
 
 #include "gfx_directx.h"
+#include "keyboard.h"
 
 #include "..\\scancodes.h"
 
@@ -46,13 +47,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	db.gfx_setpal(g_paletteTest);
 	//db.io_init();
 	::MessageBox(0, TEXT("Use left and right to change scroll speed.") \
-					TEXT("\r\nUse 'S' to take a screenshot.") \
-					TEXT("\r\nUse 'D' to get debug local d3d9 capabilities.") \
-					TEXT("\r\nUse 'L' to get an error log (if you hear beeping, use this)."), 
+					TEXT("\r\nUse 'S' to take a screenshot."),
 					TEXT("TestApp Message"), MB_OK);
 
 	UINT j = 0;
 	int x,y,buttons;
+	::ZeroMemory(g_keys, sizeof(g_keys));
 	//db.io_setmousevisibility(FALSE);
 	while(!g_bQuit)
 	{
@@ -63,25 +63,24 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 
 		db.gfx_showpage(g_frameTest, 320, 200);
 		//io_waitprocessing();
-		::ZeroMemory(g_keys, sizeof(g_keys));
 		db.io_keybits(g_keys);
 		buttons = 0; x = 0; y = 0;
 		db.io_readjoysane(0, buttons, x, y);
-		if(g_keys[SC_LEFT] || buttons & 0x1)
+		if(KB_IS_KEY_DOWN(g_keys[SC_LEFT]) || buttons & 0x1)
 			j++;
-		if(g_keys[SC_RIGHT] || buttons & 0x2)
+		if(KB_IS_KEY_DOWN(g_keys[SC_RIGHT]) || buttons & 0x2)
 			j--;
 		j += x / 10;
 		j -= y / 10;
-		if(g_keys[SC_CAPSLOCK])
+		if(KB_IS_KEY_DOWN(g_keys[SC_CAPSLOCK]))
 			j++;
-		if(g_keys[SC_NUMLOCK])
+		if(KB_IS_KEY_DOWN(g_keys[SC_NUMLOCK]))
 			j++;
-		if(g_keys[SC_SCROLLLOCK])
+		if(KB_IS_KEY_DOWN(g_keys[SC_SCROLLLOCK]))
 			j++;
-		if(g_keys[SC_ESC])
+		if(KB_IS_KEY_DOWN(g_keys[SC_ESC]))
 			g_bQuit = true;
-		if(g_keys[SC_S])
+		if(KB_IS_KEY_DOWN(g_keys[SC_S]))
 			db.gfx_screenshot("testscreen2");
 	}
 

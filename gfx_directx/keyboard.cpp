@@ -37,17 +37,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLShift == (HIWORD(lParam) & 0x7f))
 				{
 					m_virtualKeys[VK_LSHIFT] = 0x80;
-					m_scancodes[ c_vk2fb[VK_LSHIFT] ] |= 0x3;
+					m_scancodes[ c_vk2fb[VK_LSHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 				else
 				{
 					m_virtualKeys[VK_RSHIFT] = 0x80;
-					m_scancodes[ c_vk2fb[VK_RSHIFT] ] |= 0x3;
+					m_scancodes[ c_vk2fb[VK_RSHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 				if(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT])
 				{
 					m_virtualKeys[VK_SHIFT] = 0x80;
-					m_scancodes[ c_vk2fb[VK_SHIFT] ] |= 0x3;
+					m_scancodes[ c_vk2fb[VK_SHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS(); //this needs attention, as well as all the other L/R calls--generic called twice but only once on release
 				}
 			}
 			else if(wParam == VK_CONTROL)
@@ -55,17 +55,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLCtrl == (HIWORD(lParam) & 0x7f))
 				{
 					m_virtualKeys[VK_LCONTROL] = 0x80;
-					m_scancodes[ c_vk2fb[VK_LCONTROL] ] |= 0x3;
+					m_scancodes[ c_vk2fb[VK_LCONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 				else
 				{
 					m_virtualKeys[VK_RCONTROL] = 0x80;
-					m_scancodes[ c_vk2fb[VK_RCONTROL] ] |= 0x3;
+					m_scancodes[ c_vk2fb[VK_RCONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 				if(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL])
 				{
 					m_virtualKeys[VK_CONTROL] = 0x80;
-					m_scancodes[ c_vk2fb[VK_CONTROL] ] |= 0x3;
+					m_scancodes[ c_vk2fb[VK_CONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 			}
 			else if(wParam == VK_MENU)
@@ -73,23 +73,23 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLAlt == (HIWORD(lParam) & 0x7f))
 				{
 					m_virtualKeys[VK_LMENU] = 0x80;
-					m_scancodes[ c_vk2fb[VK_LMENU] ] |= 0x3;
+					m_scancodes[ c_vk2fb[VK_LMENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 				else
 				{
 					m_virtualKeys[VK_RMENU] = 0x80;
-					m_scancodes[ c_vk2fb[VK_RMENU] ] |= 0x3;
+					m_scancodes[ c_vk2fb[VK_RMENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 				if(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU])
 				{
 					m_virtualKeys[VK_MENU] = 0x80;
-					m_scancodes[ c_vk2fb[VK_MENU] ] |= 0x3;
+					m_scancodes[ c_vk2fb[VK_MENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 			}
 			else
 			{
 				m_virtualKeys[wParam] = 0x80;
-				m_scancodes[ c_vk2fb[wParam] ] |= 0x3;
+				m_scancodes[ c_vk2fb[wParam] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 			}
 		} break;
 	case WM_SYSKEYUP:
@@ -100,12 +100,12 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_virtualKeys[wParam] == 0x80)
 				{
 					m_virtualKeys[wParam] = 0x0;
-					m_scancodes[ c_vk2fb[wParam] ] &= 0x2;
+					m_scancodes[ c_vk2fb[wParam] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 				else
 				{
 					m_virtualKeys[wParam] = 0x80;
-					m_scancodes[ c_vk2fb[wParam] ] |= 0x3;
+					m_scancodes[ c_vk2fb[wParam] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 			}
 			else if(wParam == VK_SHIFT)
@@ -113,17 +113,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLShift == (HIWORD(lParam) & 0x7f))
 				{
 					m_virtualKeys[VK_LSHIFT] = 0x0;
-					m_scancodes[ c_vk2fb[VK_LSHIFT] ] &= 0x2;
+					m_scancodes[ c_vk2fb[VK_LSHIFT] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 				else
 				{
 					m_virtualKeys[VK_RSHIFT] = 0x0;
-					m_scancodes[ c_vk2fb[VK_RSHIFT] ] &= 0x2;
+					m_scancodes[ c_vk2fb[VK_RSHIFT] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 				if(!(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT]))
 				{
 					m_virtualKeys[VK_SHIFT] = 0x0;
-					m_scancodes[ c_vk2fb[VK_SHIFT] ] &= 0x2;
+					m_scancodes[ c_vk2fb[VK_SHIFT] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 			}
 			else if(wParam == VK_CONTROL)
@@ -131,17 +131,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLCtrl == (HIWORD(lParam) & 0x7f))
 				{
 					m_virtualKeys[VK_LCONTROL] = 0x0;
-					m_scancodes[ c_vk2fb[VK_LCONTROL] ] &= 0x2;
+					m_scancodes[ c_vk2fb[VK_LCONTROL] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 				else
 				{
 					m_virtualKeys[VK_RCONTROL] = 0x0;
-					m_scancodes[ c_vk2fb[VK_RCONTROL] ] &= 0x2;
+					m_scancodes[ c_vk2fb[VK_RCONTROL] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 				if(!(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL]))
 				{
 					m_virtualKeys[VK_CONTROL] = 0x0;
-					m_scancodes[ c_vk2fb[VK_CONTROL] ] &= 0x2;
+					m_scancodes[ c_vk2fb[VK_CONTROL] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 			}
 			else if(wParam == VK_MENU)
@@ -149,23 +149,23 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLAlt == (HIWORD(lParam) & 0x7f))
 				{
 					m_virtualKeys[VK_LMENU] = 0x0;
-					m_scancodes[ c_vk2fb[VK_LMENU] ] &= 0x2;
+					m_scancodes[ c_vk2fb[VK_LMENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 				else
 				{
 					m_virtualKeys[VK_RMENU] = 0x0;
-					m_scancodes[ c_vk2fb[VK_RMENU] ] &= 0x2;
+					m_scancodes[ c_vk2fb[VK_RMENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 				if(!(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU]))
 				{
 					m_virtualKeys[VK_MENU] = 0x0;
-					m_scancodes[ c_vk2fb[VK_MENU] ] &= 0x2;
+					m_scancodes[ c_vk2fb[VK_MENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 			}
 			else
 			{
 				m_virtualKeys[wParam] = 0x0;
-				m_scancodes[ c_vk2fb[wParam] ] &= 0x2;
+				m_scancodes[ c_vk2fb[wParam] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 			}
 		} break;
 	default:
@@ -192,9 +192,9 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 
-	SC_SHIFT, //generic shift key--what to do? Nothing: left and right are accounted for as special cases
-	SC_CTRL, //generic control key--what to do? fb doesn't distinguish between the left and right, so pass it along
-	SC_ALT, //generic alt key--what to do? fb doesn't distinguish between the left and right, so pass it along
+	SC_SHIFT, //generic shift key
+	SC_CTRL, //generic control key
+	SC_ALT, //generic alt key
 	SC_PAUSE,
 	SC_CAPSLOCK,
 	0,

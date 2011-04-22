@@ -78,7 +78,7 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName)
 	m_d3d.Attach(Direct3DCreate9(D3D_SDK_VERSION));
 	if(m_d3d == NULL)
 		return E_FAIL;
-	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_pWindow->getWindowHandle(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE, &m_d3dpp, &m_d3ddev);
+	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_pWindow->getWindowHandle(), D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | D3DCREATE_PUREDEVICE, &m_d3dpp, &m_d3ddev);
 	if(FAILED(hr))
 		return hr;
 	if(S_OK != m_surface.initialize(m_d3ddev, 320, 200))
