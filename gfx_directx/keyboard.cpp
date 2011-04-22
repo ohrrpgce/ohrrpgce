@@ -2,11 +2,13 @@
 #include "..\\scancodes.h"
 using namespace gfx;
 
-Keyboard::Keyboard() : m_scLShift(0)
+Keyboard::Keyboard() : m_scLShift(0), m_scLCtrl(0), m_scLAlt(0)
 {
 	ZeroMemory(m_scancodes, sizeof(m_scancodes));
 	ZeroMemory(m_virtualKeys, sizeof(m_virtualKeys));
 	m_scLShift = MapVirtualKey(VK_SHIFT, MAPVK_VK_TO_VSC);
+	m_scLCtrl = MapVirtualKey(VK_CONTROL, MAPVK_VK_TO_VSC);
+	m_scLAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
 }
 
 //void Keyboard::Poll()
@@ -42,6 +44,47 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					m_virtualKeys[VK_RSHIFT] = 0x80;
 					m_scancodes[ c_vk2fb[VK_RSHIFT] ] |= 0x3;
 				}
+				if(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT])
+				{
+					m_virtualKeys[VK_SHIFT] = 0x80;
+					m_scancodes[ c_vk2fb[VK_SHIFT] ] |= 0x3;
+				}
+			}
+			else if(wParam == VK_CONTROL)
+			{//to distinguish between left and right
+				if(m_scLCtrl == (HIWORD(lParam) & 0x7f))
+				{
+					m_virtualKeys[VK_LCONTROL] = 0x80;
+					m_scancodes[ c_vk2fb[VK_LCONTROL] ] |= 0x3;
+				}
+				else
+				{
+					m_virtualKeys[VK_RCONTROL] = 0x80;
+					m_scancodes[ c_vk2fb[VK_RCONTROL] ] |= 0x3;
+				}
+				if(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL])
+				{
+					m_virtualKeys[VK_CONTROL] = 0x80;
+					m_scancodes[ c_vk2fb[VK_CONTROL] ] |= 0x3;
+				}
+			}
+			else if(wParam == VK_MENU)
+			{//to distinguish between left and right
+				if(m_scLAlt == (HIWORD(lParam) & 0x7f))
+				{
+					m_virtualKeys[VK_LMENU] = 0x80;
+					m_scancodes[ c_vk2fb[VK_LMENU] ] |= 0x3;
+				}
+				else
+				{
+					m_virtualKeys[VK_RMENU] = 0x80;
+					m_scancodes[ c_vk2fb[VK_RMENU] ] |= 0x3;
+				}
+				if(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU])
+				{
+					m_virtualKeys[VK_MENU] = 0x80;
+					m_scancodes[ c_vk2fb[VK_MENU] ] |= 0x3;
+				}
 			}
 			else
 			{
@@ -76,6 +119,47 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				{
 					m_virtualKeys[VK_RSHIFT] = 0x0;
 					m_scancodes[ c_vk2fb[VK_RSHIFT] ] &= 0x2;
+				}
+				if(!(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT]))
+				{
+					m_virtualKeys[VK_SHIFT] = 0x0;
+					m_scancodes[ c_vk2fb[VK_SHIFT] ] &= 0x2;
+				}
+			}
+			else if(wParam == VK_CONTROL)
+			{//to distinguish between left and right
+				if(m_scLCtrl == (HIWORD(lParam) & 0x7f))
+				{
+					m_virtualKeys[VK_LCONTROL] = 0x0;
+					m_scancodes[ c_vk2fb[VK_LCONTROL] ] &= 0x2;
+				}
+				else
+				{
+					m_virtualKeys[VK_RCONTROL] = 0x0;
+					m_scancodes[ c_vk2fb[VK_RCONTROL] ] &= 0x2;
+				}
+				if(!(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL]))
+				{
+					m_virtualKeys[VK_CONTROL] = 0x0;
+					m_scancodes[ c_vk2fb[VK_CONTROL] ] &= 0x2;
+				}
+			}
+			else if(wParam == VK_MENU)
+			{//to distinguish between left and right
+				if(m_scLAlt == (HIWORD(lParam) & 0x7f))
+				{
+					m_virtualKeys[VK_LMENU] = 0x0;
+					m_scancodes[ c_vk2fb[VK_LMENU] ] &= 0x2;
+				}
+				else
+				{
+					m_virtualKeys[VK_RMENU] = 0x0;
+					m_scancodes[ c_vk2fb[VK_RMENU] ] &= 0x2;
+				}
+				if(!(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU]))
+				{
+					m_virtualKeys[VK_MENU] = 0x0;
+					m_scancodes[ c_vk2fb[VK_MENU] ] &= 0x2;
 				}
 			}
 			else

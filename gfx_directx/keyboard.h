@@ -15,6 +15,8 @@ namespace gfx
 		int m_scancodes[128];
 		BYTE m_virtualKeys[256];
 		UINT m_scLShift;
+		UINT m_scLCtrl;
+		UINT m_scLAlt;
 	public:
 		Keyboard();
 
