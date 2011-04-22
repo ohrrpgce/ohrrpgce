@@ -70,13 +70,15 @@ baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
 basexe = Builder (action = '$FBC $FBFLAGS -x $TARGET $FBLIBS $SOURCES',
                   suffix = exe_suffix, src_suffix = '.bas')
 
-scanner = Scanner (function = basfile_scan,
-                   skeys = ['.bas'])
+bas_scanner = Scanner (function = basfile_scan,
+                       skeys = ['.bas', '.bi'], recursive = True)
 
-env['BUILDERS']['Object'].add_action('.bas', '$FBC -c $SOURCE -o $TARGET $FBFLAGS')
+env['BUILDERS']['Object'].add_action ('.bas', '$FBC -c $SOURCE -o $TARGET $FBFLAGS')
+SourceFileScanner.add_scanner ('.bas', bas_scanner)
+SourceFileScanner.add_scanner ('.bi', bas_scanner)
 
 env.Append (BUILDERS = {'BASEXE':basexe, 'BASO':baso, 'VARIANT_BASO':variant_baso},
-            SCANNERS = scanner)
+            SCANNERS = bas_scanner)
 
 
 env['ENV']['PATH'] = os.environ['PATH']

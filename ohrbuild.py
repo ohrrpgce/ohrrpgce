@@ -5,7 +5,7 @@ import re
 import fnmatch
 import sys
 
-include_re = re.compile(r'^#include\s+"(\S+)"$', re.M)
+include_re = re.compile(r'^#include\s+"(\S+)"', re.M | re.I)
 
 standard_bi = ['crt', 'SDL', 'libxml', 'fbgfx.bi', 
                'file.bi', 'allegro.bi', 'string.bi']
@@ -16,23 +16,8 @@ def scrub_includes(includes):
 def basfile_scan(node, env, path):
     contents = node.get_text_contents()
     included = scrub_includes (include_re.findall (contents))
-    # recursively re-check each include for other includes
-    for bi in included:
-        basfile_recurse_scan(bi, included)
+    #print str(node) + " includes", included
     return included
-
-def basfile_recurse_scan(filename, included):
-    f = open(filename)
-    text = f.read()
-    f.close()
-    deeper = scrub_includes (include_re.findall (text))
-    for v in deeper:
-        # get relative path to file
-        v = os.path.normpath (os.path.join (os.path.dirname (filename), v))
-        if v not in included:
-            included.append(v)
-            basfile_recurse_scan(v, included)
-    
 
 def verprint (used_gfx, used_music, svn, git, fbc):
     # generate ver.txt
