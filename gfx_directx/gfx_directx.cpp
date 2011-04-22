@@ -6,8 +6,8 @@
 #include "gfx_directx_cls_mouse.h"
 #include "gfx_directx_cls_joystick.h"
 #include "gfx_directx_version.h"
-#include "BackendDebugger.h"
-#include "CBackend.h"
+//#include "BackendDebugger.h"
+//#include "CBackend.h"
 
 using namespace gfx;
 
@@ -24,7 +24,7 @@ using namespace gfx;
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 
-CBackend g_Debugger;
+//CBackend g_Debugger;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 1.0 interfaces
@@ -34,27 +34,27 @@ void SendDebugString(const char* szMessage) {}
 
 DFI_IMPLEMENT_CDECL(int, gfx_init, void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
 {
-	g_Debugger.m_hook->SendDebugString("gfx_init(): Starting Initialization...");
+	//g_Debugger.m_hook->SendDebugString("gfx_init(): Starting Initialization...");
 
 	GFX_INIT gfxInit = {sizeof(GFX_INIT), "DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString};
 	if(gfx_Initialize(&gfxInit) == 0)
 	{
 		if(info_buffer != NULL && info_buffer_size > 16)
 			strcpy(info_buffer, "Backend failed!");
-		else
-			g_Debugger.m_hook->SendDebugString("gfx_init(): Backend initialization failed!");
+		//else
+		//	g_Debugger.m_hook->SendDebugString("gfx_init(): Backend initialization failed!");
 		return 0;
 	}
 	if(info_buffer != NULL && info_buffer_size > 18)
 		strcpy(info_buffer, "Backend success!");
-	else
-		g_Debugger.m_hook->SendDebugString("gfx_init(): Backend initialization success!");
+	//else
+	//	g_Debugger.m_hook->SendDebugString("gfx_init(): Backend initialization success!");
 	return 1;
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_close)
 {
-	g_Debugger.m_hook->SendDebugString("gfx_close: Closing backend...");
+	//g_Debugger.m_hook->SendDebugString("gfx_close: Closing backend...");
 	gfx_Shutdown();
 }
 
@@ -79,7 +79,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_screenshot, const char* fname)
 {
 	char szTmp[MAX_PATH + 30] = "";
 	::sprintf(szTmp, "gfx_screenshot: Attempting %s...", fname);
-	g_Debugger.m_hook->SendDebugString(szTmp);
+	//g_Debugger.m_hook->SendDebugString(szTmp);
 	return gfx_ScreenShot(fname);
 }
 
@@ -92,7 +92,7 @@ DFI_IMPLEMENT_CDECL(void, gfx_windowtitle, const char* title)
 {
 	char szTmp[MAX_PATH + 30] = "";
 	::sprintf(szTmp, "gfx_windowtitle: %s...", title);
-	g_Debugger.m_hook->SendDebugString(szTmp);
+	//g_Debugger.m_hook->SendDebugString(szTmp);
 	gfx_SetWindowTitle(title);
 }
 
@@ -187,7 +187,7 @@ DFI_IMPLEMENT_CDECL(int, io_setmousevisibility, int visible)
 {
 	char szTmp[30 + 30] = "";
 	::sprintf(szTmp, "io_setmousevisility: Setting to %s cursor...", visible == 0 ? "Hide" : "Show");
-	g_Debugger.m_hook->SendDebugString(szTmp);
+	//g_Debugger.m_hook->SendDebugString(szTmp);
 
 	if(visible == 0)
 		gfx_HideCursor();
@@ -263,7 +263,7 @@ void LoadHelpText()
 
 DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 {
-	g_Debugger.m_hook->SendDebugString("gfx_Initialize: Initializing...)");
+	//g_Debugger.m_hook->SendDebugString("gfx_Initialize: Initializing...)");
 
 	if(pCreationData == NULL)
 		return FALSE;
@@ -304,7 +304,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 
 	//g_State.SendDebugString("gfx_directx: D3D Initialized!");
 
-	if(FAILED(g_Joystick.Initialize( g_Window.GetAppHandle(), g_Window.GetWindowHandle() )))
+	/*if(FAILED(*/g_Joystick.Initialize( g_Window.GetAppHandle(), g_Window.GetWindowHandle() );/*))*/
 		//g_State.SendDebugString("gfx_directx: Failed to support joysticks!");
 	//else
 		//g_State.SendDebugString("gfx_directx: Joysticks supported!");
@@ -321,22 +321,22 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 
 DFI_IMPLEMENT_CDECL(void, gfx_Shutdown)
 {
-	g_State.SendDebugString("gfx_directx: Closing backend...");
+	//g_State.SendDebugString("gfx_directx: Closing backend...");
 	g_Joystick.Shutdown();
 	g_DirectX.Shutdown();
 	g_Window.Shutdown();
 	gfx_PumpMessages();
-	g_State.SendDebugString("gfx_directx: Close complete!");
+	//g_State.SendDebugString("gfx_directx: Close complete!");
 	CoUninitialize();
 }
 
 DFI_IMPLEMENT_CDECL(int, gfx_SendMessage, unsigned int msg, unsigned int dwParam, void *pvParam)
 {
-	static UINT l_Msg = g_Debugger.m_hook->CreateStatusListener();
+	//static UINT l_Msg = g_Debugger.m_hook->CreateStatusListener();
 
-	char szTmp[12] = "";
-	sprintf(szTmp, "0x%h", msg);
-	g_Debugger.m_hook->SendStatus(l_Msg, IAppHook::SC_OK, szTmp);
+	//char szTmp[12] = "";
+	//sprintf(szTmp, "0x%h", msg);
+	//g_Debugger.m_hook->SendStatus(l_Msg, IAppHook::SC_OK, szTmp);
 
 	switch(msg)
 	{
@@ -441,12 +441,12 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetVersion)
 
 DFI_IMPLEMENT_CDECL(void, gfx_Present, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
 {
-	static UINT l_present = g_Debugger.m_hook->CreateStatusListener();
+	//static UINT l_present = g_Debugger.m_hook->CreateStatusListener();
 
-	if(pSurface)
-		g_Debugger.m_hook->SendStatus(l_present, IAppHook::SC_OK, "surface");
-	if(pPalette)
-		g_Debugger.m_hook->SendStatus(l_present, IAppHook::SC_OK, "palette");
+	//if(pSurface)
+	//	g_Debugger.m_hook->SendStatus(l_present, IAppHook::SC_OK, "surface");
+	//if(pPalette)
+	//	g_Debugger.m_hook->SendStatus(l_present, IAppHook::SC_OK, "palette");
 	//if(pPalette)
 	//	g_DirectX.SetPalette(&Palette<UINT>(pPalette, 256));
 	//g_DirectX.ShowPage(pSurface, nWidth, nHeight);
@@ -1013,11 +1013,11 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Debug interfaces
 
-DFI_IMPLEMENT_CDECL( int, GetDebugInterface, IBackend** ppInterface )
-{
-	if(IsBadWritePtr((void*)ppInterface, sizeof(IBackend*)))
-		return E_POINTER;
-
-	*ppInterface = (IBackend*)&g_Debugger;
-	return S_OK;
-}
+//DFI_IMPLEMENT_CDECL( int, GetDebugInterface, IBackend** ppInterface )
+//{
+//	if(IsBadWritePtr((void*)ppInterface, sizeof(IBackend*)))
+//		return E_POINTER;
+//
+//	*ppInterface = (IBackend*)&g_Debugger;
+//	return S_OK;
+//}
