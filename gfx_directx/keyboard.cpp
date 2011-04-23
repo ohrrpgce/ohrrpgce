@@ -2,13 +2,13 @@
 #include "..\\scancodes.h"
 using namespace gfx;
 
-Keyboard::Keyboard() : m_scLShift(0), m_scLCtrl(0), m_scLAlt(0)
+#define VK_NUMPAD_ENTER 0xCA //reserved in windows, but recommended on a site
+
+Keyboard::Keyboard() : m_scLShift(0)
 {
 	ZeroMemory(m_scancodes, sizeof(m_scancodes));
 	ZeroMemory(m_virtualKeys, sizeof(m_virtualKeys));
 	m_scLShift = MapVirtualKey(VK_SHIFT, MAPVK_VK_TO_VSC);
-	m_scLCtrl = MapVirtualKey(VK_CONTROL, MAPVK_VK_TO_VSC);
-	m_scLAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
 }
 
 //void Keyboard::Poll()
@@ -34,7 +34,7 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if(wParam == VK_SHIFT)
 			{//to distinguish between left and right
-				if(m_scLShift == (HIWORD(lParam) & 0x7f))
+				if(m_scLShift == (HIWORD(lParam) & 0xff))
 				{
 					m_virtualKeys[VK_LSHIFT] = 0x80;
 					m_scancodes[ c_vk2fb[VK_LSHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
@@ -44,25 +44,25 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					m_virtualKeys[VK_RSHIFT] = 0x80;
 					m_scancodes[ c_vk2fb[VK_RSHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
-				if(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT])
+				if(m_virtualKeys[VK_LSHIFT] ^ m_virtualKeys[VK_RSHIFT])
 				{
 					m_virtualKeys[VK_SHIFT] = 0x80;
-					m_scancodes[ c_vk2fb[VK_SHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS(); //this needs attention, as well as all the other L/R calls--generic called twice but only once on release
+					m_scancodes[ c_vk2fb[VK_SHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
 			}
 			else if(wParam == VK_CONTROL)
 			{//to distinguish between left and right
-				if(m_scLCtrl == (HIWORD(lParam) & 0x7f))
-				{
-					m_virtualKeys[VK_LCONTROL] = 0x80;
-					m_scancodes[ c_vk2fb[VK_LCONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
-				}
-				else
+				if(HIWORD(lParam) & 0x100) //extended key, right control
 				{
 					m_virtualKeys[VK_RCONTROL] = 0x80;
 					m_scancodes[ c_vk2fb[VK_RCONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
-				if(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL])
+				else
+				{
+					m_virtualKeys[VK_LCONTROL] = 0x80;
+					m_scancodes[ c_vk2fb[VK_LCONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+				}
+				if(m_virtualKeys[VK_LCONTROL] ^ m_virtualKeys[VK_RCONTROL])
 				{
 					m_virtualKeys[VK_CONTROL] = 0x80;
 					m_scancodes[ c_vk2fb[VK_CONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
@@ -70,20 +70,33 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if(wParam == VK_MENU)
 			{//to distinguish between left and right
-				if(m_scLAlt == (HIWORD(lParam) & 0x7f))
-				{
-					m_virtualKeys[VK_LMENU] = 0x80;
-					m_scancodes[ c_vk2fb[VK_LMENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
-				}
-				else
+				if(HIWORD(lParam) & 0x100) //extended key, right alt
 				{
 					m_virtualKeys[VK_RMENU] = 0x80;
 					m_scancodes[ c_vk2fb[VK_RMENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
 				}
-				if(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU])
+				else
+				{
+					m_virtualKeys[VK_LMENU] = 0x80;
+					m_scancodes[ c_vk2fb[VK_LMENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+				}
+				if(m_virtualKeys[VK_LMENU] ^ m_virtualKeys[VK_RMENU])
 				{
 					m_virtualKeys[VK_MENU] = 0x80;
 					m_scancodes[ c_vk2fb[VK_MENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+				}
+			}
+			else if(wParam == VK_RETURN)
+			{
+				if(HIWORD(lParam) & 0x100) //extended key, numpad enter
+				{
+					m_virtualKeys[VK_NUMPAD_ENTER] == 0x80;
+					m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ] = KB_CREATE_KEYPRESS();
+				}
+				else
+				{
+					m_virtualKeys[VK_RETURN] == 0x80;
+					m_scancodes[ c_vk2fb[VK_RETURN] ] = KB_CREATE_KEYPRESS();
 				}
 			}
 			else
@@ -110,7 +123,7 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if(wParam == VK_SHIFT)
 			{//to distinguish between left and right
-				if(m_scLShift == (HIWORD(lParam) & 0x7f))
+				if(m_scLShift == (HIWORD(lParam) & 0xff))
 				{
 					m_virtualKeys[VK_LSHIFT] = 0x0;
 					m_scancodes[ c_vk2fb[VK_LSHIFT] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
@@ -128,15 +141,15 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if(wParam == VK_CONTROL)
 			{//to distinguish between left and right
-				if(m_scLCtrl == (HIWORD(lParam) & 0x7f))
-				{
-					m_virtualKeys[VK_LCONTROL] = 0x0;
-					m_scancodes[ c_vk2fb[VK_LCONTROL] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
-				}
-				else
+				if(HIWORD(lParam) & 0x100) //extended key, right control
 				{
 					m_virtualKeys[VK_RCONTROL] = 0x0;
 					m_scancodes[ c_vk2fb[VK_RCONTROL] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+				}
+				else
+				{
+					m_virtualKeys[VK_LCONTROL] = 0x0;
+					m_scancodes[ c_vk2fb[VK_LCONTROL] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 				if(!(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL]))
 				{
@@ -146,20 +159,33 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			else if(wParam == VK_MENU)
 			{//to distinguish between left and right
-				if(m_scLAlt == (HIWORD(lParam) & 0x7f))
-				{
-					m_virtualKeys[VK_LMENU] = 0x0;
-					m_scancodes[ c_vk2fb[VK_LMENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
-				}
-				else
+				if(HIWORD(lParam) & 0x100) //extended key, right alt
 				{
 					m_virtualKeys[VK_RMENU] = 0x0;
 					m_scancodes[ c_vk2fb[VK_RMENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+				}
+				else
+				{
+					m_virtualKeys[VK_LMENU] = 0x0;
+					m_scancodes[ c_vk2fb[VK_LMENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
 				}
 				if(!(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU]))
 				{
 					m_virtualKeys[VK_MENU] = 0x0;
 					m_scancodes[ c_vk2fb[VK_MENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+				}
+			}
+			else if(wParam == VK_RETURN)
+			{
+				if(HIWORD(lParam) & 0x100) //extended key, numpad enter
+				{
+					m_virtualKeys[VK_NUMPAD_ENTER] == 0x0;
+					m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ] = KB_CREATE_KEYRELEASE();
+				}
+				else
+				{
+					m_virtualKeys[VK_RETURN] == 0x0;
+					m_scancodes[ c_vk2fb[VK_RETURN] ] = KB_CREATE_KEYRELEASE();
 				}
 			}
 			else
@@ -390,7 +416,7 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 	0,
-	0,
+	SC_NUMPADENTER, //this is supposed to be reserved, but it was recommended to change here at 0xCA; it still doesn't work, though
 	0,
 	0,
 	0,

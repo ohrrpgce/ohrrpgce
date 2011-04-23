@@ -6,12 +6,12 @@
 
 #include <windows.h>
 
-#define KB_STATE 0x2 //are these values right? are they reversed?
-#define KB_EVENT 0x1
+#define KB_STATE 0x1 //are these values right? are they reversed?
+#define KB_EVENT 0x2
 
 #define KB_CONSUME_EVENT(bits)		(bits & (~KB_EVENT))
 #define KB_CREATE_KEYPRESS()		(KB_STATE | KB_EVENT)
-#define KB_CREATE_KEYRELEASE()		(KB_EVENT)
+#define KB_CREATE_KEYRELEASE()		0 //(KB_EVENT)
 
 #define KB_IS_KEY_DOWN(bits)		( ((bits & KB_STATE) != 0) ? true : false )
 #define KB_IS_NEW_EVENT(bits)		( ((bits & KB_EVENT) != 0) ? true : false )
@@ -30,8 +30,6 @@ namespace gfx
 		int m_scancodes[128];
 		BYTE m_virtualKeys[256];
 		UINT m_scLShift;
-		UINT m_scLCtrl;
-		UINT m_scLAlt;
 	public:
 		Keyboard();
 
