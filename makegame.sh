@@ -29,6 +29,7 @@ for backend in `echo ${GFX} | tr "+" "\n"` ; do
 done
 EXTRA="${EXTRA} music_${MUSIC}.bas"
 
+gcc -c -g -O3 array.c --std=c99
 gcc -c -g -O3 blit.c
 gcc -c -g -O3 base64.c --std=c99
 
@@ -54,5 +55,5 @@ fbc -lang deprecated -g -v -exx -mt -m game -d IS_GAME -d DATAFILES='"/usr/share
   ${3} ${4} ${5} ${6} ${7} ${8} \
   game.bas bmod.bas bmodsubs.bas allmodex.bas menustuf.bas moresubs.bas yetmore.bas yetmore2.bas savegame.bas \
   hsinterpreter.bas misc.bas bam2mid.bas loading.bas common.bas browse.bas util.bas slices.bas reload.bas reloadext.bas blit.o \
-  base64.o lumpfile.bas backends.bas os_unix.bas bcommon.bas ${EXTRA} \
+  array.o base64.o lumpfile.bas backends.bas os_unix.bas bcommon.bas vector.bas ${EXTRA} \
 && mv game ohrrpgce-game

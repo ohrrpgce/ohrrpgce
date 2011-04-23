@@ -172,7 +172,7 @@ commonenv['FBLIBS'] += libpaths + libraries
 verprint (used_gfx, used_music, svn, git, fbc)
 
 
-base_modules += ['util.bas','blit.c','base64.c']
+base_modules += ['util.bas', 'blit.c', 'base64.c', 'array.c', 'vector.bas']
 
 common_modules += ['allmodex',
                    'backends',
@@ -258,6 +258,7 @@ RELOADTEST = env.BASEXE ('reloadtest', source = ['reloadtest.bas'] + reload_obje
 XML2RELOAD = env.BASEXE ('xml2reload', source = ['xml2reload.bas'] + reload_objects, FBLIBS = env['FBLIBS'] + ['-p','.', '-l','xml2'])
 RELOAD2XML = env.BASEXE ('reload2xml', source = ['reload2xml.bas'] + reload_objects)
 RELOADUTIL = env.BASEXE ('reloadutil', source = ['reloadutil.bas'] + reload_objects)
+env.BASEXE ('vectortest', source = ['vectortest.bas'] + base_objects)
 
 Default (GAME)
 Default (CUSTOM)
@@ -296,6 +297,7 @@ Targets:
   xml2reload
   reload2xml
   reloadutil
+  vectortest
   bam2mid
   reload              Compile all RELOAD utilities.
   .                   Compile everything.

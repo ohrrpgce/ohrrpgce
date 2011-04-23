@@ -8,6 +8,7 @@ Using Reload.Ext
 TYPE testPtr as function() as integer
 
 dim shared pauseTime as double
+dim shared errorpos as integer
 
 Randomize
 
@@ -38,7 +39,7 @@ sub doTest(t as string, byval theTest as testPtr)
 	'diff *= 1000000
 	
 	if ret then
-		print "FAIL"
+		print "FAIL (on line " & errorpos & ")"
 		end num
 	else
 		print "Pass"
@@ -59,7 +60,7 @@ sub doTest(t as string, byval theTest as testPtr)
 end sub
 
 #define pass return 0
-#define fail return 1
+#define fail errorpos = __LINE__ : return 1
 
 #macro startTest(t)
 	Declare Function t##_TEST() as integer

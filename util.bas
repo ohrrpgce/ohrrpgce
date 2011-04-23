@@ -570,31 +570,35 @@ SUB sort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVA
  NEXT
 END SUB
 
-TYPE FnQsortCompare as FUNCTION CDECL (BYVAL as any ptr, BYVAL as any ptr) as integer
+FUNCTION integer_compare CDECL (BYVAL a as integer ptr, BYVAL b as integer ptr) as integer
+ IF *a < *b THEN RETURN -1
+ IF *a > *b THEN RETURN 1
+ 'implicitly RETURN 0 (it's faster to omit the RETURN :-)
+END FUNCTION
 
-FUNCTION integer_compare CDECL (BYVAL a as integer ptr ptr, BYVAL b as integer ptr ptr) as integer
+FUNCTION integerptr_compare CDECL (BYVAL a as integer ptr ptr, BYVAL b as integer ptr ptr) as integer
  IF **a < **b THEN RETURN -1
  IF **a > **b THEN RETURN 1
  'implicitly RETURN 0 (it's faster to omit the RETURN :-)
 END FUNCTION
 
 'a string ptr is a pointer to a FB string descriptor
-FUNCTION string_compare CDECL (BYVAL a as string ptr ptr, BYVAL b as string ptr ptr) as integer
- 'This is equivalent, but the code below can be adapted for case insensitive compare (and is faster)
- 'RETURN fb_StrCompare( **a, -1, **b, -1)
+FUNCTION string_compare CDECL (BYVAL a as string ptr, BYVAL b as string ptr) as integer
+ 'This is equivalent, but the code below can be adapted for case insensitive compare (and is faster (what, how?!))
+ 'RETURN fb_StrCompare( *a, -1, *b, -1)
 
  DIM as integer ret = 0, somenull = 0
  'Ah, brings back happy memories of C hacking, doesn'it?
- IF @((**a)[0]) = 0 THEN ret -= 1: somenull = 1
- IF @((**b)[0]) = 0 THEN ret += 1: somenull = 1
+ IF @((*a)[0]) = 0 THEN ret -= 1: somenull = 1
+ IF @((*b)[0]) = 0 THEN ret += 1: somenull = 1
  IF somenull THEN RETURN ret
 
  DIM k AS INTEGER = 0
  DIM chara as ubyte
  DIM charb as ubyte
  DO
-  chara = (**a)[k]
-  charb = (**b)[k]
+  chara = (*a)[k]
+  charb = (*b)[k]
   IF chara < charb THEN
    RETURN -1
   ELSEIF chara > charb THEN
@@ -605,9 +609,13 @@ FUNCTION string_compare CDECL (BYVAL a as string ptr ptr, BYVAL b as string ptr 
  RETURN 0
 END FUNCTION
 
+FUNCTION stringptr_compare CDECL (BYVAL a as string ptr ptr, BYVAL b as string ptr ptr) as integer
+ RETURN string_compare(*a, *b)
+END FUNCTION
+
 'CRT Quicksort. Running time is *usually* O(n*log(n)). NOT STABLE
 'See sort_integer_indices.
-PRIVATE SUB qsort_indices(indices() as integer, BYVAL start as any ptr, BYVAL number as integer, BYVAL stride as integer, BYVAL compare_fn as FnQsortCompare)
+PRIVATE SUB qsort_indices(indices() as integer, BYVAL start as any ptr, BYVAL number as integer, BYVAL stride as integer, BYVAL compare_fn as FnCompare)
  IF number = 0 THEN number = UBOUND(indices) + 1
 
  DIM keys(number - 1) as any ptr
@@ -624,11 +632,11 @@ PRIVATE SUB qsort_indices(indices() as integer, BYVAL start as any ptr, BYVAL nu
 END SUB
 
 SUB qsort_integers_indices(indices() as integer, BYVAL start as integer ptr, BYVAL number as integer, BYVAL stride as integer)
- qsort_indices indices(), start, number, stride, CAST(FnQsortCompare, @integer_compare)
+ qsort_indices indices(), start, number, stride, CAST(FnCompare, @integerptr_compare)
 END SUB
 
 SUB qsort_strings_indices(indices() as integer, BYVAL start as string ptr, BYVAL number as integer, BYVAL stride as integer)
- qsort_indices indices(), start, number, stride, CAST(FnQsortCompare, @string_compare)
+ qsort_indices indices(), start, number, stride, CAST(FnCompare, @stringptr_compare)
 END SUB
 
 'Invert a permutation such as that returned by sort_integers_indices;
@@ -1276,7 +1284,6 @@ FUNCTION hash_iter(byref this as HashTable, byref state as integer, byref item a
   item = HTCASTUSERPTR(it)
   return item
 END FUNCTION
-
 
 '------------- Old allmodex stuff -------------
 

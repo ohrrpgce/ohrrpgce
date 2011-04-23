@@ -10,6 +10,9 @@
 #DEFINE NULL 0
 #ENDIF
 
+#include "crt/string.bi"
+#include "vector.bi"
+
 
 '----------------------------------------------------------------------
 '                           Macro utilities
@@ -118,6 +121,11 @@ declare sub int_array_append (array() as integer, byval k as integer)
 declare sub intstr_array_append (array() as IntStrPair, byval k as integer, s as string)
 declare function int_array_find (array() as integer, byval value as integer) as integer
 declare sub int_array_remove (array() as integer, byval k as integer)
+/'
+declare sub int_array_exclude (() as integer, array() as integer)
+declare sub int_array_copy (dest() as integer, src() as integer)
+declare sub int_array_sort (dest() as integer, src() as integer)
+'/
 
 
 '--------------- Stack ----------------
@@ -214,15 +222,13 @@ TYPE HashedItem
 END TYPE
 '(notice that unlike DListItem, the HashedItem next/prev point to HashedItem rather than containing objects)
 
-TYPE CompareFn as function(byval as any ptr, byval as any ptr) as integer
-
 'if we had classes, then this would work well as a template, but it's pointless at the moment
 TYPE HashTable
   numitems as integer
   tablesize as unsigned integer
   table as any ptr ptr
   'arguments to comparefunc are (byval as TypeContainingHashedItem ptr, byval as KeyType ptr)
-  comparefunc as CompareFn
+  comparefunc as FnCompare
   memberoffset as integer
 END TYPE
 
@@ -326,6 +332,8 @@ declare sub flusharray (array() as integer, byval size as integer=-1, byval valu
 declare sub sort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer = 0, byval stride as integer = SIZEOF(integer))
 declare sub qsort_integers_indices(indices() as integer, byval start as integer ptr, byval number as integer, byval stride as integer)
 declare sub qsort_strings_indices(indices() as integer, byval start as string ptr, byval number as integer, byval stride as integer)
+declare function integer_compare cdecl (byval a as integer ptr, byval b as integer ptr) as integer
+declare function string_compare cdecl (byval a as string ptr, byval b as string ptr) as integer
 declare sub invert_permutation(indices() as integer)
 declare function strhash overload (byval strp as zstring ptr, byval leng as integer) as unsigned integer
 declare function strhash overload (hstr as string) as unsigned integer

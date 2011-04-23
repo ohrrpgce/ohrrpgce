@@ -44,7 +44,7 @@ ifdef win32
 #libfbgfx always needed, because of display_help_string!
 	libraries=fbgfx
 #libraries+= gdi32 winmm msvcrt kernel32 user32
-	base_objects+=os_windows.o win32\blit.o win32\base64.o
+	base_objects+=os_windows.o win32\blit.o win32\base64.o win32\array.o
 	game_exe:=game.exe
 	edit_exe:=custom.exe
 	verprint_exe:=verprint.exe
@@ -53,7 +53,7 @@ ifdef win32
 endif
 
 ifdef unix
-	base_objects+=os_unix.o blit.o base64.o
+	base_objects+=os_unix.o blit.o base64.o array.o
 ifndef mac
 	libraries+= X11 Xext Xpm Xrandr Xrender pthread
 else
@@ -142,6 +142,7 @@ endif
 endif
 endif
 
+base_objects+= vector.o
 
 common_modules+=allmodex backends lumpfile misc bam2mid common bcommon browse util loading reload reloadext slices
 common_objects+=$(base_objects) $(addsuffix .o,$(common_modules))
@@ -275,12 +276,12 @@ $(main_modules): %.o: %.bas $(includes)
 %.o: mac/%.m
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(semicommon_objects) game.o custom.o: codename.txt
-
 #unix only; run make in win32/ on windows
-blit.o: blit.c
-	$(CC) -c -g -O3 $<
-
-base64.o: base64.c
+%.o: %.c
 	$(CC) -c -g -O3 $< --std=c99
 
+$(semicommon_objects) game.o custom.o: codename.txt
+
+*.bi:
+
+.PHONY:

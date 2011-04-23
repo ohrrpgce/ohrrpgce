@@ -29,6 +29,7 @@ for backend in `echo ${GFX} | tr "+" "\n"` ; do
 done
 EXTRA="${EXTRA} music_${MUSIC}.bas"
 
+gcc -c -g -O3 array.c --std=c99
 gcc -c -g -O3 blit.c
 gcc -c -g -O3 base64.c --std=c99
 
@@ -55,6 +56,6 @@ fbc -lang deprecated -g -v -exx -mt -m custom -d IS_CUSTOM -d DATAFILES='"/usr/s
   custom.bas customsubs.bas drawing.bas subs.bas subs2.bas mapsubs.bas flexmenu.bas \
   menus.bas allmodex.bas misc.bas common.bas browse.bas util.bas bam2mid.bas loading.bas \
   lumpfile.bas slices.bas sliceedit.bas reload.bas reloadext.bas reloadedit.bas editedit.bas editrunner.bas backends.bas \
-  bcommon.bas os_unix.bas blit.o base64.o ${EXTRA} \
+  bcommon.bas os_unix.bas vector.bas array.o blit.o base64.o ${EXTRA} \
 && mv custom ohrrpgce-custom
 
