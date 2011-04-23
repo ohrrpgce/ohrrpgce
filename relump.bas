@@ -4,20 +4,15 @@
 'See README.txt for code docs and apologies for crappyness of this code ;)
 '
 ' Compile with makeutil.sh or makeutil.bat
-'
-'$DYNAMIC
+
 DEFINT A-Z
-'basic subs and functions
-DECLARE FUNCTION readkey$ ()
-DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
-DECLARE SUB fatalerror (e$)
-DECLARE FUNCTION rightafter$ (s$, d$)
 
 #include "config.bi"
 #include "util.bi"
 #include "const.bi"
 #include "file.bi"
 #include "lumpfile.bi"
+#include "common_base.bi"
 
 olddir$ = curdir
 
@@ -67,47 +62,8 @@ END IF
 IF isdir(dest$) THEN fatalerror "destination file " + dest$ + " already exists as a folder."
 
 '--build the list of files to lump
-DIM filelist() as string
+REDIM filelist() as string
 findfiles src$, ALLFILES, fileTypefile, NO, filelist()
 fixlumporder filelist()
 '---relump data into lumpfile package---
 lumpfiles filelist(), dest$, src$ + SLASH
-
-SYSTEM
-
-REM $STATIC
-
-SUB debug (e$)
- PRINT e$
-END SUB
-
-SUB debuginfo (e$)
- PRINT e$
-END SUB
-
-SUB fatalerror (e$)
- IF e$ <> "" THEN PRINT "ERROR: " + e$
- SYSTEM
-END SUB
-
-FUNCTION readkey$
- w$ = ""
- WHILE w$ = ""
-  w$ = INKEY$
- WEND
-
- readkey$ = w$
-END FUNCTION
-
-FUNCTION rightafter$ (s$, d$)
- rightafter$ = ""
- result$ = ""
-
- FOR i = LEN(s$) TO 1 STEP -1
-  IF MID$(s$, i, 1) = d$ THEN
-   rightafter$ = result$
-   EXIT FOR
-  END IF
-  result$ = MID$(s$, i, 1) + result$
- NEXT i
-END FUNCTION

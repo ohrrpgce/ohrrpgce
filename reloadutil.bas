@@ -88,5 +88,3 @@ if doc2 then
 	endTime = timer
 	print "Freed " & filename2 & " in " & timedisp(startTime, endTime)
 end if
-
-

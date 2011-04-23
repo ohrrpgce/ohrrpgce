@@ -14,26 +14,10 @@ CONST STACK_SIZE_INC = 512 ' in integers
 #include "util.bi"
 #include "cutil.bi"
 #include "os.bi"
+#include "common_base.bi"
 
 #if __FB_LANG__ <> "fb"
 OPTION EXPLICIT
-#endif
-
-#if defined(IS_GAME) OR defined(IS_CUSTOM)
- DECLARE SUB debug (s as string)
- DECLARE SUB debuginfo (s as string)
- DECLARE SUB fatalerror (s as string)
-#else
- PRIVATE SUB debug (s as string)
-  PRINT s
- END SUB
- PRIVATE SUB debuginfo (s as string)
-  PRINT s
- END SUB
- PRIVATE SUB fatalerror (s as string)
-  PRINT s
-  SYSTEM
- END SUB
 #endif
 
  '------------- Other -------------

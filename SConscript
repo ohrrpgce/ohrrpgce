@@ -103,7 +103,7 @@ if CXX:
 # Make a base environment for Game and Custom (other utilities use env)
 commonenv = env.Clone ()
 
-base_objects = []   # modules shared by all utilities (except bam2mid)
+base_modules = []   # modules shared by all utilities (except bam2mid)
 common_modules = []  # modules, in addition to base_objects, shared by Game and Custom 
 common_objects = []
 
@@ -111,11 +111,11 @@ libraries = []
 libpaths = []
 
 if win32:
-    base_objects += ['os_windows.bas']
+    base_modules += ['os_windows.bas']
     libraries += ['fbgfx']
     commonenv['FBFLAGS'] += ['-s','gui']
 elif unix:
-    base_objects += ['os_unix.bas']
+    base_modules += ['os_unix.bas']
     libraries += 'X11 Xext Xpm Xrandr Xrender pthread'.split (' ')
     commonenv['FBFLAGS'] += ['-d', 'DATAFILES=\'"/usr/share/games/ohrrpgce"\'']
 
@@ -172,7 +172,7 @@ commonenv['FBLIBS'] += libpaths + libraries
 verprint (used_gfx, used_music, svn, git, fbc)
 
 
-base_objects += ['util.bas','blit.c','base64.c']
+base_modules += ['util.bas','blit.c','base64.c']
 
 common_modules += ['allmodex',
                    'backends',
@@ -210,8 +210,10 @@ game_modules = ['game',
                 'savegame',
                 'hsinterpreter']
 
-base_objects = [env.Object(a) for a in base_objects]
-common_objects = [env.Object(a) for a in common_objects]
+base_objects = [env.Object(a) for a in base_modules]
+common_objects = base_objects + [env.Object(a) for a in common_objects]
+#Plus unique module included by utilities but not Game or Custom
+base_objects.append (env.Object ('common_base.bas'))
 
 gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = env['FBFLAGS'] + \
                       ['-d','IS_GAME', '-m','game'])
@@ -220,13 +222,13 @@ editenv = commonenv.Clone (VAR_PREFIX = 'edit-', FBFLAGS = env['FBFLAGS'] + \
 
 #now... GAME and CUSTOM
 
-gamesrc = base_objects + common_objects
+gamesrc = common_objects[:]
 for item in game_modules:
     gamesrc.append (gameenv.BASO (item))
 for item in common_modules:
     gamesrc.append (gameenv.VARIANT_BASO (item))
 
-editsrc = base_objects + common_objects
+editsrc = common_objects[:]
 for item in edit_modules:
     editsrc.append (editenv.BASO (item))
 for item in common_modules:

@@ -1,5 +1,5 @@
 WARNING="!!! This Makefile is not the recommended way to build the OHRRPGCE, and is poorly tested!" \
-	"makegame.sh, makeedit.sh or makegame.bat, makeedit.bat are recommended instead !!!"
+	"scons is recommended instead! Install scons; type 'scons --help' !!!"
 
 # See also makehspeak.bat, makeutil.bat/sh, makereload.bat/sh; this Makefile doesn't build those utilities
 
@@ -44,8 +44,7 @@ ifdef win32
 #libfbgfx always needed, because of display_help_string!
 	libraries=fbgfx
 #libraries+= gdi32 winmm msvcrt kernel32 user32
-	common_modules+= os_windows
-	common_objects+=win32\blit.o win32\base64.o
+	base_objects+=os_windows.o win32\blit.o win32\base64.o
 	game_exe:=game.exe
 	edit_exe:=custom.exe
 	verprint_exe:=verprint.exe
@@ -54,8 +53,7 @@ ifdef win32
 endif
 
 ifdef unix
-	common_modules+= os_unix
-	common_objects+=blit.o base64.o
+	base_objects+=os_unix.o blit.o base64.o
 ifndef mac
 	libraries+= X11 Xext Xpm Xrandr Xrender pthread
 else
@@ -146,7 +144,7 @@ endif
 
 
 common_modules+=allmodex backends lumpfile misc bam2mid common bcommon browse util loading reload reloadext slices
-common_objects+=$(addsuffix .o,$(common_modules))
+common_objects+=$(base_objects) $(addsuffix .o,$(common_modules))
 common_sources:=$(addsuffix .bas,$(common_modules))
 
 game_modules:=game bmod bmodsubs menustuf moresubs yetmore yetmore2 savegame hsinterpreter 
@@ -159,7 +157,7 @@ edit_sources:=$(addsuffix .bas,$(edit_modules))
 
 main_modules:=game.o custom.o reload2xml.o xml2reload.o reloadtest.o reloadutil.o
 
-reload_objects:=reload.o reloadext.o lumpfile.o util.o base64.o blit.o
+reload_objects:=$(base_objects) reload.o reloadext.o lumpfile.o util.o common_base.o
 
 #Sadly, we make every source file depend on every include
 includes:=${shell echo *.bi}
@@ -228,7 +226,6 @@ bam2mid: bam2mid.bas
 
 #reload2xml xml2reload reloadtest reloadutil
 
-#-exx causes fbc to throw an error on OPEN CONS, even though it works without error checking!
 reload: FBFLAGS:=-g
 reload: ver.txt reload_compiled_objs $(reload_objects) reload2xml.o xml2reload.o reloadtest.o reloadutil.o
 	$(FBC) $(FBFLAGS) reloadtest.o $(reload_objects) $(libpaths) $(libraries)

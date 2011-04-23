@@ -15,18 +15,7 @@
 #include "util.bi"
 #include "cutil.bi"
 #include "lumpfile.bi"
-
-'Yuck. Sorry about this. It's for the RELOAD utilities
-#if defined(IS_GAME) or defined(IS_CUSTOM) or defined(LINKING_COMMON_BAS)
-DECLARE SUB debug (s AS STRING)
-#else
-SUB debug (s AS STRING)
- print s
-END SUB
-SUB debuginfo (s AS STRING)
- print s
-END SUB
-#endif
+#include "common_base.bi"
 
 Type FBSTRING as string
 'Resize a FB string

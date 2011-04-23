@@ -6,8 +6,7 @@
 
 #include "reload.bi"
 #include "reloadext.bi"
-
-DECLARE SUB debug (s AS STRING)
+#include "common_base.bi"
 
 Namespace Reload.Ext
 

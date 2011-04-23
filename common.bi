@@ -14,6 +14,10 @@
 #include "const.bi"
 #include "misc.bi"  'for nulzstr
 
+#ifdef COMMON_BASE_BI
+#error Include at most one of common.bi, common_base.bi
+#endif
+
 DECLARE FUNCTION common_setoption(opt as string, arg as string) as integer
 
 DECLARE SUB fadein ()

@@ -8,16 +8,17 @@
 '$DYNAMIC
 DEFINT A-Z
 'basic subs and functions
-DECLARE FUNCTION readkey$ ()
 DECLARE FUNCTION editstr$ (stri$, key$, cur%, max%, number%)
-DECLARE SUB fatalerror (e$)
-DECLARE FUNCTION rightafter$ (s$, d$)
+DECLARE SUB fatalcleanup ()
 DECLARE FUNCTION checkpassword (pass as string) as integer
 
 #include "config.bi"
 #include "util.bi"
 #include "const.bi"
 #include "lumpfile.bi"
+#include "common_base.bi"
+
+cleanup_function = @fatalcleanup
 
 DIM SHARED createddir = 0, dest$, olddir$
 
@@ -167,48 +168,12 @@ editstr$ = pre$ + post$
 
 END FUNCTION
 
-SUB fatalerror (e$)
- IF e$ <> "" THEN PRINT "ERROR: " + e$
-
+SUB fatalcleanup ()
  'RMDIR does not work unless isdir$ is called first. If I tried to figure out why, my brain would explode
  isdir$(dest$)
  IF createddir THEN killdir dest$
  SYSTEM
 END SUB
-
-SUB debug (e$)
- PRINT e$
-END SUB
-
-SUB debuginfo (e$)
- PRINT e$
-END SUB
-
-FUNCTION readkey$
-
-w$ = ""
-WHILE w$ = ""
- w$ = INKEY$
-WEND
-
-readkey$ = w$
-
-END FUNCTION
-
-FUNCTION rightafter$ (s$, d$)
-
-rightafter$ = ""
-result$ = ""
-
-FOR i = LEN(s$) TO 1 STEP -1
- IF MID$(s$, i, 1) = d$ THEN
-  rightafter$ = result$
-  EXIT FOR
- END IF
- result$ = MID$(s$, i, 1) + result$
-NEXT i
-
-END FUNCTION
 
 FUNCTION passwordhash (p as string) as ushort
  'Just a simple stupid 9-bit hash.
