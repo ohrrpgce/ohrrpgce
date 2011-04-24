@@ -650,6 +650,15 @@ array_t array_delete_slice(array_t *array, int from, int to) {
 }
 
 // (E)
+int array_remove(array_t *array, void *value) {
+	int pos = array_find(*array, value);
+	if (pos == -1)
+		return -1;
+	array_delete_slice(array, pos, pos + 1);
+	return pos;
+}
+
+// (E)
 array_t array_reverse(array_t *array) {
 	if (!*array)
 		throw_error("array_reverse: array uninitialised");

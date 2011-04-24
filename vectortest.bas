@@ -222,13 +222,16 @@ startTest(findInsertDeleteInteger)
 	arr[5] = 104
 	v_insert arr, 5, 103
 	assertVector(arr, "[98, 99, 100, 101, 102, 103, 104]")
+	if v_remove(arr, 102) <> 4 then fail
+	if v_remove(arr, 105) <> -1 then fail
+	assertVector(arr, "[98, 99, 100, 101, 103, 104]")
 	v_delete_slice arr, 0, 2
-	assertVector(arr, "[100, 101, 102, 103, 104]")
-	v_delete_slice arr, 0, 0
-	v_delete_slice arr, 5, 5
-	assertVector(arr, "[100, 101, 102, 103, 104]")
-	v_delete_slice arr, 2, 3
 	assertVector(arr, "[100, 101, 103, 104]")
+	v_delete_slice arr, 0, 0
+	v_delete_slice arr, 4, 4
+	assertVector(arr, "[100, 101, 103, 104]")
+	v_delete_slice arr, 2, 3
+	assertVector(arr, "[100, 101, 104]")
 	v_delete_slice arr, 0, v_len(arr)
 	assertVector(arr, "[]")
 	v_free arr

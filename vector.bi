@@ -129,6 +129,10 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
   'Insert an element at some position. Returns 'this'
   declare function v_insert overload alias "array_insert" (byref this as T vector, byval pos as integer, value as T) as T vector
 
+  'Remove the first instance of value. No error or warning if it isn't found.
+  'Returns the index of the item if it was found, or -1 if not
+  declare function v_remove overload alias "array_remove" (byref this as T vector, value as T) as integer
+
   'Delete the range [from, to). Returns 'this'
   declare function v_delete_slice overload alias "array_delete_slice" (byref this as T vector, byval from as integer, byval to as integer) as T vector
 
