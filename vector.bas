@@ -48,6 +48,10 @@ FUNCTION integer_str CDECL (BYVAL this as integer ptr) as string
   RETURN STR(*this)
 END FUNCTION
 
+FUNCTION ptr_str CDECL (BYVAL this as any ptr ptr) as string
+  RETURN "0x" + HEX(*this)
+END FUNCTION
+
 FUNCTION double_str CDECL (BYVAL this as double ptr) as string
   RETURN STR(*this)
 END FUNCTION
@@ -60,7 +64,7 @@ DEFINE_CUSTOM_VECTOR_TYPE(integer,   integer,   NULL,      NULL,             NUL
 DEFINE_CUSTOM_VECTOR_TYPE(double,    double,    NULL,      NULL,             NULL,         @double_compare,  @double_inequal, @double_str)
 DEFINE_CUSTOM_VECTOR_TYPE(string,    string,    NULL,      @string_copyctor, @string_dtor, @string_compare,  NULL,     @string_str)
 
-'DEFINE_CUSTOM_VECTOR_TYPE(any ptr,   any_ptr,   NULL,      NULL,             NULL,         @integer_compare, NULL,    NULL)
+DEFINE_CUSTOM_VECTOR_TYPE(any ptr,   any_ptr,   NULL,      NULL,             NULL,         @integer_compare, NULL,     @ptr_str)
 'Note: v_copy might change (free) the src if it is temp. An 'any vector' should never contain temps
 'DEFINE_CUSTOM_VECTOR_TYPE(any vector, any_vector, NULL,      @v_copy,          @v_free,      NULL,             NULL,   NULL)
 

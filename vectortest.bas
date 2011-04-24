@@ -363,6 +363,20 @@ startTest(appendTypeB)
 	v_free arr
 endTest
 
+startTest(ptrArray)
+	dim as any ptr vector arr
+	dim as integer a,b,c
+	v_new arr, 5
+	arr[1] = @a
+	arr[2] = @b
+	arr[3] = @c
+	v_append arr, arr[2]
+	'?v_str(arr)
+	b = 2313
+	if 2313 <> *cast(integer ptr, arr[5]) then fail
+	v_free arr
+endTest
+
 startTest(copyEmptyIntegerArray)
 	dim as integer vector a1, a2
 	v_new a1
