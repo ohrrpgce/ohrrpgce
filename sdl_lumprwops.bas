@@ -8,6 +8,8 @@
 #include "SDL/SDL.bi"
 #include "lumpfile.bi"
 #include "lumpfilewrapper.bi"
+#include "vector.bi"
+#include "common_base.bi"  'debug
 
 #define FWptr(context)  cast(FileWrapper ptr, context->hidden.unknown.data1)
 
@@ -41,3 +43,45 @@ function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 	end with
 	return rw
 end function
+
+type FnRWopsClose as function cdecl(byval as SDL_RWops ptr) as integer
+
+'vectors of all the safe RWops that are not yet closed, and the corresponding close functions.
+'They won't be closed, but no matter.
+dim shared live_RWops as any ptr vector
+dim shared live_RWops_closefuncs as any ptr vector
+v_new live_RWops
+v_new live_RWops_closefuncs
+
+'The intent of this function is remove the RWops from live_RWops when it is closed:
+'actually calling SDL_RWclose twice is definitely an error
+private function safe_RW_close_wrap cdecl (byval context as SDL_RWops ptr) as integer
+	dim num as integer = v_find(live_RWops, context)
+	if num > -1 then
+		'It is live, close it
+		dim ret as integer
+		ret = cast(FnRWopsClose, live_RWops_closefuncs[num])(context)
+		v_delete_slice live_RWops, num, num + 1
+		v_delete_slice live_RWops_closefuncs, num, num + 1
+		return ret  'I don't know what this signifies
+	else
+		debug "caught double-close of safe_SDL_RWops: maybe failed to use safe_RW_close?"
+	end if
+end function
+
+'Wrap an SDL_RWops, overriding the close function. Can be closed/deleted just once,
+'can be safely checked for liveness
+function safe_RWops (byval rw as SDL_RWops ptr) as SDL_RWops ptr
+	v_append live_RWops, rw
+	v_append live_RWops_closefuncs, cast(any ptr, rw->close)
+	rw->close = @safe_RW_close_wrap
+	return rw
+end function
+
+'After calling 'safe_RWops' on an SDL_RWops, can use this to safely
+'close it if it has not already been
+sub safe_RWops_close (byval rw as SDL_RWops ptr)
+	dim num as integer = v_find(live_RWops, rw)
+	if num = -1 then exit sub
+	SDL_RWclose(cast(SDL_RWops ptr, live_RWops[num]))
+end sub

@@ -16,9 +16,18 @@ option explicit
 
 'extern
 declare sub bam2mid(infile as string, outfile as string, useOHRm as integer)
+declare function safe_RWops(byval rw as SDL_RWops ptr) as SDL_RWops ptr
+declare sub safe_RWops_close (byval rw as SDL_RWops ptr)
+
 extern "C" 
+
 declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
+
+'FB's SDL_mixer header is ancient
+declare function Mix_LoadMUS_RW (byval rw as SDL_RWops ptr) as Mix_Music ptr
+
 end extern
+
 extern tmpdir as string
 
 'local functions
@@ -30,6 +39,7 @@ dim shared music_on as integer = 0  '-1 indicates error, don't try again
 dim shared music_vol as integer      '0 to 128
 dim shared music_paused as integer
 dim shared music_song as Mix_Music ptr = NULL
+dim shared music_song_rw as SDL_RWops ptr = NULL
 dim shared orig_vol as integer = -1
 dim shared nonmidi_playing as integer = 0
 
@@ -114,14 +124,8 @@ sub music_close()
 			Mix_VolumeMusic(64)
 		end if
 		
-		if music_song <> 0 then
-			Mix_FreeMusic(music_song)
-			music_song = 0
-			music_paused = 0
-			nonmidi_playing = 0
-		end if
-		
-		Mix_CloseAudio
+		music_stop()		
+		Mix_CloseAudio()
 		quit_sdl_audio()
 
 		music_on = 0
@@ -188,14 +192,20 @@ sub music_play(songname as string, fmt as integer)
 			fmt = FORMAT_MIDI
 		end if
 
-		'stop current song
-		if music_song <> 0 then
-			Mix_FreeMusic(music_song)
-			music_song = 0
-			music_paused = 0
-		end if
+		music_stop
 
-		music_song = Mix_LoadMUS(songname)
+		'Workaround: internally, Mix_LoadMUS creates a RWops to read the music file.
+		'However, because SDL_mixer is such a bug ridden mess, at least the MAD and libMikMod
+		'backend wrappers do not bother to actually close the RWops!
+		'So we do the RWops wrapping ourselves, and close it after stopping the music
+
+		music_song_rw = SDL_RWFromFile(songname, @"rb")
+		if music_song_rw = NULL then
+			debug "Could not load song " + songname + " (SDL_RWFromFile failed)"
+			exit sub
+		end if
+		music_song_rw = safe_RWops(music_song_rw)
+		music_song = Mix_LoadMUS_RW(music_song_rw)
 		if music_song = 0 then
 			debug "Could not load song " + songname + " : " & *Mix_GetError
 			exit sub
@@ -221,7 +231,12 @@ end sub
 
 sub music_pause()
 	'Pause is broken in SDL_Mixer, so just stop.
-	music_stop
+	if music_on = 1 then
+		if music_song > 0 then
+			Mix_HaltMusic
+			nonmidi_playing = 0
+		end if
+	end if
 end sub
 
 sub music_resume()
@@ -234,12 +249,17 @@ sub music_resume()
 end sub
 
 sub music_stop()
-	if music_on = 1 then
-		if music_song > 0 then
-			Mix_HaltMusic
-			nonmidi_playing = 0
-		end if
+	if music_song <> 0 then
+		Mix_FreeMusic(music_song)
+		music_song = 0
+		music_paused = 0
+		nonmidi_playing = 0
 	end if
+	if music_song_rw <> 0 then
+        	'Is safe even if has already been closed and freed
+		safe_RWops_close(music_song_rw)
+		music_song_rw = NULL
+	end if	
 end sub
 
 sub music_setvolume(vol as single)

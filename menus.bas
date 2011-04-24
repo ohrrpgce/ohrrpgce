@@ -412,8 +412,8 @@ DO
   IF csr = 5 AND songfile$ <> "" THEN  'delete song
    IF yesno("Really delete this song?", NO, NO) THEN
     music_stop
-    closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
-    setupmusic
+    'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
+    'setupmusic
     safekill songfile$
     safekill bamfile$
     GOSUB getsonginfo
@@ -512,8 +512,8 @@ RETRACE
 
 importsongfile:
 music_stop
-closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
-setupmusic
+'closemusic  'music_stop not always enough to cause the music backend to let go of the damn file!
+'setupmusic
 
 'browse for new song
 sourcesong$ = browse$(5, default, "", "",, "browse_import_song")
