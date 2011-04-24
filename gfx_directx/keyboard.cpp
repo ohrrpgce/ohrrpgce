@@ -11,6 +11,30 @@ Keyboard::Keyboard() : m_scLShift(0)
 	m_scLShift = MapVirtualKey(VK_SHIFT, MAPVK_VK_TO_VSC);
 }
 
+void Keyboard::getOHRScans(int *pScancodes)
+{//an attempt to get the shift key to release--it works, but a quick keypress is generated for some odd reason on release; commenting the three if blocks is the same as v1.12
+	if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) //most significant bit, 0x8000, is current state
+	{
+		m_virtualKeys[VK_LSHIFT] = 0x0;
+		KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LSHIFT] ]);
+	}
+	if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) //most significant bit, 0x8000, is current state
+	{
+		m_virtualKeys[VK_RSHIFT] = 0x0;
+		KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RSHIFT] ]);
+	}
+	if(!(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT]))
+	{
+		m_virtualKeys[VK_SHIFT] = 0x0;
+		KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
+	}
+	for(UINT i = 0; i < 128; i++) 
+	{
+		pScancodes[i] = m_scancodes[i];
+		KB_CONSUME_EVENT(m_scancodes[i]);
+	}
+}
+
 //void Keyboard::Poll()
 //{
 //	::GetKeyboardState(m_virtualKeys);
@@ -44,7 +68,7 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					m_virtualKeys[VK_RSHIFT] = 0x80;
 					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RSHIFT] ]);
 				}
-				if(m_virtualKeys[VK_SHIFT] == 0x0)
+				if(m_virtualKeys[VK_SHIFT] == 0x0)//if(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT])
 				{
 					m_virtualKeys[VK_SHIFT] = 0x80;
 					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
@@ -62,7 +86,7 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					m_virtualKeys[VK_LCONTROL] = 0x80;
 					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LCONTROL] ]);
 				}
-				if(m_virtualKeys[VK_CONTROL] == 0x0)//m_virtualKeys[VK_LCONTROL] ^ m_virtualKeys[VK_RCONTROL])
+				if(m_virtualKeys[VK_CONTROL] == 0x0)//if(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL])
 				{
 					m_virtualKeys[VK_CONTROL] = 0x80;
 					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_CONTROL] ]);
@@ -80,7 +104,7 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					m_virtualKeys[VK_LMENU] = 0x80;
 					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LMENU] ]);
 				}
-				if(m_virtualKeys[VK_MENU] == 0x0)//m_virtualKeys[VK_LMENU] ^ m_virtualKeys[VK_RMENU])
+				if(m_virtualKeys[VK_MENU] == 0x0)//if(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU])
 				{
 					m_virtualKeys[VK_MENU] = 0x80;
 					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_MENU] ]);
@@ -416,7 +440,7 @@ const int Keyboard::c_vk2fb[256] = {
 	0,
 	0,
 	0,
-	SC_NUMPADENTER, //this is supposed to be reserved, but it was recommended to change here at 0xCA; it still doesn't work, though
+	SC_NUMPADENTER, //this is supposed to be reserved, but it was recommended to change here at 0xCA
 	0,
 	0,
 	0,
