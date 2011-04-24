@@ -37,17 +37,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLShift == (HIWORD(lParam) & 0xff))
 				{
 					m_virtualKeys[VK_LSHIFT] = 0x80;
-					m_scancodes[ c_vk2fb[VK_LSHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LSHIFT] ]);
 				}
 				else
 				{
 					m_virtualKeys[VK_RSHIFT] = 0x80;
-					m_scancodes[ c_vk2fb[VK_RSHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RSHIFT] ]);
 				}
-				if(m_virtualKeys[VK_LSHIFT] ^ m_virtualKeys[VK_RSHIFT])
+				if(m_virtualKeys[VK_SHIFT] == 0x0)
 				{
 					m_virtualKeys[VK_SHIFT] = 0x80;
-					m_scancodes[ c_vk2fb[VK_SHIFT] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
 				}
 			}
 			else if(wParam == VK_CONTROL)
@@ -55,17 +55,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(HIWORD(lParam) & 0x100) //extended key, right control
 				{
 					m_virtualKeys[VK_RCONTROL] = 0x80;
-					m_scancodes[ c_vk2fb[VK_RCONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RCONTROL] ]);
 				}
 				else
 				{
 					m_virtualKeys[VK_LCONTROL] = 0x80;
-					m_scancodes[ c_vk2fb[VK_LCONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LCONTROL] ]);
 				}
-				if(m_virtualKeys[VK_LCONTROL] ^ m_virtualKeys[VK_RCONTROL])
+				if(m_virtualKeys[VK_CONTROL] == 0x0)//m_virtualKeys[VK_LCONTROL] ^ m_virtualKeys[VK_RCONTROL])
 				{
 					m_virtualKeys[VK_CONTROL] = 0x80;
-					m_scancodes[ c_vk2fb[VK_CONTROL] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_CONTROL] ]);
 				}
 			}
 			else if(wParam == VK_MENU)
@@ -73,17 +73,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(HIWORD(lParam) & 0x100) //extended key, right alt
 				{
 					m_virtualKeys[VK_RMENU] = 0x80;
-					m_scancodes[ c_vk2fb[VK_RMENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RMENU] ]);
 				}
 				else
 				{
 					m_virtualKeys[VK_LMENU] = 0x80;
-					m_scancodes[ c_vk2fb[VK_LMENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LMENU] ]);
 				}
-				if(m_virtualKeys[VK_LMENU] ^ m_virtualKeys[VK_RMENU])
+				if(m_virtualKeys[VK_MENU] == 0x0)//m_virtualKeys[VK_LMENU] ^ m_virtualKeys[VK_RMENU])
 				{
 					m_virtualKeys[VK_MENU] = 0x80;
-					m_scancodes[ c_vk2fb[VK_MENU] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_MENU] ]);
 				}
 			}
 			else if(wParam == VK_RETURN)
@@ -91,18 +91,18 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(HIWORD(lParam) & 0x100) //extended key, numpad enter
 				{
 					m_virtualKeys[VK_NUMPAD_ENTER] == 0x80;
-					m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ] = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ]);
 				}
 				else
 				{
 					m_virtualKeys[VK_RETURN] == 0x80;
-					m_scancodes[ c_vk2fb[VK_RETURN] ] = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RETURN] ]);
 				}
 			}
 			else
 			{
 				m_virtualKeys[wParam] = 0x80;
-				m_scancodes[ c_vk2fb[wParam] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+				KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[wParam] ]);
 			}
 		} break;
 	case WM_SYSKEYUP:
@@ -113,12 +113,12 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_virtualKeys[wParam] == 0x80)
 				{
 					m_virtualKeys[wParam] = 0x0;
-					m_scancodes[ c_vk2fb[wParam] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[wParam] ]);
 				}
 				else
 				{
 					m_virtualKeys[wParam] = 0x80;
-					m_scancodes[ c_vk2fb[wParam] ] /*|= 0x3;*/  = KB_CREATE_KEYPRESS();
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[wParam] ]);
 				}
 			}
 			else if(wParam == VK_SHIFT)
@@ -126,17 +126,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(m_scLShift == (HIWORD(lParam) & 0xff))
 				{
 					m_virtualKeys[VK_LSHIFT] = 0x0;
-					m_scancodes[ c_vk2fb[VK_LSHIFT] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LSHIFT] ]);
 				}
 				else
 				{
 					m_virtualKeys[VK_RSHIFT] = 0x0;
-					m_scancodes[ c_vk2fb[VK_RSHIFT] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RSHIFT] ]);
 				}
 				if(!(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT]))
 				{
 					m_virtualKeys[VK_SHIFT] = 0x0;
-					m_scancodes[ c_vk2fb[VK_SHIFT] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
 				}
 			}
 			else if(wParam == VK_CONTROL)
@@ -144,17 +144,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(HIWORD(lParam) & 0x100) //extended key, right control
 				{
 					m_virtualKeys[VK_RCONTROL] = 0x0;
-					m_scancodes[ c_vk2fb[VK_RCONTROL] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RCONTROL] ]);
 				}
 				else
 				{
 					m_virtualKeys[VK_LCONTROL] = 0x0;
-					m_scancodes[ c_vk2fb[VK_LCONTROL] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LCONTROL] ]);
 				}
 				if(!(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL]))
 				{
 					m_virtualKeys[VK_CONTROL] = 0x0;
-					m_scancodes[ c_vk2fb[VK_CONTROL] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_CONTROL] ]);
 				}
 			}
 			else if(wParam == VK_MENU)
@@ -162,17 +162,17 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(HIWORD(lParam) & 0x100) //extended key, right alt
 				{
 					m_virtualKeys[VK_RMENU] = 0x0;
-					m_scancodes[ c_vk2fb[VK_RMENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RMENU] ]);
 				}
 				else
 				{
 					m_virtualKeys[VK_LMENU] = 0x0;
-					m_scancodes[ c_vk2fb[VK_LMENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LMENU] ]);
 				}
 				if(!(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU]))
 				{
 					m_virtualKeys[VK_MENU] = 0x0;
-					m_scancodes[ c_vk2fb[VK_MENU] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_MENU] ]);
 				}
 			}
 			else if(wParam == VK_RETURN)
@@ -180,18 +180,18 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				if(HIWORD(lParam) & 0x100) //extended key, numpad enter
 				{
 					m_virtualKeys[VK_NUMPAD_ENTER] == 0x0;
-					m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ] = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ]);
 				}
 				else
 				{
 					m_virtualKeys[VK_RETURN] == 0x0;
-					m_scancodes[ c_vk2fb[VK_RETURN] ] = KB_CREATE_KEYRELEASE();
+					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RETURN] ]);
 				}
 			}
 			else
 			{
 				m_virtualKeys[wParam] = 0x0;
-				m_scancodes[ c_vk2fb[wParam] ] /*&= 0x2;*/  = KB_CREATE_KEYRELEASE();
+				KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[wParam] ]);
 			}
 		} break;
 	default:

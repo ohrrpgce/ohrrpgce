@@ -1,5 +1,16 @@
 --------------------------------------------------
-19/04/11
+4/23/11
+v1.12
+
+Added Features:
+
+-All keys now report correctly, including extended keys. Special case is Shift keys, which can report one being pressed if they are both pressed and released.
+
+
+
+
+--------------------------------------------------
+4/19/11
 v1.11
 
 Added Features:

@@ -9,9 +9,9 @@
 #define KB_STATE 0x1 //are these values right? are they reversed?
 #define KB_EVENT 0x2
 
-#define KB_CONSUME_EVENT(bits)		(bits & (~KB_EVENT))
-#define KB_CREATE_KEYPRESS()		(KB_STATE | KB_EVENT)
-#define KB_CREATE_KEYRELEASE()		0 //(KB_EVENT)
+#define KB_CONSUME_EVENT(bits)		(bits = bits & (~KB_EVENT))
+#define KB_CREATE_KEYPRESS(bits)	(bits = (KB_STATE | KB_EVENT))
+#define KB_CREATE_KEYRELEASE(bits)	(bits = bits & KB_EVENT) //0 //(KB_EVENT)
 
 #define KB_IS_KEY_DOWN(bits)		( ((bits & KB_STATE) != 0) ? true : false )
 #define KB_IS_NEW_EVENT(bits)		( ((bits & KB_EVENT) != 0) ? true : false )
@@ -37,7 +37,7 @@ namespace gfx
 			for(UINT i = 0; i < 128; i++) {
 				//pScancodes[i] |= m_scancodes[i];
 				pScancodes[i] = m_scancodes[i];
-				m_scancodes[i] /*&= 0x1;*/  = KB_CONSUME_EVENT(m_scancodes[i]);
+				/*m_scancodes[i] *//*&= 0x1;*//*  =*/ KB_CONSUME_EVENT(m_scancodes[i]);
 			}
 		}
 		void getVirtualKeys(BYTE* pVirtualKeys) const {memcpy((void*)pVirtualKeys, (void*)m_virtualKeys, sizeof(m_virtualKeys));}
