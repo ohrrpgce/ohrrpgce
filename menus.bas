@@ -1069,7 +1069,7 @@ FUNCTION dissolve_type_caption(n AS INTEGER) AS STRING
   CASE 5: RETURN "Melt"
   CASE 6: RETURN "Vapourise"
   CASE 7: RETURN "Phase out"
-  CASE 8: RETURN "Sqeeze"
+  CASE 8: RETURN "Squeeze"
   CASE 9: RETURN "Shrink"
   CASE 10: RETURN "Flicker"
   CASE ELSE: RETURN n & " Invalid!"
