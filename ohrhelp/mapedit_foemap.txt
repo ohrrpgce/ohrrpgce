@@ -1,5 +1,7 @@
 The map editor is in Foe mapping mode (also known as "Foemap mode").
 
+Foe mapping allows you to specify where random battles can happen. Whenever the hero walks on a tile with a foe map number, the player has a chance of encountering a random battle. The number is the same as the Formation Set ID number from the Formation Set Editor. Only one formation set can be assigned to each tile.
+
 F2 switch to picture mode
 F3 switch to passability mode
 F4 switch to door placement mode
@@ -13,13 +15,21 @@ Use SHIFT+arrow keys to move around the map faster.
 
 Use ALT+arrow keys to move the view of the map.
 
-Foe mapping allows you to specify where random battles can happen. Whenever the hero walks on a tile with a foe map number, the player has a chance of encountering a random battle.
-
-The number is the same as the Formation Set ID number from the Formation Set Editor.
-
 Press < and > to change the current formation set number, or type in a number.
 
-Press SPACE to mark the tile under the cursor so that random battles from the selected formation set can happen there. Only one formation set can be assigned to each tile.
+At the top right corner the current drawing tool is shown. The options are:
+
+CTRL+D - Draw tool:
+  Press SPACE to mark a tile with the   current formation set number. You 
+  can hold down space and move the 
+  cursor.
+
+CTRL+B - Box tool:
+  Press SPACE once to place one 
+  corner of the box, and SPACE a 
+  second time at the opposite corner 
+  to set the formation set number on 
+  a rectangle.
 
 To remove random battles from a tile, press DELETE (or change the formation set number to 0).
 

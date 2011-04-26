@@ -749,22 +749,6 @@ TYPE VehicleState
   ahead     AS INTEGER '5
 END TYPE
 
-TYPE MouseArea
-  x AS INTEGER
-  y AS INTEGER
-  w AS INTEGER
-  h AS INTEGER
-  hidecursor AS INTEGER
-END TYPE
-
-TYPE ToolInfoType
-  name AS STRING
-  icon AS STRING
-  shortcut AS INTEGER
-  cursor AS INTEGER
-  areanum AS INTEGER
-END TYPE
-
 TYPE PlotSprite
  used as integer
  sprite as Frame Ptr

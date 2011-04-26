@@ -1,5 +1,7 @@
 The map editor is in Zone mapping mode, zone viewing/browsing submode.
 
+You can place each tile in multiple zones (up to 15) and you can create 9999 zones per map; this submode is for seeing each zones each tile belongs to and where zones have been placed. 
+
 F2 switch to picture mode
 F3 switch to passability mode
 F4 switch to door placement mode

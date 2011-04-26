@@ -147,6 +147,10 @@ ENUM MapEditMode
   zone_mode
 END ENUM
 
+TYPE MapEditStateFwd AS MapEditState
+
+TYPE FnBrush AS SUB (st as MapEditStateFwd, BYVAL x as integer, BYVAL y as integer, BYVAL value as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+
 TYPE MapEditState
   'This NPC stuff shouldn't be here; this is the Editor state, not a map TYPE
   npc_def(max_npc_defs - 1) AS NPCType
@@ -165,12 +169,20 @@ TYPE MapEditState
   cursor AS GraphicPair
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
   defaultwalls AS INTEGER VECTOR VECTOR  'indexed by layer (variable length) and then by tile (always 0-159)
-  menustate AS MenuState  'The top-level menu state
+  menustate AS MenuState     'The top-level menu state
+
+  'Tool stuff
+  tool AS INTEGER            'Tool ID
+  brush AS FnBrush           'What to draw with
+  tool_value AS INTEGER      'Value (eg. tile) with which to draw. -1 means default
+  tool_hold AS INTEGER       'True if one coordinate has been selected
+  tool_hold_pos AS XYPair    'Held coordinate
 
   'Zone stuff (zone_mode)
   zonesubmode AS INTEGER
   cur_zone AS INTEGER        'Zone ID selected for placement
   cur_zinfo AS ZoneInfo ptr  '== GetZoneInfo(zonemaps, cur_zone)
+  zones_needupdate AS INTEGER
   zoneviewmap AS TileMap     'Each bit indicates one of 8 currently displayed zones
   zoneoverlaymap AS TileMap  'For other overlays drawn by zonemode
   zoneminimap AS Frame ptr   '1/20x zoomed view of cur_zone
@@ -205,5 +217,22 @@ TYPE AttackChainBrowserState
  focused AS Slice Ptr
  done AS INTEGER
 END TYPE
+
+TYPE MouseArea
+  x AS INTEGER
+  y AS INTEGER
+  w AS INTEGER
+  h AS INTEGER
+  hidecursor AS INTEGER
+END TYPE
+
+TYPE ToolInfoType
+  name AS STRING
+  icon AS STRING
+  shortcut AS INTEGER
+  cursor AS INTEGER
+  areanum AS INTEGER
+END TYPE
+
 
 #ENDIF

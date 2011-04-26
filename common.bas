@@ -1041,6 +1041,7 @@ SUB showerror (msg AS STRING, BYVAL isfatal AS INTEGER = NO)
  entered = 0
 END SUB
 
+'Returns left edge x coord of a string centred at given x
 FUNCTION xstring (s AS STRING, x AS INTEGER) as integer
  return small(large(x - LEN(s) * 4, 0), 319 - LEN(s) * 8)
 END FUNCTION

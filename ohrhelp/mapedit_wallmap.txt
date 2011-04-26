@@ -15,7 +15,23 @@ Use ALT+arrow keys to move the view of the map.
 
 While you are in passability mode, you will see thick flashing lines that indicate where walls are located.
 
-Press SPACE to make the tile under the cursor fully impassable in all four directions. Press SPACE again to remove the walls and make the tile passable.
+At the top right corner the current drawing tool is shown. The options are:
+
+CTRL+D - Draw tool:
+  Press SPACE to make the tile under 
+  the cursor fully impassable in all 
+  four directions. Press SPACE again 
+  to remove the walls and make the 
+  tile passable.
+
+CTRL+B - Box tool:
+  Press SPACE once to place one 
+  corner of the box, and SPACE a 
+  second time at the opposite corner 
+  to make a rectangle of walls 
+  passable or completely impassable.
+
+If the current tool isn't the Draw tool, press + or - to toggle whether you are adding or removing walls.
 
 CTRL+Up makes the selected tile impassable on the top.
 

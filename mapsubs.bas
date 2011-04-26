@@ -19,6 +19,8 @@ DECLARE SUB make_map_picker_menu (topmenu() AS STRING, state AS MenuState)
 DECLARE SUB mapeditor (BYVAL mapnum AS INTEGER)
 DECLARE FUNCTION addmaphow () AS INTEGER
 
+DECLARE FUNCTION hilite (what as string) as string
+
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
 DECLARE SUB loadpasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INTEGER)
 DECLARE SUB paint_map_area(st AS MapEditState, oldTile, x%, y%, map() AS TileMap, pass AS TileMap)
@@ -31,7 +33,7 @@ DECLARE SUB zonemenu_add_zone (zonemenu() as SimpleMenu, zonecolours() as intege
 DECLARE FUNCTION mapedit_try_assign_colour_to_zone(BYVAL id as integer, zonecolours() as integer, viszonelist() as integer) as integer
 DECLARE SUB mapedit_update_visible_zones (st as MapEditState, zonemenu() as SimpleMenu, zonemenustate as MenuState, zmap as ZoneMap, BYVAL x as integer, BYVAL y as integer, BYVAL wide as INTEGER, BYVAL high as INTEGER, lockedzonelist() as integer)
 DECLARE SUB mapedit_edit_zoneinfo(BYREF st as MapEditState, zmap as ZoneMap)
-DECLARE SUB mapedit_zonespam(st as MapEditState, zmap as ZoneMap)
+DECLARE SUB mapedit_zonespam(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
 DECLARE SUB draw_zone_minimap(st as MapEditState, tmap as TileMap, BYVAL bitnum as integer, BYVAL col as integer)
 
 TYPE LayerMenuItem
@@ -75,6 +77,7 @@ DECLARE SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis
 DECLARE SUB mapedit_delete_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL which AS INTEGER)
 DECLARE SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL l1 AS INTEGER, BYVAL l2 AS INTEGER)
 DECLARE SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
+DECLARE SUB mapedit_draw_icon(st AS MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as integer = NO)
 
 DECLARE FUNCTION find_last_used_doorlink(link() AS DoorLink) AS INTEGER
 DECLARE FUNCTION find_door_at_spot (x AS INTEGER, y AS INTEGER, doors() AS Door) AS INTEGER
@@ -98,6 +101,8 @@ DECLARE SUB resize_correct_height(BYREF st AS MapEditState, BYREF rs AS MapResiz
 #include "loading.bi"
 
 REM $STATIC
+
+DIM SHARED tog AS INTEGER
 
 FUNCTION addmaphow () AS INTEGER
 '--Return values
@@ -206,6 +211,45 @@ SUB map_picker ()
  LOOP
 END SUB
 
+
+'---------------------------------- Brushes -----------------------------------
+
+
+'Note dummy arguments: all brush functions should have the same signature
+SUB tilebrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL tile as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+ IF tile = -1 THEN tile = st.usetile(st.layer)
+ writeblock map(st.layer), x, y, tile
+ IF st.defpass THEN calculatepassblock st, x, y, map(), pass
+END SUB
+
+'Note dummy arguments: all brush functions should have the same signature
+SUB wallbrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL tile as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+ IF tile = -1 THEN tile = 15
+ writeblock pass, x, y, tile
+END SUB
+
+'Note dummy arguments: all brush functions should have the same signature
+SUB foebrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL foe as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+ IF foe = -1 THEN foe = st.cur_foe
+ writeblock emap, x, y, foe
+END SUB
+
+'Note dummy arguments: all brush functions should have the same signature
+SUB zonebrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL value as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+ IF value = 0 THEN
+  UnsetZoneTile zmap, st.cur_zone, x, y
+ ELSE
+  IF SetZoneTile(zmap, st.cur_zone, x, y) = NO THEN
+   pop_warning "You have already placed this tile in 15 other zones, and that is the maximum supported. Sorry!"
+  END IF
+ END IF
+ st.zones_needupdate = YES
+END SUB
+
+
+'---------------------------------- Main SUB -----------------------------------
+
+
 SUB mapeditor (BYVAL mapnum AS INTEGER)
 STATIC remember_menu_pt AS INTEGER = 0
 
@@ -217,10 +261,10 @@ DIM hero_gfx AS GraphicPair
 REDIM doors(99) AS door, link(199) AS doorlink
 
 DIM editmode AS INTEGER
+DIM tools_available AS INTEGER
 
 REDIM lockedzonelist(-1 TO -1) AS INTEGER 'The zones chosen to be always displayed. At most 8 (index 0 onwards, start at -1 for fake zero-length arrays) 
 DIM gauze_ticker AS INTEGER = 0  'for hidden zones animation
-DIM zones_needupdate AS INTEGER
 'The floating menu that displays a list of zones. These are created and updated in mapedit_update_visible_zones
 REDIM zonemenu(0) AS SimpleMenu  
 DIM zonemenustate AS MenuState
@@ -293,6 +337,17 @@ NEXT
 
 'Plenty of tiles left for other purposes
 
+DIM toolinfo(1) AS ToolInfoType
+WITH toolinfo(0)
+ .name = "Draw"
+ .icon = "D"  'CHR(3)
+ .shortcut = scD
+END WITH
+WITH toolinfo(1)
+ .name = "Box"
+ .icon = "B"  'CHR(4)
+ .shortcut = scB
+END WITH
 
 '--load hero graphics--
 loadherodata @her, 0
@@ -440,12 +495,13 @@ EXIT SUB
 mapping:
 clearpage 2
 
+st.tool_value = -1  'Default, which means selected tile, formation set, etc
 st.defpass = YES
 IF readbit(gen(), genBits, 15) THEN st.defpass = NO ' option to default the defaults to OFF
 st.autoshow_zones = YES
 st.showzonehints = YES
 zonemenustate.pt = -1  'Properly initialised in mapedit_update_visible_zones
-zones_needupdate = YES
+st.zones_needupdate = YES
 npczone_needupdate = YES
 
 setkeys
@@ -453,9 +509,9 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
- DIM flashtag as string = "${K" & uilook(uiSelectedItem + tog) & "}"
  gauze_ticker = (gauze_ticker + 1) MOD 50  '10 frames, 5 ticks a frame
  IF keyval(scESC) > 1 THEN EXIT DO
+ DIM old_editmode AS INTEGER = editmode
  IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
   IF keyval(scF2) > 1 THEN
    editmode = tile_mode
@@ -477,18 +533,44 @@ DO
    editmode = zone_mode
   END IF
  END IF
+ IF editmode <> old_editmode THEN
+  'Reset tools
+  st.tool_value = -1
+  st.tool_hold = NO
+ END IF
+
+ tools_available = YES
+ SELECT CASE editmode
+  CASE tile_mode
+   st.brush = @tilebrush
+  CASE pass_mode
+   st.brush = @wallbrush
+  CASE foe_mode
+   st.brush = @foebrush
+  CASE zone_mode
+   IF st.zonesubmode = 0 THEN
+    st.brush = @zonebrush
+   ELSE
+    tools_available = NO
+   END IF
+  CASE ELSE
+   tools_available = NO
+ END SELECT
  
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), map()  'ctrl-L
  IF keyval(scTab) > 1 THEN tiny = tiny XOR 1
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    'delete tile
+   DIM remem_layer = st.layer  'hacky
    FOR i = 0 TO UBOUND(map)
-    writeblock map(i), x, y, 0
+    st.layer = i
+    tilebrush st, x, y, 0, map(), pass, emap, zmap
    NEXT i
+   st.layer = remem_layer
    'delete passability
-   writeblock pass, x, y, 0
+   wallbrush st, x, y, 0, map(), pass, emap, zmap
    'delete foemap
-   writeblock emap, x, y, 0
+   foebrush st, x, y, 0, map(), pass, emap, zmap
    'delete NPC
    FOR i = 0 TO 299
     WITH st.npc_inst(i)
@@ -513,19 +595,11 @@ DO
   '---TILEMODE------
   CASE tile_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
-   IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+F Fill screen
-    FOR tx = 0 TO 15
-     FOR ty = 0 TO 8
-      writeblock map(st.layer), mapx \ 20 + tx, mapy \ 20 + ty, st.usetile(st.layer)
-      IF st.defpass THEN calculatepassblock st, mapx \ 20 + tx, mapy \ 20 + ty, map(), pass
-     NEXT ty
-    NEXT tx
-   END IF
    IF keyval(scR) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+R to replace-all
     old = readblock(map(st.layer), x, y)
     FOR ty = 0 to map(st.layer).high - 1
      FOR tx = 0 to map(st.layer).wide - 1
-      IF readblock(map(st.layer), tx, ty) = old THEN writeblock map(st.layer), tx, ty, st.usetile(st.layer)
+      IF readblock(map(st.layer), tx, ty) = old THEN tilebrush st, tx, ty, , map(), pass, emap, zmap
      NEXT tx
     NEXT ty
    END IF
@@ -538,18 +612,11 @@ DO
    END IF
    IF keyval(scTilde) > 1 AND keyval(scAlt) = 0 THEN show_minimap st, map()
    IF keyval(scEnter) > 1 THEN mapedit_pickblock st
-   IF keyval(scSpace) > 0 THEN
-    writeblock map(st.layer), x, y, st.usetile(st.layer)
-    IF st.defpass THEN calculatepassblock st, x, y, map(), pass
-   END IF
-   IF keyval(scDelete) > 1 THEN 'delete
-    writeblock map(st.layer), x, y, 0
-   END IF
    IF keyval(scG) > 1 THEN 'grab tile
     st.usetile(st.layer) = animadjust(readblock(map(st.layer), x, y), st.tilesets(st.layer)->tastuf())
     update_tilepicker st
    END IF
-   IF keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
+   IF keyval(scCtrl) = 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
    FOR i = 0 TO 1
     IF keyval(sc1 + i) > 1 THEN 'animate tile
      newtile = -1
@@ -561,11 +628,11 @@ DO
      END IF
      IF newtile >= 0 THEN
       IF keyval(scCtrl) = 0 THEN
-       writeblock map(st.layer), x, y, newtile
+       tilebrush st, x, y, newtile, map(), pass, emap, zmap
       ELSE
        FOR tx = 0 TO wide - 1
         FOR ty = 0 TO high - 1
-         IF readblock(map(st.layer), tx, ty) = old THEN writeblock map(st.layer), tx, ty, newtile
+         IF readblock(map(st.layer), tx, ty) = old THEN tilebrush st, tx, ty, newtile, map(), pass, emap, zmap
         NEXT ty
        NEXT tx
       END IF
@@ -620,22 +687,27 @@ DO
   CASE pass_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
    over = readblock(pass, x, y)
-   IF keyval(scSpace) > 1 AND (over AND 15) = 0 THEN writeblock pass, x, y, 15
-   IF keyval(scSpace) > 1 AND (over AND 15) = 15 THEN writeblock pass, x, y, 0
-   IF keyval(scSpace) > 1 AND (over AND 15) > 0 AND (over AND 15) < 15 THEN writeblock pass, x, y, 0
-   IF keyval(scDelete) > 1 THEN 'delete
-    writeblock pass, x, y, 0
+   IF st.tool <> 0 ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
+    st.tool_value = IIF(st.tool_value, 0, 15)
    END IF
+   IF st.tool = 0 AND keyval(scSpace) AND 4 THEN  'drawing, new keypress: pick value intelligently
+    IF (over AND 15) = 0 THEN st.tool_value = 15
+    IF (over AND 15) = 15 THEN st.tool_value = 0
+    IF (over AND 15) > 0 AND (over AND 15) < 15 THEN st.tool_value = 0
+   END IF
+   DIM drawwall AS INTEGER = -1
    IF keyval(scCtrl) > 0 THEN
-    IF keyval(scUp) > 1 THEN writeblock pass, x, y, (over XOR 1)
-    IF keyval(scRight) > 1 THEN writeblock pass, x, y, (over XOR 2)
-    IF keyval(scDown) > 1 THEN writeblock pass, x, y, (over XOR 4)
-    IF keyval(scLeft) > 1 THEN writeblock pass, x, y, (over XOR 8)
+    IF keyval(scUp) > 1 THEN drawwall = (over XOR 1)
+    IF keyval(scRight) > 1 THEN drawwall = (over XOR 2)
+    IF keyval(scDown) > 1 THEN drawwall = (over XOR 4)
+    IF keyval(scLeft) > 1 THEN drawwall = (over XOR 8)
+   ELSE
+    IF keyval(scA) > 1 THEN drawwall = (over XOR 16) 'vehicle A
+    IF keyval(scB) > 1 THEN drawwall = (over XOR 32) 'vehicle B
+    IF keyval(scH) > 1 THEN drawwall = (over XOR 64) 'harm tile
+    IF keyval(scO) > 1 THEN drawwall = (over XOR 128)'overhead
    END IF
-   IF keyval(scA) > 1 THEN writeblock pass, x, y, (over XOR 16) 'vehicle A
-   IF keyval(scB) > 1 THEN writeblock pass, x, y, (over XOR 32) 'vehicle B
-   IF keyval(scH) > 1 THEN writeblock pass, x, y, (over XOR 64) 'harm tile
-   IF keyval(scO) > 1 THEN writeblock pass, x, y, (over XOR 128)'overhead
+   IF drawwall <> -1 THEN wallbrush st, x, y, drawwall, map(), pass, emap, zmap
    '---DOORMODE-----
   CASE door_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_door_placement"
@@ -726,16 +798,10 @@ DO
   CASE foe_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
    intgrabber(st.cur_foe, 0, 255, scLeftCaret, scRightCaret)
-   IF keyval(scSpace) > 0 THEN
-    writeblock emap, x, y, st.cur_foe
-   END IF
-   IF keyval(scDelete) > 1 THEN
-    writeblock emap, x, y, 0
-   END IF
    IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN
     FOR i = 0 TO 15
      FOR o = 0 TO 8
-      writeblock emap, mapx \ 20 + i, mapy \ 20 + o, st.cur_foe
+      foebrush st, mapx \ 20 + i, mapy \ 20 + o, , map(), pass, emap, zmap
      NEXT o
     NEXT i
    END IF
@@ -747,41 +813,27 @@ DO
    END IF
    IF keyval(scM) > 1 THEN
     st.zonesubmode = st.zonesubmode XOR 1
-    zones_needupdate = YES
+    st.zones_needupdate = YES
    END IF
    IF keyval(scE) > 1 THEN
     mapedit_edit_zoneinfo st, zmap
-    zones_needupdate = YES  'st.cur_zone might change, amongst other things
+    st.zones_needupdate = YES  'st.cur_zone might change, amongst other things
    END IF
    IF st.zonesubmode = 0 THEN
     '--Tiling/editing mode
-    zones_needupdate OR= intgrabber(st.cur_zone, 1, 9999, scLeftCaret, scRightCaret)
+    st.zones_needupdate OR= intgrabber(st.cur_zone, 1, 9999, scLeftCaret, scRightCaret)
     st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
-    IF keyval(scSpace) AND 4 THEN 'new keypress
-     zone_delete_tool = CheckZoneAtTile(zmap, st.cur_zone, x, y)
+    IF st.tool = 0 ANDALSO (keyval(scSpace) AND 4) THEN 'drawing, new keypress: pick value intelligently
+     st.tool_value = IIF(CheckZoneAtTile(zmap, st.cur_zone, x, y), 0, 1)
     END IF
-    IF keyval(scSpace) > 0 THEN
-     IF zone_delete_tool THEN
-      UnsetZoneTile zmap, st.cur_zone, x, y
-     ELSE
-      IF SetZoneTile(zmap, st.cur_zone, x, y) = NO THEN
-       pop_warning "You have already placed this tile in 15 other zones, and that is the maximum supported. Sorry!"
-      END IF
-     END IF
-     zones_needupdate = YES
+    IF st.tool <> 0 ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
+     st.tool_value = IIF(st.tool_value, 0, 1)
     END IF
-    IF keyval(scDelete) > 0 THEN
-     UnsetZoneTile zmap, st.cur_zone, x, y
-     zones_needupdate = YES
-    END IF
-    IF keyval(scQ) > 1 THEN
-     IF keyval(scCtrl) > 0 THEN
-      'paint a whole lot of tiles over the map randomly
-      mapedit_zonespam st, zmap
-      zones_needupdate = YES
-     ELSE
-      DebugZoneMap zmap, x, y
-     END IF
+    IF keyval(scQ) > 1 AND keyval(scCtrl) > 0 THEN
+     DebugZoneMap zmap, x, y
+     ''paint a whole lot of tiles over the map randomly
+     'mapedit_zonespam st, map(), pass, emap, zmap
+     'st.zones_needupdate = YES
     END IF
    ELSE
     '--Multizone view
@@ -796,22 +848,22 @@ DO
        int_array_append(lockedzonelist(), st.cur_zone)
        st.cur_zinfo->hidden = NO  'Doesn't make sense for a zone to be hidden and locked
       END IF
-      zones_needupdate = YES
+      st.zones_needupdate = YES
      END IF
      IF keyval(scH) > 1 THEN
       st.cur_zinfo->hidden XOR= YES
       int_array_remove(lockedzonelist(), st.cur_zone)  'Doesn't make sense for a zone to be hidden and locked
-      zones_needupdate = YES
+      st.zones_needupdate = YES
      END IF
     END IF
     IF keyval(scA) > 1 THEN  'Autoshow zones
      st.autoshow_zones XOR= YES
-     zones_needupdate = YES
+     st.zones_needupdate = YES
     END IF
     IF keyval(scS) > 1 THEN  'Show other zones
      st.showzonehints XOR= YES
     END IF
-    IF keyval(scG) > 1 THEN  'Let the user choose the tileset used to display zones in multi-view
+    IF keyval(scT) > 1 THEN  'Let the user choose the tileset used to display zones in multi-view
      st.zoneviewtileset = (st.zoneviewtileset + 1) MOD 3
     END IF
    END IF
@@ -845,8 +897,60 @@ DO
   y = mapy / 20 + oldrely
  END IF
  moved = (oldx <> x OR oldy <> y)
- 
- IF editmode = tile_mode THEN 'uses layers
+
+ '--Tools
+ IF tools_available THEN
+  '--Select tool
+  FOR i = 0 TO UBOUND(toolinfo)
+   IF keyval(scCtrl) > 0 AND keyval(toolinfo(i).shortcut) > 1 THEN
+    st.tool = i
+    st.tool_value = -1  'Reset
+    st.tool_hold = NO
+   END IF
+  NEXT
+
+  'These are basically tools
+  IF keyval(scDelete) > 0 THEN
+   st.brush(st, x, y, 0, map(), pass, emap, zmap)
+  END IF
+
+  IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+F Fill screen
+   FOR tx = 0 TO 15
+    FOR ty = 0 TO 8
+     st.brush(st, mapx \ 20 + tx, mapy \ 20 + ty, st.tool_value, map(), pass, emap, zmap)
+    NEXT ty
+   NEXT tx
+  END IF
+
+  SELECT CASE st.tool
+   '--Draw tool
+   CASE 0
+    IF keyval(scSpace) > 0 THEN
+     st.brush(st, x, y, st.tool_value, map(), pass, emap, zmap)
+    END IF
+
+   '--Box tool
+   CASE 1
+    IF keyval(scSpace) AND 4 THEN  'new keypress
+     IF st.tool_hold THEN
+      'We have two corners
+      st.tool_hold = NO
+      FOR tx = small(st.tool_hold_pos.x, x) TO large(st.tool_hold_pos.x, x)
+       FOR ty = small(st.tool_hold_pos.y, y) TO large(st.tool_hold_pos.y, y)
+        st.brush(st, tx, ty, st.tool_value, map(), pass, emap, zmap)
+       NEXT
+      NEXT
+     ELSE
+      st.tool_hold = YES
+      st.tool_hold_pos = TYPE(x, y)
+     END IF
+    END IF
+
+  END SELECT
+ END IF
+
+ '--Layer changing 
+ IF editmode = tile_mode THEN
   IF keyval(scPageup) > 1 THEN
    FOR i = st.layer + 1 TO UBOUND(map)
     IF layerisenabled(gmap(), i) THEN
@@ -873,12 +977,12 @@ DO
  '--Zones update logic, here because it needs access to 'moved'
  IF editmode = zone_mode THEN
   IF st.zonesubmode = 0 THEN
-   IF zones_needupdate THEN
+   IF st.zones_needupdate THEN
     CleanTilemap st.zoneoverlaymap, wide, high
     ZoneToTilemap zmap, st.zoneoverlaymap, st.cur_zone, 0
    END IF
   ELSE
-   IF zones_needupdate OR moved THEN
+   IF st.zones_needupdate OR moved THEN
     'Rebuilds zonemenu() and st.zoneviewmap based on selected tile and lockedzonelist() 
     mapedit_update_visible_zones st, zonemenu(), zonemenustate, zmap, x, y, wide, high, lockedzonelist()
    END IF
@@ -894,19 +998,11 @@ DO
    END IF
   END IF
 
-  zones_needupdate = NO
+  st.zones_needupdate = NO
  END IF
 
  '--Draw Screen
- 
- '--draw menubar
- IF editmode = tile_mode THEN
-  drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, , , , 0, 20
- ELSE
-  rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
- END IF
- rectangle 0, 19, 320, 1, uilook(uiText), dpage
- 
+  
  '--draw map
  animatetilesets st.tilesets()
  rectangle 0, 20, 320, 180, uilook(uiBackground), dpage
@@ -955,7 +1051,7 @@ DO
   NEXT o
  END IF
 
- '--show passmode overlay
+ '--show passmode
  IF editmode = pass_mode THEN
   FOR o = 0 TO 8
    FOR i = 0 TO 15
@@ -1005,7 +1101,7 @@ DO
    END IF
    npczone_needupdate = NO
    'We're reusing st.zoneoverlaymap
-   zones_needupdate = YES
+   st.zones_needupdate = YES
   END IF
   '--Draw restriction zone
   drawmap st.zoneoverlaymap, mapx, mapy, overlaytileset, dpage, YES, , , 20
@@ -1058,6 +1154,46 @@ DO
   END IF
  END IF
  
+ '--tools overlays
+ IF tools_available THEN
+  SELECT CASE st.tool
+   '--Draw tool
+   CASE 0
+    'nothing
+
+   '--Box tool
+   CASE 1
+    IF st.tool_hold THEN
+     'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different
+     'for different brushes is non-trivial, and besides, how should layers work?
+     DIM AS XYPair topleft, rectsize
+     topleft.x = small(st.tool_hold_pos.x, x)
+     topleft.y = small(st.tool_hold_pos.y, y)
+     rectsize.x = large(st.tool_hold_pos.x, x) - topleft.x + 1
+     rectsize.y = large(st.tool_hold_pos.y, y) - topleft.y + 1
+     drawbox topleft.x * 20 - mapx, topleft.y * 20 - mapy + 20, _
+             rectsize.x * 20, rectsize.y * 20, _
+             uilook(uiHighlight + tog), 4, dpage
+    END IF
+  END SELECT
+ END IF
+
+ '--draw menubar
+ IF editmode = tile_mode THEN
+  drawmap st.menubar, st.menubarstart(st.layer) * 20, 0, st.tilesets(st.layer), dpage, , , , 0, 20
+ ELSE
+  rectangle 0, 0, 320, 20, uilook(uiBackground), dpage
+ END IF
+ rectangle 0, 19, 320, 1, uilook(uiText), dpage
+
+ '--pass mode menu bar
+ IF editmode = pass_mode THEN
+  IF st.tool <> 0 THEN
+   textcolor uilook(uiText), 0
+   printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding walls", ": Removing walls"), 70, 6, dpage, YES
+  END IF
+ END IF
+
  '--position finder--
  IF tiny = 1 THEN
   fuzzyrect 0, 35, wide, high, uilook(uiHighlight), dpage
@@ -1089,11 +1225,26 @@ DO
  textcolor uilook(uiText), 0
  printstr modenames(editmode), 0, 24, dpage
 
+ '--drawing tool
+ IF tools_available THEN
+  textcolor uilook(uiText), 0 
+  DIM toolbarpos AS XYPair = TYPE(300, 0)
+  IF editmode = tile_mode THEN
+   toolbarpos = TYPE(300, 180)
+   rectangle 300, 190, 20, 10, uilook(uiBackground), dpage  'uilook(uiDisabledItem), dpage
+  END IF
+  DIM tmpstr AS STRING = "Tool: " & toolinfo(st.tool).name
+  printstr tmpstr, xstring(tmpstr, toolbarpos.x), toolbarpos.y, dpage
+  FOR i = 0 TO UBOUND(toolinfo)
+   mapedit_draw_icon st, toolinfo(i).icon, toolbarpos.x + i * 10, toolbarpos.y + 10, (st.tool = i)
+  NEXT
+ END IF
+
  IF editmode = tile_mode THEN
   textcolor uilook(uiSelectedItem + tog), 0 
   printstr "Layer " & st.layer, 0, 180, dpage
   textcolor uilook(uiText), 0
-  printstr iif_string(st.defpass, "", "No ") + flashtag + "D${K-1}efault Walls", 116, 192, dpage, YES
+  printstr iif_string(st.defpass, "", "No ") + hilite("D") + "efault Walls", 116, 192, dpage, YES
  END IF
 
  IF editmode = foe_mode THEN
@@ -1105,32 +1256,36 @@ DO
   DIM zoneselected as integer = YES
   textcolor uilook(uiText), 0
   IF st.zonesubmode = 0 THEN
-   printstr "(" & flashtag & "M${K-1}: Edit mode)", 150, 24, dpage, YES
+   IF st.tool <> 0 THEN
+    printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 70, 6, dpage, YES
+   END IF
+
+   printstr "(" + hilite("M") + ": Edit mode)", 150, 24, dpage, YES
   ELSE
-   printstr "(" & flashtag & "M${K-1}: View mode)", 150, 24, dpage, YES
+   printstr "(" + hilite("M") + ": View mode)", 150, 24, dpage, YES
    IF zonemenustate.pt = -1 THEN zoneselected = NO
   END IF
 
   IF zoneselected THEN
-   printstr flashtag & "Zone " & st.cur_zone & "${K-1} (" & st.cur_zinfo->numtiles & " tiles) " & st.cur_zinfo->name, 0, 180, dpage, YES
+   printstr hilite("Zone " & st.cur_zone) & " (" & st.cur_zinfo->numtiles & " tiles) " & st.cur_zinfo->name, 0, 180, dpage, YES
   END IF
 
   IF st.zonesubmode = 0 THEN
    '-- Edit mode
 
-   printstr flashtag & "E${K-1}dit info", 116, 192, dpage, YES
+   printstr hilite("E") + "dit info", 116, 192, dpage, YES
 
   ELSE
    '-- View mode
 
-   printstr iif_string(st.autoshow_zones,"      ","Don't ") & flashtag & "A${K-1}utoshow zones  " _
-            & iif_string(st.showzonehints,"      ","Don't ") & flashtag & "S${K-1}how other", 0, 5, dpage, YES
+   printstr iif_string(st.autoshow_zones,"      ","Don't ") & hilite("A") + "utoshow zones  " _
+            & iif_string(st.showzonehints,"      ","Don't ") & hilite("S") + "how other", 0, 5, dpage, YES
 
    IF zoneselected THEN
     DIM is_locked as integer = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
-    printstr flashtag & "E${K-1}dit/" _
-             & iif_string(st.cur_zinfo->hidden,"un","") & flashtag & "H${K-1}ide/" _
-             & iif_string(is_locked,"un","") & flashtag & "L${K-1}ock zone", 320 - 25*8, 192, dpage, YES
+    printstr hilite("E") + "dit/" _
+             & iif_string(st.cur_zinfo->hidden,"un","") + hilite("H") + "ide/" _
+             & iif_string(is_locked,"un","") + hilite("L") + "ock zone", 320 - 25*8, 192, dpage, YES
    END IF
 
    'Draw zonemenu
@@ -1167,6 +1322,21 @@ END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+'This is a variant on spriteedit_draw_icon
+SUB mapedit_draw_icon(st AS MapEditState, icon as string, byval x as integer, byval y as integer, byval highlight as integer = NO)
+ DIM bgcol AS INTEGER
+ DIM fgcol AS INTEGER
+ fgcol = uilook(uiMenuItem)
+ bgcol = uilook(uiDisabledItem)
+ IF highlight THEN
+  fgcol = uilook(uiText)
+  bgcol = uilook(uiMenuItem)
+ END IF
+ 'IF ts.zonenum = areanum + 1 THEN bgcol = uilook(uiSelectedDisabled)
+ textcolor fgcol, bgcol
+ printstr icon, x, y, dpage
+END SUB
 
 SUB update_npc_graphics(st as MapEditState, npc_img() as GraphicPair)
  ' npc_img() may be sized larger than the number of NPC defs (st.num_npc_defs),
@@ -1479,14 +1649,14 @@ END SUB
 
 'For debugging. Paint a whole lot of tiles over the map randomly for the current zone,
 'so that we have something to look at.
-SUB mapedit_zonespam(st as MapEditState, zmap as ZoneMap)
+SUB mapedit_zonespam(st as MapEditState, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
  DIM t as double = TIMER
  DIM as integer x, y, i, temp, count = st.cur_zinfo->numtiles
  FOR i = 0 TO INT((1 + RND) * zmap.high / 8)
   y = INT(RND * zmap.high)
   temp = INT(RND * zmap.wide)
   FOR x = temp TO small(temp + 12, zmap.wide - 1)
-   SetZoneTile zmap, st.cur_zone, x, y
+   zonebrush st, x, y, 1, map(), pass, emap, zmap
   NEXT
  NEXT
 
@@ -2981,3 +3151,8 @@ SUB mapedit_pickblock(BYREF st AS MapEditState)
  LOOP
  update_tilepicker st
 END SUB
+
+'Move this global eventually
+FUNCTION hilite(what as string) as string
+ RETURN "${K" & uilook(uiSelectedItem + tog) & "}" & what & "${K-1}"
+END FUNCTION
