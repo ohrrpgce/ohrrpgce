@@ -19,7 +19,7 @@ Press < and > to change the current zone number, or type in an ID number. There'
 
 Press E to go to the zone info editor, where you can edit the triggers attached to this zone.
 
-At the top right corner the current drawing tool is shown. The options are:
+At the top right corner the current drawing tool is shown. Press SPACE to draw the zone. The tools are:
 
 CTRL+D - Draw tool:
   Press SPACE to add or remove the 
@@ -33,6 +33,15 @@ CTRL+B - Box tool:
   second time at the opposite corner 
   to add or remove a rectangle of 
   tiles to the zone.
+
+CTRL+F - Fill (Paint bucket) tool:
+  Flood fills the continuous region
+  under the cursor of tiles either in
+  the zone or not.
+
+Also,
+
+CTRL+P paints (adds or removes) the  tiles on-screen to/from the zone.
 
 If the current tool isn't the Draw tool, press + or - to toggle whether you are adding or removing tiles.
 

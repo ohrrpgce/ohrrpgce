@@ -17,11 +17,11 @@ Along the top of the screen you will see a row of maptiles, with your currently 
 
 Press G if you want to get the tile under the cursor as the current tile to place.
 
-At the bottom right corner the current drawing tool is shown. The options are:
+At the bottom right corner the current drawing tool is shown. Press SPACE to draw on the current map layer. The tools are:
 
 CTRL+D - Draw tool:
-  Press or hold down the SPACE bar
-  to place a maptile on the map.
+  Place a maptile on the map. Hold 
+  down SPACE and move to draw lines.
 
 CTRL+B - Box tool:
   Press SPACE once to place one 
@@ -29,13 +29,20 @@ CTRL+B - Box tool:
   second time at the opposite corner 
   to draw a rectangle of tiles.
 
+CTRL+F - Fill (Paint bucket) tool:
+  Flood fills a continuous region (on
+  current layer) under the cursor 
+  with the current tile.
+
+CTRL+R - Replace tool:
+  Replaces completely across the 
+  whole map layer all tiles like the 
+  one under the cursor with the 
+  current tile.
+
 Also,
 
-CTRL+F fills the screen with the current tile.
-
-CTRL+P does a "paint-bucket" style fill using the current tile.
-
-CTRL+R replaces all tiles like the one under the cursor with the currently selected tile.
+CTRL+P paints the tiles on-screen with the current tile.
 
 ~ shows a small preview of the entire map.
 

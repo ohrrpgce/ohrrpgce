@@ -23,7 +23,8 @@ DECLARE FUNCTION hilite (what as string) as string
 
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
 DECLARE SUB loadpasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INTEGER)
-DECLARE SUB paint_map_area(st AS MapEditState, oldTile, x%, y%, map() AS TileMap, pass AS TileMap)
+
+DECLARE SUB paint_map_area(st AS MapEditState, x, y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap)
 
 DECLARE SUB draw_zone_tileset(BYVAL zonetileset AS Frame ptr)
 DECLARE SUB draw_zone_tileset2(BYVAL zonetileset AS Frame ptr)
@@ -217,25 +218,26 @@ END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
 SUB tilebrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL tile as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
- IF tile = -1 THEN tile = st.usetile(st.layer)
+ IF tile = -1 THEN tile = st.tool_value
  writeblock map(st.layer), x, y, tile
  IF st.defpass THEN calculatepassblock st, x, y, map(), pass
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
 SUB wallbrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL tile as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
- IF tile = -1 THEN tile = 15
+ IF tile = -1 THEN tile = st.tool_value
  writeblock pass, x, y, tile
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
 SUB foebrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL foe as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
- IF foe = -1 THEN foe = st.cur_foe
+ IF foe = -1 THEN foe = st.tool_value
  writeblock emap, x, y, foe
 END SUB
 
 'Note dummy arguments: all brush functions should have the same signature
-SUB zonebrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL value as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+SUB zonebrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL value as integer = -1, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+ IF value = -1 THEN value = st.tool_value
  IF value = 0 THEN
   UnsetZoneTile zmap, st.cur_zone, x, y
  ELSE
@@ -245,6 +247,25 @@ SUB zonebrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL
  END IF
  st.zones_needupdate = YES
 END SUB
+
+
+'---------------------------------- Readers ------------------------------------
+
+
+'Note dummy arguments: all reader functions should have the same signature
+FUNCTION tilereader (st as MapEditState, BYVAL x as integer, BYVAL y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
+ RETURN readblock(map(st.layer), x, y)
+END FUNCTION
+
+'Note dummy arguments: all reader functions should have the same signature
+FUNCTION foereader (st as MapEditState, BYVAL x as integer, BYVAL y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
+ RETURN readblock(emap, x, y)
+END FUNCTION
+
+'Note dummy arguments: all reader functions should have the same signature
+FUNCTION zonereader (st as MapEditState, BYVAL x as integer, BYVAL y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
+ RETURN CheckZoneAtTile(zmap, st.cur_zone, x, y)
+END FUNCTION
 
 
 '---------------------------------- Main SUB -----------------------------------
@@ -337,7 +358,7 @@ NEXT
 
 'Plenty of tiles left for other purposes
 
-DIM toolinfo(1) AS ToolInfoType
+DIM toolinfo(3) AS ToolInfoType
 WITH toolinfo(0)
  .name = "Draw"
  .icon = "D"  'CHR(3)
@@ -347,6 +368,16 @@ WITH toolinfo(1)
  .name = "Box"
  .icon = "B"  'CHR(4)
  .shortcut = scB
+END WITH
+WITH toolinfo(2)
+ .name = "Fill"
+ .icon = "F"
+ .shortcut = scF
+END WITH
+WITH toolinfo(3)
+ .name = "Replace"
+ .icon = "R"
+ .shortcut = scR
 END WITH
 
 '--load hero graphics--
@@ -495,7 +526,7 @@ EXIT SUB
 mapping:
 clearpage 2
 
-st.tool_value = -1  'Default, which means selected tile, formation set, etc
+st.reset_tool = YES
 st.defpass = YES
 IF readbit(gen(), genBits, 15) THEN st.defpass = NO ' option to default the defaults to OFF
 st.autoshow_zones = YES
@@ -535,27 +566,35 @@ DO
  END IF
  IF editmode <> old_editmode THEN
   'Reset tools
-  st.tool_value = -1
+  st.reset_tool = YES
   st.tool_hold = NO
  END IF
 
  tools_available = YES
+ st.maxtool = UBOUND(toolinfo)
  SELECT CASE editmode
   CASE tile_mode
    st.brush = @tilebrush
+   st.reader = @tilereader
   CASE pass_mode
    st.brush = @wallbrush
+   st.reader = NULL   'Not needed
+   st.maxtool = 1
   CASE foe_mode
    st.brush = @foebrush
+   st.reader = @foereader
   CASE zone_mode
    IF st.zonesubmode = 0 THEN
     st.brush = @zonebrush
+    st.reader = @zonereader
+    st.maxtool = 2    'Disallow replace
    ELSE
     tools_available = NO
    END IF
   CASE ELSE
    tools_available = NO
  END SELECT
+ IF st.tool > st.maxtool THEN st.tool = 0
  
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), map()  'ctrl-L
  IF keyval(scTab) > 1 THEN tiny = tiny XOR 1
@@ -595,27 +634,26 @@ DO
   '---TILEMODE------
   CASE tile_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_tilemap"
-   IF keyval(scR) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+R to replace-all
-    old = readblock(map(st.layer), x, y)
-    FOR ty = 0 to map(st.layer).high - 1
-     FOR tx = 0 to map(st.layer).wide - 1
-      IF readblock(map(st.layer), tx, ty) = old THEN tilebrush st, tx, ty, , map(), pass, emap, zmap
-     NEXT tx
-    NEXT ty
-   END IF
-   IF keyval(scP) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+P to paint a continuous section of maptiles
-    old = readblock(map(st.layer), x, y)
-    paint_map_area st, old, x, y, map(), pass
-   END IF
-   IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
-    setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
-   END IF
-   IF keyval(scTilde) > 1 AND keyval(scAlt) = 0 THEN show_minimap st, map()
+
    IF keyval(scEnter) > 1 THEN mapedit_pickblock st
    IF keyval(scG) > 1 THEN 'grab tile
     st.usetile(st.layer) = animadjust(readblock(map(st.layer), x, y), st.tilesets(st.layer)->tastuf())
     update_tilepicker st
    END IF
+   IF keyval(scComma) > 1 AND st.usetile(st.layer) > 0 THEN
+    st.usetile(st.layer) = st.usetile(st.layer) - 1
+    update_tilepicker st
+   END IF
+   IF keyval(scPeriod) > 1 AND st.usetile(st.layer) < 159 THEN
+    st.usetile(st.layer) = st.usetile(st.layer) + 1
+    update_tilepicker st
+   END IF
+   st.tool_value = st.usetile(st.layer)
+
+   IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
+    setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
+   END IF
+   IF keyval(scTilde) > 1 AND keyval(scAlt) = 0 THEN show_minimap st, map()
    IF keyval(scCtrl) = 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
    FOR i = 0 TO 1
     IF keyval(sc1 + i) > 1 THEN 'animate tile
@@ -639,14 +677,28 @@ DO
      END IF
     END IF
    NEXT i
-   IF keyval(scComma) > 1 AND st.usetile(st.layer) > 0 THEN
-    st.usetile(st.layer) = st.usetile(st.layer) - 1
-    update_tilepicker st
+
+   IF keyval(scPageup) > 1 THEN
+    FOR i = st.layer + 1 TO UBOUND(map)
+     IF layerisenabled(gmap(), i) THEN
+      st.layer = i
+      setlayervisible(visible(), st.layer, 1)
+      update_tilepicker st
+      EXIT FOR
+     END IF
+    NEXT i
    END IF
-   IF keyval(scPeriod) > 1 AND st.usetile(st.layer) < 159 THEN
-    st.usetile(st.layer) = st.usetile(st.layer) + 1
-    update_tilepicker st
+   IF keyval(scPageDown) > 1 THEN
+    FOR i = st.layer - 1 TO 0 STEP -1
+     IF layerisenabled(gmap(), i) THEN
+      st.layer = i
+      setlayervisible(visible(), st.layer, 1)
+      update_tilepicker st
+      EXIT FOR
+     END IF
+    NEXT
    END IF
+
 
    '#IFNDEF __UNIX__
     'common WM keys
@@ -687,6 +739,7 @@ DO
   CASE pass_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
    over = readblock(pass, x, y)
+   IF st.reset_tool THEN st.tool_value = 15  'default
    IF st.tool <> 0 ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
     st.tool_value = IIF(st.tool_value, 0, 15)
    END IF
@@ -798,14 +851,8 @@ DO
   CASE foe_mode
    IF keyval(scF1) > 1 THEN show_help "mapedit_foemap"
    intgrabber(st.cur_foe, 0, 255, scLeftCaret, scRightCaret)
-   IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN
-    FOR i = 0 TO 15
-     FOR o = 0 TO 8
-      foebrush st, mapx \ 20 + i, mapy \ 20 + o, , map(), pass, emap, zmap
-     NEXT o
-    NEXT i
-   END IF
    IF keyval(scG) > 1 THEN st.cur_foe = readblock(emap, x, y)
+   st.tool_value = st.cur_foe
    '---ZONEMODE--------
   CASE zone_mode
    IF keyval(scF1) > 1 THEN
@@ -823,11 +870,12 @@ DO
     '--Tiling/editing mode
     st.zones_needupdate OR= intgrabber(st.cur_zone, 1, 9999, scLeftCaret, scRightCaret)
     st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
+    IF st.reset_tool THEN st.tool_value = YES
     IF st.tool = 0 ANDALSO (keyval(scSpace) AND 4) THEN 'drawing, new keypress: pick value intelligently
-     st.tool_value = IIF(CheckZoneAtTile(zmap, st.cur_zone, x, y), 0, 1)
+     st.tool_value = CheckZoneAtTile(zmap, st.cur_zone, x, y) XOR YES
     END IF
     IF st.tool <> 0 ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
-     st.tool_value = IIF(st.tool_value, 0, 1)
+     st.tool_value XOR= YES
     END IF
     IF keyval(scQ) > 1 AND keyval(scCtrl) > 0 THEN
      DebugZoneMap zmap, x, y
@@ -869,6 +917,8 @@ DO
    END IF
    '--done input-modes-------
  END SELECT
+ st.reset_tool = NO   'The above SELECT block is responsible for doing resetting
+
  
  '--general purpose controls----
  oldx = x
@@ -901,20 +951,21 @@ DO
  '--Tools
  IF tools_available THEN
   '--Select tool
-  FOR i = 0 TO UBOUND(toolinfo)
+  FOR i = 0 TO st.maxtool
    IF keyval(scCtrl) > 0 AND keyval(toolinfo(i).shortcut) > 1 THEN
     st.tool = i
-    st.tool_value = -1  'Reset
+    st.reset_tool = YES
     st.tool_hold = NO
    END IF
   NEXT
 
-  'These are basically tools
+  'These two are basically tools
+
   IF keyval(scDelete) > 0 THEN
    st.brush(st, x, y, 0, map(), pass, emap, zmap)
   END IF
 
-  IF keyval(scF) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+F Fill screen
+  IF keyval(scP) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+P  Paint the screen
    FOR tx = 0 TO 15
     FOR ty = 0 TO 8
      st.brush(st, mapx \ 20 + tx, mapy \ 20 + ty, st.tool_value, map(), pass, emap, zmap)
@@ -946,32 +997,26 @@ DO
      END IF
     END IF
 
+    '--Fill tool
+    CASE 2
+     IF keyval(scSpace) AND 4 THEN  'new keypress
+      paint_map_area st, x, y, map(), pass, emap, zmap
+     END IF
+
+    '--Replace tool
+    CASE 3
+     IF keyval(scSpace) AND 4 THEN
+      old = st.reader(st, x, y, map(), pass, emap, zmap)
+      FOR ty = 0 to high - 1
+       FOR tx = 0 to wide - 1
+        IF st.reader(st, tx, ty, map(), pass, emap, zmap) = old THEN
+         st.brush(st, tx, ty, st.tool_value, map(), pass, emap, zmap)
+        END IF
+       NEXT tx
+      NEXT ty
+     END IF
+
   END SELECT
- END IF
-
- '--Layer changing 
- IF editmode = tile_mode THEN
-  IF keyval(scPageup) > 1 THEN
-   FOR i = st.layer + 1 TO UBOUND(map)
-    IF layerisenabled(gmap(), i) THEN
-     st.layer = i
-     setlayervisible(visible(), st.layer, 1)
-     update_tilepicker st
-     EXIT FOR
-    END IF
-   NEXT i
-  END IF
-
-  IF keyval(scPageDown) > 1 THEN
-   FOR i = st.layer - 1 TO 0 STEP -1
-    IF layerisenabled(gmap(), i) THEN
-     st.layer = i
-     setlayervisible(visible(), st.layer, 1)
-     update_tilepicker st
-     EXIT FOR
-    END IF
-   NEXT
-  END IF
  END IF
 
  '--Zones update logic, here because it needs access to 'moved'
@@ -1157,10 +1202,6 @@ DO
  '--tools overlays
  IF tools_available THEN
   SELECT CASE st.tool
-   '--Draw tool
-   CASE 0
-    'nothing
-
    '--Box tool
    CASE 1
     IF st.tool_hold THEN
@@ -1175,6 +1216,7 @@ DO
              rectsize.x * 20, rectsize.y * 20, _
              uilook(uiHighlight + tog), 4, dpage
     END IF
+
   END SELECT
  END IF
 
@@ -1190,7 +1232,7 @@ DO
  IF editmode = pass_mode THEN
   IF st.tool <> 0 THEN
    textcolor uilook(uiText), 0
-   printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding walls", ": Removing walls"), 70, 6, dpage, YES
+   printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding walls", ": Removing walls"), 50, 6, dpage, YES
   END IF
  END IF
 
@@ -1228,14 +1270,14 @@ DO
  '--drawing tool
  IF tools_available THEN
   textcolor uilook(uiText), 0 
-  DIM toolbarpos AS XYPair = TYPE(300, 0)
+  DIM toolbarpos AS XYPair = TYPE(310 - 10 * UBOUND(toolinfo), 0)
   IF editmode = tile_mode THEN
-   toolbarpos = TYPE(300, 180)
+   toolbarpos.y = 180
    rectangle 300, 190, 20, 10, uilook(uiBackground), dpage  'uilook(uiDisabledItem), dpage
   END IF
   DIM tmpstr AS STRING = "Tool: " & toolinfo(st.tool).name
   printstr tmpstr, xstring(tmpstr, toolbarpos.x), toolbarpos.y, dpage
-  FOR i = 0 TO UBOUND(toolinfo)
+  FOR i = 0 TO st.maxtool
    mapedit_draw_icon st, toolinfo(i).icon, toolbarpos.x + i * 10, toolbarpos.y + 10, (st.tool = i)
   NEXT
  END IF
@@ -1257,7 +1299,7 @@ DO
   textcolor uilook(uiText), 0
   IF st.zonesubmode = 0 THEN
    IF st.tool <> 0 THEN
-    printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 70, 6, dpage, YES
+    printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 50, 6, dpage, YES
    END IF
 
    printstr "(" + hilite("M") + ": Edit mode)", 150, 24, dpage, YES
@@ -3048,9 +3090,9 @@ SUB show_minimap(BYREF st AS MapEditState, map() AS TileMap)
  waitforanykey
 END SUB
 
-SUB paint_map_add_node(BYREF tlayer AS TileMap, BYVAL oldTile, BYVAL x, BYVAL y, BYREF head, queue() AS XYPair)
- IF (y < tlayer.high) AND (y >= 0) AND (x < tlayer.wide) AND (x >= 0) THEN
-  IF readblock(tlayer, x, y) = oldTile THEN
+SUB paint_map_add_node(st AS MapEditState, BYVAL oldTile, BYVAL x, BYVAL y, BYREF head, queue() AS XYPair, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap)
+ IF (y < emap.high) AND (y >= 0) AND (x < emap.wide) AND (x >= 0) THEN  'emap is not special
+  IF st.reader(st, x, y, map(), pass, emap, zmap) = oldTile THEN
    queue(head).x = x
    queue(head).y = y
    head = (head + 1) MOD UBOUND(queue)
@@ -3058,13 +3100,17 @@ SUB paint_map_add_node(BYREF tlayer AS TileMap, BYVAL oldTile, BYVAL x, BYVAL y,
  END IF
 END SUB
 
-'tile fill tool: iterate through all contiguous maptiles, changing if the area continues, and stopping if it is blocked by a different kind of maptile
+'tile fill (paint bucket) tool: iterate through all contiguous tiles
+'
 'do a breadth first search instead of using the stack; that's prone to overflow
-SUB paint_map_area(st AS MapEditState, oldTile, x, y, map() AS TileMap, pass AS TileMap)
- IF oldTile = st.usetile(st.layer) THEN EXIT SUB
+SUB paint_map_area(st AS MapEditState, x, y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap)
+ DIM AS INTEGER oldtile, newTile
+ oldTile = st.reader(st, x, y, map(), pass, emap, zmap)
+ newTile = st.tool_value
+ IF oldTile = newTile THEN EXIT SUB
  REDIM queue(250) AS XYPair 'a circular buffer. We don't use the last element
  DIM AS INTEGER head, tail, i, oldend
- paint_map_add_node map(st.layer), oldTile, x, y, head, queue()
+ paint_map_add_node st, oldTile, x, y, head, queue(), map(), pass, emap, zmap
  WHILE tail <> head
   'resizing inside paint_map_add_node would invalidate the WITH pointers, so make sure there's at least 4 empty slots
   IF (tail - head + UBOUND(queue)) MOD UBOUND(queue) <= 4 THEN
@@ -3079,13 +3125,13 @@ SUB paint_map_area(st AS MapEditState, oldTile, x, y, map() AS TileMap, pass AS 
   END IF
 
   WITH queue(tail)
-   IF readblock(map(st.layer), .x, .y) = oldTile THEN
-    writeblock map(st.layer), .x, .y, st.usetile(st.layer)
-    IF st.defpass THEN calculatepassblock st, .x, .y, map(), pass
-    paint_map_add_node map(st.layer), oldTile, .x + 1, .y, head, queue()
-    paint_map_add_node map(st.layer), oldTile, .x - 1, .y, head, queue()
-    paint_map_add_node map(st.layer), oldTile, .x, .y + 1, head, queue()
-    paint_map_add_node map(st.layer), oldTile, .x, .y - 1, head, queue()
+   IF st.reader(st, .x, .y, map(), pass, emap, zmap) = oldTile THEN
+    st.brush(st, .x, .y, newTile, map(), pass, emap, zmap)
+
+    paint_map_add_node st, oldTile, .x + 1, .y, head, queue(), map(), pass, emap, zmap
+    paint_map_add_node st, oldTile, .x - 1, .y, head, queue(), map(), pass, emap, zmap
+    paint_map_add_node st, oldTile, .x, .y + 1, head, queue(), map(), pass, emap, zmap
+    paint_map_add_node st, oldTile, .x, .y - 1, head, queue(), map(), pass, emap, zmap
    END IF
   END WITH
   tail = (tail + 1) MOD UBOUND(queue)

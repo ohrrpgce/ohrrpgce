@@ -150,6 +150,7 @@ END ENUM
 TYPE MapEditStateFwd AS MapEditState
 
 TYPE FnBrush AS SUB (st as MapEditStateFwd, BYVAL x as integer, BYVAL y as integer, BYVAL value as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+TYPE FnReader AS FUNCTION (st as MapEditStateFwd, BYVAL x as integer, BYVAL y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
 
 TYPE MapEditState
   'This NPC stuff shouldn't be here; this is the Editor state, not a map TYPE
@@ -173,8 +174,11 @@ TYPE MapEditState
 
   'Tool stuff
   tool AS INTEGER            'Tool ID
+  maxtool AS INTEGER         'ID of the highest tool allowed in this mode
   brush AS FnBrush           'What to draw with
-  tool_value AS INTEGER      'Value (eg. tile) with which to draw. -1 means default
+  reader AS FnReader         'What to read with
+  tool_value AS INTEGER      'Value (eg. tile) with which to draw. Should never be -1.
+  reset_tool AS INTEGER      'When true, tool_value should be set to some default
   tool_hold AS INTEGER       'True if one coordinate has been selected
   tool_hold_pos AS XYPair    'Held coordinate
 
