@@ -28,11 +28,13 @@ DECLARE SUB fill_map_area(st AS MapEditState, BYVAL x, BYVAL y, map() AS TileMap
 DECLARE SUB fill_with_other_area(st AS MapEditState, BYVAL x, BYVAL y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, reader AS FnReader)
 
 DECLARE FUNCTION mapedit_on_screen(st AS MapEditState, BYVAL x as integer, BYVAL y as integer) as integer
+DECLARE SUB mapedit_focus_camera(st as MapEditState, BYVAL x as integer, BYVAL y as integer)
 
 DECLARE SUB add_undo_step(st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL oldvalue as integer, BYVAL mapid as integer)
 DECLARE FUNCTION undo_stroke(st as MapEditState, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, BYVAL redo as integer = NO) AS MapEditUndoTile vector
 DECLARE FUNCTION redo_stroke(st as MapEditState, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap) AS MapEditUndoTile vector
 DECLARE SUB mapedit_throw_away_history(st as MapEditState)
+DECLARE SUB mapedit_show_undo_change(st as MapEditState, BYVAL undostroke as MapEditUndoTile vector)
 
 DECLARE SUB draw_zone_tileset(BYVAL zonetileset AS Frame ptr)
 DECLARE SUB draw_zone_tileset2(BYVAL zonetileset AS Frame ptr)
@@ -631,6 +633,7 @@ DO
     st.brush = @zonebrush
     st.reader = @zonereader
     IF st.zonesubmode = 1 THEN v_resize mode_tools, 0  'No tools in view mode
+    st.zones_needupdate = YES
   END SELECT
 
   'Reset tool
@@ -1067,15 +1070,19 @@ DO
      END IF
 
   END SELECT
-
-  DIM stroke AS MapEditUndoTile vector = NULL
-  IF keyval(scCtrl) > 0 AND keyval(scZ) > 1 THEN
-   stroke = undo_stroke(st, map(), pass, emap, zmap)
-  END IF
-  IF keyval(scCtrl) > 0 AND keyval(scY) > 1 THEN
-   stroke = redo_stroke(st, map(), pass, emap, zmap)
-  END IF
  END IF
+
+ '--Undo/Redo
+ 'IF v_len(mode_tools) THEN
+ DIM stroke AS MapEditUndoTile vector = NULL
+ IF keyval(scCtrl) > 0 AND keyval(scZ) > 1 THEN
+  stroke = undo_stroke(st, map(), pass, emap, zmap)
+ END IF
+ IF keyval(scCtrl) > 0 AND keyval(scY) > 1 THEN
+  stroke = redo_stroke(st, map(), pass, emap, zmap)
+ END IF
+ IF stroke THEN mapedit_show_undo_change st, stroke
+ 'END IF
 
  'NOTE: There should be no use of brushes below this point!!
 
@@ -1334,7 +1341,7 @@ DO
   IF st.editmode = tile_mode THEN
    toolbarpos.y = 12
   END IF
-  rectangle toolbarpos.x, toolbarpos.y, 10 * v_len(mode_tools), 10, uilook(uiBackground), dpage
+  rectangle toolbarpos.x, toolbarpos.y, 10 * v_len(mode_tools), 8, uilook(uiBackground), dpage
   FOR i = 0 TO v_len(mode_tools) - 1
    mapedit_draw_icon st, toolinfo(mode_tools[i]).icon, toolbarpos.x + i * 10, toolbarpos.y, (st.tool = mode_tools[i])
   NEXT
@@ -3330,7 +3337,7 @@ SUB mapedit_show_undo_change(st as MapEditState, BYVAL undostroke as MapEditUndo
      'Tiles are always visible, no need to change to tile mode
     CASE mapIDMetaEditmode + zone_mode
      st.seteditmode = zone_mode
-     st.cur_zone = .value
+     IF st.zonesubmode = 0 THEN st.cur_zone = .value
     CASE mapIDMetaEditmode TO mapIDMetaEditmodeEND
      st.seteditmode = .mapid - mapIDMetaEditmode
     CASE ELSE
@@ -3382,6 +3389,10 @@ SUB add_undo_step(st as MapEditState, BYVAL x as integer, BYVAL y as integer, BY
   END IF
 
   v_expand st.history
+
+  'Write meta data
+  add_undo_step st, -1, -1, st.cur_zone, mapIDMetaEditmode + st.editmode
+  add_undo_step st, st.x, st.y, 0, mapIDMetaCursor
  END IF
  
  'NOTE: tricky usage of v_expand should trigger alarm bells, but an indexed array is still an lvalue, so this is ok
@@ -3423,7 +3434,6 @@ FUNCTION undo_stroke(st as MapEditState, map() AS TileMap, pass AS TileMap, emap
  debug "undo_stroke(" & redo & ")  history_step=" & st.history_step & " out of " & v_len(st.history)
 
  DIM overwrite_value as integer
- DIM seen_change as integer = NO
 
  'When undo, start from the end, when redoing, start from the beginning
  DIM undostroke as MapEditUndoTile vector = st.history[st.history_step]
@@ -3455,8 +3465,9 @@ FUNCTION undo_stroke(st as MapEditState, map() AS TileMap, pass AS TileMap, emap
      UnsetZoneTile zmap, .mapid - mapIDZone, .x, .y
     END IF
     st.zones_needupdate = YES
-   ELSEIF .mapid = mapIDMeta THEN
+   ELSEIF .mapid >= mapIDMetaBEGIN THEN
     'Ignore meta data
+    overwrite_value = .value
    ELSE
     showerror "Undo history is corrupt: unknown map id " & .mapid
    END IF
@@ -3479,3 +3490,8 @@ END FUNCTION
 FUNCTION mapedit_on_screen(st as MapEditState, BYVAL x as integer, BYVAL y as integer) as integer
  RETURN x * 20 >= st.mapx AND x * 20 < st.mapx + 320 AND y * 20 >= st.mapy AND y * 20 < st.mapy + 180
 END FUNCTION
+
+SUB mapedit_focus_camera(st as MapEditState, BYVAL x as integer, BYVAL y as integer)
+ st.mapx = bound(x * 20 - 160, 0, st.wide * 20 - 320)
+ st.mapy = bound(y * 20 - 80, 0, st.high * 20 - 180)
+END SUB

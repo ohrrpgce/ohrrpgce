@@ -151,8 +151,13 @@ ENUM MapEditMode
   zone_mode
 END ENUM
 
+'MapIDs used for undo steps
+'FIXME:a bit of a mess, clean up later
 ENUM MapID
-  mapIDMeta = -1
+  mapIDMetaBEGIN = -11
+  mapIDMetaCursor = -11
+  mapIDMetaEditmode = -10  'to -1. .value is mode specific.
+  mapIDMetaEditmodeEND = -1
   mapIDZone = 0   'to 9999
   mapIDPass = 10000
   mapIDFoe = 10001
