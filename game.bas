@@ -627,6 +627,11 @@ DO
      scriptout$ = STR(speedcontrol)
     END IF
    END IF
+   IF keyval(scF8) > 1 THEN
+    debug "----------------Slice Tree Dump---------------"
+    SliceDebugDumpTree SliceTable.Root
+    notification "Dumped entire slice tree to g_debug.txt"
+   END IF
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
@@ -772,14 +777,18 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  'setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
  'cycletile tilesets(0)->anim(), tilesets(0)->tastuf()
  'DEBUG debug "drawmap"
- overlay = 1
- IF readbit(gen(), 44, suspendoverlay) THEN overlay = 0
+ IF readbit(gen(), 44, suspendoverlay) THEN 
+  ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all
+  SliceTable.ObsoleteOverhead->Visible = NO
+ ELSE
+  ChangeMapSlice SliceTable.MapLayer(0), , , , 1   'draw non-overhead only 
+  SliceTable.ObsoleteOverhead->Visible = YES
+ END IF
  WITH *(SliceTable.MapRoot)
   .X = mapx * -1
   .Y = mapy * -1
  END WITH
  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
- ChangeMapSlice SliceTable.MapLayer(0), , , , overlay
  DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  FOR i = 1 TO gmap(31) - 1
   IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
@@ -795,12 +804,8 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  FOR i = gmap(31) TO UBOUND(maptiles)
   IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
  NEXT
- 'DEBUG debug "drawoverhead"
- IF readbit(gen(), 44, suspendoverlay) = 0 THEN
-  ChangeMapSlice SliceTable.MapLayer(0), , , , 2
-  DrawSlice SliceTable.MapLayer(0), dpage
- END IF
- DrawSlice SliceTable.scriptsprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
+ DrawSlice SliceTable.ObsoleteOverhead, dpage
+ DrawSlice SliceTable.ScriptSprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  
  animatetilesets tilesets()
  IF harmtileflash = YES THEN
@@ -2983,15 +2988,13 @@ SUB refresh_map_slice()
  END WITH
  FOR i AS INTEGER = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
-  ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass, (i > 0), 0
-  WITH *(SliceTable.MapLayer(i))
-   .Fill = YES
-  END WITH
+  ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
  NEXT i
  FOR i AS INTEGER = UBOUND(maptiles) + 1 TO maplayerMax
   '--this map layer slices thing isn't quite polished...
-  ChangeMapSlice SliceTable.MapLayer(i), NULL, NULL, (i > 0), 0
+  ChangeMapSlice SliceTable.MapLayer(i), NULL, NULL
  NEXT i
+ ChangeMapSlice SliceTable.ObsoleteOverhead, @maptiles(0), @pass
 END SUB
 
 SUB refresh_map_slice_tilesets()
@@ -2999,6 +3002,7 @@ SUB refresh_map_slice_tilesets()
   '--reset map layer tileset ptrs
   ChangeMapSliceTileset SliceTable.MapLayer(i), tilesets(i)
  NEXT i
+ ChangeMapSliceTileset SliceTable.ObsoleteOverhead, tilesets(0)
 END SUB
 
 FUNCTION vehicle_is_animating() AS INTEGER

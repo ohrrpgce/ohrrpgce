@@ -64,6 +64,7 @@ WHAT IS NEW?
       [Ralph]
     * You can select menu items on Custom's main menu and graphics menu
       by hotkey (eg. I for Edit Items or Import Music) [Ralph]
+    * Ctrl+F8 debug to print out the slice tree to g_debug.txt
 
   * Bugfixes
     * Bug 749: Attacks configured to do No Damage still do damage when
@@ -113,6 +114,8 @@ WHAT IS NEW?
     * "horiz flip sprite" and "vert flip sprite" reset the sprite's
       palette to default [Ralph]
     * Trying to reorder map layers if there's only one crashed [Ralph]
+    * Bug 865: Slices attached to map layer 0 were drawn on top of all
+      map layers [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and

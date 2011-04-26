@@ -181,6 +181,7 @@ script, toggle clipping, begin
     clip rect := create rect(random(200, 380), random(140, 260), 14)
     set rect border(clip rect, -1)
     slice to back(clip rect)
+set parent(clip rect, lookupslice(sl:maplayer0))
     put slice(clip rect, random(-50, 50), random(-30, 30))
     mouse region(slice x(clip rect), slice edge x(clip rect, edge:right) -- 1, slice y(clip rect), slice edge y(clip rect, edge:bottom) -- 1)
     trace value(slice x(clip rect), slice edge x(clip rect, edge:right) -- 1, slice y(clip rect), slice edge y(clip rect, edge:bottom) -- 1)

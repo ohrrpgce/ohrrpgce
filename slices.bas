@@ -133,7 +133,12 @@ Sub SetupGameSlices
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
  FOR i AS INTEGER = 0 TO maplayerMax
   SliceTable.MapLayer(i) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0 - i)
+  ChangeMapSlice SliceTable.ObsoleteOverhead, , , (i > 0), 0   'maybe transparent, not overhead
+  SliceTable.MapLayer(i)->Fill = YES
  NEXT
+ SliceTable.ObsoleteOverhead = NewSliceOfType(slMap, SliceTable.MapRoot, SL_OBSOLETE_OVERHEAD)
+ ChangeMapSlice SliceTable.ObsoleteOverhead, , , 0, 2   'non-transparent, overhead
+ SliceTable.ObsoleteOverhead->Fill = YES
  
  SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
  SliceTable.ScriptSprite->Fill = YES
@@ -158,6 +163,7 @@ Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
  FOR i AS INTEGER = 0 TO maplayerMax
   SliceTable.MapLayer(i) = 0
  NEXT
+ SliceTable.ObsoleteOverhead = 0
  SliceTable.ScriptSprite = 0
  SliceTable.TextBox = 0
  SliceTable.Menu = 0
@@ -220,6 +226,7 @@ FUNCTION SliceLookupCodename (BYVAL code AS INTEGER) AS STRING
   CASE SL_TEXTBOX_LAYER: RETURN "textbox_layer"
   CASE SL_STRING_LAYER: RETURN "string_layer"
   CASE SL_MAPROOT: RETURN "maproot"
+  CASE SL_OBSOLETE_OVERHEAD: RETURN "obsolete_overhead"
   CASE SL_MAP_LAYER0: RETURN "map_layer0"
   CASE SL_MAP_LAYER1: RETURN "map_layer1"
   CASE SL_MAP_LAYER2: RETURN "map_layer2"
@@ -2168,7 +2175,7 @@ END SUB
 
 SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
  if sl = 0 then exit sub
- debug string(indent, " ") & SliceTypeName(sl) & " " & SliceLookupCodename(sl)
+ debug string(indent, " ") & SliceTypeName(sl) & " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->X & "," & sl->Y & " size:" & sl->Width & "x" & sl->Height
  SliceDebugDumpTree sl->FirstChild, indent + 1
  SliceDebugDumpTree sl->NextSibling, indent
 END SUB

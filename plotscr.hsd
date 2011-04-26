@@ -1564,6 +1564,7 @@ define constant, begin
 -100006, sl:textbox layer
 -100007, sl:string layer
 -100008, sl:maproot
+-100009, sl:obsolete overhead
 -101000, sl:map layer0
 -101001, sl:map layer1
 -101002, sl:map layer2
