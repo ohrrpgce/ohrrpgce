@@ -173,8 +173,7 @@ TYPE MapEditState
   menustate AS MenuState     'The top-level menu state
 
   'Tool stuff
-  tool AS INTEGER            'Tool ID
-  maxtool AS INTEGER         'ID of the highest tool allowed in this mode
+  tool AS INTEGER            'Tool ID (index in toolinfo), or -1 if none (meaning none available)
   brush AS FnBrush           'What to draw with
   reader AS FnReader         'What to read with
   tool_value AS INTEGER      'Value (eg. tile) with which to draw. Should never be -1.

@@ -282,7 +282,17 @@ DIM hero_gfx AS GraphicPair
 REDIM doors(99) AS door, link(199) AS doorlink
 
 DIM editmode AS INTEGER
-DIM tools_available AS INTEGER
+DIM seteditmode AS INTEGER = -1
+DIM mode_tools_map(zone_mode, 10) AS INTEGER = { _
+   {draw_tool, box_tool, fill_tool, replace_tool, -1}, _                  'tile_mode
+   {draw_tool, box_tool, -1}, _                                           'pass_mode
+   {-1}, _                                                                'door_mode
+   {-1}, _                                                                'npc_mode
+   {draw_tool, box_tool, fill_tool, replace_tool, -1}, _                  'foe_mode
+   {draw_tool, box_tool, fill_tool, -1} _                                 'zone_mode
+}
+DIM mode_tools AS INTEGER VECTOR
+v_new mode_tools
 
 REDIM lockedzonelist(-1 TO -1) AS INTEGER 'The zones chosen to be always displayed. At most 8 (index 0 onwards, start at -1 for fake zero-length arrays) 
 DIM gauze_ticker AS INTEGER = 0  'for hidden zones animation
@@ -358,23 +368,24 @@ NEXT
 
 'Plenty of tiles left for other purposes
 
-DIM toolinfo(3) AS ToolInfoType
-WITH toolinfo(0)
+'Note that most of this array is empty
+DIM toolinfo(NUM_TOOLS) AS ToolInfoType
+WITH toolinfo(draw_tool)
  .name = "Draw"
  .icon = "D"  'CHR(3)
  .shortcut = scD
 END WITH
-WITH toolinfo(1)
+WITH toolinfo(box_tool)
  .name = "Box"
  .icon = "B"  'CHR(4)
  .shortcut = scB
 END WITH
-WITH toolinfo(2)
+WITH toolinfo(fill_tool)
  .name = "Fill"
  .icon = "F"
  .shortcut = scF
 END WITH
-WITH toolinfo(3)
+WITH toolinfo(replace_tool)
  .name = "Replace"
  .icon = "R"
  .shortcut = scR
@@ -458,7 +469,7 @@ DO
     'This may change st.num_npc_defs, and delete NPC instances
     npcdef st, npc_img(), zmap
    CASE 5 TO 10
-    editmode = st.menustate.pt - 5
+    seteditmode = st.menustate.pt - 5
     GOSUB mapping
    CASE 11
     mapedit_savemap st, mapnum, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
@@ -518,6 +529,7 @@ frame_unload @zonetileset(1)
 frame_unload @zonetileset(2)
 frame_unload @overlaytileset
 frame_unload @st.zoneminimap
+v_free mode_tools
 
 remember_menu_pt = st.menustate.pt  'preserve for other maps
 EXIT SUB
@@ -542,60 +554,54 @@ DO
  tog = tog XOR 1
  gauze_ticker = (gauze_ticker + 1) MOD 50  '10 frames, 5 ticks a frame
  IF keyval(scESC) > 1 THEN EXIT DO
- DIM old_editmode AS INTEGER = editmode
  IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
-  IF keyval(scF2) > 1 THEN
-   editmode = tile_mode
-  END IF
-  IF keyval(scF3) > 1 THEN
-   editmode = pass_mode
-  END IF
-  IF keyval(scF4) > 1 THEN
-   editmode = door_mode
-  END IF
-  IF keyval(scF5) > 1 THEN
-   editmode = npc_mode
-   npczone_needupdate = YES
-  END IF
-  IF keyval(scF6) > 1 THEN
-   editmode = foe_mode
-  END IF
-  IF keyval(scF7) > 1 THEN
-   editmode = zone_mode
-  END IF
+  FOR i = tile_mode TO zone_mode
+   IF keyval(scF2 + i) > 1 THEN seteditmode = i
+  NEXT
  END IF
- IF editmode <> old_editmode THEN
-  'Reset tools
+
+ IF seteditmode > -1 THEN
+  editmode = seteditmode
+  seteditmode = -1
+
+  'Set available tools
+  v_resize mode_tools, 0
+  i = 0
+  WHILE mode_tools_map(editmode, i) <> -1
+   v_append mode_tools, mode_tools_map(editmode, i)
+   i += 1
+  WEND
+
+  st.brush = NULL
+  st.reader = NULL
+  SELECT CASE editmode
+   CASE tile_mode
+    st.brush = @tilebrush
+    st.reader = @tilereader
+   CASE pass_mode
+    st.brush = @wallbrush
+   CASE door_mode
+   CASE npc_mode
+    npczone_needupdate = YES
+   CASE foe_mode
+    st.brush = @foebrush
+    st.reader = @foereader
+   CASE zone_mode
+    st.brush = @zonebrush
+    st.reader = @zonereader
+    IF st.zonesubmode = 1 THEN v_resize mode_tools, 0  'No tools in view mode
+  END SELECT
+
+  'Reset tool
+  IF v_len(mode_tools) = 0 THEN
+   st.tool = -1  'None
+  ELSEIF v_find(mode_tools, st.tool) = -1 THEN
+   st.tool = mode_tools[0]
+  END IF
   st.reset_tool = YES
   st.tool_hold = NO
  END IF
 
- tools_available = YES
- st.maxtool = UBOUND(toolinfo)
- SELECT CASE editmode
-  CASE tile_mode
-   st.brush = @tilebrush
-   st.reader = @tilereader
-  CASE pass_mode
-   st.brush = @wallbrush
-   st.reader = NULL   'Not needed
-   st.maxtool = 1
-  CASE foe_mode
-   st.brush = @foebrush
-   st.reader = @foereader
-  CASE zone_mode
-   IF st.zonesubmode = 0 THEN
-    st.brush = @zonebrush
-    st.reader = @zonereader
-    st.maxtool = 2    'Disallow replace
-   ELSE
-    tools_available = NO
-   END IF
-  CASE ELSE
-   tools_available = NO
- END SELECT
- IF st.tool > st.maxtool THEN st.tool = 0
- 
  IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), map()  'ctrl-L
  IF keyval(scTab) > 1 THEN tiny = tiny XOR 1
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
@@ -740,10 +746,10 @@ DO
    IF keyval(scF1) > 1 THEN show_help "mapedit_wallmap"
    over = readblock(pass, x, y)
    IF st.reset_tool THEN st.tool_value = 15  'default
-   IF st.tool <> 0 ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
+   IF st.tool <> draw_tool ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
     st.tool_value = IIF(st.tool_value, 0, 15)
    END IF
-   IF st.tool = 0 AND keyval(scSpace) AND 4 THEN  'drawing, new keypress: pick value intelligently
+   IF st.tool = draw_tool AND keyval(scSpace) AND 4 THEN  'drawing, new keypress: pick value intelligently
     IF (over AND 15) = 0 THEN st.tool_value = 15
     IF (over AND 15) = 15 THEN st.tool_value = 0
     IF (over AND 15) > 0 AND (over AND 15) < 15 THEN st.tool_value = 0
@@ -871,10 +877,10 @@ DO
     st.zones_needupdate OR= intgrabber(st.cur_zone, 1, 9999, scLeftCaret, scRightCaret)
     st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
     IF st.reset_tool THEN st.tool_value = YES
-    IF st.tool = 0 ANDALSO (keyval(scSpace) AND 4) THEN 'drawing, new keypress: pick value intelligently
+    IF st.tool = draw_tool ANDALSO (keyval(scSpace) AND 4) THEN 'drawing, new keypress: pick value intelligently
      st.tool_value = CheckZoneAtTile(zmap, st.cur_zone, x, y) XOR YES
     END IF
-    IF st.tool <> 0 ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
+    IF st.tool <> draw_tool ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
      st.tool_value XOR= YES
     END IF
     IF keyval(scQ) > 1 AND keyval(scCtrl) > 0 THEN
@@ -949,11 +955,11 @@ DO
  moved = (oldx <> x OR oldy <> y)
 
  '--Tools
- IF tools_available THEN
+ IF v_len(mode_tools) THEN
   '--Select tool
-  FOR i = 0 TO st.maxtool
-   IF keyval(scCtrl) > 0 AND keyval(toolinfo(i).shortcut) > 1 THEN
-    st.tool = i
+  FOR i = 0 TO v_len(mode_tools) - 1
+   IF keyval(scCtrl) > 0 AND keyval(toolinfo(mode_tools[i]).shortcut) > 1 THEN
+    st.tool = mode_tools[i]
     st.reset_tool = YES
     st.tool_hold = NO
    END IF
@@ -974,14 +980,12 @@ DO
   END IF
 
   SELECT CASE st.tool
-   '--Draw tool
-   CASE 0
+   CASE draw_tool
     IF keyval(scSpace) > 0 THEN
      st.brush(st, x, y, st.tool_value, map(), pass, emap, zmap)
     END IF
 
-   '--Box tool
-   CASE 1
+   CASE box_tool
     IF keyval(scSpace) AND 4 THEN  'new keypress
      IF st.tool_hold THEN
       'We have two corners
@@ -997,14 +1001,12 @@ DO
      END IF
     END IF
 
-    '--Fill tool
-    CASE 2
+    CASE fill_tool
      IF keyval(scSpace) AND 4 THEN  'new keypress
       paint_map_area st, x, y, map(), pass, emap, zmap
      END IF
 
-    '--Replace tool
-    CASE 3
+    CASE replace_tool
      IF keyval(scSpace) AND 4 THEN
       old = st.reader(st, x, y, map(), pass, emap, zmap)
       FOR ty = 0 to high - 1
@@ -1200,25 +1202,22 @@ DO
  END IF
  
  '--tools overlays
- IF tools_available THEN
-  SELECT CASE st.tool
-   '--Box tool
-   CASE 1
-    IF st.tool_hold THEN
-     'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different
-     'for different brushes is non-trivial, and besides, how should layers work?
-     DIM AS XYPair topleft, rectsize
-     topleft.x = small(st.tool_hold_pos.x, x)
-     topleft.y = small(st.tool_hold_pos.y, y)
-     rectsize.x = large(st.tool_hold_pos.x, x) - topleft.x + 1
-     rectsize.y = large(st.tool_hold_pos.y, y) - topleft.y + 1
-     drawbox topleft.x * 20 - mapx, topleft.y * 20 - mapy + 20, _
-             rectsize.x * 20, rectsize.y * 20, _
-             uilook(uiHighlight + tog), 4, dpage
-    END IF
+ SELECT CASE st.tool
+  CASE box_tool
+   IF st.tool_hold THEN
+    'Just draw a cheap rectangle on the screen, because I'm lazy. Drawing something different
+    'for different brushes is non-trivial, and besides, how should layers work?
+    DIM AS XYPair topleft, rectsize
+    topleft.x = small(st.tool_hold_pos.x, x)
+    topleft.y = small(st.tool_hold_pos.y, y)
+    rectsize.x = large(st.tool_hold_pos.x, x) - topleft.x + 1
+    rectsize.y = large(st.tool_hold_pos.y, y) - topleft.y + 1
+    drawbox topleft.x * 20 - mapx, topleft.y * 20 - mapy + 20, _
+            rectsize.x * 20, rectsize.y * 20, _
+            uilook(uiHighlight + tog), 4, dpage
+   END IF
 
-  END SELECT
- END IF
+ END SELECT
 
  '--draw menubar
  IF editmode = tile_mode THEN
@@ -1230,7 +1229,7 @@ DO
 
  '--pass mode menu bar
  IF editmode = pass_mode THEN
-  IF st.tool <> 0 THEN
+  IF st.tool <> draw_tool THEN
    textcolor uilook(uiText), 0
    printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding walls", ": Removing walls"), 50, 6, dpage, YES
   END IF
@@ -1267,18 +1266,18 @@ DO
  textcolor uilook(uiText), 0
  printstr modenames(editmode), 0, 24, dpage
 
- '--drawing tool
- IF tools_available THEN
+ '--Tool selection
+ IF st.tool <> -1 THEN
   textcolor uilook(uiText), 0 
-  DIM toolbarpos AS XYPair = TYPE(310 - 10 * UBOUND(toolinfo), 0)
+  DIM toolbarpos AS XYPair = TYPE(320 - 10 * v_len(mode_tools), 0)
   IF editmode = tile_mode THEN
    toolbarpos.y = 180
    rectangle 300, 190, 20, 10, uilook(uiBackground), dpage  'uilook(uiDisabledItem), dpage
   END IF
   DIM tmpstr AS STRING = "Tool: " & toolinfo(st.tool).name
   printstr tmpstr, xstring(tmpstr, toolbarpos.x), toolbarpos.y, dpage
-  FOR i = 0 TO st.maxtool
-   mapedit_draw_icon st, toolinfo(i).icon, toolbarpos.x + i * 10, toolbarpos.y + 10, (st.tool = i)
+  FOR i = 0 TO v_len(mode_tools) - 1
+   mapedit_draw_icon st, toolinfo(mode_tools[i]).icon, toolbarpos.x + i * 10, toolbarpos.y + 10, (st.tool = mode_tools[i])
   NEXT
  END IF
 
@@ -1298,7 +1297,7 @@ DO
   DIM zoneselected as integer = YES
   textcolor uilook(uiText), 0
   IF st.zonesubmode = 0 THEN
-   IF st.tool <> 0 THEN
+   IF st.tool <> draw_tool THEN
     printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 50, 6, dpage, YES
    END IF
 
@@ -1315,7 +1314,7 @@ DO
   IF st.zonesubmode = 0 THEN
    '-- Edit mode
 
-   printstr hilite("E") + "dit info", 116, 192, dpage, YES
+   printstr hilite("E") + "dit data/triggers", 116, 192, dpage, YES
 
   ELSE
    '-- View mode
