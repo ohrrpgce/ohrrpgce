@@ -183,6 +183,7 @@ CONST maplayerMax = 7 'The limit on the highest numbered map layer
 CONST mapTilesMax = 100000 'Maximum map size, in tiles (note also a limit of 32768 tiles wide or high)
 CONST dissolveTypeMax = 10 'Highest numbered frame dissolve effect
 CONST maxElements = 64 'Maximum selectable number of elements
+CONST tempZone = 10000 'ID (and up) to use for temporary zones
 #IFDEF SCRIPTPROFILE
 CONST scriptmemMax = 10000000 'in 4-byte ints
 CONST scriptTableSize = 512  'hash table size, power of 2 please

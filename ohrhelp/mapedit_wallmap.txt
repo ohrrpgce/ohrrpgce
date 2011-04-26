@@ -31,6 +31,15 @@ CTRL+B - Box tool:
   to make a rectangle of walls 
   passable or completely impassable.
 
+CTRL+P - Paint on Tilemap tool:
+  Finds the continuous area on the 
+  current tilemap layer (you can't 
+  select or see which layer is 
+  selected without switching to 
+  Tilemap Editing mode) under the 
+  cursor, and adds/removes walls to 
+  all those tiles. 
+
 If the current tool isn't the Draw tool, press + or - to toggle whether you are adding or removing walls.
 
 CTRL+Up makes the selected tile impassable on the top.

@@ -900,7 +900,7 @@ SUB editmaptile (ts AS TileEditState, mover(), mouse AS MouseInfo, area() AS Mou
 STATIC clone AS TileCloneBuffer
 DIM spot AS XYPair
 
-DIM toolinfo(NUM_TOOLS - 1) AS ToolInfoType
+DIM toolinfo(SPRITEEDITOR_NUM_TOOLS - 1) AS ToolInfoType
 WITH toolinfo(0)
  .name = "Draw"
  .icon = CHR(3)
@@ -2373,7 +2373,7 @@ SUB sprite_editor(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditStatic
  DIM area(25) AS MouseArea
  init_sprite_zones area(), ss
 
- DIM toolinfo(NUM_TOOLS - 1) AS ToolInfoType
+ DIM toolinfo(SPRITEEDITOR_NUM_TOOLS - 1) AS ToolInfoType
  WITH toolinfo(0)
   .name = "Draw"
   .icon = CHR(3)

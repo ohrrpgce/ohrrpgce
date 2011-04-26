@@ -24,7 +24,8 @@ DECLARE FUNCTION hilite (what as string) as string
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
 DECLARE SUB loadpasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INTEGER)
 
-DECLARE SUB paint_map_area(st AS MapEditState, x, y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap)
+DECLARE SUB fill_map_area(st AS MapEditState, BYVAL x, BYVAL y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, reader AS FnReader)
+DECLARE SUB fill_with_other_area(st AS MapEditState, BYVAL x, BYVAL y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, reader AS FnReader)
 
 DECLARE SUB draw_zone_tileset(BYVAL zonetileset AS Frame ptr)
 DECLARE SUB draw_zone_tileset2(BYVAL zonetileset AS Frame ptr)
@@ -248,6 +249,12 @@ SUB zonebrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL
  st.zones_needupdate = YES
 END SUB
 
+'Note dummy arguments: all brush functions should have the same signature
+'Values allowed: 0 to 255
+SUB tempbrush (st as MapEditState, BYVAL x as integer, BYVAL y as integer, BYVAL tile as integer = 0, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
+ writeblock st.temptilemap, x, y, tile
+END SUB
+
 
 '---------------------------------- Readers ------------------------------------
 
@@ -267,6 +274,11 @@ FUNCTION zonereader (st as MapEditState, BYVAL x as integer, BYVAL y as integer,
  RETURN CheckZoneAtTile(zmap, st.cur_zone, x, y)
 END FUNCTION
 
+'Note dummy arguments: all reader functions should have the same signature
+FUNCTION tempreader (st as MapEditState, BYVAL x as integer, BYVAL y as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap) as integer
+ RETURN readblock(st.temptilemap, x, y)
+END FUNCTION
+
 
 '---------------------------------- Main SUB -----------------------------------
 
@@ -284,12 +296,12 @@ REDIM doors(99) AS door, link(199) AS doorlink
 DIM editmode AS INTEGER
 DIM seteditmode AS INTEGER = -1
 DIM mode_tools_map(zone_mode, 10) AS INTEGER = { _
-   {draw_tool, box_tool, fill_tool, replace_tool, -1}, _                  'tile_mode
-   {draw_tool, box_tool, -1}, _                                           'pass_mode
-   {-1}, _                                                                'door_mode
-   {-1}, _                                                                'npc_mode
-   {draw_tool, box_tool, fill_tool, replace_tool, -1}, _                  'foe_mode
-   {draw_tool, box_tool, fill_tool, -1} _                                 'zone_mode
+   {draw_tool, box_tool, fill_tool, replace_tool, -1}, _                              'tile_mode
+   {draw_tool, box_tool, paint_tool, -1}, _                                           'pass_mode
+   {-1}, _                                                                            'door_mode
+   {-1}, _                                                                            'npc_mode
+   {draw_tool, box_tool, fill_tool, replace_tool, paint_tool, -1}, _                  'foe_mode
+   {draw_tool, box_tool, fill_tool, paint_tool, -1} _                                 'zone_mode
 }
 DIM mode_tools AS INTEGER VECTOR
 v_new mode_tools
@@ -389,6 +401,11 @@ WITH toolinfo(replace_tool)
  .name = "Replace"
  .icon = "R"
  .shortcut = scR
+END WITH
+WITH toolinfo(paint_tool)
+ .name = "Paint Tilemap"
+ .icon = "P"
+ .shortcut = scP
 END WITH
 
 '--load hero graphics--
@@ -971,7 +988,7 @@ DO
    st.brush(st, x, y, 0, map(), pass, emap, zmap)
   END IF
 
-  IF keyval(scP) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+P  Paint the screen
+  IF keyval(scS) > 1 AND keyval(scCtrl) > 0 THEN  'Ctrl+S  Paint the screen
    FOR tx = 0 TO 15
     FOR ty = 0 TO 8
      st.brush(st, mapx \ 20 + tx, mapy \ 20 + ty, st.tool_value, map(), pass, emap, zmap)
@@ -1003,7 +1020,12 @@ DO
 
     CASE fill_tool
      IF keyval(scSpace) AND 4 THEN  'new keypress
-      paint_map_area st, x, y, map(), pass, emap, zmap
+      fill_map_area st, x, y, map(), pass, emap, zmap, st.reader
+     END IF
+
+    CASE paint_tool
+     IF keyval(scSpace) AND 4 THEN  'new keypress
+      fill_with_other_area st, x, y, map(), pass, emap, zmap, @tilereader
      END IF
 
     CASE replace_tool
@@ -1231,7 +1253,7 @@ DO
  IF editmode = pass_mode THEN
   IF st.tool <> draw_tool THEN
    textcolor uilook(uiText), 0
-   printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding walls", ": Removing walls"), 50, 6, dpage, YES
+   printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding walls", ": Removing walls"), 15, 6, dpage, YES
   END IF
  END IF
 
@@ -1298,7 +1320,7 @@ DO
   textcolor uilook(uiText), 0
   IF st.zonesubmode = 0 THEN
    IF st.tool <> draw_tool THEN
-    printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 50, 6, dpage, YES
+    printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 15, 6, dpage, YES
    END IF
 
    printstr "(" + hilite("M") + ": Edit mode)", 150, 24, dpage, YES
@@ -3089,12 +3111,14 @@ SUB show_minimap(BYREF st AS MapEditState, map() AS TileMap)
  waitforanykey
 END SUB
 
-SUB paint_map_add_node(st AS MapEditState, BYVAL oldTile, BYVAL x, BYVAL y, BYREF head, queue() AS XYPair, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap)
+SUB fill_map_add_node(st AS MapEditState, BYVAL followTile, BYVAL oldTile, BYVAL x, BYVAL y, BYREF head, queue() AS XYPair, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, reader AS FnReader)
  IF (y < emap.high) AND (y >= 0) AND (x < emap.wide) AND (x >= 0) THEN  'emap is not special
-  IF st.reader(st, x, y, map(), pass, emap, zmap) = oldTile THEN
-   queue(head).x = x
-   queue(head).y = y
-   head = (head + 1) MOD UBOUND(queue)
+  IF reader(st, x, y, map(), pass, emap, zmap) = followTile THEN
+   IF st.reader(st, x, y, map(), pass, emap, zmap) = oldTile THEN   'Would be interesting to see whether this redundant check speeds or slows things
+    queue(head).x = x
+    queue(head).y = y
+    head = (head + 1) MOD UBOUND(queue)
+   END IF
   END IF
  END IF
 END SUB
@@ -3102,16 +3126,18 @@ END SUB
 'tile fill (paint bucket) tool: iterate through all contiguous tiles
 '
 'do a breadth first search instead of using the stack; that's prone to overflow
-SUB paint_map_area(st AS MapEditState, x, y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap)
- DIM AS INTEGER oldtile, newTile
+'reader is a FnReader for a map on which the continuous regions is sought
+SUB fill_map_area(st AS MapEditState, BYVAL x, BYVAL y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, reader AS FnReader)
+ DIM AS INTEGER oldtile, newTile, followTile
  oldTile = st.reader(st, x, y, map(), pass, emap, zmap)
+ followTile = reader(st, x, y, map(), pass, emap, zmap)
  newTile = st.tool_value
  IF oldTile = newTile THEN EXIT SUB
  REDIM queue(250) AS XYPair 'a circular buffer. We don't use the last element
  DIM AS INTEGER head, tail, i, oldend
- paint_map_add_node st, oldTile, x, y, head, queue(), map(), pass, emap, zmap
+ fill_map_add_node st, followTile, oldTile, x, y, head, queue(), map(), pass, emap, zmap, reader
  WHILE tail <> head
-  'resizing inside paint_map_add_node would invalidate the WITH pointers, so make sure there's at least 4 empty slots
+  'resizing inside fill_map_add_node would invalidate the WITH pointers, so make sure there's at least 4 empty slots
   IF (tail - head + UBOUND(queue)) MOD UBOUND(queue) <= 4 THEN
    oldend = UBOUND(queue)
    REDIM PRESERVE queue(UBOUND(queue) * 2)
@@ -3127,14 +3153,44 @@ SUB paint_map_area(st AS MapEditState, x, y, map() AS TileMap, pass AS TileMap, 
    IF st.reader(st, .x, .y, map(), pass, emap, zmap) = oldTile THEN
     st.brush(st, .x, .y, newTile, map(), pass, emap, zmap)
 
-    paint_map_add_node st, oldTile, .x + 1, .y, head, queue(), map(), pass, emap, zmap
-    paint_map_add_node st, oldTile, .x - 1, .y, head, queue(), map(), pass, emap, zmap
-    paint_map_add_node st, oldTile, .x, .y + 1, head, queue(), map(), pass, emap, zmap
-    paint_map_add_node st, oldTile, .x, .y - 1, head, queue(), map(), pass, emap, zmap
+    fill_map_add_node st, followTile, oldTile, .x + 1, .y, head, queue(), map(), pass, emap, zmap, reader
+    fill_map_add_node st, followTile, oldTile, .x - 1, .y, head, queue(), map(), pass, emap, zmap, reader
+    fill_map_add_node st, followTile, oldTile, .x, .y + 1, head, queue(), map(), pass, emap, zmap, reader
+    fill_map_add_node st, followTile, oldTile, .x, .y - 1, head, queue(), map(), pass, emap, zmap, reader
    END IF
   END WITH
   tail = (tail + 1) MOD UBOUND(queue)
  WEND
+END SUB
+
+'Finding a continuous area by reading from a map with the given reader,
+'fill that area using st.brush and st.tool_value. This is done by first
+'drawing a stencil to a temporary TileMap and then copying it
+SUB fill_with_other_area(st AS MapEditState, BYVAL x, BYVAL y, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, reader AS FnReader)
+ DIM oldbrush as FnBrush = st.brush
+ DIM oldreader as FnReader = st.reader
+ DIM oldvalue as integer = st.tool_value
+ st.brush = @tempbrush
+ st.reader = @tempreader
+ st.tool_value = 1
+
+ CleanTileMap st.temptilemap, emap.wide, emap.high  'emap is not special
+
+ fill_map_area st, x, y, map(), pass, emap, zmap, reader
+
+ st.brush = oldbrush
+ st.reader = oldreader
+ st.tool_value = oldvalue
+
+ FOR ty as integer = 0 TO emap.high - 1
+  FOR tx as integer = 0 TO emap.wide - 1
+   'IF tempreader(st, tx, ty, map(), pass, emap, zmap) THEN
+   IF readblock(st.temptilemap, tx, ty) THEN
+    st.brush(st, tx, ty, st.tool_value, map(), pass, emap, zmap)
+   END IF
+  NEXT
+ NEXT
+ UnloadTileMap st.temptilemap
 END SUB
 
 SUB loadpasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INTEGER)

@@ -39,9 +39,18 @@ CTRL+F - Fill (Paint bucket) tool:
   under the cursor of tiles either in
   the zone or not.
 
+CTRL+P - Paint on Tilemap tool:
+  Finds the continuous area on the 
+  current tilemap layer (you can't 
+  select or see which layer is 
+  selected without switching to 
+  Tilemap Editing mode) under the 
+  cursor, and adds/removes all those
+  tiles to the zone.
+
 Also,
 
-CTRL+P paints (adds or removes) the  tiles on-screen to/from the zone.
+CTRL+S paints (adds or removes) the  tiles on-screen to/from the zone.
 
 If the current tool isn't the Draw tool, press + or - to toggle whether you are adding or removing tiles.
 

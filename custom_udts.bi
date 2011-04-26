@@ -6,7 +6,8 @@
 
 #include "slices.bi"
 
-ENUM PixelTool
+ENUM ToolIDs
+  'These are the tools available in the sprite and tile editors
   draw_tool
   box_tool
   line_tool
@@ -17,6 +18,9 @@ ENUM PixelTool
   clone_tool
   replace_tool
   scroll_tool
+  SPRITEEDITOR_NUM_TOOLS
+
+  paint_tool = SPRITEEDITOR_NUM_TOOLS
   NUM_TOOLS
 END ENUM
 
@@ -180,6 +184,7 @@ TYPE MapEditState
   reset_tool AS INTEGER      'When true, tool_value should be set to some default
   tool_hold AS INTEGER       'True if one coordinate has been selected
   tool_hold_pos AS XYPair    'Held coordinate
+  temptilemap AS TileMap     'A temporary TileMap. Normally remains uninitialised
 
   'Zone stuff (zone_mode)
   zonesubmode AS INTEGER

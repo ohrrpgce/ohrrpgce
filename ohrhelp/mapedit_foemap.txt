@@ -42,9 +42,18 @@ CTRL+R - Replace tool:
   of the tile under the cursor) with 
   the current one.
 
+CTRL+P - Paint on Tilemap tool:
+  Finds the continuous area on the 
+  current tilemap layer (you can't 
+  select or see which layer is 
+  selected without switching to 
+  Tilemap Editing mode) under the 
+  cursor, and sets the current
+  formation set on all those tiles. 
+
 Also,
 
-CTRL+P paints the tiles on-screen with the currently selected formation set number.
+CTRL+S paints the tiles on-screen with the currently selected formation set number.
 
 To remove random battles from a tile, press DELETE (or change the formation set number to 0).
 

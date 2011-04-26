@@ -65,6 +65,9 @@ WHAT IS NEW?
     * You can select menu items on Custom's main menu and graphics menu
       by hotkey (eg. I for Edit Items or Import Music) [Ralph]
     * Ctrl+F8 debug to print out the slice tree to g_debug.txt
+    * Added drawing tools -- Draw, Box, Fill, Replace, and Paint
+      Tilemap -- to the map editor, available in Tile, Wall, Foe, and
+      Zone modes! [Ralph]
 
   * Bugfixes
     * Bug 749: Attacks configured to do No Damage still do damage when
