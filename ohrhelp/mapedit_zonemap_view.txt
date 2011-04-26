@@ -7,7 +7,7 @@ F5 switch to NPC placement mode
 F6 switch to foemap mode
 F7 switch to zonemap mode
 
-M to switch to zone editing submode
+M to switch to zone editing submode.
 
 Use the arrow keys to move around the map.
 
@@ -23,10 +23,10 @@ Zones are automatically made visible when you move the cursor over them. Press A
 
 Press H to hide a zone if it is too distracting. Hidden zones are made nonvisible. This has no in-game effect.
 
-Press L to lock a zone so that it'll continue to be displayed regardless of where you move the cursor.
+Press L to `lock' a zone so that it'll continue to be displayed regardless of where you move the cursor.
 
-Press E to edit to go to the zone info editor, where you can edit the triggers attached to this zone.
+Press E to go to the zone info editor, where you can edit the triggers attached to this zone.
 
-Press T to change the tilemap used.
+Press G to change the graphics used to display zones. There are 3 available styles.
 
 Pressing TAB toggles a minimap showing the selected zone, and what part of the map you are currently looking at.

@@ -452,6 +452,7 @@ DO
  setwait 55
  setkeys
  tog = tog XOR 1
+ DIM flashtag as string = "${K" & uilook(uiSelectedItem + tog) & "}"
  gauze_ticker = (gauze_ticker + 1) MOD 50  '10 frames, 5 ticks a frame
  IF keyval(scESC) > 1 THEN EXIT DO
  IF keyval(scCtrl) = 0 AND keyval(scAlt) = 0 THEN
@@ -547,8 +548,8 @@ DO
     st.usetile(st.layer) = animadjust(readblock(map(st.layer), x, y), st.tilesets(st.layer)->tastuf())
     update_tilepicker st
    END IF
-   IF keyval(scCtrl) > 0 AND keyval(scD) > 1 THEN st.defpass = st.defpass XOR 1   
-   FOR i = 0 TO 1 
+   IF keyval(scD) > 1 THEN st.defpass = st.defpass XOR YES
+   FOR i = 0 TO 1
     IF keyval(sc1 + i) > 1 THEN 'animate tile
      newtile = -1
      old = readblock(map(st.layer), x, y)
@@ -787,20 +788,20 @@ DO
     IF zonemenustate.pt > -1 THEN
      st.cur_zone = zonemenu(zonemenustate.pt).dat
      st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
-    END IF
-    IF keyval(scL) > 1 THEN  'Lock/Unlock
-     IF int_array_find(lockedzonelist(), st.cur_zone) > -1 THEN
-      int_array_remove(lockedzonelist(), st.cur_zone)
-     ELSEIF UBOUND(lockedzonelist) + 1 < 8 THEN
-      int_array_append(lockedzonelist(), st.cur_zone)
-      st.cur_zinfo->hidden = NO  'Doesn't make sense for a zone to be hidden and locked
+     IF keyval(scL) > 1 THEN  'Lock/Unlock
+      IF int_array_find(lockedzonelist(), st.cur_zone) > -1 THEN
+       int_array_remove(lockedzonelist(), st.cur_zone)
+      ELSEIF UBOUND(lockedzonelist) + 1 < 8 THEN
+       int_array_append(lockedzonelist(), st.cur_zone)
+       st.cur_zinfo->hidden = NO  'Doesn't make sense for a zone to be hidden and locked
+      END IF
+      zones_needupdate = YES
      END IF
-     zones_needupdate = YES
-    END IF
-    IF keyval(scH) > 1 THEN
-     st.cur_zinfo->hidden XOR= YES
-     int_array_remove(lockedzonelist(), st.cur_zone)  'Doesn't make sense for a zone to be hidden and locked
-     zones_needupdate = YES
+     IF keyval(scH) > 1 THEN
+      st.cur_zinfo->hidden XOR= YES
+      int_array_remove(lockedzonelist(), st.cur_zone)  'Doesn't make sense for a zone to be hidden and locked
+      zones_needupdate = YES
+     END IF
     END IF
     IF keyval(scA) > 1 THEN  'Autoshow zones
      st.autoshow_zones XOR= YES
@@ -809,7 +810,7 @@ DO
     IF keyval(scS) > 1 THEN  'Show other zones
      st.showzonehints XOR= YES
     END IF
-    IF keyval(scT) > 1 THEN  'Let the user choose the tileset used to display zones in multi-view
+    IF keyval(scG) > 1 THEN  'Let the user choose the tileset used to display zones in multi-view
      st.zoneviewtileset = (st.zoneviewtileset + 1) MOD 3
     END IF
    END IF
@@ -1077,11 +1078,10 @@ DO
  printstr modenames(editmode), 0, 24, dpage
 
  IF editmode = tile_mode THEN
-  textcolor uilook(uiSelectedItem + tog), 0
+  textcolor uilook(uiSelectedItem + tog), 0 
   printstr "Layer " & st.layer, 0, 180, dpage
-  status$ = "Default Passability "
-  IF st.defpass THEN status$ = status$ + "On" ELSE status$ = status$ + "Off"
-  printstr status$, 124, 192, dpage
+  textcolor uilook(uiText), 0
+  printstr iif_string(st.defpass, "", "No ") + flashtag + "D${K-1}efault Walls", 116, 192, dpage, YES
  END IF
 
  IF editmode = foe_mode THEN
@@ -1090,14 +1090,13 @@ DO
  END IF
 
  IF editmode = zone_mode THEN
-  DIM flashtag as string = "${K" & uilook(uiSelectedItem + tog) & "}"
   DIM zoneselected as integer = YES
   textcolor uilook(uiText), 0
   IF st.zonesubmode = 0 THEN
    printstr "(" & flashtag & "M${K-1}: Edit mode)", 150, 24, dpage, YES
   ELSE
    printstr "(" & flashtag & "M${K-1}: View mode)", 150, 24, dpage, YES
-'   IF zonemenustate.pt = -1 THEN zoneselected = NO
+   IF zonemenustate.pt = -1 THEN zoneselected = NO
   END IF
 
   IF zoneselected THEN
@@ -1107,7 +1106,7 @@ DO
   IF st.zonesubmode = 0 THEN
    '-- Edit mode
 
-   printstr flashtag & "E${K-1}dit zone info", 320 - 25*8, 190, dpage, YES
+   printstr flashtag & "E${K-1}dit info", 116, 192, dpage, YES
 
   ELSE
    '-- View mode
@@ -1115,10 +1114,12 @@ DO
    printstr iif_string(st.autoshow_zones,"      ","Don't ") & flashtag & "A${K-1}utoshow zones  " _
             & iif_string(st.showzonehints,"      ","Don't ") & flashtag & "S${K-1}how other", 0, 5, dpage, YES
 
-   DIM is_locked as integer = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
-   printstr flashtag & "E${K-1}dit/" _
-            & iif_string(st.cur_zinfo->hidden,"un","") & flashtag & "H${K-1}ide/" _
-            & iif_string(is_locked,"un","") & flashtag & "L${K-1}ock zone", 320 - 25*8, 190, dpage, YES
+   IF zoneselected THEN
+    DIM is_locked as integer = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
+    printstr flashtag & "E${K-1}dit/" _
+             & iif_string(st.cur_zinfo->hidden,"un","") & flashtag & "H${K-1}ide/" _
+             & iif_string(is_locked,"un","") & flashtag & "L${K-1}ock zone", 320 - 25*8, 192, dpage, YES
+   END IF
 
    'Draw zonemenu
    DIM xpos as integer = 320 - 13*8  'Where to put the menu
@@ -1271,8 +1272,10 @@ SUB mapedit_update_visible_zones (st as MapEditState, zonemenu() as SimpleMenu, 
  END IF
 
  'Rebuild the menu
- REDIM zonemenu(0)
- append_simplemenu_item zonemenu(), "Locked zones:", NO, , , 0
+ REDIM zonemenu(-1 TO -1)
+ IF UBOUND(lockedzonelist) >= 0 THEN
+  append_simplemenu_item zonemenu(), "Locked zones:", NO
+ END IF
  FOR i = 0 TO UBOUND(lockedzonelist)
   zonemenu_add_zone zonemenu(), st.zonecolours(), GetZoneInfo(zmap, lockedzonelist(i))
  NEXT

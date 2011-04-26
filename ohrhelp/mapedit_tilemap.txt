@@ -35,7 +35,7 @@ Press 1 or 2 to make the tile under the cursor animate using animation pattern 0
 
 Hold CTRL and press 1 or 2 to make all tiles on the current layer like the one under the cursor animate using animation pattern 0 or 1.
 
-CTRL+D toggles whether default tile passability will be used for any new tiles that you place.
+D toggles whether default tile passability (which you assign to tiles in the tileset editor) will be used for any new tiles that you place.
 
 CTRL+L opens the Layer menu, where you can change tilesets and layer visibility.
 
