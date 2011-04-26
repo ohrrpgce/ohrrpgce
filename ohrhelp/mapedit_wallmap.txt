@@ -59,4 +59,8 @@ B marks the tile as special for Boats (or other vehicle or scripting purposes).
 
 O marks the tile as overhead. This is obsolete. You should create a layer above heroes and NPCs instead if you want make tiles overhead.
 
+CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
+
+CTRL+Y redoes an undone change.
+
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.

@@ -17,7 +17,7 @@ Along the top of the screen you will see a row of maptiles, with your currently 
 
 Press G if you want to get the tile under the cursor as the current tile to place.
 
-At the bottom right corner the current drawing tool is shown. Press SPACE to draw on the current map layer. The tools are:
+At the top right corner the current drawing tool is shown. Press SPACE to draw on the current map layer. The tools are:
 
 CTRL+D - Draw tool:
   Place a maptile on the map. Hold 
@@ -43,6 +43,10 @@ CTRL+R - Replace tool:
 Also,
 
 CTRL+S paints the tiles on-screen with the current tile.
+
+CTRL+Z undoes a change to the tilemap, wallmap, foemap or zonemap. Changes to NPCs and doors are not undoable. The undo history buffer is near-infinite, but certain things cause it to be cleared: resizing the map, deleting or swapping map layers, erasing map data, and leaving the map editor.
+
+CTRL+Y redoes an undone change.
 
 ~ shows a small preview of the entire map.
 

@@ -151,6 +151,24 @@ ENUM MapEditMode
   zone_mode
 END ENUM
 
+ENUM MapID
+  mapIDMeta = -1
+  mapIDZone = 0   'to 9999
+  mapIDPass = 10000
+  mapIDFoe = 10001
+  mapIDLayer = 10002  'to 10099
+END ENUM
+
+TYPE MapEditUndoTile
+  x AS USHORT
+  y AS USHORT
+  value AS SHORT
+  mapid AS SHORT
+END TYPE
+
+DECLARE_VECTOR_OF_TYPE(MapEditUndoTile, MapEditUndoTile)
+DECLARE_VECTOR_OF_TYPE(MapEditUndoTile vector, MapEditUndoTile_vector)
+
 TYPE MapEditStateFwd AS MapEditState
 
 TYPE FnBrush AS SUB (st as MapEditStateFwd, BYVAL x as integer, BYVAL y as integer, BYVAL value as integer, map() as TileMap, pass as TileMap, emap as TileMap, zmap as ZoneMap)
@@ -175,6 +193,10 @@ TYPE MapEditState
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
   defaultwalls AS INTEGER VECTOR VECTOR  'indexed by layer (variable length) and then by tile (always 0-159)
   menustate AS MenuState     'The top-level menu state
+  temptilemap AS TileMap     'A temporary TileMap. Normally remains uninitialised
+
+  message AS STRING          'Message shown at the top of the screen
+  message_ticks AS INTEGER   'Remaining ticks to display message
 
   'Tool stuff
   tool AS INTEGER            'Tool ID (index in toolinfo), or -1 if none (meaning none available)
@@ -184,7 +206,11 @@ TYPE MapEditState
   reset_tool AS INTEGER      'When true, tool_value should be set to some default
   tool_hold AS INTEGER       'True if one coordinate has been selected
   tool_hold_pos AS XYPair    'Held coordinate
-  temptilemap AS TileMap     'A temporary TileMap. Normally remains uninitialised
+  last_pos AS XYPair         'Position of the cursor last tick
+  new_stroke AS INTEGER      'True before beginning a new editing operation (group of brush() calls)
+  history AS MapEditUndoTile VECTOR VECTOR   'Vector of groups of tile edits
+  history_size AS INTEGER    'Size of history, in number of MapEditUndoTiles (each is 8 bytes)
+  history_step AS INTEGER    'In history, [0, history_step) are undos, and the rest are redos
 
   'Zone stuff (zone_mode)
   zonesubmode AS INTEGER

@@ -68,6 +68,10 @@ WHAT IS NEW?
     * Added drawing tools -- Draw, Box, Fill, Replace, and Paint
       Tilemap -- to the map editor, available in Tile, Wall, Foe, and
       Zone modes! [Ralph]
+    * Press Ctrl+Z and Ctrl+Y to Undo and Redo changes in the tilemap,
+      wallmap, foemap, and zonemap editors! These share a single
+      near-infinite history. Certain operations delete the history.
+      [Ralph]
 
   * Bugfixes
     * Bug 749: Attacks configured to do No Damage still do damage when
