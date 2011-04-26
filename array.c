@@ -666,8 +666,8 @@ array_t array_reverse(array_t *array) {
 	typetable *tytbl = get_type(*array);
 	unsigned int len = length(*array);
 
-	char *newmem = mem_alloc(tytbl, len);
-	char *dest = newmem, *src = nth_elem(*array, len - 1);
+	array_t newmem = mem_alloc(tytbl, len);
+	char *dest = (char *)newmem, *src = nth_elem(*array, len - 1);
 
 	for (int i = len; i; i--) {
 		memcpy(dest, src, tytbl->element_len);

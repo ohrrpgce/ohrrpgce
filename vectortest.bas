@@ -516,6 +516,56 @@ startTest(stringSort)
 	v_free arr
 endTest
 
+startTest(intArrayCompatibility)
+	dim i as integer
+	redim array(10) as integer
+	dim vec as integer vector
+	for i = 0 to 10
+		array(i) = i
+	next
+	array_to_vector vec, array()
+	if v_len(vec) <> 11 then fail
+	for i = 0 to 10
+		if vec[i] <> i then fail
+	next
+	v_resize vec, 5
+	v_reverse vec
+	vector_to_array array(), vec
+	if lbound(array) <> 0 then fail
+	if ubound(array) <> 4 then fail
+	for i = 0 to 4
+		if array(i) <> 4 - i then fail
+	next
+	redim array(-1 to -1)
+	array_to_vector vec, array()
+	if v_len(vec) <> 0 then fail
+	redim array(2 to 3)
+	vector_to_array array(), vec
+	if ubound(array) >= 0 then fail
+	v_free vec
+endTest      
+
+startTest(stringArrayCompatibility)
+	dim i as integer
+	redim array(-1 to 1) as string
+	dim vec as string vector
+	array(0) = "index0"
+	array(1) = "index1"
+	array_to_vector vec, array()
+	if v_len(vec) <> 2 then fail
+	for i = 0 to 1
+		if vec[i] <> "index" & i then fail
+	next
+	v_resize vec, 5
+	redim array(-10 to 10)
+	vector_to_array array(), vec
+	if lbound(array) <> 0 then fail
+	if ubound(array) <> 4 then fail
+	if array(1) <> "index1" then fail
+	if array(2) <> "" then fail
+	v_free vec
+endTest      
+
 function v_range(byval n as integer) as integer vector
 	dim ret as integer vector
 	v_new ret, n

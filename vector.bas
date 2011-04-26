@@ -7,6 +7,7 @@
 
 
 #include "util.bi"
+#include "common_base.bi"
 
 'Note: has default FB calling convention (FBCALL)
 DECLARE FUNCTION fb_StrAssignEx alias "fb_StrAssignEx" (byval dst as any ptr, byval dst_size as integer, byval src as any ptr, byval src_size as integer, byval fill_rem as integer, byval is_init as integer) as any ptr
@@ -102,3 +103,57 @@ FUNCTION v_str(BYVAL vec as any vector) as string
   NEXT
   RETURN ret + "]"
 END FUNCTION
+
+SUB vector_to_array OVERLOAD (array() as integer, BYVAL vec as integer vector)
+  IF vec = NULL THEN
+    debug "vector_to_array: uninitialised vector is suspicious"
+    REDIM array(-1 TO -1)
+    EXIT SUB
+  ELSEIF v_len(vec) = 0 THEN
+    REDIM array(-1 TO -1)
+    EXIT SUB
+  END IF
+  REDIM array(0 TO v_len(vec) - 1)
+  FOR i as integer = 0 TO v_len(vec) - 1
+    array(i) = vec[i]
+  NEXT
+END SUB
+
+SUB vector_to_array OVERLOAD (array() as string, BYVAL vec as string vector)
+  IF vec = NULL THEN
+    debug "vector_to_array: uninitialised vector is suspicious"
+    REDIM array(-1 TO -1)
+    EXIT SUB
+  ELSEIF v_len(vec) = 0 THEN
+    REDIM array(-1 TO -1)
+    EXIT SUB
+  END IF
+  REDIM array(0 TO v_len(vec) - 1)
+  FOR i as integer = 0 TO v_len(vec) - 1
+    array(i) = vec[i]
+  NEXT
+END SUB
+
+SUB array_to_vector OVERLOAD (BYREF vec as integer vector, array() as integer)
+  IF LBOUND(array) < -1 OR LBOUND(array) > 0 THEN
+    showerror "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)
+    v_new vec
+    EXIT SUB
+  END IF
+  v_new vec, UBOUND(array) + 1
+  FOR i as integer = 0 TO v_len(vec) - 1
+    vec[i] = array(i)
+  NEXT
+END SUB
+
+SUB array_to_vector OVERLOAD (BYREF vec as string vector, array() as string)
+  IF LBOUND(array) < -1 OR LBOUND(array) > 0 THEN
+    showerror "array_to_vector: bad array size " & LBOUND(array) & " TO " & UBOUND(array)
+    v_new vec
+    EXIT SUB
+  END IF
+  v_new vec, UBOUND(array) + 1
+  FOR i as integer = 0 TO v_len(vec) - 1
+    vec[i] = array(i)
+  NEXT
+END SUB

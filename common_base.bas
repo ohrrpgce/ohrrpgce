@@ -23,6 +23,14 @@ SUB debugc cdecl alias "debugc" (byval s as zstring ptr, byval errorlevel as int
   print *s
 END SUB
 
+SUB showerror (msg AS STRING, BYVAL isfatal AS INTEGER = 0)
+ IF isfatal THEN
+  fatalerror msg
+ ELSE
+  print msg
+ END IF
+END SUB
+
 SUB fatalerror (e as string)
   IF e <> "" THEN print "ERROR: " + e
   IF cleanup_function THEN cleanup_function()
