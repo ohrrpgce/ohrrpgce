@@ -944,6 +944,17 @@ DO
   END IF
  END IF
 
+ '--point out overhead tiles so that you can see what's wrong if you accidentally use them
+ IF editmode = tile_mode AND UBOUND(map) > 0 THEN
+  textcolor uilook(uiSelectedItem + tog), 0
+  FOR o = 0 TO 8
+   FOR i = 0 TO 15
+    over = readblock(pass, (mapx \ 20) + i, (mapy \ 20) + o)
+    IF (over AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 30, dpage
+   NEXT i
+  NEXT o
+ END IF
+
  '--show passmode overlay
  IF editmode = pass_mode THEN
   FOR o = 0 TO 8

@@ -32,6 +32,6 @@ A marks the tile as special for Airships (or other vehicle or scripting purposes
 
 B marks the tile as special for Boats (or other vehicle or scripting purposes).
 
-O marks the tile as overhead. This is obsolete. You should use Layer 2 in Tilemapping mode instead if you want make tiles overhead.
+O marks the tile as overhead. This is obsolete. You should create a layer above heroes and NPCs instead if you want make tiles overhead.
 
 TAB toggles a blue rectangle that shows roughly what area of the map you are currently looking at.

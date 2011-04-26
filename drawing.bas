@@ -751,7 +751,7 @@ IF tmode = 3 THEN
  bitmenu(4) = "A-type vehicle Tile"
  bitmenu(5) = "B-type vehicle Tile"
  bitmenu(6) = "Harm Tile"
- bitmenu(7) = "Overhead Tile"
+ bitmenu(7) = "Overhead Tile (OBSOLETE!)"
 END IF    
 
 loadmxs mapfile$, pagenum, vpages(3)
