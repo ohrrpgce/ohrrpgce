@@ -141,7 +141,7 @@ music_map = {'native':
                   'libraries': 'audiere'},
              'sdl':
                  {'common_modules': 'music_sdl.bas sdl_lumprwops.bas',
-                  'libraries': 'SDL SDL_mixer'},
+                  'libraries': 'SDL SDL_mixer', 'libpaths': 'win32'},
              'silence':
                  {'common_modules': 'music_silence.bas'}
             }
