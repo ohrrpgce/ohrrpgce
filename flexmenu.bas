@@ -140,7 +140,7 @@ CONST AtkDatHPCost = 9
 CONST AtkDatMoneyCost = 10
 CONST AtkDatExtraDamage = 11
 CONST AtkDatChainTo = 12
-CONST AtkDatChainRate = 13
+CONST AtkDatChainRate = 13 'See also the hacky usage of this value in updateflexmenu
 CONST AtkDatAnimAttacker = 14
 CONST AtkDatAnimAttack = 15
 CONST AtkDatDelay = 16
@@ -797,7 +797,7 @@ menulimits(AtkElseChainTo) = AtkLimChainTo
 
 CONST AtkElseChainRate = 54
 menu(AtkElseChainRate) = "  Rate:"
-menutype(AtkElseChainRate) = 17
+menutype(AtkElseChainRate) = 20 'Hacky speficic type
 menuoff(AtkElseChainRate) = AtkDatElseChainRate
 menulimits(AtkElseChainRate) = AtkLimChainRate
 
@@ -1394,7 +1394,7 @@ DIM changed AS INTEGER = 0
 DIM s AS STRING
 
 SELECT CASE menutype(nowindex)
- CASE 0, 8, 12 TO 17, 19, 1000 TO 3999' integers
+ CASE 0, 8, 12 TO 17, 19, 20, 1000 TO 3999' integers
   changed = intgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)), maxtable(menulimits(nowindex)))
  CASE 7, 9 TO 11 'offset integers
   changed = zintgrabber(datablock(menuoff(nowindex)), mintable(menulimits(nowindex)) - 1, maxtable(menulimits(nowindex)) - 1)
@@ -1501,6 +1501,7 @@ SUB updateflexmenu (mpointer AS INTEGER, nowmenu() AS STRING, nowdat() AS INTEGE
 '           17=int with a % sign after it
 '           18=skipper (caption which is skipped by the cursor)
 '           19=ticks (with seconds estimate)
+'           20=Else-Chain Rate hack (clumsy hack to force myself to do this elegantly in editedit --James)
 '           1000-1999=postcaptioned int (caption-start-offset=n-1000)
 '                     (be careful about negatives!)
 '           2000-2999=caption-only int (caption-start-offset=n-2000)
@@ -1603,6 +1604,12 @@ FOR i = 0 TO size
    '--no change to caption
   CASE 19 '--ticks
    datatext = dat & " ticks (" & seconds_estimate(dat) & " sec)"
+  CASE 20 '--Else-chain rate (FIXME: it is a terrible hack to hardcode 13 here)
+   datatext = dat & "%"
+   'AtkDatChainRate = 13
+   IF dat > 0 ANDALSO datablock(13) > 0 THEN
+    datatext = datatext &  " (effectively " & INT((100 - datablock(13)) / 100.0 * dat) & "%)"
+   END IF
   CASE 1000 TO 1999 '--captioned int
    capnum = menutype(nowdat(i)) - 1000
    datatext = dat & " " & caption(capnum + dat)
