@@ -11,8 +11,8 @@ DEFINT A-Z
 #include "custom_udts.bi"
 
 'External subs and functions
-DECLARE SUB loadpasdefaults (array%(), tilesetnum%)
-DECLARE SUB savepasdefaults (array%(), tilesetnum%)
+DECLARE SUB loadpasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INTEGER)
+DECLARE SUB savepasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INTEGER)
 DECLARE SUB importmasterpal (f$, palnum%)
 
 'Local SUBs and FUNCTIONS
@@ -733,7 +733,7 @@ area(24).y = 42
 area(24).w = 8
 area(24).h = 8
 
-DIM pastogkey(7), defaults(160), bitmenu(10) AS STRING
+DIM pastogkey(7), bitmenu(10) AS STRING
 IF tmode = 3 THEN
  pastogkey(0) = scUp
  pastogkey(1) = scRight
@@ -743,7 +743,7 @@ IF tmode = 3 THEN
  pastogkey(5) = scB
  pastogkey(6) = scH
  pastogkey(7) = scO
- loadpasdefaults defaults(), pagenum
+ loadpasdefaults ts.defaultwalls, pagenum
  bitmenu(0) = "Impassable to the North"
  bitmenu(1) = "Impassable to the East"
  bitmenu(2) = "Impassable to the South"
@@ -794,7 +794,7 @@ DO
   FOR i = 0 TO 7
    IF keyval(scCtrl) > 0 OR i > 3 THEN
     IF keyval(pastogkey(i)) > 1 THEN
-     setbit defaults(), bnum, i, readbit(defaults(), bnum, i) XOR 1
+     ts.defaultwalls[bnum] XOR= 1 SHL i
     END IF
    END IF
   NEXT i
@@ -820,7 +820,10 @@ DO
    tilecut ts, mouse, area()
   END IF 
   IF tmode = 3 THEN
-   editbitset defaults(), bnum, 7, bitmenu()
+   DIM buf() AS INTEGER
+   vector_to_array buf(), ts.defaultwalls
+   editbitset buf(), bnum, 7, bitmenu()
+   array_to_vector ts.defaultwalls, buf()
    setkeyrepeat 25, 5  'editbitset resets the repeat rate
   END IF
  END IF
@@ -833,15 +836,15 @@ DO
  IF tmode = 3 THEN
   FOR o = 0 TO 9
    FOR i = 0 TO 15
-    IF (defaults(i + o * 16) AND 1) THEN rectangle i * 20, o * 20, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (defaults(i + o * 16) AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, uilook(uiMenuItem + tog), dpage
-    IF (defaults(i + o * 16) AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, uilook(uiMenuItem + tog), dpage
-    IF (defaults(i + o * 16) AND 8) THEN rectangle i * 20, o * 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    IF (ts.defaultwalls[i + o * 16] AND 1) THEN rectangle i * 20, o * 20, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (ts.defaultwalls[i + o * 16] AND 2) THEN rectangle i * 20 + 17, o * 20, 3, 20, uilook(uiMenuItem + tog), dpage
+    IF (ts.defaultwalls[i + o * 16] AND 4) THEN rectangle i * 20, o * 20 + 17, 20, 3, uilook(uiMenuItem + tog), dpage
+    IF (ts.defaultwalls[i + o * 16] AND 8) THEN rectangle i * 20, o * 20, 3, 20, uilook(uiMenuItem + tog), dpage
     textcolor uilook(uiSelectedItem + tog), 0
-    IF (defaults(i + o * 16) AND 16) THEN printstr "A", i * 20, o * 20, dpage
-    IF (defaults(i + o * 16) AND 32) THEN printstr "B", i * 20 + 10, o * 20, dpage
-    IF (defaults(i + o * 16) AND 64) THEN printstr "H", i * 20, o * 20 + 10, dpage
-    IF (defaults(i + o * 16) AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 10, dpage
+    IF (ts.defaultwalls[i + o * 16] AND 16) THEN printstr "A", i * 20, o * 20, dpage
+    IF (ts.defaultwalls[i + o * 16] AND 32) THEN printstr "B", i * 20 + 10, o * 20, dpage
+    IF (ts.defaultwalls[i + o * 16] AND 64) THEN printstr "H", i * 20, o * 20 + 10, dpage
+    IF (ts.defaultwalls[i + o * 16] AND 128) THEN printstr "O", i * 20 + 10, o * 20 + 10, dpage
    NEXT i
   NEXT o
  END IF
@@ -861,8 +864,9 @@ LOOP
 setkeyrepeat
 storemxs mapfile$, pagenum, vpages(3)
 IF tmode = 3 THEN
- savepasdefaults defaults(), pagenum
+ savepasdefaults ts.defaultwalls, pagenum
 END IF
+v_free ts.defaultwalls
 oldpaste = ts.canpaste
 frame_unload @ts.drawframe
 unhidemousecursor

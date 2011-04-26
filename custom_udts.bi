@@ -111,6 +111,7 @@ TYPE TileEditState
   readjust AS INTEGER
   adjustpos AS XYPair
   didscroll AS INTEGER  'have scrolled since selecting the scroll tool
+  defaultwalls AS INTEGER VECTOR  'always length 160
 END TYPE
 
 TYPE HeroEditState
@@ -163,6 +164,7 @@ TYPE MapEditState
   tilesetview AS TileMap
   cursor AS GraphicPair
   tilesets(maplayerMax) as TilesetData ptr  'Tilesets is fixed size at the moment. It must always be at least as large as the number of layers on a map
+  defaultwalls AS INTEGER VECTOR VECTOR  'indexed by layer (variable length) and then by tile (always 0-159)
   menustate AS MenuState  'The top-level menu state
 
   'Zone stuff (zone_mode)

@@ -20,8 +20,8 @@ DECLARE SUB mapeditor (BYVAL mapnum AS INTEGER)
 DECLARE FUNCTION addmaphow () AS INTEGER
 
 DECLARE FUNCTION animadjust% (tilenum%, tastuf%())
-DECLARE SUB loadpasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
-DECLARE SUB paint_map_area(st AS MapEditState, oldTile, x%, y%, map() AS TileMap, pass AS TileMap, defaults() AS DefArray)
+DECLARE SUB loadpasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INTEGER)
+DECLARE SUB paint_map_area(st AS MapEditState, oldTile, x%, y%, map() AS TileMap, pass AS TileMap)
 
 DECLARE SUB draw_zone_tileset(BYVAL zonetileset AS Frame ptr)
 DECLARE SUB draw_zone_tileset2(BYVAL zonetileset AS Frame ptr)
@@ -48,7 +48,7 @@ DECLARE Sub ToggleLayerEnabled(vis() as integer, byval l as integer)
 
 DECLARE SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, map() AS TileMap, pass AS TileMap, doors() as door, link() as doorlink, gmap())
 
-DECLARE SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map() AS TileMap, pass AS TileMap, defaults() AS DefArray)
+DECLARE SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map() AS TileMap, pass AS TileMap)
 
 DECLARE SUB resizemapmenu (BYREF st AS MapEditState, map() AS TileMap, BYREF rs AS MapResizeState)
 DECLARE SUB resizetiledata OVERLOAD (tmap AS TileMap, rs AS MapResizeState, BYREF yout AS INTEGER, page AS INTEGER)
@@ -58,9 +58,10 @@ DECLARE SUB resizetiledata OVERLOAD (tmap AS TileMap, x_off AS INTEGER, y_off AS
 DECLARE SUB update_npc_graphics(st AS MapEditState, npc_img() AS GraphicPair)
 DECLARE SUB update_tilepicker(BYREF st AS MapEditState)
 DECLARE SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, mapname AS STRING)
-DECLARE SUB add_more_layers(map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL numlayers AS INTEGER)
+DECLARE SUB add_more_layers(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL numlayers AS INTEGER)
 DECLARE SUB fix_tilemaps(map() as TileMap)
-DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
+DECLARE SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
+DECLARE SUB mapedit_load_tilesets (BYREF st as MapEditState, map() as TileMap, gmap() as integer)
 DECLARE SUB mapedit_savemap (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
 DECLARE SUB new_blank_map (BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
 DECLARE SUB mapedit_addmap()
@@ -68,7 +69,7 @@ DECLARE SUB mapedit_resize(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wi
 DECLARE SUB mapedit_delete(BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, BYREF x AS INTEGER, BYREF y AS INTEGER, BYREF mapx AS INTEGER, BYREF mapy AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink, npc_img() AS GraphicPair, mapname AS STRING)
 DECLARE SUB link_one_door(BYREF st AS MapEditState, mapnum AS INTEGER, linknum AS INTEGER, link() AS DoorLink, doors() AS Door, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER)
 DECLARE SUB mapedit_linkdoors (BYREF st AS MapEditState, mapnum AS INTEGER, map() AS TileMap, pass AS TileMap, gmap() AS INTEGER, doors() AS Door, link() AS DoorLink)
-DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray, map() AS TileMap)
+DECLARE SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, map() AS TileMap)
 DECLARE SUB mapedit_makelayermenu(BYREF st AS MapEditState, menu() AS SimpleMenu, state AS MenuState, gmap() AS INTEGER, BYREF currentset AS INTEGER, visible() AS INTEGER, map() AS TileMap, itemsinfo() AS LayerMenuItem, BYVAL resetpt AS INTEGER, BYVAL selectedlayer AS INTEGER = 0)
 DECLARE SUB mapedit_insert_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL where AS INTEGER)
 DECLARE SUB mapedit_delete_layer(BYREF st AS MapEditState, map() as TileMap, vis() AS INTEGER, gmap() AS INTEGER, BYVAL which AS INTEGER)
@@ -212,7 +213,6 @@ DIM st AS MapEditState
 DIM modenames(5) AS STRING, mapeditmenu(14) AS STRING, gmap(dimbinsize(binMAP)), pal16(288), npcnum(max_npc_defs - 1)
 DIM her AS HeroDef
 DIM hero_gfx AS GraphicPair
-DIM defaults(maplayerMax) AS DefArray
 
 REDIM doors(99) AS door, link(199) AS doorlink
 
@@ -314,7 +314,7 @@ FOR i = 0 TO 159
 NEXT
 st.zoneminimap = NULL
 
-mapedit_loadmap st, mapnum, wide, high, map(), pass, emap, zmap, gmap(), visible(), doors(), link(), defaults(), mapname
+mapedit_loadmap st, mapnum, wide, high, map(), pass, emap, zmap, gmap(), visible(), doors(), link(), mapname
 
 update_npc_graphics st, npc_img()
 
@@ -367,7 +367,7 @@ DO
    CASE 2
     mapedit_resize st, mapnum, wide, high, x, y, mapx, mapy, map(), pass, emap, zmap, gmap(), doors(), link(), mapname
    CASE 3
-    mapedit_layers st, gmap(), visible(), defaults(), map()
+    mapedit_layers st, gmap(), visible(), map()
    CASE 4
     'This may change st.num_npc_defs, and delete NPC instances
     npcdef st, npc_img(), zmap
@@ -390,7 +390,7 @@ DO
     IF sublist(defpass_reload_confirm(), "defpass_reload_confirm") = 1 THEN
      FOR tx = 0 TO wide - 1
       FOR ty = 0 TO high - 1
-       calculatepassblock st, tx, ty, map(), pass, defaults()
+       calculatepassblock st, tx, ty, map(), pass
       NEXT ty
      NEXT tx
     END IF
@@ -424,6 +424,7 @@ unloadtilemap emap
 deletezonemap zmap
 unloadtilemap st.zoneviewmap
 unloadtilemap st.zoneoverlaymap
+v_free st.defaultwalls
 unload_sprite_and_pal st.cursor
 unload_sprite_and_pal hero_gfx
 frame_unload @zonetileset(0)
@@ -477,7 +478,7 @@ DO
   END IF
  END IF
  
- IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), defaults(), map()  'ctrl-L
+ IF keyval(scCtrl) > 0 AND keyval(scL) > 1 THEN mapedit_layers st, gmap(), visible(), map()  'ctrl-L
  IF keyval(scTab) > 1 THEN tiny = tiny XOR 1
  IF keyval(scCtrl) > 0 AND keyval(scBackspace) > 1 THEN
    'delete tile
@@ -516,7 +517,7 @@ DO
     FOR tx = 0 TO 15
      FOR ty = 0 TO 8
       writeblock map(st.layer), mapx \ 20 + tx, mapy \ 20 + ty, st.usetile(st.layer)
-      IF st.defpass THEN calculatepassblock st, mapx \ 20 + tx, mapy \ 20 + ty, map(), pass, defaults()
+      IF st.defpass THEN calculatepassblock st, mapx \ 20 + tx, mapy \ 20 + ty, map(), pass
      NEXT ty
     NEXT tx
    END IF
@@ -530,7 +531,7 @@ DO
    END IF
    IF keyval(scP) > 1 AND keyval(scCtrl) > 0 THEN' Ctrl+P to paint a continuous section of maptiles
     old = readblock(map(st.layer), x, y)
-    paint_map_area st, old, x, y, map(), pass, defaults()
+    paint_map_area st, old, x, y, map(), pass
    END IF
    IF keyval(scCtrl) > 0 AND keyval(scJ) > 1 THEN
     setbit jiggle(), 0, st.layer, (readbit(jiggle(), 0, st.layer) XOR 1)
@@ -539,7 +540,7 @@ DO
    IF keyval(scEnter) > 1 THEN mapedit_pickblock st
    IF keyval(scSpace) > 0 THEN
     writeblock map(st.layer), x, y, st.usetile(st.layer)
-    IF st.defpass THEN calculatepassblock st, x, y, map(), pass, defaults()
+    IF st.defpass THEN calculatepassblock st, x, y, map(), pass
    END IF
    IF keyval(scDelete) > 1 THEN 'delete
     writeblock map(st.layer), x, y, 0
@@ -598,7 +599,7 @@ DO
       IF i > UBOUND(map) THEN
        temp = i - UBOUND(map)
        IF yesno("Create " & iif_string(temp = 1, "a new map layer?", temp & " new map layers?")) THEN
-	add_more_layers map(), visible(), gmap(), i
+	add_more_layers st, map(), visible(), gmap(), i
        END IF
       END IF
      ELSE
@@ -1739,7 +1740,7 @@ SUB mapedit_gmapdata(BYREF st AS MapEditState, gmap() AS INTEGER)
  unloadtilemap sampmap
 END SUB
 
-SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, defaults() AS DefArray, map() AS TileMap)
+SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS INTEGER, map() AS TileMap)
  DIM state AS MenuState
  REDIM menu(0) AS SimpleMenu
  REDIM itemsinfo(0) AS LayerMenuItem
@@ -1773,7 +1774,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   IF keyval(scF1) > 1 THEN show_help "mapedit_layers"
   IF (keyval(scPlus) > 1 OR keyval(scNumpadPlus) > 1) AND UBOUND(map) < maplayerMax THEN
    IF layerno = -1 THEN
-    add_more_layers map(), visible(), gmap(), UBOUND(map) + 1
+    add_more_layers st, map(), visible(), gmap(), UBOUND(map) + 1
     layerno = UBOUND(map)
     resetpt = YES
    ELSE
@@ -1892,11 +1893,7 @@ SUB mapedit_layers (BYREF st AS MapEditState, gmap() AS INTEGER, visible() AS IN
   setvispage vpage
   dowait
  LOOP
- loadmaptilesets st.tilesets(), gmap()
- FOR i AS INTEGER = 0 TO UBOUND(map)
-  loadpasdefaults defaults(i).a(), st.tilesets(i)->num
- NEXT
- 'we don't care about the rest of the defaults array
+ mapedit_load_tilesets st, map(), gmap()
  IF layerisenabled(gmap(), st.layer) = 0 THEN st.layer = 0
 
 END SUB
@@ -2060,7 +2057,6 @@ SUB mapedit_addmap()
  DIM copysize AS XYPair
  DIM visible(maplayerMax \ 16) AS INTEGER
  visible(0) = -1 'used as bitsets
- DIM defaults(maplayerMax) AS DefArray
  
  DIM how AS INTEGER
  how = addmaphow()
@@ -2073,7 +2069,7 @@ SUB mapedit_addmap()
   mapedit_savemap st, gen(genMaxMap), map(), pass, emap, zmap, gmap(), doors(), link(), ""
  ELSEIF how >= 0 THEN
   gen(genMaxMap) += 1
-  mapedit_loadmap st, how, copysize.x, copysize.y, map(), pass, emap, zmap, gmap(), visible(), doors(), link(), defaults(), copyname
+  mapedit_loadmap st, how, copysize.x, copysize.y, map(), pass, emap, zmap, gmap(), visible(), doors(), link(), copyname
   mapedit_savemap st, gen(genMaxMap), map(), pass, emap, zmap, gmap(), doors(), link(), copyname
  END IF
 END SUB
@@ -2090,9 +2086,11 @@ SUB new_blank_map (BYREF st AS MapEditState, map() AS TileMap, pass AS TileMap, 
  st.num_npc_defs = 1
  cleandoors doors()
  cleandoorlinks link()
+ 'Just in case
+ mapedit_load_tilesets st, map(), gmap()
 END SUB
 
-SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, defaults() AS DefArray, mapname AS STRING)
+SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INTEGER, map() AS TileMap, pass AS TileMap, emap AS TileMap, zmap AS ZoneMap, gmap() AS INTEGER, visible() AS INTEGER, doors() AS Door, link() AS DoorLink, mapname AS STRING)
  loadrecord gmap(), game & ".map", getbinsize(binMAP) \ 2, mapnum
  IF gmap(31) = 0 THEN gmap(31) = 2
  visible(maplayerMax \ 16) = -1   'default all layers to visible, if they're enabled too, of course
@@ -2104,11 +2102,7 @@ SUB mapedit_loadmap (BYREF st AS MapEditState, mapnum AS INTEGER, BYREF wide AS 
  ELSE
   CleanZoneMap zmap, map(0).wide, map(0).high
  END IF
- loadmaptilesets st.tilesets(), gmap()
- FOR i AS INTEGER = 0 TO UBOUND(map)
-  loadpasdefaults defaults(i).a(), st.tilesets(i)->num
- NEXT
- 'rest of defaults does not need initialisation
+ mapedit_load_tilesets st, map(), gmap()
  LoadNPCL maplumpname(mapnum, "l"), st.npc_inst()
  LoadNPCD_fixedlen maplumpname(mapnum, "n"), st.npc_def(), st.num_npc_defs
  deserdoors game & ".dox", doors(), mapnum
@@ -2180,7 +2174,15 @@ SUB verify_map_size (mapnum AS INTEGER, BYREF wide AS INTEGER, BYREF high AS INT
  waitforanykey
 END SUB
 
-SUB add_more_layers(map() as TileMap, vis() as integer, gmap() as integer, BYVAL numlayers as integer)
+SUB mapedit_load_tilesets(st as MapEditState, map() as TileMap, gmap() as integer)
+ loadmaptilesets st.tilesets(), gmap()
+ v_new st.defaultwalls, UBOUND(map) + 1
+ FOR i AS INTEGER = 0 TO UBOUND(map)
+  loadpasdefaults st.defaultwalls[i], st.tilesets(i)->num
+ NEXT
+END SUB
+
+SUB add_more_layers(st as MapEditState, map() as TileMap, vis() as integer, gmap() as integer, BYVAL numlayers as integer)
  DIM old_numlayers as integer = UBOUND(map)
  numlayers = bound(numlayers, UBOUND(map), maplayerMax + 1)
  REDIM PRESERVE map(numlayers)
@@ -2190,6 +2192,7 @@ SUB add_more_layers(map() as TileMap, vis() as integer, gmap() as integer, BYVAL
   SetLayerVisible(vis(), i, YES)
   gmap(layer_tileset_index(i)) = 0
  NEXT
+ mapedit_load_tilesets st, map(), gmap()
 END SUB
 
 SUB fix_tilemaps(map() as TileMap)
@@ -2652,13 +2655,13 @@ SUB DrawDoorPair(BYREF st AS MapEditState, curmap as integer, cur as integer, ma
  unloadmaptilesets tilesets2()
 END SUB
 
-SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map() AS TileMap, pass AS TileMap, defaults() AS DefArray)
+SUB calculatepassblock(BYREF st AS MapEditState, x AS INTEGER, y AS INTEGER, map() AS TileMap, pass AS TileMap)
  DIM n AS INTEGER = 0
  DIM tilenum AS INTEGER
  FOR i AS INTEGER = 0 TO UBOUND(map)
   tilenum = readblock(map(i), x, y)
   IF i = 0 OR tilenum > 0 THEN
-   n = n OR defaults(i).a(animadjust(tilenum, st.tilesets(i)->tastuf()))
+   n = n OR st.defaultwalls[i][animadjust(tilenum, st.tilesets(i)->tastuf())]
   END IF
  NEXT i
  writeblock pass, x, y, n
@@ -2876,7 +2879,7 @@ END SUB
 
 'tile fill tool: iterate through all contiguous maptiles, changing if the area continues, and stopping if it is blocked by a different kind of maptile
 'do a breadth first search instead of using the stack; that's prone to overflow
-SUB paint_map_area(st AS MapEditState, oldTile, x, y, map() AS TileMap, pass AS TileMap, defaults() AS DefArray)
+SUB paint_map_area(st AS MapEditState, oldTile, x, y, map() AS TileMap, pass AS TileMap)
  IF oldTile = st.usetile(st.layer) THEN EXIT SUB
  REDIM queue(250) AS XYPair 'a circular buffer. We don't use the last element
  DIM AS INTEGER head, tail, i, oldend
@@ -2897,7 +2900,7 @@ SUB paint_map_area(st AS MapEditState, oldTile, x, y, map() AS TileMap, pass AS 
   WITH queue(tail)
    IF readblock(map(st.layer), .x, .y) = oldTile THEN
     writeblock map(st.layer), .x, .y, st.usetile(st.layer)
-    IF st.defpass THEN calculatepassblock st, .x, .y, map(), pass, defaults()
+    IF st.defpass THEN calculatepassblock st, .x, .y, map(), pass
     paint_map_add_node map(st.layer), oldTile, .x + 1, .y, head, queue()
     paint_map_add_node map(st.layer), oldTile, .x - 1, .y, head, queue()
     paint_map_add_node map(st.layer), oldTile, .x, .y + 1, head, queue()
@@ -2908,23 +2911,32 @@ SUB paint_map_area(st AS MapEditState, oldTile, x, y, map() AS TileMap, pass AS 
  WEND
 END SUB
 
-SUB loadpasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
- flusharray array(), 160, 0
+SUB loadpasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INTEGER)
+ DIM buf(160) as integer
+ v_new defaults, 160
  '--load defaults from tile set defaults file
- setpicstuf array(), 322, -1
+ setpicstuf buf(), 322, -1
  loadset workingdir & SLASH & "defpass.bin", tilesetnum, 0
  '--enforce magic number and filesize
- IF array(160) <> 4444 THEN
-  flusharray array(), 160, 0
+ IF buf(160) = 4444 THEN
+  FOR i AS INTEGER = 0 TO 159
+   defaults[i] = buf(i)
+  NEXT  
+ ELSE
+  'I wonder what this old unsupported file format was?
  END IF
 END SUB
 
-SUB savepasdefaults (array() AS INTEGER, tilesetnum AS INTEGER)
-'--set magic number
-array(160) = 4444
-'--write defaults into tile set defaults file
-setpicstuf array(), 322, -1
-storeset workingdir & SLASH & "defpass.bin", tilesetnum, 0
+SUB savepasdefaults (BYREF defaults AS INTEGER VECTOR, tilesetnum AS INTEGER)
+ DIM buf(160) AS INTEGER
+ FOR i AS INTEGER = 0 TO 159
+  buf(i) = defaults[i]
+ NEXT  
+ '--set magic number
+ buf(160) = 4444
+ '--write defaults into tile set defaults file
+ setpicstuf buf(), 322, -1
+ storeset workingdir & SLASH & "defpass.bin", tilesetnum, 0
 END SUB
 
 SUB mapedit_pickblock(BYREF st AS MapEditState)
