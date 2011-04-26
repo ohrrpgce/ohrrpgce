@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-??? ?? ???? [Zenzizenzic]
+Apr ?? 2011 [Zenzizenzic]
 
   * New Features
     * New general bitset "Locked heroes can't be re-ordered" [James]
@@ -65,6 +65,10 @@ WHAT IS NEW?
     * You can select menu items on Custom's main menu and graphics menu
       by hotkey (eg. I for Edit Items or Import Music) [Ralph]
     * Ctrl+F8 debug to print out the slice tree to g_debug.txt
+    * Added Zones to maps. A zone is just a group of tiles on the map,
+      with data attached (sadly no triggers are implemented yet). There
+      are 9999 zones per map. Each NPC type may have a 'movement zone',
+      confining where it can move. [Ralph]
     * Added drawing tools -- Draw, Box, Fill, Replace, and Paint
       Tilemap -- to the map editor, available in Tile, Wall, Foe, and
       Zone modes! [Ralph]
@@ -123,6 +127,9 @@ WHAT IS NEW?
     * Trying to reorder map layers if there's only one crashed [Ralph]
     * Bug 865: Slices attached to map layer 0 were drawn on top of all
       map layers [Ralph]
+    * Fixed an assortment of 19 bugs in HSpeak: crashes, missing error
+      checking, miscompiling and misoptimising scripts, incorrect
+      error messages [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
@@ -171,6 +178,9 @@ WHAT IS NEW?
     * Test suite and benchmarks for RELOAD format [Mike]
     * Comprehensive SCons-based build system, to replace all the others
       [David Gowers]
+    * Generic resizable arrays ('vector's) to replace FreeBASIC's
+      horrible builtin arrays. This is why you should not rush
+      programming language features :) [Ralph]
 
 Nov 8 2010 [Ypsiliform+3]
 
