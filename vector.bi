@@ -123,6 +123,10 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
   'Are all elements equal? If the type has no comparison functions defined, does raw memcmp. Returns 0 or -1
   declare function v_equal overload alias "array_equal" (byval lhs as T vector, byval rhs as T vector) as integer
 
+  'Are any elements inequal? If the type has no comparison functions defined, does raw memcmp. Returns 0 or -1
+  'Please ignore the byrefs: they are there only to match the FnCompare signature
+  declare function v_inequal overload alias "array_inequal" (byref lhs as T vector, byref rhs as T vector) as integer
+
   'Returns the index of the first element equal to 'item', or -1 if not found
   declare function v_find overload alias "array_find" (byval this as T vector, value as T) as integer
 
@@ -141,8 +145,8 @@ declare function __array_is_temp cdecl alias "array_is_temp" (byval this as any 
 #ENDMACRO
 
 'Accepts any type of vector, and returns a string representation, eg [3, 4]. Understands nested vectors.
-'(Implemented in vector.bas)
-DECLARE FUNCTION v_str (BYVAL vec as any vector) as string
+'Doesn't actually modify vec, ignore the BYREF. (Implemented in vector.bas)
+DECLARE FUNCTION v_str CDECL (BYREF vec as any vector) as string
 
 
 'This stuff is commented out until we switch to a version of FB with variadic macros
@@ -252,7 +256,7 @@ declare function cdecl array_create(byval tbl as typeTable, ...)
     v_copy this, that
   end sub
 
-  DEFINE_CUSTOM_VECTOR_TYPE(T vector, TID##_vector, @TID##_vector_ctor, @TID##_vector_copyctor, @v_free, NULL, NULL, NULL)
+  DEFINE_CUSTOM_VECTOR_TYPE(T vector, TID##_vector, @TID##_vector_ctor, @TID##_vector_copyctor, @v_free, NULL, @v_inequal, @v_str)
 #ENDMACRO
 
 

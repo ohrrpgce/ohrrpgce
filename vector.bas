@@ -81,7 +81,9 @@ FUNCTION intvec_sum(BYVAL vec as integer vector) as integer
   RETURN sum
 END FUNCTION
 
-FUNCTION v_str(BYVAL vec as any vector) as string
+'Not BYREF because it modifies vec, but simply to fit the signature...
+'ought to take a vector ptr, but that's unpleas
+FUNCTION v_str CDECL (BYREF vec as any vector) as string
   IF vec = NULL THEN RETURN ""
   DIM ret as string = "["
   'Cast so that we can call a set of overloaded functions (aside from v_new, all
@@ -91,11 +93,7 @@ FUNCTION v_str(BYVAL vec as any vector) as string
   FOR i as integer = 0 TO v_len(vec_) - 1
     IF i <> 0 THEN ret += ", "
     DIM p as any ptr = vec + i * tbl->element_len
-    'IF RIGHT(*tbl->name, 7) = " vector" THEN
-    IF tbl->dtor = @v_free THEN
-      'It's a vector vector, can recurse!
-      ret += v_str(*cast(any vector ptr, p))
-    ELSEIF tbl->tostr THEN
+    IF tbl->tostr THEN
       ret += tbl->tostr(p)
     ELSE
       ret += "<" + *tbl->name + ">"

@@ -346,7 +346,7 @@ startTest(appendTypeB)
 		.str2 = ""
 		.int1 = -1
 	end with
-        'Here's a simpler way to do the above
+	'Here's a simpler way to do the above
 	with *v_expand(arr)
 		.str1 = "asdf"
 		.int1 = 111111111
@@ -433,7 +433,7 @@ startTest(moveTempStringArray)
 	dim as string vector a1, a2, temp
 	v_new a1
 	v_append a1, "foo"
-        'fact that a1 is temp should be completely ignored
+	'fact that a1 is temp should be completely ignored
 	v_ret a1
 	v_move a2, a1
 	if v_len(a2) <> 1 then fail
@@ -445,11 +445,11 @@ endTest
 startTest(appendToTempArray)
 	dim as double vector a1, a2
 	v_new a1
-        v_ret a1
+	v_ret a1
 	v_append a1, 13.37
 	if v_len(a1) <> 1 then fail
 	v_resize a1, 2
-        a1[1] = a1[0] * 3.1415
+	a1[1] = a1[0] * 3.1415
 	'should still be temporary, because a1 never appeared as a 'src' argument
 	if __array_is_temp(a1) = 0 then fail
 	v_copy a2, a1
@@ -614,31 +614,55 @@ endTest
 
 startTest(intVectorVectorAppending)
 	dim arr as integer vector vector
-        dim tmp as integer vector
+	dim tmp as integer vector
 	v_new arr
-        v_new tmp, 3
-        tmp[2] = 1001
-        v_append arr, tmp
-        tmp[1] = 1010
-        v_append arr, tmp
-        v_append arr, arr[0]
+	v_new tmp, 3
+	tmp[2] = 1001
+	v_append arr, tmp
+	tmp[1] = 1010
+	v_append arr, tmp
+	v_append arr, arr[0]
 	arr[2][2] = 1100
 	v_new tmp, 1
 	tmp[0] = 55
 	v_append arr, tmp
-        v_free tmp
-        dim sums as integer vector
-        v_new sums
-        for i as integer = 0 to v_len(arr) - 1
-        	'if i <> 3 andalso v_len(arr[i]) <> 4 then fail
+	v_free tmp
+	dim sums as integer vector
+	v_new sums
+	for i as integer = 0 to v_len(arr) - 1
+		'if i <> 3 andalso v_len(arr[i]) <> 4 then fail
 		v_sort arr[i]
-        	v_append sums, intvec_sum(arr[i])
-        next
+		v_append sums, intvec_sum(arr[i])
+	next
 	assertVector(arr, "[[0, 0, 1001], [0, 1001, 1010], [0, 0, 1100], [55]]")
-        if v_len(sums) <> 4 then fail
-        if intvec_sum(sums) <> 1001 + 1001 + 1010 + 1100 + 55 then fail
+	if v_len(sums) <> 4 then fail
+	if intvec_sum(sums) <> 1001 + 1001 + 1010 + 1100 + 55 then fail
 	v_free arr
-        v_free sums
+	v_free sums
+endTest
+
+startTest(intVectorVectorCompare)
+	dim as integer vector vector arr, arr2
+	dim tmp as integer vector
+	v_new arr
+	v_new arr2
+	if v_inequal(arr, arr2) then fail
+	v_new tmp, 3
+	tmp[1] = 1000
+	tmp[2] = 1001
+	v_append arr, tmp
+	arr[0][0] = 10
+	tmp[0] = 10
+	v_append arr2, tmp
+	assertVector(arr, "[[10, 1000, 1001]]")
+	if v_equal(arr, arr2) = 0 then fail
+	if v_equal(arr[0], arr2[0]) = 0 then fail
+	v_append arr, tmp
+	if v_equal(arr, arr2) then fail
+	v_append arr2, tmp
+	if v_inequal(arr, arr2) then fail
+	v_free arr
+	v_free arr2
 endTest
 
 'First we need to create 'string vector vector' overloads/typetable
@@ -670,7 +694,7 @@ startTest(stringVectorVectorVector)
 	v_new arr[2][0], 1                            'arr := [[[], ["~"]], [["~", "/.."]], [[""]]]
 	arr[0][1][0] += arr[1][0][1]                  'arr := [[[], ["~/.."]], [["~", "/.."]], [[""]]]
 	assertVector(arr, "[[[], [""~/..""]], [[""~"", ""/..""]], [[""""]]]")
-	v_resize arr[1], 0                           'arr := [[[], ["~/.."]], [], [[""]]]
+	v_resize arr[1], 0                            'arr := [[[], ["~/.."]], [], [[""]]]
 	assertVector(arr, "[[[], [""~/..""]], [], [[""""]]]")
 	v_free arr 
 endTest

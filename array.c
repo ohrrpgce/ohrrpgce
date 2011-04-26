@@ -568,6 +568,11 @@ int array_equal(array_t lhs, array_t rhs) {
 }
 
 // (E)
+int array_inequal(array_t *lhs, array_t *rhs) {
+	return array_equal(*lhs, *rhs) ? 0 : -1;
+}
+
+// (E)
 int array_find(array_t array, void *value) {
 	if (!array)
 		throw_error("array_find: array uninitialised");
