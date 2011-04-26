@@ -180,11 +180,19 @@ TYPE MapEditState
   num_npc_defs AS INTEGER
   npc_inst(299) AS NPCInst
 
-  tilepick AS XYPair  'Coordinates (in tiles) of the selected tile on the tile picker screen
+  editmode AS INTEGER        'ENUM MapEditMode
+  seteditmode AS INTEGER     'Normally -1, set to an editmode to cause a switch
+  x AS INTEGER               'Cursor position, in tiles
+  y AS INTEGER
+  mapx AS INTEGER            'Camera position (top left of viewable area), in pixels
+  mapy AS INTEGER
+  wide AS INTEGER            'Map size
+  high AS INTEGER
+  tilepick AS XYPair         'Coordinates (in tiles) of the selected tile on the tile picker screen
   layer AS INTEGER
-  defpass AS INTEGER  'Default passability ON/OFF
-  cur_foe AS INTEGER  'Formation set selected for placement
-  cur_npc AS INTEGER  'NPC ID selected for placement
+  defpass AS INTEGER         'Default passability ON/OFF
+  cur_foe AS INTEGER         'Formation set selected for placement
+  cur_npc AS INTEGER         'NPC ID selected for placement
   usetile(0 to maplayerMax) AS INTEGER  'Tile selected for each layer
   menubarstart(0 to maplayerMax) AS INTEGER
   menubar AS TileMap
