@@ -133,7 +133,7 @@ Sub SetupGameSlices
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
  FOR i AS INTEGER = 0 TO maplayerMax
   SliceTable.MapLayer(i) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0 - i)
-  ChangeMapSlice SliceTable.ObsoleteOverhead, , , (i > 0), 0   'maybe transparent, not overhead
+  ChangeMapSlice SliceTable.MapLayer(i), , , (i > 0), 0   'maybe transparent, not overhead
   SliceTable.MapLayer(i)->Fill = YES
  NEXT
  SliceTable.ObsoleteOverhead = NewSliceOfType(slMap, SliceTable.MapRoot, SL_OBSOLETE_OVERHEAD)
