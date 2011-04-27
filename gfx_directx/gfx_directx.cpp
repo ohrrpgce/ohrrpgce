@@ -224,6 +224,7 @@ struct gfx_BackendState
 	void (__cdecl *SendDebugString)(const char* szMessage);
 	bool bClosing; //flagged when shutting down
 	Tstring szHelpText;
+	BOOL bDisableSysMsg;
 } g_State;
 
 LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -640,6 +641,12 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				return ::DefWindowProc(hWnd, msg, wParam, lParam);
 			}
 		} break;
+	case WM_SYSKEYDOWN:
+	case WM_SYSKEYUP:
+		{
+			if(!g_State.bDisableSysMsg || wParam == VK_RETURN)
+				return ::DefWindowProc(hWnd, msg, wParam, lParam);
+		} break;
 	case WM_SYSCOMMAND:
 		{
 			switch(wParam)
@@ -657,7 +664,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				} break;
 			default:
 				{
-					return ::DefWindowProc(hWnd, msg, wParam, lParam);
+					return DefWindowProc(hWnd, msg, wParam, lParam);
 				}
 			}
 		} break;
@@ -828,7 +835,7 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	static BOOL bVsyncEnabled, bSmoothEnabled, bARPEnabled;
+	static BOOL bVsyncEnabled, bSmoothEnabled, bARPEnabled, bSysMsgDisabled;
 
 	switch(msg)
 	{
@@ -848,15 +855,21 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 				{
 					g_DirectX.setAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
 				} break;
+			case IDC_OPTIONS_DisableSystemMessages:
+				{
+					g_State.bDisableSysMsg = (BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_DisableSystemMessages));
+				} break;
 			case IDC_OPTIONS_SetDefaults:
 				{//sets defaults
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, BST_CHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, BST_UNCHECKED);
 					::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, BST_CHECKED);
+					::CheckDlgButton(hWndDlg, IDC_OPTIONS_DisableSystemMessages, BST_UNCHECKED);
 
 					g_DirectX.setVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
 					g_DirectX.setSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
 					g_DirectX.setAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
+					g_State.bDisableSysMsg = (BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_DisableSystemMessages));
 
 					if(g_DirectX.isScreenShotsActive())
 					{
@@ -880,6 +893,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 					g_DirectX.setVsyncEnabled(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableVsync));
 					g_DirectX.setSmooth(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnableSmooth));
 					g_DirectX.setAspectRatioPreservation(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio));
+					g_State.bDisableSysMsg = (BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_DisableSystemMessages));
 					if(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_ScrnShotFormats_JPG))
 						g_DirectX.setImageFileFormat(D3DXIFF_JPG);
 					else if(BST_CHECKED == ::IsDlgButtonChecked(hWndDlg, IDC_OPTIONS_ScrnShotFormats_BMP))
@@ -899,6 +913,7 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 					g_DirectX.setVsyncEnabled(bVsyncEnabled);
 					g_DirectX.setSmooth(bSmoothEnabled);
 					g_DirectX.setAspectRatioPreservation(bARPEnabled);
+					g_State.bDisableSysMsg = bSysMsgDisabled;
 					g_Mouse.popState();
 					::DestroyWindow(hWndDlg);
 					g_hWndDlg = NULL;
@@ -914,10 +929,12 @@ BOOL CALLBACK OHROptionsDlgModeless(HWND hWndDlg, UINT msg, WPARAM wParam, LPARA
 			bVsyncEnabled = g_DirectX.isVsyncEnabled() ? TRUE : FALSE;
 			bSmoothEnabled = g_DirectX.isSmooth() ? TRUE : FALSE;
 			bARPEnabled = g_DirectX.isAspectRatioPreserved() ? TRUE : FALSE;
+			bSysMsgDisabled = g_State.bDisableSysMsg;
 
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableVsync, (g_DirectX.isVsyncEnabled() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnableSmooth, (g_DirectX.isSmooth() ? BST_CHECKED : BST_UNCHECKED));
 			::CheckDlgButton(hWndDlg, IDC_OPTIONS_EnablePreserveAspectRatio, (g_DirectX.isAspectRatioPreserved() ? BST_CHECKED : BST_UNCHECKED));
+			::CheckDlgButton(hWndDlg, IDC_OPTIONS_DisableSystemMessages, (g_State.bDisableSysMsg ? BST_CHECKED : BST_UNCHECKED));
 			::SendDlgItemMessage(hWndDlg, IDC_OPTIONS_Status, WM_SETTEXT, 0, (LPARAM)g_State.szHelpText.c_str());
 			TCHAR strInfoBuffer[128] = TEXT("");
 			::_stprintf(strInfoBuffer, TEXT("DirectX Backend version: %d.%d.%d\r\nhttp://www.hamsterrepublic.com"), DX_VERSION_MAJOR, DX_VERSION_MINOR, DX_VERSION_BUILD);

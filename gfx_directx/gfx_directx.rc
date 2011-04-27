@@ -52,28 +52,31 @@ END
 // Dialog
 //
 
-DIALOGOPTIONS DIALOGEX 0, 0, 348, 177
+DIALOGOPTIONS DIALOGEX 0, 0, 348, 198
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,237,156,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,290,156,50,14
+    DEFPUSHBUTTON   "OK",IDOK,237,177,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,290,177,50,14
     CONTROL         "Enable Vsync",IDC_OPTIONS_EnableVsync,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,74,58,10
     CONTROL         "OhrrpgceBmp",IDC_OPTIONS_Image,"Static",SS_BITMAP,7,7,15,13
     LTEXT           "DirectX Backend version: Unknown\r\nhttp://www.hamsterrepublic.com",IDC_OPTIONS_Info,220,60,120,24,0,WS_EX_RIGHT
     CONTROL         "Enable Smooth Draw",IDC_OPTIONS_EnableSmooth,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,86,82,10
     CONTROL         "Enable Aspect Ratio Preservation",IDC_OPTIONS_EnablePreserveAspectRatio,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,62,123,10
-    GROUPBOX        "Screen Shot format",IDC_OPTIONS_ScrnShotFormats,7,115,141,55
-    CONTROL         "JPEG (.jpg)",IDC_OPTIONS_ScrnShotFormats_JPG,"Button",BS_AUTORADIOBUTTON,18,129,52,10
-    CONTROL         "BMP (.bmp)",IDC_OPTIONS_ScrnShotFormats_BMP,"Button",BS_AUTORADIOBUTTON,18,141,53,10
-    CONTROL         "PNG (.png)",IDC_OPTIONS_ScrnShotFormats_PNG,"Button",BS_AUTORADIOBUTTON,18,153,51,10
-    CONTROL         "DDS (.dds)",IDC_OPTIONS_ScrnShotFormats_DDS,"Button",BS_AUTORADIOBUTTON,85,129,51,10
-    CONTROL         "OHR (.bmp)",IDC_OPTIONS_ScrnShotFormats_OHR,"Button",BS_AUTORADIOBUTTON,85,141,54,10
-    PUSHBUTTON      "Set Defaults",IDC_OPTIONS_SetDefaults,184,156,50,14
-    EDITTEXT        IDC_OPTIONS_Status,185,86,155,57,ES_MULTILINE | ES_READONLY | WS_VSCROLL
-    PUSHBUTTON      "Refresh Joysticks",IDC_OPTIONS_RefreshJoysticks,20,96,128,12
+    GROUPBOX        "Screen Shot format",IDC_OPTIONS_ScrnShotFormats,7,136,141,55
+    CONTROL         "JPEG (.jpg)",IDC_OPTIONS_ScrnShotFormats_JPG,"Button",BS_AUTORADIOBUTTON,20,150,52,10
+    CONTROL         "BMP (.bmp)",IDC_OPTIONS_ScrnShotFormats_BMP,"Button",BS_AUTORADIOBUTTON,20,162,53,10
+    CONTROL         "PNG (.png)",IDC_OPTIONS_ScrnShotFormats_PNG,"Button",BS_AUTORADIOBUTTON,20,174,51,10
+    CONTROL         "DDS (.dds)",IDC_OPTIONS_ScrnShotFormats_DDS,"Button",BS_AUTORADIOBUTTON,87,150,51,10
+    CONTROL         "OHR (.bmp)",IDC_OPTIONS_ScrnShotFormats_OHR,"Button",BS_AUTORADIOBUTTON,87,162,54,10
+    PUSHBUTTON      "Set Defaults",IDC_OPTIONS_SetDefaults,184,177,50,14
+    EDITTEXT        IDC_OPTIONS_Status,185,86,155,86,ES_MULTILINE | ES_READONLY | WS_VSCROLL
+    PUSHBUTTON      "Refresh Joysticks",IDC_OPTIONS_RefreshJoysticks,20,108,128,12
+    CONTROL         "Disable System Messages",IDC_OPTIONS_DisableSystemMessages,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,20,98,97,10
+    PUSHBUTTON      "Joystick Config",IDC_OPTIONS_JoystickConfig,20,121,128,13,WS_DISABLED
 END
 
 
@@ -91,7 +94,7 @@ BEGIN
         RIGHTMARGIN, 340
         VERTGUIDE, 20
         TOPMARGIN, 7
-        BOTTOMMARGIN, 170
+        BOTTOMMARGIN, 191
         HORZGUIDE, 60
         HORZGUIDE, 96
         HORZGUIDE, 108

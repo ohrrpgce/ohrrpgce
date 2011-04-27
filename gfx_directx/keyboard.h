@@ -30,6 +30,7 @@ namespace gfx
 		int m_scancodes[128];
 		BYTE m_virtualKeys[256];
 		UINT m_scLShift;
+		bool m_bActive;
 	public:
 		Keyboard();
 

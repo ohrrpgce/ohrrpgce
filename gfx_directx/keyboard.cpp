@@ -4,7 +4,7 @@ using namespace gfx;
 
 #define VK_NUMPAD_ENTER 0xCA //reserved in windows, but recommended on a site
 
-Keyboard::Keyboard() : m_scLShift(0)
+Keyboard::Keyboard() : m_scLShift(0), m_bActive(true)
 {
 	ZeroMemory(m_scancodes, sizeof(m_scancodes));
 	ZeroMemory(m_virtualKeys, sizeof(m_virtualKeys));
@@ -101,8 +101,29 @@ void Keyboard::getOHRScans(int *pScancodes)
 
 bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	if(!m_bActive && msg != WM_ACTIVATE)
+		return false;
+
 	switch(msg)
 	{
+	case WM_ACTIVATE:
+		{
+			if(LOWORD(wParam) == WA_INACTIVE)
+			{
+				m_bActive = false;
+				for(UINT i = 0; i < 256; i++)
+					if(m_virtualKeys[i] != 0x0)
+						if(i != VK_NUMLOCK && i != VK_SCROLL && i != VK_CAPITAL)
+						{
+							m_virtualKeys[i] = 0x0;
+							KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[i] ]);
+						}
+			}
+			else
+			{
+				m_bActive = true;
+			}
+		} break;
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 		{

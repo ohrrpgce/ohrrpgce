@@ -1,4 +1,19 @@
 --------------------------------------------------
+4/27/11
+v1.13
+
+Added Features:
+
+-Added method to disable system messages in Options Dialog (Alt key combinations). Alt-Tab still hasn't been stopped, though.
+
+-Added Joystick Config button, but it's disabled for now.
+
+-Keyboard and mouse are cleared of their state (except toggle keys) upon leaving the window.
+
+
+
+
+--------------------------------------------------
 4/23/11
 v1.12
 
