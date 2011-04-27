@@ -12,7 +12,8 @@ Keyboard::Keyboard() : m_scLShift(0)
 }
 
 void Keyboard::getOHRScans(int *pScancodes)
-{//an attempt to get the shift key to release--it works, but a quick keypress is generated for some odd reason on release; commenting the three if blocks is the same as v1.12
+{
+	//workaround to get the second of two shift keys to release
 	if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) //most significant bit, 0x8000, is current state
 	{
 		m_virtualKeys[VK_LSHIFT] = 0x0;
@@ -28,6 +29,57 @@ void Keyboard::getOHRScans(int *pScancodes)
 		m_virtualKeys[VK_SHIFT] = 0x0;
 		KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
 	}
+
+	//obtain toggle state every loop
+	if(GetKeyState(VK_NUMLOCK) & 0x1) //least significant bit, 0x1, is current toggled state
+	{
+		if(m_virtualKeys[VK_NUMLOCK] == 0x0)
+		{
+			m_virtualKeys[VK_NUMLOCK] = 0x80;
+			KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMLOCK] ]);
+		}
+	}
+	else
+	{
+		if(m_virtualKeys[VK_NUMLOCK] == 0x80)
+		{
+			m_virtualKeys[VK_NUMLOCK] = 0x0;
+			KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMLOCK] ]);
+		}
+	}
+	if(GetKeyState(VK_SCROLL) & 0x1) //least significant bit, 0x1, is current toggled state
+	{
+		if(m_virtualKeys[VK_SCROLL] == 0x0)
+		{
+			m_virtualKeys[VK_SCROLL] = 0x80;
+			KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_SCROLL] ]);
+		}
+	}
+	else
+	{
+		if(m_virtualKeys[VK_SCROLL] == 0x80)
+		{
+			m_virtualKeys[VK_SCROLL] = 0x0;
+			KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_SCROLL] ]);
+		}
+	}
+	if(GetKeyState(VK_CAPITAL) & 0x1) //least significant bit, 0x1, is current toggled state
+	{
+		if(m_virtualKeys[VK_CAPITAL] == 0x0)
+		{
+			m_virtualKeys[VK_CAPITAL] = 0x80;
+			KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_CAPITAL] ]);
+		}
+	}
+	else
+	{
+		if(m_virtualKeys[VK_CAPITAL] == 0x80)
+		{
+			m_virtualKeys[VK_CAPITAL] = 0x0;
+			KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_CAPITAL] ]);
+		}
+	}
+
 	for(UINT i = 0; i < 128; i++) 
 	{
 		pScancodes[i] = m_scancodes[i];
@@ -45,6 +97,8 @@ void Keyboard::getOHRScans(int *pScancodes)
 //	m_scancodes[ c_vk2fb[VK_SCROLL] ] = (m_virtualKeys[VK_SCROLL] & 0x1) ? 0x8 : 0x0;
 //}
 
+#define KB_BREAK_IF_SET(vkEntry) if(vkEntry & 0x80) break
+
 bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
@@ -52,170 +106,491 @@ bool Keyboard::processMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 		{
-			if(wParam == VK_NUMLOCK || wParam == VK_SCROLL || wParam == VK_CAPITAL)
+			////prevents multiple keydown messages for held keys; this is not the way--KB_BREAK_IF_SET() fixes this
+			//if(HIWORD(lParam) & 0x4000)
+			//	break;
+			switch(wParam)
 			{
+			case VK_NUMLOCK:
+			case VK_SCROLL:
+			case VK_CAPITAL:
 				break;
-			}
-			else if(wParam == VK_SHIFT)
-			{//to distinguish between left and right
-				if(m_scLShift == (HIWORD(lParam) & 0xff))
+			case VK_SHIFT:
+				{//to distinguish between left and right
+					if(HIWORD(lParam) & 0x100) //extended key, fake shifts: http://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html#fakeshifts
+						break; //we don't want fake shifts
+					if(m_scLShift == (HIWORD(lParam) & 0xff))
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_LSHIFT]);
+						m_virtualKeys[VK_LSHIFT] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LSHIFT] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_RSHIFT]);
+						m_virtualKeys[VK_RSHIFT] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RSHIFT] ]);
+					}
+					if(m_virtualKeys[VK_SHIFT] == 0x0)//if(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT])
+					{
+						m_virtualKeys[VK_SHIFT] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
+					}
+				} break;
+			case VK_CONTROL:
+				{//to distinguish between left and right
+					if(HIWORD(lParam) & 0x100) //extended key, right control
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_RCONTROL]);
+						m_virtualKeys[VK_RCONTROL] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RCONTROL] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_LCONTROL]);
+						m_virtualKeys[VK_LCONTROL] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LCONTROL] ]);
+					}
+					if(m_virtualKeys[VK_CONTROL] == 0x0)//if(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL])
+					{
+						m_virtualKeys[VK_CONTROL] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_CONTROL] ]);
+					}
+				} break;
+			case VK_MENU:
+				{//to distinguish between left and right
+					if(HIWORD(lParam) & 0x100) //extended key, right alt
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_RMENU]);
+						m_virtualKeys[VK_RMENU] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RMENU] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_LMENU]);
+						m_virtualKeys[VK_LMENU] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LMENU] ]);
+					}
+					if(m_virtualKeys[VK_MENU] == 0x0)//if(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU])
+					{
+						m_virtualKeys[VK_MENU] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_MENU] ]);
+					}
+				} break;
+			case VK_RETURN:
 				{
-					m_virtualKeys[VK_LSHIFT] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LSHIFT] ]);
-				}
-				else
+					if(HIWORD(lParam) & 0x100) //extended key, numpad enter
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD_ENTER]);
+						m_virtualKeys[VK_NUMPAD_ENTER] == 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_RETURN]);
+						m_virtualKeys[VK_RETURN] == 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RETURN] ]);
+					}
+				} break;
+			case VK_HOME:
 				{
-					m_virtualKeys[VK_RSHIFT] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RSHIFT] ]);
-				}
-				if(m_virtualKeys[VK_SHIFT] == 0x0)//if(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT])
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 7 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_HOME]);
+						m_virtualKeys[VK_HOME] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_HOME] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD7]);
+						m_virtualKeys[VK_NUMPAD7] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD7] ]);
+					}
+				} break;
+			case VK_UP:
 				{
-					m_virtualKeys[VK_SHIFT] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
-				}
-			}
-			else if(wParam == VK_CONTROL)
-			{//to distinguish between left and right
-				if(HIWORD(lParam) & 0x100) //extended key, right control
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 8 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_UP]);
+						m_virtualKeys[VK_UP] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_UP] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD8]);
+						m_virtualKeys[VK_NUMPAD8] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD8] ]);
+					}
+				} break;
+			case VK_PRIOR:
 				{
-					m_virtualKeys[VK_RCONTROL] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RCONTROL] ]);
-				}
-				else
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 9 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_PRIOR]);
+						m_virtualKeys[VK_PRIOR] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_PRIOR] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD9]);
+						m_virtualKeys[VK_NUMPAD9] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD9] ]);
+					}
+				} break;
+			case VK_LEFT:
 				{
-					m_virtualKeys[VK_LCONTROL] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LCONTROL] ]);
-				}
-				if(m_virtualKeys[VK_CONTROL] == 0x0)//if(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL])
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 4 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_LEFT]);
+						m_virtualKeys[VK_LEFT] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LEFT] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD4]);
+						m_virtualKeys[VK_NUMPAD4] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD4] ]);
+					}
+				} break;
+			case VK_CLEAR:
 				{
-					m_virtualKeys[VK_CONTROL] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_CONTROL] ]);
-				}
-			}
-			else if(wParam == VK_MENU)
-			{//to distinguish between left and right
-				if(HIWORD(lParam) & 0x100) //extended key, right alt
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 5 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_CLEAR]);
+						m_virtualKeys[VK_CLEAR] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_CLEAR] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD5]);
+						m_virtualKeys[VK_NUMPAD5] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD5] ]);
+					}
+				} break;
+			case VK_RIGHT:
 				{
-					m_virtualKeys[VK_RMENU] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RMENU] ]);
-				}
-				else
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 6 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_RIGHT]);
+						m_virtualKeys[VK_RIGHT] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RIGHT] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD6]);
+						m_virtualKeys[VK_NUMPAD6] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD6] ]);
+					}
+				} break;
+			case VK_END:
 				{
-					m_virtualKeys[VK_LMENU] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_LMENU] ]);
-				}
-				if(m_virtualKeys[VK_MENU] == 0x0)//if(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU])
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 1 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_END]);
+						m_virtualKeys[VK_END] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_END] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD1]);
+						m_virtualKeys[VK_NUMPAD1] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD1] ]);
+					}
+				} break;
+			case VK_DOWN:
 				{
-					m_virtualKeys[VK_MENU] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_MENU] ]);
-				}
-			}
-			else if(wParam == VK_RETURN)
-			{
-				if(HIWORD(lParam) & 0x100) //extended key, numpad enter
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 2 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_DOWN]);
+						m_virtualKeys[VK_DOWN] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_DOWN] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD2]);
+						m_virtualKeys[VK_NUMPAD2] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD2] ]);
+					}
+				} break;
+			case VK_NEXT:
 				{
-					m_virtualKeys[VK_NUMPAD_ENTER] == 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ]);
-				}
-				else
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 3 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NEXT]);
+						m_virtualKeys[VK_NEXT] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NEXT] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD3]);
+						m_virtualKeys[VK_NUMPAD3] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD3] ]);
+					}
+				} break;
+			case VK_INSERT:
 				{
-					m_virtualKeys[VK_RETURN] == 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_RETURN] ]);
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 0 key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_INSERT]);
+						m_virtualKeys[VK_INSERT] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_INSERT] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_NUMPAD0]);
+						m_virtualKeys[VK_NUMPAD0] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_NUMPAD0] ]);
+					}
+				} break;
+			case VK_DELETE:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad decimal key
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_DELETE]);
+						m_virtualKeys[VK_DELETE] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_DELETE] ]);
+					}
+					else
+					{
+						KB_BREAK_IF_SET(m_virtualKeys[VK_DECIMAL]);
+						m_virtualKeys[VK_DECIMAL] = 0x80;
+						KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_DECIMAL] ]);
+					}
+				} break;
+			default:
+				{
+					KB_BREAK_IF_SET(m_virtualKeys[wParam]);
+					m_virtualKeys[wParam] = 0x80;
+					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[wParam] ]);
 				}
-			}
-			else
-			{
-				m_virtualKeys[wParam] = 0x80;
-				KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[wParam] ]);
 			}
 		} break;
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 		{
-			if(wParam == VK_NUMLOCK || wParam == VK_SCROLL || wParam == VK_CAPITAL)
+			switch(wParam)
 			{
-				if(m_virtualKeys[wParam] == 0x80)
+			case VK_NUMLOCK:
+			case VK_SCROLL:
+			case VK_CAPITAL:
+				break;//these keys are now caught every time getOHRScans() is called
+			case VK_SHIFT:
+				{//to distinguish between left and right
+					if(HIWORD(lParam) & 0x100) //extended key, fake shifts: http://www.win.tue.nl/~aeb/linux/kbd/scancodes-1.html#fakeshifts
+						break; //we don't want fake shifts
+					if(m_scLShift == (HIWORD(lParam) & 0xff))
+					{
+						m_virtualKeys[VK_LSHIFT] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LSHIFT] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_RSHIFT] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RSHIFT] ]);
+					}
+					if(!(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT]))
+					{
+						m_virtualKeys[VK_SHIFT] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
+					}
+				} break;
+			case VK_CONTROL:
+				{//to distinguish between left and right
+					if(HIWORD(lParam) & 0x100) //extended key, right control
+					{
+						m_virtualKeys[VK_RCONTROL] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RCONTROL] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_LCONTROL] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LCONTROL] ]);
+					}
+					if(!(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL]))
+					{
+						m_virtualKeys[VK_CONTROL] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_CONTROL] ]);
+					}
+				} break;
+			case VK_MENU:
+				{//to distinguish between left and right
+					if(HIWORD(lParam) & 0x100) //extended key, right alt
+					{
+						m_virtualKeys[VK_RMENU] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RMENU] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_LMENU] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LMENU] ]);
+					}
+					if(!(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU]))
+					{
+						m_virtualKeys[VK_MENU] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_MENU] ]);
+					}
+				} break;
+			case VK_RETURN:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, numpad enter
+					{
+						m_virtualKeys[VK_NUMPAD_ENTER] == 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_RETURN] == 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RETURN] ]);
+					}
+				} break;
+			case VK_HOME:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 7 key
+					{
+						m_virtualKeys[VK_HOME] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_HOME] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD7] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD7] ]);
+					}
+				} break;
+			case VK_UP:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 8 key
+					{
+						m_virtualKeys[VK_UP] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_UP] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD8] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD8] ]);
+					}
+				} break;
+			case VK_PRIOR:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 9 key
+					{
+						m_virtualKeys[VK_PRIOR] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_PRIOR] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD9] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD9] ]);
+					}
+				} break;
+			case VK_LEFT:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 4 key
+					{
+						m_virtualKeys[VK_LEFT] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LEFT] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD4] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD4] ]);
+					}
+				} break;
+			case VK_CLEAR:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 5 key
+					{
+						m_virtualKeys[VK_CLEAR] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_CLEAR] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD5] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD5] ]);
+					}
+				} break;
+			case VK_RIGHT:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 6 key
+					{
+						m_virtualKeys[VK_RIGHT] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RIGHT] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD6] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD6] ]);
+					}
+				} break;
+			case VK_END:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 1 key
+					{
+						m_virtualKeys[VK_END] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_END] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD1] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD1] ]);
+					}
+				} break;
+			case VK_DOWN:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 2 key
+					{
+						m_virtualKeys[VK_DOWN] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_DOWN] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD2] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD2] ]);
+					}
+				} break;
+			case VK_NEXT:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 3 key
+					{
+						m_virtualKeys[VK_NEXT] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NEXT] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD3] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD3] ]);
+					}
+				} break;
+			case VK_INSERT:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad 0 key
+					{
+						m_virtualKeys[VK_INSERT] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_INSERT] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_NUMPAD0] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD0] ]);
+					}
+				} break;
+			case VK_DELETE:
+				{
+					if(HIWORD(lParam) & 0x100) //extended key, not NumPad decimal key
+					{
+						m_virtualKeys[VK_DELETE] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_DELETE] ]);
+					}
+					else
+					{
+						m_virtualKeys[VK_DECIMAL] = 0x0;
+						KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_DECIMAL] ]);
+					}
+				} break;
+			default:
 				{
 					m_virtualKeys[wParam] = 0x0;
 					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[wParam] ]);
 				}
-				else
-				{
-					m_virtualKeys[wParam] = 0x80;
-					KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[wParam] ]);
-				}
-			}
-			else if(wParam == VK_SHIFT)
-			{//to distinguish between left and right
-				if(m_scLShift == (HIWORD(lParam) & 0xff))
-				{
-					m_virtualKeys[VK_LSHIFT] = 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LSHIFT] ]);
-				}
-				else
-				{
-					m_virtualKeys[VK_RSHIFT] = 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RSHIFT] ]);
-				}
-				if(!(m_virtualKeys[VK_LSHIFT] || m_virtualKeys[VK_RSHIFT]))
-				{
-					m_virtualKeys[VK_SHIFT] = 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
-				}
-			}
-			else if(wParam == VK_CONTROL)
-			{//to distinguish between left and right
-				if(HIWORD(lParam) & 0x100) //extended key, right control
-				{
-					m_virtualKeys[VK_RCONTROL] = 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RCONTROL] ]);
-				}
-				else
-				{
-					m_virtualKeys[VK_LCONTROL] = 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LCONTROL] ]);
-				}
-				if(!(m_virtualKeys[VK_LCONTROL] || m_virtualKeys[VK_RCONTROL]))
-				{
-					m_virtualKeys[VK_CONTROL] = 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_CONTROL] ]);
-				}
-			}
-			else if(wParam == VK_MENU)
-			{//to distinguish between left and right
-				if(HIWORD(lParam) & 0x100) //extended key, right alt
-				{
-					m_virtualKeys[VK_RMENU] = 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RMENU] ]);
-				}
-				else
-				{
-					m_virtualKeys[VK_LMENU] = 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_LMENU] ]);
-				}
-				if(!(m_virtualKeys[VK_LMENU] || m_virtualKeys[VK_RMENU]))
-				{
-					m_virtualKeys[VK_MENU] = 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_MENU] ]);
-				}
-			}
-			else if(wParam == VK_RETURN)
-			{
-				if(HIWORD(lParam) & 0x100) //extended key, numpad enter
-				{
-					m_virtualKeys[VK_NUMPAD_ENTER] == 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_NUMPAD_ENTER] ]);
-				}
-				else
-				{
-					m_virtualKeys[VK_RETURN] == 0x0;
-					KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_RETURN] ]);
-				}
-			}
-			else
-			{
-				m_virtualKeys[wParam] = 0x0;
-				KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[wParam] ]);
 			}
 		} break;
 	default:

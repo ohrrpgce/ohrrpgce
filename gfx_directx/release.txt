@@ -4,7 +4,7 @@ v1.12
 
 Added Features:
 
--All keys now report correctly, including extended keys. Special case is Shift keys, which can report one being pressed if they are both pressed and released.
+-All keys now report correctly, including extended keys and toggle keys. NumLock is no longer required for the NumPad keys to work correctly.
 
 
 
