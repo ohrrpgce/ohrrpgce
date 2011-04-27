@@ -43,6 +43,8 @@ void MidSurface::copySystemPage(UCHAR *pRawPage, UINT width, UINT height, gfx::P
 		return;
 	if(!pRawPage || !pPalette)
 		return;
+	if(m_surface == NULL)
+		return;
 
 	D3DLOCKED_RECT lr;
 	HRESULT hr = m_surface->LockRect(&lr, 0, 0);
