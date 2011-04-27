@@ -10,6 +10,10 @@ Added Features:
 
 -Keyboard and mouse are cleared of their state (except toggle keys) upon leaving the window.
 
+-DirectX no longer manages the window. On Vista/7, entering full screen mode then exiting would force the colors to become "basic" until the app finished. No longer.
+
+-Extended compatibility for directx hardware incapable of running hardware vertex processing.
+
 
 
 

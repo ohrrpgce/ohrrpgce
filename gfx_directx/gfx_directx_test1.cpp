@@ -42,7 +42,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	g_paletteTest[0xdd] = 0xff0000ff;
 
 	char szInfoBuffer[256] = "";
-	db.gfx_init(RequestQuit, 0, szInfoBuffer, sizeof(szInfoBuffer));
+	if(!db.gfx_init(RequestQuit, 0, szInfoBuffer, sizeof(szInfoBuffer)))
+	{
+		MessageBox(NULL, TEXT("Initialization failure!"), TEXT("Error"), MB_OK | MB_ICONEXCLAMATION);
+		db.gfx_close();
+		return -1;
+	}
 	db.gfx_windowtitle("DirectX Backend Test App");
 	db.gfx_setpal(g_paletteTest);
 	//db.io_init();
