@@ -586,13 +586,12 @@ STATIC default AS STRING
 DIM oggtemp AS STRING
 
 DIM menu(11) AS STRING, submenu(2) AS STRING, optionsbottom
-optionsbottom = 7
+optionsbottom = 6
 menu(0) = "Previous Menu"
 menu(3) = "Import Sound..."
 menu(4) = "Export Sound..."
 menu(5) = "Delete Sound"
 menu(6) = "Play Sound"
-menu(7) = "Streaming"
 
 csr = 1
 snum = 0
@@ -652,7 +651,6 @@ DO
     IF sfxfile$ <> "" THEN 'play sfx
       playsfx snum, 0
     END IF
-  CASE 7
 
   END SELECT
  END IF
