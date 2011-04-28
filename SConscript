@@ -210,14 +210,15 @@ game_modules = ['game',
                 'savegame',
                 'hsinterpreter']
 
+# Note that base_objects are not built in commonenv!
 base_objects = [env.Object(a) for a in base_modules]
-common_objects = base_objects + [env.Object(a) for a in common_objects]
-#Plus unique module included by utilities but not Game or Custom
+common_objects = base_objects + [commonenv.Object(a) for a in common_objects]
+# Plus unique module included by utilities but not Game or Custom
 base_objects.append (env.Object ('common_base.bas'))
 
-gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = env['FBFLAGS'] + \
+gameenv = commonenv.Clone (VAR_PREFIX = 'game-', FBFLAGS = commonenv['FBFLAGS'] + \
                       ['-d','IS_GAME', '-m','game'])
-editenv = commonenv.Clone (VAR_PREFIX = 'edit-', FBFLAGS = env['FBFLAGS'] + \
+editenv = commonenv.Clone (VAR_PREFIX = 'edit-', FBFLAGS = commonenv['FBFLAGS'] + \
                       ['-d','IS_CUSTOM', '-m','custom'])
 
 #now... GAME and CUSTOM
