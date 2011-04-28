@@ -107,8 +107,7 @@ TYPE TileEditState
   zone AS INTEGER
   justpainted AS INTEGER
   hold AS INTEGER
-  hox AS INTEGER
-  hoy AS INTEGER
+  holdpos AS XYPair
   cutfrom AS INTEGER
   cuttileset AS INTEGER
   canpaste AS INTEGER

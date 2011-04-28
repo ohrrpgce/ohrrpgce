@@ -1089,8 +1089,8 @@ DO
    IF ts.readjust THEN
     IF keyval(scEnter) = 0 AND mouse.buttons = 0 THEN ' click or key release
      ts.readjust = NO
-     ts.hox += (ts.x - ts.adjustpos.x)
-     ts.hoy += (ts.y - ts.adjustpos.y)
+     ts.holdpos.x += (ts.x - ts.adjustpos.x)
+     ts.holdpos.y += (ts.y - ts.adjustpos.y)
      ts.adjustpos.x = 0
      ts.adjustpos.y = 0
     END IF
@@ -1188,8 +1188,8 @@ DO
    overlay_use_palette = NO  'Don't use the palette, so colour 0 is drawn transparently
    FOR i = 0 TO clone.size.y - 1
     FOR j = 0 TO clone.size.x - 1
-     spot.x = ts.x - ts.hox + j
-     spot.y = ts.y - ts.hoy + i
+     spot.x = ts.x - ts.holdpos.x + j
+     spot.y = ts.y - ts.holdpos.y + i
      IF ts.readjust = YES THEN
       spot.x -= (ts.x - ts.adjustpos.x)
       spot.y -= (ts.y - ts.adjustpos.y)
@@ -1202,18 +1202,18 @@ DO
  IF ts.hold = YES THEN
   SELECT CASE ts.tool
    CASE box_tool
-    rectangle overlay, small(ts.x, ts.hox), small(ts.y, ts.hoy), ABS(ts.x - ts.hox) + 1, ABS(ts.y - ts.hoy) + 1, 1
+    rectangle overlay, small(ts.x, ts.holdpos.x), small(ts.y, ts.holdpos.y), ABS(ts.x - ts.holdpos.x) + 1, ABS(ts.y - ts.holdpos.y) + 1, 1
    CASE line_tool
-    drawline overlay, ts.x, ts.y, ts.hox, ts.hoy, 1
+    drawline overlay, ts.x, ts.y, ts.holdpos.x, ts.holdpos.y, 1
    CASE oval_tool
-    ts.radius = SQR((ts.hox - ts.x)^2 + (ts.hoy - ts.y)^2)
+    ts.radius = SQR((ts.holdpos.x - ts.x)^2 + (ts.holdpos.y - ts.y)^2)
     IF ts.zone = 1 THEN
      'Use mouse pointer instead of draw cursor for finer grain control of radius
-     ts.radius = SQR( (ts.hox - (mouse.x - area(0).x - 4) / 8)^2 + (ts.hoy - (mouse.y - area(0).y - 4) / 8)^2 )
+     ts.radius = SQR( (ts.holdpos.x - (mouse.x - area(0).x - 4) / 8)^2 + (ts.holdpos.y - (mouse.y - area(0).y - 4) / 8)^2 )
     END IF
-    ellipse overlay, ts.hox, ts.hoy, ts.radius, 1
+    ellipse overlay, ts.holdpos.x, ts.holdpos.y, ts.radius, 1
    CASE mark_tool
-    IF tog = 0 THEN drawbox overlay, small(ts.x, ts.hox), small(ts.y, ts.hoy), ABS(ts.x - ts.hox) + 1, ABS(ts.y - ts.hoy) + 1, 15, 1
+    IF tog = 0 THEN drawbox overlay, small(ts.x, ts.holdpos.x), small(ts.y, ts.holdpos.y), ABS(ts.x - ts.holdpos.x) + 1, ABS(ts.y - ts.holdpos.y) + 1, 15, 1
     overlaypal->col(15) = INT(RND * 10)
   END SELECT
  END IF
@@ -1296,26 +1296,26 @@ SELECT CASE ts.tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
-    rectangle small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.hox), small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.hoy), ABS(ts.x - ts.hox) + 1, ABS(ts.y - ts.hoy) + 1, ts.curcolor, 3
+    rectangle small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.holdpos.x), small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.holdpos.y), ABS(ts.x - ts.holdpos.x) + 1, ABS(ts.y - ts.holdpos.y) + 1, ts.curcolor, 3
     refreshtileedit mover(), ts
     ts.hold = NO
    ELSE
     ts.hold = YES
-    ts.hox = ts.x
-    ts.hoy = ts.y
+    ts.holdpos.x = ts.x
+    ts.holdpos.y = ts.y
    END IF
   END IF
  CASE line_tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
     writeundoblock mover(), ts
-    drawline ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, ts.tilex * 20 + ts.hox, ts.tiley * 20 + ts.hoy, ts.curcolor, 3
+    drawline ts.tilex * 20 + ts.x, ts.tiley * 20 + ts.y, ts.tilex * 20 + ts.holdpos.x, ts.tiley * 20 + ts.holdpos.y, ts.curcolor, 3
     refreshtileedit mover(), ts
     ts.hold = NO
    ELSE
     ts.hold = YES
-    ts.hox = ts.x
-    ts.hoy = ts.y
+    ts.holdpos.x = ts.x
+    ts.holdpos.y = ts.y
    END IF
   END IF
  CASE fill_tool
@@ -1352,7 +1352,7 @@ SELECT CASE ts.tool
       putpixel 1 + i, 1 + j, readpixel(ts.tilex * 20 + i, ts.tiley * 20 + j, 3), dpage
      NEXT j
     NEXT i
-    ellipse vpages(dpage), 1 + ts.hox, 1 + ts.hoy, ts.radius, ts.curcolor
+    ellipse vpages(dpage), 1 + ts.holdpos.x, 1 + ts.holdpos.y, ts.radius, ts.curcolor
     FOR i = 0 TO 19
      FOR j = 0 TO 19
       putpixel ts.tilex * 20 + i, ts.tiley * 20 + j, readpixel(1 + i, 1 + j, dpage), 3
@@ -1363,8 +1363,8 @@ SELECT CASE ts.tool
     ts.hold = NO
    ELSE
     ts.hold = YES
-    ts.hox = ts.x
-    ts.hoy = ts.y
+    ts.holdpos.x = ts.x
+    ts.holdpos.y = ts.y
    END IF
   END IF
  CASE airbrush_tool
@@ -1386,15 +1386,15 @@ SELECT CASE ts.tool
  CASE mark_tool
   IF newkeypress THEN
    IF ts.hold = YES THEN
-    clone.size.x = ABS(ts.x - ts.hox) + 1
-    clone.size.y = ABS(ts.y - ts.hoy) + 1
+    clone.size.x = ABS(ts.x - ts.holdpos.x) + 1
+    clone.size.y = ABS(ts.y - ts.holdpos.y) + 1
     FOR i = 0 TO clone.size.y - 1
      FOR j = 0 TO clone.size.x - 1
-      clone.buf(j, i) = readpixel(small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.hox) + j, small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.hoy) + i, 3)
+      clone.buf(j, i) = readpixel(small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.holdpos.x) + j, small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.holdpos.y) + i, 3)
      NEXT j
     NEXT i
-    ts.hox = clone.size.x \ 2
-    ts.hoy = clone.size.y \ 2
+    ts.holdpos.x = clone.size.x \ 2
+    ts.holdpos.y = clone.size.y \ 2
     ts.readjust = NO
     ts.adjustpos.x = 0
     ts.adjustpos.y = 0
@@ -1404,8 +1404,8 @@ SELECT CASE ts.tool
     ts.tool = clone_tool ' auto-select the clone tool after marking
    ELSE
     ts.hold = YES
-    ts.hox = ts.x
-    ts.hoy = ts.y
+    ts.holdpos.x = ts.x
+    ts.holdpos.y = ts.y
    END IF
   END IF
  CASE clone_tool
@@ -1415,8 +1415,8 @@ SELECT CASE ts.tool
    IF clone.exists = YES THEN
     FOR i = 0 TO clone.size.y - 1
      FOR j = 0 TO clone.size.x - 1
-      spot.x = ts.x - ts.hox + j + ts.adjustpos.x
-      spot.y = ts.y - ts.hoy + i + ts.adjustpos.y
+      spot.x = ts.x - ts.holdpos.x + j + ts.adjustpos.x
+      spot.y = ts.y - ts.holdpos.y + i + ts.adjustpos.y
       IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
        putpixel ts.tilex * 20 + spot.x, ts.tiley * 20 + spot.y, clone.buf(j, i), 3
       END IF
@@ -1427,8 +1427,8 @@ SELECT CASE ts.tool
     'if no clone buffer, switch to mark tool
     ts.tool = mark_tool
     ts.hold = YES
-    ts.hox = ts.x
-    ts.hoy = ts.y
+    ts.holdpos.x = ts.x
+    ts.holdpos.y = ts.y
    END IF
   END IF
 END SELECT
