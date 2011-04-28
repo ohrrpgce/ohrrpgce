@@ -30,6 +30,24 @@ void Keyboard::getOHRScans(int *pScancodes)
 		KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_SHIFT] ]);
 	}
 
+	//printscreen workaround
+	if((GetAsyncKeyState(VK_SNAPSHOT) & 0x8000)) //most significant bit, 0x8000, is current state
+	{
+		if(m_virtualKeys[VK_SNAPSHOT] == 0x0)
+		{
+			m_virtualKeys[VK_SNAPSHOT] = 0x80;
+			KB_CREATE_KEYPRESS(m_scancodes[ c_vk2fb[VK_SNAPSHOT] ]);
+		}
+	}
+	else
+	{
+		if(m_virtualKeys[VK_SNAPSHOT] == 0x80)
+		{
+			m_virtualKeys[VK_SNAPSHOT] = 0x0;
+			KB_CREATE_KEYRELEASE(m_scancodes[ c_vk2fb[VK_SNAPSHOT] ]);
+		}
+	}
+
 	//obtain toggle state every loop
 	if(GetKeyState(VK_NUMLOCK) & 0x1) //least significant bit, 0x1, is current toggled state
 	{

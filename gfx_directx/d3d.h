@@ -86,7 +86,7 @@ namespace gfx
 		D3D();
 		virtual ~D3D();
 
-		HRESULT initialize(Window *pWin, LPCTSTR szModuleName); //starts up the engine
+		HRESULT initialize(Window *pWin, LPCTSTR szModuleName, Tstring* pStrResultInfo = NULL); //starts up the engine
 		HRESULT shutdown(); //shuts down the engine
 		//HRESULT showPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
 		//HRESULT setPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying

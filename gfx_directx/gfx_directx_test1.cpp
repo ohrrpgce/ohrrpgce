@@ -77,6 +77,8 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 			j--;
 		j += x / 10;
 		j -= y / 10;
+		if(KB_IS_KEY_DOWN(g_keys[SC_PRINTSCREEN]))
+			j+=2;
 		if(KB_IS_KEY_DOWN(g_keys[SC_CAPSLOCK]))
 			j++;
 		if(KB_IS_KEY_DOWN(g_keys[SC_NUMLOCK]))

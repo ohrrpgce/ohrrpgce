@@ -4,7 +4,9 @@ using namespace gfx;
 
 D3D::D3D() 
 : m_pWindow(NULL), m_bInitialized(FALSE), m_bVSync(TRUE), m_bSmoothDraw(FALSE),
-  m_bPreserveAspectRatio(TRUE), m_saveFormat(D3DXIFF_PNG)
+  m_bPreserveAspectRatio(TRUE), m_saveFormat(D3DXIFF_PNG),
+  DXCreate(),
+  DXScreenShot()
 {
 	::ZeroMemory(&m_d3dpp, sizeof(m_d3dpp));
 
@@ -44,7 +46,7 @@ RECT D3D::calculateAspectRatio(UINT srcWidth, UINT srcHeight, UINT destWidth, UI
 	return r;
 }
 
-HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName)
+HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrResultInfo)
 {
 	HRESULT hr = S_OK;
 	if(!pWin)
@@ -54,6 +56,8 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName)
 		m_szModuleName = szModuleName;
 	else
 		m_szModuleName = TEXT("");
+
+	Tstring strResult;
 
 	m_pWindow = pWin;
 	m_rWindowedMode = m_pWindow->getWindowSize();
@@ -74,10 +78,29 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName)
 	m_d3dpp.Windowed				= TRUE;
 
 	if(Direct3DCreate9 == NULL)
+	{
+		strResult += TEXT("\r\nDirect3DCreate9() failed to load! Possibly d3d9.dll missing.");
 		return E_FAIL;
+	}
 	m_d3d.Attach(Direct3DCreate9(D3D_SDK_VERSION));
 	if(m_d3d == NULL)
+	{
+		strResult += TEXT("\r\nIDirect3D9 object failed to be created! This is bad bad sad sad :(.");
 		return E_FAIL;
+	}
+
+	D3DADAPTER_IDENTIFIER9 adapterID;
+	hr = m_d3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &adapterID);
+	if(FAILED(hr))
+		strResult += TEXT("\r\nUnable to query adapter information!");
+	else
+	{
+		strResult += TEXT("\r\nAdapter: ");
+		strResult += Tstring(adapterID.Description);
+		strResult += TEXT("\r\nDriver: ");
+		strResult += Tstring(adapterID.Driver);
+	}
+
 	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, 
 							 D3DDEVTYPE_HAL, 
 							 m_pWindow->getWindowHandle(), 
@@ -89,17 +112,36 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName)
 		hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, 
 								 D3DDEVTYPE_HAL, 
 								 m_pWindow->getWindowHandle(), 
-								 D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | D3DCREATE_PUREDEVICE | D3DCREATE_NOWINDOWCHANGES, 
+								 D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | D3DCREATE_NOWINDOWCHANGES, 
 								 &m_d3dpp, 
 								 &m_d3ddev);
 		if(FAILED(hr))
+		{
+			strResult += TEXT("\r\nIDirect3DDevice9 object failed to be created! Possibly lack of hardware support.");
 			return hr;
+		}
+		else
+			strResult += TEXT("\r\nIDirect3DDevice9 object created as software device.");
 	}
-	if(S_OK != m_surface.initialize(m_d3ddev, 320, 200))
+	else
+		strResult += TEXT("\r\nIDirect3DDevice9 object created as hardware device.");
+	if(FAILED(m_surface.initialize(m_d3ddev, 320, 200)))
+	{
+		strResult += TEXT("\r\nIDirect3DSurface9 object failed to be created!");
 		return E_FAIL;
+	}
 	m_bInitialized = TRUE;
 	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
-	return hr;
+
+	if(D3DXSaveSurfaceToFile == NULL)
+		strResult += TEXT("\r\nD3DXSaveSurfaceToFile() failed to load. Probably lacking d3dx_24.dll.");
+	else
+		strResult += TEXT("\r\nD3DXSaveSurfaceToFile() successfully loaded.");
+
+	if(pStrResultInfo != NULL)
+		(*pStrResultInfo) += strResult;
+
+	return S_OK;
 }
 
 HRESULT D3D::shutdown()

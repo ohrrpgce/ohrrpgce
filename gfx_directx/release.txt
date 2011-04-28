@@ -1,4 +1,23 @@
 --------------------------------------------------
+4/28/11
+v1.14
+
+Added Features:
+
+-Now more information is reported in the debug texts for initialization.
+
+-Fixed a potential crash.
+
+-Expanded compatibility.
+
+-Fixed PrintScreen button.
+
+-If Vista/7 users pressed Ctrl-Alt-Del, the program could crash. This was fixed.
+
+
+
+
+--------------------------------------------------
 4/27/11
 v1.13
 

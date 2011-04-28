@@ -31,19 +31,23 @@ using namespace gfx;
 
 void OnCriticalError(const char* szError) {}
 void SendDebugString(const char* szMessage) {}
+Tstring g_d3dInitInfo; //this is so hacky... geh...
 
 DFI_IMPLEMENT_CDECL(int, gfx_init, void (__cdecl *terminate_signal_handler)(void) , const char* windowicon, char* info_buffer, int info_buffer_size)
 {
 	GFX_INIT gfxInit = {sizeof(GFX_INIT), "DirectX Backend", windowicon, terminate_signal_handler, OnCriticalError, SendDebugString};
-	if(gfx_Initialize(&gfxInit) == 0)
-	{
-		if(info_buffer != NULL && info_buffer_size > 16)
-			strcpy(info_buffer, "Backend failed!");
-		return 0;
-	}
-	if(info_buffer != NULL && info_buffer_size > 18)
-		strcpy(info_buffer, "Backend success!");
-	return 1;
+	//if(gfx_Initialize(&gfxInit) == 0)
+	//{
+	//	if(info_buffer != NULL && info_buffer_size > 16)
+	//		strcpy(info_buffer, "Backend failed!");
+	//	return 0;
+	//}
+	//if(info_buffer != NULL && info_buffer_size > 18)
+	//	strcpy(info_buffer, "Backend success!");
+	int result = gfx_Initialize(&gfxInit);
+	StringToString(info_buffer, info_buffer_size, g_d3dInitInfo.c_str());
+
+	return result;
 }
 
 DFI_IMPLEMENT_CDECL(void, gfx_close)
@@ -265,6 +269,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 		return FALSE;
 
 	//g_State.SendDebugString("gfx_directx: Initializing...");
+	g_d3dInitInfo += TEXT("gfx_Initialize()...");
 
 	if(FAILED(g_Window.initialize(::GetModuleHandle(MODULENAME), 
 								   (pCreationData->szWindowIcon ? g_State.szWindowIcon.c_str() : NULL), 
@@ -276,7 +281,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 
 	//g_State.SendDebugString("gfx_directx: Window Intialized!");
 
-	if( FAILED(g_DirectX.initialize(&g_Window, MODULENAME)) )
+	if( FAILED(g_DirectX.initialize(&g_Window, MODULENAME, &g_d3dInitInfo)) )
 	{
 		g_Window.shutdown();
 		gfx_PumpMessages();
@@ -286,10 +291,12 @@ DFI_IMPLEMENT_CDECL(int, gfx_Initialize, const GFX_INIT *pCreationData)
 
 	//g_State.SendDebugString("gfx_directx: D3D Initialized!");
 
-	/*if(FAILED(*/g_Joystick.initialize( g_Window.getAppHandle(), g_Window.getWindowHandle() );/*))*/
+	if(FAILED(g_Joystick.initialize( g_Window.getAppHandle(), g_Window.getWindowHandle() )))
 		//g_State.SendDebugString("gfx_directx: Failed to support joysticks!");
-	//else
+		g_d3dInitInfo += TEXT("\r\nJoystick support failed! Possibly lacking dinput8.dll.");
+	else
 		//g_State.SendDebugString("gfx_directx: Joysticks supported!");
+		g_d3dInitInfo += TEXT("\r\nJoysticks supported.");
 
 	gfx_SetWindowTitle(pCreationData->szInitWindowTitle);
 
