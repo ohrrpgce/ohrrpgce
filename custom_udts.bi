@@ -26,6 +26,7 @@ END ENUM
 
 TYPE SpriteEditStatic
   clonemarked AS INTEGER
+  clonepos AS XYPair
   clonebuf(2561) AS INTEGER 'Needs to be big enough for 2+w*h*sets/4 for the largest possible sprite set
   spriteclip(2561) AS INTEGER 'Needs to be big enough for 2+w*h*sets/4 for the largest possible sprite set
   clipsize AS XYPair

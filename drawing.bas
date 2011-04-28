@@ -1933,8 +1933,8 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
  END IF
  DIM temppos AS XYPair
  IF ss.tool = clone_tool AND ss_save.clonemarked = YES AND state.tog = 0 THEN
-  temppos.x = ss.x - ss.holdpos.x
-  temppos.y = ss.y - ss.holdpos.y
+  temppos.x = ss.x - ss_save.clonepos.x
+  temppos.y = ss.y - ss_save.clonepos.y
   IF ss.readjust THEN
    temppos.x += (ss.adjustpos.x - ss.x)
    temppos.y += (ss.adjustpos.y - ss.y)
@@ -2721,8 +2721,8 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) O
      ss.hold = NO
      drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
      getsprite ss_save.clonebuf(), 0, ss.previewpos.x + small(ss.x, ss.holdpos.x), ss.previewpos.y + small(ss.y, ss.holdpos.y), ABS(ss.x - ss.holdpos.x) + 1, ABS(ss.y - ss.holdpos.y) + 1, dpage
-     ss.holdpos.x = ss_save.clonebuf(0) \ 2
-     ss.holdpos.y = ss_save.clonebuf(1) \ 2
+     ss_save.clonepos.x = ss_save.clonebuf(0) \ 2
+     ss_save.clonepos.y = ss_save.clonebuf(1) \ 2
      ss_save.clonemarked = YES
      ss.tool = clone_tool ' auto-select the clone tool after marking
     ELSE
@@ -2738,7 +2738,7 @@ IF ((ss.zonenum = 1 OR ss.zonenum = 14) ANDALSO (mouse.buttons AND mouseLeft)) O
       writeundospr placer(), ss
      END IF
      drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-     drawsprite ss_save.clonebuf(), 0, ss.nulpal(), 0, ss.previewpos.x + ss.x - ss.holdpos.x, ss.previewpos.y + ss.y - ss.holdpos.y, dpage
+     drawsprite ss_save.clonebuf(), 0, ss.nulpal(), 0, ss.previewpos.x + ss.x - ss_save.clonepos.x, ss.previewpos.y + ss.y - ss_save.clonepos.y, dpage
      getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
      ss.lastpos.x = ss.x
      ss.lastpos.y = ss.y
@@ -2779,8 +2779,8 @@ IF ss.tool = clone_tool THEN
  IF ss.readjust THEN
   IF keyval(scEnter) = 0 AND mouse.buttons = 0 THEN ' click or key release
    ss.readjust = NO
-   ss.holdpos.x += (ss.x - ss.adjustpos.x)
-   ss.holdpos.y += (ss.y - ss.adjustpos.y)
+   ss_save.clonepos.x += (ss.x - ss.adjustpos.x)
+   ss_save.clonepos.y += (ss.y - ss.adjustpos.y)
    ss.adjustpos.x = 0
    ss.adjustpos.y = 0
   END IF
