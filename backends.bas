@@ -6,7 +6,7 @@
 #include "ver.txt"
 #include "common.bi"
 #include "gfx.bi"
-
+#include "music.bi"
 #include "gfx.new.bi"
 
 extern "C"
@@ -353,9 +353,9 @@ sub gfx_backend_init(byval terminate_signal_handler as sub cdecl (), byval windo
 	for i as integer = 0 to ubound(gfx_choices)
 		with *gfx_choices(i)
 			if load_backend(gfx_choices(i)) then
-				dim info_buffer as zstring * 256
+				dim info_buffer as zstring * 512
 				debuginfo "Initialising gfx_" + .name + "..."
-				if gfx_init(terminate_signal_handler, windowicon, @info_buffer, 256) = 0 then 
+				if gfx_init(terminate_signal_handler, windowicon, @info_buffer, 511) = 0 then 
 					unload_backend(gfx_choices(i))
 					currentgfxbackend = NULL
 					'TODO: what about the polling thread?
@@ -381,7 +381,8 @@ end extern
 'initialise the music backend name because it's static, yet music_init
 'might not be called until Import Music menu
 musicbackend = MUSIC_BACKEND
-musicbackendinfo = "music_" + MUSIC_BACKEND
+'musicbackendinfo = "music_" + MUSIC_BACKEND
+musicbackendinfo = music_get_info()
 
 #ifdef __FB_DARWIN__
 type OSType as integer

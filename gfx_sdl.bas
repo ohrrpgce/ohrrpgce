@@ -225,20 +225,22 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
 
   putenv("SDL_VIDEO_CENTERED=1")
 
+  DIM ver as SDL_version ptr = SDL_Linked_Version()
+  *info_buffer = MID("SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
   IF SDL_WasInit(0) = 0 THEN
-    DIM ver as SDL_version ptr = SDL_Linked_Version()
-    *info_buffer = MID("SDL " & ver->major & "." & ver->minor & "." & ver->patch, 1, info_buffer_size)
     IF SDL_Init(SDL_INIT_VIDEO OR SDL_INIT_JOYSTICK) THEN
       *info_buffer = MID("Can't start SDL (video): " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
       RETURN 0
     END IF
-    *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks)"
   ELSEIF SDL_WasInit(SDL_INIT_VIDEO) = 0 THEN
     IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
       *info_buffer = MID("Can't start SDL video subsys: " & *SDL_GetError & LINE_END & *info_buffer, 1, info_buffer_size)
       RETURN 0
     END IF
   END IF
+  *info_buffer = *info_buffer & " (" & SDL_NumJoysticks() & " joysticks) Driver:"
+  SDL_VideoDriverName(info_buffer + LEN(*info_buffer), info_buffer_size - LEN(*info_buffer))
+  
   framesize.w = 320
   framesize.h = 200
   RETURN gfx_sdl_set_screen_mode()
@@ -260,13 +262,12 @@ FUNCTION gfx_sdl_set_screen_mode() as integer
     .h = framesize.h * zoom
   END WITH
 #IFDEF __FB_DARWIN__
-
-IF SDL_WasInit(SDL_INIT_VIDEO) THEN
+  IF SDL_WasInit(SDL_INIT_VIDEO) THEN
     SDL_QuitSubSystem(SDL_INIT_VIDEO)
-IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
+    IF SDL_InitSubSystem(SDL_INIT_VIDEO) THEN
       debug "Can't start SDL video subsys (resize): " & *SDL_GetError
-END IF
-END IF
+    END IF
+  END IF
 #ENDIF
   screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, 0, flags)
   IF screensurface = NULL THEN

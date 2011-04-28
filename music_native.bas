@@ -278,6 +278,10 @@ sub music_close()
 		'sound_close
 end sub
 
+function music_get_info() as string
+	return ""
+end function
+
 sub music_play overload(byval lump as Lump ptr, fmt as integer=FORMAT_BAM)
 
 end sub

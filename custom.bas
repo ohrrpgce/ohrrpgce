@@ -135,6 +135,7 @@ DefaultUIColors uilook()
 getdefaultfont font()
 
 setmodex
+debuginfo musicbackendinfo  'Preliminary info before initialising backend
 setwindowtitle "O.H.R.RPG.C.E"
 setpal master()
 setfont font()

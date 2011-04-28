@@ -12,6 +12,10 @@ sub music_init() : end sub
 
 sub music_close() : end sub
 
+function music_get_info() as string
+	return ""
+end function
+
 sub music_play(byval lump as Lump ptr, fmt as integer) : end sub
 
 sub music_play(songname as string, fmt as integer=FORMAT_BAM) : end sub

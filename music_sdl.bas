@@ -25,6 +25,10 @@ declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 
 'FB's SDL_mixer header is ancient
 declare function Mix_LoadMUS_RW (byval rw as SDL_RWops ptr) as Mix_Music ptr
+declare function Mix_GetNumMusicDecoders () as integer
+declare function Mix_GetNumChunkDecoders () as integer
+declare function Mix_GetMusicDecoder (byval index as integer) as zstring ptr
+declare function Mix_GetChunkDecoder (byval index as integer) as zstring ptr
 
 end extern
 
@@ -62,9 +66,42 @@ sub quit_sdl_audio()
 	end if
 end sub
 
+function music_get_info() as string
+	dim ver as SDL_version ptr
+	dim ret as string = "music_sdl"
+
+	if gfxbackend <> "sdl" then
+		ver = SDL_Linked_Version()
+		ret += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
+	end if
+
+	ver = Mix_Linked_Version()
+	ret += ", SDL_Mixer " & ver->major & "." & ver->minor & "." & ver->patch
+
+	if music_on = 1 then
+		dim freq as integer, format as ushort, channels as integer
+		Mix_QuerySpec(@freq, @format, @channels)
+		ret += " (" & freq & "Hz, Music decoders:"
+		dim i as integer
+		for i = 0 to Mix_GetNumMusicDecoders() - 1
+			if i > 0 then ret += ","
+			ret += *Mix_GetMusicDecoder(i)
+		next
+		
+		ret += " Sample decoders:"
+		for i = 0 to Mix_GetNumChunkDecoders() - 1
+			if i > 0 then ret += ","
+			ret += *Mix_GetChunkDecoder(i)
+		next
+
+		ret += ")"
+	end if
+
+	return ret       
+end function
+
 sub music_init()
 	if music_on = 0 then
-		dim ver as SDL_version ptr
 		dim audio_rate as integer
 		dim audio_format as Uint16
 		dim audio_channels as integer
@@ -80,8 +117,7 @@ sub music_init()
 		audio_buffers = 1024 '1536  
 		
 		if SDL_WasInit(0) = 0 then
-			ver = SDL_Linked_Version()
-			musicbackendinfo += ", SDL " & ver->major & "." & ver->minor & "." & ver->patch
+
 			if SDL_Init(SDL_INIT_AUDIO) then
 				debug "Can't start SDL (audio): " & *SDL_GetError
 				music_on = -1  'error
@@ -95,9 +131,6 @@ sub music_init()
 				exit sub
 			end if
 		end if
-
-		ver = Mix_Linked_Version()
-		musicbackendinfo += ", SDL_Mixer " & ver->major & "." & ver->minor & "." & ver->patch
 
 		if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) <> 0 then
 			'if (Mix_OpenAudio(audio_rate, audio_format, audio_channels, 2048)) <> 0 then

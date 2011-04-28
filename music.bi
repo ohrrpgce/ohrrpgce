@@ -33,6 +33,10 @@ END ENUM
 declare sub music_init()
 declare sub music_close()
 
+'Return runtime information. Called both before and after initialisation, should report as much as can be managed
+'(eg. just return dll version)
+declare function music_get_info() as string
+
 declare sub music_play overload(songname as string, fmt as integer=FORMAT_BAM)
 declare sub music_play overload(byval lump as Lump ptr, fmt as integer=FORMAT_BAM)
 declare sub music_pause()

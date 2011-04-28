@@ -2285,6 +2285,8 @@ end SUB
 SUB setupmusic
 	music_init
 	sound_init
+	musicbackendinfo = music_get_info
+	debuginfo musicbackendinfo
 end SUB
 
 SUB closemusic ()

@@ -253,10 +253,10 @@ function openMidi() as integer
     erro = midiStreamOpen(@device, @mididev, 1, cint(@StreamCallback), 0, CALLBACK_FUNCTION)
 
     if erro then
-      'debug "midiStreamOpen error"
-      'if erro = MMSYSERR_BADDEVICEID then debug "Not sure, but the device ID is bad."
-      'if erro = MMSYSERR_INVALPARAM then debug "Doesn't like one of my parameters"
-      'if erro = MMSYSERR_NOMEM then debug "Can't lock memory or something"
+      debug "midiStreamOpen error"
+      if erro = MMSYSERR_BADDEVICEID then debug "Not sure, but the device ID is bad."
+      if erro = MMSYSERR_INVALPARAM then debug "Doesn't like one of my parameters"
+      if erro = MMSYSERR_NOMEM then debug "Can't lock memory or something"
     end if
 
     origvol = music_getvolume
@@ -733,6 +733,10 @@ sub music_close()
 
 		'sound_close
 end sub
+
+function music_get_info() as string
+	return ""
+end function
 
 sub music_play overload(byval lump as Lump ptr, fmt as integer=FORMAT_BAM)
 
