@@ -52,7 +52,11 @@ C Clone tool. Draw on the tile using
   previously chosen with the mark
   tool. Pixels drawn in color 0
   (normally black) will be
-  transparent.
+  transparent. While you are using
+  the clone tool, you can hold the
+  ENTER key or the right mouse button
+  and move the center of the cloned
+  area
 
 Backspace flips the tile horizontally.
 
