@@ -85,6 +85,7 @@ TYPE TileCloneBuffer
   exists AS INTEGER
   buf(19,19) AS UBYTE
   size AS XYPair
+  offset AS XYPair
 END TYPE
 
 TYPE TileEditState

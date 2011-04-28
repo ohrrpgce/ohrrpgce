@@ -1089,8 +1089,8 @@ DO
    IF ts.readjust THEN
     IF keyval(scEnter) = 0 AND mouse.buttons = 0 THEN ' click or key release
      ts.readjust = NO
-     ts.holdpos.x += (ts.x - ts.adjustpos.x)
-     ts.holdpos.y += (ts.y - ts.adjustpos.y)
+     clone.offset.x += (ts.x - ts.adjustpos.x)
+     clone.offset.y += (ts.y - ts.adjustpos.y)
      ts.adjustpos.x = 0
      ts.adjustpos.y = 0
     END IF
@@ -1188,8 +1188,8 @@ DO
    overlay_use_palette = NO  'Don't use the palette, so colour 0 is drawn transparently
    FOR i = 0 TO clone.size.y - 1
     FOR j = 0 TO clone.size.x - 1
-     spot.x = ts.x - ts.holdpos.x + j
-     spot.y = ts.y - ts.holdpos.y + i
+     spot.x = ts.x - clone.offset.x + j
+     spot.y = ts.y - clone.offset.y + i
      IF ts.readjust = YES THEN
       spot.x -= (ts.x - ts.adjustpos.x)
       spot.y -= (ts.y - ts.adjustpos.y)
@@ -1393,8 +1393,8 @@ SELECT CASE ts.tool
       clone.buf(j, i) = readpixel(small(ts.tilex * 20 + ts.x, ts.tilex * 20 + ts.holdpos.x) + j, small(ts.tiley * 20 + ts.y, ts.tiley * 20 + ts.holdpos.y) + i, 3)
      NEXT j
     NEXT i
-    ts.holdpos.x = clone.size.x \ 2
-    ts.holdpos.y = clone.size.y \ 2
+    clone.offset.x = clone.size.x \ 2
+    clone.offset.y = clone.size.y \ 2
     ts.readjust = NO
     ts.adjustpos.x = 0
     ts.adjustpos.y = 0
@@ -1415,8 +1415,8 @@ SELECT CASE ts.tool
    IF clone.exists = YES THEN
     FOR i = 0 TO clone.size.y - 1
      FOR j = 0 TO clone.size.x - 1
-      spot.x = ts.x - ts.holdpos.x + j + ts.adjustpos.x
-      spot.y = ts.y - ts.holdpos.y + i + ts.adjustpos.y
+      spot.x = ts.x - clone.offset.x + j + ts.adjustpos.x
+      spot.y = ts.y - clone.offset.y + i + ts.adjustpos.y
       IF spot.x >= 0 AND spot.x <= 19 AND spot.y >= 0 AND spot.y <= 19 AND clone.buf(j, i) > 0 THEN
        putpixel ts.tilex * 20 + spot.x, ts.tiley * 20 + spot.y, clone.buf(j, i), 3
       END IF
