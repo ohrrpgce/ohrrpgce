@@ -25,10 +25,16 @@ declare function SDL_RWFromLump(byval lump as Lump ptr) as SDL_RWops ptr
 
 'FB's SDL_mixer header is ancient
 declare function Mix_LoadMUS_RW (byval rw as SDL_RWops ptr) as Mix_Music ptr
+
+'The following are only available in SDL_mixer > 1.2.8 which is the version shipped with
+'Debian and Ubuntu Linux. We distribute our own copy of SDL_mixer for Windows and Mac,
+'so we don't have to worry there.
+#ifndef __FB_LINUX__
 declare function Mix_GetNumMusicDecoders () as integer
 declare function Mix_GetNumChunkDecoders () as integer
 declare function Mix_GetMusicDecoder (byval index as integer) as zstring ptr
 declare function Mix_GetChunkDecoder (byval index as integer) as zstring ptr
+#endif
 
 end extern
 
@@ -81,7 +87,13 @@ function music_get_info() as string
 	if music_on = 1 then
 		dim freq as integer, format as ushort, channels as integer
 		Mix_QuerySpec(@freq, @format, @channels)
-		ret += " (" & freq & "Hz, Music decoders:"
+		ret += " (" & freq & "Hz"
+
+'The following are only available in SDL_mixer > 1.2.8 which is the version shipped with
+'Debian and Ubuntu Linux. We distribute our own copy of SDL_mixer for Windows and Mac,
+'so we don't have to worry there.
+#ifndef __FB_LINUX__
+		ret += ", Music decoders:"
 		dim i as integer
 		for i = 0 to Mix_GetNumMusicDecoders() - 1
 			if i > 0 then ret += ","
@@ -93,6 +105,7 @@ function music_get_info() as string
 			if i > 0 then ret += ","
 			ret += *Mix_GetChunkDecoder(i)
 		next
+#endif
 
 		ret += ")"
 	end if
