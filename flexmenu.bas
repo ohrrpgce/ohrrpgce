@@ -293,7 +293,7 @@ FOR i = 12 TO UBOUND(statnames)
 NEXT
 
 CONST AtkLimExtraDamage = 11
-max(AtkLimExtraDamage) = 1000
+max(AtkLimExtraDamage) = 32767
 min(AtkLimExtraDamage) = -100
 
 CONST AtkLimChainTo = 12
