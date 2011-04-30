@@ -3580,7 +3580,7 @@ end
 		<command id="writezone">
 			<canon>write zone (zone id, x, y, value)</canon>
 			<shortname>write zone</shortname>
-			<description>Sets whether the tile at (<p>x,y</p>) is part of the specified zone. <p>zone id</p> is an ID number from 1 to 9999, and <p>value</p> is intrepreted as either <p>true</p> (non-zero) or <p>false</p> (zero).<note>Only up to 15 zones may overlap at each tile. If you try to place 16 zones at one tile, write zone will fail, returning <ref>false</ref>. Normally it returns <ref>true</ref>. If you choose to "Show all warnings" in General Game Settings in Custom, you will also get a warning message.</note></description>
+			<description>Sets whether the tile at (<p>x,y</p>) is part of the specified zone. <p>zone id</p> is an ID number from 1 to 9999, and <p>value</p> is intrepreted as either <p>true</p> (non-zero) or <p>false</p> (zero).<note>Only up to 15 zones may overlap at each tile. If you try to place 16 zones at one tile, write zone will fail, returning <ref>false</ref>. Normally it returns <ref>true</ref>. If you choose to "Show all warnings" in General Game Settings in Custom, you will also get a warning message.</note><note>Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.</note></description>
 			<seealso>
 				<ref>readzone</ref>
 			</seealso>
@@ -3601,6 +3601,21 @@ end
 			<seealso>
 				<ref>readzone</ref>
 			</seealso>
+		</command>
+		<command id="get zone name">
+			<canon>get zone name (string id, zone id)</canon>
+			<shortname>get zone name</shortname>
+			<description>Places in the string with id number <p>string id</p> the name of zone <p>zone id</p> (from 1 to 9999).</description>
+		</command>
+		<command id="get zone extra">
+			<canon>get zone extra (zone id, extra num)</canon>
+			<shortname>get zone extra</shortname>
+			<description>Returns the value in a zone's "extra data" field numbered <p>extra num</p>, which is a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them. You can set a zone's extra data in the Zone Info editor.</description>
+		</command>
+		<command id="set zone extra">
+			<canon>set zone extra (zone id, extra num, value)</canon>
+			<shortname>set zone extra</shortname>
+			<description>Sets the value of a zone's "extra data" field numbered <p>extra num</p>, which is a number from 0 to 2. You may use the constants <p>extra 0</p>, <p>extra 1</p> and <p>extra 2</p> to refer to them.<note>Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.</note></description>
 		</command>
 		<command id="zonenumberoftiles">
 			<canon>zone number of tiles (zone id)</canon>

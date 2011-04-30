@@ -502,7 +502,7 @@ end
 #Map 0 each-step
 plotscript, zone watcher, begin
   variable(id, count)
-  show string at (zone watch string, 210, 180)
+  show string at (zone watch string, 0, 180)
   count := zone at spot(herox, heroy, get count)
   id := zone at spot(herox, heroy, 0)  #just the first
   if (id == 4) then (
@@ -514,7 +514,11 @@ plotscript, zone watcher, begin
   if (id) then (
     $zone watch string = "Zone "
     append number (zone watch string, id)
-    $zone watch string + " here"
+    $zone watch string + " here ("
+    get zone name (31, id)
+    zone watch string $+ 31
+    $zone watch string + ") extra 1="
+    append number(zone watch string, get zone extra(id, extra1))
     if (read zone (id, herox, heroy) == 0) then (
       $zone watch string = "OHMIGOSH ERROR"
     )

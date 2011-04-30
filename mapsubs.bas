@@ -1383,7 +1383,7 @@ DO
   IF st.zonesubmode = 0 THEN
    '-- Edit mode
 
-   printstr hilite("E") + "dit data/triggers", 116, 192, dpage, YES
+   printstr hilite("E") + "dit zone info", 116, 192, dpage, YES
 
   ELSE
    '-- View mode
@@ -1785,8 +1785,8 @@ END SUB
 SUB mapedit_edit_zoneinfo(BYREF st as MapEditState, zmap as ZoneMap)
  'We could first build sorted list of zones, and only show those that actually exist?
 
- DIM menu(3) as string
- DIM enabled(3) as integer
+ DIM menu(6) as string
+ DIM enabled(6) as integer
  flusharray enabled(), -1, YES
 
  DIM state as MenuState
@@ -1812,6 +1812,8 @@ SUB mapedit_edit_zoneinfo(BYREF st as MapEditState, zmap as ZoneMap)
     END IF
    CASE 3
     IF strgrabber(st.cur_zinfo->name, 35) THEN state.need_update = YES
+   CASE 4 TO 6
+    IF intgrabber(st.cur_zinfo->extra(state.pt - 4), -2147483648, 2147483647) THEN state.need_update = YES
   END SELECT
 
   IF state.need_update THEN
@@ -1822,6 +1824,9 @@ SUB mapedit_edit_zoneinfo(BYREF st as MapEditState, zmap as ZoneMap)
    menu(2) = " Contains " & st.cur_zinfo->numtiles & " tiles"
    enabled(2) = NO
    menu(3) = "Name:" & st.cur_zinfo->name
+   FOR i as integer = 0 TO 2
+    menu(4 + i) = "Extra data " & i & ":" & st.cur_zinfo->extra(i)
+   NEXT
   END IF
 
   clearpage vpage

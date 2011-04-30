@@ -963,7 +963,7 @@ SUB SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NU
   DIM as double t = TIMER
 
   DIM doc as DocPtr
-  DIM as NodePtr root, zonesnode, node
+  DIM as NodePtr root, zonesnode, node, subnode
   doc = CreateDocument()
   root = CreateNode(doc, "zonemap")
   SetRootNode doc, root
@@ -980,6 +980,13 @@ SUB SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NU
           AppendChildNode node, "name", .name
           nontrivial = YES
         END IF
+        FOR j as integer = 0 TO UBOUND(.extra)
+          IF .extra(j) <> 0 THEN
+            subnode = AppendChildNode(node, "extra", j)
+            AppendChildNode subnode, "int", .extra(j)
+            nontrivial = YES
+          END IF
+        NEXT
         IF nontrivial = NO THEN
           'There's no point actually saving this, user was probably just scrolling through zone IDs
 	  'debug "SaveZoneMap: Did not save zone " & .id
@@ -1004,7 +1011,7 @@ SUB LoadZoneMap(zmap as ZoneMap, filename as string)
   DIM as double t = TIMER
 
   DIM as DocPtr doc
-  DIM as NodePtr root, zonesnode, node
+  DIM as NodePtr root, zonesnode, node, subnode
   DIM as integer w, h
   doc = LoadDocument(filename)
   IF doc = NULL THEN EXIT SUB
@@ -1029,7 +1036,21 @@ SUB LoadZoneMap(zmap as ZoneMap, filename as string)
         WITH *info
           .id = GetInteger(node)
           IF .id <= 0 THEN debug "LoadZoneMap: " & filename & " - bad zone id" : GOTO end_func
+
           .name = GetChildNodeStr(node, "name")
+
+          '--extra data
+          subnode = FirstChild(node, "extra")
+          WHILE subnode
+            DIM extranum as integer = GetInteger(subnode)
+            IF extranum >= 0 AND extranum <= 2 THEN
+              .extra(extranum) = GetChildNodeInt(subnode, "int")
+            ELSE
+              debug "LoadZoneMap: " & filename & " - unprocessed extra num " & extranum
+            END IF
+            subnode = NextSibling(subnode, "extra")
+          WEND
+
         END WITH
       END IF
       node = NextSibling(node)

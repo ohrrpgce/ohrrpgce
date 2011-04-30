@@ -1,3 +1,7 @@
 This is zone triggers editor. Here you can change what a zone actually does.
 
-As you can see, zones can't do anything.
+As you can see, no triggers are implemented yet! However, in the NPC editor, you can set a movement zone which restricts where an NPC can move.
+
+The zone name is for your convenience, it does nothing in-game. It can be read with the "get zone name" script command though.
+
+Extra data can be read with the script command "get zone extra". It has no built-in meaning.

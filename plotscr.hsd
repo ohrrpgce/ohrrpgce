@@ -495,6 +495,9 @@ define function, begin
 #485,zonenexttilex,3,0,-1,-1   #x coordinate of next tile in zone (zone id, current x, current y)  (unimplemented)
 #486,zonenexttiley,3,0,-1,-1   #y coordinate of next tile in zone (zone id, current x, current y)  (unimplemented)
 #
+487,getzonename,2,0,0         #read zone name (string, zone id)
+488,getzoneextra,2,0,0        #get zone extra data (zone id, extra field)
+489,setzoneextra,3,0,0,0      #set zone extra data (zone id, extra field, value)
 490,useitem,1,0               # use an item as if you had used it from the item menu
 491,useiteminslot,1,0         # use item in a given inventory slot
 492,mouseclick,1,0            # returns true if the specified button is pressed (button)

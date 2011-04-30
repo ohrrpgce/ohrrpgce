@@ -2665,6 +2665,18 @@ SELECT CASE AS CONST id
   IF valid_zone(retvals(0)) THEN
   END IF
 '/
+ CASE 487'--get zone name (string, id)
+  IF valid_plotstr(retvals(0)) AND valid_zone(retvals(1)) THEN
+   plotstr(retvals(0)).s = GetZoneInfo(zmap, retvals(1))->name
+  END IF
+ CASE 488'--get zone extra (id, extra)
+  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , , 5) THEN
+   scriptret = GetZoneInfo(zmap, retvals(0))->extra(retvals(1))
+  END IF
+ CASE 489'--set zone extra (id, extra, value)
+  IF valid_zone(retvals(0)) AND bound_arg(retvals(1), 0, 2, "extra data number", , , 5) THEN
+   GetZoneInfo(zmap, retvals(0))->extra(retvals(1)) = retvals(2)
+  END IF
  CASE 493'--load backdrop sprite (record)
   scriptret = load_sprite_plotslice(sprTypeMXS, retvals(0))
  CASE 494 '--replace backdrop sprite (handle, record)
