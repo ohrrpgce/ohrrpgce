@@ -2858,7 +2858,7 @@ RETRACE
 
 floodfill:
 writeundospr placer(), ss
-rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, uilook(uiHighlight), dpage
+rectangle ss.previewpos.x - 1, ss.previewpos.y - 1, ss.wide + 2, ss.high + 2, ss.palindex, dpage
 rectangle ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, 0, dpage
 drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
 paintat vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.palindex

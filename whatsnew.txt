@@ -130,6 +130,8 @@ Apr ?? 2011 [Zenzizenzic]
     * Fixed an assortment of 19 bugs in HSpeak: crashes, missing error
       checking, miscompiling and misoptimising scripts, incorrect
       error messages [Ralph]
+    * Bug 827: Flood fill in the sprite editors could count all pixels
+      of one colour around the sprite edges as connected [Ralph]
 
   * New Plotscripting Stuff
     * You may no longer used the characters ", $ or = in script and
