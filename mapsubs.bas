@@ -3351,11 +3351,9 @@ SUB mapedit_show_undo_change(st as MapEditState, BYVAL undostroke as MapEditUndo
   END WITH
  NEXT
 
- debug "show_undo_change: seen_change=" & seen_change
  IF seen_change = NO THEN
   'No visible change for the user? Then move to the cursor pos
   IF cursorpos THEN
-   debug "have cursorpos"
    st.x = cursorpos->x
    st.y = cursorpos->y
    IF mapedit_on_screen(st, st.x, st.y) = NO THEN mapedit_focus_camera st, st.x, st.y
@@ -3373,7 +3371,7 @@ SUB add_undo_step(st as MapEditState, BYVAL x as integer, BYVAL y as integer, BY
   NEXT
   v_resize st.history, st.history_step
   st.history_step += 1
-  debug "add_undo_step: set st.history_step to " & st.history_step
+  'debug "add_undo_step: set st.history_step to " & st.history_step
 
   'Limit size of undo history
   DIM trim_amount as integer = 0
@@ -3389,8 +3387,8 @@ SUB add_undo_step(st as MapEditState, BYVAL x as integer, BYVAL y as integer, BY
   IF trim_amount THEN
    v_delete_slice st.history, 0, trim_amount
    st.history_step -= trim_amount
-   debug "add_undo_step: reduced history size to " & st.history_size & " by discarding " & trim_amount
-   debug "...now history_step=" & st.history_step & " out of " & v_len(st.history) 
+   'debug "add_undo_step: reduced history size to " & st.history_size & " by discarding " & trim_amount
+   'debug "...now history_step=" & st.history_step & " out of " & v_len(st.history) 
   END IF
 
   v_expand st.history
@@ -3436,7 +3434,7 @@ FUNCTION undo_stroke(st as MapEditState, map() AS TileMap, pass AS TileMap, emap
   st.history_step -= 1
  END IF
 
- debug "undo_stroke(" & redo & ")  history_step=" & st.history_step & " out of " & v_len(st.history)
+ 'debug "undo_stroke(" & redo & ")  history_step=" & st.history_step & " out of " & v_len(st.history)
 
  DIM overwrite_value as integer
 
