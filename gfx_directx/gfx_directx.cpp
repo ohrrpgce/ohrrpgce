@@ -471,7 +471,7 @@ DFI_IMPLEMENT_CDECL(void, gfx_PumpMessages)
 			::DispatchMessage(&msg);
 		}
 	}
-	g_Joystick.poll();
+	//g_Joystick.poll();
 	//g_Keyboard.poll();
 }
 
@@ -578,6 +578,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 
 DFI_IMPLEMENT_CDECL(int, gfx_GetJoystick, int nDevice, int& x, int& y, int& buttons)
 {
+	g_Joystick.poll();
 	return g_Joystick.getState(nDevice, buttons, x, y);
 }
 

@@ -41,7 +41,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	g_paletteTest[0xee] = 0xffff0000;
 	g_paletteTest[0xdd] = 0xff0000ff;
 
-	char szInfoBuffer[256] = "";
+	char szInfoBuffer[512] = "";
 	if(!db.gfx_init(RequestQuit, 0, szInfoBuffer, sizeof(szInfoBuffer)))
 	{
 		MessageBox(NULL, TEXT("Initialization failure!"), TEXT("Error"), MB_OK | MB_ICONEXCLAMATION);
@@ -51,9 +51,9 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 	db.gfx_windowtitle("DirectX Backend Test App");
 	db.gfx_setpal(g_paletteTest);
 	//db.io_init();
-	::MessageBox(0, TEXT("Use left and right to change scroll speed.") \
-					TEXT("\r\nUse 'S' to take a screenshot."),
-					TEXT("TestApp Message"), MB_OK);
+	//::MessageBox(0, TEXT("Use left and right to change scroll speed.") \
+	//				TEXT("\r\nUse 'S' to take a screenshot."),
+	//				TEXT("TestApp Message"), MB_OK);
 
 	UINT j = 0;
 	int x,y,buttons;
@@ -68,27 +68,27 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nS
 
 		db.gfx_showpage(g_frameTest, 320, 200);
 		//io_waitprocessing();
-		db.io_keybits(g_keys);
-		buttons = 0; x = 0; y = 0;
-		db.io_readjoysane(0, buttons, x, y);
-		if(KB_IS_KEY_DOWN(g_keys[SC_LEFT]) || buttons & 0x1)
-			j++;
-		if(KB_IS_KEY_DOWN(g_keys[SC_RIGHT]) || buttons & 0x2)
-			j--;
-		j += x / 10;
-		j -= y / 10;
-		if(KB_IS_KEY_DOWN(g_keys[SC_PRINTSCREEN]))
-			j+=2;
-		if(KB_IS_KEY_DOWN(g_keys[SC_CAPSLOCK]))
-			j++;
-		if(KB_IS_KEY_DOWN(g_keys[SC_NUMLOCK]))
-			j++;
-		if(KB_IS_KEY_DOWN(g_keys[SC_SCROLLLOCK]))
-			j++;
-		if(KB_IS_KEY_DOWN(g_keys[SC_ESC]))
-			g_bQuit = true;
-		if(KB_IS_KEY_DOWN(g_keys[SC_S]))
-			db.gfx_screenshot("testscreen2");
+		//db.io_keybits(g_keys);
+		//buttons = 0; x = 0; y = 0;
+		//db.io_readjoysane(0, buttons, x, y);
+		//if(KB_IS_KEY_DOWN(g_keys[SC_LEFT]) || buttons & 0x1)
+		//	j++;
+		//if(KB_IS_KEY_DOWN(g_keys[SC_RIGHT]) || buttons & 0x2)
+		//	j--;
+		//j += x / 10;
+		//j -= y / 10;
+		//if(KB_IS_KEY_DOWN(g_keys[SC_PRINTSCREEN]))
+		//	j+=2;
+		//if(KB_IS_KEY_DOWN(g_keys[SC_CAPSLOCK]))
+		//	j++;
+		//if(KB_IS_KEY_DOWN(g_keys[SC_NUMLOCK]))
+		//	j++;
+		//if(KB_IS_KEY_DOWN(g_keys[SC_SCROLLLOCK]))
+		//	j++;
+		//if(KB_IS_KEY_DOWN(g_keys[SC_ESC]))
+		//	g_bQuit = true;
+		//if(KB_IS_KEY_DOWN(g_keys[SC_S]))
+		//	db.gfx_screenshot("testscreen2");
 	}
 
 	db.gfx_close();

@@ -10,6 +10,8 @@ Added Features:
 
 -Fixed mouse movement from io_setmouse(). When in tile editor, pressing the directional keys on the keyboard caused the mouse cursor to move to strange locations. This is fixed.
 
+-May have fixed the delay bug caused by switching to another window. (It was joystick related... of all things...)
+
 
 
 
