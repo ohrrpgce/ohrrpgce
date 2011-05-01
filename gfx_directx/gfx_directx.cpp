@@ -727,11 +727,24 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				g_Mouse.setVideoMode(gfx::Mouse2::VM_WINDOWED);
 				g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
+				if(g_DirectX.isViewFullscreen())
+				{
+					//LockSetForegroundWindow(LSFW_UNLOCK);
+					SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+					ShowWindow(hWnd, SW_MINIMIZE);
+				}
 			}
 			else
 			{
 				g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
 				g_Mouse.popState();
+				if(g_DirectX.isViewFullscreen())
+				{
+					//SetForegroundWindow(hWnd);
+					//LockSetForegroundWindow(LSFW_LOCK);
+					ShowWindow(hWnd, SW_RESTORE);
+					SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+				}
 			}
 			return ::DefWindowProc(hWnd, msg, wParam, lParam);
 		} break;
