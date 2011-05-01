@@ -541,20 +541,37 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetMouse, int& x, int& y, int& wheel, int& buttons)
 	return TRUE;
 }
 
+LONG round(float v)
+{
+	LONG ret = (LONG)v; //truncation
+	float decimal = v - (float)ret; //decimal value
+	ret += (decimal < .5f ? 0 : 1);
+	return ret;
+}
+
 DFI_IMPLEMENT_CDECL(int, gfx_SetMouse, int x, int y)
 {
 	DWORD xPos, yPos;
 	RECT rClient, rDesktop;
 	GetClientRect(g_Window.getWindowHandle(), &rClient);
-	POINT pos = {rClient.right * x/320.0f, rClient.bottom * y/200.0f};
+	D3DXVECTOR2 clientPosition( (float)(rClient.right * (x+1)) / 320.0f, (float)(rClient.bottom * (y+1)) / 200.0f );
+	POINT pos = { round(clientPosition.x), round(clientPosition.y) };
 	
 	ClientToScreen(g_Window.getWindowHandle(), &pos);
 	GetWindowRect(GetDesktopWindow(), &rDesktop);
-	
-	xPos = 1 + (DWORD)((float)pos.x / (float)rDesktop.right * 65535.0f);
-	yPos = 1 + (DWORD)((float)pos.y / (float)rDesktop.bottom * 65535.0f);
 
-	mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, xPos, yPos, 0, NULL);
+	//it was recommended not to use mouse_event; but if we need to, we could go back to it
+	//mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE, xPos, yPos, 0, NULL);
+
+	xPos = round( (float)pos.x / (float)rDesktop.right * 65535.0f );
+	yPos = round( (float)pos.y / (float)rDesktop.bottom * 65535.0f );
+
+	INPUT mouseEvent = { INPUT_MOUSE };
+	mouseEvent.mi.dx = xPos;
+	mouseEvent.mi.dy = yPos;
+	mouseEvent.mi.dwFlags = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
+	if(0 == SendInput( 1, &mouseEvent, sizeof(mouseEvent) ))
+		return FALSE;
 
 	return TRUE;
 }
