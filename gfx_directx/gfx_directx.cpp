@@ -704,6 +704,17 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							ShowWindow(hWnd, SW_RESTORE);
 						g_DirectX.setViewFullscreen(!g_DirectX.isViewFullscreen());
 						g_Mouse.setVideoMode(g_DirectX.isViewFullscreen() ? gfx::Mouse2::VM_FULLSCREEN : gfx::Mouse2::VM_WINDOWED);
+						if(g_DirectX.isViewFullscreen())
+						{
+							//SetForegroundWindow(hWnd);
+							//LockSetForegroundWindow(LSFW_LOCK);
+							SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+						}
+						else
+						{
+							//LockSetForegroundWindow(LSFW_UNLOCK);
+							SetWindowPos(hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+						}
 					}
 				} break;
 			default:

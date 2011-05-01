@@ -104,7 +104,7 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrRe
 	hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, 
 							 D3DDEVTYPE_HAL, 
 							 m_pWindow->getWindowHandle(), 
-							 D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | D3DCREATE_PUREDEVICE/* | D3DCREATE_NOWINDOWCHANGES*/, 
+							 D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | D3DCREATE_PUREDEVICE | D3DCREATE_NOWINDOWCHANGES, 
 							 &m_d3dpp, 
 							 &m_d3ddev);
 	if(FAILED(hr))
@@ -112,7 +112,7 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrRe
 		hr = m_d3d->CreateDevice(D3DADAPTER_DEFAULT, 
 								 D3DDEVTYPE_HAL, 
 								 m_pWindow->getWindowHandle(), 
-								 D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE/* | D3DCREATE_NOWINDOWCHANGES*/, 
+								 D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_FPU_PRESERVE | D3DCREATE_NOWINDOWCHANGES, 
 								 &m_d3dpp, 
 								 &m_d3ddev);
 		if(FAILED(hr))
