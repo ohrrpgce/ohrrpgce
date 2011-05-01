@@ -359,32 +359,22 @@ SELECT CASE AS CONST id
   heroswap 1
  CASE 183'--set hero level (who, what, allow forgetting spells)
   IF retvals(0) >= 0 AND retvals(0) <= 40 AND retvals(1) >= 0 THEN  'we should make the regular level limit customisable anyway
-   DIM dummystats as BattleStats 'just need HP and MP
    gam.hero(retvals(0)).lev_gain = retvals(1) - gam.hero(retvals(0)).lev
    gam.hero(retvals(0)).lev = retvals(1)
    exlev(retvals(0), 1) = exptolevel(retvals(1))
    exlev(retvals(0), 0) = 0  'XP attained towards the next level
-   updatestatslevelup retvals(0), dummystats, retvals(2) 'updates stats and spells
+   updatestatslevelup retvals(0), retvals(2) 'updates stats and spells
   END IF
  CASE 184'--give experience (who, how much)
-  DIM dummystats as BattleStats 'just need HP and MP
   'who = -1 targets battle party
   IF retvals(0) <> -1 THEN
    IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
     giveheroexperience retvals(0), retvals(1)
-    updatestatslevelup retvals(0), dummystats, 0
+    updatestatslevelup retvals(0), 0
    END IF
   ELSE
-   DIM numheroes as integer
-   numheroes = iif(readbit(gen(), genBits2, 3), herocount(), liveherocount) 'dead heroes get experience
-   IF numheroes > 0 THEN retvals(1) /= numheroes
-   FOR i = 0 TO 3
-    'battle party: reset level-gained counter even if giveheroexperience is not called
-    gam.hero(i).lev_gain = 0
-    'give the XP to the hero only if it is alive when 'dead heroes get XP' not set
-    IF readbit(gen(), genBits2, 3) <> 0 OR gam.hero(i).stat.cur.hp > 0 THEN giveheroexperience i, retvals(1)
-    updatestatslevelup i, dummystats, 0
-   NEXT i
+   'This sets the level gain and learnt spells and calls updatestatslevelup for every hero
+   distribute_party_experience retvals(1)
   END IF
  CASE 185'--hero levelled (who)
   scriptret = gam.hero(bound(retvals(0), 0, 40)).lev_gain

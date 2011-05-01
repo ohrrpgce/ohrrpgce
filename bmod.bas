@@ -60,7 +60,7 @@ DECLARE SUB battle_attack_anim_cleanup (BYREF attack AS AttackData, BYREF bat AS
 DECLARE SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
 DECLARE SUB battle_attack_do_inflict(targ AS INTEGER, tcount AS INTEGER, BYREF attack AS AttackData, BYREF bat AS BattleState, bslot() AS BattleSprite, formdata())
 DECLARE SUB battle_pause ()
-DECLARE SUB battle_cleanup(bslot() AS BattleSprite)
+DECLARE SUB battle_cleanup(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_background_anim(BYREF bat AS BattleState, formdata() AS INTEGER)
 DECLARE FUNCTION battle_run_away(BYREF bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
@@ -210,7 +210,7 @@ FUNCTION battle (form, fatal) as integer
   dowait
  LOOP
  IF fatal THEN battle = 0
- battle_cleanup bslot()
+ battle_cleanup bat, bslot()
 END FUNCTION
 
 SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
@@ -254,8 +254,9 @@ SUB battle_init(BYREF bat AS BattleState, bslot() AS BattleSprite)
  IF gen(genMute) <= 0 THEN gen(genMute) = 163
 END SUB
 
-SUB battle_cleanup(bslot() AS BattleSprite)
- writestats bslot()
+SUB battle_cleanup(BYREF bat AS BattleState, bslot() AS BattleSprite)
+ 'FIXME: writestats is called from different places depending on whether you win or not. Unify
+ IF bat.have_written_stats = NO THEN writestats bslot()
 
  '--overflow checking for the battle stack
  IF (stackpos - bstackstart) \ 2 > 0 THEN
@@ -1250,18 +1251,20 @@ SUB battle_loadall(BYVAL form AS INTEGER, BYREF bat AS BattleState, bslot() AS B
      .caption = rpad(.caption, " ", 10)
     END WITH
    NEXT o
-
-   'wipe spells learnt and levels gained
-   FOR o AS INTEGER = i * 6 TO i * 6 + 5
-    learnmask(o) = 0
-   NEXT
-   gam.hero(i).lev_gain = 0
    
   ELSE
    '--blank empty hero slots
    bslot(i).sprites = 0
   END IF
  NEXT i
+
+ '--wipe spells learnt and levels gained for all heroes
+ FOR i = 0 TO UBOUND(hero)
+  FOR o AS INTEGER = i * 6 TO i * 6 + 5
+   learnmask(o) = 0
+  NEXT
+  gam.hero(i).lev_gain = 0
+ NEXT
  
  '--load monsters
  FOR i = 0 TO 7
@@ -1341,27 +1344,55 @@ SUB fulldeathcheck (killing_attack AS INTEGER, bat AS BattleState, bslot() AS Ba
 END SUB
 
 SUB trigger_victory(BYREF bat AS BattleState, bslot() AS BattleSprite)
- DIM AS INTEGER i, numheroes
  '--Play the victory music
  IF gen(genVictMus) > 0 THEN wrappedsong gen(genVictMus) - 1
  '--Collect gold (which is capped at 2 billion max)
  gold = gold + bat.rew.plunder
  IF gold < 0 OR gold > 2000000000 THEN gold = 2000000000
- '--Divide experience by heroes
- IF readbit(gen(), genBits2, 3) THEN 'dead heroes get experience
-  numheroes = herocount()
- ELSE
-  numheroes = liveherocount(bslot())
- END IF
- IF numheroes > 0 THEN bat.rew.exper = bat.rew.exper / numheroes
- '--Collect experience and apply levelups
- FOR i = 0 TO 3
-  IF readbit(gen(), genBits2, 3) <> 0 OR bslot(i).stat.cur.hp > 0 THEN giveheroexperience i, bat.rew.exper
-  updatestatslevelup i, bslot(i).stat, 0
- NEXT i
+ '--Give out experience
+ writestats bslot()  'Call early to update gam.hero(*).stat.cur.hp
+ bat.have_written_stats = YES
+ bat.rew.exper = distribute_party_experience(bat.rew.exper)
  '--Trigger the display of end-of-battle rewards
  bat.vic.state = vicGOLDEXP
 END SUB
+
+FUNCTION distribute_party_experience (BYVAL exper AS INTEGER) AS INTEGER
+ '--Calculate amount of experience given to each hero, and returns the "base" experience value,
+ '--which is the amount given to live heroes in the active party
+ DIM AS DOUBLE sumheroes, xp_mult(UBOUND(hero))
+ DIM AS INTEGER i
+
+ FOR i = 0 TO UBOUND(hero)
+  IF hero(i) > 0 THEN
+   IF gam.hero(i).stat.cur.hp > 0 OR readbit(gen(), genBits2, 3) THEN 'alive, or "dead heroes get experience" ON
+    IF i <= 3 THEN
+     'active party
+     xp_mult(i) = 1.0
+    ELSEIF readbit(hmask(), 0, i) THEN
+     'hero is in reserve, locked
+     xp_mult(i) = gen(genLockedReserveXP) / 100.0
+    ELSE
+     'hero is in reserve, unlocked
+     xp_mult(i) = gen(genUnlockedReserveXP) / 100.0
+    END IF
+   END IF
+  END IF
+  sumheroes += xp_mult(i)
+ NEXT
+ 'debug "distribute_party_experience: exper = " & exper & " sumheroes = " & sumheroes
+
+ IF sumheroes > 0 THEN exper = exper / sumheroes
+
+ FOR i = 0 TO UBOUND(hero)
+  IF hero(i) > 0 THEN
+   giveheroexperience i, xp_mult(i) * exper
+   'debug "hero " & i & " got " & CINT(xp_mult(i) * exper)
+   updatestatslevelup i, NO
+  END IF
+ NEXT
+ RETURN exper
+END FUNCTION
 
 SUB show_victory (BYREF bat AS BattleState, bslot() AS BattleSprite)
 DIM tempstr AS STRING
@@ -1385,8 +1416,16 @@ SELECT CASE bat.vic.state
  CASE vicLEVELUP
   '--print levelups
   o = 0
-  FOR i = 0 TO 3
-   IF o = 0 AND gam.hero(i).lev_gain <> 0 THEN centerfuz 160, 30, 280, 50, 1, dpage: bat.vic.box = YES
+  DIM numlevelled AS INTEGER = 0
+  FOR i = 0 TO UBOUND(hero)
+   IF gam.hero(i).lev_gain <> 0 THEN numlevelled += 1
+  NEXT
+  IF numlevelled THEN
+   numlevelled = large(numlevelled, 4)
+   centerfuz 160, 10 + 5 * numlevelled, 280, 10 + 10 * numlevelled, 1, dpage
+   bat.vic.box = YES
+  END IF
+  FOR i = 0 TO UBOUND(hero)
    SELECT CASE gam.hero(i).lev_gain
     CASE 1
      tempstr = bat.vic.level_up_caption & " " & bslot(i).name
@@ -1394,8 +1433,8 @@ SELECT CASE bat.vic.state
      tempstr = gam.hero(i).lev_gain & " " & bat.vic.levels_up_caption & " " & bslot(i).name
    END SELECT
    IF gam.hero(i).lev_gain > 0 THEN
-    edgeprint tempstr, xstring(tempstr, 160), 12 + i * 10, uilook(uiText), dpage
-    o = 1
+    edgeprint tempstr, xstring(tempstr, 160), 12 + o * 10, uilook(uiText), dpage
+    o += 1
    END IF
   NEXT i
   IF o = 0 OR (carray(ccUse) > 1 OR carray(ccMenu) > 1) THEN
@@ -1412,7 +1451,7 @@ SELECT CASE bat.vic.state
     bat.vic.learnslot += 1
     IF bat.vic.learnslot > 23 THEN bat.vic.learnslot = 0: bat.vic.learnlist = bat.vic.learnlist + 1
     IF bat.vic.learnlist > 3 THEN bat.vic.learnlist = 0: bat.vic.learnwho = bat.vic.learnwho + 1
-    IF bat.vic.learnwho > 3 THEN ' We have iterated through all spell lists for all heroes, time to move on
+    IF bat.vic.learnwho > UBOUND(hero) THEN ' We have iterated through all spell lists for all heroes, time to move on
      bat.vic.state = vicITEMS
      bat.vic.item_name = ""
      bat.vic.found_index = 0
@@ -1423,8 +1462,7 @@ SELECT CASE bat.vic.state
      'found a learned spell
      DIM learn_attack AS AttackData
      loadattackdata learn_attack, spell(bat.vic.learnwho, bat.vic.learnlist, bat.vic.learnslot) - 1
-     bat.vic.item_name = bslot(bat.vic.learnwho).name + bat.vic.learned_caption
-     bat.vic.item_name = bat.vic.item_name & learn_attack.name
+     bat.vic.item_name = names(bat.vic.learnwho) + bat.vic.learned_caption + learn_attack.name
      bat.vic.showlearn = YES
      bat.vic.box = YES
      IF learn_attack.learn_sound_effect > 0 THEN playsfx learn_attack.learn_sound_effect - 1

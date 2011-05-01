@@ -767,10 +767,8 @@ FUNCTION exptolevel (level as integer) as integer
  RETURN exper
 END FUNCTION
 
-SUB updatestatslevelup (i as integer, stats AS BattleStats, allowforget as integer)
+SUB updatestatslevelup (i as integer, allowforget as integer)
  ' i = who
- ' exstat = external stats
- ' stats = in-battle stats
  ' allowforget = forget spells if level dropped below requirement
 
  'wipe learnmask for this hero
@@ -813,14 +811,10 @@ SUB updatestatslevelup (i as integer, stats AS BattleStats, allowforget as integ
   IF readbit(gen(), genBits, 2) = 0 THEN
    '--HP restoration ON
    gam.hero(i).stat.cur.hp = gam.hero(i).stat.max.hp 'set external cur to external max
-   stats.cur.hp = gam.hero(i).stat.max.hp 'set in-battle cur to external max
-   stats.max.hp = gam.hero(i).stat.max.hp 'set in-battle max to external max
   END IF
   IF readbit(gen(), genBits, 3) = 0 THEN
    '--MP restoration ON
    gam.hero(i).stat.cur.mp = gam.hero(i).stat.max.mp 'set external cur to external max
-   stats.cur.mp = gam.hero(i).stat.max.mp 'set in-battle cur to external max
-   stats.max.mp = gam.hero(i).stat.max.mp 'set in-battle max to external max
    resetlmp i, gam.hero(i).lev
   END IF
  
@@ -891,7 +885,6 @@ END SUB
 
 SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allowforget AS INTEGER, exlev() AS INTEGER)
  'unlike giveheroexperience, this can cause delevelling
- DIM dummystats AS BattleStats
  DIM orig_lev AS INTEGER = gam.hero(who).lev
  DIM total AS INTEGER = 0
  DIM lostlevels AS INTEGER = NO
@@ -912,7 +905,7 @@ SUB setheroexperience (BYVAL who AS INTEGER, BYVAL amount AS INTEGER, BYVAL allo
  END IF
  exlev(who, 0) = 0
  giveheroexperience who, amount
- updatestatslevelup who, dummystats, allowforget
+ updatestatslevelup who, allowforget
  gam.hero(who).lev_gain -= orig_lev
  IF lostlevels THEN
   'didn't learn spells, wipe mask

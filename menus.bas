@@ -1078,6 +1078,10 @@ END FUNCTION
 OPTION EXPLICIT
 
 SUB generate_battlesystem_menu(menu() as string)
+ menu(0) = "Previous Menu"
+ menu(1) = "Stat Caps..."
+ menu(2) = "Hero Elemental Resistance Calculation..."
+
  menu(4) = "Number of Elements: " & gen(genNumElements)
  menu(5) = "Poison Indicator: " & gen(genPoison) & " " & CHR$(gen(genPoison))
  menu(6) = "Stun Indicator: " & gen(genStun) & " " & CHR$(gen(genStun))
@@ -1085,10 +1089,13 @@ SUB generate_battlesystem_menu(menu() as string)
  menu(8) = "Default Enemy Dissolve: " & dissolve_type_caption(gen(genEnemyDissolve))
  menu(9) = "Damage Display Time: " & gen(genDamageDisplayTicks) & " ticks (" & seconds_estimate(gen(genDamageDisplayTicks)) & " sec)"
  menu(10) = "Damage Display Rises: " & gen(genDamageDisplayRise) & " pixels"
+ menu(11) = "Experience given to heroes..."
+ menu(12) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
+ menu(13) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 10
+ CONST maxMenu = 13
  DIM menu(maxMenu) AS STRING
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
@@ -1105,12 +1112,9 @@ SUB battleoptionsmenu ()
  IF gen(genStun) <= 0 THEN gen(genStun) = 159
  IF gen(genMute) <= 0 THEN gen(genMute) = 163
  
- menu(0) = "Previous Menu"
- menu(1) = "Stat Caps..."
- menu(2) = "Hero Elemental Resistance Calculation..."
-
  flusharray enabled(), UBOUND(enabled), YES
  enabled(3) = NO
+ enabled(11) = NO
  index(4) = genNumElements
  min(4) = 1
  max(4) = 64
@@ -1128,6 +1132,10 @@ SUB battleoptionsmenu ()
  index(10) = genDamageDisplayRise
  max(10) = 1000
  min(10) = -1000
+ index(12) = genUnlockedReserveXP
+ max(12) = 1000
+ index(13) = genLockedReserveXP
+ max(13) = 1000
 
  setkeys
  DO

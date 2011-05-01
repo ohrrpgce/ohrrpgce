@@ -17,3 +17,5 @@ Enemy Dissolve: Use the Left and Right arrow keys to choose a default animation 
 Damage Display Time: Type in the number of ticks for damage numbers to show onscreen during a battle.
 
 Damage Display Rises: Type in the number of pixels for damage numbers to rise when shown during a battle.
+
+Experience given to swapped-out heroes: This controls the amount of experience a hero in the "reserve" party gets from a battle. By default they get nothing. This is a percentage of the amount of experience given to a hero in the "battle" party. Note that the total experience given to all heroes is always equal to the total gained in battle.

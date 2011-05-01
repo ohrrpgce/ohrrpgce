@@ -230,6 +230,7 @@ TYPE BattleState
  next_enemy AS INTEGER 'counter that controls which ready enemy will get their turn next
  menu_mode AS INTEGER  'batMENUHERO batMENUSPELL or batMENUITEM
  death_mode AS INTEGER 'deathNOBODY deathENEMIES deathHEROES
+ have_written_stats AS INTEGER 'writestats has been called. Don't do it again!
  targ AS TargettingState
  atk AS AttackState
  pt AS INTEGER         'menu cursor for hero menu

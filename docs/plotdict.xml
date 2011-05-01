@@ -918,7 +918,7 @@ end</example>
 		<command id="giveexperience">
 			<canon>give experience (hero,amount)</canon>
 			<shortname>give experience</shortname>
-			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whole active party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearnt</ref> for dealing with this. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporially raise the cap using <ref>setlevelcap</ref> to get around this.</description>
+			<description>Gives experience to either a hero by position in party (use result returned by <ref>findhero</ref> command) or the whol party, if the constant <ref>party</ref> is passed as first argument. If you give experience to the whole party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set, and swapped out heroes gain according to the options in the Battle System Options menu. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <ref>herolevelled</ref> and <ref>spellslearned</ref> for dealing with this. You should use <ref>setexperience</ref> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporially raise the cap using <ref>setlevelcap</ref> to get around this.</description>
 		</command>
 	</section>
 	<section title="Items">
@@ -1240,13 +1240,14 @@ end</example>
 			<description>Checks to see if a hero is capable of learning a spell from an item or from the teach spell command. The first argument is the hero&apos;s position in the party (as returned by <ref>findhero</ref>). The second argument is the attack to check for. You can use the names defined in your .HSI file in the form atk:attackname (You may also use the attack&apos;s ID number. This is the number you see in the attack editor + 1). If the hero can learn the spell, can learn spell will return <ref>true</ref>. If the hero cannot learn the spell (or learns it from levelups), it will return <ref>false</ref></description>
 		</command>
 		<command id="spellslearnt">
-			<alias>spellslearned</alias>
+			<canon>spells learnt (hero,number)</canon>
 			<shortname>spells learnt</shortname>
+			<description>This is deprecated, do not use it. It is identical to <ref>spellslearned</ref> except it returns the id numbers of spells, instead of the id numbers +1. The attack constants exported in your .hsi file are all +1 the attack IDs in Custom.</description>
 		</command>
 		<command id="spellslearned">
 			<canon>spells learned (hero,number)</canon>
 			<shortname>spells learned</shortname>
-			<description>Returns the id numbers (+1) of spells the hero learned from the last battle (for heroes in the active battle party) or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that involved this hero. If the second argument is <ref>getcount</ref> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			<description>Returns the id numbers (+1) of spells the hero learned from the last battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted either this hero or the whole party. If the second argument is <ref>getcount</ref> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
 			<note>If you want to use this command with attack ID numbers, you must add 1 to the ID number.</note>
 			</description>
 			<example># the following script uses strings 0, 1, 2 for its use (will be overwritten)
@@ -1267,7 +1268,7 @@ end</example>
 		<command id="updateleveluplearning">
 			<canon>update level up learning(who, allowforget)</canon>
 			<shortname>update level up learning</shortname>
-			<description>Update a hero to make sure they know the spells they are supposed to have learned for their current level. The <p>who</p> is the hero's position in the battle party. You can optionally pass <ref>false</ref> as the <p>allowforget</p> argument if you want to make sure the hero will not forget any spells that they are not supposed to know yet. This spell is most useful for situations where you are manipulating the heros level, and for some reason do not want to use <ref>setherolevel</ref> which automatically handles learning. This command can also be handy when playtesting a game in progress, since it can be used to make sure that heroes loaded from a saved-game will learn spells that did not exist yet at the time when they got their last level-ups.</description>
+			<description>Update a hero to make sure they know the spells they are supposed to have learned for their current level. The <p>who</p> is the hero's position in the battle party. You can optionally pass <ref>false</ref> as the <p>allowforget</p> argument if you want to make sure the hero will not forget any spells that they are not supposed to know yet. This command is most useful for situations where you are manipulating the hero's level, and for some reason do not want to use <ref>setherolevel</ref> which automatically handles spell learning. This command can also be handy when playtesting a game in progress, since it can be used to make sure that heroes loaded from a saved-game will learn spells that did not exist yet at the time when they got their last level-ups.</description>
 		</command>
 		<command id="outsidebattlecure">
 			<alias>outsidebattlecure</alias>
@@ -4043,7 +4044,7 @@ end
 		<command id="herolevelled">
 			<canon>hero levelled (who)</canon>
 			<shortname>hero levelled</shortname>
-			<description>Returns the number of levels the specified hero gained. <p>who</p> is the hero's position in the battle party. If you want to use <p>hero:Name</p> you should use <ref>findhero</ref>. This command only applies to the most recent battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted this hero (or the active battle party if the hero is in it) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:</description>
+			<description>Returns the number of levels the specified hero gained. <p>who</p> is the hero's position in the battle party. If you want to use <p>hero:Name</p> you should use <ref>findhero</ref>. This command only applies to the most recent battle or <ref>giveexperience</ref>, <ref>setherolevel</ref> or <ref>setexperience</ref> command that targetted either this hero (or who party) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:</description>
 			<example>give experience (party, 50)
 if (herolevelled (find hero (hero: Bob))) then (
   $31="Bob gained "
@@ -5063,7 +5064,7 @@ end</example>
 				<ref>setherolevel</ref>
 				<ref>totalexperience</ref>
 				<ref>herolevelled</ref>
-				<ref>spellslearnt</ref>
+				<ref>spellslearned</ref>
 			</seealso>
 		</command>
 		<command id="getlevelmp">
@@ -5590,7 +5591,7 @@ end</example>
 		<command id="getcount">
 			<canon>get count</canon>
 			<shortname>get count</shortname>
-			<description>When passed to <ref>npcatpixel</ref>, <ref>npcatspot</ref>, <ref>sliceatpixel</ref>, <ref>findcollidingslice</ref> or <ref>zoneatspot</ref> they return the number of NPCs, slices or zones at that spot. With <ref>spellslearnt</ref> returns the number of spells a hero learnt. With <ref>findenemyinformation</ref>, returns the number of enemies, or the number of some kind of enemy in the formation.</description>
+			<description>When passed to <ref>npcatpixel</ref>, <ref>npcatspot</ref>, <ref>sliceatpixel</ref>, <ref>findcollidingslice</ref> or <ref>zoneatspot</ref> they return the number of NPCs, slices or zones at that spot. With <ref>spellslearned</ref> returns the number of spells a hero learnt. With <ref>findenemyinformation</ref>, returns the number of enemies, or the number of some kind of enemy in the formation.</description>
 		</command>
 		<command id="tileconstants">
 			<canon>Tile Constants</canon>

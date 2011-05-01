@@ -95,9 +95,8 @@ CONST genErrorLevel = 86        'value to set err_suppress_lvl to, if nonzero
 CONST genLevelCap = 87          'Default maximum level (0 to 99)
 CONST genEquipMergeFormula = 88 'Formula to use to calculate effective hero elemental resists
 CONST genNumElements = 89       'Number of elements used
-
-'Unused indices
-
+CONST genUnlockedReserveXP = 90 '% experience gained by unlocked reserve heroes
+CONST genLockedReserveXP = 91   '% experience gained by locked reserve heroes
 CONST genPW4Hash = 92           'new (4th style) password hash
 CONST genPW2Offset = 93         'old-old password offset
 CONST genPW2Length = 94         'old-old password length

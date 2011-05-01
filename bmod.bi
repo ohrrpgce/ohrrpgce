@@ -50,6 +50,7 @@ DECLARE FUNCTION spawn_chained_attack(ch AS AttackDataChain, attack AS AttackDat
 DECLARE FUNCTION check_attack_chain(ch AS AttackDataChain, bat AS BattleState, bslot() AS BattleSprite) AS INTEGER
 DECLARE FUNCTION valid_statnum(statnum AS INTEGER, context AS STRING) AS INTEGER
 DECLARE FUNCTION knows_attack(BYVAL who AS INTEGER, BYVAL atk AS INTEGER, bslot() AS BattleSprite) AS INTEGER
+DECLARE FUNCTION distribute_party_experience (BYVAL exper AS INTEGER) AS INTEGER
 
 DECLARE SUB queue_attack OVERLOAD (attack AS INTEGER, who AS INTEGER, targs() AS INTEGER, override_blocking AS INTEGER=-2, dont_retarget AS INTEGER = NO)
 DECLARE SUB queue_attack OVERLOAD (attack AS INTEGER, who AS INTEGER, delay AS INTEGER, targs() AS INTEGER, blocking AS INTEGER=YES, dont_retarget AS INTEGER = NO)
