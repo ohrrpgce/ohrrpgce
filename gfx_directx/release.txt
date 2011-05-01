@@ -1,4 +1,19 @@
 --------------------------------------------------
+4/30/11
+v1.15
+
+Added Features:
+
+-Fixed hiding the taskbar in fullscreen mode.
+
+-Provided for alt-tabbing mechanism in fullscreen.
+
+-Fixed mouse movement from io_setmouse(). When in tile editor, pressing the directional keys on the keyboard caused the mouse cursor to move to strange locations. This is fixed.
+
+
+
+
+--------------------------------------------------
 4/28/11
 v1.14
 
