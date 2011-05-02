@@ -634,7 +634,6 @@ bool IsNativeResolutionMultiple(UINT width, UINT height, UINT targetWidth, UINT 
 LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	const UINT_PTR ID_MENU_OPTIONS = 101;
-	static BOOL bSizing = FALSE;
 	
 	if(g_Mouse.processMessage(hWnd, msg, wParam, lParam))
 		return 0;
@@ -749,13 +748,20 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			return ::DefWindowProc(hWnd, msg, wParam, lParam);
 		} break;
+	case WM_ENTERSIZEMOVE:
+		{
+			g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
+		} break;
+	case WM_EXITSIZEMOVE:
+		{
+			g_Mouse.popState();
+		} break;
 	case WM_MOVE:
 		{
 			g_Mouse.updateClippingRect();
 		} break;
 	case WM_SIZE:
 		{
-			bSizing = FALSE;
 			::DefWindowProc(hWnd, msg, wParam, lParam);
 			if(wParam == SIZE_MINIMIZED)
 			{
@@ -773,11 +779,6 @@ LRESULT CALLBACK OHRWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		} break;
 	case WM_SIZING:
 		{
-			if(!bSizing)
-			{
-				bSizing = TRUE;
-				g_Mouse.pushState(gfx::Mouse2::IS_DEAD);
-			}
 			if(!g_DirectX.isViewFullscreen())
 			{
 				RECT rWindowTest = {0,0,400,400};

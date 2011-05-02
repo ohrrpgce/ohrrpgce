@@ -131,7 +131,7 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrRe
 		return E_FAIL;
 	}
 	m_bInitialized = TRUE;
-	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
+	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
 
 	if(D3DXSaveSurfaceToFile == NULL)
 		strResult += TEXT("\r\nD3DXSaveSurfaceToFile() failed to load. Probably lacking d3dx_24.dll.");
@@ -263,17 +263,23 @@ HRESULT D3D::present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 
 	//present
 	HRESULT hr = S_OK;
-	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0xff000000, 1.0f, 0);
-	if(FAILED(hr))
-		return hr;
+	//doesn't work; apparently calling only Clear(), no BeginScene()/EndScene() pair, then Present() without any additional
+	//rendering causes Clear() to stop functioning correctly. Oi!
+	//hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
 
 	RECT rAspectRatio = {0};
 	if(m_bPreserveAspectRatio)
 		rAspectRatio = calculateAspectRatio(m_surface.getDimensions().cx, m_surface.getDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
+
 	SmartPtr<IDirect3DSurface9> pBackBuffer;
 	hr = m_d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
 	if(FAILED(hr))
 		return hr;
+
+	hr = m_d3ddev->ColorFill(pBackBuffer, NULL, 0x0);
+	if(FAILED(hr))
+		return hr;
+
 	hr = m_d3ddev->StretchRect(m_surface.getSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
 	if(FAILED(hr))
 		return hr;
@@ -358,11 +364,13 @@ HRESULT D3D::setViewFullscreen(BOOL bFullscreen)
 	{
 		m_d3dpp.BackBufferWidth		= m_rWindowedMode.right;
 		m_d3dpp.BackBufferHeight	= m_rWindowedMode.bottom;
+		//m_d3dpp.SwapEffect			= D3DSWAPEFFECT_COPY;
 	}
 	else
 	{
 		m_d3dpp.BackBufferWidth		= m_rFullscreenMode.right;
 		m_d3dpp.BackBufferHeight	= m_rFullscreenMode.bottom;
+		//m_d3dpp.SwapEffect			= D3DSWAPEFFECT_DISCARD;
 		m_pWindow->setWindowSize(m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
 		m_pWindow->setWindowPosition(0,0);
 	}

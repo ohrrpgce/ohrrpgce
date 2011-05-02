@@ -1,4 +1,17 @@
 --------------------------------------------------
+5/1/11
+v1.16
+
+Added Features:
+
+-Fixed graphical bug where switching Aspect Ratio Preservation off then on would leave garbage on the sides.
+
+-Fixed mouse bug where clicking a border to resize or move would cause mouse input to enter dead state.
+
+
+
+
+--------------------------------------------------
 4/30/11
 v1.15
 
