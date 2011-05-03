@@ -34,6 +34,10 @@ Apr ?? 2011 [Zenzizenzic]
     * gfx_directx input rewrite: adds joystick support, normal mouse
       speed/acceleration, removes forced mouse clipping and adds
       "mouse region" support [Jay]
+    * gfx_directx expanded hardware support [Jay]
+    * gfx_directx added option in Options dialog to disable system
+      messages (like Alt-Space) from operating--Alt-Tab and Alt-Enter
+      still function as expected [Jay]
     * When using an item in the item menu, there is now visual feedback
       when you use the last item in a stack. [James]
     * Lots of new scancodes added for scripts: you can now, for example,
@@ -104,6 +108,15 @@ Apr ?? 2011 [Zenzizenzic]
     * "create NPC" could create NPCs with garbage 'extra data' [Ralph]
     * gfx_directx: fixed garbage and window resizing at startup [Jay]
     * gfx_directx: fixed slow screen fades and framerate [Jay]
+    * gfx_directx: added support for all all key scancodes [Ralph, Jay]
+    * gfx_directx: fixed fast keypresses being lost [Ralph, Jay]
+    * gfx_directx: fixed keyboard/mouse clearing state leaving window [Jay]
+    * gfx_directx: fixed graphical errors in Vista/Win7 [Jay]
+    * gfx_directx: fixed Ctrl-Alt-Del crashes in Vista/Win7 [Jay]
+    * gfx_directx: fixed slow downs caused by leaving the window [Jay]
+    * gfx_directx: fixed window resizing/engine cursor issues [Jay]
+    * gfx_directx: fixed garbage occurring when enabling/disabling
+      Aspect Ratio Preservation in Options dialog [Jay]
     * Your MP (and the rest of the spell menu) is no longer hidden
       while you target a spell outside of battle. [James]
     * Scrolling a sprite or a maptile is now done with the new scroll
