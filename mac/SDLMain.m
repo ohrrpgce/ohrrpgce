@@ -267,7 +267,7 @@ static void setupHelpMenu(void)
     helpMenu = [[NSMenu alloc] initWithTitle:@"Help"];
     
     /* Help item. Specifying the key combination apparently does nothing. */
-    menuItem = [[NSMenuItem alloc] initWithTitle:@"Help: Press fn+F1 or Cmd-Shift-?" action:@selector(sendF1:) keyEquivalent:@"?"];
+    menuItem = [[NSMenuItem alloc] initWithTitle:@"Help: Press F1 or Cmd-Shift-?" action:@selector(sendF1:) keyEquivalent:@"?"];
     [helpMenu addItem:menuItem];
     [menuItem release];
     
@@ -305,7 +305,9 @@ static void CustomApplicationMain (int argc, char **argv)
     [NSApp setMainMenu:[[NSMenu alloc] init]];
     setApplicationMenu();
     setupWindowMenu();
+#ifdef IS_CUSTOM
     setupHelpMenu();
+#endif
 
     /* Create SDLMain and make it the app delegate */
     sdlMain = [[SDLMain alloc] init];

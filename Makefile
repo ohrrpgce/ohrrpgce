@@ -38,6 +38,7 @@ libpaths=/usr/lib/
 FBFLAGS+=-mt
 FBFLAGS+=-g -exx
 CFLAGS+=-O2
+OBJCFLAGS=
 
 ifdef win32
 	FBFLAGS+=-s gui
@@ -185,6 +186,7 @@ ifdef linksdl
 ifdef mac
 	libraries+= -Wl -framework,SDL_mixer -Wl -framework,SDL -Wl -framework,Cocoa -Wl -F$(FRAMEWORKS_PATH)
 	common_objects+= SDLMain.o
+	semicommon_objects+= SDLMain.o   #whether to include help menu varies
 	FBFLAGS+= -entry SDL_main
 	CFLAGS+=${shell if [ `which sdl-confijg` ] ; then sdl-config --cflags; else echo -I$(FRAMEWORKS_PATH)/SDL.framework/Headers; fi}
 else
@@ -214,6 +216,7 @@ $(game_exe): ver.txt game_compiled_objs $(common_objects) $(game_objects)
 
 
 $(edit_exe): FBFLAGS+=-d IS_CUSTOM
+$(edit_exe): OBJCFLAGS+=-DIS_CUSTOM
 $(edit_exe): ver.txt custom_compiled_objs $(common_objects) $(edit_objects)
 	@echo Linking Custom...
 	$(FBC) -x $(edit_exe) -m custom $(FBFLAGS) $(edit_flags) $(edit_objects) $(common_objects) $(libpaths) $(libraries)
@@ -274,7 +277,7 @@ $(main_modules): %.o: %.bas $(includes)
 	$(FBC) -c $< $(FBFLAGS)
 
 %.o: mac/%.m
-	$(CC) -c $< -o $@ $(CFLAGS)
+	$(CC) -c $< -o $@ $(CFLAGS) $(OBJCFLAGS)
 
 #unix only; run make in win32/ on windows
 %.o: %.c
