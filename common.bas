@@ -2132,6 +2132,11 @@ END FUNCTION
 
 FUNCTION find_helper_app (appname AS STRING) AS STRING
 'Returns an empty string if the app is not found, or the full path if it is found
+#IFDEF __FB_DARWIN__
+IF isfile(exepath & "/support/" & appname) THEN RETURN exepath & "/support/" & appname
+'Then look in the same folder as CUSTOM/GAME
+IF isfile(exepath & "/" & appname) THEN RETURN exepath & "/" & appname
+#ENDIF
 #IFDEF __UNIX__
 '--Find helper app on Unix
 DIM AS INTEGER fh
