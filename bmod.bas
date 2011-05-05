@@ -445,7 +445,7 @@ SUB battle_attack_anim_playback (BYREF attack AS AttackData, BYREF bat AS Battle
    movestep.x = popw
    movestep.y = popw
    with bslot(ww)
-    if movestep.x <> 0 then .xspeed = movedist.x / movestep.x
+    if movedist.y <> 0 then .xspeed = movedist.x / movestep.x
     if movestep.y <> 0 then .yspeed = movedist.y / movestep.y
     .xmov = movedist.x
     .ymov = movedist.y
