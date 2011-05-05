@@ -157,6 +157,19 @@ FUNCTION Instr_nth (s AS STRING, substring AS STRING, BYVAL nth AS INTEGER = 1) 
  RETURN Instr_nth(1, s, substring, nth)
 END FUNCTION
 
+'Returns the number of characters at the start of two strings that are equal
+FUNCTION length_matching(s1 as string, s2 as string) as integer
+ DIM as ubyte ptr p1 = @s1[0], p2 = @s2[0]
+ DIM as integer ret = 0
+ WHILE *p1 AND *p2
+  IF *p1 <> *p2 THEN RETURN ret
+  p1 += 1
+  p2 += 1
+  ret += 1
+ WEND
+ RETURN ret
+END FUNCTION
+
 FUNCTION is_int (s AS STRING) AS INTEGER
  'Even stricter than str2int (doesn't accept "00")
  DIM n AS INTEGER = VALINT(s)
@@ -453,7 +466,8 @@ Function wordwrap(z as string, byval wid as integer, sep as string = chr(10)) as
  
 end function
 
-'Splits a line at the separators; use together with wordwrap() to do wrapping
+'Splits text at the separators; use together with wordwrap() to do wrapping
+'sep must be length 1. ret() must be resizeable. If in == "", then ret() is redimmed to length 1.
 sub split(in as string, ret() as string, sep as string = chr(10))
  redim ret(0)
  dim as integer i = 0, i2 = 1, j = 0
@@ -808,42 +822,132 @@ FUNCTION justextension (filename as string) as string
   END IF
 END FUNCTION
 
+FUNCTION get_driveletter (pathname as string) as string
+#IFDEF __FB_WIN32__
+  DIM first as string = LCASE(LEFT(pathname, 1))
+  IF first >= "a" ANDALSO first <= "z" ANDALSO MID(pathname, 2, 2) = ":\" THEN RETURN MID(pathname, 1, 3)
+#ENDIF
+  RETURN ""
+END FUNCTION
+
 FUNCTION is_absolute_path (sDir as string) as integer
-#IFDEF __UNIX__
-  IF left(sDir, 1) = "/" THEN RETURN -1
-#ELSE
-  DIM first as string = LCASE(LEFT(sDir, 1))
-  IF first = "\" THEN RETURN -1
-  IF first >= "a" andalso first <= "z" andalso MID(sDir, 2, 2) = ":\" THEN RETURN -1
+  IF left(sDir, 1) = SLASH THEN RETURN -1
+#IFDEF __FB_WIN32__
+  IF LEN(get_driveletter(sDir)) THEN RETURN -1
 #ENDIF
   RETURN 0
 END FUNCTION
 
-'Make a path absolute. See also with_orig_dir in compat.bas
+'Make a path absolute. See also with_orig_dir in misc.bas
 FUNCTION absolute_path(pathname as string) as string
   IF NOT is_absolute_path(pathname) THEN RETURN CURDIR & SLASH & pathname
   RETURN pathname
 END FUNCTION
 
-'Go up a number of directories.
-'pathname is interpreted as a directory even if missing the final slash!
-'Warning, don't actually rely on . and .. being properly handled
-FUNCTION parentdir (path as string, BYVAL upamount as integer = 1) as string
-  DIM pathname as string = normalize_path(path)
-  DIM as integer temp, retlen = LEN(pathname)
-  WHILE upamount > 0
-    WHILE retlen > 0 ANDALSO pathname[retlen - 1] = ASC(SLASH) : retlen -= 1 : WEND
-    temp = INSTRREV(pathname, SLASH, retlen)
-    IF temp = 0 THEN EXIT WHILE
-    retlen = temp
-    IF MID(pathname, retlen + 1, 3) = ".." + SLASH THEN
-      upamount += 1
-    ELSEIF MID(pathname, retlen + 1, 2) = "." + SLASH THEN
+'Remove redundant ../, ./, // in a path. Handles both relative and absolute paths
+'Result has normalised slashes
+FUNCTION simplify_path(sDir as string) as string
+  DIM piecesarray() as string
+  DIM pieces as string vector
+  DIM pathname as string = normalize_path(sDir)
+  DIM isabsolute as integer = is_absolute_path(pathname)
+  'remove drive letter
+  DIM driveletter as string = get_driveletter(pathname)
+  DIM ret as string = driveletter
+  IF LEN(driveletter) THEN
+   pathname = MID(pathname, 3)
+  ELSEIF isabsolute THEN
+   ret = SLASH
+  END IF
+
+  split pathname, piecesarray(), SLASH
+  array_to_vector pieces, piecesarray()
+  DIM i as integer = 0
+  DIM leading_updots as integer = 0  'The number of "../"s at the start
+  WHILE i < v_len(pieces)
+    IF pieces[i] = "" OR pieces[i] = "." THEN
+      v_delete_slice pieces, i, i+1
+    ELSEIF pieces[i] = ".." THEN
+      IF i = 0 ANDALSO isabsolute THEN
+        'Can't go up in the root directory
+        v_delete_slice pieces, i, i+1
+      ELSEIF i > leading_updots THEN
+        v_delete_slice pieces, i-1, i+1
+        i -= 1
+      ELSE
+        leading_updots += 1
+	i += 1
+      END IF
     ELSE
-      upamount -= 1
+      i += 1
     END IF
   WEND
-  RETURN MID(pathname, 1, retlen)
+  FOR i = 0 TO v_len(pieces) - 1
+    IF i <> 0 THEN ret += SLASH
+    ret += pieces[i]
+  NEXT
+  v_free pieces
+  IF ret = "" THEN ret = "."   'so that appending a slash is safe
+  RETURN ret
+END FUNCTION
+
+'Make a path relative if it's below 'fromwhere' (which is a path, not a file)
+'It would be possible to also possibly return something starting with some ../'s, but it's more trouble
+FUNCTION simplify_path_further(pathname as string, fromwhere as string) as string
+  DIM path as string = simplify_path(pathname)
+  DIM source as string = simplify_path(fromwhere)
+  IF RIGHT(source, 1) <> SLASH THEN source += SLASH  'need a slash so we don't match foo/ and foo.rpgdir/
+  IF is_absolute_path(path) THEN
+#IFDEF __FB_WIN32__
+    DIM matchlen as integer = length_matching(LCASE(source), LCASE(path))
+#ELSE
+    DIM matchlen as integer = length_matching(source, path)
+#ENDIF
+    IF matchlen = LEN(source) THEN
+      IF matchlen >= LEN(path) THEN
+        'they are equal  (>= for the extra slash on source)
+        RETURN "."
+      ELSE   
+        RETURN MID(path, matchlen + 1)
+      END IF
+    END IF
+
+    'DIM driveletter as string = get_driveletter(path)
+    'IF get_driveletter(source) <> driveletter THEN RETURN path
+    'matchlen = instrrev(path, SLASH, matchlen)
+    'path = MID(path, matchlen + 1)
+  END IF
+  RETURN path
+END FUNCTION
+
+
+'sub testsim(path as string)
+'  ? "simplify('" & path & "')=" + simplify_path(path)
+'end sub
+'
+'startTest
+'  sim("testcases")
+'  sim(absolute_path(".."))
+'  sim(".././../foo/")
+'  sim(".././a/../../foo/")
+'  sim("/..")
+'  sim("")
+'  sim(".")
+'  sim("/../.")
+'  sim("./../../../../a")
+'  sim("//.//../a/../c/b/../d")
+'  ? "curdir=" & curdir
+'  ? "reallysimplify('" & path & "')=" + simplify_path_further(absolute_path("a/b/.svn"), curdir)
+'endTest
+
+'Go up a number of directories. Simplifies and normalises.
+'pathname is interpreted as a directory even if missing the final slash!
+FUNCTION parentdir (path as string, BYVAL upamount as integer = 1) as string
+  DIM pathname as string = path + SLASH
+  FOR i as integer = 0 TO upamount - 1
+   pathname += ".." + SLASH
+  NEXT
+  RETURN simplify_path(pathname)
 END FUNCTION
 
 FUNCTION anycase (filename as string) as string
