@@ -10,7 +10,6 @@
 #DEFINE NULL 0
 #ENDIF
 
-#include "crt/string.bi"
 #include "vector.bi"
 
 
