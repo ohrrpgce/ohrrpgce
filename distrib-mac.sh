@@ -1,5 +1,8 @@
 #!/bin/sh
 
+TODAY=`date "+%Y-%m-%d"`
+CODE=`cat codename.txt | tr -d "\r"`
+
 if [ ! -f distrib-mac.sh ] ; then
   echo You should only run this script from the ohrrpgce directory.
   exit 1
@@ -9,12 +12,6 @@ echo Building binaries
 make || exit 1
 ./makeutil.sh || exit 1
 ./bundle-apps.sh || exit 1
-
-echo "Lumping Vikings of Midgard"
-if [ -f vikings.rpg ] ; then
-  rm vikings.rpg
-fi
-./relump vikings/vikings.rpgdir ./vikings.rpg
 
 echo "Downloading import media"
 if [ -f import.zip ] ; then
@@ -35,15 +32,15 @@ rm -Rf tmp/*
 mkdir -p tmp
 
 echo Erasing old distribution files
-rm distrib/ohrrpgce-*.tar.bz2
+rm -f distrib/OHRRPGCE*.dmg
 
 echo "Packaging binary distribution of CUSTOM"
 
 echo "  Including binaries"
 cp -pR OHRRPGCE-Custom.app tmp
 cp -pR OHRRPGCE-Game.app tmp
-cp -p unlump tmp
-cp -p relump tmp
+#cp -p unlump tmp
+#cp -p relump tmp
 
 echo "  Including hspeak"
 tar -xf mac/utilities.tar.gz -C tmp hspeak
@@ -55,13 +52,14 @@ cp -p scancode.hsi tmp
 echo "  Including readmes"
 cp -p README-game.txt tmp
 cp -p README-custom.txt tmp
-cp -p IMPORTANT-nightly.txt tmp
-cp -p LICENSE.txt tmp
 cp -p LICENSE-binary.txt tmp
 cp -p whatsnew.txt tmp
+if [ $CODE == 'wip' ] ; then
+  cp -p IMPORTANT-nightly.txt tmp
+fi
 
 echo "  Including Vikings of Midgard"
-cp -p vikings/vikings.rpg tmp
+./relump vikings/vikings.rpgdir tmp/vikings.rpg
 cp -pR "vikings/Vikings script files" tmp
 cp -p "vikings/README-vikings.txt" tmp
 
@@ -76,13 +74,13 @@ cp -p docs/plotdict.xml tmp/docs
 cp -p docs/htmlplot.xsl tmp/docs
 cp -p docs/more-docs.txt tmp/docs
 
-echo "tarring and bzip2ing distribution"
-TODAY=`date "+%Y-%m-%d"`
-CODE=`cat codename.txt | tr -d "\r"`
+echo "Creating disk image"
 
-mv tmp ohrrpgce
-tar -jcf distrib/ohrrpgce-mac-x86-$TODAY-$CODE.tar.bz2 ohrrpgce --exclude .svn
-mv ohrrpgce tmp
+hdiutil create -srcfolder tmp/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE.dmg
+
+#mv tmp ohrrpgce
+#tar -jcf distrib/ohrrpgce-mac-x86-$TODAY-$CODE.tar.bz2 ohrrpgce --exclude .svn
+#mv ohrrpgce tmp
 
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
