@@ -474,7 +474,7 @@ OPTION EXPLICIT
 
 'Returns filename of .hs file
 FUNCTION compilescripts(fname as string) as string
- DIM as string outfile, hspeak, errmsg, flags
+ DIM as string outfile, hspeak, errmsg
  hspeak = find_helper_app("hspeak")
  IF hspeak = "" THEN
   notification missing_helper_message("hspeak")
@@ -482,17 +482,14 @@ FUNCTION compilescripts(fname as string) as string
  END IF
  outfile = trimextension(fname) + ".hs"
  safekill outfile
-#IFDEF __FB_WIN32__
- 'Wait for keys
- flags = "-y "
-#ELSE
- 'Don't wait for keys
- 'Note: for different reasons on OSX and other unices: on OSX, this runs Terminal
- flags = "-y "  'FIXME
-#ENDIF
- errmsg = spawn_and_wait(hspeak, flags + simplify_path_further(fname, curdir))
+ 'Wait for keys: we spawn a command prompt/xterm/Terminal.app, which will be closed when HSpeak exits
+ errmsg = spawn_and_wait(hspeak, "-y " + simplify_path_further(fname, curdir))
  IF LEN(errmsg) THEN
   notification errmsg
+  RETURN ""
+ END IF
+ IF isfile(outfile) = NO THEN
+  notification "Compilation failed."
   RETURN ""
  END IF
  RETURN outfile

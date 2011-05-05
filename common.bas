@@ -2053,24 +2053,16 @@ SUB playsongnum (songnum%)
 END SUB
 
 FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as string
- 'On Windows:
- 'Attempts to run a program asynchronously and wait for it to
- 'finish, offering users the option to kill it
- 'On Unix:
- 'Just calls SHELL
-
- 'Returns an error message, or "" on success
+ 'Run a commandline program in a terminal emulator and wait for it to finish. 
+ 'On Windows the program is run asynchronously and users are offered the option to kill it.
+ 'On other platforms the program just freezes.
+ 'You can of course also kill the program on all platforms with Ctrl+C
+ 'Returns an error message, or "" if no apparent failure
 
  'It may be better to pass arguments in an array (the Unix way), so that
  'we can do all the necessary quoting required for Windows here.
 
-#IFNDEF __FB_WIN32__
-
- 'os_* process handling functions only currently implemented on Windows
- SHELL app & " " & args
- RETURN ""
-
-#ELSE
+#IFDEF __FB_WIN32__
 
  DIM handle AS ProcessHandle
  handle = open_console_process(app, args)
@@ -2109,6 +2101,11 @@ FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as string
  LOOP
 
 #ENDIF
+
+ 'os_* process handling functions only currently implemented on Windows
+ SHELL "xterm -bg black -fg gray90 -e """ & app & " " & args & """"
+ RETURN ""
+
 END FUNCTION
 
 FUNCTION find_madplay () AS STRING
@@ -2132,10 +2129,12 @@ END FUNCTION
 
 FUNCTION find_helper_app (appname AS STRING) AS STRING
 'Returns an empty string if the app is not found, or the full path if it is found
+
+'Look in the same folder as CUSTOM/GAME
+IF isfile(exepath & SLASH & appname & DOTEXE) THEN RETURN exepath & SLASH & appname & DOTEXE
+
 #IFDEF __FB_DARWIN__
 IF isfile(exepath & "/support/" & appname) THEN RETURN exepath & "/support/" & appname
-'Then look in the same folder as CUSTOM/GAME
-IF isfile(exepath & "/" & appname) THEN RETURN exepath & "/" & appname
 #ENDIF
 #IFDEF __UNIX__
 '--Find helper app on Unix
@@ -2154,11 +2153,8 @@ KILL tempfile
 s = TRIM(s)
 RETURN s
 #ELSE
-'--Find helper app on Windows
-'First look in the support subdirectory
+'Then look in the support subdirectory
 IF isfile(exepath & "\support\" & appname & ".exe") THEN RETURN exepath & "\support\" & appname & ".exe"
-'Then look in the same folder as CUSTOM/GAME
-IF isfile(exepath & "\" & appname & ".exe") THEN RETURN exepath & "\" & appname & ".exe"
 RETURN ""
 #ENDIF
 END FUNCTION
