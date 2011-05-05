@@ -16,12 +16,25 @@ UNION XYPair
   n(1) AS INTEGER
 END UNION
 
-TYPE RectType
-  x AS INTEGER
-  y AS INTEGER
-  wide AS INTEGER
-  high AS INTEGER
-END TYPE
+'TYPE RectType
+'  x AS INTEGER
+'  y AS INTEGER
+'  wide AS INTEGER
+'  high AS INTEGER
+'END TYPE
+
+UNION RectType
+  TYPE
+    x AS INTEGER
+    y AS INTEGER
+    wide AS INTEGER
+    high AS INTEGER
+  END TYPE
+  TYPE
+    p1 AS XYPair
+    p2 AS XYPair
+  END TYPE
+END UNION
 
 TYPE MouseInfo
   x AS INTEGER

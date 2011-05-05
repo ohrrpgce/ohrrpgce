@@ -3,6 +3,7 @@ WHAT IS NEW?
 Apr ?? 2011 [Zenzizenzic]
 
   * New Features
+    * Ported  to Mac OS X! (Intel Macs only) [Ralph]
     * New general bitset "Locked heroes can't be re-ordered" [James]
     * Slice collection editor can create complex collections of slices
       to load into plotscripts [James]

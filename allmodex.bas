@@ -1091,8 +1091,13 @@ SUB setkeys ()
 	end if
 
 	if mouse_grab_requested then
+#IFDEF __FB_DARWIN__
+		if keyval(scF14) > 1 then
+			clearkey(scF14)
+#ELSE
 		if keyval(scScrollLock) > 1 then
 			clearkey(scScrollLock)
+#ENDIF
 			mouserect -1, -1, -1, -1
 			mouse_grab_requested = -1
 			mouse_grab_overridden = -1
@@ -2472,7 +2477,11 @@ SUB mouserect (BYVAL xmin, BYVAL xmax, BYVAL ymin, BYVAL ymax)
 			remember_mouse_grab(3) = ymax
 			mouse_grab_requested = -1
 			mouse_grab_overridden = 0
+#IFDEF __FB_DARWIN__
+			settemporarywindowtitle remember_title & " (F14 to free mouse)"
+#ELSE
 			settemporarywindowtitle remember_title & " (ScrlLock to free mouse)"
+#ENDIF
 		end if
 	end if
 	mutexlock keybdmutex

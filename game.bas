@@ -347,13 +347,13 @@ END IF
 
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo  & "  " & systeminfo
-debuginfo "Playing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
+debuginfo "Playing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
 dim gmap(dimbinsize(binMAP)) 'this must be declared here, after the binsize file exists!
 
 '--set game
 game = workingdir + SLASH + archinym$
-setwindowtitle getdisplayname(sourcerpg)
+setwindowtitle getdisplayname(trimpath(sourcerpg))
 
 'Perform additional checks for future rpg files or corruption
 'FIXME: if a problem was detected, we don't force copy of an .rpgdir

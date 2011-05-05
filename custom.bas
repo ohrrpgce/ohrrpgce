@@ -189,9 +189,9 @@ end_debug
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
-debuginfo "Editing game " & trimpath(sourcerpg) & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
+debuginfo "Editing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
-setwindowtitle "O.H.R.RPG.C.E - " + sourcerpg
+setwindowtitle "O.H.R.RPG.C.E - " + trimpath(sourcerpg)
 
 '--set game according to the archinym
 copylump sourcerpg, "archinym.lmp", workingdir, -1

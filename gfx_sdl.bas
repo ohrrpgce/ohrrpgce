@@ -33,6 +33,8 @@ DECLARE SUB gfx_sdl_set_zoom(byval value as integer)
 DECLARE SUB gfx_sdl_update_screen()
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
+DECLARE SUB set_forced_mouse_clipping(byval newvalue as integer)
+DECLARE SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 
 #IFDEF __FB_DARWIN__
 
@@ -45,6 +47,8 @@ DECLARE SUB sdlCocoaMinimise()
 
 
 DIM SHARED zoom AS INTEGER = 2
+DIM SHARED zoom_has_been_changed AS INTEGER = NO
+DIM SHARED remember_zoom AS INTEGER = -1   'We may change the zoom when fullscreening, so remember it
 DIM SHARED smooth AS INTEGER = 0
 DIM SHARED screensurface AS SDL_Surface PTR = NULL
 DIM SHARED screenbuffer AS SDL_Surface PTR = NULL
@@ -52,13 +56,18 @@ DIM SHARED windowedmode AS INTEGER = -1
 DIM SHARED resizable AS INTEGER = NO
 DIM SHARED resizerequested AS INTEGER = NO
 DIM SHARED resizerequest AS XYPair
+DIM SHARED remember_windowtitle AS STRING
 DIM SHARED rememmvis AS INTEGER = 1
 DIM SHARED keystate AS Uint8 PTR = NULL
 DIM SHARED joystickhandles(7) AS SDL_Joystick PTR
 DIM SHARED sdlpalette(0 TO 255) AS SDL_Color
 DIM SHARED framesize AS XYPair
 DIM SHARED dest_rect AS SDL_Rect
-DIM SHARED mouseclipped AS INTEGER = 0
+DIM SHARED mouseclipped AS INTEGER = NO   'Whether we are ACTUALLY clipped
+DIM SHARED forced_mouse_clipping AS INTEGER = NO
+'These were the args to the last call to io_mouserect
+DIM SHARED remember_mouserect AS RectType = (-1, -1, -1, -1)
+'These are the actual zoomed clip bounds
 DIM SHARED AS INTEGER mxmin = -1, mxmax = -1, mymin = -1, mymax = -1
 DIM SHARED AS INTEGER privatemx, privatemy, lastmx, lastmy
 DIM SHARED keybdstate(127) AS INTEGER  '"real"time keyboard array
@@ -248,13 +257,10 @@ END FUNCTION
 
 FUNCTION gfx_sdl_set_screen_mode() as integer
   DIM flags AS Uint32 = 0
+  IF resizable THEN flags = flags OR SDL_RESIZABLE
   IF windowedmode = 0 THEN
     flags = flags OR SDL_FULLSCREEN
-    SDL_ShowCursor(0)
-  ELSE
-    SDL_ShowCursor(rememmvis)
   END IF
-  IF resizable THEN flags = flags OR SDL_RESIZABLE
   WITH dest_rect
     .x = 0
     .y = 0
@@ -268,11 +274,19 @@ FUNCTION gfx_sdl_set_screen_mode() as integer
       debug "Can't start SDL video subsys (resize): " & *SDL_GetError
     END IF
   END IF
+  'Force clipping in fullscreen, and undo when leaving
+  set_forced_mouse_clipping (windowedmode = 0)
 #ENDIF
   screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, 0, flags)
   IF screensurface = NULL THEN
     debug "Failed to allocate display"
     RETURN 0
+  END IF
+  SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
+  IF windowedmode = 0 THEN
+    SDL_ShowCursor(0)
+  ELSE
+    SDL_ShowCursor(rememmvis)
   END IF
   RETURN 1
 END FUNCTION
@@ -311,6 +325,11 @@ SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as inte
       SDL_FreeSurface(screenbuffer)
       screenbuffer = NULL
     END IF
+  END IF
+
+  IF screenbuffer ANDALSO (screenbuffer->w <> w * zoom OR screenbuffer->h <> h * zoom) THEN
+    SDL_FreeSurface(screenbuffer)
+    screenbuffer = NULL
   END IF
 
   IF screenbuffer = NULL THEN
@@ -362,6 +381,20 @@ FUNCTION gfx_sdl_screenshot(byval fname as zstring ptr) as integer
 END FUNCTION
 
 SUB gfx_sdl_setwindowed(byval iswindow as integer)
+#IFDEF __FB_DARWIN__
+  IF iswindow = NO THEN
+    'Zoom 3 or 4 look better in fullscreen, so change to one of those temporarily
+    IF zoom <= 2 AND zoom_has_been_changed = NO THEN
+      remember_zoom = zoom
+      zoom = 3
+    END IF
+  ELSE
+    'Change zoom back?
+    IF remember_zoom <> -1 AND zoom_has_been_changed = NO THEN
+      zoom = remember_zoom
+    END IF
+  END IF
+#ENDIF
   IF iswindow = 0 THEN
     windowedmode = 0
   ELSE
@@ -374,6 +407,7 @@ SUB gfx_sdl_windowtitle(byval title as zstring ptr)
   IF SDL_WasInit(SDL_INIT_VIDEO) then
     SDL_WM_SetCaption(title, title)
   END IF
+  remember_windowtitle = *title
 END SUB
 
 FUNCTION gfx_sdl_getwindowstate() as WindowState ptr
@@ -401,9 +435,20 @@ END FUNCTION
 SUB gfx_sdl_set_zoom(byval value as integer)
   IF value >= 1 AND value <= 4 AND value <> zoom THEN
     zoom = value
+    zoom_has_been_changed = YES
     IF SDL_WasInit(SDL_INIT_VIDEO) THEN
       gfx_sdl_set_screen_mode()
     END IF
+
+    'Update the clip rectangle
+    'It would probably be easier to just store the non-zoomed clipped rect (mxmin, etc)
+    WITH remember_mouserect
+      IF .p1.x <> -1 THEN
+        internal_set_mouserect .p1.x, .p2.x, .p1.y, .p2.y
+      ELSEIF forced_mouse_clipping THEN
+        internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
+      END IF
+    END WITH
   END IF 
 END SUB
 
@@ -665,7 +710,7 @@ SUB io_sdl_setmouse(byval x as integer, byval y as integer)
   END IF
 END SUB
 
-SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+SUB internal_set_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
   IF mouseclipped = 0 AND (xmin >= 0) THEN
     'enter clipping mode
     'SDL_WM_GrabInput causes most WM key combinations to be blocked, which I find unacceptable, so instead
@@ -687,6 +732,39 @@ SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as
   mxmax = xmax * zoom + zoom - 1
   mymin = ymin * zoom
   mymax = ymax * zoom + zoom - 1
+END SUB
+
+'This turns forced mouse clipping on or off
+SUB set_forced_mouse_clipping(byval newvalue as integer)
+  newvalue = (newvalue <> 0)
+  IF newvalue <> forced_mouse_clipping THEN
+    forced_mouse_clipping = newvalue
+    IF forced_mouse_clipping THEN
+      IF mouseclipped = 0 THEN
+        internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
+      END IF
+      'If already clipped: nothing to be done
+    ELSE
+      WITH remember_mouserect
+        internal_set_mouserect .p1.x, .p2.x, .p1.y, .p2.y
+      END WITH
+    END IF
+  END IF
+END SUB
+
+SUB io_sdl_mouserect(byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
+  WITH remember_mouserect
+    .p1.x = xmin
+    .p1.y = ymin
+    .p2.x = xmax
+    .p2.y = ymax
+  END WITH
+  IF forced_mouse_clipping AND xmin = -1 THEN
+    'Remember that we are now meant to be unclipped, but clip to the window
+    internal_set_mouserect 0, framesize.w - 1, 0, framesize.h - 1
+  ELSE
+    internal_set_mouserect xmin, xmax, ymin, ymax
+  END IF
 END SUB
 
 FUNCTION io_sdl_readjoysane(byval joynum as integer, byref button as integer, byref x as integer, byref y as integer) as integer
