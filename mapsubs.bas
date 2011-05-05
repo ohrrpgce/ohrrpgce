@@ -324,6 +324,8 @@ DIM mode_tools_map(zone_mode, 10) AS INTEGER = { _
 }
 DIM mode_tools AS INTEGER VECTOR
 v_new mode_tools
+DIM toolsbar_available AS INTEGER  'Whether you can select the current tool
+DIM drawing_allowed AS INTEGER     'Whether you can actually draw
 
 REDIM lockedzonelist(-1 TO -1) AS INTEGER 'The zones chosen to be always displayed. At most 8 (index 0 onwards, start at -1 for fake zero-length arrays) 
 DIM gauze_ticker AS INTEGER = 0  'for hidden zones animation
@@ -614,6 +616,8 @@ DO
    v_append mode_tools, mode_tools_map(st.editmode, i)
    i += 1
   WEND
+  toolsbar_available = v_len(mode_tools) <> 0
+  drawing_allowed = YES  'if there are any tools, that is
 
   st.brush = NULL
   st.reader = NULL
@@ -632,7 +636,11 @@ DO
    CASE zone_mode
     st.brush = @zonebrush
     st.reader = @zonereader
-    IF st.zonesubmode = 1 THEN v_resize mode_tools, 0  'No tools in view mode
+    IF st.zonesubmode = 1 THEN
+     toolsbar_available = NO  'No normal tool switching in view mode
+     st.tool = draw_tool
+     drawing_allowed = NO
+    END IF
     st.zones_needupdate = YES
   END SELECT
 
@@ -910,23 +918,26 @@ DO
    END IF
    IF keyval(scM) > 1 THEN
     st.zonesubmode = st.zonesubmode XOR 1
+    toolsbar_available = (st.zonesubmode = 0)
+    drawing_allowed = (st.zonesubmode = 0)
+    IF st.zonesubmode = 1 THEN st.tool = draw_tool
     st.zones_needupdate = YES
    END IF
    IF keyval(scE) > 1 THEN
     mapedit_edit_zoneinfo st, zmap
     st.zones_needupdate = YES  'st.cur_zone might change, amongst other things
    END IF
+   IF st.reset_tool THEN st.tool_value = YES
+   IF st.tool = draw_tool ANDALSO (keyval(scSpace) AND 4) THEN 'drawing, new keypress: pick value intelligently
+    st.tool_value = CheckZoneAtTile(zmap, st.cur_zone, st.x, st.y) XOR YES
+   END IF
+   IF st.tool <> draw_tool ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
+    st.tool_value XOR= YES
+   END IF
    IF st.zonesubmode = 0 THEN
     '--Tiling/editing mode
     st.zones_needupdate OR= intgrabber(st.cur_zone, 1, 9999, scLeftCaret, scRightCaret)
     st.cur_zinfo = GetZoneInfo(zmap, st.cur_zone)
-    IF st.reset_tool THEN st.tool_value = YES
-    IF st.tool = draw_tool ANDALSO (keyval(scSpace) AND 4) THEN 'drawing, new keypress: pick value intelligently
-     st.tool_value = CheckZoneAtTile(zmap, st.cur_zone, st.x, st.y) XOR YES
-    END IF
-    IF st.tool <> draw_tool ANDALSO (keyval(scPlus) > 1 OR keyval(scMinus) > 1) THEN
-     st.tool_value XOR= YES
-    END IF
     IF keyval(scQ) > 1 AND keyval(scCtrl) > 0 THEN
      DebugZoneMap zmap, st.x, st.y
      ''paint a whole lot of tiles over the map randomly
@@ -954,6 +965,8 @@ DO
       st.zones_needupdate = YES
      END IF
     END IF
+    'You may draw if you lock the zone first to avoid weird graphical glitches
+    drawing_allowed = (int_array_find(lockedzonelist(), st.cur_zone) > -1)
     IF keyval(scA) > 1 THEN  'Autoshow zones
      st.autoshow_zones XOR= YES
      st.zones_needupdate = YES
@@ -999,15 +1012,17 @@ DO
  moved = (oldx <> st.x OR oldy <> st.y)
 
  '--Tools
- IF v_len(mode_tools) THEN
+ IF drawing_allowed AND v_len(mode_tools) > 0 THEN
   '--Select tool
-  FOR i = 0 TO v_len(mode_tools) - 1
-   IF keyval(scCtrl) > 0 AND keyval(toolinfo(mode_tools[i]).shortcut) > 1 THEN
-    st.tool = mode_tools[i]
-    st.reset_tool = YES
-    st.tool_hold = NO
-   END IF
-  NEXT
+  IF toolsbar_available THEN
+   FOR i = 0 TO v_len(mode_tools) - 1
+    IF keyval(scCtrl) > 0 AND keyval(toolinfo(mode_tools[i]).shortcut) > 1 THEN
+     st.tool = mode_tools[i]
+     st.reset_tool = YES
+     st.tool_hold = NO
+    END IF
+   NEXT
+  END IF
 
   'These two are basically tools
 
@@ -1336,7 +1351,7 @@ DO
  printstr modenames(st.editmode), 0, 24, dpage
 
  '--Tool selection
- IF st.tool <> -1 THEN
+ IF toolsbar_available THEN
   DIM toolbarpos AS XYPair = TYPE(320 - 10 * v_len(mode_tools), 0)
   IF st.editmode = tile_mode THEN
    toolbarpos.y = 12
@@ -1348,6 +1363,10 @@ DO
   DIM tmpstr AS STRING = "Tool: " & toolinfo(st.tool).name
   textcolor uilook(uiText), 0 
   printstr tmpstr, xstring(tmpstr, toolbarpos.x), toolbarpos.y + 10, dpage
+ ELSEIF st.editmode = zone_mode AND st.zonesubmode = 1 AND drawing_allowed THEN
+  'Nasty
+  textcolor uilook(uiText), 0 
+  printstr "Tool: Draw", 320 - 81, 22, dpage
  END IF
 
  IF st.editmode = tile_mode THEN
@@ -1370,9 +1389,9 @@ DO
     printstr hilite("+") + "/" + hilite("-") + iif_string(st.tool_value, ": Adding tiles", ": Removing tiles"), 10, 6, dpage, YES
    END IF
 
-   printstr "(" + hilite("M") + ": Edit mode)", 150, 24, dpage, YES
+   printstr "(" + hilite("M") + ": Editing)", 140, 24, dpage, YES
   ELSE
-   printstr "(" + hilite("M") + ": View mode)", 150, 24, dpage, YES
+   printstr "(" + hilite("M") + ": Viewing)", 140, 24, dpage, YES
    IF zonemenustate.pt = -1 THEN zoneselected = NO
   END IF
 
