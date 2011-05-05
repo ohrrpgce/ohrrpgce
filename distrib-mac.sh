@@ -41,9 +41,7 @@ cp -pR OHRRPGCE-Custom.app tmp
 cp -pR OHRRPGCE-Game.app tmp
 #cp -p unlump tmp
 #cp -p relump tmp
-
-echo "  Including hspeak"
-tar -xf mac/utilities.tar.gz -C tmp hspeak
+#tar -xf mac/utilities.tar.gz -C tmp hspeak
 
 echo "  Including support files"
 cp -p plotscr.hsd tmp

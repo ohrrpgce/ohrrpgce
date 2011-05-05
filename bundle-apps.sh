@@ -23,4 +23,5 @@ cp ohrrpgce-custom OHRRPGCE-Custom.app/Contents/MacOS/ &&
 tar xf mac/Frameworks.tar.gz -C OHRRPGCE-Custom.app/Contents &&
 cp -R ohrhelp/*.txt OHRRPGCE-Custom.app/Contents/Resources/ohrhelp &&
 cp ohrrpgce.new OHRRPGCE-Custom.app/Contents/Resources/ &&
+cp mac/Terminal_wrapper.sh OHRRPGCE-Custom.app/Contents/MacOS/support/ &&
 tar xf mac/utilities.tar.gz -C OHRRPGCE-Custom.app/Contents/MacOS/support/ || exit 1

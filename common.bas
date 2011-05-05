@@ -2062,6 +2062,49 @@ FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as string
  'It may be better to pass arguments in an array (the Unix way), so that
  'we can do all the necessary quoting required for Windows here.
 
+#IFDEF __FB_DARWIN__
+
+ basic_textbox "Please wait, running " & trimpath(app), uilook(uiText), vpage
+ setvispage vpage
+
+ 'Wow that's a crazy amount of indirection!
+ 'Running Terminal.app is the only way to get a terminal, but 'open' is for opening a file with an application only,
+ 'so we use an AppleScript script embedded in Terminal_wrapper.sh to run HSpeak
+
+ DIM appname as string = "OHRRPGCE-Custom"
+ DIM term_wrap as string = find_helper_app("Terminal_wrapper.sh")
+ IF term_wrap = "" THEN RETURN missing_helper_message("Terminal_wrapper.sh")
+ 'debug "running """ + term_wrap + " " + appname + " cd " + curdir() + " \; clear \; " + app + " " + args + """"
+ SHELL term_wrap + " " + appname + " cd " + curdir() + " \; clear \; " + app + " " + args
+ RETURN ""
+
+' DIM fh as integer
+' DIM dummyscript as string = tmpdir + "dummyscript" & RND * 10000 & ".sh"
+' fh = FREEFILE
+' OPEN dummyscript FOR OUTPUT AS #fh
+' PRINT #fh, "#!/bin/sh"
+' PRINT #fh, "cd " & curdir()
+' PRINT #fh, "clear"
+' PRINT #fh, app & " " & args
+' PRINT #fh, "echo $? > " & dummyscript
+' CLOSE #fh
+' SHELL "chmod +x " & dummyscript
+'debug !"#!/bin/sh\n" & app & " " & args
+' SHELL "open -W -a Terminal.app " & dummyscript
+''notification "open -a -W -n Terminal.app " & dummyscript
+' DIM exitcode AS INTEGER
+' fh = FREEFILE
+' OPEN dummyscript FOR INPUT AS #fh
+' INPUT #fh, exitcode
+' CLOSE #fh
+' safekill dummyscript
+' IF exitcode THEN
+'  RETURN trimpath(app) + " reported failure."
+' END IF
+' RETURN ""
+
+#ENDIF
+
 #IFDEF __FB_WIN32__
 
  DIM handle AS ProcessHandle
@@ -2101,6 +2144,8 @@ FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as string
  LOOP
 
 #ENDIF
+
+ 'Generic UNIX: xterm is everywhere, isn't it?
 
  'os_* process handling functions only currently implemented on Windows
  SHELL "xterm -bg black -fg gray90 -e """ & app & " " & args & """"
