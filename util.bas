@@ -743,7 +743,7 @@ END FUNCTION
 'Change / to \ in paths on Windows
 FUNCTION normalize_path(filename as string) as string
   DIM ret as string = filename
-#IFDEF __FB_WIN32
+#IFDEF __FB_WIN32__
   FOR i as integer = 0 TO LEN(ret) - 1 
     IF ispathsep(ret[i]) THEN ret[i] = asc(SLASH)
   NEXT
@@ -783,7 +783,7 @@ FUNCTION trimextension (filename as string) as string
   'Periods at the beginning of file/folder names are not counted as beginning an extension
   DIM at as integer = INSTRREV(filename, ".")
   DIM at2 as integer = INSTRREV(filename, "/")
-#IFDEF __FB_WIN32
+#IFDEF __FB_WIN32__
   at2 = large(at2, INSTRREV(filename, "\"))
 #ENDIF
   IF at >= at2 + 2 THEN
@@ -798,7 +798,7 @@ FUNCTION justextension (filename as string) as string
   'Periods at the beginning of file/folder names are not counted as beginning an extension
   DIM at as integer = INSTRREV(filename, ".")
   DIM at2 as integer = INSTRREV(filename, "/")
-#IFDEF __FB_WIN32
+#IFDEF __FB_WIN32__
   at2 = large(at2, INSTRREV(filename, "\"))
 #ENDIF
   IF at >= at2 + 2 THEN
