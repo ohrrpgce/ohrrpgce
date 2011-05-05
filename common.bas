@@ -2082,7 +2082,7 @@ FUNCTION spawn_and_wait (app AS STRING, args AS STRING) as string
  DIM exitcode AS INTEGER
  setkeys
  DO
-  setwait 100
+  setwait 400
   setkeys
   IF process_running(handle, @exitcode) = NO THEN
    cleanup_process @handle
@@ -2175,14 +2175,20 @@ FUNCTION can_convert_wav () AS INTEGER
  RETURN -1 
 END FUNCTION
 
+'There is way too much stuff in this function, would probably be cleaner to remove it
 FUNCTION missing_helper_message (appname as string) as string
  DIM ret as string
  DIM mult as integer = INSTR(appname, " ")
 
- ret = appname + iif_string(mult, " are both missing (only one required).", " is missing.")
+ ret = appname + DOTEXE + iif_string(mult, " are both missing (only one required).", " is missing.")
 
  #IFDEF __FB_WIN32__
-  ret += " Check that it is in the support folder."
+  IF appname = "hspeak" THEN
+   'support/hspeak.exe WILL work, but that's not where we package it
+   ret += " Check that it is in the same folder as custom.exe."
+  ELSE
+   ret += " Check that it is in the support folder."
+  END IF
  #ELSEIF DEFINED(__FB_DARWIN__)
   ret += " This ought to be included inside OHRRPGCE-Custom! Please report this."
  #ELSE
@@ -2192,7 +2198,10 @@ FUNCTION missing_helper_message (appname as string) as string
  'Linux nightly builds are full distributions, while on Windows they are missing much.
  #IF DEFINED(__FB_WIN32__)
   IF version_branch = "wip" THEN
-   ret += CHR(10) + "You are using a nightly build. Did you unzip the nightly on top of a full install of a stable release, as you are meant to? Alternatively, download oggenc+madplay.zip from the nightly ""alternative backends"" folder."
+   ret += CHR(10) + "You are using a nightly build. Did you unzip the nightly on top of a full install of a stable release, as you are meant to?"
+   IF INSTR(appname, "oggenc") OR INSTR(appname, "madplay") THEN
+    ret += " Alternatively, download oggenc+madplay.zip from the nightly ""alternative backends"" folder."
+   END IF
   END IF
  #ENDIF
  RETURN ret

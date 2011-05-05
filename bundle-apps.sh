@@ -23,4 +23,4 @@ cp ohrrpgce-custom OHRRPGCE-Custom.app/Contents/MacOS/ &&
 tar xf mac/Frameworks.tar.gz -C OHRRPGCE-Custom.app/Contents &&
 cp -R ohrhelp/*.txt OHRRPGCE-Custom.app/Contents/Resources/ohrhelp &&
 cp ohrrpgce.new OHRRPGCE-Custom.app/Contents/Resources/ &&
-tar xf mac/utilities.tar.gz --exclude hspeak -C OHRRPGCE-Custom.app/Contents/MacOS/support/ || exit 1
+tar xf mac/utilities.tar.gz -C OHRRPGCE-Custom.app/Contents/MacOS/support/ || exit 1

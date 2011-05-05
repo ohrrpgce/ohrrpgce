@@ -68,6 +68,7 @@ br.snd = -1
 'special=6   any supported SFX (currently *.ogg, *.wav, *.mp3) (fmask is ignored)
 'special=7   RPG files
 'special=8   RELOAD files
+'special=9   script files (.hs, .hss)
 br.mashead = CHR(253) & CHR(13) & CHR(158) & CHR(0) & CHR(0) & CHR(0) & CHR(6)
 br.paledithead = CHR(253) & CHR(217) & CHR(158) & CHR(0) & CHR(0) & CHR(7) & CHR(6)
 
@@ -306,6 +307,12 @@ SUB browse_hover(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    br.alert = tree(br.treeptr).about
   CASE 8 'reload
    br.alert = tree(br.treeptr).about
+  CASE 9 'scripts
+   IF LCASE(justextension(tree(br.treeptr).filename)) = "hss" THEN
+    br.alert = "HamsterSpeak scripts"
+   ELSE
+    br.alert = "Compiled HamsterSpeak scripts"
+   END IF
  END SELECT
  IF tree(br.treeptr).kind = 0 THEN br.alert = "Drive"
  IF tree(br.treeptr).kind = 1 THEN br.alert = "Directory"
@@ -630,6 +637,9 @@ SUB build_listing(tree() AS BrowseMenuEntry, BYREF br AS BrowseMenuState)
    browse_add_files "*.slice", filetype, br, tree()
    browse_add_files "*.rsav", filetype, br, tree()
    browse_add_files "*.editor", filetype, br, tree()
+  ELSEIF br.special = 9 THEN
+   browse_add_files "*.hs", filetype, br, tree()
+   browse_add_files "*.hss", filetype, br, tree()
   ELSE
    browse_add_files br.fmask, filetype, br, tree()
   END IF

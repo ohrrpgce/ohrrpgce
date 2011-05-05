@@ -84,6 +84,8 @@ Apr ?? 2011 [Zenzizenzic]
     * Attack maximum Extra Damage raised to 32767%
     * You can customise the amount of experience given to heroes not
       in the active party in the Battle System Options menu [Ralph]
+    * Import .hss files in Custom, and they will be automatically
+      compiled with hspeak [Ralph]
 
   * Bugfixes
     * Bug 749: Attacks configured to do No Damage still do damage when

@@ -36,6 +36,7 @@ END TYPE
 #include "scrconst.bi"
 
 '--Local subs and functions
+DECLARE FUNCTION compilescripts (fname as string) as string
 DECLARE SUB writeconstant (filehandle%, num%, names AS STRING, unique() AS STRING, prefix$)
 DECLARE FUNCTION isunique (s AS STRING, set() AS STRING) AS INTEGER
 DECLARE SUB exportnames ()
@@ -416,10 +417,10 @@ DIM menu(5) as string
 
 menumax = 4
 menu(0) = "Previous Menu"
-menu(1) = "export names for scripts (.hsi)"
-menu(2) = "import compiled plotscripts (.hs)"
-menu(3) = "check where scripts are used..."
-menu(4) = "find broken script triggers..."
+menu(1) = "Export names for scripts (.hsi)"
+menu(2) = "Compile and/or Import scripts (.hss/.hs)"
+menu(3) = "Check where scripts are used..."
+menu(4) = "Find broken script triggers..."
 
 pt = 0
 setkeys
@@ -437,9 +438,19 @@ DO
    CASE 1
     exportnames
    CASE 2
-    f$ = browse(0, defaultdir, "*.hs", "",, "browse_hs")
+    f$ = browse(9, defaultdir, "", "",, "browse_hs")
     IF f$ <> "" THEN
-     importscripts f$
+     IF justextension(f$) <> "hs" THEN
+      clearkey scEnter
+      clearkey scSpace
+      f$ = compilescripts(f$)
+      IF f$ <> "" THEN
+       importscripts f$
+      END IF
+      safekill f$  'reduce clutter
+     ELSE
+      importscripts f$
+     END IF
     END IF
    CASE 3
     script_usage_list()
@@ -459,6 +470,33 @@ END SUB
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+
+'Returns filename of .hs file
+FUNCTION compilescripts(fname as string) as string
+ DIM as string outfile, hspeak, errmsg, flags
+ hspeak = find_helper_app("hspeak")
+ IF hspeak = "" THEN
+  notification missing_helper_message("hspeak")
+  RETURN ""
+ END IF
+ outfile = trimextension(fname) + ".hs"
+ safekill outfile
+#IFDEF __FB_WIN32__
+ 'Wait for keys
+ flags = "-y "
+#ELSE
+ 'Don't wait for keys
+ 'Note: for different reasons on OSX and other unices: on OSX, this runs Terminal
+ flags = "-y "  'FIXME
+#ENDIF
+ errmsg = spawn_and_wait(hspeak, flags + simplify_path_further(fname, curdir))
+ IF LEN(errmsg) THEN
+  notification errmsg
+  RETURN ""
+ END IF
+ RETURN outfile
+END FUNCTION
 
 SUB text_box_editor () 'textage
  DIM menu(10) AS STRING

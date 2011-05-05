@@ -7,12 +7,17 @@ The script management menu allows you to access some tasks and tools related to 
   typically necessary for writing
   your plotscripts.
 
-* "Import compiled plotscripts (.hs)"
-  imports a file of compiled scripts
-  produced by HSpeak. This overwrites
-  any existing scripts - you must
-  compile and import them all at
-  once.
+* "Compile and/or Import plotscripts
+   (.hss/.hs)"
+  Imports scripts. Provided HSpeak
+  is where it's expected to be, it's
+  not necessary anymore to manually
+  compile your scripts using HSpeak.
+  This overwrites any existing
+  scripts - you must put them all in
+  the same file (or 'include' them
+  all in the same file) and import
+  them all at once.
 
 * "Check where scripts are used"
   produces a list of all the places
