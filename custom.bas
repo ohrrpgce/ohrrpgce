@@ -177,20 +177,21 @@ END IF
  IF MID$(sourcerpg, 1, 1) <> SLASH THEN sourcerpg = curdir$ + SLASH + sourcerpg
 #ENDIF
 a$ = trimfilename(sourcerpg)
+
+end_debug
 IF a$ <> "" ANDALSO diriswriteable(a$) THEN
  CHDIR a$
 END IF
 'otherwise, keep current directory as it was, net effect: it is the same as in Game
 
-'For getdisplayname
-copylump sourcerpg, "archinym.lmp", workingdir, -1
-
-end_debug
 start_new_debug
 debuginfo long_version & build_info
 debuginfo "Runtime info: " & gfxbackendinfo & "  " & musicbackendinfo & "  " & systeminfo
-debuginfo "Editing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 
+'For getdisplayname
+copylump sourcerpg, "archinym.lmp", workingdir, -1
+
+debuginfo "Editing game " & sourcerpg & " (" & getdisplayname(" ") & ") " & DATE & " " & TIME
 setwindowtitle "O.H.R.RPG.C.E - " + trimpath(sourcerpg)
 
 '--set game according to the archinym
