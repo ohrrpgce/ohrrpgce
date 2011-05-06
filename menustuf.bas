@@ -1074,11 +1074,11 @@ FUNCTION hero_elemental_resist_msg (element AS STRING, damage AS SINGLE) AS STRI
  IF ABS(damage) < 0.000005 THEN
   raw = readglobalstring(168, "Immune to $E", 30)
  ELSEIF damage < 0.0 THEN
-  raw = readglobalstring(171, "Absorbs $A damage from $E", 30)
+  raw = readglobalstring(171, "Absorb $E", 30)
  ELSEIF damage < 1.0 THEN
-  raw = readglobalstring(165, "$D damage from $E", 30)
+  raw = readglobalstring(165, "Strong to $E", 30)
  ELSEIF damage > 1.0 THEN
-  raw = readglobalstring(162, "$D damage from $E", 30)
+  raw = readglobalstring(162, "Weak to $E", 30)
  END IF
  'No message for 100% damage
  replacestr raw, "$E", element

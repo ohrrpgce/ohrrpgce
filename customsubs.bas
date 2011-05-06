@@ -3051,10 +3051,10 @@ SUB edit_global_text_strings()
  GTS_menu_header menu, "Status Second Screen:"
  GTS_add_to_menu menu, "Elemental Effects Title",    302, "Elemental Effects:", 30
  GTS_add_to_menu menu, "No Elemental Effects",       130, "No Elemental Effects", 30
- GTS_add_to_menu menu, "Takes > 100% element dmg",   162, "$D damage from $E", 25,          "elemental_resist"
- GTS_add_to_menu menu, "Takes 0 to 100% element dmg",165, "$D damage from $E", 25,          "elemental_resist"
- GTS_add_to_menu menu, "Takes 0% element dmg",       168, "Immune to $E", 25,               "elemental_resist"
- GTS_add_to_menu menu, "Takes < 0% element dmg",     171, "Absorbs $A damage from $E", 25,  "elemental_resist"
+ GTS_add_to_menu menu, "Takes > 100% element dmg",   162, "Weak to $E", 25,   "elemental_resist"
+ GTS_add_to_menu menu, "Takes 0 to 100% element dmg",165, "Strong to $E", 25, "elemental_resist"
+ GTS_add_to_menu menu, "Takes 0% element dmg",       168, "Immune to $E", 25, "elemental_resist"
+ GTS_add_to_menu menu, "Takes < 0% element dmg",     171, "Absorb $E", 25,   "elemental_resist"
 
  GTS_menu_header menu, "Equip Menu:"
  GTS_add_to_menu menu, "Equip Nothing (unequip)",    110, "Nothing", 10
