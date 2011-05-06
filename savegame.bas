@@ -1725,6 +1725,10 @@ FOR i = 0 TO 40
    gam.hero(i).pal = her.walk_sprite_pal
    gam.hero(i).def_wep = her.def_weapon + 1'default weapon
   END IF
+
+  FOR j = 0 TO gen(genNumElements) - 1
+   gam.hero(i).elementals(j) = her.elementals(j)
+  NEXT
  END IF
 NEXT i
 
