@@ -1,6 +1,6 @@
 WHAT IS NEW?
 
-Apr ?? 2011 [Zenzizenzic]
+May 6 2011 [Zenzizenzic]
 
   * New Features
     * Ported  to Mac OS X! (Intel Macs only) [Ralph]
