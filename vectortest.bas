@@ -1,3 +1,4 @@
+#include "config.bi"
 #include "util.bi"
 
 OPTION EXPLICIT
