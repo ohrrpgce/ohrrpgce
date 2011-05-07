@@ -947,7 +947,7 @@ FUNCTION parentdir (path as string, BYVAL upamount as integer = 1) as string
   FOR i as integer = 0 TO upamount - 1
    pathname += ".." + SLASH
   NEXT
-  RETURN simplify_path(pathname)
+  RETURN simplify_path(pathname) + SLASH
 END FUNCTION
 
 FUNCTION anycase (filename as string) as string
