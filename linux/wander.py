@@ -6,9 +6,9 @@ from ohr_debian import *
 
 package_name = "wandering-hamster"
 maintainer = '"James Paige" <ohrrpgce@lists.motherhamster.org>'
-depends = "ohrrpgce (>=2010.01)"
+depends = "ohrrpgce (>=2011.04)"
 
-prefix = "../../games/wander/"
+prefix = "../../../games/wander/"
 relump(prefix + "wander.rpgdir", "wander.rpg")
 files = [
   "wander.rpg",
