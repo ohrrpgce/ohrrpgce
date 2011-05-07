@@ -24,11 +24,11 @@ global constant failure=-1
 --globals--
 global integer PATH_SLASH
 
-if platform()=LINUX then  --yes, believe it or not, HSPEAK can be compiled to run on Linux
-  PATH_SLASH='/'
-else
+ifdef WINDOWS then
   PATH_SLASH='\\'  
-end if
+elsedef
+  PATH_SLASH='/'
+end ifdef
 
 --redundant to the standard upper() and lower() functions I know, but I
 --use them constantly, and almost never use the other wildcard functs.
@@ -209,11 +209,11 @@ end function
 
 --normalise a pathname to use the platform specific path delimiter--
 global function normalize_filename(sequence s)
-  if platform()=LINUX then
-    return filenamix(s)
-  else
+  ifdef WINDOWS then
     return filenamos(s)
-  end if
+  elsedef
+    return filenamix(s)
+  end ifdef
 end function
 
 --extract only portion of a string after the last of a delimiter--
