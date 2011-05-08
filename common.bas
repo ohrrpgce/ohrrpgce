@@ -2446,6 +2446,7 @@ END FUNCTION
 
 SUB updaterecordlength (lumpf AS STRING, BYVAL bindex AS INTEGER, BYVAL headersize AS INTEGER = 0, BYVAL repeating AS INTEGER = NO)
 'If the length of records in this lump has changed (increased) according to binsize.bin, stretch it, padding records with zeroes.
+'Note: does not create a lump if it doesn't exist.
 'Pass 'repeating' as true when more than one lump with this bindex exists.
 ''headersize' is the number of bytes before the first record.
 
@@ -2456,7 +2457,8 @@ IF getbinsize(bindex) < curbinsize(bindex) THEN
 
  upgrade_message trimpath(lumpf) & " record size = " & newsize
 
- IF oldsize > 0 THEN ' Only bother to do this for records of nonzero size
+ 'Only bother to do this for records of nonzero size (this implies the file doesn't exist, right?)
+ IF oldsize > 0 ANDALSO isfile(lumpf) THEN
 
   DIM tempf AS STRING = lumpf & ".resize.tmp"
 
@@ -2981,7 +2983,6 @@ IF NOT isfile(workingdir + SLASH + "menuitem.bin") THEN
  SaveMenuData menu_set, menu, 0
  ClearMenuData menu
 END IF
-updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 updaterecordlength game & ".say", binSAY
 updaterecordlength game & ".dt0", binDT0
 updaterecordlength game & ".dt1", binDT1
@@ -2991,6 +2992,13 @@ FOR i = 0 TO gen(genMaxMap)
  updaterecordlength maplumpname(i, "n"), binN, 7, YES
 NEXT
 setbinsize binN, curbinsize(binN)
+
+'If you want to add more colours to uicolors.bin, you'll want to record what the old
+'record length was (one record per palette), then updaterecordlength, then fill in
+'the new colours, which start zeroed out.
+'However, if uicolors.bin is completely empty/missing, then just let the block below
+'initialise the lump.
+updaterecordlength workingdir + SLASH + "uicolors.bin", binUICOLORS
 
 '--give each palette a default ui color set
 DIM uirecords AS INTEGER = FILELEN(workingdir + SLASH + "uicolors.bin") \ getbinsize(binUICOLORS)
