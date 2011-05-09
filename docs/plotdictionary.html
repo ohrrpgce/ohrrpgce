@@ -548,6 +548,12 @@
 		<a href="#about-gameover">game over</a><br>
 		
 	
+		<a href="#about-get%20zone%20extra">get zone extra (zone id, extra num)</a><br>
+		
+	
+		<a href="#about-get%20zone%20name">get zone name (string id, zone id)</a><br>
+		
+	
 		<a href="#about-getambientmusic">get ambient music</a><br>
 		
 	
@@ -794,6 +800,9 @@
 		<a href="#about-getspritesetnumber">get sprite set number (handle)</a><br>
 		
 	
+		<a href="#about-getspritetrans">get sprite trans (handle)</a><br>
+		
+	
 		<a href="#about-getspritetype">get sprite type (handle)</a><br>
 		
 	
@@ -839,6 +848,9 @@
 		
 		<a href="#about-tileconstants">harm tile</a><br>
 	
+		<a href="#about-herobaseelementalresistasint">hero base elemental resist as int (who, element)</a><br>
+		
+	
 		<a href="#about-herobyrank">hero by rank (where)</a><br>
 		
 	
@@ -861,6 +873,9 @@
 		
 	
 		<a href="#about-heropixely">hero pixel Y (who)</a><br>
+		
+	
+		<a href="#about-herototalelementalresistasint">hero total elemental resist as int (who, element)</a><br>
 		
 	
 		<a href="#about-herox">hero X (who)</a><br>
@@ -972,6 +987,9 @@
 		
 	
 		<a href="#about-loadattacksprite">load attack sprite (num, palette)</a><br>
+		
+	
+		<a href="#about-loadbackdropsprite">load backdrop sprite (num)</a><br>
 		
 	
 		<a href="#about-loadbordersprite">load border sprite (num, palette)</a><br>
@@ -1325,6 +1343,9 @@
 		<a href="#about-replaceattacksprite">replace attack sprite (handle, num, palette)</a><br>
 		
 	
+		<a href="#about-replacebackdropsprite">replace backdrop sprite (handle, num)</a><br>
+		
+	
 		<a href="#about-replacebordersprite">replace border sprite (handle, num, palette)</a><br>
 		
 	
@@ -1457,6 +1478,9 @@
 		<a href="#about-selectmenuitem">select menu item(menu item handle)</a><br>
 		
 	
+		<a href="#about-set%20zone%20extra">set zone extra (zone id, extra num, value)</a><br>
+		
+	
 		<a href="#about-setambientmusic">set ambient music (song)</a><br>
 		
 	
@@ -1530,6 +1554,9 @@
 		
 	
 		<a href="#about-setharmtileflash">set harm tile flash (color)</a><br>
+		
+	
+		<a href="#about-setherobaseelementalresist">set hero base elemental resist (who, element, percent)</a><br>
 		
 	
 		<a href="#about-setherodirection">set hero direction (who, direction)</a><br>
@@ -1787,6 +1814,9 @@
 		<a href="#about-setspritepalette">set sprite palette (handle, num)</a><br>
 		
 	
+		<a href="#about-setspritetrans">set sprite trans (handle, drawtransparent)</a><br>
+		
+	
 		
 		<a href="#about-setslicevisible">set sprite visible</a><br>
 	
@@ -1946,8 +1976,8 @@
 		<a href="#about-spellslearned">spells learned (hero,number)</a><br>
 		
 	
+		<a href="#about-spellslearnt">spells learnt (hero,number)</a><br>
 		
-		<a href="#about-spellslearned">spells learnt</a><br>
 	
 		<a href="#about-spellsmenu">spells menu (who)</a><br>
 		
@@ -3255,9 +3285,12 @@ resume box advance # go back to normal</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">show backdrop (number)</font></b><br>
-			displays the specified full screen backdrop on the screen. This allows you to show full screen pictures without attaching them to text boxes. You can also do some simple animation effects by calling show backdrop many times with <a href="#about-wait" class="ref">wait</a> commands in between.<br>
+			Displays the specified full screen backdrop on the screen. This allows you to show full screen pictures without attaching them to text boxes. You can also do some simple animation effects by calling show backdrop many times with <a href="#about-wait" class="ref">wait</a> commands in between. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">It's also possible to display backdrops as sprite slices.<br clear="all">
+</div>
+<br>
 			
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a></li></ul>
 		</tt></p>
 		<a name="about-showmap"></a>
 		<p>
@@ -3480,7 +3513,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">give experience (hero,amount)</font></b><br>
-			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whole active party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole battle party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearned" class="ref">spells learnt</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporially raise the cap using <a href="#about-setlevelcap" class="ref">set level cap</a> to get around this.<br>
+			Gives experience to either a hero by position in party (use result returned by <a href="#about-findhero" class="ref">find hero</a> command) or the whol party, if the constant <a href="#about-party" class="ref">party</a> is passed as first argument. If you give experience to the whole party, then it will be split amongst the heroes as it is in battle; dead heroes get experience depending on whether the "Dead heroes gain share of experience" general bitset is set, and swapped out heroes gain according to the options in the Battle System Options menu. This command can cause heroes to level up and learn spells but does not inform the player or trigger any effects. See <a href="#about-herolevelled" class="ref">hero levelled</a> and <a href="#about-spellslearned" class="ref">spells learned</a> for dealing with this. You should use <a href="#about-setexperience" class="ref">set experience</a> to remove experience in a way that allows delevelling. You can't give experience to heroes with level equal to or greater than the level cap (which is 99 usually), though you can temporially raise the cap using <a href="#about-setlevelcap" class="ref">set level cap</a> to get around this.<br>
 			
 			
 		</tt></p>
@@ -3954,15 +3987,16 @@ end</pre>
 		<a name="about-spellslearnt"></a>
 		<p>
 		<tt>
-		
-				<b><font color="yellow">spells learnt</font></b><br>
-				See <a href="#about-spellslearned">spells learned</a>
-			</tt></p>
+		<b><font color="yellow">spells learnt (hero,number)</font></b><br>
+			This is deprecated, do not use it. It is identical to <a href="#about-spellslearned" class="ref">spells learned</a> except it returns the id numbers of spells, instead of the id numbers +1. The attack constants exported in your .hsi file are all +1 the attack IDs in Custom.<br>
+			
+			
+		</tt></p>
 		<a name="about-spellslearned"></a>
 		<p>
 		<tt>
 		<b><font color="yellow">spells learned (hero,number)</font></b><br>
-			Returns the id numbers (+1) of spells the hero learned from the last battle (for heroes in the active battle party) or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that involved this hero. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
+			Returns the id numbers (+1) of spells the hero learned from the last battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted either this hero or the whole party. If the second argument is <a href="#about-getcount" class="ref">get count</a> then the number of spells that the hero learned is returned. Pass 0 for number to get the first spell learnt, 1 the second, etc. You can use a loop and strings to list to the player all the spells a hero learned:
 			<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">If you want to use this command with attack ID numbers, you must add 1 to the ID number.<br clear="all">
 </div>
@@ -3987,7 +4021,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">update level up learning(who, allowforget)</font></b><br>
-			Update a hero to make sure they know the spells they are supposed to have learned for their current level. The <span class="param">who</span> is the hero's position in the battle party. You can optionally pass <a href="#about-booleanconstants" class="ref">false</a> as the <span class="param">allowforget</span> argument if you want to make sure the hero will not forget any spells that they are not supposed to know yet. This spell is most useful for situations where you are manipulating the heros level, and for some reason do not want to use <a href="#about-setherolevel" class="ref">set hero level</a> which automatically handles learning. This command can also be handy when playtesting a game in progress, since it can be used to make sure that heroes loaded from a saved-game will learn spells that did not exist yet at the time when they got their last level-ups.<br>
+			Update a hero to make sure they know the spells they are supposed to have learned for their current level. The <span class="param">who</span> is the hero's position in the battle party. You can optionally pass <a href="#about-booleanconstants" class="ref">false</a> as the <span class="param">allowforget</span> argument if you want to make sure the hero will not forget any spells that they are not supposed to know yet. This command is most useful for situations where you are manipulating the hero's level, and for some reason do not want to use <a href="#about-setherolevel" class="ref">set hero level</a> which automatically handles spell learning. This command can also be handy when playtesting a game in progress, since it can be used to make sure that heroes loaded from a saved-game will learn spells that did not exist yet at the time when they got their last level-ups.<br>
 			
 			
 		</tt></p>
@@ -5053,7 +5087,7 @@ set menu on close script(m, @my menu exit handler)
 		<tt>
 		<b><font color="yellow">load hero sprite (num, palette)</font></b><br>
 			Loads hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceherosprite" class="ref">replace hero sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceherosprite" class="ref">replace hero sprite</a>!<br clear="all">
 </div>
 <br>
 			
@@ -5067,7 +5101,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">replace hero sprite (handle, num, palette)</font></b><br>
-			Loads hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadherosprite" class="ref">load hero sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Given an existing sprite <span class="param">handle</span>, changes it to hero battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadherosprite" class="ref">load hero sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadherosprite" class="ref">load hero sprite</a>.<br clear="all">
 </div>
 <br>
@@ -5083,7 +5117,7 @@ set menu on close script(m, @my menu exit handler)
 		<tt>
 		<b><font color="yellow">load walkabout sprite (num, palette)</font></b><br>
 			Loads walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacewalkaboutsprite" class="ref">replace walkabout sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacewalkaboutsprite" class="ref">replace walkabout sprite</a>!<br clear="all">
 </div>
 <br>
 			
@@ -5097,7 +5131,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">replace walkabout sprite (handle, num, palette)</font></b><br>
-			Loads walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Given an existing sprite <span class="param">handle</span>, changes it to walkabout sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadwalkaboutsprite" class="ref">load walkabout sprite</a>.<br clear="all">
 </div>
 <br>
@@ -5113,7 +5147,7 @@ set menu on close script(m, @my menu exit handler)
 		<tt>
 		<b><font color="yellow">load small enemy sprite (num, palette)</font></b><br>
 			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacesmallenemysprite" class="ref">replace small enemy sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacesmallenemysprite" class="ref">replace small enemy sprite</a>!<br clear="all">
 </div>
 <br>
 			
@@ -5127,7 +5161,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">replace small enemy sprite (handle, num, palette)</font></b><br>
-			Loads small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Given an existing sprite <span class="param">handle</span>, changes it to small enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadsmallenemysprite" class="ref">load small enemy sprite</a>.<br clear="all">
 </div>
 <br>
@@ -5143,7 +5177,7 @@ set menu on close script(m, @my menu exit handler)
 		<tt>
 		<b><font color="yellow">load medium enemy sprite (num, palette)</font></b><br>
 			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacemediumenemysprite" class="ref">replace medium enemy sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacemediumenemysprite" class="ref">replace medium enemy sprite</a>!<br clear="all">
 </div>
 <br>
 			
@@ -5157,7 +5191,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">replace medium enemy sprite (handle, num, palette)</font></b><br>
-			Loads medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Given an existing sprite <span class="param">handle</span>, changes it to medium enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadmediumenemysprite" class="ref">load medium enemy sprite</a>.<br clear="all">
 </div>
 <br>
@@ -5173,7 +5207,7 @@ set menu on close script(m, @my menu exit handler)
 		<tt>
 		<b><font color="yellow">load large enemy sprite (num, palette)</font></b><br>
 			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacelargeenemysprite" class="ref">replace large enemy sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacelargeenemysprite" class="ref">replace large enemy sprite</a>!<br clear="all">
 </div>
 <br>
 			
@@ -5187,7 +5221,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">replace large enemy sprite (handle, num, palette)</font></b><br>
-			Loads large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Given an existing sprite <span class="param">handle</span>, changes it to large enemy sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadlargeenemysprite" class="ref">load large enemy sprite</a>.<br clear="all">
 </div>
 <br>
@@ -5203,7 +5237,7 @@ set menu on close script(m, @my menu exit handler)
 		<tt>
 		<b><font color="yellow">load attack sprite (num, palette)</font></b><br>
 			Loads attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceattacksprite" class="ref">replace attack sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceattacksprite" class="ref">replace attack sprite</a>!<br clear="all">
 </div>
 <br>
 			
@@ -5217,7 +5251,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">replace attack sprite (handle, num, palette)</font></b><br>
-			Loads attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadattacksprite" class="ref">load attack sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Given an existing sprite <span class="param">handle</span>, changes it to attack battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadattacksprite" class="ref">load attack sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadattacksprite" class="ref">load attack sprite</a>.<br clear="all">
 </div>
 <br>
@@ -5233,7 +5267,7 @@ set menu on close script(m, @my menu exit handler)
 		<tt>
 		<b><font color="yellow">load weapon sprite (num, palette)</font></b><br>
 			Loads weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceweaponsprite" class="ref">replace weapon sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceweaponsprite" class="ref">replace weapon sprite</a>!<br clear="all">
 </div>
 <br>
 			
@@ -5247,7 +5281,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">replace weapon sprite (handle, num, palette)</font></b><br>
-			Loads weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadweaponsprite" class="ref">load weapon sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Given an existing sprite <span class="param">handle</span>, changes it to weapon battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadweaponsprite" class="ref">load weapon sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadweaponsprite" class="ref">load weapon sprite</a>.<br clear="all">
 </div>
 <br>
@@ -5263,7 +5297,7 @@ set menu on close script(m, @my menu exit handler)
 		<tt>
 		<b><font color="yellow">load border sprite (num, palette)</font></b><br>
 			Loads border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebordersprite" class="ref">replace border sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebordersprite" class="ref">replace border sprite</a>!<br clear="all">
 </div>
 <br>
 			
@@ -5277,7 +5311,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">replace border sprite (handle, num, palette)</font></b><br>
-			Loads border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadbordersprite" class="ref">load border sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Given an existing sprite <span class="param">handle</span>, changes it to border battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadbordersprite" class="ref">load border sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadbordersprite" class="ref">load border sprite</a>.<br clear="all">
 </div>
 <br>
@@ -5293,7 +5327,7 @@ set menu on close script(m, @my menu exit handler)
 		<tt>
 		<b><font color="yellow">load portrait sprite (num, palette)</font></b><br>
 			Loads portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>, and returns a handle. You may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
-<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">Do not load a sprite onto another sprite that has not been freed. Either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceportraitsprite" class="ref">replace portrait sprite</a>!<br clear="all">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replaceportraitsprite" class="ref">replace portrait sprite</a>!<br clear="all">
 </div>
 <br>
 			
@@ -5307,7 +5341,7 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">replace portrait sprite (handle, num, palette)</font></b><br>
-			Loads portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span> into sprite <span class="param">handle</span>. As with <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the sprite, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+			Given an existing sprite <span class="param">handle</span>, changes it to portrait battle sprite #<span class="param">num</span> with palette <span class="param">palette</span>. As with <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>, you may omit <span class="param">palette</span>, in which case the default palette for that sprite will be loaded. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>.<br clear="all">
 </div>
 <br>
@@ -5315,6 +5349,38 @@ set menu on close script(m, @my menu exit handler)
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-loadportraitsprite" class="ref">load portrait sprite</a>, </li>
+<li><a href="#about-freesprite" class="ref">free sprite</a></li>
+</ul>
+		</tt></p>
+		<a name="about-loadbackdropsprite"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">load backdrop sprite (num)</font></b><br>
+			Loads backdrop #<span class="param">num</span> as a sprite, and returns a handle. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#FFE;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/d/dc/Plotwarn.png" alt="[Warning]" class="icon">If you want to replace an existing sprite (or other slice) either use <a href="#about-freesprite" class="ref">free sprite</a> first, or use <a href="#about-replacebackdropsprite" class="ref">replace backdrop sprite</a>!<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-showbackdrop" class="ref">show backdrop</a>, </li>
+<li>
+<a href="#about-replacebackdropsprite" class="ref">replace backdrop sprite</a>, </li>
+<li><a href="#about-freesprite" class="ref">free sprite</a></li>
+</ul>
+		</tt></p>
+		<a name="about-replacebackdropsprite"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">replace backdrop sprite (handle, num)</font></b><br>
+			Given an existing sprite <span class="param">handle</span>, changes it to backdrop #<span class="param">num</span>. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done. This function is used when you merely wish to change the image, but not move it or anything. You must free it with <a href="#about-freesprite" class="ref">free sprite</a> when you are done.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">You may use this on any sprite, not just ones loaded with <a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a>.<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-loadbackdropsprite" class="ref">load backdrop sprite</a>, </li>
 <li><a href="#about-freesprite" class="ref">free sprite</a></li>
 </ul>
 		</tt></p>
@@ -5334,13 +5400,9 @@ set menu on close script(m, @my menu exit handler)
 		<p>
 		<tt>
 		<b><font color="yellow">clone sprite (handle)</font></b><br>
-			Returns a new handle to a duplicate of a sprite. If you clone a sprite, remember that you will need to call <a href="#about-freesprite" class="ref">free sprite</a> on both the original and the clone.<br>
+			Duplicates a sprite slice, returning a handle to it. The new sprite inherits only the sprite-related data; in all other ways it is like a freshly created new slice. For example, the parent is <a href="#about-spritelayer" class="ref">sprite layer</a> and the new slice starts visible, with default anchoring, is at position 0,0, has no children, etc.. If you clone a sprite, remember that you will need to call <a href="#about-freesprite" class="ref">free sprite</a> on both the original and the clone.<br>
 			
-			<br>See also: <ul class="seealso">
-<li>
-<a href="#about-loadherosprite" class="ref">load hero sprite</a>, </li>
-<li><a href="#about-freesprite" class="ref">free sprite</a></li>
-</ul>
+			<br>See also: <ul class="seealso"><li><a href="#about-freesprite" class="ref">free sprite</a></li></ul>
 		</tt></p>
 		<a name="about-putsprite"></a>
 		<p>
@@ -5512,6 +5574,22 @@ end
 <li><a href="#about-spriteishorizflipped" class="ref">sprite is horiz flipped</a></li>
 </ul>
 		</tt></p>
+		<a name="about-getspritetrans"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get sprite trans (handle)</font></b><br>
+			Given a sprite slice <span class="param">handle</span>, returns true if the sprite is drawn with transparency (that is, color 0 is transparent). All sprites default to transparent.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-setspritetrans" class="ref">set sprite trans</a></li></ul>
+		</tt></p>
+		<a name="about-setspritetrans"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set sprite trans (handle, drawtransparent)</font></b><br>
+			Given a sprite slice <span class="param">handle</span>, sets whether it should be drawn with transparency (that is, color 0 is transparent). All sprites default to transparent, so you are unlikey to have any use for this command.<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-getspritetrans" class="ref">get sprite trans</a></li></ul>
+		</tt></p>
 
 		<hr>
 	
@@ -5567,6 +5645,7 @@ lookup slice(sl:script layer)
 lookup slice(sl:textbox layer)
 lookup slice(sl:string layer)
 lookup slice(sl:maproot)
+lookup slice(sl:obsolete overhead)
 lookup slice(sl:map layer0)
 lookup slice(sl:map layer1)
 lookup slice(sl:map layer2)
@@ -5984,9 +6063,11 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">center slice (handle)</font></b><br>
-			A quick way to center the alignment and the anchor of a slice with a single command.<br>
+			A quick way to center the alignment and the anchor of a slice with a single command. Equivalent to <span class="param">realign slice(handle, edge:center, edge:center, edge:middle, edge:middle)</span>.<br>
 			
 			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-realignslice" class="ref">realign slice</a>, </li>
 <li>
 <a href="#about-sethorizalign" class="ref">set horiz align</a>, </li>
 <li>
@@ -7100,6 +7181,9 @@ end
 			Sets whether the tile at (<span class="param">x,y</span>) is part of the specified zone. <span class="param">zone id</span> is an ID number from 1 to 9999, and <span class="param">value</span> is intrepreted as either <span class="param">true</span> (non-zero) or <span class="param">false</span> (zero).<div style="background-color:#EFF;" class="note">
 <img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Only up to 15 zones may overlap at each tile. If you try to place 16 zones at one tile, write zone will fail, returning <a href="#about-booleanconstants" class="ref">false</a>. Normally it returns <a href="#about-booleanconstants" class="ref">true</a>. If you choose to "Show all warnings" in General Game Settings in Custom, you will also get a warning message.<br clear="all">
 </div>
+<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.<br clear="all">
+</div>
 <br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-readzone" class="ref">read zone</a></li></ul>
@@ -7126,6 +7210,33 @@ end
 <br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-readzone" class="ref">read zone</a></li></ul>
+		</tt></p>
+		<a name="about-get%20zone%20name"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get zone name (string id, zone id)</font></b><br>
+			Places in the string with id number <span class="param">string id</span> the name of zone <span class="param">zone id</span> (from 1 to 9999).<br>
+			
+			
+		</tt></p>
+		<a name="about-get%20zone%20extra"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get zone extra (zone id, extra num)</font></b><br>
+			Returns the value in a zone's "extra data" field numbered <span class="param">extra num</span>, which is a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them. You can set a zone's extra data in the Zone Info editor.<br>
+			
+			
+		</tt></p>
+		<a name="about-set%20zone%20extra"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set zone extra (zone id, extra num, value)</font></b><br>
+			Sets the value of a zone's "extra data" field numbered <span class="param">extra num</span>, which is a number from 0 to 2. You may use the constants <span class="param">extra 0</span>, <span class="param">extra 1</span> and <span class="param">extra 2</span> to refer to them.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Changes to zones are not stored in saved games, and are erased when you leave the map unless "Tile Data State" is saved when leaving in the General Map Data settings.<br clear="all">
+</div>
+<br>
+			
+			
 		</tt></p>
 		<a name="about-zonenumberoftiles"></a>
 		<p>
@@ -7713,7 +7824,7 @@ end
 		<p>
 		<tt>
 		<b><font color="yellow">hero levelled (who)</font></b><br>
-			Returns the number of levels the specified hero gained. <span class="param">who</span> is the hero's position in the battle party. If you want to use <span class="param">hero:Name</span> you should use <a href="#about-findhero" class="ref">find hero</a>. This command only applies to the most recent battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted this hero (or the active battle party if the hero is in it) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:<br>
+			Returns the number of levels the specified hero gained. <span class="param">who</span> is the hero's position in the battle party. If you want to use <span class="param">hero:Name</span> you should use <a href="#about-findhero" class="ref">find hero</a>. This command only applies to the most recent battle or <a href="#about-giveexperience" class="ref">give experience</a>, <a href="#about-setherolevel" class="ref">set hero level</a> or <a href="#about-setexperience" class="ref">set experience</a> command that targetted either this hero (or who party) - levels gained from previous battles or commands are forgotten. If the hero lost levels, the result is negative. In other words, this does not return true or false, but can be be used in an if statement like:<br>
 			<pre>give experience (party, 50)
 if (herolevelled (find hero (hero: Bob))) then (
   $31="Bob gained "
@@ -9118,7 +9229,7 @@ end</pre>
 <li>
 <a href="#about-herolevelled" class="ref">hero levelled</a>, </li>
 <li>
-<a href="#about-spellslearned" class="ref">spells learnt</a>, </li>
+<a href="#about-spellslearnt" class="ref">spells learnt</a>, </li>
 <li><a href="#about-setexperience" class="ref">set experience</a></li>
 </ul>
 		</tt></p>
@@ -9135,7 +9246,7 @@ end</pre>
 <a href="#about-totalexperience" class="ref">total experience</a>, </li>
 <li>
 <a href="#about-herolevelled" class="ref">hero levelled</a>, </li>
-<li><a href="#about-spellslearned" class="ref">spells learnt</a></li>
+<li><a href="#about-spellslearned" class="ref">spells learned</a></li>
 </ul>
 		</tt></p>
 		<a name="about-getlevelmp"></a>
@@ -9153,6 +9264,43 @@ end</pre>
 			Changes a hero's level MP (FF1-style MP). The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">mp level slot</span> is a number from 0 to 7 that represents a row of spells in the hero's spell list. The argument <span class="param">new value</span> is the new number of level MP points. Each point represents one spell from that row.<br>
 			
 			
+		</tt></p>
+		<a name="about-herobaseelementalresistasint"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">hero base elemental resist as int (who, element)</font></b><br>
+			Gets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.5% damage (1/40 normal), then the result will be 3.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setherobaseelementalresist" class="ref">set hero base elemental resist</a>, </li>
+<li><a href="#about-herototalelementalresistasint" class="ref">hero total elemental resist as int</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setherobaseelementalresist"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set hero base elemental resist (who, element, percent)</font></b><br>
+			Sets the 'intrinsic' amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. (That is, the value entered in the 'Elemental Resistances' menu in Custom. Equipment elemental modifiers are added onto this value.) The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The argument <span class="param">percent</span> is the percentage (written without a percent sign). For example -50 means the hero is healed by 50% of the attack damage instead of being hurt.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Unlike the elemental resist editors in Custom, you can't use fractions of a percent here.<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-herobaseelementalresistasint" class="ref">hero base elemental resist as int</a></li></ul>
+		</tt></p>
+		<a name="about-herototalelementalresistasint"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">hero total elemental resist as int (who, element)</font></b><br>
+			Gets the amount of damage that a hero receives from attacks of a certain element, as a percentage of normal. The argument <span class="param">who</span> is the hero's position in the party, as returned by <a href="#about-findhero" class="ref">find hero</a>. The argument <span class="param">element</span> is a number from 0 to whatever the highest enabled element is. The result is rounded to the nearest integer. For example, if the hero takes 2.5% damage (1/40 normal), then the result will be 3. This is the value calculated from the hero's 'intrinsic' resistances combined with the equipment they are wearing.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">When floating point support is added to HamsterSpeak, an alternative to this command will be added.<br clear="all">
+</div>
+<br>
+			
+			<br>See also: <ul class="seealso"><li><a href="#about-herobaseelementalresistasint" class="ref">hero base elemental resist as int</a></li></ul>
 		</tt></p>
 		<a name="about-readglobal"></a>
 		<p>
@@ -9254,7 +9402,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">extended scancodes enabled</font></b><br>
-			Returns the state of the "Enabled better scancodes" general bitset: whether or not numpad keys are distinguishable from Home, Up, etc. keys.<br>
+			Returns the state of the "Enable better scancodes" general bitset: whether or not numpad keys are distinguishable from Home, Up, etc. keys.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-keyispressed" class="ref">key is pressed</a></li></ul>
 		</tt></p>
@@ -9900,7 +10048,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get count</font></b><br>
-			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, <a href="#about-npcatspot" class="ref">NPC at spot</a>, <a href="#about-sliceatpixel" class="ref">slice at pixel</a>, <a href="#about-findcollidingslice" class="ref">find colliding slice</a> or <a href="#about-zoneatspot" class="ref">zone at spot</a> they return the number of NPCs, slices or zones at that spot. With <a href="#about-spellslearned" class="ref">spells learnt</a> returns the number of spells a hero learnt. With <a href="#about-findenemyinformation" class="ref">find enemy in formation</a>, returns the number of enemies, or the number of some kind of enemy in the formation.<br>
+			When passed to <a href="#about-npcatpixel" class="ref">NPC at pixel</a>, <a href="#about-npcatspot" class="ref">NPC at spot</a>, <a href="#about-sliceatpixel" class="ref">slice at pixel</a>, <a href="#about-findcollidingslice" class="ref">find colliding slice</a> or <a href="#about-zoneatspot" class="ref">zone at spot</a> they return the number of NPCs, slices or zones at that spot. With <a href="#about-spellslearned" class="ref">spells learned</a> returns the number of spells a hero learnt. With <a href="#about-findenemyinformation" class="ref">find enemy in formation</a>, returns the number of enemies, or the number of some kind of enemy in the formation.<br>
 			
 			
 		</tt></p>
@@ -10081,7 +10229,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 712 commands in this file, of which 57 are only references to other commands.</p>
+	<p>Stats: There are 722 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
