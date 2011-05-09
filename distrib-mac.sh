@@ -74,11 +74,10 @@ cp -p docs/more-docs.txt tmp/docs
 
 echo "Creating disk image"
 
-hdiutil create -srcfolder tmp/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE.dmg
-
-#mv tmp ohrrpgce
+mv tmp OHRRPGCE-$CODE
 #tar -jcf distrib/ohrrpgce-mac-x86-$TODAY-$CODE.tar.bz2 ohrrpgce --exclude .svn
-#mv ohrrpgce tmp
+hdiutil create -srcfolder OHRRPGCE-$CODE/ -fs HFS+ distrib/OHRRPGCE-$TODAY-$CODE.dmg
+mv OHRRPGCE-$CODE tmp
 
 echo "Erasing contents of temporary directory"
 rm -Rf tmp/*
