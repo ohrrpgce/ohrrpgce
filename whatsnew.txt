@@ -1,5 +1,19 @@
 WHAT IS NEW?
 
+??? ? ???? [A????]
+
+  * New Features
+
+  * Bugfixes
+    * Wrong names used for reserve party heroes who level during
+      battles [Ralph]
+
+  * New Plotscripting Stuff
+
+  * Vikings of Midgard
+
+  * Stuff Only Developers Will Notice
+
 May 6 2011 [Zenzizenzic]
 
   * New Features

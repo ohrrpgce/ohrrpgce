@@ -1428,9 +1428,9 @@ SELECT CASE bat.vic.state
   FOR i = 0 TO UBOUND(hero)
    SELECT CASE gam.hero(i).lev_gain
     CASE 1
-     tempstr = bat.vic.level_up_caption & " " & bslot(i).name
+     tempstr = bat.vic.level_up_caption & " " & names(i)
     CASE IS > 1
-     tempstr = gam.hero(i).lev_gain & " " & bat.vic.levels_up_caption & " " & bslot(i).name
+     tempstr = gam.hero(i).lev_gain & " " & bat.vic.levels_up_caption & " " & names(i)
    END SELECT
    IF gam.hero(i).lev_gain > 0 THEN
     edgeprint tempstr, xstring(tempstr, 160), 12 + o * 10, uilook(uiText), dpage
