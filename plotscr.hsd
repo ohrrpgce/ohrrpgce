@@ -508,12 +508,12 @@ define function, begin
 497,setherobaseelementalresist,3,-1,0,100 # set percentage damage taken from an element (hero, element, percent) 
 498,herobaseelementalresistasint,2,-1,0   # percentage damage taken from an element rounded to an int (hero, element) 
 499,herototalelementalresistasint,2,-1,0  # percentage damage taken from an element rounded to an int (hero, element) 
-500,setslicevelocityx,2,0,0   #set slice velocity x(sl, pixels per tick) # negative left, positive right
-501,setslicevelocityy,2,0,0   #set slice velocity y(sl, pixels per tick) # negative up, positive down
-502,getslicevelocityx,1,0     #return x velocity in pixels per tick
-503,getslicevelocityy,1,0     #return y velocity in pixels per tick
-504,setslicevelocity,3,0,0,0  #set both x and y velocity simultaneously
-505,stopslice,1,0             #cancel all of a slice's movement
+500,setslicevelocityx,3,0,0,-1   #set slice velocity x(sl, pixels per tick, ticks) # negative left, positive right
+501,setslicevelocityy,3,0,0,-1   #set slice velocity y(sl, pixels per tick, ticks) # negative up, positive down
+502,getslicevelocityx,1,0        #return x velocity in pixels per tick
+503,getslicevelocityy,1,0        #return y velocity in pixels per tick
+504,setslicevelocity,4,0,0,0,-1  #set both x and y velocity simultaneously
+505,stopslice,1,0                #cancel all of a slice's movement
 end
 
 #--------------------------------------------------------------------------

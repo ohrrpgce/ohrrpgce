@@ -21,11 +21,20 @@ plotscript, test, begin
   wait(5)
   stop slice(sl)
   wait(5)
-  set slice velocity y(sl2, -2)
+  set slice velocity y(sl2, 4, 8)
   wait(10)
+  set slice velocity(sl2, 3, 4, 8)
+  wait(10)
+  set slice velocity(sl2, 3, -4, 8)
+  wait(10)
+  set slice velocity x(sl2, -4, 8)
+  wait(10)
+  
+  free slice(sl2)
+  sl2 := 0
+  wait(3)
   free slice(sl)
   sl := 0
-  sl2 := 0
   wait(3)
   
 

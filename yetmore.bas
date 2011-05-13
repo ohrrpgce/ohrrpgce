@@ -2680,16 +2680,18 @@ SELECT CASE AS CONST id
   IF valid_plotsprite(retvals(0)) THEN
    ChangeSpriteSlice plotslices(retvals(0)), , , , , , , retvals(1)
   END IF 
- CASE 500 '--set slice velocity x (handle, pixels per tick)
+ CASE 500 '--set slice velocity x (handle, pixels per tick, ticks)
   IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
     .Velocity.X = retvals(1)
+    .VelTicks.X = retvals(2)
    END WITH
   END IF
  CASE 501 '--set slice velocity y (handle, pixels per tick)
   IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
     .Velocity.Y = retvals(1)
+    .VelTicks.Y = retvals(2)
    END WITH
   END IF
  CASE 502 '--get slice velocity x (handle)
@@ -2704,11 +2706,13 @@ SELECT CASE AS CONST id
     scriptret = .Velocity.Y
    END WITH
   END IF
- CASE 504 '--set slice velocity (handle, x pixels per tick, y pixels per tick)
+ CASE 504 '--set slice velocity (handle, x pixels per tick, y pixels per tick, ticks)
   IF valid_plotslice(retvals(0)) THEN
    WITH *plotslices(retvals(0))
     .Velocity.X = retvals(1)
     .Velocity.Y = retvals(2)
+    .VelTicks.X = retvals(3)
+    .VelTicks.Y = retvals(3)
    END WITH
   END IF
  CASE 505 '--stop slice (handle)
@@ -2716,6 +2720,8 @@ SELECT CASE AS CONST id
    WITH *plotslices(retvals(0))
     .Velocity.X = 0
     .Velocity.Y = 0
+    .VelTicks.X = 0
+    .VelTicks.Y = 0
    END WITH
   END IF
   

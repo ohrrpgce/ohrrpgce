@@ -37,6 +37,7 @@ DECLARE Function LoadPropBool(node AS Reload.Nodeptr, propname as string, defaul
 'Other local subs and functions
 DECLARE Function SliceXAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
 DECLARE Function SliceYAlign(BYVAL sl AS Slice Ptr, BYVAL alignTo AS Slice Ptr) AS INTEGER
+DECLARE Sub ApplySliceVelocity(byval s as slice ptr)
 
 '==============================================================================
 
@@ -1763,9 +1764,8 @@ End Function
 Sub AdvanceSlice(byval s as slice ptr)
  if s = 0 then debug "AdvanceSlice null ptr": exit sub
  if s->Mobile then
-  'first, apply this slice's velocity
-  s->X += s->Velocity.X
-  s->Y += s->Velocity.Y
+  'Apply this slice's velocity
+  ApplySliceVelocity s
   'advance the slice's children
   dim ch as slice ptr = s->FirstChild
   do while ch <> 0
@@ -1773,6 +1773,16 @@ Sub AdvanceSlice(byval s as slice ptr)
    ch = ch->NextSibling
   Loop
  end if
+end sub
+
+Sub ApplySliceVelocity(byval s as slice ptr)
+ 'no null check because this is only called from AdvanceSlice
+ if s->VelTicks.X = 0 then s->Velocity.X = 0
+ if s->VelTicks.Y = 0 then s->Velocity.Y = 0
+ if s->VelTicks.X > 0 then s->VelTicks.X -= 1
+ if s->VelTicks.Y > 0 then s->VelTicks.Y -= 1
+ s->X += s->Velocity.X
+ s->Y += s->Velocity.Y
 end sub
 
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
@@ -1947,6 +1957,11 @@ Function CloneSliceTree(byval sl as slice ptr) as slice ptr
   .Clip = sl->Clip
   .Velocity.X = sl->Velocity.X
   .Velocity.Y = sl->Velocity.Y
+  .VelTicks.X = sl->VelTicks.X
+  .VelTicks.Y = sl->VelTicks.Y
+  .Targ.X = sl->Targ.X
+  .Targ.Y = sl->Targ.Y
+  .TargTicks = sl->TargTicks
   .AlignHoriz = sl->AlignHoriz
   .AlignVert = sl->AlignVert
   .AnchorHoriz = sl->AnchorHoriz
@@ -2000,8 +2015,13 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  SaveProp node, "vis", sl->Visible
  SaveProp node, "mobile", sl->Mobile
  SaveProp node, "clip", sl->Clip
- SaveProp node, "velx", sl->Velocity.X
- SaveProp node, "vely", sl->Velocity.Y
+ SaveProp node, "vx", sl->Velocity.X
+ SaveProp node, "vy", sl->Velocity.Y
+ SaveProp node, "vtickx", sl->VelTicks.X
+ SaveProp node, "vticky", sl->VelTicks.Y
+ SaveProp node, "tx", sl->Targ.X
+ SaveProp node, "ty", sl->Targ.Y
+ SaveProp node, "ttick", sl->TargTicks
  SaveProp node, "alignh", sl->AlignHoriz
  SaveProp node, "alignv", sl->AlignVert
  SaveProp node, "anchorh", sl->AnchorHoriz
@@ -2088,8 +2108,13 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  sl->Visible = LoadPropBool(node, "vis")
  sl->Mobile = LoadPropBool(node, "mobile", YES)
  sl->Clip = LoadPropBool(node, "clip")
- sl->Velocity.X = LoadPropBool(node, "velx")
- sl->Velocity.Y = LoadPropBool(node, "vely")
+ sl->Velocity.X = LoadPropBool(node, "vx")
+ sl->Velocity.Y = LoadPropBool(node, "vy")
+ sl->VelTicks.X = LoadPropBool(node, "vtickx")
+ sl->VelTicks.Y = LoadPropBool(node, "vticky")
+ sl->Targ.X = LoadPropBool(node, "tx")
+ sl->Targ.Y = LoadPropBool(node, "ty")
+ sl->TargTicks = LoadPropBool(node, "ttick")
  sl->AlignHoriz = LoadProp(node, "alignh")
  sl->AlignVert = LoadProp(node, "alignv")
  sl->AnchorHoriz = LoadProp(node, "anchorh")

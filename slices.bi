@@ -84,12 +84,13 @@ TYPE Slice
   Mobile as integer
   Clip as integer
   
-  'moving at a constant pixels-per-tick speed
+  'moving at a constant pixels-per-tick speed (direct setting should cancel targ)
   Velocity as XYPair
+  'limit the number of cycles to apply velocity before auto-clearing it (-1 means forever, 0 clears instantly)
+  VelTicks as XYPair
 
-  'moving to a destination in constant time
+  'moving to a destination in constant time. (replaces velocity)
   Targ as XYPair
-  Orig as XYPair
   TargTicks as integer
 
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
