@@ -302,6 +302,7 @@ Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
  
  ret->SliceType = slSpecial
  ret->Visible = YES
+ ret->Mobile = YES
  ret->Attached = 0
  ret->Attach = slSlice
  
@@ -592,7 +593,7 @@ Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
  'Newsl gets Deleted to prevent it from being used afterwards!
  'Also, this fails if newsl is part of a tree. It must be parentless
  if sl = 0 then debug "ReplaceSliceType null ptr": exit sub
- if newsl = 0 then debug "DrawSlice newsl null ptr": exit sub
+ if newsl = 0 then debug "ReplaceSliceType newsl null ptr": exit sub
  WITH *newsl
   'Make sure that newsl is an orphan already
   IF .Parent <> 0 THEN debug "ReplaceSliceType: Only works with orphaned slices" : EXIT SUB
@@ -1759,6 +1760,21 @@ Function SliceEdgeY(BYVAL sl AS Slice Ptr, BYVAL edge AS INTEGER) AS INTEGER
  END SELECT
 End Function
 
+Sub AdvanceSlice(byval s as slice ptr)
+ if s = 0 then debug "AdvanceSlice null ptr": exit sub
+ if s->Mobile then
+  'first, apply this slice's velocity
+  s->X += s->Velocity.X
+  s->Y += s->Velocity.Y
+  'advance the slice's children
+  dim ch as slice ptr = s->FirstChild
+  do while ch <> 0
+   AdvanceSlice(ch)
+   ch = ch->NextSibling
+  Loop
+ end if
+end sub
+
 Sub DrawSlice(byval s as slice ptr, byval page as integer)
  if s = 0 then debug "DrawSlice null ptr": exit sub
  'first, draw this slice
@@ -1927,7 +1943,10 @@ Function CloneSliceTree(byval sl as slice ptr) as slice ptr
   .Width = sl->Width
   .Height = sl->Height
   .Visible = sl->Visible
+  .Mobile = sl->Mobile
   .Clip = sl->Clip
+  .Velocity.X = sl->Velocity.X
+  .Velocity.Y = sl->Velocity.Y
   .AlignHoriz = sl->AlignHoriz
   .AlignVert = sl->AlignVert
   .AnchorHoriz = sl->AnchorHoriz
@@ -1979,7 +1998,10 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  SaveProp node, "w", sl->Width
  SaveProp node, "h", sl->Height
  SaveProp node, "vis", sl->Visible
+ SaveProp node, "mobile", sl->Mobile
  SaveProp node, "clip", sl->Clip
+ SaveProp node, "velx", sl->Velocity.X
+ SaveProp node, "vely", sl->Velocity.Y
  SaveProp node, "alignh", sl->AlignHoriz
  SaveProp node, "alignv", sl->AlignVert
  SaveProp node, "anchorh", sl->AnchorHoriz
@@ -2064,7 +2086,10 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  sl->Width = LoadProp(node, "w")
  sl->Height = LoadProp(node, "h")
  sl->Visible = LoadPropBool(node, "vis")
+ sl->Mobile = LoadPropBool(node, "mobile", YES)
  sl->Clip = LoadPropBool(node, "clip")
+ sl->Velocity.X = LoadPropBool(node, "velx")
+ sl->Velocity.Y = LoadPropBool(node, "vely")
  sl->AlignHoriz = LoadProp(node, "alignh")
  sl->AlignVert = LoadProp(node, "alignv")
  sl->AnchorHoriz = LoadProp(node, "anchorh")

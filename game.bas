@@ -700,6 +700,7 @@ DO
   END IF
  END IF
  END IF' end menus_allow_gameplay
+ AdvanceSlice SliceTable.root
  GOSUB displayall
  IF fatal = 1 OR abortg > 0 OR resetg THEN
   resetgame scriptout$

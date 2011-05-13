@@ -2680,7 +2680,45 @@ SELECT CASE AS CONST id
   IF valid_plotsprite(retvals(0)) THEN
    ChangeSpriteSlice plotslices(retvals(0)), , , , , , , retvals(1)
   END IF 
-
+ CASE 500 '--set slice velocity x (handle, pixels per tick)
+  IF valid_plotslice(retvals(0)) THEN
+   WITH *plotslices(retvals(0))
+    .Velocity.X = retvals(1)
+   END WITH
+  END IF
+ CASE 501 '--set slice velocity y (handle, pixels per tick)
+  IF valid_plotslice(retvals(0)) THEN
+   WITH *plotslices(retvals(0))
+    .Velocity.Y = retvals(1)
+   END WITH
+  END IF
+ CASE 502 '--get slice velocity x (handle)
+  IF valid_plotslice(retvals(0)) THEN
+   WITH *plotslices(retvals(0))
+    scriptret = .Velocity.X
+   END WITH
+  END IF
+ CASE 503 '--get slice velocity y (handle)
+  IF valid_plotslice(retvals(0)) THEN
+   WITH *plotslices(retvals(0))
+    scriptret = .Velocity.Y
+   END WITH
+  END IF
+ CASE 504 '--set slice velocity (handle, x pixels per tick, y pixels per tick)
+  IF valid_plotslice(retvals(0)) THEN
+   WITH *plotslices(retvals(0))
+    .Velocity.X = retvals(1)
+    .Velocity.Y = retvals(2)
+   END WITH
+  END IF
+ CASE 505 '--stop slice (handle)
+  IF valid_plotslice(retvals(0)) THEN
+   WITH *plotslices(retvals(0))
+    .Velocity.X = 0
+    .Velocity.Y = 0
+   END WITH
+  END IF
+  
 END SELECT
 
 EXIT SUB

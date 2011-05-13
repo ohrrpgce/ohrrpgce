@@ -3,6 +3,32 @@ include, plotscr.hsd
 plotscript, test, begin
   variable(sl, sl2, sl3, i, cont)
 
+  $0="slice velocity tests", show string(0)
+  
+  sl := create rect(200, 100, 2)
+  sl2 := load medium enemy sprite(0)
+  set parent(sl2, sl)
+  wait(2)
+  set slice velocity(sl, 1, 1)
+  wait(20)
+  for(i, 0, 4) do(
+    set slice velocity x(sl2, 3)
+    wait(5)
+    set slice velocity x(sl2, -3)
+    wait(5)
+  )
+  stop slice(sl2)
+  wait(5)
+  stop slice(sl)
+  wait(5)
+  set slice velocity y(sl2, -2)
+  wait(10)
+  free slice(sl)
+  sl := 0
+  sl2 := 0
+  wait(3)
+  
+
   $0="collection & lookup tests", show string(0)
   wait(3)
   

@@ -81,7 +81,16 @@ TYPE Slice
   Width as integer
   Height as integer
   Visible as integer
+  Mobile as integer
   Clip as integer
+  
+  'moving at a constant pixels-per-tick speed
+  Velocity as XYPair
+
+  'moving to a destination in constant time
+  Targ as XYPair
+  Orig as XYPair
+  TargTicks as integer
 
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
   Lookup As integer
@@ -215,6 +224,7 @@ DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr, byval debugme as integer = 0)
 DECLARE Sub DeleteSliceChildren(Byval s as Slice ptr)
 DECLARE Sub DrawSlice(byval s as slice ptr, byval page as integer)
+DECLARE Sub AdvanceSlice(byval s as slice ptr)
 DECLARE Sub OrphanSlice(byval sl as slice ptr)
 DECLARE Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
 DECLARE Sub ReplaceSliceType(byval sl as slice ptr, byref newsl as slice ptr)
