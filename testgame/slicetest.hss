@@ -11,6 +11,7 @@ plotscript, test, begin
   wait(2)
   set slice velocity(sl, 1, 1)
   wait(20)
+  show value(slice is moving(sl))
   for(i, 0, 4) do(
     set slice velocity x(sl2, 3)
     wait(5)
@@ -20,6 +21,7 @@ plotscript, test, begin
   stop slice(sl2)
   wait(5)
   stop slice(sl)
+  show value(slice is moving(sl))
   wait(5)
   set slice velocity y(sl2, 4, 8)
   wait(10)
@@ -29,6 +31,8 @@ plotscript, test, begin
   wait(10)
   set slice velocity x(sl2, -4, 8)
   wait for slice(sl2)
+  
+  show no value
   
   move slice to(sl, 0, 0, 20)
   wait for slice(sl)

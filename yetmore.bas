@@ -2750,6 +2750,15 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0)) THEN
    GOSUB setwaitstate
   END IF
+ CASE 509'--slice is moving
+  IF valid_plotslice(retvals(0)) THEN
+   WITH *plotslices(retvals(0))
+    IF .Velocity.X <> 0 ORELSE .Velocity.Y <> 0 ORELSE .TargTicks > 0 THEN
+     scriptret = 1
+    END IF
+   END WITH
+  END IF
+  
  
 END SELECT
 
