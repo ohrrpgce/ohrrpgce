@@ -2513,6 +2513,7 @@ SUB add_more_layers(st as MapEditState, map() as TileMap, vis() as integer, gmap
   SetLayerVisible(vis(), i, YES)
   gmap(layer_tileset_index(i)) = 0
  NEXT
+ fix_tilemaps map()
  mapedit_load_tilesets st, map(), gmap()
 END SUB
 
@@ -2526,6 +2527,7 @@ END SUB
 SUB mapedit_swap_layers(BYREF st AS MapEditState, map() as TileMap, vis() as integer, gmap() as integer, BYVAL l1 as integer, BYVAL l2 as integer)
  DIM as integer temp1, temp2
  SWAP map(l1), map(l2)
+ fix_tilemaps map()
  SWAP st.usetile(l1), st.usetile(l2)
  SWAP st.menubarstart(l1), st.menubarstart(l2)
  SWAP gmap(layer_tileset_index(l1)), gmap(layer_tileset_index(l2))

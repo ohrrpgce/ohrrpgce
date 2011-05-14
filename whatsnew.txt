@@ -7,6 +7,8 @@ WHAT IS NEW?
   * Bugfixes
     * Wrong names used for reserve party heroes who level during
       battles [Ralph]
+    * In the map editor, tile 0 on map layers did not correctly become
+      transparent after swapping map layers [Ralph]
 
   * New Plotscripting Stuff
 
