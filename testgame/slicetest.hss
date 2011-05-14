@@ -28,12 +28,12 @@ plotscript, test, begin
   set slice velocity(sl2, 3, -4, 8)
   wait(10)
   set slice velocity x(sl2, -4, 8)
-  wait(10)
+  wait for slice(sl2)
   
   move slice to(sl, 0, 0, 20)
-  wait(20)
+  wait for slice(sl)
   move slice by(sl2, 5, 10, 33)
-  wait(33)
+  wait for slice(sl2)
   
   free slice(sl2)
   sl2 := 0

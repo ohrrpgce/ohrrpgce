@@ -2746,6 +2746,10 @@ SELECT CASE AS CONST id
     END WITH
    END IF
   END IF
+ CASE 508'--wait for slice
+  IF valid_plotslice(retvals(0)) THEN
+   GOSUB setwaitstate
+  END IF
  
 END SELECT
 

@@ -1253,6 +1253,15 @@ WITH scrat(nowscript)
       .state = streturn
      END IF
     CASE 73, 234, 438'--game over, quit from loadmenu, reset game
+    CASE 508'--wait for slice
+     IF valid_plotslice(.waitarg) THEN
+      IF plotslices(.waitarg)->Velocity.X = 0 ANDALSO plotslices(.waitarg)->Velocity.Y = 0 ANDALSO plotslices(.waitarg)->TargTicks = 0 THEN
+       .state = streturn
+      END IF
+     ELSE
+      'If the slice ceases to exist, we should stop waiting for it (after throwing our error message)
+      .state = streturn
+     END IF
     CASE ELSE
      scripterr "illegal wait substate " & .curvalue, 7
      .state = streturn

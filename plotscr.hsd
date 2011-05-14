@@ -516,6 +516,7 @@ define function, begin
 505,stopslice,1,0                #cancel all of a slice's movement
 506,movesliceto,4,0,0,0,0        #move a slice until it has the new desired x and y
 507,movesliceby,4,0,0,0,0        #move a slice until it has the new desired relative x and y
+508,waitforslice,1,0             #wait for a slice to stop moving
 end
 
 #--------------------------------------------------------------------------
