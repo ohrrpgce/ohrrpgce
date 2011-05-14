@@ -91,7 +91,9 @@ TYPE Slice
 
   'moving to a destination in constant time. (replaces velocity)
   Targ as XYPair
+  TargOrigin as XYPair
   TargTicks as integer
+  TargTotalTicks as integer
 
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
   Lookup As integer
@@ -253,6 +255,7 @@ DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
 DECLARE Sub YSortChildSlices(byval parent as slice ptr)
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
+DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
 
 DECLARE FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYVAL lookup_code AS INTEGER=0) AS Slice Ptr
 

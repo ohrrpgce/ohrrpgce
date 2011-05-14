@@ -2685,6 +2685,7 @@ SELECT CASE AS CONST id
    WITH *plotslices(retvals(0))
     .Velocity.X = retvals(1)
     .VelTicks.X = retvals(2)
+    .TargTicks = 0
    END WITH
   END IF
  CASE 501 '--set slice velocity y (handle, pixels per tick)
@@ -2692,6 +2693,7 @@ SELECT CASE AS CONST id
    WITH *plotslices(retvals(0))
     .Velocity.Y = retvals(1)
     .VelTicks.Y = retvals(2)
+    .TargTicks = 0
    END WITH
   END IF
  CASE 502 '--get slice velocity x (handle)
@@ -2713,6 +2715,7 @@ SELECT CASE AS CONST id
     .Velocity.Y = retvals(2)
     .VelTicks.X = retvals(3)
     .VelTicks.Y = retvals(3)
+    .TargTicks = 0
    END WITH
   END IF
  CASE 505 '--stop slice (handle)
@@ -2722,9 +2725,28 @@ SELECT CASE AS CONST id
     .Velocity.Y = 0
     .VelTicks.X = 0
     .VelTicks.Y = 0
+    .TargTicks = 0
    END WITH
   END IF
-  
+ CASE 506 '--move slice to (handle, x, y, ticks)
+  IF valid_plotslice(retvals(0)) THEN
+   IF retvals(3) < 1 THEN
+     scripterr commandname(curcmd->value) & ": ticks arg " & retvals(3) & " mustn't be < 1", 5
+   ELSE
+    SetSliceTarg plotslices(retvals(0)), retvals(1), retvals(2), retvals(3)
+   END IF
+  END IF
+ CASE 507 '--move slice by (handle, rel x, rel y, ticks)
+  IF valid_plotslice(retvals(0)) THEN
+   IF retvals(3) < 1 THEN
+     scripterr commandname(curcmd->value) & ": ticks arg " & retvals(3) & " mustn't be < 1", 5
+   ELSE
+    WITH *plotslices(retvals(0))
+     SetSliceTarg plotslices(retvals(0)), .X + retvals(1), .Y + retvals(2), retvals(3)
+    END WITH
+   END IF
+  END IF
+ 
 END SELECT
 
 EXIT SUB
