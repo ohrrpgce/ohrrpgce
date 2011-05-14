@@ -1765,12 +1765,11 @@ End Function
 Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
  if s = 0 then debug "SetSliceTarg null ptr": exit sub
  with *s
-  .TargOrigin.X = .X
-  .TargOrigin.Y = .Y
+  .TargResidue_X = 0.0
+  .TargResidue_Y = 0.0
   .Targ.X = x
   .Targ.Y = y
   .TargTicks = ticks
-  .TargTotalTicks = ticks
   'cancel velocity
   .Velocity.X = 0
   .Velocity.Y = 0
@@ -1797,13 +1796,21 @@ Sub SeekSliceTarg(byval s as slice ptr)
  'no null check because this is only called from AdvanceSlice
  with *s
   if .TargTicks > 0 then
-   .X = s->TargOrigin.X + (s->Targ.X - s->TargOrigin.X) / s->TargTotalTicks * (s->TargTotalTicks - s->TargTicks)
-   .Y = s->TargOrigin.Y + (s->Targ.Y - s->TargOrigin.Y) / s->TargTotalTicks * (s->TargTotalTicks - s->TargTicks)
+    dim as double temp
+    dim as integer movestep
+    temp = s->TargResidue_X + (s->Targ.X - .X) / s->TargTicks
+    movestep = temp
+    s->TargResidue_X = temp - movestep
+    .X += movestep
+    temp = s->TargResidue_Y + (s->Targ.Y - .Y) / s->TargTicks
+    movestep = temp
+    s->TargResidue_Y = temp - movestep
+    .Y += movestep
+
    .TargTicks -= 1
    if .TargTicks = 0 then
     .X = .Targ.X
     .Y = .Targ.Y
-    .TargTotalTicks = 0
    end if
   end if
  end with
@@ -1999,10 +2006,9 @@ Function CloneSliceTree(byval sl as slice ptr) as slice ptr
   .VelTicks.Y = sl->VelTicks.Y
   .Targ.X = sl->Targ.X
   .Targ.Y = sl->Targ.Y
-  .TargOrigin.X = sl->TargOrigin.X
-  .TargOrigin.Y = sl->TargOrigin.Y
+  .TargResidue_X = sl->TargResidue_X
+  .TargResidue_Y = sl->TargResidue_Y
   .TargTicks = sl->TargTicks
-  .TargTotalTicks = sl->TargTotalTicks
   .AlignHoriz = sl->AlignHoriz
   .AlignVert = sl->AlignVert
   .AnchorHoriz = sl->AnchorHoriz
@@ -2063,10 +2069,8 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  if sl->TargTicks > 0 then
   SaveProp node, "tx", sl->Targ.X
   SaveProp node, "ty", sl->Targ.Y
-  SaveProp node, "tox", sl->TargOrigin.X
-  SaveProp node, "tox", sl->TargOrigin.Y
   SaveProp node, "ttick", sl->TargTicks
-  SaveProp node, "tttick", sl->TargTotalTicks
+  'No need to save TargResidue
  end if
  SaveProp node, "alignh", sl->AlignHoriz
  SaveProp node, "alignv", sl->AlignVert
@@ -2160,10 +2164,7 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  sl->VelTicks.Y = LoadProp(node, "vticky")
  sl->Targ.X = LoadProp(node, "tx")
  sl->Targ.Y = LoadProp(node, "ty")
- sl->TargOrigin.X = LoadProp(node, "tox")
- sl->TargOrigin.Y = LoadProp(node, "toy")
  sl->TargTicks = LoadProp(node, "ttick")
- sl->TargTotalTicks = LoadProp(node, "tttick")
  sl->AlignHoriz = LoadProp(node, "alignh")
  sl->AlignVert = LoadProp(node, "alignv")
  sl->AnchorHoriz = LoadProp(node, "anchorh")

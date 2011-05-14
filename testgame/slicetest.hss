@@ -38,6 +38,14 @@ plotscript, test, begin
   wait for slice(sl)
   move slice by(sl2, 5, 10, 33)
   wait for slice(sl2)
+  wait(4)
+  
+  put slice(sl2, 0, 0)
+  move slice to(sl2, 160, 150, 40)
+  wait(20)
+  set slice x(sl2, 300)
+  wait for slice(sl2)
+  wait(6)
   
   free slice(sl2)
   sl2 := 0

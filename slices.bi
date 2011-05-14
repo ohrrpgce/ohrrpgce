@@ -91,9 +91,9 @@ TYPE Slice
 
   'moving to a destination in constant time. (replaces velocity)
   Targ as XYPair
-  TargOrigin as XYPair
+  TargResidue_X as double
+  TargResidue_Y as double
   TargTicks as integer
-  TargTotalTicks as integer
 
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
   Lookup As integer
