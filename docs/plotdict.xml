@@ -2683,6 +2683,176 @@ The example above creates a container and then puts two hero sprites inside it, 
 				<ref>setvertanchor</ref>
 			</seealso>
 		</command>
+		<command id="setslicevelocityx">
+			<canon>set slice velocity x (handle, pixels per tick, ticks)</canon>
+			<shortname>set slice velocity x</shortname>
+			<description>Cause slice <p>handle</p> to start moving horizontally. A negative value for <p>pixels per tick</p> moves left, and a positive value for <p>pixels per tick</p> moves right. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="setslicevelocityy">
+			<canon>set slice velocity y (handle, pixels per tick, ticks)</canon>
+			<shortname>set slice velocity y</shortname>
+			<description>Cause slice <p>handle</p> to start moving vertically. A negative value for <p>pixels per tick</p> moves up, and a positive value for <p>pixels per tick</p> moves down. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="getslicevelocityx">
+			<canon>get slice velocity x (handle)</canon>
+			<shortname>get slice velocity x</shortname>
+			<description>Returns a number represending the horizontal velocity of slice <p>handle</p>. The return value is in pixels per tick. A negative value means the slice is moving left, and a positive value means the slice is moving right.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="getslicevelocityy">
+			<canon>get slice velocity y (handle)</canon>
+			<shortname>get slice velocity y</shortname>
+			<description>Returns a number represending the vertical velocity of slice <p>handle</p>. The return value is in pixels per tick. A negative value means the slice is moving up, and a positive value means the slice is moving down.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="setslicevelocity">
+			<canon>set slice velocity (handle, horiz pixels per tick, vert pixels per tick, ticks)</canon>
+			<shortname>set slice velocity</shortname>
+			<description>Cause slice <p>handle</p> to start moving. This is similar to using both <ref>setslicevelocityx</ref> and <ref>setslicevelocityy</ref> at the same time. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="stopslice">
+			<canon>stop slice (handle)</canon>
+			<shortname>stop slice</shortname>
+			<description>Cause slice <p>handle</p> to stop moving. This cancels any previous slive velocity and move slice commands.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="movesliceto">
+			<canon>move slice to (handle, x, y, ticks)</canon>
+			<shortname>move slice to</shortname>
+			<description>Instruct slice <p>handle</p> to move in a straight line to a specific <p>x</p> and <p>y</p> position over a given number of <p>ticks</p>.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="movesliceby">
+			<canon>move slice by (handle, relative x, relative y, ticks)</canon>
+			<shortname>move slice by</shortname>
+			<description>Instruct slice <p>handle</p> to move in a straight line to an <p>x</p> and <p>y</p> offset relative to its current position over a given number of <p>ticks</p>. A negative <p>relative x</p> moves left. A positive <p>relative x</p> moves right. A negative <p>relative y</p> moves up. A positive <p>relative y</p> moves down.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="waitforslice">
+			<canon>wait for slice (handle)</canon>
+			<shortname>wait for slice</shortname>
+			<description>Cause the script to wait until slice <p>handle</p> has stopped moving. This only applies to commands that operate over time like <ref>setslicevelocityx</ref> or <ref>setslicevelocity</ref> or <ref>movesliceto</ref> or <ref>movesliceby</ref>. There is no reason to use this command for instantaneous slice moving commands like <ref>putslice</ref> or <ref>setslicex</ref> or <ref>setslicey</ref>.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
+		<command id="sliceismoving">
+			<canon>sliceismoving (handle)</canon>
+			<shortname>slice is moving</shortname>
+			<description>Returns true if the slice <p>handle</p> is moving. Returns false if the slice is not moving.</description>
+			<seealso>
+				<ref>setslicevelocityx</ref>
+				<ref>setslicevelocityy</ref>
+				<ref>getslicevelocityx</ref>
+				<ref>getslicevelocityy</ref>
+				<ref>setslicevelocity</ref>
+				<ref>stopslice</ref>
+				<ref>movesliceto</ref>
+				<ref>movesliceby</ref>
+				<ref>waitforslice</ref>
+				<ref>sliceismoving</ref>
+			</seealso>
+		</command>
 		<command id="setslicevisible">
 			<canon>set slice visible (handle, vis)</canon>
 			<shortname>set slice visible</shortname>

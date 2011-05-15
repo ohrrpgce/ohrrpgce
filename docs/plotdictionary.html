@@ -782,6 +782,12 @@
 		<a href="#about-getslicelookup">get slice lookup (handle)</a><br>
 		
 	
+		<a href="#about-getslicevelocityx">get slice velocity x (handle)</a><br>
+		
+	
+		<a href="#about-getslicevelocityy">get slice velocity y (handle)</a><br>
+		
+	
 		<a href="#about-getslicevisible">get slice visible (handle)</a><br>
 		
 	
@@ -1113,6 +1119,12 @@
 		
 	
 		<a href="#about-moveslicebelow">move slice below (handle, below what handle)</a><br>
+		
+	
+		<a href="#about-movesliceby">move slice by (handle, relative x, relative y, ticks)</a><br>
+		
+	
+		<a href="#about-movesliceto">move slice to (handle, x, y, ticks)</a><br>
 		
 	
 		<a href="#about-multiply">number * number</a><br>
@@ -1793,6 +1805,15 @@
 		<a href="#about-setslicetext">set slice text(handle, string id)</a><br>
 		
 	
+		<a href="#about-setslicevelocity">set slice velocity (handle, horiz pixels per tick, vert pixels per tick, ticks)</a><br>
+		
+	
+		<a href="#about-setslicevelocityx">set slice velocity x (handle, pixels per tick, ticks)</a><br>
+		
+	
+		<a href="#about-setslicevelocityy">set slice velocity y (handle, pixels per tick, ticks)</a><br>
+		
+	
 		<a href="#about-setslicevisible">set slice visible (handle, vis)</a><br>
 		
 	
@@ -1919,6 +1940,9 @@
 		<a href="#about-sliceisgrid">slice is grid (handle)</a><br>
 		
 	
+		<a href="#about-sliceismoving">sliceismoving (handle)</a><br>
+		
+	
 		<a href="#about-sliceisrect">slice is rect (handle)</a><br>
 		
 	
@@ -1998,6 +2022,9 @@
 		
 	
 		<a href="#about-statusscreen">status screen (who)</a><br>
+		
+	
+		<a href="#about-stopslice">stop slice (handle)</a><br>
 		
 	
 		<a href="#about-stopsong">stop song</a><br>
@@ -2247,6 +2274,9 @@
 		
 	
 		<a href="#about-waitforscancode">wait for scancode (key)</a><br>
+		
+	
+		<a href="#about-waitforslice">wait for slice (handle)</a><br>
 		
 	
 		<a href="#about-waitfortextbox">wait for text box</a><br>
@@ -6075,6 +6105,286 @@ set horiz align(sl, edge:right)
 <li>
 <a href="#about-sethorizanchor" class="ref">set horiz anchor</a>, </li>
 <li><a href="#about-setvertanchor" class="ref">set vert anchor</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setslicevelocityx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice velocity x (handle, pixels per tick, ticks)</font></b><br>
+			Cause slice <span class="param">handle</span> to start moving horizontally. A negative value for <span class="param">pixels per tick</span> moves left, and a positive value for <span class="param">pixels per tick</span> moves right. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setslicevelocityy"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice velocity y (handle, pixels per tick, ticks)</font></b><br>
+			Cause slice <span class="param">handle</span> to start moving vertically. A negative value for <span class="param">pixels per tick</span> moves up, and a positive value for <span class="param">pixels per tick</span> moves down. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getslicevelocityx"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get slice velocity x (handle)</font></b><br>
+			Returns a number represending the horizontal velocity of slice <span class="param">handle</span>. The return value is in pixels per tick. A negative value means the slice is moving left, and a positive value means the slice is moving right.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getslicevelocityy"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get slice velocity y (handle)</font></b><br>
+			Returns a number represending the vertical velocity of slice <span class="param">handle</span>. The return value is in pixels per tick. A negative value means the slice is moving up, and a positive value means the slice is moving down.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setslicevelocity"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set slice velocity (handle, horiz pixels per tick, vert pixels per tick, ticks)</font></b><br>
+			Cause slice <span class="param">handle</span> to start moving. This is similar to using both <a href="#about-setslicevelocityx" class="ref">set slice velocity x</a> and <a href="#about-setslicevelocityy" class="ref">set slice velocity y</a> at the same time. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+		</tt></p>
+		<a name="about-stopslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">stop slice (handle)</font></b><br>
+			Cause slice <span class="param">handle</span> to stop moving. This cancels any previous slive velocity and move slice commands.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+		</tt></p>
+		<a name="about-movesliceto"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">move slice to (handle, x, y, ticks)</font></b><br>
+			Instruct slice <span class="param">handle</span> to move in a straight line to a specific <span class="param">x</span> and <span class="param">y</span> position over a given number of <span class="param">ticks</span>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+		</tt></p>
+		<a name="about-movesliceby"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">move slice by (handle, relative x, relative y, ticks)</font></b><br>
+			Instruct slice <span class="param">handle</span> to move in a straight line to an <span class="param">x</span> and <span class="param">y</span> offset relative to its current position over a given number of <span class="param">ticks</span>. A negative <span class="param">relative x</span> moves left. A positive <span class="param">relative x</span> moves right. A negative <span class="param">relative y</span> moves up. A positive <span class="param">relative y</span> moves down.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+		</tt></p>
+		<a name="about-waitforslice"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">wait for slice (handle)</font></b><br>
+			Cause the script to wait until slice <span class="param">handle</span> has stopped moving. This only applies to commands that operate over time like <a href="#about-setslicevelocityx" class="ref">set slice velocity x</a> or <a href="#about-setslicevelocity" class="ref">set slice velocity</a> or <a href="#about-movesliceto" class="ref">move slice to</a> or <a href="#about-movesliceby" class="ref">move slice by</a>. There is no reason to use this command for instantaneous slice moving commands like <a href="#about-putslice" class="ref">put slice</a> or <a href="#about-setslicex" class="ref">set slice x</a> or <a href="#about-setslicey" class="ref">set slice y</a>.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
+</ul>
+		</tt></p>
+		<a name="about-sliceismoving"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">sliceismoving (handle)</font></b><br>
+			Returns true if the slice <span class="param">handle</span> is moving. Returns false if the slice is not moving.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setslicevelocityx" class="ref">set slice velocity x</a>, </li>
+<li>
+<a href="#about-setslicevelocityy" class="ref">set slice velocity y</a>, </li>
+<li>
+<a href="#about-getslicevelocityx" class="ref">get slice velocity x</a>, </li>
+<li>
+<a href="#about-getslicevelocityy" class="ref">get slice velocity y</a>, </li>
+<li>
+<a href="#about-setslicevelocity" class="ref">set slice velocity</a>, </li>
+<li>
+<a href="#about-stopslice" class="ref">stop slice</a>, </li>
+<li>
+<a href="#about-movesliceto" class="ref">move slice to</a>, </li>
+<li>
+<a href="#about-movesliceby" class="ref">move slice by</a>, </li>
+<li>
+<a href="#about-waitforslice" class="ref">wait for slice</a>, </li>
+<li><a href="#about-sliceismoving" class="ref">slice is moving</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setslicevisible"></a>
@@ -10229,7 +10539,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 722 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 732 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
