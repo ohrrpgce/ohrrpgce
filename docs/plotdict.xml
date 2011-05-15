@@ -2474,6 +2474,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<seealso>
 				<ref>putsprite</ref>
 				<ref>putslicescreen</ref>
+				<ref>movesliceto</ref>
 			</seealso>
 		</command>
 		<command id="setslicex">
@@ -2686,7 +2687,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="setslicevelocityx">
 			<canon>set slice velocity x (handle, pixels per tick, ticks)</canon>
 			<shortname>set slice velocity x</shortname>
-			<description>Cause slice <p>handle</p> to start moving horizontally. A negative value for <p>pixels per tick</p> moves left, and a positive value for <p>pixels per tick</p> moves right. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.</description>
+			<description>Cause slice <p>handle</p> to start moving horizontally. A negative value for <p>pixels per tick</p> moves left, and a positive value for <p>pixels per tick</p> moves right. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed. <note>Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</note></description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -2703,7 +2704,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="setslicevelocityy">
 			<canon>set slice velocity y (handle, pixels per tick, ticks)</canon>
 			<shortname>set slice velocity y</shortname>
-			<description>Cause slice <p>handle</p> to start moving vertically. A negative value for <p>pixels per tick</p> moves up, and a positive value for <p>pixels per tick</p> moves down. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.</description>
+			<description>Cause slice <p>handle</p> to start moving vertically. A negative value for <p>pixels per tick</p> moves up, and a positive value for <p>pixels per tick</p> moves down. The <p>ticks</p> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<note>Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.</note></description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -2720,7 +2721,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="getslicevelocityx">
 			<canon>get slice velocity x (handle)</canon>
 			<shortname>get slice velocity x</shortname>
-			<description>Returns a number represending the horizontal velocity of slice <p>handle</p>. The return value is in pixels per tick. A negative value means the slice is moving left, and a positive value means the slice is moving right.</description>
+			<description>Returns a number representing the horizontal velocity of slice <p>handle</p>. The return value is in pixels per tick. A negative value means the slice is moving left, and a positive value means the slice is moving right.</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -2737,7 +2738,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="getslicevelocityy">
 			<canon>get slice velocity y (handle)</canon>
 			<shortname>get slice velocity y</shortname>
-			<description>Returns a number represending the vertical velocity of slice <p>handle</p>. The return value is in pixels per tick. A negative value means the slice is moving up, and a positive value means the slice is moving down.</description>
+			<description>Returns a number representing the vertical velocity of slice <p>handle</p>. The return value is in pixels per tick. A negative value means the slice is moving up, and a positive value means the slice is moving down.</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -2771,7 +2772,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="stopslice">
 			<canon>stop slice (handle)</canon>
 			<shortname>stop slice</shortname>
-			<description>Cause slice <p>handle</p> to stop moving. This cancels any previous slive velocity and move slice commands.</description>
+			<description>Cause slice <p>handle</p> to stop moving. This cancels any previous slice velocity and move slice commands.</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -2788,7 +2789,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="movesliceto">
 			<canon>move slice to (handle, x, y, ticks)</canon>
 			<shortname>move slice to</shortname>
-			<description>Instruct slice <p>handle</p> to move in a straight line to a specific <p>x</p> and <p>y</p> position over a given number of <p>ticks</p>.</description>
+			<description>Instruct slice <p>handle</p> to move in a straight line to a specific <p>x</p> and <p>y</p> position over a given number of <p>ticks</p>. If you change the slice's position manually during that time (eg. with <ref>putslice</ref>), it'll continue to move towards the original target in a straight line.</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -2805,7 +2806,7 @@ The example above creates a container and then puts two hero sprites inside it, 
 		<command id="movesliceby">
 			<canon>move slice by (handle, relative x, relative y, ticks)</canon>
 			<shortname>move slice by</shortname>
-			<description>Instruct slice <p>handle</p> to move in a straight line to an <p>x</p> and <p>y</p> offset relative to its current position over a given number of <p>ticks</p>. A negative <p>relative x</p> moves left. A positive <p>relative x</p> moves right. A negative <p>relative y</p> moves up. A positive <p>relative y</p> moves down.</description>
+			<description>Instruct slice <p>handle</p> to move in a straight line to an <p>x</p> and <p>y</p> offset relative to its current position over a given number of <p>ticks</p>. A negative <p>relative x</p> moves left. A positive <p>relative x</p> moves right. A negative <p>relative y</p> moves up. A positive <p>relative y</p> moves down. If you change the slice's position manually during that time (eg. with <ref>putslice</ref>), it'll continue to move towards the original target in a straight line.</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>
@@ -2837,9 +2838,9 @@ The example above creates a container and then puts two hero sprites inside it, 
 			</seealso>
 		</command>
 		<command id="sliceismoving">
-			<canon>sliceismoving (handle)</canon>
+			<canon>slice is moving (handle)</canon>
 			<shortname>slice is moving</shortname>
-			<description>Returns true if the slice <p>handle</p> is moving. Returns false if the slice is not moving.</description>
+			<description>Returns true if the slice <p>handle</p> is moving (has velocity or has been instructed to move to some point). Returns false if the slice is not moving.</description>
 			<seealso>
 				<ref>setslicevelocityx</ref>
 				<ref>setslicevelocityy</ref>

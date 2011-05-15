@@ -1940,7 +1940,7 @@
 		<a href="#about-sliceisgrid">slice is grid (handle)</a><br>
 		
 	
-		<a href="#about-sliceismoving">sliceismoving (handle)</a><br>
+		<a href="#about-sliceismoving">slice is moving (handle)</a><br>
 		
 	
 		<a href="#about-sliceisrect">slice is rect (handle)</a><br>
@@ -5816,7 +5816,9 @@ set horiz align(sl, edge:right)
 			<br>See also: <ul class="seealso">
 <li>
 <a href="#about-putsprite" class="ref">put sprite</a>, </li>
-<li><a href="#about-putslicescreen" class="ref">put slice screen</a></li>
+<li>
+<a href="#about-putslicescreen" class="ref">put slice screen</a>, </li>
+<li><a href="#about-movesliceto" class="ref">move slice to</a></li>
 </ul>
 		</tt></p>
 		<a name="about-setslicex"></a>
@@ -6111,7 +6113,10 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">set slice velocity x (handle, pixels per tick, ticks)</font></b><br>
-			Cause slice <span class="param">handle</span> to start moving horizontally. A negative value for <span class="param">pixels per tick</span> moves left, and a positive value for <span class="param">pixels per tick</span> moves right. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<br>
+			Cause slice <span class="param">handle</span> to start moving horizontally. A negative value for <span class="param">pixels per tick</span> moves left, and a positive value for <span class="param">pixels per tick</span> moves right. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed. <div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.<br clear="all">
+</div>
+<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -6139,7 +6144,10 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">set slice velocity y (handle, pixels per tick, ticks)</font></b><br>
-			Cause slice <span class="param">handle</span> to start moving vertically. A negative value for <span class="param">pixels per tick</span> moves up, and a positive value for <span class="param">pixels per tick</span> moves down. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<br>
+			Cause slice <span class="param">handle</span> to start moving vertically. A negative value for <span class="param">pixels per tick</span> moves up, and a positive value for <span class="param">pixels per tick</span> moves down. The <span class="param">ticks</span> argument is optional. If you do not specify the number of ticks, the slice will keep moving indefinitely. If you specify the number of ticks, the velocity will expire and be set back to zero automatically after that number of ticks has passed.<div style="background-color:#EFF;" class="note">
+<img src="http://gilgamesh.hamsterrepublic.com/wiki/ohrrpgce-images/0/01/Plotnote.png" alt="[Note]" class="icon">Movement in horizontal and vertical directions is independent, and can timeout after different numbers of ticks. For example if you set a slice's x velocity to 10 for 5 ticks, and y velocity to 10 for 2 ticks, it'll move diagonally down-right for 2 ticks and then right for 3 ticks.<br clear="all">
+</div>
+<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -6167,7 +6175,7 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">get slice velocity x (handle)</font></b><br>
-			Returns a number represending the horizontal velocity of slice <span class="param">handle</span>. The return value is in pixels per tick. A negative value means the slice is moving left, and a positive value means the slice is moving right.<br>
+			Returns a number representing the horizontal velocity of slice <span class="param">handle</span>. The return value is in pixels per tick. A negative value means the slice is moving left, and a positive value means the slice is moving right.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -6195,7 +6203,7 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">get slice velocity y (handle)</font></b><br>
-			Returns a number represending the vertical velocity of slice <span class="param">handle</span>. The return value is in pixels per tick. A negative value means the slice is moving up, and a positive value means the slice is moving down.<br>
+			Returns a number representing the vertical velocity of slice <span class="param">handle</span>. The return value is in pixels per tick. A negative value means the slice is moving up, and a positive value means the slice is moving down.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -6251,7 +6259,7 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">stop slice (handle)</font></b><br>
-			Cause slice <span class="param">handle</span> to stop moving. This cancels any previous slive velocity and move slice commands.<br>
+			Cause slice <span class="param">handle</span> to stop moving. This cancels any previous slice velocity and move slice commands.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -6279,7 +6287,7 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">move slice to (handle, x, y, ticks)</font></b><br>
-			Instruct slice <span class="param">handle</span> to move in a straight line to a specific <span class="param">x</span> and <span class="param">y</span> position over a given number of <span class="param">ticks</span>.<br>
+			Instruct slice <span class="param">handle</span> to move in a straight line to a specific <span class="param">x</span> and <span class="param">y</span> position over a given number of <span class="param">ticks</span>. If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>), it'll continue to move towards the original target in a straight line.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -6307,7 +6315,7 @@ set horiz align(sl, edge:right)
 		<p>
 		<tt>
 		<b><font color="yellow">move slice by (handle, relative x, relative y, ticks)</font></b><br>
-			Instruct slice <span class="param">handle</span> to move in a straight line to an <span class="param">x</span> and <span class="param">y</span> offset relative to its current position over a given number of <span class="param">ticks</span>. A negative <span class="param">relative x</span> moves left. A positive <span class="param">relative x</span> moves right. A negative <span class="param">relative y</span> moves up. A positive <span class="param">relative y</span> moves down.<br>
+			Instruct slice <span class="param">handle</span> to move in a straight line to an <span class="param">x</span> and <span class="param">y</span> offset relative to its current position over a given number of <span class="param">ticks</span>. A negative <span class="param">relative x</span> moves left. A positive <span class="param">relative x</span> moves right. A negative <span class="param">relative y</span> moves up. A positive <span class="param">relative y</span> moves down. If you change the slice's position manually during that time (eg. with <a href="#about-putslice" class="ref">put slice</a>), it'll continue to move towards the original target in a straight line.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
@@ -6362,8 +6370,8 @@ set horiz align(sl, edge:right)
 		<a name="about-sliceismoving"></a>
 		<p>
 		<tt>
-		<b><font color="yellow">sliceismoving (handle)</font></b><br>
-			Returns true if the slice <span class="param">handle</span> is moving. Returns false if the slice is not moving.<br>
+		<b><font color="yellow">slice is moving (handle)</font></b><br>
+			Returns true if the slice <span class="param">handle</span> is moving (has velocity or has been instructed to move to some point). Returns false if the slice is not moving.<br>
 			
 			<br>See also: <ul class="seealso">
 <li>
