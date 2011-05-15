@@ -11,16 +11,16 @@ WHAT IS NEW?
       transparent after swapping map layers [Ralph]
 
   * New Plotscripting Stuff
-
-  * Vikings of Midgard
-
-  * Stuff Only Developers Will Notice
     * Slice velocity commands to make a slice move automatically at
       pixels-per-tick speeds. [James]
     * Slice movement commands to make a command move to a target
       position over a desired number of ticks. [James, Ralph]
     * "wait for slice" command to make the script wait for slice
       movement [James]
+
+  * Vikings of Midgard
+
+  * Stuff Only Developers Will Notice
 
 May 6 2011 [Zenzizenzic]
 
