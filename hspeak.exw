@@ -2358,7 +2358,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
     if compare("if",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
         src_error(sprintf(
-                      COLYEL&"if"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"and"&COLRED&" and "&COLYEL&"or"&COLRED&" for complex conditions"
+                      COLYEL&"if"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" for complex conditions"
                       ,{length(tree[ptr][TREE_BRANCHES])}
                     ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
       elsif length(tree[ptr][TREE_BRANCHES])=0 then
@@ -2410,7 +2410,7 @@ function normalize_flow_control(sequence tree,sequence vars,sequence parent)
     elsif compare("while",s)=0 then
       if length(tree[ptr][TREE_BRANCHES])>1 then
         src_error(sprintf(
-                  COLYEL&"while"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"and"&COLRED&" and "&COLYEL&"or"&COLRED&" for complex conditions"
+                  COLYEL&"while"&COLRED&" statement has %d conditions. It should have only one. Use "&COLYEL&"&&"&COLRED&" and "&COLYEL&"||"&COLRED&" for complex conditions"
                   ,{length(tree[ptr][TREE_BRANCHES])}
                   ),tree[ptr][TREE_BRANCHES][2][TREE_TRUNK][CMD_POS])
       elsif length(tree[ptr][TREE_BRANCHES])=0 then
