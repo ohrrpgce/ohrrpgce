@@ -21,15 +21,15 @@ ECHO Building executables...
 del game.exe custom.exe relump.exe unlump.exe hspeak.exe
 
 ECHO   Windows executables...
-scons game
+CALL scons game
 IF NOT EXIST game.exe GOTO NOEXE
-scons custom
+CALL scons custom
 IF NOT EXIST custom.exe GOTO NOEXE
-scons unlump
+CALL scons unlump.exe
 IF NOT EXIST unlump.exe GOTO NOEXE
-scons relump
+CALL scons relump.exe
 IF NOT EXIST relump.exe GOTO NOEXE
-scons hspeak
+CALL scons hspeak
 IF NOT EXIST hspeak.exe GOTO NOEXE
 
 ECHO   Lumping Vikings of Midgard
