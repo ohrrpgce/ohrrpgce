@@ -68,5 +68,9 @@ DECLARE FUNCTION first_free_slot_in_party() AS INTEGER
 DECLARE FUNCTION first_free_slot_in_active_party() AS INTEGER
 DECLARE FUNCTION first_free_slot_in_reserve_party() AS INTEGER
 DECLARE FUNCTION free_slots_in_party() AS INTEGER
-
+DECLARE SUB update_walkabout_slices()
+DECLARE SUB update_walkabout_hero_slices()
+DECLARE SUB update_walkabout_npc_slices()
+DECLARE FUNCTION should_hide_hero_caterpillar() AS INTEGER
+DECLARE FUNCTION should_show_normal_caterpillar() AS INTEGER
 #ENDIF

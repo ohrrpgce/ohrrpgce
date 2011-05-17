@@ -66,6 +66,7 @@ TYPE GameState
   mouse_enabled AS INTEGER 'initmouse called
   hero(40) AS HeroState
   walkabout_layer_enabled AS INTEGER
+  caterp(3) AS Slice Ptr
 END TYPE
 
 TYPE TextBoxState

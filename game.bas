@@ -777,6 +777,7 @@ gam.map.same = YES
 RETRACE
 
 displayall:
+update_walkabout_slices()
 IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  '---NORMAL DISPLAY---
  'DEBUG debug "drawmap"
@@ -1003,6 +1004,67 @@ RETRACE
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB update_walkabout_slices()
+ update_walkabout_hero_slices()
+ update_walkabout_npc_slices()
+END SUB
+
+FUNCTION should_hide_hero_caterpillar() AS INTEGER
+ RETURN vstate.active = YES _
+   ANDALSO vstate.mounting = NO _
+   ANDALSO vstate.trigger_cleanup = NO _
+   ANDALSO vstate.ahead = NO _
+   ANDALSO vstate.dat.do_not_hide_leader = NO _
+   ANDALSO vstate.dat.do_not_hide_party = NO
+END FUNCTION
+
+FUNCTION should_show_normal_caterpillar() AS INTEGER
+ RETURN readbit(gen(), 101, 1) = 1 _
+   ANDALSO (vstate.active = NO ORELSE vstate.dat.do_not_hide_leader = NO)
+END FUNCTION
+
+SUB update_walkabout_hero_slices()
+ '--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
+ 
+ DIM should_hide AS INTEGER = should_hide_hero_caterpillar()
+ FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+  gam.caterp(i)->Visible = NOT should_hide
+ NEXT i
+
+ IF should_show_normal_caterpillar() THEN
+  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+   framewalkabout catx(i * 5), caty(i * 5) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
+   WITH *gam.caterp(i)
+    .X = framex + mapx
+    .Y = framey + mapy
+   END WITH
+  NEXT i
+  YSortChildSlices(SliceTable.HeroLayer)
+  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+   WITH *gam.caterp(i)
+    .Y -= catz(i * 5)
+   END WITH
+  NEXT i
+
+ ELSE
+  '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
+  framewalkabout catx(0), caty(0) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
+  WITH *gam.caterp(0)
+   .X = framex + mapx
+   .Y = framey + mapy - catz(0)
+  END WITH
+  FOR i AS INTEGER = 1 TO UBOUND(gam.caterp)
+   WITH *gam.caterp(i)
+    .Visible = NO
+   END WITH
+  NEXT i
+ END IF
+ 
+END SUB
+
+SUB update_walkabout_npc_slices()
+END SUB
 
 'NPC movement
 'Note that NPC xgo and ygo can also be set from elsewhere, eg. being pushed
@@ -2648,6 +2710,24 @@ SUB reset_game_state ()
  gam.remembermusic = -1
  gam.random_battle_countdown = range(100, 60)
  gam.mouse_enabled = NO
+ FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+  DeleteSlice @gam.caterp(i)
+  gam.caterp(i) = NewSliceOfType(slContainer, SliceTable.HeroLayer)
+  WITH *gam.caterp(i)
+   .Width = 20
+   .Height = 20
+   .Visible = NO
+  END WITH
+  DIM sprsl AS Slice Ptr
+  sprsl = NewSliceOfType(slSprite, gam.caterp(i))
+  WITH *sprsl
+   'Anchor and align NPC sprite in the bottom center of the NPC container
+   .AnchorHoriz = 1
+   .AnchorVert = 2
+   .AlignHoriz = 1
+   .AlignVert = 2
+  END WITH
+ NEXT i
 END SUB
 
 SUB reset_map_state (map AS MapModeState)
