@@ -12,91 +12,92 @@ CALL distrib.bat nightly
 CALL distver.bat
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-win-installer-%OHRVERDATE%-%OHRVERCODE%.exe james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/ohrrpgce-wip-win-installer.exe
 
-REM This build is a copy of the default
-del game*.exe
-del custom*.exe
-call makeboth.bat directx sdl fb ~ sdl
+scons -c
+del game*.exe custom*.exe
+scons gfx=directx+sdl+fb music=sdl debug=0
 call nightly-gfx-music directx sdl ~ gfx_directx.dll SDL.dll SDL_mixer.dll 
 
-del game*.exe
-del custom*.exe
-call makeboth.bat directx fb ~ native
+scons -c
+del game*.exe custom*.exe
+scons gfx=directx+fb music=native debug=0
 call nightly-gfx-music directx native ~ gfx_directx.dll audiere.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat directx fb ~ native2
+scons -c
+del game*.exe custom*.exe
+scons gfx=directx+fb music=native2 debug=0
 call nightly-gfx-music directx native2 ~ gfx_directx.dll audiere.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat fb directx sdl ~ sdl
+scons -c
+del game*.exe custom*.exe
+scons gfx=fb+directx+sdl music=sdl debug=0
 call nightly-gfx-music fb sdl ~ SDL.dll SDL_mixer.dll 
 
-del game*.exe
-del custom*.exe
-call makeboth.bat fb directx ~ native
+scons -c
+del game*.exe custom*.exe
+scons gfx=fb+directx music=native debug=0
 call nightly-gfx-music fb native ~ audiere.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat fb directx ~ native2
+scons -c
+del game*.exe custom*.exe
+scons gfx=fb+directx music=native2 debug=0
 call nightly-gfx-music fb native2 ~ audiere.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat alleg directx fb sdl ~ sdl
+scons -c
+del game*.exe custom*.exe
+scons gfx=alleg+directx+fb+sdl music=sdl debug=0
 call nightly-gfx-music alleg sdl ~ alleg40.dll SDL.dll SDL_mixer.dll 
 
-del game*.exe
-del custom*.exe
-call makeboth.bat alleg directx fb ~ native
+scons -c
+del game*.exe custom*.exe
+scons gfx=alleg+directx+fb music=native debug=0
 call nightly-gfx-music alleg native ~ alleg40.dll audiere.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat alleg directx fb ~ native2
+scons -c
+del game*.exe custom*.exe
+scons gfx=alleg+directx+fb music=native2 debug=0
 call nightly-gfx-music alleg native2 ~ alleg40.dll audiere.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat sdl directx fb ~ sdl
+scons -c
+del game*.exe custom*.exe
+scons gfx=sdl+directx+fb music=sdl debug=0
 call nightly-gfx-music sdl sdl ~ SDL.dll SDL_mixer.dll 
 
-del game*.exe
-del custom*.exe
-call makeboth.bat sdl directx fb ~ native
+scons -c
+del game*.exe custom*.exe
+scons gfx=sdl+directx+fb music=native debug=0
 call nightly-gfx-music sdl native ~ audiere.dll SDL.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat sdl directx fb ~ native2
+scons -c
+del game*.exe custom*.exe
+scons gfx=sdl+directx+fb music=native2 debug=0
 call nightly-gfx-music sdl native2 ~ audiere.dll SDL.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat directx sdl fb ~ silence
+scons -c
+del game*.exe custom*.exe
+scons gfx=directx+sdl+fb music=silence debug=0
 call nightly-gfx-music directx silence ~ SDL.dll gfx_directx.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat directx sdl fb ~ sdl -g
+scons -c
+del game*.exe custom*.exe
+scons gfx=directx+sdl+fb music=sdl debug=1
 call nightly-gfx-music directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat directx sdl fb ~ sdl -g -exx -s console
-call nightly-gfx-music directx sdl -debug-exx SDL.dll SDL_mixer.dll gfx_directx.dll
+scons -c
+del game*.exe custom*.exe
+scons gfx=directx+sdl+fb music=sdl debug=1 valgrind=1
+call nightly-gfx-music directx sdl -debug-valgrind SDL.dll SDL_mixer.dll gfx_directx.dll
 
-del game*.exe
-del custom*.exe
-call makeboth.bat directx sdl fb ~ sdl -g -d SCRIPTPROFILE
-call nightly-gfx-music directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
+REM scons-c
+REM del game*.exe custom*.exe
+REM scons gfx=directx+sdl+fb music=sdl debug=1 -d SCRIPTPROFILE
+REM call nightly-gfx-music directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
 
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
 
-call makeutil.bat
+scons -c
+del unlump.exe relump.exe
+scons unlump.exe relump.exe
 del distrib\ohrrpgce-util.zip
 IF NOT EXIST unlump.exe GOTO NOUTIL
 IF NOT EXIST relump.exe GOTO NOUTIL
@@ -105,14 +106,18 @@ pscp -i C:\progra~1\putty\id_rsa.ppk distrib\ohrrpgce-util.zip james_paige@mothe
 :NOUTIL
 
 del distrib\hspeak-win-nightly.zip
-call makehspeak.bat
+scons -c
+del hspeak.exe
+scons hspeak.exe
 IF NOT EXIST hspeak.exe GOTO NOHSPEAK
 support\zip distrib\hspeak-win-nightly.zip hspeak.exe hspeak.exw hsspiffy.e LICENSE.txt plotscr.hsd
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\hspeak-win-nightly.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
 :NOHSPEAK
 
 del distrib\bam2mid.zip
-call make-bam2mid.bat
+scons -c
+del bam2mid.exe
+scons bam2mid.exe
 IF NOT EXIST bam2mid.exe GOTO NOBAM2MID
 support\zip distrib\bam2mid.zip bam2mid.exe bam2mid.txt bam2mid.bas banks.bi LICENSE.txt make-bam2mid.bat make-bam2mid.sh svninfo.txt
 pscp -i C:\progra~1\putty\id_rsa.ppk distrib\bam2mid.zip james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/nightly/
