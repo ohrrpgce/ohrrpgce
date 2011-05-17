@@ -635,6 +635,7 @@ DO
    IF keyval(scF9) > 1 THEN
     'FIXME: the CTRL+F9 key is a temporary hack. It will go away later.
     gam.walkabout_layer_enabled = NOT gam.walkabout_layer_enabled
+    debug "gam.walkabout_layer_enabled = " & gam.walkabout_layer_enabled
    END IF
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
@@ -1045,6 +1046,19 @@ SUB update_walkabout_hero_slices()
    WITH *gam.caterp(i)
     .Y -= catz(i * 5)
    END WITH
+  NEXT i
+
+  DIM cat_slot AS INTEGER = 0
+  DIM sprsl AS Slice Ptr
+  FOR party_slot AS INTEGER = 0 TO 3
+   IF hero(party_slot) > 0 THEN
+    sprsl = gam.caterp(cat_slot)->FirstChild
+    ChangeSpriteSlice sprsl, , , , catd(cat_slot * 5) * 2 + (wtog(cat_slot) \ 2)
+    cat_slot += 1
+   END IF
+  NEXT party_slot
+  FOR i AS INTEGER = cat_slot TO UBOUND(gam.caterp)
+   gam.caterp(i)->Visible = NO
   NEXT i
 
  ELSE
