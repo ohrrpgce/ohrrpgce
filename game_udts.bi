@@ -65,6 +65,7 @@ TYPE GameState
   walk_through_walls AS INTEGER 'used for F11 cheat mode
   mouse_enabled AS INTEGER 'initmouse called
   hero(40) AS HeroState
+  walkabout_layer_enabled AS INTEGER
 END TYPE
 
 TYPE TextBoxState

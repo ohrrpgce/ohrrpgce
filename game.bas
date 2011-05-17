@@ -632,6 +632,10 @@ DO
     SliceDebugDumpTree SliceTable.Root
     notification "Dumped entire slice tree to g_debug.txt"
    END IF
+   IF keyval(scF9) > 1 THEN
+    'FIXME: the CTRL+F9 key is a temporary hack. It will go away later.
+    gam.walkabout_layer_enabled = NOT gam.walkabout_layer_enabled
+   END IF
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
@@ -787,25 +791,28 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   .X = mapx * -1
   .Y = mapy * -1
  END WITH
- 
- RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
- DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
- FOR i = 1 TO gmap(31) - 1
-  IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
- NEXT
- 'DEBUG debug "draw npcs and heroes"
- DrawSlice SliceTable.Walkabout, dpage
- IF gmap(16) = 1 THEN
-  cathero
-  drawnpcs
+
+ IF gam.walkabout_layer_enabled THEN
+  DrawSlice SliceTable.MapRoot, dpage
  ELSE
-  drawnpcs
-  cathero
+  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
+  DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
+  FOR i = 1 TO gmap(31) - 1
+   IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
+  NEXT
+  'DEBUG debug "draw npcs and heroes"
+  IF gmap(16) = 1 THEN
+   cathero
+   drawnpcs
+  ELSE
+   drawnpcs
+   cathero
+  END IF
+  FOR i = gmap(31) TO UBOUND(maptiles)
+   IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
+  NEXT
+  DrawSlice SliceTable.ObsoleteOverhead, dpage
  END IF
- FOR i = gmap(31) TO UBOUND(maptiles)
-  IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
- NEXT
- DrawSlice SliceTable.ObsoleteOverhead, dpage
  DrawSlice SliceTable.ScriptSprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  
  animatetilesets tilesets()
