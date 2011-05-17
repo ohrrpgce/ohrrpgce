@@ -3222,18 +3222,30 @@ vehpass = v
 END FUNCTION
 
 SUB vishero ()
-FOR i = 0 TO UBOUND(herow)
+FOR i AS INTEGER = 0 TO UBOUND(herow)
  frame_unload @herow(i).sprite
  palette16_unload @herow(i).pal
 NEXT
-o = 0
-FOR i = 0 TO 3
+
+DIM sprsl AS Slice Ptr
+DIM o AS INTEGER = 0
+FOR i AS INTEGER = 0 TO 3
  IF hero(i) > 0 THEN
   herow(o).sprite = frame_load(4, gam.hero(i).pic)
   herow(o).pal = palette16_load(gam.hero(i).pal, 4, gam.hero(i).pic)
+  
+  sprsl = gam.caterp(o)->FirstChild
+  IF sprsl = 0 THEN
+   debug "null sprite " & i & " in vishero"
+  ELSE
+   ChangeSpriteSlice sprsl, 4, gam.hero(i).pic, gam.hero(i).pal 
+  END IF
+
   o = o + 1
  END IF
 NEXT i
+
+
 evalherotag
 END SUB
 
