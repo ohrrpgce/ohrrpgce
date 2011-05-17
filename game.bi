@@ -58,6 +58,7 @@ DECLARE SUB init_text_box_slices(txt AS TextBoxState)
 DECLARE SUB cleanup_text_box ()
 DECLARE SUB refresh_map_slice()
 DECLARE SUB refresh_map_slice_tilesets()
+DECLARE SUB refresh_walkabout_layer_sort()
 DECLARE FUNCTION vehicle_is_animating() AS INTEGER
 DECLARE SUB reset_vehicle(v AS vehicleState)
 DECLARE SUB dump_vehicle_state()

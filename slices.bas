@@ -143,9 +143,13 @@ Sub SetupGameSlices
  ChangeMapSlice SliceTable.ObsoleteOverhead, , , 0, 2   'non-transparent, overhead
  SliceTable.ObsoleteOverhead->Fill = YES
 
+ 'Note: the order of this slice in relation to the .MapLayer siblings will change each time a map is loaded
  SliceTable.Walkabout = NewSliceOfType(slContainer, SliceTable.MapRoot, SL_WALKABOUT_LAYER)
  SliceTable.Walkabout->Fill = YES
- 'Note: the order of this slice in relation to the .MapLayer siblings will change each time a map is loaded
+ SliceTable.HeroLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_HERO_LAYER)
+ SliceTable.HeroLayer->Fill = YES
+ SliceTable.NPCLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_NPC_LAYER)
+ SliceTable.NPCLayer->Fill = YES
  
  SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
  SliceTable.ScriptSprite->Fill = YES
@@ -235,6 +239,8 @@ FUNCTION SliceLookupCodename (BYVAL code AS INTEGER) AS STRING
   CASE SL_MAPROOT: RETURN "maproot"
   CASE SL_OBSOLETE_OVERHEAD: RETURN "obsolete_overhead"
   CASE SL_WALKABOUT_LAYER: RETURN "walkabout_layer"
+  CASE SL_HERO_LAYER: RETURN "hero_layer"
+  CASE SL_NPC_LAYER: RETURN "npc_layer"
   CASE SL_MAP_LAYER0: RETURN "map_layer0"
   CASE SL_MAP_LAYER1: RETURN "map_layer1"
   CASE SL_MAP_LAYER2: RETURN "map_layer2"

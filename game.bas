@@ -794,6 +794,7 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
  NEXT
  'DEBUG debug "draw npcs and heroes"
+ DrawSlice SliceTable.Walkabout, dpage
  IF gmap(16) = 1 THEN
   cathero
   drawnpcs
@@ -3004,6 +3005,21 @@ SUB refresh_map_slice()
   ChangeMapSlice SliceTable.MapLayer(i), NULL, NULL
  NEXT i
  ChangeMapSlice SliceTable.ObsoleteOverhead, @maptiles(0), @pass
+ 
+ '--now fix up the order of the slices
+ DIM sorter AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO gmap(31) - 1
+  SliceTable.MapLayer(i)->Sorter = sorter
+  sorter += 1
+ NEXT
+ SliceTable.Walkabout->Sorter = sorter
+ sorter += 1
+ FOR i AS INTEGER = gmap(31) TO UBOUND(maptiles)
+  SliceTable.MapLayer(i)->Sorter = sorter
+  sorter += 1
+ NEXT
+ CustomSortChildSlices SliceTable.MapRoot, YES
+ refresh_walkabout_layer_sort()
 END SUB
 
 SUB refresh_map_slice_tilesets()
@@ -3012,6 +3028,17 @@ SUB refresh_map_slice_tilesets()
   ChangeMapSliceTileset SliceTable.MapLayer(i), tilesets(i)
  NEXT i
  ChangeMapSliceTileset SliceTable.ObsoleteOverhead, tilesets(0)
+END SUB
+
+SUB refresh_walkabout_layer_sort()
+ IF gmap(16) = 1 THEN
+  SliceTable.HeroLayer->Sorter = 0
+  SliceTable.NPCLayer->Sorter = 1
+ ELSE
+  SliceTable.NPCLayer->Sorter = 0
+  SliceTable.HeroLayer->Sorter = 1
+ END IF
+ CustomSortChildSlices SliceTable.Walkabout, YES
 END SUB
 
 FUNCTION vehicle_is_animating() AS INTEGER

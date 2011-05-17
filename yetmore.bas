@@ -842,6 +842,7 @@ SELECT CASE AS CONST id
    gmap(retvals(0)) = retvals(1)
    IF retvals(0) = 5 THEN setoutside -1  'hint: always use the wrapper
    IF retvals(0) = 6 AND gmap(5) = 2 THEN setoutside retvals(1)
+   IF retvals(0) = 16 THEN refresh_walkabout_layer_sort()
   END IF
  CASE 492'--mouse click
   IF retvals(0) <= 2 THEN
