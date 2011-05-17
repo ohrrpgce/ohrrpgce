@@ -30,6 +30,7 @@ CONST SL_TEXTBOX_LAYER    = -100006
 CONST SL_STRING_LAYER     = -100007
 CONST SL_MAPROOT          = -100008
 CONST SL_OBSOLETE_OVERHEAD = -100009
+CONST SL_WALKABOUT_LAYER  = -100010
 CONST SL_MAP_LAYER0       = -101000
 CONST SL_MAP_LAYER1       = -101001
 CONST SL_MAP_LAYER2       = -101002
@@ -135,6 +136,7 @@ TYPE SliceTable_
   maproot AS Slice Ptr
   maplayer(maplayerMax) AS Slice Ptr
   obsoleteoverhead AS Slice Ptr
+  walkabout AS Slice Ptr
   scriptsprite AS Slice Ptr
   textbox AS Slice Ptr
   menu AS Slice Ptr

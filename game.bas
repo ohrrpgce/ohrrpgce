@@ -775,10 +775,8 @@ RETRACE
 displayall:
 IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
  '---NORMAL DISPLAY---
- 'setanim tastuf(0) + tanim_state(0).cycle, tastuf(20) + tanim_state(1).cycle
- 'cycletile tilesets(0)->anim(), tilesets(0)->tastuf()
  'DEBUG debug "drawmap"
- IF readbit(gen(), 44, suspendoverlay) THEN 
+ IF readbit(gen(), genSuspendBits, suspendoverlay) THEN 
   ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all
   SliceTable.ObsoleteOverhead->Visible = NO
  ELSE
@@ -789,6 +787,7 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   .X = mapx * -1
   .Y = mapy * -1
  END WITH
+ 
  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
  DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
  FOR i = 1 TO gmap(31) - 1
