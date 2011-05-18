@@ -14,7 +14,6 @@ DECLARE FUNCTION get_valid_npc (BYVAL seekid as integer, BYVAL errlvl as integer
 DECLARE SUB greyscalepal
 DECLARE FUNCTION herobyrank (slot as integer) as integer
 DECLARE SUB interpolatecat
-DECLARE SUB npcplot
 DECLARE SUB onkeyscript (scriptnum as integer)
 DECLARE FUNCTION partybyrank (slot as integer) as integer
 DECLARE FUNCTION playtime (d as integer, h as integer, m as integer) as string
@@ -31,6 +30,10 @@ DECLARE FUNCTION vehiclestuff () as integer
 DECLARE FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
 DECLARE SUB vehicle_graceful_dismount ()
 DECLARE SUB vishero ()
+DECLARE SUB visnpc ()
+DECLARE SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)
+DECLARE SUB set_walkabout_frame (byval cont as Slice Ptr, byval frame as integer)
+DECLARE SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as integer)
 DECLARE SUB wrapaheadxy (x as integer, y as integer, direction as integer, distance as integer, unitsize as integer)
 DECLARE SUB cropposition (BYREF x as integer, BYREF y as integer, unitsize as integer)
 DECLARE FUNCTION wrappass (x as integer, y as integer, xgo as integer, ygo as integer, isveh as integer) as integer

@@ -565,47 +565,48 @@ FOR o = 0 TO 10 STEP 5
 NEXT o
 END SUB
 
-SUB npcplot
-'This SUB will be called when a map is incompletely loaded (NPC instances before definitions
-'or vice versa), and that's hard to avoid, because a script could load them with two separate loadmapstate
-'calls. So we must tolerate invalid NPC IDs and anything else. So here we mark all NPCs as hidden which
-'would otherwise cause problems
+SUB visnpc()
+ 'This SUB will be called when a map is incompletely loaded (NPC instances before definitions
+ 'or vice versa), and that's hard to avoid, because a script could load them with two separate loadmapstate
+ 'calls. So we must tolerate invalid NPC IDs and anything else. So here we mark all NPCs as hidden which
+ 'would otherwise cause problems
 
-FOR i = 0 TO 299
- curnpc = ABS(npc(i).id) - 1
+ DIM npc_id AS INTEGER
+ 
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  npc_id = ABS(npc(i).id) - 1
 
- IF curnpc > UBOUND(npcs) THEN
-  'Invalid ID number; hide. Probably a partially loaded map.
-  npc(i).id = -curnpc - 1
-  CONTINUE FOR
- END IF
+  set_walkabout_vis npcsl(i), YES
 
- IF npc(i).id < 0 THEN
-  '--check reappearance tags for existing but hidden NPCs
-  IF istag(npcs(curnpc).tag1, 1) AND istag(npcs(curnpc).tag2, 1) AND istag(1000 + npcs(curnpc).usetag, 0) = 0 THEN
-   npc(i).id = ABS(npc(i).id)
+  IF npc_id > UBOUND(npcs) THEN
+   'Invalid ID number; hide. Probably a partially loaded map.
+   npc(i).id = -npc_id - 1
+   set_walkabout_vis npcsl(i), NO
+   CONTINUE FOR
   END IF
- END IF
-
- IF npc(i).id > 0 THEN
-  '--check removal tags for existing visible NPCs
-  IF istag(npcs(curnpc).tag1, 1) = 0 OR istag(npcs(curnpc).tag2, 1) = 0 OR istag(1000 + npcs(curnpc).usetag, 0) THEN
-   npc(i).id = npc(i).id * -1
+ 
+  IF npc(i).id < 0 THEN
+   '--check reappearance tags for existing but hidden NPCs
+   IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(1000 + npcs(npc_id).usetag, 0) = 0 THEN
+    npc(i).id = ABS(npc(i).id)
+   END IF
   END IF
-  'IF readbit(tag(), 0, ABS(npcs(curnpc * 15 + 9))) <> SGN(SGN(npcs(curnpc * 15 + 9)) + 1) AND npcs(curnpc * 15 + 9) <> 0 THEN
-  '  npcl(i + 600) = npcl(i + 600) * -1
-  'END IF
-  'IF readbit(tag(), 0, ABS(npcs(curnpc * 15 + 10))) <> SGN(SGN(npcs(curnpc * 15 + 10)) + 1) AND npcs(curnpc * 15 + 10) <> 0 THEN
-  '  npcl(i + 600) = npcl(i + 600) * -1
-  'END IF
-  'IF npcs(curnpc * 15 + 11) > 0 THEN
-  '  IF readbit(tag(), 0, 1000 + npcs(curnpc * 15 + 11)) = 1 THEN
-  '    npcl(i + 600) = npcl(i + 600) * -1
-  '  END IF
-  'END IF
- END IF
+ 
+  IF npc(i).id > 0 THEN
+   '--check removal tags for existing visible NPCs
+   IF istag(npcs(npc_id).tag1, 1) = 0 ORELSE istag(npcs(npc_id).tag2, 1) = 0 ORELSE istag(1000 + npcs(npc_id).usetag, 0) THEN
+    npc(i).id = npc(i).id * -1
+    set_walkabout_vis npcsl(i), NO
+   END IF
+  END IF
 
-NEXT i
+  '--set sprite
+  IF npc_id >= 0 THEN
+   set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
+   set_walkabout_vis npcsl(i), (npc(i).id > 0)
+  END IF
+
+ NEXT i
 END SUB
 
 FUNCTION script_keyval (BYVAL key as integer) as integer
@@ -912,7 +913,7 @@ SELECT CASE AS CONST id
  CASE 13'--set tag
   IF retvals(0) > 1 AND retvals(0) < 2000 THEN  'there are actually 2048 tags
    setbit tag(), 0, retvals(0), retvals(1)
-   npcplot
+   visnpc
   END IF
  CASE 17'--get item
   IF valid_item(retvals(0)) THEN
@@ -3222,31 +3223,59 @@ vehpass = v
 END FUNCTION
 
 SUB vishero ()
-FOR i AS INTEGER = 0 TO UBOUND(herow)
- frame_unload @herow(i).sprite
- palette16_unload @herow(i).pal
-NEXT
+ FOR i AS INTEGER = 0 TO UBOUND(herow)
+  frame_unload @herow(i).sprite
+  palette16_unload @herow(i).pal
+ NEXT
 
-DIM sprsl AS Slice Ptr
-DIM o AS INTEGER = 0
-FOR i AS INTEGER = 0 TO 3
- IF hero(i) > 0 THEN
-  herow(o).sprite = frame_load(4, gam.hero(i).pic)
-  herow(o).pal = palette16_load(gam.hero(i).pal, 4, gam.hero(i).pic)
-  
-  sprsl = gam.caterp(o)->FirstChild
-  IF sprsl = 0 THEN
-   debug "null sprite " & i & " in vishero"
-  ELSE
-   ChangeSpriteSlice sprsl, 4, gam.hero(i).pic, gam.hero(i).pal 
+ DIM o AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO 3
+  IF hero(i) > 0 THEN
+   herow(o).sprite = frame_load(4, gam.hero(i).pic)
+   herow(o).pal = palette16_load(gam.hero(i).pal, 4, gam.hero(i).pic)
+ 
+   set_walkabout_sprite gam.caterp(o), gam.hero(i).pic, gam.hero(i).pal
+   o = o + 1
   END IF
+ NEXT i
 
-  o = o + 1
+ evalherotag
+END SUB
+
+SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)
+ DIM sprsl AS Slice Ptr
+ IF cont = 0 THEN
+  debug "null container slice in set_walkabout_sprite"
+ ELSE
+  sprsl = cont->FirstChild
+  IF sprsl = 0 THEN
+   debug "null sprite slice in set_walkabout_sprite"
+  ELSE
+   ChangeSpriteSlice sprsl, 4, pic, pal
+  END IF
  END IF
-NEXT i
+END SUB
 
+SUB set_walkabout_frame (byval cont as Slice Ptr, byval frame as integer)
+ DIM sprsl AS Slice Ptr
+ IF cont = 0 THEN
+  debug "null container slice in set_walkabout_frame"
+ ELSE
+  sprsl = cont->FirstChild
+  IF sprsl = 0 THEN
+   debug "null sprite slice in set_walkabout_frame"
+  ELSE
+   ChangeSpriteSlice sprsl, , , , frame
+  END IF
+ END IF
+END SUB
 
-evalherotag
+SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as integer)
+ IF cont = 0 THEN
+  debug "null container slice in set_walkabout_vis"
+ ELSE
+  cont->Visible = vis
+ END IF
 END SUB
 
 SUB wrapaheadxy (x, y, direction, distance, unitsize)

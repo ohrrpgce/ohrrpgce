@@ -115,7 +115,8 @@ DIM inventory(inventoryMax) as InventSlot
 DIM gold
 
 DIM npcs(0) as NPCType
-DIM npc(300) as NPCInst
+DIM npc(299) as NPCInst
+DIM npcsl(299) as Slice Ptr
 
 DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, speedcontrol, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
 DIM err_suppress_lvl
@@ -1026,58 +1027,117 @@ FUNCTION should_show_normal_caterpillar() AS INTEGER
 END FUNCTION
 
 SUB update_walkabout_hero_slices()
- '--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
  
  DIM should_hide AS INTEGER = should_hide_hero_caterpillar()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
-  gam.caterp(i)->Visible = NOT should_hide
+  set_walkabout_vis gam.caterp(i), NOT should_hide
  NEXT i
 
  IF should_show_normal_caterpillar() THEN
   FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
    framewalkabout catx(i * 5), caty(i * 5) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
-   WITH *gam.caterp(i)
-    .X = framex + mapx
-    .Y = framey + mapy
-   END WITH
+   IF gam.caterp(i) = 0 THEN
+    debug "null hero container slice in update_walkabout_hero_slices"
+   ELSE
+    WITH *gam.caterp(i)
+     .X = framex + mapx
+     .Y = framey + mapy
+    END WITH
+   END IF
   NEXT i
   YSortChildSlices(SliceTable.HeroLayer)
   FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
-   WITH *gam.caterp(i)
-    .Y -= catz(i * 5)
-   END WITH
+   IF gam.caterp(i) = 0 THEN
+    debug "null hero container slice in update_walkabout_hero_slices"
+   ELSE
+    WITH *gam.caterp(i)
+     .Y -= catz(i * 5)
+    END WITH
+   END IF
   NEXT i
 
   DIM cat_slot AS INTEGER = 0
   DIM sprsl AS Slice Ptr
   FOR party_slot AS INTEGER = 0 TO 3
    IF hero(party_slot) > 0 THEN
-    sprsl = gam.caterp(cat_slot)->FirstChild
-    ChangeSpriteSlice sprsl, , , , catd(cat_slot * 5) * 2 + (wtog(cat_slot) \ 2)
+    set_walkabout_frame gam.caterp(cat_slot), catd(cat_slot * 5) * 2 + (wtog(cat_slot) \ 2)
     cat_slot += 1
    END IF
   NEXT party_slot
   FOR i AS INTEGER = cat_slot TO UBOUND(gam.caterp)
-   gam.caterp(i)->Visible = NO
+   set_walkabout_vis gam.caterp(i), NO
   NEXT i
 
  ELSE
   '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
   framewalkabout catx(0), caty(0) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
-  WITH *gam.caterp(0)
-   .X = framex + mapx
-   .Y = framey + mapy - catz(0)
-  END WITH
-  FOR i AS INTEGER = 1 TO UBOUND(gam.caterp)
-   WITH *gam.caterp(i)
-    .Visible = NO
+  IF gam.caterp(0) = 0 THEN
+   debug "null hero container slice in update_walkabout_hero_slices"
+  ELSE
+   WITH *gam.caterp(0)
+    .X = framex + mapx
+    .Y = framey + mapy - catz(0)
    END WITH
+  END IF
+  FOR i AS INTEGER = 1 TO UBOUND(gam.caterp)
+   set_walkabout_vis gam.caterp(i), NO
   NEXT i
  END IF
  
 END SUB
 
 SUB update_walkabout_npc_slices()
+ DIM where AS XYPair
+
+ '--set x and y positions 
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  IF npc(i).id > 0 THEN '-- if visible
+   where.X = 0
+   where.Y = 0
+   framewalkabout npc(i).x, npc(i).y + gmap(11), where.X, where.Y, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
+   WITH *npcsl(i)
+    .X = where.X + mapx
+    .Y = where.Y + mapy
+   END WITH
+  ELSE
+   '--hide non-visible and unused NPC slices
+   npcsl(i)->Visible = NO
+  END IF
+ NEXT i
+ YSortChildSlices(SliceTable.NPCLayer)
+
+ '--Now loop again and apply z
+ DIM z AS INTEGER
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  IF npc(i).id > 0 THEN '-- if visible
+   z = 0
+   IF vstate.active AND vstate.npc = i THEN
+    'This is a currently active vehicle NPC, set its z value equal to the lead hero's
+    z = catz(0)
+   END IF
+   IF z > 0 ANDALSO vstate.dat.disable_flying_shadow = NO THEN
+    '--Vehicle shadow
+    'FIXME: how should we actually do this?
+    'rectangle drawnpcX + 6, drawnpcY + 13, 8, 5, uilook(uiShadow), dpage
+    'rectangle drawnpcX + 5, drawnpcY + 14, 10, 3, uilook(uiShadow), dpage
+   END IF
+   IF z THEN
+    WITH *npcsl(i)
+     .Y -= z
+    END WITH
+   END IF
+  END IF
+ NEXT i
+
+ '--now apply sprite frame changes
+ DIM sprsl AS Slice Ptr
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  IF npc(i).id > 0 THEN '-- if visible
+   sprsl = npcsl(i)->FirstChild
+   ChangeSpriteSlice sprsl, , , , npc(i).dir * 2 + npc(i).frame \ 2
+  END IF
+ NEXT i
+
 END SUB
 
 'NPC movement
@@ -1525,13 +1585,11 @@ WITH scrat(nowscript)
        IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
         writesafe = 0
        ELSE
-        IF npcs(retvals(0)).sprite THEN frame_unload(@npcs(retvals(0)).sprite)
-        npcs(retvals(0)).sprite = frame_load(4, retvals(2))
+        change_npc_def_sprite retvals(0), retvals(2)
        END IF
       END IF
       IF retvals(1) = 1 THEN
-       IF npcs(retvals(0)).pal THEN palette16_unload(@npcs(retvals(0)).pal)
-       npcs(retvals(0)).pal = palette16_load(retvals(2), 4, npcs(retvals(0)).picture)
+       change_npc_def_pal retvals(0), retvals(2)
       END IF
       IF writesafe THEN SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))
      END IF
@@ -2008,14 +2066,14 @@ SUB loadmap_npcl(mapnum)
  LoadNPCL maplumpname$(mapnum, "l"), npc()
 
  'Evaluate whether NPCs should appear or disappear based on tags
- npcplot
+ visnpc
 END SUB
 
 SUB loadmap_npcd(mapnum)
  LoadNPCD maplumpname$(mapnum, "n"), npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
- npcplot
+ visnpc
  'load NPC graphics
  reloadnpc
 END SUB
@@ -2267,7 +2325,7 @@ SUB player_menu_keys ()
    'update any change tags
    evalherotag
    evalitemtag
-   npcplot
+   visnpc
    IF esc_menu >= 0 THEN
     add_menu esc_menu
    END IF
@@ -2396,7 +2454,7 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
  IF updatetags THEN
   evalherotag
   evalitemtag
-  npcplot
+  visnpc
  END IF
  IF open_other_menu >= 0 THEN
   add_menu open_other_menu
@@ -2724,25 +2782,35 @@ SUB reset_game_state ()
  gam.remembermusic = -1
  gam.random_battle_countdown = range(100, 60)
  gam.mouse_enabled = NO
+ 'If we are resetting, the old slices will have already been destroyed
+ 'by DestroyGameSlices so we just re-assign gam.caterp() and npcls()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
-  DeleteSlice @gam.caterp(i)
-  gam.caterp(i) = NewSliceOfType(slContainer, SliceTable.HeroLayer)
-  WITH *gam.caterp(i)
-   .Width = 20
-   .Height = 20
-   .Visible = NO
-  END WITH
-  DIM sprsl AS Slice Ptr
-  sprsl = NewSliceOfType(slSprite, gam.caterp(i))
-  WITH *sprsl
-   'Anchor and align NPC sprite in the bottom center of the NPC container
-   .AnchorHoriz = 1
-   .AnchorVert = 2
-   .AlignHoriz = 1
-   .AlignVert = 2
-  END WITH
+  gam.caterp(i) = create_walkabout_slices(SliceTable.HeroLayer)
+ NEXT i
+ FOR i AS INTEGER = 0 TO UBOUND(npcsl)
+  npcsl(i) = create_walkabout_slices(SliceTable.NPCLayer)
  NEXT i
 END SUB
+
+FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
+ DIM sl AS Slice Ptr
+ sl = NewSliceOfType(slContainer, parent)
+ WITH *sl
+  .Width = 20
+  .Height = 20
+  .Visible = NO
+ END WITH
+ DIM sprsl AS Slice Ptr
+ sprsl = NewSliceOfType(slSprite, sl)
+ WITH *sprsl
+  'Anchor and align NPC sprite in the bottom center of the NPC container
+  .AnchorHoriz = 1
+  .AnchorVert = 2
+  .AlignHoriz = 1
+  .AlignVert = 2
+ END WITH
+ RETURN sl
+END FUNCTION
 
 SUB reset_map_state (map AS MapModeState)
  map.id = gen(genStartMap)
@@ -2898,7 +2966,7 @@ SUB advance_text_box ()
  evalitemtag
  '---DONE EVALUATING CONDITIONALS--------
  vishero
- npcplot
+ visnpc
  IF txt.sayer >= 0 AND txt.old_dir <> -1 THEN
   IF npc(txt.sayer).id > 0 THEN
    IF npcs(npc(txt.sayer).id - 1).facetype = 1 THEN  '"Face Player"
@@ -3266,7 +3334,7 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
  evalherotag
  evalitemtag
  IF txt.id = -1 THEN
-  npcplot
+  visnpc
  END IF
 END SUB
 
@@ -3325,3 +3393,33 @@ FUNCTION free_slots_in_party() AS INTEGER
  RETURN 41 - herocount(40)
 
 END FUNCTION
+
+SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS INTEGER)
+ '--reload old-style
+ IF npcs(npc_id).sprite THEN frame_unload(@npcs(npc_id).sprite)
+ npcs(npc_id).sprite = frame_load(4, walkabout_sprite_id)
+ '--reload new-style
+ DIM sprsl AS Slice Ptr
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  IF ABS(npc(i).id) - 1 = npc_id THEN
+   'found a match!
+   set_walkabout_sprite npcsl(i), walkabout_sprite_id
+  END IF 
+ NEXT i
+END SUB
+
+SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
+ '--reload old-style
+ IF npcs(npc_id).pal THEN palette16_unload(@npcs(npc_id).pal)
+ npcs(npc_id).pal = palette16_load(palette_id, 4, npcs(npc_id).picture)
+ '--reload new-style
+ DIM sprsl AS Slice Ptr
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  IF ABS(npc(i).id) - 1 = npc_id THEN
+   'found a match!
+   set_walkabout_sprite npcsl(i), , palette_id
+  END IF 
+ NEXT i
+END SUB
+
+

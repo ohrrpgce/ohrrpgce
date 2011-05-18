@@ -1979,11 +1979,11 @@ st.last = 1999
 IF keyval(scCtrl) > 0 THEN
  IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
   setbit tag(), 0, st.pt, 0
-  npcplot
+  visnpc
  END IF
  IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN
   setbit tag(), 0, st.pt, 1
-  npcplot
+  visnpc
  END IF
 ELSE
  IF usemenu(st, scMinus, scPlus) = 0 THEN

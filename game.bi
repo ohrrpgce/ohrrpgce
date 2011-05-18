@@ -73,4 +73,7 @@ DECLARE SUB update_walkabout_hero_slices()
 DECLARE SUB update_walkabout_npc_slices()
 DECLARE FUNCTION should_hide_hero_caterpillar() AS INTEGER
 DECLARE FUNCTION should_show_normal_caterpillar() AS INTEGER
+DECLARE SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS INTEGER)
+DECLARE SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
+DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
 #ENDIF

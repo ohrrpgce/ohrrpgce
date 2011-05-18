@@ -485,15 +485,28 @@ LOOP
 END FUNCTION
 
 SUB reloadnpc ()
-vishero
-FOR i = 0 TO UBOUND(npcs)
- with npcs(i)
-  if .sprite then frame_unload(@.sprite)
-  if .pal then palette16_unload(@.pal)
-  .sprite = frame_load(4, .picture)
-  .pal = palette16_load(.palette, 4, .picture)
- end with
-NEXT i
+ vishero
+ 
+ '--old-style
+ FOR i AS INTEGER = 0 TO UBOUND(npcs)
+  with npcs(i)
+   if .sprite then frame_unload(@.sprite)
+   if .pal then palette16_unload(@.pal)
+   .sprite = frame_load(4, .picture)
+   .pal = palette16_load(.palette, 4, .picture)
+  end with
+ NEXT i
+ 
+ '--new-style
+ DIM npc_id AS INTEGER
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  npc_id = ABS(npc(i).id) - 1
+  IF npc_id >= 0 THEN
+   'Update/load sprite
+   set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
+   set_walkabout_vis npcsl(i), (npc(i).id > 0)
+  END IF
+ NEXT i
 END SUB
 
 FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
@@ -587,7 +600,7 @@ SUB loadmapstate_npcl (mapnum, prefix$, dontfallback = 0)
  CLOSE #fh
 
  'Evaluate whether NPCs should appear or disappear based on tags
- npcplot
+ visnpc
 END SUB
 
 SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
@@ -599,7 +612,7 @@ SUB loadmapstate_npcd (mapnum, prefix$, dontfallback = 0)
  LoadNPCD filebase$ + "_n.tmp", npcs()
 
  'Evaluate whether NPCs should appear or disappear based on tags
- npcplot
+ visnpc
  'load NPC graphics
  reloadnpc
 END SUB

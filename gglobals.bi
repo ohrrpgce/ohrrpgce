@@ -73,6 +73,7 @@ EXTERN wtog() as integer
 'NPC globals
 EXTERN npcs() as NPCType
 EXTERN npc() as NPCInst
+EXTERN npcsl() as Slice Ptr
 
 'Item globals
 EXTERN inventory() as InventSlot
