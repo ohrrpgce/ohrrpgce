@@ -2799,6 +2799,7 @@ FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
   .Width = 20
   .Height = 20
   .Visible = NO
+  .Protect = YES
  END WITH
  DIM sprsl AS Slice Ptr
  sprsl = NewSliceOfType(slSprite, sl)
@@ -2808,6 +2809,7 @@ FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
   .AnchorVert = 2
   .AlignHoriz = 1
   .AlignVert = 2
+  .Protect = YES
  END WITH
  RETURN sl
 END FUNCTION
