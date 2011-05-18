@@ -3261,7 +3261,7 @@ SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byva
  IF cont = 0 THEN
   debug "null container slice in set_walkabout_sprite"
  ELSE
-  sprsl = cont->FirstChild
+  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, cont)
   IF sprsl = 0 THEN
    debug "null sprite slice in set_walkabout_sprite"
   ELSE
@@ -3275,7 +3275,7 @@ SUB set_walkabout_frame (byval cont as Slice Ptr, byval frame as integer)
  IF cont = 0 THEN
   debug "null container slice in set_walkabout_frame"
  ELSE
-  sprsl = cont->FirstChild
+  sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, cont)
   IF sprsl = 0 THEN
    debug "null sprite slice in set_walkabout_frame"
   ELSE

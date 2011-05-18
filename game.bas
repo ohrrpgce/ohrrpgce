@@ -1057,7 +1057,6 @@ SUB update_walkabout_hero_slices()
   NEXT i
 
   DIM cat_slot AS INTEGER = 0
-  DIM sprsl AS Slice Ptr
   FOR party_slot AS INTEGER = 0 TO 3
    IF hero(party_slot) > 0 THEN
     set_walkabout_frame gam.caterp(cat_slot), catd(cat_slot * 5) * 2 + (wtog(cat_slot) \ 2)
@@ -1130,11 +1129,9 @@ SUB update_walkabout_npc_slices()
  NEXT i
 
  '--now apply sprite frame changes
- DIM sprsl AS Slice Ptr
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
-   sprsl = npcsl(i)->FirstChild
-   ChangeSpriteSlice sprsl, , , , npc(i).dir * 2 + npc(i).frame \ 2
+   set_walkabout_frame npcsl(i), npc(i).dir * 2 + npc(i).frame \ 2
   END IF
  NEXT i
 
@@ -2802,7 +2799,7 @@ FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
   .Protect = YES
  END WITH
  DIM sprsl AS Slice Ptr
- sprsl = NewSliceOfType(slSprite, sl)
+ sprsl = NewSliceOfType(slSprite, sl, SL_WALKABOUT_SPRITE_COMPONENT)
  WITH *sprsl
   'Anchor and align NPC sprite in the bottom center of the NPC container
   .AnchorHoriz = 1
@@ -3403,7 +3400,6 @@ SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS
  IF npcs(npc_id).sprite THEN frame_unload(@npcs(npc_id).sprite)
  npcs(npc_id).sprite = frame_load(4, walkabout_sprite_id)
  '--reload new-style
- DIM sprsl AS Slice Ptr
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF ABS(npc(i).id) - 1 = npc_id THEN
    'found a match!
@@ -3417,7 +3413,6 @@ SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
  IF npcs(npc_id).pal THEN palette16_unload(@npcs(npc_id).pal)
  npcs(npc_id).pal = palette16_load(palette_id, 4, npcs(npc_id).picture)
  '--reload new-style
- DIM sprsl AS Slice Ptr
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF ABS(npc(i).id) - 1 = npc_id THEN
    'found a match!
