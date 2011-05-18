@@ -129,7 +129,12 @@ TYPE Slice
   SliceData as any ptr
   SliceType as SliceTypes
   
-  'whatever else
+  Protect as integer
+  'Protect is used to mark slices that script authors should not be
+  'allowed to directly delete or reparent.
+  'Note that this is only checked when a slice is directly freed or
+  'moved, so if a Protected slice has an unprotected ancestor, then
+  'it can still be deleted or moved indirectly.
   
 END TYPE
 

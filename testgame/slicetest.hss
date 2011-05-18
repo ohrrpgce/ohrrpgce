@@ -3,6 +3,20 @@ include, plotscr.hsd
 plotscript, test, begin
   variable(sl, sl2, sl3, i, cont)
 
+  ## These are disabled because they are annoying (but undeleted because they are useful)
+  #$0="slice protection tests", show string(0)
+  #
+  #sl := lookup slice(sl:walkabout layer)
+  #sl2 := load medium enemy sprite(0)
+  #free slice(sl)
+  #set parent(sl, sl2)
+  #move slice above(sl, sl2)
+  #move slice below(sl, sl2)
+  #wait(16)
+  #move slice above(sl2, sl) # no error on this one, the sprite will vanish behind the map
+  #wait (16)
+  #free slice(sl2)
+
   $0="slice velocity tests", show string(0)
   
   sl := create rect(200, 100, 2)
@@ -73,7 +87,6 @@ plotscript, test, begin
   wait(3)
 
   cont := create grid(200, 200, 4, 4)
-  
   for(i, 0, 15) do(
     sl := load large enemy sprite(random(0, 1))
     set parent(sl, cont)
@@ -442,20 +455,21 @@ plotscript, test, begin
   end
   wait(2)
 
-  $0="invalid operations tests", show string(0)
-  wait(3)
-  
-  sl := load medium enemy sprite(0)
-  set rect style(sl, 0)
-  wait(2)
-  free slice(sl)
-  wait(2)
-
-  sl := create rect(10, 10)
-  set sprite frame(sl, 0)
-  wait(2)
-  free slice(sl)
-  wait(2)
+  ## These are disabled because they are annoying
+  #$0="invalid operations tests", show string(0)
+  #wait(3)
+  #
+  #sl := load medium enemy sprite(0)
+  #set rect style(sl, 0)
+  #wait(2)
+  #free slice(sl)
+  #wait(2)
+  #
+  #sl := create rect(10, 10)
+  #set sprite frame(sl, 0)
+  #wait(2)
+  #free slice(sl)
+  #wait(2)
 
   $0="tests finished", show string(0)
   wait(10)

@@ -1918,8 +1918,8 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0), 2) THEN
    DIM sl AS Slice Ptr
    sl = plotslices(retvals(0))
-   IF sl->SliceType = slRoot OR sl->SliceType = slSpecial THEN
-    scripterr "free slice: cannot free " & SliceTypeName(sl) & " slice " & retvals(0), 5
+   IF sl->Protect THEN
+    scripterr "free slice: cannot free protected " & SliceTypeName(sl) & " slice " & retvals(0), 5
    ELSE
     DeleteSlice @plotslices(retvals(0))
    END IF
@@ -1944,7 +1944,13 @@ SELECT CASE AS CONST id
   scriptret = create_plotslice_handle(sl)
  CASE 365 '--set parent
   IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
-   SetSliceParent plotslices(retvals(0)), plotslices(retvals(1))
+   DIM sl AS Slice Ptr
+   sl = plotslices(retvals(0))
+   IF sl->Protect THEN
+    scripterr "free slice: cannot reparent protected " & SliceTypeName(sl) & " slice " & retvals(0), 5
+   ELSE
+    SetSliceParent sl, plotslices(retvals(1))
+   END IF
   END IF
  CASE 366 '--check parentage
   IF valid_plotslice(retvals(0)) AND valid_plotslice(retvals(1)) THEN
@@ -2417,7 +2423,11 @@ SELECT CASE AS CONST id
    IF retvals(0) = retvals(1) THEN
     scripterr "moveslicebelow: tried to move a slice below itself", 2
    ELSE
-    InsertSliceBefore plotslices(retvals(1)), plotslices(retvals(0))
+    IF plotslices(retvals(0))->Protect ANDALSO plotslices(retvals(0))->Parent <> plotslices(retvals(1))->Parent THEN
+     scripterr "moveslicebelow: tried to change the parent of a protected slice", 2
+    ELSE
+     InsertSliceBefore plotslices(retvals(1)), plotslices(retvals(0))
+    END IF
    END IF
   END IF
  CASE 447 '--move slice above
@@ -2425,15 +2435,19 @@ SELECT CASE AS CONST id
    IF retvals(0) = retvals(1) THEN
     scripterr "movesliceabove: tried to move a slice above itself", 2
    ELSE
-    DIM sl AS Slice Ptr = plotslices(retvals(1))
-    IF sl->NextSibling THEN
-     InsertSliceBefore sl->NextSibling, plotslices(retvals(0))
+    IF plotslices(retvals(0))->Protect ANDALSO plotslices(retvals(0))->Parent <> plotslices(retvals(1))->Parent THEN
+     scripterr "movesliceabove: tried to change the parent of a protected slice", 2
     ELSE
-     IF sl->Parent = NULL THEN
-      scripterr "movesliceabove: Root shouldn't have siblings", 5
+     DIM sl AS Slice Ptr = plotslices(retvals(1))
+     IF sl->NextSibling THEN
+      InsertSliceBefore sl->NextSibling, plotslices(retvals(0))
      ELSE
-      'sets as last child
-      SetSliceParent plotslices(retvals(0)), sl->Parent
+      IF sl->Parent = NULL THEN
+       scripterr "movesliceabove: Root shouldn't have siblings", 5
+      ELSE
+       'sets as last child
+       SetSliceParent plotslices(retvals(0)), sl->Parent
+      END IF
      END IF
     END IF
    END IF

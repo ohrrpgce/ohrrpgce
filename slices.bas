@@ -133,6 +133,7 @@ Sub SetupGameSlices
  SliceTable.Root = NewSliceOfType(slRoot)
  
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
+ SliceTable.MapRoot->Protect = YES
  FOR i AS INTEGER = 0 TO maplayerMax
   SliceTable.MapLayer(i) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0 - i)
   ChangeMapSlice SliceTable.MapLayer(i), , , (i > 0), 0   'maybe transparent, not overhead
@@ -146,10 +147,13 @@ Sub SetupGameSlices
  'Note: the order of this slice in relation to the .MapLayer siblings will change each time a map is loaded
  SliceTable.Walkabout = NewSliceOfType(slContainer, SliceTable.MapRoot, SL_WALKABOUT_LAYER)
  SliceTable.Walkabout->Fill = YES
+ SliceTable.Walkabout->Protect = YES
  SliceTable.HeroLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_HERO_LAYER)
  SliceTable.HeroLayer->Fill = YES
+ SliceTable.HeroLayer->Protect = YES
  SliceTable.NPCLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_NPC_LAYER)
  SliceTable.NPCLayer->Fill = YES
+ SliceTable.NPCLayer->Protect = YES
  
  SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
  SliceTable.ScriptSprite->Fill = YES
@@ -265,6 +269,7 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYV
     .SliceType = slRoot
     .Attach = slScreen
     .SliceType = slRoot
+    .Protect = YES
     'We manually set these here so that Root will have the correct
     'size even if DrawSlice has not been called on it yet. This
     'is needed to make second-level roots .Fill=YES work correctly
@@ -275,6 +280,7 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYV
   CASE slSpecial:
    newsl = NewSlice(parent)
    newsl->SliceType = slSpecial
+   newsl->Protect = YES
   CASE slContainer:
    newsl = NewSlice(parent)
    newsl->SliceType = slContainer
@@ -296,6 +302,7 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYV
   CASE slMap:
    DIM dat AS MapSliceData
    newsl = NewMapSlice(parent, dat)
+   newsl->Protect = YES
   CASE slGrid:
    DIM dat AS GridSliceData
    newsl = NewGridSlice(parent, dat)
@@ -2287,7 +2294,13 @@ END SUB
 
 SUB SliceDebugDumpTree(sl as Slice Ptr, indent as integer = 0)
  if sl = 0 then exit sub
- debug string(indent, " ") & SliceTypeName(sl) & " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->X & "," & sl->Y & " size:" & sl->Width & "x" & sl->Height
+ dim s as string
+ s = string(indent, " ") & SliceTypeName(sl)
+ if sl->Protect then
+  s = s & " (P)"
+ end if
+ s = s & " lookup:" & SliceLookupCodename(sl) & " handle:" & sl->TableSlot & " pos:" & sl->X & "," & sl->Y & " size:" & sl->Width & "x" & sl->Height
+ debug s
  SliceDebugDumpTree sl->FirstChild, indent + 1
  SliceDebugDumpTree sl->NextSibling, indent
 END SUB

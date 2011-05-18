@@ -21,6 +21,9 @@ WHAT IS NEW?
   * Vikings of Midgard
 
   * Stuff Only Developers Will Notice
+    * Certain special engine-related Slices can be marked as protected
+      to indicate that game author's plotscripts are not permitted to
+      delete or reparent them.
 
 May 6 2011 [Zenzizenzic]
 
