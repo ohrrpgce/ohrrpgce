@@ -3187,6 +3187,8 @@ SUB refresh_map_slice()
   SliceTable.MapLayer(i)->Sorter = sorter
   sorter += 1
  NEXT
+ SliceTable.ObsoleteOverhead->Sorter = sorter
+ 
  CustomSortChildSlices SliceTable.MapRoot, YES
  refresh_walkabout_layer_sort()
 END SUB
