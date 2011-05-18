@@ -635,8 +635,12 @@ DO
    END IF
    IF keyval(scF9) > 1 THEN
     'FIXME: the CTRL+F9 key is a temporary hack. It will go away later.
-    gam.walkabout_layer_enabled = NOT gam.walkabout_layer_enabled
-    debug "gam.walkabout_layer_enabled = " & gam.walkabout_layer_enabled
+    gam.walkabout_layer_mode = loopvar(gam.walkabout_layer_mode, 0, 2, 1)
+    SELECT CASE gam.walkabout_layer_mode
+     CASE 0: debug "old-style npc and hero display"
+     CASE 1: debug "display npcs and heros as slices"
+     CASE 2: debug "flicker old and new npc/hero display modes"
+    END SELECT
    END IF
    IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
   ELSE ' not holding CTRL
@@ -795,7 +799,8 @@ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
   .Y = mapy * -1
  END WITH
 
- IF gam.walkabout_layer_enabled THEN
+ gam.walkabout_layer_tog = NOT gam.walkabout_layer_tog
+ IF gam.walkabout_layer_mode = 1 OR (gam.walkabout_layer_mode = 2 AND gam.walkabout_layer_tog) THEN
   DrawSlice SliceTable.MapRoot, dpage
  ELSE
   RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
