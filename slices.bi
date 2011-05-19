@@ -55,6 +55,7 @@ Enum SliceTypes
  slMenuItem
  slMap
  slGrid
+ slEllipse
 End Enum
 
 Enum AttachTypes
@@ -233,6 +234,15 @@ Type GridSliceData
  cols as integer
 End Type
 
+Type EllipseSliceData
+ bordercol AS INTEGER
+ fillcol AS INTEGER
+ last_draw_size AS XYPair  'UNSAVED: used to detect size changes to force a redraw of the frame
+ last_draw_bordercol AS INTEGER 'UNSAVED
+ last_draw_fillcol AS INTEGER   'UNSAVED
+ frame AS Frame Ptr 'UNSAVED: No need to manually populate this, done in draw
+End Type
+
 DECLARE Sub SetupGameSlices
 DECLARE Sub DestroyGameSlices(Byval dumpdebug AS INTEGER=0)
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
@@ -326,6 +336,13 @@ DECLARE Function NewGridSlice(byval parent as Slice ptr, byref dat as GridSliceD
 DECLARE Sub ChangeGridSlice(byval sl as slice ptr,_
                       byval rows as integer=0,_
                       byval cols as integer=0)
+
+DECLARE Sub DisposeEllipseSlice(byval sl as slice ptr)
+DECLARE Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
+DECLARE Function NewEllipseSlice(byval parent as Slice ptr, byref dat as EllipseSliceData) as slice ptr
+DECLARE Sub ChangeEllipseSlice(byval sl as slice ptr,_
+                      byval bordercol as integer=-1,_
+                      byval fillcol as integer=-1)  ' All arguments default to no change
 
 '--Saving and loading slices
 DECLARE Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)

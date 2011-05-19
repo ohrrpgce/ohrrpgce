@@ -202,6 +202,7 @@ FUNCTION SliceTypeName (t AS SliceTypes) AS STRING
   CASE slMenuItem:       RETURN "MenuItem"
   CASE slMap:            RETURN "Map"
   CASE slGrid:           RETURN "Grid"
+  CASE slEllipse:        RETURN "Ellipse"
  END SELECT
  RETURN "Unknown"
 END FUNCTION
@@ -218,6 +219,7 @@ FUNCTION SliceTypeByName (s AS STRING) AS SliceTypes
   CASE "MenuItem":       RETURN slMenuItem
   CASE "Map":            RETURN slMap
   CASE "Grid":           RETURN slGrid
+  CASE "Ellipse":        RETURN slEllipse
  END SELECT
  debug "Unrecognized slice name """ & s & """"
 END FUNCTION
@@ -307,6 +309,9 @@ FUNCTION NewSliceOfType (BYVAL t AS SliceTypes, BYVAL parent AS Slice Ptr=0, BYV
   CASE slGrid:
    DIM dat AS GridSliceData
    newsl = NewGridSlice(parent, dat)
+  CASE slEllipse:
+   DIM dat AS EllipseSliceData
+   newsl = NewEllipseSlice(parent, dat)
   CASE ELSE
    debug "NewSliceByType: Warning! type " & t & " is invalid"
    newsl = NewSlice(parent)
@@ -1562,6 +1567,125 @@ Sub ChangeGridSlice(byval sl as slice ptr,_
  if cols > 0 then
   dat->cols = cols
  end if
+end sub
+
+'--Ellipse----------------------------------------------------------------
+
+Sub DisposeEllipseSlice(byval sl as slice ptr)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ dim dat as EllipseSliceData ptr = cptr(EllipseSliceData ptr, sl->SliceData)
+ frame_unload @dat->frame
+ delete dat
+ sl->SliceData = 0
+end sub
+
+Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
+ if sl = 0 then exit sub
+ if sl->SliceData = 0 then exit sub
+ 
+ dim dat as EllipseSliceData ptr = cptr(EllipseSliceData ptr, sl->SliceData)
+
+ with *dat
+ 
+  if .frame = 0 _
+     ORELSE .last_draw_size.X <> sl->Width _
+     ORELSE .last_draw_size.Y <> sl->Height _
+     ORELSE .last_draw_bordercol <> .bordercol _
+     ORELSE .last_draw_fillcol <> .fillcol then
+   if sl->Width = 0 ANDALSO sl->Height = 0 then exit sub
+   frame_unload @.frame
+   'debug "create new ellipse frame " & sl->Width & "x" & sl->Height
+   .frame = frame_new(sl->Width, sl->Height, , YES)
+   'fuzzyrect .frame, 0, 0, sl->Width, sl->Height, dat->fillcol, 37
+   ellipse .frame, sl->Width / 2, sl->Height / 2, sl->Width / 2, dat->bordercol, sl->Height / 2
+   paintat .frame, sl->Width / 2, sl->Height / 2, dat->fillcol
+   .last_draw_size.X = sl->Width
+   .last_draw_size.Y = sl->Height
+   .last_draw_bordercol = .bordercol
+   .last_draw_fillcol = .fillcol
+  end if
+
+  if .frame = 0 then
+   reporterr "null frame ptr for ellipse slice " & sl, 7
+   exit sub
+  end if
+
+  frame_draw .frame, , sl->screenX, sl->screenY, , , p
+ end with
+end sub
+
+Sub CloneEllipseSlice(byval sl as slice ptr, byval cl as slice ptr)
+ if sl = 0 or cl = 0 then debug "CloneEllipseSlice null ptr": exit sub
+ dim dat as EllipseSliceData Ptr
+ dat = sl->SliceData
+ dim clonedat as EllipseSliceData Ptr
+ clonedat = cl->SliceData
+ with *clonedat
+  .bordercol  = dat->bordercol
+  .fillcol    = dat->fillcol
+  '.last_draw_* left at zero to force a redraw
+  '.frame will be populated on next draw
+ end with
+end sub
+
+Sub SaveEllipseSlice(byval sl as slice ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "SaveEllipseSlice null ptr": exit sub
+ DIM dat AS EllipseSliceData Ptr
+ dat = sl->SliceData
+ SaveProp node, "bordercol", dat->bordercol
+ SaveProp node, "fillcol", dat->fillcol
+end sub
+
+Sub LoadEllipseSlice (Byval sl as SliceFwd ptr, byval node as Reload.Nodeptr)
+ if sl = 0 or node = 0 then debug "LoadEllipseSlice null ptr": exit sub
+ dim dat AS EllipseSliceData Ptr
+ dat = sl->SliceData
+ dat->bordercol = LoadProp(node, "bordercol")
+ dat->fillcol   = LoadProp(node, "fillcol")
+End Sub
+
+Function NewEllipseSlice(byval parent as Slice ptr, byref dat as EllipseSliceData) as slice ptr
+ dim ret as Slice ptr
+ ret = NewSlice(parent)
+ if ret = 0 then 
+  debug "Out of memory?!"
+  return 0
+ end if
+ 
+ dim d as EllipseSliceData ptr = new EllipseSliceData
+ *d = dat
+
+ 'Set defaults
+ d->bordercol = 0
+ d->fillcol = 0
+ 
+ ret->SliceType = slEllipse
+ ret->SliceData = d
+ ret->Draw = @DrawEllipseSlice
+ ret->Dispose = @DisposeEllipseSlice
+ ret->Clone = @CloneEllipseSlice
+ ret->Save = @SaveEllipseSlice
+ ret->Load = @LoadEllipseSlice
+ 
+ return ret
+end function
+
+'All arguments default to no-change
+Sub ChangeEllipseSlice(byval sl as slice ptr,_
+                      byval bordercol as integer=-1,_
+                      byval fillcol as integer=-1)
+ if sl = 0 then debug "ChangeEllipseSlice null ptr" : exit sub
+ if sl->SliceType <> slEllipse then reporterr "Attempt to use " & SliceTypeName(sl) & " slice " & sl & " as an ellipse", 5 : exit sub
+ dim dat as EllipseSliceData Ptr = sl->SliceData
+ with *dat
+  if bordercol >= 0 then
+   .bordercol = bordercol
+  end if
+  if fillcol >= 0 then
+   .fillcol = fillcol
+  end if
+ end with
 end sub
 
 '--Menu-------------------------------------------------------------------

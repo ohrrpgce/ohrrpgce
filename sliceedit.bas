@@ -61,12 +61,13 @@ END TYPE
 
 '==============================================================================
 
-DIM SHARED editable_slice_types(4) AS SliceTypes
+DIM SHARED editable_slice_types(5) AS SliceTypes
 editable_slice_types(0) = SlContainer
 editable_slice_types(1) = SlRectangle
 editable_slice_types(2) = SlSprite
 editable_slice_types(3) = SlText
 editable_slice_types(4) = SlGrid
+editable_slice_types(5) = SlEllipse
 
 '==============================================================================
 
@@ -718,6 +719,13 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
     sliceed_rule rules(), "grid_cols", erIntgrabber, @(dat->cols), 0, 99 'FIXME: upper limit of 99 is totally arbitrary
     str_array_append menu(), "Show Grid: " & yesorno(dat->show)
     sliceed_rule_tog rules(), "grid_show", @(dat->show)
+   CASE slEllipse
+    DIM dat AS EllipseSliceData Ptr
+    dat = .SliceData
+    str_array_append menu(), "Border Color: " & zero_default(dat->bordercol)
+    sliceed_rule rules(), "bordercol", erIntgrabber, @(dat->bordercol), 0, 255, slgrPICKCOL
+    str_array_append menu(), "Fill Color: " & zero_default(dat->fillcol)
+    sliceed_rule rules(), "fillcol", erIntgrabber, @(dat->fillcol), 0, 255, slgrPICKCOL
   END SELECT
   str_array_append menu(), "Visible: " & yesorno(.Visible)
   sliceed_rule_tog rules(), "vis", @.Visible
