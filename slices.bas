@@ -1600,7 +1600,7 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
    'debug "create new ellipse frame " & w & "x" & h
    .frame = frame_new(w, h, , YES)
    'fuzzyrect .frame, 0, 0, w, h, dat->fillcol, 37
-   ellipse .frame, w / 2, h / 2, w / 2, dat->bordercol, h / 2
+   ellipse .frame, w / 2, h / 2, w / 2 - 1, dat->bordercol, h / 2
    paintat .frame, w / 2, h / 2, dat->fillcol
    .last_draw_size.X = w
    .last_draw_size.Y = h
