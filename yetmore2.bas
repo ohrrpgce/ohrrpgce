@@ -502,9 +502,16 @@ SUB reloadnpc ()
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   npc_id = ABS(npc(i).id) - 1
   IF npc_id >= 0 THEN
-   'Update/load sprite
-   set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
-   set_walkabout_vis npcsl(i), (npc(i).id > 0)
+   IF npc_id > UBOUND(npcs) THEN
+    'Don't load this NPC because it has no definition on the current map.
+    'I think any time this happens it means that an NPC is left over from
+    'the previous map... and that is disconcerting.
+    set_walkabout_vis npcsl(i), NO
+   ELSE
+    'Update/load sprite
+    set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
+    set_walkabout_vis npcsl(i), (npc(i).id > 0)
+   END IF
   END IF
  NEXT i
 END SUB
