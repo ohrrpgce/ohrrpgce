@@ -1593,15 +1593,17 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
      ORELSE .last_draw_size.Y <> sl->Height _
      ORELSE .last_draw_bordercol <> .bordercol _
      ORELSE .last_draw_fillcol <> .fillcol then
-   if sl->Width = 0 ANDALSO sl->Height = 0 then exit sub
+   if sl->Width = 0 ORELSE sl->Height = 0 then exit sub
    frame_unload @.frame
-   'debug "create new ellipse frame " & sl->Width & "x" & sl->Height
-   .frame = frame_new(sl->Width, sl->Height, , YES)
-   'fuzzyrect .frame, 0, 0, sl->Width, sl->Height, dat->fillcol, 37
-   ellipse .frame, sl->Width / 2, sl->Height / 2, sl->Width / 2, dat->bordercol, sl->Height / 2
-   paintat .frame, sl->Width / 2, sl->Height / 2, dat->fillcol
-   .last_draw_size.X = sl->Width
-   .last_draw_size.Y = sl->Height
+   DIM w AS INTEGER = ABS(sl->Width)
+   DIM h AS INTEGER = ABS(sl->Height)
+   'debug "create new ellipse frame " & w & "x" & h
+   .frame = frame_new(w, h, , YES)
+   'fuzzyrect .frame, 0, 0, w, h, dat->fillcol, 37
+   ellipse .frame, w / 2, h / 2, w / 2, dat->bordercol, h / 2
+   paintat .frame, w / 2, h / 2, dat->fillcol
+   .last_draw_size.X = w
+   .last_draw_size.Y = h
    .last_draw_bordercol = .bordercol
    .last_draw_fillcol = .fillcol
   end if
@@ -1611,7 +1613,7 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
    exit sub
   end if
 
-  frame_draw .frame, , sl->screenX, sl->screenY, , , p
+  frame_draw .frame, , small(sl->screenX, sl->screenX + sl->Width), small(sl->screenY, sl->screenY + sl->Height), , , p
  end with
 end sub
 
