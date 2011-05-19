@@ -1082,6 +1082,7 @@ SUB update_walkabout_hero_slices()
     .X = framex + mapx
     .Y = framey + mapy - catz(0)
    END WITH
+   set_walkabout_frame gam.caterp(0), catd(0) * 2 + (wtog(0) \ 2)
   END IF
   FOR i AS INTEGER = 1 TO UBOUND(gam.caterp)
    set_walkabout_vis gam.caterp(i), NO
