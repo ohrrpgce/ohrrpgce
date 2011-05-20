@@ -576,8 +576,6 @@ SUB visnpc()
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   npc_id = ABS(npc(i).id) - 1
 
-  set_walkabout_vis npcsl(i), YES
-
   IF npc_id > UBOUND(npcs) THEN
    'Invalid ID number; hide. Probably a partially loaded map.
    npc(i).id = -npc_id - 1
@@ -585,25 +583,21 @@ SUB visnpc()
    CONTINUE FOR
   END IF
  
-  IF npc(i).id < 0 THEN
-   '--check reappearance tags for existing but hidden NPCs
+  IF npc(i).id <> 0 THEN
+   '--check tags
    IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(1000 + npcs(npc_id).usetag, 0) = 0 THEN
-    npc(i).id = ABS(npc(i).id)
-   END IF
-  END IF
- 
-  IF npc(i).id > 0 THEN
-   '--check removal tags for existing visible NPCs
-   IF istag(npcs(npc_id).tag1, 1) = 0 ORELSE istag(npcs(npc_id).tag2, 1) = 0 ORELSE istag(1000 + npcs(npc_id).usetag, 0) THEN
-    npc(i).id = npc(i).id * -1
+    npc(i).id = npc_id + 1
+    set_walkabout_vis npcsl(i), YES
+   ELSE
+    npc(i).id = -npc_id - 1
     set_walkabout_vis npcsl(i), NO
    END IF
-  END IF
 
-  '--set sprite
-  IF npc_id >= 0 THEN
+   '--set sprite
    set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
-   set_walkabout_vis npcsl(i), (npc(i).id > 0)
+  ELSE
+   '--nonexistent
+   set_walkabout_vis npcsl(i), NO
   END IF
 
  NEXT i
