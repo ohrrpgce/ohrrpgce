@@ -1579,7 +1579,7 @@ SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL 
 	C = Aprime * sin_2 + Cprime * cos_2
 	F = -1.0
 
-	dim as integer xstart = 999999, xend = -999999, lastxstart = 999999, lastxend = -999999, xs, yi, ys, maxr = radius + 1
+	dim as integer xstart = 999999, xend = -999999, lastxstart = 999999, lastxend = -999999, xs, yi, ys, maxr = large(radius, semiminor) + 1
 
 	for yi = maxr to -maxr step -1
 		'Draw the circle as two semi-circles, so that we can approach the from
