@@ -2415,10 +2415,10 @@ SELECT CASE AS CONST id
  CASE 446 '--move slice below
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
    IF retvals(0) = retvals(1) THEN
-    scripterr "moveslicebelow: tried to move a slice below itself", 2
+    scripterr "moveslicebelow: tried to move a slice below itself", 5
    ELSE
     IF plotslices(retvals(0))->Protect ANDALSO plotslices(retvals(0))->Parent <> plotslices(retvals(1))->Parent THEN
-     scripterr "moveslicebelow: tried to change the parent of a protected slice", 2
+     scripterr "moveslicebelow: tried to change the parent of a protected slice", 5
     ELSE
      InsertSliceBefore plotslices(retvals(1)), plotslices(retvals(0))
     END IF
@@ -2427,10 +2427,10 @@ SELECT CASE AS CONST id
  CASE 447 '--move slice above
   IF valid_plotslice(retvals(0)) ANDALSO valid_plotslice(retvals(1)) THEN
    IF retvals(0) = retvals(1) THEN
-    scripterr "movesliceabove: tried to move a slice above itself", 2
+    scripterr "movesliceabove: tried to move a slice above itself", 5
    ELSE
     IF plotslices(retvals(0))->Protect ANDALSO plotslices(retvals(0))->Parent <> plotslices(retvals(1))->Parent THEN
-     scripterr "movesliceabove: tried to change the parent of a protected slice", 2
+     scripterr "movesliceabove: tried to change the parent of a protected slice", 5
     ELSE
      DIM sl AS Slice Ptr = plotslices(retvals(1))
      IF sl->NextSibling THEN
