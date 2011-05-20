@@ -492,8 +492,12 @@ Sub AutoSortChildren(byval s as Slice Ptr)
    CustomSortChildSlices s, NO
   case slAutoSortY:
    YSortChildSlices s
+  case slAutoSortTopY:
+   EdgeYSortChildSlices s, 0
   case slAutoSortCenterY:
-   CenterYSortChildSlices s
+   EdgeYSortChildSlices s, 1
+  case slAutoSortBottomY:
+   EdgeYSortChildSlices s, 2
  end select
 End sub
 
@@ -583,8 +587,8 @@ Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
  RelinkChildren parent, slice_list()
 End sub
 
-Sub CenterYSortChildSlices(byval parent as slice ptr)
- if parent = 0 then debug "CenterYSortChildSlices: null ptr" : exit sub
+Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as integer)
+ if parent = 0 then debug "EdgeYSortChildSlices: null ptr" : exit sub
  if parent->NumChildren = 0 then exit sub
  dim slice_list(parent->NumChildren - 1) as slice ptr
  UnlinkChildren parent, slice_list()
@@ -594,7 +598,7 @@ Sub CenterYSortChildSlices(byval parent as slice ptr)
  for j as integer = 1 to ubound(slice_list)
   temp = slice_list(j)
   for i = j - 1 to 0 step -1
-   if slice_list(i)->Y - SliceYAnchor(slice_list(i)) + SliceEdgeY(slice_list(i), 1) <= temp->Y - SliceYAnchor(temp) + SliceEdgeY(temp, 1) then exit for
+   if slice_list(i)->Y - SliceYAnchor(slice_list(i)) + SliceEdgeY(slice_list(i), edge) <= temp->Y - SliceYAnchor(temp) + SliceEdgeY(temp, edge) then exit for
    slice_list(i + 1) = slice_list(i)
   next i
   slice_list(i + 1) = temp

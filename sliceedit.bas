@@ -138,11 +138,13 @@ DIM SHARED TransCaptions(0 TO 2) AS STRING
 TransCaptions(0) = "Solid"
 TransCaptions(1) = "Fuzzy"
 TransCaptions(2) = "Hollow"
-DIM SHARED AutoSortCaptions(0 TO 3) AS STRING
+DIM SHARED AutoSortCaptions(0 TO 5) AS STRING
 AutoSortCaptions(0) = "None"
 AutoSortCaptions(1) = "Custom"
 AutoSortCaptions(2) = "by Y"
-AutoSortCaptions(3) = "by center Y"
+AutoSortCaptions(3) = "by top edge"
+AutoSortCaptions(4) = "by center Y"
+AutoSortCaptions(5) = "by bottom edge"
 
 '==============================================================================
 
@@ -761,7 +763,7 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
    str_array_append menu(), "Extra Data " & i & ": " & .Extra(i)
    sliceed_rule rules(), "extra", erIntgrabber, @.Extra(i), -2147483648, 2147483647
   NEXT
-  sliceed_rule rules(), "autosort", erIntgrabber, @.AutoSort, 0, 3
+  sliceed_rule rules(), "autosort", erIntgrabber, @.AutoSort, 0, 5
   str_array_append menu(), "Auto-sort children: " & AutoSortCaptions(.AutoSort)
  END WITH
   

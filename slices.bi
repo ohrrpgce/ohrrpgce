@@ -67,7 +67,9 @@ Enum AutoSortModes
  slAutoSortNone
  slAutoSortCustom
  slAutoSortY
+ slAutoSortTopY
  slAutoSortCenterY
+ slAutoSortBottomY
 End Enum
 
 Type SliceFwd as Slice
@@ -283,7 +285,7 @@ DECLARE Function FindSliceCollision(byval parent as Slice Ptr, byval sl as Slice
 DECLARE Function FindSliceAtPoint(byval parent as Slice Ptr, byval x as integer, byval y as integer, byref num as integer, byval descend as integer) as Slice Ptr
 DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
 DECLARE Sub YSortChildSlices(byval parent as slice ptr)
-DECLARE Sub CenterYSortChildSlices(byval parent as slice ptr)
+DECLARE Sub EdgeYSortChildSlices(byval parent as slice ptr, byval edge as integer)
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
 DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
