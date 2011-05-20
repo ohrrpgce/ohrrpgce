@@ -483,6 +483,18 @@ Sub SetSliceParent(byval sl as slice ptr, byval parent as slice ptr)
  
 end sub
 
+Sub AutoSortChildren(byval s as Slice Ptr)
+ if s = 0 then debug "AutoSortChildren: null ptr": exit sub
+ select case s->AutoSort
+  case slCustom:
+   CustomSortChildSlices s, NO
+  case slYAutoSort:
+   YSortChildSlices s
+  case slCenterYAutoSort:
+   CenterYSortChildSlices s
+ end select
+End sub
+
 Sub UnlinkChildren(byval parent as Slice Ptr, slice_list() as slice ptr)
  if parent = 0 then debug "UnlinkChildren: null ptr"
  dim temp_sl as slice ptr = parent->FirstChild
@@ -568,6 +580,25 @@ Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
  end if
  RelinkChildren parent, slice_list()
 End sub
+
+Sub CenterYSortChildSlices(byval parent as slice ptr)
+ if parent = 0 then debug "CenterYSortChildSlices: null ptr" : exit sub
+ if parent->NumChildren = 0 then exit sub
+ dim slice_list(parent->NumChildren - 1) as slice ptr
+ UnlinkChildren parent, slice_list()
+ 'Sort the siblings all by the same edge/corner
+ dim temp as slice ptr
+ dim i as integer
+ for j as integer = 1 to ubound(slice_list)
+  temp = slice_list(j)
+  for i = j - 1 to 0 step -1
+   if slice_list(i)->Y - SliceYAnchor(slice_list(i)) + SliceEdgeY(slice_list(i), 1) <= temp->Y - SliceYAnchor(temp) + SliceEdgeY(temp, 1) then exit for
+   slice_list(i + 1) = slice_list(i)
+  next i
+  slice_list(i + 1) = temp
+ next j
+ RelinkChildren parent, slice_list()
+end sub
 
 Sub InsertSliceBefore(byval sl as slice ptr, byval newsl as slice ptr)
  'newsl will be removed from its current parent (if any) and attached to the same
@@ -1996,6 +2027,7 @@ Sub DrawSlice(byval s as slice ptr, byval page as integer)
    s->ScreenX -= GlobalCoordOffset.X
    s->ScreenY -= GlobalCoordOffset.Y
   end if
+  AutoSortChildren(s)
   s->ChildDraw(s, page)
  end if
 end sub
@@ -2229,6 +2261,12 @@ Sub SliceSaveToNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  SaveProp node, "padr", sl->PaddingRight
  SaveProp node, "padb", sl->PaddingBottom
  SaveProp node, "fill", sl->Fill
+ if sl->Sorter <> 0 then
+  SaveProp node, "sort", sl->Sorter
+ end if
+ if sl->AutoSort <> 0 then
+  SaveProp node, "autosort", sl->AutoSort
+ end if
  SaveProp node, "extra0", sl->Extra(0)
  SaveProp node, "extra1", sl->Extra(1)
  SaveProp node, "extra2", sl->Extra(2)
@@ -2322,6 +2360,8 @@ Sub SliceLoadFromNode(BYVAL sl AS Slice Ptr, node AS Reload.Nodeptr)
  sl->PaddingRight = LoadProp(node, "padr")
  sl->PaddingBottom = LoadProp(node, "padb")
  sl->Fill = LoadPropBool(node, "fill")
+ sl->Sorter = LoadProp(node, "sort")
+ sl->AutoSort = LoadProp(node, "autosort")
  sl->Extra(0) = LoadProp(node, "extra0")
  sl->Extra(1) = LoadProp(node, "extra1")
  sl->Extra(2) = LoadProp(node, "extra2")

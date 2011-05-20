@@ -138,6 +138,11 @@ DIM SHARED TransCaptions(0 TO 2) AS STRING
 TransCaptions(0) = "Solid"
 TransCaptions(1) = "Fuzzy"
 TransCaptions(2) = "Hollow"
+DIM SHARED AutoSortCaptions(0 TO 3) AS STRING
+AutoSortCaptions(0) = "None"
+AutoSortCaptions(1) = "Custom"
+AutoSortCaptions(2) = "by Y"
+AutoSortCaptions(3) = "by center Y"
 
 '==============================================================================
 
@@ -242,6 +247,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
    IF state.pt = 0 THEN
     EXIT DO
    ELSE
+    cursor_seek = menu(state.pt).handle
     slice_edit_detail menu(state.pt).handle, ses, edslice, slicelookup()
     state.need_update = YES
    END IF 
@@ -755,6 +761,8 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
    str_array_append menu(), "Extra Data " & i & ": " & .Extra(i)
    sliceed_rule rules(), "extra", erIntgrabber, @.Extra(i), -2147483648, 2147483647
   NEXT
+  sliceed_rule rules(), "autosort", erIntgrabber, @.AutoSort, 0, 3
+  str_array_append menu(), "Auto-sort children: " & AutoSortCaptions(.AutoSort)
  END WITH
   
  state.last = UBOUND(menu)

@@ -63,6 +63,13 @@ Enum AttachTypes
  slScreen
 End Enum
 
+Enum AutoSortModes
+ slNoAutoSort
+ slCustom
+ slYAutoSort
+ slCenterYAutoSort
+End Enum
+
 Type SliceFwd as Slice
 Type SliceDraw as Sub(Byval as SliceFwd ptr, byval stupidPage as integer)
 Type SliceDispose as Sub(Byval as SliceFwd ptr)
@@ -103,6 +110,7 @@ TYPE Slice
   TableSlot as integer 'which slot in plotslices() holds a reference to this slice, or 0 for none
   Lookup As integer
 
+  AutoSort as AutoSortModes
   Sorter as integer 'Only used by CustomSortChildSlices
   Extra(2) as integer
   
@@ -275,7 +283,9 @@ DECLARE Function FindSliceCollision(byval parent as Slice Ptr, byval sl as Slice
 DECLARE Function FindSliceAtPoint(byval parent as Slice Ptr, byval x as integer, byval y as integer, byref num as integer, byval descend as integer) as Slice Ptr
 DECLARE Sub SliceClamp(byval sl1 as Slice Ptr, byval sl2 as Slice Ptr)
 DECLARE Sub YSortChildSlices(byval parent as slice ptr)
+DECLARE Sub CenterYSortChildSlices(byval parent as slice ptr)
 DECLARE Sub CustomSortChildSlices(byval parent as slice ptr, byval wipevals as integer)
+DECLARE Sub AutoSortChildren(byval s as Slice Ptr)
 DECLARE Function CloneSliceTree(byval sl as slice ptr) as slice ptr
 DECLARE Sub SetSliceTarg(byval s as slice ptr, byval x as integer, byval y as integer, byval ticks as integer)
 
