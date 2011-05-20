@@ -151,9 +151,11 @@ Sub SetupGameSlices
  SliceTable.HeroLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_HERO_LAYER)
  SliceTable.HeroLayer->Fill = YES
  SliceTable.HeroLayer->Protect = YES
+ SliceTable.HeroLayer->AutoSort = slAutoSortY
  SliceTable.NPCLayer = NewSliceOfType(slContainer, SliceTable.Walkabout, SL_NPC_LAYER)
  SliceTable.NPCLayer->Fill = YES
  SliceTable.NPCLayer->Protect = YES
+ SliceTable.NPCLayer->AutoSort = slAutoSortCustom
  
  SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
  SliceTable.ScriptSprite->Fill = YES
@@ -486,11 +488,11 @@ end sub
 Sub AutoSortChildren(byval s as Slice Ptr)
  if s = 0 then debug "AutoSortChildren: null ptr": exit sub
  select case s->AutoSort
-  case slCustom:
+  case slAutoSortCustom:
    CustomSortChildSlices s, NO
-  case slYAutoSort:
+  case slAutoSortY:
    YSortChildSlices s
-  case slCenterYAutoSort:
+  case slAutoSortCenterY:
    CenterYSortChildSlices s
  end select
 End sub

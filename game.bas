@@ -1042,7 +1042,6 @@ SUB update_walkabout_hero_slices()
   FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
    update_walkabout_pos gam.caterp(i), catx(i * 5), caty(i * 5), catz(i * 5)
   NEXT i
-  YSortChildSlices(SliceTable.HeroLayer)
 
   DIM cat_slot AS INTEGER = 0
   FOR party_slot AS INTEGER = 0 TO 3
@@ -1100,7 +1099,6 @@ SUB update_walkabout_npc_slices()
    npcsl(i)->Visible = NO
   END IF
  NEXT i
- CustomSortChildSlices(SliceTable.NPCLayer, NO)
 
  '--now apply sprite frame changes
  FOR i AS INTEGER = 0 TO UBOUND(npc)

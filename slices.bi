@@ -64,10 +64,10 @@ Enum AttachTypes
 End Enum
 
 Enum AutoSortModes
- slNoAutoSort
- slCustom
- slYAutoSort
- slCenterYAutoSort
+ slAutoSortNone
+ slAutoSortCustom
+ slAutoSortY
+ slAutoSortCenterY
 End Enum
 
 Type SliceFwd as Slice
