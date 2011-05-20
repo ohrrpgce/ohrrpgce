@@ -71,6 +71,7 @@ DECLARE FUNCTION free_slots_in_party() AS INTEGER
 DECLARE SUB update_walkabout_slices()
 DECLARE SUB update_walkabout_hero_slices()
 DECLARE SUB update_walkabout_npc_slices()
+DECLARE SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer, byval y as integer, byval z as integer)
 DECLARE FUNCTION should_hide_hero_caterpillar() AS INTEGER
 DECLARE FUNCTION should_show_normal_caterpillar() AS INTEGER
 DECLARE SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS INTEGER)

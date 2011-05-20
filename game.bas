@@ -1040,26 +1040,9 @@ SUB update_walkabout_hero_slices()
 
  IF should_show_normal_caterpillar() THEN
   FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
-   framewalkabout catx(i * 5), caty(i * 5) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
-   IF gam.caterp(i) = 0 THEN
-    debug "null hero container slice in update_walkabout_hero_slices"
-   ELSE
-    WITH *gam.caterp(i)
-     .X = framex + mapx
-     .Y = framey + mapy
-    END WITH
-   END IF
+   update_walkabout_pos gam.caterp(i), catx(i * 5), caty(i * 5), catz(i * 5)
   NEXT i
   YSortChildSlices(SliceTable.HeroLayer)
-  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
-   IF gam.caterp(i) = 0 THEN
-    debug "null hero container slice in update_walkabout_hero_slices"
-   ELSE
-    WITH *gam.caterp(i)
-     .Y -= catz(i * 5)
-    END WITH
-   END IF
-  NEXT i
 
   DIM cat_slot AS INTEGER = 0
   FOR party_slot AS INTEGER = 0 TO 3
@@ -1092,47 +1075,32 @@ SUB update_walkabout_hero_slices()
 END SUB
 
 SUB update_walkabout_npc_slices()
- DIM where AS XYPair
-
+ DIM z AS INTEGER
  '--set x and y positions 
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
-   where.X = 0
-   where.Y = 0
-   framewalkabout npc(i).x, npc(i).y + gmap(11), where.X, where.Y, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
-   WITH *npcsl(i)
-    .X = where.X + mapx
-    .Y = where.Y + mapy
-   END WITH
+   z = 0
+   IF vstate.active AND vstate.npc = i THEN
+    '--This NPC is a currently active vehicle, so lets do some extra voodoo.
+    z = catz(0) 'use lead hero's z value
+    IF z > 0 ANDALSO vstate.dat.disable_flying_shadow = NO THEN
+     '--Vehicle shadow
+     'FIXME: how should we actually do this?
+     'rectangle drawnpcX + 6, drawnpcY + 13, 8, 5, uilook(uiShadow), dpage
+     'rectangle drawnpcX + 5, drawnpcY + 14, 10, 3, uilook(uiShadow), dpage
+    END IF
+   END IF
+   update_walkabout_pos npcsl(i), npc(i).x, npc(i).y, z
+   IF npcsl(i) <> 0 THEN
+    '--default NPC sort is by instance id
+    npcsl(i)->Sorter = i
+   END IF
   ELSE
    '--hide non-visible and unused NPC slices
    npcsl(i)->Visible = NO
   END IF
  NEXT i
- YSortChildSlices(SliceTable.NPCLayer)
-
- '--Now loop again and apply z
- DIM z AS INTEGER
- FOR i AS INTEGER = 0 TO UBOUND(npc)
-  IF npc(i).id > 0 THEN '-- if visible
-   z = 0
-   IF vstate.active AND vstate.npc = i THEN
-    'This is a currently active vehicle NPC, set its z value equal to the lead hero's
-    z = catz(0)
-   END IF
-   IF z > 0 ANDALSO vstate.dat.disable_flying_shadow = NO THEN
-    '--Vehicle shadow
-    'FIXME: how should we actually do this?
-    'rectangle drawnpcX + 6, drawnpcY + 13, 8, 5, uilook(uiShadow), dpage
-    'rectangle drawnpcX + 5, drawnpcY + 14, 10, 3, uilook(uiShadow), dpage
-   END IF
-   IF z THEN
-    WITH *npcsl(i)
-     .Y -= z
-    END WITH
-   END IF
-  END IF
- NEXT i
+ CustomSortChildSlices(SliceTable.NPCLayer, NO)
 
  '--now apply sprite frame changes
  FOR i AS INTEGER = 0 TO UBOUND(npc)
@@ -1141,6 +1109,29 @@ SUB update_walkabout_npc_slices()
   END IF
  NEXT i
 
+END SUB
+
+SUB update_walkabout_pos (byval walkabout_cont as slice ptr, byval x as integer, byval y as integer, byval z as integer)
+ IF walkabout_cont = 0 THEN
+  'Exit silently on null slices. It is normal to call this on hero slices that don't exist when the party is non-full
+  EXIT SUB
+ END IF
+
+ DIM where AS XYPair
+ '+ gmap(11)
+ framewalkabout x, y , where.x, where.y, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
+ WITH *walkabout_cont
+  .X = where.x + mapx
+  .Y = where.y + mapy
+ END WITH
+ 
+ DIM sprsl AS Slice Ptr
+ sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
+ IF sprsl = 0 THEN
+  debug "update_walkabout_pos: null sprite slice for walkabout slice " & walkabout_cont
+ ELSE
+  sprsl->Y = gmap(11) - z
+ END IF
 END SUB
 
 'NPC movement
