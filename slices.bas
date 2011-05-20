@@ -1588,20 +1588,22 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
 
  with *dat
  
+  dim w as integer = ABS(sl->Width)
+  dim h as integer = ABS(sl->Height)
   if .frame = 0 _
-     ORELSE .last_draw_size.X <> sl->Width _
-     ORELSE .last_draw_size.Y <> sl->Height _
+     ORELSE .last_draw_size.X <> w _
+     ORELSE .last_draw_size.Y <> h _
      ORELSE .last_draw_bordercol <> .bordercol _
      ORELSE .last_draw_fillcol <> .fillcol then
    if sl->Width = 0 ORELSE sl->Height = 0 then exit sub
    frame_unload @.frame
-   DIM w AS INTEGER = ABS(sl->Width)
-   DIM h AS INTEGER = ABS(sl->Height)
    'debug "create new ellipse frame " & w & "x" & h
    .frame = frame_new(w, h, , YES)
    'fuzzyrect .frame, 0, 0, w, h, dat->fillcol, 37
-   ellipse .frame, w / 2, h / 2, w / 2 - 1, dat->bordercol, h / 2
-   paintat .frame, w / 2, h / 2, dat->fillcol
+   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, dat->bordercol, h / 2 - 0.5
+   if readpixel(.frame, w / 2, h / 2) <> dat->bordercol andalso dat->fillcol <> 0 then
+     paintat .frame, w / 2, h / 2, dat->fillcol
+   end if
    .last_draw_size.X = w
    .last_draw_size.Y = h
    .last_draw_bordercol = .bordercol

@@ -1557,7 +1557,11 @@ SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL 
 	x += 0.5
 	y += 0.5
 	radius += 0.5
-	if semiminor = 0.0 then semiminor = radius
+	if semiminor = 0.0 then
+		semiminor = radius
+	else
+		semiminor += 0.5
+	end if
 
 	dim as double ypart
 	ypart = fmod(y, 1.0) - 0.5  'Here we add in the fact that we test for intercepts with a line offset 0.5 pixels
