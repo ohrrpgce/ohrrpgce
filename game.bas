@@ -90,6 +90,7 @@ DIM SHARED scriptout AS STRING
 
 'global variables
 DIM gam AS GameState
+gam.walkabout_layer_mode = 2 ' default to flickering
 DIM txt AS TextBoxState
 DIM gen(360)
 DIM tag(127)
