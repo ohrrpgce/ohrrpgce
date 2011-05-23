@@ -1075,6 +1075,7 @@ END SUB
 
 SUB update_walkabout_npc_slices()
  DIM z AS INTEGER
+ DIM shadow AS Slice Ptr
  '--set x and y positions 
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
@@ -1082,11 +1083,11 @@ SUB update_walkabout_npc_slices()
    IF vstate.active AND vstate.npc = i THEN
     '--This NPC is a currently active vehicle, so lets do some extra voodoo.
     z = catz(0) 'use lead hero's z value
-    IF z > 0 ANDALSO vstate.dat.disable_flying_shadow = NO THEN
-     '--Vehicle shadow
-     'FIXME: how should we actually do this?
-     'rectangle drawnpcX + 6, drawnpcY + 13, 8, 5, uilook(uiShadow), dpage
-     'rectangle drawnpcX + 5, drawnpcY + 14, 10, 3, uilook(uiShadow), dpage
+    IF npcsl(i) <> 0 THEN
+     shadow = LookupSlice(SL_WALKABOUT_SHADOW_COMPONENT, npcsl(i))
+     IF shadow <> 0 THEN
+      shadow->Visible = (z > 0 ANDALSO vstate.dat.disable_flying_shadow = NO)
+     END IF
     END IF
    END IF
    update_walkabout_pos npcsl(i), npc(i).x, npc(i).y, z
@@ -3321,6 +3322,7 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
    herospeed(0) = 10
    vstate.mounting = YES '--trigger mounting sequence
    IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 1
+   create_walkabout_shadow npcsl(vstate.npc)
   END IF
  END IF
  IF npcs(id).textbox > 0 THEN
@@ -3416,4 +3418,31 @@ SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
  NEXT i
 END SUB
 
+SUB create_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
+ IF walkabout_cont = 0 THEN debug "create_walkabout_shadow: null walkabout container": EXIT SUB
+ DIM sprsl AS Slice Ptr
+ sprsl = LookupSlice(SL_WALKABOUT_SPRITE_COMPONENT, walkabout_cont)
+ IF sprsl = 0 THEN debug "create_walkabout_shadow: null walkabout sprite": EXIT SUB
+ DIM shadow AS Slice Ptr
+ shadow = NewSliceOfType(slEllipse, ,SL_WALKABOUT_SHADOW_COMPONENT)
+ WITH *shadow
+  .Width = 12
+  .Height = 6
+  .AnchorHoriz = 1
+  .AlignHoriz = 1
+  .AnchorVert = 2
+  .AlignVert = 2
+  .Y = gmap(11) 'foot offset
+  .Visible = NO
+ END WITH
+ ChangeEllipseSlice shadow, uilook(uiShadow), uilook(uiShadow)
+ InsertSliceBefore(sprsl, shadow)
+END SUB
 
+SUB delete_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
+ IF walkabout_cont = 0 THEN debug "delete_walkabout_shadow: null walkabout container": EXIT SUB
+ DIM shadow AS Slice Ptr
+ shadow = LookupSlice(SL_WALKABOUT_SHADOW_COMPONENT, walkabout_cont)
+ IF shadow = 0 THEN debug "delete_walkabout_shadow: no shadow to delete" : EXIT SUB
+ DeleteSlice @shadow
+END SUB

@@ -77,4 +77,6 @@ DECLARE FUNCTION should_show_normal_caterpillar() AS INTEGER
 DECLARE SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS INTEGER)
 DECLARE SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
 DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
+DECLARE SUB create_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
+DECLARE SUB delete_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
 #ENDIF

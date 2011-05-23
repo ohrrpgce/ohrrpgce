@@ -3138,6 +3138,7 @@ IF vstate.trigger_cleanup THEN '--clear
  IF herospeed(0) = 3 THEN herospeed(0) = 10
  npc(vstate.npc).xgo = 0
  npc(vstate.npc).ygo = 0
+ delete_walkabout_shadow npcsl(vstate.npc)
  '--clear vehicle
  reset_vehicle vstate
  FOR i = 0 TO 15   'Why is this duplicated from dismounting?

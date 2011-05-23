@@ -250,6 +250,7 @@ FUNCTION SliceLookupCodename (BYVAL code AS INTEGER) AS STRING
   CASE SL_HERO_LAYER: RETURN "hero_layer"
   CASE SL_NPC_LAYER: RETURN "npc_layer"
   CASE SL_WALKABOUT_SPRITE_COMPONENT: RETURN "walkabout_sprite_component"
+  CASE SL_WALKABOUT_SHADOW_COMPONENT: RETURN "walkabout_shadow_component"
   CASE SL_MAP_LAYER0: RETURN "map_layer0"
   CASE SL_MAP_LAYER1: RETURN "map_layer1"
   CASE SL_MAP_LAYER2: RETURN "map_layer2"
