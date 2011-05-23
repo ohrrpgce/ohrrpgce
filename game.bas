@@ -1068,7 +1068,7 @@ END SUB
 SUB update_walkabout_npc_slices()
  DIM z AS INTEGER
  DIM shadow AS Slice Ptr
- '--set x and y positions 
+
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
    z = 0
@@ -1087,9 +1087,16 @@ SUB update_walkabout_npc_slices()
     '--default NPC sort is by instance id
     npcsl(i)->Sorter = i
    END IF
+  ELSEIF npc(i).id < 0 THEN
+   '--hide existant but non-visible NPCs
+   set_walkabout_vis npcsl(i), NO
   ELSE
-   '--hide non-visible and unused NPC slices
-   npcsl(i)->Visible = NO
+   '--remove unused NPC slices
+   IF npcsl(i) <> 0 THEN
+    'debug "delete npc sl " & i & " [update_walkabout_npc_slices]"
+    DeleteSlice @npcsl(i)
+    npcsl(i) = 0
+   END IF
   END IF
  NEXT i
 
@@ -2767,13 +2774,15 @@ SUB reset_game_state ()
  gam.remembermusic = -1
  gam.random_battle_countdown = range(100, 60)
  gam.mouse_enabled = NO
+ 
  'If we are resetting, the old slices will have already been destroyed
  'by DestroyGameSlices so we just re-assign gam.caterp() and npcls()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
   gam.caterp(i) = create_walkabout_slices(SliceTable.HeroLayer)
  NEXT i
  FOR i AS INTEGER = 0 TO UBOUND(npcsl)
-  npcsl(i) = create_walkabout_slices(SliceTable.NPCLayer)
+  'Zero these out. They will be created on-the-fly as needed.
+  npcsl(i) = 0
  NEXT i
 END SUB
 

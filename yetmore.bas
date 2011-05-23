@@ -579,11 +579,17 @@ SUB visnpc()
   IF npc_id > UBOUND(npcs) THEN
    'Invalid ID number; hide. Probably a partially loaded map.
    npc(i).id = -npc_id - 1
-   set_walkabout_vis npcsl(i), NO
    CONTINUE FOR
   END IF
  
   IF npc(i).id <> 0 THEN
+  
+   '--NPC exists (maybe visible, maybe not)
+   IF npcsl(i) = 0 THEN
+    npcsl(i) = create_walkabout_slices(SliceTable.NPCLayer)
+    'debug "npcsl(" & i & ")=" & npcsl(i) & " [visnpc]"
+   END IF
+   
    '--check tags
    IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(1000 + npcs(npc_id).usetag, 0) = 0 THEN
     npc(i).id = npc_id + 1
@@ -597,7 +603,11 @@ SUB visnpc()
    set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
   ELSE
    '--nonexistent
-   set_walkabout_vis npcsl(i), NO
+   IF npcsl(i) <> 0 THEN
+    'debug "delete npc sl " & i & " [visnpc]"
+    DeleteSlice @npcsl(i)
+    npcsl(i) = 0
+   END IF
   END IF
 
  NEXT i
@@ -2917,11 +2927,20 @@ SELECT CASE AS CONST id
    END IF
    IF i > -1 THEN
     CleanNPCInst npc(i)
-    npc(i).id = retvals(0) + 1
+    DIM npc_id AS INTEGER = retvals(0)
+    npc(i).id = npc_id + 1
     cropposition retvals(1), retvals(2), 1
     npc(i).x = retvals(1) * 20
     npc(i).y = retvals(2) * 20
     npc(i).dir = ABS(retvals(3)) MOD 4
+    IF npcsl(i) <> 0 THEN
+     'debug "delete npc sl " & i & "[create npc(" & retvals(0) & ")]"
+     DeleteSlice @npcsl(i)
+    END IF
+    npcsl(i) = create_walkabout_slices(SliceTable.NPCLayer)
+    set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
+    set_walkabout_vis npcsl(i), YES
+    'debug "npcsl(" & i & ")=" & npcsl(i) & " [create npc(" & retvals(0) & ")]"
     scriptret = (i + 1) * -1
    END IF
   END IF
