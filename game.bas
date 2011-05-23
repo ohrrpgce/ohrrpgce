@@ -1056,16 +1056,8 @@ SUB update_walkabout_hero_slices()
 
  ELSE
   '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
-  framewalkabout catx(0), caty(0) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)
-  IF gam.caterp(0) = 0 THEN
-   debug "null hero container slice in update_walkabout_hero_slices"
-  ELSE
-   WITH *gam.caterp(0)
-    .X = framex + mapx
-    .Y = framey + mapy - catz(0)
-   END WITH
-   set_walkabout_frame gam.caterp(0), catd(0) * 2 + (wtog(0) \ 2)
-  END IF
+  update_walkabout_pos gam.caterp(0), catx(0), caty(0), catz(0)
+  set_walkabout_frame gam.caterp(0), catd(0) * 2 + (wtog(0) \ 2)
   FOR i AS INTEGER = 1 TO UBOUND(gam.caterp)
    set_walkabout_vis gam.caterp(i), NO
   NEXT i
