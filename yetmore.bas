@@ -3679,7 +3679,7 @@ FUNCTION valid_resizeable_slice(byval handle as integer, byval ignore_fill as in
  IF valid_plotslice(handle) THEN
   DIM sl AS Slice Ptr
   sl = plotslices(handle)
-  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid THEN
+  IF sl->SliceType = slRectangle OR sl->SliceType = slContainer OR sl->SliceType = slGrid OR sl->SliceType = slEllipse THEN
    IF sl->Fill = NO OR ignore_fill THEN
     RETURN YES
    ELSE
