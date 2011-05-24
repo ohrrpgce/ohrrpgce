@@ -1089,12 +1089,9 @@ SUB update_walkabout_npc_slices()
     npcsl(i)->Sorter = i
    END IF
   ELSEIF npc(i).id < 0 THEN
-   '--hide existant but non-visible NPCs
-   set_walkabout_vis npcsl(i), NO
-  ELSE
-   '--remove unused NPC slices
+   '--remove unused and hidden NPC slices
    IF npcsl(i) <> 0 THEN
-    'debug "delete npc sl " & i & " [update_walkabout_npc_slices]"
+    debug "Sloppy housekeeping: delete npc sl " & i & " [update_walkabout_npc_slices]"
     DeleteSlice @npcsl(i)
     npcsl(i) = 0
    END IF
@@ -2793,7 +2790,6 @@ FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
  WITH *sl
   .Width = 20
   .Height = 20
-  .Visible = NO
   .Protect = YES
  END WITH
  DIM sprsl AS Slice Ptr
@@ -3400,7 +3396,7 @@ SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS
  npcs(npc_id).sprite = frame_load(4, walkabout_sprite_id)
  '--reload new-style
  FOR i AS INTEGER = 0 TO UBOUND(npc)
-  IF ABS(npc(i).id) - 1 = npc_id THEN
+  IF npc(i).id - 1 = npc_id THEN
    'found a match!
    set_walkabout_sprite npcsl(i), walkabout_sprite_id
   END IF 
@@ -3413,7 +3409,7 @@ SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
  npcs(npc_id).pal = palette16_load(palette_id, 4, npcs(npc_id).picture)
  '--reload new-style
  FOR i AS INTEGER = 0 TO UBOUND(npc)
-  IF ABS(npc(i).id) - 1 = npc_id THEN
+  IF npc(i).id - 1 = npc_id THEN
    'found a match!
    set_walkabout_sprite npcsl(i), , palette_id
   END IF 

@@ -583,26 +583,25 @@ SUB visnpc()
   END IF
  
   IF npc(i).id <> 0 THEN
+   '--npc exist but may be visible or invisible
+   '--check tags
+   IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(1000 + npcs(npc_id).usetag, 0) = 0 THEN
+    npc(i).id = npc_id + 1
+   ELSE
+    npc(i).id = -npc_id - 1
+   END IF
+  END IF
   
-   '--NPC exists (maybe visible, maybe not)
+  IF npc(i).id > 0 THEN
+   '--NPC exists and is visible
    IF npcsl(i) = 0 THEN
     npcsl(i) = create_walkabout_slices(SliceTable.NPCLayer)
     'debug "npcsl(" & i & ")=" & npcsl(i) & " [visnpc]"
    END IF
-   
-   '--check tags
-   IF istag(npcs(npc_id).tag1, 1) ANDALSO istag(npcs(npc_id).tag2, 1) ANDALSO istag(1000 + npcs(npc_id).usetag, 0) = 0 THEN
-    npc(i).id = npc_id + 1
-    set_walkabout_vis npcsl(i), YES
-   ELSE
-    npc(i).id = -npc_id - 1
-    set_walkabout_vis npcsl(i), NO
-   END IF
-
    '--set sprite
    set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
   ELSE
-   '--nonexistent
+   '--nonexistent or hidden
    IF npcsl(i) <> 0 THEN
     'debug "delete npc sl " & i & " [visnpc]"
     DeleteSlice @npcsl(i)
@@ -2946,7 +2945,14 @@ SELECT CASE AS CONST id
   END IF
  CASE 126 '--destroy NPC
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 THEN npc(npcref).id = 0
+  IF npcref >= 0 THEN
+   npc(npcref).id = 0
+   IF npcsl(npcref) <> 0 THEN
+    'debug "delete npc sl " & npcref & "[destroy npc(" & retvals(0) & ")]"
+    DeleteSlice @npcsl(npcref)
+    npcsl(npcref) = 0
+   END IF
+  END IF
  CASE 165'--NPC at pixel
   scriptret = 0
   found = 0
