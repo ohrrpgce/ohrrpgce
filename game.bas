@@ -2697,6 +2697,14 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  END IF
 
  IF afterbat = NO THEN
+  FOR i AS INTEGER = 0 TO UBOUND(npc)
+   '--delete all NPC slices so they can be recreated in visnpc
+   IF npcsl(i) <> 0 THEN
+    'debug "delete npc sl " & i & " [prepare_map]"
+    DeleteSlice @npcsl(i)
+    npcsl(i) = 0
+   END IF
+  NEXT i
   gam.map.showname = gmap(4)
   IF gmap(17) < 2 THEN
    loadmapstate_npcd gam.map.id, "map"
