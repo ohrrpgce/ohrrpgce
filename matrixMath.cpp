@@ -1,4 +1,8 @@
 #include "matrixMath.h"
+#include <math.h>
+#include <memory.h>
+#define NULL 0
+#define min(a, b) (a < b ? a : b)
 
 void matrixLocalTransform( float3x3* pMatrixOut, float angle, const float2& scale, const float2& position )
 {
@@ -32,17 +36,17 @@ void matrixMultiply( float3x3* pMatrixOut, const float3x3& A, const float3x3& B 
       return;
    memset( pMatrixOut, 0, sizeof(float3x3) );
 
-   pMatrixOut->_11 = A._11 * B._11 + A._12 * B._21 + A_.13 * B._31;
-   pMatrixOut->_12 = A._11 * B._12 + A._12 * B._22 + A_.13 * B._32;
-   pMatrixOut->_13 = A._11 * B._13 + A._12 * B._23 + A_.13 * B._33;
+   pMatrixOut->_11 = A._11 * B._11 + A._12 * B._21 + A._13 * B._31;
+   pMatrixOut->_12 = A._11 * B._12 + A._12 * B._22 + A._13 * B._32;
+   pMatrixOut->_13 = A._11 * B._13 + A._12 * B._23 + A._13 * B._33;
 
-   pMatrixOut->_21 = A._21 * B._11 + A._22 * B._21 + A_.23 * B._31;
-   pMatrixOut->_22 = A._21 * B._12 + A._22 * B._22 + A_.23 * B._32;
-   pMatrixOut->_23 = A._21 * B._13 + A._22 * B._23 + A_.23 * B._33;
+   pMatrixOut->_21 = A._21 * B._11 + A._22 * B._21 + A._23 * B._31;
+   pMatrixOut->_22 = A._21 * B._12 + A._22 * B._22 + A._23 * B._32;
+   pMatrixOut->_23 = A._21 * B._13 + A._22 * B._23 + A._23 * B._33;
 
-   pMatrixOut->_31 = A._31 * B._11 + A._32 * B._21 + A_.33 * B._31;
-   pMatrixOut->_32 = A._31 * B._12 + A._32 * B._22 + A_.33 * B._32;
-   pMatrixOut->_33 = A._31 * B._13 + A._32 * B._23 + A_.33 * B._33;
+   pMatrixOut->_31 = A._31 * B._11 + A._32 * B._21 + A._33 * B._31;
+   pMatrixOut->_32 = A._31 * B._12 + A._32 * B._22 + A._33 * B._32;
+   pMatrixOut->_33 = A._31 * B._13 + A._32 * B._23 + A._33 * B._33;
 }
 
 void vec3Transform( float3* pVec3ArrayOut, int destSize, const float3* pVec3ArrayIn, int srcSize, const float3x3& transformMatrix )
@@ -53,9 +57,9 @@ void vec3Transform( float3* pVec3ArrayOut, int destSize, const float3* pVec3Arra
 
    for(int i = 0, maxCount = min(srcSize, destSize); i < maxCount; i++)
    {
-      pVec3ArrayOut[i].x = pVec3ArrayIn[i].x * transformMatrix._11 + pVec3ArrayIn[i].y * transformMatrix._21 + pVec3ArrayIn[i].z * transformMatrix._31;
-      pVec3ArrayOut[i].y = pVec3ArrayIn[i].x * transformMatrix._12 + pVec3ArrayIn[i].y * transformMatrix._22 + pVec3ArrayIn[i].z * transformMatrix._32;
-      pVec3ArrayOut[i].z = pVec3ArrayIn[i].x * transformMatrix._13 + pVec3ArrayIn[i].y * transformMatrix._23 + pVec3ArrayIn[i].z * transformMatrix._33;
+      pVec3ArrayOut[i].x = pVec3ArrayIn[i].x * transformMatrix._11 + pVec3ArrayIn[i].y * transformMatrix._21 + pVec3ArrayIn[i].w * transformMatrix._31;
+      pVec3ArrayOut[i].y = pVec3ArrayIn[i].x * transformMatrix._12 + pVec3ArrayIn[i].y * transformMatrix._22 + pVec3ArrayIn[i].w * transformMatrix._32;
+      pVec3ArrayOut[i].w = pVec3ArrayIn[i].x * transformMatrix._13 + pVec3ArrayIn[i].y * transformMatrix._23 + pVec3ArrayIn[i].w * transformMatrix._33;
    }
 }
 
