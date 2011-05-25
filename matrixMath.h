@@ -16,7 +16,7 @@ struct float3x3 {
          _21, _22, _23,
          _31, _32, _33;
 };
-struct RECT {
+struct SURFACE_RECT {
    long left, top, right, bottom;
 };
 
@@ -24,6 +24,6 @@ void matrixLocalTransform( float3x3* pMatrixOut, float angle, const float2& scal
 void matrixOldClientTransform( float3x3* pMatrixOut, float clientWidth, float clientHeight );
 void matrixMultiply( float3x3* pMatrixOut, const float3x3& A, const float3x3& B );
 void vec3Transform( float3* pVec3ArrayOut, int destSize, const float3* pVec3ArrayIn, int srcSize, const float3x3& transformMatrix );
-void vec3GenerateCorners( float3* pVecArrayOut, int destSize, const RECT& surfaceRect );
+void vec3GenerateCorners( float3* pVecArrayOut, int destSize, const SURFACE_RECT& surfaceRect );
 
 #endif

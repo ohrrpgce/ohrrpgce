@@ -11,8 +11,8 @@ void matrixLocalTransform( float3x3* pMatrixOut, float angle, const float2& scal
    memset( pMatrixOut, 0, sizeof(float3x3) );
 
    pMatrixOut->_11 = cos(angle) * scale.x;
-   pMatrixOut->_12 = sin(angle);
-   pMatrixOut->_21 = -sin(angle);
+   pMatrixOut->_12 = sin(angle) * scale.x;
+   pMatrixOut->_21 = -sin(angle) * scale.y;
    pMatrixOut->_22 = cos(angle) * scale.y;
    pMatrixOut->_31 = position.x;
    pMatrixOut->_32 = position.y;
@@ -63,7 +63,7 @@ void vec3Transform( float3* pVec3ArrayOut, int destSize, const float3* pVec3Arra
    }
 }
 
-void vec3GenerateCorners( float3* pVecArrayOut, int destSize, const RECT& surfaceRect )
+void vec3GenerateCorners( float3* pVecArrayOut, int destSize, const SURFACE_RECT& surfaceRect )
 {
    if( pVecArrayOut == NULL || destSize < 4 )
       return;
