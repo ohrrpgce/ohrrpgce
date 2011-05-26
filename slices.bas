@@ -134,7 +134,26 @@ Sub SetupGameSlices
  
  SliceTable.MapRoot = NewSliceOfType(slContainer, SliceTable.Root, SL_MAPROOT)
  SliceTable.MapRoot->Protect = YES
- FOR i AS INTEGER = 0 TO maplayerMax
+ 
+ SetupMapSlices maplayerMax
+
+ SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
+ SliceTable.ScriptSprite->Fill = YES
+ RefreshSliceScreenPos(SliceTable.ScriptSprite)
+ 
+ SliceTable.TextBox = NewSliceOfType(slSpecial, SliceTable.Root, SL_TEXTBOX_LAYER)
+ SliceTable.TextBox->Fill = YES
+ RefreshSliceScreenPos(SliceTable.TextBox)
+ 
+ 'Not used yet, so don't create it!
+ 'SliceTable.Menu = NewSliceOfType(slSpecial, SliceTable.Root)
+ 
+ SliceTable.ScriptString = NewSliceOfType(slSpecial, SliceTable.Root, SL_STRING_LAYER)
+
+End Sub
+
+Sub SetupMapSlices(byval to_max as integer)
+ FOR i AS INTEGER = 0 TO to_max
   SliceTable.MapLayer(i) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0 - i)
   ChangeMapSlice SliceTable.MapLayer(i), , , (i > 0), 0   'maybe transparent, not overhead
   SliceTable.MapLayer(i)->Fill = YES
@@ -156,21 +175,8 @@ Sub SetupGameSlices
  SliceTable.NPCLayer->Fill = YES
  SliceTable.NPCLayer->Protect = YES
  SliceTable.NPCLayer->AutoSort = slAutoSortCustom
- 
- SliceTable.ScriptSprite = NewSliceOfType(slSpecial, SliceTable.Root, SL_SCRIPT_LAYER)
- SliceTable.ScriptSprite->Fill = YES
- RefreshSliceScreenPos(SliceTable.ScriptSprite)
- 
- SliceTable.TextBox = NewSliceOfType(slSpecial, SliceTable.Root, SL_TEXTBOX_LAYER)
- SliceTable.TextBox->Fill = YES
- RefreshSliceScreenPos(SliceTable.TextBox)
- 
- 'Not used yet, so don't create it!
- 'SliceTable.Menu = NewSliceOfType(slSpecial, SliceTable.Root)
- 
- SliceTable.ScriptString = NewSliceOfType(slSpecial, SliceTable.Root, SL_STRING_LAYER)
-
 End Sub
+
 
 Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
  DeleteSlice(@SliceTable.Root, ABS(SGN(dumpdebug)))

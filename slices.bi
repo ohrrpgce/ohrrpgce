@@ -255,6 +255,7 @@ Type EllipseSliceData
 End Type
 
 DECLARE Sub SetupGameSlices
+DECLARE Sub SetupMapSlices(byval to_max as integer)
 DECLARE Sub DestroyGameSlices(Byval dumpdebug AS INTEGER=0)
 DECLARE Function NewSlice(Byval parent as Slice ptr = 0) as Slice Ptr
 DECLARE Sub DeleteSlice(Byval s as Slice ptr ptr, byval debugme as integer = 0)
