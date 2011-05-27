@@ -56,6 +56,7 @@ declare sub init_default_text_colors()
 DECLARE FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL newcall AS INTEGER=YES) AS INTEGER
 DECLARE SUB init_text_box_slices(txt AS TextBoxState)
 DECLARE SUB cleanup_text_box ()
+DECLARE SUB recreate_map_slices()
 DECLARE SUB refresh_map_slice()
 DECLARE SUB refresh_map_slice_tilesets()
 DECLARE SUB refresh_walkabout_layer_sort()

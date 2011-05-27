@@ -634,7 +634,6 @@ SUB loadmapstate_tilemap (mapnum, prefix as string, dontfallback = 0)
    loadtilemaps maptiles(), filebase + "_t.tmp"
    mapsizetiles.x = maptiles(0).wide
    mapsizetiles.y = maptiles(0).high
-   refresh_map_slice
 
    '--as soon as we know the dimensions of the map, enforce hero position boundaries
    cropposition catx(0), caty(0), 20

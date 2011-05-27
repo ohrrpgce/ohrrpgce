@@ -2654,6 +2654,7 @@ END FUNCTION
 
 SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  'DEBUG debug "in preparemap"
+
  DIM i AS INTEGER
  'save data from old map
  IF gam.map.lastmap > -1 THEN
@@ -2696,14 +2697,10 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
  END IF
 
  IF afterbat = NO THEN
-  FOR i AS INTEGER = 0 TO UBOUND(npc)
-   '--delete all NPC slices so they can be recreated in visnpc
-   IF npcsl(i) <> 0 THEN
-    'debug "delete npc sl " & i & " [prepare_map]"
-    DeleteSlice @npcsl(i)
-    npcsl(i) = 0
-   END IF
-  NEXT i
+  recreate_map_slices
+ END IF
+
+ IF afterbat = NO THEN
   gam.map.showname = gmap(4)
   IF gmap(17) < 2 THEN
    loadmapstate_npcd gam.map.id, "map"
@@ -2770,6 +2767,7 @@ SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
   END IF
  END IF
  gam.map.same = NO
+
  'DEBUG debug "end of preparemap"
 END SUB
 
@@ -3159,19 +3157,74 @@ SUB cleanup_text_box ()
  IF txt.sl THEN DeleteSlice @(txt.sl)
 END SUB
 
+SUB recreate_map_slices()
+ 'this destroys and re-creates the map slices. it should only happen when
+ 'moving from one map to another, but not when a battle ends. (same as when
+ 'the map autorun script is triggered)
+ 'The newly recreated map slices will not be usable until refresh_map_slice()
+ 'is called a little later in the map loading process
+  
+ 'First free all NPC slices because we can't guarantee that they will be
+ 'freed when the map slices are freed, even though in normal circumstances
+ 'they will all be freed. (and we must do this unconditionally, even if
+ 'the preference for recreating map slices is turned OFF)
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  DeleteSlice @npcsl(i)
+ NEXT i
+  
+ IF readbit(gen(), genBits2, 11) <> 0 THEN
+  '"Recreate map slices when changing maps" = ON
+
+  'Orphan the hero slices to prevent them from being destroyed when we
+  'destroy the map layers
+  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+   OrphanSlice gam.caterp(i)
+  NEXT i
+
+  'Free the map slices
+  FOR i AS INTEGER = 0 TO UBOUND(SliceTable.MapLayer)
+   DeleteSlice @SliceTable.MapLayer(i)
+  NEXT i
+  DeleteSlice @SliceTable.ObsoleteOverhead
+  DeleteSlice @SliceTable.HeroLayer
+  DeleteSlice @SliceTable.NPCLayer
+  DeleteSlice @SliceTable.Walkabout
+
+  'And then create new ones
+  SetupMapSlices UBOUND(maptiles)
+
+  'Reparent the hero slices to the new map
+  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+   SetSliceParent gam.caterp(i), SliceTable.HeroLayer
+  NEXT i
+  
+  refresh_map_slice_tilesets
+  visnpc
+ END IF
+ refresh_map_slice
+END SUB
+
 SUB refresh_map_slice()
+ 'This updates the size, tilesets, and sort order of the map slices
+
+ 'debug "refresh_map_slice() there are " & UBOUND(maptiles) & " map layers on map " & gam.map.id
+
  '--Store info about the map in the map slices
  WITH *(SliceTable.MapRoot)
   .Width = mapsizetiles.x * 20
   .Height = mapsizetiles.y * 20
  END WITH
+  
  FOR i AS INTEGER = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
   ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
  NEXT i
  FOR i AS INTEGER = UBOUND(maptiles) + 1 TO maplayerMax
-  '--this map layer slices thing isn't quite polished...
-  ChangeMapSlice SliceTable.MapLayer(i), NULL, NULL
+  '--if slices exist for the unused layers that this map doesn't have,
+  '--we should make them display no tiles
+  IF Slicetable.MapLayer(i) <> 0 THEN
+   ChangeMapSlice SliceTable.MapLayer(i), NULL, NULL
+  END IF
  NEXT i
  ChangeMapSlice SliceTable.ObsoleteOverhead, @maptiles(0), @pass
  
@@ -3184,9 +3237,22 @@ SUB refresh_map_slice()
  SliceTable.Walkabout->Sorter = sorter
  sorter += 1
  FOR i AS INTEGER = gmap(31) TO UBOUND(maptiles)
-  SliceTable.MapLayer(i)->Sorter = sorter
-  sorter += 1
+  IF SliceTable.Maplayer(i) = 0 THEN
+   debug "Null map layer " & i & " when sorting in refresh_map_slice"
+  ELSE
+   SliceTable.MapLayer(i)->Sorter = sorter
+   sorter += 1
+  END IF
  NEXT
+ FOR i AS INTEGER = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
+  'Slices for layers that do not exist on the current map...
+  IF SliceTable.MapLayer(i) <> 0 THEN
+   '...should be sorted too, if they exist.
+   SliceTable.MapLayer(i)->Sorter = sorter
+   sorter += 1
+  END IF
+ NEXT i
+ 
  SliceTable.ObsoleteOverhead->Sorter = sorter
  
  CustomSortChildSlices SliceTable.MapRoot, YES
@@ -3196,7 +3262,9 @@ END SUB
 SUB refresh_map_slice_tilesets()
  FOR i AS INTEGER = 0 TO maplayerMax
   '--reset map layer tileset ptrs
-  ChangeMapSliceTileset SliceTable.MapLayer(i), tilesets(i)
+  IF SliceTable.MapLayer(i) <> 0 THEN
+   ChangeMapSliceTileset SliceTable.MapLayer(i), tilesets(i)
+  END IF
  NEXT i
  ChangeMapSliceTileset SliceTable.ObsoleteOverhead, tilesets(0)
 END SUB
