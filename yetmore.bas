@@ -2903,7 +2903,10 @@ SELECT CASE AS CONST id
   END IF
  CASE 124'--change NPC ID
   npcref = getnpcref(retvals(0), 0)
-  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(npcs) THEN npc(npcref).id = retvals(1) + 1
+  IF npcref >= 0 AND retvals(1) >= 0 AND retvals(1) <= UBOUND(npcs) THEN
+   npc(npcref).id = retvals(1) + 1
+   visnpc
+  END IF
  CASE 125'--create NPC
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
