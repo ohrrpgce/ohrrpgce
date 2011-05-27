@@ -43,6 +43,7 @@ DECLARE SUB perform_npc_move(BYVAL npcnum AS INTEGER, npci AS NPCInst, npcdata A
 DECLARE SUB npchitwall (npci AS NPCInst, npcdata AS NPCType)
 DECLARE FUNCTION find_useable_npc () AS INTEGER
 DECLARE SUB interpret ()
+DECLARE SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
 
 REMEMBERSTATE
 
@@ -170,7 +171,6 @@ plotslicesp = @plotslices(1)
 
 'Module local variables
 DIM font(1024)
-DIM didgo(0 TO 3)
 
 'DEBUG debug "Thestart"
 DO 'This is a big loop that encloses the entire program (more than it should). The loop is only reached when resetting the game
@@ -478,8 +478,8 @@ force_npc_check = YES
 showtags = 0
 shownpcinfo = 0
 gam.walk_through_walls = NO
-'DEBUG debug "pre-call movement"
-GOSUB movement
+'DEBUG debug "pre-call update_heroes"
+update_heroes(YES)
 setkeys
 DO
  'DEBUG debug "top of master loop"
@@ -553,9 +553,9 @@ DO
   usemenu txt.choice_cursor, 0, 0, 1, 2
  END IF
  'DEBUG debug "hero movement"
- GOSUB movement
+ update_heroes()
  'DEBUG debug "NPC movement"
- update_npcs
+ update_npcs()
  IF readbit(gen(), 101, 8) = 0 THEN
   '--debugging keys
   'DEBUG debug "evaluate debugging keys"
@@ -660,8 +660,7 @@ DO
   resetsfx
   fadeout 0, 0, 0
   needf = 1
-  force_npc_check = YES
-  game.map.lastmap = -1
+  debug "doloadgame when wantloadgame"
   GOSUB doloadgame
   prepare_map NO, YES
   'FIXME: clean this up: setting vstate.id is only backcompat for loading from the old SAV format;
@@ -852,165 +851,176 @@ IF showtags > 0 THEN tagdisplay
 IF scrwatch THEN scriptwatcher scrwatch, -1
 RETRACE
 
-movement:
-'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left 
-FOR whoi = 0 TO 3
- thisherotilex = catx(whoi * 5) \ 20
- thisherotiley = caty(whoi * 5) \ 20
- IF herospeed(whoi) = 0 THEN
-  '--cancel movement, or some of the following code misbehaves
-  xgo(whoi) = 0
-  ygo(whoi) = 0
- END IF
- '--if if aligned in at least one direction and passibility is enabled ... and some vehicle stuff ...
- IF want_to_check_for_walls(whoi) THEN
-  IF readbit(gen(), 44, suspendherowalls) = 0 AND vehicle_is_animating() = NO THEN
-   '--this only happens if herowalls is on
-   '--wrapping passability
-   wrappass thisherotilex, thisherotiley, xgo(whoi), ygo(whoi), vstate.active
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
+SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
+ 'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left 
+ FOR whoi AS INTEGER = 0 TO 3
+  IF herospeed(whoi) = 0 THEN
+   '--cancel movement, or some of the following code misbehaves
+   xgo(whoi) = 0
+   ygo(whoi) = 0
   END IF
-  IF readbit(gen(), 44, suspendobstruction) = 0 AND vehicle_is_animating() = NO THEN
-   '--this only happens if obstruction is on
-   FOR i = 0 TO 299
-    WITH npc(i)
-     IF .id > 0 THEN '---NPC EXISTS---
-      id = (.id - 1)
-      IF npcs(id).activation <> 2 THEN '---NPC is not step-on
-       IF wrapcollision (.x, .y, .xgo, .ygo, catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
-        IF .not_obstruction = 0 THEN
-         xgo(whoi) = 0: ygo(whoi) = 0
-         '--push the NPC
-         pushtype = npcs(id).pushtype
-         IF pushtype > 0 AND .xgo = 0 AND .ygo = 0 THEN
-          IF catd(whoi) = 0 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 4) THEN .ygo = 20
-          IF catd(whoi) = 2 AND (pushtype = 1 OR pushtype = 2 OR pushtype = 6) THEN .ygo = -20
-          IF catd(whoi) = 3 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 7) THEN .xgo = 20
-          IF catd(whoi) = 1 AND (pushtype = 1 OR pushtype = 3 OR pushtype = 5) THEN .xgo = -20
-          IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
-           FOR o = 0 TO 299 ' check to make sure no other NPCs are blocking this one
-            IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
-            IF i = o THEN CONTINUE FOR
-            IF npc(o).not_obstruction THEN CONTINUE FOR
-            IF wrapcollision (.x, .y, .xgo, .ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
-             .xgo = 0
-             .ygo = 0
-             EXIT FOR
-            END IF
-           NEXT o
+  '--if is aligned in at least one direction and passibility is enabled ... and some vehicle stuff ...
+  IF want_to_check_for_walls(whoi) THEN
+   IF readbit(gen(), genSuspendBits, suspendherowalls) = 0 AND vehicle_is_animating() = NO THEN
+    '--this only happens if herowalls is on
+    '--wrapping passability
+    DIM herotile AS XYPair
+    herotile.x = catx(whoi * 5) \ 20
+    herotile.y = caty(whoi * 5) \ 20
+    wrappass herotile.x, herotile.y, xgo(whoi), ygo(whoi), vstate.active
+   END IF
+   IF readbit(gen(), genSuspendBits, suspendobstruction) = 0 AND vehicle_is_animating() = NO THEN
+    '--this only happens if obstruction is on
+    FOR i AS INTEGER = 0 TO UBOUND(npc)
+     WITH npc(i)
+      IF .id > 0 THEN '---NPC EXISTS---
+       DIM id AS INTEGER
+       id = .id - 1
+       IF npcs(id).activation <> 2 THEN '---NPC is not step-on
+        IF wrapcollision (.x, .y, .xgo, .ygo, catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)) THEN
+         IF .not_obstruction = 0 THEN
+          xgo(whoi) = 0: ygo(whoi) = 0
+          '--push the NPC
+          DIM push AS INTEGER = npcs(id).pushtype
+          IF push > 0 AND .xgo = 0 AND .ygo = 0 THEN
+           IF catd(whoi) = 0 AND (push = 1 OR push = 2 OR push = 4) THEN .ygo = 20
+           IF catd(whoi) = 2 AND (push = 1 OR push = 2 OR push = 6) THEN .ygo = -20
+           IF catd(whoi) = 3 AND (push = 1 OR push = 3 OR push = 7) THEN .xgo = 20
+           IF catd(whoi) = 1 AND (push = 1 OR push = 3 OR push = 5) THEN .xgo = -20
+           IF readbit(gen(), genBits2, 0) = 0 THEN ' Only do this if the backcompat bitset is off
+            FOR o AS INTEGER = 0 TO UBOUND(npc) ' check to make sure no other NPCs are blocking this one
+             IF npc(o).id <= 0 THEN CONTINUE FOR 'Ignore empty NPC slots and negative (tag-disabled) NPCs
+             IF i = o THEN CONTINUE FOR
+             IF npc(o).not_obstruction THEN CONTINUE FOR
+             IF wrapcollision (.x, .y, .xgo, .ygo, npc(o).x, npc(o).y, npc(o).xgo, npc(o).ygo) THEN
+              .xgo = 0
+              .ygo = 0
+              EXIT FOR
+             END IF
+            NEXT o
+           END IF
           END IF
          END IF
-        END IF
-        IF npcs(id).activation = 1 AND whoi = 0 THEN '--NPC is touch-activated
-         IF wraptouch(.x, .y, catx(0), caty(0), 20) THEN
-          usenpc 1, i
-         END IF
-        END IF '---touch-activate
-       END IF ' ---NPC IS IN THE WAY
-      END IF ' ---NPC is not step-on
+         IF npcs(id).activation = 1 AND whoi = 0 THEN '--NPC is touch-activated
+          IF wraptouch(.x, .y, catx(0), caty(0), 20) THEN
+           usenpc 1, i
+          END IF
+         END IF '---touch-activate
+        END IF ' ---NPC IS IN THE WAY
+       END IF ' ---NPC is not step-on
+      END IF '---NPC EXISTS
+     END WITH
+    NEXT i
+   END IF
+  END IF'--this only gets run when starting a movement to a new tile
+ NEXT whoi
+ '--if the leader moved last time, and catapillar is enabled then make others trail
+ IF readbit(gen(), genSuspendBits, suspendcatapillar) = 0 THEN
+  IF xgo(0) OR ygo(0) THEN
+   FOR i AS INTEGER = 15 TO 1 STEP -1
+    catx(i) = catx(i - 1)
+    caty(i) = caty(i - 1)
+    catd(i) = catd(i - 1)
+   NEXT i
+   FOR whoi AS INTEGER = 0 TO 3
+    wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
+   NEXT whoi
+  END IF
+ ELSE
+  FOR whoi AS INTEGER = 0 TO 3
+   IF xgo(whoi) OR ygo(whoi) THEN wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
+  NEXT whoi
+ END IF
+ 
+ DIM didgo(0 TO 3) AS INTEGER
+ FOR whoi AS INTEGER = 0 TO 3
+  didgo(whoi) = NO
+  IF xgo(whoi) OR ygo(whoi) THEN
+   '--this actualy updates the heros coordinates
+   IF xgo(whoi) > 0 THEN xgo(whoi) = xgo(whoi) - herospeed(whoi): catx(whoi * 5) = catx(whoi * 5) - herospeed(whoi): didgo(whoi) = YES
+   IF xgo(whoi) < 0 THEN xgo(whoi) = xgo(whoi) + herospeed(whoi): catx(whoi * 5) = catx(whoi * 5) + herospeed(whoi): didgo(whoi) = YES
+   IF ygo(whoi) > 0 THEN ygo(whoi) = ygo(whoi) - herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) - herospeed(whoi): didgo(whoi) = YES
+   IF ygo(whoi) < 0 THEN ygo(whoi) = ygo(whoi) + herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) + herospeed(whoi): didgo(whoi) = YES
+  END IF
+ 
+  DIM harm_cater AS INTEGER = whoi
+  '--if catapillar is not suspended, only the leader's motion matters
+  IF readbit(gen(), genSuspendBits, suspendcatapillar) = 0 THEN harm_cater = 0
+ 
+  '--leader always checks harm tiles, allies only if caterpillar is enabled
+  IF whoi = 0 OR readbit(gen(), genBits, 1) = 1 THEN
+   '--Stuff that should only happen when you finish moving
+   IF didgo(harm_cater) = YES AND xgo(harm_cater) = 0 AND ygo(harm_cater) = 0 THEN
+    '---check for harm tile
+    DIM p AS INTEGER = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
+    IF (p AND 64) THEN
+     'stepping on a harm tile
+     
+     DIM harm_partyslot = -1
+     FOR i AS INTEGER = 0 TO whoi
+      harm_partyslot += 1
+      WHILE hero(harm_partyslot) = 0 AND harm_partyslot < 4: harm_partyslot += 1: WEND
+     NEXT i
+     IF harm_partyslot < 4 THEN
+      gam.hero(harm_partyslot).stat.cur.hp = large(gam.hero(harm_partyslot).stat.cur.hp - gmap(9), 0)
+      IF gmap(10) THEN
+       harmtileflash = YES
+      END IF
+     END IF
+     '--check for death
+     fatal = checkfordeath
+    END IF
+   END IF
+  END IF
+  cropmovement catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)
+ NEXT whoi
+ '--only the leader may activate NPCs
+ IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = YES OR force_npc_check = YES) THEN
+  '--finished a step
+  IF readbit(gen(), 44, suspendobstruction) = 0 THEN
+   '--check for step-on NPCS
+   FOR i AS INTEGER = 0 TO UBOUND(npc)
+    WITH npc(i)
+     IF .id > 0 THEN '---NPC EXISTS---
+      IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
+       IF npcs(.id - 1).activation = 2 THEN '---NPC is step-on activated
+        IF .x = catx(0) AND .y = caty(0) THEN '---YOU ARE ON NPC---
+         usenpc 1, i
+        END IF '---YOU ARE ON NPC---
+       END IF '---NPC IS PASSABLE---
+      END IF '--vehicle okay
      END IF '---NPC EXISTS
     END WITH
    NEXT i
   END IF
- END IF'--this only gets run when starting a movement to a new tile
-NEXT whoi
-'--if the leader moved last time, and catapillar is enabled then make others trail
-IF readbit(gen(), 44, suspendcatapillar) = 0 THEN
- IF xgo(0) OR ygo(0) THEN
-  FOR i = 15 TO 1 STEP -1
-   catx(i) = catx(i - 1)
-   caty(i) = caty(i - 1)
-   catd(i) = catd(i - 1)
-  NEXT i
-  FOR whoi = 0 TO 3
-   wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
-  NEXT whoi
- END IF
-ELSE
- FOR whoi = 0 TO 3
-  IF xgo(whoi) OR ygo(whoi) THEN wtog(whoi) = loopvar(wtog(whoi), 0, 3, 1)
- NEXT whoi
-END IF
-FOR whoi = 0 TO 3
- didgo(whoi) = 0
- IF xgo(whoi) OR ygo(whoi) THEN
-  '--this actualy updates the heros coordinates
-  IF xgo(whoi) > 0 THEN xgo(whoi) = xgo(whoi) - herospeed(whoi): catx(whoi * 5) = catx(whoi * 5) - herospeed(whoi): didgo(whoi) = 1
-  IF xgo(whoi) < 0 THEN xgo(whoi) = xgo(whoi) + herospeed(whoi): catx(whoi * 5) = catx(whoi * 5) + herospeed(whoi): didgo(whoi) = 1
-  IF ygo(whoi) > 0 THEN ygo(whoi) = ygo(whoi) - herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) - herospeed(whoi): didgo(whoi) = 1
-  IF ygo(whoi) < 0 THEN ygo(whoi) = ygo(whoi) + herospeed(whoi): caty(whoi * 5) = caty(whoi * 5) + herospeed(whoi): didgo(whoi) = 1
- END IF
-
- o = whoi
- '--if catapillar is not suspended, only the leader's motion matters
- IF readbit(gen(), 44, suspendcatapillar) = 0 THEN o = 0
-
- '--leader always checks harm tiles, allies only if caterpillar is enabled
- IF whoi = 0 OR readbit(gen(), genBits, 1) = 1 THEN
-  '--Stuff that should only happen when you finish moving
-  IF didgo(o) = 1 AND xgo(o) = 0 AND ygo(o) = 0 THEN
-   '---check for harm tile
-   p = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
-   IF (p AND 64) THEN
-    o = -1
-    FOR i = 0 TO whoi
-     o = o + 1
-     WHILE hero(o) = 0 AND o < 4: o = o + 1: WEND
-    NEXT i
-    IF o < 4 THEN
-     gam.hero(o).stat.cur.hp = large(gam.hero(o).stat.cur.hp - gmap(9), 0)
-     IF gmap(10) THEN
-      harmtileflash = YES
-     END IF
-    END IF
-    '--check for death
-    fatal = checkfordeath
+  IF didgo(0) = YES THEN 'only check doors if the hero really moved, not just if force_npc_check = YES
+   opendoor
+  END IF
+  IF needf = 0 THEN
+   DIM battle_formation_set AS INTEGER
+   battle_formation_set = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
+   IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN
+    battle_formation_set = vstate.dat.random_battles
+   END IF
+   IF battle_formation_set > 0 THEN
+    gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(battle_formation_set - 1), 0)
+   END IF
+  END IF
+  IF gmap(14) > 0 THEN
+   DIM rsr AS INTEGER
+   rsr = runscript(gmap(14), nowscript + 1, -1, "eachstep", plottrigger)
+   IF rsr = 1 THEN
+    setScriptArg 0, catx(0) \ 20
+    setScriptArg 1, caty(0) \ 20
+    setScriptArg 2, catd(0)
    END IF
   END IF
  END IF
- cropmovement catx(whoi * 5), caty(whoi * 5), xgo(whoi), ygo(whoi)
-NEXT whoi
-'--only the leader may activate NPCs
-IF (xgo(0) MOD 20 = 0) AND (ygo(0) MOD 20 = 0) AND (didgo(0) = 1 OR force_npc_check = YES) THEN
- '--finished a step
- force_npc_check = NO
- IF readbit(gen(), 44, suspendobstruction) = 0 THEN
-  '--check for step-on NPCS
-  FOR i = 0 TO 299
-   WITH npc(i)
-    IF .id > 0 THEN '---NPC EXISTS---
-     IF vstate.active = NO OR (vstate.dat.enable_npc_activation = YES AND vstate.npc <> i) THEN
-      IF npcs(.id - 1).activation = 2 THEN '---NPC is step-on activated
-       IF .x = catx(0) AND .y = caty(0) THEN '---YOU ARE ON NPC---
-        usenpc 1, i
-       END IF '---YOU ARE ON NPC---
-      END IF '---NPC IS PASSABLE---
-     END IF '--vehicle okay
-    END IF '---NPC EXISTS
-   END WITH
-  NEXT i
- END IF
- IF didgo(0) = 1 THEN 'only check doors if the hero really moved, not just if force_npc_check = YES
-  opendoor
- END IF
- IF needf = 0 THEN
-  temp = readfoemap(catx(0) \ 20, caty(0) \ 20, foemaph)
-  IF vstate.active = YES AND vstate.dat.random_battles > 0 THEN temp = vstate.dat.random_battles
-  IF temp > 0 THEN gam.random_battle_countdown = large(gam.random_battle_countdown - gam.foe_freq(temp - 1), 0)
- END IF
- IF gmap(14) > 0 THEN
-  rsr = runscript(gmap(14), nowscript + 1, -1, "eachstep", plottrigger)
-  IF rsr = 1 THEN
-   setScriptArg 0, catx(0) \ 20
-   setScriptArg 1, caty(0) \ 20
-   setScriptArg 2, catd(0)
-  END IF
- END IF
-END IF
-setmapxy
-RETRACE
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
+ setmapxy
+END SUB
 
 SUB update_walkabout_slices()
  update_walkabout_hero_slices()
