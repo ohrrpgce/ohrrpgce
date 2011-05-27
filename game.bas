@@ -31,7 +31,6 @@
 
 
 'local subs and functions
-DECLARE SUB reset_game_state ()
 DECLARE SUB prepare_map (afterbat AS INTEGER=NO, afterload AS INTEGER=NO)
 DECLARE SUB reset_map_state (map AS MapModeState)
 DECLARE SUB opendoor (dforce AS INTEGER=0)
@@ -754,7 +753,7 @@ IF foemaph THEN CLOSE #foemaph : foemaph = 0
 'checks for leaks and deallocates them
 sprite_empty_cache()
 palette16_empty_cache()
-DestroyGameSlices
+cleanup_game_slices()
 SliceDebugDump YES
 IF autorungame THEN exitprogram (NOT abortg)
 cleanuptemp
@@ -2782,7 +2781,7 @@ SUB reset_game_state ()
  gam.mouse_enabled = NO
  
  'If we are resetting, the old slices will have already been destroyed
- 'by DestroyGameSlices so we just re-assign gam.caterp() and npcls()
+ 'by cleanup_game_slices() so we just re-assign gam.caterp() and npcls()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
   gam.caterp(i) = create_walkabout_slices(SliceTable.HeroLayer)
  NEXT i
@@ -3451,4 +3450,14 @@ SUB delete_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
  shadow = LookupSlice(SL_WALKABOUT_SHADOW_COMPONENT, walkabout_cont)
  IF shadow = 0 THEN debug "delete_walkabout_shadow: no shadow to delete" : EXIT SUB
  DeleteSlice @shadow
+END SUB
+
+SUB cleanup_game_slices ()
+ FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
+  DeleteSlice @gam.caterp(i)
+ NEXT i
+ FOR i AS INTEGER = 0 TO UBOUND(npcsl)
+  DeleteSlice @npcsl(i)
+ NEXT i
+ DestroyGameSlices
 END SUB

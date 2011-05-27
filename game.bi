@@ -79,4 +79,7 @@ DECLARE SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INT
 DECLARE FUNCTION create_walkabout_slices(byval parent as Slice Ptr) AS Slice Ptr
 DECLARE SUB create_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
 DECLARE SUB delete_walkabout_shadow (BYVAL walkabout_cont AS Slice Ptr)
+DECLARE SUB reset_game_state ()
+DECLARE SUB cleanup_game_slices ()
+
 #ENDIF

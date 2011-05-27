@@ -1181,10 +1181,11 @@ FOR i = 0 TO ubound(timers)
  END WITH
 NEXT i
 
-DestroyGameSlices
+cleanup_game_slices()
 'plotslices() should now be all zeroed out. Rather than checking, check slicedebug() (if enabled)
 SliceDebugDump YES
 SetupGameSlices
+reset_game_state()
 
 END SUB
 

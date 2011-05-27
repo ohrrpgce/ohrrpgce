@@ -179,6 +179,7 @@ End Sub
 
 
 Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
+
  DeleteSlice(@SliceTable.Root, ABS(SGN(dumpdebug)))
  '--after deleting root, all other slices should be gone, but the pointers
  '--in SliceTable still need zeroing
