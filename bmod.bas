@@ -2031,9 +2031,11 @@ END SUB
 
 SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS INTEGER)
  DIM ai AS INTEGER = 0
-
- 'if HP is less than 20% go into desperation mode
- IF bslot(bat.enemy_turn).stat.cur.hp < bslot(bat.enemy_turn).stat.max.hp / 5 THEN ai = 1
+ DIM weakhp AS INTEGER = 0
+ 
+ 'if HP is less than the threshold, go into desperation mode
+ weakhp = gen(genEnemyWeakHP)
+ IF bslot(bat.enemy_turn).stat.cur.hp < 0.01 * bslot(bat.enemy_turn).stat.max.hp * weakhp THEN ai = 1
 
  'if targetable enemy count is 1, go into alone mode
  IF targenemycount(bslot(), YES) = 1 THEN ai = 2
@@ -2883,7 +2885,9 @@ SUB enforce_weak_picture(who AS INTEGER, bslot() AS BattleSprite, bat AS BattleS
  '--Heroes only, since enemies don't currently have a weak frame
  IF is_hero(who) THEN
   '--enforce weak picture
-  IF bslot(who).stat.cur.hp < bslot(who).stat.max.hp / 5 AND bat.vic.state = 0 THEN bslot(who).frame = 6
+  DIM weakhp AS INTEGER = 0
+  weakhp = gen(genHeroWeakHP)
+  IF bslot(who).stat.cur.hp < 0.01 * bslot(who).stat.max.hp * weakhp AND bat.vic.state = 0 THEN bslot(who).frame = 6
  END IF
 END SUB
 

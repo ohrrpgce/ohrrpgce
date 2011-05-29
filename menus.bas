@@ -1092,10 +1092,12 @@ SUB generate_battlesystem_menu(menu() as string)
  menu(11) = "Experience given to heroes..."
  menu(12) = " ...swapped-out and unlocked: " & gen(genUnlockedReserveXP) & "%"
  menu(13) = " ...swapped-out and locked: " & gen(genLockedReserveXP) & "%"
+ menu(14) = "Hero Weak state below: " & gen(genHeroWeakHP) & "% " & statnames(statHP)
+ menu(15) = "Enemy Weak state below: " & gen(genEnemyWeakHP) & "% " & statnames(statHP)
 END SUB
 
 SUB battleoptionsmenu ()
- CONST maxMenu = 13
+ CONST maxMenu = 15
  DIM menu(maxMenu) AS STRING
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
@@ -1136,6 +1138,12 @@ SUB battleoptionsmenu ()
  max(12) = 1000
  index(13) = genLockedReserveXP
  max(13) = 1000
+ min(14) = 1
+ max(14) = 100
+ index(14) = genHeroWeakHP
+ min(15) = 1
+ max(15) = 100
+ index(15) = genEnemyWeakHP
 
  setkeys
  DO

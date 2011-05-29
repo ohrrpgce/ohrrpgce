@@ -3,6 +3,8 @@ WHAT IS NEW?
 ??? ? ???? [A????]
 
   * New Features
+    * Adjustable global HP thresholds for hero and enemy Weak states
+      (hero graphics and enemy desperation attacks) [Adam Perry]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

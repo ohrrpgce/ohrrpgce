@@ -2961,6 +2961,14 @@ END IF
 'back to the .MAS lump, to give old graphics utilities some chance of working
 unconvertpalette()
 
+IF gen(genHeroWeakHP) = 0 THEN
+ gen(genHeroWeakHP) = 20
+END IF
+
+IF gen(genEnemyWeakHP) = 0 THEN
+ gen(genEnemyWeakHP) = 20
+END IF
+
 '--If no stf lump exists, create an empty one.
 IF NOT isfile(game + ".stf") THEN touchfile game + ".stf"
 
