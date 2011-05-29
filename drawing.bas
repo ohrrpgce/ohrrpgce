@@ -1913,8 +1913,8 @@ SUB spriteedit_display(BYREF ss AS SpriteEditState, BYREF ss_save AS SpriteEditS
   drawline overlay, ss.x, ss.y, ss.holdpos.x, ss.holdpos.y, 1
  END IF
  IF ss.hold = YES AND ss.tool = oval_tool THEN
-  ellipse vpages(dpage), ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.curcolor, ss.ellip_minoraxis, ss.ellip_angle
-  ellipse overlay, ss.holdpos.x, ss.holdpos.y, ss.radius, 1, ss.ellip_minoraxis, ss.ellip_angle
+  ellipse vpages(dpage), ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.curcolor, , ss.ellip_minoraxis, ss.ellip_angle
+  ellipse overlay, ss.holdpos.x, ss.holdpos.y, ss.radius, 1, , ss.ellip_minoraxis, ss.ellip_angle
  END IF
  IF ss.tool = airbrush_tool THEN
   ellipse vpages(dpage), ss.previewpos.x + ss.x, ss.previewpos.y + ss.y, ss.airsize / 2, ss.curcolor
@@ -2908,7 +2908,7 @@ RETRACE
 drawoval:
 writeundospr placer(), ss
 drawsprite placer(), 0, ss.nulpal(), 0, ss.previewpos.x, ss.previewpos.y, dpage
-ellipse vpages(dpage), ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.palindex, ss.ellip_minoraxis, ss.ellip_angle
+ellipse vpages(dpage), ss.previewpos.x + ss.holdpos.x, ss.previewpos.y + ss.holdpos.y, ss.radius, ss.palindex, , ss.ellip_minoraxis, ss.ellip_angle
 getsprite placer(), 0, ss.previewpos.x, ss.previewpos.y, ss.wide, ss.high, dpage
 RETRACE
 

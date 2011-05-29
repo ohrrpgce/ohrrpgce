@@ -1645,10 +1645,9 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
    'debug "create new ellipse frame " & w & "x" & h
    .frame = frame_new(w, h, , YES)
    'fuzzyrect .frame, 0, 0, w, h, dat->fillcol, 37
-   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, dat->bordercol, h / 2 - 0.5
-   if readpixel(.frame, w / 2, h / 2) <> dat->bordercol andalso dat->fillcol <> 0 then
-     paintat .frame, w / 2, h / 2, dat->fillcol
-   end if
+   dim fillcol as integer = dat->fillcol
+   if fillcol = 0 then fillcol = -1
+   ellipse .frame, w / 2 - 0.5, h / 2 - 0.5 , w / 2 - 0.5, dat->bordercol, fillcol, h / 2 - 0.5
    .last_draw_size.X = w
    .last_draw_size.Y = h
    .last_draw_bordercol = .bordercol
@@ -1661,6 +1660,8 @@ Sub DrawEllipseSlice(byval sl as slice ptr, byval p as integer)
   end if
 
   frame_draw .frame, , small(sl->screenX, sl->screenX + sl->Width), small(sl->screenY, sl->screenY + sl->Height), , , p
+
+' ellipse vpages(p), small(sl->screenX, sl->screenX + sl->Width) + w / 2 - 0.5, small(sl->screenY, sl->screenY + sl->Height) + h / 2 - 0.5 , w / 2 - 0.5, dat->bordercol, fillcol, h / 2 - 0.5
  end with
 end sub
 

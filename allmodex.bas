@@ -1544,7 +1544,7 @@ SUB paintat (BYVAL dest as Frame ptr, BYVAL x as integer, BYVAL y as integer, BY
 
 end SUB
 
-SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL radius as double, BYVAL col as integer, BYVAL semiminor as double = 0.0, BYVAL angle as double = 0.0)
+SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL radius as double, BYVAL col as integer, BYVAL fillcol as integer, BYVAL semiminor as double = 0.0, BYVAL angle as double = 0.0)
 'radius is the semimajor axis if the ellipse is not a circle
 'angle is the angle of the semimajor axis to the x axis, in radians counter-clockwise
 
@@ -1583,10 +1583,9 @@ SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL 
 	C = Aprime * sin_2 + Cprime * cos_2
 	F = -1.0
 
-	dim as integer xstart = 999999, xend = -999999, lastxstart = 999999, lastxend = -999999, xs, yi, ys, maxr = large(radius, semiminor) + 1
+	dim as integer xstart = 999999999, xend = -999999999, lastxstart = 999999999, lastxend = -999999999, xs, yi, ys, maxr = large(radius, semiminor) + 1
 
-	for yi = maxr to -maxr step -1
-		'Draw the circle as two semi-circles, so that we can approach the from
+	for yi = large(clipb + 1, maxr) to small(clipt - 1, -maxr) step -1
 		'Note yi is cartesian coordinates, with the centre of the ellipsis at the origin, NOT screen coordinates!
 		'xs, ys are in screen coordinates
 		ys = int(y) - yi
@@ -1607,7 +1606,7 @@ SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL 
 			xend = int(x + (-qf_b + discrim) / (2.0 * qf_a) - 0.5)  'floor(x-0.5), ie. round 0.5 up, and subtract 1
 
 			if xstart > xend then  'No pixel centres on this scanline lie inside the ellipse
-				if lastxstart <> 999999 then
+				if lastxstart <> 999999999 then
 					xend = xstart  'We've already started drawing, so must draw at least one pixel
 				end if
 			end if
@@ -1626,7 +1625,13 @@ SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL 
 			putpixel(fr, xs, ys, col)
 			if canskip andalso xs >= lastxstart - 1 then
 				'Draw the bare minimum number of pixels (some of these might be needed, but won't know until next scanline)
-				xs = small(xend - 1, lastxend)
+				dim jumpto as integer = small(xend - 1, lastxend)
+				if fillcol <> -1 then
+					for xs = xs + 1 to jumpto
+						putpixel(fr, xs, ys, fillcol)
+					next
+				end if
+				xs = jumpto
 				canskip = NO  'Skipping more than once causes infinite loops
 			end if
 		next

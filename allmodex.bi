@@ -76,7 +76,7 @@ DECLARE FUNCTION readpixel OVERLOAD (BYVAL x as integer, BYVAL y as integer, BYV
 DECLARE SUB drawline OVERLOAD (BYVAL dest as Frame ptr, BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer)
 DECLARE SUB drawline OVERLOAD (BYVAL x1 as integer, BYVAL y1 as integer, BYVAL x2 as integer, BYVAL y2 as integer, BYVAL c as integer, BYVAL p as integer)
 DECLARE SUB paintat (BYVAL dest as Frame ptr, BYVAL x as integer, BYVAL y as integer, BYVAL c as integer)
-DECLARE SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL radius as double, BYVAL c as integer, BYVAL semiminor as double = 0.0, BYVAL angle as double = 0.0)
+DECLARE SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL radius as double, BYVAL c as integer, BYVAL fillcol as integer = -1, BYVAL semiminor as double = 0.0, BYVAL angle as double = 0.0)
 DECLARE SUB replacecolor (BYVAL fr as Frame ptr, BYVAL c_old as integer, BYVAL c_new as integer, BYVAL x as integer = -1, BYVAL y as integer = -1, BYVAL w as integer = -1, BYVAL h as integer = -1)
 DECLARE SUB storemxs (fil as string, BYVAL record as integer, BYVAL fr as Frame ptr)
 DECLARE FUNCTION loadmxs (fil as string, BYVAL record as integer, BYVAL dest as Frame ptr = 0) as Frame ptr
