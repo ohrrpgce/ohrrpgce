@@ -45,6 +45,7 @@ DECLARE FUNCTION find_useable_npc () AS INTEGER
 DECLARE SUB interpret ()
 DECLARE SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
 DECLARE SUB displayall()
+DECLARE SUB doloadgame(BYVAL load_slot AS INTEGER)
 
 REMEMBERSTATE
 
@@ -426,40 +427,25 @@ txt.show_lines = 0
 txt.sayer = -1
 txt.id = -1
 
-temp = -1
+load_slot = -1
 'resetg is YES when we are skipping straight to launching the game
 IF readbit(gen(), genBits, 11) = 0 AND resetg = NO THEN
  IF titlescr = 0 THEN EXIT DO'resetg
- IF readbit(gen(), genBits, 12) = 0 THEN temp = picksave(1)
+ IF readbit(gen(), genBits, 12) = 0 THEN load_slot = picksave(1)
 ELSE
  readjoysettings
  IF readbit(gen(), genBits, 12) = 0 AND resetg = NO THEN
   IF gen(genTitleMus) > 0 THEN wrappedsong gen(genTitleMus) - 1
-  temp = picksave(2)
+  load_slot = picksave(2)
  END IF
 END IF
 resetg = NO
-'DEBUG debug "picked save slot " & temp
+'DEBUG debug "picked save slot " & load_slot
 stopsong
 fadeout 0, 0, 0
-IF temp = -2 THEN EXIT DO 'resetg
-IF temp >= 0 THEN
- GOSUB doloadgame
- prepare_map NO, YES 'Special case if this is called right after GOSUB doloadgame
- 'FIXME: clean this up: setting vstate.id is only backcompat for loading from the old SAV format;
- ' ideally this would be in old_loadgame, but we need to load NPCs in prepare_map
- IF vstate.active THEN
-  SELECT CASE npc(vstate.npc).id
-   CASE 0:
-    debug "Vehicle NPC ref " & vstate.npc - 1 & " in save state does not exist in game anymore"
-    vehicle_graceful_dismount
-   CASE IS < 0:
-    debug "Vehicle NPC ref " & vstate.npc - 1 & " in save state is now disabled by tags"
-    vehicle_graceful_dismount
-   CASE ELSE
-    vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
-  END SELECT
- END IF
+IF load_slot = -2 THEN EXIT DO 'resetg
+IF load_slot >= 0 THEN
+ doloadgame load_slot
 ELSE
  clearpage 0
  clearpage 1
@@ -653,7 +639,7 @@ DO
  END IF
  IF wantloadgame > 0 THEN
   'DEBUG debug "loading game slot " & (wantloadgame - 1)
-  temp = wantloadgame - 1
+  load_slot = wantloadgame - 1
   wantloadgame = 0
   resetgame scriptout$
   initgamedefaults
@@ -661,12 +647,7 @@ DO
   resetsfx
   fadeout 0, 0, 0
   needf = 1
-  debug "doloadgame when wantloadgame"
-  GOSUB doloadgame
-  prepare_map NO, YES
-  'FIXME: clean this up: setting vstate.id is only backcompat for loading from the old SAV format;
-  ' ideally this would be in old_loadgame, but we need to load NPCs in prepare_map
-  IF vstate.active THEN vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
+  doloadgame load_slot
  END IF
  'DEBUG debug "random enemies"
  IF gam.random_battle_countdown = 0 AND readbit(gen(), 44, suspendrandomenemies) = 0 AND (vstate.active = NO OR vstate.dat.random_battles > -1) THEN
@@ -768,22 +749,43 @@ sourcerpg = ""
 RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 
-doloadgame:
-loadgame temp
-init_default_text_colors
-IF gen(genLoadGameScript) > 0 THEN
- rsr = runscript(gen(genLoadGameScript), nowscript + 1, -1, "loadgame", plottrigger)
- IF rsr = 1 THEN
-  '--pass save slot as argument
-  IF temp = 32 THEN temp = -1 'quickload slot
-  setScriptArg 0, temp
- END IF
-END IF
-gam.map.same = YES
-RETRACE
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB doloadgame(BYVAL load_slot AS INTEGER)
+ loadgame load_slot
+ init_default_text_colors
+ IF gen(genLoadGameScript) > 0 THEN
+  DIM rsr AS INTEGER
+  rsr = runscript(gen(genLoadGameScript), nowscript + 1, -1, "loadgame", plottrigger)
+  IF rsr = 1 THEN
+   '--pass save slot as argument
+   IF load_slot = 32 THEN
+    setScriptArg 0, -1 'quickload slot
+   ELSE
+    setScriptArg 0, load_slot
+   END IF
+  END IF
+ END IF
+ gam.map.same = YES
+
+ prepare_map NO, YES
+ 'FIXME: clean this up: setting vstate.id is only backcompat for loading from the old SAV format;
+ ' ideally this would be in old_loadgame, but we need to load NPCs in prepare_map
+ IF vstate.active THEN
+  SELECT CASE npc(vstate.npc).id
+   CASE 0:
+    debug "Vehicle NPC ref " & vstate.npc - 1 & " in save state does not exist in game anymore"
+    vehicle_graceful_dismount
+   CASE IS < 0:
+    debug "Vehicle NPC ref " & vstate.npc - 1 & " in save state is now disabled by tags"
+    vehicle_graceful_dismount
+   CASE ELSE
+    vstate.id = npcs(npc(vstate.npc).id - 1).vehicle - 1
+  END SELECT
+ END IF
+
+END SUB
 
 SUB displayall()
  update_walkabout_slices()
@@ -854,7 +856,6 @@ SUB displayall()
  IF gam.debug_showtags THEN tagdisplay
  IF scrwatch THEN scriptwatcher scrwatch, -1
 END SUB
-
 
 SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left 
