@@ -68,6 +68,8 @@ TYPE GameState
   walkabout_layer_mode AS INTEGER
   walkabout_layer_tog AS INTEGER
   caterp(3) AS Slice Ptr
+  debug_showtags AS INTEGER
+  debug_npc_info AS INTEGER
 END TYPE
 
 TYPE TextBoxState

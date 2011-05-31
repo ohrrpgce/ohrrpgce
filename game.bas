@@ -44,6 +44,7 @@ DECLARE SUB npchitwall (npci AS NPCInst, npcdata AS NPCType)
 DECLARE FUNCTION find_useable_npc () AS INTEGER
 DECLARE SUB interpret ()
 DECLARE SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
+DECLARE SUB displayall()
 
 REMEMBERSTATE
 
@@ -475,8 +476,8 @@ needf = 1
 force_npc_check = YES
 
 '--Reset some stuff related to debug keys
-showtags = 0
-shownpcinfo = 0
+gam.debug_showtags = NO
+gam.debug_npc_info = NO
 gam.walk_through_walls = NO
 'DEBUG debug "pre-call update_heroes"
 update_heroes(YES)
@@ -565,7 +566,7 @@ DO
   IF keyval(scF3) > 1 AND txt.showing = NO THEN
    wantloadgame = 33
   END IF
-  IF keyval(scF4) > 1 THEN showtags = showtags XOR 1: scrwatch = 0 
+  IF keyval(scF4) > 1 THEN gam.debug_showtags = NOT gam.debug_showtags : scrwatch = 0 
   IF keyval(scCtrl) = 0 AND keyval(scF5) > 1 THEN 'F5
    SELECT CASE gen(cameramode)
     CASE herocam
@@ -611,14 +612,14 @@ DO
     setbit gen(), genBits, 9, 0
    END IF
   END IF
-  IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): showtags = 0
+  IF keyval(scF10) > 1 THEN scrwatch = loopvar(scrwatch, 0, 2, 1): gam.debug_showtags = NO
   IF keyval(scCtrl) > 0 THEN ' holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN 
     IF teleporttool() THEN 'CTRL + F1
      prepare_map
     END IF
    END IF
-   IF showtags = 0 THEN
+   IF gam.debug_showtags = NO THEN
     IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN  'CTRL +
      speedcontrol = large(speedcontrol - 1, 10)
      scriptout$ = STR(speedcontrol)
@@ -642,7 +643,7 @@ DO
      CASE 2: debug "flicker old and new npc/hero display modes"
     END SELECT
    END IF
-   IF keyval(scF11) > 1 THEN shownpcinfo = shownpcinfo XOR 1  'CTRL + F11
+   IF keyval(scF11) > 1 THEN gam.debug_npc_info = NOT gam.debug_npc_info
   ELSE ' not holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
@@ -710,7 +711,7 @@ DO
  END IF
  AdvanceSlice SliceTable.root
  END IF' end menus_allow_gameplay
- GOSUB displayall
+ displayall()
  IF fatal = 1 OR abortg > 0 OR resetg THEN
   resetgame scriptout$
   'Stop sounds but not music; the title screen might not have any music set, or be set to the same music
@@ -781,78 +782,79 @@ END IF
 gam.map.same = YES
 RETRACE
 
-displayall:
-update_walkabout_slices()
-IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
- '---NORMAL DISPLAY---
- 'DEBUG debug "drawmap"
- IF readbit(gen(), genSuspendBits, suspendoverlay) THEN 
-  ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all
-  SliceTable.ObsoleteOverhead->Visible = NO
- ELSE
-  ChangeMapSlice SliceTable.MapLayer(0), , , , 1   'draw non-overhead only 
-  SliceTable.ObsoleteOverhead->Visible = YES
- END IF
- WITH *(SliceTable.MapRoot)
-  .X = mapx * -1
-  .Y = mapy * -1
- END WITH
-
- gam.walkabout_layer_tog = NOT gam.walkabout_layer_tog
- IF gam.walkabout_layer_mode = 1 OR (gam.walkabout_layer_mode = 2 AND gam.walkabout_layer_tog) THEN
-  DrawSlice SliceTable.MapRoot, dpage
- ELSE
-  RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
-  DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
-  FOR i = 1 TO gmap(31) - 1
-   IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
-  NEXT
-  'DEBUG debug "draw npcs and heroes"
-  IF gmap(16) = 1 THEN
-   cathero
-   drawnpcs
-  ELSE
-   drawnpcs
-   cathero
-  END IF
-  FOR i = gmap(31) TO UBOUND(maptiles)
-   IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
-  NEXT
-  DrawSlice SliceTable.ObsoleteOverhead, dpage
- END IF
- DrawSlice SliceTable.ScriptSprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
- 
- animatetilesets tilesets()
- IF harmtileflash = YES THEN
-  rectangle 0, 0, 320, 200, gmap(10), dpage
-  harmtileflash = NO
- END IF
-ELSE '---END NORMAL DISPLAY---
- 'DEBUG debug "backdrop display"
- copypage 3, dpage
-END IF '---END BACKDROP DISPLAY---
-'DEBUG debug "text box"
-DrawSlice(SliceTable.TextBox, dpage) 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
-IF txt.showing = YES THEN drawsay
-'DEBUG debug "map name"
-IF gam.map.showname > 0 AND gmap(4) >= gam.map.showname THEN
- gam.map.showname -= 1
- edgeprint gam.map.name, xstring(gam.map.name, 160), 180, uilook(uiText), dpage
-ELSE
- gam.map.showname = 0
-END IF
-FOR i = 0 TO topmenu
- draw_menu menus(i), mstates(i), dpage
-NEXT i
-edgeprint scriptout$, 0, 190, uilook(uiText), dpage
-showplotstrings
-IF shownpcinfo THEN npc_debug_display
-IF showtags > 0 THEN tagdisplay
-IF scrwatch THEN scriptwatcher scrwatch, -1
-RETRACE
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB displayall()
+ update_walkabout_slices()
+ IF gen(genTextboxBackdrop) = 0 AND gen(genScrBackdrop) = 0 THEN
+  '---NORMAL DISPLAY---
+  'DEBUG debug "drawmap"
+  IF readbit(gen(), genSuspendBits, suspendoverlay) THEN 
+   ChangeMapSlice SliceTable.MapLayer(0), , , , 0   'draw all
+   SliceTable.ObsoleteOverhead->Visible = NO
+  ELSE
+   ChangeMapSlice SliceTable.MapLayer(0), , , , 1   'draw non-overhead only 
+   SliceTable.ObsoleteOverhead->Visible = YES
+  END IF
+  WITH *(SliceTable.MapRoot)
+   .X = mapx * -1
+   .Y = mapy * -1
+  END WITH
+ 
+  gam.walkabout_layer_tog = NOT gam.walkabout_layer_tog
+  IF gam.walkabout_layer_mode = 1 OR (gam.walkabout_layer_mode = 2 AND gam.walkabout_layer_tog) THEN
+   DrawSlice SliceTable.MapRoot, dpage
+  ELSE
+   RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
+   DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
+   FOR i AS INTEGER = 1 TO gmap(31) - 1
+    IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
+   NEXT
+   'DEBUG debug "draw npcs and heroes"
+   IF gmap(16) = 1 THEN
+    cathero
+    drawnpcs
+   ELSE
+    drawnpcs
+    cathero
+   END IF
+   FOR i AS INTEGER = gmap(31) TO UBOUND(maptiles)
+    IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
+   NEXT
+   DrawSlice SliceTable.ObsoleteOverhead, dpage
+  END IF
+  DrawSlice SliceTable.ScriptSprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
+  
+  animatetilesets tilesets()
+  IF harmtileflash = YES THEN
+   rectangle 0, 0, 320, 200, gmap(10), dpage
+   harmtileflash = NO
+  END IF
+ ELSE '---END NORMAL DISPLAY---
+  'DEBUG debug "backdrop display"
+  copypage 3, dpage
+ END IF '---END BACKDROP DISPLAY---
+ 'DEBUG debug "text box"
+ DrawSlice(SliceTable.TextBox, dpage) 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
+ IF txt.showing = YES THEN drawsay
+ 'DEBUG debug "map name"
+ IF gam.map.showname > 0 AND gmap(4) >= gam.map.showname THEN
+  gam.map.showname -= 1
+  edgeprint gam.map.name, xstring(gam.map.name, 160), 180, uilook(uiText), dpage
+ ELSE
+  gam.map.showname = 0
+ END IF
+ FOR i AS INTEGER = 0 TO topmenu
+  draw_menu menus(i), mstates(i), dpage
+ NEXT i
+ edgeprint scriptout$, 0, 190, uilook(uiText), dpage
+ showplotstrings
+ IF gam.debug_npc_info THEN npc_debug_display
+ IF gam.debug_showtags THEN tagdisplay
+ IF scrwatch THEN scriptwatcher scrwatch, -1
+END SUB
+
 
 SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
  'note: xgo and ygo are offset of current position from destination, eg +ve xgo means go left 
