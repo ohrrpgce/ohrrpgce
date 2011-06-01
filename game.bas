@@ -46,6 +46,7 @@ DECLARE SUB interpret ()
 DECLARE SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
 DECLARE SUB displayall()
 DECLARE SUB doloadgame(BYVAL load_slot AS INTEGER)
+DECLARE SUB reset_game_final_cleanup()
 
 REMEMBERSTATE
 
@@ -224,7 +225,7 @@ defaultc
 '---IF A VALID RPG FILE WAS SPECIFIED ON THE COMMAND LINE, RUN IT, ELSE BROWSE---
 '---ALSO CHECKS FOR GAME.EXE RENAMING
 'DEBUG debug "enable autorunning"
-autorungame = 0
+gam.autorungame = NO
 usepreunlump = 0
 
 FOR i = 1 TO UBOUND(cmdline_args)
@@ -237,12 +238,12 @@ FOR i = 1 TO UBOUND(cmdline_args)
 #ENDIF
  IF LCASE$(RIGHT$(a$, 4)) = ".rpg" AND isfile(a$) THEN
   sourcerpg = a$
-  autorungame = 1
+  gam.autorungame = YES
   EXIT FOR
  ELSEIF isdir(a$) THEN 'perhaps it's an unlumped folder?
   'check for essentials (archinym.lmp was added long before .rpgdir support)
   IF isfile(a$ + SLASH + "archinym.lmp") THEN 'ok, accept it
-   autorungame = 1
+   gam.autorungame = YES
    usepreunlump = 1
    sourcerpg = a$
    workingdir = a$
@@ -252,25 +253,25 @@ FOR i = 1 TO UBOUND(cmdline_args)
  END IF
 NEXT
 
-IF autorungame = 0 THEN
+IF gam.autorungame = NO THEN
  IF LCASE$(exename) <> "game" THEN
   IF isfile(exepath + SLASH + exename + ".rpg") THEN
    sourcerpg = exepath + SLASH + exename + ".rpg"
-   autorungame = 1
+   gam.autorungame = YES
   ELSE
    a$ = exepath + SLASH + exename + ".rpgdir"
    IF isdir(a$) THEN
     IF isfile(a$ + SLASH + "archinym.lmp") THEN
      sourcerpg = a$
      workingdir = a$
-     autorungame = 1
+     gam.autorungame = YES
      usepreunlump = 1
     END IF
    END IF
   END IF
  END IF
 END IF
-IF autorungame = 0 THEN
+IF gam.autorungame = NO THEN
  'DEBUG debug "browse for RPG"
  sourcerpg = browse$(7, "", "*.rpg", tmpdir, 1, "browse_rpg")
  IF sourcerpg = "" THEN exitprogram 0
@@ -308,7 +309,7 @@ start_new_debug
 
 init_save_system
 
-IF autorungame = 0 THEN
+IF gam.autorungame = NO THEN
  edgeboxstyle 4, 3, 312, 14, 0, vpage
 ELSE
  setpal master()
@@ -722,35 +723,38 @@ LOOP
 
 LOOP ' This is the end of the DO that encloses a specific RPG file
 
-'resetg final cleanup
-cleanup_text_box
-resetinterpreter 'unload scripts
-unloadmaptilesets tilesets()
-refresh_map_slice_tilesets '--zeroes them out
-unloadtilemaps maptiles()
-unloadtilemap pass
-DeleteZonemap zmap
-IF foemaph THEN CLOSE #foemaph : foemaph = 0
-'checks for leaks and deallocates them
-sprite_empty_cache()
-palette16_empty_cache()
-cleanup_game_slices()
-SliceDebugDump YES
-IF autorungame THEN exitprogram (NOT abortg)
-cleanuptemp
-fadeout 0, 0, 0
-stopsong
-resetsfx
-clearpage 0
-clearpage 1
-clearpage 2
-clearpage 3
-sourcerpg = ""
+reset_game_final_cleanup
 RETRIEVESTATE
 LOOP ' This is the end of the DO that encloses the entire program.
 
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB reset_game_final_cleanup()
+ cleanup_text_box
+ resetinterpreter 'unload scripts
+ unloadmaptilesets tilesets()
+ refresh_map_slice_tilesets '--zeroes them out
+ unloadtilemaps maptiles()
+ unloadtilemap pass
+ DeleteZonemap zmap
+ IF foemaph THEN CLOSE #foemaph : foemaph = 0
+ 'checks for leaks and deallocates them
+ sprite_empty_cache()
+ palette16_empty_cache()
+ cleanup_game_slices()
+ SliceDebugDump YES
+ IF gam.autorungame THEN exitprogram (NOT abortg)
+ cleanuptemp
+ fadeout 0, 0, 0
+ stopsong
+ resetsfx
+ clearpage 0
+ clearpage 1
+ clearpage 2
+ clearpage 3
+ sourcerpg = ""
+END SUB
 
 SUB doloadgame(BYVAL load_slot AS INTEGER)
  loadgame load_slot

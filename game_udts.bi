@@ -70,6 +70,7 @@ TYPE GameState
   caterp(3) AS Slice Ptr
   debug_showtags AS INTEGER
   debug_npc_info AS INTEGER
+  autorungame AS INTEGER
 END TYPE
 
 TYPE TextBoxState
