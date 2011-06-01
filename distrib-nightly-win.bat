@@ -80,12 +80,12 @@ call nightly-gfx-music directx silence ~ SDL.dll gfx_directx.dll
 scons -c
 del game*.exe custom*.exe
 scons gfx=directx+sdl+fb music=sdl debug=1
-call nightly-gfx-music directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll
+call nightly-gfx-music directx sdl -debug SDL.dll SDL_mixer.dll gfx_directx.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 scons -c
 del game*.exe custom*.exe
 scons gfx=directx+sdl+fb music=sdl debug=1 valgrind=1
-call nightly-gfx-music directx sdl -debug-valgrind SDL.dll SDL_mixer.dll gfx_directx.dll
+call nightly-gfx-music directx sdl -debug-valgrind SDL.dll SDL_mixer.dll gfx_directx.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
 REM scons-c
 REM del game*.exe custom*.exe
