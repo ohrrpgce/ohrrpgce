@@ -317,6 +317,9 @@
 		<a href="#about-createcontainer">create container (width, height)</a><br>
 		
 	
+		<a href="#about-createellipse">create ellipse (width, height, border color, fill color)</a><br>
+		
+	
 		<a href="#about-creategrid">create grid (width, height, rows, columns)</a><br>
 		
 	
@@ -579,6 +582,12 @@
 		
 	
 		<a href="#about-geteachstepscript">get each step script</a><br>
+		
+	
+		<a href="#about-getellipsebordercol">get ellipse border col (handle)</a><br>
+		
+	
+		<a href="#about-getellipsefillcol">get ellipse fill col (handle)</a><br>
 		
 	
 		<a href="#about-getenemyappearance">get enemy appearance (enemyid, appearance)</a><br>
@@ -1532,6 +1541,12 @@
 		<a href="#about-seteachstepscript">set each step script (id)</a><br>
 		
 	
+		<a href="#about-setellipsebordercol">set ellipse border col (handle, color)</a><br>
+		
+	
+		<a href="#about-setellipsefillcol">set ellipse fill col (handle, color)</a><br>
+		
+	
 		<a href="#about-setenemyappearance">set enemy appearance (enemyid, appearance,value)</a><br>
 		
 	
@@ -1935,6 +1950,9 @@
 		
 	
 		<a href="#about-sliceiscontainer">slice is container (handle)</a><br>
+		
+	
+		<a href="#about-sliceisellipse">slice is ellipse (handle)</a><br>
 		
 	
 		<a href="#about-sliceisgrid">slice is grid (handle)</a><br>
@@ -5676,6 +5694,11 @@ lookup slice(sl:textbox layer)
 lookup slice(sl:string layer)
 lookup slice(sl:maproot)
 lookup slice(sl:obsolete overhead)
+lookup slice(sl:walkabout layer)
+lookup slice(sl:hero layer)
+lookup slice(sl:npc layer)
+lookup slice(sl:walkabout sprite component)
+lookup slice(sl:walkabout shadow component)
 lookup slice(sl:map layer0)
 lookup slice(sl:map layer1)
 lookup slice(sl:map layer2)
@@ -5739,6 +5762,14 @@ set horiz align(sl, edge:right)
 			
 			
 		</tt></p>
+		<a name="about-createellipse"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">create ellipse (width, height, border color, fill color)</font></b><br>
+			Create a new ellipse slice and return a handle to it. You can provide an optional <span class="param">width</span> and <span class="param">height</span>, and an optional <span class="param">border color</span>. and an optional <span class="param">fill color</span>. The ellipse will be transparent if you do not specify a fill color. Like all slice types, an ellipse slice can be used as a container for other slices with <a href="#about-setparent" class="ref">set parent</a><br>
+			
+			
+		</tt></p>
 		<a name="about-sliceisvalid"></a>
 		<p>
 		<tt>
@@ -5768,6 +5799,14 @@ set horiz align(sl, edge:right)
 		<tt>
 		<b><font color="yellow">slice is rect (handle)</font></b><br>
 			Returns true if the given slice <span class="param">handle</span> is a rect.<br>
+			
+			
+		</tt></p>
+		<a name="about-sliceisellipse"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">slice is ellipse (handle)</font></b><br>
+			Returns true if the given slice <span class="param">handle</span> is an ellipse slice.<br>
 			
 			
 		</tt></p>
@@ -7087,6 +7126,70 @@ end
 			Given a rect slice <span class="param">handle</span>, change how transparently it is drawn. For <span class="param">transparency setting</span>, pass in one of the constants <span class="param">trans:fuzzy</span> for semi-transparency (checkered), <span class="param">trans:hollow</span> for fully transparent (the border drawn only), or <span class="param">trans:solid</span> (equal to <a href="#about-booleanconstants" class="ref">false</a>) for solid.<br>
 			
 			<br>See also: <ul class="seealso"><li><a href="#about-getrecttrans" class="ref">get rect trans</a></li></ul>
+		</tt></p>
+		<a name="about-getellipsebordercol"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get ellipse border col (handle)</font></b><br>
+			Given an ellipse slice <span class="param">handle</span>, return the color it uses for its border. This will be a number from 0 to 255 representing a color from the master palette.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setellipsebordercol" class="ref">set ellipse border col</a>, </li>
+<li>
+<a href="#about-getellipsebordercol" class="ref">get ellipse border col</a>, </li>
+<li>
+<a href="#about-setellipsefillcol" class="ref">set ellipse fill col</a>, </li>
+<li><a href="#about-getellipsefillcol" class="ref">get ellipse fill col</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setellipsebordercol"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set ellipse border col (handle, color)</font></b><br>
+			Given an ellipse slice <span class="param">handle</span>, change the color it uses for its border. The <span class="param">color</span> should be a number from 0 to 255 representing a color from the master palette.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setellipsebordercol" class="ref">set ellipse border col</a>, </li>
+<li>
+<a href="#about-getellipsebordercol" class="ref">get ellipse border col</a>, </li>
+<li>
+<a href="#about-setellipsefillcol" class="ref">set ellipse fill col</a>, </li>
+<li><a href="#about-getellipsefillcol" class="ref">get ellipse fill col</a></li>
+</ul>
+		</tt></p>
+		<a name="about-getellipsefillcol"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get ellipse fill col (handle)</font></b><br>
+			Given an ellipse slice <span class="param">handle</span>, return the color it uses for its fill. This will be a number from 0 to 255 representing a color from the master palette. 0 means transparent fill.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setellipsebordercol" class="ref">set ellipse border col</a>, </li>
+<li>
+<a href="#about-getellipsebordercol" class="ref">get ellipse border col</a>, </li>
+<li>
+<a href="#about-setellipsefillcol" class="ref">set ellipse fill col</a>, </li>
+<li><a href="#about-getellipsefillcol" class="ref">get ellipse fill col</a></li>
+</ul>
+		</tt></p>
+		<a name="about-setellipsefillcol"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set ellipse fill col (handle, color)</font></b><br>
+			Given an ellipse slice <span class="param">handle</span>, change the color it uses for its fill. The <span class="param">color</span> should be a number from 0 to 255 representing a color from the master palette. 0 means transparent fill.<br>
+			
+			<br>See also: <ul class="seealso">
+<li>
+<a href="#about-setellipsebordercol" class="ref">set ellipse border col</a>, </li>
+<li>
+<a href="#about-getellipsebordercol" class="ref">get ellipse border col</a>, </li>
+<li>
+<a href="#about-setellipsefillcol" class="ref">set ellipse fill col</a>, </li>
+<li><a href="#about-getellipsefillcol" class="ref">get ellipse fill col</a></li>
+</ul>
 		</tt></p>
 		<a name="about-createtext"></a>
 		<p>
@@ -10547,7 +10650,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 732 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 738 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

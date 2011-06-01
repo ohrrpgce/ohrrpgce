@@ -518,6 +518,12 @@ define function, begin
 507,movesliceby,4,0,0,0,0        #move a slice until it has the new desired relative x and y (sl, rel x, rel y, ticks)
 508,waitforslice,1,0             #wait for a slice to stop moving
 509,sliceismoving,1,0            #return true if the slice has velocity or target
+510,createellipse,4,0,0,-1,-1    #width, height, border color, fill color
+511,sliceisellipse,1,0           #return true if the slice is an ellipse
+512,setellipsebordercol,2,0,0    #change border color
+513,setellipsefillcol,2,0,0      #change fill color
+514,getellipsebordercol,1,0      #change border color
+515,getellipsefillcol,1,0        #change fill color
 end
 
 #--------------------------------------------------------------------------

@@ -2427,6 +2427,11 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<shortname>create rect</shortname>
 			<description>Create a new rectangle slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, and an optional <p>style</p>. The style is text box style number from 0 to 14, or -1 for an unstyled box. The default is box style 0. Like all slice types, a rect slice can be used as a container for other slices with <ref>setparent</ref></description>
 		</command>
+		<command id="createellipse">
+			<canon>create ellipse (width, height, border color, fill color)</canon>
+			<shortname>create ellipse</shortname>
+			<description>Create a new ellipse slice and return a handle to it. You can provide an optional <p>width</p> and <p>height</p>, and an optional <p>border color</p>. and an optional <p>fill color</p>. The ellipse will be transparent if you do not specify a fill color. Like all slice types, an ellipse slice can be used as a container for other slices with <ref>setparent</ref></description>
+		</command>
 		<command id="sliceisvalid">
 			<canon>slice is valid (id)</canon>
 			<shortname>slice is valid</shortname>
@@ -2446,6 +2451,11 @@ The example above creates a container and then puts two hero sprites inside it, 
 			<canon>slice is rect (handle)</canon>
 			<shortname>slice is rect</shortname>
 			<description>Returns true if the given slice <p>handle</p> is a rect.</description>
+		</command>
+		<command id="sliceisellipse">
+			<canon>slice is ellipse (handle)</canon>
+			<shortname>slice is ellipse</shortname>
+			<description>Returns true if the given slice <p>handle</p> is an ellipse slice.</description>
 		</command>
 		<command id="sliceistext">
 			<canon>slice is text (handle)</canon>
@@ -3436,6 +3446,50 @@ end
 			<description>Given a rect slice <p>handle</p>, change how transparently it is drawn. For <p>transparency setting</p>, pass in one of the constants <p>trans:fuzzy</p> for semi-transparency (checkered), <p>trans:hollow</p> for fully transparent (the border drawn only), or <p>trans:solid</p> (equal to <ref>false</ref>) for solid.</description>
 			<seealso>
 				<ref>getrecttrans</ref>
+			</seealso>
+		</command>
+		<command id="getellipsebordercol">
+			<canon>get ellipse border col (handle)</canon>
+			<shortname>get ellipse border col</shortname>
+			<description>Given an ellipse slice <p>handle</p>, return the color it uses for its border. This will be a number from 0 to 255 representing a color from the master palette.</description>
+			<seealso>
+				<ref>setellipsebordercol</ref>
+				<ref>getellipsebordercol</ref>
+				<ref>setellipsefillcol</ref>
+				<ref>getellipsefillcol</ref>
+			</seealso>
+		</command>
+		<command id="setellipsebordercol">
+			<canon>set ellipse border col (handle, color)</canon>
+			<shortname>set ellipse border col</shortname>
+			<description>Given an ellipse slice <p>handle</p>, change the color it uses for its border. The <p>color</p> should be a number from 0 to 255 representing a color from the master palette.</description>
+			<seealso>
+				<ref>setellipsebordercol</ref>
+				<ref>getellipsebordercol</ref>
+				<ref>setellipsefillcol</ref>
+				<ref>getellipsefillcol</ref>
+			</seealso>
+		</command>
+		<command id="getellipsefillcol">
+			<canon>get ellipse fill col (handle)</canon>
+			<shortname>get ellipse fill col</shortname>
+			<description>Given an ellipse slice <p>handle</p>, return the color it uses for its fill. This will be a number from 0 to 255 representing a color from the master palette. 0 means transparent fill.</description>
+			<seealso>
+				<ref>setellipsebordercol</ref>
+				<ref>getellipsebordercol</ref>
+				<ref>setellipsefillcol</ref>
+				<ref>getellipsefillcol</ref>
+			</seealso>
+		</command>
+		<command id="setellipsefillcol">
+			<canon>set ellipse fill col (handle, color)</canon>
+			<shortname>set ellipse fill col</shortname>
+			<description>Given an ellipse slice <p>handle</p>, change the color it uses for its fill. The <p>color</p> should be a number from 0 to 255 representing a color from the master palette. 0 means transparent fill.</description>
+			<seealso>
+				<ref>setellipsebordercol</ref>
+				<ref>getellipsebordercol</ref>
+				<ref>setellipsefillcol</ref>
+				<ref>getellipsefillcol</ref>
 			</seealso>
 		</command>
 		<command id="createtext">

@@ -2786,7 +2786,47 @@ SELECT CASE AS CONST id
     END IF
    END WITH
   END IF
-  
+ CASE 510 '--create ellipse
+  DIM sl AS Slice Ptr
+  sl = NewSliceOfType(slEllipse, SliceTable.scriptsprite)
+  sl->Width = retvals(0)
+  sl->Height = retvals(1)
+  IF retvals(2) <> -1 ANDALSO bound_arg(retvals(2), 0, 255, "bordercol") THEN
+   ChangeEllipseSlice sl, retvals(2)
+  END IF
+  IF retvals(3) <> -1 ANDALSO bound_arg(retvals(3), 0, 255, "fillcol") THEN
+   ChangeEllipseSlice sl, , retvals(3)
+  END IF
+  scriptret = create_plotslice_handle(sl)
+ CASE 511 '--slice is ellipse
+  IF valid_plotslice(retvals(0)) THEN
+   scriptret = 0
+   IF plotslices(retvals(0))->SliceType = slEllipse THEN scriptret = 1
+  END IF
+ CASE 512 '--set ellipse border col
+  IF valid_plotslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 255, "bordercol") THEN
+    ChangeEllipseSlice plotslices(retvals(0)), retvals(1)
+   END IF
+  END IF
+ CASE 513 '--set ellipse fill col
+  IF valid_plotslice(retvals(0)) THEN
+   IF bound_arg(retvals(1), 0, 255, "fillcol") THEN
+    ChangeEllipseSlice plotslices(retvals(0)), , retvals(1)
+   END IF
+  END IF
+ CASE 514 '--get ellipse border col
+  IF valid_plotslice(retvals(0)) THEN
+   DIM dat AS EllipseSliceData ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->bordercol
+  END IF
+ CASE 515 '--get ellipse fill col
+  IF valid_plotslice(retvals(0)) THEN
+   DIM dat AS EllipseSliceData ptr
+   dat = plotslices(retvals(0))->SliceData
+   scriptret = dat->fillcol
+  END IF
  
 END SELECT
 

@@ -19,6 +19,7 @@ WHAT IS NEW?
       position over a desired number of ticks. [James, Ralph]
     * "wait for slice" command to make the script wait for slice
       movement [James]
+    * New "Ellipse" slice type, and related commands [James, Ralph]
 
   * Vikings of Midgard
 

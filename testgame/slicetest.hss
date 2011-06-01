@@ -17,6 +17,33 @@ plotscript, test, begin
   #wait (16)
   #free slice(sl2)
 
+  $0="ellipse tests", show string(0)
+  
+  sl := create ellipse(100, 100, 2, 10)
+  center slice(sl)
+  wait(5)
+  set ellipse border col(sl, 15)
+  for(i, 0, 20) do(
+    set slice width(sl, slice width(sl) + 2)
+    wait(1)
+  )
+  set ellipse fill col(sl, 4)
+  for(i, 0, 40) do(
+    set slice height(sl, slice height(sl) + 2)
+    wait(1)
+  )
+  for(i, 0, 10) do(
+    sl2 := create ellipse(30, 30, random(1, 255), random(1, 255))
+    set parent(sl2, sl)
+    center slice(sl2)
+    put slice(sl2, random(-150, 150), random(-100, 100))
+    wait(2)
+  )
+  wait(4)
+  free slice(sl)
+  sl := 0
+  sl2 := 0
+
   $0="slice velocity tests", show string(0)
   
   sl := create rect(200, 100, 2)
