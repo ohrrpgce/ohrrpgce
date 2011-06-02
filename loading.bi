@@ -6,6 +6,11 @@
 #IFNDEF LOADING_BI
 #DEFINE LOADING_BI
 
+#include "reload.bi"
+#include "reloadext.bi"
+
+USING RELOAD
+USING RELOAD.EXT
 
 '*** NOTE ***
 'As documented here, some types require initialisation, done by Clean*/Clear* (same thing) or Load*,
@@ -144,5 +149,10 @@ DECLARE SUB save_string_list(array() AS STRING, filename AS STRING)
 DECLARE SUB load_string_list(array() AS STRING, filename AS STRING)
 
 DECLARE FUNCTION load_map_pos_save_offset(BYVAL mapnum AS INTEGER) AS XYPair
+
+DECLARE SUB save_npc_locations OVERLOAD (filename AS STRING, npc() AS NPCInst)
+DECLARE SUB save_npc_locations OVERLOAD (BYVAL npcl_node AS NodePtr, npc() AS NPCInst)
+DECLARE SUB load_npc_locations OVERLOAD (filename AS STRING, npc() AS NPCInst)
+DECLARE SUB load_npc_locations OVERLOAD (BYVAL npcl_node AS NodePtr, npc() AS NPCInst)
 
 #ENDIF

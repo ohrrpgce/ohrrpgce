@@ -2847,3 +2847,99 @@ FUNCTION load_map_pos_save_offset(BYVAL mapnum AS INTEGER) AS XYPair
  offset.y = gmaptmp(21)
  RETURN offset
 END FUNCTION
+
+SUB save_npc_locations(filename AS STRING, npc() AS NPCInst)
+ DIM doc AS DocPtr
+ doc = CreateDocument()
+ 
+ DIM node AS NodePtr
+ node = CreateNode(doc, "npcl")
+ SetRootNode(doc, node)
+ save_npc_locations node, npc()
+ 
+ SerializeBin filename, doc
+ 
+ FreeDocument doc
+END SUB
+
+SUB save_npc_locations(BYVAL npcl_node AS NodePtr, npc() AS NPCInst)
+ IF NumChildren(npcl_node) <> 0 THEN
+  debug "WARNING: saving NPC locations to a Reload node that already has " & NumChildren(npcl_node) & " children!"
+ END IF
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  WITH npc(i)
+   IF .id <> 0 THEN 'FIXME: When the "save" node is fully supported it will be main the criteria that determines if a node is written
+    DIM n AS NodePtr
+    n = AppendChildNode(npcl_node, "npc", i)
+    SetChildNode(n, "id", ABS(.id)-1)
+    SetChildNode(n, "x", .x)
+    SetChildNode(n, "y", .y)
+    SetChildNode(n, "d", .dir)
+    IF .extra(0) <> 0 ORELSE .extra(1) <> 0 ORELSE .extra(2) <> 0 THEN
+     DIM extras AS NodePtr
+     extras = AppendChildNode(n, "extras")
+     FOR j AS INTEGER = 0 TO UBOUND(.extra)
+      IF .extra(j) <> 0 THEN
+       DIM exnod AS NodePtr
+       exnod = AppendChildNode(extras, "extra", j)
+       SetChildNode(exnod, "int", .extra(j))
+      END IF
+     NEXT j
+    END IF
+    SetChildNode(n, "save") 'FIXME: this is a placeholder for now
+    SetChildNode(n, "edit", 0) 'FIXME: this is a placeholder. Real edits will start with 1
+   END IF
+  END WITH  
+ NEXT i
+END SUB
+
+SUB load_npc_locations (filename AS STRING, npc() AS NPCInst)
+ IF NOT isfile(filename) THEN
+  debug "load_npc_locations: file doesn't exist: '" & filename & "'"
+  EXIT SUB
+ END IF
+
+ DIM doc AS DocPtr
+ doc = LoadDocument(filename)
+ 
+ DIM node AS NodePtr
+ node = DocumentRoot(doc)
+ 
+ load_npc_locations node, npc()
+ 
+ FreeDocument doc
+END SUB
+
+SUB load_npc_locations (BYVAL npcl_node AS NodePtr, npc() AS NPCInst)
+ IF GetString(npcl_node) <> "npcl" THEN
+  debug "WARNING: load_npc_locations expected a node named 'npcl' but found '" & GetString(npcl_node) & "' instead."
+ END IF
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  WITH npc(i)
+   '--disable/hide this NPC by default
+   .id = 0
+   DIM n AS NodePtr
+   n = NodeByPath(npcl_node, "/npc[" & i & "]")
+   IF n THEN
+    '--node exists
+    IF GetChildNodeExists(n, "id") THEN
+     '--npc exists
+     .id = GetChildNodeInt(n, "id") + 1
+     .x = GetChildNodeInt(n, "x")
+     .y = GetChildNodeInt(n, "y")
+     .dir = GetChildNodeInt(n, "d")
+     IF GetChildNodeExists(n, "extras") THEN
+      FOR j AS INTEGER = 0 TO UBOUND(.extra)
+       .extra(j) = 0
+       DIM exnod AS NodePtr
+       exnod = NodeByPath(n, "/extras/extra[" & j & "]")
+       IF exnod THEN
+        .extra(j) = GetChildNodeInt(exnod, "int")
+       END IF
+      NEXT j
+     END IF
+    END IF
+   END IF
+  END WITH
+ NEXT i
+END SUB

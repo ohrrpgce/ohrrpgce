@@ -448,39 +448,39 @@ songfile$ = ""
 songtype$ = "NO FILE"
 '-- BAM special case and least desirable, so check first and override
 IF snum > 99 THEN
- IF isfile(temp$ + ".bam") THEN ext$ = ".bam" : songfile$ = temp$ + ext$ : songtype$ = "Bob's Adlib Music (BAM)"
+ IF isfile(temp$ + ".bam") THEN file_ext$ = ".bam" : songfile$ = temp$ + file_ext$ : songtype$ = "Bob's Adlib Music (BAM)"
 ELSE
- IF isfile(game + "." + STR$(snum)) THEN ext$ = ".bam" : songfile$ = game + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
+ IF isfile(game + "." + STR$(snum)) THEN file_ext$ = ".bam" : songfile$ = game + "." + STR$(snum) : songtype$ = "Bob's Adlib Music (BAM)"
 END IF
 bamfile$ = songfile$
 
 IF isfile(temp$ + ".ogg") THEN
- ext$ = ".ogg"
- songfile$ = temp$ + ext$
+ file_ext$ = ".ogg"
+ songfile$ = temp$ + file_ext$
  songtype$ = "OGG Vorbis (OGG)"
 ELSEIF isfile(temp$ + ".s3m") THEN
- ext$ = ".s3m"
- songfile$ = temp$ + ext$
+ file_ext$ = ".s3m"
+ songfile$ = temp$ + file_ext$
  songtype$ = "Screamtracker (S3M)"
 ELSEIF isfile(temp$ + ".it") THEN
- ext$ = ".it"
- songfile$ = temp$ + ext$
+ file_ext$ = ".it"
+ songfile$ = temp$ + file_ext$
  songtype$ = "Impulse Tracker (IT)"
 ELSEIF isfile(temp$ + ".xm") THEN
- ext$ = ".xm"
- songfile$ = temp$ + ext$
+ file_ext$ = ".xm"
+ songfile$ = temp$ + file_ext$
  songtype$ = "Extended Module (XM)"
 ELSEIF isfile(temp$ + ".mod") THEN
- ext$ = ".mod"
- songfile$ = temp$ + ext$
+ file_ext$ = ".mod"
+ songfile$ = temp$ + file_ext$
  songtype$ = "Module (MOD)"
 ELSEIF isfile(temp$ + ".mp3") THEN ' Obsolete. only present in some Ubersetzung WIP games
- ext$ = ".mp3"
- songfile$ = temp$ + ext$
+ file_ext$ = ".mp3"
+ songfile$ = temp$ + file_ext$
  songtype$ = "MPEG Layer III (MP3) OBSOLETE"
 ELSEIF isfile(temp$ + ".mid") THEN
-  ext$ = ".mid"
-  songfile$ = temp$ + ext$
+  file_ext$ = ".mid"
+  songfile$ = temp$ + file_ext$
   songtype$ = "MIDI Music (MID)"
 END IF
 '--add more formats here
@@ -559,16 +559,16 @@ RETRACE
 exportsong:
 query$ = "Name of file to export to?"
 IF bamfile$ <> songfile$ AND bamfile$ <> "" THEN
- submenu(0) = "Export " + ext$ + " file"
+ submenu(0) = "Export " + file_ext$ + " file"
  submenu(1) = "Export .bam fallback file"
  submenu(2) = "Cancel"
  choice = sublist(submenu(), "export_song")
- IF choice = 1 THEN ext$ = ".bam" : songfile$ = bamfile$
+ IF choice = 1 THEN file_ext$ = ".bam" : songfile$ = bamfile$
  IF choice = 2 THEN RETRACE
 END IF
-outfile$ = inputfilename(query$, ext$, "", "input_file_export_song")
+outfile$ = inputfilename(query$, file_ext$, "", "input_file_export_song")
 IF outfile$ = "" THEN RETRACE
-filecopy songfile$, outfile$ + ext$
+filecopy songfile$, outfile$ + file_ext$
 RETRACE
 
 ssongdata:
@@ -673,16 +673,16 @@ sfxfile$ = ""
 sfxtype$ = "NO FILE"
 
 IF isfile(temp$ + ".ogg") THEN
- ext$ = ".ogg"
- sfxfile$ = temp$ + ext$
+ file_ext$ = ".ogg"
+ sfxfile$ = temp$ + file_ext$
  sfxtype$ = "OGG Vorbis (OGG)"
 ELSEIF isfile(temp$ + ".wav") THEN ' Obsolete, only present in Pre-Ubersetzung games
- ext$ = ".wav"
- sfxfile$ = temp$ + ext$
+ file_ext$ = ".wav"
+ sfxfile$ = temp$ + file_ext$
  sfxtype$ = "Waveform (WAV) OBSOLETE"
 ELSEIF isfile(temp$ + ".mp3") THEN ' Obsolete, only present in some Ubersetzung WIP games
- ext$ = ".mp3"
- sfxfile$ = temp$ + ext$
+ file_ext$ = ".mp3"
+ sfxfile$ = temp$ + file_ext$
  sfxtype$ = "MPEG Layer III (MP3) OBSOLETE"
 END IF
 
@@ -741,9 +741,9 @@ RETRACE
 
 exportsfx:
 query$ = "Name of file to export to?"
-outfile$ = inputfilename(query$, ext$, "", "input_file_export_sfx")
+outfile$ = inputfilename(query$, file_ext$, "", "input_file_export_sfx")
 IF outfile$ = "" THEN RETRACE
-filecopy sfxfile$, outfile$ + ext$
+filecopy sfxfile$, outfile$ + file_ext$
 RETRACE
 
 ssfxdata:

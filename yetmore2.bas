@@ -530,57 +530,9 @@ SUB savemapstate_gmap(mapnum, prefix$)
 END SUB
 
 SUB savemapstate_npcl(mapnum, prefix$)
- '--old-style
- fh = FREEFILE
- OPEN mapstatetemp$(mapnum, prefix$) + "_l.tmp" FOR BINARY AS #fh
- PUT #fh, , npc()
- CLOSE #fh
-
- '--new style
- DIM doc AS DocPtr
- doc = CreateDocument()
- 
- DIM node AS NodePtr
- node = CreateNode(doc, "npcl")
- SetRootNode(doc, node)
- savemapstate_npcl node
- 
  DIM filename AS STRING
  filename = mapstatetemp$(mapnum, prefix$) + "_l.reld.tmp"
- SerializeBin filename, doc
- 
- FreeDocument doc
-END SUB
-
-SUB savemapstate_npcl(BYVAL npcl_node AS NodePtr)
- IF NumChildren(npcl_node) <> 0 THEN
-  debug "WARNING: saving NPC locations to a Reload node that already has " & NumChildren(npcl_node) & " children!"
- END IF
- FOR i AS INTEGER = 0 TO UBOUND(npc)
-  WITH npc(i)
-   IF .id <> 0 THEN 'FIXME: When the "save" node is fully supported it will be main the criteria that determines if a node is written
-    DIM n AS NodePtr
-    n = AppendChildNode(npcl_node, "npc", i)
-    SetChildNode(n, "id", ABS(.id)-1)
-    SetChildNode(n, "x", .x)
-    SetChildNode(n, "y", .y)
-    SetChildNode(n, "d", .dir)
-    IF .extra(0) <> 0 ORELSE .extra(1) <> 0 ORELSE .extra(2) <> 0 THEN
-     DIM extras AS NodePtr
-     extras = CreateNode(n, "extras")
-     FOR j AS INTEGER = 0 TO UBOUND(.extra)
-      IF .extra(j) <> 0 THEN
-       DIM exnod AS NodePtr
-       exnod = AppendChildNode(n, "extra", j)
-       SetChildNode(exnod, "int", .extra(j))
-      END IF
-     NEXT j
-    END IF
-    SetChildNode(n, "save") 'FIXME: this is a placeholder for now
-    SetChildNode(n, "edit", 0) 'FIXME: this is a placeholder. Real edits will start with 1
-   END IF
-  END WITH  
- NEXT i
+ save_npc_locations filename, npc()
 END SUB
 
 SUB savemapstate_npcd(mapnum, prefix$)
@@ -645,17 +597,17 @@ SUB loadmapstate_gmap (mapnum, prefix$, dontfallback = 0)
 END SUB
 
 SUB loadmapstate_npcl (mapnum, prefix$, dontfallback = 0)
- fh = FREEFILE
- filebase$ = mapstatetemp$(mapnum, prefix$)
- IF NOT isfile(filebase$ + "_l.tmp") THEN
+ '--new-style
+ DIM filename AS STRING
+ filename = mapstatetemp(mapnum, prefix$) & "_l.reld.tmp"
+ IF NOT isfile(filename) THEN
   IF dontfallback = 0 THEN loadmap_npcl mapnum
   EXIT SUB
  END IF
- OPEN filebase$ + "_l.tmp" FOR BINARY AS #fh
- GET #fh, , npc()
- CLOSE #fh
 
- 'Evaluate whether NPCs should appear or disappear based on tags
+ load_npc_locations filename, npc()
+
+ '--Evaluate whether NPCs should appear or disappear based on tags
  visnpc
 END SUB
 
