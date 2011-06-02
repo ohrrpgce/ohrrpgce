@@ -44,14 +44,14 @@ void TriRasterizer::interpolateVertices(Vertex &vertexOut, const Vertex &v1, con
 	Vertex out;
 	FPInt invScale(-scale + 1);
 
-	out.pos.x = invScale * v1.pos.x + scale * v2.pos.x;
-	out.pos.y = invScale * v1.pos.y + scale * v2.pos.y;
-	out.tex.u = invScale * v1.tex.u + scale * v2.tex.u;
-	out.tex.v = invScale * v1.tex.v + scale * v2.tex.v;
-	out.col.a = invScale * v1.col.a + scale * v2.col.a;
-	out.col.r = invScale * v1.col.r + scale * v2.col.r;
-	out.col.g = invScale * v1.col.g + scale * v2.col.g;
-	out.col.b = invScale * v1.col.b + scale * v2.col.b;
+	out.pos.x = scale * v1.pos.x + invScale * v2.pos.x;
+	out.pos.y = scale * v1.pos.y + invScale * v2.pos.y;
+	out.tex.u = scale * v1.tex.u + invScale * v2.tex.u;
+	out.tex.v = scale * v1.tex.v + invScale * v2.tex.v;
+	out.col.a = scale * v1.col.a + invScale * v2.col.a;
+	out.col.r = scale * v1.col.r + invScale * v2.col.r;
+	out.col.g = scale * v1.col.g + invScale * v2.col.g;
+	out.col.b = scale * v1.col.b + invScale * v2.col.b;
 
 	vertexOut = out;
 }
@@ -80,7 +80,7 @@ void TriRasterizer::calculateRasterPixels(unsigned int row, FPInt minimum, FPInt
 			slope = deltaY / deltaX;
 			yIntercept = a.y - slope * a.x;
 
-			if(yIntercept == 0) //0 slope
+			if(slope == 0) //0 slope
 			{
 				if(yIntercept == row) //entire row is to be rasterized (line is parallel with this rasterizing line AND overlays it)
 				{
@@ -147,7 +147,7 @@ void TriRasterizer::calculateRasterPixels(unsigned int row, FPInt minimum, FPInt
 		scale = (FPInt(row) - pTriangle->pnt[(rightIndex+1)%3].pos.y) / deltaY;
 	}
 
-	interpolateVertices(leftBoundary, pTriangle->pnt[rightIndex], pTriangle->pnt[(rightIndex+1)%3], scale);
+	interpolateVertices(rightBoundary, pTriangle->pnt[rightIndex], pTriangle->pnt[(rightIndex+1)%3], scale);
 
 	//perform clipping interpolation
 	if(leftBoundary.pos.x >= pSurface->width || rightBoundary.pos.x < 0)
@@ -279,8 +279,8 @@ void TriRasterizer::drawTest(Surface* pSurface, const Triangle* pTriangle, const
 			for(int i = m_rasterLines.front().least.pos.x.whole; i < m_rasterLines.front().greatest.pos.x.whole; i++)
 			{
 				pSurface->pColorData[m_rasterLines.front().least.pos.y.whole * pSurface->width + i] = (SurfaceData32)col;
-				m_rasterLines.pop();
 			}
+			m_rasterLines.pop();
 		}
 	}
 }
