@@ -266,16 +266,19 @@ END TYPE
 
 'Don't forget to update CleanNPCL and savegame.bas when adding to this
 TYPE NPCInst
+  '--stored values
   x as integer      'npcl+0
   y as integer      'npcl+300
-  xgo as integer    'npcl+1500   warning: positive to go LEFT, negative RIGHT
-  ygo as integer    'npcl+1800   reversed as above
   id as integer     'npcl+600    0 if unused, ID + 1 for normal NPCs, -ID - 1 for hidden NPCs
                     '  NOTE: NPCs with invalidly high ID numbers (on incompletely loaded maps)
                     '        are automatically hidden (and obviously unsafe to unhide)
   dir as integer    'npcl+900
-  frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
   extra(2) as integer
+  
+  '--runtime-only state
+  xgo as integer    'npcl+1500   warning: positive to go LEFT, negative RIGHT
+  ygo as integer    'npcl+1800   reversed as above
+  frame as integer  'npcl+1200   0-3: ticks in walk animation loop (2 ticks per frame)
   ignore_walls as integer  'ignore passmap
   not_obstruction as integer 'can walk through npcs+heroes and vice-versa
   suspend_use as integer   'not activatable 

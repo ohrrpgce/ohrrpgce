@@ -14,12 +14,17 @@ DEFINT A-Z
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
+#include "reload.bi"
+#include "reloadext.bi"
 
 #include "game.bi"
 #include "yetmore.bi"
 #include "yetmore2.bi"
 #include "moresubs.bi"
 #include "bmodsubs.bi"
+
+Using Reload
+Using Reload.Ext
 
 REM $STATIC
 
@@ -326,8 +331,8 @@ SUB cleanuptemp
    safekill workingdir + SLASH + filelist(i)
   ELSE
    'but for preunlumped games only delete specific files
-   DIM ext$ = justextension$(filelist(i))
-   IF ext$ = "tmp" OR ext$ = "bmd" THEN
+   DIM file_ext AS STRING = justextension$(filelist(i))
+   IF file_ext = "tmp" OR file_ext = "bmd" THEN
     safekill workingdir + SLASH + filelist(i)
    END IF
   END IF
@@ -525,10 +530,57 @@ SUB savemapstate_gmap(mapnum, prefix$)
 END SUB
 
 SUB savemapstate_npcl(mapnum, prefix$)
+ '--old-style
  fh = FREEFILE
  OPEN mapstatetemp$(mapnum, prefix$) + "_l.tmp" FOR BINARY AS #fh
  PUT #fh, , npc()
  CLOSE #fh
+
+ '--new style
+ DIM doc AS DocPtr
+ doc = CreateDocument()
+ 
+ DIM node AS NodePtr
+ node = CreateNode(doc, "npcl")
+ SetRootNode(doc, node)
+ savemapstate_npcl node
+ 
+ DIM filename AS STRING
+ filename = mapstatetemp$(mapnum, prefix$) + "_l.reld.tmp"
+ SerializeBin filename, doc
+ 
+ FreeDocument doc
+END SUB
+
+SUB savemapstate_npcl(BYVAL npcl_node AS NodePtr)
+ IF NumChildren(npcl_node) <> 0 THEN
+  debug "WARNING: saving NPC locations to a Reload node that already has " & NumChildren(npcl_node) & " children!"
+ END IF
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  WITH npc(i)
+   IF .id <> 0 THEN 'FIXME: When the "save" node is fully supported it will be main the criteria that determines if a node is written
+    DIM n AS NodePtr
+    n = AppendChildNode(npcl_node, "npc", i)
+    SetChildNode(n, "id", ABS(.id)-1)
+    SetChildNode(n, "x", .x)
+    SetChildNode(n, "y", .y)
+    SetChildNode(n, "d", .dir)
+    IF .extra(0) <> 0 ORELSE .extra(1) <> 0 ORELSE .extra(2) <> 0 THEN
+     DIM extras AS NodePtr
+     extras = CreateNode(n, "extras")
+     FOR j AS INTEGER = 0 TO UBOUND(.extra)
+      IF .extra(j) <> 0 THEN
+       DIM exnod AS NodePtr
+       exnod = AppendChildNode(n, "extra", j)
+       SetChildNode(exnod, "int", .extra(j))
+      END IF
+     NEXT j
+    END IF
+    SetChildNode(n, "save") 'FIXME: this is a placeholder for now
+    SetChildNode(n, "edit", 0) 'FIXME: this is a placeholder. Real edits will start with 1
+   END IF
+  END WITH  
+ NEXT i
 END SUB
 
 SUB savemapstate_npcd(mapnum, prefix$)

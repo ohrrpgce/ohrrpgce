@@ -1,6 +1,8 @@
 #ifndef YETMORE2_BI
 #define YETMORE2_BI
 
+#include "reload.bi"
+
 DECLARE SUB cathero
 DECLARE FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as integer) as integer
 DECLARE SUB defaultc
@@ -25,7 +27,8 @@ DECLARE FUNCTION titlescr as integer
 DECLARE SUB reloadnpc ()
 DECLARE FUNCTION mapstatetemp(mapnum as integer, prefix as string) as string
 DECLARE SUB savemapstate_gmap(mapnum as integer, prefix as string)
-DECLARE SUB savemapstate_npcl(mapnum as integer, prefix as string)
+DECLARE SUB savemapstate_npcl OVERLOAD (mapnum as integer, prefix as string)
+DECLARE SUB savemapstate_npcl OVERLOAD (BYVAL node AS Reload.NodePtr)
 DECLARE SUB savemapstate_npcd(mapnum as integer, prefix as string)
 DECLARE SUB savemapstate_tilemap(mapnum as integer, prefix as string)
 DECLARE SUB savemapstate_passmap(mapnum as integer, prefix as string)
