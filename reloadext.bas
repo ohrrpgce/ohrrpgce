@@ -141,11 +141,11 @@ Function NodeByPath(byval node AS NodePtr, path as string) as NodePtr
 			debug "malformed path index " & segment
 			return null
 		end if
-  
-		index_str = mid(segment, sep_pos + 1, len(segment) - (end_pos - 1) )
+		
+		index_str = mid(segment, sep_pos + 1, len(segment) - sep_pos - 1 )
 		index = valint(index_str)
 		if str(index) <> index_str then
-			debug "malformed path index" & segment
+			debug "malformed path index " & segment
 			return null
 		end if
 		
