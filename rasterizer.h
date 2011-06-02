@@ -79,8 +79,8 @@ struct ClippingRect
 
 struct DrawingRange
 {
-	unsigned __int32 row, least, greatest;
-	DrawingRange(unsigned __int32 Row, unsigned __int32 Least, unsigned __int32 Greatest) : row(Row), least(Least), greatest(Greatest) {}
+	Vertex least, greatest;
+	DrawingRange(const Vertex& Least, const Vertex& Greatest) : least(Least), greatest(Greatest) {}
 };
 
 class TriRasterizer
@@ -88,15 +88,17 @@ class TriRasterizer
 protected:
 	std::queue<DrawingRange> m_rasterLines;
 	Tex2DSampler m_sampler;
-	void calculateClippingRect(ClippingRect& clipOut, const Surface* pSurface, const Triangle* pTriangle);
-	void decidePixels(unsigned __int32 row, unsigned __int32 minimum, unsigned __int32 maximum, const Triangle* pTriangle);
-	void interpolateColor(Color& colorOut, const Position& posIn, const Triangle* pTriangle);
-	void interpolateTexCoord(TexCoord& texCoordOut, const Position& posIn, const Triangle* pTriangle);
+	void calculateTriangleRect(ClippingRect& clipOut, const Triangle* pTriangle);
+	void interpolateVertices(Vertex& vertexOut, const Vertex& v1, const Vertex& v2, FPInt scale);
+	void calculateRasterPixels(unsigned __int32 row, FPInt minimum, FPInt maximum, const Surface* pSurface, const Triangle* pTriangle);
+	void rasterColor(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle);
+	void rasterTexture(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle, const Surface* pTexture);
+	void rasterTextureColor(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle, const Surface* pTexture);
 public:
-	void drawTest(const Surface* pSurface, const Triangle* pTriangle, const Color& col);
-	void drawColor(const Surface* pSurface, const Triangle* pTriangle);
-	void drawTexture(const Surface* pSurface, const Triangle* pTriangle);
-	void drawTextureColor(const Surface* pSurface, const Triangle* pTriangle);
+	void drawTest(Surface* pSurface, const Triangle* pTriangle, const Color& col);
+	void drawColor(Surface* pSurface, const Triangle* pTriangle);
+	void drawTexture(Surface* pSurface, const Triangle* pTriangle, const Surface* pTexture);
+	void drawTextureColor(Surface* pSurface, const Triangle* pTriangle, const Surface* pTexture);
 };
 
 struct Quad
@@ -111,7 +113,7 @@ protected:
 	Triangle m_triangles[4];
 	void generateTriangles(const Quad* pQuad);
 public:
-	void drawTest(const Surface* pSurface, const Quad* pQuad, const Color& col)
+	void drawTest(Surface* pSurface, const Quad* pQuad, const Color& col)
 	{
 		if(pSurface == NULL || pQuad == NULL)
 			return;
@@ -119,7 +121,7 @@ public:
 		for(int i = 0; i < 4; i++)
 			m_triRasterizer.drawTest(pSurface, &m_triangles[i], col);
 	}
-	void drawColor(const Surface* pSurface, const Quad* pQuad)
+	void drawColor(Surface* pSurface, const Quad* pQuad)
 	{
 		if(pSurface == NULL || pQuad == NULL)
 			return;
@@ -127,20 +129,20 @@ public:
 		for(int i = 0; i < 4; i++)
 			m_triRasterizer.drawColor(pSurface, &m_triangles[i]);
 	}
-	void drawTexture(const Surface* pSurface, const Quad* pQuad)
+	void drawTexture(Surface* pSurface, const Quad* pQuad, const Surface* pTexture)
 	{
 		if(pSurface == NULL || pQuad == NULL)
 			return;
 		generateTriangles(pQuad);
 		for(int i = 0; i < 4; i++)
-			m_triRasterizer.drawTexture(pSurface, &m_triangles[i]);
+			m_triRasterizer.drawTexture(pSurface, &m_triangles[i], pTexture);
 	}
-	void drawTextureColor(const Surface* pSurface, const Quad* pQuad)
+	void drawTextureColor(Surface* pSurface, const Quad* pQuad, const Surface* pTexture)
 	{
 		if(pSurface == NULL || pQuad == NULL)
 			return;
 		generateTriangles(pQuad);
 		for(int i = 0; i < 4; i++)
-			m_triRasterizer.drawTextureColor(pSurface, &m_triangles[i]);
+			m_triRasterizer.drawTextureColor(pSurface, &m_triangles[i], pTexture);
 	}
 };
