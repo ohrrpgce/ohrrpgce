@@ -440,7 +440,6 @@ SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTE
     CASE 0 TO 299
      IF GetChildNodeExists(n, "id") THEN
       npc(i).id = GetChildNodeInt(n, "id") + 1
-      IF GetChildNodeExists(n, "hidden") THEN npc(i).id = npc(i).id * -1
       npc(i).x = GetChildNodeInt(n, "x") + map_offset.x * 20
       npc(i).y = GetChildNodeInt(n, "y") + map_offset.y * 20
       npc(i).dir = GetChildNodeInt(n, "d")
@@ -998,7 +997,6 @@ SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGE
   IF npc(i).id <> 0 ANDALSO NO THEN 'currently disabled for all NPCs
    n = AppendChildNode(node, "npc", i)
    SetChildNode(n, "id", ABS(npc(i).id) - 1)
-   IF npc(i).id < 0 THEN SetChildNode(n, "hidden")
    SetChildNode(n, "x", npc(i).x - map_offset.x * 20)
    SetChildNode(n, "y", npc(i).y - map_offset.y * 20)
    SetChildNode(n, "d", npc(i).dir)
