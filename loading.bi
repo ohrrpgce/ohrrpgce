@@ -151,8 +151,13 @@ DECLARE SUB load_string_list(array() AS STRING, filename AS STRING)
 DECLARE FUNCTION load_map_pos_save_offset(BYVAL mapnum AS INTEGER) AS XYPair
 
 DECLARE SUB save_npc_locations OVERLOAD (filename AS STRING, npc() AS NPCInst)
-DECLARE SUB save_npc_locations OVERLOAD (BYVAL npcl_node AS NodePtr, npc() AS NPCInst)
+DECLARE SUB save_npc_locations OVERLOAD (BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
+DECLARE SUB save_npc_loc OVERLOAD (BYVAL n AS NodePtr, npc AS NPCInst)
+DECLARE SUB save_npc_loc OVERLOAD (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
+
 DECLARE SUB load_npc_locations OVERLOAD (filename AS STRING, npc() AS NPCInst)
-DECLARE SUB load_npc_locations OVERLOAD (BYVAL npcl_node AS NodePtr, npc() AS NPCInst)
+DECLARE SUB load_npc_locations OVERLOAD (BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
+DECLARE SUB load_npc_loc OVERLOAD (BYVAL n AS NodePtr, npc AS NPCInst)
+DECLARE SUB load_npc_loc OVERLOAD (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
 
 #ENDIF

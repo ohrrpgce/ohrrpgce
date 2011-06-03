@@ -2853,7 +2853,7 @@ SUB save_npc_locations(filename AS STRING, npc() AS NPCInst)
  doc = CreateDocument()
  
  DIM node AS NodePtr
- node = CreateNode(doc, "npcl")
+ node = CreateNode(doc, "npcs")
  SetRootNode(doc, node)
  save_npc_locations node, npc()
  
@@ -2862,35 +2862,53 @@ SUB save_npc_locations(filename AS STRING, npc() AS NPCInst)
  FreeDocument doc
 END SUB
 
-SUB save_npc_locations(BYVAL npcl_node AS NodePtr, npc() AS NPCInst)
- IF NumChildren(npcl_node) <> 0 THEN
-  debug "WARNING: saving NPC locations to a Reload node that already has " & NumChildren(npcl_node) & " children!"
+SUB save_npc_locations(BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
+ IF NumChildren(npcs_node) <> 0 THEN
+  debug "WARNING: saving NPC locations to a Reload node that already has " & NumChildren(npcs_node) & " children!"
  END IF
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   WITH npc(i)
    IF .id <> 0 THEN 'FIXME: When the "save" node is fully supported it will be main the criteria that determines if a node is written
     DIM n AS NodePtr
-    n = AppendChildNode(npcl_node, "npc", i)
-    SetChildNode(n, "id", ABS(.id)-1)
-    SetChildNode(n, "x", .x)
-    SetChildNode(n, "y", .y)
-    SetChildNode(n, "d", .dir)
-    IF .extra(0) <> 0 ORELSE .extra(1) <> 0 ORELSE .extra(2) <> 0 THEN
-     DIM extras AS NodePtr
-     extras = AppendChildNode(n, "extras")
-     FOR j AS INTEGER = 0 TO UBOUND(.extra)
-      IF .extra(j) <> 0 THEN
-       DIM exnod AS NodePtr
-       exnod = AppendChildNode(extras, "extra", j)
-       SetChildNode(exnod, "int", .extra(j))
-      END IF
-     NEXT j
-    END IF
-    SetChildNode(n, "save") 'FIXME: this is a placeholder for now
-    SetChildNode(n, "edit", 0) 'FIXME: this is a placeholder. Real edits will start with 1
+    n = AppendChildNode(npcs_node, "npc", i)
+    save_npc_loc n, npc(i)
    END IF
   END WITH  
  NEXT i
+END SUB
+
+SUB save_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst)
+ 'Map offset does not need to be used when saving temporary npc states
+ DIM map_offset AS XYPair
+ save_npc_loc n, npc, map_offset
+END SUB
+
+SUB save_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
+ IF NodeName(n) <> "npc" THEN
+  debug "save_npc_loc: saving npc location data into a node named """ & NodeName(n) & """"
+ END IF
+ WITH npc
+  SetChildNode(n, "id", ABS(.id) - 1)
+  SetChildNode(n, "x", .x - map_offset.x * 20)
+  SetChildNode(n, "y", .y - map_offset.y * 20)
+  SetChildNode(n, "d", .dir)
+  SetChildNode(n, "fr", .frame)
+  'FIXME: xgo and ygo savinging can be enabled after we figure out why they cause tile misalignment
+  'IF .xgo THEN SetChildNode(n, "xgo", .xgo)
+  'IF .ygo THEN SetChildNode(n, "ygo", .ygo)
+  FOR j AS INTEGER = 0 TO 2
+   IF .extra(j) THEN
+    DIM ex AS NodePtr
+    ex = SetChildNode(n, "extra", j)
+    SetChildNode(ex, "int", .extra(j))
+   END IF
+  NEXT
+  IF .ignore_walls THEN SetChildNode(n, "ignore_walls")
+  IF .not_obstruction THEN SetChildNode(n, "not_obstruction")
+  IF .suspend_use THEN SetChildNode(n, "suspend_use")
+  IF .suspend_ai THEN SetChildNode(n, "suspend_move")
+  SetChildNode(n, "edit", 0) 'FIXME: this is a placeholder. Real edits will start with 1
+ END WITH
 END SUB
 
 SUB load_npc_locations (filename AS STRING, npc() AS NPCInst)
@@ -2910,16 +2928,16 @@ SUB load_npc_locations (filename AS STRING, npc() AS NPCInst)
  FreeDocument doc
 END SUB
 
-SUB load_npc_locations (BYVAL npcl_node AS NodePtr, npc() AS NPCInst)
- IF GetString(npcl_node) <> "npcl" THEN
-  debug "WARNING: load_npc_locations expected a node named 'npcl' but found '" & GetString(npcl_node) & "' instead."
+SUB load_npc_locations (BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
+ IF NodeName(npcs_node) <> "npcs" THEN
+  debug "WARNING: load_npc_locations expected a node named 'npcs' but found '" & NodeName(npcs_node) & "' instead."
  END IF
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   WITH npc(i)
    '--disable/hide this NPC by default
    .id = 0
    DIM n AS NodePtr
-   n = NodeByPath(npcl_node, "/npc[" & i & "]")
+   n = NodeByPath(npcs_node, "/npc[" & i & "]")
    IF n THEN
     '--node exists
     IF GetChildNodeExists(n, "id") THEN
@@ -2942,4 +2960,44 @@ SUB load_npc_locations (BYVAL npcl_node AS NodePtr, npc() AS NPCInst)
    END IF
   END WITH
  NEXT i
+END SUB
+
+SUB load_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst)
+ 'Map offset does not need to be used when loading temporary npc states
+ DIM map_offset AS XYPair
+ load_npc_loc n, npc, map_offset
+END SUB
+
+SUB load_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
+ IF NodeName(n) <> "npc" THEN
+  debug "load_npc_loc: loading npc location data into a node named """ & NodeName(n) & """"
+ END IF
+ IF GetChildNodeExists(n, "id") THEN
+  'FIXME: this would be a good place to read the edit count property
+  WITH npc
+   .id = GetChildNodeInt(n, "id") + 1
+   .x = GetChildNodeInt(n, "x") + map_offset.x * 20
+   .y = GetChildNodeInt(n, "y") + map_offset.y * 20
+   .dir = GetChildNodeInt(n, "d")
+   .frame = GetChildNodeInt(n, "fr")
+   'FIXME: xgo and ygo loading can be enabled after we figure out why they cause tile misalignment
+   '.xgo = GetChildNodeInt(n, "xgo")
+   '.ygo = GetChildNodeInt(n, "ygo")
+   DIM ex AS NodePtr
+   ex = FirstChild(n, "extra")
+   WHILE ex
+    DIM exid AS INTEGER = GetInteger(ex)
+    IF exid >= 0 AND exid <= 2 THEN
+     .extra(exid) = GetChildNodeInt(n, "int")
+    ELSE
+     debug "bad npc extra " & exid
+    END IF
+    ex = NextSibling(ex, "extra")
+   WEND
+   .ignore_walls = GetChildNodeExists(n, "ignore_walls")
+   .not_obstruction = GetChildNodeExists(n, "not_obstruction")
+   .suspend_use = GetChildNodeExists(n, "suspend_use")
+   .suspend_ai = GetChildNodeExists(n, "suspend_move")
+  END WITH
+ END IF
 END SUB

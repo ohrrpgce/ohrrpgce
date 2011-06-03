@@ -426,41 +426,19 @@ END SUB
 SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
  DIM node AS NodePtr
  node = GetChildByName(parent, "npcs")
- DIM AS NodePtr n, n2 'used for numbered containers
- DIM AS INTEGER i, extraid
 
  DIM map_offset AS XYPair
  map_offset = load_map_pos_save_offset(map)
 
+ DIM i AS INTEGER
+ DIM n AS NodePtr
  n = FirstChild(node)
  DO WHILE n
   IF NodeName(n) = "npc" THEN
    i = GetInteger(n)
    SELECT CASE i
     CASE 0 TO 299
-     IF GetChildNodeExists(n, "id") THEN
-      npc(i).id = GetChildNodeInt(n, "id") + 1
-      npc(i).x = GetChildNodeInt(n, "x") + map_offset.x * 20
-      npc(i).y = GetChildNodeInt(n, "y") + map_offset.y * 20
-      npc(i).dir = GetChildNodeInt(n, "d")
-      npc(i).frame = GetChildNodeInt(n, "fr")
-      npc(i).xgo = GetChildNodeInt(n, "xgo")
-      npc(i).ygo = GetChildNodeInt(n, "ygo")
-      n2 = FirstChild(n, "extra")
-      WHILE n2
-       extraid = GetInteger(n2)
-       IF extraid >= 0 AND extraid <= 2 THEN
-        npc(i).extra(extraid) = GetChildNodeInt(n, "int")
-       ELSE
-        rsav_warn "bad npc extra " & extraid
-       END IF
-       n2 = NextSibling(n2, "extra")
-      WEND
-      npc(i).ignore_walls = GetChildNodeExists(n, "ignore_walls")
-      npc(i).not_obstruction = GetChildNodeExists(n, "not_obstruction")
-      npc(i).suspend_use = GetChildNodeExists(n, "suspend_use")
-      npc(i).suspend_ai = GetChildNodeExists(n, "suspend_move")
-     END IF
+     load_npc_loc n, npc(i), map_offset
     CASE ELSE
      rsav_warn "invalid npc instance " & i
    END SELECT
@@ -988,31 +966,15 @@ END SUB
 SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGER)
  DIM node AS NodePtr
  node = SetChildNode(parent, "npcs")
- DIM AS NodePtr n, n2 'used for numbered containers
 
  DIM map_offset AS XYPair
  map_offset = load_map_pos_save_offset(map)
 
+ DIM n AS NodePtr
  FOR i AS INTEGER = 0 TO 299
   IF npc(i).id <> 0 ANDALSO NO THEN 'currently disabled for all NPCs
    n = AppendChildNode(node, "npc", i)
-   SetChildNode(n, "id", ABS(npc(i).id) - 1)
-   SetChildNode(n, "x", npc(i).x - map_offset.x * 20)
-   SetChildNode(n, "y", npc(i).y - map_offset.y * 20)
-   SetChildNode(n, "d", npc(i).dir)
-   SetChildNode(n, "fr", npc(i).frame)
-   IF npc(i).xgo THEN SetChildNode(n, "xgo", npc(i).xgo)
-   IF npc(i).ygo THEN SetChildNode(n, "ygo", npc(i).ygo)
-   FOR j AS INTEGER = 0 TO 2
-    IF npc(i).extra(j) THEN
-     n2 = SetChildNode(n, "extra", j)
-     SetChildNode(n2, "int", npc(i).extra(j))
-    END IF
-   NEXT
-   IF npc(i).ignore_walls THEN SetChildNode(n, "ignore_walls")
-   IF npc(i).not_obstruction THEN SetChildNode(n, "not_obstruction")
-   IF npc(i).suspend_use THEN SetChildNode(n, "suspend_use")
-   IF npc(i).suspend_ai THEN SetChildNode(n, "suspend_move")
+   save_npc_loc n, npc(i), map_offset
   END IF
  NEXT i
 END SUB
