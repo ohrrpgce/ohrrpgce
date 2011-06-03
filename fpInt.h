@@ -29,14 +29,14 @@ struct FPInt
 	FPInt operator* (const FPInt& rhs) const {
 		__int64 n = (__int64)raw * (__int64)rhs.raw; 
 		FPInt ret; 
-		ret.raw = (n >> 16) & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
+		ret.raw = (__int32)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
 		return ret;
 	}
 	FPInt operator/ (const FPInt& rhs) const {
 		__int64 n = ((__int64)raw) << 16; //shift first item up by 16 bits
 		n /= (__int64)rhs.raw;
 		FPInt ret;
-		ret.raw = n & 0xffffffff;
+		ret.raw = (__int32)n;// & 0xffffffff;
 		return ret;
 	}
 
@@ -56,13 +56,13 @@ struct FPInt
 	FPInt& operator-= (const FPInt& rhs) {raw -= rhs.raw; return *this;}
 	FPInt& operator*= (const FPInt& rhs) {
 		__int64 n = (__int64)raw * (__int64)rhs.raw; 
-		raw = (n >> 16) & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
+		raw = (__int32)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
 		return *this;
 	}
 	FPInt& operator/= (const FPInt& rhs) {
 		__int64 n = ((__int64)raw) << 16; //shift first item up by 16 bits
 		n /= (__int64)rhs.raw;
-		raw = n & 0xffffffff;
+		raw = (__int32)n;// & 0xffffffff;
 		return *this;
 	}
 

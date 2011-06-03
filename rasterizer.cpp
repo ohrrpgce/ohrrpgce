@@ -71,15 +71,15 @@ void TriRasterizer::calculateRasterPixels(unsigned int row, FPInt minimum, FPInt
 		deltaX = a.x - b.x;
 		deltaY = a.y - b.y;
 
-		if(deltaX == 0) //no slope
-		{
-			xIntercept[i] = a.x;
+		if((deltaY < 0 ? -deltaY : deltaY) > (deltaX < 0 ? -deltaX : deltaX))
+		{//y changes more than x: use y as denominator for slope, etc.
+			slope = deltaX / deltaY;
+			xIntercept[i] = a.x - slope * (a.y-row);
 		}
 		else
-		{
+		{//x changes more than y: use that as denominator for slope, etc.
 			slope = deltaY / deltaX;
 			yIntercept = a.y - slope * a.x;
-
 			if(slope == 0) //0 slope
 			{
 				if(yIntercept == row) //entire row is to be rasterized (line is parallel with this rasterizing line AND overlays it)
@@ -98,11 +98,11 @@ void TriRasterizer::calculateRasterPixels(unsigned int row, FPInt minimum, FPInt
 
 	//figure leftmost and rightmost x-intercepts within the triangle minimum and maximum:
 	//those are the boundaries of the raster line
-	FPInt leftMost(maximum), rightMost(minimum);
+	FPInt leftMost(maximum+1), rightMost(minimum-1);
 	int leftIndex(0), rightIndex(1);
 	for(int i = 0; i < 3; i++)
 	{
-		if(xIntercept[i] >= minimum && xIntercept[i] <= maximum)
+		if(xIntercept[i]/*.whole*/ > (minimum-1/*.whole-1*/) && xIntercept[i]/*.whole*/ < (maximum+1/*.whole+1*/))
 		{
 			if(xIntercept[i] < leftMost)
 			{
@@ -172,23 +172,25 @@ void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, co
 {
 	Color color;
 	FPInt length(range.greatest.pos.x - range.least.pos.x), 
-		  weightFirst;
+		  weightFirst,
+		  weightSecond;
 
 	for(int i = range.least.pos.x; i < range.greatest.pos.x.whole; i++)
 	{
 		weightFirst = (range.greatest.pos.x - i) / length;
+		weightSecond = FPInt(1) - weightFirst;
 
 		if(pSurface->format == SFMT_P8)
 		{
-			color.b = weightFirst * range.least.col.b + (-weightFirst + 1) * range.greatest.col.b;
+			color.b = weightFirst * range.least.col.b + weightSecond * range.greatest.col.b;
 			pSurface->pPaletteData[range.least.pos.y.whole * pSurface->width + i] = (SurfaceData8)color;
 		}
 		else
 		{
-			color.a = weightFirst * range.least.col.a + (-weightFirst + 1) * range.greatest.col.a;
-			color.r = weightFirst * range.least.col.r + (-weightFirst + 1) * range.greatest.col.r;
-			color.g = weightFirst * range.least.col.g + (-weightFirst + 1) * range.greatest.col.g;
-			color.b = weightFirst * range.least.col.b + (-weightFirst + 1) * range.greatest.col.b;
+			color.a = weightFirst * range.least.col.a + weightSecond * range.greatest.col.a;
+			color.r = weightFirst * range.least.col.r + weightSecond * range.greatest.col.r;
+			color.g = weightFirst * range.least.col.g + weightSecond * range.greatest.col.g;
+			color.b = weightFirst * range.least.col.b + weightSecond * range.greatest.col.b;
 			pSurface->pColorData[range.least.pos.y.whole * pSurface->width + i] = (SurfaceData32)color;
 		}
 	}
@@ -198,13 +200,15 @@ void TriRasterizer::rasterTexture(Surface *pSurface, const DrawingRange &range, 
 {
 	TexCoord texel;
 	FPInt length(range.greatest.pos.x - range.least.pos.x), 
-		  weightFirst;
+		  weightFirst,
+		  weightSecond;
 
 	for(int i = range.least.pos.x; i < range.greatest.pos.x.whole; i++)
 	{
 		weightFirst = (range.greatest.pos.x - i) / length;
-		texel.u = weightFirst * range.least.tex.u + (-weightFirst + 1) * range.greatest.tex.u;
-		texel.v = weightFirst * range.least.tex.v + (-weightFirst + 1) * range.greatest.tex.v;
+		weightSecond = FPInt(1) - weightFirst;
+		texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
+		texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
 
 		if(pSurface->format == SFMT_P8)
 		{
@@ -223,13 +227,15 @@ void TriRasterizer::rasterTextureColor(Surface *pSurface, const DrawingRange &ra
 	Color texelColor;
 	Color color;
 	FPInt length(range.greatest.pos.x - range.least.pos.x), 
-		  weightFirst;
+		  weightFirst,
+		  weightSecond;
 
 	for(int i = range.least.pos.x; i < range.greatest.pos.x.whole; i++)
 	{
 		weightFirst = (range.greatest.pos.x - i) / length;
-		texel.u = weightFirst * range.least.tex.u + (-weightFirst + 1) * range.greatest.tex.u;
-		texel.v = weightFirst * range.least.tex.v + (-weightFirst + 1) * range.greatest.tex.v;
+		weightSecond = FPInt(1) - weightFirst;
+		texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
+		texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
 
 		if(pSurface->format == SFMT_P8) //no point for palettes to be affected by color weights
 		{
@@ -238,10 +244,10 @@ void TriRasterizer::rasterTextureColor(Surface *pSurface, const DrawingRange &ra
 		else
 		{
 			texelColor = m_sampler.sample(pTexture, texel.u, texel.v);
-			color.a = ((weightFirst * range.least.col.a + (-weightFirst + 1) * range.greatest.col.a).whole * texelColor.a) >> 8;
-			color.r = ((weightFirst * range.least.col.r + (-weightFirst + 1) * range.greatest.col.r).whole * texelColor.r) >> 8;
-			color.g = ((weightFirst * range.least.col.g + (-weightFirst + 1) * range.greatest.col.g).whole * texelColor.g) >> 8;
-			color.b = ((weightFirst * range.least.col.b + (-weightFirst + 1) * range.greatest.col.b).whole * texelColor.b) >> 8;
+			color.a = ((weightFirst * range.least.col.a + weightSecond * range.greatest.col.a).whole * texelColor.a) >> 8;
+			color.r = ((weightFirst * range.least.col.r + weightSecond * range.greatest.col.r).whole * texelColor.r) >> 8;
+			color.g = ((weightFirst * range.least.col.g + weightSecond * range.greatest.col.g).whole * texelColor.g) >> 8;
+			color.b = ((weightFirst * range.least.col.b + weightSecond * range.greatest.col.b).whole * texelColor.b) >> 8;
 			pSurface->pColorData[range.least.pos.y.whole * pSurface->width + i] = (SurfaceData32)color;
 		}
 	}
