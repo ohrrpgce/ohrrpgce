@@ -974,7 +974,7 @@ SUB gamestate_npcs_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTEGE
  FOR i AS INTEGER = 0 TO 299
   IF npc(i).id <> 0 ANDALSO NO THEN 'currently disabled for all NPCs
    n = AppendChildNode(node, "npc", i)
-   save_npc_loc n, npc(i), map_offset
+   save_npc_loc n, i, npc(i), map_offset
   END IF
  NEXT i
 END SUB

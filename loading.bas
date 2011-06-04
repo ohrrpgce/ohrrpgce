@@ -2869,24 +2869,21 @@ SUB save_npc_locations(BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   WITH npc(i)
    IF .id <> 0 THEN 'FIXME: When the "save" node is fully supported it will be main the criteria that determines if a node is written
-    DIM n AS NodePtr
-    n = AppendChildNode(npcs_node, "npc", i)
-    save_npc_loc n, npc(i)
+    save_npc_loc npcs_node, i, npc(i)
    END IF
   END WITH  
  NEXT i
 END SUB
 
-SUB save_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst)
+SUB save_npc_loc (BYVAL parent AS NodePtr, BYVAL index AS integer, npc AS NPCInst)
  'Map offset does not need to be used when saving temporary npc states
  DIM map_offset AS XYPair
- save_npc_loc n, npc, map_offset
+ save_npc_loc parent, index, npc, map_offset
 END SUB
 
-SUB save_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
- IF NodeName(n) <> "npc" THEN
-  debug "save_npc_loc: saving npc location data into a node named """ & NodeName(n) & """"
- END IF
+SUB save_npc_loc (BYVAL parent AS NodePtr, BYVAL index AS integer, npc AS NPCInst, map_offset AS XYPair)
+ DIM n AS NodePtr
+ n = AppendChildNode(parent, "npc", index)
  WITH npc
   SetChildNode(n, "id", ABS(.id) - 1)
   SetChildNode(n, "x", .x - map_offset.x * 20)
@@ -2898,7 +2895,7 @@ SUB save_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
   FOR j AS INTEGER = 0 TO 2
    IF .extra(j) THEN
     DIM ex AS NodePtr
-    ex = SetChildNode(n, "extra", j)
+    ex = AppendChildNode(n, "extra", j)
     SetChildNode(ex, "int", .extra(j))
    END IF
   NEXT
@@ -2964,6 +2961,7 @@ SUB load_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
    .frame = GetChildNodeInt(n, "fr")
    .xgo = GetChildNodeInt(n, "xgo")
    .ygo = GetChildNodeInt(n, "ygo")
+   flusharray .extra()
    DIM ex AS NodePtr
    ex = FirstChild(n, "extra")
    WHILE ex
@@ -2980,5 +2978,7 @@ SUB load_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
    .suspend_use = GetChildNodeExists(n, "suspend_use")
    .suspend_ai = GetChildNodeExists(n, "suspend_move")
   END WITH
+ ELSE
+  npc.id = 0
  END IF
 END SUB
