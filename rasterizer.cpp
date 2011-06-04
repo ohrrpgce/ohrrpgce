@@ -173,7 +173,7 @@ void TriRasterizer::calculateRasterPixels(unsigned int row, FPInt minimum, FPInt
 void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, const Triangle *pTriangle)
 {
 	Color color;
-	FPInt length(range.greatest.pos.x - range.least.pos.x), 
+	FPInt length(range.greatest.pos.x - range.least.pos.x+1), 
 		  weightFirst,
 		  weightSecond;
 
@@ -182,7 +182,7 @@ void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, co
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
 	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
 
-	for(int i = start; i < finish; i++)
+	for(int i = start; i <= finish; i++)
 	{
 		weightFirst = (range.greatest.pos.x - i) / length;
 		weightSecond = FPInt(1) - weightFirst;
@@ -206,7 +206,7 @@ void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, co
 void TriRasterizer::rasterTexture(Surface *pSurface, const DrawingRange &range, const Triangle *pTriangle, const Surface *pTexture)
 {
 	TexCoord texel;
-	FPInt length(range.greatest.pos.x - range.least.pos.x), 
+	FPInt length(range.greatest.pos.x - range.least.pos.x+1), 
 		  weightFirst,
 		  weightSecond;
 
@@ -215,7 +215,7 @@ void TriRasterizer::rasterTexture(Surface *pSurface, const DrawingRange &range, 
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
 	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
 
-	for(int i = start; i < finish; i++)
+	for(int i = start; i <= finish; i++)
 	{
 		weightFirst = (range.greatest.pos.x - i) / length;
 		weightSecond = FPInt(1) - weightFirst;
@@ -238,7 +238,7 @@ void TriRasterizer::rasterTextureColor(Surface *pSurface, const DrawingRange &ra
 	TexCoord texel;
 	Color texelColor;
 	Color color;
-	FPInt length(range.greatest.pos.x - range.least.pos.x), 
+	FPInt length(range.greatest.pos.x - range.least.pos.x+1), 
 		  weightFirst,
 		  weightSecond;
 
@@ -247,7 +247,7 @@ void TriRasterizer::rasterTextureColor(Surface *pSurface, const DrawingRange &ra
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
 	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
 
-	for(int i = start; i < finish; i++)
+	for(int i = start; i <= finish; i++)
 	{
 		weightFirst = (range.greatest.pos.x - i) / length;
 		weightSecond = FPInt(1) - weightFirst;
@@ -280,7 +280,7 @@ void TriRasterizer::drawTest(Surface* pSurface, const Triangle* pTriangle, const
 	calculateTriangleRect(clip, pTriangle);
 	if(clip.top < 0) clip.top = 0;
 	if(clip.bottom >= pSurface->height) clip.bottom = pSurface->height-1;
-	for(int row = clip.top.whole; row < clip.bottom.whole; row++)
+	for(int row = clip.top.whole; row <= clip.bottom.whole; row++)
 		calculateRasterPixels(row, clip.left, clip.right, pSurface, pTriangle);
 
 	//rasterize the polygon
@@ -288,7 +288,12 @@ void TriRasterizer::drawTest(Surface* pSurface, const Triangle* pTriangle, const
 	{
 		while(!m_rasterLines.empty())
 		{
-			for(int i = m_rasterLines.front().least.pos.x.whole; i < m_rasterLines.front().greatest.pos.x.whole; i++)
+			int start = 0, finish = 0;
+
+			start = (m_rasterLines.front().least.pos.x < 0 ? 0 : m_rasterLines.front().least.pos.x);
+			finish = (m_rasterLines.front().greatest.pos.x >= pSurface->width ? pSurface->width-1 : m_rasterLines.front().greatest.pos.x);
+
+			for(int i = start; i <= finish; i++)
 			{
 				pSurface->pPaletteData[m_rasterLines.front().least.pos.y.whole * pSurface->width + i] = (SurfaceData8)col;
 				m_rasterLines.pop();
@@ -299,7 +304,12 @@ void TriRasterizer::drawTest(Surface* pSurface, const Triangle* pTriangle, const
 	{
 		while(!m_rasterLines.empty())
 		{
-			for(int i = m_rasterLines.front().least.pos.x.whole; i < m_rasterLines.front().greatest.pos.x.whole; i++)
+			int start = 0, finish = 0;
+
+			start = (m_rasterLines.front().least.pos.x < 0 ? 0 : m_rasterLines.front().least.pos.x);
+			finish = (m_rasterLines.front().greatest.pos.x >= pSurface->width ? pSurface->width-1 : m_rasterLines.front().greatest.pos.x);
+
+			for(int i = start; i <= finish; i++)
 			{
 				pSurface->pColorData[m_rasterLines.front().least.pos.y.whole * pSurface->width + i] = (SurfaceData32)col;
 			}
@@ -319,7 +329,7 @@ void TriRasterizer::drawColor(Surface *pSurface, const Triangle *pTriangle)
 	if(clip.top < 0) clip.top = 0;
 	if(clip.bottom >= pSurface->height) clip.bottom = pSurface->height-1;
 
-	for(int row = clip.top.whole; row < clip.bottom.whole; row++)
+	for(int row = clip.top.whole; row <= clip.bottom.whole; row++)
 		calculateRasterPixels(row, clip.left, clip.right, pSurface, pTriangle);
 
 	//rasterize the polygon
@@ -340,7 +350,7 @@ void TriRasterizer::drawTexture(Surface *pSurface, const Triangle *pTriangle, co
 	calculateTriangleRect(clip, pTriangle);
 	if(clip.top < 0) clip.top = 0;
 	if(clip.bottom >= pSurface->height) clip.bottom = pSurface->height-1;
-	for(int row = clip.top.whole; row < clip.bottom.whole; row++)
+	for(int row = clip.top.whole; row <= clip.bottom.whole; row++)
 		calculateRasterPixels(row, clip.left, clip.right, pSurface, pTriangle);
 
 	//rasterize the polygon
@@ -361,7 +371,7 @@ void TriRasterizer::drawTextureColor(Surface *pSurface, const Triangle *pTriangl
 	calculateTriangleRect(clip, pTriangle);
 	if(clip.top < 0) clip.top = 0;
 	if(clip.bottom >= pSurface->height) clip.bottom = pSurface->height-1;
-	for(int row = clip.top.whole; row < clip.bottom.whole; row++)
+	for(int row = clip.top.whole; row <= clip.bottom.whole; row++)
 		calculateRasterPixels(row, clip.left, clip.right, pSurface, pTriangle);
 
 	//rasterize the polygon
