@@ -20,6 +20,7 @@ WHAT IS NEW?
     * "wait for slice" command to make the script wait for slice
       movement [James]
     * New "Ellipse" slice type, and related commands [James, Ralph]
+    * "NPCstat: default movement zone" constant for "read/alter npc"
 
   * Vikings of Midgard
 

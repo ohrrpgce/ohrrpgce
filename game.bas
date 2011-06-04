@@ -1580,10 +1580,10 @@ WITH scrat(nowscript)
    CASE 77'--show value
     scriptout$ = STR$(retvals(0))
    CASE 78'--alter NPC
-    IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
+    IF bound_arg(retvals(1), 0, 15, "NPCstat: constant") THEN
      IF retvals(0) < 0 AND retvals(0) >= -300 THEN retvals(0) = ABS(npc(ABS(retvals(0) + 1)).id) - 1
      'Note that an NPC may be marked hidden because it has an invalid ID. What kind of error to throw?
-     IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
+     IF bound_arg(retvals(0), 0, UBOUND(npcs), "NPC type ID") THEN
       DIM AS INTEGER writesafe = 1
       IF retvals(1) = 0 THEN
        IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
