@@ -1108,7 +1108,6 @@ SUB update_walkabout_npc_slices()
    IF npc(i).sl <> 0 THEN
     debug "Sloppy housekeeping: delete npc sl " & i & " [update_walkabout_npc_slices]"
     DeleteSlice @npc(i).sl
-    npc(i).sl = 0
    END IF
   END IF
  NEXT i
@@ -2795,13 +2794,9 @@ SUB reset_game_state ()
  gam.mouse_enabled = NO
  
  'If we are resetting, the old slices will have already been destroyed
- 'by cleanup_game_slices() so we just re-assign gam.caterp() and npcls()
+ 'by cleanup_game_slices() so we just re-assign gam.caterp()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
   gam.caterp(i) = create_walkabout_slices(SliceTable.HeroLayer)
- NEXT i
- FOR i AS INTEGER = 0 TO UBOUND(npc)
-  'Zero these out. They will be created on-the-fly as needed.
-  npc(i).sl = 0
  NEXT i
 END SUB
 

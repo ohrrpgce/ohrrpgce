@@ -605,7 +605,6 @@ SUB visnpc()
    IF npc(i).sl <> 0 THEN
     'debug "delete npc sl " & i & " [visnpc]"
     DeleteSlice @npc(i).sl
-    npc(i).sl = 0
    END IF
   END IF
 
@@ -2993,7 +2992,6 @@ SELECT CASE AS CONST id
    IF npc(npcref).sl <> 0 THEN
     'debug "delete npc sl " & npcref & "[destroy npc(" & retvals(0) & ")]"
     DeleteSlice @npc(npcref).sl
-    npc(npcref).sl = 0
    END IF
   END IF
  CASE 165'--NPC at pixel

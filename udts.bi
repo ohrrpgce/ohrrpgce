@@ -5,7 +5,7 @@
 #INCLUDE "util.bi"
 
 'Forward declarations
-TYPE Slice_ AS Slice
+TYPE SliceFwd AS Slice
 
 UNION XYPair
   TYPE
@@ -269,7 +269,7 @@ END TYPE
 
 'Don't forget to update CleanNPCL and savegame.bas when adding to this
 TYPE NPCInst
-  sl AS Slice_ Ptr
+  sl AS SliceFwd Ptr
   '--stored values
   x as integer      'npcl+0
   y as integer      'npcl+300

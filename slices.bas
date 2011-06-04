@@ -177,7 +177,6 @@ Sub SetupMapSlices(byval to_max as integer)
  SliceTable.NPCLayer->AutoSort = slAutoSortCustom
 End Sub
 
-
 Sub DestroyGameSlices (Byval dumpdebug AS INTEGER=0)
 
  DeleteSlice(@SliceTable.Root, ABS(SGN(dumpdebug)))
