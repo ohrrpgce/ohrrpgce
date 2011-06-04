@@ -40,6 +40,8 @@ git = ARGUMENTS.get ('git','git')
 if 'debug' in ARGUMENTS:
     C_opt = not int (ARGUMENTS['debug'])
     FB_exx = int (ARGUMENTS['debug'])
+if 'profile' in ARGUMENTS:
+    FBFLAGS.append ('-profile')
 if ARGUMENTS.get ('valgrind', 0):
     #-exx under valgrind is nearly redundant, and really slow
     FB_exx = False
@@ -284,6 +286,7 @@ Options:
   debug=0|1           Debugging build: with -exx and without optimisation.
                       Set to 0 to force building without -exx.
   valgrind=1          valgrinding build.
+  profile=1           Profiling build for gprof
   fbc=PATH            Override fbc.
   svn=PATH            Override svn.
   git=PATH            Override git.
