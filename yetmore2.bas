@@ -511,8 +511,8 @@ SUB reloadnpc ()
     debug "reloadnpc: ignore npc " & i & " because npc def " & npc_id & " is out of range (>" & UBOUND(npcs) & ")"
    ELSE
     'Update/load sprite
-    set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
-    set_walkabout_vis npcsl(i), (npc(i).id > 0)
+    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
+    set_walkabout_vis npc(i).sl, (npc(i).id > 0)
    END IF
   END IF
  NEXT i

@@ -120,7 +120,6 @@ DIM gold
 
 DIM npcs(0) as NPCType
 DIM npc(299) as NPCInst
-DIM npcsl(299) as Slice Ptr
 
 DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, speedcontrol, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
 DIM err_suppress_lvl
@@ -1092,24 +1091,24 @@ SUB update_walkabout_npc_slices()
    IF vstate.active AND vstate.npc = i THEN
     '--This NPC is a currently active vehicle, so lets do some extra voodoo.
     z = catz(0) 'use lead hero's z value
-    IF npcsl(i) <> 0 THEN
-     shadow = LookupSlice(SL_WALKABOUT_SHADOW_COMPONENT, npcsl(i))
+    IF npc(i).sl <> 0 THEN
+     shadow = LookupSlice(SL_WALKABOUT_SHADOW_COMPONENT, npc(i).sl)
      IF shadow <> 0 THEN
       shadow->Visible = (z > 0 ANDALSO vstate.dat.disable_flying_shadow = NO)
      END IF
     END IF
    END IF
-   update_walkabout_pos npcsl(i), npc(i).x, npc(i).y, z
-   IF npcsl(i) <> 0 THEN
+   update_walkabout_pos npc(i).sl, npc(i).x, npc(i).y, z
+   IF npc(i).sl <> 0 THEN
     '--default NPC sort is by instance id
-    npcsl(i)->Sorter = i
+    npc(i).sl->Sorter = i
    END IF
   ELSEIF npc(i).id < 0 THEN
    '--remove unused and hidden NPC slices
-   IF npcsl(i) <> 0 THEN
+   IF npc(i).sl <> 0 THEN
     debug "Sloppy housekeeping: delete npc sl " & i & " [update_walkabout_npc_slices]"
-    DeleteSlice @npcsl(i)
-    npcsl(i) = 0
+    DeleteSlice @npc(i).sl
+    npc(i).sl = 0
    END IF
   END IF
  NEXT i
@@ -1117,7 +1116,7 @@ SUB update_walkabout_npc_slices()
  '--now apply sprite frame changes
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF npc(i).id > 0 THEN '-- if visible
-   set_walkabout_frame npcsl(i), npc(i).dir * 2 + npc(i).frame \ 2
+   set_walkabout_frame npc(i).sl, npc(i).dir * 2 + npc(i).frame \ 2
   END IF
  NEXT i
 
@@ -2800,9 +2799,9 @@ SUB reset_game_state ()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
   gam.caterp(i) = create_walkabout_slices(SliceTable.HeroLayer)
  NEXT i
- FOR i AS INTEGER = 0 TO UBOUND(npcsl)
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
   'Zero these out. They will be created on-the-fly as needed.
-  npcsl(i) = 0
+  npc(i).sl = 0
  NEXT i
 END SUB
 
@@ -3186,7 +3185,7 @@ SUB recreate_map_slices()
  'they will all be freed. (and we must do this unconditionally, even if
  'the preference for recreating map slices is turned OFF)
  FOR i AS INTEGER = 0 TO UBOUND(npc)
-  DeleteSlice @npcsl(i)
+  DeleteSlice @npc(i).sl
  NEXT i
   
  IF readbit(gen(), genBits2, 11) <> 0 THEN
@@ -3412,7 +3411,7 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
    herospeed(0) = 10
    vstate.mounting = YES '--trigger mounting sequence
    IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 1
-   create_walkabout_shadow npcsl(vstate.npc)
+   create_walkabout_shadow npc(vstate.npc).sl
   END IF
  END IF
  IF npcs(id).textbox > 0 THEN
@@ -3490,7 +3489,7 @@ SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF npc(i).id - 1 = npc_id THEN
    'found a match!
-   set_walkabout_sprite npcsl(i), walkabout_sprite_id
+   set_walkabout_sprite npc(i).sl, walkabout_sprite_id
   END IF 
  NEXT i
 END SUB
@@ -3503,7 +3502,7 @@ SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF npc(i).id - 1 = npc_id THEN
    'found a match!
-   set_walkabout_sprite npcsl(i), , palette_id
+   set_walkabout_sprite npc(i).sl, , palette_id
   END IF 
  NEXT i
 END SUB
@@ -3541,8 +3540,8 @@ SUB cleanup_game_slices ()
  FOR i AS INTEGER = 0 TO UBOUND(gam.caterp)
   DeleteSlice @gam.caterp(i)
  NEXT i
- FOR i AS INTEGER = 0 TO UBOUND(npcsl)
-  DeleteSlice @npcsl(i)
+ FOR i AS INTEGER = 0 TO UBOUND(npc)
+  DeleteSlice @npc(i).sl
  NEXT i
  DestroyGameSlices
 END SUB

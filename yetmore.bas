@@ -594,18 +594,18 @@ SUB visnpc()
   
   IF npc(i).id > 0 THEN
    '--NPC exists and is visible
-   IF npcsl(i) = 0 THEN
-    npcsl(i) = create_walkabout_slices(SliceTable.NPCLayer)
-    'debug "npcsl(" & i & ")=" & npcsl(i) & " [visnpc]"
+   IF npc(i).sl = 0 THEN
+    npc(i).sl = create_walkabout_slices(SliceTable.NPCLayer)
+    'debug "npc(" & i & ").sl=" & npc(i).sl & " [visnpc]"
    END IF
    '--set sprite
-   set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
+   set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
   ELSE
    '--nonexistent or hidden
-   IF npcsl(i) <> 0 THEN
+   IF npc(i).sl <> 0 THEN
     'debug "delete npc sl " & i & " [visnpc]"
-    DeleteSlice @npcsl(i)
-    npcsl(i) = 0
+    DeleteSlice @npc(i).sl
+    npc(i).sl = 0
    END IF
   END IF
 
@@ -2975,14 +2975,14 @@ SELECT CASE AS CONST id
     npc(i).x = retvals(1) * 20
     npc(i).y = retvals(2) * 20
     npc(i).dir = ABS(retvals(3)) MOD 4
-    IF npcsl(i) <> 0 THEN
+    IF npc(i).sl <> 0 THEN
      'debug "delete npc sl " & i & "[create npc(" & retvals(0) & ")]"
-     DeleteSlice @npcsl(i)
+     DeleteSlice @npc(i).sl
     END IF
-    npcsl(i) = create_walkabout_slices(SliceTable.NPCLayer)
-    set_walkabout_sprite npcsl(i), npcs(npc_id).picture, npcs(npc_id).palette
-    set_walkabout_vis npcsl(i), YES
-    'debug "npcsl(" & i & ")=" & npcsl(i) & " [create npc(" & retvals(0) & ")]"
+    npc(i).sl = create_walkabout_slices(SliceTable.NPCLayer)
+    set_walkabout_sprite npc(i).sl, npcs(npc_id).picture, npcs(npc_id).palette
+    set_walkabout_vis npc(i).sl, YES
+    'debug "npc(" & i & ").sl=" & npc(i).sl & " [create npc(" & retvals(0) & ")]"
     scriptret = (i + 1) * -1
    END IF
   END IF
@@ -2990,10 +2990,10 @@ SELECT CASE AS CONST id
   npcref = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    npc(npcref).id = 0
-   IF npcsl(npcref) <> 0 THEN
+   IF npc(npcref).sl <> 0 THEN
     'debug "delete npc sl " & npcref & "[destroy npc(" & retvals(0) & ")]"
-    DeleteSlice @npcsl(npcref)
-    npcsl(npcref) = 0
+    DeleteSlice @npc(npcref).sl
+    npc(npcref).sl = 0
    END IF
   END IF
  CASE 165'--NPC at pixel
@@ -3206,7 +3206,7 @@ IF vstate.trigger_cleanup THEN '--clear
  IF herospeed(0) = 3 THEN herospeed(0) = 10
  npc(vstate.npc).xgo = 0
  npc(vstate.npc).ygo = 0
- delete_walkabout_shadow npcsl(vstate.npc)
+ delete_walkabout_shadow npc(vstate.npc).sl
  '--clear vehicle
  reset_vehicle vstate
  FOR i = 0 TO 15   'Why is this duplicated from dismounting?
