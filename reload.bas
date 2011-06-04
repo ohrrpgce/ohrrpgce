@@ -559,8 +559,6 @@ Function AddStringToTable(st as string, byval doc as DocPtr) as integer
 	
 	doc->numStrings += 1
 	
-	
-	
 	return doc->numStrings - 1
 end function
 
@@ -570,13 +568,13 @@ Declare sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byva
 sub SerializeBin(file as string, byval doc as DocPtr)
 	if doc = null then exit sub
 	
-	dim f as BufferedFile ptr
-	
+	RemoveProvisionalNodes(doc->root)
 	'BuildStringTable(doc->root, doc)
 
 	'In case things go wrong, we serialize to a temporary file first
 	safekill file & ".tmp"
 	
+	dim f as BufferedFile ptr
 	f = Buffered_open(file & ".tmp")
 	
 	if f = NULL then
@@ -709,6 +707,36 @@ sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as
 	Buffered_seek(f, siz)
 	Buffered_write(f, @dif, 4)
 	Buffered_seek(f, here2)
+end sub
+
+'For each provisional node in the given subtree:
+'delete if they have no values or children, or unmark as provisional otherwise
+sub RemoveProvisionalNodes(byval nod as NodePtr)
+	if nod = null then exit sub
+	if nod->flags AND nfProvisional then
+		if nod->numChildren = 0 and nod->nodeType = rltNull then
+			FreeNode(nod)
+			exit sub
+		else
+			nod->flags AND= NOT nfProvisional
+		end if
+	end if
+
+	dim as NodePtr n, nextn
+	n = nod->children
+	do while n <> null
+		nextn = n->nextSib
+		RemoveProvisionalNodes(n)
+		n = nextn
+	loop
+end sub
+
+sub MarkProvisional(byval nod as NodePtr)
+	if nod = NULL then
+		debug "MarkProvisional null node ptr"
+		exit sub
+	end if
+	nod->flags OR= nfProvisional
 end sub
 
 'this private function checks to see if a node is part of a tree, for example before adding to a new parent

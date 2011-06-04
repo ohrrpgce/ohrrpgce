@@ -371,6 +371,28 @@ startTest(testNodeByPath)
 	if GetInteger(nod1) <> 100 then fail
 endTest
 
+startTest(testProvisional)
+	dim nod1 as NodePtr
+	dim root as NodePtr = DocumentRoot(doc)
+	dim numtoplevel as integer = NumChildren(root)
+	MarkProvisional(FirstChild(root, "party"))
+	nod1 = NodeByPath(doc, "/party/slot[3]/stats")
+	MarkProvisional(nod1)
+	nod1 = AppendChildNode(root, "prov1")
+	MarkProvisional(nod1)
+	RemoveProvisionalNodes(root)
+	if NumChildren(root) <> numtoplevel then fail
+	nod1 = AppendChildNode(root, "was_prov1", 3.141)
+	MarkProvisional(nod1)
+	nod1 = AppendChildNode(root, "was_prov2")
+	AppendChildNode(nod1, "")
+	MarkProvisional(nod1)
+	nod1 = AppendChildNode(root, "prov2")
+	MarkProvisional(nod1)
+	RemoveProvisionalNodes(root)
+	if NumChildren(root) <> numtoplevel + 2 then fail
+endTest
+
 startTest(testNodesIteration)
 	dim iterdoc as Docptr
 	iterdoc = CreateDocument()

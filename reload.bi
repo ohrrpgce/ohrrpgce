@@ -75,7 +75,8 @@ TYPE NodePtr as Node ptr
 	END TYPE
 	
 	ENUM NodeFlags
-		nfNotLoaded = 1
+		nfNotLoaded = 1   'Children of this node haven't been loaded. NOTE: numChildren has real value!
+		nfProvisional = 2 'When saving, ignore this node if null type and has no children
 	END ENUM
 	
 	TYPE Node
@@ -115,6 +116,8 @@ Declare Function CreateNode(byval nod as NodePtr, nam as string) as NodePtr
 Declare sub FreeNode(byval nod as NodePtr, byval options as integer = 0) 'don't use options.
 Declare sub FreeDocument(byval doc as DocPtr)
 Declare sub RenameNode(byval nod as NodePtr, newname as string)
+Declare sub RemoveProvisionalNodes(byval nod as NodePtr)
+Declare sub MarkProvisional(byval nod as NodePtr)
 Declare sub SetContent Overload (byval nod as NodePtr, dat as string)
 Declare sub SetContent(byval nod as NodePtr, byval zstr as zstring ptr, byval size as integer)
 Declare sub SetContent(byval nod as NodePtr, byval dat as longint)
