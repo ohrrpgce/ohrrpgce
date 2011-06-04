@@ -33,7 +33,6 @@ declare sub CleanNPCD(dat() as NPCType)
 
 declare sub LoadNPCL(file as string, dat() as npcinst)
 declare sub SaveNPCL(file as string, dat() as npcinst)
-declare sub SerNPCL(npc() as npcinst, z as integer, buffer() as integer, num as integer, xoffset as integer, yoffset as integer)
 declare sub DeserNPCL(npc() as npcinst, z as integer, buffer() as integer, num as integer, xoffset as integer, yoffset as integer)
 declare sub CleanNPCInst(inst as NPCInst)
 declare sub CleanNPCL(dat() as npcinst, byval num as integer=-1)
