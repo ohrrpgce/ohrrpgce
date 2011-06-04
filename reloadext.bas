@@ -118,32 +118,32 @@ Function NodeByPath(byval node AS NodePtr, path as string) as NodePtr
 		return null
 	end if
 	
-	dim remainder as string = ""
+	dim remainder as string
 	dim segment as string
-	segment = mid(path, 2)
 	dim sep_pos as integer
-	sep_pos = instr(segment, "/")
+	sep_pos = instr(2, path, "/")
 	if sep_pos then
-		segment = mid(segment, 1, sep_pos - 1)
-		remainder = mid(path, len(segment) + 2)
+		segment = mid(path, 2, sep_pos - 1)
+		remainder = mid(path, sep_pos + 1)
+	else
+		segment = mid(path, 2)
 	end if
 
 	dim index as integer = 0
-	dim use_index as integer = 0
-	dim index_str as string
+	dim use_index as integer = NO
 
 	sep_pos = instr(segment, "[")
 	if sep_pos then
 	
 		dim end_pos as integer
 		end_pos = instr(segment, "]")
-		if end_pos = 0 then
+		if end_pos = 0 orelse end_pos <> len(segment) then
 			debug "malformed path index " & segment
 			return null
 		end if
 		
-		index_str = mid(segment, sep_pos + 1, len(segment) - sep_pos - 1 )
-		index = valint(index_str)
+		dim index_str as string = mid(segment, sep_pos + 1, len(segment) - sep_pos - 1)
+		index = str2int(index_str)
 		if str(index) <> index_str then
 			debug "malformed path index " & segment
 			return null
@@ -151,21 +151,16 @@ Function NodeByPath(byval node AS NodePtr, path as string) as NodePtr
 		
 		segment = mid(segment, 1, sep_pos - 1)
 		
-		use_index = -1
+		use_index = YES
 	end if
 
 	dim child as NodePtr
 	
 	if use_index then
-		child = FirstChild(node)
+		child = FirstChild(node, segment)
 		do while child
-			if NodeName(child) = segment then
-				'found a name match
-				if GetInteger(child) = index then
-					exit do
-				end if
-			end if
-			child = NextSibling(child)
+			if GetInteger(child) = index then exit do
+			child = NextSibling(child, segment)
 		loop
 		if child = null then return null
 	else
