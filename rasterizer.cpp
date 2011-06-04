@@ -158,7 +158,7 @@ void TriRasterizer::calculateRasterPixels(unsigned int row, FPInt minimum, FPInt
 	if(leftBoundary.pos.x < 0)
 	{
 		scale = leftBoundary.pos.x / (leftBoundary.pos.x - rightBoundary.pos.x);
-		interpolateVertices(leftBoundary, leftBoundary, rightBoundary, scale);
+		interpolateVertices(leftBoundary, leftBoundary, rightBoundary, -scale+1);
 	}
 	if(rightBoundary.pos.x >= pSurface->width)
 	{
@@ -177,7 +177,12 @@ void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, co
 		  weightFirst,
 		  weightSecond;
 
-	for(int i = range.least.pos.x; i < range.greatest.pos.x.whole; i++)
+	int start = 0, finish = 0;
+
+	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
+	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
+
+	for(int i = start; i < finish; i++)
 	{
 		weightFirst = (range.greatest.pos.x - i) / length;
 		weightSecond = FPInt(1) - weightFirst;
@@ -205,7 +210,12 @@ void TriRasterizer::rasterTexture(Surface *pSurface, const DrawingRange &range, 
 		  weightFirst,
 		  weightSecond;
 
-	for(int i = range.least.pos.x; i < range.greatest.pos.x.whole; i++)
+	int start = 0, finish = 0;
+
+	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
+	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
+
+	for(int i = start; i < finish; i++)
 	{
 		weightFirst = (range.greatest.pos.x - i) / length;
 		weightSecond = FPInt(1) - weightFirst;
@@ -232,7 +242,12 @@ void TriRasterizer::rasterTextureColor(Surface *pSurface, const DrawingRange &ra
 		  weightFirst,
 		  weightSecond;
 
-	for(int i = range.least.pos.x; i < range.greatest.pos.x.whole; i++)
+	int start = 0, finish = 0;
+
+	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
+	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
+
+	for(int i = start; i < finish; i++)
 	{
 		weightFirst = (range.greatest.pos.x - i) / length;
 		weightSecond = FPInt(1) - weightFirst;
