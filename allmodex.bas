@@ -1585,10 +1585,11 @@ SUB ellipse (BYVAL fr as Frame ptr, BYVAL x as double, BYVAL y as double, BYVAL 
 
 	dim as integer xstart = 999999999, xend = -999999999, lastxstart = 999999999, lastxend = -999999999, xs, yi, ys, maxr = large(radius, semiminor) + 1
 
-	for yi = large(clipb + 1, maxr) to small(clipt - 1, -maxr) step -1
+	for yi = maxr to -maxr step -1
 		'Note yi is cartesian coordinates, with the centre of the ellipsis at the origin, NOT screen coordinates!
 		'xs, ys are in screen coordinates
 		ys = int(y) - yi
+		if ys < clipt - 1 or ys > clipb + 1 then continue for
 
 		'Fix y (scanline) and solve for x using quadratic formula (coefficients:)
 		dim as double qf_a, qf_b, qf_c
