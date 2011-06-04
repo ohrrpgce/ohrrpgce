@@ -102,7 +102,7 @@ void TriRasterizer::calculateRasterPixels(unsigned int row, FPInt minimum, FPInt
 	int leftIndex(0), rightIndex(1);
 	for(int i = 0; i < 3; i++)
 	{
-		if(xIntercept[i]/*.whole*/ > (minimum-1/*.whole-1*/) && xIntercept[i]/*.whole*/ < (maximum+1/*.whole+1*/))
+		if(xIntercept[i]/*.whole*/ >= (minimum-1/*.whole-1*/) && xIntercept[i]/*.whole*/ <= (maximum+1/*.whole+1*/))
 		{
 			if(xIntercept[i] < leftMost)
 			{
@@ -134,6 +134,7 @@ void TriRasterizer::calculateRasterPixels(unsigned int row, FPInt minimum, FPInt
 	}
 
 	interpolateVertices(leftBoundary, pTriangle->pnt[leftIndex], pTriangle->pnt[(leftIndex+1)%3], scale);
+	leftBoundary.pos.y = row;
 
 	deltaX = pTriangle->pnt[rightIndex].pos.x - pTriangle->pnt[(rightIndex+1)%3].pos.x;
 	deltaY = pTriangle->pnt[rightIndex].pos.y - pTriangle->pnt[(rightIndex+1)%3].pos.y;
@@ -148,6 +149,7 @@ void TriRasterizer::calculateRasterPixels(unsigned int row, FPInt minimum, FPInt
 	}
 
 	interpolateVertices(rightBoundary, pTriangle->pnt[rightIndex], pTriangle->pnt[(rightIndex+1)%3], scale);
+	rightBoundary.pos.y = row;
 
 	//perform clipping interpolation
 	if(leftBoundary.pos.x >= pSurface->width || rightBoundary.pos.x < 0)
