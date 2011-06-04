@@ -2893,9 +2893,8 @@ SUB save_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
   SetChildNode(n, "y", .y - map_offset.y * 20)
   SetChildNode(n, "d", .dir)
   SetChildNode(n, "fr", .frame)
-  'FIXME: xgo and ygo savinging can be enabled after we figure out why they cause tile misalignment
-  'IF .xgo THEN SetChildNode(n, "xgo", .xgo)
-  'IF .ygo THEN SetChildNode(n, "ygo", .ygo)
+  IF .xgo THEN SetChildNode(n, "xgo", .xgo)
+  IF .ygo THEN SetChildNode(n, "ygo", .ygo)
   FOR j AS INTEGER = 0 TO 2
    IF .extra(j) THEN
     DIM ex AS NodePtr
@@ -2939,24 +2938,7 @@ SUB load_npc_locations (BYVAL npcs_node AS NodePtr, npc() AS NPCInst)
    DIM n AS NodePtr
    n = NodeByPath(npcs_node, "/npc[" & i & "]")
    IF n THEN
-    '--node exists
-    IF GetChildNodeExists(n, "id") THEN
-     '--npc exists
-     .id = GetChildNodeInt(n, "id") + 1
-     .x = GetChildNodeInt(n, "x")
-     .y = GetChildNodeInt(n, "y")
-     .dir = GetChildNodeInt(n, "d")
-     IF GetChildNodeExists(n, "extras") THEN
-      FOR j AS INTEGER = 0 TO UBOUND(.extra)
-       .extra(j) = 0
-       DIM exnod AS NodePtr
-       exnod = NodeByPath(n, "/extras/extra[" & j & "]")
-       IF exnod THEN
-        .extra(j) = GetChildNodeInt(exnod, "int")
-       END IF
-      NEXT j
-     END IF
-    END IF
+    load_npc_loc n, npc(i)
    END IF
   END WITH
  NEXT i
@@ -2980,9 +2962,8 @@ SUB load_npc_loc (BYVAL n AS NodePtr, npc AS NPCInst, map_offset AS XYPair)
    .y = GetChildNodeInt(n, "y") + map_offset.y * 20
    .dir = GetChildNodeInt(n, "d")
    .frame = GetChildNodeInt(n, "fr")
-   'FIXME: xgo and ygo loading can be enabled after we figure out why they cause tile misalignment
-   '.xgo = GetChildNodeInt(n, "xgo")
-   '.ygo = GetChildNodeInt(n, "ygo")
+   .xgo = GetChildNodeInt(n, "xgo")
+   .ygo = GetChildNodeInt(n, "ygo")
    DIM ex AS NodePtr
    ex = FirstChild(n, "extra")
    WHILE ex
