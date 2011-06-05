@@ -393,6 +393,34 @@ startTest(testProvisional)
 	if NumChildren(root) <> numtoplevel + 2 then fail
 endTest
 
+startTest(testSetKeyValueNode)
+	dim as NodePtr nod1, nod2
+	dim root as NodePtr = DocumentRoot(doc)
+	SetKeyValueNode(root, "a_dict", 0, 23)
+	nod1 = SetKeyValueNode(root, "a_dict", 1, 24)
+	SetChildNode(nod1, "something extra", "foo bar")
+	SetKeyValueNode(root, "a_dict", 2, 22)
+	nod2 = SetKeyValueNode(root, "a_dict", 1, -999)
+	if nod1 <> nod2 then fail
+	if NumChildren(nod2) then fail
+	SetKeyValueNode(root, "dict2", 2, 22222, "id")
+endTest
+
+startTest(testGetKeyValueNode)
+	dim as NodePtr nod1, nod2
+	dim root as NodePtr = DocumentRoot(doc)
+	nod1 = GetKeyValueNode(root, "a_dict", 1)
+	if nod1 = NULL then fail
+	if NodeName(nod1) <> "int" then fail
+	if GetInteger(nod1) <> -999 then fail
+
+	if ReadKeyValueNode(root, "a_dict", 0, 0) <> 23 then fail
+	if ReadKeyValueNode(root, "a_dict", 1, 0) <> -999 then fail
+	if ReadKeyValueNode(root, "a_dict", 2, 0) <> 22 then fail
+	if ReadKeyValueNode(root, "a_dict", 3, -713) <> -713 then fail  'test defaulting
+	if ReadKeyValueNode(root, "dict2", 2, 0, "id") <> 22222 then fail
+endTest
+
 startTest(testNodesIteration)
 	dim iterdoc as Docptr
 	iterdoc = CreateDocument()
@@ -524,7 +552,7 @@ sub toXMLAndBack(byval debugging as integer)
 	safekill "unittest.rld"
 	print
 	print
-        'Windows cmd doesn't like ./
+	'Windows cmd doesn't like ./
 	shell "." + SLASH + "xml2reload unittest.xml unittest.rld"
 	print
 end sub

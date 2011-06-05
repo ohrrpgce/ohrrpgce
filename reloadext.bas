@@ -240,5 +240,63 @@ Function CompareNodes(byval nod1 as nodeptr, byval nod2 as nodeptr, byval pedant
 	return ret
 End Function
 
+'Sets (or creates, if it doesn't exist) a node holding an int-to-int key-value pair parented to 'parent', like so:
+' * parent
+'  * "<keyname>" int - <key>
+'   * "int" int - <value>
+'"int" can be optionally overridden.
+'Returns a pointer to the 'value' node, so you can stuff in more data.
+Function SetKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, byval value as integer = 0, valuename as string = "int") as NodePtr
+	if parent = NULL then
+		debug "SetKeyValueNode: NULL node ptr"
+		return NULL
+	end if
+
+	dim n as NodePtr
+	n = FirstChild(parent, keyname)
+	while n
+		if GetInteger(n) = key then
+			'this key already exists: modify this node
+			FreeChildren(n)
+			return AppendChildNode(n, valuename, value)
+		end if
+		n = NextSibling(n, keyname)
+	wend
+	n = AppendChildNode(parent, keyname, key)
+	return AppendChildNode(n, valuename, value)
+End Function
+
+'See SetKeyValueNode. Returns a pointer to the 'value' node.
+Function GetKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, valuename as string = "int") as NodePtr
+	if parent = NULL then
+		debug "GetKeyValueNode: NULL node ptr"
+		return NULL
+	end if
+
+	dim n as NodePtr
+	n = FirstChild(parent, keyname)
+	while n
+		if GetInteger(n) = key then
+			dim retnode as NodePtr = GetChildByName(n, valuename)
+			if retnode = NULL then
+				debug "GetKeyValueNode(" & NodeName(parent) & ", " & keyname & ", " & key & "): no '" & valuename & "' child!"
+				return NULL
+			end if
+			return retnode
+		end if
+		n = NextSibling(n, keyname)
+	wend
+	return NULL
+End Function
+
+'More convenient form of GetKeyValueNode
+Function ReadKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, byval default as integer, valuename as string = "int") as integer
+	dim n as NodePtr = GetKeyValueNode(parent, keyname, key, valuename)
+	if n = NULL then
+		return default
+	else
+		return GetInteger(n)
+	end if
+End Function
 
 End Namespace

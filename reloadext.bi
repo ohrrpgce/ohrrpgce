@@ -20,6 +20,10 @@ Declare Function NodeByPath Overload (byval doc AS DocPtr, path as string) as No
 Declare Function NodeByPath(byval node AS NodePtr, path as string) as NodePtr
 Declare Function CompareNodes(byval nod1 as nodeptr, byval nod2 as nodeptr, byval pedantic as integer) as integer
 
+Declare Function SetKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, byval value as integer = 0, valuename as string = "int") as NodePtr
+Declare Function GetKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, valuename as string = "int") as NodePtr
+Declare Function ReadKeyValueNode (byval parent as NodePtr, keyname as string, byval key as integer, byval default as integer, valuename as string = "int") as integer
+
 End Namespace
 
 #endif
