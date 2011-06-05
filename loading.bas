@@ -337,11 +337,7 @@ SUB save_npc_loc (BYVAL parent AS NodePtr, BYVAL index AS integer, npc AS NPCIns
   IF .xgo THEN SetChildNode(n, "xgo", .xgo)
   IF .ygo THEN SetChildNode(n, "ygo", .ygo)
   FOR j AS INTEGER = 0 TO 2
-   IF .extra(j) THEN
-    DIM ex AS NodePtr
-    ex = AppendChildNode(n, "extra", j)
-    SetChildNode(ex, "int", .extra(j))
-   END IF
+   IF .extra(j) THEN SetKeyValueNode(n, "extra", j, .extra(j))
   NEXT
   IF .ignore_walls THEN SetChildNode(n, "ignore_walls")
   IF .not_obstruction THEN SetChildNode(n, "not_obstruction")
@@ -1080,26 +1076,13 @@ SUB SaveZoneMap(zmap as ZoneMap, filename as string, rsrect as RectType ptr = NU
     AppendChildNode root, "h", iif(rsrect, rsrect->high, .high)
     zonesnode = AppendChildNode(root, "zones")
     FOR i as integer = 0 TO .numzones - 1
-      DIM nontrivial as integer = NO
       WITH .zones[i]
         node = AppendChildNode(zonesnode, "zone", .id)
-        IF .numtiles > 0 THEN nontrivial = YES
-        IF .name <> "" THEN
-          AppendChildNode node, "name", .name
-          nontrivial = YES
-        END IF
+        IF .numtiles = 0 THEN MarkProvisional(node)
+        IF .name <> "" THEN AppendChildNode(node, "name", .name)
         FOR j as integer = 0 TO UBOUND(.extra)
-          IF .extra(j) <> 0 THEN
-            subnode = AppendChildNode(node, "extra", j)
-            AppendChildNode subnode, "int", .extra(j)
-            nontrivial = YES
-          END IF
+          IF .extra(j) <> 0 THEN SetKeyValueNode(node, "extra", j, .extra(j))
         NEXT
-        IF nontrivial = NO THEN
-          'There's no point actually saving this, user was probably just scrolling through zone IDs
-	  'debug "SaveZoneMap: Did not save zone " & .id
-          FreeNode node          
-        END IF
       END WITH
     NEXT
 

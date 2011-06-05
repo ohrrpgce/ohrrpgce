@@ -59,6 +59,7 @@ DECLARE SUB gamestate_vehicle_from_reload(BYVAL parent AS Reload.NodePtr)
 
 DECLARE SUB rsav_warn (s AS STRING)
 DECLARE SUB rsav_warn_wrong (expected AS STRING, BYVAL n AS Reload.NodePtr)
+DECLARE SUB rsav_check_children_names (BYVAL n AS Reload.NodePtr, expected AS STRING)
 
 DECLARE SUB new_loadglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS INTEGER)
 
@@ -219,6 +220,14 @@ SUB rsav_warn_wrong (expected AS STRING, BYVAL n AS Reload.NodePtr)
  rsav_warn "expected " & expected & " but found " & NodeName(n)
 END SUB
 
+SUB rsav_check_children_names (BYVAL n AS Reload.NodePtr, expected AS STRING)
+ DIM child AS Reload.NodePtr = FirstChild(n)
+ WHILE child
+  IF NodeName(child) <> expected THEN rsav_warn_wrong expected, child
+  child = NextSibling(child)
+ WEND
+END SUB
+
 '-----------------------------------------------------------------------
 
 SUB gamestate_from_reload(BYVAL node AS Reload.NodePtr)
@@ -256,22 +265,19 @@ SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
  map_offset = load_map_pos_save_offset(gam.map.id)
 
  ch = GetChildByName(node, "caterpillar")
- n = FirstChild(ch)
+ rsav_check_children_names(ch, "hero")
+ n = FirstChild(ch, "hero")
  DO WHILE n
-  IF NodeName(n) = "hero" THEN
-   i = GetInteger(n)
-   SELECT CASE i
-    CASE 0 TO 3
-     catx(i * 5) = GetChildNodeInt(n, "x") + map_offset.x * 20
-     caty(i * 5) = GetChildNodeInt(n, "y") + map_offset.y * 20
-     catd(i * 5) = GetChildNodeInt(n, "d")
-    CASE ELSE
-     rsav_warn "invalid caterpillar hero index " & i
-   END SELECT
-  ELSE
-   rsav_warn_wrong "hero", n
-  END IF
-  n = NextSibling(n)
+  i = GetInteger(n)
+  SELECT CASE i
+   CASE 0 TO 3
+    catx(i * 5) = GetChildNodeInt(n, "x") + map_offset.x * 20
+    caty(i * 5) = GetChildNodeInt(n, "y") + map_offset.y * 20
+    catd(i * 5) = GetChildNodeInt(n, "d")
+   CASE ELSE
+    rsav_warn "invalid caterpillar hero index " & i
+  END SELECT
+  n = NextSibling(n, "hero")
  LOOP
 
  gam.random_battle_countdown = GetChildNodeInt(node, "random_battle_countdown") 
@@ -304,20 +310,17 @@ SUB gamestate_state_from_reload(BYVAL parent AS Reload.NodePtr)
  gen(genLevelCap) = GetChildNodeInt(node, "level_cap", 99)
 
  ch = GetChildByName(node, "stats")
- n = FirstChild(ch)
+ rsav_check_children_names(ch, "stat")
+ n = FirstChild(ch, "stat")
  DO WHILE n
-  IF NodeName(n) = "stat" THEN
-   i = GetInteger(n)
-   SELECT CASE i
-    CASE 0 TO 11
-     gen(genStatCap + i) = GetChildNodeInt(n, "cap")
-    CASE ELSE
-     rsav_warn "invalid stat cap index " & i
-   END SELECT
-  ELSE
-   rsav_warn_wrong "stat", n
-  END IF
-  n = NextSibling(n)
+  i = GetInteger(n)
+  SELECT CASE i
+   CASE 0 TO 11
+    gen(genStatCap + i) = GetChildNodeInt(n, "cap")
+   CASE ELSE
+    rsav_warn "invalid stat cap index " & i
+  END SELECT
+  n = NextSibling(n, "stat")
  LOOP
 
 END SUB
@@ -374,24 +377,21 @@ SUB gamestate_globals_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS
  DIM n AS NodePtr 'used for numbered containers
  DIM i AS INTEGER
 
- n = FirstChild(node)
+ rsav_check_children_names(node, "global")
+ n = FirstChild(node, "global")
  DO WHILE n
-  IF NodeName(n) = "global" THEN
-   i = GetInteger(n)
-   SELECT CASE i
-    CASE first TO last
-     global(i) = GetChildNodeInt(n, "int")
-    CASE ELSE
-     SELECT CASE i
-      CASE 0 TO 4095
-      CASE ELSE
-       rsav_warn "invalid global id " & i
-     END SELECT
-   END SELECT
-  ELSE
-   rsav_warn_wrong "global", n
-  END IF
-  n = NextSibling(n)
+  i = GetInteger(n)
+  SELECT CASE i
+   CASE first TO last
+    global(i) = GetChildNodeInt(n, "int")
+   CASE ELSE
+    SELECT CASE i
+     CASE 0 TO 4095
+     CASE ELSE
+      rsav_warn "invalid global id " & i
+    END SELECT
+  END SELECT
+  n = NextSibling(n, "global")
  LOOP
 END SUB
 
@@ -403,18 +403,15 @@ SUB gamestate_maps_from_reload(BYVAL parent AS Reload.NodePtr)
  DIM loaded_current AS INTEGER = NO
  
  'FIXME: currently only supports saving the current map
- n = FirstChild(node)
+ rsav_check_children_names(node, "map")
+ n = FirstChild(node, "map")
  DO WHILE n
-  IF NodeName(n) = "map" THEN
-   i = GetInteger(n)
-   IF i = gam.map.id THEN
-    gamestate_npcs_from_reload n, gam.map.id
-    loaded_current = YES
-   END IF
-  ELSE
-   rsav_warn_wrong "map", n
+  i = GetInteger(n)
+  IF i = gam.map.id THEN
+   gamestate_npcs_from_reload n, gam.map.id
+   loaded_current = YES
   END IF
-  n = NextSibling(n)
+  n = NextSibling(n, "map")
  LOOP
 
  IF loaded_current = NO THEN
@@ -432,20 +429,17 @@ SUB gamestate_npcs_from_reload(BYVAL parent AS Reload.NodePtr, BYVAL map AS INTE
 
  DIM i AS INTEGER
  DIM n AS NodePtr
- n = FirstChild(node)
+ rsav_check_children_names(node, "npc")
+ n = FirstChild(node, "npc")
  DO WHILE n
-  IF NodeName(n) = "npc" THEN
-   i = GetInteger(n)
-   SELECT CASE i
-    CASE 0 TO 299
-     load_npc_loc n, npc(i), map_offset
-    CASE ELSE
-     rsav_warn "invalid npc instance " & i
-   END SELECT
-  ELSE
-   rsav_warn_wrong "npc", n
-  END IF
-  n = NextSibling(n)
+  i = GetInteger(n)
+  SELECT CASE i
+   CASE 0 TO 299
+    load_npc_loc n, npc(i), map_offset
+   CASE ELSE
+    rsav_warn "invalid npc instance " & i
+  END SELECT
+  n = NextSibling(n, "npc")
  LOOP
 
 END SUB
@@ -524,22 +518,19 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
      END IF
 
      ch = GetChildByName(slot, "stats")
+     rsav_check_children_names(ch, "stat")
      DIM j AS INTEGER
-     n = FirstChild(ch)
+     n = FirstChild(ch, "stat")
      DO WHILE n
-      IF NodeName(n) = "stat" THEN
-       j = GetInteger(n)
-       SELECT CASE j
-        CASE 0 TO 11
-         gam.hero(i).stat.cur.sta(j) = GetChildNodeInt(n, "cur")
-         gam.hero(i).stat.max.sta(j) = GetChildNodeInt(n, "max")
-        CASE ELSE
-         rsav_warn "invalid stat id " & j
-       END SELECT
-      ELSE
-       rsav_warn_wrong "stat", n
-      END IF
-      n = NextSibling(n)
+      j = GetInteger(n)
+      SELECT CASE j
+       CASE 0 TO 11
+        gam.hero(i).stat.cur.sta(j) = GetChildNodeInt(n, "cur")
+        gam.hero(i).stat.max.sta(j) = GetChildNodeInt(n, "max")
+       CASE ELSE
+        rsav_warn "invalid stat id " & j
+      END SELECT
+      n = NextSibling(n, "stat")
      LOOP
 
      WITH gam.hero(i)
@@ -590,77 +581,65 @@ SUB gamestate_party_from_reload(BYVAL parent AS Reload.NodePtr)
      END WITH 'gam.hero(i)
      
      ch = GetChildByName(slot, "battle_menus")
-     n = FirstChild(ch)
+     rsav_check_children_names(ch, "menu")
+     n = FirstChild(ch, "menu")
      DO WHILE n
-      IF NodeName(n) = "menu" THEN
-       j = GetInteger(n)
-       SELECT CASE j
-        CASE 0 TO 5
-         IF GetChildNodeExists(n, "attack") THEN
-          bmenu(i, j) = GetChildNodeInt(n, "attack") + 1
-         ELSEIF GetChildNodeExists(n, "items") THEN
-          bmenu(i, j) = -10
-         ELSEIF GetChildNodeExists(n, "spells") THEN
-          bmenu(i, j) = (GetChildNodeInt(n, "spells") + 1) * -1
-         END IF
-        CASE ELSE
-         rsav_warn "invalid battle menu id " & j
-       END SELECT
-      ELSE
-       rsav_warn_wrong "menu", n
-      END IF
-      n = NextSibling(n)
+      j = GetInteger(n)
+      SELECT CASE j
+       CASE 0 TO 5
+        IF GetChildNodeExists(n, "attack") THEN
+         bmenu(i, j) = GetChildNodeInt(n, "attack") + 1
+        ELSEIF GetChildNodeExists(n, "items") THEN
+         bmenu(i, j) = -10
+        ELSEIF GetChildNodeExists(n, "spells") THEN
+         bmenu(i, j) = (GetChildNodeInt(n, "spells") + 1) * -1
+        END IF
+       CASE ELSE
+        rsav_warn "invalid battle menu id " & j
+      END SELECT
+      n = NextSibling(n, "menu")
      LOOP
      
      ch = GetChildByName(slot, "spell_lists")
-     n = FirstChild(ch)
+     rsav_check_children_names(ch, "list")
+     n = FirstChild(ch, "list")
      DO WHILE n
-      IF NodeName(n) = "list" THEN
-       j = GetInteger(n)
-       SELECT CASE j
-        CASE 0 TO 3
-         gamestate_spelllist_from_reload(i, j, n)
-        CASE ELSE
-         rsav_warn "invalid spell list id " & j
-       END SELECT
-      ELSE
-       rsav_warn_wrong "list", n
-      END IF
-      n = NextSibling(n)
+      j = GetInteger(n)
+      SELECT CASE j
+       CASE 0 TO 3
+        gamestate_spelllist_from_reload(i, j, n)
+       CASE ELSE
+        rsav_warn "invalid spell list id " & j
+      END SELECT
+      n = NextSibling(n, "list")
      LOOP 
 
      ch = GetChildByName(slot, "level_mp")
-     n = FirstChild(ch)
+     rsav_check_children_names(ch, "lev")
+     n = FirstChild(ch, "lev")
      DO WHILE n
-      IF NodeName(n) = "lev" THEN
-       j = GetInteger(n)
-       SELECT CASE j
-        CASE 0 TO 7
-         lmp(i, j) = GetChildNodeInt(n, "val")
-        CASE ELSE
-         rsav_warn "invalid level mp slot " & j
-       END SELECT
-      ELSE
-       rsav_warn_wrong "lev", n
-      END IF
-      n = NextSibling(n)
+      j = GetInteger(n)
+      SELECT CASE j
+       CASE 0 TO 7
+        lmp(i, j) = GetChildNodeInt(n, "val")
+       CASE ELSE
+        rsav_warn "invalid level mp slot " & j
+      END SELECT
+      n = NextSibling(n, "lev")
      LOOP 
 
      ch = GetChildByName(slot, "equipment")
-     n = FirstChild(ch)
+     rsav_check_children_names(ch, "equip")
+     n = FirstChild(ch, "equip")
      DO WHILE n
-      IF NodeName(n) = "equip" THEN
-       j = GetInteger(n)
-       SELECT CASE j
-        CASE 0 TO 4
-         eqstuf(i, j) = GetChildNodeInt(n, "item") + 1
-        CASE ELSE
-         rsav_warn "invalid equip slot " & j
-       END SELECT
-      ELSE
-       rsav_warn_wrong "equip", n
-      END IF
-      n = NextSibling(n)
+      j = GetInteger(n)
+      SELECT CASE j
+       CASE 0 TO 4
+        eqstuf(i, j) = GetChildNodeInt(n, "item") + 1
+       CASE ELSE
+        rsav_warn "invalid equip slot " & j
+      END SELECT
+      n = NextSibling(n, "equip")
      LOOP 
 
     CASE ELSE
@@ -684,21 +663,18 @@ SUB gamestate_spelllist_from_reload(hero_slot AS INTEGER, spell_list AS INTEGER,
  DIM i AS INTEGER
 
  DIM atk_id AS INTEGER
- n = FirstChild(node)
+ rsav_check_children_names(node, "spell")
+ n = FirstChild(node, "spell")
  DO WHILE n
-  IF NodeName(n) = "spell" THEN
-   i = GetInteger(n)
-   SELECT CASE i
-    CASE 0 TO 23
-     atk_id = GetChildNodeInt(n, "attack")
-     spell(hero_slot, spell_list, i) = atk_id + 1
-    CASE ELSE
-     rsav_warn "invalid spell list slot " & i
-   END SELECT
-  ELSE
-   rsav_warn_wrong "spell", n
-  END IF
-  n = NextSibling(n)
+  i = GetInteger(n)
+  SELECT CASE i
+   CASE 0 TO 23
+    atk_id = GetChildNodeInt(n, "attack")
+    spell(hero_slot, spell_list, i) = atk_id + 1
+   CASE ELSE
+    rsav_warn "invalid spell list slot " & i
+  END SELECT
+  n = NextSibling(n, "spell")
  LOOP
  
 END SUB
@@ -716,24 +692,21 @@ SUB gamestate_inventory_from_reload(BYVAL parent AS Reload.NodePtr)
  DIM last AS INTEGER
  last = small(inventoryMax, UBOUND(inventory))
  
- n = FirstChild(ch)
+ rsav_check_children_names(ch, "slot")
+ n = FirstChild(ch, "slot")
  DO WHILE n
-  IF NodeName(n) = "slot" THEN
-   i = GetInteger(n)
-   SELECT CASE i
-    CASE 0 TO last
-     WITH inventory(i)
-      .used = YES
-      .id = GetChildNodeInt(n, "item")
-      .num = GetChildNodeInt(n, "num")
-     END WITH
-    CASE ELSE
-     rsav_warn "invalid inventory slot id " & i
-   END SELECT
-  ELSE
-   rsav_warn_wrong "slot", n
-  END IF
-  n = NextSibling(n)
+  i = GetInteger(n)
+  SELECT CASE i
+   CASE 0 TO last
+    WITH inventory(i)
+     .used = YES
+     .id = GetChildNodeInt(n, "item")
+     .num = GetChildNodeInt(n, "num")
+    END WITH
+   CASE ELSE
+    rsav_warn "invalid inventory slot id " & i
+  END SELECT
+  n = NextSibling(n, "slot")
  LOOP
  
  rebuild_inventory_captions inventory()
@@ -946,8 +919,7 @@ SUB gamestate_globals_to_reload(BYVAL parent AS Reload.NodePtr, BYVAL first AS I
 
  FOR i AS INTEGER = first TO last
   IF global(i) <> 0 THEN
-   n = AppendChildNode(node, "global", i)
-   SetChildNode(n, "int", global(i))
+   SetKeyValueNode(node, "global", i, global(i))
   END IF
  NEXT i
 END SUB
@@ -1084,16 +1056,14 @@ SUB gamestate_party_to_reload(BYVAL parent AS Reload.NodePtr)
   ch = SetChildNode(slot, "level_mp")
   FOR j AS INTEGER = 0 TO 7
    IF lmp(i, j) <> 0 THEN
-    n = AppendChildNode(ch, "lev", j)
-    SetChildNode(n, "val", lmp(i, j))
+    SetKeyValueNode(ch, "lev", j, lmp(i, j), "val")
    END IF
   NEXT j
 
   ch = SetChildNode(slot, "equipment")
   FOR j AS INTEGER = 0 TO 4
    IF eqstuf(i, j) > 0 THEN
-    n = AppendChildNode(ch, "equip", j)
-    SetChildNode(n, "item", eqstuf(i, j) - 1)
+    SetKeyValueNode(ch, "equip", j, eqstuf(i, j) - 1, "item")
    END IF
   NEXT j
 
@@ -1233,18 +1203,14 @@ SUB saveglobalvars (BYVAL slot AS INTEGER, BYVAL first AS INTEGER, BYVAL last AS
  DIM i AS INTEGER
  
  '--delete any old global nodes in the range
- n = FirstChild(globals_node)
+ n = FirstChild(globals_node, "global")
  DO WHILE n
-  IF NodeName(n) = "global" THEN
-   i = GetInteger(n)
-   SELECT CASE i
-    CASE first TO last
-     FreeNode(n)
-   END SELECT
-  ELSE
-   rsav_warn_wrong "global", n
-  END IF
-  n = NextSibling(n)
+  i = GetInteger(n)
+  SELECT CASE i
+   CASE first TO last
+    FreeNode(n)
+  END SELECT
+  n = NextSibling(n, "global")
  LOOP
 
  '--add nodes for the globals in the range
