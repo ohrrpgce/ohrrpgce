@@ -113,6 +113,7 @@ TYPE NodePtr as Node ptr
 Declare Function CreateDocument() as DocPtr
 Declare Function CreateNode overload(byval doc as DocPtr, nam as string) as NodePtr
 Declare Function CreateNode(byval nod as NodePtr, nam as string) as NodePtr
+Declare sub FreeChildren(byval nod as NodePtr)
 Declare sub FreeNode(byval nod as NodePtr, byval options as integer = 0) 'don't use options.
 Declare sub FreeDocument(byval doc as DocPtr)
 Declare sub RenameNode(byval nod as NodePtr, newname as string)

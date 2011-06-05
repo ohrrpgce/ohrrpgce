@@ -190,21 +190,42 @@ sub RenameNode(byval nod as NodePtr, newname as string)
 	nod->doc->strings[nod->namenum].uses += 1
 end sub
 
+'Efficiently free the children of a node
+sub FreeChildren(byval nod as NodePtr)
+	if nod = NULL then
+		debug "FreeChildren ptr already null"
+		exit sub
+	end if
+
+	if 0 = (nod->flags and nfNotLoaded) then
+		dim as NodePtr child = nod->children, nextchild
+		do while child <> NULL
+			nextchild = child->nextSib
+			child->parent = NULL
+			FreeNode(child)
+			child = nextchild	
+		loop
+		nod->numChildren = 0
+		nod->children = NULL
+		nod->lastChild = NULL
+	else
+		'FIXME: what's the best thing to do if the children aren't loaded?
+		nod->flags and= not nfNotLoaded
+		nod->numChildren = 0
+	end if
+end sub
+
 'destroys a node and any children still attached to it.
 'if it's still attached to another node, it will be removed from it
+'The purpose of the 'options' parameter is a mystery, and it's never used.
 'FIXME: the old name is never freed
 sub FreeNode(byval nod as NodePtr, byval options as integer)
 	if nod = null then
 		debug "FreeNode ptr already null"
 		exit sub
 	end if
-	
-	dim tmp as NodePtr
-	if 0 = (nod->flags and nfNotLoaded) then
-		do while nod->children <> 0
-			FreeNode(nod->children)
-		loop
-	end if
+
+	FreeChildren(nod)
 	
 	'If this node has a parent, we should remove this node from
 	'its list of children
