@@ -1581,21 +1581,20 @@ WITH scrat(nowscript)
     scriptout$ = STR$(retvals(0))
    CASE 78'--alter NPC
     IF bound_arg(retvals(1), 0, 15, "NPCstat: constant") THEN
-     IF retvals(0) < 0 AND retvals(0) >= -300 THEN retvals(0) = ABS(npc(ABS(retvals(0) + 1)).id) - 1
-     'Note that an NPC may be marked hidden because it has an invalid ID. What kind of error to throw?
-     IF bound_arg(retvals(0), 0, UBOUND(npcs), "NPC type ID") THEN
+     DIM npcid as integer = get_valid_npc_id(retvals(0), 4)
+     IF npcid <> -1 THEN
       DIM AS INTEGER writesafe = 1
       IF retvals(1) = 0 THEN
        IF retvals(2) < 0 OR retvals(2) > gen(genMaxNPCPic) THEN
         writesafe = 0
        ELSE
-        change_npc_def_sprite retvals(0), retvals(2)
+        change_npc_def_sprite npcid, retvals(2)
        END IF
       END IF
       IF retvals(1) = 1 THEN
-       change_npc_def_pal retvals(0), retvals(2)
+       change_npc_def_pal npcid, retvals(2)
       END IF
-      IF writesafe THEN SetNPCD(npcs(retvals(0)), retvals(1), retvals(2))
+      IF writesafe THEN SetNPCD(npcs(npcid), retvals(1), retvals(2))
      END IF
     END IF
    CASE 79'--show no value

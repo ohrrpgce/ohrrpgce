@@ -533,6 +533,32 @@ FUNCTION get_valid_npc (BYVAL seekid as integer, BYVAL errlvl as integer = 5) as
  END IF
 END FUNCTION
 
+'Given NPC ref or NPC ID, return an NPC ID, or throw a scripterr and return -1
+'References to Hidden/Disabled NPCs are alright.
+FUNCTION get_valid_npc_id (BYVAL seekid as integer, BYVAL errlvl as integer = 5) as integer
+ IF seekid >= 0 THEN
+  IF seekid > UBOUND(npcs) THEN
+   scripterr commandname(curcmd->value) & ": invalid NPC ID " & seekid, errlvl
+   RETURN -1
+  END IF
+  RETURN seekid
+ ELSE
+  DIM npcidx as integer = (seekid + 1) * -1
+  IF npcidx > 299 THEN
+   scripterr commandname(curcmd->value) & ": invalid NPC reference " & seekid, errlvl
+   RETURN -1
+  ELSEIF npc(npcidx).id = 0 THEN
+   scripterr commandname(curcmd->value) & ": invalid NPC reference " & seekid & " (maybe the NPC was deleted?)", errlvl
+   RETURN -1
+  ELSEIF npc(npcidx).id > UBOUND(npcs) THEN
+   'Note that an NPC may be marked hidden because it has an invalid ID
+   scripterr commandname(curcmd->value) & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
+   RETURN -1
+  END IF
+  RETURN npc(npcidx).id
+ END IF
+END FUNCTION
+
 SUB greyscalepal
 FOR i = bound(retvals(0), 0, 255) TO bound(retvals(1), 0, 255)
  master(i).r = bound((master(i).r + master(i).g + master(i).b) / 3, 0, 255)
@@ -3012,14 +3038,10 @@ SELECT CASE AS CONST id
   NEXT i
   IF retvals(2) = -1 THEN scriptret = found
  CASE 182'--read NPC
-  IF retvals(1) >= 0 AND retvals(1) <= 14 THEN
-   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
-    scriptret = GetNPCD(npcs(retvals(0)), retvals(1))
-   ELSE
-    npcref = getnpcref(retvals(0), 0)
-    IF npcref >= 0 THEN
-     IF npc(npcref).id THEN scriptret = GetNPCD(npcs(ABS(npc(npcref).id) - 1), retvals(1))
-    END IF
+  IF bound_arg(retvals(1), 0, 15, "NPCstat: constant") THEN
+   DIM npcid as integer = get_valid_npc_id(retvals(0), 4)
+   IF npcid <> -1 THEN
+    scriptret = GetNPCD(npcs(npcid), retvals(1))
    END IF
   END IF
  CASE 192'--NPC frame
