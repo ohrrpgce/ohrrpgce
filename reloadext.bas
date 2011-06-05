@@ -123,8 +123,8 @@ Function NodeByPath(byval node AS NodePtr, path as string) as NodePtr
 	dim sep_pos as integer
 	sep_pos = instr(2, path, "/")
 	if sep_pos then
-		segment = mid(path, 2, sep_pos - 1)
-		remainder = mid(path, sep_pos + 1)
+		segment = mid(path, 2, sep_pos - 2)
+		remainder = mid(path, sep_pos)
 	else
 		segment = mid(path, 2)
 	end if
