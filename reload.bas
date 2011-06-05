@@ -731,11 +731,11 @@ sub serializeBin(byval nod as NodePtr, byval f as BufferedFile ptr, byval doc as
 end sub
 
 'For each provisional node in the given subtree:
-'delete if they have no values or children, or unmark as provisional otherwise
+'delete if they have no children, or unmark as provisional otherwise
 sub RemoveProvisionalNodes(byval nod as NodePtr)
 	if nod = null then exit sub
 	if nod->flags AND nfProvisional then
-		if nod->numChildren = 0 and nod->nodeType = rltNull then
+		if nod->numChildren = 0 then
 			FreeNode(nod)
 			exit sub
 		else

@@ -76,7 +76,7 @@ TYPE NodePtr as Node ptr
 	
 	ENUM NodeFlags
 		nfNotLoaded = 1   'Children of this node haven't been loaded. NOTE: numChildren has real value!
-		nfProvisional = 2 'When saving, ignore this node if null type and has no children
+		nfProvisional = 2 'When saving, ignore this node if has no children
 	END ENUM
 	
 	TYPE Node
