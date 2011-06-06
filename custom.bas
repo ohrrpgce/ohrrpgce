@@ -46,6 +46,7 @@ DECLARE SUB move_unwriteable_rpg (filetolump as string)
 DECLARE SUB shopdata ()
 DECLARE SUB secret_menu ()
 DECLARE SUB condition_test_menu ()
+DECLARE SUB quad_transforms_menu ()
 
 'Global variables
 REDIM gen(360)
@@ -1054,7 +1055,7 @@ SUB move_unwriteable_rpg (filetolump as string)
 END SUB
 
 SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests"}
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads"}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1067,6 +1068,7 @@ SUB secret_menu ()
    IF st.pt = 0 THEN reload_editor
    IF st.pt = 1 THEN editor_editor
    IF st.pt = 2 THEN condition_test_menu
+   IF st.pt = 3 THEN quad_transforms_menu
   END IF
   usemenu st
   clearpage vpage
@@ -1130,3 +1132,71 @@ SUB condition_test_menu ()
  LOOP
  setkeys
 END SUB
+
+
+#IFDEF USE_RASTERIZER
+
+#include "matrixMath.bi"
+
+extern "C"
+declare sub frame_draw_transformed (byval dest as Frame ptr, byval src as Frame ptr, byval vertices as Float3 ptr)
+end extern
+
+SUB quad_transforms_menu ()
+ DIM menu(...) as string = {"Arrows: scale X and Y", "<, >: change angle"}
+ DIM st as MenuState
+ st.size = 22
+
+ DIM testframe as Frame ptr
+ testframe = frame_new(16, 16)
+ FOR i as integer = 0 TO 255
+  putpixel testframe, (i MOD 16), (i \ 16), i
+ NEXT
+
+ DIM vertices(3) as Float3
+ DIM testframesize as Rect = (0, 0, testframe->w - 1, testframe->h - 1)
+ vec3GenerateCorners @vertices(0), 4, testframesize
+
+ DIM angle as single
+ DIM scale as Float2 = (2.0, 2.0)
+ DIM position as Float2 = (150, 50)
+
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  IF keyval(scLeft)  THEN scale.x -= 0.1
+  IF keyval(scRight) THEN scale.x += 0.1
+  IF keyval(scUp)    THEN scale.y -= 0.1
+  IF keyval(scDown)  THEN scale.y += 0.1
+  IF keyval(scLeftCaret)  THEN angle -= 0.1
+  IF keyval(scRightCaret) THEN angle += 0.1
+
+  clearpage vpage
+  standardmenu menu(), st, 0, 0, vpage
+  frame_draw testframe, , 20, 50, 2, , vpages(vpage)  'drawn at 2x scale
+
+  DIM drawtime as double = TIMER
+
+  DIM matrix as Float3x3
+  matrixLocalTransform @matrix, angle, scale, position
+  DIM trans_vertices(3) as Float3
+  vec3Transform @trans_vertices(0), 4, @vertices(0), 4, matrix
+  frame_draw_transformed vpages(vpage), testframe, @trans_vertices(0)
+
+  drawtime = TIMER - drawtime
+  printstr "Drawn in " & FIX(drawtime * 1000000) & " usec", 0, 190, vpage
+
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+END SUB
+
+#ELSE
+
+SUB quad_transforms_menu ()
+ notification "Compile with 'scons raster=1' to enable."
+END SUB
+
+#ENDIF

@@ -50,7 +50,7 @@ if FB_exx:
     FBFLAGS.append ('-exx')
 if C_opt:
     CFLAGS.append ('-O2')
-    CXXFLAGS.append ('-O2')
+    CXXFLAGS.append ('-O3')
 # eg. pass gfx=sdl+fb for the default behaviour.
 if unix:
     gfx = ARGUMENTS.get ('gfx', environ.get ('OHRGFX','sdl+fb'))
@@ -75,6 +75,7 @@ def prefix_targets(target, source, env):
     target = [File(env['VAR_PREFIX'] + str(a)) for a in target]
     return target, source
 
+#variant_baso creates Nodes/object files with filename prefixed with VAR_PREFIX environment variable
 variant_baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
                 suffix = '.o', src_suffix = '.bas', single_source = True, emitter = prefix_targets)
 baso = Builder (action = '$FBC -c $SOURCE -o $TARGET $FBFLAGS',
@@ -212,6 +213,10 @@ game_modules = ['game',
                 'savegame',
                 'hsinterpreter']
 
+if 'raster' in ARGUMENTS:
+    common_objects += ['rasterizer.cpp', 'matrixMath.cpp', 'rasterizer_wrap.cpp']
+    commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
+
 # Note that base_objects are not built in commonenv!
 base_objects = [env.Object(a) for a in base_modules]
 common_objects = base_objects + [commonenv.Object(a) for a in common_objects]
@@ -242,8 +247,8 @@ reload_objects = base_objects + [env.BASO (item) for item in ['reload', 'reloade
 
 gamename = 'ohrrpgce-game'
 editname = 'ohrrpgce-custom'
-gameflags = list (gameenv['FBFLAGS']) + ['-v']
-editflags = list (editenv['FBFLAGS']) + ['-v']
+gameflags = list (gameenv['FBFLAGS']) #+ ['-v']
+editflags = list (editenv['FBFLAGS']) #+ ['-v']
 
 if win32:
     gamename = 'game'
@@ -291,6 +296,8 @@ Options:
   svn=PATH            Override svn.
   git=PATH            Override git.
 
+  raster=1            Link with rasterizer
+
 Targets:
   """ + gamename + """ (or game)
   """ + editname + """ (or custom)
@@ -313,3 +320,4 @@ Examples:
   scons gfx=sdl+fb music=native game custom
   scons -j 2 debug=1 .
 """)
+v
