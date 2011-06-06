@@ -1,7 +1,7 @@
 #include "matrixMath.h"
 #include <math.h>
 #include <memory.h>
-#define NULL 0
+#include <stddef.h>
 #define min(a, b) (a < b ? a : b)
 
 void matrixLocalTransform( float3x3* pMatrixOut, float angle, const float2& scale, const float2& position )
