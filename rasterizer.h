@@ -15,6 +15,8 @@ struct Position
 struct TexCoord
 {
 	FPInt u,v;
+	TexCoord() {}
+	TexCoord(FPInt x, FPInt y) : u(x), v(y) {}
 };
 struct Color //argb dword; palette stored in lowest byte, that is 'b'
 {
