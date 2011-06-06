@@ -3200,6 +3200,9 @@ SUB recreate_map_slices()
   DeleteSlice @SliceTable.NPCLayer
   DeleteSlice @SliceTable.Walkabout
 
+  'Anything else attached to the map
+  DeleteSliceChildren @SliceTable.MapRoot
+
   'And then create new ones
   SetupMapSlices UBOUND(maptiles)
 
@@ -3217,19 +3220,27 @@ END SUB
 SUB refresh_map_slice()
  'This updates the size, tilesets, and sort order of the map slices
 
- 'debug "refresh_map_slice() there are " & UBOUND(maptiles) & " map layers on map " & gam.map.id
+ 'debug "refresh_map_slice() there are " & UBOUND(maptiles) + 1 & " map layers on map " & gam.map.id
 
  '--Store info about the map in the map slices
  WITH *(SliceTable.MapRoot)
   .Width = mapsizetiles.x * 20
   .Height = mapsizetiles.y * 20
  END WITH
+ FOR i AS INTEGER = 0 TO UBOUND(SliceTable.MapLayer)
+  IF SliceTable.MapLayer(i) THEN
+   SliceTable.MapLayer(i)->Width = mapsizetiles.x * 20
+   SliceTable.MapLayer(i)->Height = mapsizetiles.y * 20
+  END IF
+ NEXT
+ SliceTable.ObsoleteOverhead->Width = mapsizetiles.x * 20
+ SliceTable.ObsoleteOverhead->Height = mapsizetiles.y * 20
   
  FOR i AS INTEGER = 0 TO UBOUND(maptiles)
   '--reset each layer (the tileset ptr is set in refresh_map_slice_tilesets
   ChangeMapSlice SliceTable.MapLayer(i), @maptiles(i), @pass
  NEXT i
- FOR i AS INTEGER = UBOUND(maptiles) + 1 TO maplayerMax
+ FOR i AS INTEGER = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
   '--if slices exist for the unused layers that this map doesn't have,
   '--we should make them display no tiles
   IF Slicetable.MapLayer(i) <> 0 THEN
@@ -3239,31 +3250,23 @@ SUB refresh_map_slice()
  ChangeMapSlice SliceTable.ObsoleteOverhead, @maptiles(0), @pass
  
  '--now fix up the order of the slices
- DIM sorter AS INTEGER = 0
- FOR i AS INTEGER = 0 TO gmap(31) - 1
-  SliceTable.MapLayer(i)->Sorter = sorter
-  sorter += 1
- NEXT
- SliceTable.Walkabout->Sorter = sorter
- sorter += 1
- FOR i AS INTEGER = gmap(31) TO UBOUND(maptiles)
+ FOR i AS INTEGER = 0 TO UBOUND(maptiles)
   IF SliceTable.Maplayer(i) = 0 THEN
    debug "Null map layer " & i & " when sorting in refresh_map_slice"
   ELSE
-   SliceTable.MapLayer(i)->Sorter = sorter
-   sorter += 1
+   SliceTable.MapLayer(i)->Sorter = IIF(i < gmap(31), i, i + 1)
   END IF
  NEXT
  FOR i AS INTEGER = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
   'Slices for layers that do not exist on the current map...
   IF SliceTable.MapLayer(i) <> 0 THEN
    '...should be sorted too, if they exist.
-   SliceTable.MapLayer(i)->Sorter = sorter
-   sorter += 1
+   SliceTable.MapLayer(i)->Sorter = i
   END IF
  NEXT i
  
- SliceTable.ObsoleteOverhead->Sorter = sorter
+ SliceTable.Walkabout->Sorter = gmap(31)
+ SliceTable.ObsoleteOverhead->Sorter = UBOUND(maptiles) + 2
  
  CustomSortChildSlices SliceTable.MapRoot, YES
  refresh_walkabout_layer_sort()

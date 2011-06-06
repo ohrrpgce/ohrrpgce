@@ -156,12 +156,10 @@ Sub SetupMapSlices(byval to_max as integer)
  FOR i AS INTEGER = 0 TO to_max
   SliceTable.MapLayer(i) = NewSliceOfType(slMap, SliceTable.MapRoot, SL_MAP_LAYER0 - i)
   ChangeMapSlice SliceTable.MapLayer(i), , , (i > 0), 0   'maybe transparent, not overhead
-  SliceTable.MapLayer(i)->Fill = YES
  NEXT
  
  SliceTable.ObsoleteOverhead = NewSliceOfType(slMap, SliceTable.MapRoot, SL_OBSOLETE_OVERHEAD)
  ChangeMapSlice SliceTable.ObsoleteOverhead, , , 0, 2   'non-transparent, overhead
- SliceTable.ObsoleteOverhead->Fill = YES
 
  'Note: the order of this slice in relation to the .MapLayer siblings will change each time a map is loaded
  SliceTable.Walkabout = NewSliceOfType(slContainer, SliceTable.MapRoot, SL_WALKABOUT_LAYER)
@@ -421,7 +419,7 @@ Sub DeleteSlice(Byval s as Slice ptr ptr, Byval debugme as integer=0)
  *s = 0
 End Sub
 
-'Deletes a slice's, children but not itself
+'Deletes a slice's children but not itself
 Sub DeleteSliceChildren(Byval sl as Slice ptr)
  if sl = 0 then debug "DeleteSliceChildren null ptr": exit sub
  dim ch as slice ptr
