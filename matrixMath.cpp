@@ -80,11 +80,11 @@ void vec3GenerateCorners( float3* pVecArrayOut, int destSize, const SURFACE_RECT
    pVecArrayOut[1].y = (float)-height / 2.0f;
    pVecArrayOut[1].w = 1.0f;
 
-   pVecArrayOut[2].x = (float)-width / 2.0f;
+   pVecArrayOut[2].x = (float)width / 2.0f;
    pVecArrayOut[2].y = (float)height / 2.0f;
    pVecArrayOut[2].w = 1.0f;
 
-   pVecArrayOut[3].x = (float)width / 2.0f;
+   pVecArrayOut[3].x = (float)-width / 2.0f;
    pVecArrayOut[3].y = (float)height / 2.0f;
    pVecArrayOut[3].w = 1.0f;
 }
