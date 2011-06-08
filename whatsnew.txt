@@ -115,6 +115,8 @@ May 6 2011 [Zenzizenzic]
       in the active party in the Battle System Options menu [Ralph]
     * Import .hss files in Custom, and they will be automatically
       compiled with hspeak [Ralph]
+    * You can now define enemy counterattacks against elemental
+      and stat-damaging attacks! Does not use the CTR stat. [James]
 
   * Bugfixes
     * Bug 749: Attacks configured to do No Damage still do damage when
