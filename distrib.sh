@@ -6,7 +6,10 @@ if [ ! -f distrib.sh ] ; then
 fi
 
 echo Building binaries
-scons . || exit 1
+scons || exit 1
+scons hspeak || exit 1
+scons unlump || exit 1
+scons relump || exit 1
 
 echo "Lumping Vikings of Midgard"
 if [ -f vikings.rpg ] ; then
