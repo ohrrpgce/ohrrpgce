@@ -6,15 +6,17 @@
 
 #pragma once
 
+#include <stdint.h>
+
 struct FPInt
 {
 	union
 	{
-		__int32 raw : 32;		//two words (below)
+		int32_t raw : 32;		//two words (below)
 		struct
 		{
-			unsigned __int16 fraction : 16;		//low word
-			__int16 whole : 16;					//high word
+			uint16_t fraction : 16;		//low word
+			int16_t whole : 16;					//high word
 		};
 	};
 
@@ -27,16 +29,16 @@ struct FPInt
 		return ret;
 	}
 	FPInt operator* (const FPInt& rhs) const {
-		__int64 n = (__int64)raw * (__int64)rhs.raw; 
+		int64_t n = (int64_t)raw * (int64_t)rhs.raw; 
 		FPInt ret; 
-		ret.raw = (__int32)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
+		ret.raw = (int32_t)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
 		return ret;
 	}
 	FPInt operator/ (const FPInt& rhs) const {
-		__int64 n = ((__int64)raw) << 16; //shift first item up by 16 bits
-		n /= (__int64)rhs.raw;
+		int64_t n = ((int64_t)raw) << 16; //shift first item up by 16 bits
+		n /= (int64_t)rhs.raw;
 		FPInt ret;
-		ret.raw = (__int32)n;// & 0xffffffff;
+		ret.raw = (int32_t)n;// & 0xffffffff;
 		return ret;
 	}
 
@@ -55,14 +57,14 @@ struct FPInt
 	FPInt& operator+= (const FPInt& rhs) {raw += rhs.raw; return *this;}
 	FPInt& operator-= (const FPInt& rhs) {raw -= rhs.raw; return *this;}
 	FPInt& operator*= (const FPInt& rhs) {
-		__int64 n = (__int64)raw * (__int64)rhs.raw; 
-		raw = (__int32)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
+		int64_t n = (int64_t)raw * (int64_t)rhs.raw; 
+		raw = (int32_t)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
 		return *this;
 	}
 	FPInt& operator/= (const FPInt& rhs) {
-		__int64 n = ((__int64)raw) << 16; //shift first item up by 16 bits
-		n /= (__int64)rhs.raw;
-		raw = (__int32)n;// & 0xffffffff;
+		int64_t n = ((int64_t)raw) << 16; //shift first item up by 16 bits
+		n /= (int64_t)rhs.raw;
+		raw = (int32_t)n;// & 0xffffffff;
 		return *this;
 	}
 
@@ -117,8 +119,8 @@ struct FPInt
 	//ctor's
 	FPInt() : raw(0) {}
 	FPInt(const FPInt& c) : raw(c.raw) {}
-	FPInt(float n) : raw(0) {raw = (__int32)(n * 65536.0f);}
-	FPInt(double n) : raw(0) {raw = (__int32)(n * 65536.0);}
+	FPInt(float n) : raw(0) {raw = (int32_t)(n * 65536.0f);}
+	FPInt(double n) : raw(0) {raw = (int32_t)(n * 65536.0);}
 	FPInt(char n) : raw(0) {whole = n;}
 	FPInt(short n) : raw(0) {whole = n;}
 	FPInt(int n) : raw(0) {whole = n;}

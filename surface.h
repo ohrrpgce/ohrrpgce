@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 enum SurfaceFormat {
 	SFMT_P8 = 0,
 	SFMT_A8R8G8B8 = 1,
@@ -16,13 +18,13 @@ enum SurfaceUsage {
 	SUSE_FORCEDWORD = 0xffffffff,
 };
 
-typedef unsigned __int32 SurfaceData32;
-typedef unsigned __int8 SurfaceData8;
+typedef uint32_t SurfaceData32;
+typedef uint8_t SurfaceData8;
 
 struct Surface
 {
-	unsigned __int32 width;
-	unsigned __int32 height;
+	uint32_t width;
+	uint32_t height;
 	SurfaceFormat format;
 	SurfaceUsage usage;
 	union
