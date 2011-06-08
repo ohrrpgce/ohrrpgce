@@ -10,11 +10,15 @@
 
 struct Position
 {
-	FPInt x,y;
+	float x,y;
+	//FPInt x,y;
+	Position() : x(0), y(0) {}
 };
 struct TexCoord
 {
-	FPInt u,v;
+	float u,v;
+	//FPInt u,v;
+	TexCoord() : u(0), v(0) {}
 	TexCoord() {}
 	TexCoord(FPInt x, FPInt y) : u(x), v(y) {}
 };
@@ -59,7 +63,7 @@ struct Color //argb dword; palette stored in lowest byte, that is 'b'
 class Tex2DSampler
 {
 public:
-	Color sample(const Surface* pSurface, FPInt x, FPInt y) const;
+	Color sample(const Surface* pSurface, float x, float y) const;
 };
 
 struct Vertex
@@ -67,6 +71,7 @@ struct Vertex
 	Position pos;
 	TexCoord tex;
 	Color col;
+	Vertex() : pos(), tex(), col() {}
 };
 
 struct Triangle
@@ -76,7 +81,9 @@ struct Triangle
 
 struct ClippingRect
 {
-	FPInt left, top, right, bottom;
+	float left, top, right, bottom;
+	//FPInt left, top, right, bottom;
+	//ClippingRect() : left(0), top(0), right(0), bottom(0) {}
 };
 
 struct DrawingRange
@@ -85,14 +92,47 @@ struct DrawingRange
 	DrawingRange(const Vertex& Least, const Vertex& Greatest) : least(Least), greatest(Greatest) {}
 };
 
+class LineSegment
+{
+private:
+	float m_slope;
+	float m_dx;
+	float m_dy;
+	//float m_length; //don't want to use a square root
+	bool m_isFunctionOfX;
+	union
+	{
+		float m_yIntercept;
+		float m_xIntercept;
+	};
+	float m_leastX, m_leastY, m_greatestX, m_greatestY;
+public:
+	LineSegment() 
+		: m_slope(0.0f), m_dx(0.0f), m_dy(0.0f), /*m_length(0.0f),*/ m_isFunctionOfX(false), m_yIntercept(0.0f), m_leastX(0.0f), m_leastY(0.0f), m_greatestX(0.0f), m_greatestY(0.0f) {}
+	void calculateLineSegment(const Position& A, const Position& B);
+	bool intersects(float* pIntersection, float YIntercept);
+
+	float slope() const {return m_slope;}
+	float dx() const {return m_dx;}
+	float dy() const {return m_dy;}
+	//float length() const {return m_length;}
+	bool isFunctionOfX() const {return m_isFunctionOfX;}
+	float xIntercept() const {return m_xIntercept;}
+	float yIntercept() const {return m_yIntercept;}
+	float leastX() const {return m_leastX;}
+	float leastY() const {return m_leastY;}
+	float greatestX() const {return m_greatestX;}
+	float greatestY() const {return m_greatestY;}
+};
+
 class TriRasterizer
 {
 protected:
 	std::queue<DrawingRange> m_rasterLines;
 	Tex2DSampler m_sampler;
 	void calculateTriangleRect(ClippingRect& clipOut, const Triangle* pTriangle);
-	void interpolateVertices(Vertex& vertexOut, const Vertex& v1, const Vertex& v2, FPInt scale);
-	void calculateRasterPixels(unsigned __int32 row, FPInt minimum, FPInt maximum, const Surface* pSurface, const Triangle* pTriangle);
+	void interpolateVertices(Vertex& vertexOut, const Vertex& v1, const Vertex& v2, float scale);
+	void calculateRasterPixels(const Surface* pSurface, const Triangle* pTriangle, ClippingRect& clip);
 	void rasterColor(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle);
 	void rasterTexture(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle, const Surface* pTexture);
 	void rasterTextureColor(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle, const Surface* pTexture);
