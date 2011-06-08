@@ -42,6 +42,8 @@ if 'debug' in ARGUMENTS:
     FB_exx = int (ARGUMENTS['debug'])
 if 'profile' in ARGUMENTS:
     FBFLAGS.append ('-profile')
+if 'scriptprofile' in ARGUMENTS:
+    FBFLAGS += ['-d','SCRIPTPROFILE']
 if ARGUMENTS.get ('valgrind', 0):
     #-exx under valgrind is nearly redundant, and really slow
     FB_exx = False
@@ -291,12 +293,13 @@ Options:
   debug=0|1           Debugging build: with -exx and without optimisation.
                       Set to 0 to force building without -exx.
   valgrind=1          valgrinding build.
-  profile=1           Profiling build for gprof
+  profile=1           Profiling build for gprof.
+  scriptprofile=1     Script profiling build.
   fbc=PATH            Override fbc.
   svn=PATH            Override svn.
   git=PATH            Override git.
 
-  raster=1            Link with rasterizer
+  raster=1            Link with rasterizer.
 
 Targets:
   """ + gamename + """ (or game)
@@ -320,4 +323,3 @@ Examples:
   scons gfx=sdl+fb music=native game custom
   scons -j 2 debug=1 .
 """)
-v

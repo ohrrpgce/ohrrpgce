@@ -72,9 +72,9 @@ del game*.exe custom*.exe
 scons gfx=directx+sdl+fb music=sdl debug=1 valgrind=1
 call nightly-gfx-music directx sdl -debug-valgrind SDL.dll SDL_mixer.dll gfx_directx.dll misc\gdbcmds1.txt misc\gdbcmds2.txt gdbgame.bat gdbcustom.bat
 
-REM del game*.exe custom*.exe
-REM scons gfx=directx+sdl+fb music=sdl debug=1 profile=1
-REM call nightly-gfx-music directx sdl -profile SDL.dll SDL_mixer.dll gfx_directx.dll
+del game*.exe custom*.exe
+scons gfx=directx+sdl+fb music=sdl scriptprofile=1
+call nightly-gfx-music directx sdl -scriptprofile SDL.dll SDL_mixer.dll gfx_directx.dll
 
 Echo upload plotdict.xml
 pscp -i C:\progra~1\putty\id_rsa.ppk docs\plotdict.xml james_paige@motherhamster.org:HamsterRepublic.com/ohrrpgce/docs/
