@@ -3201,7 +3201,7 @@ SUB recreate_map_slices()
   DeleteSlice @SliceTable.Walkabout
 
   'Anything else attached to the map
-  DeleteSliceChildren @SliceTable.MapRoot
+  DeleteSliceChildren SliceTable.MapRoot
 
   'And then create new ones
   SetupMapSlices UBOUND(maptiles)
