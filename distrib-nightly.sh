@@ -23,7 +23,7 @@ UPDATE=`wc -l < ../nightly-temp.txt`
 cat ../nightly-temp.txt
 rm ../nightly-temp.txt
 
-if [ ${UPDATE} -eq 1 ] ; then
+if [ ${UPDATE} -eq 1 -a "${1}" != "force" ] ; then
   echo no changes, no need to update snapshot.
   exit
 fi
