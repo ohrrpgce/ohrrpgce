@@ -1,16 +1,16 @@
 #include "rasterizer.h"
 
-Color Tex2DSampler::sample(const Surface* pSurface, float u, float v) const
+Color Tex2DSampler::sample(const Surface* pSurface, FPInt u, FPInt v) const
 {
-	//FPInt minuteScale;
-	//minuteScale.fraction = 0xffff; //same as 65535/65536
+	FPInt minuteScale;
+	minuteScale.fraction = 0xffff; //same as 65535/65536
 
-	u *= 0.99999f;//minuteScale; //scale from (0.0)-(1.0) to (0.0)-(0.99999...)
-	//u.whole = 0; //remove all whole numbers and negative references, keeping fraction
+	u *= /*0.99999f;*/minuteScale; //scale from (0.0)-(1.0) to (0.0)-(0.99999...)
+	u.whole = 0; //remove all whole numbers and negative references, keeping fraction
 	u *= pSurface->width;//FPInt(pSurface->width); //scale from (0.0)-(0.9999...) to (0)-(surface.width-1)
 
-	v *= 0.99999f;//minuteScale; //scale from (0.0)-(1.0) to (0.0)-(0.99999...)
-	//u.whole = 0; //remove all whole numbers and negative references, keeping fraction
+	v *= /*0.99999f;*/minuteScale; //scale from (0.0)-(1.0) to (0.0)-(0.99999...)
+	v.whole = 0; //remove all whole numbers and negative references, keeping fraction
 	v *= pSurface->height;//FPInt(pSurface->height); //scale from (0.0)-(0.9999...) to (0)-(surface.width-1)
 
 	Color color;
@@ -104,240 +104,6 @@ void TriRasterizer::interpolateVertices(Vertex &vertexOut, const Vertex &v1, con
 
 void TriRasterizer::calculateRasterPixels(const Surface* pSurface, const Triangle *pTriangle, ClippingRect& clip)
 {
-	//FPInt xIntercept[3];
-
-	////figure all x-intercepts
-	//FPInt deltaX, deltaY, slope, yIntercept;
-	//Position a, b;
-
-	//for(int i = 0; i < 3; i++)
-	//{
-	//	a = pTriangle->pnt[i].pos;
-	//	b = pTriangle->pnt[(i+1)%3].pos;
-	//	deltaX = a.x - b.x;
-	//	deltaY = a.y - b.y;
-
-	//	if((deltaY < 0 ? -deltaY : deltaY) > (deltaX < 0 ? -deltaX : deltaX))
-	//	{//y changes more than x: use y as denominator for slope, etc.
-	//		slope = deltaX / deltaY;
-	//		xIntercept[i] = a.x - slope * (a.y-row);
-	//	}
-	//	else
-	//	{//x changes more than y: use that as denominator for slope, etc.
-	//		slope = deltaY / deltaX;
-	//		yIntercept = a.y - slope * a.x;
-	//		if(slope == 0) //0 slope
-	//		{
-	//			if(yIntercept == row) //entire row is to be rasterized (line is parallel with this rasterizing line AND overlays it)
-	//			{
-	//				xIntercept[i] = a.x;
-	//				xIntercept[(i+1)%3] = b.x;
-	//				break;
-	//			}
-	//		}
-	//		else
-	//		{
-	//			xIntercept[i] = (-yIntercept + row) / slope;
-	//		}
-	//	}
-	//}
-
-	////figure leftmost and rightmost x-intercepts within the triangle minimum and maximum:
-	////those are the boundaries of the raster line
-	//FPInt leftMost(maximum+1), rightMost(minimum-1);
-	//int leftIndex(0), rightIndex(1);
-	//for(int i = 0; i < 3; i++)
-	//{
-	//	if(xIntercept[i]/*.whole*/ >= (minimum-1/*.whole-1*/) && xIntercept[i]/*.whole*/ <= (maximum+1/*.whole+1*/))
-	//	{
-	//		if(xIntercept[i] < leftMost)
-	//		{
-	//			leftMost = xIntercept[i];
-	//			leftIndex = i;
-	//		}
-	//		if(xIntercept[i] > rightMost)
-	//		{
-	//			rightMost = xIntercept[i];
-	//			rightIndex = i;
-	//		}
-	//	}
-	//}
-
-	////generate boundaries of raster line
-	//Vertex leftBoundary, rightBoundary;
-
-	//FPInt scale;
-	//deltaX = pTriangle->pnt[leftIndex].pos.x - pTriangle->pnt[(leftIndex+1)%3].pos.x;
-	//deltaY = pTriangle->pnt[leftIndex].pos.y - pTriangle->pnt[(leftIndex+1)%3].pos.y;
-
-	//if((deltaX < 0 ? -deltaX : deltaX) > (deltaY < 0 ? -deltaY : deltaY)) //ensure the larger scale is used
-	//{
-	//	scale = (xIntercept[leftIndex] - pTriangle->pnt[(leftIndex+1)%3].pos.x) / deltaX;
-	//}
-	//else
-	//{
-	//	scale = (FPInt(row) - pTriangle->pnt[(leftIndex+1)%3].pos.y) / deltaY;
-	//}
-
-	//interpolateVertices(leftBoundary, pTriangle->pnt[leftIndex], pTriangle->pnt[(leftIndex+1)%3], scale);
-	//leftBoundary.pos.y = row;
-
-	//deltaX = pTriangle->pnt[rightIndex].pos.x - pTriangle->pnt[(rightIndex+1)%3].pos.x;
-	//deltaY = pTriangle->pnt[rightIndex].pos.y - pTriangle->pnt[(rightIndex+1)%3].pos.y;
-
-	//if((deltaX < 0 ? -deltaX : deltaX) > (deltaY < 0 ? -deltaY : deltaY)) //ensure the larger scale is used
-	//{
-	//	scale = (xIntercept[rightIndex] - pTriangle->pnt[(rightIndex+1)%3].pos.x) / deltaX;
-	//}
-	//else
-	//{
-	//	scale = (FPInt(row) - pTriangle->pnt[(rightIndex+1)%3].pos.y) / deltaY;
-	//}
-
-	//interpolateVertices(rightBoundary, pTriangle->pnt[rightIndex], pTriangle->pnt[(rightIndex+1)%3], scale);
-	//rightBoundary.pos.y = row;
-
-	////perform clipping interpolation
-	//if(leftBoundary.pos.x >= pSurface->width || rightBoundary.pos.x < 0)
-	//	return; //completely outside of raster area
-
-	//if(leftBoundary.pos.x < 0)
-	//{
-	//	scale = leftBoundary.pos.x / (leftBoundary.pos.x - rightBoundary.pos.x);
-	//	interpolateVertices(leftBoundary, leftBoundary, rightBoundary, -scale+1);
-	//	leftBoundary.pos.x = 0;
-	//	leftBoundary.pos.y = row;
-	//}
-	//if(rightBoundary.pos.x >= pSurface->width)
-	//{
-	//	scale = (FPInt(pSurface->width - 1) - rightBoundary.pos.x) / (leftBoundary.pos.x - rightBoundary.pos.x);
-	//	interpolateVertices(rightBoundary, rightBoundary, leftBoundary, scale);
-	//	rightBoundary.pos.x = pSurface->width - 1;
-	//	rightBoundary.pos.y = row;
-	//}
-
-	////post the raster line
-	//m_rasterLines.push( DrawingRange(leftBoundary, rightBoundary) );
-
-
-	//float xIntercept[3];
-
-	////figure all x-intercepts
-	//float deltaX, deltaY, slope, yIntercept;
-	//Position a, b;
-
-	//for(int i = 0; i < 3; i++)
-	//{
-	//	a = pTriangle->pnt[i].pos;
-	//	b = pTriangle->pnt[(i+1)%3].pos;
-	//	deltaX = a.x - b.x;
-	//	deltaY = a.y - b.y;
-
-	//	if((deltaY < 0 ? -deltaY : deltaY) > (deltaX < 0 ? -deltaX : deltaX))
-	//	{//y changes more than x: use y as denominator for slope, etc.
-	//		slope = deltaX / deltaY;
-	//		yIntercept = a.x - slope * a.y;
-	//		xIntercept[i] = slope * row + yIntercept; //here, yIntercept is actually the x-intercept, and xIntercept is the intersection of the row and the line
-	//	}
-	//	else
-	//	{//x changes more than y: use that as denominator for slope, etc.
-	//		slope = deltaY / deltaX;
-	//		yIntercept = a.y - slope * a.x;
-	//		if(slope == 0) //0 slope
-	//		{
-	//			if(yIntercept == row) //entire row is to be rasterized (line is parallel with this rasterizing line AND overlays it)
-	//			{
-	//				xIntercept[i] = a.x;
-	//				xIntercept[(i+1)%3] = b.x;
-	//				break;
-	//			}
-	//			else
-	//				xIntercept[i] = 0; //this should never happen
-	//		}
-	//		else
-	//		{
-	//			xIntercept[i] = (-yIntercept + row) / slope;
-	//		}
-	//	}
-	//}
-
-	////figure leftmost and rightmost x-intercepts within the triangle minimum and maximum:
-	////those are the boundaries of the raster line
-	//float leftMost(maximum+1), rightMost(minimum-1);
-	//int leftIndex(0), rightIndex(1);
-	//for(int i = 0; i < 3; i++)
-	//{
-	//	if(xIntercept[i]/*.whole*/ >= (float)(minimum-1/*.whole-1*/) && xIntercept[i]/*.whole*/ <= (float)(maximum+1/*.whole+1*/))
-	//	{
-	//		if(xIntercept[i] < leftMost)
-	//		{
-	//			leftMost = xIntercept[i];
-	//			leftIndex = i;
-	//		}
-	//		if(xIntercept[i] > rightMost)
-	//		{
-	//			rightMost = xIntercept[i];
-	//			rightIndex = i;
-	//		}
-	//	}
-	//}
-
-	////generate boundaries of raster line
-	//Vertex leftBoundary, rightBoundary;
-
-	//float scale;
-	//deltaX = pTriangle->pnt[leftIndex].pos.x - pTriangle->pnt[(leftIndex+1)%3].pos.x;
-	//deltaY = pTriangle->pnt[leftIndex].pos.y - pTriangle->pnt[(leftIndex+1)%3].pos.y;
-
-	//if((deltaX < 0 ? -deltaX : deltaX) > (deltaY < 0 ? -deltaY : deltaY)) //ensure the larger scale is used
-	//{
-	//	scale = (xIntercept[leftIndex] - pTriangle->pnt[(leftIndex+1)%3].pos.x) / deltaX;
-	//}
-	//else
-	//{
-	//	scale = ((row) - pTriangle->pnt[(leftIndex+1)%3].pos.y) / deltaY;
-	//}
-
-	//interpolateVertices(leftBoundary, pTriangle->pnt[leftIndex], pTriangle->pnt[(leftIndex+1)%3], scale);
-	//leftBoundary.pos.y = row;
-
-	//deltaX = pTriangle->pnt[rightIndex].pos.x - pTriangle->pnt[(rightIndex+1)%3].pos.x;
-	//deltaY = pTriangle->pnt[rightIndex].pos.y - pTriangle->pnt[(rightIndex+1)%3].pos.y;
-
-	//if((deltaX < 0 ? -deltaX : deltaX) > (deltaY < 0 ? -deltaY : deltaY)) //ensure the larger scale is used
-	//{
-	//	scale = (xIntercept[rightIndex] - pTriangle->pnt[(rightIndex+1)%3].pos.x) / deltaX;
-	//}
-	//else
-	//{
-	//	scale = ((row) - pTriangle->pnt[(rightIndex+1)%3].pos.y) / deltaY;
-	//}
-
-	//interpolateVertices(rightBoundary, pTriangle->pnt[rightIndex], pTriangle->pnt[(rightIndex+1)%3], scale);
-	//rightBoundary.pos.y = row;
-
-	////perform clipping interpolation
-	//if(leftBoundary.pos.x >= pSurface->width || rightBoundary.pos.x < 0)
-	//	return; //completely outside of raster area
-
-	//if(leftBoundary.pos.x < 0)
-	//{
-	//	scale = leftBoundary.pos.x / (leftBoundary.pos.x - rightBoundary.pos.x);
-	//	interpolateVertices(leftBoundary, leftBoundary, rightBoundary, -scale+1);
-	//	leftBoundary.pos.x = 0;
-	//	leftBoundary.pos.y = row;
-	//}
-	//if(rightBoundary.pos.x >= pSurface->width)
-	//{
-	//	scale = ((pSurface->width - 1) - rightBoundary.pos.x) / (leftBoundary.pos.x - rightBoundary.pos.x);
-	//	interpolateVertices(rightBoundary, rightBoundary, leftBoundary, scale);
-	//	rightBoundary.pos.x = pSurface->width - 1;
-	//	rightBoundary.pos.y = row;
-	//}
-
-	////post the raster line
-	//m_rasterLines.push( DrawingRange(leftBoundary, rightBoundary) );
-
 	//check that the clipping rect is within the surface's boundaries
 	if(clip.left < 0.0f) clip.left = 0.0f;
 	if(clip.right > pSurface->width-1) clip.right = pSurface->width-1;
@@ -404,41 +170,41 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurface, const Triangl
 		//interpolate vertex data for each line
 		//this part needs fixing, then it's done! I think...
 
-		//if(segments[leftMostIndex].isFunctionOfX())
-		//{
-		//	if(segments[leftMostIndex].dx() == 0.0f || segments[leftMostIndex].dx() == -0.0f)
-		//		scale = 1.0f;
-		//	else
-		//		scale = (xIntersection[leftMostIndex] - pTriangle->pnt[(leftMostIndex+1)%3].pos.x) / segments[leftMostIndex].dx();
-		//}
-		//else
-		//{
-		//	if(segments[leftMostIndex].dy() == 0.0f || segments[leftMostIndex].dy() == -0.0f)
-		//		scale = 1.0f;
-		//	else
-		//		scale = (xIntersection[leftMostIndex] - pTriangle->pnt[(leftMostIndex+1)%3].pos.y) / segments[leftMostIndex].dy();
-		//}
-		//interpolateVertices(leftVertex, pTriangle->pnt[leftMostIndex], pTriangle->pnt[(leftMostIndex+1)%3], .5f);
-		leftVertex = pTriangle->pnt[leftMostIndex];
+		if(segments[leftMostIndex].isFunctionOfX())
+		{
+			if(segments[leftMostIndex].dx() == 0.0f || segments[leftMostIndex].dx() == -0.0f)
+				scale = 1.0f;
+			else
+				scale = (xIntersection[leftMostIndex] - pTriangle->pnt[(leftMostIndex+1)%3].pos.x) / segments[leftMostIndex].dx();
+		}
+		else
+		{
+			if(segments[leftMostIndex].dy() == 0.0f || segments[leftMostIndex].dy() == -0.0f)
+				scale = 1.0f;
+			else
+				scale = (row - pTriangle->pnt[(leftMostIndex+1)%3].pos.y) / segments[leftMostIndex].dy();
+		}
+		interpolateVertices(leftVertex, pTriangle->pnt[leftMostIndex], pTriangle->pnt[(leftMostIndex+1)%3], scale);
+		//leftVertex = pTriangle->pnt[leftMostIndex];
 		leftVertex.pos.x = xIntersection[leftMostIndex];
 		leftVertex.pos.y = row;
 
-		//if(segments[rightMostIndex].isFunctionOfX())
-		//{
-		//	if(segments[rightMostIndex].dx() == 0.0f || segments[rightMostIndex].dx() == -0.0f)
-		//		scale = 1.0f;
-		//	else
-		//		scale = (xIntersection[rightMostIndex] - pTriangle->pnt[(rightMostIndex+1)%3].pos.x) / segments[rightMostIndex].dx();
-		//}
-		//else
-		//{
-		//	if(segments[rightMostIndex].dy() == 0.0f || segments[rightMostIndex].dy() == -0.0f)
-		//		scale = 1.0f;
-		//	else
-		//		scale = (xIntersection[rightMostIndex] - pTriangle->pnt[(rightMostIndex+1)%3].pos.y) / segments[rightMostIndex].dy();
-		//}
-		//interpolateVertices(rightVertex, pTriangle->pnt[rightMostIndex], pTriangle->pnt[(rightMostIndex+1)%3], .5f);
-		rightVertex = pTriangle->pnt[rightMostIndex];
+		if(segments[rightMostIndex].isFunctionOfX())
+		{
+			if(segments[rightMostIndex].dx() == 0.0f || segments[rightMostIndex].dx() == -0.0f)
+				scale = 1.0f;
+			else
+				scale = (xIntersection[rightMostIndex] - pTriangle->pnt[(rightMostIndex+1)%3].pos.x) / segments[rightMostIndex].dx();
+		}
+		else
+		{
+			if(segments[rightMostIndex].dy() == 0.0f || segments[rightMostIndex].dy() == -0.0f)
+				scale = 1.0f;
+			else
+				scale = (row - pTriangle->pnt[(rightMostIndex+1)%3].pos.y) / segments[rightMostIndex].dy();
+		}
+		interpolateVertices(rightVertex, pTriangle->pnt[rightMostIndex], pTriangle->pnt[(rightMostIndex+1)%3], scale);
+		//rightVertex = pTriangle->pnt[rightMostIndex];
 		rightVertex.pos.x = xIntersection[rightMostIndex];
 		rightVertex.pos.y = row;
 

@@ -19,8 +19,6 @@ struct TexCoord
 	float u,v;
 	//FPInt u,v;
 	TexCoord() : u(0), v(0) {}
-	TexCoord() {}
-	TexCoord(FPInt x, FPInt y) : u(x), v(y) {}
 };
 struct Color //argb dword; palette stored in lowest byte, that is 'b'
 {
@@ -63,7 +61,7 @@ struct Color //argb dword; palette stored in lowest byte, that is 'b'
 class Tex2DSampler
 {
 public:
-	Color sample(const Surface* pSurface, float x, float y) const;
+	Color sample(const Surface* pSurface, FPInt x, FPInt y) const;
 };
 
 struct Vertex
