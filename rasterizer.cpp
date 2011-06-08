@@ -241,8 +241,8 @@ void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, co
 
 	int start = 0, finish = 0;
 
-	start = (range.least.pos.x < 0 ? 0 : (int)range.least.pos.x);
-	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : (int)range.greatest.pos.x);
+	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
+	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
 
 	for(int i = start; i <= finish; i++)
 	{
@@ -274,8 +274,8 @@ void TriRasterizer::rasterTexture(Surface *pSurface, const DrawingRange &range, 
 
 	int start = 0, finish = 0;
 
-	start = (range.least.pos.x < 0 ? 0 : (int)range.least.pos.x);
-	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : (int)range.greatest.pos.x);
+	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
+	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
 
 	for(int i = start; i <= finish; i++)
 	{
@@ -306,8 +306,8 @@ void TriRasterizer::rasterTextureColor(Surface *pSurface, const DrawingRange &ra
 
 	int start = 0, finish = 0;
 
-	start = (range.least.pos.x < 0 ? 0 : (int)range.least.pos.x);
-	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : (int)range.greatest.pos.x);
+	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
+	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
 
 	for(int i = start; i <= finish; i++)
 	{
@@ -354,8 +354,8 @@ void TriRasterizer::drawTest(Surface* pSurface, const Triangle* pTriangle, const
 		{
 			int start = 0, finish = 0;
 
-			start = (m_rasterLines.front().least.pos.x < 0 ? 0 : (int)m_rasterLines.front().least.pos.x);
-			finish = (m_rasterLines.front().greatest.pos.x >= pSurface->width ? pSurface->width-1 : (int)m_rasterLines.front().greatest.pos.x);
+			start = (m_rasterLines.front().least.pos.x < 0 ? 0 : m_rasterLines.front().least.pos.x);
+			finish = (m_rasterLines.front().greatest.pos.x >= pSurface->width ? pSurface->width-1 : m_rasterLines.front().greatest.pos.x);
 
 			for(int i = start; i <= finish; i++)
 			{
@@ -370,8 +370,8 @@ void TriRasterizer::drawTest(Surface* pSurface, const Triangle* pTriangle, const
 		{
 			int start = 0, finish = 0;
 
-			start = (m_rasterLines.front().least.pos.x < 0 ? 0 : (int)m_rasterLines.front().least.pos.x);
-			finish = (m_rasterLines.front().greatest.pos.x >= pSurface->width ? pSurface->width-1 : (int)m_rasterLines.front().greatest.pos.x);
+			start = (m_rasterLines.front().least.pos.x < 0 ? 0 : m_rasterLines.front().least.pos.x);
+			finish = (m_rasterLines.front().greatest.pos.x >= pSurface->width ? pSurface->width-1 : m_rasterLines.front().greatest.pos.x);
 
 			for(int i = start; i <= finish; i++)
 			{
