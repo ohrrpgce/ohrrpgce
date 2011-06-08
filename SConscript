@@ -42,6 +42,8 @@ if 'debug' in ARGUMENTS:
     FB_exx = int (ARGUMENTS['debug'])
 if 'profile' in ARGUMENTS:
     FBFLAGS.append ('-profile')
+    CFLAGS.append ('-pg')
+    CXXFLAGS.append ('-pg')
 if 'scriptprofile' in ARGUMENTS:
     FBFLAGS += ['-d','SCRIPTPROFILE']
 if ARGUMENTS.get ('valgrind', 0):
