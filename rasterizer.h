@@ -68,8 +68,7 @@ struct Vertex
 {
 	Position pos;
 	TexCoord tex;
-	Color col;
-	Vertex() : pos(), tex(), col() {}
+	Vertex() : pos(), tex() {}
 };
 
 struct Triangle
@@ -129,16 +128,13 @@ protected:
 	std::queue<DrawingRange> m_rasterLines;
 	Tex2DSampler m_sampler;
 	void calculateTriangleRect(ClippingRect& clipOut, const Triangle* pTriangle);
-	void interpolateVertices(Vertex& vertexOut, const Vertex& v1, const Vertex& v2, float scale);
+	void interpolateTexCoord(TexCoord& texOut, const TexCoord& t1, const TexCoord& t2, float scale);
 	void calculateRasterPixels(const Surface* pSurface, const Triangle* pTriangle, ClippingRect& clip);
-	void rasterColor(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle);
+	void rasterColor(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle, Color col);
 	void rasterTexture(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle, const Surface* pTexture);
-	void rasterTextureColor(Surface* pSurface, const DrawingRange& range, const Triangle* pTriangle, const Surface* pTexture);
 public:
-	void drawTest(Surface* pSurface, const Triangle* pTriangle, const Color& col);
-	void drawColor(Surface* pSurface, const Triangle* pTriangle);
+	void drawColor(Surface* pSurface, const Triangle* pTriangle, Color col);
 	void drawTexture(Surface* pSurface, const Triangle* pTriangle, const Surface* pTexture);
-	void drawTextureColor(Surface* pSurface, const Triangle* pTriangle, const Surface* pTexture);
 };
 
 struct Quad
@@ -153,21 +149,13 @@ protected:
 	Triangle m_triangles[4];
 	void generateTriangles(const Quad* pQuad);
 public:
-	void drawTest(Surface* pSurface, const Quad* pQuad, const Color& col)
+	void drawColor(Surface* pSurface, const Quad* pQuad, Color col)
 	{
 		if(pSurface == NULL || pQuad == NULL)
 			return;
 		generateTriangles(pQuad);
 		for(int i = 0; i < 4; i++)
-			m_triRasterizer.drawTest(pSurface, &m_triangles[i], col);
-	}
-	void drawColor(Surface* pSurface, const Quad* pQuad)
-	{
-		if(pSurface == NULL || pQuad == NULL)
-			return;
-		generateTriangles(pQuad);
-		for(int i = 0; i < 4; i++)
-			m_triRasterizer.drawColor(pSurface, &m_triangles[i]);
+			m_triRasterizer.drawColor(pSurface, &m_triangles[i], col);
 	}
 	void drawTexture(Surface* pSurface, const Quad* pQuad, const Surface* pTexture)
 	{
@@ -176,13 +164,5 @@ public:
 		generateTriangles(pQuad);
 		for(int i = 0; i < 4; i++)
 			m_triRasterizer.drawTexture(pSurface, &m_triangles[i], pTexture);
-	}
-	void drawTextureColor(Surface* pSurface, const Quad* pQuad, const Surface* pTexture)
-	{
-		if(pSurface == NULL || pQuad == NULL)
-			return;
-		generateTriangles(pQuad);
-		for(int i = 0; i < 4; i++)
-			m_triRasterizer.drawTextureColor(pSurface, &m_triangles[i], pTexture);
 	}
 };

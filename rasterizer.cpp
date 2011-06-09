@@ -15,7 +15,7 @@ Color Tex2DSampler::sample(const Surface* pSurface, FPInt u, FPInt v) const
 
 	Color color;
 	if(pSurface->format == SFMT_P8)
-		color = pSurface->pPaletteData[(int)v * pSurface->width + (int)u] & 0xff;
+		color = pSurface->pPaletteData[(int)v * pSurface->width + (int)u]/* & 0xff*/;
 	else if(pSurface->format == SFMT_A8R8G8B8)
 		color = pSurface->pColorData[(int)v * pSurface->width + (int)u];
 
@@ -85,21 +85,15 @@ void TriRasterizer::calculateTriangleRect(ClippingRect &clipOut, const Triangle*
 	clipOut.bottom = (pTriangle->pnt[2].pos.y > (float)clipOut.bottom ? pTriangle->pnt[2].pos.y : clipOut.bottom);
 }
 
-void TriRasterizer::interpolateVertices(Vertex &vertexOut, const Vertex &v1, const Vertex &v2, float scale)
+void TriRasterizer::interpolateTexCoord(TexCoord &texOut, const TexCoord &t1, const TexCoord &t2, float scale)
 {
-	Vertex out;
+	TexCoord out;
 	float invScale(-scale + 1);
 
-	out.pos.x = scale * v1.pos.x + invScale * v2.pos.x;
-	out.pos.y = scale * v1.pos.y + invScale * v2.pos.y;
-	out.tex.u = scale * v1.tex.u + invScale * v2.tex.u;
-	out.tex.v = scale * v1.tex.v + invScale * v2.tex.v;
-	out.col.a = scale * v1.col.a + invScale * v2.col.a;
-	out.col.r = scale * v1.col.r + invScale * v2.col.r;
-	out.col.g = scale * v1.col.g + invScale * v2.col.g;
-	out.col.b = scale * v1.col.b + invScale * v2.col.b;
+	out.u = scale * t1.u + invScale * t2.u;
+	out.v = scale * t1.v + invScale * t2.v;
 
-	vertexOut = out;
+	texOut = out;
 }
 
 void TriRasterizer::calculateRasterPixels(const Surface* pSurface, const Triangle *pTriangle, ClippingRect& clip)
@@ -168,8 +162,6 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurface, const Triangl
 			continue;
 
 		//interpolate vertex data for each line
-		//this part needs fixing, then it's done! I think...
-
 		if(segments[leftMostIndex].isFunctionOfX())
 		{
 			if(segments[leftMostIndex].dx() == 0.0f || segments[leftMostIndex].dx() == -0.0f)
@@ -184,8 +176,8 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurface, const Triangl
 			else
 				scale = (row - pTriangle->pnt[(leftMostIndex+1)%3].pos.y) / segments[leftMostIndex].dy();
 		}
-		interpolateVertices(leftVertex, pTriangle->pnt[leftMostIndex], pTriangle->pnt[(leftMostIndex+1)%3], scale);
-		//leftVertex = pTriangle->pnt[leftMostIndex];
+		//interpolateVertices(leftVertex, pTriangle->pnt[leftMostIndex], pTriangle->pnt[(leftMostIndex+1)%3], scale);
+		interpolateTexCoord(leftVertex.tex, pTriangle->pnt[leftMostIndex].tex, pTriangle->pnt[(leftMostIndex+1)%3].tex, scale);
 		leftVertex.pos.x = xIntersection[leftMostIndex];
 		leftVertex.pos.y = row;
 
@@ -203,8 +195,8 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurface, const Triangl
 			else
 				scale = (row - pTriangle->pnt[(rightMostIndex+1)%3].pos.y) / segments[rightMostIndex].dy();
 		}
-		interpolateVertices(rightVertex, pTriangle->pnt[rightMostIndex], pTriangle->pnt[(rightMostIndex+1)%3], scale);
-		//rightVertex = pTriangle->pnt[rightMostIndex];
+		//interpolateVertices(rightVertex, pTriangle->pnt[rightMostIndex], pTriangle->pnt[(rightMostIndex+1)%3], scale);
+		interpolateTexCoord(rightVertex.tex, pTriangle->pnt[rightMostIndex].tex, pTriangle->pnt[(rightMostIndex+1)%3].tex, scale);
 		rightVertex.pos.x = xIntersection[rightMostIndex];
 		rightVertex.pos.y = row;
 
@@ -215,16 +207,18 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurface, const Triangl
 		if(leftVertex.pos.x < clip.left)
 		{
 			scale = (clip.left - leftVertex.pos.x) / (rightVertex.pos.x - leftVertex.pos.x);
-			interpolateVertices(leftVertex, leftVertex, rightVertex, 1-scale);
+			//interpolateVertices(leftVertex, leftVertex, rightVertex, 1-scale);
+			interpolateTexCoord(leftVertex.tex, leftVertex.tex, rightVertex.tex, 1-scale);
 			leftVertex.pos.x = clip.left;
-			leftVertex.pos.y = row;
+			//leftVertex.pos.y = row;
 		}
 		if(rightVertex.pos.x > clip.right)
 		{
 			scale = (clip.right - rightVertex.pos.x) / (leftVertex.pos.x - rightVertex.pos.x);
-			interpolateVertices(rightVertex, rightVertex, leftVertex, 1-scale);
+			//interpolateVertices(rightVertex, rightVertex, leftVertex, 1-scale);
+			interpolateTexCoord(rightVertex.tex, rightVertex.tex, leftVertex.tex, 1-scale);
 			rightVertex.pos.x = clip.right;
-			rightVertex.pos.y = row;
+			//rightVertex.pos.y = row;
 		}
 
 		//push the data onto the raster queue
@@ -232,13 +226,8 @@ void TriRasterizer::calculateRasterPixels(const Surface* pSurface, const Triangl
 	}
 }
 
-void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, const Triangle *pTriangle)
+void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, const Triangle *pTriangle, Color col)
 {
-	Color color;
-	float length(range.greatest.pos.x - range.least.pos.x+1), 
-		  weightFirst,
-		  weightSecond;
-
 	int start = 0, finish = 0;
 
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
@@ -246,21 +235,13 @@ void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, co
 
 	for(int i = start; i <= finish; i++)
 	{
-		weightFirst = (range.greatest.pos.x - i) / (float)length;
-		weightSecond = 1 - weightFirst;
-
 		if(pSurface->format == SFMT_P8)
 		{
-			color.b = weightFirst * range.least.col.b + weightSecond * range.greatest.col.b;
-			pSurface->pPaletteData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData8)color;
+			pSurface->pPaletteData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData8)col;
 		}
 		else
 		{
-			color.a = weightFirst * range.least.col.a + weightSecond * range.greatest.col.a;
-			color.r = weightFirst * range.least.col.r + weightSecond * range.greatest.col.r;
-			color.g = weightFirst * range.least.col.g + weightSecond * range.greatest.col.g;
-			color.b = weightFirst * range.least.col.b + weightSecond * range.greatest.col.b;
-			pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData32)color;
+			pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData32)col;
 		}
 	}
 }
@@ -295,94 +276,7 @@ void TriRasterizer::rasterTexture(Surface *pSurface, const DrawingRange &range, 
 	}
 }
 
-void TriRasterizer::rasterTextureColor(Surface *pSurface, const DrawingRange &range, const Triangle *pTriangle, const Surface *pTexture)
-{
-	TexCoord texel;
-	Color texelColor;
-	Color color;
-	float length(range.greatest.pos.x - range.least.pos.x+1), 
-		  weightFirst,
-		  weightSecond;
-
-	int start = 0, finish = 0;
-
-	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
-	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
-
-	for(int i = start; i <= finish; i++)
-	{
-		weightFirst = (range.greatest.pos.x - i) / (float)length;
-		weightSecond = 1 - weightFirst;
-		texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
-		texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
-
-		if(pSurface->format == SFMT_P8) //no point for palettes to be affected by color weights
-		{
-			pSurface->pPaletteData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData8)m_sampler.sample(pTexture, texel.u, texel.v);
-		}
-		else
-		{
-			texelColor = m_sampler.sample(pTexture, texel.u, texel.v);
-			color.a = ((int)(weightFirst * range.least.col.a + weightSecond * range.greatest.col.a) * texelColor.a) >> 8;
-			color.r = ((int)(weightFirst * range.least.col.r + weightSecond * range.greatest.col.r) * texelColor.r) >> 8;
-			color.g = ((int)(weightFirst * range.least.col.g + weightSecond * range.greatest.col.g) * texelColor.g) >> 8;
-			color.b = ((int)(weightFirst * range.least.col.b + weightSecond * range.greatest.col.b) * texelColor.b) >> 8;
-			pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData32)color;
-		}
-	}
-}
-
-void TriRasterizer::drawTest(Surface* pSurface, const Triangle* pTriangle, const Color &col)
-{
-	if(pSurface == NULL || pTriangle == NULL)
-		return;
-
-	ClippingRect clip = {0.0f, 0.0f, pSurface->width-1, pSurface->height-1};
-	calculateRasterPixels(pSurface, pTriangle, clip);
-
-	//determine rasterizing region
-	//calculateTriangleRect(clip, pTriangle);
-	//if(clip.top < 0) clip.top = 0;
-	//if(clip.bottom >= pSurface->height) clip.bottom = pSurface->height-1;
-	//for(int row = (int)clip.top; row <= (int)clip.bottom; row++)
-		//calculateRasterPixels(row, clip.left, clip.right, pSurface, pTriangle);
-
-	//rasterize the polygon
-	if(pSurface->format == SFMT_P8)
-	{
-		while(!m_rasterLines.empty())
-		{
-			int start = 0, finish = 0;
-
-			start = (m_rasterLines.front().least.pos.x < 0 ? 0 : m_rasterLines.front().least.pos.x);
-			finish = (m_rasterLines.front().greatest.pos.x >= pSurface->width ? pSurface->width-1 : m_rasterLines.front().greatest.pos.x);
-
-			for(int i = start; i <= finish; i++)
-			{
-				pSurface->pPaletteData[(int)m_rasterLines.front().least.pos.y * pSurface->width + i] = (SurfaceData8)col;
-				m_rasterLines.pop();
-			}
-		}
-	}
-	else if(pSurface->format == SFMT_A8R8G8B8)
-	{
-		while(!m_rasterLines.empty())
-		{
-			int start = 0, finish = 0;
-
-			start = (m_rasterLines.front().least.pos.x < 0 ? 0 : m_rasterLines.front().least.pos.x);
-			finish = (m_rasterLines.front().greatest.pos.x >= pSurface->width ? pSurface->width-1 : m_rasterLines.front().greatest.pos.x);
-
-			for(int i = start; i <= finish; i++)
-			{
-				pSurface->pColorData[(int)m_rasterLines.front().least.pos.y * pSurface->width + i] = (SurfaceData32)col;
-			}
-			m_rasterLines.pop();
-		}
-	}
-}
-
-void TriRasterizer::drawColor(Surface *pSurface, const Triangle *pTriangle)
+void TriRasterizer::drawColor(Surface *pSurface, const Triangle *pTriangle, Color col)
 {
 	if(pSurface == NULL || pTriangle == NULL)
 		return;
@@ -390,18 +284,11 @@ void TriRasterizer::drawColor(Surface *pSurface, const Triangle *pTriangle)
 	//determine rasterizing region
 	ClippingRect clip = {0.0f, 0.0f, pSurface->width-1, pSurface->height-1};
 	calculateRasterPixels(pSurface, pTriangle, clip);
-
-	//calculateTriangleRect(clip, pTriangle);
-	//if(clip.top < 0) clip.top = 0;
-	//if(clip.bottom >= pSurface->height) clip.bottom = pSurface->height-1;
-
-	//for(int row = (int)clip.top; row <= (int)clip.bottom; row++)
-	//	calculateRasterPixels(row, clip.left, clip.right, pSurface, pTriangle);
 
 	//rasterize the polygon
 	while(!m_rasterLines.empty())
 	{
-		rasterColor(pSurface, m_rasterLines.front(), pTriangle);
+		rasterColor(pSurface, m_rasterLines.front(), pTriangle, col);
 		m_rasterLines.pop();
 	}
 }
@@ -415,39 +302,10 @@ void TriRasterizer::drawTexture(Surface *pSurface, const Triangle *pTriangle, co
 	ClippingRect clip = {0.0f, 0.0f, pSurface->width-1, pSurface->height-1};
 	calculateRasterPixels(pSurface, pTriangle, clip);
 
-	//calculateTriangleRect(clip, pTriangle);
-	//if(clip.top < 0) clip.top = 0;
-	//if(clip.bottom >= pSurface->height) clip.bottom = pSurface->height-1;
-	//for(int row = (int)clip.top; row <= (int)clip.bottom; row++)
-	//	calculateRasterPixels(row, clip.left, clip.right, pSurface, pTriangle);
-
 	//rasterize the polygon
 	while(!m_rasterLines.empty())
 	{
 		rasterTexture(pSurface, m_rasterLines.front(), pTriangle, pTexture);
-		m_rasterLines.pop();
-	}
-}
-
-void TriRasterizer::drawTextureColor(Surface *pSurface, const Triangle *pTriangle, const Surface* pTexture)
-{
-	if(pSurface == NULL || pTriangle == NULL)
-		return;
-
-	//determine rasterizing region
-	ClippingRect clip = {0.0f, 0.0f, pSurface->width-1, pSurface->height-1};
-	calculateRasterPixels(pSurface, pTriangle, clip);
-
-	//calculateTriangleRect(clip, pTriangle);
-	//if(clip.top < 0) clip.top = 0;
-	//if(clip.bottom >= pSurface->height) clip.bottom = pSurface->height-1;
-	//for(int row = (int)clip.top; row <= (int)clip.bottom; row++)
-	//	calculateRasterPixels(row, clip.left, clip.right, pSurface, pTriangle);
-
-	//rasterize the polygon
-	while(!m_rasterLines.empty())
-	{
-		rasterTextureColor(pSurface, m_rasterLines.front(), pTriangle, pTexture);
 		m_rasterLines.pop();
 	}
 }
@@ -458,30 +316,17 @@ void TriRasterizer::drawTextureColor(Surface *pSurface, const Triangle *pTriangl
 void QuadRasterizer::generateTriangles(const Quad *pQuad)
 {
 	Vertex center;
-	FPInt a,r,g,b;
 	for(int i = 0; i < 4; i++)
 	{
 		center.pos.x += pQuad->pnt[i].pos.x;
 		center.pos.y += pQuad->pnt[i].pos.y;
 		center.tex.u += pQuad->pnt[i].tex.u;
 		center.tex.v += pQuad->pnt[i].tex.v;
-		a += pQuad->pnt[i].col.a;
-		r += pQuad->pnt[i].col.r;
-		g += pQuad->pnt[i].col.g;
-		b += pQuad->pnt[i].col.b;
 	}
 	center.pos.x /= 4;
 	center.pos.y /= 4;
 	center.tex.u /= 4;
 	center.tex.v /= 4;
-	a /= 4;
-	r /= 4;
-	g /= 4;
-	b /= 4;
-	center.col.a = a.whole;
-	center.col.r = r.whole;
-	center.col.g = g.whole;
-	center.col.b = b.whole;
 
 	for(int i = 0; i < 4; i++)
 	{
