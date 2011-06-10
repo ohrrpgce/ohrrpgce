@@ -295,6 +295,7 @@ declare function isdir (sdir as string) as integer
 
 
 declare function bitcount (byval v as unsigned integer) as integer
+declare function ceiling (BYVAL n as integer) as integer
 declare function bound overload (byval n as integer, byval lowest as integer, byval highest as integer) as integer
 declare function bound overload (byval n as longint, byval lowest as longint, byval highest as longint) as longint
 declare function bound overload (byval n as double, byval lowest as double, byval highest as double) as double

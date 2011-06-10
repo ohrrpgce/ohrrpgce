@@ -29,6 +29,10 @@ FUNCTION bitcount (BYVAL v as unsigned integer) as integer
   RETURN ((v + (v SHR 4) AND &hF0F0F0F) * &h1010101) SHR 24
 END FUNCTION
 
+FUNCTION ceiling (BYVAL n as integer) as integer
+ RETURN INT(n * -1) * -1
+END FUNCTION
+
 FUNCTION bound (BYVAL n as integer, BYVAL lowest as integer, BYVAL highest as integer) as integer
  bound = n
  IF n < lowest THEN bound = lowest

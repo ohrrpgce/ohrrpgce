@@ -474,6 +474,10 @@ end SUB
 FUNCTION readblock (map as TileMap, BYVAL x as integer, BYVAL y as integer) as integer
 	if x < 0 OR x >= map.wide OR y < 0 OR y >= map.high then
 		debug "illegal readblock call " & x & " " & y
+		DIM foo(0) AS INTEGER
+		DIM bar AS INTEGER
+		bar = 1
+		debug "crash here" & foo(bar)
 		exit function
 	end if
 	return map.data[x + y * map.wide]

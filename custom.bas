@@ -44,9 +44,10 @@ DECLARE FUNCTION newRPGfile (templatefile$, newrpg$)
 DECLARE SUB dolumpfiles (filetolump as string)
 DECLARE SUB move_unwriteable_rpg (filetolump as string)
 DECLARE SUB shopdata ()
-DECLARE SUB secret_menu ()
+DECLARE SUB secret_menu (font())
 DECLARE SUB condition_test_menu ()
 DECLARE SUB quad_transforms_menu ()
+DECLARE SUB arbitrary_sprite_editor (font())
 
 'Global variables
 REDIM gen(360)
@@ -278,7 +279,7 @@ DO:
  END IF
  intext = LCASE(getinputtext)
  passphrase = RIGHT(passphrase + intext, 4)
- IF passphrase = "spam" THEN passphrase = "" : secret_menu
+ IF passphrase = "spam" THEN passphrase = "" : secret_menu font()
  FOR i = 1 TO mainmax
   DIM temp as integer = (pt + i) MOD (mainmax + 1)
   IF INSTR(menukeys(temp), intext) THEN pt = temp : EXIT FOR
@@ -1054,8 +1055,8 @@ SUB move_unwriteable_rpg (filetolump as string)
  filetolump = newfile
 END SUB
 
-SUB secret_menu ()
- DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads"}
+SUB secret_menu (font())
+ DIM menu(...) as string = {"Reload Editor", "Editor Editor", "Conditions and More Tests", "Transformed Quads", "Sprite editor with arbitrary sizes"}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1069,6 +1070,7 @@ SUB secret_menu ()
    IF st.pt = 1 THEN editor_editor
    IF st.pt = 2 THEN condition_test_menu
    IF st.pt = 3 THEN quad_transforms_menu
+   IF st.pt = 4 THEN arbitrary_sprite_editor font()
   END IF
   usemenu st
   clearpage vpage
@@ -1077,6 +1079,61 @@ SUB secret_menu ()
   dowait
  LOOP
  setkeys
+END SUB
+
+SUB arbitrary_sprite_editor (font())
+ DIM tempsets AS INTEGER = 0
+ DIM tempcaptions(15) AS STRING
+ FOR i AS INTEGER = 0 to UBOUND(tempcaptions)
+  tempcaptions(i) = "frame" & i
+ NEXT i
+ DIM size AS XYPair
+ size.x = 20
+ size.y = 20
+ DIM framecount AS INTEGER = 8
+ DIM crappy_screenpage_lines AS INTEGER
+ DIM zoom AS INTEGER = 2
+
+ DIM menu(...) as string = {"Width=", "Height=", "Framecount=", "Zoom=", "Start Editing..."}
+ DIM st as MenuState
+ st.size = 24
+ st.last = UBOUND(menu)
+ st.need_update = YES
+
+ DO
+  setwait 55
+  setkeys
+  IF keyval(scEsc) > 1 THEN EXIT DO
+  SELECT CASE st.pt
+   CASE 0: IF intgrabber(size.x, 0, 160) THEN st.need_update = YES
+   CASE 1: IF intgrabber(size.y, 0, 160) THEN st.need_update = YES
+   CASE 2: IF intgrabber(framecount, 1, 16) THEN st.need_update = YES
+   CASE 3: IF intgrabber(zoom, 1, 4) THEN st.need_update = YES
+  END SELECT
+  IF enter_or_space() THEN
+   IF st.pt = 4 THEN
+    crappy_screenpage_lines = ceiling(size.x * size.y * framecount / 2 / 320)
+    sprite size.x, size.y, tempsets, framecount, crappy_screenpage_lines, tempcaptions(), zoom, -1, font()
+    IF isfile(game & ".pt-1") THEN
+     debug "Leaving behind """ & game & ".pt-1"""
+    END IF
+   END IF
+  END IF
+  usemenu st
+  IF st.need_update THEN
+   menu(0) = "Width: " & size.x
+   menu(1) = "Height:" & size.y
+   menu(2) = "Framecount: " & framecount
+   menu(3) = "Zoom: " & zoom
+   st.need_update = NO
+  END IF
+  clearpage vpage
+  standardmenu menu(), st, 0, 0, vpage
+  setvispage vpage
+  dowait
+ LOOP
+ setkeys
+
 END SUB
 
 'This menu is for testing experimental Condition UI stuff
