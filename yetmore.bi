@@ -39,12 +39,12 @@ DECLARE SUB wrapaheadxy (x as integer, y as integer, direction as integer, dista
 DECLARE SUB cropposition (BYREF x as integer, BYREF y as integer, unitsize as integer)
 DECLARE FUNCTION wrappass (x as integer, y as integer, xgo as integer, ygo as integer, isveh as integer) as integer
 DECLARE FUNCTION wrapzonetest (BYVAL zone as integer, BYVAL x as integer, BYVAL y as integer, BYVAL xgo as integer, BYVAL ygo as integer) as integer
-DECLARE FUNCTION wrapcollision (xa as integer, ya as integer, xgoa as integer, ygoa as integer, xb as integer, yb as integer, xgob as integer, ygob as integer) as integer
-DECLARE FUNCTION wraptouch (x1 as integer, y1 as integer, x2 as integer, y2 as integer, distance as integer) as integer
-DECLARE SUB wrappedsong (songnumber as integer)
+DECLARE FUNCTION wrapcollision (byval xa as integer, byval ya as integer, byval xgoa as integer, byval ygoa as integer, byval xb as integer, byval yb as integer, byval xgob as integer, byval ygob as integer) as integer
+DECLARE FUNCTION wraptouch (byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval distance as integer) as integer
+DECLARE SUB wrappedsong (BYVAL songnumber as integer)
 DECLARE SUB stopsong
-DECLARE SUB wrapxy (x as integer, y as integer, wide as integer, high as integer)
-DECLARE FUNCTION backcompat_sound_id (id AS INTEGER) as integer
+DECLARE SUB wrapxy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL wide AS INTEGER, BYVAL high AS INTEGER)
+DECLARE FUNCTION backcompat_sound_id (BYVAL id AS INTEGER) as integer
 DECLARE SUB loadsay (byval box_id as integer)
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
 DECLARE FUNCTION valid_plotslice(byval handle as integer, errlev as integer=5) as integer

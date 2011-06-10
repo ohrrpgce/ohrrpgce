@@ -3424,6 +3424,9 @@ IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh A
 
 END FUNCTION
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 FUNCTION wrapzonetest (BYVAL zone as integer, BYVAL x as integer, BYVAL y as integer, BYVAL xgo as integer, BYVAL ygo as integer) as integer
  'x, y in pixels
  'Warning: always wraps! But that isn't a problem on non-wrapping maps.
@@ -3434,66 +3437,64 @@ FUNCTION wrapzonetest (BYVAL zone as integer, BYVAL x as integer, BYVAL y as int
  RETURN (CheckZoneAtTile(zmap, zone, x \ 20, y \ 20) = 0)
 END FUNCTION
 
-FUNCTION wrapcollision (xa as integer, ya as integer, xgoa as integer, ygoa as integer, xb as integer, yb as integer, xgob as integer, ygob as integer) as integer
+FUNCTION wrapcollision (byval xa as integer, byval ya as integer, byval xgoa as integer, byval ygoa as integer, byval xb as integer, byval yb as integer, byval xgob as integer, byval ygob as integer) as integer
+ DIM AS INTEGER x1, x2, y1, y2
  x1 = (xa - bound(xgoa, -20, 20)) \ 20
  x2 = (xb - bound(xgob, -20, 20)) \ 20
  y1 = (ya - bound(ygoa, -20, 20)) \ 20
  y2 = (yb - bound(ygob, -20, 20)) \ 20
 
  IF gmap(5) = 1 THEN
-  wrapcollision = (x1 - x2) MOD mapsizetiles.x = 0 AND (y1 - y2) MOD mapsizetiles.y = 0
+  RETURN (x1 - x2) MOD mapsizetiles.x = 0 AND (y1 - y2) MOD mapsizetiles.y = 0
  ELSE
-  wrapcollision = (x1 = x2) AND (y1 = y2)
+  RETURN (x1 = x2) AND (y1 = y2)
  END IF
 
 END FUNCTION
 
-FUNCTION wraptouch (x1 as integer, y1 as integer, x2 as integer, y2 as integer, distance as integer) as integer
+FUNCTION wraptouch (byval x1 as integer, byval y1 as integer, byval x2 as integer, byval y2 as integer, byval distance as integer) as integer
  'whether 2 walkabouts are within distance pixels horizontally + vertically
- wraptouch = 0
  IF gmap(5) = 1 THEN
-  IF ABS((x1 - x2) MOD (mapsizetiles.x * 20 - distance)) <= distance AND ABS((y1 - y2) MOD (mapsizetiles.y * 20 - distance)) <= distance THEN wraptouch = 1
+  IF ABS((x1 - x2) MOD (mapsizetiles.x * 20 - distance)) <= distance AND ABS((y1 - y2) MOD (mapsizetiles.y * 20 - distance)) <= distance THEN RETURN 1
  ELSE
-  IF ABS(x1 - x2) <= 20 AND ABS(y1 - y2) <= 20 THEN wraptouch = 1
+  IF ABS(x1 - x2) <= 20 AND ABS(y1 - y2) <= 20 THEN RETURN 1
  END IF
+ RETURN 0
 END FUNCTION
 
-SUB wrappedsong (songnumber)
+SUB wrapxy (BYREF x AS INTEGER, BYREF y AS INTEGER, BYVAL wide AS INTEGER, BYVAL high AS INTEGER)
+ '--wraps the given X and Y values within the bounds of width and height
+ x = ((x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and never helped me once
+ y = ((y MOD high) + high) MOD high
+END SUB
 
-IF songnumber <> presentsong THEN
- playsongnum songnumber
- presentsong = songnumber
-ELSE
- resumesong
-END IF
+SUB wrappedsong (BYVAL songnumber AS INTEGER)
+
+ IF songnumber <> presentsong THEN
+  playsongnum songnumber
+  presentsong = songnumber
+ ELSE
+  resumesong
+ END IF
 
 END SUB
 
 SUB stopsong
-presentsong = -1
-pausesong 'this is how you stop the music
+ presentsong = -1
+ pausesong 'this is how you stop the music
 END SUB
 
-SUB wrapxy (x, y, wide, high)
-'--wraps the given X and Y values within the bounds of width and height
-x = ((x MOD wide) + wide) MOD wide  'negative modulo is the devil's creation and never helped me once
-y = ((y MOD high) + high) MOD high
-END SUB
-
-FUNCTION backcompat_sound_id (id AS INTEGER) as integer
-  IF backcompat_sound_slot_mode THEN
-   'BACKWARDS COMPATABILITY HACK
-   IF id >= 0 AND id <= 7 THEN
-    RETURN backcompat_sound_slots(id) - 1
-   END IF
-  ELSE
-   'Normal playsound mode
-   RETURN id
+FUNCTION backcompat_sound_id (BYVAL id AS INTEGER) as integer
+ IF backcompat_sound_slot_mode THEN
+  'BACKWARDS COMPATABILITY HACK
+  IF id >= 0 AND id <= 7 THEN
+   RETURN backcompat_sound_slots(id) - 1
   END IF
+ ELSE
+  'Normal playsound mode
+  RETURN id
+ END IF
 END FUNCTION
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYVAL targx AS INTEGER, BYVAL targy AS INTEGER, BYREF result AS INTEGER)
  DIM tmp AS INTEGER = 0
