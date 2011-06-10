@@ -3398,34 +3398,35 @@ END IF
 
 END SUB
 
-FUNCTION wrappass (x as integer, y as integer, xgo as integer, ygo as integer, isveh as integer) as integer
-' returns true if blocked by terrain
-DIM pd(3)
-
-wrappass = 0
-
-tilex = x: tiley = y
-p = readblock(pass, tilex, tiley)
-
-FOR i = 0 TO 3
- tilex = x: tiley = y
- wrapaheadxy tilex, tiley, i, 1, 1
- IF tilex < 0 OR tilex >= pass.wide OR tiley < 0 OR tiley >= pass.high THEN
-  pd(i) = 15
- ELSE
-  pd(i) = readblock(pass, tilex, tiley)
- END IF
-NEXT i
-
-IF ygo > 0 AND movdivis(ygo) AND ((p AND 1) = 1 OR (pd(0) AND 4) = 4 OR (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(0), 0))) THEN ygo = 0: wrappass = 1
-IF ygo < 0 AND movdivis(ygo) AND ((p AND 4) = 4 OR (pd(2) AND 1) = 1 OR (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(2), 0))) THEN ygo = 0: wrappass = 1
-IF xgo > 0 AND movdivis(xgo) AND ((p AND 8) = 8 OR (pd(3) AND 2) = 2 OR (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(3), 0))) THEN xgo = 0: wrappass = 1
-IF xgo < 0 AND movdivis(xgo) AND ((p AND 2) = 2 OR (pd(1) AND 8) = 8 OR (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(1), 0))) THEN xgo = 0: wrappass = 1
-
-END FUNCTION
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer, byref ygo as integer, byval isveh as integer) as integer
+ wrappass = 0
+ ' returns true if blocked by terrain
+ DIM pd(3) AS INTEGER
+ 
+ DIM tilex AS INTEGER
+ DIM tiley AS INTEGER
+ DIM p AS INTEGER = readblock(pass, tilex, tiley)
+ 
+ FOR i AS INTEGER = 0 TO 3
+  tilex = x
+  tiley = y
+  wrapaheadxy tilex, tiley, i, 1, 1
+  IF tilex < 0 ORELSE tilex >= pass.wide ORELSE tiley < 0 ORELSE tiley >= pass.high THEN
+   pd(i) = 15
+  ELSE
+   pd(i) = readblock(pass, tilex, tiley)
+  END IF
+ NEXT i
+ 
+ IF ygo > 0 ANDALSO movdivis(ygo) ANDALSO ((p AND 1) = 1 ORELSE (pd(0) AND 4) = 4 ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(0), 0))) THEN ygo = 0: wrappass = 1
+ IF ygo < 0 ANDALSO movdivis(ygo) ANDALSO ((p AND 4) = 4 ORELSE (pd(2) AND 1) = 1 ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(2), 0))) THEN ygo = 0: wrappass = 1
+ IF xgo > 0 ANDALSO movdivis(xgo) ANDALSO ((p AND 8) = 8 ORELSE (pd(3) AND 2) = 2 ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(3), 0))) THEN xgo = 0: wrappass = 1
+ IF xgo < 0 ANDALSO movdivis(xgo) ANDALSO ((p AND 2) = 2 ORELSE (pd(1) AND 8) = 8 ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(1), 0))) THEN xgo = 0: wrappass = 1
+
+END FUNCTION
 
 FUNCTION wrapzonetest (BYVAL zone as integer, BYVAL x as integer, BYVAL y as integer, BYVAL xgo as integer, BYVAL ygo as integer) as integer
  'x, y in pixels
