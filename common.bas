@@ -45,7 +45,7 @@ DECLARE FUNCTION charpicker() AS STRING
 ''''' Global variables (anything else in common.bi missing here will be in game.bas or custom.bas)
 
 'Allocate sprite size table
-REDIM sprite_sizes(0 TO 10) AS SpriteSize
+REDIM sprite_sizes(-1 TO 10) AS SpriteSize
 setup_sprite_sizes
 
 'holds commandline args not recognised by the backends or anything else
@@ -4449,6 +4449,12 @@ SUB setup_sprite_sizes ()
  WITH sprite_sizes(sprTypeFrame)   '10
   .name = "Pixel array"
   .frames = 1
+ END WITH
+ 
+ WITH sprite_sizes(-1) '--Only use for temporary use in the secret desting/debugging menu
+  .name = "Experimental"
+  .frames = 1
+  .genmax = -1 'this should throw an error rather than corrupting gen(0)
  END WITH
 END SUB
 
