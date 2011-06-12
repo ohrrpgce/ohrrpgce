@@ -291,16 +291,26 @@ void TriRasterizer::rasterTexture(Surface *pSurface, const DrawingRange &range, 
 			//alpha blending
 			srcColor = (SurfaceData32)m_sampler.sample(pTexture, texel.u, texel.v);
 			destColor = pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i];
-			//red = ( srcColor.r * (srcColor.a) + destColor.r * (0x100-(srcColor.a+1)) ) / 0x100;
-			//green.g = ( srcColor.g * (srcColor.a+1) + destColor.g * (0x100-(srcColor.a+1)) ) / 0x100;
-			//blue.b = ( srcColor.b * (srcColor.a+1) + destColor.b * (0x100-(srcColor.a+1)) ) / 0x100;
-			red =	( (float)srcColor.r * (float)srcColor.a + (float)destColor.r * (255.0f - (float)srcColor.a) ) / 255.0f;
-			green =	( (float)srcColor.g * (float)srcColor.a + (float)destColor.g * (255.0f - (float)srcColor.a) ) / 255.0f;
-			blue =	( (float)srcColor.b * (float)srcColor.a + (float)destColor.b * (255.0f - (float)srcColor.a) ) / 255.0f;
-			finalColor.r = (int)red;
-			finalColor.g = (int)green;
-			finalColor.b = (int)blue;
-			finalColor.a = srcColor.a;
+
+			//srcColor.a = 64; //test value
+
+			//floating point method of blending
+			//red =	( (float)srcColor.r * (float)srcColor.a + (float)destColor.r * (255.0f - (float)srcColor.a) ) / 255.0f;
+			//green =	( (float)srcColor.g * (float)srcColor.a + (float)destColor.g * (255.0f - (float)srcColor.a) ) / 255.0f;
+			//blue =	( (float)srcColor.b * (float)srcColor.a + (float)destColor.b * (255.0f - (float)srcColor.a) ) / 255.0f;
+			//finalColor.r = (int)red;
+			//finalColor.g = (int)green;
+			//finalColor.b = (int)blue;
+
+			//integer method of blending
+			finalColor.r = ( srcColor.r * srcColor.a + destColor.r * (255 - srcColor.a) ) / 255;//(int)red;
+			finalColor.g = ( srcColor.g * srcColor.a + destColor.g * (255 - srcColor.a) ) / 255;//(int)green;
+			finalColor.b = ( srcColor.b * srcColor.a + destColor.b * (255 - srcColor.a) ) / 255;//(int)blue;
+
+			//failed attempt at combining integer method of blending
+			//finalColor.dw = ( (srcColor.dw & 0x00ffffff) * srcColor.a + (destColor.dw & 0x00ffffff) * (255-srcColor.a) ) / 255;
+
+			finalColor.a = (srcColor.a + destColor.a) > 255 ? 255 : (srcColor.a + destColor.a);
 			pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i] = finalColor;/*( ((srcColor.dw & 0xffffff) * (srcColor.a)) + ((destColor.dw & 0xffffff) * (0xff-(srcColor.a))) ) / 0xff | 0xff000000;*/
 		}
 	}
