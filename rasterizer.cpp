@@ -295,12 +295,12 @@ void TriRasterizer::rasterTexture(Surface *pSurface, const DrawingRange &range, 
 			//red = ( srcColor.r * (srcColor.a) + destColor.r * (0x100-(srcColor.a+1)) ) / 0x100;
 			//green.g = ( srcColor.g * (srcColor.a+1) + destColor.g * (0x100-(srcColor.a+1)) ) / 0x100;
 			//blue.b = ( srcColor.b * (srcColor.a+1) + destColor.b * (0x100-(srcColor.a+1)) ) / 0x100;
-			red =	(float)srcColor.r / 255.0f * (float)srcColor.a / 255.0f + (float)destColor.r / 255.0f * (float)srcColor.a / 255.0f;
-			green =	(float)srcColor.g / 255.0f * (float)srcColor.a / 255.0f + (float)destColor.g / 255.0f * (float)srcColor.a / 255.0f;
-			blue =	(float)srcColor.b / 255.0f * (float)srcColor.a / 255.0f + (float)destColor.b / 255.0f * (float)srcColor.a / 255.0f;
-			finalColor.r = (int)(red * 255.0f);
-			finalColor.g = (int)(green * 255.0f);
-			finalColor.b = (int)(blue * 255.0f);
+			red =	( (float)srcColor.r * (float)srcColor.a + (float)destColor.r * (float)srcColor.a ) / 255.0f;
+			green =	( (float)srcColor.g * (float)srcColor.a + (float)destColor.g * (float)srcColor.a ) / 255.0f;
+			blue =	( (float)srcColor.b * (float)srcColor.a + (float)destColor.b * (float)srcColor.a ) / 255.0f;
+			finalColor.r = (int)red;
+			finalColor.g = (int)green;
+			finalColor.b = (int)blue;
 			finalColor.a = srcColor.a;
 			pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i] = finalColor;/*( ((srcColor.dw & 0xffffff) * (srcColor.a)) + ((destColor.dw & 0xffffff) * (0xff-(srcColor.a))) ) / 0xff | 0xff000000;*/
 		}
