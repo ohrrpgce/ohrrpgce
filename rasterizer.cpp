@@ -15,7 +15,7 @@ Color Tex2DSampler::sample(const Surface* pSurface, FPInt u, FPInt v) const
 
 	Color color;
 	if(pSurface->format == SFMT_P8)
-		color = pSurface->pPaletteData[(int)v * pSurface->width + (int)u]/* & 0xff*/;
+		color = pSurface->pPaletteData[(int)v * pSurface->width + (int)u];
 	else if(pSurface->format == SFMT_A8R8G8B8)
 		color = pSurface->pColorData[(int)v * pSurface->width + (int)u];
 
@@ -233,13 +233,16 @@ void TriRasterizer::rasterColor(Surface *pSurface, const DrawingRange &range, co
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
 	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
 
-	for(int i = start; i <= finish; i++)
+	if(pSurface->format == SFMT_P8)
 	{
-		if(pSurface->format == SFMT_P8)
+		for(int i = start; i <= finish; i++)
 		{
 			pSurface->pPaletteData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData8)col;
 		}
-		else
+	}
+	else
+	{
+		for(int i = start; i <= finish; i++)
 		{
 			pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData32)col;
 		}
@@ -258,20 +261,48 @@ void TriRasterizer::rasterTexture(Surface *pSurface, const DrawingRange &range, 
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
 	finish = (range.greatest.pos.x >= pSurface->width ? pSurface->width-1 : range.greatest.pos.x);
 
-	for(int i = start; i <= finish; i++)
-	{
-		weightFirst = (range.greatest.pos.x - i) / (float)length;
-		weightSecond = 1 - weightFirst;
-		texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
-		texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
+	Color srcColor, destColor, finalColor;
+	float red, green, blue;
 
-		if(pSurface->format == SFMT_P8)
+	if(pSurface->format == SFMT_P8)
+	{
+		for(int i = start; i <= finish; i++)
 		{
-			pSurface->pPaletteData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData8)m_sampler.sample(pTexture, texel.u, texel.v);
+			weightFirst = (range.greatest.pos.x - i) / (float)length;
+			weightSecond = 1 - weightFirst;
+			texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
+			texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
+
+			srcColor = (SurfaceData8)m_sampler.sample(pTexture, texel.u, texel.v);
+			if(srcColor.dw == 0x0)//color key test
+				continue;
+			pSurface->pPaletteData[(int)range.least.pos.y * pSurface->width + i] = srcColor; 
 		}
-		else
+	}
+	else
+	{
+		for(int i = start; i <= finish; i++)
 		{
-			pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i] = (SurfaceData32)m_sampler.sample(pTexture, texel.u, texel.v);
+			weightFirst = (range.greatest.pos.x - i) / (float)length;
+			weightSecond = 1 - weightFirst;
+			texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
+			texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
+
+			//alpha blending
+			srcColor = (SurfaceData32)m_sampler.sample(pTexture, texel.u, texel.v);
+			srcColor.a = 127;
+			destColor = pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i];
+			//red = ( srcColor.r * (srcColor.a) + destColor.r * (0x100-(srcColor.a+1)) ) / 0x100;
+			//green.g = ( srcColor.g * (srcColor.a+1) + destColor.g * (0x100-(srcColor.a+1)) ) / 0x100;
+			//blue.b = ( srcColor.b * (srcColor.a+1) + destColor.b * (0x100-(srcColor.a+1)) ) / 0x100;
+			red =	(float)srcColor.r / 255.0f * (float)srcColor.a / 255.0f + (float)destColor.r / 255.0f * (float)srcColor.a / 255.0f;
+			green =	(float)srcColor.g / 255.0f * (float)srcColor.a / 255.0f + (float)destColor.g / 255.0f * (float)srcColor.a / 255.0f;
+			blue =	(float)srcColor.b / 255.0f * (float)srcColor.a / 255.0f + (float)destColor.b / 255.0f * (float)srcColor.a / 255.0f;
+			finalColor.r = (int)(red * 255.0f);
+			finalColor.g = (int)(green * 255.0f);
+			finalColor.b = (int)(blue * 255.0f);
+			finalColor.a = srcColor.a;
+			pSurface->pColorData[(int)range.least.pos.y * pSurface->width + i] = finalColor;/*( ((srcColor.dw & 0xffffff) * (srcColor.a)) + ((destColor.dw & 0xffffff) * (0xff-(srcColor.a))) ) / 0xff | 0xff000000;*/
 		}
 	}
 }
