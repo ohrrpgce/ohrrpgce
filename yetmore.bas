@@ -3406,8 +3406,8 @@ FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer,
  ' returns true if blocked by terrain
  DIM pd(3) AS INTEGER
  
- DIM tilex AS INTEGER
- DIM tiley AS INTEGER
+ DIM tilex AS INTEGER = x
+ DIM tiley AS INTEGER = y
  DIM p AS INTEGER = readblock(pass, tilex, tiley)
  
  FOR i AS INTEGER = 0 TO 3
