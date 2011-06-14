@@ -1094,7 +1094,7 @@ SUB arbitrary_sprite_editor (font())
  DIM crappy_screenpage_lines AS INTEGER
  DIM zoom AS INTEGER = 2
 
- DIM menu(...) as string = {"Width=", "Height=", "Framecount=", "Zoom=", "Start Editing..."}
+ DIM menu(...) as string = {"Width=", "Height=", "Framecount=", "Zoom=", "Sets=", "Start Editing..."}
  DIM st as MenuState
  st.size = 24
  st.last = UBOUND(menu)
@@ -1107,11 +1107,12 @@ SUB arbitrary_sprite_editor (font())
   SELECT CASE st.pt
    CASE 0: IF intgrabber(size.x, 0, 160) THEN st.need_update = YES
    CASE 1: IF intgrabber(size.y, 0, 160) THEN st.need_update = YES
-   CASE 2: IF intgrabber(framecount, 1, 16) THEN st.need_update = YES
-   CASE 3: IF intgrabber(zoom, 1, 4) THEN st.need_update = YES
+   CASE 2: IF intgrabber(framecount, 0, 16) THEN st.need_update = YES
+   CASE 3: IF intgrabber(zoom, 0, 4) THEN st.need_update = YES
+   CASE 4: IF intgrabber(tempsets, 0, 32000) THEN st.need_update = YES
   END SELECT
   IF enter_or_space() THEN
-   IF st.pt = 4 THEN
+   IF st.pt = 5 THEN
     crappy_screenpage_lines = ceiling(size.x * size.y * framecount / 2 / 320)
     sprite size.x, size.y, tempsets, framecount, crappy_screenpage_lines, tempcaptions(), zoom, -1, font()
     IF isfile(game & ".pt-1") THEN
@@ -1125,6 +1126,7 @@ SUB arbitrary_sprite_editor (font())
    menu(1) = "Height:" & size.y
    menu(2) = "Framecount: " & framecount
    menu(3) = "Zoom: " & zoom
+   menu(4) = "Sets: " & tempsets
    st.need_update = NO
   END IF
   clearpage vpage
