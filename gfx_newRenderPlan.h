@@ -39,7 +39,7 @@ struct SurfaceRect
 //palettes
 struct Palette
 {
-	unsigned char p[256];
+	unsigned long p[256];
 };
 
 //vertices
