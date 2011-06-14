@@ -16,10 +16,6 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
-2011-06-05 thru 2011-06-14: "alter npc" and "read npc" commands were broken
-when called with npc references (although they continued to work with NPC
-ID numbers, which is probably how this bug went unnoticed)
-
 2011-01-29:
 The "Old awful" equipment elemental resistances merge formula has changed
 so that the order of equipment no longer matters. However it now usually
