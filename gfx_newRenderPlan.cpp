@@ -6,7 +6,7 @@ QuadRasterizer g_rasterizer;
 
 int gfx_surfaceCreate( unsigned long width, unsigned long height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
 {//needs adjustment for managed memory model
-	if( !pSurfaceOut )
+	if( !ppSurfaceOut )
 		return -1;
 	Surface temp = {width, height, format, usage};
 	if(usage == SF_8bit)
@@ -15,8 +15,8 @@ int gfx_surfaceCreate( unsigned long width, unsigned long height, SurfaceFormat 
 		temp.pColorData = new unsigned long[width*height];
 
 	//an internal memory mechanism should be in place, but some other backend adjustments are needed then
-	*pSurfaceOut = new Surface;
-	**pSurfaceOut = temp;
+	*ppSurfaceOut = new Surface;
+	**ppSurfaceOut = temp;
 
 	return 0;
 }
@@ -224,9 +224,9 @@ int gfx_surfaceCopyWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Su
 
 int gfx_paletteCreate( Palette** ppPaletteOut )
 {//needs adjustment for managed memory model
-	if( !pPaletteOut )
+	if( !ppPaletteOut )
 		return -1;
-	*pPaletteOut = new Palette;
+	*ppPaletteOut = new Palette;
 	return 0;
 }
 

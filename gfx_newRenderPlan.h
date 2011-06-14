@@ -48,28 +48,28 @@ struct Position
 	float x,y;
 	//FPInt x,y;
 	Position() : x(0), y(0) {}
-	Position operator+(const Position& rhs) const {Position tmp = {x+rhs.x, y+rhs.y}; return tmp;}
-	Position operator-(const Position& rhs) const {Position tmp = {x-rhs.x, y-rhs.y}; return tmp;}
-	Position operator*(const Position& rhs) const {Position tmp = {x*rhs.x, y*rhs.y}; return tmp;}
-	Position operator/(const Position& rhs) const {Position tmp = {x/rhs.x, y/rhs.y}; return tmp;}
-	Position& operator+=(const Position& rhs) {x += rhs.x; y += rhs.y; return *this;}
-	Position& operator-=(const Position& rhs) {x -= rhs.x; y -= rhs.y; return *this;}
-	Position& operator*=(const Position& rhs) {x *= rhs.x; y *= rhs.y; return *this;}
-	Position& operator/=(const Position& rhs) {x /= rhs.x; y /= rhs.y; return *this;}
+	//Position operator+(const Position& rhs) const {Position tmp = {x+rhs.x, y+rhs.y}; return tmp;}
+	//Position operator-(const Position& rhs) const {Position tmp = {x-rhs.x, y-rhs.y}; return tmp;}
+	//Position operator*(const Position& rhs) const {Position tmp = {x*rhs.x, y*rhs.y}; return tmp;}
+	//Position operator/(const Position& rhs) const {Position tmp = {x/rhs.x, y/rhs.y}; return tmp;}
+	//Position& operator+=(const Position& rhs) {x += rhs.x; y += rhs.y; return *this;}
+	//Position& operator-=(const Position& rhs) {x -= rhs.x; y -= rhs.y; return *this;}
+	//Position& operator*=(const Position& rhs) {x *= rhs.x; y *= rhs.y; return *this;}
+	//Position& operator/=(const Position& rhs) {x /= rhs.x; y /= rhs.y; return *this;}
 };
 struct TexCoord
 {
 	float u,v;
 	//FPInt u,v;
 	TexCoord() : u(0), v(0) {}
-	TexCoord operator+(const TexCoord& rhs) const {TexCoord tmp = {u+rhs.u, v+rhs.v}; return tmp;}
-	TexCoord operator-(const TexCoord& rhs) const {TexCoord tmp = {u-rhs.u, v-rhs.v}; return tmp;}
-	TexCoord operator*(const TexCoord& rhs) const {TexCoord tmp = {u*rhs.u, v*rhs.v}; return tmp;}
-	TexCoord operator/(const TexCoord& rhs) const {TexCoord tmp = {u/rhs.u, v/rhs.v}; return tmp;}
-	TexCoord& operator+=(const TexCoord& rhs) {u += rhs.u; v += rhs.v; return *this;}
-	TexCoord& operator-=(const TexCoord& rhs) {u -= rhs.u; v -= rhs.v; return *this;}
-	TexCoord& operator*=(const TexCoord& rhs) {u *= rhs.u; v *= rhs.v; return *this;}
-	TexCoord& operator/=(const TexCoord& rhs) {u /= rhs.u; v /= rhs.v; return *this;}
+	//TexCoord operator+(const TexCoord& rhs) const {TexCoord tmp = {u+rhs.u, v+rhs.v}; return tmp;}
+	//TexCoord operator-(const TexCoord& rhs) const {TexCoord tmp = {u-rhs.u, v-rhs.v}; return tmp;}
+	//TexCoord operator*(const TexCoord& rhs) const {TexCoord tmp = {u*rhs.u, v*rhs.v}; return tmp;}
+	//TexCoord operator/(const TexCoord& rhs) const {TexCoord tmp = {u/rhs.u, v/rhs.v}; return tmp;}
+	//TexCoord& operator+=(const TexCoord& rhs) {u += rhs.u; v += rhs.v; return *this;}
+	//TexCoord& operator-=(const TexCoord& rhs) {u -= rhs.u; v -= rhs.v; return *this;}
+	//TexCoord& operator*=(const TexCoord& rhs) {u *= rhs.u; v *= rhs.v; return *this;}
+	//TexCoord& operator/=(const TexCoord& rhs) {u /= rhs.u; v /= rhs.v; return *this;}
 };
 struct Color //argb dword; palette stored in lowest byte, that is 'b'
 {
