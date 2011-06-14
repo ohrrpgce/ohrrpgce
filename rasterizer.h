@@ -73,17 +73,17 @@ class TriRasterizer
 protected:
 	Tex2DSampler m_sampler;
 	//void calculateTriangleRect(ClippingRect& clipOut, const Triangle* pTriangle);
-	void interpolateTexCoord(TexCoord& texOut, const TexCoord& t1, const TexCoord& t2, float scale);
-	Color interpolateColor(Color c1, Color c2, float scale);
-	void calculateRasterPixels(std::queue< DrawingRange<VertexC> >& rasterLinesOut, const Surface* pSurface, const Triangle<VertexC>* pTriangle, ClippingRect& clip);
-	void calculateRasterPixels(std::queue< DrawingRange<VertexT> >& rasterLinesOut, const Surface* pSurface, const Triangle<VertexT>* pTriangle, ClippingRect& clip);
+	//void interpolateTexCoord(TexCoord& texOut, const TexCoord& t1, const TexCoord& t2, float scale);
+	//Color interpolateColor(Color c1, Color c2, float scale);
+	template <class T_VertexType>
+	void calculateRasterPixels(std::queue< DrawingRange<T_VertexType> >& rasterLinesOut, const Surface* pSurface, const Triangle<T_VertexType>* pTriangle, ClippingRect& clip);
 	void rasterColor(Surface* pSurfaceDest, const DrawingRange<VertexC>& range, Color argbModifier);
 	void rasterTexture(Surface* pSurfaceDest, const DrawingRange<VertexT>& range, const Surface* pTexture, const Palette* pPalette, Color argbModifier);
 	void rasterTextureWithColorKey(Surface* pSurfaceDest, const DrawingRange<VertexT>& range, const Surface* pTexture, const Palette* pPalette, unsigned char colorKey, Color argbModifier);
 public:
 	void drawColor(Surface* pSurface, SurfaceRect* pRect, const Triangle<VertexC>* pTriangle, Color argbModifier);
 	void drawTexture(Surface* pSurface, SurfaceRect* pRect, const Triangle<VertexT>* pTriangle, const Surface* pTexture, const Palette* pPalette, Color argbModifier);
-	void drawTexture(Surface* pSurface, SurfaceRect* pRect, const Triangle<VertexT>* pTriangle, const Surface* pTexture, const Palette* pPalette, unsigned char colorKey, Color argbModifier);
+	void drawTextureWithColorKey(Surface* pSurface, SurfaceRect* pRect, const Triangle<VertexT>* pTriangle, const Surface* pTexture, const Palette* pPalette, unsigned char colorKey, Color argbModifier);
 };
 
 class QuadRasterizer
@@ -111,13 +111,13 @@ public:
 		for(int i = 0; i < 4; i++)
 			m_triRasterizer.drawTexture(pSurface, pRect, &triangles[i], pTexture, pPalette, argbModifier);
 	}
-	void drawTexture(Surface* pSurface, SurfaceRect* pRect, const QuadT* pQuad, const Surface* pTexture, const Palette* pPalette, unsigned char colorKey, Color argbModifier)
+	void drawTextureWithColorKey(Surface* pSurface, SurfaceRect* pRect, const QuadT* pQuad, const Surface* pTexture, const Palette* pPalette, unsigned char colorKey, Color argbModifier)
 	{
 		if(pSurface == NULL || pQuad == NULL)
 			return;
 		Triangle<VertexT> triangles[4];
 		generateTriangles(triangles, pQuad);
 		for(int i = 0; i < 4; i++)
-			m_triRasterizer.drawTexture(pSurface, pRect, &triangles[i], pTexture, pPalette, colorKey, argbModifier);
+			m_triRasterizer.drawTextureWithColorKey(pSurface, pRect, &triangles[i], pTexture, pPalette, colorKey, argbModifier);
 	}
 };

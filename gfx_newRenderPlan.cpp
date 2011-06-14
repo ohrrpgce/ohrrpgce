@@ -9,7 +9,7 @@ int gfx_surfaceCreate( unsigned long width, unsigned long height, SurfaceFormat 
 	if( !ppSurfaceOut )
 		return -1;
 	Surface temp = {width, height, format, usage};
-	if(usage == SF_8bit)
+	if(format == SF_8bit)
 		temp.pPaletteData = new unsigned char[width*height];
 	else
 		temp.pColorData = new unsigned long[width*height];
@@ -244,19 +244,28 @@ int gfx_paletteUpdate( Palette* pPaletteIn )
 
 int gfx_renderQuadColor( QuadC* pQuad, unsigned long argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
+	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	if( !pRectDest )
+		pRectDest = &tmp;
 	g_rasterizer.drawColor(pSurfaceDest, pRectDest, pQuad, argbModifier);
 	return 0;
 }
 
 int gfx_renderQuadTexture( QuadT* pQuad, Surface* pTexture, Palette* pPalette, unsigned long argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
+	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	if( !pRectDest )
+		pRectDest = &tmp;
 	g_rasterizer.drawTexture(pSurfaceDest, pRectDest, pQuad, pTexture, pPalette, argbModifier);
 	return 0;
 }
 
 int gfx_renderQuadTextureWithColorKey( QuadT* pQuad, Surface* pTexture, Palette* pPalette, unsigned char colorKey, unsigned long argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
-	g_rasterizer.drawTexture(pSurfaceDest, pRectDest, pQuad, pTexture, pPalette, colorKey, argbModifier);
+	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	if( !pRectDest )
+		pRectDest = &tmp;
+	g_rasterizer.drawTextureWithColorKey(pSurfaceDest, pRectDest, pQuad, pTexture, pPalette, colorKey, argbModifier);
 	return 0;
 }
 
