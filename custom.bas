@@ -1233,7 +1233,7 @@ SUB quad_transforms_menu ()
      with tempsprite
       .sprite = frame_load(spritemode, 0)
       .pal = palette16_load(-1, spritemode, 0)
-      testframe = frame_new(.sprite->w, .sprite->h)
+      testframe = frame_new(.sprite->w, .sprite->h, , YES)
       frame_draw .sprite, .pal, 0, 0, , , testframe
       frame_unload @.sprite
       palette16_unload @.pal
