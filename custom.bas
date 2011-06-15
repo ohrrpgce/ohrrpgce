@@ -1202,19 +1202,19 @@ declare sub frame_draw_transformed (byval dest as Frame ptr, byval src as Frame 
 end extern
 
 SUB quad_transforms_menu ()
- DIM menu(...) as string = {"Arrows: scale X and Y", "<, >: change angle"}
+ DIM menu(...) as string = {"Arrows: scale X and Y", "<, >: change angle", "[, ]: change sprite"}
  DIM st as MenuState
+ st.last = 2
  st.size = 22
+ st.need_update = YES
+ 
+ DIM spritemode AS INTEGER = -1
 
  DIM testframe as Frame ptr
- testframe = frame_new(16, 16)
- FOR i as integer = 0 TO 255
-  putpixel testframe, (i MOD 16), (i \ 16), i
- NEXT
+ DIM tempsprite as GraphicPair
 
  DIM vertices(3) as Float3
- DIM testframesize as Rect = (0, 0, testframe->w - 1, testframe->h - 1)
- vec3GenerateCorners @vertices(0), 4, testframesize
+ DIM testframesize as Rect
 
  DIM angle as single
  DIM scale as Float2 = (2.0, 2.0)
@@ -1222,6 +1222,40 @@ SUB quad_transforms_menu ()
 
  DO
   setwait 55
+  
+  if st.need_update then
+   if spritemode < -1 then spritemode = 8
+   if spritemode > 8 then spritemode = -1
+   frame_unload @testframe
+   
+   select case spritemode
+    case 0 to 8
+     with tempsprite
+      .sprite = frame_load(spritemode, 0)
+      .pal = palette16_load(-1, spritemode, 0)
+      testframe = frame_new(.sprite->w, .sprite->h)
+      frame_draw .sprite, .pal, 0, 0, , , testframe
+      frame_unload @.sprite
+      palette16_unload @.pal
+     end with
+    case else
+     testframe = frame_new(16, 16)
+     FOR i as integer = 0 TO 255
+      putpixel testframe, (i MOD 16), (i \ 16), i
+     NEXT
+   end select
+   
+   WITH testframesize
+    .top = 0
+    .left = 0
+    .right = testframe->w - 1
+    .bottom = testframe->h - 1
+   END WITH
+   vec3GenerateCorners @vertices(0), 4, testframesize
+   
+   st.need_update = NO
+  end if
+  
   setkeys
   IF keyval(scEsc) > 1 THEN EXIT DO
   IF keyval(scLeft)  THEN scale.x -= 0.1
@@ -1230,6 +1264,8 @@ SUB quad_transforms_menu ()
   IF keyval(scDown)  THEN scale.y += 0.1
   IF keyval(scLeftCaret)  THEN angle -= 0.1
   IF keyval(scRightCaret) THEN angle += 0.1
+  IF keyval(scLeftBracket) > 1 THEN spritemode -= 1: st.need_update = YES
+  IF keyval(scRightBracket) > 1 THEN spritemode += 1: st.need_update = YES
 
   clearpage vpage
   standardmenu menu(), st, 0, 0, vpage
@@ -1250,6 +1286,7 @@ SUB quad_transforms_menu ()
   dowait
  LOOP
  setkeys
+ frame_unload @testframe
 END SUB
 
 #ELSE
