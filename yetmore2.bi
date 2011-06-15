@@ -3,10 +3,8 @@
 
 #include "reload.bi"
 
-DECLARE SUB cathero
 DECLARE FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as integer) as integer
 DECLARE SUB defaultc
-DECLARE SUB drawnpcs
 DECLARE SUB forcedismount (catd() as integer)
 DECLARE FUNCTION framewalkabout (x as integer, y as integer, framex as integer, framey as integer, mapwide as integer, maphigh as integer, wrapmode as integer) as integer
 DECLARE SUB initgamedefaults

@@ -93,7 +93,6 @@ DIM SHARED scriptout AS STRING
 
 'global variables
 DIM gam AS GameState
-gam.walkabout_layer_mode = 2 ' default to flickering
 DIM txt AS TextBoxState
 DIM gen(360)
 DIM tag(127)
@@ -620,15 +619,6 @@ DO
     SliceDebugDumpTree SliceTable.Root
     notification "Dumped entire slice tree to g_debug.txt"
    END IF
-   IF keyval(scF9) > 1 THEN
-    'FIXME: the CTRL+F9 key is a temporary hack. It will go away later.
-    gam.walkabout_layer_mode = loopvar(gam.walkabout_layer_mode, 0, 2, 1)
-    SELECT CASE gam.walkabout_layer_mode
-     CASE 0: debug "old-style npc and hero display"
-     CASE 1: debug "display npcs and heros as slices"
-     CASE 2: debug "flicker old and new npc/hero display modes"
-    END SELECT
-   END IF
    IF keyval(scF11) > 1 THEN gam.debug_npc_info = NOT gam.debug_npc_info
   ELSE ' not holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
@@ -807,28 +797,7 @@ SUB displayall()
    .Y = mapy * -1
   END WITH
  
-  gam.walkabout_layer_tog = NOT gam.walkabout_layer_tog
-  IF gam.walkabout_layer_mode = 1 OR (gam.walkabout_layer_mode = 2 AND gam.walkabout_layer_tog) THEN
-   DrawSlice SliceTable.MapRoot, dpage
-  ELSE
-   RefreshSliceScreenPos(SliceTable.MapRoot) '--FIXME: this can go away when it is no longer necessary to draw each map layer one-by-one
-   DrawSlice SliceTable.MapLayer(0), dpage  'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
-   FOR i AS INTEGER = 1 TO gmap(31) - 1
-    IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
-   NEXT
-   'DEBUG debug "draw npcs and heroes"
-   IF gmap(16) = 1 THEN
-    cathero
-    drawnpcs
-   ELSE
-    drawnpcs
-    cathero
-   END IF
-   FOR i AS INTEGER = gmap(31) TO UBOUND(maptiles)
-    IF readbit(gmap(), 19, i - 1) THEN DrawSlice SliceTable.MapLayer(i), dpage
-   NEXT
-   DrawSlice SliceTable.ObsoleteOverhead, dpage
-  END IF
+  DrawSlice SliceTable.MapRoot, dpage
   DrawSlice SliceTable.ScriptSprite, dpage 'FIXME: Eventually we will just draw the slice root, but for transition we draw second-level slice trees individually
   
   animatetilesets tilesets()

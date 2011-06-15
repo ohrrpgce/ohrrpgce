@@ -28,45 +28,6 @@ Using Reload.Ext
 
 REM $STATIC
 
-SUB cathero
-'NOTE: zsort contains positions in CATERPILLAR party
-DIM zsort(3)
-
-'--if riding a vehicle and not mounting and not hiding leader and not hiding party then exit
-IF vstate.active = YES AND vstate.mounting = NO AND vstate.trigger_cleanup = NO AND vstate.ahead = NO AND vstate.dat.do_not_hide_leader = NO AND vstate.dat.do_not_hide_party = NO THEN EXIT SUB
-
-IF readbit(gen(), 101, 1) = 1 AND (vstate.active = NO OR vstate.dat.do_not_hide_leader = NO) THEN
- '--caterpillar party (normal)
- '--this should Y-sort
- catlen = 0
- FOR i = 0 TO 3
-  IF hero(i) > 0 THEN
-   zsort(catlen) = catlen
-   catlen += 1
-  END IF
- NEXT
- FOR i = 0 TO catlen - 2
-  FOR o = i + 1 TO catlen - 1
-   IF caty(zsort(o) * 5) < caty(zsort(i) * 5) THEN
-    SWAP zsort(i), zsort(o)
-   END IF
-  NEXT
- NEXT
- FOR i = 0 TO catlen - 1
-  IF framewalkabout(catx(zsort(i) * 5), caty(zsort(i) * 5) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
-   IF herow(zsort(i)).sprite = NULL THEN showerror "cathero: hero sprite " & zsort(i) & " is missing!": EXIT SUB
-   frame_draw herow(zsort(i)).sprite + catd(zsort(i) * 5) * 2 + (wtog(zsort(i)) \ 2), herow(zsort(i)).pal, framex, framey - catz(zsort(i) * 5), 1, -1, dpage
-  END IF
- NEXT i
-ELSE
- '--non-caterpillar party, vehicle no-hide-leader (or backcompat pref)
- IF framewalkabout(catx(0), caty(0) + gmap(11), framex, framey, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
-  IF herow(0).sprite = NULL THEN showerror "cathero: hero sprite missing!": EXIT SUB
-  frame_draw herow(0).sprite + catd(0) * 2 + (wtog(0) \ 2), herow(0).pal, framex, framey - catz(0), 1, -1, dpage
- END IF
-END IF
-END SUB
-
 FUNCTION cropmovement (x as integer, y as integer, xgo as integer, ygo as integer) as integer
  'crops movement at edge of map, or wraps
  'returns true if ran into wall at edge
@@ -97,25 +58,6 @@ SUB defaultc
   joy(i) = joyconst(i - 9)
  NEXT i
  EXIT SUB
-END SUB
-
-SUB drawnpcs
- FOR i = 0 TO 299 '-- for each NPC instance
-  IF npc(i).id > 0 THEN '-- if visible
-   o = npc(i).id - 1
-   z = 0
-   drawnpcX = 0
-   drawnpcY = 0
-   IF framewalkabout(npc(i).x, npc(i).y + gmap(11), drawnpcX, drawnpcY, mapsizetiles.x * 20, mapsizetiles.y * 20, gmap(5)) THEN
-    IF vstate.active AND vstate.npc = i THEN z = catz(0) '--special vehicle magic
-    IF z AND vstate.dat.disable_flying_shadow = NO THEN '--shadow
-     rectangle drawnpcX + 6, drawnpcY + 13, 8, 5, uilook(uiShadow), dpage
-     rectangle drawnpcX + 5, drawnpcY + 14, 10, 3, uilook(uiShadow), dpage
-    END IF
-    frame_draw npcs(o).sprite + (2 * npc(i).dir) + npc(i).frame \ 2, npcs(o).pal, drawnpcX, drawnpcY - z, 1, -1, dpage
-   END IF
-  END IF
- NEXT i
 END SUB
 
 SUB forcedismount (catd())

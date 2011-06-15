@@ -65,8 +65,6 @@ TYPE GameState
   walk_through_walls AS INTEGER 'used for F11 cheat mode
   mouse_enabled AS INTEGER 'initmouse called
   hero(40) AS HeroState
-  walkabout_layer_mode AS INTEGER
-  walkabout_layer_tog AS INTEGER
   caterp(3) AS Slice Ptr
   debug_showtags AS INTEGER
   debug_npc_info AS INTEGER
