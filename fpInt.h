@@ -7,6 +7,8 @@
 #ifndef FPINT_H
 #define FPINT_H
 
+#include <stdint.h>
+
 struct FPInt
 {
 	union

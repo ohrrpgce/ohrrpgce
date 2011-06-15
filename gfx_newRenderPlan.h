@@ -5,6 +5,7 @@
 #define GFX_NEWRENDERPLAN_H
 
 //#include "FPInt.h"
+#include <stdint.h>
 
 //surfaces
 enum SurfaceFormat
@@ -20,26 +21,26 @@ enum SurfaceUsage
 };
 struct Surface
 {
-	unsigned long width;
-	unsigned long height;
+	uint32_t width;
+	uint32_t height;
 	SurfaceFormat format;
 	SurfaceUsage usage;
 	union
 	{
 		void* pRawData;
-		unsigned long* pColorData;
-		unsigned char* pPaletteData;
+		uint32_t* pColorData;
+		uint8_t* pPaletteData;
 	};
 };
 struct SurfaceRect
 {
-	long left, top, right, bottom;
+	int32_t left, top, right, bottom;
 };
 
 //palettes
 struct Palette
 {
-	unsigned long p[256];
+	uint32_t p[256];
 };
 
 //vertices
@@ -75,23 +76,23 @@ struct Color //argb dword; palette stored in lowest byte, that is 'b'
 {
 	union
 	{
-		unsigned long dw : 32;
+		uint32_t dw : 32;
 		struct
 		{
-			unsigned char b : 8; //lowest; also used for palette
-			unsigned char g : 8;
-			unsigned char r : 8;
-			unsigned char a : 8; //highest
+			uint8_t b : 8; //lowest; also used for palette
+			uint8_t g : 8;
+			uint8_t r : 8;
+			uint8_t a : 8; //highest
 		};
 	};
-	Color& operator= (unsigned long rhs) {dw = rhs; return *this;}
+	Color& operator= (uint32_t rhs) {dw = rhs; return *this;}
 	Color& operator= (const Color& rhs) {dw = rhs.dw; return *this;}
-	operator unsigned long () const {return dw;}
-	operator unsigned char () const {return b;}
+	operator uint32_t () const {return dw;}
+	operator uint8_t () const {return b;}
 	Color() : dw(0) {}
-	Color(unsigned long col) : dw(col) {}
-	Color(unsigned char A, unsigned char R, unsigned char G, unsigned char B) : dw(0) {a=A;r=R;g=G;b=B;}
-	Color(unsigned char palette) : dw(0) {b=palette;}
+	Color(uint32_t col) : dw(col) {}
+	Color(uint8_t A, uint8_t R, uint8_t G, uint8_t B) : dw(0) {a=A;r=R;g=G;b=B;}
+	Color(uint8_t palette) : dw(0) {b=palette;}
 	void scale(Color argbModifier)
 	{
 		a = a * argbModifier.a / 255;
@@ -99,7 +100,7 @@ struct Color //argb dword; palette stored in lowest byte, that is 'b'
 		g = g * argbModifier.g / 255;
 		b = b * argbModifier.b / 255;
 	}
-	void scale(Color c2, unsigned char weight)
+	void scale(Color c2, uint8_t weight)
 	{
 		a = (a*weight + c2.a*(255-weight)) / 255;
 		r = (r*weight + c2.r*(255-weight)) / 255;
@@ -143,22 +144,22 @@ struct QuadT
 //interfaces
 extern "C"
 {
-	int gfx_surfaceCreate( unsigned long width, unsigned long height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut );
+	int gfx_surfaceCreate( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut );
 	int gfx_surfaceDestroy( Surface* pSurfaceIn );
 	int gfx_surfaceUpdate( Surface* pSurfaceIn );
-	int gfx_surfaceFill( unsigned long fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
+	int gfx_surfaceFill( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
 	int gfx_surfaceStretch( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette );
-	int gfx_surfaceStretchWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette, unsigned char colorKey );
+	int gfx_surfaceStretchWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette, uint8_t colorKey );
 	int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette );
-	int gfx_surfaceCopyWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette, unsigned char colorKey );
+	int gfx_surfaceCopyWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette, uint8_t colorKey );
 
 	int gfx_paletteCreate( Palette** ppPaletteOut );
 	int gfx_paletteDestroy( Palette* pPaletteIn );
 	int gfx_paletteUpdate( Palette* pPaletteIn );
 
-	int gfx_renderQuadColor( QuadC* pQuad, unsigned long argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_renderQuadTexture( QuadT* pQuad, Surface* pTexture, Palette* pPalette, unsigned long argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_renderQuadTextureWithColorKey( QuadT* pQuad, Surface* pTexture, Palette* pPalette, unsigned char colorKey, unsigned long argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderQuadColor( QuadC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderQuadTexture( QuadT* pQuad, Surface* pTexture, Palette* pPalette, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderQuadTextureWithColorKey( QuadT* pQuad, Surface* pTexture, Palette* pPalette, uint8_t colorKey, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 	int gfx_renderBegin();
 	int gfx_renderEnd();
 

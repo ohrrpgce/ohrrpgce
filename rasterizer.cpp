@@ -285,7 +285,7 @@ void TriRasterizer::rasterTexture(Surface* pSurfaceDest, const DrawingRange<Vert
 	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x);
 
 	Color srcColor, destColor, finalColor, vertexColor;
-	float red, green, blue;
+	//float red, green, blue;
 
 	if(pSurfaceDest->format == SF_8bit) //both surfaces are 8bit
 	{
@@ -369,7 +369,7 @@ void TriRasterizer::rasterTexture(Surface* pSurfaceDest, const DrawingRange<Vert
 	}
 }
 
-void TriRasterizer::rasterTextureWithColorKey(Surface *pSurfaceDest, const DrawingRange<VertexT> &range, const Surface *pTexture, const Palette *pPalette, unsigned char colorKey, Color argbModifier)
+void TriRasterizer::rasterTextureWithColorKey(Surface *pSurfaceDest, const DrawingRange<VertexT> &range, const Surface *pTexture, const Palette *pPalette, uint8_t colorKey, Color argbModifier)
 {//done
 	//assumed that surface source is 8bit
 	//also assumed that if dest is 32bit, a palette was passed in
@@ -385,7 +385,6 @@ void TriRasterizer::rasterTextureWithColorKey(Surface *pSurfaceDest, const Drawi
 	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x);
 
 	Color srcColor, destColor, finalColor, vertexColor;
-	float red, green, blue;
 
 	if(pSurfaceDest->format == SF_8bit) //both surfaces are 8bit
 	{
@@ -404,7 +403,7 @@ void TriRasterizer::rasterTextureWithColorKey(Surface *pSurfaceDest, const Drawi
 	}
 	else //texture is 8bit, destination is 32bit
 	{
-		unsigned char value = 0;
+		uint8_t value = 0;
 		for(int i = start; i <= finish; i++)
 		{
 			weightFirst = (range.greatest.pos.x - i) / (float)length;
@@ -484,7 +483,7 @@ void TriRasterizer::drawTexture(Surface* pSurface, SurfaceRect* pRect, const Tri
 	}
 }
 
-void TriRasterizer::drawTextureWithColorKey(Surface *pSurface, SurfaceRect *pRect, const Triangle<VertexT> *pTriangle, const Surface *pTexture, const Palette *pPalette, unsigned char colorKey, Color argbModifier)
+void TriRasterizer::drawTextureWithColorKey(Surface *pSurface, SurfaceRect *pRect, const Triangle<VertexT> *pTriangle, const Surface *pTexture, const Palette *pPalette, uint8_t colorKey, Color argbModifier)
 {//done
 	if(pSurface == NULL || pTriangle == NULL || pTexture == NULL)
 		return;
@@ -518,7 +517,7 @@ void TriRasterizer::drawTextureWithColorKey(Surface *pSurface, SurfaceRect *pRec
 void QuadRasterizer::generateTriangles(Triangle<VertexC>* pTriangles, const QuadC* pQuad)
 {//done
 	VertexC center;
-	unsigned int a=0,r=0,g=0,b=0;
+	uint16_t a=0,r=0,g=0,b=0;
 	for(int i = 0; i < 4; i++)
 	{
 		center.pos.x += pQuad->pnt[i].pos.x;
@@ -550,7 +549,7 @@ void QuadRasterizer::generateTriangles(Triangle<VertexC>* pTriangles, const Quad
 void QuadRasterizer::generateTriangles(Triangle<VertexT> *pTriangles, const QuadT *pQuad)
 {//done
 	VertexT center;
-	unsigned int a=0,r=0,g=0,b=0;
+	uint16_t a=0,r=0,g=0,b=0;
 	for(int i = 0; i < 4; i++)
 	{
 		center.pos.x += pQuad->pnt[i].pos.x;
