@@ -2,22 +2,9 @@
 #include "rasterizer.h"
 #include <list>
 
-template <class T>
-class SafeMemory
-{
-private:
-	T* m_p;
-public:
-	SafeMemory(T* pNewData) : m_p(pNewData) {}
-	//~SafeMemory() {if(p) delete p;}
-
-	bool operator== (const T* rhs) {return m_p == rhs;}
-	bool operator!= (const T* rhs) {return m_p != rhs;}
-};
-
 QuadRasterizer g_rasterizer;
-std::list< SafeMemory<Surface> > g_surfaces;
-std::list< SafeMemory<Palette> > g_palettes;
+std::list< Surface > g_surfaces;
+std::list< Palette > g_palettes;
 
 int gfx_surfaceCreate( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
 {//done
@@ -29,11 +16,9 @@ int gfx_surfaceCreate( uint32_t width, uint32_t height, SurfaceFormat format, Su
 	else
 		temp.pColorData = new uint32_t[width*height];
 
-	Surface* pNewSurface = new Surface;
-	*pNewSurface = temp;
-	g_surfaces.push_back(pNewSurface);
+	g_surfaces.push_back(temp);
 
-	*ppSurfaceOut = pNewSurface;
+	*ppSurfaceOut = &g_surfaces.back();
 
 	return 0;
 }
@@ -44,18 +29,18 @@ int gfx_surfaceDestroy( Surface* pSurfaceIn )
 	{
 		if(pSurfaceIn->pRawData)
 		{
-			if(pSurfaceIn->usage == SF_8bit)
+			if(pSurfaceIn->format == SF_8bit)
 				delete [] pSurfaceIn->pPaletteData;
 			else
 				delete [] pSurfaceIn->pColorData;
 		}
-		for(std::list< SafeMemory<Surface> >::iterator iter = g_surfaces.begin(); iter != g_surfaces.end(); iter++)
-			if(*iter == pSurfaceIn)
+		for(std::list< Surface >::iterator iter = g_surfaces.begin(); iter != g_surfaces.end(); iter++)
+			if(&(*iter) == pSurfaceIn)
 			{
 				g_surfaces.erase(iter);
 				break;
 			}
-		delete pSurfaceIn;
+		//delete pSurfaceIn;
 	}
 
 	return 0;
@@ -249,10 +234,9 @@ int gfx_paletteCreate( Palette** ppPaletteOut )
 {//done
 	if( !ppPaletteOut )
 		return -1;
-	Palette* pNewPalette = new Palette;
-	g_palettes.push_back(pNewPalette);
+	g_palettes.push_back(Palette());
 
-	*ppPaletteOut = pNewPalette;
+	*ppPaletteOut = &g_palettes.back();
 
 	return 0;
 }
@@ -261,8 +245,8 @@ int gfx_paletteDestroy( Palette* pPaletteIn )
 {//done
 	if( pPaletteIn )
 	{
-		for(std::list< SafeMemory<Palette> >::iterator iter = g_palettes.begin(); iter != g_palettes.end(); iter++)
-			if(*iter == pPaletteIn)
+		for(std::list< Palette >::iterator iter = g_palettes.begin(); iter != g_palettes.end(); iter++)
+			if(&(*iter) == pPaletteIn)
 			{
 				g_palettes.erase(iter);
 				break;
