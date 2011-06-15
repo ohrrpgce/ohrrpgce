@@ -2,7 +2,8 @@
 //by Jay Tennant 5/30/11
 //exposes method of triangle rasterization on software surfaces
 
-#pragma once
+#ifndef RASTERIZER_H
+#define RASTERIZER_H
 
 #include "fpInt.h"
 //#include "surface.h"
@@ -121,3 +122,5 @@ public:
 			m_triRasterizer.drawTextureWithColorKey(pSurface, pRect, &triangles[i], pTexture, pPalette, colorKey, argbModifier);
 	}
 };
+
+#endif

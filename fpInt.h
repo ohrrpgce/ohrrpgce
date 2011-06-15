@@ -4,17 +4,18 @@
 //precision is 65536 fractional steps 
 //range is from (-32768.9998...) to (32767.9998...)
 
-#pragma once
+#ifndef FPINT_H
+#define FPINT_H
 
 struct FPInt
 {
 	union
 	{
-		__int32 raw : 32;		//two words (below)
+		long raw : 32;		//two words (below)
 		struct
 		{
-			unsigned __int16 fraction : 16;		//low word
-			__int16 whole : 16;					//high word
+			unsigned short fraction : 16;		//low word
+			short whole : 16;					//high word
 		};
 	};
 
@@ -27,16 +28,16 @@ struct FPInt
 		return ret;
 	}
 	FPInt operator* (const FPInt& rhs) const {
-		__int64 n = (__int64)raw * (__int64)rhs.raw; 
+		long long n = (long long)raw * (long long)rhs.raw; 
 		FPInt ret; 
-		ret.raw = (__int32)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
+		ret.raw = (long)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
 		return ret;
 	}
 	FPInt operator/ (const FPInt& rhs) const {
-		__int64 n = ((__int64)raw) << 16; //shift first item up by 16 bits
-		n /= (__int64)rhs.raw;
+		long long n = ((long long)raw) << 16; //shift first item up by 16 bits
+		n /= (long long)rhs.raw;
 		FPInt ret;
-		ret.raw = (__int32)n;// & 0xffffffff;
+		ret.raw = (long)n;// & 0xffffffff;
 		return ret;
 	}
 
@@ -55,14 +56,14 @@ struct FPInt
 	FPInt& operator+= (const FPInt& rhs) {raw += rhs.raw; return *this;}
 	FPInt& operator-= (const FPInt& rhs) {raw -= rhs.raw; return *this;}
 	FPInt& operator*= (const FPInt& rhs) {
-		__int64 n = (__int64)raw * (__int64)rhs.raw; 
-		raw = (__int32)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
+		long long n = (long long)raw * (long long)rhs.raw; 
+		raw = (long)(n >> 16);// & 0xffffffff; //throw out lowest and highest words, keeping only middle two from multiply
 		return *this;
 	}
 	FPInt& operator/= (const FPInt& rhs) {
-		__int64 n = ((__int64)raw) << 16; //shift first item up by 16 bits
-		n /= (__int64)rhs.raw;
-		raw = (__int32)n;// & 0xffffffff;
+		long long n = ((long long)raw) << 16; //shift first item up by 16 bits
+		n /= (long long)rhs.raw;
+		raw = (long)n;// & 0xffffffff;
 		return *this;
 	}
 
@@ -117,8 +118,8 @@ struct FPInt
 	//ctor's
 	FPInt() : raw(0) {}
 	FPInt(const FPInt& c) : raw(c.raw) {}
-	FPInt(float n) : raw(0) {raw = (__int32)(n * 65536.0f);}
-	FPInt(double n) : raw(0) {raw = (__int32)(n * 65536.0);}
+	FPInt(float n) : raw(0) {raw = (long)(n * 65536.0f);}
+	FPInt(double n) : raw(0) {raw = (long)(n * 65536.0);}
 	FPInt(char n) : raw(0) {whole = n;}
 	FPInt(short n) : raw(0) {whole = n;}
 	FPInt(int n) : raw(0) {whole = n;}
@@ -130,3 +131,5 @@ struct FPInt
 	FPInt(unsigned long n) : raw(0) {whole = n;}
 	FPInt(unsigned long long n) : raw(0) {whole = n;}
 };
+
+#endif
