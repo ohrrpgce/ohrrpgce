@@ -270,7 +270,7 @@ void TriRasterizer::rasterColor(Surface* pSurfaceDest, const DrawingRange<Vertex
 }
 
 void TriRasterizer::rasterTexture(Surface* pSurfaceDest, const DrawingRange<VertexT>& range, const Surface* pTexture, const Palette* pPalette, Color argbModifier)
-{//need to implement vertex color still
+{//done
 	//assumed that surface dest is not 8bit if source is 32bit
 	//also assumed that if dest is 32bit and source is 8bit, a palette was passed in
 
@@ -284,7 +284,7 @@ void TriRasterizer::rasterTexture(Surface* pSurfaceDest, const DrawingRange<Vert
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
 	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x);
 
-	Color srcColor, destColor, finalColor;
+	Color srcColor, destColor, finalColor, vertexColor;
 	float red, green, blue;
 
 	if(pSurfaceDest->format == SF_8bit) //both surfaces are 8bit
@@ -310,10 +310,13 @@ void TriRasterizer::rasterTexture(Surface* pSurfaceDest, const DrawingRange<Vert
 			weightSecond = 1 - weightFirst;
 			texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
 			texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
+			vertexColor = range.least.col;
+			vertexColor.scale(range.greatest.col, 255.0f * weightFirst);
 
 			//alpha blending
 			srcColor = m_sampler.sample(pTexture, texel.u, texel.v);
 			srcColor.scale(argbModifier);
+			srcColor.scale(vertexColor);
 			destColor = pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->width + i];
 
 			//srcColor.a = 64; //test value
@@ -346,10 +349,13 @@ void TriRasterizer::rasterTexture(Surface* pSurfaceDest, const DrawingRange<Vert
 			weightSecond = 1 - weightFirst;
 			texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
 			texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
+			vertexColor = range.least.col;
+			vertexColor.scale(range.greatest.col, 255.0f * weightFirst);
 
 			//alpha blending
 			srcColor = pPalette->p[ m_sampler.sample(pTexture, texel.u, texel.v) ];
 			srcColor.scale(argbModifier);
+			srcColor.scale(vertexColor);
 			destColor = pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->width + i];
 
 			//integer method of blending
@@ -364,7 +370,7 @@ void TriRasterizer::rasterTexture(Surface* pSurfaceDest, const DrawingRange<Vert
 }
 
 void TriRasterizer::rasterTextureWithColorKey(Surface *pSurfaceDest, const DrawingRange<VertexT> &range, const Surface *pTexture, const Palette *pPalette, unsigned char colorKey, Color argbModifier)
-{//need to implement vertex color still
+{//done
 	//assumed that surface source is 8bit
 	//also assumed that if dest is 32bit, a palette was passed in
 
@@ -378,7 +384,7 @@ void TriRasterizer::rasterTextureWithColorKey(Surface *pSurfaceDest, const Drawi
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x);
 	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x);
 
-	Color srcColor, destColor, finalColor;
+	Color srcColor, destColor, finalColor, vertexColor;
 	float red, green, blue;
 
 	if(pSurfaceDest->format == SF_8bit) //both surfaces are 8bit
@@ -405,6 +411,8 @@ void TriRasterizer::rasterTextureWithColorKey(Surface *pSurfaceDest, const Drawi
 			weightSecond = 1 - weightFirst;
 			texel.u = weightFirst * range.least.tex.u + weightSecond * range.greatest.tex.u;
 			texel.v = weightFirst * range.least.tex.v + weightSecond * range.greatest.tex.v;
+			vertexColor = range.least.col;
+			vertexColor.scale(range.greatest.col, 255.0f * weightFirst);
 
 			//alpha blending
 			value = m_sampler.sample(pTexture, texel.u, texel.v);
@@ -412,6 +420,7 @@ void TriRasterizer::rasterTextureWithColorKey(Surface *pSurfaceDest, const Drawi
 				continue;
 			srcColor = pPalette->p[ value ];
 			srcColor.scale(argbModifier);
+			srcColor.scale(vertexColor);
 			destColor = pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->width + i];
 
 			//integer method of blending

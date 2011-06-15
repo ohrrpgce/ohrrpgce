@@ -112,7 +112,7 @@ struct VertexC
 	Position pos;
 	Color col;
 	VertexC() : pos(), col() {}
-	void interpolateComponents(const VertexC& v2, float scale) {col.scale(v2.col, scale);}
+	void interpolateComponents(const VertexC& v2, float scale) {col.scale(v2.col, 255.0f*scale);}
 };
 struct VertexT
 {
@@ -121,7 +121,7 @@ struct VertexT
 	TexCoord tex;
 	VertexT() : pos(), col(), tex() {}
 	void interpolateComponents(const VertexT& v2, float scale) {
-		col.scale(v2.col, scale);
+		col.scale(v2.col, 255.0f*scale);
 		float invScale(-scale + 1);
 		tex.u = scale * tex.u + invScale * v2.tex.u;
 		tex.v = scale * tex.v + invScale * v2.tex.v;
