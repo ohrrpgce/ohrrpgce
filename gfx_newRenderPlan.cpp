@@ -1,11 +1,13 @@
 #include "gfx_newRenderPlan.h"
 #include "rasterizer.h"
-//#include <memory.h>
+#include <list>
 
 QuadRasterizer g_rasterizer;
+std::list< Surface* > g_surfaces;
+std::list< Palette* > g_palettes;
 
 int gfx_surfaceCreate( unsigned long width, unsigned long height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
-{//needs adjustment for managed memory model
+{//done
 	if( !ppSurfaceOut )
 		return -1;
 	Surface temp = {width, height, format, usage};
@@ -14,15 +16,17 @@ int gfx_surfaceCreate( unsigned long width, unsigned long height, SurfaceFormat 
 	else
 		temp.pColorData = new unsigned long[width*height];
 
-	//an internal memory mechanism should be in place, but some other backend adjustments are needed then
-	*ppSurfaceOut = new Surface;
-	**ppSurfaceOut = temp;
+	Surface* pNewSurface = new Surface;
+	*pNewSurface = temp;
+	g_surfaces.push_back(pNewSurface);
+
+	*ppSurfaceOut = pNewSurface;
 
 	return 0;
 }
 
 int gfx_surfaceDestroy( Surface* pSurfaceIn )
-{//needs adjustment for managed memory model
+{//done
 	if(pSurfaceIn)
 	{
 		if(pSurfaceIn->pRawData)
@@ -32,6 +36,12 @@ int gfx_surfaceDestroy( Surface* pSurfaceIn )
 			else
 				delete [] pSurfaceIn->pColorData;
 		}
+		for(std::list< Surface* >::iterator iter = g_surfaces.begin(); iter != g_surfaces.end(); iter++)
+			if(*iter == pSurfaceIn)
+			{
+				g_surfaces.erase(iter);
+				break;
+			}
 		delete pSurfaceIn;
 	}
 
@@ -223,17 +233,29 @@ int gfx_surfaceCopyWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Su
 }
 
 int gfx_paletteCreate( Palette** ppPaletteOut )
-{//needs adjustment for managed memory model
+{//done
 	if( !ppPaletteOut )
 		return -1;
-	*ppPaletteOut = new Palette;
+	Palette* pNewPalette = new Palette;
+	g_palettes.push_back(pNewPalette);
+
+	*ppPaletteOut = pNewPalette;
+
 	return 0;
 }
 
 int gfx_paletteDestroy( Palette* pPaletteIn )
-{//needs adjustment for managed memory model
+{//done
 	if( pPaletteIn )
+	{
+		for(std::list< Palette* >::iterator iter = g_palettes.begin(); iter != g_palettes.end(); iter++)
+			if(*iter == pPaletteIn)
+			{
+				g_palettes.erase(iter);
+				break;
+			}
 		delete pPaletteIn;
+	}
 	return 0;
 }
 
