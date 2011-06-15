@@ -244,7 +244,7 @@ void TriRasterizer::rasterColor(Surface* pSurfaceDest, const DrawingRange<Vertex
 	int start = 0, finish = 0;
 
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x);
+	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
 
 	if(pSurfaceDest->format == SF_8bit)
 	{
@@ -275,14 +275,14 @@ void TriRasterizer::rasterTexture(Surface* pSurfaceDest, const DrawingRange<Vert
 	//also assumed that if dest is 32bit and source is 8bit, a palette was passed in
 
 	TexCoord texel;
-	float length(range.greatest.pos.x - range.least.pos.x+.5f), 
+	float length(range.greatest.pos.x - range.least.pos.x+1.0f), 
 		  weightFirst,
 		  weightSecond;
 
 	int start = 0, finish = 0;
 
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x);
+	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
 
 	Color srcColor, destColor, finalColor, vertexColor;
 	//float red, green, blue;
@@ -375,14 +375,14 @@ void TriRasterizer::rasterTextureWithColorKey(Surface *pSurfaceDest, const Drawi
 	//also assumed that if dest is 32bit, a palette was passed in
 
 	TexCoord texel;
-	float length(range.greatest.pos.x - range.least.pos.x+.5f), 
+	float length(range.greatest.pos.x - range.least.pos.x+1.0f),
 		  weightFirst,
 		  weightSecond;
 
 	int start = 0, finish = 0;
 
 	start = (range.least.pos.x < 0 ? 0 : range.least.pos.x+.5f); //add .5f to help with rounding trouble
-	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x);
+	finish = (range.greatest.pos.x >= pSurfaceDest->width ? pSurfaceDest->width-1 : range.greatest.pos.x-.5f);
 
 	Color srcColor, destColor, finalColor, vertexColor;
 
