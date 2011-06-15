@@ -6,13 +6,13 @@ template <class T>
 class SafeMemory
 {
 private:
-	T* p;
+	T* m_p;
 public:
-	SafeMemory(T* pNewData) : p(pNewData) {}
-	~SafeMemory() {if(p) delete p;}
+	SafeMemory(T* pNewData) : m_p(pNewData) {}
+	//~SafeMemory() {if(p) delete p;}
 
-	bool operator== (const T* rhs) {return p == rhs;}
-	bool operator!= (const T* rhs) {return p != rhs;}
+	bool operator== (const T* rhs) {return m_p == rhs;}
+	bool operator!= (const T* rhs) {return m_p != rhs;}
 };
 
 QuadRasterizer g_rasterizer;
