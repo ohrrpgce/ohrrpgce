@@ -2567,7 +2567,7 @@ function calcblock(tmap as TileMap, byval x as integer, byval y as integer, byva
 	if overheadmode > 0 then
 		if x >= pmapptr->wide or y >= pmapptr->high or pmapptr = NULL then
 			if overheadmode = 2 then block = -1
-		elseif ((readblock(*pmapptr, x, y) and 128) <> 0) xor (overheadmode = 2) then
+		elseif ((readblock(*pmapptr, x, y) and passObsoleteOverhead) <> 0) xor (overheadmode = 2) then
 			block = -1
 		end if
 	end if

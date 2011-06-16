@@ -3408,10 +3408,10 @@ FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer,
   END IF
  NEXT i
  
- IF ygo > 0 ANDALSO movdivis(ygo) ANDALSO ((p AND 1) = 1 ORELSE (pd(0) AND 4) = 4 ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(0), 0))) THEN ygo = 0: wrappass = 1
- IF ygo < 0 ANDALSO movdivis(ygo) ANDALSO ((p AND 4) = 4 ORELSE (pd(2) AND 1) = 1 ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(2), 0))) THEN ygo = 0: wrappass = 1
- IF xgo > 0 ANDALSO movdivis(xgo) ANDALSO ((p AND 8) = 8 ORELSE (pd(3) AND 2) = 2 ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(3), 0))) THEN xgo = 0: wrappass = 1
- IF xgo < 0 ANDALSO movdivis(xgo) ANDALSO ((p AND 2) = 2 ORELSE (pd(1) AND 8) = 8 ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(1), 0))) THEN xgo = 0: wrappass = 1
+ IF ygo > 0 ANDALSO movdivis(ygo) ANDALSO ((p AND passNorthWall) = passNorthWall ORELSE (pd(0) AND passSouthWall) = passSouthWall ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(0), 0))) THEN ygo = 0: wrappass = 1
+ IF ygo < 0 ANDALSO movdivis(ygo) ANDALSO ((p AND passSouthWall) = passSouthWall ORELSE (pd(2) AND passNorthWall) = passNorthWall ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(2), 0))) THEN ygo = 0: wrappass = 1
+ IF xgo > 0 ANDALSO movdivis(xgo) ANDALSO ((p AND passWestWall) = passWestWall   ORELSE (pd(3) AND passEastWall) = passEastWall   ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(3), 0))) THEN xgo = 0: wrappass = 1
+ IF xgo < 0 ANDALSO movdivis(xgo) ANDALSO ((p AND passEastWall) = passEastWall   ORELSE (pd(1) AND passWestWall) = passWestWall   ORELSE (isveh ANDALSO vehpass(vstate.dat.blocked_by, pd(1), 0))) THEN xgo = 0: wrappass = 1
 
 END FUNCTION
 

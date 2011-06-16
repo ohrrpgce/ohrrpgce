@@ -931,7 +931,7 @@ SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
    IF didgo(harm_cater) = YES AND xgo(harm_cater) = 0 AND ygo(harm_cater) = 0 THEN
     '---check for harm tile
     DIM p AS INTEGER = readblock(pass, catx(whoi * 5) \ 20, caty(whoi * 5) \ 20)
-    IF (p AND 64) THEN
+    IF (p AND passHarm) THEN
      'stepping on a harm tile
      
      DIM harm_partyslot = -1
