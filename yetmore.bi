@@ -35,8 +35,8 @@ DECLARE SUB visnpc ()
 DECLARE SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)
 DECLARE SUB set_walkabout_frame (byval cont as Slice Ptr, byval frame as integer)
 DECLARE SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as integer)
-DECLARE SUB wrapaheadxy (x as integer, y as integer, direction as integer, distance as integer, unitsize as integer)
-DECLARE SUB cropposition (BYREF x as integer, BYREF y as integer, unitsize as integer)
+DECLARE SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer, byval unitsize as integer)
+DECLARE SUB cropposition (byref x as integer, byref y as integer, byval unitsize as integer)
 DECLARE FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer, byref ygo as integer, byval isveh as integer) as integer
 DECLARE FUNCTION wrapzonetest (BYVAL zone as integer, BYVAL x as integer, BYVAL y as integer, BYVAL xgo as integer, BYVAL ygo as integer) as integer
 DECLARE FUNCTION wrapcollision (byval xa as integer, byval ya as integer, byval xgoa as integer, byval ygoa as integer, byval xb as integer, byval yb as integer, byval xgob as integer, byval ygob as integer) as integer

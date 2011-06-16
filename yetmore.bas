@@ -3375,31 +3375,31 @@ SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as integer)
  END IF
 END SUB
 
-SUB wrapaheadxy (x, y, direction, distance, unitsize)
-'alters X and Y ahead by distance in direction, wrapping if neccisary
-'unitsize is 20 for pixels, 1 for tiles
-
-aheadxy x, y, direction, distance
-
-IF gmap(5) = 1 THEN
- wrapxy x, y, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
-END IF
-
-END SUB
-
-SUB cropposition (BYREF x, BYREF y, unitsize)
-
-IF gmap(5) = 1 THEN
- wrapxy x, y, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
-ELSE
- x = bound(x, 0, (mapsizetiles.x - 1) * unitsize)
- y = bound(y, 0, (mapsizetiles.y - 1) * unitsize)
-END IF
-
-END SUB
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer, byval unitsize as integer)
+ 'alters X and Y ahead by distance in direction, wrapping if neccisary
+ 'unitsize is 20 for pixels, 1 for tiles
+ 
+ aheadxy x, y, direction, distance
+ 
+ IF gmap(5) = 1 THEN
+  wrapxy x, y, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
+ END IF
+ 
+END SUB
+
+SUB cropposition (byref x as integer, byref y as integer, byval unitsize as integer)
+
+ IF gmap(5) = 1 THEN
+  wrapxy x, y, mapsizetiles.x * unitsize, mapsizetiles.y * unitsize
+ ELSE
+  x = bound(x, 0, (mapsizetiles.x - 1) * unitsize)
+  y = bound(y, 0, (mapsizetiles.y - 1) * unitsize)
+ END IF
+
+END SUB
 
 FUNCTION wrappass (byval x as integer, byval y as integer, byref xgo as integer, byref ygo as integer, byval isveh as integer) as integer
  wrappass = 0
