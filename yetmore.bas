@@ -1124,7 +1124,11 @@ SELECT CASE AS CONST id
   loadpalette master(), gen(genMasterPal)
   LoadUIColors uilook(), gen(genMasterPal)
  CASE 104'--tweak palette
-  tweakpalette
+  IF bound_arg(retvals(3), 0, 255, "start pal index") THEN
+   IF bound_arg(retvals(4), 0, 255, "end pal index") THEN
+    tweakpalette retvals(0), retvals(1), retvals(2), retvals(3), retvals(4)
+   END IF
+  END IF
  CASE 105'--read color
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
    IF retvals(1) = 0 THEN scriptret = master(retvals(0)).r / 4
@@ -3125,16 +3129,16 @@ PRINT
 PRINT "Error code"; ERR
 END SUB
 
-SUB tweakpalette
-FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
- master(i).r = bound(master(i).r + retvals(0) * 4, 0, 255)
- master(i).g = bound(master(i).g + retvals(1) * 4, 0, 255)
- master(i).b = bound(master(i).b + retvals(2) * 4, 0, 255)
-NEXT i
-END SUB
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
+ FOR i AS INTEGER = first TO last
+  master(i).r = bound(master(i).r + r * 4, 0, 255)
+  master(i).g = bound(master(i).g + g * 4, 0, 255)
+  master(i).b = bound(master(i).b + b * 4, 0, 255)
+ NEXT i
+END SUB
 
 SUB update_vehicle_state ()
 STATIC aheadx AS INTEGER
