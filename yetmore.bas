@@ -3133,10 +3133,14 @@ FOR i = bound(retvals(3), 0, 255) TO bound(retvals(4), 0, 255)
 NEXT i
 END SUB
 
-FUNCTION vehiclestuff () as integer
-STATIC aheadx, aheady
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
 
-result = 0
+FUNCTION update_vehicle_state () as integer
+STATIC aheadx AS INTEGER
+STATIC aheady AS INTEGER
+
+DIM result AS INTEGER = 0
 IF vstate.mounting THEN '--scramble-----------------------
  '--part of the vehicle automount where heros scramble--
  IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
@@ -3145,29 +3149,29 @@ IF vstate.mounting THEN '--scramble-----------------------
  END IF
 END IF'--scramble mount
 IF vstate.rising THEN '--rise----------------------
- tmp = 0
- FOR i = 0 TO 3
+ DIM risen_count AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO 3
   IF catz(i * 5) < vstate.dat.elevation THEN
    catz(i * 5) = catz(i * 5) + large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
   ELSE
-   tmp = tmp + 1
+   risen_count += 1
   END IF
  NEXT i
- IF tmp = 4 THEN
+ IF risen_count = 4 THEN
   vstate.rising = NO
  END IF
 END IF
 IF vstate.falling THEN '--fall-------------------
- tmp = 0
- FOR i = 0 TO 3
+ DIM fallen_count = 0
+ FOR i AS INTEGER = 0 TO 3
   IF catz(i * 5) > 0 THEN
    catz(i * 5) = catz(i * 5) - large(1, small(4, (vstate.dat.elevation - catz(i * 5) + 1) \ 2))
   ELSE
-   tmp = tmp + 1
+   fallen_count += 1
   END IF
  NEXT i
- IF tmp = 4 THEN
-  FOR i = 0 TO 3
+ IF fallen_count = 4 THEN
+  FOR i AS INTEGER = 0 TO 3
    catz(i * 5) = 0
   NEXT i
   vstate.falling = NO
@@ -3185,7 +3189,7 @@ IF vstate.init_dismount THEN '--dismount---------------
  END IF
  IF vehpass(vstate.dat.dismount_to, readblock(pass, disx, disy), -1) THEN
   '--dismount point is landable
-  FOR i = 0 TO 15
+  FOR i AS INTEGER = 0 TO 15
    catx(i) = catx(0)
    caty(i) = caty(0)
    catd(i) = catd(0)
@@ -3229,7 +3233,7 @@ IF vstate.trigger_cleanup THEN '--clear
  delete_walkabout_shadow npc(vstate.npc).sl
  '--clear vehicle
  reset_vehicle vstate
- FOR i = 0 TO 15   'Why is this duplicated from dismounting?
+ FOR i AS INTEGER = 0 TO 15   'Why is this duplicated from dismounting?
   catx(i) = catx(0)
   caty(i) = caty(0)
   catd(i) = catd(0)
@@ -3245,7 +3249,7 @@ IF vstate.active = YES AND vehicle_is_animating() = NO THEN
   DIM button(1) AS INTEGER
   button(0) = vstate.dat.use_button
   button(1) = vstate.dat.menu_button
-  FOR i = 0 TO 1
+  FOR i AS INTEGER = 0 TO 1
    IF carray(ccUse + i) > 1 AND xgo(0) = 0 AND ygo(0) = 0 THEN
     SELECT CASE button(i)
      CASE -2
@@ -3276,9 +3280,6 @@ SUB vehicle_graceful_dismount ()
   vstate.init_dismount = YES
  END IF
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
  '--true means passable

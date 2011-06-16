@@ -523,7 +523,7 @@ DO
  'debug "after advance_text_box:"
  IF vstate.active THEN
   'DEBUG debug "evaluate vehicles"
-  tmp = vehiclestuff()
+  tmp = update_vehicle_state()
   SELECT CASE tmp
    CASE IS < 0
     runscript(ABS(tmp), nowscript + 1, -1, "vehicle", plottrigger)
