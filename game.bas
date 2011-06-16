@@ -523,16 +523,7 @@ DO
  'debug "after advance_text_box:"
  IF vstate.active THEN
   'DEBUG debug "evaluate vehicles"
-  tmp = update_vehicle_state()
-  SELECT CASE tmp
-   CASE IS < 0
-    runscript(ABS(tmp), nowscript + 1, -1, "vehicle", plottrigger)
-   CASE 1
-    add_menu 0
-    menusound gen(genAcceptSFX)
-   CASE IS > 1
-    loadsay tmp - 1
-  END SELECT
+  update_vehicle_state()
  END IF
  IF txt.fully_shown = YES AND txt.box.choice_enabled THEN
   usemenusounds

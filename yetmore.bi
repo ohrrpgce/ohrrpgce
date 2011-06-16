@@ -27,7 +27,7 @@ DECLARE SUB scriptnpc (id as integer)
 DECLARE SUB setdebugpan
 DECLARE SUB templockexplain
 DECLARE SUB tweakpalette
-DECLARE FUNCTION update_vehicle_state () as integer
+DECLARE SUB update_vehicle_state ()
 DECLARE FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
 DECLARE SUB vehicle_graceful_dismount ()
 DECLARE SUB vishero ()

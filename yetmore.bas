@@ -3136,11 +3136,10 @@ END SUB
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-FUNCTION update_vehicle_state () as integer
+SUB update_vehicle_state ()
 STATIC aheadx AS INTEGER
 STATIC aheady AS INTEGER
 
-DIM result AS INTEGER = 0
 IF vstate.mounting THEN '--scramble-----------------------
  '--part of the vehicle automount where heros scramble--
  IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
@@ -3210,8 +3209,8 @@ IF vstate.init_dismount THEN '--dismount---------------
  END IF
 END IF
 IF vstate.trigger_cleanup THEN '--clear
- IF vstate.dat.on_dismount < 0 THEN result = vstate.dat.on_dismount
- IF vstate.dat.on_dismount > 0 THEN result = 1 + vstate.dat.on_dismount
+ IF vstate.dat.on_dismount < 0 THEN runscript(ABS(vstate.dat.on_dismount), nowscript + 1, -1, "vehicle on-dismount", plottrigger)
+ IF vstate.dat.on_dismount > 0 THEN loadsay vstate.dat.on_dismount
  IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 0
  IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
   '--dismount-ahead is true, dismount-passwalls is false
@@ -3255,21 +3254,20 @@ IF vstate.active = YES AND vehicle_is_animating() = NO THEN
      CASE -2
       '-disabled
      CASE -1
-      result = 1
+      add_menu 0
+      menusound gen(genAcceptSFX)
      CASE 0
       '--dismount
       vehicle_graceful_dismount
      CASE IS > 0
-      result = button(i) * -1
+      runscript(button(i), nowscript + 1, -1, "vehicle button" & i, plottrigger)
     END SELECT
    END IF
   NEXT i
  END IF
 END IF'--normal
 
-RETURN result
-
-END FUNCTION
+END SUB 'result
 
 SUB vehicle_graceful_dismount ()
  xgo(0) = 0
