@@ -3118,17 +3118,6 @@ gen(cameraArg3) = 5
 
 END SUB
 
-SUB templockexplain
-PRINT "Either " + exename + " is already running in the background, or it"
-PRINT "terminated incorrectly last time it was run, and was unable to clean up"
-PRINT "its temporary files. The operating system is denying access to the"
-PRINT "files in " + workingdir
-PRINT
-PRINT "If this problem persists, manually delete playing.tmp"
-PRINT
-PRINT "Error code"; ERR
-END SUB
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 

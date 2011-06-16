@@ -25,7 +25,6 @@ DECLARE SUB scriptadvanced (id as integer)
 DECLARE SUB scriptmisc (id as integer)
 DECLARE SUB scriptnpc (id as integer)
 DECLARE SUB setdebugpan
-DECLARE SUB templockexplain
 DECLARE SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
 DECLARE SUB update_vehicle_state ()
 DECLARE FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
