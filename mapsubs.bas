@@ -698,13 +698,15 @@ DO
     st.usetile(st.layer) = animadjust(readblock(map(st.layer), st.x, st.y), st.tilesets(st.layer)->tastuf())
     update_tilepicker st
    END IF
-   IF keyval(scComma) > 1 AND st.usetile(st.layer) > 0 THEN
-    st.usetile(st.layer) = st.usetile(st.layer) - 1
-    update_tilepicker st
-   END IF
-   IF keyval(scPeriod) > 1 AND st.usetile(st.layer) < 159 THEN
-    st.usetile(st.layer) = st.usetile(st.layer) + 1
-    update_tilepicker st
+   IF keyval(scCtrl) = 0 THEN
+    IF keyval(scComma) > 1 AND st.usetile(st.layer) > 0 THEN
+     st.usetile(st.layer) = st.usetile(st.layer) - 1
+     update_tilepicker st
+    END IF
+    IF keyval(scPeriod) > 1 AND st.usetile(st.layer) < 159 THEN
+     st.usetile(st.layer) = st.usetile(st.layer) + 1
+     update_tilepicker st
+    END IF
    END IF
    st.tool_value = st.usetile(st.layer)
 
@@ -736,7 +738,7 @@ DO
     END IF
    NEXT i
 
-   IF keyval(scPageup) > 1 THEN
+   IF keyval(scPageup) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scPeriod) > 1) THEN
     FOR i = st.layer + 1 TO UBOUND(map)
      IF layerisenabled(gmap(), i) THEN
       st.layer = i
@@ -746,7 +748,7 @@ DO
      END IF
     NEXT i
    END IF
-   IF keyval(scPageDown) > 1 THEN
+   IF keyval(scPageDown) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scComma) > 1) THEN
     FOR i = st.layer - 1 TO 0 STEP -1
      IF layerisenabled(gmap(), i) THEN
       st.layer = i
