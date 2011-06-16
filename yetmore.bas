@@ -3277,50 +3277,37 @@ SUB vehicle_graceful_dismount ()
  END IF
 END SUB
 
-FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
-
-'--true means passable
-'--false means impassable
-
-v = default
-
-SELECT CASE n
- CASE 1
-  v = (tile AND 16)
- CASE 2
-  v = (tile AND 32)
- CASE 3
-  v = ((tile AND 16) = 16) AND ((tile AND 32) = 32)
- CASE 4
-  v = ((tile AND 16) = 16) OR ((tile AND 32) = 32)
- CASE 5
-  v = NOT ((tile AND 16) = 16)
- CASE 6
-  v = NOT ((tile AND 32) = 32)
- CASE 7
-  v = NOT (((tile AND 16) = 16) OR ((tile AND 32) = 32))
- CASE 8
-  v = -1
-END SELECT
-
-v = ABS(SGN(v)) * -1
-
-vehpass = v
-
-'tiles
-'1   north
-'2   east
-'4   south
-'8   west
-'16  vehicle A
-'32  vehicle B
-'64  harm tile
-'128 overhead
-
-END FUNCTION
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
+ '--true means passable
+ '--false means impassable
+
+ DIM v AS INTEGER = default
+
+ SELECT CASE n
+  CASE 1
+   v = (tile AND passVehA)
+  CASE 2
+   v = (tile AND passVehB)
+  CASE 3
+   v = ((tile AND passVehA) = passVehA) AND ((tile AND passVehB) = passVehB)
+  CASE 4
+   v = ((tile AND passVehA) = passVehA) OR ((tile AND passVehB) = passVehB)
+  CASE 5
+   v = NOT ((tile AND passVehA) = passVehA)
+  CASE 6
+   v = NOT ((tile AND passVehB) = passVehB)
+  CASE 7
+   v = NOT (((tile AND passVehA) = passVehA) OR ((tile AND passVehB) = passVehB))
+  CASE 8
+   v = YES
+ END SELECT
+ 
+ RETURN v <> 0
+
+END FUNCTION
 
 SUB vishero ()
  FOR i AS INTEGER = 0 TO UBOUND(herow)

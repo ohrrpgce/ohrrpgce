@@ -28,7 +28,7 @@ DECLARE SUB setdebugpan
 DECLARE SUB templockexplain
 DECLARE SUB tweakpalette
 DECLARE FUNCTION vehiclestuff () as integer
-DECLARE FUNCTION vehpass (n as integer, tile as integer, default as integer) as integer
+DECLARE FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as integer) as integer
 DECLARE SUB vehicle_graceful_dismount ()
 DECLARE SUB vishero ()
 DECLARE SUB visnpc ()

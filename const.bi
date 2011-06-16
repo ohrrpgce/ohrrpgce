@@ -221,6 +221,16 @@ Enum constDirection
 	dirLeft
 End Enum
 
+'map passability bits
+CONST passNorthWall = 1
+CONST passEastWall = 2
+CONST passSouthWall = 4
+CONST passWestWall = 8
+CONST passVehA = 16
+CONST passVehB = 32
+CONST passHarm = 64
+CONST passObsoleteOverhead = 128
+
 '--- Constants for carray() 
 CONST ccUp = 0
 CONST ccDown = 1
