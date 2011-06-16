@@ -3319,6 +3319,9 @@ vehpass = v
 
 END FUNCTION
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 SUB vishero ()
  FOR i AS INTEGER = 0 TO UBOUND(herow)
   frame_unload @herow(i).sprite
@@ -3374,9 +3377,6 @@ SUB set_walkabout_vis (byval cont as Slice Ptr, byval vis as integer)
   cont->Visible = vis
  END IF
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB wrapaheadxy (byref x as integer, byref y as integer, byval direction as integer, byval distance as integer, byval unitsize as integer)
  'alters X and Y ahead by distance in direction, wrapping if neccisary
