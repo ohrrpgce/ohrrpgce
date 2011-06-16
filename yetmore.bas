@@ -3145,7 +3145,7 @@ IF vstate.mounting THEN '--scramble-----------------------
  '--part of the vehicle automount where heros scramble--
  IF npc(vstate.npc).xgo = 0 AND npc(vstate.npc).ygo = 0 THEN
   '--npc must stop before we mount
-  vehscramble vstate.mounting, NO, npc(vstate.npc).x, npc(vstate.npc).y, result
+  vehscramble vstate.mounting, NO, npc(vstate.npc).x, npc(vstate.npc).y
  END IF
 END IF'--scramble mount
 IF vstate.rising THEN '--rise----------------------
@@ -3242,7 +3242,7 @@ IF vstate.trigger_cleanup THEN '--clear
  gam.random_battle_countdown = range(100, 60)
 END IF
 IF vstate.ahead THEN '--ahead
- vehscramble vstate.ahead, YES, aheadx, aheady, result
+ vehscramble vstate.ahead, YES, aheadx, aheady
 END IF
 IF vstate.active = YES AND vehicle_is_animating() = NO THEN
  IF txt.showing = NO AND readbit(gen(), 44, suspendplayer) = 0 THEN
@@ -3485,7 +3485,7 @@ FUNCTION backcompat_sound_id (BYVAL id AS INTEGER) as integer
  END IF
 END FUNCTION
 
-SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYVAL targx AS INTEGER, BYVAL targy AS INTEGER, BYREF result AS INTEGER)
+SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYVAL targx AS INTEGER, BYVAL targy AS INTEGER)
  DIM tmp AS INTEGER = 0
  DIM count AS INTEGER = herocount()
  DIM scramx AS INTEGER
@@ -3524,8 +3524,8 @@ SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYV
  NEXT i
  IF tmp = 4 THEN
   mode_val = NO
-  IF vstate.dat.on_mount < 0 THEN result = vstate.dat.on_mount
-  IF vstate.dat.on_mount > 0 THEN result = 1 + vstate.dat.on_mount
+  IF vstate.dat.on_mount < 0 THEN runscript(ABS(vstate.dat.on_mount), nowscript + 1, -1, "vehicle on-mount", plottrigger)
+  IF vstate.dat.on_mount > 0 THEN loadsay vstate.dat.on_mount
   herospeed(0) = vstate.dat.speed
   IF herospeed(0) = 3 THEN herospeed(0) = 10
   '--null out hero's movement
