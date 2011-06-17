@@ -2861,9 +2861,13 @@ END SELECT
 
 END SUB
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 SUB scriptnpc (id)
 
 'contains npc related scripting commands
+DIM npcref AS INTEGER
 
 SELECT CASE AS CONST id
 
@@ -2926,8 +2930,8 @@ SELECT CASE AS CONST id
  CASE 120'--NPC reference
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
-   found = 0
-   FOR i = 0 TO 299
+   DIM found AS INTEGER = 0
+   FOR i AS INTEGER = 0 TO UBOUND(npc)
     IF npc(i).id - 1 = retvals(0) THEN
      IF found = retvals(1) THEN
       scriptret = (i + 1) * -1
@@ -2939,8 +2943,8 @@ SELECT CASE AS CONST id
   END IF
  CASE 121'--NPC at spot
   scriptret = 0
-  found = 0
-  FOR i = 0 TO 299
+  DIM found AS INTEGER = 0
+  FOR i AS INTEGER = 0 TO UBOUND(npc)
    IF npc(i).id > 0 THEN
     IF npc(i).x \ 20 = retvals(0) THEN 
      IF npc(i).y \ 20 = retvals(1) THEN
@@ -2964,7 +2968,7 @@ SELECT CASE AS CONST id
  CASE 123'--NPC copy count
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
-   FOR i = 0 TO 299
+   FOR i AS INTEGER = 0 TO UBOUND(npc)
     IF npc(i).id - 1 = retvals(0) THEN
      scriptret = scriptret + 1
     END IF
@@ -2979,7 +2983,8 @@ SELECT CASE AS CONST id
  CASE 125'--create NPC
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
-   FOR i = 299 TO 0 STEP -1
+   DIM i AS INTEGER
+   FOR i = UBOUND(npc) TO 0 STEP -1
     IF npc(i).id = 0 THEN EXIT FOR
    NEXT
    'for backwards compatibility with games that max out the number of NPCs, try to overwrite tag-disabled NPCs
@@ -3026,8 +3031,8 @@ SELECT CASE AS CONST id
   END IF
  CASE 165'--NPC at pixel
   scriptret = 0
-  found = 0
-  FOR i = 0 TO 299
+  DIM found AS INTEGER = 0
+  FOR i AS INTEGER = 0 TO UBOUND(npc)
    IF npc(i).id > 0 THEN 
     IF npc(i).x <= retvals(0) AND npc(i).x > (retvals(0) - 20) THEN 
      IF npc(i).y <= retvals(1) AND npc(i).y > (retvals(1) - 20) THEN
@@ -3111,15 +3116,10 @@ END SELECT
 END SUB
 
 SUB setdebugpan
-
-gen(cameramode) = pancam
-gen(cameraArg2) = 1
-gen(cameraArg3) = 5
-
+ gen(cameramode) = pancam
+ gen(cameraArg2) = 1
+ gen(cameraArg3) = 5
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
  FOR i AS INTEGER = first TO last
