@@ -16,6 +16,22 @@ and check the buglist:
 http://hamsterrepublic.com/ohrrpgce/index.php/Bugzilla.html
 ------------------------------------------------------------------------------
 
+2011-06-18:
+NPCs and heroes are now drawn using slices!, and starting today you can
+actually parent other slices to them and have everything display properly.
+But beware! The behaviour of NPC/hero slices are likely to change in
+several ways, so it's probably best not to use them in released games.
+In particular:
+-Don't set an NPC/hero slice's position, set the hero/NPC position instead
+-Slices parented to NPC slices will probably eventually be saved when you
+ leave the map if the map is set to remember NPC state
+-Similarly, slices parented to hero slices may start being saved in saved
+ games
+-Current NPC/hero slices are containers with a sprite child, but the type
+ may change to dedicated Hero/NPC Slices (with the same sprite child)
+
+*** 2011-05-06 Zenzizenzic Released ***
+
 2011-01-29:
 The "Old awful" equipment elemental resistances merge formula has changed
 so that the order of equipment no longer matters. However it now usually
