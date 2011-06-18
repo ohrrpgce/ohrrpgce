@@ -739,6 +739,10 @@ DO
    NEXT i
 
    IF keyval(scPageup) > 1 ORELSE (keyval(scCTRL) > 0 ANDALSO keyval(scPeriod) > 1) THEN
+    IF UBOUND(map) = 0 THEN
+     st.message = "No more layers; press Ctrl+L to add one"
+     st.message_ticks = 15
+    END IF
     FOR i = st.layer + 1 TO UBOUND(map)
      IF layerisenabled(gmap(), i) THEN
       st.layer = i
