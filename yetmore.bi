@@ -22,8 +22,8 @@ DECLARE SUB playtimer
 DECLARE FUNCTION rankincaterpillar (heroid as integer) as integer
 DECLARE FUNCTION readfoemap (x as integer, y as integer, fh as integer) as integer
 DECLARE SUB scriptadvanced (id as integer)
-DECLARE SUB scriptmisc (id as integer)
-DECLARE SUB scriptnpc (id as integer)
+DECLARE SUB scriptmisc (byval id as integer)
+DECLARE SUB scriptnpc (byval id as integer)
 DECLARE SUB setdebugpan
 DECLARE SUB tweakpalette (byval r as integer, byval g as integer, byval b as integer, byval first as integer = 0, byval last as integer = 255)
 DECLARE SUB update_vehicle_state ()

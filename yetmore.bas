@@ -882,7 +882,10 @@ END SELECT
 
 END SUB
 
-SUB scriptmisc (id)
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
+SUB scriptmisc (byval id as integer)
 'contains a whole mess of scripting commands that do not depend on
 'any main-module level local variables or GOSUBs
 
@@ -958,7 +961,7 @@ SELECT CASE AS CONST id
    END IF
   END IF
  CASE 19'--leader
-  FOR i = 0 TO 3
+  FOR i AS INTEGER = 0 TO 3
    IF hero(i) > 0 THEN scriptret = hero(i) - 1: EXIT FOR
   NEXT i
  CASE 20'--get money
@@ -1050,9 +1053,9 @@ SELECT CASE AS CONST id
   IF valid_item(retvals(1)) THEN
    IF valid_hero_party(retvals(0)) THEN
     loaditemdata buffer(), retvals(1)
-    i = hero(retvals(0)) - 1
-    IF i >= 0 THEN
-     IF readbit(buffer(), 66, i) THEN
+    DIM hero_id AS INTEGER = hero(retvals(0)) - 1
+    IF hero_id >= 0 THEN
+     IF readbit(buffer(), 66, hero_id) THEN
       scriptret = buffer(49)
      END IF
     END IF
@@ -1066,15 +1069,15 @@ SELECT CASE AS CONST id
  CASE 70'--room in active party
   scriptret = 4 - herocount(3)
  CASE 71'--lock hero
-  temp = findhero(retvals(0) + 1, 0, 40, 1)
-  IF temp > -1 THEN setbit hmask(), 0, temp, 1
+  DIM hero_slot AS INTEGER = findhero(retvals(0) + 1, 0, 40, 1)
+  IF hero_slot > -1 THEN setbit hmask(), 0, hero_slot, 1
  CASE 72'--unlock hero
-  temp = findhero(retvals(0) + 1, 0, 40, 1)
-  IF temp > -1 THEN setbit hmask(), 0, temp, 0
+  DIM hero_slot AS INTEGER = findhero(retvals(0) + 1, 0, 40, 1)
+  IF hero_slot > -1 THEN setbit hmask(), 0, hero_slot, 0
  CASE 74'--set death script
   gen(genGameoverScript) = large(retvals(0), 0)
  CASE 75'--fade screen out
-  FOR i = 0 TO 2
+  FOR i AS INTEGER = 0 TO 2
    retvals(i) = bound(iif(retvals(i), retvals(i) * 4 + 3, 0), 0, 255)
   NEXT
   fadeout retvals(0), retvals(1), retvals(2)
@@ -1093,7 +1096,7 @@ SELECT CASE AS CONST id
  CASE 87'--set hero position
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
   cropposition retvals(1), retvals(2), 1
-   FOR i = 0 TO 4
+   FOR i AS INTEGER = 0 TO 4
     catx(small(retvals(0) * 5 + i, 15)) = retvals(1) * 20
     caty(small(retvals(0) * 5 + i, 15)) = retvals(2) * 20
    NEXT i
@@ -1137,10 +1140,10 @@ SELECT CASE AS CONST id
   END IF
  CASE 106'--write color
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
-   temp = bound(retvals(2), 0, 63)
-   IF retvals(1) = 0 THEN master(retvals(0)).r = iif(temp, temp * 4 + 3, 0)
-   IF retvals(1) = 1 THEN master(retvals(0)).g = iif(temp, temp * 4 + 3, 0)
-   IF retvals(1) = 2 THEN master(retvals(0)).b = iif(temp, temp * 4 + 3, 0)
+   DIM col AS INTEGER = bound(retvals(2), 0, 63)
+   IF retvals(1) = 0 THEN master(retvals(0)).r = iif(col, col * 4 + 3, 0)
+   IF retvals(1) = 1 THEN master(retvals(0)).g = iif(col, col * 4 + 3, 0)
+   IF retvals(1) = 2 THEN master(retvals(0)).b = iif(col, col * 4 + 3, 0)
   END IF
  CASE 107'--update palette
   setpal master()
@@ -1177,8 +1180,8 @@ SELECT CASE AS CONST id
  CASE 128'--forget spell
   scriptret = 0
   retvals(0) = bound(retvals(0), 0, 40)
-  FOR i = 0 TO 3
-   FOR j = 0 TO 23
+  FOR i AS INTEGER = 0 TO 3
+   FOR j AS INTEGER = 0 TO 23
     IF spell(retvals(0), i, j) = retvals(1) THEN
      spell(retvals(0), i, j) = 0
      scriptret = 1
@@ -1199,8 +1202,8 @@ SELECT CASE AS CONST id
   scriptret = 0
   retvals(0) = bound(retvals(0), 0, 40)
   IF retvals(1) > 0 THEN
-   FOR i = 0 TO 3
-    FOR j = 0 TO 23
+   FOR i AS INTEGER = 0 TO 3
+    FOR j AS INTEGER = 0 TO 23
      IF spell(retvals(0), i, j) = retvals(1) THEN
       scriptret = 1
       EXIT FOR
@@ -1220,8 +1223,8 @@ SELECT CASE AS CONST id
    IF retvals(1) > 0 THEN
     DIM her as herodef
     loadherodata @her, heroID
-    FOR i = 0 TO 3
-     FOR j = 0 TO 23
+    FOR i AS INTEGER = 0 TO 3
+     FOR j AS INTEGER = 0 TO 23
       IF spell(partyslot, i, j) = 0 THEN
        IF her.spell_lists(i,j).attack = retvals(1) AND her.spell_lists(i,j).learned = retvals(2) THEN
         scriptret = 1
@@ -1260,7 +1263,7 @@ SELECT CASE AS CONST id
    END IF
    IF retvals(1) >= 0 AND retvals(1) <= 4095 THEN
     IF retvals(2) = -1 THEN 'importglobals(slot,id)
-     remval = global(retvals(1))
+     DIM remval AS INTEGER = global(retvals(1))
      loadglobalvars retvals(0) - 1, retvals(1), retvals(1)
      scriptret = global(retvals(1))
      global(retvals(1)) = remval
@@ -1280,10 +1283,11 @@ SELECT CASE AS CONST id
    erase_save_slot retvals(0) - 1
   END IF
  CASE 176'--run script by id
+  DIM rsr AS INTEGER
   rsr = runscript(retvals(0), nowscript + 1, 0, "indirect", plottrigger) 'possible to get ahold of triggers
   IF rsr = 1 THEN
    '--fill heap with return values
-   FOR i = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
+   FOR i AS INTEGER = 1 TO scrat(nowscript - 1).curargc - 1  'flexible argument number! (note that argc has been saved here by runscript)
     setScriptArg i - 1, retvals(i)
    NEXT i
    'NOTE: scriptret is not set here when this command is successful. The return value of the called script will be returned.
@@ -1318,7 +1322,7 @@ SELECT CASE AS CONST id
  CASE 188'--setmusicvolume
   set_music_volume bound(retvals(0), 0, 255) / 255
  CASE 189, 307'--get formation song
-  fh = FREEFILE
+  DIM fh AS INTEGER = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) THEN
    OPEN tmpdir & "for.tmp" FOR BINARY AS #fh
    scriptret = readshort(fh, retvals(0) * 80 + 67)
@@ -1327,7 +1331,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 190'--set formation song
   'set formation song never worked, so don't bother with backwards compatibility
-  fh = FREEFILE
+  DIM fh AS INTEGER = FREEFILE
   IF retvals(0) >= 0 AND retvals(0) <= gen(genMaxFormation) AND retvals(1) >= -2 AND retvals(1) <= gen(genMaxSong) THEN
    OPEN tmpdir & "for.tmp" FOR BINARY AS #fh
    WriteShort fh, retvals(0) * 80 + 67, retvals(1) + 1
@@ -1351,7 +1355,7 @@ SELECT CASE AS CONST id
    backcompat_sound_slots(retvals(0)) = 0
   END IF
  CASE 197'--play sound
-  sfxid = backcompat_sound_id(retvals(0))
+  DIM sfxid AS INTEGER = backcompat_sound_id(retvals(0))
   IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN
    if retvals(2) then stopsfx sfxid
    playsfx sfxid, retvals(1)
@@ -1451,11 +1455,9 @@ SELECT CASE AS CONST id
  CASE 217'--delete char
   IF valid_plotstr(retvals(0)) THEN
    IF retvals(1) >= 1 AND retvals(1) <= LEN(plotstr(retvals(0)).s) THEN
-    temp2$ = LEFT$(plotstr(retvals(0)).s, retvals(1) - 1)
-    temp3$ = MID$(plotstr(retvals(0)).s, retvals(1) + 1)
-    plotstr(retvals(0)).s = temp2$ + temp3$
-    temp3$ = ""
-    temp2$ = ""
+    DIM beforestr AS STRING = LEFT(plotstr(retvals(0)).s, retvals(1) - 1)
+    DIM afterstr AS STRING = MID(plotstr(retvals(0)).s, retvals(1) + 1)
+    plotstr(retvals(0)).s = beforestr & afterstr
    END IF
   END IF
  CASE 218'--replace char
@@ -1561,7 +1563,7 @@ SELECT CASE AS CONST id
    scriptret = 0
   END SELECT
  CASE 236'--sound is playing
-  sfxid = backcompat_sound_id(retvals(0))
+  DIM sfxid AS INTEGER = backcompat_sound_id(retvals(0))
   IF sfxid >= 0 AND sfxid <= gen(genMaxSFX) THEN
    scriptret = sfxisplaying(sfxid)
   END IF
@@ -1723,37 +1725,38 @@ SELECT CASE AS CONST id
   scriptret = -1
   IF valid_formation(retvals(0)) AND retvals(1) >= 0 AND retvals(1) <= gen(genMaxEnemy) THEN
    loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
-   temp = -1
-   FOR i = 0 TO 7
-    IF buffer(i * 4) = 0 THEN temp = i: EXIT FOR
+   DIM slot AS INTEGER = -1
+   FOR i AS INTEGER = 0 TO 7
+    IF buffer(i * 4) = 0 THEN slot = i: EXIT FOR
    NEXT
    IF retvals(4) >= 0 AND retvals(4) <= 7 THEN
-    IF buffer(retvals(4) * 4) = 0 THEN temp = retvals(4)
+    IF buffer(retvals(4) * 4) = 0 THEN slot = retvals(4)
    END IF
-   IF temp >= 0 THEN
-    szindex = ReadShort(tmpdir & "dt1.tmp", retvals(1) * getbinsize(binDT1) + 111) 'picture size
+   IF slot >= 0 THEN
+    DIM szindex AS INTEGER = ReadShort(tmpdir & "dt1.tmp", retvals(1) * getbinsize(binDT1) + 111) 'picture size
+    DIM size AS INTEGER
     IF szindex = 0 THEN size = 34
     IF szindex = 1 THEN size = 50
     IF szindex = 2 THEN size = 80
-    buffer(temp * 4) = retvals(1) + 1
-    buffer(temp * 4 + 1) = large( (small(retvals(2), 230) - size \ 2) , 0)  'approximately the 0 - 250 limit of the formation editor
-    buffer(temp * 4 + 2) = large( (small(retvals(3), 199) - size) , 0)
+    buffer(slot * 4) = retvals(1) + 1
+    buffer(slot * 4 + 1) = large( (small(retvals(2), 230) - size \ 2) , 0)  'approximately the 0 - 250 limit of the formation editor
+    buffer(slot * 4 + 2) = large( (small(retvals(3), 199) - size) , 0)
    END IF
    storerecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
-   scriptret = temp
+   scriptret = slot
   END IF
  CASE 309'--find enemy in formation (formation, enemy id, number)
   IF valid_formation(retvals(0)) THEN
    loadrecord buffer(), tmpdir & "for.tmp", 40, retvals(0)
-   temp = 0
+   DIM slot AS INTEGER = 0
    scriptret = -1
-   FOR i = 0 TO 7
+   FOR i AS INTEGER = 0 TO 7
     IF buffer(i * 4) > 0 AND (retvals(1) = buffer(i * 4) - 1 OR retvals(1) = -1) THEN
-     IF retvals(2) = temp THEN scriptret = i: EXIT FOR
-     temp += 1
+     IF retvals(2) = slot THEN scriptret = i: EXIT FOR
+     slot += 1
     END IF
    NEXT
-   IF retvals(2) = -1 THEN scriptret = temp
+   IF retvals(2) = -1 THEN scriptret = slot
   END IF
  CASE 310'--delete enemy from formation (formation, slot)
   IF valid_formation_slot(retvals(0), retvals(1)) THEN
@@ -1766,15 +1769,16 @@ SELECT CASE AS CONST id
   END IF
  CASE 312, 313'--formation slot x (formation, slot), formation slot y (formation, slot)
   IF valid_formation_slot(retvals(0), retvals(1)) THEN
-   temp = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) 'enemy id + 1
+   DIM enemy_id AS INTEGER = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + 1) - 1 'will be -1 for empty slot
    scriptret = ReadShort(tmpdir & "for.tmp", retvals(0) * 80 + retvals(1) * 8 + (id - 311) * 2 + 1) 'x or y
    'now find the position of the bottom center of the enemy sprite
-   IF temp THEN
-    temp = ReadShort(tmpdir & "dt1.tmp", (temp - 1) * getbinsize(binDT1) + 111) 'picture size
-    IF temp = 0 THEN size = 34
-    IF temp = 1 THEN size = 50
-    IF temp = 2 THEN size = 80
-    IF id = 312 THEN scriptret += size \ 2 ELSE scriptret += size
+   IF enemy_id >= 0 THEN
+    DIM pictype AS INTEGER = ReadShort(tmpdir & "dt1.tmp", enemy_id * getbinsize(binDT1) + 111) 'picture size
+    DIM picsize AS INTEGER
+    IF pictype = 0 THEN picsize = 34
+    IF pictype = 1 THEN picsize = 50
+    IF pictype = 2 THEN picsize = 80
+    IF id = 312 THEN scriptret += picsize \ 2 ELSE scriptret += picsize
    END IF
   END IF
  CASE 314'--set formation background (formation, background, animation frames, animation ticks)
@@ -1802,14 +1806,14 @@ SELECT CASE AS CONST id
  CASE 319'--formation probability (formation set, formation)
   IF retvals(0) >= 1 AND retvals(0) <= 255 THEN
    loadrecord buffer(), game + ".efs", 25, retvals(0) - 1
-   temp = 0
+   DIM slot AS INTEGER = 0
    scriptret = 0
-   FOR i = 1 TO 20
+   FOR i AS INTEGER = 1 TO 20
     IF buffer(i) = retvals(1) + 1 THEN scriptret += 1
-    IF buffer(i) > 0 THEN temp += 1
+    IF buffer(i) > 0 THEN slot += 1
    NEXT
    'probability in percentage points
-   IF temp > 0 THEN scriptret = (scriptret * 100) / temp
+   IF slot > 0 THEN scriptret = (scriptret * 100) / slot
   END IF
  CASE 321'--get hero speed (hero)
   IF retvals(0) >= 0 AND retvals(0) <= 3 THEN
@@ -2244,11 +2248,11 @@ SELECT CASE AS CONST id
    END IF
   END IF 
  CASE 415 '--suspend timers
-  FOR i = 0 TO ubound(timers)
+  FOR i AS INTEGER = 0 TO ubound(timers)
    timers(i).pause = YES
   NEXT i
  CASE 416 '--resume timers
-  FOR i = 0 TO ubound(timers)
+  FOR i AS INTEGER = 0 TO ubound(timers)
    timers(i).pause = NO
   NEXT i
  CASE 325, 417 '--set sprite visible, set slice visible
@@ -2342,9 +2346,9 @@ SELECT CASE AS CONST id
   IF valid_plotslice(retvals(0)) THEN
    RefreshSliceScreenPos plotslices(retvals(0))
    IF retvals(3) <= -1 THEN
-    temp = -1
-    FindSliceAtPoint(plotslices(retvals(0)), retvals(1), retvals(2), temp, retvals(4))
-    scriptret = -temp - 1
+    DIM slnum AS INTEGER = -1
+    FindSliceAtPoint(plotslices(retvals(0)), retvals(1), retvals(2), slnum, retvals(4))
+    scriptret = -slnum - 1
    ELSE
     scriptret = find_plotslice_handle(FindSliceAtPoint(plotslices(retvals(0)), retvals(1), retvals(2), retvals(3), retvals(4)))
    END IF
@@ -2354,9 +2358,9 @@ SELECT CASE AS CONST id
    RefreshSliceScreenPos plotslices(retvals(0))
    RefreshSliceScreenPos plotslices(retvals(1))
    IF retvals(2) <= -1 THEN
-    temp = -1
-    FindSliceCollision(plotslices(retvals(0)), plotslices(retvals(1)), temp, retvals(3))
-    scriptret = -temp - 1
+    DIM slnum AS INTEGER = -1
+    FindSliceCollision(plotslices(retvals(0)), plotslices(retvals(1)), slnum, retvals(3))
+    scriptret = -slnum - 1
    ELSE
     scriptret = find_plotslice_handle(FindSliceCollision(plotslices(retvals(0)), plotslices(retvals(1)), retvals(2), retvals(3)))
    END IF
@@ -2487,7 +2491,7 @@ SELECT CASE AS CONST id
  CASE 448 '--slice child
   IF valid_plotslice(retvals(0)) THEN
    DIM sl AS Slice Ptr = plotslices(retvals(0))->FirstChild
-   FOR i = 0 TO retvals(1)
+   FOR i AS INTEGER = 0 TO retvals(1)
     IF sl = NULL THEN EXIT FOR
     IF i = retvals(1) THEN scriptret = find_plotslice_handle(sl)
     sl = sl->NextSibling
@@ -2587,7 +2591,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 466 '--trace value internal (string, value, ...)
   DIM result AS string
-  FOR i = 0 TO curcmd->argc - 1
+  FOR i AS INTEGER = 0 TO curcmd->argc - 1
    IF i MOD 2 = 0 THEN
     IF i <> 0 THEN result &= ", "
     WITH *scrat(nowscript).scr
@@ -2618,9 +2622,9 @@ SELECT CASE AS CONST id
    scriptret = 1
   END IF
  CASE 469'--spells learned
-  found = 0
+  DIM found AS INTEGER = 0
   IF valid_hero_party(retvals(0)) THEN
-   FOR i = retvals(0) * 96 TO retvals(0) * 96 + 95
+   FOR i AS INTEGER = retvals(0) * 96 TO retvals(0) * 96 + 95
     IF readbit(learnmask(), 0, i) THEN
      IF retvals(1) = found THEN
       scriptret = spell(retvals(0), (i \ 24) MOD 4, i MOD 24)
@@ -2643,7 +2647,7 @@ SELECT CASE AS CONST id
 /'  Disabled until an alternative ("new timer") is decided upon
  CASE 471'--unused timer
   scriptret = -1
-  FOR i = 0 TO UBOUND(timers)
+  FOR i AS INTEGER = 0 TO UBOUND(timers)
    IF timers(i).speed <= 0 THEN
     scriptret = i
     WITH timers(scriptret)
@@ -2861,10 +2865,7 @@ END SELECT
 
 END SUB
 
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
-
-SUB scriptnpc (id)
+SUB scriptnpc (byval id AS integer)
 
 'contains npc related scripting commands
 DIM npcref AS INTEGER
@@ -2984,13 +2985,13 @@ SELECT CASE AS CONST id
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
    DIM i AS INTEGER
-   FOR i = UBOUND(npc) TO 0 STEP -1
+   FOR i AS INTEGER = UBOUND(npc) TO 0 STEP -1
     IF npc(i).id = 0 THEN EXIT FOR
    NEXT
    'for backwards compatibility with games that max out the number of NPCs, try to overwrite tag-disabled NPCs
    'FIXME: delete this bit once we raise the NPC limit
    IF i = -1 THEN
-    FOR i = 299 TO 0 STEP -1
+    FOR i = UBOUND(npc) TO 0 STEP -1
      IF npc(i).id <= 0 THEN EXIT FOR
     NEXT
     'I don't want to raise a scripterr here, again because it probably happens in routine in games like SoJ
