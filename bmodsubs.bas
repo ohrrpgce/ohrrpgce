@@ -689,7 +689,7 @@ SUB battle_target_arrows (d as integer, axis as integer, bslot() AS BattleSprite
     IF axis THEN
      distance = (bslot(i).y - bslot(targ.pointer).y) * d
     ELSE
-     distance = (bslot(i).x - bslot(targ.pointer).y) * d
+     distance = (bslot(i).x - bslot(targ.pointer).x) * d
     END IF
     IF distance < best THEN
      best = distance
