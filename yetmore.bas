@@ -555,7 +555,7 @@ FUNCTION get_valid_npc_id (BYVAL seekid as integer, BYVAL errlvl as integer = 5)
    scripterr commandname(curcmd->value) & ": NPC reference " & seekid & " is for a disabled NPC with invalid ID " & npc(npcidx).id & " (the map must be incompletely loaded)", errlvl
    RETURN -1
   END IF
-  RETURN npc(npcidx).id - 1
+  RETURN ABS(npc(npcidx).id) - 1
  END IF
 END FUNCTION
 
