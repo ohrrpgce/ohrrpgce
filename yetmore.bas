@@ -715,58 +715,57 @@ END IF
 partybyrank = result
 END FUNCTION
 
-FUNCTION playtime (d as integer, h as integer, m as integer) as string
-s$ = ""
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
 
-SELECT CASE d
- CASE 1
-  s$ = s$ + STR$(d) + " " + readglobalstring$(154, "day", 10) + " "
- CASE IS > 1
-  s$ = s$ + STR$(d) + " " + readglobalstring$(155, "days", 10) + " "
-END SELECT
+FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
+ DIM s AS STRING = ""
 
-SELECT CASE h
- CASE 1
-  s$ = s$ + STR$(h) + " " + readglobalstring$(156, "hour", 10) + " "
- CASE IS > 1
-  s$ = s$ + STR$(h) + " " + readglobalstring$(157, "hours", 10) + " "
-END SELECT
+ SELECT CASE d
+  CASE 1
+   s = s & d & " " & readglobalstring(154, "day", 10) & " "
+  CASE IS > 1
+   s = s & d & " " & readglobalstring(155, "days", 10) & " "
+ END SELECT
 
-SELECT CASE m
- CASE 1
-  s$ = s$ + STR$(m) + " " + readglobalstring$(158, "minute", 10) + " "
- CASE IS > 1
-  s$ = s$ + STR$(m) + " " + readglobalstring$(159, "minutes", 10) + " "
-END SELECT
+ SELECT CASE h
+  CASE 1
+   s = s & h & " " & readglobalstring(156, "hour", 10) & " "
+  CASE IS > 1
+   s = s & h & " " & readglobalstring(157, "hours", 10) & " "
+ END SELECT
 
-playtime$ = s$
+ SELECT CASE m
+  CASE 1
+   s = s & m & " " & readglobalstring(158, "minute", 10) & " "
+  CASE IS > 1
+   s = s & m & " " & readglobalstring(159, "minutes", 10) & " "
+ END SELECT
+
+ RETURN s
 
 END FUNCTION
 
 SUB playtimer
-STATIC n AS DOUBLE
-
-IF TIMER >= n + 1 OR n - TIMER > 3600 THEN
- n = INT(TIMER)
- gen(genSeconds) = gen(genSeconds) + 1
- WHILE gen(genSeconds) >= 60
-  gen(genSeconds) = gen(genSeconds) - 60
-  gen(genMinutes) = gen(genMinutes) + 1
- WEND
- WHILE gen(genMinutes) >= 60
-  gen(genMinutes) = gen(genMinutes) - 60
-  gen(genHours) = gen(genHours) + 1
- WEND
- WHILE gen(genHours) >= 24
-  gen(genHours) = gen(genHours) - 24
-  IF gen(genDays) < 32767 THEN gen(genDays) = gen(genDays) + 1
- WEND
-END IF
-
+ STATIC n AS DOUBLE
+ 
+ IF TIMER >= n + 1 OR n - TIMER > 3600 THEN
+  n = INT(TIMER)
+  gen(genSeconds) = gen(genSeconds) + 1
+  WHILE gen(genSeconds) >= 60
+   gen(genSeconds) = gen(genSeconds) - 60
+   gen(genMinutes) = gen(genMinutes) + 1
+  WEND
+  WHILE gen(genMinutes) >= 60
+   gen(genMinutes) = gen(genMinutes) - 60
+   gen(genHours) = gen(genHours) + 1
+  WEND
+  WHILE gen(genHours) >= 24
+   gen(genHours) = gen(genHours) - 24
+   IF gen(genDays) < 32767 THEN gen(genDays) = gen(genDays) + 1
+  WEND
+ END IF
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 FUNCTION rankincaterpillar (byval heroid as integer) as integer
  'Returns -1 if the hero is not found.
