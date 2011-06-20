@@ -781,9 +781,14 @@ FUNCTION readfoemap (x as integer, y as integer, fh as integer) as integer
 RETURN readbyte(fh, 12 + (y * mapsizetiles.x) + x) 
 END FUNCTION
 
+'======== FIXME: move this up as code gets cleaned up ===========
+OPTION EXPLICIT
+
 SUB scriptadvanced (id)
 
-'contains advanced scripting stuff such as pixel-perfect movement
+'contains advanced scripting stuff such as pixel-perfect movement...
+'...actually this is a completely arbitrary distinction, and there is 
+'no realy reason these are separate...
 
 SELECT CASE AS CONST id
 
@@ -794,7 +799,7 @@ SELECT CASE AS CONST id
    caty(retvals(0) * 5) = retvals(2)
   END IF
  CASE 136'--putnpc
-  npcref = getnpcref(retvals(0), 0)
+  DIM npcref AS INTEGER = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    cropposition retvals(1), retvals(2), 20
    npc(npcref).x = retvals(1)
@@ -814,12 +819,12 @@ SELECT CASE AS CONST id
    scriptret = caty(retvals(0) * 5)
   END IF
  CASE 140'--npcpixelx
-  npcref = getnpcref(retvals(0), 0)
+  DIM npcref AS INTEGER = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    scriptret = npc(npcref).x
   END IF
  CASE 141'--npcpixely
-  npcref = getnpcref(retvals(0), 0)
+  DIM npcref AS INTEGER = getnpcref(retvals(0), 0)
   IF npcref >= 0 THEN
    scriptret = npc(npcref).y
   END IF
@@ -881,9 +886,6 @@ SELECT CASE AS CONST id
 END SELECT
 
 END SUB
-
-'======== FIXME: move this up as code gets cleaned up ===========
-OPTION EXPLICIT
 
 SUB scriptmisc (byval id as integer)
 'contains a whole mess of scripting commands that do not depend on
