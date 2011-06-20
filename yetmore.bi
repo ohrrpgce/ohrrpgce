@@ -19,9 +19,9 @@ DECLARE SUB onkeyscript (scriptnum as integer)
 DECLARE FUNCTION partybyrank (slot as integer) as integer
 DECLARE FUNCTION playtime (d as integer, h as integer, m as integer) as string
 DECLARE SUB playtimer
-DECLARE FUNCTION rankincaterpillar (heroid as integer) as integer
-DECLARE FUNCTION readfoemap (x as integer, y as integer, fh as integer) as integer
-DECLARE SUB scriptadvanced (id as integer)
+DECLARE FUNCTION rankincaterpillar (byval heroid as integer) as integer
+DECLARE FUNCTION readfoemap (byval x as integer, byval y as integer, byval fh as integer) as integer
+DECLARE SUB scriptadvanced (byval id as integer)
 DECLARE SUB scriptmisc (byval id as integer)
 DECLARE SUB scriptnpc (byval id as integer)
 DECLARE SUB setdebugpan

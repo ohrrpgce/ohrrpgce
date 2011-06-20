@@ -765,26 +765,29 @@ END IF
 
 END SUB
 
-FUNCTION rankincaterpillar (heroid as integer) as integer
-result = -1
-o = 0
-FOR i = 0 TO 3
- IF hero(i) > 0 THEN
-  IF hero(i) - 1 = heroid THEN result = o
-  o = o + 1
- END IF
-NEXT i
-rankincaterpillar = result
-END FUNCTION
-
-FUNCTION readfoemap (x as integer, y as integer, fh as integer) as integer
-RETURN readbyte(fh, 12 + (y * mapsizetiles.x) + x) 
-END FUNCTION
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
-SUB scriptadvanced (id)
+FUNCTION rankincaterpillar (byval heroid as integer) as integer
+ 'Returns -1 if the hero is not found.
+ 'Returns the last hero's rank if there are more than one copy of the same ehero
+ 
+ DIM result AS INTEGER = -1
+ DIM o AS INTEGER = 0
+ FOR i AS INTEGER = 0 TO 3
+  IF hero(i) > 0 THEN
+   IF hero(i) - 1 = heroid THEN result = o
+   o += 1
+  END IF
+ NEXT i
+ RETURN result
+END FUNCTION
+
+FUNCTION readfoemap (byval x as integer, byval y as integer, byval fh as integer) as integer
+ RETURN readbyte(fh, 12 + (y * mapsizetiles.x) + x) 
+END FUNCTION
+
+SUB scriptadvanced (byval id as integer)
 
 'contains advanced scripting stuff such as pixel-perfect movement...
 '...actually this is a completely arbitrary distinction, and there is 
