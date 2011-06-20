@@ -700,21 +700,6 @@ END IF
 
 END SUB
 
-FUNCTION partybyrank (slot as integer) as integer
-result = -1
-IF slot >= 0 AND slot <= 3 THEN
- j = -1
- FOR i = 0 TO 3
-  IF hero(i) > 0 THEN j = j + 1
-  IF j = slot THEN
-   result = i
-   EXIT FOR
-  END IF
- NEXT i
-END IF
-partybyrank = result
-END FUNCTION
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
 
@@ -766,6 +751,21 @@ SUB playtimer
   WEND
  END IF
 END SUB
+
+FUNCTION partybyrank (byval slot as integer) as integer
+ DIM result AS INTEGER = -1
+ IF slot >= 0 AND slot <= 3 THEN
+  DIM j AS INTEGER = -1
+  FOR i AS INTEGER = 0 TO 3
+   IF hero(i) > 0 THEN j = j + 1
+   IF j = slot THEN
+    result = i
+    EXIT FOR
+   END IF
+  NEXT i
+ END IF
+ RETURN result
+END FUNCTION
 
 FUNCTION rankincaterpillar (byval heroid as integer) as integer
  'Returns -1 if the hero is not found.

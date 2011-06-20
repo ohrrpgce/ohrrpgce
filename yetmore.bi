@@ -16,9 +16,9 @@ DECLARE SUB greyscalepal
 DECLARE FUNCTION herobyrank (slot as integer) as integer
 DECLARE SUB interpolatecat
 DECLARE SUB onkeyscript (scriptnum as integer)
-DECLARE FUNCTION partybyrank (slot as integer) as integer
 DECLARE FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
 DECLARE SUB playtimer
+DECLARE FUNCTION partybyrank (byval slot as integer) as integer
 DECLARE FUNCTION rankincaterpillar (byval heroid as integer) as integer
 DECLARE FUNCTION readfoemap (byval x as integer, byval y as integer, byval fh as integer) as integer
 DECLARE SUB scriptadvanced (byval id as integer)
