@@ -2990,7 +2990,7 @@ SELECT CASE AS CONST id
   scriptret = 0
   IF retvals(0) >= 0 AND retvals(0) <= UBOUND(npcs) THEN
    DIM i AS INTEGER
-   FOR i AS INTEGER = UBOUND(npc) TO 0 STEP -1
+   FOR i = UBOUND(npc) TO 0 STEP -1
     IF npc(i).id = 0 THEN EXIT FOR
    NEXT
    'for backwards compatibility with games that max out the number of NPCs, try to overwrite tag-disabled NPCs
