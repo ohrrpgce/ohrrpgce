@@ -668,40 +668,41 @@ FUNCTION script_keyval (BYVAL key as integer) as integer
  RETURN ret
 END FUNCTION
 
-SUB onkeyscript (scriptnum)
-doit = 0
-FOR i = 0 TO 5
- IF carray(i) THEN doit = 1: EXIT FOR
-NEXT i
-
-IF doit = 0 THEN
- FOR i = 1 TO 127
-  'We scan all keys, triggering a script even if its scancode is not one
-  'accessible via script commands so that custom "press any key" scripts work.
-  IF keyval(i) THEN doit = 1: EXIT FOR
- NEXT i
-END IF
-
-IF gam.mouse_enabled THEN
- IF mouse.clicks THEN doit = 1
-END IF
-
-IF nowscript >= 0 THEN
- IF scrat(nowscript).state = stwait AND scrat(nowscript).curvalue = 9 THEN
-  '--never trigger a onkey script when the previous script
-  '--has a "wait for key" command active
-  doit = 0
- END IF
-END IF
-
-IF doit = 1 THEN
- rsr = runscript(scriptnum, nowscript + 1, -1, "on-key", plottrigger)
-END IF
-
-END SUB
-
 '======== FIXME: move this up as code gets cleaned up ===========
 OPTION EXPLICIT
+
+SUB onkeyscript (byval scriptnum as integer)
+ DIM doit AS INTEGER = NO
+ 
+ FOR i AS INTEGER = 0 TO 5
+  IF carray(i) THEN doit = YES: EXIT FOR
+ NEXT i
+ 
+ IF doit = NO THEN
+  FOR i AS INTEGER = 1 TO 127
+   'We scan all keys, triggering a script even if its scancode is not one
+   'accessible via script commands so that custom "press any key" scripts work.
+   IF keyval(i) THEN doit = YES: EXIT FOR
+  NEXT i
+ END IF
+ 
+ IF gam.mouse_enabled THEN
+  IF mouse.clicks THEN doit = YES
+ END IF
+ 
+ IF nowscript >= 0 THEN
+  IF scrat(nowscript).state = stwait AND scrat(nowscript).curvalue = 9 THEN
+   '--never trigger a onkey script when the previous script
+   '--has a "wait for key" command active
+   doit = NO
+  END IF
+ END IF
+
+ IF doit THEN
+  runscript scriptnum, nowscript + 1, -1, "on-key", plottrigger
+ END IF
+
+END SUB
 
 FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
  DIM s AS STRING = ""

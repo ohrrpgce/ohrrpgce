@@ -15,7 +15,7 @@ DECLARE FUNCTION get_valid_npc_id (BYVAL seekid as integer, BYVAL errlvl as inte
 DECLARE SUB greyscalepal
 DECLARE FUNCTION herobyrank (slot as integer) as integer
 DECLARE SUB interpolatecat
-DECLARE SUB onkeyscript (scriptnum as integer)
+DECLARE SUB onkeyscript (byval scriptnum as integer)
 DECLARE FUNCTION playtime (byval d as integer, byval h as integer, byval m as integer) as string
 DECLARE SUB playtimer
 DECLARE FUNCTION partybyrank (byval slot as integer) as integer
