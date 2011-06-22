@@ -1740,6 +1740,12 @@ SUB scripterr (e AS STRING, errorlevel as integer = 5)
    printstr "Press F1 inside the debugger to see help", 0, 192, vpage
   END IF
   setvispage vpage
+
+  IF autotestmode THEN
+    write_checkpoint
+    exitprogram 0
+  END IF
+
   dowait
  LOOP
  ClearMenuData menu
