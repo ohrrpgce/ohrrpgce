@@ -471,7 +471,7 @@ update_heroes(YES)
 setkeys
 DO
  'DEBUG debug "top of master loop"
- setwait speedcontrol
+ IF NOT autotestmode THEN setwait speedcontrol
  setkeys
  mouse = readmouse  'didn't bother to check havemouse()
  tog = tog XOR 1
@@ -700,7 +700,7 @@ DO
  END IF
  IF needf > 1 THEN needf = needf - 1
  'DEBUG debug "tail of main loop"
- dowait
+ IF NOT autotestmode THEN dowait
 LOOP
 
 LOOP ' This is the end of the DO that encloses a specific RPG file

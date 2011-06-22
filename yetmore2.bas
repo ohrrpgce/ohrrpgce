@@ -792,7 +792,6 @@ FUNCTION game_setoption(opt as string, arg as string) as integer
  IF opt = "autotest" THEN
   debug "Autotesting mode enabled!"
   autotestmode = YES
-  speedcontrol = 0
   RETURN 1 'arg not used
  END IF
  RETURN 0
