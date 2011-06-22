@@ -2865,7 +2865,12 @@ SELECT CASE AS CONST id
    dat = plotslices(retvals(0))->SliceData
    scriptret = dat->fillcol
   END IF
- 
+ CASE 516 '--_checkpoint
+  IF autotestmode = YES THEN
+   write_checkpoint
+  ELSE
+   debug "_checkpoint ignored"
+  END IF
 END SELECT
 
 END SUB
@@ -3823,4 +3828,14 @@ SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BY
    scripterr commandname(curcmd->value) & ": " & SliceTypeName(sl) & " is not a rect", 5
   END IF
  END IF
+END SUB
+
+SUB write_checkpoint ()
+ 'This is used for automated testing.
+ ' currently just writes a screenshot,
+ ' but might also dump slice tree and other stuff too in the future.
+ STATIC n AS INTEGER = 0
+ DIM f AS STRING = with_orig_path("checkpoint" & right("0000" & n, 5))
+ screenshot f
+ n += 1
 END SUB

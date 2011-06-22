@@ -524,6 +524,7 @@ define function, begin
 513,setellipsefillcol,2,0,0      #change fill color
 514,getellipsebordercol,1,0      #change border color
 515,getellipsefillcol,1,0        #change fill color
+516,_checkpoint,0                #dumps checkpoint screenshot for automated testing. Only works when run with the -autotest command line argument
 end
 
 #--------------------------------------------------------------------------

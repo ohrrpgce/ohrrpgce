@@ -59,5 +59,6 @@ DECLARE SUB replace_sprite_plotslice(BYVAL handle AS INTEGER, BYVAL spritetype A
 DECLARE SUB change_rect_plotslice(BYVAL handle AS INTEGER, BYVAL style AS INTEGER=-2, BYVAL bgcol AS INTEGER=-1, BYVAL fgcol AS INTEGER=-1, BYVAL border AS INTEGER=-3, BYVAL translucent AS RectTransTypes=transUndef)
 DECLARE FUNCTION valid_spriteslice_dat(BYVAL sl AS Slice Ptr) AS INTEGER
 DECLARE SUB vehscramble(BYREF mode_val AS INTEGER, BYVAL trigger_cleanup AS INTEGER, BYVAL targx AS INTEGER, BYVAL targy AS INTEGER)
+DECLARE SUB write_checkpoint ()
 
 #endif

@@ -68,6 +68,9 @@ debuginfo DATE & " " & TIME
 'DEBUG debug "randomize timer"
 RANDOMIZE TIMER, 3 ' Mersenne Twister
 
+DIM autotestmode AS INTEGER = NO
+DIM speedcontrol AS INTEGER = 55
+
 orig_dir = CURDIR()
 processcommandline
 
@@ -120,7 +123,7 @@ DIM gold
 DIM npcs(0) as NPCType
 DIM npc(299) as NPCInst
 
-DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, speedcontrol, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
+DIM AS INTEGER mapx, mapy, vpage, dpage, fadestate, usepreunlump, lastsaveslot, abortg, resetg, foemaph, presentsong, framex, framey
 DIM err_suppress_lvl
 DIM AS STRING tmpdir, exename, game, sourcerpg, savefile, workingdir, homedir
 DIM prefsdir as string
@@ -199,7 +202,6 @@ FOR i = 0 TO 1
 NEXT i
 
 dpage = 1: vpage = 0
-speedcontrol = 55
 presentsong = -1
 gen(genJoy) = 0'--leave joystick calibration enabled
 

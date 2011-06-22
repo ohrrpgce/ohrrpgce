@@ -1,9 +1,16 @@
 include, plotscr.hsd
 
+script, w, ticks=1, begin
+  wait(ticks)
+  _checkpoint
+end
+
 plotscript, test, begin
   variable(sl, sl2, sl3, i, cont)
+  suspend player
+  seed random(12345)
 
-  ## These are disabled because they are annoying (but undeleted because they are useful)
+  ## These are disabled because they are annoying (but not deleted because they are useful)
   #$0="slice protection tests", show string(0)
   #
   #sl := lookup slice(sl:walkabout layer)
@@ -12,34 +19,35 @@ plotscript, test, begin
   #set parent(sl, sl2)
   #move slice above(sl, sl2)
   #move slice below(sl, sl2)
-  #wait(16)
+  #w (16)
   #move slice above(sl2, sl) # no error on this one, the sprite will vanish behind the map
-  #wait (16)
+  #w (16)
   #free slice(sl2)
 
   $0="ellipse tests", show string(0)
   
   sl := create ellipse(100, 100, 2, 10)
   center slice(sl)
-  wait(5)
+  w(5)
+  
   set ellipse border col(sl, 15)
   for(i, 0, 20) do(
     set slice width(sl, slice width(sl) + 2)
-    wait(1)
+    w(1)
   )
   set ellipse fill col(sl, 4)
   for(i, 0, 40) do(
     set slice height(sl, slice height(sl) + 2)
-    wait(1)
+    w(1)
   )
   for(i, 0, 10) do(
     sl2 := create ellipse(30, 30, random(1, 255), random(1, 255))
     set parent(sl2, sl)
     center slice(sl2)
     put slice(sl2, random(-150, 150), random(-100, 100))
-    wait(2)
+    w(2)
   )
-  wait(4)
+  w(4)
   free slice(sl)
   sl := 0
   sl2 := 0
@@ -49,136 +57,138 @@ plotscript, test, begin
   sl := create rect(200, 100, 2)
   sl2 := load medium enemy sprite(0)
   set parent(sl2, sl)
-  wait(2)
+  w(2)
   set slice velocity(sl, 1, 1)
-  wait(20)
+  w(20)
   show value(slice is moving(sl))
   for(i, 0, 4) do(
     set slice velocity x(sl2, 3)
-    wait(5)
+    w(5)
     set slice velocity x(sl2, -3)
-    wait(5)
+    w(5)
   )
   stop slice(sl2)
-  wait(5)
+  w(5)
   stop slice(sl)
   show value(slice is moving(sl))
-  wait(5)
+  w(5)
   set slice velocity y(sl2, 4, 8)
-  wait(10)
+  w(10)
   set slice velocity(sl2, 3, 4, 8)
-  wait(10)
+  w(10)
   set slice velocity(sl2, 3, -4, 8)
-  wait(10)
+  w(10)
   set slice velocity x(sl2, -4, 8)
   wait for slice(sl2)
+  w
   
   show no value
   
   move slice to(sl, 0, 0, 20)
   wait for slice(sl)
+  w
   move slice by(sl2, 5, 10, 33)
   wait for slice(sl2)
   wait(4)
   
   put slice(sl2, 0, 0)
   move slice to(sl2, 160, 150, 40)
-  wait(20)
+  w(20)
   set slice x(sl2, 300)
   wait for slice(sl2)
-  wait(6)
+  w(6)
   
   free slice(sl2)
   sl2 := 0
-  wait(3)
+  w(3)
   free slice(sl)
   sl := 0
-  wait(3)
+  w(3)
   
 
   $0="collection & lookup tests", show string(0)
-  wait(3)
+  w(3)
   
   cont := load slice collection(1)
   
-  wait(18)
+  w(18)
   
   sl := lookup slice(1, cont)
   glide size(sl, -2, 0, 18, 1)
   
   free slice(cont)
   cont := 0
-  wait(4)
+  w(4)
 
   $0="grid tests", show string(0)
-  wait(3)
+  w(3)
 
   cont := create grid(200, 200, 4, 4)
   for(i, 0, 15) do(
     sl := load large enemy sprite(random(0, 1))
     set parent(sl, cont)
     center slice(sl)
-    wait(3)
+    w(3)
   )
   replace backdrop sprite(last child(cont), 1)
   realign slice(last child(cont), 0, 0, 0, 0)
   set sprite trans(slice child(cont, 2), false)
   
-  wait(5)
+  w(5)
   
   glide size(cont, -2, 0, 12, 1)
   glide size(cont, 0, -2, 12, 1)
   glide size(cont, 2, 2, 12, 1)
   
-  wait(3)
+  w(3)
   show grid(cont, not(grid is shown(cont)))
   
   for(i, get grid columns(cont) + 2, 1, -1) do(
     set grid columns(cont, i)
-    wait(6)
+    w(6)
   )
   for(i, 2, 6) do(
     set grid columns(cont, i)
-    wait(6)
+    w(6)
   )
   
   for(i, get grid rows(cont), 1, -1) do(
     set grid rows(cont, i)
-    wait(3)
+    w(3)
   )
   for(i, 2, 6) do(
     set grid rows(cont, i)
-    wait(3)
+    w(3)
   )
 
   free slice(cont)
-  wait(5)
+  w(5)
 
   $0="clipping tests", show string(0)
-  wait(3)
+  w(3)
   
   cont := create container(50, 50)
   center slice(cont)
   set slice clipping(cont, true)
   sl := load large enemy sprite(0)
   set parent(sl, cont)
-  wait(5)
+  w(5)
   glide pos(sl, -2, 0, 25)
   glide pos(sl, 0, 2, 25)
   glide pos(sl, 2, -2, 25)
   
-  wait(5)
+  w(5)
   set slice clipping(sl, not(get slice clipping(sl)))
-  wait(6)
+  w(6)
   set slice clipping(sl, not(get slice clipping(sl)))
-  wait(5)
+  w(5)
   
   free slice(cont)
   cont := 0
   sl := 0
 
   $0="sort tests", show string(0)
-  wait(5)
+  w(5)
   
   cont := create container
   fill parent(cont)
@@ -187,7 +197,7 @@ plotscript, test, begin
     set parent(sl, cont)
     set slice x(sl, i * 14)
     set slice y(sl, i * 4)
-    wait(1)
+    w(1)
   end
   $0="sort tests: move blue back", show string(0)
   sl := first child(cont)
@@ -197,7 +207,7 @@ plotscript, test, begin
     if (get rect style(sl) == 0) then(sl2 := sl)
     sl := next sibling(sl)
     if(sl2) then(slice to back(sl2))
-    wait(2)
+    w(2)
   end
   $0="sort tests: move green forward", show string(0)
   sl := first child(cont)
@@ -209,12 +219,12 @@ plotscript, test, begin
     if(sl == sl2) then(break)
     sl := next sibling(sl)
     if(sl3) then(slice to front(sl3))
-    wait(2)
+    w(2)
   end
-  wait(5)
+  w(5)
   $0="sort tests: y sort", show string(0)
   y sort children (cont)
-  wait(5)
+  w(5)
   $0="sort tests: shuffle red up", show string(0)
   sl := last child(cont)
   sl2 := first child(cont)
@@ -229,16 +239,16 @@ plotscript, test, begin
       )
     )
     sl := sl3
-    wait(2)
+    w(2)
   end
-  wait(10)
+  w(10)
   $0="sort tests: reverse y sort (sort children)", show string(0)
   for(i, 0, child count(cont) -- 1) do, begin
     sl := slice child(cont, i)
     set sort order(sl, slice y(sl) * -1)
   end
   sort children(cont)
-  wait(10)
+  w(10)
   $0="sort tests: move green forward (sort children)", show string(0)
   sl := first child(cont)
   sl2 := last child(cont)
@@ -247,7 +257,7 @@ plotscript, test, begin
     sl := next sibling(sl)
   end
   sort children(cont, false)
-  wait(30)
+  w(30)
   $0="sort tests: move green back (sort children)", show string(0)
   sl := first child(cont)
   while(sl) do, begin
@@ -255,94 +265,94 @@ plotscript, test, begin
     sl := next sibling(sl)
   end
   sort children(cont)
-  wait(30)
+  w(30)
   free slice(cont)
-  wait(5)
+  w(5)
 
   $0="edge tests", show string(0)
-  wait(5)
+  w(5)
 
   cont := create rect(300, 180)
   center slice(cont)
-  wait(2)
+  w(2)
   sl := load small enemy sprite(0)
   set parent(sl, cont)
-  wait(2)
+  w(2)
   sl := load small enemy sprite(0)
   set parent(sl, cont)
   realign slice(sl, edge:right, edge:bottom, edge:right, edge:bottom)
-  wait(3)
+  w(3)
   set left padding(cont, 5)
   if(get left padding(cont) <> 5) then($1="set/get padding failed", trace(1))
-  wait(2)
+  w(2)
   set padding(cont, 10)
   glide size(cont, -2, -2, 3, 2)
   glide size(cont, 2, 2, 3, 2)
   set padding(cont, 0)
-  wait(3)
+  w(3)
   set padding(cont, -10)
   glide size(cont, -2, -2, 3, 2)
   glide size(cont, 2, 2, 3, 2)
-  wait(5)
+  w(5)
 
   $0="filling tests", show string(0)
   set padding(cont, 16)
   sl := create rect(10, 10, 3)
   set rect trans(sl, true)
-  wait(3)
+  w(3)
   set parent(sl, cont)
-  wait(3)
+  w(3)
   if(is filling parent(sl)) then($1="should not be filling yet", trace(1))
   fill parent(sl)
   if(not(is filling parent(sl))) then($1="should be filling now", trace(1))
-  wait(3)
+  w(3)
   glide size(cont, -3, -3, 25, 1)
-  wait(3)
+  w(3)
   glide pos(cont, 3, 0, 7, 2)
-  wait(5)
+  w(5)
   
   free slice(cont)
   
   $0="Load tests", show string(1)
-  wait(2)
+  w(2)
   sl := load large enemy sprite(1)
-  wait(2)
+  w(2)
   sl2 := load large enemy sprite(0)
-  wait(2)
+  w(2)
   free sprite(sl2)
-  wait(2)
+  w(2)
   replace large enemy sprite(sl, 0)
-  wait(2)
+  w(2)
   
   $0="position tests", show string(0)
-  wait(2)
+  w(2)
   set slice x(sl, 10)
-  wait(2)
+  w(2)
   set slice y(sl, 10)
-  wait(2)
+  w(2)
   place sprite(sl, 0, 0)
-  wait(2)
+  w(2)
   
   $0="Align and Anchor tests", show string(0)
   set horiz align(sl, edge:center)
-  wait(2)
+  w(2)
   set vert align(sl, edge:center)
-  wait(2)
+  w(2)
   set horiz anchor(sl, edge:center)
-  wait(2)
+  w(2)
   set vert anchor(sl, edge:center)
-  wait(2)
+  w(2)
   sl2 := load large enemy sprite(1)
-  wait(2)
+  w(2)
   
   $0="Deletion tests", show string(0)
-  wait(2)
+  w(2)
   replace medium enemy sprite(sl,0)
-  wait(2)
+  w(2)
   replace large enemy sprite(sl,0)
-  wait(2)
+  w(2)
   free sprite(sl)
-  wait(2)
+  w(2)
   free sprite(sl2)
 
   $0="looping tests", show string(0)
@@ -350,47 +360,47 @@ plotscript, test, begin
   for (i, 0, 15), do, begin
    sl := load large enemy sprite(random(0,1))
    place sprite(sl, i*10, 0)
-   wait(1)
+   w(1)
   end
   sl := first child(sprite layer)
   while(sl) do, begin
     set slice y(sl, slice y(sl) + 8)
-    wait(1)
+    w(1)
     sl := next sibling(sl)
   end
   sl := first child(sprite layer)
   while(sl) do, begin
     free sprite(sl)
-    wait(1)
+    w(1)
     sl := first child(sprite layer)
   end
-  wait(2)
+  w(2)
 
   $0="container tests", show string(0)
   
   cont := create container(120, 120)
   sl := load medium enemy sprite(0)
   set parent(sl, cont)
-  wait(10)
+  w(10)
   sl := load medium enemy sprite(0)
   set parent(sl, cont)
   realign slice(sl, edge:right, edge:top, edge:right, edge:top)
-  wait(3)
+  w(3)
   sl := load medium enemy sprite(0)
   set parent(sl, cont)
   realign slice(sl, edge:right, edge:bottom, edge:right, edge:bottom)
-  wait(3)
+  w(3)
   sl := load medium enemy sprite(0)
   set parent(sl, cont)
   realign slice(sl, edge:left, edge:bottom, edge:left, edge:bottom)
-  wait(3)
+  w(3)
   sl := create rect(40, 40, 1)
   set parent(sl, cont)
   set horiz align(sl, edge:center)
   set horiz anchor(sl, edge:center)
   set vert align(sl, edge:center)
   set vert anchor(sl, edge:center)
-  wait(3)
+  w(3)
   glide pos(cont, 3, 3, 15)
   sl := first child(cont)
   $0+" "
@@ -402,7 +412,7 @@ plotscript, test, begin
   glide size(cont, -3, -2, 10)
   glide pos(cont, 0, -3, 15)
   glide pos(cont, -3, 0, 15)
-  wait(5)
+  w(5)
 
   sl := first sprite child(cont)
   while(sl) do, begin
@@ -419,17 +429,17 @@ plotscript, test, begin
   end
 
   if(slice is container(cont)) then(free slice(cont))
-  wait(5)
+  w(5)
 
   $0="rect style tests", show string(0)
-  wait(2)
+  w(2)
   
   sl := create rect(200, 180)
   center slice(sl)
-  wait(2)
+  w(2)
   for(i, 1, 14) do, begin
     set rect style(sl, i)
-    wait(2)
+    w(2)
   end
   set rect border(sl, -1)
   
@@ -438,28 +448,28 @@ plotscript, test, begin
 
   for(i, 0, 7) do, begin
     set rect bgcol(sl, random(0,255))
-    wait(2)
+    w(2)
   end
   for(i, 0, 7) do, begin
     set rect fgcol(sl, random(0,255))
-    wait(2)
+    w(2)
   end
   set rect style(sl,0)
   for(i, 0, 7) do, begin
     set rect trans(sl, not(get rect trans(sl)))
-    wait(2)
+    w(2)
   end
-  wait(5)
+  w(5)
   free slice(sl)
 
   $0="flip tests", show string(0)
-  wait(5)
+  w(5)
   for(i, 0, 10) do, begin
     sl := load large enemy sprite(0)
     set slice y(sl, i * 12)
     horiz flip sprite (sl, (i, mod, 2))
     vert flip sprite (sl, random(0,1))
-    wait(2)
+    w(2)
   end
   
   variable(diff)
@@ -472,7 +482,7 @@ plotscript, test, begin
       set slice x(sl, slice x(sl) + diff)
       sl := next sibling(sl)
     end
-    wait(2)
+    w(2)
   end
 
   sl := first child(sprite layer)
@@ -480,28 +490,28 @@ plotscript, test, begin
     free slice(sl)
     sl := first child(sprite layer)
   end
-  wait(2)
+  w(2)
 
   ## These are disabled because they are annoying
   #$0="invalid operations tests", show string(0)
-  #wait(3)
+  #w(3)
   #
   #sl := load medium enemy sprite(0)
   #set rect style(sl, 0)
-  #wait(2)
+  #w(2)
   #free slice(sl)
-  #wait(2)
+  #w(2)
   #
   #sl := create rect(10, 10)
   #set sprite frame(sl, 0)
-  #wait(2)
+  #w(2)
   #free slice(sl)
-  #wait(2)
+  #w(2)
 
-  $0="tests finished", show string(0)
-  wait(10)
-  $0="press a key to exit", show string(0)
-  wait for key
+  $0="tests finished...", show string(0)
+  w(10)
+  $0="press a key to exit now...", show string(0)
+  w(18)
   game over
 end
 
@@ -510,7 +520,7 @@ script, glide pos, sl, xgo, ygo, cycles, ticks=1, begin
   for(i, 1, cycles), do, begin
     set slice x(sl, slice x(sl) + xgo)
     set slice y(sl, slice y(sl) + ygo)
-    wait(ticks)
+    w(ticks)
   end
 end
 
@@ -519,6 +529,6 @@ script, glide size, sl, xgo, ygo, cycles, ticks=1, begin
   for(i, 1, cycles), do, begin
     set slice width(sl, slice width(sl) + xgo)
     set slice height(sl, slice height(sl) + ygo)
-    wait(ticks)
+    w(ticks)
   end
 end
