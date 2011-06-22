@@ -122,7 +122,6 @@ class AutoTest(object):
 
     def againfail(self, rpg):
         if self.opt.again:
-            raise Exception(message)
             self.quithelp("Can't test game '%s' in -a mode because it has not been tested already" % (os.path.basename(rpg)))
 
     def quithelp(self, message):
