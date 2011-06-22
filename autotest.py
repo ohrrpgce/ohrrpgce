@@ -117,8 +117,8 @@ class AutoTest(object):
             self.quithelp("Can't use -a and -r at the same time.")
         if self.opt.rev is None:
             self.opt.rev = self.context.rev
-        if self.opt.rev < 4489:
-            raise Exception("autotesting was not available before revision 4489")
+        if self.opt.rev < 4491:
+            raise Exception("autotesting was not available before revision 4491")
 
     def againfail(self, rpg):
         if self.opt.again:
@@ -143,10 +143,10 @@ class AutoTest(object):
         (shortname, ext) = os.path.splitext(os.path.basename(rpg))
         workdir = os.path.join("autotest", shortname)
         against = os.path.join(workdir, "against")
-        self.prepare_rev(self.opt.rev, rpg, against)
         if not os.path.isdir(workdir):
             self.againfail(rpg)
             os.mkdir(workdir)
+        self.prepare_rev(self.opt.rev, rpg, against)
         olddir = os.path.join(workdir, "old")
         if not os.path.isdir(olddir):
             self.againfail(rpg)
@@ -155,8 +155,9 @@ class AutoTest(object):
         if not os.path.isdir(newdir):
             os.mkdir(newdir)
         if not self.opt.again:
+            dump_dir = os.path.abspath(olddir)
             os.chdir(against)
-            self.run_rpg(rpg, olddir)
+            self.run_rpg(rpg, dump_dir)
             os.chdir(self.context.remember_dir)
         self.prepare_current(newdir)
         self.run_rpg(rpg, newdir)
