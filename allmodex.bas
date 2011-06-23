@@ -3959,6 +3959,7 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 
 	select case style
 		case 0 'scattered pixel dissolve
+			dim seed as double = rnd
 			randomize 1, 2 ' use the same random seed for each frame (fast PRNG)
 
 			dim cutoff as unsigned integer = 2 ^ 30 * t / (tlength - 0.5)
@@ -3982,7 +3983,7 @@ function frame_dissolved(byval spr as frame ptr, byval tlength as integer, byval
 					end if
 				next
 			next
-			randomize timer, 3 're-seed random (MT PRNG)
+			randomize seed, 3 're-seed random (MT PRNG)
 
 		case 1 'crossfade
 			'interesting idea: could maybe replace all this with calls to generalised fuzzyrect
