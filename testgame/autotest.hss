@@ -1,0 +1,904 @@
+########################################################################
+# Many of the tests in this script might seem silly. That is okay.
+#
+# Any time you are preparing to fix an engine bug, consider adding a
+# test that demonstrates the bug FIRST before you fix the bug.
+
+include, plotscr.hsd
+
+########################################################################
+
+define constant(1, default wait)
+
+########################################################################
+
+plotscript, run all tests, begin
+  suspend player
+  seed random(4444)
+  math tests
+  hero tests
+  menu tests
+  textbox tests
+  game over
+end
+
+########################################################################
+
+script, w, ticks=default wait, begin
+  wait(ticks)
+  _checkpoint
+end
+
+script, crash, begin
+  show text box(1)
+  trace(0)
+  w(25)
+  game over
+end
+
+########################################################################
+
+script, math tests, begin
+  variable(n)
+  n := 10
+  $0="math tests"
+  if(abs(-10) <> n) then(crash)
+  if(abs(15) <> n + 5) then(crash)
+end
+
+script, hero tests, begin
+  add hero(1)
+  add hero(2)
+  walk hero(me, north, 3) # hit wall
+  wait for hero(me), w
+  walk hero(me, west, 2)
+  wait for hero(me), w
+  walk hero(me, south, 2)
+  wait for hero(me), w
+  walk hero(me, east, 2)
+  wait for hero(me), w
+  walk hero # default args
+  wait for hero(me), w
+  walk hero(me, east, 3)
+  wait for hero(me), w
+  add hero(3)
+  w
+  suspend caterpillar
+  variable(i)
+  for(i, 0, 3) do(
+    walk hero(i, south, 1)
+    wait for hero(i), w
+    set hero direction(i, west)
+    walk hero(i, north, 1)
+    wait for hero(i)
+  )
+  for(i, 0, 3) do(
+    set hero direction(i, i)
+  )
+  w
+  
+end
+
+script, menu tests, begin
+  $0="menu tests"
+  variable(i, m, mi, main, m1)
+  m := create menu, w
+  
+  mi := add menu item(m), w
+  $1="Puppies"
+  set menu item caption(mi, 1), w
+  mi := add menu item(m), w
+  $1="Kittens"
+  set menu item caption(mi, 1), w
+  mi := add menu item(m), w
+  $1="Walruses"
+  set menu item caption(mi, 1), w
+  mi := add menu item(m), w
+  $1="Octopus"
+  set menu item caption(mi, 1), w
+  mi := add menu item(m), w
+  $1="Plip"
+  set menu item caption(mi, 1), w
+
+  main := open menu, w
+  bring menu forward(bottom menu), w
+
+  for(i, align:left, align:right) do(
+    set menu anchor x(m, i), w
+    if(get menu anchor x(m) <> i) then($0="menu anchor x", crash)
+    set menu anchor y(m, i), w
+    if(get menu anchor y(m) <> i) then($0="menu anchor y", crash)
+  )
+
+  $1="Puppies"
+  mi := find menu item caption(m, 1)
+  if(mi == 0) then($0="failed to find first menu item by caption", crash)
+  get menu item caption(mi, 2)
+  if(not(string compare(1, 2))) then($0="found menu item that was not puppies", crash)
+
+  $1="Walruses"
+  mi := find menu item caption(m, 1)
+  get menu item caption(mi, 2)
+  if(not(string compare(1, 2))) then($0="found menu item that was not walruses", crash)
+  
+  mi := find menu item caption(m, 1, mi) #search for Walruses starting after Walruses
+  if(mi <> 0) then($0="find menu item walrus should have failed", crash)
+
+  mi := add menu item(m)
+  $1="Kittens"
+  set menu item caption(mi, 1), w
+
+  variable(kitten1, kitten2, walruses)
+  #search for Kitten from top
+  $1="Kittens"
+  kitten1 := find menu item caption(m, 1)
+  #search for Kitten starting after Walruses
+  $2="Walruses"
+  walruses := find menu item caption(m, 2) 
+  kitten2 := find menu item caption(m, 1, walruses) 
+  if(kitten1 == 0) then($0="failed to find first kitten", crash)
+  if(kitten2 == 0) then($0="failed to find second kitten", crash)
+  get menu item caption(kitten1, 2)
+  if(not(string compare(1, 2))) then($0="found menu item that was not kitten(1)", crash)
+  get menu item caption(kitten2, 2)
+  if(not(string compare(1, 2))) then($0="found menu item that was not kitten(2)", crash)
+  if(kitten1 == kitten2) then($0="found the same kitten twice", crash)
+
+  mi := add menu item(m), w
+  delete menu item(mi), w
+  $1="Kittens"
+  mi := find menu item caption(m, 1)
+  delete menu item(mi), w
+  mi := first menu item(m)
+  delete menu item(mi), w
+
+  if(find menu ID(1) <> 0) then($0="found unopened menu", crash)
+  open menu(1),w
+  m1 := find menu ID(1)
+  if(m1 == 0) then($0="failed to find opened menu", crash)  
+  close menu(m1),w
+  
+  if(not(menu is open(main))) then($0="why isn't the main menu open?", crash)
+
+  close menu(top menu), w
+  close menu(main), w
+  if(menu is open(main)) then($0="why is the main menu still open?", crash)
+end
+#get menu bit(menu handle, bit)
+#get menu border(menu handle)
+#get menu boxstyle(menu handle)
+#get menu ID(menu handle)
+#get menu item bit(menu item handle, bit)
+#get menu item extra(menu item handle, extra)
+#get menu item settag(menu item handle)
+#get menu item subtype(menu item handle)
+#get menu item tag(menu item handle, whichtag)
+#get menu item togtag(menu item handle)
+#get menu item type(menu item handle)
+#get menu max chars(menu handle)
+#get menu max rows(menu handle)
+#get menu min chars(menu handle)
+#get menu offset x(menu handle)
+#get menu offset y(menu handle)
+#get menu on close script(menu handle)
+#get menu text align(menu handle)
+#get menu textcolor(menu handle)
+
+
+script, textbox tests, begin
+  $0="textbox tests"
+  show text box(2), w
+  advance text box, w
+  show text box(3), w
+  advance text box, w
+  if(current textbox <> 4) then(crash)
+  advance text box, w
+  show text box(3), w
+  advance text box, w
+  if(current textbox <> 5) then(crash)
+  advance text box, w
+  if(current textbox <> -1) then(crash)
+end
+
+########################################################################
+#### COMMANDS THAT STILL NEED TESTS
+#allocate timers (number)
+#allow minimap (setting)
+#allow save anywhere (setting)
+#alter NPC (who,NPCstat,value)
+#value,and,value
+#animation start tile (tile number, layer)
+#any key
+#append ascii (ID, char)
+#append number (ID, number)
+#ascii from string (ID, position)
+#autonumber
+#autosave
+#begin,other commands,end
+#Boolean Constants
+#break
+#camera follows hero (who)
+#camera follows NPC (who)
+#camera pixel X
+#camera pixel Y
+#cancel key
+#cancel map name display
+#can learn spell (hero,attack)
+#case(value)
+#center slice (handle)
+#center string at (ID, x, y)
+#change NPC ID (reference,new ID)
+#change tileset (tileset, layer)
+#check equipment (hero,slot)
+#check hero wall (who,direction)
+#check NPC wall (who, direction)
+#check parentage (handle, parent handle)
+#check tag (tag)
+#child count (handle)
+#clamp slice (handle1, handle2)
+#clear string(ID)
+#clone sprite (handle)
+#color:blue
+#Color Constants
+#color:green
+#color:red
+#concatenate strings (dest, source)
+#continue
+#copy string (dest, source)
+#create container (width, height)
+#create ellipse (width, height, border color, fill color)
+#create grid (width, height, rows, columns)
+#create NPC (ID,X,Y,direction)
+#create rect (width, height, style)
+#create text
+#crop
+#current display tile (tile number, layer)
+#current map
+#current song
+#current stat
+#days of play
+#decrement (variable,amount)
+#default tile
+#define constant (number,name)
+#delete char (ID, position)
+#delete enemy from formation (formation, slot)
+#delete hero (who)
+#delete item (item,number)
+#delete map state (whichdata)
+#delete save (slot)
+#destroy NPC (reference)
+#Direction Constants
+#dismount vehicle
+#number / number
+#do
+#down
+#down key
+#draw NPCs above heroes (setting)
+#east
+#east wall
+#eight
+#else
+#end
+#number == number
+#equip where (hero,item)
+#exit returning(value)
+#exit script
+#expand string(ID)
+#experience to level (level)
+#experience to next level (who)
+#number ^ power
+#export globals (slot, first, last)
+#extended scancodes enabled
+#extract color(color, component)
+#fade screen in
+#fade screen out (red,green,blue)
+#false
+#fight formation (number)
+#fill parent (handle, true_or_false)
+#find colliding slice (parent, slice, number, check descendants)
+#find enemy in formation (formation, enemy id, copy number)
+#find hero (who)
+#first child(handle)
+#first container child(handle)
+#first rect child(handle)
+#first sprite child(handle)
+#five
+#focus camera (x,y,speed)
+#for(counter,start,finish,step) do(commands)
+#force equip (hero,slot,item)
+#forget spell (hero,attack)
+#formation probability (formation set, formation)
+#formation set frequency (formation set)
+#formation slot enemy (formation, slot)
+#formation slot x (formation, slot)
+#formation slot y (formation, slot)
+#four
+#free slice (handle)
+#free slice children (handle)
+#free sprite (handle)
+#game over
+#get ambient music
+#get attack name
+#get bottom padding (handle)
+#get color(index)
+#get count
+#get damage cap
+#get death script
+#get default weapon (hero)
+#get each step script
+#get ellipse border col (handle)
+#get ellipse fill col (handle)
+#get enemy appearance (enemyid, appearance)
+#get enemy name (enemyid, stringid)
+#get enemy stat(enemy, stat)
+#get foot offset
+#get formation background (formation, background)
+#get formation song (formation)
+#get global string (ID, global)
+#get grid columns (handle)
+#get grid rows (handle)
+#get hero level (who)
+#get hero name (ID, hero)
+#get hero palette (who,type)
+#get hero picture (who,type)
+#get hero speed (who)
+#get hero stat (who,stat,type)
+#get hero stat cap (stat)
+#get instead of battle script
+#get inventory size
+#get item (item,number)
+#get item name (ID, item)
+#get left padding (handle)
+#get level cap
+#get level MP (who, mp level slot)
+#get load script
+#get map edge mode
+#get map name (ID, map)
+#get map tileset
+#get money (amount)
+#get music volume
+#get NPC ID (reference)
+#get NPC ignores walls (who)
+#get NPC moves (who)
+#get NPC obstructs (who)
+#get NPC usable (who)
+#get on keypress script
+#get outline(handle)
+#get rect bgcol (handle)
+#get rect border (handle)
+#get rect fgcol (handle)
+#get rect style (handle)
+#get rect trans (handle)
+#get right padding (handle)
+#get slice clipping (handle)
+#get slice extra (handle, extra)
+#get slice lookup (handle)
+#get slice velocity x (handle)
+#get slice velocity y (handle)
+#get slice visible (handle)
+#get song name (ID, song)
+#get sort order (handle)
+#get sprite frame (handle)
+#get sprite palette (handle)
+#get sprite set number (handle)
+#get sprite trans (handle)
+#get sprite type (handle)
+#get text bg(handle)
+#get text color(handle)
+#get tile animation offset (animation pattern, layer)
+#get top padding (handle)
+#get victory music
+#get wrap(handle)
+#get zone extra (zone id, extra num)
+#get zone name (string id, zone id)
+#give experience (hero,amount)
+#globals to string(ID, starting global, length)
+#global variable (id,name)
+#number >> number
+#number >= number
+#greyscale palette (first, last)
+#grid is shown (handle)
+#harm tile
+#hero base elemental resist as int (who, element)
+#hero by rank (where)
+#hero by slot (where)
+#hero direction (who)
+#hero frame (who)
+#hero is walking (who)
+#hero levelled (who)
+#hero pixel X (who)
+#hero pixel Y (who)
+#hero total elemental resist as int (who, element)
+#hero X (who)
+#hero Y (who)
+#hide battle health meter (state)
+#hide battle ready meter (state)
+#hide string (ID)
+#horiz flip sprite (handle, flip)
+#hours of play
+#if(condition) then(commands) else(commands)
+#import globals (slot, first, last)
+#include, filename
+#increment (variable,amount)
+#init mouse
+#input string (ID, maxlength, use current, center, position x, position y)
+#inside battle
+#inventory (item)
+#is filling parent (handle)
+#item count in slot (slot)
+#item in slot (slot)
+#joystick axis (axis,multiplier,joystick)
+#joystick button (button,joystick)
+#Key Constants
+#key is pressed (scancode)
+#keyval (scancode)
+#knows spell (hero,attack)
+#last ascii
+#last child(handle)
+#last formation
+#last save slot
+#layer tileset (layer)
+#leader
+#left
+#left button
+#left key
+#number << number
+#number <= number
+#load attack sprite (num, palette)
+#load backdrop sprite (num)
+#load border sprite (num, palette)
+#load from slot (slot)
+#load hero sprite (num, palette)
+#load large enemy sprite (num, palette)
+#load map state (whichdata, customid)
+#load medium enemy sprite (num, palette)
+#load palette (palette number)
+#load portrait sprite (num, palette)
+#load slice collection (id)
+#load small enemy sprite (num, palette)
+#load tileset (tileset, layer)
+#load walkabout sprite (num, palette)
+#load weapon sprite (num, palette)
+#lock hero (who)
+#value && value
+#value || value
+#value ^^ value
+#lookup slice (lookup code, start slice)
+#lose money (amount)
+#map cure (attack, target, attacker)
+#map height (map)
+#map width (map)
+#maximum stat
+#me
+#menu item by slot(menu handle, slot, visible only)
+#menu item slot(menu item handle)
+#menu key
+#milliseconds
+#minutes of play
+#number,mod,number
+#mouse button (which)
+#mouse click (which)
+#Mouse Constants
+#mouse pixel X
+#mouse pixel Y
+#mouse region (x min, x max, y min, y max)
+#move slice above (handle, above what handle)
+#move slice below (handle, below what handle)
+#move slice by (handle, relative x, relative y, ticks)
+#move slice to (handle, x, y, ticks)
+#number * number
+#next container sibling(handle)
+#next menu(menu handle)
+#next menu item(menu item handle, visible only)
+#next rect sibling(handle)
+#next sibling(handle)
+#next sprite sibling(handle)
+#nine
+#none
+#north
+#north wall
+#not (value)
+#number <> number
+#NPC at pixel (x, y, number)
+#NPC at spot (x, y, number)
+#NPC copy count (ID)
+#NPC direction (who)
+#NPC extra (who, which)
+#NPC frame (who)
+#NPC is walking (who)
+#NPC pixel X (who)
+#NPC pixel Y (who)
+#NPC reference (ID, copy)
+#NPC X (who)
+#NPC Y (who)
+#number from string (ID, default)
+#Numeric Constants
+#off
+#on
+#one
+#open menu (ID, allow duplicate)
+#value,or,value
+#order menu
+#outside battle
+#outside battle cure
+#overhead tile
+#pan camera (direction,distance,pixelstep)
+#parent menu(menu item handle)
+#parent slice (handle)
+#party
+#party money
+#pause sound (num)
+#pay money (amount)
+#pick hero
+#place sprite
+#play song (song)
+#play sound (num,loop,preempt)
+#plotscript, name, argumentnames (statements)
+#positionstring (ID, x, y)
+#previous menu(menu handle)
+#previous menu item(menu item handle, visible only)
+#previous sibling(handle)
+#put camera (x,y)
+#put hero (who, x, y)
+#put mouse (X, Y)
+#put npc (who,x,y)
+#put slice (handle, X, Y)
+#put slice screen (handle, x, y)
+#put sprite (handle, x, y)
+#random (lownumber, highnumber)
+#random formation (formation set)
+#rank in caterpillar (who)
+#read attack name (ID, attack)
+#read color (index, element)
+#read enemy data (enemyid, data)
+#read global (id)
+#read map block (x,y,layer)
+#read NPC (who,NPCstat)
+#read pass block (x,y)
+#read spell (hero,list,slot)
+#read timer (id)
+#read zone (zone id, x, y)
+#realign slice (handle, horiz align, vert align, horiz anchor, vert anchor)
+#rename hero(who)
+#rename hero by slot(who)
+#replace attack sprite (handle, num, palette)
+#replace backdrop sprite (handle, num)
+#replace border sprite (handle, num, palette)
+#replace char (ID, position, char)
+#replace hero sprite (handle, num, palette)
+#replace large enemy sprite (handle, num, palette)
+#replace medium enemy sprite (handle, num, palette)
+#replace portrait sprite (handle, num, palette)
+#replace small enemy sprite (handle, num, palette)
+#replace walkabout sprite (handle, num, palette)
+#replace weapon sprite (handle, num, palette)
+#reset game
+#reset hero palette (who,type)
+#reset hero picture (who,type)
+#reset map state (whichdata)
+#reset palette
+#resume box advance
+#resume catapillar
+#resume caterpillar
+#resume hero walls
+#resume map music
+#resume NPCs
+#resume NPC walls
+#resume obstruction
+#resume overlay
+#resume player
+#resume random enemies
+#resume random enemys
+#resume timers
+#return(value)
+#RGB(red, green, blue)
+#right
+#right button
+#right key
+#room in active party
+#run script by ID (id, argument1, argument2, argument3...)
+#save in slot (slot)
+#save map state (whichdata, customid)
+#save menu (reallysave)
+#save slot used (slot)
+#script, name, argumentnames (statements)
+#search string (ID1, ID2, start)
+#seconds of play
+#seed random (new seed)
+#selected menu item(menu handle)
+#select menu item(menu item handle)
+#set ambient music (song)
+#set battle wait mode (state)
+#set bottom padding (handle, pixels)
+#set capped hero stat (who,stat,value,type)
+#set caterpillar mode (state)
+#set color(index, value)
+#set damage cap (cap)
+#set days of play (days)
+#set dead heroes gain experience (state)
+#set death script (id)
+#set debug keys disable (state)
+#set default weapon (hero,item)
+#set each step script (id)
+#set ellipse border col (handle, color)
+#set ellipse fill col (handle, color)
+#set enemy appearance (enemyid, appearance,value)
+#set enemy name (enemyid, stringid)
+#set enemy stat(enemy, stat, value)
+#set experience (who, experience, allowforget)
+#set foot offset (offset)
+#set formation background (formation, background, animation frames, animation ticks)
+#set formation song (formation, song)
+#set full hero swap mode (state)
+#set grid columns (handle, columns)
+#set grid rows (handle, rows)
+#set harm tile damage (amount)
+#set harm tile flash (color)
+#set hero base elemental resist (who, element, percent)
+#set hero frame (who, frame)
+#set hero level (who, level, forgetspells)
+#set hero name (ID, hero)
+#set hero palette (who,palette,type)
+#set hero picture (who,picture,type)
+#set hero position (who, x, y)
+#set hero speed (who, speed)
+#set hero stat (who,stat,value,type)
+#set hero z (who, z)
+#set horiz align (handle, edge)
+#set horiz anchor (handle, edge)
+#set hours of play (hours)
+#set inn no revive mode (state)
+#set instead of battle script (id)
+#set inventory size (new size)
+#set item count in slot (slot, count)
+#set item in slot (slot, item)
+#set left padding (handle, pixels)
+#set level cap (cap)
+#set level MP (who, mp level slot, new value)
+#set load script (id)
+#set map edge mode (mode, default tile)
+#set menu anchor x(menu handle, new anchor)
+#set menu anchor y(menu handle, new anchor)
+#set menu bit(menu handle, bit, value)
+#set menu border(menu handle, new border)
+#set menu boxstyle(menu handle, new box style)
+#set menu item bit(menu item handle, bit, value)
+#set menu item extra(menu item handle, extra, num)
+#set menu item settag(menu item handle, new settag)
+#set menu item subtype(menu item handle, new subtype)
+#set menu item tag(menu item handle, new tag, whichtag)
+#set menu item togtag(menu item handle, new settag)
+#set menu item type(menu item handle, new type)
+#set menu max chars(menu handle, new max)
+#set menu max rows(menu handle, new max rows)
+#set menu min chars(menu handle, new min)
+#set menu offset x(menu handle, new x)
+#set menu offset y(menu handle, new y)
+#set menu on close script(menu handle, script id)
+#set menu text align(menu handle, new align)
+#set menu textcolor(menu handle, new textcolor)
+#set minutes of play (min)
+#set money (amount)
+#set music volume (volume)
+#set no HP level up restore (state)
+#set no MP level up restore (state)
+#set NPC direction (who, direction)
+#set NPC extra (who, which, value)
+#set NPC frame (who, frame)
+#set NPC ignores walls (who, value)
+#set NPC moves (who, value)
+#set NPC obstructs (who, value)
+#set NPC position (who, X, Y)
+#set NPC speed (who, speed)
+#set NPC usable (who, value)
+#set on keypress script (id)
+#set outline(handle, outline)
+#set padding (handle, pixels)
+#set parent (handle, parent handle)
+#set rect bgcol (handle, color)
+#set rect border (handle, border)
+#set rect fgcol (handle, color)
+#set rect style (handle, style)
+#set rect trans (handle, transparency setting)
+#set right padding (handle, pixels)
+#set seconds of play (sec)
+#set slice clipping (handle, clip)
+#set slice edge x (handle, edge, value)
+#set slice edge y (handle, edge, value)
+#set slice extra (handle, extra, value)
+#set slice height (handle, height)
+#set slice lookup (handle, code)
+#set slice screen x (handle, x)
+#set slice screen y (handle, y)
+#set slice text(handle, string id)
+#set slice velocity (handle, horiz pixels per tick, vert pixels per tick, ticks)
+#set slice velocity x (handle, pixels per tick, ticks)
+#set slice velocity y (handle, pixels per tick, ticks)
+#set slice visible (handle, vis)
+#set slice width (handle, width)
+#set slice x (handle, X)
+#set slice y (handle, Y)
+#set sort order (handle, order)
+#set sprite frame (handle, num)
+#set sprite palette (handle, num)
+#set sprite trans (handle, drawtransparent)
+#set sprite visible
+#set tag (tag,value)
+#set text bg(handle, color)
+#set text color(handle, color)
+#set tile animation offset (animation pattern, offset, layer)
+#set timer (id, count, speed, trigger, string, flags)
+#set top padding (handle, pixels)
+#variable := value
+#set vert align (handle, edge)
+#set vert anchor (handle, edge)
+#set victory music (song)
+#set wrap(handle, wrap)
+#set zone extra (zone id, extra num, value)
+#seven
+#show backdrop (number)
+#show grid (handle, shown)
+#show map
+#show mini map
+#show no value
+#show string (ID)
+#show string at (ID, x, y)
+#show value (number)
+#sign (number)
+#six
+#slice at pixel (parent, x, y, number, check descendants)
+#slice child (handle, number)
+#slice collide (handle1, handle2)
+#slice collide point (handle, x, y)
+#slice contains (handle1, handle2)
+#slice edge x (handle, edge)
+#slice edge y (handle, edge)
+#slice height (handle)
+#slice is container (handle)
+#slice is ellipse (handle)
+#slice is grid (handle)
+#slice is moving (handle)
+#slice is rect (handle)
+#slice is sprite (handle)
+#slice is text (handle)
+#slice is valid (id)
+#slice screen x (handle)
+#slice screen y (handle)
+#slice to back (handle)
+#slice to front (handle)
+#slice width (handle)
+#slice x (handle)
+#slice y (handle)
+#song: same as last map
+#song: same as map
+#song: silence
+#sort children (handle, wipe)
+#sound is playing (num)
+#south
+#south wall
+#spells learned (hero,number)
+#spells learnt (hero,number)
+#spells menu (who)
+#sprite frame count (handle)
+#sprite is horiz flipped (handle)
+#sprite is vert flipped (handle)
+#sprite layer
+#sqrt (number)
+#status screen (who)
+#stop slice (handle)
+#stop song
+#stop sound (num)
+#stop timer (id)
+#string color (ID, foreground color, background color)
+#string compare (ID1, ID2)
+#string from textbox (ID, textbox, line, expand)
+#string is visible (ID)
+#string length (ID)
+#string style (ID, style)
+#string to globals (ID, starting global, length)
+#string X (ID)
+#string Y (ID)
+#number -- number
+#suspend box advance
+#suspend catapillar
+#suspend caterpillar
+#suspend hero walls
+#suspend map music
+#suspend NPCs
+#suspend NPC walls
+#suspend obstruction
+#suspend overlay
+#suspend player
+#suspend random enemies
+#suspend random enemys
+#suspend timers
+#swap by name (name,name)
+#swap by position (position,position)
+#swap in hero (who)
+#swap menu items(handle1, handle2)
+#swap out hero (who)
+#switch(expression)
+#system day
+#system hour
+#system minute
+#system month
+#system second
+#system year
+#teach spell (hero,attack)
+#team menu
+#teleport to map (map, x, y)
+#nine
+#then
+#three
+#Tile Constants
+#timer: default
+#timer flag: battle
+#timer flag: critical
+#timer flag: menu
+#timer: game over
+#top menu
+#total experience (who)
+#trace (string)
+#trace value (expression, ...)
+#trim string (ID, start, length)
+#true
+#tweak palette (red, green, blue, first, last)
+#two
+#unequip (hero,slot)
+#unlock hero (who)
+#up
+#update level up learning(who, allowforget)
+#update palette
+#up key
+#use door (number)
+#use item (item)
+#use item in slot(slot)
+#use key
+#use menu item(menu item handle)
+#use NPC (who)
+#use shop (shop)
+#variable (name)
+#vehicle A
+#vehicle B
+#vert flip sprite (handle, flip)
+#wait (ticks)
+#wait for all
+#wait for camera
+#wait for key (key)
+#wait for menu (menu handle)
+#wait for NPC (who)
+#wait for scancode (key)
+#wait for slice (handle)
+#wait for text box
+#walk hero to x (who,x)
+#walk hero to y (who,x)
+#walk NPC (who, direction, distance)
+#walk NPC to X (who, X)
+#walk NPC to Y (who, Y)
+#west
+#west wall
+#while(condition) do(commands)
+#wrap
+#write color (index, element, value)
+#write enemy data (enemyid, data, value)
+#write global (id,value)
+#write map block (x,y,value,layer)
+#write pass block (x,y,value)
+#write spell (hero,list,slot,attack)
+#write zone (zone id, x, y, value)
+#x axis
+#value,xor,value
+#y axis
+#Y sort children (handle)
+#zero
+#zone at spot (x, y, count)
+#zone number of tiles (zone id)
+
+########################################################################
+### COMMANDS THAT THIS SCRIPT MAKES NO ATTEMPT TO TEST
+#
+#add enemy to formation (formation, enemy id, x, y, slot)
+#equip menu (who)
+#items menu
+#load menu (reallyload)
+#main menu
