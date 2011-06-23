@@ -2341,14 +2341,18 @@ SUB set_music_volume (BYVAL vol as single)
 	music_setvolume(vol)
 end SUB
 
-
-
 SUB screenshot (f$)
 	'try external first
 	if gfx_screenshot(f$) = 0 then
 		'otherwise save it ourselves
 		frame_export_bmp8(f$ + ".bmp", vpages(vpage), intpal())
 	end if
+END SUB
+
+SUB bmp_screenshot(f as string)
+	'This is for when you explicitly want a bmp screenshot, and NOT the preferred
+	'screenshot type used by the current gfx backend
+	frame_export_bmp8(f & ".bmp", vpages(vpage), intpal())
 END SUB
 
 sub snapshot_check

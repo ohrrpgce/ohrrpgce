@@ -3836,6 +3836,6 @@ SUB write_checkpoint ()
  ' but might also dump slice tree and other stuff too in the future.
  STATIC n AS INTEGER = 0
  DIM f AS STRING = with_orig_path("checkpoint" & right("0000" & n, 5))
- screenshot f
+ bmp_screenshot f
  n += 1
 END SUB
