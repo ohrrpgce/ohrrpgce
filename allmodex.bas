@@ -47,8 +47,9 @@ declare sub font_unload(byval font as Font ptr)
 declare function fget alias "fb_FileGet" ( byval fnum as integer, byval pos as integer = 0, byval dst as any ptr, byval bytes as uinteger ) as integer
 declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as integer = 0, byval src as any ptr, byval bytes as uinteger ) as integer
 
-
 declare sub pollingthread(byval as any ptr)
+
+declare sub record_input_tick ()
 
 'global
 dim vpages() as Frame ptr
@@ -103,6 +104,8 @@ dim shared keysteps(127) as integer
 dim shared keyrepeatwait as integer = 8
 dim shared keyrepeatrate as integer = 1
 dim shared diagonalhack as integer
+dim shared rec_input as integer = NO
+dim shared rec_input_file as integer
 
 dim shared closerequest as integer = 0
 
@@ -1044,6 +1047,10 @@ SUB setkeys ()
 		end if
 	next
 
+	if rec_input then
+		record_input_tick
+	end if
+
 	'Check to see if the operating system has received a request
 	'to close the window (clicking the X) and set the magic keyboard
 	'index -1 if so. It can only be unset with clearkey.
@@ -1123,6 +1130,54 @@ SUB clearkey(byval k as integer)
 		keysteps(k) = 1
 	end if
 end sub
+
+SUB start_recording_input (filename as string)
+ rec_input_file = FREEFILE
+ open filename for binary access read write as #rec_input_file
+ dim header as string = "OHRRPGCEkeys"
+ PUT #rec_input_file,, header
+ dim ohrkey_ver as integer = 0
+ PUT #rec_input_file,, ohrkey_ver
+ rec_input = YES
+ debuginfo "Recording keyboard input to: """ & filename & """"
+ record_input_tick
+END SUB
+
+SUB stop_recording_input ()
+ if rec_input then
+  close #rec_input_file
+  rec_input = NO
+ end if
+END SUB
+
+SUB record_input_tick ()
+ dim presses as integer = 0
+ for i as integer = 0 to ubound(keybd)
+  if keybd(i) > 0 orelse keysteps(i) > 0 then
+   presses += 1
+  end if
+ next i
+ if presses = 0 and not random_seed_changed then exit sub
+ PUT #rec_input_file,, tickcount
+ DIM code as ubyte = 0
+ if random_seed_changed then
+  'save random seed
+  code = 1
+ end if
+ PUT #rec_input_file,, code
+ if random_seed_changed then
+  PUT #rec_input_file,, last_random_seed
+  random_seed_changed= NO
+ end if
+ PUT #rec_input_file,, presses
+ for i as ubyte = 0 to ubound(keybd)
+  if keybd(i) > 0 orelse keysteps(i) > 0 then
+   PUT #rec_input_file,, i
+   PUT #rec_input_file,, cubyte(keybd(i))
+   PUT #rec_input_file,, keysteps(i)
+  end if
+ next i
+END SUB
 
 'Set keyval(-1) on. So ugly
 SUB setquitflag ()

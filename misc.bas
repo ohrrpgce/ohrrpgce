@@ -79,6 +79,7 @@ function usage_setoption(opt as string, arg as string) as integer
 #IFDEF IS_GAME
 		help = help & "-full-upgrade       Upgrade game data completely, as Custom does" & LINE_END
 #ENDIF
+		help = help & "-recordinput file   Record keyboard input to a file" & LINE_END
 		help = help & "-gfx backendname    Select graphics backend. This build supports:" & LINE_END
 		help = help & "                      " & SUPPORTED_GFX & " (tried in that order)" & LINE_END
 		help = help & "-f -fullscreen      Start in full-screen mode if possible" & LINE_END
