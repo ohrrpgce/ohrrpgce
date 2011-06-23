@@ -50,6 +50,7 @@ declare function fput alias "fb_FilePut" ( byval fnum as integer, byval pos as i
 declare sub pollingthread(byval as any ptr)
 
 declare sub record_input_tick ()
+declare sub replay_input_tick ()
 
 'global
 dim vpages() as Frame ptr
@@ -106,6 +107,10 @@ dim shared keyrepeatrate as integer = 1
 dim shared diagonalhack as integer
 dim shared rec_input as integer = NO
 dim shared rec_input_file as integer
+dim shared play_input as integer = NO
+dim shared play_input_file as integer
+dim shared replaytick as integer
+dim shared need_replaytick as integer
 
 dim shared closerequest as integer = 0
 
@@ -233,9 +238,10 @@ sub restoremode()
 end sub
 
 SUB mersenne_twister (byval seed as double)
- last_random_seed = seed
- random_seed_changed = YES
- RANDOMIZE seed, 3
+	IF play_input THEN exit sub 'Seeding not allowed in replay mode
+	last_random_seed = seed
+	random_seed_changed = YES
+	RANDOMIZE seed, 3
 END SUB
 
 SUB settemporarywindowtitle (title as string)
@@ -1023,32 +1029,38 @@ SUB setkeys ()
 'Note that currently key repeat events are triggered every 25ms, not every
 'setkeys call
 
-	dim a as integer
-	mutexlock keybdmutex
-	io_keybits(@keybd(0))
-	mutexunlock keybdmutex
 
-	'DELETEME (after a lag period): This is a temporary fix for gfx_directx not knowing about scShift
-	'(or any other of the new scancodes, but none of the rest matter much (maybe
-	'scPause) since there are no games that use them).
-	if (keybd(scLeftShift) or keybd(scRightShift)) <> keybd(scShift) then
-		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
-	end if
+	if play_input then
+		replay_input_tick ()
+	else
+		dim a as integer
+		mutexlock keybdmutex
+		io_keybits(@keybd(0))
+		mutexunlock keybdmutex
 
-	for a = 0 to &h7f
-		'Duplicate bit 1 (key was triggered) to bit 2 (new keypress)
-		keybd(a) = (keybd(a) and 3) or ((keybd(a) and 2) shl 1)
-
-		if (keybd(a) and 2) or (keybd(a) and 1) = 0 then  'I am also confused
-			keysteps(a) = 0
+		'DELETEME (after a lag period): This is a temporary fix for gfx_directx not knowing about scShift
+		'(or any other of the new scancodes, but none of the rest matter much (maybe
+		'scPause) since there are no games that use them).
+		if (keybd(scLeftShift) or keybd(scRightShift)) <> keybd(scShift) then
+			keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
 		end if
-		if keybd(a) and 1 then
-			keysteps(a) += 1
-		end if
-	next
 
-	if rec_input then
-		record_input_tick
+		for a = 0 to &h7f
+			'Duplicate bit 1 (key was triggered) to bit 2 (new keypress)
+			keybd(a) = (keybd(a) and 3) or ((keybd(a) and 2) shl 1)
+
+			if (keybd(a) and 2) or (keybd(a) and 1) = 0 then  'I am also confused
+				keysteps(a) = 0
+			end if
+			if keybd(a) and 1 then
+				keysteps(a) += 1
+			end if
+		next
+
+		if rec_input then
+			record_input_tick
+		end if
+		
 	end if
 
 	'Check to see if the operating system has received a request
@@ -1131,57 +1143,141 @@ SUB clearkey(byval k as integer)
 	end if
 end sub
 
-SUB start_recording_input (filename as string)
- rec_input_file = FREEFILE
- open filename for binary access read write as #rec_input_file
- dim header as string = "OHRRPGCEkeys"
- PUT #rec_input_file,, header
- dim ohrkey_ver as integer = 0
- PUT #rec_input_file,, ohrkey_ver
- rec_input = YES
- debuginfo "Recording keyboard input to: """ & filename & """"
- record_input_tick
-END SUB
-
-SUB stop_recording_input ()
- if rec_input then
-  close #rec_input_file
-  rec_input = NO
- end if
-END SUB
-
-SUB record_input_tick ()
- dim presses as integer = 0
- for i as integer = 0 to ubound(keybd)
-  if keybd(i) > 0 orelse keysteps(i) > 0 then
-   presses += 1
-  end if
- next i
- if presses = 0 and not random_seed_changed then exit sub
- PUT #rec_input_file,, tickcount
- DIM code as ubyte = 0
- if random_seed_changed then
-  'save random seed
-  code = 1
- end if
- PUT #rec_input_file,, code
- if random_seed_changed then
-  PUT #rec_input_file,, last_random_seed
-  random_seed_changed= NO
- end if
- PUT #rec_input_file,, presses
- for i as ubyte = 0 to ubound(keybd)
-  if keybd(i) > 0 orelse keysteps(i) > 0 then
-   PUT #rec_input_file,, i
-   PUT #rec_input_file,, cubyte(keybd(i))
-   PUT #rec_input_file,, keysteps(i)
-  end if
- next i
-END SUB
-
 'Set keyval(-1) on. So ugly
 SUB setquitflag ()
 	keybd(-1) = 1
+END SUB
+
+SUB start_recording_input (filename as string)
+	if play_input then
+		debug "Can't record input because already replaying input!"
+		exit sub
+	end if
+	rec_input_file = FREEFILE
+	open filename for binary access read write as #rec_input_file
+	dim header as string = "OHRRPGCEkeys"
+	PUT #rec_input_file,, header
+	dim ohrkey_ver as integer = 0
+	PUT #rec_input_file,, ohrkey_ver
+	rec_input = YES
+	debuginfo "Recording keyboard input to: """ & filename & """"
+	record_input_tick
+END SUB
+
+SUB stop_recording_input ()
+	if rec_input then
+		close #rec_input_file
+		rec_input = NO
+	end if
+END SUB
+
+SUB start_replaying_input (filename as string)
+	if rec_input then
+		debug "Can't replay input because already recording input!"
+		exit sub
+	end if
+	play_input_file = FREEFILE
+	open filename for binary access read as #play_input_file
+	play_input = YES
+	dim header as string = STRING(12, 0)
+	GET #play_input_file,, header
+	if header <> "OHRRPGCEkeys" then stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
+	dim ohrkey_ver as integer = -1
+	GET #play_input_file,, ohrkey_ver
+	if ohrkey_ver <> 0 then stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 0"
+	debuginfo "Replaying keyboard input from: """ & filename & """"
+	need_replaytick = YES
+END SUB
+
+SUB stop_replaying_input (msg as string="")
+	if msg <> "" then
+		debug msg
+	end if
+	if play_input then
+		close #play_input_file
+		play_input = NO
+	end if
+END SUB
+
+SUB record_input_tick ()
+	dim presses as integer = 0
+	for i as integer = 0 to ubound(keybd)
+		if keybd(i) > 0 orelse keysteps(i) > 0 then
+			presses += 1
+		end if
+	next i
+	if presses = 0 and not random_seed_changed then exit sub
+	PUT #rec_input_file,, tickcount
+	DIM code as ubyte = 0
+	if random_seed_changed then
+		'save random seed
+		code = 1
+	end if
+	PUT #rec_input_file,, code
+	if random_seed_changed then
+		PUT #rec_input_file,, last_random_seed
+		random_seed_changed = NO
+	end if
+	PUT #rec_input_file,, presses
+	for i as ubyte = 0 to ubound(keybd)
+		if keybd(i) > 0 orelse keysteps(i) > 0 then
+			PUT #rec_input_file,, i
+			PUT #rec_input_file,, cubyte(keybd(i))
+			PUT #rec_input_file,, keysteps(i)
+		end if
+	next i
+END SUB
+
+SUB replay_input_tick ()
+	do
+	for i as integer = 0 to ubound(keybd)
+		keybd(i) = 0
+		keysteps(i) = 0
+	next i
+	if EOF(play_input_file) then
+		stop_replaying_input "The end of the input playback file was reached."
+		exit sub
+	end if
+	if need_replaytick then
+		GET #play_input_file,, replaytick
+	end if
+	if replaytick < tickcount then
+		debug "input replay late for tick " & replaytick & " (" & replaytick - tickcount & ")"
+	elseif replaytick > tickcount then
+		'keep this tick for later...
+		exit sub
+	end if
+	dim code as ubyte
+	GET #play_input_file,, code
+	select case code
+		case 0: 'key data only
+		case 1: 'random seed present
+			dim seed as double
+			GET #play_input_file,, seed
+			RANDOMIZE seed, 3
+		case else:
+			stop_replaying_input "input replay tick " & replaytick & " has unknown code " & code
+			exit sub
+	end select
+	dim presses as integer
+	GET #play_input_file,, presses
+	if presses < 0 orelse presses > ubound(keybd) + 1 then
+		stop_replaying_input "input replay tick " & replaytick & " has invalid number of keypresses " & presses
+		exit sub
+	end if
+	dim key as ubyte
+	dim kb as ubyte
+	dim ks as integer
+	for i as integer = 1 to presses
+		GET #play_input_file,, key
+		GET #play_input_file,, kb
+		GET #play_input_file,, ks
+		keybd(key) = kb
+		keysteps(key) = ks
+	next i
+	need_replaytick = YES
+	if replaytick = tickcount then exit sub
+	loop
 END SUB
 
 'these are wrappers provided by the polling thread

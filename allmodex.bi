@@ -125,10 +125,13 @@ DECLARE FUNCTION waitforanykey (modkeys as integer = -1) as integer
 DECLARE SUB setkeyrepeat (rwait as integer = 8, rrate as integer = 1)
 DECLARE SUB setkeys ()
 DECLARE SUB clearkey (byval k as integer)
-DECLARE SUB start_recording_input (filename as string)
-DECLARE SUB stop_recording_input ()
 DECLARE SUB setquitflag ()
 #DEFINE slowkey(key, fraction) (keyval((key), (fraction), (fraction)) > 1)
+
+DECLARE SUB start_recording_input (filename as string)
+DECLARE SUB stop_recording_input ()
+DECLARE SUB start_replaying_input (filename as string)
+DECLARE SUB stop_replaying_input (msg as string="")
 
 DECLARE FUNCTION havemouse () as integer
 DECLARE SUB hidemousecursor ()

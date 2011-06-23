@@ -117,6 +117,16 @@ FUNCTION common_setoption(opt as string, arg as string) as integer
    display_help_string help
    RETURN 1
   END IF
+ ELSEIF opt = "replayinput" then
+  DIM f as string = with_orig_path(arg)
+  IF fileisreadable(f) THEN
+   start_replaying_input f
+   RETURN 2 'arg used
+  ELSE
+   DIM help as string = "input cannot be replayed from """ & f & """ because the file is not readable." & LINE_END
+   display_help_string help
+   RETURN 1
+  END IF
  END IF
 END FUNCTION
 
