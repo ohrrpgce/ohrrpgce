@@ -92,6 +92,8 @@ dim shared anim2 as integer
 dim shared waittime as double
 dim shared flagtime as double = 0.0
 dim shared waitset as integer
+dim shared tickcount as integer = 0
+dim shared use_speed_control as integer = YES
 
 dim shared keybd(-1 to 127) as integer  'keyval array
 dim shared keysteps(127) as integer
@@ -1747,11 +1749,16 @@ FUNCTION loadmxs (fil as string, BYVAL record as integer, BYVAL dest as Frame pt
 	return dest
 end FUNCTION
 
+SUB enable_speed_control(byval setting as integer=YES)
+	use_speed_control = setting
+END SUB
+
 SUB setwait (BYVAL t as integer, BYVAL flagt as integer = 0)
 't is a value in milliseconds which, in the original, is used to set the event
 'frequency and is also used to set the wait time, but the resolution of the
 'dos timer means that the latter is always truncated to the last multiple of
 '55 milliseconds. We won't do this anymore. Try to make the target framerate.
+	if use_speed_control = NO then exit sub
 	waittime = bound(waittime + t / 1000, timer + 0.017, timer + t / 667)
 	if timer > flagtime then
 		flagtime = bound(flagtime + flagt / 1000, timer + 0.017, timer + flagt / 667)
@@ -1767,6 +1774,7 @@ FUNCTION dowait () as integer
 'returns true if the flag time has passed (since the last time it was passed)
 'In freebasic, sleep is in 1000ths, and a value of less than 100 will not
 'be exited by a keypress, so sleep for 5ms until timer > waittime.
+	if use_speed_control = NO then tickcount += 1 : return YES
 	dim i as integer
 	do while timer <= waittime
 		i = bound((waittime - timer) * 1000, 1, 5)
@@ -1778,6 +1786,7 @@ FUNCTION dowait () as integer
 	else
 		debug "dowait called without setwait"
 	end if
+	tickcount += 1
 	return timer >= flagtime
 end FUNCTION
 

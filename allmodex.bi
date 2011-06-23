@@ -83,6 +83,7 @@ DECLARE FUNCTION loadmxs (fil as string, BYVAL record as integer, BYVAL dest as 
 
 DECLARE SUB setwait (BYVAL t as integer, BYVAL flagt as integer = 0)
 DECLARE FUNCTION dowait () as integer
+DECLARE SUB enable_speed_control(byval setting as integer=YES)
 
 DECLARE SUB printstr OVERLOAD (BYVAL dest as Frame ptr, s as string, BYVAL startx as integer, BYVAL y as integer, BYVAL startfont as Font ptr, BYVAL pal as Palette16 ptr, BYVAL withtags as integer)
 DECLARE SUB printstr OVERLOAD (s as string, BYVAL x as integer, BYVAL y as integer, BYVAL p as integer, BYVAL withtags as integer = NO)
