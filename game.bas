@@ -66,7 +66,7 @@ debuginfo long_version & build_info
 debuginfo DATE & " " & TIME
 
 'DEBUG debug "randomize timer"
-RANDOMIZE TIMER, 3 ' Mersenne Twister
+mersenne_twister TIMER
 
 DIM autotestmode AS INTEGER = NO
 DIM speedcontrol AS INTEGER = 55

@@ -90,7 +90,8 @@ DIM portrait_captions(0) AS STRING = {"Character Portrait"}
 
 '--Startup
 
-RANDOMIZE TIMER, 3 ' mersenne twister
+'seed the random number generator
+mersenne_twister TIMER
 
 exename = trimextension$(trimpath$(COMMAND$(0)))
 

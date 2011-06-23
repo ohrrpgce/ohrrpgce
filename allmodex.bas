@@ -89,6 +89,9 @@ dim shared bordertile as integer
 dim shared anim1 as integer
 dim shared anim2 as integer
 
+dim shared last_random_seed as double
+dim shared random_seed_changed as integer = NO
+
 dim shared waittime as double
 dim shared flagtime as double = 0.0
 dim shared waitset as integer
@@ -225,6 +228,12 @@ sub restoremode()
 
         modex_quit
 end sub
+
+SUB mersenne_twister (byval seed as double)
+ last_random_seed = seed
+ random_seed_changed = YES
+ RANDOMIZE seed, 3
+END SUB
 
 SUB settemporarywindowtitle (title as string)
 	'just like setwindowtitle but does not memorize the title

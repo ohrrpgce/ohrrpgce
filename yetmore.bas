@@ -1154,9 +1154,9 @@ SELECT CASE AS CONST id
   setpal master()
  CASE 108'--seed random
   IF retvals(0) THEN
-   RANDOMIZE retvals(0), 3
+   mersenne_twister retvals(0)
   ELSE
-   RANDOMIZE TIMER, 3
+   mersenne_twister TIMER
   END IF
  CASE 109'--grey scale palette
   greyscalepal
