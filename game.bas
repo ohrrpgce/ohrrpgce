@@ -1872,13 +1872,13 @@ WITH scrat(nowscript)
     IF valid_plotstr(retvals(1)) THEN
      menuslot = find_menu_handle(retvals(0))
      DIM start_slot AS INTEGER
-     IF retvals(3) = 0 THEN
+     IF retvals(2) = 0 THEN
       start_slot = 0
      ELSE
-      start_slot = find_menu_item_handle_in_menuslot(retvals(3), menuslot) + 1
+      start_slot = find_menu_item_handle_in_menuslot(retvals(2), menuslot) + 1
      END IF
      IF valid_menuslot_and_mislot(menuslot, start_slot) THEN
-      mislot = find_menu_item_slot_by_string(menuslot, plotstr(retvals(1)).s, start_slot, (retvals(2) <> 0))
+      mislot = find_menu_item_slot_by_string(menuslot, plotstr(retvals(1)).s, start_slot, (retvals(3) <> 0))
       IF mislot >= 0 THEN scriptret = menus(menuslot).items[mislot]->handle
      END IF
     END IF
