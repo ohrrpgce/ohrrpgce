@@ -91,9 +91,6 @@ dim shared bordertile as integer
 dim shared anim1 as integer
 dim shared anim2 as integer
 
-dim shared last_random_seed as double
-dim shared random_seed_changed as integer = NO
-
 dim shared waittime as double
 dim shared flagtime as double = 0.0
 dim shared waitset as integer
@@ -101,6 +98,7 @@ dim shared tickcount as integer = 0
 dim shared use_speed_control as integer = YES
 
 dim shared keybd(-1 to 127) as integer  'keyval array
+dim shared last_keybd(127) as integer 'used only for input recording
 dim shared keysteps(127) as integer
 dim shared keyrepeatwait as integer = 8
 dim shared keyrepeatrate as integer = 1
@@ -110,7 +108,6 @@ dim shared rec_input_file as integer
 dim shared play_input as integer = NO
 dim shared play_input_file as integer
 dim shared replaytick as integer
-dim shared need_replaytick as integer
 
 dim shared closerequest as integer = 0
 
@@ -238,9 +235,7 @@ sub restoremode()
 end sub
 
 SUB mersenne_twister (byval seed as double)
-	IF play_input THEN exit sub 'Seeding not allowed in replay mode
-	last_random_seed = seed
-	random_seed_changed = YES
+	IF play_input ORELSE rec_input THEN exit sub 'Seeding not allowed in play/record modes
 	RANDOMIZE seed, 3
 END SUB
 
@@ -1160,10 +1155,16 @@ SUB start_recording_input (filename as string)
 	open filename for binary access write as #rec_input_file
 	dim header as string = "OHRRPGCEkeys"
 	PUT #rec_input_file,, header
-	dim ohrkey_ver as integer = 0
+	dim ohrkey_ver as integer = 1
 	PUT #rec_input_file,, ohrkey_ver
+	dim seed as double = TIMER
+	RANDOMIZE seed, 3
+	PUT #rec_input_file,, seed
 	rec_input = YES
 	debuginfo "Recording keyboard input to: """ & filename & """"
+	for i as integer = 0 to ubound(last_keybd)
+		last_keybd(i) = 0
+	next i
 END SUB
 
 SUB stop_recording_input ()
@@ -1187,9 +1188,15 @@ SUB start_replaying_input (filename as string)
 	if header <> "OHRRPGCEkeys" then stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
 	dim ohrkey_ver as integer = -1
 	GET #play_input_file,, ohrkey_ver
-	if ohrkey_ver <> 0 then stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 0"
+	if ohrkey_ver <> 1 then stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 1"
+	dim seed as double
+	GET #play_input_file,, seed
+	RANDOMIZE seed, 3
 	debuginfo "Replaying keyboard input from: """ & filename & """"
-	need_replaytick = YES
+	replaytick = -1
+	for i as integer = 0 to ubound(keybd)
+		keybd(i) = 0
+	next i
 END SUB
 
 SUB stop_replaying_input (msg as string="")
@@ -1204,64 +1211,43 @@ SUB stop_replaying_input (msg as string="")
 END SUB
 
 SUB record_input_tick ()
+	static tick as integer = -1
+	tick += 1
 	dim presses as integer = 0
 	for i as integer = 0 to ubound(keybd)
-		if keybd(i) > 0 then
+		if keybd(i) <> last_keybd(i) then
 			presses += 1
 		end if
 	next i
-	if presses = 0 and not random_seed_changed then exit sub
-	PUT #rec_input_file,, tickcount
-	DIM code as ubyte = 0
-	if random_seed_changed then
-		'save random seed
-		code = 1
-	end if
-	PUT #rec_input_file,, code
-	if random_seed_changed then
-		PUT #rec_input_file,, last_random_seed
-		random_seed_changed = NO
-	end if
+	if presses = 0 then exit sub
+	PUT #rec_input_file,, tick
 	PUT #rec_input_file,, presses
 	for i as ubyte = 0 to ubound(keybd)
-		if keybd(i) > 0 then
+		if keybd(i) <> last_keybd(i) then
 			PUT #rec_input_file,, i
 			PUT #rec_input_file,, cubyte(keybd(i))
+			last_keybd(i) = keybd(i)
 		end if
 	next i
 END SUB
 
 SUB replay_input_tick ()
+	static tick as integer = -1
+	tick += 1
 	do
-	for i as integer = 0 to ubound(keybd)
-		keybd(i) = 0
-		keysteps(i) = 0
-	next i
 	if EOF(play_input_file) then
 		stop_replaying_input "The end of the input playback file was reached."
 		exit sub
 	end if
-	if need_replaytick then
+	if replaytick = -1 then
 		GET #play_input_file,, replaytick
 	end if
-	if replaytick < tickcount then
-		debug "input replay late for tick " & replaytick & " (" & replaytick - tickcount & ")"
-	elseif replaytick > tickcount then
-		'keep this tick for later...
+	if replaytick < tick and replaytick <> -1 then
+		debug "input replay late for tick " & replaytick & " (" & replaytick - tick & ")"
+	elseif replaytick > tick then
+		'debug "saving replay input tick " & replaytick & " until its time has come (+" & replaytick - tick & ")"
 		exit sub
 	end if
-	dim code as ubyte
-	GET #play_input_file,, code
-	select case code
-		case 0: 'key data only
-		case 1: 'random seed present
-			dim seed as double
-			GET #play_input_file,, seed
-			RANDOMIZE seed, 3
-		case else:
-			stop_replaying_input "input replay tick " & replaytick & " has unknown code " & code
-			exit sub
-	end select
 	dim presses as integer
 	GET #play_input_file,, presses
 	if presses < 0 orelse presses > ubound(keybd) + 1 then
@@ -1275,8 +1261,11 @@ SUB replay_input_tick ()
 		GET #play_input_file,, kb
 		keybd(key) = kb
 	next i
-	need_replaytick = YES
-	if replaytick = tickcount then exit sub
+	if replaytick = tick then
+		replaytick = -1
+		exit sub
+	end if
+	replaytick = -1
 	loop
 END SUB
 

@@ -39,8 +39,14 @@ SUB start_replaying_input (filename as string)
  print header
  dim ohrkey_ver as integer = -1
  GET #play_input_file,, ohrkey_ver
- if ohrkey_ver <> 0 then stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 0"
+ if ohrkey_ver <> 1 then
+  stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 1"
+  EXIT SUB
+ end if
  print "ohrkey version: " & ohrkey_ver
+ dim seed as double
+ GET #play_input_file,, seed
+ print "Random seed=" & seed
 END SUB
 
 SUB stop_replaying_input (msg as string="")
@@ -62,18 +68,6 @@ SUB replay_input ()
   DIM fpos as integer = LOC(play_input_file)
   GET #play_input_file,, replaytick
   info = "L:" & fpos & " T:" & replaytick 
-  dim code as ubyte
-  GET #play_input_file,, code
-  select case code
-   case 0: 'key data only
-   case 1: 'random seed present
-    dim seed as double
-    GET #play_input_file,, seed
-    info = info & " seed=" & seed
-   case else:
-    stop_replaying_input "input replay tick " & replaytick & " has unknown code " & code
-    exit sub
-  end select
   dim presses as integer
   GET #play_input_file,, presses
   if presses < 0 orelse presses > 128 then
