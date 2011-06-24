@@ -322,7 +322,7 @@ IF needfade THEN fadeout 0, 0, 0
 'DEBUG debug "Cleanup Routine"
 '--open files
 'DEBUG debug "Close foemap handle"
-CLOSE #foemaph
+IF foemaph THEN CLOSE #foemaph : foemaph = 0
 
 '--script stack
 'DEBUG debug "Release script stack"

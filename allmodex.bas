@@ -1152,8 +1152,12 @@ SUB start_recording_input (filename as string)
 		debug "Can't record input because already replaying input!"
 		exit sub
 	end if
+	if isfile(filename) then
+		debug "Replacing the input recording that already existed at """ & filename & """"
+		safekill filename
+	end if
 	rec_input_file = FREEFILE
-	open filename for binary access read write as #rec_input_file
+	open filename for binary access write as #rec_input_file
 	dim header as string = "OHRRPGCEkeys"
 	PUT #rec_input_file,, header
 	dim ohrkey_ver as integer = 0
