@@ -47,6 +47,7 @@ SUB stop_replaying_input (msg as string="")
  if msg <> "" then
   print "STOP: " & msg
  end if
+ print LOF(play_input_file) - LOC(play_input_file) & " bytes left over"
  close #play_input_file
 END SUB
 
@@ -58,8 +59,9 @@ SUB replay_input ()
    stop_replaying_input "The end of the input playback file was reached."
    exit sub
   end if
+  DIM fpos as integer = LOC(play_input_file)
   GET #play_input_file,, replaytick
-  info = "T:" & replaytick 
+  info = "L:" & fpos & " T:" & replaytick 
   dim code as ubyte
   GET #play_input_file,, code
   select case code
