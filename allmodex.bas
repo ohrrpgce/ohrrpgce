@@ -1033,35 +1033,34 @@ SUB setkeys ()
 	if play_input then
 		replay_input_tick ()
 	else
-		dim a as integer
 		mutexlock keybdmutex
 		io_keybits(@keybd(0))
 		mutexunlock keybdmutex
 
-		'DELETEME (after a lag period): This is a temporary fix for gfx_directx not knowing about scShift
-		'(or any other of the new scancodes, but none of the rest matter much (maybe
-		'scPause) since there are no games that use them).
-		if (keybd(scLeftShift) or keybd(scRightShift)) <> keybd(scShift) then
-			keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
-		end if
-
-		for a = 0 to &h7f
-			'Duplicate bit 1 (key was triggered) to bit 2 (new keypress)
-			keybd(a) = (keybd(a) and 3) or ((keybd(a) and 2) shl 1)
-
-			if (keybd(a) and 2) or (keybd(a) and 1) = 0 then  'I am also confused
-				keysteps(a) = 0
-			end if
-			if keybd(a) and 1 then
-				keysteps(a) += 1
-			end if
-		next
-
 		if rec_input then
-			record_input_tick
+			record_input_tick ()
 		end if
-		
+
 	end if
+
+	'DELETEME (after a lag period): This is a temporary fix for gfx_directx not knowing about scShift
+	'(or any other of the new scancodes, but none of the rest matter much (maybe
+	'scPause) since there are no games that use them).
+	if (keybd(scLeftShift) or keybd(scRightShift)) <> keybd(scShift) then
+		keybd(scShift) = keybd(scLeftShift) or keybd(scRightShift)
+	end if
+
+	for a as integer = 0 to &h7f
+		'Duplicate bit 1 (key was triggered) to bit 2 (new keypress)
+		keybd(a) = (keybd(a) and 3) or ((keybd(a) and 2) shl 1)
+
+		if (keybd(a) and 2) or (keybd(a) and 1) = 0 then  'I am also confused
+			keysteps(a) = 0
+		end if
+		if keybd(a) and 1 then
+			keysteps(a) += 1
+		end if
+	next
 
 	'Check to see if the operating system has received a request
 	'to close the window (clicking the X) and set the magic keyboard
@@ -1161,13 +1160,13 @@ SUB start_recording_input (filename as string)
 	PUT #rec_input_file,, ohrkey_ver
 	rec_input = YES
 	debuginfo "Recording keyboard input to: """ & filename & """"
-	record_input_tick
 END SUB
 
 SUB stop_recording_input ()
 	if rec_input then
 		close #rec_input_file
 		rec_input = NO
+		debug "STOP recording input"
 	end if
 END SUB
 
@@ -1196,13 +1195,14 @@ SUB stop_replaying_input (msg as string="")
 	if play_input then
 		close #play_input_file
 		play_input = NO
+		debug "STOP replaying input"
 	end if
 END SUB
 
 SUB record_input_tick ()
 	dim presses as integer = 0
 	for i as integer = 0 to ubound(keybd)
-		if keybd(i) > 0 orelse keysteps(i) > 0 then
+		if keybd(i) > 0 then
 			presses += 1
 		end if
 	next i
@@ -1220,10 +1220,9 @@ SUB record_input_tick ()
 	end if
 	PUT #rec_input_file,, presses
 	for i as ubyte = 0 to ubound(keybd)
-		if keybd(i) > 0 orelse keysteps(i) > 0 then
+		if keybd(i) > 0 then
 			PUT #rec_input_file,, i
 			PUT #rec_input_file,, cubyte(keybd(i))
-			PUT #rec_input_file,, keysteps(i)
 		end if
 	next i
 END SUB
@@ -1267,13 +1266,10 @@ SUB replay_input_tick ()
 	end if
 	dim key as ubyte
 	dim kb as ubyte
-	dim ks as integer
 	for i as integer = 1 to presses
 		GET #play_input_file,, key
 		GET #play_input_file,, kb
-		GET #play_input_file,, ks
 		keybd(key) = kb
-		keysteps(key) = ks
 	next i
 	need_replaytick = YES
 	if replaytick = tickcount then exit sub

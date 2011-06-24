@@ -81,12 +81,10 @@ SUB replay_input ()
   info = info & " ("
   dim key as ubyte
   dim kb as ubyte
-  dim ks as integer
   for i as integer = 1 to presses
    GET #play_input_file,, key
    GET #play_input_file,, kb
-   GET #play_input_file,, ks
-   info = info & " " & keyname(key) & "=" & kb & "," & ks
+   info = info & " " & keyname(key) & "=" & kb
   next i
   info = info & " )"
   print info
