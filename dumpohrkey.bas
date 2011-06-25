@@ -39,8 +39,8 @@ SUB start_replaying_input (filename as string)
  print header
  dim ohrkey_ver as integer = -1
  GET #play_input_file,, ohrkey_ver
- if ohrkey_ver <> 1 then
-  stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 1"
+ if ohrkey_ver <> 2 then
+  stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 2"
   EXIT SUB
  end if
  print "ohrkey version: " & ohrkey_ver
@@ -68,7 +68,7 @@ SUB replay_input ()
   DIM fpos as integer = LOC(play_input_file)
   GET #play_input_file,, replaytick
   info = "L:" & fpos & " T:" & replaytick 
-  dim presses as integer
+  dim presses as ubyte
   GET #play_input_file,, presses
   if presses < 0 orelse presses > 128 then
    stop_replaying_input "input replay tick " & replaytick & " has invalid number of keypresses " & presses

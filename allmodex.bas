@@ -1155,7 +1155,7 @@ SUB start_recording_input (filename as string)
 	open filename for binary access write as #rec_input_file
 	dim header as string = "OHRRPGCEkeys"
 	PUT #rec_input_file,, header
-	dim ohrkey_ver as integer = 1
+	dim ohrkey_ver as integer = 2
 	PUT #rec_input_file,, ohrkey_ver
 	dim seed as double = TIMER
 	RANDOMIZE seed, 3
@@ -1188,7 +1188,7 @@ SUB start_replaying_input (filename as string)
 	if header <> "OHRRPGCEkeys" then stop_replaying_input "No OHRRPGCEkeys header in """ & filename & """"
 	dim ohrkey_ver as integer = -1
 	GET #play_input_file,, ohrkey_ver
-	if ohrkey_ver <> 1 then stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 1"
+	if ohrkey_ver <> 2 then stop_replaying_input "Unknown ohrkey version code " & ohrkey_ver & " in """ & filename & """. Only know how to understand version 2"
 	dim seed as double
 	GET #play_input_file,, seed
 	RANDOMIZE seed, 3
@@ -1213,7 +1213,7 @@ END SUB
 SUB record_input_tick ()
 	static tick as integer = -1
 	tick += 1
-	dim presses as integer = 0
+	dim presses as ubyte = 0
 	for i as integer = 0 to ubound(keybd)
 		if keybd(i) <> last_keybd(i) then
 			presses += 1
@@ -1248,7 +1248,7 @@ SUB replay_input_tick ()
 		'debug "saving replay input tick " & replaytick & " until its time has come (+" & replaytick - tick & ")"
 		exit sub
 	end if
-	dim presses as integer
+	dim presses as ubyte
 	GET #play_input_file,, presses
 	if presses < 0 orelse presses > ubound(keybd) + 1 then
 		stop_replaying_input "input replay tick " & replaytick & " has invalid number of keypresses " & presses
