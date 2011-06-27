@@ -1407,9 +1407,17 @@ FUNCTION speed_estimate(speed AS INTEGER, suffix AS STRING=" seconds", zero AS S
 END FUNCTION
 
 FUNCTION seconds_estimate(ticks AS INTEGER) AS STRING
- DIM sec AS SINGLE
+ IF ticks = 0 THEN RETURN "0.0"
+ DIM sec AS DOUBLE
  sec = ticks * (1 / 18.2)
- RETURN STR(INT(sec * 10) / 10)
+ DIM s AS STRING = STR(sec)
+ DIM dot AS INTEGER = INSTR(s, ".")
+ DIM prefix AS STRING = LEFT(s, dot - 1)
+ DIM suffix AS STRING = MID(s, dot + 1, 2)
+ WHILE LEN(suffix) > 1 ANDALSO RIGHT(suffix, 1) = "0"
+  suffix = LEFT(suffix, LEN(suffix) - 1)
+ WEND
+ RETURN prefix & "." & suffix
 END FUNCTION
 
 SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
