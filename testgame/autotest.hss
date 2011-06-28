@@ -158,14 +158,28 @@ script, menu tests, begin
   m1 := find menu ID(1)
   if(m1 == 0) then($0="failed to find opened menu", crash)  
   close menu(m1),w
-  
-  if(not(menu is open(main))) then($0="why isn't the main menu open?", crash)
 
+  set menu bit(main, 0, true), w  #Transparent box
+  if(get menu bit(main, 0) <> true) then($0="failed to set menu bit", crash)
+  set menu bit(main, 0, false), w #Opaque box
+  if(get menu bit(main, 0) <> false) then($0="failed to unset menu bit", crash)
+  variable(save rows)
+  save rows := get menu max rows(main)
+  set menu max rows(main, 3), w
+  set menu bit(main, 1, true), w  #never show scrollbar
+  set menu bit(main, 1, false), w #show scrollbar
+  set menu max rows(main, save rows)
+  set menu bit(main, 4, true), w  #no box
+  set menu bit(main, 4, false), w #show box
+  set menu bit(main, 8, true), w  #Advance text box when menu closes
+  show text box(6), w
+  if(not(menu is open(main))) then($0="why isn't the main menu open?", crash)
   close menu(top menu), w
   close menu(main), w
+  if(current text box <> -1) then($0="menu bit failed to close textbox", crash)
+
   if(menu is open(main)) then($0="why is the main menu still open?", crash)
 end
-#get menu bit(menu handle, bit)
 #get menu border(menu handle)
 #get menu boxstyle(menu handle)
 #get menu ID(menu handle)
@@ -177,13 +191,30 @@ end
 #get menu item togtag(menu item handle)
 #get menu item type(menu item handle)
 #get menu max chars(menu handle)
-#get menu max rows(menu handle)
 #get menu min chars(menu handle)
 #get menu offset x(menu handle)
 #get menu offset y(menu handle)
 #get menu on close script(menu handle)
 #get menu text align(menu handle)
 #get menu textcolor(menu handle)
+#set menu anchor x(menu handle, new anchor)
+#set menu anchor y(menu handle, new anchor)
+#set menu border(menu handle, new border)
+#set menu boxstyle(menu handle, new box style)
+#set menu item bit(menu item handle, bit, value)
+#set menu item extra(menu item handle, extra, num)
+#set menu item settag(menu item handle, new settag)
+#set menu item subtype(menu item handle, new subtype)
+#set menu item tag(menu item handle, new tag, whichtag)
+#set menu item togtag(menu item handle, new settag)
+#set menu item type(menu item handle, new type)
+#set menu max chars(menu handle, new max)
+#set menu min chars(menu handle, new min)
+#set menu offset x(menu handle, new x)
+#set menu offset y(menu handle, new y)
+#set menu on close script(menu handle, script id)
+#set menu text align(menu handle, new align)
+#set menu textcolor(menu handle, new textcolor)
 
 script, textbox tests, begin
   $0="textbox tests"
@@ -667,26 +698,6 @@ end
 #set level MP (who, mp level slot, new value)
 #set load script (id)
 #set map edge mode (mode, default tile)
-#set menu anchor x(menu handle, new anchor)
-#set menu anchor y(menu handle, new anchor)
-#set menu bit(menu handle, bit, value)
-#set menu border(menu handle, new border)
-#set menu boxstyle(menu handle, new box style)
-#set menu item bit(menu item handle, bit, value)
-#set menu item extra(menu item handle, extra, num)
-#set menu item settag(menu item handle, new settag)
-#set menu item subtype(menu item handle, new subtype)
-#set menu item tag(menu item handle, new tag, whichtag)
-#set menu item togtag(menu item handle, new settag)
-#set menu item type(menu item handle, new type)
-#set menu max chars(menu handle, new max)
-#set menu max rows(menu handle, new max rows)
-#set menu min chars(menu handle, new min)
-#set menu offset x(menu handle, new x)
-#set menu offset y(menu handle, new y)
-#set menu on close script(menu handle, script id)
-#set menu text align(menu handle, new align)
-#set menu textcolor(menu handle, new textcolor)
 #set minutes of play (min)
 #set money (amount)
 #set music volume (volume)
