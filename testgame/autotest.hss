@@ -84,6 +84,7 @@ script, menu tests, begin
   $0="menu tests"
   variable(i, m, mi, main, m1)
   m := create menu, w
+  if(get menu id(m) <> -1) then($0="get menu id should have reported -1 for script-generated menu", crash)
   
   mi := add menu item(m), w
   $1="Puppies"
@@ -156,8 +157,29 @@ script, menu tests, begin
   if(find menu ID(1) <> 0) then($0="found unopened menu", crash)
   open menu(1),w
   m1 := find menu ID(1)
+  if(get menu ID(m1) <> 1) then($0="get menu ID mismatch vs find menu", crash)
   if(m1 == 0) then($0="failed to find opened menu", crash)  
   close menu(m1),w
+
+  for(i, -3, 12) do(
+    set menu border(main, i), w
+  )
+  if(get menu border(main) <> 12) then($0="readback of menu border thickness failed", crash)
+  for(i, 0, 10) do(
+    set menu boxstyle(main, i)
+  )
+  if(get menu boxstyle(main) <> 10) then($0="readback of menu boxstyle failed", crash)
+
+  for(i, 0, 15) do(
+    set menu max chars(main, i), w
+    if(get menu max chars(main) <> i) then($0="readback of menu max chars failed", crash)
+  )
+  set menu max chars(main, 0), w
+  for(i, 10, 30) do(
+    set menu min chars(main, i), w
+    if(get menu min chars(main) <> i) then($0="readback of menu min chars failed", crash)
+  )
+  set menu min chars(main, 0), w
 
   set menu bit(main, 0, true), w  #Transparent box
   if(get menu bit(main, 0) <> true) then($0="failed to set menu bit", crash)
@@ -180,9 +202,6 @@ script, menu tests, begin
 
   if(menu is open(main)) then($0="why is the main menu still open?", crash)
 end
-#get menu border(menu handle)
-#get menu boxstyle(menu handle)
-#get menu ID(menu handle)
 #get menu item bit(menu item handle, bit)
 #get menu item extra(menu item handle, extra)
 #get menu item settag(menu item handle)
@@ -190,8 +209,6 @@ end
 #get menu item tag(menu item handle, whichtag)
 #get menu item togtag(menu item handle)
 #get menu item type(menu item handle)
-#get menu max chars(menu handle)
-#get menu min chars(menu handle)
 #get menu offset x(menu handle)
 #get menu offset y(menu handle)
 #get menu on close script(menu handle)
@@ -199,8 +216,6 @@ end
 #get menu textcolor(menu handle)
 #set menu anchor x(menu handle, new anchor)
 #set menu anchor y(menu handle, new anchor)
-#set menu border(menu handle, new border)
-#set menu boxstyle(menu handle, new box style)
 #set menu item bit(menu item handle, bit, value)
 #set menu item extra(menu item handle, extra, num)
 #set menu item settag(menu item handle, new settag)
@@ -208,8 +223,6 @@ end
 #set menu item tag(menu item handle, new tag, whichtag)
 #set menu item togtag(menu item handle, new settag)
 #set menu item type(menu item handle, new type)
-#set menu max chars(menu handle, new max)
-#set menu min chars(menu handle, new min)
 #set menu offset x(menu handle, new x)
 #set menu offset y(menu handle, new y)
 #set menu on close script(menu handle, script id)
