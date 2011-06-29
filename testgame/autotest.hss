@@ -181,6 +181,23 @@ script, menu tests, begin
   )
   set menu min chars(main, 0), w
 
+  for(i, -50, 50, 10) do(
+    set menu offset x(main, i), w
+    if(get menu offset x(main) <> i) then($0="readback of menu offset x failed", crash)
+    set menu offset y(main, i), w
+    if(get menu offset y(main) <> i) then($0="readback of menu offset y failed", crash)
+  )
+  set menu offset x(main, 0)
+  set menu offset y(main, 0)
+  for(i, align:left, align:right) do(
+    set menu anchor x(main, i), w
+    if(get menu anchor x(main) <> i) then($0="readback of menu anchor x failed", crash)
+    set menu anchor y(main, i), w
+    if(get menu anchor y(main) <> i) then($0="readback of menu anchor y failed", crash)
+  )
+  set menu anchor x(main, 0), w
+  set menu anchor y(main, 0), w
+
   set menu bit(main, 0, true), w  #Transparent box
   if(get menu bit(main, 0) <> true) then($0="failed to set menu bit", crash)
   set menu bit(main, 0, false), w #Opaque box
@@ -209,13 +226,9 @@ end
 #get menu item tag(menu item handle, whichtag)
 #get menu item togtag(menu item handle)
 #get menu item type(menu item handle)
-#get menu offset x(menu handle)
-#get menu offset y(menu handle)
 #get menu on close script(menu handle)
 #get menu text align(menu handle)
 #get menu textcolor(menu handle)
-#set menu anchor x(menu handle, new anchor)
-#set menu anchor y(menu handle, new anchor)
 #set menu item bit(menu item handle, bit, value)
 #set menu item extra(menu item handle, extra, num)
 #set menu item settag(menu item handle, new settag)
@@ -223,8 +236,6 @@ end
 #set menu item tag(menu item handle, new tag, whichtag)
 #set menu item togtag(menu item handle, new settag)
 #set menu item type(menu item handle, new type)
-#set menu offset x(menu handle, new x)
-#set menu offset y(menu handle, new y)
 #set menu on close script(menu handle, script id)
 #set menu text align(menu handle, new align)
 #set menu textcolor(menu handle, new textcolor)
