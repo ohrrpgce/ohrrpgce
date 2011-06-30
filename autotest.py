@@ -66,10 +66,14 @@ class Options(object):
         parser.add_option("-g", "--gif",
                   action="store_true", dest="anim", default=False,
                   help="Create an animating gif to display the difference between the old and new screenshots (requires ImageMagick's convert utility to be installed)")
+        parser.add_option("-p", "--replay",
+                  action="store_true", dest="replay", default=False,
+                  help="If a .ohrkey recorded playthrough exists with the same name as the rpg file, it will be played back.")
         (options, args) = parser.parse_args()
         self.rev = options.rev
         self.again = options.again
         self.anim = options.anim
+        self.replay = options.replay
         self.rpgs = args
         self.parser = parser
 
@@ -186,7 +190,14 @@ class AutoTest(object):
         print "running %s in %s and puting checkpoints in %s" % (rpg, os.getcwd(), dump_dir)
         print "------"
         delete_pattern(os.path.join(dump_dir, "checkpoint*.bmp"))
-        run_command("%s -z 1 -autotest '%s'" % (self.plat.game, rpg))
+        replay = ''
+        if self.opt.replay:
+            (prefix, ext) = os.path.splitext(rpg)
+            ohrkey = prefix + ".ohrkey"
+            if os.path.isfile(ohrkey):
+                replay = "-replayinput '%s'" % (ohrkey)
+        cmd = "%s -z 1 -autotest %s '%s'" % (self.plat.game, replay, rpg)
+        run_command(cmd)
         move_pattern("checkpoint*.bmp", dump_dir)
     
     def compare_output(self, rpg, olddir, newdir):
