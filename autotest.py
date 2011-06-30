@@ -50,7 +50,7 @@ def move_pattern(filename_pattern, dest_dir):
         shutil.move(filename, dest_dir)
         moved += 1
     if moved == 0:
-        raise Exception('No files moved using move_pattern("%s", "%s")' % (filename_pattern, dest_dir))
+        print 'NOTICE: No files moved using move_pattern("%s", "%s")' % (filename_pattern, dest_dir)
 
 ########################################################################
 
