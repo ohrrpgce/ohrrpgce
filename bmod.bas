@@ -22,12 +22,9 @@ DEFINT A-Z
 #include "bcommon.bi"
 #include "game.bi"
 #include "moresubs.bi"
-#INCLUDE "allmodex.bi"
-
-DECLARE SUB wrappedsong (songnumber)
-DECLARE SUB playtimer
-DECLARE SUB getitem (getit, num)
-DECLARE FUNCTION count_available_spells(who AS INTEGER, list AS INTEGER) AS INTEGER
+#include "allmodex.bi"
+#include "yetmore.bi"
+#include "menustuf.bi"
 
 '--local subs and functions
 DECLARE FUNCTION count_dissolving_enemies(bslot() AS BattleSprite) AS INTEGER
