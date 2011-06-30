@@ -151,7 +151,7 @@ void TriRasterizer::calculateRasterPixels(std::queue< DrawingRange<T_VertexType>
 		{
 			if(!segments[i].intersects(&xIntersection[i], row))
 				continue;
-			if(xIntersection[i] < triangleRect.left || xIntersection[i] > triangleRect.right)
+			if(xIntersection[i] < triangleRect.left-.5f || xIntersection[i] > triangleRect.right+.5f)
 				continue;
 			if(xIntersection[i] < leftMost)
 			{
