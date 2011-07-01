@@ -218,9 +218,34 @@ script, menu tests, begin
   if(current text box <> -1) then($0="menu bit failed to close textbox", crash)
 
   if(menu is open(main)) then($0="why is the main menu still open?", crash)
+
+  variable(antelope, buffalo, catbus, duiker)
+  m := create menu, w
+  antelope := add menu item(m), $0="Antelope", set menu item caption(antelope, 0), w
+  buffalo  := add menu item(m), $0="Buffalo",  set menu item caption(buffalo, 0), w
+  catbus   := add menu item(m), $0="Catbus",   set menu item caption(catbus, 0), w
+  duiker   := add menu item(m), $0="Duiker",   set menu item caption(duiker, 0), w
+
+  # Hide when disabled 
+  set menu item bit(catbus, 0, true), w
+  if(get menu item bit(catbus, 0) <> true) then($0="menu item bit readback failed", crash)
+  # Disable now
+  set menu item type(catbus, menutype:label)
+  set menu item subtype(catbus, 1), w
+  # Don't hide
+  set menu item bit(catbus, 0, false), w
+
+  for(i, 0, 2) do(
+    set menu item extra(buffalo, i, (i + 1) * 10)
+    if(get menu item extra(buffalo, i) <> (i + 1) * 10) then($0="menu item extra readback failed", crash)
+  )
+
+  # close when selected
+  set menu item bit(antelope, 1, true)
+  use menu item(antelope), w
+  if(top menu == m) then($0="Even Toed Ungulate menu failed to close", crash)
+
 end
-#get menu item bit(menu item handle, bit)
-#get menu item extra(menu item handle, extra)
 #get menu item settag(menu item handle)
 #get menu item subtype(menu item handle)
 #get menu item tag(menu item handle, whichtag)
@@ -229,16 +254,26 @@ end
 #get menu on close script(menu handle)
 #get menu text align(menu handle)
 #get menu textcolor(menu handle)
-#set menu item bit(menu item handle, bit, value)
-#set menu item extra(menu item handle, extra, num)
 #set menu item settag(menu item handle, new settag)
-#set menu item subtype(menu item handle, new subtype)
 #set menu item tag(menu item handle, new tag, whichtag)
 #set menu item togtag(menu item handle, new settag)
-#set menu item type(menu item handle, new type)
 #set menu on close script(menu handle, script id)
 #set menu text align(menu handle, new align)
 #set menu textcolor(menu handle, new textcolor)
+#menu item by slot(menu handle, slot, visible only)
+#menu item slot(menu item handle)
+#next menu(menu handle)
+#next menu item(menu item handle, visible only)
+#open menu (ID, allow duplicate)
+#parent menu(menu item handle)
+#previous menu(menu handle)
+#previous menu item(menu item handle, visible only)
+#selected menu item(menu handle)
+#select menu item(menu item handle)
+#swap menu items(handle1, handle2)
+#top menu
+#use menu item(menu item handle)
+#wait for menu (menu handle)
 
 script, textbox tests, begin
   $0="textbox tests"
@@ -537,9 +572,6 @@ end
 #map width (map)
 #maximum stat
 #me
-#menu item by slot(menu handle, slot, visible only)
-#menu item slot(menu item handle)
-#menu key
 #milliseconds
 #minutes of play
 #number,mod,number
@@ -555,8 +587,6 @@ end
 #move slice to (handle, x, y, ticks)
 #number * number
 #next container sibling(handle)
-#next menu(menu handle)
-#next menu item(menu item handle, visible only)
 #next rect sibling(handle)
 #next sibling(handle)
 #next sprite sibling(handle)
@@ -583,14 +613,12 @@ end
 #off
 #on
 #one
-#open menu (ID, allow duplicate)
 #value,or,value
 #order menu
 #outside battle
 #outside battle cure
 #overhead tile
 #pan camera (direction,distance,pixelstep)
-#parent menu(menu item handle)
 #parent slice (handle)
 #party
 #party money
@@ -602,8 +630,6 @@ end
 #play sound (num,loop,preempt)
 #plotscript, name, argumentnames (statements)
 #positionstring (ID, x, y)
-#previous menu(menu handle)
-#previous menu item(menu item handle, visible only)
 #previous sibling(handle)
 #put camera (x,y)
 #put hero (who, x, y)
@@ -670,8 +696,6 @@ end
 #search string (ID1, ID2, start)
 #seconds of play
 #seed random (new seed)
-#selected menu item(menu handle)
-#select menu item(menu item handle)
 #set ambient music (song)
 #set battle wait mode (state)
 #set bottom padding (handle, pixels)
@@ -860,7 +884,6 @@ end
 #swap by name (name,name)
 #swap by position (position,position)
 #swap in hero (who)
-#swap menu items(handle1, handle2)
 #swap out hero (who)
 #switch(expression)
 #system day
@@ -881,7 +904,6 @@ end
 #timer flag: critical
 #timer flag: menu
 #timer: game over
-#top menu
 #total experience (who)
 #trace (string)
 #trace value (expression, ...)
@@ -899,7 +921,6 @@ end
 #use item (item)
 #use item in slot(slot)
 #use key
-#use menu item(menu item handle)
 #use NPC (who)
 #use shop (shop)
 #variable (name)
@@ -910,7 +931,6 @@ end
 #wait for all
 #wait for camera
 #wait for key (key)
-#wait for menu (menu handle)
 #wait for NPC (who)
 #wait for scancode (key)
 #wait for slice (handle)
