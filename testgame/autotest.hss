@@ -254,6 +254,15 @@ script, menu tests, begin
   if(check tag(3)) then($0="tag 3 should be toggled off again (menu)", crash)
   set menu item togtag(catbus, 0)
 
+  for(i, 1, 2) do(
+    set menu item tag(catbus, -3, i), w
+    if(get menu item tag(catbus, i) <> -3) then($0="menu item tag readback failed", crash)
+    set tag(3, ON), w
+    set menu item tag(catbus, 3, i), w
+    set tag(3, OFF), w
+    set menu item tag(catbus, 0, i), w
+  )
+  
   for(i, 0, 2) do(
     set menu item extra(buffalo, i, (i + 1) * 10)
     if(get menu item extra(buffalo, i) <> (i + 1) * 10) then($0="menu item extra readback failed", crash)
