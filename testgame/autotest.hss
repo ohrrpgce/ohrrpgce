@@ -10,6 +10,8 @@ include, plotscr.hsd
 
 define constant(1, default wait)
 
+global variable(100, menu item script global)
+
 ########################################################################
 
 plotscript, run all tests, begin
@@ -234,11 +236,69 @@ script, menu tests, begin
   set menu item subtype(catbus, 1), w
   # Don't hide
   set menu item bit(catbus, 0, false), w
+  # Re-enable
+  set menu item subtype(catbus, 0), w
+
+  set menu item settag(catbus, 3)
+  if(get menu item settag(catbus) <> 3) then($0="menu item settag readback failed", crash)
+  if(check tag(3)) then($0="tag 3 shouldn't be on yet (menu)", crash)
+  use menu item(catbus), w
+  if(not(check tag(3))) then($0="tag 3 shouldn't be on now (menu)", crash)
+  set menu item settag(catbus, 0)
+  set menu item togtag(catbus, 3)
+  use menu item(catbus), w
+  if(check tag(3)) then($0="tag 3 should be toggled off (menu)", crash)
+  use menu item(catbus), w
+  if(check tag(3)==OFF) then($0="tag 3 should be toggled on (menu)", crash)
+  use menu item(catbus), w
+  if(check tag(3)) then($0="tag 3 should be toggled off again (menu)", crash)
+  set menu item togtag(catbus, 0)
 
   for(i, 0, 2) do(
     set menu item extra(buffalo, i, (i + 1) * 10)
     if(get menu item extra(buffalo, i) <> (i + 1) * 10) then($0="menu item extra readback failed", crash)
   )
+  
+  set menu item type(catbus, menutype: special)
+  $0="" # use default caption
+  set menu item caption(catbus, 0), w
+  for (i, 0, 13) do(
+    set menu item subtype(catbus, i), w
+  )
+  $0="Catbus, not Save"
+  set menu item caption(catbus, 0), w
+  $0=""
+  set menu item caption(catbus, 0), w
+  set menu item type(catbus, menutype:menu), w
+  for(i, 0, 2) do(
+    set menu item subtype(catbus, i), w
+    if(get menu item subtype(catbus) <> i) then($0="menu item subtype readback failed", crash)
+  )
+  $0="Catbus"
+  set menu item caption(catbus, 0), w
+  
+  # open another menu
+  set menu item type(catbus, menutype:menu)
+  set menu item subtype(catbus, 2)
+  use menu item(catbus), w
+  if(get menu id(top menu) <> 2) then($0="Failed to open a menu from a menu", crash)
+  close menu(top menu), w
+
+  # open a text box
+  set menu item type(catbus, menutype:textbox)
+  set menu item subtype(catbus, 7)
+  use menu item(catbus), w
+  if(current textbox <> 7) then($0="Failed to open a text box from a menu", crash)
+  advance text box, w
+
+  if(get menu item type(catbus) <> menutype:textbox) then($0="menu item type readback failed", crash)
+  set menu item type(catbus, menutype:label)
+
+  # run a script from a menu
+  set menu item type(catbus, menutype:script)
+  set menu item subtype(catbus, @on menu item use)
+  use menu item(catbus), w
+  if(menu item script global <> 99) then($0="Failed to run a script from a menu", crash)
 
   # close when selected
   set menu item bit(antelope, 1, true)
@@ -246,17 +306,16 @@ script, menu tests, begin
   if(top menu == m) then($0="Even Toed Ungulate menu failed to close", crash)
 
 end
-#get menu item settag(menu item handle)
-#get menu item subtype(menu item handle)
+
+script, on menu item use, begin
+  menu item script global := 99
+end
+
 #get menu item tag(menu item handle, whichtag)
-#get menu item togtag(menu item handle)
-#get menu item type(menu item handle)
 #get menu on close script(menu handle)
 #get menu text align(menu handle)
 #get menu textcolor(menu handle)
-#set menu item settag(menu item handle, new settag)
 #set menu item tag(menu item handle, new tag, whichtag)
-#set menu item togtag(menu item handle, new settag)
 #set menu on close script(menu handle, script id)
 #set menu text align(menu handle, new align)
 #set menu textcolor(menu handle, new textcolor)
@@ -271,8 +330,6 @@ end
 #selected menu item(menu handle)
 #select menu item(menu item handle)
 #swap menu items(handle1, handle2)
-#top menu
-#use menu item(menu item handle)
 #wait for menu (menu handle)
 
 script, textbox tests, begin
