@@ -6,7 +6,7 @@ QuadRasterizer g_rasterizer;
 std::list< Surface > g_surfaces;
 std::list< Palette > g_palettes;
 
-int gfx_surfaceCreate( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
+int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut )
 {//done
 	if( !ppSurfaceOut )
 		return -1;
@@ -23,7 +23,7 @@ int gfx_surfaceCreate( uint32_t width, uint32_t height, SurfaceFormat format, Su
 	return 0;
 }
 
-int gfx_surfaceDestroy( Surface* pSurfaceIn )
+int gfx_surfaceDestroy_SW( Surface* pSurfaceIn )
 {//done
 	if(pSurfaceIn)
 	{
@@ -45,17 +45,17 @@ int gfx_surfaceDestroy( Surface* pSurfaceIn )
 	return 0;
 }
 
-int gfx_surfaceUpdate( Surface* pSurfaceIn )
+int gfx_surfaceUpdate_SW( Surface* pSurfaceIn )
 {//done
 	return 0;
 }
 
-int gfx_surfaceGetData( Surface* pSurfaceIn )
+int gfx_surfaceGetData_SW( Surface* pSurfaceIn )
 {//done
 	return 0;
 }
 
-int gfx_surfaceFill( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn )
+int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn )
 {//done
 	if( !pSurfaceIn )
 		return -1;
@@ -84,12 +84,12 @@ int gfx_surfaceFill( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn
 	return 0;
 }
 
-int gfx_surfaceStretch( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//needs work
-	return 0;
+	return -1;
 }
 
-int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( !pSurfaceSrc || !pSurfaceDest )
 		return -1;
@@ -194,7 +194,7 @@ int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPale
 	return 0;
 }
 
-int gfx_paletteCreate( Palette** ppPaletteOut )
+int gfx_paletteCreate_SW( Palette** ppPaletteOut )
 {//done
 	if( !ppPaletteOut )
 		return -1;
@@ -205,7 +205,7 @@ int gfx_paletteCreate( Palette** ppPaletteOut )
 	return 0;
 }
 
-int gfx_paletteDestroy( Palette* pPaletteIn )
+int gfx_paletteDestroy_SW( Palette* pPaletteIn )
 {//done
 	if( pPaletteIn )
 	{
@@ -220,12 +220,12 @@ int gfx_paletteDestroy( Palette* pPaletteIn )
 	return 0;
 }
 
-int gfx_paletteUpdate( Palette* pPaletteIn )
+int gfx_paletteUpdate_SW( Palette* pPaletteIn )
 {//done
 	return 0;
 }
 
-int gfx_renderQuadColor( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderQuadColor_SW( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
@@ -237,7 +237,7 @@ int gfx_renderQuadColor( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect* pR
 	return 0;
 }
 
-int gfx_renderQuadTexture( VertexPT* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderQuadTexture_SW( VertexPT* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
@@ -249,7 +249,7 @@ int gfx_renderQuadTexture( VertexPT* pQuad, Surface* pTexture, Palette* pPalette
 	return 0;
 }
 
-int gfx_renderQuadTextureColor( VertexPTC* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderQuadTextureColor_SW( VertexPTC* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
@@ -261,7 +261,7 @@ int gfx_renderQuadTextureColor( VertexPTC* pQuad, Surface* pTexture, Palette* pP
 	return 0;
 }
 
-int gfx_renderTriangleColor( VertexPC* pTriangle, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderTriangleColor_SW( VertexPC* pTriangle, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
@@ -273,7 +273,7 @@ int gfx_renderTriangleColor( VertexPC* pTriangle, uint32_t argbModifier, Surface
 	return 0;
 }
 
-int gfx_renderTriangleTexture( VertexPT* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
@@ -285,7 +285,7 @@ int gfx_renderTriangleTexture( VertexPT* pTriangle, Surface* pTexture, Palette* 
 	return 0;
 }
 
-int gfx_renderTriangleTextureColor( VertexPTC* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( pSurfaceDest->format == SF_8bit )
 		return -1; //can't have 8bit destination
@@ -297,7 +297,7 @@ int gfx_renderTriangleTextureColor( VertexPTC* pTriangle, Surface* pTexture, Pal
 	return 0;
 }
 
-int gfx_present( Surface* pSurfaceIn, Palette* pPalette )
+int gfx_present_SW( Surface* pSurfaceIn, Palette* pPalette )
 {//done
 	return 0;
 }

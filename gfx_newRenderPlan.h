@@ -167,27 +167,27 @@ struct VertexPTC
 //interfaces
 extern "C"
 {
-	int gfx_surfaceCreate( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut );
-	int gfx_surfaceDestroy( Surface* pSurfaceIn );
-	int gfx_surfaceUpdate( Surface* pSurfaceIn );
-	int gfx_surfaceGetData( Surface* pSurfaceIn );
-	int gfx_surfaceFill( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
-	int gfx_surfaceStretch( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut );
+	int gfx_surfaceDestroy_SW( Surface* pSurfaceIn );
+	int gfx_surfaceUpdate_SW( Surface* pSurfaceIn );
+	int gfx_surfaceGetData_SW( Surface* pSurfaceIn );
+	int gfx_surfaceFill_SW( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
+	int gfx_surfaceStretch_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_surfaceCopy_SW( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 
-	int gfx_paletteCreate( Palette** ppPaletteOut );
-	int gfx_paletteDestroy( Palette* pPaletteIn );
-	int gfx_paletteUpdate( Palette* pPaletteIn );
+	int gfx_paletteCreate_SW( Palette** ppPaletteOut );
+	int gfx_paletteDestroy_SW( Palette* pPaletteIn );
+	int gfx_paletteUpdate_SW( Palette* pPaletteIn );
 
-	int gfx_renderQuadColor( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_renderQuadTexture( VertexPT* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_renderQuadTextureColor( VertexPTC* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderQuadColor_SW( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderQuadTexture_SW( VertexPT* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderQuadTextureColor_SW( VertexPTC* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 
-	int gfx_renderTriangleColor( VertexPC* pTriangle, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_renderTriangleTexture( VertexPT* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_renderTriangleTextureColor( VertexPTC* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderTriangleColor_SW( VertexPC* pTriangle, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderTriangleTexture_SW( VertexPT* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderTriangleTextureColor_SW( VertexPTC* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 
-	int gfx_present( Surface* pSurfaceIn, Palette* pPalette );
+	int gfx_present_SW( Surface* pSurfaceIn, Palette* pPalette );
 };
 
 #endif
