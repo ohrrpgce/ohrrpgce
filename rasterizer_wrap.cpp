@@ -28,5 +28,5 @@ void frame_draw_transformed(Frame *dest, Frame *src, float3 vertices[4]) {
 	destsurf.format = SF_8bit; //this is going to fail now in the render call
 	destsurf.usage = SU_RenderTarget;
 	destsurf.pPaletteData = dest->image;
-	gfx_renderQuadTexture( quad, &srcsurf, 0, 0x0, 0xffffffff, 0, &destsurf );
+	gfx_renderQuadTexture_SW( quad, &srcsurf, 0, 0x0, 0xffffffff, 0, &destsurf );
 }
