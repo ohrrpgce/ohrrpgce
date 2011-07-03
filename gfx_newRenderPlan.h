@@ -17,7 +17,7 @@ enum SurfaceUsage
 {
 	SU_Source = 0,
 	SU_RenderTarget = 1,
-	SU_Backbuffer = 2,
+	//SU_Backbuffer = 2,
 };
 struct Surface
 {
@@ -50,14 +50,22 @@ struct Position
 	//FPInt x,y;
 	Position() : x(0), y(0) {}
 	Position(float X, float Y) : x(X), y(Y) {}
-	//Position operator+(const Position& rhs) const {Position tmp = {x+rhs.x, y+rhs.y}; return tmp;}
-	//Position operator-(const Position& rhs) const {Position tmp = {x-rhs.x, y-rhs.y}; return tmp;}
-	//Position operator*(const Position& rhs) const {Position tmp = {x*rhs.x, y*rhs.y}; return tmp;}
-	//Position operator/(const Position& rhs) const {Position tmp = {x/rhs.x, y/rhs.y}; return tmp;}
-	//Position& operator+=(const Position& rhs) {x += rhs.x; y += rhs.y; return *this;}
-	//Position& operator-=(const Position& rhs) {x -= rhs.x; y -= rhs.y; return *this;}
-	//Position& operator*=(const Position& rhs) {x *= rhs.x; y *= rhs.y; return *this;}
-	//Position& operator/=(const Position& rhs) {x /= rhs.x; y /= rhs.y; return *this;}
+	Position operator+(const Position& rhs) const {Position tmp(x+rhs.x, y+rhs.y); return tmp;}
+	Position operator-(const Position& rhs) const {Position tmp(x-rhs.x, y-rhs.y); return tmp;}
+	Position operator*(const Position& rhs) const {Position tmp(x*rhs.x, y*rhs.y); return tmp;}
+	Position operator/(const Position& rhs) const {Position tmp(x/rhs.x, y/rhs.y); return tmp;}
+	Position& operator+=(const Position& rhs) {x += rhs.x; y += rhs.y; return *this;}
+	Position& operator-=(const Position& rhs) {x -= rhs.x; y -= rhs.y; return *this;}
+	Position& operator*=(const Position& rhs) {x *= rhs.x; y *= rhs.y; return *this;}
+	Position& operator/=(const Position& rhs) {x /= rhs.x; y /= rhs.y; return *this;}
+	Position operator+(float rhs) const {Position tmp(x+rhs, y+rhs); return tmp;}
+	Position operator-(float rhs) const {Position tmp(x-rhs, y-rhs); return tmp;}
+	Position operator*(float rhs) const {Position tmp(x*rhs, y*rhs); return tmp;}
+	Position operator/(float rhs) const {Position tmp(x/rhs, y/rhs); return tmp;}
+	Position& operator+=(float rhs) {x += rhs; y += rhs; return *this;}
+	Position& operator-=(float rhs) {x -= rhs; y -= rhs; return *this;}
+	Position& operator*=(float rhs) {x *= rhs; y *= rhs; return *this;}
+	Position& operator/=(float rhs) {x /= rhs; y /= rhs; return *this;}
 };
 struct TexCoord
 {
@@ -65,14 +73,22 @@ struct TexCoord
 	//FPInt u,v;
 	TexCoord() : u(0), v(0) {}
 	TexCoord(float U, float V) : u(U), v(V) {}
-	//TexCoord operator+(const TexCoord& rhs) const {TexCoord tmp = {u+rhs.u, v+rhs.v}; return tmp;}
-	//TexCoord operator-(const TexCoord& rhs) const {TexCoord tmp = {u-rhs.u, v-rhs.v}; return tmp;}
-	//TexCoord operator*(const TexCoord& rhs) const {TexCoord tmp = {u*rhs.u, v*rhs.v}; return tmp;}
-	//TexCoord operator/(const TexCoord& rhs) const {TexCoord tmp = {u/rhs.u, v/rhs.v}; return tmp;}
-	//TexCoord& operator+=(const TexCoord& rhs) {u += rhs.u; v += rhs.v; return *this;}
-	//TexCoord& operator-=(const TexCoord& rhs) {u -= rhs.u; v -= rhs.v; return *this;}
-	//TexCoord& operator*=(const TexCoord& rhs) {u *= rhs.u; v *= rhs.v; return *this;}
-	//TexCoord& operator/=(const TexCoord& rhs) {u /= rhs.u; v /= rhs.v; return *this;}
+	TexCoord operator+(const TexCoord& rhs) const {TexCoord tmp(u+rhs.u, v+rhs.v); return tmp;}
+	TexCoord operator-(const TexCoord& rhs) const {TexCoord tmp(u-rhs.u, v-rhs.v); return tmp;}
+	TexCoord operator*(const TexCoord& rhs) const {TexCoord tmp(u*rhs.u, v*rhs.v); return tmp;}
+	TexCoord operator/(const TexCoord& rhs) const {TexCoord tmp(u/rhs.u, v/rhs.v); return tmp;}
+	TexCoord& operator+=(const TexCoord& rhs) {u += rhs.u; v += rhs.v; return *this;}
+	TexCoord& operator-=(const TexCoord& rhs) {u -= rhs.u; v -= rhs.v; return *this;}
+	TexCoord& operator*=(const TexCoord& rhs) {u *= rhs.u; v *= rhs.v; return *this;}
+	TexCoord& operator/=(const TexCoord& rhs) {u /= rhs.u; v /= rhs.v; return *this;}
+	TexCoord operator+(float rhs) const {TexCoord tmp(u+rhs, v+rhs); return tmp;}
+	TexCoord operator-(float rhs) const {TexCoord tmp(u-rhs, v-rhs); return tmp;}
+	TexCoord operator*(float rhs) const {TexCoord tmp(u*rhs, v*rhs); return tmp;}
+	TexCoord operator/(float rhs) const {TexCoord tmp(u/rhs, v/rhs); return tmp;}
+	TexCoord& operator+=(float rhs) {u += rhs; v += rhs; return *this;}
+	TexCoord& operator-=(float rhs) {u -= rhs; v -= rhs; return *this;}
+	TexCoord& operator*=(float rhs) {u *= rhs; v *= rhs; return *this;}
+	TexCoord& operator/=(float rhs) {u /= rhs; v /= rhs; return *this;}
 };
 struct Color //argb dword; palette stored in lowest byte, that is 'b'
 {
@@ -110,38 +126,43 @@ struct Color //argb dword; palette stored in lowest byte, that is 'b'
 		b = (b*weight + c2.b*(255-weight)) / 255;
 	}
 };
-struct VertexC
+struct VertexPC
 {
 	Position pos;
 	Color col;
-	VertexC() : pos(), col() {}
-	void interpolateComponents(const VertexC& v2, float scale) {col.scale(v2.col, 255.0f*scale);}
-};
-struct VertexT
-{
-	Position pos;
-	Color col;
-	TexCoord tex;
-	VertexT() : pos(), col(), tex() {}
-	void interpolateComponents(const VertexT& v2, float scale) {
+	VertexPC() : pos(), col() {}
+	void interpolateComponents(const VertexPC& v2, float scale) {
+		float invScale(-scale + 1.0f);
+		pos = pos * scale + v2.pos * invScale;
 		col.scale(v2.col, 255.0f*scale);
-		float invScale(-scale + 1);
+	}
+};
+struct VertexPT
+{
+	Position pos;
+	TexCoord tex;
+	VertexPT() : pos(), tex() {}
+	void interpolateComponents(const VertexPT& v2, float scale) {
+		float invScale(-scale + 1.0f);
+		pos = pos * scale + v2.pos * invScale;
 		tex.u = scale * tex.u + invScale * v2.tex.u;
 		tex.v = scale * tex.v + invScale * v2.tex.v;
 	}
 };
-
-//quads
-struct QuadC
+struct VertexPTC
 {
-	VertexC pnt[4];
+	Position pos;
+	Color col;
+	TexCoord tex;
+	VertexPTC() : pos(), col(), tex() {}
+	void interpolateComponents(const VertexPTC& v2, float scale) {
+		float invScale(-scale + 1.0f);
+		pos = pos * scale + v2.pos * invScale;
+		tex.u = scale * tex.u + invScale * v2.tex.u;
+		tex.v = scale * tex.v + invScale * v2.tex.v;
+		col.scale(v2.col, 255.0f*scale);
+	}
 };
-struct QuadT
-{
-	VertexT pnt[4];
-};
-
-
 
 //interfaces
 extern "C"
@@ -149,23 +170,24 @@ extern "C"
 	int gfx_surfaceCreate( uint32_t width, uint32_t height, SurfaceFormat format, SurfaceUsage usage, Surface** ppSurfaceOut );
 	int gfx_surfaceDestroy( Surface* pSurfaceIn );
 	int gfx_surfaceUpdate( Surface* pSurfaceIn );
+	int gfx_surfaceGetData( Surface* pSurfaceIn );
 	int gfx_surfaceFill( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn );
-	int gfx_surfaceStretch( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette );
-	int gfx_surfaceStretchWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette, uint8_t colorKey );
-	int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette );
-	int gfx_surfaceCopyWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette, uint8_t colorKey );
+	int gfx_surfaceStretch( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 
 	int gfx_paletteCreate( Palette** ppPaletteOut );
 	int gfx_paletteDestroy( Palette* pPaletteIn );
 	int gfx_paletteUpdate( Palette* pPaletteIn );
 
-	int gfx_renderQuadColor( QuadC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_renderQuadTexture( QuadT* pQuad, Surface* pTexture, Palette* pPalette, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_renderQuadTextureWithColorKey( QuadT* pQuad, Surface* pTexture, Palette* pPalette, uint8_t colorKey, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
-	int gfx_renderBegin();
-	int gfx_renderEnd();
+	int gfx_renderQuadColor( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderQuadTexture( VertexPT* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderQuadTextureColor( VertexPTC* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
 
-	int gfx_present( Surface* pSurfaceIn );
+	int gfx_renderTriangleColor( VertexPC* pTriangle, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderTriangleTexture( VertexPT* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+	int gfx_renderTriangleTextureColor( VertexPTC* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest );
+
+	int gfx_present( Surface* pSurfaceIn, Palette* pPalette );
 };
 
 #endif

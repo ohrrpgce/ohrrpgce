@@ -15,16 +15,12 @@
 class Tex2DSampler
 {
 public:
-	Color sample(const Surface* pSurface, FPInt x, FPInt y) const;
+	Color sample(const Surface* pTexture, FPInt u, FPInt v) const {return ( (pTexture->format == SF_8bit) ? sample8bit(pTexture, u, v) : sample32bit(pTexture, u, v) );}
+	Color sample8bit(const Surface* pTexture, FPInt u, FPInt v) const;
+	Color sample32bit(const Surface* pTexture, FPInt u, FPInt v) const;
 };
 
-template <class T_VertexType>
-struct Triangle
-{
-	T_VertexType pnt[3];
-};
-
-struct ClippingRect
+struct ClippingRectF
 {
 	float left, top, right, bottom;
 	//FPInt left, top, right, bottom;
@@ -73,54 +69,30 @@ class TriRasterizer
 {
 protected:
 	Tex2DSampler m_sampler;
-	//void calculateTriangleRect(ClippingRect& clipOut, const Triangle* pTriangle);
-	//void interpolateTexCoord(TexCoord& texOut, const TexCoord& t1, const TexCoord& t2, float scale);
-	//Color interpolateColor(Color c1, Color c2, float scale);
 	template <class T_VertexType>
-	void calculateRasterPixels(std::queue< DrawingRange<T_VertexType> >& rasterLinesOut, const Surface* pSurface, const Triangle<T_VertexType>* pTriangle, ClippingRect& clip);
-	void rasterColor(Surface* pSurfaceDest, const DrawingRange<VertexC>& range, Color argbModifier);
-	void rasterTexture(Surface* pSurfaceDest, const DrawingRange<VertexT>& range, const Surface* pTexture, const Palette* pPalette, Color argbModifier);
-	void rasterTextureWithColorKey(Surface* pSurfaceDest, const DrawingRange<VertexT>& range, const Surface* pTexture, const Palette* pPalette, uint8_t colorKey, Color argbModifier);
+	void calculateTriangleRect(const T_VertexType* pTriangle, ClippingRectF& clipOut);
+	template <class T_VertexType>
+	void calculateRasterPixels(const Surface* pSurfaceDest, const T_VertexType* pTriangle, ClippingRectF& clipRgn, ClippingRectF& triangleRgn, std::queue< DrawingRange<T_VertexType> >& rasterLinesOut);
+	void rasterColor(const DrawingRange<VertexPC>& range, Surface* pSurfaceDest);
+	void rasterTexture(const DrawingRange<VertexPT>& range, const Surface* pTexture, const Palette* pPalette, Surface* pSurfaceDest);
+	void rasterTextureWithColorKey0(const DrawingRange<VertexPT>& range, const Surface* pTexture, const Palette* pPalette, Surface* pSurfaceDest);
+	void rasterTextureColor(const DrawingRange<VertexPTC>& range, const Surface* pTexture, const Palette* pPalette, Surface* pSurfaceDest);
+	void rasterTextureColorWithColorKey0(const DrawingRange<VertexPTC>& range, const Surface* pTexture, const Palette* pPalette, Surface* pSurfaceDest);
 public:
-	void drawColor(Surface* pSurface, SurfaceRect* pRect, const Triangle<VertexC>* pTriangle, Color argbModifier);
-	void drawTexture(Surface* pSurface, SurfaceRect* pRect, const Triangle<VertexT>* pTriangle, const Surface* pTexture, const Palette* pPalette, Color argbModifier);
-	void drawTextureWithColorKey(Surface* pSurface, SurfaceRect* pRect, const Triangle<VertexT>* pTriangle, const Surface* pTexture, const Palette* pPalette, uint8_t colorKey, Color argbModifier);
+	void drawTriangleColor(VertexPC* pTriangle, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
+	void drawTriangleTexture(VertexPT* pTriangle, const Surface* pTexture, const Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest);
+	void drawTriangleTextureColor(VertexPTC* pTriangle, const Surface* pTexture, const Palette* pPalette, int bUseColorKey0, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
 };
 
-class QuadRasterizer
+class QuadRasterizer : public TriRasterizer
 {
 protected:
-	TriRasterizer m_triRasterizer;
-	void generateTriangles(Triangle<VertexC>* pTriangles, const QuadC* pQuad);
-	void generateTriangles(Triangle<VertexT>* pTriangles, const QuadT* pQuad);
+	template <class T_VertexType>
+	void generateTriangles(const T_VertexType* pQuad, T_VertexType* pTriangles);
 public:
-	void drawColor(Surface* pSurface, SurfaceRect* pRect, const QuadC* pQuad, Color col)
-	{
-		if(pSurface == NULL || pQuad == NULL)
-			return;
-		Triangle<VertexC> triangles[4];
-		generateTriangles(triangles, pQuad);
-		for(int i = 0; i < 4; i++)
-			m_triRasterizer.drawColor(pSurface, pRect, &triangles[i], col);
-	}
-	void drawTexture(Surface* pSurface, SurfaceRect* pRect, const QuadT* pQuad, const Surface* pTexture, const Palette* pPalette, Color argbModifier)
-	{
-		if(pSurface == NULL || pQuad == NULL)
-			return;
-		Triangle<VertexT> triangles[4];
-		generateTriangles(triangles, pQuad);
-		for(int i = 0; i < 4; i++)
-			m_triRasterizer.drawTexture(pSurface, pRect, &triangles[i], pTexture, pPalette, argbModifier);
-	}
-	void drawTextureWithColorKey(Surface* pSurface, SurfaceRect* pRect, const QuadT* pQuad, const Surface* pTexture, const Palette* pPalette, uint8_t colorKey, Color argbModifier)
-	{
-		if(pSurface == NULL || pQuad == NULL)
-			return;
-		Triangle<VertexT> triangles[4];
-		generateTriangles(triangles, pQuad);
-		for(int i = 0; i < 4; i++)
-			m_triRasterizer.drawTextureWithColorKey(pSurface, pRect, &triangles[i], pTexture, pPalette, colorKey, argbModifier);
-	}
+	void drawQuadColor(const VertexPC* pQuad, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
+	void drawQuadTexture(const VertexPT* pQuad, const Surface* pTexture, const Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest);
+	void drawQuadTextureColor(const VertexPTC* pQuad, const Surface* pTexture, const Palette* pPalette, int bUseColorKey0, Color argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest);
 };
 
 #endif

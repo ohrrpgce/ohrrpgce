@@ -7,15 +7,15 @@ extern "C" {
 }
 
 void frame_draw_transformed(Frame *dest, Frame *src, float3 vertices[4]) {
-	QuadT quad;
-	quad.pnt[0].tex = TexCoord(0, 0);
-	quad.pnt[1].tex = TexCoord(1, 0);
-	quad.pnt[2].tex = TexCoord(1, 1);
-	quad.pnt[3].tex = TexCoord(0, 1);
+	VertexPT quad[4];
+	quad[0].tex = TexCoord(0, 0);
+	quad[1].tex = TexCoord(1, 0);
+	quad[2].tex = TexCoord(1, 1);
+	quad[3].tex = TexCoord(0, 1);
 	for (int i = 0; i < 4; i++) {
-		quad.pnt[i].col = 0xffffffff;
-		quad.pnt[i].pos.x = vertices[i].x;
-		quad.pnt[i].pos.y = vertices[i].y;
+		quad[i].col = 0xffffffff;
+		quad[i].pos.x = vertices[i].x;
+		quad[i].pos.y = vertices[i].y;
 	}
 	Surface srcsurf, destsurf;
 	srcsurf.width = src->w;
@@ -25,8 +25,8 @@ void frame_draw_transformed(Frame *dest, Frame *src, float3 vertices[4]) {
 	srcsurf.pPaletteData = src->image;
 	destsurf.width = dest->w;
 	destsurf.height = dest->h;
-	destsurf.format = SF_8bit;
+	destsurf.format = SF_8bit; //this is going to fail now in the render call
 	destsurf.usage = SU_RenderTarget;
 	destsurf.pPaletteData = dest->image;
-	gfx_renderQuadTextureWithColorKey( &quad, &srcsurf, 0, 0x0, 0xffffffff, 0, &destsurf );
+	gfx_renderQuadTexture( quad, &srcsurf, 0, 0x0, 0xffffffff, 0, &destsurf );
 }

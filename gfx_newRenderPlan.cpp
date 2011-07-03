@@ -40,13 +40,17 @@ int gfx_surfaceDestroy( Surface* pSurfaceIn )
 				g_surfaces.erase(iter);
 				break;
 			}
-		//delete pSurfaceIn;
 	}
 
 	return 0;
 }
 
 int gfx_surfaceUpdate( Surface* pSurfaceIn )
+{//done
+	return 0;
+}
+
+int gfx_surfaceGetData( Surface* pSurfaceIn )
 {//done
 	return 0;
 }
@@ -80,17 +84,12 @@ int gfx_surfaceFill( uint32_t fillColor, SurfaceRect* pRect, Surface* pSurfaceIn
 	return 0;
 }
 
-int gfx_surfaceStretch( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette )
+int gfx_surfaceStretch( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//needs work
 	return 0;
 }
 
-int gfx_surfaceStretchWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette, uint8_t colorKey )
-{//needs work
-	return 0;
-}
-
-int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette )
+int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
 	if( !pSurfaceSrc || !pSurfaceDest )
 		return -1;
@@ -126,6 +125,8 @@ int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* p
 		destY = pRectDest->top;
 	}
 	
+	int8_t value = 0; //used for 8bit to 8bit, or 8bit to 32bit when using a colorkey
+
 	if( pSurfaceSrc->format == SF_32bit ) //both are 32bit (since already validated destination target)
 	{
 		for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
@@ -138,11 +139,26 @@ int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* p
 	}
 	else if( pSurfaceDest->format == SF_8bit ) //both are 8bit
 	{
-		for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
+		if( bUseColorKey0 )
 		{
-			for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
+			for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
 			{
-				pSurfaceDest->pPaletteData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
+				for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
+				{
+					value = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
+					if( !value )
+						pSurfaceDest->pPaletteData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = value;
+				}
+			}
+		}
+		else
+		{
+			for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
+			{
+				for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
+				{
+					pSurfaceDest->pPaletteData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
+				}
 			}
 		}
 	}
@@ -151,78 +167,26 @@ int gfx_surfaceCopy( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* p
 		if( !pPalette )
 			return -1;
 
-		for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
+		if( bUseColorKey0 )
 		{
-			for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
+			for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
 			{
-				pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->p[ pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)] ];
+				for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
+				{
+					value = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
+					if( !value )
+						pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->p[value];
+				}
 			}
 		}
-	}
-
-	return 0;
-}
-
-int gfx_surfaceCopyWithColorKey( SurfaceRect* pRectSrc, Surface* pSurfaceSrc, SurfaceRect* pRectDest, Surface* pSurfaceDest, Palette* pPalette, uint8_t colorKey )
-{//done
-	if( !pSurfaceSrc || !pSurfaceDest )
-		return -1;
-
-	int32_t srcWidth = 0, srcHeight = 0, srcX = 0, srcY = 0;
-	int32_t destWidth = 0, destHeight = 0, destX = 0, destY = 0;
-	
-	if( !pRectSrc )
-	{//copy entire surface
-		srcWidth = pSurfaceSrc->width-1;
-		srcHeight = pSurfaceSrc->height-1;
-	}
-	else
-	{//copy region
-		srcWidth = pRectSrc->right - pRectSrc->left;
-		srcHeight = pRectSrc->bottom - pRectSrc->top;
-		srcX = pRectSrc->left;
-		srcY = pRectSrc->top;
-	}
-
-	if( !pRectDest )
-	{//copy to entire surface
-		destWidth = pSurfaceDest->width-1;
-		destHeight = pSurfaceDest->height-1;
-	}
-	else
-	{//copy to region
-		destWidth = pRectDest->right - pRectDest->left;
-		destHeight = pRectDest->bottom - pRectDest->top;
-		destX = pRectDest->left;
-		destY = pRectDest->top;
-	}
-	
-	int8_t value = 0;
-
-	if( pSurfaceDest->format == SF_8bit ) //both are 8bit
-	{
-		for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
+		else
 		{
-			for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
+			for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
 			{
-				value = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
-				if(value != colorKey)
-					pSurfaceDest->pPaletteData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = value;
-			}
-		}
-	}
-	else //source is 8bit, dest is 32bit
-	{
-		if( !pPalette )
-			return -1;
-
-		for(int32_t accumY = 0, accumY_max = srcHeight < destHeight ? srcHeight : destHeight; accumY <= accumY_max; accumY++)
-		{
-			for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
-			{
-				value = pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)];
-				if(value != colorKey)
-					pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->p[ value ];
+				for(int32_t accumX = 0, accumX_max = srcWidth < destWidth ? srcWidth : destWidth; accumX <= accumX_max; accumX++)
+				{
+					pSurfaceDest->pColorData[(accumY + destY) * pSurfaceDest->width + (accumX + destX)] = pPalette->p[ pSurfaceSrc->pPaletteData[(accumY + srcY) * pSurfaceSrc->width + (accumX + srcX)] ];
+				}
 			}
 		}
 	}
@@ -261,44 +225,79 @@ int gfx_paletteUpdate( Palette* pPaletteIn )
 	return 0;
 }
 
-int gfx_renderQuadColor( QuadC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderQuadColor( VertexPC* pQuad, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
+	if( pSurfaceDest->format == SF_8bit )
+		return -1; //can't have 8bit destination
+
 	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
 	if( !pRectDest )
 		pRectDest = &tmp;
-	g_rasterizer.drawColor(pSurfaceDest, pRectDest, pQuad, argbModifier);
+	g_rasterizer.drawQuadColor(pQuad, argbModifier, pRectDest, pSurfaceDest);
 	return 0;
 }
 
-int gfx_renderQuadTexture( QuadT* pQuad, Surface* pTexture, Palette* pPalette, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderQuadTexture( VertexPT* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
+	if( pSurfaceDest->format == SF_8bit )
+		return -1; //can't have 8bit destination
+
 	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
 	if( !pRectDest )
 		pRectDest = &tmp;
-	g_rasterizer.drawTexture(pSurfaceDest, pRectDest, pQuad, pTexture, pPalette, argbModifier);
+	g_rasterizer.drawQuadTexture(pQuad, pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
 	return 0;
 }
 
-int gfx_renderQuadTextureWithColorKey( QuadT* pQuad, Surface* pTexture, Palette* pPalette, uint8_t colorKey, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+int gfx_renderQuadTextureColor( VertexPTC* pQuad, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
+	if( pSurfaceDest->format == SF_8bit )
+		return -1; //can't have 8bit destination
+
 	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
 	if( !pRectDest )
 		pRectDest = &tmp;
-	g_rasterizer.drawTextureWithColorKey(pSurfaceDest, pRectDest, pQuad, pTexture, pPalette, colorKey, argbModifier);
+	g_rasterizer.drawQuadTextureColor(pQuad, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
 	return 0;
 }
 
-int gfx_renderBegin()
+int gfx_renderTriangleColor( VertexPC* pTriangle, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
+	if( pSurfaceDest->format == SF_8bit )
+		return -1; //can't have 8bit destination
+
+	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	if( !pRectDest )
+		pRectDest = &tmp;
+	g_rasterizer.drawTriangleColor(pTriangle, argbModifier, pRectDest, pSurfaceDest);
 	return 0;
 }
 
-int gfx_renderEnd()
+int gfx_renderTriangleTexture( VertexPT* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, SurfaceRect* pRectDest, Surface* pSurfaceDest )
 {//done
+	if( pSurfaceDest->format == SF_8bit )
+		return -1; //can't have 8bit destination
+
+	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	if( !pRectDest )
+		pRectDest = &tmp;
+	g_rasterizer.drawTriangleTexture(pTriangle, pTexture, pPalette, bUseColorKey0, pRectDest, pSurfaceDest);
 	return 0;
 }
 
-int gfx_present( Surface* pSurfaceIn )
+int gfx_renderTriangleTextureColor( VertexPTC* pTriangle, Surface* pTexture, Palette* pPalette, int bUseColorKey0, uint32_t argbModifier, SurfaceRect* pRectDest, Surface* pSurfaceDest )
+{//done
+	if( pSurfaceDest->format == SF_8bit )
+		return -1; //can't have 8bit destination
+
+	SurfaceRect tmp = {0,0,pSurfaceDest->width-1,pSurfaceDest->height-1};
+	if( !pRectDest )
+		pRectDest = &tmp;
+	g_rasterizer.drawTriangleTextureColor(pTriangle, pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
+	return 0;
+}
+
+int gfx_present( Surface* pSurfaceIn, Palette* pPalette )
 {//done
 	return 0;
 }
