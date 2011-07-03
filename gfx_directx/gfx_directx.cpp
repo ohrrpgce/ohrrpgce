@@ -63,7 +63,7 @@ DFI_IMPLEMENT_CDECL(int, gfx_getversion)
 
 DFI_IMPLEMENT_CDECL(void, gfx_showpage, unsigned char *raw, int w, int h)
 {
-	gfx_Present(raw, w, h, 0);
+	gfx_PresentOld(raw, w, h, 0);
 	gfx_PumpMessages();
 }
 
@@ -73,9 +73,20 @@ DFI_IMPLEMENT_CDECL(void, gfx_showpage32, unsigned int *raw, int w, int h)
 	gfx_PumpMessages();
 }
 
+DFI_IMPLEMENT_CDECL(int, gfx_present, Surface* pSurfaceIn, ::Palette* pPalette)
+{
+	if(pSurfaceIn->format == SF_32bit)
+		g_DirectX.present32( pSurfaceIn->pColorData, pSurfaceIn->width, pSurfaceIn->height );
+	else
+		g_DirectX.present( pSurfaceIn->pPaletteData, pSurfaceIn->width, pSurfaceIn->height, &gfx::Palette<UINT>(pPalette->p, 256) );
+	gfx_PumpMessages();
+
+	return 0;
+}
+
 DFI_IMPLEMENT_CDECL(void, gfx_setpal, unsigned int *pal)
 {
-	gfx_Present(0, 0, 0, pal);
+	gfx_PresentOld(0, 0, 0, pal);
 	gfx_PumpMessages();
 }
 
@@ -172,7 +183,7 @@ DFI_IMPLEMENT_CDECL(void, io_init)
 
 DFI_IMPLEMENT_CDECL(void, io_pollkeyevents)
 {
-	gfx_Present(0,0,0,0);
+	gfx_PresentOld(0,0,0,0);
 	gfx_PumpMessages();
 }
 
@@ -428,10 +439,10 @@ DFI_IMPLEMENT_CDECL(int, gfx_GetVersion)
 	return DX_VERSION_MAJOR;
 }
 
-DFI_IMPLEMENT_CDECL(void, gfx_Present, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
+DFI_IMPLEMENT_CDECL(void, gfx_PresentOld, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette)
 {
 	if(pPalette)
-		g_DirectX.present(pSurface, nWidth, nHeight, &Palette<UINT>(pPalette, 256));
+		g_DirectX.present(pSurface, nWidth, nHeight, &gfx::Palette<UINT>(pPalette, 256));
 	else
 		g_DirectX.present(pSurface, nWidth, nHeight, NULL);
 }

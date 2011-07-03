@@ -20,6 +20,43 @@ struct GFX_INIT
 	void (__cdecl *OnCriticalError)(const char* szError);
 	void (__cdecl *SendDebugString)(const char* szMessage);
 };
+#include <stdint.h>
+
+//surfaces
+enum SurfaceFormat
+{
+	SF_8bit = 0,
+	SF_32bit = 1,
+};
+enum SurfaceUsage
+{
+	SU_Source = 0,
+	SU_RenderTarget = 1,
+	//SU_Backbuffer = 2,
+};
+struct Surface
+{
+	uint32_t width;
+	uint32_t height;
+	SurfaceFormat format;
+	SurfaceUsage usage;
+	union
+	{
+		void* pRawData;
+		uint32_t* pColorData;
+		uint8_t* pPaletteData;
+	};
+};
+struct SurfaceRect
+{
+	int32_t left, top, right, bottom;
+};
+
+//palettes
+struct Palette
+{
+	uint32_t p[256];
+};
 
 
 DFI_CLASS_BEGIN( DllBackend );
@@ -58,6 +95,7 @@ DFI_DECLARE_CDECL( int, gfx_getversion );
 
 DFI_DECLARE_CDECL( void, gfx_showpage, unsigned char *raw, int w, int h ); //the main event
 DFI_DECLARE_CDECL( void, gfx_showpage32, unsigned int *raw, int w, int h ); //32bit main event
+DFI_DECLARE_CDECL( int, gfx_present, Surface* pSurfaceIn, Palette* palette ); //new interface for presentation
 DFI_DECLARE_CDECL( void, gfx_setpal, unsigned int *pal ); //set colour palette, DWORD where colors ordered b,g,r,a
 DFI_DECLARE_CDECL( int, gfx_screenshot, const char* fname );
 DFI_DECLARE_CDECL( void, gfx_setwindowed, int iswindow );
@@ -102,7 +140,7 @@ DFI_DECLARE_CDECL( int, gfx_GetVersion ); //returns the backend version
 //presents a surface from ohr to the backend's backbuffer, converting it with the palette supplied;
 //if pSurface == NULL, a maintained copy of the surface will be used
 //if pPalette == NULL, a maintained copy of the palette will be used
-DFI_DECLARE_CDECL( void, gfx_Present, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette );
+DFI_DECLARE_CDECL( void, gfx_PresentOld, unsigned char *pSurface, int nWidth, int nHeight, unsigned int *pPalette );
 
 DFI_DECLARE_CDECL( int, gfx_ScreenShot, const char* szFileName ); //takes a screenshot; if failed, returns 0
 
