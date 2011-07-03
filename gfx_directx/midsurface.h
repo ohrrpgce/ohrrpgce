@@ -27,6 +27,7 @@ namespace gfx
 
 		HRESULT initialize(IDirect3DDevice9* d3ddev, UINT width, UINT height, D3DFORMAT surfaceFormat = D3DFMT_A8R8G8B8);
 		void copySystemPage(UCHAR *pRawPage, UINT width, UINT height, Palette<UINT> *pPalette); //copies system page into texture converting using the palette
+		void copySystemPage32(UINT *pRawPage, UINT width, UINT height);
 
 		D3DFORMAT getFormat();
 		SIZE getDimensions();

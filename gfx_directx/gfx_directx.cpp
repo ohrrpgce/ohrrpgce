@@ -28,6 +28,7 @@ using namespace gfx;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Version 1.0 interfaces
+D3D g_DirectX;
 
 void OnCriticalError(const char* szError) {}
 void SendDebugString(const char* szMessage) {}
@@ -63,6 +64,12 @@ DFI_IMPLEMENT_CDECL(int, gfx_getversion)
 DFI_IMPLEMENT_CDECL(void, gfx_showpage, unsigned char *raw, int w, int h)
 {
 	gfx_Present(raw, w, h, 0);
+	gfx_PumpMessages();
+}
+
+DFI_IMPLEMENT_CDECL(void, gfx_showpage32, unsigned int *raw, int w, int h)
+{
+	g_DirectX.present32(raw, w, h);
 	gfx_PumpMessages();
 }
 
@@ -212,7 +219,6 @@ DFI_IMPLEMENT_CDECL(int, io_readjoysane, int joynum, int& button, int& x, int& y
 
 Window g_Window;
 HWND g_hWndDlg;
-D3D g_DirectX;
 Keyboard g_Keyboard;
 Mouse2 g_Mouse;
 Joystick g_Joystick;

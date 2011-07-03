@@ -131,7 +131,12 @@ HRESULT D3D::initialize(gfx::Window *pWin, LPCTSTR szModuleName, Tstring* pStrRe
 		return E_FAIL;
 	}
 	m_bInitialized = TRUE;
-	hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
+	//hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
+	SmartPtr<IDirect3DSurface9> backBuffer;
+	m_d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &backBuffer);
+	hr = m_d3ddev->ColorFill(backBuffer, NULL, 0x0);
+	backBuffer = NULL;
+	hr = m_d3ddev->Present(NULL, NULL, NULL, NULL);
 
 	if(D3DXSaveSurfaceToFile == NULL)
 		strResult += TEXT("\r\nD3DXSaveSurfaceToFile() failed to load. Probably lacking d3dx_24.dll.");
@@ -239,6 +244,62 @@ HRESULT D3D::present(unsigned char *pRawPage, UINT width, UINT height, gfx::Pale
 		}
 	}
 	m_surface.copySystemPage(m_image.pSurface, m_image.width, m_image.height, &m_image.palette);
+
+	//coop-level test
+	HRESULT hrCoopLevel = m_d3ddev->TestCooperativeLevel();
+	if(hrCoopLevel == D3DERR_DEVICELOST)
+	{
+		onLostDevice();
+		return S_OK;
+	}
+	else if(hrCoopLevel == D3DERR_DEVICENOTRESET)
+	{
+		onResetDevice();
+		return S_OK;
+	}
+	else if(hrCoopLevel == D3DERR_DRIVERINTERNALERROR)
+	{
+		if(IDNO == ::MessageBox(0, TEXT("Internal driver failure! Attempt to recover?"), TEXT("Critical Failure"), MB_ICONEXCLAMATION | MB_YESNO))
+			return shutdown();
+		Tstring szModule = m_szModuleName;
+		shutdown();
+		return initialize(m_pWindow, (szModule == TEXT("") ? NULL : szModule.c_str()));
+	}
+
+	//present
+	HRESULT hr = S_OK;
+	//doesn't work; apparently calling only Clear(), no BeginScene()/EndScene() pair, then Present() without any additional
+	//rendering causes Clear() to stop functioning correctly. Oi!
+	//hr = m_d3ddev->Clear(0, 0, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
+
+	RECT rAspectRatio = {0};
+	if(m_bPreserveAspectRatio)
+		rAspectRatio = calculateAspectRatio(m_surface.getDimensions().cx, m_surface.getDimensions().cy, m_d3dpp.BackBufferWidth, m_d3dpp.BackBufferHeight);
+
+	SmartPtr<IDirect3DSurface9> pBackBuffer;
+	hr = m_d3ddev->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer);
+	if(FAILED(hr))
+		return hr;
+
+	hr = m_d3ddev->ColorFill(pBackBuffer, NULL, 0x0);
+	if(FAILED(hr))
+		return hr;
+
+	hr = m_d3ddev->StretchRect(m_surface.getSurface(), 0, pBackBuffer, (m_bPreserveAspectRatio ? &rAspectRatio : NULL), (m_bSmoothDraw ? D3DTEXF_LINEAR : D3DTEXF_POINT));
+	if(FAILED(hr))
+		return hr;
+
+	hr = m_d3ddev->Present(0,0,0,0);
+	return hr;
+}
+
+HRESULT D3D::present32(unsigned int *pRawPage, UINT width, UINT height)
+{
+	if(!m_bInitialized)
+		return E_FAIL;
+
+	//page copy
+	m_surface.copySystemPage32(pRawPage, width, height);
 
 	//coop-level test
 	HRESULT hrCoopLevel = m_d3ddev->TestCooperativeLevel();

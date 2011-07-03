@@ -91,6 +91,7 @@ namespace gfx
 		//HRESULT showPage(unsigned char *pRawPage, UINT width, UINT height); //draws the raw page (array of indices into graphics palette)
 		//HRESULT setPalette(Palette<UINT>* pPalette); //sets the graphics palette by copying
 		HRESULT present(unsigned char *pRawPage, UINT width, UINT height, Palette<UINT> *pPalette); //draws the raw page (array of indices into palette), and sets the palette; if pPalette is NULL, the page is presented with the previous palette; if pRawpage is NULL, the page is presented with the new palette; if both are NULL, the image is presented again
+		HRESULT present32(unsigned int *pRawPage, UINT width, UINT height);
 		HRESULT screenShot(LPCTSTR strName); //gets a screenshot, appending the correct format image to the end of the name
 		void onLostDevice();
 		void onResetDevice();

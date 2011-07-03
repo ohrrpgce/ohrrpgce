@@ -55,6 +55,22 @@ void MidSurface::copySystemPage(UCHAR *pRawPage, UINT width, UINT height, gfx::P
 	hr = m_surface->UnlockRect();
 }
 
+void MidSurface::copySystemPage32(UINT *pRawPage, UINT width, UINT height)
+{//specific to ohr; can't be reused elsewhere much
+	if(!m_bInitialized)
+		return;
+	if(m_surface == NULL)
+		return;
+
+	D3DLOCKED_RECT lr;
+	HRESULT hr = m_surface->LockRect(&lr, 0, 0);
+	UINT* pData = (UINT*)lr.pBits;
+	for(UINT i = 0; i < height && i < (UINT)m_dimensions.cy; i++)
+		for(UINT j = 0; j < width && j < (UINT)m_dimensions.cx; j++)
+			pData[i * lr.Pitch / 4 + j] = pRawPage[i * width + j];
+	hr = m_surface->UnlockRect();
+}
+
 D3DFORMAT MidSurface::getFormat()
 {
 	return m_format;
