@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "gfx_newRenderPlan.h"
 #include "matrixMath.h"
 #include "allmodex.h"
@@ -13,7 +14,7 @@ void frame_draw_transformed(Frame *dest, Frame *src, float3 vertices[4]) {
 	quad[2].tex = TexCoord(1, 1);
 	quad[3].tex = TexCoord(0, 1);
 	for (int i = 0; i < 4; i++) {
-		quad[i].col = 0xffffffff;
+		//quad[i].col = 0xffffffff;
 		quad[i].pos.x = vertices[i].x;
 		quad[i].pos.y = vertices[i].y;
 	}
@@ -28,5 +29,5 @@ void frame_draw_transformed(Frame *dest, Frame *src, float3 vertices[4]) {
 	destsurf.format = SF_8bit; //this is going to fail now in the render call
 	destsurf.usage = SU_RenderTarget;
 	destsurf.pPaletteData = dest->image;
-	gfx_renderQuadTexture_SW( quad, &srcsurf, 0, 0x0, 0xffffffff, 0, &destsurf );
+	gfx_renderQuadTexture_SW( quad, &srcsurf, NULL, 0, NULL, &destsurf );
 }

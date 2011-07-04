@@ -8,15 +8,18 @@
 #include "gfx.bi"
 #include "music.bi"
 #include "gfx.new.bi"
+#include "gfx_newRenderPlan.bi"
 
 extern "C"
+
+'Old graphics backend function pointers
 
 dim gfx_Initialize as function (byval pCreationData as const GFX_INIT ptr) as integer
 dim gfx_Shutdown as sub ()
 dim gfx_SendMessage as function (byval msg as unsigned integer, byval dwParam as unsigned integer, byval pvParam as Any ptr) as integer
 'dim gfx_GetVersion as function () as integer
 dim gfx_PumpMessages as sub ()
-dim gfx_Present as sub (byval pSurface as ubyte ptr, byval nWidth as integer, byval nHeight as integer, byval pPalette as RGBcolor ptr)
+'dim gfx_Present as sub (byval pSurface as ubyte ptr, byval nWidth as integer, byval nHeight as integer, byval pPalette as RGBcolor ptr)
 'dim gfx_ScreenShot as function (byval szFileName as const zstring ptr) as integer
 dim gfx_SetWindowTitle as sub (byval szTitleconst as const zstring ptr)
 dim gfx_GetWindowTitle as function () as const zstring ptr
@@ -55,6 +58,33 @@ dim io_getmouse as sub (byref mx as integer, byref my as integer, byref mwheel a
 dim io_setmouse as sub (byval x as integer, byval y as integer)
 dim io_mouserect as sub (byval xmin as integer, byval xmax as integer, byval ymin as integer, byval ymax as integer)
 dim io_readjoysane as function (byval as integer, byref as integer, byref as integer, byref as integer) as integer
+
+
+'New Surface-based graphics backend function pointers
+
+dim gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
+dim gfx_surfaceDestroy as function ( byval pSurfaceIn as Surface ptr ) as integer
+dim gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
+dim gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as integer
+dim gfx_surfaceFill as function ( byval fillColor as integer, byval pRect as SurfaceRect ptr, byval pSurfaceIn as Surface ptr ) as integer
+dim gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+dim gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+
+dim gfx_paletteCreate as function ( byval ppPaletteOut as BackendPalette ptr ptr) as integer
+dim gfx_paletteDestroy as function ( byval pPaletteIn as BackendPalette ptr ) as integer
+dim gfx_paletteUpdate as function ( byval pPaletteIn as BackendPalette ptr ) as integer
+
+dim gfx_renderQuadColor as function ( byval pQuad as VertexPC ptr, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+dim gfx_renderQuadTexture as function ( byval pQuad as VertexPT ptr, byval pTexture as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+dim gfx_renderQuadTextureColor as function ( byval pQuad as VertexPTC ptr, byval pTexture as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+
+dim gfx_renderTriangleColor as function ( byval pTriangle as VertexPC ptr, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+dim gfx_renderTriangleTexture as function ( byval pTriangle as VertexPT ptr, byval pTexture as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+dim gfx_renderTriangleTextureColor as function ( byval pTriangle as VertexPTC ptr, byval pTexture as Surface ptr, byval pPalette as BackendPalette ptr, byval bUseColorKey0 as integer, byval argbModifier as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
+
+dim gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as BackendPalette ptr ) as integer
+
+
 
 declare function gfx_alleg_setprocptrs() as integer
 declare function gfx_fb_setprocptrs() as integer
@@ -209,7 +239,7 @@ function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename
 	gfx_Shutdown = dylibsymbol(hFile, "gfx_Shutdown")
 	gfx_SendMessage = dylibsymbol(hFile, "gfx_SendMessage")
 	gfx_PumpMessages = dylibsymbol(hFile, "gfx_PumpMessages")
-	gfx_Present = dylibsymbol(hFile, "gfx_Present")
+	'gfx_Present = dylibsymbol(hFile, "gfx_Present")
 	gfx_ScreenShot = dylibsymbol(hFile, "gfx_ScreenShot")
 	gfx_SetWindowTitle = dylibsymbol(hFile, "gfx_SetWindowTitle")
 	gfx_GetWindowTitle = dylibsymbol(hFile, "gfx_GetWindowTitle")
@@ -230,6 +260,28 @@ function gfx_load_library_new(byval backendinfo as GfxBackendStuff ptr, filename
 
 	Return 1
 End Function
+
+Sub default_gfx_render_procs()
+#IFDEF USE_RASTERIZER
+	gfx_surfaceCreate = @gfx_surfaceCreate_SW
+	gfx_surfaceDestroy = @gfx_surfaceDestroy_SW
+	gfx_surfaceUpdate = @gfx_surfaceUpdate_SW
+	gfx_surfaceGetData = @gfx_surfaceGetData_SW
+	gfx_surfaceFill = @gfx_surfaceFill_SW
+	gfx_surfaceStretch = @gfx_surfaceStretch_SW
+	gfx_surfaceCopy = @gfx_surfaceCopy_SW
+	gfx_paletteCreate = @gfx_paletteCreate_SW
+	gfx_paletteDestroy = @gfx_paletteDestroy_SW
+	gfx_paletteUpdate = @gfx_paletteUpdate_SW
+	gfx_renderQuadColor = @gfx_renderQuadColor_SW
+	gfx_renderQuadTexture = @gfx_renderQuadTexture_SW
+	gfx_renderQuadTextureColor = @gfx_renderQuadTextureColor_SW
+	gfx_renderTriangleColor = @gfx_renderTriangleColor_SW
+	gfx_renderTriangleTexture = @gfx_renderTriangleTexture_SW
+	gfx_renderTriangleTextureColor = @gfx_renderTriangleTextureColor_SW
+	gfx_present = @gfx_present_SW
+#ENDIF
+end sub
 
 sub prefer_backend(b as GfxBackendStuff ptr)
 	for i as integer = ubound(gfx_choices) - 1 to 0 step -1
@@ -308,6 +360,8 @@ function load_backend(which as GFxBackendStuff ptr) as integer
 		currentgfxbackend = NULL
 	end if
 
+	'Set up default function pointers
+	default_gfx_render_procs()
 	Gfx_getresize = @gfx_dummy_getresize
 	Gfx_setresizable = @gfx_dummy_setresizable
 

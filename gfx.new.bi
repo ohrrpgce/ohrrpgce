@@ -27,7 +27,7 @@ extern gfx_PumpMessages as sub () 'pumps the backend's message queues and polls 
 'presents a surface from ohr to the backend's backbuffer, converting it with the palette supplied;
 'if pSurface == NULL, a maintained copy of the surface will be used
 'if pPalette == NULL, a maintained copy of the palette will be used
-extern gfx_Present as sub (byval pSurface as ubyte ptr, byval nWidth as integer, byval nHeight as integer, byval pPalette as RGBcolor ptr)
+'extern gfx_Present as sub (byval pSurface as ubyte ptr, byval nWidth as integer, byval nHeight as integer, byval pPalette as RGBcolor ptr)
 
 'extern gfx_ScreenShot as function (byval szFileName as const zstring ptr) as integer 'takes a screenshot; if failed, returns 0
 
