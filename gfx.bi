@@ -89,5 +89,6 @@ declare sub blitohrscaled(byval spr as Frame ptr, byval destspr as Frame ptr, by
 
 declare sub smoothzoomblit_8_to_8bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer)
 declare sub smoothzoomblit_8_to_32bit(byval rptr as ubyte ptr, byval dptr as ubyte ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer, byval pal as integer ptr)
+declare sub smoothzoomblit_32_to_32bit(byval rptr as uint ptr, byval dptr as uint ptr, byval w as integer, byval h as integer, byval pitch as integer, byval zoom as integer, byval smooth as integer)
 
 end extern

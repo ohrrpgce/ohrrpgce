@@ -6,6 +6,7 @@
 #include "common.bi"
 #include "allmodex.bi"
 #include "gfx.bi"
+#include "gfx_newRenderPlan.bi"
 #include "music.bi"
 #include "util.bi"
 #include "const.bi"
@@ -36,6 +37,7 @@ declare sub loadbmp24(byval bf as integer, byval fr as Frame ptr, pal() as RGBco
 declare sub loadbmp8(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmp4(byval bf as integer, byval fr as Frame ptr)
 declare sub loadbmprle4(byval bf as integer, byval fr as Frame ptr)
+declare sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 
 declare sub snapshot_check
 
@@ -2742,6 +2744,46 @@ end function
 'with Allegro or SDL or FreeImage, but we'll stick to this for now.
 '----------------------------------------------------------------------
 
+sub surface_export_bmp (f as string, byval surf as Surface Ptr, maspal() as RGBcolor)
+	if surf->format = SF_32bit then
+		surface_export_bmp24(f, surf)
+	else
+		'A wrapper
+		dim fr as Frame
+		fr.w = surf->width
+		fr.h = surf->height
+		fr.pitch = surf->width
+		fr.image = surf->pPaletteData
+		fr.mask = surf->pPaletteData
+		frame_export_bmp8(f, @fr, maspal())
+	end if
+end sub
+
+sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
+	dim argb as RGBQUAD
+	dim as integer of, y, i, skipbytes
+	dim as uint ptr sptr
+	dim as ubyte buf(3)
+
+	of = write_bmp_header(f, surf->width, surf->height, 24)
+	if of = -1 then exit sub
+
+	skipbytes = 4 - (surf->width * 3 mod 4)
+	if skipbytes = 4 then skipbytes = 0
+	sptr = surf->pColorData + (surf->height - 1) * surf->width
+	for y = surf->height - 1 to 0 step -1
+		'put is possibly the most screwed up FB builtin; the use of the fput wrapper soothes the soul
+		for x as integer = 0 to surf->width - 1
+			fput(of, , @sptr[x], 3)
+		next
+		sptr -= surf->width
+		'pad to 4-byte boundary
+		fput(of, , @buf(0), skipbytes)
+	next
+
+	close #of
+end sub
+
 SUB frame_export_bmp8 (f as string, byval fr as Frame Ptr, maspal() as RGBcolor)
 	dim argb as RGBQUAD
 	dim as integer of, y, i, skipbytes
@@ -2819,8 +2861,10 @@ private function write_bmp_header(f as string, byval w as integer, byval h as in
 	dim as integer of, imagesize, imageoff
 
 	imagesize = ((w * bitdepth + 31) \ 32) * 4 * h
-
-	imageoff = 54 + (1 shl bitdepth) * 4
+	imageoff = 54
+	if bitdepth < 24 then
+		imageoff += (1 shl bitdepth) * 4
+	end if
 
 	header.bfType = 19778
 	header.bfSize = imageoff + imagesize

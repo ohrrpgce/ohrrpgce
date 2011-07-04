@@ -28,7 +28,7 @@ DECLARE FUNCTION putenv (byval as zstring ptr) as integer
 'DECLARE FUNCTION SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
-DECLARE FUNCTION gfx_sdl_set_screen_mode() as integer
+DECLARE FUNCTION gfx_sdl_set_screen_mode(byval bits as integer = 0) as integer
 DECLARE SUB gfx_sdl_set_zoom(byval value as integer)
 DECLARE SUB gfx_sdl_update_screen()
 DECLARE SUB update_state()
@@ -255,7 +255,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
-FUNCTION gfx_sdl_set_screen_mode() as integer
+FUNCTION gfx_sdl_set_screen_mode(byval bits as integer = 0) as integer
   DIM flags AS Uint32 = 0
   IF resizable THEN flags = flags OR SDL_RESIZABLE
   IF windowedmode = 0 THEN
@@ -277,7 +277,7 @@ FUNCTION gfx_sdl_set_screen_mode() as integer
   'Force clipping in fullscreen, and undo when leaving
   set_forced_mouse_clipping (windowedmode = 0)
 #ENDIF
-  screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, 0, flags)
+  screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bits, flags)
   IF screensurface = NULL THEN
     debug "Failed to allocate display"
     RETURN 0
@@ -308,6 +308,31 @@ END SUB
 FUNCTION gfx_sdl_getversion() as integer
   RETURN 1
 END FUNCTION
+
+SUB gfx_present(byval surfaceIn as Surface ptr)
+  WITH *surfaceIn
+    'variable resolution handling
+    IF framesize.w <> .width OR framesize.h <> .height THEN
+      framesize.w = .width
+      framesize.h = .height
+      gfx_sdl_set_screen_mode(32)
+      IF screenbuffer THEN
+        SDL_FreeSurface(screenbuffer)
+        screenbuffer = NULL
+      END IF
+    END IF
+    IF screensurface->format->BitsPerPixel <> 32 THEN
+      gfx_sdl_set_screen_mode(32)
+    END IF
+
+    smoothzoomblit_32_to_32bit(.pColorData, cast(uint ptr, screensurface->pixels), .width, .height, screensurface->pitch, zoom, smooth)
+  END WITH
+
+  IF screensurface <> NULL THEN
+    SDL_Flip(screensurface)
+    update_state()
+  END IF
+END SUB
 
 SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
   'takes a pointer to a raw 8-bit image, with pitch = w

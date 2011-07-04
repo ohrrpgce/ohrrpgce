@@ -183,7 +183,7 @@ void smoothzoomblit_8_to_8bit(unsigned char *rptr, unsigned char *dptr, int w, i
 
 		for (j = 0; j <= h - 1; j++) {
 			for (i = w / 4 - 1; i >= 0; i--) {
-				//could just multiple by &h1010101, but FB produces truly daft code for multiplication by constants
+				//could just multiple by &h1010101
 				*(int *)sptr = rptr[0] * mult;
 				sptr += zoom;
 				*(int *)sptr = rptr[1] * mult;
@@ -306,6 +306,63 @@ void smoothzoomblit_8_to_32bit(unsigned char *rptr, unsigned char *dptr, int w, 
 		}
 	}
 }
+
+void smoothzoomblit_32_to_32bit(unsigned int *srcbuffer, unsigned int *destbuffer, int w, int h, int pitch, int zoom, int smooth) {
+//srcbuffer: source w*h buffer, 32 bit
+//destbuffer: destination scaled buffer (pitch*zoom)*(h*zoom), 32 bit (so pitch is in pixels, not bytes)
+//supports zoom 1 to 4
+
+	unsigned int *sptr;
+	int pixel;
+	int i, j;
+	int wide = w * zoom, high = h * zoom;
+
+	sptr = (int*)destbuffer;
+
+	for (j = 0; j <= h - 1; j++) {
+		for (i = 0; i <= w - 1; i++) {
+			pixel = *srcbuffer++;
+			for (j = zoom; j > 0; j++) {
+				*sptr++ = pixel;
+			}
+		}
+		sptr += pitch - wide;
+		unsigned int *srcline = sptr - pitch;
+
+		//repeat row zoom times
+		for (i = 2; i <= zoom; i++) {
+			memcpy (sptr, srcline, 4 * wide);
+			sptr += pitch;
+		}
+	}
+
+	if (smooth == 1 && (zoom == 2 || zoom == 3)) {
+		int fx, fy, pstep;  //for 2x/3x filtering
+
+		if (zoom == 3)
+			pstep = 1;
+		else
+			pstep = 2;
+		int *sptr1, *sptr2, *sptr3;
+		for (fy = 1; fy <= (high - 2); fy += pstep) {
+			sptr1 = (int *)destbuffer + pitch * (fy - 1) + 1;  //(1,0)
+			sptr2 = sptr1 + pitch; //(1,1)
+			sptr3 = sptr2 + pitch; //(1,2)
+			for (fx = wide - 2; fx >= 1; fx--) {
+				if (sptr1[1] == sptr3[-1])
+					sptr2[0] = sptr1[1];
+				else
+					if (sptr1[-1] == sptr3[1])
+						sptr2[0] = sptr1[-1];
+				
+				sptr1 += 1;
+				sptr2 += 1;
+				sptr3 += 1;
+			}
+		}
+	}
+}
+
 
 /*
 void smoothzoomblit_anybit(char *rptr, char *dptr, int w, int h, int pitch, int zoom, int smooth, int bpp) {
