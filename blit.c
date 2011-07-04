@@ -158,9 +158,9 @@ void blitohrscaled(struct Frame *spr, struct Frame *destspr, struct Palette16 *p
 	}
 }
 
-void smoothzoomblit_8_to_8bit(unsigned char *rptr, unsigned char *dptr, int w, int h, int pitch, int zoom, int smooth) {
-//rptr: source w x h buffer paletted 8 bit
-//dptr: destination scaled buffer pitch x h*zoom also 8 bit
+void smoothzoomblit_8_to_8bit(unsigned char *srcbuffer, unsigned char *destbuffer, int w, int h, int pitch, int zoom, int smooth) {
+//srcbuffer: source w x h buffer paletted 8 bit
+//destbuffer: destination scaled buffer pitch x h*zoom also 8 bit
 //supports zoom 1 to 4
 
 	unsigned char *sptr;
@@ -169,12 +169,12 @@ void smoothzoomblit_8_to_8bit(unsigned char *rptr, unsigned char *dptr, int w, i
 	int fx, fy, pstep;  //for 2x/3x filtering
 	int wide = w * zoom, high = h * zoom;
 
-	sptr = dptr;
+	sptr = destbuffer;
 
 	if (zoom == 1) {
 		for (i = 0; i <= h - 1; i++) {
-			memcpy(sptr, rptr, w);
-			rptr += w;
+			memcpy(sptr, srcbuffer, w);
+			srcbuffer += w;
 			sptr += pitch;
 		}
 	} else {
@@ -184,20 +184,20 @@ void smoothzoomblit_8_to_8bit(unsigned char *rptr, unsigned char *dptr, int w, i
 		for (j = 0; j <= h - 1; j++) {
 			for (i = w / 4 - 1; i >= 0; i--) {
 				//could just multiple by &h1010101
-				*(int *)sptr = rptr[0] * mult;
+				*(int *)sptr = srcbuffer[0] * mult;
 				sptr += zoom;
-				*(int *)sptr = rptr[1] * mult;
+				*(int *)sptr = srcbuffer[1] * mult;
 				sptr += zoom;
-				*(int *)sptr = rptr[2] * mult;
+				*(int *)sptr = srcbuffer[2] * mult;
 				sptr += zoom;
-				*(int *)sptr = rptr[3] * mult;
+				*(int *)sptr = srcbuffer[3] * mult;
 				sptr += zoom;
-				rptr += 4;
+				srcbuffer += 4;
 			}
 			for (i = (w % 4) - 1; i >= 0; i--) {
-				*(int *)sptr = rptr[0] * mult;
+				*(int *)sptr = srcbuffer[0] * mult;
 				sptr += zoom;
-				rptr += 1;
+				srcbuffer += 1;
 			}
 			sptr += pitch - wide;
 			//repeat row zoom times
@@ -215,7 +215,7 @@ void smoothzoomblit_8_to_8bit(unsigned char *rptr, unsigned char *dptr, int w, i
 			pstep = 2;
 		char *sptr1, *sptr2, *sptr3;
 		for (fy = 1; fy <= high - 2; fy += pstep) {
-			sptr1 = dptr + pitch * (fy - 1) + 1;  //(1,0)
+			sptr1 = destbuffer + pitch * (fy - 1) + 1;  //(1,0)
 			sptr2 = sptr1 + pitch; //(1,1)
 			sptr3 = sptr2 + pitch; //(1,2)
 			for (fx = wide - 2; fx >= 1; fx--) {
@@ -241,9 +241,9 @@ void smoothzoomblit_8_to_8bit(unsigned char *rptr, unsigned char *dptr, int w, i
 	}
 }
 
-void smoothzoomblit_8_to_32bit(unsigned char *rptr, unsigned char *dptr, int w, int h, int pitch, int zoom, int smooth, int pal[]) {
-//rptr: source w x h buffer paletted 8 bit
-//dptr: destination scaled buffer pitch x h*zoom 32 bit (so pitch is in pixels, not bytes)
+void smoothzoomblit_8_to_32bit(unsigned char *srcbuffer, unsigned int *destbuffer, int w, int h, int pitch, int zoom, int smooth, int pal[]) {
+//srcbuffer: source w x h buffer paletted 8 bit
+//destbuffer: destination scaled buffer pitch x h*zoom 32 bit (so pitch is in pixels, not bytes)
 //supports zoom 1 to 4
 
 	unsigned int *sptr;
@@ -252,19 +252,19 @@ void smoothzoomblit_8_to_32bit(unsigned char *rptr, unsigned char *dptr, int w, 
 	int fx, fy, pstep;  //for 2x/3x filtering
 	int wide = w * zoom, high = h * zoom;
 
-	sptr = (int*)dptr;
+	sptr = destbuffer;
 
 	for (j = 0; j <= h - 1; j++) {
 		//repeat row zoom times
 		for (i = 0; i <= w - 1; i++) {
 			//get colour
-			pixel = pal[*rptr];
-			//zoom sptrs for each rptr
-			for (j = zoom; j >= 1; j++) {
+			pixel = pal[*srcbuffer];
+			//zoom sptrs for each srcbuffer
+			for (int k = zoom; k >= 1; k--) {
 				*sptr = pixel;
 				sptr += 1;
 			}
-			rptr += 1;
+			srcbuffer += 1;
 		}
 
 		sptr += pitch - wide;
@@ -281,7 +281,7 @@ void smoothzoomblit_8_to_32bit(unsigned char *rptr, unsigned char *dptr, int w, 
 			pstep = 2;
 		int *sptr1, *sptr2, *sptr3;
 		for (fy = 1; fy <= (high - 2); fy += pstep) {
-			sptr1 = (int *)dptr + pitch * (fy - 1) + 1;  //(1,0)
+			sptr1 = destbuffer + pitch * (fy - 1) + 1;  //(1,0)
 			sptr2 = sptr1 + pitch; //(1,1)
 			sptr3 = sptr2 + pitch; //(1,2)
 			for (fx = wide - 2; fx >= 1; fx--) {
@@ -322,7 +322,7 @@ void smoothzoomblit_32_to_32bit(unsigned int *srcbuffer, unsigned int *destbuffe
 	for (j = 0; j <= h - 1; j++) {
 		for (i = 0; i <= w - 1; i++) {
 			pixel = *srcbuffer++;
-			for (j = zoom; j > 0; j++) {
+			for (int k = zoom; k > 0; k--) {
 				*sptr++ = pixel;
 			}
 		}
@@ -362,35 +362,3 @@ void smoothzoomblit_32_to_32bit(unsigned int *srcbuffer, unsigned int *destbuffe
 		}
 	}
 }
-
-
-/*
-void smoothzoomblit_anybit(char *rptr, char *dptr, int w, int h, int pitch, int zoom, int smooth, int bpp) {
-//moved from gfx_sdl, it might be needed, probably just replace with 15/16 bit version of above
-//no smoothing done yet
-//rptr: source pitch x h buffer variable bbp
-//dptr: destination scaled buffer variable bbp
-
-	int x, y, b, z;
-	int *sptr;
-
-	sptr = dptr;
-
-	for (y = h - 1; y >= 0; y--) {
-		for (x = 0; x <= w - 1; x++) {
-			for (z = 0; z <= zoom - 1; z++) {
-				*sptr = *rptr;
-				sptr += bpp;
-			}
-			rptr += bpp;
-		}
-
-		sptr += pitch - x * zoom;
-		//repeat row zoom times
-		for (i = 2; i <= zoom; i++) {
-			memcpy(sptr, sptr - pitch, 4 * wide);
-			sptr += pitch;
-		}
-	}
-}
-*/

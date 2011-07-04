@@ -9,6 +9,7 @@ option explicit
 #include "config.bi"
 #include "crt.bi"
 #include "gfx.bi"
+#include "gfx_newRenderPlan.bi"
 #include "common.bi"
 #include "scancodes.bi"
 '#define NEED_SDL_GETENV
@@ -28,9 +29,9 @@ DECLARE FUNCTION putenv (byval as zstring ptr) as integer
 'DECLARE FUNCTION SDL_putenv cdecl alias "SDL_putenv" (byval variable as zstring ptr) as integer
 'DECLARE FUNCTION SDL_getenv cdecl alias "SDL_getenv" (byval name as zstring ptr) as zstring ptr
 
-DECLARE FUNCTION gfx_sdl_set_screen_mode(byval bits as integer = 0) as integer
+DECLARE FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
 DECLARE SUB gfx_sdl_set_zoom(byval value as integer)
-DECLARE SUB gfx_sdl_update_screen()
+DECLARE SUB gfx_sdl_8bit_update_screen()
 DECLARE SUB update_state()
 DECLARE FUNCTION update_mouse() as integer
 DECLARE SUB set_forced_mouse_clipping(byval newvalue as integer)
@@ -255,7 +256,7 @@ FUNCTION gfx_sdl_init(byval terminate_signal_handler as sub cdecl (), byval wind
   RETURN gfx_sdl_set_screen_mode()
 END FUNCTION
 
-FUNCTION gfx_sdl_set_screen_mode(byval bits as integer = 0) as integer
+FUNCTION gfx_sdl_set_screen_mode(byval bitdepth as integer = 0) as integer
   DIM flags AS Uint32 = 0
   IF resizable THEN flags = flags OR SDL_RESIZABLE
   IF windowedmode = 0 THEN
@@ -277,9 +278,9 @@ FUNCTION gfx_sdl_set_screen_mode(byval bits as integer = 0) as integer
   'Force clipping in fullscreen, and undo when leaving
   set_forced_mouse_clipping (windowedmode = 0)
 #ENDIF
-  screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bits, flags)
+  screensurface = SDL_SetVideoMode(dest_rect.w, dest_rect.h, bitdepth, flags)
   IF screensurface = NULL THEN
-    debug "Failed to allocate display"
+    debug "Failed to open display: " & *SDL_GetError
     RETURN 0
   END IF
   SDL_WM_SetCaption(remember_windowtitle, remember_windowtitle)
@@ -309,83 +310,82 @@ FUNCTION gfx_sdl_getversion() as integer
   RETURN 1
 END FUNCTION
 
-SUB gfx_present(byval surfaceIn as Surface ptr)
-  WITH *surfaceIn
-    'variable resolution handling
-    IF framesize.w <> .width OR framesize.h <> .height THEN
-      framesize.w = .width
-      framesize.h = .height
-      gfx_sdl_set_screen_mode(32)
-      IF screenbuffer THEN
-        SDL_FreeSurface(screenbuffer)
-        screenbuffer = NULL
-      END IF
-    END IF
-    IF screensurface->format->BitsPerPixel <> 32 THEN
-      gfx_sdl_set_screen_mode(32)
-    END IF
-
-    smoothzoomblit_32_to_32bit(.pColorData, cast(uint ptr, screensurface->pixels), .width, .height, screensurface->pitch, zoom, smooth)
-  END WITH
-
-  IF screensurface <> NULL THEN
-    SDL_Flip(screensurface)
-    update_state()
-  END IF
-END SUB
-
-SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
-  'takes a pointer to a raw 8-bit image, with pitch = w
-
-  'We may either blit to screensurface (doing 8 bit -> display pixel format conversion) first
-  'and then smoothzoom, with smoothzoomblit_anybit
-  'Or smoothzoom first, with smoothzoomblit_8_to_8bit, and then blit to screensurface
+SUB gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byval h as integer, byval bitdepth as integer)
 
   'variable resolution handling
   IF framesize.w <> w OR framesize.h <> h THEN
     framesize.w = w
     framesize.h = h
-    gfx_sdl_set_screen_mode()
+    'A bitdepth of 0 indicates 'same as previous, otherwise default (native)'. Not sure if it's best to use
+    'a native or 8 bit screen surface when we're drawing 8 bit; simply going to preserve the status quo for now
+    gfx_sdl_set_screen_mode(IIF(bitdepth = 8, 0, bitdepth))
     IF screenbuffer THEN
       SDL_FreeSurface(screenbuffer)
       screenbuffer = NULL
     END IF
   END IF
 
-  IF screenbuffer ANDALSO (screenbuffer->w <> w * zoom OR screenbuffer->h <> h * zoom) THEN
-    SDL_FreeSurface(screenbuffer)
-    screenbuffer = NULL
-  END IF
+  IF bitdepth = 8 THEN
 
-  IF screenbuffer = NULL THEN
-    screenbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, w * zoom, h * zoom, 8, 0,0,0,0)
-  END IF
-  'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
-  IF screenbuffer = NULL THEN
-    print "Failed to allocate page wrapping surface"
-    SYSTEM
-  END IF
+    'We may either blit to screensurface (doing 8 bit -> display pixel format conversion) first
+    'and then smoothzoom, with smoothzoomblit_anybit
+    'Or smoothzoom first, with smoothzoomblit_8_to_8bit, and then blit to screensurface
 
-  smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, zoom, smooth)
+    IF screenbuffer ANDALSO (screenbuffer->w <> w * zoom OR screenbuffer->h <> h * zoom) THEN
+      SDL_FreeSurface(screenbuffer)
+      screenbuffer = NULL
+    END IF
 
-  gfx_sdl_update_screen()
+    IF screenbuffer = NULL THEN
+      screenbuffer = SDL_CreateRGBSurface(SDL_SWSURFACE, w * zoom, h * zoom, 8, 0,0,0,0)
+    END IF
+    'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
+    IF screenbuffer = NULL THEN
+      print "Failed to allocate page wrapping surface"
+      SYSTEM
+    END IF
+
+    smoothzoomblit_8_to_8bit(raw, screenbuffer->pixels, w, h, screenbuffer->pitch, zoom, smooth)
+    gfx_sdl_8bit_update_screen()
+
+  ELSE
+    '32 bit surface
+
+    IF screensurface->format->BitsPerPixel <> 32 THEN
+      gfx_sdl_set_screen_mode(32)
+    END IF
+    IF screensurface = NULL THEN EXIT SUB
+
+    'smoothzoomblit takes the pitch in pixels, not bytes!
+    smoothzoomblit_32_to_32bit(raw, cast(uint ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
+    SDL_Flip(screensurface)
+    update_state()
+  END IF
 END SUB
 
-SUB gfx_sdl_update_screen()
+SUB gfx_sdl_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr)
+  WITH *surfaceIn
+    IF .format = SF_8bit AND pal <> NULL THEN
+      FOR i as integer = 0 TO 255
+        sdlpalette(i).r = pal->col(i).r
+        sdlpalette(i).g = pal->col(i).g
+        sdlpalette(i).b = pal->col(i).b
+      NEXT
+    END IF
+    gfx_sdl_present_internal(.pColorData, .width, .height, IIF(.format = SF_8bit, 8, 32))
+  END WITH
+END SUB
+
+SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
+  'takes a pointer to a raw 8-bit image, with pitch = w
+  gfx_sdl_present_internal(raw, w, h, 8)
+END SUB
+
+'Update the screen image and palette
+SUB gfx_sdl_8bit_update_screen()
   IF screenbuffer <> NULL and screensurface <> NULL THEN
     SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256)
     SDL_BlitSurface(screenbuffer, NULL, screensurface, @dest_rect)
-/'
-    IF zoom > 1 THEN
-      SDL_LockSurface(screensurface)
-
-      DIM bpp AS INTEGER = screensurface->format->BytesPerPixel
-      DIM destptr AS ANY PTR = screensurface->pixels + dest_rect.x + dest_rect.y * screensurface->pitch
-      smoothzoomblit_anybit(destptr, destptr, dest_rect.w, dest_rect.h, zoom, 0, bpp, screensurface->pitch)
-
-      SDL_UnlockSurface(screensurface)
-    END IF
-'/
     SDL_Flip(screensurface)
     update_state()
   END IF
@@ -398,7 +398,7 @@ SUB gfx_sdl_setpal(byval pal as RGBcolor ptr)
     sdlpalette(i).g = pal[i].g
     sdlpalette(i).b = pal[i].b
   NEXT
-  gfx_sdl_update_screen()
+  gfx_sdl_8bit_update_screen()
 END SUB
 
 FUNCTION gfx_sdl_screenshot(byval fname as zstring ptr) as integer
