@@ -7,15 +7,14 @@
 
 'surfaces
 enum SurfaceFormat
-{
-	SF_8bit = 0,
-	SF_32bit = 1,
-};
+	SF_8bit = 0
+	SF_32bit = 1
+	End enum
+	
 enum SurfaceUsage
-{
-	SU_Source = 0,
-	SU_RenderTarget = 1,
-};
+	SU_Source = 0
+	SU_RenderTarget = 1
+	End enum
 
 Type Surface
 	width as integer;
@@ -39,7 +38,7 @@ Type Palette
 
 extern "C"
 
-	extern gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval SurfaceFormat format, byval SurfaceUsage usage, Surface** ppSurfaceOut ) as integer
+	extern gfx_surfaceCreate as function ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr) as integer
 	extern gfx_surfaceDestroy as function ( byval pSurfaceIn as Surface ptr ) as integer
 	extern gfx_surfaceUpdate as function ( byval pSurfaceIn as Surface ptr ) as integer
 	extern gfx_surfaceGetData as function ( byval pSurfaceIn as Surface ptr ) as integer
@@ -47,7 +46,7 @@ extern "C"
 	extern gfx_surfaceStretch as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as Palette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 	extern gfx_surfaceCopy as function ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as Palette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
-	extern gfx_paletteCreate as function ( Palette** ppPaletteOut ) as integer
+	extern gfx_paletteCreate as function ( byval ppPaletteOut as Palette ptr ptr) as integer
 	extern gfx_paletteDestroy as function ( byval pPaletteIn as Palette ptr ) as integer
 	extern gfx_paletteUpdate as function ( byval pPaletteIn as Palette ptr ) as integer
 
@@ -61,7 +60,7 @@ extern "C"
 
 	extern gfx_present as function ( byval pSurfaceIn as Surface ptr, byval pPalette as Palette ptr ) as integer
 
-	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval SurfaceFormat format, byval SurfaceUsage usage, Surface** ppSurfaceOut ) as integer
+	declare function gfx_surfaceCreate_SW ( byval width as integer, byval height as integer, byval format as SurfaceFormat, byval usage as SurfaceUsage, byval ppSurfaceOut as Surface ptr ptr ) as integer
 	declare function gfx_surfaceDestroy_SW ( byval pSurfaceIn as Surface ptr ) as integer
 	declare function gfx_surfaceUpdate_SW ( byval pSurfaceIn as Surface ptr ) as integer
 	declare function gfx_surfaceGetData_SW ( byval pSurfaceIn as Surface ptr ) as integer
@@ -69,7 +68,7 @@ extern "C"
 	declare function gfx_surfaceStretch_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as Palette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 	declare function gfx_surfaceCopy_SW ( byval pRectSrc as SurfaceRect ptr, byval pSurfaceSrc as Surface ptr, byval pPalette as Palette ptr, byval bUseColorKey0 as integer, byval pRectDest as SurfaceRect ptr, byval pSurfaceDest as Surface ptr ) as integer
 
-	declare function gfx_paletteCreate_SW ( Palette** ppPaletteOut ) as integer
+	declare function gfx_paletteCreate_SW ( byval ppPaletteOut as Palette ptr ptr ) as integer
 	declare function gfx_paletteDestroy_SW ( byval pPaletteIn as Palette ptr ) as integer
 	declare function gfx_paletteUpdate_SW ( byval pPaletteIn as Palette ptr ) as integer
 
