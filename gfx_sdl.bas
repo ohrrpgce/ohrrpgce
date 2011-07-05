@@ -357,7 +357,7 @@ SUB gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byval h a
     IF screensurface = NULL THEN EXIT SUB
 
     'smoothzoomblit takes the pitch in pixels, not bytes!
-    smoothzoomblit_32_to_32bit(raw, cast(uint ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
+    smoothzoomblit_32_to_32bit(raw, cast(uinteger ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
     SDL_Flip(screensurface)
     update_state()
   END IF

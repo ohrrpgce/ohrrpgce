@@ -26,7 +26,7 @@ Type Surface
 	usage as SurfaceUsage
 	Union
 		pRawData as any ptr
-		pColorData as uint ptr
+		pColorData as uinteger ptr
 		pPaletteData as ubyte ptr
 	End Union
 End Type

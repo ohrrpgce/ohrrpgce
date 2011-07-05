@@ -90,7 +90,7 @@ sub gfx_fb_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integ
 	if depth = 8 then
 		smoothzoomblit_8_to_8bit(raw, sptr, w, h, w * zoom, zoom, smooth)
 	elseif depth = 32 then
-		smoothzoomblit_8_to_32bit(raw, cast(uint ptr, sptr), w, h, w * zoom, zoom, smooth, @truepal(0))
+		smoothzoomblit_8_to_32bit(raw, cast(uinteger ptr, sptr), w, h, w * zoom, zoom, smooth, @truepal(0))
 	else
 		debug "gfx_fb_showpage: depth " & depth
 	end if

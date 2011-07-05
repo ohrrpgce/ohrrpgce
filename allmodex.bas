@@ -2762,7 +2762,7 @@ end sub
 sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
 	dim argb as RGBQUAD
 	dim as integer of, y, i, skipbytes
-	dim as uint ptr sptr
+	dim as uinteger ptr sptr
 	dim as ubyte buf(3)
 
 	of = write_bmp_header(f, surf->width, surf->height, 24)
