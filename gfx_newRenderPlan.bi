@@ -66,8 +66,8 @@ End Type
 
 Type VertexPTC
 	pos as Position
-	col as RGBcolor
 	tex as TexCoord
+	col as RGBcolor
 End Type
 
 

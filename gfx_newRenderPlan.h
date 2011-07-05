@@ -152,8 +152,8 @@ struct VertexPT
 struct VertexPTC
 {
 	Position pos;
-	Color col;
 	TexCoord tex;
+	Color col;
 	VertexPTC() : pos(), col(), tex() {}
 	void interpolateComponents(const VertexPTC& v2, float scale) {
 		float invScale(-scale + 1.0f);
