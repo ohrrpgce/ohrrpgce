@@ -1197,10 +1197,11 @@ END SUB
 #IFDEF USE_RASTERIZER
 
 #include "matrixMath.bi"
+#include "gfx_newRenderPlan.bi"
 
-extern "C"
-declare sub frame_draw_transformed (byval dest as Frame ptr, byval src as Frame ptr, byval vertices as Float3 ptr)
-end extern
+'extern "C"
+'declare sub frame_draw_transformed (byval dest as Frame ptr, byval src as Frame ptr, byval vertices as Float3 ptr)
+'end extern
 
 SUB quad_transforms_menu ()
  DIM menu(...) as string = {"Arrows: scale X and Y", "<, >: change angle", "[, ]: change sprite"}
@@ -1278,12 +1279,48 @@ SUB quad_transforms_menu ()
   matrixLocalTransform @matrix, angle, scale, position
   DIM trans_vertices(3) as Float3
   vec3Transform @trans_vertices(0), 4, @vertices(0), 4, matrix
-  frame_draw_transformed vpages(vpage), testframe, @trans_vertices(0)
+  'frame_draw_transformed vpages(vpage), testframe, @trans_vertices(0)
+  'may have to reorient the tex coordinates
+  DIM pt_vertices(3) as VertexPT
+  pt_vertices(0).pos.x = trans_vertices(0).x
+  pt_vertices(0).pos.y = trans_vertices(0).y
+  pt_vertices(0).tex.u = 0
+  pt_vertices(0).tex.v = 0
+  pt_vertices(1).pos.x = trans_vertices(1).x
+  pt_vertices(1).pos.y = trans_vertices(1).y
+  pt_vertices(1).tex.u = 1
+  pt_vertices(1).tex.v = 0
+  pt_vertices(2).pos.x = trans_vertices(2).x
+  pt_vertices(2).pos.y = trans_vertices(2).y
+  pt_vertices(2).tex.u = 1
+  pt_vertices(2).tex.v = 1
+  pt_vertices(3).pos.x = trans_vertices(3).x
+  pt_vertices(3).pos.y = trans_vertices(3).y
+  pt_vertices(3).tex.u = 0
+  pt_vertices(3).tex.v = 1
+  
+  DIM destSurface as Surface Ptr
+  DIM srcSurface as Surface
+  WITH srcSurface
+    .width = testframe->w
+	.height = testframe->h
+	.format = SF_8bit
+	.usage = SU_Source
+	.pPaletteData = testframe->image
+	END WITH
+
+  gfx_surfaceCreate_SW( 320, 200, SF_32bit, SU_RenderTarget, @destSurface )
+  DIM srcPalette as BackendPalette
+  
+  gfx_renderQuadTexture_SW( @pt_vertices(0), @srcSurface, @srcPalette, 1, 0, destSurface )
+  if gfx_present <> 0 then gfx_present( destSurface, 0 )
 
   drawtime = TIMER - drawtime
   printstr "Drawn in " & FIX(drawtime * 1000000) & " usec", 0, 190, vpage
 
   setvispage vpage
+  
+  gfx_surfaceDestroy_SW( destSurface )
   dowait
  LOOP
  setkeys
