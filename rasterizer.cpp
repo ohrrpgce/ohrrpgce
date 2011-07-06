@@ -403,9 +403,8 @@ void TriRasterizer::rasterTextureColor(const DrawingRange<VertexPTC> &range, con
 			pSurfaceDest->pColorData[(int)range.least.pos.y * pSurfaceDest->width + i] = finalColor;
 		}
 	}
-	else //texture is 8bit
+	else //texture is 8bit 
 	{
-		uint8_t colorKey = 0;
 		for(int i = start; i <= finish; i++)
 		{
 			weightFirst = (range.greatest.pos.x - i) / (float)length;
@@ -688,39 +687,3 @@ void QuadRasterizer::drawQuadTextureColor(const VertexPTC *pQuad, const Surface 
 	for(int i = 0; i < 4; i++)
 		drawTriangleTextureColor(&triangles[i*3], pTexture, pPalette, bUseColorKey0, argbModifier, pRectDest, pSurfaceDest);
 }
-
-//void QuadRasterizer::generateTriangles(Triangle<VertexT> *pTriangles, const QuadT *pQuad)
-//{//done
-//	VertexT center;
-//	uint16_t a=0,r=0,g=0,b=0;
-//	for(int i = 0; i < 4; i++)
-//	{
-//		center.pos.x += pQuad->pnt[i].pos.x;
-//		center.pos.y += pQuad->pnt[i].pos.y;
-//		a += pQuad->pnt[i].col.a;
-//		r += pQuad->pnt[i].col.r;
-//		g += pQuad->pnt[i].col.g;
-//		b += pQuad->pnt[i].col.b;
-//		center.tex.u += pQuad->pnt[i].tex.u;
-//		center.tex.v += pQuad->pnt[i].tex.v;
-//	}
-//	center.pos.x /= 4;
-//	center.pos.y /= 4;
-//	a /= 4;
-//	r /= 4;
-//	g /= 4;
-//	b /= 4;
-//	center.col.a = a;
-//	center.col.r = r;
-//	center.col.g = g;
-//	center.col.b = b;
-//	center.tex.u /= 4;
-//	center.tex.v /= 4;
-//
-//	for(int i = 0; i < 4; i++)
-//	{
-//		pTriangles[i].pnt[0] = pQuad->pnt[i];
-//		pTriangles[i].pnt[1] = pQuad->pnt[(i+1)%4];
-//		pTriangles[i].pnt[2] = center;
-//	}
-//}
