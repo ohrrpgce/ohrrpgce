@@ -1198,10 +1198,7 @@ END SUB
 
 #include "matrixMath.bi"
 #include "gfx_newRenderPlan.bi"
-
-'extern "C"
-'declare sub frame_draw_transformed (byval dest as Frame ptr, byval src as Frame ptr, byval vertices as Float3 ptr)
-'end extern
+#include "gfx.bi"
 
 SUB quad_transforms_menu ()
  DIM menu(...) as string = {"Arrows: scale X and Y", "<, >: change angle", "[, ]: change sprite"}
@@ -1221,6 +1218,16 @@ SUB quad_transforms_menu ()
  DIM angle as single
  DIM scale as Float2 = (2.0, 2.0)
  DIM position as Float2 = (150, 50)
+
+ DIM vpage32 as Surface ptr
+ gfx_surfaceCreate(320, 200, SF_32bit, SU_RenderTarget, @vpage32)
+
+ DIM as double drawtime, pagecopytime
+
+ 'Set each colour in the master palette to opaque. This is strange, but harmless
+ FOR i as integer = 0 TO 255
+  master(i).a = 255
+ NEXT
 
  DO
   setwait 55
@@ -1273,62 +1280,67 @@ SUB quad_transforms_menu ()
   standardmenu menu(), st, 0, 0, vpage
   frame_draw testframe, , 20, 50, 2, , vpages(vpage)  'drawn at 2x scale
 
-  DIM drawtime as double = TIMER
+  'Can only display the previous frame's time to draw, since we don't currently
+  'have any functions to print text to surfaces
+  printstr "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec", 0, 190, vpage
+  debug "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec"
+
+  'Copy from vpage (8 bit Frame) to a Surface
+  pagecopytime = TIMER
+  DIM vpageSurface as Surface
+  WITH *vpages(vpage)
+   vpageSurface.width = .w
+   vpageSurface.height = .h
+   vpageSurface.format = SF_8bit
+   vpageSurface.usage = SU_Source
+   vpageSurface.pPaletteData = .image
+'   smoothzoomblit_8_to_32bit(.image, vpage32->pColorData, .w, .h, vpage32->width, 1, 0, cast(integer ptr, @master(0)))
+  END WITH
+  gfx_surfaceCopy( NULL, @vpageSurface, cast(BackendPalette ptr, @master(0)), NO, NULL, vpage32)
+
+  pagecopytime = TIMER - pagecopytime
+  DIM starttime as DOUBLE = TIMER
 
   DIM matrix as Float3x3
   matrixLocalTransform @matrix, angle, scale, position
   DIM trans_vertices(3) as Float3
   vec3Transform @trans_vertices(0), 4, @vertices(0), 4, matrix
-  'frame_draw_transformed vpages(vpage), testframe, @trans_vertices(0)
+
   'may have to reorient the tex coordinates
   DIM pt_vertices(3) as VertexPT
-  pt_vertices(0).pos.x = trans_vertices(0).x
-  pt_vertices(0).pos.y = trans_vertices(0).y
   pt_vertices(0).tex.u = 0
   pt_vertices(0).tex.v = 0
-  pt_vertices(1).pos.x = trans_vertices(1).x
-  pt_vertices(1).pos.y = trans_vertices(1).y
   pt_vertices(1).tex.u = 1
   pt_vertices(1).tex.v = 0
-  pt_vertices(2).pos.x = trans_vertices(2).x
-  pt_vertices(2).pos.y = trans_vertices(2).y
   pt_vertices(2).tex.u = 1
   pt_vertices(2).tex.v = 1
-  pt_vertices(3).pos.x = trans_vertices(3).x
-  pt_vertices(3).pos.y = trans_vertices(3).y
   pt_vertices(3).tex.u = 0
   pt_vertices(3).tex.v = 1
-  
-  DIM destSurface as Surface ptr
-  DIM srcSurface as Surface ptr
+  FOR i as integer = 0 TO 3
+   pt_vertices(i).pos.x = trans_vertices(i).x
+   pt_vertices(i).pos.y = trans_vertices(i).y
+  NEXT
 
-  gfx_surfaceCreate( 320, 200, SF_32bit, SU_RenderTarget, @destSurface )
-  gfx_surfaceCreate( testframe->w, testframe->h, SF_8bit, SU_Source, @srcSurface )
-  dim i as integer
-  for i = 0 to (testframe->w * testframe->h - 1)
-    srcSurface->pPaletteData[i] = testframe->image[i]
-	next i
-  gfx_surfaceUpdate( srcSurface )
-	
+  DIM srcSurface as Surface
+  WITH srcSurface
+   .width = testframe->w
+   .height = testframe->h
+   .format = SF_8bit
+   .usage = SU_Source
+   .pPaletteData = testframe->image
+  END WITH
   DIM srcPalette as BackendPalette ptr
-  gfx_paletteCreate( @srcPalette )
-  'gfx_paletteUpdate( srcPalette ) 'no need to update yet
-  
-  gfx_renderQuadTexture( @pt_vertices(0), srcSurface, srcPalette, 1, 0, destSurface )
-  gfx_present( destSurface, 0 )
+  srcPalette = cast(BackendPalette ptr, @master(0))
 
-  drawtime = TIMER - drawtime
-  printstr "Drawn in " & FIX(drawtime * 1000000) & " usec", 0, 190, vpage
+  gfx_renderQuadTexture( @pt_vertices(0), @srcSurface, srcPalette, NO, NULL, vpage32 )
+  drawtime = TIMER - starttime
 
-  setvispage vpage
-  
-  gfx_paletteDestroy( srcPalette )
-  gfx_surfaceDestroy( srcSurface )
-  gfx_surfaceDestroy( destSurface )
+  gfx_present( vpage32, NULL )
   dowait
  LOOP
  setkeys
  frame_unload @testframe
+ gfx_surfaceDestroy(vpage32)
 END SUB
 
 #ELSE
