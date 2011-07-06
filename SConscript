@@ -15,7 +15,7 @@ FBFLAGS = os.environ.get ('FBFLAGS', []) + ['-mt','-g']
 CC = ''
 CXX = ''
 CFLAGS = '-g --std=c99'.split ()
-CXXFLAGS = '-g -Wall -Wno-non-virtual-dtor'.split ()
+CXXFLAGS = '-Wall -Wno-non-virtual-dtor'.split ()
 C_opt = True    # compile with -O2?
 FB_exx = True   # compile with -exx?
 envextra = {}
@@ -119,7 +119,7 @@ libpaths = []
 
 if win32:
     base_modules += ['os_windows.bas']
-    libraries += ['fbgfx']
+    libraries += ['fbgfx libstdc++.a libgcc_s.a']
     commonenv['FBFLAGS'] += ['-s','gui']
 elif unix:
     base_modules += ['os_unix.bas']
