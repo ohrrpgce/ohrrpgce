@@ -1299,28 +1299,32 @@ SUB quad_transforms_menu ()
   pt_vertices(3).tex.u = 0
   pt_vertices(3).tex.v = 1
   
-  DIM destSurface as Surface Ptr
-  DIM srcSurface as Surface
-  WITH srcSurface
-    .width = testframe->w
-	.height = testframe->h
-	.format = SF_8bit
-	.usage = SU_Source
-	.pPaletteData = testframe->image
-	END WITH
+  DIM destSurface as Surface ptr
+  DIM srcSurface as Surface ptr
 
-  gfx_surfaceCreate_SW( 320, 200, SF_32bit, SU_RenderTarget, @destSurface )
-  DIM srcPalette as BackendPalette
+  gfx_surfaceCreate( 320, 200, SF_32bit, SU_RenderTarget, @destSurface )
+  gfx_surfaceCreate( testframe->w, testframe->h, SF_8bit, SU_Source, @srcSurface )
+  dim i as integer
+  for i = 0 to (testframe->w * testframe->h - 1)
+    srcSurface->pPaletteData[i] = testframe->image[i]
+	next i
+  gfx_surfaceUpdate( srcSurface )
+	
+  DIM srcPalette as BackendPalette ptr
+  gfx_paletteCreate( @srcPalette )
+  'gfx_paletteUpdate( srcPalette ) 'no need to update yet
   
-  gfx_renderQuadTexture_SW( @pt_vertices(0), @srcSurface, @srcPalette, 1, 0, destSurface )
-  if gfx_present <> 0 then gfx_present( destSurface, 0 )
+  gfx_renderQuadTexture( @pt_vertices(0), srcSurface, srcPalette, 1, 0, destSurface )
+  gfx_present( destSurface, 0 )
 
   drawtime = TIMER - drawtime
   printstr "Drawn in " & FIX(drawtime * 1000000) & " usec", 0, 190, vpage
 
   setvispage vpage
   
-  gfx_surfaceDestroy_SW( destSurface )
+  gfx_paletteDestroy( srcPalette )
+  gfx_surfaceDestroy( srcSurface )
+  gfx_surfaceDestroy( destSurface )
   dowait
  LOOP
  setkeys
