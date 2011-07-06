@@ -1210,23 +1210,30 @@ SUB quad_transforms_menu ()
  DIM spritemode AS INTEGER = -1
 
  DIM testframe as Frame ptr
- DIM tempsprite as GraphicPair
-
  DIM vertices(3) as Float3
- DIM testframesize as Rect
 
  DIM angle as single
  DIM scale as Float2 = (2.0, 2.0)
  DIM position as Float2 = (150, 50)
 
+ 'This is used to copy data from vpages(vpage) to vpage32 
+ DIM vpage8 as Surface ptr
+ gfx_surfaceCreate(320, 200, SF_8bit, SU_Source, @vpage8)
+
+ 'This is the actual render Surface
  DIM vpage32 as Surface ptr
  gfx_surfaceCreate(320, 200, SF_32bit, SU_RenderTarget, @vpage32)
 
  DIM as double drawtime, pagecopytime
 
- 'Set each colour in the master palette to opaque. This is strange, but harmless
+ DIM spriteSurface as Surface ptr
+
+ DIM masterPalette as BackendPalette ptr
+ gfx_paletteCreate(@masterPalette)
+ memcpy(masterPalette, @master(0), sizeof(BackendPalette))
+ 'Set each colour in the master palette to opaque.
  FOR i as integer = 0 TO 255
-  master(i).a = 255
+  masterPalette->col(i).a = 255
  NEXT
 
  DO
@@ -1235,7 +1242,8 @@ SUB quad_transforms_menu ()
   if st.need_update then
    if spritemode < -1 then spritemode = 8
    if spritemode > 8 then spritemode = -1
-   frame_unload @testframe
+
+   DIM tempsprite as GraphicPair
    
    select case spritemode
     case 0 to 8
@@ -1253,12 +1261,18 @@ SUB quad_transforms_menu ()
       putpixel testframe, (i MOD 16), (i \ 16), i
      NEXT
    end select
-   
+
+   gfx_surfaceDestroy( spriteSurface )
+   gfx_surfaceCreate( testframe->w, testframe->h, SF_8bit, SU_Source, @spriteSurface )
+   memcpy(spriteSurface->pPaletteData, testframe->image, testframe->w * testframe->h - 1)
+   gfx_surfaceUpdate( spriteSurface )
+
+   DIM testframesize as Rect
    WITH testframesize
     .top = 0
     .left = 0
-    .right = testframe->w - 1
-    .bottom = testframe->h - 1
+    .right = spriteSurface->width - 1
+    .bottom = spriteSurface->height - 1
    END WITH
    vec3GenerateCorners @vertices(0), 4, testframesize
    
@@ -1285,18 +1299,12 @@ SUB quad_transforms_menu ()
   printstr "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec", 0, 190, vpage
   debug "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec"
 
-  'Copy from vpage (8 bit Frame) to a Surface
+  'Copy from vpage (8 bit Frame) to a source Surface, and then from there to the render target surface
   pagecopytime = TIMER
-  DIM vpageSurface as Surface
-  WITH *vpages(vpage)
-   vpageSurface.width = .w
-   vpageSurface.height = .h
-   vpageSurface.format = SF_8bit
-   vpageSurface.usage = SU_Source
-   vpageSurface.pPaletteData = .image
-'   smoothzoomblit_8_to_32bit(.image, vpage32->pColorData, .w, .h, vpage32->width, 1, 0, cast(integer ptr, @master(0)))
-  END WITH
-  gfx_surfaceCopy( NULL, @vpageSurface, cast(BackendPalette ptr, @master(0)), NO, NULL, vpage32)
+
+  memcpy(vpage8->pPaletteData, vpages(vpage)->image, 320 * 200)
+  gfx_surfaceUpdate( vpage8 )
+  gfx_surfaceCopy( NULL, vpage8, masterPalette, NO, NULL, vpage32)
 
   pagecopytime = TIMER - pagecopytime
   DIM starttime as DOUBLE = TIMER
@@ -1321,18 +1329,7 @@ SUB quad_transforms_menu ()
    pt_vertices(i).pos.y = trans_vertices(i).y
   NEXT
 
-  DIM srcSurface as Surface
-  WITH srcSurface
-   .width = testframe->w
-   .height = testframe->h
-   .format = SF_8bit
-   .usage = SU_Source
-   .pPaletteData = testframe->image
-  END WITH
-  DIM srcPalette as BackendPalette ptr
-  srcPalette = cast(BackendPalette ptr, @master(0))
-
-  gfx_renderQuadTexture( @pt_vertices(0), @srcSurface, srcPalette, NO, NULL, vpage32 )
+  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, NO, NULL, vpage32 )
   drawtime = TIMER - starttime
 
   gfx_present( vpage32, NULL )
@@ -1341,6 +1338,10 @@ SUB quad_transforms_menu ()
  setkeys
  frame_unload @testframe
  gfx_surfaceDestroy(vpage32)
+ gfx_surfaceDestroy(vpage8)
+ gfx_surfaceDestroy(spriteSurface)
+ gfx_paletteDestroy(masterPalette)
+ frame_unload @testframe   
 END SUB
 
 #ELSE
