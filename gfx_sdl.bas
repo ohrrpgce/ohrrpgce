@@ -310,7 +310,7 @@ FUNCTION gfx_sdl_getversion() as integer
   RETURN 1
 END FUNCTION
 
-SUB gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byval h as integer, byval bitdepth as integer)
+FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byval h as integer, byval bitdepth as integer) as integer
 
   'variable resolution handling
   IF framesize.w <> w OR framesize.h <> h THEN
@@ -341,7 +341,7 @@ SUB gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byval h a
     END IF
     'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
     IF screenbuffer = NULL THEN
-      print "Failed to allocate page wrapping surface"
+      debug "Failed to allocate page wrapping surface"
       SYSTEM
     END IF
 
@@ -354,16 +354,21 @@ SUB gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byval h a
     IF screensurface->format->BitsPerPixel <> 32 THEN
       gfx_sdl_set_screen_mode(32)
     END IF
-    IF screensurface = NULL THEN EXIT SUB
+    IF screensurface = NULL THEN
+      debug "gfx_sdl_present_internal: no screen!"
+      RETURN 1
+    END IF
 
     'smoothzoomblit takes the pitch in pixels, not bytes!
     smoothzoomblit_32_to_32bit(raw, cast(uinteger ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
     SDL_Flip(screensurface)
     update_state()
   END IF
-END SUB
 
-SUB gfx_sdl_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr)
+  RETURN 0
+END FUNCTION
+
+FUNCTION gfx_sdl_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr) as integer
   WITH *surfaceIn
     IF .format = SF_8bit AND pal <> NULL THEN
       FOR i as integer = 0 TO 255
@@ -372,9 +377,9 @@ SUB gfx_sdl_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette 
         sdlpalette(i).b = pal->col(i).b
       NEXT
     END IF
-    gfx_sdl_present_internal(.pColorData, .width, .height, IIF(.format = SF_8bit, 8, 32))
+    RETURN gfx_sdl_present_internal(.pColorData, .width, .height, IIF(.format = SF_8bit, 8, 32))
   END WITH
-END SUB
+END FUNCTION
 
 SUB gfx_sdl_showpage(byval raw as ubyte ptr, byval w as integer, byval h as integer)
   'takes a pointer to a raw 8-bit image, with pitch = w
@@ -838,6 +843,8 @@ FUNCTION gfx_sdl_setprocptrs() as integer
   io_setmouse = @io_sdl_setmouse
   io_mouserect = @io_sdl_mouserect
   io_readjoysane = @io_sdl_readjoysane
+
+  gfx_present = @gfx_sdl_present
 
   RETURN 1
 END FUNCTION

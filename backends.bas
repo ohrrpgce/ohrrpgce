@@ -175,6 +175,11 @@ function gfx_load_library(byval backendinfo as GfxBackendStuff ptr, filename as 
 	gfx_getwindowstate = dylibsymbol(hFile, "gfx_getwindowstate")
 	gfx_setoption = dylibsymbol(hFile, "gfx_setoption")
 	gfx_describe_options = dylibsymbol(hFile, "gfx_describe_options")
+
+	'New rendering API (FIXME: complete this)
+	gfx_present = dylibsymbol(hFile, "gfx_present")
+	if gfx_present = NULL then gfx_present = @gfx_present_SW
+
 	io_init = dylibsymbol(hFile, "io_init")
 
 	io_pollkeyevents = dylibsymbol(hFile, "io_pollkeyevents")

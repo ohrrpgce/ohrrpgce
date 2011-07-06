@@ -9,6 +9,7 @@ option explicit
 
 #include "config.bi"
 #include "fbgfx.bi"
+#include "gfx_newRenderPlan.bi"
 #include "gfx.bi"
 #include "common.bi"
 
@@ -111,11 +112,42 @@ sub gfx_fb_setpal(byval pal as RGBcolor ptr)
 	for i = 0 to 255
 		truepal(i) = RGB(pal[i].r, pal[i].g, pal[i].b)
 	next
-	'This does not update the page "live", like the 8-bit version
-	'so fades aren't working, and there's no way to force an
+	'FIXME: If running in 32 bitdepth, this does not update the page "live", like the 8-bit version
+	'so fades won't working, and there's no way to force an
 	'update from here at the moment because the screen buffer is not
 	'accessible.
 end sub
+
+function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as BackendPalette ptr)
+'320x200 Surfaces supported only!
+	screenlock
+
+	dim as ubyte ptr screenpixels = screenptr + (screen_buffer_offset * 320 * zoom)
+
+	with *surfaceIn
+		if .format = SF_8bit then
+			gfx_fb_setpal(cast(RGBcolor ptr, pal))
+
+			if depth = 8 then
+				smoothzoomblit_8_to_8bit(.pPaletteData, screenpixels, .width, .height, .width * zoom, zoom, smooth)
+			elseif depth = 32 then
+				smoothzoomblit_8_to_32bit(.pPaletteData, cast(uinteger ptr, screenpixels), .width, .height, .width * zoom, zoom, smooth, @truepal(0))
+			end if
+		else  '32 bit
+			if depth = 8 then
+				debug "gfx_fb_present: can't present a 32 bit surface unless running in 32 bit mode! Run .widthith '-d 32'"
+				return 1
+			elseif depth = 32 then
+				smoothzoomblit_32_to_32bit(.pColorData, cast(uinteger ptr, screenpixels), .width, .height, .width * zoom, zoom, smooth)
+			end if
+		end if
+	end with
+
+	screenunlock
+	flip
+
+	return 0
+end function
 
 function gfx_fb_screenshot(byval fname as zstring ptr) as integer
 	gfx_fb_screenshot = 0
@@ -463,6 +495,9 @@ function gfx_fb_setprocptrs() as integer
 	io_setmouse = @io_fb_setmouse
 	io_mouserect = @io_fb_mouserect
 	io_readjoysane = @io_fb_readjoysane
+
+	'new render API
+	gfx_present = @gfx_fb_present
 
 	return 1
 end function
