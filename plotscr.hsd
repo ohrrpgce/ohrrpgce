@@ -957,14 +957,6 @@ script,set footoffset,hsd:offset=0,begin
   write gmap(11,hsd:offset)
 end
 
-script,get after battle script,begin
-  return (read gmap(12))
-end
-
-script,set after battle script,hsd:ID=0,begin
-  write gmap(12,hsd:ID)
-end
-
 script,get instead of battle script,begin
   return (read gmap(13))
 end
