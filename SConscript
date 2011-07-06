@@ -218,7 +218,7 @@ game_modules = ['game',
                 'hsinterpreter']
 
 if 'raster' in ARGUMENTS:
-    common_objects += ['rasterizer.cpp', 'matrixMath.cpp', 'rasterizer_wrap.cpp', 'gfx_newRenderPlan.cpp']
+    common_objects += ['rasterizer.cpp', 'matrixMath.cpp', 'gfx_newRenderPlan.cpp']
     commonenv['FBFLAGS'] += ['-d', 'USE_RASTERIZER']
 
 # Note that base_objects are not built in commonenv!
