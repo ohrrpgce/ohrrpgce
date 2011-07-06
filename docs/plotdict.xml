@@ -5161,12 +5161,22 @@ end</example>
 		<command id="setinsteadofbattlescript">
 			<canon>set instead of battle script (id)</canon>
 			<shortname>set instead of battle script</shortname>
-			<description>Changes the script that is run instead of a battle when one is triggered. The argument is the script&apos;s ID number, NOT the script&apos;s name. Calling set instead of battle script with no argument disables the instead of battle script. The effect goes away if you change maps or fight a battle.</description>
+			<description>Changes the script that is run instead of a random battle when one is triggered. The argument is a reference to the script in the form @scriptname. Calling set instead of battle script with no argument disables the instead of battle script. The effect goes away if you change maps or fight a battle.</description>
 		</command>
 		<command id="getinsteadofbattlescript">
 			<canon>get instead of battle script</canon>
 			<shortname>get instead of battle script</shortname>
-			<description>Returns the ID number of script that is run instead of battles.</description>
+			<description>Returns a reference to the script that is run instead of battles.</description>
+		</command>
+		<command id="setafterbattlescript">
+			<canon>set after battle script (id)</canon>
+			<shortname>set after battle script</shortname>
+			<description>Changes the script that is run after a random battle when one is triggered. The argument is a reference to the script in the form @scriptname. Calling set instead of battle script with no argument disables the instead of battle script. The effect goes away if you change maps or fight a battle.</description>
+		</command>
+		<command id="getafterbattlescript">
+			<canon>get after battle script</canon>
+			<shortname>get after battle script</shortname>
+			<description>Returns a reference to the script that is after random of battles.</description>
 		</command>
 		<command id="setharmtiledamage">
 			<canon>set harm tile damage (amount)</canon>

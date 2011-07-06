@@ -557,6 +557,9 @@
 		<a href="#about-get%20zone%20name">get zone name (string id, zone id)</a><br>
 		
 	
+		<a href="#about-getafterbattlescript">get after battle script</a><br>
+		
+	
 		<a href="#about-getambientmusic">get ambient music</a><br>
 		
 	
@@ -1500,6 +1503,9 @@
 		
 	
 		<a href="#about-set%20zone%20extra">set zone extra (zone id, extra num, value)</a><br>
+		
+	
+		<a href="#about-setafterbattlescript">set after battle script (id)</a><br>
 		
 	
 		<a href="#about-setambientmusic">set ambient music (song)</a><br>
@@ -9295,6 +9301,7 @@ Besides readability, there is one other important difference between these two e
 <li>Alter NPC (who,NPCstat:script,script ID)</li>
 <li>Alter NPC (who,NPCstat:script argument,number)</li>
 <li>Alter NPC (who,NPCstat:vehicle,vehicle ID+1)</li>
+<li>Alter NPC (who,NPCstat:default movement zone,zone ID)</li>
 </ul>Normally you would only give an NPC ID number to alter NPC, but if you want to use an <a href="#about-npcreference" class="ref">NPC reference</a> it will still work. Just remember that alter NPC changes every copy of the NPC on the map, not just the specific one you referenced.<br>A good way to make use of Alter NPC is to wrap it in your own script. For example:
 		<pre># Example AlterNPC wrapper for changing NPC appearance
 
@@ -9478,7 +9485,7 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">set instead of battle script (id)</font></b><br>
-			Changes the script that is run instead of a battle when one is triggered. The argument is the script's ID number, NOT the script's name. Calling set instead of battle script with no argument disables the instead of battle script. The effect goes away if you change maps or fight a battle.<br>
+			Changes the script that is run instead of a random battle when one is triggered. The argument is a reference to the script in the form @scriptname. Calling set instead of battle script with no argument disables the instead of battle script. The effect goes away if you change maps or fight a battle.<br>
 			
 			
 		</tt></p>
@@ -9486,7 +9493,23 @@ end</pre>
 		<p>
 		<tt>
 		<b><font color="yellow">get instead of battle script</font></b><br>
-			Returns the ID number of script that is run instead of battles.<br>
+			Returns a reference to the script that is run instead of battles.<br>
+			
+			
+		</tt></p>
+		<a name="about-setafterbattlescript"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">set after battle script (id)</font></b><br>
+			Changes the script that is run after a random battle when one is triggered. The argument is a reference to the script in the form @scriptname. Calling set instead of battle script with no argument disables the instead of battle script. The effect goes away if you change maps or fight a battle.<br>
+			
+			
+		</tt></p>
+		<a name="about-getafterbattlescript"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">get after battle script</font></b><br>
+			Returns a reference to the script that is after random of battles.<br>
 			
 			
 		</tt></p>
@@ -10650,7 +10673,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 738 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 740 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>
