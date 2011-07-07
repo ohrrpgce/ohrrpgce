@@ -126,7 +126,7 @@ function gfx_fb_present(byval surfaceIn as Surface ptr, byval pal as BackendPale
 
 	with *surfaceIn
 		if .format = SF_8bit then
-			gfx_fb_setpal(cast(RGBcolor ptr, pal))
+			gfx_fb_setpal(cast(RGBcolor ptr, @pal->col(0)))
 
 			if depth = 8 then
 				smoothzoomblit_8_to_8bit(.pPaletteData, screenpixels, .width, .height, .width * zoom, zoom, smooth)

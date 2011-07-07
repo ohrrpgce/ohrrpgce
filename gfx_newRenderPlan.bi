@@ -20,6 +20,7 @@ Enum SurfaceUsage
 End Enum
 
 Type Surface
+	handle as any ptr
 	width as integer
 	height as integer
 	format as SurfaceFormat
@@ -41,6 +42,7 @@ End Type
 'palettes
 
 Type BackendPalette
+	handle as any ptr
 	col(255) as RGBcolor
 End Type
 

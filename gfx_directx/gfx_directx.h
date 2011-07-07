@@ -36,6 +36,7 @@ enum SurfaceUsage
 };
 struct Surface
 {
+	void* handle;
 	uint32_t width;
 	uint32_t height;
 	SurfaceFormat format;
@@ -55,6 +56,7 @@ struct SurfaceRect
 //palettes
 struct Palette
 {
+	void* handle;
 	uint32_t p[256];
 };
 

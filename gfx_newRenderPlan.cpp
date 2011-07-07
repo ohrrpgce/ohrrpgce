@@ -10,7 +10,7 @@ int gfx_surfaceCreate_SW( uint32_t width, uint32_t height, SurfaceFormat format,
 {//done
 	if( !ppSurfaceOut )
 		return -1;
-	Surface temp = {width, height, format, usage};
+	Surface temp = {0, width, height, format, usage};
 	if(format == SF_8bit)
 		temp.pPaletteData = new uint8_t[width*height];
 	else

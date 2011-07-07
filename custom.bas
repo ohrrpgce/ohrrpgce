@@ -1230,7 +1230,7 @@ SUB quad_transforms_menu ()
 
  DIM masterPalette as BackendPalette ptr
  gfx_paletteCreate(@masterPalette)
- memcpy(masterPalette, @master(0), sizeof(BackendPalette))
+ memcpy(@masterPalette->col(0), @master(0), sizeof(BackendPalette))
  'Set each colour in the master palette to opaque.
  FOR i as integer = 0 TO 255
   masterPalette->col(i).a = 255
