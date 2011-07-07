@@ -898,7 +898,7 @@ DO
    GOSUB loadfset
   END IF
  END IF
- IF bcsr = 2 THEN intgrabber c(0), 0, 99
+ IF bcsr = 2 THEN intgrabber c(0), 0, 200
  IF bcsr > 2 THEN
   IF zintgrabber(c(bcsr - 2), -1, gen(genMaxFormation)) THEN
    GOSUB lpreviewform
