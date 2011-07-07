@@ -11,6 +11,9 @@ include, plotscr.hsd
 define constant(1, default wait)
 
 global variable(100, menu item script global)
+global variable(101, timer global)
+global variable(102, timer global will become)
+global variable(103, random battle happened)
 
 ########################################################################
 
@@ -22,6 +25,7 @@ plotscript, run all tests, begin
   menu tests
   textbox tests
   battle tests
+  timer tests
   game over
 end
 
@@ -357,20 +361,111 @@ script, textbox tests, begin
 end
 
 script, battle tests, begin
+  # there are some other battle tests in with the timer tests
   $0="battle tests"
   show value(random(1, 999999999)), w
-  walk hero(me, east, 4)
-  wait for hero(me), w
-  walk hero(me, north, 1)
-  wait for hero(me), w
-  # a battle should occur on this step
+  force random battle
   show value(random(1, 999999999)), w # this should remain deterministic after battle
   show no value, w
 end
 
+script, force random battle, begin
+  variable(s, x, y, d, batscript)
+  # save hero state
+  s := get hero speed(me)
+  x := hero x(me)
+  y := hero y(me)
+  d := hero direction(me)
+  batscript := get instead of battle script
+  # get the hero ready for forcing the battle
+  set hero speed(0, 20)
+  set hero position(0, 15, 9)
+  random battle happened := false
+  set instead of battle script(@detect random battle)
+  # force the battle (usually happens in one step, may rarely take 2 steps)
+  while(not(random battle happened)) do(
+    walk hero(0, north, 1)
+    w
+  )
+  # restore hero state
+  set hero speed(me, s)
+  set hero position(me, x, y)
+  set hero direction(me, d)
+  set instead of battle script(batscript)
+end
+
+script, detect random battle, formation, begin
+  fight formation(formation)
+  random battle happened := true
+end
+
+script, timer tests, begin
+  set hero position(0, 15, 9), w
+  variable(i)
+  
+  allocate timers(32)
+  set timer(31, 10, 1, @timer test 1, 1)
+  show string at(1, 10, 10)
+  w, w, w, w
+  if(read timer(31) <> 6) then($0="read timer failed", crash)
+  w(6), w
+
+  timer global := 100
+  set timer(31, 0, 1, @looping timer test, 1)
+  w(11)
+  
+  # regular timer with battle
+  timer global := 0
+  timer global will become := 1000
+  set timer(31, 10, 1, @battle timer test)
+  force random battle
+  if(read timer(31) <= 0) then($0="timer should still be running after battle", crash)
+  if(timer global <> 0) then($0="timer global should still be zero", crash)
+  w(10)
+  if(read timer(31) >> 0) then($0="timer should be done by now", crash)
+  if(timer global <> timer global will become) then($0="timer global didn't change", crash)
+  
+#  # timerflag:battle with battle
+#  timer global := 0
+#  timer global will become := 2000
+#  set timer(31, 10, 1, @battle timer test, -1, timerflag:battle)
+#  force random battle
+#  if(read timer(31) >> 0) then($0="(timerflag:battle) timer should be done by now", crash)
+#  if(timer global <> timer global will become) then($0="(timerflag:battle) timer global didn't change", crash)
+#
+#  # timerflag:battle with battle
+#  timer global := 0
+#  timer global will become := 3000
+#  set timer(31, 10, 1, @battle timer test, -1, (timerflag:battle,and,timerflag:critical))
+#  force random battle
+#  if(read timer(31) >> 0) then($0="(timerflag:critical) timer should be done by now", crash)
+#  if(timer global <> timer global will become) then($0="(timerflag:critical) timer global didn't change", crash)
+
+  show no value
+end
+
+script, timer test 1, begin
+  show value(12345)
+  w
+end
+
+script, looping timer test, begin
+  if(timer global <= 0) then(timer global := 0, exit script)
+  set timer(31, 0, 1, @looping timer test, 1)
+  timer global -= 10
+  show value(timer global)
+  _checkpoint
+end
+
+script, battle timer test, begin
+  timer global := timer global will become
+  $0="battle timer test:"
+  append number(0, timer global)
+  show string(0), w
+end
+
 ########################################################################
 #### COMMANDS THAT STILL NEED TESTS
-#allocate timers (number)
 #allow minimap (setting)
 #allow save anywhere (setting)
 #alter NPC (who,NPCstat,value)

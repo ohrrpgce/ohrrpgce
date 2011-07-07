@@ -47,6 +47,7 @@ DECLARE SUB update_heroes(BYVAL force_npc_check AS INTEGER=NO)
 DECLARE SUB displayall()
 DECLARE SUB doloadgame(BYVAL load_slot AS INTEGER)
 DECLARE SUB reset_game_final_cleanup()
+DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) AS INTEGER
 
 REMEMBERSTATE
 
@@ -2104,6 +2105,23 @@ SUB usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scD
   END IF
 END SUB
 
+FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) AS INTEGER
+ IF l = 1 THEN
+  'This is happening in battle!
+  IF (t.flags AND 2) = 0 THEN
+   'timerflag:battle bit is OFF
+   RETURN YES
+  END IF
+ ELSEIF l = 2 THEN
+  'This is happening in a menu!
+  IF (t.flags AND 4) = 0 THEN
+   'timerflag:battle bit is OFF
+   RETURN YES
+  END IF
+ END IF
+ RETURN NO
+END FUNCTION
+
 SUB dotimer(byval l as integer)
   dim i as integer
   dim rsr as integer
@@ -2111,8 +2129,7 @@ SUB dotimer(byval l as integer)
     with timers(i)
       if .pause then continue for
       if .speed > 0 then
-        if ((l = 1) AND (.flags AND 2 = 0)) OR ((l = 2) AND (.flags AND 4 = 0)) then continue for 'not supposed to run here
-        'debug "updating timer #" & i
+        if should_skip_this_timer(l, timers(i)) then continue for 'not supposed to run here
 
         if .st > 0 then
           if plotstr(.st - 1).s = "" then plotstr(.st - 1).s = seconds2str(.count)
