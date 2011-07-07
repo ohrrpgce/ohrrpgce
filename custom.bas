@@ -1329,7 +1329,7 @@ SUB quad_transforms_menu ()
    pt_vertices(i).pos.y = trans_vertices(i).y
   NEXT
 
-  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, NO, NULL, vpage32 )
+  gfx_renderQuadTexture( @pt_vertices(0), spriteSurface, masterPalette, YES, NULL, vpage32 )
   drawtime = TIMER - starttime
 
   gfx_present( vpage32, NULL )
