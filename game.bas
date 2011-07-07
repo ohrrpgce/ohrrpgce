@@ -397,6 +397,9 @@ SetupGameSlices
 'beginplay
 resetg = NO
 
+'This is called BEFORE the loop, because when the game is quit or a save is loaded, this will be called again there
+reset_game_state
+
 DO' This loop encloses the playable game for a specific RPG file
 
 loadpalette master(), gen(genMasterPal)
@@ -404,7 +407,6 @@ LoadUIColors uilook(), gen(genMasterPal)
 init_default_text_colors
 
 initgamedefaults
-reset_game_state
 fatal = 0
 abortg = 0
 lastformation = -1
