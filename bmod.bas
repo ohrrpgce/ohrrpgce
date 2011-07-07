@@ -72,6 +72,7 @@ DECLARE SUB battle_attack_cancel_target_attack(targ as INTEGER, BYREF bat AS Bat
 DECLARE SUB battle_reevaluate_dead_targets (deadguy AS INTEGER, BYREF bat AS BattleState, bslot() AS BattleSprite)
 DECLARE SUB battle_sort_away_dead_t_target(deadguy AS INTEGER, t() AS INTEGER)
 DECLARE SUB battle_counterattacks(BYVAL h AS INTEGER, BYVAL targstat AS INTEGER, who AS INTEGER, attack AS AttackData, bslot() AS BattleSprite)
+DECLARE SUB show_first_battle_timer ()
 
 'these are the battle global variables
 DIM bstackstart AS INTEGER
@@ -189,13 +190,7 @@ FUNCTION battle (form, fatal) as integer
    exit do
   end if
  
-  '--show the timer
-  FOR i AS INTEGER = 0 to UBOUND(timers)
-   IF timers(i).speed > 0 AND timers(i).st > -1 AND timers(i).flags AND 2 = 2 THEN
-    edgeprint plotstr(timers(i).st-1).s, 320 - LEN(plotstr(timers(i).st-1).s) * 10, 185, uilook(uiText), dpage
-    EXIT FOR
-   END IF
-  NEXT
+  show_first_battle_timer()
 
   SWAP vpage, dpage
   setvispage vpage
@@ -3437,6 +3432,16 @@ SUB battle_counterattacks(BYVAL h AS INTEGER, BYVAL targstat AS INTEGER, who AS 
     autotarget who, bslot(who).stat_counter_attack(i) - 1, bslot(), t(), YES, NO
     EXIT SUB '-- only one counterattack per trigger attack
    END IF
+  END IF
+ NEXT i
+END SUB
+
+SUB show_first_battle_timer ()
+ '--show the timer
+ FOR i AS INTEGER = 0 to UBOUND(timers)
+  IF timers(i).speed > 0 ANDALSO timers(i).st > 0 ANDALSO (timers(i).flags AND 2) = 2 THEN
+   edgeprint plotstr(timers(i).st-1).s, 320 - LEN(plotstr(timers(i).st-1).s) * 10, 185, uilook(uiText), dpage
+   EXIT FOR 'Only print the first timer if there are many of them
   END IF
  NEXT i
 END SUB

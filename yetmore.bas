@@ -1671,7 +1671,7 @@ SELECT CASE AS CONST id
   setbit gen(), 44, suspendambientmusic, 1
  CASE 257'--resume map music
   setbit gen(), 44, suspendambientmusic, 0
- CASE 260'--settimer(id, count, speed, trigger, string, flags)
+ CASE 260'--set timer(id, count, speed, trigger, string, flags)
   IF bound_arg(retvals(0), 0, UBOUND(timers), "timer ID") THEN
     WITH timers(retvals(0))
       IF retvals(1) > -1 THEN .count = retvals(1): .ticks = 0
@@ -1689,19 +1689,19 @@ SELECT CASE AS CONST id
       IF .speed < -1 THEN .speed *= -1: .speed -= 1
     END WITH
   END IF
- CASE 261'--stoptimer
+ CASE 261'--stop timer
   IF bound_arg(retvals(0), 0, UBOUND(timers), "timer ID") THEN
    timers(retvals(0)).speed = 0
   END IF
- CASE 262'--readtimer
+ CASE 262'--read timer
   IF bound_arg(retvals(0), 0, UBOUND(timers), "timer ID") THEN
    scriptret = timers(retvals(0)).count
   END IF
- CASE 263'--getcolor
+ CASE 263'--get color
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
    scriptret = master(retvals(0)).col
   END IF
- CASE 264'--setcolor
+ CASE 264'--set color
   IF retvals(0) >= 0 AND retvals(0) < 256 THEN
    retvals(1) = retvals(1) OR &HFF000000 'just in case, set the alpha
    master(retvals(0)).col = retvals(1)
