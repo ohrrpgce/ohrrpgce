@@ -215,7 +215,6 @@ int gfx_paletteDestroy_SW( Palette* pPaletteIn )
 				g_palettes.erase(iter);
 				break;
 			}
-		delete pPaletteIn;
 	}
 	return 0;
 }
