@@ -647,7 +647,6 @@ DO
      'trigger a normal random battle
      fatal = 0
      gam.wonbattle = battle(batform, fatal)
-     dotimerafterbattle
      prepare_map YES
      needf = 2
     END IF
@@ -2196,22 +2195,6 @@ function dotimermenu() as integer
   next
   return 0
 end function
-
-Sub dotimerafterbattle()
-  dim i as integer
-  for i = 0 to ubound(timers)
-    with timers(i)
-      if .speed < 0 then 'normally, not valid. but, if a timer expired in battle, this will be -ve, -1
-        .speed *= -1
-        .speed -= 1
-
-        .count = 0
-        .ticks = .speed
-      end if
-    end with
-  next
-
-end sub
 
 FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
  IF record >= 0 AND allow_duplicate = NO THEN

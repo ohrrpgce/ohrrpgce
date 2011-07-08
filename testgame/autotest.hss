@@ -13,6 +13,7 @@ define constant(1, default wait)
 global variable(100, menu item script global)
 global variable(101, timer global)
 global variable(102, timer global will become)
+global variable(103, battle script sequence)
 
 #string 0 = error messages
 #string 1 = temporary misc
@@ -23,11 +24,11 @@ global variable(102, timer global will become)
 plotscript, run all tests, begin
   suspend player
   seed random(4444)
-  math tests
-  hero tests
-  menu tests
-  textbox tests
-  battle tests
+#  math tests
+#  hero tests
+#  menu tests
+#  textbox tests
+#  battle tests
   timer tests
   game over
 end
@@ -402,6 +403,27 @@ script, force non random battle, begin
   w(2)
 end
 
+plotscript, after battle, begin
+  $0="After battle script:"
+  battle script sequence += 1
+  append number(0, battle script sequence)
+  trace(0)
+  show string at(0, 0, 0)
+  w
+  hide string(0)
+end
+
+plotscript, instead of battle, form, begin
+  $0="Instead of battle script("
+  append number(0, form)
+  $0+")"
+  trace(0)
+  w
+  fight formation(form)
+  $0="  finish instead of battle"
+  trace(0)
+end
+
 script, timer tests, begin
   variable(i)
   
@@ -421,6 +443,27 @@ script, timer tests, begin
   $2="fight formation"
   test timer and battle interactions(@force non random battle)
   $2=""
+
+  
+  $0="timer interactions with after battle", trace(0)
+  teleport to map(1, 10, 8), w # after battle
+  battle script sequence := 0
+  test timer and battle interactions(@force random battle)
+  if(battle script sequence <> 3) then($0="(ab) afterbattle should have happened 3 times", crash)
+
+  $0="timer interactions with instead of battle", trace(0)
+  teleport to map(2, 10, 8), w # instead of battle
+  battle script sequence := 0
+  test timer and battle interactions(@force random battle)
+  if(battle script sequence <> 0) then($0="(ib) afterbattle should have happened 0 times", crash)
+
+  $0="timer interactions with after battle + instead of battle", trace(0)
+  teleport to map(3, 10, 8), w # after battle + instead of battle
+  battle script sequence := 0
+  test timer and battle interactions(@force random battle)
+  if(battle script sequence <> 3) then($0="(ab+ib) afterbattle should have happened 3 times", crash)
+
+  teleport to map(0, 10, 8), w
 
   hide string(1)
 end
@@ -479,6 +522,7 @@ script, battle timer test, begin
   timer global := timer global will become
   $0="battle timer test:"
   append number(0, timer global)
+  trace(0)
   show string(0), w
 end
 
