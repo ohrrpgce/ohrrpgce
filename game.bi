@@ -31,8 +31,6 @@ declare sub menusound(byval s as integer)
 declare sub usemenusounds (byval deckey as integer = scUp, byval inckey as integer = scDown)
 declare sub dotimer(byval l as integer)
 declare function dotimerbattle() as integer
-declare function dotimermenu() as integer
-declare sub dotimerafterbattle()
 declare function count_sav(filename as string) as integer
 declare function add_menu (record as integer, allow_duplicate as integer=no) as integer
 declare sub remove_menu (slot as integer, byval run_on_close as integer=YES)

@@ -24,11 +24,11 @@ global variable(103, battle script sequence)
 plotscript, run all tests, begin
   suspend player
   seed random(4444)
-#  math tests
-#  hero tests
-#  menu tests
-#  textbox tests
-#  battle tests
+  math tests
+  hero tests
+  menu tests
+  textbox tests
+  battle tests
   timer tests
   game over
 end

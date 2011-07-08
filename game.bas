@@ -2182,20 +2182,6 @@ function dotimerbattle() as integer
   return 0
 end function
 
-function dotimermenu() as integer
-  dotimer 2  'no sense duplicating code
-
-  dim i as integer
-  for i = 0 to ubound(timers)
-    with timers(i)
-      if .speed < 0 then 'normally, not valid. but, if a timer expired in the menu, this will be -ve, -1
-        if .flags AND 1 then return -1
-      end if
-    end with
-  next
-  return 0
-end function
-
 FUNCTION add_menu (record AS INTEGER, allow_duplicate AS INTEGER=NO) AS INTEGER
  IF record >= 0 AND allow_duplicate = NO THEN
   'If adding a non-blank menu, first check if the requested menu is already open
