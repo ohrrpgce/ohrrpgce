@@ -16,8 +16,6 @@
 #include "allmodex.bi"
 #include "common.bi"
 #include "slices.bi"
-#include "custom_udts.bi"
-#include "customsubs.bi"
 #include "loading.bi"
 
 #include "sliceedit.bi"

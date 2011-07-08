@@ -16,7 +16,6 @@ DECLARE FUNCTION tag_grabber (BYREF n AS INTEGER, min AS INTEGER=-999, max AS IN
 DECLARE FUNCTION tagnames (starttag AS INTEGER=0, picktag AS INTEGER=NO) AS INTEGER
 DECLARE FUNCTION cond_grabber (cond AS Condition, BYVAL default AS INTEGER = 0, BYVAL alwaysedit AS INTEGER) AS INTEGER
 DECLARE FUNCTION condition_string (cond AS Condition, BYVAL selected AS INTEGER, default AS STRING = "Always", BYVAL wide AS INTEGER = 40) AS STRING
-DECLARE FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
 DECLARE FUNCTION charpicker() AS STRING
 DECLARE FUNCTION percent_grabber OVERLOAD (BYREF float AS DOUBLE, repr AS STRING, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4) AS INTEGER
 DECLARE FUNCTION percent_grabber OVERLOAD (BYREF float AS SINGLE, repr AS STRING, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4) AS INTEGER
@@ -25,9 +24,6 @@ DECLARE FUNCTION percent_cond_grabber(BYREF cond AS AttackElementCondition, repr
 DECLARE SUB percent_cond_editor (cond as AttackElementCondition, BYVAL min AS DOUBLE, BYVAL max AS DOUBLE, BYVAL decimalplaces AS INTEGER = 4, do_what as string = "...", percent_of_what AS STRING = "")
 DECLARE SUB ui_color_editor(palnum AS INTEGER)
 DECLARE SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
-DECLARE FUNCTION int_from_xy(pos AS XYPair, wide AS INTEGER, high AS INTEGER) AS INTEGER
-DECLARE FUNCTION xy_from_int(n AS INTEGER, wide AS INTEGER, high AS INTEGER) AS XYPair
-DECLARE FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
 DECLARE FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
 DECLARE FUNCTION needaddset (BYREF pt AS INTEGER, BYREF check AS INTEGER, what AS STRING) AS INTEGER
 DECLARE FUNCTION intgrabber_with_addset (BYREF pt AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL maxmax AS INTEGER=32767, what AS STRING, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight) AS INTEGER
@@ -43,8 +39,6 @@ DECLARE FUNCTION step_estimate(freq AS INTEGER, low AS INTEGER, high AS INTEGER,
 DECLARE FUNCTION speed_estimate(speed AS INTEGER, suffix AS STRING=" seconds", zero AS STRING="infinity") AS STRING
 DECLARE FUNCTION seconds_estimate(ticks AS INTEGER) AS STRING
 DECLARE SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
-DECLARE FUNCTION fixfilename (s AS STRING) AS STRING
-DECLARE FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, helpkey AS STRING, default AS STRING="", allow_overwrite AS INTEGER=YES) AS STRING
 DECLARE FUNCTION export_textboxes (filename AS STRING, metadata() AS INTEGER) AS INTEGER
 DECLARE FUNCTION import_textboxes (filename AS STRING, BYREF warn AS STRING) AS INTEGER
 DECLARE FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS INTEGER

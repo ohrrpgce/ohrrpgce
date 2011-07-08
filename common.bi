@@ -221,6 +221,9 @@ DECLARE FUNCTION last_inv_slot() AS INTEGER
 
 DECLARE FUNCTION decode_backslash_codes(s AS STRING) AS STRING
 DECLARE FUNCTION escape_nonprintable_ascii(s AS STRING) AS STRING
+DECLARE FUNCTION fixfilename (s AS STRING) AS STRING
+
+DECLARE FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, helpkey AS STRING, default AS STRING="", BYVAL allow_overwrite AS INTEGER=YES) AS STRING
 
 DECLARE SUB set_homedir()
 DECLARE FUNCTION get_help_dir(helpfile AS STRING="") AS STRING
@@ -230,12 +233,21 @@ DECLARE SUB save_help_file(helpkey AS STRING, text AS STRING)
 DECLARE SUB show_help(helpkey AS STRING)
 DECLARE FUNCTION multiline_string_editor(s AS STRING, helpkey AS STRING="") AS STRING
 
+DECLARE FUNCTION int_from_xy(pos AS XYPair, BYVAL wide AS INTEGER, BYVAL high AS INTEGER) AS INTEGER
+DECLARE FUNCTION xy_from_int(BYVAL n AS INTEGER, BYVAL wide AS INTEGER, BYVAL high AS INTEGER) AS XYPair
+
+DECLARE FUNCTION color_browser_256(BYVAL start_color AS INTEGER=0) AS INTEGER
+
 'These were added from other, less-appropriate places
 DECLARE FUNCTION filenum(n AS INTEGER) AS STRING
 
 'Sprite loading convenience functions
 DECLARE SUB load_sprite_and_pal (BYREF img AS GraphicPair, BYVAL spritetype, BYVAL index AS INTEGER, BYVAL palnum AS INTEGER=-1)
 DECLARE SUB unload_sprite_and_pal (BYREF img AS GraphicPair)
+
+'strgrabber has separate versions in customsubs.bas and yetmore2.bas
+DECLARE FUNCTION strgrabber (s AS STRING, BYVAL maxl AS INTEGER) AS INTEGER
+
 
 'Global variables
 EXTERN sourcerpg as string

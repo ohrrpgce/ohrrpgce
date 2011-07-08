@@ -481,7 +481,7 @@ FUNCTION condition_string (cond as Condition, byval selected as integer, default
 END FUNCTION
 
 'Returns true if the string has changed
-FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
+FUNCTION strgrabber (s AS STRING, BYVAL maxl AS INTEGER) AS INTEGER
  STATIC clip AS STRING
  DIM old AS STRING = s
 
@@ -507,61 +507,59 @@ FUNCTION strgrabber (s AS STRING, maxl AS INTEGER) AS INTEGER
 END FUNCTION
 
 FUNCTION charpicker() AS STRING
+ STATIC pt AS INTEGER
 
-STATIC pt
+ DIM i AS INTEGER
+ DIM f(255) AS INTEGER
+ DIM last AS INTEGER = -1
+ DIM linesize AS INTEGER
+ DIM offset AS XYPair
 
-DIM i AS INTEGER
-DIM f(255)
-DIM last AS INTEGER = -1
-DIM linesize AS INTEGER
-DIM offset AS XYPair
+ FOR i = 32 TO 255
+  last = last + 1
+  f(last) = i
+ NEXT i
 
-FOR i = 32 TO 255
- last = last + 1
- f(last) = i
-NEXT i
+ linesize = 16
+ offset.x = 160 - (linesize * 9) \ 2
+ offset.y = 100 - ((last \ linesize) * 9) \ 2
 
-linesize = 16
-offset.x = 160 - (linesize * 9) \ 2
-offset.y = 100 - ((last \ linesize) * 9) \ 2
-
-DIM tog AS INTEGER = 0
-setkeys
-DO
- setwait 55
+ DIM tog AS INTEGER = 0
  setkeys
- tog = tog XOR 1
- IF keyval(scESC) > 1 THEN RETURN ""
- IF keyval(scF1) > 1 THEN show_help "charpicker"
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF keyval(scESC) > 1 THEN RETURN ""
+  IF keyval(scF1) > 1 THEN show_help "charpicker"
 
- IF keyval(scUp) > 1 THEN pt = large(pt - linesize, 0)
- IF keyval(scDown) > 1 THEN pt = small(pt + linesize, last)
- IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
- IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
+  IF keyval(scUp) > 1 THEN pt = large(pt - linesize, 0)
+  IF keyval(scDown) > 1 THEN pt = small(pt + linesize, last)
+  IF keyval(scLeft) > 1 THEN pt = large(pt - 1, 0)
+  IF keyval(scRight) > 1 THEN pt = small(pt + 1, last)
 
- IF enter_or_space() THEN RETURN CHR(f(pt))
+  IF enter_or_space() THEN RETURN CHR(f(pt))
 
- clearpage dpage
- FOR i = 0 TO last
-  textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
-  IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
-  IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
-  printstr CHR(f(i)), offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, dpage
- NEXT i
+  clearpage dpage
+  FOR i = 0 TO last
+   textcolor uilook(uiMenuItem), uilook(uiDisabledItem)
+                                            IF (i MOD linesize) = (pt MOD linesize) OR (i \ linesize) = (pt \ linesize) THEN textcolor uilook(uiMenuItem), uilook(uiHighlight)
+   IF pt = i THEN textcolor uilook(uiSelectedItem + tog), 0
+   printstr CHR(f(i)), offset.x + (i MOD linesize) * 9, offset.y + (i \ linesize) * 9, dpage
+  NEXT i
 
- textcolor uilook(uiMenuItem), 0
- printstr "ASCII " & f(pt), 78, 190, dpage
- FOR i = 2 TO 53
-  IF f(pt) = ASC(key2text(2, i)) THEN printstr "ALT+" + UCASE(key2text(0, i)), 178, 190, dpage
-  IF f(pt) = ASC(key2text(3, i)) THEN printstr "ALT+SHIFT+" + UCASE(key2text(0, i)), 178, 190, dpage
- NEXT i
- IF f(pt) = 32 THEN printstr "SPACE", 178, 190, dpage
+  textcolor uilook(uiMenuItem), 0
+  printstr "ASCII " & f(pt), 78, 190, dpage
+  FOR i = 2 TO 53
+   IF f(pt) = ASC(key2text(2, i)) THEN printstr "ALT+" + UCASE(key2text(0, i)), 178, 190, dpage
+   IF f(pt) = ASC(key2text(3, i)) THEN printstr "ALT+SHIFT+" + UCASE(key2text(0, i)), 178, 190, dpage
+  NEXT i
+  IF f(pt) = 32 THEN printstr "SPACE", 178, 190, dpage
 
- SWAP vpage, dpage
- setvispage vpage
- dowait
-LOOP
-
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
 END FUNCTION
 
 'Edit a floating point value and its string representation simultaneously (repr
@@ -867,55 +865,6 @@ SUB make_ui_color_editor_menu(m() AS STRING, colors() AS INTEGER)
   m(49 + i) = "Box style " & i & " border image: " & zero_default(colors(48 + i), "none", -1)
  NEXT i
 END SUB
-
-FUNCTION color_browser_256(start_color AS INTEGER=0) AS INTEGER
- DIM i AS INTEGER
- DIM tog AS INTEGER = 0
- DIM spot AS XYPair
- DIM cursor AS XYPair
- cursor = xy_from_int(start_color, 16, 16)
- setkeys
- DO
-  setwait 55
-  setkeys
-  tog = (tog + 1) MOD 256
-  IF keyval(scESC) > 1 THEN RETURN start_color
-  IF keyval(scF1) > 1 THEN show_help "color_browser"
-
-  IF enter_or_space() THEN RETURN int_from_xy(cursor, 16, 16)
-
-  IF keyval(scUp) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, -1)
-  IF keyval(scDown) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, 1)
-  IF keyval(scLeft) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, -1)
-  IF keyval(scRight) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, 1)
-
-  clearpage dpage
-  FOR i = 0 TO 255
-   spot = xy_from_int(i, 16, 16)
-   IF spot.x = cursor.x AND spot.y = cursor.y THEN
-    edgebox 64 + spot.x * 12 , 0 + spot.y * 12 , 12, 12, i, tog, dpage
-   ELSE
-    rectangle 64 + spot.x * 12 , 0 + spot.y * 12 , 12, 12, i, dpage
-   END IF
-  NEXT i
-
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
-END FUNCTION
-
-'Supports negative n too
-FUNCTION xy_from_int(n AS INTEGER, wide AS INTEGER, high AS INTEGER) AS XYPair
- DIM pair AS XYPair
- pair.x = n MOD wide
- pair.y = small(CINT(INT(n / wide)), high - 1)
- RETURN pair
-END FUNCTION
-
-FUNCTION int_from_xy(pair AS XYPair, wide AS INTEGER, high AS INTEGER) AS INTEGER
- RETURN bound(pair.y * wide + pair.x, 0, wide * high - 1)
-END FUNCTION
 
 FUNCTION pick_ogg_quality(BYREF quality AS INTEGER) AS INTEGER
  STATIC q AS INTEGER = 4
@@ -1450,65 +1399,6 @@ SUB load_text_box_portrait (BYREF box AS TextBox, BYREF gfx AS GraphicPair)
   END IF
  END WITH
 END SUB
-
-FUNCTION fixfilename (s AS STRING) AS STRING
- 'Makes sure that a string cannot contain any chars unsafe for filenames
- DIM result AS STRING = ""
- DIM ch AS STRING
- DIM ascii AS INTEGER
- DIM i AS INTEGER
- FOR i = 1 TO LEN(s)
-  ch = MID(s, i, 1)
-  ascii = ASC(ch)
-  SELECT CASE ascii
-   CASE 32, 46, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45  '[ 0-9A-Za-z_~-]
-    result = result & ch
-  END SELECT
- NEXT i
- RETURN result
-END FUNCTION
-
-FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, helpkey AS STRING, default AS STRING="", allow_overwrite AS INTEGER=YES) AS STRING
- DIM filename AS STRING = default
- DIM tog AS INTEGER
- IF directory = "" THEN directory = CURDIR
- setkeys
- DO
-  setwait 55
-  setkeys
-  tog = tog XOR 1
-  IF keyval(scEsc) > 1 THEN RETURN ""
-  IF keyval(scF1) > 1 THEN show_help helpkey
-  strgrabber filename, 40
-  filename = fixfilename(filename)
-  IF keyval(scEnter) > 1 THEN
-   filename = TRIM(filename)
-   IF filename <> "" THEN
-    IF isfile(directory + SLASH + filename + ext) THEN
-     If allow_overwrite THEN
-      IF yesno("File already exists, overwrite?") THEN RETURN directory + SLASH + filename
-     ELSE
-      notification filename & ext & " already exists"
-     END IF
-    ELSE
-     RETURN directory + SLASH + filename
-    END IF
-   END IF
-  END IF
-  clearpage dpage
-  textcolor uilook(uiText), 0
-  printstr query, 160 - LEN(query) * 4, 20, dpage
-  printstr "Output directory: ", 160 - 18 * 4, 35, dpage
-  printstr directory, xstring(directory, 160), 45, dpage
-  textcolor uilook(uiSelectedItem + tog), 1
-  printstr filename, 160 - LEN(filename & ext) * 4 , 60, dpage
-  textcolor uilook(uiText), uilook(uiHighlight)
-  printstr ext, 160 + (LEN(filename) - LEN(ext)) * 4 , 60, dpage
-  SWAP vpage, dpage
-  setvispage vpage
-  dowait
- LOOP
-END FUNCTION
 
 FUNCTION askwhatmetadata (metadata() AS INTEGER, metadatalabels() AS STRING) AS INTEGER
  DIM tog AS INTEGER

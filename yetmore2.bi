@@ -12,7 +12,6 @@ DECLARE SUB innRestore ()
 DECLARE SUB setmapxy
 DECLARE SUB limitcamera (BYREF x AS INTEGER, BYREF y AS INTEGER)
 DECLARE SUB showplotstrings
-DECLARE FUNCTION strgrabber (s as string, maxl as integer) AS INTEGER
 DECLARE SUB makebackups
 DECLARE SUB correctbackdrop
 DECLARE SUB cleanuptemp

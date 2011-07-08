@@ -223,7 +223,7 @@ NEXT i
 END SUB
 
 'Returns whether the string has changed
-FUNCTION strgrabber (s as string, maxl) AS INTEGER
+FUNCTION strgrabber (s as string, byval maxl as integer) AS INTEGER
  DIM old AS STRING = s
 
  '--BACKSPACE support

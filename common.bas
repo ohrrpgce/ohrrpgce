@@ -4587,6 +4587,65 @@ FUNCTION escape_nonprintable_ascii(s AS STRING) AS STRING
  RETURN result
 END FUNCTION
 
+FUNCTION fixfilename (s AS STRING) AS STRING
+ 'Makes sure that a string cannot contain any chars unsafe for filenames (overly strict)
+ DIM result AS STRING = ""
+ DIM ch AS STRING
+ DIM ascii AS INTEGER
+ DIM i AS INTEGER
+ FOR i = 1 TO LEN(s)
+  ch = MID(s, i, 1)
+  ascii = ASC(ch)
+  SELECT CASE ascii
+   CASE 32, 46, 48 TO 57, 65 TO 90, 97 TO 122, 95, 126, 45  '[ 0-9A-Za-z_~-]
+    result = result & ch
+  END SELECT
+ NEXT i
+ RETURN result
+END FUNCTION
+
+FUNCTION inputfilename (query AS STRING, ext AS STRING, directory AS STRING, helpkey AS STRING, default AS STRING="", BYVAL allow_overwrite AS INTEGER=YES) AS STRING
+ DIM filename AS STRING = default
+ DIM tog AS INTEGER
+ IF directory = "" THEN directory = CURDIR
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog = tog XOR 1
+  IF keyval(scEsc) > 1 THEN RETURN ""
+  IF keyval(scF1) > 1 THEN show_help helpkey
+  strgrabber filename, 40
+  filename = fixfilename(filename)
+  IF keyval(scEnter) > 1 THEN
+   filename = TRIM(filename)
+   IF filename <> "" THEN
+    IF isfile(directory + SLASH + filename + ext) THEN
+     If allow_overwrite THEN
+      IF yesno("File already exists, overwrite?") THEN RETURN directory + SLASH + filename
+     ELSE
+      notification filename & ext & " already exists"
+     END IF
+    ELSE
+     RETURN directory + SLASH + filename
+    END IF
+   END IF
+  END IF
+  clearpage dpage
+  textcolor uilook(uiText), 0
+  printstr query, 160 - LEN(query) * 4, 20, dpage
+  printstr "Output directory: ", 160 - 18 * 4, 35, dpage
+  printstr directory, xstring(directory, 160), 45, dpage
+  textcolor uilook(uiSelectedItem + tog), 1
+  printstr filename, 160 - LEN(filename & ext) * 4 , 60, dpage
+  textcolor uilook(uiText), uilook(uiHighlight)
+  printstr ext, 160 + (LEN(filename) - LEN(ext)) * 4 , 60, dpage
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
+END FUNCTION
+
 SUB clamp_menu_state (BYREF state AS MenuState)
  WITH state
   IF .pt < .top THEN .top = .pt
@@ -4823,4 +4882,54 @@ FUNCTION filenum (n AS INTEGER) AS STRING
  ELSE
   RETURN STR(n)
  END IF
+END FUNCTION
+
+'OK, NOW it supports negative n too
+FUNCTION xy_from_int(BYVAL n AS INTEGER, BYVAL wide AS INTEGER, BYVAL high AS INTEGER) AS XYPair
+ DIM pair AS XYPair
+ n = POSMOD(n, wide * high)  'Mathematical modulo wide*high
+ pair.x = n MOD wide
+ pair.y = n \ wide
+ RETURN pair
+END FUNCTION
+
+FUNCTION int_from_xy(pair AS XYPair, BYVAL wide AS INTEGER, BYVAL high AS INTEGER) AS INTEGER
+ RETURN bound(pair.y * wide + pair.x, 0, wide * high - 1)
+END FUNCTION
+
+FUNCTION color_browser_256(BYVAL start_color AS INTEGER=0) AS INTEGER
+ DIM i AS INTEGER
+ DIM tog AS INTEGER = 0
+ DIM spot AS XYPair
+ DIM cursor AS XYPair
+ cursor = xy_from_int(start_color, 16, 16)
+ setkeys
+ DO
+  setwait 55
+  setkeys
+  tog = (tog + 1) MOD 256
+  IF keyval(scESC) > 1 THEN RETURN start_color
+  IF keyval(scF1) > 1 THEN show_help "color_browser"
+
+  IF enter_or_space() THEN RETURN int_from_xy(cursor, 16, 16)
+
+  IF keyval(scUp) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, -1)
+  IF keyval(scDown) > 1 THEN cursor.y = loopvar(cursor.y, 0, 15, 1)
+  IF keyval(scLeft) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, -1)
+  IF keyval(scRight) > 1 THEN cursor.x = loopvar(cursor.x, 0, 15, 1)
+
+  clearpage dpage
+  FOR i = 0 TO 255
+   spot = xy_from_int(i, 16, 16)
+   IF spot.x = cursor.x AND spot.y = cursor.y THEN
+    edgebox 64 + spot.x * 12 , 0 + spot.y * 12 , 12, 12, i, tog, dpage
+   ELSE
+    rectangle 64 + spot.x * 12 , 0 + spot.y * 12 , 12, 12, i, dpage
+   END IF
+  NEXT i
+
+  SWAP vpage, dpage
+  setvispage vpage
+  dowait
+ LOOP
 END FUNCTION
