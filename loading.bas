@@ -2896,7 +2896,7 @@ END SUB
 
 SUB load_string_list(array() AS STRING, filename AS STRING)
 
- DIM i AS INTEGER = 0
+ DIM lines AS INTEGER = 0
 
  IF isfile(filename) THEN
 
@@ -2909,25 +2909,26 @@ SUB load_string_list(array() AS STRING, filename AS STRING)
    '--get the next line
    LINE INPUT #fh, s
    '--if the array is not big enough to hold the new line, make it bigger
-   IF i > UBOUND(array) THEN
-    REDIM PRESERVE array(i) AS STRING
+   IF lines > UBOUND(array) THEN
+    REDIM PRESERVE array(lines) AS STRING
    END IF
    '--store the string in the array
-   array(i) = decode_backslash_codes(s)
+   array(lines) = decode_backslash_codes(s)
    '--ready for the next line
-   i += 1
+   lines += 1
   LOOP
  
   CLOSE #fh
-
- ELSE
-  '--file does not exist, but still act like we read a single (empty) line
-  i += 1
  END IF
- 
- '--resize the array to fit the number of lines loaded
- REDIM PRESERVE array(i - 1) AS STRING
- 
+
+ IF lines = 0 THEN
+  '--special case for no file/lines: REDIM arr(-1) is illegal
+  REDIM array(0)
+ ELSE
+  '--resize the array to fit the number of lines loaded
+  REDIM PRESERVE array(lines - 1) AS STRING
+ END IF
+
 END SUB
 
 FUNCTION load_map_pos_save_offset(BYVAL mapnum AS INTEGER) AS XYPair
