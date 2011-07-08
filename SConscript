@@ -192,6 +192,7 @@ common_modules += ['allmodex',
                    'loading',
                    'reload',
                    'reloadext',
+                   'sliceedit',
                    'slices']
 
 edit_modules = ['custom',
@@ -202,7 +203,6 @@ edit_modules = ['custom',
                 'mapsubs',
                 'flexmenu',
                 'menus',
-                'sliceedit',
                 'reloadedit',
                 'editedit',
                 'editrunner']

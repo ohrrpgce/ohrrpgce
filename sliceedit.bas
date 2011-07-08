@@ -231,7 +231,11 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
     EXIT DO
    END IF
   END IF
-  IF keyval(scF1) > 1 THEN show_help "sliceedit"
+  #IFDEF IS_CUSTOM
+   IF keyval(scF1) > 1 THEN show_help "sliceedit"
+  #ELSE
+   IF keyval(scF1) > 1 THEN show_help "sliceedit_game"
+  #ENDIF
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
 
   updatepagesize dpage
@@ -279,8 +283,9 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
     SliceSaveToFile edslice, filename & ".slice"
    END IF
   END IF
+#IFDEF IS_CUSTOM
   IF ses.use_index THEN
-   '--import is only allowed when regular index editing mode is enabled...
+   '--import is only allowed when regular index editing mode is enabled, and not in Game...
    IF keyval(scF3) > 1 THEN
     filename = browse(0, "", "*.slice", "",, "browse_import_slices")
     IF filename <> "" THEN
@@ -292,6 +297,7 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
     END IF
    END IF
   END IF
+#ENDIF
   IF keyval(scPlus) > 1 OR keyval(scNumpadPlus) THEN
    IF slice_edit_detail_browse_slicetype(slice_type) THEN
     IF state.pt > ses.last_non_slice THEN
@@ -306,6 +312,12 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   IF menu(state.pt).handle THEN
 
    IF keyval(scDelete) > 1 THEN
+    #IFDEF IS_GAME
+     IF menu(state.pt).handle->Lookup < 0 THEN
+      notification "Can't delete special slices!"
+      CONTINUE DO
+     END IF
+    #ENDIF
     IF yesno("Delete this " & SliceTypeName(menu(state.pt).handle) & " slice?", NO) THEN
      slice_editor_refresh_delete state.pt, menu()
      state.need_update = YES
@@ -343,6 +355,12 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
    ELSEIF keyval(scCtrl) > 0 THEN '--ctrl, not shift
 
     IF keyval(scC) > 1 THEN
+     #IFDEF IS_GAME
+      IF menu(state.pt).handle->Lookup < 0 THEN
+       notification "Can't copy special slices!"
+       CONTINUE DO
+      END IF
+     #ENDIF
      slice_editor_copy ses, menu(state.pt).handle
     END IF
     IF keyval(scV) > 1 THEN
@@ -407,16 +425,42 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
 
 END SUB
 
+'--Returns whether one of the descendents is forbidden
+FUNCTION slice_editor_forbidden_search(BYVAL sl AS Slice Ptr) AS INTEGER
+ IF sl = 0 THEN RETURN NO
+ IF sl->Lookup < 0 THEN RETURN YES
+ IF int_array_find(editable_slice_types(), sl->SliceType) < 0 THEN RETURN YES
+ IF slice_editor_forbidden_search(sl->FirstChild) THEN RETURN YES
+ RETURN slice_editor_forbidden_search(sl->NextSibling)
+END FUNCTION
+
 SUB slice_editor_load(BYREF edslice AS Slice Ptr, filename AS STRING)
- DeleteSlice @edslice
- edslice = NewSlice
- WITH *edslice
+ DIM newcollection AS Slice Ptr
+ newcollection = NewSlice
+ WITH *newcollection
   .Attach = slScreen
   .SliceType = slContainer
   .Fill = YES
  END WITH
  IF isfile(filename) THEN
-  SliceLoadFromFile edslice, filename
+  SliceLoadFromFile newcollection, filename
+ END IF
+ '--You can export slice collections from the in-game slice debugger. These
+ '--collections are full of forbidden slices, so we must detect these and
+ '--prevent importing. Attempting to do so instead will open a new editor.
+ IF slice_editor_forbidden_search(newcollection) THEN
+  notification "The slice collection you are trying to load includes special " _
+               "slices (either due to their type or lookup code), probably " _
+               "because it has been exported from a game. You aren't allowed " _
+               "to import this collection, but it will be now be opened in " _
+               "the slice collection editor so that you may view, edit, and reexport " _
+               "it. Exit that editor to go back to your previous slice collection. " _
+               "Try removing the special slices and exporting the collection; " _
+               "you'll then be able to import normally."
+  slice_editor newcollection
+ ELSE
+  DeleteSlice @edslice
+  edslice = newcollection
  END IF
 END SUB
 
@@ -501,7 +545,7 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
  SELECT CASE rule.mode
   CASE erIntgrabber
    DIM n AS INTEGER PTR = rule.dataptr
-   IF intgrabber(*n, rule.lower, rule.upper) THEN
+   IF intgrabber(*n, rule.lower, rule.upper, , , , , NO) THEN  'Don't autoclamp
     state.need_update = YES
    END IF
   CASE erToggle
@@ -521,14 +565,15 @@ SUB slice_edit_detail_keys (BYREF state AS MenuState, sl AS Slice Ptr, rootsl AS
     END IF
    END IF
  END SELECT
- DIM switchtype AS INTEGER = NO
  IF rule.group AND slgrPICKTYPE THEN
+  DIM switchtype AS INTEGER = NO
   DIM slice_type AS SliceTypes = sl->SliceType
-  DIM slice_type_num AS INTEGER = 0
+  DIM slice_type_num AS INTEGER = -1
   FOR i AS INTEGER = 0 TO UBOUND(editable_slice_types)
    IF slice_type = editable_slice_types(i) THEN slice_type_num = i
   NEXT i
-  IF intgrabber(slice_type_num, 0, UBOUND(editable_slice_types)) THEN
+  '--Don't autoclamp, because slice_type_num may be -1
+  IF intgrabber(slice_type_num, 0, UBOUND(editable_slice_types), , , , , NO) THEN
    slice_type = editable_slice_types(slice_type_num)
    state.need_update = YES
    switchtype = YES
@@ -658,7 +703,16 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
  menu(0) = "Previous Menu"
  WITH *sl
   menu(1) = "Slice type: " & SliceTypeName(sl)
-  sliceed_rule_none rules(), "slicetype", slgrPICKTYPE
+  #IFDEF IS_CUSTOM
+   sliceed_rule_none rules(), "slicetype", slgrPICKTYPE
+  #ELSE
+   '--If this is a special slice, then you're not allowed to change the type.
+   IF .Lookup >= 0 THEN
+    sliceed_rule_none rules(), "slicetype", slgrPICKTYPE
+   ELSE
+    sliceed_rule_none rules(), "slicetype"
+   END IF
+  #ENDIF
   menu(2) = "X: " & .X
   sliceed_rule rules(), "pos", erIntgrabber, @.X, -9999, 9999, slgrPICKXY
   menu(3) = "Y: " & .Y
@@ -668,7 +722,16 @@ SUB slice_edit_detail_refresh (BYREF state AS MenuState, menu() AS STRING, sl AS
   menu(5) = "Height: " & .Height
   sliceed_rule rules(), "size", erIntgrabber, @.Height, 0, 9999, slgrPICKWH
   menu(6) = "Lookup code: " & slice_lookup_code_caption(.Lookup, slicelookup())
-  sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(slicelookup), slgrPICKLOOKUP
+  #IFDEF IS_CUSTOM
+   sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(slicelookup), slgrPICKLOOKUP
+  #ELSE
+   IF .Lookup >= 0 THEN
+    sliceed_rule rules(), "lookup", erIntgrabber, @.Lookup, 0, UBOUND(slicelookup), slgrPICKLOOKUP
+   ELSE
+    '--Not allow to change lookup code at all
+    sliceed_rule_none rules(), "lookup"
+   END IF
+  #ENDIF 
   SELECT CASE .SliceType
    CASE slRectangle
     DIM dat AS RectangleSliceData Ptr
@@ -818,8 +881,11 @@ FUNCTION slice_caption (sl AS Slice Ptr, slicelookup() AS STRING) AS STRING
  DIM s AS STRING
  WITH *sl
   s = .ScreenX & "," & .ScreenY & "(" & .Width & "x" & .Height & ")"
+  s &= "${K" & uilook(uiText) & "} "
   IF .Lookup > 0 AND .Lookup <= UBOUND(slicelookup) THEN
-   s &= " " & slicelookup(.Lookup)
+   s &= slicelookup(.Lookup)
+  ELSE
+   s &= SliceLookupCodeName(.Lookup)
   END IF
  END WITH
  RETURN s

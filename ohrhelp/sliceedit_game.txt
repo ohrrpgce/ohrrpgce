@@ -1,0 +1,27 @@
+This is the slice collection editor, being used to inspect the in-game slice tree. You can use this to help debug scripts. If you're new to slices, it's probably a better idea to play around with slice collections in Custom rather than here.
+
+You can also press CTRL+F8 while playing a game (exit this menu first!) to dump the slice tree to the file g_debug.txt. Alternatively, you can press F2 in this menu to export a slice collection to a file which you can load in Custom's slice collection editor and inspect later. 
+
+Note that you can make some (but not all) changes to the slice tree here that you are not allowed to perform with scripts: if you do that, don't be surprised when everything goes haywire!
+
+Press + to add a new slice to the current collection.
+
+Press ENTER or SPACE to edit a slice's details.
+
+Hold the SHIFT key and use the arrow keys to reorder the slice in the slice list. Moving it to the top of the list makes it draw first. Moving it to the bottom of the list makes it draw last, over the top of the other slices.
+
+Hold Shift and press the left and right arrow keys to change the parentage of a slice. If a slice is indented that means it is a child of the slice right above it in the menu.
+
+Child slices are grouped together with their parent, and they move as a group.
+
+While holding Ctrl you can press up and down to move to the previous and next siblings of a slice; and press left and right to select the parent and the first child.
+
+Press Delete if you want to remove a slice.
+
+Press Ctrl+C to copy a slice and its children. Press Ctrl+V to paste a copied slice before the current one.
+
+Press F2 to export this slice collection to a file.
+
+Press CTRL+F to edit the children of the currently selected slice in full-screen.
+
+Press F4 to hide the menu, so you can see the slice collection unobstructed. Press F4 again to display the menu.

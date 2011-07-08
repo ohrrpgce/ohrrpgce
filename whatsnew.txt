@@ -5,6 +5,8 @@ WHAT IS NEW?
   * New Features
     * Adjustable global HP thresholds for hero and enemy Weak states
       (hero graphics and enemy desperation attacks) [Adam Perry]
+    * New in-game debug key: CTRL+F4 to view/edit/export the slice
+      tree with the slice collection editor [Ralph]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during
@@ -25,9 +27,9 @@ WHAT IS NEW?
   * Vikings of Midgard
 
   * Stuff Only Developers Will Notice
-    * Certain special engine-related Slices can be marked as protected
-      to indicate that game author's plotscripts are not permitted to
-      delete or reparent them.
+    * Certain special engine-related Slices are marked as protected
+      to indicate that plotscripts are not permitted to delete or
+      reparent them.
 
 May 6 2011 [Zenzizenzic]
 

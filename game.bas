@@ -26,6 +26,7 @@
 #include "bmodsubs.bi"
 #include "bmod.bi"
 #include "hsinterpreter.bi"
+#include "sliceedit.bi"
 #include "game.bi"
 
 
@@ -546,7 +547,6 @@ DO
   IF keyval(scF3) > 1 AND txt.showing = NO THEN
    wantloadgame = 33
   END IF
-  IF keyval(scF4) > 1 THEN gam.debug_showtags = NOT gam.debug_showtags : scrwatch = 0 
   IF keyval(scCtrl) = 0 AND keyval(scF5) > 1 THEN 'F5
    SELECT CASE gen(cameramode)
     CASE herocam
@@ -609,6 +609,7 @@ DO
      scriptout$ = STR(speedcontrol)
     END IF
    END IF
+   IF keyval(scF4) > 1 THEN slice_editor SliceTable.Root
    IF keyval(scF8) > 1 THEN
     debug "----------------Slice Tree Dump---------------"
     SliceDebugDumpTree SliceTable.Root
@@ -617,6 +618,7 @@ DO
    IF keyval(scF11) > 1 THEN gam.debug_npc_info = NOT gam.debug_npc_info
   ELSE ' not holding CTRL
    IF keyval(scF1) > 1 AND txt.showing = NO THEN minimap catx(0), caty(0)
+   IF keyval(scF4) > 1 THEN gam.debug_showtags = NOT gam.debug_showtags : scrwatch = 0 
    IF keyval(scF8) > 1 THEN patcharray gen(), "gen"
    IF keyval(scF9) > 1 THEN patcharray gmap(), "gmap"
    IF keyval(scF11) > 1 THEN gam.walk_through_walls = NOT gam.walk_through_walls
