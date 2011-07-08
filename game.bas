@@ -18,7 +18,6 @@
 #include "scrconst.bi"
 #include "uiconst.bi"
 #include "loading.bi"
-#include "slices.bi"
 #include "savegame.bi"
 #include "yetmore.bi"
 #include "yetmore2.bi"
@@ -3230,11 +3229,14 @@ SUB refresh_map_slice()
  ChangeMapSlice SliceTable.ObsoleteOverhead, @maptiles(0), @pass
  
  '--now fix up the order of the slices
+ DIM num_layers_under_walkabouts as integer
+ '--It's possible for gmap(31) to be larger than the number of map layers
+ num_layers_under_walkabouts = bound(gmap(31), 1, UBOUND(maptiles) + 1)
  FOR i AS INTEGER = 0 TO UBOUND(maptiles)
   IF SliceTable.Maplayer(i) = 0 THEN
    debug "Null map layer " & i & " when sorting in refresh_map_slice"
   ELSE
-   SliceTable.MapLayer(i)->Sorter = IIF(i < gmap(31), i, i + 1)
+   SliceTable.MapLayer(i)->Sorter = IIF(i < num_layers_under_walkabouts, i, i + 1)
   END IF
  NEXT
  FOR i AS INTEGER = UBOUND(maptiles) + 1 TO UBOUND(SliceTable.MapLayer)
@@ -3245,7 +3247,7 @@ SUB refresh_map_slice()
   END IF
  NEXT i
  
- SliceTable.Walkabout->Sorter = gmap(31)
+ SliceTable.Walkabout->Sorter = num_layers_under_walkabouts
  SliceTable.ObsoleteOverhead->Sorter = UBOUND(maptiles) + 2
  
  CustomSortChildSlices SliceTable.MapRoot, YES
