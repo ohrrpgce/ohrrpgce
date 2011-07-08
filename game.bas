@@ -2130,6 +2130,7 @@ SUB dotimer(byval l as integer)
       if .pause then continue for
       if .speed > 0 then
         if should_skip_this_timer(l, timers(i)) then continue for 'not supposed to run here
+        'debug "i=" & i & " l=" & l & " .speed=" & .speed & " .ticks=" & .ticks & " .count=" & .count & " .flags=" & .flags & " .trigger=" & .trigger
 
         if .st > 0 then
           if plotstr(.st - 1).s = "" then plotstr(.st - 1).s = seconds2str(.count)
@@ -2144,23 +2145,21 @@ SUB dotimer(byval l as integer)
             .speed *= -1
             .speed -= 1
             'do something
-            if l = 0 then 'on the field
-              if .trigger = -2 then 'game over
-                fatal = 1
-                abortg = 1
+            if .trigger = -2 then 'game over
+              fatal = 1
+              abortg = 1
 
-                exit sub
-              end if
+              exit sub
+            end if
 
-              if .trigger = -1 then 'undefined, shouldn't happen
-              end if
+            if .trigger = -1 then 'undefined, shouldn't happen
+            end if
 
-              if .trigger > -1 then 'plotscript
-                rsr = runscript(.trigger, nowscript + 1, -1, "timer", 0)
-                IF rsr = 1 THEN
-                  setScriptArg 0, i
-                END IF
-              end if
+            if .trigger > -1 then 'plotscript
+              rsr = runscript(.trigger, nowscript + 1, -1, "timer", 0)
+              IF rsr = 1 THEN
+                setScriptArg 0, i
+              END IF
             end if
           end if
         end if

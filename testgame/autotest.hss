@@ -13,7 +13,10 @@ define constant(1, default wait)
 global variable(100, menu item script global)
 global variable(101, timer global)
 global variable(102, timer global will become)
-global variable(103, random battle happened)
+
+#string 0 = error messages
+#string 1 = temporary misc
+#string 2 = error message arg
 
 ########################################################################
 
@@ -37,6 +40,11 @@ script, w, ticks=default wait, begin
 end
 
 script, crash, begin
+  if(string length(2) >> 0) then(
+    $0+"("
+    concatenate strings(0, 2)
+    $0+")"
+  )
   show text box(1)
   trace(0)
   w(25)
@@ -370,37 +378,31 @@ script, battle tests, begin
 end
 
 script, force random battle, begin
-  variable(s, x, y, d, batscript)
+  variable(s, x, y, d)
   # save hero state
   s := get hero speed(me)
   x := hero x(me)
   y := hero y(me)
   d := hero direction(me)
-  batscript := get instead of battle script
   # get the hero ready for forcing the battle
   set hero speed(0, 20)
-  set hero position(0, 15, 9)
-  random battle happened := false
-  set instead of battle script(@detect random battle)
-  # force the battle (usually happens in one step, may rarely take 2 steps)
-  while(not(random battle happened)) do(
-    walk hero(0, north, 1)
-    w
-  )
+  set hero position(0, 15, 9), w
+  # force the battle
+  walk hero(0, north, 1), w
   # restore hero state
   set hero speed(me, s)
   set hero position(me, x, y)
   set hero direction(me, d)
-  set instead of battle script(batscript)
+  w
 end
 
-script, detect random battle, formation, begin
-  fight formation(formation)
-  random battle happened := true
+script, force non random battle, begin
+  w
+  fight formation(0)
+  w(2)
 end
 
 script, timer tests, begin
-  set hero position(0, 15, 9), w
   variable(i)
   
   allocate timers(32)
@@ -414,34 +416,50 @@ script, timer tests, begin
   set timer(31, 0, 1, @looping timer test, 1)
   w(11)
   
-  # regular timer with battle
+  $2="random"
+  test timer and battle interactions(@force random battle)
+  $2="fight formation"
+  test timer and battle interactions(@force non random battle)
+  $2=""
+
+  hide string(1)
+end
+
+script, test timer and battle interactions, trigger battle, begin
+  #regular timer
   timer global := 0
   timer global will become := 1000
-  set timer(31, 10, 1, @battle timer test)
-  force random battle
-  if(read timer(31) <= 0) then($0="timer should still be running after battle", crash)
+  set timer(31, 10, 1, @battle timer test, -1, 0)
+  run script by id(trigger battle)
+  if(read timer(31) <= 0) then($0="timer should still be running", crash)
   if(timer global <> 0) then($0="timer global should still be zero", crash)
   w(10)
   if(read timer(31) >> 0) then($0="timer should be done by now", crash)
   if(timer global <> timer global will become) then($0="timer global didn't change", crash)
   
-#  # timerflag:battle with battle
-#  timer global := 0
-#  timer global will become := 2000
-#  set timer(31, 10, 1, @battle timer test, -1, timerflag:battle)
-#  force random battle
-#  if(read timer(31) >> 0) then($0="(timerflag:battle) timer should be done by now", crash)
-#  if(timer global <> timer global will become) then($0="(timerflag:battle) timer global didn't change", crash)
-#
-#  # timerflag:battle with battle
-#  timer global := 0
-#  timer global will become := 3000
-#  set timer(31, 10, 1, @battle timer test, -1, (timerflag:battle,and,timerflag:critical))
-#  force random battle
-#  if(read timer(31) >> 0) then($0="(timerflag:critical) timer should be done by now", crash)
-#  if(timer global <> timer global will become) then($0="(timerflag:critical) timer global didn't change", crash)
+  #timerflag:battle
+  timer global := 0
+  timer global will become := 2000
+  set timer(31, 10, 1, @battle timer test, 1, timerflag:battle)
+  run script by id(trigger battle)
+  if(read timer(31) >> 0) then($0="(bat) timer should be done by now", crash)
+  if(timer global <> timer global will become) then($0="(bat) timer global didn't change", crash)
 
-  show no value
+  #timerflag:battle ,or, timerflag:critical
+  timer global := 0
+  timer global will become := 3000
+  set timer(31, 10, 1, @battle timer test, 1, (timerflag:battle,or,timerflag:critical))
+  set timer(30, 20, 1, @battle timer test, 0, (timerflag:battle))
+  run script by id(trigger battle)
+  if(read timer(31) >> 0) then($0="(bat+crit) timer should be done by now", crash)
+  if(timer global <> timer global will become) then($0="(bat+crit) timer global didn't change", crash)
+  timer global will become := 4000
+  if(read timer(30) <= 0) then($0="(bat+crit) second timer should still be running", crash)
+  w(12)
+  if(read timer(30) >> 0) then($0="(bat+crit) second timer should be done by now", crash)
+  if(timer global <> timer global will become) then($0="(bat+crit) timer global didn't change on second timer", crash)
+  timer global := 0
+  w
 end
 
 script, timer test 1, begin
