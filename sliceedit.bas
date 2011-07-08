@@ -236,6 +236,13 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   IF keyval(scF1) > 1 THEN show_help "sliceedit"
   IF keyval(scF4) > 1 THEN ses.hide_menu = NOT ses.hide_menu
 
+  updatepagesize dpage
+  
+  WITH *edslice
+   .Width = vpages(dpage)->w
+   .Height = vpages(dpage)->h
+  END WITH
+
   IF state.need_update THEN
    slice_editor_refresh(ses, state, menu(), edslice, cursor_seek, slicelookup())
    REDIM plainmenu(state.last) AS STRING
@@ -263,6 +270,8 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
      ses.collection_number = jump_to_collection
      slice_editor_load edslice, slice_editor_filename(ses)
      state.need_update = YES
+     '--Force immediate menu refresh
+     CONTINUE DO
     END IF
    END IF
   END IF
@@ -278,7 +287,10 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
     filename = browse(0, "", "*.slice", "",, "browse_import_slices")
     IF filename <> "" THEN
      slice_editor_load edslice, filename
+     cursor_seek = NULL
      state.need_update = YES
+     '--Force immediate menu refresh
+     CONTINUE DO
     END IF
    END IF
   END IF
@@ -385,13 +397,6 @@ SUB slice_editor (BYREF ses AS SliceEditState, BYREF edslice AS Slice Ptr, BYVAL
   SWAP vpage, dpage
   setvispage vpage
   dowait
-
-  updatepagesize dpage
-  
-  WITH *edslice
-   .Width = vpages(dpage)->w
-   .Height = vpages(dpage)->h
-  END WITH
  LOOP
 
  edslice->X = ses.saved_pos.x
