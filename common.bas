@@ -1301,14 +1301,15 @@ END FUNCTION
 'Modify an integer according to key input (less and more are scancodes for decrementing and incrementing)
 'If returninput is true, returns whether the user tried to modify the int,
 'otherwise returns true only if the int actually changed.
-FUNCTION intgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO, BYVAL use_clipboard AS INTEGER=YES) AS INTEGER
+'If autoclamp is false, n is clamped within allowable range only if a key is pressed
+FUNCTION intgrabber (BYREF n AS INTEGER, BYVAL min AS INTEGER, BYVAL max AS INTEGER, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO, BYVAL use_clipboard AS INTEGER=YES, BYVAL autoclamp AS INTEGER=YES) AS INTEGER
  DIM AS LONGINT temp = n
- intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput, use_clipboard)
+ intgrabber = intgrabber(temp, cast(longint, min), cast(longint, max), less, more, returninput, use_clipboard, autoclamp)
  n = temp
 END FUNCTION
 
 'See above for documentation
-FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONGINT, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO, BYVAL use_clipboard AS INTEGER=YES) AS INTEGER
+FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONGINT, BYVAL less AS INTEGER=scLeft, BYVAL more AS INTEGER=scRight, BYVAL returninput AS INTEGER=NO, BYVAL use_clipboard AS INTEGER=YES, BYVAL autoclamp AS INTEGER=YES) AS INTEGER
  STATIC clip AS LONGINT
  DIM old AS LONGINT = n
  DIM typed AS INTEGER = NO
@@ -1347,6 +1348,8 @@ FUNCTION intgrabber (BYREF n AS LONGINT, BYVAL min AS LONGINT, BYVAL max AS LONG
   END IF
   n = bound(n, min, max)
  END IF
+
+ IF typed = NO AND autoclamp = NO THEN n = old
 
  IF returninput THEN
   RETURN typed
