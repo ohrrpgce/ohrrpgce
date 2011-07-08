@@ -70,17 +70,11 @@ FUNCTION large (BYVAL n1 as double, BYVAL n2 as double) as double
 END FUNCTION
 
 FUNCTION loopvar (BYVAL value as integer, BYVAL min as integer, BYVAL max as integer, BYVAL inc as integer) as integer
- DIM as integer a = value + inc
- IF a > max THEN RETURN a - ((max - min) + 1)
- IF a < min THEN RETURN a + ((max - min) + 1)
- RETURN a
+ RETURN POSMOD((value + inc) - min, (max - min) + 1) + min
 END FUNCTION
 
 FUNCTION loopvar (BYVAL value as longint, BYVAL min as longint, BYVAL max as longint, BYVAL inc as longint) as longint
- DIM as longint a = value + inc
- IF a > max THEN RETURN a - ((max - min) + 1)
- IF a < min THEN RETURN a + ((max - min) + 1)
- RETURN a
+ RETURN POSMOD((value + inc) - min, (max - min) + 1) + min
 END FUNCTION
 
 FUNCTION small (BYVAL n1 as integer, BYVAL n2 as integer) as integer
