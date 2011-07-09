@@ -98,7 +98,7 @@ class Platform(object):
     
     def __init__(self):
         if sys.platform == "win32":
-            self.game = "game.exe"
+            self.game = "./gdbgame.bat"
         else:
             self.game = "./gdbgame.sh"
 
@@ -179,11 +179,11 @@ class AutoTest(object):
             if not self.opt.again:
                 run_command("svn update -r %s" % (rev))
         if not self.opt.again:
-            run_command("scons")
+            run_command("scons game")
         os.chdir(self.context.remember_dir)
     
     def prepare_current(self, d):
-        run_command("scons")
+        run_command("scons game")
     
     def run_rpg(self, rpg, dump_dir):
         print "======"

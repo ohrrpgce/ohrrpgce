@@ -25,8 +25,6 @@ if platform.system () == 'Windows':
     win32 = True
     unix = False
     exe_suffix = '.exe'
-    # Default to not using -exx, that's the old default
-    FB_exx = False
     # Force use of gcc instead of MSVC++, so compiler flags are understood
     envextra = {'tools': ['mingw']}
 else:
@@ -263,8 +261,8 @@ if win32:
 GAME = gameenv.BASEXE   (gamename, source = gamesrc, FBFLAGS = gameflags)
 CUSTOM = editenv.BASEXE (editname, source = editsrc, FBFLAGS = editflags)
 env.BASEXE ('bam2mid')
-env.BASEXE ('unlump', source = ['unlump.bas', 'lumpfile.bas'] + base_objects)
-env.BASEXE ('relump', source = ['relump.bas', 'lumpfile.bas'] + base_objects)
+env.BASEXE ('unlump', source = ['unlump.bas', 'lumpfile.o'] + base_objects)
+env.BASEXE ('relump', source = ['relump.bas', 'lumpfile.o'] + base_objects)
 env.BASEXE ('dumpohrkey')
 env.Command ('hspeak', source = ['hspeak.exw', 'hsspiffy.e'], action = 'euc -gcc hspeak.exw')
 RELOADTEST = env.BASEXE ('reloadtest', source = ['reloadtest.bas'] + reload_objects)
