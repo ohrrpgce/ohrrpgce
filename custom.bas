@@ -1200,6 +1200,8 @@ END SUB
 #include "gfx_newRenderPlan.bi"
 #include "gfx.bi"
 
+declare sub surface_export_bmp24 (f as string, byval surf as Surface Ptr)
+
 SUB quad_transforms_menu ()
  DIM menu(...) as string = {"Arrows: scale X and Y", "<, >: change angle", "[, ]: change sprite"}
  DIM st as MenuState
@@ -1230,7 +1232,7 @@ SUB quad_transforms_menu ()
 
  DIM masterPalette as BackendPalette ptr
  gfx_paletteCreate(@masterPalette)
- memcpy(@masterPalette->col(0), @master(0), sizeof(BackendPalette))
+ memcpy(@masterPalette->col(0), @master(0), 256 * 4)
  'Set each colour in the master palette to opaque.
  FOR i as integer = 0 TO 255
   masterPalette->col(i).a = 255
@@ -1243,18 +1245,17 @@ SUB quad_transforms_menu ()
    if spritemode < -1 then spritemode = 8
    if spritemode > 8 then spritemode = -1
 
-   DIM tempsprite as GraphicPair
-   
+   frame_unload @testframe
+
    select case spritemode
     case 0 to 8
+     DIM tempsprite as GraphicPair
+     load_sprite_and_pal tempsprite, spritemode, 0, -1
      with tempsprite
-      .sprite = frame_load(spritemode, 0)
-      .pal = palette16_load(-1, spritemode, 0)
       testframe = frame_new(.sprite->w, .sprite->h, , YES)
       frame_draw .sprite, .pal, 0, 0, , , testframe
-      frame_unload @.sprite
-      palette16_unload @.pal
      end with
+     unload_sprite_and_pal tempsprite
     case else
      testframe = frame_new(16, 16)
      FOR i as integer = 0 TO 255
@@ -1300,13 +1301,12 @@ SUB quad_transforms_menu ()
   debug "Drawn in " & FIX(drawtime * 1000000) & " usec, pagecopytime = " & FIX(pagecopytime * 1000000) & " usec"
 
   'Copy from vpage (8 bit Frame) to a source Surface, and then from there to the render target surface
-  pagecopytime = TIMER
-
   memcpy(vpage8->pPaletteData, vpages(vpage)->image, 320 * 200)
   gfx_surfaceUpdate( vpage8 )
+  pagecopytime = TIMER
   gfx_surfaceCopy( NULL, vpage8, masterPalette, NO, NULL, vpage32)
-
   pagecopytime = TIMER - pagecopytime
+
   DIM starttime as DOUBLE = TIMER
 
   DIM matrix as Float3x3
@@ -1333,6 +1333,8 @@ SUB quad_transforms_menu ()
   drawtime = TIMER - starttime
 
   gfx_present( vpage32, NULL )
+
+  'surface_export_bmp24 ("out.bmp", vpage32)
   dowait
  LOOP
  setkeys
@@ -1341,7 +1343,6 @@ SUB quad_transforms_menu ()
  gfx_surfaceDestroy(vpage8)
  gfx_surfaceDestroy(spriteSurface)
  gfx_paletteDestroy(masterPalette)
- frame_unload @testframe   
 END SUB
 
 #ELSE
