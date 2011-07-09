@@ -57,7 +57,7 @@ def move_pattern(filename_pattern, dest_dir):
 class Options(object):
     
     def __init__(self):
-        parser = optparse.OptionParser(usage="%prog [options] filename.rpg", description="This tool runs OHRRPGCE rpg files in autotest mode. The rpg will be run twice, once for the current local working copy, and once for the revision you want to compare with. You will be alerted of any differences. The purpose of this tool is to detect regressions and unintended side-effects of bugfixes. it is not useful for validating new features or bugfixes that legitimately involve a visible change in behavior. It is only useful for rpg files that run deterministically with no user input.")
+        parser = optparse.OptionParser(usage="%prog [options] filename.rpg", description="This tool runs OHRRPGCE rpg files in autotest mode. It requires either an svn or git working copy of the OHRRPGCE source. The rpg will be run twice, once for the current local working copy, and once for the revision you want to compare with. You will be alerted of any differences. The purpose of this tool is to detect regressions and unintended side-effects of bugfixes. it is not useful for validating new features or bugfixes that legitimately involve a visible change in behavior. It is only useful for rpg files that run deterministically with no user input.")
         parser.add_option("-r", dest="rev",
                   help="Revision to test the current working copy against. If you leave this out, it assumes that you want to compare local changes against a clean copy of the currently checked out revision.", default=None)
         parser.add_option("-a", "--again",
@@ -82,24 +82,40 @@ class Options(object):
 class Context(object):
     
     def __init__(self):
-        lines = get_run_command("svn info")
-        for line in lines:
-            match = re.match(r"^URL: (.*)$", line)
-            if match:
-                self.url = match.group(1)
-            match = re.match(r"^Revision: (.*)$", line)
-            if match:
-                self.rev = match.group(1)
         self.remember_dir = os.getcwd()
+        if os.path.isdir(".svn"):
+            self.using_svn = True
+            lines = get_run_command("svn info")
+            for line in lines:
+                match = re.match(r"^URL: (.*)$", line)
+                if match:
+                    self.url = match.group(1)
+                match = re.match(r"^Revision: (.*)$", line)
+                if match:
+                    self.rev = match.group(1)
+        elif os.path.isdir(".git"):
+            self.using_svn = False
+            self.absolute_rev = get_run_command("git rev-parse HEAD")[0]
+            # Determine what branch we're on by partially rev-parsing 'HEAD'
+            # (Will this work correctly? Maybe should just read .git/HEAD)
+            self.rev = get_run_command("git rev-parse --symbolic-full-name HEAD")[0]
+            if self.rev == "HEAD":
+                # Not on a branch
+                self.rev = self.absolute_rev
+        else:
+            self.quithelp("This is neither an svn nor a git (root) directory. This script should be run from an svn or git working copy of the OHRRPGCE source")
 
 ########################################################################
 
 class Platform(object):
     
     def __init__(self):
+        self.gamefiles = ["misc/gdbscripts", "misc/gdbcmds1.txt", "misc/gdbcmds2.txt"]
         if sys.platform == "win32":
+            self.gamefiles += ["game.exe", "gdbgame.bat"]
             self.game = "./gdbgame.bat"
         else:
+            self.gamefiles += ["ohrrpgce-game", "gdbgame.sh"]
             self.game = "./gdbgame.sh"
 
 ########################################################################
@@ -121,7 +137,8 @@ class AutoTest(object):
             self.quithelp("Can't use -a and -r at the same time.")
         if self.opt.rev is None:
             self.opt.rev = self.context.rev
-        if self.opt.rev < 4491:
+        # I think David had some snippet for converting from git to svn rev, could add git support later
+        if self.context.using_svn and self.opt.rev < 4491:
             raise Exception("autotesting was not available before revision 4491")
 
     def againfail(self, rpg):
@@ -171,6 +188,12 @@ class AutoTest(object):
         if not os.path.isdir(d):
             self.againfail(rpg)
             os.mkdir(d)
+        if self.context.using_svn:
+            self.prepare_rev_svn(rev, rpg, d)
+        else:
+            self.prepare_rev_git(rev, rpg, d)
+
+    def prepare_rev_svn(self, rev, rpg, d):
         os.chdir(d)
         if not os.path.isdir(".svn"):
             self.againfail(rpg)
@@ -182,12 +205,45 @@ class AutoTest(object):
             run_command("scons game")
         os.chdir(self.context.remember_dir)
     
+    def prepare_rev_git(self, rev, rpg, d):
+        if not self.opt.again:
+            absolute_rev = get_run_command("git rev-parse %s" % rev)[0]
+            revfile = open(os.path.join(d, "rev.txt"), "w+")  # Note: may not exist
+            oldrev = revfile.read()
+            if oldrev != absolute_rev:
+                lines1 = get_run_command("git diff")
+                lines2 = get_run_command("git diff --cached")
+                unstash = False
+                if lines1 != [""] or lines2 != [""]:
+                    print "Your working copy or index is dirty; stashing your changes..."
+                    run_command("git stash save -q 'Changes to %s saved by autotest.py'" % self.context.rev)
+                    unstash = True
+                else:
+                    if absolute_rev == self.context.absolute_rev:
+                        self.quithelp("There are no local changes and you either didn't specify -r, or specified HEAD! Nothing to do.")
+                try:
+                    run_command("git checkout -q %s" % rev)
+                    run_command("scons game")
+                    for f in self.plat.gamefiles:
+                        dest = os.path.join(d, os.path.dirname(f))
+                        if not os.path.isdir(dest):
+                            os.mkdir(dest)
+                        shutil.copy(f, dest)
+                    revfile.seek(0)
+                    revfile.write("%s" % absolute_rev)
+                finally:
+                    run_command("git checkout -q " + self.context.rev)
+                    if unstash:
+                        print "Popping stashed changes to the working copy..."
+                        run_command("git stash pop --index -q")
+            revfile.close()
+
     def prepare_current(self, d):
         run_command("scons game")
     
     def run_rpg(self, rpg, dump_dir):
         print "======"
-        print "running %s in %s and puting checkpoints in %s" % (rpg, os.getcwd(), dump_dir)
+        print "running %s in %s and putting checkpoints in %s" % (rpg, os.getcwd(), dump_dir)
         print "------"
         delete_pattern(os.path.join(dump_dir, "checkpoint*.bmp"))
         replay = ''
@@ -248,4 +304,4 @@ class AutoTest(object):
 if __name__ == "__main__":
     tester = AutoTest()
     tester.run_tests()
-    
+
