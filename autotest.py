@@ -22,6 +22,13 @@ def get_run_command(cmd, exitcode = None):
         raise ExecError(exitcode, "subprocess.Popen().communicate() returned stderr:\n%s" % (com[1]))
     return result
 
+def run_command_exitcode(cmd):
+    """
+    Returns the exitcode of a command. All errors ignored.
+    """
+    proc = subprocess.Popen(cmd, shell=True)
+    return proc.wait()
+
 def run_command(cmd, exitcode = None):
     proc = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
     com = proc.communicate()
@@ -197,6 +204,14 @@ class AutoTest(object):
         if not os.path.isdir(newdir):
             os.mkdir(newdir)
         self.prepare_rev(self.opt.rev, rpg, against)
+        if not self.context.using_svn:
+            # Copy rpg to workdir because otherwise if it's checked into git, it
+            # could change during a bisect.
+            if not self.opt.again:
+                shutil.copy(rpg, workdir)
+            rpg = os.path.join(workdir, os.path.split(rpg)[1])
+            if not os.path.isfile(rpg):
+                self.againfail(rpg)
         if not self.opt.again:
             os.chdir(against)
             self.run_rpg(rpg, olddir)
@@ -232,13 +247,10 @@ class AutoTest(object):
             revfile = open(os.path.join(d, "rev.txt"), "w+")  # Note: may not exist
             oldrev = revfile.read()
             if oldrev != absolute_rev:
-                lines1 = get_run_command("git diff")
-                lines2 = get_run_command("git diff --cached")
-                unstash = False
-                if lines1 != [""] or lines2 != [""]:
+                wc_dirty = run_command_exitcode("git diff --quiet") or run_command_exitcode("git diff --cached --quiet")
+                if wc_dirty:
                     print "Your working copy or index is dirty; stashing your changes..."
                     run_command("git stash save -q 'Changes to %s saved by autotest.py'" % self.context.rev)
-                    unstash = True
                 else:
                     if absolute_rev == self.context.absolute_rev:
                         self.quithelp("There are no local changes and you either didn't specify -r, or specified HEAD! Nothing to do.")
@@ -254,7 +266,7 @@ class AutoTest(object):
                     revfile.write("%s" % absolute_rev)
                 finally:
                     run_command("git checkout -q " + self.context.rev)
-                    if unstash:
+                    if wc_dirty:
                         print "Popping stashed changes to the working copy..."
                         run_command("git stash pop --index -q")
             revfile.close()
