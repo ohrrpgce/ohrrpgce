@@ -7,10 +7,11 @@ import os
 import sys
 import glob
 import shutil
+import textwrap
 
 ########################################################################
 
-def get_run_command(cmd):
+def get_run_command(cmd, exitcode = None):
     """
     Returns stdout as a string
     """
@@ -18,16 +19,24 @@ def get_run_command(cmd):
     com = proc.communicate()
     result = com[0].split("\n")
     if len(com[1]) > 0:
-        raise ExecError("subprocess.Popen().communicate() returned stderr:\n%s" % (com[1]))
+        raise ExecError(exitcode, "subprocess.Popen().communicate() returned stderr:\n%s" % (com[1]))
     return result
 
-def run_command(cmd):
+def run_command(cmd, exitcode = None):
     proc = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
     com = proc.communicate()
     if len(com[1]) > 0:
-        raise ExecError("subprocess.Popen().communicate() returned stderr:\n%s" % (com[1]))
+        raise ExecError(exitcode, "subprocess.Popen().communicate() returned stderr:\n%s" % (com[1]))
 
-class ExecError(Exception):
+class ExceptWithExitCode(Exception):
+    exitcode = 125
+
+    def __init__(self, exitcode, *rest):
+        if exitcode != None:
+            ExceptWithExitCode.exitcode = exitcode
+        super(ExceptWithExitCode, self).__init__(*rest)
+
+class ExecError(ExceptWithExitCode):
     pass
 
 def startfile(filename):
@@ -57,12 +66,25 @@ def move_pattern(filename_pattern, dest_dir):
 class Options(object):
     
     def __init__(self):
-        parser = optparse.OptionParser(usage="%prog [options] filename.rpg", description="This tool runs OHRRPGCE rpg files in autotest mode. It requires either an svn or git working copy of the OHRRPGCE source. The rpg will be run twice, once for the current local working copy, and once for the revision you want to compare with. You will be alerted of any differences. The purpose of this tool is to detect regressions and unintended side-effects of bugfixes. it is not useful for validating new features or bugfixes that legitimately involve a visible change in behavior. It is only useful for rpg files that run deterministically with no user input.")
+        # Arggh, optparse by default throws away all newlines in the
+        # help strings -- have to use our own formatter to override this
+        class BetterHelpFormatter(optparse.IndentedHelpFormatter):
+            def format_description(self, description):
+                return "\n".join([textwrap.fill(line, self.width) for line in description.split("\n")])
+
+        parser = optparse.OptionParser(formatter=BetterHelpFormatter(), usage="%prog [options] filename.rpg", description="""This tool runs OHRRPGCE rpg files in autotest mode. It requires either an svn or git working copy of the OHRRPGCE source. The rpg will be run twice, once for the current local working copy, and once for the revision you want to compare with. You will be alerted of any differences. The purpose of this tool is to detect regressions and unintended side-effects of bugfixes. it is not useful for validating new features or bugfixes that legitimately involve a visible change in behavior. It is only useful for rpg files that run deterministically with no user input.
+
+This script can be used with 'git bisect run': it returns 0 on pass, 1 on fail or error while running Game, and 125 for other errors. For example:
+  ./autotest.py testgame/autotest.rpg -r abc123
+  #...failure
+  git bisect start HEAD abc123
+  git run autotest.py testgame/autotest.rpg -a
+""")
         parser.add_option("-r", dest="rev",
                   help="Revision to test the current working copy against. If you leave this out, it assumes that you want to compare local changes against a clean copy of the currently checked out revision.", default=None)
         parser.add_option("-a", "--again",
                   action="store_true", dest="again", default=False,
-                  help="Compare again against the last revision you compared against. This is much faster than testing against a specific revision.")
+                  help="Compare again against the last revision you compared against. This is much faster than testing against a specific revision. ")
         parser.add_option("-g", "--gif",
                   action="store_true", dest="anim", default=False,
                   help="Create an animating gif to display the difference between the old and new screenshots (requires ImageMagick's convert utility to be installed)")
@@ -139,7 +161,7 @@ class AutoTest(object):
             self.opt.rev = self.context.rev
         # I think David had some snippet for converting from git to svn rev, could add git support later
         if self.context.using_svn and self.opt.rev < 4491:
-            raise Exception("autotesting was not available before revision 4491")
+            self.quithelp("autotesting was not available before revision 4491")
 
     def againfail(self, rpg):
         if self.opt.again:
@@ -148,7 +170,7 @@ class AutoTest(object):
     def quithelp(self, message):
         self.opt.parser.print_help()
         print "\nERROR:", message
-        raise SystemExit
+        raise SystemExit(125)
     
     def run_tests(self):
         if not os.path.isdir("autotest"):
@@ -162,12 +184,11 @@ class AutoTest(object):
     def test_rpg(self, rpg):
         rpg = os.path.abspath(rpg)
         (shortname, ext) = os.path.splitext(os.path.basename(rpg))
-        workdir = os.path.join("autotest", shortname)
+        workdir = os.path.abspath(os.path.join("autotest", shortname))
         against = os.path.join(workdir, "against")
         if not os.path.isdir(workdir):
             self.againfail(rpg)
             os.mkdir(workdir)
-        self.prepare_rev(self.opt.rev, rpg, against)
         olddir = os.path.join(workdir, "old")
         if not os.path.isdir(olddir):
             self.againfail(rpg)
@@ -175,10 +196,10 @@ class AutoTest(object):
         newdir = os.path.join(workdir, "new")
         if not os.path.isdir(newdir):
             os.mkdir(newdir)
+        self.prepare_rev(self.opt.rev, rpg, against)
         if not self.opt.again:
-            dump_dir = os.path.abspath(olddir)
             os.chdir(against)
-            self.run_rpg(rpg, dump_dir)
+            self.run_rpg(rpg, olddir)
             os.chdir(self.context.remember_dir)
         self.prepare_current(newdir)
         self.run_rpg(rpg, newdir)
@@ -253,7 +274,7 @@ class AutoTest(object):
             if os.path.isfile(ohrkey):
                 replay = "-replayinput '%s'" % (ohrkey)
         cmd = "%s -z 1 -autotest %s '%s'" % (self.plat.game, replay, rpg)
-        run_command(cmd)
+        run_command(cmd, 1)
         move_pattern("checkpoint*.bmp", dump_dir)
     
     def compare_output(self, rpg, olddir, newdir):
@@ -279,6 +300,7 @@ class AutoTest(object):
         print "  all checkpoints passed in %s" % (rpg)
 
     def fail(self, rpg, message, screenshots=[]):
+        ExceptWithExitCode.exitcode = 1  # in case some exception occurs
         print "*****************************************"
         print rpg, "-", message
         if len(screenshots) == 2 and self.opt.anim:
@@ -287,7 +309,7 @@ class AutoTest(object):
             for ss in screenshots:
                 print ss
                 startfile(ss)
-        raise SystemExit
+        raise SystemExit(1)
 
     def show_animating_gif(self, rpg, screenshots):
         animfile = os.path.join("autotest", rpg, "difference.gif")
@@ -302,6 +324,13 @@ class AutoTest(object):
 ########################################################################
 
 if __name__ == "__main__":
+    # This is to get the ability to throw an exception and get a traceback, and
+    # to set the exit code as well
+    def show_traceback_and_exit(*args):
+        sys.__excepthook__(*args)
+        sys.exit(ExceptWithExitCode.exitcode)
+    sys.excepthook = show_traceback_and_exit
+
     tester = AutoTest()
     tester.run_tests()
 
