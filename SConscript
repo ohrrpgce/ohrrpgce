@@ -117,7 +117,7 @@ libpaths = []
 
 if win32:
     base_modules += ['os_windows.bas']
-    libraries += ['fbgfx libstdc++.a libgcc_s.a']
+    libraries += ['fbgfx']
     commonenv['FBFLAGS'] += ['-s','gui']
 elif unix:
     base_modules += ['os_unix.bas']
