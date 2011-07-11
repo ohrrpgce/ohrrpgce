@@ -153,7 +153,7 @@ game_modules:=game bmod bmodsubs menustuf moresubs yetmore yetmore2 savegame hsi
 game_objects:=$(addsuffix .o,$(game_modules))  
 game_sources:=$(addsuffix .bas,$(game_modules))
 
-edit_modules:=custom customsubs drawing subs subs2 mapsubs flexmenu menus sliceedit reloadedit editedit editrunner
+edit_modules:=custom customsubs drawing subs subs2 subs4 mapsubs flexmenu sliceedit reloadedit editedit editrunner
 edit_objects:=$(addsuffix .o,$(edit_modules))
 edit_sources:=$(addsuffix .bas,$(edit_modules))
 

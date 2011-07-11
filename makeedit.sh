@@ -54,7 +54,7 @@ fbc -lang deprecated verprint.bas
 fbc -lang deprecated -g -v -exx -mt -m custom -d IS_CUSTOM -d DATAFILES='"/usr/share/games/ohrrpgce"' \
   ${3} ${4} ${5} ${6} ${7} ${8} \
   custom.bas customsubs.bas drawing.bas subs.bas subs2.bas mapsubs.bas flexmenu.bas \
-  menus.bas allmodex.bas misc.bas common.bas browse.bas util.bas bam2mid.bas loading.bas \
+  subs4.bas allmodex.bas misc.bas common.bas browse.bas util.bas bam2mid.bas loading.bas \
   lumpfile.bas slices.bas sliceedit.bas reload.bas reloadext.bas reloadedit.bas editedit.bas editrunner.bas backends.bas \
   bcommon.bas os_unix.bas vector.bas array.o blit.o base64.o ${EXTRA} \
 && mv custom ohrrpgce-custom
