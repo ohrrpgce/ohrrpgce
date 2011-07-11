@@ -341,7 +341,7 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
     END IF
     'screenbuffer = SDL_CreateRGBSurfaceFrom(raw, w, h, 8, w, 0,0,0,0)
     IF screenbuffer = NULL THEN
-      debug "Failed to allocate page wrapping surface"
+      debug "gfx_sdl_present_internal: Failed to allocate page wrapping surface, " & *SDL_GetError
       SYSTEM
     END IF
 
@@ -361,7 +361,9 @@ FUNCTION gfx_sdl_present_internal(byval raw as any ptr, byval w as integer, byva
 
     'smoothzoomblit takes the pitch in pixels, not bytes!
     smoothzoomblit_32_to_32bit(raw, cast(uinteger ptr, screensurface->pixels), w, h, screensurface->pitch \ 4, zoom, smooth)
-    SDL_Flip(screensurface)
+    IF SDL_Flip(screensurface) THEN
+      debug "gfx_sdl_present_internal: SDL_Flip failed: " & *SDL_GetError
+    END IF
     update_state()
   END IF
 
@@ -389,9 +391,15 @@ END SUB
 'Update the screen image and palette
 SUB gfx_sdl_8bit_update_screen()
   IF screenbuffer <> NULL and screensurface <> NULL THEN
-    SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256)
-    SDL_BlitSurface(screenbuffer, NULL, screensurface, @dest_rect)
-    SDL_Flip(screensurface)
+    IF SDL_SetColors(screenbuffer, @sdlpalette(0), 0, 256) = 0 THEN
+      debug "gfx_sdl_8bit_update_screen: SDL_SetColors failed: " & *SDL_GetError
+    END IF
+    IF SDL_BlitSurface(screenbuffer, NULL, screensurface, @dest_rect) THEN
+      debug "gfx_sdl_8bit_update_screen: SDL_BlitSurface failed: " & *SDL_GetError
+    END IF
+    IF SDL_Flip(screensurface) THEN
+      debug "gfx_sdl_8bit_update_screen: SDL_Flip failed: " & *SDL_GetError
+    END IF
     update_state()
   END IF
 END SUB
@@ -624,7 +632,9 @@ END SUB
 
 SUB io_sdl_pollkeyevents()
   'might need to redraw the screen if exposed
-  SDL_Flip(screensurface)
+  IF SDL_Flip(screensurface) THEN
+    debug "pollkeyevents: SDL_Flip failed: " & *SDL_GetError
+  END IF
   update_state()
 END SUB
 
