@@ -17,48 +17,48 @@ DECLARE FUNCTION usemenu OVERLOAD (BYREF pt, BYREF top, BYVAL first, BYVAL last,
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, enabled() as INTEGER, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 DECLARE FUNCTION scrollmenu (state AS MenuState, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
-DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, state AS MenuState, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO, wide AS INTEGER=999, highlight AS INTEGER=NO, toggle=YES)
-DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, state AS MenuState, shaded() AS INTEGER, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO, wide AS INTEGER=999, highlight AS INTEGER=NO, toggle=YES)
-DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, size, vis, pt, top, x, y, page, edge=NO, wide=999, highlight=NO, shaded AS INTEGER PTR=NULL, toggle=YES)
+DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, state AS MenuState, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL hidecursor AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL toggle=YES)
+DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, state AS MenuState, shaded() AS INTEGER, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL hidecursor AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL toggle=YES)
+DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, BYVAL size AS INTEGER, BYVAL vis AS INTEGER, BYVAL pt AS INTEGER, BYVAL top AS INTEGER, BYVAL x AS INTEGER, BYVAL y AS INTEGER, BYVAL page AS INTEGER, BYVAL edge AS INTEGER=NO, BYVAL wide AS INTEGER=999, BYVAL highlight AS INTEGER=NO, BYVAL shaded AS INTEGER PTR=NULL, BYVAL toggle AS INTEGER=YES)
 
 '' MenuDef
 DECLARE SUB ClearMenuData(dat AS MenuDef)
 DECLARE SUB DeleteMenuItems(menu AS MenuDef)
 DECLARE SUB ClearMenuItem(mi AS MenuDefItem)
 DECLARE SUB SortMenuItems(menu AS MenuDef)
-DECLARE FUNCTION getmenuname(record AS INTEGER) AS STRING
+DECLARE FUNCTION getmenuname(BYVAL record AS INTEGER) AS STRING
 DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu AS MenuDef)
-DECLARE FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0) as integer
+DECLARE FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, BYVAL t AS INTEGER=0, BYVAL sub_t AS INTEGER=0) as integer
 DECLARE SUB remove_menu_item OVERLOAD (BYREF menu AS MenuDef, BYVAL mi AS MenuDefItem ptr)
 DECLARE SUB remove_menu_item OVERLOAD (BYREF menu AS MenuDef, BYVAL mislot AS INTEGER)
 DECLARE SUB swap_menu_items(BYREF menu1 AS MenuDef, BYVAL mislot1 AS INTEGER, BYREF menu2 AS MenuDef, BYVAL mislot2 AS INTEGER)
 
 '' Saving/Loading/(De)serializing MenuDefs
-DECLARE SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_items AS INTEGER=NO)
-DECLARE SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
+DECLARE SUB LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, BYVAL record AS INTEGER, BYVAL ignore_items AS INTEGER=NO)
+DECLARE SUB SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, BYVAL record AS INTEGER)
 DECLARE SUB MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
 DECLARE SUB MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
 DECLARE SUB MenuItemBitsToArray (mi AS MenuDefItem, bits() AS INTEGER)
 DECLARE SUB MenuItemBitsFromArray (mi AS MenuDefItem, bits() AS INTEGER)
-DECLARE FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER) as integer
-DECLARE SUB write_menu_int (menu AS MenuDef, intoffset AS INTEGER, n AS INTEGER)
-DECLARE FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER) as integer
-DECLARE SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
+DECLARE FUNCTION read_menu_int (menu AS MenuDef, BYVAL intoffset AS INTEGER) as integer
+DECLARE SUB write_menu_int (menu AS MenuDef, BYVAL intoffset AS INTEGER, BYVAL n AS INTEGER)
+DECLARE FUNCTION read_menu_item_int (mi AS MenuDefItem, BYVAL intoffset AS INTEGER) as integer
+DECLARE SUB write_menu_item_int (mi AS MenuDefItem, BYVAL intoffset AS INTEGER, BYVAL n AS INTEGER)
 
 '' Drawing MenuDefs
-DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
-DECLARE SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF where AS XYPair)
-DECLARE SUB position_menu (menu AS MenuDef, page AS INTEGER)
-DECLARE FUNCTION anchor_point(anchor AS INTEGER, size AS INTEGER) AS INTEGER
+DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, BYVAL page AS INTEGER)
+DECLARE SUB position_menu_item (menu AS MenuDef, cap AS STRING, BYVAL i AS INTEGER, BYREF where AS XYPair)
+DECLARE SUB position_menu (menu AS MenuDef, BYVAL page AS INTEGER)
+DECLARE FUNCTION anchor_point(BYVAL anchor AS INTEGER, BYVAL size AS INTEGER) AS INTEGER
 DECLARE FUNCTION count_menu_items (menu AS MenuDef) as integer
 DECLARE FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
-DECLARE FUNCTION get_special_menu_caption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
+DECLARE FUNCTION get_special_menu_caption(BYVAL subtype AS INTEGER, BYVAL edit_mode AS INTEGER= NO) AS STRING
 
 '' Scrollbars!
-DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, menu AS MenuDef, page AS INTEGER)
-DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, boxstyle AS INTEGER=0, page AS INTEGER)
-DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, count AS INTEGER, boxstyle AS INTEGER=0, page AS INTEGER)
-DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0, page AS INTEGER)
+DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, menu AS MenuDef, BYVAL page AS INTEGER)
+DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, BYVAL boxstyle AS INTEGER=0, BYVAL page AS INTEGER)
+DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, BYVAL count AS INTEGER, BYVAL boxstyle AS INTEGER=0, BYVAL page AS INTEGER)
+DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, BYVAL boxstyle AS INTEGER=0, BYVAL page AS INTEGER)
 
 
 #endif
