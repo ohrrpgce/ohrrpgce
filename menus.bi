@@ -12,8 +12,8 @@
 DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu() AS SimpleMenu, BYVAL pickenabled AS INTEGER = YES)
 DECLARE SUB clamp_menu_state (BYREF state AS MenuState)
 DECLARE SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, BYVAL enabled as integer = YES, BYVAL col as integer = -1, BYVAL dat as integer = 0, BYVAL where as integer = -1)
-DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, deckey = scUp, inckey = scDown) as integer
-DECLARE FUNCTION usemenu OVERLOAD (pt, top, first, last, size, deckey = scUp, inckey = scDown) as integer
+DECLARE FUNCTION usemenu OVERLOAD (state AS MenuState, BYVAL deckey = scUp, BYVAL inckey = scDown) as integer
+DECLARE FUNCTION usemenu OVERLOAD (BYREF pt, BYREF top, BYVAL first, BYVAL last, BYVAL size, BYVAL deckey = scUp, BYVAL inckey = scDown) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, enabled() as INTEGER, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 DECLARE FUNCTION scrollmenu (state AS MenuState, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer

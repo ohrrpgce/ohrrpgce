@@ -3,6 +3,8 @@
 'Please read LICENSE.txt for GNU GPL details and disclaimer of liability
 'See README.txt for code docs and apologies for crappyness of this code ;)
 
+OPTION EXPLICIT
+
 #include "config.bi"
 #include "udts.bi"
 #include "const.bi"
@@ -74,144 +76,142 @@ SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, BYVAL enabl
  END WITH
 END SUB
 
-FUNCTION usemenu (state AS MenuState, deckey = scUp, inckey = scDown) as integer
+FUNCTION usemenu (state AS MenuState, BYVAL deckey = scUp, BYVAL inckey = scDown) as integer
  WITH state
   RETURN usemenu(.pt, .top, .first, .last, .size, deckey, inckey)
  END WITH
 END FUNCTION
 
-FUNCTION usemenu (pt, top, first, last, size, deckey = scUp, inckey = scDown) as integer
+FUNCTION usemenu (BYREF pt, BYREF top, BYVAL first, BYVAL last, BYVAL size, BYVAL deckey = scUp, BYVAL inckey = scDown) as integer
+ DIM oldptr as integer = pt
+ DIM oldtop as integer = top
 
-oldptr = pt
-oldtop = top
+ IF keyval(deckey) > 1 THEN pt = loopvar(pt, first, last, -1)
+ IF keyval(inckey) > 1 THEN pt = loopvar(pt, first, last, 1)
+ IF keyval(scPageup) > 1 THEN pt = pt - size
+ IF keyval(scPagedown) > 1 THEN pt = pt + size
+ IF keyval(scHome) > 1 THEN pt = first
+ IF keyval(scEnd) > 1 THEN pt = last
+ pt = small(large(pt, first), last)  '=last when last<first, ie. menu empty
+ top = bound(top, pt - size, pt)
 
-IF keyval(deckey) > 1 THEN pt = loopvar(pt, first, last, -1)
-IF keyval(inckey) > 1 THEN pt = loopvar(pt, first, last, 1)
-IF keyval(scPageup) > 1 THEN pt = pt - size
-IF keyval(scPagedown) > 1 THEN pt = pt + size
-IF keyval(scHome) > 1 THEN pt = first
-IF keyval(scEnd) > 1 THEN pt = last
-pt = small(large(pt, first), last)  '=last when last<first, ie. menu empty
-top = bound(top, pt - size, pt)
-
-IF oldptr = pt AND oldtop = top THEN
- usemenu = 0
-ELSE
- usemenu = 1
-END IF
-
+ IF oldptr = pt AND oldtop = top THEN
+  RETURN NO
+ ELSE
+  RETURN YES
+ END IF
 END FUNCTION
 
-FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 'a version for menus with unselectable items, skip items for which menudata().enabled = 0
+FUNCTION usemenu (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
+ WITH state
+  '.pt = -1 when the menu has no selectable items
+  IF .pt = -1 THEN RETURN 0
 
-WITH state
- '.pt = -1 when the menu has no selectable items
- IF .pt = -1 THEN RETURN 0
+  DIM as integer oldptr, oldtop, d, moved_d
+  oldptr = .pt
+  oldtop = .top
+  d = 0
+  moved_d = 0
 
- oldptr = .pt
- oldtop = .top
- d = 0
- moved_d = 0
+  IF keyval(deckey) > 1 THEN d = -1
+  IF keyval(inckey) > 1 THEN d = 1
+  IF keyval(scPageup) > 1 THEN
+   .pt = large(.pt - .size, .first)
+   WHILE menudata(.pt).enabled = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
+   IF menudata(.pt).enabled = 0 THEN d = 1
+   moved_d = -1
+  END IF
+  IF keyval(scPagedown) > 1 THEN
+   .pt = small(.pt + .size, .last)
+   WHILE menudata(.pt).enabled = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
+   IF menudata(.pt).enabled = 0 THEN d = -1
+   moved_d = 1
+  END IF
+  IF keyval(scHome) > 1 THEN .pt = .last : d = 1
+  IF keyval(scEnd) > 1 THEN .pt = .first : d = -1
 
- IF keyval(deckey) > 1 THEN d = -1
- IF keyval(inckey) > 1 THEN d = 1
- IF keyval(scPageup) > 1 THEN
-  .pt = large(.pt - .size, .first)
-  WHILE menudata(.pt).enabled = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
-  IF menudata(.pt).enabled = 0 THEN d = 1
-  moved_d = -1
- END IF
- IF keyval(scPagedown) > 1 THEN
-  .pt = small(.pt + .size, .last)
-  WHILE menudata(.pt).enabled = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
-  IF menudata(.pt).enabled = 0 THEN d = -1
-  moved_d = 1
- END IF
- IF keyval(scHome) > 1 THEN .pt = .last : d = 1
- IF keyval(scEnd) > 1 THEN .pt = .first : d = -1
+  IF d THEN 
+   moved_d = d
+   DO
+    .top = bound(.top, .pt - .size, .pt)
+    .pt = loopvar(.pt, .first, .last, d)
+   LOOP WHILE menudata(.pt).enabled = 0
+  END IF
 
- IF d THEN 
-  moved_d = d
-  DO
-   .top = bound(.top, .pt - .size, .pt)
-   .pt = loopvar(.pt, .first, .last, d)
-  LOOP WHILE menudata(.pt).enabled = 0
- END IF
+  IF moved_d THEN
+   'we look ahead of the actual cursor, to bring unselectable items at the ends of the menu into view
+   DIM lookahead AS INTEGER = .pt
+   DO
+    lookahead += moved_d
+   LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO menudata(lookahead).enabled = 0
+   lookahead = bound(lookahead, .first, .last)
+   .top = bound(.top, lookahead - .size, lookahead)
+  END IF
+  .top = bound(.top, .pt - .size, .pt)
 
- IF moved_d THEN
-  'we look ahead of the actual cursor, to bring unselectable items at the ends of the menu into view
-  DIM lookahead AS INTEGER = .pt
-  DO
-   lookahead += moved_d
-  LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO menudata(lookahead).enabled = 0
-  lookahead = bound(lookahead, .first, .last)
-  .top = bound(.top, lookahead - .size, lookahead)
- END IF
- .top = bound(.top, .pt - .size, .pt)
-
- IF oldptr = .pt AND oldtop = .top THEN
-  usemenu = 0
- ELSE
-  usemenu = 1
- END IF
-END WITH
+  IF oldptr = .pt AND oldtop = .top THEN
+   RETURN NO
+  ELSE
+   RETURN YES
+  END IF
+ END WITH
 END FUNCTION
 
-FUNCTION usemenu (state as MenuState, enabled() as INTEGER, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
 'a version for menus with unselectable items, skip items for which enabled = 0
+FUNCTION usemenu (state as MenuState, enabled() as INTEGER, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
+ WITH state
+  '.pt = -1 when the menu has no selectable items
+  IF .pt = -1 THEN RETURN 0
 
-WITH state
- '.pt = -1 when the menu has no selectable items
- IF .pt = -1 THEN RETURN 0
+  DIM as integer oldptr, oldtop, d, moved_d
+  oldptr = .pt
+  oldtop = .top
+  d = 0
+  moved_d = 0
 
- oldptr = .pt
- oldtop = .top
- d = 0
- moved_d = 0
+  IF keyval(deckey) > 1 THEN d = -1
+  IF keyval(inckey) > 1 THEN d = 1
+  IF keyval(scPageup) > 1 THEN
+   .pt = large(.pt - .size, .first)
+   WHILE enabled(.pt) = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
+   IF enabled(.pt) = 0 THEN d = 1
+   moved_d = -1
+  END IF
+  IF keyval(scPagedown) > 1 THEN
+   .pt = small(.pt + .size, .last)
+   WHILE enabled(.pt) = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
+   IF enabled(.pt) = 0 THEN d = -1
+   moved_d = 1
+  END IF
+  IF keyval(scHome) > 1 THEN .pt = .last : d = 1
+  IF keyval(scEnd) > 1 THEN .pt = .first : d = -1
 
- IF keyval(deckey) > 1 THEN d = -1
- IF keyval(inckey) > 1 THEN d = 1
- IF keyval(scPageup) > 1 THEN
-  .pt = large(.pt - .size, .first)
-  WHILE enabled(.pt) = 0 AND .pt > .first : .pt = loopvar(.pt, .first, .last, -1) : WEND
-  IF enabled(.pt) = 0 THEN d = 1
-  moved_d = -1
- END IF
- IF keyval(scPagedown) > 1 THEN
-  .pt = small(.pt + .size, .last)
-  WHILE enabled(.pt) = 0 AND .pt < .last : .pt = loopvar(.pt, .first, .last, 1) : WEND
-  IF enabled(.pt) = 0 THEN d = -1
-  moved_d = 1
- END IF
- IF keyval(scHome) > 1 THEN .pt = .last : d = 1
- IF keyval(scEnd) > 1 THEN .pt = .first : d = -1
+  IF d THEN
+   moved_d = d
+   DO
+    .top = bound(.top, .pt - .size, .pt)
+    .pt = loopvar(.pt, .first, .last, d)
+   LOOP WHILE enabled(.pt) = 0
+  END IF
 
- IF d THEN
-  moved_d = d
-  DO
-   .top = bound(.top, .pt - .size, .pt)
-   .pt = loopvar(.pt, .first, .last, d)
-  LOOP WHILE enabled(.pt) = 0
- END IF
+  IF moved_d THEN
+   'we look ahead of the actual cursor, to bring unselectable items at the ends of the menu into view
+   DIM lookahead AS INTEGER = .pt
+   DO
+    lookahead += moved_d
+   LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO enabled(lookahead) = 0
+   lookahead = bound(lookahead, .first, .last)
+   .top = bound(.top, lookahead - .size, lookahead)
+  END IF
+  .top = bound(.top, .pt - .size, .pt)
 
- IF moved_d THEN
-  'we look ahead of the actual cursor, to bring unselectable items at the ends of the menu into view
-  DIM lookahead AS INTEGER = .pt
-  DO
-   lookahead += moved_d
-  LOOP WHILE bound(lookahead, .first, .last) = lookahead ANDALSO enabled(lookahead) = 0
-  lookahead = bound(lookahead, .first, .last)
-  .top = bound(.top, lookahead - .size, lookahead)
- END IF
- .top = bound(.top, .pt - .size, .pt)
-
- IF oldptr = .pt AND oldtop = .top THEN
-  usemenu = 0
- ELSE
-  usemenu = 1
- END IF
-END WITH
+  IF oldptr = .pt AND oldtop = .top THEN
+   RETURN NO
+  ELSE
+   RETURN YES
+  END IF
+ END WITH
 END FUNCTION
 
 'scrollmenu is like usemenu for menus where no menu item is selected:
@@ -251,47 +251,46 @@ SUB standardmenu (menu() AS STRING, state AS MenuState, shaded() AS INTEGER, x A
 END SUB
 
 SUB standardmenu (menu() AS STRING, size, vis, pt, top, x, y, page, edge=NO, wide=999, highlight=NO, shaded AS INTEGER PTR=NULL, toggle=YES)
-'the default for wide is 999 until I know whether it'd break anything to set it to 40
-STATIC rememtog
-DIM tog AS INTEGER
-DIM i AS INTEGER
-DIM col AS INTEGER
-DIM text AS STRING
+ 'the default for wide is 999 until I know whether it'd break anything to set it to 40
+ STATIC rememtog
+ DIM tog AS INTEGER
+ DIM i AS INTEGER
+ DIM col AS INTEGER
+ DIM text AS STRING
 
-IF toggle THEN
- rememtog = rememtog XOR 1
- tog = rememtog
-ELSE
- 'This menu isn't the active one or we otherwise don't want it to animate
- tog = 0
-END IF
-
-FOR i = top TO top + vis
- IF i <= size THEN
-  text = menu(i)
-  IF pt = i THEN text = RIGHT(text, wide)
-  IF pt = i AND highlight THEN
-   DIM w AS INTEGER
-   w = 8 * LEN(text)
-   IF w = 0 THEN w = small(wide * 8, 320)
-   rectangle x + 0, y + (i - top) * 8, w, 8, uilook(uiHighlight), page
-  END IF
-  IF shaded ANDALSO shaded[i] THEN
-   col = uilook(uiDisabledItem)
-   IF pt = i THEN col = uilook(uiSelectedDisabled + tog)
-  ELSE
-   col = uilook(uiMenuItem)
-   IF pt = i THEN col = uilook(uiSelectedItem + tog)
-  END IF
-  IF edge THEN
-   edgeprint text, x + 0, y + (i - top) * 8, col, page, YES
-  ELSE
-   textcolor col, 0
-   printstr text, x + 0, y + (i - top) * 8, page, YES
-  END IF
+ IF toggle THEN
+  rememtog = rememtog XOR 1
+  tog = rememtog
+ ELSE
+  'This menu isn't the active one or we otherwise don't want it to animate
+  tog = 0
  END IF
-NEXT i
 
+ FOR i = top TO top + vis
+  IF i <= size THEN
+   text = menu(i)
+   IF pt = i THEN text = RIGHT(text, wide)
+   IF pt = i AND highlight THEN
+    DIM w AS INTEGER
+    w = 8 * LEN(text)
+    IF w = 0 THEN w = small(wide * 8, 320)
+    rectangle x + 0, y + (i - top) * 8, w, 8, uilook(uiHighlight), page
+   END IF
+   IF shaded ANDALSO shaded[i] THEN
+    col = uilook(uiDisabledItem)
+    IF pt = i THEN col = uilook(uiSelectedDisabled + tog)
+   ELSE
+    col = uilook(uiMenuItem)
+    IF pt = i THEN col = uilook(uiSelectedItem + tog)
+   END IF
+   IF edge THEN
+    edgeprint text, x + 0, y + (i - top) * 8, col, page, YES
+   ELSE
+    textcolor col, 0
+    printstr text, x + 0, y + (i - top) * 8, page, YES
+   END IF
+  END IF
+ NEXT i
 END SUB
 
 
