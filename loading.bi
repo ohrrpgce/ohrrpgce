@@ -84,18 +84,6 @@ declare Sub SerHeroDef(filename as string, hero as herodef ptr, record as intege
 declare sub loadherodata (hero as herodef ptr, index as integer)
 declare sub saveherodata (hero as herodef ptr, index as integer)
 
-'*** Requires construction (with ClearMenuData or LoadMenuData) + destruction (with DeleteMenuItems) ***
-declare Sub ClearMenuData(dat AS MenuDef)
-declare Sub ClearMenuItem(mi AS MenuDefItem)
-declare Sub DeleteMenuItems(menu AS MenuDef)
-declare Sub LoadMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER, ignore_items AS INTEGER=NO)
-declare Sub SaveMenuData(menu_set AS MenuSet, dat AS MenuDef, record AS INTEGER)
-declare Sub SortMenuItems(menu AS MenuDef)
-declare Sub MenuBitsToArray (menu AS MenuDef, bits() AS INTEGER)
-declare Sub MenuBitsFromArray (menu AS MenuDef, bits() AS INTEGER)
-declare Sub MenuItemBitsToArray (mi AS MenuDefItem, bits() AS INTEGER)
-declare Sub MenuItemBitsFromArray (mi AS MenuDefItem, bits() AS INTEGER)
-
 declare Sub LoadVehicle OVERLOAD (file AS STRING, vehicle AS VehicleData, record AS INTEGER)
 declare Sub LoadVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, record AS INTEGER)
 declare Sub SaveVehicle OVERLOAD (file AS STRING, veh() as integer, vehname as string, record AS INTEGER)

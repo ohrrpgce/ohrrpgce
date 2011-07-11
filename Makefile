@@ -145,7 +145,7 @@ endif
 
 base_objects+= vector.o
 
-common_modules+=allmodex backends lumpfile misc bam2mid common bcommon browse util loading reload reloadext slices
+common_modules+=allmodex backends lumpfile misc bam2mid common bcommon menus browse util loading reload reloadext slices
 common_objects+=$(base_objects) $(addsuffix .o,$(common_modules))
 common_sources:=$(addsuffix .bas,$(common_modules))
 

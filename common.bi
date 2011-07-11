@@ -11,6 +11,7 @@
 #include "udts.bi"
 #include "music.bi"
 #include "browse.bi"
+#include "menus.bi"
 #include "const.bi"
 #include "misc.bi"  'for nulzstr
 
@@ -22,15 +23,6 @@ DECLARE FUNCTION common_setoption(opt as string, arg as string) as integer
 
 DECLARE SUB fadein ()
 DECLARE SUB fadeout (red as integer, green as integer, blue as integer)
-DECLARE FUNCTION usemenu OVERLOAD (pt as integer, top as integer, first as integer, last as integer, size as integer, deckey as integer = scUp, inckey as integer = scDown) as integer
-DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, deckey as integer = scUp, inckey as integer = scDown) as integer
-DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, enabled() as integer, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
-DECLARE FUNCTION usemenu OVERLOAD (state as MenuState, menudata() as SimpleMenu, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
-DECLARE FUNCTION scrollmenu (state AS MenuState, BYVAL deckey as integer = scUp, BYVAL inckey as integer = scDown) as integer
-DECLARE SUB standardmenu OVERLOAD (menu() as string, state as MenuState, x as integer, y as integer, page as integer, edge as integer=NO, hidecursor as integer=NO, wide AS INTEGER=999, highlight AS INTEGER=NO, toggle AS INTEGER=YES)
-DECLARE SUB standardmenu OVERLOAD (menu() AS STRING, state AS MenuState, shaded() AS INTEGER, x AS INTEGER, y AS INTEGER, page AS INTEGER, edge AS INTEGER=NO, hidecursor AS INTEGER=NO, wide AS INTEGER=999, highlight AS INTEGER=NO, toggle AS INTEGER=YES)
-DECLARE SUB standardmenu OVERLOAD (menu() as string, size as integer, vis as integer, pt as integer, top as integer, x as integer, y as integer, page as integer, edge as integer=NO, wide AS INTEGER=999, highlight AS INTEGER=NO, shaded AS INTEGER PTR=NULL, toggle AS INTEGER=YES)
-DECLARE SUB clamp_menu_state (BYREF state AS MenuState)
 DECLARE SUB start_new_debug ()
 DECLARE SUB end_debug ()
 DECLARE SUB debug (s as string)
@@ -131,7 +123,6 @@ DECLARE FUNCTION readshopname (shopnum as integer) as string
 DECLARE FUNCTION getsongname (num AS INTEGER, prefixnum AS INTEGER = 0) as string
 DECLARE FUNCTION getsfxname (num AS INTEGER) as string
 DECLARE FUNCTION getheroname (hero_id AS INTEGER) AS STRING
-DECLARE FUNCTION getmenuname(record AS INTEGER) AS STRING
 DECLARE FUNCTION getmapname (m as integer) as string
 DECLARE SUB getstatnames(statnames() AS STRING)
 DECLARE SUB getelementnames(elmtnames() AS STRING)
@@ -170,26 +161,7 @@ DECLARE FUNCTION multichoice(capt AS STRING, choices() AS STRING, defaultval AS 
 DECLARE FUNCTION twochoice(capt AS STRING, strA AS STRING="Yes", strB AS STRING="No", defaultval AS INTEGER=0, escval AS INTEGER=-1, helpkey AS STRING="") AS INTEGER
 DECLARE FUNCTION yesno(capt AS STRING, BYVAL defaultval AS INTEGER=YES, escval AS INTEGER=NO) AS INTEGER
 
-DECLARE SUB position_menu (menu AS MenuDef, page AS INTEGER)
-DECLARE SUB draw_menu (menu AS MenuDef, state AS MenuState, page AS INTEGER)
-DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu AS MenuDef)
-DECLARE SUB init_menu_state OVERLOAD (BYREF state AS MenuState, menu() AS SimpleMenu, BYVAL pickenabled AS INTEGER = YES)
-DECLARE FUNCTION count_menu_items (menu AS MenuDef) as integer
-DECLARE FUNCTION find_empty_menu_item (menu AS MenuDef) as integer
-DECLARE FUNCTION get_menu_item_caption (mi AS MenuDefItem, menu AS MenuDef) AS STRING
-DECLARE FUNCTION get_special_menu_caption(subtype AS INTEGER, edit_mode AS INTEGER= NO) AS STRING
 DECLARE SUB create_default_menu(menu AS MenuDef)
-DECLARE FUNCTION anchor_point(anchor AS INTEGER, size AS INTEGER) AS INTEGER
-DECLARE FUNCTION read_menu_int (menu AS MenuDef, intoffset AS INTEGER) as integer
-DECLARE SUB write_menu_int (menu AS MenuDef, intoffset AS INTEGER, n AS INTEGER)
-DECLARE FUNCTION read_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER) as integer
-DECLARE SUB write_menu_item_int (mi AS MenuDefItem, intoffset AS INTEGER, n AS INTEGER)
-DECLARE SUB position_menu_item (menu AS MenuDef, cap AS STRING, i AS INTEGER, BYREF where AS XYPair)
-DECLARE FUNCTION append_menu_item(BYREF menu AS MenuDef, caption AS STRING, t AS INTEGER=0, sub_t AS INTEGER=0) as integer
-DECLARE SUB remove_menu_item OVERLOAD(BYREF menu AS MenuDef, BYVAL mi AS MenuDefItem ptr)
-DECLARE SUB remove_menu_item OVERLOAD(BYREF menu AS MenuDef, BYVAL mislot AS INTEGER)
-DECLARE SUB swap_menu_items(BYREF menu1 AS MenuDef, BYVAL mislot1 AS INTEGER, BYREF menu2 AS MenuDef, BYVAL mislot2 AS INTEGER)
-DECLARE SUB append_simplemenu_item (menu() as SimpleMenu, caption as string, BYVAL enabled as integer = YES, BYVAL col as integer = -1, BYVAL dat as integer = 0, BYVAL where as integer = -1)
 
 DECLARE FUNCTION bound_arg(n AS INTEGER, min AS INTEGER, max AS INTEGER, argname AS ZSTRING PTR, context AS ZSTRING PTR=nulzstr, fromscript AS INTEGER=YES, errlvl AS INTEGER = 4) AS INTEGER
 DECLARE SUB reporterr(msg AS STRING, errlvl AS INTEGER = 5)
@@ -210,11 +182,6 @@ DECLARE SUB write_npc_int (npcdata AS NPCType, intoffset AS INTEGER, n AS INTEGE
 DECLARE FUNCTION read_npc_int (npcdata AS NPCType, intoffset AS INTEGER) AS INTEGER
 
 DECLARE FUNCTION xreadbit (bitarray() AS INTEGER, bitoffset AS INTEGER, intoffset AS INTEGER=0) AS INTEGER
-
-DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, count AS INTEGER, boxstyle AS INTEGER=0, page AS INTEGER)
-DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, rect AS RectType, boxstyle AS INTEGER=0, page AS INTEGER)
-DECLARE SUB draw_scrollbar OVERLOAD (state AS MenuState, menu AS MenuDef, page AS INTEGER)
-DECLARE SUB draw_fullscreen_scrollbar(state AS MenuState, boxstyle AS INTEGER=0, page AS INTEGER)
 
 DECLARE FUNCTION get_text_box_height(BYREF box AS TextBox) AS INTEGER
 DECLARE FUNCTION last_inv_slot() AS INTEGER

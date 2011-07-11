@@ -55,5 +55,5 @@ fbc -lang deprecated -g -v -exx -mt -m game -d IS_GAME -d DATAFILES='"/usr/share
   ${3} ${4} ${5} ${6} ${7} ${8} \
   game.bas bmod.bas bmodsubs.bas allmodex.bas menustuf.bas moresubs.bas yetmore.bas yetmore2.bas savegame.bas \
   hsinterpreter.bas misc.bas bam2mid.bas loading.bas common.bas browse.bas util.bas slices.bas reload.bas reloadext.bas blit.o \
-  array.o base64.o lumpfile.bas backends.bas os_unix.bas bcommon.bas vector.bas ${EXTRA} \
+  array.o base64.o lumpfile.bas backends.bas os_unix.bas bcommon.bas vector.bas menus.bas ${EXTRA} \
 && mv game ohrrpgce-game
