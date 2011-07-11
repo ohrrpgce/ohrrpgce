@@ -2150,7 +2150,7 @@ END FUNCTION
 SUB upgrade_message (s AS STRING)
  IF NOT upgrademessages THEN
   upgrademessages = -1
-  reset_console 20, vpages(vpage)->h - 20, uilook(uiBackground)
+  reset_console 20, vpages(vpage)->h - 20
   show_message("Auto-Updating obsolete RPG file")
  END IF
  DIM temptime AS DOUBLE
@@ -2171,7 +2171,8 @@ SUB upgrade_message (s AS STRING)
 END SUB
 
 'admittedly, these 'console' functions suck
-SUB reset_console (top AS INTEGER = 0, h AS INTEGER = 200, c AS INTEGER = 0)
+SUB reset_console (top AS INTEGER = 0, h AS INTEGER = 200, c AS INTEGER = -1)
+ IF c = -1 THEN c = uilook(uiBackground)
  WITH console
   .top = top
   .h = h
