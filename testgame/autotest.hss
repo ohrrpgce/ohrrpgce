@@ -19,6 +19,8 @@ global variable(104, menu close global)
 #string 0 = error messages
 #string 1 = temporary misc
 #string 10 = error message arg
+#string 11 = asserts
+define constant(11, assert expression string)
 
 ########################################################################
 
@@ -53,6 +55,11 @@ script, crash, begin
   game over
 end
 
+script, assert failure, begin
+  trace(assert expression string)
+  crash
+end
+
 ########################################################################
 
 script, math tests, begin
@@ -66,6 +73,7 @@ end
 ########################################################################
 
 script, hero tests, begin
+  $0="hero tests"
   add hero(1)
   add hero(2)
   walk hero(me, north, 3) # hit wall
@@ -401,6 +409,7 @@ script, menu tests, begin
   use menu item(mi), w
   if(menu close global <> 99) then($0="menu close script didn't run", crash)
 
+  menu scroll tests
 end
 
 script, on menu item use, begin
@@ -411,15 +420,137 @@ script, on close menu test, begin
   menu close global := 99
 end
 
-#menu item by slot(menu handle, slot, visible only)
-#menu item slot(menu item handle)
+
+script, scroll through menu, menu, numitems, begin
+  variable (i, j, mi)
+
+  # test scrolling
+  for (i, 1, 3, 2) do (
+    set menu max rows(menu, i)
+    # forwards
+    mi := first menu item(menu)
+    while (mi) do (
+      select menu item(mi), w
+      mi := next menu item(mi)
+    )
+    # backwards
+    mi := menu item by slot(menu, numitems -- 1)
+    while (mi) do (
+      select menu item(mi), w
+      mi := previous menu item(mi)
+    )
+    # randomly
+    for (j, 0, 4) do (
+      select menu item(menu item by slot(menu, random(0, numitems -- 1))), w
+    )
+  )
+end
+
+script, menu scroll tests, begin
+  $0="menu scroll tests"
+
+  variable (main, mi, next, i, numitems)
+  main := open menu, w
+  set menu bit(main, 1, false), w #show scrollbar
+  allow minimap(true), w #make sure there are no hidden items
+  allow save anywhere(true), w
+
+  # test menu item iteration
+  mi := first menu item(main)
+  while (mi) do (
+    get menuitemcaption(mi,10)
+    #trace(10)
+    appendnumber(10, numitems)
+    assert (menu item slot(mi) == numitems)
+    assert (menu item by slot(main, numitems, true) == mi)
+    assert (menu item by slot(main, numitems, false) == mi)
+    next := next menu item(mi, false)
+    if (next) then (
+      assert (mi == previous menu item(next))
+    )
+    set menu item extra(mi, 0, numitems)
+    mi := next
+    numitems += 1
+  )
+  $10=""
+
+  # menu item iteration edge cases
+  assert (previous menu item(first menu item(main)) == 0)
+  assert (next menu item(menu item by slot(main, numitems -- 1)) == 0)
+  assert (menu item by slot(main, numitems, true) == 0)
+  assert (menu item by slot(main, numitems, false) == 0)
+  assert (menu item by slot(main, -1) == 0)
+
+  # test "select menu item"
+  mi := first menu item(main)
+  while (mi) do (
+    select menu item(mi), w
+    assert (selected menu item(main) == mi)
+    mi := next menu item(mi)
+  )
+
+  # test scrolling
+  scroll through menu(main, numitems)
+
+  # check hidden items sorted to end:
+  # 1. hide three items
+  set tag(3, OFF)
+  variable(hidden1, hidden2, hidden3)
+  hidden3 := menu item by slot(main, 4)
+  set menu item bit(hidden3, menu item bit: hide when disabled, true)
+  set menu item tag(hidden3, 3, 1)
+  hidden1 := menu item by slot(main, 0)
+  set menu item bit(hidden1, menu item bit: hide when disabled, true)
+  set menu item tag(hidden1, 3, 1)
+  hidden2 := menu item by slot(main, 3)
+  set menu item bit(hidden2, menu item bit: hide when disabled, true)
+  set menu item tag(hidden2, 3, 1)
+  w
+
+  # 2. add new item
+  mi := add menu item(main)
+  set menu item extra(mi, 0, numitems)
+  numitems += 1
+  $1="a new item!"
+  set menu item caption(mi, 1), w
+
+  # 3. check visible items in correct order
+  variable (temp, extra, mi2)
+  temp := -1
+  for (i, 0, num items -- 3 -- 1) do (
+    mi := menu item by slot(main, i, true)
+    mi2 := menu item by slot(main, i, false)
+    assert (mi == mi2)
+    extra := get menu item extra(mi2, 0)
+    if (extra <= temp) then ($0="menu items not in increasing order", crash)
+    temp := extra
+  )
+
+  # 4. check hidden items at end in correct order
+  if (menu item by slot(main, numitems -- 3, true) <> 0) then ($0="menuitembyslot returned hidden item", crash)
+  if (menu item by slot(main, numitems -- 3, false) <> hidden1) then ($0="hidden items out of order", crash)
+  if (menu item by slot(main, numitems -- 2, false) <> hidden2) then ($0="hidden items out of order", crash)
+  if (menu item by slot(main, numitems -- 1, false) <> hidden3) then ($0="hidden items out of order", crash)
+  assert (menu item by slot(main, numitems, false) == 0)
+
+  # test scrolling again
+  scroll through menu(main, numitems -- 3)
+
+  # check unhidden menu items sorted back correctly
+  set tag(3, ON), w
+  for (i, 0, numitems -- 1) do (
+    mi := menu item by slot(main, i, false)
+    assert (mi == menu item by slot(main, i, true))
+    assert (get menu item extra(mi, 0) == i)
+  )
+
+  close menu(main)
+end
+
 #next menu(menu handle)
 #open menu (ID, allow duplicate)
 #parent menu(menu item handle)
 #previous menu(menu handle)
-#previous menu item(menu item handle, visible only)
-#selected menu item(menu handle)
-#select menu item(menu item handle)
 #swap menu items(handle1, handle2)
 #wait for menu (menu handle)
 
