@@ -314,8 +314,7 @@ class HWhisper(object):
             menu.remove(item)
         for name in recent_list:
             if os.path.exists(name):
-                item = gtk.MenuItem(name)
-                item.set_name(name)
+                item = gtk.MenuItem(shorten_user_path(name))
                 item.connect("activate", self.on_recent_menu_item_activate, name)
                 menu.append(item)
                 item.show()
@@ -1908,7 +1907,17 @@ class DialogHolder(object):
 # -----------------------------------------------------------------------------
 
 def is_windows():
-  return sys.platform in ["win32", "cygwin"]
+    return sys.platform in ["win32", "cygwin"]
+
+def shorten_user_path(path):
+    for homekey in ["HOME", "USERPROFILE"]:
+        if homekey in os.environ:
+            home = os.environ[homekey]
+            if path.startswith(home):
+                short = path[len(home):]
+                short = short.lstrip("/\\")
+                return short
+    return path
 
 # -----------------------------------------------------------------------------
     
