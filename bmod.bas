@@ -2098,6 +2098,7 @@ SUB enemy_ai (BYREF bat AS BattleState, bslot() AS BattleSprite, formdata() AS I
   safety += 1
   IF safety > 99 THEN
    'give up eventually
+   debug "Enemy AI safety Warning: enemy " & bat.enemy_turn & " gave up after " & safety & " tries"
    bat.enemy_turn = -1
    EXIT SUB
   END IF

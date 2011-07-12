@@ -241,17 +241,27 @@ RETRACE
 END SUB
 
 FUNCTION countai (ai as integer, them as integer, bslot() as BattleSprite) as integer
-o = 0
-WITH bslot(them).enemy
- FOR i = 0 TO 4
-  SELECT CASE ai
-   CASE 0: IF .regular_ai(i) > 0 THEN o = o + 1
-   CASE 1: IF .desperation_ai(i) > 0 THEN o = o + 1
-   CASE 2: IF .alone_ai(i) > 0 THEN o = o + 1
-  END SELECT
- NEXT i
-END WITH
-countai = o
+ DIM atk AS AttackData
+ DIM atk_id AS INTEGER
+ DIM count AS INTEGER = 0
+ WITH bslot(them).enemy
+  FOR i AS INTEGER = 0 TO 4
+   atk_id = -1
+   SELECT CASE ai
+    CASE 0: atk_id = .regular_ai(i) - 1
+    CASE 1: atk_id = .desperation_ai(i) - 1
+    CASE 2: atk_id = .alone_ai(i) - 1
+   END SELECT
+   IF atk_id >= 0 THEN
+    loadattackdata atk, atk_id
+    IF atkallowed(atk, them, 0, 0, bslot()) THEN
+     'this attack is allowed right now
+     count += 1
+    END IF
+   END IF
+  NEXT i
+ END WITH
+ RETURN count
 END FUNCTION
 
 FUNCTION enemycount (bslot() AS BattleSprite) as integer
