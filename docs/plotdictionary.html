@@ -206,6 +206,9 @@
 		<a href="#about-asciifromstring">ascii from string (ID, position)</a><br>
 		
 	
+		<a href="#about-assert">assert (expression)</a><br>
+		
+	
 		<a href="#about-autonumber">autonumber</a><br>
 		
 	
@@ -9997,7 +10000,31 @@ trace value (i)  # writes "TRACE: i = ????" to g_debug.txt
 
 # This writes something like "TRACE: hero X (me) = 14, hero Y (me) = 53" to g_debug.txt
 trace value (hero X (me), hero Y (me))</pre>
-			
+			<br>See also: <ul class="seealso"><li><a href="#about-assert" class="ref">assert</a></li></ul>
+		</tt></p>
+		<a name="about-assert"></a>
+		<p>
+		<tt>
+		<b><font color="yellow">assert (expression)</font></b><br>
+			If <span class="param">expression</span> is false, then writes the filename, line number and <span class="param">expression</span> into the string given by the constant or global variable named <span class="param">assert expression string</span>, and then calls the script named <span class="param">assert failure</span>.<br>
+			<pre># The following...
+assert (check tag (tag:initialised) == OFF)
+# ...is equivalent to something like
+if (not (check tag (tag:initialised) == OFF)) then (
+  $assert expression string="myscripts.hss:123: check tag (tag:initialised) == OFF"
+  assert failure
+)</pre>
+<pre># Suggested usage:
+define constant(31, assert expression string)
+script, assert failure, begin
+  trace(31)
+  show text box(123)  # Error! ${S31}
+end
+
+# later...
+assert (something I really hope is true)
+</pre>
+			<br>See also: <ul class="seealso"><li><a href="#about-tracevalue" class="ref">trace value</a></li></ul>
 		</tt></p>
 		<a name="about-savemapstate"></a>
 		<p>
@@ -10651,7 +10678,7 @@ end</pre>
 			</tt></p>
 
 		<hr>
-	<p>Stats: There are 738 commands in this file, of which 56 are only references to other commands.</p>
+	<p>Stats: There are 739 commands in this file, of which 56 are only references to other commands.</p>
 <p>This file was generated from an XML file. The contents were painstakingly transcribed by Mike Caron from the original Plotscripting Dictionary, which was created by James Paige.</p>
 </body>
 </html>

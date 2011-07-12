@@ -5538,6 +5538,34 @@ trace value (i)  # writes "TRACE: i = ????" to g_debug.txt
 
 # This writes something like "TRACE: hero X (me) = 14, hero Y (me) = 53" to g_debug.txt
 trace value (hero X (me), hero Y (me))</example>
+			<seealso>
+				<ref>assert</ref>
+			</seealso>
+		</command>
+		<command id="assert">
+			<canon>assert (expression)</canon>
+			<shortname>assert</shortname>
+			<description>If <p>expression</p> is false, then writes the filename, line number and <p>expression</p> into the string given by the constant or global variable named <p>assert expression string</p>, and then calls the script named <p>assert failure</p>.</description>
+			<example># The following...
+assert (check tag (tag:initialised) == OFF)
+# ...is equivalent to something like
+if (not (check tag (tag:initialised) == OFF)) then (
+  $assert expression string="myscripts.hss:123: check tag (tag:initialised) == OFF"
+  assert failure
+)</example>
+			<example># Suggested usage:
+define constant(31, assert expression string)
+script, assert failure, begin
+  trace(31)
+  show text box(123)  # Error! ${S31}
+end
+
+# later...
+assert (something I really hope is true)
+</example>
+			<seealso>
+				<ref>tracevalue</ref>
+			</seealso>
 		</command>
 		<command id="savemapstate">
 			<canon>save map state (whichdata, customid)</canon>

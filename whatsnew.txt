@@ -23,6 +23,7 @@ WHAT IS NEW?
       movement [James]
     * New "Ellipse" slice type, and related commands [James, Ralph]
     * "NPCstat: default movement zone" constant for "read/alter npc"
+    * "assert" [Ralph]
 
   * Vikings of Midgard
 

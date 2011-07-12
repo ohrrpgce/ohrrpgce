@@ -13,6 +13,7 @@
 ---------------------------------------------------------------------------
 
 --Changelog
+--3N  2011-07-12 Add assert
 --3Ma 2010-10-21 Correctly strip \r to fix newlines ... again.
 --3M  2010-05-02 abs, sign, sqrt; fix error reporting
 --3L  2010-04-29 tracevalue support, involving a few internal changes
@@ -114,7 +115,7 @@ constant COMPILER_VERSION=3
 -- For small changes increment the second letter of COMPILER_SUB_VERSION
 -- For large changes increment the first letter and reset the second letter
 --*Please make sure this is 2 chararacters long! Append a space if required.*
-constant COMPILER_SUB_VERSION="Ma"
+constant COMPILER_SUB_VERSION="N "
 constant COPYRIGHT_DATE="2002"
 
 --these constants are color-flags.
@@ -725,6 +726,7 @@ procedure init()
           ,{"case"          ,RESERVE_FLOW}
           ,{"="             ,RESERVE_UNIMPLEMENTED}
           ,{"tracevalue"    ,RESERVE_MACRO}
+          ,{"assert"        ,RESERVE_MACRO}
         })--end mass_insert   
   for i=1 to length(math_list) do
     reserved=alpha_tree_insert(reserved,math_list[i][PAIR_NAME],RESERVE_BUILTIN)
@@ -2317,27 +2319,59 @@ end function
 
 ---------------------------------------------------------------------------
 
---there is only one, hardcoded, macro right now: tracevalue
+--there are only two, hardcoded, macros right now: tracevalue, assert
 function expand_macros(sequence tree)
+  sequence newtree
   sequence newargs
+  sequence new_string
   sequence string_token
+  sequence src_position
+  sequence temp
   srcpos pos
-  for ptr=1 to length(tree) do
+  integer ptr
+  ptr=1
+  while ptr<=length(tree) do
+    --recurse first, because tree[ptr] might be split up (as in 'assert')
+    if length(tree[ptr][TREE_BRANCHES]) then
+      tree[ptr][TREE_BRANCHES]=expand_macros(tree[ptr][TREE_BRANCHES])
+    end if
+
     if equal("tracevalue",tree[ptr][TREE_TRUNK][CMD_TEXT]) then
       newargs={}
       tree[ptr][TREE_TRUNK][CMD_TEXT]="tracevalueinternal"
       pos=tree[ptr][TREE_TRUNK][CMD_POS]
       for i=1 to length(tree[ptr][TREE_BRANCHES]) do
-        string_list=append(string_list,tree_original_text(tree[ptr][TREE_BRANCHES][i]))
+        new_string=tree_original_text(tree[ptr][TREE_BRANCHES][i])
+        string_list=append(string_list,new_string)
         string_token={sprintf("@$string%d",{length(string_list)}),pos}
         newargs&={{string_token,{}},tree[ptr][TREE_BRANCHES][i]}
       end for
       tree[ptr][TREE_BRANCHES]=newargs
     end if
-    if length(tree[ptr][TREE_BRANCHES]) then
-      tree[ptr][TREE_BRANCHES]=expand_macros(tree[ptr][TREE_BRANCHES])
+
+    if equal("assert",tree[ptr][TREE_TRUNK][CMD_TEXT]) then
+      --assert(condition)  -->  if (not(condition)) then ($assert expression string="condition", assertfailure)
+      pos=tree[ptr][TREE_TRUNK][CMD_POS]
+      src_position=decode_srcpos(pos)
+      if length(tree[ptr][TREE_BRANCHES])!=1 then
+        src_error(sprintf(COLYEL&"assert"&COLRED&" statement takes exactly one argument: a condition. It has %d",{length(tree[ptr][TREE_BRANCHES])}),pos)        
+      end if
+      newtree={{{"if",pos},{}}, {{"then",pos},{}}}
+      newtree[1][TREE_BRANCHES]={{{"not",pos},{tree[ptr][TREE_BRANCHES][1]}}}
+
+      new_string=sprintf("%s:%d: %s",{src_position[POS_FILENAME],src_position[POS_LINE],tree_original_text(tree[ptr][TREE_BRANCHES][1])})
+      string_list=append(string_list,new_string)
+      string_token={sprintf("@$string%d",{length(string_list)}),pos}
+
+      temp={{{"setstringfromtable",pos},{}}, {{"assertfailure",pos},{}}}
+      temp[1][TREE_BRANCHES]={{{enforce_constants("assertexpressionstring"),pos},{}},{string_token,{}}}  --stringnum, string
+      newtree[2][TREE_BRANCHES]=temp
+
+      tree=replace_slice(tree,ptr,ptr,newtree)  --tree[ptr..ptr]=newtree
+      ptr+=1
     end if
-  end for
+    ptr+=1
+  end while
   return(tree)
 end function
 
