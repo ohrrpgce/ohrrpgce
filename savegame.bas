@@ -17,7 +17,7 @@ DEFINT A-Z
 #include "reload.bi"
 #include "reloadext.bi"
 #include "savegame.bi"
-
+#include "moresubs.bi"
 #include "menustuf.bi"
 #include "yetmore.bi"
 
@@ -462,7 +462,7 @@ SUB gamestate_tags_from_reload(BYVAL parent AS Reload.NodePtr)
  LoadBitsetArray(ch, buf(), UBOUND(buf))
  
  FOR i AS INTEGER = 0 TO count - 1
-  setbit tag(), 0, i, readbit(buf(), 0, i)
+  settag i, readbit(buf(), 0, i)
  NEXT i
  
 END SUB
@@ -485,7 +485,7 @@ SUB gamestate_onetime_from_reload(BYVAL parent AS Reload.NodePtr)
  LoadBitsetArray(ch, buf(), UBOUND(buf))
  
  FOR i AS INTEGER = 0 TO count - 1
-  setbit tag(), 0, 1000 + i, readbit(buf(), 0, i)
+  settag 1000 + i, readbit(buf(), 0, i)
  NEXT i
  
 END SUB

@@ -525,11 +525,11 @@ sysex:
 				case &H6 'unset tag
 					p +=1
 					'debug "Unset tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
-					setbit tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p)), 0
+					settag BE_SHORT(*Cptr(short ptr, curevent->extradata + p)), NO
 				case &H7 'set tag
 					p +=1
 					'debug "Set tag # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p)))
-					setbit tag(), 0, BE_SHORT(*Cptr(short ptr, curevent->extradata + p)), 1
+					settag BE_SHORT(*Cptr(short ptr, curevent->extradata + p)), YES
 				case &H8 'set variable
 					p+=1
 					'debug "Set variable # " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p))) + " to " + str(BE_SHORT(*Cptr(short ptr, curevent->extradata + p + 2)))

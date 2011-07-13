@@ -2000,11 +2000,11 @@ st.last = 1999
 
 IF keyval(scCtrl) > 0 THEN
  IF keyval(scNumpadMinus) > 1 OR keyval(scMinus) > 1 THEN
-  setbit tag(), 0, st.pt, 0
+  settag st.pt, NO
   visnpc
  END IF
  IF keyval(scNumpadPlus) > 1 OR keyval(scPlus) > 1 THEN
-  setbit tag(), 0, st.pt, 1
+  settag st.pt, YES
   visnpc
  END IF
 ELSE

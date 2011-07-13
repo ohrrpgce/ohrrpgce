@@ -1643,7 +1643,7 @@ SUB checkTagCond (t AS AttackDataTag, check AS INTEGER)
  't.tagcheck - the tag to check
  IF t.condition = check THEN
   IF t.tagcheck <> 0 AND readbit(tag(), 0, ABS(t.tagcheck)) <> SGN(SGN(t.tagcheck) + 1) THEN EXIT SUB
-  setbit tag(), 0, ABS(t.tag), SGN(SGN(t.tag) + 1) 'Set the original damned tag!
+  settag t.tag  'Set the original damned tag!
  END IF
 END SUB
 

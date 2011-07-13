@@ -82,7 +82,7 @@ IF vstate.active THEN
  IF vstate.dat.on_dismount < 0 THEN
   rsr = runscript(ABS(vstate.dat.on_dismount), nowscript + 1, -1, "dismount", plottrigger)
  END IF
- IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 0
+ settag vstate.dat.riding_tag, NO
  herospeed(0) = vstate.old_speed
  IF herospeed(0) = 3 THEN herospeed(0) = 10
  reset_vehicle vstate

@@ -2399,9 +2399,8 @@ FUNCTION activate_menu_item(mi AS MenuDefItem, BYVAL menuslot AS INTEGER, BYVAL 
   EXIT DO
  LOOP
  IF activated THEN
-  IF mi.settag > 1 THEN setbit tag(), 0, mi.settag, YES : updatetags = YES
-  IF mi.settag < -1 THEN setbit tag(), 0, ABS(mi.settag), NO : updatetags = YES
-  IF mi.togtag > 1 THEN setbit tag(), 0, mi.togtag, (readbit(tag(), 0, mi.togtag) XOR 1) : updatetags = YES
+  IF ABS(mi.settag) > 1 THEN settag mi.settag : updatetags = YES
+  IF mi.togtag > 1 THEN settag mi.togtag, (readbit(tag(), 0, mi.togtag) XOR 1) : updatetags = YES
   IF mi.close_if_selected THEN
    remove_menu menuslot, (mi.skip_close_script = NO)
 
@@ -2849,9 +2848,7 @@ SUB advance_text_box ()
  '---IF MADE A CHOICE---
  IF txt.box.choice_enabled THEN
   MenuSound gen(genAcceptSFX)
-  IF ABS(txt.box.choice_tag(txt.choice_cursor)) > 1 THEN
-   setbit tag(), 0, ABS(txt.box.choice_tag(txt.choice_cursor)), SGN(SGN(txt.box.choice_tag(txt.choice_cursor)) + 1)
-  END IF
+  settag txt.box.choice_tag(txt.choice_cursor)
  END IF
  '---RESET MUSIC----
  IF txt.box.restore_music THEN
@@ -3350,7 +3347,7 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
  END IF
  IF npcs(id).usetag > 0 THEN
   '--One-time-use tag
-  setbit tag(), 0, 1000 + npcs(id).usetag, 1
+  settag 1000 + npcs(id).usetag, YES
  END IF
  IF npcs(id).script > 0 THEN
   '--summon a script directly from an NPC
@@ -3372,7 +3369,7 @@ SUB usenpc(BYVAL cause AS INTEGER, BYVAL npcnum AS INTEGER)
    vstate.old_speed = herospeed(0)
    herospeed(0) = 10
    vstate.mounting = YES '--trigger mounting sequence
-   IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 1
+   settag vstate.dat.riding_tag, YES
    create_walkabout_shadow npc(vstate.npc).sl
   END IF
  END IF

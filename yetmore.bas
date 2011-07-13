@@ -3216,7 +3216,7 @@ END IF
 IF vstate.trigger_cleanup THEN '--clear
  IF vstate.dat.on_dismount < 0 THEN runscript(ABS(vstate.dat.on_dismount), nowscript + 1, -1, "vehicle on-dismount", plottrigger)
  IF vstate.dat.on_dismount > 0 THEN loadsay vstate.dat.on_dismount
- IF vstate.dat.riding_tag > 1 THEN setbit tag(), 0, vstate.dat.riding_tag, 0
+ settag vstate.dat.riding_tag, NO
  IF vstate.dat.dismount_ahead = YES AND vstate.dat.pass_walls_while_dismounting = NO THEN
   '--dismount-ahead is true, dismount-passwalls is false
   SELECT CASE catd(0)
@@ -3578,8 +3578,8 @@ txt.id = box_id
 
 '-- set tags indicating the text box has been seen.
 IF istag(txt.box.settag_tag, 0) THEN
- IF ABS(txt.box.settag1) > 1 THEN setbit tag(), 0, ABS(txt.box.settag1), SGN(SGN(txt.box.settag1) + 1)
- IF ABS(txt.box.settag2) > 1 THEN setbit tag(), 0, ABS(txt.box.settag2), SGN(SGN(txt.box.settag2) + 1)
+ settag txt.box.settag1
+ settag txt.box.settag2
 END IF
 
 '--make a sound if the choicebox is enabled

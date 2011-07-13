@@ -128,7 +128,7 @@ DO
  IF carray(ccUse) > 1 THEN '---PRESS ENTER---------------------
   IF stuff(st.pt).enabled THEN '---CHECK TO SEE IF YOU CAN AFFORD IT---
    IF gam.stock(id, itemno) > 1 THEN gam.stock(id, itemno) -= 1
-   IF b(itemno * recordsize + 22) THEN setbit tag(), 0, ABS(b(itemno * recordsize + 22)), SGN(SGN(b(itemno * recordsize + 22)) + 1)
+   settag b(itemno * recordsize + 22)
    gold = gold - b(itemno * recordsize + 24)
    IF tradingitems THEN '---TRADE IN ITEMS----------
     FOR i = 0 TO 3
@@ -986,7 +986,7 @@ IF carray(ccUse) > 1  AND inventory(ic).used THEN
   FOR i = 0 TO storebuf(16)
    IF b(i * recordsize + 17) = 0 AND b(i * recordsize + 18) = inventory(ic).id THEN
     'SET SELL BIT---
-    IF b(i * recordsize + 23) <> 0 THEN setbit tag(), 0, ABS(b(i * recordsize + 23)), SGN(SGN(b(i * recordsize + 23)) + 1)
+    settag b(i * recordsize + 23)
     'ADD TRADED ITEM-----------
     IF b(i * recordsize + 28) > 0 THEN getitem b(i * recordsize + 28), b(i * recordsize + 29) + 1
     'INCREMENT STOCK-------
