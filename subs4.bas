@@ -1418,18 +1418,26 @@ SUB generate_gen_menu(m$(), longname$, aboutline$)
  ELSE
   m$(12) = "Inventory size: " & (Last_inv_slot() \ 3) + 1 & " rows, " & gen(genMaxInventory) + 1 & " slots"
  END IF
- m$(13) = "Script errors: "
+ m$(13) = "Inventory autosort: "
+ SELECT CASE gen(genAutosortScheme)
+  CASE 0: m$(13) += "by item type/uses"
+  CASE 1: m$(13) += "by whether usable"
+  CASE 2: m$(13) += "alphabetically"
+  CASE 3: m$(13) += "by item ID number"
+  CASE 4: m$(13) += "no reordering"
+ END SELECT
+ m$(14) = "Script errors: "
  SELECT CASE gen(genErrorLevel)
-  CASE 2: m$(13) += "Show all warnings"
-  CASE 3: m$(13) += "Hide nit-picking warnings"
-  CASE 4: m$(13) += "Hide all warnings"
-  CASE 5: m$(13) += "Hide errors not reported in old versions"
-  CASE 6: m$(13) += "Hide all ignoreable errors"
+  CASE 2: m$(14) += "Show all warnings"
+  CASE 3: m$(14) += "Hide nit-picking warnings"
+  CASE 4: m$(14) += "Hide all warnings"
+  CASE 5: m$(14) += "Hide errors not reported in old versions"
+  CASE 6: m$(14) += "Hide all ignoreable errors"
  END SELECT
 END SUB
 
 SUB gendata ()
- CONST maxMenu = 13
+ CONST maxMenu = 14
  DIM m(maxMenu) AS STRING
  DIM min(maxMenu), max(maxMenu)
  DIM index(maxMenu)
@@ -1459,9 +1467,11 @@ SUB gendata ()
  enabled(11) = NO
  index(12) = genMaxInventory
  max(12) = (inventoryMax + 1) \ 3
- index(13) = genErrorLevel
- max(13) = 6
- min(13) = 2
+ index(13) = genAutosortScheme
+ max(13) = 4
+ index(14) = genErrorLevel
+ max(14) = 6
+ min(14) = 2
 
  DIM aboutline AS STRING = ""
  DIM longname AS STRING = ""

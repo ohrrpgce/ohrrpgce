@@ -294,6 +294,7 @@ TYPE InventSlot
   id as integer		'read ID number starting at 0, not +1!!
   num as integer
   text as string	'text field which shows up in inventory, blank if empty
+  sortorder as integer  'contains garbage nearly always: only used in items_menu_autosort
 END TYPE
 
 TYPE PlotTimer

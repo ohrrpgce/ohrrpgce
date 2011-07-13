@@ -130,7 +130,8 @@ CONST genDamageDisplayTicks = 186 'number of ticks that battle damage displays
 CONST genDamageDisplayRise = 187 'number of pixels that damage display rises
 CONST genHeroWeakHP = 188       '%HP for heroes to use Weak state
 CONST genEnemyWeakHP = 189      '%HP for enemies to use Desperation AI
-'190 to 198 unused
+CONST genAutosortScheme = 190   'Method used to autosort inventory
+'191 to 198 unused
 '199 to 359 used to be the scattertable for PW2, now zeroed out
 '360 to 499 unused
 

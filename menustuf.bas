@@ -1858,23 +1858,71 @@ END SUB
 
 SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
  DIM autosort_changed AS INTEGER = NO
+ 'First sort all items to the top
  FOR i AS INTEGER = 0 TO last_inv_slot() - 1
+  IF inventory(i).used THEN CONTINUE FOR
   FOR o AS INTEGER = i + 1 TO last_inv_slot()
-   IF inventory(i).used = 0 AND inventory(o).used THEN
+   IF inventory(o).used THEN
     itemmenuswap inventory(), iuse(), permask(), i, o
     autosort_changed = YES
     EXIT FOR
    END IF
   NEXT o
  NEXT i
- FOR i AS INTEGER = 0 TO last_inv_slot() - 1
-  FOR o AS INTEGER = i + 1 TO last_inv_slot()
-   IF readbit(iuse(), 0, 3 + i) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN
-    itemmenuswap inventory(), iuse(), permask(), i, o
-    autosort_changed = YES
-    EXIT FOR
+
+ IF gen(genAutosortScheme) = 0 THEN
+  'Sorting by type: cache the sort order of the items, or the cost of repeatedly loading
+  'item data might go out of control
+  DIM itemdata(dimbinsize(binITM)) AS INTEGER
+  FOR slot AS INTEGER = 0 TO last_inv_slot()
+   IF inventory(slot).used = NO THEN CONTINUE FOR
+   loaditemdata itemdata(), inventory(slot).id
+
+   IF itemdata(47) THEN  'Usable in-battle
+    inventory(slot).sortorder = 0
+   ELSEIF itemdata(51) > 0 THEN  'Usable out-of-battle (attack)
+    inventory(slot).sortorder = 10
+   ELSEIF itemdata(51) < 0 THEN  'Usable out-of-battle (textbox)
+    inventory(slot).sortorder = 20
+   ELSEIF itemdata(50) THEN  'Teach spell
+    inventory(slot).sortorder = 30
+   ELSEIF itemdata(49) THEN  'Equippable
+    inventory(slot).sortorder = 40
+   ELSE
+    inventory(slot).sortorder = 50
    END IF
+   IF itemdata(73) = 2 THEN
+    inventory(slot).sortorder += 0  'Can not be sold/dropped
+   ELSEIF itemdata(73) = 1 THEN
+    inventory(slot).sortorder += 1  'Unlimited use
+   ELSE
+    inventory(slot).sortorder += 2  'Consumed by use
+   END IF
+  NEXT
+ END IF
+
+ 'Then sort by the autosort criterion (insertion sort)
+ FOR i AS INTEGER = 0 TO last_inv_slot() - 1
+  IF inventory(i).used = NO THEN EXIT FOR
+  DIM best AS INTEGER = i
+  FOR o AS INTEGER = i TO last_inv_slot()
+   IF inventory(o).used = NO THEN EXIT FOR
+   SELECT CASE gen(genAutosortScheme)
+    CASE 0 'type
+     IF inventory(best).sortorder > inventory(o).sortorder THEN best = o
+    CASE 1 'use
+     IF readbit(iuse(), 0, 3 + best) = 0 AND readbit(iuse(), 0, 3 + o) = 1 THEN best = o
+    CASE 2 'alphabetical
+     IF string_compare(@inventory(best).text, @inventory(o).text) > 0 THEN best = o
+    CASE 3 'id
+     IF inventory(best).id > inventory(o).id THEN best = o
+    CASE 4 'nothing
+   END SELECT
   NEXT o
+  IF best <> i THEN
+   itemmenuswap inventory(), iuse(), permask(), i, best
+   autosort_changed = YES
+  END IF
  NEXT i
  IF autosort_changed THEN
   menusound gen(genAcceptSFX)

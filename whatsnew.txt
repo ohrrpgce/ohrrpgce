@@ -7,6 +7,8 @@ WHAT IS NEW?
       (hero graphics and enemy desperation attacks) [Adam Perry]
     * New in-game debug key: CTRL+F4 to view/edit/export the slice
       tree with the slice collection editor [Ralph]
+    * A general game option to change how the inventory Autosort
+      option works [Ralph]
 
   * Bugfixes
     * Wrong names used for reserve party heroes who level during

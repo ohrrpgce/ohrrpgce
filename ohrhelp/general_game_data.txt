@@ -26,6 +26,8 @@ Password for Editing: Set a password to be required to open the game with custom
 
 Inventory Size: This is the number of rows available for the player's item inventory. Type in a number and the screen will show you how many actual item slots will result (there are three slots in a row).
 
+Inventory Autosort: This sets the criterion which the 'Autosort' option in the inventory menu uses to sort items (after first moving all items to the top). You can sort by type (which for example places items usable in-battle ahead of those usable only out-of-battle), by whether they are usable at all, alphabetically by name, by the ID number in the item editor, or do no additional sorting.
+
 Script Errors: Control which script errors will be shown at runtime.
 Note that future versions of the engine will raise many new types of warnings and errors, so it could be a bad idea to release with warnings enabled.
 
