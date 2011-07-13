@@ -243,7 +243,7 @@ palette16_unload(@hirepal)
 freepage page
 freepage holdscreen
 menusound gen(genCancelSFX)
-vishero
+party_change_updates
 EXIT SUB
 
 buildmenu:

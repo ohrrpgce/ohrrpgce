@@ -51,7 +51,6 @@ IF box.hero_addrem > 0 THEN
  i = first_free_slot_in_party()
  IF i > -1 THEN
   addhero box.hero_addrem, i
-  vishero
  END IF
 END IF '---end if > 0
 '---REMOVE---
@@ -62,7 +61,6 @@ IF box.hero_addrem < 0 THEN
   IF herocount(3) = 0 THEN forceparty
  END IF
 END IF '---end if < 0
-vishero
 '---SWAP-IN---
 IF box.hero_swap > 0 THEN
  i = findhero(box.hero_swap, 40, 0, -1)
@@ -98,6 +96,9 @@ IF box.hero_lock < 0 THEN
  temp = findhero(-box.hero_lock, 0, 40, 1)
  IF temp > -1 THEN setbit hmask(), 0, temp, 1
 END IF '---end if > 0
+
+'--indirect effects
+party_change_updates
 END SUB
 
 SUB doihavebits
@@ -227,7 +228,7 @@ SELECT CASE AS CONST id
    IF slot >= 0 THEN
     'retvals(0) is the real hero id, addhero subtracts the 1 again
     addhero retvals(0) + 1, slot
-    vishero
+    party_change_updates
    END IF
    scriptret = slot
   END IF
@@ -236,7 +237,7 @@ SELECT CASE AS CONST id
    i = findhero(bound(retvals(0), 0, 59) + 1, 0, 40, 1)
    IF i > -1 THEN hero(i) = 0
    IF herocount(3) = 0 THEN forceparty
-   vishero
+   party_change_updates
   END IF
  CASE 68'--swap out hero
   i = findhero(retvals(0) + 1, 0, 40, 1)
@@ -245,7 +246,7 @@ SELECT CASE AS CONST id
     IF hero(o) = 0 THEN
      doswap i, o
      IF herocount(3) = 0 THEN forceparty
-     vishero
+     party_change_updates
      EXIT FOR
     END IF
    NEXT o
@@ -256,7 +257,7 @@ SELECT CASE AS CONST id
    FOR o = 0 TO 3
     IF hero(o) = 0 THEN
      doswap i, o
-     vishero
+     party_change_updates
      EXIT FOR
     END IF
    NEXT o
@@ -289,7 +290,7 @@ SELECT CASE AS CONST id
   END IF
  CASE 89'--swap by position
   doswap bound(retvals(0), 0, 40), bound(retvals(1), 0, 40)
-  vishero
+  party_change_updates
  CASE 110'--set hero picture
   IF retvals(0) >= 0 AND retvals(0) <= 40 THEN
    i = bound(retvals(0), 0, 40)
@@ -3312,6 +3313,7 @@ FUNCTION vehpass (byval n as integer, byval tile as integer, byval default as in
 
 END FUNCTION
 
+'Reload party walkabout graphics
 SUB vishero ()
  FOR i AS INTEGER = 0 TO UBOUND(herow)
   frame_unload @herow(i).sprite
@@ -3328,8 +3330,6 @@ SUB vishero ()
    o = o + 1
   END IF
  NEXT i
-
- evalherotag
 END SUB
 
 SUB set_walkabout_sprite (byval cont as Slice Ptr, byval pic as integer=-1, byval pal as integer=-2)

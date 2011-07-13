@@ -10,6 +10,7 @@ DECLARE FUNCTION countitem (it as integer) as integer
 DECLARE SUB delitem (it as integer, amount as integer)
 DECLARE SUB doswap (s as integer, d as integer)
 DECLARE SUB drawsay ()
+DECLARE SUB party_change_updates ()
 DECLARE SUB evalherotag ()
 DECLARE SUB evalitemtag
 DECLARE FUNCTION findhero (who as integer, f as integer, l as integer, d as integer) as integer

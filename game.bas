@@ -2931,6 +2931,7 @@ SUB advance_text_box ()
   END IF
  END IF
  evalitemtag
+ evalherotag
  '---DONE EVALUATING CONDITIONALS--------
  vishero
  visnpc

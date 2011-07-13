@@ -349,8 +349,8 @@ FOR i = 0 TO 4
  SWAP eqstuf(s, i), eqstuf(d, i)
 NEXT i
 
-'---reload hero pictures and palettes
-vishero
+'--set tags, reload hero pictures and palettes, etc
+party_change_updates
 
 'hero(40), bmenu(40,5), spell(40,3,23), lmp(40,7), exlev(40,1), names(40), eqstuf(40,4)
 END SUB
@@ -401,7 +401,7 @@ END SUB
 
 SUB evalherotag ()
 
-leader = -1
+DIM leader AS INTEGER = -1
 FOR i = 3 TO 0 STEP -1
  IF hero(i) > 0 THEN leader = hero(i) - 1
 NEXT i
@@ -422,6 +422,13 @@ FOR i = 0 TO small(gen(genMaxHero), UBOUND(herobits, 1)) '--for each available h
  NEXT j
 NEXT i
 
+END SUB
+
+'Call this after a change to the party
+SUB party_change_updates
+ vishero
+ evalherotag
+ 'FIXME: process indirect effects of tag changes
 END SUB
 
 SUB evalitemtag

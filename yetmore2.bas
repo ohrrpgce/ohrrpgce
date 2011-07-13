@@ -432,8 +432,6 @@ LOOP
 END FUNCTION
 
 SUB reloadnpc ()
- vishero
- 
  '--old-style
  FOR i AS INTEGER = 0 TO UBOUND(npcs)
   with npcs(i)
