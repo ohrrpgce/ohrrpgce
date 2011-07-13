@@ -1887,7 +1887,7 @@ SUB items_menu_autosort(iuse() AS INTEGER, permask() AS INTEGER)
    ELSEIF itemdata(50) THEN  'Teach spell
     inventory(slot).sortorder = 30
    ELSEIF itemdata(49) THEN  'Equippable
-    inventory(slot).sortorder = 40
+    inventory(slot).sortorder = 40 + itemdata(49)
    ELSE
     inventory(slot).sortorder = 50
    END IF
