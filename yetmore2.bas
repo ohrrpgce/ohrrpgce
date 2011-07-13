@@ -431,17 +431,6 @@ LOOP
 END FUNCTION
 
 SUB reloadnpc ()
- '--old-style
- FOR i AS INTEGER = 0 TO UBOUND(npcs)
-  with npcs(i)
-   if .sprite then frame_unload(@.sprite)
-   if .pal then palette16_unload(@.pal)
-   .sprite = frame_load(4, .picture)
-   .pal = palette16_load(.palette, 4, .picture)
-  end with
- NEXT i
- 
- '--new-style
  DIM npc_id AS INTEGER
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   npc_id = npc(i).id - 1

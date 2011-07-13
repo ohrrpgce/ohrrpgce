@@ -107,7 +107,7 @@ DIM herotags(59) as HeroTagsCache, itemtags(maxMaxItems) as ItemTagsCache
 DIM hero(40), bmenu(40, 5), spell(40, 3, 23), lmp(40, 7), exlev(40, 1), names(40)
 DIM eqstuf(40, 4)
 DIM catx(15), caty(15), catz(15), catd(15), xgo(3), ygo(3), herospeed(3), wtog(3), hmask(3)
-DIM herow(3) as GraphicPair
+DIM herow(3) as GraphicPair  'FIXME: these are only used in the various hero pickers
 DIM statnames() as string
 
 DIM maptiles(0) as TileMap, pass as TileMap
@@ -3438,10 +3438,6 @@ FUNCTION free_slots_in_party() AS INTEGER
 END FUNCTION
 
 SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS INTEGER)
- '--reload old-style
- IF npcs(npc_id).sprite THEN frame_unload(@npcs(npc_id).sprite)
- npcs(npc_id).sprite = frame_load(4, walkabout_sprite_id)
- '--reload new-style
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF npc(i).id - 1 = npc_id THEN
    'found a match!
@@ -3451,10 +3447,6 @@ SUB change_npc_def_sprite (BYVAL npc_id AS INTEGER, BYVAL walkabout_sprite_id AS
 END SUB
 
 SUB change_npc_def_pal (BYVAL npc_id AS INTEGER, BYVAL palette_id AS INTEGER)
- '--reload old-style
- IF npcs(npc_id).pal THEN palette16_unload(@npcs(npc_id).pal)
- npcs(npc_id).pal = palette16_load(palette_id, 4, npcs(npc_id).picture)
- '--reload new-style
  FOR i AS INTEGER = 0 TO UBOUND(npc)
   IF npc(i).id - 1 = npc_id THEN
    'found a match!

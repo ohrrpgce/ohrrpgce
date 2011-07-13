@@ -1176,12 +1176,6 @@ deletetemps
 'doesn't unload scripts: not needed
 killallscripts
 
-FOR i = 0 TO UBOUND(npcs)
- WITH npcs(i)
-  frame_unload(@.sprite)
-  palette16_unload(@.pal)
- END WITH
-NEXT i
 FOR i = 0 TO UBOUND(herow)
  WITH herow(i)
   frame_unload(@.sprite)
