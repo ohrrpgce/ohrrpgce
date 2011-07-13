@@ -48,6 +48,7 @@ DECLARE SUB displayall()
 DECLARE SUB doloadgame(BYVAL load_slot AS INTEGER)
 DECLARE SUB reset_game_final_cleanup()
 DECLARE FUNCTION should_skip_this_timer(byval l as integer, t as PlotTimer) AS INTEGER
+DECLARE SUB update_menu_states ()
 
 REMEMBERSTATE
 
@@ -484,12 +485,6 @@ DO
  control
  'debug "menu key handling:"
  check_menu_tags
- FOR i = 0 TO topmenu
-  IF mstates(i).need_update THEN
-   mstates(i).need_update = NO
-   init_menu_state mstates(i), menus(i)
-  END IF
- NEXT i
  player_menu_keys()
  'debug "after menu key handling:"
  IF menus_allow_gameplay() THEN
@@ -815,6 +810,7 @@ SUB displayall()
  ELSE
   gam.map.showname = 0
  END IF
+ update_menu_states
  FOR i AS INTEGER = 0 TO topmenu
   draw_menu menus(i), mstates(i), dpage
  NEXT i
@@ -1727,6 +1723,7 @@ WITH scrat(nowscript)
     menuslot = find_menu_handle(retvals(0))
     IF valid_menuslot(menuslot) THEN
      write_menu_int(menus(menuslot), retvals(1), retvals(2))
+     mstates(menuslot).need_update = YES
     END IF
    CASE 277'--read menu item int
     mislot = find_menu_item_handle(retvals(0), menuslot)
@@ -1741,6 +1738,7 @@ WITH scrat(nowscript)
      WITH menus(menuslot)
       write_menu_item_int(*.items[mislot], retvals(1), retvals(2))
      END WITH
+     mstates(menuslot).need_update = YES
     END IF
    CASE 279'--create menu
     scriptret = add_menu(-1)
@@ -2258,6 +2256,15 @@ FUNCTION menus_allow_player () AS INTEGER
  RETURN menus(topmenu).suspend_player = NO
 END FUNCTION
 
+SUB update_menu_states ()
+ FOR i AS INTEGER = 0 TO topmenu
+  IF mstates(i).need_update THEN
+   mstates(i).need_update = NO
+   init_menu_state mstates(i), menus(i)
+  END IF
+ NEXT i
+END SUB
+
 SUB player_menu_keys ()
  DIM i AS INTEGER
  DIM activated AS INTEGER
@@ -2441,6 +2448,7 @@ SUB check_menu_tags ()
      IF old <> .disabled THEN changed = YES
     END WITH
    NEXT i
+   'FIXME: the following is meant to be handled by init_menu_state... in fact usemenu already does this
    IF changed = YES THEN
     IF mstates(j).pt >= 0 THEN
      selecteditem = .items[mstates(j).pt]
@@ -2471,6 +2479,7 @@ SUB check_menu_tags ()
    END IF
   END WITH
  NEXT j
+ update_menu_states
 END SUB
 
 FUNCTION game_usemenu (state AS MenuState) as integer
