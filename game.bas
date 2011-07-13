@@ -771,6 +771,8 @@ SUB doloadgame(BYVAL load_slot AS INTEGER)
   END SELECT
  END IF
 
+ party_change_updates
+
 END SUB
 
 SUB displayall()
